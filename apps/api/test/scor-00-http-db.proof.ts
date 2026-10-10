@@ -9,12 +9,24 @@
  * It does not assert score quality or a ScoreCard contract; those belong to
  * SCOR-01..08.  Its narrow invariant is that the retired transport cannot
  * write, reserve, enqueue, report, assess, or mutate an application.
+ *
+ * Stack honesty (G7 sole∩scor-00 · 2026-09-16):
+ *   - Hosted by `run-e2e-isolated` on **pgvector-legacy** (opt-in disposable PG).
+ *   - **R5-MARKED-RED** · ≠ sole-stack capacity · ≠ RAG migrated · ≠ R5 retired.
+ *   - G7 scor nonzero close requires **sole receipts** (`pnpm scor-00:sole-fixture:prove`
+ *     + post-prove dual) — legacy EXIT=0 alone MUST NOT close G7 / claim sole.
+ *   - Job fixture uses createJob + rule classifyJobRoute (route_decided) so
+ *     startApplicationInterview is not conflated with interview_ineligible_route
+ *     fixture debt. MODEL_API_KEY stays deleted (no invent Key).
+ *   - releaseEvidence=false · Not HA · SOLE_WIRING_ALLOWLIST unchanged (scor NOT on list).
  */
 import 'reflect-metadata';
 import { createHash, randomUUID } from 'node:crypto';
 import {
   asPrincipal,
   assertIsolatedTestTarget,
+  classifyJobRoute,
+  createJob,
   createPool,
   inviteCandidate,
   provisionRuntimeLogin,
@@ -38,6 +50,8 @@ async function main() {
     RESUME_ENC_KEY: 'scor-00-http-proof-resume-key',
     RESUME_HASH_SECRET: 'scor-00-http-proof-resume-hash-key',
     PAY_PROVIDER_SECRET: 'scor-00-http-proof-pay-key',
+    // Proof-local HMAC only (createJob→semantic revision). Not MODEL_API_KEY; not production.
+    RAG_JOB_ROUTE_INPUT_HASH_KEY: 'scor-00-http-proof-job-route-input-hmac-key-not-production',
   });
   // This proof is a local database safety boundary.  It must never turn an
   // HTTP negative case into a paid provider request.
@@ -55,7 +69,6 @@ async function main() {
   const candidateEmail = `scor00-candidate-${process.pid}@example.test`;
   const intruderEmail = `scor00-intruder-${process.pid}@example.test`;
   const recruiter = `scor00-recruiter-${process.pid}`;
-  const jobId = `scor00-job-${process.pid}`;
   const ordinaryInterviewId = `scor00-c-${process.pid}`;
   const resumeId = randomUUID();
 
@@ -100,11 +113,30 @@ async function main() {
       "INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind) VALUES ($1,$2,'ingested',$3,'text')",
       [resumeId, candidate.userId, `scor00-resume-${process.pid}`],
     );
-    await asPrincipal(admin, recruiter, (c) => c.query(
-      "INSERT INTO job_posting(id,owner_user_id,title,description,competencies,status) VALUES ($1,$2,'后端工程师','SCOR-00隔离夹具',$3,'open')",
-      [jobId, recruiter, JSON.stringify(['并发控制'])],
-    ));
-    const invitation = await asPrincipal(admin, recruiter, (c) => inviteCandidate(c, recruiter, jobId, candidate.userId));
+    // RAG-FUNNEL-03 / R2 P-START: raw job_posting INSERT skips semantic revision +
+    // route_decided → startApplicationInterview returns interview_ineligible_route.
+    // Seed via createJob + rule classify (0 model calls; MODEL_API_KEY already deleted).
+    const jobFields = {
+      title: 'Node.js 服务端工程师',
+      description: 'SCOR-00隔离夹具 · NestJS 并发控制',
+      competencies: ['nestjs', 'express', '并发控制'],
+    };
+    const createdJob = await asPrincipal(admin, recruiter, (c) => createJob(c, recruiter, jobFields));
+    const jobIdResolved = createdJob.id;
+    const revRow = await admin.query(
+      'SELECT revision FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision DESC LIMIT 1',
+      [jobIdResolved],
+    );
+    const revision = Number(revRow.rows[0]?.revision ?? 0);
+    if (!revision) throw new Error('scor00_job_revision_missing');
+    const classified = await classifyJobRoute(admin, recruiter, jobIdResolved, revision, {
+      modelClassify: async () => { throw new Error('scor00_rule_path_must_not_call_model'); },
+    });
+    if (classified.status !== 'route_decided' || classified.attemptOutcome !== 'rule_decided') {
+      throw new Error(`scor00_job_route_not_decided:${classified.status}:${classified.attemptOutcome ?? ''}`);
+    }
+    console.log('[G7-SCOR00-PG-FIXTURE] R5-MARKED-RED · pgvector-legacy opt-in · ≠ sole capacity · ≠ R5 retired · legacy EXIT≠G7 close alone');
+    const invitation = await asPrincipal(admin, recruiter, (c) => inviteCandidate(c, recruiter, jobIdResolved, candidate.userId));
     if (!invitation) throw new Error('scor00_invitation_missing');
     const started = await asPrincipal(admin, candidate.userId, (c) => startApplicationInterview(c, candidate.userId, invitation.applicationId, resumeId));
     if (started.status !== 'started') throw new Error(`scor00_application_start_failed:${started.status}`);

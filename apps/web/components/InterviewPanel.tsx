@@ -5,6 +5,7 @@
  * 自适应引擎做追问(同能力=追问 probe、换能力=pivot);面板把它呈现出来。无死胡同由 view-model 保证。
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Loader2, Mic, Send, Square, CornerDownRight, Sparkle } from 'lucide-react';
 import { toast } from 'sonner';
 import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
@@ -73,6 +74,11 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [voiceCaptureConsented, setVoiceCaptureConsented] = useState(false);
   const [voiceConsentPrompt, setVoiceConsentPrompt] = useState(false);
+  // UC-E2E-018 §1b #5 · GAP-UC018-UI：面试中「放弃」→ 同 HTTP abandon 合同（abandoned+released · irreversible）
+  const [confirmAbandon, setConfirmAbandon] = useState(false);
+  const [abandoning, setAbandoning] = useState(false);
+  const [abandoned, setAbandoned] = useState(false);
+  const router = useRouter();
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const endRef = useRef<HTMLDivElement>(null);
@@ -209,10 +215,98 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
     }
   }
 
+  async function abandonInterview() {
+    if (abandoning || abandoned) return;
+    setAbandoning(true);
+    try {
+      const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/abandon`, { method: 'POST' });
+      const body = await res.json().catch(() => ({} as Record<string, unknown>));
+      if (!res.ok || body.abandoned !== true) {
+        toast.error(typeof body?.error === 'string' ? body.error : '放弃失败，请重试');
+        return;
+      }
+      setAbandoned(true);
+      setConfirmAbandon(false);
+      const released = body.released === 'released' ? '额度已退回' : '已结束（无预留额度）';
+      toast.success(body.alreadyAbandoned ? `本场已放弃（幂等）· ${released}` : `已放弃本场面试 · ${released}`);
+      router.push('/interviews');
+      router.refresh();
+    } catch {
+      toast.error('放弃失败，请重试');
+    } finally {
+      setAbandoning(false);
+    }
+  }
+
+  const abandonChrome = !abandoned && (
+    <div className="space-y-2" data-testid="uc018-abandon-chrome">
+      {!confirmAbandon ? (
+        <div className="flex justify-end">
+          {!confirmAbandon && (
+            <button
+              type="button"
+              data-testid="uc018-abandon-trigger"
+              onClick={() => setConfirmAbandon(true)}
+              disabled={abandoning}
+              className="inline-flex items-center rounded-lg border border-destructive/40 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+            >
+              放弃
+            </button>
+          )}
+        </div>
+      ) : (
+        <div
+          role="dialog"
+          aria-labelledby="uc018-abandon-title"
+          data-testid="uc018-abandon-confirm"
+          className="rounded-lg border border-destructive/40 bg-destructive/5 p-3 text-sm"
+        >
+          <p id="uc018-abandon-title" className="font-medium text-destructive">确认放弃本场面试？</p>
+          <p className="mt-1 text-xs text-muted-foreground">放弃后不可继续作答、不可 resume；已预留额度将按合同退回（与 HTTP abandon 同终态）。</p>
+          <div className="mt-3 flex gap-2">
+            <button
+              type="button"
+              data-testid="uc018-abandon-confirm-yes"
+              onClick={() => void abandonInterview()}
+              disabled={abandoning}
+              className="inline-flex items-center rounded-lg bg-destructive px-3 py-1.5 text-xs font-medium text-destructive-foreground hover:bg-destructive/90 disabled:opacity-50"
+            >
+              {abandoning ? '放弃中…' : '确认放弃'}
+            </button>
+            <button
+              type="button"
+              data-testid="uc018-abandon-confirm-no"
+              onClick={() => setConfirmAbandon(false)}
+              disabled={abandoning}
+              className="inline-flex items-center rounded-lg border px-3 py-1.5 text-xs hover:border-primary disabled:opacity-50"
+            >
+              继续面试
+            </button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+
+  if (abandoned) {
+    return (
+      <div className="mx-auto max-w-2xl space-y-4" data-testid="uc018-abandoned">
+        <section className="rounded-lg border bg-card p-6 text-sm">
+          <p className="font-medium">本场面试已放弃</p>
+          <p className="mt-1 text-muted-foreground">终态不可 resume；可返回列表开启新场。</p>
+          <button type="button" onClick={() => router.push('/interviews')} className="mt-3 inline-block font-medium underline underline-offset-4">
+            返回我的面试
+          </button>
+        </section>
+      </div>
+    );
+  }
+
   // 单人语音模式:同一条 useInterviewStream 驱动,语音「说→听→转写→提交→下一题」连续进行。
   if (mode === 'voice') {
     return (
-      <div className="mx-auto max-w-2xl">
+      <div className="mx-auto max-w-2xl space-y-3">
+        {abandonChrome}
         <VoiceCallPanel resultId={resultId} view={view} display={display} onSwitchToText={() => setMode('text')} />
       </div>
     );
@@ -230,6 +324,15 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           >
             <Mic className="size-3.5" />语音模式
           </button>
+          <button
+            type="button"
+            data-testid="uc018-abandon-trigger"
+            onClick={() => setConfirmAbandon(true)}
+            disabled={abandoning}
+            className="inline-flex items-center rounded-lg border border-destructive/40 px-2.5 py-1 text-xs font-medium text-destructive hover:bg-destructive/10 disabled:opacity-50"
+          >
+            放弃
+          </button>
           <span className="rounded-md border px-1.5 py-0.5 text-[10px] text-muted-foreground">预览版</span>
           <span className="inline-flex items-center gap-1.5 text-xs text-muted-foreground">
             <span className={`size-1.5 rounded-full ${view.connection === 'live' ? 'animate-pulse bg-primary' : 'bg-muted-foreground'}`} />
@@ -237,6 +340,8 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           </span>
         </div>
       </header>
+
+      {confirmAbandon && abandonChrome}
 
       {/* 对话历史 */}
       <div className="space-y-4">

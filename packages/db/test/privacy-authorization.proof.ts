@@ -407,6 +407,12 @@ async function main() {
     f1Purged.rows[0]?.status === 'erased' && f1Purged.rows[0]?.request_status === 'pending_external');
   const f1Target = await admin.query<{ status: string }>('SELECT status FROM privacy_deletion_target WHERE id=$1', [tgtLocal]);
   A('F1: 本地 target 已 erased(未因 guard 回滚)', f1Target.rows[0]?.status === 'erased');
+  // Line AR 0140 N2: resolve on oss/redis/langfuse requires verified vendor evidence (Ban wash attestation).
+  // F1 still proves pending→confirmed→completed; evidence here is local_isolated_stub only (≠ cloud wipe · :64 OPEN).
+  await asPrivacyWorkerPrincipal(admin, owner, (c) => c.query(
+    `SELECT privacy_record_vendor_purge_evidence($1::uuid,$2,$3,$4,true,$5)`,
+    [tgtExt, 'oss_delete_list_empty_local_stub', 'f'.repeat(64), 'deleteObject+listEmpty', worker],
+  ));
   const f1Resolved = await asPrivacyWorkerPrincipal(admin, owner, (c) => resolveDeletionReceipt(c, tgtExt, worker));
   A('F1: resolve external_pending→external_confirmed 并推进 completed',
     f1Resolved.receiptKind === 'external_confirmed' && f1Resolved.requestStatus === 'completed');
@@ -458,9 +464,14 @@ async function main() {
   const ivLease = '00000000-0000-4000-8000-0000000000f3';
   const reqLease = '00000000-0000-4000-8000-0000000000f4';
   const tgtLease = '00000000-0000-4000-8000-0000000000f5';
+  const tgtLeaseOss = '00000000-0000-4000-8000-0000000000f6';
+  const tgtLeaseRedis = '00000000-0000-4000-8000-0000000000f7';
   await insertInterview(owner, ivLease);
+  // Digest/JWS 与 live target 集必须同构（T()=3 sinks）；只插 1 行会在 claim 误报 target_drift，掩盖租约接管契约。
   await insertRequest(reqLease, owner, ivLease, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtLease, reqLease, 'checkpoint_rows', R1);
+  await insertTarget(tgtLeaseOss, reqLease, 'oss', R2);
+  await insertTarget(tgtLeaseRedis, reqLease, 'redis', R3);
   const signedLease = await issueSigned(owner, ivLease, 3, T());
   await consume(signedLease.jti);
   const firstLease = await claimAs(owner, signedLease.jti, tgtLease, `${worker}-a`);

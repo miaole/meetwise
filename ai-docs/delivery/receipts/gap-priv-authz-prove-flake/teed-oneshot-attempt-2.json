@@ -1,0 +1,16 @@
+{
+  "attempt": 2,
+  "command": "pnpm privacy-authorization:prove",
+  "proveSha": "6673042f8bcdc29cf6f10f99d0aa6a3c95e5a53b",
+  "exit": 0,
+  "processExitLine": "PROCESS_EXIT=0",
+  "teeFromStart": true,
+  "attempt1FilesUntouched": true,
+  "gapStatus": "OPEN",
+  "cause": "unknown",
+  "mitigation": "mitigated/cause-unknown",
+  "notClosed": true,
+  "notRootCaused": true,
+  "oneGreenIsNotAClose": true,
+  "retryToGreenBanned": true
+}

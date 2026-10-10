@@ -5,6 +5,7 @@ import { InterviewService } from './interview.service';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { PublicPreviewControlledWriteGuard } from '../../platform/preview-controlled-write.guard';
 import { RateLimitService } from '../../platform/rate-limit.service';
+import { pumpSseEvents } from '../../platform/sse-pump';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 
 /**
@@ -17,10 +18,12 @@ export class InterviewController {
   constructor(private readonly interviews: InterviewService, private readonly rl: RateLimitService) {}
 
   // 开始面试:扣额度 + 入队 start job(长编排在 worker 跑,api 薄)。202 已受理。
+  // 可选 header quiz-id 携带源押题工件(GAP-UC025-NEG-01 真接线):真收真透传,由 service owner-scoped 消费;
+  // 不带 quiz-id → 与今日行为完全一致(简历直启,不强制 quiz,不做 widen)。
   @Post(':id/begin')
   @HttpCode(202)
-  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string) {
-    return this.interviews.begin(req.principal, id, resumeId, req.reqId);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
+  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string, @Headers('quiz-id') quizId?: string) {
+    return this.interviews.begin(req.principal, id, resumeId, req.reqId, quizId);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分),202。text 答案;音频先 ASR 转写再走此端点。
@@ -243,8 +246,9 @@ export class InterviewController {
     return this.interviews.answer(req.principal, id, key);
   }
 
-  // SSE:取数在 service,原始流写入(hijack/reply.raw)是 Fastify 紧耦合胶水,留在 controller。
-  // 修审计 F5:不再"重放即关",改 catch-up → **hold 连接轮询 tail 新事件**到终态/断开/封顶,带心跳保活(无死胡同)。
+  // SSE:取数在 service,原始流写入(hijack/reply.raw)是 Fastify 紧耦合胶水,经 platform/sse-pump 单源化(B5 四件套去重)。
+  // SSE-PUSH Opt1:通道健康(LISTEN 在位+0143 trigger 在场)=notify 精确推送+30s 兜底,无事件零 SQL;退化=legacy 2s 轮询 fail-open。
+  // 修审计 F5 语义原值:catch-up → hold tail 到终态/断开/封顶,心跳保活,Last-Event-ID 续推语义零改。
   @Get(':id/events')
   async events(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply, @Headers('last-event-id') lastEventId: string) {
     const initial = await this.interviews.events(req.principal, id, lastEventId);
@@ -253,33 +257,16 @@ export class InterviewController {
     const slotKey = `sse:${req.principal}`;
     if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
     try {
-    reply.hijack();                                   // Fastify:接管底层响应做 SSE
-    reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
-    let closed = false;
-    req.raw.on('close', () => { closed = true; });    // 客户端断开
-    const safeWrite = (s: string) => { try { reply.raw.write(s); return true; } catch { closed = true; return false; } };
-    // session_concluded 是练习控制流预览，故意不在终态集合，前端须继续等 report_* / assessment_*。
-    const isTerminal = (k: string) => k === 'report_ready' || k === 'report_unavailable' || k === 'assessment_unavailable' || k === 'interview_unavailable' || k === 'error';
-    let lastSeq = initial.lastId;
-    let done = false;
-    const emit = (list: Array<{ seq: number; kind: string; payload: unknown }>) => {
-      for (const e of list) {
-        if (!safeWrite(`id: ${e.seq}\nevent: ${e.kind}\ndata: ${JSON.stringify(e.payload)}\n\n`)) return;
-        lastSeq = Math.max(lastSeq, e.seq);
-        if (isTerminal(e.kind)) done = true;
-      }
-    };
-    emit(initial.rows);                                // 1. 重放 catch-up
-    const deadline = Date.now() + 10 * 60_000;         // 封顶 10min(防僵尸连接;客户端凭 Last-Event-ID 重连续推)
-    while (!done && !closed && Date.now() < deadline) {  // 2. hold + 轮询 tail
-      await new Promise((r) => setTimeout(r, 2000));
-      if (closed) break;
-      const more = await this.interviews.events(req.principal, id, String(lastSeq)).catch(() => null);
-      if (more === null) break;                         // 取数失败 → 收尾(客户端会重连)
-      if (more.rows.length) emit(more.rows);
-      else if (!safeWrite(': ping\n\n')) break;         // 心跳保活 + 写失败即知断开
-    }
-    if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }
+      // session_concluded 是练习控制流预览，故意不在终态集合，前端须继续等 report_* / assessment_*。(终态集合原值参数化,零合并)
+      const isTerminal = (k: string) => k === 'report_ready' || k === 'report_unavailable' || k === 'assessment_unavailable' || k === 'interview_unavailable' || k === 'error';
+      await pumpSseEvents({
+        reply,
+        reqRaw: req.raw,
+        streamKey: id,
+        initial,
+        fetchMore: (lastSeq) => this.interviews.events(req.principal, id, String(lastSeq)),
+        isTerminal,
+      });
     } finally { this.rl.releaseSlot(slotKey); }        // 释放并发槽(所有退出路径:断开/终态/超时)
   }
 }

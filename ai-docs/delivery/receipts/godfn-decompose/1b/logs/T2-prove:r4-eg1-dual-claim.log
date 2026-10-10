@@ -1,0 +1,40 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg1-dual-claim /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg1-dual-claim-evidence.proof.ts
+
+EG1 dual-claim evidence prove — MetadataReviewReceipt / RAG-FUNNEL-01
+EXIT=0 = evidence emitted · ≠ EG1/G-R4-5/R4/题域 closed · Ban forge · releaseEvidence=false
+
+──────── E0 anchors present ────────
+PASS  E0 emitter wired
+PASS  E0 harness present
+PASS  E0 harness pins Ban forge dual-claim + Ban idle 5×meta
+
+──────── E1 live classifiers (MS1+MS2+MS3 → 01A ≡ 01) ────────
+PASS  E1 MS1 routedServingWired
+PASS  E1 MS2 fullFacetsServed
+PASS  E1 MS3 standardDeployHandoff
+PASS  E1 isRagFunnel01Closed
+PASS  E1 isProductFunnel01Closed
+PASS  E1 is01ANotEqual01=false (gap closed at product surfaces)
+PASS  E1 isProduct01ANotEqual01=false
+
+──────── E2 emit dual-claim evidence (Ban forge) ────────
+PASS  E2 emitted=true
+PASS  E2 kind
+PASS  E2 gap01AEquals01=true
+PASS  E2 is01ANotEqual01=false
+PASS  E2 gR45DualClaimClosed=false (Ban假关)
+PASS  E2 r4ProductClosed=false
+PASS  E2 domainIsolationClosed=false
+PASS  E2 releaseEvidence=false
+PASS  E2 receipt written
+PASS  E2 receipt roundtrip kind
+PASS  E2 receipt roundtrip gap01AEquals01
+
+──────── E3 hard pins ────────
+PASS  E3 ≠ claim EG1 closed from emit alone
+PASS  E3 ≠ idle 5×meta as close
+PASS  E3 Ban forge · Ban G-R4-5/R4/题域 closed
+
+OK  r4-eg1-dual-claim-evidence prove (EG1 evidence emitted; ≠ EG1/G-R4-5/R4/题域 closed; releaseEvidence=false)

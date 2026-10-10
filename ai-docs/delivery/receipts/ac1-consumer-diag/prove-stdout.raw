@@ -1,0 +1,13 @@
+
+> @meetwise/worker@0.0.0 prove:adaptive-consumer /Users/miaole/Desktop/golucky/meetwise-line-ac1/apps/worker
+> tsx test/adaptive-consumer.proof.ts
+
+PASS  消费者使用已 provision 的低权 runtime login（运行时登录）
+PASS  双 worker 同一 graph:第二个拿不到 fence(无并发 resume)
+PASS  首 worker 释放后正常完成 fence callback
+FAIL  消费 start job → 自适应路径(返回 start)
+PASS  正常 v64 start 只读画像授权门、不解密简历原文
+FAIL  start 后发首题 question_ready(经队列→消费者→自适应图)
+FAIL  低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam
+FAIL  深检索正文以不可信信封进入出题 prompt，系统明确禁止执行来源指令
+ ELIFECYCLE  Command failed with exit code 1.

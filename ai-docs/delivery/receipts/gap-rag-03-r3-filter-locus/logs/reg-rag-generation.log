@@ -1,0 +1,62 @@
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 rag-generation:prove /workspace/meetwise-wt-an-rag-r3
+> node scripts/run-e2e-isolated.mjs rag-generation:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1327109-1791292513451 on 127.0.0.1:32961
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-wt-an-rag-r3/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=138 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:qbank-generation /workspace/meetwise-wt-an-rag-r3/apps/worker
+> tsx test/qbank-generation.proof.ts
+
+PASS  one interview question persists as a business entity with four role-labelled RAG chunks
+PASS  new artifact assigns its reviewed leaf metadata to every cut and freezes the same tuple into its immutable receipt
+PASS  released taxonomy v1 seals its complete canonical tree and refuses a post-release leaf insertion
+PASS  unknown taxonomy and non-leaf parent are rejected before any source/pool/chunk write
+PASS  published question receipt and role mapping reject raw-SQL in-place mutation
+PASS  published metadata cannot move to a sibling leaf and a forged raw chunk-scope receipt is rejected
+PASS  runtime app_role plus a forged principal GUC has neither raw taxonomy read nor write authority
+PASS  title-only / no-rubric question artifact is rejected before any RAG write
+PASS  generation mode persists approved reconstructible facts, not legacy qbank vectors
+PASS  two artifacts cannot publish a divergent body under the same ref/scope; conflict writes zero facts
+PASS  a shared immutable raw cut keeps two independently reviewed artifact projections; no scope is last-wins
+PASS  20 concurrent identical imports converge to exactly one source/pool/chunk chain and one visible epoch bump
+PASS  raw-SQL pool entry with source/body hash mismatch is rejected before it can enter a generation
+PASS  数据库重算 UTF-8 正文摘要；控制面原始 SQL 不能把任意正文挂到已批准 source/pool
+PASS  first immutable full generation validates then activates
+PASS  frozen generation projects one row per (ref, reviewed leaf); shared cut expands but single-scope cut does not
+PASS  canonical projection carries reviewed metadata for every row and its immutable receipt is byte-stable
+PASS  track-local projection filter never leaks another leaf chunk or its question attachment
+PASS  provider-input recipe is scope-homogeneous, byte-stable and fail-closed on every malformed field; empty parts is a valid no-context state
+PASS  default qbank retrieval policy is dense and returns an active approved hit
+PASS  prompt evidence is bounded source text rechecked against active approved generation, not ref_id-only grounding
+PASS  控制执行器无 pool/chunk 原地写权；即使表所有者形状绕过角色授权也会被不可变触发器拒绝
+PASS  活动 generation 的正文、证据与可见 epoch 在所有原地替换攻击后字节级保持不变
+PASS  a hit on one rubric expands to the complete prompt/rubric/follow-up/anti-pattern question package
+PASS  recipe mismatch fail-closed; old vector space is never searched
+PASS  generation-aware cache has normal miss then hit
+PASS  new approved question is absent from the old immutable generation before rebuild
+PASS  same recipe plus changed approved-source epoch creates and activates a fresh generation
+PASS  new approved artifact becomes retrievable only after its fresh generation is active
+PASS  different recipe creates G2 and atomically retires the current generation
+PASS  直接 SQL 不能复活 retired generation，超大 k/refs 在数据库内封顶
+PASS  active generation flip invalidates cache epoch; new recipe cannot reuse G1 cache
+PASS  cache request carrying retired recipe fails closed after G2 activation
+PASS  rollback is a pointer flip (no re-embed), only when source epoch is unchanged
+PASS  revoking any mapped optional part suppresses the entire artifact, not only required scoring parts
+PASS  revoking one required rubric suppresses the complete question artifact rather than returning a partial scoring prompt
+PASS  pending-source flood causes zero visible-corpus cache epoch bumps
+PASS  revoke hides all retained-generation rows, bumps exactly once, and cannot return from hybrid
+PASS  legacy qbank vector without reconstructible approved text blocks a new generation instead of guessing a re-embed
+
+✓ qbank generation: immutable recipe / atomic activation / rollback / retrieval policy / revoke / cache-DoS proof passed
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T13-15-25-644Z-1327109-4a59f278-b483-4786-8dc6-5bb9f309a419.json release_evidence=false

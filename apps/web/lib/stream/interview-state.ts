@@ -7,6 +7,7 @@ import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import type { BusinessEvent, QuestionKind } from './business-events';
 import type { QuestionIdentity } from '../interview/turn-submission';
 import { practiceHintScore } from './scoring-honesty';
+import { applyGenerationProgress, type GenerationProgressView } from './generation-progress';
 
 // 单一真相:所有 phase 列在此,类型从它派生(防止"加了 phase 但测试/类型漏掉"——见 web:prove 遍历 ALL_PHASES)。
 export const ALL_PHASES = ['connecting', 'question', 'waiting_user', 'answered', 'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error'] as const;
@@ -44,6 +45,12 @@ export interface InterviewView {
    * INT-LEVEL-SIGNAL-SSE-01 练习控制流收尾理由。只来自 session_concluded，不是分数、不是 phase、不是终态。
    */
   signalConcludeReason?: InterviewSignalConcludeReason;
+  /** assessment_unavailable 事件的 reason 原样承载（'evaluation_unscored' | 'no_eligible_scored_answer' | 未知值）：
+   *  同一 kind 两种钱面（释放补偿 vs 已扣费），view-model 按 reason 分臂渲染，未知值 fail-closed 中性、不冒认资金变动。 */
+  assessmentUnavailableReason?: string;
+  /** TOKSTREAM 阶段1 生成进度态：非权威、非终态；幂等覆盖写（同 attempt 取 max）；任何业务事件到达即清
+   *  （断线重放防"已完成题重新显示生成中"）。进度帧不改 phase/不触发 degraded——缺帧回段级兜底,不死等。 */
+  generationProgress?: GenerationProgressView;
 }
 
 export const initialView: InterviewView = { phase: 'connecting', degraded: false, connection: 'live', lastEventId: 0, turns: [] };
@@ -63,6 +70,10 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
   const next: InterviewView = { ...v, turns, connection: 'live' };
   for (const e of events) {
     next.lastEventId = Math.max(next.lastEventId, e.id);
+    // TOKSTREAM:业务事件(非进度家族)到达即清进度态——权威事件推进了流程,重放的旧进度不得把已完成段重新显示"生成中"。
+    if (e.event !== 'generation_started' && e.event !== 'model_first_token' && e.event !== 'generation_progress') {
+      next.generationProgress = undefined;
+    }
     switch (e.event) {
     case 'question_ready': {
       const competency = (e.data as any).competency as string | undefined;
@@ -119,10 +130,16 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
       break;
     }
     case 'report_unavailable': next.phase = 'report_unavailable'; next.degraded = true; break; // 优雅降级
-    case 'assessment_unavailable': next.phase = 'assessment_unavailable'; next.degraded = true; break; // 无可信评分且已释放预留
+    case 'assessment_unavailable': next.phase = 'assessment_unavailable'; next.degraded = true; next.assessmentUnavailableReason = e.data.reason; break; // 无可信评分：文案按 reason 分臂（evaluation_unscored=已释放补偿 / no_eligible_scored_answer=已扣费且本次不生成报告）——「已释放」字样只在释放臂为真
     case 'interview_unavailable': next.phase = 'interview_unavailable'; next.degraded = true; break; // 面试 job 失败终态 → 降级,不死等
     case 'error': next.phase = 'error'; break;
     case 'progress': break;                                  // 仅进度,不改阶段
+    // TOKSTREAM 阶段1:生成进度帧只更新进度态(幂等覆盖写),绝不改 phase/lastScore/report(不发明分也不挪阶段)。
+    case 'generation_started':
+    case 'model_first_token':
+    case 'generation_progress':
+      next.generationProgress = applyGenerationProgress(next.generationProgress, e);
+      break;
     case 'session_concluded': {
       // 非终态：只记控制流理由。不得改 phase / lastScore / report（不发明分）。
       next.signalConcludeReason = e.data.concludeReason;

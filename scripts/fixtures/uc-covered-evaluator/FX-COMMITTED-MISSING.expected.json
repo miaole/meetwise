@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "UNCOMMITTED-RUNNER"
+  ],
+  "failColumn": "NEG"
+}

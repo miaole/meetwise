@@ -58,10 +58,16 @@ async function main() {
     A('候选人可通过真实 API 注册并取得 Bearer 令牌', signup.status === 200 && typeof signupBody.token === 'string' && typeof signupBody.userId === 'string');
     if (!signupBody.token || !signupBody.userId) throw new Error('privacy_http_signup_failed');
 
-    const retiredResumeDelete = await fetch(`${base}/privacy/resume-data`, {
+    // UNSTUB-ERASE rev2：resume-data 全量删除 = S1 软删受理（202 软删受理 · mode=logical ·
+    // purge_pending=true）。空集（此处尚无简历）→ resumesFenced:0 同形；不伪报物理擦除。
+    const resumeSoftDelete = await fetch(`${base}/privacy/resume-data`, {
       method: 'DELETE', headers: { authorization: `Bearer ${signupBody.token}` },
     });
-    A('旧的全量同步简历删除入口 fail-closed，绝不伪报已擦除', retiredResumeDelete.status === 503 && (await json(retiredResumeDelete)).error === 'resume_erasure_migration_in_progress');
+    const resumeSoftDeleteBody = await json(resumeSoftDelete);
+    A('全量简历删除入口 S1 软删受理：202+mode=logical+purgePending=true（空集 resumesFenced=0 同形，不伪报已擦除）',
+      resumeSoftDelete.status === 202 && resumeSoftDeleteBody.mode === 'logical'
+      && resumeSoftDeleteBody.purgePending === true && resumeSoftDeleteBody.resumesFenced === 0
+      && resumeSoftDeleteBody.requestId === null);
 
     await admin.query(
       "INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'active',0,0,'[]'::jsonb)",
@@ -240,9 +246,11 @@ async function main() {
       fencedTurn.status === 410 && (await json(fencedTurn)).error === 'interview_privacy_fenced'
       && Number(fencedJobs.rows[0]?.count) === 0);
 
-    // Public delete stays 503 until composition-root abuse proofs exist.
-    // The dormant 202 harness below must not run: issuer foundation is local
-    // only and must not be mistaken for a reopened destructive HTTP path.
+    // UNSTUB-ERASE rev2 (D6 minimum set): the public interview-data DELETE stays
+    // 503-closed (seat-1 audit ruling); resume/account deletion went live in the
+    // same knife.  The dormant 202 harness below must not run: issuer
+    // composition roots are still absent and a dormant block must never be
+    // mistaken for a reopened destructive HTTP path.
     if (paused.status === 503) return;
 
     const missingKey = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
@@ -287,11 +295,12 @@ async function main() {
     // privacy fence.
     const beforeEscapes = await admin.query(`
       SELECT
-        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        -- DBHY-1(0145):consumption_record 死表退役;改查幂等真身 entitlement_consumption(按 owner 计·真表无 interview_id 列)
+        (SELECT count(*)::int FROM entitlement_consumption WHERE owner_user_id=$2) AS consumption_count,
         (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
         (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
         (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
-    `, [interviewId]);
+    `, [interviewId, signupBody.userId]);
     const [feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript, assessment, getAssessment, createLearningPlan, getLearningPlan, completeLearningItem, createCareerPath, getCareerPath, begin, abandon, interview, sse, list] = await Promise.all([
       fetch(`${base}/interview/${interviewId}/questions/0/feedback`, {
         method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ rating: 'up' }),
@@ -331,11 +340,12 @@ async function main() {
     ]);
     const afterEscapes = await admin.query(`
       SELECT
-        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        -- DBHY-1(0145):consumption_record 死表退役;改查幂等真身 entitlement_consumption(按 owner 计·真表无 interview_id 列)
+        (SELECT count(*)::int FROM entitlement_consumption WHERE owner_user_id=$2) AS consumption_count,
         (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
         (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
         (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
-    `, [interviewId]);
+    `, [interviewId, signupBody.userId]);
     const listBody = await json(list);
     const fencedEndpoints = [
       feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript,
@@ -347,21 +357,25 @@ async function main() {
       && Array.isArray(listBody.interviews) && !listBody.interviews.some((row: any) => row.id === interviewId)
       && JSON.stringify(beforeEscapes.rows[0]) === JSON.stringify(afterEscapes.rows[0]));
 
+    // Dormant ledger shape (UNSTUB-ERASE rev2 R1): if the public interview DELETE
+    // is ever reopened it goes through the 0096 projection flow — exactly one
+    // request whose target set is the four-sink projection shape (event /
+    // ai_graph_run / report + the checkpoint_rows fence anchor), never a
+    // physical-completion claim.
     const ledger = await admin.query<{
-      request_count: number; target_count: number; checkpoint_targets: number; queue_targets: number; external_targets: number; raw_key_rows: number;
+      request_count: number; target_count: number; projection_targets: number; fence_anchors: number; raw_key_rows: number;
     }>(`
       SELECT
         (SELECT count(*)::int FROM privacy_erasure_request r WHERE r.id=$1) AS request_count,
         (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1) AS target_count,
-        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='checkpoint_rows' AND t.status='pending') AS checkpoint_targets,
-        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='interview_job_payload' AND t.status='erased') AS queue_targets,
-        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink IN ('oss','redis','langfuse') AND t.status='retention_pending') AS external_targets,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink IN ('event','ai_graph_run','report') AND t.status='pending') AS projection_targets,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='checkpoint_rows' AND t.status='erased') AS fence_anchors,
         (SELECT count(*)::int FROM privacy_erasure_request r WHERE r.id=$1 AND r.idempotency_key_hash=$2) AS raw_key_rows
     `, [acceptedBody.requestId, idempotencyKey]);
     const row = ledger.rows[0];
-    A('一个 request 精确建立五个按数据面拆分的删除 target（含已清空的队列载荷）',
-      row?.request_count === 1 && row?.target_count === 5 && row?.checkpoint_targets === 1
-      && row?.queue_targets === 1 && row?.external_targets === 3);
+    A('一个 request 精确建立四个投影 target（event/ai_graph_run/report 三个 pending + checkpoint_rows fence 锚）',
+      row?.request_count === 1 && row?.target_count === 4 && row?.projection_targets === 3
+      && row?.fence_anchors === 1);
     A('原始 Idempotency-Key 从不写入删除账本', row?.raw_key_rows === 0);
   } finally {
     await app.close();

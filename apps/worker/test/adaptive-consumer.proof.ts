@@ -2,9 +2,12 @@
  *  注入 fake 检索(生产注 annSearch);脚本模型。 pnpm adaptive-consumer:prove（根脚本使用临时 pgvector cluster） */
 process.env.RESUME_ENC_KEY = 'test-resume-enc-key';
 process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
+// 测试专用 job-route 输入 HMAC key(同 adaptive-lifecycle.proof 先例;runner 隔离面按设计剥除生产 key,
+// createJob→createJobSemanticRevision 的生产链在夹具内需要同形 key 才能落 0104 语义修订行)。
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-consumer-job-route-input-hmac-proof-key-not-production-01';
 import { MemorySaver } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence } from '@meetwise/db';
+import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute, createJob, classifyJobRoute, bindApplicationRoute, snapshotInterviewRoute } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
 import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
@@ -17,13 +20,13 @@ let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' :
 let stage = 'BOOT';
 const OWNER = 'consA', IID = 'cons-' + Date.now();
 let askSeq = 0;
-const scripted = scriptedModelClient({
-  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
+  const scripted = scriptedModelClient({
+  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
   'interviewer.ask': () => ({
     ok: true,
     raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['https://allow.example/deep'] },
   }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'below', quote: '滑动窗口' }] } }),
 });
 const askRequests: Array<{ system: string; userData: string; rag?: string }> = [];
 let modelCalls = 0;
@@ -53,8 +56,10 @@ async function main() {
   // `sql/` 影子 schema，否则最新的跨域约束会在测试中悄然缺席。
   stage = 'ENTITLEMENT_SETUP';
   await admin.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [OWNER]);
-  // 不带“经历/技能”分段的受控样本令第一题确定性降为 fundamental，
-  // 从而真实经过低置信 CRAG→deep research 分支；来源关联仍只由 typed resume_id 承担。
+  // 受控样本(RESUME-GROUNDING #191 修后:无标题简历正文行确定性归 experience facts)→ 首题 grounded;
+  // consent 缺省(本 proof 不插 interview_personalization 行)→ grounded 走既有固定模板,首 ask 移到首答后的
+  // fundamental 追问(评分 30 压低 confidence → depthProbed=1 → pickKind 奇数位 fundamental),低置信
+  // CRAG→deep research 分支断言随迁到首答后,本体语义(真实 consumer→graph 路径)零弱化。
   const resumeText = '合成样本：围绕 Redis、限流与分布式锁回答技术问题。';
   const up = await asPrincipal(pool, OWNER, async (c) => {
     stage = 'RESUME_CREATE';
@@ -71,6 +76,41 @@ async function main() {
   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [IID, OWNER, up.resumeId, resumeEpoch]);
   const FENCE_RACE = 'FENCE-RACE';
   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [FENCE_RACE, OWNER, up.resumeId, resumeEpoch]);
+  stage = 'ROUTE_SNAPSHOT_SUPPLY';
+  // 0142 生产同源供给面（AC-FIX A 路线，沿 neg-interview 先例 FK 序 decision→snapshot）：
+  // 生产 begin 在扣额/入队前同事务内经 supplyCandidateProfileRoute 以候选人本人简历 rule
+  // 派生唯一叶，落 candidate_profile_route_decision(route_outcome='route_decided',
+  // attempt_outcome='rule_decided') + candidate_profile_route_snapshot——非伪造 0104 job
+  // 维度行（0142 Ban masking）、非 MEETWISE_TECH_ROLE_FAIL_CLOSED opt-out。本 fixture 简历
+  // （Redis/限流/分布式锁）恰命中 backend/general 唯一叶，角色门在 fail-closed 默认 ON 态
+  // 从该 snapshot 取 role（deps 注入在 ON 态结构性不足过门）。
+  const routeSupply = await asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, IID, up.resumeId));
+  A('fixture 经生产同链供给 route snapshot(0142 decision+snapshot 幂等供给)', routeSupply.status === 'supplied');
+  // G-R2-5 检索面(0104 招聘流程链,沿 adaptive-lifecycle proof 同款生产写手链):consumer 的
+  // localRetrieve scope 门直读旧表 interview_route_snapshot(candidate 面快照按设计不喂检索面),
+  // 缺行 → localRetrieve 被 degraded('route_snapshot_missing') 包裹 → CRAG deny_external → 零
+  // deepResearch/零信封(:123/:124 断言面)。生产同链补全:createJob → classifyJobRoute(rule 零
+  // 模型) → bindApplicationRoute(apply 面) → snapshotInterviewRoute。
+  stage = 'RECRUITER_ROUTE_CHAIN_SUPPLY';
+  const RECRUITER = OWNER + '-recruiter';
+  const routeJob = await asPrincipal(pool, RECRUITER, (c) => createJob(c, RECRUITER, {
+    title: 'Node.js 服务端工程师',
+    description: '使用 NestJS 构建服务',
+    competencies: ['nestjs', 'express', 'koa'],
+  }));
+  const routeRev = Number((await admin.query(
+    'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [routeJob.id],
+  )).rows[0].n);
+  const routeClassify = await classifyJobRoute(pool, RECRUITER, routeJob.id, routeRev, {
+    modelClassify: async () => { throw new Error('fixture job must rule-decide; model path unexpected'); },
+  });
+  const routeApplicationId = 'consA-app-' + IID;
+  const routeBound = await asPrincipal(pool, OWNER, (c) => bindApplicationRoute(c, {
+    candidateUserId: OWNER, recruiterUserId: RECRUITER, jobId: routeJob.id, applicationId: routeApplicationId, emitConsumptionEvent: true,
+  }));
+  const routeSnapped = await asPrincipal(pool, OWNER, (c) => snapshotInterviewRoute(c, OWNER, IID, routeApplicationId));
+  A('fixture 经生产链补全 0104 招聘流程 route 链(rule_decided+binding+snapshot)',
+    routeClassify.status === 'route_decided' && routeBound.status === 'bound' && routeSnapped.status === 'snapshotted');
   stage = 'RESERVATION_SETUP';
   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));   // reserve 前(预留即扣 available)
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));
@@ -120,19 +160,32 @@ async function main() {
   A('正常 v64 start 只读画像授权门、不解密简历原文', resumeDecryptions === 0);
   let qr = await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='question_ready'", [IID]));
   A('start 后发首题 question_ready(经队列→消费者→自适应图)', qr.rows[0].n >= 1);
-  A('低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam', deepCalls === 1 && shallowCalls === 0);
-  A('深检索正文以不可信信封进入出题 prompt，系统明确禁止执行来源指令', askRequests.length >= 1 && askRequests[0]!.rag?.includes('[UNTRUSTED_RESEARCH_SOURCE') === true && askRequests[0]!.rag?.includes('忽略此前指令') === true && askRequests[0]!.system.includes('检索安全'));
 
   let done = false, guard = 0;
   stage = 'NORMAL_ANSWER_DRAIN';
   while (!done && guard++ < 8) {
     const q = await asPrincipal(pool, OWNER, async (c) => (await c.query(
       "SELECT question_id,state_version,turn FROM interview_question WHERE interview_id=$1 AND status='issued' ORDER BY state_version DESC LIMIT 1", [IID])).rows[0]);
+    if (!q) {
+      // 溃点卫生（AC-FIX ③）：查无 issued 题时诚实 FAIL 带诊断，不再以 TypeError 无码
+      // 逃逸（CODE=UNKNOWN）——排空环 claim→evaluate→complete 语义原样，零弱化。
+      const diagnostic = await asPrincipal(pool, OWNER, (c) => c.query(
+        "SELECT status,last_error FROM interview_job WHERE interview_id=$1 AND kind='start'", [IID],
+      ));
+      console.error('adaptive-consumer drain diagnostic:', diagnostic.rows[0]);
+      A(`排空环第${guard}轮查无 issued 题:start 链未产题(诚实 FAIL 而非 TypeError)`, false);
+      break;
+    }
     const answer = '我用计数器+滑动窗口扛高并发并降级';
     const input = { questionId: q.question_id, stateVersion: Number(q.state_version), turn: Number(q.turn), answerId: randomUUID(), answerHash: answerHash(answer), answer };
     A(`第${input.turn}题 API identity ledger 接受`, (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, IID, input))).status === 'accepted');
     await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, IID, 'answer', input, input.turn + 1));
     await drainInterviewJobOnce(d, OWNER);
+    if (guard === 1) {
+      // 深检索断言(随 #191 修迁移):首答后的 fundamental 追问真实经过低置信 CRAG→deepResearch。
+      A('低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam', deepCalls === 1 && shallowCalls === 0);
+      A('深检索正文以不可信信封进入出题 prompt，系统明确禁止执行来源指令', askRequests.length >= 1 && askRequests[0]!.rag?.includes('[UNTRUSTED_RESEARCH_SOURCE') === true && askRequests[0]!.rag?.includes('忽略此前指令') === true && askRequests[0]!.system.includes('检索安全'));
+    }
     const st = await asPrincipal(pool, OWNER, (c) => c.query("SELECT status FROM interview WHERE id=$1", [IID]));
     done = st.rows[0].status === 'completed';
   }

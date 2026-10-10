@@ -1,0 +1,83 @@
+{
+ "cell": "PC",
+ "attempt": "PC-1",
+ "pass": true,
+ "fails": [],
+ "obs": {
+  "prove_exit": 0,
+  "unhandled_n": 0,
+  "emitted_on": null,
+  "emitted_at_pg_frames": [],
+  "block_pg_frame": false,
+  "own_stack_pg_frame": false,
+  "block_57P01": false,
+  "unhandled_text": null,
+  "db_pool_error_n": 0,
+  "db_pool_error_msgs": [],
+  "summary": true,
+  "allPass_true": true,
+  "cmd_exit0_line": true,
+  "perf_run3_line": true,
+  "seedAbandonTargets_in_log": false,
+  "state29": false,
+  "form": "PASS",
+  "CTU_present": false,
+  "t_first_error": null,
+  "pg_events": [
+   [
+    "create",
+    1791299181799,
+    null,
+    null
+   ],
+   [
+    "start",
+    1791299181965,
+    null,
+    null
+   ],
+   [
+    "kill",
+    1791299196362,
+    "9",
+    null
+   ],
+   [
+    "die",
+    1791299196570,
+    null,
+    "137"
+   ],
+   [
+    "destroy",
+    1791299196996,
+    null,
+    null
+   ]
+  ],
+  "pg_teardown_before_first_error": [],
+  "J2_x6": {
+   "Tk": false,
+   "Td": true,
+   "Tx": true,
+   "W_die": 500,
+   "W_destroy": 2000,
+   "t_kill": 1791299196362,
+   "t_die": 1791299196570,
+   "t_destroy": 1791299196996,
+   "t_err": null,
+   "kill_to_die_ms": 208,
+   "die_to_destroy_ms": 426
+  },
+  "foreign_emit_proc_lines": 0,
+  "foreign_emit_raw_mention_lines": 6,
+  "J2": "OUT",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "mut_deletions": 0
+ }
+}

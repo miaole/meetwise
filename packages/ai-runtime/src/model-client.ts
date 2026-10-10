@@ -3,12 +3,29 @@
  * 接真模型只换本文件的实现,关口(invoke 双校验/派发边界/幂等 trace)、图、业务都不动——易变技术藏在 seam 后(10 年)。
  * 安全铁律落地:**不可信用户数据进 user 的 <data> 块,绝不拼进 system 指令**(防注入越权)。
  */
-import { createHash, randomBytes } from 'node:crypto';
+import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult } from './invoke.ts';
-import { ExternalHttpStatusError, fetchJsonWithTimeout } from './timeout.ts';
+import { combineAbortSignals, ExternalHttpStatusError, fetchJsonWithTimeout, timeoutSignal } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
 import { resolveVisionEndpointConfig } from './vision-endpoint-config.ts';
+import {
+  assertModelAllowedForTest,
+  assertModelApiKeyPresent,
+  bounded429BackoffMs,
+  classifyProviderError,
+  finalizeG7ReservationOnSharedLedger,
+  releaseG7ReservationOnSharedLedger,
+  reserveG7CallOnSharedLedger,
+  resolveG7TestProfile,
+  selectPaidFallback,
+  assertCalibrationModelMatch,
+} from './g7-freetier-reprove-guard.ts';
+// GODFN-1b: the G7 test-state sensing is injected by composition roots — this
+// production file performs zero `isG7FreetierReproveEnabled(process.env)`
+// direct reads and never imports the (test-support) outbound interceptor.
+import { g7RuntimeInjection } from './g7-runtime-injection.ts';
+import { refineEstimate } from './usage-reconciliation.ts';
 
 export interface CompletionRequest {
   service: string;       // 逻辑服务 key(catalog 解析模型/提示词版本)
@@ -91,7 +108,7 @@ const DEFAULT_USERDATA_CAP = 20_000;
 /** 分服务上限(字符)。未列出的服务用 DEFAULT。值是"防滥用兜底",正常用量远在其下(不会误伤真实作答)。 */
 const SERVICE_USERDATA_CAP: Record<string, number> = {
   'mock-interview.evaluate': 12_000,   // 一题一答:题目(有界)+ 单条答案(边缘已封 8000)≈ <9k,12k 给足余量
-  'interviewer.ask': 16_000,           // 能力/难度 + 简历 facts + 检索素材(素材已 slice 2000)
+  'interviewer.ask': 16_000,           // 能力/难度 + 简历 facts(有界选定,经 <data> 围栏) + 上轮追问上下文 + 检索素材(素材已 slice 2000)
   'report.generate': 8_000,            // 只吃分数数组,极小;8k 绰绰有余
 };
 /** 按**码点**安全截断:末位若是高代理(astral 字符如 emoji/扩展汉字的前半)则回退一位,绝不留孤代理项(防 JSON 序列化出 \uD800 级残片)。 */
@@ -198,6 +215,17 @@ function renderPrompt(req: CompletionRequest, nonce: string) {
  * as a free text token.
  */
 export function planContextBudget(req: CompletionRequest, policy: ModelCostPolicy): RenderedContextBudgetDecision {
+  // REAL chat-path calibration gate (complete @ :336/:355 call this — NOT planDispatchBudget).
+  // Under G7, any calibration requires bound+dispatch match; outside G7, assert whenever
+  // calibration or calibrationBoundModel is present.
+  if (policy.calibration !== undefined || policy.calibrationBoundModel !== undefined) {
+    const g7 = g7RuntimeInjection().freetierReproveEnabled();
+    if (g7 || policy.calibration !== undefined || policy.calibrationBoundModel !== undefined) {
+      const bound = policy.calibrationBoundModel;
+      if (!bound) throw new Error('g7_calibration_bound_model_required_for_plan_context_budget');
+      assertCalibrationModelMatch(bound, policy.model);
+    }
+  }
   const contextWindowTokens = policy.contextWindowTokens;
   const safetyMarginTokens = policy.contextSafetyMarginTokens;
   const toolReserveTokens = policy.contextToolReserveTokens ?? 0;
@@ -211,18 +239,23 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   }
   const nonce = '0'.repeat(10);
   const rendered = renderPrompt(req, nonce);
-  const systemTokens = byteEstimate(rendered.system);
+  const estimateTokens = (text: string): number => {
+    const raw = byteEstimate(text);
+    if (text.length === 0) return 0;
+    return policy.calibration ? refineEstimate(raw, policy.calibration) : raw;
+  };
+  const systemTokens = estimateTokens(rendered.system);
   // 整个 <data> 围栏(含 RAG 段)的字节;RAG 独立分账。byteEstimate 对字符串拼接线性可加,
   // 故 userDataTokens = 围栏总量 − RAG 段,绝不重复计费,也不漏计。
-  const userTextTokens = byteEstimate(rendered.userText);
-  const ragTokens = byteEstimate(rendered.ragText);
+  const userTextTokens = estimateTokens(rendered.userText);
+  const ragTokens = estimateTokens(rendered.ragText);
   const userDataTokens = userTextTokens - ragTokens;
   const images = req.images?.length ?? 0;
   // The image-array form also has provider-visible structural descriptor
   // bytes.  Count the exact rendered descriptor delta rather than only URL
   // strings; semantic image capacity is covered separately by the required
   // per-image reserve below.
-  const imageDescriptorTokens = images === 0 ? 0 : Math.max(0, byteEstimate(JSON.stringify(rendered.userContent)) - userTextTokens);
+  const imageDescriptorTokens = images === 0 ? 0 : Math.max(0, estimateTokens(JSON.stringify(rendered.userContent)) - userTextTokens);
   let imageReserveTokens = 0;
   if (images > 0) {
     if (!validPositive(policy.imageInputTokensPerImage))
@@ -255,6 +288,223 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   };
 }
 
+// =====================================================================================
+// TOKSTREAM S4a declare 面（唯一蓝本 tokstream-s3-design.md §I S4a 行 · REQUEST §1 七项）。
+// 纯新增：MODEL_TEXT_STREAM 双 preview flag 门（C3·沿 voice-stream-preview.ts 形制 fail-closed
+// 缺省 OFF）+ 流式期限（C7·§E-③）+ L1 合帧行为面（C10·§D-3/§C-2 参数面）+ 拼接校验器（C9·
+// T0/T1/T2 三面；T3 定性器禁入运行时——§E-⑦「该启发式只许存在于离线诊断工具」）。worker
+// TokenSink 生产接线=S4b（§I），本面只 declare 行为语义供 §G 行 1 重放断言。
+// =====================================================================================
+
+/** MODEL_TEXT_STREAM 双 preview flag 的 OCR 式误配码（沿 VOICE_STREAM_ASR_UNCONFIGURED 形制）。 */
+export const MODEL_TEXT_STREAM_UNCONFIGURED = 'model_text_stream_unconfigured';
+
+/** production/enforce/public-preview 三锁面 refuse-closed（沿 voice-stream-preview.ts:20-24 形制逐字同构）。 */
+export function isProductionModelTextStreamLocked(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.NODE_ENV?.trim().toLowerCase() === 'production'
+    || env.MODEL_COST_ENFORCEMENT?.trim().toLowerCase() === 'enforce'
+    || env.MEETWISE_PUBLIC_PREVIEW === '1';
+}
+
+/** 双 preview flag 请求面：MODEL_TEXT_STREAM_ENABLED=1 且 MODEL_TEXT_STREAM_PREVIEW=1（沿 :26-28 形制）。 */
+export function isModelTextStreamPreviewRequested(env: NodeJS.ProcessEnv = process.env): boolean {
+  return env.MODEL_TEXT_STREAM_ENABLED === '1' && env.MODEL_TEXT_STREAM_PREVIEW === '1';
+}
+
+/** §D-1 flag 门：双开且未锁才启用；否则 completeStream 恒走非流式（零回归）——fail-closed 缺省 OFF。 */
+export function isModelTextStreamPreviewEnabled(env: NodeJS.ProcessEnv = process.env): boolean {
+  return isModelTextStreamPreviewRequested(env) && !isProductionModelTextStreamLocked(env);
+}
+
+/**
+ * OCR 式误配显式化：`ENABLED=1` 而未完整解锁不得静默装作可用（沿 voice-stream-preview.ts:39-43
+ * assertVoiceStreamAsrPreviewComposition 形制）。
+ */
+export function assertModelTextStreamPreviewComposition(env: NodeJS.ProcessEnv = process.env): void {
+  if (env.MODEL_TEXT_STREAM_ENABLED === '1' && !isModelTextStreamPreviewEnabled(env)) {
+    throw new Error(MODEL_TEXT_STREAM_UNCONFIGURED);
+  }
+}
+
+/** §E-③ idle watchdog 钉值：无字节 >10s → 截断走流中 error 同路径（①）。 */
+export const MODEL_STREAM_IDLE_WATCHDOG_MS = 10_000;
+
+export interface ModelStreamDeadlineConfig {
+  /** 流式总闸（通道半层）：整个交换（含 body 消费）的绝对期限。泵侧 10min 帽=S4c 非范围（§E-③）。 */
+  transportTimeoutMs: number;
+  /** 帧间空闲：无字节超此值即截断（§E-③）。 */
+  idleWatchdogMs: number;
+}
+
+/**
+ * §E-③ 流式 transport 期限沿 `resolveModelDeadlineConfig`（A14）另设流式值：取 execution 维度
+ * （流式总时长天然长于非流式 30s 级 transport 窗；缺省 35s 级），仍由既有 MODEL_EXECUTION_TIMEOUT_MS
+ * 派生——流式通道零新增 env 注入面（REQUEST C4）。idle watchdog 10s 为 §E-③ 钉值。
+ */
+export function resolveModelStreamDeadlineConfig(env: NodeJS.ProcessEnv = process.env): ModelStreamDeadlineConfig {
+  return { transportTimeoutMs: resolveModelDeadlineConfig(env).executionTimeoutMs, idleWatchdogMs: MODEL_STREAM_IDLE_WATCHDOG_MS };
+}
+
+/** §D-3 L1 合帧窗（~100ms）。 */
+export const MODEL_STREAM_L1_COALESCE_WINDOW_MS = 100;
+/** §C-2 L1 合帧后单帧 `text` 字节上界 ≤4KB（NOTIFY 载荷上限 8KB 的安全半幅）。 */
+export const MODEL_STREAM_FRAME_MAX_BYTES = 4 * 1024;
+
+export interface TokenDeltaFrameInput {
+  /** 供应商 chunk 时间轴位置（ms·单调时钟/重放时间轴同型）。 */
+  tMs: number;
+  /** 码点完整 delta 文本（空串=非内容 chunk·不开窗不出帧）。 */
+  text: string;
+}
+export interface CoalescedTokenFrame {
+  /** 合帧文本（≤maxFrameBytes·码点完整）。 */
+  text: string;
+  /** UTF-8 字节数。 */
+  byteLen: number;
+  /** 帧内首片到达时刻（ms）。 */
+  tMs: number;
+  /** L1 合帧标记：帧≠供应商 chunk 边界（§C-2 帧契约同名字段）。 */
+  coalesced: boolean;
+}
+
+/**
+ * 码点安全按字节切分（§C-2「绝不拆孤立代理项」·`:115` codepointSafeSlice 同型换字节预算）：
+ * 代理对（高+低）永不被拆到两片；单片自身超预算（预算 <4 字节才可能）时保真原样出片不丢字符。
+ */
+export function splitCodepointSafeByBytes(text: string, maxBytes: number): string[] {
+  if (!Number.isSafeInteger(maxBytes) || maxBytes < 1) throw new Error('model_stream_frame_byte_budget_invalid');
+  const parts: string[] = [];
+  let cur = '';
+  let curBytes = 0;
+  let i = 0;
+  while (i < text.length) {
+    // 取一个完整码点：高代理仅当后随低代理时成对取（孤立代理项原样保真，绝不制造残片）。
+    const code = text.charCodeAt(i);
+    let size = 1;
+    if (code >= 0xd800 && code <= 0xdbff) {
+      const low = text.charCodeAt(i + 1);
+      if (low >= 0xdc00 && low <= 0xdfff) size = 2;
+    }
+    const ch = text.slice(i, i + size);
+    const b = Buffer.byteLength(ch, 'utf8');
+    if (curBytes > 0 && curBytes + b > maxBytes) {
+      parts.push(cur);
+      cur = '';
+      curBytes = 0;
+    }
+    cur += ch;
+    curBytes += b;
+    i += size;
+  }
+  if (cur) parts.push(cur);
+  return parts;
+}
+
+/**
+ * L1 合帧行为面（§D-3 declare·生产接线=S4b worker TokenSink）：~100ms 窗/≤4KB 码点安全切分。
+ * 窗语义：首片开窗 [t0, t0+window)；窗外到达先冲帧；字节预算触顶先冲帧；超长 delta 在帧内
+ * 码点安全切分。纯函数——S4a prove 用 probe-b 曲线重放断言合帧率与单帧字节上界（§G 行 1）。
+ */
+export function coalesceTokenDeltas(
+  inputs: readonly TokenDeltaFrameInput[],
+  opts: { windowMs?: number; maxFrameBytes?: number } = {},
+): CoalescedTokenFrame[] {
+  const windowMs = opts.windowMs ?? MODEL_STREAM_L1_COALESCE_WINDOW_MS;
+  const maxFrameBytes = opts.maxFrameBytes ?? MODEL_STREAM_FRAME_MAX_BYTES;
+  const frames: CoalescedTokenFrame[] = [];
+  let text = '';
+  let bytes = 0;
+  let tMs = 0;
+  let pieces = 0;
+  let open = false;
+  const flush = () => {
+    if (!open) return;
+    frames.push({ text, byteLen: bytes, tMs, coalesced: pieces > 1 });
+    text = '';
+    bytes = 0;
+    pieces = 0;
+    open = false;
+  };
+  for (const input of inputs) {
+    if (!input.text) continue;
+    if (open && input.tMs - tMs > windowMs) flush();
+    for (const piece of splitCodepointSafeByBytes(input.text, maxFrameBytes)) {
+      const pieceBytes = Buffer.byteLength(piece, 'utf8');
+      if (open && bytes + pieceBytes > maxFrameBytes) flush();
+      if (!open) {
+        open = true;
+        tMs = input.tMs;
+      }
+      text += piece;
+      bytes += pieceBytes;
+      pieces += 1;
+    }
+  }
+  flush();
+  return frames;
+}
+
+// === 拼接校验器（⑦·§E-⑦/§G）：T0 归一化全等 / T1 锚 / T2 长度带，定义与 band 逐字钉自
+// stitch-compare.json `grading`（亲读）。T3 定性器（裸前缀重叠启发式）**禁入运行时**——S2 误报实证
+// （grading.T3 pass:false·overlapViolations:1/resendViolations:1，被标 delta 实为纯追加，启用即会
+// 改坏正确输出）只许存在于离线诊断工具；运行时仅 T0/T1/T2 承重 + 通道内 ΣdeltaLen==accLen 守恒自检。
+export const STITCH_T1_ANCHOR_LEN = 50;          // grading.T1.anchorLen（"prefix+suffix anchor (50 chars)"）
+export const STITCH_T2_LENGTH_BAND_RATIO = 0.1;  // grading.T2.band「|Δ|/len ≤ 10%」
+
+/** T0 归一化（grading.T0.definition 逐字："normalized equality (trim + whitespace collapse)"）。 */
+export function normalizeForStitchCompare(value: string): string {
+  return value.trim().replace(/\s+/g, ' ');
+}
+
+export interface StitchGradingVerdict {
+  normalized: { lenA: number; lenB: number; lengthRatio: number };
+  T0: { pass: boolean; definition: string };
+  T1: { pass: boolean; anchorLen: number; definition: string };
+  T2: { pass: boolean; band: string; lengthRatio: number };
+}
+
+/**
+ * 拼接一致性三面判定（stitched=通道拼接输出 vs authoritative=终态权威全文）。
+ * 运行时调用面（web 缓冲半=S4d）：终态到达时对照；不匹配=telemetry+仍用终态权威（§E-⑦）——
+ * 判定本身绝不改写任何一侧文本（T3 启发式之禁即此）。
+ */
+export function gradeStitchIdentity(stitched: string, authoritative: string): StitchGradingVerdict {
+  const lenA = stitched.length;
+  const lenB = authoritative.length;
+  const longest = Math.max(lenA, lenB);
+  const lengthRatio = longest === 0 ? 0 : Math.abs(lenA - lenB) / longest;
+  return {
+    normalized: { lenA, lenB, lengthRatio },
+    T0: {
+      pass: normalizeForStitchCompare(stitched) === normalizeForStitchCompare(authoritative),
+      definition: 'normalized equality (trim + whitespace collapse)',
+    },
+    T1: {
+      pass: stitched.startsWith(authoritative.slice(0, STITCH_T1_ANCHOR_LEN))
+        && stitched.endsWith(authoritative.slice(-STITCH_T1_ANCHOR_LEN)),
+      anchorLen: STITCH_T1_ANCHOR_LEN,
+      definition: 'prefix+suffix anchor (50 chars)',
+    },
+    T2: { pass: lengthRatio <= STITCH_T2_LENGTH_BAND_RATIO, band: '|Δ|/len ≤ 10%', lengthRatio },
+  };
+}
+
+/** §D-1 completeStream opts（S4a declare 面·结构与设计代码块逐字对齐）。 */
+export interface ModelTextStreamOpts {
+  signal?: AbortSignal;
+  /** 码点完整 JS 字符串；调用方不得假设分帧=token 边界。 */
+  onDelta: (d: { text: string }) => void;
+  onUsage?: (u: { completionTokens?: number; promptTokens?: number }) => void;
+}
+
+/**
+ * §D-1 注记归属：流式通道收束于 openAICompatibleClient 具体客户端——`ModelClient` 共享接口
+ * （:38-44）零改，`scriptedModelClient` 等其余实现零触。
+ */
+export type OpenAICompatibleClient = ModelClient & {
+  completeStream(req: CompletionRequest, opts: ModelTextStreamOpts): Promise<ModelResult>;
+};
+
 /** 真适配器(OpenAI 兼容,境内合规端点)。endpoint/key 从受控 profile 注册表解析;未配置→当瞬时不可用(触发降级,不崩)。 */
 export function openAICompatibleClient(cfg: {
   baseUrl?: string;
@@ -282,7 +532,7 @@ export function openAICompatibleClient(cfg: {
    * stay on `process.env` (intentionally global).
    */
   env?: NodeJS.ProcessEnv;
-} = {}): ModelClient {
+} = {}): OpenAICompatibleClient {
   // cfg.baseUrl/apiKey 是测试专用 transport override 缝（对齐原生适配器）。生产/开发一律
   // 拒绝，避免文本路由退化成「任意 endpoint」直发客户端（BAILIAN-04 主违例面）。
   rejectTextTransportOverride(cfg.baseUrl);
@@ -313,10 +563,10 @@ export function openAICompatibleClient(cfg: {
     && (!Number.isSafeInteger(maxOutputTokens) || maxOutputTokens < 1 || maxOutputTokens > 1_000_000)) {
     throw new Error('model_output_token_limit_invalid');
   }
-  if (costPolicy !== undefined && model !== costPolicy.model) {
+  if (costPolicy !== undefined && model !== costPolicy.model && !g7RuntimeInjection().freetierReproveEnabled()) {
     throw new Error('model_cost_policy_model_mismatch');
   }
-  const client: ModelClient = {
+  const client: OpenAICompatibleClient = {
     costPolicy,
     prepare(req, attempt, signal) {
       if (policyRequired && costPolicy === undefined) return { ready: false, error: 'model_operation_policy_required' };
@@ -341,48 +591,357 @@ export function openAICompatibleClient(cfg: {
       // users, which otherwise would bypass the safe no-send decision.
       const context = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
       if (context?.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
-      // 注入加固(审计):① 剥离用户数据里伪造的 <data> 标签防越狱出栈;② **分服务长度封顶 + 不可伪造(绑 nonce)截断标记**(capUserData,见上);③ 随机 nonce 围栏(攻击者猜不到闭合);④ system 申明数据块内指令不执行 + 截断标记须带本 nonce 才可信。
+
+      const g7 = g7RuntimeInjection().freetierReproveEnabled();
+      // GODFN-1b: the outbound interceptor install moved to the composition
+      // root (api/worker mains assemble it under G7 before any dispatch).
+      if (g7) {
+        assertModelApiKeyPresent(process.env);
+      }
+
+      let activeModel = model;
+      let fallbackInfo: {
+        triggerErrorClass: 'FreeTierOnly' | 'quota_exhausted' | 'capability_unsupported';
+        fromModel: string;
+        toModel: string;
+      } | undefined;
+      if (g7) assertModelAllowedForTest(activeModel, process.env);
+
       const nonce = randomBytes(8).toString('base64url').slice(0, 10);
       const rendered = renderPrompt(req, nonce);
       const chatUrl = `${baseUrl}/chat/completions`;
+      const startedAt = new Date().toISOString();
+      let attempt429 = 0;
+      let reservationId: string | undefined;
+
+      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + rendered.userContent.length) / 4));
+      const maxOut = maxOutputTokens ?? 2048;
+
+      const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{
+        model?: string;
+        choices?: { message?: { content?: string } }[];
+        usage?: { prompt_tokens?: number; completion_tokens?: number };
+      }>(chatUrl, {
+        method: 'POST',
+        redirect: 'error',   // 3xx 即拒绝：文本路由绝不跟随重定向（防 SSRF 跳内网）
+        signal: executionSignal,
+        headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
+        body: JSON.stringify({
+          model: dispatchModel,
+          ...(maxOutputTokens === undefined ? {} : { max_tokens: maxOutputTokens }),
+          response_format: { type: 'json_object' },
+          ...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),
+          messages: [
+            { role: 'system', content: rendered.system },
+            { role: 'user', content: rendered.userContent },
+          ],
+        }),
+      }, { timeoutMs: resolveModelDeadlineConfig().transportTimeoutMs, maxBytes: 1024 * 1024 });
+
+      const reserveFor = (dispatchModel: string) => {
+        if (!g7) return;
+        if (reservationId) {
+          releaseG7ReservationOnSharedLedger(reservationId, process.env);
+          reservationId = undefined;
+        }
+        const reserved = reserveG7CallOnSharedLedger({
+          model: dispatchModel,
+          estimatedInputTokens,
+          maxOutputTokens: maxOut,
+        }, process.env);
+        reservationId = reserved.reservationId;
+      };
+
+      if (g7) reserveFor(activeModel);
+
+      while (true) {
+        try {
+          const j = g7
+            ? await g7RuntimeInjection().withOutboundAllow(() => dispatchOnce(activeModel))
+            : await dispatchOnce(activeModel);
+          const content = j.choices?.[0]?.message?.content;
+          if (!content) {
+            if (g7 && reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+            return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+          }
+          const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
+          const usage = j.usage
+            ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
+            : undefined;
+          const finishedAt = new Date().toISOString();
+          if (g7) {
+            const actualModel = typeof j.model === 'string' && j.model.trim() ? j.model.trim() : '';
+            if (!actualModel) throw new Error('g7_actual_model_missing_from_provider_response');
+            assertModelAllowedForTest(actualModel, process.env);
+            if (!reservationId) throw new Error('g7_reservation_missing_before_finalize');
+            finalizeG7ReservationOnSharedLedger(reservationId, {
+              callId: randomUUID(),
+              actualModel,
+              inputTokens: usage?.inputTokens ?? 0,
+              outputTokens: usage?.outputTokens ?? 0,
+              startedAt,
+              finishedAt,
+              fallback: fallbackInfo,
+              evidenceClass: fallbackInfo ? 'paid_fallback' : 'free_quota_wiring_only',
+            }, process.env);
+            reservationId = undefined;
+            return { ok: true, raw: JSON.parse(content), usage, actualModel };
+          }
+          return { ok: true, raw: JSON.parse(content), usage };
+        } catch (error) {
+          if (g7 && error instanceof ExternalHttpStatusError && error.status === 429) {
+            try {
+              const wait = bounded429BackoffMs(attempt429);
+              attempt429 += 1;
+              await new Promise((r) => setTimeout(r, wait));
+              continue;
+            } catch {
+              if (reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+              return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+            }
+          }
+          if (g7 && error instanceof ExternalHttpStatusError && !fallbackInfo) {
+            const trigger = classifyProviderError(`${error.message} ${error.bodySnippet ?? ''}`);
+            if (trigger) {
+              const profile = resolveG7TestProfile(process.env);
+              try {
+                const selected = selectPaidFallback({
+                  fromModel: activeModel,
+                  triggerErrorClass: trigger,
+                  paidFallbackEnabled: profile.paidFallbackEnabled,
+                });
+                assertModelAllowedForTest(selected.toModel, process.env);
+                fallbackInfo = {
+                  triggerErrorClass: selected.triggerErrorClass,
+                  fromModel: selected.fromModel,
+                  toModel: selected.toModel,
+                };
+                activeModel = selected.toModel;
+                reserveFor(activeModel);
+                continue;
+              } catch (fallbackError) {
+                const msg = fallbackError instanceof Error ? fallbackError.message : String(fallbackError);
+                if (reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
+                if (msg.startsWith('g7_')) throw fallbackError;
+              }
+            }
+          }
+          if (g7 && reservationId) {
+            releaseG7ReservationOnSharedLedger(reservationId, process.env);
+            reservationId = undefined;
+          }
+          if (error instanceof ExternalHttpStatusError) {
+            const transient = error.status >= 500 || error.status === 429 || error.status === 408 || error.status === 425;
+            return { ok: false, kind: transient ? 'transient' : 'deterministic', externalOutcome: transient ? 'unknown' : 'known_not_executed' };
+          }
+          if (g7 && error instanceof Error && error.message.startsWith('g7_')) {
+            throw error;
+          }
+          return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+        }
+      }
+    },
+    /**
+     * TOKSTREAM S4a：流式通道（§D-1 签名逐字对齐·唯一蓝本）。双 preview flag 未双开恒走非流式
+     * （C3 零回归）；启用时 wire 纪律（§D-1 逐字）：`fetch` `res.body` ReadableStream + TextDecoder
+     * streaming（§E-④）→ `res.ok` 先判（⑧）非 200 读 JSON error body 走 classifyProviderError 既有
+     * 分类面 → 终结三联判定（finish_reason=stop chunk + 空 choices usage chunk + `data:[DONE]`）→
+     * EOF 无三联=静默断流（§E-② `streamEndedByEofWithoutDone`）→ error 结果。ΣdeltaLen==accLen
+     * 通道内自检断言（⑦长度守恒）。g7 预约/终结面零触（§D-2：stream 通道不进 g7 面·flag 缺省
+     * OFF=零触）；流中失败禁自动重跑（§E-⑤ Ban 双跑双扣）——单飞零重试循环，4xx 禁重试。
+     */
+    async completeStream(
+      req: CompletionRequest,
+      opts: {
+        signal?: AbortSignal;
+        onDelta: (d: { text: string }) => void;          // 码点完整 JS 字符串；调用方不得假设分帧=token 边界
+        onUsage?: (u: { completionTokens?: number; promptTokens?: number }) => void;
+      },
+    ): Promise<ModelResult> {
+      if (!isModelTextStreamPreviewEnabled(process.env)) {
+        return client.complete(req, 1, opts.signal);     // flag 门 fail-closed：恒走非流式（零回归）
+      }
+      // 与 complete 非流式 preflight 同型（:363-376 语义镜像；stream 通道自身零 g7 面）。
+      if (policyRequired && costPolicy === undefined) {
+        return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
+      }
+      if (!baseUrl || !apiKey) return { ok: false, kind: 'transient', externalOutcome: 'known_not_executed' };
+      if (!baseUrl.startsWith('https://') && !textOverrideAllowed) {
+        return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
+      }
+      const streamContext = costPolicy === undefined ? undefined : planContextBudget(req, costPolicy);
+      if (streamContext?.ok === false) return { ok: false, kind: 'deterministic', externalOutcome: 'known_not_executed' };
+      const estimateInputTokens = streamContext?.ok === true ? streamContext.plan.inputTokens : undefined;
+
+      const nonce = randomBytes(8).toString('base64url').slice(0, 10);
+      const rendered = renderPrompt(req, nonce);
+      const streamChatUrl = `${baseUrl}/chat/completions`;
+      const deadline = resolveModelStreamDeadlineConfig();
+      const streamBody = JSON.stringify({
+        model,
+        ...(maxOutputTokens === undefined ? {} : { max_tokens: maxOutputTokens }),
+        response_format: { type: 'json_object' },
+        ...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),
+        stream: true,
+        stream_options: { include_usage: true },
+        messages: [
+          { role: 'system', content: rendered.system },
+          { role: 'user', content: rendered.userContent },
+        ],
+      });
+
+      // ⑦守恒账面：ΣdeltaLen==accLen，到任一中断点封账。
+      let acc = '';
+      let sumDeltaLen = 0;
+      let pendingHighSurrogate = '';
+      const emitDelta = (text: string) => {
+        if (!text) return;
+        opts.onDelta({ text });
+        sumDeltaLen += text.length;
+        acc += text;
+      };
+      // ④码点安全：孤立高代理扣留并前挂下一片（TextDecoder streaming 保字节级码点完整；此处防
+      // JSON \uD800 转义残片跨片拆孤立代理项）。
+      const pushDeltaText = (piece: string) => {
+        const text = pendingHighSurrogate + piece;
+        const last = text.charCodeAt(text.length - 1);
+        if (last >= 0xd800 && last <= 0xdbff) {
+          pendingHighSurrogate = text.slice(-1);
+          emitDelta(text.slice(0, -1));
+        } else {
+          pendingHighSurrogate = '';
+          emitDelta(text);
+        }
+      };
+      const assertConservation = () => {
+        if (sumDeltaLen !== acc.length) throw new Error('model_stream_length_conservation_violation');
+      };
+
+      // 三联终结判定账面（§D-1）：finish_reason=stop chunk + 空 choices usage chunk + data:[DONE]。
+      let stopSeen = false;
+      let usageSeen = false;
+      let doneSeen = false;
+      let usageRecord: { prompt_tokens?: number; completion_tokens?: number } | undefined;
+      let midStreamErrorFrame = false;   // ①流中 error frame（即刻截断）
+      let idleWatchdogFired = false;     // ③idle watchdog（无字节 >10s）
+      let buffer = '';
+      let idleTimer: ReturnType<typeof setTimeout> | undefined;
+      const handleFrame = (frame: string): void => {
+        for (const rawLine of frame.split(/\r\n|\n|\r/)) {
+          if (!rawLine.startsWith('data:')) continue;
+          const value = rawLine.slice('data:'.length).replace(/^ /, '');
+          if (value === '[DONE]') { doneSeen = true; continue; }   // 三联③
+          let parsed: unknown;
+          try { parsed = JSON.parse(value); } catch { continue; }  // 非 JSON data 行（SSE 注释/心跳）忽略
+          if (parsed !== null && typeof parsed === 'object' && (parsed as { error?: unknown }).error != null) {
+            midStreamErrorFrame = true;                            // ①解析 data:{error…} 帧 → 即刻截断
+            return;
+          }
+          const chunk = parsed as {
+            choices?: { delta?: { content?: unknown }; finish_reason?: unknown }[] | null;
+            usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
+          } | null;
+          const choice = chunk?.choices?.[0];
+          const deltaContent = choice?.delta?.content;
+          if (typeof deltaContent === 'string' && deltaContent) pushDeltaText(deltaContent);
+          if (choice?.finish_reason === 'stop') stopSeen = true;   // 三联①
+          // 三联②：空 choices usage chunk（probe-b i=16 usageChunkEmptyChoices 亲证形态）→ usage 面解析。
+          const usagePayload = chunk?.usage;
+          if (Array.isArray(chunk?.choices) && chunk?.choices?.length === 0 && usagePayload) {
+            usageSeen = true;
+            usageRecord = usagePayload;
+            opts.onUsage?.({ completionTokens: usagePayload.completion_tokens, promptTokens: usagePayload.prompt_tokens });
+          }
+        }
+      };
+      const clearIdleTimer = () => {
+        if (idleTimer !== undefined) { clearTimeout(idleTimer); idleTimer = undefined; }
+      };
+
+      const streamTimeout = timeoutSignal(deadline.transportTimeoutMs);
+      const combined = combineAbortSignals([opts.signal, streamTimeout.signal]);
       try {
-        const j = await fetchJsonWithTimeout<{ choices?: { message?: { content?: string } }[]; usage?: { prompt_tokens?: number; completion_tokens?: number } }>(chatUrl, {
+        const res = await fetch(streamChatUrl, {
           method: 'POST',
-          redirect: 'error',   // 3xx 即拒绝：文本路由绝不跟随重定向（防 SSRF 跳内网）
-          signal: executionSignal,
+          redirect: 'error',   // 3xx 即拒绝：与非流式同纪律（防 SSRF 跳内网）
+          signal: combined.signal,
           headers: { 'content-type': 'application/json', authorization: `Bearer ${apiKey}` },
-          body: JSON.stringify({
-            model,
-            ...(maxOutputTokens === undefined ? {} : { max_tokens: maxOutputTokens }),
-            response_format: { type: 'json_object' },                          // 结构化输出,交 invoke 的 schema 双校验
-            ...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),   // 约束性任务钉低温求稳(评分一致性源头);未映射服务不设=供应商默认(零回归)
-            messages: [
-              // **分层为可缓存前缀**:system = 稳定指令,**不含每请求变化的 nonce**(否则前缀每次都变、供应商 prompt 缓存全失效)。
-              //  nonce 只活在下方 user 消息的围栏标签里 → 安全性不丢(攻击者仍猜不到本场标签去闭合),而 system 前缀字节稳定、可被缓存。
-              { role: 'system', content: rendered.system },
-              { role: 'user', content: rendered.userContent },                 // 不可信数据:剥标签+封顶+nonce 围栏(+可选图片),绝不拼进 system;nonce 在此(<data-${nonce}>)
-            ],
-          }),
-        }, { timeoutMs: resolveModelDeadlineConfig().transportTimeoutMs, maxBytes: 1024 * 1024 });
-        const content = j.choices?.[0]?.message?.content;
-        if (!content) return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
-        // 保守估算(byteEstimate 字节上界)与供应商上报 usage 配对带回,供 invoke 对账判断是否低估(绝不静默)。
-        // 估算在 prepare 已算(planContextBudget 用固定 10 字符 nonce 渲染);真正派发的随机 nonce 同为 10 字节,
-        // 故估算字节量与实发请求一致。供应商未上报 usage 时保持 undefined(交给 invoke 的保守封顶 fallback,不伪造对账证据)。
-        const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
-        const usage = j.usage
-          ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
-          : undefined;
-        return { ok: true, raw: JSON.parse(content), usage };                  // 带 token usage(成本观测);真伪交 invoke schema+业务校验
-      } catch (error) {
-        // 429/408/425/5xx 是已派发后的外部结果不明；其余明确 4xx 才能证明未执行。
-        // invoke() 会把前者冻结为 unknown，绝不以同一幂等键自动重试或切换备用端点。
-        if (error instanceof ExternalHttpStatusError) {
-          const transient = error.status >= 500 || error.status === 429 || error.status === 408 || error.status === 425;
+          body: streamBody,
+        });
+        // ⑧res.ok 先判（§D-1）：ModelResult 无类别载荷位，分类面照走（S2 亲证 404 model_not_found→
+        // capability_unsupported），status→kind 映射与非流式 :517 同型；类别 telemetry 挂接面留 S4b。
+        if (!res.ok) {
+          let bodySnippet: string | undefined;
+          try { bodySnippet = (await res.text()).slice(0, 512); } catch { /* 读取失败不影响状态面分类 */ }
+          void classifyProviderError(bodySnippet ?? '');
+          const transient = res.status >= 500 || res.status === 429 || res.status === 408 || res.status === 425;
           return { ok: false, kind: transient ? 'transient' : 'deterministic', externalOutcome: transient ? 'unknown' : 'known_not_executed' };
         }
+        if (!res.body) return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder('utf-8');   // TextDecoder({stream:true}) 逐块喂入（§E-④）
+        const armIdleWatchdog = () => {
+          clearIdleTimer();
+          idleTimer = setTimeout(() => {
+            idleWatchdogFired = true;   // ③无字节 >10s → 截断走①同路径（error 终态+封账到中断点）
+            try { void reader.cancel().catch(() => undefined); } catch { /* best-effort */ }
+          }, deadline.idleWatchdogMs);
+        };
+        armIdleWatchdog();
+        try {
+          for (;;) {
+            const item = await reader.read();
+            if (idleWatchdogFired) break;
+            if (item.done) break;
+            armIdleWatchdog();   // 有字节即重置空闲窗
+            buffer += decoder.decode(item.value, { stream: true });
+            for (;;) {
+              // 帧定界三分（decodeSSE 同族）；定界字节不与多字节码点相交=帧切分码点安全，残帧留缓冲。
+              const m = /\r\n\r\n|\r\r|\n\n/.exec(buffer);
+              if (!m) break;
+              const frame = buffer.slice(0, m.index);
+              buffer = buffer.slice(m.index + m[0].length);
+              handleFrame(frame);
+              if (midStreamErrorFrame) break;
+            }
+            if (midStreamErrorFrame) break;
+          }
+          if (!midStreamErrorFrame && !idleWatchdogFired) {
+            buffer += decoder.decode();   // 末尾 {stream:false} 冲洗（§E-④）：残帧（无尾随空行）按一帧处理
+            if (buffer.trim()) handleFrame(buffer);
+            buffer = '';
+          }
+        } finally {
+          clearIdleTimer();
+          try { void reader.cancel().catch(() => undefined); } catch { /* 清理 best-effort，不属业务完成路径 */ }
+        }
+      } catch {
+        // 期限 abort/传输中断/调用方取消：派发已发生 → unknown；禁自动重跑（§E-⑤ 计费纪律）。
         return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
-      } // 网络/超时/解析失败 → 结果不明，禁止重发
+      } finally {
+        combined.clear();
+        streamTimeout.clear();
+      }
+      assertConservation();   // ⑦通道内自检断言（ΣdeltaLen==accLen·账面到中断点）
+      if (midStreamErrorFrame || idleWatchdogFired) {
+        return { ok: false, kind: 'transient', externalOutcome: 'unknown' };   // ①③即刻截断 → error 终态
+      }
+      if (!(stopSeen && usageSeen && doneSeen)) {
+        // ②EOF 无三联=静默断流（§E-②·`streamEndedByEofWithoutDone` 语义，probe-b 既有键）→ error 终态·禁自动重跑。
+        return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+      }
+      if (!acc) {
+        // 与非流式 :446 空 content 语义同型（三联齐但零 delta=异常空输出）。
+        return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
+      }
+      const usage = usageRecord
+        ? { inputTokens: usageRecord.prompt_tokens ?? 0, outputTokens: usageRecord.completion_tokens ?? 0, estimateInputTokens }
+        : undefined;
+      // raw=完整 JSON 解析（与非流式同型）；非 JSON 载荷（重放卷未启 json_object·如 S2 probe-b prose
+      // fixture）按完整原文兜底零截断——§E-② 对照面：三联齐=成功终态，不因载荷非 JSON 降级。
+      let raw: unknown;
+      try { raw = JSON.parse(acc); } catch { raw = acc; }
+      return { ok: true, raw, usage };
     },
   };
   return client;

@@ -1,0 +1,142 @@
+=== pnpm install --frozen-lockfile EXIT=0 ===
+Scope: all 12 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +606
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 606, reused 606, downloaded 0, added 605
+Progress: resolved 606, reused 606, downloaded 0, added 606, done
+
+devDependencies:
++ @types/node 26.0.1
++ dependency-cruiser 18.0.0
++ esbuild 0.28.1
++ tsx 4.22.4
++ turbo 2.10.0
++ typescript 6.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @swc/core, esbuild, protobufjs,    │
+│   sharp.                                                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 2s using pnpm v10.18.0
+
+
+
+=== pnpm uc018:adv:prove EXIT=0 ===
+
+> meetwise@0.1.0 uc018:adv:prove /workspace/meetwise-lineA-backfill/bdc5993
+> node scripts/run-e2e-isolated.mjs uc018:adv:prove:raw
+
+E2E isolated PostgreSQL: meetwise-e2e-1855360-1790224661477 on 127.0.0.1:33016
+
+> @meetwise/api@0.0.0 prove:uc018-adv /workspace/meetwise-lineA-backfill/bdc5993/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-018-adv.proof.ts
+
+UC-E2E-018 ADV prove · NHP-018-ADV-01 · releaseEvidence=false · Not HA
+NOTE: ADV EXIT=0 → §1.0 ADV case-only→partial ONLY · ADV alone ≠ UC covered · §1.1 stays partial
+NOTE: Mouth = POST /interview/:id/abandon · real HTTP · Ban invent green
+PIN   GAP-UC018-PRIVACY-STUB: minimal privacy-active stub (≠ 0058 fence covered)
+
+──────── ADV-Replay · replay abandon · no double release ────────
+PASS  ADV-Replay reserve → reserved
+PASS  ADV-Replay 预留后额度 -1
+PASS  ADV-Replay 1st → 200 abandoned
+PASS  ADV-Replay 1st released=released
+PASS  ADV-Replay 1st alreadyAbandoned≠true
+PASS  ADV-Replay 1st 额度回补净变 0
+PASS  ADV-Replay 1st consumption=released
+PASS  ADV-Replay 1st interview=abandoned
+PASS  ADV-Replay 2nd → 200 idempotent
+PASS  ADV-Replay 2nd alreadyAbandoned=true
+PASS  ADV-Replay 2nd released=noop（不双放）
+PASS  ADV-Replay 2nd 额度不二次回补
+PASS  ADV-Replay 2nd 仍 abandoned
+PASS  ADV-Replay 2nd consumption 仍 released（无双放）
+PASS  ADV-Replay 3rd → 200 alreadyAbandoned+noop
+PASS  ADV-Replay 3rd 额度仍净变 0
+
+──────── ADV-Tamper · body/id/headers · no cross-interview mutate ────────
+PASS  ADV-Tamper body spoof → 200 abandons path id only
+PASS  ADV-Tamper path target → abandoned
+PASS  ADV-Tamper decoy 仍 active（不跨面）
+PASS  ADV-Tamper decoy consumption 仍 reserved
+PASS  ADV-Tamper target consumption=released
+PASS  ADV-Tamper bad Bearer(+x-user-id) → 401
+PASS  ADV-Tamper decoy unchanged after bad Bearer
+PASS  ADV-Tamper target still abandoned (no resurrect)
+PASS  ADV-Tamper path traversal-ish → 404 (or not decoy mutate)
+PASS  ADV-Tamper decoy 仍 active after weird path
+PASS  ADV-Tamper decoy consumption 仍 reserved
+PASS  ADV-Tamper cleanup decoy → 200
+PASS  ADV-Tamper cleanup decoy released/noop
+PASS  ADV-Tamper cleanup 后 decoy=abandoned
+PASS  ADV-Tamper 额度不低于 setup-before（无双扣）
+
+──────── ADV-Cross-tenant · A vs B interview · no leak ────────
+PASS  ADV-XT setup userB 额度 -1
+PASS  ADV-XT userA→userB interview → 404 not_found_or_forbidden
+PASS  ADV-XT 响应不泄露 status/owner/released
+PASS  ADV-XT 目标仍 active
+PASS  ADV-XT 目标 owner 仍 userB
+PASS  ADV-XT userB consumption 仍 reserved
+PASS  ADV-XT userB 额度未回补
+PASS  ADV-XT userA 额度不变
+PASS  ADV-XT userB→userA interview → 404
+PASS  ADV-XT reverse 目标仍 waiting_user
+PASS  ADV-XT reverse userA 额度未变
+PASS  ADV-XT reverse 不泄露
+
+──────── ADV-Forged-auth · missing/bad token · no side effects ────────
+PASS  ADV-Forge setup 额度 -1
+PASS  ADV-Forge missing auth → 401
+PASS  ADV-Forge missing 后仍 active
+PASS  ADV-Forge missing 额度未回补
+PASS  ADV-Forge missing consumption 仍 reserved
+PASS  ADV-Forge garbage Bearer → 401
+PASS  ADV-Forge garbage 后仍 active
+PASS  ADV-Forge bad signature → 401
+PASS  ADV-Forge badSig 后仍 active
+PASS  ADV-Forge ghost principal → 401/403/404
+PASS  ADV-Forge ghost 后仍 active
+PASS  ADV-Forge ghost 额度未回补
+PASS  ADV-Forge 全程无 abandoned 副作用
+PASS  ADV-Forge 全程 consumption 仍 reserved
+PASS  ADV-Forge sanity valid Bearer → 200 abandon
+PASS  ADV-Forge sanity 额度回补
+
+──────── ADV-Inject · malformed / inject vs abandon · no cross-tenant write ────────
+PASS  ADV-Inject malformed JSON → 4xx structural reject
+PASS  ADV-Inject malformed 后 target 仍 active
+PASS  ADV-Inject malformed 后 other 仍 active
+PASS  ADV-Inject malformed userA 额度未回补
+PASS  ADV-Inject malformed userB 额度未变
+PASS  ADV-Inject polluted body → 200 path-only OR 4xx
+PASS  ADV-Inject rejected → target 仍 active 或 abandoned 安全
+PASS  ADV-Inject other(userB) 未变 active
+PASS  ADV-Inject other consumption 仍 reserved
+PASS  ADV-Inject userB 额度未变（无跨租户写）
+PASS  ADV-Inject text/plain junk on other path → 4xx or 404 (A cannot abandon B)
+PASS  ADV-Inject junk 后 other 仍 active（无跨租户写）
+PASS  ADV-Inject junk userB 额度未变
+PASS  ADV-Inject against completed → 409 interview_not_active
+PASS  ADV-Inject completed 仍 completed（不改 confirmed 账）
+
+──────── ADV honesty pins ────────
+PIN   NHP-018-ADV-01: Replay/Tamper/Cross-tenant/Forged-auth/Inject executed against abandon mouth
+PIN   §1.0 ADV case-only→partial（THIS column only）on EXIT=0
+PIN   ADV alone ≠ UC-E2E-018 covered · §1.1 stays partial · Ban claim PERF/LOAD closed
+PIN   haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · PG-retained
+PASS  honesty: ADV prove 绿 ≠ UC-E2E-018 covered（§1.1 partial retained · ADV alone ≠ covered）
+PASS  honesty: Ban invent green · real HTTP hit abandon route
+
+✓ uc018:adv: 76 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-09-24T04-37-49-845Z-1855360-8b360b2a-b75f-43a0-aeb7-56f7db29fbb0.json release_evidence=false
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+

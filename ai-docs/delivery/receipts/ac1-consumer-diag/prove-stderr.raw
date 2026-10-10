@@ -1,0 +1,2 @@
+adaptive-consumer start diagnostic: { status: 'failed', last_error: 'adaptive_role_route_missing' }
+ADAPTIVE_CONSUMER_STAGE=NORMAL_ANSWER_DRAIN CODE=UNKNOWN

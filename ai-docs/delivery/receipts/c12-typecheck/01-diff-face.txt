@@ -1,0 +1,38 @@
+== git status --porcelain (pre-commit, after tsbuildinfo revert) ==
+ M apps/web/package.json
+ M packages/contracts/package.json
+?? ai-docs/delivery/receipts/c12-typecheck/
+
+== git diff --numstat ==
+2	1	apps/web/package.json
+2	1	packages/contracts/package.json
+
+== git diff (full authorized face) ==
+diff --git a/apps/web/package.json b/apps/web/package.json
+index 740ee33d..24fc8b6e 100644
+--- a/apps/web/package.json
++++ b/apps/web/package.json
+@@ -13,7 +13,8 @@
+     "prove:application-start-error": "tsx test/application-start-error.proof.ts",
+     "dev": "next dev",
+     "build": "next build",
+-    "start": "next start"
++    "start": "next start",
++    "typecheck": "tsc --noEmit"
+   },
+   "dependencies": {
+     "@meetwise/contracts": "workspace:*",
+diff --git a/packages/contracts/package.json b/packages/contracts/package.json
+index 3256e75e..3d92e8cf 100644
+--- a/packages/contracts/package.json
++++ b/packages/contracts/package.json
+@@ -12,7 +12,8 @@
+     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
+     "prove:interview-answer-submission": "tsx test/interview-answer-submission.proof.ts",
+     "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
+-    "prove:signal-sse": "tsx test/interview-signal-sse.proof.ts"
++    "prove:signal-sse": "tsx test/interview-signal-sse.proof.ts",
++    "typecheck": "tsc --noEmit"
+   },
+   "dependencies": {
+     "zod": "catalog:"

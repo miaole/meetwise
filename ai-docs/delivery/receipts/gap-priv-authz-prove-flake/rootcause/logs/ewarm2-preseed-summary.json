@@ -1,0 +1,23 @@
+{
+  "experiment": "ewarm2-preseed",
+  "container": "meetwise-e2e-64368-ewarm2-preseed-1791381500804",
+  "runs": [
+    {
+      "run": 1,
+      "exit": 1,
+      "processExitLine": "PROCESS_EXIT=1",
+      "threePoint": {
+        "duplicateKeyLine": true,
+        "code23505Line": true,
+        "keyValueLine": true
+      },
+      "passCount": 1,
+      "failCount": 0,
+      "withheld": {
+        "state_bytes": 218,
+        "logs_bytes": 8446
+      }
+    }
+  ],
+  "port": 53304
+}

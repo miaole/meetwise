@@ -14,7 +14,7 @@ export type Credentials = z.infer<typeof Credentials>;
 /** 注册:含身份(求职者 C 端 / 招聘方 B 端)。 */
 export const SignupDto = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), role: z.enum(['candidate', 'recruiter']).optional() });
 export type SignupDto = z.infer<typeof SignupDto>;
-export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional() });
+export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional(), approvalStatus: z.enum(['pending', 'approved', 'rejected']).optional() });
 export type AuthResult = z.infer<typeof AuthResult>;
 
 /* ───────────── resume ───────────── */
@@ -24,8 +24,8 @@ export type AuthResult = z.infer<typeof AuthResult>;
 export const UploadResumeDto = z.object({ text: z.string().min(20).max(60_000) });
 export type UploadResumeDto = z.infer<typeof UploadResumeDto>;
 /** 文件上传简历(PDF/Word/图片):base64 内容 + 文件名 + MIME。服务端提取+清洗→结构化。 */
-// 上限:base64 ≤ ~10.7MB(对应 8MB 原文,服务再按 MAX_RESUME_BYTES 解码校验);filename/mimeType ≤255 防超长头。
-const ResumeFileBase64 = z.string().min(1).max(10_700_000)
+// 上限:base64 ≤ ~11.2MB，略高于 8MB 原文的 base64 膨胀，使服务端 MAX_RESUME_BYTES 可返回 413 file_too_large（UC-E2E-015 E4）；filename/mimeType ≤255 防超长头。
+const ResumeFileBase64 = z.string().min(1).max(11_200_000)
   .regex(/^[A-Za-z0-9+/]*={0,2}$/)
   .refine((value) => value.length % 4 === 0, 'base64 padding is invalid');
 export const UploadResumeFileDto = z.object({ filename: z.string().min(1).max(255), mimeType: z.string().max(255).default(''), contentBase64: ResumeFileBase64 });
@@ -356,9 +356,16 @@ export const InviteCandidateDto = z.object({
   candidateEmail: z.string().email().max(254).optional(),
 }).refine((v) => !!(v.candidateId || v.candidateEmail), { message: 'candidateId_or_email_required' });
 export type InviteCandidateDto = z.infer<typeof InviteCandidateDto>;
-/** 邀请结果(幂等:候选人已自投/已被邀请则复用既有申请 id)。 */
+/** 邀请结果(幂等:候选人已自投/已被邀请则复用既有申请 id)。declineApplication 仍用本 schema 零触(b110)。 */
 export const InviteResult = z.object({ applicationId: z.string(), status: z.string() });
 export type InviteResult = z.infer<typeof InviteResult>;
+/** b110 邀请受理恒定壳(反枚举):命中(真实建申请)/未命中/招聘方 email 同形同码零信号;
+ *  applicationId/status 不再出响应——真实申请状态以租户内 candidates 列表承载。 */
+export const InviteReceived = z.object({ received: z.literal(true) });
+export type InviteReceived = z.infer<typeof InviteReceived>;
+/** b110 admin 招聘方审批裁决体:approve=开通(企业付费主体诞生时刻,#271 挂点)·reject=拒绝。 */
+export const RecruiterDecisionDto = z.object({ decision: z.enum(['approve', 'reject']) });
+export type RecruiterDecisionDto = z.infer<typeof RecruiterDecisionDto>;
 /** 人才库一行:跨招聘方自有岗位聚合的候选人。评分校准发布前 score 恒为
  * null，B 端不得据此排序、筛选或作决定。 */
 export const TalentRowView = z.object({
@@ -415,7 +422,8 @@ export const PrivacyDeletionReceipt = z.object({
 export type PrivacyDeletionReceipt = z.infer<typeof PrivacyDeletionReceipt>;
 
 /* ───────────── privacy erasure preview path（预览版，非生产删除 SLO） ─────────────
- * 接线 request → sink 盘点 → 回执。登录令牌可受理预览请求；生产 DELETE 仍 503。
+ * 接线 request → sink 盘点 → 回执。登录令牌可受理预览请求；生产 DELETE 不进 OpenAPI
+ * （UNSTUB-ERASE rev2：简历/账户删除=202 软删受理,面试删除仍 503 关闭）。
  * 回执禁止 completed / productionSloClaimed=true。
  */
 export const PrivacyPreviewScope = z.enum(['interview_data', 'account_data', 'resume_data']);
@@ -469,6 +477,42 @@ export const PrivacyPreviewList = z.object({
   items: z.array(PrivacyPreviewListItem),
 }).strict();
 export type PrivacyPreviewList = z.infer<typeof PrivacyPreviewList>;
+
+/* ───────────── S1 软删受理（UNSTUB-ERASE rev2 · D6 最低集） ─────────────
+ * 简历单删 / 全量删 / 账户注销（发起账户级删除）的受理形状。**字面量类型钉死**：
+ * mode='logical' 与 purgePending=true 在类型层不可漂移成完成态——物理清除归 S2
+ * 异步 PRIV 链（逐 sink 回执），S1 恒不宣称完成。与上方 privacy 块同理：本块仅冻结
+ * 跨端 schema，不登记进 apiContract（不进 OpenAPI），前端既有 zod 契约零破坏（additive）。
+ */
+export const ResumeEraseResult = z.object({
+  resumeId: z.string().uuid(),
+  mode: z.literal('logical'),
+  deletedAt: z.string().datetime().nullable(),
+  purgePending: z.literal(true),
+  requestId: z.string().uuid(),
+  alreadyFenced: z.boolean().optional(),
+}).strict();
+export type ResumeEraseResult = z.infer<typeof ResumeEraseResult>;
+export const ResumeDataEraseResult = z.object({
+  mode: z.literal('logical'),
+  purgePending: z.literal(true),
+  resumesFenced: z.number().int().nonnegative(),
+  requestId: z.string().uuid().nullable(),
+}).strict();
+export type ResumeDataEraseResult = z.infer<typeof ResumeDataEraseResult>;
+export const AccountDeactivateDto = z.object({
+  password: z.string().min(1).max(1024),
+}).strict();
+export type AccountDeactivateDto = z.infer<typeof AccountDeactivateDto>;
+export const AccountDeactivateResult = z.object({
+  deactivated: z.literal(true),
+  mode: z.literal('logical'),
+  purgePending: z.literal(true),
+  deletedAt: z.string().datetime(),
+  resumesFenced: z.number().int().nonnegative(),
+  interviewsFenced: z.number().int().nonnegative(),
+}).strict();
+export type AccountDeactivateResult = z.infer<typeof AccountDeactivateResult>;
 
 /* ───────────── memory governance (MEM-00) ─────────────
  * 记忆治理的多端契约形状。与上方 privacy 块同理：这些形状**仅冻结跨端 schema**，不登记进
@@ -1104,7 +1148,7 @@ export const apiContract: ContractRoute[] = [
   { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离)', tags: ['recruiter'], auth: true, response: JobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },
   { id: 'jobCandidates', method: 'get', path: '/recruiter/jobs/{id}/candidates', summary: '招聘方查岗位申请人(多方 RLS)', tags: ['recruiter'], auth: true, response: JobCandidates },
-  { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteResult },
+  { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteReceived },
   { id: 'talentPool', method: 'get', path: '/recruiter/talent', summary: '招聘方人才库(跨自有岗位聚合候选人,租户隔离)', tags: ['recruiter'], auth: true, response: TalentPool },
   { id: 'browseJobs', method: 'get', path: '/jobs', summary: '候选人浏览开放岗位', tags: ['jobs'], auth: true, response: JobList },
   { id: 'applyJob', method: 'post', path: '/jobs/{id}/apply', summary: '候选人投递岗位(幂等)', tags: ['jobs'], auth: true, response: ApplyResult },

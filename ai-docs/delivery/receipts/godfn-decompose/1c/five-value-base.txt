@@ -1,0 +1,4 @@
+apps/api/src/modules/interview/interview.controller.ts {"asPrincipal":0,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview.module.ts {"asPrincipal":0,"guardInterviewPrivacy":0,"denyPublicPreviewWrite":0,"requirePublicPreviewControlledWrite":0,"catchAny":0,"advisory":0,"forUpdate":0}
+apps/api/src/modules/interview/interview.service.ts {"asPrincipal":27,"guardInterviewPrivacy":23,"denyPublicPreviewWrite":10,"requirePublicPreviewControlledWrite":1,"catchAny":5,"advisory":5,"forUpdate":3}
+TOTAL {"asPrincipal":27,"guardInterviewPrivacy":23,"denyPublicPreviewWrite":10,"requirePublicPreviewControlledWrite":1,"catchAny":5,"advisory":5,"forUpdate":3}

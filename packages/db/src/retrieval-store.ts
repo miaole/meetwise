@@ -1,5 +1,11 @@
 /**
  * @meetwise/db · 生产向量库 ops(pgvector HNSW)。隐私:只收向量+ref_id+hash,不收原文。检索返回 ref_id,由业务层取文。
+ *
+ * Backend selection (P14 · product-selector PREREQ): see ./retrieval-backend.ts
+ *   - default / unset → this pgvector path (intact)
+ *   - RETRIEVAL_VECTOR_BACKEND=qdrant → thin Qdrant adapter via createRetrievalVectorBackend
+ * This file stays SQL/HNSW/RLS/qbank-generation bound. Does NOT flip product/isolated default.
+ * releaseEvidence=false · Not HA · G2 still open · ≠ fixtures retired
  */
 import type { PoolClient as Client } from 'pg';
 import { activeQbankGeneration } from './qbank-generation-retrieval.ts';

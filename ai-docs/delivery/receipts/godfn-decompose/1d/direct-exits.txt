@@ -1,0 +1,13 @@
+prove:failover EXIT=0
+prove:voice-reliability EXIT=0
+prove:vstream EXIT=0
+prove:voice-stream-preview EXIT=0
+prove:interview-voice-seams EXIT=0
+prove:cloud-readiness EXIT=0
+prove:cloud-smoke-fc EXIT=0
+prove:cloud-test-fc EXIT=0
+prove:cloud-test-ledger EXIT=0
+prove:cloud-test-serial EXIT=0
+prove:voice-timeout EXIT=0
+prove:voice-operation-policy EXIT=0
+prove:voice-cancel-http EXIT=0

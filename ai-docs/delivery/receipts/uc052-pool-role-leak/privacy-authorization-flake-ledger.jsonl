@@ -1,0 +1,29 @@
+{"kind":"cold","n":1,"exit":0,"start":"2026-09-23T21:59:40-07:00","end":"2026-09-23T21:59:53-07:00","log":"logs/cold-1.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf"}
+{"kind":"cold","n":2,"exit":0,"start":"2026-09-23T21:59:53-07:00","end":"2026-09-23T22:00:04-07:00","log":"logs/cold-2.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf"}
+{"kind":"cold","n":3,"exit":0,"start":"2026-09-23T22:00:04-07:00","end":"2026-09-23T22:00:16-07:00","log":"logs/cold-3.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf"}
+{"kind":"cold","n":4,"exit":0,"start":"2026-09-23T22:00:16-07:00","end":"2026-09-23T22:00:29-07:00","log":"logs/cold-4.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf"}
+{"kind":"cold","n":5,"exit":1,"start":"2026-09-23T22:00:29-07:00","end":"2026-09-23T22:00:41-07:00","log":"logs/cold-5.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf"}
+{"kind":"warm","n":1,"exit":0,"start":"2026-09-23T22:00:49-07:00","end":"2026-09-23T22:00:51-07:00","log":"logs/warm-1.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf","pgPort":33048}
+{"kind":"warm","n":2,"exit":1,"start":"2026-09-23T22:00:51-07:00","end":"2026-09-23T22:00:53-07:00","log":"logs/warm-2.log","tip":"71ec2535401c6705dc3cf8ad202dbce4be5ffacf","pgPort":33048}
+{"kind":"meta","event":"ledger_v2_start","tip":"3d0c71e6cf772b538cd607a20674393246486cc4","note":"after pre-prove Running+wait; prior cold#5 ECONNREFUSED retained in logs/cold-5.log"}
+{"kind":"cold_v2","n":1,"exit":0,"econnrefused":0,"start":"2026-09-23T22:01:39-07:00","end":"2026-09-23T22:01:52-07:00","log":"logs/cold-v2-1.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":2,"exit":0,"econnrefused":0,"start":"2026-09-23T22:01:52-07:00","end":"2026-09-23T22:02:05-07:00","log":"logs/cold-v2-2.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":3,"exit":0,"econnrefused":0,"start":"2026-09-23T22:02:05-07:00","end":"2026-09-23T22:02:18-07:00","log":"logs/cold-v2-3.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":4,"exit":0,"econnrefused":0,"start":"2026-09-23T22:02:18-07:00","end":"2026-09-23T22:02:31-07:00","log":"logs/cold-v2-4.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":5,"exit":0,"econnrefused":0,"start":"2026-09-23T22:02:31-07:00","end":"2026-09-23T22:02:45-07:00","log":"logs/cold-v2-5.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":6,"exit":0,"econnrefused":0,"start":"2026-09-23T22:02:45-07:00","end":"2026-09-23T22:02:58-07:00","log":"logs/cold-v2-6.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":7,"exit":0,"econnrefused":0,"start":"2026-09-23T22:02:58-07:00","end":"2026-09-23T22:03:11-07:00","log":"logs/cold-v2-7.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":8,"exit":0,"econnrefused":0,"start":"2026-09-23T22:03:11-07:00","end":"2026-09-23T22:03:25-07:00","log":"logs/cold-v2-8.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":9,"exit":0,"econnrefused":0,"start":"2026-09-23T22:03:25-07:00","end":"2026-09-23T22:03:39-07:00","log":"logs/cold-v2-9.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"cold_v2","n":10,"exit":0,"econnrefused":0,"start":"2026-09-23T22:03:39-07:00","end":"2026-09-23T22:03:52-07:00","log":"logs/cold-v2-10.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":1,"exit":0,"econnrefused":0,"start":"2026-09-23T22:03:52-07:00","end":"2026-09-23T22:04:05-07:00","log":"logs/warm-v2-1.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":2,"exit":0,"econnrefused":0,"start":"2026-09-23T22:04:05-07:00","end":"2026-09-23T22:04:19-07:00","log":"logs/warm-v2-2.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":3,"exit":0,"econnrefused":0,"start":"2026-09-23T22:04:19-07:00","end":"2026-09-23T22:04:31-07:00","log":"logs/warm-v2-3.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":4,"exit":0,"econnrefused":0,"start":"2026-09-23T22:04:31-07:00","end":"2026-09-23T22:04:44-07:00","log":"logs/warm-v2-4.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":5,"exit":0,"econnrefused":0,"start":"2026-09-23T22:04:44-07:00","end":"2026-09-23T22:04:57-07:00","log":"logs/warm-v2-5.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":6,"exit":0,"econnrefused":0,"start":"2026-09-23T22:04:57-07:00","end":"2026-09-23T22:05:10-07:00","log":"logs/warm-v2-6.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":7,"exit":0,"econnrefused":0,"start":"2026-09-23T22:05:10-07:00","end":"2026-09-23T22:05:23-07:00","log":"logs/warm-v2-7.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":8,"exit":0,"econnrefused":0,"start":"2026-09-23T22:05:23-07:00","end":"2026-09-23T22:05:35-07:00","log":"logs/warm-v2-8.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":9,"exit":0,"econnrefused":0,"start":"2026-09-23T22:05:35-07:00","end":"2026-09-23T22:05:48-07:00","log":"logs/warm-v2-9.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind":"warm_v2","n":10,"exit":0,"econnrefused":0,"start":"2026-09-23T22:05:48-07:00","end":"2026-09-23T22:06:01-07:00","log":"logs/warm-v2-10.log","tip":"3d0c71e6cf772b538cd607a20674393246486cc4"}
+{"kind": "prove_tip_authz", "n": 1, "exit": 0, "start": "2026-10-02T20:55:48-07:00", "end": "2026-10-02T20:55:48-07:00", "log": "logs/prove-tip-authz-9b39a20.log", "tip": "9b39a20d6b53d10ac95be880037a3e716126f715", "note": "first-run EXIT=0 at prove tip; Ban claim flake fixed; status remains mitigated/cause-unknown"}

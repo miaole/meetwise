@@ -2,6 +2,7 @@
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { serverFetch } from '@/lib/api/server';
+import { applicationStartFailureMessage } from '@/lib/jobs/application-start-error';
 
 /** 硬失败统一出口:额度不足(402)→ 明确不可用;其余非 ok(且不在容忍集)→ 抛错落根错误边界(可读 + 重试),
  *  绝不静默 revalidate 让按钮"点了没反应"。容忍集 tolerate:幂等/竞态类(如已投递 409)无需打扰用户。 */
@@ -25,8 +26,13 @@ export async function startApplicationAction(appId: string, formData: FormData) 
   if (!resumeId) throw new Error('resume_required_for_application_interview');
   const res = await serverFetch(`/applications/${appId}/start`, { method: 'POST', body: JSON.stringify({ resumeId }) });
   if (res.status === 402) redirect('/jobs?error=interview_credits_unavailable');
-  if (!res.ok) throw new Error(`application_start_failed_${res.status}`);
-  const body = await res.json().catch(() => ({} as { redirectTo?: string; interviewId?: string }));
+  const body = await res.json().catch(() => ({} as { redirectTo?: string; interviewId?: string; error?: string }));
+  if (!res.ok) {
+    const msg = applicationStartFailureMessage(res.status, body);
+    // Surface the specific 409 subclass in logs so UI-409 gaps are diagnosable (not status-only).
+    console.error('[application_start_failed]', { status: res.status, message: msg, body });
+    throw new Error(msg);
+  }
   if (!body.redirectTo || typeof body.redirectTo !== 'string' || !body.interviewId || typeof body.interviewId !== 'string') throw new Error('application_start_missing_interview_binding');
   // 绑定创建与通用面试启动分层：前者在 application 行锁事务内原子完成；后者复用既有 begin 的额度 saga。
   // begin 自身以 interviewId 幂等，网络重试/刷新绝不重复 reserve 或入队。

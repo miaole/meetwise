@@ -20,7 +20,7 @@ const base = scriptedModelClient({
     ok: true,
     raw: { q: `结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并说明第 ${++askSeq} 轮验证方法`, refs: [] },
   }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清了滑动窗口', quote: '滑动窗口' }] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '滑动窗口' }] } }),
 });
 const model: ModelClient = { complete: (r, a) => { calls++; return base.complete(r, a); } };
 
@@ -49,7 +49,8 @@ async function main() {
   let res: any = await g.invoke({}, cfg); let guard = 0;
   while (res.__interrupt__ && guard++ < 20) res = await g.invoke(new Command({ resume: answerVault.issue('我用 Redis 计数器+滑动窗口扛住高并发,超阈值降级') }), cfg);
 
-  A('② 面试官 CRAG 出题 + ③ 评估官打分:图跑完每题有转写', res.transcript.length >= 2 && res.transcript.every((t: any) => t.score === 88));
+  // #52 v6：score=档位确定性派生（fixture exceeds→100），非 v5 自由 hint 分。
+  A('② 面试官 CRAG 出题 + ③ 评估官打分:图跑完每题有转写', res.transcript.length >= 2 && res.transcript.every((t: any) => t.score === 100));
   A('④ 收尾标记 concluded(报告走舱壁,不在图内出)', res.concluded === true);
   const tr = await asPrincipal(pool, OWNER, (c) => c.query('SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key LIKE $2', [OWNER, TID + '%']));
   A('全部 4 角色调用经 invoke 关口留 trace 且键带 threadId(Langfuse 一棵树)', tr.rows[0].n >= 4);

@@ -11,6 +11,7 @@ import { applyAction, startApplicationAction, declineApplicationAction } from '.
 import { listWindow, withLimitHref } from '@/lib/paginate';
 import { resumeOptionLabel } from '@/lib/resume/display';
 import { applicationScoreVisible } from '@/lib/recruiter/surface';
+import { actionErrorMessage } from '@/lib/errors/action-error';
 import { MyApplications, ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 
 const PAGE = 20;          // 岗位广场可能很多:封顶首屏渲染,"加载更多"递增 ?limit
@@ -29,9 +30,9 @@ const STATUS_LABEL: Record<string, { text: string; variant: 'success' | 'outline
 };
 
 /** 候选人(C 端)岗位广场:浏览招聘中的岗位 → 一键申请;并查看自己的投递状态。RSC + Server Action,无 client。 */
-export default async function JobsPage({ searchParams }: { searchParams: Promise<{ limit?: string; alimit?: string }> }) {
+export default async function JobsPage({ searchParams }: { searchParams: Promise<{ limit?: string; alimit?: string; error?: string }> }) {
   if (!(await getServerToken())) redirect('/login');
-  const { limit, alimit } = await searchParams;
+  const { limit, alimit, error } = await searchParams;
 
   const [jobsRes, appsRes, resumesRes] = await Promise.all([
     serverGet<{ jobs: Job[] }>('/jobs'),
@@ -54,6 +55,21 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
         <h1 className="flex items-center gap-2 text-2xl font-bold"><Briefcase className="size-6 text-primary" />岗位广场</h1>
         <p className="mt-1 text-muted-foreground">浏览练习岗位并投递。这不是正式招聘，对侧列表只是内部骨架，不构成录用评估。</p>
       </div>
+
+      {/* #224：jobs actions 写下的 ?error=（apply/interview_credits_unavailable → 402 行）至此有人渲染；其余码 null 不渲染空壳 */}
+      {(() => {
+        const actionError = actionErrorMessage('jobs', 0, error ?? null);
+        if (!actionError) return null;
+        return (
+          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {actionError.text}
+            {actionError.href && (
+              <Link href={actionError.href} className="ml-1 font-medium underline underline-offset-4">额度说明</Link>
+            )}
+            {actionError.note && <span className="mt-1 block text-xs opacity-80">{actionError.note}</span>}
+          </p>
+        );
+      })()}
 
       <Card>
         <CardHeader>
@@ -107,8 +123,8 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           ) : appsWin.shown.map((app) => {
             const st = STATUS_LABEL[app.status] ?? { text: '状态未知', variant: 'outline' as const };
             const invited = app.status === 'invited';
-            // `assessment_unavailable` 是无可信分数且已退款的可恢复终态；重试必须显式由
-            // 用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
+            // `assessment_unavailable` 是无可信分数的可恢复终态；额度处理以结算事件为准：
+            // evaluation_unscored=预留已释放，no_eligible_scored_answer=已扣费结算（不释放）。重试必须显式由用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
             const startable = app.status === 'invited' || app.status === 'in_progress' || app.status === 'assessment_unavailable';
             // 申请 score 即使历史非空也不得渲染：校准 hold 下它不是可比较评分。
             const showScore = applicationScoreVisible(app.score);

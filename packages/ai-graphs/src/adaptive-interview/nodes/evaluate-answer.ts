@@ -57,6 +57,7 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
     let evidence: string[] = ['未正面作答(空答/跳过/套话)'];
     let relevant = false;
     let hasHook = false;
+    let dispositions: import('@meetwise/domain').ScoredCriterionDisposition[] = [];
 
     if (!deterministicNonAnswer) {
       const assessment = await deps.assess(question, answer, competency, turn, {
@@ -91,6 +92,8 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
       evidence = assessment.evidence;
       relevant = assessment.relevant;
       hasHook = assessment.hasHook === true;
+      // #52 v6：0103 契约档位证据（派生物，无答案原文）随 turn 透传（checkpoint 审计投影）。
+      dispositions = assessment.dispositions ?? [];
     }
 
     const verdict = classifyTurn(mind, {
@@ -167,6 +170,7 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
           outcome: 'answered' as const,
           relevant: true,
           kind: pending.kind,
+          dispositions,
         },
       ],
     };

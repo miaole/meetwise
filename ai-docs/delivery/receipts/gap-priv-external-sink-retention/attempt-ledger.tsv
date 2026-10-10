@@ -1,0 +1,8 @@
+uc052:external-sink-retention:prove	9e2abd04083eca464817e35687595c706cbcd2a9	2026-10-06 20:26:55 CST	2026-10-06 20:27:07 CST	0
+privacy-erasure:http:prove	9e2abd04083eca464817e35687595c706cbcd2a9	2026-10-06 20:27:14 CST	2026-10-06 20:27:57 CST	0
+uc052:internal-erasure:prove	9e2abd04083eca464817e35687595c706cbcd2a9	2026-10-06 20:27:57 CST	2026-10-06 20:28:09 CST	0
+privacy-authorization:prove	9e2abd04083eca464817e35687595c706cbcd2a9	2026-10-06 20:28:09 CST	2026-10-06 20:28:21 CST	0
+uc052:checkpoint-physical:prove	9e2abd04083eca464817e35687595c706cbcd2a9	2026-10-06 20:28:21 CST	2026-10-06 20:28:34 CST	0
+int-transcript-remaining-sinks:prove	9e2abd04083eca464817e35687595c706cbcd2a9	2026-10-06 20:28:34 CST	2026-10-06 20:28:46 CST	0
+ALLDONE
+MUT-1 uc052:external-sink-retention:prove (scratch -0137)	8a571cc1d7ab9dbca1f4851c70d101e0d85274dd	2026-10-06 20:28:59 CST	2026-10-06 20:29:11 CST	1

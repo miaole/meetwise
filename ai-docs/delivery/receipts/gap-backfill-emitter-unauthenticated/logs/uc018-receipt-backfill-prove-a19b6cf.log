@@ -1,0 +1,51 @@
+
+> meetwise@0.1.0 uc018:receipt-backfill:prove /workspace/meetwise-lineG
+> node scripts/uc-e2e-018-receipt-backfill.proof.mjs
+
+PASS  valid machine receipt accepted
+PASS  legacy synthetic receipt readable unsigned (not signed)
+PASS  hand-written emittedBy rejected
+PASS  edited stdoutDigest rejected
+PASS  missing EOR disclosure rejected
+PASS  runner/target mismatch rejected
+PASS  prose JSON rejected (emittedBy-mismatch)
+PASS  stack fact without source rejected (stack-fact-missing-or-unsourced:postgresSaver)
+PASS  missing imageDigest field rejected (imageDigest-field-missing:minio/minio:latest)
+PASS  isBackfillReceiptShape true for good
+PASS  isBackfillReceiptShape false for thin object
+PASS  isPreferableBackfillReceipt true for exit=0
+PASS  isPreferableBackfillReceipt false for exit=1
+PASS  gatherer exports readReceiptPreferBackfill
+PASS  waiting_user = MISSING-EVIDENCE constant
+PASS  D-B exit=1 backfill not preferred (flagged backfill-failed)
+PASS  D-B exit=1 evidenceOfRecord forced false
+PASS  D-B exit=1 no silent legacy fallback
+PASS  D-B evaluator emits BACKFILL-FAILED reason
+PASS  D-B missing proveExit flagged backfill-failed
+PASS  D-B missing exit no silent legacy fallback
+PASS  FX-BACKFILL-NO-README-BLEED: backfill PERF/LOAD not IMPL-ONLY (expected)
+PASS  FX-LEGACY-README-IMPL-ONLY: legacy PERF/LOAD still IMPL-ONLY (expected)
+PASS  (a) unwrapStackValue(static-doc postgresSaver:true) → undefined (STUB-STACK honest)
+PASS  (b) prior-docker-inspect not counted as live per-run observation
+PASS  (b) live docker-inspect still live
+PASS  genuine HMAC emit verifies (signed)
+PASS  missing tag fail closed
+PASS  verifier missing tag fail closed (no optional-pass)
+PASS  bad tag fail closed
+PASS  truncated tag fail closed
+PASS  mutated JSON fails HMAC
+PASS  mutated log fails HMAC
+PASS  JSON+log rewritten without key fails
+PASS  missing key fail closed
+PASS  tag under a different key fails
+PASS  legacy ADV.json unsigned historical (not signed)
+PASS  legacy FULL-E2E.json unsigned historical (not signed)
+PASS  legacy GRAPH.json unsigned historical (not signed)
+PASS  legacy PERF-LOAD.json unsigned historical (not signed)
+PASS  legacy SOLE.json unsigned historical (not signed)
+PASS  legacy TTL.json unsigned historical (not signed)
+PASS  legacy UI.json unsigned historical (not signed)
+PASS  no default key and no .env read in emitter/guard
+
+CMD=pnpm uc018:receipt-backfill:prove EXIT=0
+EXIT:0

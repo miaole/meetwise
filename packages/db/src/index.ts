@@ -19,6 +19,19 @@ export {
 } from './principal.ts';
 export type { Client, DbPool, PoolOverrides, RuntimeLoginInput } from './principal.ts';
 export { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from './isolated-test-target.ts';
+export { AppError, asErr, errCode } from './errors.ts';
+export type { ErrLike } from './errors.ts';
+
+// App-level tenant enforcement prototype (additive MySQL path).
+// 应用层 tenant ≠ RLS — does not replace asPrincipal / set_config / FORCE RLS.
+export {
+  TenantEnforcementError,
+  requireOwnerUserId,
+  assertTenantPredicate,
+  buildRequiredOwnerFilter,
+  enforceOwnerOnRow,
+} from './tenant/index.ts';
+export type { TenantEnforcementCode } from './tenant/index.ts';
 export { enrollCheckpointThread } from './checkpoint-thread.ts';
 export type { CheckpointThreadEnrollment } from './checkpoint-thread.ts';
 export { revokeCheckpointThread, assertInterviewPrivacyActive, isInterviewPrivacyActive, beginCheckpointErasure, listClaimableCheckpointErasureTargets, claimCheckpointErasureTarget, purgeCheckpointErasureTarget } from './checkpoint-privacy.ts';
@@ -26,7 +39,7 @@ export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from '.
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy-authorization.ts';
-export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
+export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
 export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './gateway-dispatch.ts';
 
 /** 原语②：状态机 CAS——仅当当前态 == from 时迁移到 to 并 version+1，返回是否生效（陈旧落败=0 行）。 */
@@ -70,6 +83,10 @@ export {
 } from './recruiter.ts';
 export type { JobPosting, JobApplication, TalentRow, TalentQuery, StartApplicationResult, FinalizeApplicationResult, AssessmentUnavailableMark } from './recruiter.ts';
 
+// 实体 ID 工厂（DBID-1 · B 级统一：UUIDv7 时间有序尾巴 + 前缀注册表 fail-closed）。
+export { newEntityId, newUuidV7, idUnixMs, ENTITY_PREFIXES } from './ids.ts';
+export type { EntityPrefix } from './ids.ts';
+
 // resume 存储 ops（S2 摄取存储侧：加密原文 + 状态机 + 脱敏 profile）
 export {
   createResumeWithBlob, transitionResume, persistResumeProfile, completeIngestion, failIngestion,
@@ -77,6 +94,9 @@ export {
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
 } from './resume.ts';
 export type { ResumeStatus, IngestedProfile, ResumeSourceKind, ResumeOcrBindingSnapshot } from './resume.ts';
+// resume S1 软删受理（UNSTUB-ERASE rev2 · 0152 唯一受审墓碑写入路径的薄包装;物理清除归 S2,purgePending 恒真）
+export { beginResumeSoftDelete } from './resume-privacy.ts';
+export type { ResumeSoftDeleteReceipt } from './resume-privacy.ts';
 
 // report job ops（报告子图舱壁：持久 job + 状态机 + 租约 + 重试）
 export {
@@ -88,7 +108,7 @@ export type { ReportStatus } from './report.ts';
 // Commit-delivered, data-free worker wakeup constants.  They are not a queue
 // or authorization mechanism; the durable queue and RLS claim path remain
 // authoritative.
-export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD } from './worker-job-wakeup.ts';
+export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP_REDIS_STREAM, WORKER_JOB_WAKEUP_REDIS_GROUP, WORKER_JOB_WAKEUP_REDIS_FIELD, notifyWorkerJobWakeup } from './worker-job-wakeup.ts';
 
 // 面试 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割孤儿 running
 export {
@@ -130,8 +150,21 @@ export {
 
 // 生产向量库（pgvector HNSW）
 export { upsertVectorChunk, annSearch, annSearchLegacy } from './retrieval-store.ts';
+export {
+  RETRIEVAL_VECTOR_BACKEND_ENV,
+  resolveRetrievalVectorBackend,
+  createRetrievalVectorBackend,
+} from './retrieval-backend.ts';
+export type {
+  RetrievalVectorBackendId,
+  RetrievalVectorBackend,
+  PgvectorRetrievalBackend,
+  QdrantRetrievalBackend,
+  ResolveRetrievalVectorBackendOptions,
+  CreateRetrievalVectorBackendOptions,
+} from './retrieval-backend.ts';
 export { activeQbankGeneration, requireActiveQbankGeneration, hybridQbankSearch, qbankEvidenceForRefs, qbankQuestionEvidenceForRefs, qbankQuestionResultsForHits } from './qbank-generation-retrieval.ts';
-export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult } from './qbank-generation-retrieval.ts';
+export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, QbankQuestionEvidence, QbankQuestionEvidencePart, QbankQuestionRetrievalResult, QbankServingScopeInput, QbankRetrievalMode } from './qbank-generation-retrieval.ts';
 
 // qbank ANN 跨实例结果缓存：Redis 热数据面 + PostgreSQL epoch/RLS/外部调用 intent 控制面。
 export { cachedQbankSearch, qbankRetrievalCacheKey, RagCacheDependencyError } from './qbank-retrieval-cache.ts';
@@ -257,8 +290,8 @@ export type {
 } from './memory-two-stage-recall.ts';
 
 // 支付订单（幂等入账）
-export { createOrder, getOrder, markOrderPaidAndCredit } from './payment.ts';
-export type { CreditResult } from './payment.ts';
+export { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded } from './payment.ts';
+export type { CreditResult, RefundResult } from './payment.ts';
 
 // 站内通知
 export { insertNotification, listNotifications, markNotificationRead, markAllNotificationsRead, unreadCount } from './notification.ts';
@@ -337,6 +370,29 @@ export type {
   AdjudicateEvidenceInput, ScoreUncertaintyInput, AdjudicateScoreCardInput, AdjudicateScoreCardResult,
 } from './scoring-evidence-conflict.ts';
 
+// EXTREV-1 SCORE-WRITER S1 全链接线组合层（零迁移·0100/0103/0109 落库契约的调用面）：
+// D1 出题投影事务 publish+issue；D2 API submit 事务邻域 createScoreRequest；D4 drain 定位读面。
+export {
+  SCORING_MEASUREMENT_VERSION, SCORING_OPERATION_POLICY_VERSION, SCORING_PROMPT_POLICY_VERSION,
+  SCORING_ROUTE, SCORING_LANGUAGE, SCORING_LANGUAGE_SCOPE, SCORING_ISSUE_PRIVACY_EPOCH,
+  SCORING_SEED_CRITERION_ID,
+  questionContentHashOf, scoringRubricQuestionId, publishRubricAndIssueContract,
+  createScoreRequestForSubmission, findActiveScoreRequest,
+} from './scoring-wire.ts';
+export type {
+  PublishRubricAndIssueContractInput, PublishRubricAndIssueContractResult,
+  CreateScoreRequestForSubmissionInput, CreateScoreRequestForSubmissionResult,
+  ActiveScoreRequestRow,
+} from './scoring-wire.ts';
+
+// 成长链生成核心（#204 GROWTH-GEN · D2a 共享单源）：评估/学习/职业三段「读→domain 纯派生→upsert」。
+// API 端点薄委托（HTTP 信封字节原样·plain {code}→409/404 映射留 API 侧）；worker report-worker
+// tx2 成功钩子（D1 形A）调同一函数。幂等=三表现有 UNIQUE(owner_user_id,interview_id)。职业段=
+// worker 侧单事务 upsert 简化形（D3 · #187 裁定）；API 侧 AiGraphRun 状态机零触（观测面分叉在案）。
+export {
+  generateAssessmentReportCore, generateLearningPlanCore, generateCareerPathCore,
+} from './growth-generation.ts';
+
 // RAG-FUNNEL-02B / EMBED-CACHE-01 计算缓存（metadata 审核后、projection 前；只复用相同计算的无主 float32 向量，
 // 不决定 leaf/可见性/激活）。PG = durable fill intent + 成本预留 + dispatch slot；Redis = 薄 value store + merge lock。
 export {
@@ -358,14 +414,22 @@ export type {
 // PG 是 route 决策的权威事实源；真实模型外发是受控 seam（归 MODEL-OP-01）。不改检索函数 ACL。
 export {
   JOB_SEMANTIC_REVISION_STATUSES, JOB_ROUTE_ATTEMPT_OUTCOMES,
-  createJobSemanticRevision, classifyJobRoute,
+  createJobSemanticRevision, classifyJobRoute, listNextJobRoutePending,
   bindApplicationRoute, snapshotInterviewRoute, getInterviewRouteSnapshot,
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
 } from './job-route-decision.ts';
 export type {
   JobSemanticRevisionStatus, JobRouteAttemptOutcome, JobRouteModelInput, JobRouteModelClassify,
-  ClassifyJobRouteResult, BindApplicationRouteResult, SnapshotInterviewRouteResult, InterviewRouteSnapshotView,
+  JobRoutePendingClaim, ClassifyJobRouteResult, BindApplicationRouteResult, SnapshotInterviewRouteResult, InterviewRouteSnapshotView,
 } from './job-route-decision.ts';
+
+// G7S 通用 begin 供给面收口：candidate-profile-derived route decision + snapshot（0142 新结构，
+// additive-only；job 维度零冒用）。写侧 = begin 事务同步供给（先于扣额/入队，未决 409 fail-closed）；
+// 读侧 = worker 角色门 fallback（旧 recruiter snapshot 优先，零回归）。
+export {
+  supplyCandidateProfileRoute, getInterviewRouteSnapshotForAdaptiveRole,
+} from './candidate-route.ts';
+export type { CandidateProfileRouteSupply } from './candidate-route.ts';
 
 // RAG-FUNNEL-04 / track-local retrieval dispatch seam（图内 planner 消费）：
 // 冻结 RetrievalPlan + 服务端校验属于 snapshot + DB 层 serving_scope 硬过滤检索 + recheck。
@@ -515,3 +579,16 @@ export {
   beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
 } from './privacy-erasure-preview.ts';
 export type { PrivacyPreviewListRow } from './privacy-erasure-preview.ts';
+export * from './uc052-internal-erasure.ts';
+export * from './uc052-external-sink-async-purge.ts';
+
+// 0141：GAP-PRIV-04 向量面擦除收尾（dispatch feed + jti feed + 0091 receipt 落账 +
+// 产品 sweep 步）。target 集先钉：仅 memory_vector_chunk（owner+kind 双谓词）；INT
+// sink='vector' 诚实 no-target；qbank 永不删；0091 零语义改动（既有 receipt 函数原样复用）。
+export {
+  listClaimableVectorChunkTargets, resolveVectorChunkTargetConsumedJti,
+  recordVectorPlaneLocalErasedReceipt, runVectorPlaneErasureTick,
+} from './vector-plane-erasure.ts';
+export type {
+  VectorChunkErasureFeedItem, VectorPlaneErasureTickDeps, VectorPlaneErasureTickResult,
+} from './vector-plane-erasure.ts';

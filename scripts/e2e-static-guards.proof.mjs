@@ -25,7 +25,19 @@ function currentSources() {
   for (const path of REQUIRED_E2E_RUNNER_PATHS) sources[path] = readRepo(path);
   for (const path of REQUIRED_EVIDENCE_HELPER_PATHS) sources[path] = readRepo(path);
   for (const path of REQUIRED_AI_PATH_FILES) sources[path] = readRepo(path);
+  sources['e2e/helpers/failure.ts'] = readRepo('e2e/helpers/failure.ts');
   return sources;
+}
+
+// BUG-E2E-FAILUNIMPORT fixture helper: drop one specifier from the
+// `./helpers/failure.ts` import clause while keeping every call site intact.
+function pruneFailureImport(source, specifier) {
+  return source.replace(
+    /(import\s*\{)([^}]*)(\}\s*from\s*['"]\.\/helpers\/failure\.ts['"])/,
+    (_match, head, names, tail) => `${head}${
+      names.split(',').map((name) => name.trim()).filter((name) => name && name !== specifier).join(', ')
+    }${tail}`,
+  );
 }
 
 function expectError(result, prefix) {
@@ -291,6 +303,37 @@ const checks = {
       const result = scanE2eStaticGuards({ repoRoot: fixture });
       expectError(result, 'credential_pattern:e2e/helpers/extra-log.ts:sk_style_api_key');
       assert.ok(!JSON.stringify(result).includes(secret), 'secret echoed in result');
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
+  'TC-TEST-GUARD-019-failure-import-break-evaluate': () => {
+    const sources = currentSources();
+    const original = sources['e2e/full.e2e.ts'];
+    // E2EFAIL-1 shape: :205 calls emitE2EFailure, import entry removed => must be red.
+    const prunedTerminal = pruneFailureImport(original, 'emitE2EFailure');
+    assert.notEqual(prunedTerminal, original, 'fixture must prune emitE2EFailure specifier');
+    sources['e2e/full.e2e.ts'] = prunedTerminal;
+    expectError(evaluateE2eStaticGuards({ sources }), 'failure_helper_import_missing:e2e/full.e2e.ts:emitE2EFailure');
+    // Catch-path face: main().catch calls emitClassifiedE2EFailure => same guard fires.
+    const prunedCatch = pruneFailureImport(prunedTerminal, 'emitClassifiedE2EFailure');
+    assert.notEqual(prunedCatch, prunedTerminal, 'fixture must prune emitClassifiedE2EFailure specifier');
+    sources['e2e/full.e2e.ts'] = prunedCatch;
+    expectError(evaluateE2eStaticGuards({ sources }), 'failure_helper_import_missing:e2e/full.e2e.ts:emitE2EFailure');
+    expectError(evaluateE2eStaticGuards({ sources }), 'failure_helper_import_missing:e2e/full.e2e.ts:emitClassifiedE2EFailure');
+  },
+  'TC-TEST-GUARD-019-failure-import-break-cli': async () => {
+    const fixture = mkdtempSync(join(tmpdir(), 'meetwise-e2e-static-failimp-'));
+    try {
+      const files = currentSources();
+      const pruned = pruneFailureImport(files['e2e/full.e2e.ts'], 'emitE2EFailure');
+      assert.notEqual(pruned, files['e2e/full.e2e.ts'], 'fixture must prune emitE2EFailure specifier');
+      files['e2e/full.e2e.ts'] = pruned;
+      writeTree(fixture, files);
+      expectError(scanE2eStaticGuards({ repoRoot: fixture }), 'failure_helper_import_missing:e2e/full.e2e.ts:emitE2EFailure');
+      const captured = await captureGuard(fixture);
+      assert.notEqual(captured.code, 0);
+      assert.match(captured.output, /failure_helper_import_missing:e2e\/full\.e2e\.ts:emitE2EFailure/);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

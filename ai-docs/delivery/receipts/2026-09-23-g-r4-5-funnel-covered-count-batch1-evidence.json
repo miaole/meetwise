@@ -1,0 +1,36 @@
+{
+  "kind": "FunnelCoveredCountBatch1Evidence",
+  "batch1Only": true,
+  "funnel03Covered": true,
+  "funnel04Covered": true,
+  "coveredIds": [
+    "RAG-FUNNEL-03",
+    "RAG-FUNNEL-04"
+  ],
+  "coveredCount": 2,
+  "coveredCountInvented": false,
+  "funnel03Assessor": {
+    "contractsJobRouteDecisionPresent": true,
+    "domainClassifierWired": true,
+    "dbClassifyBindSnapshotWired": true,
+    "workerRouteClassifyConsumerWired": true,
+    "mainRunsRouteClassifyConsumer": true,
+    "r2StructuralClosedCitedNotInvented": true
+  },
+  "funnel04Assessor": {
+    "trackLocalHelperWired": true,
+    "dbDispatchTrackLocalWired": true,
+    "domainRetrievalPlanWired": true,
+    "mainInjectsTrackLocalRealWire": true,
+    "consumerConsumesTrackLocal": true,
+    "retrieveScopeFailClosed": true
+  },
+  "funnel03RefuseReason": null,
+  "funnel04RefuseReason": null,
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "gR45Closed": false,
+  "ms3EqualsR4Closed": false,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / FUNNEL coveredCount Batch1 — true-cover 03+04 under authorize · honest assessor elevation only · Ban invent · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash 1c2ed8c/7be1a55/rem·SSOT·EXPLICIT · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}

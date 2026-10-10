@@ -1,0 +1,44 @@
+{
+  "knife": "GAP-UC052-POOL-ROLE-LEAK",
+  "line": "B",
+  "proveSha": "9b39a20d6b53d10ac95be880037a3e716126f715",
+  "proveShaShort": "9b39a20",
+  "mechanismSha": "71ec2535401c6705dc3cf8ad202dbce4be5ffacf",
+  "cmds": {
+    "uc052:pool-role-leak:prove": 0,
+    "mutation-control-pre-fix-913f21d": 1,
+    "uc052:checkpoint-physical:prove": 0,
+    "uc052:internal-erasure:prove": 0,
+    "privacy-authorization:prove": 0,
+    "eval-harness-matrix-cite:prove": 0
+  },
+  "tsc": {
+    "packages/db": {
+      "errors": 6,
+      "cap": 6
+    },
+    "apps/worker": {
+      "errors": 39,
+      "baseline": 44
+    }
+  },
+  "authzFlake": {
+    "status": "mitigated/cause-unknown",
+    "banClaimFixed": true,
+    "v1": {
+      "tip": "71ec253",
+      "cold5": 1,
+      "warm2": 1,
+      "note": "ECONNREFUSED port 33047"
+    },
+    "v2": {
+      "tip": "3d0c71e",
+      "cold_v2": "10/10 EXIT0",
+      "warm_v2": "10/10 EXIT0"
+    }
+  },
+  "releaseEvidence": false,
+  "haStatus": "NOT_HA",
+  "coveredCount": 8,
+  "publicDelete": 503
+}

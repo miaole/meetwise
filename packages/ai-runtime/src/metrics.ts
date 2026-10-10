@@ -95,6 +95,8 @@ export const METRIC = {
   modelCostUnknownReservations: 'model_cost_unknown_reservations',
   modelInvocationReconcileInvocations: 'model_invocation_reconcile_invocations_total',
   modelInvocationReconcileFrozenCosts: 'model_invocation_reconcile_frozen_costs_total',
+  // UC-028 fail-open(NHP-028-FAULT-01):ai_invocation_trace 写失败(fail-open 旁路)的结构化观测计数。
+  aiTracePersistFailures: 'ai_trace_persist_failures_total',
   langfuseTracingState: 'langfuse_tracing_state',
   langfuseExportFailures: 'langfuse_export_failures_total',
 } as const;
@@ -109,6 +111,14 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.refundFailed, undefined, 0);
   for (const outcome of ['ok', 'not_ready', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown', 'claim_timeout', 'cache_dependency_unavailable', 'cache_value_invalid', 'internal_error']) {
     m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'dense' }, 0);
+  }
+  // F1 production-surface: track-local / wrong_track observability baselines (mode=track_local).
+  for (const outcome of [
+    'ok', 'route_snapshot_missing', 'planner_query_invalid', 'generation_unavailable',
+    'wrong_track', 'recheck_failed', 'cache_replay_degraded', 'cache_replay_empty',
+    'track_local_required', 'dispatch_rejected', 'degraded',
+  ]) {
+    m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'track_local' }, 0);
   }
   for (const cacheStatus of ['hit', 'miss', 'none', 'unavailable', 'invalid']) m.inc(METRIC.ragCacheTotal, { status: cacheStatus }, 0);
   for (const operation of ['get', 'lock', 'renew', 'publish', 'release']) {
@@ -128,6 +138,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.setGauge(METRIC.modelCostGovernanceEnabled, 0);
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
+  m.inc(METRIC.aiTracePersistFailures, undefined, 0);
   for (const result of ['terminalized', 'enumeration_failed', 'owner_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);

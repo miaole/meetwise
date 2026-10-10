@@ -1,0 +1,22 @@
+{
+  "L_cli_samples_ms": [
+    21,
+    20,
+    17,
+    18,
+    20
+  ],
+  "L_cli_ms": 21,
+  "k": 2,
+  "t_round_ms": 1.39,
+  "U_min": 6,
+  "formula": "U_B = min(109, 110 - ceil(k*L_cli/t_round))",
+  "U_B": 79,
+  "BC_MARGIN_INFEASIBLE": false,
+  "docker_version": {
+    "Server.Version": "26.1.5+dfsg1",
+    "Client.Version": "26.1.5+dfsg1"
+  },
+  "measured_at": "2026-10-06T23:06:19.302036+08:00",
+  "note": "measured once before first prove (after NB-4 cleanup) \u00b7 Ban re-measure / change k / t_round / U_B \u00b7 C-c docker version recorded for audit only"
+}

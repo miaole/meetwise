@@ -6,10 +6,11 @@
 import { z } from 'zod';
 import { normalizeQuestion, type DbPool } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
-import { invokeEvaluationOnce } from './interview-service.ts';
+import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
+import { withGenerationProgress } from './generation-progress.ts';
 
 /** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
 function nativeRetrievalFailureToken(reason: string): string | null {
@@ -20,13 +21,134 @@ function nativeRetrievalFailureToken(reason: string): string | null {
 const AskSchema = z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) });   // q 封顶:模型出的题理应短;超长=异常输出,schema 闸拦下重试(也防评估侧截断吃掉答案)
 
 const QUESTION_OPERATION_ID = 'interview.question-generation.v1' as const;
+/**
+ * G7FIX-4R 有界换题上限:判重命中后每 turn 最多重掷 2 次(单 turn 生成调用总数 ≤3 含初诊)。
+ * per-turn 计数、跨 turn 不累计、无循环放大;耗尽仍 unavailableGeneration('duplicate_question') 原样判死,
+ * fail-closed 只从「首撞即死」收窄为「撞满上限才死」,零验证放宽。
+ */
+const MAX_DUPLICATE_REROLL = 2;
+/**
+ * S2-B3(RESUME-GROUNDING):grounded refs 闸拒绝后的有界重试上限——独立计数(沿 G7FIX-4R 有界语义形制,
+ * 但**禁复用/改动**其判重 re-roll 键面),键空间 `:gr{k}`,与判重 re-roll `:r{k}`、初诊 `:0` 零碰撞;
+ * 耗尽回退既有固定模板(不判死)。单 turn grounded 生成调用总数 ≤ 1+MAX_GROUNDED_REFS_RETRY(+判重 re-roll 另计)。
+ */
+const MAX_GROUNDED_REFS_RETRY = 2;
+/** S2-B2:grounded refs 组合闸(business #193 refsGroundedInFacts)拒绝时 invoke 返回的业务错误码。 */
+const GROUNDED_REFS_GATE_ERROR = 'business:grounded_refs_not_in_facts';
+
+/* ───────── S1-A3/S2-B1(RESUME-GROUNDING):简历 facts worker 侧确定性选择器(纯函数·禁模型选·禁进图 state) ───────── */
+
+/** 敏感域词小黑名单(P4 选择器加固):薪资/证件/生日年龄/婚育/健康——脱敏正则管不住的域词面。 */
+const SENSITIVE_FACT_RES: readonly RegExp[] = [
+  /薪资|工资|薪酬|薪水|待遇/,
+  /身份证|证件号|护照号/,
+  /生日|出生/,
+  /\d+\s*岁/,
+  /已婚|未婚|婚育|怀孕|备孕/,
+  /患病|病史|病历|体检|残疾/,
+];
+/** C1 选择器过滤:脱敏产物行(含 [已脱敏]/*** 掩码值)、敏感域词行、重复行不入 prompt 池。 */
+function sanitizeResumeFactsForPrompt(texts: readonly unknown[]): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const raw of texts) {
+    if (typeof raw !== 'string') continue;
+    const t = raw.trim();
+    if (!t || t.includes('[已脱敏]') || t.includes('***')) continue;
+    if (SENSITIVE_FACT_RES.some((re) => re.test(t))) continue;
+    if (seen.has(t)) continue;
+    seen.add(t);
+    out.push(t);
+  }
+  return out;
+}
+/** 按**码点**安全截取(末位高代理回退一位,不留半个字符;形制沿 model-client codepointSafeSlice)。 */
+function boundedTextSlice(s: string, max: number): string {
+  if (s.length <= max) return s;
+  let end = max;
+  const code = s.charCodeAt(end - 1);
+  if (code >= 0xd800 && code <= 0xdbff) end -= 1;
+  return s.slice(0, end);
+}
+/** facts 池帽(deps 闭包持有上限):planner ≤8 条与 grounded ≤4 条的选取都从本池确定性截取。 */
+export const RESUME_FACT_POOL_MAX_COUNT = 24;
+export const RESUME_FACT_POOL_MAX_CHARS = 200;
+export const PLANNER_FACTS_MAX_COUNT = 8;
+export const PLANNER_FACTS_MAX_CHARS = 120;
+export const GROUNDED_FACTS_MAX_COUNT = 4;
+export const GROUNDED_FACTS_MAX_CHARS = 200;
+/** S3 追问上下文预算(C13/C15):题目摘要/作答摘要/证据弱点逐段有界。 */
+export const FOLLOWUP_QUESTION_MAX_CHARS = 200;
+export const FOLLOWUP_ANSWER_SUMMARY_MAX_CHARS = 200;
+export const FOLLOWUP_WEAKNESS_MAX_CHARS = 80;
+export const FOLLOWUP_WEAKNESS_MAX_COUNT = 3;
+
+/** 供 prompt 的简历 facts 上下文( worker deps 闭包持有,禁入图 state)。 */
+export interface FollowUpAskContext {
+  question: string;
+  answerSummary: string;
+  weaknesses: string[];
+}
+
+/** A-3 确定性相关性:关键词(能力/岗位)与 fact 的词元+CJK bigram 重合度(0..1;禁模型选 facts,可 gate 可审计)。 */
+function relevanceScore(fact: string, keyword: string): number {
+  const tokens = new Set<string>();
+  for (const word of keyword.toLowerCase().split(/[^\p{L}\p{N}]+/u)) {
+    if (word.length < 2) continue;
+    tokens.add(word);
+    for (let i = 0; i + 2 <= word.length; i += 1) tokens.add(word.slice(i, i + 2));
+  }
+  if (tokens.size === 0) return 0;
+  const hay = fact.toLowerCase();
+  let hits = 0;
+  for (const tok of tokens) if (hay.includes(tok)) hits += 1;
+  return hits / tokens.size;
+}
+/** 稳定排序(得分降序,同分保持池序=experience>skills 小节优先级),确定性可复现。 */
+function rankedFacts(pool: readonly string[], keywords: readonly string[]): string[] {
+  return pool
+    .map((fact, index) => ({ fact, index, score: keywords.reduce((sum, k) => sum + relevanceScore(fact, k), 0) }))
+    .sort((a, b) => (b.score - a.score) || (a.index - b.index))
+    .map((x) => x.fact);
+}
+/**
+ * C1:resume_profile.structured(experience/skills 小节)→ 有界 facts 池(小节优先 experience>skills ∩
+ * 脱敏/敏感词过滤 ∩ 池帽)。纯函数;同一 RLS+admit 门读出后仅存活于 worker deps 闭包,直达模型 seam。
+ */
+export function buildResumeFactPool(profile: { experience?: unknown; skills?: unknown }): string[] {
+  const textsOf = (v: unknown): string[] => (Array.isArray(v)
+    ? v.map((x) => (x && typeof x === 'object' && 'text' in x ? String((x as { text: unknown }).text ?? '') : typeof x === 'string' ? x : '')).filter(Boolean)
+    : []);
+  return sanitizeResumeFactsForPrompt([...textsOf(profile.experience), ...textsOf(profile.skills)])
+    .map((f) => boundedTextSlice(f, RESUME_FACT_POOL_MAX_CHARS))
+    .slice(0, RESUME_FACT_POOL_MAX_COUNT);
+}
+/** A-1:planner 事实预算——按岗位相关性 ≤8 条 × ≤120 字符/条(严于 prompts.ts 20k 兜底,EXEC 只收严)。 */
+export function selectPlannerFacts(pool: readonly string[], role: string): string[] {
+  return rankedFacts(pool, role.trim() ? [role.trim()] : [])
+    .slice(0, PLANNER_FACTS_MAX_COUNT)
+    .map((f) => boundedTextSlice(f, PLANNER_FACTS_MAX_CHARS));
+}
+/** B-1:grounded 出题事实预算——与目标能力最相关 2-4 条 × ≤200 字符/条(确定性选,同 A-3 形制)。 */
+export function selectGroundedFacts(pool: readonly string[], competency: string): string[] {
+  return rankedFacts(pool, competency.trim() ? [competency.trim()] : [])
+    .slice(0, GROUNDED_FACTS_MAX_COUNT)
+    .map((f) => boundedTextSlice(f, GROUNDED_FACTS_MAX_CHARS));
+}
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
   fastModel?: ModelClient;
   competencies: (string | CompetencySpec)[];
-  /** Only an authorization bit may reach graph deps; resume text remains in the profile artifact. */
+  /**
+   * Only an authorization bit may reach graph deps; resume text remains in the profile artifact.
+   * (C4/RESUME-GROUNDING)有界 facts 池例外:仅在 worker deps 闭包内持有、经 `<data-nonce>` 围栏直达
+   * 模型 seam(planner/grounded ask/追问上下文),**禁入图 state/checkpoint/interrupt/SSE/episode**;
+   * 模型产出的 grounded 题面属派生内容可持久化,其擦除残差归 #183/#153 PRIVACY-FACE 收口(Non-claims)。
+   */
   resumeProfileAvailable?: boolean;
+  /** 有界脱敏 facts 池(C1 buildResumeFactPool 产出;闭包内供 prompt,禁入图 state)。 */
+  resumeFacts?: string[];
   localRetrieve: (q: string) => Promise<ScoredRef[]>;   // 真:annSearch over vector_chunk
   webExplore: (q: string) => Promise<SourceDoc[]>;      // 真:allowlist 抓取(源由配置定)
   /** 低置信 CRAG 才会调用的、有源数/字符/调用预算的多源取证。未注入时兼容旧 web seam。 */
@@ -61,8 +183,10 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
 /** 弱项软偏置(**反 confirmation-bias**):把规划官**本次已提**、且命中历史弱项(assessment_report gap=true)的能力**稳定前移**
  *  → 更可能落进 core(复测更充分);但**只重排、绝不注入岗位无关能力**(hint 非硬过滤)。
  *  关键:记忆只影响"考哪些能力",**绝不影响"多难/多有信心"**——难度仍由 initMind 从中性 2 起(上次弱→这次中性难度复测,prior 完全向中性衰减),
- *  confidence 恒从 0 起(只累积本场证据)。空历史(冷启动/记忆不可用)→ 稳定分区自然恒等(**非特殊分支**:空集 → 全部落后桶、保持原序)。 */
-async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]): Promise<string[]> {
+ *  confidence 恒从 0 起(只累积本场证据)。空历史(冷启动/记忆不可用)→ 稳定分区自然恒等(**非特殊分支**:空集 → 全部落后桶、保持原序)。
+ *  (#204 GROWTH-GEN S2:export 仅 prove 可见性——interview.proof ③a 直接行使本函数断言弱项偏置非 no-op;
+ *   函数体逐字节原样,零逻辑改动。) */
+export async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]): Promise<string[]> {
   const weak = await pastWeakDimensions(pool, owner).catch(() => [] as string[]);   // 记忆不可用/冷启动 → [] → 恒等(fail-soft,绝不因判重故障阻断开面)
   const weakSet = new Set(weak.map(normalizeQuestion));
   const isWeak = (n: string) => weakSet.has(normalizeQuestion(n));
@@ -70,6 +194,12 @@ async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]):
 }
 
 export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
+  // S3/C13/C15(RESUME-GROUNDING):追问上下文(上轮题目摘要+作答摘要+评分证据弱点)只在本闭包内派生与持有,
+  // **禁新增图 state 字段**——follow-up 与 evalAnswer 同一次 graph invoke 内生成:assess 先跑(置上下文)、
+  // genQuestion 后读(retrieveAndGenerate 渲染进 interviewer.ask v7 的 <data> 不可信段)。
+  // 作答摘要派生顺序钉死:stripScoringManipulation **先**、确定性截取 ≤200 字符**后**(禁倒置);
+  // 证据弱点 criteria-only(quote 在评分消费面已弃,禁改传 quotes);原始作答仍禁入 state/checkpoint。
+  let lastFollowUp: FollowUpAskContext | null = null;
   return {
     competencies: d.competencies,
     resumeProfileAvailable: d.resumeProfileAvailable,
@@ -78,7 +208,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
     absoluteMaxTurns: d.absoluteMaxTurns,
     graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
-    async retrieveAndGenerate(competency, difficulty, attempt, turn, _facts, kind) {
+    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind) {
       // `attempt` remains in this compatibility seam so older graph fixtures
       // type-check, but a non-zero value must never issue another provider
       // request for the same logical node.  The graph only calls zero.
@@ -88,25 +218,35 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
         });
       }
+      // C5/S2-B1(RESUME-GROUNDING):`_legacyFacts` 图侧传参退役注记——facts 只经 worker deps 闭包
+      // (d.resumeFacts)进 prompt,图 state 永不携带;graph 侧恒调 retrieveAndGenerate(..., [], kind)。
+      // 选定=确定性相关性(与目标能力最相关 2-4 条 × ≤200 字符,selectGroundedFacts)。
+      const groundedFacts = kind === 'grounded' ? selectGroundedFacts(d.resumeFacts ?? [], competency) : [];
       // Candidate-specific first questions have a stricter trust boundary than
       // generic qbank questions.  Only a parsed fact may be quoted as a claim
       // about the candidate; everything else is a neutral request to explain
       // that fact.  This avoids a model turning “Redis” into a fabricated
       // e-commerce project, metric, employer or duration.
-      if (kind === 'grounded') {
-        if (!d.resumeProfileAvailable) {
-          // The graph normally routes this to fundamental before arriving here.
-          // Direct callers still get the approved template, never a model guess.
-          return approvedTemplateGeneration(`请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`);
-        }
+      if (kind === 'grounded' && groundedFacts.length === 0) {
+        // 无可用选定事实(未授权/画像无事实/全被选择器过滤)→ 既有固定模板回退,零模型调用;
+        // 模板文案与既有逐字一致(:107 无授权版 / :109 授权版),模板本身零改。
         return approvedTemplateGeneration(
-          // Do not repeat a resume fact: the question is checkpointed, sent by
-          // interrupt/SSE, recorded in events and later normalized into an
-          // episode.  The candidate can choose which authorized experience to
-          // discuss without that original fact becoming a second data copy.
-          `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
+          d.resumeProfileAvailable
+            // Do not repeat a resume fact: the question is checkpointed, sent by
+            // interrupt/SSE, recorded in events and later normalized into an
+            // episode.  The candidate can choose which authorized experience to
+            // discuss without that original fact becoming a second data copy.
+            ? `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`
+            : `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`,
         );
       }
+      // TOKSTREAM 阶段1(裁定触发面之一):interviewer.ask 模型调用面包装层回调——题间等待(检索→生成→校验)
+      // 发生成进度事件(invoke 关口零改动;attempt≠0 重放与 grounded 无事实模板回退在上方早退,不产生进度事件;
+      // grounded 带事实真生成走本层,正常发进度)。
+      return withGenerationProgress(d.pool, d.owner, d.threadId, {
+        jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
+        attemptKey: `${d.threadId}:ask:t${turn}:0`, segments: ['retrieve', 'generate', 'validate'],
+      }, async (run) => {
       // 题型决定接地:grounded/fundamental 用 CRAG 检索真题素材;scenario/behavioral 与简历/题库解耦(空素材、空来源)。
       const useRetrieval = kind === 'fundamental';
       const { local, web, verdict } = useRetrieval
@@ -138,23 +278,55 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         formatUntrustedResearchMaterial(web, 1_600),
       ].filter(Boolean).join('\n');
       // One logical question node has exactly one provider attempt.  Duplicate
-      // detection is deliberately post-response and deterministic; it cannot
-      // create a second :d1 request with a new idempotency key.
-      const generate = () => invoke({
-          idempotencyKey: `${d.threadId}:ask:t${turn}:0`, operation: { id: 'interview.question-generation.v1', businessRevision: `${d.threadId}:ask:t${turn}` },
+      // detection is post-response and deterministic; since G7FIX-4R a hit no
+      // longer dies on first contact — it re-rolls under a NEW revision (a new
+      // auditable logical node), never a second dispatch of the same node.
+      // G7FIX-4R:键/revision 参数化——初诊沿用 `:0` 键+基础 revision;判重命中后的有界 re-roll
+      // 逐次换 `:r{k}` 键+同步 revision(registry 契约:同键只会缓存回放同题,新 revision=新可审计 logical node)。
+      // payload(schema/businessValidate/model/material)与初诊完全同一组确定性闸。
+      const generate = (idempotencyKey: string, businessRevision: string) => invoke({
+          idempotencyKey, operation: { id: 'interview.question-generation.v1', businessRevision },
           threadId: d.threadId, privacyInterviewId: d.threadId,
           sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
           schema: AskSchema,
           businessValidate: (v) => {
             if (isVerbatimCopy(v.q, docs)) return '照搬原文(版权)';
+            if (kind === 'grounded') {
+              // C6/S2-B2+#193 组合闸:refs 非空 ∧ 逐条为**选定事实**子串(委托 domain.refsGroundedInFacts,
+              // 禁重实现)。fact 子串 refs 仅作闸料:grounded 无检索 → knownRefs=[] → resolveCitedSources
+              // 恒 ok 且 sources=[],fact refs 禁入 modelGeneration sources/pending.sources/Turn.sources。
+              return refsGroundedInFacts(v.refs, groundedFacts) ? null : 'grounded_refs_not_in_facts';
+            }
             const cited = resolveCitedSources(knownRefs, v.refs);
             return cited.ok ? null : cited.reason;
           },
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
-          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: [] }, undefined, material),
+          // C6/S3:grounded 传选定事实(2-4 条);followUp=上轮上下文(闭包派生,不可信,buildData 封段标记)。
+          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined }, undefined, material),
         }, d.pool, d.owner);
-      const out = await generate();
-      const idempotencyKey = `${d.threadId}:ask:t${turn}:0`;
+      run.stage('generate');                                                           // 段名进下一帧心跳(纯时间窗,不为切段加帧)
+      let out = await generate(`${d.threadId}:ask:t${turn}:0`, `${d.threadId}:ask:t${turn}`);
+      run.stage('validate');                                                           // invoke 返回后的确定性检查(查重/引文/refs 闸)段
+      let idempotencyKey = `${d.threadId}:ask:t${turn}:0`;
+      // S2-B3(RESUME-GROUNDING):grounded refs 闸拒绝 → **丢弃**→ 有界重试(独立计数 MAX_GROUNDED_REFS_RETRY,
+      // `:gr{k}` 键=新可审计 logical node;禁复用/改动判重 re-roll `:r{k}` 面)→ 耗尽回退既有固定模板。
+      if ('error' in out && kind === 'grounded' && out.error === GROUNDED_REFS_GATE_ERROR) {
+        let exhausted = true;
+        for (let refsRetry = 1; refsRetry <= MAX_GROUNDED_REFS_RETRY; refsRetry += 1) {
+          const retryKey = `${d.threadId}:ask:t${turn}:gr${refsRetry}`;
+          idempotencyKey = retryKey;
+          const retry = await generate(retryKey, retryKey);
+          out = retry;
+          if (!('error' in retry) || retry.error !== GROUNDED_REFS_GATE_ERROR) { exhausted = false; break; }
+        }
+        if (exhausted) {
+          return approvedTemplateGeneration(
+            `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`,
+            // S2-B3:回退轨迹可审计——provenance 携带耗尽时所在的最后一个独立重试键(:gr{k})。
+            { operationId: QUESTION_OPERATION_ID, idempotencyKey },
+          );
+        }
+      }
       if ('error' in out) {
         // Missing keys, timeouts and malformed/schema failures must not become
         // a canned interview stem.  Structured error + provenance only.
@@ -164,8 +336,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           invokeError: out.error,
         });
       }
-      // Cross-session exact duplicate is a known local result, not a reason to
-      // call the provider again or invent a replacement stem.
+      // G7FIX-4R 有界换题:跨会话精确判重命中(唯一真相仍是归一化精确匹配,wasAsked)不再首撞即判死——
+      // seam 内有界 re-roll(上限 MAX_DUPLICATE_REROLL,per-turn 计数,生成调用总数 ≤3 含初诊),每 roll
+      // 同步换 `:r{k}` 键+revision(新可审计 logical node)、重过全既有确定性闸(schema/verbatim/引文)再复检判重;
+      // 上限内得到非重复题面 → 正常 modelGeneration 出题(provenance 落 reroll 轨迹);撞满上限仍重复 →
+      // unavailableGeneration('duplicate_question') 原样判死(provenance 落耗尽轨迹)。记忆不可用
+      // (duplicate_check_failed)与 provider/schema/business 分类判死零放宽。
       let duplicate = false;
       try {
         duplicate = await wasAsked(d.pool, d.owner, out.value.q);
@@ -174,15 +350,44 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed',
         });
       }
+      let rerolls = 0;
+      while (duplicate && rerolls < MAX_DUPLICATE_REROLL) {
+        rerolls += 1;
+        idempotencyKey = `${d.threadId}:ask:t${turn}:r${rerolls}`;
+        const replacement = await generate(idempotencyKey, idempotencyKey);
+        if ('error' in replacement) {
+          // re-roll 途中 provider/schema/business 失败 → 既有分类判死原样,不借 re-roll 放宽。
+          return unavailableGeneration(classifyQuestionGenerationError(replacement.error), {
+            operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: replacement.error, reroll: rerolls,
+          });
+        }
+        const replacementCited = resolveCitedSources(knownRefs, replacement.value.refs);
+        if (!replacementCited.ok) {
+          return unavailableGeneration(classifyQuestionGenerationError(`business:${replacementCited.reason}`), {
+            operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${replacementCited.reason}`, reroll: rerolls,
+          });
+        }
+        try {
+          duplicate = await wasAsked(d.pool, d.owner, replacement.value.q);
+        } catch {
+          return unavailableGeneration('generation_unavailable', {
+            operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: 'duplicate_check_failed', reroll: rerolls,
+          });
+        }
+        if (!duplicate) out = replacement;                                               // 上限内得到非重复替代题:换题成功
+      }
       if (duplicate)
-        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+        return unavailableGeneration('duplicate_question', { operationId: QUESTION_OPERATION_ID, idempotencyKey, reroll: rerolls });
       const cited = resolveCitedSources(knownRefs, out.value.refs);
       if (!cited.ok) {
         return unavailableGeneration(classifyQuestionGenerationError(`business:${cited.reason}`), {
           operationId: QUESTION_OPERATION_ID, idempotencyKey, invokeError: `business:${cited.reason}`,
         });
       }
-      return modelGeneration(out.value.q, cited.sources, { operationId: QUESTION_OPERATION_ID, idempotencyKey });
+      return modelGeneration(out.value.q, cited.sources, {
+        operationId: QUESTION_OPERATION_ID, idempotencyKey, ...(rerolls > 0 ? { reroll: rerolls } : {}),
+      });
+      });
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。
@@ -190,7 +395,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       const { clean, detected } = stripScoringManipulation(answer);
       const scored = detected ? clean : answer;
       // **检到操纵 → 评分升级到 quality 模型(qwen-plus 更抗残留注入)**,并对剥空的直接判非作答(免一次模型调用 + 杜绝空输入误评)。
-      if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false };
+      if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false, dispositions: [] };
       // 同一 pending question 的 stateVersion/turn 写进 idempotency base。逐字引文
       // 无法核验时只澄清原题，不派生 repair key 再次调用模型。
       // Graph 调用始终提供 identity。保留这个固定 fallback 仅兼容旧的 isolated-deps
@@ -207,15 +412,28 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // 引文无法逐字核验而答案仍是正常作答时，不能写 unscored/能力画像；图会走 clarify，
       // 让用户以同一题补充一次。其余确定性/供应商失败仍严格 unscored（不编造分数）。
       if (out.status === 'quote_repair_exhausted') {
-        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false };
+        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false, dispositions: [] };
       }
       if (out.status === 'failed') return { status: 'unscored' as const, reason: `evaluation_${out.error}` };
+      // #52 v6：score=evaluate 侧确定性派生（档位×量表权重，非模型输出）；dispositions=0103
+      // 契约证据随 assess 返回（evaluate-answer 节点透传进 transcript → 投影后供 score-writer）。
+      const derived = evaluateOutcomeFromValue(out.value, clean);
+      // S3/C13/C15(RESUME-GROUNDING):真实评分过的回合 → 捕获追问上下文(仅本闭包,禁入图 state):
+      // 题目摘要=本轮题目(有界截取);作答摘要=stripScoringManipulation 后的 clean(**先剥离**)再确定性截取
+      // ≤200 字符(**后截取**,顺序钉死禁倒置);证据弱点=评分 criteria(mind evidence 同源材料,slice(-6) 语义
+      // 的消费面有界),quote 不传(评分消费面已弃)。clarify/unresolved/unscored 回合不捕获(无评分证据弱点)。
+      lastFollowUp = {
+        question: boundedTextSlice(question, FOLLOWUP_QUESTION_MAX_CHARS),
+        answerSummary: boundedTextSlice(clean, FOLLOWUP_ANSWER_SUMMARY_MAX_CHARS),
+        weaknesses: derived.evidence.slice(-FOLLOWUP_WEAKNESS_MAX_COUNT)
+          .map((c) => boundedTextSlice(c, FOLLOWUP_WEAKNESS_MAX_CHARS)),
+      };
       // 业务规整(双校验补强,非仅 schema):relevant=false 时**强制** score=0 + hasHook=false(对齐 prompt 契约,
       // 防模型自相矛盾地"判跑题却给高分/给钩子"驱动错误深挖;两个控制流布尔不裸过 schema)。
       const relevant = out.value.relevant;
       return relevant
-        ? { status: 'scored' as const, score: out.value.score, evidence: out.value.evidence.map((item) => item.criterion), relevant: true, hasHook: out.value.hasHook }
-        : { status: 'scored' as const, score: 0, evidence: out.value.evidence.map((item) => item.criterion), relevant: false, hasHook: false };
+        ? { status: 'scored' as const, score: derived.score, evidence: derived.evidence, relevant: true, hasHook: out.value.hasHook, dispositions: derived.dispositions }
+        : { status: 'scored' as const, score: 0, evidence: derived.evidence, relevant: false, hasHook: false, dispositions: derived.dispositions };
     },
     // 无 report:报告走舱壁 report-worker(失败隔离),不在 agent 图内出。
   };

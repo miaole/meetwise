@@ -1,0 +1,166 @@
+{
+  "knife": "UC-E2E-018-PERF-LOAD",
+  "gap": "GAP-UC018-PERF-LOAD",
+  "gitSha": "unknown",
+  "command": "pnpm uc018:perf-load:prove",
+  "caps": {
+    "enforced": true,
+    "method": "docker --cpus=2 --memory=4g",
+    "declared": {
+      "cpus": 2,
+      "memoryGiB": 4
+    },
+    "pg": {
+      "container": "meetwise-e2e-1513534-1791299649081",
+      "HostConfig": {
+        "NanoCpus": 2000000000,
+        "Memory": 4294967296
+      },
+      "ok": true
+    },
+    "api": {
+      "container": "meetwise-uc018-perf-api-1513990-1791299653591",
+      "HostConfig": {
+        "NanoCpus": 2000000000,
+        "Memory": 4294967296
+      },
+      "ok": true
+    },
+    "expected": {
+      "NanoCpus": 2000000000,
+      "Memory": 4294967296
+    },
+    "blocker": null
+  },
+  "capsEnforced": true,
+  "methodFreezeAncestorRequired": true,
+  "perfRuns": [
+    {
+      "run": 1,
+      "caseId": "NHP-018-PERF-01",
+      "N": 100,
+      "c": 10,
+      "warmup": 10,
+      "p50": 23.426016,
+      "p95": 61.269687,
+      "p99": 74.360309,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-10-06T15:14:20.522Z",
+      "end": "2026-10-06T15:14:21.114Z"
+    },
+    {
+      "run": 2,
+      "caseId": "NHP-018-PERF-01",
+      "N": 100,
+      "c": 10,
+      "warmup": 10,
+      "p50": 15.895024,
+      "p95": 44.458815,
+      "p99": 75.811656,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-10-06T15:14:21.408Z",
+      "end": "2026-10-06T15:14:21.800Z"
+    },
+    {
+      "run": 3,
+      "caseId": "NHP-018-PERF-01",
+      "N": 100,
+      "c": 10,
+      "warmup": 10,
+      "p50": 16.920862,
+      "p95": 41.53832,
+      "p99": 79.538101,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-10-06T15:14:22.044Z",
+      "end": "2026-10-06T15:14:22.502Z"
+    }
+  ],
+  "loadRuns": [
+    {
+      "run": 1,
+      "caseId": "NHP-018-LOAD-01",
+      "N": 50,
+      "c": 20,
+      "warmup": 10,
+      "p50": 47.859629,
+      "p95": 146.350273,
+      "p99": 155.852652,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-10-06T15:14:21.115Z",
+      "end": "2026-10-06T15:14:21.407Z",
+      "doubleReleaseCount": 0,
+      "stuckReservationCount": 0,
+      "stuckGraphCount": 0
+    },
+    {
+      "run": 2,
+      "caseId": "NHP-018-LOAD-01",
+      "N": 50,
+      "c": 20,
+      "warmup": 10,
+      "p50": 33.102297,
+      "p95": 76.099437,
+      "p99": 108.94009,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-10-06T15:14:21.801Z",
+      "end": "2026-10-06T15:14:22.044Z",
+      "doubleReleaseCount": 0,
+      "stuckReservationCount": 0,
+      "stuckGraphCount": 0
+    },
+    {
+      "run": 3,
+      "caseId": "NHP-018-LOAD-01",
+      "N": 50,
+      "c": 20,
+      "warmup": 10,
+      "p50": 29.360398,
+      "p95": 85.020441,
+      "p99": 104.766818,
+      "errorCount": 0,
+      "timeoutCount": 0,
+      "errorRate": 0,
+      "passed": true,
+      "missReasons": [],
+      "start": "2026-10-06T15:14:22.503Z",
+      "end": "2026-10-06T15:14:22.750Z",
+      "doubleReleaseCount": 0,
+      "stuckReservationCount": 0,
+      "stuckGraphCount": 0
+    }
+  ],
+  "allPass": true,
+  "elevateEligible": true,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "PERF/LOAD partial ≠ UC covered · §1.1 stays partial · local ≠ capacity ≠ HA",
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor",
+    "cpuCount": 8,
+    "memTotalBytes": 16791158784,
+    "kernel": "6.12.94+",
+    "platform": "linux",
+    "node": "v20.20.2"
+  }
+}

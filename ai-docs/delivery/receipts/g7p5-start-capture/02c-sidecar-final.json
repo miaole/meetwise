@@ -1,0 +1,17 @@
+{
+  "discipline": "sidecar v2 (post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok / per-query guarded / SELECT-only aggregates / migrations 152+0151 relevance)",
+  "wrapperLog": ".tmp/g7p5-run.log",
+  "container": "meetwise-e2e-35270-1791482034414",
+  "port": "49470",
+  "anchorSeen": true,
+  "firstOkSeen": false,
+  "correlationChecked": true,
+  "correlationMatch": false,
+  "pending42P01Ticks": 0,
+  "fallbackUsed": false,
+  "runStartMs": 1791482033575,
+  "runStartIso": "2026-10-08T17:53:53.575Z",
+  "pollCount": 0,
+  "lastPoll": null,
+  "stoppedReason": "correlation mismatch => discard (registered)"
+}

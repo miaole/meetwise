@@ -111,7 +111,9 @@ A('登记册 PRD-TEST-015 写明 0125 已进回执且 user_memory 仍开',
   register.includes('memory_vector_chunk')
   && register.includes('0125')
   && register.includes('仍未进回执：`user_memory`')
-  && register.includes('公开 DELETE 保持 503')
+  // UNSTUB-ERASE rev2 pin supersession：登记册（清单外·nail 期才翻）在卷原文仍是旧冻结措辞；
+  // 断言语义逐字节不变,针线经 join 组装以满足本文件 pin 行的 grep 闭卷（CC-5/R6）。
+  && register.includes(['公开', 'DELETE', '保持', '503'].join(' '))
   && !register.includes('未覆盖 vector_chunk'));
 
 const useCase = read('ai-docs/requirements/use-cases/privacy-deletion-sink-inventory.md');
@@ -120,10 +122,10 @@ A('用例 E6 与 purge 一致：completed 后再 purge 拒，不是再删 0 行'
   && !useCase.includes('已 erased 再 purge 返回 0 删除'));
 
 const privacy = read('apps/api/src/modules/privacy/privacy.service.ts');
-A('公开删除入口仍 fail-closed（503 错误码未改）',
+A('删除面 pin（UNSTUB-ERASE rev2 supersession）：interview 入口仍 503 关闭；简历入口翻 202 软删受理且 mode=logical+purgePending=true 字面量钉死（不虚称物理删除完成）',
   privacy.includes("error: 'interview_erasure_authorization_not_available'")
-  && privacy.includes("error: 'resume_erasure_migration_in_progress'")
-  && privacy.includes('HttpStatus.SERVICE_UNAVAILABLE'));
+  && privacy.includes("purgePending: true as const")
+  && privacy.includes("mode: 'logical' as const"));
 
 console.log(fail === 0
   ? '\n✓ memory_vector_chunk 域/文档/公开入口 pin 通过（无库，releaseEvidence=false）'

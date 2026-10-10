@@ -1,0 +1,51 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg5-product-ssot-product-close /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg5-product-ssot-product-close.proof.ts
+
+G-R4-5 / EG5 product SSOT product close prove
+EXIT=0 = product-close evidence · eg5ProductClosed=true · productSsotFlipped=true under authorize · Ban flip gR45/r4/funnel/eg3/eg4 · Ban self-nail dual_pass
+
+──────── P0 anchors ────────
+PASS  P0 emitter wired
+PASS  P0 harness present
+FAIL  P0 harness status awaiting_post_prove_dual + Ban self-nail + flags
+
+──────── P1 live assessor ────────
+PASS  P1 priorEg5AuthorizeEvidenceRetained
+PASS  P1 authorizedSsotPinsPresent
+PASS  P1 retainedFlagsHonest
+PASS  P1 orthogonalNotClaimedClosed
+PASS  P1 hasEg5ProductSsotProductCloseEvidence
+
+──────── P2 emit ────────
+PASS  P2 emitted=true
+PASS  P2 kind
+PASS  P2 eg5ProductClosed=true
+PASS  P2 productSsotFlipped=true
+PASS  P2 gR45Closed=false
+PASS  P2 r4ProductClosed=true
+PASS  P2 funnelProductClosed=true
+PASS  P2 domainIsolationClosed=true
+PASS  P2 eg3ProductClosed=true
+PASS  P2 eg4ProductClosed=true
+PASS  P2 wrongTrackProductClosed=true
+PASS  P2 eg1ThroughEg2Eg6ClosedByThisKnife=false
+PASS  P2 coveredCountInvented=false
+PASS  P2 ms3EqualsR4Closed=false
+PASS  P2 emptyMetaAloneDoesNotClose=true
+PASS  P2 idleEg5EvidenceAloneDoesNotClose=true
+PASS  P2 releaseEvidence=false
+PASS  P2 receipt written
+PASS  P2 roundtrip eg5ProductClosed=true
+PASS  P2 roundtrip productSsotFlipped=true
+PASS  P2 roundtrip gR45Closed=false
+PASS  P2 roundtrip r4ProductClosed=true
+PASS  P2 roundtrip releaseEvidence=false
+
+──────── P3 hard pins ────────
+PASS  P3 ≠ flip gR45Closed / r4 / funnel / eg3 / eg4 this knife
+PASS  P3 ≠ wash EG5 e099276/6058462 · EG4 ce09850/0a34933 · R4·FUNNEL 2b38e18/14e9e2c · EG3 7be1a55/5b3c854
+PASS  P3 Ban invent coveredCount · Ban MS3=R4 · Ban empty meta · Ban self-nail post_prove_dual_pass
+
+FAIL  r4-eg5-product-ssot-product-close prove (1 failures)
+ ELIFECYCLE  Command failed with exit code 1.

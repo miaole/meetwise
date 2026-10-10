@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "PROVE-FAIL"
+  ],
+  "failColumn": "NEG"
+}

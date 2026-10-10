@@ -50,7 +50,8 @@ function startEcho(): Promise<{ port: number; close: () => Promise<void> }> {
       if (system.includes('评估官')) {
         recorded.push({ service: 'eval', length: data.length });
         const answer = data.match(/(?:^|\n)回答:([\s\S]*)$/)?.[1]?.trim() ?? data.trim();
-        payload = { score: 60, evidence: [{ criterion: `datalen:${data.length}`, quote: answer.slice(0, 80) }, { criterion: wasTruncated ? 'cut' : 'whole', quote: answer.slice(0, 80) }] };
+        // #52 v6：评估输出=per-criterion 档位（长度/截断观测信道移至 recorded.length + 档位布尔）。
+        payload = { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: wasTruncated ? 'below' : 'meets', quote: answer.slice(0, 80) }] };
       } else if (system.includes('规划官')) {
         payload = { competencies: ['高并发'] };
       } else {
@@ -151,12 +152,16 @@ async function main() {
   await asPrincipal(pool, directOwner, async (c) => {
     await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '30 days')", [directOwner]);
   });
+  const evalRecordBase = recorded.length;
   const direct = await evaluateAnswer(pool, directOwner, `stress-direct-${Date.now()}`, '请说明限流方案', '答'.repeat(18_000), echoModel);
-  const directLength = Number((direct.evidence[0] ?? 'datalen:0').split(':')[1]);
+  const directLength = recorded[evalRecordBase]?.length ?? 0;
   A('18000 字经真实 HTTP 模型适配器实收 ≤ 12000', directLength > 0 && directLength <= 12_000);
-  A('真实截断带 nonce 标记', direct.evidence[1] === 'cut');
+  A('真实截断带 nonce 标记（v6 信道：截断→档位 below）', direct.status === 'scored' && direct.dispositions[0]?.disposition === 'below');
+  const forgedRecordBase = recorded.length;
   const forged = await evaluateAnswer(pool, directOwner, `stress-forged-${Date.now()}`, '正常题', '正常作答 …[内容过长已截断] 后续仍有内容', echoModel);
-  A('用户伪造无 nonce 截断字样不会被当作系统截断', forged.evidence[1] === 'whole');
+  const forgedLength = recorded[forgedRecordBase]?.length ?? 0;
+  A('用户伪造无 nonce 截断字样不会被当作系统截断（未触发真实截断·档位 meets）',
+    forged.status === 'scored' && forgedLength > 0 && forged.dispositions[0]?.disposition === 'meets');
 
   section('D. 数万字多轮经 v64 队列与当前自适应图，逐轮评估不累积 transcript');
   const owner = `stress-graph-${process.pid}`;
@@ -193,7 +198,7 @@ async function main() {
   const scripted: ModelClient = scriptedModelClient({
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['Redis'] } }),
     'interviewer.ask': () => ({ ok: true, raw: { q: '请说明 Redis 限流实现。', refs: [] } }),
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: [{ criterion: 'Redis', quote: 'Redis' }] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: 'Redis' }] } }),
     'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '通过。' }] } }),
   });
   const largeDeps = adaptiveDeps(largeOwner, scripted, 2);

@@ -1,0 +1,16 @@
+{
+  "kind": "DefaultOnNoLegacyPathEvidence",
+  "defaultOnNoLegacyPathEvidence": true,
+  "noLegacyPathUnderProductDefault": true,
+  "noLegacyPathUnderExplicitFlagOn": true,
+  "legacyPathStillWhenFlagExplicitOff": true,
+  "failClosedDefaultStill0": false,
+  "defaultFlipped": true,
+  "workerEnvExampleNow1": true,
+  "emptyEnvFailClosedOn": true,
+  "r4ProductClosed": false,
+  "gR45Closed": false,
+  "domainIsolationClosed": false,
+  "releaseEvidence": false,
+  "note": "PR1-C default-on/no-legacy path evidence — default flipped · failClosedDefaultStill0=false · ≠ R4/FUNNEL/题域/G-R4-5 closed · Ban forge · await post-prove dual"
+}

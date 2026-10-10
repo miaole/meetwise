@@ -16,7 +16,8 @@
  *  - route 事件 (job_id, revision, event_seq) 与消费事件 (candidate_user_id, event_seq)
  *    各自单 owner 单调追加，事务内分配 event_seq，无跨 owner 读 MAX。
  */
-import { createHmac, randomUUID } from 'node:crypto';
+import { createHmac } from 'node:crypto';
+import { newEntityId } from './ids.ts';
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from './principal.ts';
 import {
@@ -106,7 +107,7 @@ export type ClassifyJobRouteResult =
 async function writeRouteUnresolved(c: Client, args: {
   jobId: string; owner: string; revision: number; attemptOutcome: JobRouteAttemptOutcome; reasonCodes: string[];
 }): Promise<{ decisionId: string }> {
-  const decisionId = 'rd_' + randomUUID();
+  const decisionId = newEntityId('rd');
   const decisionHash = jobRouteDecisionHash({
     jobId: args.jobId, revision: args.revision,
     taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,
@@ -136,7 +137,7 @@ async function writeRouteDecided(c: Client, args: {
   allocations: JobRouteAllocation[]; confidenceBps: number; marginBps: number;
   fromStatus: 'rule_decided' | 'result_validated';
 }): Promise<{ decisionId: string }> {
-  const decisionId = 'rd_' + randomUUID();
+  const decisionId = newEntityId('rd');
   const decisionHash = jobRouteDecisionHash({
     jobId: args.jobId, revision: args.revision,
     taxonomyVersion: JOB_ROUTE_TAXONOMY_VERSION, policyVersion: JOB_ROUTE_POLICY_VERSION,
@@ -369,3 +370,35 @@ export async function getInterviewRouteSnapshot(c: Client, candidate: string, in
 }
 
 export { TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION };
+
+/* ─────────────────────────── Worker claim (route_pending drain) ─────────────────────────── */
+
+export interface JobRoutePendingClaim {
+  jobId: string;
+  revision: number;
+  semanticDigest: string;
+}
+
+/**
+ * Peek the oldest route_pending revision for the current principal (RLS).
+ * Lock is not held across classifyJobRoute — classify re-locks FOR UPDATE and
+ * noops on race. SKIP LOCKED avoids two workers starting the same peek.
+ * Not HA: no lease column; classifyJobRoute state machine is the send fence.
+ */
+export async function listNextJobRoutePending(c: Client): Promise<JobRoutePendingClaim | null> {
+  const r = await c.query(
+    `SELECT job_id, revision, semantic_digest
+       FROM job_semantic_revision
+      WHERE status='route_pending'
+      ORDER BY created_at ASC, revision ASC
+      FOR UPDATE SKIP LOCKED
+      LIMIT 1`,
+  );
+  if (r.rowCount === 0) return null;
+  const row = r.rows[0] as { job_id: string; revision: string | number; semantic_digest: string };
+  return {
+    jobId: row.job_id,
+    revision: Number(row.revision),
+    semanticDigest: row.semantic_digest,
+  };
+}

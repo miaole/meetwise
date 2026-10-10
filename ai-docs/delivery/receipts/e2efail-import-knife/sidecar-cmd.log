@@ -1,0 +1,14 @@
+[sidecar 2026-10-08T11:15:26.152Z] sidecar v2 start; wrapperLog=.tmp/e2efail1-run/wrapper.log; discipline: post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok (>=5) / per-query guarded / SELECT-only aggregates only
+[sidecar 2026-10-08T11:15:32.215Z] CONTAINER BIND exact=meetwise-e2e-26416-1791458126574 port=59074 (rebind; per-container state reset)
+[sidecar 2026-10-08T11:15:36.055Z] first-ok tick (stop-needle ARMED post-first-ok)
+[sidecar 2026-10-08T11:15:37.669Z] tick 10 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:39.255Z] tick 11 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:40.663Z] tick 12 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:41.670Z] ANCHOR post-migrate seen (v2 anchor; Ban container_found anchor) container=meetwise-e2e-26416-1791458126574
+[sidecar 2026-10-08T11:15:42.420Z] tick 13 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:43.969Z] tick 14 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:45.458Z] tick 15 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:46.936Z] tick 16 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:48.431Z] tick 17 ok: ij=[] inv=[]
+[sidecar 2026-10-08T11:15:49.958Z] tick 18 ok: ij=[] inv=undefined
+[sidecar 2026-10-08T11:15:51.230Z] STOPPED: STOP sentinel by orchestrator (wrapper exited); ticks=19 pending42P01=2 anchorSeen=true firstOk=true

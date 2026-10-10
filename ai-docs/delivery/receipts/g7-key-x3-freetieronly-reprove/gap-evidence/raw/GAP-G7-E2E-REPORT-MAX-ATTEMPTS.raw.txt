@@ -1,0 +1,4 @@
+# GAP-G7-E2E-REPORT-MAX-ATTEMPTS
+# cites: runfull-stdout-debug.txt:45 terminal=report_unavailable; reason=max_attempts_exceeded
+
+runfull-stdout-debug.txt:45:✓ 至少出了 1 道题(实际 2 道;事件:question_ready,clarification_needed,answer_evaluated,session_concluded,report_unavailable; terminal=report_unavailable; reason=max_attempts_exceeded)

@@ -4,7 +4,8 @@ import {
   createResumeWithBlob, transitionResume, completeIngestion, decryptResumeBlob,
   persistResumeOcrArtifact, decryptResumeOcrArtifact, deleteResumeOcrArtifact,
   reserveEntitlement, confirmConsumption, releaseConsumption,
-  type ResumeOcrBindingSnapshot, type ResumeSourceKind,
+  requireOwnerUserId, buildRequiredOwnerFilter, beginResumeSoftDelete,
+  type ResumeOcrBindingSnapshot, type ResumeSourceKind, errCode, asErr,
 } from '@meetwise/db';
 import { ingestResume, extractResumeText, parseSealedOcrProvenance } from '@meetwise/domain';
 import { bindResumeOcr, visionOcr, type ModelClient } from '@meetwise/ai-runtime';
@@ -49,13 +50,17 @@ export class ResumeService {
     let extracted: { text: string; format: string };
     try {
       extracted = await extractResumeText(buffer, dto.mimeType, dto.filename);
-    } catch (e: any) {
-      if (e?.code === 'unsupported_file_format') {
+    } catch (e: unknown) {
+      if (errCode(e) === 'unsupported_file_format') {
         throw new HttpException({ error: 'unsupported_file_format', filename: dto.filename, hint: '该格式尚未接入简历解析；请上传 PDF、Word、图片或纯文本。Excel/PPT/音视频请走全格式知识库摄取管线。' }, HttpStatus.UNSUPPORTED_MEDIA_TYPE);
+      }
+      // UC-E2E-015 E1：加密 PDF → 可解释失败，不进入诊断/不计 OCR 费。
+      if (errCode(e) === 'encrypted') {
+        throw new HttpException({ error: 'encrypted', hint: '文件已加密，无法解析；请解除密码保护后重传或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
       }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
       // finally 在 return 前也会执行 → 解析槽恰好释放一次(不在此显式释放,避免并发下双减)。
-      if (e?.code === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);
+      if (errCode(e) === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);
       throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
     } finally {
       this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向 return/解析失败 throw)都恰好释放一次
@@ -91,8 +96,9 @@ export class ResumeService {
       if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
       let reserve;
       try { reserve = await reserveEntitlement(c, principal, ocrKey, 'ocr', 1); }
-      catch (e: any) {
-        if (e?.code === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement', hint: '额度不足,请充值后再识别图片简历', requested: e.requested, available: e.available }, HttpStatus.PAYMENT_REQUIRED);
+      catch (e: unknown) {
+        const err = asErr(e);
+        if (errCode(e) === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement', hint: '额度不足,请充值后再识别图片简历', requested: err?.requested, available: err?.available }, HttpStatus.PAYMENT_REQUIRED);
         throw e;
       }
       if (reserve.status === 'duplicate') {
@@ -152,6 +158,7 @@ export class ResumeService {
     // 重传可从工件继续；不把基础设施故障误判为应退费的业务失败。
     // 文本 HMAC 去重命中既有 text/pdf（或另一张图）时不得 confirm 本图 OCR 费。
     const structured = await this.db.asPrincipal(principal, async (c: any) => {
+      const dedupeFilter = buildRequiredOwnerFilter(principal, 'resume.ocrConfirm.dedupe');   // PRIV01-C 第二层 E2
       const saved = await this.uploadInTransaction(c, principal, { text }, 'needs_review', { sourceKind: 'image', ocrBinding: sealed });
       if (saved.status === 'deduped') {
         const existing = await c.query<{ source_kind: string | null; ocr_binding: unknown }>(
@@ -159,7 +166,7 @@ export class ResumeService {
              FROM resume r
              LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
             WHERE r.id=$1 AND r.owner_user_id=$2`,
-          [saved.resumeId, principal],
+          [saved.resumeId, dedupeFilter.value],
         );
         const existingSealed = parseSealedOcrProvenance(existing.rows[0]?.ocr_binding);
         const sameImageIngest = existing.rows[0]?.source_kind === 'image'
@@ -202,14 +209,22 @@ export class ResumeService {
   }
 
   list(principal: string) {
-    return this.db.asPrincipal(principal, async (c: any) => {
+    // PRIV01-C 第二层 E1+E2:入口显式 owner + 列表查询显式必选 owner 谓词(原仅隐式 RLS「只己见」)。
+    // 授权根仍为 RLS;此谓词为纵深防御第二层(应用层 tenant ≠ RLS)。空列表=合法(集合端点,E5 白名单)。
+    const owner = requireOwnerUserId(principal, 'resume.list');
+    const listFilter = buildRequiredOwnerFilter(owner, 'resume.list.scope');
+    return this.db.asPrincipal(owner, async (c: any) => {
+      // S1 软删即时可见面（UNSTUB-ERASE rev2 §2.2-C）：已围栏/已 erased 简历从「我的简历」
+      // 消失（列表过滤 ≠ 物理删除——行仍在,0153/S2 面受理 prove 断言物理行不变）。
       const r = await c.query(`
         SELECT r.id, r.status, r.created_at, r.content_sha,
           rp.structured #>> '{experience,0,text}' AS experience_hint,
           rp.structured #>> '{skills,0,text}' AS skill_hint
         FROM resume r
         LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
-        ORDER BY r.created_at DESC, r.id`);   // RLS:只己见
+        WHERE r.owner_user_id=$1
+          AND r.status NOT IN ('erasure_fenced','erased')
+        ORDER BY r.created_at DESC, r.id`, [listFilter.value]);   // RLS:只己见 + 显式必选谓词第二层
       return {
         resumes: r.rows.map((row: any) => ({
           id: row.id,
@@ -221,15 +236,20 @@ export class ResumeService {
   }
 
   reparse(principal: string, id: string) {
-    return this.db.asPrincipal(principal, async (c: any) => {
-      const raw = await decryptResumeBlob(c, principal, id).catch(() => null);
+    // PRIV01-C 第二层 E1+E2:入口显式 owner;三条 owner 谓词经 required predicate 绑定。
+    const owner = requireOwnerUserId(principal, 'resume.reparse');
+    const existingFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.existing');
+    const profileFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.updateProfile');
+    const statusFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.updateStatus');
+    return this.db.asPrincipal(owner, async (c: any) => {
+      const raw = await decryptResumeBlob(c, owner, id).catch(() => null);
       if (!raw) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
       const existing = await c.query<{ ocr_binding: unknown }>(
         `SELECT rp.ocr_binding
            FROM resume r
            LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id
           WHERE r.id=$1 AND r.owner_user_id=$2`,
-        [id, principal],
+        [id, existingFilter.value],
       );
       const ingested = ingestResume(raw);
       const structured = { experience: ingested.experience, skills: ingested.skills, facts: ingested.facts };
@@ -240,26 +260,49 @@ export class ResumeService {
         `UPDATE resume_profile
             SET structured=$3::jsonb, pii_summary=$4::jsonb, blocked_count=$5
           WHERE resume_id=$1 AND owner_user_id=$2`,
-        [id, principal, JSON.stringify(structured), JSON.stringify(piiSummary), ingested.blocked.length],
+        [id, profileFilter.value, JSON.stringify(structured), JSON.stringify(piiSummary), ingested.blocked.length],
       );
-      await c.query("UPDATE resume SET status='ingesting', version=version+1 WHERE id=$1 AND owner_user_id=$2", [id, principal]);
+      await c.query("UPDATE resume SET status='ingesting', version=version+1 WHERE id=$1 AND owner_user_id=$2", [id, statusFilter.value]);
       if (refreshed.rowCount === 0) {
-        await completeIngestion(c, principal, id, ingested, 'ok', parseSealedOcrProvenance(existing.rows[0]?.ocr_binding));
+        await completeIngestion(c, owner, id, ingested, 'ok', parseSealedOcrProvenance(existing.rows[0]?.ocr_binding));
       } else {
-        await transitionResume(c, principal, id, 'ingesting', 'ingested');
+        await transitionResume(c, owner, id, 'ingesting', 'ingested');
       }
       return { reparsed: true };
     });
   }
 
   /**
-   * The historical hard DELETE bypassed the C/B reference snapshot, queue and
-   * graph fences, receipt ledger, and external deletion targets.  Keep the
-   * route fail-closed until the per-resume asynchronous erasure state machine
-   * replaces it; a 200 here would falsely represent a privacy guarantee.
+   * S1 软删受理（UNSTUB-ERASE rev2 · D6 最低集）：202 + `mode:'logical'` +
+   * `purgePending:true`。同事务内①owner+uuid 校验（不存在/越权/非 uuid → 404 不分叉，
+   * 沿 profile() 形制）②0152 受审墓碑函数：`status→'erasure_fenced'` +
+   * `erasure_requested_at` + `privacy_epoch+1` + `privacy_erasure_request`（scope=
+   * resume_data · 内部派生幂等键）落账。围栏即时生效面全部已在库（0063 active-read
+   * RLS/0060 部分去重索引/列表过滤/begin 绑定谓词/队列三元组）。**状态幂等**：再删
+   * 已围栏行 → 202 同态（`alreadyFenced:true`·同 requestId），不建第二份账。
+   * **不撒谎边界**：本地围栏 ≠ 物理清除——`purgePending:true` 恒真直至 S2 简历轨
+   * claim/purge worker 逐回执闭合；本响应永不携带完成态字段。
    */
-  remove(_principal: string, _id: string): never {
-    throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
+  async remove(principal: string, id: string) {
+    if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+    return this.db.asPrincipal(principal, async (c: any) => {
+      let receipt;
+      try {
+        receipt = await beginResumeSoftDelete(c, principal, id);
+      } catch (e: unknown) {
+        // 42501 = 不存在/越权/不可围栏：404 不分叉，不泄漏存在性（P-04 桩期的立法意图继承）。
+        if (errCode(e) === '42501') throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+        throw e;
+      }
+      return {
+        resumeId: receipt.resumeId,
+        mode: 'logical' as const,
+        deletedAt: receipt.fencedAt,
+        purgePending: true as const,
+        requestId: receipt.requestId,
+        ...(receipt.alreadyFenced ? { alreadyFenced: true as const } : {}),
+      };
+    });
   }
 
   profile(principal: string, id: string) {

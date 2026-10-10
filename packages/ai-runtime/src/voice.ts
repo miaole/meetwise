@@ -3,8 +3,10 @@ import { request as httpsRequest, type RequestOptions } from 'node:https';
 import type { ClientRequest, IncomingMessage } from 'node:http';
 import ipaddr from 'ipaddr.js';
 import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTimeoutError, fetchJsonWithTimeout } from './timeout.ts';
+import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
 import { requireNonEmptyText } from './native-response-guard.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
+import { errCode } from '@meetwise/db';
 
 /**
  * 语音 I/O seam（边缘适配器）——核心洞察:**面试 agent 图是 modality-agnostic 的**,它只收"文本答案"、出"文本问题",
@@ -426,6 +428,7 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
     throw new Error('invalid_asr_timeout');
   return {
     async transcribe(audio, opts) {
+      assertG7UnguardedPathDisabled('asr');
       if (!baseUrl || !apiKey) throw new Error('asr_not_configured');
       const fmt = opts?.format ?? 'mp3';
       const b64 = Buffer.from(audio).toString('base64');
@@ -441,14 +444,16 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
         const content = j.choices?.[0]?.message?.content;
         // Empty/non-string content is malformation, not a silent empty room.
         return requireNonEmptyText(content, 'asr_malformed');
-      } catch (error: any) {
+      } catch (error: unknown) {
         // A caller disconnect must remain distinct from a provider deadline:
         // both stop transport work, but only the latter is a 504/retryable
         // dependency failure in product metrics.
         if (error instanceof ExternalRequestAbortedError) throw new AsrAbortedError();
         if (error instanceof ExternalRequestTimeoutError) throw new AsrTimeoutError(timeoutMs);
         if (error instanceof ExternalHttpStatusError) throw new Error('asr_http_' + error.status);
-        if (error instanceof Error && error.message === 'asr_malformed') throw error;
+        // GODFN-1d 惰性位点原样保持（禁修活）：下一行无条件 `throw error` 与本臂同效，
+        // 判定不可观测；仅判定通道按单一分类面归一（errCode），tautology 分支结构零变。
+        if (errCode(error) === 'asr_malformed') throw error;
         throw error;
       }
     },
@@ -469,6 +474,7 @@ export function dashscopeTts(cfg: { apiKey?: string; model?: string; voice?: str
   if (!Number.isSafeInteger(timeoutMs) || timeoutMs < 1) throw new Error('invalid_tts_timeout');
   return {
     async synthesize(text, opts) {
+      assertG7UnguardedPathDisabled('tts');
       if (!apiKey) throw new Error('tts_not_configured');
       const releaseAdmission = await acquireTtsAdmission(cfg.admission ?? defaultTtsDownloadAdmission, opts?.signal);
       try {
@@ -482,7 +488,7 @@ export function dashscopeTts(cfg: { apiKey?: string; model?: string; voice?: str
           const audio = await downloadDashscopeTtsAudioWithinAdmission(url, j.output?.audio?.expires_at, { signal: opts?.signal });
           if (!(audio instanceof Uint8Array) || audio.byteLength === 0) throw new Error('tts_malformed');
           return audio;
-        } catch (error: any) {
+        } catch (error: unknown) {
           if (error instanceof ExternalRequestAbortedError) throw ttsDownloadError('aborted');
           if (error instanceof ExternalRequestTimeoutError) throw ttsDownloadError('deadline_exceeded');
           if (error instanceof ExternalHttpStatusError) throw new Error('tts_http_' + error.status);

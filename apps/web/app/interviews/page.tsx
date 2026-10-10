@@ -8,6 +8,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { listWindow, withLimitHref } from '@/lib/paginate';
+import { actionErrorMessage } from '@/lib/errors/action-error';
 import { interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable } from '@/lib/interview/progress';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
 import { resumeOptionLabel } from '@/lib/resume/display';
@@ -45,11 +46,20 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
       <h1 className="text-2xl font-semibold tracking-tight">面试 · 知面</h1>
 
-      {error === 'create_failed' && (
-        <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
-          创建面试失败,请稍后重试;若反复出现请确认额度与网络。
-        </p>
-      )}
+      {/* #250/#251：?error= 统一走 actionErrorMessage 映射（mapped 码+兜底原文不变；未知码 null 不渲染空壳） */}
+      {(() => {
+        const actionError = actionErrorMessage('interviews', 0, error ?? null);
+        if (!actionError) return null;
+        return (
+          <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            {actionError.text}
+            {actionError.href && (
+              <Link href={actionError.href} className="ml-1 font-medium underline underline-offset-4">额度说明</Link>
+            )}
+            {actionError.note && <span className="mt-1 block text-xs opacity-80">{actionError.note}</span>}
+          </p>
+        );
+      })()}
 
       <Card>
         <CardHeader>

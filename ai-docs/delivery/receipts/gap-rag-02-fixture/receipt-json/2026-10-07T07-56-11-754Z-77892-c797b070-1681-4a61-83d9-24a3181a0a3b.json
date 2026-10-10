@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "rag03-hnsw-completeness:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7964,
+  "startedAt": "2026-10-07T07:56:03.790Z",
+  "finishedAt": "2026-10-07T07:56:11.754Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:5250cd7f6f2f1bf205b69b7a76bca87a4c7b57deda09a55e0554e2868bdfc705",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/rag03-hnsw-completeness.proof.ts": "sha256:b15b83ccb495ef86fa77e0d3e1c1445b11041eb8c8fd1421f529b6b86459d674",
+    "packages/db/src/qbank-generation-retrieval.ts": "sha256:7e348133473d05051dd64e657fa602f68dd8bcbec7aff12082954c7f169925b4",
+    "packages/db/src/retrieval-store.ts": "sha256:c9de9529a15f56cdf16063e16373f9b47e800a01f4e686ff738f8e577dc6a0a9",
+    "packages/db/src/retrieval-legacy.ts": "sha256:433585c30f0f145ff7f5443bc203f0ea9447ec7f28ec8a3aab5ea67107f2f01a",
+    "packages/db/src/qbank-ingest.ts": "sha256:6c80e2f1002104b59e9c36aa7e12df88fdf0c1abe14c55ffe5e9a3c2b64e3203",
+    "packages/db/src/qbank-curation.ts": "sha256:e82d3322be57499048a806b6498cc69fd2b5286fce21fac3e9d4cdcbaf9c60b4",
+    "packages/db/src/index.ts": "sha256:c3ca4c973fb3c6030f2f4adf9a7ac689d13f6ff9362eb7434fcc2a1c6503aae1",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/package.json": "sha256:41226bc38108538574ee05c4f5ef664b9b07b8450c3554b577fbbb4eb1acc097",
+    "packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql": "sha256:84b37fba77f06815d92dea89ba8c741bd211bbfd67a91314eddd3b6ca7226dae",
+    "packages/db/migrations/0066_qbank_control_executor.sql": "sha256:9ca83f33ed72f1a7ddcaaf940cb863421ca2d7a660885e6f72344ed38b009cf6",
+    "packages/db/migrations/0068_qbank_content_fact_immutability.sql": "sha256:d066aff2c0bac3d8d96dc262e591f62033a688fe719543b90b4a3cd6fe992a2c",
+    "packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql": "sha256:e126f22a58dd924f1e19fe72529df8e9ad220062080c149734a20ae4639046b5",
+    "packages/db/migrations/0097_qbank_generation_serving_scope_projection.sql": "sha256:bb8010e8b8055886bcb93ecf35f385d241d407f6b945be2413cd5be7eb563fdd",
+    "packages/db/migrations/0106_qbank_track_local_serving_scope.sql": "sha256:c2358d7171182d8599137947b2f50b55877cb68ff3a135a7bfd27efede507197",
+    "packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql": "sha256:947ea64b3d9b67e35f70c18b80db11b9512d5ee3d3aaf445b088d19f130ec439",
+    "packages/db/migrations/0139_qbank_ann_hnsw_iterative_scan.sql": "sha256:cc32f9a49ccae436839ecb4348ebfa508c101ac03d0078e51e67fc99eba83464"
+  },
+  "schemaMigrationManifest": {
+    "count": 140,
+    "latest": "0140_privacy_external_vendor_purge_evidence.sql",
+    "digest": "sha256:0dae426c13993b50fd9556d3fada8aba3ce967173347f08bd9d7058df0fd7ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

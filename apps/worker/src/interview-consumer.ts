@@ -4,11 +4,15 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, type DbPool, type InterviewGraphFence } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { admitInterviewResume, type ScoredRef, type SourceDoc } from '@meetwise/domain';
+import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
+import { isTechRoleFailClosedEnabled, resolveAdaptiveInterviewRole } from './adaptive-role-resolve.ts';
+import { decideRouteSnapshotRetrieve } from './qbank-retrieve-scope.ts';
+import { retrieveViaDispatchTrackLocal, type TrackLocalRetrieveFactory } from './qbank-track-local-retrieve.ts';
+import { productionRequiresTrackLocal } from './production-config.ts';
 import { createInterviewResearchSkills } from './interview-research-skills.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
@@ -35,7 +39,17 @@ export interface ConsumerDeps {
   // 注入则消费者跑**自适应 agent 图**(生产注真 annSearch/web fetcher;测试注 fake);不注则跑旧固定题单流程。
   // localRetrieve 按 owner 参数化(消费者多 owner;每 job 闭成 owner 专属);webExplore owner 无关(web 抓取)。
   adaptive?: {
-    localRetrieve: (owner: string, q: string) => Promise<ScoredRef[]>;
+    // Compat/test seam: scoped cachedQbankSearch when trackLocal is absent.
+    // Production main injects trackLocal → REAL-WIRE dispatch path.
+    // Missing snapshot is a retrieval denial, not permission for an unscoped query.
+    // ≠ wrong_track=0; wire green ≠ R4 closed.
+    localRetrieve: (owner: string, q: string, scope?: QbankServingScopeInput) => Promise<ScoredRef[]>;
+    /**
+     * R4 REAL-WIRE-IMPL: when present, consumer retrieve uses
+     * planInterviewTurn → assembleValidatedRetrievalPlan → dispatchTrackLocalRetrieval
+     * (via retrieveViaDispatchTrackLocal). recheck_failed fail-closed; G-R2-5 kept.
+     */
+    trackLocal?: TrackLocalRetrieveFactory;
     webExplore: (q: string) => Promise<SourceDoc[]>;
     /** 有界多源取证；不存在时 CRAG 兼容退回 webExplore。 */
     deepResearch?: (q: string) => Promise<SourceDoc[]>;
@@ -65,11 +79,12 @@ async function terminalizeUnsettledInterview(
 ): Promise<'settled' | 'unavailable'> {
   try {
     await failInterviewAndRelease(c, owner, interviewId);
-  } catch (error: any) {
+  } catch (raw: unknown) {
+    const error = asErr(raw);
     if (error?.reason === 'already_confirmed' || (error?.code === 'interview_failure_terminal_conflict' && (error?.status === 'completed' || error?.status === 'abandoned'))) {
       return 'settled';
     }
-    throw error;
+    throw raw;
   }
   const applicationMark = await markApplicationAssessmentUnavailable(c, owner, interviewId);
   if (applicationMark === 'stale') return 'unavailable';
@@ -146,7 +161,7 @@ async function failClaimedInterviewJob(
     if (!stillMine) return;
     try {
       await terminalizeUnsettledInterview(c, owner, job.interviewId, 'job_failed', job.kind);
-    } catch (terminalError: any) {
+    } catch (terminalError: unknown) {
       getMetrics().inc(METRIC.refundFailed);
       throw terminalError;
     }
@@ -171,14 +186,15 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // has already terminalized/redacted the row, so no compensating business
     // transition or event may be emitted here.
     await asPrincipal(d.pool, owner, (c) => assertInterviewPrivacyActive(c, job.interviewId));
-  } catch (error: any) {
+  } catch (raw: unknown) {
+    const error = asErr(raw);
     if (error?.message === 'interview_privacy_fenced') {
       // Do not leave a naked running row occupying the per-owner cap until
       // lease expiry. Lease CAS=0 is ignored: we are no longer the holder.
       await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
       return 'retry';
     }
-    throw error;
+    throw raw;
   }
   // This must precede every graph-related side effect.  In particular, do not
   // use payload.resumeId as a fallback: a deletion worker must be able to
@@ -228,7 +244,44 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
       if (d.adaptive) {
         // 存快照：await/lease callback 后 TypeScript 和运行时都不能假设外层可选配置仍是同一对象。
         const adaptive = d.adaptive;
-        const localRetrieve = (q: string) => adaptive.localRetrieve(owner, q);   // 闭成本 owner 专属
+        // R4 REAL-WIRE-IMPL (when adaptive.trackLocal present):
+        //   planInterviewTurn → validate → assemble RetrievalPlan (generationId+recipeId)
+        //   → dispatchTrackLocalRetrieval → recheck (fail-closed on recheck_failed).
+        // G-R2-5: Absent/invalid snapshot → route_snapshot_missing; never unscoped.
+        // Compat/test (no trackLocal): primary-leaf scoped localRetrieve (partial P-WIRE).
+        // P-FAKEPLAN banned. retrieve-side only; P-START separate.
+        // ≠ 题域已隔离; ≠ wrong_track=0; wire green ≠ R4 closed; releaseEvidence=false.
+        const routeSnapForRetrieve = await asPrincipal(d.pool, owner, (c) =>
+          getInterviewRouteSnapshot(c, owner, job.interviewId));
+        const retrieveDecision = decideRouteSnapshotRetrieve(routeSnapForRetrieve);
+        // Weighted-deficit across rag.retrieve calls within this job claim.
+        let trackLocalDeficit: number[] = routeSnapForRetrieve?.allocations?.map(() => 0) ?? [];
+        const localRetrieve = (q: string): Promise<ScoredRef[]> => {
+          if (!retrieveDecision.allowed) {
+            return Promise.resolve([degradedRetrieval(retrieveDecision.reason)]);
+          }
+          if (adaptive.trackLocal) {
+            return retrieveViaDispatchTrackLocal({
+              pool: d.pool,
+              owner,
+              snapshot: routeSnapForRetrieve,
+              query: q,
+              deficit: trackLocalDeficit,
+              deps: adaptive.trackLocal(owner),
+            }).then((out) => {
+              trackLocalDeficit = out.deficit;
+              return out.refs;
+            });
+          }
+          // F1 PS1 deploy-surface: production must not fall back to compat localRetrieve
+          // (partial P-WIRE · no dispatch/recheck). Fail-closed instead of silent leakage shape.
+          // Test/dev without trackLocal may still use scoped localRetrieve.
+          if (productionRequiresTrackLocal(false)) {
+            return Promise.resolve([degradedRetrieval('track_local_required')]);
+          }
+          // Test/compat seam only — production main injects trackLocal.
+          return adaptive.localRetrieve(owner, q, retrieveDecision.scope);
+        };
         // 每次 claim 都新建固定 skill 目录，因此预算不跨 owner/interview/job 共享；模型没有
         // 可控的“工具名→执行器”旁路。一个 job 只推进一个 pending question，RAG/深检索各至多一次。
         const research = createInterviewResearchSkills({
@@ -252,6 +305,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             researchBoundary: research.researchBoundary,
             competencyKeywords: adaptive.competencyKeywords, maxTurns: adaptive.maxTurns, absoluteMaxTurns: adaptive.absoluteMaxTurns, graphObserver: adaptive.graphObserver, fence,
             onBeforeResumeProfileHydration: adaptive.onBeforeResumeProfileHydration,
+            // EXTREV-1 SCORE-WRITER S1（D3/D4）：写卡步 claim 的 lease_owner（job 级 worker 身份）。
+            scoreWriterLeaseOwner: d.leaseOwner,
           };
           if (job.kind === 'start') {
             // `resume_id` is the sole source locator. Never revive a
@@ -286,7 +341,27 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
                   ocrBinding: loaded.ocr_binding ?? undefined,
                 })
               : { ok: false as const, resumeProfileAvailable: false as const };
-            await startAdaptiveInterview(life, adaptive.role ?? '技术岗', admitted.ok && admitted.resumeProfileAvailable ? facts : []);
+            // R1 / GAP-RAG-01: resolve role from route snapshot; flag-on fail-closed when missing
+            // (no silent 技术岗). Flag-off keeps legacy default inside resolver.
+            // G7S 通用 begin 供给面收口:角色门供给读 = 旧 recruiter snapshot 优先 → fallback
+            // candidate_profile_route_snapshot(0142 新结构;通用 begin 面供给先行,先于扣额/入队)。
+            // 检索面(routeSnapForRetrieve / G-R2-5)维持旧表直读不动——candidate 面 retrieval 走
+            // 既有 degradedRetrieval('route_snapshot_missing') 语义。门语义零弱化:缺行/缺叶仍
+            // throw adaptive_role_route_missing(adaptive-role-resolve 零改动)。
+            // 死源处置(C-MO-S3):原 roleFromJobRouteMetadata(声明从未赋值)已删除,非接线——
+            // 通用面供给走独立 candidate 结构,Ban 冒用 job 维度 metadata。
+            let roleFromRouteSnapshot: string | undefined;
+            if (isTechRoleFailClosedEnabled()) {
+              const snap = await asPrincipal(d.pool, owner, (c) =>
+                getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
+              const primary = snap?.allocations?.[0]?.leafTrackId;
+              if (typeof primary === 'string' && primary.trim()) roleFromRouteSnapshot = primary.trim();
+            }
+            const role = resolveAdaptiveInterviewRole({
+              roleFromRouteSnapshot,
+              roleFromDeps: adaptive.role,
+            });
+            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : []);
           } else {
             await submitAdaptiveAnswer(life, answerPayload as any);
           }
@@ -300,11 +375,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
       if (!done) return 'retry';
       return job.kind;
     });
-  } catch (e: any) {
+  } catch (e: unknown) {
     // durable fence 失效时，旧 worker 的 graph checkpoint 可能已经前进、但业务投影事务被
     // requireCurrentFence 整体回滚。此时不能把一次可恢复的 lease 交接误判为业务失败/退款：
     // 归还同一 job，下一持有者会从 checkpoint 识别 alreadyApplied 并只补投影。
-    if (e?.code === 'graph_fence_lost') {
+    if (errCode(e) === 'graph_fence_lost') {
       await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
       return 'retry';
     }
@@ -334,7 +409,7 @@ export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Pr
     for (const interviewId of res.failedInterviews) {
       try {
         await terminalizeUnsettledInterview(c, owner, interviewId, 'worker_died');
-      } catch (terminalError: any) {
+      } catch (terminalError: unknown) {
         getMetrics().inc(METRIC.refundFailed);
         throw terminalError;
       }
@@ -353,7 +428,8 @@ export async function interviewDispatchTick(d: ConsumerDeps): Promise<{ owners: 
       const r = await reapStuckInterviewJobs(d, o);   // 先收割:超限终结+发终态事件+退款;未超限 requeue → 同拍被 drain 重领
       requeued += r.requeued; failed += r.failed;
       drainable.push(o);
-    } catch (error: any) {
+    } catch (raw: unknown) {
+      const error = asErr(raw);
       // Isolate per-owner reap. Do not drain this owner in the same tick: cap
       // ignores expired running, so a failed sweep plus claim could overlap a
       // still-executing expired lease. Later owners still drain.

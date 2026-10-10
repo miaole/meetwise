@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerToken, serverGet } from '../../lib/api/server';
 import { saveSettingsAction } from './actions';
 import { ChangePasswordForm } from './ChangePasswordForm';
+import { DeactivateForm } from './DeactivateForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Label } from '@/components/ui/label';
@@ -86,13 +87,14 @@ export default async function SettingsPage() {
 
         <Card className="border-destructive/30 bg-muted/40">
           <CardHeader>
-            <CardTitle>账户注销暂未开放</CardTitle>
+            <CardTitle>注销账户并发起数据删除</CardTitle>
             <CardDescription>
-              账户注销与其关联的数据处置需要独立的授权、删除与回执流程。该流程完成验证前，本站不接受或伪装完成注销请求。
+              注销即时生效：立即登出、无法再登录，关联数据（简历、面试、记忆）立即停止一切处理与访问。
+              后台物理清除为异步流程稍后完成；完成前同一邮箱无法重新注册。
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <button type="button" disabled className="rounded-md border px-3 py-2 text-sm text-muted-foreground disabled:cursor-not-allowed">账户注销暂未开放</button>
+            <DeactivateForm />
           </CardContent>
         </Card>
         <p className="text-sm"><a href="/privacy" className="text-muted-foreground hover:text-foreground">数据边界与导出范围 →</a></p>

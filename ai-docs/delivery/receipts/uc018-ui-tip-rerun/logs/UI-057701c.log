@@ -1,0 +1,28 @@
+
+> meetwise@0.1.0 uc018:ui:prove /workspace/meetwise-lineE
+> E2E_UI_GREP=UC018-UI-abandon E2E_UI_PROJECT=chromium E2E_UI_SKIP_WORKER=1 node scripts/run-e2e-isolated.mjs e2e:ui
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1383942-1791000903674 on 127.0.0.1:32787
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-lineE/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=134 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 e2e:ui /workspace/meetwise-lineE
+> node scripts/run-e2e-ui.mjs
+
+E2E-UI: 启 api（skip worker · UC018 UI abandon 专用）…
+E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…
+E2E-UI: 启 web(production next start, :25112)…
+E2E-UI: 跑 Playwright 浏览器用例…
+
+Running 1 test using 1 worker
+
+  ✓  1 [chromium] › e2e-ui/uc018-abandon.spec.ts:68:1 › UC018-UI-abandon: in-interview 放弃 → abandoned+released · irreversible · same HTTP contract (3.0s)
+
+  1 passed (5.0s)

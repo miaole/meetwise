@@ -1,0 +1,13 @@
+
+> @meetwise/worker@0.0.0 prove:r4-wrong-track-prod-surface /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-wrong-track-prod-surface.proof.ts
+
+
+PROD_SURFACE_GAP: real Postgres required for r4-wrong-track-prod-surface prove (PS1 live wired 旁证).
+  Expected: E2E_ISOLATED=1 via `pnpm r4-wrong-track-prod-surface:prove`
+            (run-e2e-isolated) OR DATABASE_URL / full PG* components.
+  skip ≠ pass — refusing fake-green with in-memory-only.
+  Honesty: LIVE_PG dual ≠ prod closed · NHP covered ≠ this knife · ≠ R4 closed.
+  releaseEvidence=false · ≠HA
+
+ ELIFECYCLE  Command failed with exit code 1.

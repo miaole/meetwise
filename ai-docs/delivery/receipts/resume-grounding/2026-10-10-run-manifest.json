@@ -1,0 +1,97 @@
+{
+  "knife": "resume-grounding",
+  "requestBlueprint": "rev3 @0d75ffa8 (ai-docs/delivery/harness/resume-grounding-REQUEST.md · draft_rev3:pre_exec_dual_PASS_plus_consent_gate)",
+  "runId": "2026-10-10",
+  "seat": "mw-core·W3 AI 个性化线 · EXEC=mw-resground-exec2（续作被配额中断的前任 EXEC，6 脏文件续作判定=CONTINUE）",
+  "startedAt": "2026-10-10T00:00:00.000Z",
+  "finishedAt": "2026-10-10T00:00:00.000Z",
+  "baseVerified": "line/resume-grounding @0d75ffa8e75f140e9595fdffe01338e03e2a46fc（git pull 后亲证=origin tip）",
+  "guards": {
+    "estLive": 0,
+    "zeroKey": true,
+    "zeroNetwork": "模型面=scripted/capture ModelClient；wire 面=openAICompatibleClient+fetch mock（无外呼）",
+    "factsNeverInGraphState": "facts 池仅 worker deps 闭包；图侧 retrieveAndGenerate facts 形参恒 []（generate-question.ts 实读）",
+    "refsGateMaterialOnly": "fact 子串 refs 仅作闸料：grounded 无检索（useRetrieval=false）→ knownRefs=[] → sources=[]；pending.sources/Turn.sources 交集=空（T3）",
+    "rerollFaceZeroTouch": "MAX_DUPLICATE_REROLL=2、:r{k} 键式、判重语义零改；refs 闸重试=独立 :gr{k} 计数（T2：rows=3 suffixes=0,gr1,gr2，零 :r 键）",
+    "consentGate": "G1-G4：purpose=interview_personalization；未同意/撤回 → pool=[] → 占位串/固定模板路径与现状逐字节一致（S1-1/S1-2/S3-1/S3-2/B1/B2 自动化断言）",
+    "noDumpOnFail": "断言失败只记 SHA/长度/命中索引；本收据零提示词原文"
+  },
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false,
+    "pgRetained": true,
+    "publicDelete": 503,
+    "g7SuiteGreen": false,
+    "r1Closed": false,
+    "footnoteActualSpendCny": null
+  },
+  "commands": [
+    { "cmd": "node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw", "exit": 0, "role": "ACCEPTANCE（最终字节首次执行）", "evidence": "2026-10-10-resume-grounding-prove-raw.log（39 PASS / 0 FAIL）+ .tmp/isolated-proof-receipts/2026-10-09T17-18-24-336Z-*.json exitCode=0" },
+    { "cmd": "node scripts/run-e2e-isolated.mjs quiz:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs adaptive-life:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs adaptive-flow:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs adaptive-consumer:prove:raw", "exit": 0, "pass": "35/35" },
+    { "cmd": "node scripts/run-e2e-isolated.mjs diagnosis:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs adaptive-degrade:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs tokenstream:prove:raw", "exit": 0, "pass": "CMD=tokenstream:prove EXIT=0" },
+    { "cmd": "node scripts/run-e2e-isolated.mjs ocr:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs uc016:nhp-fault:prove:raw", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs resume-derivative-reference:prove:raw", "exit": 0, "pass": "3/3" },
+    { "cmd": "tsx test/adaptive-grounding.proof.ts（worker 目录）", "exit": 0 },
+    { "cmd": "node scripts/run-e2e-isolated.mjs adaptive-latency:prove", "exit": 0 },
+    { "cmd": "grep -c refsGroundedInFacts packages/ai-graphs/src/resume-diagnosis.ts apps/worker/src/interview-service.ts", "exit": 1, "pass": "两文件 0 命中=C11 接线钉面（grep 无匹配即零接线，EXIT=1 为期望值）" }
+  ],
+  "attemptsLedger": {
+    "resume-grounding:prove:raw": [
+      { "attempt": 1, "exit": 1, "cause": "夹具缺陷：promptedModel 惰性构造未 .call(0)（B1/B2 误红）+ 每次 submit 新建 MemorySaver 致 checkpoint 丢续态（stale_question）", "fix": "harness-only" },
+      { "attempt": 2, "exit": 1, "cause": "S2-6 长答案未超 200 字符无判别力；S2-9 硬编码 turn===4；D3 误把 system 段名说明当数据；T2 断言 ai_invocation_trace（业务拒绝调用按 invoke.ts:351 设计不落该表）；T3 seam 线程缺 interview 行被预派发隐私围栏拦", "fix": "夹具/断言落点修正（T2 改判 durable claim 账 ai_model_invocation）" },
+      { "attempt": 3, "exit": 1, "cause": "T2 查询在 asPrincipal 外（ai_model_invocation FORCE RLS → 恒空）", "fix": "harness-only（查询进 RLS 作用域）" },
+      { "attempt": 4, "exit": 1, "cause": "approvedTemplateGeneration 单参，耗尽键 provenance 被弃", "fix": "产品码：domain 可选 provenance 参数（向后兼容）+ service 耗尽回退附 {operationId,idempotencyKey}" },
+      { "attempt": 5, "exit": 1, "cause": "夹具缺陷：askScript 每请求重建 → seq 恒 1 → q2 与 q1 全同 → critique duplicate 判 business_invalid", "fix": "harness-only（剧本实例随 client 提升）" },
+      { "attempt": 6, "exit": 1, "cause": "interview_settlement_failed:not_found（未播 entitlement 预留）", "fix": "harness-only（沿 adaptive-life 同款播种）" },
+      { "attempt": 7, "exit": 1, "cause": "S2-9 硬编码 turn===4 vs 软预算边界语义 5 题（decideNext 预算边界允许第 5 题）", "fix": "断言改蓝图实质（回答轮数≥4 且 concluded）" },
+      { "attempt": 8, "exit": 0, "cause": "ACCEPTANCE（最终字节首次执行）", "fix": "39 PASS / 0 FAIL" }
+    ],
+    "adaptive-life:prove:raw": [
+      { "attempt": 1, "exit": 1, "cause": "fence-lost 夹具：本刀把 start 可用位改 RLS 现读 → 无简历绑定的夹具由 grounded 模板路径（包裹层前早退，零事件）变为 fundamental 走 TOKSTREAM 包裹层 → generation_started 事件计入旧断言 events==0", "fix": "产品码：start 可用位=「RLS 现读 ∨ 调用方准入位」OR 回退（消费方只在 DB 准入后传位；占位串/模板路径与现状逐字节保形）" },
+      { "attempt": 2, "exit": 0, "cause": "PASS" }
+    ],
+    "adaptive-consumer:prove:raw": [
+      { "attempt": 1, "exit": 1, "cause": "#191 修使无标题夹具简历产出 facts（修的本义）→ 首题 grounded（consent 缺省→模板）→ 深检索 ask 移到首答后，原断言落空", "fix": "C16 授权的 fixture 更新：深检索断言迁至首答后（guard===1）+ evaluate 剧本 88→30 压低 confidence 逼出 fundamental 追问；断言本体语义零弱化" },
+      { "attempt": 2, "exit": 0, "cause": "PASS 35/35" }
+    ],
+    "interview:prove:raw": [
+      { "attempt": 1, "exit": 1, "cause": "adaptive_role_route_missing ×7 —— HEAD 平衡跑（stash 往返）同 7 FAIL 逐字相同：先在基线红（环境相关：tech-role fail-closed 门在该环境无 route snapshot），与本刀改动零交集", "fix": "不修（§5-8 Ban 顺手扩权；HEAD 平衡证据在案）" }
+    ],
+    "stress:prove:raw": [
+      { "attempt": 1, "exit": 1, "cause": "6 FAIL —— HEAD 平衡跑同 6 FAIL 逐字相同：先在基线红（同 interview 家族）", "fix": "不修（同上）" }
+    ],
+    "context-stress:prove:raw": [
+      { "attempt": 1, "exit": 1, "cause": "4 FAIL（截断 nonce 标记/评估计数/0k 会话——与 interview 家族同症状；model-client 本刀仅注释零行为）", "fix": "不修；未做 HEAD 平衡跑（时间盒），失败面与本刀改动面无交集，如实登记" }
+    ],
+    "g7fix4-reroll.proof.ts": [
+      { "attempt": 0, "exit": null, "cause": "未注册 isolated runner target、未接 CI workflow；需容器级 nonce 证明环境，本环境不可执行；:r{k} 键面本刀零触（代码审读+T2 零 :r 键旁证）", "fix": "如实登记为本地不可执行（非跳过既有 CI 面）" }
+    ],
+    "quiz-diagnosis-dual-claim-pg:prove:raw": [
+      { "attempt": 0, "exit": null, "cause": "runner 无此 target（unsupported_e2e_target）；组成链 quiz ✓ / diagnosis ✓ 各自绿", "fix": "如实登记" }
+    ]
+  },
+  "verdicts": {
+    "acceptance5": {
+      "c1_modelCaptures": "planner/grounded ask 入参含事实原文（S2-1/S2-2）；refs 全过组合闸（S2-4/T3）；编造 refs 题被丢弃走 :gr 独立重试耗尽回退模板（T1/T2）",
+      "c2_followUpFenced": "上轮题目摘要+作答摘要+证据弱点带不可信标记进 <data>（S2-5）；200 字符帽（S2-6）；wire body 同名 nonce 围栏（D2/D4）；数据本体零进 system（D3）",
+      "c3_injectionBlocked": "摄取侧 blocked（C1）+评分侧剥离（C2/S2-7）+全捕获 system/userData/rag 零样本零 raw-only（S2-8/Z 差分×5）",
+      "c4_objectFieldAssertions": "断言 CompletionRequest 对象字段分列（service/system/userData/rag），禁拼接大字符串；基线全家绿清单见 commands",
+      "c5_cmdExitReported": "本 manifest commands[] 全 EXIT 原值；不自批合入，待独立域双审（建议 rag/route+privacy）"
+    },
+    "tscParity": { "worker": "41=41（HEAD 平衡）", "api": "26=26（HEAD 平衡）", "web": 0 },
+    "estimatedCostCny": 0,
+    "actualSpendCny": null
+  },
+  "dataHandling": "零提示词原文入收据；捕获仅内存；断言失败输出 SHA/长度/索引",
+  "releaseEvidence": false
+}

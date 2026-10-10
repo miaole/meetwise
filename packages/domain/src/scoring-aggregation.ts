@@ -12,6 +12,7 @@
 import { createHash } from 'node:crypto';
 import { isScoreCardScorable, type ScoreCardStatus } from './scoring-fact-root.ts';
 import { utf8ByteLength } from './memory-admission.ts';
+import { GAP, type Assessment } from './assessment.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 
@@ -24,6 +25,38 @@ export type DispositionBand = (typeof DISPOSITION_BANDS)[number];
 
 /** 判定档位 → 确定性分量（below:0 / meets:1 / exceeds:2）。per-criterion score = 50×band。 */
 export const DISPOSITION_BAND_VALUE: Record<DispositionBand, number> = { below: 0, meets: 1, exceeds: 2 };
+
+/**
+ * 0103 契约证据的 worker 侧形状（#52 v6 起）：模型只直出 criterionId+quote+disposition，
+ * quote→span/digest 的派生在本域单源完成（scoreDispositionFromCodeUnitSpan），跨 checkpoint/
+ * 写卡消费。sourceAnswerId/answerVersion 由写卡侧从 score_request 补齐（contracts ScoreEvidenceShape）。
+ */
+export interface ScoredCriterionDisposition {
+  criterionId: string;
+  disposition: DispositionBand;
+  span: ScoreSpan;
+  spanDigest: string;
+}
+
+/**
+ * 把「答案内 UTF-16 code unit 区间」换算为 0103 契约证据（UTF-8 字节 span + sha256 字节 digest）。
+ * #52 v6：模型 quote 经 evaluate 侧 toEvidenceRecord 得 code-unit span 后，唯一经本函数派生
+ * score-writer 证据——明文答案只在 drain 内存态存活，span/digest 是派生物（非答案原文）。
+ * 越界/倒序/非整数 span 一律 fail-closed（绝不静默截断）。
+ */
+export function scoreDispositionFromCodeUnitSpan(
+  answerText: string, criterionId: string, disposition: DispositionBand, start: number, end: number,
+): ScoredCriterionDisposition {
+  if (typeof criterionId !== 'string' || criterionId.length === 0) fail('score_criterion_invalid');
+  if (!Number.isSafeInteger(start) || !Number.isSafeInteger(end) || start < 0 || end < start || end > answerText.length)
+    fail('score_span_range_invalid');
+  const span: ScoreSpan = {
+    offsetKind: SCORE_SPAN_OFFSET_KIND,
+    start: utf8ByteLength(answerText.slice(0, start)),
+    end: utf8ByteLength(answerText.slice(0, end)),
+  };
+  return { criterionId, disposition, span, spanDigest: scoreSpanDigest(answerText, span) };
+}
 
 export interface ScoreSpan {
   offsetKind: ScoreSpanOffsetKind;
@@ -144,4 +177,34 @@ export function deriveScoreCardAssessment(cards: readonly ScoreCardAssessmentInp
     eligibleCount: eligible.length,
     nonScorableCount: nonScorable,
   };
+}
+
+/**
+ * D5 legacy-parity 适配（EXTREV-1 SCORE-WRITER S2·rev2 三钉）：ScoreCard 输入 → legacy
+ * `Assessment` 形状（{overall, dimensions:[{dimension,score,gap,evidence}], weaknesses}），
+ * 供 generateAssessmentFor 在 **INSERT 前**派生（D5(iii)）并按冻结形状落 assessment_report
+ * （D5(ii)：interview.service 的 weaknesses 过滤 d.gap 与 web 消费零改动）。
+ * 三钉落位：(i) gap 判定唯一经 GAP 单源（本文件顶部 import，禁字面量散布）；
+ * (ii) 返回形状 = legacy Assessment 逐字段同形（evidence 文案 legacy parity）；
+ * (iii) 纯域函数，调用方先派生后 INSERT。空可评集 fail-closed（score_aggregate_empty→409
+ * 信封由调用方翻译），非评分态卡不进聚合（isScoreCardScorable 门，同 deriveScoreCardAssessment）。
+ */
+export function deriveScoreCardAssessmentLegacy(cards: readonly ScoreCardAssessmentInput[]): Assessment {
+  const eligible = (cards ?? []).filter((c) => c && isScoreCardScorable(c.status));
+  if (eligible.length === 0) fail('score_aggregate_empty');
+  const groups = new Map<string, number[]>();
+  for (const c of eligible) {
+    const dim = (typeof c.competency === 'string' && c.competency.trim()) ? c.competency.trim() : c.questionId.slice(0, 40);
+    const arr = groups.get(dim) ?? [];
+    arr.push(c.deterministicTotal);
+    groups.set(dim, arr);
+  }
+  const dimensions: Assessment['dimensions'] = [...groups.entries()].map(([dimension, ss]) => {
+    const score = Math.round(ss.reduce((a, s) => a + s, 0) / ss.length);
+    const gap = score < GAP;
+    return { dimension, score, gap, evidence: gap ? '低于达标线，需加强' : '达标' };
+  });
+  const overall = aggregateScoreCards(eligible.map((c) => c.deterministicTotal));
+  const weaknesses = dimensions.filter((d) => d.gap).map((d) => d.dimension);
+  return { overall, dimensions, weaknesses };
 }

@@ -1,0 +1,69 @@
+{
+  "kind": "RagFunnel0108CoveredMatrix",
+  "rows": [
+    {
+      "id": "RAG-FUNNEL-01A",
+      "status": "source_sealed",
+      "basis": "01A source seal + qbank-handoff-closure prove inventory (checklist [x] · releaseEvidence=false)",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-01",
+      "status": "product_surfaces_true",
+      "basis": "MS1+MS2+MS3 product surfaces true (F6/F7/F8) · dual-claim evidence path ≠ invent covered · checklist 01 still [ ] until authorized SSOT",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-02A",
+      "status": "covered",
+      "basis": "Batch2 true-cover: immutable generation/projection + canonical embedding recipe evidenced (qbankEmbeddingRecipe fields + ensureActiveQbankGeneration + db projection + main immutable path + track-local projection consume + recipe query identity) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-02B",
+      "status": "covered",
+      "basis": "Batch2/Batch2b true-cover: durable embedding compute cache evidenced (HMAC cache identity + resolve/claim/validate + db export + production consumer wiring) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-03",
+      "status": "covered",
+      "basis": "Batch1 true-cover: JobRouteDecision production path evidenced (contracts+domain+db+route-classify consumer+main · R2 structural CLOSED cited ≠ invent) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-04",
+      "status": "covered",
+      "basis": "Batch1 true-cover: track-local scoped retrieval production evidenced (helper+db+domain+REAL-WIRE main inject+consumer+fail-closed scope · cite EG3 ≠ wash) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-05",
+      "status": "covered",
+      "basis": "Batch3 true-cover: same-leaf LLM generation on clean miss evidenced (domain QuestionPlan + db dispatchQbankMissGeneration + clean no_eligible_in_scope gate + no QBank pollution/score-excluded + production consumer wiring) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-06",
+      "status": "covered",
+      "basis": "Batch3 true-cover: route-scope cache/provenance/revoke evidenced (domain digest + retrieval/singleflight keys + durable negative cache + epoch supersede + hit revalidate + distinct from embedding compute + production consumer wiring) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-07",
+      "status": "covered",
+      "basis": "Batch4 true-cover: free-text allowlisted scope funnel evidenced (domain digest/rule/hash + db classifyFreeTextScope + no privilege expansion + worker request-path production consumer · only suggests allowlisted track · no read/tool grant) · Ban invent",
+      "inventCoveredForbidden": true
+    },
+    {
+      "id": "RAG-FUNNEL-08",
+      "status": "covered",
+      "basis": "Batch4/Batch4b true-cover: production-equivalent eval matrix evidenced (multi-lang holdout + per-leaf Recall@K + wrong-track=0 + P95/cost thresholds + release receipts bound · Batch4b eval wire) · Ban invent",
+      "inventCoveredForbidden": true
+    }
+  ],
+  "coveredCount": 8,
+  "inventCovered": false,
+  "releaseEvidence": false,
+  "note": "EG2 FUNNEL-01…08 covered matrix — Ban invent covered · Batch1 may elevate 03/04 · Batch2/Batch2b may elevate 02A/02B · Batch3 may elevate 05/06 when assessors affirm · Batch4 may elevate 07/08 when assessors affirm · Batch4b may elevate 08 when production-equivalent eval evidenced · ≠ R4/题域 closed · await post-prove dual"
+}

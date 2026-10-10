@@ -1,0 +1,38 @@
+# Local HA dual runtime shell ONLY.
+# releaseEvidence=false · Not HA · claimProductionHA=false · 禁止合入生产拓扑
+#
+# Purpose: tag meetwise-backend:ha-dual-local so compose.ha-dual.yml can start
+# api-a / api-b. Application code + node_modules are bind-mounted by compose
+# (see docker/compose.ha-dual.yml). This image is NOT a production backend digest.
+#
+# Build:
+#   node scripts/ha/build-backend-image.mjs
+#   # or: docker build -f docker/Dockerfile.ha-dual -t meetwise-backend:ha-dual-local docker/
+#
+# Dual /livez still requires MEETWISE_HA_DUAL_AUTHORIZED=1 + bring-up --compose.
+# Nest boots with a placeholder DATABASE_URL for /livez only.
+# C3 shared prove uses compose.ha-dual.shared.yml + prove-shared-state.mjs (sole-stack Redis/MySQL);
+# still Not HA / releaseEvidence=false.
+
+FROM node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436
+
+LABEL io.meetwise.ha-dual="local-not-for-prod" \
+      io.meetwise.releaseEvidence="false" \
+      io.meetwise.haStatus="NOT_HA"
+
+WORKDIR /app
+ENV NODE_ENV=development \
+    HOST=0.0.0.0 \
+    PORT=8787
+
+# Repo is bind-mounted at runtime; keep a harmless placeholder tree so the
+# image alone is inspectable without claiming a baked Nest binary.
+RUN mkdir -p /app/apps/api && printf '%s\n' \
+  '#!/usr/bin/env node' \
+  'console.error("[ha-dual-image] bind-mount the Meetwise repo at /app before start; Not HA");' \
+  'process.exit(2);' \
+  > /app/apps/api/missing-bind-mount.js
+
+WORKDIR /app/apps/api
+EXPOSE 8787
+CMD ["node","--import","@swc-node/register/esm-register","src/main.ts"]

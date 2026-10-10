@@ -28,6 +28,10 @@ export interface QuestionGenerationProvenance {
   readonly errorCode?: QuestionGenerationErrorCode;
   /** Stable invoke/adapter error token (ASCII). Must not contain secrets or user content. */
   readonly invokeError?: string;
+  /** G7FIX-4R bounded duplicate re-roll trajectory: how many replacement rolls
+   *  this turn consumed before the recorded outcome. Absent when the turn never
+   *  re-rolled. Audit metadata only — never secrets or user content. */
+  readonly reroll?: number;
 }
 
 export type QuestionGenerationResult =
@@ -62,12 +66,17 @@ export function unavailableGeneration(
   };
 }
 
-export function approvedTemplateGeneration(question: string): QuestionGenerationResult {
+export function approvedTemplateGeneration(
+  question: string,
+  // S2-B3(RESUME-GROUNDING):可选 extra——耗尽回退轨迹(哪个独立重试键耗尽)随 provenance 可审计;
+  // 缺省逐字节同旧形(既有调用零改)。
+  extra: Omit<QuestionGenerationProvenance, 'origin' | 'errorCode'> = {},
+): QuestionGenerationResult {
   return {
     ok: true,
     question,
     sources: [],
-    provenance: { origin: 'approved_template' },
+    provenance: { origin: 'approved_template', ...extra },
   };
 }
 

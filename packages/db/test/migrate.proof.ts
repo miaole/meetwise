@@ -220,7 +220,7 @@ export async function runMigrateProof(
   await pool.query('DROP TABLE migration_guarded_business, mig_t2, schema_migrations');
 
   // 目录加载 + baseline(冻结真 schema) + 增量 + 幂等 + **数据保全(零丢失)**
-  await pool.query('DROP TABLE IF EXISTS schema_migrations, app_setting CASCADE');
+  await pool.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
   const loaded = loadMigrations(migrationDirectory);
   A('版本化目录没有普通迁移自带事务控制语句', loaded.every((migration) => migration.executionMode === 'concurrent-index'
     || !containsTopLevelTransactionControl(migration.sql)));
@@ -304,7 +304,9 @@ export async function runMigrateProof(
     (await pool.query("SELECT has_table_privilege('app_role','qbank_chunk','SELECT') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_function_privilege('app_role','qbank_active_generation_metadata()','EXECUTE') allowed")).rows[0]?.allowed === true);
   A('0021 → interview_question + 事件去重索引已建', (await has('interview_question')) && (await pool.query("SELECT to_regclass('public.uq_interview_event_key') r")).rows[0].r !== null);
-  A('0027 → 事件去重表级唯一约束已建', (await pool.query("SELECT count(*)::int n FROM pg_constraint WHERE conname='uq_interview_event_key_constraint' AND contype='u'")).rows[0].n === 1);
+  A('0027+0149 → 事件去重唯一最终态=仅 0021 partial（DBM3-1 D3 删 0027 表级约束·ON CONFLICT arbiter 不变）',
+    (await pool.query("SELECT count(*)::int n FROM pg_constraint WHERE conname='uq_interview_event_key_constraint'")).rows[0].n === 0
+    && (await pool.query("SELECT to_regclass('public.uq_interview_event_key') r")).rows[0].r !== null);
   A('0028/0046 → application/interview attempt 唯一索引与自动回填 trigger 已建', (await pool.query("SELECT to_regclass('public.uq_interview_application_attempt') r")).rows[0].r !== null
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_finalize_bound_job_application' AND NOT tgisinternal")).rows[0].n === 1);
   A('0029 → qbank 可重建事实、generation 指针、语料 epoch 与分区表已建',
@@ -370,7 +372,9 @@ export async function runMigrateProof(
   A('0046 → 岗位申请可显式评分不可用、历史 attempt 唯一、failed 必须释放',
     (await pool.query("SELECT pg_get_constraintdef(oid) def FROM pg_constraint WHERE conname='job_application_status_check'")).rows[0]?.def.includes('assessment_unavailable')
     && (await pool.query("SELECT to_regclass('public.uq_interview_application_attempt') r")).rows[0]?.r !== null
-    && (await pool.query("SELECT pg_get_functiondef('enforce_interview_consumption_terminal_pair()'::regprocedure) def")).rows[0]?.def.includes("'failed'")
+    // DBTF-1（0144）：terminal-pair 函数体收敛入 tf_ 库（挂接点/签名/语义零变）——断言改为
+    // 薄壳+库成员 def 链拼接后仍含 'failed' 字面量（强度不减 · 位置无关）。
+    && ((await pool.query("SELECT pg_get_functiondef('enforce_interview_consumption_terminal_pair()'::regprocedure) || pg_get_functiondef('public.tf_interview_consumption_terminal_pair(public.interview,public.interview)'::regprocedure) def")).rows[0]?.def.includes("'failed'"))
     && (await pool.query("SELECT pg_get_constraintdef(oid) def FROM pg_constraint WHERE conname='ck_job_application_score_range'")).rows[0]?.def.includes('100')
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_interview_scoring_completion_integrity' AND NOT tgisinternal")).rows[0]?.n === 1
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_job_application_lineage' AND NOT tgisinternal")).rows[0]?.n === 1
@@ -394,12 +398,17 @@ export async function runMigrateProof(
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','DELETE') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true
     && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true);
-  A('增量 0003 → app_setting 有 ALTER 加的 updated_at 列(非 DROP 重建)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='app_setting' AND column_name='updated_at'")).rowCount === 1);
-  // 关键:插用户数据 → 再部署(重跑迁移)→ 数据必须还在(运行器 skip,不重跑 baseline 的 drop+recreate)
-  await pool.query("INSERT INTO app_setting(key,value) VALUES ('user_key','user_data')");
+  // DBHY-1(0145):app_setting 死表已退役——示范断言改挂真迁移对象演示同一增量语义(增量 ALTER 出列+数据保全):
+  // 列对象=0135 的 resume_quiz.expires_at(真增量 ALTER·非 DROP 重建);数据对象=resume_quiz 真行(增量重跑不毁既有行)。
+  A('增量 0135 → resume_quiz 有 ALTER 加的 expires_at 列(非 DROP 重建·真迁移对象)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_quiz' AND column_name='expires_at'")).rowCount === 1);
+  // 关键:插业务数据 → 再部署(重跑迁移)→ 数据必须还在(运行器 skip,不重跑任何 baseline 的 drop+recreate)
+  await pool.query("INSERT INTO resume_quiz(id,owner_user_id) VALUES ('__dbhy1_canary__','dbhy1_canary_owner')");
   const rr2 = await runMigrations(pool, loaded);
-  A('再部署:全迁移 skip(不重跑 baseline 的 DROP)', rr2.applied.length === 0 && rr2.skipped.length === loaded.length);
-  A('**零数据丢失**:再部署后用户数据仍在', (await pool.query("SELECT value FROM app_setting WHERE key='user_key'")).rows[0]?.value === 'user_data');
+  A('再部署:全迁移 skip(不重跑任何 DROP)', rr2.applied.length === 0 && rr2.skipped.length === loaded.length);
+  A('**零数据丢失**:再部署后业务数据仍在', (await pool.query("SELECT owner_user_id FROM resume_quiz WHERE id='__dbhy1_canary__'")).rows[0]?.owner_user_id === 'dbhy1_canary_owner');
+  await pool.query("DELETE FROM resume_quiz WHERE id='__dbhy1_canary__'");
+  A('DBHY-1(0145):app_setting 死表已退役(fresh deploy 不再产死表)', !(await has('app_setting')));
+  A('DBHY-1(0145):consumption_record 死表已退役(幂等真身=entitlement_consumption 在产)', !(await has('consumption_record')) && (await has('entitlement_consumption')));
 
   return { assertions, failures };
 }

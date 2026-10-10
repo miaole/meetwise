@@ -1,0 +1,2 @@
+NOTICE:  GATE_LOOP_START t0_ms=1791299487270 iv_rows=0 ub=79
+NOTICE:  GATE_BC phase=seed ts_ms=1791299488193 iv_rows=5 iv_nonactive=0 idle_n=19 seed_act=1 ub=79

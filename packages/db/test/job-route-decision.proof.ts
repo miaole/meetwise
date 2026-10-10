@@ -9,6 +9,9 @@
  * 四条承重原语全部打真 PG 行，绝不用 mock 计数替代：
  *   ① CAS ② principal 作用域幂等 ③ RLS owner/tenant 隔离 ④ 事务 outbox + 单调 eventSeq。
  * 真实模型调用是受控确定性 seam（proof 注入 fake 输出），生产由 MODEL-OP-01 typed binding 接管。
+ * P-FAKE / ≠ R2 closed / ≠ 路由已生效：本 isolation fake modelClassify ≠ 生产 sole Worker
+ * （`createJobRouteModelClassify`）；rag03 绿禁止外推「路由已生效」。
+ * GAP-RAG-02 fixture 刀（2026-10-07）：§⑦ 旧「优雅降级」断言已换夹具对齐 R2 P-START fail-closed 契约（四要素真探测：interview_ineligible_route·不建 interview·snapshot 0 行·application 不进 in_progress）；EXIT0 ≠ R2 closed ≠ 路由已生效。
  *
  * pnpm rag03-route:prove   (node scripts/run-e2e-isolated.mjs rag03-route:prove:raw)
  */
@@ -225,18 +228,20 @@ async function main() {
   A('二次 classify → noop already_unresolved，seam 不再被调（永不自动重发）',
     r6b.status === 'noop' && r6b.reason === 'already_unresolved' && unknownSeam.calls() === 1);
 
-  section('⑦ 非 route_decided 岗位优雅降级（不抛、不落 snapshot、不死端）');
+  section('⑦ 非 route_decided 岗位 fail-closed 拒启（不抛但绝不 started：interview_ineligible_route·不建 interview·不落 snapshot）');
   const jobPending = await asPrincipal(pool, recA, (c) => createJob(c, recA, AMBIGUOUS));
   const appPending = await asPrincipal(pool, cand, (c) => applyToJob(c, cand, jobPending.id));
   const pendingBind = (await pool.query('SELECT count(*)::int n FROM application_route_binding WHERE application_id=$1', [appPending!.applicationId])).rows[0].n;
   A('未决岗位申请成功但 binding 行 = 0（route_not_decided 不落）', !!appPending && pendingBind === 0);
   const startPending = await asPrincipal(pool, cand, (c) => startApplicationInterview(c, cand, appPending!.applicationId, resumeCand));
-  const pendingIv = interviewIdOf(startPending);
-  const pendingSnap = (await pool.query('SELECT count(*)::int n FROM interview_route_snapshot WHERE interview_id=$1', [pendingIv])).rows[0].n;
-  A('未决岗位 start 不抛、返回 started，但 interview snapshot 行 = 0（优雅降级）',
-    pendingIv !== undefined && pendingSnap === 0);
-  const pendingSnapView = await asPrincipal(pool, cand, (c) => getInterviewRouteSnapshot(c, cand, pendingIv!));
-  A('未决岗位 getInterviewRouteSnapshot = null（图内无 leaf 可消费，显式可探测）', pendingSnapView === null);
+  A('未决岗位 start 不抛、返回 interview_ineligible_route（P-START fail-closed 拒启：无 binding 绝不返回 started/interviewId）',
+    startPending.status === 'interview_ineligible_route' && !('interviewId' in startPending));
+  const pendingIvRows = (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [appPending!.applicationId])).rows[0].n;
+  A('fail-closed 拒启未创建 interview 行（该 application 的 interview 行 = 0）', pendingIvRows === 0);
+  const pendingSnapRows = (await pool.query('SELECT count(*)::int n FROM interview_route_snapshot s JOIN interview i ON i.id=s.interview_id WHERE i.application_id=$1', [appPending!.applicationId])).rows[0].n;
+  A('fail-closed 拒启不落 snapshot（该 application 关联的 interview_route_snapshot 行 = 0）', pendingSnapRows === 0);
+  const pendingAppStatus = (await pool.query('SELECT status FROM job_application WHERE id=$1', [appPending!.applicationId])).rows[0].status;
+  A('fail-closed 拒启 application 不进 in_progress（保持 invited）', pendingAppStatus === 'invited');
 
   section('⑧ binding 只绑 route_decided 版本；snapshot 不可变（编辑后旧会话不受影响）');
   const jobBind = await asPrincipal(pool, recA, (c) => createJob(c, recA, NODEJS_ONLY));

@@ -12,6 +12,10 @@ import { buildResumeQuizGraph, type QuizItem } from '@meetwise/ai-graphs';
 import { ingestResume } from '@meetwise/domain';
 import { quizGenerator } from './interview-service.ts';
 
+/** 面试 begin 输入的新鲜度窗口(GAP-UC025-NEG-01 真接线):置 ready 时写 expires_at = now()+TTL;
+ *  过期工件在 interview begin 被 stale_quiz 409 拒绝。TTL 变更=产品决策,改这里并留痕。 */
+const QUIZ_FRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
+
 /** 据简历押题:解密原文 → 跑 resume-quiz 图(押题→factuality 过滤→派生报告)→ 落库 + 逐题事件 + 终态 + 结算额度。 */
 export async function runQuiz(
   pool: DbPool, owner: string, quizId: string, resumeId: string, privacyEpoch: number, model: ModelClient,
@@ -34,7 +38,8 @@ export async function runQuiz(
   });
 
   // 纯图:parse(摄取)→ generate(经 invoke 双校验)→ validate(factuality 歪曲门)→ make_report(业务派生)。模型在注入边界外。
-  const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model) });
+  // progressStream=quizId(TOKSTREAM 阶段1):押题模型调用发生成进度事件(SSE→前端 loading 变真实进度)。
+  const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model, quizId) });
   const out = await graph.invoke({ raw: resumeRaw });
   const questions = (out.questions ?? []) as QuizItem[];
   const report = (out.report ?? null) as { score: number; grounded: number; summary: string } | null;
@@ -46,11 +51,13 @@ export async function runQuiz(
     if (conf.status !== 'confirmed' && conf.status !== 'partial_confirmed')
       throw new Error('quiz_settlement_failed:' + ((conf as any).reason ?? conf.status));
     // ② CAS 落 ready(仅当仍 generating)——被 abandon/并发改态则 0 行 → throw 回滚,绝不交付已放弃的押题。
+    //    同事务写新鲜度锚点 expires_at(GAP-UC025-NEG-01):锚点与 ready 同生,begin 的 stale 校验才有真比较对象。
+    const freshUntil = new Date(Date.now() + QUIZ_FRESH_TTL_MS);
     const upd = await c.query(
-      `UPDATE resume_quiz SET status='ready', questions=$3, report=$4, version=version+1
+      `UPDATE resume_quiz SET status='ready', questions=$3, report=$4, expires_at=$5, version=version+1
         WHERE id=$1 AND owner_user_id=$2 AND status='generating'
-          AND resume_id=$5 AND privacy_epoch=$6`,
-      [quizId, owner, JSON.stringify(questions), JSON.stringify(report), resumeId, privacyEpoch]);
+          AND resume_id=$6 AND privacy_epoch=$7`,
+      [quizId, owner, JSON.stringify(questions), JSON.stringify(report), freshUntil, resumeId, privacyEpoch]);
     if (upd.rowCount === 0) throw new Error('quiz_status_conflict');
     // ③ 逐题发 question_ready(前端边到边渲染);refs=接地考察点。终态 quiz_ready 收尾(SSE)。
     for (const it of questions) await appendEvent(c, owner, quizId, 'question_ready', { question: it.q, refs: it.refs });

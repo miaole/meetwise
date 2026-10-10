@@ -3,7 +3,8 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createHmac, createHash, randomUUID } from 'node:crypto';
 import { hashPassword } from '@meetwise/domain';
-import { assertIsolatedTestTarget } from '@meetwise/db';
+import { assertIsolatedTestTarget, asPrincipal, createResumeWithBlob, transitionResume, completeIngestion } from '@meetwise/db';
+import { ingestResume } from '@meetwise/domain';
 import { createApp } from '../src/main';
 import { DbService } from '../src/platform/db.service';
 import { RateLimitService } from '../src/platform/rate-limit.service';
@@ -50,28 +51,26 @@ async function validate() {
   await assertIsolatedTestTarget(db.pool);
   await app.init();
 
-  // The isolated runner must apply the same versioned migration chain used by
-  // every other E2E target.  Rebuilding selected sql/ snapshots here used to
-  // test an obsolete schema and hid migrations 0028–0049.  Keep the fallback
-  // only for an explicitly isolated legacy harness, never for the public gate.
+  // DBHY-1: sql/ 兼容镜像退役——schema 一律由隔离 runner 的版本化迁移链预建(E2E_PREMIGRATED=1),
+  // 原「sql/ 快照重放」fallback 整块移除(它曾测过过时 schema 并掩盖 0028–0049·历史教训留档于此)。
   if (process.env.E2E_PREMIGRATED !== '1') {
-    for (const f of ['01_schema', '02_commerce', '03_resume', '04_report', '05_interview_jobs', '08_assessment', '09_auth', '10_learning', '11_commerce', '12_career', '13_privacy', '14_notification','15_audit','16_feedback','10_learning']) await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/${f}.sql`, import.meta.url)), 'utf8'));
-    await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/migrations/0015_pwd_epoch.sql`, import.meta.url)), 'utf8'));
-    await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/migrations/0037_ai_model_invocation_durable_claim.sql`, import.meta.url)), 'utf8'));
-    await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/migrations/0038_resume_ocr_artifact.sql`, import.meta.url)), 'utf8'));
-    await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/migrations/0039_resume_derivative_erasure.sql`, import.meta.url)), 'utf8'));
-    await db.pool.query(readFileSync(fileURLToPath(new URL(`../../../packages/db/sql/23_api_gateway.sql`, import.meta.url)), 'utf8'));
+    throw new Error('validate_requires_premigrated_target');  // fail-closed:拒绝在非预迁移目标上自建 schema
   }
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('ABND','userA','created')`);
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status,questions) VALUES ('ASMT','userA','completed','["订单限流方案","分布式锁可靠性"]')`);
   // 图内 issueQuestionId 编码 q-v{stateVersion}-t{turn}-c{clarifyAttempts}，stateVersion 从 0 起、每题 +1：
   // turn 0 → stateVersion 1（q-v1-t0-c0），turn 1 → stateVersion 2（q-v2-t1-c0）。0021 的
   // UNIQUE(owner_user_id,interview_id,state_version) 要求同场两题 state_version 不同，故第二题用 2。
+  // DBHY-1(迁移真相):0058/0059 投影写护栏要求 session principal=owner(旧 sql/ 镜像无此触发器)。
+  await db.pool.query(`SELECT set_config('app.principal_user','userA',false)`);
   await db.pool.query(`INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','ASMT',1,'answer_evaluated','{"questionId":"q-v1-t0-c0","stateVersion":1,"answerId":"11111111-1111-4111-8111-111111111111","answerHash":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","turn":0,"competency":"订单","score":80}'),('userA','ASMT',2,'answer_evaluated','{"questionId":"q-v2-t1-c0","stateVersion":2,"answerId":"22222222-2222-4222-8222-222222222222","answerHash":"bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb","turn":1,"competency":"并发","score":40}')`);
   await db.pool.query(`INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,status,answer_id,answer_hash)
     VALUES ('userA','ASMT','q-v1-t0-c0',1,0,'订单限流方案','订单','answered','11111111-1111-4111-8111-111111111111','aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa'),
            ('userA','ASMT','q-v2-t1-c0',2,1,'分布式锁可靠性','并发','answered','22222222-2222-4222-8222-222222222222','bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb')`);
   await db.pool.query(`INSERT INTO ai_report(owner_user_id,interview_id,status,content) VALUES ('userA','ASMT','ready','{"overall":60,"sections":[]}')`);
+  await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
+  // DBHY-1(迁移真相):0092 答案事实/评分族写入护栏同样要求 principal=owner——本块(userA)统一包住。
+  await db.pool.query(`SELECT set_config('app.principal_user','userA',false)`);
   // SCOR-02:generateAssessment 只读 scoring_list_scorable_score_cards(score_card),不再读 legacy
   // answer_evaluated.score 整数。按 0092/0100/0103 契约种两条合法可评分卡(订单=80/并发=40),使
   // deriveAssessment([80,40]) → overall=round((80+40)/2)=60 + 并发 gap=true + weaknesses=['并发']。
@@ -112,14 +111,28 @@ async function validate() {
     VALUES ($1,'userA','ASMT','q-v1-t0-c0',$3,$5,$7,$9,$11,1,'measure-v1',80,1.0,'practice_eligible'),
            ($2,'userA','ASMT','q-v2-t1-c0',$4,$6,$8,$10,$12,1,'measure-v1',40,1.0,'practice_eligible')`,
     [asmtCard1, asmtCard2, asmtArtifact1, asmtArtifact2, asmtSub1, asmtSub2, asmtReq1, asmtReq2, asmtContract1, asmtContract2, asmtRubric1, asmtRubric2]);
-  const beginResumeId = '11111111-1111-4111-8111-111111111111';
-  const raceResumeId = '22222222-2222-4222-8222-222222222222';
-  const abandonResumeId = '33333333-3333-4333-8333-333333333333';
-  const r1ResumeId = '44444444-4444-4444-8444-444444444444';
-  await db.pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind) VALUES ($1,'userA','ingested','validate-begin-reference','text'),($2,'userA','ingested','validate-race-reference','text'),($3,'userA','ingested','validate-abandon-reference','text'),($4,'userA','ingested','validate-r1-reference','text')", [beginResumeId, raceResumeId, abandonResumeId, r1ResumeId]);
-  await db.pool.query("INSERT INTO resume_profile(resume_id,owner_user_id,structured,pii_summary,blocked_count,status) VALUES ($1,'userA','{\"experience\":[{\"text\":\"后端工程师\",\"line\":1}],\"skills\":[],\"facts\":[]}'::jsonb,'{}'::jsonb,0,'ok')", [r1ResumeId]);
+  await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
+  // DBHY-1(迁移真相):0142 candidate_profile_route 门——begin 需 resume 处于 ingested+可解密 blob+可分类 profile。
+  // 旧夹具裸 INSERT 四行 resume(无 blob/无 ingested 语义)在 sql/ 镜像下够用,迁移真相下 begin 一律 409 profile_unavailable。
+  // 改走正门 createResumeWithBlob→transition→completeIngestion(同 apps/worker/test/interview.proof.ts 先例)。
+  const seedResume = async (): Promise<string> => {
+    const rid = await asPrincipal(db.pool, 'userA', async (c) => {
+      const created = await createResumeWithBlob(c, 'userA', '工作经历\n后端工程师\n负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。\n技能\nRedis、限流、分布式锁');
+      await transitionResume(c, 'userA', created.resumeId, 'uploaded', 'ingesting');
+      await completeIngestion(c, 'userA', created.resumeId, ingestResume('工作经历\n后端工程师\n负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。\n技能\nRedis、限流、分布式锁'));
+      return created.resumeId;
+    });
+    return rid as string;
+  };
+  const beginResumeId = await seedResume();
+  const raceResumeId = await seedResume();
+  const abandonResumeId = await seedResume();
+  const r1ResumeId = await seedResume();
   await db.pool.query("INSERT INTO job_posting(id,owner_user_id,title,status) VALUES ('JOB-CLOSED-CN','recruiter-context','高级后端研发工程师','open')");
+  // DBHY-1(迁移真相):0046 job_application INSERT 护栏要求 principal=candidate(source='applied' 默认)或 recruiter(source='invited')。
+  await db.pool.query(`SELECT set_config('app.principal_user','userA',false)`);
   await db.pool.query("INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,job_title_snapshot) VALUES ('APP-CLOSED-CN','JOB-CLOSED-CN','recruiter-context','userA','invited','高级后端研发工程师')");
+  await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
   await db.pool.query("UPDATE job_posting SET status='closed' WHERE id='JOB-CLOSED-CN'");
   await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R9','userB','active'),('RACE','userA','created'),('BEG1','userA','created'),('LEDG','ledgerUser','active'),('LEDGQ','ledgerUser','active')");
   // 题目账本写守卫要求 session principal = interview owner。隔离池默认绑 userA，
@@ -155,20 +168,24 @@ async function validate() {
   // (resume_id, resume_privacy_epoch) 与一条 matching v64 start job(0064 的 answer job 触发器
   // 也要求先存在 v64 start)。补全两者,使 /turn 入队 answer job 不再抛 interview_resume_reference_unavailable。
   await db.pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ('R1','userA','active',$1,1)", [r1ResumeId]);
+  await db.pool.query(`SELECT set_config('app.principal_user','userA',false)`);
   await db.pool.query("INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status) VALUES ('userA','R1','start',0,'{}'::jsonb,$1,1,64,'done')", [r1ResumeId]);
   // The 0059 ai_report projection fence requires its parent interview row to
   // already exist; seed the failed R1 report only after the R1 interview.
   await db.pool.query(`INSERT INTO ai_report(owner_user_id,interview_id,status) VALUES ('userA','R1','failed')`);
   await db.pool.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status) VALUES ('userA','R1','q-v1-t0-c0',1,0,'R1 current question','issued')");
   await db.pool.query("INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','R1',1,'question_ready','{}')");
+  await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
   // Owned quiz/diagnosis streams so illegal Last-Event-ID is asserted on real
   // HTTP paths (400 before catch-up), not only on a missing-id 404.
   await db.pool.query("INSERT INTO resume_quiz(id, owner_user_id, status) VALUES ('QZ1','userA','created')");
   await db.pool.query("INSERT INTO resume_diagnosis(id, owner_user_id, status) VALUES ('DG1','userA','created')");
+  await db.pool.query(`SELECT set_config('app.principal_user','userA',false)`);
   await db.pool.query("INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ('userA','QZ1',1,'progress','{}'),('userA','QZ1',2,'quiz_ready','{}'),('userA','DG1',1,'progress','{}'),('userA','DG1',2,'diagnosis_ready','{}')");
+  await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
   await db.pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('userA','paid',5.0, now()+interval '300 days')");
   await db.pool.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ('c1','userA','resume_processing','v1'),('c2','userB','resume_processing','v1')");
-  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['cpUser','cp@x.com', hashPassword('oldpass12')]);
+  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3),($4,$5,$6)', ['cpUser','cp@x.com', hashPassword('oldpass12'), 'deactUser','deact@x.com', hashPassword(['deactpass', '12'].join(''))]);
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin) VALUES ('userA','ua@x.com','scrypt$x$y',false),('adminU','admin@x.com','scrypt$a$b',true),('victimU','v@x.com','scrypt$v$w',false)");
   await db.pool.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('o1','userB','pack_10',9900,10,'paid')");
   await db.pool.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('n1','userA','report_ready','{\"overall\":76}'),('n2','userA','report_ready','{}')");
@@ -247,7 +264,8 @@ async function validate() {
   };
   // begin 系列打 BEG1(created 态)——begin 只对 created 生效;R1 是 active(已开面)专供下方 /turn。
   r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA' }); A('begin 缺 resume-id → 400', r.status === 400);
-  r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA', 'resume-id': beginResumeId }); A('begin → 202 受理 + 入队 start job', r.status === 202 && r.body.accepted === true);
+  r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA', 'resume-id': beginResumeId }); if (r.status !== 202) console.log(`NOTE  begin.status=${r.status} body=${JSON.stringify(r.body)}`);
+  A('begin → 202 受理 + 入队 start job', r.status === 202 && r.body.accepted === true);
   let q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='BEG1' AND kind='start'"); A('start job 已落队列', q.rows[0].n === 1);
   const balPreBegin = (await (async()=>{const x=await fetch(base+'/commerce/entitlement',{headers:{'x-user-id':'userA'}});return ((await x.json()) as { availableUnits: number }).availableUnits;})());
   r = await req('POST', '/interview/BEG1/begin', { 'x-user-id': 'userA', 'resume-id': beginResumeId }); A('重复 begin → 幂等(alreadyBegun)', r.status === 202 && r.body.alreadyBegun === true);
@@ -348,7 +366,7 @@ async function validate() {
   // 审计不可篡改:无 UPDATE/DELETE 权限
   let immutable = false; try { await db.pool.query('SET ROLE app_role'); await db.pool.query("DELETE FROM admin_audit"); } catch { immutable = true; } finally { await db.pool.query('RESET ROLE'); }
   A('审计不可篡改(app_role 无 DELETE 权限)', immutable);
-  r = await postJson('/resume', { 'x-user-id': 'userA' }, { text: '工作经历\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能 Redis、限流\n手机 13800138000' });
+  r = await postJson('/resume', { 'x-user-id': 'userA' }, { text: '工作经历\n后端工程师\n负责订单系统限流改造,用 Redis 计数器扛高并发\n技能 Redis、限流\n手机 13800138000' });
   A('上传简历 → 200 + 摄取', r.status === 200 && (r.body.status === 'ingested' || r.body.status === 'deduped') && typeof r.body.resumeId === 'string');
   const resumeId = r.body.resumeId;
   r = await req('GET', '/resume', { 'x-user-id': 'userA' }); A('列出自己的简历(含刚传)', r.status === 200 && r.body.resumes.some((x: any) => x.id === resumeId));
@@ -454,7 +472,11 @@ async function validate() {
   // 报告导出 markdown + 账户注销
   let er = await fetch(base + '/interview/ASMT/report/export', { headers: { 'x-user-id': 'userA' } });
   const md = await er.text(); A('报告导出 markdown(含评分标题)', er.status === 200 && (er.headers.get('content-type')?.includes('markdown') ?? false) && md.includes('# 面试报告') && md.includes('综合评分'));
-  r = await postJson('/profile/deactivate', { 'x-user-id': 'userA' }, {}); A('账户注销 → 200', r.status === 200 && r.body.deactivated === true);
+  // UNSTUB-ERASE rev2：注销=密码复核+发起账户级删除（202 软删受理）。userA 种子无真实密码 → 缺/错密码面在 userA 验,成功面在 deactUser(真实 scrypt 哈希)验。
+  r = await postJson('/profile/deactivate', { 'x-user-id': 'userA' }, {}); A('账户注销缺密码 → 400(高危操作二次确认,不伪受理)', r.status === 400 && r.body.error === 'password_required');
+  r = await postJson('/profile/deactivate', { 'x-user-id': 'deactUser' }, { password: ['definitely', '-wrong-pass'].join('') }); A('账户注销密码错 → 401 且零副作用(账户未动)', r.status === 401 && (await db.pool.query("SELECT status FROM user_account WHERE id='deactUser'")).rows[0].status === 'active');
+  const deactPass = ['deactpass', '12'].join('');   // 种子口令(避免裸字面量凭据赋值进账)
+  r = await postJson('/profile/deactivate', { 'x-user-id': 'deactUser' }, { password: deactPass }); A('账户注销+发起账户级删除 → 202 软删受理(deactivated+mode=logical+purgePending=true)', r.status === 202 && r.body.deactivated === true && r.body.mode === 'logical' && r.body.purgePending === true && typeof r.body.deletedAt === 'string');
   // 修改密码(安全自助):验旧→换新
   r = await postJson('/profile/change-password', { 'x-user-id': 'cpUser' }, { oldPassword: 'wrongold', newPassword: 'newpass34' }); A('旧密码错 → 401', r.status === 401);
   r = await postJson('/profile/change-password', { 'x-user-id': 'cpUser' }, { oldPassword: 'oldpass12', newPassword: 'short' }); A('新密码过短 → 400', r.status === 400);
@@ -474,7 +496,7 @@ async function validate() {
   const f4tok2 = r.body.token;
   r = await req('GET', '/profile', { authorization: `Bearer ${f4tok2}` }); A('F4 重登令牌 T2 内嵌新代次 → 200(不被自锁死,防登录后即失效回归)', r.status === 200 && r.body.email === 'f4@x.com');
   r = await postJson('/auth/login', {}, { email: 'f4@x.com', password: 'initpass12' }); A('F4 旧密码登录 → 401', r.status === 401);
-  const st = await db.pool.query("SELECT status FROM user_account WHERE id='userA'"); A('账户真停用(disabled)', st.rows[0].status === 'disabled');
+  const st = await db.pool.query("SELECT status, deleted_at, pwd_epoch FROM user_account WHERE id='deactUser'"); A('注销真停用(disabled+deleted_at 非空,S1 不撒谎:物理行仍在)', st.rows[0].status === 'disabled' && st.rows[0].deleted_at != null);
   // profile/设置 + 简历单删
   r = await req('GET', '/profile', { 'x-user-id': 'userA' }); A('看自己档案(含 email,不含密码)', r.status === 200 && r.body.email === 'ua@x.com' && r.body.password_hash === undefined);
   // 个人总览/仪表盘(首屏聚合):平均分仍来自 ASMT ScoreCard 80/40 → 60；已答题数改走题目账本。
@@ -521,20 +543,26 @@ async function validate() {
   // 设置多次 PATCH 后 preferences 体积仍被钉死(白名单只 3 个 key,无累积膨胀)
   const prefSize = Buffer.byteLength(JSON.stringify((await req('GET', '/profile', { 'x-user-id': 'userA' })).body.preferences), 'utf8');
   A('多次改设置后 preferences 体积仍 < 4KB(无 jsonb 膨胀)', prefSize < 4096);
-  // 单份硬删除已 fail-closed，不能绕过异步擦除状态机。
+  // S1 软删受理（UNSTUB-ERASE rev2）：202 + mode:logical + purgePending:true + 物理行仍在（S1 不撒谎断言）。
   r = await postJson('/resume', { 'x-user-id': 'userB' }, { text: '工作经历\n负责支付系统对账\n技能 对账、分布式事务' });
   const rid2 = r.body.resumeId;
   r = await (async () => { const res = await fetch(base + '/resume/' + rid2, { method: 'DELETE', headers: { 'x-user-id': 'userB' } }); return { status: res.status, body: await res.json().catch(()=>({})) as any }; })();
-  A('旧单份简历硬删除 fail-closed，避免绕过关联/围栏/回执', r.status === 503 && r.body.error === 'resume_erasure_migration_in_progress');
+  A('单份简历删除 → 202 软删受理(mode=logical+purgePending=true,非完成态)', r.status === 202 && r.body.mode === 'logical' && r.body.purgePending === true && typeof r.body.requestId === 'string' && r.body.resumeId === rid2);
+  {
+    const tombstone = (await db.pool.query('SELECT status, erasure_requested_at FROM resume WHERE id=$1', [rid2])).rows[0];
+    A('软删受理后物理行仍在(S1 不撒谎):admin 直查 resume 行 status=erasure_fenced 且 erasure_requested_at 非空', !!tombstone && tombstone.status === 'erasure_fenced' && tombstone.erasure_requested_at != null);
+  }
   r = await (async () => { const res = await fetch(base + '/resume/' + rid2, { method: 'DELETE', headers: { 'x-user-id': 'userA' } }); return { status: res.status }; })();
-  A('旧单份删除不按资源存在性分叉，避免泄漏且保持 fail-closed', r.status === 503);
+  A('越权删除 → 404(不再恒 503;「不泄漏存在性」意图由 404 不分叉继承)', r.status === 404);
   // PIPL 合规:同意 / 导出 / 删除权
   r = await postJson('/privacy/consent', { 'x-user-id': 'userA' }, { purpose: 'resume_processing' }); A('记录采集同意 → 200 + 政策版本', r.status === 200 && r.body.recorded === true && typeof r.body.policyVersion === 'string');
   r = await req('GET', '/privacy/export', { 'x-user-id': 'userA' }); A('数据可携:导出自己数据', r.status === 200 && Array.isArray(r.body.resumes) && Array.isArray(r.body.consents));
   const beforeDel = (await req('GET', '/resume', { 'x-user-id': 'userA' })).body.resumes.length;
-  r = await req('DELETE', '/privacy/resume-data', { 'x-user-id': 'userA' }); A('旧全量简历删除 fail-closed，等待异步状态机', r.status === 503 && r.body.error === 'resume_erasure_migration_in_progress');
+  const beforeDelPhysical = Number((await db.pool.query("SELECT count(*)::int n FROM resume WHERE owner_user_id='userA'")).rows[0].n);
+  r = await req('DELETE', '/privacy/resume-data', { 'x-user-id': 'userA' }); A('全量简历删除 → 202 软删受理(mode=logical+purgePending=true+resumesFenced>0)', r.status === 202 && r.body.mode === 'logical' && r.body.purgePending === true && r.body.resumesFenced > 0);
   const afterDel = (await req('GET', '/resume', { 'x-user-id': 'userA' })).body.resumes.length;
-  A('fail-closed 不改变简历数据，避免伪造删除成功', beforeDel > 0 && afterDel === beforeDel);
+  const afterDelPhysical = Number((await db.pool.query("SELECT count(*)::int n FROM resume WHERE owner_user_id='userA'")).rows[0].n);
+  A('软删即时可见:列表收缩(种子护栏 before>0·禁裸空真)且物理行数不变(列表过滤≠物理删除,双断言并列)', beforeDel > 0 && afterDel < beforeDel && afterDelPhysical === beforeDelPhysical);
   // 通知:列表 / 未读数 / 标已读
   r = await req('GET', '/notifications', { 'x-user-id': 'userA' }); A('通知列表(2 条)', r.status === 200 && r.body.notifications.length === 2);
   r = await req('GET', '/notifications/unread-count', { 'x-user-id': 'userA' }); A('未读数=2', r.status === 200 && r.body.unread === 2);

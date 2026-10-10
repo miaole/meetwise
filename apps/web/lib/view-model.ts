@@ -4,6 +4,7 @@
  */
 import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import { isTerminal, type InterviewView } from './stream/interview-state';
+import { generationProgressLabel } from './stream/generation-progress';
 
 export function signalConcludePracticeCopy(code: InterviewSignalConcludeReason['code']): string {
   if (code === 'early_weak') {
@@ -51,21 +52,36 @@ export function interviewDisplay(v: InterviewView): Display {
         : { heading: '面试进行中', message: v.question ?? '', spinner: false, action: { kind: 'answer', label: '作答(打字/语音)' }, degraded: false, signalConclude };
     case 'waiting_user':
       return { heading: '请作答', message: v.question ?? '请回答上一题', spinner: false, action: { kind: 'answer', label: '作答(打字/语音)' }, degraded: false, signalConclude };
-    case 'answered':
+    case 'answered': {
+      // TOKSTREAM 阶段1:题间/报告期等待有进度态时 loading 变真实进度(段名+时长/token 计数;R-B 无思考原文);
+      // 无进度帧(断线跳过/未到首帧)回既有文案——缺帧兜底,不死等。
+      const progress = generationProgressLabel(v.generationProgress);
+      const base = v.signalConcludeReason
+        ? '练习控制流已结束，正在生成练习反馈…'
+        : `本题得分 ${v.lastScore ?? '—'},正在出下一题…`;
       return {
         heading: '已作答',
-        message: v.signalConcludeReason
-          ? '练习控制流已结束，正在生成练习反馈…'
-          : `本题得分 ${v.lastScore ?? '—'},正在出下一题…`,
+        message: progress ? `${base}（${progress}）` : base,
         spinner: true, action: { kind: 'none', label: '' }, degraded: false, signalConclude,
       };
+    }
     case 'report_ready':
       return { heading: '练习报告', message: `本次练习反馈 ${v.report?.overall ?? '—'}（仅供个人复盘）`, spinner: false, action: { kind: 'view_report', label: '查看完整报告' }, report: v.report, degraded: false, signalConclude };
     case 'report_unavailable':
       // 优雅降级:报告暂不可用 → 给出路(重试/联系),**绝不无限等 report_ready**
       return { heading: '报告暂不可用', message: '面试已完成,但报告暂时无法生成。可稍后重试或联系支持。', spinner: false, action: { kind: 'retry', label: '重试生成报告' }, degraded: true, signalConclude };
     case 'assessment_unavailable':
-      return { heading: '本次评分暂不可用', message: '没有得到足够可信的评分证据，本次预留额度已释放。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      // 同一 kind 两种钱面（adaptive-lifecycle 分派），文案按 reason 分臂、绝不谎报资金变动（GAP-G7V-THIRDARM-COPY-SETTLEMENT）：
+      if (v.assessmentUnavailableReason === 'no_eligible_scored_answer') {
+        // 第三臂：已 completeInterviewAndConfirm 扣费结算，且 bound 路径不生成报告（enqueueReport 仅 unbound 可达）——「本次不生成报告」如实，Ban 释放字样。
+        return { heading: '本次评分暂不可用', message: '面试已完成并扣费结算，但未获得可信评分，本次不生成报告。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      }
+      if (v.assessmentUnavailableReason === 'evaluation_unscored') {
+        // 释放臂：failInterviewAndRelease 补偿释放——「额度已释放」此时为真，文案逐字保留。
+        return { heading: '本次评分暂不可用', message: '没有得到足够可信的评分证据，本次预留额度已释放。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      }
+      // 未知/缺失 reason：fail-closed 中性——既不称释放也不称扣费，不冒认任何资金变动。
+      return { heading: '本次评分暂不可用', message: '本次未能获得可信评分，面试已结束。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
     case 'interview_unavailable':
       return { heading: '面试暂不可用', message: '面试启动/处理遇到问题,已停止。可重试或联系支持——不会让你干等。', spinner: false, action: { kind: 'retry', label: '重新开始面试' }, degraded: true, signalConclude };
     case 'error':

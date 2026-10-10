@@ -1,0 +1,92 @@
+# REAL local dual-API compose (beyond skeleton) — still Not HA / not production.
+# releaseEvidence=false · claimProductionHA=false · 禁止合入 compose.prod / 生产 HA 叙事
+#
+# Prereqs (fail-closed unless both true):
+#   1) MEETWISE_HA_DUAL_AUTHORIZED=1
+#   2) image MEETWISE_HA_BACKEND_IMAGE (default meetwise-backend:ha-dual-local) present
+#      → build via: pnpm ha:dual:build-image  (scripts/ha/build-backend-image.mjs)
+#
+# Bring-up:
+#   MEETWISE_HA_DUAL_AUTHORIZED=1 pnpm ha:dual:bring-up -- --compose
+#   # or: MEETWISE_HA_DUAL_AUTHORIZED=1 pnpm ha:dual:bring-up -- --compose --build
+#
+# Static config (≠ instances up ≠ HA):
+#   docker compose -f docker/compose.ha-dual.yml config
+#
+# Placeholder DATABASE_URL is for Nest pool construction so /livez can answer
+# (apps/api createPool is postgres-only). It is NOT Nest session shared prove.
+#
+# C3 shared path (sole-stack MySQL+Redis overlay — still Not HA):
+#   docker/compose.ha-dual.shared.yml
+#   MEETWISE_HA_DUAL_AUTHORIZED=1 MEETWISE_HA_SHARED_AUTHORIZED=1 \
+#     pnpm ha:dual:bring-up -- --compose-shared
+#   pnpm ha:prove:shared -- --prove
+# Nest session A→B: overlay docker/compose.ha-dual.pg.yml + ha:prepare:nest-pg +
+#   ha:dual:bring-up -- --compose-pg + ha:prove:nest-session -- --prove
+#   (local nestSessionOk possible; still Not HA / releaseEvidence=false)
+# Without PG overlay: ha:prove:nest-session → PREREQ_GAP (placeholder DATABASE_URL)
+# (no .env* in git; local-dev placeholders only)
+#
+# Tear-down:
+#   pnpm ha:dual:compose-down
+#   # or: docker compose -f docker/compose.ha-dual.yml -f docker/compose.ha-dual.shared.yml down
+
+name: meetwise-ha-dual
+
+x-ha-dual-api: &ha-dual-api
+  image: ${MEETWISE_HA_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+  working_dir: /app/apps/api
+  volumes:
+    # Bind repo so Nest + workspace node_modules run without a multi-GB bake.
+    - type: bind
+      source: ..
+      target: /app
+      read_only: false
+  environment:
+    HOST: 0.0.0.0
+    PORT: "8787"
+    NODE_ENV: development
+    # Placeholder only — enables createPool() so process can listen; /livez
+    # does not query DB. Do NOT treat as shared-state evidence.
+    DATABASE_URL: postgresql://meetwise_ha_dual_placeholder:unused@127.0.0.1:1/meetwise_ha_dual_unused
+    DATABASE_SSL_MODE: disable
+  healthcheck:
+    test:
+      [
+        "CMD",
+        "node",
+        "-e",
+        "fetch('http://127.0.0.1:8787/livez').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+      ]
+    interval: 5s
+    timeout: 3s
+    retries: 12
+    start_period: 40s
+  restart: "no"
+
+services:
+  api-a:
+    <<: *ha-dual-api
+    container_name: meetwise-ha-dual-api-a
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      NODE_ENV: development
+      INSTANCE_ID: api-a
+      DATABASE_URL: postgresql://meetwise_ha_dual_placeholder:unused@127.0.0.1:1/meetwise_ha_dual_unused
+      DATABASE_SSL_MODE: disable
+    ports:
+      - "127.0.0.1:18787:8787"
+
+  api-b:
+    <<: *ha-dual-api
+    container_name: meetwise-ha-dual-api-b
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      NODE_ENV: development
+      INSTANCE_ID: api-b
+      DATABASE_URL: postgresql://meetwise_ha_dual_placeholder:unused@127.0.0.1:1/meetwise_ha_dual_unused
+      DATABASE_SSL_MODE: disable
+    ports:
+      - "127.0.0.1:18788:8787"

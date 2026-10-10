@@ -1,0 +1,16 @@
+# CMOP03-D · GAP-CMOP03-POST7B post-7b 末段红两岔鉴别刀 · slice（REQUEST docs-only）
+
+status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零埋点零实跑）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
+
+- **立项**：协调方 CMOP03-D 鉴别刀（刀① nail 登记中——引用之不自建 SSOT 行）。**Base**：`origin/feat/mysql-schema-skeleton`=`cb89c23d195ecc6fcb9b8f04a753f87f9607ce96`（2026-10-08 fetch · 本地已 ff 同点）；worktree `meetwise-line-post7b` · 分支 `line/cmop03-post7b-discriminator`（新立）。
+- **红事实（协调方卷面 · 非本刀实测）**：旅程末段红 死亡窗 **∈(:256, :356]** · **class=api** · **78798ms** · 首达——锚 `e2e/full.e2e.ts` blob `7d65d0f3`。两岔：岔A=step8/9 区 `(:256, :301]`；岔B=专家评审段 `(:301, :356]`（含 boundLoop 内部 throw 与 `:356` 死胡同两子型）。不可判根因：`A()` 默认 class=api 与 `client_uncaught` 同族同色，精确致死行不在 receipt 可读面（stderr withhold 契约内不可回读）。
+- **机制①（driver 分段埋点 · EXEC 处方）**：恰 1 文件 `e2e/full.e2e.ts` 恰 7 行 `reviews.record({class:'worker', code:'seg_*'})` 纯插入——M1 `seg_diag_green_enter`(:256 后) · M2 `seg_step8_enter`(:258 后) · M3 `seg_step9_green`(:301 后) · M4 `seg_expert_enter`(:303 后) · M5 `seg_bound_start_enter`(:333 后) · M6 `seg_boundloop_enter`(:346 前) · M7 `seg_boundloop_terminal`(:355 后 :356 前)。通道裁定=`E2E_REVIEW` 行（receipt 一等公民）**非** `emitE2EFailure`（绿 run 会被 `success_with_failure_class` 绿门拒收——形态变体显式披露交双审裁）。绿账本预算 12-14 ≤ 32；UC018-only 路径零影响；静态门（`e2e-static-guards`）兼容亲读。**三零**：零 A() 断言变更（本体逐字节零 diff）· 零 withhold 契约触碰（分段标记≠stderr 断言原文回读）· 零产品码。
+- **机制②（sidecar 账本实测臂 · G7X T-1 先例冻结投影）**：判别 run 内并行 SELECT-only sidecar（1000ms EXEC · Ban 新发明查询）+ run 终局 `ai_model_invocation` 账本实测（仅计数+时间戳入收据）。预注册读数：R1=红点前末窗无新增 invocation 行→相容岔A（step8/9 非AI面）；R2=有新增→相容岔B（boundLoop 模型调用面）。账本臂=交叉互证非唯一判据；live 记账 est ≤10/run · 硬帽 200 · `actualSpendCny=null` · Key loader name-only · `.env*` ABSENT。
+- **判别判据（预注册双向）**：末心跳 M1/M2→岔A driver 面登记（修复另刀）；M3→空隙不可判如实升级；M4/M5→岔B 既有面登记流程（append-only 转挂 · Ban 就地归因既有 OPEN 行）；M6→岔B·子型1 boundLoop 内部 throw；M7→岔B·子型2 `:356` 死胡同。两臂互证；冲突/不可判→升级协调方。**预期红 retained ≠ 判别失败**；单 attempt · Ban retry-to-green。
+- **`:357` 同族残留**：boundLoop provenance 非澄清感知计数断言本轮被 ledger 排除为死因（窗上界 `:356` 不含 `:357`）；候修登记归协调方；本刀 Ban 顺手修（断言本体零触碰——埋点加行除外）。
+- **Ban**：A() 断言本体 / 反伪造四钉（`9bba015d` sse.ts · `975fbb38` assert.ts · `13dbfc43` run-e2e-isolated.mjs · `63af556f` model-operation-registry.ts）/ withhold 契约 / 产品码 / G7V-CALIB spec 线 / 共享 SSOT / 归因任一岔 / `:357` 本体 / secrets / force-push / retry-to-green / self-approve。
+- **Prove（EXEC 一次优先）**：`e2e-static-guards:prove`+`:check` · `e2e-helpers:prove` · `e2e-parity:prove` · `e2e-case-inventory:prove` 均 EXIT=0；判别 T-1 `pnpm e2e:isolated`+sidecar 恰 1 次预期 EXIT=1 class=api retained；四钉 blob 前后全等亲算。绿面佐证臂不默认行使（归双审裁）。
+- **流程**：REQUEST（本文）→ 预执行双审（mw-e2e-ha + mw-model-op · stub `reviews/REQUEST-2026-10-08-cmop03-disc-{mw-e2e-ha,mw-model-op}.md`）→ meetwise 授权 → coding（埋点）+ prove 一次优先 → post-prove 双审 → meetwise 授权 nail。
+- **Not-a-pass**：not coding · not proven · not run（零实跑零 live 零容器）· not 鉴别定谳 · not 归因 · not 修复 · not `:357` 处置 · not covered · not nail · not coordinator authorize · 红读数 retained 零冲销 · `g7SuiteGreen=false` · `actualSpendCny=null` · alone ≠ dual。详版见 `ai-docs/delivery/harness/cmop03-post7b-discriminator.md`。

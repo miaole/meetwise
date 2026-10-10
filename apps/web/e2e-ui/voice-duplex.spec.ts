@@ -1,6 +1,14 @@
 import { test, expect, type BrowserContext, type Page, type APIRequestContext } from '@playwright/test';
 import { createHmac, randomUUID } from 'node:crypto';
 
+const voiceKeysReady = Boolean(String(process.env.DASHSCOPE_TTS_API_KEY ?? '').trim())
+  && Boolean(String(process.env.DASHSCOPE_ASR_API_KEY ?? '').trim());
+test.beforeEach(({ }, testInfo) => {
+  // Honest capability gate: TTS priming + ASR require dedicated DashScope voice keys.
+  // Text MODEL_API_KEY must never impersonate voice credentials (Ban假绿).
+  test.skip(!voiceKeysReady, 'DASHSCOPE_TTS_API_KEY/DASHSCOPE_ASR_API_KEY unset — voice duplex not provable');
+});
+
 const API = process.env.E2E_API_BASE ?? 'http://127.0.0.1:8787';
 const PASSWORD = 'strongpw123';
 const VOICE_RESUME_FACT = '负责 Redis 限流与幂等订单改造';
@@ -97,7 +105,7 @@ async function startReadyInterview(page: Page, request: APIRequestContext, email
   await expect(page.locator('textarea[name="text"]')).toBeVisible({ timeout: 20_000 });
   await page.fill('textarea[name="text"]', `工作经历\n${VOICE_RESUME_FACT}\n技能\nRedis、限流、幂等、可观测性`);
   await page.getByRole('button', { name: '上传简历', exact: true }).click();
-  await expect(page.getByText(/状态:ingested/).first()).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(/解析完成/).first()).toBeVisible({ timeout: 20_000 });
   await provisionCredit(request, await tokenOf(page.context()), suffix);
 
   await page.goto('/interviews');

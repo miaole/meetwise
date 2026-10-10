@@ -1,0 +1,2 @@
+1791299284685 NOTICE:  GATE_LOOP_START t0_ms=1791299284683 iv_rows=0
+1791299285619 NOTICE:  INJECT_A phase=seed killed=1 iv_rows=43 iv_nonactive=0 idle_n=19 snap=[{"pid" : 122, "state" : "idle in transaction", "xact_start" : "2026-10-06T15:08:05.61885+00:00", "q" : "SELECT set_config('app.principal_user', $1, true)"}]

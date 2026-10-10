@@ -1,0 +1,88 @@
+=== pnpm install --frozen-lockfile EXIT=0 ===
+Scope: all 12 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +606
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 606, reused 606, downloaded 0, added 605
+Progress: resolved 606, reused 606, downloaded 0, added 606, done
+
+devDependencies:
++ @types/node 26.0.1
++ dependency-cruiser 18.0.0
++ esbuild 0.28.1
++ tsx 4.22.4
++ turbo 2.10.0
++ typescript 6.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @swc/core, esbuild, protobufjs,    │
+│   sharp.                                                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.9s using pnpm v10.18.0
+
+
+
+=== pnpm uc018:ttl:prove EXIT=0 ===
+
+> meetwise@0.1.0 uc018:ttl:prove /workspace/meetwise-lineA-backfill/549da9c
+> node scripts/run-e2e-isolated.mjs uc018:ttl:prove:raw
+
+E2E isolated PostgreSQL: meetwise-e2e-1851117-1790224559177 on 127.0.0.1:33014
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-lineA-backfill/549da9c/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=134 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+
+> @meetwise/worker@0.0.0 prove:uc018-ttl /workspace/meetwise-lineA-backfill/549da9c/apps/worker
+> tsx test/uc-e2e-018-ttl-sweeper-abandon.proof.ts
+
+UC-E2E-018 TTL sweeper abandon prove · GAP-UC018-TTL · releaseEvidence=false · Not HA
+NOTE: 本绿 closes GAP-UC018-TTL only；≠ UC-E2E-018 covered；matrix stays partial
+NOTE: §1b #5 UI / #6 sole-stack remain OPEN；Ban wash commerce-reconcile:prove into TTL closed
+
+──────── T1 · waiting_user+reserved 租约过期 → TTL tick → abandoned + released（同用户放弃终态口径） ────────
+PASS  T1 reserve → reserved
+PASS  T1 额度扣 1.0（5→4）
+PASS  T1 tick staleReleased≥1
+PASS  T1 tick abandoned≥1
+PASS  T1 interview=abandoned
+PASS  T1 consumption=released
+PASS  T1 额度全回补（4→5，净变 0）
+PASS  T1 interview_unavailable 终态事件
+PASS  T1 abandoned ∉ in-progress（create 不复用尸体）
+
+──────── T2 · active+AiGraphRun 租约过期 → abandoned + safely_terminated（同 abandon 图终态） ────────
+PASS  T2 interview=abandoned
+PASS  T2 consumption=released
+PASS  T2 AiGraphRun=safely_terminated
+PASS  T2 AiGraphRun lease cleared
+PASS  T2 额度净变 0
+
+──────── T3 · 续约活会话不被 TTL 误置 abandoned ────────
+PASS  T3 续约成功
+PASS  T3 仍 reserved
+PASS  T3 仍 waiting_user（未被 TTL abandon）
+PASS  T3 额度未退（仍 4.0）
+PASS  T3 无 interview_unavailable
+
+──────── T4 · 重跑 TTL tick 不重退 / 不重发 / 保持 abandoned ────────
+PASS  T4 重跑额度不变
+PASS  T4 interview_unavailable 恰 1
+PASS  T4 仍 abandoned
+
+✓ UC-E2E-018 TTL sweeper abandon asserts passed (GAP-UC018-TTL only; ≠ covered; matrix partial)
+CLOSED_GAP_UC018_TTL: lease-expired orphan → abandoned+released via commerceReconcileTick/abandonInterviewAndRelease；dedicated uc018:ttl:prove
+PIN: §1b #5 UI + #6 sole-stack remain OPEN → matrix partial ≠ covered
+PIN: Ban wash commerce-reconcile:prove / GRAPH / FULL-E2E / uc018:abandon:* into UC covered
+PIN: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · gR45Closed=true · ms3EqualsR4Closed=false
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-09-24T04-36-09-112Z-1851117-b702ef96-c80d-45bc-83bc-257b761d2bf0.json release_evidence=false
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+

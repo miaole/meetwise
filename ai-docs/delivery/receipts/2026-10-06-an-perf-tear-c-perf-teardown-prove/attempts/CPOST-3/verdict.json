@@ -1,0 +1,125 @@
+{
+ "cell": "C-POST",
+ "attempt": "CPOST-3",
+ "pass": true,
+ "fails": [],
+ "obs": {
+  "prove_exit": 1,
+  "unhandled_n": 0,
+  "emitted_on": null,
+  "emitted_at_pg_frames": [],
+  "block_pg_frame": false,
+  "own_stack_pg_frame": false,
+  "block_57P01": false,
+  "unhandled_text": null,
+  "db_pool_error_n": 1,
+  "db_pool_error_msgs": [
+   "Connection terminated unexpectedly"
+  ],
+  "summary": false,
+  "allPass_true": false,
+  "cmd_exit0_line": false,
+  "perf_run3_line": false,
+  "seedAbandonTargets_in_log": true,
+  "state29": true,
+  "form": "F2",
+  "CTU_present": true,
+  "t_first_error": 1791299640980,
+  "pg_events": [
+   [
+    "create",
+    1791299628773,
+    null,
+    null
+   ],
+   [
+    "start",
+    1791299628950,
+    null,
+    null
+   ],
+   [
+    "kill",
+    1791299640976,
+    "9",
+    null
+   ],
+   [
+    "die",
+    1791299641186,
+    null,
+    "137"
+   ],
+   [
+    "destroy",
+    1791299641636,
+    null,
+    null
+   ]
+  ],
+  "pg_teardown_before_first_error": [
+   [
+    "kill",
+    1791299640976,
+    "9",
+    null
+   ]
+  ],
+  "J2_x6": {
+   "Tk": true,
+   "Td": true,
+   "Tx": true,
+   "W_die": 500,
+   "W_destroy": 2000,
+   "t_kill": 1791299640976,
+   "t_die": 1791299641186,
+   "t_destroy": 1791299641636,
+   "t_err": 1791299640980,
+   "kill_to_die_ms": 210,
+   "die_to_destroy_ms": 450
+  },
+  "foreign_emit_proc_lines": 0,
+  "foreign_emit_raw_mention_lines": 0,
+  "C_seq_ms_rel_first_error": {
+   "kill9": -4,
+   "die137": 206,
+   "destroy": 656,
+   "inject_cmd_t0": -27,
+   "kill_to_die_ms": 210,
+   "die_to_destroy_ms": 450
+  },
+  "J2_old_all_before_error": false,
+  "J2": "L3-sim",
+  "aux": {
+   "events_kill_exit": "0",
+   "events_wait": "143",
+   "procs_kill_exit": "0",
+   "procs_wait": "143"
+  },
+  "mut_deletions": 0,
+  "psql_exit": 0,
+  "gate_loop_start": [
+   [
+    "1791299639948",
+    "0"
+   ]
+  ],
+  "t_load2": 1791299640945,
+  "t_perf1": 1791299639843,
+  "marker": [
+   "GATE_BC phase=seed ts_ms=1791299640947 iv_rows=1 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"
+  ],
+  "inject_cmd": {
+   "cmd": "docker rm -f meetwise-e2e-1512435-1791299627407",
+   "exit": 0,
+   "t0": 1791299640953,
+   "t1": 1791299641639,
+   "stdout": "meetwise-e2e-1512435-1791299627407"
+  },
+  "D_gate_to_cmd_return_ms": 692,
+  "kill_event_ms": [
+   1791299640976
+  ],
+  "D_gate_to_kill_event_ms": 29
+ }
+}

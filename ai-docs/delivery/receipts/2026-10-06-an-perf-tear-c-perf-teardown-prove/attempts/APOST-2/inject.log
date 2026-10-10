@@ -1,0 +1,2 @@
+NOTICE:  GATE_LOOP_START t0_ms=1791299352193 iv_rows=0
+NOTICE:  INJECT_A phase=seed killed=1 iv_rows=9 iv_nonactive=0 idle_n=19 snap=[{"pid" : 139, "state" : "idle in transaction", "xact_start" : "2026-10-06T15:09:13.09728+00:00", "q" : "BEGIN"}]

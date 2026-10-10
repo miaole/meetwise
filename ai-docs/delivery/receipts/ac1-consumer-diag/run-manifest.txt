@@ -1,0 +1,12 @@
+run=1
+face=:raw child of runner isolatedCommand mapping (scripts/run-e2e-isolated.mjs:1877-1878) = pnpm -C apps/worker prove:adaptive-consumer = pnpm run prove:adaptive-consumer (tsx test/adaptive-consumer.proof.ts) · attempt2 (attempt1 launcher defect: pnpm exec semantics, zero proof entry)
+worktree=/Users/miaole/Desktop/golucky/meetwise-line-ac1
+head=37b5ed50e5376ebf499313b16724471149cd5da1
+branch=line/adaptive-consumer-diag
+image=pgvector/pgvector:pg16
+pgport=53625
+proveExit=1
+proveDurationMs=2071
+migrateDurationMs=2428
+modelEnv=name-only-check: MODEL_API_KEY/DASHSCOPE count in child env = 0
+timestamp=2026-10-09T03:48:03Z

@@ -1,0 +1,30 @@
+
+> meetwise@0.1.0 g7fix4:finalize:prove /Users/miaole/Desktop/golucky/meetwise-line-g7fix4
+> node scripts/run-e2e-isolated.mjs g7fix4:finalize:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-27122-1791532664032 on 127.0.0.1:62562
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 g7fix4:finalize:prove:raw /Users/miaole/Desktop/golucky/meetwise-line-g7fix4
+> pnpm -C apps/api exec tsx test/g7fix4-finalize-contract.proof.ts
+
+PASS  finalize（assessment_unavailable 面）→ 200 形：零 HttpException
+PASS  finalize 响应体 = outcome=assessment_unavailable + replayed:false（recruiter.ts:205 · applications.service.ts:82-88）
+PASS  finalize 幂等重放同形：仍 200 + assessment_unavailable + replayed:false
+PASS  卡死态复现：application in_progress + interview failed
+PASS  卡死态 finalize → 409 cannot_finalize（fail-closed 不变）
+PASS  mark-then-recover：卡死态同 resume 重启 → started
+PASS  恢复后 finalize → 409 cannot_finalize（新 attempt created/in_progress 未终态，不谎报 200）
+
+✓ G7FIX-4 finalize 服务面直证全部通过（200+assessment_unavailable+replayed:false）
+cleanup failed: update or delete on table "application_route_binding" violates foreign key constraint "interview_route_snapshot_application_id_fkey" on table "interview_route_snapshot"
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T07-57-50-385Z-27122-a8f072de-7d3b-49f3-89c4-6447a8d41db9.json release_evidence=false

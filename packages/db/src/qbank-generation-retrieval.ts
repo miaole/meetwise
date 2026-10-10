@@ -110,7 +110,7 @@ function retrievalMode(mode: QbankRetrievalMode | undefined): QbankRetrievalMode
   throw new Error('qbank_generation_invalid_retrieval_mode');
 }
 
-/** Fail-closed：在缺少 generation 元数据函数的 legacy/pre-generation 库上抛 `qbank_active_generation_metadata_missing`，永不返回 `undefined`——legacy `vector_chunk` 调用方必须直接用 `annSearchLegacy`（见 retrieval-store.ts）。 */
+/** Fail-closed：在缺少 generation 元数据函数的 legacy/pre-generation 库上抛 `qbank_active_generation_metadata_missing`，无唯一 active 指针时抛 `qbank_active_generation_missing`，永不返回 `undefined`——legacy `vector_chunk` 入口由 retrieval-store.ts 导出、供 smoke / legacy proof 直接调用，不经本文件。 */
 export async function activeQbankGeneration(c: Client): Promise<QbankActiveGeneration> {
   const present = (await c.query("SELECT to_regprocedure('qbank_active_generation_metadata()') IS NOT NULL AS ok")).rows[0]?.ok === true;
   if (!present) throw new Error('qbank_active_generation_metadata_missing');
@@ -226,11 +226,6 @@ export async function hybridQbankSearch(
   const mode = retrievalMode(input.retrievalMode);
   await setServingScope(c, input.scope);
   const active = await activeQbankGeneration(c);
-  if (!active) {
-    // Kept only for pre-0029 proof fixtures. Production migration presence makes a missing active pointer fail closed.
-    const { annSearchLegacy } = await import('./retrieval-legacy.ts');
-    return (await annSearchLegacy(c, 'qbank', input.embedding, input.k)).map((x) => ({ ...x, channels: ['dense'] }));
-  }
   if (!input.expectedRecipeId || active.recipeId !== input.expectedRecipeId) {
     throw new Error(`qbank_generation_recipe_mismatch:active=${active.recipeId}:query=${input.expectedRecipeId ?? 'missing'}`);
   }

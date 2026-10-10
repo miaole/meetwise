@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "STUB-STACK"
+  ],
+  "failColumn": "NEG"
+}

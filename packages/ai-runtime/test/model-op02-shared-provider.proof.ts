@@ -75,15 +75,16 @@ async function main() {
   );
   const allowedSeed = Number(policyRows.rows.find((r) => r.admission_status === 'allowed')?.n ?? 0);
   const blockedSeed = Number(policyRows.rows.find((r) => r.admission_status === 'blocked')?.n ?? 0);
-  A('迁移种子：7 个 admission=allowed + 8 个 admission=blocked（共享准入仍未放行预览语音）', allowedSeed === 7 && blockedSeed === 8);
+  A('迁移种子：8 个 admission=allowed（含 job.route-classify）+ 8 个 admission=blocked（共享准入仍未放行预览语音）', allowedSeed === 8 && blockedSeed === 8);
 
-  // 7 个 wired operation 的分区都可从 registry 派生（resolve 返回分区）。
+  // 8 个 admission-allowed operation 的分区都可从 registry 派生（resolve 返回分区）。
   const wiredIds = [
     'interview.competency-planning.v1', 'interview.question-generation.v1', 'interview.answer-scoring.v1',
     'interview.quiz-generation.v1', 'resume.diagnosis.v1', 'report.narrative.v1', 'resume.ocr.v1',
+    'job.route-classify.v1',
   ];
   const wiredPartitions = wiredIds.map((id) => resolveModelAdmissionPartition({ operation: { id, businessRevision: 'op02' } }));
-  A('7 个 wired operation 全部解析出准入分区（无 undefined）', wiredPartitions.every((p) => p !== undefined));
+  A('8 个 admission-allowed operation 全部解析出准入分区（无 undefined）', wiredPartitions.every((p) => p !== undefined));
 
   // 直接对 DB 层调用：未知 operation 无行 → operation_unknown；blocked 行 → operation_blocked。
   const unknownAcquire = await admitSharedModelOperation(pool, OWNER, {

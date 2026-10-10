@@ -1,0 +1,19 @@
+{
+  "kind": "Ms3NeR4PinRetentionEvidence",
+  "ms3NeR4PinRetentionEvidence": true,
+  "eg1ThroughEg5EvidencePresent": true,
+  "ms3NeR4PinLanguageRetained": true,
+  "banClaimR4ClosedFromMs3Retained": true,
+  "eg6HarnessPinsStillOpen": true,
+  "statusPinsProductNotClosed": true,
+  "priorEgEvidenceAloneDoesNotClose": true,
+  "metaProveAloneDoesNotClose": true,
+  "eg6ProductClosed": false,
+  "ms3EqualsR4Closed": false,
+  "productSsotFlipped": false,
+  "gR45Closed": false,
+  "r4ProductClosed": false,
+  "domainIsolationClosed": false,
+  "releaseEvidence": false,
+  "note": "EG6 MS3≠R4 pin retention honesty evidence — emitted · ≠ EG6/MS3=R4/R4/G-R4-5/题域 closed · Ban forge · Ban claim R4 closed from MS3 · Ban claim from EG1–EG5 / meta prove alone · await post-prove dual"
+}

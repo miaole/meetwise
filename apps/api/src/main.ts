@@ -4,21 +4,65 @@ import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
-import { getMetrics, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
+import { configureG7RuntimeInjection, getMetrics, isG7FreetierReproveEnabled, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
 import { buildOpenApiDocument } from '@meetwise/contracts/openapi';
 import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './platform/all-exceptions.filter';
 import { installPublicPreviewIngressGate, resolvePublicPreviewMode } from './platform/public-preview';
+import { assertCriticalEnv } from './platform/env-schema';
+
+// GODFN-1b composition-root single read point: G7_FREETIER_REPROVE is read
+// exactly ONCE here (env key name and `=1` activation semantics unchanged —
+// guard `trim() === '1'` pinned). The pre-1b unconditional
+// `import '@meetwise/ai-runtime/g7-bootstrap'` became assembly by this switch:
+// only a G7 process dynamically loads the test-support interceptor and injects
+// predicate + outbound ticket into the runtime package. Production builds
+// carry zero static g7-bootstrap import (prove:g7-bootstrap-zero-prod-import).
+const g7FreetierReproveEnabled = isG7FreetierReproveEnabled(process.env);
+if (g7FreetierReproveEnabled) {
+  const support = await import('@meetwise/ai-runtime/g7-test-support');
+  configureG7RuntimeInjection({
+    freetierReproveEnabled: () => g7FreetierReproveEnabled,
+    withOutboundAllow: support.withG7OutboundAllow,
+  });
+  support.installG7OutboundInterceptor(process.env);
+}
 
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
 export async function createApp(): Promise<NestFastifyApplication> {
+  // 审计 #91 配置集中校验刀:关键必需 env(AUTH_SECRET/数据库目标)启动期 fail-fast,
+  // 缺失/格式错 → 抛 env_schema_invalid(一次性列全缺失项),进程启动即死——
+  // 不再出现「AUTH_SECRET 缺失照常启动并通过 readiness、登录/验签运行时才全瘫」。
+  // 只做启动校验层,不改写散落的 process.env 读法(审计口径 Ban 大规模重构)。
+  assertCriticalEnv();
   const publicPreview = resolvePublicPreviewMode();
   // Queue producers share the worker's timeout contract; reject a broken
   // deployment before accepting requests that cannot be processed safely.
   // MODEL-OP-02：全局 MODEL_MAX_CONCURRENT/MODEL_RPM 限流已废弃（per-adapter 限流移除），
   // 并发/断路器改由共享权威（迁移 0120 的 ai_model_admission_acquire_scoped）在 invoke() 内裁决。
   resolveModelDeadlineConfig();
-  const app = await NestFactory.create<NestFastifyApplication>(AppModule, new FastifyAdapter({ bodyLimit: 12 * 1024 * 1024 }), { logger: false, abortOnError: false });   // 12MB:容 base64 简历文件(8MB 原文)
+  // **可观测性(审计#89)**:pino 由 fastify 内置,这里开 level=info 的访问日志。
+  // 序列化面仅 method/url/status/reqId/耗时/err 堆栈——fastify 默认 req/res serializer 本就不含
+  // body/headers;redact authorization/cookie 作纵深。**Ban 打印请求体/响应体/提示词/PII**。
+  // NestFactory 层 logger:false 保持(免 Nest 启动噪音双写;异常日志见 all-exceptions.filter 走 pino)。
+  const app = await NestFactory.create<NestFastifyApplication>(
+    AppModule,
+    new FastifyAdapter({
+      bodyLimit: 12 * 1024 * 1024,   // 12MB:容 base64 简历文件(8MB 原文)
+      logger: {
+        level: 'info',
+        redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
+      },
+      // reqId 单源:与下方 onRequest 钩子同一套净化规则(x-request-id 仅安全字符集+封顶,
+      // 非法/空→新 UUID,防响应头 CRLF 注入)。fastify 日志的 reqId === 响应头 x-request-id ===
+      // req.reqId(controller→service→job.payload→worker trace)——全链路对账一根 id。
+      genReqId: (req: { headers: Record<string, unknown> }) => {
+        const raw = String(req.headers['x-request-id'] ?? '').trim();
+        return raw && raw.length <= 200 && /^[A-Za-z0-9._-]+$/.test(raw) ? raw : randomUUID();
+      },
+    }),
+    { logger: false, abortOnError: false },
+  );
   const fastify = app.getHttpAdapter().getInstance() as any;
   // Public preview's method allowlist must be the first Fastify lifecycle
   // hook: no request body parsing, authentication, controller or queue work
@@ -28,12 +72,10 @@ export async function createApp(): Promise<NestFastifyApplication> {
   // 系统指标:每个 HTTP 响应记请求数(按 method/route/status)+ 延迟直方图。route 用路由模板(低基数,不爆 label)。
   // **全链路 request-id 起点**:有 x-request-id 头(网关/前端上游给)就沿用,没有就生成一根。
   //  放 req.reqId(controller → service → 写进 job.payload → worker → 模型 trace.request_id)+ 回写响应头,让调用方拿到同一根 id 对账。
-  //  客户端可控头需净化:只收安全字符集 + 封顶长度,非法/空 → 换新 UUID(防响应头 CRLF 注入 / 超长值污染 trace 列)。
+  //  净化规则已上移到 FastifyAdapter.genReqId(单源):req.id 即净化结果,这里只透传到 req.reqId + 响应头。
   fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
-    const raw = String(req.headers['x-request-id'] ?? '').trim();
-    const reqId = raw && raw.length <= 200 && /^[A-Za-z0-9._-]+$/.test(raw) ? raw : randomUUID();
-    req.reqId = reqId;
-    reply.header('x-request-id', reqId);
+    req.reqId = req.id;
+    reply.header('x-request-id', req.reqId);
     done();
   });
   // **传输层封顶(纵深 + 防 DoS 放大)**:全局 bodyLimit 为容 base64 简历/音频上传开到 12MB,但纯文本端点逻辑只需 KB 级。

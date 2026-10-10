@@ -30,10 +30,25 @@ const mask = (v: string) => (v.length <= 4 ? '***' : v.slice(0, 2) + '***' + v.s
 const redactResidualDigits = (s: string) => s.replace(/\d(?:[^0-9A-Za-z]{0,3}\d){10,}/g, '[已脱敏]');
 const stripPii = (t: string) => redactResidualDigits(PII.reduce((s, p) => s.replace(p.re, '[已脱敏]'), normalize(t)));
 
+// 小节标题判定（#189/#190/#191 修）：标题须是「整行锚定的标题短语」（词条白名单 + 去两端装饰），
+// 不再是「含关键词 + 长度 < N」的宽松子串匹配——那会把内容短行当标题吞掉（#190「5年后端经验」），
+// 也会让「教育经历」被经历分支先吃（#189 教育行灌进经历 facts）。教育/联系类先判（#189）。
+const headerBare = (t: string) => t.replace(/^[\s\d\p{P}\p{S}〇一二三四五六七八九十]+/u, '').replace(/[\s\p{P}\p{S}]+$/u, '');
+const EDUCATION_HEADER_RE = /^(?:教育经历|教育背景|学业经历|学习经历|教育|学业|联系方式|联系信息|基本信息|个人信息|个人简介|education|educational\s+background|contact(?:\s+info)?)\s*[:：]?$/i;
+const EXPERIENCE_HEADER_RE = /^(?:工作经历|工作经验|项目经历|项目经验|实习经历|实习经验|实践经历|实践经验|个人经历|职业经历|工作履历|履历|个人经验|经?历|经?验|experience|work\s+experience|professional\s+experience)\s*[:：]?$/i;
+const SKILLS_HEADER_RE = /^(?:专业技能|职业技能|技能特长|核心技能|掌握技能|专业技能特长|技能|skills|professional\s+skills)\s*[:：]?$/i;
+const OTHER_SECTION_HEADER_RE = /^(?:项目|项目简介|项目列表|荣誉奖项|自我评价|证书|其他|projects?|certificates?)\s*[:：]?$/i;
+// #191:文档头部联系/姓名形态行——含 @、含长数字串(≥7 位,电话/证件形)、或过短(<6 个有意义字符,姓名形)。
+// 无标题缺省小节按 experience 处理时,这类行不得冒充经历事实(空事实场景收窄为真空简历)。
+const looksLikeContactHeaderLine = (clean: string) => clean.includes('@') || /\d{7,}/.test(normalize(clean)) || clean.replace(/[\s\p{P}\p{S}]/gu, '').length < 6;
+
 /** 原始简历文本 → 结构化 ResumeProfile。注入即拦（不进结构化、不喂模型）；PII 标记并脱敏，绝不存原文。 */
 export function ingestResume(raw: string): ResumeProfile {
   const p: ResumeProfile = { experience: [], skills: [], facts: [], pii: [], blocked: [] };
-  let section: 'experience' | 'skills' | 'other' = 'other';
+  // #191:全文无识别标题的简历给确定性缺省小节——未识别到首个标题前的正文行按 experience 处理
+  // (空事实=真空简历);文档头部联系/姓名形态行(looksLikeContactHeaderLine)除外。
+  let section: 'experience' | 'skills' | 'other' = 'experience';
+  let sawHeader = false;
   raw.split('\n').forEach((line, i) => {
     const t = line.trim();
     if (!t) return;
@@ -43,12 +58,22 @@ export function ingestResume(raw: string): ResumeProfile {
     for (const pat of PII) { const m = nt.match(pat.re); if (m) for (const v of m) p.pii.push({ field: pat.field, masked: mask(v), line: ln }); }
     // 不可信输入：注入即拦，不进结构化、不喂模型；raw 也脱敏（防被日志带出 PII，审计 P2-10）
     for (const re of INJECTION) if (re.test(nt)) { p.blocked.push({ line: ln, reason: 'suspected_injection', raw: stripPii(t) }); return; }
-    if (/(经历|经验|experience)/i.test(t) && t.length < 12) { section = 'experience'; return; }
-    if (/(技能|skills)/i.test(t) && t.length < 10) { section = 'skills'; return; }
-    if (/(教育|项目|联系|education|project|contact)/i.test(t) && t.length < 12) { section = 'other'; return; }
+    // 标题判定(#189/#190):先剥两端装饰(序号/括号/标点),再整行锚定匹配白名单短语。
+    // 「教育经历」先命中教育分支归 other(#189);「5年后端经验」非整行标题短语→内容行(#190)。
+    const bare = headerBare(t);
+    if (EDUCATION_HEADER_RE.test(bare) || EXPERIENCE_HEADER_RE.test(bare) || SKILLS_HEADER_RE.test(bare) || OTHER_SECTION_HEADER_RE.test(bare)) {
+      section = EDUCATION_HEADER_RE.test(bare) || OTHER_SECTION_HEADER_RE.test(bare)
+        ? 'other'
+        : SKILLS_HEADER_RE.test(bare) ? 'skills' : 'experience';
+      sawHeader = true;
+      return;
+    }
     const clean = stripPii(t);
-    if (section === 'experience') { p.experience.push({ text: clean, line: ln }); p.facts.push(clean); }
-    else if (section === 'skills') {
+    if (section === 'experience') {
+      // #191:仅缺省小节(未见任何标题前的文档头部)过滤联系/姓名形态行;已进正经小节的行不过滤。
+      if (!sawHeader && looksLikeContactHeaderLine(clean)) return;
+      p.experience.push({ text: clean, line: ln }); p.facts.push(clean);
+    } else if (section === 'skills') {
       clean.split(/[、,，/]/).map((s) => s.trim()).filter(Boolean).forEach((s) => { p.skills.push({ text: s, line: ln }); p.facts.push(s); });
     }
   });
@@ -59,6 +84,14 @@ export function ingestResume(raw: string): ResumeProfile {
  *  护栏只能单向 ref ⊆ fact——反向会放过"精通Redis集群运维三年"这类真词包装的假声明（审计 H11）。 */
 export function groundedByFacts(refs: string[], facts: string[]): boolean {
   return refs.every((r) => r.trim().length >= 2 && facts.some((f) => f.includes(r)));
+}
+
+/** #193 组合闸：refs 非空 ∧ 逐条过 groundedByFacts 本体（委托复用，保 min-length-2 + 子串语义，禁重实现）。
+ *  groundedByFacts 对空 refs 恒 true（every 空集）——组合闸补上「非空」条件，空 refs 的押题/grounded 题不再放行。
+ *  接线面钉死：resume-quiz validate 节点 + adaptive ask 链（RESUME-GROUNDING C6/C12）；
+ *  resume-diagnosis / interview-service 的 diagnosisGenerator 既有合法空 refs 豁免面禁接本 helper。 */
+export function refsGroundedInFacts(refs: string[], facts: string[]): boolean {
+  return refs.length > 0 && groundedByFacts(refs, facts);
 }
 
 // B 端题库安全（反窃取 / 反注入）
@@ -111,7 +144,7 @@ export type {
 } from './memory-index-generation.ts';
 
 // 能力评估
-export { deriveAssessment, aggregateScores } from './assessment.ts';
+export { GAP, deriveAssessment, aggregateScores } from './assessment.ts';
 export type { AssessTurn, Dimension, Assessment } from './assessment.ts';
 
 // 学习计划
@@ -173,7 +206,7 @@ export type {
   CitedSourcesResolution,
 } from './question-generation.ts';
 // 简历多格式提取 + 清洗(PDF/Word/图片→文本)
-export { extractResumeText, cleanResumeText, detectResumeFormat, type ResumeFileFormat } from './resume-extract.ts';
+export { extractResumeText, cleanResumeText, detectResumeFormat, looksLikeEncryptedPdf, type ResumeFileFormat } from './resume-extract.ts';
 
 export { chunkStructuredDocument, type SourceLocator, type DocumentFormat, type ElementKind, type TextElement, type TableElement, type TranscriptElement, type DocumentElement, type StructuredDocument, type ChunkerRecipe, type RagChunk } from './rag-chunking.ts';
 
@@ -202,17 +235,32 @@ export {
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
   JOB_ROUTE_MAX_LEAVES, JOB_ROUTE_MIN_ALLOCATION_BPS, JOB_ROUTE_CONFIDENCE_THRESHOLD_BPS, JOB_ROUTE_MARGIN_THRESHOLD_BPS, JOB_ROUTE_TOTAL_BPS,
   canonicalJobSemanticDigest, classifyJobByRule, validateModelRouteOutput, jobRouteDecisionHash,
-  validatePlannerOutput, nextWeightedDeficitLeaf, planWeightedDeficitRounds,
+  validatePlannerOutput, nextWeightedDeficitLeaf, planWeightedDeficitRounds, planInterviewTurn,
 } from './job-route-classifier.ts';
 export type {
   TaxonomyLeaf, JobRouteAllocation, JobRouteModelOutput, ValidateJobRouteOutputResult, InterviewPlannerOutput,
+  PlanInterviewTurnResult,
 } from './job-route-classifier.ts';
 
+// 候选人面 track 路由（G7S 通用 begin 供给面）纯域原语：candidate-profile-derived 能力语义 rule
+// 分类（唯一叶才命中 · 0 外发）+ canonical digest。与 job 面（岗位要求语义）刻意分离，零 IO 零模型零 db。
+export {
+  CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
+  CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
+  canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
+} from './candidate-profile-route.ts';
+export type { CandidateProfileRouteRuleResult } from './candidate-profile-route.ts';
+
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
+// #52 v6（S2）起：模型直出 criterionId+quote+disposition，quote→span/digest 派生单源
+// scoreDispositionFromCodeUnitSpan；S1 的 v5→disposition 过渡桥已废除（rg 门零残留）。
+export type { ScoredCriterionDisposition } from './scoring-aggregation.ts';
 export {
   SCORE_SPAN_OFFSET_KIND, DISPOSITION_BANDS, DISPOSITION_BAND_VALUE,
+  scoreDispositionFromCodeUnitSpan,
   canonicalScoreSpan, scoreSpanDigest, reverifyScoreEvidenceSpan,
   computeDeterministicTotal, computeCoverage, aggregateScoreCards, deriveScoreCardAssessment,
+  deriveScoreCardAssessmentLegacy,
 } from './scoring-aggregation.ts';
 
 // SCOR-00 消费面诚实闸：可信 identity、practice hint、禁止映射 B 端分、证据不足 ≠ 0。
@@ -268,9 +316,14 @@ export type { MemoryAuthorizationVersionInput, MemoryRenderSourceCard } from './
 export {
   RETRIEVAL_POLICY_VERSION, RETRIEVAL_PLAN_STATUSES,
   deriveRouteScopeDigest, deriveRetrievalPlanKey, validateRetrievalPlan,
+  buildRetrievalPlanFromPlannerOutput, assembleValidatedRetrievalPlan,
+  R4_WRONG_TRACK_RECHECK_REASONS, countWrongTrackHits, assertWrongTrackZero,
+  declaredHitTrackId, isFailClosedWrongTrackRecheckReason,
 } from './qbank-track-local-retrieval.ts';
 export type {
   RetrievalPlan, RetrievalPlanStatus, RetrievalPlanSnapshot, ValidateRetrievalPlanResult,
+  AssembleValidatedRetrievalPlanResult,
+  WrongTrackHit, R4WrongTrackRecheckReason,
 } from './qbank-track-local-retrieval.ts';
 
 // track-local 无题时 LLM 同桶生成题（RAG-FUNNEL-05）纯域原语：canonical no-eligible verdict digest +
@@ -450,6 +503,18 @@ export {
 export type {
   ResumeSourceKind, SealedOcrProvenance, InterviewResumeAdmitError, InterviewResumeAdmission,
 } from './sealed-ocr-binding.ts';
+
+// MODEL-OP-01 R2 P-MODEL：UC job_route_classify → sealed job.route-classify.v1 provenance。
+export {
+  SEALED_JOB_ROUTE_CLASSIFY_OPERATION_ID, JOB_ROUTE_CLASSIFY_UC_ALIAS,
+  SEALED_JOB_ROUTE_CLASSIFY_REGISTRY_VERSION, SEALED_JOB_ROUTE_CLASSIFY_INPUT_KIND,
+  SEALED_JOB_ROUTE_CLASSIFY_CAPABILITY, SEALED_JOB_ROUTE_CLASSIFY_ENDPOINT_PROFILE_ID,
+  SEALED_JOB_ROUTE_CLASSIFY_REGION, SEALED_JOB_ROUTE_CLASSIFY_MODEL_OR_RECIPE,
+  SEALED_JOB_ROUTE_CLASSIFY_ADMISSION_KEY, SEALED_JOB_ROUTE_CLASSIFY_PROMPT_CONTRACT,
+  SEALED_JOB_ROUTE_CLASSIFY_PROMPT_VERSION, SEALED_JOB_ROUTE_CLASSIFY_OUTPUT_CONTRACT,
+  parseSealedJobRouteClassifyProvenance,
+} from './sealed-job-route-classify-binding.ts';
+export type { SealedJobRouteClassifyProvenance } from './sealed-job-route-classify-binding.ts';
 
 // 生命周期触发策略（MEM-09）纯域原语：六触发器（事件落库/候选摘要/强制压缩/长期事实写入/
 // embedding 索引/recall）的「允许触发/必须先满足/不允许触发」显式 enum + 纯函数决策。复用

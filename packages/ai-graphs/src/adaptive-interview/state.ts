@@ -7,6 +7,7 @@ import {
   type QuestionGenerationProvenance,
   type QuestionGenerationResult,
   type QuestionKind,
+  type ScoredCriterionDisposition,
 } from '@meetwise/domain';
 
 export interface Turn {
@@ -27,6 +28,13 @@ export interface Turn {
   kind: QuestionKind;
   hint?: string;
   reason?: string;
+  /**
+   * #52 v6（SCORE-WRITER S2）：v6 评估回合的 0103 契约档位证据（criterionId+disposition+
+   * utf8_byte span+spanDigest——派生物，**不含答案原文/引文原文**）。经 evaluate-answer 节点
+   * 从 assess 结果透传，投影后随 checkpoint 复用（at-least-once 重放仍可写卡）；
+   * 非 v6 评估回合（deterministic 非作答/clarify/unscored/旧 checkpoint）缺省无此字段。
+   */
+  dispositions?: ScoredCriterionDisposition[];
 }
 
 export interface ClarifyDirective {
@@ -65,10 +73,13 @@ export interface PendingQuestion {
 export interface AdaptiveDeps {
   competencies: (string | CompetencySpec)[];
   /**
-   * Deprecated compatibility input.  Its text must never cross a graph-node
-   * boundary: `genQuestion` receives only `resumeProfileAvailable` and always
-   * calls `retrieveAndGenerate` with an empty fact list.  Keeping this field
-   * temporarily avoids an unsafe API break for deterministic test seams.
+   * C4/C13(RESUME-GROUNDING):有界脱敏 facts 池——仅存活于 worker deps 闭包(buildAdaptiveDeps 持有),
+   * 经 `<data-nonce>` 围栏直达模型 seam(planner/grounded ask),**禁入图 state/checkpoint/interrupt/
+   * SSE/episode**。图拓扑从本字段只派生授权位(`genQuestion` 的 grounded→fundamental 降级判定),
+   * 调 `retrieveAndGenerate` 时 facts 形参恒传空数组;模型产出的 grounded 题面属派生内容可持久化,
+   * 其擦除残差(interview_event/题面 ledger/memory episode/ai_invocation_trace.output 中的事实派生片段)
+   * 登记 Non-claims 并归 #183/#153 PRIVACY-FACE 收口(EXTREV-7 铁律 2:流动属 RESUME-GROUNDING 管辖,
+   * 持久化生命周期属未建删除面,不阻塞)。
    */
   resumeFacts?: string[];
   /** Non-sensitive authorization bit; unlike resume facts it is safe in a graph dependency. */
@@ -94,7 +105,11 @@ export interface AdaptiveDeps {
     turn: number,
     identity?: Pick<PendingQuestion, 'questionId' | 'stateVersion'>,
   ) => Promise<
-    | { status?: 'scored'; score: number; evidence: string[]; relevant: boolean; hasHook?: boolean }
+    | {
+        status?: 'scored'; score: number; evidence: string[]; relevant: boolean; hasHook?: boolean;
+        /** #52 v6：0103 契约档位证据（派生物，无答案原文）；v6 评分回合必须供给。 */
+        dispositions?: ScoredCriterionDisposition[];
+      }
     | { status: 'unscored'; reason: string }
   >;
   /**

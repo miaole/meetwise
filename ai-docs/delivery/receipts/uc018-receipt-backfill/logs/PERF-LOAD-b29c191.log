@@ -1,0 +1,56 @@
+=== pnpm install --frozen-lockfile EXIT=0 ===
+Scope: all 12 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +606
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 606, reused 606, downloaded 0, added 605
+Progress: resolved 606, reused 606, downloaded 0, added 606, done
+
+devDependencies:
++ @types/node 26.0.1
++ dependency-cruiser 18.0.0
++ esbuild 0.28.1
++ tsx 4.22.4
++ turbo 2.10.0
++ typescript 6.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @swc/core, esbuild, protobufjs,    │
+│   sharp.                                                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.9s using pnpm v10.18.0
+
+
+
+=== pnpm uc018:perf-load:prove EXIT=0 ===
+
+> meetwise@0.1.0 uc018:perf-load:prove /workspace/meetwise-lineA-backfill/b29c191
+> node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw
+
+E2E_RESOURCE_CAPS target=uc018:perf-load:prove:raw docker_args=--cpus 2 --memory 4g
+E2E isolated PostgreSQL: meetwise-e2e-1857918-1790224698505 on 127.0.0.1:33018
+UC018_CAPS pg container=meetwise-e2e-1857918-1790224698505 NanoCpus=2000000000 Memory=4294967296 ok=true
+UC018_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+UC-E2E-018 PERF/LOAD prove · NHP-018-PERF-01 + NHP-018-LOAD-01
+NOTE: Method freeze nearest-rank · timeout=10s=error · warmup=10 · runs=3 · caps Docker 2cpu/4GiB
+NOTE: local ≠ production capacity ≠ HA · PERF/LOAD partial ≠ UC covered · §1.1 stays partial
+PERF run1: p50=27.3 p95=78.9 p99=96.9 err=0 timeout=0 passed=true
+LOAD run1: p50=68.5 p95=169.8 p99=182.5 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run2: p50=21.9 p95=218.6 p99=265.1 err=0 timeout=0 passed=true
+LOAD run2: p50=32.0 p95=125.3 p99=130.1 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+PERF run3: p50=18.1 p95=48.2 p99=93.5 err=0 timeout=0 passed=true
+LOAD run3: p50=43.6 p95=122.8 p99=141.9 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+
+SUMMARY allPass=true capsEnforced=true
+CMD=pnpm uc018:perf-load:prove EXIT=0
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-09-24T04-38-40-532Z-1857918-cd6a77ae-ee68-4a64-b0b8-6deb4d93162e.json release_evidence=false
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+fatal: not a git repository: /workspace/projects/meetwise/.git/worktrees/b29c191
+

@@ -1,0 +1,22 @@
+{
+  "kind": "Eg5ProductSsotProductCloseEvidence",
+  "productCloseEvidence": true,
+  "priorEg5AuthorizeEvidenceRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "eg5ProductClosed": true,
+  "productSsotFlipped": true,
+  "gR45Closed": false,
+  "r4ProductClosed": true,
+  "funnelProductClosed": true,
+  "domainIsolationClosed": true,
+  "eg3ProductClosed": true,
+  "eg4ProductClosed": true,
+  "wrongTrackProductClosed": true,
+  "eg1ThroughEg2Eg6ClosedByThisKnife": false,
+  "coveredCountInvented": false,
+  "ms3EqualsR4Closed": false,
+  "emptyMetaAloneDoesNotClose": true,
+  "idleEg5EvidenceAloneDoesNotClose": true,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / EG5 product SSOT product close — eg5ProductClosed/productSsotFlipped under authorize · Ban flip gR45Closed/r4/funnel/eg3/eg4 · retain EG3+EG4+r4/funnel · Ban wash e099276/6058462 / ce09850/0a34933 / 2b38e18/14e9e2c / 7be1a55/5b3c854 · Ban empty meta · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}

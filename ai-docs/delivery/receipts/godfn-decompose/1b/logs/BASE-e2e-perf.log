@@ -1,0 +1,33 @@
+
+> meetwise@0.1.0 verify:e2e-performance /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> node scripts/run-e2e-performance-suite.mjs
+
+
+========== web production build ==========
+
+> @meetwise/web@0.0.0 build /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/web
+> next build
+
+ ⚠ You are using a non-standard "NODE_ENV" value in your environment. This creates inconsistencies in the project and is strongly advised against. Read more: https://nextjs.org/docs/messages/non-standard-node-env
+   ▲ Next.js 15.5.19
+
+   Creating an optimized production build ...
+ ✓ Compiled successfully in 3.7s
+   Linting and checking validity of types ...
+   Collecting page data ...
+   Generating static pages (0/27) ...
+Error: <Html> should not be imported outside of pages/_document.
+Read more: https://nextjs.org/docs/messages/no-document-import-in-page
+    at x (.next/server/chunks/6001.js:6:1351)
+Error occurred prerendering page "/404". Read more: https://nextjs.org/docs/messages/prerender-error
+Error: <Html> should not be imported outside of pages/_document.
+Read more: https://nextjs.org/docs/messages/no-document-import-in-page
+    at x (.next/server/chunks/6001.js:6:1351)
+Export encountered an error on /_error: /404, exiting the build.
+ ⨯ Next.js build worker exited with code: 1 and signal: null
+ ELIFECYCLE  Command failed with exit code 1.
+LOCAL_E2E_RECEIPT /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/.tmp/e2e-receipts/2026-10-08T18-28-02-303Z-68864.json
+Error: e2e_performance_suite_failed:web production build:exit=1
+    at main (file:///Users/miaole/Desktop/golucky/meetwise-line-godfn1b/scripts/run-e2e-performance-suite.mjs:100:15)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,7 +1,7 @@
 /**
  * @meetwise/ai-runtime — AI 运行时关口（公共面）。
  * 外部只许从这里 import；router/validators/catalog 是关口内部件，禁深链（.dependency-cruiser.cjs ai-runtime-chokepoint）。
- * 文本受管调用通过 `invoke`。`resume.ocr.v1` 已有 typed binding + 密封 provenance 缝
+ * 文本受管调用通过 `invoke`。`resume.ocr.v1` 与 `job.route-classify.v1`（UC job_route_classify）已有 typed binding + 密封 provenance 缝
  * （身份封印，非出站 host pin）。预览版双旗 `OCR_ENABLED=1`+`OCR_PREVIEW=1`
  * 可走通 invoke；生产/enforce/公开只读预览仍拒绝组合根。本入口仍导出原生语音、embedding 与 rerank
  * 适配器，它们尚未完成 MODEL-OP-01 接线，不能误称为无旁路网关。
@@ -91,6 +91,13 @@ export {
   MIN_OCR_CHARS, RESUME_OCR_OPERATION_ID,
 } from './resume-ocr.ts';
 export type { ResumeOcrBindDecision, ResumeOcrBindError, VisionOcrResult } from './resume-ocr.ts';
+export {
+  bindJobRouteClassify, bindJobRouteClassifyOperation, createJobRouteModelClassify,
+  JOB_ROUTE_CLASSIFY_OPERATION_ID, JOB_ROUTE_CLASSIFY_PROMPT_SERVICE,
+} from './job-route-classify.ts';
+export type {
+  JobRouteClassifyBindDecision, JobRouteClassifyBindError, CreateJobRouteModelClassifyDeps,
+} from './job-route-classify.ts';
 export { setTracer, getTracer, recordingTracer } from './trace.ts';
 export type { Tracer, ModelCallSpan, ModelCallOutcome } from './trace.ts';
 export { resolveLangfuseConnection } from './langfuse-config.ts';
@@ -210,3 +217,9 @@ export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './vo
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
+
+export * from './g7-freetier-reprove-guard.ts';
+// GODFN-1b: the outbound interceptor moved to the test-support face; its
+// pre-1b export line migrated to '@meetwise/ai-runtime/g7-test-support'
+// (packages/ai-runtime/test/support/index.ts). Production code never imports it.
+export { configureG7RuntimeInjection, resetG7RuntimeInjection, g7RuntimeInjection, type G7RuntimeInjection, type G7OutboundAllowTicket } from './g7-runtime-injection.ts';

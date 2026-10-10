@@ -1,0 +1,70 @@
+{
+  "knife": "UC-E2E-018-TTL-sweeper-abandon",
+  "gap": "GAP-UC018-TTL",
+  "section": "\u00a71b #3",
+  "date": "2026-09-23",
+  "timezone": "America/Los_Angeles",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "matrix": "partial",
+  "claimUc018Covered": false,
+  "gapClosed": [
+    "GAP-UC018-TTL"
+  ],
+  "gapsRemainOpen": [
+    "\u00a71b #5 UI",
+    "\u00a71b #6 sole-stack R5"
+  ],
+  "preExecDual": {
+    "mw-e2e-ha": "4e497b2",
+    "mw-rag-route": "f190c2b",
+    "requestTip": "334cca0"
+  },
+  "cmds": [
+    {
+      "cmd": "pnpm uc018:ttl:prove",
+      "exit": 0,
+      "receipt": ".tmp/isolated-proof-receipts/2026-09-24T00-07-25-065Z-1193730-984d0ca8-bd96-4717-81fd-83a8f137f9e9.json"
+    },
+    {
+      "cmd": "pnpm uc018:abandon:prove",
+      "exit": 0,
+      "receipt": ".tmp/isolated-proof-receipts/2026-09-24T00-07-38-786Z-1194393-8cefd8f8-2d36-4975-b455-acb7214f6e13.json"
+    },
+    {
+      "cmd": "pnpm uc018:abandon:http:prove",
+      "exit": 0,
+      "receipt": ".tmp/isolated-proof-receipts/2026-09-24T00-07-46-970Z-1194979-490d53a2-9bda-4b41-ac78-a05eb1d068ec.json"
+    },
+    {
+      "cmd": "pnpm uc018:abandon:full-e2e:prove",
+      "exit": 0,
+      "receipt": ".tmp/e2e-receipts/2026-09-24T00-08-14-070Z-1195995-e9e15774-b2b5-4c95-bb4b-26aa2f16c99f.json"
+    },
+    {
+      "cmd": "pnpm uc018:graph:prove",
+      "exit": 0,
+      "receipt": ".tmp/isolated-proof-receipts/2026-09-24T00-07-56-976Z-1195434-d3022443-d0b8-4624-8ee6-53b8810db4c5.json"
+    },
+    {
+      "cmd": "pnpm eval-harness-matrix-cite:prove",
+      "exit": 0
+    }
+  ],
+  "pins": {
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false
+  },
+  "banWash": [
+    "commerce-reconcile:prove",
+    "08650ea",
+    "c36b032",
+    "7fddebe",
+    "HA",
+    "liveGhaRunUrl",
+    "uc018:abandon:*"
+  ],
+  "status": "executed:awaiting_post_prove_dual"
+}

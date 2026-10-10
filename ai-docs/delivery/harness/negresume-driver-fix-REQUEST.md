@@ -1,0 +1,27 @@
+# NEGRESFIX REQUEST — neg:resume 12 红 driver 断言面回和刀（协调方定谳后立靶）
+
+**draft_rev2:pre_exec_dual（席1 PASS+席2 FAIL 处方(a) 已并·协调方裁定采纳）· STOP · alone≠dual · Ban self-approve** · **→ exec:stopped_input_lane_signature_mismatch（EXEC 2026-10-07：恰 2 run 已行使·EXIT 原值 0/1 如实·run1 neg:resume 87/87 全绿+改前改后名单 diff 恰 12 条+其余 75 零弱化·run2 五段判据 MET〔auth 81+commerce 84+resume 87+interview 97+bend 120 全绿·resume 修复实证入全链〕但 neg:input lane 实测 2/135≠godfn-1d 收据 :81 钉 4/135·签名不一致→按 §3.2 预注册出口触发 §5 通用 STOP 停手上报·零 commit 零 push·改动面留存工作树·收据 receipts/negresume-driver-fix/·lane 重钉与续行裁决归协调方）** · **→ exec:awaiting_post_prove_dual（协调方裁决 2026-10-07·input lane 重钉：lane base≡red 族确认·签名漂移 4→2 归因上下文依赖非本刀 diff〔godfn-1d 另 2 红 :267/:268 XSS 对在全链上下文转绿=上下文依赖红·standalone 4 红 vs 全链 2 红差异·finding 登记 NEGINPUT 刀 §0〕·两残留红〔:216 harness 环境缺口+:229 B2 同族 driver 漂移〕已立项归 NEGINPUT 重划刀〔恰 1 文件 neg-input.proof.ts:3 shim+1 回和〕·五段判据 MET 成立·prove 有效·续行面放行→commit+push 已落地〔收据 receipts/negresfix/ §6〕）**
+
+## §0 立靶依据（协调方定谳 2026-10-09）
+G7TRIO-2 CMD3 步 10 neg:resume 12/87 红，探针定谳 12/12=driver 期望形状漂移·0 产品回归（证据：同目录 negresume-driver-fix-probe.md 12 行分类表+时间线+同 run 步 9 绿反证）。红非新发（godfn-1d 已账 base≡red）。本刀=回和 driver 断言面至已钉 fail-closed 契约，零产品码。
+**披露（席2 rev2）**：neg:all 链 input 段存在已账预存红（godfn-1d 收据 :81 `neg:input EXIT=1（4/135）base≡red 签名 IDENTICAL`·此后零解除证据）——**全链 EXIT=0 非本刀判据**（见 §3.2）。
+
+## §1 范围（恰 1 文件）
+`apps/api/test/neg-resume.proof.ts` 唯一文件，三断言块：
+- **B1 图片同意门 ×2**（:46-48 现状 403/consent_required）：对齐实际门序=OCR 能力门 422 `image_ocr_unavailable` 先答（neg harness 钉 OCR_ENABLED='0'，_neg-harness.ts:49）。改法沿本文件 §11 降级臂先例（:309-312）：断言 `f.status===422 ∧ f.body?.error==='image_ocr_unavailable'`；**保留注释**「consent 硬门在图片路径存在且先于计费 reserve（resume.service.ts:96→:98）——本断言面当前被能力门先答，pin 计费前即拦意图不变；活断言承载见 validate.ts:396（422 形）+:398（拒绝→计费增量 0）；若未来 harness 启 fake OCR（另刀翻转 _neg-harness.ts:49），本面须回和 403/consent_required（原 B1 形·§11 if/else 为条件化先例）」。
+- **B2 DELETE /resume/:id 族 ×6**（:226-241 现状 404/200/幂等 404）：对齐恒 503 fail-closed（resume.service.ts:278-280 不按存在性分叉）：#3/:226 404→503+error==='resume_erasure_migration_in_progress'；#4/:227 not_found_or_forbidden→同 error 码；#5/:230 越权 404→503 同码（越权面由 validate.ts:548 已钉·此处注释指引）；#6/:238 200→503（前置断言改 fail-closed 形）；#7/:240 幂等 404→503 同码；#8/:241 同 #4。
+- **B3 DELETE /privacy/resume-data 族 ×4**（:282-293 现状 200+三字段）：对齐 503（privacy.controller.ts:57-61 @HttpCode(503)）：#9/:283 200→503+error 码；#10/:284 resumesRemoved===0→断言 body.error==='resume_erasure_migration_in_progress'（旧形状字段断言随退疫退役）；#11/:285-286 与 #12/:287-288 DB 计数清除断言→改「503 后行数不变」式（沿 validate.ts:552-:555 形——:555 `beforeDel > 0 && afterDel === beforeDel` 种子护栏，**禁裸 after===before 空真**〔0===0=弱化〕；E1 勘误：rev1 引「:556」实为 :556 分节注释，实形块 :552-:555）。
+
+## §2 非范围
+零产品码（apps/api/src 零 diff）·零迁移·零其他测试文件·零 harness/runner 改动·零 G7 面（finalize/consent 已 nail 契约零触）·CLAUDE.md SSOT 零触·CI 零触。
+
+## §3 prove（恰 2 run·零 retry-to-green）
+1. `neg:resume` 单套件 run：EXIT=0 87/87（12 条改后全绿+其余 75 条零弱化——改前改后 PASS 名单 diff 仅此 12 条）。
+2. `neg:all` 全链 run：**EXIT 原值如实记；auth 81+commerce 84+resume 87+interview 97+bend 120 五段全绿**（resume=87/87 即修复实证入全链）；若红点=neg:input 4/135 且 PASS/FAIL 签名与 godfn-1d :81 IDENTICAL（`sort|uniq -c` diff 同该收据 ：120 协议），记预存红 lane base≡red——**该红不构成本刀 STOP、不记为本刀 prove 红**，归域上报协调方另刀（席2 rev2 处方 (a)·neg:all 六段序=auth→commerce→resume→interview→bend→input，apps/api/package.json:47）。
+全离线本地 API·零真实模型外呼·est live=0 模型调用·收据 `ai-docs/delivery/receipts/negresume-driver-fix/`（EXIT 原值+wrapper 全文+改前改后断言 diff）。
+
+## §4 纪律
+Key name-only 零打印零落盘·.env* ABSENT·容器用后即焚·pins 十一值照抄零翻转：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false+脚注 actualSpendCny=null · 本刀≠trio 三绿≠g7SuiteGreen 翻转≠:107 关闭（三绿判定=CMD3 全套件重验另刀/协调方裁决）· Non-claims：driver 回和≠产品行为变化（产品侧 3f5bdc80 起已钉 fail-closed，本刀仅让测试对齐现实）·**neg:input 4 红为预存外域债·本刀不修不翻不闭**（席2 rev2）。
+
+## §5 交付
+commit author `git -c user.name=<agent> -c user.email=<agent>@meetwise.local`·diff numstat 恰 1 文件·§3 两键 EXIT 原值·收据清单·停止条件核查（锚点形状不符/需触范围外/prove 红即停手上报）·harness 推进 exec:awaiting_post_prove_dual · 席 mw-core。

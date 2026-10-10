@@ -4,7 +4,7 @@
  */
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
 import {
-  reduceInterview, applyEvent, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
+  reduceInterview, applyEvent, applyEvents, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
 } from '../lib/stream/interview-state.ts';
 import { interviewDisplay, isDeadEnd, signalConcludePracticeCopy } from '../lib/view-model.ts';
 import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
@@ -50,6 +50,7 @@ import {
   RECRUITER_ARCHITECTURE_HIGHLIGHTS,
   RECRUITER_ARCHITECTURE_IDS,
 } from '../lib/recruiter/surface.ts';
+import { actionErrorMessage } from '../lib/errors/action-error.ts';
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -442,6 +443,48 @@ async function main() {
   A('终态(ready)断流 → closed(正常结束)', onQuizStreamClosed(qreduce([{ event: 'quiz_ready', id: 1, data: { count: 1 } }])).connection === 'closed');
   A('重连耗尽 → degraded 出口;从未连上则 error', onQuizReconnectExhausted(qClosedMid).degraded && onQuizReconnectExhausted(initialQuizView).phase === 'error');
 
+  // ───────────────────────── TOKSTREAM 阶段1(TS-P3 前端渲染断言 @REQUEST a31a7bbe) ─────────────────────────
+  section('TOKSTREAM 生成进度:白名单解析 + 归约(幂等覆盖写/业务事件清除/缺帧不死胡同) + loading→真实进度');
+  // b0 解析面:三类新 kind 必须经 decodeSSE+toBusinessEvent 进契约(漏注册=前端静默丢=白写)。
+  const tsFrames = decodeSSE([
+    ev(1, 'generation_started', { jobKind: 'next_question', operationId: 'interview.question-generation.v1', attemptKey: 'i1:ask:t0:0', segments: ['retrieve', 'generate', 'validate'], startedAt: '2026-10-07T00:00:00.000Z' }),
+    ev(2, 'model_first_token', { attemptKey: 'i1:ask:t0:0', firstTokenMs: 1234, tokensSoFar: 1 }),
+    ev(3, 'generation_progress', { attemptKey: 'i1:ask:t0:0', stage: 'generate', elapsedMs: 4200, tokensSoFar: 87 }),
+  ].join('')).frames.map(toBusinessEvent);
+  A('TS-P3 三类 generation_* 帧全部解析进契约(白名单双端注册)', tsFrames.length === 3 && tsFrames.every((e) => e !== null));
+  // b1 进度不改 phase(interview 流红线:进度帧不发明阶段)。
+  const tsV1 = applyEvents(initialView, [tsFrames[0]!, tsFrames[2]!]);
+  A('TS-P3 进度帧只挂进度态,不改 phase/lastScore', tsV1.phase === 'connecting' && tsV1.generationProgress?.attemptKey === 'i1:ask:t0:0' && tsV1.generationProgress?.stage === 'generate' && tsV1.generationProgress?.elapsedMs === 4200);
+  // b2 断线重放幂等覆盖写:同 attempt 旧帧(elapsedMs 更小)重复到达不回退计数(取 max)。
+  const tsV2 = applyEvents(tsV1, [tsFrames[2]!, { ...tsFrames[2]!, id: 4, data: { attemptKey: 'i1:ask:t0:0', stage: 'generate', elapsedMs: 2100 } } as any]);
+  A('TS-P3 重放旧进度帧不回退计数(同 attempt 数值取 max)', tsV2.generationProgress?.elapsedMs === 4200);
+  // b3 新 attempt 直接替换(新一轮生成)。
+  const tsV3 = applyEvents(tsV2, [{ ...tsFrames[0]!, id: 5, data: { attemptKey: 'i1:ask:t1:0', segments: ['retrieve', 'generate', 'validate'] } } as any]);
+  A('TS-P3 新 attemptKey 替换旧进度态', tsV3.generationProgress?.attemptKey === 'i1:ask:t1:0' && tsV3.generationProgress?.elapsedMs === undefined);
+  // b4 业务事件清除(断线重放防"已完成题重新显示生成中")。
+  const tsV4 = applyEvents(tsV3, [{ event: 'question_ready', id: 6, data: { question: 'Q2' } } as any]);
+  A('TS-P3 权威业务事件(question_ready)清除进度态', tsV4.phase === 'question' && tsV4.generationProgress === undefined);
+  // b5 缺帧不死胡同:全程零进度帧(断线跳过)→ 视图照常推进,无 degraded/卡死。
+  const tsV5 = applyEvents(initialView, [{ event: 'question_ready', id: 1, data: { question: 'Q1' } } as any]);
+  A('TS-P3 进度帧全丢(模拟断线跳过)不死胡同(照常出题,不 degraded)', tsV5.phase === 'question' && !tsV5.degraded && tsV5.generationProgress === undefined);
+  // b6 题间 loading→真实进度:interviewDisplay(answered+进度态)文案含 AI 生成中;无进度回既有文案(缺帧兜底)。
+  const tsAns = applyEvents(baseV({ phase: 'answered' }), [tsFrames[0]!, tsFrames[2]!]);
+  const tsDisp = interviewDisplay(tsAns);
+  const tsDispNoProgress = interviewDisplay(baseV({ phase: 'answered' }));
+  A('TS-P3 answered+进度态 display 文案含真实进度(AI 生成中·已 N 秒)', tsDisp.spinner && tsDisp.message.includes('AI 生成中') && tsDisp.message.includes('已 4 秒'));
+  A('TS-P3 answered 无进度态回既有文案(缺帧兜底,不死等)', tsDispNoProgress.message.includes('正在出下一题') && !tsDispNoProgress.message.includes('AI 生成中'));
+  // b7 押题流同构:generation_started 置 generating + 进度;quizDisplay 文案带进度;question_ready 清进度。
+  const tsq1 = qreduce([
+    { event: 'generation_started', id: 1, data: { jobKind: 'quiz', operationId: 'interview.quiz-generation.v1', attemptKey: 'tsq:quiz', segments: ['generate'] } },
+    { event: 'generation_progress', id: 2, data: { attemptKey: 'tsq:quiz', stage: 'generate', elapsedMs: 4000 } },
+  ]);
+  const tsqDisp = quizDisplay(tsq1);
+  A('TS-P3 quiz generation_started 置 generating + 进度态挂上(与既有 progress kind 同语义)', tsq1.phase === 'generating' && tsq1.generationProgress?.elapsedMs === 4000);
+  A('TS-P3 quiz generating+进度态文案含真实进度', tsqDisp.spinner && tsqDisp.message.includes('AI 生成中') && tsqDisp.message.includes('已 4 秒'));
+  const tsq2 = applyQuizEvent(tsq1, { event: 'question_ready', id: 3, data: { question: 'Q', refs: [] } } as any);
+  A('TS-P3 quiz question_ready 清除进度态', tsq2.generationProgress === undefined && tsq2.questions.length === 1);
+
+
   section('押题 SSE 驱动:端到端(happy/重连续传/耗尽/已就绪重放/坏帧)');
   const qHappy = await runQuizStream({
     open: () => streamOf(ev(1, 'progress', {}), ev(2, 'question_ready', { question: 'Q1', refs: ['限流'] }), ev(3, 'quiz_ready', { count: 1, report: { score: 60, grounded: 1, summary: 's' } })),
@@ -746,6 +789,58 @@ async function main() {
   A('ACL 卡片不把检索权限写成已交付', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'acl')?.body.includes('生产接线还没完成') === true);
   A('评分卡片写明不用 0 分凑数', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'scoring')?.body.includes('不会用 0 分凑数') === true);
   A('分开记账卡片不把 0126 写成完整档案', RECRUITER_ARCHITECTURE_HIGHLIGHTS.find((card) => card.id === 'fence')?.body.includes('生产作答仍可能写明文任务') === true);
+
+  section('ERRMSG-MAP #250/#251/#224 actionErrorMessage：四页×码集×兜底×未知码（纯函数输出断言·非浏览器 DOM 证明）');
+  const pages = ['interviews', 'quiz', 'diagnosis', 'jobs'] as const;
+  const credits402 = ['insufficient_entitlement', 'credits_unavailable', 'apply_credits_unavailable', 'interview_credits_unavailable'];
+  A('402 四码×四页同落额度行：蓝本定稿文案+『额度说明』+/pricing+如实注记（无购买承诺）',
+    credits402.every((c) => pages.every((p) => {
+      const m = actionErrorMessage(p, 0, c);
+      return m !== null
+        && m.text === '额度不足，请前往『额度说明』查看获取方式'
+        && m.text.includes('额度说明')
+        && m.href === '/pricing'
+        && m.note === '预览环境暂未开放购买';
+    })));
+  A('interviews 409 mapped 两码逐字蓝本：无链接出口（E1：继续/放弃=列表/会话两跳既有按钮面）',
+    actionErrorMessage('interviews', 0, 'candidate_route_undecided')?.text === '暂时无法判断岗位方向'
+    && actionErrorMessage('interviews', 0, 'candidate_route_undecided')?.href === undefined
+    && actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict')?.text === '你有一场未结束的面试：继续/放弃后重来'
+    && actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict')?.href === undefined);
+  A('409 两码为 interviews 页域专属：quiz/diagnosis/jobs → null（rev2 E2 不跨页）',
+    (['quiz', 'diagnosis', 'jobs'] as const).every((p) =>
+      actionErrorMessage(p, 0, 'candidate_route_undecided') === null
+      && actionErrorMessage(p, 0, 'interview_resume_binding_conflict') === null));
+  A('503：码通道 public_preview_read_only 与 status 通道（含无码/未知码）→ 服务暂不可用',
+    pages.every((p) => actionErrorMessage(p, 0, 'public_preview_read_only')?.text === '服务暂不可用')
+    && actionErrorMessage('interviews', 503, null)?.text === '服务暂不可用'
+    && actionErrorMessage('jobs', 503, 'interview_resume_binding_conflict')?.text === '服务暂不可用'
+    && actionErrorMessage('quiz', 503, 'some_future_code')?.text === '服务暂不可用');
+  A('create_failed 兜底三页原文一字不改（jobs 无 create 渲染面 → null）',
+    actionErrorMessage('interviews', 0, 'create_failed')?.text === '创建面试失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('quiz', 0, 'create_failed')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'create_failed')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('jobs', 0, 'create_failed') === null);
+  A('begin_failed 原文一字不改且不跨页（rev2 E2：quiz/diag 归一各页 create_failed 原文·jobs → null）',
+    actionErrorMessage('interviews', 0, 'begin_failed')?.text === '启动面试失败（未预留额度）,请稍后重试;不会进入空会话。'
+    && actionErrorMessage('quiz', 0, 'begin_failed')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'begin_failed')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('jobs', 0, 'begin_failed') === null);
+  A('防御码七枚透传不折叠丢失：interviews 四码→begin_failed 原文；quiz/diag 三类→各页 create_failed 原文',
+    ['interview_resume_binding_unavailable', 'legacy_resume_reference_unavailable', 'resume_version_mismatch', 'interview_not_active'].every((c) =>
+      actionErrorMessage('interviews', 0, c)?.text === '启动面试失败（未预留额度）,请稍后重试;不会进入空会话。')
+    && actionErrorMessage('quiz', 0, 'resume_not_found_or_not_ready')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('quiz', 0, 'quiz_resume_reference_conflict')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'resume_not_found_or_not_ready')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
+    && actionErrorMessage('diagnosis', 0, 'diagnosis_resume_reference_conflict')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。');
+  A('未知码/空码/无码（非 503）→ null：四页不渲染空壳',
+    pages.every((p) => actionErrorMessage(p, 0, 'totally_unknown_code') === null)
+    && pages.every((p) => actionErrorMessage(p, 0, '') === null)
+    && pages.every((p) => actionErrorMessage(p, 0, null) === null));
+  A('status 通道只认 503：status=409/402 + 未知码 → null（不发明渲染面）',
+    actionErrorMessage('interviews', 409, 'not_a_mapped_code') === null
+    && actionErrorMessage('interviews', 402, 'not_a_mapped_code') === null
+    && actionErrorMessage('jobs', 402, 'not_a_mapped_code') === null);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

@@ -18,7 +18,7 @@
 - `rules/`：长期稳定工程规则。P0 收束公式在 `skills/testing/fail-closed-gate.md`；长期指针 `rules/global/ai-generated-review.md`。
 - `skills/`：任务型工作方法。测试概述：`skills/testing/SKILL.md`；变更后仪式：`skills/testing/sop.md`（draft）。
 - `testing/`：测试策略（HTTP E2E 主层、Playwright 次层）、`conventions/test-authoring.md`、`conventions/e2e-directory-contract.md`、`golden-tasks/` 登记、E2E 证据和评测。
-- `delivery/`：路线图、发布说明、复盘；E2E 集成分支事实见 `delivery/e2e-platform-integration.md`。
+- `delivery/`：路线图、发布说明、复盘；北星 `delivery/north-star-ha.md`；**硬闸 SSOT** `delivery/north-star-hard-gates.md`（G1–G6）；覆盖矩阵 `delivery/e2e-requirement-coverage-matrix.md`（含快乐路径盲区列）；E2E 集成分支事实见 `delivery/e2e-platform-integration.md`。
 - `observability/`：AI 运行、prompt 质量、graph 质量和成本观测。
 
 使用顺序：
