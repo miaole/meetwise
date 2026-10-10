@@ -210,7 +210,7 @@ async function main() {
     // 静态门：重试链路四文件对 reserve/confirm/release 非测试调用=0（§1.③a）。
     const chainFiles = [
       'apps/api/src/modules/interview/interview-report.ts',
-      'packages/db/src/report.ts',
+      'packages/db/src/report/report.ts',
       'apps/worker/src/report-worker.ts',
       'apps/web/app/report/[id]/actions.ts',
     ];
@@ -221,7 +221,7 @@ async function main() {
     }
 
     // 自动重试防回归静态锚钉（§1.①：sweepReports 语义/参数/SQL 本刀零改——钉住防后续刀无声改动）。
-    const reportDb = readRepo('packages/db/src/report.ts');
+    const reportDb = readRepo('packages/db/src/report/report.ts');
     const worker = readRepo('apps/worker/src/report-worker.ts');
     A('P3 锚钉 MAX_REPORT_ATTEMPTS=3 导出（自动重试上限原值）',
       /export const MAX_REPORT_ATTEMPTS = 3;/.test(reportDb));
