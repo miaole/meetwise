@@ -1,0 +1,5 @@
+== sandbox faces (direct curls) ==
+api :28788 /readyz -> 404
+api :28788 /livez -> 200
+worker :29091 /readyz/worker -> 200
+worker :29091 /livez -> 200
