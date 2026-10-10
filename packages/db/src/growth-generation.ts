@@ -22,7 +22,7 @@ import {
   deriveLearningPlan, deriveCareerPath, deriveScoreCardAssessmentLegacy, requireTrustedPracticeOverall,
   type Assessment, type LearningPlan, type CareerPath,
 } from '@meetwise/domain';
-import { listScorableScoreCards } from './scoring-aggregation.ts';
+import { listScorableScoreCards } from './scoring/scoring-aggregation.ts';
 import type { Client } from './principal.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }

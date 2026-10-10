@@ -25,7 +25,7 @@ import type { Client } from './principal.ts';
 import {
   publishQuestionRubric, issueQuestionContract, createScoreRequest,
   type RubricCriterionInput,
-} from './scoring-fact-root.ts';
+} from './scoring/scoring-fact-root.ts';
 
 /** 测量栈版本（issue 契约 measurement_version 与 request 侧对齐的单一来源）。 */
 export const SCORING_MEASUREMENT_VERSION = 'scor-factroot-v1';
