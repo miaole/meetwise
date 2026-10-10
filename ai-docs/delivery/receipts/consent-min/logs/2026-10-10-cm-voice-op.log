@@ -1,0 +1,13 @@
+
+> meetwise@0.1.0 voice-operation-policy:prove /Users/miaole/Desktop/golucky/meetwise-consentmin
+> pnpm -C apps/api exec tsx test/voice-operation-policy.proof.ts
+
+PASS  default API ASR provider is fail-closed before transport
+PASS  default API TTS provider is fail-closed before transport
+PASS  default API streaming TTS provider is fail-closed before transport
+PASS  default API voice providers make zero provider fetches
+PASS  composition factory without Keys stays unconfigured
+PASS  composition stream ASR stays fail-closed before transport
+PASS  legacy broad key does not crash InterviewModule factories
+
+✓ API voice operation policy passed

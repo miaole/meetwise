@@ -456,7 +456,13 @@ export class InterviewService {
     // Check the same durable fence before any audio leaves the process.  This
     // closes delete-wins; dispatch-wins provider retention receipts remain a
     // separate release blocker until voice uses the durable egress outbox.
-    await this.db.asPrincipal(owner, (c) => this.guardInterviewPrivacy(c, id));
+    await this.db.asPrincipal(owner, async (c) => {
+      await this.guardInterviewPrivacy(c, id);
+      // CONSENT-MIN(#69):语音片段送 ASR 前须有 voice_capture 同意记录(复用 consent_record 表;
+      // byte 同形 resume.service.ts:95 同意门先例)。序钉:隐私围栏(410)先判,同意门(403)只在其后。
+      const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='voice_capture' LIMIT 1");
+      if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'voice_capture' }, HttpStatus.FORBIDDEN);
+    });
     return transcribeAnswer(this.asr, dto, options);
   }
 
