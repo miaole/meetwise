@@ -243,7 +243,10 @@ export function startMetricsExposition(options: { ragReady?: () => boolean; work
       const ready = options.ragReady?.() ?? true;
       res.writeHead(ready ? 200 : 503, { 'content-type': 'text/plain' }); res.end(ready ? 'ready\n' : 'degraded\n');
     } else if (req.method === 'GET' && path === '/readyz/worker') {
-      const ready = options.workerReady?.() ?? true;
+      // 审计 #92：workerReady 缺省从 `?? true`（fail-open：未注入回调即宣称就绪）改为
+      // `?? false`（fail-closed）。未显式装配 ready 谓词的部署在启动初期/装配缺失时必须
+      // 503 unready，绝不能默认可接流量。
+      const ready = options.workerReady?.() ?? false;
       res.writeHead(ready ? 200 : 503, { 'content-type': 'text/plain' }); res.end(ready ? 'ready\n' : 'unready\n');
     } else {
       res.writeHead(404); res.end();

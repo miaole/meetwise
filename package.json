@@ -397,6 +397,8 @@
     "api-runtime-role:prove:raw": "pnpm -C apps/api prove:runtime-role-http",
     "env-schema:prove": "node scripts/run-e2e-isolated.mjs env-schema:prove:raw",
     "env-schema:prove:raw": "pnpm -C apps/api prove:env-schema",
+    "obs-ready:prove": "node scripts/run-e2e-isolated.mjs obs-ready:prove:raw",
+    "obs-ready:prove:raw": "pnpm -C apps/api prove:obs-ready",
     "breaker:prove": "pnpm -C packages/ai-runtime prove:breaker",
     "failover:prove": "pnpm -C packages/ai-runtime prove:failover",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",

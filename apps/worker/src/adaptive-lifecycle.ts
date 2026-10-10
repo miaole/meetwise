@@ -14,7 +14,11 @@ import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
-import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
+// 审计 #92（obs-ready）相邻修复：上行与 :17 原为两条同源 import 且重复绑定 buildAdaptiveDeps/
+// planCompetencies——严格 ESM 链接（tsx/swc-node compileSourceTextModule）下 main.ts 全家导入即炸
+// （SyntaxError: already declared，基线上 prove:model-cost-metrics 同样复现）。合并为单条、并集导出名，
+// 零行为变更；否则本刀 worker 侧 prove 无法 import startMetricsExposition。
+import { buildResumeFactPool, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
 import { emitSignalConcludeEvent } from './signal-conclude-event.ts';
 
