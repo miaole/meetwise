@@ -6,6 +6,13 @@
 **蓝本**: 上游审计 #271 全条（`Meetwise产品审计-更正版/issues-master.md:190`·修法①-⑦ 逐字亲读誊录）+ fix-roadmap 第 3 批 #271 节（`fix-roadmap.md:104-115`）+ D4/D5 已决与渠道已决（`fix-roadmap.md:7-8,224,283-288`）——**审计文档不在本 base 实树**（上游事实源 `/Users/miaole/Documents/Meetwise产品审计-更正版/`·仓外路径·如实登记），引文逐字誊录；仓内锚点全部本 base 实树亲读（§3 漂±全登记）。
 **Honesty**: 审计行号按本 base 实测逐一对账，漂移处 §3 如实登记（行号错=审席 FAIL）；蓝本引文逐字誊录；本档为**总档**——三片各自的细节修订在片级 EXEC 前 append（append-only·不改写已审段落）。
 
+**Post-dual 落卷（rev2 · 2026-10-10 · entpay-rev2 席·append-only）**：
+- **双审台账**：draft_rev1 预执行双审=席1 **PASS** · 席2 **FAIL（三实体+七处方）** → 七处方合并落卷为本 rev2（勘误 E1-E4 见 §9·席1 PASS 入树/0156 撞号/违规回执见本段）。
+- **席1 PASS 入树登记（处方⑤）**：席别=席1 · 结论=**PASS**（draft_rev1 pre-exec 双审）· 日期=2026-10-10 转记（原判定时点以协调信道 LEDGER 为准）· 信道说明=**席1 PASS 原仅存协调信道、树上不可查 → 自本 rev2 入树起树上可查**。
+- **0156 撞号风险登记（处方⑥）**：批4 CONSENT-MIN（`TASK-SOP-v2.md:79`「批4 CONSENT（#81+#69+#82+#83）…（迁移 0156+）」）与本刀均拟用 **0156**——按 `TASK-SOP-v2.md:15` 迁移号治理「开工即 claim·**先登记者胜**·后到者重编号并回注」裁决（处方原文引 :16·实测治理条在 **:15**·±1 如实登记）；实际归属待协调方在授权时裁定：CONSENT-MIN 若先开工即持 0156，本刀顺延 **0157/0158**（§1.1/§1.2 迁移编号届时以勘误注记改挂·不改本段）。
+- **违规处置回执（处方⑦）**：上会话写入席违规塞入未授权码面——已由协调方在主线 campaign-LEDGER **@44268f2d** 登记 **PROCESS 违规**；本席清场（2026-10-10）：13 个 tracked M 文件全 `git checkout --` 恢复（处方口径 12·实测 **13**·多出 `apps/web/tsconfig.tsbuildinfo` 构建产物·同恢复），untracked 二件 `packages/db/migrations/0156_enterprise_bucket_billing.sql` + `apps/web/app/recruiter/billing/`（page.tsx/RechargeForms.tsx）**归档不删** → `.tmp/quarantine-entpay-unauthorized/`（0156 头注「双审 PASS · EXEC 授权」虚称随档留证）；清场后 `git status --short` 干净·HEAD 仍 `68f680cd` 零新提交。
+- **第二波再注入与再清场（同日 12:45-12:52·本席落卷期间实测）**：写入席再次批量注入未授权码面（13 tracked M 重现 + untracked `apps/api/test/enterprise-pay-s1.proof.ts`/`apps/api/test/entpay-s2-preverify.proof.ts` 两 proof 文件）——**「写入席现已静默」的监控结论失效**（wave2 末次写入 12:52:53·本席 t+60s 观察确认收敛后再清）；本席再清场：13 M 全 `git checkout --` 恢复·两 proof 文件归档 → `.tmp/quarantine-entpay-unauthorized/wave2-20261010-1252/`（留证）；清后树面仅余本 REQUEST 变更——**违规累计两波·建议协调方升级处置写入席并复查监控覆盖面**。
+
 ---
 
 ## §0 立靶
@@ -58,7 +65,7 @@ D5 已决（`fix-roadmap.md:224` 逐字）：「**已决（2026-10-09）：企�
 
 | # | 码面 | 现状（亲读 @`a03b9371`） | 目标 |
 |---|---|---|---|
-| S1-C1 | `packages/db/migrations/0156_enterprise_bucket_billing.sql`（新增·编号=ls 亲证最小未占·expand-only·lock_timeout） | 最大号 0155（B110）；bucket kind CHECK 仅 `('gift','trial','paid')`（0001:95）；**entitlement_bucket 无任何 RLS**（全仓 grep 亲证：仅 GRANT 0001:150+0154 trial 部分索引·RLS 唯一命中=payment_order 0001:418） | kind CHECK 换约束增 `'enterprise'`（沿 0154 先例）；**企业桶 RLS**（`USING/WITH CHECK owner_user_id=current_setting('app.principal_user',true)`·FORCE·照 payment_order 0001:418-422 形——RLS 落地后全桶 owner 可见性收紧须逐面回归：app 层 reserve/confirm/refund 均经 `asPrincipal(owner)` 同 owner 通行·零破坏预期但片1 prove 全量回归桶链）；`channel` 列+`offline_remit_record` 表（§1.0 裁决）；`invoice_profile`（抬头/税号/地址电话/开户行账号/收票邮箱·recruiter 本人 RLS）+`invoice_request`（order_id 唯一·状态机 submitted→issued/rejected·**仅 paid 订单可 INSERT 的 CHECK/门**）；对公三受控函数（S1-C4）；REVOKE/GRANT 照 0041:139-161 纪律 |
+| S1-C1 | `packages/db/migrations/0156_enterprise_bucket_billing.sql`（新增·编号=ls 亲证最小未占·expand-only·lock_timeout） | 最大号 0155（B110）；bucket kind CHECK 仅 `('gift','trial','paid')`（0001:95）；**entitlement_bucket 无任何 RLS**（全仓 grep 亲证：仅 GRANT 0001:150+0154 trial 部分索引·RLS 唯一命中=payment_order 0001:418·〖rev2 勘误 E1→§9：本「无任何 RLS」断言**错**〗） | kind CHECK 换约束增 `'enterprise'`（沿 0154 先例）；**企业桶 RLS**（`USING/WITH CHECK owner_user_id=current_setting('app.principal_user',true)`·FORCE·照 payment_order 0001:418-422 形——RLS 落地后全桶 owner 可见性收紧须逐面回归：app 层 reserve/confirm/refund 均经 `asPrincipal(owner)` 同 owner 通行·零破坏预期但片1 prove 全量回归桶链·〖rev2 勘误 E1→§9：企业桶 RLS 目标改判「**RLS 在位 fail-closed 断言（不重建）**」·本「落地后逐面回归」句撤销〗）；`channel` 列+`offline_remit_record` 表（§1.0 裁决）；`invoice_profile`（抬头/税号/地址电话/开户行账号/收票邮箱·recruiter 本人 RLS）+`invoice_request`（order_id 唯一·状态机 submitted→issued/rejected·**仅 paid 订单可 INSERT 的 CHECK/门**）；对公三受控函数（S1-C4）；REVOKE/GRANT 照 0041:139-161 纪律 |
 | S1-C2 | `packages/db/sql/` 镜像（23_api_gateway.sql 等） | 现态镜像（0155 回填先例：源=真源·迁移=部署车） | 与 0156 同步——**承重墙**：neg-harness 直载镜像，不落则片1 prove 全不可执行（B110 §9.2 同型教训） |
 | S1-C3 | `packages/db/src/payment.ts:85` | `"INSERT INTO entitlement_bucket(...) VALUES ($1,'paid',$2, now()+interval '365 days')"` 写死 kind/owner | 入账落桶参数化（bucket 形参：kind+owner 由订单 channel/商品类型派生·线上企业单落 `('enterprise', 下单招聘方)`）；createOrder（:8-44）与 CAS（:63-82）**原样复用零改** |
 | S1-C4 | 0156 内对公三函数（照 `gateway_admin_disable` 0041:107-120 样板：`PERFORM gateway_require_active_admin()`+admin_audit INSERT 0019:7-16） | admin 无任何改单/入账函数（admin.service.ts:17-20 只读 `gateway_admin_orders()`） | `gateway_admin_offline_remit_entry`（录 bank_ref+到账金额·audit action='offline_remit_entry'）；`gateway_admin_offline_remit_confirm`（require_active_admin+金额==订单 amount_cents 校验·不符拒且不入账·**录入人==确认人拒**·以 bank_ref 作 provider_txn 复用同一 CAS·audit action='offline_remit_confirm' detail={order,bank_ref,amount,actor}）；`gateway_admin_offline_remit_fail`（逾期置 failed+audit） |
@@ -71,14 +78,14 @@ D5 已决（`fix-roadmap.md:224` 逐字）：「**已决（2026-10-09）：企�
 
 **强制前置闸（§0.2 审计局限兑现·不满足不得 EXEC）**：
 - **0-a**：片1 已落主线且 prove 收口；
-- **0-b**：#110 已落（0155✅·本 base 已含）；
-- **0-c**：**隔离库预验证 PASS**——临时隔离库实跑四件事：①新增受控 SECURITY DEFINER 预留函数在 app_role 上下文（候选人 principal 会话内调用）可对 RLS 企业桶写入；②`entitlement_consumption` payer 列+幂等唯一约束在跨主体行上行为正确（owner=招聘方·key=interviewId 重放收敛单行）；③RLS 下候选人 principal **不可见**企业桶（SELECT 零行）；④begin 现事务形状（advisory 锁+reserveEntitlement 抛→402 映射）在 DEFINER 换路后回滚语义不变。**验证脚本+输出入收据；任一 FAIL=STOP 手上报协调方，Ban 带伤上码**（审计原话：「跨主体扣费未经隔离库验证」）。
+- **0-b**：#110 已落（0155✅·本 base 已含）；〖rev2 勘误 E4→§9：0-b 收紧=0155 落线**且** B110 post-dual 双审 BOTH PASS+nail（不得以「已落」替代双审收口）·**现不满足**〗
+- **0-c**：**隔离库预验证 PASS**——临时隔离库实跑四件事：①新增受控 SECURITY DEFINER 预留函数在 app_role 上下文（候选人 principal 会话内调用）可对 RLS 企业桶写入；②`entitlement_consumption` payer 列+幂等唯一约束在跨主体行上行为正确（owner=招聘方·key=interviewId 重放收敛单行）；③RLS 下候选人 principal **不可见**企业桶（SELECT 零行）；④begin 现事务形状（advisory 锁+reserveEntitlement 抛→402 映射）在 DEFINER 换路后回滚语义不变。**验证脚本+输出入收据；任一 FAIL=STOP 手上报协调方，Ban 带伤上码**（审计原话：「跨主体扣费未经隔离库验证」）；**⑤（rev2·E2）**：S2-C3 owner 路由改企业后，对账 sweeper（`commerce-reconcile.ts:46/:56`）的 owner 传参与 RLS 上下文重验证；**附款（rev2·E3）**：隔离库=本地临时实例·零生产 DSN/零生产 Key/零凭据值落盘。
 
 | # | 码面 | 现状（亲读） | 目标 |
 |---|---|---|---|
 | S2-C1 | `packages/db/migrations/0157_billing_payer_route.sql`（新增） | consumption 无 payer 维度（0001:109-121·唯一键 `(owner_user_id,idempotency_key)`）；全仓 enterprise/payer/billing_account 零命中（亲证） | consumption 增 `payer_user_id`（NULL=C 端本人·非 NULL=企业单记招聘方）；受控 DEFINER 函数族：`ent_reserve_for_application`（预留 recruiter 企业桶·不足抛 `insufficient_entitlement`）+confirm/release/对账对偶（对账租约回收 payer 化）·照 §1.2.0 预验证形 |
 | S2-C2 | `apps/api/src/modules/interview/interview.service.ts:304` | `reserveEntitlement(c, owner, id, 'mock_interview', 1.0)` 对岗位面试无分支（:171 owner=候选人·:174 asPrincipal(owner)） | `application_id` 非空 → 改调 S2-C1 DEFINER 函数（记 payer=job_application.recruiter_user_id）；`application_id` IS NULL → **C 端原路径逐字节零改**（§5.1）；402 映射语义内移（企业不足不再映射候选人 402·见 S2-C4） |
-| S2-C3 | `apps/worker/src/adaptive-lifecycle.ts:438,:444` + 失败释放路 | `completeInterviewAndConfirm(c, d.owner, …)` ×2（**审计锚 :359,:365 漂+79·S2 score-writer 落线文件增长·§3 登记**）·confirm 恒对 d.owner（候选人） | B 端确认/释放经 payer 路由（按 consumption 行 payer 结算企业桶·候选人桶零读写）；C 端 confirm 零触 |
+| S2-C3 | `apps/worker/src/adaptive-lifecycle.ts:438,:444` + 失败释放路 | `completeInterviewAndConfirm(c, d.owner, …)` ×2（**审计锚 :359,:365 漂+79·S2 score-writer 落线文件增长·§3 登记**）·confirm 恒对 d.owner（候选人） | B 端确认/释放经 payer 路由（按 consumption 行 payer 结算企业桶·候选人桶零读写）；C 端 confirm 零触·〖rev2 勘误 E2→§9：清单补两漏点（sweeper `commerce-reconcile.ts:46/:56`+候选人 abandon `interview.service.ts:511`）+C 端五调用点零触清点〗 |
 | S2-C4 | start 前企业额度预检+拒绝语义（`recruiter.ts` start 链+`interview.service.ts:238-300`） | start 只置 in_progress（#227：begin 402 后申请悬停 in_progress 无预留） | **#227 合一**：start+begin 服务端动作合一，企业预留与申请状态迁移同一事务；企业额度不足 → start 前拒绝（不产生 in_progress 空申请）；候选人见「该岗位面试暂不可用，请联系招聘方」·招聘方见「企业额度不足，请充值」（修法③） |
 | S2-C5 | 重试路由（`recruiter.ts:371,:416`+jobs 面） | :371 只拦 completed/declined；assessment_unavailable 可新 attempt（:416）→ 再 begin 再扣候选人 | 重试（仅 evaluation_unscored 系统失败·预留已释放）新 attempt 预留**只扣企业 1 次**；幂等键=interviewId（同 attempt 网络重放零重复扣·uq 约束背书）；「正常面完不再提供继续岗位面试」入口收敛**随 #218 另刀**（§2.1·本片只保证其重试若发生走企业桶） |
 | S2-C6 | `apps/web/app/jobs/actions.ts:22,:28,:40`+page | :22 注释「候选人用自己额度」；:28/:40 两跳 402 redirect（**#224 静默 402 本体已第 0 批 #250 修·余量=文案**） | actions 合一后的新错误分码接线（企业不足面）；费用文案归片3（§1.3）；402→候选人可见语义按修法③ |
@@ -137,8 +144,11 @@ D5 已决（`fix-roadmap.md:224` 逐字）：「**已决（2026-10-09）：企�
 | `interview.service.ts:238-300`（#227） | :238-300 | begin 绑定更新与 start 分离（start=recruiter.ts 起·begin=interview.service 起）·两次独立调用 | 无 |
 | `0001:409,420-422` | :409,:418-422 | payment_order RLS p_owner（USING/WITH CHECK app.principal_user）·FORCE——**全仓唯一桶域 RLS 先例** | ±1 |
 | 0155（主线现状·前置） | 全文件 | B110 审批门已落：approval_status+approve/reject+admin_audit；「approve=企业付费主体诞生时刻（#271 硬依赖挂点）」 | 前置✅ |
+| `0001_baseline.sql:150-163` 四表 RLS DO 块（**rev2 勘误 E1 补登**） | :150 GRANT·**:152-163 DO 块** | `FOREACH t IN ARRAY ARRAY['entitlement_bucket','entitlement_consumption','commerce_outbox','settlement_ledger']` 循环体对四表 `ENABLE+FORCE ROW LEVEL SECURITY`+`CREATE POLICY p_owner`（USING/WITH CHECK `owner_user_id=current_setting('app.principal_user', true)`）——**四表 RLS 自仓初档即 FULL 在位**（归属提交按实修正：初档 `9c92826e` 即含·`git log -S` 亲证；`d9394e91`「迁移、RLS 与数据访问层」对 0001 仅删 2 空行·非本块引入点） | rev1 漏检·本席补登（表名在 FOREACH 数组字符串内·逐表名 grep 漏检·方法论缺陷如实登记） |
 
 旁证（同 base 亲读）：迁移最大号 **0155** → 新迁移 **0156 起**（历史双 0152/双 0143 并存=已知·B110 §9.2 同款事实）；`entitlement_bucket` 无 RLS（grep 全 migrations 仅 0001:150 GRANT+0154 部分索引）；`git grep -li "organization|enterprise|payer|billing_account"` 于 apps/packages 非测试=**零命中**；`invoice|发票|开票|tax_id` 仅两命中=纯文案/注释（billing/page.tsx:20·0155 头注释）——与审计「零字段」同认；webhook 安全模型=HMAC 绑订单+txn·密钥缺失 fail-closed（commerce.service.ts:56-63 亲读）。
+
+> 〖rev2 勘误 E1（2026-10-10）：上行「`entitlement_bucket` 无 RLS（grep 全 migrations 仅 0001:150 GRANT+0154 部分索引）」**判错撤销**——0001:152-163 DO 块即四表 ENABLE+FORCE+p_owner 在位·详见 §9-E1〗
 
 ---
 
@@ -202,3 +212,54 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *B271 ENTERPRISE-PAY EXEC REQUEST 总档 · 2026-10-10 · draft_rev1:pre_exec · base `feat/mysql-schema-skeleton` @`a03b9371` · 分支 `line/enterprise-pay` · 蓝本=上游审计 #271（issues-master.md:190 修法①-⑦）+ fix-roadmap 批3 #271 节+D5/渠道已决 · 三片=企业桶+充值（0156）/扣费路由（0157·隔离库前置闸）/开票+收尾 · 形态裁决=kind 增 enterprise+offline_remit_record 侧表（§1.0）· C 端零触·Ban 无验证直上跨主体扣费·Key name-only·pins 十一值零翻转 · Dual PASS ≠ 开工 · alone≠dual*
+
+---
+
+## §9 rev2 勘误与落卷（2026-10-10 · 席2 三实体+七处方合并落卷 · append-only · 历史行不抹改 · 改正处均于原位附勘误注记）
+
+### E1 · S1-C1 现状与目标改判（三实体之一·处方①）
+
+**实测（本席逐行亲读 @68f680cd）**：`packages/db/migrations/0001_baseline.sql:152-163` DO 块（`:150` 为四表 GRANT 语境行）：
+
+```sql
+DO $$
+DECLARE t text;
+BEGIN
+  FOREACH t IN ARRAY ARRAY['entitlement_bucket','entitlement_consumption','commerce_outbox','settlement_ledger'] LOOP
+    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', t);
+    EXECUTE format('ALTER TABLE %I FORCE ROW LEVEL SECURITY', t);
+    EXECUTE format(
+      'CREATE POLICY p_owner ON %I '
+      'USING (owner_user_id = current_setting(''app.principal_user'', true)) '
+      'WITH CHECK (owner_user_id = current_setting(''app.principal_user'', true))', t);
+  END LOOP;
+END $$;
+```
+
+即 **entitlement_bucket/entitlement_consumption/commerce_outbox/settlement_ledger 四表 ENABLE+FORCE RLS+p_owner 全在位**。归属提交按实修正：`git log -S` 亲证本块自**仓初档 `9c92826e`** 即在位；`d9394e91`（「feat(db): 迁移、RLS 与数据访问层」）对 0001 仅删 2 空行——处方口径「自 d9394e91」**非本块引入点**·如实更正。
+
+**rev1 错判与漏检原因**：§1.1 S1-C1 现状「entitlement_bucket 无任何 RLS（全仓 grep 亲证）」与 §3 旁证同款断言判**错**——四表名藏于 FOREACH 数组字符串字面量，逐表名 grep RLS 不命中（grep 方法论缺陷·如实登记）；原行不抹改·原位已附勘误注记（以本条为准）。
+
+**S1-C1 目标改判**：企业桶 RLS 目标改为「**RLS 在位 fail-closed 断言（不重建）**」——0156 仅对四表 `relrowsecurity`/`relforcerowsecurity`+`pg_policies p_owner` 做**在位 fail-closed 断言**（任一缺失即 FAIL）·不重建不重复建；原目标「企业桶 RLS（…照 payment_order 0001:418-422 形）」随改判失效，**「RLS 落地后逐面回归」句撤销**（RLS 既已在位·无「落地后」时点）。企业桶行 owner_user_id=招聘方·既有 p_owner（app.principal_user 同主体）语义天然覆盖其读写；跨主体（候选人会话）写入仍归片2 DEFINER 函数（§1.2 S2-C1 不变）。§4.1-4 RLS prove 面（开票 RLS 断言）不变。
+
+### E2 · S2-C3 清单补全两漏点+C 端五调用点零触清点（三实体之二·处方②）
+
+1. **漏点一（对账 sweeper 失败释放路·B 端触面）**：`apps/worker/src/commerce-reconcile.ts:37-49`——sweeper 对 `serviceType='mock_interview'` 且 `application_id` 非空行走 `failInterviewAndRelease(c, owner, s.idempotencyKey)`（**:46 亲读坐实**；:39 `SELECT application_id` 判支；:50-52 markApplicationAssessmentUnavailable+assessment_unavailable 事件）——S2-C3 owner 路由改企业后，**sweeper 的 owner 传参（现=候选人）与 RLS 上下文必须重验证** → 纳入 §1.2.0-c 隔离库验证**第⑤项**（0-c 原行尾已附）。同 sweeper 的 application_id IS NULL 支路 `abandonInterviewAndRelease(c, owner, …)`（**:56 亲读坐实**）同受重验证约束。
+2. **漏点二（候选人 abandon 路）**：`apps/api/src/modules/interview/interview.service.ts:511` 亲读坐实 `abandonInterviewAndRelease(c, owner, id)`——abandon 入口 `owner=requireOwnerUserId(principal)`（:499）=**候选人**；按修法②/S2-C2 设计预留 owner=招聘方后，该路径若不同步改，以候选人 owner 查预留/消费行=**0 行 no-op → 企业预留泄漏**（reserved 悬挂；sweeper 对账虽可兜底释放·状态机口径劣化）→ **S2-C3 落码时 abandon 路必须同步 payer 路由改**。
+3. **C 端五调用点零触清点声明（本席逐行亲读坐实）**：`apps/api/src/modules/quiz/quiz.service.ts:56`（reserveEntitlement·'resume_quiz'）· `apps/api/src/modules/diagnosis/diagnosis.service.ts:59`（reserveEntitlement·'resume_diagnosis'）· `apps/api/src/modules/resume/resume.service.ts:98`（reserveEntitlement·'ocr'）· `apps/worker/src/quiz-lifecycle.ts:50`（confirmConsumption·quiz）· `apps/worker/src/diagnosis-lifecycle.ts:55`（confirmConsumption·diagnosis）——五处 owner 均=候选人本人·application_id 恒 NULL·**零一入 S2-C3 改造面**·Ban 触（§2.3/§5.1）·零触断言纳入 §4.2-5 C 端回归。
+
+### E3 · §1.2.0-c 隔离库附款显式入闸（处方③）
+
+隔离库=**本地临时实例**（容器/临时目录·起停即弃）·**零生产 DSN·零生产 Key·零凭据值落盘**（凭据名引用·照 §5.3 Key name-only 纪律·staged 过 secret gate）；验证脚本与输出脱敏后入收据。已附于 §1.2.0-c 原行尾。
+
+### E4 · §1.2.0-b 收紧（处方④）
+
+0-b 收紧：#110 前置=0155 落线**且** B110 post-dual 双审 **BOTH PASS+nail**——不得以「已落」替代双审收口。现状如实：0155 迁移已落本 base，但 **B110 席1 窄域 FAIL 已登记·E2E-RECRUITER-GATE 后继刀未落地** → 双审未 BOTH PASS+nail，**0-b 现不满足**·片2 EXEC 前置闸未开。已附于 §1.2.0-b 原行尾。
+
+（处方⑤席1 PASS 入树/处方⑥ 0156 撞号/处方⑦违规处置回执=文首 **Post-dual 落卷** 段·不重复。）
+
+---
+
+**Status**: **`draft_rev2:pre_exec_dual（席2 三实体+七处方落卷·清场完成·待席1/席3 复审）`** · 2026-10-10 · entpay-rev2 席 · 清场回执=文首 Post-dual 段 · append-only · 历史行不抹改 · ⛔push ⛔动主线仓 ⛔触其他工作树 ⛔恢复被清场码面
+
+*B271 ENTERPRISE-PAY EXEC REQUEST 总档 · rev2 追记 2026-10-10 · 清场=13 tracked M 全恢复+2 untracked 归档 `.tmp/quarantine-entpay-unauthorized/`（留证）· 勘误 E1（0001:152-163 四表 RLS 在位·S1-C1 改判 fail-closed 断言不重建）· E2（S2-C3 补 sweeper :46/:56+候选人 abandon :511+C 端五点零触清点）· E3（隔离库=本地临时·零凭据落盘）· E4（0-b=0155 且 B110 双审 BOTH PASS+nail·现不满足）· 0156 撞号待协调裁（SOP:15 先登记者胜）· alone≠dual*
