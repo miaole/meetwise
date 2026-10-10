@@ -27,11 +27,11 @@
 
 | 键 | 对应 §4 | 结果 | 断言计数 |
 |---|---|---|---|
-| `report-retry:prove`（新·db 腿） | ①②db 腿③静态门+锚钉⑥ | **EXIT=0** | P1-P4 全 PASS（47 PASS） |
+| `report-retry:prove`（新·db 腿） | ①②db 腿③静态门+锚钉⑥ | **EXIT=0** | P1-P4 全 PASS（42 PASS·nail 勘误：原记 47 系静态推导误计·双席独立复跑坐实 42=9+8+18+7） |
 | `report-retry:http:prove`（新·HTTP 腿） | ②HTTP 腿③动态④频控+跨报告 | **EXIT=0** | 38/38 PASS |
 | `uc011:report-refund:prove` | ⑤ | **EXIT=0** | R1-R4 全 PASS（36）·R2 核心 :140-144 逐字节原样 · 唯一翻转=:146-155 钉 |
 | `uc011:report-refund:http:prove` | ⑤ | **EXIT=0** | 52/52 PASS · H2 钉翻转 200+attempts=0 |
-| `uc019:report-regenerate:prove` | rev2(b) | **EXIT=0** | 29 PASS · G3 翻转+GAP-UC019-QUARANTINE-REGEN 退役 |
+| `uc019:report-regenerate:prove` | rev2(b) | **EXIT=0** | 28 PASS（nail 勘误：原记 29 系大小写不敏感计数把总结行计入·G2 if/else 互斥支运行时恒 28）· G3 翻转+GAP-UC019-QUARANTINE-REGEN 退役 |
 | `uc019:report-regenerate:http:prove` | rev2(b) | **EXIT=0** | 35/35 PASS · H3 翻转 |
 | `report:prove`（report-bulkhead） | ⑦ | **EXIT=0** | 31/31 全 PASS（:76 翻转后 attempts=1·其余原值） |
 | `neg:interview` | ⑦ | **EXIT=0** | 97/97 全 PASS |
@@ -76,7 +76,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 本刀 ≠ 批量重排入口 · ≠ 频控阈值定谳（3 次/小时/份待用户追认·`REPORT_RETRY_RL` 改值不需重开 REQUEST）· ≠ 频控多实例完备（单实例内存·与 signup 同 seam）· ≠ 报告必成 · ≠ 退款承诺 · prove 绿 ≠ covered · GAP-UC019-QUARANTINE-REGEN 退役后 UC-019 收口判定归其自身刀线。
 
-## §9 numstat（17 文件 · +147/−44 + 两新文件）
+## §9 numstat（19 文件 · +146/−43 + 两新文件·nail 勘误：原头标 +147/−44 为笔误）
 
 ```
  1  0 apps/api/package.json
