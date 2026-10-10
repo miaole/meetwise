@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
-import { resumeOptionLabel } from '@/lib/resume/display';
+import { resumeOptionLabel, isEligibleResume, resumeEmptyState } from '@/lib/resume/display';
 import { actionErrorMessage } from '@/lib/errors/action-error';
 
 export const metadata = { title: '押题 · 知面' };          // App Router Metadata API(SEO,服务端注入)
@@ -36,6 +36,8 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
     : null;
   const parsedResumes = ResumeList.safeParse(resumesRaw);
   const resumes: Resume[] = parsedResumes.success ? parsedResumes.data.resumes : [];
+  // #260 同病同修(裁定①保留):唯一谓词 ingested 与 quiz.service begin 守卫同语义;下拉/默认值/空态全切过滤面。
+  const eligibleResumes = resumes.filter(isEligibleResume);
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
@@ -65,27 +67,31 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
           <CardDescription>选择一份简历,AI 据真实经历预测训练问题(接地校验,绝不编造你没写过的经历)。</CardDescription>
         </CardHeader>
         <CardContent>
-          {resumes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              还没有简历。
-              <Link href="/resume" className="font-medium text-foreground underline-offset-4 hover:underline">先去上传简历 →</Link>
-            </p>
-          ) : (
-            <form action={startQuizAction} className="flex flex-col gap-3 sm:flex-row sm:items-center">
-              <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
-              <select
-                id="resumeId"
-                name="resumeId"
-                defaultValue={resumes[0]?.id}
-                className="h-10 rounded-lg border border-input bg-background px-3 text-sm sm:flex-1"
-              >
-                {resumes.map((r) => (
-                  <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
-                ))}
-              </select>
-              <SubmitButton pendingLabel="启动中…">开始押题</SubmitButton>
-            </form>
-          )}
+          {/* #260 空态三臂（与 interviews 页同一纯函数单源）。 */}
+          {(() => {
+            const empty = resumeEmptyState(resumes);
+            return empty === null ? (
+              <form action={startQuizAction} className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
+                <select
+                  id="resumeId"
+                  name="resumeId"
+                  defaultValue={eligibleResumes[0]?.id}
+                  className="h-10 rounded-lg border border-input bg-background px-3 text-sm sm:flex-1"
+                >
+                  {eligibleResumes.map((r) => (
+                    <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
+                  ))}
+                </select>
+                <SubmitButton pendingLabel="启动中…">开始押题</SubmitButton>
+              </form>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {empty.text}
+                <Link href={empty.linkHref} className="font-medium text-foreground underline-offset-4 hover:underline">{empty.linkText}</Link>
+              </p>
+            );
+          })()}
         </CardContent>
       </Card>
 

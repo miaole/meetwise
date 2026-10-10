@@ -21,12 +21,14 @@ export type QuestionKind = z.infer<typeof QuestionKind>;
 export const BusinessEvent = z.discriminatedUnion('event', [
   z.object({ event: z.literal('progress'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // question identity 由服务端持久化发放；旧流可显示题面但不能取得可提交身份（UI fail-closed）。
+  // #256 形制 A：plannedTurns=发射时点软预算约数（additive 可选，旧流缺字段零破坏；仅显示面消费，非承诺非上限）。
   z.object({ event: z.literal('question_ready'), id: z.number().int(), data: z.object({
     question: z.string(), competency: z.string().optional(),
     questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
     stateVersion: z.number().int().nonnegative().optional(),
     turn: z.number().int().nonnegative().optional(),
     qkind: QuestionKind.optional(),
+    plannedTurns: z.number().int().nonnegative().optional(),
   }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。

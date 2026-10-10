@@ -86,8 +86,13 @@ export function interviewDisplay(v: InterviewView): Display {
     };
   }
   switch (v.phase) {
-    case 'connecting':
-      return { heading: '连接面试', message: '正在建立连接…', spinner: true, action: { kind: 'reconnecting', label: '取消' }, degraded: false, signalConclude };
+    case 'connecting': {
+      // #161:connecting 期进度帧已到达（进度帧不改 phase=红线，generation-progress.ts:3-5）→ 静态文案拼真实进度
+      //（沿 answered 臂 generationProgressLabel 同形：段名/时长/token 计数，R-B 零思考原文）;
+      // 缺帧/未到首帧 → 既有静态文案逐字兜底（不空转不编造）。message 恒非空=isDeadEnd 不变量零破坏。
+      const progress = generationProgressLabel(v.generationProgress);
+      return { heading: '连接面试', message: progress ? `正在建立连接…（${progress}）` : '正在建立连接…', spinner: true, action: { kind: 'reconnecting', label: '取消' }, degraded: false, signalConclude };
+    }
     case 'question':
       // 引导态(回答没正面回应):显式提示 + 可重答/跳过(非死胡同),否则正常出题。
       return v.guidance

@@ -8,7 +8,7 @@ import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
-import { resumeOptionLabel } from '@/lib/resume/display';
+import { resumeOptionLabel, isEligibleResume, resumeEmptyState } from '@/lib/resume/display';
 import { actionErrorMessage } from '@/lib/errors/action-error';
 
 export const metadata = { title: '简历诊断 · 知面' };          // App Router Metadata API(SEO,服务端注入)
@@ -37,6 +37,8 @@ export default async function DiagnosisListPage({ searchParams }: { searchParams
     : null;
   const parsedResumes = ResumeList.safeParse(resumesRaw);
   const resumes: Resume[] = parsedResumes.success ? parsedResumes.data.resumes : [];
+  // #260 同病同修(裁定①保留):唯一谓词 ingested 与 diagnosis.service begin 守卫同语义;下拉/默认值/空态全切过滤面。
+  const eligibleResumes = resumes.filter(isEligibleResume);
 
   return (
     <main className="mx-auto max-w-2xl space-y-6 px-4 py-8 sm:px-6">
@@ -66,33 +68,37 @@ export default async function DiagnosisListPage({ searchParams }: { searchParams
           <CardDescription>选择一份简历(可选填目标岗位,用于评估匹配度),AI 据真实经历逐维度诊断并给出接地改写建议。</CardDescription>
         </CardHeader>
         <CardContent>
-          {resumes.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              还没有简历。
-              <Link href="/resume" className="font-medium text-foreground underline-offset-4 hover:underline">先去上传简历 →</Link>
-            </p>
-          ) : (
-            <form action={startDiagnosisAction} className="flex flex-col gap-3">
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <label className="text-sm text-muted-foreground sm:w-20" htmlFor="resumeId">选择简历</label>
-                <select
-                  id="resumeId"
-                  name="resumeId"
-                  defaultValue={resumes[0]?.id}
-                  className="h-10 rounded-lg border border-input bg-background px-3 text-sm sm:flex-1"
-                >
-                  {resumes.map((r) => (
-                    <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
-                  ))}
-                </select>
-              </div>
-              <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                <label className="text-sm text-muted-foreground sm:w-20" htmlFor="targetRole">目标岗位</label>
-                <Input id="targetRole" name="targetRole" placeholder="可选,如:后端工程师(用于评估岗位匹配度)" className="sm:flex-1" maxLength={100} />
-              </div>
-              <div className="flex justify-end"><SubmitButton pendingLabel="启动中…">开始诊断</SubmitButton></div>
-            </form>
-          )}
+          {/* #260 空态三臂（与 interviews 页同一纯函数单源）。 */}
+          {(() => {
+            const empty = resumeEmptyState(resumes);
+            return empty === null ? (
+              <form action={startDiagnosisAction} className="flex flex-col gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="text-sm text-muted-foreground sm:w-20" htmlFor="resumeId">选择简历</label>
+                  <select
+                    id="resumeId"
+                    name="resumeId"
+                    defaultValue={eligibleResumes[0]?.id}
+                    className="h-10 rounded-lg border border-input bg-background px-3 text-sm sm:flex-1"
+                  >
+                    {eligibleResumes.map((r) => (
+                      <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <label className="text-sm text-muted-foreground sm:w-20" htmlFor="targetRole">目标岗位</label>
+                  <Input id="targetRole" name="targetRole" placeholder="可选,如:后端工程师(用于评估岗位匹配度)" className="sm:flex-1" maxLength={100} />
+                </div>
+                <div className="flex justify-end"><SubmitButton pendingLabel="启动中…">开始诊断</SubmitButton></div>
+              </form>
+            ) : (
+              <p className="text-sm text-muted-foreground">
+                {empty.text}
+                <Link href={empty.linkHref} className="font-medium text-foreground underline-offset-4 hover:underline">{empty.linkText}</Link>
+              </p>
+            );
+          })()}
         </CardContent>
       </Card>
 

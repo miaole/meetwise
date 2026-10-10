@@ -147,3 +147,5 @@ STOP 由 `draft:awaiting_pre_exec_dual` 流转 **`draft_rev2:pre_exec_dual`**—
 ---
 
 `draft_rev2:pre_exec_dual`（席1 PASS+席2 FAIL 窄面处方 8 条落卷·裁定=形制 A 附 R1/R2·待复审确认后协调方行使 EXEC 授权）
+
+`executed:awaiting_post_prove_dual`（EXEC `g3-exec` @`line/g3-begin-guard` rebase 后落码·2026-10-10 · 协调方明示授权后依 §1 含 rev2 勘误实现：W1 三页过滤+空态三臂/W2 余额行+pricing·faq 口径句/W3 connecting 真进度/W4 形制 A 全管道/C8 STRESS 变体族·八处方全兑现·断言落槽 web-logic 纯函数级 285 PASS/0 FAIL+public-copy TC-PUBLIC-COPY-G3 PASS·免责尾句逐字保留·门禁亲跑 neg:interview 97/97+interview:prove 54+adaptive-life:prove 42+ai-graphs 2 键+web/api typecheck 全 EXIT=0·prove:public-copy EXIT=1=预存红 E8 基线对账同点同抛零触碰·微漂⑥⑦⑧入收据漂移表（⑥=turn 0 基→显示 1 基勘误·§4.4 按勘误口径断言·⑦=?duplicateFrames 死通路→变体 id 族双门·⑧=行号漠记）·§4.4/§4.2 判收请对账微漂⑥与裁定③·提前结束/D3/评分语义/服务端守卫/扣费路径/402 文案/contracts 零触碰·零迁移·est live=0 · 收据 `ai-docs/delivery/receipts/g3-begin-guard/`（EXEC 报告+EXIT 表+漂移表+蓝本回补附录+三证据卷）·⛔push · alone≠dual）
