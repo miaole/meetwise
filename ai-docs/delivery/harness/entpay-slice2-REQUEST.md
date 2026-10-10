@@ -176,3 +176,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 *B271 ENTERPRISE-PAY 片2 EXEC REQUEST（细化起草） · 2026-10-10 · b271-slice2-draft 席 · base `feat/mysql-schema-skeleton` @`bcd3bfcf`（=line/enterprise-pay ff 对齐后同点） · 总档 §1.2 清单级→本档 file:line 级 · S2-C1~C7+追加 S2-C8（channel 守卫·建议归本刀·双审终裁） · 0157（编号亲证未占） · D-1 两形状预验证即裁决 · C 端五调用点零触 · markers=0 · est live=0 · pins 十一值零翻转 · ⛔push ⛔动主线仓 ⛔触其他工作树 · alone≠dual*
 
 *`draft_rev2:pre_exec_dual`（双席处方 10 条落卷·席1 PASS+席2 FAIL 窄面转 PASS 条件已落·待复审确认后协调方行使 EXEC 授权·0-b 闸已开 @79aeb04b）*
+
+*`executed_slice2:awaiting_post_prove_dual`（B271 片2 EXEC 落卷·2026-10-10·entpay-slice2-exec 席·rebase 主线 6799544f 干净 2/2·锚点路径漂移表全登记入 receipts/enterprise-pay/slice2/·0-c 六件前置闸两形状 12 格矩阵逐格留痕·D-1 裁决=形状甲（owner=候选人+payer_user_id=招聘方·乙⑤⑥ FAIL 实证）写入 0157 头注·S2-C1~C9 全落·entpay:s2:prove 28/28 EXIT 0·neg:interview 97/neg:commerce 84 基线/neg:bend 157/worker interview:prove:raw 全绿·TS 三门 contracts 0/web 0/api 30 与 pristine 逐字节全同/db 20 与 pristine 逐字节全同·C 端五调用点零 diff·markers=0·est live=0·零生产 DSN·pins 十一值零翻转·⛔push·Ban self-approve·alone≠dual）*

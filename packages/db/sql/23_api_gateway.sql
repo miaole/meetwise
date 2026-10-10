@@ -444,3 +444,107 @@ GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_entry(text, text, int) TO 
 GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_confirm(text) TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_fail(text, text) TO app_role;
 GRANT EXECUTE ON FUNCTION gateway_admin_offline_remit_queue() TO app_role;
+
+-- ── B271 片2 扣费路由受控函数（0157 镜像·SECURITY DEFINER·岗位面试企业桶扣费·D-1 裁决=形状甲）──
+CREATE OR REPLACE FUNCTION gateway_entpay_reserve(
+  p_application_id text, p_idempotency_key text, p_service_type text, p_units numeric, p_lease_seconds int
+) RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE
+  v_owner text := current_setting('app.principal_user', true);
+  v_payer text;
+  v_existing text;
+  v_consumption uuid;
+  b record;
+  v_remaining numeric := p_units;
+  v_alloc jsonb := '[]'::jsonb;
+BEGIN
+  IF v_owner IS NULL OR length(v_owner) = 0 THEN
+    RAISE EXCEPTION 'entpay_principal_missing';
+  END IF;
+  IF p_application_id IS NULL OR p_idempotency_key IS NULL OR length(p_idempotency_key) = 0
+     OR p_service_type IS NULL OR p_units IS NULL OR p_units <= 0 OR p_lease_seconds IS NULL THEN
+    RAISE EXCEPTION 'entpay_reserve_invalid_input';
+  END IF;
+  SELECT recruiter_user_id INTO v_payer FROM job_application
+   WHERE id = p_application_id AND candidate_user_id = v_owner;
+  IF NOT FOUND OR v_payer IS NULL OR length(v_payer) = 0 THEN
+    RAISE EXCEPTION 'entpay_application_not_found';
+  END IF;
+  INSERT INTO entitlement_consumption(owner_user_id, idempotency_key, service_type, units_requested, payer_user_id, lease_expires_at)
+  VALUES (v_owner, p_idempotency_key, p_service_type, p_units, v_payer, now() + (p_lease_seconds || ' seconds')::interval)
+  ON CONFLICT (owner_user_id, idempotency_key) DO NOTHING
+  RETURNING id INTO v_consumption;
+  IF v_consumption IS NULL THEN
+    SELECT id INTO v_existing FROM entitlement_consumption
+     WHERE owner_user_id = v_owner AND idempotency_key = p_idempotency_key;
+    RETURN 'duplicate:' || coalesce(v_existing, 'missing');
+  END IF;
+  FOR b IN
+    SELECT id, (units_total - units_reserved - units_consumed) AS avail
+      FROM entitlement_bucket
+     WHERE owner_user_id = v_payer AND kind = 'enterprise' AND expires_at > now()
+       AND (units_total - units_reserved - units_consumed) > 0
+     ORDER BY expires_at ASC, id ASC
+     FOR UPDATE
+  LOOP
+    EXIT WHEN v_remaining <= 0;
+    IF b.avail > 0 THEN
+      UPDATE entitlement_bucket SET units_reserved = units_reserved + least(b.avail, v_remaining), version = version + 1
+       WHERE id = b.id AND (units_total - units_reserved - units_consumed) >= least(b.avail, v_remaining);
+      IF FOUND THEN
+        v_alloc := v_alloc || jsonb_build_array(jsonb_build_object('bucket_id', b.id, 'units', least(b.avail, v_remaining)));
+        v_remaining := v_remaining - least(b.avail, v_remaining);
+      END IF;
+    END IF;
+  END LOOP;
+  IF v_remaining > 0 THEN
+    RAISE EXCEPTION 'insufficient_entitlement' USING ERRCODE = 'P0001';
+  END IF;
+  UPDATE entitlement_consumption SET allocations = v_alloc WHERE id = v_consumption;
+  RETURN 'reserved:' || v_consumption::text;
+END;
+$$;
+
+CREATE OR REPLACE FUNCTION gateway_entpay_apply_allocation(
+  p_idempotency_key text, p_bucket_id text, p_reserved_delta numeric, p_consumed_delta numeric
+) RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE
+  v_owner text := current_setting('app.principal_user', true);
+BEGIN
+  IF v_owner IS NULL OR length(v_owner) = 0 THEN
+    RAISE EXCEPTION 'entpay_apply_principal_missing';
+  END IF;
+  IF p_idempotency_key IS NULL OR length(p_idempotency_key) = 0 OR p_bucket_id IS NULL
+     OR p_reserved_delta IS NULL OR p_consumed_delta IS NULL THEN
+    RAISE EXCEPTION 'entpay_apply_invalid_input';
+  END IF;
+  IF NOT EXISTS (
+    SELECT 1 FROM entitlement_consumption
+     WHERE owner_user_id = v_owner AND idempotency_key = p_idempotency_key
+       AND allocations @> jsonb_build_array(jsonb_build_object('bucket_id', p_bucket_id::uuid))
+  ) THEN
+    RAISE EXCEPTION 'entpay_apply_scope_rejected';
+  END IF;
+  UPDATE entitlement_bucket
+     SET units_reserved = units_reserved + p_reserved_delta,
+         units_consumed = units_consumed + p_consumed_delta,
+         version = version + 1
+   WHERE id = p_bucket_id::uuid;
+  IF NOT FOUND THEN
+    RAISE EXCEPTION 'entpay_apply_bucket_missing';
+  END IF;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION gateway_entpay_reserve(text, text, text, numeric, int) FROM PUBLIC, app_role, app_gateway_role;
+REVOKE ALL ON FUNCTION gateway_entpay_apply_allocation(text, text, numeric, numeric) FROM PUBLIC, app_role, app_gateway_role;
+GRANT EXECUTE ON FUNCTION gateway_entpay_reserve(text, text, text, numeric, int) TO app_role;
+GRANT EXECUTE ON FUNCTION gateway_entpay_apply_allocation(text, text, numeric, numeric) TO app_role;

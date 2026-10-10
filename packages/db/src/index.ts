@@ -68,11 +68,13 @@ export {
   reserveEntitlement, confirmConsumption, releaseConsumption, availableUnits,
   completeInterviewAndConfirm, failInterviewAndRelease, abandonInterviewAndRelease,
   renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile,
+  reserveEntitlementForApplication,
   MIN_UNIT, DEFAULT_LEASE_SECONDS,
 } from './commerce/commerce.ts';
 export type {
   Allocation, ReserveResult, ConfirmResult, ReleaseResult, SweptReservation,
   CompleteInterviewResult, FailInterviewAndReleaseResult, AbandonInterviewResult,
+  EntpayReserveResult,
 } from './commerce/commerce.ts';
 
 // 招聘方(B 端)岗位仓储(多租户 RLS 隔离)+ 候选人申请闭环(多方 RLS)

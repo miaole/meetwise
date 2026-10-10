@@ -23,7 +23,7 @@ export class CommerceService {
   /** B271 片1：approved recruiter 门（0155 同谓词·app_role 可执行形）。gateway_require_active_recruiter()
    * 已被 0155 REVOKE 自 app_role（23_api_gateway.sql:418）——app_role 会话内直调必 42501 insufficient_privilege
    * （EXEC attempt4 实测），不可作服务端门调用形。此处按该门**同谓词**在调用方 RLS 自身行作用域内校验
-   * （user_account p_user_account_self FORCE RLS：主体只见自己行·fail-closed 同义：candidate/pending/rejected
+   * （勘误①·B271 片2 S2-C9：user_account 实无 RLS——此为应用层自身行显式谓词校验·门安全性与 0155 等价·fail-closed 同义：candidate/pending/rejected
    * 皆零行 → 403）。DB 侧 gateway_active_candidate 等 DEFINER 门仍持纵深（B 端端点面），双层不弱。 */
   private static readonly APPROVED_RECRUITER_SQL =
     "SELECT 1 AS ok FROM user_account WHERE id = current_setting('app.principal_user', true) " +

@@ -33,6 +33,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS uq_bucket_trial_one_per_owner
 CREATE TABLE entitlement_consumption (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,
+  payer_user_id text,                                       -- 扣费主体（B271 片2·0157）：NULL=C 端本人·非 NULL=企业单（=job_application.recruiter_user_id 投递时刻固化）
   idempotency_key text NOT NULL,
   service_type text NOT NULL,
   units_requested numeric(12,2) NOT NULL CHECK (units_requested > 0),
