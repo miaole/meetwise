@@ -43,6 +43,8 @@ PG-retained（业务+LangGraph PostgresSaver+pgvector；禁 MySQL/Qdrant 业务�
 公开 DELETE /privacy/interview-data/:id = 503
 ```
 
+> **UNSTUB-ERASE supersession（2026-10-10 · nail · nail tip=本落卷 commit · branch `feat/mysql-schema-skeleton` · 上行原文保留 append 注记 · 注记不入上代码块、pins 抄写面零改）**：代码块内「公开 DELETE /privacy/interview-data/:id = 503」行**原值照抄不动**——其所指 interview-data 公开 DELETE **仍 503 关闭**。UNSTUB-ERASE 刀（蓝本 `ai-docs/delivery/harness/unstube-erase.md` rev2 @`40e31da9` · 主线 impl `f9383f76`/pin `c9200502`/docs `217dde27`/chore `c47b5523`）经 pre-exec + post-prove dual BOTH PASS + 协调方授权完成 pin supersession（rev2 §3.0 立法意图继承：**不得虚称删除/擦除已完成**）：**简历/账户轨**公开删除面（`DELETE /resume/:id` · `DELETE /privacy/resume-data` · `POST /profile/deactivate` 账户级）= **202 软删受理（mode=logical · purgePending=true 恒真直至 S2 逐 sink 回执 · 物理清除完成禁宣称）**；interview-data 面与 0129 预览（`preview_incomplete` 三钉）原值不动。
+
 另钉：`canHonestlyFlip=false`（UC-018）直至独立 covered-lift 刀；UC-018 / UC-052 行多为 **partial** ≠ covered。
 
 ---

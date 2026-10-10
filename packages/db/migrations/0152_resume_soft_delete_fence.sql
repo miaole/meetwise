@@ -23,8 +23,17 @@
 --        app_role direct write        -> current_user='app_role'            -> pinned (0060 law)
 --        definer fence function       -> current_user='privacy_api_owner',
 --                                        session_user=<tenant login>        -> released
---        a session that IS privacy_api_owner (direct connect or SET ROLE
---        forgery)                     -> session_user='privacy_api_owner'   -> pinned
+--        a session connected AS privacy_api_owner (direct connect — the only
+--        way this state arises)       -> session_user='privacy_api_owner'   -> pinned
+--      SET ROLE wording note (nail erratum fix, comment-only): SET ROLE changes
+--      current_user but NEVER session_user.  A "SET ROLE forgery" is therefore
+--      NOT caught by the session_user clause — it is prevented upstream:
+--      privacy_api_owner is NOLOGIN NOINHERIT (0048) and NO role is granted
+--      membership in it, so `SET ROLE privacy_api_owner` fails (42501) for
+--      every session.  Granting membership in privacy_api_owner to any
+--      login-capable role would defeat this discriminator and is banned (0060
+--      law extension).  The session_user clause is defense-in-depth for the
+--      direct-connect case.
 --      app_role still has NO DELETE privilege (0060 REVOKE untouched) and
 --      still cannot write tombstone states directly.
 
@@ -139,9 +148,10 @@ DECLARE
   -- Release predicate (rev2 R3): true ONLY inside a SECURITY DEFINER function
   -- owned by privacy_api_owner invoked from a non-owner login.  An invoker
   -- trigger observes the effective DML role, so direct app_role writes keep
-  -- current_user='app_role' (pinned) and a session that itself IS
-  -- privacy_api_owner fails the session_user clause (SET ROLE / direct-connect
-  -- forgery pinned).
+  -- current_user='app_role' (pinned) and a session connected AS
+  -- privacy_api_owner fails the session_user clause (direct-connect pinned;
+  -- SET ROLE forgery is prevented upstream — privacy_api_owner is NOLOGIN
+  -- NOINHERIT with zero membership grants, see the file-header SET ROLE note).
   v_privacy_definer_path boolean := current_user = 'privacy_api_owner'
                                 AND session_user <> 'privacy_api_owner';
 BEGIN
