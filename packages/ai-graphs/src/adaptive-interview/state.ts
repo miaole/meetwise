@@ -7,6 +7,7 @@ import {
   type QuestionGenerationProvenance,
   type QuestionGenerationResult,
   type QuestionKind,
+  type ScoredCriterionDisposition,
 } from '@meetwise/domain';
 
 export interface Turn {
@@ -27,6 +28,13 @@ export interface Turn {
   kind: QuestionKind;
   hint?: string;
   reason?: string;
+  /**
+   * #52 v6（SCORE-WRITER S2）：v6 评估回合的 0103 契约档位证据（criterionId+disposition+
+   * utf8_byte span+spanDigest——派生物，**不含答案原文/引文原文**）。经 evaluate-answer 节点
+   * 从 assess 结果透传，投影后随 checkpoint 复用（at-least-once 重放仍可写卡）；
+   * 非 v6 评估回合（deterministic 非作答/clarify/unscored/旧 checkpoint）缺省无此字段。
+   */
+  dispositions?: ScoredCriterionDisposition[];
 }
 
 export interface ClarifyDirective {
@@ -97,7 +105,11 @@ export interface AdaptiveDeps {
     turn: number,
     identity?: Pick<PendingQuestion, 'questionId' | 'stateVersion'>,
   ) => Promise<
-    | { status?: 'scored'; score: number; evidence: string[]; relevant: boolean; hasHook?: boolean }
+    | {
+        status?: 'scored'; score: number; evidence: string[]; relevant: boolean; hasHook?: boolean;
+        /** #52 v6：0103 契约档位证据（派生物，无答案原文）；v6 评分回合必须供给。 */
+        dispositions?: ScoredCriterionDisposition[];
+      }
     | { status: 'unscored'; reason: string }
   >;
   /**

@@ -7,7 +7,7 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
 import { listScorableScoreCards } from '@meetwise/db';
-import { deriveAssessment } from '@meetwise/domain';
+import { deriveScoreCardAssessmentLegacy } from '@meetwise/domain';
 import type { DbService } from '../../platform/db.service';
 
 /** 隐私围栏注入面(=InterviewService.guardInterviewPrivacy 私有方法经 bind 绑定,Roster 六守卫零弱化)。 */
@@ -15,6 +15,9 @@ type PrivacyGuard = (c: any, id: string) => Promise<void>;
 
 // 生成能力评估:面试各题 ScoreCard(确定性总分)→ 维度+差距,落库(ready),返回。
 // SCOR-02 消费迁移:得分只读 ScoreCard(practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
+// #103 切换（EXTREV-1 S2）：legacy 模型整数路径聚合器 → deriveScoreCardAssessmentLegacy
+// （D5 legacy-parity 适配：gap=60 单源 GAP·持久化维度形状冻结 {dimension,score,gap,evidence}·
+// INSERT 前在 domain 纯函数派生）——rg 门：生产面零 legacy 聚合器调用方（rg 门命令见 S2 收据）。
 export async function generateAssessmentFor(db: DbService, guard: PrivacyGuard, principal: string, id: string) {
   return db.asPrincipal(principal, async (c) => {
     await guard(c, id);
@@ -25,13 +28,8 @@ export async function generateAssessmentFor(db: DbService, guard: PrivacyGuard, 
     // fail-closed:无任何可评分卡(未走 SCOR-02/03 评分管线)→ 409,绝不落 overall=0 的 ready 假报告
     // (否则 career 据 0 分误判最低定位、成长曲线注入假 0 点;legacy 事件分数也不得回退兜底)。
     if (cards.length === 0) throw new HttpException({ error: 'no_scorable_cards' }, HttpStatus.CONFLICT);
-    const turns = cards.map((card) => ({
-      question: card.questionId,   // 仅作 competency 缺失时的维度回退;score_card 恒带 competency,不会触发
-      competency: card.competency,
-      score: card.deterministicTotal,
-    }));
-    let a: ReturnType<typeof deriveAssessment>;
-    try { a = deriveAssessment(turns); }
+    let a: ReturnType<typeof deriveScoreCardAssessmentLegacy>;
+    try { a = deriveScoreCardAssessmentLegacy(cards); }
     catch (e) {
       if ((e as { code?: string }).code === 'score_aggregate_empty')
         throw new HttpException({ error: 'no_scorable_cards' }, HttpStatus.CONFLICT);

@@ -177,7 +177,14 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
       // 无卡 → scores 空(aggregateScores 空集会抛 score_aggregate_empty,报告走 unavailable,绝不回退 legacy 分数)。
       const cards = await listScorableScoreCards(c, interviewId);
       const scores = cards.map((card) => card.deterministicTotal);
-      return { interviewId, questionCount: scores.length, scores, owner };
+      return {
+        interviewId, questionCount: scores.length, scores, owner,
+        // #50 v3：competency 分组结构化摘要（仅 ID 引用,不传题目/答案原文）。
+        items: cards.map((card) => ({
+          questionId: card.questionId, competency: card.competency,
+          score: card.deterministicTotal, cardId: card.cardId,
+        })),
+      };
     }),
     // 真报告:经 invoke 关口(双校验)出。owner/幂等键据 summary;失败抛错 → worker 标 report failed(舱壁,不碰 interview)。
     // Isolated E2E may inject a *post-provider* fault to exercise the report

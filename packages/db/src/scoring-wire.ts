@@ -32,10 +32,10 @@ export const SCORING_MEASUREMENT_VERSION = 'scor-factroot-v1';
 /** 操作策略版本（score_request.operation_policy_version）。 */
 export const SCORING_OPERATION_POLICY_VERSION = 'scor-factroot-v1';
 /**
- * 提示词策略版本 = disposition 过渡桥的供源提示词（rev2 D6：S1 供源是 v5 hint 分）。
- * DELETE-ON: #52 v6（S2）——v6 直出 criterionId+span+disposition 时同步升版并删桥。
+ * 提示词策略版本（#52 v6 · SCORE-WRITER S2）：v6 模型直出 criterionId+quote+disposition，
+ * S1 的 v5→disposition 过渡桥已废除（rg 门零残留），issue 契约 prompt_policy_version 同步升版。
  */
-export const SCORING_PROMPT_POLICY_VERSION = 'mock-interview.evaluate.v5';
+export const SCORING_PROMPT_POLICY_VERSION = 'mock-interview.evaluate.v6';
 /** 出题路由标签（issue 契约 route 列；自适应图为唯一供题来源）。 */
 export const SCORING_ROUTE = 'adaptive-interview';
 /** 发题语言 + rubric 语言适用范围（issue 校验 language ∈ scope，二者必须一致）。 */

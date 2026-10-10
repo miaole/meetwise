@@ -11,8 +11,13 @@ import {
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
+<<<<<<< HEAD
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision } from '@meetwise/domain';
 import { buildAdaptiveDeps, planCompetencies } from './adaptive-interview-service.ts';
+=======
+import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
+>>>>>>> 19ddcbb4 (fix(score-writer): S2 EXEC — 读侧切换+完成判据切换+去桩+#103+#50（D6 桥废除）/ ①dispositionFromHintScore+SCORE_HINT_EXCEEDS_THRESHOLD 删除（DELETE-ON 兑现·rg 门 v5→disposition 桥零残留 GATE-A/B/C）+ #52 提示词 v5→v6 量表逐分项判档+逐字引文·总分禁模型输出·段序钉死回答恒在末尾（capUserData 头截不变量）+ EvalSchema v6（relevant=false⇒全 below·criterionId 去重·量表白名单门）+ evaluateOutcomeFromValue 派生单源（hint 分=档位×量表权重·非模型输出）+ score-writer 供源=模型直供档位（hintScore 参数删除→dispositions·写卡前 span 文本级复验 fail-closed）+ SCORING_PROMPT_POLICY_VERSION→v6·D4 形制不变 / ②interview.proof :315-316 loadSummary 伪造 80 分桩废除→生产同形制真实 loadSummary 双面：图家族（0126 围栏零卡）fail-closed failed #20 形状如实 + 账本家族实卡生产同链 enqueue→drain→ready·overall=确定性聚合 63·零 report_unavailable / ③#103 切换+D5 三钉：deriveScoreCardAssessmentLegacy（legacy-parity 适配·domain 纯函数）·(i) gap 唯一经 GAP 单源零字面量·(ii) 持久化形状冻结 {dimension,score,gap,evidence}（interview.service:673+web 零改动）·(iii) INSERT 前派生·rg 门生产面零 legacy 聚合器调用 / ④#50 v3：InterviewSummary.items（仅 ID 引用不传原文）+生产 loadSummary 供给+report.generate v2→v3（overall 仍服务端确定性聚合）/ prove：interview:prove EXIT=0（33 PASS·基线 29·去桩 +4 诚实断言）·scoring-integrity:prove EXIT=1 既有 base 红逐字节同形（①c :99:50·pristine 对照在卷）·spot-check flow/life/consumer/resume-grounding/latency/security EXIT=0·context-stress 与 pristine 恰同 7 FAIL 同形（既有环境红如实）·tsc 三门零新增（worker/api 误差清单 diff 与 pristine 逐字节同）·est live=0·actualSpendCny=null·0 Key 值接触 / fixture 披露：lifecycle/flow 值断言 88→100（v5 hint→v6 档位派生契约级联）·context-stress 观测信道随段序修正回同形·security 总分断言改 strip 诚实语义（收据 §4）/ 升级窗 face：存量 v5 checkpoint 回合无档位→跳写（存量不追溯供卡延续）/ Turn checkpoint 增档位证据投影（派生物无原文）/ 零迁移·零 S3 面（#42/#43/#47/#41 零触）·零 G7·SSOT 零触·pins 十一值零翻转 / 收据 receipts/extrev-score-writer/S2/ / REQUEST 状态行 append-only →executed_s2:awaiting_post_prove_dual)
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { recordAskedQuestions } from './memory-service.ts';
@@ -298,6 +303,7 @@ async function submitAdaptiveAnswerImpl(
   const snap = alreadyApplied ? before : await g.getState(cfg);
   const transcript = (snap.values?.transcript ?? []) as Array<{
     questionId?: string; stateVersion?: number; score: number | null; outcome?: string; competency?: string; q?: string; hint?: string; reason?: string;
+    dispositions?: ScoredCriterionDisposition[];
   }>;
   const last = transcript[transcript.length - 1];
   if (!last || last.questionId !== input.questionId)
@@ -375,16 +381,22 @@ async function submitAdaptiveAnswerImpl(
   // drain 内、独立 asScoringWorkerPrincipal 事务 claim+写卡；consumer 的 markJobDone 在其后
   // 收口 → crash 于二者之间 = requeue at-least-once + 0100 CAS（单 winner）= exactly-once 效果。
   // 仅对投影已落 answer_evaluated 且计入 eligible 的回合执行（非 unscored/非 clarify；clarify&&done
-  // 的 unresolved 事件不计 eligible，不供卡）。供源 = v5 hint 分（score 卡进度提示），经 D6 过渡桥
-  // 映射 disposition；模型不出总分，总分在 0103 DB 函数内确定性计算。
+  // 的 unresolved 事件不计 eligible，不供卡）。
+  // #52 v6（S2）供源：evaluate 侧直出的 0103 档位证据随图 transcript 到达（D6 过渡桥已废除）；
+  // hint 分仍随事件供 SSE/完成判定，但**不再供卡**。升级窗 face：存量 v5 checkpoint 回合
+  // （transcript 无 dispositions）结构性无档位供源 → 跳过写卡（同「存量 interview 不追溯供卡」
+  // rev2 残余登记，绝不回退 hint 分派档）；系统性丢档由 prove 卡数=已答数断言兜底。
   if (d.scoreWriterLeaseOwner && !unscored && !clarifying && typeof last.score === 'number') {
-    await writeScoreCardAfterProjectionFenceTolerant(
-      { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
-      {
-        interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
-        answerText: input.answer, hintScore: last.score,
-      },
-    );
+    const turnDispositions = last.dispositions ?? [];
+    if (turnDispositions.length > 0) {
+      await writeScoreCardAfterProjectionFenceTolerant(
+        { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
+        {
+          interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
+          answerText: input.answer, dispositions: turnDispositions,
+        },
+      );
+    }
   }
 
   const generationFailed = generationFailureOf(snap);

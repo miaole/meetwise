@@ -19,7 +19,7 @@ function tagged(tier: 'quality' | 'fast', ms: number): ModelClient {
   const raw: Record<string, () => ModelResult> = {
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
     'interviewer.ask': () => ({ ok: true, raw: { q: '结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性', refs: [] } }),
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, relevant: true, evidence: [{ criterion: '讲清了', quote: '滑动窗口' }] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '滑动窗口' }] } }),
   };
   return { async complete(req) { hits.push({ tier, service: req.service }); await sleep(ms); return (raw[req.service] ?? (() => ({ ok: false, kind: 'deterministic' as const })))(); } };
 }
