@@ -525,6 +525,12 @@ export class InterviewService {
   // 新建面试(空壳,created)。begin 才扣额度跑图。
   // **幂等**:同一用户同一时刻只保留一个进行中会话——连点/重复提交不再各插一条(用户实测点 3 次出 3 条 = 这里没幂等)。
   // 未结束(非 completed/abandoned/failed)就复用既有;复用后再 begin 由 begin 的 alreadyBegun 幂等兜住(不重复扣费)。
+  // FENCE-REFLOW F1(#241/新-#274):复用查询加 `interview_privacy_active` + `application_id IS NULL` 两过滤——
+  //   围栏面试(interview_privacy_active=false)被旧查询当"进行中"复用 → begin/abandon 全 410 → C 端永久无法新建;
+  //   B 端岗位绑定面试(application_id≠NULL,recruiter 直插)同为非终态时不得被 C 端练习 create 捞走(新-#274)。
+  //   只此三过滤(status NOT IN + 上述两谓词),禁再加任何第三谓词(破下方单会话幂等立法);
+  //   list() 既有 interview_privacy_active 谓词零改(同过滤面对齐)。
+  //   锚点漂移登记:审计引 create :513-527/复用查询 :519-521 @f47670e6 实树 :525-538/:531-532,rebase 后本文件 :528-541/:534-535(语义同形)。
   async create(principal: string) {
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'interview.create');   // PRIV01-C 第二层 E1(fail-closed)
@@ -532,7 +538,7 @@ export class InterviewService {
       // advisory 事务锁串行化同用户并发"开始面试",防两次点击 check-then-act 竞态各 INSERT 一条。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', [owner, 'iv-create']);
       const open = await c.query(
-        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单)
+        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') AND interview_privacy_active(id) AND application_id IS NULL ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单);围栏/B 端绑定不复用(F1)
       if (open.rowCount! > 0) return { interviewId: open.rows[0].id, status: open.rows[0].status, reused: true };
       const id = newEntityId('iv');
       await c.query("INSERT INTO interview(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner]); // RLS WITH CHECK owner=principal

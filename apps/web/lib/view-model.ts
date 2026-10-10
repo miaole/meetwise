@@ -35,6 +35,15 @@ export function interviewDisplay(v: InterviewView): Display {
     return { heading: '网络中断', message: '正在用同一面试重连,已答内容不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
   }
   // 非法 Last-Event-ID / 重连耗尽：连接已关且非终态 → 失败关闭出口，不当成仍可作答。
+  // F6/#243 围栏出口（同一句话）：SSE 410 interview_privacy_fenced → 驱动停转不重连 → 复用上方 degraded
+  // 出口形（heading/action/degraded 同形，:40 家族），message=「该面试已进入数据删除流程，请新建面试」逐字。
+  if (v.privacyFenced && v.connection === 'closed') {
+    return {
+      heading: '练习连接已停止',
+      message: '该面试已进入数据删除流程，请新建面试',
+      spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+    };
+  }
   if (v.degraded && v.connection === 'closed' && !isTerminal(v.phase)) {
     return {
       heading: '练习连接已停止',

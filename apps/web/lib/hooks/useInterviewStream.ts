@@ -6,7 +6,7 @@
 import { useEffect, useRef } from 'react';
 import { runInterviewStream } from '../stream/interview-stream';
 import { initialView, type InterviewView } from '../stream/interview-state';
-import { iterateSseBody, lastEventIdHeaderValue } from '../stream/sse-cursor';
+import { iterateInterviewSseBody, lastEventIdHeaderValue } from '../stream/sse-cursor';
 import { interviewDisplay, type Display } from '../view-model';
 import { useFrameCoalescedState } from './useFrameCoalescedState';
 
@@ -16,7 +16,7 @@ async function* openSse(resultId: string, lastEventId: number, signal?: AbortSig
   const cursor = lastEventIdHeaderValue(lastEventId);
   if (cursor !== undefined) headers['last-event-id'] = cursor;
   const res = await fetch(`/api/interview/${encodeURIComponent(resultId)}/events`, { headers, signal });
-  yield* iterateSseBody(res); // 400 非法游标抛错 → 驱动停转;401/404/502 空结束 → 驱动重连
+  yield* iterateInterviewSseBody(res); // 400 非法游标抛错 → 驱动停转;410 围栏抛错 → 驱动停转不重连直接围栏出口(F6);401/404/502 空结束 → 驱动重连
 }
 
 export interface UseInterviewStream { view: InterviewView; display: Display; }

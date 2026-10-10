@@ -27,6 +27,33 @@ export function isInvalidLastEventIdError(err: unknown): err is InvalidLastEvent
 }
 
 /**
+ * FENCE-REFLOW F6/#243: HTTP 410 on the interview SSE stream means the interview is
+ * privacy-fenced (`interview_privacy_fenced`).  The Next proxy passes 410 through with a
+ * swapped body (`stream_unavailable`), so the fence is only observable as a **status** —
+ * the criterion is status-based, never body-code-based.  Retrying/reconnecting cannot
+ * repair a permanent fence: drivers must stop (no reconnect) and surface the fenced exit.
+ * Quiz/diagnosis streams are out of audit scope for #243 and keep the unchanged
+ * `iterateSseBody` (410 = empty end = bounded reconnect there).
+ */
+export const INTERVIEW_PRIVACY_FENCED = 'interview_privacy_fenced' as const;
+
+export class InterviewPrivacyFencedError extends Error {
+  readonly code = INTERVIEW_PRIVACY_FENCED;
+  constructor() {
+    super(INTERVIEW_PRIVACY_FENCED);
+    this.name = 'InterviewPrivacyFencedError';
+  }
+}
+
+export function isInterviewPrivacyFencedError(err: unknown): err is InterviewPrivacyFencedError {
+  if (err instanceof InterviewPrivacyFencedError) return true;
+  if (!(err instanceof Error)) return false;
+  return err.name === 'InterviewPrivacyFencedError'
+    || (err as { code?: string }).code === INTERVIEW_PRIVACY_FENCED
+    || err.message === INTERVIEW_PRIVACY_FENCED;
+}
+
+/**
  * Encode the resumable cursor. 0 / absent → no header (full replay from seq>0).
  * Non-safe integers (`Infinity`, decimals, negatives, NaN) must never become `Last-Event-ID`.
  */
@@ -43,6 +70,11 @@ export function throwIfInvalidLastEventIdStatus(status: number): void {
   if (status === 400) throw new InvalidLastEventIdError();
 }
 
+/** HTTP 410 on the interview SSE open is a privacy fence: fatal, no reconnect (F6, status-based). */
+export function throwIfPrivacyFencedStatus(status: number): void {
+  if (status === 410) throw new InterviewPrivacyFencedError();
+}
+
 /** Read an opened SSE Response: 400 → fatal; other non-OK → empty (driver reconnects). */
 export async function* iterateSseBody(res: Response): AsyncGenerator<string> {
   throwIfInvalidLastEventIdStatus(res.status);
@@ -54,6 +86,13 @@ export async function* iterateSseBody(res: Response): AsyncGenerator<string> {
     if (done) return;
     yield dec.decode(value, { stream: true });
   }
+}
+
+/** Interview-flow entry: adds the 410 fence stop channel on top of `iterateSseBody` (F6).
+ *  Quiz/diagnosis keep `iterateSseBody` unchanged (#243 audit scope = interview stream). */
+export async function* iterateInterviewSseBody(res: Response): AsyncGenerator<string> {
+  throwIfPrivacyFencedStatus(res.status);
+  yield* iterateSseBody(res);
 }
 
 /** Next SSE proxy: keep 400 visible to the browser; other failures stay generic unavailable. */
