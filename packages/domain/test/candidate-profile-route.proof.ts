@@ -8,18 +8,19 @@ import {
 } from '../src/index.ts';
 
 let fail = 0;
-const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
+let total = 0;
+const A = (n: string, c: boolean) => { total++; console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 
 const FIXTURE_DIR = join(dirname(fileURLToPath(import.meta.url)), 'fixtures', 'candidate-route-samples');
 
-/* ── 0. 策略版本（§1.2 机制守护 iv · rev3 R3-1 升版强制）────────────────────────────── */
-A('CANDIDATE_ROUTE_POLICY_VERSION = candidate-route-2026-10-frozen:v3（改词典+改仲裁=改路由语义，升版强制）',
-  CANDIDATE_ROUTE_POLICY_VERSION === 'candidate-route-2026-10-frozen:v3');
+/* ── 0. 策略版本（§1.2 机制守护 iv · rev3 R3-1 升版强制 · v4 #270 增量面随演）────────────────── */
+A('CANDIDATE_ROUTE_POLICY_VERSION = candidate-route-2026-10-frozen:v4（#270 更强证据闸=改仲裁语义，升版强制·词典本体零改）',
+  CANDIDATE_ROUTE_POLICY_VERSION === 'candidate-route-2026-10-frozen:v4');
 A('taxonomy 恒 v1（0142 零迁移面：词典/仲裁收紧不动叶分类法）', CANDIDATE_ROUTE_TAXONOMY_VERSION === 'v1');
 A('allocation 恒 10000bps 单叶（降级兜底也是单叶全分配，非多桶加权）', CANDIDATE_ROUTE_ALLOCATION_BPS === 10000);
-A('policyVersion 进 decision_hash：同输入 v2/v3 决策行身份自然区分（幂等回读不串版）',
-  candidateRouteDecisionHash({ interviewId: 'i', resumeId: 'r', inputDigest: 'd', leafTrackId: 'backend/general', allocationBps: 10000, policyVersion: 'candidate-route-2026-10-frozen:v2' })
-    !== candidateRouteDecisionHash({ interviewId: 'i', resumeId: 'r', inputDigest: 'd', leafTrackId: 'backend/general', allocationBps: 10000, policyVersion: 'candidate-route-2026-10-frozen:v3' }));
+A('policyVersion 进 decision_hash：同输入 v3/v4 决策行身份自然区分（幂等回读不串版）',
+  candidateRouteDecisionHash({ interviewId: 'i', resumeId: 'r', inputDigest: 'd', leafTrackId: 'backend/general', allocationBps: 10000, policyVersion: 'candidate-route-2026-10-frozen:v3' })
+    !== candidateRouteDecisionHash({ interviewId: 'i', resumeId: 'r', inputDigest: 'd', leafTrackId: 'backend/general', allocationBps: 10000, policyVersion: 'candidate-route-2026-10-frozen:v4' }));
 
 /* ── 1. fixture 语料（rev3 R3-4：≥30 份 · 审计验收原文目录）────────────────────────── */
 type Expect = { leaf: string; degraded: boolean; from?: 'ambiguous_language_evidence' | 'no_signal_hit' };
@@ -69,6 +70,12 @@ const EXPECT: Record<string, Expect> = {
   'ce2-nodejs-backend-automated-test.txt': { leaf: 'backend/general', degraded: true, from: 'ambiguous_language_evidence' },
   'ce3-golang-backend-automated-test.txt': { leaf: 'backend/general', degraded: true, from: 'ambiguous_language_evidence' },
   'ce4-frontend-automated-test-not-qa.txt': { leaf: 'backend/general', degraded: true, from: 'ambiguous_language_evidence' },
+  /* v4 #270 增量面（LEDGER :247 裁定并 #201·issues-master :352 实跑样本「后端开发 Redis MySQL 自动化测试」入册）：
+     general+单叶为 qa/ai_ml 时泛词/实践级弱证据不再直取该叶（更强证据闸），强证据仍取（正臂零误伤）。 */
+  'ce5-backend-general-automated-test.txt': { leaf: 'backend/general', degraded: true, from: 'ambiguous_language_evidence' },
+  'ce6-backend-rag-embedding-not-ai.txt':   { leaf: 'backend/general', degraded: true, from: 'ambiguous_language_evidence' },
+  'ce7-backend-ml-strong-evidence-ai.txt':  { leaf: 'ai_ml/applied', degraded: false },
+  'ce8-backend-qa-strong-evidence.txt':     { leaf: 'qa/quality_engineering', degraded: false },
 };
 
 const files = readdirSync(FIXTURE_DIR).filter((f) => f.endsWith('.txt')).sort();
@@ -96,8 +103,8 @@ const undecided = files.filter((f) => outcomes.get(f)!.decided === false);
 A('后端类（全语料）candidate_route_undecided 计数 = 0（v3 降级臂下分类器对非空输入恒 decided）',
   undecided.length === 0);
 const landedQa = files.filter((f) => outcomes.get(f)!.decided && outcomes.get(f)!.leafTrackId === 'qa/quality_engineering');
-A('#270 反例不落 qa：落 qa 的恰为纯 QA 类（s09/s14/q1/q2/q3），「后端+自动化测试」零落 qa',
-  landedQa.join(',') === 'q1-qa-dev-selenium.txt,q2-qa-software-jmeter.txt,q3-qa-sdet-api.txt,s09-qa-selenium.txt,s14-qa-tester-mysql.txt');
+A('#270 反例不落 qa：落 qa 的恰为纯 QA 类+强证据正臂（s09/s14/q1/q2/q3/ce8），「后端+裸自动化测试」零落 qa',
+  landedQa.join(',') === 'ce8-backend-qa-strong-evidence.txt,q1-qa-dev-selenium.txt,q2-qa-software-jmeter.txt,q3-qa-sdet-api.txt,s09-qa-selenium.txt,s14-qa-tester-mysql.txt');
 const degradedAll = files.filter((f) => { const r = outcomes.get(f)!; return r.decided && r.degraded; });
 A('降级臂形态守恒：degraded 结果必为 backend/general @10000bps 且携 from 信号',
   degradedAll.length > 0 && degradedAll.every((f) => {
@@ -132,5 +139,25 @@ A('守护 R3-3：空输入 → profile_empty 未决（唯一剩余 undecided；d
 A('退役面：no_signal_hit / ambiguous_language_evidence 不再作为未决拒因产出（仅存于 degradedFrom 对账信号）',
   (() => { const r: ReturnType<typeof classifyCandidateProfileByRule> = g2; return r.decided && r.degradedFrom === 'no_signal_hit' && !('reason' in r); })());
 
-console.log(`\n${fail === 0 ? `✓ #133 ROUTE-DICT 词典 v3 + 409 退役降级臂全部通过（fixture ${files.length} 份 · 断言 ${33 + files.length} 项）` : '✗ ' + fail + ' 失败'}`);
+/* ── 5. v4 #270 更强证据闸机制守护（in-file·0 次模型外发·零 409 现状不改）────────────────── */
+const v4a = classifyCandidateProfileByRule('后端开发 Redis MySQL 自动化测试');
+A('v4-a issues-master :352 实跑样本：后端+Redis+MySQL+自动化测试 → general 歧义兜底（不再静默落 qa·零 409）',
+  v4a.decided === true && v4a.leafTrackId === 'backend/general' && v4a.degraded === true && v4a.degradedFrom === 'ambiguous_language_evidence');
+const v4b = classifyCandidateProfileByRule('后端工程师，使用 RAG 检索和 embedding 向量存储');
+A('v4-b ai_ml 同闸：后端+裸 rag/embedding（弱证据）→ general 歧义兜底（不静默落 ai_ml）',
+  v4b.decided === true && v4b.leafTrackId === 'backend/general' && v4b.degraded === true && v4b.degradedFrom === 'ambiguous_language_evidence');
+const v4c = classifyCandidateProfileByRule('后端工程师，Redis，机器学习平台建设');
+A('v4-c 强证据正臂：后端+机器学习（岗位自述级）→ decided ai_ml 零误伤（闸只拦弱证据）',
+  v4c.decided === true && v4c.leafTrackId === 'ai_ml/applied' && v4c.degraded === false);
+const v4d = classifyCandidateProfileByRule('后端开发，MySQL，测试工程师');
+A('v4-d 强证据正臂：后端+测试工程师（岗位自述级）→ decided qa 零误伤',
+  v4d.decided === true && v4d.leafTrackId === 'qa/quality_engineering' && v4d.degraded === false);
+const v4e = classifyCandidateProfileByRule('后端工程师，React 组件');
+A('v4-e 语言叶优先序零翻：general+唯一语言叶 → 仍直取语言叶（闸不列语言叶=不受闸）',
+  v4e.decided === true && v4e.leafTrackId === 'frontend/web' && v4e.degraded === false);
+const v4f = classifyCandidateProfileByRule('自动化测试');
+A('v4-f v3 g6 形零翻：裸「自动化测试」单独在场（唯一命中）→ 仍 decided qa（单叶臂=强证据）',
+  v4f.decided === true && v4f.leafTrackId === 'qa/quality_engineering' && v4f.degraded === false);
+
+console.log(`\n${fail === 0 ? `✓ #133 ROUTE-DICT 词典 v3 + v4 #270 更强证据闸 + 409 退役降级臂全部通过（fixture ${files.length} 份 · 断言 ${total} 项）` : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

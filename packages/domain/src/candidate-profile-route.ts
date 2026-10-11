@@ -7,6 +7,9 @@
  * 未决 409，降级兜底 `backend/general` 并携带 degraded 信号（审计裁定：409 拒绝启动比泛化路由
  * 伤害更大——用户旅程第 4 断点）；begin 侧 409 `candidate_route_undecided` 路径保留仅作防御
  * （结构性不可达），`profile_unavailable`（简历缺失/解密失败）仍 fail-closed 409。
+ * v4（#270 增量面·LEDGER :247 裁定并 #201）：general+单叶为 qa/ai_ml 时须**岗位自述级强证据**
+ * 才取该叶（CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS 证据分级闸）——裸泛词（如「自动化测试」）
+ * 不再压过 general 静默改道；词典本体/降级臂/409 防御面/语言叶优先序零改（零 409 现状不改）。
  *
  * HARD（G7S REQUEST 77989c49 · pre-exec dual BOTH PASS d43787e0 + 83b90a3d · C-MO-S1/S2）：
  *  - Ban 冒用 job 维度 `job_route_decision`/`job_semantic_revision`（岗位语义 ≠ 能力语义）；
@@ -25,8 +28,9 @@ import { TAXONOMY_V1_LEAVES, type TaxonomyLeaf } from './job-route-classifier.ts
 
 /** 候选人面与 job 面共用同一叶分类法（面试 track 域一致），taxonomy 版本沿 v1。 */
 export const CANDIDATE_ROUTE_TAXONOMY_VERSION = 'v1';
-/** 冻结策略版本：改词典/优先序 = 改路由语义，必须升版本。v3 = #133 rev3（词典收紧 + 409 退役降级臂）。 */
-export const CANDIDATE_ROUTE_POLICY_VERSION = 'candidate-route-2026-10-frozen:v3';
+/** 冻结策略版本：改词典/优先序 = 改路由语义，必须升版本。v3 = #133 rev3（词典收紧 + 409 退役降级臂）。
+ *  v4 = #270 增量面（general+单叶为 qa/ai_ml 的更强证据闸·词典本体零改，仲裁面收窄）。 */
+export const CANDIDATE_ROUTE_POLICY_VERSION = 'candidate-route-2026-10-frozen:v4';
 /** 候选人面 decision 无 revision 链（简历内容 sha 定身份），恒 1。 */
 export const CANDIDATE_ROUTE_REVISION = 1;
 /** rule 唯一叶语义：命中即 100% 单叶分配（0 或 ≥2 specific → v3 降级臂 backend/general 兜底）。 */
@@ -49,8 +53,10 @@ export const CANDIDATE_ROUTE_LEAF_RE = /^[a-z][a-z0-9_]*(?:\/[a-z][a-z0-9_]*){0,
  * 观察项不动清单（登记不改）：spring/express/angular/tornado/前端/后端开发/测开（漏收实词·保守）/
  * 「自动化」裸词（有意排除）；`推荐算法`/`搜索算法` 刻意不收（后端推荐/搜索系统工程师真实存在）。
  */
-const CANDIDATE_PROFILE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> = {
-  'backend/general': [
+/** #201(#270 同域·planner 能力-叶子相关性)导出：leaf→领域证据词表（与上方路由表同源单源，零复制）。
+ *  消费面=worker planner businessValidate 相关性闸（competencyMatchesLeafDomain）；表语义零改——
+ *  只是加 export，路由决策面(classifyCandidateProfileByRule)与 decisionHash 链零触。 */
+export const CANDIDATE_PROFILE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> = {  'backend/general': [
     '后端工程师', '后端开发', '服务端', 'backend engineer',
     'redis', 'mysql', 'postgresql', '消息队列', '消息中间件', '分布式锁', '分库分表',
     '高并发', '幂等', '限流', '微服务', 'kafka', 'rabbitmq', 'nginx', 'outbox',
@@ -77,8 +83,19 @@ const CANDIDATE_PROFILE_SIGNALS: Record<TaxonomyLeaf, readonly string[]> = {
   'ai_ml/applied': ['机器学习', '深度学习', '大模型', 'llm', 'rag', 'nlp', '人工智能', 'pytorch', 'tensorflow', 'embedding', 'langchain', '算法工程师', '算法专家', '机器学习算法'],
 };
 
-const normalize = (t: string) => t.normalize('NFKC').trim();
+/**
+ * #270 更强证据闸（v4 增量面②·词典本体零改）：qa/ai_ml 两叶的**岗位自述级强证据 token**（职业/领域名，
+ * 全部为上方路由表既有成员的子集——零新增词、零删词）。表外叶（语言叶等）不列=不受闸（语言叶优先序零翻）。
+ * 语义：general+单叶为 qa/ai_ml 时，仅泛词/实践级弱证据（如裸「自动化测试」「rag」——表内其余成员）
+ * 命中不足以压过 general 直取该叶，须命中本表强证据 token 才取；裸 token 单独在场（该叶为唯一命中）
+ * 仍走单叶臂=强证据（v3 g6 形零翻）。纯数据面·0 次模型外发·同输入同决策（C-HA-2）。
+ */
+export const CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS: Partial<Record<TaxonomyLeaf, readonly string[]>> = {
+  'qa/quality_engineering': ['qa', '质量工程', 'sdet', '测试开发', '测试工程师', '软件测试'],
+  'ai_ml/applied': ['机器学习', '深度学习', '人工智能', 'pytorch', 'tensorflow', 'langchain', '算法工程师', '算法专家', '机器学习算法'],
+};
 
+const normalize = (t: string) => t.normalize('NFKC').trim();
 /** ASCII token 用词边界匹配（避免 `go` 命中 `google`、`java` 命中 `javascript`）；CJK 用子串匹配。 */
 function signalMatches(text: string, token: string): boolean {
   if (/^[A-Za-z0-9.+# ]+$/.test(token)) {
@@ -126,6 +143,10 @@ export type CandidateProfileRouteRuleResult =
  * rule 分类（0 次模型外发）：
  *  - 恰 1 叶命中 → 该叶 @10000bps；
  *  - 通用后端叶与唯一语言叶并存 → 优先序取语言叶（语言专精证据压过通用栈证据）；
+ *  - v4 #270 更强证据闸：通用后端叶与唯一 qa/ai_ml 叶并存 → 该叶须命中**岗位自述级强证据 token**
+ *    （CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS）才取；仅泛词/实践级弱证据（如裸「自动化测试」）→ 不直取，
+ *    落下方 v3 歧义降级臂（general 兜底 + degraded·零 409）——后端简历只因提到「自动化测试」被静默分入
+ *    qa 题库的误判路径(#270 原文)由此关闭；裸 token 单独在场（该叶为唯一命中）仍走恰 1 叶臂=强证据；
  *  - v3 降级臂（rev3 R3-1 · 审计 #133）：≥2 specific 叶歧义 / 0 叶命中 → `backend/general`
  *    兜底 @10000bps + degraded 信号（不再 409，「绝不多桶推断」冻结条款经用户决策凌驾解除）；
  *  - 空输入 → profile_empty（db 侧 profile_unavailable → 409 防御面保留，R3-3）。
@@ -136,8 +157,14 @@ export function classifyCandidateProfileByRule(raw: string): CandidateProfileRou
   const hits = TAXONOMY_V1_LEAVES.filter((leaf) => CANDIDATE_PROFILE_SIGNALS[leaf].some((t) => signalMatches(text, t)));
   if (hits.length === 1) return { decided: true, leafTrackId: hits[0]!, allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: false };
   const specific = hits.filter((l) => l !== 'backend/general');
-  if (hits.includes('backend/general') && specific.length === 1)
-    return { decided: true, leafTrackId: specific[0]!, allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: false };
+  if (hits.includes('backend/general') && specific.length === 1) {
+    // v4 #270 更强证据闸（specific 过滤语义零改，闸只落在「取该叶」决定点上）：qa/ai_ml 单叶在 general
+    // 并存时须强证据 token 才取；语言叶不列本表=不受闸（优先序零翻）。弱证据不在此 return → 落歧义降级臂。
+    const only = specific[0]!;
+    const profession = CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS[only as TaxonomyLeaf];
+    if (!profession || profession.some((t) => signalMatches(text, t)))
+      return { decided: true, leafTrackId: only, allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: false };
+  }
   // v3 降级臂：多桶不可判定（≥2 specific）与零命中均选最大覆盖面桶（general）并携带 degraded。
   if (hits.length === 0)
     return { decided: true, leafTrackId: 'backend/general', allocationBps: CANDIDATE_ROUTE_ALLOCATION_BPS, degraded: true, degradedFrom: 'no_signal_hit' };

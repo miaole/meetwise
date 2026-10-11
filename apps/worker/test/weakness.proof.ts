@@ -79,14 +79,14 @@ function staticSections() {
   A('S11 consumer 解析+下传 startAdaptiveInterview', /const focus = parseFocusPayload\(requestContext\.focus\);/.test(consumer)
     && /startAdaptiveInterview\(life, role, admitted\.ok && admitted\.resumeProfileAvailable \? facts : \[\], focus\)/.test(consumer));
 
-  section('S-D R2④⑤ lifecycle→planner prompt v3（上一轮评估摘要=criterion+弱点标签·fix-roadmap :97）');
+  section('S-D R2④⑤ lifecycle→planner prompt v4（上一轮评估摘要=criterion+弱点标签·fix-roadmap :97·v4=#200-A/#201 随演）');
   A('S12 startAdaptiveInterview 第 4 形参 focus', /export function startAdaptiveInterview\(d: AdaptiveLifecycleDeps, role: string, facts: string\[\], focus\?\: string\[\]\)/.test(lifecycle));
-  A('S13 planCompetencies 第 7 实参 focus', /planCompetencies\(d\.pool, d\.owner, d\.interviewId, d\.fastModel \?\? d\.model, role, plannerFacts, focus\)/.test(lifecycle));
+  A('S13 planCompetencies 第 7 实参 focus(+v4 第 8/9 实参 quizQuestions/routeLeaf·#200-A/#201)', /planCompetencies\(d\.pool, d\.owner, d\.interviewId, d\.fastModel \?\? d\.model, role, plannerFacts, focus, d\.quizQuestions, d\.routeLeaf\)/.test(lifecycle));
   A('S14 makeDeps focusWeaknesses(→plan 节点 initMind R3)', /makeDeps\(d, competencies, resumeProfileAvailable, undefined, grounding\.pool, focus\)/.test(lifecycle)
     && /focusWeaknesses: d\.focusWeaknesses,/.test(aisvc));
-  A('S15 planCompetencies 第 7 形参+prompt focusWeaknesses', /facts: string\[\], focus\?\: string\[\]\)/.test(aisvc)
-    && /\{ role, facts, focusWeaknesses: focus \}/.test(aisvc));
-  A('S16 prompt ' + "'planner.competencies'" + ' 升 v3(注册表纪律:改 prompt=升 version)', /service: 'planner\.competencies', version: 'v3',/.test(prompts));
+  A('S15 planCompetencies 第 7-9 形参+prompt focusWeaknesses/quizQuestions', /facts: string\[\], focus\?\: string\[\], quizQuestions\?\: string\[\], relevanceLeaf\?\: string\)/.test(aisvc)
+    && /\{ role, facts, focusWeaknesses: focus, quizQuestions \}/.test(aisvc));
+  A('S16 prompt ' + "'planner.competencies'" + ' 升 v4(注册表纪律:改 prompt=升 version·v4=#200-A 押题 data 段)', /service: 'planner\.competencies', version: 'v4',/.test(prompts));
   A('S17 prompt v3 上一轮弱点标签段(buildData additive·缺省逐字节回退)', /上一轮弱点标签/.test(prompts) && /focusWeaknesses as string\[\] \| undefined/.test(prompts));
   A('S18 难度/信心隔离铁律钉死(prompt 明示非难度信号)', /仅提示考什么·非难度信号/.test(prompts));
 
