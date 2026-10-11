@@ -1,6 +1,6 @@
 # EVIDENCE-DELIVERY — 逐题评分证据四断口接线刀（criterion 数组随事件/转写带出+报告页退役冒充 · EXEC REQUEST）
 
-**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**） → **`executed:awaiting_post_prove_dual`**（EXEC `eviddel-exec` 2026-10-10 完工·rebase `df12a054` 干净·C1-C13 逐条落位·锚点漂移表 D9/D11/D-evid+O-a..O-d 勘误入 `receipts/evidence-delivery/2026-10-10-exec-prove.md`·web prove EXIT=0·interview:prove EXIT=0·api:validate EXIT=0·neg:interview EXIT=0·scoring-integrity/stress 既有 base 红如实记（pristine 对照+SCORE-WRITER S2 在先登记同形佐证）·est live=0·零迁移·markers=0·pins 十一值零翻转·完工≠收口·post-prove dual 待开）
+**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**） → **`executed:awaiting_post_prove_dual`**（EXEC `eviddel-exec` 2026-10-10 完工·rebase `df12a054` 干净·C1-C13 逐条落位·锚点漂移表 D9/D11/D-evid+O-a..O-d 勘误入 `receipts/evidence-delivery/2026-10-10-exec-prove.md`·web prove EXIT=0·interview:prove EXIT=0·api:validate EXIT=0·neg:interview EXIT=0·scoring-integrity/stress 既有 base 红如实记（pristine 对照+SCORE-WRITER S2 在先登记同形佐证）·est live=0·零迁移·markers=0·pins 十一值零翻转·完工≠收口·post-prove dual 待开） → **`nailed`**（post-prove 双席 BOTH PASS @2026-10-11·原文保留）
 **Date**: 2026-10-07（起草席 mw-eviddel-draft）· rev2 2026-10-07（修订席 mw-eviddel-rev2·预执行双审双席 BOTH PASS 附 P1-P4 处方·逐字落位·除处方外冻结）
 **Base**: `origin/feat/mysql-schema-skeleton` @`5e1e7fde` · 分支 `line/evidence-delivery`（工作树 `meetwise-line-eviddel`）
 **立项依据**: `ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` §接线债审计收编（2026-10-09 归档·EVIDENCE-DELIVERY 产品偏移级·A1+A2+C1 连带）+ EXTREV-7 三铁律（交付/隐私流量/简化优先）。
@@ -177,3 +177,33 @@
 **渲染级限度**：page 渲染层无 DOM 级自动化断言（P3 组件测试 Ban 既定限度·收据如实披露）——源级静态断言+AnnotationCard 未改签名封住风险·后继解禁可补。
 
 **Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @eae56953·逐题评分证据「指出哪里可以补」到达用户眼前·接线债 A1+A2+C1 正式清偿·markers=0·est live=0）。
+
+---
+
+## nail 补全卷（2026-10-11 · 状态行 append + 双审六登记项随落 + merge 后 prove 复验 · nail 席）
+
+**收口方式**：主线 `feat/mysql-schema-skeleton` @`88459afb`（ha-6 并发席位同 worktree 收口让行后）执行 `git merge line/evidence-delivery` → **Already up to date EXIT=0·零冲突**——分支 tip `afb13fcf` 已于 2026-10-10 经 `eae56953`（第二亲本恰为 `afb13fcf`）并入主线。派单预期冲突面（LEDGER 双写）未现：EXEC 提交 `afb13fcf` 未触 LEDGER（`--stat` 亲证 27 文件=15 码+1 REQUEST+11 收据·LEDGER 零字节）。本节随勘误 commit 落卷（收口允许「merge 后追加勘误 commit」形）。
+
+**双审六登记项（席1 实现核对 R1-R3 + 席2 验收回归 ①-③·逐项 nail 席亲核后随 nail 落）**：
+
+- **R1（纯数字勘误）**：EXEC 卷语「15 文件 +190/−64」实为 **+226/−63**——终态实测 `git diff --stat df12a054..afb13fcf -- apps packages` = 15 files changed, 226 insertions(+), 63 deletions(-)·触碰集分毫不差（15 码文件与收据 §1 逐条对位）。
+- **R2**：`apps/web/tsconfig.tsbuildinfo` 随 EXEC 入卷更新（typecheck 副产物·SCORE-WRITER S2 `50cb3238` 在先同形·零产品影响·沿先例不追删）。
+- **R3（收据锚微漂三处·±1~5·沿 O-c 惯例可容忍·后续对称引用刷新）**：C1 `state.ts` 证据块今居 **:38-43**（收据记 :31-38）·C2 `evaluate-answer.ts` 投影今居 **:176**（收据记 :161-181 区段）·消费面 `evaluateOutcomeFromValue` 今居 **:313**（收据 D11 记 :312）——nail 席三处逐行亲读属实。
+- **席2①**：收据头部 diff --stat 滑差=R1 同源（同勘误合并登记·不重复计）。
+- **席2②**：REQUEST §4.4 两点名回归面未跑未记账——`turn-idempotency:prove`（LEDGER:238 在先基线红）·`prove:adaptive-flow`（仅 import 未触）——幂等语义已由 scoring-report-integrity ① 三断言实质覆盖·**补记「nail 后刀候选」**（后续刀面补跑补账）。
+- **席2③**：D11 锚 ±1 行（:312→:313·与 R3 消费面同漂·合并登记）。
+
+**merge 后 prove 复验（主线并后态·2026-10-11 nail 席亲跑·六键）**：
+
+| 键 | EXIT | PASS | 双审基线(2026-10-10) | 判读 |
+|---|---|---|---|---|
+| web:prove | 0 | 353 | 269 | ≥基线·+84=在册后继刀（regfix/g3/i2-b 等）断言增补（I2 族亲见）·零红 |
+| interview:prove | 0 | **57** | 57 | 恰合基线·EVIDENCE-DELIVERY S1 出② 节在场（log :35-36） |
+| api:validate | 0 | **204** | 204 | 恰合基线·EVDEL 专有 owner 面 `/interview/EVDEL/transcript` 在场 |
+| neg:interview | 0 | 102 | 97 | ≥基线·+5=后继刀负路径增补·零红 |
+| scoring-integrity:prove | 1 | — | base 红 | **同形**（同 FAIL 句+proof.ts:116:50 hasOwn·与在先收据逐字对位）=如实 |
+| stress:prove | 1 | — | base 红 | **同形**（7 项失败·同 FAIL 行）=如实 |
+
+四绿键 EXIT=0·两 base 红同形零新增红→过。本刀 own 断言（interview +3/api +3）随 57/204 恰合基线确认在位。
+
+**Status**: `nailed`（post-prove 双席 BOTH PASS @2026-10-11·merge 收束 @`eae56953`·本卷=状态行+六登记项+六键复验补全·markers=0·est live=0·不 push）。
