@@ -80,10 +80,10 @@ export function QuizPanel({ quizId }: { quizId: string }) {
                         <Badge key={k} variant="outline" className="border-primary/30 bg-secondary/60 text-brand-deep">{r}</Badge>
                       ))}
                     </div>
-                    {/* 追问提示:UI 派生的备战提示(非模型臆造数据)——答得浅,面试官常就考察点深挖。 */}
+                    {/* 备战提示:UI 派生的准备建议(非模型生成的真追问)——答得浅时,真人面试常就考察点深挖;这里给的是准备方向。 */}
                     <p className="flex items-start gap-1.5 text-xs text-muted-foreground">
                       <CornerDownRight className="mt-0.5 size-3.5 shrink-0" />
-                      可能追问：就「{q.refs.join('、')}」追问原理、权衡与踩坑，建议准备具体案例与数据。
+                      备战提示：就「{q.refs.join('、')}」准备原理、权衡与踩坑，建议备好具体案例与数据。
                     </p>
                   </div>
                 )}
