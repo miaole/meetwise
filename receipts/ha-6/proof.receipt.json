@@ -1,0 +1,28 @@
+{
+  "receipt": "ha-6/proof",
+  "carrier": "scripts/ha/ha6-companion.proof.mjs",
+  "registeredAs": "pnpm ha6:prove（root package.json additive · 既有 592 script 键零删改）",
+  "canonicalRun": {
+    "CMD": "pnpm ha6:prove",
+    "EXIT": 0,
+    "assertions": "76 PASS / 0 FAIL",
+    "pins": "haStatus: NOT_HA · releaseEvidence: false · claimProductionHA: false",
+    "readings": "P=12 steady=76 headroom=21 worstCaseCoLocated=148 pgAppCap=97 · stubs=85 enumerated :? distinct (245 refs) + 1 explicit knob = 86 · four services inherit PGPOOL_MAX=\"12\" · api/worker/web absent via profiles ha-disabled · 13 流 census 全等 · pgbouncer 四面零命中（1469 text files scanned, proof self-excluded）· max_connections docker 面零命中 · apps/api/package.json redis 零命中"
+  },
+  "attemptLedger": [
+    { "attempt": 1, "exit": 1, "fail": 1, "cause": "census receipt flow #10 current 列笔者在值后加注（「6 concurrent（PARSE_MAX :20 默认 6）」）与 ha-1 current 列逐字不等——收据文本对齐缺陷，非码面漂移非判据放水；修=对齐 ha-1 逐字值、注记移入独立 note 字段" },
+    { "attempt": 2, "exit": 0, "fail": 0, "cause": "绿（pre-commit）" },
+    { "attempt": 3, "exit": 0, "fail": 0, "cause": "EXEC 收卷自检发现 attempt2 版 proof 存在测试缺陷：A1/A5 以 git diff HEAD 为基线，commit 后基线空转（恰一行 numstat 断言在已提交树上必假红）——修=治理基线锚定 REQUEST 落卷提交 8ba93f0b（diff <baseline> -- path·commit 前后同读数·同时捕获未提交/已提交越触）；判据强度只增不减，非放水；修后 post-commit 复跑 EXIT=0 76 PASS 为 canonical" }
+  ],
+  "banRetryToGreenNote": "attempt1=自产收据文本缺陷（值零漂）；attempt3=proof 自身基线锚缺陷（判据只强不弱）——均非判据放水、非码面漂移，如实全账",
+  "b1Disposition": "CUT（协调方裁定裁撤沙箱 PG 活体探针）：沙箱 max_connections 镜像默认 100 与生产云参数不同值不可外推 + 静态断言已闭合三风险面（A1/A2/A4）+ est live=0 全保；无需 MEETWISE_HA6_PROOF_AUTHORIZED",
+  "regressionAccounting": [
+    { "item": "ha-track.skeleton.proof.mjs（既有 ha proof 抽查）", "status": "RUN", "exit": 0 },
+    { "item": "全仓 tsc", "status": "NOT_RUN", "reason": "本刀产品码零动（码动仅 compose 一行+proof+package.json 注册）——无触面误差可言" },
+    { "item": "既有 prove 矩阵全量", "status": "NOT_RUN", "reason": "按仓现状如实列账：本刀触面=compose/proof/package.json/receipts/docs，全量矩阵归 post-prove 双审/nail 面裁定；零回归断言由 A5 git-diff 零 diff 面承载" }
+  ],
+  "markersGate": "改动集（git diff HEAD + 全部新增文件）按 REQUEST §8 卫生声明的五类标记词 pattern 零命中（该 pattern 字面仅存在于 REQUEST 卷 §8 自引行=唯一豁免·在 HEAD 已提交件内非本改动集；本收据按同 pattern 复检零命中，pattern 字面不复录）",
+  "estLive": 0,
+  "actualSpendCny": null,
+  "note": "prove EXIT=0 ≠ DONE（claimDone=false · 完成判定走 post-prove 双审+nail）· ⛔push · 零生产宿主/生产库/云侧操作 · 零 secrets 入收据"
+}
