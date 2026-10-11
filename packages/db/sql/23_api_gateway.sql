@@ -655,3 +655,78 @@ $$;
 
 REVOKE ALL ON FUNCTION gateway_b_qualitative_projection(text, text) FROM PUBLIC, app_role, app_gateway_role;
 GRANT EXECUTE ON FUNCTION gateway_b_qualitative_projection(text, text) TO app_role;
+
+-- ───────────── I4 INVITE-FACE 受控函数族（0165/0166 镜像住地·函数体+ACL 与迁移文件逐字节同文·0159 RX-3 同款判据）─────────────
+CREATE OR REPLACE FUNCTION gateway_notify_invited(
+  p_recruiter text,
+  p_application_id text
+)
+RETURNS void
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+DECLARE
+  v_app RECORD;
+  v_prev text;
+BEGIN
+  -- ① DB 纵深门：函数内复核 active+approved recruiter（0155·gateway_active_candidate 同族）。
+  PERFORM public.gateway_require_active_recruiter();
+  -- ② owner 谓词 fail-closed：申请必须存在且属于该招聘方。不命中 → 零写零信号（b110 恒定壳红线：
+  --    未命中/不存在不可区分·零副作用）。
+  SELECT id, candidate_user_id, job_id, job_title_snapshot
+    INTO v_app
+    FROM public.job_application
+   WHERE id = p_application_id
+     AND recruiter_user_id = p_recruiter
+   LIMIT 1;
+  IF NOT FOUND THEN
+    RETURN;
+  END IF;
+  -- ③ owner 上下文满足 WITH CHECK（14_notification.sql p_owner·FORCE RLS 零动）：以候选人 principal
+  --    插入；事务局部生效，插入后还原招聘方上下文（防同事务后续 RLS 判定被改写）。
+  v_prev := current_setting('app.principal_user', true);
+  PERFORM set_config('app.principal_user', v_app.candidate_user_id, true);
+  -- ④ 窄接口：kind/payload 固定（裁决项①）·id=ntf_<applicationId> 幂等形·payload 最小集零 PII。
+  INSERT INTO public.notification(id, owner_user_id, kind, payload)
+  VALUES ('ntf_' || v_app.id, v_app.candidate_user_id, 'job_invited',
+          jsonb_build_object('jobId', v_app.job_id, 'jobTitle', v_app.job_title_snapshot))
+  ON CONFLICT (id) DO NOTHING;
+  PERFORM set_config('app.principal_user', COALESCE(v_prev, ''), true);
+END;
+$$;
+
+REVOKE ALL ON FUNCTION gateway_notify_invited(text, text) FROM PUBLIC, app_role, app_gateway_role;
+GRANT EXECUTE ON FUNCTION gateway_notify_invited(text, text) TO app_role;
+
+CREATE OR REPLACE FUNCTION gateway_recruiter_contact_share(
+  p_recruiter text,
+  p_application_ids text[]
+)
+RETURNS TABLE(application_id text, email text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  -- ① DB 纵深门：函数内复核 active+approved recruiter（0155·gateway_active_candidate 同族）。
+  PERFORM public.gateway_require_active_recruiter();
+  -- ② owner 谓词 + 同意门（函数内承重·Ban 旁路）：申请须属于该招聘方，且候选人存在
+  --    purpose='recruiter_contact_share' 同意行——无同意 → 该申请零出参（fail-closed·0160 同意门
+  --    同形；撤回=删行随即停显）。出参恰 (application_id, email) 白名单两列。
+  RETURN QUERY
+    SELECT a.id, u.email
+      FROM public.job_application a
+      JOIN public.user_account u ON u.id = a.candidate_user_id
+     WHERE a.id = ANY(p_application_ids)
+       AND a.recruiter_user_id = p_recruiter
+       AND EXISTS (
+         SELECT 1 FROM public.consent_record cr
+          WHERE cr.owner_user_id = a.candidate_user_id
+            AND cr.purpose = 'recruiter_contact_share'
+       );
+END;
+$$;
+
+REVOKE ALL ON FUNCTION gateway_recruiter_contact_share(text, text[]) FROM PUBLIC, app_role, app_gateway_role;
+GRANT EXECUTE ON FUNCTION gateway_recruiter_contact_share(text, text[]) TO app_role;

@@ -15,7 +15,7 @@ const PAGE = 30;          // 单岗位候选人封顶首屏渲染,"加载更多"
 export const metadata: Metadata = { title: '岗位投递 · 内部预览 · 知面', description: '内部预览：查看该岗位投递的流程状态。不是招聘方产品。' };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
-interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
+interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string; contactEmail?: string | null }
 
 /** B 端(招聘方)岗位详情:看本岗位的候选人列表(多租户 RLS 只见自己岗位)。RSC,await params 取 id,Promise.all 并行取数。 */
 export default async function RecruiterJobCandidatesPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ limit?: string }> }) {
@@ -76,7 +76,12 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
                     const st = applicationStatusLabel(c.status);
                     return (
                       <tr key={c.id} className="border-b last:border-0">
-                        <td className="py-3 pr-4 font-mono">{c.candidate_user_id.slice(0, 8)}</td>
+                        {/* I4 #223 同意门识别列:候选人存在 recruiter_contact_share 同意行时显示其邮箱(0166 受控投影
+                            fail-closed——无同意零出参零显示);8 位 id 截断形制零改(识别=加替代手段非展开完整 id)。 */}
+                        <td className="py-3 pr-4 font-mono">
+                          {c.candidate_user_id.slice(0, 8)}
+                          {c.contactEmail ? <span className="ml-2 font-sans text-xs text-muted-foreground">{c.contactEmail}</span> : null}
+                        </td>
                         <td className="py-3 pr-4 text-xs text-muted-foreground">{c.source === 'invited' ? '招聘方邀请' : '主动投递'}</td>
                         <td className="py-3 pr-4"><Badge variant={st.variant}>{st.text}</Badge></td>
                         <td className="py-3 pr-4 text-muted-foreground">{recruiterAssessmentLabel(c.status, c.score)}</td>

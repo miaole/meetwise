@@ -366,6 +366,18 @@ export const JobView = z.object({
 export type JobView = z.infer<typeof JobView>;
 export const JobList = z.object({ jobs: z.array(JobView) });
 export type JobList = z.infer<typeof JobList>;
+/**
+ * I4 #222 browseJobs 公开收窄面(裁决项②倾向 A):候选人浏览开放岗位回包——零 owner_user_id
+ * (跨租户不暴露内部属主 id·修法列原意);description 保留供投递前可见(与 I3 JD 表单落地时序独立成立)。
+ * JobView/JobList 原形保留给 recruiter 自有面(listJobs/getJob/createJob)零动。
+ */
+export const JobPublicView = z.object({
+  id: z.string(), title: z.string(), description: z.string(),
+  competencies: z.array(z.string()), status: z.string(), created_at: z.string(),
+});
+export type JobPublicView = z.infer<typeof JobPublicView>;
+export const JobPublicList = z.object({ jobs: z.array(JobPublicView) });
+export type JobPublicList = z.infer<typeof JobPublicList>;
 
 /* ───────────── 候选人 ↔ 岗位 ↔ 招聘方:申请闭环 ───────────── */
 /** 投递结果(幂等:重复投递返回既有申请 id)。 */
@@ -397,6 +409,8 @@ export const JobCandidates = z.object({
   candidates: z.array(z.object({
     id: z.string(), candidate_user_id: z.string(), status: z.string(), score: z.number().int().nullable(),
     source: z.string().optional(),
+    /** I4 #223 同意门识别列:仅候选人存在 recruiter_contact_share 同意行时出邮箱,否则 null(fail-closed)。 */
+    contactEmail: z.string().nullable(),
   })),
 });
 export type JobCandidates = z.infer<typeof JobCandidates>;
@@ -466,6 +480,8 @@ export type RecruiterDecisionDto = z.infer<typeof RecruiterDecisionDto>;
 export const TalentRowView = z.object({
   id: z.string(), job_id: z.string(), job_title: z.string(), candidate_user_id: z.string(),
   status: z.string(), score: z.number().int().nullable(), source: z.string(), created_at: z.string(),
+  /** I4 #223 同意门识别列(同 JobCandidates:无 recruiter_contact_share 同意行→null·fail-closed)。 */
+  contactEmail: z.string().nullable(),
 });
 export type TalentRowView = z.infer<typeof TalentRowView>;
 export const TalentPool = z.object({ talents: z.array(TalentRowView) });
@@ -501,8 +517,11 @@ export const PrivacyAuthzPurpose = z.enum(PRIVACY_AUTHZ_PURPOSES);
  * I2 W3（裁定④）：`b_qualitative_share` = 候选人同意招聘方查看其申请的最小定性投影
  * （能力维度 + 强/中/弱/证据不足档位，不含数字评分/答题内容/证据摘录原文）；撤回=删行，
  * 0160 投影函数内同意门随即 fail-closed（无同意行→未披露形状）。
+ * I4（#223·裁决项③倾向 b）：`recruiter_contact_share` = 候选人同意招聘方在申请/人才库读面
+ * 以其邮箱作识别替代列（修法列「显示邀请邮箱/备注（候选人同意后）」的同意门形）；撤回=删行，
+ * 0166 gateway_recruiter_contact_share 函数内门随即 fail-closed（无同意行→零出参）。
  */
-export const CONSENT_PURPOSES = ['resume_processing', 'interview_personalization', 'voice_capture', 'b_qualitative_share'] as const;
+export const CONSENT_PURPOSES = ['resume_processing', 'interview_personalization', 'voice_capture', 'b_qualitative_share', 'recruiter_contact_share'] as const;
 export const ConsentPurpose = z.enum(CONSENT_PURPOSES);
 export type ConsentPurpose = z.infer<typeof ConsentPurpose>;
 /** POST /privacy/consent body：purpose 可选（缺省 resume_processing 由 controller 保留），strict 拒未知键。 */
@@ -1335,7 +1354,7 @@ export const apiContract: ContractRoute[] = [
   { id: 'jobCandidates', method: 'get', path: '/recruiter/jobs/{id}/candidates', summary: '招聘方查岗位申请人(多方 RLS)', tags: ['recruiter'], auth: true, response: JobCandidates },
   { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteReceived },
   { id: 'talentPool', method: 'get', path: '/recruiter/talent', summary: '招聘方人才库(跨自有岗位聚合候选人,租户隔离)', tags: ['recruiter'], auth: true, response: TalentPool },
-  { id: 'browseJobs', method: 'get', path: '/jobs', summary: '候选人浏览开放岗位', tags: ['jobs'], auth: true, response: JobList },
+  { id: 'browseJobs', method: 'get', path: '/jobs', summary: '候选人浏览开放岗位(公开面窄投影:零 owner_user_id)', tags: ['jobs'], auth: true, response: JobPublicList },
   { id: 'applyJob', method: 'post', path: '/jobs/{id}/apply', summary: '候选人投递岗位(幂等)', tags: ['jobs'], auth: true, response: ApplyResult },
   { id: 'myApplications', method: 'get', path: '/applications', summary: '候选人我的申请', tags: ['jobs'], auth: true, response: MyApplications },
   { id: 'startApplication', method: 'post', path: '/applications/{id}/start', summary: '创建或复用岗位绑定面试(一对一、不可替换为历史训练)', tags: ['jobs'], auth: true, request: StartApplicationDto, response: ApplicationStartResult },
