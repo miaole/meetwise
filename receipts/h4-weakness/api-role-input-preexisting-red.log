@@ -1,0 +1,2 @@
+ ERROR  ENOENT: no such file or directory, lstat '/Users/miaole/.zcode/workspace/default/apps'
+For help, run: pnpm help run

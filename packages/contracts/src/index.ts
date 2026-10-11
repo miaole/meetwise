@@ -73,6 +73,9 @@ export const InterviewView = z.object({
   status: z.string(),
   job_title: z.string().nullable().optional(),
   resume_display_name: z.string().nullable().optional(),
+  /** H4 R1(#252 再练入口·additive optional):本场绑定简历 id——报告页「再练这 N 个弱项」携带同简历
+   *  走既有 create+begin 链(resume-id 头)。nullable=未绑定场;旧响应缺字段容忍(zod optional)。 */
+  resume_id: z.string().nullable().optional(),
   created_at: z.string().datetime().nullable().optional(),
   display_code: z.string().min(1).max(32).optional().default('场次信息同步中'),
   current_question_index: z.number().int().nullable(),

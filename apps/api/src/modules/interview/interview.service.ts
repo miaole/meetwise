@@ -68,6 +68,22 @@ export async function guardInterviewPrivacyTx(c: any, id: string): Promise<void>
   }
 }
 
+/** H4 R2②(#252 focus 进题链·白名单归一化·纯函数 prove 直行使):focus 头(JSON 数组文本)→ string[] | undefined。
+ *  缺省/非 JSON/非字符串数组/全空白 → undefined(begin 不因 focus 畸形失败·容忍沿 targetRole 同形制);
+ *  合法 → trim/去空/逐名截断 100 字符/总量帽 8(FOCUS_LABEL_* 与 worker consumer 同值域单源语义)。 */
+export function normalizeFocusHeader(raw: string | undefined): string[] | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { return undefined; }
+  if (!Array.isArray(parsed)) return undefined;
+  const labels = parsed
+    .filter((x): x is string => typeof x === 'string')
+    .map((x) => x.trim().slice(0, 100))
+    .filter((x) => x.length > 0)
+    .slice(0, 8);
+  return labels.length > 0 ? labels : undefined;
+}
+
 /**
  * begin 语义核心（B271 片2 S2-C2/C4 模块化抽取·原 InterviewService.begin() asPrincipal 事务体逐字搬移）：
  * 在**给定事务客户端**上执行完整 begin 守卫链+扣额路由+入队——begin() 端点（C 端练习·原路径）与
@@ -79,7 +95,7 @@ export async function guardInterviewPrivacyTx(c: any, id: string): Promise<void>
  */
 export async function beginInterviewCore(
   c: any, owner: string, id: string, resumeId: string,
-  requestId?: string, sourceQuizId?: string, targetRole?: string,
+  requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string,
 ): Promise<{ accepted: boolean; jobId?: string; alreadyBegun?: boolean }> {
   if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
   if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
@@ -87,6 +103,8 @@ export async function beginInterviewCore(
   // 限长防滥用)。仅作 job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload 零新键,
   // 与现状逐字节一致。幂等:alreadyBegun 既有 job 原样短路不改写(下方 existing 分支零改,首场 role 生效)。
   const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
+  // H4 R2②(#252 focus 进题链·断点②):focus 头白名单归一(上方 normalizeFocusHeader)——undefined → payload 零新键。
+  const focusNormalized = normalizeFocusHeader(focus);
   // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
   const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
   const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
@@ -242,7 +260,11 @@ export async function beginInterviewCore(
     // The queue derives the v64 typed id+epoch from the just-bound parent;
     // JSON retains only transport tracing, never a resume locator.
     // #259: targetRole 仅在场时写入 payload 键(缺省零新键=现状 payload 字节)。
-    const jobId = await enqueueInterviewJob(c, owner, id, 'start', targetRoleNormalized ? { requestId, targetRole: targetRoleNormalized } : { requestId }, 0);
+    // H4 R2②: focus 同形——仅在场时写入(数组标量 JSON;缺省零新键=现状字节,幂等既有 job 不改写)。
+    const startPayload: Record<string, unknown> = { requestId };
+    if (targetRoleNormalized) startPayload.targetRole = targetRoleNormalized;
+    if (focusNormalized) startPayload.focus = focusNormalized;
+    const jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
     return { accepted: true, jobId };
 }
 
@@ -354,10 +376,10 @@ export class InterviewService {
   // B271 片2 S2-C2/C4：事务体模块化为 beginInterviewCore（文件顶部导出）——本端点（C 端练习·原路径）
   // 与 applications.start 合一事务（S2-C4 修法⑤）共用同一核心·签名/this 语义零变（dbid1 冒烟
   // Object.create(prototype) 直调形保持）；扣额路由与分码语义见 beginInterviewCore 头注。
-  begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string) {
+  begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string) {
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'interview.begin');
-    return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole));
+    return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole, focus));
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
