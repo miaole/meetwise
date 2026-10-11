@@ -52,6 +52,53 @@ export class RecruiterService {
   }
 
   /**
+   * I2 W2（裁定②形 A·裁定③落点 A）：B 端最小定性投影端点。单申请人自身事实投影——
+   * 能力维度名 + 强/中/弱/证据不足档位（rubric disposition 三值映射·Ban 自造档位），
+   * 不出数字（0160 出参白名单无 deterministic_total/score/overall/coverage 数值列）；
+   * 同意门（E6）在 gateway_b_qualitative_projection 函数内 fail-closed：无 b_qualitative_share
+   * 同意行 → disclosed=false 未披露态（非空壳假数据）；同意但无评分事实 → 暂无可复核的评估记录。
+   * 归属预检双 404 恒定壳（getJob 同形 :44）：非自有岗位/非自有申请/函数 0 行（非属主或非终态）
+   * 零存在性信号。Ban 排序/过滤/跨申请人比较用途（fix-roadmap:117 承接）。
+   */
+  async qualitative(principal: string, jobId: string, applicationId: string) {
+    const job = await this.db.asPrincipal(principal, (c) => getJob(c, principal, jobId));
+    if (!job) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);   // RLS:别人的→404
+    return this.db.asPrincipal(principal, async (c) => {
+      const owned = await c.query(
+        'SELECT 1 FROM job_application WHERE id=$1 AND job_id=$2 AND recruiter_user_id=$3',
+        [applicationId, jobId, principal],
+      );
+      if ((owned.rowCount ?? 0) === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      const rows = await c.query<{
+        disclosed: boolean; terminal_kind: string | null; competency: string | null; strong_count: string | null;
+        mid_count: string | null; weak_count: string | null; insufficient_count: string | null;
+      }>(
+        'SELECT disclosed, terminal_kind, competency, strong_count, mid_count, weak_count, insufficient_count FROM gateway_b_qualitative_projection($1,$2)',
+        [principal, applicationId],
+      );
+      // 函数 0 行=非属主/非终态（0160 owner 谓词 fail-closed）→ 与越权同壳 404，不可区分。
+      const first = rows.rows[0];
+      if (rows.rows.length === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      // terminal_kind 两态状态信号不进同意门（0160 ②·W3④ 承接）；disclosed 只门定性投影。
+      if (first?.disclosed !== true)
+        return { disclosed: false, terminalKind: first?.terminal_kind === 'failed' ? 'failed' : 'held', dimensions: [] };
+      // 计数 → 档位存在性映射（有序·Ban 自造档位·数字不出 API 面）。
+      const dimensions = rows.rows
+        .filter((row) => row.competency != null)
+        .map((row) => ({
+          competency: String(row.competency),
+          tiers: [
+            ...(Number(row.strong_count) > 0 ? ['strong' as const] : []),
+            ...(Number(row.mid_count) > 0 ? ['mid' as const] : []),
+            ...(Number(row.weak_count) > 0 ? ['weak' as const] : []),
+            ...(Number(row.insufficient_count) > 0 ? ['insufficient' as const] : []),
+          ],
+        }));
+      return { disclosed: true, terminalKind: first.terminal_kind === 'failed' ? 'failed' as const : 'held' as const, dimensions };
+    });
+  }
+
+  /**
    * 招聘方邀请候选人为某岗位面试(InviteCandidateDto:candidateId 或 email 二选一)。
    * b110 反枚举双闸:
    * ① R2 岗位归属预检**前置**到候选人解析之前——非自有/不存在岗位恒 404 `job_not_found_or_forbidden`
