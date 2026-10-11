@@ -1,4 +1,5 @@
 import { redirect } from 'next/navigation';
+import Link from 'next/link';
 import { Target, Briefcase } from 'lucide-react';
 import type { Metadata } from 'next';
 import { getServerToken, serverGet, serverFetch } from '@/lib/api/server';
@@ -71,9 +72,13 @@ export default async function RolesPage({ searchParams }: { searchParams: Promis
             {matches.length === 0 ? (
               <p className="text-sm text-muted-foreground">未匹配到明显岗位——简历技能信息可能偏少,试试补充经历再匹配。</p>
             ) : matches.map((m) => (
-              <div key={m.id} className="flex items-center justify-between rounded-lg border p-3">
-                <span className="flex items-center gap-2 font-medium"><Briefcase className="size-4 text-muted-foreground" />{m.title}</span>
-                <Badge variant="success">匹配度 {m.score}</Badge>
+              <div key={m.id} className="flex items-center justify-between gap-2 rounded-lg border p-3">
+                <span className="flex min-w-0 items-center gap-2 font-medium"><Briefcase className="size-4 shrink-0 text-muted-foreground" />{m.title}</span>
+                <span className="flex shrink-0 items-center gap-3">
+                  <Badge variant="success">匹配度 {m.score}</Badge>
+                  {/* #268 S2a:「用这个方向开始面试」CTA → interviews 表单目标岗位预填(仅初值,用户可改=修法列「可改的 UI」语义)。 */}
+                  <Link href={`/interviews?targetRole=${encodeURIComponent(m.title)}`} className="text-sm font-medium text-primary underline-offset-4 hover:underline">用这个方向开始面试</Link>
+                </span>
               </div>
             ))}
           </CardContent>

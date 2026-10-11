@@ -38,6 +38,7 @@ export async function Nav() {
     { href: '/interviews', label: t('interviews') },
     { href: '/quiz', label: '押题' },
     { href: '/jobs', label: '找工作' },
+    { href: '/roles', label: '岗位匹配' },   // #268 S2a 入口(标签循 :39-40 字面中文先例·零 i18n 键·EXEC 裁登记)
     { href: '/notifications', label: t('notifications') },
     { href: '/pricing', label: t('billing') },
     { href: '/settings', label: t('settings') },

@@ -22,10 +22,12 @@ export class QuizController {
   }
 
   // 开始押题:扣额度 + 入队 generate job(长编排在 worker 跑,api 薄)。202 已受理。
+  // 可选 header target-role 携带用户显式目标岗位(#230·S1 同形镜像):真收真透传,service 归一化后作
+  // quiz_job payload 标量;不带 → 与今日行为完全一致(零强加)。
   @Post(':id/begin')
   @HttpCode(202)
-  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string) {
-    return this.quizzes.begin(req.principal, id, resumeId);
+  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string, @Headers('target-role') targetRole?: string) {
+    return this.quizzes.begin(req.principal, id, resumeId, targetRole);
   }
 
   // 放弃押题:退还预留额度(不漏扣)+ status failed。

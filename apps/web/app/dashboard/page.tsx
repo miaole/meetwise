@@ -1,7 +1,7 @@
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
-import { ArrowRight, FileText, Sparkle, Stethoscope, MessageSquareText, Briefcase, TrendingUp } from 'lucide-react';
+import { ArrowRight, FileText, Sparkle, Stethoscope, MessageSquareText, Briefcase, TrendingUp, Target } from 'lucide-react';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -35,6 +35,7 @@ const QUICK_ACTIONS: Array<{ href: string; t: string; d: string; Icon: typeof Me
   { href: '/diagnosis', t: '简历诊断', d: '结构/亮点/风险/匹配度 + 接地改写建议。', Icon: Stethoscope },
   { href: '/resume', t: '管理简历', d: '上传与诊断,押题更贴你。', Icon: FileText },
   { href: '/jobs', t: '找工作', d: '看岗位,做简历×JD 匹配。', Icon: Briefcase },
+  { href: '/roles', t: '岗位匹配', d: '据简历匹配方向,一键带岗位开面。', Icon: Target },   // #268 S2a 入口
 ];
 
 /** 真服务端取数:RSC 内并发 await /profile、/profile/overview、/interview,首屏即有数据。 */
@@ -60,6 +61,21 @@ async function GrowthHome() {
 
   return (
     <div className="space-y-10">
+      {/* ── #266 注册引导位(S2b 最小形·纯前端静态卡·恒显=EXEC 裁从简):零新存储零 API 零迁移——
+          只做引导,不假称已存偏好(文案显式说明偏好不被保存·禁记忆类虚假声明,proof 有负断言守卫)。 ── */}
+      <Card className="border-dashed p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="font-semibold">完善求职方向，面试更贴你</div>
+            <p className="mt-1 text-sm leading-relaxed text-muted-foreground">开始面试时可在表单里填「目标岗位」(每次填写,不被保存),或先做岗位匹配找准方向。</p>
+          </div>
+          <div className="flex shrink-0 flex-wrap gap-2">
+            <Button asChild size="sm"><Link href="/interviews">去填目标岗位 <ArrowRight /></Link></Button>
+            <Button asChild size="sm" variant="outline"><Link href="/roles">去匹配岗位方向</Link></Button>
+          </div>
+        </div>
+      </Card>
+
       {/* ── 欢迎头:温暖问候 + 账户态 ── */}
       <header>
         <span className="text-xs font-medium uppercase tracking-wide text-primary">欢迎回来</span>
