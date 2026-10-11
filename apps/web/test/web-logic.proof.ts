@@ -65,6 +65,7 @@ import {
 } from '../lib/stream/sse-cursor.ts';
 import { projectTurnAnnotations, type TranscriptTurn } from '../lib/report/turn-annotations.ts';
 import { growthDeltaComparable, growthDeltaView } from '../lib/growth/comparable.ts';
+import { isVoiceModeEntryVisible } from '../lib/voice-mode-entry.ts';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 /** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·F2 源断言用）。 */
 function lineOf(src: string, re: RegExp, from = 0): number {
@@ -1797,6 +1798,138 @@ async function main() {
       candListI4.includes('candidate_user_id.slice(0, 8)')
         && talentI4.includes('candidate_user_id.slice(0, 8)')
         && detailI4.includes('candidate_user_id.slice(0, 8)'));
+  }
+
+  // ───────────────────────── I5-CALIBER 九件（#225/#234/#212/#233/#235/#231/#262/#264/#267 · docs+web 静态源断言·沿 :869 readSrc 先例·est live=0）─────────────────────────
+  section('I5-CALIBER: 三态标注+计数勘误+文案口径+语音入口开关（静态源/docs 断言·零外呼）');
+  {
+    const cnt = (src: string, re: RegExp) => (src.match(re) ?? []).length;
+    const readDoc = (rel: string) => {
+      const p = resolve(repoRoot, rel);
+      return existsSync(p) ? readFileSync(p, 'utf8') : '';
+    };
+    const bend = readDoc('ai-docs/requirements/use-cases/bend-recruiting.md');
+    const vision = readDoc('ai-docs/product/vision.md');
+    const ucReadme = readDoc('ai-docs/requirements/use-cases/README.md');
+    const blueprint = readDoc('ai-docs/architecture/ai/langgraph-blueprint.md');
+    const roadmap = readDoc('ai-docs/delivery/roadmap.md');
+    const modality = readDoc('ai-docs/requirements/use-cases/interview-modality.md');
+    const cend = readDoc('ai-docs/requirements/use-cases/cend-identity-account.md');
+    const assessTerm = readDoc('ai-docs/requirements/use-cases/application-assessment-terminal.md');
+    const zhMsg = readDoc('apps/web/messages/zh.json');
+    const enMsg = readDoc('apps/web/messages/en.json');
+    const dashSrc = readSrc('app/dashboard/page.tsx');
+    const growthSrc = readSrc('app/growth/page.tsx');
+    const reportSrc = readSrc('app/report/[id]/page.tsx');
+    const chartSrc = readSrc('components/GrowthChart.tsx');
+    const quizSrc = readSrc('components/QuizPanel.tsx');
+    const panelSrc = readSrc('components/InterviewPanel.tsx');
+    const voiceSpec = readSrc('e2e-ui/voice-duplex.spec.ts');
+
+    // ── #225：bend 三态/status/计数/vision 措辞/005-0082 互洽 ──
+    A('I5-#225a bend frontmatter status 下调为 draft 且 active 零残留',
+      /^status: draft$/m.test(bend) && !/^status: active$/m.test(bend));
+    A('I5-#225b 「28 UC」零残留且 UC 标题计数=29 与 frontmatter「29 UC / 141 TC」自洽',
+      !bend.includes('28 UC') && cnt(bend, /^### UC-/gm) === 29 && bend.includes('29 UC / 141 TC'));
+    A('I5-#225c 抽查清单 29 行×三态值域封闭（已实现 6·仅设计 23·有意关闭 0）',
+      cnt(bend, /^> \| UC-\S+ \| (已实现|仅设计|有意关闭) \|/gm) === 29
+      && cnt(bend, /^> \| UC-\S+ \| 已实现 \|/gm) === 6
+      && cnt(bend, /^> \| UC-\S+ \| 仅设计 \|/gm) === 23
+      && !/^\> \| UC-\S+ \| 有意关闭 \|/m.test(bend));
+    A('I5-#225d vision 「物理隔离」字面量零残留·替换措辞含 RLS 事实表述·承诺本体（永不互通/不筛人）逐字保留',
+      !vision.includes('物理隔离') && vision.includes('数据隔离（同库行级 RLS）') && vision.includes('永不互通')
+      && vision.includes('绝不把求职者的练习数据用于企业筛人'));
+    A('I5-#225e UC-AIIV-005 标注与 0082 二文互洽（标注层引用 0082 迁移+无分收口语义·权威文在场·规格零改写）',
+      bend.includes('0082_b_side_score_calibration_hold.sql') && bend.includes('assessment_unavailable')
+      && assessTerm.includes('0082_b_side_score_calibration_hold.sql')
+      && lineOf(bend, /实现态标注（2026-10-11 · I5 口径刀 · 与 .application-assessment-terminal\.md. 二文互洽勘误）/) > 0
+      && bend.includes('TC 表注（2026-10-11 · I5 口径刀）'));
+
+    // ── #234：索引三行「仅设计」标注（三行逐一） ──
+    A('I5-#234a README 索引作答辅助行含「（仅设计·未落代码）」', ucReadme.includes('`answer-assist.md`（仅设计·未落代码）'));
+    A('I5-#234b README 索引 3D 数字人行含「（仅设计·未落代码）」', ucReadme.includes('`avatar-3d.md`（仅设计·未落代码）'));
+    A('I5-#234c README 索引兑换码行含「（仅设计·未落代码）」', ucReadme.includes('`redemption.md`（仅设计·未落代码）'));
+
+    // ── #212：blueprint/roadmap 实态勘误（career-path 实存+接线分叉如实+#204 互引一致） ──
+    A('I5-#212a blueprint「尚无对应图文件/尚无图实现」零残留·career-path 实路径+0a3c8a8a 注在卷',
+      !blueprint.includes('尚无对应图文件') && !blueprint.includes('尚无图实现')
+      && blueprint.includes('packages/ai-graphs/src/career-path.ts') && blueprint.includes('0a3c8a8a'));
+    A('I5-#212b career-path 图文件实存断言（引用路径非悬空）', existsSync(resolve(repoRoot, 'packages/ai-graphs/src/career-path.ts')));
+    A('I5-#212c roadmap Phase 4 职业路径行同步勘误（❌→🟡+实路径+接线分叉如实）',
+      roadmap.includes('职业路径分析（单节点图已落') && roadmap.includes('0a3c8a8a')
+      && roadmap.includes('worker 自动链直调 derive') && !/^- ❌ 职业路径分析。$/m.test(roadmap));
+    A('I5-#212d 两文互洽：#204 GROWTH-GEN 引用一致（blueprint/roadmap 同源）',
+      blueprint.includes('#204') && roadmap.includes('#204 GROWTH-GEN'));
+
+    // ── #233/#235：逐 UC 三态标注（21/9·值域封闭）+status 下调+披露块零回归 ──
+    A('I5-#233a interview-modality 逐 UC 三态标注存在且计数=21（与 UC 标题计数一致）',
+      cnt(modality, /^> \*\*实现态（2026-10-11 I5 口径刀）：/gm) === 21 && cnt(modality, /^## UC-MODE-\d+ /gm) === 21);
+    A('I5-#233b interview-modality 三态值域封闭集（已实现|仅设计|有意关闭）全覆盖 21 行',
+      cnt(modality, /^> \*\*实现态（2026-10-11 I5 口径刀）：(已实现|仅设计|有意关闭)\*\*/gm) === 21);
+    A('I5-#233c interview-modality status 保持 draft+TARGET 规格导语零回归',
+      /^status: draft$/m.test(modality) && modality.includes('本文是 TARGET 规格'));
+    A('I5-#235a cend 逐 UC-AUTH 三态标注存在且计数=9（值域封闭）',
+      cnt(cend, /^> \*\*实现态（2026-10-11 I5 口径刀）：(已实现|仅设计|有意关闭)\*\*/gm) === 9
+      && cnt(cend, /^## UC-AUTH-\d+ /gm) === 9);
+    A('I5-#235b cend frontmatter status 下调为 draft 且 active 零残留',
+      /^status: draft$/m.test(cend) && !/^status: active$/m.test(cend));
+    A('I5-#235c cend :18「邮箱+密码」披露块零回归（修法列主句既有满足面不洗）',
+      cend.includes('当前登录为**邮箱+密码**') && cend.includes('无微信/OAuth'));
+
+    // ── #231：押题提示诚实化（备战提示落位·refs 拼装机制字节零触）——旧话术字面量经 join 拆写（沿 public-copy prohibitedMarketingPhrases 先例·保全仓 rg EXIT=1 形） ──
+    const maybeFollowUp = ['可能追', '问'].join('');
+    A('I5-#231a 旧押题话术在 QuizPanel/dashboard 双文件零残留（全仓 rg 负断言入收据·EXIT=1 形）',
+      !quizSrc.includes(maybeFollowUp) && !dashSrc.includes(maybeFollowUp));
+    A('I5-#231b 「备战提示」落位钉死行形：QuizPanel 用户文案行（非 :83 注释自匹配）+dashboard 快捷卡行',
+      /备战提示：就「\{q\.refs\.join\('、'\)\}」准备原理、权衡与踩坑/.test(quizSrc)
+      && dashSrc.includes('标考察点与备战提示'));
+    A('I5-#231c refs 拼装机制零触（length 门+map 渲染+join 原样在场=数据链 diff 零的静态代理）',
+      quizSrc.includes('q.refs.length > 0') && quizSrc.includes('q.refs.map((r, k) =>') && quizSrc.includes("q.refs.join('、')"));
+
+    // ── #262：分数口径三元命名（面试中提示分/本场报告分/近期平均）四落点 ──
+    A('I5-#262a dashboard「练习反馈」独立标签零残留→「近期平均」+来源口径说明落位',
+      !dashSrc.includes('练习反馈') && dashSrc.includes('近期平均')
+      && dashSrc.includes('面试中提示分') && dashSrc.includes('本场报告分'));
+    A('I5-#262b growth「最新综合分」→「最新本场报告分」+曲线口径行对齐',
+      growthSrc.includes('最新本场报告分') && !growthSrc.includes('最新综合分')
+      && growthSrc.includes('场已评估面试的本场报告分'));
+    A('I5-#262c 成长曲线（GrowthChart）图例/aria 对齐「本场报告分」·取数链零触（组件签名未动的静态代理）',
+      chartSrc.includes('能力曲线:本场报告分随') && chartSrc.includes('/>本场报告分</span>')
+      && !chartSrc.includes('综合分随') && /export function GrowthChart/.test(chartSrc));
+    A('I5-#262d 报告 overall 标签对齐「本场报告分」（ScoreRing 组件与取数链零触）',
+      reportSrc.includes('本场报告分') && !reportSrc.includes('本次练习反馈'));
+
+    // ── #264：首页文案用户语言（工程话术零残留+承诺语义保留） ──
+    A('I5-#264a zh「写入有双记」「prove 门」工程话术零残留',
+      !zhMsg.includes('写入有双记') && !zhMsg.includes('prove 门'));
+    A('I5-#264b zh stat 四卡落位裁决⑥逐字值（越问越深/进度不丢/点评有据/练完即复盘）',
+      zhMsg.includes('"stat1n": "越问越深"') && zhMsg.includes('"stat2n": "进度不丢"')
+      && zhMsg.includes('"stat3n": "点评有据"') && zhMsg.includes('"stat4n": "练完即复盘"'));
+    A('I5-#264c zh arch 区承诺语义保留（本地校验门=打开页面不算数·双份留底=不丢不乱）',
+      zhMsg.includes('光打开页面不算数') && zhMsg.includes('双份留底'));
+    A('I5-#264d en.json 同构键同步（键名零改只改 value·四卡+arch 落位）',
+      enMsg.includes('"stat1n": "Deeper every round"') && enMsg.includes('"arch5Title": "Nothing lost"')
+      && enMsg.includes('opening a page is not acceptance') && !enMsg.includes('local prove gates'));
+    A('I5-#264e 公共文案门零回归（「不构成能力认证」zh 残留·en「not a calibrated capability assessment」在场）',
+      zhMsg.includes('不构成能力认证') && enMsg.includes('not a calibrated capability assessment'));
+
+    // ── #267：语音入口开关（裁决⑦=缺省显示·零后端零 API） ──
+    A('I5-#267a 开关纯函数行为：未配置/任意值=显示（缺省显示=裁决⑦落值）·显式 off=关闭',
+      isVoiceModeEntryVisible(undefined) === true && isVoiceModeEntryVisible('on') === true
+      && isVoiceModeEntryVisible('1') === true && isVoiceModeEntryVisible('off') === false
+      && isVoiceModeEntryVisible(' OFF ') === false);
+    A('I5-#267b 面板接线：按钮包条件渲染（关闭→不渲染恒断言臂的静态形）+lib 导入',
+      /isVoiceModeEntryVisible\(\) && \(\n\s*<button/.test(panelSrc) 
+      && /import \{ isVoiceModeEntryVisible \} from '@\/lib\/voice-mode-entry';/.test(panelSrc));
+    A('I5-#267c 缺省渲染=现状字节：按钮文案/回落 title 零触（voice-duplex e2e 消费面天然绿的静态前提）',
+      panelSrc.includes('<Mic className="size-3.5" />语音模式')
+      && panelSrc.includes('预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话')
+      && /isVoiceModeEntryVisible\(\) && \(\n\s*<button[\s\S]*?setMode\('voice'\)/.test(panelSrc));
+    A('I5-#267d voice-duplex spec 消费面在场且零改动核（按钮 role+name 断言行·本刀零改 spec）',
+      voiceSpec.includes("getByRole('button', { name: '语音模式', exact: true })") 
+      && existsSync(resolve(repoRoot, 'apps/web/e2e-ui/voice-duplex.spec.ts')));
+    A('I5-#267e 零后端零 API：开关仅前端静态读（lib 文件无 fetch/import server 依赖）',
+      !/fetch\(|import .*api|from '@meetwise/.test(readSrc('lib/voice-mode-entry.ts')));
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
