@@ -63,6 +63,7 @@ import {
   throwIfPrivacyFencedStatus,
 } from '../lib/stream/sse-cursor.ts';
 import { projectTurnAnnotations, type TranscriptTurn } from '../lib/report/turn-annotations.ts';
+import { growthDeltaComparable, growthDeltaView } from '../lib/growth/comparable.ts';
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 /** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·F2 源断言用）。 */
 function lineOf(src: string, re: RegExp, from = 0): number {
@@ -1525,6 +1526,48 @@ async function main() {
       billingSrc.includes('remitBadge[o.remit_status ?? \'created\']')
       && billingSrc.includes("failed: { text: 'failed', variant: 'destructive' }")
       && !/OfflineOrdersSection[\s\S]*?(SubmitButton|<form action=)/.test(billingSrc));
+  }
+
+  // ───────── H4 WEAKNESS-LOOP（R1/R4/R8·复审处方①② read-file 静态接线·沿 :1307-1313 先例形制） ─────────
+  section('H4 处方①:报告页「再练这 N 个弱项」入口+action 携 focus(read-file 静态接线)');
+  {
+    const reportPageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/report/[id]/page.tsx'), 'utf8');
+    const interviewsActionsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/actions.ts'), 'utf8');
+    A('H4-1a 报告页 src 含再练入口(「再练这 {gapCount} 个弱项」·N=本场 gap 数运行时派生非硬编码)',
+      reportPageSrc.includes('再练这 {gapCount} 个弱项')
+      && lineOf(reportPageSrc, /const gapDims = dims\.filter/) > 0
+      && lineOf(reportPageSrc, /const gapCount = gapDims\.length/) > 0);
+    A('H4-1b 报告页接 startFocusRetrainAction(走既有 create+begin 链·零新导航模式)',
+      lineOf(reportPageSrc, /import \{ startFocusRetrainAction \} from '\.\.\/\.\.\/interviews\/actions'/) > 0);
+    A('H4-1c action 携 focus(begin headers focus=JSON 数组文本·api 侧 normalizeFocusHeader 白名单消费)',
+      lineOf(interviewsActionsSrc, /export async function startFocusRetrainAction\(/) > 0
+      && lineOf(interviewsActionsSrc, /focus: JSON\.stringify\(labels\)/) > 0);
+    A('H4-1d 表单 hidden focus=gap 维度名数组(上限=本 gap 数)',
+      lineOf(reportPageSrc, /name="focus" value=\{JSON\.stringify\(gapDims\.map\(\(d\) => d\.dimension\)\)\}/) > 0);
+  }
+
+  section('H4 处方②:LearningSection 静态图标→「去练」真入口(携 topic=focus)');
+  {
+    const reportPageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/report/[id]/page.tsx'), 'utf8');
+    A('H4-2a 学习项「去练」按钮在位(未完成项渲染)', reportPageSrc.includes('去练') && lineOf(reportPageSrc, /!\w+\.done && resumeId \? \(/) > 0);
+    A('H4-2b 去练表单携 topic=focus(单项数组·复用同一 action)',
+      lineOf(reportPageSrc, /name="focus" value=\{JSON\.stringify\(\[it\.topic\]\)\}/) > 0);
+  }
+
+  section('H4 R8:成长曲线可比性(维度名交集约束+delta 可比标注·#269+新-#277 实现面锚)');
+  {
+    const growthSrc = readFileSync(resolve(repoRoot, 'apps/web/app/growth/page.tsx'), 'utf8');
+    // 纯函数矩阵:交集非空+双分→可比;交集空→不可比;缺分→不可比。
+    A('H4-8a 可比:双分+维度交集非空 → delta 数值',
+      growthDeltaView({ overall: 70, dims: { 高并发: 60 } }, { overall: 80, dims: { 高并发: 75, 算法: 50 } }).comparable === true
+      && (growthDeltaView({ overall: 70, dims: { 高并发: 60 } }, { overall: 80, dims: { 高并发: 75, 算法: 50 } }) as { delta: number }).delta === 10);
+    A('H4-8b 不可比:双分但维度名交集空 → comparable=false(delta 不渲染)',
+      growthDeltaComparable({ overall: 70, dims: { 高并发: 60 } }, { overall: 80, dims: { 算法: 50 } }) === false);
+    A('H4-8c 缺分不可比(null overall 恒不可比·与现状零 delta 一致)',
+      growthDeltaComparable({ overall: null, dims: { 高并发: 60 } }, { overall: 80, dims: { 高并发: 75 } }) === false);
+    A('H4-8d 页面接 growthDeltaView+不可比中性标注(data-testid=delta-not-comparable)',
+      lineOf(growthSrc, /import \{ growthDeltaView \} from '@\/lib\/growth\/comparable'/) > 0
+      && growthSrc.includes('delta-not-comparable') && growthSrc.includes('维度口径不同 · 不可比'));
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);

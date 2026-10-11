@@ -27,7 +27,9 @@ export async function recordAskedQuestions(pool: DbPool, owner: string, question
 
 /** 弱项读取投影(**只读,不写信念库**):历史 assessment_report 里 gap=true 的能力维度名。
  *  成长曲线唯一真相仍是 assessment_report→deriveGrowth;这里只借"历史弱项名"给出题做**软偏置**(见 adaptive-interview-service.planCompetencies),
- *  绝不据此设 confidence(confidence 只来自本场证据)。冷启动无历史 → 空数组 → 上层自然退化成现状。 */
+ *  绝不据此设 confidence(confidence 只来自本场证据)。冷启动无历史 → 空数组 → 上层自然退化成现状。
+ *  H4 R6(#206):historicalWeakDimensions 增固定衰减窗 N=5 场(最新一场达标即移出·窗外衰减·冷启动恒等)——仍只读投影,零新持久化。
+ *  H4 R7(#203):消费侧匹配升级为确定性相似度(adaptive-interview-service.weaknessMatches·禁 embedding·lean MVP 注记照守)。 */
 export async function pastWeakDimensions(pool: DbPool, owner: string): Promise<string[]> {
   return asPrincipal(pool, owner, (c) => historicalWeakDimensions(c, owner));
 }
