@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import { createOrderAction, saveInvoiceProfileAction, submitInvoiceRequestAction } from '@/app/billing/actions';
+import { createOrderAction, saveInvoiceProfileAction, submitInvoiceRequestAction } from '@/app/recruiter/billing/actions';
 
 type ActionState = { ok?: boolean; error?: string; orderId?: string; amountCents?: number; channel?: string };
 

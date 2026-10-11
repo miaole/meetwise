@@ -13,11 +13,15 @@ import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 const ROOT = new URL('..', import.meta.url).pathname;
 // 测试默认密钥:CI 无 .env 也能起(简历加密/去重键)。外部已设则不覆盖。e2e 每次重建 schema,不需跨运行解密,用测试键安全。
 const env = { ...process.env, AUTH_SECRET: process.env.AUTH_SECRET ?? 'e2e-dev-secret-key', PAY_PROVIDER_SECRET: process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret', RESUME_ENC_KEY: process.env.RESUME_ENC_KEY ?? 'e2e-resume-enc-key', RESUME_HASH_SECRET: process.env.RESUME_HASH_SECRET ?? 'e2e-resume-hash-secret', RAG_JOB_ROUTE_INPUT_HASH_KEY: process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ?? 'e2e-rag03-job-route-input-hmac-key-not-production' };
-// 加载 .env(RESUME 加密键 + 模型),不覆盖已设
-if (existsSync(ROOT + '.env')) {
-  for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
-    const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
-    if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+// 加载 .env(RESUME 加密键 + 模型),不覆盖已设。
+// REG-FIX 组8b 测试钩:E2E_SKIP_DOTENV='1' 跳过仓根 .env 回灌(默认零变)——g6-e2e-iso-blocked 行为门用:
+// Key-unset 快速失败(live_provider_key_missing)在任何宿主形态(仓根 .env 存/缺)必达,不被 .env 静默绕过。
+if (process.env.E2E_SKIP_DOTENV !== '1') {
+  if (existsSync(ROOT + '.env')) {
+    for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
+      const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+      if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
   }
 }
 if (env.E2E_ISOLATED === '1') {
