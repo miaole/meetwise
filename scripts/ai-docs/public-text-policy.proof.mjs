@@ -246,6 +246,29 @@ const checks = {
       rmSync(fixture, { recursive: true, force: true });
     }
   },
+  'TC-quality-04-E11': () => {
+    const fixture = createFixtureRoot();
+    try {
+      // cap 数字行为断言：恰好 2048 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2048）。
+      const paths = [];
+      for (let i = 0; i < 2_048; i += 1) {
+        const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
+        write(fixture, relativePath, 'ok');
+        paths.push(relativePath);
+      }
+      const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
+      assert.equal(atCap.valid, true, atCap.errors.join('\n'));
+      assert.equal(atCap.scannedFiles, 2_048);
+      // 超限错误码形状断言：第 2049 个注入路径触发早返回（:309-310 先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2049`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2048.md'] });
+      assert.equal(overCap.valid, false);
+      assert.equal(overCap.scannedFiles, 0);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2049`]);
+    } finally {
+      rmSync(fixture, { recursive: true, force: true });
+    }
+  },
 };
 
 const selectedIndex = process.argv.indexOf('--case');
