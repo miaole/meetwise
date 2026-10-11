@@ -35,16 +35,23 @@ function read(rel) {
 const STALE_THROW_RE =
   /throw\s+new\s+HttpException\s*\(\s*\{[^}]{0,240}?error:\s*['"](stale_quiz|quiz_expired|quiz_stale|quiz_artifact_expired|expired_quiz_input)['"]/s;
 
-function beginSignature(src, label) {
-  const m = src.match(/begin\s*\([^)]*\)/);
-  assert.ok(m, `${label} begin signature parseable`);
-  return m[0];
+// REG-FIX 组4e:括号截断 quirk 修——begin\s*\([^)]*\) 止于首个 `)`(ctrl 侧仅得 begin(@Param('id') → acceptsQuiz
+// 假阴性),改 sibling 同形抽取:锚起·'\n  }' 方法体止。beginRegion 4500 定窗废除 → beginInterviewCore 起·
+// InterviewService 类止端锚切片(与组2/4a/4b/4c 同域)。
+function beginSignature(src, label, anchor) {
+  const i = src.indexOf(anchor);
+  assert.ok(i >= 0, `${label} begin anchor(${anchor}) present`);
+  const j = src.indexOf('\n  }', i);
+  assert.ok(j > i, `${label} begin body end parseable`);
+  return src.slice(i, j);
 }
 
 function beginRegion(svc) {
-  const i = svc.indexOf('begin(principal');
-  assert.ok(i >= 0, 'interview.service begin(principal) present');
-  return svc.slice(i, i + 4500);
+  const i = svc.indexOf('export async function beginInterviewCore(');
+  assert.ok(i >= 0, 'interview.service beginInterviewCore present');
+  const j = svc.indexOf('export class InterviewService', i);
+  assert.ok(j > i, 'interview.service InterviewService end anchor present');
+  return svc.slice(i, j);
 }
 
 const ctrl = read('apps/api/src/modules/interview/interview.controller.ts');
@@ -52,8 +59,8 @@ const svc = read('apps/api/src/modules/interview/interview.service.ts');
 const mig = read('packages/db/migrations/0007_resume_quiz.sql');
 const contracts = read('packages/contracts/src/index.ts');
 
-const ctrlBegin = beginSignature(ctrl, 'controller');
-const svcBegin = beginSignature(svc, 'service');
+const ctrlBegin = beginSignature(ctrl, 'controller', 'begin(@Param');
+const svcBegin = beginSignature(svc, 'service', 'begin(principal');
 const region = beginRegion(svc);
 const acceptsQuiz = /quiz-id|quizId|sourceQuiz|source_quiz/.test(ctrlBegin + svcBegin);
 const realReject = STALE_THROW_RE.test(region);

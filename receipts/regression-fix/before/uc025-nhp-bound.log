@@ -1,0 +1,28 @@
+
+> meetwise@0.1.0 uc025:nhp-bound:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> pnpm -C apps/api prove:uc025-nhp-bound
+
+
+> @meetwise/api@0.0.0 prove:uc025-nhp-bound /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-bound.proof.ts
+
+UC-E2E-025 NHP-025-BOUND-01 resumeVersion pin mismatch at interview begin (BOUND column only)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)
+Not NEG (frozen) · Not FAULT · Not ADV · no nail · matrix not edited
+
+PASS  S0-begin-region-parseable
+FAIL  S1-controller-forwards-quiz-id
+FAIL  S2-bound-throw-409-resume_version_mismatch
+FAIL  S3-reads-quiz-resumeVersion-pin(resume_id+privacy_epoch)
+FAIL  S4-throw-before-bind/reserve/enqueue: throw=-1 bind=-1 reserve=-1 enqueue=-1
+FAIL  S5-no-local-catch-swallows-bound-throw
+PASS  S6-schema-pin-columns(0061+sql/20)
+NOTE  NEG B'' stale block text present/untouched=false (frozen · not BOUND evidence)
+
+GAP  GAP-UC025-BOUND-01  NHP-025-BOUND-01 unwired: interview begin has no resumeVersion pin mismatch refusal
+ROW_STILL_GAP  UC-E2E-025 BOUND remains gap. The row is still gap. coveredCount=8.
+
+CMD=pnpm uc025:nhp-bound:prove EXIT=1
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1
