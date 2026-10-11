@@ -7,24 +7,28 @@
  * 本判定器按需评估「结构化日志 + compose 事件 + 宿主水位」三路原料，零常驻进程；
  * 指标面（alert.rules.yml）归 S15 常驻后启用（ai-docs/observability/alerting-runbook.md 分工声明）。
  *
- * 输入三路（目录驱动·scripts/alerts/event-catalog.json 唯一真源）：
+ * 输入四路（目录驱动·scripts/alerts/event-catalog.json 唯一真源）：
  *   1) docker compose logs --since <窗> --timestamps（JSON 事件形 + key=value 文本形双兼容）
  *   2) docker compose ps --format json --all（compose_exit 源：migrate Exit 非 0）
  *   3) 宿主 df（disk_watermark 水位·阈值默认 85%）
+ *   4) worker /metrics（HA-7 R-24 队列积压·metrics_gauge 源）：live 单遍 GET（WORKER_METRICS_URL 可覆写，
+ *      默认 http://127.0.0.1:${WORKER_METRICS_PORT:-9091}/metrics·抓完即退）；offline 注入缝 --metrics-file（CI/本地样本）。
+ *      阈值/severity 逐字对齐 docker/monitoring/alert.rules.yml:116-143（100/5/10·快照无 for 去抖·差异声明 runbook §3.10-3.13）。
  *
  * 用法：
- *   node scripts/alerts/check-alerts.mjs                        # 实栈三路扫描（默认 prod+ha 叠加）
+ *   node scripts/alerts/check-alerts.mjs                        # 实栈四路扫描（默认 prod+ha 叠加）
  *   node scripts/alerts/check-alerts.mjs --sandbox              # 沙箱 env-file + 三 -f（沿 ha-status --sandbox 同形）
  *   node scripts/alerts/check-alerts.mjs --since 24h            # 日志窗（默认 env CHECK_ALERTS_SINCE 或 24h）
  *   node scripts/alerts/check-alerts.mjs --offline --log-file a.log [--log-file b.log]
- *                                        [--ps-file ps.json] [--df-file df.txt]
+ *                                        [--ps-file ps.json] [--df-file df.txt] [--metrics-file metrics.txt]
  *                                                       # 无 docker 注入缝（CI/本地样本·A 组 proof 依赖）
  *   node scripts/alerts/check-alerts.mjs --report               # 评估降级输出·恒 EXIT=0（沿 ha-status --report 先例）
  *   node scripts/alerts/check-alerts.mjs --catalog p --whitelist p --receipt p   # 测试覆盖路径
  *
  * EXIT 语义（fail-closed）：
  *   存在未决（非白名单）Page/Ticket 告警 → 1；干净 → 0；--report 恒 0；
- *   live 模式下输入源失效（docker 不可用/读失败）→ 1（无法证明干净 = 不干净）；
+ *   live 模式下输入源失效（docker 不可用/读失败/worker /metrics 抓取失败）→ 1（无法证明干净 = 不干净；
+ *   metrics 源失效顺带充当「worker /metrics 不可达」探测信号）；
  *   目录/白名单文件不可读或结构非法 → 1（白名单非法条目不静默——坏白名单不得消音告警）。
  *
  * 收据：receipts/ha-5/check-alerts.receipt.json（--receipt 可覆盖）。
@@ -63,6 +67,7 @@ const receiptPath = argValue('--receipt') ? resolve(ROOT, argValue('--receipt'))
 const logFiles = argv.includes('--log-file') ? argv.flatMap((a, i) => (a === '--log-file' && argv[i + 1] ? [resolve(ROOT, argv[i + 1])] : [])) : [];
 const psFile = argValue('--ps-file') ? resolve(ROOT, argValue('--ps-file')) : undefined;
 const dfFile = argValue('--df-file') ? resolve(ROOT, argValue('--df-file')) : undefined;
+const metricsFile = argValue('--metrics-file') ? resolve(ROOT, argValue('--metrics-file')) : undefined;   // HA-7 R-24 第四注入缝
 
 /** @type {{ step: string; ok: boolean; detail?: string }[]} */
 const steps = [];
@@ -155,6 +160,25 @@ function collectDf() {
   return { text: r.stdout, injected: false };
 }
 
+// HA-7 R-24 第四采集器（沿 collectLogs/collectPs/collectDf 三兄弟同形）：live 单遍 GET worker /metrics 抓完即退（非 daemon），
+// offline 走 --metrics-file 注入缝。live 抓取失败 = 源失效（fail-closed=1，「无法证明干净 = 不干净」既有语义）。
+async function collectMetrics() {
+  if (metricsFile) {
+    const r = readInjected('--metrics-file', metricsFile);
+    if (r.error) return { error: r.error };
+    return { text: r.text, injected: true };
+  }
+  if (offlineMode) return { text: '', injected: false, skipped: 'offline injection mode (no --metrics-file given)' };
+  const url = process.env.WORKER_METRICS_URL || `http://127.0.0.1:${process.env.WORKER_METRICS_PORT || 9091}/metrics`;
+  try {
+    const res = await fetch(url, { signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return { error: `worker /metrics HTTP ${res.status} (${url})` };
+    return { text: await res.text(), injected: false };
+  } catch (e) {
+    return { error: `worker /metrics fetch failed (${url}): ${String(e?.message ?? e).slice(0, 200)}` };
+  }
+}
+
 // ---------------------------------------------------------------- matchers
 /** 从日志行提取 JSON 对象：整行可解析直接用；否则取首 "{ 到末 "}" 子串（容忍 compose logs 前缀）。 */
 function extractJsonObject(line) {
@@ -173,7 +197,45 @@ function extractJsonObject(line) {
   }
 }
 
-function matcherHits(matcher, line, psEntries, dfText) {
+// HA-7 R-24：metrics_gauge 形制助手——解析 Prometheus 文本行 `name{labels} value`，按 queue 标签取每队列 max
+// （metrics.ts:68 多实例口径：gauge=全局绝对值，同 queue 多实例行取 max 去重，切勿 sum 翻倍）。
+function parseMetricSeries(text, metric) {
+  const series = [];
+  const re = new RegExp(`^${metric}(\\{[^}]*\\})?\\s+(\\S+)$`);
+  for (const raw of String(text ?? '').split('\n')) {
+    const line = raw.trim();
+    if (!line || line.startsWith('#')) continue;
+    const m = line.match(re);
+    if (!m) continue;
+    const labels = {};
+    for (const lm of (m[1] ?? '').matchAll(/([a-zA-Z_][a-zA-Z0-9_]*)="((?:\\.|[^"])*)"/g)) labels[lm[1]] = lm[2];
+    const value = Number(m[2]);
+    if (!Number.isFinite(value)) continue;
+    series.push({ labels, value });
+  }
+  return series;
+}
+
+function maxGaugeByQueue(text, metric) {
+  const byQueue = new Map();
+  for (const s of parseMetricSeries(text, metric)) {
+    const q = s.labels.queue ?? '';
+    byQueue.set(q, Math.max(byQueue.get(q) ?? -Infinity, s.value));
+  }
+  return byQueue;
+}
+
+/** 任一队列 max 值严格大于 threshold（对齐 alert.rules.yml expr `> N` 语义）→ 命中队列清单。 */
+function gaugeThresholdHits(matcher, metricsText) {
+  const threshold = Number(matcher.threshold);
+  const out = [];
+  for (const [queue, max] of maxGaugeByQueue(metricsText, matcher.metric)) {
+    if (max > threshold) out.push({ queue, max });
+  }
+  return out;
+}
+
+function matcherHits(matcher, line, psEntries, dfText, metricsText) {
   if (matcher.type === 'json') {
     const obj = extractJsonObject(line);
     return obj !== undefined && String(obj[matcher.field]) === String(matcher.value);
@@ -194,6 +256,9 @@ function matcherHits(matcher, line, psEntries, dfText) {
       if (pct > maxPct) maxPct = pct;
     }
     return maxPct >= Number(matcher.threshold_pct);
+  }
+  if (matcher.type === 'metrics_gauge') {   // HA-7 R-24 第四形制（metricsText 由调用方传入；逐队列 max 严格大于阈值）
+    return gaugeThresholdHits(matcher, metricsText).length > 0;
   }
   return false;
 }
@@ -256,14 +321,17 @@ if (whitelist.expired?.length) note('whitelist expired entries re-alert', true, 
 const logs = collectLogs();
 const ps = collectPs();
 const df = collectDf();
+const metrics = await collectMetrics();
 if (logs.error) note('source compose logs', false, logs.error);
 else note('source compose logs', true, logs.injected ? `injected ${logs.lines.length} lines` : (logs.skipped ?? `${logs.lines.length} lines since=${since}`));
 if (ps.error) note('source compose ps', false, ps.error);
 else note('source compose ps', true, ps.injected ? 'injected' : (ps.skipped ?? `${ps.entries.length} entries`));
 if (df.error) note('source df', false, df.error);
 else note('source df', true, df.injected ? 'injected' : (df.skipped ?? 'host /'));
+if (metrics.error) note('source worker /metrics', false, metrics.error);
+else note('source worker /metrics', true, metrics.injected ? 'injected' : (metrics.skipped ?? 'live GET ok'));
 
-const sourceErrors = [logs.error, ps.error, df.error].filter(Boolean);
+const sourceErrors = [logs.error, ps.error, df.error, metrics.error].filter(Boolean);
 const absentServices = [];
 const suppressed = [];
 /** @type {Map<string, { event: string; severity: string; count: number; first_seen: string|null; samples: string[]; runbook: string; source: string }>} */
@@ -290,6 +358,7 @@ if (!sourceErrors.length) {
     };
     const lineMatchers = ev.matchers.filter((m) => m.type === 'json' || m.type === 'regex');
     const otherMatchers = ev.matchers.filter((m) => m.type === 'compose_exit' || m.type === 'df_watermark');
+    const gaugeMatchers = ev.matchers.filter((m) => m.type === 'metrics_gauge');   // HA-7 R-24 队列积压形制
     if (lineMatchers.length) {
       for (const line of logs.lines ?? []) {
         if (lineMatchers.some((m) => matcherHits(m, line, ps.entries ?? [], df.text ?? ''))) {
@@ -308,6 +377,11 @@ if (!sourceErrors.length) {
       } else if (m.type === 'df_watermark' && matcherHits(m, '', [], df.text ?? '')) {
         const pct = Math.max(0, ...(df.text ?? '').matchAll(/\s(\d{1,3})%\s/g).map((x) => Number(x[1])));
         hit(`df /: use ${pct}% >= ${m.threshold_pct}%`, null);
+      }
+    }
+    for (const m of gaugeMatchers) {   // HA-7 R-24：逐队列 max 评估；每超阈队列一条目（sample 带 queue/max 供下钻）
+      for (const h of gaugeThresholdHits(m, metrics.text ?? '')) {
+        hit(`${m.metric}{queue="${h.queue}"} max=${h.max} > ${m.threshold}（快照单遍·无 for 去抖·阈值对齐 alert.rules.yml）`, null);
       }
     }
   }
@@ -337,6 +411,7 @@ const verdict = {
     logs: logs.error ?? (logs.skipped ?? `lines=${logs.lines?.length ?? 0}${logs.injected ? ' (injected)' : ''}`),
     ps: ps.error ?? (ps.skipped ?? `entries=${ps.entries?.length ?? 0}${ps.injected ? ' (injected)' : ''}`),
     df: df.error ?? (df.skipped ?? 'host /'),
+    metrics: metrics.error ?? (metrics.skipped ?? `bytes=${metrics.text?.length ?? 0}${metrics.injected ? ' (injected)' : ' (live)'}·HA-7 R-24`),
     sourceErrors,
     absentServices: [...new Set(absentServices)],
   },
@@ -365,6 +440,6 @@ for (const s of steps) lines.push(`step: ${s.ok ? 'PASS' : 'FAIL'} | ${s.step}${
 lines.push('===== END RECEIPT =====');
 console.log(lines.join('\n'));
 
-const cmd = `node scripts/alerts/check-alerts.mjs${sandboxMode ? ' --sandbox' : ''}${offlineMode ? ' --offline' : ''}${reportOnly ? ' --report' : ''}${since !== '24h' ? ` --since ${since}` : ''}${logFiles.length ? ` --log-file x${logFiles.length}` : ''}${psFile ? ' --ps-file' : ''}${dfFile ? ' --df-file' : ''}`;
+const cmd = `node scripts/alerts/check-alerts.mjs${sandboxMode ? ' --sandbox' : ''}${offlineMode ? ' --offline' : ''}${reportOnly ? ' --report' : ''}${since !== '24h' ? ` --since ${since}` : ''}${logFiles.length ? ` --log-file x${logFiles.length}` : ''}${psFile ? ' --ps-file' : ''}${dfFile ? ' --df-file' : ''}${metricsFile ? ' --metrics-file' : ''}`;
 console.log(`CMD=${cmd} EXIT=${exit}`);
 process.exit(exit);

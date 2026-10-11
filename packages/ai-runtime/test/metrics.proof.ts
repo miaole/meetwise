@@ -63,5 +63,21 @@ A('模型派发后对账只暴露低基数结果与冻结次数，不暴露主�
   && /model_invocation_reconcile_invocations_total\{result="owner_failed"\} 1/.test(out2)
   && /model_invocation_reconcile_frozen_costs_total 2/.test(out2));
 
+// ---- HA-7 R-24:失败计数 counter(四消费端终态失败臂 emit·基线 0 预填·queue 低基数)--------
+A('METRIC.jobsFailed 常量名(worker_jobs_failed_total·counter 以 _total 收尾命名纪律)',
+  METRIC.jobsFailed === 'worker_jobs_failed_total');
+A('registerBaselineMetrics 四队列 0 预填 worker_jobs_failed_total(开机即有序列,告警不空)',
+  /worker_jobs_failed_total\{queue="interview_job"\} 0/.test(base) && /worker_jobs_failed_total\{queue="report"\} 0/.test(base)
+  && /worker_jobs_failed_total\{queue="quiz_job"\} 0/.test(base) && /worker_jobs_failed_total\{queue="diagnosis_job"\} 0/.test(base));
+const m3 = createMetrics();
+registerBaselineMetrics(m3);
+m3.inc(METRIC.jobsFailed, { queue: 'interview_job' });
+m3.inc(METRIC.jobsFailed, { queue: 'interview_job' });
+m3.inc(METRIC.jobsFailed, { queue: 'report' });
+const out3 = m3.render();
+A('终态失败 counter inc 累加 + queue 低基数标签 + # TYPE counter 头(Prometheus 合法曝光)',
+  /worker_jobs_failed_total\{queue="interview_job"\} 2/.test(out3) && /worker_jobs_failed_total\{queue="report"\} 1/.test(out3)
+  && /worker_jobs_failed_total\{queue="diagnosis_job"\} 0/.test(out3) && out3.includes('# TYPE worker_jobs_failed_total counter'));
+
 console.log(`\n${fail === 0 ? '✓ 系统指标注册表(Prometheus 曝光)全部通过' : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

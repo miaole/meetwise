@@ -65,6 +65,7 @@ export function getMetrics(): Metrics { return active; }
  *   - circuitBreakerOpen:模型关口熔断"打开"次数(counter)——emit 在 circuit-breaker.ts 相位翻到 open 时。
  *   - refundFailed:退款/额度释放失败次数(counter)——emit 点在 commerce 释放失败的 catch(本次任务边界外,见报告"诚实缺口")。
  *   - jobsQueued / jobsRunningExpired / jobsDead:worker 侧队列健康(gauge)——worker 周期从 DB 查全局计数 set(见 worker main.ts)。
+ *   - jobsFailed:worker 侧 job 终态失败次数(counter)——四消费端(interview/report/quiz/diagnosis)终态失败臂各恰一行 inc(HA-7 R-24;requeue 可重试臂不计);跨实例告警侧 sum(increase())。
  * gauge 是"全局绝对值":多 worker 实例各自查同一 DB 得同值,告警侧用 max() 去重实例视角(切勿 sum,会翻倍)。
  * counter 是"本实例事件数":跨实例告警侧用 sum(increase()) 合并(各实例熔断是不同真实事件)。
  */
@@ -74,6 +75,7 @@ export const METRIC = {
   jobsQueued: 'worker_jobs_queued',
   jobsRunningExpired: 'worker_jobs_running_expired',
   jobsDead: 'worker_jobs_dead',
+  jobsFailed: 'worker_jobs_failed_total',
   ragRetrievalTotal: 'rag_retrieval_total',
   ragRetrievalLatencyMs: 'rag_retrieval_latency_ms',
   ragRetrievalCandidates: 'rag_retrieval_candidates',
@@ -109,6 +111,8 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.circuitBreakerOpen, { dep: 'model' }, 0);
   m.inc(METRIC.circuitBreakerOpen, { dep: 'fast_model' }, 0);
   m.inc(METRIC.refundFailed, undefined, 0);
+  // HA-7 R-24:失败计数 counter 按队列 0 预填(4 队列开机即有序列;emit 在四消费端终态失败臂——非 requeue 可重试臂)。
+  for (const queue of ['interview_job', 'report', 'quiz_job', 'diagnosis_job']) m.inc(METRIC.jobsFailed, { queue }, 0);
   for (const outcome of ['ok', 'not_ready', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown', 'claim_timeout', 'cache_dependency_unavailable', 'cache_value_invalid', 'internal_error']) {
     m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'dense' }, 0);
   }

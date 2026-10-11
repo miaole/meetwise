@@ -69,6 +69,30 @@
       "source": "packages/ai-runtime/src/invoke.ts:388",
       "source_note": "Trend 依 REQUEST rev2（席1 裁决）：事件含 P0001 幂等命中正常重放形态（apps/api/test/uc-e2e-028-nhp-fault.proof.ts:220-224）·直接 Page/Ticket 必噪音化·复盘看 errorName/pgCode 分布再定升级",
       "runbook": "ai-docs/observability/alerting-runbook.md#ev-ai_trace_persist_failed"
+    },
+    {
+      "event": "queue_backlog",
+      "matchers": [{ "type": "metrics_gauge", "metric": "worker_jobs_queued", "threshold": 100 }],
+      "severity": "Ticket",
+      "source": "scripts/alerts/check-alerts.mjs:382",
+      "source_note": "HA-7 R-24：阈值/severity 逐字对齐 docker/monitoring/alert.rules.yml:116-123 WorkerQueueBacklog（max(worker_jobs_queued)>100 for 10m·warning→Ticket 同层）；check-alerts 快照单遍无 for 去抖（瞬时超阈即报·假阳性由白名单承担·差异声明 runbook §3.10）",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_backlog"
+    },
+    {
+      "event": "queue_stuck_running",
+      "matchers": [{ "type": "metrics_gauge", "metric": "worker_jobs_running_expired", "threshold": 5 }],
+      "severity": "Ticket",
+      "source": "scripts/alerts/check-alerts.mjs:382",
+      "source_note": "HA-7 R-24：对齐 docker/monitoring/alert.rules.yml:126-133 WorkerStuckRunningJobs（max(worker_jobs_running_expired)>5 for 5m·warning→Ticket 同层）；快照无 for 去抖同上",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_stuck_running"
+    },
+    {
+      "event": "queue_dead_letter",
+      "matchers": [{ "type": "metrics_gauge", "metric": "worker_jobs_dead", "threshold": 10 }],
+      "severity": "Page",
+      "source": "scripts/alerts/check-alerts.mjs:382",
+      "source_note": "HA-7 R-24：对齐 docker/monitoring/alert.rules.yml:136-143 WorkerDeadLetterBacklog（max(worker_jobs_dead)>10 for 10m·critical→Page 同层）；DLQ 终态行只增不减（零 retention）=已知风险登记 runbook §4·处置归 R-51 生命周期后刀",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_dead_letter"
     }
   ],
   "registered_exclusions": [
