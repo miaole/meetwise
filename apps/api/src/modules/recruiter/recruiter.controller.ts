@@ -47,6 +47,13 @@ export class RecruiterController {
     return this.recruiter.candidates(req.principal, id);
   }
 
+  // I2 W2（裁定③落点 A）：B 端最小定性投影端点——属主招聘方门 + 0160 函数内同意门（E6）。
+  // 仅出定性档位（无数字评分）；未同意 → disclosed=false 未披露态（非空壳假数据）。
+  @Get('jobs/:id/applications/:applicationId/qualitative')
+  qualitative(@Param('id') id: string, @Param('applicationId') applicationId: string, @Req() req: any) {
+    return this.recruiter.qualitative(req.principal, id, applicationId);
+  }
+
   @Post('jobs/:id/invite')
   @HttpCode(HttpStatus.OK)
   // b110:req.ip 传给 service 撑 invite:ip 桶(trustProxy 保持关闭=socket 地址,防 XFF 伪造,Ban §5.10)。

@@ -12,6 +12,7 @@ import {
   recruiterAssessmentLabel,
 } from '@/lib/recruiter/surface';
 import { RecruiterPreviewNote } from '@/components/recruiter/PreviewNote';
+import { BQualitativeProjection } from '@meetwise/contracts';
 
 export const metadata: Metadata = {
   title: '申请状态 · 内部预览 · 知面',
@@ -19,7 +20,15 @@ export const metadata: Metadata = {
 };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
-interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
+interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; terminalKind?: 'held' | 'failed' | null; source?: string }
+
+/** I2 W2 档位徽（rubric disposition 三值映射 Ban 自造档位·不出数字）：强/中/弱/证据不足。 */
+const TIER_BADGE: Record<string, { text: string; variant: 'success' | 'outline' | 'secondary' | 'destructive' }> = {
+  strong: { text: '强', variant: 'success' },
+  mid: { text: '中', variant: 'secondary' },
+  weak: { text: '弱', variant: 'outline' },
+  insufficient: { text: '证据不足', variant: 'outline' },
+};
 
 /**
  * B 端申请状态：只消费本岗位候选人列表里的最小投影。
@@ -77,8 +86,21 @@ export default async function RecruiterApplicationStatusPage({
   const application = findOwnedApplication(candidatesRes.candidates ?? [], applicationId);
   if (!application) notFound();
 
-  const st = applicationStatusLabel(application.status);
-  const assessment = recruiterAssessmentLabel(application.status);
+  // I2 W2（裁定③落点 A）：定性投影——仅 assessment_unavailable 终态申请读取（held/failed 两源）。
+  // 契约 zod 校验（BQualitativeProjection）；读取失败/形状不符 → 中性「暂不可用」，Ban 假定性输出。
+  const isAssessmentUnavailable = application.status === 'assessment_unavailable';
+  const qualRes = isAssessmentUnavailable
+    ? await serverGet<unknown>(`/recruiter/jobs/${id}/applications/${applicationId}/qualitative`)
+    : null;
+  const qualParsed = qualRes !== null ? BQualitativeProjection.safeParse(qualRes) : null;
+  const qual = qualParsed?.success ? qualParsed.data : null;
+
+  // I2 W1（裁定⑤）：状态徽/评估行按 terminalKind 两态分流。候选列表不携带两态信号
+  // （interview 为候选人私有·RLS 隔离墙 by-design）→ 信号经 0160 受控函数承接；
+  // 无信号（非终态/读取失败）保持原样 fail-closed，不臆测终态。
+  const terminalKind = application.terminalKind ?? qual?.terminalKind ?? null;
+  const st = applicationStatusLabel(application.status, terminalKind);
+  const assessment = recruiterAssessmentLabel(application.status, undefined, terminalKind);
 
   return (
     <div className="mx-auto max-w-3xl space-y-4">
@@ -121,6 +143,34 @@ export default async function RecruiterApplicationStatusPage({
               <dd className="mt-1 text-muted-foreground">{assessment}</dd>
             </div>
           </dl>
+          {/* I2 W2（裁定③落点 A）：最小定性反馈区——能力维度 + 强/中/弱/证据不足档位（不出数字）。
+              三态如实：未同意（E6 门·函数内 fail-closed）/暂无可复核的评估记录/档位徽；
+              Ban 假定性输出·Ban 排序比较（fix-roadmap:117 承接注记）。证据摘录面默认不出（W3 门后预留）。 */}
+          {isAssessmentUnavailable && (
+            <div>
+              <div className="text-muted-foreground">能力概要（定性 · 不含数字评分）</div>
+              {qual === null ? (
+                <p className="mt-2 text-muted-foreground">能力概要暂不可用，请稍后重试。失败不会改写申请状态，也不会补一个分数。</p>
+              ) : !qual.disclosed ? (
+                <p className="mt-2 text-muted-foreground">候选人未同意披露能力概要。候选人同意后，这里显示能力维度与强/中/弱/证据不足档位。</p>
+              ) : qual.dimensions.length === 0 ? (
+                <p className="mt-2 text-muted-foreground">暂无可复核的评估记录。</p>
+              ) : (
+                <div className="mt-2 space-y-2">
+                  {qual.dimensions.map((d) => (
+                    <div key={d.competency} className="flex flex-wrap items-center gap-1">
+                      <span>{d.competency}</span>
+                      {d.tiers.map((t) => {
+                        const badge = TIER_BADGE[t] ?? { text: t, variant: 'outline' as const };
+                        return <Badge key={t} variant={badge.variant}>{badge.text}</Badge>;
+                      })}
+                    </div>
+                  ))}
+                  <p className="text-xs text-muted-foreground">单申请人评估事实投影：不可用于候选人之间排序比较，不含数字评分、答题内容与证据摘录原文。</p>
+                </div>
+              )}
+            </div>
+          )}
           {/* B271 片3 P1-b（裁定⑤语义批·文案与 RX-1 断言逐字绑定）：企业支付静态知情行+充值指引——
               非状态位·零查询（失败 start 事务整体回滚无持久信号，卡片不假装知道实时余额）。
               既有 dl 四行（候选人/来源/状态/评估）零字节锚。 */}
@@ -141,8 +191,16 @@ export default async function RecruiterApplicationStatusPage({
 
       <Card>
         <CardContent className="space-y-2 p-4 text-sm leading-relaxed text-muted-foreground">
+          {/* W3④（免责卡分流·主句零改）：第二行按两态分流——held=待校准语义 / failed=失败语义；
+              无派生信号保持原句。B271 片3 既有主句「证据不够就不给分」零字节。 */}
           <p>校准完成前，申请分数不会出现在这里。证据不够就不给分，也不会用 0 分凑数。</p>
-          <p>「评分暂不可用」表示没有可比较的校准分，不是已经有人在审、也不是 0 分。</p>
+          <p>
+            {terminalKind === 'held'
+              ? '「已面完 · 待校准」表示这场面试已完成、还没有可比较的校准分，不是已经有人在审、也不是 0 分；校准完成后与结果一起提供。'
+              : terminalKind === 'failed'
+                ? '「面试失败」表示这场面试因系统原因未完成评估；候选人可重试，已预留的额度已释放。'
+                : '「评分暂不可用」表示没有可比较的校准分，不是已经有人在审、也不是 0 分。'}
+          </p>
           <p>
             <Link href="/recruiter/how-it-works" className="text-primary hover:underline">怎么评估 · 完整说明</Link>
             {' · '}

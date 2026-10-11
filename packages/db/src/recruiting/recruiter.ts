@@ -152,22 +152,33 @@ export async function applyToJob(c: Client, candidate: string, jobId: string): P
   return { applicationId };
 }
 
+/** I2 W1（裁定①形 a·E3 派生口径收窄）：绑定面试 status 派生 held/failed 终态区分（零迁移·纯读侧）。 */
+export type ApplicationTerminalKindRow = 'held' | 'failed' | null;
+
 /** 候选人查自己的申请(RLS p_party_read:候选人侧)。带 source 让候选人 UI 区分"受邀/主动投递"并给出动作出口。 */
-export async function listMyApplications(c: Client, candidate: string): Promise<Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string }>> {
+export async function listMyApplications(c: Client, candidate: string): Promise<Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string; terminalKind: ApplicationTerminalKindRow }>> {
   const owner = requireOwnerUserId(candidate, 'recruiter.listMyApplications');   // PRIV01-C 第二层 E1
   await assertPrincipal(c, owner);
   const r = await c.query(`
     SELECT a.id, a.job_id, a.job_title_snapshot AS job_title,
-      a.interview_id, a.resume_id, a.status, a.score, a.source
+      a.interview_id, a.resume_id, a.status, a.score, a.source,
+      CASE WHEN a.status='assessment_unavailable' AND i.status='completed' THEN 'held'
+           WHEN a.status='assessment_unavailable' AND i.status='failed' THEN 'failed'
+           ELSE NULL END AS "terminalKind"
     FROM job_application a
+    LEFT JOIN interview i ON i.id = a.interview_id
     WHERE a.candidate_user_id=$1
     ORDER BY a.created_at DESC`, [owner]);
-  return r.rows as Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string }>;
+  return r.rows as Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string; terminalKind: ApplicationTerminalKindRow }>;
 }
 
 /**
  * 招聘方查申请到自己某岗位的候选人。当前评分合同未校准，B 端只可读取
  * 最小状态投影；数值 score 必须在数据库查询边界置空，不能靠页面隐藏。
+ * I2 W1 派生注记：绑定面试两态信号（held/failed）不在本查询派生——interview 为候选人私有
+ * （RLS p_owner·0005 by-design 隔离墙），招聘方会话内 join 恒 0 行（i2b:prove attempt3 实证），
+ * 两态经 0160 受控函数（gateway_b_qualitative_projection.terminal_kind）在申请详情面承接；
+ * 列表行保持既有兜底文案零改（fail-closed·不臆测终态）。
  */
 export async function listJobCandidates(c: Client, recruiter: string, jobId: string): Promise<Pick<JobApplication, 'id' | 'candidate_user_id' | 'status' | 'score' | 'source'>[]> {
   await assertPrincipal(c, recruiter);
@@ -352,7 +363,10 @@ export async function inviteCandidate(c: Client, recruiter: string, jobId: strin
 
 export type StartApplicationResult =
   | { status: 'started' | 'reused'; interviewId: string; resumeId: string }
-  | { status: 'noop' | 'resume_not_ready' | 'binding_invalid' | 'interview_ineligible_route' };
+  | { status: 'noop' | 'resume_not_ready' | 'binding_invalid' | 'interview_ineligible_route' }
+  // I2 W1 修法④服务侧守卫（裁定⑥）：held（绑定面试 completed 的 hold 终态）不再可重试——
+  // UI 收窄之外 API 亦拒，防止拦 UI 不拦 API 穿。409 映射在 applications.service（同区既有分码形）。
+  | { status: 'application_held_not_retryable' };
 
 /**
  * 创建/取得岗位专属会话。application 行锁把“看绑定→建 interview→回写 application”放在同一事务；
@@ -413,8 +427,20 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
   // creates a new, monotonically increasing bound attempt while preserving the
   // old failed interview for audit; delayed old workers no longer match the
   // current job_application pointer or attempt number.
+  // I2 W1 修法④服务侧守卫（裁定⑥）：绑定面试 status='completed'（held hold 终态）→ 拒重试。
+  // 与 E3 派生口径同源（a.status='assessment_unavailable' × i.status）；'failed' 绑定面试
+  // 不命中本守卫，走下方既有恢复通路零改（G7FIX-4 in_progress 面在其上方零触）。
   if (row.status === 'assessment_unavailable' && row.resume_id && row.resume_id !== resumeId)
     return { status: 'binding_invalid' };
+  if (row.status === 'assessment_unavailable' && row.interview_id) {
+    const heldBound = await c.query(
+      `SELECT 1 FROM interview i
+        WHERE i.id=$1 AND i.owner_user_id=$2 AND i.application_id=$3 AND i.application_attempt=$4
+          AND i.status='completed'`,
+      [row.interview_id, owner, row.id, row.interview_attempt],
+    );
+    if (heldBound.rowCount === 1) return { status: 'application_held_not_retryable' };
+  }
 
   const resume = await c.query(
     "SELECT id,privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested' FOR KEY SHARE",

@@ -371,16 +371,28 @@ export type JobList = z.infer<typeof JobList>;
 /** 投递结果(幂等:重复投递返回既有申请 id)。 */
 export const ApplyResult = z.object({ applicationId: z.string() });
 export type ApplyResult = z.infer<typeof ApplyResult>;
+/**
+ * I2 B-DELIVERABLE（#218+修法④·裁定①形 a）：assessment_unavailable 终态的读侧派生区分——
+ * held=绑定面试 completed 的「已面完 · 待校准」（不可重试）；failed=绑定面试 failed 的系统失败
+ * （可重试 · 预留已释放）；其余（含 assessment_unavailable 但绑定面试缺失/进行中）恒 null。
+ * 派生口径收窄（E3）：仅 a.status='assessment_unavailable' 时按绑定面试 status 派生，
+ * 不向 C 端透传 interview 内部状态名（形 a·API 派生语义字段）。
+ */
+export const ApplicationTerminalKind = z.enum(['held', 'failed']);
+export type ApplicationTerminalKind = z.infer<typeof ApplicationTerminalKind>;
 /** 候选人侧:我投递的申请(缓存状态/分数)。 */
 export const MyApplications = z.object({
   applications: z.array(z.object({
     id: z.string(), job_id: z.string(), job_title: z.string().min(1).optional().default('岗位信息同步中'), interview_id: z.string().nullable(), resume_id: z.string().uuid().nullable(), status: z.string(), score: z.number().int().nullable(),
+    terminalKind: ApplicationTerminalKind.nullable().optional(),
     source: z.string().optional(),
   })),
 });
 export type MyApplications = z.infer<typeof MyApplications>;
 /** 招聘方侧:申请到某岗位的候选人（当前只返回最小状态；score 字段在
- * calibration hold 期间恒为 null，避免前端或未来消费者重新把它用于排名）。 */
+ * calibration hold 期间恒为 null，避免前端或未来消费者重新把它用于排名）。
+ * I2 W1 注记：候选列表不携带 terminalKind——interview 为候选人私有（RLS 隔离墙），
+ * 两态信号在申请详情面经 0160 受控函数承接（BQualitativeProjection.terminalKind）。 */
 export const JobCandidates = z.object({
   candidates: z.array(z.object({
     id: z.string(), candidate_user_id: z.string(), status: z.string(), score: z.number().int().nullable(),
@@ -388,6 +400,24 @@ export const JobCandidates = z.object({
   })),
 });
 export type JobCandidates = z.infer<typeof JobCandidates>;
+/**
+ * I2 W2 B 端最小定性投影（裁定②形 A·不出数字）：单申请人自身事实投影——能力维度名 + 强/中/弱/
+ * 证据不足档位（rubric disposition below/meets/exceeds 三值映射·Ban 自造档位）。
+ * disclosed=false=候选人未同意（未披露态·非空壳假数据）；disclosed=true 且 dimensions 空=
+ * 暂无可复核的评估记录（如实中性·Ban 假定性输出）。Ban 排序/过滤/跨申请人比较用途。
+ */
+export const BQualitativeDimension = z.object({
+  competency: z.string().min(1),
+  tiers: z.array(z.enum(['strong', 'mid', 'weak', 'insufficient'])),
+});
+export type BQualitativeDimension = z.infer<typeof BQualitativeDimension>;
+export const BQualitativeProjection = z.object({
+  disclosed: z.boolean(),
+  /** 绑定面试两态信号（E3 同源口径·0160 函数派生）——状态分流不进同意门（W3④ 承接）。 */
+  terminalKind: ApplicationTerminalKind,
+  dimensions: z.array(BQualitativeDimension),
+});
+export type BQualitativeProjection = z.infer<typeof BQualitativeProjection>;
 /** 启动岗位面试时明确选择已摄取简历；服务端把它冻结到 application-bound interview。 */
 export const StartApplicationDto = z.object({ resumeId: z.string().uuid() }).strict();
 export type StartApplicationDto = z.infer<typeof StartApplicationDto>;
@@ -468,8 +498,11 @@ export const PrivacyAuthzPurpose = z.enum(PRIVACY_AUTHZ_PURPOSES);
  * （0093 interview_prep/career/preference/self_improvement）。仅约束
  * /privacy/consent 三入口的 purpose 值；库层 consent_record.purpose 仍为无 CHECK 的
  * text（库层立法不在本刀）。
+ * I2 W3（裁定④）：`b_qualitative_share` = 候选人同意招聘方查看其申请的最小定性投影
+ * （能力维度 + 强/中/弱/证据不足档位，不含数字评分/答题内容/证据摘录原文）；撤回=删行，
+ * 0160 投影函数内同意门随即 fail-closed（无同意行→未披露形状）。
  */
-export const CONSENT_PURPOSES = ['resume_processing', 'interview_personalization', 'voice_capture'] as const;
+export const CONSENT_PURPOSES = ['resume_processing', 'interview_personalization', 'voice_capture', 'b_qualitative_share'] as const;
 export const ConsentPurpose = z.enum(CONSENT_PURPOSES);
 export type ConsentPurpose = z.infer<typeof ConsentPurpose>;
 /** POST /privacy/consent body：purpose 可选（缺省 resume_processing 由 controller 保留），strict 拒未知键。 */
