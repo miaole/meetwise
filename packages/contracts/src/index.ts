@@ -478,6 +478,70 @@ export type ConsentPurposeDto = z.infer<typeof ConsentPurposeDto>;
 /** GET/DELETE /privacy/consent query：非 strict——只校 purpose 值，其余 query 键 strip 不拒。 */
 export const ConsentPurposeQueryDto = z.object({ purpose: ConsentPurpose.optional() });
 export type ConsentPurposeQueryDto = z.infer<typeof ConsentPurposeQueryDto>;
+/**
+ * 级别方案（LEVEL-SCHEME · #45/#102 单一出处立法 · H1 阈值决议 §4/附录 A'）。
+ *
+ * 【占位·待校准】——LEVEL_SCHEME_V2 数值 = H1 决议初值（附录 A' 冻结抄写面 16 字段·字段名即
+ * 契约·逐字照抄），**未经黄金集校准**（H1 §6 发布门未执行）；权威承载 = DB 行
+ * level_policy_version.scheme_version='v2' status='calibrating'（0160 迁移·append-only）。
+ * 不得宣称已校准；校准升版按 H1 §7 协议（新 scheme_version 新行·append-only）。
+ * LEVEL_SCHEME_ACTIVE_VERSION 恒 'v1'（现行三档 v1 转历史只读·H1 §3.3）——翻指针=独立刀+双审，
+ * 非 H3 EXEC 顺手（H1 §4.3）。运行时数值唯一权威 = level_policy_version 表 active 行（H1 §4.1），
+ * 本镜像为 TS 侧单源定义面（沿 GAP 先例：一处定义，全仓复用禁字面量散布 + rg 门）。
+ */
+export const LEVEL_SCHEME_VERSIONS = ['v1', 'v2'] as const;
+export const LevelSchemeVersion = z.enum(LEVEL_SCHEME_VERSIONS);
+export type LevelSchemeVersion = z.infer<typeof LevelSchemeVersion>;
+/** active 指针（H1 §4.3 冻结名·初值 'v1'·本刀不翻——v2 过发布门后随 calibration release 独立刀翻转）。 */
+export const LEVEL_SCHEME_ACTIVE_VERSION = 'v1' as const;
+/** 五档枚举（附录 A 第 1 条·L1..L5）。 */
+export const LEVEL_TIERS = ['junior', 'mid', 'senior', 'staff', 'principal'] as const;
+export const LevelTier = z.enum(LEVEL_TIERS);
+export type LevelTier = z.infer<typeof LevelTier>;
+/**
+ * v2 五档判定状态机（A.3.5·冻结抄写面外 additive 常量）：auto_final / capped_by_evidence /
+ * review_required / unavailable / reviewed / superseded / fenced 七态中，本刀判定纯函数只产出
+ * 前四态（reviewed/superseded/fenced 为存储与隐私围栏态·非派生输出）。
+ */
+export const LEVEL_JUDGMENT_STATUSES = ['auto_final', 'capped_by_evidence', 'review_required', 'unavailable'] as const;
+export const LevelJudgmentStatus = z.enum(LEVEL_JUDGMENT_STATUSES);
+export type LevelJudgmentStatus = z.infer<typeof LevelJudgmentStatus>;
+/** 规则把关理由码枚举（H1 §4.4+§2.3 码表照录·A.3.4 全表 + 信息/状态码三枚）。 */
+export const LEVEL_REASON_CODES = [
+  'insufficient_cards', 'insufficient_coverage', 'insufficient_hard_evidence', 'hard_question_underperform',
+  'core_competency_floor', 'inconsistent_profile', 'model_disagreement', 'voice_low_quality', 'language_not_applicable',
+  'suggested_above_max', 'suggested_below_rule', 'top_tier_manual', 'calibration_missing',
+  'below_l1_reference', 'capped_by_evidence', 'review_required',
+] as const;
+export const LevelReasonCode = z.enum(LEVEL_REASON_CODES);
+export type LevelReasonCode = z.infer<typeof LevelReasonCode>;
+/** 附录 A'：LEVEL_SCHEME_V2 冻结抄写面（16 字段逐字照抄·字段名即契约·Ban 增删改）。 */
+export const LEVEL_SCHEME_V2 = {
+  tiers: ['junior', 'mid', 'senior', 'staff', 'principal'],        // L1..L5
+  scoreFloor:   { junior: null, mid: 50, senior: 65, staff: 75, principal: 85 },
+  minCards:     { junior: 3, mid: 5, senior: 6, staff: 8, principal: 10 },
+  minCoverage:  { junior: 2, mid: 3, senior: 4, staff: 4, principal: 5 },
+  hardEvidence: {
+    mid:      { cardsDge3: 2, pDge3: 0.50 },
+    senior:   { cardsDge4: 3, pDge4: 0.55 },
+    staff:    { cardsDge4: 4, cardsEq5: 1, pDge4: 0.65 },
+    principal:{ cardsEq5: 3, p5: 0.60 },
+  },
+  coreFloor:    { mid: 35, senior: 40 },                        // S_c' 核心底线
+  consistencyMargin: 10,                                        // R6：中位数 ≥ 档阈 −10
+  weightByDifficulty: { 1: 0.5, 2: 0.75, 3: 1.0, 4: 1.5, 5: 2.0 },  // R1
+  shrinkage:    { k: 1.5, mu0: 50 },                            // R2
+  capabilityWeight: { core: 1.0, nonCore: 0.5 },                // R3（core 落库前 α=1+core_unknown）
+  confidenceCaps: { maxCardsForMid: 8, maxCardsForLow: 5 },     // R5
+  highestPassedDifficultyLine: 60,                              // R7（与 GAP 同值不同义）
+  belowL1Reference: 30,                                         // R8 信息码线
+  labels: { junior: '初级', mid: '中级', senior: '高级', staff: '资深', principal: '专家' },
+  milestoneSimulationPass: 70,                                  // S2 注册（待校准登记项）
+  gapLine: '@see GAP (packages/domain/src/assessment.ts) = 60', // S4 已单源·不重复定义
+} as const;
+export type LevelSchemeV2 = typeof LEVEL_SCHEME_V2;
+/** 五档中文标签（附录 A 第 1 条「中文标签放配置，不写进 DB CHECK」·单源=LEVEL_SCHEME_V2.labels 禁重抄）。 */
+export const LEVEL_LABELS = LEVEL_SCHEME_V2.labels;
 export const PrivacyAuthorizationSnapshot = z.object({
   iss: z.literal(PRIVACY_AUTHZ_ISSUER),
   aud: z.literal(PRIVACY_AUTHZ_AUDIENCE),
