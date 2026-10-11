@@ -1,6 +1,6 @@
 # PTP-ARCHIVE REQUEST（公共文本 FILE_LIMIT 清债刀 · 处方 A 清债刀 · M 体量 · git-mv+docs 恰 1 commit 零码动）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀触面=git mv 重命名+checklist 债行+ADR 增补+proof 边界用例·**迁移集零内容改写**。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）〖勘误席 2026-10-11 落卷：pre-exec 双审席1 FAIL（闭卷判据背离）+席2 PASS（五登记项）合并处方一次落卷——闭卷名单逐件机检重造（终局 174 迁/155 留）·活治理面硬排除增补·§4 例外句改写·链条 3028/2510/1897/1898 重算·残留错误集机检如实改 pin（§0.5）·Status 仍 `draft:awaiting_pre_exec_dual` 待复审〗
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀触面=git mv 重命名+checklist 债行+ADR 增补+proof 边界用例·**迁移集零内容改写**。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）〖勘误席 2026-10-11 落卷：pre-exec 双审席1 FAIL（闭卷判据背离）+席2 PASS（五登记项）合并处方一次落卷——闭卷名单逐件机检重造（终局 174 迁/155 留）·活治理面硬排除增补·§4 例外句改写·链条 3028/2510/1897/1898 重算·残留错误集机检如实改 pin（§0.5）·Status 仍 `draft:awaiting_pre_exec_dual` 待复审〗〖nail 席 2026-10-11 落卷：**→ nailed（post-prove 双席 BOTH PASS @2026-10-11·选 2 改 pin 61 终值·四轮口径）**——merge `--no-ff line/ptp-archive` 落主线（ort 策略·双侧触面交集空·零冲突）·archive 五桶终计数 **3025 不变**（receipts 1480/reviews 1103/eval 77/harness 171/slices 194）·delivery 残留 **237=207+30 主线新增件**（diag-honesty/i3/h5/i4/h2-qbank/g7trio2/ha-6 在途新卷留原位·不在 move 集·正确）·真扫描器主线并后实跑 scannedFiles **1939**（分支基线 1901→+38 主线新卷+LEDGER 更新入扫描域）·errors **65**=62 PTP_LOCAL_PATH+2 PTP_EXTERNAL_REFERENCE_LINK+1 PTP_CODE_HOST_URL·**PTP_FILE_LIMIT 零命中保持**·与 61 基线差集逐条对账（61 终值=分支 426e0b28 同法实跑亲证恰 61）：新增 +5＝主线新增件 content 红 4（`harness/h5-role-input-REQUEST.md:8`/`:41`·`receipts/g7trio2-full/00-exec-receipt.md:9`·`receipts/g7trio2-full/cmd3-perf-suite-receipt.json:11`——主线新卷自带红·照登归 B-lite 同族清欠·**非本刀 FAIL**）+既有红行号漂移 1（`harness/g7y-trio-rerun.md` :9→:11·主线 `6be8f11b` 改文所致·非新增红）；消失 −1＝同件 :9 旧位；**迁移域 archive/ 零红**（65 条全在留置域·本刀验收=迁移域零新增红 达成）·双席 disposition 登记随落 §9·分支 `line/ptp-archive` 随 nail 清理（meetwise-ptp 树占用状态如实上报协调方）〗
 
 **席位**：北星 loop 处方 A 清债刀（「A 清债刀+B-lite 治理随行」之 A 件）EXEC 任务书起草席。
 **基线**：`feat/mysql-schema-skeleton` @ `c7142596`（主线最新 tip · 2026-10-11 `git log -1` 实测）。分支 `line/ptp-archive`·工作树 `meetwise-ptp`（`git worktree add ../meetwise-ptp -b line/ptp-archive` 本起草席已立·建前实查不存在）。
@@ -86,7 +86,7 @@
      **活治理面硬排除（勘误席增补·逐件亲证在树+活跃性·优先于状态判据）**：`product-campaign-LEDGER.md`（活总账·base tip `c7142596` 本身触面）·`product-campaign-EXECUTION-SOP.md`（9-agent loop 唯一执行依据·`c70496ff` 2026-10-11）·`extreview-fix-campaign-SOP.md`（EXTREV 在飞·`5e1e7fde`·extrev-deps-audit-REQUEST 在飞处方记账）·`ha-4-backup-runbook.md`（活 runbook·实机启用待另行授权）·`ha-track.skeleton.md`（skeleton landed·prove path 未开）·`ha-track.multi-instance.md`（工具轨活面·`7fddebe8`）·`r4-domain-isolation-status.md`（G4/R4 Status 对照板·`ba1b8aa8`）·**eval-honesty 系列状态板 12 件**（机械口径=`**状态**：eval-honesty` 头·含 `qdrant-g5-ledger-map`/`r5-retirement-sole-stack-status` 两 superseded 板）·`obs-envschema-REQUEST.md`（post-dual FAIL 修复中·`exec:awaiting_post_prove_dual`）——及其 sibling pins 族四件（`mysql-schema.skeleton.md`/`privacy-erasure-http-503-pin.md`/`qdrant-store.prototype.md`/`redis-streams-wakeup.prototype.md`·同族 `r5-pgvector-fixture-mark-red`/`qdrant-erase-count-honesty`）。
      → 其余 **174 件**（`git ls-files` 机检清单·EXEC 照 §0 重 pin）→ `…/harness/`；**留置 155 件**=无状态行 23+eval-honesty 状态板 12+draft/PENDING/awaiting_*/exec_blocked/门未结 120（如 `exec:awaiting_post_prove_dual`/`exec:done_prove_green`/`exec_blocked_cross_knife_acl`/`pre_exec_dual_PASS` 已授权未执行）。收据附件随主卷逐件独立机读（如 `dbid1-id-v7-unify.exec.md`=nail 终局随迁·其父 REQUEST 仍 draft 留置——如实登记）；席1 预记拆分（~33+~124 等）与实测 174 不符处以本席逐件机检为准。
   5. 散片 slice=delivery 顶层 `*.slice.md` **194 件**（五线名零命中）→ `…/slices/`
-  6. 散片非 slice **32 件本批留置**（活账本/队列/backlog/matrix/ADR/规划混居·甄别归后续批次·如实登记）——含 `execution-master-checklist.md`（§1-② 触面·活卷禁迁）。
+  6. 散片非 slice **34 件本批留置**〔nail 改 pin 2026-10-11·post-prove 席1 R1·原 pin 32 作废登记〕（活账本/队列/backlog/matrix/ADR/规划混居·甄别归后续批次·如实登记）——含 `execution-master-checklist.md`（§1-② 触面·活卷禁迁）。
 - 通用硬闸：任何路径名匹配五线 pattern（`h2-qbank-corpus`/`ha-6-companion`/`diag-honesty`/`g2-report-page`/`evidence-delivery`）者**无条件留置**（本 tip 实测零漏网·EXEC 重 pin）。
 - 手法=先 `mkdir -p` 目标子目录·逐件 `git mv`（保 R100 rename 记录）·迁移集内容**逐字节零改写**（Ban 触内容·§5）。
 
@@ -116,7 +116,7 @@
 3. **【勘误·改 pin】docs:check 残留错误=且仅=§0.5 机检清单**（复审席孤证实证+勘误席重演确认·实测 **60 处=57 PTP_LOCAL_PATH+2 PTP_EXTERNAL_REFERENCE_LINK+1 PTP_CODE_HOST_URL**·验收语言终值口径=**「scannedFiles:1898·errors 恰 60 处逐条 file:line 全等·超集或异集=FAIL」**·EXEC 以 §0.5 同法注入机检重 pin 终值）——处方原文「docs:check EXIT=0 / valid:true errors:0」预演证伪（§0.5）·起草席「恰 7 处」系名单未收严口径·同节作废登记：本刀验收=错误集自 `{PTP_FILE_LIMIT:4407}` 收窄为该机检清单·EXIT=1 如实登记为 base 残留不洗；全绿清欠归 B-lite 另刀。（EXEC 改 pin 2026-10-11·协调方裁决选 2：本条终值按 §0.5 EXEC 块改 pin 恰 **61 处**=60 钉值+1 差集 LOCAL_PATH[差集红载体 `harness/gap-begin-snapshot-supply-fix.md`]·更严留置方向红保持可见比钉值更安全·逐条 file:line 全等·超集或异集=FAIL·**scannedFiles 终值 1901**=1898+4−1 逐项可导·闭卷集 171 件口径同 §0.5 EXEC 块）
 4. **prove 全绿**：`pnpm public-text-policy:prove` EXIT=0（12 案全过·含新 E11 双断言）。
 5. **三件触面收束**：checklist 五行注/勾销·ADR 增补·proof E11——diff 逐处对应 §1-②③④·触面外零 diff（checklist 注释外行零触碰）。
-6. **在飞零触**：五线卷/收据+常驻 SOP 三件+活治理面硬排除件（§1-①-4 勘误增补）+harness 留置 155 件+散片留置 32 件零触碰（路径级白名单核验）。
+6. **在飞零触**：五线卷/收据+常驻 SOP 三件+活治理面硬排除件（§1-①-4 勘误增补）+harness 留置 155 件+散片留置 34 件零触碰（路径级白名单核验）〔nail 改 pin 2026-10-11·席1 R1·32→34〕。
 7. markers=0（§7）+ est live=0（§6）双声明入收据。
 8. **断链既定取舍登记**：迁移零改写·留置件原位——迁移收据内相对链至留置件的断链为既定取舍，EXEC 收据须带此登记句（席2 登记项⑤·修链归 B-lite 后续·不构成返工）。
 
@@ -127,7 +127,7 @@
 3. **在飞五线卷/收据零迁**（§0.6 清册·§1-① 硬闸）·常驻 SOP 三件零迁·**活治理面硬排除件零迁**（§1-①-4 勘误增补清单·优先于状态判据）。
 4. **deliveries 内容零改写**：迁移集逐字节零动纯 R100；checklist/ADR/proof 仅 §1-②③④ 触面·其余行零 diff。
 5. **潜伏红零修**：§0.5 机检清单（实测 60 处=57 PTP_LOCAL_PATH+2 PTP_EXTERNAL_REFERENCE_LINK+1 PTP_CODE_HOST_URL）清欠=B-lite 治理随行件职责（§2-3）·本刀只登记不修。
-6. **散片非 slice 32 件零迁**（§1-①-6·甄别归后续批次）。
+6. **散片非 slice 34 件零迁**（§1-①-6·甄别归后续批次）〔nail 改 pin 2026-10-11·席1 R1·32→34〕。
 7. **ADR status 零翻**：proposed 保持（§1-③·翻状态归用户/治理流程）。
 8. **est live=0**：零模型外呼（§6）·零生产操作·零 secrets。
 
@@ -159,6 +159,22 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本卷恰 1 .md·恰 1 commit）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——本卷 §0 数字/行号=base `c7142596` 实测·漂移必登记）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
 
+## §9 nail 落卷与双席 disposition 登记（2026-10-11·append-only·nail 席落）
+
+**nail 事实**：主线 `feat/mysql-schema-skeleton` 以 merge commit `2cec48e8`（`--no-ff`·ort 零冲突·message 首行=派单钉值）并线；archive 五桶 3025 不变；真扫描器主线并后实跑 scannedFiles 1939·errors 65（与 61 基线差集逐条对账见 Status 〖nail 席〗块·迁移域零红·FILE_LIMIT 零命中保持）。分支 `line/ptp-archive`@426e0b28 随 nail 删除（meetwise-ptp 工作树占用·如实上报协调方处置）。
+
+**席1（post-prove 席1·BOTH PASS）disposition**：
+
+- **R1 散片留置 pin 32→34 改 pin（本卷四处活 pin 已照改：§1-①-6/§2-6/§3-6/footer·原 32 作废登记）**：base `c7142596` 顶层非 slice `git ls-tree` 机检=32 件（194 slice+32 非 slice+4 目录=230）；34 系席1 post-prove 复核终值·其逐件机检集未随卷·沿 §1-①-4「以 EXEC 逐件机检为准」与 R4「终局名单随卷落卷」教训句同款口径照登——差 2 件精确成员本席不可复现·如实记（后续批甄别散片时以席1 机检集为准重对账）。
+- **R2-R5 边界裁断先例照登**：harness 闭卷「边界裁断终局 15 件」（§0.5 EXEC 改 pin 段 :59）之裁断先例=后续批次同型边界（draft/awaiting/否定语境/计划语态四型）甄别的既定先例·随卷可引·不另文。
+
+**席2（post-prove 席2·BOTH PASS）disposition**：
+
+- **R1 修链清单移交 B-lite**：139 休眠断链+3 fail-closed 变体+4 文件 8 处治理指针——与 61 内容红（§0.5 EXEC 终值）同归 B-lite 清欠口径·修链不构成本刀返工（§2-8 断链既定取舍登记句同源）。
+- **R2 152 空目录壳清壳·随下批归档刀**：git mv 后空目录壳 152 处留置（本刀零 rmdir·Ban 列表未授权）·清壳归下批归档刀顺手件。
+- **R3 预存断链 5 处照登**：留置域既存断链·非本刀产物·不洗。
+- **R4 终局名单随卷落卷教训——已入卷**（§0.5 EXEC 改 pin 段流程教训句·本席核在卷·零重复动作）。
+
 ---
 
-*PTP-ARCHIVE REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`c7142596` · 分支 `line/ptp-archive` · 工作树 `meetwise-ptp` · 形制沿 diag-honesty-REQUEST（Ban/pins 同源誊录）· 惯例先例 `217dde27` 顶屋 receipts/（6 附件顶屋+刀文书本体在 harness）· 四件=①git mv 3028 件→`receipts/archive/2026-09-batch23/`（R100 零改写·五线硬闸+活治理面硬排除·harness 闭卷逐件机检 174 迁/155 留·SOP 三件与散片非 slice 32 件留置）②checklist 债行 `:2060` 勾销+四披露行结账注（原文保留）③ADR-0019 增补落点约定+cap 依据登记（status 仍 proposed）④proof `TC-quality-04-E11` FILE_LIMIT 边界双断言 · 勘误席（pre-exec 席1 FAIL+席2 PASS 合并处方）：闭卷名单机检重造·链条 3028/2510/1897/1898 重算（余量 151）·潜伏错误集 60 处（57 本机路径形+2 外链+1 托管 URL 形）如实改 pin（全绿清欠归 B-lite）· §4 例外句改写· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*PTP-ARCHIVE REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`c7142596` · 分支 `line/ptp-archive` · 工作树 `meetwise-ptp` · 形制沿 diag-honesty-REQUEST（Ban/pins 同源誊录）· 惯例先例 `217dde27` 顶屋 receipts/（6 附件顶屋+刀文书本体在 harness）· 四件=①git mv 3028 件→`receipts/archive/2026-09-batch23/`（R100 零改写·五线硬闸+活治理面硬排除·harness 闭卷逐件机检 174 迁/155 留·SOP 三件与散片非 slice 34 件留置〔nail 改 pin 2026-10-11·席1 R1·32→34〕）②checklist 债行 `:2060` 勾销+四披露行结账注（原文保留）③ADR-0019 增补落点约定+cap 依据登记（status 仍 proposed）④proof `TC-quality-04-E11` FILE_LIMIT 边界双断言 · 勘误席（pre-exec 席1 FAIL+席2 PASS 合并处方）：闭卷名单机检重造·链条 3028/2510/1897/1898 重算（余量 151）·潜伏错误集 60 处（57 本机路径形+2 外链+1 托管 URL 形）如实改 pin（全绿清欠归 B-lite）· §4 例外句改写· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
