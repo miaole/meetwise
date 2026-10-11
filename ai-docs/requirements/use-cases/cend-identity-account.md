@@ -5,7 +5,7 @@ description: 认证·同意·账号·权益·支付入口 业务用例与测试�
 type: reference
 scope: shared
 level: spec
-status: active
+status: draft
 owner: product
 related:
   - ./README.md
@@ -16,6 +16,8 @@ related:
 # 领域用例 + 测试用例终稿 · cend-identity-account（C 端身份与账户）
 
 > **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：真实鉴权（注册 scrypt 哈希 + 常量时间校验 + 同邮箱限流 + HMAC 会话令牌，cookie 鉴权），账号/权益次数入口、登录页可跑。**🟠 校正 / ⬜ 未建**：本文首段的**“微信扫码登录（QrLoginTicket 状态机）”未接线** —— 当前登录为**邮箱+密码**，无微信/OAuth；PIPL 实名/同意状态机、onboarding 全链路、充值真实收单等为规格。核心密码鉴权与会话已生效，扫码/实名/OAuth 为规划。
+>
+> **实现态标注导语（2026-10-11·I5 口径刀）**：下列逐 UC 实现态以 2026-10-11 码面实查为准：认证现实现=邮箱+密码 signup/login（auth 模块仅两端点）+HMAC 会话 cookie；微信扫码/OAuth/刷新令牌/登出吊销为规格（登出吊销见 #112 另册）。三态值域封闭：已实现/仅设计/有意关闭。规格与 TC 矩阵零改写（标注层操作）。
 
 > 范围：微信扫码登录 / onboarding / 实名与个人信息同意（PIPL）/ 账号生命周期 / 权益次数 / 充值入口。
 > 顺序铁律：用例 → 契约 → 状态机 → 测试 → 代码。本稿已收口对抗评审全部结论（七类补齐、每条异常/刁钻落机制、验收可测、配齐测试）。
@@ -78,6 +80,7 @@ related:
 # AUTH · 登录（微信扫码）
 
 ## UC-AUTH-01 · 微信扫码登录
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 微信扫码登录/QrLoginTicket 状态机未落（auth 仅 signup/login 两端点）。
 **覆盖类**：正常 · 异常 · 特殊 · 逃逸 · 并发
 - **角色**：求职者（匿名→具名） / 系统
 - **前置**：未登录；微信开放平台可用。
@@ -105,6 +108,7 @@ related:
 | TC-AUTH-01-contract | 契约 | qr/status 响应 schema 符合 Zod |
 
 ## UC-AUTH-02 · 首次登录建账（并发建账竞态）
+> **实现态（2026-10-11 I5 口径刀）：已实现** —— 邮箱+密码注册路径已实现（scrypt 哈希+常量时间校验+同邮箱限流+唯一约束承并发建账竞态）；微信路径仅设计。
 **覆盖类**：正常 · 特殊 · 并发 · 刁钻
 - **角色**：系统 / 求职者
 - **前置**：unionid 取号成功且无对应 account。
@@ -127,6 +131,7 @@ related:
 | TC-AUTH-02-main | 单元 | 首次建账返回 PENDING_ONBOARD |
 
 ## UC-AUTH-03 · 防扫码登录劫持
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 防扫码劫持未落（扫码链路未落）。
 **覆盖类**：异常 · 逃逸 · 刁钻 · 并发
 - **角色**：攻击者 B / 受害者 A / 系统
 - **前置**：A 浏览器创建 ticket（绑定 A 的 httpOnly `bindSid`）。
@@ -149,6 +154,7 @@ related:
 | TC-AUTH-03-E2 | 集成 | A/B 并发轮询 → 仅 A 1 token |
 
 ## UC-AUTH-04 · 令牌刷新与轮换
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 刷新令牌与轮换未落（现=HMAC 会话 cookie）。
 **覆盖类**：正常 · 异常 · 刁钻 · 并发
 - **角色**：求职者 / 系统
 - **触发**：access token 临期，用 refresh token 续期。
@@ -170,6 +176,7 @@ related:
 | TC-AUTH-04-E2 | 集成 | 并发刷新 → 恰一新对生效 |
 
 ## UC-AUTH-05 · 登出与会话撤销
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 登出/服务端会话撤销端点未落（#112 另册·本刀不收）。
 **覆盖类**：正常 · 特殊 · 逃逸
 - **触发**：用户登出（本端/全端）。
 - **主流程**：撤销会话/refresh family；全端登出写入会话撤销表，各端校验即失效。
@@ -182,6 +189,7 @@ related:
 | TC-AUTH-05-all | 集成 | 全端登出后所有端 token → 401 |
 
 ## UC-AUTH-06 · 封禁用户登录拦截（confirm 通过但发 token 前拦截）
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 封禁拦截分支未落（登录路径无封禁判定）。
 **覆盖类**：异常 · 逃逸 · 刁钻
 - **前置**：account=BANNED；用户仍走扫码到 CONFIRMED。
 - **主流程**：发 token 前校验 account 终态=BANNED → **拒发 token，ticket `CONFIRMED→CANCELLED`**（不停留 CONFIRMED 悬空）。
@@ -200,6 +208,7 @@ related:
 | TC-AUTH-06-E3 | 集成 | BANNED confirm → 0 token、ticket=CANCELLED |
 
 ## UC-AUTH-07 · 用户主动取消/拒绝微信授权（补 CANCELLED 正向入口）
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— 用户取消微信授权（CANCELLED 正向入口）未落。
 **覆盖类**：正常 · 特殊
 - **触发**：用户在微信端点「取消」或「拒绝授权」。
 - **主流程**：微信回调拒绝事件 → ticket `PENDING/SCANNED→CANCELLED`；前端提示可重新扫码。
@@ -216,6 +225,7 @@ related:
 | TC-AUTH-07-main | 集成 | 模拟拒绝回调 → ticket=CANCELLED、无 token |
 
 ## UC-AUTH-08 · CONFIRMED 取号失败/超时的终态与重入（修状态机悬空）
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— CONFIRMED 取号失败/超时终态与重入未落。
 **覆盖类**：异常 · 逃逸 · 复杂 · 刁钻
 - **前置**：ticket=CONFIRMED，但后端取 unionid 失败/超时。
 - **主流程**：1) 取号失败计入 ticket 重入计数 2) 预算内（≤N 次，有界退避）→保持 CONFIRMED，下次轮询触发重试 3) 预算耗尽或 TTL 到 → `CONFIRMED→EXPIRED(reason=union_fetch_failed)` 4) 前端收终态后引导重新 qrCreate。
@@ -237,6 +247,7 @@ related:
 | TC-AUTH-08-ttl | 集成 | TTL 过期 + CONFIRMED → EXPIRED（TTL 优先） |
 
 ## UC-AUTH-09 · qrCreate 限流/防刷（匿名 DoS 护栏）
+> **实现态（2026-10-11 I5 口径刀）：仅设计** —— qrCreate 限流/防刷未落（扫码链路未落）。
 **覆盖类**：逃逸 · 高并发 · 刁钻
 - **角色**：匿名客户端 / 系统
 - **触发**：匿名高频建 ticket。

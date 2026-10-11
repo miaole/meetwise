@@ -17,6 +17,8 @@ import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
 import { interviewProgressBadge } from '@/lib/interview/progress-badge';
+// #267:语音模式入口显示开关(纯前端静态·缺省显示=现状字节;NEXT_PUBLIC_VOICE_MODE_ENTRY=off 时按钮不渲染)。
+import { isVoiceModeEntryVisible } from '@/lib/voice-mode-entry';
 // G4 #59:提交失败分码映射(纯函数·action 判定在函数/执行在组件)——撤裸透传读数(错误体={error:code}无 message 字段)。
 import { turnSubmitFeedback } from '@/lib/errors/turn-submit-error';
 // SSE-RESILIENCE #54(W2/C6/C7)：作答草稿 sessionStorage 持久化(按 resultId+questionId;降级键只写不恢复;注记A 空框恢复前提)。
@@ -374,13 +376,16 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
       <header className="flex items-center justify-between border-b pb-3">
         <h2 className="font-semibold tracking-tight">模拟面试</h2>
         <div className="flex items-center gap-3">
-          <button
-            type="button" onClick={() => setMode('voice')}
-            title="预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话"
-            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium hover:border-primary hover:text-primary"
-          >
-            <Mic className="size-3.5" />语音模式
-          </button>
+          {/* #267:按能力开关显示语音入口——缺省显示(开关未配置=现状字节·voice-duplex e2e 消费面天然绿);显式 off→不渲染。回落文案(title)零触。 */}
+          {isVoiceModeEntryVisible() && (
+            <button
+              type="button" onClick={() => setMode('voice')}
+              title="预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话"
+              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium hover:border-primary hover:text-primary"
+            >
+              <Mic className="size-3.5" />语音模式
+            </button>
+          )}
           <button
             type="button"
             data-testid="uc018-abandon-trigger"

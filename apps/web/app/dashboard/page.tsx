@@ -31,7 +31,7 @@ function StatusBadge({ status }: { status: string }) {
 const QUICK_ACTIONS: Array<{ href: string; t: string; d: string; Icon: typeof MessageSquareText; primary?: boolean }> = [
   { href: '/interviews', t: '开始模拟面试', d: '自适应追问,逐题点评。', Icon: MessageSquareText, primary: true },
   { href: '/growth', t: '成长档案', d: '能力曲线随训练演进,看哪里在变强。', Icon: TrendingUp },
-  { href: '/quiz', t: '押题预测', d: '据简历预测训练问题,标考察点与追问。', Icon: Sparkle },
+  { href: '/quiz', t: '押题预测', d: '据简历预测训练问题,标考察点与备战提示。', Icon: Sparkle },
   { href: '/diagnosis', t: '简历诊断', d: '结构/亮点/风险/匹配度 + 接地改写建议。', Icon: Stethoscope },
   { href: '/resume', t: '管理简历', d: '上传与诊断,押题更贴你。', Icon: FileText },
   { href: '/jobs', t: '找工作', d: '看岗位,做简历×JD 匹配。', Icon: Briefcase },
@@ -76,18 +76,18 @@ async function GrowthHome() {
         </div>
       </header>
 
-      {/* ── 当前练习反馈 + stats ── */}
+      {/* ── 近期平均（#262 口径命名：面试中提示分/本场报告分/近期平均）+ stats ── */}
       <section className="grid gap-4 md:grid-cols-[260px_1fr]">
         <Card className="flex items-center gap-5 p-5">
           {ov?.avgScore != null ? <ScoreRing score={ov.avgScore} size={112} /> : (
             <div className="grid size-[112px] shrink-0 place-items-center rounded-full border-[7px] border-muted text-sm text-muted-foreground">尚无评分</div>
           )}
           <div>
-            <div className="text-[13px] text-muted-foreground">练习反馈</div>
+            <div className="text-[13px] text-muted-foreground">近期平均</div>
             <div className="mt-1 text-sm leading-relaxed text-foreground">
               {ov?.avgScore != null
-                ? '基于当前练习记录的模型反馈，仅供个人复盘；不代表经校准的能力评定，也不能用于招聘决定。'
-                : '完成第一场练习后，这里可能显示反馈摘要；它不构成能力认证。'}
+                ? '近期练习「面试中提示分/本场报告分」的平均（来源：练习评分账本），仅供个人复盘；不代表经校准的能力评定，也不能用于招聘决定。'
+                : '完成第一场练习后，这里可能显示近期平均；它不构成能力认证。'}
             </div>
           </div>
         </Card>
