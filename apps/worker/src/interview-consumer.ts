@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -28,6 +28,11 @@ type Checkpointer = PostgresSaver;     // 直接取类型,不从 main 引(否则
 /** focus 标签上限:≤8 个维度名(报告页 gap 维度数远小于此,帽=防滥用;每名 ≤100 字符沿 targetRole 形制)。 */
 export const FOCUS_LABEL_MAX_COUNT = 8;
 export const FOCUS_LABEL_MAX_CHARS = 100;
+
+/** I3 JOB-MGMT（#197/#258·裁决⑥）：JD 摘要确定性有界截取上限（字符）——空白折叠后 slice，零模型调用。
+ * 只作 planner「考哪些能力」提示段，帽=防超大 JD 撑爆 prompt 预算（沿 facts 有界截取同纪律）。 */
+export const JD_SUMMARY_MAX_CHARS = 400;
+
 /**
  * 解析 start job payload 的 focus 标量(payload->>'focus' = JSON 数组文本):
  * 缺失/非 JSON/非字符串数组/全空白 → undefined(容忍不崩,沿 targetRole/requestId 同形制——专项面退化为通用面);
@@ -382,11 +387,31 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // 死源处置(C-MO-S3):原 roleFromJobRouteMetadata(声明从未赋值)已删除,非接线——
             // 通用面供给走独立 candidate 结构,Ban 冒用 job 维度 metadata。
             let roleFromRouteSnapshot: string | undefined;
+            // I3 JOB-MGMT（#197/#258·裁决⑥ 读侧 join 形）：岗位侧 planner 供给（competencies+JD 摘要）。
+            // 条件化：经 RLS 读 job_posting + 快照同源门（db getJobPlannerInputForInterview——live 文本
+            // canonical digest 必须等于绑定 revision 存证 digest 才供给；岗位编辑后旧面试不喂新文本，
+            // C 端无岗位面试（candidate 快照 job_id=''）/缺快照/闭岗 → null → 既有缺省路径零伪造）。
+            // JD 摘要=确定性有界截取（零模型·非 LLM 摘要），只进「考哪些能力」面，绝不触难度/confidence。
+            let jobPlannerContext: { competencies: string[]; jdSummary: string } | undefined;
             if (isTechRoleFailClosedEnabled()) {
               const snap = await asPrincipal(d.pool, owner, (c) =>
                 getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
-              const primary = snap?.allocations?.[0]?.leafTrackId;
-              if (typeof primary === 'string' && primary.trim()) roleFromRouteSnapshot = primary.trim();
+              // I3 JOB-MGMT（#197 顺手面·改道条件化）：多叶子按 allocationBps 最高权重取 primary——
+              // 单叶与原 [0] 形逐字节等价；并列权重取快照序首个（reduce 保守比较·确定性）。
+              // #259 透传线（下方 roleFromUserInput）与 G-R2-5 检索门（上方 routeSnapForRetrieve）零触。
+              const allocations = snap?.allocations ?? [];
+              const primaryLeaf = allocations.length > 0
+                ? allocations.reduce((best, a) => (a.allocationBps > best.allocationBps ? a : best))
+                : undefined;
+              if (primaryLeaf && typeof primaryLeaf.leafTrackId === 'string' && primaryLeaf.leafTrackId.trim()) {
+                roleFromRouteSnapshot = primaryLeaf.leafTrackId.trim();
+              }
+              const jobInput = await asPrincipal(d.pool, owner, (c) =>
+                getJobPlannerInputForInterview(c, owner, job.interviewId));
+              if (jobInput) {
+                const jdSummary = jobInput.description.replace(/\s+/g, ' ').trim().slice(0, JD_SUMMARY_MAX_CHARS);
+                jobPlannerContext = { competencies: jobInput.competencies, jdSummary };
+              }
             }
             // #259: 用户显式岗位(payload->>'targetRole',begin 头透传)置最高优先源;旧 job 缺键 →
             // undefined(容忍不崩,沿 requestId 同形制)。门语义零改:缺 snapshot 仍 throw(下方 resolver)。
@@ -399,7 +424,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // 缺失/畸形/越界 → undefined(容忍不崩沿 targetRole 同形制;专项面退化为通用面,零 fail 硬死)。
             // focus 只作 planner 提示+专项软预算面,绝不触难度/confidence(隔离铁律)。
             const focus = parseFocusPayload(requestContext.focus);
-            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : [], focus);
+            // I3 JOB-MGMT（#197/#258）：岗位侧供给第 5 参（additive 可选·job 缺省 undefined=通用面逐字节原样）。
+            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : [], focus, jobPlannerContext);
           } else {
             await submitAdaptiveAnswer(life, answerPayload as any);
           }

@@ -12,7 +12,12 @@ import {
   declineInvitation, finalizeApplication, listJobCandidates, listTalentPool, getJob,
   assertIsolatedTestTarget, reserveEntitlement, completeInterviewAndConfirm, failInterviewAndRelease,
   markApplicationAssessmentUnavailable, markApplicationNoEligibleScore, appendEvent,
+  createJob, updateJob, closeJob, getJobRouteStatus, retryJobRoute,
+  applyToJob, listNextJobRoutePending, classifyJobRoute,
 } from '../src/index.ts';
+
+// I3 JOB-MGMT（§2-3·mock seam 零外呼）：classifyJobRoute 输入 HMAC 密钥（沿 job-route-decision.proof 同款非生产键）。
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY = 'rag03-job-route-input-hmac-proof-key-not-production-01';
 
 const pool = createPool();
 let failures = 0;
@@ -22,6 +27,8 @@ const sql = (rel: string) => readFileSync(fileURLToPath(new URL(rel, import.meta
 const TAG = 'rdep_' + Math.random().toString(36).slice(2, 8);
 const recA = `${TAG}_recA`, recB = `${TAG}_recB`, cand = `${TAG}_cand`, cand2 = `${TAG}_cand2`, cand3 = `${TAG}_cand3`, cand4 = `${TAG}_cand4`, cand5 = `${TAG}_cand5`, cand6 = `${TAG}_cand6`;
 const jobA = `job_${TAG}_A`, jobB = `job_${TAG}_B`, historicIv = `iv_hist_${TAG}`;
+// I3 JOB-MGMT：createJob 自生成 id（newEntityId('job')）——夹具句柄用返回值（jobC/jobD 常量不存在对应行）。
+let jobCId = '', jobDId = '';
 const resumeCand = randomUUID(), resumeCand2 = randomUUID(), resumeCand3 = randomUUID(), resumeCand4 = randomUUID(), resumeCand5 = randomUUID(), resumeCand6 = randomUUID();
 const createdInterviewIds = new Set<string>([historicIv]);
 
@@ -225,6 +232,75 @@ async function main() {
   try { await asPrincipal(pool, cand4, (c) => c.query("UPDATE job_application SET score=82 WHERE id=$1", [paid!.applicationId])); } catch { scoreRewriteRejected = true; }
   A('校准 hold：评分不可伪造——completed 状态写冻结、hold 行 score 校准前不可变', validScoreRestoreRejected && scoreRewriteRejected);
 
+  /* ───────────── I3 JOB-MGMT 三簇断言（§2-1/§2-2/§2-3·零外呼·全 mock seam） ───────────── */
+
+  section('I3 §2-1 updateJob 语义变更→重路由断言（db prove·recruiter-depth 先例形）');
+  const created = await asPrincipal(pool, recA, (c) => createJob(c, recA, { title: 'I3 路由岗', description: '初版描述', competencies: ['高并发'] }));
+  jobCId = created?.id ?? '';
+  A('I3-1a createJob 实回 {id}（契约如实化·非 JobView）', typeof created?.id === 'string' && !(created as unknown as Record<string, unknown>).title);
+  const revCount = async (jobId: string) => Number((await pool.query('SELECT COUNT(*)::int AS n FROM job_semantic_revision WHERE job_id=$1', [jobId])).rows[0].n);
+  const latestStatus = async (jobId: string) => String((await pool.query("SELECT status FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision DESC LIMIT 1", [jobId])).rows[0]?.status ?? '');
+  A('I3-1b 建岗即写 revision 1（route_pending）', jobCId !== '' && await revCount(jobCId) === 1 && await latestStatus(jobCId) === 'route_pending');
+  const upd = await asPrincipal(pool, recA, (c) => updateJob(c, recA, jobCId, { description: 'I3 语义变更描述' }));
+  A('I3-1c updateJob 语义变更 → 新 revision 2（route_pending·recruiter.ts :108 链）', upd?.description === 'I3 语义变更描述' && await revCount(jobCId) === 2 && await latestStatus(jobCId) === 'route_pending');
+  const updSame = await asPrincipal(pool, recA, (c) => updateJob(c, recA, jobCId, { title: 'I3 路由岗', description: 'I3 语义变更描述', competencies: ['高并发'] }));
+  A('I3-1d unchanged 编辑零 revision（unchanged 短路·基线锚 :101-103）', updSame?.title === 'I3 路由岗' && await revCount(jobCId) === 2);
+  const updForeign = await asPrincipal(pool, recB, (c) => updateJob(c, recB, jobCId, { title: '越权改名' }));
+  A('I3-1e 他主 updateJob → null（owner 谓词+行锁）', updForeign === null && await revCount(jobCId) === 2);
+
+  section('I3 §2-2 closeJob 三臂断言（#220·语义保持）');
+  A('I3-2a 他主 close → false（owner 谓词臂·非空真岗位）', jobCId !== '' && await asPrincipal(pool, recB, (c) => closeJob(c, recB, jobCId)) === false);
+  A('I3-2b owner close → true（open→closed 臂）', await asPrincipal(pool, recA, (c) => closeJob(c, recA, jobCId)) === true);
+  A('I3-2c closed 再 close → false（rowCount=0 臂·service 映射同 404 壳）', await asPrincipal(pool, recA, (c) => closeJob(c, recA, jobCId)) === false);
+  A('I3-2d close 后候选人 apply → null（neg 臂·jobs.service job_not_found_or_closed 404 族 db 缝）',
+    await asPrincipal(pool, cand, (c) => applyToJob(c, cand, jobCId)) === null);
+
+  section('I3 §2-3 #219 路由可见+显式重试断言（mock model 拒分/放行·零 LLM 外呼）');
+  // 双叶信号（前端+算法 → frontend/web+ai_ml/applied 两命中）→ rule 不唯一 → 强制走模型路径（rule_decided 恒拒本面）。
+  const createdD = await asPrincipal(pool, recB, (c) => createJob(c, recB, { title: 'I3 未决岗', description: '多面岗位', competencies: ['前端', '算法'] }));
+  jobDId = createdD?.id ?? '';
+  A('I3-3a 未决岗位 revision 1 route_pending', jobDId !== '' && await revCount(jobDId) === 1 && await latestStatus(jobDId) === 'route_pending');
+  const rejectSeamCalls: number[] = [];
+  const rejectSeam = { classify: async () => { rejectSeamCalls.push(1); return { allocations: [], confidenceBps: 0, marginBps: 0, reasonCodes: ['i3_proof_reject'] }; } };
+  const unresolved = await classifyJobRoute(pool, recB, jobDId, 1, { modelClassify: rejectSeam.classify });
+  A('I3-3b mock 拒分 → route_unresolved/known_not_sent（reasonCodes 落 decision）',
+    unresolved.status === 'route_unresolved' && unresolved.attemptOutcome === 'known_not_sent'
+    && unresolved.reasonCodes.includes('i3_proof_reject') && rejectSeamCalls.length === 1);
+  const routeSeen = await asPrincipal(pool, recB, (c) => getJobRouteStatus(c, recB, jobDId));
+  A('I3-3c 招聘方读面可见 route_unresolved+reasonCodes（#219 可见面·最新 revision 视角）',
+    routeSeen !== null && routeSeen.status === 'route_unresolved' && routeSeen.revision === 1
+    && routeSeen.reasonCodes.includes('i3_proof_reject'));
+  // 席2 登记项④落成显式断言：unresolved 后同 revision 重跑仍被 sticky 闸拦死（可失败断言·闸 :181 字节零改的前提）。
+  const noopSame = await classifyJobRoute(pool, recB, jobDId, 1, { modelClassify: rejectSeam.classify });
+  A('I3-3d 席2④ 显式断言：unresolved 后同 revision classifyJobRoute 仍 noop already_unresolved（sticky 终态语义零改·零二次外发）',
+    noopSame.status === 'noop' && noopSame.reason === 'already_unresolved' && rejectSeamCalls.length === 1);
+  const retried = await asPrincipal(pool, recB, (c) => retryJobRoute(c, recB, jobDId));
+  const rev1Status = String((await pool.query('SELECT status FROM job_semantic_revision WHERE job_id=$1 AND revision=1', [jobDId])).rows[0]?.status ?? '');
+  A('I3-3e 显式重试 → 新 revision 2（route_pending·unresolved 旧 revision 原样留存）',
+    retried !== null && retried.status === 'retried' && retried.revision === 2 && await revCount(jobDId) === 2
+    && await latestStatus(jobDId) === 'route_pending' && rev1Status === 'route_unresolved');
+  const retriedAgain = await asPrincipal(pool, recB, (c) => retryJobRoute(c, recB, jobDId));
+  A('I3-3f 幂等门：route_pending 再 retry → already_pending（有界·不制造空 revision）',
+    retriedAgain !== null && retriedAgain.status === 'already_pending' && retriedAgain.revision === 2 && await revCount(jobDId) === 2);
+  const claim = await asPrincipal(pool, recB, (c) => listNextJobRoutePending(c));
+  A('I3-3g 既有 drain 认领新 revision（listNextJobRoutePending → jobD rev2·零 consumer 改动）',
+    claim !== null && claim.jobId === jobDId && claim.revision === 2);
+  const acceptSeam = {
+    classify: async () => ({
+      allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }],
+      confidenceBps: 8500, marginBps: 4000, reasonCodes: [],
+    }),
+  };
+  const decided = await classifyJobRoute(pool, recB, jobDId, 2, { modelClassify: acceptSeam.classify });
+  const routeAfter = await asPrincipal(pool, recB, (c) => getJobRouteStatus(c, recB, jobDId));
+  A('I3-3h 重试 drain 后状态翻转 route_decided（reasonCodes 清零·招聘方视角）',
+    decided.status === 'route_decided' && decided.attemptOutcome === 'result_validated'
+    && routeAfter !== null && routeAfter.status === 'route_decided' && routeAfter.revision === 2
+    && routeAfter.reasonCodes.length === 0);
+  const retryDecided = await asPrincipal(pool, recB, (c) => retryJobRoute(c, recB, jobDId));
+  A('I3-3i 已决再 retry → already_decided（无重试必要·零空转 revision）',
+    retryDecided !== null && retryDecided.status === 'already_decided' && await revCount(jobDId) === 2);
+
   console.log(`\n${failures === 0 ? '✓ recruiter:prove 全部通过' : '✗ ' + failures + ' 失败'}（application-bound interview + RLS + 自动回填）`);
 }
 
@@ -232,7 +308,13 @@ async function cleanup() {
   await pool.query('DELETE FROM interview_event WHERE stream_key = ANY($1::text[])', [[...createdInterviewIds]]);
   await pool.query('DELETE FROM interview WHERE id = ANY($1::text[])', [[...createdInterviewIds]]);
   await pool.query('DELETE FROM job_application WHERE job_id IN ($1,$2)', [jobA, jobB]);
-  await pool.query('DELETE FROM job_posting WHERE id IN ($1,$2)', [jobA, jobB]);
+  // I3 JOB-MGMT：路由面夹具清理（revision 无 job_posting FK·显式删；决策/事件随 (job_id) 域删）。
+  if (jobCId && jobDId) {
+    await pool.query('DELETE FROM job_route_event WHERE job_id IN ($1,$2)', [jobCId, jobDId]);
+    await pool.query('DELETE FROM job_route_decision WHERE job_id IN ($1,$2)', [jobCId, jobDId]);
+    await pool.query('DELETE FROM job_semantic_revision WHERE job_id IN ($1,$2)', [jobCId, jobDId]);
+  }
+  await pool.query('DELETE FROM job_posting WHERE id = ANY($1::text[])', [[jobA, jobB, jobCId, jobDId].filter(Boolean)]);
   await pool.query('DELETE FROM entitlement_consumption WHERE owner_user_id IN ($1,$2,$3)', [cand4, cand5, cand6]);
   await pool.query('DELETE FROM entitlement_bucket WHERE owner_user_id IN ($1,$2,$3)', [cand4, cand5, cand6]);
   await pool.query('DELETE FROM resume WHERE id = ANY($1::uuid[])', [[resumeCand, resumeCand2, resumeCand3, resumeCand4, resumeCand5, resumeCand6]]);

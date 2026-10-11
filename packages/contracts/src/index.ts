@@ -367,6 +367,53 @@ export type JobView = z.infer<typeof JobView>;
 export const JobList = z.object({ jobs: z.array(JobView) });
 export type JobList = z.infer<typeof JobList>;
 
+/**
+ * I3 JOB-MGMT（裁决①如实化）：createJob 实回 `{id}`（recruiting/recruiter.ts createJob 返回形）——
+ * registry 此前声明 `response: JobView` 与实现错位（#220 第三子面），随本刀如实化。JobView 退役为读面专用。
+ */
+export const JobCreated = z.object({ id: z.string() });
+export type JobCreated = z.infer<typeof JobCreated>;
+/**
+ * I3 JOB-MGMT（#220 修法列·自 RAG-FUNNEL-03 冻结区前移至 apiContract 可达位——registry 注册需先声明）：
+ * 岗位编辑输入镜像 CreateJobDto：只允许 title/description/competencies 三个业务语义字段；
+ * 全可选（缺省=保持现值）；trackId/weight/confidence/override 等路由参数结构上不可由用户提交（没有这些字段）。
+ */
+export const UpdateJobDto = z.object({
+  title: z.string().min(2).max(120).optional(),
+  description: z.string().max(8_000).optional(),
+  competencies: z.array(z.string().max(60)).max(30).optional(),
+});
+export type UpdateJobDto = z.infer<typeof UpdateJobDto>;
+/** I3 JOB-MGMT（裁决①）：closeJob 响应（真关闭才有 200；false 臂由 service 映射 404 恒定壳，不出 {closed:false}）。 */
+export const JobClosed = z.object({ closed: z.literal(true) });
+export type JobClosed = z.infer<typeof JobClosed>;
+/**
+ * I3 JOB-MGMT（#219·裁决⑦）：招聘方侧语义路由状态读面。status 枚举=job-route-decision.ts
+ * JOB_SEMANTIC_REVISION_STATUSES 同源字符串；attemptOutcome/reasonCodes 来自最新 decision 摘要（仅 owner 可读）。
+ */
+export const JOB_SEMANTIC_REVISION_STATUS_VALUES = ['route_pending', 'rule_decided', 'model_prepared', 'result_validated', 'route_decided', 'route_unresolved'] as const;
+export const JobRouteStatusView = z.object({
+  revision: z.number().int(),
+  status: z.enum(JOB_SEMANTIC_REVISION_STATUS_VALUES),
+  attemptOutcome: z.enum(['rule_decided', 'result_validated', 'known_not_sent', 'dispatched_unknown', 'validation_rejected']).nullable(),
+  reasonCodes: z.array(z.string()),
+});
+export type JobRouteStatusView = z.infer<typeof JobRouteStatusView>;
+export const JobRouteStatusEnvelope = z.object({ route: JobRouteStatusView.nullable() });
+export type JobRouteStatusEnvelope = z.infer<typeof JobRouteStatusEnvelope>;
+/**
+ * I3 JOB-MGMT（裁决③）：显式重试路由结果。retried=写新 revision(route_pending) 走既有 drain；
+ * already_pending/already_decided/not_retryable=幂等门（非未决态不制造空 revision·有界非自动）。
+ */
+export const JobRouteRetryResult = z.object({
+  status: z.enum(['retried', 'already_pending', 'already_decided', 'not_retryable']).nullable(),
+  revision: z.number().int().nullable(),
+});
+export type JobRouteRetryResult = z.infer<typeof JobRouteRetryResult>;
+/** I3 JOB-MGMT（#219）：招聘方岗位列表读面——JobList 超集加可选 routes 旁车（jobId→最新 revision 路由态）；C 端 browseJobs 维持 JobList 不含本字段。 */
+export const RecruiterJobList = z.object({ jobs: z.array(JobView), routes: z.record(z.string(), JobRouteStatusView).optional() });
+export type RecruiterJobList = z.infer<typeof RecruiterJobList>;
+
 /* ───────────── 候选人 ↔ 岗位 ↔ 招聘方:申请闭环 ───────────── */
 /** 投递结果(幂等:重复投递返回既有申请 id)。 */
 export const ApplyResult = z.object({ applicationId: z.string() });
@@ -1329,9 +1376,14 @@ export const apiContract: ContractRoute[] = [
   { id: 'submitInvoiceRequest', method: 'post', path: '/commerce/invoice-requests', summary: '提交开票申请(仅 paid 订单·DB 触发器门)', tags: ['commerce'], auth: true, request: InvoiceRequestDto, response: InvoiceRequestCreated },
   { id: 'listMyOrders', method: 'get', path: '/commerce/orders', summary: '本人订单列表(RLS 仅本人·片3 开票下拉数据源)', tags: ['commerce'], auth: true, response: OrderList },
   { id: 'listMyOfflineOrders', method: 'get', path: '/commerce/offline-orders', summary: '本人对公订单台账(0159 受控 DEFINER 读函数·approved recruiter·片3)', tags: ['commerce'], auth: true, response: OfflineOrderList },
-  { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobView },
-  { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离)', tags: ['recruiter'], auth: true, response: JobList },
+  { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobCreated },
+  { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离·含路由状态旁车 routes)', tags: ['recruiter'], auth: true, response: RecruiterJobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },
+  // I3 JOB-MGMT（裁决①③·#219/#220）：编辑/下线/路由读面/显式重试四注册（additive）。
+  { id: 'updateJob', method: 'patch', path: '/recruiter/jobs/{id}', summary: '招聘方编辑岗位(语义变更→新路由 revision·owner 谓词)', tags: ['recruiter'], auth: true, request: UpdateJobDto, response: JobView },
+  { id: 'closeJob', method: 'post', path: '/recruiter/jobs/{id}/close', summary: '招聘方下线岗位(仅 open 可关·非 open/非自有同 404 壳)', tags: ['recruiter'], auth: true, response: JobClosed },
+  { id: 'getJobRoute', method: 'get', path: '/recruiter/jobs/{id}/route', summary: '招聘方读岗位语义路由状态(#219 可见面·仅 owner)', tags: ['recruiter'], auth: true, response: JobRouteStatusEnvelope },
+  { id: 'retryJobRoute', method: 'post', path: '/recruiter/jobs/{id}/route-retry', summary: '招聘方显式重试路由(写新 revision 走既有 drain·非自动重试)', tags: ['recruiter'], auth: true, response: JobRouteRetryResult },
   { id: 'jobCandidates', method: 'get', path: '/recruiter/jobs/{id}/candidates', summary: '招聘方查岗位申请人(多方 RLS)', tags: ['recruiter'], auth: true, response: JobCandidates },
   { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteReceived },
   { id: 'talentPool', method: 'get', path: '/recruiter/talent', summary: '招聘方人才库(跨自有岗位聚合候选人,租户隔离)', tags: ['recruiter'], auth: true, response: TalentPool },
@@ -1347,14 +1399,10 @@ export const apiContract: ContractRoute[] = [
 ];
 
 /* ───────────── RAG-FUNNEL-03 岗位意图路由（跨端冻结 schema，不入 apiContract） ───────────── */
-// 岗位编辑输入镜像 CreateJobDto：只允许 title/description/competencies 三个业务语义字段；
-// trackId/weight/confidence/override 等路由参数结构上不可由用户提交（没有这些字段）。
-export const UpdateJobDto = z.object({
-  title: z.string().min(2).max(120).optional(),
-  description: z.string().max(8_000).optional(),
-  competencies: z.array(z.string().max(60)).max(30).optional(),
-});
-export type UpdateJobDto = z.infer<typeof UpdateJobDto>;
+// I3 JOB-MGMT 勘注：UpdateJobDto 已前移至 recruiter DTO 区并登记 apiContract（updateJob PATCH）——
+// 冻结语义零改（title/description/competencies 三业务字段·全可选·无路由参数字段），只动声明位置
+// （apiContract 数组静态求值需引用先声明·TDZ）。trackId/weight/confidence/override 结构上仍不可提交。
+
 
 // 叶节点分配：allocations 以 basis points 计，总和必须 = 10000（万分之一）。仅冻结 schema，不登记 HTTP。
 export const JobRouteAllocation = z.object({

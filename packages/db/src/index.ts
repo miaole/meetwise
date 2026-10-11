@@ -86,10 +86,11 @@ export type {
 // 招聘方(B 端)岗位仓储(多租户 RLS 隔离)+ 候选人申请闭环(多方 RLS)
 export {
   createJob, listJobs, getJob, closeJob, updateJob,
+  getJobRouteStatus, listJobRouteStatuses, retryJobRoute, getJobPlannerInputForInterview,
   listOpenJobs, applyToJob, listMyApplications, listJobCandidates, finalizeApplication,
   inviteCandidate, startApplicationInterview, declineInvitation, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore, listTalentPool,
 } from './recruiting/recruiter.ts';
-export type { JobPosting, JobApplication, TalentRow, TalentQuery, StartApplicationResult, FinalizeApplicationResult, AssessmentUnavailableMark } from './recruiting/recruiter.ts';
+export type { JobPosting, JobApplication, TalentRow, TalentQuery, StartApplicationResult, FinalizeApplicationResult, AssessmentUnavailableMark, JobRouteStatusRow, RetryJobRouteResult } from './recruiting/recruiter.ts';
 
 // 实体 ID 工厂（DBID-1 · B 级统一：UUIDv7 时间有序尾巴 + 前缀注册表 fail-closed）。
 export { newEntityId, newUuidV7, idUnixMs, ENTITY_PREFIXES } from './ids.ts';
