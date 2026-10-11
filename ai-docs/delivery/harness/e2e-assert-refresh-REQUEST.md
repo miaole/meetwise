@@ -1,6 +1,9 @@
 # E2E-ASSERT-REFRESH — LIVE 复跑三红断言随演刀（红①红②处方 + 红③甄别设计 · EXEC REQUEST）
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·pre-exec 勘误席合并落卷（席1 七登记 R1-R7+席2 §2 三处方·2026-10-11）·status 维持·复审挂起·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+
+**Status 链补全（nail 席 append-only 一次补登·2026-10-11）**：`draft:awaiting_pre_exec_dual`（上行原文照录零改）→ `executed:awaiting_post_prove_dual`（EXEC 落卷 @`91c04145` 3 码面+25 收据·红①红②断言随演+红③甄别三绿定谳·EXEC 未翻本 Status 行·照实补登）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-11·裁 A 扩面授权链追认终局：红① 最小变体+第 4 件 fixture 随演+发现链 4-7 登记·merge 主线 nail·错峰等 merge(ptp-archive) @`2cec48e8` 落主线可见后动手·loop 协调方本次派单即 nail 授权）。上文原 Status 行文字照录不改。
+
 **席位**：E2E 断言随演刀起草席（北星 loop · LIVE 复跑采证定谳后继刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `24e1adf3`（主线最新 tip·`git rev-parse HEAD` 实测=收据入库 commit）。分支 `line/e2e-assert-refresh`·工作树 `meetwise-e2ar`（`git worktree add /Users/miaole/Desktop/golucky/meetwise-e2ar -b line/e2e-assert-refresh` 本起草席已立·树/分支建前实查均不存在：`git worktree list` 七树无 e2ar·`git rev-parse --verify refs/heads/line/e2e-assert-refresh` BRANCH_ABSENT）。
 **防重双对表（亲证）**：`rg -l "e2e-assert|断言随演|assert-refresh" ai-docs/delivery/ ai-docs/delivery/execution-master-checklist.md` → 唯一命中 `ai-docs/delivery/harness/regression-fix-REQUEST.md`（regfix 他刀卷内叙事性提及「断言随演」·:58/:188 两处·非本刀同名卷零冲突）+ checklist 零命中——本刀卷名 `e2e-assert-refresh-REQUEST.md` 全仓唯一。
@@ -110,6 +113,22 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
 
 **登记建议（pre-exec 双审可核）**：本刀立项关联 LIVE 复跑采证卷 `receipts/live-rerun-2026-10-11/`（主线 `24e1adf3` 已入库）；红③ 甄别结论无论何向均建议回登 checklist 新红面台账行（本刀 SSOT 只读零触·登记归协调方/后续刀）。
+
+## §9 nail 席登记（post-prove 双席 BOTH PASS·双席登记项随落·disposition/收据勘误节·2026-10-11）
+
+**双席判决照登（互盲独立·2026-10-11）**：席1=实现核对+裁决授权链 **PASS**；席2=验收回归 **PASS**。loop 协调方本次派单即 nail 授权。
+
+**席2 收据勘误四项（一行一项·收据实物零触·引名/计数/算术/锚位勘误·nail 席逐项实物复核后照登）**：
+- **R-A 收据表文件名错位（final3/final2）**：EXEC 收据 §四「UI 全套 final2（验收终跑 18P/0F 绿）」引名错位——实物亲证 `s3-e2e-ui-isolated-final3.log` 方为终跑绿（18 passed·4.5m·EXIT 0），`s3-e2e-ui-isolated-final2.log` 实为 17P/1F 前跑（EXIT 1）——绿终跑实物在档·终值判定不变·引名勘误 final2→final3。
+- **R-B 瞬态计数两枚非三枚**：EXEC 收据 §四/§七「三枚互不相同一次性时序红」计数漂——逐项枚举实为 **两枚**（progress chromium 徽标降级 ×1+golden chromium 冷启 ×1）·两枚口径为准·家族面定性不变。
+- **R-C est 台账时长算术漂**：EXEC 收据 §五「S1 final4 ≈2.9m」勘误——机读终值 `machine-receipt-s1-final4-GREEN.json` durationMs=**119005ms≈2.0m**（nail 席实物亲证）·est 合计口径随此下修·低于申报结论不变。
+- **R-D opt-in 钩锚 :226-227**：EXEC 收据 §七-5 引 `run-e2e-ui.mjs :197-198` 系基线锚——随本刀 runner 增行漂移·并后主线实测 `E2E_UI_GREP/E2E_UI_PROJECT` 在 **:226-227**（nail 席 grep 亲证）·钩本体零改。
+
+**席1 登记项照登**：实现核对 PASS——EXEC 落码逐件对 §1 三件处方+裁 A 扩面（红① 最小变体/第 4 件 fixture/发现链 4-7）逐一在码核销·裁决授权链完整（pre-exec 双审→协调方派单→裁 A 三行→post-prove 双席互盲）·零新增勘误项。
+
+**错峰登记**：本 nail 开工前探测并发 PTP nail 席（3025 件大迁移）——`merge(ptp-archive)` @`2cec48e8` 23:11:46 落主线（lock 释放+commit 可见双条件满足）后动手·PTP 触面与本刀 29 文件零重叠（merge-base 重算亲证）·预期零冲突实测达成（ort auto-merge·冲突 0）。**并发事故登记（PTP 席已自愈·如实）**：本席 merge 落卷后收尾窗口·PTP 席 amend 误落本席 HEAD（`77770356` 已弃·其卷 §9 内容改独立 commit `2ac0dae2`/`2f6662ef` 落卷·本席 merge `2b1f01a5` 原样在卷）；该恢复动作一度将本节首录未卷编辑回卷清失·本席复核后原样复录随 nail commit 落卷。nail 落卷沿独立 commit 先例（HEAD 已被推进·Ban amend/rebase 他席 commit）。
+
+**nail 复验终值（并后主线态·LIVE 协议 loader+E2E_SKIP_DOTENV=1·est 另账）**：S1 `pnpm e2e:isolated` EXIT=0·assertions=**91**（≥64 门✓·EXEC final4=85 同套件并后 +6·无断言丢失）·capability ledger **恰 2**（image_ocr_unavailable+voice_unavailable）·skip 类记录 0·WALL 436s（`nail-e2e-isolated.log`）。UI `pnpm e2e:ui:isolated`：attempt1 **作废留档**（本席调度失误与 S1 并行负载互扰·5F 全为 mobile auth 20s timeout 同点·零语义断言红·沿 EXEC UI attempt1 孤儿污染作废先例·`nail-e2e-ui-isolated-attempt1-concurrent-void.log`）→ attempt2 顺序独跑 **EXIT=0·18P/0F/10S**（capability 门控预期内）·recruiting-bound 双 project 绿+stream-window 三用例六面全绿·WALL 203s（`nail-e2e-ui-isolated-attempt2.log`）·一次优先禁洗绿两跑全档留证。markers 门：code 域五类词 grep EXIT=1 亲证·全 diff 仅收据自指行 1 处如实登记；冲突标记 grep EXIT=1。
 
 ---
 
