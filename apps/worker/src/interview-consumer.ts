@@ -181,6 +181,7 @@ async function failClaimedInterviewJob(
   await asPrincipal(d.pool, owner, async (c) => {
     const stillMine = await markJobFailed(c, owner, job.id, d.leaseOwner, (error as any)?.message ?? 'err');
     if (!stillMine) return;
+    getMetrics().inc(METRIC.jobsFailed, { queue: 'interview_job' });   // HA-7 R-24 观测行：markFailed CAS 胜出=终态失败定格计数·零改失败语义（requeue 臂不计）
     try {
       await terminalizeUnsettledInterview(c, owner, job.interviewId, 'job_failed', job.kind);
     } catch (terminalError: unknown) {

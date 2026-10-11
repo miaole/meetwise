@@ -8,6 +8,7 @@ import {
   generateAssessmentReportCore, generateLearningPlanCore, generateCareerPathCore,
 } from '@meetwise/db';
 import { buildReportGraph, type GenerateReport, type InterviewSummary } from '@meetwise/ai-graphs';
+import { getMetrics, METRIC } from '@meetwise/ai-runtime';
 import { runDrainLoop } from './drain-loop.ts';
 import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
 import { backfillLearningProgressFromAssessment } from './weakness-backfill.ts';
@@ -158,6 +159,7 @@ export async function drainReportsOnce(
     const err = asErr(e);
     if (err?.message === 'interview_privacy_fenced') return 'stale';
     await asPrincipal(pool, owner, (c) => markReportFailed(c, owner, claim.reportId, leaseOwner, (err?.message ?? 'err') as string));
+    getMetrics().inc(METRIC.jobsFailed, { queue: 'report' });   // HA-7 R-24 观测行：drain 失败臂 markReportFailed 定格计数（重排/隔离判定 sweepReports 零触）·零改失败语义
     return 'failed';
   }
   const outcome = await asPrincipal(pool, owner, async (c) => {                            // tx2 finalize

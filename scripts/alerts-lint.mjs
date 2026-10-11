@@ -31,6 +31,7 @@ const KNOWN_METRICS = new Set([
   "worker_jobs_queued",                 // gauge:队列 queued 深度(worker 周期查 DB set)
   "worker_jobs_running_expired",        // gauge:running 超租约(卡住 job)
   "worker_jobs_dead",                   // gauge:DLQ 死信深度(quarantined / failed 终态)
+  "worker_jobs_failed_total",           // counter:worker 侧 job 终态失败次数(HA-7 R-24·四消费端终态失败臂 emit;速率告警规则归 S15 常驻后一并评估·R-22 同判)
   "rag_retrieval_total",                // counter:本地 RAG 结果/降级原因
   "rag_retrieval_latency_ms",
   "rag_retrieval_latency_ms_bucket",
@@ -237,7 +238,7 @@ const catalogPath = process.env.ALERTS_LINT_CATALOG || join(alertsDir, "event-ca
 const whitelistPath = process.env.ALERTS_LINT_WHITELIST || join(alertsDir, "alert-whitelist.json");
 const runbookPath = process.env.ALERTS_LINT_RUNBOOK || join(here, "..", "ai-docs", "observability", "alerting-runbook.md");
 const EVENT_SEVERITIES = ["Page", "Ticket", "Trend"];
-const MATCHER_TYPES = ["json", "regex", "compose_exit", "df_watermark"];
+const MATCHER_TYPES = ["json", "regex", "compose_exit", "df_watermark", "metrics_gauge"];   // metrics_gauge=HA-7 R-24 第四形制（W2③ 联动注册·否则 W2 新三事件机检必红）
 let catalogEventCount = 0;
 let whitelistEntryCount = 0;
 let runbookAnchorCount = 0;
@@ -264,6 +265,10 @@ try {
         if (m.type === "regex") { try { new RegExp(m.pattern); } catch { err(`[${name}] regex pattern 非法:${m.pattern}`); } if (typeof m.pattern !== "string" || !m.pattern) err(`[${name}] regex matcher 缺 pattern`); }
         if (m.type === "compose_exit" && !(typeof m.service === "string" && m.service)) err(`[${name}] compose_exit matcher 缺 service`);
         if (m.type === "df_watermark" && !(Number.isFinite(Number(m.threshold_pct)) && Number(m.threshold_pct) > 0 && Number(m.threshold_pct) <= 100)) err(`[${name}] df_watermark 缺 threshold_pct(0-100)`);
+        // HA-7 R-24：metrics_gauge 形制校验——metric 必须在 KNOWN_METRICS 白名单（单一真源防漂移）+ threshold 有限正数。
+        if (m.type === "metrics_gauge" && !(typeof m.metric === "string" && KNOWN_METRICS.has(m.metric) && Number.isFinite(Number(m.threshold)) && Number(m.threshold) > 0)) {
+          err(`[${name}] metrics_gauge matcher 缺 metric(须在白名单)/threshold(>0)`);
+        }
       }
       if (!EVENT_SEVERITIES.includes(ev.severity)) err(`[${name}] 缺/非法 severity（Page/Ticket/Trend·目录腐化机检）`);
       if (typeof ev.source !== "string" || !/^[A-Za-z0-9_@./-]+:[0-9]+$/.test(ev.source)) err(`[${name}] 缺 source 码锚(file:line 形)`);

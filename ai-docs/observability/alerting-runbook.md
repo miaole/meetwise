@@ -17,25 +17,26 @@
 ## 2. 检查脚本使用说明（scripts/alerts/check-alerts.mjs · 非 daemon 单遍即退）
 
 ```bash
-node scripts/alerts/check-alerts.mjs                 # 实栈三路扫描（compose logs/ps + 宿主 df）
+node scripts/alerts/check-alerts.mjs                 # 实栈四路扫描（compose logs/ps + 宿主 df + worker /metrics）
 node scripts/alerts/check-alerts.mjs --sandbox       # 沙箱 env-file + 三 -f（沿 ha-status --sandbox 同形）
 node scripts/alerts/check-alerts.mjs --since 24h     # 日志窗（默认 env CHECK_ALERTS_SINCE 或 24h）
-node scripts/alerts/check-alerts.mjs --offline --log-file s1.log --ps-file ps.json --df-file df.txt
+node scripts/alerts/check-alerts.mjs --offline --log-file s1.log --ps-file ps.json --df-file df.txt [--metrics-file metrics.txt]
                                                      # 无 docker 注入缝（CI/本地样本）
 node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 EXIT=0
 ```
 
 - **EXIT 语义（fail-closed）**：存在未决（非白名单）Page/Ticket 告警 → `EXIT=1`；干净 → `0`；`--report` 恒 `0`；
-  live 模式输入源失效（docker 不可用）→ `1`（无法证明干净 = 不干净）。
+  live 模式输入源失效（docker 不可用 / worker /metrics 抓取失败——后者顺带充当「worker /metrics 不可达」探测信号）→ `1`（无法证明干净 = 不干净）。
 - **收据**：`receipts/ha-5/check-alerts.receipt.json`（机器可读·alerts/suppressed/源状态/EXIT 全账）。
 - **白名单**：`scripts/alerts/alert-whitelist.json`——每条目必含 `event + reason + expires`（ISO 到期日）；
   无到期日条目 = 结构非法（`pnpm alerts:lint` 拒绝）；到期后同事件自动重新告警（白名单不是永久豁免）。
 - **事件目录**：`scripts/alerts/event-catalog.json`——唯一真源；matcher 双形（json 精确 event 名 / regex 文本行）+
-  compose_exit（compose ps ExitCode）+ df_watermark（宿主 df 水位）。改事件先改目录，目录由 `pnpm alerts:lint` 机检防腐化。
+  compose_exit（compose ps ExitCode）+ df_watermark（宿主 df 水位）+ metrics_gauge（HA-7 R-24 队列积压·worker /metrics 源·
+  `--metrics-file` 注入缝；多实例同 queue 取 **max** 去重与 alert.rules.yml `max()` 口径一致，切勿 sum）。改事件先改目录，目录由 `pnpm alerts:lint` 机检防腐化。
 - **scan-window 边界（诚实限度）**：脚本只扫窗口内日志——窗外日志若被 docker 日志轮转清掉即扫不到；
   EXIT=0 ≠ 「窗口外无告警」，仅 = 「窗口内可证干净」。
 
-## 3. 事件处置手册（目录九事件 · 每条 severity + 响应动作 + 下钻锚）
+## 3. 事件处置手册（目录十二事件 · 每条 severity + 响应动作 + 下钻锚）
 
 <a id="ev-db_pool_error"></a>
 ### 3.1 db_pool_error —— Ticket
@@ -113,11 +114,45 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 - **含义**：trace 持久化失败。**注意**：事件含 P0001 幂等命中正常重放形态（`apps/api/test/uc-e2e-028-nhp-fault.proof.ts:220-224` 亲证）——直接 Page/Ticket 必噪音化。
 - **响应（Trend·周期复盘）**：复盘 errorName/pgCode 分布（P0001 占比高=正常重放）；非 P0001 集中出现才评估升级 Ticket。
 
+<a id="ev-queue_backlog"></a>
+### 3.10 queue_backlog —— Ticket（HA-7 R-24）
+
+- **matcher**：metrics_gauge `worker_jobs_queued` > 100（采集源 worker `/metrics`：live 单遍 GET `WORKER_METRICS_URL`·默认 `127.0.0.1:9091`，offline 走 `--metrics-file` 注入缝；评估点 `scripts/alerts/check-alerts.mjs:382`）。
+- **阈值对齐**：逐字对齐 `docker/monitoring/alert.rules.yml:116-123` `WorkerQueueBacklog`（`max(worker_jobs_queued) > 100` for 10m·warning → Ticket 同层）。多实例同 queue 取 **max**（gauge=全局绝对值，切勿 sum 翻倍）。
+- **含义**：某队列 queued 深度 >100——消费吞吐跟不上入队，用户等待变长。
+- **响应（Ticket·工作时间）**：确认 worker 副本存活（`docker compose ps` worker-a/b）与消费循环日志；查积压分布（下钻 SQL 的 queued 谓词逐队列对照）；瞬时突发（批量入队/deploy 窗）由白名单登记到期日承担——**快照无 `for` 去抖**（见 §4 差异声明），Prometheus 侧同名规则（for 10m）常驻后才有一致语义。
+- **下钻**：`packages/db/migrations/0042_runtime_observability_gateway.sql:5-26` `gateway_job_gauges()`（queued 谓词 `status='queued'`）→ 对应队列消费端码锚：interview_job=`apps/worker/src/interview-consumer.ts:195`（drainInterviewJobOnce）/ report=`apps/worker/src/report-worker.ts:211`（dispatchTick）/ quiz_job=`apps/worker/src/quiz-consumer.ts:92`（quizDispatchTick）/ diagnosis_job=`apps/worker/src/diagnosis-consumer.ts:91`（diagnosisDispatchTick）。
+
+<a id="ev-queue_stuck_running"></a>
+### 3.11 queue_stuck_running —— Ticket（HA-7 R-24）
+
+- **matcher**：metrics_gauge `worker_jobs_running_expired` > 5（同 3.10 采集源与注入缝）。
+- **阈值对齐**：逐字对齐 `docker/monitoring/alert.rules.yml:126-133` `WorkerStuckRunningJobs`（`max(worker_jobs_running_expired) > 5` for 5m·warning → Ticket 同层）。
+- **含义**：某队列 >5 个 running job 租约已过期——worker 崩在半途或 reaper 收割落后。
+- **响应（Ticket·工作时间）**：对照 reaper_takeover 事件（§3.4）与容器重启记录；持续偏高=崩溃循环，查 worker OOM/panic；`WORKER_GAUGE_INTERVAL_MS`（默认 15s）粒度内为瞬时视角。
+- **下钻**：`0042_runtime_observability_gateway.sql`（running 谓词 `status='running' AND lease_expires_at < clock_timestamp()`）→ sweep/reaper 码锚：interview=`packages/db/src/interview/interview-jobs.ts:262`（sweepStuckInterviewJobs）/ quiz=`packages/db/src/jobs/quiz-jobs.ts:77`（sweepStuckQuizJobs）/ diagnosis=`packages/db/src/jobs/diagnosis-jobs.ts:75`（sweepStuckDiagnosisJobs）/ report 租约过期隔离臂=`packages/db/src/report/report.ts:74`（sweepReports）。
+
+<a id="ev-queue_dead_letter"></a>
+### 3.12 queue_dead_letter —— Page（HA-7 R-24）
+
+- **matcher**：metrics_gauge `worker_jobs_dead` > 10（同 3.10 采集源与注入缝）。
+- **阈值对齐**：逐字对齐 `docker/monitoring/alert.rules.yml:136-143` `WorkerDeadLetterBacklog`（`max(worker_jobs_dead) > 10` for 10m·**critical → Page 同层**）。
+- **含义**：某队列死信深度 >10——报告 quarantined（耗尽重试终态）/ 其余 job failed 终态在累积，系统性失败（依赖挂/校验持续不过），用户拿不到结果。
+- **响应（Page·立即）**：定位积压队列（下钻 SQL 逐队列死信谓词对照）；report 队列=quarantined 转人工，可用手动重排（`packages/db/src/report/report.ts:61` requeueFailedReport·重置 attempts）单点恢复；其余队列=failed 终态需按 last_error 修因。**已知风险**：四队列终态行零 retention（只进不出）→ 死信深度单调累积，`>10` 长期看将常响假噪——登记见 §4，处置归 R-51 生命周期后刀（本手册不修）。
+- **下钻**：`0042_runtime_observability_gateway.sql`（死信谓词逐队列不同：report=`quarantined`·其余=`'failed'`，main.ts:209-212 头注同口径）→ 终态定格码锚：interview=`apps/worker/src/interview-consumer.ts:182`（markJobFailed）/ quiz=`apps/worker/src/quiz-consumer.ts:52` / diagnosis=`apps/worker/src/diagnosis-consumer.ts:51` / report 隔离=`apps/worker/src/report-worker.ts:184`（sweepReportsOnce）。
+
 ## 4. 与 Prometheus 栈的分工声明 + 已知风险登记
 
 - **分工**：指标面（`docker/monitoring/alert.rules.yml` 25 条 + `prometheus.yml` 抓 api:8787/worker:9091）待 S15 常驻化后启用；
   本手册日志面补其三个盲区：进程 stderr（ENOSPC 类）、compose 一次性任务（migrate Exit——`up` 指标不覆盖 `restart:"no"` 任务）、宿主磁盘水位。
 - **本刀 ≠ 告警闭环全量**：常驻评估 / Alertmanager 路由 / 通知通道 / 值班链路一律未实现、未占位。
+- **【HA-7 R-24 登记】DLQ 终态行只增不减（已知风险·登记不修）**：四队列终态行（report=`quarantined`·interview/quiz/diagnosis=`failed`）
+  零 retention/清理路径——`worker_jobs_dead` 单调累积（手动重排仅个案消化且会回落），`queue_dead_letter`（>10）/`WorkerDeadLetterBacklog`
+  长期看将常响假噪。处置归 **R-51 队列生命周期后刀 / S15 运维刀**（retention sweep 涉删改语义=重刀，HA-7 明确不实现）；命中该告警时先按 §3.12
+  响应区分「新失败」与「存量累积」（对照 `worker_jobs_failed_total` 速率）。
+- **【HA-7 R-24 差异声明】check-alerts 快照语义 ≠ Prometheus `for` 去抖（不伪装等价）**：metrics_gauge 三事件为单遍快照评估——
+  瞬时超阈即报（无 `for 10m/5m` 持续窗去抖），假阳性由白名单（带到期日）承担；`alert.rules.yml:116-143` 三条同名规则常驻后（S15）
+  才具备持续窗语义。两通道阈值/分层已逐字对齐，**评估语义不等价**，运维判读以本节为准。
 
 ## 5. S15 边界登记（买云后刀 · 本刀只登记不实现）
 
@@ -131,3 +166,4 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 
 - `apps/worker/src/interview-consumer.ts:225`（`reservation lease renew failed`·文本形失败日志，性质同 :439 `interview reap failed`）= **首批外**：零改兼容口径，不列首批 matcher 断言面（REQUEST rev2 §1 W1①）。
 - `apps/worker/smoke/cloud-readiness.ts:15`（`cloud_connectivity_receipt`·同族 `apps/worker/smoke/cloud-test-serial.ts:12` `cloud_test_serial_receipt`）= **非事件**（烟测工具收据形）——不入目录不入事件普查（REQUEST rev2 §1 W1①）。
+- 【HA-7 登记】四队列 DLQ 终态行零 retention（`worker_jobs_dead` 只增不减）= **已知风险首批外**——不实现清理，登记见 §4 / §3.12；处置归 R-51 生命周期后刀（HA-7 REQUEST §2.4 明确越界即废）。

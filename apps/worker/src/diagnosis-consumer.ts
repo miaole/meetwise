@@ -4,7 +4,7 @@
  *   job 失败=终态(诊断不重试到无穷)→ markFailed + 发 diagnosis_unavailable 终态事件(前端不死等)+ release 预留额度(不白扣)。
  */
 import { asPrincipal, gatewayDispatchOwners, claimNextDiagnosisJob, markDiagnosisJobDone, markDiagnosisJobFailed, appendEvent, releaseConsumption, renewDiagnosisJobLease, sweepStuckDiagnosisJobs, RESUME_DERIVATIVE_REFERENCE_VERSION, errCode, asErr, type DbPool } from '@meetwise/db';
-import type { ModelClient } from '@meetwise/ai-runtime';
+import { getMetrics, METRIC, type ModelClient } from '@meetwise/ai-runtime';
 import { runDiagnosis } from './diagnosis-lifecycle.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
@@ -50,6 +50,7 @@ export async function drainDiagnosisJobOnce(d: DiagnosisConsumerDeps, owner: str
         )).rowCount === 1
         : await markDiagnosisJobFailed(c, owner, job.id, d.leaseOwner, (err?.message ?? 'err') as string);
       if (!stillMine) return;
+      getMetrics().inc(METRIC.jobsFailed, { queue: 'diagnosis_job' });   // HA-7 R-24 观测行：markFailed CAS 胜出=终态失败定格计数·零改失败语义（诊断无 requeue 臂）
       // 不把已 ready 的诊断倒退(confirm 后 markDone 抛错也会落此 catch);仅从非终态置 failed。
       await c.query("UPDATE resume_diagnosis SET status='failed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('ready')", [job.diagnosisId, owner]);
       // **终态事件(北极星:无静默死胡同)**:诊断失败=终态 → 发 diagnosis_unavailable,否则前端死等 section_ready 无限转圈。
