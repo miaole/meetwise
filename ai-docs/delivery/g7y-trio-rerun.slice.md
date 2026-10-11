@@ -2,6 +2,8 @@
 
 status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零 spec 零实跑零 live 零容器）
 
+> erratum 2026-10-11：本刀已终局 nail 并被 G7TRIO-2 取代，此状态行陈旧·对终局卷 re-EXEC 无效·stub 0 字节维持（终局登记＝execution-master-checklist :1567/:1583 BOTH PASS·取代刀 EXEC `0d61379c`·append-only 注记·上行原文保留）
+
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
 - **立项**：协调方 G7Y trio 复跑判定刀（CMOP03-FIX nail「trio 复跑复核保留」+ G7V-CALIB nail「G7U 残红①关联子面处置随 G7Y trio 复判」+ CMOP03-D nail「复判 run 归协调方」既有指向的行使——引用之不自建 SSOT 行）。**Base**：`origin/feat/mysql-schema-skeleton`=`9265e4d8`（2026-10-08 fetch · 本地已 ff 同点 · ≥9265e4d8 达成）；worktree `meetwise-line-g7y` · 分支 `line/g7y-trio-rerun`（新立）。

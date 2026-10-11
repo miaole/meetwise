@@ -22,25 +22,25 @@
 ## 批 1（26 条·7 P0/P1）主路径打通
 | 编号 | 状态 | 刀 | 验收锚 |
 |---|---|---|---|
-| #40b/#40c | 🔄 | SCORE S2 EXEC 在飞（去桩+完成判据切换+#103） | interview:prove 绿·rg 桥残留=0 |
-| #20 | 🔒40c | 同上 | begin→完成→报告 E2E·三区块非空 |
-| #42/#43/#41 | 🆕 | SCORE S3 收尾刀（对拍测试+INSERT 触发器+ADR-0020 accepted） | TS↔SQL 对拍进 CI·ADR 翻 accepted |
-| #229 | 🆕 | REPORT-RETRY 刀（D2 五件：quarantined 重试+频控+零扣费 proof+文案+存量重排） | 六项验收（roadmap 批1） |
-| #204 | 🆕 | GROWTH-GEN 刀（服务端后台作业自动产评估+学习+职业路径·新 job 类型幂等） | 面完→三区块非空→/growth 出点 |
-| #241+#238+#253+#243 | 🔄 | FENCE-REFLOW 起草在飞 | 围栏后 create 新面试·对账拆事务·幽灵场次回收·410 出口 |
-| #53→#54→#55→#56 | 🆕 | SSE-RESILIENCE 刀（重连/草稿/误降级/状态码分支·面试+押题+诊断三面板） | 断网 30s 不降级·草稿恢复·401 跳登录 |
-| #59 | 🆕 | ERR-ENVELOPE 刀（前端 code 映射+API 统一信封） | code→文案/动作映射断言 |
-| #61 | 🆕 | 同 SSE 刀顺手（ensureOk 401 redirect） | 401→/login?expired=1 |
-| #161 | 🆕 | 前端 connecting 读进度（+浏览器级测试） | 首题等待显示进度 |
-| #209 | 🆕 | EMPTY-RESULT 刀（0 题/0 grounded 走失败退额） | 空结果退额断言 |
-| #232 | 🆕 | 同 ERRMSG 域收尾（统一错误处理·列表简历名+时间） | 非 402 失败带码回列表 |
-| #237 | 📋 | EVIDENCE-DELIVERY rev2 双审PASS（transcript 回看·#247 免责门槛） | transcript 前端接通 |
-| #254 | 🆕 | 横幅「查看完整报告」入口 | view_report 入口 |
-| #255 | 🔒EVIDENCE-DELIVERY 部分+刷新恢复 | 每题点评+transcript 恢复 |
-| #256 | 🔒40c+D3 | 「第 N 题/预计 M 题」+提前结束 | ≥N 题可出报告 |
-| #260 | 🆕 | 简历下拉过滤（begin 409 前置防） | 不可用简历置灰 |
-| #261 | 🔒#228 | 余额 N 展示+消耗确认 | Dashboard/开始按钮旁 |
-| #257 | 🆕 | 报告页导出收尾·归 #254 同族刀（导出走同源代理 cookie→Bearer+站内跳转改相对路径·2026-10-11 漏登回填·核实经过见文末 2026-10-11 登记节） | 导出 200 走同源不再 401·站内链接不落 API 主机（issues-master :293） |
+| #40b/#40c | ✅ S2 nail @2c3a7d80（EXEC @50cb3238·#103 切换随 EXEC） | SCORE S2（去桩+完成判据切换+#103） | interview:prove 绿·rg 桥残留=0 |
+| #20 | ✅ @2c3a7d80（equivalent-coverage ruled·#20 本属批0 症状行） | 同上 | begin→完成→报告 E2E·三区块非空 |
+| #42/#43/#41 | ✅ G1 nail @80ad4d44（merge @005c7fde）+G5 残面 nail @eed3b077（merge @11309741） | SCORE S3 收尾刀（对拍测试+INSERT 触发器+ADR-0020 accepted） | TS↔SQL 对拍进 CI·ADR 翻 accepted |
+| #229 | ✅ nail @1ae677b8（merge @3ec4c2fc） | REPORT-RETRY 刀（D2 五件：quarantined 重试+频控+零扣费 proof+文案+存量重排） | 六项验收（roadmap 批1） |
+| #204 | ✅ nail @6a7a3acc（EXEC @dc7e6daf·REQUEST 状态行滞留 executed_s1s2 以主线 nail 为准） | GROWTH-GEN 刀（服务端后台作业自动产评估+学习+职业路径·新 job 类型幂等） | 面完→三区块非空→/growth 出点 |
+| #241+#238+#253+#243 | ✅ fence nail @6d029323（merge @fd57a6fc） | FENCE-REFLOW | 围栏后 create 新面试·对账拆事务·幽灵场次回收·410 出口 |
+| #53→#54→#55→#56 | ✅ sse nail @ed56c73b（merge @8cea67fb） | SSE-RESILIENCE 刀（重连/草稿/误降级/状态码分支·面试+押题+诊断三面板） | 断网 30s 不降级·草稿恢复·401 跳登录 |
+| #59 | ✅ G4 nail @038153f7（merge @891f8c37） | ERR-ENVELOPE 刀（前端 code 映射+API 统一信封） | code→文案/动作映射断言 |
+| #61 | ✅ sse nail @ed56c73b（REQUEST :112 正式解除） | 同 SSE 刀顺手（ensureOk 401 redirect） | 401→/login?expired=1 |
+| #161 | ✅ G3 nail @af13c627（merge @01ee59bf+修复 @3b827fb2） | 前端 connecting 读进度（+浏览器级测试） | 首题等待显示进度 |
+| #209 | ✅ G4 nail @038153f7 | EMPTY-RESULT 刀（0 题/0 grounded 走失败退额） | 空结果退额断言 |
+| #232 | ✅ G2 nail @049f19e1（merge @b11d6d12） | 同 ERRMSG 域收尾（统一错误处理·列表简历名+时间） | 非 402 失败带码回列表 |
+| #237 | ✅ eviddel nail @74895b7c（merge @eae56953·transcript 回看=四断口③④·删除面并入批4 已落） | EVIDENCE-DELIVERY rev2 双审PASS（transcript 回看·#247 免责门槛） | transcript 前端接通 |
+| #254 | ✅ G2 nail @049f19e1（merge @b11d6d12·实码 InterviewPanel view_report 入口亲证） | 横幅「查看完整报告」入口 | view_report 入口 |
+| #255 | ✅ eviddel nail @74895b7c（点评面「到达用户眼前」·恢复面=事件携证+回放重建+draft-store(#54)·无单列解除宣告如实记） | 每题点评+transcript 恢复（原🔒EVIDENCE-DELIVERY 部分+刷新恢复） | 每题点评+transcript 恢复 |
+| #256 | ✅ G3 nail @af13c627（显示面·提前结束🔒D3 零触留 D3 决策） | 「第 N 题/预计 M 题」+提前结束 | ≥N 题可出报告 |
+| #260 | ✅ G3 nail @af13c627 | 简历下拉过滤（begin 409 前置防） | 不可用简历置灰 |
+| #261 | ✅ G3 nail @af13c627（🔒#228 前置已闭 @b4882af4） | 余额 N 展示+消耗确认 | Dashboard/开始按钮旁 |
+| #257 | ✅ G2 nail @049f19e1（merge @b11d6d12·漏登回填行随 G2 收口） | 报告页导出收尾·归 #254 同族刀（导出走同源代理 cookie→Bearer+站内跳转改相对路径·2026-10-11 漏登回填·核实经过见文末 2026-10-11 登记节） | 导出 200 走同源不再 401·站内链接不落 API 主机（issues-master :293） |
 
 ## 批 2（54 条）AI 个性化与闭环
 | 域 | 编号 | 状态 |
@@ -205,7 +205,7 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 | 批 | done/total | 今日刷新（+） | 残留要点 |
 |---|---|---|---|
 | 批0 | **15/15 全收口** | +#133+#195/#270（@9b8e7c4c）+#228+#29（@b4882af4） | 零残留（#194 已并入随刀闭） |
-| 批1 | **14/26** | +#40b/c+#20（@2c3a7d80）+#229+#204+#241/#238/#253/#243+#53/#54/#55/#56/#61/#256 | 残 12：SCORE S3 三件（#42/#43/#41）+体验族九条（#59/#161/#209/#232/#237/#254/#255/#260/#261） |
+| 批1 | **26/26 全收口**（终核勘误 2026-10-11·原记 14/26 残 12 已全部收口·详见文末终核勘误节） | 原刷新（+#40b/c+#20 @2c3a7d80·+#229+#204+#241/#238/#253/#243+#53/#54/#55/#56/#61/#256）+终核补登：G1/G5 #42/#43/#41（@80ad4d44/@eed3b077）·G4 #59/#209（@038153f7）·G3 #260/#261/#161/#256（@af13c627）·G2 #254/#257/#232（@049f19e1）·EVID #237/#255（@74895b7c） | 零残留（#256 提前结束🔒D3 与 G5 ADR 项1/项4 校准期留置均非批1 条目面） |
 | 批2 | **12/54**（另 4 部分面：#51/#266/#268/#199） | +#259（@fb077b19）+#50/#52（随 @2c3a7d80） | 残 42：LEVEL-SCHEME/QBANK-CORPUS/WEAKNESS-LOOP 三刀未立项+ROLE-INPUT S2a/S2b/S3+阈值决议 |
 | 批3 | **3/23** | +#110（@79aeb04b）+#271（@df12a054）+#227（随 #271 片2 解除·nail 宣告） | 残 20：#218/#219/#220/#221/#222/#223/#265/#239 等+文档刀 #225/#233/#234/#235/#262-264/#267 |
 | 批4 | **10/10 全收官** | +#69/#82（@9000f02e）＝8 落+#81 砍+#83 降 P4 | 零残留 |
@@ -251,4 +251,18 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 6. **HA6 双审 BOTH PASS→EXEC 在飞**：C1 一行 `PGPOOL_MAX=12`+C2/C3/C4·B1 沙箱探针裁撤·理由落卷·三注记（D1 计数口径/D2 锚块引用/D3 census 口径）随 disposition 落（`ha-6-companion-disposition.md` @`8ba93f0b`·`exec:awaiting_post_prove_dual` 亲读）。
 
 **#257 漏登回填（先核实后补行）**：entpay 蓝本 `line/batch1-residual` @`ab02d499` 提交注记明言「漏登 #257（issues-master :293 定批1 而 LEDGER 批1 表无行·建议回填）」。登记席核实：issues-master :293 = #257（报告导出 401·P2·旅程=报告·第1批）×本台账全卷 rg `#257` 零命中（exit=1）→**确属漏登**（TASK-SOP-v2 rev2 :109 虽已裁「归批1·与 #254 同族」而表行一直未落）→已在上方批1 表补行（🆕=未开工·归 #254 同族·附验收锚），批1 表自此与 issues-master 第1批 26 条映射齐。
+
+## 2026-10-11 批1 水位终核勘误（批1 终核+LEDGER 勘误席 · docs-only · 恰台账+g7y 两卷注记零码动）
+
+> 终核基准：主线 HEAD `c7142596`（2026-10-11 实测·`eae56953` 已是 HEAD 祖先·HA6 EXEC 在工作树未提交不涉本账）×issues-master 第1批 26 条原文（:97/:99/:100/:106/:160-163/:189/:196/:225/:228/:229/:272/:286/:290-293/:296/:308/:312/:313/:322/:377/:392/:437/:438/:489）×LEDGER 批1 表×各 REQUEST 卷状态行×实码抽查。涉引 hash 全经 `git merge-base --is-ancestor` 对 HEAD 亲证为祖先。
+
+1. **终核结论：批1 26/26 全收口·残 0**（C 表原记「14/26·残 12」勘误·差=SCORE S3 三件+体验族九条均已收口）。逐条证据：#42/#43/#41＝G1 merge `005c7fde`+nail `80ad4d44`（scor-parity 57 对拍+0158 INSERT 守门+ADR-0020 accepted·REQUEST :142 `nail:closed`）+G5 残面 merge `11309741`+nail `eed3b077`（REQUEST :106 `nail:closed`·项1/项4 留校准期非批1 条目面）；#254/#257/#232＝G2 merge `b11d6d12`+nail `049f19e1`（REQUEST :97 `nail:closed`·实码 InterviewPanel.tsx view_report 双入口亲证）；#260/#261/#161/#256＝G3 merge `01ee59bf`+修复 `3b827fb2`+nail `af13c627`（REQUEST :161 `nail:closed`·实码 interviews/page.tsx 余额行亲证·#256 提前结束🔒D3 零触留 D3 决策）；#59/#209＝G4 merge `891f8c37`+nail `038153f7`（REQUEST :116 `nail:closed`·quiz/diagnosis-lifecycle 空题稳定码实码亲证）；#237/#255＝EVIDENCE-DELIVERY merge `eae56953`+nail `74895b7c`（REQUEST :179 `nail:closed`·#237 transcript 回看=四断口③④·删除面并入批4 已落·#255 点评面「逐题点评到达用户眼前」·恢复面=事件携证+applyEvents 回放重建+draft-store(#54) 组成·**无单列「#255 解除」宣告·随载体刀 nail 记收·如实登记**）；#229（nail `1ae677b8`）·#204（nail `6a7a3acc`·REQUEST 状态行滞留 `executed_s1s2` 以主线 nail 为准）·#241/#238/#253/#243（nail `6d029323`）·#53-56+#61（nail `ed56c73b`）·#103+#40b/#40c+#20（S2 EXEC `50cb3238`+nail `2c3a7d80`·#20 equivalent-coverage ruled·#20 本属批0 症状行）。历史件抽查：consent-min（merge `07ab0c12`+nail `9000f02e`·REQUEST :130 `nail:closed`）·trial-grant（nail `b4882af4`·REQUEST :102 `nail:closed`）均在案。
+2. **G3/G4 分支线核销**：两刀全协议走完（EXEC→merge→post-prove BOTH PASS→nail 全在主线·分支已清·无在途未收口线），非「待派」——G3 线索 EXEC `541a8f20`、G4 线索 EXEC `b70d7d81` 均为 HEAD 祖先。本条只登记核销，不动其线（归各刀 pipeline 卷宗）。
+3. **G2 重复立项未遂事件**：LEDGER 批1 表滞后（G2 已收口而 #254/#257/#232 三行仍 🆕·残数仍 12）致北星核对席误判「G2/G3/G4 待派」——起草席停止条件正确触发（REQUEST 卷存在性检查命中 `g2-report-page-REQUEST.md` `nail:closed`），未产生重复 REQUEST。**建议条目：立项前置清单新增「REQUEST 卷存在性检查」**（同名/同族刀卷 rg 先行·命中 `nail:closed` 即改派终核/勘误而非立项）。
+4. **批表滞后根因**：G1-G5+EVID 六刀 nail 席均按「nail 卷随下提交」落卷，但无一同步 LEDGER 批表（C 表 :208 停留在 `4983042d` 四链时点快照）——根因＝**nail 席未同步批表（任务书无此步骤）**。**建议：后续 nail 席任务书强制含「批表同步」步骤**（nail 落卷同提交或紧随提交内更正对应批表行状态+残数），派单时由协调方写入任务书。
+5. **门面引用取代**：本账 :213「批1 余 12 未清」/:237「批1 12 条」随本节一并视为已被 26/26 取代（append-only 不改原文·以本节为准）。
+6. **G7Y 卷 status 行 erratum（协调方裁定随本席落卷）**：`g7y-trio-rerun.md` 与 `g7y-trio-rerun.slice.md` 两卷 :3 `draft:awaiting_pre_exec_dual` 系陈旧失真——该刀已于 10-08 终局 nail（execution-master-checklist :1567/:1583 post-prove 双席 BOTH PASS 登记在案·终态判定 1 绿/2 红·非三绿候选·`g7SuiteGreen=false` 维持）且已被 G7TRIO-2（EXEC `0d61379c`·CMD1/CMD2 绿·CMD3 步 10 neg:resume 红）取代。已在两卷 status 行后 append-only 注记（原文保留）：对终局卷 re-EXEC 无效·stub 0 字节维持。
+7. **分支处置登记：`line/g7y-trio-rerun` @`a1cbb417`**（5 提交·含分支线 nail）系平行历史（`git merge-base --is-ancestor` 证非 HEAD 祖先）——主线已由平行收据 `8f4f2771`/`c88f986b` 载入同判决（E-5 erratum+全量 CMD2 基线补交）。**Ban merge（防 checklist 双登记冲突）·保留分支作历史·内容已被主线覆盖**。
+8. **核对席误判教训（第二起）**：北星核对席两起误判同根因——G2「待派」实已收口（本节第3条）·G7Y「待审」实已终局（本节第6条）——只读卷面 status/台账滞后、未对表 checklist SSOT。**建议：立项前置检查强制「rg checklist+REQUEST 卷双对表」条款**（与第4条 nail 批表同步纪律并列生效）。
+9. **新红面登记（待定谳）**：LIVE 复跑席 2026-10-11 19:38-19:54 三次 `e2e:isolated` 全 EXIT=1（收据 `receipts/live-rerun-2026-10-11/` 未跟踪目录·本席只登记不收编）·failureClass=api·worker bootstrap 崩 `model_cost_invalid_model_backup_billing_model`（`apps/worker/src/model-cost-governance.ts:50`·栈经 main.ts:428 bootstrap·diag-worker-boot.log 亲读）——归因两说（env 配置缺 BACKUP_BILLING_MODEL 或某刀引入 governance 检查）·**定谳归 LIVE 复跑席报告+协调方**·本席不动其线。
 
