@@ -30,7 +30,8 @@ export async function drainQuizJobOnce(d: QuizConsumerDeps, owner: string): Prom
     // A historical JSON payload is never selected by `claimNextQuizJob`.
     // Terminalize it before decrypt, graph checkpoint, or model dispatch.
     if (!hasCurrentResumeReference(job)) throw Object.assign(new Error('legacy_resume_reference_unresolved'), { code: 'legacy_resume_reference_unresolved' });
-    await runQuiz(d.pool, owner, job.quizId, job.resumeId!, job.privacyEpoch!, d.model);
+    // #230:targetRole 由 claim 读侧 additive 读出(payload->>'targetRole');旧 job 缺键 → undefined 容忍不崩。
+    await runQuiz(d.pool, owner, job.quizId, job.resumeId!, job.privacyEpoch!, d.model, job.targetRole);
     await asPrincipal(d.pool, owner, (c) => markQuizJobDone(c, owner, job.id, d.leaseOwner));
     return 'generate';
   } catch (e: unknown) {

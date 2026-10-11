@@ -52,6 +52,7 @@ function captureDispatchModel(captured: Captured[]): ModelClient {
     async complete(req: CompletionRequest): Promise<ModelResult> {
       captured.push({ service: req.service, system: req.system, userData: req.userData, rag: req.rag });
       if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: ['高并发'] } };
+      if (req.service === 'resume-quiz.generate') return { ok: true, raw: { items: [{ q: `请说明你的 Redis 限流改造取舍与验证方法(${captured.length})。`, refs: ['Redis'] }] } };
       if (req.service === 'interviewer.ask') return { ok: true, raw: { q: `请说明高并发限流的取舍,并给出验证方法(${captured.length})。`, refs: [] } };
       if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: 'Redis' }] } };
       return { ok: false, kind: 'deterministic' as const };
@@ -216,7 +217,28 @@ async function main() {
   const unitsAfter = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   A('④ 额度账实相符(3 场扣 1+死角场释放=net 3)', unitsBefore - unitsAfter === 3, `before=${unitsBefore} after=${unitsAfter}`);
 
-  console.log(`\n${failures === 0 ? '✓ ROLE-INPUT prove(①②③④·payload→planner 段)全部通过' : `✗ ${failures} 项失败`}`);
+  // ── ⑤ quiz 链(#230·S1 同形镜像):prompt v2 条件段+缺省回退 v1 字节(捕获型 ModelClient·真 invoke 链·零外呼) ──
+  section('⑤ quiz prompt(#230):v2 条件段+缺省回退 v1 字节(B 片断言落槽:并入 worker role-input proof·收据注明)');
+  const { quizGenerator } = await import('../src/interview-service.ts');
+  const { getPrompt } = await import('@meetwise/ai-runtime');
+  const quizPrompt = getPrompt('resume-quiz.generate');
+  A('⑤a prompt v1→v2 版本升位(改 prompt=升 version 注册表纪律)', quizPrompt.version === 'v2');
+  A('⑤b system 出题边界句零弱化(接地纪律全句保留:仅依据简历事实/严禁编造/refs 原文)',
+    quizPrompt.system.includes('仅依据 <data> 内的简历事实出 3 道训练问题')
+    && quizPrompt.system.includes('严禁编造简历中不存在的技能或经历')
+    && quizPrompt.system.includes('每题的 refs 必须是简历里出现过的关键词原文'));
+  const quizFacts = ['负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。'];
+  // ⑤c 缺省(undefined=旧 job 缺键经 consumer/lifecycle 透传的同形)→ userData 与 v1 逐字节一致(facts join·零岗位段)。
+  await (quizGenerator(pool, OWNER, quizFacts, `role-input-quiz-v1-${process.pid}`, deps.model))();
+  const q1 = captureAll.filter((x) => x.service === 'resume-quiz.generate').at(-1);
+  A('⑤c 缺省回退 v1 字节(userData=facts join·零岗位段·旧 job 无键同形不崩)', !!q1 && q1.userData === quizFacts.join('\n'), q1?.userData.slice(0, 40));
+  // ⑤d 填岗位 → userData=「目标岗位:<用户串>\n」条件段+facts 接地同帧。
+  await (quizGenerator(pool, OWNER, quizFacts, `role-input-quiz-v2-${process.pid}`, deps.model, undefined, USER_ROLE))();
+  const q2 = captureAll.filter((x) => x.service === 'resume-quiz.generate').at(-1);
+  A('⑤d 填岗位:目标岗位条件段前缀(diagnosis :59 同形)', !!q2 && q2.userData.startsWith(`目标岗位:${USER_ROLE}\n`), q2?.userData.slice(0, 40));
+  A('⑤e v2 userData 仍含 facts 接地(岗位段与事实同帧)', !!q2 && q2.userData.endsWith(quizFacts.join('\n')));
+
+  console.log(`\n${failures === 0 ? '✓ ROLE-INPUT prove(①②③④⑤·payload→planner 段+quiz prompt 段)全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);
 }

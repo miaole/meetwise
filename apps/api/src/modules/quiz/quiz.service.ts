@@ -24,8 +24,11 @@ export class QuizService {
   }
 
   // 开始押题:扣额度 + 入队 generate job(resume-quiz 图在 worker 跑,api 薄)。202 已受理。
-  begin(principal: string, id: string, resumeId: string) {
+  // #230 可选 targetRole:归一化 trim/限长 100/空串→undefined(interview begin/diagnosis 同形制,限长防滥用)。
+  // 仅作 quiz_job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload '{}' 零新键=现状字节。
+  begin(principal: string, id: string, resumeId: string, targetRole?: string) {
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
+    const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
     const owner = requireOwnerUserId(principal, 'quiz.begin');   // PRIV01-C 第二层 E1
     const jobFilter = buildRequiredOwnerFilter(owner, 'quiz.begin.existingJob');     // E2 必选谓词
     const resumeFilter = buildRequiredOwnerFilter(owner, 'quiz.begin.resume');
@@ -60,7 +63,7 @@ export class QuizService {
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-      const jobId = await enqueueQuizJob(c, owner, id, resumeId, privacyEpoch);
+      const jobId = await enqueueQuizJob(c, owner, id, resumeId, privacyEpoch, targetRoleNormalized);
       return { accepted: true, jobId };
     });
   }

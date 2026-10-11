@@ -31,9 +31,9 @@ function statusBadge(status: string) {
   return <Badge variant={variant}>{STATUS_LABEL[status] ?? '状态未知'}</Badge>;
 }
 
-export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string; reused?: string }> }) {
+export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string; reused?: string; targetRole?: string }> }) {
   if (!(await getServerToken())) redirect('/login');       // 服务端鉴权门(无 cookie 直接服务端跳转,不发任何页面 JS)
-  const { limit, error, reused } = await searchParams;
+  const { limit, error, reused, targetRole } = await searchParams;
 
   // 真服务端取数:在 RSC 里 await,HTML 服务端渲染好再发(首屏即有数据,无客户端 fetch 闪烁)。
   const data = await serverGet<unknown>('/interview');
@@ -130,10 +130,11 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
                     ))}
                   </select>
                 </div>
-                {/* #259 目标岗位输入:可选自由文本(仅限长与脱空白,语义归 planner;镜像 diagnosis/page 同形制)。 */}
+                {/* #259 目标岗位输入:可选自由文本(仅限长与脱空白,语义归 planner;镜像 diagnosis/page 同形制)。
+                    #268 S2a prefill:?targetRole= 传值仅作初值(defaultValue),用户可改=修法列「可改的 UI」语义;码面校验照旧零新增。 */}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <label className="text-sm text-muted-foreground" htmlFor="targetRole">目标岗位</label>
-                  <Input id="targetRole" name="targetRole" maxLength={100} placeholder="可选,如:后端工程师(留空按简历自动匹配方向)" className="sm:flex-1" />
+                  <Input id="targetRole" name="targetRole" maxLength={100} defaultValue={targetRole ?? ''} placeholder="可选,如:后端工程师(留空按简历自动匹配方向)" className="sm:flex-1" />
                 </div>
                 {/* #261 余额行:读数在→「余额 N · 本次消耗 1 次额度」+预览口径注记;N<1 静态中性提示不拦提交(服务端 402 权威);
                     读数失败/形状漂移→整行不渲染(降级零伪读数,禁「余额 —」类假数)。 */}
