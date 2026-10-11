@@ -503,6 +503,10 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/test/role-input.proof.ts',
     'apps/web/app/interviews/page.tsx', 'apps/web/app/interviews/actions.ts',
+    // H5-ROLE-INPUT(#230 押题岗位 B 片落槽·本刀触面如实登记):
+    'apps/api/src/modules/quiz/quiz.controller.ts', 'apps/api/src/modules/quiz/quiz.service.ts',
+    'packages/db/src/jobs/quiz-jobs.ts', 'apps/worker/src/quiz-consumer.ts', 'apps/worker/src/quiz-lifecycle.ts',
+    'apps/worker/src/interview-service.ts', 'packages/ai-runtime/src/prompts.ts',
   ],
   'stress:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',

@@ -229,14 +229,16 @@ export function fastModelClient(costs: { primary?: ModelCostPolicy; backup?: Mod
 
 /** 押题:resume-quiz 图的 generate。经 invoke(双校验:schema + 非空业务校验)+ 图侧 factuality 过滤幻觉。
  *  progressStream(TOKSTREAM 阶段1 · 可选):SSE 流键(=quizId)。传了即以包装层回调发生成进度事件
- *  (generation_started / generation_progress 节流持久写 interview_event);不传=与从前逐字节一致(零回归)。 */
-export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[], idempotencyKey: string, model: ModelClient, progressStream?: string): GenerateQuestions {
+ *  (generation_started / generation_progress 节流持久写 interview_event);不传=与从前逐字节一致(零回归)。
+ *  #230 role(可选·additive 第 7 参):用户显式目标岗位,仅进 prompt data 条件段(v2 buildData);
+ *  缺省 undefined=vars 零 role 键段不渲染,与 v1 产物逐字节一致(缺省回退守卫)。 */
+export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[], idempotencyKey: string, model: ModelClient, progressStream?: string, role?: string): GenerateQuestions {
   return async (): Promise<QuizItem[]> => {
     const call = async (): Promise<QuizItem[]> => {
       const out = await invoke({
         idempotencyKey, operation: { id: 'interview.quiz-generation.v1', businessRevision: idempotencyKey }, schema: QuizSchema,
         businessValidate: (v) => (v.items.length === 0 ? 'empty_quiz' : v.items.some((it) => !it.q.trim()) ? 'blank_question' : null),
-        model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts }),
+        model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts, role }),
       }, pool, owner);
       if ('error' in out) throw new Error('quiz:' + out.error);
       return out.value.items;

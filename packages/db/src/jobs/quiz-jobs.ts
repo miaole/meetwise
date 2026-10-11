@@ -12,24 +12,30 @@ export const MAX_QUIZ_JOB_ATTEMPTS = 5;
 export const RESUME_DERIVATIVE_REFERENCE_VERSION = 61;
 
 /** New jobs never carry a resume locator in JSON.  The typed tuple is checked
- * again by the database trigger against its parent quiz and active resume. */
+ * again by the database trigger against its parent quiz and active resume.
+ * H5-ROLE-INPUT #230:B-5 增可选 targetRole payload 标量——上句语义=简历 locator 禁令;
+ * targetRole 是用户主动声明标量(#230)非 locator,沿 S1 interview_job payload 先例豁免(收据已登记择由)。
+ * 在场才写 payload 键;缺省 → '{}' 与现状逐字节。 */
 export async function enqueueQuizJob(
-  c: Client, owner: string, quizId: string, resumeId: string, privacyEpoch: number,
+  c: Client, owner: string, quizId: string, resumeId: string, privacyEpoch: number, targetRole?: string,
 ): Promise<string> {
+  const payloadJson = targetRole === undefined ? '{}' : JSON.stringify({ targetRole });
   const r = await c.query(
     `INSERT INTO quiz_job(owner_user_id, quiz_id, resume_id, privacy_epoch, reference_schema_version, payload)
-     VALUES ($1,$2,$3,$4,$5,'{}'::jsonb)
+     VALUES ($1,$2,$3,$4,$5,$6::jsonb)
        ON CONFLICT (owner_user_id, quiz_id) DO NOTHING RETURNING id`,
-    [owner, quizId, resumeId, privacyEpoch, RESUME_DERIVATIVE_REFERENCE_VERSION]);
+    [owner, quizId, resumeId, privacyEpoch, RESUME_DERIVATIVE_REFERENCE_VERSION, payloadJson]);
   if (r.rowCount === 1) return r.rows[0].id;
   const ex = await c.query('SELECT id FROM quiz_job WHERE owner_user_id=$1 AND quiz_id=$2', [owner, quizId]);
   return ex.rows[0].id;
 }
 
-/** 领取下一个可跑押题 job(FIFO by created_at;租约过期可重领,同押题有 running 的不领——防并发双推同一图)。 */
+/** 领取下一个可跑押题 job(FIFO by created_at;租约过期可重领,同押题有 running 的不领——防并发双推同一图)。
+ *  #230 读侧 additive:仅 RETURNING 增读 payload->>'targetRole'(旧 job 缺键 → NULL → undefined 容忍不崩);
+ *  resume locator 语义/查询形状/lease 复核零动(沿 interview-jobs S1-4 additive 同门)。 */
 export async function claimNextQuizJob(
   c: Client, owner: string, leaseOwner: string, maxAttempts = MAX_QUIZ_JOB_ATTEMPTS,
-): Promise<{ id: string; quizId: string; resumeId: string | null; privacyEpoch: number | null; referenceSchemaVersion: number | null; attempts: number } | null> {
+): Promise<{ id: string; quizId: string; resumeId: string | null; privacyEpoch: number | null; referenceSchemaVersion: number | null; targetRole?: string; attempts: number } | null> {
   const r = await c.query(
     `UPDATE quiz_job SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, version=version+1
        WHERE id = (
@@ -38,7 +44,7 @@ export async function claimNextQuizJob(
             AND (j.status='queued' OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
             AND NOT EXISTS (SELECT 1 FROM quiz_job r WHERE r.quiz_id=j.quiz_id AND r.status='running' AND r.lease_expires_at >= now())
           ORDER BY j.created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1)
-     RETURNING id, quiz_id, resume_id, privacy_epoch, reference_schema_version, attempts`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
+     RETURNING id, quiz_id, resume_id, privacy_epoch, reference_schema_version, attempts, payload->>'targetRole' AS target_role`, [owner, leaseOwner, String(LEASE_SECONDS), maxAttempts]);
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
   return {
@@ -47,6 +53,7 @@ export async function claimNextQuizJob(
     resumeId: x.resume_id ?? null,
     privacyEpoch: x.privacy_epoch == null ? null : Number(x.privacy_epoch),
     referenceSchemaVersion: x.reference_schema_version == null ? null : Number(x.reference_schema_version),
+    targetRole: x.target_role ?? undefined,
     attempts: x.attempts,
   };
 }
