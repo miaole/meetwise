@@ -35,8 +35,9 @@
  */
 import type { PoolClient as Client } from 'pg';
 import { asPrincipal, type DbPool } from '../principal.ts';
-import { getInterviewRouteSnapshot } from '../routing/job-route-decision.ts';
 import { readGenerationQuestionChunkProjection } from './qbank-generation-projection.ts';
+import { getInterviewRouteSnapshotForAdaptiveRole } from '../routing/candidate-route.ts';
+import { listServedQbankQuestionRefs, recordServedQbankQuestionRefs } from './qbank-served-refs.ts';
 import {
   activeQbankGeneration, qbankQuestionResultsForHits,
   type QbankServingScopeInput, type QbankQuestionRetrievalResult,
@@ -65,7 +66,11 @@ export interface DispatchTrackLocalRetrievalDeps {
 }
 
 export type DispatchTrackLocalRetrievalResult =
-  | { status: 'served'; planId: string; cacheStatus: QbankCacheStatus; results: QbankQuestionRetrievalResult[]; recheckedRefs: number }
+  | { status: 'served'; planId: string; cacheStatus: QbankCacheStatus; results: QbankQuestionRetrievalResult[]; recheckedRefs: number;
+      /** H2 #77:池级过滤把候选全部滤空(检索有命中但难度/已问过滤后为零)——真零候选(search 零命中)恒 false/缺省。
+       *  消费方据此抑制 route-scope negative cache 记录(leaf 级负面 verdict 与难度无关,记录会毒化其他难度查询)
+       *  并把空池映射为显式 degraded,不发明题面。 */
+      filteredEmpty?: boolean }
   | { status: 'recheck_failed'; planId: string; reason: string }
   | { status: 'replayed'; planId: string; planStatus: RetrievalPlanStatus }
   | { status: 'rejected'; reason: string };
@@ -226,7 +231,11 @@ export async function dispatchTrackLocalRetrieval(
   deps: DispatchTrackLocalRetrievalDeps,
 ): Promise<DispatchTrackLocalRetrievalResult> {
   // Phase 1: 服务端校验 plan 属于不可变 snapshot（复用 RAG-03 validatePlannerOutput）。
-  const snapshot = await asPrincipal(pool, owner, (c) => getInterviewRouteSnapshot(c, owner, plan.snapshotId));
+  // H2 #202(收编):读源切 candidate-route 双轨(旧 recruiter snapshot 优先→缺行 fallback
+  // candidate_profile_route_snapshot)——与消费面(interview-consumer routeSnapForRetrieve)同序;
+  // 否则派发层旧表直读会把 C 端(无岗位)面试全部拒成 snapshot_missing,消费面双轨形同虚设。
+  // 门语义零弱化:两表皆无行 → snapshot_missing(→route_snapshot_missing→deny_external),永不 unscoped。
+  const snapshot = await asPrincipal(pool, owner, (c) => getInterviewRouteSnapshotForAdaptiveRole(c, owner, plan.snapshotId));
   if (!snapshot) return { status: 'rejected', reason: 'snapshot_missing' };
   const planSnapshot: RetrievalPlanSnapshot = {
     interviewId: snapshot.interviewId,
@@ -261,11 +270,50 @@ export async function dispatchTrackLocalRetrieval(
     return { status: 'recheck_failed', planId: frozen.planId, reason: recheck.reason };
   }
 
+  // Phase 4.5（H2 #77/#79 池级过滤·服务题池不含非目标难度题——非查询文本拼接语义）:
+  //  置于 recheck **之后**:recheck 的 fail-closed 状态面(generation_race/cross_track/tamper/…)
+  //  逐字节保持——过滤只作用于已通过权威重验的候选,绝不吞掉/改写拒绝语义(前置过滤会把
+  //  recheck_failed 吞成 served-empty,即 rag04 承重契约面)。
+  //  ① difficulty 谓词:经权威投影(control executor 只读,零新权限)把 chunk 命中映射到题面
+  //     question_id/difficulty,难度不符/非题面 chunk/draft 题附件 → 服务题池剔除(结果组装
+  //     本就只产 published 题,此处剔除=候选池语义,不给非目标难度占服务名额)。
+  //  ② 同 interview 已 served 题排除（#79 最小形=refId 集合过滤,qbank_served_question_ref/0162）。
+  //  裁决注记:难度相邻档（±1）放宽与否——谱满后先严格相等,留后刀 ADR;过滤后空池走
+  //  filteredEmpty 语义位(消费方显式 degraded,不发明题面)。
+  let candidateHits = search.hits;
+  if (search.hits.length > 0) {
+    const projections = await readGenerationQuestionChunkProjection(pool, {
+      generationId: plan.generationId,
+      servingScopeId: plan.leafTrackId,
+      taxonomyVersion: plan.taxonomyVersion,
+      refIds: search.hits.map((hit) => hit.refId),
+    });
+    const projectionByRef = new Map(projections.map((p) => [p.refId, p]));
+    const servedRefs = new Set(await listServedQbankQuestionRefs(pool, owner, plan.snapshotId));
+    candidateHits = search.hits.filter((hit) => {
+      const projection = projectionByRef.get(hit.refId);
+      if (!projection || !projection.visible) return false;
+      if (projection.questions.length === 0) return false;
+      return projection.questions.every((question) =>
+        question.questionState === 'published'
+        && question.difficulty === plan.difficulty
+        && !servedRefs.has(question.questionId));
+    });
+  }
+
   // Phase 5: 组装题面 artifact（二次可见性检查 + scope 过滤，安全空 = 优雅降级）。
   const results = await asPrincipal(pool, owner, (c) =>
-    qbankQuestionResultsForHits(c, plan.recipeId, search.hits, 420, scope));
+    qbankQuestionResultsForHits(c, plan.recipeId, candidateHits, 420, scope));
 
-  // Phase 6: CAS dispatched→served + outbox。
-  await asPrincipal(pool, owner, (c) => finalizePlanServed(c, owner, frozen.planId));
-  return { status: 'served', planId: frozen.planId, cacheStatus: search.cacheStatus, results, recheckedRefs: refs.length };
+  // Phase 6: CAS dispatched→served + outbox;同事务登记已 served 题（#79·原子:登记失败=serve
+  // 整体回滚,plan 留 dispatched 可重派,绝不出「已发放但下次仍重复」的漏排窗口）。
+  await asPrincipal(pool, owner, async (c) => {
+    await finalizePlanServed(c, owner, frozen.planId);
+    const servedQuestionRefs = [...new Set(results.map((r) => r.ref))];
+    if (servedQuestionRefs.length > 0) {
+      await recordServedQbankQuestionRefs(c, owner, plan.snapshotId, servedQuestionRefs);
+    }
+  });
+  return { status: 'served', planId: frozen.planId, cacheStatus: search.cacheStatus, results, recheckedRefs: refs.length,
+    filteredEmpty: search.hits.length > 0 && candidateHits.length === 0 };
 }

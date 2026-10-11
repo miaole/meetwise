@@ -8,9 +8,11 @@
  * 未决/失败 → 返回 undecided，调用方同步 409 candidate_route_undecided（同事务回滚零悬账，
  * 镜像 recruiter 面 interview_ineligible_route 先例）。
  *
- * 读侧（worker start job 角色门）：旧 recruiter snapshot（0104 interview_route_snapshot）优先，
- * 缺行才 fallback 新 snapshot 表——recruiter-flow 面（唯一生产者 recruiter.ts:428）零回归；
- * 检索面（G-R2-5）维持旧表直读不动，candidate 面 retrieval 走既有 degradedRetrieval 语义。
+ * 读侧（worker start job 角色门 + H2 #202 收编后的检索面）：旧 recruiter snapshot（0104
+ * interview_route_snapshot）优先，缺行才 fallback 新 snapshot 表——recruiter-flow 面（唯一生产者
+ * recruiter.ts:428）零回归；H2 QBANK-CORPUS 收编 #202：检索面（interview-consumer
+ * routeSnapForRetrieve / G-R2-5）已解禁消费本函数（同双轨序），门语义零弱化——缺行/缺叶仍
+ * route_snapshot_missing → degraded → deny_external，永不 unscoped。
  *
  * 门语义零弱化（C-HA/C-MO 铁律）：worker adaptive-role-resolve fail-closed 门零改动——本模块
  * 只解决「供给缺失」，缺行/缺叶仍拒（拒因前移非拒体消失）。releaseEvidence=false · Not HA。
@@ -105,10 +107,11 @@ export async function supplyCandidateProfileRoute(c: Client, owner: string, inte
 }
 
 /**
- * worker start job 角色门 fallback 读：旧 recruiter snapshot 优先（recruiter 面零回归），
- * 缺行才读 candidate snapshot 并适配同一 InterviewRouteSnapshotView 形状。
+ * worker start job 角色门 + 检索面（H2 #202 收编解禁）fallback 读：旧 recruiter snapshot 优先
+ * （recruiter 面零回归），缺行才读 candidate snapshot 并适配同一 InterviewRouteSnapshotView 形状。
  * 适配语义如实登记：candidate 面无 job 祖先 → jobId='' · revision=常量 1 · routeDigest=input_digest。
- * 消费方（角色门）只读 allocations[0].leafTrackId；检索面（G-R2-5）不走本函数（维持旧表直读）。
+ * 角色门只读 allocations[0].leafTrackId；检索面消费 allocations 数组（weighted-deficit）——candidate
+ * 面单 leaf allocation，deficit 数组长度=1，语义如实登记（非缺陷·候选面本就单叶）。
  */
 export async function getInterviewRouteSnapshotForAdaptiveRole(c: Client, candidate: string, interviewId: string): Promise<InterviewRouteSnapshotView | null> {
   const primary = await getInterviewRouteSnapshot(c, candidate, interviewId);

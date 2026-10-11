@@ -79,17 +79,55 @@ export type TrackLocalRetrieveDeps = Omit<DispatchTrackLocalRetrievalDeps, 'quer
 export type TrackLocalRetrieveFactory = (owner: string) => TrackLocalRetrieveDeps;
 
 /**
- * Parse CRAG query produced by adaptive-interview-service:
- *   `${competency} 难度${difficulty}`
- * Fail-closed on illegal competency/difficulty (no invented planner inputs).
+ * Parse CRAG query produced by adaptive-interview-service (H2 #79 协议扩展):
+ *   旧两段(字节兼容):`${competency} 难度${difficulty}`
+ *   新三/四段:      `${competency}[ 岗位${targetRole}][ 栈${techStack}] 难度${difficulty}`
+ * Fail-closed on illegal competency/difficulty/segment (no invented planner inputs):
+ * 解析自串尾依次剥离「难度N」→「栈…」→「岗位…」,任一段含保留词(岗位/栈/难度)或控制字符
+ * 或超长 → 整体 null → 调用方 degraded('planner_query_invalid'),零发明。旧单/双段旧形逐字节
+ * 兼容(无岗位/栈段 → 两可选项缺省,返回形状 additive 扩展)。
  */
-export function parseCragPlannerQuery(query: string): { competencyId: string; difficulty: number } | null {
+export interface CragPlannerQuery {
+  competencyId: string;
+  difficulty: number;
+  targetRole?: string;
+  techStack?: string;
+}
+
+/** 段长度帽(解析与构造同源;超帽=fail-closed null,不静默截断)。 */
+export const CRAG_QUERY_TARGET_ROLE_MAX_CHARS = 64;
+export const CRAG_QUERY_TECH_STACK_MAX_CHARS = 128;
+
+const segmentIsLegal = (value: string, max: number): boolean =>
+  value.length > 0 && value.length <= max && !/[\u0000-\u001f\u007f]/.test(value)
+  && !/岗位|栈|难度/.test(value);
+
+/** 自串尾剥离可选段(` ${token}${payload}` 形;payload 禁含保留词(见 segmentIsLegal),故 lastIndexOf 唯一定界)。 */
+function stripTrailingSegment(rest: string, token: string): { rest: string; payload?: string } {
+  const marker = ` ${token}`;
+  const idx = rest.lastIndexOf(marker);
+  if (idx < 0) return { rest };
+  const payload = rest.slice(idx + marker.length);
+  return { rest: rest.slice(0, idx).trimEnd(), payload: payload.length > 0 ? payload : undefined };
+}
+
+export function parseCragPlannerQuery(query: string): CragPlannerQuery | null {
   if (typeof query !== 'string') return null;
   const m = /^(.*)\s+难度([1-5])\s*$/u.exec(query.trim());
   if (!m) return null;
-  const competencyId = m[1]!.trim();
-  if (!competencyId || competencyId.length > 64 || /[\u0000-\u001f\u007f]/.test(competencyId)) return null;
-  return { competencyId, difficulty: Number(m[2]) };
+  // 岗位段在最前、栈段居次(构造序同);自尾剥离:先栈后岗位。
+  const stackSeg = stripTrailingSegment(m[1]!.trim(), '栈');
+  if (stackSeg.payload !== undefined && !segmentIsLegal(stackSeg.payload, CRAG_QUERY_TECH_STACK_MAX_CHARS)) return null;
+  const roleSeg = stripTrailingSegment(stackSeg.rest, '岗位');
+  if (roleSeg.payload !== undefined && !segmentIsLegal(roleSeg.payload, CRAG_QUERY_TARGET_ROLE_MAX_CHARS)) return null;
+  const competency = roleSeg.rest.trim();
+  if (!competency || competency.length > 64 || /[\u0000-\u001f\u007f]/.test(competency)) return null;
+  return {
+    competencyId: competency,
+    difficulty: Number(m[2]),
+    ...(roleSeg.payload !== undefined ? { targetRole: roleSeg.payload } : {}),
+    ...(stackSeg.payload !== undefined ? { techStack: stackSeg.payload } : {}),
+  };
 }
 
 /**
@@ -173,10 +211,15 @@ export function mapRecheckFailedToRefs(reason: string): ScoredRef[] {
   return [degradedRetrieval(`recheck_failed:${r}`)];
 }
 
-/** Map dispatch result → ScoredRef[]; recheck_failed / rejected stay fail-closed. */
+/** Map dispatch result → ScoredRef[]; recheck_failed / rejected stay fail-closed.
+ *  H2 #77:池级过滤全滤空(filteredEmpty)→ 显式 degraded('no_eligible_in_scope')——空池降级非发明;
+ *  既有零命中空 serve 语义零改(仍 [],CRAG 走 fallback_web)。 */
 export function scoredRefsFromDispatch(result: DispatchTrackLocalRetrievalResult): ScoredRef[] {
   switch (result.status) {
     case 'served':
+      if (result.results.length === 0 && result.filteredEmpty === true) {
+        return [degradedRetrieval('no_eligible_in_scope')];
+      }
       return result.results.map((r) => ({ ref: r.ref, score: r.score, evidence: r.evidence }));
     case 'recheck_failed':
       // Fail-closed always (catalog + unknown). No sibling/unscoped/question_ready.
@@ -499,14 +542,21 @@ export async function retrieveViaDispatchTrackLocal(input: {
   );
 
   // RAG-FUNNEL-06: record durable negative on empty serve / revalidate on hits.
+  // H2 #77:池级过滤全滤空(filteredEmpty)不记 leaf 级负面 verdict——verdict 与难度无关,记录会毒化
+  // 同 leaf 其他难度查询;真零候选空 serve 既有记录语义零改。
   if (privacyEpoch != null) {
-    await applyRouteScopeCacheAfterDispatch(
-      input.pool,
-      input.owner,
-      assembled.plan,
-      privacyEpoch,
-      dispatched,
-    ).catch(() => undefined);
+    const shouldRecordNegative = !(
+      dispatched.status === 'served' && dispatched.results.length === 0 && dispatched.filteredEmpty === true
+    );
+    if (shouldRecordNegative) {
+      await applyRouteScopeCacheAfterDispatch(
+        input.pool,
+        input.owner,
+        assembled.plan,
+        privacyEpoch,
+        dispatched,
+      ).catch(() => undefined);
+    }
   }
 
   // RAG-FUNNEL-05: clean empty serve → optional same-leaf LLM miss generation.

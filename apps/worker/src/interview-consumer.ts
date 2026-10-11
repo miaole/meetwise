@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -273,8 +273,13 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         // Compat/test (no trackLocal): primary-leaf scoped localRetrieve (partial P-WIRE).
         // P-FAKEPLAN banned. retrieve-side only; P-START separate.
         // ≠ 题域已隔离; ≠ wrong_track=0; wire green ≠ R4 closed; releaseEvidence=false.
+        // H2 #202(收编):检索面(routeSnapForRetrieve)读源切 candidate-route 双轨——旧 recruiter
+        // snapshot(0104)优先(B 端岗位面零回归)→ 缺行 fallback candidate_profile_route_snapshot
+        // (0142,解禁 getInterviewRouteSnapshotForAdaptiveRole 供检索消费)。门语义零弱化:缺行/缺叶
+        // 仍 route_snapshot_missing → degraded → deny_external(crag.ts 决策面零 diff),永不 unscoped;
+        // G-R2-5 语义零改。C 端无岗位简历面试由此解锁题库检索(此前必 route_snapshot_missing)。
         const routeSnapForRetrieve = await asPrincipal(d.pool, owner, (c) =>
-          getInterviewRouteSnapshot(c, owner, job.interviewId));
+          getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
         const retrieveDecision = decideRouteSnapshotRetrieve(routeSnapForRetrieve);
         // Weighted-deficit across rag.retrieve calls within this job claim.
         let trackLocalDeficit: number[] = routeSnapForRetrieve?.allocations?.map(() => 0) ?? [];
@@ -329,6 +334,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             onBeforeResumeProfileHydration: adaptive.onBeforeResumeProfileHydration,
             // EXTREV-1 SCORE-WRITER S1（D3/D4）：写卡步 claim 的 lease_owner（job 级 worker 身份）。
             scoreWriterLeaseOwner: d.leaseOwner,
+            // H2 #79(#259 供给线):用户显式岗位透传至 buildAdaptiveDeps(CRAG 查询岗位段)。
+            targetRole: requestContext.targetRole,
           };
           if (job.kind === 'start') {
             // `resume_id` is the sole source locator. Never revive a
@@ -367,9 +374,10 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // (no silent 技术岗). Flag-off keeps legacy default inside resolver.
             // G7S 通用 begin 供给面收口:角色门供给读 = 旧 recruiter snapshot 优先 → fallback
             // candidate_profile_route_snapshot(0142 新结构;通用 begin 面供给先行,先于扣额/入队)。
-            // 检索面(routeSnapForRetrieve / G-R2-5)维持旧表直读不动——candidate 面 retrieval 走
-            // 既有 degradedRetrieval('route_snapshot_missing') 语义。门语义零弱化:缺行/缺叶仍
-            // throw adaptive_role_route_missing(adaptive-role-resolve 零改动)。
+            // H2 #202(收编)勘注:本注释「检索面维持旧表直读不动」的旧态已由本刀收编解除——检索面
+            // (上方 routeSnapForRetrieve)与角色门同走 candidate-route 双轨(旧表优先→candidate
+            // fallback);角色门 fail-closed 语义(adaptive-role-resolve 零改动)与检索门语义(缺行/缺叶
+            // 仍 route_snapshot_missing→deny_external·永不 unscoped)双双零弱化。
             // 死源处置(C-MO-S3):原 roleFromJobRouteMetadata(声明从未赋值)已删除,非接线——
             // 通用面供给走独立 candidate 结构,Ban 冒用 job 维度 metadata。
             let roleFromRouteSnapshot: string | undefined;
