@@ -170,13 +170,16 @@ export interface AdaptiveServiceDeps {
 /** 规划官:据岗位+简历提目标能力(plan-and-solve 的 plan)。经 invoke。**约束性任务,走快模型**(缺省回退 model)。
  *  H4 R2④(#252 focus 进题链·断点⑤):第 7 形参 focus=本场报告 gap 维度名(上一轮评估摘要 criterion+弱点标签,
  *  fix-roadmap :97 验收原文)——只进 planner prompt 'planner.competencies' v3 可选段(喂 planner·「考哪些能力」面),
- *  prompt v3 buildData 对缺省/空数组逐字节回退 v2 输出(resume-grounding B1/S1-1 守卫);**绝不影响难度/信心**。 */
-export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[], focus?: string[]): Promise<CompetencySpec[]> {
+ *  prompt v3 buildData 对缺省/空数组逐字节回退 v2 输出(resume-grounding B1/S1-1 守卫);**绝不影响难度/信心**。
+ *  I3 JOB-MGMT(#197/#258·裁决⑥):第 8 形参 job=岗位侧供给(competencies+JD 摘要·interview-consumer 经
+ *  RLS+快照同源门条件化供给)——只进 planner prompt 'planner.competencies' v4 可选段;缺省 undefined →
+ *  buildData 与 v3 输出逐字节一致(同上守卫);只影响「考哪些能力」,绝不影响难度/信心。 */
+export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[], focus?: string[], job?: { competencies: string[]; jdSummary: string }): Promise<CompetencySpec[]> {
   const out = await invoke({
     idempotencyKey: `${threadId}:plan`, operation: { id: 'interview.competency-planning.v1', businessRevision: `${threadId}:plan` }, threadId, privacyInterviewId: threadId,
     schema: z.object({ competencies: z.array(z.string().min(1)).min(1) }),
     businessValidate: (v) => (v.competencies.length === 0 ? 'empty_plan' : null),
-    model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus }),
+    model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus, job }),
   }, pool, owner);
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
