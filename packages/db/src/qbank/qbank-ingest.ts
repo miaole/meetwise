@@ -295,10 +295,14 @@ const artifactHash = (artifact: QbankQuestionArtifact) => createHash('sha256').u
   })),
 })).digest('hex');
 
-function validateQuestionArtifacts(artifacts: readonly QbankQuestionArtifact[]): void {
+/** 导入工具/证明面复用(§3-①:校验全接):与 ingestQuestionBankArtifacts 内部同一校验函数。 */
+export function validateQuestionArtifacts(artifacts: readonly QbankQuestionArtifact[]): void {
   const ids = new Set<string>();
   for (const artifact of artifacts) {
-    if (!SAFE_REF_ID.test(artifact.id) || !ids.add(artifact.id)) throw new Error(`qbank_question_invalid_id:${artifact.id.slice(0, 32)}`);
+    // 重复 id 守卫(H2 #75 导入校验面修正):Set#add 返回 Set 本身(恒真),原 `!ids.add(...)` 形制
+    // 使重复 id 恒不拒——改为 has+add 两步,重复 id 在校验层 fail-loud(DB PK 兜底不变)。
+    if (!SAFE_REF_ID.test(artifact.id) || ids.has(artifact.id)) throw new Error(`qbank_question_invalid_id:${artifact.id.slice(0, 32)}`);
+    ids.add(artifact.id);
     if (!artifact.competency.trim() || artifact.competency.length > 128) throw new Error(`qbank_question_invalid_competency:${artifact.id}`);
     if (!Number.isInteger(artifact.difficulty) || artifact.difficulty < 1 || artifact.difficulty > 5) throw new Error(`qbank_question_invalid_difficulty:${artifact.id}`);
     validateServingMetadata(artifact, artifact.id);
@@ -307,7 +311,9 @@ function validateQuestionArtifacts(artifacts: readonly QbankQuestionArtifact[]):
     const seenRoleOrdinal = new Set<string>();
     let prompt = 0; let rubric = 0;
     for (const chunk of artifact.chunks) {
-      if (!SAFE_REF_ID.test(chunk.refId) || !refIds.add(chunk.refId)) throw new Error(`qbank_question_duplicate_or_invalid_ref:${chunk.refId.slice(0, 32)}`);
+      // 重复 chunk ref 守卫:同 ids 形制修正(Set#add 恒真缺陷)。
+      if (!SAFE_REF_ID.test(chunk.refId) || refIds.has(chunk.refId)) throw new Error(`qbank_question_duplicate_or_invalid_ref:${chunk.refId.slice(0, 32)}`);
+      refIds.add(chunk.refId);
       if (!chunk.text.trim() || chunk.text.length > 24_000) throw new Error(`qbank_question_invalid_chunk_text:${artifact.id}`);
       if (!(QBANK_QUESTION_CHUNK_ROLES as readonly string[]).includes(chunk.role)) throw new Error(`qbank_question_invalid_chunk_role:${artifact.id}`);
       if (!Number.isInteger(chunk.ordinal) || chunk.ordinal < 0 || chunk.ordinal > 99 || !seenRoleOrdinal.add(`${chunk.role}:${chunk.ordinal}`)) {

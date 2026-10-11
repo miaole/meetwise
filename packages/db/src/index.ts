@@ -194,6 +194,17 @@ export type {
   QbankQuestionChunkRole, QbankQuestionArtifactChunk, QbankQuestionArtifact,
 } from './qbank/qbank-ingest.ts';
 
+// H2 QBANK-CORPUS:语料供给面(逐题 rubric 互异校验 #76 + 非向量近重复门 #78 + 导入件构造)与
+// 同 interview 已 served 题排除面(#79·0162)。
+export {
+  normalizeCorpusText, normalizedCorpusHash, charShingles, shingleJaccard, scanNearDuplicates,
+  assertPerQuestionCoachingDistinct, buildQuestionArtifact,
+  NEAR_DUP_JACCARD_THRESHOLD, NEAR_DUP_SHINGLE_N,
+} from './qbank/qbank-corpus.ts';
+export type { QbankCorpusImportItem, NearDuplicateHit, NearDuplicateVectorSeam, NearDuplicateScanInput } from './qbank/qbank-corpus.ts';
+export { recordServedQbankQuestionRefs, listServedQbankQuestionRefs } from './qbank/qbank-served-refs.ts';
+export { validateQuestionArtifacts } from './qbank/qbank-ingest.ts';
+
 // 外部 AI 调用费用账本：预留/派发/结算/未知结果冻结均由数据库状态机承重。
 export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, settleAiTextCost, releaseAiCost, markAiCostUnknown, markAiCostsUnknownForModelReconcile, markAiTextCostRejected } from './model-op/ai-cost-governance.ts';
 export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput, AiCostReservationDecision } from './model-op/ai-cost-governance.ts';

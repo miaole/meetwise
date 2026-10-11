@@ -96,6 +96,8 @@ export interface AdaptiveLifecycleDeps {
   absoluteMaxTurns?: number;
   /** consumer 持有的 durable graph ownership；图外写入必须复核，防止过期 worker 继续投影。 */
   fence?: InterviewGraphFence;
+  /** H2 #79(#259 供给线):用户显式岗位——buildAdaptiveDeps.targetRole(CRAG 查询岗位段)。缺省=旧形。 */
+  targetRole?: string;
   /** 组合根注入的安全图观测器；ai-graphs 本身不依赖任何观测供应商。 */
   graphObserver?: GraphObserver;
   /** 仅测试观测：在读取脱敏简历画像前触发；生产不注入，不承载业务逻辑。 */
@@ -123,6 +125,7 @@ function makeDeps(
   return buildAdaptiveDeps({
     pool: d.pool, owner: d.owner, threadId: d.interviewId, model: d.model, fastModel: d.fastModel,
     competencies, resumeProfileAvailable, focusWeaknesses, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
+    targetRole: d.targetRole,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });

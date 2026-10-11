@@ -1,0 +1,81 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-57510-1791722647383 on 127.0.0.1:63960
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:qbank-corpus /Users/miaole/Desktop/golucky/meetwise-h2q/packages/db
+> tsx test/qbank-corpus.proof.ts
+
+
+──────── §5.2a 导入件结构校验拒面(非法输入逐条·qbank-ingest :300-322 全接) ────────
+PASS  buildQuestionArtifact:四 chunk·prompt/rubric required·逐题三件套入 chunk
+PASS  validateQuestionArtifacts:合法谱样件 PASS
+PASS  拒面: 非法 id → qbank_question_invalid_id  [qbank_question_invalid_id]
+PASS  拒面: 重复 id → qbank_question_invalid_id  [qbank_question_invalid_id]
+PASS  拒面: 空 competency → qbank_question_invalid_competency  [qbank_question_invalid_competency]
+PASS  拒面: difficulty 0 → qbank_question_invalid_difficulty  [qbank_question_invalid_difficulty]
+PASS  拒面: difficulty 6 → qbank_question_invalid_difficulty  [qbank_question_invalid_difficulty]
+PASS  拒面: 非法 scope → qbank_invalid_serving_metadata  [qbank_invalid_serving_metadata]
+PASS  拒面: chunk 数 <3 → qbank_question_invalid_chunk_count  [qbank_question_invalid_chunk_count]
+PASS  拒面: 重复 chunk ref → qbank_question_duplicate_or_invalid_ref  [qbank_question_duplicate_or_invalid_ref]
+PASS  拒面: 空 chunk 文本 → qbank_question_invalid_chunk_text  [qbank_question_invalid_chunk_text]
+PASS  拒面: 非法 chunk role → qbank_question_invalid_chunk_role  [qbank_question_invalid_chunk_role]
+PASS  拒面: 非法 ordinal → qbank_question_invalid_chunk_ordinal  [qbank_question_invalid_chunk_ordinal]
+PASS  拒面: 缺 rubric → qbank_question_requires_exact_prompt_and_rubric  [qbank_question_requires_exact_prompt_and_rubric]
+PASS  拒面: required 缺失 → qbank_question_prompt_and_rubric_must_be_required  [qbank_question_prompt_and_rubric_must_be_required]
+PASS  校验面逐条触发(11 个互异错误名)  [11/11]
+
+──────── §5.2b 逐题 rubric 互异(#76·同 competency N 题 chunk 内容互异) ────────
+PASS  谱样五题同 competency 逐题互异 PASS
+PASS  共享 rubric → qbank_question_shared_coaching 拒绝(禁前缀共享复制)  [qbank_question_shared_coaching]
+
+──────── §5.4a 规范化+shingle 近重复门(纯函数) ────────
+PASS  规范化:NFKC+小写+空白标点折叠
+PASS  seed:limit-3 ↔ seed:design-2 近重复对如实命中(shingle·n=3)  [score=0.382 threshold=0.2]
+PASS  同域非重复对不误报(design-1 vs design-3)  [jaccard=0.053]
+PASS  规范化精确命中(标点/全半角变体)→ exact_normalized score=1
+PASS  shingle 集与 Jaccard 形状(0..1)
+PASS  向量 seam 仅接口缝:注入才出现 vector_seam 通道(本刀零 embedding 实现)
+PASS  零 embedding 依赖:缺省 seam 纯文本扫描可独立运行
+
+──────── §5.2c 导入件全链路(propose→approve→promote→published)·seed_v1_reviewed 通道不回归 ────────
+PASS  谱样五题(d1-d5)治理入库:questions=5 chunks=20  [5/20]
+PASS  1-5 全谱入库存真(DB CHECK 既有·五档各 1)  [[{"difficulty":1,"n":1},{"difficulty":2,"n":1},{"difficulty":3,"n":1},{"difficulty":4,"n":1},{"difficulty":5,"n":1}]]
+PASS  导入件全部 published(治理路径完整)
+PASS  seed_v1_reviewed 既有通道语义不回归(ingestQbank 通道写入)  [wrote=1]
+PASS  seed 通道源状态=approved(既有自动审批语义保持)  [approved]
+
+──────── §5.2d 导入 CLI(plan/commit 双模式·复核位拦截与放行) ────────
+PASS  CLI plan(零写库)EXIT=0+近重复命中列入待审
+PASS  CLI commit 近重复命中未确认 → 复核位拦截 EXIT=2(#78 不静默拒不静默灌)  [exit=2]
+PASS  CLI commit 人工复核确认后放行 EXIT=0(治理路径入库)  [exit=0]
+PASS  CLI 导入三题落库 published  [rows=3]
+
+──────── 0. 检索面语料(nodejs 叶 d2×2 + d3×2 + d4×1 五题)+ generation 构建 + B 端岗位链 ────────
+PASS  nodejs 叶五题入库 5/15  [5/15]
+PASS  generation 构建并激活
+PASS  岗位 rule 路径 route_decided(0 次模型外发)
+PASS  B 端面试落旧表 snapshot(单叶 backend/nodejs)
+
+──────── §5.3 池级难度过滤(候选池过滤后零非目标难度命中·非查询文本拼接) ────────
+PASS  前置证据:同 scope ANN 候选同时含 d2 与 d3 题 chunk(过滤前)  [10 hits]
+PASS  difficulty=2 派发 → 仅 d2 题(零非目标难度命中)  [corpus_q_c,corpus_q_a]
+PASS  difficulty=3 派发 → 仅 d3 题  [corpus_q_b,corpus_q_d]
+PASS  空池(难度5 无题)→ served 空 + filteredEmpty=true(degraded 语义位·非发明)
+PASS  空池不记 leaf 级负面 verdict(防毒化其他难度·rag06 facet 零触)  [miss]
+
+──────── §5.5 已问排除(同 interview 二轮不重现 refId·refId 集合过滤最小形) ────────
+PASS  第一轮(d2/d3 served)登记 served-ref(与 serve 同事务)  [["corpus_q_a","corpus_q_b","corpus_q_c","corpus_q_d"]]
+PASS  同 interview 二轮(d3·新 plan 键)→ 已 served 题被排除,候选滤空
+PASS  d2 全部已 served → 二轮滤空(排除不因难度放宽而失效)
+PASS  排除按题粒度:未 served 的 d4 题不被误伤(排除集仅含已 served 题)  [corpus_q_e]
+
+──────── §5.6 #202 切面 db 面(B 端旧表优先轨零回归·candidate fallback 读形) ────────
+PASS  B 端(旧表行在)双轨读=旧表直读(旧表优先轨零回归)
+PASS  candidate fallback 读命中·形如实登记:jobId="" · revision=常量 · routeDigest=input_digest·单 leaf
+PASS  C 端旧表无行(直读=null——切面前该面必 route_snapshot_missing)
+PASS  candidate 路由 leaf 无题 → 真零候选空 serve(filteredEmpty 缺省=false·与滤空态区分)  [served]
+
+H2 QBANK-CORPUS db 面 prove 全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T12-44-25-843Z-57510-3309a602-c196-4366-951e-d1fbd4ff045d.json release_evidence=false

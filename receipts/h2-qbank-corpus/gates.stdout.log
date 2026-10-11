@@ -1,0 +1,22 @@
+PASS  A1 legacy 种子 refId 计数=33(旧通道字节保留)  [lines 16-63]
+PASS  A2 legacy 难度三元在位(字节保留)  [line 178]
+PASS  A3 检索白名单(fundamental|scenario)在位(#79 扩面)  [line 310]
+PASS  A4 查询构造(岗位/栈/难度段)接入 cragRetrieve  [line 311]
+PASS  A5 routeSnapForRetrieve 赋值(含续行)=双轨读(getInterviewRouteSnapshotForAdaptiveRole)  [line 281-282]
+PASS  A5b 消费面旧表直读退役(不再调用 getInterviewRouteSnapshot)
+PASS  A6 interview_route_snapshot 在 job-route-decision 的命中={333,358}(零触面行号原值)
+PASS  A7 candidate snapshot 读/写面在位(INSERT+两 SELECT+头注≥4 命中)  [6,44,98,121]
+PASS  A8 crag.ts deny_external 命中={18,34,50,62,75}
+PASS  crag.ts 对基线零 diff(决策面/deny_external 链路零变)
+PASS  crag.ts 工作树零未提交变更
+PASS  #40 族合同面零触(interview.service/controller)
+PASS  LEVEL-SCHEME 落卷面零触(0160 两迁移+career.ts)
+PASS  embedding compute seam 零触(qbank-embedding-compute-seams)
+PASS  G-R2-5 门语义字面在位(qbank-retrieve-scope 缺行缺叶同拒)
+PASS  消费面双轨读源在位(interview-consumer → ForAdaptiveRole)  [line 7]
+PASS  派发层双轨读源在位(qbank-track-local-retrieval Phase 1 → ForAdaptiveRole)
+PASS  markers=0(改动集五类标记词零命中)
+PASS  改动集文件可枚举(基线 diff+未跟踪)  [22 files]
+PASS  本刀迁移=0162/0163(0161 主线 G5 占用·后到者重编号裁决)  [packages/db/migrations/0162_qbank_served_question_ref.sql , packages/db/migrations/0163_qbank_plan_snapshot_interview_fk.sql]
+
+H2 QBANK-CORPUS 静态门全部通过
