@@ -32,8 +32,8 @@ export default async function SettingsPage() {
   }
 
   const pref = profile.preferences || {};
-  const lang = typeof pref.lang === 'string' ? pref.lang : 'zh';
-  const notify = pref.notify !== false;
+  // I4 #265:读回 locale(现保存链落库键);legacy pref.lang 仅作 F6 前旧行回落,下次成功保存即被白名单投影自愈。
+  const lang = typeof pref.locale === 'string' ? pref.locale : (typeof pref.lang === 'string' ? pref.lang : 'zh');
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
@@ -50,10 +50,10 @@ export default async function SettingsPage() {
           <CardContent>
             <form action={saveSettingsAction} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="lang">界面语言</Label>
+                <Label htmlFor="locale">界面语言</Label>
                 <select
-                  id="lang"
-                  name="lang"
+                  id="locale"
+                  name="locale"
                   defaultValue={lang}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
@@ -61,16 +61,9 @@ export default async function SettingsPage() {
                   <option value="en">English</option>
                 </select>
               </div>
-              <Label htmlFor="notify" className="flex items-center gap-2 font-normal">
-                <input
-                  id="notify"
-                  type="checkbox"
-                  name="notify"
-                  defaultChecked={notify}
-                  className="h-4 w-4 rounded border-input accent-primary"
-                />
-                接收邮件通知
-              </Label>
+              {/* I4 #265:原「邮件通知」开关撤除(宣称-兑现对齐:全仓零 SMTP/mailer 实现,通知只写站内表——
+                  无实现不宣称);同刀修 actions 发送体(lang→locale·移除旧开关键·locale 已在 contracts 白名单,
+                  零后端改动,顺手清保存 400 既有红)。站内通知无用户级开关。 */}
               <SubmitButton pendingLabel="保存中…">保存偏好</SubmitButton>
             </form>
           </CardContent>

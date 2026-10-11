@@ -19,6 +19,8 @@ type Notification = { id: string; kind: string; payload: Record<string, any>; re
 const KIND_LABELS: Record<string, string> = {
   report_ready: '面试报告已就绪',
   assessment_ready: '练习反馈已就绪',
+  // I4 #221:邀请站内通知写侧(0165 gateway_notify_invited)落地后的读侧标签——只补一行,零新读路径。
+  job_invited: '收到岗位邀请',
 };
 function labelOf(kind: string): string {
   return KIND_LABELS[kind] ?? kind;
