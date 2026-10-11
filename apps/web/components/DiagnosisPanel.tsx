@@ -4,6 +4,7 @@
  * + **可改写建议**(红笔批注:原句→改写句,只优化表达、绝不虚构经历)。每条结论带**接地依据**(refs,非幻觉)。
  * 无死胡同由 diagnosis-state 视图模型保证:加载/错误/空/不可用都有出口(重试/返回)。amber/serif design-kit。
  */
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Loader2, ListChecks, Sparkle, AlertTriangle, Target, FileText, PencilLine, CheckCircle2 } from 'lucide-react';
 import { useDiagnosisStream } from '@/lib/hooks/useDiagnosisStream';
@@ -73,6 +74,21 @@ function SectionCard({ s }: { s: DiagSection }) {
 
 export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
   const { view, display, retry } = useDiagnosisStream(diagnosisId);
+  // #213 diag-honesty 修法①:图侧 factuality 歪曲门剔除计数(rejectedCount)SSE 面取不到 → ready 后经同源 GET 代理
+  // /api/diagnosis/:id 取报告详情补展示。只读透传值,不夸大不淡化不改写数值;0/缺省/非有限数 → undefined → 零渲染(不添常态噪声)。
+  const [rejectedCount, setRejectedCount] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (view.phase !== 'ready') return;
+    const ac = new AbortController();
+    fetch(`/api/diagnosis/${encodeURIComponent(diagnosisId)}`, { signal: ac.signal, cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { report?: { rejectedCount?: unknown } | null } | null) => {
+        const n = d?.report?.rejectedCount;
+        setRejectedCount(typeof n === 'number' && Number.isFinite(n) ? n : undefined);
+      })
+      .catch(() => { /* 取数失败不计为诊断失败(SSE 面已完整),仅剔除条不展示 */ });
+    return () => ac.abort();
+  }, [view.phase, diagnosisId]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -98,6 +114,13 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* #213 diag-honesty:事实闸剔除计数如实披露——图侧歪曲门过滤数,原样展示;0/缺省零渲染(typeof 收窄+rejectedCount > 0 单门控)。 */}
+      {typeof rejectedCount === 'number' && rejectedCount > 0 && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <AlertTriangle className="size-3.5 shrink-0" />已剔除 {rejectedCount} 条无依据结论（未能锚定简历事实,不计入诊断）。
+        </p>
       )}
 
       {/* 逐维度诊断:边到边渲染 */}

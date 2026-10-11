@@ -56,7 +56,7 @@
 | 级别方案 | #45/#102/#104/#105/#124/#125/#211/#186+#47/#188 | 🆕 LEVEL-SCHEME 刀（附录 A 12 条+读面 v2+五档+样本不足不出） |
 | 弱项闭环 | #252/#214/#205/#206/#203+#269 | 🆕 WEAKNESS-LOOP 刀（再练入口+专项面+衰减+语义匹配）·🔒#204 |
 | 报告证据 | #50/#52/#215 | 🔒 SCORE S2（v6）+EVIDENCE-DELIVERY（S2 已并）；#215 标题/真逐题 🔒EVID |
-| 其他 | #38（校准）#46（✅RG）#73（ASR 质量）#80/#119（外呼）#171（未接线）#173/#185/#200/#201/#202/#213/#49 | 🆕 各归域刀或 5E |
+| 其他 | #38（校准）#46（✅RG）#73（ASR 质量）#80/#119（外呼）#171（未接线）#173/#185/#200/#201/#202/#213/#49 | 🆕 各归域刀或 5E · 【2026-10-11 补登】#213 已归 W9 口径三态标注刀（diag-honesty 刀·W9 决议 coordinator-approved 随 nail·映射签认补登·本行原号 :58 现漂 :59） |
 
 ## 批 3（23 条）B 端与口径
 | 编号 | 状态 |
@@ -67,7 +67,7 @@
 | #219/#220 | 🆕 岗位编辑/关闭+路由可重试+JD 表单 |
 | #258/#197 | 🔒上刀；#197 JD 进 planner |
 | #221/#222/#223/#227/#265 | 🆕 邀请状态文案+回包瘦身+候选人识别+start/begin 合一（🔒#271）+邮件开关隐藏 |
-| #225/#233/#234/#235 | 📄 口径三态标注刀（W9） |
+| #225/#233/#234/#235 | 📄 口径三态标注刀（W9） · 【2026-10-11 补登】+#213（diag-honesty 刀：`ai-docs/delivery/adr-diag-disposition-w9.md` coordinator-approved 随 nail·本行原号 :69 现漂 :70） |
 | #239 | 🆕 D6 合规四件（kill-switch/危机话术/年龄声明/B 端自动化决策说明） |
 | #262/#263/#264/#267 | 📄 文案口径（W9/5E） |
 
@@ -278,4 +278,14 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 6. **G7TRIO-2 席2 R1（定谳另刀诊断面要求）**：CMD3 步 10 十二项红无实际响应码采集——FAIL 行仅断言名（内嵌期望码 403/404/consent_required/not_found_or_forbidden）·21 收据（`receipts/g7trio2-full/` 实测恰 21 件）零 expected/got 细节；「stale-proof vs product-pin」定谳前立靶刀须补采实际码。EXEC 未宣称实际码故非违纪·登记为立靶刀前置要件。
 7. **G7TRIO-2 席2 R5（harness 卷状态行生命周期注记·协调方裁定随本席落卷）**：`harness/g7trio2-full.md` :3 终态仍 `exec:awaiting_post_prove_dual`（nail 判决记录在 checklist :2099 而未推进 harness 状态字段）——沿 G7Y status 行 erratum 同款处理：已于该卷 :3 后 append-only 注记（原文保留）：对终局卷 re-EXEC 无效·终局登记=checklist :2099+nail `93fb9b92`+主线并账 `f3a54577`。
 8. **扫尾（今日各席报告未落 erratum 清点）**：①PROCESS E4 勘误链今日三落点（`c70496ff` E4 二次复发制度化→EXECUTION-SOP +9 nail 前置三勾选·`2beac7ce` ha-5 卷附记席1 补证 PASS·`ab171f6c` regfix 卷附记席1 在途「无在途」误判+收据留痕 8 键缺 after 表述）——载体各在其卷/SOP，未在本台账立行，是否需 LEDGER 级事件行**待协调方裁**·本席不动；②`54236c56` i2-merge 冲突分解丢 H4 侧收括号→I2 前补闭合（web prove 全绿 EXIT=0 后 `505180e4` nail 随落）——史实已自证于主线，是否另立 erratum 行**待协调方裁**；③不重复登记清点：h4 席1 勘误 `00cdc8c3`（主层定案第4条残余债已照登）·LIVE 复跑红面（批1 勘误第9条已登）·G7Y 三条（批1 勘误第6/7/8条已登）·H2Q 勘误席（主层定案第5条「在飞」维持·至今无新落卷）。
+
+## 2026-10-11 diag-honesty #213 nail 随落登记（nail 席 · 协调方两项裁定+双席 8 登记项 · docs-only · 恰 3 卷文件零码动）
+
+> 基准：`line/diag-honesty` @`4ed10ab2`（EXEC 8 文件）--no-ff 并主线（merge-base `899cab1a`·主线侧 9 触面零漂移亲证·零冲突）·post-prove 双席 BOTH PASS（席1 实现核对 PASS+seam 裁定合规·席2 验收回归 PASS·互盲独立）·派单即 nail 授权。W9 决议 coordinator-approved 与 REQUEST Status→nailed 已随本节落卷（append-only 原文保留）。下列双席 8 登记项按协调方派单归集四类照登。
+
+1. **seam 授权偏差追认（协调方裁定①·随 nail 入卷）**：EXEC 实落 `packages/ai-runtime/src/model-client.ts:984` 一行 `const p = getPrompt(service, vars)`（vars 透传·nail 席主线并后亲证）——超出 REQUEST §1-② 书面落点清单（`prompts.ts` 条件组装·枚举本体不动）的 seam 授权偏差；post-prove 席1 裁**合规**（修法② prompt 按 role 组装 system 的注册表接线点·其余 service 字节零变）·EXEC 申报一致（`4ed10ab2` commit message 如实申报）·协调方追认随本 nail 终局。
+2. **收据锚漂移勘误（双席 post-prove 收据誊录勘误·nail 席主线并后逐条亲证·非代码非断言语义问题）**：①seam 实锚 `model-client.ts:984` 非 :1013（`grep -n "getPrompt(service, vars)"` 亲证恰 :984）；②`diag-honesty-prompt.proof.ts` 断言数 **15** 非 18（`grep -c "A("` 亲证恰 15）；③其余行号 ±2~10 属誊录精度误差——引用本刀收据处以本条勘误为准。
+3. **rejectedCount 传输失败残留归 ai-eval 面**：SSE 事件族无 rejectedCount、传输失败残留场景计数不可达（REQUEST §0.2 数据通路实测在卷）——该残留归 ai-eval/事件面后续刀；本刀 GET 代理路由 `apps/web/app/api/diagnosis/[id]/route.ts` 已补展示通路·展示面不受阻·本刀边界（§3-6 计数语义零改）维持。
+4. **.env 回显瑕疵登记非阻断**：EXEC 过程 .env 回显瑕疵照登·**非阻断**项·零阻断定级·不触发停止条件——后续如需整改归卫生面另刀，不回滚本 nail。
+
 

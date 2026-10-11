@@ -1649,6 +1649,34 @@ async function main() {
     A('记账:组件行为面无 DOM 载体·静态+人工对账（I2-2/I2-3 为源面接线断言·纯函数断言为 I2-1·非浏览器 DOM 证明）', true);
   }
 
+  // ───────────────────────── #213 DIAG-HONESTY 修法①：rejectedCount 数据通路+零渲染负断言（静态源面断言·沿 :868 readSrc 先例）─────────────────────────
+  section('#213 diag-honesty 修法①:同源 GET 代理路由存在+panel ready 取数接线+剔除条 >0 单门控渲染');
+  {
+    const diagRouteSrc = readSrc('app/api/diagnosis/[id]/route.ts');
+    const diagEventsSrc = readSrc('app/api/diagnosis/[id]/events/route.ts');
+    const diagPanelSrc = readSrc('components/DiagnosisPanel.tsx');
+    A('代理路由文件存在且为 GET 导出(镜像同目录 events 形制:服务端读令牌→加 Bearer 透传)',
+      diagRouteSrc.includes('export async function GET') && diagRouteSrc.includes('getServerToken'));
+    A('代理路由同源鉴权:无令牌 401(不泄露上游)',
+      diagRouteSrc.includes("if (!token) return new Response('unauthorized', { status: 401 });"));
+    A('代理路由透传既有后端 GET /diagnosis/:id(零后端 API 改·非 SSE events 路径)',
+      diagRouteSrc.includes('/diagnosis/${encodeURIComponent(id)}`') && diagEventsSrc.includes('/diagnosis/${encodeURIComponent(id)}/events`'));
+    A('代理路由用户态数据不缓存(no-store·对齐 serverFetch 纪律)', diagRouteSrc.includes("cache: 'no-store'"));
+    A('panel ready 后经代理取数(phase 门+fetch 接线)',
+      /if \(view\.phase !== 'ready'\) return;/.test(diagPanelSrc)
+      && diagPanelSrc.includes('`/api/diagnosis/${encodeURIComponent(diagnosisId)}`'));
+    A('rejectedCount 归一化:非有限数(NaN 等)→undefined(负断言兜底)',
+      /typeof n === 'number' && Number\.isFinite\(n\) \? n : undefined/.test(diagPanelSrc));
+    A('剔除条单门控渲染:rejectedCount > 0 才出(0/缺省/undefined 零渲染)',
+      /rejectedCount > 0 && \(/.test(diagPanelSrc));
+    A('剔除条文案含计数字面与「剔除」字样(如实·不夸大不淡化)',
+      diagPanelSrc.includes('已剔除 {rejectedCount} 条无依据结论'));
+    A('负断言:无裸 falsy 门(`{rejectedCount && x}` 形·0 会把字面 0 渲进 DOM)',
+      !/\{rejectedCount &&/.test(diagPanelSrc));
+    A('取数失败静默(SSE 面已完整,剔除条缺席不降级诊断)',
+      /\/\* 取数失败不计为诊断失败/.test(diagPanelSrc));
+  }
+
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
 }
