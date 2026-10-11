@@ -981,7 +981,7 @@ export function modelFor(client: ModelClient, req: CompletionRequest): Model {
 
 /** 推荐入口:从**版本化注册表**取 prompt(不内联),渲染请求 → Model。可带 images 走多模态视觉模型;可带 rag 让检索素材独立分账。 */
 export function promptedModel(client: ModelClient, service: string, vars: Record<string, unknown>, images?: string[], rag?: string): Model {
-  const p = getPrompt(service);
+  const p = getPrompt(service, vars);   // #213 diag-honesty 修法②:vars 透传,声明 systemByVars 的 service 按 role 组装 system(其余 service 字节零变)
   // rag 与 userData 分离传递,让预算器把检索素材独立分账(而非烤进 userData 变不可拆总量)。
   return modelFor(client, { service, system: p.system, userData: p.buildData(vars), images, rag });
 }
