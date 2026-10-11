@@ -16,14 +16,31 @@
  * 生产面（API+worker 自动路径）零 legacy 聚合器（deriveAssessment）调用方。
  */
 import { HttpException, HttpStatus } from '@nestjs/common';
-import { generateAssessmentReportCore } from '@meetwise/db';
+import { aggregateInterviewScores, generateAssessmentReportCore } from '@meetwise/db';
+import type { Client } from '@meetwise/db';
 import type { DbService } from '../../platform/db.service';
 
 /** 隐私围栏注入面(=InterviewService.guardInterviewPrivacy 私有方法经 bind 绑定,Roster 六守卫零弱化)。 */
 type PrivacyGuard = (c: any, id: string) => Promise<void>;
 
+/**
+ * G5 SCOR-S3 GET 重闸（ADR-0020 :56 「GET 不重跑诚实闸」现状收口·D2 EXEC 落卷）：
+ * GET 读 persisted 行**之后**、返回之前，事务内复核现行可评分卡资格（复用 0161 收窄后
+ * aggregateInterviewScores 单源；eligible=practice_eligible 单态，superseded/fenced 天然排除）。
+ * 落点=读后校验：无 persisted 行先 404（「未生成」语义原值·neg:interview 既有断言零翻），
+ * 有行而底层卡资格已空（fence/supersede/撤权，ADR :39 缺口面）→ fail-closed 409，绝不发出失配行。
+ * 失败信封复用既有码零新增：assessment GET → 409 `no_scorable_cards`（对齐 POST assessment
+ * interview-assessment.ts 既有映射）；career-path GET → 409 `insufficient_evidence`
+ * （对齐 POST career-path interview.service 既有先例）。
+ */
+async function requireCurrentScorableCards(c: Client, id: string, code: 'no_scorable_cards' | 'insufficient_evidence'): Promise<void> {
+  const agg = await aggregateInterviewScores(c, id);
+  if (agg.eligibleCardCount === 0) throw new HttpException({ error: code }, HttpStatus.CONFLICT);
+}
+
 // 生成能力评估:面试各题 ScoreCard(确定性总分)→ 维度+差距,落库(ready),返回。
-// SCOR-02 消费迁移:得分只读 ScoreCard(practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
+// SCOR-02 消费迁移:得分只读 ScoreCard C 端可读态(practice_eligible 单态·0161/ADR-0020 :54 收窄),
+// legacy answer_evaluated.score 结构性不参与。
 // 生成核心已迁 @meetwise/db（#204 D2a 共享单源·worker 自动路径同函数·#103 切换收口于核心）。
 export async function generateAssessmentFor(db: DbService, guard: PrivacyGuard, principal: string, id: string) {
   return db.asPrincipal(principal, async (c) => {
@@ -44,7 +61,10 @@ export async function generateAssessmentFor(db: DbService, guard: PrivacyGuard, 
 export async function getAssessmentFor(db: DbService, guard: PrivacyGuard, principal: string, id: string) {
   const r = await db.asPrincipal(principal, async (c) => {
     await guard(c, id);
-    return c.query('SELECT status, dimensions, overall FROM assessment_report WHERE interview_id=$1', [id]);
+    const persisted = await c.query('SELECT status, dimensions, overall FROM assessment_report WHERE interview_id=$1', [id]);
+    if (persisted.rowCount === 0) return persisted;    // 无行 → 下方 404 语义原值（D2 读后校验落点）
+    await requireCurrentScorableCards(c, id, 'no_scorable_cards');   // G5 GET 重闸 fail-closed
+    return persisted;
   });
   if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
   return r.rows[0];
@@ -53,7 +73,10 @@ export async function getAssessmentFor(db: DbService, guard: PrivacyGuard, princ
 export async function getCareerPathFor(db: DbService, guard: PrivacyGuard, principal: string, id: string) {
   const r = await db.asPrincipal(principal, async (c) => {
     await guard(c, id);
-    return c.query('SELECT readiness, level, milestones FROM career_path WHERE interview_id=$1', [id]);
+    const persisted = await c.query('SELECT readiness, level, milestones FROM career_path WHERE interview_id=$1', [id]);
+    if (persisted.rowCount === 0) return persisted;    // 无行 → 下方 404 语义原值（D2 读后校验落点）
+    await requireCurrentScorableCards(c, id, 'insufficient_evidence');   // G5 GET 重闸 fail-closed（对齐 POST career-path 先例）
+    return persisted;
   });
   if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
   return r.rows[0];
