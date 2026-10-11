@@ -1,0 +1,19 @@
+
+> meetwise@0.1.0 performance:e2e /Users/miaole/Desktop/golucky/meetwise
+> node scripts/run-performance-e2e.mjs
+
+file:///Users/miaole/Desktop/golucky/meetwise/e2e/helpers/failure-class.mjs:226
+  const error = new Error(formatE2EFailure(record));
+                ^
+
+E2EFailure: E2E_FAILURE class=capability code=performance_e2e_isolation_required
+    at tagE2EFailure (file:///Users/miaole/Desktop/golucky/meetwise/e2e/helpers/failure-class.mjs:226:17)
+    at file:///Users/miaole/Desktop/golucky/meetwise/scripts/run-performance-e2e.mjs:41:37
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  e2eFailure: { class: 'capability', code: 'performance_e2e_isolation_required' }
+}
+
+Node.js v22.22.3
+ ELIFECYCLE  Command failed with exit code 1.
