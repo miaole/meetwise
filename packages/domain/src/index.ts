@@ -152,8 +152,8 @@ export { deriveLearningPlan } from './learning.ts';
 export type { LearnItem, LearningPlan } from './learning.ts';
 
 // 职业路径
-export { deriveCareerPath } from './career.ts';
-export type { Milestone, CareerPath } from './career.ts';
+export { deriveCareerPath, evaluateLevelPolicy } from './career.ts';
+export type { Milestone, CareerPath, EvidenceProfile, LevelJudgment } from './career.ts';
 
 // 成长档案/能力曲线（读侧聚合,纯逻辑）
 export { deriveGrowth, toGrowthRow } from './growth.ts';

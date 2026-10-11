@@ -15,7 +15,7 @@ import { AbilityBar } from '@/components/AbilityBar';
 import { AnnotationCard } from '@/components/AnnotationCard';
 import { Thinking } from '@/components/ui/Thinking';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
-import { InterviewView } from '@meetwise/contracts';
+import { InterviewView, LEVEL_LABELS } from '@meetwise/contracts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
 import { projectTurnAnnotations, type TranscriptTurn } from '@/lib/report/turn-annotations';
 
@@ -29,7 +29,9 @@ type LearningPlan = { items: Array<{ topic: string; priority: string; action: st
 type Milestone = { stage: string; goal: string };
 type Career = { readiness?: string; level?: string; milestones?: Milestone[] };
 
-const LEVEL_LABEL: Record<string, string> = { junior: '初级', mid: '中级', senior: '高级' };
+// #125：档位标签单源读 contracts LEVEL_LABELS（五档·禁重抄字面量）。
+// v1 历史三档 junior/mid/senior 为五档表子集同文（初级/中级/高级）；未知值走中文兜底，不裸出英文枚举。
+const LEVEL_LABEL = LEVEL_LABELS as Record<string, string>;
 
 export default async function ReportPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ retry_error?: string }> }) {
   const { id } = await params;
@@ -350,7 +352,8 @@ async function CareerSection({ id }: { id: string }) {
   const career = await serverGet<Career>('/interview/' + id + '/career-path');
   if (!career) return null;
   const milestones = Array.isArray(career.milestones) ? career.milestones : [];
-  const levelLabel = career.level ? (LEVEL_LABEL[career.level] ?? career.level) : null;
+  // #125：未知级别不再直接显示原始英文枚举——中文兜底「未知级别」。
+  const levelLabel = career.level ? (LEVEL_LABEL[career.level] ?? '未知级别') : null;
 
   return (
     <section>

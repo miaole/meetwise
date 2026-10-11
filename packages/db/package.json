@@ -21,6 +21,7 @@
     "growth": "tsx test/growth.proof.ts",
     "prove:vectorstore": "tsx test/vectorstore.proof.ts",
     "prove:migrate": "tsx test/migrate.proof.ts",
+    "prove:level-policy": "tsx test/level-policy-version.proof.ts",
     "prove:migrate-cli": "tsx test/migrate-cli.proof.ts",
     "prove:qbank-control-role": "tsx test/qbank-control-role.proof.ts",
     "prove:qbank-handoff-closure": "tsx test/qbank-handoff-closure.proof.ts",
