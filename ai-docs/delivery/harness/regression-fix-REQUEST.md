@@ -194,3 +194,11 @@ executed:awaiting_post_prove_dual（EXEC 席 regfix-exec · 2026-10-11 · rebase
 **双审结果**：席1（修法语义面）+席2（验收/回归面）互盲复核 BOTH PASS。组1 守卫 file-scoped 域归位（企业充值路由链可达亲证+stub 注释零禁词）·组2 GODFN-1c 锚更新（S1-S10 断言体零改·全 diff 仅 2 锚行+2 注释行）·组3 动态链头锚主案定值（0158 落地即再漂=复刻红成因·备案不取）·组4 六键（4c 形状锚 uniqueHit+404 行首谓词区域唯一命中 :142·4f wired 翻转 GAP 退役）·组7 fixture 合规化（hash 形+asPrincipal 包裹·深层围栏四层收口）·组8 脱敏+dotenv 钩（默认零变·行为门完整行使）。14 键双席独立复跑全绿原值·uc001 指纹 efb637b8 前后逐字节同（预存 infra 红零新 FAIL 面）·零产品码 diff（组1 域归位除外·任务书明示允许）·真产品红 5 项/预存红全账/组5/组6 零触。merge 落主线 @94343ef4。
 
 **Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge 落主线 @94343ef4·交叉回归 6 组 13 键正式修复·门3 0 BUG 推进·markers=0·est live=0）。
+
+---
+
+## PROCESS 勘误附记（2026-10-11 · 协调方·E4 三勾选「无在途」误判如实登记）
+
+**nail 时序违规登记**：本刀 nail（@94343ef4/@dce0708d）执行于 post-prove 席1 尚在途时（协调方工作树活跃扫描误判其已完成）——违反 E4「无双席任一席在途」勾选。席1 补证 PASS（内容零漂·name-only diff=空）+席2 PASS=双席实质收口成立，nail 结论事后补证有效维持。
+
+**收据留痕勘误**（席1 发现·登记）：exec-receipt §三「14 键全键亲跑留痕」超实物——after/ 仅 10 份日志，八键缺 after 留痕（席1 复跑已补证全绿，实质主张成立，惟「留痕」表述超出实物）。后续刀收据按实际留痕数记账。
