@@ -186,3 +186,11 @@ draft_rev2:pre_exec_dual（双席 PASS·4c-404 行首谓词收紧随卷·组3 �
 ---
 
 executed:awaiting_post_prove_dual（EXEC 席 regfix-exec · 2026-10-11 · rebase 主线 tip 20186718 零冲突 2/2（draft 518023a5 + rev2 12fb5f80）· 六组全落卷：组1 E8 域归位（stub@ab420f61^ 原形·注释零禁词）+组2 GODFN-1c beginInterviewCore 区域锚（:96→:279 H4 漂后实值）+组3 动态链头锚主案定值（链头已漂 0160 实证·applied=163/163·硬钉 0157 备案即再红判定成立）+组4 六键（4c 形状锚唯一命中 helper+404 行首谓词区域唯一 :142·4f 翻转 wired·GAP 四行退役·harness 文档 §6 append）+组7 fixture 合规化（首层 0126/0058 过·深层围栏随演四层收口=web-logic 片3-4d 锚随迁+R2 P-START 路由决策种子链 0104 合规形+0064 v64 resume epoch 种子链+0082 校准 hold/I2 W1 held 门断言随演——组纪律「断言更新至新契约语义·诚实门零弱化」·新断言严于旧（held 拒复活+replay 零二次迁移+评分防伪双探针正面行使）·B110 预存红属性下该段 initial 起未在现链行使·详 receipts/regression-fix/exec-receipt.md §四）+组8 脱敏（:63/:158 model key 词面摘除·叙事逐字保留）+E2E_SKIP_DOTENV 钩（默认零变·g6 注入·.env 现不存在如实注记 §5.5）· **14 键全 EXIT=0**（300s/键帽前后对照落卷）· 旁证 4 面基线零伤（neg 97/0·interview 57/0·web 353/0·uc001 EXIT=1 指纹 efb637b8 前后逐字节同=零新 FAIL 面）· 停止条件三查未触发（零产品码 diff·锚全重定位·修法全∈断言/锚/fixture/脱敏/钩∪组1 域归位）· markers=0 · pins 十一值零翻转 · est live=0 · 真产品红 5 项零触 · 预存红全账零触 · 组5/组6 零触 · ⛔push · author=regfix-exec · alone≠dual · prove EXIT=0 ≠ DONE（claimDone=false·待 post-prove 双审+nail））
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·E4 三勾选 ✓）
+
+**双审结果**：席1（修法语义面）+席2（验收/回归面）互盲复核 BOTH PASS。组1 守卫 file-scoped 域归位（企业充值路由链可达亲证+stub 注释零禁词）·组2 GODFN-1c 锚更新（S1-S10 断言体零改·全 diff 仅 2 锚行+2 注释行）·组3 动态链头锚主案定值（0158 落地即再漂=复刻红成因·备案不取）·组4 六键（4c 形状锚 uniqueHit+404 行首谓词区域唯一命中 :142·4f wired 翻转 GAP 退役）·组7 fixture 合规化（hash 形+asPrincipal 包裹·深层围栏四层收口）·组8 脱敏+dotenv 钩（默认零变·行为门完整行使）。14 键双席独立复跑全绿原值·uc001 指纹 efb637b8 前后逐字节同（预存 infra 红零新 FAIL 面）·零产品码 diff（组1 域归位除外·任务书明示允许）·真产品红 5 项/预存红全账/组5/组6 零触。merge 落主线 @94343ef4。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge 落主线 @94343ef4·交叉回归 6 组 13 键正式修复·门3 0 BUG 推进·markers=0·est live=0）。
