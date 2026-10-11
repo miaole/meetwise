@@ -285,6 +285,17 @@ async function main() {
   b = await readJson(r);
   A(r.status === 200 && typeof b.id === 'string', `B端:招聘方发岗位 → jobId(${b.id})`);
   const jobId = b.id;
+  // 【第4件·0157 fixture 随演（EXEC 发现·协调方授权扩入 2026-10-11）】B271 片2 S2-C4（0157）后岗位绑定
+  // 面试=start+begin 合一·企业额度预留（commerce.ts reserveEntitlementForApplication：payer=招聘方·
+  // FIFO 企业桶·候选人分码 402 application_enterprise_pay_unavailable）——招聘方须先持企业额度,
+  // 候选人 :400 区 begin 才能预留成功。fixture 经真 commerce API 购企业域商品 ent_pack_50 + 真 HMAC
+  // webhook 入账（镜像本套 createOrder/payWebhook 形·零 mock·零产品码·0157 语义零触）。
+  const entOrdered = await createOrder(HR, 'ent_pack_50', `${email}:entorder`);
+  A(entOrdered.response.status === 200 && typeof entOrdered.body.orderId === 'string', `[第4件·0157] 招聘方购企业包 ent_pack_50 → orderId(${entOrdered.body.amountCents}分)`);
+  const entPaid = await payWebhook(entOrdered.body.orderId, `txn_ent_${tag}`);
+  A(entPaid.response.status === 200 && isWebhookCreditResult(entPaid.body.result), `[第4件·0157] 企业包 webhook 验签入账 → ${entPaid.body.result}`);
+  const entUnits = await entitlement(HR);
+  A((entUnits.enterpriseAvailableUnits ?? 0) >= 1, `[第4件·0157] 企业额度到账(${entUnits.enterpriseAvailableUnits} 次·enterpriseAvailableUnits 并列读)`);
   const createJobKey = `e2e-job-${tag}-${randomUUID()}`;
   const createJobBody = { title: '幂等岗位', competencies: ['幂等', 'outbox'] };
   const idempotentOne = await readJson(await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify(createJobBody) }));
@@ -330,18 +341,51 @@ async function main() {
 
   /* ════════ 专家评审全维度用例:异常 / 特殊 / 兜底 / 状态机 ════════ */
   reviews.record({ class: 'worker', code: 'seg_expert_enter' }); // CMOP03-D M4: 专家评审段入口(岔B)
-  const noEntitlement = await signupOrLogin(`e2e3_${tag}@x.com`, password);
-  const H3 = noEntitlement.headers;
+  // 0154_trial_bucket_grant 后新注册用户自带 trial 桶 1.00（「1 次面试=1.00 口径,恰够一场」），
+  // 原「无额度用户」夹具前提结构性失效（LIVE 复跑 :344 实测 202 定谳）。断言随演=显式耗尽形：
+  // 第一步正面行使 trial 赠与（begin 202 + 桶 -1 相对差值）；第二步在 trial 诚实耗尽后行使原 402
+  // 错误映射面（文案逐字保留）。设计红线（e2e-assert-refresh REQUEST §1-①）：
+  //   * 禁 abandon/释放第一场——abandon 会把预留 trial 单位还池（UC018 实证 released 后净 0），
+  //     402 前提自毁；
+  //   * 禁拿 duplicate/alreadyBegun 幂等分支冒充 402 不足面——同幂等键重放或复用 begin 走
+  //     interview.service begin 的 existing/active 短路（:221/:226），不是「不足」映射路径。
+  // 【EXEC 前提勘误登记（REQUEST §1-① 第二步机制前提漂移·2026-10-11 仪器跑亲证）】POST /interview
+  // 是 per-user 开放面试复用（interview.service create：非终态 open 行 → reused:true）——iv3 active 后
+  // 「新建」拿回同一 id，begin 走 alreadyBegun 短路返回 202，interview begin 结构上到不了不足映射位。
+  // 故 402 错误映射面行使位随演至同映射族的押题 begin（quiz.service.ts:59-62：同
+  // reserveEntitlement → insufficient_entitlement → PAYMENT_REQUIRED 管道，「不再被 mask 成 500」
+  // 的映射面本体；新 quiz id=新幂等键，无 reuse/duplicate 短路，FIFO 无可凑桶 → 真不足）。
+  const trialOnlyUser = await signupOrLogin(`e2e3_${tag}@x.com`, password);
+  const H3 = trialOnlyUser.headers;
   r = (await consentResumeProcessing(H3)).response;
-  A(r.status === 200, '[异常前置] 无额度用户仍可完成简历处理同意');
-  const noEntitlementUploaded = await uploadTextResume(H3, '合成后端工程师简历：三年分布式系统经验，熟悉 PostgreSQL、Redis、限流与消息队列。');
-  r = noEntitlementUploaded.response;
-  const noEntitlementResume = noEntitlementUploaded.body;
-  A(r.status === 200 && typeof noEntitlementResume.resumeId === 'string', '[异常前置] 无额度用户持有合法且本人所属的 resumeId');
+  A(r.status === 200, '[异常前置] trial 赠与用户仍可完成简历处理同意');
+  const trialUserUploaded = await uploadTextResume(H3, '合成后端工程师简历：三年分布式系统经验，熟悉 PostgreSQL、Redis、限流与消息队列。');
+  r = trialUserUploaded.response;
+  const trialUserResume = trialUserUploaded.body;
+  A(r.status === 200 && typeof trialUserResume.resumeId === 'string', '[异常前置] trial 赠与用户持有合法且本人所属的 resumeId');
+  // 第一步：trial 赠与正面行使——begin 预留成功（0154 注册赠 1.00 恰够一场）+ 桶扣减相对差值证据（沿 UC018 形）。
+  const trialUnitsBefore = (await entitlement(H3)).availableUnits ?? 0;
   const iv3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
-  r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': noEntitlementResume.resumeId }, body: '{}' });
+  r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  b = await readJson(r);
+  A(r.status === 202 && b.accepted === true && typeof b.jobId === 'string', `[异常] trial 赠与生效:首场 begin 预留 → 202 accepted+jobId(${JSON.stringify(b).slice(0, 60)})`);
+  const trialUnitsAfterBegin = (await entitlement(H3)).availableUnits ?? 0;
+  A(trialUnitsAfterBegin === trialUnitsBefore - 1, `[异常] trial 桶扣减证据:begin 后额度 -1(${trialUnitsBefore}→${trialUnitsAfterBegin})`);
+  // 第二步a：同用户「再建面试」如实断言复用语义（不假称 402）——iv4 拿回 iv3（create reused:true 语义），
+  // begin 幂等 202 alreadyBegun（不二次预留）。
+  const iv4 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
+  r = await fetch(`${BASE}/interview/${iv4}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  b = await readJson(r);
+  A(r.status === 202 && b.accepted === true && b.alreadyBegun === true, `[异常] 同用户开放面试复用:再建拿回 iv3(${iv4 === iv3}) → begin 幂等 202 alreadyBegun(不二次预留)`);
+  // 第二步b：trial 已耗尽（FIFO 无可凑桶）→ 押题 begin 行使原 402 insufficient_entitlement 映射面（文案逐字保留）。
+  const quiz4 = await readJson(await fetch(`${BASE}/quiz`, { method: 'POST', headers: H3, body: '{}' }));
+  const quiz4Id = quiz4.id ?? quiz4.quizId;
+  A(typeof quiz4Id === 'string', '[异常前置] trial 耗尽用户仍可建押题空壳(begin 前不扣费)');
+  r = await fetch(`${BASE}/quiz/${quiz4Id}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
   b = await readJson(r);
   A(r.status === 402 && b.error === 'insufficient_entitlement', '[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）', 'data_or_permission');
+  const trialUnitsAfter402 = (await entitlement(H3)).availableUnits ?? 0;
+  A(trialUnitsAfter402 === 0, `[异常] 402 后额度零泄漏(仍 ${trialUnitsAfter402},预留未落)`);
 
   const { response: order2Res, body: ord } = await createOrder(H, 'pack_10', `${email}:order2`);
   A(order2Res.status === 200 && typeof ord.orderId === 'string', '[异常前置] 第二笔订单可用于错签断言');
@@ -413,7 +457,13 @@ async function main() {
     '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分(identities=q+c 孪生同步 1789e321)');
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
-  const scorelessBound = boundLoop.terminal === 'assessment_unavailable' || boundLoop.terminal === 'interview_unavailable'; // G7FIX-5 并入: 残余 unbound 面触发仍走统一臂(防御性契约钉)
+  // 【第5发现·断言随演（协调方裁 A 同型原则延伸·2026-10-11 登记）】report-retry D2（10-10 落主线）
+  // 引入报告 attempts/隔离族后,真模型旅程终态族实测扩出 'report_unavailable'（本套 3/3 跑一致·
+  // reason=max_attempts_exceeded）——finalize 服务端 outcome 恒为 'assessment_unavailable'（calibration
+  // hold 契约钉·applications.service finalize 常量返回,无 'completed' 分支）。scorelessBound 二元臂未含
+  // 该终态 → 误入 'completed' 期望臂必红。随演=终态族并一词（'report_unavailable' 亦属无可信评分族）,
+  // 期望恒臂不改·零产品码。
+  const scorelessBound = boundLoop.terminal === 'assessment_unavailable' || boundLoop.terminal === 'interview_unavailable' || boundLoop.terminal === 'report_unavailable'; // G7FIX-5 并入: 残余 unbound 面触发仍走统一臂(防御性契约钉)·+report_unavailable 族(第5发现随演)
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound, reason: (boundLoop.terminalPayload as any)?.reason ?? null })}\n`); // G7FIX-3: reason 入账(abandoned sweep vs generation 族归因判别)
   A(r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId && finalized.replayed === false && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'), `[状态机] 岗位终态后 {} finalize 统一面: 200 服务端仅认已绑定 interview+replayed:false(scoreless 族→assessment_unavailable·其余 completed)(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, reason=${(boundLoop.terminalPayload as any)?.reason ?? 'n/a'})`); // G7FIX-5 收敛: 三元 409 死支消解+replayed:false 契约钉(G7FIX-4 prove final3:21-22 形状 200+assessment_unavailable+replayed:false)
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
@@ -425,9 +475,13 @@ async function main() {
       '[状态机·可信] 无评分证据时招聘方只见 assessment_unavailable + score=NULL（不伪造 0 分）');
     const retry = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
     const retried = await readJson(retry);
-    fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
-    A(retry.status === 200 && retried.status === 'started' && typeof retried.interviewId === 'string' && retried.interviewId !== boundInterviewId,
-      '[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）');
+    fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, retriedError: retried?.error ?? null, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
+    // 【第6发现·断言随演（I2 W1 修法④ d4e51105 2026-10-11 落线·裁定⑥）】held（绑定面试 completed 的
+    // hold 终态）不可重试=有意产品语义（UI startable 收窄仅 failed 可重试+API 同源拒·防拦 UI 不拦 API 穿）。
+    // 旧「重试创建新 attempt」面退役 → 契约钉随演为 409 application_held_not_retryable fail-closed
+    // （不开新 attempt·不暴露分·message「本场面试已完成，评分待校准；无需重新开始」）。
+    A(retry.status === 409 && retried.error === 'application_held_not_retryable',
+      `[状态机·held] 评分待校准 hold 后显式重试 start → 409 application_held_not_retryable(不可重试 fail-closed·I2 W1 随演)(实际 ${retry.status}/${retried.error ?? 'n/a'})`);
   } else {
     A(cand?.status === 'completed' && Number.isInteger(cand?.score) && cand.score >= 0 && cand.score <= 100,
       `[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)`);

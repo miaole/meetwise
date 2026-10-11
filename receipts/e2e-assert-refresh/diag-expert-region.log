@@ -1,0 +1,24 @@
+DIAG admin-queue-target: {"found":true,"approval_status":"pending"}
+DIAG admin-approve: {"status":200,"body":{"decided":true}}
+DIAG job-create: {"status":200,"id":"job_01a12b2a6db47ed1af48446acd1a32d9"}
+DIAG user2-apply1: {"status":200,"applicationId":"app_01a12b2a6e43744992fdac19b820b2ff"}
+DIAG H-apply(app1): {"status":200,"applicationId":"app_01a12b2a6e7278c2a921f264b88b6ed1"}
+DIAG pos:365-order2 (expect 200+orderId): {"status":200,"body":{"orderId":"ord_01a12b2a6e86727ca7a80853f854c0f1","amountCents":9900,"status":"created","channel":"online"}}
+DIAG pos:367-badSig (expect 403): {"status":403,"body":{"error":"bad_signature"}}
+DIAG pos:369-unknownOrder (expect 404): {"status":403,"body":{"error":"bad_signature"}}
+DIAG pos:372-apply2 (expect same applicationId): {"status":200,"applicationId":"app_01a12b2a6e43744992fdac19b820b2ff","same":true}
+DIAG pos:376-finalize-empty (expect 409): {"status":409,"body":{"error":"cannot_finalize","message":"岗位绑定面试尚未完成或绑定不一致"}}
+DIAG pos:378-finalize-smuggled-iv (expect 400): {"status":400,"body":{"error":"invalid","issues":[{"code":"unrecognized_keys","keys":["interviewId"],"path":[],"message":"Unrecognized key: \"interviewId\""}]}}
+DIAG DONE
+DIAG admin-queue-target: {"found":true,"approval_status":"pending"}
+DIAG admin-approve: {"status":200,"body":{"decided":true}}
+DIAG job-create: {"status":200,"id":"job_01a12b2b282e75b99cf1f413fb362c72"}
+DIAG user2-apply1: {"status":200,"applicationId":"app_01a12b2b289e7014b3594c5d9b7399c5"}
+DIAG H-apply(app1): {"status":200,"applicationId":"app_01a12b2b28be7ed98c5869f5ea8b6bef"}
+DIAG pos:365-order2 (expect 200+orderId): {"status":200,"body":{"orderId":"ord_01a12b2b28d2721cb34d1c7f3091a4c1","amountCents":9900,"status":"created","channel":"online"}}
+DIAG pos:367-badSig (expect 403): {"status":403,"body":{"error":"bad_signature"}}
+DIAG pos:369-unknownOrder-valid-sig (suite expects 404): {"status":404,"body":{"error":"order_not_found"}}
+DIAG pos:372-apply2 (expect same applicationId): {"status":200,"applicationId":"app_01a12b2b289e7014b3594c5d9b7399c5","same":true}
+DIAG pos:376-finalize-empty (expect 409): {"status":409,"body":{"error":"cannot_finalize","message":"岗位绑定面试尚未完成或绑定不一致"}}
+DIAG pos:378-finalize-smuggled-iv (expect 400): {"status":400,"body":{"error":"invalid","issues":[{"code":"unrecognized_keys","keys":["interviewId"],"path":[],"message":"Unrecognized key: \"interviewId\""}]}}
+DIAG DONE
