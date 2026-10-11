@@ -53,7 +53,8 @@ export interface ScorableScoreCardRow {
   rubricId: string;
   deterministicTotal: number;
   coverage: number;
-  status: 'practice_eligible' | 'b_review_eligible';
+  /** C 端读面单态（0161/ADR-0020 :54 收窄 · 与 SQL 函数逐值一致；写路径 targetStatus 双态零触）。 */
+  status: 'practice_eligible';
   /** 能力维度（来自 question_rubric，随 rubric_id 冻结）；C 端逐题能力分组用它，不再依赖 legacy 事件。 */
   competency: string;
 }
@@ -92,11 +93,12 @@ export async function aggregateInterviewScores(c: Client, interviewId: string): 
   };
 }
 
-/** C 端逐题读面：只返回可评分态卡（asPrincipal / app_role）。调用方须已 asPrincipal。 */
+/** C 端逐题读面：只返回可评分态卡（asPrincipal / app_role）。调用方须已 asPrincipal。
+ *  （0161 收窄：SQL 函数只返回 practice_eligible，读面类型同收单态——TS 向 SQL 对齐。） */
 export async function listScorableScoreCards(c: Client, interviewId: string): Promise<ScorableScoreCardRow[]> {
   const r = await c.query<{
     card_id: string; question_id: string; rubric_id: string;
-    deterministic_total: string; coverage: string; status: 'practice_eligible' | 'b_review_eligible';
+    deterministic_total: string; coverage: string; status: 'practice_eligible';
     competency: string;
   }>('SELECT * FROM scoring_list_scorable_score_cards($1)', [interviewId]);
   return r.rows.map((row) => ({

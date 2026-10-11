@@ -116,11 +116,23 @@ async function main() {
       ]);
       return a.overall === 80 && a.eligibleCount === 1 && a.nonScorableCount === 1 && a.dimensions.length === 1;
     })());
-  A('C 端评估消费面：两张可评分卡 → overall 90',
+  // G5 SCOR-S3 D3 翻转披露（原断言原位翻 · @base 20186718 原值=90）：0161/ADR-0020 :54 收窄前
+  // q2=b_review_eligible 计入聚合 → overall=90；收窄后 b_review_eligible 不入 C 端读面 → 仅 q1 计入
+  // → overall=80，且 q2 计入 nonScorableCount（逐值披露，非静默改测；断言未删未弱化）。
+  A('C 端评估消费面：practice 卡+b_review 卡 → overall 80（b_review 不入·0161 收窄翻转 90→80）',
+    (() => {
+      const a = deriveScoreCardAssessment([
+        { questionId: 'q', competency: '沟通表达', deterministicTotal: 80, status: 'practice_eligible' },
+        { questionId: 'q2', competency: '沟通表达', deterministicTotal: 100, status: 'b_review_eligible' },
+      ]);
+      return a.overall === 80 && a.eligibleCount === 1 && a.nonScorableCount === 1 && a.dimensions.length === 1;
+    })());
+  A('C 端评估消费面：practice_eligible 单卡仍入（收窄正测不误伤）',
     deriveScoreCardAssessment([
       { questionId: 'q', competency: '沟通表达', deterministicTotal: 80, status: 'practice_eligible' },
-      { questionId: 'q2', competency: '沟通表达', deterministicTotal: 100, status: 'b_review_eligible' },
-    ]).overall === 90);
+    ]).overall === 80 && deriveScoreCardAssessment([
+      { questionId: 'q', competency: '沟通表达', deterministicTotal: 80, status: 'practice_eligible' },
+    ]).eligibleCount === 1);
   A('非评分态不参与评分（unscored/review_required/calibration_blocked/evidence_invalid）',
     SCORE_CARD_NON_SCORING_STATUSES.every((s) => !isScoreCardScorable(s)));
 
@@ -393,6 +405,58 @@ async function main() {
   A('跨包 e2e：2 张卡经读面→deriveAssessment → overall=90 + competency 单维度 + score=90',
     f1Assess.overall === 90 && f1Assess.dimensions.length === 1
     && f1Assess.dimensions[0]?.dimension === '沟通表达' && f1Assess.dimensions[0]?.score === 90);
+
+  // F1c（G5 SCOR-S3 收窄对拍 · 0161/ADR-0020 :54）：practice(80) + b_review(100) 双卡 →
+  // C 端聚合/读面只认 practice 卡（eligible=1·overall=80·b_review 计 non_scoring）；
+  // 写路径零触正测（b_review 卡仍可由专用 writer 写出）；practice 卡 fence 后 → eligible=0 +
+  // overall=null（fenced 出外层 WHERE，绝不按 0 分计）。与 0161 SQL 单态逐值对拍。
+  const ivAggB = nextIv();
+  await insertInterview(owner, ivAggB);
+  for (const [qi, tot, target] of [
+    ['aggb-1', 80, 'practice_eligible'], ['aggb-2', 100, 'b_review_eligible'],
+  ] as const) {
+    const issuedB = await asOwner(owner, (c) => issueQuestionContract(c, {
+      interviewId: ivAggB, questionId: qi, stateVersion: 2, turn: 0, questionContentHash: nextHash(),
+      rubricId, form: 'mock', language: 'zh', route: 'adaptive', promptPolicyVersion: 'prompt-v1',
+      measurementVersion: 'measure-v1', privacyEpoch: 5,
+    }));
+    const subB = await asOwner(owner, (c) => submitInterviewAnswer(c, {
+      interviewId: ivAggB, questionId: qi, stateVersion: 2, clientSubmissionKey: `scor2-sub-${qi}`,
+      answer: ANSWER, privacyEpoch: 5,
+    }));
+    const reqB = await asOwner(owner, (c) => createScoreRequest(c, {
+      issuedContractId: issuedB.contractId, submissionId: subB.submissionId, artifactId: subB.artifactId,
+      answerBodyHmac: answerBodyHmac(ANSWER), privacyEpoch: 5, operationPolicyVersion: 'op-v1',
+      answerVersion: 1, idempotencyKey: `scor2-req-${qi}`,
+    }));
+    const tokenB = nextToken();
+    await asWorker(owner, (c) => claimScoreRequest(c, reqB.requestId, worker, tokenB));
+    const w = await asWorker(owner, (c) => writeFinalScoreCard(c, {
+      requestId: reqB.requestId, leaseToken: tokenB,
+      evidence: tot === 80 ? validEvidence(subB.artifactId, 1)
+        : [
+          { criterionId: 'clarity', sourceAnswerId: subB.artifactId, answerVersion: 1, span: SPAN_CLARITY, spanDigest: scoreSpanDigest(ANSWER, SPAN_CLARITY), disposition: 'exceeds' as const },
+          { criterionId: 'depth', sourceAnswerId: subB.artifactId, answerVersion: 1, span: SPAN_DEPTH, spanDigest: scoreSpanDigest(ANSWER, SPAN_DEPTH), disposition: 'exceeds' as const },
+        ],
+      targetStatus: target,
+    }));
+    A(`F1c 前置：写卡 ${qi}（target=${target}·total=${tot}·写路径双态零触）`,
+      w.recorded === true && w.status === target && w.deterministicTotal === tot);
+  }
+  const aggB = await asOwner(owner, (c) => aggregateInterviewScores(c, ivAggB));
+  A('F1c 收窄聚合：practice(80)+b_review(100) → eligible=1·overall=80·non_scoring=1（b_review 不入）',
+    aggB.eligibleCardCount === 1 && aggB.deterministicOverall === 80 && aggB.nonScoringCardCount === 1);
+  const f1cCards = await asOwner(owner, (c) => listScorableScoreCards(c, ivAggB));
+  A('F1c 收窄读面：list 只返回 1 张 practice 卡（b_review 不入 C 端逐题读面）',
+    f1cCards.length === 1 && f1cCards[0]?.status === 'practice_eligible' && f1cCards[0]?.deterministicTotal === 80);
+  {
+    const fencedCard = (await asOwner(owner, (c) => c.query<{ id: string }>(
+      "SELECT id FROM score_card WHERE interview_id=$1 AND status='practice_eligible'", [ivAggB]))).rows[0]?.id;
+    await asWorker(owner, (c) => transitionScoreCard(c, fencedCard!, 'practice_eligible', 'fenced'));
+    const aggFenced = await asOwner(owner, (c) => aggregateInterviewScores(c, ivAggB));
+    A('F1c fence 负测：practice 卡 fenced → eligible=0·overall=null（fenced 不计不聚·无分≠0 分）',
+      aggFenced.eligibleCardCount === 0 && aggFenced.deterministicOverall === null);
+  }
 
   // F2：非评分态卡（unscored）→ eligible=0, overall=null, non_scoring=1。
   const ivNon = nextIv();

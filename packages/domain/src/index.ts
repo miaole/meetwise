@@ -224,10 +224,11 @@ export type {
 export { isAllowed, isPrivateHost, extractMaterial, webExplore, deepExplore, createSafeFetch, normalizeResearchQuery, formatUntrustedResearchMaterial, type AllowedSource, type FetchFn, type FetchedPage, type RawFetch, type RawResponse, type SafeFetchOpts, type DeepExploreOpts, type DeepExploreResult } from './web-explore.ts';
 
 // 评分测量事实根（SCOR-01）纯域状态机：ScoreCard 证据流转移表 + 可评分判定（与迁移 0100 触发器逐值一致）。
+// isPracticeReadableScoreCard = G5 SCOR-S3 C 端读面收窄谓词（0161/ADR-0020 :54·TS 向 SQL 对齐）。
 export {
   SCORE_CARD_STATUSES, SCORE_REQUEST_STATUSES, QUESTION_RUBRIC_STATUSES,
   SCORE_CARD_TRANSITIONS, SCORE_CARD_NON_SCORING_STATUSES,
-  canTransitionScoreCard, isScoreCardScorable,
+  canTransitionScoreCard, isScoreCardScorable, isPracticeReadableScoreCard,
 } from './scoring-fact-root.ts';
 export type { ScoreCardStatus, ScoreRequestStatus, QuestionRubricStatus } from './scoring-fact-root.ts';
 

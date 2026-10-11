@@ -10,7 +10,7 @@
  * 本域不产出。
  */
 import { createHash } from 'node:crypto';
-import { isScoreCardScorable, type ScoreCardStatus } from './scoring-fact-root.ts';
+import { isPracticeReadableScoreCard, type ScoreCardStatus } from './scoring-fact-root.ts';
 import { utf8ByteLength } from './memory-admission.ts';
 import { GAP, type Assessment } from './assessment.ts';
 
@@ -150,12 +150,13 @@ export interface ScoreCardAssessment {
 }
 
 /**
- * C 端能力评估消费面（ScoreCard 路径）：只聚合可评分态卡（isScoreCardScorable），
- * 非评分态不进入 overall/dimensions、只计入 nonScorableCount。与 legacy `deriveAssessment`
+ * C 端能力评估消费面（ScoreCard 路径）：只聚合 C 端可读卡（isPracticeReadableScoreCard ·
+ * practice_eligible 单态，0161/ADR-0020 :54 收窄），非 C 端可读卡（含 b_review_eligible）不进入
+ * overall/dimensions、只计入 nonScorableCount。与 legacy `deriveAssessment`
  * （模型 0..100 整数）刻意分离——legacy 事件结构性不再走此路径。
  */
 export function deriveScoreCardAssessment(cards: readonly ScoreCardAssessmentInput[]): ScoreCardAssessment {
-  const eligible = (cards ?? []).filter((c) => c && isScoreCardScorable(c.status));
+  const eligible = (cards ?? []).filter((c) => c && isPracticeReadableScoreCard(c.status));
   const nonScorable = (cards ?? []).length - eligible.length;
   if (eligible.length === 0) {
     return { overall: null, dimensions: [], eligibleCount: 0, nonScorableCount: nonScorable };
@@ -187,10 +188,11 @@ export function deriveScoreCardAssessment(cards: readonly ScoreCardAssessmentInp
  * 三钉落位：(i) gap 判定唯一经 GAP 单源（本文件顶部 import，禁字面量散布）；
  * (ii) 返回形状 = legacy Assessment 逐字段同形（evidence 文案 legacy parity）；
  * (iii) 纯域函数，调用方先派生后 INSERT。空可评集 fail-closed（score_aggregate_empty→409
- * 信封由调用方翻译），非评分态卡不进聚合（isScoreCardScorable 门，同 deriveScoreCardAssessment）。
+ * 信封由调用方翻译），非 C 端可读卡不进聚合（isPracticeReadableScoreCard 门 · 0161 收窄，
+ * 同 deriveScoreCardAssessment；输入面与 0103→0161 读面 listScorableScoreCards 单态行对齐）。
  */
 export function deriveScoreCardAssessmentLegacy(cards: readonly ScoreCardAssessmentInput[]): Assessment {
-  const eligible = (cards ?? []).filter((c) => c && isScoreCardScorable(c.status));
+  const eligible = (cards ?? []).filter((c) => c && isPracticeReadableScoreCard(c.status));
   if (eligible.length === 0) fail('score_aggregate_empty');
   const groups = new Map<string, number[]>();
   for (const c of eligible) {
