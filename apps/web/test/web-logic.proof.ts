@@ -1568,6 +1568,8 @@ async function main() {
     A('H4-8d 页面接 growthDeltaView+不可比中性标注(data-testid=delta-not-comparable)',
       lineOf(growthSrc, /import \{ growthDeltaView \} from '@\/lib\/growth\/comparable'/) > 0
       && growthSrc.includes('delta-not-comparable') && growthSrc.includes('维度口径不同 · 不可比'));
+  }
+
   // ══ I2 B-DELIVERABLE（i2-b-deliverable-REQUEST §4-3·两态徽/startable 收窄/同意触面/定性区·纯函数+read-file 静态·est live=0）══
   {
     section('I2 B-DELIVERABLE §4-3：W1 两态徽+startable 收窄+拒因并列+W3 同意触面+W2 定性区（纯函数输出+read-file 静态·组件行为面无 DOM 载体如实记账）');
