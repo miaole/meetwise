@@ -6,6 +6,7 @@
  * 已有生产构建则不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
  */
 import { spawn } from 'node:child_process';
+import { createHmac } from 'node:crypto';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
@@ -158,6 +159,34 @@ async function main() {
     if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
   }
 
+  // 0155 审核制:B 端注册落 pending,UI 套件 recruiting-bound 需 admin approve——S3 路径现补 admin 身份播入
+  // +铸令牌+env 交接,镜像 e2e-recruiter-gate C1 形(scripts/run-e2e.mjs seedAdmin 逐字同构):
+  // 隔离库直插 is_admin 身份(注册面无 admin 入口,AdminGuard 只认 is_admin=true 行)+HMAC 铸测试令牌
+  // (铸形同 domain signToken payload=base64url{uid,exp,pe}+HMAC-SHA256;pe=0 对齐 pwd_epoch 列默认;
+  // secret=AUTH_SECRET 测试键单点在握,与 api 子进程同键)。seed/铸任一步失败 fail-closed
+  // (admin_bootstrap_failed),不在 e2e 面静默降级——缺 token 时 spec 侧 adminAuthHeaders 同样 throw。
+  const seedAdmin = async () => {
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    const pgc = new Client({ host: env.PGHOST, port: Number(env.PGPORT), user: env.PGUSER, password: env.PGPASSWORD, database: env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    try {
+      // status/pwd_epoch/role 取列默认(active/0/candidate)→ PrincipalGuard 账户态复核链全过。
+      await pgc.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES ('e2e-admin','e2e-admin@x.com','scrypt$e2e$bootstrap',true,'candidate') ON CONFLICT (id) DO NOTHING");
+    } finally {
+      await pgc.end().catch(() => {});
+    }
+    const nowSec = Math.floor(Date.now() / 1000);
+    const payload = Buffer.from(JSON.stringify({ uid: 'e2e-admin', exp: nowSec + 3600, pe: 0 })).toString('base64url');
+    return `${payload}.${createHmac('sha256', env.AUTH_SECRET).update(payload).digest('base64url')}`;
+  };
+  let adminToken;
+  try {
+    adminToken = await seedAdmin();
+  } catch {
+    throw tagE2EFailure('db', 'admin_bootstrap_failed');
+  }
+
   // Recorded blocker: next start with no production build → web_not_ready.
   // Build only when BUILD_ID is absent. Do not rebuild a tree that already has one.
   const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
@@ -199,6 +228,7 @@ async function main() {
   const pw = spawnProc('playwright', 'corepack', playwrightArgs, ROOT, {
     PLAYWRIGHT_BASE_URL: webBase,
     E2E_API_BASE: apiBase,
+    E2E_ADMIN_TOKEN: adminToken,   // 0155 审核门交接:recruiting-bound 拍2 真 admin API approve 所需(显式并入,非进程默认透传)
   }, false);
   pw.stdout.on('data', (d) => process.stdout.write(d));
   pw.stderr.on('data', (d) => process.stderr.write(d));
