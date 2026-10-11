@@ -1,0 +1,111 @@
+S3_UI_CLEAN2_START=2026-10-11_22:25:47
+
+> meetwise@0.1.0 e2e:ui:isolated /Users/miaole/Desktop/golucky/meetwise-e2ar
+> node scripts/run-e2e-isolated.mjs e2e:ui
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-72095-1791728747735 on 127.0.0.1:63769
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-e2ar/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=164 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 e2e:ui /Users/miaole/Desktop/golucky/meetwise-e2ar
+> node scripts/run-e2e-ui.mjs
+
+E2E-UI: 启 api + worker…
+E2E-UI: 启 web(production next start, :32573)…
+E2E-UI: 跑 Playwright 浏览器用例…
+
+Running 28 tests using 1 worker
+
+  ✓   1 [chromium] › e2e-ui/golden.spec.ts:10:1 › golden path: landing → signup → cookie auth lets protected pages render in the real browser (4.2s)
+  ✓   2 [chromium] › e2e-ui/golden.spec.ts:61:1 › protected page in a fresh (no-cookie) context redirects to /login (middleware works) (479ms)
+  -   3 [chromium] › e2e-ui/online-public.spec.ts:20:3 › online public ingress › public landing and login are reachable
+  -   4 [chromium] › e2e-ui/online-public.spec.ts:34:3 › online public ingress › protected route redirects to same public origin without localhost
+[g7u-fixture] route_decided observed: 3099ms since wait start, 1296ms wait-anchor offset after publish click, revision_status=route_decided, attempt_outcome=result_validated, decision_created_at=2026-10-11T14:26:20.567Z
+  ✓   5 [chromium] › e2e-ui/recruiting-bound.spec.ts:212:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it (1.0m)
+  ✓   6 [chromium] › e2e-ui/screenshots.spec.ts:36:1 › capture demo screenshots (desktop) (24.6s)
+  ✓   7 [chromium] › e2e-ui/screenshots.spec.ts:90:1 › capture demo screenshots (mobile H5) (5.2s)
+  ✓   8 [chromium] › e2e-ui/stream-window.spec.ts:9:1 › 10k SSE replay with exact redelivery keeps a unique 80-turn DOM window and reaches a terminal view (3.4s)
+  ✘   9 [chromium] › e2e-ui/stream-window.spec.ts:46:1 › progress variant: connecting renders real generation progress, question_ready clears it and shows the planned-turn badge (20.1s)
+  ✓  10 [chromium] › e2e-ui/stream-window.spec.ts:60:1 › silent variant: zero progress frames keep the static connecting copy verbatim; missing plannedTurns degrades to 第 N 题 only (14.1s)
+  ✓  11 [chromium] › e2e-ui/uc018-abandon.spec.ts:68:1 › UC018-UI-abandon: in-interview 放弃 → abandoned+released · irreversible · same HTTP contract (8.2s)
+  -  12 [chromium] › e2e-ui/voice-duplex.spec.ts:166:1 › 本机人机双向回合：AI 播报、用户语音作答、ASR 提交并推进下一题
+  -  13 [chromium] › e2e-ui/voice-duplex.spec.ts:205:1 › 非作答与评分操纵尾巴会澄清并重新打开语音回合
+  -  14 [chromium] › e2e-ui/voice-duplex.spec.ts:237:1 › 本机人机双工：麦克风先接通，用户抢话中止浏览器 TTS fetch 且不播放
+  ✓  15 [mobile] › e2e-ui/golden.spec.ts:10:1 › golden path: landing → signup → cookie auth lets protected pages render in the real browser (4.5s)
+  ✓  16 [mobile] › e2e-ui/golden.spec.ts:61:1 › protected page in a fresh (no-cookie) context redirects to /login (middleware works) (715ms)
+  -  17 [mobile] › e2e-ui/online-public.spec.ts:20:3 › online public ingress › public landing and login are reachable
+  -  18 [mobile] › e2e-ui/online-public.spec.ts:34:3 › online public ingress › protected route redirects to same public origin without localhost
+[g7u-fixture] route_decided observed: 3097ms since wait start, 2765ms wait-anchor offset after publish click, revision_status=route_decided, attempt_outcome=result_validated, decision_created_at=2026-10-11T14:28:48.011Z
+  ✓  19 [mobile] › e2e-ui/recruiting-bound.spec.ts:212:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it (1.2m)
+  ✓  20 [mobile] › e2e-ui/screenshots.spec.ts:36:1 › capture demo screenshots (desktop) (27.1s)
+  ✓  21 [mobile] › e2e-ui/screenshots.spec.ts:90:1 › capture demo screenshots (mobile H5) (5.9s)
+  ✓  22 [mobile] › e2e-ui/stream-window.spec.ts:9:1 › 10k SSE replay with exact redelivery keeps a unique 80-turn DOM window and reaches a terminal view (2.3s)
+  ✓  23 [mobile] › e2e-ui/stream-window.spec.ts:46:1 › progress variant: connecting renders real generation progress, question_ready clears it and shows the planned-turn badge (7.8s)
+  ✓  24 [mobile] › e2e-ui/stream-window.spec.ts:60:1 › silent variant: zero progress frames keep the static connecting copy verbatim; missing plannedTurns degrades to 第 N 题 only (6.7s)
+  ✓  25 [mobile] › e2e-ui/uc018-abandon.spec.ts:68:1 › UC018-UI-abandon: in-interview 放弃 → abandoned+released · irreversible · same HTTP contract (5.5s)
+  -  26 [mobile] › e2e-ui/voice-duplex.spec.ts:166:1 › 本机人机双向回合：AI 播报、用户语音作答、ASR 提交并推进下一题
+  -  27 [mobile] › e2e-ui/voice-duplex.spec.ts:205:1 › 非作答与评分操纵尾巴会澄清并重新打开语音回合
+  -  28 [mobile] › e2e-ui/voice-duplex.spec.ts:237:1 › 本机人机双工：麦克风先接通，用户抢话中止浏览器 TTS fetch 且不播放
+
+
+  1) [chromium] › e2e-ui/stream-window.spec.ts:46:1 › progress variant: connecting renders real generation progress, question_ready clears it and shows the planned-turn badge 
+
+    Error: expect(locator).toHaveText(expected) failed
+
+    Locator: getByTestId('interview-progress-badge')
+    Expected: "第 1 题 / 预计约 5 题（自适应，可能调整）"
+    Timeout: 10000ms
+    Error: element(s) not found
+
+    Call log:
+      - Expect "toHaveText" with timeout 10000ms
+      - waiting for getByTestId('interview-progress-badge')
+
+
+      53 |   await expect(page.getByText(/正在建立连接/)).toHaveCount(0);
+      54 |   // W4 形制 A：徽标=「第 1 题 / 预计约 5 题（自适应，可能调整）」（turn=0 → 1 基第 1 题；约数+可调注记）。
+    > 55 |   await expect(page.getByTestId('interview-progress-badge')).toHaveText('第 1 题 / 预计约 5 题（自适应，可能调整）');
+         |                                                              ^
+      56 |   // 拍3：终态收口（复用既有 report_ready 渲染）。
+      57 |   await expect(page.getByText(/练习完成 · 本次练习反馈/)).toBeVisible();
+      58 | });
+        at /Users/miaole/Desktop/golucky/meetwise-e2ar/apps/web/e2e-ui/stream-window.spec.ts:55:62
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/stream-window-progress-var-53d52-hows-the-planned-turn-badge-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/stream-window-progress-var-53d52-hows-the-planned-turn-badge-chromium/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/stream-window-progress-var-53d52-hows-the-planned-turn-badge-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/stream-window-progress-var-53d52-hows-the-planned-turn-badge-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  1 failed
+    [chromium] › e2e-ui/stream-window.spec.ts:46:1 › progress variant: connecting renders real generation progress, question_ready clears it and shows the planned-turn badge 
+  10 skipped
+  17 passed (4.7m)
+E2E_PROCESS_OUTPUT_WITHHELD process=worker:stderr chunks=7 bytes=590
+E2E_PROCESS_OUTPUT_WITHHELD process=worker:stdout chunks=6 bytes=666
+E2E_PROCESS_OUTPUT_WITHHELD process=api:stdout chunks=520 bytes=126985
+E2E_PROCESS_OUTPUT_WITHHELD process=web:stdout chunks=5 bytes=150
+E2E_PROCESS_OUTPUT_WITHHELD process=web:stderr chunks=3 bytes=770
+E2E_PROCESS_OUTPUT_WITHHELD process=playwright:stdout chunks=41 bytes=7698
+E2E_FAILURE class=frontend code=client_exited
+E2E_FAILURE class=frontend code=client_exited
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-72095-1791728747735 state_bytes=216 logs_bytes=962
+ ELIFECYCLE  Command failed with exit code 1.
+S3_UI_EXIT=1
