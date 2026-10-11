@@ -53,6 +53,7 @@ x-ha-cloud-runtime-env: &ha-cloud-runtime-env
   DATABASE_URL: ${RUNTIME_DATABASE_URL:?set RUNTIME_DATABASE_URL from the cloud secret manager}
   DATABASE_SSL_MODE: verify-full
   DATABASE_SSL_CA_PATH: /run/secrets/rds_ca
+  PGPOOL_MAX: "12"
   WEB_ORIGIN: ${WEB_ORIGIN:?set the public HTTPS web origin}
   AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET from the cloud secret manager}
   PAY_PROVIDER_SECRET: ${PAY_PROVIDER_SECRET:?set PAY_PROVIDER_SECRET from the cloud secret manager}

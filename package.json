@@ -595,7 +595,8 @@
     "ha:dual:compose-pg": "node scripts/ha/bring-up-dual.mjs --compose-pg",
     "ha:dual:compose-shared": "node scripts/ha/bring-up-dual.mjs --compose-shared",
     "uc018:receipt-backfill:prove": "node scripts/uc-e2e-018-receipt-backfill.proof.mjs",
-    "uc018:receipt-backfill:emit": "node scripts/uc018-receipt-backfill-emit.mjs"
+    "uc018:receipt-backfill:emit": "node scripts/uc018-receipt-backfill-emit.mjs",
+    "ha6:prove": "node scripts/ha/ha6-companion.proof.mjs"
   },
   "pnpm": {
     "overrides": {
