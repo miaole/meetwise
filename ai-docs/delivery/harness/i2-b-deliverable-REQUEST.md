@@ -150,3 +150,13 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 - **执行中实证偏差 R-1（待双审追认）**：interview 为候选人私有（RLS p_owner by-design 隔离墙）→ B 端列表行 join 派生不可达（attempt3 探针实证）——listJobCandidates 还原零改·列表行保持兜底文案·两态信号改经 0160 `terminal_kind` 出参在详情页承接（状态信号不进同意门）。REQUEST W2③「列表行文案分流」半区降级为兜底零改，根因=起草未跑证，漂移入收据 §5。
 - **attempts 全账**：i2b:prove 5 跑（4 red 根因全账·含 R-2 content-immutable 23514 实证→夹具改直插·无同码 retry-to-green）+web prove 2 跑全绿。
 - **est live=0** · claimDone=false（awaiting_post_prove_dual）· ⛔push · Ban self-approve · alone≠dual。
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·E4 三勾选 ✓）
+
+**双审结果**：席1（产品面/迁移语义·W2 受控 DEFINER 逐段/E6 同意门函数内承重/镜像 md5 双同/E6 双极性亲跑翻回/R-1 隔离墙追认）+席2（用户旅程/回归·全旅程断点亲读/W3 双极性/回归三套亲跑/0082 零字节/talent 红线零触）互盲复核 BOTH PASS。merge 落主线 @f90885cc+dual-keep 修复（web prove 全绿）。
+
+**门禁双席复现**：web prove 343/neg:commerce 84/i2b:prove 33/entpay:s1 47·48 预存/entpay:s2 27·28 预存/typecheck 0。E1-E7 逐条兑现·R-1 隔离墙追认·R-2 夹具 0158 守门内直插。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge @f90885cc·#218 B端定性输出正式解除·批3 段 19→18·markers=0·est live=0）。
