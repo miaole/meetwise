@@ -1,0 +1,98 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-58122-1791722692384 on 127.0.0.1:64217
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-h2q/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=165 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:rag05-qbank-miss /Users/miaole/Desktop/golucky/meetwise-h2q/packages/db
+> tsx test/rag05-qbank-miss.proof.ts
+
+
+──────── 0. 灌入一个 leaf（java）一题 + 构建激活 generation + 发布 rubric ────────
+PASS  灌入 1 题 / 3 chunk 成功
+PASS  generation 构建并激活
+PASS  rubric 发布成功（uuid）
+PASS  岗位 rule 路径 route_decided（0 次模型外发）
+PASS  面试启动落不可变 snapshot（单叶 backend/nodejs）
+PASS  interview resume_privacy_epoch 已冻结（=1）
+
+──────── ① happy path：干净无题 → 模型=1 且同 leaf、scope/rubric/provenance 完整、同事务投影 ────────
+PASS  返回 question_ready + reviewStatus=review_required
+PASS  模型派发恰好 1 次
+PASS  模型 binding 只含冻结 leaf/competency/difficulty/blueprint/rubric/language/avoid（无 raw job/resume/answer/检索正文/自由 URL）
+PASS  interview_question 写入（qkind=llm_qbank_miss, review_status=review_required, state_version=1, turn=1）
+PASS  question_ready 业务事件已写（event_key 幂等）
+PASS  provenance(origin=llm_qbank_miss) 完整（仅脱敏 digest，rubric 绑定既有，model_attempt=1）
+PASS  plan 终态 = question_ready
+PASS  outbox 状态序列 = planned→dispatched→result_persisted→question_ready（result outbox 承载 durable 结果）
+
+──────── ② 模型输出双重校验：schema/refs 非空/超短/引导/语言/去重 → 拒（产物=0 入业务） ────────
+PASS  schema 错（question 非字符串） → generation_unavailable(invalid_schema)
+PASS  refs 非空（模型不得引用 QBank/跨桶材料） → generation_unavailable(refs_not_empty)
+PASS  超短（<10 字符） → generation_unavailable(question_length_out_of_range)
+PASS  引导性（内嵌答案标记） → generation_unavailable(leading_question)
+PASS  语言不符（en 题面含 CJK） → generation_unavailable(language_mismatch)
+PASS  去重冲突（avoidDigests 命中）→ generation_unavailable(duplicate_question)
+PASS  全部校验失败后 interview_question 仍只有 happy path 1 题
+
+──────── ③ E1 幂等：同 plan 重放 20 次 → 模型派发≤1、同 question_ready ────────
+PASS  20 次恢复读同一 outcome（replayed/question_ready）
+PASS  模型派发≤1（重放不二次外发）
+PASS  question_ready 事件仍只有 1 条（eventKey 幂等）
+PASS  interview_question 仍只有 1 题（不重复插题）
+
+──────── ④ E2 并发 + epoch：generation 陈旧 / privacy epoch 变 / 双 worker 同 plan → 一 plan/issue，模型=0 ────────
+PASS  generation 陈旧（plan.generationId ≠ active）→ voided(generation_stale)，模型=0
+PASS  privacy epoch 漂移（plan.privacyEpoch ≠ interview 冻结值）→ voided(privacy_epoch_changed)，模型=0
+PASS  双 worker 同 plan 并发 → 模型派发≤1（CAS 唯一赢家）
+PASS  双 worker 并发 → 唯一 plan 行（UNIQUE plan_key）
+PASS  双 worker 并发 → 唯一 question_ready 事件
+PASS  双 worker 并发 → 唯一 provenance（一题一 provenance）
+PASS  双 worker 并发 → 终态 question_ready
+PASS  双 worker 返回值均为安全终态（question_ready/replayed/generation_unavailable，无二次派发）
+
+──────── ⑤ E3 越权：伪造 leaf/routeScopeDigest/rubric(不存在)/generation 形状/raw verdict digest → 拒（QBank/模型/题=0） ────────
+PASS  leaf 不在 snapshot → rejected(planner_leaf_not_in_snapshot)
+PASS  leaf 不在 snapshot → 零 plan 行（未冻结）
+PASS  routeScopeDigest 伪造 → rejected(route_scope_digest_mismatch)
+PASS  routeScopeDigest 伪造 → 零 plan 行（未冻结）
+PASS  generationId 形状非法 → rejected(generation_id_invalid)
+PASS  generationId 形状非法 → 零 plan 行（未冻结）
+PASS  raw noEligibleVerdictDigest 伪造 → rejected(no_eligible_verdict_digest_mismatch)
+PASS  raw noEligibleVerdictDigest 伪造 → 零 plan 行（未冻结）
+PASS  rubric 不存在（uuid 形状但无行）→ 抛 FK 违例(23503)，非 clean rejected
+PASS  rubric 伪造 → 零 plan 行（未冻结）
+PASS  E3 全部越权后模型=0
+
+──────── ⑥ E4 失败回滚：模型成功但投影事务失败 → 无 question_ready；恢复读 durable 结果、不重新生成 ────────
+PASS  第一次派发投影失败 → 抛 uq_interview_question_open(23505)，非静默
+PASS  投影失败后无 question_ready（plan 停在 result_persisted）
+PASS  模型成功且只派发 1 次（result 已 durable）
+PASS  恢复重投影 → question_ready（读 durable 结果，不重新生成）
+PASS  恢复后模型派发仍 =1（result outbox + exact-once，绝不重新生成不同题）
+
+──────── ⑦ E5 降级：qbank_degraded/policy_denied/dispatched_unknown/timeout/budget_reject → 模型/Web=0，dispatched-unknown 不重发 ────────
+PASS  eligibility=qbank_degraded → no_model_fallback（模型=0，零 plan 行）
+PASS  eligibility=policy_denied → no_model_fallback
+PASS  dispatched_unknown → generation_unavailable(dispatched_unknown)（不重发）
+PASS  dispatched_unknown 重放 → replayed(generation_unavailable)，模型外发仍=1（不重发）
+PASS  timeout → generation_unavailable(timeout)
+PASS  budget_rejected → generation_unavailable(budget_rejected)
+PASS  E5 全降级路径模型外发=0（除 dispatched_unknown 恰 1 次）
+
+──────── ⑧ E6 污染+评分：生成题不写回 QBank/vector；无 contract/score_request/score_card；review_status=review_required ────────
+PASS  生成题不写回 QBank（qbank_question/qbank_question_chunk 零行）
+PASS  生成题不写回 vector（qbank_generation_chunk 零行）
+PASS  生成题无 issued_question_contract（不被评分事实根绑定）
+PASS  全程零 score_request / score_card（RAG-05 不触碰 SCOR-01 写路径）
+PASS  生成题 review_status=review_required（⇒ score_excluded，不进 B 端 overall/rank/offer/completion 门）
+PASS  QBank 题数仍 =1（仅 java fixture，生成题从未入库）
+
+✓ rag05-qbank-miss（真 Postgres）全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T12-45-26-270Z-58122-05678c35-19c1-4188-ba15-4bdd96bf5d16.json release_evidence=false

@@ -8,6 +8,7 @@ import { normalizeQuestion, type DbPool } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
+import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
 import { withGenerationProgress } from './generation-progress.ts';
@@ -135,6 +136,41 @@ export function selectGroundedFacts(pool: readonly string[], competency: string)
     .slice(0, GROUNDED_FACTS_MAX_COUNT)
     .map((f) => boundedTextSlice(f, GROUNDED_FACTS_MAX_CHARS));
 }
+
+/* ───────── H2 #79:CRAG 查询构造(岗位/技术栈段)·协议与 parseCragPlannerQuery 同源 ───────── */
+/** 构造段清洗:含保留词(岗位/栈/难度)/控制字符/超长 → 段整体缺省(确定性降级为旧两段形,非截断非改写;
+ *  解析端(qbank-track-local-retrieve.parseCragPlannerQuery)对非法段 fail-closed null——构造端先清洗,
+ *  生产查询永不触发解析拒绝面;解析端保留严格形制防未来其他构造源绕过清洗)。 */
+function sanitizeCragSegment(value: string, max: number): string | null {
+  const v = value.trim();
+  if (!v || v.length > max || /[\u0000-\u001f\u007f]/.test(v) || /岗位|栈|难度/.test(v)) return null;
+  return v;
+}
+
+export interface CragQueryBuildContext {
+  /** 用户显式岗位(begin 头 targetRole 透传,#259 供给线)。 */
+  targetRole?: string;
+  /** 技术栈=resume facts 池既有面(selectGroundedFacts 同源);取最相关 ≤2 条 × ≤60 字符拼接。 */
+  techStackFacts?: readonly string[];
+}
+
+/** 组装 CRAG planner 查询:`${competency}[ 岗位{role}][ 栈{stack}] 难度${difficulty}`(旧两段形字节兼容)。 */
+export function buildCragPlannerQuery(competency: string, difficulty: number, ctx: CragQueryBuildContext = {}): string {
+  let q = competency.trim();
+  const role = ctx.targetRole ? sanitizeCragSegment(ctx.targetRole, CRAG_QUERY_TARGET_ROLE_MAX_CHARS) : null;
+  if (role) q += ` 岗位${role}`;
+  const stack = (ctx.techStackFacts ?? [])
+    .map((f) => sanitizeCragSegment(f, 60)).filter((f): f is string => f !== null)
+    .slice(0, 2).join(' ');
+  const stackClean = stack && stack.length <= CRAG_QUERY_TECH_STACK_MAX_CHARS ? stack : null;
+  if (stackClean) q += ` 栈${stackClean}`;
+  return `${q} 难度${difficulty}`;
+}
+
+/** #79:scenario 无素材显式降级模板(自撰,零模型调用;括注明示降级,非伪造素材非静默通用题)。 */
+export function scenarioDegradeTemplate(competency: string): string {
+  return `（题库暂无「${competency}」的情景题素材，已降级为通用情景题）请描述一个你亲身处理过的、与「${competency}」相关的具体场景，说明背景、关键决策、取舍理由和最终验证方式。`;
+}
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
@@ -151,6 +187,8 @@ export interface AdaptiveServiceDeps {
   resumeFacts?: string[];
   /** H4 R3(#252):focus 弱项标签(专项面软预算 5-8 派生面;只进 plan 节点,绝不影响难度/信心)。 */
   focusWeaknesses?: string[];
+  /** H2 #79(#259 供给线):用户显式岗位(begin 头透传)——CRAG 查询岗位段供给。缺省 undefined=旧两段查询。 */
+  targetRole?: string;
   localRetrieve: (q: string) => Promise<ScoredRef[]>;   // 真:annSearch over vector_chunk
   webExplore: (q: string) => Promise<SourceDoc[]>;      // 真:allowlist 抓取(源由配置定)
   /** 低置信 CRAG 才会调用的、有源数/字符/调用预算的多源取证。未注入时兼容旧 web seam。 */
@@ -266,10 +304,16 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
         attemptKey: `${d.threadId}:ask:t${turn}:0`, segments: ['retrieve', 'generate', 'validate'],
       }, async (run) => {
-      // 题型决定接地:grounded/fundamental 用 CRAG 检索真题素材;scenario/behavioral 与简历/题库解耦(空素材、空来源)。
-      const useRetrieval = kind === 'fundamental';
+      // 题型决定接地(H2 #79 扩面):fundamental/scenario 用 CRAG 检索真题素材;grounded 走简历选定
+      // 事实(上方早退),behavioral 考行为面经、与技术题库语料错配——检索白名单 EXEC 裁决=fundamental
+      // +scenario,behavioral 纳入与否留后刀如实登记(非「漏接」)。
+      const useRetrieval = kind === 'fundamental' || kind === 'scenario';
+      const cragQuery = buildCragPlannerQuery(competency, difficulty, {
+        targetRole: d.targetRole,
+        techStackFacts: selectGroundedFacts(d.resumeFacts ?? [], competency),
+      });
       const { local, web, verdict } = useRetrieval
-        ? await cragRetrieve(`${competency} 难度${difficulty}`, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
+        ? await cragRetrieve(cragQuery, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
         : { local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined };
       if (useRetrieval && verdict) {
         const nativeError = nativeRetrievalFailureToken(verdict.reason);
@@ -280,6 +324,14 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
             invokeError: nativeError,
           });
         }
+      }
+      // H2 #79:scenario 检索无素材(题库零命中且 web 零结果)→ 显式降级模板(沿 :247-257 grounded
+      // 无事实回退先例形),零 fail 硬死、绝不静默拿空素材喂模型发明情景题。fundamental 既有语义零改。
+      if (kind === 'scenario' && local.length === 0 && web.length === 0) {
+        return approvedTemplateGeneration(scenarioDegradeTemplate(competency), {
+          operationId: QUESTION_OPERATION_ID,
+          idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+        });
       }
       const docs: SourceDoc[] = web;
       // Web 和本地 qbank excerpt 都不是可信 prompt；二者进入模型前均保持显式 data 信封、固定预算。

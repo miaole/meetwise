@@ -44,6 +44,7 @@
     "prove:qbank-generation": "tsx test/qbank-generation.proof.ts",
     "prove:qbank-integrity-upgrade": "tsx test/qbank-integrity-upgrade.proof.ts",
     "prove:qbank-retrieval-eval": "tsx test/qbank-retrieval-eval-pg.proof.ts",
+    "prove:qbank-corpus-retrieve": "tsx test/qbank-corpus-retrieve.proof.ts",
     "prove:reqid": "tsx test/reqid.proof.ts",
     "prove:adaptive-degrade": "tsx test/adaptive-degrade.proof.ts",
     "prove:g7fix4-reroll": "tsx test/g7fix4-reroll.proof.ts",
