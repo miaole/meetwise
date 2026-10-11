@@ -2,6 +2,8 @@
 
 **状态**：`exec:awaiting_post_prove_dual`（EXEC 已落 mw-core · 恰 3 run attempts 1,1,1 · EXIT 原值 **CMD1=0 / CMD2=0 / CMD3=1**＝2 绿/1 红·非三绿候选·六向判读命中**第五向（CMD3 步 10 红）**·红 locus=`neg:resume` 12/87（consume 族 12/12 全 PASS·NEGCOMM-1 靶兑现·locus 移位）·步 11-27 not_run·收据 `ai-docs/delivery/receipts/g7trio2-full/00-exec-receipt.md`·post-prove 双审归协调方派·下方 §1-§5 蓝本原文零改写·EXEC 注记见文末 §6） · base = 主线 `2fab7946`（含 G7FIX-1 轮询+G7FIX-2 孪生同步+G7FIX-4 对称标记+G7FIX-5 臂回改全链修复）· 分支 `line/g7-trio2-full` · 立项依据 = G7FIX-5 nail（CMD1 首次 EXIT=0 全绿）+ G7TRIO 席2 trio 就绪度终评（臂回改=唯一阻塞·已落地）。
 
+> erratum 2026-10-11：本刀已终局 nail 并全链并主线，此状态行陈旧·对终局卷 re-EXEC 无效（终局登记＝execution-master-checklist :2099「Line G7TRIO-2 trio 全景重跑刀 NAIL」节 post-prove 双席 BOTH PASS·nail 判决 `93fb9b92`·主线并账 merge `f3a54577` 2026-10-11·append-only 注记·上行原文保留）
+
 ## 1. 手段
 恰 3 run（每键恰一次·零重跑至绿）：
 1. `pnpm e2e:isolated`（CMD1·**预期绿**——G7FIX-5 同 driver 已 EXIT=0/74 断言+G7FIX-4 产品面对称标记+G7FIX-1 route 轮询在树）；
