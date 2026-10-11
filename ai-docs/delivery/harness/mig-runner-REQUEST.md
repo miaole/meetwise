@@ -93,6 +93,7 @@
 1. **timeout 生效断言**：事务迁移执行期 lock_timeout/statement_timeout 会话级观测断言（SHOW 对表）+执行后恢复原值断言（`:275-281` finally 形制对拍）。
 2. **长 DDL 超预算形态断言**：fixture 长 DDL → statement_timeout 触发 → 整事务回滚 + ledger 零推进 + fail-loud tagged 错误面断言。
 3. **multi-statement 逐步记账断言**：N 句 fixture 第 k 句失败 → 前 k-1 句已记账（重跑 skip k-1 续跑 k·幂等收敛）+失败句零记账+全成功形记账 N 句。
+   **〔EXEC 落点回填·R-2 定形（EXEC 授权内的落点回填·非 §1 改写）〕**：存储形＝**旁表** `schema_migrations_steps(version, step_index, checksum, applied_at, PRIMARY KEY(version, step_index))`——步进行只存在于半完成窗口，完成事务内 `INSERT ledger + DELETE steps` 原子交换；`:227` 计数／`:233-236` checksum 对账／`:238-240` 连续前缀三守卫**零改**（半完成版本不进 schema_migrations·三守卫对旁表不可见）；旁表新增独立 fail-closed 守卫 `migration_steps_unknown_version`／`migration_steps_completed_version`（只增强不削弱）。
 4. **INVALID 清理重试断言**：预植 INVALID 索引 → DROP CONCURRENTLY+重建+重试恰一次成功断言；再败 fail-loud 断言；非 runner 产物索引零触碰断言（裁决项⑤边界）。
 5. **字节序切换等价断言**：现树 migrations/ 全量文件名 localeCompare 序==字节序逐对比对零翻；翻序用例负测（构造差异样本证明比较器真切换）。
 6. **双号容忍回归断言**：0160×2 形 fixture 双号文件过闸序稳定（字节序下）+全文件名重复仍拒（`:199` 语义零弱化）。

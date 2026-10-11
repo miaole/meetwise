@@ -146,6 +146,8 @@ jobs:
       # 可复跑验证 gate（红即阻断合并）
       - name: 四原语（CAS / 幂等 / RLS 越权=0 / 事件 seq）
         run: pnpm db:prove
+      - name: 迁移编号唯一性门（数值前缀·#140 修法②·豁免登记面·MIG-RUNNER 裁决项③ 本刀落码·CI-WIRING 只登记接线）
+        run: node scripts/check-migration-version-uniqueness.mjs
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
       - name: B端历史快照迁移回归（stale binding + deferred FK pending events）
