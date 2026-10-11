@@ -24,6 +24,28 @@ import {
 
 type Checkpointer = PostgresSaver;     // 直接取类型,不从 main 引(否则 main↔consumer 成环)
 
+/* ───────── H4 R2③(#252 focus 进题链·payload→consumer 断点):focus 白名单解析(纯函数·确定性·prove 直行使) ───────── */
+/** focus 标签上限:≤8 个维度名(报告页 gap 维度数远小于此,帽=防滥用;每名 ≤100 字符沿 targetRole 形制)。 */
+export const FOCUS_LABEL_MAX_COUNT = 8;
+export const FOCUS_LABEL_MAX_CHARS = 100;
+/**
+ * 解析 start job payload 的 focus 标量(payload->>'focus' = JSON 数组文本):
+ * 缺失/非 JSON/非字符串数组/全空白 → undefined(容忍不崩,沿 targetRole/requestId 同形制——专项面退化为通用面);
+ * 合法 → trim/去空/逐名截断 100 字符/总量帽 8,产纯 string[]。
+ */
+export function parseFocusPayload(raw: string | undefined): string[] | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { return undefined; }
+  if (!Array.isArray(parsed)) return undefined;
+  const labels = parsed
+    .filter((x): x is string => typeof x === 'string')
+    .map((x) => x.trim().slice(0, FOCUS_LABEL_MAX_CHARS))
+    .filter((x) => x.length > 0)
+    .slice(0, FOCUS_LABEL_MAX_COUNT);
+  return labels.length > 0 ? labels : undefined;
+}
+
 // **全链路 request-id 的进程内接力**:v50 gate 后只读 payload.requestId 标量,把整段生命周期处理跑在 ALS 上下文里,
 // 深埋在 lifecycle/service 里的每个 invoke 关口自动读到同一 reqId → 落 ai_invocation_trace.request_id(现有 invoke 调用零改动)。
 // reqId 的持久真相在 job.payload(Postgres);ALS 只是"本次执行"的进程内传递,崩溃重投按安全标量重放同一 reqId(不依赖内存)。
@@ -364,7 +386,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
               roleFromRouteSnapshot,
               roleFromDeps: adaptive.role,
             });
-            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : []);
+            // H4 R2③(#252 focus 进题链·断点④):payload->>'focus'(JSON 数组文本)解析白名单化——
+            // 缺失/畸形/越界 → undefined(容忍不崩沿 targetRole 同形制;专项面退化为通用面,零 fail 硬死)。
+            // focus 只作 planner 提示+专项软预算面,绝不触难度/confidence(隔离铁律)。
+            const focus = parseFocusPayload(requestContext.focus);
+            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : [], focus);
           } else {
             await submitAdaptiveAnswer(life, answerPayload as any);
           }

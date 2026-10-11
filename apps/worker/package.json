@@ -129,7 +129,8 @@
     "prove:r2-p-loop-route-classify": "tsx test/r2-p-loop-route-classify.proof.ts",
     "prove:r2-p-start-route-classify": "tsx test/r2-p-start-route-classify.proof.ts",
     "prove:r2-p-fake-route-classify": "tsx test/r2-p-fake-route-classify.proof.ts",
-    "prove:r2-p-live-route-effective": "tsx test/r2-p-live-route-effective.proof.ts"
+    "prove:r2-p-live-route-effective": "tsx test/r2-p-live-route-effective.proof.ts",
+    "prove:weakness": "tsx test/weakness.proof.ts"
   },
   "dependencies": {
     "@langchain/langgraph": "catalog:langchain",

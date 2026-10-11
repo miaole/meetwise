@@ -149,6 +149,8 @@ export interface AdaptiveServiceDeps {
   resumeProfileAvailable?: boolean;
   /** 有界脱敏 facts 池(C1 buildResumeFactPool 产出;闭包内供 prompt,禁入图 state)。 */
   resumeFacts?: string[];
+  /** H4 R3(#252):focus 弱项标签(专项面软预算 5-8 派生面;只进 plan 节点,绝不影响难度/信心)。 */
+  focusWeaknesses?: string[];
   localRetrieve: (q: string) => Promise<ScoredRef[]>;   // 真:annSearch over vector_chunk
   webExplore: (q: string) => Promise<SourceDoc[]>;      // 真:allowlist 抓取(源由配置定)
   /** 低置信 CRAG 才会调用的、有源数/字符/调用预算的多源取证。未注入时兼容旧 web seam。 */
@@ -165,13 +167,16 @@ export interface AdaptiveServiceDeps {
   loadAnswer?: AdaptiveDeps['loadAnswer'];
 }
 
-/** 规划官:据岗位+简历提目标能力(plan-and-solve 的 plan)。经 invoke。**约束性任务,走快模型**(缺省回退 model)。 */
-export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[]): Promise<CompetencySpec[]> {
+/** 规划官:据岗位+简历提目标能力(plan-and-solve 的 plan)。经 invoke。**约束性任务,走快模型**(缺省回退 model)。
+ *  H4 R2④(#252 focus 进题链·断点⑤):第 7 形参 focus=本场报告 gap 维度名(上一轮评估摘要 criterion+弱点标签,
+ *  fix-roadmap :97 验收原文)——只进 planner prompt 'planner.competencies' v3 可选段(喂 planner·「考哪些能力」面),
+ *  prompt v3 buildData 对缺省/空数组逐字节回退 v2 输出(resume-grounding B1/S1-1 守卫);**绝不影响难度/信心**。 */
+export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[], focus?: string[]): Promise<CompetencySpec[]> {
   const out = await invoke({
     idempotencyKey: `${threadId}:plan`, operation: { id: 'interview.competency-planning.v1', businessRevision: `${threadId}:plan` }, threadId, privacyInterviewId: threadId,
     schema: z.object({ competencies: z.array(z.string().min(1)).min(1) }),
     businessValidate: (v) => (v.competencies.length === 0 ? 'empty_plan' : null),
-    model: promptedModel(model, 'planner.competencies', { role, facts }),
+    model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus }),
   }, pool, owner);
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
@@ -184,13 +189,26 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
  *  → 更可能落进 core(复测更充分);但**只重排、绝不注入岗位无关能力**(hint 非硬过滤)。
  *  关键:记忆只影响"考哪些能力",**绝不影响"多难/多有信心"**——难度仍由 initMind 从中性 2 起(上次弱→这次中性难度复测,prior 完全向中性衰减),
  *  confidence 恒从 0 起(只累积本场证据)。空历史(冷启动/记忆不可用)→ 稳定分区自然恒等(**非特殊分支**:空集 → 全部落后桶、保持原序)。
- *  (#204 GROWTH-GEN S2:export 仅 prove 可见性——interview.proof ③a 直接行使本函数断言弱项偏置非 no-op;
- *   函数体逐字节原样,零逻辑改动。) */
+ *  (#204 GROWTH-GEN S2:export 仅 prove 可见性——interview.proof ③a 直接行使本函数断言弱项偏置非 no-op。)
+ *  H4 R7(#203 语义匹配·#203 终裁留本刀):命中判定由「归一化精确串等」升级为**确定性相似度匹配**(同文件 :94-106
+ *  relevanceScore 词元+CJK bigram 纯函数先例·A-3 生产在用)——**禁 embedding/向量召回**(memory lean MVP 注记
+ *  memory-service.ts:1-7 2 专家审计砍瘦定稿·Ban 条款照守);同义名(如「高并发能力」↔「高并发」)命中、异名
+ *  (「项目经验」↔「技术深度」)不误挡,精确相等恒命中短路。阈值固定 0.5(确定性·无模型·可 gate)。
+ *  分桶面(#203 修法「按岗位/简历分桶」)如实缩面:assessment_report 无岗位/简历列,分桶需新持久化(零迁移 Ban)
+ *  → 走 REQUEST 降级条款登记,本刀落 owner 域即桶(RLS owner 过滤原样=租户桶),岗位/简历分桶整条登记后刀。 */
+export const WEAKNESS_MATCH_THRESHOLD = 0.5;
+/** 弱项名确定性匹配:归一化精确相等短路 → relevanceScore 双向取最大(词元+CJK bigram 覆盖度)≥阈值。纯函数·无模型·禁 embedding。 */
+export function weaknessMatches(name: string, weak: string): boolean {
+  const a = normalizeQuestion(name);
+  const b = normalizeQuestion(weak);
+  if (!a || !b) return false;
+  if (a === b) return true;
+  return Math.max(relevanceScore(a, b), relevanceScore(b, a)) >= WEAKNESS_MATCH_THRESHOLD;
+}
 export async function biasByPastWeakness(pool: DbPool, owner: string, names: string[]): Promise<string[]> {
   const weak = await pastWeakDimensions(pool, owner).catch(() => [] as string[]);   // 记忆不可用/冷启动 → [] → 恒等(fail-soft,绝不因判重故障阻断开面)
-  const weakSet = new Set(weak.map(normalizeQuestion));
-  const isWeak = (n: string) => weakSet.has(normalizeQuestion(n));
-  return [...names.filter(isWeak), ...names.filter((n) => !isWeak(n))];             // 稳定分区:弱项前移、其余原序
+  const isWeak = (n: string) => weak.some((w) => weaknessMatches(n, w));            // R7 确定性相似度匹配(语义前移·hint 非硬过滤)
+  return [...names.filter(isWeak), ...names.filter((n) => !isWeak(n))];             // 稳定分区:弱项前移、其余原序(逐字节原形·零逻辑改)
 }
 
 export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
@@ -203,6 +221,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
   return {
     competencies: d.competencies,
     resumeProfileAvailable: d.resumeProfileAvailable,
+    focusWeaknesses: d.focusWeaknesses,
     loadAnswer: d.loadAnswer ?? (async () => { throw new Error('answer_artifact_unavailable'); }),
     maxTurns: d.maxTurns,
     absoluteMaxTurns: d.absoluteMaxTurns,

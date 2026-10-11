@@ -99,6 +99,12 @@ export interface AdaptiveDeps {
   maxTurns?: number;
   /** 平台 runaway 杀开关;未设则默认 120(长时面试档)。隔离 E2E 可压低控费。 */
   absoluteMaxTurns?: number;
+  /**
+   * H4 WEAKNESS-LOOP R3(#252 专项面):focus 弱项标签(本场报告 gap 维度名,worker deps 闭包携带)。
+   * 只进 plan 节点 → initMind 派生 5-8 题专项软预算(「考多久」面);**绝不入图 state/checkpoint,
+   * 也绝不影响难度/confidence**(反 confirmation-bias 铁律:难度仍中性 2 起、confidence 恒 0 起)。缺省=通用面零触。
+   */
+  focusWeaknesses?: string[];
   competencyKeywords?: Record<string, string[]>;
   retrieveAndGenerate: (
     competency: string,

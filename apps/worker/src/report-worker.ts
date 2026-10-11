@@ -10,6 +10,7 @@ import {
 import { buildReportGraph, type GenerateReport, type InterviewSummary } from '@meetwise/ai-graphs';
 import { runDrainLoop } from './drain-loop.ts';
 import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
+import { backfillLearningProgressFromAssessment } from './weakness-backfill.ts';
 
 export interface ReportWorkerDeps {
   /** 取面试结果摘要（生产从 interview/事件账本聚合；测试注入）。 */
@@ -104,6 +105,15 @@ export async function generateGrowthChain(
     out.failedCount++;
     console.error('growth_gen_assessment_failed', interviewId, code ?? asErr(e)?.message ?? 'err');
     return out;
+  }
+  // H4 R5（#205 学习计划回灌·评估段成功后紧邻·best-effort）：本场 gap 维度匹配**历史** learning_plan
+  // 学习项落 learning_progress 勾选（weakness-backfill 单源·R7 确定性匹配·只写 progress 不重写计划）。
+  // 尽力而为：失败仅结构化日志，不进 GrowthGenOutcome 计数器（形状冻结零改），绝不连累成长链与报告。
+  try {
+    const backfill = await backfillLearningProgressFromAssessment(pool, owner, interviewId);
+    if (backfill.marked > 0) console.log('weakness_backfill_marked', interviewId, JSON.stringify(backfill));
+  } catch (e) {
+    console.error('weakness_backfill_failed', interviewId, (asErr(e) as { message?: string } | null)?.message ?? 'err');
   }
   // ② 学习（依赖评估；失败不阻断职业）
   try {

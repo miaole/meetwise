@@ -12,6 +12,7 @@ import { ScoreRing } from '@/components/ScoreRing';
 import { AbilityBar } from '@/components/AbilityBar';
 import { GrowthChart } from '@/components/GrowthChart';
 import { listWindow, withLimitHref } from '@/lib/paginate';
+import { growthDeltaView } from '@/lib/growth/comparable';
 
 const PAGE = 20;          // 训练历程时间线封顶首屏渲染(曲线仍用全量点,见 GrowthChart 抽样)
 
@@ -75,8 +76,14 @@ async function GrowthArchive({ limit }: { limit?: string }) {
 
   const trend = TREND[totals.trend];
   // 时间线:最新在上;delta = 本场 overall − 上一场 overall(按时间序)。
+  // H4 R8(#269 可比性·标注形):相邻两场**维度名交集非空**才连 delta(纯函数单源 lib/growth/comparable);
+  // 不可比 → delta 不渲染:两场均有分 → 中性标注「维度口径不同 · 不可比」;前场缺分 → 不渲染(与现状一致)。
   const timeline = points
-    .map((p, i) => ({ p, delta: i > 0 && p.overall != null && points[i - 1].overall != null ? p.overall - (points[i - 1].overall as number) : null }))
+    .map((p, i) => ({
+      p,
+      view: i > 0 ? growthDeltaView(points[i - 1]!, p) : ({ comparable: false as const, delta: null } as const),
+      prevScored: i > 0 && points[i - 1]!.overall != null,
+    }))
     .reverse();
   const tlWin = listWindow(timeline, limit, PAGE);
   const latest = points[points.length - 1];
@@ -139,17 +146,21 @@ async function GrowthArchive({ limit }: { limit?: string }) {
         <h2 className="mb-4 text-lg font-bold tracking-tight">训练历程</h2>
         <Card className="overflow-hidden">
           <ul>
-            {tlWin.shown.map(({ p, delta }, i) => (
+            {tlWin.shown.map(({ p, view, prevScored }, i) => (
               <li key={p.interviewId}>
                 {i > 0 && <Separator />}
                 <div className="flex flex-wrap items-center gap-3 p-4">
                   <span className="w-24 shrink-0 text-sm text-muted-foreground tabular-nums">{fmtDate(p.at)}</span>
                   <Badge variant={p.overall != null && p.overall >= 60 ? 'success' : 'secondary'} className="tabular-nums">{p.overall ?? '—'} 分</Badge>
-                  {delta != null && delta !== 0 && (
-                    <span className={`inline-flex items-center gap-0.5 text-xs tabular-nums ${delta > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
-                      {delta > 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}{delta > 0 ? '+' : ''}{delta}
+                  {view.comparable && view.delta !== 0 && (
+                    <span className={`inline-flex items-center gap-0.5 text-xs tabular-nums ${view.delta > 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-destructive'}`}>
+                      {view.delta > 0 ? <TrendingUp className="size-3" /> : <TrendingDown className="size-3" />}{view.delta > 0 ? '+' : ''}{view.delta}
                     </span>
                   )}
+                  {/* H4 R8(#269):不可比标注——两场均有分但维度名交集为空 → 中性标注替代 delta(如实不比)。 */}
+                  {!view.comparable && prevScored ? (
+                    <span className="text-xs text-muted-foreground" data-testid="delta-not-comparable">维度口径不同 · 不可比</span>
+                  ) : null}
                   <span className="flex-1" />
                   <Button asChild variant="outline" size="sm"><Link href={`/report/${p.interviewId}`}>查看报告 →</Link></Button>
                 </div>
