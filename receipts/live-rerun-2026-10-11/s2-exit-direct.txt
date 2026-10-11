@@ -1,0 +1,1 @@
+S2_DIRECT_EXIT=1

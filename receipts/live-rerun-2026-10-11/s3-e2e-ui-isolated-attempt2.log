@@ -1,0 +1,173 @@
+
+> meetwise@0.1.0 e2e:ui:isolated /Users/miaole/Desktop/golucky/meetwise
+> node scripts/run-e2e-isolated.mjs e2e:ui
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-15279-1791721098769 on 127.0.0.1:55467
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=164 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 e2e:ui /Users/miaole/Desktop/golucky/meetwise
+> node scripts/run-e2e-ui.mjs
+
+E2E-UI: 启 api + worker…
+E2E-UI: 启 web(production next start, :35679)…
+E2E-UI: 跑 Playwright 浏览器用例…
+
+Running 28 tests using 1 worker
+
+  ✓   1 [chromium] › e2e-ui/golden.spec.ts:10:1 › golden path: landing → signup → cookie auth lets protected pages render in the real browser (6.0s)
+  ✓   2 [chromium] › e2e-ui/golden.spec.ts:61:1 › protected page in a fresh (no-cookie) context redirects to /login (middleware works) (293ms)
+  -   3 [chromium] › e2e-ui/online-public.spec.ts:20:3 › online public ingress › public landing and login are reachable
+  -   4 [chromium] › e2e-ui/online-public.spec.ts:34:3 › online public ingress › protected route redirects to same public origin without localhost
+  ✘   5 [chromium] › e2e-ui/recruiting-bound.spec.ts:143:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it (23.7s)
+  ✓   6 [chromium] › e2e-ui/screenshots.spec.ts:36:1 › capture demo screenshots (desktop) (9.4s)
+  ✓   7 [chromium] › e2e-ui/screenshots.spec.ts:90:1 › capture demo screenshots (mobile H5) (3.9s)
+  ✓   8 [chromium] › e2e-ui/stream-window.spec.ts:9:1 › 10k SSE replay with exact redelivery keeps a unique 80-turn DOM window and reaches a terminal view (800ms)
+  ✓   9 [chromium] › e2e-ui/stream-window.spec.ts:46:1 › progress variant: connecting renders real generation progress, question_ready clears it and shows the planned-turn badge (5.7s)
+  ✓  10 [chromium] › e2e-ui/stream-window.spec.ts:60:1 › silent variant: zero progress frames keep the static connecting copy verbatim; missing plannedTurns degrades to 第 N 题 only (5.8s)
+  ✓  11 [chromium] › e2e-ui/uc018-abandon.spec.ts:68:1 › UC018-UI-abandon: in-interview 放弃 → abandoned+released · irreversible · same HTTP contract (4.5s)
+  -  12 [chromium] › e2e-ui/voice-duplex.spec.ts:166:1 › 本机人机双向回合：AI 播报、用户语音作答、ASR 提交并推进下一题
+  -  13 [chromium] › e2e-ui/voice-duplex.spec.ts:205:1 › 非作答与评分操纵尾巴会澄清并重新打开语音回合
+  -  14 [chromium] › e2e-ui/voice-duplex.spec.ts:237:1 › 本机人机双工：麦克风先接通，用户抢话中止浏览器 TTS fetch 且不播放
+  ✓  15 [mobile] › e2e-ui/golden.spec.ts:10:1 › golden path: landing → signup → cookie auth lets protected pages render in the real browser (4.6s)
+  ✓  16 [mobile] › e2e-ui/golden.spec.ts:61:1 › protected page in a fresh (no-cookie) context redirects to /login (middleware works) (581ms)
+  -  17 [mobile] › e2e-ui/online-public.spec.ts:20:3 › online public ingress › public landing and login are reachable
+  -  18 [mobile] › e2e-ui/online-public.spec.ts:34:3 › online public ingress › protected route redirects to same public origin without localhost
+  ✘  19 [mobile] › e2e-ui/recruiting-bound.spec.ts:143:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it (24.4s)
+  ✓  20 [mobile] › e2e-ui/screenshots.spec.ts:36:1 › capture demo screenshots (desktop) (31.1s)
+  ✓  21 [mobile] › e2e-ui/screenshots.spec.ts:90:1 › capture demo screenshots (mobile H5) (6.2s)
+  ✓  22 [mobile] › e2e-ui/stream-window.spec.ts:9:1 › 10k SSE replay with exact redelivery keeps a unique 80-turn DOM window and reaches a terminal view (2.7s)
+  ✓  23 [mobile] › e2e-ui/stream-window.spec.ts:46:1 › progress variant: connecting renders real generation progress, question_ready clears it and shows the planned-turn badge (7.0s)
+  ✘  24 [mobile] › e2e-ui/stream-window.spec.ts:60:1 › silent variant: zero progress frames keep the static connecting copy verbatim; missing plannedTurns degrades to 第 N 题 only (21.6s)
+  ✓  25 [mobile] › e2e-ui/uc018-abandon.spec.ts:68:1 › UC018-UI-abandon: in-interview 放弃 → abandoned+released · irreversible · same HTTP contract (6.8s)
+  -  26 [mobile] › e2e-ui/voice-duplex.spec.ts:166:1 › 本机人机双向回合：AI 播报、用户语音作答、ASR 提交并推进下一题
+  -  27 [mobile] › e2e-ui/voice-duplex.spec.ts:205:1 › 非作答与评分操纵尾巴会澄清并重新打开语音回合
+  -  28 [mobile] › e2e-ui/voice-duplex.spec.ts:237:1 › 本机人机双工：麦克风先接通，用户抢话中止浏览器 TTS fetch 且不播放
+
+
+  1) [chromium] › e2e-ui/recruiting-bound.spec.ts:143:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it 
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/recruiter/jobs" until "load"
+    ============================================================
+
+      19 |   await page.fill('input[name="password"]', PASSWORD);
+      20 |   await page.getByRole('button', { name: /注册|Sign up/i }).click();
+    > 21 |   await page.waitForURL(role === 'recruiter' ? '**/recruiter/jobs' : '**/dashboard', { timeout: 20_000 });
+         |              ^
+      22 | }
+      23 |
+      24 | async function tokenOf(context: BrowserContext): Promise<string> {
+        at signUp (/Users/miaole/Desktop/golucky/meetwise/apps/web/e2e-ui/recruiting-bound.spec.ts:21:14)
+        at /Users/miaole/Desktop/golucky/meetwise/apps/web/e2e-ui/recruiting-bound.spec.ts:167:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-chromium/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-chromium/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-chromium/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-chromium/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-chromium/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  2) [mobile] › e2e-ui/recruiting-bound.spec.ts:143:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it 
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/recruiter/jobs" until "load"
+    ============================================================
+
+      19 |   await page.fill('input[name="password"]', PASSWORD);
+      20 |   await page.getByRole('button', { name: /注册|Sign up/i }).click();
+    > 21 |   await page.waitForURL(role === 'recruiter' ? '**/recruiter/jobs' : '**/dashboard', { timeout: 20_000 });
+         |              ^
+      22 | }
+      23 |
+      24 | async function tokenOf(context: BrowserContext): Promise<string> {
+        at signUp (/Users/miaole/Desktop/golucky/meetwise/apps/web/e2e-ui/recruiting-bound.spec.ts:21:14)
+        at /Users/miaole/Desktop/golucky/meetwise/apps/web/e2e-ui/recruiting-bound.spec.ts:167:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-mobile/test-failed-2.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-mobile/error-context.md
+
+    attachment #4: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/recruiting-bound-C→B-real--daf97--and-front-end-finalizes-it-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3) [mobile] › e2e-ui/stream-window.spec.ts:60:1 › silent variant: zero progress frames keep the static connecting copy verbatim; missing plannedTurns degrades to 第 N 题 only 
+
+    TimeoutError: page.waitForURL: Timeout 20000ms exceeded.
+    =========================== logs ===========================
+    waiting for navigation to "**/dashboard" until "load"
+    ============================================================
+
+      40 |   await page.fill('input[name="password"]', 'strongpw123');
+      41 |   await page.getByRole('button', { name: /注册|Sign up/i }).click();
+    > 42 |   await page.waitForURL('**/dashboard', { timeout: 20_000 });
+         |              ^
+      43 |   await page.goto(`/interview/${stressId}`);
+      44 | }
+      45 |
+        at registerAndGo (/Users/miaole/Desktop/golucky/meetwise/apps/web/e2e-ui/stream-window.spec.ts:42:14)
+        at /Users/miaole/Desktop/golucky/meetwise/apps/web/e2e-ui/stream-window.spec.ts:62:3
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    test-results/stream-window-silent-varia-2d2b9-urns-degrades-to-第-N-题-only-mobile/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    Error Context: test-results/stream-window-silent-varia-2d2b9-urns-degrades-to-第-N-题-only-mobile/error-context.md
+
+    attachment #3: trace (application/zip) ─────────────────────────────────────────────────────────
+    test-results/stream-window-silent-varia-2d2b9-urns-degrades-to-第-N-题-only-mobile/trace.zip
+    Usage:
+
+        pnpm exec playwright show-trace test-results/stream-window-silent-varia-2d2b9-urns-degrades-to-第-N-题-only-mobile/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+  3 failed
+    [chromium] › e2e-ui/recruiting-bound.spec.ts:143:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it 
+    [mobile] › e2e-ui/recruiting-bound.spec.ts:143:1 › C→B: real browser binds application to a new interview, completes it, and front-end finalizes it 
+    [mobile] › e2e-ui/stream-window.spec.ts:60:1 › silent variant: zero progress frames keep the static connecting copy verbatim; missing plannedTurns degrades to 第 N 题 only 
+  10 skipped
+  15 passed (3.0m)
+E2E_PROCESS_OUTPUT_WITHHELD process=worker:stderr chunks=3 bytes=214
+E2E_PROCESS_OUTPUT_WITHHELD process=worker:stdout chunks=6 bytes=666
+E2E_PROCESS_OUTPUT_WITHHELD process=api:stdout chunks=399 bytes=95946
+E2E_PROCESS_OUTPUT_WITHHELD process=web:stdout chunks=2 bytes=151
+E2E_PROCESS_OUTPUT_WITHHELD process=web:stderr chunks=3 bytes=770
+E2E_PROCESS_OUTPUT_WITHHELD process=playwright:stdout chunks=48 bytes=13524
+E2E_FAILURE class=frontend code=client_exited
+E2E_FAILURE class=frontend code=client_exited
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-15279-1791721098769 state_bytes=217 logs_bytes=867
+ ELIFECYCLE  Command failed with exit code 1.
