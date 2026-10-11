@@ -71,6 +71,13 @@ async function setup() {
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',2.0,now()+interval '300 days')", [cand4]);
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',2.0,now()+interval '300 days')", [cand5]);
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',2.0,now()+interval '300 days')", [cand6]);
+  // I4 #221/#223:0165/0166 受控函数族函数内复核 active+approved recruiter(0155)——recA/recB 须为
+  // 实体 approved 招聘方(③/④ 节 listJobCandidates/listTalentPool 富化即触发函数门);cand 带 email
+  // 供 #223 识别列断言;pendRec=pending 供 ⑧ DB 纵深门负探针。neg-bend :46 同款 fixture 直插法。
+  await pool.query(
+    "INSERT INTO user_account(id,email,password_hash,role,approval_status) VALUES ($1,$2,'x','recruiter','approved'),($3,$4,'x','recruiter','approved'),($5,$6,'x','recruiter','pending'),($7,$8,'x','candidate','approved')",
+    [recA, `${TAG}-recA@x.com`, recB, `${TAG}-recB@x.com`, `${TAG}_pendRec`, `${TAG}-pend@x.com`, cand, `${TAG}-cand@x.com`],
+  );
 }
 
 async function completeBound(candidate: string, interviewId: string, score: number) {
@@ -301,6 +308,41 @@ async function main() {
   A('I3-3i 已决再 retry → already_decided（无重试必要·零空转 revision）',
     retryDecided !== null && retryDecided.status === 'already_decided' && await revCount(jobDId) === 2);
 
+  section('⑧ I4 #221/#223:通知写侧 gateway 机制臂 + 同意门识别投影(裁决项①/③·db 层直证)');
+  // user_account 种子见 setup()(recA/recB approved·pendRec pending·cand candidate)。
+  // WITH CHECK 语义证明:招聘方 principal 直插候选人 owned 通知行被拒(14_notification.sql p_owner
+  // WITH CHECK+FORCE RLS 零动——写侧必经裁决形通道,禁止绕过)。
+  let withCheckRejected = false;
+  try { await asPrincipal(pool, recA, (c) => c.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('ntf_i4_forge',$1,'job_invited','{}')", [cand])); }
+  catch { withCheckRejected = true; }
+  A('招聘方 principal 直插候选人通知行被拒(WITH CHECK 语义·写侧必经裁决形通道)', withCheckRejected);
+  // gateway_notify_invited owner 谓词 fail-closed:非自有申请(recB × recA 的申请)→ 零写零信号。
+  await asPrincipal(pool, recB, (c) => c.query('SELECT gateway_notify_invited($1,$2)', [recB, appId]));
+  A('通知函数 owner 谓词 fail-closed:非自有申请零写(与不存在不可区分)', (await pool.query('SELECT count(*)::int n FROM notification WHERE id=$1', [`ntf_${appId}`])).rows[0].n === 0);
+  // 命中:recA 对自有申请调函数 → 候选人通知行落库(窄接口:kind/payload 固定·id=ntf_<applicationId>)。
+  await asPrincipal(pool, recA, (c) => c.query('SELECT gateway_notify_invited($1,$2)', [recA, appId]));
+  const invNotif = (await pool.query('SELECT id, owner_user_id, kind, payload FROM notification WHERE id=$1', [`ntf_${appId}`])).rows[0];
+  A('通知函数命中:候选人通知行落库(owner=cand·kind=job_invited·id=ntf_<applicationId> 幂等形)', invNotif?.owner_user_id === cand && invNotif?.kind === 'job_invited');
+  A('通知 payload 恰 {jobId,jobTitle} 最小集(键集=2·零 PII 扩散·§5 Ban)', invNotif?.payload?.jobId === jobA && invNotif?.payload?.jobTitle === '后端工程师' && Object.keys(invNotif?.payload ?? {}).length === 2);
+  // 幂等:重邀请/幂等复用 → 通知零堆积。
+  await asPrincipal(pool, recA, (c) => c.query('SELECT gateway_notify_invited($1,$2)', [recA, appId]));
+  A('幂等重调:通知行零堆积(ON CONFLICT (id) DO NOTHING·ntf_<applicationId> 形)', (await pool.query('SELECT count(*)::int n FROM notification WHERE id=$1', [`ntf_${appId}`])).rows[0].n === 1);
+  // DB 纵深:pending recruiter 直调通知函数 → gateway_recruiter_required(0155 审批维度·fail-closed 只增不弱)。
+  let pendRejected = false;
+  try { await asPrincipal(pool, `${TAG}_pendRec`, (c) => c.query('SELECT gateway_notify_invited($1,$2)', [`${TAG}_pendRec`, appId])); }
+  catch (e) { pendRejected = String(e).includes('gateway_recruiter_required'); }
+  A('pending recruiter 直调通知函数→gateway_recruiter_required(neg-bend :421 同款 DB 门)', pendRejected);
+  // #223 识别投影(0166 gateway_recruiter_contact_share):无同意 → 恰零出参(fail-closed·0160 同意门同形)。
+  const shareIds = [appId, inv3!.applicationId];
+  const preShare = await asPrincipal(pool, recA, (c) => c.query('SELECT application_id, email FROM gateway_recruiter_contact_share($1,$2)', [recA, shareIds]));
+  A('识别投影无同意→零出参(fail-closed:无 recruiter_contact_share 同意行的候选人不披露)', preShare.rows.length === 0);
+  // cand 同意 recruiter_contact_share → 恰同意行出邮箱;未同意的 inv3(cand3)仍零出参;跨租户 recB 恒零出参。
+  await asPrincipal(pool, cand, (c) => c.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ($1,$2,'recruiter_contact_share','v1')", [`cr_${TAG}`, cand]));
+  const share = await asPrincipal(pool, recA, (c) => c.query('SELECT application_id, email FROM gateway_recruiter_contact_share($1,$2)', [recA, shareIds]));
+  A('识别投影同意后→恰同意行出候选人邮箱(inv3/cand3 未同意仍零出参)', share.rows.length === 1 && share.rows[0]?.application_id === appId && share.rows[0]?.email === `${TAG}-cand@x.com`);
+  const shareX = await asPrincipal(pool, recB, (c) => c.query('SELECT application_id, email FROM gateway_recruiter_contact_share($1,$2)', [recB, shareIds]));
+  A('识别投影 owner 谓词 fail-closed:跨租户 recruiter 恒零出参', shareX.rows.length === 0);
+
   console.log(`\n${failures === 0 ? '✓ recruiter:prove 全部通过' : '✗ ' + failures + ' 失败'}（application-bound interview + RLS + 自动回填）`);
 }
 
@@ -315,6 +357,9 @@ async function cleanup() {
     await pool.query('DELETE FROM job_semantic_revision WHERE job_id IN ($1,$2)', [jobCId, jobDId]);
   }
   await pool.query('DELETE FROM job_posting WHERE id = ANY($1::text[])', [[jobA, jobB, jobCId, jobDId].filter(Boolean)]);
+  await pool.query('DELETE FROM notification WHERE owner_user_id = ANY($1::text[])', [[cand]]);
+  await pool.query('DELETE FROM consent_record WHERE id = $1', [`cr_${TAG}`]);
+  await pool.query('DELETE FROM user_account WHERE id = ANY($1::text[])', [[recA, recB, `${TAG}_pendRec`, cand]]);
   await pool.query('DELETE FROM entitlement_consumption WHERE owner_user_id IN ($1,$2,$3)', [cand4, cand5, cand6]);
   await pool.query('DELETE FROM entitlement_bucket WHERE owner_user_id IN ($1,$2,$3)', [cand4, cand5, cand6]);
   await pool.query('DELETE FROM resume WHERE id = ANY($1::uuid[])', [[resumeCand, resumeCand2, resumeCand3, resumeCand4, resumeCand5, resumeCand6]]);

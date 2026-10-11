@@ -20,7 +20,7 @@ export const metadata: Metadata = {
 };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
-interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; terminalKind?: 'held' | 'failed' | null; source?: string }
+interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; terminalKind?: 'held' | 'failed' | null; source?: string; contactEmail?: string | null }
 
 /** I2 W2 档位徽（rubric disposition 三值映射 Ban 自造档位·不出数字）：强/中/弱/证据不足。 */
 const TIER_BADGE: Record<string, { text: string; variant: 'success' | 'outline' | 'secondary' | 'destructive' }> = {
@@ -128,7 +128,11 @@ export default async function RecruiterApplicationStatusPage({
           <dl className="grid gap-3 sm:grid-cols-2">
             <div>
               <dt className="text-muted-foreground">候选人</dt>
-              <dd className="mt-1 font-mono">{application.candidate_user_id.slice(0, 8)}</dd>
+              {/* I4 #223 同意门识别列(0166 受控投影 fail-closed:无同意零出参零显示·8 位截断形制零改)。 */}
+              <dd className="mt-1 font-mono">
+                {application.candidate_user_id.slice(0, 8)}
+                {application.contactEmail ? <span className="ml-2 font-sans text-xs text-muted-foreground">{application.contactEmail}</span> : null}
+              </dd>
             </div>
             <div>
               <dt className="text-muted-foreground">来源</dt>

@@ -17,6 +17,7 @@ export const metadata: Metadata = { title: '投递骨架 · 内部预览 · 知�
 interface Talent {
   id: string; job_id: string; job_title: string; candidate_user_id: string;
   status: string; score: number | null; source: string; created_at: string;
+  contactEmail?: string | null;
 }
 
 /**
@@ -100,7 +101,11 @@ export default async function TalentPoolPage({ searchParams }: { searchParams: P
                     const st = applicationStatusLabel(t.status);
                     return (
                       <tr key={t.id} className="border-b last:border-0">
-                        <td className="py-3 pr-4 font-mono">{t.candidate_user_id.slice(0, 8)}</td>
+                        {/* I4 #223 同意门识别列(0166 受控投影 fail-closed:无同意零出参零显示·8 位截断形制零改)。 */}
+                        <td className="py-3 pr-4 font-mono">
+                          {t.candidate_user_id.slice(0, 8)}
+                          {t.contactEmail ? <span className="ml-2 font-sans text-xs text-muted-foreground">{t.contactEmail}</span> : null}
+                        </td>
                         <td className="py-3 pr-4">
                           <Link href={`/recruiter/jobs/${t.job_id}`} className="text-foreground hover:text-primary hover:underline">{t.job_title}</Link>
                         </td>
