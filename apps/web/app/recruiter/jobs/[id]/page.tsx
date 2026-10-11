@@ -7,6 +7,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { InviteCandidateDialog } from '@/components/InviteCandidateDialog';
+import { JobAdminPanel } from './JobAdminPanel';
+import { jobRouteBadgeVariant, jobRouteStatusLabel, type JobRouteStatusLite } from '@/lib/recruiter/route-status';
 import { listWindow, withLimitHref } from '@/lib/paginate';
 import { applicationStatusLabel, recruiterAssessmentLabel } from '@/lib/recruiter/surface';
 
@@ -14,7 +16,7 @@ const PAGE = 30;          // 单岗位候选人封顶首屏渲染,"加载更多"
 
 export const metadata: Metadata = { title: '岗位投递 · 内部预览 · 知面', description: '内部预览：查看该岗位投递的流程状态。不是招聘方产品。' };
 
-interface Job { id: string; title: string; competencies: string[]; status: string }
+interface Job { id: string; title: string; description: string; competencies: string[]; status: string }
 interface Candidate { id: string; candidate_user_id: string; status: string; score: number | null; source?: string }
 
 /** B 端(招聘方)岗位详情:看本岗位的候选人列表(多租户 RLS 只见自己岗位)。RSC,await params 取 id,Promise.all 并行取数。 */
@@ -23,12 +25,15 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
   const { id } = await params;
   const { limit } = await searchParams;
 
-  const [jobRes, candidatesRes] = await Promise.all([
+  // I3 JOB-MGMT（#219）：详情页并取路由状态读面（GET /recruiter/jobs/:id/route）——404/缺省容错为 null（不可见≠已决）。
+  const [jobRes, candidatesRes, routeRes] = await Promise.all([
     serverGet<{ job?: Job } | Job>(`/recruiter/jobs/${id}`),
     serverGet<{ candidates: Candidate[] }>(`/recruiter/jobs/${id}/candidates`),
+    serverGet<{ route: JobRouteStatusLite | null }>(`/recruiter/jobs/${id}/route`),
   ]);
   const job = jobRes && 'job' in jobRes ? jobRes.job : (jobRes as Job | null);
   const candidates = candidatesRes?.candidates ?? null;
+  const route = routeRes?.route ?? null;
   const win = candidates ? listWindow(candidates, limit, PAGE) : null;
 
   return (
@@ -49,6 +54,46 @@ export default async function RecruiterJobCandidatesPage({ params, searchParams 
           </div>
         ) : null}
       </div>
+
+      {/* I3 JOB-MGMT（#219/#220）：岗位管理卡——路由状态可见面（含可断言状态字样与 reasonCodes 摘要）
+          + 编辑/下线/重试显式入口。未决态给出诚实指引（候选人 start 409 的根因与出路）。 */}
+      {job ? (
+        <Card>
+          <CardHeader>
+            <CardTitle className="text-lg">岗位管理</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <div className="flex flex-wrap items-center gap-2 text-sm">
+              <span className="text-muted-foreground">路由状态:</span>
+              {route ? (
+                <>
+                  <Badge variant={jobRouteBadgeVariant(route.status)}>{jobRouteStatusLabel(route.status)}</Badge>
+                  <span className="text-xs text-muted-foreground">revision {route.revision}</span>
+                </>
+              ) : (
+                <span className="text-muted-foreground">路由状态待同步</span>
+              )}
+            </div>
+            {route?.status === 'route_unresolved' ? (
+              <div className="rounded-md border border-destructive/30 bg-destructive/5 p-3 text-sm">
+                <p>该岗位路由未决，候选人暂无法开始面试。</p>
+                {route.reasonCodes?.length ? (
+                  <p className="mt-1 text-xs text-muted-foreground">原因码: {route.reasonCodes.join(', ')}（分类尝试: {route.attemptOutcome ?? '未知'}）</p>
+                ) : null}
+                <p className="mt-1 text-xs text-muted-foreground">可编辑岗位描述/能力后自动重路由，或点击「重试路由」重新投递（不会自动无限重试）。</p>
+              </div>
+            ) : null}
+            <JobAdminPanel
+              jobId={id}
+              title={job.title}
+              description={job.description ?? ''}
+              competencies={job.competencies ?? []}
+              jobStatus={job.status}
+              routeStatus={route?.status ?? null}
+            />
+          </CardContent>
+        </Card>
+      ) : null}
 
       <Card>
         <CardHeader><CardTitle className="text-lg">候选人{job && candidates ? `（${candidates.length}）` : ''}</CardTitle></CardHeader>

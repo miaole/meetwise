@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Param, Body, Query, Req, Headers, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
-import { CreateJobDto, InviteCandidateDto } from '@meetwise/contracts';
+import { Controller, Get, Post, Patch, Param, Body, Query, Req, Headers, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { CreateJobDto, InviteCandidateDto, UpdateJobDto } from '@meetwise/contracts';
 import type { TalentQuery } from '@meetwise/db';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { RecruiterGuard } from '../../platform/recruiter.guard';
@@ -40,6 +40,34 @@ export class RecruiterController {
   @Get('jobs/:id')
   get(@Param('id') id: string, @Req() req: any) {
     return this.recruiter.get(req.principal, id);
+  }
+
+  // I3 JOB-MGMT（裁决①·#220）：PATCH 编辑岗位——语义变更自动写新 revision（route_pending）+ wakeup，
+  // 既有 sole worker drain 认领（链路自通零新管道）；owner 谓词内建（db assertPrincipal+行锁）。
+  @Patch('jobs/:id')
+  update(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(UpdateJobDto)) b: UpdateJobDto) {
+    return this.recruiter.update(req.principal, id, b);
+  }
+
+  // I3 JOB-MGMT（裁决①·#220）：POST 下线岗位——三臂语义（非自有→404·closed 再 close 同 404 壳·open→closed 200）。
+  @Post('jobs/:id/close')
+  @HttpCode(HttpStatus.OK)
+  close(@Param('id') id: string, @Req() req: any) {
+    return this.recruiter.close(req.principal, id);
+  }
+
+  // I3 JOB-MGMT（#219 可见面）：招聘方读岗位语义路由状态（枚举+reasonCodes 摘要·仅 owner·UI 文案含可断言状态字样）。
+  @Get('jobs/:id/route')
+  route(@Param('id') id: string, @Req() req: any) {
+    return this.recruiter.route(req.principal, id);
+  }
+
+  // I3 JOB-MGMT（裁决③·#219）：显式重试路由——写新 revision + wakeup 走既有 drain；
+  // sticky 枚举语义零改（Ban 无界自动重试·本动作=招聘方显式有界投递）。
+  @Post('jobs/:id/route-retry')
+  @HttpCode(HttpStatus.OK)
+  retryRoute(@Param('id') id: string, @Req() req: any) {
+    return this.recruiter.retryRoute(req.principal, id);
   }
 
   @Get('jobs/:id/candidates')

@@ -1,0 +1,82 @@
+
+> meetwise@0.1.0 recruiter:prove /Users/miaole/Desktop/golucky/meetwise-i3-base
+> node scripts/run-e2e-isolated.mjs recruiter:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-16613-1791725506170 on 127.0.0.1:62072
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-i3-base/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=164 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 recruiter:prove:raw /Users/miaole/Desktop/golucky/meetwise-i3-base
+> pnpm -C packages/db recruiter
+
+
+> @meetwise/db@0.0.0 recruiter /Users/miaole/Desktop/golucky/meetwise-i3-base/packages/db
+> tsx test/recruiter-depth.proof.ts
+
+
+──────── ① application→interview 原子一对一绑定 + 并发重试 ────────
+PASS  招聘方 A 邀请候选人 → application
+PASS  候选人侧初态 invited
+PASS  20 路并发 start → 全部返回同一受信 interviewId
+PASS  DB 四元绑定完整(application/job/resume/candidate)
+PASS  每 application 恰一 interview
+
+──────── ② 旧 C 端历史训练不能替换绑定，DB trigger 直接拦截 ────────
+PASS  直接把历史普通 interview 改绑为岗位会话 → DB 拒绝
+PASS  直接把 application 指向历史 interview → DB 拒绝
+PASS  未完成的绑定会话无法 finalize，即使存在本人历史 99 分
+
+──────── ③ 完成的绑定会话进入人工复核，不生成 B 端数值评分 ────────
+PASS  完成 trigger 自动收口为 assessment_unavailable、score=NULL
+PASS  浏览器 finalize 返回显式 scoreless outcome
+PASS  招聘方读取边界不返回历史或实时数值评分
+PASS  scoreless application 的 attempt 不可被单列篡改
+
+──────── ③a 已确认扣费的完成事务同样不得自动形成 B 端分数（报告子图与此解耦） ────────
+PASS  确认消费 + interview completed 的同一事务进入复核终态、score=NULL
+PASS  报告失败/不可用不会让 finalize 伪造数值评分
+PASS  重复邀请已复核候选人返回真实 assessment_unavailable
+
+──────── ④ RLS 最小化视图、筛选、跨租户隔离 ────────
+PASS  招聘方看到 4 条申请且只有状态/分数摘要
+PASS  招聘方读候选人 interview = 0 行
+PASS  招聘方读候选人作答事件 = 0 行
+PASS  已完成会话只以 assessment_unavailable 进入人才库，无 invited 反例
+PASS  人才库返回的 score 一律为 NULL，不能成为招聘排序依据
+PASS  招聘方 B 人才库无 A 的候选人
+PASS  招聘方 B 读 A 的岗位为 null
+
+──────── ⑤ declined 终态、缺简历与 who-pays ────────
+PASS  非 ingested/不存在 resume → resume_not_ready 且 application 不变
+PASS  declined 终态不可启动
+PASS  邀请/绑定不产生招聘方 entitlement 消费
+
+──────── ⑥ 无可信评分：释放额度 → B 端可恢复终态 → 新 attempt 围栏 ────────
+PASS  评分缺证据 → application=assessment_unavailable、score=NULL、attempt=1
+PASS  失败面试额度只释放一次
+PASS  0046 terminal-pair 在 DB 层阻止任何 failed+reserved 写入
+PASS  finalize 返回显式 scoreless outcome（绝不伪造 0 分）
+PASS  旧 attempt 编号不可篡改（触发器覆盖 application_attempt）
+PASS  旧 failed attempt 不可被直接复活为 in_progress
+PASS  assessment_unavailable 的 attempt 不可被单列篡改
+PASS  20 路显式重试只创建一个新 attempt=2，旧失败会话保留
+
+──────── ⑦ 全部 unresolved 不是伪造 0 分：已完成消费 + B 端 scoreless hold 终态（0082 自动收口·completed 会话 held 不可复活） ────────
+PASS  全 unresolved 完成后自动收口 hold 不伪造 0 分，也不把申请错误标 completed
+PASS  无有效评分 → application=assessment_unavailable、score=NULL，旧 completed interview 仍被绑定
+PASS  无有效评分是已完成交互：消费 confirmed，不错误退款
+PASS  no-score 收口只返回 replayed，不追加第二个 application 状态迁移
+PASS  20 路 no-score 重试全拒 held，completed 的旧会话不能复活、不创建新 attempt
+PASS  校准 hold：评分不可伪造——completed 状态写冻结、hold 行 score 校准前不可变
+
+✓ recruiter:prove 全部通过（application-bound interview + RLS + 自动回填）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T13-32-13-767Z-16613-9acab1dd-a40e-46ee-b6a3-a25fb6986f65.json release_evidence=false
+recruiter:prove EXIT=0 (attempt 1)

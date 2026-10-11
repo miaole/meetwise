@@ -235,8 +235,11 @@ export type StartAdaptiveInterviewResult = {
  *  H4 R2③/R3(#252):第 4 形参 focus=本场报告 gap 维度名(专项面·additive 可选)——沿 targetRole 第 6 参先例的
  *  payload 透传面:①进 planCompetencies 第 7 参(planner prompt 'planner.competencies' v3 上一轮评估摘要段);
  *  ②进 makeDeps focusWeaknesses(plan 节点 initMind 派生 5-8 题专项软预算)。focus 只进「考哪些能力/考多久」面,
- *  **绝不影响难度/confidence**(反 confirmation-bias 铁律 :185-186 原样)。缺省 undefined=通用面逐字节原样。 */
-async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, _legacyCallerFacts: string[], focus?: string[]): Promise<StartAdaptiveInterviewResult> {
+ *  **绝不影响难度/confidence**(反 confirmation-bias 铁律 :185-186 原样)。缺省 undefined=通用面逐字节原样。
+ *  I3 JOB-MGMT(#197/#258·裁决⑥):第 5 形参 job=岗位侧供给(competencies+JD 摘要·additive 可选)——
+ *  consumer 经 RLS+快照同源门条件化供给,透传 planCompetencies 第 8 参(planner prompt v4 岗位段);
+ *  缺省 undefined=既有路径逐字节原样;只进「考哪些能力」面,绝不影响难度/confidence。 */
+async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, _legacyCallerFacts: string[], focus?: string[], job?: { competencies: string[]; jdSummary: string }): Promise<StartAdaptiveInterviewResult> {
   // C1/C2(RESUME-GROUNDING):规划边界不再丢简历内容——loadInterviewResumeGrounding 以同一 RLS+admit 门
   // 读出有界脱敏 facts 池(consent 开,G1);按岗位相关性确定性选 ≤8 条×≤120 字符(selectPlannerFacts,A-3,
   // 禁模型选)真 facts 进 planner <data>。未同意/已撤回/画像不可用 → 既有占位串路径照旧(与现状逐字节一致)。
@@ -247,7 +250,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   const plannerFacts = grounding.pool.length > 0
     ? selectPlannerFacts(grounding.pool, role)
     : resumeProfileAvailable ? ['authorized_resume_profile_available'] : [];
-  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus);
+  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus, job);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
   const cfg = { configurable: { thread_id: d.interviewId } };
@@ -274,9 +277,10 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
 }
 
 /** facts 形参为 consumer 侧历史准入位(向后兼容保留);规划边界真值由 RLS 现读(见 impl 内 C1/C2 注记)。
- *  H4 R2③:focus 可选第 4 形参(payload focus 透传终点·additive,旧调用方逐字节兼容)。 */
-export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[], focus?: string[]): Promise<StartAdaptiveInterviewResult> {
-  return runGraph(d, 'start', () => startAdaptiveInterviewImpl(d, role, facts, focus));
+ *  H4 R2③:focus 可选第 4 形参(payload focus 透传终点·additive,旧调用方逐字节兼容)。
+ *  I3 JOB-MGMT(#197/#258):job 可选第 5 形参(岗位侧供给透传·additive,旧调用方逐字节兼容)。 */
+export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[], focus?: string[], job?: { competencies: string[]; jdSummary: string }): Promise<StartAdaptiveInterviewResult> {
+  return runGraph(d, 'start', () => startAdaptiveInterviewImpl(d, role, facts, focus, job));
 }
 
 /**

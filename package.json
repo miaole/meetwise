@@ -434,6 +434,7 @@
     "quiz-dual-claim:prove": "pnpm -C apps/worker prove:quiz-dual-claim-pg",
     "quiz-dual-claim:prove:raw": "pnpm -C apps/worker prove:quiz-dual-claim-pg",
     "worker-wakeup:prove": "pnpm -C apps/worker prove:job-wakeup",
+    "i3-jd-supply:prove": "pnpm -C apps/worker prove:i3-jd-supply",
     "metrics:prove": "pnpm -C packages/ai-runtime prove:metrics",
     "scoring-eval:prove": "pnpm -C packages/ai-runtime prove:eval-metrics",
     "langfuse-eval:prove": "pnpm -C packages/ai-runtime prove:langfuse-eval",
