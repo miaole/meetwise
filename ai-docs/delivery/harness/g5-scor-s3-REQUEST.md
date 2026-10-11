@@ -1,6 +1,6 @@
 # REQUEST — **G5 SCOR-S3 残面收尾刀**（ADR-0020 未闭合四项盘点 · 读面 `practice_eligible` 收窄 + GET 重闸 · B 端校准/C 端可见性切换显式排除 · 起草 docs-only）
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（docs-only 起草 · Ban coding · Ban prove 执行 · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（docs-only 起草 · Ban coding · Ban prove 执行 · Ban self-approve · alone ≠ dual · 不代签 peer）→ **`executed:awaiting_post_prove_dual`**（G5 EXEC 席 g5-exec 2026-10-11 · 协调方明示授权 EXEC+D1 收窄形制 EXEC 落卷 · rebase 主线 20186718 零重定位 · 项2=0161+TS 谓词镜像（D1 落卷）·项3=GET 读后校验重闸（D2 落卷）· 项1/项4 显式排除零触 · 12 门 EXIT 绿+tsc 基线 120=120 全同+docs:check 预存红 PTP 4402 如实 · 停止条件三查未触发 · 收据 `receipts/g5-scor-s3/`（漂移表/EXIT 表/D1-D3 落卷/est live=0）· markers=0 · ⛔push · post-prove 双审待并行）
 **Line**: **G5 SCOR-S3 残面收尾**（G1 刀 `3d61c091` 已落主线：#42 scor-parity 57 断言对拍 + #43 `0158_score_card_insert_guard.sql` INSERT 守门 + #41 ADR-0020 翻 accepted——本刀收 G1 **未覆盖**的 S3 残面，即 `adr/0020-*.md:85` 未闭合四项中可码面收口的两项；蓝本 `batch-residual-plan.md:86` G1 行 @ `line/batch1-residual` `ab02d499` 承接）
 **Base tip**: `20186718`（`feat/mysql-schema-skeleton` 主线 tip 2026-10-11 实测 · 本 worktree `line/g5-scor-s3` · 本文全部 file:line 于本 tip **亲读重 pin**）
 **Author**: `g5-draft`（REQUEST 起草席 · 实现不自批）

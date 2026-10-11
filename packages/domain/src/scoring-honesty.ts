@@ -7,7 +7,7 @@
  *
  * 本闸不替代 ScoreCard 写路径（SCOR-01…08），也不改变 worker 完成判定计数。
  */
-import { isScoreCardScorable, type ScoreCardStatus } from './scoring-fact-root.ts';
+import { isPracticeReadableScoreCard, type ScoreCardStatus } from './scoring-fact-root.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 
@@ -154,11 +154,13 @@ export interface HonestyScoreCard {
 }
 
 /**
- * C-end practice overall from ScoreCards only. Empty / non-scorable → insufficient
+ * C-end practice overall from ScoreCards only. Empty / not practice-readable → insufficient
  * evidence (null), never a forged 0 and never an event-average fallback.
+ * （G5 SCOR-S3：practice 名实一致——isPracticeReadableScoreCard 单态门 · 0161/ADR-0020 :54 收窄，
+ * b_review_eligible 不入 C 端练习 overall。）
  */
 export function practiceOverallFromScoreCards(cards: readonly HonestyScoreCard[]): number | null {
-  const eligible = (cards ?? []).filter((c) => c && isScoreCardScorable(c.status));
+  const eligible = (cards ?? []).filter((c) => c && isPracticeReadableScoreCard(c.status));
   if (eligible.length === 0) return null;
   if (eligible.some((c) => !Number.isInteger(c.deterministicTotal) || c.deterministicTotal < 0 || c.deterministicTotal > 100)) {
     fail('score_value_invalid');
