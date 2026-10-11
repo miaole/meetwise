@@ -131,3 +131,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 *draft_rev2:pre_exec_dual（复审处方 5 条落卷·profile 缺省语义选 (a) 纯分数阶梯·零码动·待复审确认后协调方行使 EXEC 授权） · 2026-10-11 · h3-rev2 落卷席（复审 FAIL 窄面处方落卷·docs-only 零码动·append-only 历史行不抹改·改正处原位/续行附注） · est live=0 · pins 十一值零翻转 · ⛔push · Ban self-approve · alone≠dual*
 
 *executed:awaiting_post_prove_dual（H3 LEVEL-SCHEME EXEC 落卷·2026-10-11·h3-exec 席·rebase 主线 `feat/mysql-schema-skeleton`@`2cd33cf3` 零冲突 2/2（漂移表入收据：page :31/:327→:32/:353·service :725/:747→:747/:769·controller :234/:240→:236/:242·CONSENT_PURPOSES :469-471→:472-473·CONF_ENOUGH :132→:147 H4 平移内容零漂·迁移编号 0160 空闲重 pin）· §2 七条全落：① `packages/db/migrations/0160_level_policy_version.sql`（A.4 形 DDL+append-only 触发器沿 0100:294-296+seed v2 行 16 字段逐字照抄 status='calibrating'）② contracts :480-545 四冻结名+LevelTier/LEVEL_REASON_CODES 16 码+「占位·待校准」注记（ACTIVE 恒 'v1' 不翻）③ career.ts 五档化（:52 ladderTier 读镜像禁字面量+:104 evaluateLevelPolicy 纯函数+:16 字节零触+:17 顶档 principal 机械对齐+v1 历史只读禁双写）④ page.tsx :18/:32-34/:355-356（LEVEL_LABELS 单源+未知值中文兜底 #125）⑤ interview.service 零 diff（签名冻结→seam 最小适配=零适配·SHAPE-FROZEN PASS·409 信封零新增码）⑥ growth-generation.ts 零字节 ⑦ 三推论落码（unavailable 穷举=insufficient_cards∪insufficient_coverage 唯一出口/未测只封顶 capped_by_evidence≠测了没过 hard_question_underperform/卡×覆盖×S 490 格双向硬断言）· profile 缺省语义 (a) 落卷（缺省分支 :107-122 纯分数阶梯·全域扫描零 unavailable 零伪 capped）· 门禁 12 项全绿 EXIT 原值（scor-00-honesty 21/level-policy 28 新增/web prove/typecheck/interview:prove 57/neg:interview 97/scor-parity 57/migrate:prove 95/growth:prove 31/level-policy-migrate 34 新增/api:validate 含 validate.ts:496 面/career-path.proof SHAPE-FROZEN 16）· 回归三面零翻（scoring-honesty:102-105·validate.ts:496·uc-e2e-004 预存红失败集 md5 同）· 预存红如实登记（uc-e2e-004-career-path.proof.mjs S2/S3/G 基线红·非本刀面·修复归原刀）· 收据 `receipts/h3-level-scheme/`（exec-receipt 漂移表+EXIT 总账+(a) 落卷声明+停止条件核查+11 件日志 CMD 可复跑）· markers=0（五类标记词 grep 改动集 EXIT=1 亲证·词不复抄避免自匹配）· est live=0（隔离 PG 即用即灭·零模型外呼·零 secrets）· pins 十一值零翻转 · ⛔push · ⛔动主线 · ⛔触其他工作树 · Ban self-approve · alone≠dual · prove EXIT=0 ≠ DONE（claimDone=false·走 post-prove 双审+nail）*
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·E4 三勾选 ✓）
+
+**双审结果**：席1（决议语义/五档化面·(a) 纯分数阶梯字节级落对/16 字段三方零漂/契约冻结零触/三推论双向硬断言/阈值扫描零新增散布）+席2（验收/回归面·七条判据齐备/12 门禁亲跑全绿/(a) 生产不灭活亲证/validate.ts:496 200+mid PASS）互盲复核 BOTH PASS。runner dual-keep=i2b+level-policy-migrate 并存。merge 落主线 @fcd051bb。
+
+**七条兑现**：①0160 迁移（A.4 DDL+append-only 触发器+seed v2 16 字段 calibrating）②TS 镜像（四冻结名/v1 不翻/16 码）③career.ts 五档化（evaluateLevelPolicy 纯函数/(a) 缺省/ladderTier 禁字面量/:16 零触/v1 只读）④report LEVEL_LABEL（单源/兜底）⑤seam 零适配（零 diff/SHAPE-FROZEN 16 绿）⑥growth-generation 零触 ⑦三推论（穷举/只封顶/490 格双向硬断言）。
+
+**门禁 12 项双席亲跑全绿**：level-policy 28·level-policy-migrate 34·scor-parity 57·scor-honesty 21·migrate 95·growth 31·interview 57·neg 97·web prove·validate 204·career-path SHAPE-FROZEN·typecheck。(a) 生产不灭活亲证（validate 200+mid）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge @fcd051bb·LEVEL-SCHEME 五档化正式解除·批2 残 40→39·markers=0·est live=0）。
