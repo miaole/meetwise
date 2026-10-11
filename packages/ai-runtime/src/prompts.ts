@@ -12,10 +12,25 @@ export interface PromptTemplate {
   version: string;
   /** 稳定系统指令(可缓存前缀,绝不含用户数据)。 */
   system: string;
+  /** 变体系统指令(#213 diag-honesty 修法②:唯一使用面=resume-diagnosis.generate,role 缺省 → match 维度/kind 枚举选项剔除)。
+   *  给定时 promptedModel 经 getPrompt(service, vars) 以组装产物覆盖 system;其余 service 恒缺省(system 字节稳定可缓存不变)。 */
+  systemByVars?: (vars: Record<string, unknown>) => string;
   /** 把变量渲染成 user 数据块内容(不可信,进 <data>;变化部分,不进缓存前缀)。 */
   buildData: (vars: Record<string, unknown>) => string;
 }
 
+// #213 diag-honesty 修法②:五维句/JSON 模板 kind 枚举 role 条件组装(唯一装配源,下 system/systemByVars 共用)——
+// 有 role → 五维照旧(与 899cab1a 基线逐字同);无 role(undefined/空) → match 从维度句与 kind 枚举剔除(四维):
+// 无岗位侧事实就不要求模型对照岗位(不伪造 match 依据)。枚举本体(resume-diagnosis.ts DIAGNOSIS_SECTION_KINDS /
+// interview-service.ts z.enum 五值)不动——无 role 模型不产 match section 即合法(kind∈枚举校验,非全维齐备)。
+const resumeDiagnosisSystem = (hasRole: boolean): string =>
+  '你是资深简历诊断顾问。仅依据 <data> 内的简历事实(可含目标岗位)产出结构化诊断,**严禁编造简历中不存在的经历、技能或数据**。'
+  + (hasRole
+    ? '从五个维度评估:structure(结构)、completeness(完整性)、highlight(亮点)、risk(风险/硬伤)、match(岗位匹配度)。'
+    : '从四个维度评估:structure(结构)、completeness(完整性)、highlight(亮点)、risk(风险/硬伤)。')
+  + '每条 finding 的 refs 必须是简历里出现过的关键词原文(泛结构性观察可留空 refs)。'
+  + '可改写建议(rewrites)只优化表达与措辞,**after 严禁出现简历中不存在的经历、公司、学历或数字(包括 QPS/百分比/年限/团队规模等量化数据)**;若原文无量化数据,应提示用户「补充真实数据」而非代为编造。每条 refs 必须锚定其优化的真实经历关键词。'
+  + `只返回 JSON: {"overall":0到100整数,"summary":"一句话总评","sections":[{"kind":"${hasRole ? 'structure|completeness|highlight|risk|match' : 'structure|completeness|highlight|risk'}","title":"标题","score":0到100可选,"findings":[{"text":"结论","refs":["关键词"]}]}],"rewrites":[{"before":"原句","after":"改写句","refs":["关键词"]}]}`;
 const REGISTRY: Record<string, PromptTemplate> = {
   // R2 P-WORKER / MODEL-OP job.route-classify.v1：岗位意图路由小模型。
   // 只读 <data> 内 title/description/competencies；输出严格 leaf allocations（bps 和=10000）。
@@ -50,11 +65,8 @@ const REGISTRY: Record<string, PromptTemplate> = {
   },
   'resume-diagnosis.generate': {
     service: 'resume-diagnosis.generate', version: 'v1',
-    system: '你是资深简历诊断顾问。仅依据 <data> 内的简历事实(可含目标岗位)产出结构化诊断,**严禁编造简历中不存在的经历、技能或数据**。'
-      + '从五个维度评估:structure(结构)、completeness(完整性)、highlight(亮点)、risk(风险/硬伤)、match(岗位匹配度)。'
-      + '每条 finding 的 refs 必须是简历里出现过的关键词原文(泛结构性观察可留空 refs)。'
-      + '可改写建议(rewrites)只优化表达与措辞,**after 严禁出现简历中不存在的经历、公司、学历或数字(包括 QPS/百分比/年限/团队规模等量化数据)**;若原文无量化数据,应提示用户「补充真实数据」而非代为编造。每条 refs 必须锚定其优化的真实经历关键词。'
-      + '只返回 JSON: {"overall":0到100整数,"summary":"一句话总评","sections":[{"kind":"structure|completeness|highlight|risk|match","title":"标题","score":0到100可选,"findings":[{"text":"结论","refs":["关键词"]}]}],"rewrites":[{"before":"原句","after":"改写句","refs":["关键词"]}]}',
+    system: resumeDiagnosisSystem(true),   // 有 role 基线(与 899cab1a 逐字同;getPrompt 无 vars 时即此,缓存前缀字节稳定)
+    systemByVars: (v) => resumeDiagnosisSystem(Boolean(v.role)),   // #213 修法②:role 缺省(undefined/空) → match 维度/kind 枚举选项剔除
     buildData: (v) => {
       const role = v.role ? `目标岗位:${String(v.role)}\n` : '';
       const facts = (v.facts as string[] | undefined)?.join('\n') ?? String(v.facts ?? '');
@@ -171,9 +183,12 @@ const REGISTRY: Record<string, PromptTemplate> = {
   },
 };
 
-export function getPrompt(service: string): PromptTemplate {
+export function getPrompt(service: string, vars?: Record<string, unknown>): PromptTemplate {
   const p = REGISTRY[service];
   if (!p) throw new Error(`unknown_prompt_service:${service}`);
+  // #213 diag-honesty 修法②:带 vars 且声明 systemByVars 的 service(现唯一=resume-diagnosis.generate)按组装产物解析 system;
+  // 其余 service(或无 vars 调用·审计/security-proof 字节恒定面)原样返回,字节零变。
+  if (vars != null && p.systemByVars) return { ...p, system: p.systemByVars(vars) };
   return p;
 }
 
