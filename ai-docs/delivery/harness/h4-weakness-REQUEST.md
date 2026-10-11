@@ -121,3 +121,13 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 1. **role-input 红计数勘误**：EXEC 账面称 7 FAIL——席1 实树亲跑实为 **8 FAIL**（base=7·本刀 additive focus 第 8 参使 `role-input.proof.ts:48` S3 controller 透传锚由 PASS→FAIL·与已登记 S6 同类陈旧锚·零行为回归）。7→8 增量与 S3 翻转未入 EXEC 收据，本条勘误登记；修锚归 B271 原席（REG-FIX 同域）。
 2. **证据件替换**：`receipts/h4-weakness/api-role-input-preexisting-red.log` 内容为 wrong-cwd ENOENT 空跑——预存红结论经席1 base 对照跑（@36ded20a worktree）实证为真（7 FAIL），但该日志不构成证据，真实对照跑日志须替换后方构成收据完整件。
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·E4 三勾选 ✓）
+
+**双审结果**：席1（弱项闭环语义·有条件 PASS+勘误 @00cdc8c3）+席2（用户旅程/回归·PASS）互盲复核。R1-R8 全兑现亲读：R1 再练入口（N=gap 运行时派生）+startFocusRetrainAction 双头·R2 focus 五断点全通（prompt v2→v3 缺省逐字节回退·resume-grounding B1/S1-1 复跑绿）·R3 5-8 预算（通用 2-3 分界零触）·R4 去练入口·R5 weakness-backfill 幂等回灌（interview:prove 亲见 weakness_backfill_marked 真链生效）·R6 固定窗 N=5 衰减（只读投影零新表）·R7 语义匹配阈值 0.5（禁 embedding·降级缩面登记）·R8 曲线可比。三处方兑现（①②③断言落槽+web-logic/interviews-actions 全绿零翻）。八套件亲跑全绿（web prove+10/weakness 73/interview 57/neg 97/growth 31/memory/interviews-actions 16）。GROWTH-GEN md5 全同核·SCORE 零字节。merge 落主线 @9c4c0f9e。
+
+**勘误随卷**：role-input 7→8 FAIL（S3 锚 additive 新翻·归 B271 原席 REG-FIX）+证据件空跑替换令·均 @00cdc8c3 登记。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge 落主线 @9c4c0f9e·#252 族弱项闭环正式解除·批2 残 41→40·markers=0·est live=0）。
