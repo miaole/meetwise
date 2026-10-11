@@ -122,7 +122,10 @@ export function QuizPanel({ quizId }: { quizId: string }) {
               // 终态已到但题目事件未随重放到达(罕见):给"重启驱动重放"出口(SSE-RESILIENCE W2:不 reload,凭服务端账本重放),不显示误导的"未提取到题目"。
               <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">题目加载不全？点此重新加载</button>
             )}
-            <Button asChild variant="link" className="mt-2 h-auto p-0"><Link href="/interviews">用这些题去模拟面试 →</Link></Button>
+            {/* QBANK-PLANNER-HONESTY #200-A ⑴(裁决项⑤ query param 形):入口带源押题标识进 /interviews →
+                开始表单携 quizId → begin quiz-id 头 → worker owner-scoped 读题面进 planner——「用这些题去模拟面试」
+                由真接线兑现,不再是无标识空链(#200 宣称与实现对齐);无 quizId 防御回退=既有无参链接。 */}
+            <Button asChild variant="link" className="mt-2 h-auto p-0"><Link href={quizId ? `/interviews?quiz=${encodeURIComponent(quizId)}` : '/interviews'}>用这些题去模拟面试 →</Link></Button>
           </CardContent>
         </Card>
       )}

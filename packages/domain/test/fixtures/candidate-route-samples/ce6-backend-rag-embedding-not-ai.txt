@@ -1,0 +1,1 @@
+后端工程师，Redis，使用 RAG 检索和 embedding 向量存储
