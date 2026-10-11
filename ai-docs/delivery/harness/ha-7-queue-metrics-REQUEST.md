@@ -96,3 +96,13 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 ## §8 STOP
 
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工。** 本 REQUEST 为起草席 docs-only 产物：未动任何产品码/监控栈/目录/脚本、未跑 prove、无实现自批资格。预执行双审 PASS 后由协调方派 EXEC coding；EXEC 不得改 §1 修法口径与 §5 Ban，漂移须回 REQUEST 补审。任何越 §2 非范围冲动（顺手给新 counter 加告警规则、动三条既有队列规则阈值、实现 DLQ 清理、改 refundFailed 陈旧注释、触 R-20/21/23 面）= 停手上报，不借机修。
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·E4 三勾选 ✓）
+
+**双审结果**：席1（metrics/判定器语义）+席2（运行手册/回归）互盲复核 BOTH PASS。W1 唯一新码动（METRIC+jobsFailed+四队列 0 预填+四落点各恰一行 inc·markFailed 族 CAS 胜出/stillMine guard 后·requeue 臂不计亲证）·W2 check-alerts 扩面（三事件纯追加 metrics_gauge 形/第四采集器 collectMetrics+--metrics-file 缝/live fail-closed=1 offline skipped 不误红/逐队列 max 去重严格大于）·W3 runbook 三小节（下钻锚 12/12 全中·DLQ 风险登记归 R-51）+§6 首批外登记·W4 lint KNOWN_METRICS+MATCHER_TYPES 最小必要联动（席1 裁定成立：不注册 lint 必红·纯 additive 只强不弱）。八组门禁双席复跑全绿（A 组 29/29·B.8 实栈四步链·五族 prove·alerts:lint 25+12·metrics:prove）。merge 落主线 @faad87f9。
+
+**随卷移交 nail 裁量**：①§6/§3.4 预存锚漂移 :225/:439（HA-5 后码动漂移·非本刀引入·建议 nail 顺手刷新或归 HA-5 线）②Q6.3/Q6.4 交卷后空转宜钉基（沿 P5.2 对账化）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge 落主线 @faad87f9·R-24 队列指标观测正式解除·HA 簇观测面收口完成（R-22 池错误+R-24 队列+R-47 事件目录三层）·批2 段 39·markers=0·est live=0）。
