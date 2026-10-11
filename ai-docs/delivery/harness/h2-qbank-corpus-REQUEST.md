@@ -18,7 +18,7 @@
 |---|---|
 | 种子量 | `apps/worker/src/qbank-seed.ts:9-56` `QBANK_SEED_SOURCE` 实数 **33 条** refId（`sed -n '9,56p' | grep -c 'refId:'`=33·起草席实数非转抄） |
 | scope 覆盖 | `qbank-seed.ts:64-69` `bootstrapScope` 仅三值：`backend/general`·`backend/java`（jvm/concur 前缀）·`ai_ml/applied`（rag 前缀）——与 issues-master #75「仅覆盖后端/Java/AI 应用三个 scope」逐字吻合 |
-| 导入工具 | **零 operator 消费者**：`ingestQbank`（`packages/db/src/qbank/qbank-ingest.ts:148`）与 `ingestQuestionBankArtifacts`（`:332`）为库函数·`scripts/`·`ops/`·`apps/api/src` 全仓 grep 零命中；唯一生产写路径=worker boot 种子对账 `apps/worker/src/main.ts:285-292`（seedFacts<seedChunkRefs 时 `ingestQuestionBankArtifacts`）·调用点 `main.ts:751` |
+| 导入工具 | **零 operator 消费者**：`ingestQbank`（`packages/db/src/qbank/qbank-ingest.ts:148`）与 `ingestQuestionBankArtifacts`（`:332`）为库函数·`scripts/`·`ops/`·`apps/api/src` 全仓 grep 零命中；唯一生产写路径=worker boot 种子对账 `apps/worker/src/main.ts:289`（seedFacts<seedChunkRefs 时 `ingestQuestionBankArtifacts`·artifacts 对账）+ `main.ts:321`（`ingestQbank`·legacy seed 对账）——旧锚 `main.ts:285-292`·调用点 `main.ts:751` 更正：`:751` 实为 `initializeQbankReadModel` 调用行（仅 pin 更正·结论原文不变） |
 | 治理路径（已具备） | `qbank-ingest.ts:4` 头注：`findSourceByHash/propose → qbank_source(kind,content_hash 去重)→ approve → promoteToPool`·`QBANK_OWNER='__system_qbank__'`（:46）·`QBANK_ANNOTATION_SOURCES=['curator_reviewed','seed_v1_reviewed']`（:49） |
 
 ### 1.2 难度谱（#77 症状面）
@@ -27,14 +27,14 @@
 |---|---|
 | 种子难度 | `qbank-seed.ts:170` `difficulty: prefix === 'rag' || prefix === 'design' ? 4 : 3`——**仅 3/4 两档**；实分布=4 档 5 题（design×4+rag×1）·3 档 28 题·**1/2/5 档零题** |
 | DB 约束（非瓶颈） | `migrations/0031_qbank_question_artifact_rag.sql:13`（CHECK difficulty BETWEEN 1 AND 5）·`0094:79`·`0106:311`·`0110:55/:113` 同形——schema 全谱已就绪，窄在数据与检索面 |
-| 入库校验（已接） | `qbank-ingest.ts:302` `difficulty < 1 || > 5 → qbank_question_invalid_difficulty` |
+| 入库校验（已接） | `qbank-ingest.ts:303` `difficulty < 1 || > 5 → qbank_question_invalid_difficulty` |
 | 池级过滤（缺失） | `packages/db/src` 全 rg `AND difficulty`/`difficulty = ` **零命中**（唯一命中 `scoring-wire.ts:100` 为评分换算非检索）——difficulty 只冻结进 `qbank_retrieval_plan`（`packages/db/src/qbank/qbank-track-local-retrieval.ts:108-116` freezePlan 第 8 参）与查询文本，**ANN 候选无难度谓词** |
 
 ### 1.3 检索面（#77/#79 症状面）
 
 | 面 | 实测 |
 |---|---|
-| 单题型接地 | `apps/worker/src/adaptive-interview-service.ts:269` `const useRetrieval = kind === 'fundamental'`——**scenario/behavioral 与简历/题库解耦（空素材、空来源）**（同行注释原话） |
+| 单题型接地 | `apps/worker/src/adaptive-interview-service.ts:269-270`（`:269` 注释行·`:270` 赋值行）`const useRetrieval = kind === 'fundamental'`——**scenario/behavioral 与简历/题库解耦（空素材、空来源）**（`:269` 注释原话） |
 | 查询构造 | `adaptive-interview-service.ts:272` `cragRetrieve(\`${competency} 难度${difficulty}\`, ...)`——**查询仅「能力 难度N」单串**；不带岗位/技术栈/已问题 |
 | 解析协议 | `apps/worker/src/qbank-track-local-retrieve.ts:86-92` `parseCragPlannerQuery` 正则 `/^(.*)\s+难度([1-5])\s*$/u`——只解析 competency+difficulty 两段·1-5 已收但池里只有 3/4 |
 | 已问排除（缺失） | `packages/db/src/qbank/`·`apps/worker/src/qbank-*.ts` 全 rg `已问/excludeRef/askedRef/servedRef` **零命中**——无任何已问题排除机制 |
@@ -45,7 +45,7 @@
 | 面 | 实测 |
 |---|---|
 | 共享 rubric | `qbank-seed.ts:84-155` `COACHING` 14 个能力域组各一段 `{rubric, followUp, antiPattern}`；`qbank-seed.ts:162-181` `QBANK_ARTIFACTS` 逐题产四 chunk（prompt/rubric/follow_up/anti_pattern）但**后三角色文本按前缀整组复制**——同能力域 N 题共享同一段·与 #76「非逐题撰写」吻合 |
-| 数据模型（capable） | `QbankQuestionArtifact`（`qbank-ingest.ts:91`）逐题 chunks 已支持任意粒度；`:314` `prompt!==1 || rubric<1 → qbank_question_requires_exact_prompt_and_rubric`——**瓶颈在数据非模型** |
+| 数据模型（capable） | `QbankQuestionArtifact`（`qbank-ingest.ts:91`）逐题 chunks 已支持任意粒度；`:319` `prompt!==1 || rubric<1 → qbank_question_requires_exact_prompt_and_rubric`——**瓶颈在数据非模型** |
 | 去重现状 | 仅精确：`qbank-ingest.ts:102` `hashOf`=sha256 截 32；`:219-226` content_hash 去重+refId 不可变守卫（同 refId 异 hash=改版 fail-loud）——**零语义近重复检测**（#78） |
 | 种子自带近重复 | `qbank-seed.ts:13` `seed:limit-3`（秒杀防超卖）vs `:32` `seed:design-2`（秒杀防超卖）——同题面异 refId 双题在库·#78「种子自身即有近重复题」实录 |
 
@@ -53,9 +53,9 @@
 
 | 面 | 实测 |
 |---|---|
-| 检索面（旧表直读） | `apps/worker/src/interview-consumer.ts:278-280` `routeSnapForRetrieve = getInterviewRouteSnapshot(...)` → `packages/db/src/routing/job-route-decision.ts:355-372` 直读 **`interview_route_snapshot`（旧 recruiter/job 快照表）** |
+| 检索面（旧表直读） | `apps/worker/src/interview-consumer.ts:276-277`（赋值行）`routeSnapForRetrieve = getInterviewRouteSnapshot(...)` → `packages/db/src/routing/job-route-decision.ts:355-372` 直读 **`interview_route_snapshot`（旧 recruiter/job 快照表）** |
 | 候选人面（已切新） | begin 供给面已双轨：旧表优先→fallback `candidate_profile_route_snapshot`（0142 新结构）——`interview-consumer.ts:368-374` 注释逐字：「**检索面（routeSnapForRetrieve / G-R2-5）维持旧表直读不动**——candidate 面 retrieval 走既有 degradedRetrieval('route_snapshot_missing') 语义」 |
-| 缺口后果链 | 候选人无快照 → `:273-275` G-R2-5 fail-closed → `degradedRetrieval('route_snapshot_missing')`（`packages/domain/src/crag.ts:24-26`）→ `gradeRetrieval` 见 degraded 即 **`deny_external`**（`crag.ts:34` `local_retrieval_degraded:*`）→ fundamental 无题库素材且禁外探 |
+| 缺口后果链 | 候选人无快照 → `:272`（G-R2-5 注释）+`:282-284`（fail-closed 代码）→ `degradedRetrieval('route_snapshot_missing')`（`packages/domain/src/crag.ts:24-26`）→ `gradeRetrieval` 见 degraded 即 **`deny_external`**（`crag.ts:34` `local_retrieval_degraded:*`）→ fundamental 无题库素材且禁外探 |
 | 候选面适配器（现成·被禁用于检索） | `packages/db/src/routing/candidate-route.ts:113-134` `getInterviewRouteSnapshotForAdaptiveRole`——适配 `InterviewRouteSnapshotView` 形（单 leaf allocation·`jobId=''`·`revision=CANDIDATE_ROUTE_REVISION`·`routeDigest=input_digest`）；其头注 `:110-112` 逐字：「消费方（角色门）只读 allocations[0].leafTrackId；**检索面（G-R2-5）不走本函数（维持旧表直读）**」——本刀即解禁/扩形此缝 |
 
 ### 1.6 域归属现状（DIR-B2）
@@ -79,7 +79,7 @@
 ### ① 题库导入工具+审核流程（#75）
 
 - **导入命令面**：新建 operator 导入脚本/CLI（落点 EXEC 裁决：`scripts/` 独立脚本或 `apps/worker/src/` 子命令·建议前者零 worker boot 耦合），复用既有治理路径 `ingestQbank`（`packages/db/src/qbank/qbank-ingest.ts:148`：propose→qbank_source 审核行→approve→promoteToPool）——**零新库表**（qbank_source/vector_chunk/qbank_question_artifact 全在）。
-- **输入形态**：结构化题库文件（逐题 refId/text/competency/difficulty 1-5/kind/scope/rubric/followUp/antiPattern）→ `QbankQuestionArtifact` 形（`qbank-ingest.ts:91` 校验全接：`:300-317`）。
+- **输入形态**：结构化题库文件（逐题 refId/text/competency/difficulty 1-5/kind/scope/rubric/followUp/antiPattern）→ `QbankQuestionArtifact` 形（`qbank-ingest.ts:91` 校验全接：`:300-322`·校验面全宽·函数 `:298-324`）。
 - **种子语料扩容（按岗位/难度 1–5 补题）**：`qbank-seed.ts` 新增自撰种子（头注 `:1-3` 版权先例逐字沿用：**自撰通用能力题·自有措辞·非抄录任何站点**；导入件须授权证据入 qbank_source 元数据）·scope 从三值扩多值沿 `QBANK_TAXONOMY_V1`（`qbank-ingest.ts:48`）叶子表·`annotationSource` 走 `curator_reviewed`/`seed_v1_reviewed` 白名单（`:49`）。
 - **审核流程**：approve 步骤=人工复核位（qbank_source 状态机已承载·导入工具输出待审清单·**不自动 approve**——除 `seed_v1_reviewed` 既有种子通道语义保持）。
 
@@ -103,15 +103,15 @@
 
 ### ⑤ 检索面扩展（#79）
 
-- **scenario 等题型接检索**：`adaptive-interview-service.ts:269` `useRetrieval = kind === 'fundamental'` → scenario 也走检索（kind 白名单 EXEC 定·behavioral 是否纳入留裁决）——scenario 无素材时**显式降级提示**沿 `approvedTemplateGeneration` 既有回退形（`:247-257` grounded 无事实先例）·零 fail 硬死。
+- **scenario 等题型接检索**：`adaptive-interview-service.ts:269-270`（`:269` 注释行）`useRetrieval = kind === 'fundamental'` → scenario 也走检索（kind 白名单 EXEC 定·behavioral 是否纳入留裁决）——scenario 无素材时**显式降级提示**沿 `approvedTemplateGeneration` 既有回退形（`:247-257` grounded 无事实先例）·零 fail 硬死。
 - **查询带岗位/技术栈**：查询构造 `:272` 扩段——岗位=`requestContext.targetRole` 供给线（`interview-consumer.ts:382-385` 已透传·消费者闭包已有）·技术栈=resume facts 池既有面（`selectGroundedFacts` 同源）；`parseCragPlannerQuery` 协议同步扩（三段+可选段·向后兼容单/双段旧形·fail-closed 保持）。
 - **排除已问题**：同 interview 已 served 题排除——落点 EXEC 裁决（候选：`qbank_retrieval_plan` served 行按 interview 维度回查·或 interview events 已发题面回查）；排除集进候选过滤与 ③ 同位。**零已问机制现状**（§1.3 实测）故为新建面·最小形=refId 集合过滤。
 
 ### ⑥ C 端检索面切候选人路由（#202·收编）
 
-- **切面**：`interview-consumer.ts:278-280` `routeSnapForRetrieve` 读源从 `getInterviewRouteSnapshot`（旧 `interview_route_snapshot` 表·`job-route-decision.ts:355-372`）切 candidate-route——**建议双轨序沿角色门先例**（`candidate-route.ts:113-118`：旧表优先→缺行 fallback `candidate_profile_route_snapshot`·B 端岗位面试零回归·C 端无岗位简历面试解锁）·纯切（去旧表）与否=EXEC 裁决项（纯切须先清点 B 端面依赖）。
-- **形状适配**：候选面单 leaf allocation·`jobId=''`·`revision=1`·`routeDigest=input_digest`（`candidate-route.ts:122-133` 适配先例）——检索面消费 allocations 数组（weighted-deficit·`interview-consumer.ts:283-289`）·单 allocation 形下 deficit 数组长度=1·语义如实登记（**非缺陷·如实**：候选面本就单叶）。
-- **门语义零弱化**：缺行/缺叶仍 `route_snapshot_missing`→degraded→`deny_external`（`crag.ts:24-26/:34` 逐字节零改）·**永不 unscoped**（G-R2-5 语义零改·`interview-consumer.ts:273` 注释语义保持）。
+- **切面**：`interview-consumer.ts:276-278` `routeSnapForRetrieve` 读源从 `getInterviewRouteSnapshot`（旧 `interview_route_snapshot` 表·`job-route-decision.ts:355-372`）切 candidate-route——**建议双轨序沿角色门先例**（`candidate-route.ts:113-118`：旧表优先→缺行 fallback `candidate_profile_route_snapshot`·B 端岗位面试零回归·C 端无岗位简历面试解锁）·纯切（去旧表）与否=EXEC 裁决项（纯切须先清点 B 端面依赖）。
+- **形状适配**：候选面单 leaf allocation·`jobId=''`·`revision=1`·`routeDigest=input_digest`（`candidate-route.ts:122-133` 适配先例）——检索面消费 allocations 数组（weighted-deficit·`interview-consumer.ts:279-292`·注释 `:279`·deficit 实参 `:291`）·单 allocation 形下 deficit 数组长度=1·语义如实登记（**非缺陷·如实**：候选面本就单叶）。
+- **门语义零弱化**：缺行/缺叶仍 `route_snapshot_missing`→degraded→`deny_external`（`crag.ts:24-26/:34` 逐字节零改）·**永不 unscoped**（G-R2-5 语义零改·`interview-consumer.ts:272` 注释语义保持）。
 - **无素材显式降级提示**：候选人检索命中空/降级时，出题面提示形态沿 ⑤ 回退先例——**「显式降级提示」≠ 伪造素材 ≠ 静默通用题**（修法列原意）。
 
 ## §4 范围外（边界清单·越界即 FAIL）
@@ -126,14 +126,14 @@
 
 ## §5 Prove（pre-exec 双审核对单）
 
-1. **锚复现**（EXEC 立项重跑·期望命中·@`20186718` 起草席已验）：`sed -n '9,56p' apps/worker/src/qbank-seed.ts | grep -c "refId:"` → 33；`rg -n "difficulty: prefix" apps/worker/src/qbank-seed.ts` → 170；`rg -n "useRetrieval = kind" apps/worker/src/adaptive-interview-service.ts` → 269；`rg -n "难度\$\{difficulty\}" apps/worker/src/adaptive-interview-service.ts` → 272；`rg -n "routeSnapForRetrieve" apps/worker/src/interview-consumer.ts` → 278,280,283,287 等（多命中·以行号集合为准）；`rg -n "interview_route_snapshot" packages/db/src/routing/job-route-decision.ts` → 360；`rg -n "candidate_profile_route_snapshot" packages/db/src/routing/candidate-route.ts` → 42,118；`rg -n "deny_external" packages/domain/src/crag.ts` → 18,34,62,75。
-2. **导入 prove**：导入件全链路（propose→复核→approve→promote）隔离 PG 断言；非法输入拒面（`qbank-ingest.ts:300-317` 全校验逐条触发）；`seed_v1_reviewed` 既有通道语义不回归。
+1. **锚复现**（EXEC 立项重跑·期望命中·@`20186718` 起草席已验·勘误席实测复核）：`sed -n '9,56p' apps/worker/src/qbank-seed.ts | grep -c "refId:"` → 33；`rg -n "difficulty: prefix" apps/worker/src/qbank-seed.ts` → 170；`rg -n "useRetrieval = kind" apps/worker/src/adaptive-interview-service.ts` → 270（`:269-270` 锚面·`:269` 注释行）；`rg -n "难度\$\{difficulty\}" apps/worker/src/adaptive-interview-service.ts` → 272；`rg -n "routeSnapForRetrieve" apps/worker/src/interview-consumer.ts` → 276,278,280,289,370（多命中·实测全集·以行号集合为准）；`rg -n "interview_route_snapshot" packages/db/src/routing/job-route-decision.ts` → 333,358；`rg -n "candidate_profile_route_snapshot" packages/db/src/routing/candidate-route.ts` → 6,42,96,118（`:6` 头注·`:96` INSERT）；`rg -n "deny_external" packages/domain/src/crag.ts` → 18,34,50,62,75（`:50` researchBoundary 类型签名）。
+2. **导入 prove**：导入件全链路（propose→复核→approve→promote）隔离 PG 断言；非法输入拒面（`qbank-ingest.ts:300-322` 全校验逐条触发）；`seed_v1_reviewed` 既有通道语义不回归；**逐题撰写断言（#76·EXEC prove 设计要求）**：同 competency N 题 → rubric/follow_up/anti_pattern chunk 内容（或 hash）互异（禁前缀共享复制）。
 3. **难度谱 prove**：1-5 全谱导入件入库存真（DB CHECK 既有）+ difficulty 过滤谓词断言（候选池过滤后零非目标难度命中·空池→degraded 非发明）。
 4. **近重复门 prove**：规范化+shingle 阈值命中断言（含 seed:limit-3/seed:design-2 对如实命中）+复核队列不静默断言+零 embedding 依赖断言。
 5. **检索扩展 prove**：scenario 面素材接入断言（有素材/无素材双分支）+查询三段解析向后兼容断言（旧单/双段不破）+已问排除断言（同 interview 二轮不重现 refId）。
 6. **#202 切面 prove**：候选人路由读断言（有 candidate snapshot→命中·无→`route_snapshot_missing` 逐字）+G-R2-5 永不 unscoped 断言+`crag.ts` 零 diff+`deny_external` 链路零变+B 端岗位面回归（旧表优先轨）零翻。
 7. **回归面随改随核**：`rag03-route:prove`/`rag04-track-local:prove`/`rag05-qbank-miss:prove`/`interview:prove`/`uc040-043:batch-qbank-seat:prove` EXIT 原值·base 同红登记不洗（E5 流程·批前实测基线入收据）。
-8. markers=0（五类标记词 grep 门·命令留 prove 回执·卷内不复抄避免自匹配）；est live=0（§4-7 口径）。
+8. markers=0（五类标记词 grep 门·命令留 prove 回执·卷内不复抄避免自匹配）；est live=0（§4-7 口径·**EXEC 收据须逐 prove 登记 embedder 注入点**——mock/定面向量坐实零模型外呼）。
 
 ## §6 Ban 列表
 
@@ -145,7 +145,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 Non-claims
 
-本任务书 ≠ EXEC 实施 ≠ #75-79 收口 ≠ 题库已富 ≠ 难度谱已校准 ≠ 检索质量已提升（提升与否归评测面·本刀只证供给与过滤机械面）≠ 向量近重复已建（cosine 归后刀·本刀非向量形）。种子扩容后仍为「起步+导入供给」形态·「真正策展/授权题库由运营离线灌」（`qbank-seed.ts:2-3` 原话）的产品终态不在本刀。行号系 `20186718` 实测·base 漂移须重 pin（§1 为起抄面·EXEC 立项照 §5.1 重跑）；更正版上游在仓库外（`~/Documents/Meetwise产品审计-更正版/issues-master.md`）·行号以亲读记录为准（#75:202/#76:336/#77:337/#78:469/#79:338/#202:347）；issues-master 证据列旧锚与 `20186718` 实测的漂移已全量入 §1（#77 `adaptive-interview-service.ts:120`→`:272`·#78 `packages/db/src/qbank-ingest.ts`→`packages/db/src/qbank/qbank-ingest.ts`（DIR-B2 平移）·#79 `:118-122`→`:269-272`·#202 `interview-consumer.ts:254-258,344-352`→`:272-280,:366-374`·`crag.ts:24-35,70-78`→`:24-26,:34` 区域实测）。
+本任务书 ≠ EXEC 实施 ≠ #75-79 收口 ≠ 题库已富 ≠ 难度谱已校准 ≠ 检索质量已提升（提升与否归评测面·本刀只证供给与过滤机械面）≠ 向量近重复已建（cosine 归后刀·本刀非向量形）。种子扩容后仍为「起步+导入供给」形态·「真正策展/授权题库由运营离线灌」（`qbank-seed.ts:2-3` 原话）的产品终态不在本刀。行号系 `20186718` 实测·base 漂移须重 pin（§1 为起抄面·EXEC 立项照 §5.1 重跑）；更正版上游在仓库外（`~/Documents/Meetwise产品审计-更正版/issues-master.md`）·行号以亲读记录为准（#75:202/#76:336/#77:337/#78:469/#79:338/#202:347）；issues-master 证据列旧锚与 `20186718` 实测的漂移已全量入 §1（#77 `adaptive-interview-service.ts:120`→`:272`·#78 `packages/db/src/qbank-ingest.ts`→`packages/db/src/qbank/qbank-ingest.ts`（DIR-B2 平移）·#79 `:118-122`→`:270-272`·#202 `interview-consumer.ts:254-258,344-352`→`:272-280,:366-374`·`crag.ts:24-35,70-78`→`:24-26,:34` 区域实测）·#75 证据列旧锚 `main.ts:274-279,310-311` 现已漂至 `:283-291`（§1.1 已给正确锚）。
 
 ## §9 STOP
 
