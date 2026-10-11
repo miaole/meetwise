@@ -22,6 +22,7 @@ import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
 import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable, overviewAnsweredLabel } from '../lib/interview/progress.ts';
 import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
+import { jobRouteBadgeVariant, jobRouteStatusLabel } from '../lib/recruiter/route-status.ts';
 import { isOcrPreviewEnabled, isOcrPreviewRequested, isProductionOcrLocked } from '../lib/ocr-preview.ts';
 import {
   isProductionVoiceStreamLocked,
@@ -1647,6 +1648,53 @@ async function main() {
       !detailSrc.includes('strong_count') && !detailSrc.includes('mid_count')
         && !detailSrc.includes('weak_count') && !detailSrc.includes('insufficient_count'));
     A('记账:组件行为面无 DOM 载体·静态+人工对账（I2-2/I2-3 为源面接线断言·纯函数断言为 I2-1·非浏览器 DOM 证明）', true);
+  }
+
+  section('I3 JOB-MGMT §2-4（#258/#197/#219 表单 JD 字段+编辑下线入口+路由可见+宣称⇒供给同源·readSrc 静态先例形）');
+  {
+    const jobFormSrc = readSrc('app/recruiter/jobs/JobCreateForm.tsx');
+    A('I3-4a #258 表单含 JD 字段（name=description·maxLength=8000·后端 CreateJobDto 原生上限）',
+      /name="description"/.test(jobFormSrc) && /maxLength=\{8000\}/.test(jobFormSrc));
+    const jobActionsSrc = readSrc('app/recruiter/jobs/actions.ts');
+    A('I3-4b #220 编辑/下线/重试三动作接线（PATCH jobs/:id + POST close + POST route-retry）',
+      /method: 'PATCH'/.test(jobActionsSrc)
+      && /\/close`/.test(jobActionsSrc)
+      && /\/route-retry`/.test(jobActionsSrc));
+    A('I3-4c create 动作透传 description（有值才带·空值不发明键）',
+      /JSON\.stringify\(description \? \{ title, description, competencies \} : \{ title, competencies \}\)/.test(jobActionsSrc));
+    const recruiterJobsSrc = readSrc('app/recruiter/jobs/page.tsx');
+    A('I3-4d #219 列表暴露路由状态徽（routes 旁车读面+可断言状态字样单源）',
+      /routes\?/.test(recruiterJobsSrc) && /jobRouteStatusLabel\(routes\[jb\.id\]\.status\)/.test(recruiterJobsSrc));
+    const jobDetailSrc = readSrc('app/recruiter/jobs/[id]/page.tsx');
+    A('I3-4e #219 详情路由读面+未决警示（/route 读面+route_unresolved 分支文案+reasonCodes 摘要）',
+      /\/recruiter\/jobs\/\$\{id\}\/route/.test(jobDetailSrc)
+      && /route\?\.status === 'route_unresolved'/.test(jobDetailSrc)
+      && jobDetailSrc.includes('该岗位路由未决，候选人暂无法开始面试。')
+      && /route\.reasonCodes\.join/.test(jobDetailSrc));
+    A('I3-4f #220 详情编辑/下线/重试入口（JobAdminPanel 接线·关闭=二次确认在面板内）',
+      /import \{ JobAdminPanel \} from '\.\/JobAdminPanel'/.test(jobDetailSrc) && /<JobAdminPanel/.test(jobDetailSrc));
+    const adminPanelSrc = readSrc('app/recruiter/jobs/[id]/JobAdminPanel.tsx');
+    A('I3-4g 下线二次确认+重试仅未决态（confirm 壳+routeStatus 条件门）',
+      /globalThis\.confirm\('确认下线该岗位\？下线后候选人不可再投递。'\)/.test(adminPanelSrc)
+      && /routeStatus === 'route_unresolved'/.test(adminPanelSrc));
+    A('I3-4h 路由状态文案含可断言枚举字样（route_pending/route_decided/route_unresolved 原文在标签内）',
+      jobRouteStatusLabel('route_pending').includes('route_pending')
+      && jobRouteStatusLabel('route_decided').includes('route_decided')
+      && jobRouteStatusLabel('route_unresolved').includes('route_unresolved'));
+    A('I3-4i 未知路由状态 fail-closed（「路由状态待同步」不伪装已决/未决+徽次级色）',
+      jobRouteStatusLabel('future_internal_state') === '路由状态待同步'
+      && jobRouteBadgeVariant('future_internal_state') === 'secondary');
+    // 裁决⑤（推荐兑现·已随簇③落地）：宣称存在 ⇒ 供给链三环在位（同源蕴含断言·宣称可删但供给不可伪）。
+    const dashboardSrc = readSrc('app/dashboard/page.tsx');
+    const jdClaimed = dashboardSrc.includes('简历×JD 匹配');
+    const plannerPromptSrc = readSrc('../../packages/ai-runtime/src/prompts.ts');
+    const consumerSrc = readSrc('../../apps/worker/src/interview-consumer.ts');
+    const supplyChainPresent = /岗位要求\(招聘方发布·仅提示考什么能力·非难度信号\)/.test(plannerPromptSrc)
+      && /getJobPlannerInputForInterview/.test(consumerSrc)
+      && /name="description"/.test(jobFormSrc);
+    A('I3-4j #258 「简历×JD 匹配」宣称⇒供给同源（宣称在 ⇒ planner 岗位段+consumer 供给门+表单 JD 三链全在）',
+      !jdClaimed || supplyChainPresent,
+      `claimed=${jdClaimed} supply=${supplyChainPresent}`);
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);

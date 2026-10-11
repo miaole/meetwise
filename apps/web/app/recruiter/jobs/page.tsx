@@ -6,6 +6,7 @@ import { getServerToken, serverGet } from '@/lib/api/server';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { JobCreateForm } from './JobCreateForm';
+import { jobRouteBadgeVariant, jobRouteStatusLabel, type JobRouteStatusLite } from '@/lib/recruiter/route-status';
 import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighlights';
 
 export const metadata: Metadata = { title: '岗位骨架 · 内部预览 · 知面', description: '内部岗位骨架。不是招聘方产品，也不是第二套产品面。' };
@@ -15,8 +16,10 @@ interface Job { id: string; title: string; description: string; competencies: st
 /** B 端(招聘方)岗位页。多租户:RLS 只见自己的岗位。RSC + Server Action 发岗位。 */
 export default async function RecruiterJobsPage() {
   if (!(await getServerToken())) redirect('/login');
-  const data = await serverGet<{ jobs: Job[] }>('/recruiter/jobs');
+  // I3 JOB-MGMT（#219）：列表旁车 routes（jobId→最新 revision 路由态）——招聘方可见面；缺省 undefined 容忍旧 API。
+  const data = await serverGet<{ jobs: Job[]; routes?: Record<string, JobRouteStatusLite> }>('/recruiter/jobs');
   const jobs = data?.jobs ?? [];
+  const routes = data?.routes ?? {};
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
@@ -29,7 +32,7 @@ export default async function RecruiterJobsPage() {
       <Card>
         <CardHeader>
           <CardTitle className="text-lg">发布新岗位</CardTitle>
-          <CardDescription>填岗位名 + 目标能力(逗号分隔)。</CardDescription>
+          <CardDescription>填岗位名 + 岗位描述(JD·可选) + 目标能力(逗号分隔)。JD 将用于岗位路由与出题规划。</CardDescription>
         </CardHeader>
         <CardContent>
           <JobCreateForm />
@@ -52,10 +55,16 @@ export default async function RecruiterJobsPage() {
                       <span className="font-medium group-hover:text-primary">{jb.title}</span>
                       <Badge variant={jb.status === 'open' ? 'success' : 'outline'}>{jb.status === 'open' ? '招聘中' : '已关闭'}</Badge>
                     </div>
+                    {/* I3 JOB-MGMT（#219）：路由状态徽——招聘方可见面；未决态 destructive 醒示（候选人 start 409 的根因）。 */}
+                    {routes[jb.id] ? (
+                      <div className="mt-2">
+                        <Badge variant={jobRouteBadgeVariant(routes[jb.id].status)}>{jobRouteStatusLabel(routes[jb.id].status)}</Badge>
+                      </div>
+                    ) : null}
                     {jb.competencies?.length > 0 && (
                       <div className="mt-3 flex flex-wrap gap-1">{jb.competencies.map((s) => <Badge key={s} variant="outline">{s}</Badge>)}</div>
                     )}
-                    <span className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary">查看候选人 <ArrowRight className="size-3" /></span>
+                    <span className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground group-hover:text-primary">查看候选人与管理 <ArrowRight className="size-3" /></span>
                   </CardContent>
                 </Card>
               </Link>

@@ -1,9 +1,10 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import {
-  createJob, listJobs, getJob, listJobCandidates, inviteCandidate, listTalentPool,
+  createJob, listJobs, getJob, closeJob, updateJob, getJobRouteStatus, listJobRouteStatuses, retryJobRoute,
+  listJobCandidates, inviteCandidate, listTalentPool,
   notifyWorkerJobWakeup, type TalentQuery,
 } from '@meetwise/db';
-import type { CreateJobDto, InviteCandidateDto } from '@meetwise/contracts';
+import type { CreateJobDto, InviteCandidateDto, UpdateJobDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 
@@ -37,13 +38,58 @@ export class RecruiterService {
   }
 
   list(principal: string) {
-    return this.db.asPrincipal(principal, async (c) => ({ jobs: await listJobs(c, principal) }));
+    // I3 JOB-MGMT（#219）：列表旁车 routes（jobId→最新 revision 路由态）——招聘方可见面；additive 可选字段。
+    return this.db.asPrincipal(principal, async (c) => ({
+      jobs: await listJobs(c, principal),
+      routes: await listJobRouteStatuses(c, principal),
+    }));
   }
 
   async get(principal: string, id: string) {
     const job = await this.db.asPrincipal(principal, (c) => getJob(c, principal, id));
     if (!job) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);   // RLS:别人的→404
     return job;
+  }
+
+  /**
+   * I3 JOB-MGMT（裁决①·#220）：编辑岗位——owner 谓词内建（db assertPrincipal+行锁），语义字段真变化
+   * 时 db 写新 revision（route_pending·recruiter.ts :108 链），此处 wakeup 走既有 sole worker drain
+   * （R2 P-API 组合根同 createJob 先例·API 不调 classifyJobRoute）。零新增管道·接线即自通。
+   */
+  async update(principal: string, id: string, dto: UpdateJobDto) {
+    const job = await this.db.asPrincipal(principal, (c) => updateJob(c, principal, id, dto));
+    if (!job) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);   // RLS:别人的/不存在→404
+    await this.db.asPrincipal(principal, (c) => notifyWorkerJobWakeup(c));
+    return job;
+  }
+
+  /**
+   * I3 JOB-MGMT（裁决①·#220）：下线岗位——三臂语义保持：非自有/不存在 → 404；closed 再 close →
+   * db rowCount=0 返 false → 同 404 恒定壳（无存在性信号）；open → closed → 200 {closed:true}。
+   */
+  async close(principal: string, id: string) {
+    const closed = await this.db.asPrincipal(principal, (c) => closeJob(c, principal, id));
+    if (!closed) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+    return { closed: true } as const;
+  }
+
+  /** I3 JOB-MGMT（#219 可见面）：读岗位语义路由状态（最新 revision 枚举+attemptOutcome/reasonCodes 摘要·仅 owner）。 */
+  async route(principal: string, id: string) {
+    const route = await this.db.asPrincipal(principal, (c) => getJobRouteStatus(c, principal, id));
+    if (route === null) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+    return { route };
+  }
+
+  /**
+   * I3 JOB-MGMT（裁决③·#219）：显式重试路由——db 写新 revision（route_pending）后 wakeup 走既有 drain。
+   * sticky 枚举语义零改（unresolved 旧 revision 原样留存·同 revision 重跑仍 noop already_unresolved）；
+   * 重试=招聘方显式动作·一次至多一个新 revision（Ban 无界自动重试）。API 零 classifyJobRoute（Worker 唯一调用方）。
+   */
+  async retryRoute(principal: string, id: string) {
+    const r = await this.db.asPrincipal(principal, (c) => retryJobRoute(c, principal, id));
+    if (r === null) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+    if (r.status === 'retried') await this.db.asPrincipal(principal, (c) => notifyWorkerJobWakeup(c));
+    return r;
   }
 
   /** 招聘方查申请到自己某岗位的候选人(多方 RLS:招聘方为一方→可见缓存状态/分数,不见候选人私有面试)。 */

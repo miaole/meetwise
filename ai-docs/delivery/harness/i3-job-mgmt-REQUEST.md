@@ -1,6 +1,6 @@
 # I3 JOB-MGMT REQUEST（批3 段18 首组 · B 端作业管理面 · #219/#220/#258/#197 · M-L 体量）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（I3 EXEC 落卷 2026-10-11·三簇实施+§2 七条断言全 EXIT=0+§2-6 回归集六目标绿+基线专用 worktree 双绿收据·详见 `receipts/i3-job-mgmt/exec-receipt.md`·prove EXIT=0 ≠ DONE·走 post-prove 双审+nail · ⛔push）。原文：**`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
 
 **席位**：#批3 段18 I3 JOB-MGMT EXEC 任务书起草席（北星 loop · 批3 残余组 · B 端作业管理面 · M-L 体量）。
 **基线**：`feat/mysql-schema-skeleton` @ `f3a54577`（主线最新 tip·`git log -1` 实测 2026-10-11 20:15 +0800·merge(g7trio2)）。分支 `line/i3-job-mgmt`·工作树 `meetwise-i3`（`git worktree add ../meetwise-i3 -b line/i3-job-mgmt` 本起草席已立·建前 worktree list 实查不存在）。
@@ -23,8 +23,8 @@
 | #220 | :303 P2 岗位编辑/下线只有 DB 函数无 HTTP/UI | **开放** | §0.4 | **I3 收** |
 | #221 | :304 P2 邀请文案忽略真实状态/无通知 | **部分面** | 文案面已随 b110 中性化（`recruiter/jobs/actions.ts:52-56`「已受理；若对方是注册求职者将收到邀请」恒定壳·非「已邀请」宣称）；**通知残面开放**（invitation 零写 notification·模块现 `packages/db/src/notification/notification.ts`） | 留 **I4** |
 | #222 | :450 P3 listOpenJobs 回包过宽 | **开放** | `recruiting/recruiter.ts:17/:21` COLS 仍含 `owner_user_id, description`；同意面 D6/D7 已并入 #81 purpose（I2 W3 已落候选人侧） | 留 **I4** |
-| #223 | :450 P3 候选人仅 8 位 id 不可识别 | **开放** | `recruiter/jobs/[id]/page.tsx:79` + `recruiter/talent/page.tsx:103` `slice(0, 8)` 双锚亲证 | 留 **I4**（招聘方候选人识别） |
-| #227 | :452 P3 start/begin 两调用间隙 | **已闭**（随 #271 片2 解除·LEDGER :210 nail 宣告） | `applications.service.ts:44-51` 注释「B271 片2 S2-C4（修法⑤·#227 缺陷收口）：start+begin 服务端动作合一——企业预留与申请状态迁移同一事务」亲证 | 已闭·转本刀依赖上下文（§4） |
+| #223 | :450 P3 候选人仅 8 位 id 不可识别 | **开放** | `recruiter/jobs/[id]/page.tsx:79` + `recruiter/talent/page.tsx:103` `slice(0, 8)` 双锚亲证；第三锚 `recruiter/jobs/[id]/applications/[applicationId]/page.tsx:131`（照席1/席2 登记 EXEC 更锚补录·非本刀触面·留 I4） | 留 **I4**（招聘方候选人识别） |
+| #227 | :452 P3 start/begin 两调用间隙 | **已闭**（随 #271 片2 解除·LEDGER :210 nail 宣告） | `applications.service.ts:47-53` 注释「B271 片2 S2-C4（修法⑤·#227 缺陷收口）：start+begin 服务端动作合一——企业预留与申请状态迁移同一事务」（:44-51→:47-53 照席1/席2 登记 EXEC 更锚·只更行号）亲证 | 已闭·转本刀依赖上下文（§4） |
 | #258 | :294 P2 岗位输入过薄/JD 匹配宣称 | **开放** | §0.4 | **I3 收** |
 | #131 | :257 P2 大小写邮箱邀不到 | **开放·非本刀** | 邀请侧 `recruiter.service.ts:121` trim+toLowerCase·注册侧 `auth.service.ts:34/:39` 原样存储——错位仍在 | 留 **5A**（硬依赖 #111 邮箱归一含存量迁移·非作业管理面） |
 | #62 | :381 P3 Server Action 路径未编码 | **开放·非本刀** | `jobs/actions.ts:13` `` `/jobs/${jobId}/apply` `` 无 encodeURIComponent | 留 **5E 批量**（一致性小改·非行为缺陷） |
@@ -43,7 +43,7 @@
 | `packages/db/src/notification.ts` | `packages/db/src/notification/notification.ts` |
 | `recruiter.ts:79-111`（closeJob/updateJob） | `recruiting/recruiter.ts:79`（closeJob）/:90（updateJob）——**且两函数已带 `assertPrincipal(c, owner)` owner 谓词**（#220 备注所列「closeJob UPDATE 无应用层 owner 谓词」已在域文件夹化面内修复·updateJob `:95` `WHERE id=$1 AND owner_user_id=$2 FOR UPDATE`） |
 | `recruiter.ts:21,128-131`（listOpenJobs COLS） | `recruiting/recruiter.ts:17`（JobPosting 接口）/:21（COLS 串） |
-| `job-route-decision.ts:181,235-236,286-313` | `routing/job-route-decision.ts:181`（noop already_unresolved）/:226-236（dispatched_unknown/known_not_sent 落 unresolved）/:104/:119/:124 |
+| `job-route-decision.ts:181,235-236,286-313` | `routing/job-route-decision.ts:181`（noop already_unresolved）/:226-236（dispatched_unknown/known_not_sent 落 unresolved）/:104/:118/:124（:119→:118 照席1/席2 登记 EXEC 更锚·只更行号） |
 | `interview-consumer.ts:343-355` | `interview-consumer.ts:380`（`snap?.allocations?.[0]?.leafTrackId`·planner 面仍取 [0]）；#:281 检索面用全部 allocations 加权（#197 备注更正面·如实照录） |
 | `contracts index.ts:297-301,1103,1123-1128,290-293,1121-1125` | `contracts/src/index.ts:362-366`（JobView）/:367（JobList）/:1332（registry createJob `response: JobView`）——CreateJobDto description ≤8000 字面未逐行重 pin（EXEC 重 pin） |
 
@@ -95,7 +95,7 @@
 
 ## §2 验收断言候选（api prove/neg:bend 形制·pre-exec 双审核对单基面·EXEC 立项重 pin·断言力≥3）
 
-1. **updateJob 语义变更→重路由断言**：`recruiter:prove`（根 `package.json:209-210` → `packages/db` recruiter prove）新增：updateJob 改 competencies/description → 新 revision `route_pending` 落库断言（`recruiting/recruiter.ts:108` 链）；unchanged 编辑零 revision 断言（`recruiting/recruiter.ts:98-99` unchanged 短路）。
+1. **updateJob 语义变更→重路由断言**：`recruiter:prove`（根 `package.json:209-210` → `packages/db` recruiter prove）新增：updateJob 改 competencies/description → 新 revision `route_pending` 落库断言（`recruiting/recruiter.ts:108` 链）；unchanged 编辑零 revision 断言（`recruiting/recruiter.ts:101-103` unchanged 短路·:98-99→:101-103 照席1/席2 登记 EXEC 更锚·只更行号）。
 2. **closeJob owner/状态谓词断言**：他主 close → false/404；closed 后再 close → false；close 后候选人 apply/start 拒（404/409 族·与既有 interview_ineligible_route 拒面并列·neg 臂）。
 3. **#219 可见+重试断言**：mock model 拒分（known_not_sent）→ 岗位读面含 `route_unresolved`+reasonCodes 断言（招聘方视角）；重试动作 → drain 后状态翻转断言（mock model·**不实调 LLM**）；未决岗位候选人 start 409 面零回归（既有断言 EXIT 原值）。
 4. **#258/#197 供给断言**：表单含 description 字段静态源断言（沿 `apps/web` prove `A('…', /正则/.test(readSrc(…)))` 静态先例）；planner 输入含岗位 competencies/JD 摘要断言（worker prove·mock·断言 prompt/输入组装产物非模型输出）；dashboard 宣称与实现对齐断言（宣称文案存在 ⇒ 匹配供给面存在的同源断言·或宣称删除断言·随裁决项⑤）。
@@ -145,3 +145,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *I3 JOB-MGMT REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`f3a54577` · 分支 `line/i3-job-mgmt` · 工作树 `meetwise-i3` · 蓝本=更正版 issues-master 候选九件（#218=:187/#220=:303/#221=:304/#222/#223/#131=:257/#62=:381/#227=:452/#258=:294 原文/修法列逐字）+ batch-residual-plan @`ab02d499` I3 行（#219/#220/#258/#197+#227）+ LEDGER :210 批3 段 + 形制 diag-honesty-REQUEST（meetwise-diag 树·Ban/pins 同源誊录）· 收编四件=#219/#220/#258/#197（三触面簇=编辑下线接线/路由可见重试/JD 供 planner+宣称如实化）· 已闭三件零触=#218(I2)/#224(批0)/#227(片2) · 留槽=I4 四件/#131→5A/#62→5E · 防重检查过（FI3 撞车非终局·无同名卷）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+---
+
+*§9 EXEC 附记（2026-10-11·§0-§8 原文零改·仅 §0 免责条款授权的四处行号更锚与本状态行 append-only）*：预执行双审 BOTH PASS（席1 盘点裁定+席2 验收回归·互盲独立）后协调方派单开工。三簇全落：簇① contracts 四注册（updateJob PATCH+closeJob POST+getJobRoute GET+retryJobRoute POST）+createJob response 如实化 JobView→JobCreated（裁决②）+UpdateJobDto 原样前移（TDZ·冻结语义零改）+controller 四端点+UI JD 字段/编辑/下线（二次确认）/重试入口；簇② db 读面两函数+retryJobRoute（裁决③ 新 revision+显式动作·sticky 闸 :181 字节零动·`job-route-decision.ts` 全文件零 diff 亲证）+web 文案单源含可断言枚举字样（裁决⑦）；簇③ prompt planner.competencies v3→v4（job 缺省与 v3 逐字节一致四态断言）+读侧 join 供给（裁决⑥·RLS+快照同源 digest 门）+allocations[0] 改道条件化（最高权重·#197 顺手面）+dashboard 宣称兑现向（裁决⑤·I3-4j 同源蕴含断言）。§2 七条全 EXIT=0（recruiter:prove 57 PASS 含席2④ noop already_unresolved 显式断言·neg:bend 165 条·openapi 92·web/i3-jd-supply/r2-prereq/binding/wakeup 全绿）·基线专用 worktree 双绿（neg 157/recruiter 39·主树批前 4 次 boot infra 红如实登记非产品红）·est live=0（全 mock/静态·零 Key 零外呼）·markers=0（改动集 grep EXIT=1 亲证）·零迁移（迁移冲动零发生·H2 占 0162/0163 不入本树）·pins 十一值零翻转·SSOT 零触·I4/I2 已闭/enterprise/邮箱归一/encodeURIComponent 全零触 · 冲突预判清单+陷阱自检表+增强回归四条（adaptive-consumer/role-input/g7fix4-finalize/resume-grounding）见 `receipts/i3-job-mgmt/exec-receipt.md` · ⛔push · claimDone=false 走 post-prove 双审+nail · alone≠dual*

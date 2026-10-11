@@ -4,7 +4,7 @@
  */
 import { z } from 'zod';
 import { createHash, randomUUID } from 'node:crypto';
-import { apiContract, AnswerDto, TurnDto, TranscribeDto, TranscribeResult, VOICE_CAPTURE_POLICY_VERSION, StartApplicationDto, FinalizeApplicationDto } from '../src/index.ts';
+import { apiContract, AnswerDto, TurnDto, TranscribeDto, TranscribeResult, VOICE_CAPTURE_POLICY_VERSION, StartApplicationDto, FinalizeApplicationDto, UpdateJobDto, RecruiterJobList } from '../src/index.ts';
 import { buildOpenApiDocument } from '../src/openapi.ts';
 
 let n = 0;
@@ -73,5 +73,33 @@ ok(Array.isArray(doc.paths['/interview/{id}/turn'].post.parameters)
   && doc.paths['/interview/{id}/turn'].post.parameters.some((p: any) => p.name === 'id' && p.in === 'path' && p.required), 'turn 路径参数 id 抽出');
 ok(TurnDto.safeParse(validTurn).success, '前端用同一 TurnDto 契约校验:合法通过');
 ok(!TurnDto.safeParse({ ...validTurn, answer: '' }).success, '前端用同一 TurnDto 契约校验:空答拒绝');
+
+// I3 JOB-MGMT（§2-5）：编辑/下线/路由读面/显式重试四注册（additive）+ createJob response 如实化（裁决②）。
+const updJob = doc.paths['/recruiter/jobs/{id}']?.patch;
+ok(!!updJob && Array.isArray(updJob.parameters) && updJob.parameters.some((p: any) => p.name === 'id' && p.in === 'path' && p.required),
+  'I3 updateJob PATCH 进文档(路径参数 id 抽出)');
+const updJobReq = updJob?.requestBody?.content?.['application/json']?.schema;
+ok(Array.isArray(updJobReq?.required) === false && updJobReq?.properties?.description?.maxLength === 8000 && updJobReq?.properties?.title?.minLength === 2,
+  'I3 UpdateJobDto 全可选语义进文档(title/description/competencies 均 optional·description ≤8000)');
+ok(UpdateJobDto.safeParse({ description: '只改描述' }).success && UpdateJobDto.safeParse({}).success
+  && !UpdateJobDto.safeParse({ title: 'ab', description: 'x'.repeat(8001) }).success,
+  'I3 UpdateJobDto 真校验:全可选(空对象合法)+超上限拒');
+ok(!!doc.paths['/recruiter/jobs/{id}/close']?.post && !!doc.paths['/recruiter/jobs/{id}/close'].post.security,
+  'I3 closeJob POST 进文档(auth)');
+ok(!!doc.paths['/recruiter/jobs/{id}/route']?.get, 'I3 getJobRoute GET 进文档(#219 可见面)');
+const retryRouteOp = doc.paths['/recruiter/jobs/{id}/route-retry']?.post;
+const retryResp = retryRouteOp?.responses?.['200']?.content?.['application/json']?.schema;
+const retryStatusEnum = retryResp?.properties?.status?.anyOf?.[0]?.enum;
+ok(!!retryRouteOp && Array.isArray(retryStatusEnum)
+  && retryStatusEnum.includes('retried') && retryStatusEnum.includes('already_pending')
+  && retryResp?.properties?.revision?.anyOf?.[0]?.type === 'integer',
+  'I3 retryJobRoute POST 进文档(显式动作·status 枚举含 retried/already_pending+revision integer)');
+const createJobResp = doc.paths['/recruiter/jobs'].post.responses?.['200']?.content?.['application/json']?.schema;
+ok(createJobResp?.type === 'object' && Object.keys(createJobResp?.properties ?? {}).length === 1 && createJobResp?.properties?.id?.type === 'string',
+  'I3 createJob response 如实化：{id} 单键（JobView 声明退役·实回形状契约同源）');
+const recruiterListParsed = RecruiterJobList.safeParse({ jobs: [] });
+ok(doc.paths['/recruiter/jobs'].get.responses?.['200']?.content?.['application/json']?.schema?.properties?.routes !== undefined
+  && recruiterListParsed.success && recruiterListParsed.data.routes === undefined,
+  'I3 listJobs 响应含可选 routes 旁车（additive·缺省不发明键·C 端 JobList 零触）');
 
 console.log(`✓ openapi:prove 全部通过(${n} 断言)`);

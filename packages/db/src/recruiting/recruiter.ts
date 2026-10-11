@@ -6,6 +6,7 @@ import type { PoolClient as Client } from 'pg';   // 直引 pg 类型,不从 ./i
 import { createHash } from 'node:crypto';
 import { newEntityId } from '../ids.ts';
 import { createJobSemanticRevision, bindApplicationRoute, snapshotInterviewRoute } from '../routing/job-route-decision.ts';  // RAG-FUNNEL-03 路由 seam
+import { canonicalJobSemanticDigest } from '@meetwise/domain';
 import { requireOwnerUserId } from '../tenant/index.ts';   // PRIV01-C 第二层 E1(应用层 tenant ≠ RLS · 授权根仍为 asPrincipal+RLS)
 
 async function assertPrincipal(c: Client, owner: string): Promise<void> {
@@ -74,6 +75,111 @@ export async function getJob(c: Client, owner: string, id: string): Promise<JobP
   // 招聘方视角:只取自己的岗位(显式 owner,不靠 RLS——开放岗位公开可读)。
   const r = await c.query(`SELECT ${COLS} FROM job_posting WHERE id=$1 AND owner_user_id=$2`, [id, owner]);
   return r.rowCount === 0 ? null : (r.rows[0] as JobPosting);
+}
+
+/* ───────────── I3 JOB-MGMT（#219/#220/#197）：路由状态读面 + 显式重试 + planner 岗位侧供给 ───────────── */
+
+/** 招聘方侧岗位语义路由状态行（最新 revision + 其 decision 摘要）。零迁移（0104 表已在·纯读侧）。 */
+export interface JobRouteStatusRow {
+  revision: number; status: string;
+  attemptOutcome: string | null; reasonCodes: string[];
+}
+
+/** 单岗位读面：最新 revision 路由态。岗位不存在/非自有 → null（上层 404 恒定壳，无存在性信号）。 */
+export async function getJobRouteStatus(c: Client, owner: string, id: string): Promise<JobRouteStatusRow | null> {
+  await assertPrincipal(c, owner);
+  const own = await c.query('SELECT 1 FROM job_posting WHERE id=$1 AND owner_user_id=$2', [id, owner]);
+  if (own.rowCount === 0) return null;
+  const r = await c.query(
+    `SELECT rev.revision, rev.status, dec.attempt_outcome, dec.reason_codes
+       FROM job_semantic_revision rev
+       LEFT JOIN job_route_decision dec ON dec.job_id=rev.job_id AND dec.revision=rev.revision
+      WHERE rev.job_id=$1
+      ORDER BY rev.revision DESC LIMIT 1`,
+    [id],
+  );
+  if (r.rowCount === 0) return null;
+  const row = r.rows[0] as { revision: string | number; status: string; attempt_outcome: string | null; reason_codes: string[] | null };
+  return { revision: Number(row.revision), status: row.status, attemptOutcome: row.attempt_outcome, reasonCodes: row.reason_codes ?? [] };
+}
+
+/** 列表读面：jobId → 最新 revision 路由态（DISTINCT ON 单查询·防 N+1；owner 谓词取 revision 行属主）。 */
+export async function listJobRouteStatuses(c: Client, owner: string): Promise<Record<string, JobRouteStatusRow>> {
+  await assertPrincipal(c, owner);
+  const r = await c.query(
+    `SELECT DISTINCT ON (rev.job_id) rev.job_id, rev.revision, rev.status, dec.attempt_outcome, dec.reason_codes
+       FROM job_semantic_revision rev
+       LEFT JOIN job_route_decision dec ON dec.job_id=rev.job_id AND dec.revision=rev.revision
+      WHERE rev.owner_user_id=$1
+      ORDER BY rev.job_id, rev.revision DESC`,
+    [owner],
+  );
+  const out: Record<string, JobRouteStatusRow> = {};
+  for (const row of r.rows as Array<{ job_id: string; revision: string | number; status: string; attempt_outcome: string | null; reason_codes: string[] | null }>) {
+    out[row.job_id] = { revision: Number(row.revision), status: row.status, attemptOutcome: row.attempt_outcome, reasonCodes: row.reason_codes ?? [] };
+  }
+  return out;
+}
+
+export type RetryJobRouteResult =
+  | { status: 'retried'; revision: number }
+  | { status: 'already_pending'; revision: number }
+  | { status: 'already_decided'; revision: number }
+  | { status: 'not_retryable'; revision: number }
+  | null;
+
+/**
+ * 招聘方显式重试路由（#219·裁决③）：sticky 终态本体零改——unresolved 旧 revision 原样留存
+ * （job-route-decision.ts :181 noop already_unresolved 闸字节零动：同 revision 重跑仍被拦）；
+ * 重试=以当前岗位内容写**新 revision**（route_pending，经 createJobSemanticRevision 同一管道）
+ * 后由 api 层 notifyWorkerJobWakeup 走既有 sole worker drain（listNextJobRoutePending 自动认领）。
+ * 有界：一次调用至多一个新 revision（招聘方显式动作·Ban 无界自动重试）。
+ * 岗位不存在/非自有/零 revision → null（上层 404）；最新 revision 非 unresolved → 幂等门不动作。
+ * job_posting FOR UPDATE 行锁串行化并发重试，revision 单调无碰撞（updateJob 同法）。
+ */
+export async function retryJobRoute(c: Client, owner: string, id: string): Promise<RetryJobRouteResult> {
+  await assertPrincipal(c, owner);
+  const job = await c.query(
+    'SELECT title, description, competencies FROM job_posting WHERE id=$1 AND owner_user_id=$2 FOR UPDATE',
+    [id, owner],
+  );
+  if (job.rowCount === 0) return null;
+  const latest = await c.query('SELECT revision, status FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision DESC LIMIT 1', [id]);
+  if (latest.rowCount === 0) return null;
+  const cur = latest.rows[0] as { revision: string | number; status: string };
+  const revision = Number(cur.revision);
+  if (cur.status === 'route_pending') return { status: 'already_pending', revision };
+  if (cur.status === 'route_decided') return { status: 'already_decided', revision };
+  if (cur.status !== 'route_unresolved') return { status: 'not_retryable', revision };
+  const j = job.rows[0] as { title: string; description: string | null; competencies: unknown };
+  const competencies = Array.isArray(j.competencies) ? (j.competencies as unknown[]).map(String) : [];
+  const created = await createJobSemanticRevision(c, owner, id, { title: j.title, description: j.description ?? '', competencies });
+  return { status: 'retried', revision: created.revision };
+}
+
+/**
+ * planner 岗位侧供给读（#197/#258·裁决⑥ 读侧 join 形）：经 interview 绑定的路由快照取 job_id，
+ * 加**同源门**——live job_posting 文本的 canonical digest 必须等于绑定 revision 的存证 digest
+ * （岗位编辑后旧面试不喂新文本；revision 表只存 digest 不存文本，同源以哈希复核为准）。
+ * C 端无岗位面试（candidate-route 快照 job_id=''）/缺快照/缺 revision/闭岗不可读 → null →
+ * worker 走既有缺省路径（零伪造·Ban planner 面伪造岗位侧输入）。候选 principal 经 RLS 读开放岗位。
+ */
+export async function getJobPlannerInputForInterview(c: Client, candidate: string, interviewId: string): Promise<{ title: string; description: string; competencies: string[] } | null> {
+  const iv = await c.query('SELECT job_id FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, candidate]);
+  if (iv.rowCount === 0) return null;
+  const jobId = iv.rows[0].job_id as string | null;
+  if (!jobId) return null;
+  const snap = await c.query('SELECT revision FROM interview_route_snapshot WHERE interview_id=$1 AND candidate_user_id=$2', [interviewId, candidate]);
+  if (snap.rowCount === 0) return null;
+  const rev = await c.query('SELECT semantic_digest FROM job_semantic_revision WHERE job_id=$1 AND revision=$2', [jobId, Number(snap.rows[0].revision)]);
+  if (rev.rowCount === 0) return null;
+  const job = await c.query('SELECT title, description, competencies FROM job_posting WHERE id=$1', [jobId]);
+  if (job.rowCount === 0) return null;
+  const j = job.rows[0] as { title: string; description: string | null; competencies: unknown };
+  const competencies = Array.isArray(j.competencies) ? (j.competencies as unknown[]).map(String) : [];
+  const description = j.description ?? '';
+  if (canonicalJobSemanticDigest({ title: j.title, description, competencies }) !== rev.rows[0].semantic_digest) return null;
+  return { title: j.title, description, competencies };
 }
 
 export async function closeJob(c: Client, owner: string, id: string): Promise<boolean> {

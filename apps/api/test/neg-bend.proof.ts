@@ -146,6 +146,11 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('GET /recruiter/jobs/:id 无鉴权→401', (await h.req('GET', '/recruiter/jobs/JOB_REC', anon)).status === 401);
   A('GET /recruiter/jobs/:id/candidates 无鉴权→401', (await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', anon)).status === 401);
   A('POST /recruiter/jobs/:id/invite 无鉴权→401', (await h.send('POST', '/recruiter/jobs/JOB_REC/invite', anon, { candidateId: 'userB' })).status === 401);
+  // I3 JOB-MGMT（#219/#220）：编辑/下线/路由读面/显式重试四端点负臂（401 无鉴权·403 非招聘方）。
+  A('PATCH /recruiter/jobs/:id 无鉴权→401', (await h.send('PATCH', '/recruiter/jobs/JOB_REC', anon, { title: 'x' })).status === 401);
+  A('POST /recruiter/jobs/:id/close 无鉴权→401', (await h.send('POST', '/recruiter/jobs/JOB_REC/close', anon, {})).status === 401);
+  A('GET /recruiter/jobs/:id/route 无鉴权→401', (await h.req('GET', '/recruiter/jobs/JOB_REC/route', anon)).status === 401);
+  A('POST /recruiter/jobs/:id/route-retry 无鉴权→401', (await h.send('POST', '/recruiter/jobs/JOB_REC/route-retry', anon, {})).status === 401);
   A('GET /admin/users 无鉴权→401', (await h.req('GET', '/admin/users', anon)).status === 401);
   A('GET /admin/orders 无鉴权→401', (await h.req('GET', '/admin/orders', anon)).status === 401);
   A('GET /admin/audit 无鉴权→401', (await h.req('GET', '/admin/audit', anon)).status === 401);
@@ -178,6 +183,10 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('candidate GET /recruiter/jobs/:id→403', (await h.req('GET', '/recruiter/jobs/JOB_REC', a)).status === 403);
   A('candidate GET /recruiter/jobs/:id/candidates→403', (await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', a)).status === 403);
   A('candidate POST /recruiter/jobs/:id/invite(借邀请枚举用户)→403', (await h.send('POST', '/recruiter/jobs/JOB_REC/invite', a, { candidateEmail: 'probe@x.com' })).status === 403);
+  A('candidate PATCH /recruiter/jobs/:id(篡改他人岗位)→403', (await h.send('PATCH', '/recruiter/jobs/JOB_REC', a, { title: '篡改' })).status === 403);
+  A('candidate POST /recruiter/jobs/:id/close(下线他人岗位)→403', (await h.send('POST', '/recruiter/jobs/JOB_REC/close', a, {})).status === 403);
+  A('candidate GET /recruiter/jobs/:id/route(窥探路由状态)→403', (await h.req('GET', '/recruiter/jobs/JOB_REC/route', a)).status === 403);
+  A('candidate POST /recruiter/jobs/:id/route-retry(滥用重试动作)→403', (await h.send('POST', '/recruiter/jobs/JOB_REC/route-retry', a, {})).status === 403);
   const r403 = await h.send('POST', '/recruiter/jobs', a, { title: '恶意岗位' });
   A('candidate 越权 /recruiter 错误体标 recruiter_required', r403.body?.error === 'recruiter_required');
   // adminU:is_admin=true 但 role=candidate → 仍非招聘方 → 403(admin 特权≠招聘方特权)

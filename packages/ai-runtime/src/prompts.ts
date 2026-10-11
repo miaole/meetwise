@@ -67,15 +67,30 @@ const REGISTRY: Record<string, PromptTemplate> = {
   // v3(H4 WEAKNESS-LOOP R2④ #252):buildData 增 focusWeaknesses 可选段(上一轮评估摘要=criterion+弱点标签,
   //   fix-roadmap :97 验收「出题输入包含上一轮评估摘要」)——focus 缺省/空数组 → 段不渲染,与 v2 输出逐字节一致
   //   (resume-grounding B1/S1-1 逐字节断言守卫);focus 只作「优先复测」提示,**禁当难度/信心信号**。
+  // v4(I3 JOB-MGMT #197/#258·裁决⑥):buildData 增 job 可选段(岗位侧供给=招聘方设定 competencies+JD 确定性
+  //   有界摘要·worker 经 RLS+快照同源门条件化供给)——job 缺省/全空 → 段不渲染,与 v3 输出逐字节一致
+  //   (同上守卫·i3-jd-supply:prove 直行使);岗位侧事实只进「考哪些能力」面,**禁当难度/信心信号**。
   'planner.competencies': {
-    service: 'planner.competencies', version: 'v3',
-    system: '你是面试规划官。据 <data> 内的目标岗位与简历事实(已脱敏、按相关性有界截取),提炼 3–5 个本场要考察的技术能力(用简短技术名词)。优先提炼能与 <data> 内简历经历对应的能力;简历事实不足或与岗位无关时以岗位要求为准。能力须与简历/岗位真实相关,不编造。若 <data> 含「上一轮弱点标签」段:这些是本人上一场评估的差距维度,能力清单必须覆盖它们并置于优先复测位置;它们只是考什么能力的提示,不代表任何难度或评分倾向。只返回 JSON: {"competencies":["能力1","能力2"]}',
+    service: 'planner.competencies', version: 'v4',
+    system: '你是面试规划官。据 <data> 内的目标岗位、岗位要求(若提供)与简历事实(已脱敏、按相关性有界截取),提炼 3–5 个本场要考察的技术能力(用简短技术名词)。优先提炼能与 <data> 内简历经历对应的能力;简历事实不足或与岗位无关时以岗位要求为准。能力须与简历/岗位真实相关,不编造。若 <data> 含「上一轮弱点标签」段:这些是本人上一场评估的差距维度,能力清单必须覆盖它们并置于优先复测位置;它们只是考什么能力的提示,不代表任何难度或评分倾向。若 <data> 含「岗位要求」段:那是招聘方发布的岗位能力与 JD 摘要,作为考什么能力的参考;同样不代表任何难度或评分倾向。只返回 JSON: {"competencies":["能力1","能力2"]}',
     buildData: (v) => {
       const focus = v.focusWeaknesses as string[] | undefined;
       const focusText = Array.isArray(focus) && focus.length > 0
         ? `\n上一轮弱点标签(本人上场评估差距维度,须覆盖·仅提示考什么·非难度信号):${focus.join(';')}`
         : '';
-      return `岗位:${String(v.role ?? '通用')}\n简历事实:\n${(v.facts as string[] | undefined)?.join('\n') ?? ''}${focusText}`;
+      const job = v.job as { competencies?: unknown; jdSummary?: unknown } | undefined;
+      const jobCompetencies = job && Array.isArray(job.competencies)
+        ? (job.competencies as unknown[]).filter((s): s is string => typeof s === 'string' && s.trim().length > 0).map((s) => s.trim())
+        : [];
+      const jdSummary = typeof job?.jdSummary === 'string' ? job.jdSummary.trim() : '';
+      const jobParts = [
+        jobCompetencies.length > 0 ? `目标能力:${jobCompetencies.join(';')}` : '',
+        jdSummary ? `JD 摘要:${jdSummary}` : '',
+      ].filter(Boolean);
+      const jobText = jobParts.length > 0
+        ? `\n岗位要求(招聘方发布·仅提示考什么能力·非难度信号):${jobParts.join(' / ')}`
+        : '';
+      return `岗位:${String(v.role ?? '通用')}\n简历事实:\n${(v.facts as string[] | undefined)?.join('\n') ?? ''}${focusText}${jobText}`;
     },
   },
   // 面试官:据目标能力/难度 + CRAG 检索到的真题素材,改写出题(不照搬,可结合简历个性化)
