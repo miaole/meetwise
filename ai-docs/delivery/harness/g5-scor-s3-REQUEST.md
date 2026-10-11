@@ -94,3 +94,13 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · G5 SCOR-S3 残面收尾刀 · Line line/g5-scor-s3 · g5-draft · 2026-10-11 · PENDING awaiting pre-exec dual · alone ≠ dual · Ban push · STOP*
+
+---
+
+## nail 落卷（2026-10-11 · post-prove 双席 BOTH PASS·E4 三勾选 ✓）
+
+**双审结果**：席1（评分域收尾语义）+席2（验收/回归）互盲复核 BOTH PASS。项2 只读收窄（0161 两函数 CREATE OR REPLACE+0103 零字节+TS 镜像单态谓词+读面三调用点替换+scor-02 :122 翻转 90→80 逐值披露@base+F1c 五条真实迁移面正/负断言亲读亲跑）·项3 GET 重闸（helper 复用收窄后 aggregate 单源·读后校验 fail-closed 409·两语义落点对齐各自 POST 既有信封·零新增响应码）·D1-D3 落卷（D1 双态本体保留三面零 diff·D3 翻转全清单与码面账目逐位对平）·12 门双席复跑全绿（scor-01 64/scor-02 65/scor-03 64/scor-parity 57/honesty 22/neg:interview 102/migrate 95/interview/growth/web typecheck·四包 tsc 120 IDENTICAL）。merge 落主线 @11309741。
+
+**非阻塞观察（随卷）**：读面双态残留仍在范围外既有面（profile.service:40/:73+23_api_gateway:635 B 端 scorable_ok+validate.ts:539 测试助手——与 ADR :54「C 端本轮练习反馈」口径一致·本刀未授权触碰）·docs:check 预存红 PTP_FILE_LIMIT:4402（+1=0161 纯计数门）。
+
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·E4 三勾选 ✓·merge 落主线 @11309741·SCORE-S3 残面收尾正式解除·ADR-0020 项2/项3 闭环·项1/项4 留校准期后·批1 残 1→0·markers=0·est live=0）。
