@@ -880,6 +880,38 @@ async function main() {
     /serverFetch\('\/interview\/' \+ interviewId \+ '\/begin', \{ method: 'POST', headers \}\)/.test(ivActions));
   A('#259 表单含目标岗位可选输入(name=targetRole·maxLength=100·镜像 diagnosis 形制)',
     /<Input id="targetRole" name="targetRole" maxLength=\{100\}/.test(readSrc('app/interviews/page.tsx')));
+
+  section('H5-ROLE-INPUT #268/#230/#266(S2a 入口+押题岗位表单+注册引导位:静态源面断言)');
+  const navSrc = readSrc('components/Nav.tsx');
+  const dashSrc = readSrc('app/dashboard/page.tsx');
+  const rolesSrc = readSrc('app/roles/page.tsx');
+  const ivPageSrc = readSrc('app/interviews/page.tsx');
+  const quizPageSrc = readSrc('app/quiz/page.tsx');
+  const quizActionsSrc = readSrc('app/quiz/actions.ts');
+  // C-1/C-2(#268 入口):
+  A('#268 Nav candidateLinks 含 /roles 入口(岗位匹配·/jobs 邻位·字面中文先例零 i18n 键)',
+    /href: '\/roles', label: '岗位匹配'/.test(navSrc));
+  A('#268 dashboard QUICK_ACTIONS 含 /roles 行(文案含「岗位匹配」)', /href: '\/roles', t: '岗位匹配'/.test(dashSrc));
+  // C-3(#268 roles CTA → interviews prefill):
+  A('#268 roles 匹配行含「用这个方向开始面试」CTA', rolesSrc.includes('用这个方向开始面试'));
+  A('#268 CTA href 带 encodeURIComponent(m.title) prefill 形',
+    /href=\{`\/interviews\?targetRole=\$\{encodeURIComponent\(m\.title\)\}`\}/.test(rolesSrc));
+  A('#268 interviews searchParams 读 targetRole(additive 一键)',
+    /targetRole\?: string/.test(ivPageSrc) && /const \{ limit, error, reused, targetRole \} = await searchParams;/.test(ivPageSrc));
+  A('#268 interviews Input defaultValue 消费 prefill(仅初值·用户可改=「可改的 UI」语义)',
+    /defaultValue=\{targetRole \?\? ''\}/.test(ivPageSrc));
+  // B-1/B-2(#230 押题岗位 web 段·S1 同形镜像):
+  A('#230 quiz action 读 targetRole 且 trim 归一(镜像 interviews/actions)',
+    /const targetRole = String\(formData\.get\('targetRole'\) \?\? ''\)\.trim\(\);/.test(quizActionsSrc));
+  A('#230 quiz begin 头基座仅 resume-id(现状字节)', /const headers: Record<string, string> = \{ 'resume-id': resumeId \};/.test(quizActionsSrc));
+  A('#230 quiz target-role 头走真值门(空串/缺省 falsy → 不发头=现状字节)', /if \(targetRole\) headers\['target-role'\] = targetRole;/.test(quizActionsSrc));
+  A('#230 quiz 表单含目标岗位可选输入(name=targetRole·maxLength=100·镜像 interviews 形制)',
+    /<Input id="targetRole" name="targetRole" maxLength=\{100\}/.test(quizPageSrc));
+  // D-1(#266 引导位·零迁移零存储·负断言=禁偏好存储虚假声明):
+  A('#266 dashboard 引导卡在位(引导文案含「目标岗位」+两出口链接)',
+    dashSrc.includes('完善求职方向') && dashSrc.includes('去填目标岗位') && dashSrc.includes('去匹配岗位方向'));
+  A('#266 负断言:零偏好存储虚假声明(禁「已记住/已保存」类文案·且显式声明偏好不被保存)',
+    !/已记住|已保存你的|为你保存/.test(dashSrc) && dashSrc.includes('不被保存'));
   // ───────────────────────── SSE-RESILIENCE 批1 波A(#53/#54/#55/#56+#61 · rev2 dual_pass)新增六组证明 ─────────────────────────
   const {
     iterateSseBody, isSseOpenStatusError, SseOpenStatusError, classifySseOpenStatus,

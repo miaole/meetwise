@@ -58,10 +58,17 @@ const REGISTRY: Record<string, PromptTemplate> = {
     },
   },
 
+  // v2(H5-ROLE-INPUT #230 押题岗位·S1 同形镜像):buildData 增 `目标岗位:` 条件段——镜像 resume-diagnosis
+  // 同形(v.role 真值才渲染);缺省/空 → 段不渲染,输出与 v1 逐字节一致(缺省回退守卫,Ban 押题留空面行为漂)。
+  // system 出题边界与 refs 接地纪律句零弱化(逐字节保留 v1 全句)。
   'resume-quiz.generate': {
-    service: 'resume-quiz.generate', version: 'v1',
+    service: 'resume-quiz.generate', version: 'v2',
     system: '你是资深技术面试官。仅依据 <data> 内的简历事实出 3 道训练问题,严禁编造简历中不存在的技能或经历;每题的 refs 必须是简历里出现过的关键词原文。只返回 JSON: {"items":[{"q":"题目","refs":["关键词"]}]}',
-    buildData: (v) => String((v.facts as string[] | undefined)?.join('\n') ?? v.facts ?? ''),
+    buildData: (v) => {
+      const role = v.role ? `目标岗位:${String(v.role)}\n` : '';
+      const facts = String((v.facts as string[] | undefined)?.join('\n') ?? v.facts ?? '');
+      return `${role}${facts}`;
+    },
   },
   'resume-diagnosis.generate': {
     service: 'resume-diagnosis.generate', version: 'v1',

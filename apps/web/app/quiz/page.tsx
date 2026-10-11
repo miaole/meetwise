@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Badge } from '@/components/ui/badge';
+import { Input } from '@/components/ui/input';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 import { resumeOptionLabel, isEligibleResume, resumeEmptyState } from '@/lib/resume/display';
 import { actionErrorMessage } from '@/lib/errors/action-error';
@@ -85,6 +86,9 @@ export default async function QuizListPage({ searchParams }: { searchParams: Pro
                     <option key={r.id} value={r.id}>{resumeOptionLabel(r)}</option>
                   ))}
                 </select>
+                {/* #230 目标岗位输入:可选自由文本(仅限长与脱空白,语义归出题 prompt;镜像 interviews/page 同形制)。 */}
+                <label className="text-sm text-muted-foreground" htmlFor="targetRole">目标岗位</label>
+                <Input id="targetRole" name="targetRole" maxLength={100} placeholder="可选,如:后端工程师(留空按简历出题)" className="sm:flex-1" />
                 <SubmitButton pendingLabel="启动中…">开始押题</SubmitButton>
               </form>
             ) : (

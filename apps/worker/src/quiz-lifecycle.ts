@@ -16,9 +16,10 @@ import { quizGenerator } from './interview-service.ts';
  *  过期工件在 interview begin 被 stale_quiz 409 拒绝。TTL 变更=产品决策,改这里并留痕。 */
 const QUIZ_FRESH_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** 据简历押题:解密原文 → 跑 resume-quiz 图(押题→factuality 过滤→派生报告)→ 落库 + 逐题事件 + 终态 + 结算额度。 */
+/** 据简历押题:解密原文 → 跑 resume-quiz 图(押题→factuality 过滤→派生报告)→ 落库 + 逐题事件 + 终态 + 结算额度。
+ *  #230 可选 targetRole(additive 第 7 参):仅透传 generator→prompt data 条件段;undefined=与从前逐字节一致(零回归)。 */
 export async function runQuiz(
-  pool: DbPool, owner: string, quizId: string, resumeId: string, privacyEpoch: number, model: ModelClient,
+  pool: DbPool, owner: string, quizId: string, resumeId: string, privacyEpoch: number, model: ModelClient, targetRole?: string,
 ): Promise<{ questions: QuizItem[]; report: { score: number; grounded: number; summary: string } | null }> {
   // Same transaction holds the resume privacy lock through the active-epoch
   // predicate and decrypt.  A future erase fence uses that lock too.
@@ -43,7 +44,7 @@ export async function runQuiz(
 
   // 纯图:parse(摄取)→ generate(经 invoke 双校验)→ validate(factuality 歪曲门)→ make_report(业务派生)。模型在注入边界外。
   // progressStream=quizId(TOKSTREAM 阶段1):押题模型调用发生成进度事件(SSE→前端 loading 变真实进度)。
-  const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model, quizId) });
+  const graph = buildResumeQuizGraph({ generate: quizGenerator(pool, owner, facts, `${quizId}:quiz`, model, quizId, targetRole) });
   const out = await graph.invoke({ raw: resumeRaw });
   const questions = (out.questions ?? []) as QuizItem[];
   const report = (out.report ?? null) as { score: number; grounded: number; summary: string } | null;
