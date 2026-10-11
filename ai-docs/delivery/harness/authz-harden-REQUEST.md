@@ -1,6 +1,6 @@
 # AUTHZ-HARDEN REQUEST（批5 5A 安全 16 件 · 授权加固域 · 簇切两子刀建议）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）——**rev2 勘误落卷（2026-10-11·pre-exec 双审席1 窄 FAIL 三处方+席2 PASS 九登记一次性随落·见 §0.5·两处措辞澄清+四处锚更注披露）·Status 值维持不变·rev2 待复审**。
 
 **席位**：#批5 AUTHZ-HARDEN 刀起草席（北星 loop · 批5 第二刀 · 授权加固域 · 与 MIG-RUNNER 零硬依赖可并行）。
 **基线**：`feat/mysql-schema-skeleton` @ `c042729b`（主线 tip·`git log -1` 实测 2026-10-11·merge(i3-job-mgmt)）。分支 `line/authz-harden`·工作树 `meetwise-authz`（`git worktree add ../meetwise-authz -b line/authz-harden` 本起草席已立·建前 worktree list 实查不存在）。
@@ -19,12 +19,12 @@
 |---|---|---|---|---|
 | #111 邮箱大小写不归一 | :248 P2 | **开放** | `0001_baseline.sql:364` `email text NOT NULL UNIQUE`（大小写敏感·无 lower(email) 索引）；signup `auth.service.ts:34` `const email = b.email` 原样入库；`gateway_auth_signup` `0041:28` INSERT 原样；`gateway_auth_login` `0041:35` `u.email = p_email` 精确比较；`gateway_active_candidate` `0041:60-62` 精确比较 | **本刀簇①收** |
 | #131 邀请侧归一错位 | :257 P2 | **开放**（防夹带注记：i3 卷 :149 留槽原文「#131→5A」·**本刀 bitmap 内**·随 #111 同件族收编·不另立候选） | 邀请侧 `recruiter.service.ts:167` `trim().toLowerCase()` vs 注册原样 → 大写邮箱候选人邀不到（404） | **本刀簇①收**（与 #111 同修） |
-| #120 改密 TOCTOU+无限流 | :255 P2 | **半收口** | TOCTOU 半已缓解：`profile.service.ts:112` 单语句原子 UPDATE+`pwd_epoch=pwd_epoch+1`（并发改密行锁串行·注释亲证）；**限流半开放**：`:102-:127` 全函数 rl.allow 零命中（rg 实测）——被盗令牌可无限试旧密码放大 scrypt CPU | **本刀簇②收（限流/失败锁半）** |
+| #120 改密 TOCTOU+无限流 | :255 P2 | **半收口** | TOCTOU 半已缓解：`profile.service.ts:112` 单语句原子 UPDATE+`pwd_epoch=pwd_epoch+1`（并发改密行锁串行·注释亲证）；**限流半开放**：`:102-:120` 全函数 rl.allow 零命中（rg 实测）——被盗令牌可无限试旧密码放大 scrypt CPU | **本刀簇②收（限流/失败锁半）** |
 | #33 登录时序枚举 | :221 P2 | **开放** | `auth.service.ts:61` `u && u.status === 'active' && verifyPassword(...)` 短路——`gateway_auth_login` 无 dummy row·账户不存在零行返回 verify 不跑；`:60` 注释「都跑一次 verify」与实现不符 | **本刀簇②收** |
-| #34 login 校验/chunked/scrypt | :375 P3 | **半开放** | ①login 不挂 pipe 为**注释明示故意**（`auth.controller.ts:21` 理由①限流须全见②登录不校验复杂度——修法须绕开此理由=裁决项②）；②scrypt 同步 `domain/auth.ts:7/:15` scryptSync；③`main.ts:149-157` 1MiB 钩子只读 content-length·chunked 无头回落 12MiB bodyLimit（`main.ts:115`） | **本刀簇②收**（②③两半） |
+| #34 login 校验/chunked/scrypt | :375 P3 | **半开放** | ①login 不挂 pipe 为**注释明示故意**（`auth.controller.ts:21` 理由①限流须全见②登录不校验复杂度——修法须绕开此理由=裁决项②）；②scrypt 同步 `packages/domain/src/auth.ts:10/:18` scryptSync；③`main.ts:149-157` 1MiB 钩子只读 content-length·chunked 无头回落 12MiB bodyLimit（`main.ts:115`） | **本刀簇②收**（②③两半） |
 | #90 login email 无校验入限流 key | :389 P3 | **开放** | `auth.service.ts:52-54` 仅非空检查即入 `login:${b.email}` key·无格式/长度校验；`contracts:12` Credentials shape（email().max(254)）已有未用 | **本刀簇②收** |
 | #180 login 无 IP/全局桶 | :278 P2 | **开放** | `auth.service.ts:54` 仅 `login:${email}` per-email 桶（对照 signup `:28` 三桶 per-email→ip→global）——分散 email 喷洒不受限 | **本刀簇②收** |
-| #35 令牌无轮换/无 jti | :222 P2 | **开放** | `domain/auth.ts:23-35` signToken 单 AUTH_SECRET 无 kid；`principal.guard.ts:11` 注释自承「无状态 HMAC(7 天 TTL,无 jti/黑名单)」；`auth.service.ts:66-70` issue() 无会话表 | **本刀簇③收** |
+| #35 令牌无轮换/无 jti | :222 P2 | **开放** | `packages/domain/src/auth.ts:23-35` signToken 单 AUTH_SECRET 无 kid；`principal.guard.ts:9` 注释自承「无状态 HMAC(7 天 TTL,无 jti/黑名单)」；`auth.service.ts:66-70` issue() 无会话表 | **本刀簇③收** |
 | #112 无登出端点/令牌不可吊销 | :249 P2 | **开放** | `auth.controller.ts` 全端点=:11 signup/:19 login（登出零）；web `auth-actions.ts:42-46` logoutAction 只清 cookie+revalidatePath·令牌 7 天仍有效 | **本刀簇③收** |
 | #67 CSP unsafe-inline | :231 P2 | **开放** | `next.config.mjs:30` `script-src 'self' 'unsafe-inline'`；注释与实现不符面同在 | **本刀簇④收** |
 | #100 HMAC 验签三份+pay-callback 登录可调 | :245 P2 | **开放** | `commerce.service.ts:87-89/:105-107/:135-137` 三份复制验签（无公共函数·无时间戳防重放）；`commerce.controller.ts:34-38` pay-callback 仍 `@UseGuards(PrincipalGuard)`；`privacy.service.ts:107` createHmac 为 preview digest 异用途（零触） | **本刀簇④收** |
@@ -56,6 +56,28 @@
 
 主仓工作树（meetwise @c042729b）**staged I4 EXEC 在飞未提交**（20 文件·含 `i4-invite-face-REQUEST.md`/0165/0166 迁移/recruiter.service.ts/neg-bend.proof.ts/notifications 等）——本卷全部锚以 **HEAD `c042729b` 纯净态 `git show` 复核**（§0.1 行号即 HEAD 态）；EXEC 立项时若 I4 已落线，recruiter.service.ts/neg-bend.proof.ts 行号照例重 pin。迁移编号位：I4 落线后占 0165/0166 → 本刀新迁移自 **0167+** 起（EXEC 时以实树重 pin·冲突即顺延）。
 
+### 0.5 pre-exec 双审 rev2 落卷登记（2026-10-11 rev2 勘误席·席1 窄 FAIL 三处方正文已附+席2 PASS 九登记·EXEC 立项照本节与 §0 同权重重 pin——处方全系增补登记行·§1 修法清单既有行/§5 Ban-pins 语义零变）
+
+**席1 三处方落点**：①→§1 簇①增「网关函数镜像同步」行（窄 FAIL 根因：0167+ 网关换体须携 0155 末位回填并集+与 23 auth 族区逐字节同文镜像·RX-3 承重墙）；②→§3-1 澄清（0165-0166 两函数族本体≠23 文件全体）；③→§3-5 补半句（镜像同步写 sql/ 住地不另开迁移号）。
+
+**席2 九登记（EXEC 立项重 pin）**：
+
+- **R1（簇③）**：存量已发令牌无 jti——会话表吊销面只对带 jti 令牌生效，无 jti 存量令牌走 **legacy 无态路径**（验签+exp+pwd_epoch/status 既有机械）至 TTL 自然过期（存量会话兼容·禁一刀切全拒）；signToken 全产点清单重 pin=两处：`apps/api/src/modules/auth/auth.service.ts:70`（issue() 内）+`apps/api/src/modules/profile/profile.service.ts:118`（改密回签）——rev2 rg 全树亲证仅此两产点+`packages/domain/src/auth.ts` 定义点。
+- **R2（簇②）**：login ip/global 桶与改密失败锁参数留 **env 覆写口**（先例 `auth.service.ts:11-13` RL_SIGNUP_IP「容量,速率」双值形·prod 钉死+perf/E2E 显式落档同纪律）；簇②断言族补第三臂（EXEC 落形落位）。
+- **R3（簇④）**：CSP 断言补两形=**响应头形**（Content-Security-Policy 响应头实含新策略·next.config headers 面）+**nonce 形**（静态源断言之外的运行时形）——EXEC 定断言载体。
+- **R4（簇②）**：#34/#90 login 校验 shape 沿 `packages/contracts/src/index.ts:12` Credentials 既有形**含 password max(128)**（rev2 亲证在位·防 scrypt CPU DoS 上限理由同注释）——断言与实现不得弱化该上限。
+- **R5（簇③）**：会话表/jti 命名与 privacy 擦除域**显式区分**：0091 `privacy_authorization_snapshot.jti`（:58 UNIQUE）/`privacy_deletion_receipt`（:84）与 0112 memory `retention_class='session'`（:88）+`p_jti` 擦除链（:876-897）属 privacy 授权/擦除谱系——簇③新会话表命名禁与之混用（EXEC 定名）。
+- **R6/R7（计数口径如实登记）**：「12 收」枚举实列 13 个件号（#131 计入 #111 同族不单计）·16 位图=12 收+2 锁外（#108/#109）+1 备忘（#143）+1 同族（#131）对勘恰合（§0.1 归槽结论）——EXEC/复审按此口径，重计争议不立；Ban 计数登记照此如实。
+- **R8（防漂铁律）**：worker_threads 关键词横跨两修法域=簇② #34（scrypt 改异步·worker_threads 或 node:crypto async 形）×#108（resume-extract worker_threads terminate·🔒DEPS S3 不收）——#34 实施严禁漂入 resume-extract 面（§3-2 防夹带同款）。
+- **R9（簇①铁律）**：0041 三网关函数（signup :22-30/login :32-36/active_candidate :53-66+ACL :139-154）改写以 **0167+ 新迁移 `CREATE OR REPLACE`** 落——历史迁移零字节改铁律（migrate.ts checksum 守卫·0155:20-21 先例·禁原地改 0041）。
+
+**席1 登记项随落**：
+
+- **席1-R1（随刀更注）**：neg-interview 计数注释陈旧——`apps/api/test/neg-interview.proof.ts:579` 注「合计:97」vs 静态 `A(` 断言 rev2 实测 **102**（97 系 H3 EXEC 时点值·后续刀增臂未更注）——随本刀 EXEC 面更注（重核实数后落）。
+- **席1-R3（锚小漂+全路径）**：四处小漂 rev2 已实测并按 §0 免责条款原位更锚（只更行号零语义）：①#34 `domain/auth.ts:7/:15`→`packages/domain/src/auth.ts:10/:18`（scryptSync 实位 :5 import/:10 hash/:18 verify·:7/:15 系文档注释）；②#35 `principal.guard.ts:11`→`:9`（「无状态 HMAC」引文实位）；③#120 `:102-:127`→`:102-:120`（changePassword 全函数实界）；④`domain/auth.ts` 卷内两处补全路径 `packages/domain/src/auth.ts`。余 §0.1 锚 rev2 全量亲验零漂（0041:28/:35/:60-62·auth.service:34/:52-54/:54/:60-61/:66-70·0001:364·contracts:12·next.config:30·api main.ts:21-27/:115/:149-157·worker main.ts:59-66·commerce.service:87-89/:105-107/:135-137·commerce.controller:34-38·privacy:107·resume-extract:29/:47-50/:55-60/:95·resume.service:66·interview-jobs:222-237/:262-275·recruiter:167·auth-actions:42-46·auth.controller:11/:19/:21·0151:31·0156:55-72）。
+
+**rev2 现势实测（登记·§0.4 原文不动）**：I4 已落主线（`f5fa2f52` EXEC → 主线 tip `2f6662ef` 实测·0165 `gateway_notify_invited`/0166 `gateway_recruiter_contact_share` 在树·23 镜像追加 :660-732 纯插入 75 行 auth 族区字节零触亲证）→ §0.4「staged 在飞未提交」系起草时点实情；迁移空位自 **0167** 起合卷面口径（注：**0164 亦空号且全史零痕**·最小未占=0164·沿 0155「取最小未占号」先例与卷面 0167+ 口径两存——EXEC 重 pin 裁决·不阻塞）。
+
 ## §1 修法（四触面簇·修法列逐字固化·file:line 实锚·EXEC 立项重 pin·**簇切两子刀建议：5A-1=簇①②③（账号/会话）·5A-2=簇④（面硬化）**——LEDGER「可 2-3 子刀」·单刀或分派=裁决项⑧）
 
 ### 簇① 邮箱归一（#111 修法列逐字：「统一 trim+lowercase（或 citext）并加 lower(email) 唯一索引；先排查存量冲突账号」+#131 修法列逐字：「随 #111 统一邮箱归一（含存量迁移）」）
@@ -63,6 +85,7 @@
 - **写侧归一**：signup `auth.service.ts:34` 入库前 `email.trim().toLowerCase()`；`gateway_auth_signup`（0041）SQL 侧同归一（双闸·应用层为主 SQL 层兜底）。
 - **读侧归一**：`gateway_auth_login`（0041:35）/`gateway_active_candidate`（0041:60-62）比较改 `lower(u.email)=lower(p_email)`（或登录入参先归一后精确比较·二选一=裁决项①附带）。
 - **存量迁移（新迁移 0167+）**：①冲突预检报告（`GROUP BY lower(email) HAVING count(*)>1`——冲突行**只报告不静默合并**·处置归运营决）；②无冲突行 `UPDATE user_account SET email=lower(trim(email))`；③`CREATE UNIQUE INDEX ux_user_email_lower ON user_account (lower(email))`；④迁移幂等可重跑。
+- **网关函数镜像同步**〖rev2 席1-①增补·登记义务行·窄 FAIL 根因〗：0167+ 新迁移对 `gateway_auth_signup`/`gateway_auth_login`/`gateway_active_candidate` 三函数换体（SQL 侧归一闸）须：①携带 0155 末位回填并集（trial 桶 grant+approval_status 审批分支·漏携即抹 #228 trial 同事务发放行为·`0155:53-57` 亲证）；②函数体+ACL 与住地 `packages/db/sql/23_api_gateway.sql` auth 族区（函数区 :5-47/:83 起+ACL :411-429）**逐字节同文镜像**（0159 RX-3 承重墙判据·0165/0166 两函数区段同款先例）。
 - **邀请侧统一**：`recruiter.service.ts:167` 归一改调与注册同源的单一 helper（行为等价·消除双处各写）；I4 面（通知/回包/识别）零触。
 
 ### 簇② login/改密面（#33：「不存在/停用时对假哈希跑一次 verifyPassword，统一耗时」·#120：「改密加按主体+IP 限流与失败锁定，校验与更新同事务」·#180：「login 加 IP 维度与全局桶，挂 Credentials 校验」·#90：「同 #34：login 挂 Credentials 校验后再入限流 key」·#34：「login 挂 ZodValidationPipe(Credentials)，并改 scrypt 为异步」）
@@ -100,11 +123,11 @@
 
 ## §3 范围外（边界清单·越界即 FAIL）
 
-1. **I4 界线（划清）**：邀请通知/回包 owner_user_id/候选人识别/0165-0166 网关函数族——全不触（I4 staged 在飞·§0.4）；本刀触 recruiter.service.ts 仅 `:167` 归一 helper 一处。
+1. **I4 界线（划清）**：邀请通知/回包 owner_user_id/候选人识别/0165-0166 网关函数族——全不触（I4 staged 在飞·§0.4）；本刀触 recruiter.service.ts 仅 `:167` 归一 helper 一处。〖rev2 席1-②澄清：「0165-0166 网关函数族全不触」指 0165/0166 所定义邀请两函数族本体（`gateway_notify_invited`/`gateway_recruiter_contact_share`）非 23_api_gateway.sql 文件全体；23 内 auth 族区段（`gateway_auth_signup`/`gateway_auth_login`/`gateway_active_candidate`）镜像同步属簇①义务（§1）非越界——I4 落线先例即 23 纯插入追加（:660-732）auth 族区零触〗
 2. **#108/#109 不顺手**（🔒DEPS S3=DEPS-AUDIT 四守卫域·PK 魔数/.doc 拒绝/解压上限同族·防夹带）；**#36 不顺手**（5C·S9 Redis 决策域）；**#62 不顺手**（5E）。
 3. **邮箱验证/重置密码流程不实施**（§1-簇③·SMTP 依赖未在位·位图字面只锁令牌/登出）；**渠道接入不立项**（#100 修法列原文「渠道接入另立项」）。
 4. **commerce 账务语义零触**：reserve/confirm/release/CAS/exactly-once 与企业桶面字节零改（#100 只动验签与访问控制）。
-5. **DDL 白名单**：本刀迁移仅限簇①归一+唯一索引与簇③会话表两件（0167+ 编号 EXEC 重 pin）；**零新 RLS 策略/零 BYPASSRLS/零角色授权变更**——任何额外迁移冲动=停手上报。
+5. **DDL 白名单**：本刀迁移仅限簇①归一+唯一索引与簇③会话表两件（0167+ 编号 EXEC 重 pin）；**零新 RLS 策略/零 BYPASSRLS/零角色授权变更**——任何额外迁移冲动=停手上报；镜像同步写 `sql/` 住地文件（23 auth 族区段）不另开迁移编号（仍在白名单两件语义内·rev2 席1-③）。
 6. **PrincipalGuard 既有吊销机械零改**：pwd_epoch/status/保留主体/60s 缓存 evict 语义只增不翻（#36 多实例 seam 不动·归 5C）。
 7. **est live=0**：零模型真实外呼·零生产操作·零 secrets（§6）。
 8. MIG-RUNNER 约束族（#115/#134/#135/#145/#140/#141/#142/#136/#137/#3/#13/#15/#23/#16/#25/#122/#144/#150/#151/#152）零触·runner 特性零消费。
