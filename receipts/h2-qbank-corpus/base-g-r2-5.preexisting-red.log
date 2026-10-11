@@ -1,0 +1,20 @@
+PASS  missing snapshot is denied
+PASS  empty allocations are denied
+PASS  invalid snapshot leaf is denied
+PASS  valid snapshot produces scoped retrieve decision
+PASS  denial is observable as degraded retrieval
+PASS  consumer present — /Users/miaole/Desktop/golucky/meetwise-h2q/apps/worker/src/interview-consumer.ts
+PASS  scope helper present — /Users/miaole/Desktop/golucky/meetwise-h2q/apps/worker/src/qbank-retrieve-scope.ts
+PASS  R2 status present — /Users/miaole/Desktop/golucky/meetwise-h2q/ai-docs/delivery/harness/r2-classify-job-route-status.md
+PASS  R4 status present — /Users/miaole/Desktop/golucky/meetwise-h2q/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  REQUEST mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-h2q/ai-docs/delivery/reviews/REQUEST-g-r2-5-retrieve-fail-closed-mw-rag-route.md
+PASS  REQUEST mw-e2e-ha present — /Users/miaole/Desktop/golucky/meetwise-h2q/ai-docs/delivery/reviews/REQUEST-g-r2-5-retrieve-fail-closed-mw-e2e-ha.md
+PASS  consumer makes explicit retrieve decision
+PASS  consumer emits route_snapshot_missing degraded retrieval
+PASS  consumer fail-closed when decision denied; allowed path uses trackLocal or scoped localRetrieve
+PASS  consumer documents retrieve-side only / P-START separate
+PASS  R2 status records G-R2-5 retrieve-side closure without closing R2
+FAIL  R4 remains NOT closed
+PASS  both REQUESTs prohibit self-approval and release claims
+
+FAIL  G-R2-5 retrieve fail-closed (1 failures)
