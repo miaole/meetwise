@@ -21,6 +21,14 @@ export interface JobPosting {
 
 const COLS = 'id, owner_user_id, title, description, competencies, status, created_at';
 
+/** 候选人浏览公开面窄投影(I4 #222 收窄:零 owner_user_id——跨租户不暴露内部属主 id;
+ * description 保留供投递前可见,与 I3 JD 表单落地时序独立成立)。 */
+export interface JobPublicView {
+  id: string; title: string; description: string;
+  competencies: string[]; status: string; created_at: string;
+}
+const PUBLIC_COLS = 'id, title, description, competencies, status, created_at';
+
 export async function createJob(c: Client, owner: string, input: { title: string; description?: string; competencies?: string[]; idempotencyKey?: string }): Promise<{ id: string }> {
   await assertPrincipal(c, owner);
   const title = input.title.trim();
@@ -230,10 +238,11 @@ export interface TalentRow {
   status: string; score: number | null; source: string; created_at: string;
 }
 
-/** 候选人浏览开放岗位:跨租户公开读(RLS p_read 放行 status='open')。不 assertPrincipal——非 owner 视角。 */
-export async function listOpenJobs(c: Client): Promise<JobPosting[]> {
-  const r = await c.query(`SELECT ${COLS} FROM job_posting WHERE status='open' ORDER BY created_at DESC`);
-  return r.rows as JobPosting[];
+/** 候选人浏览开放岗位:跨租户公开读(RLS p_read 放行 status='open')。不 assertPrincipal——非 owner 视角。
+ * I4 #222:用 PUBLIC_COLS 窄投影,回包零 owner_user_id(browseJobs 公开面收窄·自有面 listJobs/getJob 用 COLS 零动)。 */
+export async function listOpenJobs(c: Client): Promise<JobPublicView[]> {
+  const r = await c.query(`SELECT ${PUBLIC_COLS} FROM job_posting WHERE status='open' ORDER BY created_at DESC`);
+  return r.rows as JobPublicView[];
 }
 
 /** 候选人投递岗位。岗位不存在/已关闭→null。重复投递幂等(UNIQUE 冲突复用既有申请 id)。 */
@@ -286,10 +295,18 @@ export async function listMyApplications(c: Client, candidate: string): Promise<
  * 两态经 0160 受控函数（gateway_b_qualitative_projection.terminal_kind）在申请详情面承接；
  * 列表行保持既有兜底文案零改（fail-closed·不臆测终态）。
  */
-export async function listJobCandidates(c: Client, recruiter: string, jobId: string): Promise<Pick<JobApplication, 'id' | 'candidate_user_id' | 'status' | 'score' | 'source'>[]> {
+export async function listJobCandidates(c: Client, recruiter: string, jobId: string): Promise<Array<Pick<JobApplication, 'id' | 'candidate_user_id' | 'status' | 'score' | 'source'> & { contactEmail: string | null }>> {
   await assertPrincipal(c, recruiter);
   const r = await c.query('SELECT id, candidate_user_id, status, NULL::integer AS score, source FROM job_application WHERE job_id=$1 ORDER BY created_at DESC', [jobId]);
-  return r.rows as Pick<JobApplication, 'id' | 'candidate_user_id' | 'status' | 'score' | 'source'>[];
+  // I4 #223 同意门识别列:contactEmail 只经 0166 gateway_recruiter_contact_share 受控投影(SECURITY
+  // DEFINER+函数内 consent 门 fail-closed——无同意/非自有申请零出参→NULL;0160 同意门同形)。8 位 id
+  // 截断形制零改——识别=加替代手段非展开完整 id;无候选人同意零出参零渲染(网页侧同 fail-closed)。
+  const shared = await c.query(
+    'SELECT application_id, email FROM gateway_recruiter_contact_share($1, $2)',
+    [recruiter, r.rows.map((x) => x.id as string)],
+  );
+  const byId = new Map<string, string>(shared.rows.map((e: { application_id: string; email: string }) => [e.application_id, e.email]));
+  return r.rows.map((row) => ({ ...row, contactEmail: byId.get(row.id as string) ?? null }));
 }
 
 export type FinalizeApplicationResult = 'replayed' | 'assessment_unavailable' | 'not_ready';
@@ -613,7 +630,7 @@ export interface TalentQuery { status?: string; order?: 'asc' | 'desc' }
  * 人才库只按创建时间排序。评分校准发布前，不得以历史或实时数值排序、
  * 过滤或向招聘方返回 score；候选人私有面试仍不可读。
  */
-export async function listTalentPool(c: Client, recruiter: string, q: TalentQuery = {}): Promise<TalentRow[]> {
+export async function listTalentPool(c: Client, recruiter: string, q: TalentQuery = {}): Promise<Array<TalentRow & { contactEmail: string | null }>> {
   await assertPrincipal(c, recruiter);
   const order = q.order === 'asc' ? 'ASC' : 'DESC';                                // 白名单
   const params: unknown[] = [recruiter];
@@ -626,5 +643,11 @@ export async function listTalentPool(c: Client, recruiter: string, q: TalentQuer
       ORDER BY a.created_at ${order}`,
     params,
   );
-  return r.rows as TalentRow[];
+  // I4 #223:人才库行同样经 0166 受控投影补识别列(fail-closed 同 listJobCandidates;仅自有申请+有同意行出参)。
+  const shared = await c.query(
+    'SELECT application_id, email FROM gateway_recruiter_contact_share($1, $2)',
+    [recruiter, r.rows.map((x) => x.id as string)],
+  );
+  const byId = new Map<string, string>(shared.rows.map((e: { application_id: string; email: string }) => [e.application_id, e.email]));
+  return r.rows.map((row) => ({ ...row, contactEmail: byId.get(row.id as string) ?? null }));
 }

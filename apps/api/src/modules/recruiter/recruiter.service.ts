@@ -177,7 +177,13 @@ export class RecruiterService {
     if (candidateId === principal) throw new HttpException({ error: 'cannot_invite_self' }, HttpStatus.BAD_REQUEST);
     if (candidateId) {
       // 命中才真实建申请(幂等复用既有行);**响应不回 applicationId/status**(恒定壳)。
-      await this.db.asPrincipal(principal, (c) => inviteCandidate(c, principal, jobId, candidateId));
+      await this.db.asPrincipal(principal, async (c) => {
+        const app = await inviteCandidate(c, principal, jobId, candidateId);
+        // I4 #221:候选人站内通知写侧只经裁决形通道(0165 gateway_notify_invited·SECURITY DEFINER+
+        // 窄接口:kind/payload 固定·id=ntf_<applicationId> 幂等零堆积·owner 谓词 fail-closed——
+        // 非自有/不存在零写零信号,b110 恒定壳「未命中零写」红线由函数内承重)。未命中分支零进此臂。
+        await c.query('SELECT gateway_notify_invited($1,$2)', [principal, app.applicationId]);
+      });
     }
     // 恒定壳:命中/未命中/招聘方 email 同形同码零信号——真实受理状态以租户内 candidates 列表为准。
     return { received: true } as const;

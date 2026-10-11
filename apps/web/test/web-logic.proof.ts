@@ -1757,6 +1757,48 @@ async function main() {
       `claimed=${jdClaimed} supply=${supplyChainPresent}`);
   }
 
+  // ══ I4 INVITE-FACE（i4-invite-face-REQUEST rev2 §2·read-file 静态断言·est live=0）══════════
+  {
+    section('I4 §A #265 宣称-兑现对齐:settings 页零「邮件通知」宣称残留 + actions payload 修(lang→locale·删 notify)');
+    const webRootI4 = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    const readSrcI4 = (rel: string) => {
+      const p = resolve(webRootI4, rel);
+      if (!existsSync(p)) return '';
+      return readFileSync(p, 'utf8');
+    };
+    const settingsI4 = readSrcI4('app/settings/page.tsx');
+    const settingsActionsI4 = readSrcI4('app/settings/actions.ts');
+    A('i4-265-1 settings 页零邮件通知宣称(「接收邮件通知」checkbox 撤除·宣称零残留)',
+      !settingsI4.includes('接收邮件通知') && !settingsI4.includes("name=\"notify\"") && !settingsI4.includes('pref.notify'));
+    A('i4-265-2 actions payload 修形:locale 白名单键在位·notify 键删除·lang 键删除(contracts updateSettingsSchema .strict() 白名单零后端改)',
+      /locale: String\(formData\.get\('locale'\) \?\? 'zh'\)/.test(settingsActionsI4)
+        && !settingsActionsI4.includes('notify') && !settingsActionsI4.includes("formData.get('lang')"));
+    A('i4-265-3 settings 页语言读回 locale(legacy pref.lang 仅回落·零宣称残留)',
+      /typeof pref\.locale === 'string'/.test(settingsI4));
+
+    section('I4 §B #221 通知读侧标签:KIND_LABELS 承 job_invited(读侧零新管道·只补一行)');
+    const notifI4 = readSrcI4('app/notifications/page.tsx');
+    A('i4-221-1 KIND_LABELS 新增 job_invited 标签(0165 写侧落地读侧承接·既有两标签零动)',
+      /job_invited: '收到岗位邀请'/.test(notifI4)
+        && notifI4.includes("report_ready: '面试报告已就绪'") && notifI4.includes("assessment_ready: '练习反馈已就绪'"));
+
+    section('I4 §C #222 web jobs 页零破坏核(本地 4 字段接口零动·回包收窄纯 API 直调面)');
+    const jobsPageI4 = readSrcI4('app/jobs/page.tsx');
+    A('i4-222-1 jobs 页本地 Job 接口仍 4 字段(回包收窄零破坏核·渲染面零消费过宽字段)',
+      /interface Job \{ id: string; title: string; competencies: string\[\]; status: string \}/.test(jobsPageI4));
+
+    section('I4 §D #223 同意门识别列三页枚举(fail-closed 条件渲染·8 位截断形制零改)');
+    const candListI4 = readSrcI4('app/recruiter/jobs/[id]/page.tsx');
+    const talentI4 = readSrcI4('app/recruiter/talent/page.tsx');
+    const detailI4 = readSrcI4('app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+    A('i4-223-1 三页识别列条件渲染接线(contactEmail 真值门·同意门前零显示)',
+      /\{c\.contactEmail \? <span/.test(candListI4) && /\{t\.contactEmail \? <span/.test(talentI4) && /\{application\.contactEmail \? <span/.test(detailI4));
+    A('i4-223-2 8 位截断形制零改(slice(0, 8) 三锚仍在·识别=加替代手段非展开完整 id)',
+      candListI4.includes('candidate_user_id.slice(0, 8)')
+        && talentI4.includes('candidate_user_id.slice(0, 8)')
+        && detailI4.includes('candidate_user_id.slice(0, 8)'));
+  }
+
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
 }

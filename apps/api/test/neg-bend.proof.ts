@@ -498,6 +498,66 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('第四探针:双方恒 404 期望字节 {"error":"job_not_found_or_forbidden"}(字节钉死)', qCand.status === 404 && qCand.text === '{"error":"job_not_found_or_forbidden"}');
 }
 
+/* ═════════════ 14a) I4 #221 通知写侧接线臂(裁决项①:0165 SECURITY DEFINER gateway_notify_invited·
+   命中→候选人通知行落库/未命中→零行零写·恒定壳字节零动——§14 恒等探针原样全绿即证) ═════════════ */
+{
+  const rec = h.U('recU');
+  // 命中臂:认证 invite 命中注册候选人 userB → 候选人站内通知行落库(owner=userB·kind=job_invited)。
+  const inv = await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateId: 'userB' });
+  A('i4 命中 invite→恒定壳零破(200 received:true·键集恰 1·沿 :310 形)', inv.status === 200 && inv.body?.received === true && Object.keys(inv.body ?? {}).length === 1);
+  const appRow = (await h.pool.query("SELECT id FROM job_application WHERE job_id='JOB_REC' AND candidate_user_id='userB' ORDER BY created_at DESC LIMIT 1")).rows[0];
+  const notif = (await h.pool.query('SELECT id, owner_user_id, kind, payload FROM notification WHERE id=$1', [`ntf_${appRow?.id}`])).rows[0];
+  A('i4 命中→候选人通知行落库(owner=userB·kind=job_invited·id=ntf_<applicationId> 幂等形)', !!notif && notif.owner_user_id === 'userB' && notif.kind === 'job_invited');
+  A('i4 通知 payload 恰 {jobId,jobTitle} 最小集(键集=2·零 PII 扩散)', notif?.payload?.jobId === 'JOB_REC' && notif?.payload?.jobTitle === '后端岗' && Object.keys(notif?.payload ?? {}).length === 2);
+  // 幂等:重邀请幂等复用既有申请 → 通知零堆积(ON CONFLICT (id) DO NOTHING)。
+  await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateId: 'userB' });
+  const dup = (await h.pool.query('SELECT count(*)::int n FROM notification WHERE id=$1', [`ntf_${appRow?.id}`])).rows[0].n;
+  A('i4 重邀请幂等复用→通知行零堆积(ntf_<applicationId> 形)', dup === 1);
+  // 未命中零写一致性:全库 job_invited 通知行恰绑定真实命中申请(id=ntf_<applicationId> 且 owner=申请候选人),
+  // 孤儿行=0——未命中臂零写(b110 红线:零信号零写;恒定壳 200 形已由 §14 幽灵/招聘方 email 探针逐字节恒等承,
+  // 此处不另发 invite 请求——invite:ip 桶全进程共享,§15 末段钉置防自饥饿)。
+  const orphan = (await h.pool.query(
+    "SELECT count(*)::int n FROM notification nt WHERE nt.kind='job_invited' AND NOT EXISTS (SELECT 1 FROM job_application ja WHERE nt.id = 'ntf_' || ja.id AND nt.owner_user_id = ja.candidate_user_id)",
+  )).rows[0].n;
+  A('i4 未命中零写一致性:job_invited 通知行恰绑定真实申请·孤儿行=0', orphan === 0);
+}
+
+/* ═════════════ 14b) I4 #222 browseJobs 回包收窄臂(认证 GET /jobs 公开面零 owner_user_id·自有面零回归) ═════════════ */
+{
+  // 认证收窄臂:候选人 GET /jobs → 行键集恰公开六键(competencies/created_at/description/id/status/title),零 owner_user_id。
+  const pub = await h.req('GET', '/jobs', h.U('userA'));
+  const pubJobs = pub.body?.jobs ?? [];
+  const leakOwner = pubJobs.some((j: any) => 'owner_user_id' in j);
+  const keySets = new Set(pubJobs.map((j: any) => Object.keys(j).sort().join(',')));
+  A('i4 browseJobs 认证回包收窄:零 owner_user_id 泄漏(修法列原意·跨租户不暴露属主 id)', pub.status === 200 && pubJobs.length > 0 && !leakOwner);
+  A('i4 browseJobs 行键集恰公开六键钉死(competencies,created_at,description,id,status,title)', keySets.size === 1 && keySets.has('competencies,created_at,description,id,status,title'));
+  // 自有面零回归:recruiter listJobs(JobList 原形)仍含 owner_user_id。
+  const own = await h.req('GET', '/recruiter/jobs', h.U('recU'));
+  A('i4 recruiter 自有面零回归:listJobs 行仍含 owner_user_id(JobList 原形零动)', own.status === 200 && (own.body?.jobs ?? []).length > 0 && (own.body?.jobs ?? []).every((j: any) => 'owner_user_id' in j));
+}
+
+/* ═════════════ 14c) I4 #223 同意门识别列臂(0166 gateway_recruiter_contact_share·fail-closed:
+   无同意零出参/同意后出识别邮箱/非法 purpose 400 零回归) ═════════════ */
+{
+  // 无同意 → 招聘方读面零候选人邮箱出参(fail-closed·行内 contactEmail 恒 null)。
+  const pre = await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', h.U('recU'));
+  const preRows = pre.body?.candidates ?? [];
+  A('i4 无同意→candidates 读面零候选人邮箱出参(contactEmail 恒 null·fail-closed)', pre.status === 200 && preRows.length > 0 && preRows.every((r: any) => r.contactEmail === null));
+  // 非法 purpose→400 零回归(zod 白名单只增不改)。
+  A('i4 非法 purpose→400 零回归(CONSENT_PURPOSES 白名单)', (await h.send('POST', '/privacy/consent', h.U('userA'), { purpose: 'i4_unknown_purpose' })).status === 400);
+  // freshC 同意 recruiter_contact_share(只增 purpose)→ 读面识别列出其邮箱。
+  const cs = await h.send('POST', '/privacy/consent', h.U('freshC'), { purpose: 'recruiter_contact_share' });
+  A('i4 新 purpose recruiter_contact_share 进枚举面(consent 受理 200·零迁移)', cs.status === 200 && cs.body?.recorded === true);
+  const post = await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', h.U('recU'));
+  const freshRow = (post.body?.candidates ?? []).find((r: any) => r.candidate_user_id === 'freshC');
+  const otherRows = (post.body?.candidates ?? []).filter((r: any) => r.candidate_user_id !== 'freshC');
+  A('i4 同意后→读面识别列出候选人邮箱(恰同意行 freshC=f@x.com·未同意行仍 null)', post.status === 200 && freshRow?.contactEmail === 'f@x.com' && otherRows.every((r: any) => r.contactEmail === null));
+  // talent 面同样承识别列(跨自有岗位聚合)。
+  const t = await h.req('GET', '/recruiter/talent', h.U('recU'));
+  const tFresh = (t.body?.talents ?? []).find((r: any) => r.candidate_user_id === 'freshC');
+  A('i4 talent 面同意后同样出识别列邮箱(fail-closed 同形)', t.status === 200 && tFresh?.contactEmail === 'f@x.com');
+}
+
 // 收尾:确认经过全部 IDOR 尝试后,受害申请仍然纹丝不动(端到端无越权副作用)
 {
   const s = await appStatus('APP_VICTIM');
@@ -527,10 +587,11 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('invite 429 后同主体后续恒 429(fail-closed,不静默换道放行)', after.status === 429 && after.body?.error === 'too_many_requests');
 }
 
-// ── 用例条数统计:共 157 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path;mkAssert 实测口径)──
-//   fixture 前置 5 · §1 未鉴权 22 · §2 坏 token/伪造主体 6 · §3 角色越权(recruiter)10 · §4 admin 越权 9 ·
+// ── 用例条数统计:共 178 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path;mkAssert 实测口径;i4 nail 合并实跑值)──
+//   fixture 前置 5 · §1 未鉴权 26(含 I3 JOB-MGMT 四端点 401 臂 4) · §2 坏 token/伪造主体 6 · §3 角色越权(recruiter)14(含 I3 JOB-MGMT 四端点 403 臂 4) · §4 admin 越权 9 ·
 //   §5 admin 特权边界+返回体泄漏 6 · §6 跨租户 IDOR(recruiter)7 · §7 跨用户 IDOR(application)9 ·
 //   §8 申请闭环负路径 9（含禁止 client interviewId 注入）· §9 招聘方写负路径 8 · §10 roles 5 · §11 profile 13 ·
 //   §12 DB 层 RLS 直证 10 · §13 b110 审核制三分码+审批解锁/留痕 28 · §14 b110 枚举恒等+第四探针 5 ·
+//   §14a I4 通知写侧接线臂 5 · §14b I4 browseJobs 收窄臂 3 · §14c I4 同意门识别列臂 5 ·
 //   收尾 1 · §15 b110 IP 限流(末段) 4
 await done();

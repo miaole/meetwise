@@ -4,9 +4,10 @@ import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
 
 export async function saveSettingsAction(formData: FormData) {
+  // I4 #265:payload 修形——lang→locale·移除旧通知开关键(locale/theme/notifications 白名单见 contracts
+  // updateSettingsSchema .strict();此前发送体恒 400=保存钮既有红,本修顺手清零后端改动)。
   const preferences = {
-    lang: String(formData.get('lang') ?? 'zh'),
-    notify: formData.get('notify') === 'on',
+    locale: String(formData.get('locale') ?? 'zh'),
   };
   await serverFetch('/profile/settings', {
     method: 'PATCH',
