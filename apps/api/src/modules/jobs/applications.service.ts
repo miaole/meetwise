@@ -72,6 +72,14 @@ export class ApplicationsService {
         error: 'interview_ineligible_route',
         message: '该岗位路由尚未就绪，暂不可开始题库面试；请待岗位补充描述并完成路由后再试',
       }, HttpStatus.CONFLICT);
+    // I2 W1 修法④（裁定⑥ `application_held_not_retryable`·409）：held（绑定面试 completed 的
+    // hold 终态）不再可重试——服务端守卫与 UI 收窄同源（recruiter.ts 绑定面试 status 校验）。
+    // 非既有 402 分码面（application-enterprise-pay 映射零改·新拒因并列既有 409 表）。
+    if (r.status === 'application_held_not_retryable')
+      throw new HttpException({
+        error: 'application_held_not_retryable',
+        message: '本场面试已完成，评分待校准；无需重新开始',
+      }, HttpStatus.CONFLICT);
     if (r.status === 'noop') return { applicationId: appId, status: 'noop' as const };
     // 其余联合分支只可能是 started/reused，先显式收窄再读取持久化会话标识。
     if (r.status !== 'started' && r.status !== 'reused') {

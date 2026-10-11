@@ -1,6 +1,6 @@
 # I2 B-DELIVERABLE — B 端最小定性交付刀（#218+#271修法④ · 批3 I2 组 · M 体量 · REQUEST 起草）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席 `i2-draft` · docs-only 零码动 · Ban self-approve · alone≠dual · 待预执行双审 PASS 后才派 EXEC coding）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-11 EXEC `i2b-exec` 落卷·原值 `draft:awaiting_pre_exec_dual` 见 git 历史 `b26a930a`·收据 `ai-docs/delivery/receipts/i2-b-deliverable/exec-receipt.md`）
 **Date**: 2026-10-11
 **审计项**: 蓝本 `batch-residual-plan.md` §三 打包表 I2 行（:108·meetwise-line-entpay 树实读）＝#218+#271修法④（M 体量·批3 残留）· 清点表 :71/#218 · 对应 LEDGER 行 :65/#218「🆕 B-DELIVERABLE 刀」+ :209 批3 3/23 残 20 在册
 **Base**: `feat/mysql-schema-skeleton` @`36ded20a`（主线最新 tip·本刀工作树 tip）· 分支 `line/i2-b-deliverable`（工作树 `meetwise-i2`）· **上游在位亲证**：`git merge-base --is-ancestor 3af029a9 36ded20a` = true（I1 片3 nail `3af029a9` 已落主线）；G4 EXEC `b70d7d81`、EVIDENCE-DELIVERY EXEC `afb13fcf`/merge `eae56953`/nail `74895b7c` 同为 tip 祖先（逐一 merge-base 亲证）
@@ -139,3 +139,14 @@ Ban self-approve · Ban retry-to-green（attempts 全账）· Ban skip-as-pass �
 ---
 
 *I2 B-DELIVERABLE REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base 主线 `feat/mysql-schema-skeleton` @`36ded20a` · 分支 `line/i2-b-deliverable`（工作树 `meetwise-i2`）· 依据=batch-residual-plan.md I2 行（:108）+清点表 :71 + 更正版 issues-master :187 主行/:190 #271修法④ + product-audit-report.md:103 引语 + fix-roadmap :105/:117 + LEDGER :65/:209 · 实树 @36ded20a 全锚亲证（含已落覆盖面 G4 b70d7d81/EVIDENCE eae56953/ENTPAY 片3 3af029a9 ancestor 亲证）· pins 十一值照抄零翻转 · est live=0 · Dual PASS ≠ 开工 · Ban self-approve · ⛔push*
+
+---
+
+## §9-EXEC EXEC 落卷附记（append-only · 2026-10-11 · i2b-exec 席 · 原文 §0-§8 零改）
+
+- **rebase**：`feat/mysql-schema-skeleton` merge-base==tip @`36ded20a`·up-to-date EXIT=0 零冲突。
+- **W1-W3 全落码**：逐条 file:line 见收据 §3（契约 terminalKind 形 a·E3 CASE 逐字·held 守卫 `application_held_not_retryable` 409·两态文案+startable 收窄·0160 受控 DEFINER 投影函数（出参白名单 7 列 Ban 数字分列·E6 同意门函数内 fail-closed）+23_api_gateway.sql 镜像逐字节 3224B·GET qualitative 端点·详情页定性区四态·purpose `b_qualitative_share` 进 #82 枚举面·jobs 行同意/撤回触面）。
+- **门禁**：web prove 343/343（323 基线+20）·i2b:prove 33/33·neg:commerce 84/84·entpay:s1 47/48 与 s2 27/28 唯 S1-0/S2-0 链末位钉死预存红（pristine 同断言同败同形）·web/contracts typecheck 0·db/api tsc EXIT 原值 2 与 pristine（stash 对照）逐字节同·0082 零字节·markers=0·零 secrets·pins 十一值零翻转。
+- **执行中实证偏差 R-1（待双审追认）**：interview 为候选人私有（RLS p_owner by-design 隔离墙）→ B 端列表行 join 派生不可达（attempt3 探针实证）——listJobCandidates 还原零改·列表行保持兜底文案·两态信号改经 0160 `terminal_kind` 出参在详情页承接（状态信号不进同意门）。REQUEST W2③「列表行文案分流」半区降级为兜底零改，根因=起草未跑证，漂移入收据 §5。
+- **attempts 全账**：i2b:prove 5 跑（4 red 根因全账·含 R-2 content-immutable 23514 实证→夹具改直插·无同码 retry-to-green）+web prove 2 跑全绿。
+- **est live=0** · claimDone=false（awaiting_post_prove_dual）· ⛔push · Ban self-approve · alone≠dual。

@@ -50,3 +50,24 @@ export async function declineApplicationAction(appId: string) {
   ensureOk(res, 'apply', [409]);
   revalidatePath('/jobs');
 }
+
+/**
+ * I2 W3（裁定④：purpose=`b_qualitative_share`·触面落点=jobs 申请行区）：候选人同意/撤回
+ * 「招聘方查看能力概要」。同意门承重在 0160 投影函数内 fail-closed（无同意行→未披露形状），
+ * 本触面只写 consent_record（POST/DELETE /privacy/consent·#82 枚举校验面扩展值）——
+ * Ban「列表行可见即视为同意」类推定·Ban 旁路。
+ */
+export async function consentQualitativeShareAction() {
+  const res = await serverFetch('/privacy/consent', {
+    method: 'POST',
+    body: JSON.stringify({ purpose: 'b_qualitative_share' }),
+  });
+  ensureOk(res, 'consent', [409]);
+  revalidatePath('/jobs');
+}
+
+export async function withdrawQualitativeShareAction() {
+  const res = await serverFetch('/privacy/consent?purpose=b_qualitative_share', { method: 'DELETE' });
+  ensureOk(res, 'consent', [409]);
+  revalidatePath('/jobs');
+}
