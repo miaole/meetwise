@@ -32,6 +32,21 @@ async function setup() {
   await assertIsolatedTestTarget(pool);
   await pool.query("INSERT INTO job_posting(id,owner_user_id,title,description,competencies,status) VALUES ($1,$2,'后端工程师','',$3,'open')", [jobA, recA, JSON.stringify(['高并发', '分布式锁', '限流'])]);
   await pool.query("INSERT INTO job_posting(id,owner_user_id,title,competencies,status) VALUES ($1,$2,'前端工程师',$3,'open')", [jobB, recB, JSON.stringify(['React'])]);
+  // REG-FIX 组7(深层围栏随演·首层 0126 围栏之下的 R2 P-START 真拒启面):startApplicationInterview 要求岗位已
+  // 有 route_decided 决策(0104 形:job_semantic_revision + job_route_decision·单叶 10000bps/conf≥7000/
+  // margin≥1000/零 reason_codes·decision_hash hex64)。种子以 owner 身份过 FORCE RLS(tryRawDecided 先例形);
+  // jobA 全部 application 共用·jobB 无 application 零需。断言语义零改·围栏零弱化(fixture 供决定非绕门)。
+  await asPrincipal(pool, recA, async (c) => {
+    await c.query(
+      "INSERT INTO job_semantic_revision(job_id,owner_user_id,revision,semantic_digest,input_hmac,status) VALUES ($1,$2,1,$3,$4,'route_decided')",
+      [jobA, recA, (randomUUID() + randomUUID()).replace(/-/g, '').slice(0, 64), (randomUUID() + randomUUID()).replace(/-/g, '').slice(0, 64)],
+    );
+    await c.query(
+      `INSERT INTO job_route_decision(id,job_id,owner_user_id,revision,route_outcome,attempt_outcome,taxonomy_version,policy_version,allocations,confidence_bps,margin_bps,reason_codes,decision_hash)
+       VALUES ($1,$2,$3,1,'route_decided','result_validated','v1','calibration-2026-08-frozen:v1',$4::jsonb,10000,1000,'{}',$5)`,
+      [`rd_${jobA}`, jobA, recA, JSON.stringify([{ leafTrackId: 'backend/nodejs', allocationBps: 10000 }]), 'ab'.repeat(32)],
+    );
+  });
   for (const [id, owner] of [[resumeCand, cand], [resumeCand2, cand2], [resumeCand3, cand3], [resumeCand4, cand4], [resumeCand5, cand5], [resumeCand6, cand6]] as const) {
     await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [id, owner, `${TAG}:${owner}`]);
   }
@@ -41,7 +56,10 @@ async function setup() {
   // 也必须走真实候选人的低权路径，不能由管理员连接绕过正在验证的隐私边界。
   await asPrincipal(pool, cand, (c) => c.query(
     "INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ($1,$2,1,'answer_evaluated',$3)",
-    [cand, historicIv, JSON.stringify({ answer: '历史 C 端私密作答', score: 99 })],
+    // REG-FIX 组7:历史练习事件 payload 围栏合规化——0126 enforce_interview_event_no_raw_answer(payload 存在
+    // `answer` 键即 RAISE)落地后 fixture 未随演;raw 答文摘除改 hash 形(同 completeBound 在用形),score 99
+    // 语义保留·下游断言零引用 raw 文本。
+    [cand, historicIv, JSON.stringify({ questionId: `proof-${historicIv}`, stateVersion: 1, answerId: randomUUID(), answerHash: 'd'.repeat(64), competency: '并发', score: 99 })],
   ));
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',2.0,now()+interval '300 days')", [cand4]);
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',2.0,now()+interval '300 days')", [cand5]);
@@ -170,7 +188,7 @@ async function main() {
     && retryBinding?.status === 'in_progress' && retryBinding?.interview_id === retryId && Number(retryBinding?.interview_attempt) === 2
     && retryBinding?.score === null && (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [inv4!.applicationId])).rows[0]?.n === 2);
 
-  section('⑦ 全部 unresolved 不是伪造 0 分：已完成消费 + B 端 scoreless 终态 + 下一 attempt');
+  section('⑦ 全部 unresolved 不是伪造 0 分：已完成消费 + B 端 scoreless hold 终态（0082 自动收口·completed 会话 held 不可复活）');
   const noScore = await asPrincipal(pool, recA, (c) => inviteCandidate(c, recA, jobA, cand6));
   const noScoreStart = await asPrincipal(pool, cand6, (c) => startApplicationInterview(c, cand6, noScore!.applicationId, resumeCand6)) as any;
   createdInterviewIds.add(noScoreStart.interviewId);
@@ -180,27 +198,32 @@ async function main() {
     await completeInterviewAndConfirm(c, cand6, noScoreStart.interviewId);
   });
   const beforeNoScoreMark = (await pool.query('SELECT status,score FROM job_application WHERE id=$1', [noScore!.applicationId])).rows[0];
-  A('全 unresolved 完成后自动回填不伪造 0 分，也不把申请错误标 completed', beforeNoScoreMark?.status === 'in_progress' && beforeNoScoreMark?.score === null);
-  await asPrincipal(pool, cand6, async (c) => {
-    const marked = await markApplicationNoEligibleScore(c, cand6, noScoreStart.interviewId);
-    if (marked !== 'updated') throw new Error(`no_eligible_score_application_not_marked:${marked}`);
-    await appendEvent(c, cand6, noScoreStart.interviewId, 'assessment_unavailable', { reason: 'no_eligible_scored_answer' }, 'assessment_unavailable:no_eligible_scored_answer');
-  });
+  // 0082 校准 hold(REAL):application 绑定面试 completed 即自动收口 assessment_unavailable+score=NULL
+  // (finalize_bound_job_application_on_interview_completion·REPLACE 0051 形——全 unresolved 也不伪造 0 分,
+  // 也不把申请错误标 completed;评分合同未校准,完成即 B 端 hold 终态)。
+  A('全 unresolved 完成后自动收口 hold 不伪造 0 分，也不把申请错误标 completed', beforeNoScoreMark?.status === 'assessment_unavailable' && beforeNoScoreMark?.score === null);
+  // 手动 markApplicationNoEligibleScore 在 0082 自动收口后=幂等 replay(无第二个状态迁移·见下方重放断言);
+  // completed 会话随即落入 I2 W1 held 门(拒重试)——重试语义断言见 :2xx no-score 重试面。
   const noScoreState = (await pool.query('SELECT status,score,interview_id,interview_attempt FROM job_application WHERE id=$1', [noScore!.applicationId])).rows[0];
   const noScoreConsumption = (await pool.query('SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [cand6, noScoreStart.interviewId])).rows[0];
   A('无有效评分 → application=assessment_unavailable、score=NULL，旧 completed interview 仍被绑定', noScoreState?.status === 'assessment_unavailable' && noScoreState?.score === null
     && noScoreState?.interview_id === noScoreStart.interviewId && Number(noScoreState?.interview_attempt) === 1);
   A('无有效评分是已完成交互：消费 confirmed，不错误退款', noScoreConsumption?.status === 'confirmed');
-  A('重放 no-score 收口只返回 replayed，不追加第二个 application 状态迁移', await asPrincipal(pool, cand6, (c) => markApplicationNoEligibleScore(c, cand6, noScoreStart.interviewId)) === 'replayed');
+  A('no-score 收口只返回 replayed，不追加第二个 application 状态迁移', await asPrincipal(pool, cand6, (c) => markApplicationNoEligibleScore(c, cand6, noScoreStart.interviewId)) === 'replayed');
   const noScoreRetries = await Promise.all(Array.from({ length: 20 }, () => asPrincipal(pool, cand6, (c) => startApplicationInterview(c, cand6, noScore!.applicationId, resumeCand6))));
-  const noScoreRetryId = (noScoreRetries.find((x: any) => x.status === 'started' || x.status === 'reused') as any)?.interviewId;
-  createdInterviewIds.add(noScoreRetryId);
   const noScoreRetry = (await pool.query('SELECT status,interview_id,interview_attempt,score FROM job_application WHERE id=$1', [noScore!.applicationId])).rows[0];
-  A('20 路 no-score 重试只创建 attempt=2，completed 的旧会话不能复活', noScoreRetries.every((x: any) => (x.status === 'started' || x.status === 'reused') && x.interviewId === noScoreRetryId)
-    && noScoreRetry?.status === 'in_progress' && noScoreRetry?.interview_id === noScoreRetryId && Number(noScoreRetry?.interview_attempt) === 2 && noScoreRetry?.score === null);
-  let validScoreDowngradeRejected = false;
-  try { await asPrincipal(pool, cand4, (c) => c.query("UPDATE job_application SET status='assessment_unavailable',score=NULL WHERE id=$1", [paid!.applicationId])); } catch { validScoreDowngradeRejected = true; }
-  A('有合格评分的已完成申请不能被直接降级为 scoreless', validScoreDowngradeRejected);
+  // I2 W1 held 门(REAL):绑定面试 completed=hold 终态 → 一律 application_held_not_retryable——completed 的
+  // 旧会话不能复活、不创建新 attempt(与 ⑥ failed→恢复 attempt=2 面相对照·两 gate 分码各承)。
+  A('20 路 no-score 重试全拒 held，completed 的旧会话不能复活、不创建新 attempt', noScoreRetries.every((x: any) => x.status === 'application_held_not_retryable')
+    && noScoreRetry?.status === 'assessment_unavailable' && noScoreRetry?.interview_id === noScoreStart.interviewId && Number(noScoreRetry?.interview_attempt) === 1 && noScoreRetry?.score === null);
+  // 0082 校准 hold(REAL):completed 状态写冻结(B 端数值完成在校准合同前不可达)且 score 校准前不可变——
+  // 原探针(completed+score 在场→降级 scoreless)前提在 0082 下结构性不可达,按同意图换双探针:
+  // ①恢复 completed+score 必拒 ②对 hold 行改写 score 必拒(防 raw SQL 复活 avg-LLM 评分行为)。
+  let validScoreRestoreRejected = false;
+  try { await asPrincipal(pool, cand4, (c) => c.query("UPDATE job_application SET status='completed',score=82 WHERE id=$1", [paid!.applicationId])); } catch { validScoreRestoreRejected = true; }
+  let scoreRewriteRejected = false;
+  try { await asPrincipal(pool, cand4, (c) => c.query("UPDATE job_application SET score=82 WHERE id=$1", [paid!.applicationId])); } catch { scoreRewriteRejected = true; }
+  A('校准 hold：评分不可伪造——completed 状态写冻结、hold 行 score 校准前不可变', validScoreRestoreRejected && scoreRewriteRejected);
 
   console.log(`\n${failures === 0 ? '✓ recruiter:prove 全部通过' : '✗ ' + failures + ' 失败'}（application-bound interview + RLS + 自动回填）`);
 }

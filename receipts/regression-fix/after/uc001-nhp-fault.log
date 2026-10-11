@@ -1,0 +1,36 @@
+
+> @meetwise/api@0.0.0 prove:uc001-nhp-fault /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-fault.proof.ts
+
+NHP-001-FAULT-01 UC-E2E-001 FAULT blind→case prove (F1/F2b/F2/PC/F3 · Ban live · Ban wash Y/AB/AG)
+Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending)
+NOTE: EXIT0 = case evidence ≠ covered ≠ FAULT flip ≠ suite green · FAULT stays partial · Ban borrow report:prove
+C2 NOTE: complete+enqueueReport = offline seed (completeInterviewAndConfirm) · Ban live-model main-chain narration
+C7 NOTE: evidence = createApp + listen(0) + fetch · not Supertest-only
+PASS  L0 Ban live: MODEL_API_KEY absent on entry (not loaded)
+EVIDENCE L0-ENV {"model_api_key_present_on_entry":false,"model_base_url_present_on_entry":false}
+EVIDENCE ANCHORS {"interview.controller.ts:@Controller('interview')":15,"interview.controller.ts:@Get(':id')":173,"interview.controller.ts:@Get(':id/report')":179,"interview.controller.ts:@Post(':id/report/retry')":185,"interview.controller.ts:@Get(':id/report/export')":192,"interview.controller.ts:@Post(':id/turn')":35,"interview.controller.ts:@Post(':id/answer') GONE":247,"report-worker.ts:drainReportsOnce":140,"report-worker.ts:markReportFailed on generate throw":160,"report-worker.ts:sweepReportsOnce":182,"report.ts:requeueFailedReport status IN (failed,quarantined) + attempts reset":63,"report.ts:requeueFailedReport attempts=0,next_attempt_at=NULL":63,"commerce.ts:completeInterviewAndConfirm":246,"interview.service.ts:report":693,"interview.service.ts:retryReport":699}
+PASS  C1 ANCHOR @Controller(interview) + @Get(:id) present (path /interview/:id · not /interviews/)
+PASS  ANCHOR report/retry/export + /turn mouths present · /answer GONE line present
+PASS  ANCHOR drainReportsOnce + markReportFailed + sweepReportsOnce + requeue failed|quarantined+reset (#229 D2) + completeInterviewAndConfirm
+PASS  C2 disclose: this proof names completeInterviewAndConfirm + enqueueReport as offline seed
+PASS  C3 disclose: F2b separate fixture / before F2 · quarantined→404 no_retriable_report named
+PASS  C5 disclose: LEDGER-SNAP on true PG chosen (not «本 case 不做 ledger 断言»)
+PASS  C7 disclose: createApp+listen(0)+fetch wording (Ban Supertest-only narration)
+PASS  F3 Ban-borrow: this proof does not import Y NEG / AB BOUND / AG ADV / report-bulkhead proof files
+file:///Users/miaole/Desktop/golucky/meetwise-regfix/packages/db/src/principal.ts:1087
+    throw new Error(`database_config_invalid:${code}`);
+          ^
+
+Error: database_config_invalid:database_target_missing
+    at invalidDatabaseConfig (file:///Users/miaole/Desktop/golucky/meetwise-regfix/packages/db/src/principal.ts:1087:11)
+    at resolveDatabaseConnectionString (file:///Users/miaole/Desktop/golucky/meetwise-regfix/packages/db/src/principal.ts:1119:128)
+    at createPool (file:///Users/miaole/Desktop/golucky/meetwise-regfix/packages/db/src/principal.ts:1263:27)
+    at file:///Users/miaole/Desktop/golucky/meetwise-regfix/apps/api/test/uc-e2e-001-nhp-fault.proof.ts:133:15
+    at ModuleJob.run (node:internal/modules/esm/module_job:345:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:651:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.19.0
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1

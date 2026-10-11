@@ -1,0 +1,17 @@
+
+> meetwise@0.1.0 uc025:nhp-neg:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs
+
+UC-E2E-025 NHP-025-NEG-01 stale quiz as interview input (NEG column only)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)
+Not FAULT · Not BOUND · Not ADV · no nail · matrix not edited
+inventory acceptsQuiz=false realStaleReject=false resume_quiz_expiry_column=false
+contracts_stale_token=false
+GAP  GAP-UC025-NEG-01  NHP-025-NEG-01 product reject unwired: interview begin does not take a quiz artifact and does not throw a stale-quiz error
+ROW_STILL_GAP  UC-E2E-025 §1.0.1 NEG remains gap. The row is still gap.
+NOTE  pnpm uc025:stale-quiz-expiry:prove EXIT 0 is the older mark-red pin and is not this case passing
+NOTE  do not read this non-zero as a product refusal. Refusal is not implemented.
+
+CMD=pnpm uc025:nhp-neg:prove EXIT=1
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1

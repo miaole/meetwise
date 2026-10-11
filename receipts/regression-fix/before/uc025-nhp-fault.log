@@ -1,0 +1,30 @@
+
+> meetwise@0.1.0 uc025:nhp-fault:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> pnpm -C apps/api prove:uc025-nhp-fault
+
+
+> @meetwise/api@0.0.0 prove:uc025-nhp-fault /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-fault.proof.ts
+
+UC-E2E-025 NHP-025-FAULT-01 missing/NULL expires_at fail-closed (FAULT column only)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)
+Not NEG (frozen) · Not BOUND (Ban wash) · Not ADV · no nail · matrix not edited
+EVIDENCE_SHAPE  in-process + fake DB · ≠ isolated PG/HTTP E2E · ≠ covered
+
+PASS  S0-begin-region-parseable
+FAIL  S1-controller-forwards-quiz-id
+FAIL  S2-fault-throw-409-missing_quiz_expiry
+FAIL  S3-reads-quiz-expires_at(single merged query · 3→1)
+FAIL  S4-throw-before-bind/reserve/enqueue: throw=-1 bind=-1 reserve=-1 enqueue=-1
+FAIL  S5-no-local-catch-swallows-fault-throw
+FAIL  S6-error-code-orthogonal-to-neg-bound
+NOTE  NEG B'' stale block text present/untouched=false (frozen · not FAULT evidence)
+NOTE  BOUND resume_version_mismatch throw present/untouched=false (Ban wash · not FAULT evidence)
+
+GAP  GAP-UC025-FAULT-01  NHP-025-FAULT-01 unwired: interview begin has no missing/NULL expires_at fail-closed refusal
+ROW_STILL_GAP  UC-E2E-025 FAULT remains gap. The row is still gap. coveredCount=8.
+
+CMD=pnpm uc025:nhp-fault:prove EXIT=1
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1
