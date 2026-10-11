@@ -1,0 +1,50 @@
+
+> meetwise@0.1.0 level-policy-migrate:prove /Users/miaole/Desktop/golucky/meetwise-h3
+> node scripts/run-e2e-isolated.mjs level-policy-migrate:prove
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-237-1791703690692 on 127.0.0.1:60950
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:level-policy /Users/miaole/Desktop/golucky/meetwise-h3/packages/db
+> tsx test/level-policy-version.proof.ts
+
+PASS  0160_level_policy_version 已纳入版本化目录
+PASS  level_policy_version 表已建
+PASS  列集 = A.4 十一列（id/scheme_version/status/五 jsonb/prompt_version/calibration_release_id/created_at）
+PASS  id uuid PRIMARY KEY
+PASS  scheme_version UNIQUE 约束在表
+PASS  status CHECK 四态（draft/calibrating/active/retired）
+PASS  五 jsonb 列形制（levels/weights/thresholds/evidence_requirements/confidence_map）
+PASS  UPDATE 被拒（23514·发布后不可变）
+PASS  DELETE 被拒（23514·append-only 纵深）
+PASS  immutable_guard 触发器在位
+PASS  seed v2 行恰一条
+PASS  status='calibrating'（校准前不得 active·H1 §3.4）
+PASS  prompt_version / calibration_release_id 置 NULL（发布记录尚不存在）
+PASS  ① levels.tiers 零漂（五档序 L1..L5）
+PASS  ② levels.scoreFloor 零漂（junior:null/50/65/75/85）
+PASS  ③ levels.labels 零漂（五档中文标签）
+PASS  ④ weights.weightByDifficulty 零漂（R1 五权）
+PASS  ⑤ weights.shrinkage 零漂（R2 k=1.5·mu0=50）
+PASS  ⑥ weights.capabilityWeight 零漂（R3 core=1.0/nonCore=0.5）
+PASS  ⑦ thresholds.coreFloor 零漂（mid:35/senior:40）
+PASS  ⑧ thresholds.consistencyMargin 零漂（R6=10）
+PASS  ⑨ thresholds.highestPassedDifficultyLine 零漂（R7=60·与 GAP 同值不同义）
+PASS  ⑩ thresholds.belowL1Reference 零漂（R8=30）
+PASS  ⑪ thresholds.milestoneSimulationPass 零漂（S2=70·待校准登记项）
+PASS  ⑫ thresholds.gapLine 零漂（S4 指注·不重复定义）
+PASS  ⑬ evidence_requirements.minCards 零漂（3/5/6/8/10）
+PASS  ⑭ evidence_requirements.minCoverage 零漂（2/3/4/4/5）
+PASS  ⑮ evidence_requirements.hardEvidence 零漂（四档难度证据全表）
+PASS  ⑯ confidence_map.confidenceCaps 零漂（R5 8/5）
+PASS  16 字段恰齐（五 jsonb 顶层键并集 = 冻结抄写面·无第 17 字段）
+PASS  16 字段零漂总断言（五 jsonb 规范化深比较 = TS 镜像逐值相等）
+PASS  重复 scheme_version='v2' INSERT 被拒（23505 unique_violation）
+PASS  重跑全 skip（0160 幂等面·运行器记账）
+PASS  重跑后 v2 行仍恰一条（零重放零重复）
+
+✓ 0160 level_policy_version 迁移 prove 全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T07-28-23-257Z-237-a3c55a7b-a5c4-4d90-b469-2d9f52d85c24.json release_evidence=false
