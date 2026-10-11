@@ -114,3 +114,10 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST 状态行 append-only · 2026-10-11 · pre-exec 合并复审 PASS（#203 终裁留本刀·协调方明示授权 EXEC）→ **executed:awaiting_post_prove_dual**（EXEC 落卷：R1-R8 全兑·复审三处方①②③兑现·rebase up-to-date 零重定位（实树核验 mainline tip=36ded20a=merge-base·简报偏差如实登记）·R7 确定性相似度留本刀+分桶降级条款缩面登记（assessment_report 无岗位列·owner 域即桶）·D2 照旧保留登记·prompt planner.competencies v2→v3·门禁八项全绿 EXIT 原值（web:prove+web typecheck+interviews-actions+interview:prove 57 断言逐字节同+neg:interview 97+growth:prove 31 零退化+memory:prove+新增 weakness:prove 73 PASS·web-logic/interviews-actions 全绿零翻）·预存红登记（api prove:role-input 7 checks·B271 区域锚漂移·非本刀·未触）·收据 receipts/h4-weakness/·est live=0·markers=0·pins 十一值零翻转·⛔push·Ban self-approve·alone ≠ dual·Dual PASS ≠ nail）*
+
+---
+
+## post-prove 席1 勘误登记（2026-10-11 · 协调方落卷·不阻语义闭环）
+
+1. **role-input 红计数勘误**：EXEC 账面称 7 FAIL——席1 实树亲跑实为 **8 FAIL**（base=7·本刀 additive focus 第 8 参使 `role-input.proof.ts:48` S3 controller 透传锚由 PASS→FAIL·与已登记 S6 同类陈旧锚·零行为回归）。7→8 增量与 S3 翻转未入 EXEC 收据，本条勘误登记；修锚归 B271 原席（REG-FIX 同域）。
+2. **证据件替换**：`receipts/h4-weakness/api-role-input-preexisting-red.log` 内容为 wrong-cwd ENOENT 空跑——预存红结论经席1 base 对照跑（@36ded20a worktree）实证为真（7 FAIL），但该日志不构成证据，真实对照跑日志须替换后方构成收据完整件。
