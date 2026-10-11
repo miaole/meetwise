@@ -7,6 +7,9 @@ export const APPLICATION_START_CONFLICT_SUBCLASSES = [
   'application_binding_invalid',
   'interview_ineligible_route',
   'application_start_unexpected',
+  // I2 W1（裁定⑥·新拒因并列表·既有行零改）：held（绑定面试 completed 的 hold 终态）重试被
+  // 服务端守卫拒（recruiter.ts 绑定面试 status 校验 → API 409）——修法④防 UI 拦 API 穿。
+  'application_held_not_retryable',
 ] as const;
 
 export type ApplicationStartConflictSubclass =

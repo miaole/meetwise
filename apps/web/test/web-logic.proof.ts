@@ -1568,6 +1568,83 @@ async function main() {
     A('H4-8d 页面接 growthDeltaView+不可比中性标注(data-testid=delta-not-comparable)',
       lineOf(growthSrc, /import \{ growthDeltaView \} from '@\/lib\/growth\/comparable'/) > 0
       && growthSrc.includes('delta-not-comparable') && growthSrc.includes('维度口径不同 · 不可比'));
+  // ══ I2 B-DELIVERABLE（i2-b-deliverable-REQUEST §4-3·两态徽/startable 收窄/同意触面/定性区·纯函数+read-file 静态·est live=0）══
+  {
+    section('I2 B-DELIVERABLE §4-3：W1 两态徽+startable 收窄+拒因并列+W3 同意触面+W2 定性区（纯函数输出+read-file 静态·组件行为面无 DOM 载体如实记账）');
+    // 纯函数：两态徽（E3 派生口径）+ 招聘方评估列三态（裁定⑤文案逐字）。
+    A('I2-1a held 徽（绑定面试 completed）→「已面完 · 待校准」outline（neutral·destructive 转 neutral）',
+      applicationStatusLabel('assessment_unavailable', 'held').text === '已面完 · 待校准'
+        && applicationStatusLabel('assessment_unavailable', 'held').variant === 'outline');
+    A('I2-1b failed 徽（绑定面试 failed）→「面试失败 · 可重试」destructive',
+      applicationStatusLabel('assessment_unavailable', 'failed').text === '面试失败 · 可重试'
+        && applicationStatusLabel('assessment_unavailable', 'failed').variant === 'destructive');
+    A('I2-1c 无派生信号 fail-closed →「评分暂不可用」（不臆测终态·不承诺可重试）',
+      applicationStatusLabel('assessment_unavailable', null).text === '评分暂不可用'
+        && applicationStatusLabel('assessment_unavailable').text === '评分暂不可用');
+    A('I2-1d 招聘方评估列三态（held/failed/无派生·recruiterAssessmentLabel 扩参向后兼容）',
+      recruiterAssessmentLabel('assessment_unavailable', null, 'held') === '已面完 · 评分待校准'
+        && recruiterAssessmentLabel('assessment_unavailable', 68, 'failed') === '面试失败 · 可重试'
+        && recruiterAssessmentLabel('assessment_unavailable', 68) === '评分暂不可用');
+    // jobs 页：startable 收窄 + held 注记 + W3③ 同意触面接线（read-file 静态）。
+    const jobsSrcI2 = readSrc('app/jobs/page.tsx');
+    A('I2-2a startable 收窄（修法④）：assessment_unavailable 仅 terminalKind===\'failed\' 可重试·旧无条件入口撤除',
+      /app\.status === 'assessment_unavailable' && app\.terminalKind === 'failed'/.test(jobsSrcI2)
+        && !jobsSrcI2.includes("|| app.status === 'assessment_unavailable';"));
+    A('I2-2b held 中性注记逐字（W3①·非时间承诺）',
+      jobsSrcI2.includes('本场面试已完成；评分校准完成后与结果一起提供，不提供重试。'));
+    A('I2-2c W3③ 同意触面接线（consent/withdraw 双 action 绑定在 isHeld 行区·per-user consent 态读取）',
+      jobsSrcI2.includes('consentQualitativeShareAction') && jobsSrcI2.includes('withdrawQualitativeShareAction')
+        && /serverGet<\{ consented: boolean \}>\('\/privacy\/consent\?purpose=b_qualitative_share'\)/.test(jobsSrcI2));
+    A('I2-2d 同意触面现场语境文案逐字（「招聘方将看到什么」）',
+      jobsSrcI2.includes('同意后招聘方仅可见能力维度与强/中/弱/证据不足档位，不含数字评分、答题内容与证据摘录原文；可随时撤回，撤回后立即停止展示。'));
+    A('I2-2e 修法⑥ 知情行仍随 startable 块收敛（W3② 渲染条件核对·零语义改动）',
+      jobsSrcI2.includes('本场由企业支付，不消耗你的额度'));
+    // actions：同意/撤回走 #82 既有三入口（POST body + DELETE query·purpose=b_qualitative_share）。
+    const jobsActionsSrc = readSrc('app/jobs/actions.ts');
+    A('I2-2f 同意触面 API 形（POST /privacy/consent {purpose} + DELETE /privacy/consent?purpose·零新协议）',
+      /body: JSON\.stringify\(\{ purpose: 'b_qualitative_share' \}\)/.test(jobsActionsSrc)
+        && jobsActionsSrc.includes("serverFetch('/privacy/consent?purpose=b_qualitative_share', { method: 'DELETE' })"));
+    // 拒因并列表（裁定⑥·既有四行零改）。
+    const startErrSrcI2 = readSrc('lib/jobs/application-start-error.ts');
+    A('I2-2g 新拒因 application_held_not_retryable 并列 subclasses（既有四行零改·409 服务侧守卫面）',
+      startErrSrcI2.includes("'application_held_not_retryable',")
+        && startErrSrcI2.indexOf("'application_held_not_retryable',") > startErrSrcI2.indexOf("'application_start_unexpected',"));
+    // 招聘方两页：列表行零触（interview RLS 隔离墙 by-design——候选人面试元数据对招聘方会话
+    // 不可读，列表行 join 派生不可达·i2b:prove attempt3 实证全 null）→ 列表恒既有兜底文案；
+    // 两态信号经详情页 0160 受控函数 terminalKind 承接（裁定③落点 A 的详情页半区全兑）。
+    const candListSrc = readSrc('app/recruiter/jobs/[id]/page.tsx');
+    A('I2-3a 列表行零触（隔离墙 by-design·原 applicationStatusLabel(c.status)/recruiterAssessmentLabel(c.status,c.score) 逐字节零改·fail-closed 不臆测终态）',
+      /applicationStatusLabel\(c\.status\)/.test(candListSrc)
+        && /recruiterAssessmentLabel\(c\.status, c\.score\)/.test(candListSrc)
+        && !candListSrc.includes('terminalKind'));
+    const detailSrc = readSrc('app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+    A('I2-3b 定性区端点消费（仅 assessment_unavailable 读取·契约 zod safeParse·失败中性）',
+      /serverGet<unknown>\(`\/recruiter\/jobs\/\$\{id\}\/applications\/\$\{applicationId\}\/qualitative`\)/.test(detailSrc)
+        && /BQualitativeProjection\.safeParse\(qualRes\)/.test(detailSrc));
+    A('I2-3b2 两态信号经 0160 函数承接（terminalKind = 候选列表缺位回落 qual.terminalKind·状态徽/评估行/免责卡同源分流）',
+      /const terminalKind = application\.terminalKind \?\? qual\?\.terminalKind \?\? null;/.test(detailSrc)
+        && /applicationStatusLabel\(application\.status, terminalKind\)/.test(detailSrc)
+        && /recruiterAssessmentLabel\(application\.status, undefined, terminalKind\)/.test(detailSrc)
+        && detailSrc.includes('{terminalKind === \'held\''));
+    A('I2-3c 定性区三态如实（未同意/暂无可复核的评估记录/档位徽·Ban 假定性输出）',
+      detailSrc.includes('候选人未同意披露能力概要。候选人同意后，这里显示能力维度与强/中/弱/证据不足档位。')
+        && detailSrc.includes('暂无可复核的评估记录。')
+        && detailSrc.includes('能力概要暂不可用，请稍后重试。'));
+    A('I2-3d 档位徽表（rubric disposition 三值映射 Ban 自造档位·强/中/弱/证据不足·不出数字）',
+      detailSrc.includes("strong: { text: '强', variant: 'success' }")
+        && detailSrc.includes("mid: { text: '中', variant: 'secondary' }")
+        && detailSrc.includes("weak: { text: '弱', variant: 'outline' }")
+        && detailSrc.includes("insufficient: { text: '证据不足', variant: 'outline' }"));
+    A('I2-3e 排序红线注记（fix-roadmap:117 承接·Ban 排序比较叙事在页面）',
+      detailSrc.includes('单申请人评估事实投影：不可用于候选人之间排序比较，不含数字评分、答题内容与证据摘录原文。'));
+    A('I2-3f 免责卡两态分流+主句零改（W3④·held=待校准语义/failed=失败语义/主句「证据不够就不给分」零字节）',
+      detailSrc.includes('「已面完 · 待校准」表示这场面试已完成、还没有可比较的校准分')
+        && detailSrc.includes('「面试失败」表示这场面试因系统原因未完成评估；候选人可重试，已预留的额度已释放。')
+        && detailSrc.includes('校准完成前，申请分数不会出现在这里。证据不够就不给分，也不会用 0 分凑数。'));
+    A('I2-3g B 端定性页面零计数渲染（Ban 数字分列：页面源零 strong_count/mid_count/weak_count/insufficient_count）',
+      !detailSrc.includes('strong_count') && !detailSrc.includes('mid_count')
+        && !detailSrc.includes('weak_count') && !detailSrc.includes('insufficient_count'));
+    A('记账:组件行为面无 DOM 载体·静态+人工对账（I2-2/I2-3 为源面接线断言·纯函数断言为 I2-1·非浏览器 DOM 证明）', true);
   }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
