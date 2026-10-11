@@ -39,11 +39,17 @@ A('正：practice hint 绑 identity 且 role=practice_hint', (() => {
   return hint.role === 'practice_hint' && hint.source === 'answer_evaluated' && hint.value === 80
     && hint.questionId === 'q-v1-t0-c0' && hint.competency === '限流';
 })());
-A('正：可评分卡聚合 overall=90，不走 event 均分',
+// G5 SCOR-S3 D3 翻转披露（原断言原位翻 · @base 20186718 原值=90）：0161/ADR-0020 :54 收窄后
+// b_review_eligible 不入 C 端 practice overall（practice 名实一致）→ 仅 practice 卡计入 → 80。
+A('正：C 端 practice overall 只计 practice 卡（b_review 不入·0161 收窄翻转 90→80），不走 event 均分',
   practiceOverallFromScoreCards([
     { questionId: 'q-v1-t0-c0', deterministicTotal: 80, status: 'practice_eligible' },
     { questionId: 'q-v2-t1-c0', deterministicTotal: 100, status: 'b_review_eligible' },
-  ]) === 90);
+  ]) === 80);
+A('正：practice_eligible 单卡仍入（收窄正测不误伤）',
+  practiceOverallFromScoreCards([
+    { questionId: 'q-v1-t0-c0', deterministicTotal: 80, status: 'practice_eligible' },
+  ]) === 80);
 A('正：deriveAssessment 有卡 → overall=80',
   deriveAssessment([{ question: 'q-v1-t0-c0', competency: '限流', score: 80 }]).overall === 80);
 
@@ -124,4 +130,4 @@ if (fail) {
   console.error(`FAIL scoring-honesty proof: ${fail} assertion(s)`);
   process.exit(1);
 }
-console.log('PASS scoring-honesty proof: 21 scenarios; releaseEvidence=false; forgedScores=domain_gate_only; httpHonesty=not_run');
+console.log('PASS scoring-honesty proof: 22 scenarios; releaseEvidence=false; forgedScores=domain_gate_only; httpHonesty=not_run');
