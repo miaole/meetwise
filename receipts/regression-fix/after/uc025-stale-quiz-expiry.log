@@ -1,0 +1,30 @@
+
+> meetwise@0.1.0 uc025:stale-quiz-expiry:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> node scripts/run-e2e-isolated.mjs uc025:stale-quiz-expiry:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-95506-1791713665593 on 127.0.0.1:51004
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc025-stale-quiz-expiry /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node test/uc-e2e-025-stale-quiz-expiry.proof.mjs
+
+UC-E2E-025 stale-quiz-as-interview-input prove (static inventory; NON-UI · mark-red→wired 过渡)
+releaseEvidence=false · Not HA · ≠ covered
+
+PASS  S1-begin-quiz-input-wired
+PASS  S2-schema-no-expiry-column
+PASS  S3-stale-reject-wired-in-begin-core
+PASS  S4-begin-queries-resume-quiz-owner-scoped
+PASS  G-wired-realReject-gap-retired
+
+NOTE  wired: PRODUCT_SURFACE 在场 → 四条 GAP 虚称行退役(mark-red→wired 过渡·本文件自带设计)
+NOTE  本绿 = begin-quiz-input 接线 + stale reject in-core 静态证据 · ≠ UC-E2E-025 covered · ≠ reject/accept 全闭环 HTTP 实跑
+NOTE  活证面: uc025:nhp-neg:prove(NEG) · uc025:nhp-fault:prove(FAULT) · uc025:nhp-bound:prove(BOUND) · uc025:nhp-adv:prove(ADV)
+
+CMD=pnpm uc025:stale-quiz-expiry:prove EXIT=0
+本绿≠全链路 E2E covered；≠ UC-E2E-025 covered；wired 过渡(mark-red 退役)·活证归 uc025:nhp-* 四键
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T10-14-28-622Z-95506-0f187568-d6c0-4dc6-8da0-19bca334f3a4.json release_evidence=false
+stale-quiz-expiry EXIT=0

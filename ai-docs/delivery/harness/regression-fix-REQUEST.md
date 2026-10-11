@@ -182,3 +182,7 @@ pnpm g6-e2e-iso-blocked:prove                      # 组8
 - 四条均**行引微瑕·锚均字符串/regex 定位修法不受影响**·EXEC 按 rev2 行引执行。
 
 draft_rev2:pre_exec_dual（双席 PASS·4c-404 行首谓词收紧随卷·组3 主案定值·脚注落卷·待复审确认后协调方行使 EXEC 授权）
+
+---
+
+executed:awaiting_post_prove_dual（EXEC 席 regfix-exec · 2026-10-11 · rebase 主线 tip 20186718 零冲突 2/2（draft 518023a5 + rev2 12fb5f80）· 六组全落卷：组1 E8 域归位（stub@ab420f61^ 原形·注释零禁词）+组2 GODFN-1c beginInterviewCore 区域锚（:96→:279 H4 漂后实值）+组3 动态链头锚主案定值（链头已漂 0160 实证·applied=163/163·硬钉 0157 备案即再红判定成立）+组4 六键（4c 形状锚唯一命中 helper+404 行首谓词区域唯一 :142·4f 翻转 wired·GAP 四行退役·harness 文档 §6 append）+组7 fixture 合规化（首层 0126/0058 过·深层围栏随演四层收口=web-logic 片3-4d 锚随迁+R2 P-START 路由决策种子链 0104 合规形+0064 v64 resume epoch 种子链+0082 校准 hold/I2 W1 held 门断言随演——组纪律「断言更新至新契约语义·诚实门零弱化」·新断言严于旧（held 拒复活+replay 零二次迁移+评分防伪双探针正面行使）·B110 预存红属性下该段 initial 起未在现链行使·详 receipts/regression-fix/exec-receipt.md §四）+组8 脱敏（:63/:158 model key 词面摘除·叙事逐字保留）+E2E_SKIP_DOTENV 钩（默认零变·g6 注入·.env 现不存在如实注记 §5.5）· **14 键全 EXIT=0**（300s/键帽前后对照落卷）· 旁证 4 面基线零伤（neg 97/0·interview 57/0·web 353/0·uc001 EXIT=1 指纹 efb637b8 前后逐字节同=零新 FAIL 面）· 停止条件三查未触发（零产品码 diff·锚全重定位·修法全∈断言/锚/fixture/脱敏/钩∪组1 域归位）· markers=0 · pins 十一值零翻转 · est live=0 · 真产品红 5 项零触 · 预存红全账零触 · 组5/组6 零触 · ⛔push · author=regfix-exec · alone≠dual · prove EXIT=0 ≠ DONE（claimDone=false·待 post-prove 双审+nail））

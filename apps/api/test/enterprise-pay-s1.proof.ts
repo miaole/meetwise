@@ -10,7 +10,7 @@ import { createHmac } from 'node:crypto';
  * est live=0（零模型外呼·零真实支付）。
  *
  * 断言表（§4.1 五判据 + ⑦验收面）：
- *  [0] 部署车：隔离容器内一次性空库由真 runMigrations 全量应用 0001→0156·末位=0156·重跑全 skipped（幂等）。
+ *  [0] 部署车：隔离容器内一次性空库由真 runMigrations 全量应用 0001→当前最大号（动态链头锚·现 0160）·重跑全 skipped（幂等）。
  *  [1] 线上幂等（§4.1.1）：企业线上单 webhook 入账 credited→企业桶恰一（kind='enterprise'·owner=下单
  *      招聘方·units=50·≈365 天）；重放→already 不双入；同 provider_txn 指向另一单→409 conflict 零二次入账。
  *  [2] 对公防重+门（§4.1.2·审计⑦对公逐条）：确认前企业桶与订单状态不变；非 admin 确认被拒（HTTP
@@ -44,7 +44,18 @@ async function proveMigrationRunner(): Promise<boolean> {
   const second = await runMigrations(adminPool, manifest);
   const last = first.applied[first.applied.length - 1];
   console.log(`entpay-s1[0] runner applied=${first.applied.length}/${manifest.length} last=${last} rerun_applied=${second.applied.length} rerun_skipped=${second.skipped.length}`);
-  const lastOk = last === '0156_enterprise_bucket_billing';   // version=文件名去 .sql 后缀（loadMigrations 形）
+  // 链头判据（REG-FIX 组3 主案·REQUEST §5.2 定值）：动态链头锚=manifest 排序末位（loadMigrations readdirSync
+  // .filter().sort() 全序 · packages/db/src/migrate.ts:307 + canonicalMigrations version localeCompare :192-195
+  // ⇒ 末位即当前最大号，下一迁移落地不再漂；空 manifest 经 ?? '' fail-closed——链头空串 → last===chainHead 恒假）。
+  // 0156/0157 双在链 Set 面：片1 企业桶判据本体 + 片2 扣费路由（防链中截断）；0160 已实证链头漂移场景（h3）。
+  const appliedSet = new Set(first.applied);
+  const chainHead = manifest[manifest.length - 1]?.version ?? '';   // version=文件名去 .sql 后缀（loadMigrations 形）
+  const chainFullOrder = manifest.length === first.applied.length   // 可选硬化（§5.2 非绑定·顺手采）：applied 与 manifest 全序逐位对比
+    && manifest.every((m, i) => m.version === first.applied[i]);
+  const lastOk = last === chainHead
+    && appliedSet.has('0156_enterprise_bucket_billing')   // 片1 判据本体：企业桶迁移在链
+    && appliedSet.has('0157_billing_payer_route')         // 片2 扣费路由在链（防链截断）
+    && chainFullOrder;
   return lastOk && second.applied.length === 0 && manifest.length === first.applied.length;
 }
 
@@ -58,7 +69,7 @@ async function proveMigrationRunner(): Promise<boolean> {
   const sig = (id: string, txn: string, tag: string) => createHmac('sha256', PAY_SECRET).update(`${id}:${txn}:${tag}`).digest('hex');
 
   // ── [0] 部署车断言（先行实跑·此处落账）─────────────────────────────────────────
-  A('S1-0 真迁移链 0001→0156 全量应用+重跑幂等（部署车）', migOk);
+  A('S1-0 真迁移链 0001→当前最大号(动态链头锚·现 0160) 全量应用+重跑幂等（部署车）', migOk);
 
   // ── 种子：双 admin + 企业桶基线（recU=0155 approved recruiter·harness 默认）────────────
   await pool.query(`INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES ($1,$2,'x',true,'candidate') ON CONFLICT DO NOTHING`, [ADMIN2, 'admin2@x.com']);

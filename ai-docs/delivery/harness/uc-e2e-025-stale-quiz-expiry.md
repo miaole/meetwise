@@ -98,3 +98,16 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 - `mw-e2e-ha`：确认未把 gap/prove 绿写成 covered；确认钉 **R5 green-risk**；确认 `quiz:prove`/full.e2e 标旁证 ≠ covered
 - `mw-rag-route`（quiz 域）：确认押题产物→面试输入新鲜度/版本 pin 仍缺；不把 resume-quiz 图绿冒充跨图编排守卫
+
+---
+
+## 6. Supersession 注记（REG-FIX 组4f · 2026-10-10 · mark-red → wired 过渡·上文零字节改动）
+
+产品面已接线：controller `begin` 收可选 `quiz-id` 头并真透传（ROLE#259 `target-role` / H4 `focus` 相随）·
+service `begin` 委托收可选 `sourceQuizId` · `beginInterviewCore` 单查 owner-scoped `resume_quiz` 且 NEG
+`stale_quiz` 先行真抛（GODFN-1c 三守卫合并形）。§1「产品若浮出（fail-closed）」条款生效：本 prove 按其自带
+PRODUCT_SURFACE 设计（原 :101-105「surface 出现→refuse gap EXIT=0; wire ... prove instead of mark-red」）
+翻转 wired 分支——S1 改断言 `begin-quiz-input-wired` · S3/S4 锚改 `beginInterviewCore` 区域后语义翻转
+（match 替代 doesNotMatch）· G 断言 realReject · 四条 GAP 虚称行退役。诚实面不变：本绿 = 接线静态证据
+**≠ UC-E2E-025 covered** ≠ reject/accept 全闭环 HTTP 实跑——活证面归 `uc025:nhp-neg / nhp-fault /
+nhp-bound / nhp-adv` 四键。§3 假绿标红表与 §4 矩阵锚点继续有效（矩阵行状态归矩阵刀行使，非本 prove 职权）。

@@ -1515,9 +1515,9 @@ async function main() {
       /disabled=\{orders\.length === 0\}/.test(formsSrc) && formsSrc.includes('暂无已支付订单'));
     A('片3-4c 数据源仅 paid（billing 页 filter status===\'paid\'·>50 窗外老 paid 单不可选=如实边界）',
       /paidOrders = ordersRes\?\.orders\?\.filter\(\(o\) => o\.status === 'paid'\)/.test(billingSrc));
-    A('片3-4d submitInvoiceRequestAction 既有 409/403 面零改（actions.ts·DB 仅-paid 触发器双层承）',
-      /if \(res\.status === 409\) return \{ ok: false, error: '仅已支付订单可申请开票（或该订单已申请过）。' \};/.test(readSrc('app/billing/actions.ts'))
-      && readSrc('app/billing/actions.ts').includes("if (res.status === 403) return { ok: false, error: '开票申请需审核通过的招聘方账户。' };"));
+    A('片3-4d submitInvoiceRequestAction 既有 409/403 面零改（recruiter/billing/actions.ts·E8 域归位随迁·DB 仅-paid 触发器双层承）',
+      /if \(res\.status === 409\) return \{ ok: false, error: '仅已支付订单可申请开票（或该订单已申请过）。' \};/.test(readSrc('app/recruiter/billing/actions.ts'))
+      && readSrc('app/recruiter/billing/actions.ts').includes("if (res.status === 403) return { ok: false, error: '开票申请需审核通过的招聘方账户。' };"));
 
     section('B271 片3 §4-3 web 面 P2 对公订单卡（只读无操作口·三态徽标）');
     A('片3-5a offline-orders 只读卡在位（零参 serverGet·本人台账）',

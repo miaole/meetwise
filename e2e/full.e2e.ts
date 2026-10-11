@@ -60,7 +60,7 @@ async function main() {
   const visionKeyPresent = Boolean(String(process.env.DASHSCOPE_VISION_API_KEY ?? '').trim());
   if (!visionKeyPresent) {
     reviews.record({ class: 'capability', code: 'image_ocr_unavailable' });
-    console.log('⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text MODEL_API_KEY ≠ vision)');
+    console.log('⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text model key ≠ vision)');
   } else {
     const beforeOcr = await entitlement(H);
     const pngB64 = liveOcrResumePngBase64();
@@ -155,7 +155,7 @@ async function main() {
   const asrKeyPresent = Boolean(String(process.env.DASHSCOPE_ASR_API_KEY ?? '').trim());
   if (!ttsKeyPresent || !asrKeyPresent) {
     reviews.record({ class: 'capability', code: 'voice_unavailable' });
-    console.log('⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text MODEL_API_KEY ≠ voice)');
+    console.log('⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text model key ≠ voice)');
   } else {
     const voicePrompt = '请用中文回答，如何设计 Redis 令牌桶限流？';
     const spoken = await callLiveVoiceGateway('TTS', () => fetch(`${BASE}/interview/${interviewId}/speak`, {
