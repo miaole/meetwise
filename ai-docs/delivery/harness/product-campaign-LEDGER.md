@@ -40,6 +40,7 @@
 | #256 | 🔒40c+D3 | 「第 N 题/预计 M 题」+提前结束 | ≥N 题可出报告 |
 | #260 | 🆕 | 简历下拉过滤（begin 409 前置防） | 不可用简历置灰 |
 | #261 | 🔒#228 | 余额 N 展示+消耗确认 | Dashboard/开始按钮旁 |
+| #257 | 🆕 | 报告页导出收尾·归 #254 同族刀（导出走同源代理 cookie→Bearer+站内跳转改相对路径·2026-10-11 漏登回填·核实经过见文末 2026-10-11 登记节） | 导出 200 走同源不再 401·站内链接不落 API 主机（issues-master :293） |
 
 ## 批 2（54 条）AI 个性化与闭环
 | 域 | 编号 | 状态 |
@@ -237,4 +238,17 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 - **门2 生产 100% HA**：haStatus=NOT_HA（pins 未翻转）。R-17~R-28 簇零开工（单副本/优雅停机/DB 韧性/备份 PITR/告警闭环等·映射表见「重构文档审查补录」节）；#229 nail 登记 seam 备注归 HA 线（@1ae677b8）。**还差**：批1 清尾→HA 簇立项（R-17 起步）→阶 C/D 云证据（Ban 买云未解除·D3 报价已钉≠授权）→独立审。
 - **门3 0 BUG**：prove 全绿面＝interview 54（=33+21）·neg:interview 97·neg:commerce 84·neg:bend 157·web 240·entpay:s2 28/28·RG 39·route-dict 75/59·consent-min 19/19·trial 27/27·report-retry 38/38·e2e-helpers 28/28·fence 融合七门 256 PASS·growth 54。预存红清单（如实非凑绿）：scoring-integrity EXIT=1（①c :99:50 pristine 同形）·context-stress 7 FAIL（环境红）·turn-idempotency/resume-reference 基线红（42883 隔离容器缺失）·nhp-fault G7S begin 409（G7S 线）·uc001:nhp-bound EXIT=1（夹具缺 blob）。**还差**：预存红逐项消除或用户明示延期+双域审；0 BUG 未证·禁叙事。
 - **门4 G7 验证关**：g7SuiteGreen=false（pins 未翻转）。解冻待 live 跑（@79aeb04b 已满足解冻条件·排程归协调方）；昨日 G7 trio/fix 面已钉（@c4ecde7d/@28db833f 等）·今日各刀全数 est live=0。**还差**：协调方授权 live 全量跑→CMD+EXIT 收据齐→独立双审同意套件结论→方可议翻转（releaseEvidence 保持 false 直至 HA 齐）。
+
+## 2026-10-11 主层定案事件登记（台账登记席 · docs-only · append-only · 六事件+一漏登回填）
+
+> 主层已裁定事实照登；hash/树名/卷位经登记席于主线 git 与实树亲证（2026-10-11）。上文批表行内徽记照 append-only 纪律不改写，以本节为准。
+
+1. **卫生收口**：Docker 卷清理回收 **21.35GB**（307 卷→2 活跃·「Docker.raw>20G 即清」政策执行）；已 merge 分支清点 **83**、安全删除 **77**（`-d` merge 保护·余 6 被占用拒删属预期）；`line/ha-1-redundancy` 已删（merge `b4b756b4` 主线亲证）；磁盘 44Gi 绿。**遗留三项登记**：① entpay 蓝本树 `meetwise-line-entpay`（未 merge·25h 零写入·被 h2q/ha6 卷引用 @`ab02d499`·分支 `line/batch1-residual`）保留至引用卷 nail 后一并清；② 三个 gitdir 悬空死壳树（`meetwise-e88d386-ui` 1.1G / `meetwise-ecs-public-preview` 1.4G / `meetwise-integrate` 46M）移交用户人工裁；③ main→`feat/mysql-schema-skeleton` 纯 fast-forward（1518 提交零分叉·merge-base=main `c4244470` 亲证）登记待主层收口批次执行。
+2. **#200/#201/#213 盘点定案**：三件全未解决。**#213 即时立项**（`line/diag-honesty` 起草在飞·worktree meetwise-diag）；**#200/#201 待 H2 EXEC 落线后立项**（同文件相邻）；**#232 可并 #200、#270 可并 #201**（issues-master :436/:475/:478 三行亲读；#232/#270 原挂批1/批0 行照旧不改，并入裁定以本条为准）。
+3. **G5 重派双审·收口终局**：post-prove 双席 BOTH PASS（独立复核）·nail `eed3b077` 已在主线逐字节未漂（HEAD 祖先亲证）·`aec29f01` 已含·分支已清——SCORE-S3 残面收尾正式解除维持。
+4. **H4 终局**：post-prove 双席 BOTH PASS·勘误 `00cdc8c3` 已在主线（HEAD 祖先亲证）·分支 `line/h4-weakness` 已清。**残余四条照登**：交付树废弃·role-input 证据件替换债（归 B271 原席·H4 卷 :123 在案）·Nav /diagnosis 后继（H4 卷内编号 R4·:72 顺手项转后继）·分桶降级条款在卷（H4 卷内编号 R7·:116 缩面登记）。
+5. **H2Q 双审窄面 FAIL**：两席独立均窄面 FAIL（纯行号漂移 12+ 处·零语义问题）→勘误席在飞，落卷后复审（首勘 `11191e9e` 已落·卷 `h2-qbank-corpus-REQUEST.md` `draft:awaiting_pre_exec_dual` 维持）。
+6. **HA6 双审 BOTH PASS→EXEC 在飞**：C1 一行 `PGPOOL_MAX=12`+C2/C3/C4·B1 沙箱探针裁撤·理由落卷·三注记（D1 计数口径/D2 锚块引用/D3 census 口径）随 disposition 落（`ha-6-companion-disposition.md` @`8ba93f0b`·`exec:awaiting_post_prove_dual` 亲读）。
+
+**#257 漏登回填（先核实后补行）**：entpay 蓝本 `line/batch1-residual` @`ab02d499` 提交注记明言「漏登 #257（issues-master :293 定批1 而 LEDGER 批1 表无行·建议回填）」。登记席核实：issues-master :293 = #257（报告导出 401·P2·旅程=报告·第1批）×本台账全卷 rg `#257` 零命中（exit=1）→**确属漏登**（TASK-SOP-v2 rev2 :109 虽已裁「归批1·与 #254 同族」而表行一直未落）→已在上方批1 表补行（🆕=未开工·归 #254 同族·附验收锚），批1 表自此与 issues-master 第1批 26 条映射齐。
 
