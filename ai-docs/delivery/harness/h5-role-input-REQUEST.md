@@ -33,10 +33,12 @@ FAIL 全集=**S3·S5·S6·S8·R1·R2·R3·R5**（PASS=S1·S2·S4·S7·R4）。�
 | 源 | 机制 | 实证 |
 |---|---|---|
 | **B271 片2 beginInterviewCore 抽取**（S5/S6/S8） | begin 事务体模块化：`interview.service.ts:96` `export async function beginInterviewCore(`·归一化 `:105` `const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) \|\| undefined;`·payload 条件键改 startPayload 对象形 `:263-266`（`if (targetRoleNormalized) startPayload.targetRole = …`·不再逐字节返回旧三元表达式）；begin 本体 `:380-382` 纯委托 | proof 锚窗 `svc.indexOf('begin(principal')`→`'turn(principal'` 只罩住三行委托体——S5/S6/S8 三正则全部落空 |
-| **B271 片2 扣额归一 DB 函数**（R1/R2/R3/R5） | `interview.service.ts:246-248` applicationId 非空走 `reserveEntitlementForApplication`→`packages/db/src/commerce/commerce.ts:117` `SELECT gateway_entpay_reserve($1,$2,$3,$4,$5) AS r`（0157·返回 `rows[0].r` 串 `kind:…` 形·:129-130 解析）；本刀 fixture=B 端绑定形（application_id='APP_BOUND'）恒走企业臂 | 一次性诊断脚本实测：begin 抛 `UNEXPECTED_SQL SELECT gateway_entpay_reserve(…)`——proof fake 桩单无此语句（旧桩=INSERT/SELECT/UPDATE entitlement_* 四件·已被函数取代）→ 未到 INSERT 即 throw→零 insert 捕获→R1/R2/R3/R5 FAIL；R4（alreadyBegun 短路在预留之前）不受影响 |
+| **B271 片2 扣额归一 DB 函数**（R1/R2/R3/R5） | `interview.service.ts:246-248` applicationId 非空走 `reserveEntitlementForApplication`→`packages/db/src/commerce/commerce.ts:117` `SELECT gateway_entpay_reserve($1,$2,$3,$4,$5) AS r`（0157·返回 `rows[0].r` 串 `kind:…` 形·:129-130 解析）；本刀 fixture=B 端绑定形（application_id='APP_BOUND'）恒走企业臂 | 一次性诊断脚本实测：begin 抛 `UNEXPECTED_SQL SELECT gateway_entpay_reserve(…)`——proof fake 桩单无此语句（旧桩=INSERT/SELECT/UPDATE entitlement_* 四件·已被函数取代）→ 未到 INSERT 即 throw→零 insert 捕获→R1/R2/R3/R5 FAIL；R4（alreadyBegun 短路在预留之前）不受影响。fake 桩单除 `SELECT gateway_entpay_reserve(` 主桩外，**必补** `SELECT status, allocations FROM entitlement_consumption WHERE id=$1`（commerce.ts:134 读回）次桩，返回 `{ rowCount:1, rows:[{ status:'reserved', allocations:[] }] }` 形（service 仅判 `rr.status`，allocations 空数组达标·照 commerce.ts:135 `?? []`）——单补主桩则 gateway 放行后 ：134 二次 UNEXPECTED_SQL，R1/R2/R3/R5 仍红。 |
 | **H4 additive focus 第 7 参**（S3） | `interview.controller.ts:29` begin 尾参 `@Headers('focus') focus?: string`·`:30` 委托调用尾=`targetRole, focus)` | proof S3 正则 `/this\.interviews\.begin\([\s\S]*targetRole\)/` 要求调用以 `targetRole)` 收尾→落空 |
 
 **登记对账**：h4 EXEC 账面称 7 FAIL·h4 post-prove 席1 勘误①（h4-weakness-REQUEST.md「post-prove 席1 勘误登记」节）已改判 **8 FAIL**（base=7·focus 参使 :48 S3 锚 PASS→FAIL）——与本席实测逐位一致。**证据件替换债**：`receipts/h4-weakness/api-role-input-preexisting-red.log` 实读=wrong-cwd ENOENT 空跑（`ERROR ENOENT … lstat '/Users/miaole/.zcode/workspace/default/apps'`）不构成证据（h4 卷勘误②在案·LEDGER 事件4「归 B271 原席」）→ 本刀片1-A2 兑现替换。
+
+**勘误登记（pre-exec 双审席2 处方落卷·2026-10-11）**：席2 窄面 FAIL 唯一阻断项=**R 组桩单缺读回次桩申报**·席2 处方句已逐字增补三处（本节 R 组红因行/§1-A1 R 条/§2.1 第 1 条）。程序链闭合说明：协调方已据席1 预警+席2 处方向 EXEC 下发两桩修正指令（EXEC 收据将登记「次桩系协调方修正补入」）。本勘误 docs-only·八断言判据/修法主体/§5 Ban/pins 零动·Status 维持 `draft:awaiting_pre_exec_dual`。
 
 ### 0.3 绿账基线（本工作树 2026-10-11 实测·EXEC 重跑更新）
 
@@ -74,7 +76,7 @@ issues-master 六行行号（:203/:307/:352/:435/:441/:442）实测**零漂**；
 - **A1 proof 修锚**（`apps/api/test/role-input.proof.ts`·八断言判据全数保留·只修锚不弱化）：
   - S3：controller 透传锚随 7 参现状更新（`…, targetRole, focus)` 收尾形·正则照 :30 实锚改写·断言语义「targetRole 仍透传 service」零变）。
   - S5/S6/S8：锚窗改罩 `beginInterviewCore` 函数体（`:96` 起）——S5 归一化表达式锚 `:105`；S6 改断 **startPayload 条件键**（`:265` `if (targetRoleNormalized) startPayload.targetRole = targetRoleNormalized;`·缺省零新键=现状字节语义保持·具体串照实锚）；S8 alreadyBegun 相对位锚随新窗重算（`:221/:226` 在 normalize 之后的既有查询面语义保持）。
-  - R1/R2/R3/R5：fake 桩单补 `SELECT gateway_entpay_reserve(` 前缀桩（返回 `{ rowCount:1, rows:[{ r: 'reserved:…' }] }` 形·串面形制照 `commerce.ts:129-140` 解析实测钉；旧行 record INSERT 面不变）——**断言对象（payload JSON 三形+截断+幂等）逐字节保留**。
+  - R1/R2/R3/R5：fake 桩单补 `SELECT gateway_entpay_reserve(` 前缀桩（返回 `{ rowCount:1, rows:[{ r: 'reserved:…' }] }` 形·串面形制照 `commerce.ts:129-140` 解析实测钉；旧行 record INSERT 面不变）——**断言对象（payload JSON 三形+截断+幂等）逐字节保留**。fake 桩单除 `SELECT gateway_entpay_reserve(` 主桩外，**必补** `SELECT status, allocations FROM entitlement_consumption WHERE id=$1`（commerce.ts:134 读回）次桩，返回 `{ rowCount:1, rows:[{ status:'reserved', allocations:[] }] }` 形（service 仅判 `rr.status`，allocations 空数组达标·照 commerce.ts:135 `?? []`）——单补主桩则 gateway 放行后 ：134 二次 UNEXPECTED_SQL，R1/R2/R3/R5 仍红。
 - **A2 证据件替换**：以本刀红面对照跑真实日志替换 `receipts/h4-weakness/api-role-input-preexisting-red.log`（修后该文件应记录：修复前 8 FAIL 全输出+CMD+EXIT=1·修复后 EXIT=0 对照·或按 h4 卷勘误②「真实对照跑日志」口径落双段）·替换为纯收据面动作·零码。
 
 ### 片1-B #230 押题岗位输入组（S1 同形镜像·修法列「与 #259 共用目标岗位输入」）
@@ -113,7 +115,7 @@ issues-master 六行行号（:203/:307/:352/:435/:441/:442）实测**零漂**；
 
 ## §2 验收断言候选（api 8 红修复断言设计为重点·pre-exec 双审核对单基面·EXEC 重 pin）
 
-1. **修锚后 8+5 全绿**：`prove:role-input`（api）EXIT=0——S3/S5/S6/S8 锚命中新窗·R1/R2/R3/R5 桩单放行后 payload 断言逐字节同旧判据（R1 截断 100/R2 空白→undefined 零新键/R3 缺省现状字节/R5 trim 写入）；既有 PASS 五项零翻（S1/S2/S4/S7/R4）。
+1. **修锚后 8+5 全绿**：`prove:role-input`（api）EXIT=0——S3/S5/S6/S8 锚命中新窗·R1/R2/R3/R5 桩单放行后 payload 断言逐字节同旧判据（R1 截断 100/R2 空白→undefined 零新键/R3 缺省现状字节/R5 trim 写入）；既有 PASS 五项零翻（S1/S2/S4/S7/R4）。fake 桩单除 `SELECT gateway_entpay_reserve(` 主桩外，**必补** `SELECT status, allocations FROM entitlement_consumption WHERE id=$1`（commerce.ts:134 读回）次桩，返回 `{ rowCount:1, rows:[{ status:'reserved', allocations:[] }] }` 形（service 仅判 `rr.status`，allocations 空数组达标·照 commerce.ts:135 `?? []`）——单补主桩则 gateway 放行后 ：134 二次 UNEXPECTED_SQL，R1/R2/R3/R5 仍红。
 2. **对照收据**：修前 8 FAIL 全输出+修后 EXIT=0 双段日志落 `receipts/role-input/`·并兑现 A2 证据件替换（h4 证据债闭卷）。
 3. **worker/web 回归**：`run-e2e-isolated.mjs role-input:prove:raw` 全绿（worker ①②③④+api proof 双文件白名单已在 runner :496-504）；web-logic.proof :865-882 五断言零翻·`pnpm -C apps/web prove` EXIT=0。
 4. **B 片断言（S1 矩阵镜像）**：①填岗位 begin → prompt v2 userData 含 `岗位:<用户串>`（捕获型 ModelClient spy·沿 worker role-input proof 形制）且 facts 接地句零弱化；②留空 → userData 与 v1 逐字节一致（缺省回退负断言）·payload 无 targetRole 键；③归一化三形（超 100 截断/纯空白→undefined/缺省）落 api 侧 quiz 段 proof 或并入 role-input api proof 增段（落槽 EXEC 裁·收据注明）；④幂等/旧 job 缺键容忍不崩。
