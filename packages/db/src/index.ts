@@ -243,7 +243,7 @@ export type {
 } from './retrieval/rag-corpus-versioning.ts';
 
 // 长期记忆存储 + 跨会话精确判重(normalizeQuestion/episodeSeen) + 历史弱项只读投影(historicalWeakDimensions)
-export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions } from './memory/memory-store.ts';
+export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions, WEAKNESS_DECAY_WINDOW_SESSIONS } from './memory/memory-store.ts';   // H4 R6: 衰减窗常量 additive(prove 断言用)
 export type { MemoryKind, MemoryRow } from './memory/memory-store.ts';
 
 // 记忆治理(MEM-00)：事实/同意/召回/生成/快照状态机 + 账户级删除(复用冻结 issuer，仅包 MEM claim/purge)

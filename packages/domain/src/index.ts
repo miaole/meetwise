@@ -166,6 +166,8 @@ export {
   MAX_CLARIFY, MAX_PROBE, SAFETY_CEILING_TURNS, DEFAULT_MAX_TURNS, DEFAULT_ABSOLUTE_MAX_TURNS,
   PLATFORM_ABSOLUTE_CEILING_TURNS, SOFT_BUDGET_RAISE_STEP, LONG_INTERVIEW_ABSOLUTE_BANDS,
   MIN_EARLY_TURNS, EARLY_WEAK_ABORTS, THRASH_PIVOTS,
+  // H4 WEAKNESS-LOOP R3（#252 专项面 5-8 题软预算派生·纯函数 additive）:
+  derivedFocusSoftBudget, FOCUS_SOFT_BUDGET_MIN, FOCUS_SOFT_BUDGET_MAX,
   toCompetencySpecs, BEHAVIORAL_COMPETENCY,
   type InterviewMind, type Competency, type CompetencySpec, type NextAction, type QuestionKind, type TurnSignal, type TurnVerdict,
   type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance,

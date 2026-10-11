@@ -22,10 +22,12 @@ export class InterviewController {
   // 不带 quiz-id → 与今日行为完全一致(简历直启,不强制 quiz,不做 widen)。
   // 可选 header target-role 携带用户显式目标岗位(#259):真收真透传,service 归一化后作 job payload
   // 标量;不带 → 与今日行为完全一致(岗位由 route snapshot 供给,零强加)。
+  // 可选 header focus 携带再练弱项标签(H4 R2①·#252:JSON 数组文本,报告页「再练这 N 个弱项」入口携带):
+  // 真收真透传,service 白名单归一后作 job payload 标量;不带 → 与今日行为完全一致(通用面,零强加)。
   @Post(':id/begin')
   @HttpCode(202)
-  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string, @Headers('quiz-id') quizId?: string, @Headers('target-role') targetRole?: string) {
-    return this.interviews.begin(req.principal, id, resumeId, req.reqId, quizId, targetRole);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
+  begin(@Param('id') id: string, @Req() req: any, @Headers('resume-id') resumeId: string, @Headers('quiz-id') quizId?: string, @Headers('target-role') targetRole?: string, @Headers('focus') focus?: string) {
+    return this.interviews.begin(req.principal, id, resumeId, req.reqId, quizId, targetRole, focus);   // reqId 透传进 job.payload,贯穿到 worker 模型 trace
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分),202。text 答案;音频先 ASR 转写再走此端点。

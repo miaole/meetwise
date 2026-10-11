@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Download, CheckSquare, Square, Share2 } from 'lucide-react';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { retryReportAction, refreshReportAction } from './actions';
+import { startFocusRetrainAction } from '../../interviews/actions';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -201,10 +202,10 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
 
       <div className="space-y-8">
         <Suspense fallback={<SectionFallback label="能力评估加载中…" />}>
-          <AssessmentSection id={id} />
+          <AssessmentSection id={id} resumeId={interview?.resume_id ?? null} />
         </Suspense>
         <Suspense fallback={<SectionFallback label="学习计划加载中…" />}>
-          <LearningSection id={id} />
+          <LearningSection id={id} resumeId={interview?.resume_id ?? null} />
         </Suspense>
         <Suspense fallback={<SectionFallback label="职业路径加载中…" />}>
           <CareerSection id={id} />
@@ -242,7 +243,7 @@ function SectionFallback({ label }: { label: string }) {
   );
 }
 
-async function AssessmentSection({ id }: { id: string }) {
+async function AssessmentSection({ id, resumeId }: { id: string; resumeId: string | null }) {
   const [assessment, transcript] = await Promise.all([
     serverGet<Assessment>('/interview/' + id + '/assessment'),
     // EVIDENCE-DELIVERY S2(C8)：逐题点评改吃 transcript（web 首次接线 GET :id/transcript）——
@@ -252,6 +253,13 @@ async function AssessmentSection({ id }: { id: string }) {
   const dims = Array.isArray(assessment?.dimensions) ? assessment!.dimensions! : [];
   const annotations = projectTurnAnnotations(Array.isArray(transcript?.turns) ? transcript!.turns! : []);
   if ((!assessment || dims.length === 0) && annotations.length === 0) return null;
+
+  // H4 R1(#252 修法①·再练入口):N=本场 gap 维度数(运行时派生,修法原文「3」为叙述值非硬编码);
+  // focus=本场 gap 维度名数组(上限=本 gap 数,页侧派生)→ startFocusRetrainAction 走既有 create+begin 链
+  // (携同简历 resume-id+focus 头,后端专项面 5-8 题预算+planner 上一轮弱点摘要)。缺简历绑定(理论不可达:
+  // begin 必绑简历)→ 入口不渲染,零死按钮。
+  const gapDims = dims.filter((d) => !!d.gap && typeof d.dimension === 'string' && d.dimension.trim().length > 0);
+  const gapCount = gapDims.length;
 
   return (
     <section>
@@ -263,6 +271,14 @@ async function AssessmentSection({ id }: { id: string }) {
             {dims.map((d, i) => (
               <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
             ))}
+            {gapCount > 0 && resumeId ? (
+              <form action={startFocusRetrainAction} className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <input type="hidden" name="resumeId" value={resumeId} />
+                <input type="hidden" name="focus" value={JSON.stringify(gapDims.map((d) => d.dimension))} />
+                <p className="text-sm text-muted-foreground">针对本场 {gapCount} 个差距维度，开启一场 5-8 题专项练习。</p>
+                <SubmitButton pendingLabel="启动中…" size="sm" className="shrink-0">再练这 {gapCount} 个弱项</SubmitButton>
+              </form>
+            ) : null}
           </CardContent>
         </Card>
       ) : null}
@@ -280,7 +296,7 @@ async function AssessmentSection({ id }: { id: string }) {
   );
 }
 
-async function LearningSection({ id }: { id: string }) {
+async function LearningSection({ id, resumeId }: { id: string; resumeId: string | null }) {
   const learning = await serverGet<LearningPlan>('/interview/' + id + '/learning-plan');
   const items = Array.isArray(learning?.items) ? learning!.items : [];
   if (!learning || items.length === 0) return null;
@@ -300,7 +316,7 @@ async function LearningSection({ id }: { id: string }) {
             {items.map((it, i) => (
               <div key={i} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                 {it.done ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />}
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{it.topic}</span>
                     {it.priority === 'high' ? (
@@ -311,6 +327,16 @@ async function LearningSection({ id }: { id: string }) {
                   </div>
                   <div className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{it.action}</div>
                 </div>
+                {/* H4 R4(#214 修法「学习项改为去练按钮」·静态图标→真入口):未完成项携 topic=focus 开专项面
+                    (复用 R1 同一 action·begin 必绑同简历);完成后仅余打卡图标(勾选主径=R5 再练成绩自动回灌,
+                    completeLearningItem 手动端点保留不接前端=修法原文二径取一)。缺简历绑定 → 不渲染,零死按钮。 */}
+                {!it.done && resumeId ? (
+                  <form action={startFocusRetrainAction} className="shrink-0 self-center">
+                    <input type="hidden" name="resumeId" value={resumeId} />
+                    <input type="hidden" name="focus" value={JSON.stringify([it.topic])} />
+                    <SubmitButton pendingLabel="启动中…" variant="outline" size="sm">去练</SubmitButton>
+                  </form>
+                ) : null}
               </div>
             ))}
           </div>

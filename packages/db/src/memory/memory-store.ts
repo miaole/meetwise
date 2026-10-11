@@ -45,15 +45,35 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
  *  仅取 status='ready' 的已生成报告;显式按 owner 过滤(RLS 之上再加一道,防越权/防误串户)。
  *  R4 读面过滤(UNSTUB-ERASE rev2):已围栏面试的评估不再给出题软偏置——与列表/导出/成长档案
  *  同一 interview_privacy_active 谓词,账户级删除后弱项偏置零泄漏。
- *  **只返回维度名**(标签),绝不带分数/答案/时间——成长曲线唯一真相仍是 assessment_report→deriveGrowth,这里只借"历史弱项名"给出题做软偏置。 */
-export async function historicalWeakDimensions(c: Client, owner: string): Promise<string[]> {
+ *  **只返回维度名**(标签),绝不带分数/答案/时间——成长曲线唯一真相仍是 assessment_report→deriveGrowth,这里只借"历史弱项名"给出题做软偏置。
+ *  H4 R6(#206 时间衰减·读投影层落,零新持久化):**固定窗口 N=WEAKNESS_DECAY_WINDOW_SESSIONS 场**(最近 N 份
+ *  ready 报告;固定初值,不依赖 H1 校准)。窗口内每维度取**最新一场** gap 定去留:最新一场达标(gap=false)→ 移出;
+ *  最新一场未达标(gap=true)→ 保留;窗口内不再出现(最新出现早于窗口)=时间衰减移出。冷启动(零历史)→ 空数组 →
+ *  上层稳定分区恒等(非特殊分支)。historicalWeakDimensions 形参 additive 可选(默认窗口值),旧调用方逐字节兼容。 */
+export const WEAKNESS_DECAY_WINDOW_SESSIONS = 5;
+export async function historicalWeakDimensions(c: Client, owner: string, windowSessions: number = WEAKNESS_DECAY_WINDOW_SESSIONS): Promise<string[]> {
+  const window = Number.isInteger(windowSessions) && windowSessions > 0 ? windowSessions : WEAKNESS_DECAY_WINDOW_SESSIONS;
+  // 窗口 = 最近 N 份 ready+privacy-active 报告(created_at DESC,id DESC 同拍 tiebreak 确定性);
+  // DISTINCT ON(维度) 取该维度在窗口内**最新一份**报告的 gap 值,再由 JS 侧只留 gap=true(达标移出/未达标保留)。
   const r = await c.query(
-    `SELECT DISTINCT d->>'dimension' AS dimension
-       FROM assessment_report ar, jsonb_array_elements(ar.dimensions) d
-      WHERE ar.owner_user_id = $1 AND ar.status = 'ready'
-        AND interview_privacy_active(ar.interview_id)
-        AND coalesce(d->>'gap', 'false') = 'true'
-        AND coalesce(btrim(d->>'dimension'), '') <> ''`,
-    [owner]);
-  return r.rows.map((x) => String(x.dimension));
+    `WITH recent AS (
+       SELECT ar.id
+         FROM assessment_report ar
+        WHERE ar.owner_user_id = $1 AND ar.status = 'ready'
+          AND interview_privacy_active(ar.interview_id)
+        ORDER BY ar.created_at DESC, ar.id DESC
+        LIMIT $2
+     )
+     SELECT DISTINCT ON (dim) dim AS dimension, gap
+       FROM (
+         SELECT ar.created_at, ar.id, btrim(d->>'dimension') AS dim, coalesce(d->>'gap', 'false') AS gap
+           FROM assessment_report ar, jsonb_array_elements(ar.dimensions) d
+          WHERE ar.owner_user_id = $1 AND ar.status = 'ready'
+            AND interview_privacy_active(ar.interview_id)
+            AND coalesce(btrim(d->>'dimension'), '') <> ''
+            AND ar.id IN (SELECT id FROM recent)
+       ) occ
+      ORDER BY dim, created_at DESC, id DESC`,
+    [owner, window]);
+  return r.rows.filter((x) => x.gap === 'true').map((x) => String(x.dimension));
 }

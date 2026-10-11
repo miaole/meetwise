@@ -70,3 +70,37 @@ export async function restartInterviewAction(formData: FormData) {
   }
   await startInterviewAction(formData);   // 重跑 create+begin:旧会话已 abandon(F1 三过滤下 create 不再复用)→ 新面试
 }
+
+/**
+ * H4 R1/R4（#252/#214 弱项闭环入口·报告页 AssessmentSection「再练这 N 个弱项」+ LearningSection 每项「去练」共用）：
+ * 携 focus（弱项标签数组,JSON 文本=报告页 gap 维度名/学习项 topic·上限=本场 gap 数,页侧派生）→
+ * 既有 create+begin 链（同简历 resume-id 头+focus 头）。走本文件同一私有回收/码面助手（零复制零新导航模式）：
+ * reused=true → 列表页既有选择面；begin 非 2xx → 先回收空壳再带码回列表；focus 缺失/畸形 → 不开面（防御,
+ * 入口只在 gap>0 时渲染,此处兜底）。
+ */
+export async function startFocusRetrainAction(formData: FormData) {
+  const resumeId = String(formData.get('resumeId') ?? '');
+  let labels: string[] = [];
+  try {
+    const parsed: unknown = JSON.parse(String(formData.get('focus') ?? ''));
+    if (Array.isArray(parsed)) labels = parsed.filter((x): x is string => typeof x === 'string' && x.trim().length > 0);
+  } catch { labels = []; }   // 畸形 focus → 空集 → 不开面(专项面绝不以无 focus 形态静默开通用面误导)
+  if (!resumeId || labels.length === 0) return;
+  const created = await serverFetch('/interview', { method: 'POST', body: '{}' });
+  if (created.status === 401) redirect('/login?expired=1');
+  if (!created.ok) redirect('/interviews?error=create_failed');
+  const createdBody: { interviewId?: string; reused?: boolean } = await created.json().catch(() => ({ interviewId: undefined }));
+  const interviewId = createdBody.interviewId;
+  if (!interviewId) redirect('/interviews?error=create_failed');
+  if (createdBody.reused === true) redirect(`/interviews?reused=${encodeURIComponent(interviewId)}`);   // 复用信号 → 既有选择面(零新模式)
+  // focus 非空才发头(空集不发头=现状字节,#259 target-role 同形制);JSON 数组文本,api 侧 normalizeFocusHeader 白名单消费。
+  const headers: Record<string, string> = { 'resume-id': resumeId, focus: JSON.stringify(labels) };
+  const begin = await serverFetch('/interview/' + interviewId + '/begin', { method: 'POST', headers });
+  if (begin.status === 402) await reclaimShellAndRedirect(interviewId, 'credits_unavailable');
+  if (begin.status === 401) redirect('/login?expired=1');
+  if (!begin.ok) {
+    const code = await beginErrorCode(begin);
+    await reclaimShellAndRedirect(interviewId, code);
+  }
+  redirect('/interview/' + interviewId);
+}

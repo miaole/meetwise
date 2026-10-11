@@ -118,10 +118,11 @@ function makeDeps(
   resumeProfileAvailable = false,
   answer?: AcceptedInterviewAnswer,
   resumeFactPool: readonly string[] = [],
+  focusWeaknesses?: string[],
 ) {
   return buildAdaptiveDeps({
     pool: d.pool, owner: d.owner, threadId: d.interviewId, model: d.model, fastModel: d.fastModel,
-    competencies, resumeProfileAvailable, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
+    competencies, resumeProfileAvailable, focusWeaknesses, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
@@ -227,8 +228,12 @@ export type StartAdaptiveInterviewResult = {
   unavailable?: InterviewGenerationUnavailable;
 };
 
-/** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。 */
-async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, _legacyCallerFacts: string[]): Promise<StartAdaptiveInterviewResult> {
+/** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。
+ *  H4 R2③/R3(#252):第 4 形参 focus=本场报告 gap 维度名(专项面·additive 可选)——沿 targetRole 第 6 参先例的
+ *  payload 透传面:①进 planCompetencies 第 7 参(planner prompt 'planner.competencies' v3 上一轮评估摘要段);
+ *  ②进 makeDeps focusWeaknesses(plan 节点 initMind 派生 5-8 题专项软预算)。focus 只进「考哪些能力/考多久」面,
+ *  **绝不影响难度/confidence**(反 confirmation-bias 铁律 :185-186 原样)。缺省 undefined=通用面逐字节原样。 */
+async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string, _legacyCallerFacts: string[], focus?: string[]): Promise<StartAdaptiveInterviewResult> {
   // C1/C2(RESUME-GROUNDING):规划边界不再丢简历内容——loadInterviewResumeGrounding 以同一 RLS+admit 门
   // 读出有界脱敏 facts 池(consent 开,G1);按岗位相关性确定性选 ≤8 条×≤120 字符(selectPlannerFacts,A-3,
   // 禁模型选)真 facts 进 planner <data>。未同意/已撤回/画像不可用 → 既有占位串路径照旧(与现状逐字节一致)。
@@ -239,9 +244,9 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   const plannerFacts = grounding.pool.length > 0
     ? selectPlannerFacts(grounding.pool, role)
     : resumeProfileAvailable ? ['authorized_resume_profile_available'] : [];
-  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts);
+  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
-  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool));
+  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
   const cfg = { configurable: { thread_id: d.interviewId } };
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
@@ -265,9 +270,10 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   return { question: pending.question, questionId: pending.questionId, stateVersion: pending.stateVersion };
 }
 
-/** facts 形参为 consumer 侧历史准入位(向后兼容保留);规划边界真值由 RLS 现读(见 impl 内 C1/C2 注记)。 */
-export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[]): Promise<StartAdaptiveInterviewResult> {
-  return runGraph(d, 'start', () => startAdaptiveInterviewImpl(d, role, facts));
+/** facts 形参为 consumer 侧历史准入位(向后兼容保留);规划边界真值由 RLS 现读(见 impl 内 C1/C2 注记)。
+ *  H4 R2③:focus 可选第 4 形参(payload focus 透传终点·additive,旧调用方逐字节兼容)。 */
+export function startAdaptiveInterview(d: AdaptiveLifecycleDeps, role: string, facts: string[], focus?: string[]): Promise<StartAdaptiveInterviewResult> {
+  return runGraph(d, 'start', () => startAdaptiveInterviewImpl(d, role, facts, focus));
 }
 
 /**

@@ -110,3 +110,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *REQUEST stub · H4 WEAKNESS-LOOP · Line h4-weakness · mw-h4-draft · 2026-10-10 · draft:awaiting_pre_exec_dual · base 36ded20a · alone ≠ dual · Ban push · STOP*
+
+---
+
+*REQUEST 状态行 append-only · 2026-10-11 · pre-exec 合并复审 PASS（#203 终裁留本刀·协调方明示授权 EXEC）→ **executed:awaiting_post_prove_dual**（EXEC 落卷：R1-R8 全兑·复审三处方①②③兑现·rebase up-to-date 零重定位（实树核验 mainline tip=36ded20a=merge-base·简报偏差如实登记）·R7 确定性相似度留本刀+分桶降级条款缩面登记（assessment_report 无岗位列·owner 域即桶）·D2 照旧保留登记·prompt planner.competencies v2→v3·门禁八项全绿 EXIT 原值（web:prove+web typecheck+interviews-actions+interview:prove 57 断言逐字节同+neg:interview 97+growth:prove 31 零退化+memory:prove+新增 weakness:prove 73 PASS·web-logic/interviews-actions 全绿零翻）·预存红登记（api prove:role-input 7 checks·B271 区域锚漂移·非本刀·未触）·收据 receipts/h4-weakness/·est live=0·markers=0·pins 十一值零翻转·⛔push·Ban self-approve·alone ≠ dual·Dual PASS ≠ nail）*

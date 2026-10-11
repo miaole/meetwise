@@ -1,0 +1,41 @@
+
+> meetwise@0.1.0 memory:prove /Users/miaole/Desktop/golucky/meetwise-h4
+> node scripts/run-e2e-isolated.mjs memory:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-72154-1791698925158 on 127.0.0.1:63025
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-h4/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=161 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:memory /Users/miaole/Desktop/golucky/meetwise-h4/apps/worker
+> tsx test/memory.proof.ts
+
+
+──────── ① 跨会话精确判重:recordAskedQuestions 写 episode → wasAsked 命中(归一化 exact,零语义) ────────
+PASS  同批归一化去重:恰 2 条 episode(重复题面合一)
+PASS  问过的题 wasAsked=true
+PASS  空白/大小写变体仍判 true(归一化 exact,非语义相似)
+PASS  语义相近但不同题 wasAsked=false(不做语义误挡)
+PASS  完全没问过的题 wasAsked=false
+
+──────── ② 历史弱项只读投影:从 assessment_report(ready 且 gap=true)读维度名 ────────
+PASS  只取 gap=true 的维度名(分布式锁+消息队列,不含达标的高并发)
+PASS  pending 报告的弱项不投影(只信 status=ready)
+
+──────── ③ RLS 不串户:userB 读不到 userA 的 episode / 弱项 ────────
+PASS  userB wasAsked(userA 问过的题) = false
+PASS  userB pastWeakDimensions = 空(读不到 userA 报告)
+
+──────── ④ 隐私:episode 只存我方归一化题面,绝无答案/PII ────────
+PASS  episode 内容无手机号等原文 PII
+PASS  episode 存的是归一化题面(小写去多余空白)
+
+✓ 记忆 lean MVP(跨会话精确判重 + 弱项只读投影 + RLS + 隐私)全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T06-08-51-244Z-72154-e12f00d9-6f14-4c9e-ba17-b40655764a6b.json release_evidence=false
