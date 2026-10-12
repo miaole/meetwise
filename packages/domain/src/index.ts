@@ -246,11 +246,13 @@ export type {
 } from './job-route-classifier.ts';
 
 // 候选人面 track 路由（G7S 通用 begin 供给面）纯域原语：candidate-profile-derived 能力语义 rule
-// 分类（0 外发；v3 起降级臂 backend/general 兜底）+ canonical digest。与 job 面（岗位要求语义）
+// 分类（0 外发；v3 起降级臂 backend/general 兜底；v4 起 #270 general+单叶 qa/ai_ml 更强证据闸）+
+// canonical digest + leaf 领域证据词表（#201 planner 相关性闸同源消费面）。与 job 面（岗位要求语义）
 // 刻意分离，零 IO 零模型零 db。
 export {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
+  CANDIDATE_PROFILE_SIGNALS, CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from './candidate-profile-route.ts';
 export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom } from './candidate-profile-route.ts';

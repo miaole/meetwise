@@ -459,6 +459,16 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
     'packages/db/migrations/0144_db_trigfam_unify.sql',
   ],
+  // G7FIX-4R 补锤(nail 席):worker g7fix4-reroll 接隔离 PG·文件清单沿其真实依赖面(proof+判死链三源+prompts)。
+  'g7fix4-reroll:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/g7fix4-reroll.proof.ts',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/interview-consumer.ts', 'packages/ai-runtime/src/prompts.ts',
+    'packages/db/migrations/0046_application_assessment_recovery.sql',
+    'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+    'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
+  ],
   'reqid:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reqid.proof.ts', 'apps/worker/src/interview-consumer.ts',
@@ -1799,6 +1809,8 @@ if (![
   'model-op00-usage-reconciler:prove:raw',
   'model-op02:prove:raw',
   'model-slot-bypass:prove:raw',
+  // G7FIX-4R 补锤(nail 席·QP #201 min(3) 后 fixture 刷新实跑):worker g7fix4-reroll 接隔离 PG runner·additive 注册沿 memory:prove 同形。
+  'g7fix4-reroll:prove:raw',
   'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
@@ -1971,6 +1983,9 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-flow']]
   : target === 'resume-grounding:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:resume-grounding']]
+  // G7FIX-4R 补锤(nail 席):worker g7fix4-reroll 接隔离 PG runner·命令沿 worker 原生 script 名。
+  : target === 'g7fix4-reroll:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:g7fix4-reroll']]
   : target === 'tokenstream:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:tokenstream']]
   : target === 'reqid:prove:raw'

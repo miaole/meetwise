@@ -105,6 +105,10 @@ export async function beginInterviewCore(
   const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
   // H4 R2②(#252 focus 进题链·断点②):focus 头白名单归一(上方 normalizeFocusHeader)——undefined → payload 零新键。
   const focusNormalized = normalizeFocusHeader(focus);
+  // QBANK-PLANNER-HONESTY #200-A(修法 A·裁决项①):源押题工件标识归一(trim;空→undefined → payload 零新键,
+  // 与现状逐字节一致)。下方守卫块(sourceQuizId 三刀·GODFN-1c)语义零改仍消费原值;payload 标量仅作
+  // worker owner-scoped 读题面的供给标识(零新表零新列=修法 A 零迁移)。
+  const sourceQuizIdNormalized = (sourceQuizId ?? '').trim() || undefined;
   // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
   const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
   const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
@@ -261,9 +265,11 @@ export async function beginInterviewCore(
     // JSON retains only transport tracing, never a resume locator.
     // #259: targetRole 仅在场时写入 payload 键(缺省零新键=现状 payload 字节)。
     // H4 R2②: focus 同形——仅在场时写入(数组标量 JSON;缺省零新键=现状字节,幂等既有 job 不改写)。
+    // QBANK-PLANNER-HONESTY #200-A ⑵: sourceQuizId 第三标量同形——仅在场时写入(缺省零新键=现状字节)。
     const startPayload: Record<string, unknown> = { requestId };
     if (targetRoleNormalized) startPayload.targetRole = targetRoleNormalized;
     if (focusNormalized) startPayload.focus = focusNormalized;
+    if (sourceQuizIdNormalized) startPayload.sourceQuizId = sourceQuizIdNormalized;
     const jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
     return { accepted: true, jobId };
 }

@@ -13,7 +13,8 @@ const OWNER = 'adaptA', TID = 'adapt-' + Date.now();
 let calls = 0;
 let askSeq = 0;
 const base = scriptedModelClient({
-  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
+  // QBANK-PLANNER-HONESTY #201 min(3) 收紧后 fixture 如实刷新:2 条=非法输出(schema 拒→默认集),3 条=合法后端计划。
+  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存', '消息队列'] } }),
   // Critique duplicate now fail-closes (no invented replacement stem). A
   // multi-turn scripted interviewer must emit distinct questions.
   'interviewer.ask': () => ({
