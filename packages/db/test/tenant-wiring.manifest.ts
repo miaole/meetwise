@@ -119,9 +119,9 @@ export const WIRED_FILES: WiredFile[] = [
     file: 'apps/api/src/modules/notification/notification.service.ts',
     count: 5,
     paths: [
-      { ctx: 'notification.list', kind: 'list-legal-empty' },
-      { ctx: 'notification.unread', kind: 'list-legal-empty' },
-      { ctx: 'notification.readAll', kind: 'list-legal-empty' },
+      { ctx: 'notification.list', kind: 'list-legal-empty', predicateWitness: "requireOwnerUserId(principal, 'notification.list')" },
+      { ctx: 'notification.unread', kind: 'list-legal-empty', predicateWitness: "requireOwnerUserId(principal, 'notification.unread')" },
+      { ctx: 'notification.readAll', kind: 'list-legal-empty', predicateWitness: "requireOwnerUserId(principal, 'notification.readAll')" },
       { ctx: 'notification.read', kind: 'single-id', e5Witness: "error: 'not_found'" },
     ],
   },
@@ -129,7 +129,7 @@ export const WIRED_FILES: WiredFile[] = [
     file: 'apps/api/src/modules/jobs/applications.service.ts',
     count: 5,
     paths: [
-      { ctx: 'applications.mine', kind: 'list-legal-empty' },
+      { ctx: 'applications.mine', kind: 'list-legal-empty', predicateWitness: "requireOwnerUserId(principal, 'applications.mine')" },
       { ctx: 'applications.start', kind: 'single-id', e5Witness: 'cannot_finalize' },
       { ctx: 'applications.decline', kind: 'single-id', e5Witness: "'noop'" },
       { ctx: 'applications.finalize', kind: 'single-id', e5Witness: 'cannot_finalize' },

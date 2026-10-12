@@ -23,7 +23,7 @@ import {
   assessEg1DualClaimProductClose,
   emitEg1DualClaimProductCloseEvidence,
   hasEg1DualClaimProductCloseEvidence,
-} from '../src/r4-eg1-dual-claim-product-close.ts';
+} from '../evidence/r4-eg1-dual-claim-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

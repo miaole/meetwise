@@ -20,12 +20,12 @@ import { fileURLToPath } from 'node:url';
 import {
   classifyPR1Remaining,
   isR1Closed,
-} from '../src/r4-p-meta-p-r1-remaining.ts';
+} from '../evidence/r4-p-meta-p-r1-remaining.ts';
 import {
   classifyPR1FailClosedRemaining,
   failClosedAlignsWithF2PR1,
   isPR1FailClosedR1Closed,
-} from '../src/r4-p-r1-fail-closed-remaining.ts';
+} from '../evidence/r4-p-r1-fail-closed-remaining.ts';
 import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
@@ -52,8 +52,8 @@ const r1HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r1-tech-role-fail
 const m4Path = join(repoRoot, 'ai-docs/delivery/m4-rag-hard-gates.md');
 const f2HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f2-p-meta-p-r1.md');
 const f3HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f3-p-meta-serving.md');
-const helperPath = join(workerRoot, 'src/r4-p-r1-fail-closed-remaining.ts');
-const f2HelperPath = join(workerRoot, 'src/r4-p-meta-p-r1-remaining.ts');
+const helperPath = join(workerRoot, 'evidence/r4-p-r1-fail-closed-remaining.ts');
+const f2HelperPath = join(workerRoot, 'evidence/r4-p-meta-p-r1-remaining.ts');
 const rolePath = join(workerRoot, 'src/adaptive-role-resolve.ts');
 const consumerPath = join(workerRoot, 'src/interview-consumer.ts');
 const mainPath = join(workerRoot, 'src/main.ts');

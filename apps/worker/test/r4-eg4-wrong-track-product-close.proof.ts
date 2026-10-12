@@ -21,7 +21,7 @@ import {
   assessEg4WrongTrackProductClose,
   emitEg4WrongTrackProductCloseEvidence,
   hasEg4WrongTrackProductCloseEvidence,
-} from '../src/r4-eg4-wrong-track-product-close.ts';
+} from '../evidence/r4-eg4-wrong-track-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

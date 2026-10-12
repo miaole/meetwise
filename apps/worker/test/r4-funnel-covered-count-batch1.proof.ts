@@ -26,11 +26,11 @@ import {
   emitFunnelCoveredCountBatch1Evidence,
   isFunnel03Covered,
   isFunnel04Covered,
-} from '../src/r4-funnel-covered-count-batch1.ts';
+} from '../evidence/r4-funnel-covered-count-batch1.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
-} from '../src/r4-eg2-funnel-covered-matrix.ts';
+} from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -179,7 +179,7 @@ const mdLines = [
   '',
   '**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch1 under authorize** · **≠ invent covered** · `releaseEvidence=false` · ≠HA',
   '**Date**: 2026-09-23 (~09:13 PT)',
-  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1-aware) · Batch1 `apps/worker/src/r4-funnel-covered-count-batch1.ts` · prove `pnpm r4-funnel-covered-count-batch1:prove` / `pnpm r4-eg2-funnel-covered:prove`',
+  '**Emitter**: `apps/worker/evidence/r4-eg2-funnel-covered-matrix.ts` (Batch1-aware) · Batch1 `apps/worker/evidence/r4-funnel-covered-count-batch1.ts` · prove `pnpm r4-funnel-covered-count-batch1:prove` / `pnpm r4-eg2-funnel-covered:prove`',
   '**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04 only** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban second knife',
   '',
   '| ID | Status | Basis |',

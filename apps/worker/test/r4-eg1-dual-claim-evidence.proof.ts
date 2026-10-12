@@ -18,17 +18,17 @@ import {
   EG1_DUAL_CLAIM_EVIDENCE_EMITTER_WIRED,
   EG1_DUAL_CLAIM_EVIDENCE_KIND,
   emitMetadataReviewReceiptRagFunnel01DualClaimEvidence,
-} from '../src/r4-eg1-dual-claim-evidence.ts';
+} from '../evidence/r4-eg1-dual-claim-evidence.ts';
 import {
   classifyPMetaRemaining,
   is01ANotEqual01,
   isRagFunnel01Closed,
-} from '../src/r4-p-meta-p-r1-remaining.ts';
+} from '../evidence/r4-p-meta-p-r1-remaining.ts';
 import {
   classifyPMetaServingProductRemaining,
   isProduct01ANotEqual01,
   isProductFunnel01Closed,
-} from '../src/r4-p-meta-serving-product-remaining.ts';
+} from '../evidence/r4-p-meta-serving-product-remaining.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

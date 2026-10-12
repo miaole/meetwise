@@ -24,7 +24,7 @@
 import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
-} from './adaptive-role-resolve.ts';
+} from '../src/adaptive-role-resolve.ts';
 import { MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED } from './r4-p-meta-ms1-product-wire.ts';
 import { MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED } from './r4-p-meta-ms2-facets-product.ts';
 import { MS3_STANDARD_DEPLOY_PRODUCT_HANDOFF_WIRED } from './r4-p-meta-ms3-deploy-product.ts';
