@@ -1,9 +1,11 @@
 /**
- * usage 对账校准的**生产调度侧**（MODEL-OP-wire / MODEL-OP-00 P2/P3）：把域级
- * `reconcileUsageCalibration` 接进 worker drain-loop，周期按 owner 落观测 + 版本化因子。
+ * usage 对账校准的**生产调度侧**（MODEL-OP-wire / MODEL-OP-00 P2/P3 · AG-COST2 加窗化）：把域级
+ * 加窗 `reconcileUsageCalibrationWindowed` 接进 worker drain-loop，周期按 owner 落观测 + 版本化因子。
  *
- * 一拍 = gateway 枚举有 estimate↔usage 配对的 owner → 每 owner 跑 reconcileUsageCalibration
- * （batch = 小时桶，同小时重跑幂等）。一个 owner 抛不拖垮整拍；整拍不抛（drain-loop 要求）。
+ * 一拍 = 水位线整批下界 → gateway 枚举 v2（只返回窗口内有新配对的 owner）→ 每 owner 跑加窗
+ * reconcile（batch = 小时桶，同 key 幂等由 0177 新 PK 兜底；水位线 GREATEST 单调推进）。
+ * 一个 owner 抛不拖垮整拍；整拍不抛（drain-loop 要求）。
+ * v1 全史路径（reconcileUsageCalibration/gateway_usage_calibration_owners）零字节保留为对照/回滚面。
  *
  * Honesty pins (MODEL-OP-wire):
  * - Dual reconciler 同列 with model-invocation-reconcile · ≠ MODEL-OP fake green / ≠ SLO
@@ -11,8 +13,8 @@
  * - Redis wake deferred · not STOPPED · ≠ cutover claim
  * - releaseEvidence=false · ≠HA
  */
-import { gatewayUsageCalibrationOwners, type DbPool } from '@meetwise/db';
-import { reconcileUsageCalibration } from '@meetwise/ai-runtime';
+import { gatewayUsageCalibrationOwnersSince, gatewayUsageCalibrationWatermarkFloor, type DbPool } from '@meetwise/db';
+import { reconcileUsageCalibrationWindowed } from '@meetwise/ai-runtime';
 import { runDrainLoop } from './drain-loop.ts';
 
 function hourBatch(now = new Date()): string {
@@ -71,14 +73,20 @@ export function resolveUsageCalibrationReconcileConfig(env: NodeJS.ProcessEnv = 
   };
 }
 
-/** 一拍：枚举 → 逐 owner reconcile。整拍不抛。 */
+/**
+ * 一拍（AG-COST2 加窗路径）：读水位线整批下界 → 枚举 v2（只返回窗口内有新配对的 owner）→
+ * 每 owner 走加窗 reconciler（v2(p_since=owner 水位线) 增量 → 合并因子 → 水位线 GREATEST 单调推进）。
+ * 整拍不抛；owner 级失败不推进该 owner 水位线（同事务回滚·下拍 at-least-once 重放）。
+ * 首跑无水位线行 → floor=null → p_since='-infinity' 全量枚举一次=与 v1 行为等价·此后单调收窄。
+ */
 export async function usageCalibrationReconcileTick(pool: DbPool): Promise<UsageCalibrationReconcileOutcome> {
   let owners = 0;
   let groups = 0;
   let factors = 0;
   let list: string[] = [];
   try {
-    list = await gatewayUsageCalibrationOwners(pool);
+    const floor = await gatewayUsageCalibrationWatermarkFloor(pool);
+    list = await gatewayUsageCalibrationOwnersSince(pool, floor ?? '-infinity');
   } catch (e) {
     console.error('usage calibration reconcile enumerate failed', e);
     return { owners, groups, factors };
@@ -86,7 +94,7 @@ export async function usageCalibrationReconcileTick(pool: DbPool): Promise<Usage
   const batch = hourBatch();
   for (const owner of list) {
     try {
-      const r = await reconcileUsageCalibration(pool, { owner, batch });
+      const r = await reconcileUsageCalibrationWindowed(pool, { owner, batch });
       if (!r.ok) {
         console.error('usage calibration reconcile owner failed', owner, r.error);
         continue;

@@ -33,6 +33,7 @@ import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
+import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -721,6 +722,13 @@ async function bootstrap() {
   const usageCalibrationReconcileLoop = usageCalibrationControl.enabled
     ? runUsageCalibrationReconciler(pool, usageCalibrationControl.intervalMs)
     : undefined;
+  // AG-COST2 裁决项①(a)：usage 校准观测 90 天保留期清除（0177 件⑥ SECURITY DEFINER·app_role 无 DELETE
+  // 纪律零破坏）。缺省 ENABLED=false 不起循环（沿 privacyErasureLoop 可选循环先例·清除是生产数据删除，
+  // 启用=显式运维决策）；非法 env=启动失败非静默回退（resolveUsageCalibrationRetentionConfig·AG-18 同族）。
+  const usageCalibrationRetentionControl = resolveUsageCalibrationRetentionConfig();
+  const usageCalibrationRetentionLoop = usageCalibrationRetentionControl.enabled
+    ? runUsageCalibrationRetention(pool, usageCalibrationRetentionControl)
+    : undefined;
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；
@@ -748,7 +756,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -767,10 +775,10 @@ async function bootstrap() {
     }
   }
   // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
-  // 竞速 + SIGINT 同链。清单 16 项(R3 勘误:原 allSettled 实数 15,补漏
-  // vectorPlaneErasureLoop?.stop() 后 16):10 loop.stop(report/interview/quiz/diagnosis/
+  // 竞速 + SIGINT 同链。清单 17 项(AG-COST2 增 usage-calibration-retention 一项:16→17):
+  // 11 loop.stop(report/interview/quiz/diagnosis/
   // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
-  // privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
+  // usageCalibrationRetention/privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
   // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
   // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
   // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
@@ -783,6 +791,7 @@ async function bootstrap() {
     { name: 'commerce', stop: () => commerceLoop.stop() },
     { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
+    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve() },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'gauge', stop: () => gaugeLoop.stop() },

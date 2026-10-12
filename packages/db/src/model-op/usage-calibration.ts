@@ -2,14 +2,16 @@
  * usage-calibration.ts — usage 对账校准因子的数据访问层（MODEL-OP-00 收尾 P2/P3 持久化接线）。
  *
  * 纯数据访问、零模型/域依赖（DAG 最底层）。四原语落地：
- *  - 幂等：观测日志 PK(owner,batch,invocation_idempotency_key) + ON CONFLICT DO NOTHING；
- *    因子 PK(owner,service,model,estimator,factor_version) 内容寻址，同内容同版本只落一份。
+ *  - 幂等：观测日志 PK(owner,invocation_idempotency_key)（0177 件① 换键·batch 降级为溯源列）+
+ *    ON CONFLICT DO NOTHING；因子 PK(owner,service,model,estimator,factor_version) 内容寻址，
+ *    同内容同版本只落一份。
  *  - CAS：因子只 INSERT、绝不 UPDATE/DELETE（版本化 insert-only 单调历史）；同版本并发批幂等。
  *  - RLS：两张表 owner 绑定 FORCE RLS，本层所有写/读都在 asPrincipal 的 principal 事务内。
  *  - 持久有序日志：观测逐条落库（reconciliation_status 显式 within_estimate/under_estimated），
  *    低估绝不静默吞掉。
  *
- * 读面 `listUsageCalibrationPairs` 走 SECURITY DEFINER `ai_usage_calibration_pairs_scoped(owner)`：
+ * 读面 `listUsageCalibrationPairs` 走 SECURITY DEFINER `ai_usage_calibration_pairs_scoped(owner)`（全史），
+ * `listUsageCalibrationPairsSince` 走 `_v2(owner, since)`（加窗增量·AG-COST2 件②·v1 保留为对照面）：
  * ai_model_logical_node_header 对 app_role REVOKE ALL（0085），只能经 SECURITY DEFINER 读 frozen model。
  */
 import type { Client } from '../principal.ts';
@@ -51,6 +53,75 @@ export async function listUsageCalibrationPairs(c: Client, owner: string): Promi
     providerOutputTokens: Number(row.provider_output_tokens),
     observedAtMs: Number(row.observed_at_ms),
   }));
+}
+
+/**
+ * 加窗读面（AG-COST2 件②）：走 SECURITY DEFINER `ai_usage_calibration_pairs_scoped_v2(owner, since)`，
+ * 只返回 `completed_at > since` 的配对增量。v1 wrapper 保留不动（全史对照/回滚面）。
+ * `since` 必须非空（水位线或 epoch 兜底）；NULL 在 SQL 侧退化为恒假空窗，这里 fail-closed 拒绝。
+ */
+export async function listUsageCalibrationPairsSince(c: Client, owner: string, since: Date): Promise<UsageCalibrationPair[]> {
+  if (!(since instanceof Date) || Number.isNaN(since.getTime())) {
+    throw Object.assign(new Error('usage_calibration_since_invalid'), { code: 'usage_calibration_since_invalid' });
+  }
+  const r = await c.query(
+    `SELECT idempotency_key, service, model, estimate_input_tokens, provider_input_tokens, provider_output_tokens, observed_at_ms
+       FROM ai_usage_calibration_pairs_scoped_v2($1, $2)`,
+    [owner, since],
+  );
+  return r.rows.map((row) => ({
+    idempotencyKey: String(row.idempotency_key),
+    service: String(row.service),
+    model: String(row.model),
+    estimateInputTokens: Number(row.estimate_input_tokens),
+    providerInputTokens: Number(row.provider_input_tokens),
+    providerOutputTokens: Number(row.provider_output_tokens),
+    observedAtMs: Number(row.observed_at_ms),
+  }));
+}
+
+/** 读 owner 当前水位线（principal 事务内·RLS 自有行）；无行 → null（首次窗口=全量）。 */
+export async function getUsageCalibrationWatermark(c: Client, owner: string): Promise<Date | null> {
+  const r = await c.query(
+    `SELECT last_completed_at FROM ai_usage_calibration_watermark WHERE owner_user_id=$1`,
+    [owner],
+  );
+  const row = r.rows[0];
+  return row ? new Date(row.last_completed_at) : null;
+}
+
+/**
+ * 水位线单调推进（AG-COST2 件③）：GREATEST(现值, 新值)——绝不回拨（对账重放/乱序完成只前移）。
+ * UPSERT 需 UPDATE 通道（GRANT SELECT,INSERT,UPDATE·0177 件③）；返回推进后的有效值。
+ */
+export async function upsertUsageCalibrationWatermark(c: Client, owner: string, lastCompletedAt: Date): Promise<Date> {
+  if (!(lastCompletedAt instanceof Date) || Number.isNaN(lastCompletedAt.getTime())) {
+    throw Object.assign(new Error('usage_calibration_watermark_invalid'), { code: 'usage_calibration_watermark_invalid' });
+  }
+  const r = await c.query(
+    `INSERT INTO ai_usage_calibration_watermark(owner_user_id, last_completed_at)
+     VALUES($1, $2)
+     ON CONFLICT (owner_user_id) DO UPDATE
+       SET last_completed_at = GREATEST(ai_usage_calibration_watermark.last_completed_at, EXCLUDED.last_completed_at),
+           updated_at = clock_timestamp()
+     RETURNING last_completed_at`,
+    [owner, lastCompletedAt],
+  );
+  return new Date(r.rows[0]!.last_completed_at);
+}
+
+/**
+ * 90 天保留期清除（AG-COST2 件⑥·裁决项①(a)）：走 SECURITY DEFINER
+ * `ai_usage_calibration_observation_retention_purge(keep_days)`——app_role 对观测表保持无 DELETE
+ * （0119 GRANT SELECT,INSERT 纪律零破坏），清除只触观测表 created_at 早于 keep_days 天的行。
+ * 返回清除行数。SQL 侧 fail-closed 校验 1..3650。
+ */
+export async function purgeExpiredUsageCalibrationObservations(c: Client, keepDays: number): Promise<number> {
+  if (!Number.isSafeInteger(keepDays) || keepDays < 1 || keepDays > 3650) {
+    throw Object.assign(new Error('usage_calibration_retention_invalid'), { code: 'usage_calibration_retention_invalid' });
+  }
+  const r = await c.query(`SELECT ai_usage_calibration_observation_retention_purge($1) AS purged`, [keepDays]);
+  return Number(r.rows[0]?.purged ?? 0);
 }
 
 export interface InsertUsageCalibrationFactorInput {
@@ -96,12 +167,16 @@ export interface InsertUsageCalibrationObservationInput {
   observedAtMs: number;
 }
 
-/** 观测日志幂等落库：PK(owner,batch,invocation_idempotency_key) 保证同一批同一调用只落一份。 */
+/**
+ * 观测日志幂等落库：0177 件① PK 换键后幂等键=(owner,invocation_idempotency_key)——同一调用跨
+ * batch 桶不再整行重写（AG-07 膨胀机制根除）；batch 保留为溯源列（首次观测桶）。
+ * 同 key 二次落库 ON CONFLICT DO NOTHING（幂等仍绿·最早 batch 行保留不动）。
+ */
 export async function insertUsageCalibrationObservation(c: Client, input: InsertUsageCalibrationObservationInput): Promise<boolean> {
   const r = await c.query(
     `INSERT INTO ai_usage_calibration_observation(owner_user_id,batch,invocation_idempotency_key,service,model,estimator,estimate_input_tokens,provider_input_tokens,provider_output_tokens,reconciliation_status,observed_at_ms)
      VALUES($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
-     ON CONFLICT (owner_user_id,batch,invocation_idempotency_key) DO NOTHING`,
+     ON CONFLICT (owner_user_id,invocation_idempotency_key) DO NOTHING`,
     [
       input.owner, input.batch, input.idempotencyKey, input.service, input.model, input.estimator,
       input.estimateInputTokens, input.providerInputTokens, input.providerOutputTokens,

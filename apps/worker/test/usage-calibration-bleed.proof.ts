@@ -6,7 +6,8 @@
  * ②非法值臂——INTERVAL_MS=abc/-1/0.5/越域、ENABLED=非布尔 → throw 专用 error code（启动失败·
  * 沿 AG-18「非法就启动失败」纪律·绝不静默回退）；③合法臂——合法值生效 + main.ts 三处接线源级
  * pin（:710 条件起循环/:738 ready 短路/:772 drainStops 可选 stop）+ runDrainLoop 间隔透传源级
- * pin + 活循环 smoke（首拍即跑·ready 真·stop 排空）+ 域级本体零字节 pin（sha256 对 §0.1 #2 blob）。
+ * pin + 活循环 smoke（首拍即跑·ready 真·stop 排空）+ 域级本体 sha256 pin（AG-COST2 授权触面
+ * 施工后 re-pin 新值·零字节承诺显式解除·勘误注随 REQUEST 落卷）。
  *
  * 零 DB：活循环 smoke 的 fake pool 只触发 tick 内 enumerate 失败 catch（tick 自吞·整拍不抛的
  * 既有语义），零真实连接零外呼零模型调用（est live=0·actualSpendCny=null）。
@@ -74,11 +75,12 @@ const reconcileSrc = readFileSync(join(root, 'src/usage-calibration-reconcile.ts
 A('间隔透传 pin：runUsageCalibrationReconciler(pool, intervalMs) → runDrainLoop(tick, intervalMs)（intervalMs 逐参透传）',
   /runDrainLoop\(async \(\) => \{ await usageCalibrationReconcileTick\(pool\); \}, intervalMs\)/.test(reconcileSrc));
 
-// ── 臂③ 域级本体零字节 pin（§0.1 #2 blob 8b7b257bc849 对 sha256·防顺手触碰） ───────────
+// ── 臂③ 域级本体 sha256 pin（§0.1 #3 重 pin·AG-COST2 授权触面：加窗路径+因子合并落本件·
+// cost1 零字节承诺由本刀显式解除并 re-pin 新值·沿 §0「漂则重 pin」锚协议·勘误注随 REQUEST 落卷） ──
 const reconcilerPath = join(root, '../../packages/ai-runtime/src/usage-calibration-reconciler.ts');
 const reconcilerSha = createHash('sha256').update(readFileSync(reconcilerPath, 'utf8')).digest('hex');
-A('域级本体零字节 pin：usage-calibration-reconciler.ts sha256 == §0.1 #2（blob 8b7b257bc849）时点值',
-  reconcilerSha === '3f375925aa9b7f6f7095d1c9f7bc706282184b37f7b27f833715c7ef28af1df1');
+A('域级本体 sha256 pin：usage-calibration-reconciler.ts == AG-COST2 施工后 re-pin 值（防顺手触碰·原 cost1 值 3f375925…df1 已随授权触面退役）',
+  reconcilerSha === '429cdfdc51c3dba8f4fd04d35303249d98028f793fad738bab45b8b88fe76ac1');
 
 // ── 臂③ 活循环 smoke（零 DB：fake pool 触发 enumerate 失败 catch·tick 自吞整拍不抛） ────
 async function main() {

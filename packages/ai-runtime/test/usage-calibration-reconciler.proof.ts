@@ -177,22 +177,34 @@ async function main() {
 
   // ==========================================================================
   // ⑤ 并发：同批幂等单份 / 因子内容寻址不覆盖
+  // （AG-COST2 勘误：0177 件① PK 换键后幂等键=(owner,invocation_key)·同 key 跨 batch 不再
+  //  整行重写=AG-07 膨胀根除的本义·本两臂随新身份语义改写·强度不减（幂等+不重复+跨批单份））
   // ==========================================================================
   const idemBatch = `batch-idem-${suffix}`;
   const i1 = await reconcileUsageCalibration(pool, { owner: OWNER, batch: idemBatch });
+  // 全史 4 键已在 batch1/batch-b 在册 → 新 PK 下 idemBatch 零新增行（跨 batch 单份）。
   const idemObsAfterFirst = await observationCount(idemBatch);
+  const idemTotalAfterFirst = await pool.query(
+    `SELECT count(*)::int n FROM ai_usage_calibration_observation WHERE owner_user_id=$1`, [OWNER]);
   const idemFactorAfterFirst = await factorCount();
   const i2 = await reconcileUsageCalibration(pool, { owner: OWNER, batch: idemBatch });
-  A('⑤ 同批重跑幂等：观测/因子条数不变（ON CONFLICT DO NOTHING）', i1.ok && i2.ok && idemObsAfterFirst === 4 && (await observationCount(idemBatch)) === idemObsAfterFirst && (await factorCount()) === idemFactorAfterFirst);
+  A('⑤ 同批重跑幂等：同 key 跨 batch 零新增（0177 新 PK 兜底）·总观测/因子条数不变（ON CONFLICT DO NOTHING）',
+    i1.ok && i2.ok && idemObsAfterFirst === 0 && Number(idemTotalAfterFirst.rows[0]?.n) === 4
+    && (await observationCount(idemBatch)) === idemObsAfterFirst
+    && Number(idemTotalAfterFirst.rows[0]?.n) === 4
+    && (await factorCount()) === idemFactorAfterFirst);
 
   const concBatch = `batch-conc-${suffix}`;
   const [c1, c2] = await Promise.all([
     reconcileUsageCalibration(pool, { owner: OWNER, batch: concBatch }),
     reconcileUsageCalibration(pool, { owner: OWNER, batch: concBatch }),
   ]);
-  const concObs = await observationCount(concBatch);
-  // 此刻全历史配对：SERVICE 3 条(success/schema/business) + SERVICE_B 1 条 → 并发批应恰好 4 条、不重复。
-  A('⑤ 并发同批双写：两事务都成功、观测不重复(全历史 4 条)', c1.ok && c2.ok && concObs === 4);
+  const concObs = await pool.query(
+    `SELECT count(*)::int n, count(DISTINCT invocation_idempotency_key)::int k
+       FROM ai_usage_calibration_observation WHERE owner_user_id=$1`, [OWNER]);
+  // 换键后：并发双写同批 → 全部 4 键已在册零新增·全 owner 恰 4 行=4 键（观测不重复）。
+  A('⑤ 并发同批双写：两事务都成功、观测不重复（恰 4 行=4 键·膨胀重写根除）',
+    c1.ok && c2.ok && Number(concObs.rows[0]?.n) === 4 && Number(concObs.rows[0]?.k) === 4);
 
   // ==========================================================================
   // ⑥ 复杂：因子只放大(≥已观测 usage)、单调不减、缺因子退回未精化
