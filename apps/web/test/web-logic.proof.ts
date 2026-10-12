@@ -10,7 +10,6 @@ import {
   reduceInterview, applyEvent, applyEvents, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
 } from '../lib/stream/interview-state.ts';
 import { interviewDisplay, isDeadEnd, signalConcludePracticeCopy } from '../lib/view-model.ts';
-import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
 import { runInterviewStream, type StreamOpener } from '../lib/stream/interview-stream.ts';
 import type { InterviewView } from '../lib/stream/interview-state.ts';
 import {
@@ -66,6 +65,53 @@ import {
 import { projectTurnAnnotations, type TranscriptTurn } from '../lib/report/turn-annotations.ts';
 import { growthDeltaComparable, growthDeltaView } from '../lib/growth/comparable.ts';
 import { isVoiceModeEntryVisible } from '../lib/voice-mode-entry.ts';
+
+// ─── 类型化契约客户端·测试自持形（#60 处置·5E 裁决项③「删并迁测试自持形」）─────────────────
+// 原 apps/web/lib/api/client.ts（makeInterviewApi 生产公共客户端）全仓生产调用方零命中（rg 亲证：
+// 仅本 proof 消费；生产 UI 实走 server actions/裸 fetch 面）→ 生产文件本刀删除，实现体逐字节
+// 下沉至此自持（零行为；InterviewView 契约型与本 proof 既有 interview-state 的 InterviewView
+// 视图型同名，故别名 ContractInterviewView 防撞）。
+import { InterviewView as ContractInterviewView, TurnDto, TurnResult } from '@meetwise/contracts';
+import type { z } from 'zod';
+
+interface FetchResponse { status: number; json(): Promise<unknown> }
+type FetchLike = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<FetchResponse>;
+
+type ApiResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; kind: 'business'; status: number; error?: string }
+  | { ok: false; kind: 'transport'; status?: number }
+  | { ok: false; kind: 'drift'; status: number }
+  | { ok: false; kind: 'invalid_request' };
+
+async function callClient<T>(schema: z.ZodType<T>, fetchImpl: FetchLike, url: string, init?: Parameters<FetchLike>[1]): Promise<ApiResult<T>> {
+  let res: FetchResponse;
+  try { res = await fetchImpl(url, init); } catch { return { ok: false, kind: 'transport' }; }
+  let body: unknown;
+  try { body = await res.json(); } catch { return { ok: false, kind: 'transport', status: res.status }; }
+  if (res.status >= 500) return { ok: false, kind: 'transport', status: res.status };
+  if (res.status >= 400) return { ok: false, kind: 'business', status: res.status, error: (body as { error?: string })?.error };
+  const p = schema.safeParse(body);
+  return p.success ? { ok: true, value: p.data } : { ok: false, kind: 'drift', status: res.status };
+}
+
+function makeInterviewApi(baseUrl: string, fetchImpl: FetchLike) {
+  return {
+    getInterview(id: string, headers: Record<string, string> = {}) {
+      return callClient(ContractInterviewView, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}`, { headers });
+    },
+    submitAnswer(id: string, body: z.infer<typeof TurnDto>, idempotencyKey: string, headers: Record<string, string> = {}) {
+      const v = TurnDto.safeParse(body);
+      if (!v.success) return Promise.resolve<ApiResult<z.infer<typeof TurnResult>>>({ ok: false, kind: 'invalid_request' });
+      if (!idempotencyKey) return Promise.resolve<ApiResult<z.infer<typeof TurnResult>>>({ ok: false, kind: 'business', status: 400, error: 'missing_idempotency_key' });
+      return callClient(TurnResult, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}/turn`, {
+        method: 'POST',
+        headers: { ...headers, 'content-type': 'application/json', 'idempotency-key': idempotencyKey },
+        body: JSON.stringify(v.data),
+      });
+    },
+  };
+}
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
 /** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·F2 源断言用）。 */
 function lineOf(src: string, re: RegExp, from = 0): number {

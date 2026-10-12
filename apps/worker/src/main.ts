@@ -4,12 +4,13 @@
  * 职责：拥有 PostgresSaver checkpointer、把 checkpointer + ai-runtime.invoke 注入纯 ai-graphs，
  * 凭 threadId 续跑/恢复。ai-graphs 因此得以保持纯逻辑（不引 db/checkpointer）。
  *
- * 骨架：当前给出组合根装配点；真实的队列消费/续跑循环 S5 落（见 production-backlog）。
+ * 消费循环已真跑（#170 勘误 2026-10-12：旧注「骨架…真实的队列消费/续跑循环 S5 落」与实态不符——
+ * 本组合根 boot 即启动报告调度+面试 job 消费+押题/诊断/路由分类消费循环与 commerce/model-op/usage
+ * 对账循环，见下文 bootstrap 区与 production-backlog S5 行「✅ 内核 code-validated」）。
  */
 import { hostname } from 'node:os';
 import { createServer, type Server } from 'node:http';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import {
   createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
@@ -139,13 +140,8 @@ export function createCheckpointer(connString?: string, useRuntimeRole = false):
   const pool = createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
   return new PostgresSaver(useRuntimeRole ? new PrincipalBoundCheckpointPool(pool).asPool() : pool);
 }
-
-/** 组合根装配：把持久 checkpointer 注入纯 mock-interview 图。 */
-export async function buildMockInterviewRunner(questions: string[], checkpointer?: PostgresSaver) {
-  const cp = checkpointer ?? createCheckpointer();
-  await cp.setup();
-  return buildMockInterviewGraph(cp, questions);
-}
+// 【#170 码半·2026-10-12】buildMockInterviewRunner 已删：全仓调用方零命中（rg 亲证·仅定义无消费），
+// 生产消费循环走 interview-consumer/interview-service 装配，不经此 mock runner。死导出删除=零行为。
 
 /** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。 */
 function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {

@@ -30,7 +30,12 @@ export function buildResumeQuizGraph(deps: { generate: GenerateQuestions }) {
       return { questions: grounded, rejected };
     })
     .addNode('make_report', (s) => {
-      const score = Math.min(100, 40 + s.questions.length * 20);
+      // #210 质量化 2026-10-12（5E 裁决项④质量分分支）：旧公式 min(100,40+20×题数) 与质量无关
+      // （凑题数即满分）。新分=factuality 存活率（接地题/全部生成题×100，0-100 取整）——与
+      // validate 节点的歪曲过滤同一数据源，分值有质量含义。schema 限题数面落在 contracts
+      // QuizView.questions .max(20)（本图不另设硬顶，生成侧 prompt 定量）。
+      const generated = s.questions.length + s.rejected.length;
+      const score = generated === 0 ? 0 : Math.round((100 * s.questions.length) / generated);
       if (score < 0 || score > 100) throw new Error('score_out_of_range'); // 业务校验
       return { report: { score, grounded: s.questions.length, summary: `接地生成 ${s.questions.length} 题，过滤幻觉 ${s.rejected.length} 题` } };
     })
