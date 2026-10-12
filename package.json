@@ -237,6 +237,8 @@
     "job-route-classify-binding:prove": "pnpm -C packages/domain prove:sealed-job-route-classify-binding && pnpm -C packages/ai-runtime prove:job-route-classify-binding",
     "model-op02:prove": "node scripts/run-e2e-isolated.mjs model-op02:prove:raw",
     "model-op02:prove:raw": "pnpm -C packages/ai-runtime prove:model-op02",
+    "ag-d-admission:prove": "node scripts/run-e2e-isolated.mjs ag-d-admission:prove:raw",
+    "ag-d-admission:prove:raw": "pnpm -C packages/ai-runtime prove:ag-d-admission && pnpm -C apps/worker prove:ag-d-admission",
     "model-slot-bypass:prove": "node scripts/run-e2e-isolated.mjs model-slot-bypass:prove:raw",
     "model-slot-bypass:prove:raw": "pnpm -C packages/ai-runtime prove:model-slot-bypass",
     "model-slot-bypass:static:prove": "pnpm -C packages/ai-runtime prove:model-slot-bypass-static",
