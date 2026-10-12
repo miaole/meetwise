@@ -1,11 +1,11 @@
 # Meetwise 北星 · Harness 执行 Loop（总控 · 其他 AI 按本文执行）
 
 > **给用户的一句话（复制即发）**  
-> `严格按 /Users/miaole/Desktop/golucky/meetwise/ai-docs/delivery/harness/NORTH-STAR-EXECUTION-LOOP.md 执行 Meetwise 北星 loop：不到北星不停；一刀一双审；实现不自批；交 tip 给 meetwise 验收。`
+> `严格按 <repo>/ai-docs/delivery/harness/NORTH-STAR-EXECUTION-LOOP.md 执行 Meetwise 北星 loop：不到北星不停；一刀一双审；实现不自批；交 tip 给 meetwise 验收。`
 
 **协调 / 验收 bot**：meetwise（只开 dual 闸、验收、授权 nail；不写产品代码除非用户改派）  
 **实现默认**：mw-core · 仓库 `miaole/meetwise` · 分支 `feat/mysql-schema-skeleton`  
-**本机源**：`/Users/miaole/Desktop/golucky/meetwise`  
+**本机源**：`<repo>`（本仓根）  
 **当前 tip（开刀前必 `git fetch` + ff）**：以 `origin/feat/mysql-schema-skeleton` 为准（本文起草时 = **`f3cf84c`**）  
 **并发派工补充**：`ai-docs/delivery/PARALLEL-DISPATCH-2026-10-03.md`
 

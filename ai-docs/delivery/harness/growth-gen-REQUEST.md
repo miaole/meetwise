@@ -2,10 +2,10 @@
 
 **Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（docs-only 起草 · Ban coding · Ban prove 执行 · Ban self-approve · alone ≠ dual · 不代签 peer）
 **Line**: **GROWTH-GEN**（产品战役 LEDGER 批 1 · `product-campaign-LEDGER.md:29`「GROWTH-GEN 刀（服务端后台作业自动产评估+学习+职业路径·新 job 类型幂等（引文逐字补正））」· SOP W2 评分卡域队列「#204（服务端自动评估）」· 硬依赖 #40 已由 SCORE-WRITER S1 兑现大半）
-**Base tip**: `3c3406bd`（`origin/feat/mysql-schema-skeleton` 2026-10-10 fetch 实测 · worktree `/Users/miaole/Desktop/golucky/meetwise-line-grow201` 分支 `line/growth-gen` · 本文全部 file:line 于本 worktree **亲读复核**）
+**Base tip**: `3c3406bd`（`origin/feat/mysql-schema-skeleton` 2026-10-10 fetch 实测 · worktree `meetwise-line-grow201`（仓根同级 worktree）分支 `line/growth-gen` · 本文全部 file:line 于本 worktree **亲读复核**）
 **Author**: `mw-grow201-draft`（REQUEST 起草席 · 实现不自批）
 **Date**: 2026-10-10
-**依据**: ①`/Users/miaole/Documents/Meetwise产品审计-更正版/issues-master.md:145`（#204 审计原文）②`fix-roadmap.md:62,70`（批 1 修法+验收）③`product-campaign-LEDGER.md:29,91,105`（批 1 排期+新-#275 并入）④SCORE-WRITER S1 现状（`extrev-score-writer-REQUEST.md` S1 EXEC 登记节 + 主线 `interview.service.ts:413-424`/`score-writer.ts` 亲证已落）⑤S2 在飞交叠（`origin/line/extrev-score-writer` tip `8e9ee663`=S1 nail · S2 EXEC 在飞）
+**依据**: ①外部审计总表（本机外部件·不入仓）`issues-master.md:145`（#204 审计原文）②`fix-roadmap.md:62,70`（批 1 修法+验收）③`product-campaign-LEDGER.md:29,91,105`（批 1 排期+新-#275 并入）④SCORE-WRITER S1 现状（`extrev-score-writer-REQUEST.md` S1 EXEC 登记节 + 主线 `interview.service.ts:413-424`/`score-writer.ts` 亲证已落）⑤S2 在飞交叠（`origin/line/extrev-score-writer` tip `8e9ee663`=S1 nail · S2 EXEC 在飞）
 
 ---
 

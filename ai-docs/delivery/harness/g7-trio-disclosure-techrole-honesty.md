@@ -3,7 +3,7 @@
 **Status**: **`executed:awaiting_post_prove_dual`**（docs 执行阶段完成 · awaiting post-prove dual · **not a pass** · **≠ suite close** · L0 docs only · **zero coding** · **zero prove** · **Ban live** · **Ban自批 pass** · Dual PASS ≠ coding ≠ authorize prove ≠ suite green ≠ residual closed）  
 **Date**: 2026-10-03
 **Line**: **L**（G7 遗留 honesty · trio 历史 OPEN + Disclosure-1 + TECH_ROLE=0 ≠ R1 · **不得**触碰其他 Line 的文件 · **本阶段不改共享 SSOT 行** · 新钉 **仅**登记本刀 docs）
-**Base tip**: `320c07b` / `320c07bff1bdad9952a10acdfdcfb873cab8f3e0`（origin `feat/mysql-schema-skeleton`）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-l`（branch `line/l-g7-honesty`）
+**Base tip**: `320c07b` / `320c07bff1bdad9952a10acdfdcfb873cab8f3e0`（origin `feat/mysql-schema-skeleton`）· worktree `meetwise-line-l`（仓根同级 worktree·branch `line/l-g7-honesty`）
 **releaseEvidence=false** · **haStatus=NOT_HA** · **claimProductionHA=false** · **g7SuiteGreen=false** · **r1Closed=false** · **≠ suite green** · **≠ fixed** · **Ban假绿** · **禁假绿 suite 声明** · **EXIT 1/1/1 retained until fresh evidence**
 **Pins（原值全抄）**: `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · **公开 DELETE=503**
 **Retained extra pins**: `g7SuiteGreen=false` · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true` · `nail=false` · `actualSpendCny=null`

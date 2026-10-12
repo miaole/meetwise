@@ -2,10 +2,10 @@
 
 **Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（docs-only 起草 · Ban coding · Ban prove 执行 · Ban self-approve · alone ≠ dual · 不代签 peer）
 **Line**: **G2 REPORT-PAGE**（批1 残余打包 G2 组 · 蓝本 `batch-residual-plan.md:87` 分组表 + `:114` 派序建议「G2/G3 S 批1 收官·用户面立见」· 台账 `product-campaign-LEDGER.md:38` #254 行在册 + **#257 行漏登**（`:119` 注记1·回填归协调方））
-**Base tip**: `df12a054`（`feat/mysql-schema-skeleton` tip · worktree `/Users/miaole/Desktop/golucky/meetwise-g2` 分支 `line/g2-report-page` · 本文全部 file:line 于本 worktree **实树亲读** · 上游行号漂±登记 §0 表）
+**Base tip**: `df12a054`（`feat/mysql-schema-skeleton` tip · worktree `meetwise-g2`（仓根同级 worktree）分支 `line/g2-report-page` · 本文全部 file:line 于本 worktree **实树亲读** · 上游行号漂±登记 §0 表）
 **Author**: `g2-draft`（REQUEST 起草席 · 实现不自批）
 **Date**: 2026-10-10
-**依据**: ①批残留清点 `batch-residual-plan.md`（meetwise-line-entpay 树 @`ab02d499`）G2 组行 `:87` + 流程注记 `:119-121` ②审计 issues-master 全行（`/Users/miaole/Documents/Meetwise产品审计-更正版/issues-master.md`·:290 #254 / :293 #257 / :308 #232 · **修法列逐字誊录见 §0**）③TASK-SOP-v2 `:110` #257 对账漏条回账行（归批1·与 #254 同族）④锚点亲读：`apps/web/components/InterviewPanel.tsx:68,451-456,544-558`、`apps/web/lib/view-model.ts:112`、`apps/web/app/report/[id]/page.tsx:32-37,69,154,167`、`apps/web/app/api/privacy/export/route.ts:7-16`、`apps/web/app/quiz/page.tsx:16,47-60,101`、`apps/api/src/modules/quiz/quiz.service.ts:83-89`、`apps/api/src/modules/interview/interview.service.ts:605-618`、`apps/api/src/modules/interview/interview-view.ts:7-30`、`apps/api/src/modules/resume/resume-display.ts:34-38`
+**依据**: ①批残留清点 `batch-residual-plan.md`（meetwise-line-entpay 树 @`ab02d499`）G2 组行 `:87` + 流程注记 `:119-121` ②审计 issues-master 全行（外部审计总表·本机外部件·不入仓 `issues-master.md`·:290 #254 / :293 #257 / :308 #232 · **修法列逐字誊录见 §0**）③TASK-SOP-v2 `:110` #257 对账漏条回账行（归批1·与 #254 同族）④锚点亲读：`apps/web/components/InterviewPanel.tsx:68,451-456,544-558`、`apps/web/lib/view-model.ts:112`、`apps/web/app/report/[id]/page.tsx:32-37,69,154,167`、`apps/web/app/api/privacy/export/route.ts:7-16`、`apps/web/app/quiz/page.tsx:16,47-60,101`、`apps/api/src/modules/quiz/quiz.service.ts:83-89`、`apps/api/src/modules/interview/interview.service.ts:605-618`、`apps/api/src/modules/interview/interview-view.ts:7-30`、`apps/api/src/modules/resume/resume-display.ts:34-38`
 
 ---
 
