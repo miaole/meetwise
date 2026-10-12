@@ -45,3 +45,12 @@
 | issues-final.md:3 | `/workspace/ua-snapshots/meetwise-latest`（复核方本机快照径） | `<外部只读快照>/meetwise-latest`（描述引用·commit `2fab7946` 钉值保留） |
 
 其余三件零调整（verbatim）。docs:check 落地后 EXIT=0 复验见 commit。
+
+
+## 七、增量同步 2026-10-12（第二批：题库分层设计决策+AG-39~43）
+
+- 用户 2026-10-12 新增：README「设计决策：题库分层与私有优先」节（三类题库 platform/org/session_generated·场景强制检索规则·C 端练习禁企业私有题+禁本人练习记录入 B 端出题·来源可审计 platform/org:{id}/session_generated·库内 SECURITY DEFINER 强制过滤+私有优先排序·关联 #110/#271）+issues-final 新增 5 条（**单路探索·未交叉复核**·源=qbank-acl 探索卷）。
+- **现总数 43 条：P1×9 / P2×10 / P3×24**（AG-39/40=P1·AG-41=P2·AG-42/43=P3）。
+- AG-39~43 摘要：39=无私有题库/私有优先（产品层·修法=owner_kind+org_id+库内强制）·40=C 端练习用不上题库（begin 写 candidate_profile_route_snapshot vs 检索读 interview_route_snapshot→route_snapshot_missing 降级·修法=双写或回退读）·41=0146 退役代释放函数以 app.principal_user GUC 鉴权且 GRANT app_role（违反 0066:90/0067:36 鉴权边界·failed 代缺 epoch 守卫·修法=收回 EXECUTE+definer 断言）·42=双空 GUC 跨赛道检索·43=审核人静默记 __system_qbank__+释放函数无调度。
+- 处置：五条**待交叉验证**（单路来源）——验证席已派·P1 两条（39/40）与 41（安全面）优先；刀映射待验证后并入刀计划（40 或入检索/上下文轨·41 或独立安全小刀·39 系大型产品改造挂用户排期）。
+- 形式调整账增补：README 与 issues-final 各 1 处外部探索卷径符号化（F-A/F-C 形·条目号/行锚钉值保留）。
