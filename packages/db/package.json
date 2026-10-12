@@ -62,6 +62,7 @@
     "prove:db-id-v7": "tsx test/db-id-v7.proof.ts",
     "prove:db-trigfam": "tsx test/db-trigfam-unify.proof.ts",
     "prove:dbhy1": "tsx test/dbhy1.proof.ts",
+    "prove:qbank-control-sec": "tsx test/qbank-control-sec.proof.ts",
     "prove:db-int-fk": "tsx test/db-int-fk.proof.ts",
     "prove:db-money3": "tsx test/db-money3.proof.ts",
     "prove:db-acl": "tsx test/db-acl.proof.ts",
