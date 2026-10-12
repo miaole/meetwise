@@ -7,6 +7,7 @@ import {
   writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
   assertInterviewGraphFence, publishRubricAndIssueContract,
+  writeTopicShadowMeter,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
 } from '@meetwise/db';
 import { Command } from '@langchain/langgraph';
@@ -81,6 +82,18 @@ async function writeGenerationUnavailable(
 
 async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
   await asPrincipal(d.pool, d.owner, (c) => writeGenerationUnavailable(c, d, failure));
+}
+
+/* ───────── billing P2（BILL2-SHADOW-METER 修法②·REQUEST §8 裁决项②按推荐行使）：收尾影子计量钩子 ─────────
+ * 挂点=收尾事务**外围**（done 臂三分支与出题失败 writeGenerationUnavailable 均已提交后·事务内部零触）
+ * 影子行按已提交终态照实聚合（interview.status + interview_question/ledger 聚合=0179 topic_shadow_meter）。
+ * fail-soft 沿 recordUsageSoft 先例（adaptive-interview-service 同族）：写失败仅 stderr 观测零业务阻断。
+ * 零扣费零积分零结算铁律（REQUEST §1-修法③）：只写影子面，零 commerce/entitlement/0046/billing_mode 触面。
+ * start 臂出题失败（首题前·emitGenerationUnavailable 路径）零 interview_question 话题行=诚实零写，不挂钩。 */
+function writeShadowMeterSoft(pool: DbPool, owner: string, interviewId: string, generationReason?: string): void {
+  void asPrincipal(pool, owner, (c) => writeTopicShadowMeter(c, owner, interviewId, { generationReason })).catch((error: unknown) => {
+    console.error('topic_shadow_meter_write_failed', { interviewId, generationReason: generationReason ?? null, error: String((error as Error)?.message ?? error) });
+  });
 }
 
 export interface AdaptiveLifecycleDeps {
@@ -465,6 +478,8 @@ async function submitAdaptiveAnswerImpl(
 
   const generationFailed = generationFailureOf(snap);
   if (generationFailed) {
+    // billing P2 修法②：出题失败终态影子计量（事务外围·waived+reason 照实·fail-soft 零业务阻断）。
+    writeShadowMeterSoft(d.pool, d.owner, d.interviewId, generationFailed.reason);
     return {
       score: typeof last.score === 'number' ? last.score : undefined,
       nextQuestion: undefined, nextQuestionId: undefined,
@@ -543,6 +558,9 @@ async function submitAdaptiveAnswerImpl(
     const asked = transcript.map((t) => t.q).filter((q): q is string => !!q);
     await recordAskedQuestions(d.pool, d.owner, asked, d.interviewId)
       .catch((e) => console.warn('memory: 跨会话判重 episode 写入跳过(非致命)', (e as any)?.code ?? e));
+    // billing P2 修法②：收尾事务外围影子计量（三分支已提交后按终态照实聚合·fail-soft 零业务阻断·
+    // completed→counted/skipped+封顶模拟 / failed（混合 unscored）→failed_release 照实=REQUEST §1.3）。
+    writeShadowMeterSoft(d.pool, d.owner, d.interviewId);
   }
   return {
     score: typeof last.score === 'number' ? last.score : undefined,

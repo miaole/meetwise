@@ -118,3 +118,63 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *BILL2-SHADOW-METER REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`d6ee387c`（主线 tip·git log -1 实测·开工即落卷零前移）· 分支 `line/bill2-shadow-meter` · 工作树 `meetwise-bill2`（git worktree add 本起草席立·建前 worktree list 21 树+branch 双查+rg 三查不存在）· 立项出处=billing-redesign README rev1（blob `cd4c060f`·532 行·§7 上线序 `:411` 步③影子计量 2 周只算不扣/工作量 `:413`/§13-4 `:520`/§11-3 `:490`/§3.3 `:140`/§6.3 `:310-336` mirror 源）+LANDING-INDEX（blob `0694ff22`·七 `:46`+十二 `:50-57`+十四 `:66-70`）+product-campaign-LEDGER（blob `c0c13fee`·`:420` P1 nail 收官+P2 待立项承接行）+issues-final（blob `dac7f58c`·只读）· 防重三查过· §0 blob 锚表 18 行 ls-tree 亲算+§0.2 漂移六条如实登记（基线零前移/收尾区 `:442-488`→`:475-541` 漂移三分支语义零变/INDEX invoke trace 挂点候选被 bill1 裁决②实质取代/编号链 max=0178·本刀 0179·0176 缺号不回填/meter_version 预留 `:38-39` P2 起填兑现点/bill1 27 臂 errata 继承）· 红事实四链（影子计量缺位三问零数据/topic_charge 不存在只能影写/收尾现行语义照实不改写/数据基座已齐唯缺影子消费面）· 修法三件（0179 影子表若裁决①A/收尾事务外围 fail-soft 钩子+meter_version 增量兑现/零扣费零积分零结算铁律）· 断言候选四条（五臂新 proof 含零扣费负臂+既有门原值 bill1 27/57/迁移纪律条件适用/typecheck）· est live=0 · pins 十一值照抄 · markers=0（亲跑）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+---
+
+## §9 EXEC 附记（随翻·append 保史·§0-§8 原文零改·2026-10-12）
+
+**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+
+**施工落点（恰 10 文件：新 3+改 7）**：新=packages/db/migrations/0179_topic_shadow_meter.sql（127 行·零历史迁移触）+packages/db/src/model-op/topic-shadow-meter.ts（writeTopicShadowMeter/SHADOW_METER_VERSION/SHADOW_METER_CAP·单语句 CTE 聚合）+apps/worker/test/bill2-shadow-meter.proof.ts（44 臂）；改=packages/db/src/index.ts（导出区 additive 4 行）+apps/worker/src/adaptive-lifecycle.ts（import+writeShadowMeterSoft+2 调用点）+apps/worker/src/adaptive-interview-service.ts（import+3 挂点 meterVersion 传值）+apps/worker/package.json+根 package.json+scripts/run-e2e-isolated.mjs（四处注册只增不清沿 AG-C）。
+
+### §9-1 并线重 pin（§8-③ 照本节协议行使）
+
+- **并线**：`git merge feat/mysql-schema-skeleton` @`d31be795`→merge commit `1670f885`（d6ee387c..d31be795 恰 5 笔=qbank-control-sec 链 AG-41/42/43+0176+P5）·**零冲突**（merge-tree 预检 0 冲突标记·实际 merge 零冲突·本支恰 1 .md 零码动）。
+- **迁移链重 pin**：主线 0176 已由 qbank-control-sec 补齐（`0176_qbank_control_plane_authz_closeout.sql`·363 行）→链 max=**0178** 零变·**0179 为链上首个空号**·本刀占用（§0.2-4 勘误见 §9-2 E2）。
+- **§0.1 blob 锚复核**：施工面 8 件全零漂（adaptive-interview-service `1f1efa9c`/adaptive-lifecycle `de3c26a5`/question-usage-ledger `94f170a7`/db index `929d7271`/interview-question `d542ed5c`/0171 `0948ef93`/bill1 proof `e5212b46`/worker pkg `a869a261`）·**漂移恰 2 件=注册面**：根 package.json `09c759be`→`eac01a19`（qbank-control-sec:prove 两行插入 :371 区）+run-e2e-isolated.mjs `91f24742`→`bb65c7f9`（qbank 四点注册插入）——bill1 四点注册行锚随之后移：:681-683→**:688-700**·:1890→**:1914**·:2119-2120→**:2146-2147**·:2800→**:2827**（结论零变·只增不清沿 AG-C）。
+
+### §9-2 勘误注（登记级·结论零变）
+
+- **E1（基线重钉）**：§0 基线 `d6ee387c`→并线后 `d31be795`（5 笔全系 qbank-control-sec·排除 ai-docs 后码面触 main.ts/qbank-release-sweep/worker 测试/两 pkg/0176/db 测试/runner——与本刀十件面零交·§0.2-1 协议行使）。
+- **E2（0176 缺号登记过时）**：§0.2-4「0176 缺号不回填（0164 同形）」→主线已由 qbank-control-sec 补齐 0176——**本刀影子表仍占 0179**（原勘误「本刀若占则 0179」结论零变·勿添重号纪律零变）。
+- **E3（收尾区行锚零漂确认）**：§0.1 adaptive-lifecycle `de3c26a5` merge 后零漂亲证→done 臂 `:475-546`/三分支 `:509-541`/AG-F 注记 `:504-508`/recordAskedQuestions `:543-545` 行锚零变（§0.2-2 漂移就此封账）。
+- **E4（「出题失败」终态双路径勘误）**：§1-修法②挂点只载 done 臂——施工实测 generation 终态（genQuestion fail-closed→`writeGenerationUnavailable`）在投影事务内 `return`、**不经过 done 臂 conclude 块**——「收尾事务外围」按全路径兑现=**两调用点**（done 臂 `recordAskedQuestions` 毗邻+出题失败 `writeGenerationUnavailable` 提交后·均 fail-soft 同形）；start 臂出题失败（首题前）零 `interview_question` 话题行=诚实零写·不挂钩。现行为如实登记·非语义新增。
+
+### §9-3 §8 三裁决行使（全按卷推荐）
+
+- **①影子表形=A（独立影子表新迁移 0179 `topic_shadow_meter`）**——2 周观察期时点快照可回放（B=event 流非查询面/封顶分布观测列无处安放；C=零留存不可回放·均按卷否决理由）。列集 mirror §6.3 降结算语义：零 units/零 commerce/零 entitlement 列零触发器；status 五值（counted/counted_capped/waived/skipped/failed_release·§1.3 照实）；**行 kind 双型**（topic 行 mirror §6.3 主键三元组+session 行场级聚合观测·幂等键 idem_key PK(owner,interview,idem_key) 沿 0171 :33 同形）；RLS ENABLE+FORCE+p_owner+只授 SELECT,INSERT（0171 :36-42 形制范本逐字）。**列集增补如实登记**：session 行 REQUEST 三计数列（topics_total/counted/waived）外增补 topics_capped/topics_skipped/topics_failed_release 三列（五分类守恒迁移 CHECK 承重·§2-①②分布直方图与 Σ 守恒所需·零结算语义）。
+- **②metric 住地/挂点=worker 收尾事务外围 fail-soft 钩子**（recordUsageSoft 先例同族）：`adaptive-lifecycle` writeShadowMeterSoft 两调用点（§9-2 E4 全路径）·零新定时器·每场恰一行·PK 幂等崩溃重放零重复；数据源=裁决③·读面全为收尾事务**提交后**照实终态。
+- **③聚合查询源=interview_question 主源+question_usage_ledger LEFT JOIN+interview 终态读面**——单语句 CTE（q 聚合→terminal→ranked（有效作答话题按首题 turn 升序 rn·封顶序）→judged（五分类 CASE）→agg（场级五分类计数+Σ）→tok（tokens 合计））→topic 行+session 行 UNION ALL 一次 INSERT·ON CONFLICT DO NOTHING·返回首写布尔（recordUsage :77 同形）。有效作答判定=answer_evaluated 事件（COALESCE(outcome,'answered')<>'unresolved'·收尾 eligible 谓词同形）——'跳过'/unresolved 不计有效。
+- **附 meter_version='shadow-v1'**（`SHADOW_METER_VERSION`）：增量兑现=三挂点调用面传值（plan/ask/eval·含失败臂同 entry）·0171 函数体零改零迁移·存量 NULL 零回填（writer 全文零 UPDATE·42501 live 负臂在 proof）。
+
+### §9-4 门 EXIT 全表（EXEC 亲跑·2026-10-12）
+
+| 门 | EXIT | 数 |
+|---|---|---|
+| bill2-shadow-meter:prove（新·run-e2e-isolated 隔离库真迁移链 0001→0179） | 0 | 44 PASS·连跑两遍稳定 |
+| bill1-topic-fields:prove（回归） | 0 | 27/27 原值（errata 继承） |
+| interview:prove（回归） | 0 | 57/57 原值 |
+| adaptive-life:prove（lifecycle 触面回归） | 0 | 全过 |
+| reaper:prove（回归） | 0 | 全过 |
+| migrate:prove | 0 | 全过 |
+| drift:prove | 0 | schema 无漂移 |
+| turbo typecheck --force | 0 | 3/3·0 cached |
+| docs:check | 0 | 80 files+2032 public text |
+| runner node --check + 双 package.json JSON parse | 0 | — |
+| markers（五类·改动集 9 码件） | 0 | 新增行零命中（`xit\(` 模式命中 runner 既有 `process.exit(` 六处=既有行非本刀新增·如实注） |
+
+### §9-5 陷阱自检 13 条
+
+1. **影子表零扣费负臂**：proof ④——B 场 consumption confirmed+settled=1.00（per_session 既有·非按话题比例 r2(1×1/6)）+影子写落定前后 consumption JSON 逐位恒等 ✓
+2. **零 commerce 触面**：改动码面 grep reserve/confirm/release/sweep/reconcile/entitlement 命中仅 2 注释行（铁律注记）·零函数调用零 import ✓
+3. **零结算面**：0172/0173 零创建（ls 亲证）·interview 计费列三缺（information_schema 零行）·零 ck_interview_cap 零 tf_ 改写零 billing_mode 出手 ✓
+4. **fail-soft**：REVOKE INSERT 注错→F 场 completed+report 照常+事件流与对照场 B 逐键恒等+影子行零写入+stderr `topic_shadow_meter_write_failed` 在案+权限复原 ✓
+5. **越面自查**：触面恰十件（§9 落点）·ai-runtime/invoke.ts 零触（§0.2-3）·commerce.ts 零触·收尾三分支内部零触（钩子均事务外围）·共享 SSOT 零改（LEDGER :420 行翻面权归协调方）✓
+6. **pins 十一值**：照抄零翻（NOT_HA/false/false/true/8/false/PG-retained/503/false/false/actualSpendCny=null）✓
+7. **状态行**：append 翻面 executed:awaiting_post_prove_dual·§0-§8 原文零改 ✓
+8. **回滚**：单 commit revert 即全退（新 4 文件随 revert 消失·改 6 面回原 blob）·影子表独立零数据风险 ✓
+9. **停止条件**：未触发（§0.2 六条全系登记性·并线零冲突·蓝本 §7 止③「只算不扣」与现码零抵触）✓
+10. **历史迁移**：0001-0178 零字节（git diff 亲证·0176 系并线主线带入非本刀新增）+sql/ 零改（git status 零行）+恰一新迁移 0179 ✓
+11. **meter_version 存量**：writer 全文零 UPDATE/DELETE 语句（grep=0）·42501 UPDATE/DELETE live 负臂·增量仅调用面传值 ✓
+12. **0046**：触发器 `trg_interview_scoring_completion_integrity` 在场断言（proof ④）+混合 unscored 场实证 failed 照实（C 臂）·零放松 ✓
+13. **est live=0**：全门 run-e2e-isolated 临时 PG 隔离容器（迁移全链亲跑）+scripted 假体零模型真实外呼+fixture 直写臂零生产触+零 secrets 零消耗（pins 脚注 actualSpendCny=null 同源）✓

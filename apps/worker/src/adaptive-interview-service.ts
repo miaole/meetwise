@@ -4,7 +4,7 @@
  * 每次模型调用过 invoke(双校验/exactly-once/trace),带 threadId(Langfuse 一场面试一棵树)+ sources/retrieval(provenance+topScore 信号)。
  */
 import { z } from 'zod';
-import { asPrincipal, normalizeQuestion, recordUsage, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
+import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
@@ -319,9 +319,11 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
   }, pool, owner);
   // billing P1 修法⑦（裁决项②）：plan 调用归集行——成功 system_plan / 失败臂同写
   // （MODEL-OP-02 零外呼拒绝臂=admission_rejected，余=generation_failed；usage 列由 recordUsage 归集复制）。
+  // billing P2 修法②：meter_version='shadow-v1' 增量兑现（0171 预留列「P2 起填」·存量 NULL 零回填）。
   recordUsageSoft(pool, owner, {
     invocationKey: planInvocationKey, interviewId: threadId, operationId: 'interview.competency-planning.v1',
     cause: 'error' in out ? usageCauseForInvokeError(out.error) : 'system_plan',
+    meterVersion: SHADOW_METER_VERSION,
   });
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
@@ -512,6 +514,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         recordUsageSoft(d.pool, d.owner, {
           invocationKey: idempotencyKey, interviewId: d.threadId, operationId: QUESTION_OPERATION_ID,
           cause: 'error' in outcome ? usageCauseForInvokeError(outcome.error) : 'system_ask',
+          meterVersion: SHADOW_METER_VERSION,   // billing P2：meter_version 增量兑现（存量 NULL 零回填）。
         });
         return outcome;
       };
@@ -671,6 +674,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           operationId: 'interview.answer-scoring.v1',
           cause: out.status === 'failed' ? 'unknown' : 'system_score',
           answerLen: Buffer.byteLength(scored, 'utf8'),
+          meterVersion: SHADOW_METER_VERSION,   // billing P2：meter_version 增量兑现（存量 NULL 零回填）。
         });
       }
       if (out.status === 'quote_repair_exhausted') {
