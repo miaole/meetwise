@@ -1,6 +1,6 @@
 # AG-F — 失败语义轨刀 F：AG-02 残面·出题四类单发终场有界 re-roll（EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: ~~`draft:awaiting_pre_exec_dual`~~ → **`executed:awaiting_post_prove_dual`**（EXEC 施工+随翻落卷·⛔push 待 post-prove 双审。pre-exec 双审两外席 BOTH PASS 落协调方 + 协调方常设 loop 授权后开工；施工随翻见卷末 §9 EXEC 随翻（§0 重 pin 勘误注+五裁决行使+门全表）。Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push）
 
 **席位**：meetwise 战役失败语义轨**刀 F**起草席（AG-02 残面·EXPERT-REVIEWS §七 A 席六刀之第六刀·「骑刀 B+预留上限」）。
 **基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（开工 tip·docs(ssot) AG+计费战役刀位图立节·`git log -1` 实测）。分支 `line/ag-f-reroll` · 工作树 `meetwise-agf`（`git worktree add ../meetwise-agf -b line/ag-f-reroll 2bc4e2bd` 仓根同级·本起草席已立·建前亲证：`worktree list` 15 树无 agf·`branch -a` 零同名——仅 `line/g7fix4-reroll-exec` 系 G7FIX-4R 旧执行线与本刀位名无关）。
@@ -158,4 +158,62 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*AG-F REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual · 基线 `feat/mysql-schema-skeleton` @`2bc4e2bd` · 分支 `line/ag-f-reroll` · 工作树 `meetwise-agf` · 蓝本=issues-final AG-02 :14/:70-78 + LANDING-INDEX §二 :17（残留四类定谳）+ EXPERT-REVIEWS §七 :65（刀 F 行=修法权威·骑刀 B+预留上限）+§二-3 :18 + review-log :12/:61/:150 + LEDGER :415 · 范围=四类单发终场有界 re-roll（同键+revision 双换沿 62747d74 `:r{k}` 先例·耗尽换 competency 不终场）+unscored 图内后果裁决 · 触面=adaptive-interview-service.ts error 臂+generate-question.ts+evaluate-answer.ts（graph 侧）· 零迁移零计费零 attempt 通道 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · 待 pre-exec 双审两外席（Ban self-approve · alone≠dual · Dual PASS ≠ 开工）*
+## §9 EXEC 随翻（2026-10-12·施工落卷·`executed:awaiting_post_prove_dual`）
+
+### §9.0 并线重 pin（merge `feat/mysql-schema-skeleton` @`378b96e8` → merge commit `986a3531`·零冲突 EXIT=0）
+
+刀 B（AG-06 nail `2a2fee56`·merge `616d8ef3`）+ssot 登记两笔并入。**§0.1 blob 锚表 13 行 `git ls-tree` 新 HEAD 亲算：12 行逐位恒等**（adaptive-interview-service `001ec000649f`·generate-question `7c614e495abe`·evaluate-answer `aeba291f3ccb`·graph `0c0a0dd296f2`·question-generation `b87966ce332d`·registry `63af556fd166`·0130 `239a0b19aea4`·memory-store `4ec7fc62da99`·interview-service `bee3c139648d`·adaptive-lifecycle `5cfce9be32c8`·g7fix4 proof `c9982ab8764a`·0130 同前）；**唯一漂移=invoke.ts（§0.1 #7·刀 B 真触面）**。§0.1 行号锚（:334-336/:337-342/:423-444/:449-465/:466-474/:481-516/:553 等）merge 后施工前逐一亲证零漂。
+
+**§0 勘误注（重 pin+席1/席2 六 errata 随 §0 吸收·逐条实测）**：
+
+1. **invoke.ts blob+行号漂（§0.1 #7·刀 B 并线必然后果）**：`647e0aa952f0`→`eda87ce0044a`（刀 B +95 行）；同键缓存回放负证锚 :624→**:650**（`claim.action==='cached'` 臂原文零变）。零码动负证背景语义不变，新 proof §D 同键二掷臂实测坐实。
+2. **0088 短 blob 末位勘误（§0.1 #8）**：卷面 `cbc07c09e1ab`→实测 `cbc07c09e1aa`（起草席誊录笔误·文件内容零变·历史迁移零字节 Ban 面不变）。
+3. **§0.3-1 刀 B 状态行过时**：「EXEC 落码修复中未落主线」→**已落主线**（nail `2a2fee56`·merge `616d8ef3`·mainline `378b96e8`）——§4 硬前置满足；`external_outcome_unknown` 族边界已定界：刀 B `known_executed` 交付 `deterministic_output_invalid`/`deterministic_output_truncated` 两码（HTTP 200+usage 在手·invoke.ts :852-907 注明「确定性输出失败·允许换 revision 重试·不重试同 key」）→裁决项④解锁，且该两码经 domain 分类吸收归 `provider_malformed` 族（packages/domain/src/question-generation.ts MALFORMED 正则扩 `deterministic_output_` 前缀——不吸收则落 generation_unavailable 兜底，族边界对刀 B 主交付面失明）。
+4. **§0.1 #12 adaptive-lifecycle.ts「零触背景」位序勘误→申报触面**：修法③续流面真实触达——unscored 分支 `question_ready` 同事务续发（:377 分支·SSE 链不断流必需）+done 收口面边界注记（谓词零位移）；「零触背景」升级为申报触面，并发登记见下条。
+5. **§0.2 attempt 闸锚位序散文勘误**：卷面「:337-344 锚 ±2 在注释区」实测收窄为精确锚 **:337-342**（注释本体恰 :334-336）——修法④注释适配落点亲证。
+6. **§0.2 出题键形行重 pin**：:444 行号 merge 后零漂（`${threadId}:ask:t${turn}:0`+裸 revision·fresh-turn 形零变亲证；施工后该形由统一计数器 fresh-turn 分支逐字节保持，g7fix4 25 臂回归坐实）。
+
+**§0.3 并发登记补一行（刀 D）**：
+
+4. **刀 D（`line/ag-d-admission`@`ffa1fa62`）REQUEST 已落卷（draft:awaiting_pre_exec_dual·零码）**：触面=invoke.ts（案A 三拒绝点+release）+worker 队列/消费面（骑刀 C 硬前置·零图包触）——与本刀触面（adaptive-interview-service/ai-graphs 三文件/domain 分类+lifecycle unscored 投影分支）**零文件交点亲证**；刀 D 落码时本刀已并线在其前，其 EXEC 照 §0 协议重 pin。
+
+**package.json/runner 注册行触面申报（如实计入触面统计）**：worker `apps/worker/package.json` +1 行（`prove:ag-f-reroll`）；根 `package.json` +2 行（`ag-f-reroll:prove`/`:prove:raw`，沿刀 B 双名形）；`scripts/run-e2e-isolated.mjs` 四处 additive 注册（receipt 源清单/允许表/命令映射/PG bootstrap 名单·沿 g7fix4+刀 B 同形）。共 **13 文件 217+/22−**（12 改+1 新 proof）。
+
+### §9.1 五裁决项行使记录（按卷推荐形·全部标注可调）
+
+- **①上限值=(a)**：`MAX_ERROR_REROLL=2` 沿既有判重形制同值（per-turn·初诊+族内 re-roll 单窗 ≤3 含初诊）；每 roll 独立 logical node 各冻结静态 max 预留（0088 等值触发器既有机制·专家 §二-3 :18 帽即硬上限·本刀零预留改革）。**统一 roll 计数器终形（EXEC 细化）**：seam 闭包 `rollTurn/rollSeq`——fresh turn 复位+`:0` 初诊形零变；判重 re-roll/四类族 re-roll/换 competency 再入初诊共键空间 `:r{k}` 单调递增零复用（换序续掷初诊亦续 `:r{k}`，杜绝同键缓存回放/0088 canonical mismatch 双死面）；`:gr{k}` grounded 专闸零碰撞；纯判重路径键形与既有逐位一致（g7fix4 25 臂原值坐实）。*可调：帽值与统一总帽形制（④另一形态 per-turn 一帽）后继可依 AG-11 预留数据重裁。*
+- **②耗尽换 competency=(a)**：顺延 planner 序（deps.competencies 声明序）下一 competency+**连续耗尽帽=2**（精确语义：第 3 个连续耗尽的 competency 到达即真终场·帽内至多 2 次换序；成功出题计数归零）。**实现位（EXEC 细化）=图节点+路由边双面**：generate-question 节点持帽计数（state 新增 `competencyExhaustions` 纯数字控制字段·checkpoint 安全）+顺延路由；graph.ts genQuestion 条件边加回环（`pending?awaitAnswer : (!concluded && route 非 conclude ? genQuestion : conclude)`）——**graph.ts「零触背景」张力照 §0 重 pin 消解**（§9.1 本条即重 pin 登记）。换序轨迹落 `degraded{question_competency_exhausted}`+generationProvenance 双审计面；concluded 只在真终场置位（Ban 遵守）。*可调：帽值/换序策略（连续耗尽→跳题仅标记等）后继可重裁。*
+- **③unscored=(a) 0 分继续**：evaluate-answer 臂改写——transcript 落 `score:0`+`outcome:'unscored'`+reason 原样（relevant=false·**mind 不 ingest 该题证据**·仅 withCurrent 推进）·concluded 禁置→条件边回 decide 续流；**不 re-invoke 评分模型**（§3-6 零触）·answer_artifact 臂（:29-51）零触。lifecycle 配套最小投影：unscored 分支 `question_ready` 同事务续发（next 在场时·旧行零追加）。**边界发现（如实登记）**：0046 迁移触发器 `interview_completion_requires_all_answers_scored` 在 **DB 层钉死「answer_unscored 事件在场 ⇒ 禁 completed」**（历史迁移零字节 Ban）——混合 unscored 场 conclude 收口仍走既有 fail+release+`assessment_unavailable:evaluation_unscored` 臂（新 proof §C 保守面亲证）；图内续流完整兑现（续流 turn 全部照常计分，实测 4/4 scored 事件）。「混合面 completed 照计」需放松 0046=计费结算语义，**归 billing rev 战役后继，本刀不越界**。*可调：0046 放松面后继随计费战役重裁。*
+- **④族边界=(a)**：`schema_invalid`/`provider_malformed`（含刀 B `deterministic_output_*` 吸收）/`business_invalid`/`external_outcome_unknown` 均入族（domain 导出 `QUESTION_GENERATION_REROLL_FAMILY` 单源，seam/节点共用）。**provider_timeout 裁定**：独立码不入族；**运行时现实（如实登记）**：invoke 出口超时统一以 `external_outcome_unknown` 形返（unknown 臂 :916-930·执行超时 reason 只入账面）→超时面实际**随 unknown 入族帽内重掷**——adaptive-degrade 超时臂断言适配（genAborts 1→3·reroll===2·AbortSignal 透传+不发明题核心不变量保留·沿 g7fix4 改写旧断言先例）即此语义的既有门随动，非基线红。族外原判死零位移：provider_not_configured/generation_unavailable/duplicate_question/attempt_replay_forbidden（新 proof §A5/§E 坐实）。*可调：瞬态面是否摘出族（拆 timeout 专码）后继随刀 D/AG-08 重裁。*
+- **⑤critique 臂=(a)**：seam 签名扩 `asked` 第 7 参（图节点 transcript 透传·additive 可选既有 scripted deps 零改）+critique 复检收进 worker seam 族循环（拒绝=族内失败帽内重掷·耗尽返 business_invalid+`question_critique_failed` 与图节点既有 provenance 同形 reason 映射不变）；**图节点既有 critique 终闸保留零触**（直接 deps 注入面/纵深防御双保险）。*可调：终闸收并后继可简化（登记后继面）。*
+
+### §9.2 断言门全表（§2 全条+附跑·全亲跑·隔离容器真迁移链 `migrations: applied=172`·est live=0 零模型外呼）
+
+| # | 门 | 命令 | 结果 |
+|---|---|---|---|
+| 1 | 新 proof（§A 四类族 17 臂+§B 换 competency 10 臂+§C unscored 7 臂+§D 契约负证 4 臂+§E 保守面 3 臂） | `node scripts/run-e2e-isolated.mjs ag-f-reroll:prove:raw` | **EXIT=0·47 PASS/0 FAIL** |
+| 2 | 既有 reroll proof 回归（§2-2·25 臂原值） | `… g7fix4-reroll:prove:raw` | **EXIT=0·25 PASS/0 FAIL 原值**（键空间/耗尽判死/事件键零位移） |
+| 3 | evaluate/图既有门回归（§2-3） | `… adaptive-life:prove:raw` / `… memory:prove:raw` | **EXIT=0·43 PASS** / **EXIT=0·11 PASS** |
+| 3a | 既有门断言适配一处（裁决④a 随动·非基线红） | `… adaptive-degrade:prove:raw` | **EXIT=0·11 PASS**（超时臂 genAborts 1→3 适配·披露见 §9.1-④） |
+| 4 | typecheck CI 权威形（§2-4） | `pnpm turbo typecheck --force` | **EXIT=0·3 successful/3 total·0 cached** |
+| 5 | typecheck 根 | `pnpm typecheck`（=tsc -p tsconfig.e2e.json） | **EXIT=0** |
+| 6 | 附跑（图邻域·路由边/图拓扑随动保险） | `… adaptive-flow:prove:raw` / `… resume-grounding:prove:raw` | **EXIT=0·5 PASS** / **EXIT=0·39 PASS** |
+| 7 | markers=0 五门（13 文件改动集） | 冲突/fake-green/门弱化(词界形)/遗留标/secrets | **冲突/弱化/遗留/secrets 四门 EXIT=1 零命中；fake-green 门 4 命中全为 runner 既有反 fake-green 守卫文案行（git diff 零命中亲证·非本刀面）** |
+
+**est live=0 收据**：新 proof 全 scripted model+隔离 PG 真迁移链（`assertIsolatedTestTarget` 护栏·每门独立一次性容器）；零真实模型外呼·零生产操作·零 secrets·零消耗（pins 脚注 `actualSpendCny=null` 同源）。
+
+### §9.3 施工落点（修法四件·file:line 亲算）
+
+| 修法 | 落点 |
+|---|---|
+| ①四类族有界 re-roll | `apps/worker/src/adaptive-interview-service.ts`：`MAX_ERROR_REROLL=2` 常量+:466-474 单发臂改族循环（generate 闭包 :423-442 本体零改·`:r{k}` 统一计数+revision 双换·每 roll 重过全闸）+critique 复检（⑤a） |
+| ②耗尽换 competency | `packages/ai-graphs/…/nodes/generate-question.ts`（帽计数+顺延臂·`MAX_COMPETENCY_EXHAUST_SWITCH=2`）+`graph.ts`（genQuestion 条件边回环）+`state.ts`（`competencyExhaustions` 字段+`asked` seam 参） |
+| ③unscored 0 分继续 | `packages/ai-graphs/…/nodes/evaluate-answer.ts`（:67-90 臂改写·concluded 禁置）+`apps/worker/src/adaptive-lifecycle.ts`（unscored 分支 question_ready 续发+done 收口边界注记·谓词零位移） |
+| ④attempt 通道字节零改 | `:337-342` 禁令本体字节零改亲证；仅 :334-336 注释旁补 re-roll 键族说明（§1-修法④） |
+| 配套 | `packages/domain/src/question-generation.ts`（MALFORMED 吸收刀 B 两码+`QUESTION_GENERATION_REROLL_FAMILY` 导出）+`domain/index.ts`（+1 导出名） |
+
+---
+
+---
+
+*AG-F REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual → executed:awaiting_post_prove_dual · 基线 `feat/mysql-schema-skeleton` @`2bc4e2bd`（施工并线重 pin @`378b96e8`·merge `986a3531`） · 分支 `line/ag-f-reroll` · 工作树 `meetwise-agf` · 蓝本=issues-final AG-02 :14/:70-78 + LANDING-INDEX §二 :17（残留四类定谳）+ EXPERT-REVIEWS §七 :65（刀 F 行=修法权威·骑刀 B+预留上限）+§二-3 :18 + review-log :12/:61/:150 + LEDGER :415 · 范围=四类单发终场有界 re-roll（同键+revision 双换沿 62747d74 `:r{k}` 先例·耗尽换 competency 不终场）+unscored 图内后果裁决 · 触面=adaptive-interview-service.ts error 臂+generate-question.ts+evaluate-answer.ts+graph.ts（路由边·§9.1-② 重 pin）+state.ts+domain 分类+lifecycle unscored 投影分支（§9.0-4 申报）+worker/root package.json 注册行+runner 四处（§9.0 申报）· 零迁移零计费零 attempt 通道 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push 待 post-prove 双审两外席（Ban self-approve · alone≠dual）*

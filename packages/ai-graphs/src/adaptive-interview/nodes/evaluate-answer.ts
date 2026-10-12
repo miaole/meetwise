@@ -65,19 +65,26 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
         stateVersion: pending.stateVersion,
       });
       if (assessment.status === 'unscored') {
+        // AG-F(刀F·修法③/裁决③(a)·沿计费裁决「该话题 0 分其余照计」家族先例·可调):
+        // 单点评分模型失败不再作废整场——本题落 unscored 轨迹**按 0 计**（score:null→0·outcome
+        // 'unscored' 与 reason 原样保留·relevant=false）,**不 ingest 该题证据**（mind 只推进
+        // current 指针,能力画像零新增证据）,concluded 禁置（Ban:只在真终场置位）→ 条件边回
+        // decide 继续后续 competency/turn。**不 re-invoke 评分模型**（§3-6 零触 invokeEvaluationOnce
+        // 键面）;账本计费零字节（该题计分归 0 系图内后果·非账本操作）。答案工件缺失臂（:29-51
+        // answer_artifact_unavailable·非模型失败）零触维持原判。degraded 不置位:unscored 轨迹
+        // 随 transcript 审计投影,避免陈旧 reason 污染后续 conclude 面。
         return {
+          mind,
           pending: null,
           submitted: null,
-          concluded: true,
           clarify: null,
-          degraded: { reason: assessment.reason, turn },
           transcript: [
             {
               questionId: pending.questionId,
               stateVersion: pending.stateVersion,
               q: question,
               competency,
-              score: null,
+              score: 0,
               sources: pending.sources,
               critique: pending.critique,
               outcome: 'unscored' as const,
