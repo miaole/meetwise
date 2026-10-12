@@ -2430,3 +2430,11 @@ flowchart TD
 - [ ] **STILL OPEN（承接·非本刀面）**：0046 混合 unscored 场放松（「completed 照计」需放松 `interview_completion_requires_all_answers_scored`=计费结算语义·**归计费战役**）；provider_timeout 独立码（现随 unknown 形实入族·拆码重裁归后继刀 D/AG-08 面）；AG-11 预留改革（per-roll 静态 max 预留·帽即硬上限·专家 §二-3 :18）；G7FIX-4R S2 残登记（critique 场内 duplicate 面）由本刀 critique 臂覆盖·闭环登记归后继席；AG-01 准入去终态化=刀 D（REQUEST `ffa1fa62` 在途·骑刀 C 骨架）.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+
+### Line AG-COST2 nail（2026-10-12·协调方常设授权·pre 三审双席+终裁全表 12/12·post 双席 BOTH PASS）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **nail** merge @主线·REQUEST rev2 3682fc77（双审 BOTH+席3 终裁 12/12 零漂）→并线 0dc80aa4→EXEC 0dcc73f0（25 文件 +1399/−34·迁移 0177 五节+加窗 reconciler+合并 max 显式 insert-only+90 天保留期 fail-closed·旋钮缺省关停零翻转·38 臂新 proof）→post 双席 BOTH PASS（席1 四件忠实+水位线单调+保留期 fail-closed·席2 独立核+windowed metric TS2339 启用前必修登记）→nail 号位臂勘正（0175=AG-C 合法实落·协调方接管）·post 双席 BOTH PASS。
+- [ ] **STILL OPEN**：成本③估算器·回灌接线⑥·AG-12·windowed metric totalUnderEstimated 两分支补值（启用前必修）·ai-runtime typecheck 任务缺位（既有门覆盖缺口）。
+- 预算：est live=0·0 Key 值·`actualSpendCny=null`.
