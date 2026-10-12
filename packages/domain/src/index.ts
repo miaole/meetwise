@@ -200,7 +200,7 @@ export { classifyInterviewResearchBoundary, type ResearchBoundaryDecision } from
 
 export { critiqueQuestion, type QuestionCritique } from './question-critique.ts';
 export {
-  QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS,
+  QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS, QUESTION_GENERATION_REROLL_FAMILY,
   classifyQuestionGenerationError, unavailableGeneration, approvedTemplateGeneration, modelGeneration,
   normalizeQuestionGenerationResult, isQuestionGenerationFailure, resolveCitedSources,
 } from './question-generation.ts';

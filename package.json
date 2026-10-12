@@ -226,6 +226,8 @@
     "ag-b-classify:prove:raw": "pnpm -C apps/worker prove:ag-b-classify",
     "ag-e-report:prove": "node scripts/run-e2e-isolated.mjs ag-e-report:prove:raw",
     "ag-e-report:prove:raw": "pnpm -C apps/worker prove:ag-e-report",
+    "ag-f-reroll:prove": "node scripts/run-e2e-isolated.mjs ag-f-reroll:prove:raw",
+    "ag-f-reroll:prove:raw": "pnpm -C apps/worker prove:ag-f-reroll",
     "model-op00:prove": "node scripts/run-e2e-isolated.mjs model-op00:prove:raw",
     "model-op00:prove:raw": "pnpm -C apps/worker prove:model-op00-db-state",
     "model-op00-usage-reconciler:prove": "node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw",

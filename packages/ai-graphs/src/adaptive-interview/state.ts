@@ -113,6 +113,12 @@ export interface AdaptiveDeps {
     turn: number,
     facts: string[],
     kind: QuestionKind,
+    /**
+     * AG-F(刀F·裁决⑤a):已问题面(transcript q 集)——供 worker seam 的 critique 复检收进
+     * re-roll 骨架（off-competency/重复题面在 seam 内即触发有界重掷）。additive 可选:既有
+     * scripted deps/直接调用零改;只含题面文本,与 transcript 同源,无新增敏感面。
+     */
+    asked?: string[],
   ) => Promise<QuestionGenerationResult | { question: string; sources: string[] }>;
   /** 评分故障必须 unscored，不能把 provider 不可用写成候选人 50 分；status 缺失兼容既有 scripted deps。 */
   /** identity 是已落库 pending question 的业务身份；评分内部 repair 必须复用它，绝不能另造回合。 */
@@ -167,6 +173,12 @@ export const AdaptiveInterviewState = Annotation.Root({
   /** Fail-closed generation receipt. Never holds the invented stem. */
   generationProvenance: Annotation<QuestionGenerationProvenance | null>({ reducer: (_, b) => b, default: () => null }),
   concluded: Annotation<boolean>({ reducer: (_, b) => b, default: () => false }),
+  /**
+   * AG-F(刀F·裁决②a):连续 competency 出题族耗尽计数（换序继续面)。0=无;每次「耗尽→顺延换序」
+   * +1;成功出题归零（只统计连续耗尽）。达帽（generate-question 节点 MAX_COMPETENCY_EXHAUST_SWITCH）
+   * 后再耗尽 → 既有 failClosed 真终场。控制面元数据:纯数字、无题面/答案/事实内容,checkpoint 安全。
+   */
+  competencyExhaustions: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
   /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。worker/SSE/report 不读。 */
   concludeReason: Annotation<DecisionProvenance | null>({ reducer: (_, b) => b, default: () => null }),
 });
