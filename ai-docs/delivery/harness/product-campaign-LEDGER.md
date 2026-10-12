@@ -381,3 +381,42 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 - **不计 271 条件数（查证如实处置）**：本刀=e2e-parity 账本面再生非审计条目映射面·卷内零 271 条目引用（沿 B-lite 先例 grep 自证口径）——**本刀无 271 件可翻·批表零翻**；合计维持 **145/271（53.5%）**（15+26+40+22+10+32·沿 :352 勘误后口径·批1 终核第 5 条取代条款与各终核节有效）。
 - erratum 承登：receipt 01 八锚清单 4 行 blob 词面错标（真值四值两点亲算·「all byte-identical」判定为真）+「十七前缀」指令侧笔误（REQUEST §2.2 权威口径 17 digest 前缀=full 7+helpers 10+3 test·卷内自洽）两条勘误正文随 execution-master-checklist PARITY-B2 段（本窗 commit `d07d4852`）落卷。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
+
+## TTL-WIRE #18 payload TTL 清理接线收官登记（2026-10-12 · nail 席 · 沿 :301 配套在飞管线先例（B-lite→PARITY-B2 同链）· 非 271 计件面 · **现权威值 145/271（53.5%）维持 · 批表零翻**）
+
+> 全链：REQUEST `56b0f707`（AUTHZ-HARDEN 5A-2 R-1「接线小刀」向起草·基线 `7500ac73`·立项出处=execution-master-checklist `:2268`/`:2276` R-1 遗留行+authz-harden-REQUEST §1 簇④ `:110`/§2-6 `:120`·红事实机证=rg 全仓 purge 恰 5 命中（定义+export+prove×3·生产零调用））→ rev1 预执行双审席1 FAIL 窄面锚勘误（四处锚校准）→ rev2 `6b70f770`（rev 修正席处置·结论零变）→ rev2 重审双席 **BOTH PASS** → EXEC `42b3b036`（先并主线 `d12439d8` 零冲突=EXEC 重锚·三 blob 逐字节不变）+`0e5e1256`（恰一文件两处：`apps/worker/src/interview-consumer.ts:7` import 补名+`:537` 调用·asPrincipal 单事务·原语/迁移零字节）+`2fdc77e8`（状态行随翻 `executed:awaiting_post_prove_dual`）→ post-prove 双席 **BOTH PASS**（席1/席2 独立复证：门复跑 17/14/28 臂+turbo typecheck 3/3+负臂 5/5·臂数标签误计两条 erratum 不阻门）→ merge --no-ff @`ce021b22` 并主线（双亲 `95576e36`+`2fdc77e8`·origin/feat/mysql-schema-skeleton 已推非 force）。分支 `line/ttl-wire`·工作树 `meetwise-ttlwire`（仓根同级 worktree）。涉引 hash（EXEC 三连+`2fdc77e8`）全经 `git merge-base --is-ancestor` 对 HEAD 亲证为祖先。
+
+- **收官内容**：#18 `purgeStaleInterviewJobPayloads` 生产零调用点→恰两处接线（reaper `reapStuckInterviewJobs` 体内 terminalize 循环收尾后、return 前·`asPrincipal` 单事务·隔离=逐 owner 逐拍 catch+下拍 5000ms 重试）——queued 滞留明文 24h（TTL 86_400 原值零调参）清理触发闭环·AUTHZ-HARDEN 5A-2 nail 段 R-1 遗留清账（execution-master-checklist `:2276` #18 项随本 nail 翻面「已由 TTL-WIRE 闭环 @ce021b22」·同行 5A-1/#143 维持 STILL OPEN）。merge 后三门复验（nail 席主线树亲跑 @`ce021b22`）：`prove:reaper-purge-wire` EXIT=0 **14 臂**+`run-e2e-isolated authz5a2:stale-payload-ttl:prove` EXIT=0 **17 臂**+`turbo typecheck --force` **3/3** EXIT=0。
+- **不计 271 条件数（查证如实处置）**：#18 滞留半沿 5A-2 增量同步「半件不计·R-1 挂协调方裁不计件」口径（:213 批5 行原文·append-only 零改）——接线闭环=R-1 遗留清账非新增收口件·**批表零翻**；合计维持 **145/271（53.5%）**（15+26+40+22+10+32·沿 :352 勘误后口径·批1 终核第 5 条取代条款与各终核节有效）。
+- erratum 承登：臂数标签误计两条（REQUEST/EXEC 卷载「接线臂 16」实测 **14**·「reaper 既有 30」实测 **28**——`A(` 亲数双证·30 系 5A-2 时点旧数主线漂移两臂非本刀触·EXIT=0 判定不受影响）正文随 execution-master-checklist「Line TTL-WIRE nail」段（本窗 docs(ssot) commit）落卷。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
+
+## AG-COST1 成本轨① AG-07 止血+#48 观测收官登记（2026-10-12 · nail 席 · 沿 :301 配套在飞管线先例（B-lite→PARITY-B2→TTL-WIRE 同链）· 非 271 计件面 · **现权威值 145/271（53.5%）维持 · 批表零翻**）
+
+> 全链：REQUEST `31df8aa1`（AG 战役成本轨①首卷·基线 `b95c9c4b`·防重双对表过·红事实全 pin）→预执行双审两外席 **BOTH PASS**（两席零 blocking）→EXEC 并线 `0c2e4874`（主线前移 `4c178a4c` 恰两笔 docs-only·11 code blob 逐字节不变）+`e6dc3ba7`（施工+状态行随翻·两 proof 26/28 臂）→post-prove 双席 **BOTH PASS**（席1/席2 独立·陷阱10 永久钉子核验·两同红族亲跑归因·4 errata 标签级）→merge --no-ff @`6f2ed876` 并主线（双亲 `133acba6`+`e6dc3ba7`·origin/feat/mysql-schema-skeleton 已推非 force）。分支 `line/ag-cost1-bleed-observe`·工作树 `meetwise-cost1`（仓根同级 worktree）。涉引 hash 全经 `git merge-base --is-ancestor` 对 HEAD 亲证为祖先。
+
+- **收官内容**：①AG-07 止血=校准对账 env 双旋钮（`USAGE_CALIBRATION_ENABLED` 缺省 `false` 关停+`USAGE_CALIBRATION_INTERVAL_MS` 缺省 `86_400_000` 按天·域 `[60_000,604_800_000]`·非法启动失败沿 boundedInteger 先例·`runUsageCalibrationReconciler` 签名零改）；②#48 观测=cached_tokens 三端点字段兼容读取（缺席≠零 undefined/0 分打·presence 三态·METRIC 两键+基线预注册·Langfuse 不增挂）·只观测零计费（settle/validUsage/价格行零字节）。merge 后三门复验（nail 席主线树亲跑 @`6f2ed876`）：`prove:usage-calibration-bleed` EXIT=0 **26 臂**+`prove:model-usage-cache-observe` EXIT=0 **28 臂**+`turbo typecheck --force` **3/3** EXIT=0。
+- **不计 271 条件数（查证如实处置）**：AG-07 系 AG 战役（ai-capability-review issues-final AG-xx 面）非 271 universe；#48 虽列批2 残 19 挂账（:296 列名）·本刀仅观测不收口（issues-final :550「先接 cached_tokens 观测再下结论」·收口须待观测数据+②迁移三件套后继）——**本刀无 271 件可翻·批表零翻**；合计维持 **145/271（53.5%）**（15+26+40+22+10+32·沿 :352 勘误后口径·批1 终核第 5 条取代条款与各终核节有效）。
+- erratum 承登：post-prove 双席 4 条标签级 errata 不阻门+nail 席补登两条（主线 tip 漂移 `a62e8fa3→b24f3f4e→133acba6` 两笔 docs-only 零交集·tsbuildinfo 构建缓存漂移不入 commit）——正文随 execution-master-checklist「Line AG-COST1 nail」段（本窗 docs(ssot) commit `9aa33de8`）落卷。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
+
+
+## AG 能力修复+计费改造 战役刀位图（2026-10-12 立节·协调方·非 271 计件·沿 :301 配套管线先例·进度面板可见性用）
+
+> 北星四门禁不变（G7 全量收据未齐 g7SuiteGreen=false 钉死）。本节登记新战役刀位与状态·优先级栈已重排：**门3 0 BUG 主路径=AG 失败语义轨**。
+
+| 轨 | 刀 | 覆盖 | 状态 @2026-10-12 深夜 |
+|---|---|---|---|
+| 失败语义 | 刀 A | AG-05 续跑+AG-26 | REQUEST rev2 在途（席1 FAIL→hotfix 2629509d→rev2 对齐） |
+| 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | EXEC 落码 ae478bc6+rev2 修复在途（migrate.proof 签名）·post 席1 FAIL 已修待重递 |
+| 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | 双审 BOTH PASS·rev（0175）在途→EXEC 待放 |
+| 失败语义 | 刀 D | AG-01 准入去终态化 | 待起草（骑刀 C 骨架） |
+| 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | 待起草 |
+| 失败语义 | 刀 F | AG-02 残面四类有界 re-roll | 待起草（骑刀 B） |
+| 成本轨 | ①止血+观测 | AG-07+#48 | **nail 6f2ed876 收官**（env 双旋钮缺省关停+三端点观测） |
+| 成本轨 | ②-⑥ | AG-07 迁移三件套/AG-12 估算/AG-11 三件套/AG-08/#48 后继 | 队列（②以①旋钮+观测为输入） |
+| 安全 | qbank 小刀 | AG-41+42（5 函数）+43 调度半+P5 | REQUEST 9484bc54 双审席1 在途（迁移 0176+） |
+| 计费 | billing rev | 用户全裁决落卷+B 端章+扩张包+全调用面表+明细列表 | rev 席在途（两次扩权已收） |
+| 计费 | P1/P2 | 0170-0173 字段迁移+影子计量 | 立项待 AG 硬前置（B✓/E批/F）齐 |
+| 产品大刀 | AG-39 私有题库+AG-38 问答侧 | 题库分层/工具边界两设计决策 | 挂用户排期 |
+- 关联蓝本：ai-docs/delivery/ai-capability-review/（LANDING-INDEX 十三节）+billing-redesign/（INDEX 十三节）。
