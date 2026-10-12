@@ -224,6 +224,8 @@
     "model-invocation-reconcile:prove:raw": "pnpm -C apps/worker prove:model-invocation-reconcile",
     "ag-b-classify:prove": "node scripts/run-e2e-isolated.mjs ag-b-classify:prove:raw",
     "ag-b-classify:prove:raw": "pnpm -C apps/worker prove:ag-b-classify",
+    "ag-e-report:prove": "node scripts/run-e2e-isolated.mjs ag-e-report:prove:raw",
+    "ag-e-report:prove:raw": "pnpm -C apps/worker prove:ag-e-report",
     "model-op00:prove": "node scripts/run-e2e-isolated.mjs model-op00:prove:raw",
     "model-op00:prove:raw": "pnpm -C apps/worker prove:model-op00-db-state",
     "model-op00-usage-reconciler:prove": "node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw",

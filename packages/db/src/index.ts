@@ -110,6 +110,7 @@ export type { ResumeSoftDeleteReceipt } from './resume-privacy.ts';
 // report job ops（报告子图舱壁：持久 job + 状态机 + 租约 + 重试）
 export {
   enqueueReport, claimReport, markReportReady, markReportFailed, requeueFailedReport, sweepReports, getReport,
+  writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
   MAX_REPORT_ATTEMPTS,
 } from './report/report.ts';
 export type { ReportStatus } from './report/report.ts';

@@ -27,7 +27,7 @@ import {
   startWorkerJobWakeupRedisListener,
 } from './worker-job-wakeup-redis.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
-import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
+import { runReportDispatcher, reportDispatchKey, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
@@ -143,8 +143,9 @@ export function createCheckpointer(connString?: string, useRuntimeRole = false):
 // 【#170 码半·2026-10-12】buildMockInterviewRunner 已删：全仓调用方零命中（rg 亲证·仅定义无消费），
 // 生产消费循环走 interview-consumer/interview-service 装配，不经此 mock runner。死导出删除=零行为。
 
-/** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。 */
-function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
+/** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。
+ *  （刀 E 起导出：隔离库 proof 走同一生产闭包——键构造零复制,AG-03 键形有且只有这一处。） */
+export function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
   const rawFaultInvocations = process.env.E2E_REPORT_FAIL_INVOCATIONS;
   const rawForceAll = process.env.E2E_REPORT_FAIL_ALL;
   if ((rawFaultInvocations !== undefined || rawForceAll !== undefined) && process.env.E2E_ISOLATED !== '1')
@@ -170,9 +171,15 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
     }
   }
   let reportInvocations = 0;
-  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) =>
+  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) => {
+    // AG-03（刀 E）：键=revision 同源双换——键含单调派发序（claimReport CAS 同语句自增）,重试必得
+    // 新键新 revision,0130 终态重放不再吞掉重试。缺派发序=序号穿透接线断→fail-closed 拒派
+    // （绝不静默回落同键——那正是 AG-03 要修的原病）。
+    if (typeof s.reportDispatchSeq !== 'number' || !Number.isInteger(s.reportDispatchSeq) || s.reportDispatchSeq < 1)
+      throw new Error('report_dispatch_seq_missing');
     // progressStream=interviewId(TOKSTREAM 阶段1):报告叙述生成发生成进度事件(SSE→前端报告期等待变真实进度)。
-    reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model, s.interviewId)(s);
+    return reportGenerator(pool, s.owner!, reportDispatchKey(s.interviewId, s.reportDispatchSeq), model, s.interviewId)(s);
+  };
   return {
     loadSummary: (owner, interviewId) => asPrincipal(pool, owner, async (c) => {
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。

@@ -1,6 +1,6 @@
 # AG-E — 失败语义轨刀 E：AG-03 报告重试真实化（`:a{n}` 键+revision 同换+上限 3）+ EG-A1 单调派发序号（blocking 勘误吸收）+ AG-10 守卫同批（eligible=0 不入 doomed report）· EXEC REQUEST
 
-**Status**: `draft:awaiting_pre_exec_dual`（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: `draft:awaiting_pre_exec_dual`（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）→ **`executed:awaiting_post_prove_dual`**（2026-10-12 EXEC 席施工毕随翻·双审 BOTH PASS + 协调方常设 loop 授权已行使·并线 7fcac41c + 施工 + 新 proof 五臂全绿 + 四回归门原值 + typecheck 双权威全绿·待 post-prove 双审·⛔push 维持·详见 §9 EXEC 附记）
 
 **席位**：meetwise 战役刀 E 起草席（AG-03+EG-A1+AG-10 守卫同批 · EXPERT-REVIEWS §七 失败语义轨 A 席六刀之 **第五刀**·「AG-03+EG-A1（报告单调派发序号+:a{n} 键/revision+手动重试 proof）」·叠加 §七 跨轨硬约束「AG-10 守卫**必须与刀 E 的重试开关同批或先行**」——本卷三事同刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（开工建树时点主线 tip·`git log -1` 实测 2026-10-11·AG+计费战役刀位图立节笔）。分支 `line/ag-e-report` · 工作树 `meetwise-age`（`git worktree add ../meetwise-age -b line/ag-e-report` 仓根同级·本起草席已立·建前亲证：`git worktree list` 19 树无 age·`git branch --list "line/ag-e-report"` 零命中）。
@@ -38,6 +38,16 @@
 | 任务书锚：`adaptive-lifecycle.ts:442-488`（收尾区） | **`:440-492`** 亲证含任务书区间（:489 asPrincipal 收口+:490-492 recordAskedQuestions） | 吻合 |
 | issues-final AG-10：`main.ts:175-180` | **`:175-186`**（:176-183 loadSummary scores 空→items 空直通 report 图） | 微漂·空集直通原样（doomed 前半在 domain 侧 :30 才爆） |
 | 0130 `:163-164`（digest mismatch）`/:179-180`（failed 重放） | **亲证原值**（:163-164/:179-180·另 :183-184 unknown 重放） | 不变 |
+
+### 0.4 EXEC 并线重 pin（2026-10-12·施工前亲证·勘误注）
+
+**并线**：`git merge feat/mysql-schema-skeleton` → merge commit `7fcac41c`（零冲突）。主线增量 `2bc4e2bd..9ae70025` 恰 13 笔：**刀 B 落主线 `616d8ef3`**（AG-06/AG-14 EXEC 施工 `ae478bc6`+rev2 `2a2fee56`·invoke/model-client 大改+迁移 0174）+ AG-B nail 登记 docs 两笔（`d59e0d96`/`378b96e8`）+ i263 收官 merge `9ae70025`（含 `f5fdca0c` 施工+docs 链）。施工基线=merge 后本支 tip `7fcac41c`（主线 tip `9ae70025` 全含）。
+
+**blob 对表（merge 后 `git hash-object` 逐条复测·§0.1 十二锚）**：**11/12 恒等**（#1 main.ts `8ed81327e02d`·#2 interview-service `bee3c139648d`·#3 report.ts `d20d0baf837c`·#4 report-worker `76bc751ab6ec`·#5 adaptive-lifecycle `5cfce9be32c8`·#6 commerce `f5d256df4643`·#10 ai-graphs/report `ae994ab2fd04`·#11 assessment `bb5a4546c689`·#9 interview-report `77a35057c446`·#12 0001 `d68f8dd0e616`·#8 0130 `239a0b19aea4`）。**唯一漂移=#7 invoke.ts `647e0aa952f0`→`eda87ce0044a`**（刀 B AG-06 known_executed/AG-14 管道改造所致）——**claim 终态相位 :612-625→:649-651**（`invokeClaimPhase` 定义 :636·execute `:649` / cached `:650` / failed‖unknown `:651` terminal·`deterministic_refusal` 原样）——**与席 2 勘误注吻合·语义零变·本刀=换键绕行非改重放·0130 零字节维持**。
+
+**行锚复核（merge 后）**：main.ts `:175` 键面原位（`reportGenerator(pool, s.owner!, \`${s.interviewId}:report\`, …)`）·report.ts `requeueFailedReport :59-66` 原位（`:63` attempts=0 原样）·adaptive-lifecycle AG-10 分支 `:465-479` 原位（unbound enqueue `:475-476`）·interview-service `reportGenerator :335`+revision 同源 `:340` 原位·0130 `:163-184` 重放区原值·report-worker `drainReportsOnce :140-171` 原位。**结论：§1 红事实 A/B/C/D 全部原样成立·修法四条零改动照卷施工。**
+
+**迁移号位（§0.3-3 claim 前实占复核）**：主线实占 max=`0174`（刀 B）·刀 C 已实占 `0175`（`line/ag-c-requeue` 在飞 `0175_interview_job_next_attempt_at.sql`·与刀 C EXEC 收据吻合）·`0176`/`0177` 留计费轨·**本刀按协调方指令认领 `0178`**（实占零撞·与刀 C 0175 零表交集零依赖）。
 
 ### 0.3 现势并发登记（强制）
 
@@ -149,6 +159,19 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 - **①attempt 源形状（EG-A1 勘误的两形呈报）**：(a) `ai_report` 新列 `dispatch_seq`（claim CAS 同语句自增·单点单调·迁移一列·**推荐**）；(b) 派发探 max 后缀（零迁移·LIKE 扫描+账本寄生单调）。附带：序号穿透缝（`GenerateReport` 签名加位 vs `InterviewSummary` 增非模型字段）=EXEC 授权面内细化。
 - **②AG-10 守卫形（跨轨硬约束的落地形）**：(a) 确定性模板报告（同批推荐·零模型·如实「证据不足」·收尾事务直写 ready·模板文案=裁决附带）；(b) C 端退款形（补偿释放·跨结算 CAS 面大）。附带：模板住地（lifecycle 收尾事务直写 vs generate 层空集短路）=EXEC 定；B 端 bound 臂与 unscored>0 退款臂两形下均零触。
+
+**EXEC 裁决行使记录（2026-10-12·施工同批落卷·授权面内细化·§1/§5 零改动）**：
+
+- **裁决项① → (a)**：`ai_report` 新列 `dispatch_seq`（迁移 `0178` 认领·claim CAS 同语句自增·单点单调）。**附带·序号穿透缝=InterviewSummary 增非模型字段 `reportDispatchSeq?`**（弃 `GenerateReport` 签名加位形）：图状态载序号→`GenerateReport` 类型与 report 图拓扑零字节动；键构造单一真相=`report-worker.ts` 导出 `reportDispatchKey(interviewId, dispatchSeq)`·组合根 `main.ts` 闭包消费+缺序 fail-closed 拒派（`report_dispatch_seq_missing`·绝不静默回落同键——防未来接线断悄悄复活 AG-03）。
+- **裁决项② → (a)**：确定性模板报告。**附带·模板住地=收尾事务直写**（`adaptive-lifecycle` 收尾同事务调 db 层 `writeNoEvidenceReadyReport`·ON CONFLICT DO NOTHING=enqueue 唯一行语义改直写 ready 形·`created` gating `report_ready` 事件=沿 drainReportsOnce tx2「CAS 成功才发事件」重放安全先例）。**附带·模板文案**：`{ overall: 0, sections: [{ title: '报告暂不可生成', body: '本场面试的作答均未形成可评分证据（0 个有效评分），因此没有可生成的面试评估报告。本条为系统写入的确定性说明（非模型生成），不包含任何评分或评价；面试本身已完成。' }] }`（常量 `NO_EVIDENCE_REPORT_CONTENT`·ReportContent 形状兼容·如实零虚构）。B 端 bound 臂与 unscored>0 退款臂零触亲证（proof D2 对照臂+adaptive-life 邻面回归）。
+
+## §9 EXEC 附记（2026-10-12·施工收据·`executed:awaiting_post_prove_dual`）
+
+**落点（恰 13 文件=11 改+2 新）**：①`packages/db/migrations/0178_ag_e_report_dispatch_seq.sql`（新·expand-only `ADD COLUMN IF NOT EXISTS dispatch_seq int NOT NULL DEFAULT 0`·幂等形保负测夹具重放不变式）②`packages/db/src/report/report.ts`（claimReport CAS 同语句派发序自增+携出 `dispatchSeq`·`writeNoEvidenceReadyReport`+`NO_EVIDENCE_REPORT_CONTENT`·requeueFailedReport EG-A1 铁律注·SQL 零变）③`packages/db/src/index.ts`（两新导出）④`packages/ai-graphs/src/report.ts`（InterviewSummary 增非模型字段 `reportDispatchSeq?`）⑤`apps/worker/src/report-worker.ts`（`reportDispatchKey` 单一真相导出+claim 序号穿透入 summary）⑥`apps/worker/src/main.ts`（键构造经 reportDispatchKey+缺序 fail-closed·`reportWorkerDeps` 导出供 proof 走生产闭包）⑦`apps/worker/src/adaptive-lifecycle.ts`（unbound 臂 enqueueReport→模板直写+事件·B 端 bound/退款臂零字节）⑧`apps/worker/test/ag-e-report.proof.ts`（新·五臂）⑨注册三面（worker/root package.json+run-e2e-isolated.mjs WATCH/ALLOWED/预迁移名单 additive）⑩`apps/api/test/_neg-harness.ts`（夹具补载 0178——claimReport 生产 SQL 引用新列·负测夹具须随链补列）⑪REQUEST 本卷随翻。
+
+**门 EXIT 全表（全绿·隔离库形·est live=0 全假体）**：新 proof `ag-e-report:prove` 五臂 51 断言 EXIT=0（PASS=51/FAIL=0 终版收据）（A AG-03 主臂 provider 计数=2+键 :a2≠:a1 / B EG-A1 手动臂 attempts=0 保真+键跨预算轮单调 a2·attempts=1≠dispatch_seq=2 / C 上限臂 a1-a3-quarantined 无 a4 / D AG-10 臂 零模型调用行=0+模板 ready+B 端 bound 对照 / E 静态门六件）∥回归门原值：`report-retry:prove` EXIT=0·`report:prove`（bulkhead）EXIT=0·`uc019:report-regenerate:prove` EXIT=0+`:http:prove` EXIT=0（35 臂）·`uc011:report-refund:prove` EXIT=0+`:http:prove` EXIT=0（53 臂）·附跑 `report-retry:http:prove` EXIT=0（38 臂）∥邻面：`adaptive-life:prove` EXIT=0（本刀动其收尾区宿主 proof）·`migrate:prove` EXIT=0（173 迁移含 0178 亲跑）∥typecheck 双权威：`turbo typecheck --force` 3/3（0 cached）+根 `pnpm typecheck` EXIT=0；worker src 直 tsc 与基线红恒等（仅既有红 :189→:190 行漂·零新错）。**基线同红如实登记不洗**（BLOCKED 注记系 uc011/uc019 在册基线注·EXIT=0）。
+
+**13 条陷阱自检**：①AG-10 守卫零模型断言=D 臂「报告键模型调用行=0（含守卫前后）」+attempts=0∧dispatch_seq=0（零 claim 机器证明）+drain=idle·sweep 零接管（无 doomed 重排循环）②EG-A1 单调=B 臂键跨预算轮 `:a2` 绝不为 `:a1`+终态 attempts=1≠dispatch_seq=2（重置列与单调列解耦机器证明）+静态门 requeueFailedReport 源码零派发序复位③频控零触=REPORT_RETRY_RL 常量静态锚原样+E 臂在证·§3-5 开放面零补建零改④结算维度零触=commerce.ts blob `f5d256df4643` 恒等+五文件 reserve/confirm/release=0 静态门（P3 同形扩 adaptive-lifecycle 第五文件）+D 臂 consumption confirmed·额度无抖动⑤AG-10≤刀 E 同批硬约束履约=守卫与重试开关同 commit 同批落·§七 :71「否则 doomed report 从烧一次变每次真烧」红线闭合⑥attempt 源不取 `ai_report.attempts`（Ban 红线）=取独立单调列·claim CAS 同语句自增⑦上限=既有 `MAX_REPORT_ATTEMPTS=3` 零改（静态锚原样·C 臂 quarantined 终态原值）⑧0130 终态重放语义零字节（静态锚+换键绕行非改重放）⑨键串 charset 门过（`${uuid}:report:a12` 形断言·fail-closed 门兜底不撞门）⑩manual retry 只重置 job 层预算=report-retry.proof P2 断言原样绿（回归门在证）⑪迁移号 0178 实占复核零撞（刀 C 0175/计费轨 0176-0177 避让·非硬编码本卷号）⑫est live=0=全假体 provider+隔离 PG+零 secrets+零生产操作（pins 脚注 actualSpendCny=null 零翻转）⑬B 端 bound/unscored>0 退款臂零触=D2 对照臂（assessment_unavailable 恰一+零 ai_report 行）+adaptive-life 邻面原值+adaptive-lifecycle 触面 diff 仅 unbound 臂 8 行。
 
 ---
 
