@@ -6,6 +6,10 @@ import type { PoolClient as Client } from 'pg';
 export type MemoryKind = 'skill' | 'weakness' | 'topic' | 'preference' | 'episode';
 export interface MemoryRow { id: string; kind: MemoryKind; content: string; salience: number; sourceId: string | null }
 
+/** 写入口。#217 写侧如实注 2026-10-12：现役生产唯一调用链（apps/worker/src/memory-service.ts）只产
+ *  kind='episode'；MemoryKind 其余值（skill/weakness/topic/preference）是 0001 user_memory CHECK 的
+ *  前向兼容位——评估弱项实际经 assessment_report 派生读投影（historicalWeakDimensions），不落本表。
+ *  0001 表注释所列多 kind 语义=建表期预留，非现役写侧事实（迁移本体 checksum 铁律不可改，以此注为准）。 */
 export async function insertMemory(
   c: Client, owner: string, m: { id: string; kind: MemoryKind; content: string; salience?: number; sourceId?: string },
 ): Promise<void> {
