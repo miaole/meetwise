@@ -8,3 +8,7 @@
 .turbo
 .tmp
 *.log
+# #168(AUTHZ-HARDEN 5A-2·构建上下文排除清单):测试支撑/证明面不进镜像——G7 拒启同族
+# 修法(§1 簇④「镜像排除 test/」)。prove 只在隔离 E2E 栈运行,运行时零消费;两镜像
+# (root Dockerfile / apps/web/Dockerfile)context 均为仓库根,本清单即共同权威。
+**/test

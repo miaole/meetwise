@@ -36,8 +36,10 @@ async function provisionCredit(request: APIRequestContext, token: string, nonce:
   const { orderId } = await order.json() as { orderId: string };
   const providerTxn = `voice-e2e-${nonce}`;
   const secret = process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret';
-  const sig = createHmac('sha256', secret).update(`${orderId}:${providerTxn}:paid`).digest('hex');
-  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig } });
+  // 5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`(±300s 防重放窗)·body 携 ts。
+  const ts = Date.now();
+  const sig = createHmac('sha256', secret).update(`${orderId}:${providerTxn}:paid:${ts}`).digest('hex');
+  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig, ts } });
   expect(paid.status()).toBe(200);
 }
 

@@ -177,13 +177,13 @@ function isExplainableRejectNotGap(status: number): boolean {
     const wrongSig = paySig('forged-unrelated-string');
     const garbageShort = 'zz';
     const r1 = await h.post(primaryPath, h.U(owner), {
-      orderId: paidOrd, providerTxn: 'adv011-a1-txn', sig: wrongSig,
+      orderId: paidOrd, providerTxn: 'adv011-a1-txn', ts: Date.now(), sig: wrongSig,
     });
     const r2 = await h.post(primaryPath, h.U(owner), {
-      orderId: paidOrd, providerTxn: 'adv011-a1-txn', sig: garbageShort,
+      orderId: paidOrd, providerTxn: 'adv011-a1-txn', ts: Date.now(), sig: garbageShort,
     });
     const r3 = await h.post(equivPath, {}, {
-      providerTxn: 'adv011-a1-txn', sig: wrongSig,
+      providerTxn: 'adv011-a1-txn', ts: Date.now(), sig: wrongSig,
     });
 
     console.log(`A1 OBSERVE primary wrongSig → HTTP ${r1.status} body=${JSON.stringify(r1.body)?.slice(0, 160)}`);
@@ -236,10 +236,13 @@ function isExplainableRejectNotGap(status: number): boolean {
 
     // 无产品口 = 无法构造「合法签名回调」。仍发出两次同体请求以证明执行面不可达，
     // 并断言：不得把 404 记成「幂等 already/no-op」。
+    // 5A-2 #100 签名 fixture 形随:载荷 `${id}:${txn}:refunded:${ts}`(±300s 窗)·同体重放窗内 → 幂等腿可达。
+    const replayTs = Date.now();
     const body = {
       orderId: paidOrd,
       providerTxn: 'adv011-a2-replay-txn',
-      sig: paySig(`${paidOrd}:adv011-a2-replay-txn:refunded`),
+      ts: replayTs,
+      sig: paySig(`${paidOrd}:adv011-a2-replay-txn:refunded:${replayTs}`),
     };
     const first = await h.post(primaryPath, h.U(owner), body);
     const second = await h.post(primaryPath, h.U(owner), body);
