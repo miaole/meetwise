@@ -90,7 +90,7 @@
     "footL": "© Meetwise",
     "footR": "Real · Review · Growth",
     "footBrand": "Meetwise 知面",
-    "footDesc": "Preview. Practice from real experience. Hiring is out of scope for this preview.",
+    "footDesc": "Preview. Practice from real experience. Hiring features are available to enterprise accounts.",
     "footProductTitle": "Product",
     "footSupportTitle": "Support",
     "footFeatures": "Features",
@@ -102,7 +102,7 @@
   },
   "login": {
     "title": "Log in / Sign up",
-    "subtitle": "Meetwise · project preview. Public preview does not open registration, real-data submission, or adaptive interviews.",
+    "subtitle": "Meetwise · project preview. Registration is open: job seekers can log in and use it right after signing up; recruiter accounts are enabled after review.",
     "email": "Email",
     "password": "Password",
     "passwordHint": "≥ 8 characters",

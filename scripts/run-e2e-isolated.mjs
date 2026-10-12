@@ -231,6 +231,56 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
   ],
+  // AG 修复轨刀 B（AG-06 known_executed 分类+AG-14 usage_missing 折叠）:本地 http 脚本 provider
+  // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+改造三源+迁移镜像两件。
+  'ag-b-classify:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag-b-classify.proof.ts', 'apps/worker/package.json',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/model-op/usage-calibration.ts',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
+    'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
+  ],
+  // AG 修复轨刀 E（AG-03 报告重试真实化+EG-A1 单调派发序+AG-10 守卫同批）:本地 http 脚本 provider
+  // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+键构造/守卫/db 层+迁移 0178。
+  'ag-e-report:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag-e-report.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/main.ts', 'apps/worker/src/report-worker.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/interview-service.ts',
+    'packages/db/src/report/report.ts', 'packages/db/src/index.ts',
+    'packages/ai-graphs/src/report.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0001_baseline.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0178_ag_e_report_dispatch_seq.sql',
+  ],
+  // AG 修复轨刀 A（AG-05 alreadyApplied invoke(null) 续跑+AG-26 start 续跑）:lifecycle 投影层 proof
+  // （est live=0·脚本模型+MemorySaver+隔离 PG 投影面）。来源清单=proof+改造源+lifecycle 同源 service。
+  'ag-a-resume:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/adaptive-resume.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+  ],
+  // AG 修复轨刀 F(AG-02 残面四类出题失败有界 re-roll+耗尽换 competency+unscored 0 分继续):
+  // scripted model+隔离 PG 真迁移链 proof(est live=0)。来源清单=proof+seam/图侧节点/域分类+lifecycle 投影面。
+  'ag-f-reroll:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag-f-reroll.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts',
+    'packages/domain/src/question-generation.ts',
+    'packages/ai-runtime/src/invoke.ts',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+  ],
   'model-op00:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/model-op00-db-state.proof.ts',
@@ -297,6 +347,20 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
+  ],
+  // AG-COST2（AG-07 迁移四件套+因子合并语义+90 天保留期）：隔离库真迁移链行为 proof（沿 entpay-s1/ag-b 先例形）。
+  'ucal-windowing:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/usage-calibration-windowing.proof.ts', 'apps/worker/package.json',
+    'packages/ai-runtime/src/usage-calibration-reconciler.ts', 'packages/ai-runtime/src/usage-reconciliation.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/index.ts',
+    'packages/db/src/model-op/usage-calibration.ts', 'packages/db/src/jobs/gateway-dispatch.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts', 'packages/db/src/migrate.ts',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0134_usage_calibration_gateway_owners.sql',
+    'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
+    'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
   ],
   'model-op02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -605,6 +669,26 @@ const isolatedReceiptSources = {
     'packages/db/src/commerce/commerce.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+  ],
+  // AG-C-REQUEUE（AG-04 刀C）:consumer 瞬时错误分类 requeue+退避+上限+EG-A2 滞留行终态化·隔离库证明（0175 起号）。
+  'requeue-backoff:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/requeue-backoff.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/commerce/commerce.ts',
+    'packages/db/migrations/0175_interview_job_next_attempt_at.sql',
+  ],
+  // BILL1-TOPIC-FIELDS（billing 战役 P1）:0170 话题三列+0171 question_usage_ledger 归集+clarify_cause 透传·隔离库证明（0170/0171 起号）。
+  'bill1-topic-fields:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/bill1-topic-fields.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/decide.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/db/src/interview/interview-question.ts', 'packages/db/src/model-op/question-usage-ledger.ts',
+    'packages/db/migrations/0170_interview_question_topic_fields.sql',
+    'packages/db/migrations/0171_question_usage_ledger.sql',
   ],
   'ocr:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -1803,7 +1887,7 @@ if (![
   'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
   'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
-  'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
+  'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
   // #232 G2 刀:押题列表扩投影隔离库证明(fixture 直插 resume+resume_quiz,绝不触碰开发库)。
   'quiz-list:prove',
@@ -1816,10 +1900,14 @@ if (![
   // FENCE-REFLOW C10（§4-4 具名 prove 导入方）:ops/recovery 一次性修复工具的隔离库证明。
   'fence-reflow-repair:prove:raw',
   'model-invocation-reconcile:prove:raw',
+  'ag-b-classify:prove:raw',
+  'ag-e-report:prove:raw',
+  'ag-f-reroll:prove:raw',
   'model-op00:prove:raw',
   'failover-price-policy:prove:raw',
   'estimate-threading-invoke:prove:raw',
   'model-op00-usage-reconciler:prove:raw',
+  'ucal-windowing:prove:raw',
   'model-op02:prove:raw',
   'model-slot-bypass:prove:raw',
   // G7FIX-4R 补锤(nail 席·QP #201 min(3) 后 fixture 刷新实跑):worker g7fix4-reroll 接隔离 PG runner·additive 注册沿 memory:prove 同形。
@@ -1992,6 +2080,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-degrade']]
   : target === 'adaptive-life:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-life']]
+  : target === 'ag-a-resume:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-resume']]
   : target === 'adaptive-flow:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-flow']]
   : target === 'resume-grounding:prove:raw'
@@ -1999,6 +2089,9 @@ const isolatedCommand = target === 'migrate:prove'
   // G7FIX-4R 补锤(nail 席):worker g7fix4-reroll 接隔离 PG runner·命令沿 worker 原生 script 名。
   : target === 'g7fix4-reroll:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:g7fix4-reroll']]
+  // AG-F(刀F):worker ag-f-reroll 接隔离 PG runner·命令沿 worker 原生 script 名。
+  : target === 'ag-f-reroll:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:ag-f-reroll']]
   : target === 'tokenstream:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:tokenstream']]
   : target === 'reqid:prove:raw'
@@ -2021,6 +2114,10 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:diagnosis']]
   : target === 'reaper:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:reaper']]
+  : target === 'requeue-backoff:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:requeue-backoff']]
+  : target === 'bill1-topic-fields:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:bill1-topic-fields']]
   : target === 'ocr:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:ocr']]
   : target === 'rag-generation:prove:raw'
@@ -2075,6 +2172,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:estimate-threading-invoke']]
   : target === 'model-op00-usage-reconciler:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:usage-calibration-reconciler']]
+  : target === 'ucal-windowing:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:usage-calibration-windowing']]
   : target === 'model-op02:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:model-op02']]
   : target === 'model-slot-bypass:prove:raw'
@@ -2698,11 +2797,11 @@ async function main() {
       `E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; ` +
       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
     );
-    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'fence-reflow-repair:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'quiz-list:prove', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'report-retry:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
+    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'fence-reflow-repair:prove:raw', 'model-invocation-reconcile:prove:raw', 'ag-b-classify:prove:raw', 'ag-e-report:prove:raw', 'ag-f-reroll:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'quiz-list:prove', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'report-retry:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw'].includes(target)) {
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });

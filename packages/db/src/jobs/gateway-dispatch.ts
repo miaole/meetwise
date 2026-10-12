@@ -61,3 +61,25 @@ export async function gatewayUsageCalibrationOwners(pool: DbPool): Promise<strin
     c.query('SELECT owner_user_id FROM gateway_usage_calibration_owners()'));
   return result.rows.map((row) => String(row.owner_user_id));
 }
+
+/**
+ * 加窗枚举（AG-COST2 件④）：走 SECURITY DEFINER `gateway_usage_calibration_owners_v2(p_since)`，
+ * 只返回 `completed_at > since` 窗口内有新配对的 owner。v1 wrapper 保留不动（对照/回滚面）。
+ * `since` 允许 `'-infinity'`（tick 首跑无水位线时=与 v1 等价的全量枚举）。
+ */
+export async function gatewayUsageCalibrationOwnersSince(pool: DbPool, since: Date | string): Promise<string[]> {
+  const result = await asGateway(pool, (c) =>
+    c.query('SELECT owner_user_id FROM gateway_usage_calibration_owners_v2($1)', [since]));
+  return result.rows.map((row) => String(row.owner_user_id));
+}
+
+/**
+ * 水位线整批下界（AG-COST2 件⑤ EXEC 细化）：MIN(last_completed_at) 跨 owner；无行 → null
+ * （tick 以 -infinity 全量枚举一次=首跑 v1 等价·此后单调收窄）。
+ */
+export async function gatewayUsageCalibrationWatermarkFloor(pool: DbPool): Promise<Date | null> {
+  const result = await asGateway(pool, (c) =>
+    c.query('SELECT gateway_usage_calibration_watermark_floor() AS floor_ts'));
+  const row = result.rows[0];
+  return row?.floor_ts ? new Date(row.floor_ts) : null;
+}
