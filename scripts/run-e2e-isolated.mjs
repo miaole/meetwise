@@ -97,6 +97,9 @@ const isolatedReceiptSources = {
   'authz5a:login-ip-throttle:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-login-ip-throttle.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
   'authz5a:login-global-throttle:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-login-global-throttle.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
   'authz5a:chgpwd-lock:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-chgpwd-lock.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/profile/profile.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
+  // AUTHZ-HARDEN 5A-2 簇④ prove 来源清单(DB 面进隔离 runner;hmac/g7-refuse 零 DB 直跑不入本表)。
+  'authz5a2:password-max:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a2-password-max.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'packages/contracts/src/index.ts'],
+  'authz5a2:stale-payload-ttl:prove': ['scripts/run-e2e-isolated.mjs', 'packages/db/test/authz5a2-stale-payload-ttl.proof.ts', 'packages/db/src/index.ts', 'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/package.json'],
   'tokenstream:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/tokenstream-progress.proof.ts',
@@ -1796,6 +1799,8 @@ if (![
   'e2e:prove', 'e2e:ui', 'performance:e2e',
   // AUTHZ-HARDEN 5A-1（簇①归一五臂+镜像 cmp/簇②恒时序计数+限流三臂·隔离容器·est live=0）。
   'authz5a:normalize:prove', 'authz5a:constant-time:prove', 'authz5a:login-ip-throttle:prove', 'authz5a:login-global-throttle:prove', 'authz5a:chgpwd-lock:prove',
+  // AUTHZ-HARDEN 5A-2（簇④:R4 密码上界+滞留 TTL 假时钟三臂·隔离容器·est live=0;hmac/g7-refuse 零 DB 直跑）。
+  'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
   'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
@@ -2178,6 +2183,10 @@ const isolatedCommand = target === 'migrate:prove'
       ? ['pnpm', ['-C', 'apps/api', 'authz5a:login-global-throttle']]
     : target === 'authz5a:chgpwd-lock:prove'
       ? ['pnpm', ['-C', 'apps/api', 'authz5a:chgpwd-lock']]
+    : target === 'authz5a2:password-max:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'authz5a2:password-max']]
+    : target === 'authz5a2:stale-payload-ttl:prove'
+      ? ['pnpm', ['-C', 'packages/db', 'prove:authz5a2-stale-payload-ttl']]
     : target.startsWith('neg:') || target === 'turn-idempotency:prove'
       ? ['pnpm', ['-C', 'apps/api', target]]
     : target === 'trial:grant:prove'

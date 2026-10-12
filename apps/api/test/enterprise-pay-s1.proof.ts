@@ -1,5 +1,5 @@
 import { fileURLToPath } from 'node:url';
-import { boot, mkAssert, paySig, PAY_SECRET } from './_neg-harness';
+import { boot, mkAssert, PAY_SECRET } from './_neg-harness';
 import { createPool, runMigrations, loadMigrations, asPrincipal, type DbPool } from '@meetwise/db';
 import { createHmac } from 'node:crypto';
 
@@ -67,6 +67,9 @@ async function proveMigrationRunner(): Promise<boolean> {
   const { A, done } = mkAssert('enterprise:pay:s1:prove');
   const pool = h.pool;
   const sig = (id: string, txn: string, tag: string) => createHmac('sha256', PAY_SECRET).update(`${id}:${txn}:${tag}`).digest('hex');
+  // 5A-2 #100:回调签名载荷 `${id}:${txn}:${kind}:${ts}`(ts=毫秒·±300s 防重放窗)·body 携 ts。
+  const payBody = (id: string, txn: string, kind: 'paid' | 'refunded' = 'paid', ts = Date.now()) =>
+    ({ providerTxn: txn, ts, sig: createHmac('sha256', PAY_SECRET).update(`${id}:${txn}:${kind}:${ts}`).digest('hex') });
 
   // ── [0] 部署车断言（先行实跑·此处落账）─────────────────────────────────────────
   A('S1-0 真迁移链 0001→当前最大号(动态链头锚·现 0160) 全量应用+重跑幂等（部署车）', migOk);
@@ -88,21 +91,21 @@ async function proveMigrationRunner(): Promise<boolean> {
   A('S1-1b 候选人买企业商品 → 403 recruiter_required（0155 同门）', r.status === 403);
 
   const txn1 = `entpay-txn-${onlineOrderId}`;
-  r = await h.post(`/commerce/webhook/pay/${onlineOrderId}`, {}, { providerTxn: txn1, sig: paySig(`${onlineOrderId}:${txn1}:paid`) });
+  r = await h.post(`/commerce/webhook/pay/${onlineOrderId}`, {}, payBody(onlineOrderId, txn1));
   A('S1-1c webhook 入账 credited（HMAC fail-closed 复用）', r.status === 200 && r.body?.result === 'credited');
   const buckets = await pool.query(`SELECT id, kind, units_total, owner_user_id, source_order_id, expires_at FROM entitlement_bucket WHERE source_order_id=$1`, [onlineOrderId]);
   const b1 = buckets.rows[0];
   A('S1-1d 企业桶恰一：kind=enterprise·owner=下单招聘方·units=50·source_order_id=订单（S1-C3 落位）',
     buckets.rowCount === 1 && b1?.kind === 'enterprise' && b1?.owner_user_id === 'recU' && Number(b1?.units_total) === 50 && b1?.source_order_id === onlineOrderId);
   A('S1-1e 到期沿 365 天惯例', b1 ? (new Date(b1.expires_at).getTime() - Date.now()) > 364 * 24 * 3600 * 1000 : false);
-  r = await h.post(`/commerce/webhook/pay/${onlineOrderId}`, {}, { providerTxn: txn1, sig: paySig(`${onlineOrderId}:${txn1}:paid`) });
+  r = await h.post(`/commerce/webhook/pay/${onlineOrderId}`, {}, payBody(onlineOrderId, txn1));
   A('S1-1f 回调重放→already（幂等不双入）', r.status === 200 && r.body?.result === 'already');
   A('S1-1g 企业桶仍恰一行（exactly-once）',
     (await pool.query(`SELECT count(*)::int AS n FROM entitlement_bucket WHERE source_order_id=$1`, [onlineOrderId])).rows[0]?.n === 1);
 
   r = await h.post('/commerce/orders', recAuth, { productId: 'ent_pack_50', channel: 'online' });
   const order2 = r.body?.orderId as string;
-  r = await h.post(`/commerce/webhook/pay/${order2}`, {}, { providerTxn: txn1, sig: paySig(`${order2}:${txn1}:paid`) });
+  r = await h.post(`/commerce/webhook/pay/${order2}`, {}, payBody(order2, txn1));
   A('S1-1h 同 provider_txn 指向另一单 → 409 conflict（0020 CAS 语义）', r.status === 409 && r.body?.error === 'order_conflict');
   A('S1-1i 另一单仍 created 零入账',
     (await pool.query(`SELECT status FROM payment_order WHERE id=$1`, [order2])).rows[0]?.status === 'created' &&
@@ -192,13 +195,13 @@ async function proveMigrationRunner(): Promise<boolean> {
   const paidBefore = Number((await pool.query(`SELECT units_total FROM entitlement_bucket WHERE owner_user_id='recU' AND kind='paid'`)).rows[0]?.units_total);
   const entBefore = Number((await pool.query(`SELECT coalesce(sum(units_total),0) AS s FROM entitlement_bucket WHERE owner_user_id='recU' AND kind='enterprise'`)).rows[0]?.s);
   const refundTxn = `refund-${off1}`;
-  r = await h.post(`/commerce/webhook/refund/${off1}`, {}, { providerTxn: refundTxn, sig: paySig(`${off1}:${refundTxn}:refunded`) });
+  r = await h.post(`/commerce/webhook/refund/${off1}`, {}, payBody(off1, refundTxn, 'refunded'));
   A('S1-3a 企业订单退款 webhook → refunded', r.status === 200 && r.body?.result === 'refunded');
   const paidAfter = Number((await pool.query(`SELECT units_total FROM entitlement_bucket WHERE owner_user_id='recU' AND kind='paid'`)).rows[0]?.units_total);
   const entAfter = Number((await pool.query(`SELECT coalesce(sum(units_total),0) AS s FROM entitlement_bucket WHERE owner_user_id='recU' AND kind='enterprise'`)).rows[0]?.s);
   A('S1-3b 只减 enterprise 桶（-200）·C 端 paid 桶前后相等（S1-C5 过滤）',
     Math.abs(entAfter - (entBefore - 200)) < 1e-9 && paidAfter === paidBefore);
-  r = await h.post(`/commerce/webhook/refund/${off1}`, {}, { providerTxn: refundTxn, sig: paySig(`${off1}:${refundTxn}:refunded`) });
+  r = await h.post(`/commerce/webhook/refund/${off1}`, {}, payBody(off1, refundTxn, 'refunded'));
   A('S1-3c 退款重放 → already（红冲 exactly-once 回归）', r.status === 200 && r.body?.result === 'already');
 
   // ── [4] 开票门+RLS（§4.1.4）──────────────────────────────────────────────────
@@ -237,7 +240,7 @@ async function proveMigrationRunner(): Promise<boolean> {
   r = await h.post('/commerce/orders', h.U('userB'), { productId: 'pack_10', channel: 'online' });
   const cOrder = r.body?.orderId as string;
   const cTxn = `c-end-${cOrder}`;
-  r = await h.post(`/commerce/webhook/pay/${cOrder}`, {}, { providerTxn: cTxn, sig: paySig(`${cOrder}:${cTxn}:paid`) });
+  r = await h.post(`/commerce/webhook/pay/${cOrder}`, {}, payBody(cOrder, cTxn));
   A('S1-5a C 端 paid 单入账回归 credited', r.status === 200 && r.body?.result === 'credited');
   A('S1-5b C 端落桶 kind=paid（默认参数路径零退化·source_order_id 溯源同列）',
     (await pool.query(`SELECT count(*)::int AS n FROM entitlement_bucket WHERE source_order_id=$1 AND kind='paid' AND owner_user_id='userB'`, [cOrder])).rows[0]?.n === 1);
@@ -251,10 +254,10 @@ async function proveMigrationRunner(): Promise<boolean> {
   r = await h.post('/commerce/orders', h.U('userA'), { productId: 'pack_10', channel: 'online' });
   const caOrder = r.body?.orderId as string;
   const caTxn = `c-refund-${caOrder}`;
-  await h.post(`/commerce/webhook/pay/${caOrder}`, {}, { providerTxn: caTxn, sig: paySig(`${caOrder}:${caTxn}:paid`) });
+  await h.post(`/commerce/webhook/pay/${caOrder}`, {}, payBody(caOrder, caTxn));
   const uaPaidBefore = Number((await pool.query(`SELECT coalesce(sum(units_total),0) AS s FROM entitlement_bucket WHERE owner_user_id='userA' AND kind='paid'`)).rows[0]?.s);
   const caRefundTxn = `cr-${caOrder}`;
-  r = await h.post(`/commerce/webhook/refund/${caOrder}`, {}, { providerTxn: caRefundTxn, sig: paySig(`${caOrder}:${caRefundTxn}:refunded`) });
+  r = await h.post(`/commerce/webhook/refund/${caOrder}`, {}, payBody(caOrder, caRefundTxn, 'refunded'));
   const uaPaidAfter = Number((await pool.query(`SELECT coalesce(sum(units_total),0) AS s FROM entitlement_bucket WHERE owner_user_id='userA' AND kind='paid'`)).rows[0]?.s);
   A('S1-5f C 端红冲语义回归（paid 桶 -10·无过滤路径零弱化）', r.status === 200 && r.body?.result === 'refunded' && Math.abs(uaPaidAfter - (uaPaidBefore - 10)) < 1e-9);
 

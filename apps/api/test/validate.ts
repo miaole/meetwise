@@ -485,11 +485,13 @@ async function validate() {
   A('同幂等键重试 → 同一订单(不重复下单)', oA === oB);
   const cnt = (await db.pool.query("SELECT count(*)::int n FROM payment_order WHERE idempotency_key='idem-1'")).rows[0].n; A('幂等键只一条订单', cnt === 1);
   const ordId = r.body.orderId;
-  const sig = createHmac('sha256','test-pay-secret').update(ordId+':txn-001:paid').digest('hex');
-  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', sig: 'deadbeef' }); A('伪造签名回调 → 403', r.status === 403);
-  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', sig }); A('验签通过回调 → credited', r.status === 200 && r.body.result === 'credited');
+  // 5A-2 #100:回调签名载荷 `${id}:${txn}:${kind}:${ts}`(±300s 防重放窗)·body 携 ts。
+  const cbTs = Date.now();
+  const sig = createHmac('sha256','test-pay-secret').update(ordId+':txn-001:paid:'+cbTs).digest('hex');
+  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', ts: cbTs, sig: 'deadbeef' }); A('伪造签名回调 → 403', r.status === 403);
+  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', ts: cbTs, sig }); A('验签通过回调 → credited', r.status === 200 && r.body.result === 'credited');
   const balA = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body.availableUnits; A('入账 +10 额度', balA === balB + 10);
-  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', sig }); A('重复回调 → already(幂等)', r.status === 200 && r.body.result === 'already');
+  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', ts: cbTs, sig }); A('重复回调 → already(幂等)', r.status === 200 && r.body.result === 'already');
   const balA2 = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body.availableUnits; A('重复回调不二次入账(余额不变)', balA2 === balA);
   r = await req('GET', '/commerce/orders/'+ordId, { 'x-user-id': 'userB' }); A('userB 越权看订单 → 404(RLS)', r.status === 404);
   // 职业路径:成长链终点(评估→学习→职业路径)

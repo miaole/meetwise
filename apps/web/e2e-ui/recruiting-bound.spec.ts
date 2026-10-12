@@ -86,8 +86,10 @@ async function provisionPaidInterviewCredit(request: APIRequestContext, token: s
   expect(order.status()).toBe(200);
   const { orderId } = await order.json() as { orderId: string };
   const providerTxn = `ui-cb-${nonce}`;
-  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid`).digest('hex');
-  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig } });
+  // 5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`(±300s 防重放窗)·body 携 ts。
+  const ts = Date.now();
+  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid:${ts}`).digest('hex');
+  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig, ts } });
   expect(paid.status()).toBe(200);
 }
 
@@ -104,8 +106,10 @@ async function provisionEnterpriseCredit(request: APIRequestContext, recruiterTo
   expect(order.status()).toBe(200);
   const { orderId } = await order.json() as { orderId: string };
   const providerTxn = `ui-ent-${nonce}`;
-  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid`).digest('hex');
-  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig } });
+  // 5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`(±300s 防重放窗)·body 携 ts。
+  const ts = Date.now();
+  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid:${ts}`).digest('hex');
+  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig, ts } });
   expect(paid.status()).toBe(200);
 }
 

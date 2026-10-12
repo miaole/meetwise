@@ -4,6 +4,34 @@ import { resolvePublicPreview } from './lib/public-preview';
 
 export { resolvePublicPreview } from './lib/public-preview';
 
+// ── AUTHZ-HARDEN 5A-2 #67 CSP nonce 形（裁决项⑦：nonce·Next 中间件形）────────────────
+// script-src 去内联放行（unsafe-inline 字面量禁入本文件·静态断言承重）：每请求随机 nonce +
+// 'strict-dynamic'（Next 运行时注入的 chunk 脚本由 nonce 引导的加载器放行，CSP3 浏览器下
+// 'self' 对 script 失效属预期收窄）。
+// 接线三形：①响应头形——Content-Security-Policy 由本中间件统一设在响应（next.config.mjs
+// headers() 不再承载 CSP，防双头交集互相击穿）；②请求头形——请求头带 CSP 时 Next App Router
+// 自动向其内联脚本（RSC flight/水合）补同一 nonce；③自持内联脚本形——x-nonce 请求头供页面
+// （app/page.tsx JSON-LD）显式接线。dev 另放 'unsafe-eval'（Next dev 编译需要；生产零放宽）。
+export function buildContentSecurityPolicy(nonce: string, isDev = process.env.NODE_ENV !== 'production') {
+  return [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'${isDev ? " 'unsafe-eval'" : ''}`,
+    "style-src 'self' 'unsafe-inline'",   // Tailwind 内联样式（原策略保留；仅样式面，脚本面不回退）
+    "img-src 'self' data: blob:",
+    "media-src 'self' data: blob:",
+    "connect-src 'self'",
+    "frame-ancestors 'none'",
+    "base-uri 'self'",
+    "form-action 'self'",
+  ].join('; ');
+}
+
+/** 给响应补 CSP 响应头（#67 响应头形唯一设置点）。 */
+function withCspHeader(res: NextResponse, csp: string): NextResponse {
+  res.headers.set('Content-Security-Policy', csp);
+  return res;
+}
+
 /**
  * 服务端路由门(Edge Middleware)，两层：
  * 1. 公开预览模式（MEETWISE_PUBLIC_PREVIEW='1'）：只读，仅 GET/HEAD/OPTIONS 且仅允许公开展示页。
@@ -62,23 +90,33 @@ export function authRedirectUrl(request: NextRequest, pathname: string): URL {
 }
 
 export function middleware(request: NextRequest) {
+  // #67：每请求 nonce + CSP（响应头形+请求头形）；preview 只读分支的 503/404 也照设（公开面零豁免）。
+  const nonce = crypto.randomUUID();
+  const csp = buildContentSecurityPolicy(nonce);
+
   if (resolvePublicPreview(process.env.MEETWISE_PUBLIC_PREVIEW)) {
     if (!safeMethods.has(request.method)) {
-      return NextResponse.json({ error: 'public_preview_read_only' }, { status: 503 });
+      return withCspHeader(NextResponse.json({ error: 'public_preview_read_only' }, { status: 503 }), csp);
     }
     if (!isDisplayPath(request.nextUrl.pathname)) {
-      return NextResponse.json({ error: 'public_preview_path_unavailable' }, { status: 404 });
+      return withCspHeader(NextResponse.json({ error: 'public_preview_path_unavailable' }, { status: 404 }), csp);
     }
     // 预览模式剥离可伪造/可携带身份的头，避免向前透传越权上下文。
-    return NextResponse.next({ request: { headers: stripClientIdentityHeaders(request.headers) } });
+    const stripped = stripClientIdentityHeaders(request.headers);
+    stripped.set('x-nonce', nonce);
+    stripped.set('Content-Security-Policy', csp);
+    return withCspHeader(NextResponse.next({ request: { headers: stripped } }), csp);
   }
 
   const { pathname } = request.nextUrl;
   const needsAuth = protectedPaths.some((path) => pathname === path || pathname.startsWith(`${path}/`));
   if (needsAuth && !request.cookies.get('mw_token')) {
-    return NextResponse.redirect(authRedirectUrl(request, pathname));
+    return withCspHeader(NextResponse.redirect(authRedirectUrl(request, pathname)), csp);
   }
-  return NextResponse.next();
+  const reqHeaders = new Headers(request.headers);
+  reqHeaders.set('x-nonce', nonce);
+  reqHeaders.set('Content-Security-Policy', csp);   // 请求头带 CSP → Next 自动给自家内联脚本补同一 nonce
+  return withCspHeader(NextResponse.next({ request: { headers: reqHeaders } }), csp);
 }
 
 // 预览门须拦截全部路径（否则非受保护路径会绕过只读门），故 matcher 收敛为全量，auth 门在函数内按 needsAuth 分支。
