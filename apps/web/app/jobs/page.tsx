@@ -89,6 +89,19 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
           <CardDescription>选择岗位投递。对侧只能看到流程状态，不是招聘方产品，也不是正式招聘流程。</CardDescription>
         </CardHeader>
         <CardContent className="space-y-2">
+          {/* D6 #239-④ PIPL24 流程内披露+静态受理入口(mailto·零端点零新表):披露如实引用
+              applications.service scoreless 校准 hold 现状;不虚称工单/独立复核通道
+              (与 how-it-works「校准和人工复核工单还没开放」/legal「自动招聘决定尚未开放」互洽零矛盾)。
+              受理邮箱=法务复核保留项(上线前由运营确认实际邮箱)。 */}
+          <div className="rounded-lg border p-3 text-sm leading-relaxed text-muted-foreground">
+            <p className="font-medium text-foreground">自动化处理说明与你的权利</p>
+            <p className="mt-1">
+              本页申请由人工查看：岗位面试评分处于校准期，分数不用于筛选、排名或录用决定，也不存在仅由自动化作出的录用结论。
+              依据《个人信息保护法》第24条，你有权要求人工复核，或拒绝仅通过自动化方式作出决定；如需行使，请发送邮件至{' '}
+              <a className="text-primary hover:underline" href="mailto:privacy@meetwise.app">privacy@meetwise.app</a>
+              （人工受理，暂无专用工单通道）。
+            </p>
+          </div>
           {jobsRes === null ? (
             <p className="text-sm text-muted-foreground">岗位列表暂不可用,请稍后重试。</p>
           ) : jobs.length === 0 ? (

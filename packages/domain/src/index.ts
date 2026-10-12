@@ -557,3 +557,10 @@ export type {
   LifecycleTriggerAllowReason, LifecycleTriggerBlockReason, LifecycleTriggerPrecondition,
   LifecycleTriggerVerdict, LifecycleTriggerRequest,
 } from './mem09-lifecycle-triggers.ts';
+
+// D6 #239-② 危机/自伤话术固定处置（确定性触发词面，纯函数零状态机）。
+export {
+  CRISIS_TRIGGER_PATTERNS,
+  matchesCrisisTrigger,
+  CRISIS_DISPOSITION_REASON,
+} from './crisis-disposition.ts';
