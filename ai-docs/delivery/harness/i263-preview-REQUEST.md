@@ -217,3 +217,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - §2-5 markers=0：本刀改动集五类标记词零命中（⑦ 扫描对本刀新增面零命中·既存登记见上）。
 
 **收尾**：施工+随翻同 commit（注明接管续做）·⛔push·est live=0·pins 十一值零翻·SSOT/LEDGER #263 行翻面权仍归协调方 SSOT 刀（本刀零触）·`executed:awaiting_post_prove_dual`。
+
+> **协调方注记（2026-10-12·nail 后）**：post-prove 双席 BOTH PASS 后状态行未随翻——协调方沿 G7Y/G7TRIO-2 R5 先例补记：本卷已随 I263 nail（merge `9ae70025`·批3 收官 23/23）进入 post_prove_dual_pass 终态·i6 闸簿记 3 FAIL 豁免（I6 卷快照域×本卷授权面碰撞）·ai-docs 三处历史残留归 SSOT 刀。
