@@ -17,6 +17,7 @@
     "prove:diagnosis": "tsx test/diagnosis.proof.ts",
     "prove:ocr": "tsx test/ocr.proof.ts",
     "prove:reaper": "tsx test/reaper.proof.ts",
+    "prove:reaper-purge-wire": "tsx test/reaper-purge-wire.proof.ts",
     "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
     "prove:fence-reflow-repair": "tsx test/fence-reflow-repair.proof.ts",
     "prove:uc018-ttl": "tsx test/uc-e2e-018-ttl-sweeper-abandon.proof.ts",

@@ -1,0 +1,15 @@
+# [3] regen script dry-run (fail-closed): first run CAUGHT anchor-collection bug (test labels spliced-away) -> REGEN-FAIL test_removed x3 + floor_violation tests:39<42; script fixed (matchTestLabels returns matched set); second dry-run:
+DRY-RUN (no writes)
+inserts: {"e2e/full.e2e.ts":{"A":74,"T":0},"e2e/helpers/e2e-helpers.proof.ts":{"A":21,"T":5}}; assertions 84->158, 223->244; helpers tests 31->36; floors {"testCount":48,"assertionCount":377}->{"testCount":53,"assertionCount":472}; allowlist 7->9
+allowlist deltas: full -7, helpers tests -3 assertions -10
+previousBaseline source: 7f2b712b3e8e59273ce535f738de331091f22675; dry validate valid=true stats={"fileCount":7,"testCount":39,"assertionCount":428,"floors":{"testCount":53,"assertionCount":472},"effectiveFloors":{"testCount":39,"assertionCount":428},"allowlistCount":9,"releaseEvidence":false}
+REGEN-OK
+dry-run EXIT=0 REGEN-OK (no writes)
+
+# [3] actual write run:
+WROTE baseline.json + allowlist.json
+inserts: {"e2e/full.e2e.ts":{"A":74,"T":0},"e2e/helpers/e2e-helpers.proof.ts":{"A":21,"T":5}}; assertions 84->158, 223->244; helpers tests 31->36; floors {"testCount":48,"assertionCount":377}->{"testCount":53,"assertionCount":472}; allowlist 7->9
+allowlist deltas: full -7, helpers tests -3 assertions -10
+previousBaseline source: 7f2b712b3e8e59273ce535f738de331091f22675; dry validate valid=true stats={"fileCount":7,"testCount":39,"assertionCount":428,"floors":{"testCount":53,"assertionCount":472},"effectiveFloors":{"testCount":39,"assertionCount":428},"allowlistCount":9,"releaseEvidence":false}
+REGEN-OK
+write EXIT=0
