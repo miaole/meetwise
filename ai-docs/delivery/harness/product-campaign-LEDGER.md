@@ -408,7 +408,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 轨 | 刀 | 覆盖 | 状态 @2026-10-12 深夜 |
 |---|---|---|---|
 | 失败语义 | 刀 A | AG-05 续跑+AG-26 | REQUEST rev2 在途（席1 FAIL→hotfix 2629509d→rev2 对齐） |
-| 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | EXEC 落码 ae478bc6+rev2 修复在途（migrate.proof 签名）·post 席1 FAIL 已修待重递 |
+| 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | **nail `2a2fee56` 收官**（merge `616d8ef3` 已推非 force·post 双席 BOTH PASS·merge 后四门 117/24 臂+typecheck 3/3+docs:check 全绿·AG-14 流式面/EG-B1=后继刀） |
 | 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | 双审 BOTH PASS·rev（0175）在途→EXEC 待放 |
 | 失败语义 | 刀 D | AG-01 准入去终态化 | 待起草（骑刀 C 骨架） |
 | 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | 待起草 |
