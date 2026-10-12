@@ -33,6 +33,7 @@ import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
+import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -714,6 +715,14 @@ async function bootstrap() {
   const usageCalibrationReconcileLoop = usageCalibrationControl.enabled
     ? runUsageCalibrationReconciler(pool, usageCalibrationControl.intervalMs)
     : undefined;
+  // AG-43 调度半（qbank-control-sec 刀）：0146:9「Ban 自动清理调度」由协调方派单明示解除（裁决项③落值·
+  // 0146 原文零改）后的受控调度。缺省 ENABLED=false（0146 设计内 Ban 的保守延续·显式 opt-in 才起循环，
+  // 沿 usageCalibration ENABLED 旋钮先例）；非法 env=启动失败非静默回退（resolveQbankReleaseSweepConfig·AG-18）。
+  // 入参必须走 qbank 控制面 pool：0176 收口后释放函数 executor-only（REVOKE app_role+GRANT qbank_control_executor）。
+  const qbankReleaseSweepControl = resolveQbankReleaseSweepConfig();
+  const qbankReleaseSweepLoop = qbankControlPool && qbankReleaseSweepControl.enabled
+    ? runQbankReleaseSweep(qbankControlPool, qbankReleaseSweepControl.intervalMs)
+    : undefined;
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；
@@ -760,10 +769,11 @@ async function bootstrap() {
     }
   }
   // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
-  // 竞速 + SIGINT 同链。清单 16 项(R3 勘误:原 allSettled 实数 15,补漏
-  // vectorPlaneErasureLoop?.stop() 后 16):10 loop.stop(report/interview/quiz/diagnosis/
+  // 竞速 + SIGINT 同链。清单 17 项(R3 勘误:原 allSettled 实数 15,补漏
+  // vectorPlaneErasureLoop?.stop() 后 16;qbank-control-sec 刀补漏
+  // qbankReleaseSweepLoop?.stop() 后 17):11 loop.stop(report/interview/quiz/diagnosis/
   // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
-  // privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
+  // qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
   // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
   // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
   // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
@@ -776,6 +786,7 @@ async function bootstrap() {
     { name: 'commerce', stop: () => commerceLoop.stop() },
     { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
+    { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve() },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'gauge', stop: () => gaugeLoop.stop() },
@@ -806,7 +817,7 @@ async function bootstrap() {
     })();
   };
   wireSignalShutdown(['SIGTERM', 'SIGINT'], () => shutdownWorker('SIGTERM'));   // 优雅排空在飞 job 再退;两信号同一 handler
-  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + qbank release sweep(${qbankReleaseSweepLoop ? 'enabled' : 'off'}) + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();
