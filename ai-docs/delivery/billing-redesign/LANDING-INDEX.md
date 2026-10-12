@@ -61,3 +61,10 @@
 
 1. **私有题库 RAG 分账原则**：企业私有题库的 RAG 检索**可消耗企业积分**（计费面·与题库分层设计「私有优先」联动）；**平台公共题库（内部自建）不消耗用户与企业任何积分**（维持平台吸收）。全调用面覆盖表的 RAG 行据此拆分：私有 RAG=企业计费·公共 RAG=平台吸收。
 2. **积分明细列表（必做·升 P1 面）**：用户端与企业端各一——逐笔可见：时间/场景（面试·话题·押题·诊断·深度研究等）/扣分/退回/余额·数据源=entitlement_consumption+topic_charge+question_usage_ledger 三账本·API（GET /billing/ledger+企业维度）+前端明细页·沿蓝本 §3.4 透明度与 v1 F11（GET /billing/balance）吸收。
+
+
+## 十四、billing rev1 落卷（2026-10-12·rev 席）
+
+- README rev1 已落卷（对齐 tip `133acba6`·蓝本三层全精读后动笔·含前任半卷逐锚实测校正）：①B 端章改写（§3.8 全节+风险 K+§7 P4 行+步⑧→⑦·企业付费 B271 片2 已落·held 守卫 i2b `d4e51105`·P0 注册赠送已落 b110 `91c686d9` 删除·P4 8–15→2–4 人日下调）②迁移草案全文重排 0170–0173（§6 四件·0152–0155 占用亲证·勿添重号）③五条承重 pin 重锚零翻案：begin `interview.service.ts:256-268`/收尾 `adaptive-lifecycle.ts:442-488`/commerce `:251-257`/recruiting `recruiter.ts:592-607`/#31 `:54-62`（开工 tip 实测·commerce/recruiter 移径 `commerce/`、`recruiting/` 随锚更正）④裁决落卷（§3.2/§3.3/§4 待拍板列改已裁·§5/§6.4 比较式统一 r2(requested×LEAST(Σ,cap)/cap)·步⑦删·§11 三态化=已裁/已答/仍开放）⑤扩张包 §3.10–§3.12（押题/诊断/OCR 积分制+主动追问入口+深度研究 premium·+6–10 人日）+全模型调用面覆盖表 §3.14（registry 16 操作逐一给处理·零暗面）⑥RAG 分账原则+积分明细列表 §3.13（升 P1·三账本·GET /billing/ledger·吸收 v1 F11）。
+- §10 历史纠错清单零触（pins 零翻）·Non-claims 三标注维持·快照基线（2fab7946）锚面维持·markers=0·docs:check EXIT=0。
+- 仍开放面仅余：话题定义认可（§11-2）+封顶终值（影子期）——其余 13 项收口为已裁/已答。
