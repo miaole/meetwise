@@ -16,7 +16,7 @@ import {
   hybridQbankSearch, loadMigrations, qbankEvidenceForRefs,
   qbankQuestionEvidenceForRefs, runMigrations,
 } from '@meetwise/db';
-import { fakeEmbedder } from '@meetwise/ai-runtime';
+import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { ingestQbank, ingestQuestionBankArtifacts, type QbankQuestionArtifact } from '@meetwise/db';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from '../src/qbank-generation.ts';
 

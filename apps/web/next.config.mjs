@@ -7,6 +7,13 @@ const nextConfig = {
   reactStrictMode: true,
   output: 'standalone',
   transpilePackages: ['@meetwise/contracts'],
+  // #65（5E 批量清理刀·裁决项⑤「移出生产构建」形）：E2E 压测/守卫注入源（__e2e_stream_* 族）
+  // 构建期内联开关——next build 时把 E2E_UI_STRESS 固化为字面量（env 键=DefinePlugin 语义，
+  // 客户端/服务端包同内联）。生产构建（无该变量）内联 '0' → events 路由压测分支静态假+死码剔除
+  // =数据源移出生产构建（撤除旧「仅靠运行时 env 开关」面）；e2e-ui runner（scripts/run-e2e-ui.mjs）
+  // build(:199)/start(:216) 两阶段均显式置 '1' → 既有 e2e spec 消费面零改零回归。
+  // 类型声明见 global.d.ts（declare const __E2E_UI_STRESS__）。
+  env: { __E2E_UI_STRESS__: process.env.E2E_UI_STRESS === '1' ? '1' : '0' },
   // lib/页面用显式 .ts/.tsx 扩展(与 tsx gate 工具链一致);让 Next/webpack 也能解析,消除工具链冲突。
   webpack: (config) => {
     config.resolve.extensionAlias = {

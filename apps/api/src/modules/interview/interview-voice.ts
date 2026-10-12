@@ -7,9 +7,11 @@
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
 import { asErr } from '@meetwise/db';
-import type { TranscribeDto } from '@meetwise/contracts';
+import { VOICE_MAX_AUDIO_BYTES, type TranscribeDto } from '@meetwise/contracts';
 
-const MAX_AUDIO_BYTES = 10 * 1024 * 1024;   // 10MB 上限(单题语音作答足够;防大文件 DoS)
+// #70 单源化（5E 2026-10-12）：上限值改引 contracts VOICE_MAX_AUDIO_BYTES（10MB 语义单源·契约 base64
+// 上限由同源派生；全局 bodyLimit=共享传输信封非语音上限，见 contracts 单源头注与 apps/api/src/main.ts）。
+const MAX_AUDIO_BYTES = VOICE_MAX_AUDIO_BYTES;
 
 /** MIME → DashScope 可识别的 format 字符串(MediaRecorder 常出 audio/webm;codecs=opus / audio/mp4)。 */
 function formatFromMime(mime: string): string {
