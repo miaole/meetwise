@@ -409,7 +409,26 @@ export async function runMigrateProof(
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','UPDATE') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','DELETE') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true
-    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true);
+    // rev2(0174)：terminalize 经 0174 DROP+CREATE 镜像升 10 参($10 p_usage_source DEFAULT NULL)，
+    // 签名断言随升 10 参——regprocedure 签名串精确匹配不吃 DEFAULT(席1 post-prove 42883 实证)。
+    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer,text)','EXECUTE') allowed")).rows[0]?.allowed === true);
+  // 0174 rev2 臂（AG-06/14 刀B）：$10 DEFAULT 只保调用面不保签名断言面——本臂双面钉：
+  // ①10 参签名 app_role EXECUTE（0174 :104 GRANT 落地·pg_proc 10 参+末参带 DEFAULT 的机械证）；
+  // ②9 参调用形仍解析（生产 markModelInvocationUnknown=model-invocation.ts:161 九实参形零改动即
+  // 依赖此面）——探针 9 参调用进函数体后被 ai_cost_require_request_owner（0035）principal 守卫抛
+  // 42501 insufficient_privilege=「已解析已进体」的确定性观测（42883 才是解析失败），守卫先于一切
+  // 写入零残留。
+  let terminalizeNineArgSqlstate = '';
+  try {
+    await pool.query("SELECT ai_model_terminalize_scoped('rev2_nine_arg_probe','rev2_nine_arg_probe','failed','x',NULL::jsonb,true,NULL::integer,NULL::integer,NULL::integer)");
+  } catch (error) {
+    terminalizeNineArgSqlstate = String((error as { code?: string }).code ?? '');
+  }
+  A('0174 → terminalize 升 10 参后 $10 DEFAULT 保 9 参调用面: 新签名 app_role 可 EXECUTE·pg_proc 10 参带 DEFAULT·9 参调用形解析进体(42501 守卫·非 42883)',
+    (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer,text)','EXECUTE') allowed")).rows[0]?.allowed === true
+    && (await pool.query("SELECT pronargs::int n FROM pg_proc WHERE proname='ai_model_terminalize_scoped' AND pronamespace='public'::regnamespace")).rows[0]?.n === 10
+    && (await pool.query("SELECT proargdefaults IS NOT NULL has_default FROM pg_proc WHERE proname='ai_model_terminalize_scoped' AND pronamespace='public'::regnamespace")).rows[0]?.has_default === true
+    && terminalizeNineArgSqlstate === '42501');
   // DBHY-1(0145):app_setting 死表已退役——示范断言改挂真迁移对象演示同一增量语义(增量 ALTER 出列+数据保全):
   // 列对象=0135 的 resume_quiz.expires_at(真增量 ALTER·非 DROP 重建);数据对象=resume_quiz 真行(增量重跑不毁既有行)。
   A('增量 0135 → resume_quiz 有 ALTER 加的 expires_at 列(非 DROP 重建·真迁移对象)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_quiz' AND column_name='expires_at'")).rowCount === 1);
