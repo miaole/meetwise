@@ -152,9 +152,12 @@ async function main() {
   const ledger = await pool.query(
     `SELECT count(*)::int n FROM schema_migrations WHERE version='0177_usage_calibration_ag07_windowing'`, []);
   A('A 真迁移链在册：0177 恰一条 schema_migrations 记录（预迁移真链已应用）', ledger.rows[0]?.n === 1);
-  const dupes = await pool.query(
-    `SELECT count(*)::int n FROM schema_migrations WHERE version LIKE '0175%' OR version LIKE '0176%'`, []);
-  A('A 号位纪律：0175/0176 零 claim（刀 C/qsec 号位不占）', dupes.rows[0]?.n === 0);
+  // A. 号位纪律（nail rev 勘正）：0175=AG-C 合法实落主线（并线基期后）·0176 仍零 claim——
+  // 原断言固化并线基期空号位事实，AG-C 合并后 schema_migrations 含 0175 → 恒假。
+  // 改为只钉 0176（qsec 号位·仍未占）+ 0177 唯一性已由上一断言钉死。
+  const q176 = await pool.query(
+    `SELECT count(*)::int n FROM schema_migrations WHERE version LIKE '0176%'`, []);
+  A('A 号位纪律：0176 零 claim（qsec 号位不占·0175 系 AG-C 合法实落不在此断言域）', q176.rows[0]?.n === 0);
 
   // ==========================================================================
   // B. 件①：pre-0177 旧形态重建 → 0177 原字节重放 → 去重保留最早 + 新 PK 生效
