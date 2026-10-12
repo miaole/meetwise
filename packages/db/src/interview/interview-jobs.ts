@@ -13,6 +13,9 @@ const LEASE_SECONDS = 120;
 export const INTERVIEW_RESUME_REFERENCE_VERSION = 64;
 /** claim 续领上限 = reaper 终结边界（单一真相,claim 与 sweep 共用,杜绝 off-by-one 死循环/早夭）。 */
 export const MAX_INTERVIEW_JOB_ATTEMPTS = 5;
+/** AG-04 刀C（#4·裁决项③按卷推荐）：requeue 指数退避封顶秒数——next_attempt_at=now()+2^attempts 秒封顶 300
+ *  （report.ts:53 范本逐字形·单一真相常量禁散落硬编码；claim 时闸读同一列,report.ts:85 时闸形）。 */
+export const INTERVIEW_RETRY_BACKOFF_CAP_SECONDS = 300;
 /** Default per-owner unexpired running cap. Production dispatch always passes this explicitly. */
 export const DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT = 1;
 
@@ -125,7 +128,11 @@ export async function claimNextInterviewJob(
          SELECT j.id FROM interview_job j
           WHERE j.owner_user_id=$1
             AND interview_privacy_active(j.interview_id)
-            AND (j.status='queued' OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
+            -- AG-04 刀C（#4 时闸·修法②）：queued 臂加退避时闸（report.ts:85 形）——requeue 写入的
+            -- next_attempt_at 未到不领；NULL=无退避=立即可领（存量/新入队行零行为变化）。
+            -- running 过期臂零触（租约过期重领不经退避——崩溃重领语义零变）。
+            AND ((j.status='queued' AND (j.next_attempt_at IS NULL OR j.next_attempt_at <= now()))
+                 OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
             AND NOT EXISTS (SELECT 1 FROM interview_job r WHERE r.interview_id=j.interview_id AND r.status='running' AND r.lease_expires_at >= now())
             -- 僵尸兄弟守卫(专家审计 F3):同面试任一 job 已终态 failed → 面试已死(已发 interview_unavailable+退款),
             -- 绝不再领其后续 seq job(否则对已宣告不可用/已退款的面试乱序跑答题 → 重复假终态 + churn)。
@@ -235,11 +242,16 @@ export async function markJobFailed(c: Client, owner: string, jobId: string, lea
   return r.rowCount === 1;
 }
 
-/** 未取得 graph fence 时归还 job；仅当前 lease owner 可操作，不能把别的 worker 的 job 偷回 queued。 */
+/** 未取得 graph fence 时归还 job；仅当前 lease owner 可操作，不能把别的 worker 的 job 偷回 queued。
+ *  AG-04 刀C（#4·修法②）：requeue 同拍写指数退避 next_attempt_at=now()+2^attempts 秒封顶 300
+ *  （report.ts:53 范本逐字形·attempts 取本 UPDATE 前现值=claim 自增后现值,与范本同语义）；
+ *  时闸在 claim queued 臂（本函数即时归还,重领闸必须落 claim 谓词——REQUEST §1-修法②）。 */
 export async function requeueInterviewJob(c: Client, owner: string, jobId: string, leaseOwner: string): Promise<boolean> {
   const r = await c.query(
-    "UPDATE interview_job SET status='queued', lease_owner=NULL, lease_expires_at=NULL, version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3",
-    [jobId, owner, leaseOwner],
+    `UPDATE interview_job SET status='queued', lease_owner=NULL, lease_expires_at=NULL, version=version+1,
+            next_attempt_at=now()+make_interval(secs=>least(power(2,attempts)::int,$4))
+       WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
+    [jobId, owner, leaseOwner, INTERVIEW_RETRY_BACKOFF_CAP_SECONDS],
   );
   return r.rowCount === 1;
 }
@@ -261,11 +273,14 @@ export async function renewInterviewJobLease(
  * Reaper/对账（周期后台跑,北极星:无静默死胡同 + 无额度泄漏）。worker 崩在跑 → job 卡 running 且租约过期：
  *  - 未超上限 → requeue 回 queued(lease NULL,可被重领;attempts 由下次 claim 再自增,故此处不增,杜绝双增早夭);
  *  - 已达上限(poison-pill/反复崩) → 终结为 failed,返回其 interviewId 让调用方发 interview_unavailable 终态事件 + 退预留额度。
+ *  - AG-04 刀C（EG-A2 结构闸·裁决项④②形）：queued 且 attempts≥MAX 的滞留行（存量/legacy——修法③调用点
+ *    判限已堵新入面,本扫=唯一终态化面;claim 谓词单选形无终态路径,rev2 E2 披露）→ 终态 failed+返回
+ *    retryExhaustedInterviews 让调用方发 retry_exhausted 终态事件 + 退预留额度（沿上两臂 sweep 同构）。
  * 关键(镜像 sweepExpiredReservations):状态翻转与 lease 过期判定在**同一条原子 UPDATE**里(行锁下复核 lease_expires_at<now()),
  * 杜绝"刚心跳续约成功却仍被收割"的活 job TOCTOU。 */
 export async function sweepStuckInterviewJobs(
   c: Client, owner: string, maxAttempts = MAX_INTERVIEW_JOB_ATTEMPTS,
-): Promise<{ requeued: number; failed: number; failedInterviews: string[] }> {
+): Promise<{ requeued: number; failed: number; failedInterviews: string[]; retryExhaustedInterviews: string[] }> {
   const dead = await c.query(
     `UPDATE interview_job SET status='failed', last_error='reaped:worker_died', lease_owner=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts >= $2
@@ -275,7 +290,17 @@ export async function sweepStuckInterviewJobs(
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
   if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));
-  return { requeued: rq.rowCount ?? 0, failed: dead.rowCount ?? 0, failedInterviews: dead.rows.map((x) => x.interview_id as string) };
+  const ex = await c.query(
+    `UPDATE interview_job SET status='failed', last_error='reaped:retry_exhausted', lease_owner=NULL, version=version+1
+       WHERE owner_user_id=$1 AND status='queued' AND attempts >= $2
+     RETURNING interview_id`, [owner, maxAttempts]);
+  if (ex.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `retry_exhausted:${ex.rowCount}`, prev_lease_expired: false }));
+  return {
+    requeued: rq.rowCount ?? 0,
+    failed: dead.rowCount ?? 0,
+    failedInterviews: dead.rows.map((x) => x.interview_id as string),
+    retryExhaustedInterviews: ex.rows.map((x) => x.interview_id as string),
+  };
 }
 
 /** 滞留 payload TTL 默认值(#18·裁决项⑥;调用方/启动档可显式传短窗,禁无界清 payload)。 */
