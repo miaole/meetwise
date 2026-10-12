@@ -195,6 +195,9 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   'apps/worker/smoke/rag-demo.ts',
   'scripts/run-e2e-isolated.mjs',
   'scripts/build-cloud-test-fc.mjs',
+  // CI-WIRING #175 drift 门恢复（cd8f7b24 原门重立·裁②径1）：schema-drift-check.mjs 读 SQL_DIR
+  // 对账 25 文件逐列+UNIQUE/PK 约束（sql⊆mig·退役残面经其 EXEMPTIONS 亲核登记）——非影子 schema 消费者。
+  'scripts/schema-drift-check.mjs',
   // 以下为「禁止用 sql/ 影子 schema」纪律注释的文本提及（非加载器·run-4 采集）：
   'apps/worker/test/interview.proof.ts',
   'apps/worker/test/memory.proof.ts',

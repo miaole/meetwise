@@ -20,8 +20,8 @@ import {
   assessComboRootFlagOnProductionEvidence,
   emitComboRootFlagOnProductionEvidence,
   hasComboRootFlagOnProductionEvidence,
-} from '../src/r4-pr1b-combo-root-flag-on-evidence.ts';
-import { classifyPR1FailClosedRemaining } from '../src/r4-p-r1-fail-closed-remaining.ts';
+} from '../evidence/r4-pr1b-combo-root-flag-on-evidence.ts';
+import { classifyPR1FailClosedRemaining } from '../evidence/r4-p-r1-fail-closed-remaining.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
