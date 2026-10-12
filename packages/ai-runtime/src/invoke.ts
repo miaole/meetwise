@@ -14,8 +14,9 @@ import type { z } from 'zod';
 import {
   asPrincipal, isInterviewPrivacyActive, claimModelInvocation, completeModelInvocation, failModelInvocationClaim,
   markAiCostDispatched, markAiCostUnknown, markAiTextCostRejected, markModelInvocationDispatched,
-  markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, errCode, type Client, type DbPool,
+  markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, type Client, type DbPool,
 } from '@meetwise/db';
+import { errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 import { doubleValidate } from './validators/index.ts';
 import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';

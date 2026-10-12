@@ -135,9 +135,9 @@ export {
 export type { OfflineContractGateCommand, OfflineContractGateResult, OfflineContractCaseResult, OfflineContractReceipt } from './offline-evaluation-runner.ts';
 export { onlineJudgeStratum, selectOnlineJudgeLot, sampleOnlineJudgeAttempts } from './online-judge-sampling.ts';
 export type { OnlineJudgeEligibleAttempt } from './online-judge-sampling.ts';
+// #74：fakeAsr/fakeTts 公共导出移 '@meetwise/ai-runtime/test-support'（test/support/fakes.ts）——
+// 生产主入口零 fake（disabled* 真关断 stub 非本族，生产 seams 在用，保留）。
 export {
-  fakeAsr,
-  fakeTts,
   disabledAsr,
   disabledTts,
   VOICE_EGRESS_DISABLED_ID,
@@ -174,7 +174,8 @@ export {
   STREAMING_TTS_NOT_CONFIGURED,
 } from './voice-stream-preview.ts';
 // 检索 / RAG（向量化 seam + 混合检索 + 召回度量）
-export { dashscopeEmbedder, fakeEmbedder, cosine } from './embedder.ts';
+// #74：fakeEmbedder 公共导出移 '@meetwise/ai-runtime/test-support'（test/support/fakes.ts）。
+export { dashscopeEmbedder, cosine } from './embedder.ts';
 export type { Embedder } from './embedder.ts';
 export { cachingEmbedder, inMemoryEmbeddingStore } from './embedder-cache.ts';
 export type { EmbeddingStore } from './embedder-cache.ts';
@@ -211,7 +212,9 @@ export {
   ExternalResponseJsonError,
 } from './timeout.ts';
 
-export { fakeStreamingAsr, fakeStreamingTts, disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
+// #74：fakeStreamingAsr/fakeStreamingTts 公共导出移 '@meetwise/ai-runtime/test-support'——
+// disabled*/dashscope*/streamingVoiceTurn 为生产面保留。
+export { disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
