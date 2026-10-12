@@ -512,9 +512,9 @@ async function main() {
       `[路由R2] 降级兜底叶全旅程到终态(${r2Loop.terminal})∈INTERVIEW_TERMINALS——无死胡同·degraded 叶可开成完整面试(用户旅程第 4 断点修复的 E2E 行为证) ✅`, 'worker');
   }
 
-  // ── R3 #270 静默误判现状锚（e2e6_·fixture E「后端开发 Redis MySQL 自动化测试」·EXEC 时点定谳=v3 现状）──
+  // ── R3 #270 静默误判现状锚（e2e6_·fixture E「后端开发 Redis MySQL 自动化测试」·随演条款 §1-R3-2 两向定谳）──
   {
-    console.log('\n── E2E-SCENE-409 R3 #270 静默误判现状锚(fixture E·v3 现状锚·随演条款见 REQUEST §1-R3-2) ──');
+    console.log('\n── E2E-SCENE-409 R3 #270 静默误判现状锚(fixture E·随演条款 §1-R3-2:主线 policy=v4 → 预期 backend/general) ──');
     const r3Session = await signupOrLogin(`e2e6_${tag}@x.com`, password);
     const H6 = r3Session.headers;
     A((await consentResumeProcessing(H6)).response.status === 200, '[路由R3] PIPL 采集同意 → 200');
@@ -532,8 +532,16 @@ async function main() {
       const pgc = await scene409Pg();
       try {
         const { dec } = await scene409RouteRows(pgc, ivR3);
-        A((dec.rowCount ?? 0) === 1 && dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === 'qa/quality_engineering',
-          `[路由R3·DB] #270 静默误判现状·v4 并线后随演(backend/general): leaf=qa/quality_engineering(主线 policy=v3 现状锚·EXEC 实测 bb7ba6b6 非祖先·general+唯一 specific 叶优先序取该叶·误判可复现即现状牙; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+        // §1-R3-2 随演条款两向定谳（Ban 写死单值）：预期叶以 packages/domain/src/candidate-profile-route.ts
+        // 实测 policy 串为准——v3（bb7ba6b6 未并）→ qa/quality_engineering 现状锚；≥v4（bb7ba6b6 或后继已并）→
+        // backend/general（v4 闸关闭误判·降级臂）。2026-10-12 主线 efbf33b8 已并 v4，随演定谳=backend/general
+        //（实跑 got route_decided/backend/general/allocation_bps=10000/policy v4=REQUEST §0.3 E 行 v4 列逐字命中）。
+        // 未知 policy 版本 → 断言即红（fail-closed·Ban 静默漂移）。
+        const { CANDIDATE_ROUTE_POLICY_VERSION } = await import('../packages/domain/src/candidate-profile-route.ts');
+        const policyMajor = Number(/^candidate-route-2026-10-frozen:v(\d+)$/.exec(CANDIDATE_ROUTE_POLICY_VERSION)?.[1] ?? NaN);
+        const expectedLeaf = policyMajor === 3 ? 'qa/quality_engineering' : policyMajor >= 4 ? 'backend/general' : null;
+        A(expectedLeaf !== null && (dec.rowCount ?? 0) === 1 && dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === expectedLeaf,
+          `[路由R3·DB] #270 静默误判现状锚·随演(§1-R3-2 两向): policy=${CANDIDATE_ROUTE_POLICY_VERSION} → 预期叶=${expectedLeaf ?? `unsupported_policy_${CANDIDATE_ROUTE_POLICY_VERSION}`}(v3→qa 现状/≥v4→general 降级·route_outcome 恒 route_decided; got ${JSON.stringify(dec.rows[0] ?? null)})`);
       } finally { await pgc.end().catch(() => {}); }
     }
     const r3Abandon = await fetch(`${BASE}/interview/${ivR3}/abandon`, { method: 'POST', headers: H6, body: '{}' });
