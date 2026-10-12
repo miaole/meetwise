@@ -24,7 +24,7 @@ export default function LoginPage() {
         </CardHeader>
         <CardContent>
           <form action={formAction} className="space-y-5">
-            {/* recruiter cookie 只进内部预览骨架，不是第二套对等产品。
+            {/* recruiter cookie 进招聘方功能面(#263 i263 收口:招聘方功能面向企业招聘流程·持续完善中),不是第二套对等产品。
                 Server Action 从 form data 读 role,故保留隐藏 input 同步 Tabs 选中值。 */}
             <input type="hidden" name="role" value={role} />
             <div className="space-y-2">
@@ -32,11 +32,11 @@ export default function LoginPage() {
               <Tabs value={role} onValueChange={(v) => setRole(v as 'candidate' | 'recruiter')}>
                 <TabsList className="grid w-full grid-cols-2">
                   <TabsTrigger value="candidate">{t('candidate')}</TabsTrigger>
-                  <TabsTrigger value="recruiter">{t('recruiter')}（内部预览）</TabsTrigger>
+                  <TabsTrigger value="recruiter">{t('recruiter')}</TabsTrigger>
                 </TabsList>
               </Tabs>
               <p className="text-xs leading-5 text-muted-foreground">
-                招聘方入口是内部预览骨架，不是已上线产品，也不是与求职者对等的第二套产品。
+                招聘方功能面向企业招聘流程，当前版本持续完善中，不是与求职者对等的第二套产品。
               </p>
             </div>
             <div className="space-y-2">
@@ -49,7 +49,7 @@ export default function LoginPage() {
             </div>
             {/* D6 #239-③ 注册年龄声明(声明文案形·非勾选·零新字段零闸):未满 18 周岁不提供服务。
                 勾选形会给单 form 双 submit(:51-52)的同闸 login 提交加必选项并卡 golden 原生提交链,故取声明文案形;
-                行级避开上方 :27-28/:38-40 内部预览标注面(#263 域·零重叠)。 */}
+                行级避开上方 :27-28/:38-40 招聘方标注面(#263 域·i263 已收口·零重叠)。 */}
             <p className="text-xs leading-5 text-muted-foreground">{t('ageDeclaration')}</p>
             <div className="flex gap-3">
               <Button name="mode" value="login" type="submit" disabled={pending} className="flex-1">{t('loginBtn')}</Button>

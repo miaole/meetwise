@@ -94,10 +94,10 @@ const checks = {
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
     requireText(homeZh, '真实经历 → 自适应面试 → 可复盘成长', 'Chinese home story');
     requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
-    requireText(pagesHtml, '招聘不在本预览范围', 'Pages hiring out-of-scope');
-    requireText(homeZh, '招聘不在本预览范围', 'Chinese home hiring out-of-scope');
-    requireText(homeEn, 'Hiring is out of scope', 'English home hiring out-of-scope');
-    assert.equal((pagesHtml.match(/招聘不在本预览范围/g) ?? []).length, 1, 'Pages may state hiring is out of scope once');
+    requireText(pagesHtml, '招聘功能面向企业账户开放', 'Pages hiring caliber');
+    requireText(homeZh, '招聘功能面向企业账户开放', 'Chinese home hiring caliber');
+    requireText(homeEn, 'Hiring features are available to enterprise accounts', 'English home hiring caliber');
+    assert.equal((pagesHtml.match(/招聘功能面向企业账户开放/g) ?? []).length, 1, 'Pages may state hiring caliber once');
     forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}\n${runtimeTruth}\n${frontendBlueprint}\n${localDemo}\n${pagesDirectoryChecklist}`, [
       '双受众定位',
       '招聘侧是后续方向',
@@ -214,7 +214,7 @@ const checks = {
   'TC-PUBLIC-COPY-E9': () => {
     requireText(poster, '非能力认证 · 不得用于招聘、资格或录用判断', 'downloadable poster');
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
-    requireText(recruiterTalent, '内部预览', 'recruiter talent page');
+    requireText(recruiterTalent, '投递骨架', 'recruiter talent page');
     requireText(recruiterTalent, '不是人才库产品', 'recruiter talent page');
     requireText(recruiterTalent, '也不是招聘方产品', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
@@ -255,11 +255,11 @@ const checks = {
     requireText(recruiterJobCandidates, '不会把失败说成「还没有候选人」', 'recruiter job candidates');
     requireText(recruiterTalent, '查看状态', 'recruiter talent page');
     requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
-    requireText(recruiterJobs, '内部预览', 'recruiter jobs page');
+    requireText(recruiterJobs, '岗位骨架', 'recruiter jobs page');
     requireText(recruiterJobs, '不是招聘方产品', 'recruiter jobs page');
     requireText(candidateJobs, '不是正式招聘', 'candidate jobs page');
     requireText(candidateJobs, '不是招聘方产品', 'candidate jobs page');
-    requireText(loginPage, '内部预览', 'login page');
+    requireText(loginPage, '招聘方功能面向企业招聘流程', 'login page');
     requireText(loginPage, '不是与求职者对等的第二套产品', 'login page');
     forbid(loginPage, ['求职者 C 端 / 招聘方 B 端'], 'login page');
     requireText(candidateJobs, 'applicationScoreVisible', 'candidate applications consume the score gate');
@@ -297,13 +297,13 @@ const checks = {
     requireText(pagesHtml, '不提供支付、购买、退款或自动扣费', 'Pages showcase');
     requireText(pagesHtml, 'https://github.com/miaole/meetwise', 'Pages showcase');
     requireText(runtimeTruth, '仅面试练习', 'Pages runtime truth');
-    requireText(runtimeTruth, '招聘不在本预览范围', 'Pages runtime truth');
+    requireText(runtimeTruth, '招聘功能面向企业账户开放', 'Pages runtime truth');
     requireText(frontendBlueprint, '仅面试练习', 'Pages frontend blueprint');
-    requireText(frontendBlueprint, '招聘不在本预览范围', 'Pages frontend blueprint');
+    requireText(frontendBlueprint, '招聘功能面向企业账户开放', 'Pages frontend blueprint');
     requireText(localDemo, '仅面试练习', 'Pages local-demo preview directory');
-    requireText(localDemo, '招聘不在本预览范围', 'Pages local-demo preview directory');
+    requireText(localDemo, '招聘功能面向企业账户开放', 'Pages local-demo preview directory');
     requireText(pagesDirectoryChecklist, '仅面试练习', 'Pages directory checklist');
-    requireText(pagesDirectoryChecklist, '招聘不在本预览范围', 'Pages directory checklist');
+    requireText(pagesDirectoryChecklist, '招聘功能面向企业账户开放', 'Pages directory checklist');
     requireText(pagesWorkflow, "github.ref == 'refs/heads/main'", 'Pages workflow');
     requireText(pagesWorkflow, 'docs/index.html', 'Pages workflow');
     requireText(pagesWorkflow, "cp docs/index.html docs/styles.css docs/.nojekyll .pages-dist/", 'Pages workflow stages docs/ only');
