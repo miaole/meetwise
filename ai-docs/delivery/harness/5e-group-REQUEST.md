@@ -1,6 +1,6 @@
 # 5E GROUP REQUEST（批5 末组 · 文档/清理批量 · issues-master 第5批-E 38 件逐件盘点 + #212 清理面 · 收编 22 整件+2 残面+1 清理面=25 件·§1 修法 26 面（#170 注/码两半拆面·rev2 计数口径如实地） · 簇E 行为面 11 件呈报 · 体量 M-L）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-11·**rev2 回炉补登 2026-10-12**·先盘点后起草·本刀 docs/注释/死代码/卫生一致性批量·起草阶段恰 1 .md 零码动·本 rev2 即回炉重审载体·EXEC 仍待双审。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-11·**rev2 回炉补登 2026-10-12**·先盘点后起草·本刀 docs/注释/死代码/卫生一致性批量·起草阶段恰 1 .md 零码动·本 rev2 即回炉重审载体·EXEC 仍待双审。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push） → **`executed:awaiting_post_prove_dual`**（**EXEC 落卷 2026-10-12·5E EXEC 席**：双审 BOTH PASS+协调方常设 loop 授权开工=§8 三条款行使（§8.1 亲证）·主线并线 `89530dea`…tip `65bdf3f6` 入本支 merge `8ee77301`（冲突零·markers=0 复验·migrations 相对主线 diff=0 字节零触）·簇A-D 25 面全落（#154 裁决⑨裁留零改·#212 清理面=裁决⑦核验零改收面）·挂起 #26/#32 零触·#263 零触·簇E 11 件零触·I5 九件零触·SSOT 零触·pins 十一值零翻·est live=0（隔离跑零模型外呼）·断言门 16 项全录（§8.1·15 绿+qbank-integrity-upgrade 基线同红不洗=隔离集群 schema_migrations_steps 权限面·基线树逐字节同红亲证）·EXEC 重 pin 全量零结论翻转（§0.4 漂移清单 21 行）·⛔push·待 post-prove 双审）
 
 **席位**：#批5 末组 5E 组盘点起草席（北星 loop · 批5 文案/清理域 · 先盘点后起草）。
 **基线**：`feat/mysql-schema-skeleton` @ `2f6662ef`（主线最新 tip·`git log -1` 实测 2026-10-11·ptp-archive nail 补记提交·e2e-assert-refresh `2b1f01a5` 已并入）。分支 `line/5e-group`·工作树 `meetwise-5e`（`git worktree add ../meetwise-5e -b line/5e-group` 本起草席已立·建前 `git worktree list` 实查不存在·建后 tip `2f6662ef` 亲证）。
@@ -108,6 +108,36 @@
 6. **H7 外延不收**：batch-residual-plan :62/:77/:102+LEDGER :59「各归域刀或 5E」（基线 `2f6662ef` 实锚·rev2 更正·初稿误 pin :299）散件族（#38/#73/#80/#119/#171/#173/#185/#49/#160/#163/#48）——AI 质量/外呼/接线域非文案清理域·**归域刀优先**·本卷不收编（呈报协调方派域刀时顺手核）。
 7. **在飞清册刷新（rev2 2026-10-12 时点）**：CI-WIRING（ciw）/E2S2 已并线；i6-239 EXEC 已落卷 `7b6d0f38`；AUTHZ 5A-2 rev2 收口 `8a8633ce`/`ea35b27b`/`74374a01` 在审（主线 `git cat-file` 四枚亲证存在·主题吻合）——§0.0「CI-WIRING @`2f6662ef` 零新提交」等邻刀注记系起草时点（2026-10-11）旧态·EXEC 立项照新树重 pin（I3/I4/I5 卷同款先例）。
 
+### 0.4 EXEC 重 pin 漂移清单（2026-10-12·并线 merge `8ee77301` 后树·21 行·零结论翻转）
+
+**并线**：`git merge feat/mysql-schema-skeleton`（主线 tip `65bdf3f6`·`89530dea` 祖先亲证在）→ merge commit `8ee77301`·冲突零预期兑现（EXIT=0·冲突标记全树 grep EXIT=1）·migrations 相对主线 `git diff` =0 字节。以下行号均并入后树实测：
+
+| 件 | 蓝本锚（base `2f6662ef`） | 并入后实测 | 处置 |
+|---|---|---|---|
+| #64 | auth-actions.ts :18/:22/:24 | **:20/:24/:26**（AUTHZ 5A-1 邮箱归一注释 +2 行）·同文件 logoutAction :53 已有 `AbortSignal.timeout(3000)` 先例 | 结论不变·超时沿同文件先形 |
+| #170（注） | main.ts:7 | :7 零漂（「骨架…S5 落」过期在；worker 消费循环实态 :425 亲证） | 结论不变 |
+| #170（码） | main.ts:138 buildMockInterviewRunner | **:144**（merge 顶部 import +6）·全仓调用方零命中复证 | 结论不变·删（零调用方） |
+| #39 | interview-control-signals :23 | 注释 :22·数组 :23·`budget_exhausted` :24（±1 漂） | 结论不变（保留+软预算语义注·裁决⑨） |
+| #30 | controller :27-30 | **:28-33**（@Post :28·@HttpCode(202) 已在·@Headers 四参=resume-id/quiz-id/target-role/focus·蓝本「五 header」实为四） | 结论不变（OpenAPI 元数据分支·裁决⑫） |
+| #65 | route.ts :12-16 | STRESS :12-13 零漂·guard 变体 id **:19-20**·门 :97 | 结论不变（构建期内联=裁决⑤「移出生产构建」形） |
+| #63 | settings/actions :12-16/:34-41 | 零漂（文件尾新增 UNSTUB-ERASE deactivateAction·与触面行级零重叠） | 结论不变 |
+| #62/#126 | jobs/actions :13/:23/:49/:35 | 零漂 | 结论不变 |
+| #74 | index.ts :139/:140/:177/:214+embedder.ts:76 | 零漂全域复证·生产侧仅 disabled*（非 fake）在用 | 结论不变（test-support 子路径形·沿 g7-test-support 先例） |
+| #60 | client.ts:35 | 零漂·消费仍仅 web-logic.proof | 结论不变（删+测试自持·裁决③） |
+| #210 | resume-quiz:33 | 零漂·score 消费=落库+事件（UI 零消费 rg 亲证） | 结论不变（质量化+schema 限题数·裁决④） |
+| #21/#6/#22 | commerce :9/:185/:206/:475 | 零漂·0001:125/:138 双注矛盾零漂（本体铁律零触）·commerce-saga.md :42-44 勘误已由先行刀落 | 结论不变（对侧注释锐化+豁免登记） |
+| #11 | 0088:9-13 本体 | 零漂·全仓 rg **无「可 DELETE」活陈述**；残面=两 docs「工作树候选 0088」过期措辞（model-operation-routing.md:108·current-runtime-truth.md:127） | 勘误落两 docs |
+| #28 | footprint :87/:99/:229/:338 | 零漂·ADR-0006 仍不存在（adr/=0015-0020+0022 共 7 件+README）·bullmq 全仓零码复证（SKIP LOCKED 实态 quiz-jobs:46/diagnosis-jobs:38） | 结论不变（五处勘误含 :82 依赖行） |
+| #166 | generation-progress :145/:146 | 零漂·sleep 无 unref 亲证（timer 存活至 MIN_INTERVAL=注释不诚实坐实） | 结论不变（注释侧诚实化·裁决连带） |
+| #192 | EXEC 重 pin | **resume.ts:93** 头注「ON CONFLICT DO NOTHING 幂等」vs :101-108 函数体内注「Do not use ON CONFLICT…」自矛盾亲证 | 结论不变（头注对齐实现） |
+| #217 | 0001:308-320 | 零漂·写侧唯一产口 memory-service:24 仅 kind='episode'·domain assessment.ts:3「回写 user_memory」陈旧声明亲证 | 结论不变（写侧+domain 注释诚实化·迁移零触） |
+| #212（清理面） | 闸 I5 并线 | I5 标注已落主线（langgraph-blueprint :35-38+roadmap Phase 4 勘误注·「已实现/图文件已存在」形） | **裁决⑦：标注足额→核验零改收面** |
+| #70 | voice :12/:60+contracts :121 | 零漂·bodyLimit=全局信封 main.ts:121（12MiB 为简历校准·非语音上限） | 结论不变（单源 10MB+派生 base64 上限·裁决②） |
+| #85 | EXEC 重 pin | 三份=interview.service:40（V7 严形·400）/roles.service:8+resume.service:21（通用形·404）+web scoring-honesty:9 | 结论不变（platform/uuid.ts 单源+语义表·零行为） |
+| #121 | EXEC 重 pin | 反馈入口=interview.service:591（仅 ≥0）·topic 面=interview-learning.ts:47·contracts :81=响应字段（锚漂注记正确） | 结论不变（int4 上限+存在性+topic 限定该场弱项） |
+| #154 | 评审卫生 | **现树不可复现**：1-space 缩进全史一致·近期触文件 commit 每 3-6 行实改·无重缩进噪声 | **裁决⑨裁留零改**（登记不洗） |
+| #174 | EXEC 重 pin | errors.ts:14-37+circuit-breaker :8/:57/:123+invoke :200 零漂·ai-runtime 对 db 导入 8 文件（含错误符号 5 文件） | 结论不变（@meetwise/errors 叶子包+db 再导出 shim·29 消费点零迁移） |
+
 ## §1 修法（簇A-D 触面簇·修法列逐条固化·file:line 实锚·EXEC 立项重 pin·**簇E 零触**）
 
 ### 簇A 文档/注释诚实化（10 面·docs+注释·零行为变更）
@@ -201,6 +231,37 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀起草阶段恰 1 .md）。本 rev2（2026-10-12）系双审回炉补登载体——补登后整卷重送双审·EXEC 仍待双审（§8 三条款与裁决项①-⑫维持·pins 十一值零翻）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
 
 **待双审/EXEC 裁决项**：①簇E 11 件收编与否与归刀（建议独立行为小刀或 5C 后继子刀·#187 growth-gen 让渡面承接形）；②#70 三上限单源取值（10MB/12MiB/13.5M 三选一·收紧语义呈报）；③#60 死客户端删或接线；④#210 死分删或质量化（+schema 限题数随收与否）；⑤#65 生产拒绝形（NODE_ENV 硬拒绝 vs 移出构建·e2e 消费面连带）；⑥#74 依赖规则机制（eslint/depcruise/边界 prove 三选一·CI 配置面连带）；⑦#212 清理面执行时点（I5 并线后核验形·未并线挂起）；⑧子片划分（单刀 vs 簇A-D 分片·沿 5C 四子刀先例）；⑨#39/#154 低值件裁留；⑩#63/#64 反馈文案逐字值；⑪#2262 checklist D 登记行与 #187 归属刷新呈报（SSOT 刀）；⑫#30 修法形二选一（header 参数注册 vs body DTO+ZodValidationPipe·rev2 补明）。
+
+### 8.1 EXEC 三条款行使记录（2026-10-12·executed:awaiting_post_prove_dual）
+
+**三条款亲证**：①预执行双审两外席 **BOTH PASS 落卷**（rev2 回炉后·协调方战报）；②**协调方明示授权**（常设 loop 授权开工·派单面）；③EXEC 立项**未改 §1 修法清单与 §5 Ban/pins**（本节为行使记录·§0/§1/§5 正文零改·pins 十一值逐字零翻·仅按卷内预设分支行使 EXEC 裁决项）。
+
+**裁决项 EXEC 行使（12 项全录·零 silently 落空）**：①簇E 11 件**不收编**（呈报维持·零触·#187 让渡面承接登记归行为小刀呈报）；②#70=**10MB 单源**（contracts `VOICE_MAX_AUDIO_BYTES`·契约 base64 上限派生 `VOICE_MAX_AUDIO_BASE64_CHARS`=13,981,016·bodyLimit 重定位为简历+语音共享传输信封非第三个语音上限；语义窗变化如实呈报：有效受理窗由旧 bodyLimit 遮蔽出的 ~9.4MB 放宽至语义 10MB，9.4-10MB 区间旧 400/413 现受理，>10MB 一律 413 `audio_too_large`）；③#60=**删+测试自持形**（client.ts 删·makeInterviewApi 实现体下沉 web-logic.proof 自持）；④#210=**质量化+schema 限题数**（分=factuality 存活率 grounded/(grounded+rejected)×100·QuizView.questions `.max(20)`）；⑤#65=**移出生产构建形**（next.config `env` 构建期内联 `__E2E_UI_STRESS__`·生产构建无 E2E_UI_STRESS→'0'→守卫分支死码剔除；e2e-ui runner build/start 两阶段均显式 '1'→既有 spec 零改零回归；NODE_ENV 硬拒绝分支被否——e2e:ui 即 production Next，硬拒绝必破回归）；⑥#74=**边界 prove 形**（仓内零 eslint/depcruise 配置·沿 `prove:g7-bootstrap-zero-prod-import` 先例立 `prove:test-support-fakes` 六断言含越线负测；`./test-support` 子路径沿 `./g7-test-support` 先例）；⑦#212=**核验零改收面**（I5 标注已落主线且足额·§0.4）；⑧**单刀按簇四 commit**（簇A/B/C/D+状态行·沿 5C 先例形）；⑨#39=**保留枚举+软预算语义如实注**（wire 兼容位·删除属行为面）；#154=**裁留零改**（现树不可复现·§0.4）；⑩#63/#64 文案=沿同文件既有形（#63「未当作已保存」体例·#64 本地化映射表+状态码兜底体例）；⑪SSOT 零触（#2262/#187 归属刷新呈报归 SSOT 刀·本卷不触）；⑫#30=**header 参数注册+202 响应元数据分支**（ContractRoute `status`/`headers` 字段+openapi 发射器补面·零行为·body DTO 迁移=行为面归后刀）。
+
+**断言门全表（EXEC 2026-10-12·隔离跑零模型外呼 est live=0）**：
+
+| # | 门 | EXIT |
+|---|---|---|
+| G1 | `git diff feat/mysql-schema-skeleton -- packages/db/migrations` 字节零触 | 0（0 行） |
+| G2 | `pnpm turbo typecheck`（//#typecheck e2e+web+contracts 三任务冻结选择面） | 0（3/3） |
+| G3 | contracts `prove:openapi` | 0（92 断言） |
+| G4 | domain `prove:adaptive-signals` | 0 |
+| G5 | packages/errors 手工 `tsc --noEmit`（新包·按 #96 冻结选择面**不加** typecheck script） | 0 |
+| G6 | `runtime:prove:raw` 隔离（runtime-kernel+claim-join-orphan+diag-honesty=ai-runtime prove 三套） | 0 |
+| G7 | ai-runtime `prove:test-support-fakes`（#74 边界·六断言含越线负测） | 0（6/6） |
+| G8 | web `prove`（web-logic 全套·含 #60 自持形） | 0 |
+| G9 | ai-graphs `prove:pipeline`（resume-quiz 新质量分） | 0 |
+| G10 | ai-runtime `prove:vstream`+`prove:retrieval`（fake 子路径消费回归） | 0/0 |
+| G11 | `api:validate` 隔离 | 0（204 PASS·首跑 5 红=resume.service #85 漏 import 行已修·基线树对照法定责后复绿） |
+| G12 | `neg:interview` 隔离 | 0（102 负路径） |
+| G13 | `migrate:prove` 隔离 | 0 |
+| G14 | `voice:prove` 隔离（worker 侧 test-support 子路径解析） | 0 |
+| G15 | `qbank-pipeline:prove:raw` 隔离 | 0 |
+| G16 | `qbank-integrity-upgrade:prove:raw` 隔离 | **1=基线同红不洗**（`permission denied for table schema_migrations_steps`·基线树 /tmp 对照跑逐字节同红同位亲证·环境权限面非本刀触域·归 MIG/infra 域呈报） |
+
+**E5 流程如实登记**：G11 首跑 5 红（resume profile/RLS/软删三面）→ 根因=EXEC 在 resume.service.ts #85 单源化时删本地正则**漏补 import 行**（ReferenceError: UUID_RE is not defined→500）→ 基线树（merge 点 `8ee77301` worktree 对照）全绿定责本刀 → 补 import 后复跑 204 PASS 全绿。基线对照工作树已清（worktree remove+prune）。
+
+**收尾声明**：markers=0（五类标记词 grep 本刀改动集零命中）·est live=0（零模型外呼·零生产操作·零 secrets·零 SMTP·`actualSpendCny=null` 脚注同源）·migrations 全目录字节零触（G1）·挂起 #26/#32 零触·#263 零触·簇E 11 件零触·I5 九件占面零触（zh.json/dashboard:34/QuizPanel 等 grep 本刀改动集零命中）·SSOT 四件零触·SCORE/聚合器面零触·E2E 场景面零新增（既有 spec 零改）·H5 已并线面零触·⛔push（本刀全程零 push）。
 
 ---
 
