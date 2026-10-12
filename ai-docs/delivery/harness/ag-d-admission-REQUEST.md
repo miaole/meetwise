@@ -1,0 +1,128 @@
+# AG-D-ADMISSION REQUEST（AG 修复轨·失败语义刀 D · AG-01 准入拒绝去终态化（熔断开/并发满/预算尽三触发 → refused 可重试·不再写 failed 终态）· 骑刀 C 骨架 · docs-only 落卷即停）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+
+**席位**：AG 修复轨刀 D 起草席（AG-RESUME 失败语义簇·EXPERT-REVIEWS §七 失败语义轨刀 D 承接·协调方常设 loop）。
+**基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（主线 tip·`git log -1` 实测 2026-10-12 19:28:47 +0800·AG+计费战役刀位图立节 docs commit·零码面）。分支 `line/ag-d-admission`·工作树 `meetwise-agd`（`git worktree add ../meetwise-agd -b line/ag-d-admission` 本起草席已立·建前 worktree list + branch 双查实测不存在·HEAD 落 `2bc4e2bd` 亲证）。
+**立项出处（不自建 SSOT 行——行翻面权归协调方）**：三层蓝本+刀位登记全部精读引用——①`ai-docs/delivery/ai-capability-review/issues-final.md`（blob `dac7f58c`）AG-01 总览行 `:13` + 详情 `:59-66`（P1·编排运行时·file:line+触发例+修法①「准入拒绝属于 known-not-sent，应释放 claim」②「在 claim 之前先做准入，拒绝时直接返回可重试错误，由 job 退避后重排」③「熔断期间的出题、报告请求排队等待，不要 fail-closed」·关联 #10/#4/#116）；②同目录 `EXPERT-REVIEWS.md`（blob `5d446552`）§一 `:5`（**定级修正：P1 维持且文档说保守了——并发 4 与熔断均全平台跨用户跨副本（0120 槽位 PK 无 owner·inflight 仅进程本地·interview-dispatch-fairness.ts:10-13）——中等并发下必然事件非推断**）+ §二-2 `:17`（刀 C requeue 三件勘误=本刀所骑骨架的形状权威）+ §二-3 `:18`（重试预留放大=拒绝重排回流通路约束）+ §四 `:30`（统一结算状态机 **refused 行**：「准入/预留/prepare 拒绝→零外呼零钱·breaker no_signal·**claim 释放可重试**」=本刀语义权威）+ §六 `:50` EG-A4（admission 槽租约 60s 短于执行超时·**AG-01 排队实现不得以槽租约为存活真相**）+ §七 `:63` **刀 D 计划行=修法权威**（「AG-01（准入拒绝去终态化：预 claim 准入或 refusal 释放 claim·0130:203-215 expired-claimed 重领有现成落点）——骑刀 C 骨架」）+ `:66` 成本轨⑤（AG-08 熔断键按端点=后继）；③同目录 `review-log.md`（blob `ea66a06e`）AC-F19 `:85`（failover cost policy 拒→AG-08·后继刀面）+ AC-F14 `:80`（unknown 计熔断失败=刀 B 域）+ `:152`（AG-01 系本次补盲新增）；④登记行=`ai-docs/delivery/ai-capability-review/LANDING-INDEX.md`（blob `948fc7c7`）`:32` AG-RESUME 失败语义簇行（AG-01 载「准入拒绝释放 claim/可重试化」——本卷即该行刀 D 向之起草兑现）+ `:16`（深验证定谳「涉案 migration（0085/0088/0119/0120/0130/0134）零字节漂移」）；⑤刀位登记=`ai-docs/delivery/harness/product-campaign-LEDGER.md`（blob `873a3668`）`:409` 刀 D 行「失败语义 | 刀 D | AG-01 准入去终态化 | **待起草（骑刀 C 骨架）**」——本卷即该行起草兑现。
+
+## §0 现状锚（起草席亲读·base `2bc4e2bd`·file:line 逐条 rg/sed/Read/git ls-tree 实测复核·**EXEC 立项照本节重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+### 0.0 防重双对表（已终局·强制项）
+
+- `git worktree list` 建前 16 树实测（主仓+billrev/5e/aga/agb/agc/authz/blite/cost1/e2sc/i263/i6/entpay/parity2/qsec/ttlwire）——**无 agd 树**。
+- `git branch --list "line/ag-d-admission"` 建前空输出——**无同名分支**；宽域 `git branch | grep -iE "ag-d|agd|admission"` 零命中。
+- `rg -l "ag-d-admission" ai-docs/delivery/harness/` EXIT=1 **零命中**；`rg -lw "AG-01" ai-docs/delivery/harness/` 恰 1 命中=`product-campaign-LEDGER.md`（:409 刀位图登记行·「AG-01 准入去终态化」系登记出处非同名刀卷·登记性命中）；`ai-capability-review/` 四件+INDEX 系蓝本登记卷非刀卷。→ **停止条件未触发·可建树落卷**。
+
+### 0.1 blob 锚表（`git ls-tree HEAD` 亲算·全 @`2bc4e2bd`）
+
+| 文件 | blob（8 hex·括号全 40 hex） | 关键行锚 |
+|---|---|---|
+| `packages/ai-runtime/src/invoke.ts` | `647e0aa9`（`647e0aa952f0b4eddc53b06b338951b1379878ae`·全 **941 行** Read 亲读） | 五相位编排注释 **:413**（resolve+prepare → claim → admit → reserve+dispatch）·`isHalfOpenFollower` **:203-210**（`model_circuit_half_open`=唯一可重算路由的准入错）·`releaseSharedAdmissionBestEffort` **:212-226**（**no_signal=派发前失败只还槽/探针不改相位·零改相位的既有先例**）·admit 接线 :429-437（`if (admitted.terminal) return admitted.outcome` :437）·**claim 相位 :609-632**（claimModelInvocation :615·**leaseSeconds:60 :617**·execute :623/cached :624/**failed·unknown→terminal deterministic_refusal :625**/20ms 轮询 :629）·**admit 相位 :634-727**（**:638-640 注释自证**「在 durable claim 之后、派发边界之前执行：拒绝=known-not-sent，claim 可安全 failed」「决策 fail-closed（unknown/blocked/breaker_open/concurrency_exhausted → 确定性拒绝，零外呼）」·**共享准入拒绝面 :642-655**（admitSharedModelOperation :643·`!shared.ok` :646→**failModelInvocationClaim :648**→deterministic_refusal :651-652）·本地 admission 队列 :657-690·半开 route-retry :668-707（sameCostPolicyBinding 冻结绑定 :698-704）·**admissionError 面 :708-725**（code 归并 :712-714→**failModelInvocationClaim :716**→释放共享租约 no_signal :722））·**reserve+dispatch 相位 :729 起**（privacy fence :744-748·**预算尽 :750-759**（reserve 决策非 reserved/held→**failModelInvocationClaim `cost_${reserve.decision}` :758**）） |
+| `packages/ai-runtime/src/model-admission.ts` | `4aced96a`（`4aced96a496d27d1c94d6b5c821d2343dd7df64d`·全 **123 行**） | 头注 :1-19（共享准入/账本/断路器/并发**单一权威**·本文件只编排不持状态）·**ADMISSION_ERROR_CODES :29-33**（`breaker_open→'model_circuit_open'`·`breaker_half_open_busy→'model_circuit_half_open'`·`concurrency_exhausted→'model_concurrency_exhausted'`）·resolveModelAdmissionPartition :44-51·**admitSharedModelOperation :78-97**（leaseSeconds ?? 60 :82·**决策非 admitted→确定性拒绝 :96**）·recordSharedModelOperation :113 起（**:111 注释「`outcome='no_signal'` 且 fee 缺省=派发前失败/确定性拒绝的『只还槽/探针、不改相位』释放」**） |
+| `packages/db/src/model-op/model-invocation.ts` | `31f51e15`（`31f51e1557ea022a4ffa7b1df593c3e208c88bff`·全 **183 行**） | ModelInvocationClaim 联合 :11-16·claimModelInvocation :83-106·markModelInvocationDispatched :109-117·**failModelInvocationClaim :119-126**（**:119 头注「Fails a pre-dispatch claim without ever recording an external-send boundary」·调 `ai_model_fail_claim_scoped`**）·markModelInvocationUnknown :152-158 |
+| `packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql` | `645a9a73`（`645a9a7347f97507d3e0b3068318ef647febd4f9`） | max_concurrency :38·breaker 参数 :40-41·**文本 6 op 种子 :51-57（并发 4/阈值 5/冷却 30000ms）**·vision 2 :59·blocked 8 :61-68·breaker_state PK 四字段 **:114**（无租户维）·**concurrency_lease PK :129 `(provider_account,region,model_or_recipe,operation_id,slot_index)`——无 owner 列=全平台跨用户跨副本共享槽（EXPERT §一 :5 机证）** |
+| `packages/db/migrations/0130_model_invocation_same_key_claim_join.sql` | `239a0b19`（`239a0b19aea47d160d4300144d3a7b283d85187a`·全 **228 行**·**与刀 A/刀 C 卷同 blob=零漂**） | **logical_node 拒绝写 failed :135-148（:140 `SET status='failed',error_code='logical_node_'‖header_decision`）**·succeeded cached 重放 :163-168·**failed 终态重放 :179-181**·**unknown 终态重放 :183-185**·dispatching wait :187-189·logical_node mismatch :191-193·**expired-claimed 重领现成落点 :203-215**（:203 未过期→wait·:207-215 **permit `('claimed','claimed')`+UPDATE 换 lease**——**刀 D 案A 的零新语义落点·shipped 形自证 guard 合法·EXPERT §七 :63 明示**） |
+| `packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql` | `cbc07c09`（`cbc07c09e1aab13be1b8ae7ad8b4a9b5d015496d`） | **transition_permit 状态宇宙 CHECK :18-19（`'claimed','dispatching','succeeded','failed','unknown'`五值封闭——新 status 值被 CHECK 排除·「标 retryable_refused 作新 status」须改历史迁移=禁止）**·state guard :55·**`ai_model_fail_claim_scoped` :581-619（:608-612 `SET status='failed',error_code=…,lease_token=NULL,lease_expires_at=NULL,completed_at=clock_timestamp()`·error_code 校验 :594 `^[A-Za-z0-9._:-]{1,120}$`）** |
+| `packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql` / `0131_job_route_classify_admission.sql` | `671c342f`（`671c342fa72073ad909bedfcdc6cbe0ff40b31d2`） / `41c86bc4`（`41c86bc4f3469c95ee711d50424a5f75563b42eb`） | 0085 逻辑节点槽位（同键换新键被拒的账本面·issues-final :64 引）·0131 job.route-classify.v1 准入种子（并发 4/5/30000 同形——**非 interview operation 亦在全平台并发池·同受本刀语义覆盖**） |
+| `packages/db/migrations/0033_ai_cost_governance.sql` / `0036_ai_text_cost_governance.sql` | `2cce4019` / `68770a26` | **budget_exhausted 决策 0033:127 / 0036:82**（`cost_budget_exhausted` 之源·invoke.ts:758 落 failed 的第三触发） |
+| `packages/db/src/model-op/model-operation-admission.ts` | `afadd1b5`（`afadd1b5e819abd1a8f6afb3344036d15531df7f`） | acquire/record 的 SECURITY DEFINER 封装（案A 新 release 封装的邻位·案B 零触） |
+| `apps/worker/src/adaptive-interview-service.ts` | `001ec000`（`001ec000649f291e90ad6feb18a8361cf2d75c66`·全 **576 行**） | plan 键 `${threadId}:plan` :276·**ask 键 `${threadId}:ask:t${turn}:0` :340/:388/:398/:444**·**invoke 拒绝判死入面 :469/:496（classifyQuestionGenerationError→unavailableGeneration——图投影 degraded）** |
+| `apps/worker/src/adaptive-lifecycle.ts` | `5cfce9be`（`5cfce9be32c866782019bc37b565bfb57b60c5bb`·与刀 A/刀 C 卷同 blob） | generationFailureOf :25-42（**:28-35 provenance.errorCode 透传 invoke error**）·pendingQuestion :44-47·**writeGenerationUnavailable :49-79（failInterviewAndRelease :52 C 端退款+markApplicationAssessmentUnavailable :62+assessment_unavailable/interview_unavailable 事件 :66-78 B 端可重试终态）=准入拒绝现状判死的 worker 终局面**·**:121 `Object.assign(new Error('graph_fence_lost'),{code:'graph_fence_lost'})`=带 code 异常标签惯例先例（本刀衔接面沿用形）** |
+| `apps/worker/src/main.ts` | `8ed81327`（`8ed81327e02dff63f02ad34fbf1e59dbc49ff9f5`·全 **812 行**） | **报告键 `${s.interviewId}:report` :175（固定键零 attempt 维）**——报告重排队列被账本毒化锁死的键面 |
+| `apps/worker/src/interview-dispatch-fairness.ts` | `34f0144f`（`34f0144f8e9776f6a06b7c126aef8c10e5ceb863`） | **DEFAULT_INTERVIEW_DISPATCH_BUDGET :10-13（perOwner 1/global 4·进程本地）**·readInterviewDispatchBudget :21-23（`WORKER_INTERVIEW_GLOBAL_INFLIGHT` 上限 64）——**inflight 仅进程本地=并发触顶非推断的第二机证** |
+| `packages/db/src/interview/interview-jobs.ts` / `apps/worker/src/interview-consumer.ts`（刀 C 骨架现状面·只读参照） | `775a9336`（`775a93361e5db460a6b94a765e346c5c840126bf`） / `885b5993`（`885b5993b3419b3891e1b9f75dd2b70b7f12a8db`） | requeueInterviewJob :239-245（置 queued·无退避无上限·原始形）·claim queued 零闸 :128·catch :498-509（:502 唯 fence 白名单）——**刀 C EXEC 后升级为本刀衔接骨架（0175 next_attempt_at+白名单分类+retry_exhausted）** |
+| `packages/ai-runtime/test/model-op02-shared-provider.proof.ts` | `4e58ef4f`（全 **259 行·`A(` 24 臂亲数**） | **测试 7 :236-254：breaker trip（5×failure :238-242）→invoke 拒绝 model_circuit_open 零外呼→断言 `durable claim=failed` :245-249——现状坏行为的正钉臂·本刀修法后按裁决案改写重钉（案A=released 可重领/案B=零行）·交付面非回归破坏**·:113-117 专用分区 INSERT ON CONFLICT 形（proof 定制 policy 合法先例）·:251 breaker_state 复位清理形 |
+| `packages/ai-runtime/test/model-slot-bypass.static.proof.ts`（HC-GAP-009 静态门） | `daf99bdd`（`daf99bdd9770a4c7b0da370a468b672572def55b`） | 无 operation 不写 lease/有 operation 槽满拒绝的静态接入面断言（案B 相位重排时须全量翻检·案A 零动） |
+| `package.json` / `packages/ai-runtime/package.json` | `616cf12b` / `169f68c6` | 根 :231 `model-op02:prove`（run-e2e-isolated 隔离容器门）·ai-runtime :52 `prove:model-op02` |
+| 蓝本四件+LEDGER（只读引用） | issues-final `dac7f58c` / EXPERT-REVIEWS `5d446552` / review-log `ea66a06e` / LANDING-INDEX `948fc7c7` / product-campaign-LEDGER `873a3668` | 见卷首立项出处行锚 |
+| 刀 C 卷（在途分支参照·非主线） | `line/ag-c-requeue` @`5be1d213`（并线重 pin 2bc4e2bd） | 骨架契约：新迁移 0175 `next_attempt_at`+consumer errCode 白名单分类+`retry_exhausted` 终态+EG-A2 闸（卷 §1-修法①-④·裁决项①-④）——本刀 §4 硬前置 |
+
+### 0.2 漂移登记（蓝本锚=外部只读快照 `2fab7946`/意见书对照 tip `f547444e` → 卷基线 tip `2bc4e2bd`·结论零变·EXEC 重 pin 时同协议处理）
+
+1. **invoke.ts blob+行号双漂**：`68e3c1f4`（刀 A 基线 `d46cdd21` 时）→`647e0aa9`（现 tip）——`git diff` 亲测**恰 +8 行**（AG-COST1 `6f2ed876` 的 cachedInputTokens 观测注释 :56-63）。issues-final `:62` 载「invoke.ts:634-646 共享准入拒绝→failModelInvocationClaim」→ 现共享拒绝面 **:642-655（fail 调用 :648）**（+8 恰合·GODFN-1a 五相位注释 :609/:634/:729 自证原行号搬移链）。
+2. **main.ts 报告键锚**：issues-final AG-03 面引 `:173` → 现 **:175**（+2·同族插入漂移·同物 `${interviewId}:report`）。
+3. **worker 触发面锚重 pin**：issues-final `:64` 载 `adaptive-interview-service.ts:150-175` → 现 blob `001ec000` 该区为 CRAG 段 :140-180；invoke 拒绝判死面现位 **:469/:496**（classifyQuestionGenerationError→unavailableGeneration）+ 终局面 `adaptive-lifecycle.ts` **:25-79**——机制链零变·锚如实改。
+4. **0130 零漂**：blob `239a0b19` 与刀 A/刀 C 卷同值（LANDING-INDEX `:16` 定谳「涉案迁移零字节漂移」亲证）——issues-final AG-01 引 :179-180 failed 重放恰合；AG-03 引 :163-164 succeeded 重放现位 :163-168。
+5. **LANDING-INDEX blob 漂**：`14783e14`（刀 C 立项时）→`948fc7c7`（现 tip·第九/十/十一节增节所致）——`:32` AG-RESUME 行语义零变（AG-01 载「准入拒绝释放 claim/可重试化」逐字在）。
+6. **model-client.ts blob**：`27eb7516`（刀 C 旧基线引）→`cd924936`（现 tip·AG-COST1 并线 cached-observe 所致）——刀 B 域·本刀零触只登记。
+7. **刀 C 骨架现状**：主线 @`2bc4e2bd` **尚无** next_attempt_at/白名单升级（interview-jobs.ts `775a9336` 原始形·requeueInterviewJob :239-245 无退避无上限）——骨架在 `line/ag-c-requeue` @`5be1d213` 在途（双审 BOTH PASS·rev 0175·EXEC 待放·LEDGER `:408`）——任务面「requeue+退避已由刀 C 建」如实修正为「**已由刀 C 定稿（卷级）·主线并入待 EXEC**」·本刀 §4 硬前置。
+
+## §1 红事实（机制链现 tip 重 pin·全 @`2bc4e2bd` 实测·源=issues-final AG-01 :59-66+EXPERT §一 :5/§四 :30/§七 :63+review-log AC-F14 :80/AC-F19 :85）
+
+### 1.1 AG-01 机制链：派发前准入拒绝→failModelInvocationClaim→failed 终态→固定键永久毒化
+
+逐行链（现 tip 行号）：
+
+1. **五相位与固定键**：invoke 五相位 :413（resolve+prepare → claim → admit → reserve+dispatch）。claim 相位 :609-632 先建 durable claim（lease 60s :617）；幂等键由调用方固定：plan `${threadId}:plan`（service :276）·ask `${threadId}:ask:t${turn}:0`（:340/:388/:398/:444）·report `${interviewId}:report`（main.ts:175）——**全族零 attempt 维·零退避维**。
+2. **三触发源（fail-closed 决策·非推断）**：admit 相位 :634-727 在 claim 之后 dispatch 边界之前跑共享准入（:638-640 注释自证）。①**熔断开**：0120 文本 6 op 阈值 5/冷却 30000ms（:51-57）·连续 5 次 failure→open→`model_circuit_open`（model-admission.ts:29-33）；②**并发满**：max_concurrency=4（:52-57）·并发槽 CAS 跨副本认领·**PK 无 owner 列（:129）=全平台跨用户跨副本共享 4 槽**→`model_concurrency_exhausted`；③**预算尽**：reserve 决策非 reserved/held（invoke :757）→`cost_budget_exhausted`（0033:127/0036:82）。另有本地 admission 族 `model_admission_timeout`/`model_admission_failed`（:712-714）。
+3. **拒绝即写终态**：三拒绝点 **failModelInvocationClaim :648（共享准入）/:716（本地 admission）/:758（预算尽）** → 0088 `ai_model_fail_claim_scoped` :581-619（:608-612 `SET status='failed'`+error_code+**completed_at**）——**known-not-sent（零外呼零费用）却落与确定性业务失败同格的 failed 终态**（EXPERT §四 :30 refused 行判定其应「零外呼零钱·breaker no_signal·claim 释放可重试」）。
+4. **终态重放锁死**：同键任何重试 claim→0130 **:179-181 直接返回 'failed'**（unknown :183-185）——零外呼重放失败；同 logical_node 换新键亦被拒（:135-148/:191-193·0085 槽位面）。
+5. **worker 判死**：invoke `{error}` → service :469/:496 classifyQuestionGenerationError→unavailableGeneration（图投影 degraded）→ lifecycle generationFailureOf :25-42→**writeGenerationUnavailable :49-79→failInterviewAndRelease :52（C 端退额度）+assessment_unavailable/interview_unavailable（B 端可重试终态）**——整场 generation_unavailable。
+6. **报告永不自愈（队列在·键被毒化）**：报告侧自带退避重排队列（report.ts :49-88·`next_attempt_at` 2^n 封顶 300s+quarantined）——但每次重试 claim 同一固定键 `:report` 即被 :179-181 重放 failed→循环到 quarantined（#229 死路）。**账本释放（案A）即解锁既有队列——报告侧零码自愈的前提面（键本身归刀 E）**。
+7. **30s 窗口永久放大**：熔断冷却仅 30s（0120 :51-57·供应商抖动分钟级自愈）；窗内被拒的每个键永久 failed——**瞬时故障被账本放大为永久作废**（issues-final `:13` 标题语义）。
+
+### 1.2 触发非推断+触发例（issues-final :63-65 语义·现 tip 重 pin）
+
+- **并发 4 全平台**：0120 并发槽 PK 无 owner（:129）+breaker PK 四字段无租户维（:114）——跨用户跨副本共享；worker inflight 仅进程本地（dispatch-fairness :10-13 perOwner 1/global 4）——部署 ≥2 副本或 `WORKER_INTERVIEW_GLOBAL_INFLIGHT` 调高即平台级并发>4→`model_concurrency_exhausted` 必然（EXPERT §一 :5「中等并发下必然事件非推断」定级机证·两锚亲读）。
+- **触发例**：供应商抖动，同一 operation 连续 5 次 5xx/超时→熔断开 30s→窗内全部在面用户的出题/报告调用被准入拒绝→账本逐个写 failed→这些面试的 ask 键与 report 键永久 failed（重试只重放失败 :179-181）→整场 generation_unavailable（C 端退额度/B 端「可重试」终态实际不可达）·报告 quarantined 死路。**联动面**：AC-F14（model-client unknown 亦计 breaker failure `:80`——雪崩回路·刀 B 域）；AC-F19（半开 failover cost policy mismatch 拒 `:85`·invoke :698-704/:716 同 fail 面——错误码可观测性归 AG-08 后继）。
+
+### 1-修法（两案并陈·裁决项①二选一·严格沿 EXPERT §七 :63 刀 D 行+§四 :30 refused 状态机行·worker 衔接面=骑刀 C 骨架）
+
+- **案A refusal 释放 claim（推荐）**：准入拒绝族三拒绝点（:648/:716/:758——**:745 privacy fence 不在族内**：隐私围栏属确定性安全拒绝非瞬时准入·维持 failed 终态零变）改「释放 claim」：新 SECURITY DEFINER `ai_model_release_refused_claim_scoped`（新迁移·`SET lease_token=NULL,lease_expires_at=NULL` **留 status='claimed'**·permit `('claimed','claimed')` 形**逐字沿 0130:207-215 shipped 自证形**——guard 合法性由现役代码背书·error_code 校验沿 0088 :594 regex）——释放后同键 claim 走 **0130:203-215 expired-claimed 重领现成落点** 重获 execute（EXPERT §七 :63 明示落点）。invoke 仍返回 `{error:拒绝码}`（调用方可观测零变）·breaker 仍 no_signal（:722 先例）·completed_at 零写·账本行保留（审计/幂等面零破坏）。「标 retryable_refused 作新 status」被 0088 :18-19 CHECK 封闭宇宙排除（改历史迁移=禁止）→**释放形即 retryable_refused 的账本语义等价物（拒绝码即标记）**。
+- **案B 预 claim 准入（并陈·issues-final 修法②）**：admitSharedModelOperation 提到 claimModelInvocation 之前——拒绝=**零账本面**（零 ai_model_invocation 行）·invoke 返回可重试错误→job 退避重排沿刀 C。优点：零账本迁移零释放函数。代价（如实披露）：①同键 follower join 语义重排——claim 相位是同键去重唯一权威（:623-629·20ms 轮询），准入前置后每个 follower 须先过准入才可轮询→N 等待者占 N 槽=**槽饥饿放大**（4 槽被同键 wait 者吃满）·需「admit 成功后转 wait 即释放」补丁形=新机制面；②半开 route-retry（:668-707）在 claim 冻结绑定（sameCostPolicyBinding :698-704）之上运作——claim 后置破坏该比较基线；③HC-GAP-009 静态门（model-slot-bypass.static.proof `daf99bdd`）接入面顺序断言须全量翻检。**推荐=案A**（0130:203-215 现成落点·相位零重排·follower/route-retry/静态门三面零动·EXPERT §四 :30 refused 行原文「claim 释放可重试」直指案A）。
+- **排队语义裁决（两案公共·裁决项②）**：issues-final 修法③「熔断期间排队等待不要 fail-closed」——推荐：**不引入 invoke 进程内排队**（Ban 新定时器/新等待面·EG-A4 :50「AG-01 排队实现不得以槽租约为存活真相」——60s 槽租约非存活真相），**排队语义由 job 层承担=刀 C requeue+next_attempt_at 退避即「经队列的排队」**。联动约束如实披露：刀 C 范本 2^n 封顶 300s 下首拍 2/4/8s 仍落在 30s 冷却窗内→再拒再排（每次零外呼零钱·no_signal 不计 breaker failure·不放大熔断）·2^5=32s 首超窗宽·attempts 预算内可达——退避参数与熔断冷却的联动复核归刀 C 裁决项③本刀只登记不调参。**快速拒绝+队列重排=两案统一外形**。
+- **worker 衔接面（骑刀 C 骨架·裁决项③）**：现状准入拒绝沿 unavailableGeneration 判死链（§1.1-5）——必须在 worker 包内把拒绝从「图投影判死」改为「**带 code 异常→consumer 刀 C 白名单→requeue+退避**」：拒绝族 code=`model_circuit_open`/`model_concurrency_exhausted`/`cost_budget_exhausted`/`model_admission_timeout`/`model_admission_failed`（**白名单受刀 C §5「只增不减」约束**）抛出形沿 adaptive-lifecycle.ts:121 `Object.assign(…,{code})` 惯例；落点三候选并陈（lifecycle generationFailureOf 消费点 :25-42（errorCode 已透传 :28-35）/writeGenerationUnavailable 入口 :49/service 图运行 wrap 层）·**零图包触**。attempts≥MAX 兜底=刀 C `retry_exhausted` 终态（拒绝风暴不无限重排·EXPERT §二-3 回流约束）。报告面：案A 账本释放即解锁 §1.1-6 既有队列·报告侧零码。
+
+## §2 验收断言候选（pre-exec 双审核对单基面·断言力≥3）
+
+1. **新 proof（隔离容器 run-e2e-isolated 形·沿 `model-op02:prove` 门+专用分区 INSERT 先例 :113-117·真 PG 全量版本化迁移+零真实 provider）**：**三臂×「拒绝→可重试」断言**——①**熔断臂**：5×failure trip（沿 :238-242 形）→invoke 拒 `model_circuit_open` 零外呼→断言账本面非 failed（**案A：status='claimed'+lease 双空·completed_at NULL；案B：零行**）→breaker 复位（沿 :251 形）→**同键重 claim=execute（键未毒化=本刀核心断言）**；②**并发臂**：专用分区 max_concurrency 填满（沿 :164-173 形）→拒 `model_concurrency_exhausted`→同断言→释放槽后同键可执行；③**预算臂**：budget scope 打满→拒 `cost_budget_exhausted`→同断言→窗口复位后同键可执行。**负臂（既有门回归）**：succeeded cached 重放（0130:163-168）/payload·cost-scope mismatch（:171-177）/logical_node mismatch（:191-193）/dispatching wait（:187-189）语义零变。
+2. **model-op02:prove 回归（24 臂）**——**:245-249 测试 7 臂现钉「durable claim=failed」=AG-01 现状行为的正钉·本刀按裁决案改写重钉（案A=released+可重领/案B=零行）=本刀交付面·EXEC 收据登记·非回归破坏**；reaper:prove 28 臂+interview:prove（刀 C 交付面回归·consumer 白名单纳入拒绝族后其瞬时/确定性/超限三臂语义不变）。
+3. **worker 衔接 proof（沿 interview.proof.ts :95-104 ConsumerDeps 注入形）**：准入拒绝注入→断言 job **requeued（非 failed 终态·零退款·interview 不终场）**+`next_attempt_at` 落值（刀 C 0175 面）+到点重领；**耗尽臂**：拒绝族打满 attempts→`retry_exhausted` 兜底终态（拒绝风暴有界）。
+4. **typecheck 权威形**：`turbo typecheck --force` **3/3** 绿+根 `pnpm typecheck` EXIT=0——**勿读作 worker 直调形绿**（worker 包直调 tsc 系 46 红既有基线·刀 A rev2 口径）。
+5. **账本纪律断言**：历史迁移 0001-0169 **零字节**+（案A）恰一新迁移+（案B）零新迁移；`git diff` 断言 0120（`645a9a73`）/0130（`239a0b19`）/0088（`cbc07c09`）/0085（`671c342f`）/0033/0036 blob 零改·0120 种子参数值零改（§3-⑦）。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **AG-08 熔断键按端点=成本轨⑤**（EXPERT :66）+AC-F19 failover mismatch 错误码可观测面（review-log `:85`）=后继刀——本刀不改熔断键结构。
+2. **报告键 `:a{n}`/attempt 源=刀 E**（LEDGER `:409` 含 AG-10 守卫跨轨硬约束）——本刀账本释放解锁既有队列后即止·键面零触（report.ts/report-worker.ts 零字节）。
+3. **AG-06 model-client 四态分类=刀 B**（EXEC 在途）——AC-F14 unknown 计 breaker failure 面归 B·本刀零触 `model-client.ts`。
+4. **AG-04 骨架本体=刀 C**（BOTH PASS·EXEC 待放）——本刀只消费其白名单/退避/retry_exhausted 结构·不重建不调参（退避参数与熔断冷却联动=刀 C 裁决项③）。
+5. **AG-02 残面=刀 F**；AG-07/成本轨②-⑥；AG-15 卡死检测（EXPERT :69）。
+6. **0120 种子参数（并发 4/阈值 5/冷却 30s）零改**——改参不治本：键毒化不修则熔断窗过后仍 replay failed（§1.1-4）。
+7. **EG-A4（admission 槽租约 60s 短于执行超时·长生成期瞬时超卖）只披露不修**（EXPERT :50）——作为本刀排队实现约束面（不得以槽租约为存活真相）。
+8. **privacy fence 拒绝面零触**（invoke :744-748·确定性安全拒绝维持 failed 终态——不在 refused 族内）。
+9. API/前端/e2e 产品面零触；共享 SSOT（LEDGER/checklist/issues-master/ai-capability-review 四件+INDEX）只读引用零改（AG-RESUME 行/刀位图刀 D 行翻面权归协调方）。
+10. est live=0（§6）。
+
+## §4 依赖
+
+**①刀 C 先行=硬前置**：worker 衔接面（requeue 白名单+0175 `next_attempt_at` 时闸+`retry_exhausted` 上限+EG-A2 闸）全在刀 C 交付结构上——刀 C 现状 BOTH PASS·rev 0175 在途 EXEC 待放（LEDGER `:408`·分支 @`5be1d213`）——**刀 C 未并入主线则本刀 EXEC 不得放行**（协调方排期）。**②刀 B 同文件并发登记面（如实登记）**：刀 B EXEC 在途分支 `line/ag-b-classify` 实测触 `invoke.ts`/`model-client.ts`/`model-invocation.ts`+新迁移 `0174_ag06_settled_failed_usage_source.sql`（git diff --name-only 亲证）——**本刀触 `invoke.ts`（案A 三拒绝点+新 release 调用）与其同文件：EXEC 立项须在刀 B 并线后照 §0 协议重 pin（blob/行号漂移如实改锚）·执行序遵协调方（B 并线→C EXEC→D）**；刀 B 定序软约束沿 EXPERT :61（先于一切重试刀）。**③迁移号**：案A 需恰一新迁移·候选 **0177**（协调方分配链实测：billing 0170-0173/刀B 0174（在途分支亲证）/刀C 0175/qbank 0176+（LEDGER `:412`）——0177 待协调方裁定·刀 C 21 秒竞速先例如实引）；案B 零迁移。**④无同文件并发登记他面**（建前 16 树实测·model-admission.ts/model-operation-admission.ts/lifecycle 衔接候选面零他刀登记——刀 A 树登记 `adaptive-lifecycle.ts` 但其 EXEC 未触 :25-79/:121 以外区域·落点裁决时复核）。**下游**：刀 E（报告键）骑本刀「拒绝不毒化键」语义·刀 F 骑拒绝族可重试面·AG-08 后继骑本刀拒绝码清单。
+
+## §5 Ban 列表 + pins（沿 ag-a/ag-c 卷同源逐字誊 + 本刀面增补）
+
+**Ban 列表**：
+
+Ban push；Ban 自批（双审须独立外席）；Ban retry-to-green；Ban 翻 pins（§5 pins 十一值·含 `actualSpendCny=null` 不翻）；Ban 改共享 SSOT（product-campaign-LEDGER/execution-master-checklist/issues-master/ai-capability-review 四件+INDEX 行与统计只读引用·AG-RESUME 行/刀位图行翻面权归协调方）；Ban 触其他工作树；Ban 伪造已读/已验来源；**本刀增补**：**Ban 准入拒绝写 failed 终态（永钉）**——熔断开/并发满/预算尽三触发族任何路径不得再落 `status='failed'`/写 completed_at（known-not-sent 语义钉·EXPERT §四 :30 refused 行——本刀修法核心的反向保证）；**Ban known-not-sent 反转**——准入拒绝面零 provider 外呼零费用零预留冻结·永不计 breaker failure（no_signal 恒持）永不写钱面；**Ban privacy fence 拒绝语义变更**（:744-748 确定性安全拒绝维持 failed——不在 refused 族内）；Ban 历史迁移零字节改（0001-0169·案A 只加新迁移/案B 零迁移）+Ban 影子 sql/ 面改；**Ban 新 status 值/改 0088 状态宇宙**（permit CHECK :18-19 五值封闭·retryable_refused 以释放形+拒绝码表达非新 status）；Ban 0120 种子参数改动（并发 4/阈值 5/冷却 30s·§3-⑥）；Ban 动 `model-client.ts`（刀 B 域）·Ban 触图包 `packages/ai-graphs/**`（衔接面落点全在 worker 包·裁决项③）；Ban 触报告队列面（report.ts/report-worker.ts/04_report.sql 零字节·刀 E 域）；Ban 触 `model-op02-shared-provider.proof` :245-249 以外既有臂语义（24 臂回归基线·:245-249 按裁决案改写重钉为唯一例外·收据登记）；**Ban invoke 进程内排队/新定时器/新 env 闸**（排队=刀 C job 层·EG-A4 约束）；**Ban consumer 白名单只减**（刀 C「只增不减」约束沿承）；Ban 顺带升级依赖包（DEPS-AUDIT 域）。
+
+**pins（十一值照抄·零翻转）**：
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀 proof 全隔离容器+零真实 provider 外呼·零消耗）
+
+## §6 est live=0
+
+本刀零模型真实外呼：新 proof=真 PG 隔离容器（run-e2e-isolated 完整版本化迁移·需 db:up 既有形）+确定性 stub/注入（沿 model-op02 proof 既有形·零真实 provider）；迁移=本地隔离库；typecheck=本地门——零生产操作·零 secrets·零消耗（pins 脚注同源·EXEC 收据逐 prove 登记零外呼口径）。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（恰 1 .md·`ai-docs/delivery/harness/ag-d-admission-REQUEST.md`）**五类标记词 grep 零命中**（起草席亲跑·命令与回执沿 ttl-wire receipts/05-markers 形留执行席收据）。五类标记词不复抄卷内（避免自匹配·沿 ag-a/ag-c/authz-harden/ci-wiring/ttl-wire 卷 §7 同形制）。
+
+## §8 STOP（开工三条款）
+
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（EXPERT-REVIEWS §七 刀 D 计划·LEDGER `:409` 刀 D 行与 LANDING-INDEX `:32` AG-RESUME 行系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 漂移登记如实在案·尤其刀 B 并线后的 invoke.ts blob 重锚与刀 C 并线后的骨架重锚）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：修法两案与现码冲突即停上报——亲读核对**零冲突**（§0.2 七条漂移全登记性·其中「刀 C 骨架已建」预设与主线实测不符处已按实测改述为「卷级定稿·主线并入待 EXEC」§0.2-7·非冲突·EXPERT §七 :63「骑刀 C 骨架」本即依赖序语义）。
+
+**待双审/EXEC 裁决项**：①**案A/案B 二选一**（专家两案并陈·推荐=**案A refusal 释放 claim**——0130:203-215 expired-claimed 现成落点+permit `('claimed','claimed')` shipped 形背书+相位/follower/route-retry/HC-GAP-009 静态门四面零动 vs 案B 预 claim 准入的槽饥饿放大+冻结绑定基线破坏如实披露 §1-修法）；②**熔断期排队语义**（推荐=快速拒绝+刀 C job 层退避承担「经队列的排队」·不引入 invoke 进程内排队（Ban 新定时器·EG-A4 槽租约非存活真相）vs 真进程内等待队列形并陈——后者需新等待原语+EG-A4 约束重设计）；③**worker 拒绝抛出落点**（推荐=lifecycle `generationFailureOf` 消费点 :25-42——errorCode 已透传 :28-35·最小触面·沿 :121 Object.assign code 惯例 vs writeGenerationUnavailable 入口 :49/service 图运行 wrap 层并陈·零图包触为硬界）；④**案A 迁移号与 release 函数面**（推荐=0177 待协调方裁定·函数名 `ai_model_release_refused_claim_scoped`·允许码面=拒绝族五 code 白名单校验沿 0088 :594 regex vs 放开全 regex 并陈）；⑤**报告臂证明深度**（推荐=账本层断言即可（释放后同键 claim=execute 覆盖 report 键同机制）vs 加 e2e 报告重排全链臂并陈——后者越 §3-② 刀 E 边界风险如实标注）。
+
+---
+
+*AG-D-ADMISSION REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`2bc4e2bd`（git log -1 实测 2026-10-12 19:28:47 +0800）· 分支 `line/ag-d-admission` · 工作树 `meetwise-agd`（git worktree add 本起草席立·建前 worktree list+branch 双查不存在）· 立项出处三层蓝本+刀位登记=issues-final AG-01 :13/:59-66（修法①②③+#10/#4/#116）+EXPERT-REVIEWS §一 :5（并发 4 全平台非推断定级）+§二-2 :17（刀 C 骨架三件）+§二-3 :18+§四 :30（refused=零外呼零钱·breaker no_signal·claim 释放可重试·语义权威）+§六 :50（EG-A4）+§七 :63（刀 D 计划=修法权威·0130:203-215 现成落点·骑刀 C 骨架）+:66（AG-08=成本轨⑤后继）+review-log AC-F19 :85/AC-F14 :80/:152+LANDING-INDEX :32/:16（不自建 SSOT 行）+product-campaign-LEDGER :409 刀 D 行（待起草·骑刀 C 骨架）· 防重双对表过（建前 16 树无 agd·harness 零同名卷·LEDGER 命中系登记性）· 红事实=AG-01 链七步（五相位 :413+固定键族 :276/:340/:444/main.ts:175→三触发源 fail-closed（熔断 0120:51-57/并发 4 槽 PK 无 owner :129/预算尽 0033:127·0036:82）→三拒绝点 failModelInvocationClaim :648/:716/:758→0088 :581-619 写 failed 终态 :608-612→0130 :179-181 终态重放锁死+同节点换键拒 :135-148→worker 判死链 service :469/:496→lifecycle :25-79 退款+可重试终态→报告队列在键被毒化 :report main.ts:175→30s 窗口永久放大）+触发非推断双机证（0120:129 槽位无 owner+dispatch-fairness :10-13 inflight 进程本地）· 修法=两案并陈（案A refusal 释放 claim·推荐·0130:203-215 落点+release 函数+privacy fence 不在族内 vs 案B 预 claim 准入·槽饥饿放大/冻结绑定/静态门三代价披露）+排队语义裁决（job 层退避承担·不进程内排队）+worker 衔接面（拒绝族 code 异常→刀 C 白名单 requeue·零图包触·attempts 兜底 retry_exhausted）· 断言候选五条（三臂×拒绝可重试新 proof+既有门负臂/model-op02 24 臂回归含 :245-249 正钉臂改写重钉/worker 衔接 proof/typecheck 权威形/账本纪律 blob 断言）· est live=0 · pins 十一值照抄 · markers=0（亲跑）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
