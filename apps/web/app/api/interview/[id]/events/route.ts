@@ -15,7 +15,12 @@ const STRESS_TURNS = 10_000;
 // - progress：connecting 期先推 generation_progress 帧 → 分块停顿 → question_ready(携 plannedTurns) → report_ready。
 //   分块+延迟发射让浏览器断言能在「connecting+进度」「进题+徽标」「终态」三拍上停住（W3 臂1/臂2+W4 面板断言注入源）。
 // - silent：零帧变体——全程无 generation_* 帧，验证 connecting 静态文案逐字兜底（W3 臂3）+ plannedTurns 缺失降级（W4）。
-//   门语义零降级：同样要求 E2E_UI_STRESS==='1' 且持有正常 httpOnly 会话，门外生产代理路径零触碰。
+//   门语义零降级：同样要求构建期内联 __E2E_UI_STRESS__==='1' 且持有正常 httpOnly 会话，门外生产代理路径零触碰。
+// 【#65 裁决项⑤「移出生产构建」形·5E 2026-10-12】门由旧「仅靠运行时 env（E2E_UI_STRESS）」改为
+// next build 期内联字面量 __E2E_UI_STRESS__（next.config.mjs env 键·global.d.ts 声明）：
+// 生产构建（无 E2E_UI_STRESS）内联 '0' → 下方守卫分支静态假 → 打包器死码剔除=压测/守卫数据源
+// 移出生产构建；e2e-ui runner build/start 两阶段均显式置 E2E_UI_STRESS='1' → 内联 '1'，
+// 既有 spec（stream-window.spec.ts 等消费 __e2e_stream_* id）零改零回归。
 const STRESS_PROGRESS_ID = '__e2e_stream_progress__';
 const STRESS_SILENT_ID = '__e2e_stream_silent__';
 
@@ -94,7 +99,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   if (!token) return new Response('unauthorized', { status: 401 });
   const lastEventId = Number(req.headers.get('last-event-id') ?? '0') || 0;
   // G3：同门扩两个 e2e-guard-only 变体 id（progress/silent——W3 三臂/W4 面板断言注入源·§2.10 属本刀）。
-  if ((id === STRESS_ID || id === STRESS_PROGRESS_ID || id === STRESS_SILENT_ID) && process.env.E2E_UI_STRESS === '1') {
+  // #65：门=构建期内联常量（见文件头注）——生产构建此处为 '0'==='1' 恒假+死码剔除。
+  if ((id === STRESS_ID || id === STRESS_PROGRESS_ID || id === STRESS_SILENT_ID) && __E2E_UI_STRESS__ === '1') {
     if (id === STRESS_PROGRESS_ID) {
       return new Response(e2eProgressStream(), {
         status: 200,

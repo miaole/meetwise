@@ -90,7 +90,10 @@ export async function transitionResume(
   return r.rowCount === 1;
 }
 
-/** 持久化结构化 profile：只落脱敏文本 + PII **计数**摘要（连掩码值都不存）。幂等（ON CONFLICT DO NOTHING,重试安全）。 */
+/** 持久化结构化 profile：只落脱敏文本 + PII **计数**摘要（连掩码值都不存）。
+ *  幂等=SAVEPOINT 包裹普通 INSERT（重试安全；#192 勘误 2026-10-12：本行旧注「ON CONFLICT DO NOTHING」
+ *  与实现不符——实现刻意不用 ON CONFLICT DO NOTHING，见函数体内注：RLS ingesting 期 active-read 策略下
+ *  conflict 行不满足 SELECT policy，改用 SAVEPOINT 把 23505 重试竞态局部化）。 */
 export async function persistResumeProfile(
   c: Client, owner: string, resumeId: string, p: IngestedProfile, status: 'ok' | 'needs_review' | 'rejected' = 'ok',
   ocrBinding: ResumeOcrBindingSnapshot | null = null,
