@@ -4,7 +4,7 @@
  * 安全铁律落地:**不可信用户数据进 user 的 <data> 块,绝不拼进 system 指令**(防注入越权)。
  */
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult } from './invoke.ts';
+import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult, type ModelUsage } from './invoke.ts';
 import { combineAbortSignals, ExternalHttpStatusError, fetchJsonWithTimeout, timeoutSignal } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
@@ -652,7 +652,7 @@ export function openAICompatibleClient(cfg: {
 
       const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{
         model?: string;
-        choices?: { message?: { content?: string } }[];
+        choices?: { message?: { content?: string }; finish_reason?: string }[];
         usage?: ProviderUsagePayload;
       }>(chatUrl, {
         method: 'POST',
@@ -692,21 +692,52 @@ export function openAICompatibleClient(cfg: {
           const j = g7
             ? await g7RuntimeInjection().withOutboundAllow(() => dispatchOnce(activeModel))
             : await dispatchOnce(activeModel);
-          const content = j.choices?.[0]?.message?.content;
-          if (!content) {
+          // ── AG-06/AG-14 管道改造缝（EXPERT-REVIEWS §四 :35：dispatchOnce 返回与 parse 之间）──
+          const choice = j.choices?.[0];
+          const content = choice?.message?.content;
+          // 修法③：finish_reason 补读（choices 类型扩读）——截断（'length'）从「半个 JSON 撞 parse
+          // 抛错」的间接面变显式判据。
+          const finishReason: 'length' | undefined = choice?.finish_reason === 'length' ? 'length' : undefined;
+          const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
+          // 修法④（AG-14 口径 2 折叠·EXPERT §四 :37）：usage 存在但字段缺失 → 缺失字段按上限
+          // （policy max）补齐并打标 usageSource='usage_missing'，绝不按 0（原 `?? 0` 形废除）；
+          // usage 整体缺失保持 undefined（invoke validUsage 判无效归并既有 provider_usage_invalid
+          // 臂·不新造语义）。
+          const promptTokens = j.usage?.prompt_tokens;
+          const completionTokens = j.usage?.completion_tokens;
+          const usage: ModelUsage | undefined = j.usage
+            ? {
+              inputTokens: promptTokens ?? costPolicy?.maxInputTokens ?? estimatedInputTokens,
+              outputTokens: completionTokens ?? maxOut,
+              estimateInputTokens,
+              cachedInputTokens: cachedInputTokensOf(j.usage),   // #48 观测:缺席=undefined 与显式 0 分开
+              ...((promptTokens === undefined || promptTokens === null || completionTokens === undefined || completionTokens === null)
+                ? { usageSource: 'usage_missing' as const }
+                : {}),
+            }
+            : undefined;
+          if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
+          // 修法②③：HTTP 200 已执行但输出确定性不可用（空 content / finish_reason='length' 截断）——
+          // usage 在手即分类 known_executed（携 usage+finish_reason+确定性失败码；结算归 invoke 侧
+          // settled-failed 先例臂）；usage 缺失维持既有 unknown 落点（零回归）。
+          const outputInvalidCode = !content
+            ? 'deterministic_output_invalid'
+            : finishReason === 'length'
+              ? 'deterministic_output_truncated'
+              : undefined;
+          const knownExecutedResult = outputInvalidCode !== undefined && usage !== undefined
+            ? { ok: false as const, kind: 'deterministic' as const, externalOutcome: 'known_executed' as const, errorCode: outputInvalidCode, usage, finishReason }
+            : undefined;
+          if (!content && !knownExecutedResult) {
             if (g7 && reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
             return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
           }
-          const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
-          const usage = j.usage
-            ? {
-                inputTokens: j.usage.prompt_tokens ?? 0,
-                outputTokens: j.usage.completion_tokens ?? 0,
-                estimateInputTokens,
-                cachedInputTokens: cachedInputTokensOf(j.usage),   // #48 观测:缺席=undefined 与显式 0 分开
-              }
-            : undefined;
-          if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
+          // 修法②：JSON.parse 与传输错误分离（管道改造点）——解析失败不再落 catch 兜底与传输错误
+          // 同归 transient unknown；usage 在手 → known_executed（已到手 usage 带出，绝不丢弃），
+          // usage 缺失 → 原 SyntaxError 照旧抛入 catch（既有 unknown 落点·零回归）。
+          let raw: unknown;
+          let parseError: unknown;
+          try { raw = JSON.parse(content ?? ''); } catch (error) { parseError = error; }
           const finishedAt = new Date().toISOString();
           if (g7) {
             const actualModel = typeof j.model === 'string' && j.model.trim() ? j.model.trim() : '';
@@ -724,9 +755,18 @@ export function openAICompatibleClient(cfg: {
               evidenceClass: fallbackInfo ? 'paid_fallback' : 'free_quota_wiring_only',
             }, process.env);
             reservationId = undefined;
-            return { ok: true, raw: JSON.parse(content), usage, actualModel };
+            if (knownExecutedResult) return knownExecutedResult;
+            if (parseError === undefined) return { ok: true, raw, usage, actualModel };
+          } else if (knownExecutedResult) {
+            return knownExecutedResult;
           }
-          return { ok: true, raw: JSON.parse(content), usage };
+          if (parseError !== undefined) {
+            if (usage !== undefined) {
+              return { ok: false, kind: 'deterministic', externalOutcome: 'known_executed', errorCode: 'deterministic_output_invalid', usage, finishReason };
+            }
+            throw parseError;   // usage 缺失 → 既有 catch 兜底（transient unknown）·零回归
+          }
+          return { ok: true, raw, usage };
         } catch (error) {
           if (g7 && error instanceof ExternalHttpStatusError && error.status === 429) {
             try {

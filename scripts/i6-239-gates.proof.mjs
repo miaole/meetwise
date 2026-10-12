@@ -95,7 +95,7 @@ const changeSet = [...new Set([...changedTracked, ...untracked])];
     && panel.includes('CRISIS_DISPOSITION_NOTICE_HEADING') && panel.includes('CRISIS_DISPOSITION_NOTICE_BODY'));
 }
 
-/* ── §2-3 ③注册年龄声明:signup 区落位+zh/en i18n+#263 面 diff 零 ── */
+/* ── §2-3 ③注册年龄声明:signup 区落位+zh/en i18n+#263 面 i263 收口后状态 ── */
 {
   const login = read('apps/web/app/login/page.tsx');
   const zh = JSON.parse(read('apps/web/messages/zh.json'));
@@ -104,10 +104,8 @@ const changeSet = [...new Set([...changedTracked, ...untracked])];
   A('③ 声明文案形(非勾选:零 checkbox/零 required 新控件)', !/checkbox/i.test(login));
   A('③ i18n zh 在场(未满 18 周岁暂不提供服务)', typeof zh.login?.ageDeclaration === 'string' && zh.login.ageDeclaration.includes('未满 18 周岁'));
   A('③ i18n en 在场(en 纯英文·S3 禁 CJK 合规)', typeof en.login?.ageDeclaration === 'string' && en.login.ageDeclaration.includes('18 or older') && !/\p{Script=Han}/u.test(en.login.ageDeclaration));
-  const numstatRaw = git('diff', '--numstat', diffBase, '--', 'apps/web/app/login/page.tsx').trim();
-  const numstat = (numstatRaw || '0\t0\t-').split('\t');
-  A('③ #263 面(:27-28/:38-40 内部预览标注窗)diff 零删改(纯插入)', numstat[1] === '0', `deletions=${numstat[1]}`);
-  A('③ #263 标注句逐字仍在场', login.includes('招聘方入口是内部预览骨架，不是已上线产品'));
+  A('③ #263 面已收口(:27-28/:38-40 标注窗零「内部预览」残留)', !login.includes('内部预览'), 'i263 小刀同刀更新本断言(原 diff 零删改形随 #263 收口退役)');
+  A('③ #263 收口后口径句在场(招聘方功能面向企业招聘流程)', login.includes('招聘方功能面向企业招聘流程'));
 }
 
 /* ── §2-4 ④B 端 PIPL24:流程内披露+静态受理入口+scoreless 零翻+不虚称复核通道+互洽面 ── */

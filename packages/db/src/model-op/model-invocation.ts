@@ -134,16 +134,23 @@ export interface CompleteModelInvocationInput {
   inputTokens?: number;
   outputTokens?: number;
   latencyMs?: number;
+  /**
+   * AG-14 修法④：usage 存在但字段缺失时按 policy 上限补齐结算的打标（`usage_missing`·绝不按 0）。
+   * 落 ai_model_invocation.usage_source（0174 列）；打标行被校准配对剔除（0119 镜像迁移 0174）。
+   * 缺省 NULL = 供应商上报的真实 usage。
+   */
+  usageSource?: 'usage_missing';
 }
 
 export async function completeModelInvocation(c: Client, input: CompleteModelInvocationInput): Promise<boolean> {
   const succeeded = input.error === undefined;
   const r = await c.query(
-    `SELECT ai_model_terminalize_scoped($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9) AS ok`,
+    `SELECT ai_model_terminalize_scoped($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10::text) AS ok`,
     [
       input.owner, input.idempotencyKey, succeeded ? 'succeeded' : 'failed', input.error ?? null,
       succeeded ? JSON.stringify(input.output) : null, input.replayable ?? true,
       input.inputTokens ?? null, input.outputTokens ?? null, input.latencyMs ?? null,
+      input.usageSource ?? null,
     ],
   );
   return r.rows[0]?.ok === true;
