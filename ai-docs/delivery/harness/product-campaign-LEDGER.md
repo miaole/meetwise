@@ -416,7 +416,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 成本轨 | ①止血+观测 | AG-07+#48 | **nail 6f2ed876 收官**（env 双旋钮缺省关停+三端点观测） |
 | 成本轨 | ②-⑥ | AG-07 迁移三件套/AG-12 估算/AG-11 三件套/AG-08/#48 后继 | 队列（②以①旋钮+观测为输入） |
 | 安全 | qbank 小刀 | AG-41+42（5 函数）+43 调度半+P5 | REQUEST 9484bc54 双审席1 在途（迁移 0176+） |
-| 计费 | billing rev | 用户全裁决落卷+B 端章+扩张包+全调用面表+明细列表 | rev 席在途（两次扩权已收） |
+| 计费 | billing rev | 用户全裁决落卷+B 端章+扩张包+全调用面表+明细列表 | **nail `1a332e5e` 收官**（merge `925b6cfc` 已推非 force·双审 BOTH PASS·设计蓝本非实施零码动·merge 后 docs:check EXIT=0·待拍板余 2 项归用户（话题定义/封顶终值）·P1/P2/P3 实施刀待立项·详情 checklist「Line BILLING-REV 蓝本 nail」段） |
 | 计费 | P1/P2 | 0170-0173 字段迁移+影子计量 | 立项待 AG 硬前置（B✓/E批/F）齐 |
 | 产品大刀 | AG-39 私有题库+AG-38 问答侧 | 题库分层/工具边界两设计决策 | 挂用户排期 |
 | 产品口径（批3） | I263 小刀 | #263 B 端「内部预览」标注收口（21 面+五同族口径面+Pages 公开面） | **nail `f5fdca0c` 收官**（merge `9ae70025` 已推非 force·post 双席 BOTH PASS·merge 后四门 14/14+uc003+docs:check 全绿+apps/ 零残留·批3 23/23 全收口·详情 checklist「Line I263 nail」段） |
