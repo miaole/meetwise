@@ -1,0 +1,30 @@
+
+> @meetwise/worker@0.0.0 prove:reaper-purge-wire /Users/miaole/Desktop/golucky/meetwise-ttlwire/apps/worker
+> tsx test/reaper-purge-wire.proof.ts
+
+
+──────── ① 接线可达:reap 一拍 → purge 恰一次（红事实闭合:生产零调用 → 恰一调用） ────────
+{"event":"stale_payload_purge","kind":"interview","job_ref":"purged:2","ttl_seconds":86400}
+PASS  purge 在 reap 一拍内恰被调一次(可达+唯一)
+PASS  sweep 先行未被侵占(reap 返回 requeued=0 failed=0 原形)
+PASS  purge 行数不回灌返回面({requeued,failed} 零耦合·purged=2 仅原语内账)
+
+──────── ② 参形与默认 TTL:(c, owner) 两参·第二参缺省 → 86_400 ────────
+PASS  参形=(c, owner):owner 绑定第一参
+PASS  默认 TTL=86_400(第二参 String(86400)·零调参零覆写)
+PASS  谓词门在场(只清 payload-'answer'·幂等门 payload ? 'answer')
+
+──────── ③ 事务域与次序:purge 在 asPrincipal 单事务内·sweep 后 return 前 ────────
+PASS  同一事务域:BEGIN 之后 COMMIT 之前(asPrincipal 域内·抛错回滚整拍面)
+PASS  收割先清理后:purge 晚于 sweep 两条 UPDATE(terminalize 循环收尾后)
+
+──────── ④ 静态源断言:import 在场 + 生产调用点全仓恰一 + 置位正确 + 零 env 闸 ────────
+PASS  import 在场(@meetwise/db 巨型 import 行携 purge 名·沿既有形)
+PASS  本文件调用点恰一(await purgeStaleInterviewJobPayloads(c, owner))
+PASS  置位=reapStuckInterviewJobs 体内·terminalize 循环收尾后·return 前
+PASS  调用在 asPrincipal 域内(事务面静态佐证)
+PASS  生产面(src·零 test)命中文件恰三=定义+export+唯一触发(零外溢)
+PASS  零新 env 闸(调用行/函数体无 process.env·零新配置面)
+
+✓ Reaper→purge 接线(可达恰一+参形默认TTL+同事务次序+静态置位/唯一性)全部通过
+GATE2_EXIT=0
