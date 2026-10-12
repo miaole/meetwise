@@ -98,6 +98,13 @@ export interface AdaptiveLifecycleDeps {
   fence?: InterviewGraphFence;
   /** H2 #79(#259 供给线):用户显式岗位——buildAdaptiveDeps.targetRole(CRAG 查询岗位段)。缺省=旧形。 */
   targetRole?: string;
+  /** QBANK-PLANNER-HONESTY #200-A ⑷:押题题面(consumer owner-scoped 读自 resume_quiz.questions;只进
+   *  planCompetencies planner 输入组装=prompt <data> 段,禁入图 state/checkpoint/SSE·focus 同纪律)。
+   *  缺省 undefined=无押题段(prompt buildData 逐字节回退 v3 输出)。 */
+  quizQuestions?: string[];
+  /** QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf·consumer 同源读)。
+   *  缺省 undefined=闸不适用(叶子源缺失零误杀,如实登记)。 */
+  routeLeaf?: string;
   /** 组合根注入的安全图观测器；ai-graphs 本身不依赖任何观测供应商。 */
   graphObserver?: GraphObserver;
   /** 仅测试观测：在读取脱敏简历画像前触发；生产不注入，不承载业务逻辑。 */
@@ -250,7 +257,8 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   const plannerFacts = grounding.pool.length > 0
     ? selectPlannerFacts(grounding.pool, role)
     : resumeProfileAvailable ? ['authorized_resume_profile_available'] : [];
-  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus, job);
+  // [merge nail 双刀接龙]planCompetencies 实参序=focus(7)→job(8,I3)→d.quizQuestions(9)→d.routeLeaf(10,#200-A/#201)。
+  const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus, job, d.quizQuestions, d.routeLeaf);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
   const cfg = { configurable: { thread_id: d.interviewId } };

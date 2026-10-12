@@ -12,7 +12,9 @@ const API_BASE = process.env.API_BASE_INTERNAL ?? process.env.NEXT_PUBLIC_API_BA
 /** 单 action:从表单的提交按钮 name="mode" 读 login/signup(useActionState 友好)。 */
 export async function authAction(_prev: { error?: string }, formData: FormData): Promise<{ error?: string }> {
   const mode = formData.get('mode') === 'signup' ? 'signup' : 'login';
-  const email = String(formData.get('email') ?? '');
+  // AUTHZ-HARDEN 5A-1 簇①（#111）:web signup 同归一(trim+lower,与 API 端 normalizeEmail 同语义——API 侧仍为主闸,
+  // 此处前置让大写/带空白输入在注册/登录两模式都一致归一;API 网关 0168 双闸兜底)。
+  const email = String(formData.get('email') ?? '').trim().toLowerCase();
   const password = String(formData.get('password') ?? '');
   const role = formData.get('role') === 'recruiter' ? 'recruiter' : 'candidate';   // 注册时选的身份
   if (!email || !password) return { error: '请填邮箱和密码' };
@@ -41,6 +43,17 @@ export async function authAction(_prev: { error?: string }, formData: FormData):
 
 export async function logoutAction(): Promise<void> {
   const c = await cookies();
+  // AUTHZ-HARDEN 5A-1 #112:登出服务端化接线——持 cookie 令牌尽力调 POST /auth/logout 吊销当前 jti 会话
+  // (服务端面;失败/无令牌/legacy 无 jti 令牌[revoked:false]都不阻断登出——客户端清 cookie 照做,两面如实分工)。
+  const token = c.get('mw_token')?.value;
+  if (token) {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST', headers: { authorization: `Bearer ${token}` },
+        signal: AbortSignal.timeout(3000),
+      });
+    } catch { /* 登出服务端吊销尽力而为:网络失败不阻断本地登出(如实:令牌若未吊销将活到 TTL/或为 legacy 形) */ }
+  }
   c.delete('mw_token');
   c.delete('mw_role');
   revalidatePath('/', 'layout');   // 同理:登出后清 layout 缓存,否则缓存路由的 Nav 仍显示已登录态

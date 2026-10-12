@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { normalizeQuestion, type DbPool } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, modelGeneration, unavailableGeneration, resolveCitedSources, CANDIDATE_PROFILE_SIGNALS, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
@@ -205,23 +205,85 @@ export interface AdaptiveServiceDeps {
   loadAnswer?: AdaptiveDeps['loadAnswer'];
 }
 
+/* ───────── QBANK-PLANNER-HONESTY #201(planner 输出上限/相关性·#270 同域):确定性闸构件(同文件 relevanceScore/weaknessMatches 先例形·零新依赖·禁 embedding) ───────── */
+/** planner 输出条数硬闸(裁决项②):min(3).max(5)——与 planner system「提炼 3–5 个」对齐(软约束→schema 硬闸)。 */
+export const PLANNER_COMPETENCY_MIN_COUNT = 3;
+export const PLANNER_COMPETENCY_MAX_COUNT = 5;
+/** 单个能力名长度封顶(裁决项②·AskSchema q.max(2000) 封顶形;值沿 targetRole/focus 安全标量 100 同域纪律——
+ *  planner system 明示「用简短技术名词」,超长=异常输出 schema 闸拦下)。 */
+export const PLANNER_COMPETENCY_MAX_CHARS = 100;
+/** #201 兜底默认集(:221 优雅降级三件套提名为具名常量·值逐字零变·prove 直行使;规划失败/校验拒 → 面试仍开)。 */
+export const PLANNER_DEFAULT_COMPETENCIES = ['项目经验', '技术深度', '问题解决'];
+/** planner 输出 schema(#201 硬闸具名导出·prove 直行使):条数 3-5 + 单名 ≤100 封顶 + 非空串。 */
+export const PlannerPlanSchema = z.object({ competencies: z.array(z.string().min(1).max(PLANNER_COMPETENCY_MAX_CHARS)).min(PLANNER_COMPETENCY_MIN_COUNT).max(PLANNER_COMPETENCY_MAX_COUNT) });
+/** 能力名 vs 岗位叶子领域相关性阈值(weaknessMatches 阈值形同源·确定性·无模型·可 gate)。 */
+export const COMPETENCY_RELEVANCE_THRESHOLD = 0.5;
+/**
+ * #201 纯函数:能力名 vs 岗位叶子领域词表(domain CANDIDATE_PROFILE_SIGNALS 同源单源,#270 v4 同一词典)的相关性判定:
+ * 归一化精确相等短路 → 逐信号 weaknessMatches(词元+CJK bigram 双向取最大 ≥ 阈值)。任一信号命中=域内。
+ * 未知叶/空词表/空名 → true(零误杀:叶子源缺失=闸不适用,如实登记;空名由 schema min(1) 拒)。
+ * 禁 embedding/向量召回(§3-6 确定性构件纪律)。
+ */
+export function competencyMatchesLeafDomain(name: string, leafTrackId: string | undefined): boolean {
+  if (!leafTrackId) return true;
+  const signals = (CANDIDATE_PROFILE_SIGNALS as Record<string, readonly string[]>)[leafTrackId];
+  if (!signals || signals.length === 0) return true;
+  const a = normalizeQuestion(name);
+  if (!a) return true;
+  return signals.some((s) => weaknessMatches(a, s));
+}
+/**
+ * #201 businessValidate 本体(具名纯函数·prove 直行使):空计划 → empty_plan(既有错误码零改);**全离题**计划
+ * (任一能力名均低于叶子领域阈值)→ off_topic_competency 整案拒 → :221 优雅降级默认集三件套,面试仍开
+ * (Ban 硬删能力)。叶子源缺失(relevanceLeaf=undefined)→ 全放行(闸不适用零误杀,如实登记)。
+ * 混合计划(部分离题)不整案拒——交 filterCompetenciesByLeafDomain 逐名过滤(§2-2「被拒/过滤」双臂·R3 被过滤
+ * 能力名不进组装产物),域内名零误伤。
+ */
+export function plannerPlanBusinessError(competencies: string[], relevanceLeaf: string | undefined): string | null {
+  if (competencies.length === 0) return 'empty_plan';
+  if (!relevanceLeaf) return null;
+  const allOffTopic = competencies.every((n) => !competencyMatchesLeafDomain(n, relevanceLeaf));
+  return allOffTopic ? 'off_topic_competency' : null;
+}
+/**
+ * #201 过滤臂(纯函数·prove 直行使):逐名丢弃叶子域外能力名(§2-2「过滤」/R3「被过滤能力名不出现在组装产物」),
+ * 域内名原序保留零误伤;全被滤空 → 调用方(planCompetencies)落默认集三件套。叶子源缺失 → 恒等(零误杀)。
+ */
+export function filterCompetenciesByLeafDomain(names: readonly string[], relevanceLeaf: string | undefined): { kept: string[]; dropped: string[] } {
+  if (!relevanceLeaf) return { kept: [...names], dropped: [] };
+  const kept = names.filter((n) => competencyMatchesLeafDomain(n, relevanceLeaf));
+  return { kept, dropped: names.filter((n) => !kept.includes(n)) };
+}
+
 /** 规划官:据岗位+简历提目标能力(plan-and-solve 的 plan)。经 invoke。**约束性任务,走快模型**(缺省回退 model)。
  *  H4 R2④(#252 focus 进题链·断点⑤):第 7 形参 focus=本场报告 gap 维度名(上一轮评估摘要 criterion+弱点标签,
  *  fix-roadmap :97 验收原文)——只进 planner prompt 'planner.competencies' v3 可选段(喂 planner·「考哪些能力」面),
  *  prompt v3 buildData 对缺省/空数组逐字节回退 v2 输出(resume-grounding B1/S1-1 守卫);**绝不影响难度/信心**。
  *  I3 JOB-MGMT(#197/#258·裁决⑥):第 8 形参 job=岗位侧供给(competencies+JD 摘要·interview-consumer 经
  *  RLS+快照同源门条件化供给)——只进 planner prompt 'planner.competencies' v4 可选段;缺省 undefined →
- *  buildData 与 v3 输出逐字节一致(同上守卫);只影响「考哪些能力」,绝不影响难度/信心。 */
-export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[], focus?: string[], job?: { competencies: string[]; jdSummary: string }): Promise<CompetencySpec[]> {
+ *  buildData 与 v3 输出逐字节一致(同上守卫);只影响「考哪些能力」,绝不影响难度/信心。
+ *  QBANK-PLANNER-HONESTY #200-A ⑷(裁决项①=A 路·裁决项⑥ data 段+逐字节回退):第 9 形参 quizQuestions=押题题面
+ *  (begin quiz-id 头→payload sourceQuizId→consumer owner-scoped 读 resume_quiz.questions→本参;只进 planner
+ *  <data> 押题段·禁入图 state;缺省 undefined → 段不渲染=现状字节)。#201:第 10 形参 relevanceLeaf=路由快照
+ *  primary 叶(缺省 undefined=相关性闸不适用零误杀);schema 3-5/单名 ≤100 硬闸 + businessValidate 全离题整案拒
+ *  + 混合计划逐名过滤(域内零误伤·被滤名不进组装产物);拒/滤空沿 :221 优雅降级默认集(面试仍开·Ban 硬删能力·
+ *  Ban 无界重试=校验拒零重试直落兜底,可计数)。
+ *  [merge nail 双刀接龙登记]QP 分支独立计形(quizQuestions=8/relevanceLeaf=9)与 I3 已并主线(job=8)同位互斥:
+ *  并线后形参序=focus(7)→job(8,I3 在先钉死)→quizQuestions(9)→relevanceLeaf(10),prompt vars 携 job+quizQuestions
+ *  双段,QP 侧编号随演顺延两位;两可选段互斥缺省,语义零纠缠。 */
+export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[], focus?: string[], job?: { competencies: string[]; jdSummary: string }, quizQuestions?: string[], relevanceLeaf?: string): Promise<CompetencySpec[]> {
   const out = await invoke({
     idempotencyKey: `${threadId}:plan`, operation: { id: 'interview.competency-planning.v1', businessRevision: `${threadId}:plan` }, threadId, privacyInterviewId: threadId,
-    schema: z.object({ competencies: z.array(z.string().min(1)).min(1) }),
-    businessValidate: (v) => (v.competencies.length === 0 ? 'empty_plan' : null),
-    model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus, job }),
+    // #201 硬闸(具名导出·prove 直行使):条数 3-5 + 单名 ≤100 封顶;businessValidate=相关性闸纯函数委托。
+    schema: PlannerPlanSchema,
+    businessValidate: (v) => plannerPlanBusinessError(v.competencies, relevanceLeaf),
+    model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus, job, quizQuestions }),
   }, pool, owner);
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
-  const names = 'error' in out ? ['项目经验', '技术深度', '问题解决'] : out.value.competencies;
+  // #201 过滤臂:混合计划(部分离题)逐名滤除域外名(域内原序零误伤·被滤名不进组装产物);全滤空 → 默认集三件套。
+  const names = 'error' in out ? PLANNER_DEFAULT_COMPETENCIES
+    : (() => { const { kept } = filterCompetenciesByLeafDomain(out.value.competencies, relevanceLeaf); return kept.length > 0 ? kept : PLANNER_DEFAULT_COMPETENCIES; })();
   const biased = await biasByPastWeakness(pool, owner, names);   // 历史弱项软偏置(hint,非硬过滤;快照进能力清单一次,decideNext 对其纯运算)
   return toCompetencySpecs(biased);
 }

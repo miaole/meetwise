@@ -29,7 +29,7 @@ import {
 import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
-} from './adaptive-role-resolve.ts';
+} from '../src/adaptive-role-resolve.ts';
 import { hasComboRootFlagOnProductionEvidence } from './r4-pr1b-combo-root-flag-on-evidence.ts';
 import { hasDefaultOnNoLegacyPathEvidence } from './r4-pr1c-default-on-no-legacy-evidence.ts';
 

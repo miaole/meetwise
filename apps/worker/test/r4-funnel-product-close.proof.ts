@@ -26,7 +26,7 @@ import {
   funnel02Through08AllCovered,
   hasR4FunnelProductCloseFlippedEvidence,
   readMatrixCoveredCount,
-} from '../src/r4-funnel-product-close.ts';
+} from '../evidence/r4-funnel-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

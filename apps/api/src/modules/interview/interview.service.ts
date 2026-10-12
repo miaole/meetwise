@@ -14,6 +14,11 @@ import {
   PublicPreviewReadOnlyError,
   PublicPreviewWriteUnavailableError,
 } from '../../platform/public-preview';
+// D6 #239-① 内容安全 kill-switch(env 静态读闸·缺省 off=现状字节·三态 fail-closed 沿 public-preview 先例形)。
+import {
+  assertContentSafetyKillSwitchOff,
+  ContentSafetyKillSwitchActiveError,
+} from '../../platform/content-safety';
 import { toInterviewView } from './interview-view.ts';
 import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeAnswer } from './interview-voice.ts';
 import { reportView, retryReportById, exportReportMd, transcriptView } from './interview-report.ts';
@@ -105,6 +110,10 @@ export async function beginInterviewCore(
   const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
   // H4 R2②(#252 focus 进题链·断点②):focus 头白名单归一(上方 normalizeFocusHeader)——undefined → payload 零新键。
   const focusNormalized = normalizeFocusHeader(focus);
+  // QBANK-PLANNER-HONESTY #200-A(修法 A·裁决项①):源押题工件标识归一(trim;空→undefined → payload 零新键,
+  // 与现状逐字节一致)。下方守卫块(sourceQuizId 三刀·GODFN-1c)语义零改仍消费原值;payload 标量仅作
+  // worker owner-scoped 读题面的供给标识(零新表零新列=修法 A 零迁移)。
+  const sourceQuizIdNormalized = (sourceQuizId ?? '').trim() || undefined;
   // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
   const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
   const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
@@ -261,9 +270,11 @@ export async function beginInterviewCore(
     // JSON retains only transport tracing, never a resume locator.
     // #259: targetRole 仅在场时写入 payload 键(缺省零新键=现状 payload 字节)。
     // H4 R2②: focus 同形——仅在场时写入(数组标量 JSON;缺省零新键=现状字节,幂等既有 job 不改写)。
+    // QBANK-PLANNER-HONESTY #200-A ⑵: sourceQuizId 第三标量同形——仅在场时写入(缺省零新键=现状字节)。
     const startPayload: Record<string, unknown> = { requestId };
     if (targetRoleNormalized) startPayload.targetRole = targetRoleNormalized;
     if (focusNormalized) startPayload.focus = focusNormalized;
+    if (sourceQuizIdNormalized) startPayload.sourceQuizId = sourceQuizIdNormalized;
     const jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
     return { accepted: true, jobId };
 }
@@ -296,6 +307,25 @@ export class InterviewService {
     } catch (error) {
       if (error instanceof PublicPreviewReadOnlyError) {
         throw new HttpException({ error: 'public_preview_read_only' }, HttpStatus.SERVICE_UNAVAILABLE);
+      }
+      throw error;
+    }
+  }
+
+  /**
+   * D6 #239-① 内容安全 kill-switch 闸(fail-closed·begin/turn 双口)。触发(env=1)即
+   * 503+诚实文案,不再入队任何模型面;缺省 off=现状字节零翻。语义与平台级既有开关
+   * (runaway/写门/熔断/成本治理)相互独立,零翻其语义。
+   */
+  private denyContentSafetyKilled(): void {
+    try {
+      assertContentSafetyKillSwitchOff();
+    } catch (error) {
+      if (error instanceof ContentSafetyKillSwitchActiveError) {
+        throw new HttpException(
+          { error: 'content_safety_kill_switch_active', message: '内容安全开关已开启：面试出题与作答提交暂停' },
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
       }
       throw error;
     }
@@ -377,6 +407,7 @@ export class InterviewService {
   // 与 applications.start 合一事务（S2-C4 修法⑤）共用同一核心·签名/this 语义零变（dbid1 冒烟
   // Object.create(prototype) 直调形保持）；扣额路由与分码语义见 beginInterviewCore 头注。
   begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string) {
+    this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'interview.begin');
     return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole, focus));
@@ -384,6 +415,7 @@ export class InterviewService {
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
   turn(principal: string, id: string, body: TurnDto, requestId?: string) {
+    this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const turn = body.turn;
     // 共享 Zod 契约是入口；service 仍做上界防御，避免内部调用绕过 pipe。

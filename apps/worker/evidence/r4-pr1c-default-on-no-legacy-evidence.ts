@@ -24,7 +24,7 @@ import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
   resolveAdaptiveInterviewRole,
-} from './adaptive-role-resolve.ts';
+} from '../src/adaptive-role-resolve.ts';
 
 /** Canonical PR1-C default-on / no-legacy path evidence kind. */
 export const PR1C_DEFAULT_ON_NO_LEGACY_EVIDENCE_KIND =

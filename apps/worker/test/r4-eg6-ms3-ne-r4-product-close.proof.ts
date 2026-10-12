@@ -21,7 +21,7 @@ import {
   assessEg6Ms3NeR4ProductClose,
   emitEg6Ms3NeR4ProductCloseEvidence,
   hasEg6Ms3NeR4ProductCloseEvidence,
-} from '../src/r4-eg6-ms3-ne-r4-product-close.ts';
+} from '../evidence/r4-eg6-ms3-ne-r4-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

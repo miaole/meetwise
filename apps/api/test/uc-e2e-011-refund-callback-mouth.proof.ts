@@ -17,6 +17,12 @@
  *
  * 隔离：pnpm uc011:refund-callback:prove → run-e2e-isolated → apps/api prove:uc011-refund-callback-mouth
  * PAY_PROVIDER_SECRET 仅进程环境 · Ban live · Ban secrets · releaseEvidence=false · NOT_HA。
+ *
+ * 【5A-2 #100 冻结豁免登记】本文件系 Line Z 冻结 proof（ADV 合取项·原「Ban 改其断言」）。AUTHZ-HARDEN
+ * 5A-2 §1 簇④修法列强制回调签名载荷携 ts（防重放窗·wire 契约变更），旧签名 fixture 全数失真——
+ * 按「REQUEST §1 修法列 > 单文件冻结纪律」只做**签名 fixture 形随**（sig 载荷 `${id}:${txn}:refunded:${ts}`
+ * + body 携 ts·缺/超窗 ts 者补 fresh ts 使其到达既定验签分支），全部断言语义/具名码/DB 快照判据**零改**。
+ * 冻结豁免如实随 EXEC 收据上报。
  */
 import { randomUUID } from 'node:crypto';
 import { boot, paySig } from './_neg-harness';
@@ -56,8 +62,10 @@ const A = (cls: Cls, name: string, cond: boolean) => {
     )).rows[0].s);
   const refundTxnRows = async (txn: string) =>
     Number((await pool.query('SELECT count(*)::int n FROM payment_order WHERE refund_provider_txn=$1', [txn])).rows[0].n);
-  const sig = (orderId: string, txn: string) => paySig(`${orderId}:${txn}:refunded`);
-  const goodBody = (orderId: string, txn: string) => ({ providerTxn: txn, sig: sig(orderId, txn) });
+  // 5A-2 #100 签名 fixture 形随(冻结豁免·见文件头登记):载荷 `${orderId}:${txn}:refunded:${ts}`;
+  // ts 单次绑定(body 与载荷同值·防跨毫秒撕裂)。
+  const sig = (orderId: string, txn: string, ts = Date.now()) => paySig(`${orderId}:${txn}:refunded:${ts}`);
+  const goodBody = (orderId: string, txn: string, ts = Date.now()) => ({ providerTxn: txn, ts, sig: sig(orderId, txn, ts) });
 
   // Fixtures: paid orders with credited unused entitlement (红冲前置)
   const F = {
@@ -92,7 +100,7 @@ const A = (cls: Cls, name: string, cond: boolean) => {
   console.log(`CMD=${CMD}`);
   console.log('MOUTH: POST /commerce/webhook/refund/:id （等价 webhook · HMAC 标签 refunded）');
   console.log('EXIT 契约: EXIT 0 ⇔ B-1 pins 全命中；EXIT0 ≠ covered · Ban wash ADV · Ban any-non-404-4xx-as-sig-evidence');
-  console.log('DISCLOSED: 回调体仅 {providerTxn,sig} · 无金额通道 · Ban 假称已做显式金额复核（对齐 UC014 C3）');
+  console.log('DISCLOSED: 回调体仅 {providerTxn,sig,ts}(5A-2 #100 ts 防重放) · 无金额通道 · Ban 假称已做显式金额复核（对齐 UC014 C3）');
 
   // ── INV · 缺字段 → 400 invalid_callback + 零副作用 ──
   {
@@ -117,14 +125,14 @@ const A = (cls: Cls, name: string, cond: boolean) => {
     const { ord, owner } = F.sig;
     const txn = 'rfSigTxn';
     const before = { order: await orderRow(ord), buckets: await bucketCount(owner), sum: await bucketSum(owner), avail: await availSum(owner) };
-    const r1 = await h.post(WH(ord), {}, { providerTxn: txn, sig: paySig('forged-unrelated-string') });
+    const r1 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: paySig('forged-unrelated-string') });
     A('SIG', '伪造签名(等长 hex) → 403 bad_signature', r1.status === 403 && r1.body?.error === 'bad_signature');
-    const r2 = await h.post(WH(ord), {}, { providerTxn: txn, sig: 'zz' });
+    const r2 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: 'zz' });
     A('SIG', '垃圾短签名 → 403 bad_signature', r2.status === 403 && r2.body?.error === 'bad_signature');
-    const r3 = await h.post(WH(ord), {}, { providerTxn: txn, sig: sig('RF_OTHER_ORDER', txn) });
+    const r3 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: sig('RF_OTHER_ORDER', txn) });
     A('SIG', '他单签名打到本单 → 403 bad_signature', r3.status === 403 && r3.body?.error === 'bad_signature');
-    // paid 标签签名打到 refund 口 → 403（标签必须 refunded）
-    const r4 = await h.post(WH(ord), {}, { providerTxn: txn, sig: paySig(`${ord}:${txn}:paid`) });
+    // paid 标签签名打到 refund 口 → 403（标签必须 refunded·5A-2 起载荷含 ts 段）
+    const r4 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: paySig(`${ord}:${txn}:paid:${Date.now()}`) });
     A('SIG', 'pay 标签签名打到 refund 口 → 403 bad_signature', r4.status === 403 && r4.body?.error === 'bad_signature');
     A('SIG', '具名码=bad_signature（Ban any-non-404-4xx-as-sig-evidence）',
       [r1, r2, r3, r4].every((r) => r.status === 403 && r.body?.error === 'bad_signature'));
@@ -144,7 +152,7 @@ const A = (cls: Cls, name: string, cond: boolean) => {
     A('NF', '零副作用: 幽灵单不落库', (await orderRow(ghost)) === null);
     A('NF', '零副作用: refund_provider_txn 全局 0 行', (await refundTxnRows(ghostTxn)) === 0);
     // 口存活旁证：对合法 paid 单错签仍 403（不是 404）——证明路由已挂
-    const mouthAlive = await h.post(WH(F.nf.ord), {}, { providerTxn: 'x', sig: 'zz' });
+    const mouthAlive = await h.post(WH(F.nf.ord), {}, { providerTxn: 'x', ts: Date.now(), sig: 'zz' });
     A('NF', '口已挂载旁证: 合法单错签 → 403（≠ 口缺失 404）', mouthAlive.status === 403 && mouthAlive.body?.error === 'bad_signature');
   }
 

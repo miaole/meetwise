@@ -18,14 +18,15 @@ import { boot, paySig } from './_neg-harness';
  * 产品事实基线（读真实代码得出，断言即据此）：
  *  - 主口：`POST /payment/refund-callback`（payment-callback.controller.ts · `@Controller('payment')` +
  *    `@Post('refund-callback')` · 无登录态不挂 PrincipalGuard）→ 委托同一 `CommerceService.refundWebhook`
- *    单管道（commerce.service.ts:79-93）：400 `invalid_callback` → HMAC `${id}:${txn}:refunded` +
- *    `timingSafeEqual` 密钥缺失 fail-closed 403 `bad_signature` → owner 经无表权限网关
+ *    单管道（refundWebhook）：400 `invalid_callback` → HMAC `${id}:${txn}:refunded:${ts}`（5A-2 #100·
+ *    ±300s 防重放窗）+ `timingSafeEqual` 密钥缺失 fail-closed 403 `bad_signature` → owner 经无表权限网关
  *    `gateway_payment_order_owner`（不信调用方）→ 404 `order_not_found` → exactly-once CAS
  *    `markOrderRefunded`（packages/db/src/payment.ts:104：paid→refunded CAS + `refund_provider_txn`
  *    partial UNIQUE + 23505→conflict + FIFO 红冲，不足回滚不半退）→ 409 `order_conflict` /
  *    200 `{result: refunded|already}`。
- *  - 主口 body 白名单 `{orderId, providerTxn, sig}`（controller 只读三字段并只传三字段——额外字段
- *    结构性忽略，无金额通道）；Path A mouth `POST /commerce/webhook/refund/:id`（Z 线，不回退）共用同一管道。
+ *  - 主口 body 白名单 `{orderId, providerTxn, sig, ts}`（controller 只读四字段并只传四字段——额外字段
+ *    结构性忽略，无金额通道；5A-2 #100 ts 随白名单透传）；Path A mouth `POST /commerce/webhook/refund/:id`
+ *    （Z 线，不回退）共用同一管道。
  *
  * EXIT 契约（诚实失败路径）：
  *  - EXIT 0 ⇔ A1–A7 每类断言全绿（exact HTTP status + named code + DB before/after 快照）+ 新鲜 INV 全绿
@@ -127,10 +128,11 @@ function runZMouthRegression(): Promise<number> {
     Number((await pool.query('SELECT count(*)::int n FROM payment_order WHERE refund_provider_txn=$1', [txn])).rows[0].n);
   const snap = async (owner: string) => ({ buckets: await bucketCount(owner), sum: await bucketSum(owner), avail: await availSum(owner) });
   const eqSnap = (a: any, b: any) => a.buckets === b.buckets && a.sum === b.sum && a.avail === b.avail;
-  // 主口 sig：HMAC 载荷仍绑定订单 id（`${orderId}:${txn}:refunded`）——签名↔订单绑定不弱化
-  const sig = (orderId: string, txn: string) => paySig(`${orderId}:${txn}:refunded`);
-  const mainBody = (orderId: string, txn: string) => ({ orderId, providerTxn: txn, sig: sig(orderId, txn) });
-  const paBody = (orderId: string, txn: string) => ({ providerTxn: txn, sig: sig(orderId, txn) });
+  // 主口 sig（5A-2 #100）：HMAC 载荷绑定订单 id+kind+ts（`${orderId}:${txn}:refunded:${ts}`·±300s 窗）
+  // ——签名↔订单绑定不弱化，ts 防重放随白名单透传；ts 单次绑定(body 与载荷同值·防跨毫秒撕裂)
+  const sig = (orderId: string, txn: string, ts = Date.now()) => paySig(`${orderId}:${txn}:refunded:${ts}`);
+  const mainBody = (orderId: string, txn: string, ts = Date.now()) => ({ orderId, providerTxn: txn, ts, sig: sig(orderId, txn, ts) });
+  const paBody = (orderId: string, txn: string, ts = Date.now()) => ({ providerTxn: txn, ts, sig: sig(orderId, txn, ts) });
 
   // ── 隔离 fixtures：paid 单 + 已入账未消耗额度桶（红冲前置）；每类独立 owner，增量可精确断言 ──
   const F = {
@@ -166,7 +168,7 @@ function runZMouthRegression(): Promise<number> {
 
   console.log('PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · UC-011 stays partial · ADV stays gap/case-only · GAP-UC011-ADV-01 stays OPEN');
   console.log(`CMD=${CMD}`);
-  console.log('MOUTH(main): POST /payment/refund-callback（scenarios :253 字面契约 · body 白名单 {orderId,providerTxn,sig}）');
+  console.log('MOUTH(main): POST /payment/refund-callback（scenarios :253 字面契约 · body 白名单 {orderId,providerTxn,sig,ts}）');
   console.log('MOUTH(pathA): POST /commerce/webhook/refund/:id（Line Z · 共用同一 refundWebhook 管道 · 不回退）');
   console.log('EXIT 契约: EXIT 0 ⇔ A1–A7 + 新鲜 INV + 跨入口一致性 + Z mouth 回归 EXIT 0（合取）。EXIT0 ≠ covered ≠ 翻行。');
   console.log('DISCLOSED: 显式服务端金额复核比较路径今天不存在；当前保障=结构性（body 白名单无金额通道 + 服务器权威 units 红冲）。Ban 改口「已实现金额复核」。');
@@ -201,8 +203,8 @@ function runZMouthRegression(): Promise<number> {
     // 注册形态钉死（C-V4）：独立文件 + app.module controllers 注册（既有控制器顺序未变）
     A('INV', '注册形态: 独立文件 payment-callback.controller.ts + app.module.ts 注册 PaymentCallbackController',
       modSrc.includes('PaymentCallbackController') && modSrc.includes("from './modules/commerce/payment-callback.controller'"));
-    // 运行时挂载：合法单 + 垃圾 sig → 403（≠ 404）→ 主口已挂载（口存在 ≠ Fastify 兜底 404）
-    const probe = await h.post(MAIN, {}, { orderId: F.a1.ord, providerTxn: 'invProbeTxn', sig: 'zz' });
+    // 运行时挂载：合法单 + 垃圾 sig（带 fresh ts 进到验签）→ 403（≠ 404）→ 主口已挂载（口存在 ≠ Fastify 兜底 404）
+    const probe = await h.post(MAIN, {}, { orderId: F.a1.ord, providerTxn: 'invProbeTxn', ts: Date.now(), sig: 'zz' });
     A('INV', '主口已挂载(非 404): 合法单垃圾签 → 403 bad_signature（≠ 口缺失裸 404）',
       probe.status === 403 && probe.body?.error === 'bad_signature');
     AUDIT_LINE('INV');
@@ -215,17 +217,17 @@ function runZMouthRegression(): Promise<number> {
     const { ord, owner } = F.a1;
     const txn = 'rfadvA1Txn';
     const before = { order: await orderRow(ord), s: await snap(owner) };
-    // 错签：等长 hex（对无关字符串算的 HMAC）→ 内容不符
-    const r1 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, sig: paySig('forged-unrelated-string') });
+    // 错签：等长 hex（对无关字符串算的 HMAC·带 fresh ts 进到验签）→ 内容不符
+    const r1 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, ts: Date.now(), sig: paySig('forged-unrelated-string') });
     A('A1', '伪造签名(等长 hex) → 403 bad_signature', r1.status === 403 && r1.body?.error === 'bad_signature');
     // 垃圾短 sig → 长度不符分支 fail-closed
-    const r2 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, sig: 'zz' });
+    const r2 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, ts: Date.now(), sig: 'zz' });
     A('A1', '垃圾短签名 → 403 bad_signature', r2.status === 403 && r2.body?.error === 'bad_signature');
     // 签名绑定他单（本单 id 不在签名原文里）→ 403（签名↔订单绑定）
-    const r3 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, sig: sig('RFADV_A1_OTHER', txn) });
+    const r3 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, ts: Date.now(), sig: sig('RFADV_A1_OTHER', txn) });
     A('A1', '他单签名打到本单 → 403 bad_signature（HMAC 载荷绑定 orderId）', r3.status === 403 && r3.body?.error === 'bad_signature');
-    // paid 标签签名打到 refund 主口 → 403（标签必须 refunded）
-    const r4 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, sig: paySig(`${ord}:${txn}:paid`) });
+    // paid 标签签名打到 refund 主口 → 403（标签必须 refunded·5A-2 起载荷含 ts 段）
+    const r4 = await h.post(MAIN, {}, { orderId: ord, providerTxn: txn, ts: Date.now(), sig: paySig(`${ord}:${txn}:paid:${Date.now()}`) });
     A('A1', 'pay 标签签名打到 refund 主口 → 403 bad_signature', r4.status === 403 && r4.body?.error === 'bad_signature');
     A('A1', '具名码=bad_signature（Ban any-non-404-4xx-as-sig-evidence）',
       [r1, r2, r3, r4].every((r) => r.status === 403 && r.body?.error === 'bad_signature'));
@@ -271,8 +273,8 @@ function runZMouthRegression(): Promise<number> {
   //     红冲单位恒等于服务器权威 units（pack_10=10）。Ban 改口「已实现金额复核」。
   // ════════════════════════════════════════════════════════════════════════
   {
-    console.log('DISCLOSED: 依据 payment-callback.controller.ts（body 白名单仅 {orderId,providerTxn,sig}，只传三字段）+');
-    console.log('DISCLOSED: commerce.service.ts:79（refundWebhook 回调体类型仅 {providerTxn,sig}）+ payment.ts:104（红冲=订单权威 units）；主口路径无任何金额读取。');
+    console.log('DISCLOSED: 依据 payment-callback.controller.ts（body 白名单仅 {orderId,providerTxn,sig,ts}，只传四字段）+');
+    console.log('DISCLOSED: commerce.service.ts refundWebhook（回调体类型仅 {providerTxn,sig,ts}）+ payment.ts:104（红冲=订单权威 units）；主口路径无任何金额读取。');
     const { ord, owner } = F.a3;
     const txn = 'rfadvA3Txn';
     const before = await snap(owner);
@@ -404,8 +406,8 @@ function runZMouthRegression(): Promise<number> {
     const eP = await h.post(PATH_A(F.inv.ord), {}, {});
     A('X', '同刺激一致: 空 body → 主口 400 invalid_callback = Path A 400 invalid_callback',
       eM.status === 400 && eM.body?.error === 'invalid_callback' && eP.status === 400 && eP.body?.error === 'invalid_callback');
-    const gM = await h.post(MAIN, {}, { orderId: F.a1.ord, providerTxn: 'rfadvX1Txn', sig: 'zz' });
-    const gP = await h.post(PATH_A(F.a1.ord), {}, { providerTxn: 'rfadvX1Txn', sig: 'zz' });
+    const gM = await h.post(MAIN, {}, { orderId: F.a1.ord, providerTxn: 'rfadvX1Txn', ts: Date.now(), sig: 'zz' });
+    const gP = await h.post(PATH_A(F.a1.ord), {}, { providerTxn: 'rfadvX1Txn', ts: Date.now(), sig: 'zz' });
     A('X', '同刺激一致: 垃圾签 → 主口 403 bad_signature = Path A 403 bad_signature',
       gM.status === 403 && gM.body?.error === 'bad_signature' && gP.status === 403 && gP.body?.error === 'bad_signature');
     const ghost = 'RFADV_X1_GHOST_' + randomUUID();

@@ -31,9 +31,15 @@ function statusBadge(status: string) {
   return <Badge variant={variant}>{STATUS_LABEL[status] ?? '状态未知'}</Badge>;
 }
 
-export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string; reused?: string; targetRole?: string }> }) {
+export default async function InterviewsPage({ searchParams }: { searchParams: Promise<{ limit?: string; error?: string; reused?: string; targetRole?: string; quiz?: string }> }) {
   if (!(await getServerToken())) redirect('/login');       // 服务端鉴权门(无 cookie 直接服务端跳转,不发任何页面 JS)
-  const { limit, error, reused, targetRole } = await searchParams;
+  const { limit, error, reused, targetRole, quiz } = await searchParams;
+  // QBANK-PLANNER-HONESTY #200-A ⑴(裁决项⑤ query param 形):QuizPanel「用这些题去模拟面试」入口携 ?quiz=<押题id>
+  // → 注入开始表单隐藏域 → action 非空才发 quiz-id 头(#259 target-role「空串不发头=现状字节」同纪律)。
+  // 服务端只做 trim/限长防滥用;归属/新鲜度校验权威在 api begin 守卫(owner-scoped,他主/过期 → 404/409 带码回列表)。
+  const quizId = (quiz ?? '').trim().slice(0, 100) || undefined;
+  // [merge nail 双刀接龙]h5-role-input ?targetRole=(#268 S2a prefill 表单初值)与 QP ?quiz=(#200-A 押题入口)
+  // 同位 additive 并存:两 query param 互斥缺省,union 签名零纠缠。
 
   // 真服务端取数:在 RSC 里 await,HTML 服务端渲染好再发(首屏即有数据,无客户端 fetch 闪烁)。
   const data = await serverGet<unknown>('/interview');
@@ -117,6 +123,9 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
             const empty = resumeEmptyState(resumes);
             return empty === null ? (
               <form action={startInterviewAction} className="flex flex-col gap-3">
+                {/* QBANK-PLANNER-HONESTY #200-A ⑴:源押题标识隐藏域(?quiz= 在场才渲染;缺省零渲染=现状字节)。
+                    action 侧非空才发 quiz-id 头;他主/过期押题由 begin 守卫 404/409 带码回列表,不留死会话。 */}
+                {quizId && <input type="hidden" name="quizId" value={quizId} />}
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
                   <label className="text-sm text-muted-foreground" htmlFor="resumeId">选择简历</label>
                   <select

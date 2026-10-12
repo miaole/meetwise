@@ -47,6 +47,10 @@ export default function LoginPage() {
               <Label htmlFor="password">{t('password')}</Label>
               <Input id="password" name="password" type="password" placeholder={t('passwordHint')} required />
             </div>
+            {/* D6 #239-③ 注册年龄声明(声明文案形·非勾选·零新字段零闸):未满 18 周岁不提供服务。
+                勾选形会给单 form 双 submit(:51-52)的同闸 login 提交加必选项并卡 golden 原生提交链,故取声明文案形;
+                行级避开上方 :27-28/:38-40 内部预览标注面(#263 域·零重叠)。 */}
+            <p className="text-xs leading-5 text-muted-foreground">{t('ageDeclaration')}</p>
             <div className="flex gap-3">
               <Button name="mode" value="login" type="submit" disabled={pending} className="flex-1">{t('loginBtn')}</Button>
               <Button name="mode" value="signup" type="submit" variant="outline" disabled={pending} className="flex-1">{t('signupBtn')}</Button>

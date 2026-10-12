@@ -53,13 +53,13 @@ function main() {
   A('consumer startAdaptiveInterview 透传第 5 参 jobPlannerContext',
     /startAdaptiveInterview\(life, role, admitted\.ok && admitted\.resumeProfileAvailable \? facts : \[\], focus, jobPlannerContext\)/.test(consumer));
 
-  // ── ③ 透传链闭合（lifecycle→service→prompt vars）──
+  // ── ③ 透传链闭合（lifecycle→service→prompt vars）──[merge nail 随演:QP #200-A/#201 第 9/10 参 quizQuestions/routeLeaf 接龙在 job 后,正则随并线实态]
   const lifecycle = src('apps/worker/src/adaptive-lifecycle.ts');
   A('lifecycle planCompetencies 第 8 参透传 job',
-    /planCompetencies\(d\.pool, d\.owner, d\.interviewId, d\.fastModel \?\? d\.model, role, plannerFacts, focus, job\)/.test(lifecycle));
+    /planCompetencies\(d\.pool, d\.owner, d\.interviewId, d\.fastModel \?\? d\.model, role, plannerFacts, focus, job, d\.quizQuestions, d\.routeLeaf\)/.test(lifecycle));
   const service = src('apps/worker/src/adaptive-interview-service.ts');
   A('planCompetencies promptedModel vars 携带 job 键',
-    /promptedModel\(model, 'planner\.competencies', \{ role, facts, focusWeaknesses: focus, job \}\)/.test(service));
+    /promptedModel\(model, 'planner\.competencies', \{ role, facts, focusWeaknesses: focus, job, quizQuestions \}\)/.test(service));
 
   // ── ④ #259 透传线与 G-R2-5 门零冲突（原样源串在位）──
   A('#259 透传线零触（roleFromUserInput: requestContext.targetRole 原样）',
