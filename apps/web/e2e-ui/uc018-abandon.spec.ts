@@ -35,11 +35,13 @@ async function provisionPaidInterviewCredit(request: APIRequestContext, token: s
   expect(order.status(), `commerce/orders → 200 (got ${order.status()})`).toBe(200);
   const { orderId } = (await order.json()) as { orderId: string };
   const providerTxn = `ui-uc018-${nonce}`;
+  // 5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`(±300s 防重放窗)·body 携 ts。
+  const ts = Date.now();
   const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret')
-    .update(`${orderId}:${providerTxn}:paid`)
+    .update(`${orderId}:${providerTxn}:paid:${ts}`)
     .digest('hex');
   const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, {
-    data: { providerTxn, sig },
+    data: { providerTxn, sig, ts },
   });
   expect(paid.status(), `pay webhook → 200 (got ${paid.status()})`).toBe(200);
 }

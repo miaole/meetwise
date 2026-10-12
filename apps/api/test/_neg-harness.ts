@@ -15,6 +15,13 @@ import { DbService } from '../src/platform/db.service';
 export const PAY_SECRET = 'test-pay-secret';
 export const AUTH_SECRET = 'test-secret-key';
 export const paySig = (s: string) => createHmac('sha256', PAY_SECRET).update(s).digest('hex');
+/**
+ * #100(AUTHZ-HARDEN 5A-2)回调体构造器:签名载荷 `${id}:${txn}:${kind}:${ts}`(ts=签名毫秒时刻),
+ * 与 commerce.service verifyCommerceSig 单源同形——5A-2 起回调必须携 ts(±300s 窗,防重放)。
+ */
+export function payCallbackBody(orderId: string, txn: string, kind: 'paid' | 'refunded' = 'paid', ts = Date.now()) {
+  return { providerTxn: txn, ts, sig: paySig(`${orderId}:${txn}:${kind}:${ts}`) };
+}
 export function tokenFor(uid: string, opts: { pwdEpoch?: number; ttlSec?: number; secret?: string } = {}): string {
   return signToken(uid, opts.secret ?? AUTH_SECRET, opts.ttlSec ?? 3600, Math.floor(Date.now() / 1000), opts.pwdEpoch ?? 0);
 }
