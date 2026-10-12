@@ -18,8 +18,8 @@
 
 | 文件 | blob | 关键行锚 |
 |---|---|---|
-| `packages/db/src/interview/interview-jobs.ts` | `775a9336`（全 40 hex：`775a93361e5db460a6b94a765e346c5c840126bf`） | `:259-265` sweep 文档注释 · `:266-279` `sweepStuckInterviewJobs`（两条原子 UPDATE·只触 running）· `:281-282` `INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS = 86_400` · `:284-293` purge 文档注释（「本函数独立于收割路径(新旁路)」「queued 行收割永不触达」）· `:294-308` `purgeStaleInterviewJobPayloads`（SQL `:297-305`：`payload=payload-'answer'` + 谓词门 `payload ? 'answer'` + 双窗 `(status='queued' AND created_at < now()-ttl) OR (status='running' AND lease_expires_at < now()-ttl)` · `stale_payload_purge` 结构化日志 `:306`） |
-| `apps/worker/src/interview-consumer.ts` | `787f23fe`（`787f23fe0733194804f67975c7e4a41ae4900875`·全 570 行） | `:7` 巨型 import（含 `sweepStuckInterviewJobs` **不含** `purgeStaleInterviewJobPayloads`——红事实机证之一）· `:522-525` reap 文档注释 · `:526-540` `reapStuckInterviewJobs`（`:528` sweep 调用 · `:529-537` failedInterviews→terminalizeUnsettledInterview 循环 · 同一 `asPrincipal` 事务 RLS 限 owner）· `:542-565` `interviewDispatchTick`（`:548` 逐 owner reap 调用 · `:555-559` 逐 owner reap 异常隔离 catch）· `:568-570` `runInterviewConsumer`（`runDrainLoop` 5000ms 默认拍） |
+| `packages/db/src/interview/interview-jobs.ts` | `775a9336`（全 40 hex：`775a93361e5db460a6b94a765e346c5c840126bf`） | `:260-265` sweep 文档注释 · `:266-279` `sweepStuckInterviewJobs`（两条原子 UPDATE·只触 running）· `:281-282` `INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS = 86_400` · `:284-293` purge 文档注释（「本函数独立于收割路径(新旁路)」「queued 行收割永不触达」）· `:294-308` `purgeStaleInterviewJobPayloads`（SQL `:297-305`：`payload=payload-'answer'` + 谓词门 `payload ? 'answer'` + 双窗 `(status='queued' AND created_at < now()-ttl) OR (status='running' AND lease_expires_at < now()-ttl)` · `stale_payload_purge` 结构化日志 `:306`） |
+| `apps/worker/src/interview-consumer.ts` | `787f23fe`（`787f23fe0733194804f67975c7e4a41ae4900875`·全 570 行） | `:7` 巨型 import（含 `sweepStuckInterviewJobs` **不含** `purgeStaleInterviewJobPayloads`——红事实机证之一）· `:523-525` reap 文档注释 · `:526-540` `reapStuckInterviewJobs`（`:528` sweep 调用 · failedInterviews→terminalizeUnsettledInterview 循环 `:529-536`+`:537` return · 同一 `asPrincipal` 事务 RLS 限 owner）· `:542-565` `interviewDispatchTick`（`:548` 逐 owner reap 调用 · `:551-557` 逐 owner reap 异常隔离 catch（catch `:551`））· `:568-570` `runInterviewConsumer`（`runDrainLoop` 5000ms 默认拍） |
 | `apps/worker/src/main.ts` | （生产入口佐证） | `:30` import runInterviewConsumer · `:643` `runInterviewConsumer({...}, jobReconcileIntervalMs)` 常驻 loop 挂载 |
 | `packages/db/test/authz5a2-stale-payload-ttl.proof.ts` | `c92e1e64`（`c92e1e6416a05eb369ef16b2037e35ce119d6a08`·全 116 行） | 头注 `:1-10`（假时钟三臂形·运行命令 `:8`）· 17 臂亲数 `A(` = **17**（rg -c 实测）· `:84` `:109` purge 双调（prove 专用） |
 | `packages/db/src/index.ts` | `3fa6f9a8` | `:126` barrel export 携 `purgeStaleInterviewJobPayloads`+`INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS` |
@@ -44,7 +44,7 @@
 
 ### 1.3 reaper 主循环逐行亲读（触发链完整·唯 purge 缺席）
 
-生产链逐行：`main.ts:643` `runInterviewConsumer(…, jobReconcileIntervalMs)` 常驻 → `interview-consumer.ts:568-570` `runDrainLoop(interviewDispatchTick)` → `:542` `interviewDispatchTick` 逐 owner `:548` 调 `reapStuckInterviewJobs` → `:526-540` 体内 `:528` **仅** `sweepStuckInterviewJobs(c, owner)`（sweep 两条 UPDATE 之 WHERE 全系 `status='running'`——`:271`/`:275` 亲证）→ failedInterviews 逐单 terminalize（`:529-537`）。**purge 全链零触达**。
+生产链逐行：`main.ts:643` `runInterviewConsumer(…, jobReconcileIntervalMs)` 常驻 → `interview-consumer.ts:568-570` `runDrainLoop(interviewDispatchTick)` → `:542` `interviewDispatchTick` 逐 owner `:548` 调 `reapStuckInterviewJobs` → `:526-540` 体内 `:528` **仅** `sweepStuckInterviewJobs(c, owner)`（sweep 两条 UPDATE 之 WHERE 全系 `status='running'`——`:271`/`:275` 亲证）→ failedInterviews 逐单 terminalize（循环 `:529-536`+`:537` return）。**purge 全链零触达**。
 
 ### 1.4 queued 滞留面影响（缺口实害）
 
@@ -52,10 +52,10 @@ sweep 只处理 running（翻 queued/failed）；**queued 行收割永不触达*
 
 ### 1-修法（单一接线面·零新原语·零迁移）
 
-**接线点唯一**：`reapStuckInterviewJobs`（`interview-consumer.ts:526-540`）体内、同一 `asPrincipal` 事务内追加一次 `purgeStaleInterviewJobPayloads(c, owner)` 调用 + `:7` import 行补名——共两处改动·恰一文件。推荐置位=**terminalize 循环后、return 前**（`:537` 与 `:538` 之间）：purge 异常不饿死同拍退款/终态面（行为最安全形）；置于 `:528` sweep 后紧邻为备选（裁决项①）。
+**接线点唯一**：`reapStuckInterviewJobs`（`interview-consumer.ts:526-540`）体内、同一 `asPrincipal` 事务内追加一次 `purgeStaleInterviewJobPayloads(c, owner)` 调用 + `:7` import 行补名——共两处改动·恰一文件。推荐置位=**terminalize 循环后、return 前**（`:536` 与 `:537` 之间·terminalize 循环收尾后、return 前）：purge 与 sweep/terminalize 同处 `asPrincipal` 单事务（`:527`）·purge 抛错回滚整拍（含同拍退款/终态面）·真实隔离面=逐 owner 逐拍 catch（`:551-557`）+下拍（5000ms 默认）重试·推荐置位本身安全无害；置于 `:528` sweep 后紧邻为备选（裁决项①）。
 
 - **触发频率/条件自控**：调用形沿既有 `sweepStuckInterviewJobs(c, owner)` 同参同域（asPrincipal+RLS 限 owner）；频率沿 reaper 既有拍（5000ms 默认）；条件沿 purge 自身幂等谓词门自控——非超龄/已清/活跃 running 行天然零命中，逐拍重复调用为无害空转（零新配置面、零新 env 闸、零新定时器；短窗覆写若双审欲行使沿原语既有第三参 `ttlSeconds`·默认 `86_400` 不动·§3-1）。
-- **异常隔离**：purge 抛错落 `interviewDispatchTick` 既有逐 owner catch（`:555-559`）·与 sweep 抛错同款隔离面·零新错误处理面。
+- **异常隔离**：purge 抛错落 `interviewDispatchTick` 既有逐 owner catch（`:551-557`·catch `:551`）·与 sweep 抛错同款隔离面·零新错误处理面。
 - **零语义面**：`sweepStuckInterviewJobs`（`interview-jobs.ts:259-279`）与 `purgeStaleInterviewJobPayloads`（`:281-308`）两原语函数体**零字节改**——本刀只接线不改原语·零迁移·零 DDL·零新存储面。
 
 ## §2 验收断言候选（pre-exec 双审核对单基面·断言力≥3）
@@ -100,8 +100,10 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（R-1「接线小刀」向授权承接·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 0.2 两处锚勘误如实在案）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
 
-**待双审/EXEC 裁决项**：①purge 调用置位（推荐=terminalize 循环后 return 前·异常不饿死退款/终态面 vs `:528` sweep 后紧邻）；②新接线臂载体（假池/spy 单测+静态源断言双形并陈=推荐·单形亦须断言力≥3）；③接线臂命名与住地（`apps/worker/test/` 住地·EXEC 定名沿 reaper.proof 形）；④prove 复跑口径（17 臂臂计数复核方式·逐臂原值对账入收据）。
+**待双审/EXEC 裁决项**：①purge 调用置位（推荐=terminalize 循环后 return 前·purge 与 sweep/terminalize 同处 `asPrincipal` 单事务（`:527`）·purge 抛错回滚整拍（含同拍退款/终态面）·真实隔离面=逐 owner 逐拍 catch（`:551-557`）+下拍（5000ms 默认）重试·推荐置位本身安全无害 vs `:528` sweep 后紧邻）；②新接线臂载体（假池/spy 单测+静态源断言双形并陈=推荐·单形亦须断言力≥3）；③接线臂命名与住地（`apps/worker/test/` 住地·EXEC 定名沿 reaper.proof 形）；④prove 复跑口径（17 臂臂计数复核方式·逐臂原值对账入收据）。
 
 ---
 
 *TTL-WIRE REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`7500ac73`（git log -1 实测 2026-10-12 16:30:38 +0800）· 分支 `line/ttl-wire` · 工作树 `meetwise-ttlwire`（git worktree add 本起草席立·建前 worktree list+branch 双查不存在）· 立项出处=checklist `:2268`/`:2276` R-1 遗留行（挂协调方裁「接线小刀或降格声明」·本卷即接线小刀向起草·不自建 SSOT 行）+authz-harden-REQUEST §1-簇④:110/§2-6:120（5A-2 已落原语与 17 臂 prove 承接）· 防重双对表过（harness 无同名卷·delivery 全域零命中）· 红事实机证=rg 全仓 purge 恰 5 命中（定义+export+prove×3·生产零调用）+reaper 触发链逐行亲读（main.ts:643→consumer:568→:542→:548→:528 仅 sweep）+queued 滞留明文无清理触发面· 锚勘误两处如实登记（reaper 实径无 interview/ 子层·prove 实名 prove:authz5a2-stale-payload-ttl）· 修法=单一接线面恰一文件两处（import+asPrincipal 域内 purge 调用·推荐 terminalize 循环后）·零新原语·零迁移·零配置面 · 断言候选四条（17 臂回归原值+新接线臂+零行为回归+双声明）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+*TTL-WIRE REQUEST rev2 · 2026-10-12 · rev 修正席（席1 FAIL 窄面锚勘误行使·结论零变·纯锚校准+口径如实化）四处处置摘要：①置位锚「`:537` 与 `:538` 之间」→「`:536` 与 `:537` 之间·terminalize 循环收尾后、return 前」（亲读 interview-consumer.ts 实证：`:536`=循环收尾 }·`:537`=return 语句·`:538`=`});`）；②catch 锚 `:555-559`→`:551-557`（catch `:551`，`interviewDispatchTick` 逐 owner 隔离块亲读实证）；③注释区间前导空行剔除：sweep 注释 `:259-265`→`:260-265`·reap 注释 `:522-525`→`:523-525`（卷内 §0.1/§1.3 引用同步更正）·循环表述「`:529-537` 循环」→「循环 `:529-536`+`:537` return」；④事务口径如实化：purge 与 sweep/terminalize 同处 `asPrincipal` 单事务（`:527`）·purge 抛错回滚整拍（含同拍退款/终态面）·真实隔离面=逐 owner 逐拍 catch（`:551-557`）+下拍（5000ms 默认）重试·推荐置位本身安全无害·裁决项①按此口径裁决。STOP `draft:awaiting_pre_exec_dual` 维持·§8-③ 冻结条款维持·pins 十一值零翻·markers=0·⛔push·待席2 复审*
