@@ -32,7 +32,7 @@ import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
-import { runUsageCalibrationReconciler } from './usage-calibration-reconcile.ts';
+import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -707,7 +707,13 @@ async function bootstrap() {
   const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
   // MODEL-OP-wire：usage 校准因子周期 reconciler（读 estimate↔usage 配对 → 版本化因子落库）。
   // Dual reconciler 同列 · ≠ MODEL-OP fake green / ≠ SLO / ≠ Redis cutover / PG LISTEN retained.
-  const usageCalibrationReconcileLoop = runUsageCalibrationReconciler(pool);
+  // AG-07 止血（AG-COST1 §1-①）：env 旋钮取代 60s 硬编码默认。缺省 ENABLED=false（裁决项①推荐 (b)·
+  // 因子纯写不读故关停零功能代价·②迁移三件套落地后再启）→ 不起循环（沿 privacyErasureLoop 可选循环先例）；
+  // 非法 env=启动失败非静默回退（resolveUsageCalibrationReconcileConfig·AG-18 同族纪律）。
+  const usageCalibrationControl = resolveUsageCalibrationReconcileConfig();
+  const usageCalibrationReconcileLoop = usageCalibrationControl.enabled
+    ? runUsageCalibrationReconciler(pool, usageCalibrationControl.intervalMs)
+    : undefined;
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；
@@ -735,7 +741,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && usageCalibrationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -769,7 +775,7 @@ async function bootstrap() {
     { name: 'route-classify', stop: () => routeClassifyLoop.stop() },
     { name: 'commerce', stop: () => commerceLoop.stop() },
     { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
-    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop.stop() },
+    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'gauge', stop: () => gaugeLoop.stop() },
