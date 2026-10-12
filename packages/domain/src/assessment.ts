@@ -1,6 +1,8 @@
 /**
  * 能力评估（纯逻辑,无 IO）：面试各题得分 → 能力维度 + 差距标记 + 弱项清单(喂成长档案)。
- * 达标线 GAP=60;gap 维度=弱项,回写 user_memory 形成成长闭环(由服务层做)。
+ * 达标线 GAP=60;gap 维度=弱项（#217 勘误 2026-10-12：旧注「回写 user_memory 形成成长闭环(由服务层做)」
+ * 与实态不符——现役写侧只产 kind='episode'（apps/worker/src/memory-service.ts recordAskedQuestions），
+ * 弱项走 assessment_report 只读投影（historicalWeakDimensions）做软偏置，**不**回写 user_memory）。
  */
 export interface AssessTurn { question: string; score: number; competency?: string }
 // EVIDENCE-DELIVERY S2(C9)：evidence 可选化——deriveAssessment 停写固定串冒充点评；legacy-parity

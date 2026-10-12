@@ -5,7 +5,7 @@
  * 与 invoke 关口分层:invoke 守"模型输出双校验";tools 守"模型决定调的工具入参校验 + 调用编排"。两者正交、各自可测。
  */
 import type { z } from 'zod';
-import { asErr } from '@meetwise/db';
+import { asErr } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 
 export interface Tool<A = unknown, R = unknown> {
   name: string;

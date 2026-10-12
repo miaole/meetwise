@@ -116,9 +116,18 @@ export type SessionConcludedPayload = z.infer<typeof SessionConcludedPayload>;
  * 不覆盖录音持久化、电话/会议接入、远端音轨或说话人分离。
  */
 export const VOICE_CAPTURE_POLICY_VERSION = 'voice_ephemeral_v1' as const;
+/** 语音作答语义上限**单源**（#70 三值矛盾归一·5E 裁决项②=10MB·2026-10-12）。
+ *  此前三处各写：契约 base64≤13.5M 字符、api 全局 bodyLimit 12MiB、服务内 MAX_AUDIO_BYTES 10MB（互矛盾且
+ *  服务检查被前两层遮蔽=不可达）。归一口径：10MB=单题语音语义上限（唯一真源）；契约 base64 字符上限由本值
+ *  派生（4*ceil(n/3)=13,981,016）；api 全局 bodyLimit 12MiB 是简历+语音**共享传输信封**（为 ~8MB 简历原文
+ *  校准，见 apps/api/src/main.ts），不再是第三个语音上限——超 10MB 的语音由服务内 413 audio_too_large 兜底。
+ *  收紧/放宽语义如实呈报：有效受理窗由旧 bodyLimit 遮蔽出的 ~9.4MB 放宽到语义 10MB（9.4-10MB 区间旧 400/413
+ *  现受理）；>10MB 一律 413（旧为散落的 400/413）。 */
+export const VOICE_MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+export const VOICE_MAX_AUDIO_BASE64_CHARS = 4 * Math.ceil(VOICE_MAX_AUDIO_BYTES / 3);
 const VoiceAudioBase64 = z.string()
   .min(4)
-  .max(13_500_000)
+  .max(VOICE_MAX_AUDIO_BASE64_CHARS)
   .regex(/^[A-Za-z0-9+/]*={0,2}$/)
   .refine((value) => value.length % 4 === 0, 'base64 padding is invalid');
 const VoiceMimeType = z.enum([
@@ -172,11 +181,12 @@ export type LearningCompleteDto = z.infer<typeof LearningCompleteDto>;
 /** 一道押题:q=预测训练问题,refs=接地考察点(简历里出现过的关键词,factuality 门保证非幻觉)。 */
 export const QuizItem = z.object({ q: z.string().max(2_000), refs: z.array(z.string().max(200)).max(20) });
 export type QuizItem = z.infer<typeof QuizItem>;
-/** 押题详情(GET /quiz/:id 响应)。ready 时 questions/report 有内容;generating/failed 据 status 渲染(无死胡同)。 */
+/** 押题详情(GET /quiz/:id 响应)。ready 时 questions/report 有内容;generating/failed 据 status 渲染(无死胡同)。
+ *  questions .max(20)=#210 schema 限题数面（2026-10-12·生成侧 prompt 定量约 5-8 题,20 为契约硬顶余量）。 */
 export const QuizView = z.object({
   id: z.string(),
   status: z.string(),
-  questions: z.array(QuizItem),
+  questions: z.array(QuizItem).max(20),
   report: z.object({ score: z.number().int(), grounded: z.number().int(), summary: z.string() }).nullable(),
 });
 export type QuizView = z.infer<typeof QuizView>;
@@ -1351,6 +1361,11 @@ export interface ContractRoute {
   auth?: boolean;                     // 需 Bearer
   request?: z.ZodType;                // 请求体 schema(ZodValidationPipe + OpenAPI requestBody)
   response?: z.ZodType;               // 200 响应 schema(OpenAPI + 前端校验)
+  status?: number;                    // 成功响应状态码(默认 200)。#30：begin 实返 202,@HttpCode 已在,补登记 OpenAPI
+  headers?: Array<{ name: string; description?: string; required?: boolean }>;
+  // #30：自定义 header 参数登记(OpenAPI parameters·in:header)。begin 输入现走 header(resume-id/quiz-id/
+  // target-role/focus·controller @Headers 已在),此前 OpenAPI 不可见=契约缺口;header→body DTO 迁移属
+  // 裁决项⑫另一分支(行为面),本刀取零行为分支只补元数据登记。
 }
 
 /** 全站契约注册表。**新增端点在此登记** → 自动进 OpenAPI + 可被 pipe/前端复用。 */
@@ -1368,7 +1383,17 @@ export const apiContract: ContractRoute[] = [
   { id: 'uploadResumeFile', method: 'post', path: '/resume/file', summary: '上传简历文件(PDF/Word/图片→提取+清洗)', tags: ['resume'], auth: true, request: UploadResumeFileDto },
   { id: 'listInterview', method: 'get', path: '/interview', summary: '面试列表（含题目账本 issued/answered turns）', tags: ['interview'], auth: true, response: InterviewList },
   { id: 'getInterview', method: 'get', path: '/interview/{id}', summary: '面试详情（含题目账本进度投影）', tags: ['interview'], auth: true, response: InterviewView },
-  { id: 'beginInterview', method: 'post', path: '/interview/{id}/begin', summary: '开始面试', tags: ['interview'], auth: true, response: BeginResult },
+  // #30：begin 输入只在 header(resume-id/quiz-id/target-role/focus·H5 加后四参形)+实返 202——此前注册表
+  // 无 request/header/status 登记,OpenAPI 看不到输入且写 200 与实态不符;本行补元数据登记(零行为·@Headers
+  // 与 @HttpCode(202) 既有面零触)。header→body DTO 迁移=裁决项⑫另一分支(行为面)不在本刀。
+  { id: 'beginInterview', method: 'post', path: '/interview/{id}/begin', summary: '开始面试', tags: ['interview'], auth: true, status: 202,
+    headers: [
+      { name: 'resume-id', required: true, description: '源简历 id(必携·uuidv7)' },
+      { name: 'quiz-id', description: '源押题工件 id(可选·GAP-UC025-NEG-01)' },
+      { name: 'target-role', description: '用户显式目标岗位(可选·#259)' },
+      { name: 'focus', description: '再练弱项标签 JSON 数组文本(可选·H5 R2① #252)' },
+    ],
+    response: BeginResult },
   { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, request: TurnDto, response: TurnResult },
   { id: 'questionFeedback', method: 'post', path: '/interview/{id}/questions/{idx}/feedback', summary: '题目反馈(赞/踩 + 可选评语)', tags: ['interview'], auth: true, request: FeedbackDto },
   { id: 'completeLearningItem', method: 'post', path: '/interview/{id}/learning-plan/complete', summary: '标记学习项完成', tags: ['interview'], auth: true, request: LearningCompleteDto },

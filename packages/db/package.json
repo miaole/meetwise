@@ -95,6 +95,7 @@
   },
   "dependencies": {
     "pg": "catalog:",
+    "@meetwise/errors": "workspace:*",
     "@meetwise/qdrant-store": "workspace:*"
   },
   "devDependencies": {

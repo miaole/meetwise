@@ -30,7 +30,8 @@
  * embedding 能力 Key 且显式 `QBANK_EVAL_REAL_EMBED=1` 后重跑本评测（opt-in 防 shell 遗留 key 静默走真付费模型）。
  */
 import { assertIsolatedTestTarget, asPrincipal, createPool, hybridQbankSearch, qbankQuestionResultsForHits, type QbankHybridHit } from '@meetwise/db';
-import { dashscopeEmbedder, evalRecall, fakeEmbedder, type Embedder } from '@meetwise/ai-runtime';
+import { dashscopeEmbedder, evalRecall, type Embedder } from '@meetwise/ai-runtime';
+import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { QBANK_ARTIFACTS } from '../src/qbank-seed.ts';
 import { ingestQuestionBankArtifacts } from '@meetwise/db';
 import { ensureActiveQbankGeneration } from '../src/qbank-generation.ts';

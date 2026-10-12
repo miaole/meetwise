@@ -13,7 +13,7 @@ import {
   hybridQbankSearch,
   qbankQuestionResultsForHits,
 } from '@meetwise/db';
-import { fakeEmbedder } from '@meetwise/ai-runtime';
+import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import {
   ingestQbank,
   ingestQuestionBankArtifacts,

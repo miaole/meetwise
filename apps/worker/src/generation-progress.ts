@@ -142,7 +142,10 @@ export async function withGenerationProgress<T>(
 
   const heartbeat = (async () => {
     while (!done) {
-      // settle 即醒（stopped），不留悬挂 timer 拖住进程退出。
+      // settle（stopped）即醒尽早写进度。#166 诚实化 2026-10-12：旧注「不留悬挂 timer 拖住进程退出」
+      // 与实现不符——sleep 侧 setTimeout 未显式清除，stopped 胜出后输掉的旧 timer 仍活到
+      // MIN_INTERVAL 自然到期，至多把进程退出推迟一个 MIN_INTERVAL 窗口（drain deadline 兜底，
+      // 不永久悬挂）；按本刀裁决取注释侧诚实化（清 timer 属行为面，本刀零行为变更）。
       await Promise.race([sleep(GENERATION_PROGRESS_MIN_INTERVAL_MS), stopped]);
       if (done) break;
       writeProgressOnce();

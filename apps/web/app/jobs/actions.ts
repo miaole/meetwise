@@ -10,7 +10,7 @@ import { ensureOk } from '@/lib/jobs/ensure-ok';
 /** 候选人投递岗位(C 端):服务端读 cookie 加 Bearer → POST /jobs/:id/apply(岗位已关闭/不存在 → 404)。投递后刷新岗位广场。 */
 export async function applyAction(jobId: string) {
   if (!jobId) return;
-  const res = await serverFetch(`/jobs/${jobId}/apply`, { method: 'POST' });
+  const res = await serverFetch(`/jobs/${encodeURIComponent(jobId)}/apply`, { method: 'POST' });
   ensureOk(res, 'apply', [409]);   // 409 已投递:UI 已防重复入口,容忍
   revalidatePath('/jobs');
 }
@@ -20,7 +20,9 @@ export async function startApplicationAction(appId: string, formData: FormData) 
   if (!appId) return;
   const resumeId = String(formData.get('resumeId') ?? '');
   if (!resumeId) throw new Error('resume_required_for_application_interview');
-  const res = await serverFetch(`/applications/${appId}/start`, { method: 'POST', body: JSON.stringify({ resumeId }) });
+  // #62（5E 2026-10-12）：路径内插 id 统一 encodeURIComponent（沿同文件 events 代理与 makeInterviewApi 既有编码先例形），
+  // 防 jobId/appId 携带保留字符时路径歧义/注入。
+  const res = await serverFetch(`/applications/${encodeURIComponent(appId)}/start`, { method: 'POST', body: JSON.stringify({ resumeId }) });
   if (res.status === 401) redirect('/login?expired=1');   // #61 W5:内联同面,过期同跳登录
   // B271 片2 S2-C6：start（已合一 begin）402=企业支付不可用 → 新分码 redirect（白名单 application-start-error.ts）；
   // 未知 402 分码回落 legacy interview_credits_unavailable（C 端 402 语义零改·防御面）。
@@ -32,7 +34,12 @@ export async function startApplicationAction(appId: string, formData: FormData) 
   if (!res.ok) {
     const msg = applicationStartFailureMessage(res.status, body);
     // Surface the specific 409 subclass in logs so UI-409 gaps are diagnosable (not status-only).
-    console.error('[application_start_failed]', { status: res.status, message: msg, body });
+    // #126（5E 2026-10-12）：日志收窄——不再把后端响应体整体打到日志（可能携带内部细节）；
+    // 保 status/message，body 只落错误码与绑定字段有无布尔（摘要形=裁决），诊断 409 缺口面不减。
+    console.error('[application_start_failed]', {
+      status: res.status, message: msg, error: body.error,
+      hasRedirectTo: typeof body.redirectTo === 'string', hasInterviewId: typeof body.interviewId === 'string',
+    });
     throw new Error(msg);
   }
   if (!body.redirectTo || typeof body.redirectTo !== 'string' || !body.interviewId || typeof body.interviewId !== 'string') throw new Error('application_start_missing_interview_binding');
@@ -46,7 +53,7 @@ export async function startApplicationAction(appId: string, formData: FormData) 
 /** 候选人婉拒邀请(状态机 invited→declined,终态):刷新"我的投递"。无死胡同——受邀后给出明确出口。 */
 export async function declineApplicationAction(appId: string) {
   if (!appId) return;
-  const res = await serverFetch(`/applications/${appId}/decline`, { method: 'POST' });
+  const res = await serverFetch(`/applications/${encodeURIComponent(appId)}/decline`, { method: 'POST' });
   ensureOk(res, 'apply', [409]);
   revalidatePath('/jobs');
 }

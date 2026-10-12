@@ -5,7 +5,7 @@
 import type { CompletionRequest, ModelClient } from './model-client.ts';
 import type { ModelCallPlan } from './invoke.ts';
 import { getMetrics, METRIC } from './metrics.ts';
-import { AppError, errCode } from '@meetwise/db';
+import { AppError, errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 
 export interface BreakerOpts { threshold?: number; cooldownMs?: number; now?: () => number; onPhase?: (phase: BreakerPhase) => void; dep?: string }
 export type BreakerPhase = 'closed' | 'open' | 'half_open';
