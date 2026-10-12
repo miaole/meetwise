@@ -1,6 +1,6 @@
 # PARITY-B2 · e2e-parity baseline 再生刀（B1 后继·全新起草） · REQUEST（docs-only）
 
-status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零再生零门状态翻转——再生属下轮 EXEC 面；本 REQUEST 全部门读数均为只读实测，仓库本体除本文零触碰）
+status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零再生零门状态翻转——再生属下轮 EXEC 面；本 REQUEST 全部门读数均为只读实测，仓库本体除本文零触碰） → **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/parity-b2-regen`：并线 `0a64400b`（feat/mysql-schema-skeleton@65bdf3f6 docs-only 双卷零冲突）+ 施工 commit `b0d7182e`（恰 4 产品面文件 636+/13−）+ 本随翻 commit；pre-exec 双审两外席 BOTH PASS 经协调方带外转达+协调方常设 loop 授权开工；再生账本增量：full.e2e 84→158（+74 键/单位）·helpers 223→244（+21 单位/20 键）·helpers tests 31→36（+5）·floors 48/377→**53/472**·allowlist 7→**9** 双条目（死 17 键+3 test 全 digest 机器匹配入账）；门：`e2e-parity:check` EXIT=0 `valid=true` `errors=[]`（pre-commit+post-commit 各 1）·`e2e-parity:prove` EXIT=0 **一次优先** 22 scenarios（同上各 1·零 retry 记账）·`generation-trust:prove` EXIT=0 保绿·`docs:check` 三类 70 行类集零新增（LOCAL_PATH 67+EXT 2+CODE_HOST 1·69 基线+本卷披露 1·B1 先例）；收据 `ai-docs/delivery/receipts/parity-b2-regen/` 七件·est live=0·⛔push）
 
 pins 十一值（照抄零翻）：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · r1Closed=false
 
@@ -23,6 +23,16 @@ pins 十一值（照抄零翻）：haStatus=NOT_HA · releaseEvidence=false · c
 | `e2e/helpers/e2e-helpers.proof.ts`（漂移源②·§1.3 归因账主对象） | `e748be25b84599ae93eb5d941a56652e4c8521d6` |
 
 - 环境读数（本 worktree 亲测）：node v22.22.3 · pnpm 10.18.0。
+
+### 0-EXEC. 开工重锚与漂移清单（EXEC 随卷 append 保史 · 2026-10-11）
+
+- **<base> 重钉**：起草基线 `89530dea` 后主线前移至 **`65bdf3f6`**（+2 commit：`489c95b7` I6 D6-COMPLIANCE SSOT 登记 + `65bdf3f6` LEDGER 批3 增量——均 docs-only，触 `execution-master-checklist.md` +13 与 `product-campaign-LEDGER.md` ±4，零 parity 账本面）。EXEC 开工并线：`git merge feat/mysql-schema-skeleton` → **零冲突**，本线 merge commit `0a64400b`。
+- **§0 八锚重 pin 复核（照 §0.3 协议·结论不变只实锚**）：八 blob 在 `0a64400b` 树逐值全等上表（`24f67f79`/`47274510`/`44e54fda`/`40394984`/`8e67fda1`/`4cb481aa`/`4aee4a29`/`e748be25`）——合并 diff 仅两 .md，账本面零字节漂移。
+- **§1 红读数复跑（合并后树·逐值全等）**：`check` EXIT=1 · 101 展示行 · stats 7/39/428 · floors 48/377 · effective 37/350 · allowlist 7 ✓。
+- **bag census 程序化复核（扫描器同源算法·EXPECT 对账全中）**：full.e2e +74 键/74 单位/0 test、死 7 键；helpers +20 键/21 单位/+5 test、死 10 键+3 test；其余 5 文件净漂移零（其 removed 全为既有 allowlist 已记账面：assert.ts 1·local-e2e-receipt 4A/6T）；既有 delta 合计 tests −11/assertions −27 ✓；§2.2 十七 digest 前缀+3 test 全文锚全中 ✓。
+- **B1 形复演**：以 pre-B1 blob `2f72becf`+B1 十身份两指针 stable-merge（本机 comparator）逐字节复现 `24f67f79`（added=10·全等=true·其余 scope 零 diff）——EXEC 落盘形与 B1 同形亲证。
+- **兄弟门基线（合并后树）**：`generation-trust:prove` EXIT=0 ✓；`docs:check` EXIT=1 三类 **70 行**（LOCAL_PATH 67=66 基线+本卷 REQUEST 披露 1·B1 先例 + EXT 2 + CODE_HOST 1）——类集零新增 ✓。
+- **门后终态**：见顶部状态行括注与收据 `ai-docs/delivery/receipts/parity-b2-regen/`（01-07 七件·EXIT 逐条留痕）。
 
 ## 1. 红事实（本刀实测 · 只读静态读数 · 零实跑零容器）
 
@@ -289,4 +299,11 @@ pins 十一值照抄零翻：`haStatus=NOT_HA` · `releaseEvidence=false` · `cl
 2. **协调方明示授权开工**（本 REQUEST 状态行翻 `executed` 须凭授权记录）；
 3. **EXEC 立项不得改 §1 归因账与 §5 pins/Ban**（账面数字如遇实树前移漂移 → 停止上报重锚，Ban 静默改账；§2 锚集即合同）。
 
+**三条款行使记录（EXEC 随卷 append · 2026-10-11）**：
+1. **条款一（预执行双审两外席 BOTH PASS）**：已行使——mw-e2e-ha + mw-model-op 两外席独立审 BOTH PASS，经协调方带外转达（审席空审 stub 由本随翻 commit 落 git：`ai-docs/delivery/reviews/REQUEST-2026-10-12-parity-b2-regen-mw-{mw-e2e-ha,mw-model-op}` 两 0 字节件·CMOP03-post7b 先例·Verdict 归审席填写·EXEC 不代填）；扩面裁定两处（§1 ①键级终账/②TC 4 数→7 数）由 §2 fail-closed 机器锚在落盘时逐键断言全等亲证（census+digest 前缀+唯一锚点 n===1 全中）。
+2. **条款二（协调方明示授权开工）**：已行使——协调方常设 loop 授权（开工指令载明「双审 BOTH PASS+协调方常设 loop 授权开工」）。
+3. **条款三（立项不改 §1 归因账与 §5 pins/Ban）**：已行使——§1 归因账/§5 pins/Ban 零翻；§2 锚集按合同执行；实树前移（89530dea→65bdf3f6 docs-only）按重锚协议复核，结论不变只实锚（§0-EXEC），未静默改账。
+
 Not a pass · not EXEC（再生未落 · 本 REQUEST docs-only）· not proven（prove 归 EXEC）· not run（零实跑零容器零 live；本刀读数均系只读静态门）· not 门绿（`e2e-parity:check`/`:prove` 在基线点 EXIT=1 retained·101 展示行零冲销）· not baseline 已再生（`24f67f79` 未动）· not 兄弟门处置（docs:check 预红留档）· not covered · not HA · not releaseEvidence · not nail · not coordinator authorize · not 预执行双审 done · `g7SuiteGreen=false` · `actualSpendCny=null` · `r1Closed=false` · alone ≠ dual
+
+> 上段系 REQUEST 落卷时点（`7f2b712b`）史录·append 保史原文未动；现状态以上方「三条款行使记录」与卷首 status 行 `executed:awaiting_post_prove_dual` 为准（再生已落 `b0d7182e`·check/prove EXIT=0·101 展示行已按 allowlist 双条目入账冲销·post-prove 双审待两外席·not nail）。
