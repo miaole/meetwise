@@ -219,6 +219,11 @@ export type { ModelInvocationClaim, ClaimModelInvocationInput, CompleteModelInvo
 export { recordUsage } from './model-op/question-usage-ledger.ts';
 export type { QuestionUsageCause, QuestionUsageSource, QuestionUsageLedgerEntry } from './model-op/question-usage-ledger.ts';
 
+// billing 战役 P2（BILL2-SHADOW-METER 修法②·§8 裁决项②按推荐行使）：0179 topic_shadow_meter 影子计量
+// 写入口（只算不扣·零扣费零积分零结算铁律·只增不改·PK 冲突忽略·fail-soft 由调用方 catch）。
+export { writeTopicShadowMeter, SHADOW_METER_VERSION, SHADOW_METER_CAP } from './model-op/topic-shadow-meter.ts';
+export type { WriteTopicShadowMeterInput } from './model-op/topic-shadow-meter.ts';
+
 // usage 对账校准因子数据面（MODEL-OP-00 收尾 + AG-COST2 加窗/水位线/保留期）：配对读面（全史 v1 + 加窗 v2）+
 // 版本化因子/观测日志幂等落库 + 水位线单调原语（GREATEST 绝不回拨）+ 保留期 SECURITY DEFINER 清除。
 export {
