@@ -407,7 +407,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 
 | 轨 | 刀 | 覆盖 | 状态 @2026-10-12 深夜 |
 |---|---|---|---|
-| 失败语义 | 刀 A | AG-05 续跑+AG-26 | REQUEST rev2 在途（席1 FAIL→hotfix 2629509d→rev2 对齐） |
+| 失败语义 | 刀 A | AG-05 续跑+AG-26 | **nail `a89471ef` 收官**（merge 已推非 force·双亲 `b8206e53`+`cf4c92f2`·post 双席 BOTH PASS·merge 后四门 36/43 臂+typecheck 3/3+docs:check 全绿·零账本触面·残余窗口 dispatching→unknown 确定性 unavailable 如实披露归 AG-06 unknown ageing·AG-25 ask+1 归后继·详情 checklist「Line AG-A nail」段 @`bced81b1`） |
 | 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | **nail `2a2fee56` 收官**（merge `616d8ef3` 已推非 force·post 双席 BOTH PASS·merge 后四门 117/24 臂+typecheck 3/3+docs:check 全绿·AG-14 流式面/EG-B1=后继刀） |
 | 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | **nail `928b2612` 收官**（merge 已推非 force·双亲 `09768397`+`114f7189`·post 双席 BOTH PASS·merge 后五门 33/28/14 臂+typecheck 3/3+docs:check 全绿·白名单只增不清约束生效·AG-01 准入=刀 D 骨架已立·详情 checklist「Line AG-C nail」段） |
 | 失败语义 | 刀 D | AG-01 准入去终态化 | 待起草（骑刀 C 骨架） |
