@@ -20,7 +20,11 @@ export interface InterviewMindSignalView {
 export const INTERVIEW_CONTROL_SIGNAL_KINDS = ['none', 'weak', 'thrashing'] as const;
 export type InterviewControlSignalKind = (typeof INTERVIEW_CONTROL_SIGNAL_KINDS)[number];
 
-/** 与 coverage-driven length 的 ConcludeReason 对齐（thrashing 不是 early_thrashing）。`budget_exhausted` 仅枚举兼容，decideNext 当前不产出。 */
+/** 与 coverage-driven length 的 ConcludeReason 对齐（thrashing 不是 early_thrashing）。
+ *  软预算语义（#39 如实注 2026-10-12）：adaptive 面试的预算是**软预算**——maxTurns 可依覆盖/证据上调，
+ *  预算耗尽不产出 `budget_exhausted` 终因（软预算只影响规划节流，不写该信号）；绝对上限由
+ *  `safety_ceiling`（turn>=absoluteMaxTurns）承担。`budget_exhausted` 保留=枚举/wire 兼容位，
+ *  decideNext 当前不产出（死枚举本体删除属行为面裁决，本刀裁留：保留+此注，见 5E REQUEST 裁决项⑨）。 */
 export const INTERVIEW_CONCLUDE_REASONS = [
   'budget_exhausted',
   'all_resolved',
