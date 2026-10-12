@@ -56,6 +56,14 @@ export type ModelUsage = {
    * 可选:未接预算器的旧 seam 无此值;缺省表示"本请求无对账证据",不参与低估判断。
    */
   estimateInputTokens?: number;
+  /**
+   * 供应商上报的缓存命中输入 token（#48 观测·AG-COST1 §1-②·**只观测不改计费**）。
+   * 三端点字段名兼容读取：OpenAI 兼容 `cached_tokens` ∥ DeepSeek `prompt_cache_hit_tokens` ∥
+   * 百炼 `prompt_tokens_details.cached_tokens`。**缺席≠零铁律**：`undefined`=字段缺席（供应商
+   * 未回报该字段），`0`=供应商显式回报零——两态分开打点，绝不静默归零（防御：供应商改版
+   * 响应结构时以缺席率跳变暴露）。settle/validUsage/预留/结算不读此字段（价格本无缓存价）。
+   */
+  cachedInputTokens?: number;
 };
 /** `known_not_executed` requires an explicit negative response from the endpoint. Omission means unknown. */
 export type ModelResult =

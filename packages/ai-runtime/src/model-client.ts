@@ -26,6 +26,7 @@ import {
 // direct reads and never imports the (test-support) outbound interceptor.
 import { g7RuntimeInjection } from './g7-runtime-injection.ts';
 import { refineEstimate } from './usage-reconciliation.ts';
+import { getMetrics, METRIC } from './metrics.ts';
 
 export interface CompletionRequest {
   service: string;       // 逻辑服务 key(catalog 解析模型/提示词版本)
@@ -494,7 +495,7 @@ export interface ModelTextStreamOpts {
   signal?: AbortSignal;
   /** 码点完整 JS 字符串；调用方不得假设分帧=token 边界。 */
   onDelta: (d: { text: string }) => void;
-  onUsage?: (u: { completionTokens?: number; promptTokens?: number }) => void;
+  onUsage?: (u: { completionTokens?: number; promptTokens?: number; cachedInputTokens?: number }) => void;
 }
 
 /**
@@ -504,6 +505,38 @@ export interface ModelTextStreamOpts {
 export type OpenAICompatibleClient = ModelClient & {
   completeStream(req: CompletionRequest, opts: ModelTextStreamOpts): Promise<ModelResult>;
 };
+
+/**
+ * #48 观测（AG-COST1 §1-②·只观测不改计费）：供应商 usage 载荷类型 + 三端点缓存字段名兼容。
+ * OpenAI 兼容 `cached_tokens` ∥ DeepSeek `prompt_cache_hit_tokens` ∥ 百炼 `prompt_tokens_details.cached_tokens`
+ * （字段名经官方文档核实·review-log §四 :139-141 + AC-F1/AC-F2）。三端点互斥为常态；多字段并存时
+ * 取值序=EXEC 细化（见 cachedInputTokensOf）。**缺席≠零**：全缺席=undefined，显式零=0，两态分开。
+ */
+type ProviderUsagePayload = {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  cached_tokens?: number;
+  prompt_cache_hit_tokens?: number;
+  prompt_tokens_details?: { cached_tokens?: number };
+};
+
+/** 三端点缓存字段兼容读取。取值序 cached_tokens → prompt_cache_hit_tokens → prompt_tokens_details.cached_tokens（并存仅防御,常态互斥）。全缺席=undefined——绝不静默归零。 */
+function cachedInputTokensOf(usage: ProviderUsagePayload): number | undefined {
+  if (usage.cached_tokens !== undefined) return usage.cached_tokens;
+  if (usage.prompt_cache_hit_tokens !== undefined) return usage.prompt_cache_hit_tokens;
+  return usage.prompt_tokens_details?.cached_tokens;
+}
+
+/**
+ * #48 观测打点（非流+流式两 usage 解析面各恰一处）：presence 三态 + token 计数。
+ * undefined=absent（字段缺席）·0=present_zero（显式为零）·>0=present_positive——三态互斥。
+ * 只在 usage 载荷存在时打点（usage 整体缺席是既有退化路径,#48 面是载荷内缓存字段的在场性）。
+ */
+function emitUsageCacheObservation(service: string, cached: number | undefined): void {
+  const presence = cached === undefined ? 'absent' : cached > 0 ? 'present_positive' : 'present_zero';
+  getMetrics().inc(METRIC.modelUsageCacheFieldPresence, { service, presence });
+  if (cached !== undefined) getMetrics().inc(METRIC.modelUsageCachedInputTokens, { service }, cached);
+}
 
 /** 真适配器(OpenAI 兼容,境内合规端点)。endpoint/key 从受控 profile 注册表解析;未配置→当瞬时不可用(触发降级,不崩)。 */
 export function openAICompatibleClient(cfg: {
@@ -620,7 +653,7 @@ export function openAICompatibleClient(cfg: {
       const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{
         model?: string;
         choices?: { message?: { content?: string } }[];
-        usage?: { prompt_tokens?: number; completion_tokens?: number };
+        usage?: ProviderUsagePayload;
       }>(chatUrl, {
         method: 'POST',
         redirect: 'error',   // 3xx 即拒绝：文本路由绝不跟随重定向（防 SSRF 跳内网）
@@ -666,8 +699,14 @@ export function openAICompatibleClient(cfg: {
           }
           const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
           const usage = j.usage
-            ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
+            ? {
+                inputTokens: j.usage.prompt_tokens ?? 0,
+                outputTokens: j.usage.completion_tokens ?? 0,
+                estimateInputTokens,
+                cachedInputTokens: cachedInputTokensOf(j.usage),   // #48 观测:缺席=undefined 与显式 0 分开
+              }
             : undefined;
+          if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
           const finishedAt = new Date().toISOString();
           if (g7) {
             const actualModel = typeof j.model === 'string' && j.model.trim() ? j.model.trim() : '';
@@ -755,7 +794,7 @@ export function openAICompatibleClient(cfg: {
       opts: {
         signal?: AbortSignal;
         onDelta: (d: { text: string }) => void;          // 码点完整 JS 字符串；调用方不得假设分帧=token 边界
-        onUsage?: (u: { completionTokens?: number; promptTokens?: number }) => void;
+        onUsage?: (u: { completionTokens?: number; promptTokens?: number; cachedInputTokens?: number }) => void;
       },
     ): Promise<ModelResult> {
       if (!isModelTextStreamPreviewEnabled(process.env)) {
@@ -821,7 +860,7 @@ export function openAICompatibleClient(cfg: {
       let stopSeen = false;
       let usageSeen = false;
       let doneSeen = false;
-      let usageRecord: { prompt_tokens?: number; completion_tokens?: number } | undefined;
+      let usageRecord: ProviderUsagePayload | undefined;
       let midStreamErrorFrame = false;   // ①流中 error frame（即刻截断）
       let idleWatchdogFired = false;     // ③idle watchdog（无字节 >10s）
       let buffer = '';
@@ -839,7 +878,7 @@ export function openAICompatibleClient(cfg: {
           }
           const chunk = parsed as {
             choices?: { delta?: { content?: unknown }; finish_reason?: unknown }[] | null;
-            usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
+            usage?: ProviderUsagePayload | null;
           } | null;
           const choice = chunk?.choices?.[0];
           const deltaContent = choice?.delta?.content;
@@ -850,7 +889,11 @@ export function openAICompatibleClient(cfg: {
           if (Array.isArray(chunk?.choices) && chunk?.choices?.length === 0 && usagePayload) {
             usageSeen = true;
             usageRecord = usagePayload;
-            opts.onUsage?.({ completionTokens: usagePayload.completion_tokens, promptTokens: usagePayload.prompt_tokens });
+            opts.onUsage?.({
+              completionTokens: usagePayload.completion_tokens,
+              promptTokens: usagePayload.prompt_tokens,
+              cachedInputTokens: cachedInputTokensOf(usagePayload),   // #48 观测:缺席=undefined 与显式 0 分开
+            });
           }
         }
       };
@@ -935,8 +978,14 @@ export function openAICompatibleClient(cfg: {
         return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
       }
       const usage = usageRecord
-        ? { inputTokens: usageRecord.prompt_tokens ?? 0, outputTokens: usageRecord.completion_tokens ?? 0, estimateInputTokens }
+        ? {
+            inputTokens: usageRecord.prompt_tokens ?? 0,
+            outputTokens: usageRecord.completion_tokens ?? 0,
+            estimateInputTokens,
+            cachedInputTokens: cachedInputTokensOf(usageRecord),   // #48 观测:缺席=undefined 与显式 0 分开
+          }
         : undefined;
+      if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
       // raw=完整 JSON 解析（与非流式同型）；非 JSON 载荷（重放卷未启 json_object·如 S2 probe-b prose
       // fixture）按完整原文兜底零截断——§E-② 对照面：三联齐=成功终态，不因载荷非 JSON 降级。
       let raw: unknown;
