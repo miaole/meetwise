@@ -1,6 +1,6 @@
 # BLITE-FIX REQUEST（B-lite 修链清欠刀 · CI docs:check 69 红清欠+修链收编 · L 体量 · docs 形式改写+manifest 改径 · 恰 1 commit）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（rev2=双审席1 FAIL 三阻塞处方九条修订落实·2026-10-12·仍待双审·本刀触面=53 红文件形式改写+1 .mjs 路径常量+2 治理指针件·零逻辑改写。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）
+**Status**: **`executed:awaiting_post_prove_dual`**（前态 **`draft:awaiting_pre_exec_dual`** 保史·EXEC 2026-10-12 开工三条款行使：预执行双审两外席 BOTH PASS 落卷+协调方常设 loop 授权派单+§1 修法清单与 §5 Ban/pins 零改动行使·执行序铁律先并主线 merge `feat/mysql-schema-skeleton`@`65bdf3f6`→`730f6534`=EXEC 重锚 `<base>` 零冲突·§0.5 清单 69 项七族形式改写全数过+manifest 12 行改径+治理指针 6 处·§2 五断言全绿·恰 2 commit 零码动·⛔push。rev2=双审席1 FAIL 三阻塞处方九条修订落实·2026-10-12·仍待双审·本刀触面=53 红文件形式改写+1 .mjs 路径常量+2 治理指针件·零逻辑改写。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）
 
 **立项触发**：241 提交首推 origin 后 ci workflow 红于 `docs:check`（base `685498f1` 实跑 EXIT=1·66 处内容红·rev1 落卷时点史实）。**rev2 重锚**：主线 tip `8b8e20bc` 实跑 69 处（§0·并卷新增 +3 恰对账）。授权链：PTP 卷 §2-8「断链既定取舍·修链归 B-lite 后续」+ §9 席2 R1/R2 修链清单移交 + `execution-master-checklist.md` 五处结账注「归 B-lite 清欠另刀」+ i5-caliber R-1「B-lite 欠账」登记。与 PTP 卷「潜伏红零修」条款的关系：PTP 修的是迁出件零红（迁移域 archive 零红已达成）；**本刀修留置件红**（活治理面+历史卷+收据在扫件）——零冲突、互补成全。
 
@@ -112,6 +112,13 @@ PTP_EXTERNAL_REFERENCE_LINK 2 处：`ai-docs/delivery/harness/g7-key-x3-freetier
 
 `rg -l "B-lite|blite-fix" ai-docs/delivery/harness/ ai-docs/delivery/execution-master-checklist.md` 命中 2 件逐条判定：①`execution-master-checklist.md` 五处结账注=PTP 刀移交注记（「归 B-lite 清欠另刀」）·非刀卷；②`i5-caliber-REQUEST.md:158`=欠账登记引用·非刀卷。harness 无同名卷（blite-fix-REQUEST 唯一）·分支 `line/blite-fix` 与工作树 `meetwise-blite` 建前 `git worktree list` 实查不存在·本席新建。
 
+### 0.7 EXEC 重锚与漂移登记（2026-10-12 执行席·§0 协议「基线漂移如实改锚」行使·append 保史）
+
+- **执行序铁律先并主线**：`git merge feat/mysql-schema-skeleton`（tip `65bdf3f6`·rev2 锚 `8b8e20bc` 后主线又前进·含 i6 #239 全链/5A-2 nail `4a5528a5`/authz·ciw·批表增量同步）入 `line/blite-fix` → merge commit **`730f6534`** = EXEC 重锚 `<base>`（零冲突·冲突标记机测零命中）·全部 diff 类断言以 `730f6534..HEAD` 二点式执行（§2-4 口径）。
+- **基线重跑对账（§2-2 行使）**：post-merge 真扫描器实跑=**69 处**与 §0.5 清单逐条全等·唯一漂移=`parity-baseline-regen.md` 红 :10→**:12**（merge 对该件 +2 行行号下移·红本体同件同族）·按 :12 施工如实登记。§0.3 预告的「并卷新增红」（在飞卷 REQUEST 自带 :5/:8 行）本批实测**零兑现**（新并 authz-harden/ci-wiring/i6-239 三 REQUEST 卷自匹配卫生在卷·零红）。
+- **行号漂移登记**：manifest 三键行 :1668/:1686/:1710（@`8b8e20bc`）→ **:1671/:1689/:1713**（@`730f6534`·authz +29 行并入前置漂移·§4-② 软协调预告兑现·新目纯码径零 ai-docs 串与本刀零行重叠机证维持）；共享断径行 :1682/:1705/:1731 → :1685/:1686·:1708/:1709·:1734/:1735；`rg -c "receipts/archive/2026-09-batch23"` 基线 0 → 改后 12 增量恰 +12（§2-3）。`adr-postgres-retained.md` 引用行 :2315/:2690 → :2324/:2690（实存非断链·零触·Ban 误扩维持）。
+- **§0.3 八树现势（2026-10-12 `git worktree list` 实测·parity2 新现为第八树）**：meetwise 主线 `65bdf3f6`（feat/mysql-schema-skeleton）/ meetwise-5e `8ee77301`（line/5e-group 在飞）/ meetwise-authz `74374a01`（5A-2 已 nail 并主线 `4a5528a5`·树余留）/ meetwise-blite `730f6534`（本席）/ meetwise-e2sc `3735d6b9`（余留）/ meetwise-i6 `20950015`（#239 EXEC 收口·nail 并主线 `89530dea`）/ meetwise-line-entpay `ab02d499`（在飞）/ **meetwise-parity2 `7f2b712b`（line/parity-b2-regen·rev2 清册后新现）**。逐树 `git diff --name-only <merge-base>..branch -- ai-docs` 与 §0.5 五十三红文件交集机测=**空**（5e/authz/i6/batch1-residual/parity2 五支全零·2026-10-12 复测）——本刀主线改写零在飞冲突维持。
+
 ## §1 修法（三件·file:line 实锚·EXEC 立项重 pin·**Ban 改语义只改形式**）
 
 ### ① 69 处 CI 红形式改写（53 文件=51 基线+2 并卷新增·逐处判语境·族签 EXEC 时点逐行重验）
@@ -179,7 +186,7 @@ PTP_EXTERNAL_REFERENCE_LINK 2 处：`ai-docs/delivery/harness/g7-key-x3-freetier
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本卷恰 1 .md·每版恰 1 commit）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——本卷 §0 数字/行号=base `8b8e20bc` 实测·漂移必登记）。**Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**rev2 版记（2026-10-12）**：双审席1 FAIL 三阻塞（fail-closed 方向）处方落实——九条修订=§0.5 重锚 66→69+§1 冻结面扩容+§1-② 8 断径构成更正（harness 4/eval 2/slices 2/顶层 0+不改指 2 径）+§2-3 增量 +8→+12+§2-4 断言操作化重写（40hex 多重集相等）+r4-eg5 移交锚更新（evidence 新径·后继刀承接）+§0.3 在飞清册刷新+杂项勘误（空壳构成/七条口径/adr Ban 误扩/全卷计数）+形制维持（pins/STOP/markers 零翻）——§1 修法语义与 §5 pins 零翻转·数字/构成/锚点更正系 §0 协议「基线漂移如实改锚」之行使·仍待双审。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本卷恰 1 .md·每版恰 1 commit）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——本卷 §0 数字/行号=base `8b8e20bc` 实测·漂移必登记）。**Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**rev2 版记（2026-10-12）**：双审席1 FAIL 三阻塞（fail-closed 方向）处方落实——九条修订=§0.5 重锚 66→69+§1 冻结面扩容+§1-② 8 断径构成更正（harness 4/eval 2/slices 2/顶层 0+不改指 2 径）+§2-3 增量 +8→+12+§2-4 断言操作化重写（40hex 多重集相等）+r4-eg5 移交锚更新（evidence 新径·后继刀承接）+§0.3 在飞清册刷新+杂项勘误（空壳构成/七条口径/adr Ban 误扩/全卷计数）+形制维持（pins/STOP/markers 零翻）——§1 修法语义与 §5 pins 零翻转·数字/构成/锚点更正系 §0 协议「基线漂移如实改锚」之行使·仍待双审。**EXEC 三条款行使记录（2026-10-12·执行席·append）**：①预执行双审两外席 **BOTH PASS 已落卷**（rev2 后重审）；②**协调方明示授权**=常设 loop 授权+本刀开工派单（EXEC 席奉单开工）；③**§1 修法清单与 §5 Ban/pins 零改动行使**——pins 十一值零翻·修法清单按卷逐字施工·基线/行号漂移仅按 §0 协议如实改锚登记（§0.7·未动 §1 修法语义与 §5 冻结面）·STOP 状态随翻 `executed:awaiting_post_prove_dual`（append 保史）·post-prove 双审待两外席。
 
 ---
 
