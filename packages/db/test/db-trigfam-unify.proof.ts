@@ -106,11 +106,13 @@ async function asApp(principal: string, fn: (c: PoolClient) => Promise<unknown>)
 }
 
 /** 超用户（迁移身份）上下文执行期望异常的语句：捕获 (code|message首行)；principal 可选注入 GUC。 */
-async function superTry(sql: string, params: unknown[] = [], principal?: string): Promise<string> {
+async function superTry(sql: string, params: unknown[] = [], principal?: string, scopeGucs?: { servingScopeId: string; taxonomyVersion: string }): Promise<string> {
   const c = await pool.connect();
   try {
     await c.query('BEGIN');
     if (principal) await c.query("SELECT set_config('app.principal_user',$1,true)", [principal]);
+    // AG-42 形 A（0176）随锚：scope GUC 可选注入（默认不设=旧调用位零变；双空 GUC 现为 qbank_retrieval_scope_missing 报错）。
+    if (scopeGucs) await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)", [scopeGucs.servingScopeId, scopeGucs.taxonomyVersion]);
     await c.query(sql, params);
     await c.query('COMMIT');
     return 'OK';
@@ -243,9 +245,19 @@ async function behaviorMatrix(stage: string): Promise<Behavior> {
   out.definer.app_role = dApp.ok ? String((dApp.value as never as { rows: Array<{ v: boolean }> }).rows[0]?.v) : `ERR:${dApp.code}`;
 
   // ── ann_search 空语料 + tf_ 直调（owner-only ACL · 迁移身份可调）──
-  const ann = await pool.query(`SELECT count(*)::int AS n FROM qbank_generation_ann_search('none','[1,2,3]'::vector,5)`);
-  out.ann.empty_corpus = String((ann.rows[0] as { n: number })?.n);
-  out.ann.tf_direct = await superTry(`SELECT count(*) FROM public.tf_qbank_generation_ann_search('none','[1,2,3]'::vector,5)`);
+  // AG-42 形 A（0176）随锚：双空 GUC 已改 qbank_retrieval_scope_missing 报错——本臂先设 scope
+  // （checkout 客户端内 BEGIN+SET LOCAL 定界·'none' 代不存在→0 行原值不变，tf_ 直调同）。
+  {
+    const gucClient = await pool.connect();
+    try {
+      await gucClient.query('BEGIN');
+      await gucClient.query(`SELECT set_config('app.qbank_serving_scope','backend/general',true), set_config('app.qbank_taxonomy_version','v1',true)`);
+      const ann = await gucClient.query(`SELECT count(*)::int AS n FROM qbank_generation_ann_search('none','[1,2,3]'::vector,5)`);
+      out.ann.empty_corpus = String((ann.rows[0] as { n: number })?.n);
+      await gucClient.query('COMMIT');
+    } finally { gucClient.release(); }
+  }
+  out.ann.tf_direct = await superTry(`SELECT count(*) FROM public.tf_qbank_generation_ann_search('none','[1,2,3]'::vector,5)`, [], undefined, { servingScopeId: 'backend/general', taxonomyVersion: 'v1' });
 
   // ── ai_cost 全链（经 src 层真调用面 · 触达 _scoped→reserve_text→tf_ 链）──
   const owner = `dbtf-${stage}-cost`;
