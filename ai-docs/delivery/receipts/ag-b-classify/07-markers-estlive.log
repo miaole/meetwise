@@ -1,0 +1,16 @@
+# markers=0 卫生门（本刀改动集五件+注册三件·2026-10-12 EXEC 亲跑）
+## 冲突标记
+EXIT_CONFLICT=1
+## fake-green/绕过词(fake-pass|fake-green|always-pass|skip-gate)
+EXIT_FAKEGREEN=1
+## 测试门弱化(.only|.skip(|xit(|@ts-ignore|@ts-expect-error|eslint-disable)
+apps/worker/test/ag-b-classify.proof.ts:239:  process.exit(failures === 0 ? 0 : 1);
+apps/worker/test/ag-b-classify.proof.ts:245:  process.exit(1);
+EXIT_WEAKEN=0
+## 遗留标(TODO|FIXME|HACK|XXX)
+EXIT_TODO=1
+## secrets 样值(sk-[a-zA-Z0-9]{8,}|BEGIN.*PRIVATE KEY)
+EXIT_SECRETS=1
+# est live=0:新 proof=本地 http 脚本 provider+隔离库·零模型外呼·零 secrets·零消耗（pins 脚注 actualSpendCny=null 同源）
+
+## 附注：门弱化原始模式 3 命中均为 process.exit( 子串误中（proof 标准退出行·context-stress :459 全仓同形·非测试跳过标记）；词界形 (^|[^a-zA-Z.])xit\( 重扫 0 命中 EXIT=1。其余四门 EXIT=1 零命中。
