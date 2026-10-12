@@ -25,6 +25,7 @@
     "prove:uc016-nhp-fault": "tsx test/uc-e2e-016-nhp-fault.proof.ts",
     "prove:model-invocation-reconcile": "tsx test/model-invocation-reconcile.proof.ts",
     "prove:usage-calibration-bleed": "tsx test/usage-calibration-bleed.proof.ts",
+    "prove:usage-calibration-windowing": "tsx test/usage-calibration-windowing.proof.ts",
     "prove:model-op00-db-state": "tsx test/model-op00-db-state.proof.ts",
     "prove:security": "tsx test/security.proof.ts",
     "prove:memory": "tsx test/memory.proof.ts",

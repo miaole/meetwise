@@ -232,6 +232,7 @@
     "model-op00:prove:raw": "pnpm -C apps/worker prove:model-op00-db-state",
     "model-op00-usage-reconciler:prove": "node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw",
     "model-op00-usage-reconciler:prove:raw": "pnpm -C packages/ai-runtime prove:usage-calibration-reconciler",
+    "ucal-windowing:prove:raw": "node scripts/run-e2e-isolated.mjs ucal-windowing:prove:raw",
     "model-op01:prove": "pnpm -C packages/domain prove:sealed-ocr-binding && pnpm -C packages/ai-runtime prove:operation-binding && pnpm -C packages/ai-runtime prove:resume-ocr-binding && pnpm -C apps/api prove:ocr-operation-policy",
     "job-route-classify-binding:prove": "pnpm -C packages/domain prove:sealed-job-route-classify-binding && pnpm -C packages/ai-runtime prove:job-route-classify-binding",
     "model-op02:prove": "node scripts/run-e2e-isolated.mjs model-op02:prove:raw",
