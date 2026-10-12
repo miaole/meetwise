@@ -11,7 +11,7 @@
 ### 0.0 已终局防重检查记录（强制项）
 
 - `rg -l "I6|i6-239|#239" ai-docs/delivery/harness/ ai-docs/delivery/execution-master-checklist.md`（base `8b8e20bc` 实跑）→ 命中 **6 件**逐一核验：①`product-campaign-LEDGER.md`（:71/:211/:294/:297/:330）——本组**派单登记面**（组级行+批3 终核「#239 I6 未开工（无 REQUEST 卷）」·本刀即其立项载体）；②`TASK-SOP-v2.md`:72 ③`product-campaign-EXECUTION-SOP.md`:34——位图行/W9 职责行登记面；④`i3-job-mgmt-REQUEST.md`（:37/:116）⑤`i4-invite-face-REQUEST.md`（:31/:120）⑥`i5-caliber-REQUEST.md`（:126）——三卷**明示让渡注记**（「#239→I6」「I6 合规零触」「与 I6 零交集」）非占有。`execution-master-checklist.md` **零命中**（不在命中清单·机检亲证）；harness/ **无 i6-\* 同名卷**（ls 全表实测）。
-- **邻刀占有逐卷复核**：I3/I4/I5 三卷让渡注记如上（零夹带·LEDGER :211 批3 残 2 口径一致）；authz-harden 5A 在飞（`line/authz-harden` @`dec1e9a5`·vs 基线 37 文件）——账号会话/面硬化件族·与 §1 候选触面**零文件交集**（唯 `packages/db/src/interview/interview-jobs.ts` DB payload 清理面相邻·本刀零触该文件）；unstub-erase `f9383f76`（2026-10-10·tip 祖先亲证）落 D6 **删除/擦除半域**（#236/#242/#247 面）——非本组四件；entpay/blite/e2sc/5e 四在飞树域零交集。→ **停止条件未触发·可落卷**。
+- **邻刀占有逐卷复核**：I3/I4/I5 三卷让渡注记如上（零夹带·LEDGER :211 批3 残 2 口径一致）；authz-harden 5A 在飞（`line/authz-harden` @`dec1e9a5`·vs 基线 37 文件——**【EXEC 重 pin 2026-10-12 更正：`git merge-base` 实测=`dec1e9a5` 已并线为基线祖先（5A-1 nail 已并·本行 pin 陈旧）·在飞 tip=`d1e2a363`（§0.2 自认）·真实在飞 diff=32 文件非 37（`git diff --name-only dec1e9a5..d1e2a363 | wc -l` 实测）·与本刀候选触面 grep 零交集 EXIT=1 实证·`interview-jobs.ts` 仍零触】）——账号会话/面硬化件族·与 §1 候选触面**零文件交集**（唯 `packages/db/src/interview/interview-jobs.ts` DB payload 清理面相邻·本刀零触该文件）；unstub-erase `f9383f76`（2026-10-10·tip 祖先亲证）落 D6 **删除/擦除半域**（#236/#242/#247 面）——非本组四件；entpay/blite/e2sc/5e 四在飞树域零交集。→ **停止条件未触发·可落卷**。
 
 ### 0.1 盘点总表（#239 单件四子件·原文/修法列逐字+四子面实测）
 
@@ -36,6 +36,14 @@
 | 近期刀逐卷排查（2026-10-09 后） | `f9383f76` unstub-erase=D6 删除半域（非四件）；`ee424923`/`d1e2a363` authz 5A-1/5A-2=账号会话+面硬化（批5 件族）；`8262d976` dir-b2 纯移；I5 九件 nail（`388e5f7b`→`f92a5035` 并线）零触 #239（I5 卷 :126）；H4/EVIDENCE/QP/HA 系词面零命中——**四件零顺带落面结论成立** |
 
 **重 pin 免责**：本节锚为起草席 base `8b8e20bc` 一次性亲读；EXEC 立项/双审照例全量重 pin，漂移只更行号不改结论（I5 卷 §0.2 同款先例）。
+
+### 0.4 EXEC 重 pin 记录（2026-10-12·结论不变只更锚·§1/§5 零改）
+
+- **主线 tip 复测**：`feat/mysql-schema-skeleton` @`8b8e20bc`（local=origin 0/0）——`229c8dad`（docs ledger 批表同步）/`03db1b84` 均已是其祖先·`git rebase feat/mysql-schema-skeleton` 实跑=「Current branch line/i6-239 is up to date.」EXIT=0 no-op（merge-base=8b8e20bc=tip 本身·0 behind）。§0 基线锚零漂。
+- **authz 在飞 pin/计数更正**：如 §0.0 内联更正——merge-base=`dec1e9a5` 已并线·在飞 tip=`d1e2a363`·真实在飞 diff=32 文件非 37·零文件交集维持。
+- **#263 面窗微漂**：起草席钉 `login/page.tsx:33-38` → 现势实测 `:38-40`（`招聘方入口是内部预览骨架，不是已上线产品` 标注句窗·本刀 ③ 插入位于 :50 password 块后·行级零重叠·`git diff --numstat` 删行=0 实证）。
+- **③④互洽面增补（席2 处方承接）**：how-it-works `apps/web/app/recruiter/how-it-works/page.tsx:36`「校准和人工复核工单还没开放」+ surface.ts `apps/web/lib/recruiter/surface.ts:95`「校准和人工复核做完之前」+ legal `apps/web/app/legal/page.tsx:45`「自动招聘决定尚未开放」——三句为 ④ 诚实形之佐证面，本刀断言其零触（机械门内联断言）。
+- **②到达通道实锚更正**：lifecycle 对 unscored 回合发固定字面量 reason `evaluation_unscored`（`adaptive-lifecycle.ts:487`·不透传细分原因）——故 ② 用户可见固定处置文案落 web 提交口本地确定性拦截（InterviewPanel 警示区 role="alert"）+worker `invokeEvaluationOnce` 前扫拒评（pinned 落点 :164·沿既有 failed→unscored 释放链·零新联合成员）双半实现；life-cycle 事件面零触。
 
 ### 0.3 三项分歧/呈报如实登记（终裁建议呈报协调方）
 

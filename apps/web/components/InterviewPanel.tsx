@@ -16,6 +16,8 @@ import { VoiceCallPanel } from '@/components/VoiceCallPanel';
 import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
+// D6 #239-②:危机/自伤话术固定处置(确定性触发词·纯本地判定·与 domain crisis-disposition 合同对齐不引包)。
+import { matchesCrisisTrigger, CRISIS_DISPOSITION_NOTICE_HEADING, CRISIS_DISPOSITION_NOTICE_BODY } from '@/lib/interview/crisis-disposition';
 import { interviewProgressBadge } from '@/lib/interview/progress-badge';
 // #267:语音模式入口显示开关(纯前端静态·缺省显示=现状字节;NEXT_PUBLIC_VOICE_MODE_ENTRY=off 时按钮不渲染)。
 import { isVoiceModeEntryVisible } from '@/lib/voice-mode-entry';
@@ -80,6 +82,7 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
   const [historyPage, setHistoryPage] = useState(0);
   const [rec, setRec] = useState<'idle' | 'recording' | 'transcribing'>('idle');   // 语音作答状态机
   const [submitting, setSubmitting] = useState(false);   // 已提交答案↔下一题到达之间的"AI 思考中"桥接(本地态,SSE 推进即清)
+  const [crisisNotice, setCrisisNotice] = useState(false);   // D6 #239-②:危机话术固定处置警示(本地确定性拦截时出示,改稿即清)
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [voiceCaptureConsented, setVoiceCaptureConsented] = useState(false);
   const [voiceConsentPrompt, setVoiceConsentPrompt] = useState(false);
@@ -236,6 +239,11 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
     if (!sent.trim() || submitting) return;       // 防空答 / 防双提交(in-flight 期间再点直接忽略)
     const identity = view.questionIdentity;
     if (!identity) { toast.error('题目安全身份尚未就绪，为防止陈旧回答误入账，请刷新或稍后重试'); return; }
+    // D6 #239-② 危机/自伤话术固定处置:命中触发词面即暂缓提交(不外发不评分),出示固定
+    // 处置文案+转介信息;草稿保留在输入框,可修改后重答(非死胡同,不做状态机)。服务端
+    // worker 口 invokeEvaluationOnce 同词表兜底(打字/语音一切入口)。
+    if (matchesCrisisTrigger(sent)) { setCrisisNotice(true); return; }
+    setCrisisNotice(false);
     const attemptKey = `${identity.questionId}\u0000${sent}`;
     const answerId = answerAttemptIdsRef.current.get(attemptKey) ?? newAnswerId();
     answerAttemptIdsRef.current.set(attemptKey, answerId);
@@ -494,11 +502,20 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         </div>
       )}
 
+      {/* D6 #239-② 危机/自伤话术固定处置+转介信息(固定文案·法务复核保留项·只指向公开求助渠道,
+          不冒充正式医疗/心理服务承诺)。提交被本地确定性拦截,警示区沿 :487/:572 role="alert" 同形。 */}
+      {crisisNotice && canAnswer && !submitting && (
+        <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          <p className="font-medium">{CRISIS_DISPOSITION_NOTICE_HEADING}</p>
+          <p className="mt-1 leading-relaxed">{CRISIS_DISPOSITION_NOTICE_BODY}</p>
+        </div>
+      )}
+
       {/* 作答输入(思考中时收起,交给上方"AI 思考中"占位;30s 兜底必回作答态,无死胡同) */}
       {canAnswer && !submitting && view.questionIdentity && (
         <div className="sticky bottom-4 space-y-2 rounded-lg border bg-card p-3 shadow-[0_1px_0_rgba(26,26,26,.03),0_8px_24px_-18px_rgba(26,26,26,.25)]">
           <textarea
-            value={answer} onChange={(e) => setAnswer(e.target.value)} rows={3}
+            value={answer} onChange={(e) => { setAnswer(e.target.value); setCrisisNotice(false); }} rows={3}
             placeholder="打字作答…(答得简略时,AI 会就同一能力追问,逼你说透)"
             className="w-full resize-none rounded-lg border-0 bg-transparent p-1 text-base outline-none placeholder:text-muted-foreground"
           />
