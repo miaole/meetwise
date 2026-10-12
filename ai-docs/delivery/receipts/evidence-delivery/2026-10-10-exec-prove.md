@@ -1,7 +1,7 @@
 # EVIDENCE-DELIVERY EXEC 收据 — 逐题评分证据四断口接线（S1+S2+S4·A1 主刀）· A1+A2+C1 接线债审计
 
 - 席位：EVIDENCE-DELIVERY EXEC（`eviddel-exec`）· 2026-10-10
-- 工作树：`/Users/miaole/Desktop/golucky/meetwise-eviddel`（branch `line/evidence-delivery`·base `5e1e7fde` → **rebase feat/mysql-schema-skeleton tip `df12a054` 干净通过**（2 commits docs-only 重放：`f037a1a4`+rev2→`a6403205`）·`pnpm install --frozen-lockfile` EXIT=0）
+- 工作树：`meetwise-eviddel`（仓根同级 worktree·branch `line/evidence-delivery`·base `5e1e7fde` → **rebase feat/mysql-schema-skeleton tip `df12a054` 干净通过**（2 commits docs-only 重放：`f037a1a4`+rev2→`a6403205`）·`pnpm install --frozen-lockfile` EXIT=0）
 - 唯一蓝本：`ai-docs/delivery/harness/evidence-delivery-REQUEST.md` rev2（`draft_rev2:pre_exec_dual_PASS`·双席 BOTH PASS·EXEC 授权在卷）
 - 范围=§3 C1-C13 逐条·**S3 缓行零触**（learning/career/`:77` 框架句零字节）·**零迁移**·**零 live 外呼**（est live=0·actualSpendCny=null·0 Key 值接触·.env* ABSENT）·**组件测试 Ban 遵守**（零新建 React harness·逐题点评投影=纯函数 `apps/web/lib/report/turn-annotations.ts`·prove 面只测纯函数+静态源断言）
 - 交付后状态：REQUEST 状态行 append-only → `executed:awaiting_post_prove_dual`（post-prove dual 未做·alone≠dual·Ban self-approve）

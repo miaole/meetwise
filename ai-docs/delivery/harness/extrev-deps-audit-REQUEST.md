@@ -5,7 +5,7 @@
 **Date**: 2026-10-07
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`5636d58d`** / full `5636d58d7f7080159c227782c73451c6b102292a`（HOTFIX-178 dual-keep 收口后 tip · 本 worktree `line/extrev-deps-aud` 同源）
 **Knife**: **EXTREV-0 DEPS-AUDIT** —— 外部评审 #106（P0·生产依赖 critical×3/high×36·CI 无依赖审计）+ #107（P1·mammoth→@xmldom/xmldom@0.8.13 多条 high DoS·无解压体积/条目上限/魔数校验）· 切片式 S1/S2/S3
-**Issue ids**: **#106**（P0·第0批阻断项）+ **#107**（P1·第0批阻断项）—— issues-master.md:104 / :182（外部总表 `/Users/miaole/Documents/Meetwise学习与审查/01-成品文档/issues-master.md`）
+**Issue ids**: **#106**（P0·第0批阻断项）+ **#107**（P1·第0批阻断项）—— issues-master.md:104 / :182（外部审计总表·本机外部件·不入仓 `issues-master.md`）
 **SOP**: `ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` EXTREV-0 节（DEPS-AUDIT 行）+ 执行规则 1/2/3/4/5
 **Experts**: `mw-e2e-ha`（CI 门/audit EXIT/prove 零回归诚实）+ `mw-privacy-int`（#107 守卫面/上传路径安全语义）—— stubs PENDING · 终派以协调方为准 · Ban self-approve
 **Authority**: meetwise — 预执行双审 BOTH PASS 后授权 EXEC（含联网 `pnpm audit` 实跑与定向升级）；nail 归 meetwise · 本刀不翻总表行

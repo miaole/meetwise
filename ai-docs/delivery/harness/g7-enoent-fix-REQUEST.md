@@ -1,7 +1,7 @@
 # Harness — g7-enoent-fix REQUEST（G7 类②机械刀 · runner watch/receipt 清单 10 条旧路径→新域路径）
 
 **Author**：`g7fix-exec`（G7 类②机械修复 EXEC 席 · 北星 loop）· **Date**：2026-10-10 · **Base**：`feat/mysql-schema-skeleton` @ **`46ff2290`**（G7 探针报告 tip · 亲验 `git log`）
-**分支**：`line/g7-enoent-fix`（新 worktree `/Users/miaole/Desktop/golucky/meetwise-g7fix`·主线工作树 feat 分支未动）
+**分支**：`line/g7-enoent-fix`（新 worktree `meetwise-g7fix`·仓根同级 worktree·主线工作树 feat 分支未动）
 **性质**：类② receipt-gate ENOENT 纯机械修复（蓝本 `g7-green-gap.md` §2.2 类② / §5-1）· 零逻辑改 · 零断言改 · **零 live** · `MODEL_API_KEY` shell unset · `actualSpendCny=null`
 **markers**：0 · ⛔push · alone≠dual · `g7SuiteGreen=false` retained（本刀不触判定面）
 

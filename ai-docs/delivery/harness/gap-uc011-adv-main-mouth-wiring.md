@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · alone ≠ dual · 本 commit 不是 coding 授权也不是 prove · pre-exec 双审 PASS 后由协调方授权 coding）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
-**Base / parent tip**: `feat/mysql-schema-skeleton` **`6b878da`** / full `6b878dad09ac77c8b248dd27c13cb38a670f4dad`（本地 HEAD = origin tip · `git fetch origin` EXIT=0 无新对象 · worktree `/Users/miaole/Desktop/golucky/meetwise-line-v` · branch `line/v-uc011-adv-main-mouth`）
+**Base / parent tip**: `feat/mysql-schema-skeleton` **`6b878da`** / full `6b878dad09ac77c8b248dd27c13cb38a670f4dad`（本地 HEAD = origin tip · `git fetch origin` EXIT=0 无新对象 · worktree `meetwise-line-v`（仓根同级 worktree）· branch `line/v-uc011-adv-main-mouth`）
 **Knife**: **GAP-UC011-ADV-01 · scenarios 主口 `POST /payment/refund-callback` 真接线 + 主口 ADV 七类真证据**（协调方优先级 #1 · Z 线 `a356d66` 只钉了 Path A mouth · CODE `bf1fdb2` · **EXIT0≠covered · 主口仍 404 · ADV INV 过时 = 本刀**）
 **Gap id**: **`GAP-UC011-ADV-01`**（stays OPEN · Line V nail 明示 · 本刀求真证据，**不预 claim 关闭**）
 **Case id**: **GAP-UC011-ADV-01 main-mouth wiring**（主口 + ADV；非重开 Line V honesty-of-red nail）
