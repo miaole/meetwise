@@ -24,6 +24,7 @@ import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeAnswer } from 
 import { reportView, retryReportById, exportReportMd, transcriptView } from './interview-report.ts';
 import { generateAssessmentFor, getAssessmentFor, getCareerPathFor } from './interview-assessment.ts';
 import { generateLearningPlanFor, getLearningPlanFor, completeLearningItemFor } from './interview-learning.ts';
+import { UUID_V7_RE as UUID_RE } from '../../platform/uuid.ts';   // #85 单源化(5E 2026-10-12):V7 严形正则+400/404 语义表见单源头注
 
 // 语音端点(ASR/TTS)调付费百炼模型但无额度预留(边缘 I/O,非整场面试计费单元)→ **per-principal 令牌桶限流防成本 DoS**(安全审计高危#1)。
 // 突发 40(足够一场语音面试的 ASR+TTS 往返),稳态 0.3/秒(~18/分)——正常用够、滥用循环被摁住。
@@ -37,7 +38,7 @@ const REPORT_RETRY_RL = { capacity: 3, refillPerSec: 3 / 3600 };
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
 // DBID-1 post-dual 席2：版本组字符类放宽 [1-5]→[0-9a-f]（纳 v7 · resume.id 已 DEFAULT uuidv7()）·变位锁 [89ab] 与守卫逻辑不动。
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// #85 单源化（5E 2026-10-12）：正则本体迁 apps/api/src/platform/uuid.ts（UUID_V7_RE，顶部 import 别名引入）。
 
 // career-path AiGraphRun lease(审计 fence;终态 succeeded/failed 清空,让出 uq_active_run 重试槽)。
 const CAREER_PATH_LEASE_SECONDS = 120;
@@ -588,10 +589,19 @@ export class InterviewService {
     this.denyPublicPreviewWrite();
     if (b?.rating !== 'up' && b?.rating !== 'down') throw new HttpException({ error: 'invalid_rating' }, HttpStatus.BAD_REQUEST);
     const qi = Number(idx);
-    if (!Number.isInteger(qi) || qi < 0) throw new HttpException({ error: 'invalid_index' }, HttpStatus.BAD_REQUEST);
+    // #121（5E 2026-10-12）：补 int4 上限——question_feedback.question_index 为 int4 列,越界值旧形
+    // 在落库时 22003→500;前置 400 语义化（既有 ≥0 校验零触）。
+    if (!Number.isInteger(qi) || qi < 0 || qi > 2_147_483_647) throw new HttpException({ error: 'invalid_index' }, HttpStatus.BAD_REQUEST);
     const owner = requireOwnerUserId(principal, 'interview.questionFeedback');   // PRIV01-C 第二层 E1
     await this.db.asPrincipal(owner, async (c) => {
       await this.guardInterviewPrivacy(c, id);
+      // #121 存在性校验（5E 2026-10-12）：题号必须真实存在于本场题目账本（未取消）,否则 400——
+      // 此前任意题号静默落反馈行（审计 :395 面）。既有证明形（validate ASMT turn0/1、neg IV_ACT
+      // invalid_rating/-1/abc 分码面）零回归亲证。
+      const ex = await c.query(
+        "SELECT 1 FROM interview_question WHERE interview_id=$1 AND owner_user_id=$2 AND turn=$3 AND status <> 'cancelled' LIMIT 1",
+        [id, owner, qi]);
+      if (ex.rowCount === 0) throw new HttpException({ error: 'invalid_index' }, HttpStatus.BAD_REQUEST);
       await c.query(`INSERT INTO question_feedback(owner_user_id, interview_id, question_index, rating, comment) VALUES ($1,$2,$3,$4,$5)
                ON CONFLICT (owner_user_id, interview_id, question_index) DO UPDATE SET rating=EXCLUDED.rating, comment=EXCLUDED.comment`,
         [owner, id, qi, b.rating, b.comment ?? null]);

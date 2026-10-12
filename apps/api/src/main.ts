@@ -118,7 +118,10 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      bodyLimit: 12 * 1024 * 1024,   // 12MB:容 base64 简历文件(8MB 原文)
+      // 12MiB=简历+语音共享的**传输信封**（为 ~8MB 简历原文 base64≈10.7MB+JSON 余量校准）。
+      // #70 勘误（5E 2026-10-12）：此值不再是第三个「语音上限」——语音语义上限单源=contracts
+      // VOICE_MAX_AUDIO_BYTES(10MB，契约 base64 字符上限由其派生，超限由服务内 413 audio_too_large 兜底)。
+      bodyLimit: 12 * 1024 * 1024,
       logger: {
         level: 'info',
         redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
