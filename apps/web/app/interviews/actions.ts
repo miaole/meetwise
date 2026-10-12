@@ -32,6 +32,10 @@ export async function startInterviewAction(formData: FormData) {
   const resumeId = String(formData.get('resumeId') ?? '');
   // #259 目标岗位:trim 归一;空/缺省 → 不发 target-role 头(与现状逐字节一致)。镜像 diagnosis/actions 同形制。
   const targetRole = String(formData.get('targetRole') ?? '').trim();
+  // QBANK-PLANNER-HONESTY #200-A ⑴:源押题标识(QuizPanel 入口 ?quiz= → 页面隐藏域);trim 归一;
+  // 空/缺省 → 不发 quiz-id 头(与现状逐字节一致,#259 同纪律)。api begin 守卫 owner-scoped 消费
+  // (他主 → 404 带码回列表),worker 读题面进 planner——「用这些题去模拟面试」宣称与实现对齐。
+  const quizId = String(formData.get('quizId') ?? '').trim();
   if (!resumeId) return;
   const created = await serverFetch('/interview', { method: 'POST', body: '{}' });
   if (created.status === 401) redirect('/login?expired=1');
@@ -42,6 +46,7 @@ export async function startInterviewAction(formData: FormData) {
   if (createdBody.reused === true) redirect(`/interviews?reused=${encodeURIComponent(interviewId)}`);   // F2:复用信号透传 → 列表页选择面（两出口,不新增第三文案）
   const headers: Record<string, string> = { 'resume-id': resumeId };
   if (targetRole) headers['target-role'] = targetRole;                   // 非空才增头(空串不发头=现状字节,#259)
+  if (quizId) headers['quiz-id'] = quizId;                               // 非空才增头(#200-A·同纪律;零新表零新列,修法 A 零迁移)
   const begin = await serverFetch('/interview/' + interviewId + '/begin', { method: 'POST', headers });
   if (begin.status === 402) await reclaimShellAndRedirect(interviewId, 'credits_unavailable');   // 402 分支码面不变;F5 先回收空壳
   if (begin.status === 401) redirect('/login?expired=1');

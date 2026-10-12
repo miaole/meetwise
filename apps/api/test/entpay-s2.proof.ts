@@ -204,14 +204,17 @@ async function main() {
   const offRow = await pool!.query(`SELECT status FROM payment_order WHERE id='s2-ord-offline'`);
   A('判据5 offline 单 CAS 拒（conflict·订单滞 created·S2-C8 choke 单点）', offCas === 'conflict' && offRow.rows[0]?.status === 'created');
   // (b) webhook 级：真实 CommerceService.payWebhook + 有效 HMAC 签名 ⇒ 409 order_conflict·桶零入账
+  // (5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`·body 携 ts)
   let threw5: unknown;
-  try { await commerce.payWebhook('s2-ord-offline', { providerTxn: 's2-txn-off-2', sig: paySig('s2-ord-offline:s2-txn-off-2:paid') }); } catch (e) { threw5 = e; }
+  const tsOff2 = Date.now();
+  try { await commerce.payWebhook('s2-ord-offline', { providerTxn: 's2-txn-off-2', ts: tsOff2, sig: paySig(`s2-ord-offline:s2-txn-off-2:paid:${tsOff2}`) }); } catch (e) { threw5 = e; }
   const e5 = errOf(threw5);
   const offBuckets = await pool!.query(`SELECT count(*)::int AS n FROM entitlement_bucket WHERE owner_user_id=$1 AND kind='paid'`, [REC]);
   A('判据5b offline 单持有效签名直调 payWebhook ⇒ 409 拒·订单滞 created·桶零入账',
     e5.status === 409 && e5.error === 'order_conflict' && offRow.rows[0]?.status === 'created' && offBuckets.rows[0]?.n === 0);
   // (c) online 回归：同签名面 credited（C 端零行为变化）
-  const onWeb = await commerce.payWebhook('s2-ord-online', { providerTxn: 's2-txn-on-1', sig: paySig('s2-ord-online:s2-txn-on-1:paid') });
+  const tsOn1 = Date.now();
+  const onWeb = await commerce.payWebhook('s2-ord-online', { providerTxn: 's2-txn-on-1', ts: tsOn1, sig: paySig(`s2-ord-online:s2-txn-on-1:paid:${tsOn1}`) });
   const onRow = await pool!.query(`SELECT status FROM payment_order WHERE id='s2-ord-online'`);
   const onBuckets = await pool!.query(`SELECT units_total FROM entitlement_bucket WHERE owner_user_id=$1 AND kind='paid'`, [REC]);
   A('判据5c online 单回归零变化（webhook credited·订单 paid·paid 桶入账 10u）',

@@ -24,14 +24,14 @@ import {
   classifyPMetaRemaining,
   is01ANotEqual01,
   isRagFunnel01Closed,
-} from '../src/r4-p-meta-p-r1-remaining.ts';
+} from '../evidence/r4-p-meta-p-r1-remaining.ts';
 import {
   REQUIRED_SECONDARY_FACETS,
   classifyPMetaServingRemaining,
   isServing01ANotEqual01,
   isServingFunnel01Closed,
   servingAlignsWithF2Remaining,
-} from '../src/r4-p-meta-serving-remaining.ts';
+} from '../evidence/r4-p-meta-serving-remaining.ts';
 import {
   METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT,
   PRODUCT_DEPLOY_HANDOFF_CHECKLIST,
@@ -40,7 +40,7 @@ import {
   isProduct01ANotEqual01,
   isProductFunnel01Closed,
   productAlignsWithF3Serving,
-} from '../src/r4-p-meta-serving-product-remaining.ts';
+} from '../evidence/r4-p-meta-serving-product-remaining.ts';
 import { isTechRoleFailClosedEnabled } from '../src/adaptive-role-resolve.ts';
 
 let failures = 0;
@@ -64,9 +64,9 @@ const f4HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f4-p-r1-fail-c
 const funnel01aPath = join(repoRoot, 'ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md');
 const principalPath = join(repoRoot, 'packages/db/src/principal.ts');
 const funnelArchPath = join(repoRoot, 'ai-docs/architecture/ai/rag-funnel-routing.md');
-const helperPath = join(workerRoot, 'src/r4-p-meta-serving-product-remaining.ts');
-const f3HelperPath = join(workerRoot, 'src/r4-p-meta-serving-remaining.ts');
-const f2HelperPath = join(workerRoot, 'src/r4-p-meta-p-r1-remaining.ts');
+const helperPath = join(workerRoot, 'evidence/r4-p-meta-serving-product-remaining.ts');
+const f3HelperPath = join(workerRoot, 'evidence/r4-p-meta-serving-remaining.ts');
+const f2HelperPath = join(workerRoot, 'evidence/r4-p-meta-p-r1-remaining.ts');
 const handoffProvePath = join(repoRoot, 'packages/db/test/qbank-handoff-closure.proof.ts');
 const workerEnvExample = join(repoRoot, 'docker/env/worker.env.example');
 const preExecE2e = join(repoRoot, 'ai-docs/delivery/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-e2e-ha.md');
@@ -172,7 +172,7 @@ A('MS1 01A manifest pins table ≠ routed serving / 01 still open',
   && (/MetadataReviewReceipt/.test(funnel01a))
   && (/routed serving|进入 serving|不等于 routed|≠.*01|不是.*01/.test(funnel01a)));
 A('MS1 F6 product wire present',
-  existsSync(join(workerRoot, 'src/r4-p-meta-ms1-product-wire.ts')));
+  existsSync(join(workerRoot, 'evidence/r4-p-meta-ms1-product-wire.ts')));
 A('MS1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src', (() => {
   const files = walkTsFiles(join(workerRoot, 'src'));
   for (const f of files) {

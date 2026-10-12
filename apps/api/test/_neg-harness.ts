@@ -15,6 +15,13 @@ import { DbService } from '../src/platform/db.service';
 export const PAY_SECRET = 'test-pay-secret';
 export const AUTH_SECRET = 'test-secret-key';
 export const paySig = (s: string) => createHmac('sha256', PAY_SECRET).update(s).digest('hex');
+/**
+ * #100(AUTHZ-HARDEN 5A-2)回调体构造器:签名载荷 `${id}:${txn}:${kind}:${ts}`(ts=签名毫秒时刻),
+ * 与 commerce.service verifyCommerceSig 单源同形——5A-2 起回调必须携 ts(±300s 窗,防重放)。
+ */
+export function payCallbackBody(orderId: string, txn: string, kind: 'paid' | 'refunded' = 'paid', ts = Date.now()) {
+  return { providerTxn: txn, ts, sig: paySig(`${orderId}:${txn}:${kind}:${ts}`) };
+}
 export function tokenFor(uid: string, opts: { pwdEpoch?: number; ttlSec?: number; secret?: string } = {}): string {
   return signToken(uid, opts.secret ?? AUTH_SECRET, opts.ttlSec ?? 3600, Math.floor(Date.now() / 1000), opts.pwdEpoch ?? 0);
 }
@@ -68,6 +75,11 @@ export async function boot(): Promise<Harness> {
   for (const f of ['0037_ai_model_invocation_durable_claim.sql', '0038_resume_ocr_artifact.sql', '0039_resume_derivative_erasure.sql', '0046_application_assessment_recovery.sql'])
     await db.pool.query(sql(f, 'migrations'));
   await db.pool.query(sql('23_api_gateway.sql'));
+  // AUTHZ-HARDEN 5A-1:负测环境与生产归一/会话面同构——0167(存量归一+lower(email) 唯一索引·幂等,种子全
+  // 小写零冲突=索引恒建)/0168(网关函数换体·与 23 auth 族区逐字节同文,此处重放即活体一致性佐证)/
+  // 0169(kid/jti 会话表·logout 吊销真相源)。真相=迁移链(0037 系同款加载形)。
+  for (const f of ['0167_email_case_normalization.sql', '0168_gateway_auth_email_normalize.sql', '0169_auth_user_session.sql'])
+    await db.pool.query(sql(f, 'migrations'));
 
   // UNSTUB-ERASE rev2 neg-mirror:0152/0153 在**本负测环境**的最小镜像。sql/ 引导链不
   // 含隐私账本表与 0152 函数;真相=迁移链(主证 unstube-erase.proof 在真迁移链上跑),

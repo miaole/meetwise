@@ -99,7 +99,8 @@ export { sampleQuestions, candidateView, containsBankSecret } from './bank-secur
 export type { BankQuestion } from './bank-security.ts';
 
 // 认证核心（密码哈希 + 会话令牌）
-export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull } from './auth.ts';
+// AUTHZ-HARDEN 5A-1 增:kid(keyIdFor)/邮箱归一(normalizeEmail)/恒时序登录 verify(verifyLogin+LOGIN_DUMMY_HASH)。
+export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull, keyIdFor, normalizeEmail, verifyLogin, LOGIN_DUMMY_HASH } from './auth.ts';
 export type { VerifiedToken } from './auth.ts';
 
 // 隐私删除授权签发器（ECDSA P-256 / ES256 JWS，与模型网关 Ed25519 刻意分离）
@@ -246,11 +247,13 @@ export type {
 } from './job-route-classifier.ts';
 
 // 候选人面 track 路由（G7S 通用 begin 供给面）纯域原语：candidate-profile-derived 能力语义 rule
-// 分类（0 外发；v3 起降级臂 backend/general 兜底）+ canonical digest。与 job 面（岗位要求语义）
+// 分类（0 外发；v3 起降级臂 backend/general 兜底；v4 起 #270 general+单叶 qa/ai_ml 更强证据闸）+
+// canonical digest + leaf 领域证据词表（#201 planner 相关性闸同源消费面）。与 job 面（岗位要求语义）
 // 刻意分离，零 IO 零模型零 db。
 export {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
+  CANDIDATE_PROFILE_SIGNALS, CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from './candidate-profile-route.ts';
 export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom } from './candidate-profile-route.ts';
@@ -554,3 +557,10 @@ export type {
   LifecycleTriggerAllowReason, LifecycleTriggerBlockReason, LifecycleTriggerPrecondition,
   LifecycleTriggerVerdict, LifecycleTriggerRequest,
 } from './mem09-lifecycle-triggers.ts';
+
+// D6 #239-② 危机/自伤话术固定处置（确定性触发词面，纯函数零状态机）。
+export {
+  CRISIS_TRIGGER_PATTERNS,
+  matchesCrisisTrigger,
+  CRISIS_DISPOSITION_REASON,
+} from './crisis-disposition.ts';

@@ -51,6 +51,48 @@ export function parseFocusPayload(raw: string | undefined): string[] | undefined
   return labels.length > 0 ? labels : undefined;
 }
 
+/* ───────── QBANK-PLANNER-HONESTY #200-A ⑶(押题→planner 内容传递·断点③):payload sourceQuizId → owner-scoped 读题面 ───────── */
+/** 押题题面进 planner 输入的预算帽:条数 ≤6(resume-quiz.generate 每次产 3 题,帽=防滥用)、逐题 ≤300 字符
+ *  (题面是短问题文本;沿 FOCUS_LABEL 与 PLANNER_FACTS 既有有界纪律)。 */
+export const QUIZ_QUESTIONS_MAX_COUNT = 6;
+export const QUIZ_QUESTION_MAX_CHARS = 300;
+/**
+ * 解析 resume_quiz.questions(jsonb;quiz-lifecycle 写面=QuizItem[]{q,refs})→ 有界纯 string[](题面文本):
+ * 缺失/空/非数组/全空白 → undefined(容忍不崩沿 focus 同形制——planner 走无押题段回退=现状字节);
+ * 合法 → 逐题取 q 字符串/trim/截断 300 字符/去空/总量帽 6。纯函数·确定性·prove 直行使。
+ */
+export function parseQuizQuestionsPayload(raw: unknown): string[] | undefined {
+  if (raw == null) return undefined;
+  let parsed: unknown = raw;
+  if (typeof raw === 'string') {
+    if (!raw.trim()) return undefined;
+    try { parsed = JSON.parse(raw); } catch { return undefined; }
+  }
+  if (!Array.isArray(parsed)) return undefined;
+  const questions = parsed
+    .map((x) => (x && typeof x === 'object' && 'q' in x ? String((x as { q: unknown }).q ?? '') : typeof x === 'string' ? x : ''))
+    .map((q) => q.trim().slice(0, QUIZ_QUESTION_MAX_CHARS))
+    .filter((q) => q.length > 0)
+    .slice(0, QUIZ_QUESTIONS_MAX_COUNT);
+  return questions.length > 0 ? questions : undefined;
+}
+/**
+ * worker owner-scoped 读押题题面(begin 守卫块 interview.service 同表同谓词 SELECT 形:`WHERE q.id=$1 AND
+ * q.owner_user_id=$2`·asPrincipal owner 闭包·RLS 承重;他人 quiz-id → 0 行 → undefined 不供题面)。
+ * 只读不改——押题生成/过期/生命周期面零触(§3-4);行缺失(过期清理)/questions 空/任何读取异常 → undefined
+ * (best-effort 富化,绝不因押题读取阻断开面;沿 focus 容忍不崩同形制)。缺 sourceQuizId → 零查询直返。
+ */
+export async function loadQuizQuestionsForPlanner(pool: DbPool, owner: string, sourceQuizId: string | undefined): Promise<string[] | undefined> {
+  if (!sourceQuizId) return undefined;
+  return asPrincipal(pool, owner, async (c) => {
+    const r = await c.query<{ questions: unknown }>(
+      'SELECT questions FROM resume_quiz q WHERE q.id=$1 AND q.owner_user_id=$2',
+      [sourceQuizId, owner],
+    );
+    return parseQuizQuestionsPayload(r.rows[0]?.questions);
+  }).catch(() => undefined);
+}
+
 // **全链路 request-id 的进程内接力**:v50 gate 后只读 payload.requestId 标量,把整段生命周期处理跑在 ALS 上下文里,
 // 深埋在 lifecycle/service 里的每个 invoke 关口自动读到同一 reqId → 落 ai_invocation_trace.request_id(现有 invoke 调用零改动)。
 // reqId 的持久真相在 job.payload(Postgres);ALS 只是"本次执行"的进程内传递,崩溃重投按安全标量重放同一 reqId(不依赖内存)。
@@ -246,6 +288,12 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     if (!answer.stillClaimed) return 'retry';
     answerPayload = answer.payload;
   }
+  // QBANK-PLANNER-HONESTY #200-A ⑶:start job 且 payload 源押题标识在场(begin quiz-id 头透传)→ owner-scoped
+  // 读押题题面(answer job 零读·缺 sourceQuizId 零查询=现状字节)。缺省/行缺失/畸形 → undefined 容忍不崩,
+  // planner 走无押题段回退(focus v3 逐字节回退同纪律);押题生成/过期/生命周期面零触(§3-4 只读)。
+  const quizQuestions = job.kind === 'start'
+    ? await loadQuizQuestionsForPlanner(d.pool, owner, requestContext.sourceQuizId)
+    : undefined;
   // **预留租约续约(C1;北极星:活会话不被对账误扫)**:本 worker 正推进此面试的 job → 证明 liveness,把预留租约(key=interviewId,与 begin 预留同键)往后推。
   // 长面试跨多轮、用户思考间隔可 >1800s 预留租约 → 每领一 job 续一次,活会话绝不被 commerce reconcile 当孤儿回收。
   // 仅对仍 reserved 有效(已 confirmed/released → 0 行 → false,无害);原子 UPDATE 复核 lease → 与 sweep 无 TOCTOU。续约失败不阻断处理(记日志,对账兜底)。
@@ -287,6 +335,9 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         const routeSnapForRetrieve = await asPrincipal(d.pool, owner, (c) =>
           getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
         const retrieveDecision = decideRouteSnapshotRetrieve(routeSnapForRetrieve);
+        // QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf·与下方角色门
+        // roleFromRouteSnapshot 同源同形读)。缺行/缺叶 → undefined=闸不适用(叶子源缺失零误杀,如实登记)。
+        const routeLeafTrackId = routeSnapForRetrieve?.allocations?.[0]?.leafTrackId;
         // Weighted-deficit across rag.retrieve calls within this job claim.
         let trackLocalDeficit: number[] = routeSnapForRetrieve?.allocations?.map(() => 0) ?? [];
         const localRetrieve = (q: string): Promise<ScoredRef[]> => {
@@ -342,6 +393,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             scoreWriterLeaseOwner: d.leaseOwner,
             // H2 #79(#259 供给线):用户显式岗位透传至 buildAdaptiveDeps(CRAG 查询岗位段)。
             targetRole: requestContext.targetRole,
+            // QBANK-PLANNER-HONESTY #200-A(#259 供给线同形):押题题面(owner-scoped 读自 resume_quiz.questions,
+            // 上方 start 分支专用读;只进 planner 输入组装,禁入图 state/checkpoint/SSE)。缺省 undefined=无押题段(现状字节)。
+            quizQuestions,
+            // QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf)。缺省 undefined=闸不适用。
+            routeLeaf: routeLeafTrackId,
           };
           if (job.kind === 'start') {
             // `resume_id` is the sole source locator. Never revive a

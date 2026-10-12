@@ -77,7 +77,7 @@ function repoRoot(): string {
 }
 
 function readSrc(name: string): string {
-  const p = join(workerSrcDir(), name);
+  const p = join(workerSrcDir(), '..', 'src', name);   // CI-WIRING #169 迁 evidence/ 后:src 读取面显式回指 src（原同目录即 src）
   return existsSync(p) ? readFileSync(p, 'utf8').replace(/\0/g, '') : '';
 }
 

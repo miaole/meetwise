@@ -1,0 +1,23 @@
+# gate: npm run prove:public-copy (apps/web)
+# ts: 2026-10-12 14:40:02 +0800
+# head: 7b6d0f38304e7d66ad0d3dc88c29e1ae9d1eea1e
+
+> @meetwise/web@0.0.0 prove:public-copy
+> node test/public-copy.proof.mjs
+
+✓ TC-PUBLIC-COPY-main
+✓ TC-PUBLIC-COPY-E1
+✓ TC-PUBLIC-COPY-E2
+✓ TC-PUBLIC-COPY-E3
+✓ TC-PUBLIC-COPY-E4
+✓ TC-PUBLIC-COPY-E5
+✓ TC-PUBLIC-COPY-E6
+✓ TC-PUBLIC-COPY-E7
+✓ TC-PUBLIC-COPY-G3
+✓ TC-PUBLIC-COPY-E8
+✓ TC-PUBLIC-COPY-E9
+✓ TC-PUBLIC-COPY-E12
+✓ TC-PUBLIC-COPY-E11
+✓ TC-PUBLIC-COPY-E10
+static_preflight_valid: selected=14/14; releaseEvidence=false
+EXIT=0

@@ -95,14 +95,15 @@ async function GrowthArchive({ limit }: { limit?: string }) {
       <header>
         <span className="text-xs font-medium uppercase tracking-wide text-primary">成长档案</span>
         <h1 className="mt-2 font-serif text-3xl font-extrabold tracking-tight sm:text-4xl">综合能力随训练演进</h1>
-        <p className="mt-2 text-sm text-muted-foreground">基于 {totals.sessions} 场已评估面试的真实综合得分,逐场画出你的进步轨迹。</p>
+        {/* #262 口径命名:面试中提示分/本场报告分/近期平均——本页曲线与「最新」卡均为本场报告分口径。 */}
+        <p className="mt-2 text-sm text-muted-foreground">基于 {totals.sessions} 场已评估面试的本场报告分,逐场画出你的进步轨迹。</p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-3">
         <Card className="flex items-center gap-4 p-5">
           {totals.latestScore != null ? <ScoreRing score={totals.latestScore} size={92} label="最新" /> : <div className="grid size-[92px] place-items-center rounded-full border-[6px] border-muted text-xs text-muted-foreground">—</div>}
           <div>
-            <div className="text-[13px] text-muted-foreground">最新综合分</div>
+            <div className="text-[13px] text-muted-foreground">最新本场报告分</div>
             {trend && <Badge variant={trend.variant} className="mt-1 gap-1"><trend.Icon className="size-3" />{trend.label}</Badge>}
           </div>
         </Card>

@@ -90,7 +90,7 @@ export default async function ReportPage({ params, searchParams }: { params: Pro
           {overall != null ? (
             <div className="flex shrink-0 flex-col items-center">
               <ScoreRing score={overall} />
-              <span className="mt-2 text-center text-xs text-muted-foreground">本次练习反馈<br />不用于招聘决定</span>
+              <span className="mt-2 text-center text-xs text-muted-foreground">本场报告分<br />不用于招聘决定</span>
               {/* 运营层裂变:报告就绪后,owner 可一键生成可分享海报(仅聚合分数,无 PII)。 */}
               <Link
                 href={'/report/' + id + '/share'}
