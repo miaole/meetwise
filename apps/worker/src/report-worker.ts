@@ -35,6 +35,17 @@ export interface ReportWorkerDeps {
 
 export type DrainOutcome = 'ready' | 'failed' | 'stale' | 'idle';
 
+/**
+ * AG-03（刀 E）报告幂等键**单一真相**：`${interviewId}:report:a${dispatchSeq}`。
+ * 每轮派发新键新 revision（键/revision 同源字符串,interview-service businessRevision 随键同换）——
+ * 0130 终态重放只对同键生效,换键即重试真发请求。键串满足 registry charset 门
+ * `/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/`（uuid 起首字母数字 + `:._-` 集内,fail-closed 门兜底）。
+ * 派发序源=claimReport 同语句自增的 dispatch_seq（单调·任何路径不复位,EG-A1 铁律）。
+ */
+export function reportDispatchKey(interviewId: string, dispatchSeq: number): string {
+  return `${interviewId}:report:a${dispatchSeq}`;
+}
+
 /** 成长链段名（#204）：评估→学习→职业（后两段依赖评估先行）。 */
 export type GrowthSegment = 'assessment' | 'learning' | 'career';
 
@@ -154,7 +165,11 @@ export async function drainReportsOnce(
     // 摘要读取也是报告 job 的一部分：若它失败，绝不能把 job 留在 running 直到租约过期。
     // 否则一次事件库/解密/聚合故障会平白增加 120 秒恢复延迟，并让调度器看起来像“没在工作”。
     const summary = await deps.loadSummary(owner, claim.interviewId);
-    report = (await buildReportGraph({ generate: deps.generate }).invoke({ summary }))!.report!;  // 模型在事务外
+    // AG-03/EG-A1（刀 E）：claim 携出的单调派发序穿透进 summary（非模型字段）——组合根的 generate
+    // 闭包据它构键 `${interviewId}:report:a${n}`。同一次 claim 内键稳定;跨 claim（重试）必得新键。
+    report = (await buildReportGraph({ generate: deps.generate }).invoke({
+      summary: { ...summary, reportDispatchSeq: claim.dispatchSeq },
+    }))!.report!;  // 模型在事务外
   } catch (e: unknown) {
     const err = asErr(e);
     if (err?.message === 'interview_privacy_fenced') return 'stale';
