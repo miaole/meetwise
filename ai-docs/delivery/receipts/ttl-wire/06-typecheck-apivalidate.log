@@ -1,0 +1,6 @@
+# typecheck 门（§2-4）
+## 权威门:pnpm turbo typecheck --force
+Tasks: 3 successful, 3 total / Cached: 0 / EXIT=0（与 5E nail 主线收据 checklist:2317 同形同值）
+## 附记:worker tsconfig 直调形 tsc -p apps/worker/tsconfig.json --noEmit 基线同红定责
+基线（stash 无本刀面）=47 error TS；本刀后=47（apps/worker/src/interview-consumer.ts=0·新测件=0）——零新增·非本刀引入·该直调形非仓权威门（apps/worker 无 typecheck script·权威门=turbo 3/3）
+## api:validate（非硬闸·隔离壳）:EXIT=0·末段可见 7 PASS+『✓ 全部通过（真 NestJS+Fastify+类型DI 结构）』·全量计数未捕获（捕获管道 tail 截断·门判决以 EXIT=0 为准）

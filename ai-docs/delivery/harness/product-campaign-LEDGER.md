@@ -370,3 +370,23 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 
 - erratum：派单 brief 载批5 行基线 4/143 系 5A-2 增量同步（@4a5528a5 三件）编成前快照——本席写前亲证卷内现值 7/143·沿现值翻 7→32（143−32=残 111·与合计 15+26+40+22+10+32=145 互证自洽）。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
+
+## PARITY-B2 e2e-parity 基线重锚收官登记（2026-10-12 · nail 席 · 沿 B-lite 配套在飞管线先例 · 非 271 计件面 · **现权威值 145/271（53.5%）维持 · 批表零翻** · 沿 :352 勘误后口径勿再誊历史值）
+
+> 全链：REQUEST `7f2b712b`（B1 消耗后全新起草·基线 `89530dea`=开工时主线 tip·红读数 101 行亲证·bag census 归因账闭合）→预执行双审两外席 **BOTH PASS**（带外转达）→EXEC `0a64400b`（并线 `65bdf3f6` docs-only 零冲突=重锚）+`b0d7182e`（恰 4 产品面程序化再生：baseline.json/allowlist.json/baseline.md/proof.mjs·636+/13−·扫描器 digest 提取零手抄·dry-run fail-closed 先拦锚收集 bug）+`26cd2b23`（状态行随翻+receipts 七件）→post-prove 双席 **BOTH PASS**（席1 472 键袋比对 untracked=0·席2 独立复演红读数 101 行逐值全中·死账双录 missing=0 extra=0 double=0）→nail 并线 `a2d70607`（入 `d12439d8` 5E nail 链零冲突·禁 rebase 追加式）+`8defc121`（docs:check 单行形式清欠·协调方裁决「有红自主处理好」）→merge --no-ff @`f547444e` 并主线（双亲 `d12439d8`+`8defc121`·origin 已推非 force）。分支 `line/parity-b2-regen`·工作树 `meetwise-parity2`（仓根同级 worktree）。
+
+- **收官内容**：①e2e-parity 基线**追加式程序化再生**——账本 assertions 84→158/units 223→244/tests 31→36·floors 48/377→**53/472**·allowlist 7→**9** 双死账条目（死 17 assertion 键+3 test 全 digest 机器匹配入账·dual tail entries）·TC-01-main 七数同步+baseline.md :18 三锚唯一命中守卫·e2e/apps/packages 零字节零码动；②**parity 门翻绿**——`e2e-parity:check` EXIT=0（valid=true·7/39/428·floors 53/472·effective 39/428·allowlist 9）+`e2e-parity:prove` EXIT=0 一次优先 22 scenarios（零 retry）+`generation-trust:prove` EXIT=0 保绿+`docs:check` EXIT=0（nail 席 merge 后主线树 `f547444e` 四门同值亲跑留证）。
+- **docs:check 口径冲突与清欠（nail 席补登·erratum 正文随 checklist PARITY-B2 段）**：支线并线门复跑 docs:check EXIT=1·全树恰 1 错=REQUEST :10 worktree 本地径（blob 同一性亲证系 B2 卷自带非并线引入；收据 05 自记 `DOCSCHECK-EXIT=1` 沿 B1 先例披露式口径·与本 nail 任务书 EXIT=0 预期及主线 `d12439d8` 实测绿门冲突）——协调方裁决「有红自主处理好」→`8defc121` 单行形式清欠（本地径→worktree 符号名·F-A 形制沿 `5d536f83` 只改形式零改语义）·BLITE-FIX 段 STILL OPEN「parity2 在飞卷 1 处 worktree 径红」随之清偿闭环。
+- **非 claims 铁律**：静态账本面追平≠门3 0BUG≠可发布≠HA——E2E 断言/单位增量系既有身份程序化收编（bag census 归因账逐源闭合）非新测面；`releaseEvidence=false`·`claimProductionHA=false` pins 零翻转。
+- **不计 271 条件数（查证如实处置）**：本刀=e2e-parity 账本面再生非审计条目映射面·卷内零 271 条目引用（沿 B-lite 先例 grep 自证口径）——**本刀无 271 件可翻·批表零翻**；合计维持 **145/271（53.5%）**（15+26+40+22+10+32·沿 :352 勘误后口径·批1 终核第 5 条取代条款与各终核节有效）。
+- erratum 承登：receipt 01 八锚清单 4 行 blob 词面错标（真值四值两点亲算·「all byte-identical」判定为真）+「十七前缀」指令侧笔误（REQUEST §2.2 权威口径 17 digest 前缀=full 7+helpers 10+3 test·卷内自洽）两条勘误正文随 execution-master-checklist PARITY-B2 段（本窗 commit `d07d4852`）落卷。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
+
+## TTL-WIRE #18 payload TTL 清理接线收官登记（2026-10-12 · nail 席 · 沿 :301 配套在飞管线先例（B-lite→PARITY-B2 同链）· 非 271 计件面 · **现权威值 145/271（53.5%）维持 · 批表零翻**）
+
+> 全链：REQUEST `56b0f707`（AUTHZ-HARDEN 5A-2 R-1「接线小刀」向起草·基线 `7500ac73`·立项出处=execution-master-checklist `:2268`/`:2276` R-1 遗留行+authz-harden-REQUEST §1 簇④ `:110`/§2-6 `:120`·红事实机证=rg 全仓 purge 恰 5 命中（定义+export+prove×3·生产零调用））→ rev1 预执行双审席1 FAIL 窄面锚勘误（四处锚校准）→ rev2 `6b70f770`（rev 修正席处置·结论零变）→ rev2 重审双席 **BOTH PASS** → EXEC `42b3b036`（先并主线 `d12439d8` 零冲突=EXEC 重锚·三 blob 逐字节不变）+`0e5e1256`（恰一文件两处：`apps/worker/src/interview-consumer.ts:7` import 补名+`:537` 调用·asPrincipal 单事务·原语/迁移零字节）+`2fdc77e8`（状态行随翻 `executed:awaiting_post_prove_dual`）→ post-prove 双席 **BOTH PASS**（席1/席2 独立复证：门复跑 17/14/28 臂+turbo typecheck 3/3+负臂 5/5·臂数标签误计两条 erratum 不阻门）→ merge --no-ff @`ce021b22` 并主线（双亲 `95576e36`+`2fdc77e8`·origin/feat/mysql-schema-skeleton 已推非 force）。分支 `line/ttl-wire`·工作树 `meetwise-ttlwire`（仓根同级 worktree）。涉引 hash（EXEC 三连+`2fdc77e8`）全经 `git merge-base --is-ancestor` 对 HEAD 亲证为祖先。
+
+- **收官内容**：#18 `purgeStaleInterviewJobPayloads` 生产零调用点→恰两处接线（reaper `reapStuckInterviewJobs` 体内 terminalize 循环收尾后、return 前·`asPrincipal` 单事务·隔离=逐 owner 逐拍 catch+下拍 5000ms 重试）——queued 滞留明文 24h（TTL 86_400 原值零调参）清理触发闭环·AUTHZ-HARDEN 5A-2 nail 段 R-1 遗留清账（execution-master-checklist `:2276` #18 项随本 nail 翻面「已由 TTL-WIRE 闭环 @ce021b22」·同行 5A-1/#143 维持 STILL OPEN）。merge 后三门复验（nail 席主线树亲跑 @`ce021b22`）：`prove:reaper-purge-wire` EXIT=0 **14 臂**+`run-e2e-isolated authz5a2:stale-payload-ttl:prove` EXIT=0 **17 臂**+`turbo typecheck --force` **3/3** EXIT=0。
+- **不计 271 条件数（查证如实处置）**：#18 滞留半沿 5A-2 增量同步「半件不计·R-1 挂协调方裁不计件」口径（:213 批5 行原文·append-only 零改）——接线闭环=R-1 遗留清账非新增收口件·**批表零翻**；合计维持 **145/271（53.5%）**（15+26+40+22+10+32·沿 :352 勘误后口径·批1 终核第 5 条取代条款与各终核节有效）。
+- erratum 承登：臂数标签误计两条（REQUEST/EXEC 卷载「接线臂 16」实测 **14**·「reaper 既有 30」实测 **28**——`A(` 亲数双证·30 系 5A-2 时点旧数主线漂移两臂非本刀触·EXIT=0 判定不受影响）正文随 execution-master-checklist「Line TTL-WIRE nail」段（本窗 docs(ssot) commit）落卷。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
