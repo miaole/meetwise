@@ -2276,3 +2276,13 @@ flowchart TD
 - [ ] **STILL OPEN（R-1 遗留）**：#18 purgeStaleInterviewJobPayloads 生产零调用点=原语已落未接线——挂协调方裁「接线小刀或降格声明」；另 AUTHZ-HARDEN 5A-1（簇①②③ 账号/会话面）未开工；#143 P4 随卷挂账零码动（启用前改应用侧加密）.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · 原语已落≠接线完成 · nail≠gap closed · 实现方不 self-approve.
+
+### 协调方登记补账 commit（2026-10-12 · 409 nail 补登+勘误清单+账实分离清账 · 零码动）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- **E2E 场景 409 刀补登**：nail `b345b761` 早已在主线（8b8e20bc 祖先亲证·merge 信息载 post-prove 双席 BOTH PASS·28 断言落主线·经 03db1b84 并线）；本窗第三独立复核 **PASS**（28 断言逐位与申报一致+收据 sha256 与 commit 逐字节同+tsc EXIT=0+R3 v4 随演相容零冲突零重复）。erratum 两：①「policy_version 入收据」实落 console.log 软记录（宽口径成立·不阻塞）②分支 tip R3 qa 硬编码已被主线 `bcd9528e` 随演修复取代（§1-R3-2 规定行使·无需动作）。同族 batch2 已收官 `f7082391`（卷 §9 双席登记在卷）。
+- **I6 链路事件登记**：失联窗口 EXEC 双派根因=违例席 quota-1302 中途死（残渣经协调方 stash@{0} 保全·清场时一并卷走合法席已写文件）→合法席按停止条件重建全量落卷 `7b6d0f38`（后 amend proof 微调）·REQUEST 双审 BOTH PASS（两席独立零 blocking）+post 席1 FAIL 纯文书义务（码面全绿）→文书收口 `20950015`（状态行翻面+§8 七裁决现裁+erratum：stash crisis-disposition.ts 与落卷**逐字节同一**·「残件零采用」表述更正·孤儿件归档·四门收据）→post 席2 全态 **PASS**。EXEC 席自报「用户亲裁」表述未经核实不作授权依据（本链授权=协调方常设 loop+双审）。
+- **REG-FIX 账实分离清账**：nail:closed（全链 `518023a5`→`899cab1a`·门3 推进）——勘误已随本 commit 落 LEDGER :301 行·侦察简报在卷。
+- **PARITY-B1 卷状态行陈旧**：EXEC `f548c0d9`+nail 已登记（:1594 区已勾）——卷内 :3 勘误随本 commit 落；新刀 **PARITY-B2 基线重锚**待全新起草（101 错快照·git log -S 归因账·扩面裁定交双审）。
+- 预算：零 run·est 0 live·0 Key 值·`actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · 实现方不 self-approve.
