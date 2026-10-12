@@ -2,7 +2,7 @@
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
 
-**席位**：meetwise 战役 AG 成本轨第②步起草席（AG-07 迁移三件套 + 因子合并语义 + 90 天保留期 · EXPERT-REVIEWS §七 成本轨 B 席六步之 **②**——「①与②合并一个发布窗口」的②·①止血旋钮已 nail `6f2ed876` 缺省关停·**本刀=关停态下为重启用做准备**·与失败语义轨 A 席六刀零硬依赖）。
+**席位**：meetwise 战役 AG 成本轨第②步起草席（AG-07 迁移三件套 + 因子合并语义 + 90 天保留期 · EXPERT-REVIEWS §七 成本轨 B 席六步之 **②**——「①与②合并一个发布窗口」（cost1 REQUEST §3-1/checklist :2357）的②·①止血旋钮已 nail `6f2ed876` 缺省关停·**本刀=关停态下为重启用做准备**·与失败语义轨 A 席六刀零硬依赖）。
 **基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（开工建树时点主线 tip·`git log -1` 实测 2026-10-11·docs(ssot) AG+计费战役刀位图立节笔。起草窗口内主线零前移（worktree 立-tip 与现 tip 同 hash 亲证））。分支 `line/ag-cost2-migrate` · 工作树 `meetwise-cost2`（`git worktree add ../meetwise-cost2 -b line/ag-cost2-migrate` 仓根同级·沿 cost1 卷同形·建前亲证：worktree list 15 树无 cost2·`branch -a | grep cost2` 零命中）。
 **防重双对表（亲证）**：`rg -n "ag-cost2" ai-docs/` → 零命中；`ls ai-docs/delivery/harness/ | grep cost2` → 零同名刀卷（cost1 卷在案为前驱非冲突）；`ls packages/db/migrations | sort` 主线顶=**0169**（0170-0173 号位已分配 billing·0174=刀 B 已落 agb 树 `0174_ag06_settled_failed_usage_source.sql`·0175=刀 C 计划·0176=qsec 已 declare 占用）→ **本刀迁移号 0177 起**（EXEC 立项时实测顺延·`scripts/check-migration-version-uniqueness.mjs` 终裁）。→ **停止条件未触发·可建树落卷**。
 **蓝本**：①`ai-docs/delivery/ai-capability-review/issues-final.md` AG-07 详情 **:125-134**（file:line 四要素+膨胀算术+修法原文「水位线增量/PK 去 batch/全局聚合/降频或关掉」）+ 总览 **:19**（P1·专家裁定降 P2 见 EXPERT-REVIEWS §一 :10）②同目录 `EXPERT-REVIEWS.md` **§七 :67 成本轨②（修法权威：「观测表去重+PK 去 batch·配对/枚举加窗+水位线·因子 max(old,增量) 合并保上界）+90 天保留期」）** + **§六 :51 EG-B1 备注**（unknown 预留零清算=另一账本不可信源·修法=unknown ageing 对账器**与状态机同批**——非本刀面·本刀水位线/保留期与 EG-B1 零语义交叠）+ **§八 :77-78**（62747d74 跑真迁移真隔离 PG 先例）③**任务书修法权威·四件**（协调方对 §七② 的四件展开·本卷逐件落 §1-修法）：观测表按 (owner,invocation_key) 去重保留最早 batch→DROP CONSTRAINT+ADD PRIMARY KEY；配对函数加窗 v2 镜像 completed_at>p_since 旧函数保留；水位线表 ai_usage_calibration_watermark(owner PK,last_completed_at) 单调推进+gateway_owners 同步加窗；因子合并语义 factor'=max(factor_prev,增量 rawMax×(1+safety)) 显式定义否则增量丢失上界保证 ④成本①刀 `ai-docs/delivery/harness/ag-cost1-bleed-observe-REQUEST.md`（nail `6f2ed876`·旋钮+观测已落=本刀输入·其 §3-1 范围外第 1 条即本刀·其 execution-master-checklist **:2357 STILL OPEN 原文承接**）+ `product-campaign-LEDGER.md` **:404-417 刀位图**（成本轨②-⑥=队列·②以①旋钮+观测为输入）⑤形制沿 cost1 卷（§0-§8·Ban/pins 同源誊录见 §5）。
@@ -13,7 +13,7 @@
 
 | # | 文件 | blob | 角色 |
 |---|---|---|---|
-| 1 | `packages/db/migrations/0119_usage_reconciliation_wiring.sql` | `1922910a79da` | **迁移主触面 A**：:399-417 观测表（PK :412 `(owner_user_id,batch,invocation_idempotency_key)` **含 batch**）+ :422-431 RLS/GRANT（app_role 仅 SELECT,INSERT）+ :438-473 配对函数 `ai_usage_calibration_pairs_scoped(text)` **单参无时间窗**（:470 ORDER BY completed_at） |
+| 1 | `packages/db/migrations/0119_usage_reconciliation_wiring.sql` | `1922910a79da` | **迁移主触面 A**：:399-413 观测表（PK :412 `(owner_user_id,batch,invocation_idempotency_key)` **含 batch**）+ :414-417 因子表 RLS（`ai_usage_calibration`·与观测表行段分开）+ :422-431 RLS/GRANT（app_role 仅 SELECT,INSERT）+ :438-473 配对函数 `ai_usage_calibration_pairs_scoped(text)` **单参无时间窗**（:470 ORDER BY completed_at） |
 | 2 | `packages/db/migrations/0134_usage_calibration_gateway_owners.sql` | `8288a57d697e` | **迁移主触面 B**：:11-25 `gateway_usage_calibration_owners()` 枚举**全部**有配对 owner（WHERE :21-23 无时间谓词） |
 | 3 | `packages/ai-runtime/src/usage-calibration-reconciler.ts` | `8b7b257bc849` | 域级本体：:110 `listUsageCalibrationPairs` 读**全历史** + :133-140 逐条 INSERT（batch=入参）+ :144-151 因子 insert-only 落库 + :12 注释原文「每组读**全历史**配对（因子只升不降）」——**单调性的真实来源=全史读，加窗后必须显式补** |
 | 4 | `packages/db/src/model-op/usage-calibration.ts` | `fec7d3a91ce6` | 数据访问层：:39-56 `listUsageCalibrationPairs` 走 v1 函数 `$1` 单参 + :69-74 因子 ON CONFLICT DO NOTHING（内容寻址 insert-only）+ :104 观测 ON CONFLICT `(owner_user_id,batch,invocation_idempotency_key)` DO NOTHING |
@@ -22,7 +22,7 @@
 | 7 | `apps/worker/src/usage-calibration-reconcile.ts` | `ddf39a00d5ed` | **成本①旋钮所在**：:18-24 hourBatch=`cal-YYYYMMDDHH` 小时桶 + :39-72 config/resolve（boundedInteger/boundedBoolean 纪律）+ :75-102 tick（:81 全量枚举→逐 owner reconcile）+ :105 `runUsageCalibrationReconciler(pool, intervalMs = 60_000)` 默认参原值保留 |
 | 8 | `apps/worker/src/main.ts` | `8ed81327e02d` | **成本①接线所在**：:35 import + :712-716 resolve+条件起循环（**缺省 ENABLED=false 不起循环**）+ :744 ready 可选短路 + :778 drainStop |
 | 9 | `packages/ai-runtime/src/invoke.ts` | `647e0aa952f0` | 计费面（ModelUsage :48-58 / settle :335-347）——**本刀零触面**（成本①已钉「只观测不改计费」·本刀延续） |
-| 10 | `packages/ai-runtime/src/metrics.ts` | `2adc31554c07` | 成本①观测 metric（METRIC 两键+基线预注册）——本刀零触面（观测面已落·背景） |
+| 10 | `packages/ai-runtime/src/metrics.ts` | `2cd9daf00925` | 成本①观测 metric（METRIC 两键+基线预注册）——本刀零触面（观测面已落·背景） |
 | 11 | `packages/db/src/index.ts` | `3fa6f9a8648f` | 导出面（:48 gateway 族 / :219 calibration 四原语）——代码增量加导出走此面 |
 | 12 | `packages/ai-runtime/src/index.ts` | `0c135cb22ffc` | 导出面（reconciler 族）——代码增量加导出走此面 |
 
@@ -39,7 +39,7 @@
 
 ### 0.3 现势并发登记（强制）
 
-1. **迁移号占用图**（LEDGER :404-417 刀位图 + qsec 卷 :52 亲证）：billing 0170-0173（立项待·号位已分配）· 刀 B=0174 **已落 agb 树**（`0174_ag06_settled_failed_usage_source.sql`·EXEC 修复中未并主线）· 刀 C=0175（BOTH PASS 待 EXEC·rev 在途）· qsec=**0176 起（REQUEST 9484bc54 明示 declare）**。→ 本刀 **0177 起**；若 EXEC 立项时 qsec/刀 C 有让位或占位变化·**实测顺延**·`check-migration-version-uniqueness` 门终裁。
+1. **迁移号占用图**（LEDGER :404-417 刀位图 + qsec 卷 :52 亲证）：billing 0170-0173（立项待·号位已分配）· 刀 B=0174 **已落 agb 树**（`0174_ag06_settled_failed_usage_source.sql`·EXEC 修复中未并主线）· 刀 C=0175（BOTH PASS 待 EXEC·rev 在途）· qsec=**0176 起（REQUEST 9484bc54 明示 declare）**· 刀 D（AG-D）卷 ffa1fa62 原文「0177 待协调方裁定」（晚本卷六分钟·非本卷可证面·**已由协调方分配消解**）。→ **协调方裁定：0177=本刀（COST2）·刀 D（AG-D）改 0178**——本刀 **0177 起**；若 EXEC 立项时 qsec/刀 C 有让位或占位变化·**实测顺延**·`check-migration-version-uniqueness` 门终裁。
 2. **跨轨文件交点**：刀 B（AG-06·model-client.ts 管道）·刀 C（AG-04·0175 迁移+interview-jobs 面）与本刀触面（0119/0134 新迁移+reconciler/db wrapper/worker 调度侧）**零文件交集**·可并行·互不为前置。成本①已 nail 关停态·本刀落库后 reconciler 仍处缺省关停（重启用=显式后继决策·非本刀自动翻转）。
 
 ## §1 红事实 + 修法
@@ -48,7 +48,7 @@
 
 | 要素 | 锚（@`2bc4e2bd` 实测） | 事实 |
 |---|---|---|
-| 60s 拍 | `reconcile.ts:105` 默认参 60_000（:7 worker 默认注记）＋成本①旋钮 :39-72（缺省 ENABLED=false + INTERVAL_MS 缺省 86_400_000） | **成本①已旋钮化·缺省关停**——机制未除·旋钮只是减速带；显式启用（哪怕按天）膨胀照旧发生（见膨胀算术）·**本刀为重启用做准备** |
+| 60s 拍 | `reconcile.ts:105` 默认参 60_000（:45/:104 worker 默认注记）＋成本①旋钮 :39-72（缺省 ENABLED=false + INTERVAL_MS 缺省 86_400_000） | **成本①已旋钮化·缺省关停**——机制未除·旋钮只是减速带；显式启用（哪怕按天）膨胀照旧发生（见膨胀算术）·**本刀为重启用做准备** |
 | owner 无窗 | `0134:11-25`（WHERE :21-23 只滤 estimate/input/completed_at 非空·**无时间谓词**）+ `reconcile.ts:81` 每 tick 全量枚举 | 曾经调用过的 owner 永久留在枚举集·每拍全 owner 扫描·随历史线性增长 |
 | 配对全史 | `0119:438-473`（`ai_usage_calibration_pairs_scoped(text)` 单参·**无 completed_at 窗**）+ `usage-calibration.ts:39-56`（`$1` 单参调用）+ `reconciler.ts:110` | 每 owner 每拍读**全部历史**配对（含最老一行）——`reconciler.ts:12` 注释自证「每组读全历史配对（因子只升不降）」 |
 | PK 含 batch | `0119:412` `PRIMARY KEY (owner_user_id, batch, invocation_idempotency_key)` + `reconcile.ts:18-24` hourBatch 每小时新桶 + `usage-calibration.ts:104` ON CONFLICT DO NOTHING（**同桶内才去重**） | 同一调用每小时换新 batch 桶**整行重写**：跨桶不去重→观测行随拍数×历史线性膨胀 |
@@ -87,7 +87,7 @@
 
 ## §4 依赖
 
-**唯一前置=成本①（已 nail `6f2ed876`·origin 已推）**：旋钮（缺省关停+按天）与 cached_tokens 观测已落=本刀输入·**非闸**（本刀在关停态下纯迁移+代码增量·不依赖旋钮翻开）。与失败语义轨（A 席六刀）零文件交集·可并行（刀 B=model-client·刀 C=0175 迁移+interview-jobs·与 0119/0134/reconciler/worker 调度侧零交集）。**迁移号协调**：billing 0170-0173/刀 B 0174/刀 C 0175/qsec 0176 已 declare——本刀 0177 起·EXEC 实测顺延·uniqueness 门终裁（§0.3-1）。**下游**：成本③（AG-12 估算器）以本刀窗口化对账产出的干净因子链为输入·非闸；#48 收口待观测数据。**与①同发布窗**（EXPERT-REVIEWS §七「①与②合并一个发布窗口」）：①已并主线·本刀并线即成窗。
+**唯一前置=成本①（已 nail `6f2ed876`·origin 已推）**：旋钮（缺省关停+按天）与 cached_tokens 观测已落=本刀输入·**非闸**（本刀在关停态下纯迁移+代码增量·不依赖旋钮翻开）。与失败语义轨（A 席六刀）零文件交集·可并行（刀 B=model-client·刀 C=0175 迁移+interview-jobs·与 0119/0134/reconciler/worker 调度侧零交集）。**迁移号协调**：billing 0170-0173/刀 B 0174/刀 C 0175/qsec 0176 已 declare——本刀 0177 起·EXEC 实测顺延·uniqueness 门终裁（§0.3-1）。**下游**：成本③（AG-12 估算器）以本刀窗口化对账产出的干净因子链为输入·非闸；#48 收口待观测数据。**与①同发布窗**（cost1 REQUEST §3-1/checklist :2357「①与②合并一个发布窗口」）：①已并主线·本刀并线即成窗。
 
 ## §5 Ban 列表 + pins（沿 cost1/authz 卷同源·逐字誊 + 本刀面增补）
 
@@ -114,9 +114,11 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **待双审/EXEC 裁决项**：
 
 - **①90 天保留期归属（§七②原文含「+90 天保留期」·可选裁决）**：(a) **本刀含**（新迁移内 SECURITY DEFINER 清除函数+worker 低频可选循环接线·一步到位·但+1 worker 触面与 main.ts 接线面）·**推荐**（②落地后观测行增量受控·保留期是膨胀治理闭环的最后一件·拖后继则 90 天面继续堆旧账）；(b) 后继刀（本刀仅四件+合并语义·main.ts 零触·最小刀面）。
-- **②合并 safety 系数与口径（件④授权面内细化）**：(a) factor 尺度 max 按任务书公式 `max(factor_prev, rawMax_增量×(1+safety))`·safety 沿 DEFAULT_SAFETY_MARGIN 常量·**推荐**（与任务书修法权威逐字一致）；(b) rawMax 尺度合并 `rawMax'=max(rawMax_prev, rawMax_增量)` 再统一乘 (1+safety)（结果 ≥(a) 恒成立·更保守·但偏离任务书公式字面）。两形均保上界·绝不静默选一。
+- **②合并 safety 系数与口径（件④授权面内细化）**：(a) factor 尺度 max 按任务书公式 `max(factor_prev, rawMax_增量×(1+safety))`·safety 沿 DEFAULT_SAFETY_MARGIN 常量·**推荐**（与任务书修法权威逐字一致）；(b) rawMax 尺度合并 `rawMax'=max(rawMax_prev, rawMax_增量)` 再统一乘 (1+safety)（结果 ≥(a) 恒成立·更保守·但偏离任务书公式字面·prev/增量同用 DEFAULT_SAFETY_MARGIN 时两形数学恒等·严格 ≥ 仅在 safety 异值时成立·两形均保上界）。两形均保上界·绝不静默选一。
 - **③水位线粒度**：(a) owner 级（任务书表形 owner PK 单列水位·**推荐**——最小表形·枚举加窗 v2 谓词同粒度自洽）；(b) (owner, service, model) 级（更细增量·表形与合并因子链对齐·但水位行数×组数·首版过度设计）；(c) 全局单水位（最粗·单慢 owner 拖全局·排除项呈报完整性）。
 
 ---
 
 *AG-COST2 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · 基线 `feat/mysql-schema-skeleton` @`2bc4e2bd`（起草窗口主线零前移）· 分支 `line/ag-cost2-migrate` · 工作树 `meetwise-cost2` · 蓝本=issues-final AG-07 :125-134/:19 + EXPERT-REVIEWS §七 :67 成本轨②（修法权威）+§六 :51（EG-B1 边界备注）+§八 :77-78（真隔离 PG 先例）+ 任务书修法权威四件 + cost1 卷（nail 6f2ed876·STILL OPEN :2357 承接）+ LEDGER 刀位图 :404-417 · 范围=迁移四件（去重换键/配对 v2 加窗/水位线表/枚举加窗）+因子合并语义显式定义+90 天保留期（裁决项）· 不含=AG-12/回灌/AG-11/EG-B1 · 迁移号 0177 起（EXEC 实测顺延）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+*rev 勘误席（docs-only 窄面·⛔push·零码动）· 2026-10-12 · 双审席1 FAIL 处置摘要（1 blocking+5 errata·结论零变·§8-③ 冻结维持·STOP 维持·markers=0·pins 十一值零翻）：①【blocking】§0.1 #10 metrics.ts blob `2adc31554c07`→`2cd9daf00925`（`git ls-tree 2bc4e2bd -- packages/ai-runtime/src/metrics.ts` 亲算后落笔·2adc31554c07 系 cost1 EXEC 中间态 a8f7078d 旧 blob）；②§0.3-1 占用图补登协调方裁定 **0177=本刀（COST2）·刀 D（AG-D）改 0178**（刀 D 卷 ffa1fa62 原文「0177 待协调方裁定」·晚本卷六分钟·非本卷可证面·已由协调方分配消解）；③引语「①与②合并一个发布窗口」归引改 cost1 REQUEST §3-1/checklist :2357（非 EXPERT-REVIEWS·§七 :67 无此语）；④裁决项②(b) 补措辞（prev/增量同用 DEFAULT_SAFETY_MARGIN 时两形数学恒等·严格 ≥ 仅在 safety 异值时成立·两形均保上界）；⑤杂锚：§1 row1 辅锚 :7→:45/:104·§0.1 #1 行段 :399-417→:399-413（因子表 RLS :414-417 分开）。恰 1 .md·零码动 · ⛔push*
