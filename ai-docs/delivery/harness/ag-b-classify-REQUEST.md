@@ -1,6 +1,6 @@
 # AG-B-CLASSIFY REQUEST（AG 修复轨·失败语义刀 B · AG-06 确定性失败结算分类 + AG-14 解析层折叠（同文件同刀）· 沿既有 settled-failed 先例路由接线 · 零新结算语义）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）→ **append 2026-10-12：`executed:awaiting_post_prove_dual`**（pre-exec 双审两外席 **BOTH PASS** 落协调方+协调方常设 loop 授权开工·EXEC 施工六条+§2 全门跑毕见 §0.3/§8 行使记录与 receipts/ag-b-classify/·⛔push 保持·待 post-prove 双审两外席）。
 
 **席位**：AG 修复轨刀 B 起草席（EXPERT-REVIEWS §七 失败语义轨刀 B 承接·**先于一切重试刀**·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `ce021b22`（主线 tip·`git log -1` 实测·ttl-wire merge commit·零码面）。分支 `line/ag-b-classify`·工作树 `meetwise-agb`（`git worktree add ../meetwise-agb -b line/ag-b-classify ce021b22` 本起草席已立·建前 worktree list + branch 双查实测不存在·HEAD 落 `ce021b22` 亲证）。
@@ -41,6 +41,14 @@
 4. **AG-14 锚**（AC-F15/issues-final `:207`）：`invoke.ts:339-347`（validUsage 回退为上限）→ 现 **:335-344**（回退 :336）；`model-client.ts:452`（?? 0）→ 现 **:669**；`rag-cost-governance.ts:127` → 现 **:127 不变**（:44 默认 16_000 伴锚）。
 5. **AC-F20 伴锚**：「usage-calibration-reconciler.ts:103-140」→ 现实径 `packages/ai-runtime/src/usage-calibration-reconciler.ts`·`reconcileUsageCalibration` 现 :103 起（吻合）。
 6. **配对函数锚**：0119 `ai_usage_calibration_pairs_scoped` 现 **:438-475**（配对 SELECT :467-475）——蓝本未载行号·本卷首钉。
+
+### 0.3 EXEC 勘误注（2026-10-12·并线重 pin+裁决落值·施工后落）
+
+1. **并线重 pin**：开工前 `git merge feat/mysql-schema-skeleton` @`4c178a4c`（merge commit `13cf7c33`·零冲突 EXIT=0）——三 commit 全 docs（billing-verify 计费蓝本定谳+landing-sync 两批），**排除 *.md/ai-docs 后码面 diff 为空**·§0.1 blob 锚表 14 行 `git ls-tree` 新 HEAD 亲算**全部逐位恒等零漂移**（含 issues-final `dac7f58c`/EXPERT-REVIEWS `5d446552` 蓝本件）——§0/§1/§2 锚行号零变，无需改锚。
+2. **迁移号勘误**：§1-修法⑥「新号按现 tip 实测顺延」实测 tip 次空号=0169 后即 **0170**，但协调方已登记 **0170=刀 C 卷计划+0170-0173=计费蓝本**（4c178a4c 计费定谳明示「0152-155 全占·勿再添重号」）——按协调方编号交接指示本刀用 **0174** 避撞（收据登记）。
+3. **§2-② stress 门值漂移如实登记**：`prove:stress` 现值为 **14 PASS/7 FAIL·EXIT=1**，A/B 归因（`git stash -u` 施工面全摘后基线重跑）证 **同 7 FAIL 集在基线逐臂复现=主线既有红·非本刀引入**；施工前后臂集 diff=空（`04-stress-armdiff-vs-baseline.diff`·EXIT=0 机检恒等）=本刀零回归。7 FAIL 全在自适应图/大答案队列/report 舱壁域（刀 C/D/E 领地）·本刀不越界修复·如实上报。REQUEST 起草时「prove:stress EXIT=0 原值」申报与现 tip 现值不符——登记为卷申报勘误，非停止条件（专家边界与现码零冲突）。
+4. **cost1 反向登记（协调方增补 relay·2026-10-12）**：同基线起草的成本轨①卷 `line/ag-cost1-bleed-observe` @`31df8aa1` 与本刀**共租 model-client.ts 同行邻区**（其申报 :623 usage 类型/:668-670 usage 构建 vs 本刀 :623/:662-687 缝）——其卷已双向登记「先落者为准·后到者 §0 重 pin」；本刀先行落码（usage 构建/分类缝改造含 :668-670 区），cost1 后到重 pin 时以本刀现码为准；本条为对 cost1 的反向登记（零码面改动）。
+5. **§8 裁决项行使结果**：见 §8 行使记录（①http 脚本 provider+隔离 PG·②新短码列 usage_source·③0174 镜像迁移）+失败码登记（`deterministic_output_invalid`/`deterministic_output_truncated` 沿既有码族·§8+迁移头注+收据三处登记）。
 
 ## §1 红事实（机制链现 tip 重 pin·全 @`ce021b22` 实测·源=AC-F14/AI-01（部分）→AG-06+AC-F15→AG-14）
 
@@ -119,6 +127,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **待双审/EXEC 裁决项**：①proof 注入点（推荐=本地 http 脚本 provider 形·沿 context-stress :35/:146/:148 既有缝·真实 PG 投影 vs scripted client 直调无 PG 形备选）；②打标列形状（推荐=`ai_model_invocation` 新短码列（usage_source 类）沿 0119 P1 estimate 列先例 vs 复用既有列不加列——牵动新迁移有无与⑥谓词形状）；③配对过滤迁移形状（推荐=新迁移 `CREATE OR REPLACE FUNCTION ai_usage_calibration_pairs_scoped` 逐字镜像 0119 :438-475 仅 WHERE 增打标剔除谓词·沿 AG-11 三件套「历史迁移零字节改+新迁移镜像」铁律）。
 
+**§8 裁决项行使记录（EXEC·2026-10-12·三裁决项全按卷推荐形行使·附失败码登记）**：
+
+- **①proof 注入点=推荐形行使**：本地 http 脚本 provider（`http.createServer` 模式开关服务器·沿 context-stress :35/:146/:148 既有缝 `NODE_ENV=test`+`MODEL_TEST_TRANSPORT_OVERRIDES=1`）+真实隔离 PG 低权 principal 投影（model-op 系形）。住地=`apps/worker/test/ag-b-classify.proof.ts`·门名=worker `prove:ag-b-classify`（root `ag-b-classify:prove` 隔离包装·run-e2e-isolated `ag-b-classify:prove:raw` 三名注册）。**24 臂 EXIT=0**（§2-① 三臂+网络反向臂+归并臂+对照臂+客户端级六臂+配对三臂全绿）。
+- **②打标列形状=推荐形行使**：`ai_model_invocation` 新短码列 **`usage_source`**（text·CHECK `IN ('usage_missing')`·NULL=供应商真实 usage·沿 0119 P1 estimate 列先例但**不进 identity-immutable**——terminalize 时写·与 input_tokens 同位）；TS 镜像=`ModelUsage.usageSource?: 'usage_missing'`（invoke.ts）经 `completeModelInvocation` 第 10 参 `ai_model_terminalize_scoped($10::text)` 落库。
+- **③迁移形状=推荐形行使**：新迁移 **`0174_ag06_settled_failed_usage_source.sql`**=①usage_source 列+CHECK ②`ai_model_terminalize_scoped` DROP+CREATE 逐字镜像 0088 :623-691 仅增 `p_usage_source text DEFAULT NULL`（既有 9 参调用形经 DEFAULT 继续解析·REVOKE/GRANT 镜像 0088 :741/:745）③`ai_usage_calibration_pairs_scoped` CREATE OR REPLACE 逐字镜像 0119 :438-475 仅 WHERE 增 `AND i.usage_source IS DISTINCT FROM 'usage_missing'`。历史迁移（0119/0088/0120/0130 等）零字节改（`git diff` 证）。隔离容器实跑 `migrations: applied=172` 含 0174。**迁移号=0174 非实测次空 0170**（避撞登记见 §0.3-2）。
+- **失败码登记（协调方勘误裁示：沿用既有码族风格起新码+显式登记·Ban 发明语义外码名）**：**`deterministic_output_invalid`**（HTTP 200+usage 在手·空 content 或坏 JSON=输出确定性不可用）与 **`deterministic_output_truncated`**（HTTP 200+usage 在手·`finish_reason='length'` 截断）——均 ASCII 合 0088 `^[A-Za-z0-9._:-]{1,120}$`·族形沿 `schema_validation_failed`/`provider_usage_invalid` 既有码族·三处登记=本条+0174 迁移头注+收据 00-exec-receipt。
+
 ---
 
 *AG-B-CLASSIFY REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`ce021b22`（主线 tip·git log -1 实测）· 分支 `line/ag-b-classify` · 工作树 `meetwise-agb`（git worktree add 本起草席立·建前 worktree list 11 树+branch 双查不存在）· 立项出处三层蓝本=issues-final AG-06 :114-123/AG-14 :202-211（+AG-01 :59-68/AG-12 :180-189 链引用）+EXPERT-REVIEWS §四 :27-37（统一结算状态机=修法权威）+§七 :61（刀 B 计划·先于一切重试刀）+§六 :51（EG-B1 后继）+review-log AC-F14 :80/AC-F15 :81 · 防重双对表过（worktree 无 agb 树·branch 零同名·harness rg ag-b-classify|AG-06 零命中）· §0 blob 锚表 15 行 ls-tree 亲算+§0.2 漂移六条如实登记（issues-final blob 3fe698fe→dac7f58c 等·结论零变·专家 :471-473→:688-690 逐位吻合）· 红事实=AG-06 机制链七步现 tip 重 pin（JSON.parse :688/:690 try 内→catch :740 兜底丢 usage→unknown 臂 :818-832 预留冻结 :820+breaker failure :826→0120 :52-58 阈值 5→:640 failModelInvocationClaim→AG-01 全站熔断）+AG-14 三口径分裂（validUsage :336 上限/`?? 0` :669/rag 16000 :44·配对污染 0119 :467-475）+既有同形先例（schema_validation_failed 路径 :866-905+:927-929 settle 真实 token+breaker success——修法本质=路由接线非新机制）· 修法=严格专家四态六条（①known_executed ②三态分类+确定性失败码·管道改造点=dispatchOnce 返回与 parse 之间 ③finish_reason 补读 ④usage_missing 按上限打标绝不 0·缺失归并 provider_usage_invalid ⑤invoke 路由沿 settled-failed 先例 ⑥配对剔除新迁移镜像铁律）· 断言候选四条（三臂×分类新 proof+网络层反向臂/三既有门回归原值/known_not_executed+unknown 零回归/typecheck）· est live=0 · pins 十一值照抄 · markers=0（亲跑）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+*append 2026-10-12（EXEC 随翻·保史不删上文）：`executed:awaiting_post_prove_dual`——pre-exec 双审 BOTH PASS+协调方常设 loop 授权·并线重 pin @`4c178a4c`→merge `13cf7c33` 零冲突·14 锚 blob 恒等（§0.3-1）·修法六条全落（model-client :622/:659-737 缝改造+invoke :48-88 类型/:355-366 validUsage 折叠/:844-907 known_executed 臂/:982 打标透传+model-invocation.ts $10 参+0174 新迁移）·断言门全表见 receipts/ag-b-classify/00-exec-receipt.md（新 proof 24 臂 EXIT=0·reconcile 17/op00 17 EXIT=0·stress 基线同红 A/B 证零回归·turbo typecheck 3/3+root EXIT=0·markers 五门零命中）·三裁决项按卷推荐形行使+失败码两枚登记（§8 行使记录）·⛔push 保持·待 post-prove 双审两外席·alone≠dual 仍立*
