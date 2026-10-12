@@ -20,21 +20,24 @@ export async function enqueueReport(c: Client, owner: string, interviewId: strin
 }
 
 /** worker 领取一个可跑的报告（queued,或租约过期的 running——崩溃兜底,但 attempts 未超上限才再领,否则留给 sweeper 隔离）。
- *  CAS→running + 租约 + attempts++,FOR UPDATE SKIP LOCKED 防并发双跑、不抢活租约。**model 必须在本事务提交后、事务外跑**(审计 S1:勿持连接/锁过模型调用)。 */
+ *  CAS→running + 租约 + attempts++,FOR UPDATE SKIP LOCKED 防并发双跑、不抢活租约。**model 必须在本事务提交后、事务外跑**(审计 S1:勿持连接/锁过模型调用)。
+ *  AG-03/EG-A1（刀 E）：同一条 CAS UPDATE 里派发序自增——**单调独立派发序号**,与
+ *  job 层 attempts 预算解耦（manual retry 重置 attempts 不重置本列）。claim 携出 dispatchSeq 供键构造
+ *  `${interviewId}:report:a${dispatchSeq}`（每轮派发新键新 revision·终态重放不再吞掉重试）。 */
 export async function claimReport(
   c: Client, owner: string, leaseOwner: string,
   leaseSeconds: number = DEFAULT_LEASE_SECONDS, maxAttempts: number = MAX_REPORT_ATTEMPTS,
-): Promise<{ reportId: string; interviewId: string; attempts: number } | null> {
+): Promise<{ reportId: string; interviewId: string; attempts: number; dispatchSeq: number } | null> {
   const r = await c.query(
-    `UPDATE ai_report SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, version=version+1
+    `UPDATE ai_report SET status='running', lease_owner=$2, lease_expires_at=now()+($3||' seconds')::interval, attempts=attempts+1, dispatch_seq=dispatch_seq+1, version=version+1
        WHERE id = (
          SELECT id FROM ai_report
           WHERE owner_user_id=$1
             AND (status='queued' OR (status='running' AND lease_expires_at < now() AND attempts < $4))
           ORDER BY created_at ASC FOR UPDATE SKIP LOCKED LIMIT 1)
-     RETURNING id, interview_id, attempts`, [owner, leaseOwner, String(leaseSeconds), maxAttempts]);
+     RETURNING id, interview_id, attempts, dispatch_seq`, [owner, leaseOwner, String(leaseSeconds), maxAttempts]);
   if (r.rowCount === 0) return null;
-  return { reportId: r.rows[0].id, interviewId: r.rows[0].interview_id, attempts: r.rows[0].attempts };
+  return { reportId: r.rows[0].id, interviewId: r.rows[0].interview_id, attempts: r.rows[0].attempts, dispatchSeq: r.rows[0].dispatch_seq };
 }
 
 /** 报告成功：running→ready + content（仅持租约者,CAS）。 */
@@ -57,7 +60,9 @@ export async function markReportFailed(c: Client, owner: string, reportId: strin
 }
 
 /** 手动重排单个失败或隔离报告（failed|quarantined→queued）。#229 D2 已决:重排时重置 attempts/next_attempt_at——
- *  每次手动重试给一轮**全新的自动重试预算**(重排后 sweep 再跑满 3 轮自动重试)。频控在 API 服务层(防成本 DoS)。批量/自动走 sweepReports。 */
+ *  每次手动重试给一轮**全新的自动重试预算**(重排后 sweep 再跑满 3 轮自动重试)。频控在 API 服务层(防成本 DoS)。批量/自动走 sweepReports。
+ *  EG-A1 铁律（刀 E）：本函数**绝不触 dispatch_seq**——派发序与 job 层预算解耦,任何路径不复位
+ *  （含未来批量/运营出口）。manual retry 语义=「给一轮新预算·换一把新钥匙」（键空间单调不重访）。 */
 export async function requeueFailedReport(c: Client, owner: string, reportId: string): Promise<boolean> {
   const r = await c.query(
     "UPDATE ai_report SET status='queued', lease_owner=NULL, version=version+1, attempts=0, next_attempt_at=NULL WHERE id=$1 AND owner_user_id=$2 AND status IN ('failed','quarantined')",
@@ -91,4 +96,32 @@ export async function getReport(c: Client, owner: string, interviewId: string): 
   const r = await c.query('SELECT status, content, attempts FROM ai_report WHERE owner_user_id=$1 AND interview_id=$2', [owner, interviewId]);
   if (r.rowCount === 0) return null;
   return { status: r.rows[0].status, content: r.rows[0].content, attempts: r.rows[0].attempts };
+}
+
+/**
+ * AG-10 守卫（刀 E 同批硬约束·裁决项②(a) 模板形）：C 端 unbound 且零可评分证据（unscored=0∧eligible=0）
+ * 场的**确定性「证据不足」报告**——不再 enqueueReport（doomed 类源头删除：eligible=0 → scores 空集 →
+ * aggregateScores 在 invoke 之前必死,重试同样死）。改由收尾事务**直写 ready 行**,零模型调用零虚构,
+ * content 如实声明「未形成可评分证据·无报告可生成」。
+ *
+ * 形制沿 enqueue 的 `(owner_user_id, interview_id)` 唯一行语义改直写 ready 形：ON CONFLICT DO NOTHING
+ * =收尾重放（at-least-once）幂等;返回 created 供调用方 gating report_ready 事件（CAS-analogous,
+ * 沿 drainReportsOnce tx2「CAS 成功才发事件」先例）。行永不入 claim/sweep 机器（ready 终态·
+ * dispatch_seq 恒 0·attempts 恒 0——不占任何重试预算）。
+ */
+export const NO_EVIDENCE_REPORT_CONTENT = {
+  overall: 0,
+  sections: [{
+    title: '报告暂不可生成',
+    body: '本场面试的作答均未形成可评分证据（0 个有效评分），因此没有可生成的面试评估报告。'
+      + '本条为系统写入的确定性说明（非模型生成），不包含任何评分或评价；面试本身已完成。',
+  }],
+} as const;
+
+export async function writeNoEvidenceReadyReport(c: Client, owner: string, interviewId: string): Promise<boolean> {
+  const ins = await c.query(
+    `INSERT INTO ai_report(owner_user_id, interview_id, status, content) VALUES ($1,$2,'ready',$3::jsonb)
+     ON CONFLICT (owner_user_id, interview_id) DO NOTHING RETURNING id`,
+    [owner, interviewId, JSON.stringify(NO_EVIDENCE_REPORT_CONTENT)]);
+  return ins.rowCount === 1;
 }

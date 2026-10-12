@@ -74,6 +74,9 @@ export async function boot(): Promise<Harness> {
   // 负路径需要覆盖当前生产模式中的模型调用持久状态和 OCR 恢复工件，不能只跑旧基础 SQL。
   for (const f of ['0037_ai_model_invocation_durable_claim.sql', '0038_resume_ocr_artifact.sql', '0039_resume_derivative_erasure.sql', '0046_application_assessment_recovery.sql'])
     await db.pool.query(sql(f, 'migrations'));
+  // AG 修复轨刀 E（AG-03/EG-A1）：ai_report.dispatch_seq 单调派发序列——claimReport 生产 SQL 引用该列，
+  // 负测夹具须随迁移链补列（幂等 ADD COLUMN IF NOT EXISTS·sql/04_report 镜像无此列）。
+  await db.pool.query(sql('0178_ag_e_report_dispatch_seq.sql', 'migrations'));
   await db.pool.query(sql('23_api_gateway.sql'));
   // AUTHZ-HARDEN 5A-1:负测环境与生产归一/会话面同构——0167(存量归一+lower(email) 唯一索引·幂等,种子全
   // 小写零冲突=索引恒建)/0168(网关函数换体·与 23 auth 族区逐字节同文,此处重放即活体一致性佐证)/

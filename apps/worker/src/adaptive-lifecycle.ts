@@ -4,6 +4,7 @@
  */
 import {
   asPrincipal, appendEvent, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
+  writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
   assertInterviewGraphFence, publishRubricAndIssueContract,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
@@ -472,8 +473,14 @@ async function submitAdaptiveAnswerImpl(
         // ordinary report bulkhead instead of creating a terminal-less
         // scoreless branch; only a bound B-side session receives the special
         // retryable application terminal.
+        // AG-10 守卫（刀 E 同批硬约束·裁决项②(a) 模板形）：unbound 且 eligible=0 **不再 enqueueReport**
+        // ——doomed 类源头删除（eligible=0 → scores 空集 → aggregateScores 在 invoke 之前必死,重试同样死;
+        // 重试真实化后 doomed report 会每预算轮真烧 3 次,守卫必须与重试开关同批）。改产确定性
+        // 「证据不足」模板报告（零模型调用零虚构·收尾同事务直写 ready 行）+ report_ready 事件照常
+        // （前端无新态;created gating=沿 drainReportsOnce tx2「CAS 成功才发事件」先例的重放安全形）。
         if (mark === 'unbound') {
-          await enqueueReport(c, d.owner, d.interviewId);
+          const created = await writeNoEvidenceReadyReport(c, d.owner, d.interviewId);
+          if (created) await appendEvent(c, d.owner, d.interviewId, 'report_ready', { overall: NO_EVIDENCE_REPORT_CONTENT.overall });
         } else if (mark !== 'stale') {
           await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', { reason: 'no_eligible_scored_answer' }, 'assessment_unavailable:no_eligible_scored_answer');
         }
