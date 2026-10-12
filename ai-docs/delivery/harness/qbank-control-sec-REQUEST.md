@@ -1,6 +1,6 @@
 # QBANK-CONTROL-SEC REQUEST（qbank 控制面鉴权收口小刀 · AG-41 全部+AG-43 调度半+AG-42 五函数+P5 缺号项 · SQL 主体·新迁移 0176+）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs-only 起草·落卷即停·零码动·恰 1 .md·本卷即改动集全部）。
+**Status**: **`draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`**（EXEC 施工随翻 append 保史：并线 11a97342（feat/mysql-schema-skeleton@378b96e8 零冲突）+修法四件全落+断言门全表复跑·2026-10-12·§0-EXEC 勘误注与 §8-EXEC 五裁决行使记录见卷尾·⛔push 待 post-prove 双审两外席）。
 
 **席位**：qbank 控制面鉴权收口小刀起草席（AG-39~43 验证席定谳后·协调方刀映射承接·北星 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `4fabecc3`（主线 tip·`git log -1` 实测 2026-10-12 19:09:12 +0800·INDEX 第十一节验证卷）。分支 `line/qbank-control-sec`·工作树 `meetwise-qsec`（仓根同级 worktree·`git worktree add ../meetwise-qsec -b line/qbank-control-sec` 本起草席已立·建前 worktree list + branch 双查实测不存在）。
@@ -130,4 +130,56 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
+## §9 EXEC 落卷随翻（2026-10-12·本节为 EXEC 席施工后 append·不回改 §0-§8 原文）
+
+### §9.0 并线重 pin 勘误注
+
+并线 `git merge feat/mysql-schema-skeleton` → merge commit `11a97342`（主线 tip `378b96e8`·零冲突·预期成立）。§0.1 21 件 blob 锚逐件对账：**恰 1 件漂**——`apps/worker/src/main.ts` `00ba4084→8ed81327`（主线 cost1 刀 6f2ed876 的 USAGE_CALIBRATION ENABLED 双旋钮接线所致·即派单所称「调度锚两件漂」源）；其余 20 件（迁移十件+principal/curation/retrieval/dbhy1/worker-generation/两 proof/三蓝本）blob 逐字节恒等。main.ts 六处子锚重 pin（现树亲测）：metrics gauge 面 `:236-249→:239-253`·构建流 `:271-310→:278-333`（log 形 `:292`/`:310` 行号不变）·model-invocation 接线 `:708-709→:707`·usage-calibration 接线 `:771-772→:713-716`（cost1 旋钮条件起循环=「ENABLED 旋钮先例」本体）·drainStops `:778→:787`（本刀增至 17 项）。基线漂移如实改锚·结论零变。
+
+### §9.1 施工落点（新迁移 0176+修法四件）
+
+`packages/db/migrations/0176_qbank_control_plane_authz_closeout.sql`（恰一新迁移·号避撞 0174 已落/0175 空位亲测）：①AG-41 释放函数 REVOKE PUBLIC+app_role/GRANT executor（0066:162-165 形）+守卫 1 替换为 `tf_is_generation_control_definer()` 白名单断言（裁决项⑥）+守卫 4 retired-only 维持（裁决项⑤豁免登记在头注）；②AG-42 五函数+断言助手（下文 §9.2 语言面登记）；③调度 Ban 解除呈报（裁决项③=协调方派单明示解除·0146 原文零改）+worker 常驻 reconciler `apps/worker/src/qbank-release-sweep.ts`（QBANK_RELEASE_SWEEP_ENABLED 缺省 false+INTERVAL_MS 缺省按天·boundedBoolean/boundedInteger 沿 usage-calibration 同族·非法 env 启动失败）+main.ts 接线（import/条件起循环沿 privacyErasureLoop 可选先例/drainStops 17 项/ready 行打点）+tick 内 released/pending 结构化打点（:292/:310 形）；④P5 九支遗留 GUC 策略 DROP（真空收口——四表 ENABLE+FORCE RLS+executor 控制策略在位·re-GRANT 撞默认拒绝·qbank_is_curator 留置）。TS 码面突破 SQL-only 主体=如实呈报（§2-3 预登记路径·调度形 A 落值）。
+
+### §9.2 语言面勘误（EXEC 实证反转·如实登记）
+
+修法②初版按 §8-①「SQL 函数体 plpgsql 化」落（RAISE 所需）——隔离库真迁移链实测撞两硬事实：**（a）plpgsql 化丢 SQL 函数内联性**，rag03-hnsw-completeness.proof 的 substituted-body EXPLAIN 机制与 HNSW 索引路径被破坏（stash 基线对照：基线 EXIT=0/plpgsql 版 EXIT=1·HNSW_USED=false 亲证）；**（b）`AS input(ref_id, ord)` 列别名表裸列名撞 RETURNS TABLE 出参变量（42702）**。反转落值：五函数保持 LANGUAGE sql（0144/0106 原样·WHERE 仅删双空 OR-臂留平面化 equality 臂），双空硬闸由新 INVOKER 助手 `qbank_assert_retrieval_scope()` 承载（plpgsql STABLE·REVOKE PUBLIC+GRANT qbank_control_definer——受者=definer 上下文两可能身份之一·provision 后 manifest 转属主实测 lesson·0144 DO 块保角色在链），WHERE 首位非相关标量子查询=InitPlan 拍前恒求值（question_evidence 的门在外层 WHERE——CTE 内门在外层空集时不求值·B5 no_raise 实证后上提）。**裁决项①形选（形 A 报错）与报错面（message/ERRCODE）零变**：ERRCODE='check_violation'（23514·0124 rag_binding_invalid 同族+0146 守卫族同码）——**不占 42501** 为 handoff-closure.proof「非 42501=业务错误」ACL 判据保留信号空间（该门 16/16 绿=码选验证）。§8-① 呈报的「plpgsql 化」实现路径勘误为「LANGUAGE sql+InitPlan 断言助手」·硬闸语义零变·标注可调。
+
+### §9.3 五裁决项行使记录（全按卷推荐形·标注可调）
+
+1. **AG-42 形选=形 A 双空报错**（§8-① 推荐）：五函数双空→`qbank_retrieval_scope_missing`·23514；半边（仅设其一）0 行语义不变（rag04 :341/:346 臂原值绿）。可调注：§8-① 文面「任一为空即 RAISE」按派单「双空放行分支→报错」+rag04 半边臂在场收窄为「双空才报错」·半边保持 0 行。
+2. **调度形=形 A worker 常驻 reconciler**（§8-② 推荐）：runDrainLoop 拍·逐代 asQbankControlExecutor·整拍不抛·ENABLED 缺省 false（0146:9 设计内 Ban 的保守延续+成本①旋钮先例同形）。TS 码面突破 SQL-only 如实呈报（§2-3 预登记）。
+3. **解除 0146:9 Ban=协调方本刀派单明示解除**（裁决项③落值·dispatch 原文「显式解除 0146:9 Ban」）·解除记录即本条·0146 原文零字节。
+4. **P5=清理形**（§8-④ 推荐）：九支 DROP+真空收口。如实越界注记：0029:119/:121 qbank_vector_generation 的 p_qbank_generation_read（USING true）/:121 write（GUC `__system_qbank__`）两支不在卷枚举九支内（§1.4 枚举完备+与 0146 释放函数 UPDATE 的 RLS 语义纠缠）——本卷不动·后继刀另裁。
+5. **failed 代 epoch 守卫=豁免+登记**（§8-⑤ 推荐·派单条件「按卷裁决推荐形」落此）：守卫 4 维持 retired-only·豁免理由登记 0176 头注（failed 无重激活路径·非回滚资产·调度半须可释）·dbhy1 P5-12 原值绿+新 proof A7 executor 路径 failed 可释臂。派单 2a 文面「守卫补齐」与卷 §8-⑤ 推荐形（豁免）以「按卷裁决推荐形」条件从卷落值·标注可调。
+6. **守卫 1 替代子形=definer 断言形**（派单 2a 明示「沿 0070:20-38/0144:674-701 白名单族形」）：体内 `IF NOT public.tf_is_generation_control_definer()`。生产可操作性如实登记：释放函数不在 manifest（principal.ts 本卷零字节 Ban）→provision 后属主=迁移登录非白名单成员→守卫 1 显式拒绝（fail-closed 提前于 DETACH·比 GUC 门少一个伪造面）·manifest 纳管=后继刀（直接 ALTER 属主撞 unexpected_definer_function_count=0 门·principal.ts:2059 实文）。
+
+### §9.4 断言门 EXIT 全表（隔离库真迁移链·est live=0 全程）
+
+| 门 | EXIT | 臂 |
+|---|---|---|
+| 新 proof `qbank-control-sec:prove`（runner 三名注册·SOURCE_FILES manifest） | 0 | 26/26（A1-A7 AG-41·B1-B9 AG-42·C1-C3 P5） |
+| dbhy1:prove | 0 | 28/28（P5-6 随锚+P5-11 换 executor-only 臂+P4⑤ 九策略豁免登记+P3 残面三件主线既存登记） |
+| rag04-track-local:prove | 0 | 33（② 首臂翻转=硬闸演示·半边两臂原值） |
+| rag-generation:prove（worker qbank-generation） | 0 | 40（:527-551 报错臂替换+scoped 边界臂） |
+| qbank-handoff-closure:prove | 0 | 16/16（零文件改——check_violation 码选保 ACL 判据） |
+| qbank-integrity-upgrade:prove | 1 | **基线同红**（stash 对照同错同位：mig-runner 刀 30084d98 schema_migrations_steps × 低权迁移模拟·非本刀面） |
+| qbank-retrieval-eval:prove（eval-pg） | 0 | 9/9（runMode 逐 holdout 锚金标 scope·指标 leaf 域机械复算） |
+| rag03-route / filter-locus / exactk-observe | 0/0/0 | 43/12/7（零改门） |
+| rag03-hnsw-completeness:prove | 0 | 16/16（HNSW_USED=true·语言面反转后回绿） |
+| qbank-control-role:prove | 0 | 12 |
+| db-trigfam:prove | 1 | **0144 时代差分骨架结构性红**（StageB 钉「恰只应用 0144」·0145 起必红·非本刀面；本刀触的 P4 ann 空语料+tf_ 直调臂 PASS） |
+| migrate:prove | 0 | 117（全链含 0176·0174 双面钉臂原值） |
+| turbo typecheck --force | 0 | 3/3（0 cached·§2-4 TS 调度触点面） |
+| docs:check | 0 | 80 文件 |
+
+迁移纪律：历史 0001-0169+0174 对 merge-base `git diff` 零字节（恰 0176 一新文件·0174 系并线带入）·十迁移 blob 锚恒等·`packages/db/sql/` 影子面零 diff·0176 避撞实测（ls 无 0175）。工作树门断言改动清单（§2-2 预登记面+超出预登记的如实补登）：dbhy1（evi/P5-11/P4⑤ 豁免/P3 残面）+worker proof（:527-551 报错臂+scoped 臂+search/cached/六 evidence 调用设 scope+**:8 import 修一行**——5c449d46 移出 fakeEmbedder 后镜像未随改·加载即炸·基线即不可运行·按 #74 test-support 同形复活本门·非语义改动）+rag04 ② 首臂翻转（§2-2 未预登记·如实补登）+eval-pg runMode 逐查询金标 scope（§2-2 未预登记·如实补登）+integrity-upgrade 八处设 scope（同上补登）+db-trigfam ann 两臂设 scope+superTry 加位可选 scopeGucs 形参（同上补登）+qbank-generation-retrieval/main.ts/interview-consumer 生产链零字节（消费面 scope 纪律现状维持·main.ts:599 pre-0031 死支如实登记=全迁移库不可达+外层 catch 降级）。
+
+### §9.5 markers=0 自检
+
+本刀改动集（0176 迁移+qbank-release-sweep.ts+main.ts 接线+七个 proof 随锚+runner 三名注册+双 package.json 脚本+本卷 §9 append）五类标记词 grep 零命中（收据随 commit 前自检留 prove）·est live=0（全 prove 隔离容器·零模型外呼零 secrets）·pins 十一值照抄零翻转·⛔push。
+
+---
+
 *QBANK-CONTROL-SEC REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`4fabecc3`（git log -1 实测 2026-10-12 19:09:12 +0800·INDEX 第十一节验证卷）· 分支 `line/qbank-control-sec` · 工作树 `meetwise-qsec`（git worktree add 本起草席立·建前 worktree list+branch 双查不存在）· 立项三层蓝本=issues-final AG-41/42/43（:500-531）+qbank-acl 全文（P1/P4/P5/P6/P7+§3 演进史+§4 发布退役）+LANDING-INDEX §9:69 P5 缺号项+§11:81-86 刀映射定谳① · 防重双对表过（14 树无 qsec·branch EXIT=1·harness 零同名卷）· 红事实=AG-41 五环机制链（0146:61-62 GRANT app_role+:22-25 GUC 断言+:17 DEFINER+:55-56 DETACH/DROP vs 0066:90-93/0067:36-38 边界条款+principal.ts:985-986 doctrine+:991-998 自设通道·failed 无 epoch 守卫 :43·proof 即攻击演示 :385）+AG-42 五函数双空支五处（0106:75-81/:121-127/:159-165/:196-202/:247-253+ann 现行权威体 0144:640-647 漂移登记）+AG-43 调度 Ban 原文（0146:9）+全仓零调用方（rg 恰 dbhy1:385/:424）+P5 九支策略挂表（0013:63-77/0029:45-47/0031:21-25+:40-44 零后继 DROP 实证）· 修法四件（①REVOKE+executor-only 沿 0066:162-165+definer 断言②五函数双空收口（形选）③受控调度+打点（Ban 显式解除呈报+形选）④P5 清理或豁免）· 新迁移 0176+（billing 0170-0173/刀B 0174/刀C 0175 裁定链·171 .sql 亲数）· 断言候选四条（新 proof 五臂族+dbhy1 回归 11 臂原值/2 臂随锚+迁移纪律+typecheck 不适用如实登记）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual · **勘误 rev1（2026-10-11·预执行双审 BOTH PASS 后勘误席 E1-E3 erratum 裁定落卷）**：E1 P5 计数八→九支·全卷四节五处（§1.4 两处+§1-修法④+§8-裁决项④+尾注·证据=0013:63/:69/:73 三支+0029:45/:48 两支+0031:21/:23/:41/:43 四支·§1.4 枚举九名完备·0029:52/:54 USING(false) 两支卷自身已排除）·E2 dbhy1 四臂锚随迁（P5-2 :397→:405·P5-6 :404→:416·P5-11 :419-423→:422-426·P5-12 :425-427→:429-432·§2-2 同引同步）·E3 零星锚校准七项（qbank-curation coalesce :54→:55·usage-calibration 引文 :15-17→:5-6·0066 doctrine :89-93→:90-93·0106 头注 :28-30→:27-28·principal 关键句 :984-986→:985-986·0067 REVOKE 九表→十表·0146 全 63 行→62 行）——纯锚/计数勘误·结论零变·STOP 与 §8-③ 冻结维持·Status 维持 `draft:awaiting_pre_exec_dual`·markers=0*
+
+*QBANK-CONTROL-SEC EXEC 版记 · 2026-10-12 · rev2（EXEC 施工随翻·append 保史）· 并线 `11a97342`=merge feat/mysql-schema-skeleton@`378b96e8` 零冲突·21 锚 20 恒等+main.ts 1 漂（六子锚+两调度锚重 pin §9.0）· 施工落点=0176 迁移（AG-41 REVOKE/GRANT+白名单断言+failed 豁免登记+AG-42 五函数+INVOKER 断言助手+P5 九支真空收口）+qbank-release-sweep.ts（ENABLED 缺省 false 旋钮·调度形 A）+main.ts 接线（drainStops 17 项）· 语言面勘误 §9.2（plpgsql→LANGUAGE sql+InitPlan 助手·HNSW stash 对照实证反转·硬闸语义零变）· 五裁决全按卷推荐形行使+两处文面收窄如实标注可调（§9.3）· 门全表 §9.4（新 proof 26/26+dbhy1 28/28+rag04 33+worker 40+handoff 16/16+eval-pg 9/9+rag03 四门+hnsn 16/16+control-role 12+migrate 117 全 EXIT=0·integrity-upgrade/db-trigfam 两基线同红如实登记非本刀面）· 迁移纪律全绿（历史零字节·十 blob 恒等·影子面零 diff·0176 避撞）· typecheck 3/3·docs:check 0·markers=0·est live=0·pins 十一值零翻·⛔push · Status=`executed:awaiting_post_prove_dual` · 待 post-prove 双审两外席*

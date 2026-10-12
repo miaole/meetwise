@@ -5,7 +5,8 @@
  */
 import { createHash, randomUUID } from 'node:crypto';
 import { assertIsolatedTestTarget, createPool, asPrincipal, asQbankControlExecutor, cachedQbankSearch, hybridQbankSearch, upsertVectorChunk, qbankEvidenceForRefs, qbankQuestionEvidenceForRefs, type QbankRetrievalCacheAddress, type QbankRetrievalCacheBackend, type QbankRetrievalCacheLock, type QbankRetrievalHit } from '@meetwise/db';
-import { fakeEmbedder } from '@meetwise/ai-runtime';
+// 5c449d46 \u5c06 fakeEmbedder \u516c\u5171\u5bfc\u51fa\u79fb\u5165 test-support\uff08#74\uff09\u2014\u2014\u672c\u955c\u50cf import \u672a\u968f\u6539\u81f3\u52a0\u8f7d\u5373\u70b8\uff08qbank-control-sec \u5200\u968f\u951a\u590d\u6d3b\u672c\u95e8\u65f6\u4fee\u5f15\u5165\u884c\u00b7\u975e\u8bed\u4e49\u6539\u52a8\uff09\u3002
+import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';
 import { ingestQbank, ingestQuestionBankArtifacts, QBANK_OWNER, qbankMetadataHash, type QbankItem, type QbankQuestionArtifact } from '@meetwise/db';
 import { ensureActiveQbankGeneration } from '../src/qbank-generation.ts';
 import { reviewSource } from '@meetwise/db';
@@ -63,7 +64,12 @@ const cache = new TestCache();
 async function search(q: string, recipeId: string) {
   const [v] = await embedder.embed([q]);
   if (!v) throw new Error('test_embedder_returned_no_query_vector');
-  return asPrincipal(pool, OWNER, (c) => hybridQbankSearch(c, { query: q, embedding: v, k: 5, expectedRecipeId: recipeId }));
+  // AG-42 形 A（0176）随锚：双空 GUC 已改为 qbank_retrieval_scope_missing 报错——夹具经 scope 显式走
+  // track-local 路径（METADATA=全量夹具语料的 taxonomy/scope·原双空无过滤语义已删除）。
+  return asPrincipal(pool, OWNER, (c) => hybridQbankSearch(c, {
+    query: q, embedding: v, k: 5, expectedRecipeId: recipeId,
+    scope: { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId },
+  }));
 }
 
 async function main() {
@@ -424,7 +430,7 @@ async function main() {
   const hits1 = await search('令牌桶 限流', g1!.recipe.id);
   A('default qbank retrieval policy is dense and returns an active approved hit', hits1.some((x) => x.refId === 'qgen:rate')
     && hits1.every((x) => x.channels.length === 1 && x.channels[0] === 'dense'));
-  const evidence1 = await asPrincipal(pool, OWNER, (c) => qbankEvidenceForRefs(c, g1!.recipe.id, hits1.map((x) => x.refId), 600));
+  const evidence1 = await asPrincipal(pool, OWNER, (c) => qbankEvidenceForRefs(c, g1!.recipe.id, hits1.map((x) => x.refId), 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('prompt evidence is bounded source text rechecked against active approved generation, not ref_id-only grounding',
     evidence1.some((x) => x.refId === 'qgen:rate' && x.excerpt.includes('令牌桶')) && evidence1.every((x) => x.excerpt.length <= 600));
   const originalFact = (await pool.query(
@@ -474,7 +480,7 @@ async function main() {
   const factAfterMutation = (await pool.query(
     'SELECT source_id, content_hash, content FROM qbank_chunk WHERE ref_id=$1', [items[0]!.refId],
   )).rows[0] as { source_id: string; content_hash: string; content: string } | undefined;
-  const evidenceAfterMutation = await asPrincipal(pool, OWNER, (c) => qbankEvidenceForRefs(c, g1!.recipe.id, [items[0]!.refId], 600));
+  const evidenceAfterMutation = await asPrincipal(pool, OWNER, (c) => qbankEvidenceForRefs(c, g1!.recipe.id, [items[0]!.refId], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   const activeAfterMutation = (await pool.query('SELECT generation_id FROM qbank_active_generation WHERE singleton')).rows[0]?.generation_id;
   A('控制执行器无 pool/chunk 原地写权；即使表所有者形状绕过角色授权也会被不可变触发器拒绝',
     executorPoolMutationDenied && executorChunkMutationDenied
@@ -485,7 +491,7 @@ async function main() {
     JSON.stringify(factAfterMutation) === JSON.stringify(originalFact)
     && evidenceAfterMutation.length === 1 && evidenceAfterMutation[0]?.excerpt === evidence1.find((x) => x.refId === items[0]!.refId)?.excerpt
     && activeAfterMutation === g1!.generationId && await epoch() === epochBeforeFactMutation);
-  const questionEvidence = await asPrincipal(pool, OWNER, (c) => qbankQuestionEvidenceForRefs(c, g1!.recipe.id, ['qartifact:rate:rubric'], 600));
+  const questionEvidence = await asPrincipal(pool, OWNER, (c) => qbankQuestionEvidenceForRefs(c, g1!.recipe.id, ['qartifact:rate:rubric'], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('a hit on one rubric expands to the complete prompt/rubric/follow-up/anti-pattern question package',
     questionEvidence.length === 1 && questionEvidence[0]?.questionId === artifact.id
     && questionEvidence[0]?.evidence.length === 4
@@ -497,6 +503,7 @@ async function main() {
 
   const cached = async (recipeId = g1!.recipe.id) => cachedQbankSearch(pool, OWNER, {
     query: '令牌桶 限流', k: 5, embedderVersion: `proof:${recipeId}:retrieval=dense:v1`, qbankRecipeId: recipeId, retrievalMode: 'dense',
+    scope: { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId },
     cache, embed: (texts) => embedder.embed(texts), ttlSeconds: 60, leaseSeconds: 5, waitMs: 1000,
   });
   const c1 = await cached(); const c2 = await cached();
@@ -524,7 +531,28 @@ async function main() {
     && Number((await pool.query("SELECT count(*) n FROM qbank_vector_generation WHERE state='active'")).rows[0].n) === 1
     && (await pool.query('SELECT state FROM qbank_vector_generation WHERE id=$1', [gContent!.generationId])).rows[0].state === 'retired');
   const [directVector] = await embedder.embed(['令牌桶 限流']);
+  // AG-42 形 A（0176）报错臂：不设 scope GUC 直调五函数逐一 qbank_retrieval_scope_missing（check_violation·23514）。
+  // 五臂各用独立 asPrincipal 事务（同一事务内 raise 会 aborted-tx 污染后续断言·25P02）。
+  const scopeMissingProbe = async (sql: string, params: unknown[]): Promise<string> => asPrincipal(pool, OWNER, async (c) => {
+    try { await c.query(sql, params); return 'no_raise'; }
+    catch (e) {
+      const err = e as { code?: string; message?: string };
+      return `${String(err.code)}|${String(err.message).split('\n')[0]}`;
+    }
+  });
+  const unscopedRaises = [
+    await scopeMissingProbe('SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,$3)', [gContent!.generationId, `[${directVector!.join(',')}]`, 999_999]),
+    await scopeMissingProbe('SELECT ref_id FROM qbank_generation_lexical_search($1,$2,$3)', [gContent!.generationId, '限流', 5]),
+    await scopeMissingProbe('SELECT ref_id FROM qbank_generation_distances($1,$2::vector,$3::text[])', [gContent!.generationId, `[${directVector!.join(',')}]`, ['qartifact:rate:prompt']]),
+    await scopeMissingProbe('SELECT ref_id FROM qbank_generation_evidence($1,$2::text[],$3)', [gContent!.generationId, ['qartifact:rate:prompt'], 800]),
+    await scopeMissingProbe('SELECT question_id FROM qbank_generation_question_evidence($1,$2::text[],$3)', [gContent!.generationId, ['qartifact:rate:prompt'], 800]),
+  ];
+  const scopeMissingRaise = unscopedRaises.length === 5
+    && unscopedRaises.every((r) => r.startsWith('23514|') && r.includes('qbank_retrieval_scope_missing'));
+  // 随锚半：独立 asPrincipal 事务内设双 scope GUC（v1/backend/general=夹具语料）后，原边界语义照旧断言。
   const directSqlBoundary = await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
+      [METADATA.servingScopeId, METADATA.taxonomyVersion]);
     const retiredAnn = await c.query(
       'SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,$3)',
       [gContent!.generationId, `[${directVector!.join(',')}]`, 999_999],
@@ -550,6 +578,7 @@ async function main() {
       bounded: (boundedActive.rowCount ?? 0) <= 50 && (boundedEvidence.rowCount ?? 0) <= 50,
     };
   });
+  A('双空 GUC 直调五函数逐一报错（qbank_retrieval_scope_missing·0176 形 A 硬闸）', scopeMissingRaise);
   A('直接 SQL 不能复活 retired generation，超大 k/refs 在数据库内封顶',
     directSqlBoundary.retired && directSqlBoundary.bounded);
   const c3 = await cached(g2!.recipe.id);
@@ -567,14 +596,14 @@ async function main() {
   const optionalPartRevoked = await asQbankControlExecutor(pool, (c) =>
     reviewSource(c, 'qs-' + hash(deltaArtifact.chunks[2]!.text), 'approved', 'rejected', 'optional-part takedown'));
   const optionalPartPartial = await asPrincipal(pool, OWNER, (c) =>
-    qbankQuestionEvidenceForRefs(c, gContent!.recipe.id, ['qartifact:delta:prompt'], 600));
+    qbankQuestionEvidenceForRefs(c, gContent!.recipe.id, ['qartifact:delta:prompt'], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('revoking any mapped optional part suppresses the entire artifact, not only required scoring parts',
     optionalPartRevoked && optionalPartPartial.length === 0);
 
   const artifactRubricRevoked = await asQbankControlExecutor(pool, (c) =>
     reviewSource(c, 'qs-' + hash(artifact.chunks[1]!.text), 'approved', 'rejected', 'required-rubric takedown'));
   const partialQuestion = await asPrincipal(pool, OWNER, (c) =>
-    qbankQuestionEvidenceForRefs(c, g1!.recipe.id, ['qartifact:rate:prompt'], 600));
+    qbankQuestionEvidenceForRefs(c, g1!.recipe.id, ['qartifact:rate:prompt'], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('revoking one required rubric suppresses the complete question artifact rather than returning a partial scoring prompt',
     artifactRubricRevoked && partialQuestion.length === 0);
 
@@ -592,7 +621,7 @@ async function main() {
   const active = (await pool.query('SELECT generation_id FROM qbank_active_generation WHERE singleton')).rows[0]?.generation_id as string;
   const hidden = Number((await pool.query('SELECT count(*) n FROM qbank_generation_chunk WHERE generation_id=$1 AND ref_id=$2 AND visible=false', [active, items[0]!.refId])).rows[0]?.n);
   const postRevoke = await search('令牌桶 限流', g1!.recipe.id);
-  const evidenceAfterRevoke = await asPrincipal(pool, OWNER, (c) => qbankEvidenceForRefs(c, g1!.recipe.id, [items[0]!.refId], 600));
+  const evidenceAfterRevoke = await asPrincipal(pool, OWNER, (c) => qbankEvidenceForRefs(c, g1!.recipe.id, [items[0]!.refId], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('revoke hides all retained-generation rows, bumps exactly once, and cannot return from hybrid', revoked && hidden === 1
     && await epoch() === beforeRevoke + 1 && !postRevoke.some((x) => x.refId === items[0]!.refId) && evidenceAfterRevoke.length === 0);
 

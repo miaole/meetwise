@@ -360,6 +360,8 @@
     "db-trigfam:prove:raw": "pnpm -C packages/db prove:db-trigfam",
     "dbhy1:prove": "node scripts/run-e2e-isolated.mjs dbhy1:prove:raw",
     "dbhy1:prove:raw": "pnpm -C packages/db prove:dbhy1",
+    "qbank-control-sec:prove": "node scripts/run-e2e-isolated.mjs qbank-control-sec:prove:raw",
+    "qbank-control-sec:prove:raw": "pnpm -C packages/db prove:qbank-control-sec",
     "db-id-v7:prove:raw": "pnpm -C packages/db prove:db-id-v7",
     "db-intfk:prove": "node scripts/run-e2e-isolated.mjs db-intfk:prove:raw",
     "db-intfk:prove:raw": "pnpm -C packages/db prove:db-int-fk",
