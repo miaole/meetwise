@@ -399,3 +399,24 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 - **不计 271 条件数（查证如实处置）**：AG-07 系 AG 战役（ai-capability-review issues-final AG-xx 面）非 271 universe；#48 虽列批2 残 19 挂账（:296 列名）·本刀仅观测不收口（issues-final :550「先接 cached_tokens 观测再下结论」·收口须待观测数据+②迁移三件套后继）——**本刀无 271 件可翻·批表零翻**；合计维持 **145/271（53.5%）**（15+26+40+22+10+32·沿 :352 勘误后口径·批1 终核第 5 条取代条款与各终核节有效）。
 - erratum 承登：post-prove 双席 4 条标签级 errata 不阻门+nail 席补登两条（主线 tip 漂移 `a62e8fa3→b24f3f4e→133acba6` 两笔 docs-only 零交集·tsbuildinfo 构建缓存漂移不入 commit）——正文随 execution-master-checklist「Line AG-COST1 nail」段（本窗 docs(ssot) commit `9aa33de8`）落卷。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
+
+
+## AG 能力修复+计费改造 战役刀位图（2026-10-12 立节·协调方·非 271 计件·沿 :301 配套管线先例·进度面板可见性用）
+
+> 北星四门禁不变（G7 全量收据未齐 g7SuiteGreen=false 钉死）。本节登记新战役刀位与状态·优先级栈已重排：**门3 0 BUG 主路径=AG 失败语义轨**。
+
+| 轨 | 刀 | 覆盖 | 状态 @2026-10-12 深夜 |
+|---|---|---|---|
+| 失败语义 | 刀 A | AG-05 续跑+AG-26 | REQUEST rev2 在途（席1 FAIL→hotfix 2629509d→rev2 对齐） |
+| 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | EXEC 落码 ae478bc6+rev2 修复在途（migrate.proof 签名）·post 席1 FAIL 已修待重递 |
+| 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | 双审 BOTH PASS·rev（0175）在途→EXEC 待放 |
+| 失败语义 | 刀 D | AG-01 准入去终态化 | 待起草（骑刀 C 骨架） |
+| 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | 待起草 |
+| 失败语义 | 刀 F | AG-02 残面四类有界 re-roll | 待起草（骑刀 B） |
+| 成本轨 | ①止血+观测 | AG-07+#48 | **nail 6f2ed876 收官**（env 双旋钮缺省关停+三端点观测） |
+| 成本轨 | ②-⑥ | AG-07 迁移三件套/AG-12 估算/AG-11 三件套/AG-08/#48 后继 | 队列（②以①旋钮+观测为输入） |
+| 安全 | qbank 小刀 | AG-41+42（5 函数）+43 调度半+P5 | REQUEST 9484bc54 双审席1 在途（迁移 0176+） |
+| 计费 | billing rev | 用户全裁决落卷+B 端章+扩张包+全调用面表+明细列表 | rev 席在途（两次扩权已收） |
+| 计费 | P1/P2 | 0170-0173 字段迁移+影子计量 | 立项待 AG 硬前置（B✓/E批/F）齐 |
+| 产品大刀 | AG-39 私有题库+AG-38 问答侧 | 题库分层/工具边界两设计决策 | 挂用户排期 |
+- 关联蓝本：ai-docs/delivery/ai-capability-review/（LANDING-INDEX 十三节）+billing-redesign/（INDEX 十三节）。
