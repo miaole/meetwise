@@ -2,7 +2,7 @@
 
 - 代码基线：`<外部只读快照>/meetwise-latest`（落地形式调整·原文本机快照径），commit `2fab7946`，只读复核，没有运行代码。
 - 复核日期：2026-10-12（Asia/Shanghai）。
-- 新增问题共 43 条（AG-01–AG-43）：P0 0 / P1 9 / P2 10 / P3 24。另有 18 个聚类已在产品审计总表中，只引用编号，不计入新增（见文末）。
+- 新增问题共 43 条（AG-01–AG-43）：P0 0 / P1 9 / P2 11 / P3 23。另有 18 个聚类已在产品审计总表中，只引用编号，不计入新增（见文末）。
 - 与 `issues-final.csv` 一一对应（同一份数据源生成）。“交叉印证路数”= 5 份原始报告中独立发现该问题的报告数；本次补盲新发现的记为 0。
 - 维度取值：RAG / 记忆 / 工具 / Prompt / 缓存 / 上下文 / 编排运行时 / 产品契合 / 成本。
 
@@ -47,7 +47,7 @@
 | AG-35 | P3 | 编排运行时 | 遗留 API 仍然导出：buildMockInterviewGraph 会把原始答案写进 state，buildMockInterviewRunner 会调用 cp.setup()（DDL），db.acquireLease/releaseLease 按 thread_id 更新、不带 graph_name | 2 | #170 |
 | AG-36 | P3 | 编排运行时 | packages/db 直接钉死 @langchain/langgraph-checkpoint 1.1.3，不走 catalog；0043 手抄 vendor migrations，运行时没有版本自检 | 1 | — |
 | AG-37 | P3 | RAG | 检索侧的 weighted-deficit 每个 job 都从 0 开始，而一个 job 只出一题，所以多叶子岗位的检索恒定落在权重最大的那个叶子上，按轮配额从来不会收敛 | 0 | #197、#202 |
-| AG-38 | P3 | 工具 | 请求体从不带 tools/tool_choice（没有原生 function calling）；ai-runtime 里的 runToolLoop 有界工具循环只导出，生产零调用。主面试回路用代码前置检索是合理的，但开放问答类场景缺少只读工具层 | 1 | — |
+| AG-38 | P2 | 工具 | 请求体从不带 tools/tool_choice（没有原生 function calling）；ai-runtime 里的 runToolLoop 有界工具循环只导出，生产零调用。主面试回路用代码前置检索是合理的，但开放问答类场景缺少只读工具层 | 1 | — |
 | AG-39 | P1 | 产品契合 | 不支持企业私有题库、无私有优先检索；只有一份平台公共题库，无企业/租户字段 | 0 | #110、#271 |
 | AG-40 | P1 | 产品契合 | C 端练习面试用不上题库：begin 只写 candidate_profile_route_snapshot，检索只读 interview_route_snapshot，降级 route_snapshot_missing | 0 | — |
 | AG-41 | P2 | RAG | 0146 退役代存储释放函数用会话变量 app.principal_user 鉴权，app_role 可自设，违反 0066:90 / 0067:36 | 0 | — |
@@ -463,15 +463,16 @@
 - **修法**：把 deficit 持久化到图 state 或 interview 表，每题更新。
 - **关联审计总表编号**：#197、#202
 
-### AG-38【P3·工具】请求体从不带 tools/tool_choice（没有原生 function calling）；ai-runtime 里的 runToolLoop 有界工具循环只导出，生产零调用。主面试回路用代码前置检索是合理的，但开放问答类场景缺少只读工具层
+### AG-38【P2·工具】请求体从不带 tools/tool_choice（没有原生 function calling）；ai-runtime 里的 runToolLoop 有界工具循环只导出，生产零调用。主面试回路用代码前置检索是合理的，但开放问答类场景缺少只读工具层
 
 - **复核结论**：部分成立（“全仓没有工具循环”不准确：runToolLoop 存在但未接线）
 - **交叉印证路数**：1（agent-capability）
 - **源编号**：AI-07
 - **file:line**：packages/ai-runtime/src/model-client.ts:404-421；packages/ai-runtime/src/tools.ts:44；packages/ai-runtime/src/index.ts:219
 - **触发例子**：将来做“成长顾问对话”时，只能把所有上下文一次性塞进 prompt。
-- **用户影响**：目前没有影响，属于能力缺口。
-- **修法**：需要开放问答时再基于 runToolLoop 做只读工具层，并设计多步 invoke 的幂等。
+- **用户影响**：目前没有影响，属于能力缺口；成长顾问与 B 端追问报告落地时将成为阻塞缺口。
+- **备注**：（2026-10-12 调级：成长顾问与 B 端追问报告需要只读工具，见 README 工具使用边界）
+- **修法**：混合式——面试出题与评分不接工具（系统按规则检索后喂入）；开放问答基于 runToolLoop 接只读受限工具：C 端成长顾问可查本人面试记录/弱项/学习计划，B 端追问报告可查本企业该场原答案与评分依据；权限在工具内强制（C 端仅本人，B 端仅本企业该场，不得查 C 端练习）；循环设轮数与 token 上限；每次调用走现有幂等与计费账本；工具结果按数据处理并复用数据边界围栏防注入。见 README「设计决策：工具（function calling）使用边界」。
 - **关联审计总表编号**：—
 
 ### AG-39【P1·产品契合】不支持企业私有题库、无私有优先检索；只有一份平台公共题库，无企业/租户字段
