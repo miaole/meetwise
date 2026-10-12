@@ -411,7 +411,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | **nail `2a2fee56` 收官**（merge `616d8ef3` 已推非 force·post 双席 BOTH PASS·merge 后四门 117/24 臂+typecheck 3/3+docs:check 全绿·AG-14 流式面/EG-B1=后继刀） |
 | 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | **nail `928b2612` 收官**（merge 已推非 force·双亲 `09768397`+`114f7189`·post 双席 BOTH PASS·merge 后五门 33/28/14 臂+typecheck 3/3+docs:check 全绿·白名单只增不清约束生效·AG-01 准入=刀 D 骨架已立·详情 checklist「Line AG-C nail」段） |
 | 失败语义 | 刀 D | AG-01 准入去终态化 | 待起草（骑刀 C 骨架） |
-| 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | 待起草 |
+| 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | **nail `a2b0795f` 收官**（merge 已推非 force·双亲 `8603dc65`+`0dc4f5d7`·post 双席 BOTH PASS·merge 后五门 51 断言五臂+migrate 173 含 0178+report-retry+typecheck 3/3+docs:check 全绿·AG-10 守卫与重试开关同 commit 硬约束履约·白名单只增不清·STILL OPEN：S12 阈值追认/多实例 Redis 归计费·详情 checklist「Line AG-E nail」段） |
 | 失败语义 | 刀 F | AG-02 残面四类有界 re-roll | 待起草（骑刀 B） |
 | 成本轨 | ①止血+观测 | AG-07+#48 | **nail 6f2ed876 收官**（env 双旋钮缺省关停+三端点观测） |
 | 成本轨 | ②-⑥ | AG-07 迁移三件套/AG-12 估算/AG-11 三件套/AG-08/#48 后继 | 队列（②以①旋钮+观测为输入） |
