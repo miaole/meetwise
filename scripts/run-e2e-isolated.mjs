@@ -243,6 +243,14 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
     'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
   ],
+  // qbank 控制面鉴权收口小刀（AG-41 释放函数 executor-only+definer 断言+AG-42 五函数双空报错+P5 九支清理·est live=0）。
+  'qbank-control-sec:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/qbank-control-sec.proof.ts', 'packages/db/package.json',
+    'packages/db/src/index.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0146_qbank_partition_lifecycle.sql',
+    'packages/db/migrations/0176_qbank_control_plane_authz_closeout.sql',
+  ],
   // AG 修复轨刀 E（AG-03 报告重试真实化+EG-A1 单调派发序+AG-10 守卫同批）:本地 http 脚本 provider
   // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+键构造/守卫/db 层+迁移 0178。
   'ag-e-report:prove:raw': [
@@ -1969,6 +1977,7 @@ if (![
   'uc025:nhp-adv:prove:raw',
   'uc028:nhp-fault:prove:raw',
   'dbhy1:prove:raw',
+  'qbank-control-sec:prove:raw',
   'uc016:nhp-fault:prove:raw',
   'uc011:adv:prove:raw', 'uc011:refund-callback:prove:raw',
   'g7fix4:finalize:prove:raw',
@@ -1988,6 +1997,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:qbank-corpus-retrieve']]
   : target === 'dbhy1:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:dbhy1']]
+  : target === 'qbank-control-sec:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:qbank-control-sec']]
   : target === 'runtime:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove']]
   : target === 'runtime:claim-join:prove:raw'
@@ -2801,7 +2812,7 @@ async function main() {
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw'].includes(target)) {
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
