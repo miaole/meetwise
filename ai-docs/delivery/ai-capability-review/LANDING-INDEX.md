@@ -69,3 +69,10 @@
 - **审计发现（协调方全文精读）**：qbank-acl P1-P7 → AG 映射中 **P5 被丢**（遗留 GUC 策略 qbank_is_curator/principal_user 挂表·现 app_role 无表权限故不生效·**未来任何 re-GRANT 即变伪造读写面**·推断级低危）——未获 AG 编号·登记为**P5 缺号项**·归 AG-41 同族 qbank 控制面安全小刀顺手清理或明示豁免。
 - **源卷清册**（父目录·77 条之源·被 final 交叉复核取代）：agent-capability-benchmark.md（AI-01~07 源·42KB）/langgraph-deep-review.md（LG-01~23 源·32KB）/issues.csv/langgraph-issues.csv——**源卷忠实性审计席已派**（对照 review-log 77 行映射逐条核 final 表述无失真·重点 13 否定项）。
 - 计费 README.v1.md（按题型定分·被最终版明示取代）——审计席顺带核「v1 独有内容是否全被最终版吸收」。
+
+
+## 十、源卷忠实性审计定谳（审计席·2026-10-12 深夜）
+
+- **总判：final 对两源报告（AI 7+LG 23）忠实度高**——77 行映射零漏登零失真·可审计 4 否定项 3 公允 1 轻微（AI-07 否定理由引文系改写非源文原句·最终 AG-38 文本无曲解）·计费 v1 无方案级漏吸收。
+- **不可达登记**：explore/lg-runtime、product-fit、ai-cost-context 三源不在本机——LR/PF/AC 46 行+9 否定项不可本地审计（review-log 已逐行映射·以 final 交叉复核为权威）。
+- **轻微发现清单（后续刀顺手项）**：F1 行业常识推断句未入 77 行（final 未依赖·无害）·F2 AI-05 RAG 三模块死代码子点未入 AG-20 枚举·F3 LG-10 子点③ hashtext 32 位碰撞被 AG-29 归并时丢·F4 LG-21 proof 缺口三项（终态复活/unlock/暂停>1800s）未入 AG-16·**F5 AG-40 与总表 #202 同病未交叉关联（重复计数风险·qbank 安全小刀时对表）**·F7 LG-06 归并 #186 引用表未带·F8=AI-07 措辞·计费 F10-F13（押题/诊断/OCR 现状计费点证据·GET /billing/balance+余额展示·outbox 报表 payload·明细冲销/单场最低消费被新方案消解）——归 billing rev 卷吸收。
