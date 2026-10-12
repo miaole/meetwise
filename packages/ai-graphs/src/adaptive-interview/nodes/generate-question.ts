@@ -2,6 +2,8 @@ import {
   critiqueQuestion,
   isQuestionGenerationFailure,
   normalizeQuestionGenerationResult,
+  QUESTION_GENERATION_REROLL_FAMILY,
+  type CompetencySpec,
   type QuestionGenerationProvenance,
   type QuestionKind,
 } from '@meetwise/domain';
@@ -9,6 +11,21 @@ import type { AdaptiveDeps, AdaptiveInterviewGraphState } from '../state.ts';
 
 function issueQuestionId(stateVersion: number, turn: number, clarifyAttempts: number): string {
   return `q-v${stateVersion}-t${turn}-c${clarifyAttempts}`;
+}
+
+/**
+ * AG-F(刀F·裁决②a·可调):连续 competency 耗尽帽——顺延换序至多 2 次（=第 3 个连续耗尽的
+ * competency 到达即真终场）,防模型持续劣化面无界循环放大（EXPERT §七 :65「耗尽换 competency
+ * 不终场」+裁决②a「连续耗尽帽(如 2)」原文）。全序耗尽/族外失败不受本帽影响（原 failClosed）。
+ */
+const MAX_COMPETENCY_EXHAUST_SWITCH = 2;
+
+/** planner 序下一 competency(deps.competencies 声明序顺延;末位/缺席=无序可换 → 真终场)。 */
+function nextCompetencyAfter(sequence: readonly (string | CompetencySpec)[], current: string): string | null {
+  const names = sequence.map((c) => (typeof c === 'string' ? c : c.name));
+  const idx = names.indexOf(current);
+  if (idx < 0 || idx + 1 >= names.length) return null;
+  return names[idx + 1] ?? null;
 }
 
 function failClosed(
@@ -62,9 +79,28 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       // grounded 题面可引用事实所指经历,但 refs 须为事实原文子串且过 worker 侧组合闸
       // (refsGroundedInFacts,不过则丢弃重试/回退固定模板);fact 子串 refs 仅作闸料,禁入 sources。
       const generated = normalizeQuestionGenerationResult(
-        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind),
+        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked),
       );
       if (isQuestionGenerationFailure(generated)) {
+        // AG-F(刀F·修法②/裁决②a):族内确定性失败（seam 有界 re-roll 预算已耗尽后才到达本节点）
+        // → 不 failClosed 整场——顺延 planner 序下一 competency 重新出题（换序轨迹落 degraded/
+        // generationProvenance 可审计）;concluded 禁置（Ban 列表:只在真终场置位）。连续耗尽帽内
+        // 才换序;帽满/族外失败（timeout/not_configured/duplicate_question/attempt_replay 等）/无序
+        // 可换 → 既有 failClosed 原样（全序耗尽才真终场,assessment_unavailable 形状字节不变）。
+        const exhaustedBefore = state.competencyExhaustions ?? 0;
+        if (QUESTION_GENERATION_REROLL_FAMILY.includes(generated.error) && exhaustedBefore < MAX_COMPETENCY_EXHAUST_SWITCH) {
+          const nextCompetency = nextCompetencyAfter(deps.competencies, route.competency);
+          if (nextCompetency) {
+            return {
+              stateVersion: state.stateVersion + 1,
+              route: { competency: nextCompetency, difficulty: route.difficulty, qkind: effectiveKind },
+              pending: null,
+              degraded: { reason: 'question_competency_exhausted', turn },
+              generationProvenance: generated.provenance,
+              competencyExhaustions: exhaustedBefore + 1,
+            };
+          }
+        }
         return failClosed(state, generated.provenance, `generation_${generated.error}`);
       }
       const critique = critiqueQuestion(generated.question, route.competency, asked, deps.competencyKeywords ?? {});
@@ -106,6 +142,8 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       },
       generationProvenance: provenance,
       degraded: null,
+      // AG-F(刀F):出题成功 → 连续耗尽计数归零（裁决②a「连续」语义只跨失败链存活）。
+      competencyExhaustions: 0,
     };
   };
 }

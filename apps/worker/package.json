@@ -139,7 +139,8 @@
     "prove:weakness": "tsx test/weakness.proof.ts",
     "prove:qbank-planner-honesty": "tsx test/qbank-planner-honesty.proof.ts",
     "prove:ag-b-classify": "tsx test/ag-b-classify.proof.ts",
-    "prove:ag-e-report": "tsx test/ag-e-report.proof.ts"
+    "prove:ag-e-report": "tsx test/ag-e-report.proof.ts",
+    "prove:ag-f-reroll": "tsx test/ag-f-reroll.proof.ts"
   },
   "dependencies": {
     "@langchain/langgraph": "catalog:langchain",

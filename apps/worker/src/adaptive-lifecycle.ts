@@ -396,6 +396,15 @@ async function submitAdaptiveAnswerImpl(
         questionId: input.questionId, stateVersion: last.stateVersion, turn: input.turn,
         reason: last.reason ?? 'evaluation_unavailable', competency: last.competency, question: last.q ?? '',
       }, `answer_unscored:${input.questionId}`);
+      // AG-F(刀F·裁决③a):unscored 0 分继续后图已推进到下一题（pending 在场）——question_ready
+      // 随同一投影事务发出（与 scored 臂「answer_evaluated→question_ready」:394 同序同形）,SSE 链
+      // 不断流;next 缺省（concluded 旧形）→ 零追加,既有形状字节不变。账本/结算零触（本事务只
+      // append 事件+已在上方落账的 ledger/rubric 投影）。
+      if (next) await appendEvent(c, d.owner, d.interviewId, 'question_ready', {
+        questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
+        question: next.question, competency: next.competency, qkind: next.kind,
+        plannedTurns: next.plannedTurns,
+      }, `question_ready:${next.questionId}`);
       return;
     }
     if (clarifying && !done) {
@@ -485,6 +494,11 @@ async function submitAdaptiveAnswerImpl(
       if (!counted) throw Object.assign(new Error('interview_score_evidence_missing'), { code: 'interview_score_evidence_missing' });
       const unscored = Number(counted.unscored);
       const eligible = Number(counted.eligible);
+      // AG-F(刀F·裁决③a)边界注记:unscored 0 分继续只落**图内后果**（transcript 按 0 计+后续 turn
+      // 照常推进）——本收口三分支谓词零位移:混合 unscored 场在 conclude 面仍走既有 fail+release+
+      // `evaluation_unscored` 臂,0046 迁移触发器 `interview_completion_requires_all_answers_scored`
+      // 在 DB 层钉死「answer_unscored 事件在场 ⇒ 禁 completed」结算完整性法（历史迁移零字节 Ban）。
+      // 「混合面 completed+照计」需放松 0046=计费结算语义,归 billing rev 战役,本刀如实登记不越界。
       if (unscored === 0 && eligible > 0) {
         await completeInterviewAndConfirm(c, d.owner, d.interviewId);
         await enqueueReport(c, d.owner, d.interviewId);
