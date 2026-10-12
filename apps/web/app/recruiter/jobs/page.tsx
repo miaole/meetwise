@@ -9,7 +9,7 @@ import { JobCreateForm } from './JobCreateForm';
 import { jobRouteBadgeVariant, jobRouteStatusLabel, type JobRouteStatusLite } from '@/lib/recruiter/route-status';
 import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighlights';
 
-export const metadata: Metadata = { title: '岗位骨架 · 内部预览 · 知面', description: '内部岗位骨架。不是招聘方产品，也不是第二套产品面。' };
+export const metadata: Metadata = { title: '岗位骨架 · 知面', description: '岗位骨架。不是招聘方产品，也不是第二套产品面。' };
 
 interface Job { id: string; title: string; description: string; competencies: string[]; status: string; created_at: string }
 
@@ -23,7 +23,7 @@ export default async function RecruiterJobsPage() {
   return (
     <div className="mx-auto max-w-3xl space-y-4">
       <div>
-        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />岗位骨架 · 内部预览</h1>
+        <h1 className="flex items-center gap-2 text-2xl font-bold"><Building2 className="size-6 text-primary" />岗位骨架</h1>
         <p className="mt-1 text-muted-foreground">内部调试用岗位骨架。不是招聘方产品，也不是正式招聘系统；练习顺着回答往下问，这里看不到原文，也不能据此录用。</p>
       </div>
 

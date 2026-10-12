@@ -164,3 +164,56 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 *rev2 · 2026-10-12 · 修正席（docs-only 窄面修订·恰 1 .md 零码动·结论零变·§8-③ 冻结条款（zh/en 必同裁同落）维持原文零动·STOP draft:awaiting_pre_exec_dual 维持·markers=0（修订后复跑 EXIT=1）·pins 十一值零翻·⛔push）——**双审席1 FAIL 处置摘要（1 blocking+3 errata·四处落点）**：①blocking「C 消费断言补全」——§1-修法 C 清册补 C5/C6 两行（`public-copy.proof.mjs:98` requireText homeZh「招聘不在本预览范围」·zh.json 唯一出处=footDesc `:93`=F16 排他绑定·`rg` 单命中亲证；`:99` homeEn「Hiring is out of scope」·en.json `:93`=F17 排他绑定·均随裁决项③联动——③「去」⇒断言同步删/改负·③「更新」⇒断言随新值）+Ban「未同步消费断言落刀」穷举集改 C1-C6+§0.1 消费面/§0.2-3③/§2-3/§8 连带钉/尾注同集合同步；②erratum 算术——§0.2-2「码注释 3 处」勘为 2 处（19=13+2+1+3 自洽·尾注「码注释 2」本即在证）；③erratum 披露——§8 裁决项① F2 处补后果披露一句（F2 取「去/改写」⇒ `i6-239-gates.proof.mjs:110` 「招聘方入口是内部预览骨架，不是已上线产品」逐字在场断言必红·该门非常设=CI/回归零接线+root `package.json:611` 手动脚本 `i6-gates:prove` 全树唯一引用·EXEC 须同刀随裁更新该断言或申明门退役）；④erratum 口径——§2-1「（或全树）」收敛·apps/ 形为主断言（全树含 ai-docs 历史登记 6+ 处+`scripts/ai-docs/check-docs.mjs:175` 必须在场词+receipts 常量非零面·计数非裁值单变量·若需全树形须附常量基线值对账）。docs:check 修订前后恒 EXIT=0。*
 
 *rev3 · 2026-10-12 · 修正席（docs-only 窄面修订·恰 1 .md 零码动·结论零变·面补全+披露·§8-③ 冻结条款（zh/en 必同裁同落）维持原文零动·STOP `draft:awaiting_pre_exec_dual` 维持·markers=0（修订后复跑 EXIT=1）·pins 十一值零翻·⛔push）——**双审席2 FAIL 处置摘要（1 blocking+3 errata·逐条修正）**：①blocking「第五面+C7」——§1.2 同族口径面四→五面：补 `docs/index.html:165`「预览版。按真实经历练面试。招聘不在本预览范围。」（=zh.json footDesc `:93` 逐字静态孪生·GitHub Pages 公开发布面·blob `d725e720b384d780f1479e35ff3f0356507e30dc`·该句全文件唯一出处 rg 单命中亲证）·升**独立裁决项⑥**（公开面口径值·与③/⑤同族联动但不强制同值·公开页可裁不同措辞——选形理由落 §1.2 结构选形说明：并入③则「zh/en 必同裁同落」冻结条款不当外溢静态中文单页·并入⑤则强制与 README 同值·故独立成⑥）·§1-修法补 F21 行+C7 行（`public-copy.proof.mjs:97` requireText pagesHtml「招聘不在本预览范围」·读源 `:62`=`docs/index.html`+`:100` 该句计数恰一次断言·均随⑥联动）+穷举集 C1-C6→**C1-C7** 全卷同步（§0.1 blob 锚表补 `docs/index.html` 行+消费面补 `:97`/`:100`·§0.2-1 四→五面·§0.2-3③ 补 Pages 族两断言·§2-3·§5 Ban 两处（自选文案值 ①-⑤→①-⑥+未同步消费断言 C1-C6→C1-C7 含 C7 随⑥）·§8 五组→六组+⑥ 落项+连带钉 C1-C7 随①-⑥·尾注同集合同步）；②erratum 常量面对等披露——§1.2 补 erratum 节：同族句「招聘不在本预览范围」树内另有常量消费面——`apps/web/test/public-copy.proof.mjs:300/:302/:304/:306` 四条 ai-docs 文档 requireText（读源=`current-runtime-truth.md:52`·`frontend-blueprint.md:163`·`local-demo-deployment.md:116`·`execution-master-checklist.md:153`）+`scripts/ai-docs/check-docs.mjs:93` 必须在场词+`:116` 在场词+`:249` 扫描源词（source=docs/index.html·sourceTerm=该句）——⑥「去」向则 check-docs `:93`/`:249` 当场失配+docs:check 必红（读源同 docs/index.html）·族级「去」向这些连带须同刀或后续刀处理或申明豁免·**如实披露·处置归 EXEC/协调方·本卷不预裁**（§8 连带钉末句+C7 行末各留指回）；③erratum 尾注对齐——尾注增补类列举与 §0.2-3 五类对齐（补第⑤类 i6-239 登记面：「i6-239-gates.proof.mjs:109-110+receipts/i6-239/」·「码注释 2」按处读统一为「login `:27-28`+Nav `:23`」）；④erratum 尾注口径统一——C 集分列/合并口径统一为 EXEC 收据 C1-C7 逐处点名形（C1=`:217`·C2=`:258`·C3=`:262`·C4=`:263`·C5=`:98`·C6=`:99`·C7=`:97`+`:100`）。docs:check 修订前后恒 EXIT=0。*
+
+---
+
+## §9 EXEC 收据 · **`executed:awaiting_post_prove_dual`**（接管席续做 · 2026-10-12 20:01 +0800）
+
+**席位与接管**：I263-PREVIEW EXEC **接管席**——前任 EXEC 席 quota 中断于半途，本席接管续做（半成品盘点→补全施工→断言门→本随翻）。开工三条款核对：①预执行双审两外席 BOTH PASS（rev2 席1/rev3 席2 两 FAIL 已修正闭环）✓ ②协调方明示授权（「解除挂起·独立小刀收编」承接+EXEC 派单）✓ ③§1 修法清单与 §5 Ban/pins 零改 ✓。⛔push 遵守（零 push）。
+
+**半成品盘点结论**：前任遗留 19 文件未提交改动逐文件对照 §1-修法+本裁决复核——F1-F17/F20/F21 落值全数合规（如实现状·承诺尾零降级·零自造承诺；C1-C3/C5/C6/C7+四文档+check-docs 三处+i6 闸 :110 后果披露面同刀联动全在证）·**唯一漏项=F18/F19（login.subtitle zh/en `:105` 零触）**·零改错。本席补落 F18/F19（改写向）：原句「公开预览不开放账号注册…」系失实——同页注册按钮+b110 审核链（`apps/web/app/auth-actions.ts` approvalStatus=pending 分流「审核通过后即可登录使用招聘方功能」）+I6 年龄声明「注册即表示…」三证互矛盾——按如实现状改写，键名零动值层操作。
+
+### §8 六组裁决落值（用户保守默认裁：去掉/改写「内部预览」系标注·换如实描述现状文案·不发明新承诺）
+
+**① 逐面 F1-F21**（去=删·改写=换如实现状句）：
+
+| 面 | 裁向 | 落值（逐字） |
+|---|---|---|
+| F1 | 去 | tab 后缀「（内部预览）」删·留 `{t('recruiter')}` |
+| F2 | 改写 | 「招聘方功能面向企业招聘流程，当前版本持续完善中，不是与求职者对等的第二套产品。」（句尾承诺保留=C4 `:263` 断言零动） |
+| F3 | 改写 | 码注释「recruiter cookie 进招聘方功能面(#263 i263 收口:招聘方功能面向企业招聘流程·持续完善中),不是第二套对等产品。」 |
+| F4 | 改写 | I6 边界注记「行级避开上方 :27-28/:38-40 招聘方标注面(#263 域·i263 已收口·零重叠)。」（裁决①子项·I6 注释语义零降级·行号现势复核仍准；§3-1 零触面=t('ageDeclaration') 消费链+zh/en 键值——全零字节 ✓） |
+| F5 | 去 | 品牌旁注「· 内部预览」span 删（isRecruiter 变量仍有 `:31`/`:55` 两处消费·条件骨架零动） |
+| F6 | 改写 | Nav 码注释「recruiter cookie 切到招聘方功能面(#263 i263 收口)，不是两套对等产品」 |
+| F7 | 改写 | title「岗位骨架 · 知面」/ description「岗位骨架。不是招聘方产品，也不是第二套产品面。」 |
+| F8 | 改写 | h1「岗位骨架」 |
+| F9 | 改写 | title「岗位投递 · 知面」/ description「查看该岗位投递的流程状态。不是招聘方产品。」 |
+| F10 | 改写 | 说明段去「内部预览：」前缀（余句逐字保留） |
+| F11 | 改写 | title「申请状态 · 知面」/ description「查看岗位申请的必要流程状态。不是招聘方产品，不提供数值评分，也看不到面试内容。」 |
+| F12 | 改写 | title「投递骨架 · 知面」/ description「投递列表。不是人才库，也不是招聘方产品。」 |
+| F13 | 改写 | h1「投递骨架」 |
+| F14 | 改写 | title「架构笔记 · 知面」 |
+| F15 | 改写 | 去「内部预览邀请。」前缀·「不得用于自动筛选、排名、拒绝或录用决定」合规句逐字保留（零降级） |
+| F16/F17 | 改写 | zh footDesc「预览版。按真实经历练面试。招聘功能面向企业账户开放。」/ en footDesc「Preview. Practice from real experience. Hiring features are available to enterprise accounts.」（zh/en 同裁同落·键名零动） |
+| F18/F19 | 改写 | zh login.subtitle「知面 · 项目预览。注册已开放：求职者注册后即可登录使用，招聘方注册经审核后开通。」/ en「Meetwise · project preview. Registration is open: job seekers can log in and use it right after signing up; recruiter accounts are enabled after review.」（接管席补落·失实句改如实·en 零 CJK S3 合规） |
+| F20 | 改写 | README `:3`「**预览版。** 按真实经历练面试：出题、追问、留下点评。招聘功能面向企业账户开放。」 |
+| F21 | 改写 | `docs/index.html:165` foot-desc「预览版。按真实经历练面试。招聘功能面向企业账户开放。」（与③同值·孪生保持·该文件新句恰一次） |
+
+**② 族标题值**：F7/F9/F11/F12/F14 尾缀「· 知面」保留·「内部预览」字样全去·h1 同步（F8/F13）·description 承诺句逐字保留零降级。**③④⑤⑥** 见 F16/F17、F18/F19、F20、F21 行。「企业账户」系既有产品术语（企业额度支付 B271/企业充值页 #271/ent_pack 域商品在证）非新造；「开放」系现状陈述（注册链开放+D4 入口保留+#218 最小闭环在证）非新承诺。
+
+### 连带落值（C1-C7+常量面+I6 闸后果披露面）
+
+- C1 `:217`「内部预览」→「投递骨架」·C2 `:258`→「岗位骨架」·C3 `:262`→「招聘方功能面向企业招聘流程」·**C4 `:263` 零动**（F2 句尾承诺保留）·C5 `:98`/C6 `:99`→新 footDesc 值·C7 `:97` requireText+`:100` 计数恰一次→新句。
+- `public-copy.proof.mjs:300/:302/:304/:306` 四条 ai-docs 文档断言同句同步；四文档涉句一词最小同步（current-runtime-truth `:52`/frontend-blueprint `:163`/local-demo-deployment `:116`/execution-master-checklist `:153`）。
+- `scripts/ai-docs/check-docs.mjs:93/:116/:249` 涉句词最小同步（门脚本只改涉句三处零他动）。
+- `scripts/i6-239-gates.proof.mjs`（§8-① F2 后果披露的授权同刀更新·I6 卷面其余零触）：原 :108-110 两断言（numstat 零删改+「招聘方入口是内部预览骨架」逐字在场）→改两断言「③ #263 面已收口（:27-28/:38-40 标注窗零『内部预览』残留）」+「③ #263 收口后口径句在场（招聘方功能面向企业招聘流程）」——原 diff 零删改形随 F2 改写向失效·同刀退役（注记在案）；`receipts/i6-239/**`+`i6-239-REQUEST.md` 零字节 ✓。
+
+### 断言门回执（全静态·est live=0·零模型外呼零消耗·actualSpendCny=null）
+
+- `prove:public-copy`：**14/14 EXIT=0**（新值）·`prove:uc003-i18n-locale`：**EXIT=0**（S2 zh/en 键位互洽 PASS 键集合零增删·S3 en 零 CJK PASS）·`docs:check`：**EXIT=0**（80 required files·policy 1997 managed files）·`pnpm -C apps/web prove`：**全部通过 EXIT=0**。
+- `i6-gates:prove`：内容断言（①②③④⑤邻面零触⑦est-live）全 PASS；簿记 3 FAIL 如实登记=I6 卷快照域与 i263 授权触面的作用域碰撞（⑤SSOT 四卷零触命中 execution-master-checklist.md——本刀涉句同步系 §1.2 erratum 授权面；⑦markers 命中该文件 HEAD 既存登记字样非本刀引入·`git diff` 零标记词实证；改动集恰符 unexpected=i263 触面——沿 execution-master-checklist errata②「恰符红=已提交态固有」同型）·处置归协调方（后继刀或豁免申明）·本刀不改 I6 簿记断言（§3-5 边界守住）。
+- §2-1 残留计数主断言：`rg -c "内部预览" apps/` 零残留（EXIT=1）✓；全树恒在常量面如实登记：`check-docs.mjs:175`（bend-recruiter-architecture-surface.md 需求卷在场词·历史卷零触）+ai-docs 三处历史登记（meta/directory-boundaries `:55`·meta/index `:110`·delivery/e2e-platform-integration `:158`——描述层残留非消费断言·非本刀授权触面·留 SSOT/后继刀）+本卷自引。
+- §2-2 login 面窗：删行恰 4 行全落 F1/F2/F3/F4 裁定窗·`:50-54` 年龄声明区消费链零字节（仅 F4 注记行措辞按裁决①子项改写）。
+- §2-5 markers=0：本刀改动集五类标记词零命中（⑦ 扫描对本刀新增面零命中·既存登记见上）。
+
+**收尾**：施工+随翻同 commit（注明接管续做）·⛔push·est live=0·pins 十一值零翻·SSOT/LEDGER #263 行翻面权仍归协调方 SSOT 刀（本刀零触）·`executed:awaiting_post_prove_dual`。
