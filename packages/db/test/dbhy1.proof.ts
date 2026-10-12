@@ -204,6 +204,11 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   'apps/worker/test/report-bulkhead.proof.ts',
   // 本 proof 自身（P4⑤ 读 SQL_DIR 建夹具库 + P3 模式字面量）：
   'packages/db/test/dbhy1.proof.ts',
+  // 主线既存 sql/ 镜像夹具消费（qbank-control-sec 刀 dbhy1 复跑首次现形·非本刀引入红·逐个亲核=23_api_gateway.sql
+  // 逐字节镜像对账面）：entpay-s3（e24961e7 :79）/ i2b（同代 :169）/ authz5a-gateway-mirror（ee424923 :12）。
+  'apps/api/test/entpay-s3.proof.ts',
+  'apps/api/test/i2b.proof.ts',
+  'packages/db/test/authz5a-gateway-mirror.proof.ts',
 ]);
 
 /** P4⑤ 对象类豁免：sql/ 侧独有但经亲核判定为夹具辅助/演示对象（非 fresh deploy 承载面）——逐对象登记理由。 */
@@ -213,6 +218,17 @@ const P4_OBJECT_EXEMPTIONS: ReadonlyMap<string, string> = new Map([
   ['policies:public.ai_model_invocation:p_owner', '迁移侧 0037:39 以 p_ai_model_invocation_owner 承载（改名后继在产）'],
   ['policies:public.resume_ocr_artifact:p_owner', '迁移侧 0038:21 以 p_resume_ocr_artifact_owner 承载（改名后继在产）'],
   ['indexes:uq_interview_application_binding', '0046:33 故意 DROP（评估恢复刀放宽一次性绑定）·sql/ 夹具滞后旧索引'],
+  // qbank-control-sec 刀 0176 P5 清理（裁决项④按卷推荐形）：九支遗留 GUC 策略 DROP（0013:63/:70/:75+
+  // 0029:45/:48+0031:21/:23/:40/:42·真空收口——RLS+FORCE 维持+executor 控制策略在位，re-GRANT 撞默认拒绝）。
+  ['policies:public.qbank_source:p_src_read', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_source:p_src_propose', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_source:p_src_review', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_chunk:p_qbank_chunk_read', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_chunk:p_qbank_chunk_insert', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_question:p_qbank_question_read', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_question:p_qbank_question_write', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_question_chunk:p_qbank_question_chunk_read', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
+  ['policies:public.qbank_question_chunk:p_qbank_question_chunk_write', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
 ]);
 
 function* walk(dir: string): Generator<string> {
@@ -398,7 +414,19 @@ async function main() {
       const G2 = await mkGeneration(true);
       await activate(G2);   // G1 → retired·两次构建间 corpus 未动（epoch 相同）
 
-      const evi = async (g: string) => (await pool.query('SELECT ref_id FROM qbank_generation_evidence($1,ARRAY[$2,$3],64) ORDER BY ref_id', [g, 'dbhy1:a', 'dbhy1:b'])).rows;
+      // AG-42 形 A（0176）随锚：evi 补设双 scope GUC（沿 rag04:331-332 形）——原双空无过滤路径已改为
+      // qbank_retrieval_scope_missing 报错。单一 checkout 客户端内 BEGIN+SET LOCAL 定界（set_config 与调用
+      // 同事务——pool.query 跨连会丢 session GUC，qbank-control-sec proof A2 实测换连）。
+      const evi = async (g: string) => {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          await client.query("SELECT set_config('app.qbank_serving_scope','backend/nodejs',true), set_config('app.qbank_taxonomy_version','v1',true)");
+          const rows = (await client.query('SELECT ref_id FROM qbank_generation_evidence($1,ARRAY[$2,$3],64) ORDER BY ref_id', [g, 'dbhy1:a', 'dbhy1:b'])).rows;
+          await client.query('COMMIT');
+          return rows;
+        } finally { client.release(); }
+      };
       const annBefore = await evi(G2);
       A('P5-1 G2 active 后 G1=retired（元数据在产）', (await pool.query('SELECT state FROM qbank_vector_generation WHERE id=$1', [G1])).rows[0].state === 'retired');
       const e1 = await epochNow();
@@ -419,12 +447,21 @@ async function main() {
       await expectRejected('P5-9 unknown 代被拒（check_violation）', 'qgen-' + randomUUID(), 'check_violation');
       const G3 = await mkGeneration(false);   // 保持 building
       await expectRejected('P5-10 building 代释放被拒（check_violation）', G3, 'check_violation');
-      try {
-        await pool.query("SELECT set_config('app.principal_user','mallory',false)");
-        await pool.query('SELECT qbank_release_retired_generation_storage($1)', [G1]);
-        A('P5-11 非 __system_qbank__ 释放被拒（insufficient_privilege）', false);
-      } catch (e: any) { A('P5-11 非 __system_qbank__ 释放被拒（insufficient_privilege）', String(e?.code) === '42501'); }
-      await pool.query("SELECT set_config('app.principal_user','__system_qbank__',false)");
+      // AG-41（0176）随锚：P5-11 由「非 __system_qbank__ GUC 拒绝」臂替换为 executor-only 拒绝臂——
+      // GUC 守卫已删除（伪造 GUC 不再是授权根），改断言 app_role 无 EXECUTE → 42501（ACL 即授权边界）。
+      // 单一 checkout 客户端内 BEGIN+SET LOCAL ROLE 定界（pool.query 跨连丢 SET ROLE·同上实测）。
+      {
+        const client = await pool.connect();
+        try {
+          await client.query('BEGIN');
+          await client.query('SET LOCAL ROLE app_role');
+          try {
+            await client.query('SELECT qbank_release_retired_generation_storage($1)', [G1]);
+            A('P5-11 app_role 直调释放函数被拒（executor-only·42501）', false);
+          } catch (e: any) { A('P5-11 app_role 直调释放函数被拒（executor-only·42501）', String(e?.code) === '42501'); }
+          await client.query('ROLLBACK');
+        } finally { client.release(); }
+      }
       // failed 代同样可释放（半成品分区回收·guard4 仅约束 retired）
       const G4 = await mkGeneration(false);
       await asQbankControlExecutor(pool, (c: any) => c.query('SELECT qbank_mark_generation_failed($1,$2)', [G4, 'dbhy1-fixture']));

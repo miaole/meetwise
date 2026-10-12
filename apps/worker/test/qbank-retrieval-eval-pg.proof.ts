@@ -67,16 +67,24 @@ interface ModeRun {
   hitsWithLexical: number;
 }
 
-async function runMode(mode: 'dense' | 'rrf', recipeId: string, embedder: Embedder): Promise<ModeRun> {
+/** 金标 questionId → track-local scope（AG-42 形 A 0176 随锚：双空 GUC 已改报错，holdout 逐查询锚定
+ *  金标 artifact 的 scope——与生产 interview-consumer 必设 scope 同形；召回度量即在该 leaf 语料上机械复算）。 */
+function holdoutScopeMap(): Map<string, { taxonomyVersion: string; servingScopeId: string }> {
+  return new Map(QBANK_ARTIFACTS.map((artifact) => [artifact.id, { taxonomyVersion: artifact.taxonomyVersion, servingScopeId: artifact.servingScopeId }]));
+}
+
+async function runMode(mode: 'dense' | 'rrf', recipeId: string, embedder: Embedder, scopeByQuestion: Map<string, { taxonomyVersion: string; servingScopeId: string }>): Promise<ModeRun> {
   const retrieved: string[][] = [];
   let sampleEvidence: string | undefined;
   let denseOnly = 0; let lexicalOnly = 0; let both = 0; let hitsWithLexical = 0;
   for (const item of QBANK_RETRIEVAL_RELEASE) {
     const [qv] = await embedder.embed([item.query]);
     if (!qv) throw new Error(`query_embedding_missing:${item.id}`);
+    const scope = scopeByQuestion.get(item.relevantQuestionIds[0]!);
+    if (!scope) throw new Error(`holdout_golden_scope_missing:${item.id}`);
     // 与 worker 完全相同的调用：k=12、不传 candidateK（n 由 k*8=96 推导）、retrievalMode。
     const hits: QbankHybridHit[] = await asPrincipal(pool, OWNER, (c) => hybridQbankSearch(c, {
-      query: item.query, embedding: qv, k: CHUNK_K, expectedRecipeId: recipeId, retrievalMode: mode,
+      query: item.query, embedding: qv, k: CHUNK_K, expectedRecipeId: recipeId, retrievalMode: mode, scope,
     }));
     for (const hit of hits) {
       const hasDense = hit.channels.includes('dense');
@@ -86,7 +94,7 @@ async function runMode(mode: 'dense' | 'rrf', recipeId: string, embedder: Embedd
       else if (hasLexical) lexicalOnly++;
       else denseOnly++;
     }
-    const questions = await asPrincipal(pool, OWNER, (c) => qbankQuestionResultsForHits(c, recipeId, hits, MAX_CHARS));
+    const questions = await asPrincipal(pool, OWNER, (c) => qbankQuestionResultsForHits(c, recipeId, hits, MAX_CHARS, scope));
     retrieved.push(questions.map((q) => q.ref));
     if (sampleEvidence === undefined && questions.length) sampleEvidence = questions[0]!.evidence;
   }
@@ -121,12 +129,20 @@ async function main() {
   // 3. 结构证据：rrf 确实调用真实 PostgreSQL FTS 词法函数，而非任何内存近似。
   //    短精确 term 探测证明该函数是可用的（AND 语义下只有短 term 能命中）；长自然问句的 0 命中见下方 FINDING。
   //    注意：词法函数的第一参数是 immutable generation id（qgen-*），不是 recipe id（qrecipe-*）。
+  //    AG-42 形 A（0176）随锚：探测臂同样经金标 scope 走 track-local 路径（双空 GUC=报错）。
+  const scopeByQuestion = holdoutScopeMap();
+  const probeScope = scopeByQuestion.get('question:seed:limit-1');
+  if (!probeScope) throw new Error('holdout_golden_scope_missing:limit-1');
   const lexicalFunctionLive = await asPrincipal(pool, OWNER, async (c) =>
     (await c.query("SELECT to_regprocedure('qbank_generation_lexical_search(text,text,integer)') IS NOT NULL AS ok")).rows[0]?.ok === true,
   );
-  const lexicalShortProbe = await asPrincipal(pool, OWNER, (c) => c.query(
-    'SELECT ref_id FROM qbank_generation_lexical_search($1,$2,$3)', [generationId, '限流', 10],
-  ));
+  const lexicalShortProbe = await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
+      [probeScope.servingScopeId, probeScope.taxonomyVersion]);
+    return c.query(
+      'SELECT ref_id FROM qbank_generation_lexical_search($1,$2,$3)', [generationId, '限流', 10],
+    );
+  });
   A('explicit rrf mode calls the real PostgreSQL FTS lexical function (live + exact short-term probe returns candidates)',
     lexicalFunctionLive && (lexicalShortProbe.rowCount ?? 0) > 0);
 
@@ -137,14 +153,14 @@ async function main() {
   const [shortTermVec] = await embedder.embed([shortTermQuery]);
   if (!shortTermVec) throw new Error('short_term_embedding_missing');
   const shortTermRrfHits = await asPrincipal(pool, OWNER, (c) => hybridQbankSearch(c, {
-    query: shortTermQuery, embedding: shortTermVec, k: CHUNK_K, expectedRecipeId: recipeId, retrievalMode: 'rrf',
+    query: shortTermQuery, embedding: shortTermVec, k: CHUNK_K, expectedRecipeId: recipeId, retrievalMode: 'rrf', scope: probeScope,
   }));
   A('explicit rrf mode returns at least one hit carrying the lexical channel for a known short exact term',
     shortTermRrfHits.some((hit) => hit.channels.includes('lexical')));
 
   // 4. 两种模式各自跑一遍 35 条 holdout，经真实 hybridQbankSearch → qbankQuestionResultsForHits。
-  const dense = await runMode('dense', recipeId, embedder);
-  const rrf = await runMode('rrf', recipeId, embedder);
+  const dense = await runMode('dense', recipeId, embedder, scopeByQuestion);
+  const rrf = await runMode('rrf', recipeId, embedder, scopeByQuestion);
 
   // 5. 通道边界：dense 模式绝不带 lexical；rrf 结果与 dense 是否一致由真实词法候选数决定（诚实记录，不预设）。
   A('default dense mode returns only the dense channel (no lexical)', dense.hitsWithLexical === 0 && dense.lexicalOnly === 0 && dense.both === 0);
