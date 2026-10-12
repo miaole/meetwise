@@ -2264,3 +2264,15 @@ flowchart TD
 - **P0 断链 #204 收口宣言**：成长链（评估→学习计划→职业路径→成长曲线）report-worker 成功后自动生成·弱项偏置生产直行使·前端只读·/growth 出点·Dashboard 三区块——**审计原文「整条链不可达」正式解除**。
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · 成长链接通 ≠ 弱项闭环（#252/#205/#206 另刀） · 实现方不 self-approve.
+
+### Line AUTHZ-HARDEN 5A-2 nail（2026-10-12 SSOT nail · 协调方常设 loop 授权 · 初审三独立席 FAIL 窄面 rev2 三连收口+第四席 PASS 实质背书+rev2 重审双席 BOTH PASS · merge --no-ff 并主线 @4a5528a5（双亲 8b8e20bc+74374a01·已 push origin/feat/mysql-schema-skeleton 非 force）· 簇④面硬化：#67 CSP nonce+strict-dynamic/#100 HMAC 单源四段式 ts 窗/#168 G7 双拒启+镜像排除 test/#18 payload TTL 滞留半/R4 密码 max128 · merge 后三门复验全绿 28 断言/0 错/53 臂）
+
+- Pins 十一值照抄零翻转（REQUEST §5 :147 逐字）：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀 prove 全 假体/静态·零模型外呼·零消耗）.
+- **全链 commit 列**：基线锚 dec1e9a5（基线纠偏 orphan cffc6ce9→dec1e9a5 零损失）→ EXEC d1e2a363（簇④面硬化零迁移·裁决⑧两子刀分批·5A-2 面）→ rev2 三连 8a8633ce（post-prove 席1 FAIL 处方行使：#100 线契约收敛补根 e2e 助手 commerce.ts 四段式+ts 单次绑定·e2e-helpers.proof 钉形随更·full.e2e 错签/未知单臂携新鲜 ts·恰 3 文件零产品码）→ ea35b27b（双审席2 并集处方：uc011 report-refund-http H4/H5 臂随 #100 换形 fresh ts 403 语义+新增无 ts 400 臂+honesty 臂重算+webhook body 注解 ts? 保真·uc011 门 6/52 红修至 EXIT=0 53 臂全绿）→ 74374a01（双审席1 勘误行使：payment.ts:70+tenant-wiring.manifest.ts:222 两处 payCallback 失实注释/标签如实化+run-e2e-isolated.mjs:1804 允许表补 dash 形+68 臂官路修通实跑 68/68 收据 receipts/authz-harden/uc011-refund-callback-adv-rev2-68arms.log）→ merge @4a5528a5（本 nail 载体·merge message 全链如实载）.
+- **四席裁决摘要**：初审三独立席 FAIL（窄面：live e2e 助手漏收敛/uc011 report-refund 新红/收据线断裂/失实注释/注解缺 ts——全系 rev2 三 commit 处方逐条收口）+ 第四席 PASS 实质背书（patch-id 级基线纠偏铁证 960c8636+68 臂隔离栈实跑 68/68）→ rev2 重审双席 BOTH PASS（两席独立·门复跑 53/0+68 臂收据自洽+基线红 sha256 不洗物证）.
+- **merge 后三门复验（nail 席主线树亲跑）**：pnpm e2e-helpers:prove EXIT=0（28 断言）+ npx tsc -p tsconfig.e2e.json --noEmit EXIT=0 + pnpm uc011:report-refund:http:prove EXIT=0（53 臂全绿·收据 .tmp/isolated-proof-receipts/2026-10-12T06-40-48-829Z-*·EXIT0≠covered）.
+- **冲突面如实登记（预期偏差）**：预期冲突=e2e/full.e2e.ts（主线 R3 块 vs rev2 :549-556）——实际 git 自动并零冲突，nail 席亲证 R3 运行时版本闸形（:515-552 含 §1-R3-2 两向定谳+CANDIDATE_ROUTE_POLICY_VERSION 闸）与 rev2 fresh ts 双臂（:557-563 错签臂携新鲜 ts→403+未知单臂携合法签+ts→404）语义共存；实际唯一冲突=.dockerignore（HEAD 侧 CI-WIRING #169 apps/worker/evidence vs line 侧 #168 **/test·两侧语义独立零重叠）——dual-keep 纪律两侧注释+排除项全保·HOTFIX-178 铁律 grep `^<<<<<<<`（apps packages scripts e2e ai-docs）零命中亲证.
+- **基线红如实不洗**：邻件 uc011:adv:prove:raw 基线红 18 臂 4 红（INV 3 陈旧清单+INV 期 A2 1·断言 refundWebhook 不存在而基线已在·非本刀翻红·归后继刀不修不洗·rev2 重审席 sha256 物证锁定）+ entpay S2-0 恒等不洗.
+- [ ] **STILL OPEN（R-1 遗留）**：#18 purgeStaleInterviewJobPayloads 生产零调用点=原语已落未接线——挂协调方裁「接线小刀或降格声明」；另 AUTHZ-HARDEN 5A-1（簇①②③ 账号/会话面）未开工；#143 P4 随卷挂账零码动（启用前改应用侧加密）.
+- 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · 原语已落≠接线完成 · nail≠gap closed · 实现方不 self-approve.
