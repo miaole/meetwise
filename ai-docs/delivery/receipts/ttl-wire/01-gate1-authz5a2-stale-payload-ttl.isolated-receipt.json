@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "authz5a2:stale-payload-ttl:prove",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8405,
+  "startedAt": "2026-10-12T09:25:24.791Z",
+  "finishedAt": "2026-10-12T09:25:33.196Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d10fef4d9459c8cf0b98c8fefb5e6544126f8efcd868342d586c977abfc562c",
+    "packages/db/test/authz5a2-stale-payload-ttl.proof.ts": "sha256:3499ff85070bfbfa3f7b8cf2fc1beee5590fc0ad184d0e9767468ece796b8058",
+    "packages/db/src/index.ts": "sha256:8209502903e2521f6c0096f634ecf3379c14d46b2d0372e71fedf161c39b1c17",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:9e09b9e63119364ae2d3deb865f4f1e4fcdedfa4464349513612706bfde05256",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/package.json": "sha256:411fd26292d6fca5ae25c4854c42a8bd5ea246addbb327448bfc8ab98799b879"
+  },
+  "schemaMigrationManifest": {
+    "count": 171,
+    "latest": "0169_auth_user_session.sql",
+    "digest": "sha256:424f64978fe87ff9ecfd678570913c0b6cc0322706b5af3e0f22c040b3cfbbd9"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

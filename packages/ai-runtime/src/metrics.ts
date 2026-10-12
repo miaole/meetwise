@@ -3,6 +3,7 @@
  * 10 年依赖纪律:**自建极简注册表藏 seam 后**(counter/histogram/gauge + Prom exposition,~无依赖),
  *   日后压力大了换 prom-client/OTel 只换本文件,api/worker 不动。脱敏同 trace:label 只放低基数维度(route/status/outcome),绝不放 owner/PII/原文。
  */
+import { promptVersions } from './prompts.ts';
 export type Labels = Record<string, string>;
 const HIST_BUCKETS = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];   // ms
 
@@ -101,6 +102,11 @@ export const METRIC = {
   aiTracePersistFailures: 'ai_trace_persist_failures_total',
   langfuseTracingState: 'langfuse_tracing_state',
   langfuseExportFailures: 'langfuse_export_failures_total',
+  // AG-COST1 #48 观测(只观测不改计费):cached prompt token 计数 + 缓存字段三态在场性。
+  // presence 三态=present_positive/present_zero/absent——**缺席≠零**:undefined=absent,0=present_zero 分开。
+  // emit 点在 model-client 非流+流式两 usage 解析面;label=逻辑 service(低基数,prompt 注册表单一真源)。
+  modelUsageCachedInputTokens: 'model_usage_cached_input_tokens_total',
+  modelUsageCacheFieldPresence: 'model_usage_cache_field_presence_total',
 } as const;
 
 /**
@@ -148,4 +154,11 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);
   for (const state of ['disabled', 'enabled', 'flush_failed']) m.setGauge(METRIC.langfuseTracingState, 0, { state });
   m.inc(METRIC.langfuseExportFailures, { operation: 'flush' }, 0);
+  // AG-COST1 #48:缓存字段观测基线(开机即有序列)。service 集取 prompt 注册表(promptVersions 单一
+  // 真源防漂移);新 service 首次 emit 时自建序列,基线缺失不丢数据只迟画图。
+  for (const { service } of promptVersions()) {
+    for (const presence of ['present_positive', 'present_zero', 'absent'])
+      m.inc(METRIC.modelUsageCacheFieldPresence, { service, presence }, 0);
+    m.inc(METRIC.modelUsageCachedInputTokens, { service }, 0);
+  }
 }

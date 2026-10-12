@@ -17,11 +17,13 @@
     "prove:diagnosis": "tsx test/diagnosis.proof.ts",
     "prove:ocr": "tsx test/ocr.proof.ts",
     "prove:reaper": "tsx test/reaper.proof.ts",
+    "prove:reaper-purge-wire": "tsx test/reaper-purge-wire.proof.ts",
     "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
     "prove:fence-reflow-repair": "tsx test/fence-reflow-repair.proof.ts",
     "prove:uc018-ttl": "tsx test/uc-e2e-018-ttl-sweeper-abandon.proof.ts",
     "prove:uc016-nhp-fault": "tsx test/uc-e2e-016-nhp-fault.proof.ts",
     "prove:model-invocation-reconcile": "tsx test/model-invocation-reconcile.proof.ts",
+    "prove:usage-calibration-bleed": "tsx test/usage-calibration-bleed.proof.ts",
     "prove:model-op00-db-state": "tsx test/model-op00-db-state.proof.ts",
     "prove:security": "tsx test/security.proof.ts",
     "prove:memory": "tsx test/memory.proof.ts",
@@ -133,7 +135,8 @@
     "prove:r2-p-fake-route-classify": "tsx test/r2-p-fake-route-classify.proof.ts",
     "prove:r2-p-live-route-effective": "tsx test/r2-p-live-route-effective.proof.ts",
     "prove:weakness": "tsx test/weakness.proof.ts",
-    "prove:qbank-planner-honesty": "tsx test/qbank-planner-honesty.proof.ts"
+    "prove:qbank-planner-honesty": "tsx test/qbank-planner-honesty.proof.ts",
+    "prove:ag-b-classify": "tsx test/ag-b-classify.proof.ts"
   },
   "dependencies": {
     "@langchain/langgraph": "catalog:langchain",

@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { createHash } from 'node:crypto';
 import { asErr, SCORING_SEED_CRITERION_ID, type DbPool } from '@meetwise/db';
 import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, groundedByFacts, matchesCrisisTrigger, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, scoreDispositionFromCodeUnitSpan, groundedByFacts, matchesCrisisTrigger, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 import { withGenerationProgress } from './generation-progress.ts';
 

@@ -222,6 +222,8 @@
     "fence-reflow-repair:prove:raw": "pnpm -C apps/worker prove:fence-reflow-repair",
     "model-invocation-reconcile:prove": "node scripts/run-e2e-isolated.mjs model-invocation-reconcile:prove:raw",
     "model-invocation-reconcile:prove:raw": "pnpm -C apps/worker prove:model-invocation-reconcile",
+    "ag-b-classify:prove": "node scripts/run-e2e-isolated.mjs ag-b-classify:prove:raw",
+    "ag-b-classify:prove:raw": "pnpm -C apps/worker prove:ag-b-classify",
     "model-op00:prove": "node scripts/run-e2e-isolated.mjs model-op00:prove:raw",
     "model-op00:prove:raw": "pnpm -C apps/worker prove:model-op00-db-state",
     "model-op00-usage-reconciler:prove": "node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw",
