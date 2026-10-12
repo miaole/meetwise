@@ -387,6 +387,163 @@ async function main() {
   const trialUnitsAfter402 = (await entitlement(H3)).availableUnits ?? 0;
   A(trialUnitsAfter402 === 0, `[异常] 402 后额度零泄漏(仍 ${trialUnitsAfter402},预留未落)`);
 
+  /* ════════ E2E-SCENE-409 三场追加段（R1 规整差分锚 / R2 歧义 P1 全旅程 / R3 #270 静默误判现状锚） ════════
+   * 卷=ai-docs/delivery/harness/e2e-scene-409-REQUEST.md §1（EXEC 立项重 pin 2026-10-11·§1/§5 零改·产品码零字节·
+   * 既有断言逐字保留·断言只增不弱·零 test.skip·零 capability 门控——三 fixture 全文本简历，不依赖 OCR/语音 Key 面）。
+   *
+   * 【EXEC 立项重 pin·定谳三行收据（REQUEST §2-4）】
+   *   ① 主线 policy 实测 = candidate-route-2026-10-frozen:v3（packages/domain/src/candidate-profile-route.ts:29
+   *     ·npx tsx 纯函数亲跑同值·2026-10-11）；
+   *   ② bb7ba6b6（policy v4）祖先关系 = git merge-base --is-ancestor bb7ba6b6 HEAD → exit=1 非祖先
+   *     （v4 未并主线·Ban 触 meetwise-qp 树·两向随演条款见 REQUEST §1-R3-2）；
+   *   ③ R3 预期叶定谳 = v3 现状锚 'qa/quality_engineering'（#270 静默误判主线可复现·v4 并线后随演 'backend/general'）。
+   *   三 fixture 分类器纯函数亲跑（npx tsx·2026-10-11）与 REQUEST §0.3 定谳表逐位一致：
+   *   B=backend/nodejs non-degraded · D=backend/general degraded(ambiguous_language_evidence) · E=qa/quality_engineering non-degraded。
+   *
+   * 【est live（REQUEST §6 如实申报）】R2 全旅程 ×1（真出题真作答至终态）+ R1/R3 begin-face 各 ≤1 题生成
+   * （abandon 前 worker start job 可能已出首题·如实另账）·上限 ≤3 场量级（含一次复跑余量）。
+   * 设计内还池如实记账：R1/R3 abandon=释放还池（额度净 0）·禁写「零消耗」。 */
+  // DB 直连形（g7fix1 :408-419 先例同形）：PG* env 缺失即 throw（fail-closed·Ban 静默跳过 DB 断言）·SELECT-only·连接 finally 释放。
+  async function scene409Pg() {
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    for (const n of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) if (!process.env[n]) throw new Error(`[路由409·DB] ${n} missing — isolated runner env contract required(g7fix1 同形 fail-closed)`);
+    const pgc = new Client({ host: process.env.PGHOST, port: Number(process.env.PGPORT), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    return pgc;
+  }
+  // decision/snapshot 双行读形：begin 事务内同步落库（供给先于扣额/入队·candidate-route.ts supplyCandidateProfileRoute），
+  // 有界轮询仅防可见性时序毛刺——cap 10s 后零行照 FAIL（零行即 FAIL·Ban 轮询洗绿）。
+  async function scene409RouteRows(pgc: any, interviewId: string) {
+    const t0 = Date.now();
+    let dec: any = { rowCount: 0, rows: [] as any[] };
+    for (;;) {
+      dec = await pgc.query(`SELECT route_outcome, attempt_outcome, leaf_track_id, allocation_bps, policy_version FROM candidate_profile_route_decision WHERE interview_id=$1`, [interviewId]);
+      if ((dec.rowCount ?? 0) > 0 || Date.now() - t0 >= 10_000) break;
+      await new Promise((res) => setTimeout(res, 500));
+    }
+    const snap = await pgc.query(`SELECT status, leaf_track_id, allocation_bps FROM candidate_profile_route_snapshot WHERE interview_id=$1`, [interviewId]);
+    return { dec, snap };
+  }
+
+  // ── R1 规整差分锚（e2e4_·fixture B「3 年 Node.js…」·begin 202 + decision/snapshot 双行 + abandon 还池）──
+  {
+    console.log('\n── E2E-SCENE-409 R1 规整差分锚(fixture B·backend/nodejs) ──');
+    const r1Session = await signupOrLogin(`e2e4_${tag}@x.com`, password);
+    const H4 = r1Session.headers;
+    A((await consentResumeProcessing(H4)).response.status === 200, '[路由R1] PIPL 采集同意 → 200');
+    const r1Up = await uploadTextResume(H4, '3 年 Node.js 后端开发，使用 NestJS、MySQL、Redis，负责订单服务。');
+    A(r1Up.response.status === 200 && typeof r1Up.body.resumeId === 'string', '[路由R1] 规整语料(fixture B)上传 → resumeId');
+    const r1ResumeId: string = r1Up.body.resumeId;
+    const r1UnitsBefore = (await entitlement(H4)).availableUnits ?? 0;
+    A(r1UnitsBefore >= 1, `[路由R1] trial 赠与前置额度≥1(${r1UnitsBefore})`);
+    const ivR1 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H4, body: '{}' }))).interviewId;
+    A(typeof ivR1 === 'string', `[路由R1] 建面试 → interviewId(${ivR1})`);
+    const r1Begin = await fetch(`${BASE}/interview/${ivR1}/begin`, { method: 'POST', headers: { ...H4, 'resume-id': r1ResumeId }, body: '{}' });
+    const r1BeginBody = await readJson(r1Begin);
+    A(r1Begin.status === 202 && r1BeginBody.accepted === true && typeof r1BeginBody.jobId === 'string',
+      `[路由R1] 规整 fixture begin → 202 accepted+jobId(§0.3 B 定谳 backend/nodejs·非 409; ${JSON.stringify(r1BeginBody).slice(0, 60)})`);
+    const r1UnitsAfterBegin = (await entitlement(H4)).availableUnits ?? 0;
+    A(r1UnitsAfterBegin === r1UnitsBefore - 1, `[路由R1] begin 后额度 -1(${r1UnitsBefore}→${r1UnitsAfterBegin})`);
+    {
+      const pgc = await scene409Pg();
+      try {
+        const { dec, snap } = await scene409RouteRows(pgc, ivR1);
+        A((dec.rowCount ?? 0) === 1, `[路由R1·DB] decision 恰 1 行(UNIQUE(interview_id)·零行即 FAIL; 实际 ${dec.rowCount ?? 0})`);
+        A(dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === 'backend/nodejs' && dec.rows[0]?.allocation_bps === 10000,
+          `[路由R1·DB] decision route_decided+backend/nodejs@10000bps(语言叶压通用栈·v3/v4 不变量; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+        console.log(`[路由R1] policy_version=${String(dec.rows[0]?.policy_version ?? 'n/a')} (软记录入收据·版本升级=他刀语义变更不碎本刀)`);
+        A((snap.rowCount ?? 0) === 1 && snap.rows[0]?.status === 'interview_snapshotted',
+          `[路由R1·DB] snapshot 恰 1 行+interview_snapshotted(实际 ${snap.rowCount ?? 0} 行/${snap.rows[0]?.status ?? 'none'})`);
+        A(snap.rows[0]?.leaf_track_id === dec.rows[0]?.leaf_track_id && snap.rows[0]?.allocation_bps === dec.rows[0]?.allocation_bps,
+          `[路由R1·DB] decision/snapshot 双行 leaf+bps 同值一致性(${String(snap.rows[0]?.leaf_track_id ?? 'none')})`);
+      } finally { await pgc.end().catch(() => {}); }
+    }
+    const r1Abandon = await fetch(`${BASE}/interview/${ivR1}/abandon`, { method: 'POST', headers: H4, body: '{}' });
+    const r1AbandonBody = await readJson(r1Abandon);
+    A(r1Abandon.status === 200 && r1AbandonBody.abandoned === true && r1AbandonBody.released === 'released',
+      `[路由R1] abandon → abandoned+released(UC018 同形·设计内还池如实记账·本场后续零消费; ${JSON.stringify(r1AbandonBody).slice(0, 80)})`);
+    const r1UnitsAfterAbandon = (await entitlement(H4)).availableUnits ?? 0;
+    A(r1UnitsAfterAbandon === r1UnitsBefore, `[路由R1] abandon 后额度净 0 还池(${r1UnitsBefore}→${r1UnitsAfterAbandon})`);
+  }
+
+  // ── R2 歧义 P1 全旅程（e2e5_·fixture D「自动化测试工程师…Python…」·degraded backend/general 兜底叶可开成完整面试）──
+  {
+    console.log('\n── E2E-SCENE-409 R2 歧义 P1 全旅程(fixture D·degraded backend/general·#133/#195 409 退役定谳) ──');
+    const r2Session = await signupOrLogin(`e2e5_${tag}@x.com`, password);
+    const H5 = r2Session.headers;
+    A((await consentResumeProcessing(H5)).response.status === 200, '[路由R2] PIPL 采集同意 → 200');
+    const r2Up = await uploadTextResume(H5, '自动化测试工程师，负责 Python 测试工具与接口测试平台开发。');
+    A(r2Up.response.status === 200 && typeof r2Up.body.resumeId === 'string', '[路由R2] 歧义语料(fixture D)上传 → resumeId');
+    const r2ResumeId: string = r2Up.body.resumeId;
+    const r2UnitsBefore = (await entitlement(H5)).availableUnits ?? 0;
+    const ivR2 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H5, body: '{}' }))).interviewId;
+    A(typeof ivR2 === 'string', `[路由R2] 建面试 → interviewId(${ivR2})`);
+    const r2Begin = await fetch(`${BASE}/interview/${ivR2}/begin`, { method: 'POST', headers: { ...H5, 'resume-id': r2ResumeId }, body: '{}' });
+    const r2BeginBody = await readJson(r2Begin);
+    A(r2Begin.status === 202 && r2BeginBody.accepted === true,
+      `[路由R2] 歧义简历 begin 硬断言 202 accepted(≠409/begin_failed·#133/#195 P1 旅程不变量·409 candidate_route_undecided 仅 profile_unavailable 防御可达本夹具结构不可触发; got ${r2Begin.status}/${JSON.stringify(r2BeginBody).slice(0, 60)})`);
+    const r2UnitsAfterBegin = (await entitlement(H5)).availableUnits ?? 0;
+    A(r2UnitsAfterBegin === r2UnitsBefore - 1, `[路由R2] begin 后额度 -1(${r2UnitsBefore}→${r2UnitsAfterBegin})`);
+    {
+      const pgc = await scene409Pg();
+      try {
+        const { dec, snap } = await scene409RouteRows(pgc, ivR2);
+        A((dec.rowCount ?? 0) === 1 && dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === 'backend/general' && dec.rows[0]?.allocation_bps === 10000,
+          `[路由R2·DB] decision 降级臂兜底 route_decided+backend/general@10000bps(§0.3 D 定谳 degraded ambiguous_language_evidence·qa/python 双 specific 不入闸; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+        A((snap.rowCount ?? 0) === 1 && snap.rows[0]?.leaf_track_id === dec.rows[0]?.leaf_track_id,
+          `[路由R2·DB] snapshot 恰 1 行+同叶一致性(backend/general; 实际 ${snap.rowCount ?? 0} 行/${String(snap.rows[0]?.leaf_track_id ?? 'none')})`);
+      } finally { await pgc.end().catch(() => {}); }
+    }
+    // 全旅程（真出题真作答·服务端 question identity 口径零改）——420s deadline 沿既有值·禁放宽。
+    const { INTERVIEW_TERMINALS } = await import('./helpers/interview.ts');
+    const r2Loop = await driveInterviewToTerminal({
+      interviewId: ivR2,
+      token: r2Session.token,
+      headers: H5,
+      assert: A,
+      questionAnswer: '我在 Python 接口测试平台做自动化,用 pytest 组织用例跑 CI 回归;服务端开发我用 Redis 做缓存、MySQL 做主存储,限流用令牌桶。',
+      questionAcceptedLabel: (n) => `[路由R2] 降级叶第 ${n} 题 canonical /turn → 202`,
+      clarificationAcceptedLabel: '[路由R2] 降级叶澄清 canonical /turn → 202',
+    });
+    if (r2Loop.terminal) reviews.recordTerminal(r2Loop.terminal);
+    A(r2Loop.questions >= 1, `[路由R2] 降级兜底叶真出题 ≥1(实际 ${r2Loop.questions} 道;事件:${[...r2Loop.kinds].join(',')})`);
+    A(r2Loop.terminal !== '' && (INTERVIEW_TERMINALS as readonly string[]).includes(r2Loop.terminal),
+      `[路由R2] 降级兜底叶全旅程到终态(${r2Loop.terminal})∈INTERVIEW_TERMINALS——无死胡同·degraded 叶可开成完整面试(用户旅程第 4 断点修复的 E2E 行为证) ✅`, 'worker');
+  }
+
+  // ── R3 #270 静默误判现状锚（e2e6_·fixture E「后端开发 Redis MySQL 自动化测试」·EXEC 时点定谳=v3 现状）──
+  {
+    console.log('\n── E2E-SCENE-409 R3 #270 静默误判现状锚(fixture E·v3 现状锚·随演条款见 REQUEST §1-R3-2) ──');
+    const r3Session = await signupOrLogin(`e2e6_${tag}@x.com`, password);
+    const H6 = r3Session.headers;
+    A((await consentResumeProcessing(H6)).response.status === 200, '[路由R3] PIPL 采集同意 → 200');
+    const r3Up = await uploadTextResume(H6, '后端开发 Redis MySQL 自动化测试');
+    A(r3Up.response.status === 200 && typeof r3Up.body.resumeId === 'string', '[路由R3] #270 语料(fixture E)上传 → resumeId');
+    const r3ResumeId: string = r3Up.body.resumeId;
+    const r3UnitsBefore = (await entitlement(H6)).availableUnits ?? 0;
+    const ivR3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H6, body: '{}' }))).interviewId;
+    A(typeof ivR3 === 'string', `[路由R3] 建面试 → interviewId(${ivR3})`);
+    const r3Begin = await fetch(`${BASE}/interview/${ivR3}/begin`, { method: 'POST', headers: { ...H6, 'resume-id': r3ResumeId }, body: '{}' });
+    const r3BeginBody = await readJson(r3Begin);
+    A(r3Begin.status === 202 && r3BeginBody.accepted === true,
+      `[路由R3] #270 误判语料 begin → 202 accepted(误判面与 409 面互斥·两态共同预期·#270 原文「不报 409」; got ${r3Begin.status})`);
+    {
+      const pgc = await scene409Pg();
+      try {
+        const { dec } = await scene409RouteRows(pgc, ivR3);
+        A((dec.rowCount ?? 0) === 1 && dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === 'qa/quality_engineering',
+          `[路由R3·DB] #270 静默误判现状·v4 并线后随演(backend/general): leaf=qa/quality_engineering(主线 policy=v3 现状锚·EXEC 实测 bb7ba6b6 非祖先·general+唯一 specific 叶优先序取该叶·误判可复现即现状牙; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+      } finally { await pgc.end().catch(() => {}); }
+    }
+    const r3Abandon = await fetch(`${BASE}/interview/${ivR3}/abandon`, { method: 'POST', headers: H6, body: '{}' });
+    const r3AbandonBody = await readJson(r3Abandon);
+    A(r3Abandon.status === 200 && r3AbandonBody.abandoned === true && r3AbandonBody.released === 'released',
+      `[路由R3] abandon → abandoned+released(UC018 同形·设计内还池如实记账; ${JSON.stringify(r3AbandonBody).slice(0, 80)})`);
+    const r3UnitsAfterAbandon = (await entitlement(H6)).availableUnits ?? 0;
+    A(r3UnitsAfterAbandon === r3UnitsBefore, `[路由R3] abandon 后额度净 0 还池(${r3UnitsBefore}→${r3UnitsAfterAbandon})`);
+  }
+
   const { response: order2Res, body: ord } = await createOrder(H, 'pack_10', `${email}:order2`);
   A(order2Res.status === 200 && typeof ord.orderId === 'string', '[异常前置] 第二笔订单可用于错签断言');
   const badSig = await postPayWebhook(ord.orderId, 't', 'deadbeef');
