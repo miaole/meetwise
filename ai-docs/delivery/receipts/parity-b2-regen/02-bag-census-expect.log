@@ -1,0 +1,44 @@
+CENSUS e2e/full.e2e.ts: scan=135A/1T baseline=84A/1T added=74A(74keys)/0T removed=23A(alreadyAL=16,new=7)/0T(alreadyAL=0,new=0)
+CENSUS e2e/helpers/assert.ts: scan=1A/0T baseline=2A/0T added=0A(0keys)/0T removed=1A(alreadyAL=1,new=0)/0T(alreadyAL=0,new=0)
+CENSUS e2e/helpers/e2e-helpers.proof.ts: scan=228A/28T baseline=223A/31T added=21A(20keys)/5T removed=16A(alreadyAL=6,new=10)/8T(alreadyAL=5,new=3)
+CENSUS e2e/helpers/interview.ts: scan=4A/1T baseline=4A/1T added=0A(0keys)/0T removed=0A(alreadyAL=0,new=0)/0T(alreadyAL=0,new=0)
+CENSUS e2e/performance.e2e.ts: scan=11A/1T baseline=11A/1T added=0A(0keys)/0T removed=0A(alreadyAL=0,new=0)/0T(alreadyAL=0,new=0)
+CENSUS scripts/bounded-command.proof.mjs: scan=8A/1T baseline=8A/1T added=0A(0keys)/0T removed=0A(alreadyAL=0,new=0)/0T(alreadyAL=0,new=0)
+CENSUS scripts/local-e2e-receipt.proof.mjs: scan=41A/7T baseline=45A/13T added=0A(0keys)/0T removed=4A(alreadyAL=4,new=0)/6T(alreadyAL=6,new=0)
+--- dead assertion identities (full.e2e.ts) ---
+{"kind":"A","label":"[异常前置] 无额度用户仍可完成简历处理同意","conditionDigest":"sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"}
+{"kind":"A","label":"PIPL 采集同意 → 200","conditionDigest":"sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"}
+{"kind":"A","label":"[异常前置] 无额度用户持有合法且本人所属的 resumeId","conditionDigest":"sha256:484f491b472cd5f61758ea894758fb2b64e8fde21fbab5c0ef8165ecc13feda4"}
+{"kind":"A","label":"[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转","conditionDigest":"sha256:ef0718f854bad3485a2ac9cd5457cdce219c5bb6c0b75fd032370cf5e42a2f42"}
+{"kind":"A","label":"[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分","conditionDigest":"sha256:424cf09a68ffe72c493b9a86422dce7f16c559c2bf79c1a9268c7dced380353c"}
+{"kind":"A","label":"[状态机] 岗位终态后 {} finalize → 200，服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'})","conditionDigest":"sha256:e55f0b81f452a281ea1d258fad8f7370cd4b96199503524150350dc38fff3f05"}
+{"kind":"A","label":"[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）","conditionDigest":"sha256:6491a1cd6ea3289ce245066671653c0413df2e058e9f89613e5743e1b65cee5e"}
+--- dead assertion identities (helpers) ---
+{"kind":"assert.equal","label":"","conditionDigest":"sha256:21025b9444a887adefbbe814377e84a58fcea17a791696ae33fabb30d46907aa"}
+{"kind":"assert.notEqual","label":"","conditionDigest":"sha256:6ef8ed47f213da23320c1946f4d91105aff3dd152479ef18cd64eafa3f808c36"}
+{"kind":"assert.equal","label":"ord-1:txn-1:paid","conditionDigest":"sha256:13939cc3bc3bf337b386a315f89faeba100fd23978e04b34e9f404a1b7db4983"}
+{"kind":"assert.match","label":"","conditionDigest":"sha256:59026ac6446c6570846950602469b3ebd957d6fc0c3c29b1b7b0d7604912a6fe"}
+{"kind":"assert.match","label":"","conditionDigest":"sha256:aae4d7f08789ef81000142b0675c4375c6523bc3894339ff1c7fd677c5dea2cc"}
+{"kind":"assert.notEqual","label":"","conditionDigest":"sha256:5f32a30957f03908a1cf5be1c36380dc322741a34567021897a04013451f9aa0"}
+{"kind":"assert.notEqual","label":"","conditionDigest":"sha256:7f62fd8a47ffabd8bf3560387ff1e16e29f91829f8f73665c76b842105ed60ab"}
+{"kind":"assert.notEqual","label":"","conditionDigest":"sha256:906e09361259d93acc618bd1a4f52b1245d61ccfbd51fd4d53ffea1e09b9541a"}
+{"kind":"assert.throws","label":"","conditionDigest":"sha256:2c949136e0e56221a2ba5aa6cee70bf664b663a10b2e50966d28f8052f7e0c83"}
+{"kind":"assert.throws","label":"","conditionDigest":"sha256:d56525187e9038155ec31cfb98782dee0d0124596fcfd0bbdada8f296485341b"}
+--- dead test identities (helpers) ---
+--- added sample (full, 3 of 74) ---
+{"kind":"A","label":"[R4-A-1] 软删前 GET /resume 在册:resumes 含主旅程 resumeId(${String(resumeId).slice(0, 8)})","digest":"sha256:573829b223bdafe0aff631bf327e8dc01e832eed106b33aa780205208b4c6dd0"}
+{"kind":"A","label":"[R4-A-2] DELETE /privacy/resume-data → 202 软删受理(mode=logical+purgePending=true·S2 前 residual 非完成态)+resumesFenced=${eraseBody.resumesFenced}≥1+requestId 在场","digest":"sha256:15919b91bf5196c55d0ea0051794e9d92a8908b03fb2ec3a6c0299e299e89102"}
+{"kind":"A","label":"[R4-A-3] 重放 DELETE → 202 ∧ resumesFenced=0(空集同形幂等·202 形如实)","digest":"sha256:cac6aa01ea84b2e734deec6dc7faec1a6148e0e6ee64583c7774ad5321b36738"}
+--- added sample (helpers assertions, 3 of 21) ---
+{"kind":"assert.equal","label":"","digest":"sha256:0d1e7f0d723497f6b89f668359b4a36a2f9734cd74c67667ec1bdd18fc94d995"}
+{"kind":"assert.equal","label":"","digest":"sha256:cc22039deb288612d45a4f0842d16f286b68be34acb8d1c1ec76bf608e7212f0"}
+{"kind":"assert.equal","label":"","digest":"sha256:ead1abfdc9c5489c4f193ca8ab4818103ce8b4e813f3b935fa9f34e57b21d543"}
+--- added tests (helpers, all 5) ---
+{"kind":"test","label":"adminHeaders 有令牌走 jsonHeaders Bearer 形，令牌原样透传不 rewrite","digest":"sha256:24de3e61f2ddbff52378dd83b3f7be2e1ede464dab424bc017f362279467eba5"}
+{"kind":"test","label":"adminHeaders 缺/空 E2E_ADMIN_TOKEN 即 throw，不静默跳过审批步","digest":"sha256:390d8a6a5a3cd545b9872944f56d73ca842d9c36748371f5c5061d98c7707089"}
+{"kind":"test","label":"createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签","digest":"sha256:7e364b519cdeb2188950a5a1245a1a5fd91cc7d217b6d3b3bc35a4df57069d88"}
+{"kind":"test","label":"full.e2e 源码锁：入账必须 200 且 credited|already，错签 403，未知单 404","digest":"sha256:0ae8c2da72b935ce2e3b87439d7f47d260ddce408125940a3836a0b807cc53c6"}
+{"kind":"test","label":"支付 webhook HMAC 绑定 orderId:txn:paid:ts 四段，换单/换流水/换事件/换 ts 都不能复用签名","digest":"sha256:a49cb4a7c0b7758a4197e30c76cb66e2821fdc6f6be054506c4113650c65b1db"}
+SCAN-TOTALS tests=39 assertions=428 files=7
+ALLOWLIST entries=7 existingDeltaTests=11 existingDeltaAssertions=27
+CENSUS-OK all EXPECT anchors matched
