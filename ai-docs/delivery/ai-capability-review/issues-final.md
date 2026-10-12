@@ -2,7 +2,7 @@
 
 - 代码基线：`<外部只读快照>/meetwise-latest`（落地形式调整·原文本机快照径），commit `2fab7946`，只读复核，没有运行代码。
 - 复核日期：2026-10-12（Asia/Shanghai）。
-- 新增问题共 38 条（AG-01–AG-38）：P0 0 / P1 7 / P2 9 / P3 22。另有 18 个聚类已在产品审计总表中，只引用编号，不计入新增（见文末）。
+- 新增问题共 43 条（AG-01–AG-43）：P0 0 / P1 9 / P2 10 / P3 24。另有 18 个聚类已在产品审计总表中，只引用编号，不计入新增（见文末）。
 - 与 `issues-final.csv` 一一对应（同一份数据源生成）。“交叉印证路数”= 5 份原始报告中独立发现该问题的报告数；本次补盲新发现的记为 0。
 - 维度取值：RAG / 记忆 / 工具 / Prompt / 缓存 / 上下文 / 编排运行时 / 产品契合 / 成本。
 
@@ -48,6 +48,11 @@
 | AG-36 | P3 | 编排运行时 | packages/db 直接钉死 @langchain/langgraph-checkpoint 1.1.3，不走 catalog；0043 手抄 vendor migrations，运行时没有版本自检 | 1 | — |
 | AG-37 | P3 | RAG | 检索侧的 weighted-deficit 每个 job 都从 0 开始，而一个 job 只出一题，所以多叶子岗位的检索恒定落在权重最大的那个叶子上，按轮配额从来不会收敛 | 0 | #197、#202 |
 | AG-38 | P3 | 工具 | 请求体从不带 tools/tool_choice（没有原生 function calling）；ai-runtime 里的 runToolLoop 有界工具循环只导出，生产零调用。主面试回路用代码前置检索是合理的，但开放问答类场景缺少只读工具层 | 1 | — |
+| AG-39 | P1 | 产品契合 | 不支持企业私有题库、无私有优先检索；只有一份平台公共题库，无企业/租户字段 | 0 | #110、#271 |
+| AG-40 | P1 | 产品契合 | C 端练习面试用不上题库：begin 只写 candidate_profile_route_snapshot，检索只读 interview_route_snapshot，降级 route_snapshot_missing | 0 | — |
+| AG-41 | P2 | RAG | 0146 退役代存储释放函数用会话变量 app.principal_user 鉴权，app_role 可自设，违反 0066:90 / 0067:36 | 0 | — |
+| AG-42 | P3 | RAG | serving_scope 与 taxonomy_version 都为空时检索不按赛道过滤 | 0 | — |
+| AG-43 | P3 | RAG | 审核人缺失记为 __system_qbank__；退役/失败代释放函数无调度 | 0 | — |
 
 ## 逐条详情
 
@@ -468,6 +473,62 @@
 - **用户影响**：目前没有影响，属于能力缺口。
 - **修法**：需要开放问答时再基于 runToolLoop 做只读工具层，并设计多步 invoke 的幂等。
 - **关联审计总表编号**：—
+
+### AG-39【P1·产品契合】不支持企业私有题库、无私有优先检索；只有一份平台公共题库，无企业/租户字段
+
+- **复核结论**：成立（已核实；无企业/租户字段）
+- **交叉印证路数**：0（来源：qbank-acl 单路探索，未交叉复核）
+- **源编号**：qbank-acl P3；关联用户决策「题库分层与私有优先」
+- **file:line**：packages/db/migrations/0013_*.sql / 0029 / 0031（qbank 表无 org_id/tenant）；explore/qbank-acl.md §0、§1「企业自建题库：不存在」、§2、§5 P3；rg `org_id|tenant|enterprise` 在 qbank 迁移与代码中无业务字段
+- **触发例子**：企业 A 希望只用自建私有题做岗位面试，或希望「私有优先、公共补足」——现有检索只能打全局公共题库，按 serving_scope 赛道过滤，无法按企业隔离或优先。
+- **用户影响**：无法兑现「企业私有题库 / 私有优先」；多企业共用一份公共池，与产品分层决策不一致。
+- **修法**：表加 `owner_kind(platform/org)` 与 `org_id`；检索函数按场景在库内强制过滤并私有优先排序；企业私有题由审核通过的招聘方维护（关联 #110、#271），企业审核 + 平台内容安全兜底，同样版本化。见 README「设计决策：题库分层与私有优先」。
+- **关联审计总表编号**：#110、#271
+
+### AG-40【P1·产品契合】C 端练习面试用不上题库：begin 只写 candidate_profile_route_snapshot，检索只读 interview_route_snapshot，降级 route_snapshot_missing
+
+- **复核结论**：成立（已核实）
+- **交叉印证路数**：0（来源：qbank-acl 单路探索，未交叉复核）
+- **源编号**：qbank-acl P2
+- **file:line**：apps/api/src/modules/interview/interview.service.ts:297-300（begin 只写 candidate_profile_route_snapshot）；apps/worker/src/interview-consumer.ts:254-262（检索读 getInterviewRouteSnapshot）；packages/db/src/job-route-decision.ts:355-361（只查 interview_route_snapshot）；packages/db/src/candidate-route.ts:108-113（注释写明检索面不走本函数）
+- **触发例子**：用户开一场 C 端练习面试 → 写入 candidate_profile_route_snapshot → worker 检索找不到 interview_route_snapshot → `degradedRetrieval('route_snapshot_missing')` → 不出库题，只能现场生成或降级。
+- **用户影响**：C 端练习名义上有题库，实际检索链路用不上公共题库，练习质量与成本都受影响。
+- **修法**：C 端 begin 同时写入（或投影到）`interview_route_snapshot`；或检索侧在 application_id 为空时回退读 `candidate_profile_route_snapshot`；保证练习可按赛道打公共题库。
+- **关联审计总表编号**：—
+
+### AG-41【P2·RAG】0146 退役代存储释放函数用会话变量 app.principal_user 鉴权，app_role 可自设，违反 0066:90 / 0067:36
+
+- **复核结论**：成立（代码已核实；利用条件属推断）
+- **交叉印证路数**：0（来源：qbank-acl 单路探索，未交叉复核）
+- **源编号**：qbank-acl P1
+- **file:line**：packages/db/migrations/0146_*.sql:20-23,61-62（`GRANT EXECUTE TO app_role`，仅判断 `current_setting('app.principal_user')='__system_qbank__'`）；0066:90-93 / 0067:36-38（规定不得以 GUC 作鉴权根、执行授权才是边界）
+- **触发例子**：任一持有 app_role 的连接执行 `set_config('app.principal_user','__system_qbank__',true)` 后调用释放函数，可以 DEFINER 身份对符合条件的 retired/failed 代做 DETACH+DROP。
+- **用户影响**：运行时角色可触发 DDL 删分区；当前范围限于 retired/failed 且（retired 时）epoch 已前进的代，但仍违背既定鉴权边界，failed 代缺少 epoch 守卫。
+- **修法**：收回 app_role 的 EXECUTE，只授给 `qbank_control_executor`（或 control definer）；函数内用角色/definer 断言鉴权，删除对 `app.principal_user` 的依赖。
+- **关联审计总表编号**：—
+
+### AG-42【P3·RAG】serving_scope 与 taxonomy_version 都为空时检索不按赛道过滤
+
+- **复核结论**：成立（已核实）
+- **交叉印证路数**：0（来源：qbank-acl 单路探索，未交叉复核）
+- **源编号**：qbank-acl P4
+- **file:line**：packages/db/migrations/0106_*.sql:73-82（两 GUC 皆空则不做赛道过滤）；packages/db/src/qbank-generation-retrieval.ts:59-65（scope 为 undefined 时不 set_config，走无过滤路径）
+- **触发例子**：调用方未设置 serving_scope/taxonomy_version → ANN/lexical 检索跨所有赛道返回公共题。
+- **用户影响**：赛道串题（内容本身公开，不构成租户泄露）；依赖应用层保证必传 scope，库内无硬闸。
+- **修法**：生产路径要求两 GUC 均非空，否则函数直接报错；或删除「双空放行」旧分支，与 trackLocal 强制一致。
+- **关联审计总表编号**：—
+
+### AG-43【P3·RAG】审核人缺失记为 __system_qbank__；退役/失败代释放函数无调度
+
+- **复核结论**：成立（已核实）
+- **交叉印证路数**：0（来源：qbank-acl 单路探索，未交叉复核）
+- **源编号**：qbank-acl P6、P7
+- **file:line**：packages/db/src/qbank-curation.ts:52-55（`reviewSource` coalesce 审核人为 `__system_qbank__`）；packages/db/migrations/0146_*.sql:9,15-62（释放函数无生产调用方，全仓仅 proof 引用）
+- **触发例子**：审核调用未带主体 → 审计显示系统账号；retired/failed 代分区无人定期释放 → 存储持续增长。
+- **用户影响**：审计归因失真；退役代存储依赖人工运维，易遗漏。
+- **修法**：审核人缺失应拒绝或记明确错误，不得静默写成 `__system_qbank__`；为 0146 释放函数加受控调度（仍须先修 AG-41 鉴权），并打点监控未释放代数量。
+- **关联审计总表编号**：—
+
 
 ## 已在审计总表中的问题（只引用编号，不计入新增）
 
