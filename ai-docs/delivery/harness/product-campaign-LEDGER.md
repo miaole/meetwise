@@ -412,7 +412,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | **nail `928b2612` 收官**（merge 已推非 force·双亲 `09768397`+`114f7189`·post 双席 BOTH PASS·merge 后五门 33/28/14 臂+typecheck 3/3+docs:check 全绿·白名单只增不清约束生效·AG-01 准入=刀 D 骨架已立·详情 checklist「Line AG-C nail」段） |
 | 失败语义 | 刀 D | AG-01 准入去终态化 | 待起草（骑刀 C 骨架） |
 | 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | **nail `a2b0795f` 收官**（merge 已推非 force·双亲 `8603dc65`+`0dc4f5d7`·post 双席 BOTH PASS·merge 后五门 51 断言五臂+migrate 173 含 0178+report-retry+typecheck 3/3+docs:check 全绿·AG-10 守卫与重试开关同 commit 硬约束履约·白名单只增不清·STILL OPEN：S12 阈值追认/多实例 Redis 归计费·详情 checklist「Line AG-E nail」段） |
-| 失败语义 | 刀 F | AG-02 残面四类有界 re-roll | 待起草（骑刀 B） |
+| 失败语义 | 刀 F | AG-02 残面四类有界 re-roll | **nail `74ca131c` 收官**（merge 已推非 force·双亲 `a89471ef`+`b29d861d`·post 双席 BOTH PASS·merge 后门 47/25/43 臂+typecheck 3/3+docs:check 全绿·四类族有界 re-roll（MAX_ERROR_REROLL=2·键+revision 双换·每 roll 重过全闸·MALFORMED 吸收刀 B 两码）+耗尽换 competency 不终场（连续耗尽帽=2）+unscored 0 分继续（concluded 禁置）·attempt 通道字节零改·STILL OPEN：0046 混合 unscored 放松归计费/provider_timeout 独立码归后继·详情 checklist「Line AG-F nail」段）·**失败语义轨六刀位图 @刀 F 收官**：A=merge `a89471ef` 已并主线（docs 段归刀 A 席登记）·B `2a2fee56` 收官·C `928b2612` 收官·E `a2b0795f` 收官·F 本刀收官·D=REQUEST `ffa1fa62` 在途（待起草→已立项待双审） |
 | 成本轨 | ①止血+观测 | AG-07+#48 | **nail 6f2ed876 收官**（env 双旋钮缺省关停+三端点观测） |
 | 成本轨 | ②-⑥ | AG-07 迁移三件套/AG-12 估算/AG-11 三件套/AG-08/#48 后继 | 队列（②以①旋钮+观测为输入） |
 | 安全 | qbank 小刀 | AG-41+42（5 函数）+43 调度半+P5 | REQUEST 9484bc54 双审席1 在途（迁移 0176+） |
