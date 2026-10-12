@@ -487,6 +487,231 @@ async function main() {
       `[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)`);
   }
 
+  /* ════════ 第 10 段 · e2e-scene-batch2:R4 隐私升 LIVE(A/B 两臂)+ R5 同意撤回九步 ════════
+   * 卷尾追加落点(§1):既有全部简历/面试依赖断言已完成,擦除面后置零扰动。产品码+scripts 零字节。
+   * est live=0 场量级:R4 零 begin 零模型(空壳不 begin/围栏 410 扫/DB SELECT-only),R5 同意三态+文本上传纯本地摄取。
+   * 如实边界:软删受理≠物理清除(purgePending 恒真直至 S2·响应永不携带完成态字段);interview-data
+   * 公开 DELETE 503 冻结面正面行使(pin 值不翻·resume-data 202 升面不在 pin 立法域·两分读法)。
+   * EXEC 重 pin(2026-10-11 实读更正):privacy.service deleteResumeData :81-99 / HMAC 回落 AUTH_SECRET
+   * :101-108 / interview-data 恒 throw :67-71;privacy.controller DELETE resume-data=202 :67-71;
+   * resume.service 文本同意门 403 :203 / list 过滤 :226 / profile RLS 0 行 404 :312 / deduped :205;
+   * interview.service 围栏先判序 :521;四表=0001_baseline:38(interview_event)/:224(ai_report)/
+   * :253(interview_job)+0019_schema_drift_reconcile:19(question_feedback)。
+   * 0152 笔误更正(备查登记):仓内双 0152 重号=0152_consent_revoke_grant+0152_resume_soft_delete_fence;
+   * 墓碑=privacy_begin_resume_soft_delete(后者)·resume.erasure_requested_at 同文件补列。
+   */
+  console.log('\n── e2e-scene-batch2 · R4-A resume-data 全量软删(202 两态·过滤≠物理删除如实) ──');
+  // 无体请求剥 content-type:JSON 头+零长体会被 body-parser 400 拒(「Body cannot be empty when
+  // content-type is set to application/json」)——无体 DELETE/POST 沿 proof 蓝本纯 authorization 头形。
+  const noCT = (h: Record<string, string>): Record<string, string> => Object.fromEntries(Object.entries(h).filter(([k]) => k !== 'content-type'));
+  {
+    // R4-A-1 前置读:主旅程既有 resumeId 在册(软删前证据·resume.service list 过滤 :226 尚未排除)。
+    const listBefore = await readJson(await fetch(`${BASE}/resume`, { headers: H }));
+    A(Array.isArray(listBefore.resumes) && listBefore.resumes.some((x: any) => x.id === resumeId),
+      `[R4-A-1] 软删前 GET /resume 在册:resumes 含主旅程 resumeId(${String(resumeId).slice(0, 8)})`);
+
+    // R4-A-2 DELETE → 202 软删受理:mode=logical+purgePending(恒真)+resumesFenced≥1+requestId 在场。
+    const eraseRes = await fetch(`${BASE}/privacy/resume-data`, { method: 'DELETE', headers: noCT(H) });
+    const eraseBody = await readJson(eraseRes);
+    A(eraseRes.status === 202 && eraseBody.mode === 'logical' && eraseBody.purgePending === true
+      && Number(eraseBody.resumesFenced) >= 1 && typeof eraseBody.requestId === 'string',
+      `[R4-A-2] DELETE /privacy/resume-data → 202 软删受理(mode=logical+purgePending=true·S2 前 residual 非完成态)+resumesFenced=${eraseBody.resumesFenced}≥1+requestId 在场`);
+
+    // R4-A-3 重放 → 202 ∧ resumesFenced=0(空集同形幂等·不建第二份账)。
+    const eraseReplayRes = await fetch(`${BASE}/privacy/resume-data`, { method: 'DELETE', headers: noCT(H) });
+    const eraseReplay = await readJson(eraseReplayRes);
+    A(eraseReplayRes.status === 202 && eraseReplay.mode === 'logical' && eraseReplay.purgePending === true
+      && eraseReplay.resumesFenced === 0,
+      `[R4-A-3] 重放 DELETE → 202 ∧ resumesFenced=0(空集同形幂等·202 形如实)`);
+
+    // R4-A-4 list 重读:resumes 零含 resumeId(S1 即时可见面)。
+    const listAfter = await readJson(await fetch(`${BASE}/resume`, { headers: H }));
+    A(Array.isArray(listAfter.resumes) && !listAfter.resumes.some((x: any) => x.id === resumeId),
+      `[R4-A-4] 软删后 list 零含:resumes 不再含 resumeId(即时可见面)`);
+
+    // R4-A-5 profile → 404(0063 active-read RLS 0 行链·父行非 ingested)。直 fetch 取 Response(helper 丢 status 面·席2 登记3)。
+    const profileRes = await fetch(`${BASE}/resume/${resumeId}/profile`, { headers: H });
+    const profileBody = await readJson(profileRes);
+    A(profileRes.status === 404 && profileBody.error === 'not_found_or_forbidden',
+      `[R4-A-5] 软删后 profile → 404 not_found_or_forbidden(0063 active-read RLS 0 行→404)`, 'data_or_permission');
+
+    // R4-A-6 数据可携导出排除已删(privacy.service export :52 NOT IN erasure_fenced,erased)。
+    const exportBody = await readJson(await fetch(`${BASE}/privacy/export`, { headers: H }));
+    A(Array.isArray(exportBody.resumes) && !exportBody.resumes.some((x: any) => x.id === resumeId),
+      `[R4-A-6] GET /privacy/export 零含 resumeId(数据可携不含已删数据)`);
+
+    console.log('✓ R4-A resume-data 全量软删面 PASS(202 两态+读门+导出·物理行证在下 DB 直连段)');
+  }
+
+  console.log('\n── e2e-scene-batch2 · R4-B interview 预览围栏(零 begin 零 live·503 pin 正面行使) ──');
+  {
+    const fenceTag = randomUUID();
+    // R4-B-1 新建空壳:主用户既有面试全终态(completed/failed/abandoned 均被 create 复用过滤排除)→ reused=false。
+    const createRes = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
+    const created = await readJson(createRes);
+    const fencedIv = created.interviewId ?? created.id ?? created.resultId;
+    A((createRes.status === 200 || createRes.status === 201) && created.reused === false && typeof fencedIv === 'string',
+      `[R4-B-1] 新建空壳面试 → 新 id(${String(fencedIv).slice(0, 8)}) ∧ reused=false(全终态不复用·零 begin 零 live)`);
+
+    // R4-B-2 公开 DELETE → 503 正面行使(冻结面·privacy.service :67-71 恒 throw·重放同形)。
+    const fenceKey = `e2e-erase-${tag}-${fenceTag}`;
+    const delRes = await fetch(`${BASE}/privacy/interview-data/${fencedIv}`, { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
+    const delBody = await readJson(delRes);
+    A(delRes.status === 503 && delBody.error === 'interview_erasure_authorization_not_available',
+      `[R4-B-2] 公开 DELETE interview-data → 503 interview_erasure_authorization_not_available(503 pin 正面行使·冻结面不开闸)`);
+
+    // R4-B-2b 同键重放仍 503(不因重放建账·proof 同形)。
+    const delReplayRes = await fetch(`${BASE}/privacy/interview-data/${fencedIv}`, { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
+    const delReplayBody = await readJson(delReplayRes);
+    A(delReplayRes.status === 503 && delReplayBody.error === 'interview_erasure_authorization_not_available',
+      `[R4-B-2b] 同键重放 DELETE 仍 503(不建账本)`);
+
+    // R4-B-3 预览 → 202 local_fenced+预览版+sinks≥22(user_memory=honest_unresolved)。
+    const previewKey = `e2e-preview-${tag}-${fenceTag}`;
+    const previewRes = await fetch(`${BASE}/privacy/erasure-preview`, {
+      method: 'POST', headers: { ...H, 'idempotency-key': previewKey },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: fencedIv }),
+    });
+    const previewBody = await readJson(previewRes);
+    const sinkLines: any[] = Array.isArray(previewBody.sinks) ? previewBody.sinks : [];
+    A(previewRes.status === 202 && previewBody.status === 'local_fenced' && previewBody.editionLabel === '预览版'
+      && previewBody.productionSloClaimed === false && previewBody.completeness === 'preview_incomplete'
+      && sinkLines.length >= 22 && sinkLines.some((s: any) => s.sink === 'user_memory' && s.disposition === 'honest_unresolved'),
+      `[R4-B-3] 预览擦除 → 202 local_fenced:预览版+productionSloClaimed=false+preview_incomplete+sinks=${sinkLines.length}≥22(user_memory=honest_unresolved 如实)`);
+
+    // R4-B-4 GET 回执同 requestId。
+    const receiptRes = await fetch(`${BASE}/privacy/erasure-preview/${previewBody.requestId}`, { headers: H });
+    const receiptBody = await readJson(receiptRes);
+    A(receiptRes.status === 200 && receiptBody.requestId === previewBody.requestId,
+      `[R4-B-4] GET 预览回执 → 200 ∧ 同 requestId(${String(previewBody.requestId ?? '').slice(0, 8)})`);
+
+    // ── DB 直连 SELECT-only(g7fix1 同契约·缺 env 即 throw fail-closed·连接 finally 释放)──
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    for (const n of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) if (!process.env[n]) throw new Error(`[privacy-db] ${n} missing — isolated runner env contract required`);
+    const pgc = new Client({ host: process.env.PGHOST, port: Number(process.env.PGPORT), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    try {
+      // R4-A-7 物理行如实记账:列表过滤 ≠ 物理删除(0152 墓碑 status+erasure_requested_at·purge 归 S2)。
+      const tomb = await pgc.query('SELECT status, erasure_requested_at FROM resume WHERE id=$1', [resumeId]);
+      A(tomb.rowCount === 1 && tomb.rows[0]?.status === 'erasure_fenced' && tomb.rows[0]?.erasure_requested_at !== null,
+        `[R4-A-7] DB 直连:resume 物理行仍在(恰 1 行)∧ status=erasure_fenced ∧ erasure_requested_at 非空(过滤≠物理删除·purgePending 恒真直至 S2)`);
+
+      // R4-B-6 前读:四表按该 id 计数全 0(0001:38/:224/:253+0019:19·begin 写面反证:preview begin 只写预览两表+账本族)。
+      const fourTables = `SELECT
+        (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS events,
+        (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS reports,
+        (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback,
+        (SELECT count(*)::int FROM interview_job WHERE interview_id=$1) AS jobs`;
+      const beforeScan = await pgc.query(fourTables, [fencedIv]);
+      A(Number(beforeScan.rows[0]?.events) === 0 && Number(beforeScan.rows[0]?.reports) === 0
+        && Number(beforeScan.rows[0]?.feedback) === 0 && Number(beforeScan.rows[0]?.jobs) === 0,
+        `[R4-B-6a] 围栏后四表前读全 0:interview_event/ai_report/question_feedback/interview_job 按 id 计数=0(围栏零写证)`);
+
+      // R4-B-5 围栏后十端点扫 → 全 410(合法 DTO 体抵达 guard·围栏先判序 interview.service :521·Ban 400 冒充 410)。
+      const { createHash } = await import('node:crypto');
+      const turnAnswer = '预览围栏后不得落库的答案';
+      const legalTurn = {
+        questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0,
+        answerId: '00000000-0000-4000-8000-000000000001',
+        answerHash: createHash('sha256').update(turnAnswer, 'utf8').digest('hex'),
+        answer: turnAnswer,
+      };
+      const scan: Array<[string, Response]> = [];
+      scan.push(['GET interview', await fetch(`${BASE}/interview/${fencedIv}`, { headers: H })]);
+      scan.push(['POST begin', await fetch(`${BASE}/interview/${fencedIv}/begin`, { method: 'POST', headers: { ...H, 'resume-id': '00000000-0000-4000-8000-000000000002' }, body: '{}' })]);
+      scan.push(['POST abandon', await fetch(`${BASE}/interview/${fencedIv}/abandon`, { method: 'POST', headers: H, body: '{}' })]);
+      scan.push(['GET events', await fetch(`${BASE}/interview/${fencedIv}/events`, { headers: H })]);
+      scan.push(['GET report', await fetch(`${BASE}/interview/${fencedIv}/report`, { headers: H })]);
+      scan.push(['POST report/retry', await fetch(`${BASE}/interview/${fencedIv}/report/retry`, { method: 'POST', headers: noCT(H) })]);
+      scan.push(['GET report/export', await fetch(`${BASE}/interview/${fencedIv}/report/export`, { headers: H })]);
+      scan.push(['GET transcript', await fetch(`${BASE}/interview/${fencedIv}/transcript`, { headers: H })]);
+      const turnFenceRes = await fetch(`${BASE}/interview/${fencedIv}/turn`, { method: 'POST', headers: H, body: JSON.stringify(legalTurn) });
+      scan.push(['POST turn', turnFenceRes]);
+      scan.push(['POST feedback', await fetch(`${BASE}/interview/${fencedIv}/questions/0/feedback`, { method: 'POST', headers: H, body: JSON.stringify({ rating: 'up' }) })]);
+      const offList = await readJson(await fetch(`${BASE}/interview`, { headers: H }));
+      A(scan.length === 10 && scan.every(([, res]) => res.status === 410),
+        `[R4-B-5] 围栏后十端点扫 → 全 410(GET interview/begin/abandon/events/report/report.retry/report.export/transcript/turn[合法 TurnDto]/feedback)`);
+      const turnFenceBody = await readJson(turnFenceRes);
+      A(turnFenceBody.error === 'interview_privacy_fenced',
+        `[R4-B-5b] /turn 围栏体核:error=interview_privacy_fenced(合法体抵达 guard·410 非 400)`);
+      A(Array.isArray(offList.interviews) && !offList.interviews.some((x: any) => x.id === fencedIv),
+        `[R4-B-5c] C 端 list 不含围栏 id(interviews 零泄露)`);
+
+      // R4-B-6 后读:410 扫后仍全 0=零增长定谳面。
+      const afterScan = await pgc.query(fourTables, [fencedIv]);
+      A(Number(afterScan.rows[0]?.events) === 0 && Number(afterScan.rows[0]?.reports) === 0
+        && Number(afterScan.rows[0]?.feedback) === 0 && Number(afterScan.rows[0]?.jobs) === 0,
+        `[R4-B-6b] 410 扫后四表后读仍全 0(零增长·前后读零定谳)`);
+    } finally {
+      await pgc.end().catch(() => {});
+    }
+
+    console.log('✓ R4-B interview 预览围栏面 PASS(503 pin 正面行使+preview 202+410 扫+四表读零)');
+  }
+
+  console.log('\n── e2e-scene-batch2 · R5 同意撤回九步(独立用户 e2e7_·零 live) ──');
+  {
+    const withdrawer = await signupOrLogin(`e2e7_${tag}@x.com`, password);
+    const WH = withdrawer.headers;
+    A(withdrawer.response.status === 200 && typeof withdrawer.token === 'string',
+      `[R5-0] 独立用户 e2e7_ 注册 → 真 Bearer(撤回面独立主用户·零额度依赖)`);
+
+    // R5-1 授予(POST consent 幂等面:已同意不重插行·回 policyVersion)。
+    const grant = await consentResumeProcessing(WH);
+    A(grant.response.status === 200 && grant.body.recorded === true && typeof grant.body.policyVersion === 'string' && grant.body.policyVersion.length > 0,
+      `[R5-1] POST /privacy/consent → 200 ∧ recorded=true ∧ policyVersion 非空(${grant.body.policyVersion})`);
+
+    // R5-2 状态读。
+    const st1 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    A(st1.consented === true, `[R5-2] GET consent 状态 → consented=true`);
+
+    // R5-3 文本上传(纯本地摄取·零模型零额度)。
+    const resumeText7 = '合成后端工程师简历:五年 Java/Go 后端,熟悉 PostgreSQL 索引与查询优化、Redis 缓存、Kafka 消息队列与 Kubernetes 部署运维。';
+    const up1 = await uploadTextResume(WH, resumeText7);
+    A(up1.response.status === 200 && typeof up1.body.resumeId === 'string',
+      `[R5-3] 文本简历上传 → 200 ∧ resumeId(${up1.body.status})`);
+    const resumeId7: string = up1.body.resumeId;
+
+    // R5-4 撤回(G4:撤回=停止后续使用·已落 checkpoint/事件不回溯)。
+    const wdRes = await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { method: 'DELETE', headers: noCT(WH) });
+    const wdBody = await readJson(wdRes);
+    A(wdRes.status === 200 && wdBody.withdrawn === true,
+      `[R5-4] DELETE /privacy/consent 撤回 → 200 ∧ withdrawn=true`);
+
+    // R5-5 状态翻 false。
+    const st2 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    A(st2.consented === false, `[R5-5] 撤回后 GET 状态 → consented=false`);
+
+    // R5-6 重上传 → 403 consent_required(resume.service :203 硬门·先于扣费预留)。
+    const unitsBefore403 = (await entitlement(WH)).availableUnits ?? 0;
+    const up2 = await uploadTextResume(WH, resumeText7);
+    const unitsAfter403 = (await entitlement(WH)).availableUnits ?? 0;
+    A(up2.response.status === 403 && up2.body.error === 'consent_required' && up2.body.purpose === 'resume_processing',
+      `[R5-6] 撤回后重上传 → 403 consent_required+purpose=resume_processing(硬门如实·:203)`, 'data_or_permission');
+    A(unitsAfter403 === unitsBefore403,
+      `[R5-6b] 403 后额度零泄漏(同意门先于扣费预留:${unitsBefore403}→${unitsAfter403})`);
+
+    // R5-7 撤回≠擦除定谳面(Non-claims 行为证:已落数据不回溯清除)。
+    const prof7Res = await fetch(`${BASE}/resume/${resumeId7}/profile`, { headers: WH });
+    const prof7 = await readJson(prof7Res);
+    A(prof7Res.status === 200 && prof7.structured && typeof prof7.structured === 'object' && Object.keys(prof7.structured).length >= 1,
+      `[R5-7] 撤回≠擦除:既有 profile 仍 200 ∧ structured 非空(不回溯清除·Non-claims 行为证)`);
+
+    // R5-8 重授予。
+    const regrant = await consentResumeProcessing(WH);
+    const st3 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    A(regrant.response.status === 200 && regrant.body.recorded === true && st3.consented === true,
+      `[R5-8] 重授予 POST consent → 200 ∧ 状态翻回 consented=true`);
+
+    // R5-9 恢复上传:deduped 复用同 id(部分唯一索引 WHERE status 子句命中·撤回不触 resume 行核·如实不假称新建)。
+    const up3 = await uploadTextResume(WH, resumeText7);
+    A(up3.response.status === 200 && up3.body.resumeId === resumeId7 && up3.body.status === 'deduped',
+      `[R5-9] 恢复后重上传 → 200 ∧ deduped 复用同 resumeId(${String(resumeId7).slice(0, 8)})(撤回不触行核·如实复用非新建)`);
+
+    console.log('✓ R5 同意撤回九步 PASS(授予→撤回→403 门→撤回≠擦除→重授予→deduped 恢复)');
+  }
+
   reviews.emitSummary();
   console.log(`\n✓ E2E 全栈跑通(${passed()} 断言,含异常/特殊/兜底/状态机):鉴权→简历→交易→面试(真agent)→报告→B端多租户→候选人多方RLS闭环 · 终态 ${terminal}`);
 }
