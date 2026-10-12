@@ -6,7 +6,7 @@ Pins 十值照抄（零翻转）：haStatus=NOT_HA · releaseEvidence=false · c
 
 ## 0. Base 与执行地
 
-- 蓝本 = REQUEST rev2 `c76cad4b`（唯一蓝本·harness `ai-docs/delivery/harness/g7trio2-full.md` 状态 `draft_rev2:awaiting_pre_exec_dual` → 本刀推进 `exec:awaiting_post_prove_dual`·推进注记 append-only 见 harness 文 EXEC 注记节）· 分支 `line/g7-trio2-full` · worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7trio2`。
+- 蓝本 = REQUEST rev2 `c76cad4b`（唯一蓝本·harness `ai-docs/delivery/harness/g7trio2-full.md` 状态 `draft_rev2:awaiting_pre_exec_dual` → 本刀推进 `exec:awaiting_post_prove_dual`·推进注记 append-only 见 harness 文 EXEC 注记节）· 分支 `line/g7-trio2-full` · worktree `meetwise-line-g7trio2`（仓根同级 worktree）。
 - EXEC HEAD = `c76cad4bdd52943ff3f3cfc53ecaf0d36e7aae8a`（= REQUEST rev2 commit 亲证·开工/收工 `git status` 双探针：**tracked 树零 diff**·仅新收据目录+harness 注记 = 交付文档非产品码·`git diff --stat -- apps packages e2e scripts` 空输出亲证 **零产品码**）· 执行序 **CMD1→CMD2→CMD3**（Ban 调序兑现）。
 - 环境探针：docker server 29.1.3 · node v22.22.3 · pnpm 10.18.0（与 G7TRIO era 同版）· fresh worktree `node_modules` 缺席 → `pnpm install --frozen-lockfile` EXIT=0（5.6s · 零 lockfile 改动·环境预置非代码改动）· Key **set（name-only 探针）**只经进程环境 loader（`~/.meetwise-secrets/load-model-api-key.sh` source 注入·值零打印零落盘零入 log）· **`.env*` ABSENT**（全程零创建零读取）。
 - run 前 host 观测：仅 `meetwise-e2e-62497-cold2-stop-band-1-…`（他席遗留 · Exited 44h · 命名与 pid 均非本刀 · 未触碰未清除·同先例披露）+ dev/mysql/redis exited 三点名；收工同残余＝本刀六只容器（CMD1 51683 + CMD2 53574 + CMD3 59350/59646/61342/68034）**用后即焚零残留**亲证（`docker ps -a` grep 逐名 grep -c=0）。

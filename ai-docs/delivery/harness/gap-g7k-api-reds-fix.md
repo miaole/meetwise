@@ -7,7 +7,7 @@
 **Knife 定位**：G7K trio 带 Key 新鲜跑（EXEC `f02602cb` · 实跑 code SHA `8c6860e3` · POST dual `c290cdfc`/`54b7ad19` BOTH PASS · nail `0c6c3287`）**三 gate 全解除后首次真实业务执行**，暴露 **EXIT 1/1/1 真实业务红**：①recruiting-bound bind 路径 ×2（`waitForURL(/\/interview\/iv_…\?applicationId=app_/)` 30s timeout @ spec `:96`，proof `e2e-ui-isolated.md` F1/F2）；②uc018-abandon 200↔409 ×2（abandon proxy Expected 200 / Received 409 @ spec `:139`，F3/F4）；③iso/perf HTTP 红面 case 名 by-design withheld（wrapper stderr 契约 · `failureClass=api`）。G7B C8 按「随 live 解锁刀复核」复核仍红 → 转 **api 类候选真实缺陷**；G7K 双审对①②同根性标注「候选解读非断言」→ **本刀 REQUEST 先做只读诊断定根因，再定修复面**。
 **Pins（原值全抄 · 未动）**: `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · **公开 DELETE=503**
 **Retained（至三绿 + post-dual + 协调方 nail 前不翻转）**: **`g7SuiteGreen=false`** · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true` · Disclosure-1 **OPEN** · trio **OPEN**（EXIT 1/1/1 · 失败性质=真实业务红）· GAP-G7K-API-REDS **P1 OPEN**（`0c6c3287` 登记 · 本刀不翻 SSOT 状态）· `actualSpendCny=null`
-**Base**: `origin/feat/mysql-schema-skeleton` **`7b28a492`** / full `7b28a4926f4608d068eefc357866322754d587fb`（2026-10-07 fetch 后实测 tip · docs `NAIL c-b-audit erratum post_prove_dual_pass`）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7r` · branch `line/g7r-api-reds-fix`
+**Base**: `origin/feat/mysql-schema-skeleton` **`7b28a492`** / full `7b28a4926f4608d068eefc357866322754d587fb`（2026-10-07 fetch 后实测 tip · docs `NAIL c-b-audit erratum post_prove_dual_pass`）· worktree `meetwise-line-g7r`（仓根同级 worktree）· branch `line/g7r-api-reds-fix`
 
 ---
 
@@ -69,7 +69,7 @@ CMD3（`verify:e2e-performance`）HTTP 步 = 同一 `full.e2e.ts` 复跑（build
 ## 3. prove 方案（EXEC 期 · 授权后方可行）
 
 1. **前置**：pre-exec dual（mw-e2e-ha + mw-model-op）BOTH PASS → **协调方 EXEC 显式授权**（含：env 注入值裁定（F-A 值域）、是否批准 F-C/F-F、committed SHA 重钉）。双审 PASS ≠ EXEC 授权；G7K U4 先例不自动携带。
-2. **环境**：fetch 后独立 worktree（默认复用本刀 worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7r` · branch `line/g7r-api-reds-fix`；EXEC 重钉 committed SHA 为准）→ `pnpm install --frozen-lockfile`（EXIT 记录）。
+2. **环境**：fetch 后独立 worktree（默认复用本刀 worktree `meetwise-line-g7r` · branch `line/g7r-api-reds-fix`；EXEC 重钉 committed SHA 为准）→ `pnpm install --frozen-lockfile`（EXIT 记录）。
 3. **Key 卫生（硬 · 沿 G7K C-K6 全量）**：Key 只经进程环境 `source ~/.meetwise-secrets/load-model-api-key.sh`；**Ban 写任何 `.env*`**；Ban Key 值/fingerprint 入 receipt/log/commit/截图；探针 name-only；原始 log 落 worktree `.tmp/`（不入 git）。
 4. **trio 三条 CMD 各恰好一次**（建议序 iso → ui → perf · 与 G7K 同序）：`pnpm e2e:isolated`（wiring `package.json` `e2e:isolated`，G7K @`8c6860e3` 实测 `:276`）· `pnpm e2e:ui:isolated`（`:277`）· `verify:e2e-performance`（`:280`）——EXEC 时按当 tip 重核行号回填。单条 CMD 内部既有重试按自身契约算一次 attempt（配置原值披露 · Ban 临时调高重试/并发/超时）。**每 attempt 七字段全记录**：CMD 原文 + EXIT 原值 + 起止时间戳 + 实跑 code SHA（receipt commit ≠ 实跑 SHA）+ worktree/branch + install/环境探针（docker/chromium/pnpm/node + `.env*` 三文件 ABSENT presence + `MODEL_ENDPOINT_PROFILE`/`MODEL_NAME` name-only set 探针）+ 逐 case FAIL 明细（case 名/原因/五分类 api/fixture/env-gap/frontend/provider）。CMD1/CMD3 退出码、machine receipt（`.tmp/e2e-receipts/*.json`）、原始 log 三来源交叉一致才可引用。
 5. **预算**：沿 G7K 口径**上限 200 次 live 调用**。诚实偏差披露：G7K 结构估 <120 是在 **bind 失败、真实生成面未展开**下测得；本刀若 F-A 生效，recruiting-bound ×2 将首次跑完整 6 题×2 project 真实旅程、CMD1 三条 `driveInterviewToTerminal` 全程生成——**live 面较 G7K 增大**，结构估仍 <200 但余量收窄；额度上限以协调方 EXEC 指令为准，超限即停如实记中止（不洗 not_run）。voice/OCR/ASR/TTS 无 DASHSCOPE key → honest capability skip = 0 调用。**`actualSpendCny=null` 沿 I 线**（Ban invented spend）。

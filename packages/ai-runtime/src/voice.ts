@@ -6,7 +6,7 @@ import { ExternalHttpStatusError, ExternalRequestAbortedError, ExternalRequestTi
 import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
 import { requireNonEmptyText } from './native-response-guard.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
-import { errCode } from '@meetwise/db';
+import { errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 
 /**
  * 语音 I/O seam（边缘适配器）——核心洞察:**面试 agent 图是 modality-agnostic 的**,它只收"文本答案"、出"文本问题",

@@ -9,7 +9,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ## 0. Base line 与 worktree 披露
 
 - fetch 2026-10-08：`origin/feat/mysql-schema-skeleton` = `9265e4d8`（≥ `9265e4d8` 达成；本地同名分支已 ff 至同点）。
-- 本刀 worktree：`/Users/miaole/Desktop/golucky/meetwise-line-parity`（仓库根同级新建）；分支 `line/e2e-parity-baseline-regen`（新立自 `origin/feat/mysql-schema-skeleton`，跟踪同名 upstream）。
+- 本刀 worktree：`meetwise-line-parity`（仓根同级 worktree·仓库根同级新建）；分支 `line/e2e-parity-baseline-regen`（新立自 `origin/feat/mysql-schema-skeleton`，跟踪同名 upstream）。
 - 立项出处：**协调方 PARITY-B · e2e-parity baseline 再生刀（CMOP03-D nail `9265e4d8` 登记的收尾项——本文引用之，不自建 SSOT 行）**。
 - 全部 blob 锚均为 mw-core 在本 worktree 于 base 点以 `git ls-tree` 亲算，非转录：
 
