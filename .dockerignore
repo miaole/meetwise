@@ -8,3 +8,6 @@
 .turbo
 .tmp
 *.log
+
+# CI-WIRING #169: r4-* 31 件证据/分类器已迁 apps/worker/evidence（生产零 import）——镜像上下文排除·生产镜像不含。
+apps/worker/evidence

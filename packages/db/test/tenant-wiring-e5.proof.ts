@@ -80,7 +80,16 @@ for (const w of WIRED_FILES) {
       A(`required-predicate witness (predicate-bind): ${p.ctx} → "${p.predicateWitness}"`, witnessOk);
     } else if (p.kind === 'list-legal-empty') {
       listClassified++;
-      A(`E5 whitelist (legal empty set): ${p.ctx}`, true);
+      // #147（CI-WIRING）:原 `A(..., true)` 恒真断言改真实断言——E5 白名单分类必须 predicate-backed:
+      // 自带 predicateWitness,或同 envelope 内带 witness 的同族 scope 子项（如 interview.list → interview.list.scope）。
+      // 无 backing = 未背书的 E5 豁免 = 红(fail-loud·只增强不削弱);backing 还必须在源文件真实在位。
+      const backing = p.predicateWitness
+        ?? w.paths.find((q) => q !== p && q.kind === 'list-legal-empty'
+          && q.ctx.startsWith(`${p.ctx}.`) && q.predicateWitness)?.predicateWitness;
+      A(`E5 whitelist (legal empty set) predicate-backed: ${p.ctx}`, Boolean(backing));
+      if (backing) {
+        A(`E5 whitelist witness in source: ${p.ctx} → "${backing}"`, src.includes(backing));
+      }
     }
     if (p.predicateWitness) {
       predicateWitnessed++;
