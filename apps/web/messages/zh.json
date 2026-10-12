@@ -90,7 +90,7 @@
     "footL": "© 知面 MEETWISE",
     "footR": "真实 · 复盘 · 成长",
     "footBrand": "知面 Meetwise",
-    "footDesc": "预览版。按真实经历练面试。招聘不在本预览范围。",
+    "footDesc": "预览版。按真实经历练面试。招聘功能面向企业账户开放。",
     "footProductTitle": "产品",
     "footSupportTitle": "支持",
     "footFeatures": "功能",
@@ -102,7 +102,7 @@
   },
   "login": {
     "title": "登录 / 注册",
-    "subtitle": "知面 · 项目预览。公开预览不开放账号注册、真实数据提交或自适应面试。",
+    "subtitle": "知面 · 项目预览。注册已开放：求职者注册后即可登录使用，招聘方注册经审核后开通。",
     "email": "邮箱",
     "password": "密码",
     "passwordHint": "≥ 8 位",
