@@ -214,6 +214,10 @@ export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput
 export { claimModelInvocation, markModelInvocationDispatched, failModelInvocationClaim, completeModelInvocation, markModelInvocationUnknown, reconcileStaleModelInvocations } from './model-op/model-invocation.ts';
 export type { ModelInvocationClaim, ClaimModelInvocationInput, CompleteModelInvocationInput, ReconciledModelInvocation } from './model-op/model-invocation.ts';
 
+// billing 战役 P1（BILL1-TOPIC-FIELDS 修法⑦）：0171 question_usage_ledger 归集写入口（只增不改·PK 冲突忽略）。
+export { recordUsage } from './model-op/question-usage-ledger.ts';
+export type { QuestionUsageCause, QuestionUsageSource, QuestionUsageLedgerEntry } from './model-op/question-usage-ledger.ts';
+
 // usage 对账校准因子数据面（MODEL-OP-00 收尾）：estimate↔usage 配对读面 + 版本化因子/观测日志幂等落库。
 export {
   listUsageCalibrationPairs, insertUsageCalibrationFactor, insertUsageCalibrationObservation, latestUsageCalibrationFactor,

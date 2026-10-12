@@ -53,6 +53,11 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
     const mind = withCurrent(state.mind, competency);
     const skipped = isSkip(answer);
     const deterministicNonAnswer = isNonAnswer(answer);
+    // billing P1（BILL1-TOPIC-FIELDS 修法⑤）：assess 显式 cause 透传位（quote_repair_exhausted 源
+    // =『quote_unverifiable』/剥离后非作答源=『non_answer』，均由 assess 返回；纯附加字段，
+    // score/relevant/evidence/dispositions 既有值逐位不变）。图侧 deterministicNonAnswer 臂不经 assess，
+    // 在合流点拆分时直派『non_answer』。
+    let assessClarifyCause: 'non_answer' | 'quote_unverifiable' | undefined;
     let score = 0;
     let evidence: string[] = ['未正面作答(空答/跳过/套话)'];
     let relevant = false;
@@ -63,6 +68,7 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
       const assessment = await deps.assess(question, answer, competency, turn, {
         questionId: pending.questionId,
         stateVersion: pending.stateVersion,
+        topicId: pending.topicId,   // billing P1 修法⑦：归集行 topic 维度随 identity 透传（additive 可选）。
       });
       if (assessment.status === 'unscored') {
         return {
@@ -94,6 +100,7 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
       hasHook = assessment.hasHook === true;
       // #52 v6：0103 契约档位证据（派生物，无答案原文）随 turn 透传（checkpoint 审计投影）。
       dispositions = assessment.dispositions ?? [];
+      assessClarifyCause = assessment.clarifyCause;
     }
 
     const verdict = classifyTurn(mind, {
@@ -102,6 +109,13 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
     });
     if (verdict === 'clarify') {
       const hint = clarifyHint(competency);
+      // billing P1（BILL1-TOPIC-FIELDS 修法⑤）：两因在合流点（classifyTurn 的 nonAnswer 输入）拆分——
+      // deterministicNonAnswer=true 直派『non_answer』；否则 assess 显式 cause（quote_repair_exhausted→
+      // 『quote_unverifiable』/剥离后非作答→『non_answer』/模型判跑题无钉因→undefined）。随澄清指令
+      // 流转至 pending（generate-question 拷贝）→ persist 落 interview_question.clarify_cause。
+      const clarifyCause = deterministicNonAnswer
+        ? ('non_answer' as const)
+        : assessClarifyCause;
       return {
         mind: markClarify(mind),
         pending: null,
@@ -113,6 +127,7 @@ export function createEvaluateAnswerNode(deps: AdaptiveDeps) {
           sources: pending.sources,
           critique: pending.critique,
           qkind: pending.kind,
+          clarifyCause,
         },
         transcript: [
           {

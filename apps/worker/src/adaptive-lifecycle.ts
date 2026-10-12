@@ -214,6 +214,8 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
     await persistInterviewQuestion(c, d.owner, d.interviewId, {
       questionId: p.questionId, stateVersion: p.stateVersion, turn: p.turn,
       question: p.question, competency: p.competency, qkind: p.kind,
+      // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：pending 话题维度三标识符透传（additive·旧行为空语义保留）。
+      topicId: p.topicId, askMode: p.askMode, clarifyCause: p.clarifyCause,
     });
     // EXTREV-1 SCORE-WRITER S1（rev2 D1）：同一投影事务内发布版本化 rubric（幂等）+
     // 冻结题面契约（冻题不冻答·绑 rubricId·12 参）。difficulty 由图状态 PendingQuestion
@@ -227,6 +229,9 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
       question: p.question, competency: p.competency, qkind: p.kind,
       // #256 形制 A：软预算约数随题下发（additive 可选；旧 checkpoint 缺省 undefined，JSON 序列化即缺字段）。
       plannedTurns: p.plannedTurns,
+      // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：话题维度 additive 可选字段（沿 plannedTurns 同形制 A；
+      // 旧 checkpoint 缺省 undefined，JSON 序列化即缺字段，消费者必须降级）。
+      topicId: p.topicId, askMode: p.askMode, clarifyCause: p.clarifyCause,
     }, `question_ready:${p.questionId}`);
   });
 }
@@ -341,6 +346,8 @@ async function submitAdaptiveAnswerImpl(
       await persistInterviewQuestion(c, d.owner, d.interviewId, {
         questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
         question: next.question, competency: next.competency, qkind: next.kind,
+        // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：答案投影下一题同形透传（本点在收尾三分支区 :442-488 之外）。
+        topicId: next.topicId, askMode: next.askMode, clarifyCause: next.clarifyCause,
       });
       // EXTREV-1 D1：answer 投影事务内的下一题同样发 rubric+契约（与 persistAndEmitQuestion 同形）。
       await publishRubricAndIssueContract(c, {

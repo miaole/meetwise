@@ -126,3 +126,43 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *BILL1-TOPIC-FIELDS REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`09768397`（主线 tip·git log -1 实测·会话内前移重钉·§0.2-1）· 分支 `line/bill1-topic-fields` · 工作树 `meetwise-bill1`（git worktree add 本起草席立·建前 worktree list 21 树+branch 双查+rg 三查不存在）· 立项出处=billing-redesign README rev1（blob `cd4c060f`·532 行·§6.1 `:276-286`/§6.2 `:288-309`/§6.5-§6.6/§7 P1 `:413`）+LANDING-INDEX（blob `0694ff22`·七 `:41-47` 迁移号 0170-0173 定谳+交叠矩阵+十二/十三/十四节裁决）+issues-final（blob `dac7f58c`·AG-14 `:202-211`/AG-39 `:478-487`/AG-40 `:489-496`）· 防重三查过· §0 blob 锚表 21 行 ls-tree 亲算+§0.2 漂移六条如实登记（tip 4978f729→09768397 会话内前移全 docs/rev1 蓝本换轨/编号链 0170+0171 本刀·0172-0173 留 P3/AG-39 另刀 AG-40 已修 634eb645/蓝本锚 ±1 吻合/F15 刀 B 已折叠）· 红事实四链现 tip 重 pin（话题维度缺失=ask 键只到 turn+澄清追问发新 question_id+表无 topic 列/澄清双因 :50 合流无 cause 源字段/AG-39·40·F15 三案定界/usage 现面=0171 列适配基座）· 修法七件（0170 三列+索引/0171 归集表 RLS 只授 SELECT,INSERT/decide 写 ask_mode/generate-question 写 topic_id 主问题=自己·追问澄清=主问题 id/assess 透传 cause/persist 两点接线/recordUsage 归集+usage_missing='missing' 衔接）· 断言候选四条（隔离库真迁移链五臂新 proof/出题评分既有门原值/迁移纪律+migrate:prove 入门表/typecheck）· est live=0 · pins 十一值照抄 · markers=0（亲跑）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+---
+
+## §9 EXEC 附记（随翻·append 保史·§0-§8 原文零改·2026-10-12）
+
+**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+
+### §9-1 并线重 pin（§8-③ 照本节协议行使）
+
+- **并线**：`git merge feat/mysql-schema-skeleton` @`8603dc65`→merge commit `0d4a13ca`（09768397..8603dc65 恰 7 笔=AG-C 链 e410cf31/539e2b46/5be1d213/114f7189/928b2612/477f589a/8603dc65）·**零冲突**（本支恰 1 .md 零码动·主线码面触 interview-consumer/interview-jobs/0175/run-e2e-isolated/package 零交本刀七件面）。
+- **0170/0171 避撞双席亲证**：`git ls-tree feat/mysql-schema-skeleton packages/db/migrations/ | grep -cE "017[01]_"`=0（主线全树零占）·主线 max=**0175**（刀 C `0175_interview_job_next_attempt_at` 已并主线·§0.2-3「在飞未并线」登记就此过时如实更新）·0176 起顺延勿添重号。
+- **§0.1 blob 锚 19 行全量复核**：merge 后 HEAD 逐文件 `git ls-tree` 亲算——**19/19 blob 零漂**（码面 0021/0037/0119/0174/decide/generate-question/evaluate-answer/state/domain/service/interview-service/lifecycle/interview-question/ai-cost-governance/model-invocation/invoke/model-client/interview.proof/migrate.proof 全零漂）。
+
+### §9-2 勘误注（登记级·结论零变）
+
+- **E1（席2 勘误落实·evaluate-answer.ts 行锚诚实更锚）**：§0.1 载 `isNonAnswer :46`/两因合流点 `:47-52`（`:50`）/clarify 臂 `:52-90`（指令 `:57-65`）/unresolved 臂 `:92-113` 系**旧版行锚**——现 tip（blob `aeba291f` 零漂·181 行亲读）诚实更锚=**isNonAnswer `:55`/两因合流 `:99-102`（合流行 `:101` `nonAnswer: deterministicNonAnswer || relevant === false`）/clarify 臂 `:103-133`（指令 `:108-116` 区）/unresolved 臂 `:134-155`**。§1.2 与 §1-修法⑤ 内「合流点 `:50`」同源随更 `:101`（机制结论零变：两因在 classifyTurn 输入处同形，本刀在合流点拆分显式 cause）。
+- **E2（0175 并线更新）**：§0.2-3 载「0175=刀 C 在飞未并线」→ 现已并主线（merge `928b2612`·blob `ac234d44`）——§0.2-3 编号链登记以本节为准：billing 占 0170+0171·0174=刀 B·0175=刀 C 已落·0172/0173 留 P3 结算刀·0176 起顺延。
+- **E3（新 proof 门名对漂后注册名单重 pin）**：门名=`bill1-topic-fields:prove`（root package.json `:263`）+`bill1-topic-fields:prove:raw`+worker `prove:bill1-topic-fields`（`:21`）——run-e2e-isolated.mjs 注册名单**恰四点 additive**（isolatedReceiptSources 条目/worker prove 白名单行/命令映射臂/migrateWithRecovery 名单行），沿 AG-C 白名单**只增不清**（既有条目逐字节零改·post-drift 名单亲读后插入）。
+
+### §9-3 §8 三裁决行使（按推荐）
+
+1. **裁决项①索引形状=推荐行使**：`ix_iq_topic(owner_user_id, interview_id, topic_id) WHERE topic_id IS NOT NULL`——蓝本列序+partial 谓词（旧行为空不入索引·逐话题聚合/明细查询面覆盖）。
+2. **裁决项②recordUsage 挂点=推荐行使**：worker 侧 `adaptive-interview-service` 三调用点——plan（`${threadId}:plan` 键提变量零串变）/ask（`generate()` 包装罩初诊 `:0`+`:gr{k}`+`:r{k}` 全体键）/assess（`primaryIdempotencyKey` 实发键=答案摘要派生面）+失败臂同写（`usageCauseForInvokeError`：MODEL-OP-02 零外呼拒绝族 model_circuit_*/concurrency/budget→`admission_rejected`·余→`generation_failed`；eval 失败臂→`unknown`）——**ai-runtime 零触**；usage 列不二次记账：`recordUsage`（`packages/db/src/model-op/question-usage-ledger.ts`）按 invocation_key 从 `ai_model_invocation` 单语句 LEFT JOIN 归集复制（`usage_missing`→`missing`·tokens NULL→`provider`/`estimate`/`not_applicable` 判定式§1.4 映射）；危机触发短路臂（零外呼）不入账；归集写 fail-soft（蓝本 §6.2 成本侧不参与定价·写失败仅 stderr 观测零业务阻断）。
+3. **裁决项③clarify_cause 源字段=推荐行使**：assess 返回显式 `clarifyCause` 字段（`:550-552` quote_repair_exhausted→`quote_unverifiable`·`:534` 剥离后非作答第三源→`non_answer`·纯附加既有值逐位不变）+图侧 `deterministicNonAnswer`（`:55`）合流点（`:101`）拆分直派 `non_answer`；模型判跑题（relevant=false 无钉因）cause 缺省 undefined→列 NULL。
+
+### §9-4 断言门 EXIT 全表（终态代码亲跑·est live=0 全假体/隔离库零生产 DSN 零 Key 零外呼）
+
+1. `bill1-topic-fields:prove` **28/28 PASS EXIT=0**（五臂：①迁移臂 0170 三列+CHECK 负臂 23514×2+ix_iq_topic partial+0171 PK/RLS FORCE/app_role 仅 SELECT,INSERT+UPDATE/DELETE 42501 live 负臂+跨 owner RLS 零行；②topic_id 填充 pivot=自己/probe=主问题 id/clarify=主问题 id+ask_mode='clarify'（全链 scripted·隔离库真迁移链 175 applied）；③clarify_cause 双因 non_answer/quote_unverifiable+既有 score=50 逐位零变负臂+澄清事件 payload 六键零泄漏；④usage 账本 plan/ask/eval 落行+PK 去重重放 false+usage_missing→'missing'+provider/estimate/not_applicable 四值映射+失败臂 generation_failed；⑤旧行三列 NULL 零回填）。
+2. `interview:prove` **57/57 EXIT=0**（原值）；`adaptive-flow:prove` **EXIT=0**（原值）；`reaper:prove` **28/28 EXIT=0**（原值）——出题/评分/生命周期行为语义零变（mode/topic/cause 全系纯附加字段）。
+3. `migrate:prove` **EXIT=0**（真迁移链含 0170/0171）；`drift:prove` **EXIT=0**。
+4. turbo typecheck **3/3 EXIT=0**（--force 全真跑）+worker 裸 tsc **46=既存基线零新错**（触面文件唯一预存错 adaptive-lifecycle :189 系基线在案项·本刀零新增）。
+5. 迁移纪律：`git diff` 历史迁移 0001-0175 **零字节**+恰两新文件 0170/0171+`sql/` 影子面零改+runner `node --check` EXIT=0。
+6. `docs:check` **EXIT=0**（80 文件+2012 扫描）；markers **零命中**（改动集新增 190 行五类标记词族扫描零命中·词族不复抄卷内）。
+7. est live=0 收据：新 proof=隔离库临时 PostgreSQL（run-e2e-isolated 完整版本化迁移·零生产 DSN）+scriptedModelClient 假体+上游 usage 行经生产形 claim/dispatch/complete 函数铸造（0088 state guard 禁直插）；零模型真实外呼·零 secrets 落盘·零消耗（pins 脚注 `actualSpendCny=null` 同源）。
+
+### §9-5 陷阱自检（13 条）
+
+①历史迁移 0001-0175 零字节（git diff 亲证）✓；②0170/0171 避撞（并线前后双查零占·编号链 E2 更新）✓；③零行为变更（出题/评分/生命周期三门原值+billing_mode/tf_/topic_charge/commerce 结算面零触）✓；④旧行 topic_id 空=不按话题计费语义保留（存量行 NULL 零回填臂+identity conflict 对 NULL/undefined 恒等·qbank-miss 既有 caller 零改兼容）✓；⑤F15 零再触（model-client/invoke/0174 零字节零行改·打标值只读消费=recordUsage 归集映射唯一触点）✓；⑥越面自查（触面=两迁移+db index/ledger/persist+ai-graphs 四件+worker 三件+runner/package 注册——SSOT/账本/检索面 cragRetrieve/localRetrieve/qbank/org 字段/env 闸/定时器/依赖包全零触·他工作树零触）✓；⑦pins 十一值照抄零翻（actualSpendCny=null 维持）✓；⑧状态行 append `executed:awaiting_post_prove_dual`（§0-§8 原文零改）✓；⑨回滚=列不用/停写（蓝本 §7 回滚栏原语义·0170/0171 纯加列新表零破坏性）✓；⑩停止条件未触发（蓝本边界与现码零冲突·唯一漂移=evaluate-answer 行锚已按席2 勘误诚实更锚 E1）✓；⑪双审链如实载（pre-exec 双审 BOTH PASS+协调方常设 loop 授权=开工条款·post-prove 双审在途）✓；⑫markers=0+docs:check EXIT=0（卫生门双绿）✓；⑬est live=0 逐 prove 零外呼口径（假体+隔离库）✓。
+
+*EXEC 席随翻 · 2026-10-12 · merge `0d4a13ca`（并线）→ 施工 commit 本卷 · §0-§8 原文零改 · ⛔push · 待 post-prove 双审两外席 · alone≠dual · Dual PASS ≠ merge*
