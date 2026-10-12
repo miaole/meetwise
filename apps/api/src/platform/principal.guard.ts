@@ -1,6 +1,7 @@
 import { CanActivate, ExecutionContext, Injectable, UnauthorizedException } from '@nestjs/common';
 import { verifyTokenFull } from '@meetwise/domain';
 import { DbService } from './db.service';
+import { isSessionActive } from './auth-session';
 
 /**
  * principal 注入守卫:优先校验 `Authorization: Bearer <token>`(HMAC 签名会话令牌)→ principal;
@@ -13,12 +14,27 @@ import { DbService } from './db.service';
  *   60s 内存缓存降 DB 负载:**单实例**下改密路径同步调 evictPrincipalStatus → 下一请求即时吊销;**多实例**下 evict 只清本进程缓存,
  *   其余实例最坏 ≤60s(缓存过期)才吊销(最终一致)。存在缓存重填 TOCTOU:并发 guard 若在 evict 后用陈旧代次重填,窗口内旧令牌仍通过(≤60s);
  *   此窗口与既有 status 吊销同源、非本次新增。要真·即时 + 跨实例一致须换 Redis 共享吊销源(已知 seam)。
+ *
+ * **AUTHZ-HARDEN 5A-1 簇③(#35/#112)只增不翻(§3-6 既有吊销机械零改)**:
+ *   ① kid 多钥窗:候选钥=[AUTH_SECRET, ...AUTH_SECRET_PREVIOUS(逗号分隔)] 逐钥验签,kid 匹配者胜(密钥指纹
+ *      sha256 前 8 hex,见 domain keyIdFor)——轮换=换 AUTH_SECRET+旧钥暂留 PREVIOUS,窗内旧令牌照验;窗=配置存在期,
+ *      移除即窗外 401(环境配置面·零停机)。全部候选不符 → 401 invalid_token(与错钥同码,抗探测)。
+ *   ② jti 会话吊销:**带 jti 令牌**验签/exp/保留主体/status/代次既有机械全过之后,再查 auth_user_session(0169;
+ *      60s 缓存沿 status 缓存同形,logout 同步 evictSessionRevocation 即时)→ 已吊销 401 session_revoked(复用既有码面)。
+ *      **无 jti=存量 legacy 令牌走无态路径**(R1:跳过会话查,至 TTL 自然过期;禁一刀切全拒)。
  */
 const STATUS_TTL_MS = 60_000;
 interface AccountState { active: boolean; epoch: number }
 const statusCache = new Map<string, AccountState & { exp: number }>();
 /** 账户禁用/注销/改密后调用 → 立即清缓存,让吊销即时生效(不等 60s)。 */
 export function evictPrincipalStatus(uid: string): void { statusCache.delete(uid); }
+
+/** 5A-1 #35:验证候选钥序(当前钥优先;AUTH_SECRET_PREVIOUS 逗号分隔多旧钥窗)。逐请求读 env——轮换即改即生效。 */
+function authSecretCandidates(): string[] {
+  const cur = process.env.AUTH_SECRET ?? '';
+  const prev = (process.env.AUTH_SECRET_PREVIOUS ?? '').split(',').map((s) => s.trim()).filter(Boolean);
+  return [cur, ...prev].filter(Boolean);
+}
 
 @Injectable()
 export class PrincipalGuard implements CanActivate {
@@ -49,14 +65,24 @@ export class PrincipalGuard implements CanActivate {
     const req = ctx.switchToHttp().getRequest();
     const auth = (req.headers['authorization'] as string | undefined) ?? '';
     if (auth.startsWith('Bearer ')) {
-      const secret = process.env.AUTH_SECRET ?? '';
-      const tok = secret ? verifyTokenFull(auth.slice(7), secret, Math.floor(Date.now() / 1000)) : null;
+      // 5A-1 #35:多钥窗逐候选验签(kid 不符/签名不符皆 null → 下一候选;全不符 = 与错钥同码 invalid_token)。
+      const nowSec = Math.floor(Date.now() / 1000);
+      let tok: ReturnType<typeof verifyTokenFull> = null;
+      for (const secret of authSecretCandidates()) {
+        tok = verifyTokenFull(auth.slice(7), secret, nowSec);
+        if (tok) break;
+      }
       if (!tok) throw new UnauthorizedException({ error: 'invalid_token' });
       if (PrincipalGuard.isReserved(tok.uid)) throw new UnauthorizedException({ error: 'reserved_principal' });   // 令牌 uid 撞保留 sentinel(不可能来自正常注册,防伪造)
       const st = await this.accountState(tok.uid, Date.now());
       if (!st.active) throw new UnauthorizedException({ error: 'account_inactive' });          // 禁用/注销 → 令牌即时失效
       if (st.epoch !== tok.pwdEpoch) throw new UnauthorizedException({ error: 'session_revoked' });  // 改密后旧代次令牌失效
+      // 5A-1 #112(jti 会话吊销·只增):带 jti 令牌最后查会话表(60s 缓存+logout evict 即时)——已吊销 401 session_revoked。
+      // 无 jti=存量 legacy 令牌 → 无态路径(R1,跳过)。既有 status/代次/保留主体机械零改,本查恒在其后(既有错误码优先序不变)。
+      if (tok.jti && !(await isSessionActive(this.db, tok.uid, tok.jti, Date.now())))
+        throw new UnauthorizedException({ error: 'session_revoked' });
       req.principal = tok.uid;
+      req.jti = tok.jti;   // 5A-1 #112:挂当前会话 jti 供 /auth/logout 精确吊销(legacy 无 jti → undefined)
       return true;
     }
     // x-user-id 回退仅限开发/测试:它绕过验签/status/代次,若在生产误开=任意账户接管。故硬闸——NODE_ENV=production 时该分支永不生效(不靠运维纪律)。

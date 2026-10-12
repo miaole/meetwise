@@ -5,6 +5,7 @@ import {
   notifyWorkerJobWakeup, type TalentQuery,
 } from '@meetwise/db';
 import type { CreateJobDto, InviteCandidateDto, UpdateJobDto } from '@meetwise/contracts';
+import { normalizeEmail } from '@meetwise/domain';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
 
@@ -164,7 +165,9 @@ export class RecruiterService {
     // candidateId 与 email 两条入参路径**对称**地都经受控解析,确认目标是活跃候选人——
     // 杜绝招聘方对任意 userId(含他人招聘方)建幽灵申请,也不暴露 B 端账户。
     const candidateIdInput = dto.candidateId?.trim() || null;
-    const candidateEmailInput = dto.candidateEmail?.trim().toLowerCase() || null;
+    // AUTHZ-HARDEN 5A-1 簇①（#131·§1「归一改调与注册同源的单一 helper」）：邀请侧与注册/登录同源 normalizeEmail
+    // （trim+lower，行为与原双写等价）——注册侧已归一落库（auth.service+0168 双闸），此处大写/带空白输入照命中；I4 面零触。
+    const candidateEmailInput = dto.candidateEmail ? normalizeEmail(dto.candidateEmail) || null : null;
     if (!candidateIdInput && !candidateEmailInput) throw new HttpException({ error: 'candidateId_or_email_required' }, HttpStatus.BAD_REQUEST);
     // R2 归属预检前置:getJob 同款(:44),非自有/不存在 → 恒 404(在候选人解析之前,零存在性信号)。
     const job = await this.db.asPrincipal(principal, (c) => getJob(c, principal, jobId));
