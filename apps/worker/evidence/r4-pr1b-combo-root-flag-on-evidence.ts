@@ -19,7 +19,7 @@ import { fileURLToPath } from 'node:url';
 import {
   ADAPTIVE_ROLE_ROUTE_MISSING,
   resolveAdaptiveInterviewRole,
-} from './adaptive-role-resolve.ts';
+} from '../src/adaptive-role-resolve.ts';
 
 /** Canonical PR1-B combo-root / flag-on production evidence kind. */
 export const PR1B_COMBO_ROOT_FLAG_ON_EVIDENCE_KIND =
@@ -62,7 +62,7 @@ function workerSrcDir(): string {
 }
 
 function readSrc(name: string): string {
-  const p = join(workerSrcDir(), name);
+  const p = join(workerSrcDir(), '..', 'src', name);   // CI-WIRING #169 迁 evidence/ 后:src 读取面显式回指 src（原同目录即 src）
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
 }
 

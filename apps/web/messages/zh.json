@@ -108,6 +108,7 @@
     "passwordHint": "≥ 8 位",
     "loginBtn": "登录",
     "signupBtn": "注册",
+    "ageDeclaration": "注册即表示你已年满 18 周岁；未满 18 周岁暂不提供服务。",
     "submitting": "提交中…",
     "backHome": "← 返回首页",
     "iAm": "我是",

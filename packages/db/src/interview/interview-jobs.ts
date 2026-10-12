@@ -278,6 +278,35 @@ export async function sweepStuckInterviewJobs(
   return { requeued: rq.rowCount ?? 0, failed: dead.rowCount ?? 0, failedInterviews: dead.rows.map((x) => x.interview_id as string) };
 }
 
+/** 滞留 payload TTL 默认值(#18·裁决项⑥;调用方/启动档可显式传短窗,禁无界清 payload)。 */
+export const INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS = 86_400;
+
+/**
+ * #18 滞留半(AUTHZ-HARDEN 5A-2):超龄滞留 job 的旁路 payload 清理——**sweepStuckInterviewJobs 语义零改**,
+ * 本函数独立于收割路径(新旁路)。
+ * 目标域=「重队列终态不可达」行:sweep 只处理 running(翻 queued/failed),**queued 行收割永不触达**——
+ * worker 停机期 queued 滞留(及 lease 过期超 TTL 仍 running 的兜底臂)明文 answer 无限期滞留即本函数清理面。
+ * 纪律:只清 `payload-'answer'`(D6 同款:身份/追踪保留·明文不留);活跃 running(租约未过期或仅刚过期
+ * 未超 TTL)零触;非超龄 queued 零触;状态/额度语义零改(清后若再被 claim,消费侧按缺 payload 走既有
+ * markJobFailed → interview_unavailable 终态=无静默死胡同)。
+ * 假时钟可证:created_at/lease_expires_at 直接回拨(沿 reaper prove 先例),无需等待真实 TTL。
+ */
+export async function purgeStaleInterviewJobPayloads(
+  c: Client, owner: string, ttlSeconds = INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
+): Promise<{ purged: number }> {
+  const r = await c.query(
+    `UPDATE interview_job SET payload=payload-'answer', version=version+1
+       WHERE owner_user_id=$1 AND payload ? 'answer'
+         AND (
+           (status='queued' AND created_at < now() - ($2||' seconds')::interval)
+           OR (status='running' AND lease_expires_at < now() - ($2||' seconds')::interval)
+         )`,
+    [owner, String(ttlSeconds)],
+  );
+  if (r.rowCount) console.warn(JSON.stringify({ event: 'stale_payload_purge', kind: 'interview', job_ref: `purged:${r.rowCount}`, ttl_seconds: ttlSeconds }));
+  return { purged: r.rowCount ?? 0 };
+}
+
 /** 枚举有待办 job 的 owner（调度层,需越 RLS;生产用 BYPASSRLS dispatcher 角色,只读 owner_user_id）。 */
 export async function enumerateOwnersWithJobs(c: Client): Promise<string[]> {
   const r = await c.query("SELECT DISTINCT owner_user_id FROM interview_job WHERE status='queued' OR (status='running' AND lease_expires_at < now())");
