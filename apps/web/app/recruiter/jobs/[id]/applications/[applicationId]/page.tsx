@@ -15,8 +15,8 @@ import { RecruiterPreviewNote } from '@/components/recruiter/PreviewNote';
 import { BQualitativeProjection } from '@meetwise/contracts';
 
 export const metadata: Metadata = {
-  title: '申请状态 · 内部预览 · 知面',
-  description: '内部预览：查看岗位申请的必要流程状态。不是招聘方产品，不提供数值评分，也看不到面试内容。',
+  title: '申请状态 · 知面',
+  description: '查看岗位申请的必要流程状态。不是招聘方产品，不提供数值评分，也看不到面试内容。',
 };
 
 interface Job { id: string; title: string; competencies: string[]; status: string }
