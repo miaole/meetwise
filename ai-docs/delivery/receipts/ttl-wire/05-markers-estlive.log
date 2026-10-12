@@ -1,0 +1,12 @@
+# markers=0 卫生门（本刀改动三件）
+## 冲突标记
+EXIT_CONFLICT=1
+## fake-green/绕过词(fake-pass|fake-green|always-pass|skip-gate)
+EXIT_FAKEGREEN=1
+## 测试门弱化(.only|\.skip\(|xit\(|@ts-ignore|@ts-expect-error|eslint-disable)
+EXIT_WEAKEN=1
+## 遗留标(TODO|FIXME|HACK|XXX)
+EXIT_TODO=1
+## secrets 样值(sk-[a-zA-Z0-9]{8,}|BEGIN.*PRIVATE KEY)
+EXIT_SECRETS=1
+# est live=0:全 prove 假体/隔离库/静态·零模型外呼·零 secrets(turbo/api:validate 门亦本地隔离壳)
