@@ -39,6 +39,7 @@
     "prove:ha2-drain": "node --import @swc-node/register/esm-register test/ha-2-drain.proof.ts",
     "prove:ha3-metrics-pool-errors": "node --import @swc-node/register/esm-register test/ha3-metrics-pool-errors.proof.ts",
   "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
+    "prove:qbank-planner-honesty": "node --import @swc-node/register/esm-register test/qbank-planner-honesty.proof.ts",
   "neg:bend": "node --import @swc-node/register/esm-register test/neg-bend.proof.ts",
   "neg:input": "node --import @swc-node/register/esm-register test/neg-input.proof.ts",
   "prove:consent-min": "node --import @swc-node/register/esm-register test/consent-min.proof.ts",

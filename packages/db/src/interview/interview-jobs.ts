@@ -152,7 +152,7 @@ export async function claimNextInterviewJob(
   };
 }
 
-export type ClaimedInterviewJobRequestId = { stillClaimed: boolean; requestId?: string; targetRole?: string; focus?: string };
+export type ClaimedInterviewJobRequestId = { stillClaimed: boolean; requestId?: string; targetRole?: string; focus?: string; sourceQuizId?: string };
 
 /**
  * Read only the safe correlation scalars after the reference gate succeeds.
@@ -162,12 +162,14 @@ export type ClaimedInterviewJobRequestId = { stillClaimed: boolean; requestId?: 
  * replay tolerated, mirroring the requestId tolerance).
  * H4 R2③(#252 focus 进题链)additive: `payload->>'focus'`(JSON 数组标量文本)同门读出——
  * 缺失/空白 → focus: undefined(旧 job 容忍不崩,沿 targetRole 同形制);解析/白名单归 worker 消费侧。
+ * QBANK-PLANNER-HONESTY #200-A ⑶ additive: `payload->>'sourceQuizId'`(begin quiz-id 头透传)同门读出——
+ * 缺失/空白 → sourceQuizId: undefined(旧 job 容忍不崩,同形制);消费=worker owner-scoped 读 resume_quiz.questions。
  */
 export async function loadClaimedInterviewJobRequestId(
   c: Client, owner: string, jobId: string, leaseOwner: string,
 ): Promise<ClaimedInterviewJobRequestId> {
-  const r = await c.query<{ request_id: string | null; target_role: string | null; focus: string | null }>(
-    `SELECT payload->>'requestId' AS request_id, payload->>'targetRole' AS target_role, payload->>'focus' AS focus
+  const r = await c.query<{ request_id: string | null; target_role: string | null; focus: string | null; source_quiz_id: string | null }>(
+    `SELECT payload->>'requestId' AS request_id, payload->>'targetRole' AS target_role, payload->>'focus' AS focus, payload->>'sourceQuizId' AS source_quiz_id
        FROM interview_job
       WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
     [jobId, owner, leaseOwner],
@@ -176,11 +178,13 @@ export async function loadClaimedInterviewJobRequestId(
   const requestId = r.rows[0]?.request_id;
   const targetRole = r.rows[0]?.target_role;
   const focus = r.rows[0]?.focus;
+  const sourceQuizId = r.rows[0]?.source_quiz_id;
   return {
     stillClaimed: true,
     ...(typeof requestId === 'string' && requestId ? { requestId } : {}),
     ...(typeof targetRole === 'string' && targetRole ? { targetRole } : {}),
     ...(typeof focus === 'string' && focus ? { focus } : {}),
+    ...(typeof sourceQuizId === 'string' && sourceQuizId ? { sourceQuizId } : {}),
   };
 }
 

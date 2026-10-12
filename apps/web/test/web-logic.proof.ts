@@ -898,8 +898,8 @@ async function main() {
   A('#268 roles 匹配行含「用这个方向开始面试」CTA', rolesSrc.includes('用这个方向开始面试'));
   A('#268 CTA href 带 encodeURIComponent(m.title) prefill 形',
     /href=\{`\/interviews\?targetRole=\$\{encodeURIComponent\(m\.title\)\}`\}/.test(rolesSrc));
-  A('#268 interviews searchParams 读 targetRole(additive 一键)',
-    /targetRole\?: string/.test(ivPageSrc) && /const \{ limit, error, reused, targetRole \} = await searchParams;/.test(ivPageSrc));
+  A('#268 interviews searchParams 读 targetRole(additive 一键·merge 随演:QP ?quiz= 并线后 destructure 顺延)',
+    /targetRole\?: string/.test(ivPageSrc) && /const \{ limit, error, reused, targetRole, quiz \} = await searchParams;/.test(ivPageSrc));
   A('#268 interviews Input defaultValue 消费 prefill(仅初值·用户可改=「可改的 UI」语义)',
     /defaultValue=\{targetRole \?\? ''\}/.test(ivPageSrc));
   // B-1/B-2(#230 押题岗位 web 段·S1 同形镜像):
