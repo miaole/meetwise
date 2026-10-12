@@ -20,7 +20,7 @@ export type { ModelOperationInputKind, ModelOperationBindingInput, ModelOperatio
 export { resolveModelOperationBinding, validateOperationBindingProfiles, INPUT_KIND_ENDPOINT_PROFILES } from './operation-binding.ts';
 export type { BoundModelOperation, BoundOperationEndpoint, OperationBindingDecision } from './operation-binding.ts';
 // MODEL-OP-02 共享准入/账本/断路器/并发 的单一权威（取代 per-adapter 限流）。
-export { resolveModelAdmissionPartition, admitSharedModelOperation, recordSharedModelOperation } from './model-admission.ts';
+export { resolveModelAdmissionPartition, admitSharedModelOperation, recordSharedModelOperation, ADMISSION_REFUSAL_RETRYABLE_CODES, isAdmissionRefusalRetryable } from './model-admission.ts';
 export type {
   SharedModelAdmissionLease, AdmitSharedModelOperationInput, AdmitSharedModelOperationResult, SharedModelFeeRecord,
 } from './model-admission.ts';

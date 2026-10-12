@@ -38,6 +38,28 @@ const ADMISSION_ERROR_CODES: Record<ModelAdmissionDecision, string> = {
 };
 
 /**
+ * AG-D（刀 D·AG-01 准入拒绝去终态化）：**瞬时准入拒绝族**（known-not-sent·零外呼零费用·
+ * breaker no_signal）——invoke 三拒绝点对族内码释放 durable claim（案A 可写最小形·0179
+ * `ai_model_release_refused_claim_scoped` 白名单同源六码）而非写 failed 终态（同键重试只重放
+ * 失败=键毒化）。族外确定性拒绝（operation_unknown/blocked/project_missing/disabled、failover
+ * cost policy mismatch）维持 failed 终态原样：retry 必败，不放大。消费面=worker 侧
+ * interview-consumer 瞬时白名单（刀 C 面「只增」新增本族）→ requeue+退避到点真重试。
+ */
+export const ADMISSION_REFUSAL_RETRYABLE_CODES: ReadonlySet<string> = new Set([
+  ADMISSION_ERROR_CODES.breaker_open,
+  ADMISSION_ERROR_CODES.breaker_half_open_busy,
+  ADMISSION_ERROR_CODES.concurrency_exhausted,
+  'cost_budget_exhausted',
+  'model_admission_timeout',
+  'model_admission_failed',
+]);
+
+/** 纯函数：该 invoke 错误码是否属于可释放/可重排的瞬时准入拒绝族（确定性配置拒绝恒 false）。 */
+export function isAdmissionRefusalRetryable(errorCode: string | undefined): boolean {
+  return errorCode !== undefined && ADMISSION_REFUSAL_RETRYABLE_CODES.has(errorCode);
+}
+
+/**
  * 从 `spec.operation` 派生准入分区（四字段，绝不 caller 供）。
  * 非 operation-scoped（legacy）返回 undefined——那是 MODEL-OP-00 账本路径，不走共享权威。
  */

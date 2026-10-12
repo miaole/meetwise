@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
-import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
+import { invoke, promptedModel, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
@@ -513,6 +513,17 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           invocationKey: idempotencyKey, interviewId: d.threadId, operationId: QUESTION_OPERATION_ID,
           cause: 'error' in outcome ? usageCauseForInvokeError(outcome.error) : 'system_ask',
         });
+        // AG-D（刀 D·AG-01 准入拒绝去终态化·裁决项③）：瞬时准入拒绝族（熔断/并发/预算——invoke 侧
+        // 已按案A 释放 claim·零外呼零费用）不落图投影判死：unavailableGeneration 投影会随 superstep
+        // 提交进 checkpoint，job 级重试只能重放判死、模型永不真重试。带 code 异常在此抛出=节点中止、
+        // checkpoint 停 last-good superstep（next=[genQuestion]），consumer errCode 白名单（刀 C 面·
+        // 本刀准入族六码只增）requeue+退避，到点重领=0130 expired-claimed 重领真重试。抛出形沿
+        // adaptive-lifecycle graph_fence_lost Object.assign 惯例；零图包触（落点在 worker 包内）。
+        // 确定性配置拒绝（operation_unknown/blocked/project_missing/disabled、failover cost policy
+        // mismatch）不在族内——原样返回走既有判死链（retry 必败不放大）。
+        if ('error' in outcome && isAdmissionRefusalRetryable(outcome.error)) {
+          throw Object.assign(new Error(outcome.error), { code: outcome.error });
+        }
         return outcome;
       };
       run.stage('generate');                                                           // 段名进下一帧心跳(纯时间窗,不为切段加帧)
