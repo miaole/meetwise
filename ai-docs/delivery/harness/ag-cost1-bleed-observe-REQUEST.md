@@ -1,6 +1,6 @@
 # AG-COST1 — 成本轨第①步：AG-07 止血开关 + #48 cached_tokens 观测（B 席六步之① ∥ 最小一刀 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`**（2026-10-11 EXEC 施工完毕·状态行 append 保史。前态=起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
 
 **席位**：meetwise 战役 AG 成本轨第①步起草席（AG-07 止血开关 + #48 cached_tokens 观测 · EXPERT-REVIEWS §七 成本轨 B 席六步之 **①**——「①与②合并一个发布窗口」的前半·②迁移三件套系后继刀·与失败语义轨 A 席六刀零硬依赖可并行）。
 **基线**：`feat/mysql-schema-skeleton` @ `b95c9c4b`（开工建树时点主线 tip·`git log -1` 实测 2026-10-11·docs(ssot) TTL-WIRE nail 登记笔。起草窗口内主线自 `ce021b22` 前移一笔——仅 2 .md 文件·11 个本刀 code blob 两 tip 逐字节不变亲证·§0.3 登记）。分支 `line/ag-cost1-bleed-observe` · 工作树 `meetwise-cost1`（`git worktree add ../meetwise-cost1 -b line/ag-cost1-bleed-observe` 仓根同级·本起草席已立·建前亲证：worktree list 13 树无 cost1·`branch -a | grep -iE "cost|ag7|calib"` 命中仅 cmop03-weak-input-calib/g7v-spec-calib-thirdarm/model-op00-calibration-dispatch 三条**无关旧线**）。
@@ -40,6 +40,14 @@
 
 1. **主线前移**：起草窗口内 `ce021b22 → b95c9c4b`（TTL-WIRE nail docs(ssot) 登记笔·`git diff --stat` 恰 2 .md：execution-master-checklist + product-campaign-LEDGER）——本刀 11 个 code blob 两 tip **逐字节不变**亲证（§0.1 表即 @b95c9c4b 实取）·基线取建树时点 tip `b95c9c4b`。
 2. **跨轨文件交点**：失败语义轨刀 B（AG-06·model-client dispatchOnce 返回与 parse 之间管道改造）与本刀共享 `model-client.ts` 触面——本刀动 usage 对象**字段读取**（:668-670/:937-939 解析行+类型行）·刀 B 动 catch 管道——同文件不同区·互不为前置（§4）·先落者为准后到者照 §0 重 pin。
+
+### 0.4 EXEC 并线重 pin 勘误注（2026-10-11·开工时点实测·append 保史）
+
+1. **主线前移**：基线 `b95c9c4b → 4c178a4c`（恰两笔 docs-only：`9ce11313` billing-redesign 落地 + `4c178a4c` 计费蓝本验证定谳·`git diff --stat` 全程恰 2 .md 新增·billing-redesign/README+LANDING-INDEX·与 §0.3-1 前移同形）。**I6 hotfix 未落**：两 tip diff 零 .ts 文件（无 interview-service.ts 一行）——任务书「可能即将落」以开工实测为准·未发生。
+2. **并线**：`git merge feat/mysql-schema-skeleton` → merge commit `0c2e4874`·**零冲突**·恰 2 .md 新增。
+3. **§0.1 blob 复核**：11 件 code blob 于 merge 后逐条 `git ls-tree` 亲对——**全部逐字节不变**（零漂移·含 #4 model-client.ts `27eb7516591b`）。**刀 B（AG-06·`line/ag-b-classify`@`13cf7c33`）未落主线**——共租交点仍按 §0.3-2 原判读（本刀先落）·**无需补刀 B 共租反向登记**（刀 B 落时照 §0.3-2 由其重 pin 本刀 parse 行号）。
+4. **红事实复证（施工前树）**：`rg "USAGE_CALIBRATION" apps packages docker` → EXIT=1（零旋钮前态）·`rg "cached_tokens|prompt_cache_hit|prompt_tokens_details" --type ts apps packages` → EXIT=1（零读取前态）——两红事实原值成立。
+5. **施工后落点行号（本刀改动集内）**：止血=usage-calibration-reconcile.ts :32-73（config/resolve 新增区·**`runUsageCalibrationReconciler` 签名零改**·:105 第二参默认 `60_000` 原值保留）+ main.ts :35（import 增一符号）/:713-716（条件起循环）/:744（ready 可选短路）/:778（drainStops 可选 stop）；观测=model-client.ts :515-538（ProviderUsagePayload+两 helper）/:656（非流类型）/:703-709（非流解析+打点）/:797（流式 opts onUsage 型）/:863/:881/:893-896（流式类型+onUsage 回调）/:982-988（流式终局+打点）+ invoke.ts :59-66（ModelUsage.cachedInputTokens 型注释区）+ metrics.ts :6/:105-109/:156-163（import/METRIC 两键/基线预注册）。
 
 ## §1 红事实 + 修法
 
@@ -129,6 +137,16 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **①止血默认值取向（专家意见二选一呈报·EXPERT-REVIEWS §一 :10「可配置降频即愈」+issues-final AG-07 修法「先降频到每天一次，或者干脆关掉」）**：(a) `INTERVAL_MS` 默认 `86_400_000`（降频到每天——小时桶 batch 语义下仅 1/24 桶被处理·新观测行量降 96%）；(b) `ENABLED` 默认 `false`（干脆关停——零扫描零新行·止血最彻底·因子纯写不读故零功能代价）；任务书草案另记中间档 `3_600_000`（每小时——每桶恰处理一次·重复扫描降 60× 但**新观测行量不变**·非专家意见面）——三值呈报·(b) 为推荐（与「因子生产零调用」事实自洽·②迁移三件套落地后再启）。
 - **②观测打点住地**：(a) 仅 Prometheus metric 面（metrics.ts METRIC+基线预注册·最小刀面·**推荐**）；(b) Prometheus + Langfuse `usageDetails.cached` 一并增挂（langfuse-v5.ts:166-176 record 面·trace/metric 同步扩面沿 AG-19 关联面先例参照·AG-24 model 名面仍归后继）。附带：metric 命名与 label 集终值（§1-② 草案形为准·沿低基数纪律）。
 
+**EXEC 行使记录（2026-10-11·施工完毕·append 保史）**：
+
+- **三条款行使**：①pre-exec 双审两外席 BOTH PASS 落卷（协调方任务书引为已获）；②协调方常设 loop 授权开工（任务书明示「常设 loop 授权开工」）；③§1 修法清单与 §5 Ban/pins **零改**（pins 十一值照抄未翻·`actualSpendCny=null` 维持——本刀 prove 全假体/静态/fixture·零模型外呼·零 DB 写·零 secrets）。
+- **裁决项①行使（按卷推荐执行·标注可调）**：取 **(b)** `USAGE_CALIBRATION_ENABLED` 缺省 `false`（干脆关停·止血最彻底·与「resolveLatestCalibratedFactor 生产零调用」事实自洽·②迁移三件套落地后再启）+ `USAGE_CALIBRATION_INTERVAL_MS` 缺省 `86_400_000`（(a) 值——重启用未显式设间隔即按天·**绝不回退 60s**）。中间档 `3_600_000` 合法可选·域 `[60_000, 604_800_000]`（下界=原硬编码值·batch=小时桶下更快只重复扫同桶·上界 7d=旋钮 sane 帽）。非法值 → throw `usage_calibration_reconcile_enabled_invalid` / `usage_calibration_reconcile_interval_invalid`（沿 model-invocation-reconcile boundedInteger 先例·AG-18「非法就启动失败」纪律·布尔解析 1/true/on ∥ 0/false/off·其余皆 throw）。
+- **裁决项②行使（按卷推荐执行·标注可调）**：取 **(a)** 仅 Prometheus metric 面——METRIC 增 `model_usage_cached_input_tokens_total` {service}（counter·按解析值累计）+ `model_usage_cache_field_presence_total` {service, presence: present_positive|present_zero|absent}（三态互斥计数）+ registerBaselineMetrics 预注册基线 0（**service 集沿 prompt 注册表 `promptVersions()` 单一真源防漂移**·metrics.ts:159-163·新 service 首次 emit 自建序列）。Langfuse `usageDetails.cached` **不增挂**（AG-24 model 名面仍归后继）。
+- **观测语义细化（EXEC 定·§1-②「多字段取值序=EXEC 细化」授权面内）**：并存取值序 `cached_tokens` → `prompt_cache_hit_tokens` → `prompt_tokens_details.cached_tokens`（互斥为常态·并存仅防御）；**usage 载荷整体缺席不打点**（#48 面是载荷内缓存字段在场性·载荷缺席系既有退化路径——施工中曾引入「载荷缺席时属性访问抛错破坏既有 ok:true 语义」的零回归违例·当域能断言门抓获并修复为载荷存在才打点·proof B 载荷缺席臂=该回归的钉子）；打点恰两处（非流 :709+流式 :988·无重复计数面）。
+- **旋钮住地（EXEC 定·§1-①「住地=EXEC 定」授权面内）**：`usage-calibration-reconcile.ts`（worker 调度侧·与 model-invocation-reconcile.ts 同住地先例一致·`runUsageCalibrationReconciler` 签名零改·:105 默认参原值保留）。
+
 ---
 
 *AG-COST1 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · 基线 `feat/mysql-schema-skeleton` @`b95c9c4b`（起草窗口自 `ce021b22` 前移一笔·仅 2 .md·11 code blob 逐字节不变）· 分支 `line/ag-cost1-bleed-observe` · 工作树 `meetwise-cost1` · 蓝本=issues-final AG-07 :125-134/总览 :19/#48 行 :550 + EXPERT-REVIEWS §七 :67 成本轨①（修法权威）+§一 :10（AG-07 P1→P2·止血零功能代价）+:73（缺席≠零防御）+ review-log AC-F20 :86/AC-F1 :67/AC-F2 :68/§四 :139-141（三端点字段名官方文档核实）· 范围=止血+观测最小一刀（①∥②前半·②迁移三件套后继）· 触面=usage-calibration-reconcile.ts+main.ts:710 ‖ model-client.ts usage 解析+metrics.ts · 域级本体/迁移/计费零字节 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+
+*EXEC 版记 2026-10-11：并线 `0c2e4874`（零冲突·主线前移恰 2 docs-only·11 blob 逐字节不变·I6 hotfix/刀 B 均未落·无需共租反向登记）→ 施工（止血旋钮 usage-calibration-reconcile.ts :32-73+main.ts :35/:713-716/:744/:778 ‖ 观测 model-client.ts :515-538/:656/:703-709/:797/:863/:881/:893-896/:982-988+invoke.ts :59-66+metrics.ts :6/:105-109/:156-163+两 proof 件+两 package.json prove 脚本行）→ 断言门（proof A=usage-calibration-bleed 26 臂+proof B=model-usage-cache-observe 28 臂全 PASS·EXIT=0；既有门回归 13 绿+6 门**基线同红环境性登记不洗**[DB 门=database_target_missing/ssl_ca_unreadable·receipts 门=fixture ENOENT·stash 双跑同错亲证]·turbo typecheck --force 3/3+根 pnpm typecheck EXIT=0）→ 状态行随翻 executed:awaiting_post_prove_dual（append 保史）+§0.4 勘误注+§8 行使记录·恰 9 文件（6 src+2 proof+2 package.json 计 10 改动+本 .md）零迁移零域级本体零计费·⛔push·待 post-prove 双审两外席（Ban self-approve·alone≠dual）*
