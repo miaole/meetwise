@@ -144,7 +144,7 @@ export type DrainResult = 'start' | 'answer' | 'idle' | 'failed' | 'retry';
  * failed interview with a reserved charge.
  */
 async function terminalizeUnsettledInterview(
-  c: Parameters<typeof failInterviewAndRelease>[0], owner: string, interviewId: string, reason: 'job_failed' | 'worker_died', kind?: string,
+  c: Parameters<typeof failInterviewAndRelease>[0], owner: string, interviewId: string, reason: 'job_failed' | 'worker_died' | 'retry_exhausted', kind?: string,
 ): Promise<'settled' | 'unavailable'> {
   try {
     await failInterviewAndRelease(c, owner, interviewId);
@@ -238,6 +238,54 @@ async function failClaimedInterviewJob(
   });
 }
 
+/* ───────── AG-04 刀C（AG-C-REQUEUE·失败语义轨）：consumer 瞬时错误分类 requeue + #4 退避 + attempts 上限 ───────── */
+/**
+ * 瞬时错误白名单（裁决项①·按卷推荐四族全集行使·落定后受「只增不清」Ban 约束——后续刀只能加不能减）：
+ *  1. `graph_fence_lost`——既有 :502 保留语义（租约交接可恢复·adaptive-lifecycle Object.assign code 惯例）；
+ *  2. PG 超时族 SQLSTATE `57014`（query_canceled=statement_timeout·principal GUC 15s 触发面）；
+ *  3. PG 连接族 SQLSTATE 类 08 前缀（connection_exception：08P01/08S01 等·主从切换/断连）+ `57P01/57P02/57P03`
+ *     （admin_shutdown/crash_shutdown/cannot_connect_now）；
+ *  4. node socket 层 `ECONNRESET/EPIPE/ETIMEDOUT`。
+ * 命中 → requeue（退避+上限闸见 requeueOrTerminalizeExhausted）；不命中 → :508 确定性终态现状零变零放宽。
+ * 分类通道=errCode（errors 单一探测：AppError.code ∪ 结构 .code——PG SQLSTATE/标签形原生过面）。
+ */
+export const TRANSIENT_INTERVIEW_JOB_ERROR_CODES: ReadonlySet<string> = new Set([
+  'graph_fence_lost', '57014', '57P01', '57P02', '57P03', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
+]);
+/** 纯函数·确定性·prove 直行使（沿 parseFocusPayload 形制）。 */
+export function isTransientInterviewJobError(code: string | undefined): boolean {
+  if (!code) return false;
+  return code.startsWith('08') || TRANSIENT_INTERVIEW_JOB_ERROR_CODES.has(code);
+}
+
+/**
+ * AG-04 刀C（修法③）：**所有 requeue 调用点统一上限闸**——attempts≥MAX_INTERVIEW_JOB_ATTEMPTS
+ * （:15 单一真相·取 claim 自增后现值）→ 不再 requeue：markJobFailed+terminalizeUnsettledInterview
+ * reason=`retry_exhausted`（终态+退款同拍事务沿 failClaimedInterviewJob 既有形·事件 dedupe 键
+ * `*_unavailable:retry_exhausted`）；未达上限 → requeue（退避由 requeueInterviewJob 写 next_attempt_at）。
+ * EG-A2 热循环断根点：瞬时故障持续时至多 MAX 次领跑即终态,绝不无界 5s 拍重跑。
+ */
+async function requeueOrTerminalizeExhausted(
+  d: ConsumerDeps, owner: string, job: { id: string; interviewId: string; kind: string; attempts: number }, error: unknown,
+): Promise<'retry' | 'failed'> {
+  if (job.attempts >= MAX_INTERVIEW_JOB_ATTEMPTS) {
+    await asPrincipal(d.pool, owner, async (c) => {
+      const stillMine = await markJobFailed(c, owner, job.id, d.leaseOwner, `retry_exhausted:${(error as any)?.code ?? 'err'}`);
+      if (!stillMine) return;
+      getMetrics().inc(METRIC.jobsFailed, { queue: 'interview_job' });
+      try {
+        await terminalizeUnsettledInterview(c, owner, job.interviewId, 'retry_exhausted', job.kind);
+      } catch (terminalError: unknown) {
+        getMetrics().inc(METRIC.refundFailed);
+        throw terminalError;
+      }
+    });
+    return 'failed';
+  }
+  await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
+  return 'retry';
+}
+
 /** 领一个 job 跑完(start/answer)→ markDone;失败 markFailed。模型/图在生命周期里的短事务,不与 claim 同事务。 */
 export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Promise<DrainResult> {
   // The legacy fixed-question graph persists raw answers in its own state and
@@ -261,8 +309,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     if (error?.message === 'interview_privacy_fenced') {
       // Do not leave a naked running row occupying the per-owner cap until
       // lease expiry. Lease CAS=0 is ignored: we are no longer the holder.
-      await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-      return 'retry';
+      // AG-04 刀C（修法③）：requeue 调用点统一上限闸（attempts≥MAX → retry_exhausted 终态,不再无限 requeue）。
+      return requeueOrTerminalizeExhausted(d, owner, job, error);
     }
     throw raw;
   }
@@ -487,8 +535,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
           }
         }));
         if (!fenced.acquired) {
-          await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-          return 'retry';
+          // AG-04 刀C（修法③）：requeue 调用点统一上限闸（attempts≥MAX → retry_exhausted 终态）。
+          return requeueOrTerminalizeExhausted(d, owner, job, Object.assign(new Error('interview_graph_fence_unavailable'), { code: 'interview_graph_fence_unavailable' }));
         }
       }
       const done = await asPrincipal(d.pool, owner, (c) => markJobDone(c, owner, job.id, d.leaseOwner));
@@ -499,9 +547,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // durable fence 失效时，旧 worker 的 graph checkpoint 可能已经前进、但业务投影事务被
     // requireCurrentFence 整体回滚。此时不能把一次可恢复的 lease 交接误判为业务失败/退款：
     // 归还同一 job，下一持有者会从 checkpoint 识别 alreadyApplied 并只补投影。
-    if (errCode(e) === 'graph_fence_lost') {
-      await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-      return 'retry';
+    // AG-04 刀C（修法①）：errCode 白名单分类——瞬时族（fence 交接/PG 超时/连接族/socket 层）requeue+退避
+    // （上限闸在 requeueOrTerminalizeExhausted：attempts≥MAX → retry_exhausted 终态,杜绝无界热循环）；
+    // **白名单外一律确定性终态——现状语义零变零放宽（Ban 列表）**。
+    if (isTransientInterviewJobError(errCode(e))) {
+      return requeueOrTerminalizeExhausted(d, owner, job, e);
     }
     // **租约守卫**在共享 helper 内：若 job 已被重领/终态，CAS=0，绝不发假
     // unavailable 或释放现持有者的预留额度。
@@ -522,6 +572,9 @@ export async function drainOwnerJobs(d: ConsumerDeps, owner: string): Promise<vo
 
 /** Reaper 一拍(北极星:无静默死胡同)：收割 owner 名下崩在 running 且租约过期的孤儿 job。
  *  未超上限 → requeue(下次 drain 重领);已达上限 → 终结 failed + 发 interview_unavailable 终态事件(前端降级不死等)+ 退预留额度(不泄漏)。
+ *  AG-04 刀C（EG-A2·裁决④②形）：sweep queued 超限臂返回的 retryExhaustedInterviews 同拍终态化——
+ *  reason=`retry_exhausted` 终态事件+退款（滞留 queued 行唯一终态化面）；与 worker_died 面同面试双命中时
+ *  以 worker_died 先到为准（免 release 冲突重入）。返回面 {requeued,failed} 形零变（TTL-WIRE 置位锚兼容）。
  *  事件+退款与 sweep 同一 principal 事务,RLS 限定到本 owner。 */
 export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Promise<{ requeued: number; failed: number }> {
   return asPrincipal(d.pool, owner, async (c) => {
@@ -529,6 +582,15 @@ export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Pr
     for (const interviewId of res.failedInterviews) {
       try {
         await terminalizeUnsettledInterview(c, owner, interviewId, 'worker_died');
+      } catch (terminalError: unknown) {
+        getMetrics().inc(METRIC.refundFailed);
+        throw terminalError;
+      }
+    }
+    for (const interviewId of res.retryExhaustedInterviews) {
+      if (res.failedInterviews.includes(interviewId)) continue;   // 同面试双臂命中:worker_died 已终态,retry_exhausted 免重入
+      try {
+        await terminalizeUnsettledInterview(c, owner, interviewId, 'retry_exhausted');
       } catch (terminalError: unknown) {
         getMetrics().inc(METRIC.refundFailed);
         throw terminalError;
