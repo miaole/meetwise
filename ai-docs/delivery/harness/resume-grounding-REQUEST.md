@@ -2,8 +2,8 @@
 
 **Status**: （rev3 蓝本·EXEC a2eb45dc·双域双审 BOTH PASS）· STOP · alone≠dual
 **Date**: 2026-10-09
-**Base**: 主线 `5636d58d`（= `origin/feat/mysql-schema-skeleton` tip，`git fetch` 后亲证）· 分支 `line/resume-grounding`（工作树 `/Users/miaole/Desktop/golucky/meetwise-line-resground`）
-**Honesty**: 本档全部 file:line 锚点在 `line/resume-grounding` @`5636d58d` 实树亲读验证（apps/worker、packages/ai-graphs、packages/ai-runtime、packages/domain、apps/api、packages/db——行号错=审席 FAIL）；用户任务书（§0 引录）逐字誊录字节一致，禁改写；#189–#195 编号**不在** issues-master.md（其上限 #184，`/Users/miaole/Documents/Meetwise学习与审查/01-成品文档/issues-master.md` 亲数）——该五条属用户任务书携带的更新评审轮，码面锚点已由本席逐一亲读落位，EXEC 不得以「编号不在总表」为由跳过。
+**Base**: 主线 `5636d58d`（= `origin/feat/mysql-schema-skeleton` tip，`git fetch` 后亲证）· 分支 `line/resume-grounding`（工作树 `meetwise-line-resground`·仓根同级 worktree）
+**Honesty**: 本档全部 file:line 锚点在 `line/resume-grounding` @`5636d58d` 实树亲读验证（apps/worker、packages/ai-graphs、packages/ai-runtime、packages/domain、apps/api、packages/db——行号错=审席 FAIL）；用户任务书（§0 引录）逐字誊录字节一致，禁改写；#189–#195 编号**不在** issues-master.md（其上限 #184，外部审计总表（本机外部件·不入仓）`issues-master.md` 亲数）——该五条属用户任务书携带的更新评审轮，码面锚点已由本席逐一亲读落位，EXEC 不得以「编号不在总表」为由跳过。
 
 ---
 

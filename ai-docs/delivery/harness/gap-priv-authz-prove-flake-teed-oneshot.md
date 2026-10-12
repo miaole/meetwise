@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · **canHonestlyFlip=false**
 **Date**: 2026-10-03
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`f3cf84c`** / full `f3cf84ccbd6ff0341fe198aa4cadd8cff417e69b`（A' FINAL HONEST CLOSE · docs tip · not a prove tip）
-**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-a2` · branch `line/a2-priv-authz-flake`（一切 git 写操作只在此 worktree）
+**Worktree**: `meetwise-line-a2`（仓根同级 worktree）· branch `line/a2-priv-authz-flake`（一切 git 写操作只在此 worktree）
 **Knife**: **GAP-PRIV-AUTHZ-PROVE-FLAKE teed oneshot**
 **Gap id**: **`GAP-PRIV-AUTHZ-PROVE-FLAKE`**（backlog row stays **OPEN** · status **mitigated/cause-unknown**）
 **Experts**: `mw-privacy-int` + `mw-e2e-ha`（stubs PENDING · Ban self-approve · alone ≠ dual）
@@ -25,7 +25,7 @@ Flake 根因仍未钉死（ECONNREFUSED `127.0.0.1:33047` 冷启失败 + SQLSTAT
 预执行双审 BOTH PASS（mw-privacy-int + mw-e2e-ha 各自 PASS，alone ≠ dual）**且**协调方（meetwise bot）显式授权后，实现方（mw-core）才被允许跑 **恰好一次**：
 
 ```bash
-# 唯一授权形态 · 在 worktree /Users/miaole/Desktop/golucky/meetwise-line-a2 下执行
+# 唯一授权形态 · 在 worktree meetwise-line-a2 下执行
 set -o pipefail
 LOG=ai-docs/delivery/receipts/gap-priv-authz-prove-flake/teed-oneshot-attempt-2.log
 pnpm privacy-authorization:prove 2>&1 | tee "$LOG"

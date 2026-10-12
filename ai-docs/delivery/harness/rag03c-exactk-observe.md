@@ -10,7 +10,7 @@
 - **夹具形态（`packages/db/test/rag03-hnsw-completeness.proof.ts:402-427`）**：F-STARVE = 45 近 in-scope **未批准**（dist 0.10–0.54）+ 5 远 in-scope **已批准**（dist 0.60–0.64）+ 10 最近 out-of-scope 已批准（dist 0.01–0.05）· K=5 · P-HNSW GUCs `enable_seqscan=off`+`enable_sort=off`（`:192-197`）→ **K 近邻窗口内全为未批准批，批准行被构造在窗口之外**——单批 `ef_search=40` 弹出的候选全被 candidate JOIN 丢弃 → `hnswReturned=0` 是**该退化构造下的必然而非 HNSW 机制证伪**。
 - **机制面**：HNSW 部分索引 `qgc_hnsw_visible_*` = `USING hnsw (embedding vector_cosine_ops) WHERE visible`（`packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql:205`）· candidate JOIN 在 ann CTE 内 LIMIT 前（`0138_qbank_ann_candidate_before_limit.sql`）· `hnsw.iterative_scan='strict_order'` 函数级钉死（`0139_qbank_ann_hnsw_iterative_scan.sql`）——0138/0139 均 **AQ 已闭面 · 本刀零改动**。
 - **行语义**：backlog `gap-bug-backlog.md:71` GAP-RAG-03 **P0 OPEN** · `:70` GAP-RAG-02 OPEN（R-b EXIT1 承接 · 非本刀）。
-**Base**: `origin/feat/mysql-schema-skeleton` **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · fetch 后实测 tip=预期 ≥`9265e4d8` 恰等）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-rag03` · branch `line/rag03c-exactk-observe`
+**Base**: `origin/feat/mysql-schema-skeleton` **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · fetch 后实测 tip=预期 ≥`9265e4d8` 恰等）· worktree `meetwise-line-rag03`（仓根同级 worktree）· branch `line/rag03c-exactk-observe`
 **Experts**: `mw-rag-route` + `mw-model-op`（stubs PENDING · Ban self-approve · alone ≠ dual）
 **Authority**: meetwise — 授权链见上；双审 PASS ≠ EXEC 授权 ≠ 判别结论预claim。
 

@@ -8,7 +8,7 @@ status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审�
 
 **Date**: 2026-10-08
 **Line**: **G7Y**（trio 复跑判定 · 三绿收官测量刀）
-**Base**: `origin/feat/mysql-schema-skeleton` = **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · 2026-10-08 fetch 后实测 tip，≥ `9265e4d8` 达成 · 本地同名分支已 ff 同点）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7y` · branch `line/g7y-trio-rerun`（新立自 origin tip · tracking **`origin/feat/mysql-schema-skeleton`**——`git worktree add -b` 派生默认 tracking 实况，rev3 更正；origin 上同名分支 `line/g7y-trio-rerun` 系本刀 push 时新立 · 禁 force push）。
+**Base**: `origin/feat/mysql-schema-skeleton` = **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · 2026-10-08 fetch 后实测 tip，≥ `9265e4d8` 达成 · 本地同名分支已 ff 同点）· worktree `meetwise-line-g7y`（仓根同级 worktree）· branch `line/g7y-trio-rerun`（新立自 origin tip · tracking **`origin/feat/mysql-schema-skeleton`**——`git worktree add -b` 派生默认 tracking 实况，rev3 更正；origin 上同名分支 `line/g7y-trio-rerun` 系本刀 push 时新立 · 禁 force push）。
 
 **立项出处（引用既有登记 · 不自建 SSOT 行）**：协调方 G7Y trio 复跑判定刀——CMOP03-FIX nail「C-MO-P3 行关闭/翻转归协调方后续（**trio 复跑复核保留**）」+ G7V-CALIB nail「G7U 残红①关联子面处置**随 G7Y trio 复判**」+ CMOP03-D nail「trio stays OPEN（真测 1/1/1 retained）· 复判 run 归协调方」既有指向的行使。本 REQUEST 为独立全链 REQUEST（REQUEST → 预执行双审 → meetwise 授权 → EXEC → post-prove 双审 → meetwise 授权 nail）。
 

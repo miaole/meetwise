@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · this commit is not coding authorization, is not a prove, and is not a rerun）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · **canHonestlyFlip=false**
 **Date**: 2026-10-07
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`50423a6f`** / full `50423a6fa6f18d4c9d193611cf84c4702e067208`（fetch 后与本 tip 逐字一致 · 本刀全部 git 写操作仅在独立 worktree `/Users/miaole/Desktop/golucky/meetwise-line-flk` · branch `line/flk-rootcause` · 禁 push）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`50423a6f`** / full `50423a6fa6f18d4c9d193611cf84c4702e067208`（fetch 后与本 tip 逐字一致 · 本刀全部 git 写操作仅在独立 worktree `meetwise-line-flk`（仓根同级 worktree）· branch `line/flk-rootcause` · 禁 push）
 **Knife**: **GAP-PRIV-AUTHZ-PROVE-FLAKE `:68` 根因调查刀**（Line FLK）——A'' 补齐证据链（teed `PROCESS_EXIT=0` 三角一致）但**根因未钉死**：冷启 `ECONNREFUSED` / warm SQLSTATE `23505` 两类并存未归一；「attempt-2 一次过」**未复现 ≠ 根因消失**。本刀为其求**根因调查设计与授权框架**（两类失败各自可复现实验设计 · 每实验假设+判读标准 pre-registered），**不是 prove 刀、不是 fix 刀、不是关闭刀**
 **Gap id**: **`GAP-PRIV-AUTHZ-PROVE-FLAKE`**（backlog `gap-bug-backlog.md:68` · P2 · **OPEN** · **mitigated/cause-unknown** · 本刀不改该行）
 **Experts**: `mw-privacy-int` + `mw-e2e-ha`（双 PRE stubs PENDING · Ban self-approve · alone ≠ dual · 不代签 peer）

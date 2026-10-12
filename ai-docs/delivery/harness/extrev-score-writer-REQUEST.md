@@ -5,7 +5,7 @@
 **Base tip**: `5636d58d`（`origin/feat/mysql-schema-skeleton` 2026-10-07 fetch 实测 · 外部评审基线 `2fab7946` 距主线仅 4 commit · 本文全部 file:line 于本 worktree `5636d58d` **亲读复核** · 评审原文行号漂±已在 §3 逐条勘误）
 **Author**: `mw-scorewr-draft`（REQUEST 起草席 · 实现不自批）
 **Date**: 2026-10-07
-**依据**: ①`extreview-fix-campaign-SOP.md:16-21,52-56`（EXTREV-1 节+执行规则 1/3/5）②外部总表 `/Users/miaole/Documents/Meetwise学习与审查/01-成品文档/issues-master.md` #40(:98)/#20(:97)/#50(:294)/#52(:296)/#103(:330)/#41(:471)/#42(:190)/#43(:329)/#47(:472) ③`/Users/miaole/Documents/Meetwise学习与审查/01-成品文档/fix-roadmap.md:38-62`（第 1 批方案+验收标准）
+**依据**: ①`extreview-fix-campaign-SOP.md:16-21,52-56`（EXTREV-1 节+执行规则 1/3/5）②外部审计总表（本机外部件·不入仓）`issues-master.md` #40(:98)/#20(:97)/#50(:294)/#52(:296)/#103(:330)/#41(:471)/#42(:190)/#43(:329)/#47(:472) ③`fix-roadmap.md:38-62`（外部审计卷·本机外部件·不入仓·第 1 批方案+验收标准）
 
 ---
 
