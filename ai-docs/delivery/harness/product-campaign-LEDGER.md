@@ -349,7 +349,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 > 全链：REQUEST `67d39795`→rev2 `22231f04`（rev1 双审 FAIL 三阻塞→回炉九条修订→rev2 双审 BOTH PASS）→EXEC `730f6534`（先并主线 `65bdf3f6` 入 `line/blite-fix` 零冲突=重锚）+`5d536f83`（恰 56 文件 85+/85−·F-A~F-G 七族 69 红形式改写·SHA/行号/EXIT 值逐字节保留+manifest 8 断径改指 receipts/archive/2026-09-batch23·12 替换行增量恰 +12+治理指针 6 处）+`fee511d8`（状态行随翻）→post-prove 双席 BOTH PASS（形式铁律 30+/40+ 处对照·五断言独立复跑全绿·85−=69+12+4 闭合）→merge --no-ff @`4a87dc20` 并主线（双亲 65bdf3f6+fee511d8·origin 已推·非 force）。分支 `line/blite-fix`·工作树 `meetwise-blite`（仓根同级 worktree）。
 
 - **收官内容**：①**CI docs:check 红清欠**——PTP 遗留红 61→66→69 全数清偿·主线 `check-docs` **EXIT=0 首绿**（nail 席 merge 后主线树亲跑：80 required files verified·public text policy scanned 1974 managed worktree files）+40hex 多重集断言两侧 19 值 22 处全等+markers 全仓零命中；②**PTP §9 移交清偿**——§9 R1「修链清单移交 B-lite」项下内容红清偿主项随本刀闭合（139 休眠断链+fail-closed 变体余面归 B-lite-2 后继·照登不洗）。
-- **不计 271 条件数（查证如实处置）**：本刀=docs 修链清欠非审计条目映射面·卷内零 271 条目引用（本席 grep 亲证零命中）——**LEDGER 权威值 116/271（42.8%）维持不变·批表零翻**（沿批表增量同步第 5 条「逐条列件数与 hash」纪律·本刀无 271 件可列）。
+- **不计 271 条件数（查证如实处置）**：本刀=docs 修链清欠非审计条目映射面·卷内零 271 条目引用（本席 grep 亲证零命中）——**本刀无 271 件可翻·批表零翻**（沿批表增量同步第 5 条纪律。勘误 2026-10-12 协调方：本行原引「权威值 116/271 维持不变」系誊自 :343 终核节历史时点值——现权威值=合计行 **120/271（44.3%）**（15+26+40+22+10+7·含 5A-2 三件+I6 #239）·B-lite 非计件面·总数不受本刀影响）。
 - erratum 承登：REQUEST §0.7「`adr-postgres-retained.md` 引用行 :2315/:2690 → :2324/:2690」——第三处引用实为 `scripts/run-e2e-isolated.mjs:2699`（merge 区位移 +9 未随登·零触维持）·勘误正文随 execution-master-checklist BLITE-FIX 段（本窗 commit `8bf8bf59`）落卷。
 - [ ] STILL OPEN：码面长尾 338 处/109 文件+ai-docs 活面 333 处/104 文件休眠断链归 **B-lite-2 后继刀**；r4-eg5 readRepo 3 断径按新径承接归后继刀；parity2 在飞卷 1 处 worktree 径红归同族。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
