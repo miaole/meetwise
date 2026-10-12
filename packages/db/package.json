@@ -23,6 +23,7 @@
     "prove:migrate": "tsx test/migrate.proof.ts",
     "prove:authz5a-email-normalization": "tsx test/authz5a-email-normalization.proof.ts",
     "prove:authz5a-mirror": "tsx test/authz5a-gateway-mirror.proof.ts",
+    "prove:authz5a2-stale-payload-ttl": "tsx test/authz5a2-stale-payload-ttl.proof.ts",
     "prove:level-policy": "tsx test/level-policy-version.proof.ts",
     "prove:migrate-cli": "tsx test/migrate-cli.proof.ts",
     "prove:qbank-control-role": "tsx test/qbank-control-role.proof.ts",

@@ -554,9 +554,13 @@ async function main() {
 
   const { response: order2Res, body: ord } = await createOrder(H, 'pack_10', `${email}:order2`);
   A(order2Res.status === 200 && typeof ord.orderId === 'string', '[异常前置] 第二笔订单可用于错签断言');
-  const badSig = await postPayWebhook(ord.orderId, 't', 'deadbeef');
+  // 5A-2 #100 四段式:错签臂携合法新鲜 ts+伪 sig(ts 合法才落 403 bad_signature,不混入 400 invalid_callback)。
+  const badSigTs = Date.now();
+  const badSig = await postPayWebhook(ord.orderId, 't', 'deadbeef', badSigTs);
   A(badSig.response.status === 403, '[异常] webhook 错误签名 → 403(验签 fail-closed)');
-  const unknownOrder = await postPayWebhook('nope', 't', paidWebhookSignature('nope', 't'));
+  // 未知单号臂携新鲜合法签+ts(保 404 查不到单不入账断言语义)。
+  const unknownTs = Date.now();
+  const unknownOrder = await postPayWebhook('nope', 't', paidWebhookSignature('nope', 't', unknownTs), unknownTs);
   A(unknownOrder.response.status === 404, '[异常] webhook 未知订单 → 404(查不到单不入账)');
 
   const apply2 = await readJson(await fetch(`${BASE}/jobs/${jobId}/apply`, { method: 'POST', headers: H2, body: '{}' }));

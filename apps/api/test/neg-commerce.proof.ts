@@ -8,10 +8,13 @@ import { boot, mkAssert, tokenFor, paySig, PAY_SECRET } from './_neg-harness';
  * 事实基线(读真实代码得出,断言即据此):
  *  - 路由无全局前缀:/commerce/orders、/commerce/orders/:id/pay-callback、/commerce/orders/:id、
  *    /commerce/entitlement（PrincipalGuard）、/commerce/products（公开、可 CDN 缓存）、/commerce/webhook/pay/:id（**无登录态**）。
+ *    (5A-2 #100:/commerce/orders/:id/pay-callback 亦收权为**无登录态**纯签名访问·同 verifyCommerceSig 管道。)
  *  - 下单契约 CreateOrderDto = { productId: string }。**无 amount/units 字段** → 金额/单位由服务器 PRODUCTS 权威派生,
  *    客户端注入的 amount/units 被 zod strip 掉(篡改天然无效)。PRODUCTS: pack_10=9900¢/10u, pack_30=24900¢/30u。
- *  - 回调/webhook 签名 = HMAC-sha256(`${orderId}:${providerTxn}:paid`, PAY_SECRET) 的 hex;缺字段→400 invalid_callback,
- *    长度不符/内容不符→403 bad_signature(timingSafeEqual,fail-closed)。
+ *  - 回调/webhook 签名 = HMAC-sha256(`${orderId}:${providerTxn}:${kind}:${ts}`, PAY_SECRET) 的 hex
+ *    (5A-2 #100:ts=签名毫秒时刻·±300s 防重放窗;缺字段/缺 ts/超窗 → 400 invalid_callback,
+ *    长度不符/内容不符 → 403 bad_signature(timingSafeEqual,fail-closed);三回调端点验签同源 verifyCommerceSig,
+ *    pay-callback 与 webhook 均无登录态——owner 由网关函数解析,登录身份不入账)。
  *  - markOrderPaidAndCredit:CAS created→paid 只第一次成功(credited);重复同单同流水→already(不双入);
  *    非本人/不存在→not_found(404);已 paid 但流水不符→conflict(409)。
  *  - 额度消费经 interview begin:resume-id 头非 UUID → 400 invalid_resume_id(消费方版本锁,
@@ -244,8 +247,9 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     Number((await pool.query('SELECT COALESCE(SUM(units_reserved),0)::float8 s FROM entitlement_bucket WHERE owner_user_id=$1', [owner])).rows[0].s);
   const ordAmt = async (id: string) =>
     Number((await pool.query('SELECT amount_cents FROM payment_order WHERE id=$1', [id])).rows[0]?.amount_cents);
-  const sig = (orderId: string, txn: string) => paySig(`${orderId}:${txn}:paid`);
-  const goodBody = (orderId: string, txn: string) => ({ providerTxn: txn, sig: sig(orderId, txn) });
+  // 5A-2 #100:签名载荷 `${id}:${txn}:${kind}:${ts}`(ts=毫秒时刻·±300s 窗);ts 单次绑定(body 与载荷同值·防跨毫秒撕裂)。
+  const sig = (orderId: string, txn: string, kind: 'paid' | 'refunded' = 'paid', ts = Date.now()) => paySig(`${orderId}:${txn}:${kind}:${ts}`);
+  const goodBody = (orderId: string, txn: string, kind: 'paid' | 'refunded' = 'paid', ts = Date.now()) => ({ providerTxn: txn, ts, sig: sig(orderId, txn, kind, ts) });
   const U = h.U;
 
   // ════════════════════════════════════════════════════════════════════════
@@ -410,23 +414,34 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     A('pay/空 providerTxn → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
   }
   {
-    // 伪造签名(等长 hex 但内容错)→ 403 bad_signature
-    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', sig: paySig('totally-different-string') });
+    // 缺 ts(5A-2 防重放窗)→ 400 invalid_callback(结构缺字段,不进验签)
+    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', sig: sig('ORD_A', 't1') });
+    A('pay/缺 ts → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 超窗旧 ts(重放 6 分钟前捕获的完整合法回调)→ 400 invalid_callback(防重放窗收口)
+    const old = Date.now() - 360_000;
+    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', ts: old, sig: sig('ORD_A', 't1', 'paid', old) });
+    A('pay/超窗重放 → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 伪造签名(等长 hex 但内容错·带 fresh ts 进到验签)→ 403 bad_signature
+    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', ts: Date.now(), sig: paySig('totally-different-string') });
     A('pay/伪签(等长)→ 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
   }
   {
     // 签名长度不符 → 403(a.length!==e.length 分支)
-    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', sig: 'deadbeef' });
+    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', ts: Date.now(), sig: 'deadbeef' });
     A('pay/短签名 → 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
   }
   {
     // 用别的订单 id 算的签名打到 ORD_A(签名未绑定本单)→ 403
-    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', sig: sig('ORD_OTHER', 't1') });
+    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 't1', ts: Date.now(), sig: sig('ORD_OTHER', 't1') });
     A('pay/错单签名 → 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
   }
   {
     // 签名对 txnX 但 body 送 txnY(签名未绑定本流水)→ 403
-    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 'txnY', sig: sig('ORD_A', 'txnX') });
+    const r = await h.post(PAY('ORD_A'), U('userA'), { providerTxn: 'txnY', ts: Date.now(), sig: sig('ORD_A', 'txnX') });
     A('pay/签名流水不符 → 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
   }
   {
@@ -435,11 +450,12 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     A('pay/不存在订单(合法签名)→ 404 order_not_found', r.status === 404 && r.body?.error === 'order_not_found');
   }
   {
-    // 越权支付他人订单:userB 用**合法**签名支付 userA 的 ORD_A → RLS 令 CAS 命不中 → 404(不给他人入账)
+    // 5A-2 #100 收权核:pay-callback 已无登录态(PrincipalGuard 撤除)——**零身份头**+合法签名 → 200 入账,
+    // 且入账归属=订单 owner(userA,网关函数解析),与调用方身份无关(userB 冒调登录态不再参与)。
     const before = await nBuckets('userA');
-    const r = await h.post(PAY('ORD_A'), U('userB'), goodBody('ORD_A', 'txnHijack'));
-    A('pay/越权他人订单(合法签名)→ 404 order_not_found', r.status === 404 && r.body?.error === 'order_not_found');
-    A('pay/越权他人订单 → 不给受害者入账', (await nBuckets('userA')) === before);
+    const r = await h.post(PAY('ORD_A'), {}, goodBody('ORD_A', 'txnNoAuth'));
+    A('pay/零登录态+合法签名 → 200 credited(纯签名访问·收权兑现)', r.status === 200 && r.body?.result === 'credited');
+    A('pay/零登录态回调 → 入账归属订单 owner(userA·非调用方)', (await nBuckets('userA')) === before + 1);
   }
   {
     // 重复回调已 paid 的单(ORD_PAID 无存流水)→ 流水不符 → 409 order_conflict,不产生副作用
@@ -449,7 +465,7 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     A('pay/已paid单再回调 → 不重复入账', (await nBuckets('userA')) === before);
   }
   {
-    // 并发双回调(principal 路径)同单同流水 → exactly-once:桶只 +1,恰一个 credited,不双加
+    // 并发双回调(5A-2 起与登录态无关·纯签名管道)同单同流水 → exactly-once:桶只 +1,恰一个 credited,不双加
     const before = await nBuckets('negPCC');
     const body = goodBody('ORD_PCC', 'txnPCC');
     const rs = await Promise.all([
@@ -473,14 +489,31 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     A('webhook/缺 sig → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
   }
   {
-    // 伪签 → 403(免登录不等于免验签)
-    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', sig: paySig('nope') });
+    // 伪签 → 403(免登录不等于免验签;带 fresh ts 进到验签比较)
+    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', ts: Date.now(), sig: paySig('nope') });
     A('webhook/伪签 → 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
   }
   {
     // 短签名 → 403
-    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', sig: 'ff' });
+    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', ts: Date.now(), sig: 'ff' });
     A('webhook/短签名 → 403 bad_signature', r.status === 403 && r.body?.error === 'bad_signature');
+  }
+  {
+    // 缺 ts → 400(5A-2 防重放窗:ts 必携)
+    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', sig: paySig(`ORD_RPL:t1:paid:${Date.now()}`) });
+    A('webhook/缺 ts → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 超窗旧 ts → 400(捕获 6 分钟前的完整合法回调原样重放,窗内防重放收口)
+    const old = Date.now() - 360_000;
+    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', ts: old, sig: paySig(`ORD_RPL:t1:paid:${old}`) });
+    A('webhook/超窗重放 → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
+  }
+  {
+    // 未来超窗 ts → 400(|now-ts| 双向夹住,防预签未来载荷)
+    const future = Date.now() + 360_000;
+    const r = await h.post(WH('ORD_RPL'), {}, { providerTxn: 't1', ts: future, sig: paySig(`ORD_RPL:t1:paid:${future}`) });
+    A('webhook/未来超窗 ts → 400 invalid_callback', r.status === 400 && r.body?.error === 'invalid_callback');
   }
   {
     // 不存在订单(合法签名)→ 404 order_not_found(owner 从 DB 查,查不到不入账)
@@ -629,9 +662,12 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
     A('webhook/错方法 GET → 4xx', r.status >= 400 && r.status < 500);
   }
   {
-    // pay-callback 打到已被 spoof 测试入账过的真 owner 单(ORD_SPOOF 现为 paid)→ 越权他人(userA)仍 404
+    // 5A-2 #100 收权后语义:pay-callback 已无登录态(旧「越权他人单 → 404」面随登录面撤除而消亡)——
+    // 对已 paid 单(ORD_SPOOF)带合法签名重放同流水 → 200 already(幂等);换新流水 → 409 order_conflict。
     const r = await h.post(PAY('ORD_SPOOF'), U('userA'), goodBody('ORD_SPOOF', 'txnSp'));
-    A('pay/他人已paid单越权 → 404 order_not_found', r.status === 404 && r.body?.error === 'order_not_found');
+    A('pay/已paid单同流水重放 → 200 already(收权后幂等·登录面撤除)', r.status === 200 && r.body?.result === 'already');
+    const r2 = await h.post(PAY('ORD_SPOOF'), U('userA'), goodBody('ORD_SPOOF', 'txnSp-NEW'));
+    A('pay/已paid单换新流水 → 409 order_conflict', r2.status === 409 && r2.body?.error === 'order_conflict');
   }
 
   // ── 统计 ──
@@ -640,11 +676,12 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
 })().catch((e) => { console.error('neg:commerce харness 崩溃:', e); process.exit(1); });
 
 /*
- * ══ 断言条数统计 ══  共 80 条纯负路径断言(A(...) 调用),无一条 happy-path:
+ * ══ 断言条数统计 ══  共 90 条纯负路径断言(A(...) 调用),无一条 happy-path:
  *   §1 下单(鉴权/畸形/缺字段/未知品/篡改被忽略/幂等正确性/并发同key)
  *   §2 查询(越权/不存在/未鉴权)
- *   §3 pay-callback(缺签/伪签/越权/不存在/冲突/并发双结算)
- *   §4 webhook(无登录态仍 fail-closed/边角/冒充owner/重放/并发双结算)
+ *   §3 pay-callback(缺签/缺ts/超窗重放/伪签/收权纯签名/不存在/冲突/并发双结算——5A-2 #100 收权后
+ *      旧「越权 404」面消亡,登录面撤除断言随修法如实化)
+ *   §4 webhook(无登录态仍 fail-closed/缺ts/超窗重放/未来超窗/边角/冒充owner/重放/并发双结算)
  *   §5 额度消费(不足/过期/缺参/非UUID门/越权/未鉴权/并发超卖/并发双击)
- *   §6 边角(空body/错方法/越权已paid单)
+ *   §6 边角(空body/错方法/已paid单重放幂等+换流水冲突)
  */

@@ -219,7 +219,7 @@ export const RESIDUAL_PATHS: ResidualPath[] = [
   },
   {
     file: 'apps/api/src/modules/commerce/commerce.service.ts',
-    paths: 'createOrder/payCallback/getOrder/entitlement（user asPrincipal 路径）',
+    paths: 'createOrder/payWebhook/getOrder/entitlement（user asPrincipal 路径）',
     reason: '§3.1 表锚=webhook owner 回查两点；user 路径 owner 谓词在 db payment.ts/commerce.ts（登记为 db 层残余）',
     ownership: 'PRIV01 第二波（db 层）',
   },

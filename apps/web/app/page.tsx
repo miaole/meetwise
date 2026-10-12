@@ -1,5 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
+import { headers } from 'next/headers';
 import { getTranslations } from 'next-intl/server';
 import { ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,10 +39,13 @@ export default async function Home() {
   const arch = [1, 2, 3, 4, 5, 6].map((i) => ({ title: t(`arch${i}Title`), desc: t(`arch${i}Desc`) }));
   const caps = [1, 2, 3, 4, 5, 6].map((i) => ({ mark: t(`cap${i}Mark`), title: t(`cap${i}Title`), desc: t(`cap${i}Desc`) }));
   const bars = [{ l: t('bar1'), w: 62 }, { l: t('bar2'), w: 48 }, { l: t('bar3'), w: 74 }];
+  // #67(AUTHZ-HARDEN 5A-2):CSP nonce 形下自持内联脚本须带 nonce——读 middleware 下发的 x-nonce
+  // 显式接线(缺头=无 CSP 注入环境,undefined 时 React 不落 nonce 属性,行为同旧)。
+  const nonce = (await headers()).get('x-nonce') ?? undefined;
 
   return (
     <main className="space-y-24 pb-8">
-      {jsonLd ? <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
+      {jsonLd ? <script type="application/ld+json" nonce={nonce} dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} /> : null}
 
       {/* ───── Hero:两栏(左文案 / 右红笔批注报告卡)───── */}
       <section className="grid items-center gap-10 pt-6 md:grid-cols-[1.05fr_.95fr] md:gap-12 md:pt-10">
