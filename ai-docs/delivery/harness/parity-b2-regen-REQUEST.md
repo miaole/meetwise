@@ -7,7 +7,7 @@ pins 十一值（照抄零翻）：haStatus=NOT_HA · releaseEvidence=false · c
 ## 0. Base line 与 worktree 披露
 
 - 基线点（开工时主线 tip 实测钉卷）：**`89530dea526dc6125255c0821c7a5356b11bf9dc`**（`feat/mysql-schema-skeleton` 本地 tip · merge commit · parents `cd2f39cc`（协调方勘误段 tip）+ `20950015`（i6-239 线）· 2026-10-12 15:03:59 +0800）。本刀零 fetch，以任务书口径「开工时主线实际 tip」为准；协调方勘误段与侦察快照 tip（`cd2f39cc`/`8b8e20bc`）均已被该 merge 前移，故全部读数以本基线点实跑为准（见 §1）。
-- 本刀 worktree：`/Users/miaole/Desktop/golucky/meetwise-parity2`（仓库根同级新建）；分支 `line/parity-b2-regen`（新立自 `89530dea`）。起草前防重双对表亲证：`git worktree list` 七树零 parity2 同名树；`git branch -a` 零 `line/parity-b2-regen` 同名分支；`rg "PARITY-B2|parity-b2" ai-docs/delivery/harness/` 恰 1 命中 = `parity-baseline-regen.md:5` 勘误段（系授权出处，判定登记面非同名刀卷）。
+- 本刀 worktree：`meetwise-parity2`（本机 `golucky` 目录下·与主线仓 `meetwise` 仓库根同级新建）；分支 `line/parity-b2-regen`（新立自 `89530dea`）。起草前防重双对表亲证：`git worktree list` 七树零 parity2 同名树；`git branch -a` 零 `line/parity-b2-regen` 同名分支；`rg "PARITY-B2|parity-b2" ai-docs/delivery/harness/` 恰 1 命中 = `parity-baseline-regen.md:5` 勘误段（系授权出处，判定登记面非同名刀卷）。
 - 立项出处：**B1 卷 `ai-docs/delivery/harness/parity-baseline-regen.md` :5 协调方勘误段（「后继=PARITY-B2 全新起草（沿本卷形制·基线点以起草时实跑为准·git log -S 逐源归因账沿 B1 §1 先例·扩面裁定交预执行双审）」）——本文引用之，不自建 SSOT 行**。
 - 全部 blob 锚均为 mw-core 在本 worktree 于基线点以 `git ls-tree` 亲算，非转录：
 
