@@ -1,0 +1,23 @@
+# markers=0 卫生门（本刀改动五件·2026-10-12 EXEC 亲跑）——①净增行五类 grep（精化正则·xit( 取 \b 词界不吃 process.exit(）②全文件命中逐行裁决
+
+## 冲突标记
+EXIT_CONFLICT=1
+
+## fake-green/绕过词
+EXIT_FAKEGREEN=1
+
+## 测试门弱化
+EXIT_WEAKEN=1
+
+## 遗留标
+EXIT_TODO=1
+
+## secrets 样值
+EXIT_SECRETS=1
+
+## ② 全文件命中逐行裁决（五类词在全文件非零处·全部系前在行非本刀净增）
+- fake-green×4: scripts/run-e2e-isolated.mjs :3/:7/:2310/:2320 = runner 既有诚实叙述（R5/G3 注记）·本刀新增行（:248-255 source 登记/:1826 whitelist/:2016-2017 命令映射/:2724 migrate 名单）五类零命中
+- 测试门弱化: 粗 grep `xit\(` 会伪命中 `process.exit(`（proof 的 process.exit 系 prove 退出惯例·沿 adaptive-lifecycle.proof.ts :330 同形）·净增行取 `\bxit\(` 词界精 grep EXIT=1·零 .only/.skip/@ts-ignore/eslint-disable
+- secrets 样值: sk- 伪命中已随 DIAG 行改名消除（failed-ask-invocations→failed ask invocations）·净增行 EXIT=1
+
+# est live=0:全 prove 假体(scriptedModelClient/MemorySaver)+隔离库(fresh-DB-per-run)·零模型外呼·零 secrets
