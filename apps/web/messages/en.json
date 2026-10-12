@@ -108,6 +108,7 @@
     "passwordHint": "≥ 8 characters",
     "loginBtn": "Log in",
     "signupBtn": "Sign up",
+    "ageDeclaration": "By signing up you confirm that you are 18 or older. The service is not available to users under 18.",
     "submitting": "Submitting…",
     "backHome": "← Back to home",
     "iAm": "I am a",
