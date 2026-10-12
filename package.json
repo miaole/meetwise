@@ -264,6 +264,8 @@
     "reaper:prove": "node scripts/run-e2e-isolated.mjs reaper:prove:raw",
     "requeue-backoff:prove": "node scripts/run-e2e-isolated.mjs requeue-backoff:prove:raw",
     "requeue-backoff:prove:raw": "pnpm -C apps/worker prove:requeue-backoff",
+    "bill1-topic-fields:prove": "node scripts/run-e2e-isolated.mjs bill1-topic-fields:prove:raw",
+    "bill1-topic-fields:prove:raw": "pnpm -C apps/worker prove:bill1-topic-fields",
     "rag:adversarial:fixture:prove": "pnpm -C apps/worker exec tsx smoke/rag-adversarial-fixture.proof.ts",
     "rag:adversarial:eval": "pnpm -C apps/worker exec tsx smoke/rag-adversarial-eval.ts",
     "rag:adversarial:pg-eval": "pnpm -C apps/worker exec tsx smoke/rag-adversarial-pg-eval.ts",

@@ -15,6 +15,15 @@ export interface PersistedInterviewQuestion {
   qkind?: string;
   /** RAG-FUNNEL-05：LLM 同桶生成题必须 `review_required`（⇒ score_excluded）；既有 caller 缺省 `none`。 */
   reviewStatus?: 'none' | 'review_required';
+  /**
+   * billing P1（BILL1-TOPIC-FIELDS 修法⑥·additive 可选·0170 三列）：话题维度——topicId=话题归集键
+   * （pivot=自己/probe·clarify=主问题 id）；askMode=出题方式；clarifyCause=澄清双因（仅 clarify
+   * 重发行）。缺省 undefined → 列 NULL（旧行为空=不按话题计费语义保留；qbank-miss 等既有 caller
+   * 零改即兼容）。
+   */
+  topicId?: string;
+  askMode?: 'pivot' | 'probe' | 'clarify';
+  clarifyCause?: 'non_answer' | 'quote_unverifiable';
 }
 
 export interface AcceptedInterviewAnswer {
@@ -43,21 +52,26 @@ export async function persistInterviewQuestion(
   c: Client, owner: string, interviewId: string, q: PersistedInterviewQuestion,
 ): Promise<void> {
   const ins = await c.query(
-    `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,qkind,review_status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+    `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,qkind,review_status,topic_id,ask_mode,clarify_cause)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
        ON CONFLICT (owner_user_id,interview_id,question_id) DO NOTHING`,
-    [owner, interviewId, q.questionId, q.stateVersion, q.turn, q.question, q.competency ?? null, q.qkind ?? null, q.reviewStatus ?? 'none'],
+    [owner, interviewId, q.questionId, q.stateVersion, q.turn, q.question, q.competency ?? null, q.qkind ?? null, q.reviewStatus ?? 'none',
+      q.topicId ?? null, q.askMode ?? null, q.clarifyCause ?? null],
   );
   if (ins.rowCount === 1) return;
   const ex = await c.query(
-    `SELECT state_version,turn,question,competency,qkind,review_status FROM interview_question
+    `SELECT state_version,turn,question,competency,qkind,review_status,topic_id,ask_mode,clarify_cause FROM interview_question
       WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3`,
     [owner, interviewId, q.questionId],
   );
   const row = ex.rows[0];
   if (!row || Number(row.state_version) !== q.stateVersion || Number(row.turn) !== q.turn || row.question !== q.question
     || (row.competency ?? undefined) !== q.competency || (row.qkind ?? undefined) !== q.qkind
-    || (row.review_status ?? 'none') !== (q.reviewStatus ?? 'none')) {
+    || (row.review_status ?? 'none') !== (q.reviewStatus ?? 'none')
+    // billing P1：三新列同形扩——旧行（0170 前存量）与旧 checkpoint 重放两侧均 NULL/undefined 恒等，
+    // 崩溃重放幂等不变（同 identity 同派生值）。
+    || (row.topic_id ?? undefined) !== q.topicId || (row.ask_mode ?? undefined) !== q.askMode
+    || (row.clarify_cause ?? undefined) !== q.clarifyCause) {
     throw Object.assign(new Error('question_identity_conflict'), { code: 'question_identity_conflict' });
   }
 }

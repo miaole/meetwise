@@ -45,7 +45,10 @@ function failClosed(
 /** 只生成/反思并 checkpoint pending question；失败不发明题面，resume 也不会重调模型。 */
 export function createGenerateQuestionNode(deps: AdaptiveDeps) {
   return async (state: AdaptiveInterviewGraphState) => {
-    const route = state.route as { competency: string; difficulty: number; qkind: QuestionKind };
+    const route = state.route as {
+      competency: string; difficulty: number; qkind: QuestionKind;
+      mode?: 'pivot' | 'probe' | 'clarify';
+    };
     // C14(RESUME-GROUNDING):facts 输入仅在 worker deps 闭包内经 `<data-nonce>` 围栏直达模型 seam
     // (buildAdaptiveDeps.retrieveAndGenerate 渲染进 interviewer.ask 的 <data>),禁入图
     // state/checkpoint/interrupt/SSE/episode。节点结果/question 会被 checkpoint 并重放——因此图拓扑
@@ -123,10 +126,22 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
     }
 
     const stateVersion = state.stateVersion + 1;
+    // billing P1（BILL1-TOPIC-FIELDS 修法④）：topic_id 派生（纯标识符·蓝本 §6.1 语义）——
+    // pivot 主问题 topic_id=新发 questionId 自己；probe 追问/clarify 澄清重发=继承主问题 id
+    // （state.topicMainQuestionId，本节点 pivot 发射时写自己、probe/clarify 原样保留）。
+    // 旧 checkpoint（route.mode 缺省/主 id 尚未落位）→ topic 字段缺省 undefined，持久化层写
+    // NULL=不按话题计费（旧行为空语义保留，零回填零发明）。
+    const newQuestionId = issueQuestionId(stateVersion, turn, state.mind.clarifyAttempts);
+    const askMode = clarifying ? ('clarify' as const) : route.mode;
+    const topicId = askMode === undefined
+      ? undefined
+      : askMode === 'pivot'
+        ? newQuestionId
+        : (state.topicMainQuestionId ?? undefined);
     return {
       stateVersion,
       pending: {
-        questionId: issueQuestionId(stateVersion, turn, state.mind.clarifyAttempts),
+        questionId: newQuestionId,
         stateVersion,
         turn,
         question,
@@ -136,10 +151,15 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
         sources,
         critique: critiqueIssues,
         hint,
+        askMode,
+        topicId,
+        clarifyCause: clarifying?.clarifyCause,
         // #256 形制 A：decide 节点已经 rememberDecision 写回 mind（maxTurns=nextSoft，含 raise 后现值，
         // domain adaptive-interview.ts rememberDecision/:400-404 raise 臂）——此处直读即发射时点软预算约数。
         plannedTurns: state.mind.maxTurns,
       },
+      // pivot=话题起点（主问题 id 落位）；probe/clarify 继承现值；旧 checkpoint 缺省维持 null。
+      topicMainQuestionId: askMode === 'pivot' ? newQuestionId : (state.topicMainQuestionId ?? null),
       generationProvenance: provenance,
       degraded: null,
       // AG-F(刀F):出题成功 → 连续耗尽计数归零（裁决②a「连续」语义只跨失败链存活）。
