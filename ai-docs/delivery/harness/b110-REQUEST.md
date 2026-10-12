@@ -3,7 +3,7 @@
 **Status**: **`draft_rev2:pre_exec_dual`**（rev2=双席 FAIL R1-R7 已并·待窄域复审五点=R1-R5+R6/R7 落位确认·docs-only 修订本档仍零码动·EXEC 须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual**） → **exec_mw-b110-exec: EXEC 已行使（窄域双审 BOTH PASS + 授权经协调方明示转达）· C1-C12 落位（C5=撤销项零字节兑现）· prove 全账 EXIT 原值+admin_audit 留痕+停止条件五条核查+pins 十一值见 `ai-docs/delivery/receipts/b110-recruiter-gate/b110-recruiter-gate-prove.md`（neg:bend 157/157·neg:auth 81·neg:all 五段绿+input 预存红 base 对照⊆·api-runtime-role 0=runMigrations 含 0152）· status `exec_landed:awaiting_dual_review` · alone≠dual** → **backfill_mw-core: 回填已行使（post-dual 双席 BOTH PASS：席1 `cbc89a72`+席2 `1da18412`）·迁移重编号 0152→0155（撞号·ls 亲证·先例 `c51c792d`）·镜像/迁移双并集（保 `#228` trial 发放不被末位换体抹除）·prove 主线树复跑 neg:bend 157/157 EXIT=0·neg:auth 78/81（3 红=deactivate 面·base `a2b161df` 逐条同红=预存·非本刀面·§9.3）·push 按「不过即停」条款冻结待协调方裁定 ·详见 §9 nail 段**
 **Date**: 2026-10-07
 **Base**: 主线 `feat/mysql-schema-skeleton` @`b429aebb` · 分支 `line/b110-recruiter-gate`（工作树 `meetwise-line-b110`）
-**蓝本**: 上游审计 #110 全条（`Meetwise产品审计-更正版/issues-master.md:171`）+ W4 派单（`ai-docs/delivery/harness/product-campaign-EXECUTION-SOP.md:29`「W4 B 端｜批 3｜#110（审核/邀请制→企业账户主体）→#271（…迁移 0152+）→…」）——**审计文档不在本 base 实树**（上游事实源① `/Users/miaole/Documents/Meetwise产品审计-更正版/`，仓外路径·如实登记），引文逐字誊录；仓内锚点全部本 base 实树亲读。
+**蓝本**: 上游审计 #110 全条（`Meetwise产品审计-更正版/issues-master.md:171`）+ W4 派单（`ai-docs/delivery/harness/product-campaign-EXECUTION-SOP.md:29`「W4 B 端｜批 3｜#110（审核/邀请制→企业账户主体）→#271（…迁移 0152+）→…」）——**审计文档不在本 base 实树**（上游事实源① 外部审计总表卷目录·本机外部件·不入仓 `Meetwise产品审计-更正版/`，仓外路径·如实登记），引文逐字誊录；仓内锚点全部本 base 实树亲读。
 **Honesty**: 审计行号按本 base 实测逐一对账，漂移处 §0.3 如实登记（行号错=审席 FAIL）；蓝本引文逐字誊录。
 
 ---

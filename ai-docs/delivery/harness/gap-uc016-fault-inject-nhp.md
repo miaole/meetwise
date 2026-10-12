@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-07
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`14c14a31`** / full `14c14a316477745d142bbd02ba383e477888adde`（`git fetch origin` 本 turn **两次成功**（开工 `2fd78ea1` · 写前 origin 前进一枚 MOP-01 nail → 已 `--ff-only` 到 `14c14a31` · 该 nail 仅触 `execution-master-checklist.md` + `gap-bug-backlog.md` · 本刀引证行号 post-ff 复核未位移）· pre-exec 前仍须复核线上 tip 未前进）
-**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-y2`（branch `line/y2-next-nhp`）
+**Worktree**: `meetwise-line-y2`（仓根同级 worktree·branch `line/y2-next-nhp`）
 **Knife**: **NHP-016-FAULT-01（Line Y2）· 诊断/押题显式失败注入（explicit failure injection at model seam → `*_unavailable` 终态 · 无死胡同）· gap→case/prove 显式化**
 **Gap id**: **`GAP-UC016-FAULT-01`**（本刀具名认领 · 全仓 grep `GAP-UC016`/`GAP-UC029` 零既有钉 · 不发明 covered）
 **Case id**: **`NHP-016-FAULT-01`**

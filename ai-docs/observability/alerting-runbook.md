@@ -52,7 +52,7 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 - **matcher**：文本行 `worker_drain_timeout signal=`（发射点 `apps/worker/src/main.ts:787` · key=value 文本形·零改码兼容）。
 - **含义**：worker 收到停止信号后排排水超预算（`WORKER_DRAIN_TIMEOUT_MS` 默认 30s），在飞 job 被强制收尾——reaper 随后接管重领（零丢失）。
 - **响应（Ticket·工作时间）**：确认 deploy/重启窗口是否解释；非窗口出现=在飞 job 异常滞长，查 `in_flight` job 列表与对应 interview/report/quiz 状态。
-- **下钻**：样本行 `in_flight` job_ref → `apps/worker/src/main.ts:780-800`（drain 链）→ HA-2 已 nail 面（`ai-docs/delivery/harness/ha-2-graceful-REQUEST.md`）。
+- **下钻**：样本行 `in_flight` job_ref → `apps/worker/src/main.ts:780-800`（drain 链）→ HA-2 已 nail 面（`receipts/archive/2026-09-batch23/harness/ha-2-graceful-REQUEST.md`）。
 
 <a id="ev-api_drain_timeout"></a>
 ### 3.3 api_drain_timeout —— Ticket

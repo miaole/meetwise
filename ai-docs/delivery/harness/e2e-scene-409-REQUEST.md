@@ -3,9 +3,9 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）→ **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/e2e-scene-409` @`3735d6b9`·恰 1 件 157+/0−·EXEC 席状态行未随翻·nail 席如实补登）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-12·裁 A 扩面授权链追认终局）
 
 **席位**：E2E 场景补刀起草席（北星 loop · E2E 覆盖缺口盘点处方 7-②·P1 消零成本最低项）。
-**基线**：`feat/mysql-schema-skeleton` @ `f92a5035`（主线 tip·`git log -1` 实测=merge(e2e-assert-refresh) S1 85 断言绿+UI 18P/0F 落主线）。分支 `line/e2e-scene-409` · 工作树 `meetwise-e2sc`（`git worktree add /Users/miaole/Desktop/golucky/meetwise-e2sc -b line/e2e-scene-409` 本起草席已立·建前实查均不存在：`git worktree list` 八树无 e2sc·`git rev-parse --verify refs/heads/line/e2e-scene-409` exit 128 BRANCH_ABSENT）。
+**基线**：`feat/mysql-schema-skeleton` @ `f92a5035`（主线 tip·`git log -1` 实测=merge(e2e-assert-refresh) S1 85 断言绿+UI 18P/0F 落主线）。分支 `line/e2e-scene-409` · 工作树 `meetwise-e2sc`（`git worktree add meetwise-e2sc -b line/e2e-scene-409` 仓根同级 worktree·本起草席已立·建前实查均不存在：`git worktree list` 八树无 e2sc·`git rev-parse --verify refs/heads/line/e2e-scene-409` exit 128 BRANCH_ABSENT）。
 **防重双对表（亲证）**：`rg -l "e2e-scene|409.*scene|scene-409" ai-docs/delivery/harness/ ai-docs/delivery/execution-master-checklist.md` → **EXIT=1 零命中**（harness 目录与 checklist 双零）——本刀卷名 `e2e-scene-409-REQUEST.md` 全仓唯一。
-**蓝本**：①审计三件原文=更正版 issues-master `/Users/miaole/Documents/Meetwise产品审计-更正版/issues-master.md`（仓外路径·如实登记）**#133=:203 / #195=:179 / #270=:352**（逐字誊录要点见 §0.1·引文锚点列为本刀授权面）②形制沿 `ai-docs/delivery/harness/e2e-assert-refresh-REQUEST.md`（rev2 形·Ban/pins 同源誊录见 §5）③场景先例=`e2e/full.e2e.ts` 红① 显式耗尽两步形（`:333-388` 区·trial 正面行使+402 诚实化）+ g7fix1 DB 直连断言形（`:435-455` 区 pg Client）。
+**蓝本**：①审计三件原文=更正版 issues-master `issues-master.md`（外部审计总表·本机外部件·不入仓·仓外路径如实登记）**#133=:203 / #195=:179 / #270=:352**（逐字誊录要点见 §0.1·引文锚点列为本刀授权面）②形制沿 `ai-docs/delivery/harness/e2e-assert-refresh-REQUEST.md`（rev2 形·Ban/pins 同源誊录见 §5）③场景先例=`e2e/full.e2e.ts` 红① 显式耗尽两步形（`:333-388` 区·trial 正面行使+402 诚实化）+ g7fix1 DB 直连断言形（`:435-455` 区 pg Client）。
 
 ## §0 现状锚（起草席亲读·base `f92a5035`·file:line 逐条 sed/rg/实跑复核·**EXEC 立项照本节重 pin**——基线漂移如实改锚·结论不变则只更行号）
 

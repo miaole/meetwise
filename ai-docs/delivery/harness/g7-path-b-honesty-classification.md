@@ -6,7 +6,7 @@
 
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503 · **`g7SuiteGreen=false`** · `r1Closed=false` · `techRoleFailClosedOptOutG7Only=true`
 **Date**: 2026-10-06
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`d5e6f7e6`** / full `d5e6f7e63aa20ef3a4ec3f168a63c8f7feb4315d`（EXEC rebase 已落：REQUEST `7801750d` 同补丁自动 drop 落 tip · C-HA-1 base 重钉 · gate blob `c655235c`/`aa86fb3f` @tip 复核零漂移 · 被审基点 `4766d4fc` 保留为 review provenance · worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7b` · branch `line/g7b-path-b-honesty`）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`d5e6f7e6`** / full `d5e6f7e63aa20ef3a4ec3f168a63c8f7feb4315d`（EXEC rebase 已落：REQUEST `7801750d` 同补丁自动 drop 落 tip · C-HA-1 base 重钉 · gate blob `c655235c`/`aa86fb3f` @tip 复核零漂移 · 被审基点 `4766d4fc` 保留为 review provenance · worktree `meetwise-line-g7b`（仓根同级 worktree）· branch `line/g7b-path-b-honesty`）
 **Knife**: **G7 Path B honesty 刀**（Line G7B · 协调方优先级 #4 (a)+(b)）——承接 Line AC `3922b48`（G7 env-gap **Path A** · trio EXIT 1/1/1 Key-blocked 诚实收据）与 Line AD 残余收据轨，把 trio 三条 CMD 的全部 FAIL case 逐个归入四类 **[Key-blocked | 真实产品缺陷 | 夹具/基建缺陷 | 环境缺口]**，把「Key-blocked」与「真实缺陷」两类彻底分开；并对各类开出 Path B 方案（修复排队 / 披露保持 / backlog 登记）。
 **Gap / theme**: G7 trio **OPEN 1/1/1** · dominant FAIL = **Key-blocked** `provider/live_provider_key_missing` · business-assert **unreached → UNKNOWN（null）** · 本刀 **docs-only**：分类 + 排队清单，零产品改动，SSOT 留待 nail 期。
 **Prior nails（只读 · 不改写）**:
