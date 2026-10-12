@@ -125,6 +125,24 @@ export async function failModelInvocationClaim(c: Client, owner: string, idempot
   return r.rows[0]?.ok === true;
 }
 
+/**
+ * AG-D（刀 D·AG-01 准入拒绝去终态化·案A）：释放一个 pre-dispatch 准入拒绝（known-not-sent·
+ * 零外呼零费用）的 durable claim，使其可被同键重领（0130 expired-claimed 重领现成落点）。
+ * 可写最小形（rev3 双层 shipped 守卫亲证）：保留 lease_token 原值仅 SET lease_expires_at=
+ * clock_timestamp()——过 0037:27-28 CHECK（claimed⇒token/expires 双非空）与 0088:92-104
+ * claimed→claimed 守卫（可变面恰唯双列且须双非空·error_code 禁写=拒绝码不经账本行承载，
+ * 可观测面维持 invoke 返回值）；status 留 'claimed'·completed_at 零写。
+ * 拒绝码白名单（瞬时准入族六码）由 0179 SQL 函数前置校验，族外确定性拒绝不得经此释放。
+ * CAS 语义与 fail 同形：claim 已被重领/已流转 → false（调用方抛 model_invocation_admission_state）。
+ */
+export async function releaseRefusedModelInvocationClaim(c: Client, owner: string, idempotencyKey: string, leaseToken: string, refusedCode: string): Promise<boolean> {
+  const r = await c.query(
+    'SELECT ai_model_release_refused_claim_scoped($1,$2,$3::uuid,$4) AS ok',
+    [owner, idempotencyKey, leaseToken, refusedCode],
+  );
+  return r.rows[0]?.ok === true;
+}
+
 export interface CompleteModelInvocationInput {
   owner: string;
   idempotencyKey: string;

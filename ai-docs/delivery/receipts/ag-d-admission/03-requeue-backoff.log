@@ -1,0 +1,68 @@
+
+> meetwise@0.1.0 requeue-backoff:prove /Users/miaole/Desktop/golucky/meetwise-agd
+> node scripts/run-e2e-isolated.mjs requeue-backoff:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-19285-1791821611728 on 127.0.0.1:51266
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-agd/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=178 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:requeue-backoff /Users/miaole/Desktop/golucky/meetwise-agd/apps/worker
+> tsx test/requeue-backoff.proof.ts
+
+
+──────── ① 瞬时臂（requeue 面）：白名单 code → 翻 queued + next_attempt_at 退避落值 ────────
+PASS  drain 返回 retry（非 failed——白名单命中分流）
+PASS  job 翻 queued 且 lease 释放（NULL·非终态）
+PASS  attempts=1（claim 自增现值·requeue 不双增）
+PASS  next_attempt_at 落值=2^attempts 秒（attempts=1 → 2s·report.ts:53 范本形）
+PASS  注入恰好触发一次（ECONNRESET 原生过 errCode 面）
+PASS  额度未动（仅 requeue，不退款）
+
+──────── ② 确定性臂：非白名单 code → 确定性终态 + job_failed 事件 + 退款（现状语义零变负臂） ────────
+PASS  drain 返回 failed（白名单外维持确定性终态分流）
+PASS  job 终态 failed 且 lease 释放
+PASS  发 interview_unavailable 且 reason=job_failed（终态事件分诊现状形）
+PASS  **失败退款**：预留额度退还（+1.0）
+PASS  零 requeue（确定性错误绝不翻 queued）
+
+──────── ①b 瞬时臂（时闸面）：queued 且退避未到 → claim 拒领；到点（回拨）→ 重领 attempts 递增 ────────
+PASS  时闸未到不领：queued 且 next_attempt_at 未来 → claim 返回 null
+PASS  时闸到点重领：backdate 后 claim 返回行且 attempts 递增 1→2
+PASS  probe 归还同拍写退避（attempts=2 → 4s）
+
+──────── ③+④ 超限臂+退避单调：瞬时连续至 attempts=MAX → retry_exhausted 终态；间隔 2/4/8/16 单调不减 ────────
+PASS  瞬时 attempts=3（<MAX）→ 仍 requeue 且退避再写
+PASS  瞬时 attempts=4（<MAX）→ 仍 requeue 且退避再写
+PASS  瞬时 attempts=5（=MAX）→ 上限闸终态（不再 requeue·热循环断根）
+PASS  退避间隔序列=[2,4,8,16] 逐值吻合 2^attempts
+PASS  退避间隔单调不减（2≤4≤8≤16）
+PASS  超限终态 failed + last_error 标注 retry_exhausted:57014（调用点上限闸）
+PASS  终态事件 reason=retry_exhausted（reason 联合新值·事件分诊沿既有形）
+PASS  超限退款：预留额度退还（+1.0）
+
+──────── ③b 退避封顶臂：attempts=20 → 退避封顶 300s（2^n 封顶·零溢出面） ────────
+PASS  cap requeue 成功且退避封顶 300s（least(2^20,300)=300）
+
+──────── ⑤ EG-A2 滞留行臂（裁决④②形）：queued 且 attempts≥MAX 由收割拍终态化——收割先于 drain 不入领 ────────
+PASS  滞留行 fixture 就位（queued+attempts=MAX+无退避=legacy 形态）
+{"event":"reaper_takeover","kind":"interview","job_ref":"retry_exhausted:2","prev_lease_expired":false}
+PASS  一拍调度收割 owner 队列（tick 面·收割先于 drain 的生产拍序）
+PASS  滞留行被 reaper queued 扫终态化（failed + reaped:retry_exhausted）
+PASS  收割终态化不经过 claim（attempts 恒=MAX 未自增——滞留行不入领）
+PASS  发 retry_exhausted 终态事件（EG-A2 无静默死胡同）
+PASS  滞留行退款：预留额度退还（+1.0）
+PASS  终态后 claim 零领取（僵尸守卫+热循环断根）
+PASS  二次 reap 幂等（零收割·无重复事件·无重复退款）
+PASS  超限行退避未到仍被收割终态（attempts≥MAX 扫不受时闸约束——终态化面≠领取面）
+PASS  未超限退避行同拍不被领不被收（时闸在生产 tick 面成立·收割扫只触 attempts≥MAX）
+
+✓ AG-04 刀C（瞬时分类 requeue + 退避时闸 + 上限终态 + EG-A2 滞留行终态化）全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T16-13-38-526Z-19285-d7fc77fb-bb7d-4052-be5d-1b1c86de24d0.json release_evidence=false

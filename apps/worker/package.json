@@ -18,6 +18,7 @@
     "prove:ocr": "tsx test/ocr.proof.ts",
     "prove:reaper": "tsx test/reaper.proof.ts",
     "prove:requeue-backoff": "tsx test/requeue-backoff.proof.ts",
+    "prove:ag-d-admission": "tsx test/ag-d-admission.proof.ts",
     "prove:bill1-topic-fields": "tsx test/bill1-topic-fields.proof.ts",
     "prove:reaper-purge-wire": "tsx test/reaper-purge-wire.proof.ts",
     "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
