@@ -45,7 +45,7 @@ export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from '.
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy/privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy/privacy-authorization.ts';
-export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
+export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayUsageCalibrationOwnersSince, gatewayUsageCalibrationWatermarkFloor, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
 export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
 
 /** 原语②：状态机 CAS——仅当当前态 == from 时迁移到 to 并 version+1，返回是否生效（陈旧落败=0 行）。 */
@@ -110,6 +110,7 @@ export type { ResumeSoftDeleteReceipt } from './resume-privacy.ts';
 // report job ops（报告子图舱壁：持久 job + 状态机 + 租约 + 重试）
 export {
   enqueueReport, claimReport, markReportReady, markReportFailed, requeueFailedReport, sweepReports, getReport,
+  writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
   MAX_REPORT_ATTEMPTS,
 } from './report/report.ts';
 export type { ReportStatus } from './report/report.ts';
@@ -214,9 +215,17 @@ export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput
 export { claimModelInvocation, markModelInvocationDispatched, failModelInvocationClaim, completeModelInvocation, markModelInvocationUnknown, reconcileStaleModelInvocations } from './model-op/model-invocation.ts';
 export type { ModelInvocationClaim, ClaimModelInvocationInput, CompleteModelInvocationInput, ReconciledModelInvocation } from './model-op/model-invocation.ts';
 
-// usage 对账校准因子数据面（MODEL-OP-00 收尾）：estimate↔usage 配对读面 + 版本化因子/观测日志幂等落库。
+// billing 战役 P1（BILL1-TOPIC-FIELDS 修法⑦）：0171 question_usage_ledger 归集写入口（只增不改·PK 冲突忽略）。
+export { recordUsage } from './model-op/question-usage-ledger.ts';
+export type { QuestionUsageCause, QuestionUsageSource, QuestionUsageLedgerEntry } from './model-op/question-usage-ledger.ts';
+
+// usage 对账校准因子数据面（MODEL-OP-00 收尾 + AG-COST2 加窗/水位线/保留期）：配对读面（全史 v1 + 加窗 v2）+
+// 版本化因子/观测日志幂等落库 + 水位线单调原语（GREATEST 绝不回拨）+ 保留期 SECURITY DEFINER 清除。
 export {
-  listUsageCalibrationPairs, insertUsageCalibrationFactor, insertUsageCalibrationObservation, latestUsageCalibrationFactor,
+  listUsageCalibrationPairs, listUsageCalibrationPairsSince,
+  getUsageCalibrationWatermark, upsertUsageCalibrationWatermark,
+  purgeExpiredUsageCalibrationObservations,
+  insertUsageCalibrationFactor, insertUsageCalibrationObservation, latestUsageCalibrationFactor,
 } from './model-op/usage-calibration.ts';
 export type {
   UsageCalibrationPair, UsageCalibrationFactorRow,

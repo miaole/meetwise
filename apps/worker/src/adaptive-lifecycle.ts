@@ -4,6 +4,7 @@
  */
 import {
   asPrincipal, appendEvent, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
+  writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
   assertInterviewGraphFence, publishRubricAndIssueContract,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
@@ -214,6 +215,8 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
     await persistInterviewQuestion(c, d.owner, d.interviewId, {
       questionId: p.questionId, stateVersion: p.stateVersion, turn: p.turn,
       question: p.question, competency: p.competency, qkind: p.kind,
+      // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：pending 话题维度三标识符透传（additive·旧行为空语义保留）。
+      topicId: p.topicId, askMode: p.askMode, clarifyCause: p.clarifyCause,
     });
     // EXTREV-1 SCORE-WRITER S1（rev2 D1）：同一投影事务内发布版本化 rubric（幂等）+
     // 冻结题面契约（冻题不冻答·绑 rubricId·12 参）。difficulty 由图状态 PendingQuestion
@@ -227,6 +230,9 @@ async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuesti
       question: p.question, competency: p.competency, qkind: p.kind,
       // #256 形制 A：软预算约数随题下发（additive 可选；旧 checkpoint 缺省 undefined，JSON 序列化即缺字段）。
       plannedTurns: p.plannedTurns,
+      // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：话题维度 additive 可选字段（沿 plannedTurns 同形制 A；
+      // 旧 checkpoint 缺省 undefined，JSON 序列化即缺字段，消费者必须降级）。
+      topicId: p.topicId, askMode: p.askMode, clarifyCause: p.clarifyCause,
     }, `question_ready:${p.questionId}`);
   });
 }
@@ -265,9 +271,19 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
   // 先读 pending，存在则只补业务投影，绝不触碰图执行。
+  // AG-26（EXPERT-REVIEWS §五 边界④）：start 崩溃于 genQuestion 中途（无 interrupt、snap.next
+  // 非空）的重投，旧形 invoke({}) 走 LangGraph 非 null 输入分支（loop.js:683-685）——丢弃待执行
+  // 任务并从 START 重开：plan/initMind 把 turn 归零而 transcript 保留（state.ts concat reducer），
+  // 出题键 `${threadId}:ask:t0:0` 撞上次 failed → 整场结束。现形：next 非空 → invoke(null) 续跑
+  // 待执行任务（模型调用隔离在 genQuestion，续跑即重入该节点）；仅 thread 全新（getState 空、
+  // next 空）才 invoke({}) 从 START 起跑——EmptyInputError（loop.js:709）不可能触达。
   let snap = await g.getState(cfg);
   if (!pendingQuestion(snap)) {
-    await g.invoke({}, cfg);
+    if ((snap.next?.length ?? 0) > 0) {
+      await g.invoke(null, cfg);
+    } else {
+      await g.invoke({}, cfg);
+    }
     snap = await g.getState(cfg);
   }
   const pending = pendingQuestion(snap);
@@ -309,6 +325,18 @@ async function submitAdaptiveAnswerImpl(
   const before = await g.getState(cfg);
   const beforeTranscript = (before.values?.transcript ?? []) as { questionId?: string }[];
   const alreadyApplied = beforeTranscript[beforeTranscript.length - 1]?.questionId === input.questionId;
+  // AG-05（EXPERT-REVIEWS §五 边界①②③）：evalAnswer superstep 已写 checkpoint、genQuestion 等模型
+  // 时 worker 崩溃（SIGKILL → reaper 重排 → 同 answer 重入）时，checkpoint 停在「transcript 已含本题
+  // 答案、next=[genQuestion]、无 pending interrupt」态。旧形 alreadyApplied 整块跳过 invoke 且
+  // snap=before（陈旧快照）→ next=pendingQuestion(before)=undefined、done=false、双 if(next) 门零发射
+  // → 既不终态也不出题，挂死到 30 分钟预留回收（commerce DEFAULT_LEASE_SECONDS=1800）。现形（边界
+  // ①②）：next 非空且无 pending interrupt（守卫=现成 pendingQuestion()·边界③零新原语）→
+  // invoke(null) 续跑到下一 interrupt，续跑后重读 snap（next/done/投影全用新快照）；若续跑中
+  // generation 确定性失败，genQuestion fail-closed 落 degraded/generationProvenance，由既有
+  // generationFailureOf → writeGenerationUnavailable 快速终态接手（残余 dispatching 窗口如实披露，
+  // 非 repaired：崩溃于 provider 调用期间 → 120s 后 reconciler 转 unknown → 确定性 unavailable）。
+  // alreadyApplied 且 next 空/已有 interrupt 的既有纯重放路径（proof 等价重放臂）逐字节保留。
+  let snap = before;
   if (!alreadyApplied) {
     const pending = pendingQuestion(before);
     if (!pending || pending.questionId !== input.questionId || pending.stateVersion !== input.stateVersion || pending.turn !== input.turn)
@@ -316,8 +344,11 @@ async function submitAdaptiveAnswerImpl(
     const claimed = await asPrincipal(d.pool, d.owner, (c) => verifyInterviewAnswerClaim(c, d.owner, d.interviewId, input));
     if (!claimed) throw Object.assign(new Error('answer_identity_not_claimed'), { code: 'answer_identity_not_claimed' });
     await g.invoke(new Command({ resume: { answerId: input.answerId } }), cfg);
+    snap = await g.getState(cfg);
+  } else if ((before.next?.length ?? 0) > 0 && pendingQuestion(before) === undefined) {
+    await g.invoke(null, cfg);
+    snap = await g.getState(cfg);
   }
-  const snap = alreadyApplied ? before : await g.getState(cfg);
   const transcript = (snap.values?.transcript ?? []) as Array<{
     questionId?: string; stateVersion?: number; score: number | null; outcome?: string; competency?: string; q?: string; hint?: string; reason?: string;
     dispositions?: ScoredCriterionDisposition[];
@@ -341,6 +372,8 @@ async function submitAdaptiveAnswerImpl(
       await persistInterviewQuestion(c, d.owner, d.interviewId, {
         questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
         question: next.question, competency: next.competency, qkind: next.kind,
+        // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：答案投影下一题同形透传（本点在收尾三分支区 :442-488 之外）。
+        topicId: next.topicId, askMode: next.askMode, clarifyCause: next.clarifyCause,
       });
       // EXTREV-1 D1：answer 投影事务内的下一题同样发 rubric+契约（与 persistAndEmitQuestion 同形）。
       await publishRubricAndIssueContract(c, {
@@ -370,6 +403,15 @@ async function submitAdaptiveAnswerImpl(
         questionId: input.questionId, stateVersion: last.stateVersion, turn: input.turn,
         reason: last.reason ?? 'evaluation_unavailable', competency: last.competency, question: last.q ?? '',
       }, `answer_unscored:${input.questionId}`);
+      // AG-F(刀F·裁决③a):unscored 0 分继续后图已推进到下一题（pending 在场）——question_ready
+      // 随同一投影事务发出（与 scored 臂「answer_evaluated→question_ready」:394 同序同形）,SSE 链
+      // 不断流;next 缺省（concluded 旧形）→ 零追加,既有形状字节不变。账本/结算零触（本事务只
+      // append 事件+已在上方落账的 ledger/rubric 投影）。
+      if (next) await appendEvent(c, d.owner, d.interviewId, 'question_ready', {
+        questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
+        question: next.question, competency: next.competency, qkind: next.kind,
+        plannedTurns: next.plannedTurns,
+      }, `question_ready:${next.questionId}`);
       return;
     }
     if (clarifying && !done) {
@@ -459,6 +501,11 @@ async function submitAdaptiveAnswerImpl(
       if (!counted) throw Object.assign(new Error('interview_score_evidence_missing'), { code: 'interview_score_evidence_missing' });
       const unscored = Number(counted.unscored);
       const eligible = Number(counted.eligible);
+      // AG-F(刀F·裁决③a)边界注记:unscored 0 分继续只落**图内后果**（transcript 按 0 计+后续 turn
+      // 照常推进）——本收口三分支谓词零位移:混合 unscored 场在 conclude 面仍走既有 fail+release+
+      // `evaluation_unscored` 臂,0046 迁移触发器 `interview_completion_requires_all_answers_scored`
+      // 在 DB 层钉死「answer_unscored 事件在场 ⇒ 禁 completed」结算完整性法（历史迁移零字节 Ban）。
+      // 「混合面 completed+照计」需放松 0046=计费结算语义,归 billing rev 战役,本刀如实登记不越界。
       if (unscored === 0 && eligible > 0) {
         await completeInterviewAndConfirm(c, d.owner, d.interviewId);
         await enqueueReport(c, d.owner, d.interviewId);
@@ -472,8 +519,14 @@ async function submitAdaptiveAnswerImpl(
         // ordinary report bulkhead instead of creating a terminal-less
         // scoreless branch; only a bound B-side session receives the special
         // retryable application terminal.
+        // AG-10 守卫（刀 E 同批硬约束·裁决项②(a) 模板形）：unbound 且 eligible=0 **不再 enqueueReport**
+        // ——doomed 类源头删除（eligible=0 → scores 空集 → aggregateScores 在 invoke 之前必死,重试同样死;
+        // 重试真实化后 doomed report 会每预算轮真烧 3 次,守卫必须与重试开关同批）。改产确定性
+        // 「证据不足」模板报告（零模型调用零虚构·收尾同事务直写 ready 行）+ report_ready 事件照常
+        // （前端无新态;created gating=沿 drainReportsOnce tx2「CAS 成功才发事件」先例的重放安全形）。
         if (mark === 'unbound') {
-          await enqueueReport(c, d.owner, d.interviewId);
+          const created = await writeNoEvidenceReadyReport(c, d.owner, d.interviewId);
+          if (created) await appendEvent(c, d.owner, d.interviewId, 'report_ready', { overall: NO_EVIDENCE_REPORT_CONTENT.overall });
         } else if (mark !== 'stale') {
           await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', { reason: 'no_eligible_scored_answer' }, 'assessment_unavailable:no_eligible_scored_answer');
         }

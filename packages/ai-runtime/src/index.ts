@@ -78,13 +78,16 @@ export type {
   ContextBudgetPolicy, ContextBudgetComponentEntry, ContextBudgetPlan,
   ContextBudgetError, ContextBudgetDecision,
 } from './context-budget.ts';
-// usage 对账校准接线（MODEL-OP-00 收尾）：域级 reconciler（P2）+ 因子读面双校验（P3）。
+// usage 对账校准接线（MODEL-OP-00 收尾 + AG-COST2 加窗/水位线/因子合并）：域级 reconciler（P2 全史 + 加窗增量）+
+// 因子读面双校验（P3）+ 合并语义（factor'=max(factor_prev, rawMax_增量×(1+safety))·insert-only 合并链）。
 // 复用纯模块 reconcileUsage/refineEstimate，不重实现因子公式。
 export {
   toCalibratedFactor, resolveLatestCalibratedFactor, reconcileUsageCalibration,
+  reconcileUsageCalibrationWindowed, mergeCalibratedFactorWithPrev, buildMergedFactorVersion,
 } from './usage-calibration-reconciler.ts';
 export type {
   ReconcileUsageCalibrationInput, ReconcileUsageCalibrationGroupResult, ReconcileUsageCalibrationResult,
+  ReconcileUsageCalibrationWindowedResult,
 } from './usage-calibration-reconciler.ts';
 export {
   visionOcr, bindResumeOcr, bindResumeOcrOperation, resumeOcrMediaDigest,

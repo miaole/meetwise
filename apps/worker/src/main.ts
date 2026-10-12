@@ -27,12 +27,13 @@ import {
   startWorkerJobWakeupRedisListener,
 } from './worker-job-wakeup-redis.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
-import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
+import { runReportDispatcher, reportDispatchKey, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
+import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -143,8 +144,9 @@ export function createCheckpointer(connString?: string, useRuntimeRole = false):
 // 【#170 码半·2026-10-12】buildMockInterviewRunner 已删：全仓调用方零命中（rg 亲证·仅定义无消费），
 // 生产消费循环走 interview-consumer/interview-service 装配，不经此 mock runner。死导出删除=零行为。
 
-/** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。 */
-function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
+/** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。
+ *  （刀 E 起导出：隔离库 proof 走同一生产闭包——键构造零复制,AG-03 键形有且只有这一处。） */
+export function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
   const rawFaultInvocations = process.env.E2E_REPORT_FAIL_INVOCATIONS;
   const rawForceAll = process.env.E2E_REPORT_FAIL_ALL;
   if ((rawFaultInvocations !== undefined || rawForceAll !== undefined) && process.env.E2E_ISOLATED !== '1')
@@ -170,9 +172,15 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
     }
   }
   let reportInvocations = 0;
-  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) =>
+  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) => {
+    // AG-03（刀 E）：键=revision 同源双换——键含单调派发序（claimReport CAS 同语句自增）,重试必得
+    // 新键新 revision,0130 终态重放不再吞掉重试。缺派发序=序号穿透接线断→fail-closed 拒派
+    // （绝不静默回落同键——那正是 AG-03 要修的原病）。
+    if (typeof s.reportDispatchSeq !== 'number' || !Number.isInteger(s.reportDispatchSeq) || s.reportDispatchSeq < 1)
+      throw new Error('report_dispatch_seq_missing');
     // progressStream=interviewId(TOKSTREAM 阶段1):报告叙述生成发生成进度事件(SSE→前端报告期等待变真实进度)。
-    reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model, s.interviewId)(s);
+    return reportGenerator(pool, s.owner!, reportDispatchKey(s.interviewId, s.reportDispatchSeq), model, s.interviewId)(s);
+  };
   return {
     loadSummary: (owner, interviewId) => asPrincipal(pool, owner, async (c) => {
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
@@ -714,6 +722,13 @@ async function bootstrap() {
   const usageCalibrationReconcileLoop = usageCalibrationControl.enabled
     ? runUsageCalibrationReconciler(pool, usageCalibrationControl.intervalMs)
     : undefined;
+  // AG-COST2 裁决项①(a)：usage 校准观测 90 天保留期清除（0177 件⑥ SECURITY DEFINER·app_role 无 DELETE
+  // 纪律零破坏）。缺省 ENABLED=false 不起循环（沿 privacyErasureLoop 可选循环先例·清除是生产数据删除，
+  // 启用=显式运维决策）；非法 env=启动失败非静默回退（resolveUsageCalibrationRetentionConfig·AG-18 同族）。
+  const usageCalibrationRetentionControl = resolveUsageCalibrationRetentionConfig();
+  const usageCalibrationRetentionLoop = usageCalibrationRetentionControl.enabled
+    ? runUsageCalibrationRetention(pool, usageCalibrationRetentionControl)
+    : undefined;
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；
@@ -741,7 +756,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -760,10 +775,10 @@ async function bootstrap() {
     }
   }
   // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
-  // 竞速 + SIGINT 同链。清单 16 项(R3 勘误:原 allSettled 实数 15,补漏
-  // vectorPlaneErasureLoop?.stop() 后 16):10 loop.stop(report/interview/quiz/diagnosis/
+  // 竞速 + SIGINT 同链。清单 17 项(AG-COST2 增 usage-calibration-retention 一项:16→17):
+  // 11 loop.stop(report/interview/quiz/diagnosis/
   // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
-  // privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
+  // usageCalibrationRetention/privacyErasure/vectorPlaneErasure/gauge)+ ragCache.close + 3 pool.end(privacy/
   // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
   // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
   // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
@@ -776,6 +791,7 @@ async function bootstrap() {
     { name: 'commerce', stop: () => commerceLoop.stop() },
     { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
+    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve() },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
     { name: 'gauge', stop: () => gaugeLoop.stop() },

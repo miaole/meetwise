@@ -43,8 +43,15 @@ export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<nu
     )
     .addConditionalEdges(
       'genQuestion',
-      (state) => (state.pending ? 'awaitAnswer' : 'conclude'),
-      { awaitAnswer: 'awaitAnswer', conclude: 'conclude' },
+      // AG-F(刀F·修法②):本边为「耗尽换 competency 继续」的路由回环——节点在族内失败且换序帽内
+      // 返回「route 已顺延+pending=null+concluded 未置」时,本边回 genQuestion（新 route 重出题）
+      // 而非 conclude;其余形状语义零位移:pending → awaitAnswer;concluded(真终场 failClosed)/
+      // route 缺席或 'conclude' → conclude。回环受节点侧 MAX_COMPETENCY_EXHAUST_SWITCH 硬帽约束,
+      // 叠加 compile recursionLimit（:57）双保险,无循环放大。
+      (state) => (state.pending
+        ? 'awaitAnswer'
+        : !state.concluded && state.route && state.route !== 'conclude' ? 'genQuestion' : 'conclude'),
+      { awaitAnswer: 'awaitAnswer', conclude: 'conclude', genQuestion: 'genQuestion' },
     )
     .addEdge('awaitAnswer', 'evalAnswer')
     .addConditionalEdges(
