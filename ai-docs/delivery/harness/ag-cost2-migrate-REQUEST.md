@@ -13,10 +13,10 @@
 
 | # | 文件 | blob | 角色 |
 |---|---|---|---|
-| 1 | `packages/db/migrations/0119_usage_reconciliation_wiring.sql` | `1922910a79da` | **迁移主触面 A**：:399-413 观测表（PK :412 `(owner_user_id,batch,invocation_idempotency_key)` **含 batch**）+ :414-417 因子表 RLS（`ai_usage_calibration`·与观测表行段分开）+ :422-431 RLS/GRANT（app_role 仅 SELECT,INSERT）+ :438-473 配对函数 `ai_usage_calibration_pairs_scoped(text)` **单参无时间窗**（:470 ORDER BY completed_at） |
+| 1 | `packages/db/migrations/0119_usage_reconciliation_wiring.sql` | `1922910a79da` | **迁移主触面 A**：:399-413 观测表（PK :412 `(owner_user_id,batch,invocation_idempotency_key)` **含 batch**）+ :415-420 因子表 RLS（`ai_usage_calibration`·与观测表行段分开）+ :422-431 RLS/GRANT（app_role 仅 SELECT,INSERT）+ :438-473 配对函数 `ai_usage_calibration_pairs_scoped(text)` **单参无时间窗**（:470 ORDER BY completed_at） |
 | 2 | `packages/db/migrations/0134_usage_calibration_gateway_owners.sql` | `8288a57d697e` | **迁移主触面 B**：:11-25 `gateway_usage_calibration_owners()` 枚举**全部**有配对 owner（WHERE :21-23 无时间谓词） |
 | 3 | `packages/ai-runtime/src/usage-calibration-reconciler.ts` | `8b7b257bc849` | 域级本体：:110 `listUsageCalibrationPairs` 读**全历史** + :133-140 逐条 INSERT（batch=入参）+ :144-151 因子 insert-only 落库 + :12 注释原文「每组读**全历史**配对（因子只升不降）」——**单调性的真实来源=全史读，加窗后必须显式补** |
-| 4 | `packages/db/src/model-op/usage-calibration.ts` | `fec7d3a91ce6` | 数据访问层：:39-56 `listUsageCalibrationPairs` 走 v1 函数 `$1` 单参 + :69-74 因子 ON CONFLICT DO NOTHING（内容寻址 insert-only）+ :104 观测 ON CONFLICT `(owner_user_id,batch,invocation_idempotency_key)` DO NOTHING |
+| 4 | `packages/db/src/model-op/usage-calibration.ts` | `fec7d3a91cec` | 数据访问层：:39-56 `listUsageCalibrationPairs` 走 v1 函数 `$1` 单参 + :69-74 因子 ON CONFLICT DO NOTHING（内容寻址 insert-only）+ :104 观测 ON CONFLICT `(owner_user_id,batch,invocation_idempotency_key)` DO NOTHING |
 | 5 | `packages/ai-runtime/src/usage-reconciliation.ts` | `3567750fecec` | 因子语义单真源：:196 rawMaxRatio=逐观测取 max + :205 `factor = rawMaxRatio × (1 + safetyMargin)` + :219-224 refineEstimate「仍是上界」+ :36 防退化观测上界注释 |
 | 6 | `packages/db/src/jobs/gateway-dispatch.ts` | `fb7d55415d1b` | 枚举 wrapper：:59-63 `gatewayUsageCalibrationOwners` 走 0134 函数（生产唯一调用点 reconcile.ts:81） |
 | 7 | `apps/worker/src/usage-calibration-reconcile.ts` | `ddf39a00d5ed` | **成本①旋钮所在**：:18-24 hourBatch=`cal-YYYYMMDDHH` 小时桶 + :39-72 config/resolve（boundedInteger/boundedBoolean 纪律）+ :75-102 tick（:81 全量枚举→逐 owner reconcile）+ :105 `runUsageCalibrationReconciler(pool, intervalMs = 60_000)` 默认参原值保留 |
@@ -35,7 +35,7 @@
 | reconciler.ts `8b7b257bc849`（域级本体零字节承诺） | blob **逐字节不变**（成本① Ban 动域级本体已兑现） | 不变 |
 | reconcile.ts（成本①止血 :32-73 旋钮区+:105 默认参） | 现树 `ddf39a00d5ed`：:18-24 hourBatch·:39-72 旋钮·:75-102 tick·:105 默认 60_000 原值 | **成本①改动后新态**（本刀红事实按新态记） |
 | main.ts（成本① :35/:713-716/:744/:778） | 现树 `8ed81327e02d`：:712-716 缺省关停条件起循环亲证 | **成本①改动后新态** |
-| usage-calibration.ts / gateway-dispatch.ts / usage-reconciliation.ts（成本①未记锚） | `fec7d3a91ce6` / `fb7d55415d1b` / `3567750fecec`（本席补 pin） | 补 pin |
+| usage-calibration.ts / gateway-dispatch.ts / usage-reconciliation.ts（成本①未记锚） | `fec7d3a91cec` / `fb7d55415d1b` / `3567750fecec`（本席补 pin） | 补 pin |
 
 ### 0.3 现势并发登记（强制）
 
@@ -114,7 +114,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **待双审/EXEC 裁决项**：
 
 - **①90 天保留期归属（§七②原文含「+90 天保留期」·可选裁决）**：(a) **本刀含**（新迁移内 SECURITY DEFINER 清除函数+worker 低频可选循环接线·一步到位·但+1 worker 触面与 main.ts 接线面）·**推荐**（②落地后观测行增量受控·保留期是膨胀治理闭环的最后一件·拖后继则 90 天面继续堆旧账）；(b) 后继刀（本刀仅四件+合并语义·main.ts 零触·最小刀面）。
-- **②合并 safety 系数与口径（件④授权面内细化）**：(a) factor 尺度 max 按任务书公式 `max(factor_prev, rawMax_增量×(1+safety))`·safety 沿 DEFAULT_SAFETY_MARGIN 常量·**推荐**（与任务书修法权威逐字一致）；(b) rawMax 尺度合并 `rawMax'=max(rawMax_prev, rawMax_增量)` 再统一乘 (1+safety)（结果 ≥(a) 恒成立·更保守·但偏离任务书公式字面·prev/增量同用 DEFAULT_SAFETY_MARGIN 时两形数学恒等·严格 ≥ 仅在 safety 异值时成立·两形均保上界）。两形均保上界·绝不静默选一。
+- **②合并 safety 系数与口径（件④授权面内细化）**：(a) factor 尺度 max 按任务书公式 `max(factor_prev, rawMax_增量×(1+safety))`·safety 沿 DEFAULT_SAFETY_MARGIN 常量·**推荐**（与任务书修法权威逐字一致）；(b) rawMax 尺度合并 `rawMax'=max(rawMax_prev, rawMax_增量)` 再统一乘 (1+safety)（**补正**：「结果 ≥(a) 恒成立」系误——同 safety（prev/增量同用 DEFAULT_SAFETY_MARGIN）时两形数学恒等·safety 异值时大小两向皆可能·且 prev 侧 safety 更高时 (b)<(a) 反例成立：rawMax_prev=100/s_prev=0.5·增量 rawMax=90/s=0.1→(b)=100×1.1=110<(a)=max(100×1.5·90×1.1)=150·「更保守」恒性亦随之不成立·但偏离任务书公式字面·两形均保上界）。两形均保上界·绝不静默选一。
 - **③水位线粒度**：(a) owner 级（任务书表形 owner PK 单列水位·**推荐**——最小表形·枚举加窗 v2 谓词同粒度自洽）；(b) (owner, service, model) 级（更细增量·表形与合并因子链对齐·但水位行数×组数·首版过度设计）；(c) 全局单水位（最粗·单慢 owner 拖全局·排除项呈报完整性）。
 
 ---
@@ -122,3 +122,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 *AG-COST2 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · 基线 `feat/mysql-schema-skeleton` @`2bc4e2bd`（起草窗口主线零前移）· 分支 `line/ag-cost2-migrate` · 工作树 `meetwise-cost2` · 蓝本=issues-final AG-07 :125-134/:19 + EXPERT-REVIEWS §七 :67 成本轨②（修法权威）+§六 :51（EG-B1 边界备注）+§八 :77-78（真隔离 PG 先例）+ 任务书修法权威四件 + cost1 卷（nail 6f2ed876·STILL OPEN :2357 承接）+ LEDGER 刀位图 :404-417 · 范围=迁移四件（去重换键/配对 v2 加窗/水位线表/枚举加窗）+因子合并语义显式定义+90 天保留期（裁决项）· 不含=AG-12/回灌/AG-11/EG-B1 · 迁移号 0177 起（EXEC 实测顺延）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
 
 *rev 勘误席（docs-only 窄面·⛔push·零码动）· 2026-10-12 · 双审席1 FAIL 处置摘要（1 blocking+5 errata·结论零变·§8-③ 冻结维持·STOP 维持·markers=0·pins 十一值零翻）：①【blocking】§0.1 #10 metrics.ts blob `2adc31554c07`→`2cd9daf00925`（`git ls-tree 2bc4e2bd -- packages/ai-runtime/src/metrics.ts` 亲算后落笔·2adc31554c07 系 cost1 EXEC 中间态 a8f7078d 旧 blob）；②§0.3-1 占用图补登协调方裁定 **0177=本刀（COST2）·刀 D（AG-D）改 0178**（刀 D 卷 ffa1fa62 原文「0177 待协调方裁定」·晚本卷六分钟·非本卷可证面·已由协调方分配消解）；③引语「①与②合并一个发布窗口」归引改 cost1 REQUEST §3-1/checklist :2357（非 EXPERT-REVIEWS·§七 :67 无此语）；④裁决项②(b) 补措辞（prev/增量同用 DEFAULT_SAFETY_MARGIN 时两形数学恒等·严格 ≥ 仅在 safety 异值时成立·两形均保上界）；⑤杂锚：§1 row1 辅锚 :7→:45/:104·§0.1 #1 行段 :399-417→:399-413（因子表 RLS :414-417 分开）。恰 1 .md·零码动 · ⛔push*
+
+*rev2 勘误席（docs-only 窄面·⛔push·零码动）· 2026-10-12 · 双审席2 FAIL 处置摘要（1 blocking+2 errata·结论零变·§8-③ 冻结维持·STOP 维持·markers=0·pins 十一值零翻）：①【blocking】§0.1 #4 usage-calibration.ts blob `fec7d3a91ce6`→`fec7d3a91cec`（`git rev-parse 2bc4e2bd:packages/db/src/model-op/usage-calibration.ts` 亲算后落笔·…ce6 全史零命中系纯转写错·并做全表复算：§0.1 全部 12 件逐条 `git ls-tree 2bc4e2bd` 复算——#1/#2/#3/#5-#12 共 11 件零漂·无第三处漏网·§0.2 补 pin 行同值同步改）；②【errata】§0.1 #1 因子表 RLS 行段 :414-417→:415-420（0119 blob `1922910a79da` 亲证 :414 空行·`ai_usage_calibration` RLS 语句组恰 :415-420·:421 空行）；③【errata】裁决项②(b)「(b)≥(a) 恒成立」补正：safety 异值且 prev 侧更高时 (b)<(a) 反例成立（rawMax_prev=100/s_prev=0.5·增量 rawMax=90/s=0.1→(b)=110<(a)=150）——同 safety 恒等·异值两向皆可能·「两形均保上界·绝不静默选一」结论不变·推荐(a) 维持。恰 1 .md·零码动 · ⛔push*
