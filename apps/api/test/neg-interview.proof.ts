@@ -576,5 +576,7 @@ A('abandon 终态 failed(IV_FAIL)→409 interview_not_active',
 //   §8 events/transcript 6
 //   §9 feedback/voice .. 8
 //   状态机硬不变量 .... 9
-//   ── 合计:97 条纯负路径断言（所有状态守卫均为精确码断言）
+//   ── 合计:102 条纯负路径断言（所有状态守卫均为精确码断言）
+//   [AUTHZ-HARDEN 5A-1 席1-R1 随刀更注] 原注「合计:97」系 H3 EXEC 时点值,后续刀增臂未更注;
+//   本次 rg 实测静态 A( 断言恰 102,按实测更正(97→102·只更注零臂动)。
 await done();

@@ -14,26 +14,34 @@ SECURITY DEFINER
 SET search_path = pg_catalog, public
 AS $$
 BEGIN
-  IF p_id IS NULL OR p_id = '' OR p_email IS NULL OR p_email = ''
+  -- AUTHZ-HARDEN 5A-1 簇①（#111）：邮箱归一 SQL 侧兜底闸（应用层 signup 归一为主闸，双闸）——
+  -- 校验先拒空白/空（btrim），入参归一 lower(btrim) 后落库，大小写/空白变体不产生第二账户。
+  -- v_email 局部变量承接归一值（IN 参不回写，plpgsql 版本间行为零依赖）。
+  IF p_id IS NULL OR p_id = '' OR p_email IS NULL OR btrim(p_email) = ''
     OR p_password_hash IS NULL OR p_password_hash = '' OR p_role NOT IN ('candidate', 'recruiter') THEN
     RAISE EXCEPTION 'gateway_auth_signup_invalid_input' USING ERRCODE = '22023';
   END IF;
+  DECLARE
+    v_email text := lower(btrim(p_email));
+  BEGIN
   -- b110 审核制：recruiter 注册一律落审核队列（admin approve 后方过 B 端门）；candidate 走默认 approved。
   IF p_role = 'recruiter' THEN
     INSERT INTO public.user_account(id, email, password_hash, role, approval_status)
-    VALUES (p_id, p_email, p_password_hash, p_role, 'pending');
+    VALUES (p_id, v_email, p_password_hash, p_role, 'pending');
   ELSE
     INSERT INTO public.user_account(id, email, password_hash, role)
-    VALUES (p_id, p_email, p_password_hash, p_role);
+    VALUES (p_id, v_email, p_password_hash, p_role);
   END IF;
   -- 注册赠送一次体验额度（#228 D1 已决）：signup+grant 同事务原子——注册 23505 回滚则桶不存在；
   -- 桶冲突 DO NOTHING 不拖垮注册。kind='trial'·units_total=1.00（1 次面试=1.00）·expires 同 paid 先例
   -- now()+interval '365 days'·source_order_id=NULL（无单）。幂等每用户一次由 partial unique index
   -- uq_bucket_trial_one_per_owner 兜底；ON CONFLICT 谓词与 index 定义逐字一致。
-  -- （b110 回填并集注：trial 发放对 candidate/recruiter 两态注册同适用，与审核维度正交。）
+  -- （b110 回填并集注：trial 发放对 candidate/recruiter 两态注册同适用，与审核维度正交。
+  --   AUTHZ-HARDEN 5A-1 换体必携此 0155 末位回填并集，漏携即抹 #228 行为。）
   INSERT INTO public.entitlement_bucket(owner_user_id, kind, units_total, expires_at)
   VALUES (p_id, 'trial', 1.00, now() + interval '365 days')
   ON CONFLICT (owner_user_id) WHERE kind = 'trial' DO NOTHING;
+  END;
 END;
 $$;
 
@@ -43,9 +51,11 @@ LANGUAGE sql
 SECURITY DEFINER
 SET search_path = pg_catalog, public
 AS $$
+  -- AUTHZ-HARDEN 5A-1 簇①（#111）：入参先归一（trim+lower）后与库精确比较（裁决项①附带·推荐形）——
+  -- 大写/带空白登录命中同账户；0167 后库内 email 已全量归一，等值比较走既有 email 唯一索引。
   SELECT u.id, u.password_hash, u.status, u.role, u.pwd_epoch
   FROM public.user_account AS u
-  WHERE u.email = p_email
+  WHERE u.email = lower(btrim(p_email))
   LIMIT 1
 $$;
 
@@ -92,13 +102,14 @@ BEGIN
     OR (p_candidate_id IS NOT NULL AND p_candidate_email IS NOT NULL) THEN
     RAISE EXCEPTION 'gateway_candidate_lookup_requires_exactly_one_key' USING ERRCODE = '22023';
   END IF;
+  -- AUTHZ-HARDEN 5A-1 簇①（#111/#131）：email 键入参归一（trim+lower）后精确比较——大写邮箱候选人邀得到（200 非 404）。
   RETURN QUERY
     SELECT u.id
     FROM public.user_account AS u
     WHERE u.status = 'active'
       AND u.role = 'candidate'
       AND ((p_candidate_id IS NOT NULL AND u.id = p_candidate_id)
-        OR (p_candidate_email IS NOT NULL AND u.email = p_candidate_email))
+        OR (p_candidate_email IS NOT NULL AND u.email = lower(btrim(p_candidate_email))))
     LIMIT 1;
 END;
 $$;

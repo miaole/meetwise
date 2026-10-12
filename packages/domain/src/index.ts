@@ -99,7 +99,8 @@ export { sampleQuestions, candidateView, containsBankSecret } from './bank-secur
 export type { BankQuestion } from './bank-security.ts';
 
 // 认证核心（密码哈希 + 会话令牌）
-export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull } from './auth.ts';
+// AUTHZ-HARDEN 5A-1 增:kid(keyIdFor)/邮箱归一(normalizeEmail)/恒时序登录 verify(verifyLogin+LOGIN_DUMMY_HASH)。
+export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull, keyIdFor, normalizeEmail, verifyLogin, LOGIN_DUMMY_HASH } from './auth.ts';
 export type { VerifiedToken } from './auth.ts';
 
 // 隐私删除授权签发器（ECDSA P-256 / ES256 JWS，与模型网关 Ed25519 刻意分离）

@@ -36,8 +36,9 @@ export class ProfileController {
 
   @Post('change-password')
   @HttpCode(HttpStatus.OK)
+  // AUTHZ-HARDEN 5A-1 #120:req.ip 传给 service 撑 chgpwd:ip 桶(trustProxy 纪律同 signup/login)。
   changePassword(@Req() req: any, @Body() b: { oldPassword?: string; newPassword?: string }) {
-    return this.profiles.changePassword(req.principal, b);
+    return this.profiles.changePassword(req.principal, b, req?.ip);
   }
 
   @Post('deactivate')

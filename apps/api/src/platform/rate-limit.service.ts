@@ -18,6 +18,16 @@ export class RateLimitService {
     return false;
   }
 
+  /**
+   * 非消费探针:桶当前(含惰性补充折算)是否仍够一次尝试(AUTHZ-HARDEN 5A-1 #120 失败锁入口用——
+   * 探查不扣额,扣减只在真失败时经 allow 发生)。参数与 allow 同形;桶不存在=满额=true。
+   */
+  hasToken(key: string, capacity: number, refillPerSec: number, now: number = Date.now()): boolean {
+    const b = this.buckets.get(key);
+    if (!b) return true;
+    return Math.min(capacity, b.tokens + ((now - b.last) / 1000) * refillPerSec) >= 1;
+  }
+
   // ── 并发槽(long-lived 连接 per-principal 上限,如 SSE)。区别于令牌桶:关注"同时占用数"而非"速率"。──
   private readonly slots = new Map<string, number>();
   /** 占一并发槽:当前占用 < max 则占一并返 true;否则返 false(拒)。**成功后必须 release**(放 finally/close)。 */
