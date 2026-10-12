@@ -1,6 +1,6 @@
 # I6 D6-COMPLIANCE REQUEST（批3 段 · D6 合规最低集四件 · #239 · M 体量如实呈报）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-12·本刀 docs+web 文案+api/worker 闸面小改·起草阶段恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-12·本刀 docs+web 文案+api/worker 闸面小改·起草阶段恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push） → **`executed:awaiting_post_prove_dual`**（**EXEC 落卷 2026-10-12·I6 #239 EXEC 席 @`7b6d0f38`**：pre-exec 双审 BOTH PASS+协调方派单即 §8 开工授权·D6 合规最低集四件全落（恰 14 件·零迁移零新表·SSOT 零触·pins 十一值零翻转·est live=0）·七裁决项现裁见 §8.1 现裁记录·四门收据补录 `receipts/i6-239/`（机械门 40 断言 ALL PASS·web prove 427 PASS·uc003-i18n-locale·public-copy 14/14·全 EXIT=0）·post-prove 席1 裁定 FAIL（码面四件交付与 proof/回归抽验全绿·FAIL 全因文书义务三项+一条诚实性勘误·见 §8.2 erratum 小节）·文书收口席三义务修补落卷·⛔push）
 
 **席位**：#批3 段 I6 组盘点起草席（北星 loop · 批3 残 2 之 #239 件 · D6-COMPLIANCE 刀 · 先盘点后起草）。
 **基线**：`feat/mysql-schema-skeleton` @ `8b8e20bc`（主线最新 tip·`git log -1` 实测 2026-10-12 13:03 merge(e2e-r3-v4-follow)·建树时点亲读）。分支 `line/i6-239`·工作树 `meetwise-i6`（`git worktree add ../meetwise-i6 -b line/i6-239` 本起草席已立·建前 `git worktree list` 实查不存在）。
@@ -118,10 +118,30 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀起草阶段恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀起草阶段恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**随翻（2026-10-12·EXEC 落卷 @`7b6d0f38`）**：三条款已全部行使（双审 BOTH PASS+协调方派单即授权+§1/§5 零改 EXEC 重 pin 只更锚）·本节状态 `draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**·上文原文照录零改。
 
 **待双审/EXEC 裁决项**：①kill-switch 闸名/缺省值/落点（api begin+turn 双口 vs 加 worker 出题口三口·倾向缺省 off=现状字节）；②危机触发词表与固定处置文案+转介信息逐字值（转介信息法务复核保留标注形）；③年龄声明形制（声明文案 vs 必选勾选·后端 signup 是否同步校验）；④④入口形制（静态受理 vs 真端点记账·记账须新表=闸外）；⑤体量 M 呈报与四件一次收 vs 拆刀（①④ 码面较重可拆后刀）；⑥W9 ② #239 口径文档职责承接呈报（LEDGER 归属刷新归 SSOT 刀）；⑦法务复核保留项处理口径（保留不阻塞=issues-master 原文·EXEC 收据如实标注）。
 
+### §8.1 七裁决项现裁记录（EXEC 落卷 2026-10-12·七值从 EXEC commit `7b6d0f38` message 誊入·收口席落卷）
+
+1. **①kill-switch**：闸名 `MEETWISE_CONTENT_SAFETY_KILL_SWITCH`·缺省 off（现状字节零翻）·**裁决落点=begin/turn 双口**（api `interview.service.ts` begin/turn 双入口首行闸·触发即 503 诚实文案）。
+2. **②危机固定处置**：触发词表+固定处置文案+转介信息·**不做状态机**（零新枚举零新表零迁移·纯函数确定性形）。
+3. **③年龄声明**：声明文案形（非勾选·zh/en i18n 各恰 +1 行）·**后端 signup 零校验新增**（最小集声明层）。
+4. **④入口形制**：**mailto 静态受理**（`mailto:privacy@meetwise.app`·人工受理·不虚称独立复核通道·零端点零新表）。
+5. **⑤拆刀裁决**：不拆刀·**四件一次收**（体量 M 如实登记·14 文件跨 api/worker/domain/web）。
+6. **⑥W9 ② 承接**：#239 口径文档职责由本刀实现面承接（LEDGER 归属刷新归 SSOT 刀·本刀零触 SSOT）。
+7. **⑦法务复核保留两处标注**（如实落码面）：②转介文案=`packages/domain/src/crisis-disposition.ts:5-6`+`apps/web/lib/interview/crisis-disposition.ts:7-8`·④受理邮箱=`apps/web/app/jobs/page.tsx:93-95`（保留不阻塞·上线前确认）。
+
+**四门收据补录**（收口席亲跑 2026-10-12·stdout 全落 `receipts/i6-239/`）：`node scripts/i6-239-gates.proof.mjs` 40 断言 ALL PASS EXIT=0（`i6-239-gates-proof.log`）·`npm run prove`（apps/web）427 PASS EXIT=0（`i6-239-web-prove.log`）·`npm run prove:uc003-i18n-locale` EXIT=0（`i6-239-web-prove-uc003-i18n-locale.log`）·`npm run prove:public-copy` 14/14·releaseEvidence=false 现场值·EXIT=0（`i6-239-web-prove-public-copy.log`）。
+
+### §8.2 诚实性勘误（erratum·收口席 append-only 落卷 2026-10-12·不改史）
+
+EXEC commit `7b6d0f38` message「执行期事件如实登记」段「其残件零采用零残留（…内容-safety 命名巧合系同题同解）」表述与 stash 物证相抵，如实更正登记（append-only·原文照录不擦改）：
+
+- **`packages/domain/src/crisis-disposition.ts` 成立面更正**：stash@{0}（协调方 2026-10-12 13:59 保全·「i6-stray-exec-residue」）内同名件与落卷版**逐字节相同**（`cmp` EXIT=0 实测）——「残件零采用」与物证相抵，成立面更正为「**stash 幸存或采用两说并存·以逐字节同一为准如实登记**」。
+- **「同题同解」成立面**（两处·均架构不同非同一文件）：①`apps/api/src/platform/content-safety.ts`——stash 版 32 行雏形 vs 落卷版 43 行实质重写；②`packages/domain/src/index.ts`——stash 版导出 `CONTENT_SAFETY_CRISIS_TERMS`/`detectCrisisTerms`/`CONTENT_SAFETY_CRISIS_HOLD_CODE`/`CONTENT_SAFETY_CRISIS_DISPOSAL_MESSAGE`（自 `./content-safety.ts`）vs 落卷版 `CRISIS_*` 导出（自 `./crisis-disposition.ts`）·架构不同。
+- **stash 孤儿件归档**：`packages/domain/src/content-safety.ts`（stash 版 58 行单源成形版·未被落卷采用）已从 stash@{0}^3 提取归档至 `receipts/i6-239/stash-orphan-archive/content-safety.ts`（附 3 行 README 说明来源与处置）。
+
 ---
 
-*I6 D6-COMPLIANCE REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`8b8e20bc` · 分支 `line/i6-239` · 工作树 `meetwise-i6` · 蓝本=更正版 issues-master :314（原文/证据列/修法列/备注三级逐字）+ batch-residual-plan @`ab02d499` I6 行 `:112` 逐字（跨树非 tip 祖先如实登记）+ LEDGER :71/:211/:330 + TASK-SOP-v2 :72 + EXECUTION-SOP :34 + I3 :37/:116·I4 :31/:120·I5 :126 让渡界线 + 形制 i5-caliber rev2（本树在卷）· 收编恰 1 件=#239（D6 合规最低集四件：①内容安全 kill-switch ②危机话术固定处置+转介 ③注册年龄声明 ④B 端自动化决策说明+人工复核入口）· 整域零实现复核过（四子面现势 EXIT=1 零命中·近期刀 f9383f76/authz5A/dir-b2/I5 逐卷排查零顺带落面·平台级开关三处与审计更正口径一致）· 三邻面定性登记（admin audit/保留枚举/legal 边界页=非四件不收）· 三分歧呈报（体量 S-M→M 如实·W9 ② 双登记承接·「整域」措辞收窄）· #263 不预支（批3 残 2 另一件·挂起登记在案·login 行级零重叠）· D6 决策面已闭（域裁撤向被用户决议闭死·只余实现向）· §2 断言候选七条（静态源+负断言+回归 EXIT 原值）· §3 范围外十条·§4 零未决硬依赖零闸·Ban+pins 十一值照抄（unstub-erase supersession 漂移如实登记·照抄不翻）· est live=0 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*I6 D6-COMPLIANCE REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`8b8e20bc` · 分支 `line/i6-239` · 工作树 `meetwise-i6` · 蓝本=更正版 issues-master :314（原文/证据列/修法列/备注三级逐字）+ batch-residual-plan @`ab02d499` I6 行 `:112` 逐字（跨树非 tip 祖先如实登记）+ LEDGER :71/:211/:330 + TASK-SOP-v2 :72 + EXECUTION-SOP :34 + I3 :37/:116·I4 :31/:120·I5 :126 让渡界线 + 形制 i5-caliber rev2（本树在卷）· 收编恰 1 件=#239（D6 合规最低集四件：①内容安全 kill-switch ②危机话术固定处置+转介 ③注册年龄声明 ④B 端自动化决策说明+人工复核入口）· 整域零实现复核过（四子面现势 EXIT=1 零命中·近期刀 f9383f76/authz5A/dir-b2/I5 逐卷排查零顺带落面·平台级开关三处与审计更正口径一致）· 三邻面定性登记（admin audit/保留枚举/legal 边界页=非四件不收）· 三分歧呈报（体量 S-M→M 如实·W9 ② 双登记承接·「整域」措辞收窄）· #263 不预支（批3 残 2 另一件·挂起登记在案·login 行级零重叠）· D6 决策面已闭（域裁撤向被用户决议闭死·只余实现向）· §2 断言候选七条（静态源+负断言+回归 EXIT 原值）· §3 范围外十条·§4 零未决硬依赖零闸·Ban+pins 十一值照抄（unstub-erase supersession 漂移如实登记·照抄不翻）· est live=0 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual · **随翻 2026-10-12：EXEC 落卷 @`7b6d0f38` → `executed:awaiting_post_prove_dual`（§8 随翻·七裁决现裁记录 §8.1·诚实性勘误 §8.2「残件零采用」表述更正·四门收据 `receipts/i6-239/` 补录）***
