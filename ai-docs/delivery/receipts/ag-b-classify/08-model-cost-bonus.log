@@ -1,0 +1,29 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-67691-1791802845529 on 127.0.0.1:51776
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-agb/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=172 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/ai-runtime@0.0.0 prove:model-cost /Users/miaole/Desktop/golucky/meetwise-agb/packages/ai-runtime
+> tsx test/model-cost-governance.proof.ts
+
+PASS  输入+输出 token 在派发前预留、成功后按实收结算
+PASS  策略指定 r1 时即使 r2 更晚也只冻结 r1 的费率
+PASS  不存在的指定价格 revision 在派发前拒绝，零外呼、零预留
+PASS  同一逻辑 key 的价格 revision 改变时 durable claim 拒绝复用，零第二次外呼
+PASS  结果不明冻结费用与调用意图，重放不产生第二次供应商派发
+PASS  执行超时会 abort 传输并把费用/调用一同冻结为 unknown，既不结算也不重发
+PASS  RPM 排队超时发生在派发前：第二请求零外呼、零费用预留且 durable claim=failed
+PASS  准入超时后迟到取得的 lease 会自释放，零外呼且 durable claim=failed
+PASS  派发前畸形费用策略 fail-fast，不会取得 admission 槽位或外呼
+PASS  并发重放不占用长事务且只派发一次
+PASS  半开探针竞争的 follower 在派发前重选 backup；两条 durable key 都成功且不重复外呼
+
+✓ 文本模型费用状态机全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T11-00-59-592Z-67691-62e7a32a-7f21-4cc3-a57e-ad8a56070e38.json release_evidence=false
