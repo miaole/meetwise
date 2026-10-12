@@ -25,7 +25,7 @@ import {
   R4_FUNNEL_COVERED_COUNT_BATCH4B_08_EVAL_EMITTER_WIRED,
   R4_FUNNEL_COVERED_COUNT_BATCH4B_08_EVAL_EVIDENCE_KIND,
   emitFunnelCoveredCountBatch4b08EvalEvidence,
-} from '../src/r4-funnel-covered-count-batch4b-08-eval.ts';
+} from '../evidence/r4-funnel-covered-count-batch4b-08-eval.ts';
 import {
   PRODUCTION_EQUIVALENT_FUNNEL_08_EVAL_WIRED,
   runProductionEquivalentFunnel08Eval,
@@ -34,23 +34,23 @@ import {
   assessFunnel08ProductionEquivalentEval,
   isFunnel07Covered,
   isFunnel08Covered,
-} from '../src/r4-funnel-covered-count-batch4.ts';
+} from '../evidence/r4-funnel-covered-count-batch4.ts';
 import {
   isFunnel05Covered,
   isFunnel06Covered,
-} from '../src/r4-funnel-covered-count-batch3.ts';
+} from '../evidence/r4-funnel-covered-count-batch3.ts';
 import {
   isFunnel02ACovered,
   isFunnel02BCovered,
-} from '../src/r4-funnel-covered-count-batch2.ts';
+} from '../evidence/r4-funnel-covered-count-batch2.ts';
 import {
   isFunnel03Covered,
   isFunnel04Covered,
-} from '../src/r4-funnel-covered-count-batch1.ts';
+} from '../evidence/r4-funnel-covered-count-batch1.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
-} from '../src/r4-eg2-funnel-covered-matrix.ts';
+} from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -263,7 +263,7 @@ const mdLines = [
   '',
   `**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4b post_prove_dual_pass** · coveredCount **${matrix.coveredCount}**（7→${matrix.coveredCount} honesty）· 08=${covered08 ? 'covered' : 'not_covered'} · **≠ invent covered** · \`releaseEvidence=false\` · ≠HA`,
   `**Date**: ${nowLabel}`,
-  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware) · Batch4b `apps/worker/src/r4-funnel-covered-count-batch4b-08-eval.ts` · eval wire `apps/worker/src/production-equivalent-funnel-08-eval.ts` · prove `pnpm r4-funnel-covered-count-batch4b-08-eval:prove` / `pnpm r4-eg2-funnel-covered:prove`',
+  '**Emitter**: `apps/worker/evidence/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware) · Batch4b `apps/worker/evidence/r4-funnel-covered-count-batch4b-08-eval.ts` · eval wire `apps/worker/src/production-equivalent-funnel-08-eval.ts` · prove `pnpm r4-funnel-covered-count-batch4b-08-eval:prove` / `pnpm r4-eg2-funnel-covered:prove`',
   '**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** · Batch4b may elevate **08** when production-equivalent eval matrix evidenced+affirmed · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban invent coveredCount=8 · Ban second knife · Ban wash into product-closed · covering 08 ≠ product closed',
   '',
   '| ID | Status | Basis |',

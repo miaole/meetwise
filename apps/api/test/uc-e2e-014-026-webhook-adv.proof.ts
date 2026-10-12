@@ -13,11 +13,11 @@ import { boot, paySig } from './_neg-harness';
  *
  * 产品事实基线（读真实代码得出，断言即据此 · @b790b45）：
  *  - 入口唯一：POST /commerce/webhook/pay/:id（无登录态，commerce-webhook.controller.ts:12，不挂 PrincipalGuard）。
- *  - 验签链（commerce.service.ts:56-70）：缺字段 400 invalid_callback(:57) → HMAC-sha256(`${id}:${txn}:paid`)
- *    + timingSafeEqual，缺密钥/长度/内容不符 fail-closed 403 bad_signature(:58-61) → owner 经无表权限网关
- *    gateway_payment_order_owner 读取（:62-64，不信调用方）→ 查不到单 404 order_not_found(:65) → exactly-once CAS
- *    markOrderPaidAndCredit（:66-68；packages/db/src/payment.ts:59-93：created→paid CAS + provider_txn 全局
- *    partial UNIQUE + savepoint 23505→conflict；同单同 txn 重放→already）。
+ *  - 验签链（5A-2 #100 起=verifyCommerceSig 单源）：缺字段/缺 ts/超 ±300s 窗 400 invalid_callback →
+ *    HMAC-sha256(`${id}:${txn}:paid:${ts}`) + timingSafeEqual，缺密钥/长度/内容不符 fail-closed 403
+ *    bad_signature → owner 经无表权限网关 gateway_payment_order_owner 读取（不信调用方）→ 查不到单
+ *    404 order_not_found → exactly-once CAS markOrderPaidAndCredit（packages/db/src/payment.ts：
+ *    created→paid CAS + provider_txn 全局 partial UNIQUE + savepoint 23505→conflict；同单同 txn 重放→already）。
  *  - 回调体类型仅 {providerTxn, sig}（commerce.service.ts:56），**无金额通道**；金额/units 由服务端 PRODUCTS
  *    目录权威定价（:11-14 pack_10=9900¢/10u · pack_30=24900¢/30u）。
  *
@@ -86,8 +86,9 @@ const AUDIT_LINE = (cls: string) =>
     Number((await pool.query('SELECT COALESCE(SUM(units_total),0)::float8 s FROM entitlement_bucket WHERE owner_user_id=$1', [owner])).rows[0].s);
   const txnRows = async (txn: string) =>
     Number((await pool.query('SELECT count(*)::int n FROM payment_order WHERE provider_txn=$1', [txn])).rows[0].n);
-  const sig = (orderId: string, txn: string) => paySig(`${orderId}:${txn}:paid`);
-  const goodBody = (orderId: string, txn: string) => ({ providerTxn: txn, sig: sig(orderId, txn) });
+  // 5A-2 #100:签名载荷 `${orderId}:${txn}:paid:${ts}`(ts=毫秒·±300s 窗);ts 单次绑定(body 与载荷同值·防跨毫秒撕裂)。
+  const sig = (orderId: string, txn: string, ts = Date.now()) => paySig(`${orderId}:${txn}:paid:${ts}`);
+  const goodBody = (orderId: string, txn: string, ts = Date.now()) => ({ providerTxn: txn, ts, sig: sig(orderId, txn, ts) });
 
   // ── 隔离 fixtures：每类独立 owner/订单，增量可精确断言（不影响固定种子；不碰 neg:commerce fixture）──
   const F = {
@@ -124,13 +125,13 @@ const AUDIT_LINE = (cls: string) =>
     const txn = 'advC1Txn';
     const before = { order: await orderRow(ord), buckets: await bucketCount(owner), sum: await bucketSum(owner) };
     // 错签：等长 hex（对无关字符串算的 HMAC）→ 内容不符
-    const r1 = await h.post(WH(ord), {}, { providerTxn: txn, sig: paySig('forged-unrelated-string') });
+    const r1 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: paySig('forged-unrelated-string') });
     A('C1', '伪造签名(等长 hex) → 403 bad_signature', r1.status === 403 && r1.body?.error === 'bad_signature');
     // 垃圾短 sig → 长度不符分支 fail-closed
-    const r2 = await h.post(WH(ord), {}, { providerTxn: txn, sig: 'zz' });
+    const r2 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: 'zz' });
     A('C1', '垃圾短签名 → 403 bad_signature', r2.status === 403 && r2.body?.error === 'bad_signature');
     // 签名绑定他单（本单 id 不在签名原文里）→ 403
-    const r3 = await h.post(WH(ord), {}, { providerTxn: txn, sig: sig('ADV_C1_OTHER_ORDER', txn) });
+    const r3 = await h.post(WH(ord), {}, { providerTxn: txn, ts: Date.now(), sig: sig('ADV_C1_OTHER_ORDER', txn) });
     A('C1', '他单签名打到本单 → 403 bad_signature', r3.status === 403 && r3.body?.error === 'bad_signature');
     // 零副作用 DB 快照：PaymentOrder 状态/流水/units/amount 全不变；桶数与合计不变；txn 全局 0 行
     const after = { order: await orderRow(ord), buckets: await bucketCount(owner), sum: await bucketSum(owner) };
@@ -152,7 +153,7 @@ const AUDIT_LINE = (cls: string) =>
     A('C2', '空 body → 400 invalid_callback', r1.status === 400 && r1.body?.error === 'invalid_callback');
     const r2 = await h.post(WH(ord), {}, { providerTxn: 'advC2Txn' });
     A('C2', '缺 sig → 400 invalid_callback', r2.status === 400 && r2.body?.error === 'invalid_callback');
-    const r3 = await h.post(WH(ord), {}, { sig: sig(ord, 'advC2Txn') });
+    const r3 = await h.post(WH(ord), {}, { sig: sig(ord, 'advC2Txn'), ts: Date.now() });
     A('C2', '缺 providerTxn → 400 invalid_callback', r3.status === 400 && r3.body?.error === 'invalid_callback');
     const after = { order: await orderRow(ord), buckets: await bucketCount(owner), sum: await bucketSum(owner) };
     A('C2', '零副作用: 订单 status 仍 created + provider_txn 仍 NULL', after.order?.status === 'created' && after.order?.provider_txn === null);

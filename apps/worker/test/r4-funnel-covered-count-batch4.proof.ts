@@ -27,23 +27,23 @@ import {
   assessFunnel08ProductionEquivalentEval,
   isFunnel07Covered,
   isFunnel08Covered,
-} from '../src/r4-funnel-covered-count-batch4.ts';
+} from '../evidence/r4-funnel-covered-count-batch4.ts';
 import {
   isFunnel05Covered,
   isFunnel06Covered,
-} from '../src/r4-funnel-covered-count-batch3.ts';
+} from '../evidence/r4-funnel-covered-count-batch3.ts';
 import {
   isFunnel02ACovered,
   isFunnel02BCovered,
-} from '../src/r4-funnel-covered-count-batch2.ts';
+} from '../evidence/r4-funnel-covered-count-batch2.ts';
 import {
   isFunnel03Covered,
   isFunnel04Covered,
-} from '../src/r4-funnel-covered-count-batch1.ts';
+} from '../evidence/r4-funnel-covered-count-batch1.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
-} from '../src/r4-eg2-funnel-covered-matrix.ts';
+} from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 import { FREE_TEXT_ALLOWLISTED_SCOPE_FUNNEL_WIRED } from '../src/free-text-route-funnel.ts';
 
 let failures = 0;
@@ -245,7 +245,7 @@ const mdLines = [
   '',
   `**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch4 post_prove_dual_pass** · coveredCount **${matrix.coveredCount}**（6→7 honesty）· 07=${covered07 ? 'covered' : 'not_covered'} · 08=${covered08 ? 'covered' : 'not_covered'} · **≠ invent covered** · \`releaseEvidence=false\` · ≠HA`,
   `**Date**: ${nowLabel}`,
-  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware) · Batch4 `apps/worker/src/r4-funnel-covered-count-batch4.ts` · prove `pnpm r4-funnel-covered-count-batch4:prove` / `pnpm r4-eg2-funnel-covered:prove`',
+  '**Emitter**: `apps/worker/evidence/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware) · Batch4 `apps/worker/evidence/r4-funnel-covered-count-batch4.ts` · prove `pnpm r4-funnel-covered-count-batch4:prove` / `pnpm r4-eg2-funnel-covered:prove`',
   '**Hard**: Ban invent FUNNEL covered · Ban invent coveredCount=8 · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3/Batch3b may elevate **05/06** · Batch4 may elevate **07/08** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban invent coveredCount=8 · Ban second knife · Ban wash into product-closed',
   '',
   '| ID | Status | Basis |',

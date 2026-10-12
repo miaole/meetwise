@@ -27,7 +27,7 @@ import {
 import {
   PRODUCTION_EQUIVALENT_FUNNEL_08_EVAL_WIRED,
   type Funnel08EvalRunResult,
-} from './production-equivalent-funnel-08-eval.ts';
+} from '../src/production-equivalent-funnel-08-eval.ts';
 
 export const R4_FUNNEL_COVERED_COUNT_BATCH4B_08_EVAL_EVIDENCE_KIND =
   'FunnelCoveredCountBatch4b08EvalEvidence' as const;

@@ -22,7 +22,7 @@ import {
   assessWrongTrackProductEvidence,
   emitWrongTrackProductEvidence,
   hasWrongTrackProductEvidence,
-} from '../src/r4-eg4-wrong-track-product-evidence.ts';
+} from '../evidence/r4-eg4-wrong-track-product-evidence.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

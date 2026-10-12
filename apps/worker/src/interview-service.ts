@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { createHash } from 'node:crypto';
 import { asErr, SCORING_SEED_CRITERION_ID, type DbPool } from '@meetwise/db';
 import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel, isTextBackupEnabled, type ModelClient, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { aggregateScores, computeDeterministicTotal, scoreDispositionFromCodeUnitSpan, groundedByFacts, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, groundedByFacts, matchesCrisisTrigger, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 import { withGenerationProgress } from './generation-progress.ts';
 
@@ -164,6 +164,12 @@ function evaluationModel(model: ModelClient, question: string, answer: string, c
 export async function invokeEvaluationOnce(pool: DbPool, owner: string, input: EvaluationInvokeInput): Promise<EvaluationInvokeResult> {
   const primaryIdempotencyKey = evaluationIdempotencyKey(input.baseIdempotencyKey, input.answer);
   const criteria = input.criteria ?? EVALUATION_SEED_CRITERIA;
+  // D6 #239-② 危机/自伤话术固定处置(确定性触发词·纯函数零状态机):命中即不送模型
+  // (零外呼零消耗),沿既有 failed→unscored 释放链诚实收口;固定处置文案+转介信息由
+  // web 层单源渲染,本闸兜底一切入口(打字/语音)。不做 safety_hold 状态机(修法列原文)。
+  if (matchesCrisisTrigger(input.answer)) {
+    return { status: 'failed', error: CRISIS_DISPOSITION_REASON, primaryIdempotencyKey };
+  }
   // `invoke` 自身使用持久 claim；不再用 advisory transaction 锁包住模型 RPC。
   const primary = await invoke({
     idempotencyKey: primaryIdempotencyKey,

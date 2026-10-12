@@ -20,6 +20,12 @@ import { getSseRegistry, type SseRegistry } from './platform/sse-registry';
 // predicate + outbound ticket into the runtime package. Production builds
 // carry zero static g7-bootstrap import (prove:g7-bootstrap-zero-prod-import).
 const g7FreetierReproveEnabled = isG7FreetierReproveEnabled(process.env);
+// AUTHZ-HARDEN 5A-2 #168(G7 生产拒启):测试支撑拦截器仅限非生产调试——production 组合根上开关为真
+// 即配置错误 → fail-closed throw 拒启(先于任何动态 import/端口绑定;非 production 放行)。
+// GODFN-1b 单读点不变:本守卫只复用上方唯一一次读取结果,不二次读 G7_FREETIER_REPROVE。
+if (g7FreetierReproveEnabled && process.env.NODE_ENV === 'production') {
+  throw new Error('refusing_to_start: G7_FREETIER_REPROVE=1 is test-support only and is forbidden when NODE_ENV=production (#168)');
+}
 if (g7FreetierReproveEnabled) {
   const support = await import('@meetwise/ai-runtime/g7-test-support');
   configureG7RuntimeInjection({

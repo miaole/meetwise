@@ -123,7 +123,7 @@ export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP
 export {
   enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
-  DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT,
+  DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT, purgeStaleInterviewJobPayloads, INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
 } from './interview/interview-jobs.ts';
 export type { JobKind, ClaimedInterviewJob, ClaimedInterviewJobRequestId, ClaimedInterviewAnswerPayload, InterviewClaimBudget } from './interview/interview-jobs.ts';
 

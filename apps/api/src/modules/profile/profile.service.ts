@@ -1,15 +1,31 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { createHash } from 'node:crypto';
-import { hashPassword, verifyPassword, deriveGrowth, toGrowthRow, signToken } from '@meetwise/domain';
+import { hashPassword, verifyPassword, deriveGrowth, toGrowthRow } from '@meetwise/domain';
 import {
   requireOwnerUserId, buildRequiredOwnerFilter, beginResumeSoftDelete,
   beginInterviewProjectionErasure, beginMemoryAccountErasure,
 } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
+import { RateLimitService } from '../../platform/rate-limit.service';
 import { evictPrincipalStatus } from '../../platform/principal.guard';
+import { issueSessionToken } from '../../platform/auth-session';
 
 /** settings 白名单键(与 contracts.updateSettingsSchema 同源):落库前把已存 preferences 投影到这些键。 */
 const SETTINGS_KEYS = ['locale', 'theme', 'notifications'];
+
+// AUTHZ-HARDEN 5A-1 R2(#120):改密限流+失败锁参数 env 覆写口(先例 auth.service RL_SIGNUP_IP「容量,速率」
+// 双值形·prod 钉死默认值,perf/E2E 证明注入短窗即此口,禁删桶检查/禁静默 special-case)。
+// 主体桶(20,0.2)/ip 桶(60,1)=入口限流;失败锁(5,0.01)=5 次连败突发·~100s 补 1(短窗自动解锁)——
+// 被盗令牌无限试旧密码放大 scrypt CPU 的面收口;TOCTOU 半已由 :111 原子 UPDATE 收口(零改)。
+const RL_CHGPWD_RAW = (process.env.RL_CHGPWD ?? '20,0.2').split(',');
+const CHGPWD_CAPACITY = Number(RL_CHGPWD_RAW[0]) > 0 ? Number(RL_CHGPWD_RAW[0]) : 20;
+const CHGPWD_REFILL = Number(RL_CHGPWD_RAW[1]) > 0 ? Number(RL_CHGPWD_RAW[1]) : 0.2;
+const RL_CHGPWD_IP_RAW = (process.env.RL_CHGPWD_IP ?? '60,1').split(',');
+const CHGPWD_IP_CAPACITY = Number(RL_CHGPWD_IP_RAW[0]) > 0 ? Number(RL_CHGPWD_IP_RAW[0]) : 60;
+const CHGPWD_IP_REFILL = Number(RL_CHGPWD_IP_RAW[1]) > 0 ? Number(RL_CHGPWD_IP_RAW[1]) : 1;
+const RL_CHGPWD_FAIL_RAW = (process.env.RL_CHGPWD_FAIL ?? '5,0.01').split(',');
+const CHGPWD_FAIL_CAPACITY = Number(RL_CHGPWD_FAIL_RAW[0]) > 0 ? Number(RL_CHGPWD_FAIL_RAW[0]) : 5;
+const CHGPWD_FAIL_REFILL = Number(RL_CHGPWD_FAIL_RAW[1]) > 0 ? Number(RL_CHGPWD_FAIL_RAW[1]) : 0.01;
 
 /**
  * 用户资料/设置应用服务(拥有 asPrincipal/pool + SQL + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
@@ -17,7 +33,7 @@ const SETTINGS_KEYS = ['locale', 'theme', 'notifications'];
  */
 @Injectable()
 export class ProfileService {
-  constructor(private readonly db: DbService) {}
+  constructor(private readonly db: DbService, private readonly rl: RateLimitService) {}
 
   async me(principal: string) {
     const r = await this.db.asPrincipal(principal, (c) => c.query(
@@ -99,12 +115,24 @@ export class ProfileService {
   }
 
   // 修改密码(自助,安全):验旧密码(常量时间)→ scrypt 哈希新密码 + **密码代次自增**(吊销旧/被盗令牌,F4)。绝不明文。
-  async changePassword(principal: string, b: { oldPassword?: string; newPassword?: string }) {
+  // AUTHZ-HARDEN 5A-1 #120(限流/失败锁半;TOCTOU 半已由下方原子 UPDATE 收口零改):
+  //   入口 per-principal+ip 双桶(#120「按主体+IP 限流」逐字)+连败失败锁(入口非消费探查,验错才扣减;
+  //   短窗自动解锁)——被盗令牌无限试旧密码放大 scrypt CPU 的面收口(R2 env 覆写口见文件头)。
+  //   400 形校验失败不入桶(与 signup 同序:桶在体校验后);wrong_password 计失败。
+  async changePassword(principal: string, b: { oldPassword?: string; newPassword?: string }, ip?: string) {
     if (!b.oldPassword || !b.newPassword || b.newPassword.length < 8) throw new HttpException({ error: 'invalid_password' }, HttpStatus.BAD_REQUEST);
+    if (!this.rl.allow(`chgpwd:${principal}`, CHGPWD_CAPACITY, CHGPWD_REFILL)
+      || !this.rl.allow(`chgpwd:ip:${ip ?? 'unknown'}`, CHGPWD_IP_CAPACITY, CHGPWD_IP_REFILL))
+      throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
+    if (!this.rl.hasToken(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL))
+      throw new HttpException({ error: 'password_retry_later' }, HttpStatus.TOO_MANY_REQUESTS);
     const r = await this.db.asPrincipal(principal, (c) => c.query(
       'SELECT password_hash FROM user_account WHERE id=$1', [principal]));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
-    if (!verifyPassword(b.oldPassword, r.rows[0].password_hash)) throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);
+    if (!verifyPassword(b.oldPassword, r.rows[0].password_hash)) {
+      this.rl.allow(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL);   // #120 失败锁扣减(连败满容量后入口锁定)
+      throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);
+    }
     // 单语句原子改哈希 + 代次自增:并发两次改密各自 read-modify-write 在行锁内串行,代次 0→1→2 不丢更新,两个旧代次令牌均失效。
     // 边角:并发双改密时先提交者回签的令牌内嵌旧代次(如 1),会被终值(2)判失效——极罕见的自锁,可接受。
     const newPassword = b.newPassword;   // 守卫后已收窄为 string；const 捕获进闭包(strictNullChecks 下 b 参数不收窄进回调)
@@ -114,8 +142,9 @@ export class ProfileService {
     const epoch = up.rows[0].pwd_epoch;
     evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 单实例下旧令牌下一请求即 401;多实例仅本机即时,其余实例 ≤60s 缓存过期后生效
     // 签发**新代次**令牌回给当前会话,避免用户改完密码就被自己踢下线(无死胡同);缺密钥时降级为仅 changed。
-    const secret = process.env.AUTH_SECRET ?? '';
-    const token = secret ? signToken(principal, secret, 7 * 24 * 3600, Math.floor(Date.now() / 1000), epoch) : undefined;
+    // 5A-1 簇③:回签走会话签发(新 kid/jti+0169 会话行·R1 产点清单第二处)——旧 jti 会话由 pwd_epoch
+    // 前进天然失效(守卫既有机械零改);缺 AUTH_SECRET 时 issueSessionToken 返 null,降级仅 changed(原语义保留)。
+    const token = await issueSessionToken(this.db, principal, epoch);
     return token ? { changed: true, token } : { changed: true };
   }
 

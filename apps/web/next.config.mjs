@@ -26,8 +26,11 @@ const nextConfig = {
         { key: 'Referrer-Policy', value: 'strict-origin-when-cross-origin' },
         { key: 'Strict-Transport-Security', value: 'max-age=63072000; includeSubDomains; preload' },
         { key: 'Permissions-Policy', value: 'camera=(), geolocation=(), microphone=(self)' },   // 麦克风仅本站(语音面试),其余禁
-        // CSP:frame-ancestors 双保险防点击劫持;default-src self;允许内联样式(Tailwind)与 data/blob(TTS 音频/头像)。脚本仅 self(RSC/无内联脚本)。
-        { key: 'Content-Security-Policy', value: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; media-src 'self' data: blob:; connect-src 'self'; frame-ancestors 'none'; base-uri 'self'; form-action 'self'" },
+        // #67(AUTHZ-HARDEN 5A-2):CSP 不再在此静态设置——旧静态 script-src 放行内联脚本(unsafe-inline
+        // 形·无 nonce 白名单),且旧注释宣称「脚本仅 self(RSC/无内联脚本)」与实现不符(App Router 内联
+        // flight/水合脚本+首页 JSON-LD 确为内联)。现由 middleware.ts 每请求发 nonce 形 CSP(响应头形
+        // 唯一设置点;App Router 内联脚本按请求头 CSP 自动补 nonce,自持 JSON-LD 经 x-nonce 接线)。
+        // 此处若再静态设置会形成双 CSP 头交集互相击穿,故整体移除;其余安全头(XFO/nosniff/HSTS 等)保留不动。
       ],
     }];
   },

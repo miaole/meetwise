@@ -23,26 +23,26 @@ import {
   classifyPMetaRemaining,
   is01ANotEqual01,
   isRagFunnel01Closed,
-} from '../src/r4-p-meta-p-r1-remaining.ts';
+} from '../evidence/r4-p-meta-p-r1-remaining.ts';
 import {
   REQUIRED_SECONDARY_FACETS,
   classifyPMetaServingRemaining,
   isServing01ANotEqual01,
   isServingFunnel01Closed,
   servingAlignsWithF2Remaining,
-} from '../src/r4-p-meta-serving-remaining.ts';
+} from '../evidence/r4-p-meta-serving-remaining.ts';
 import {
   METADATA_REVIEW_RECEIPT_SERVING_PRODUCT_CONTRACT,
   classifyPMetaServingProductRemaining,
   isProduct01ANotEqual01,
   isProductFunnel01Closed,
   productAlignsWithF3Serving,
-} from '../src/r4-p-meta-serving-product-remaining.ts';
+} from '../evidence/r4-p-meta-serving-product-remaining.ts';
 import {
   MS1_METADATA_REVIEW_RECEIPT_PRODUCT_SERVING_CONSUMER_WIRED,
   admitMetadataReviewReceiptToProductServing,
   type MetadataReviewReceipt,
-} from '../src/r4-p-meta-ms1-product-wire.ts';
+} from '../evidence/r4-p-meta-ms1-product-wire.ts';
 import {
   MS2_FACETS_SERVED_ON_PRODUCT_PATH,
   MS2_PRODUCT_FACETS_SERVED_ON_PRODUCT_PATH_WIRED,
@@ -51,7 +51,7 @@ import {
   isValidProductSecondaryFacetPayload,
   serveRequiredSecondaryFacetsOnProductPath,
   type ProductSecondaryFacetPayload,
-} from '../src/r4-p-meta-ms2-facets-product.ts';
+} from '../evidence/r4-p-meta-ms2-facets-product.ts';
 import { isTechRoleFailClosedEnabled } from '../src/adaptive-role-resolve.ts';
 
 let failures = 0;
@@ -76,11 +76,11 @@ const f4HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f4-p-r1-fail-c
 const funnel01aPath = join(repoRoot, 'ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md');
 const principalPath = join(repoRoot, 'packages/db/src/principal.ts');
 const funnelArchPath = join(repoRoot, 'ai-docs/architecture/ai/rag-funnel-routing.md');
-const ms2Path = join(workerRoot, 'src/r4-p-meta-ms2-facets-product.ts');
-const ms1Path = join(workerRoot, 'src/r4-p-meta-ms1-product-wire.ts');
-const f5HelperPath = join(workerRoot, 'src/r4-p-meta-serving-product-remaining.ts');
-const f3HelperPath = join(workerRoot, 'src/r4-p-meta-serving-remaining.ts');
-const f2HelperPath = join(workerRoot, 'src/r4-p-meta-p-r1-remaining.ts');
+const ms2Path = join(workerRoot, 'evidence/r4-p-meta-ms2-facets-product.ts');
+const ms1Path = join(workerRoot, 'evidence/r4-p-meta-ms1-product-wire.ts');
+const f5HelperPath = join(workerRoot, 'evidence/r4-p-meta-serving-product-remaining.ts');
+const f3HelperPath = join(workerRoot, 'evidence/r4-p-meta-serving-remaining.ts');
+const f2HelperPath = join(workerRoot, 'evidence/r4-p-meta-p-r1-remaining.ts');
 const handoffProvePath = join(repoRoot, 'packages/db/test/qbank-handoff-closure.proof.ts');
 const workerEnvExample = join(repoRoot, 'docker/env/worker.env.example');
 const preExecE2e = join(repoRoot, 'ai-docs/delivery/reviews/2026-09-17-r4-f7-p-meta-ms2-facets-product-mw-e2e-ha.md');

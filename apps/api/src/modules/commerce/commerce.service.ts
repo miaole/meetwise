@@ -6,9 +6,34 @@ import { DbService } from '../../platform/db.service';
 /**
  * 交易应用服务(拥有 asPrincipal 事务边界 + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
  * 承重:回调**幂等 exactly-once 入账**(CAS,重复回调不双扣不双入)+ HMAC 验签(密钥缺失 fail-closed)。
- * 注:此回调经 principal(适合"支付后跳回"确认流);真异步 webhook 需独立无登录态端点 + 验签 + 查单 owner + 特权入账。
+ * AUTHZ-HARDEN 5A-2 #100:三回调验签收敛于单源 `verifyCommerceSig`(含 ts 时间戳防重放窗);
+ * 旧「pay-callback 经 principal 登录可调」面撤除——回调面统一纯签名访问,owner 由网关函数解析
+ * (payCallback 方法已并入 payWebhook 同管道;账务 CAS/exactly-once 语义零触)。
  */
 export type ProductDomain = 'consumer' | 'enterprise';
+/** 回调签名载荷:`${id}:${providerTxn}:${kind}:${ts}`(ts=签名毫秒时刻;|now-ts|>窗即 400 防重放)。 */
+export const PAY_SIG_REPLAY_WINDOW_SECONDS = 300;
+
+export type CommerceCallbackBody = { providerTxn?: string; sig?: string; ts?: number };
+
+/**
+ * #100 HMAC 验签单源(原 :87/:105/:135 三份复制块收敛于此):
+ *  - 缺 providerTxn/sig/ts 或 ts 非有限数或超 ±窗 → 400 invalid_callback(结构性拒·fail-closed);
+ *  - 密钥缺失或签名不等长/不等 → 403 bad_signature(恒时序比较);
+ *  - kind 入签(paid/refunded 对偶标签不可互换),签名与订单 id 绑定不弱化。
+ * 隐私面零关:privacy.service preview digest 为异用途,不经此函数(席1 边界·零触)。
+ */
+export function verifyCommerceSig(id: string, body: CommerceCallbackBody, kind: 'paid' | 'refunded'): void {
+  if (!body?.providerTxn || !body?.sig) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
+  const ts = body.ts;
+  if (typeof ts !== 'number' || !Number.isFinite(ts) || Math.abs(Date.now() - ts) > PAY_SIG_REPLAY_WINDOW_SECONDS * 1000) {
+    throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
+  }
+  const secret = process.env.PAY_PROVIDER_SECRET ?? '';
+  const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:${kind}:${ts}`).digest('hex');
+  const a = Buffer.from(body.sig), e = Buffer.from(exp);
+  if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
+}
 export const PRODUCTS: Array<{ id: string; name: string; amountCents: number; units: number; domain: ProductDomain }> = [
   { id: 'pack_10', name: '10 次面试包', amountCents: 9900, units: 10, domain: 'consumer' },
   { id: 'pack_30', name: '30 次面试包', amountCents: 24900, units: 30, domain: 'consumer' },
@@ -81,30 +106,15 @@ export class CommerceService {
     return PRODUCTS.find((p) => p.id === o.productId)?.domain === 'enterprise' ? { kind: 'enterprise' } : undefined;
   }
 
-  async payCallback(principal: string, id: string, body: { providerTxn?: string; sig?: string }) {
-    if (!body?.providerTxn || !body?.sig) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
-    const secret = process.env.PAY_PROVIDER_SECRET ?? '';
-    const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:paid`).digest('hex');
-    const a = Buffer.from(body.sig), e = Buffer.from(exp);
-    if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
-    const res = await this.db.asPrincipal(principal, async (c) =>
-      markOrderPaidAndCredit(c, principal, id, body.providerTxn!, (await this.bucketForOrder(c, principal, id)) ?? { kind: 'paid' }));
-    if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
-    if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
-    return { result: res };   // credited(首次) | already(幂等重复)
-  }
-
   /**
    * 真异步支付 webhook(修审计 F4):**无登录态**(PSP 服务端调,无 user session)。
-   * 安全模型:HMAC 绑定订单 id + txn(密钥缺失 fail-closed)→ 验签过才认;owner 从无表权限网关的固定函数读取(不信调用方)→ 以该 owner 入账。
+   * 安全模型:HMAC 绑定订单 id + txn + kind + ts(密钥缺失 fail-closed)→ 验签过才认;owner 从无表权限
+   * 网关的固定函数读取(不信调用方)→ 以该 owner 入账。#100 收权:pay-callback 登录面撤除后,本方法即
+   * 回调支付唯一管道(orders/:id/pay-callback 端点同委托于此)。
    * 入账复用同一 exactly-once CAS(markOrderPaidAndCredit),重复回调幂等不双入。
    */
-  async payWebhook(id: string, body: { providerTxn?: string; sig?: string }) {
-    if (!body?.providerTxn || !body?.sig) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
-    const secret = process.env.PAY_PROVIDER_SECRET ?? '';
-    const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:paid`).digest('hex');
-    const a = Buffer.from(body.sig), e = Buffer.from(exp);
-    if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
+  async payWebhook(id: string, body: CommerceCallbackBody) {
+    verifyCommerceSig(id, body, 'paid');
     const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
     )).then((r: any) => r.rows[0]?.owner_user_id);
@@ -125,16 +135,12 @@ export class CommerceService {
 
   /**
    * 退款 webhook（GAP-UC011-REFUND-CALLBACK Path A）：无登录态 + HMAC fail-closed。
-   * 载荷标签用 `refunded`（对偶 pay 的 `paid`）；回调体仅 {providerTxn, sig}——无金额通道（DISCLOSED）。
+   * 载荷标签用 `refunded`（对偶 pay 的 `paid`）；回调体仅 {providerTxn, sig, ts}——无金额通道（DISCLOSED）。
    * 具名码对齐 payWebhook：400 invalid_callback · 403 bad_signature · 404 order_not_found · 409 order_conflict ·
    * 200 {result: refunded|already}。Ban any-non-404-4xx-as-sig-evidence。
    */
-  async refundWebhook(id: string, body: { providerTxn?: string; sig?: string }) {
-    if (!body?.providerTxn || !body?.sig) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
-    const secret = process.env.PAY_PROVIDER_SECRET ?? '';
-    const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:refunded`).digest('hex');
-    const a = Buffer.from(body.sig), e = Buffer.from(exp);
-    if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
+  async refundWebhook(id: string, body: CommerceCallbackBody) {
+    verifyCommerceSig(id, body, 'refunded');
     const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
     )).then((r: any) => r.rows[0]?.owner_user_id);

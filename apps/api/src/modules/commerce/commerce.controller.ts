@@ -32,10 +32,12 @@ export class CommerceController {
   }
 
   @Post('orders/:id/pay-callback')
-  @UseGuards(PrincipalGuard)
   @HttpCode(HttpStatus.OK)
-  callback(@Param('id') id: string, @Req() req: any, @Body() b: { providerTxn?: string; sig?: string }) {
-    return this.commerce.payCallback(req.principal, id, b);
+  // #100(AUTHZ-HARDEN 5A-2·裁决项⑤纯签名)收权:移除 PrincipalGuard——本端点原「登录可调 + 以登录态
+  // principal 入账」面撤除,与 /commerce/webhook/pay/:id 同管道(纯签名访问·owner 由网关函数解析不信调用方);
+  // 签名含 ts 防重放(verifyCommerceSig 单源)。账务 CAS/exactly-once 零触。
+  callback(@Param('id') id: string, @Body() b: { providerTxn?: string; sig?: string; ts?: number }) {
+    return this.commerce.payWebhook(id, b);
   }
 
   // B271 片3 P4：本人订单列表（RLS p_owner 仅本人·开票下拉数据源）。静态段先于参数段，路由不冲突。

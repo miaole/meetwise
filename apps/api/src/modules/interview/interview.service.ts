@@ -14,6 +14,11 @@ import {
   PublicPreviewReadOnlyError,
   PublicPreviewWriteUnavailableError,
 } from '../../platform/public-preview';
+// D6 #239-① 内容安全 kill-switch(env 静态读闸·缺省 off=现状字节·三态 fail-closed 沿 public-preview 先例形)。
+import {
+  assertContentSafetyKillSwitchOff,
+  ContentSafetyKillSwitchActiveError,
+} from '../../platform/content-safety';
 import { toInterviewView } from './interview-view.ts';
 import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeAnswer } from './interview-voice.ts';
 import { reportView, retryReportById, exportReportMd, transcriptView } from './interview-report.ts';
@@ -308,6 +313,25 @@ export class InterviewService {
   }
 
   /**
+   * D6 #239-① 内容安全 kill-switch 闸(fail-closed·begin/turn 双口)。触发(env=1)即
+   * 503+诚实文案,不再入队任何模型面;缺省 off=现状字节零翻。语义与平台级既有开关
+   * (runaway/写门/熔断/成本治理)相互独立,零翻其语义。
+   */
+  private denyContentSafetyKilled(): void {
+    try {
+      assertContentSafetyKillSwitchOff();
+    } catch (error) {
+      if (error instanceof ContentSafetyKillSwitchActiveError) {
+        throw new HttpException(
+          { error: 'content_safety_kill_switch_active', message: '内容安全开关已开启：面试出题与作答提交暂停' },
+          HttpStatus.SERVICE_UNAVAILABLE,
+        );
+      }
+      throw error;
+    }
+  }
+
+  /**
    * Preview-only ledger submit. Off-preview must look like the route does
    * not exist (404), so this is not an INT-TRANSCRIPT-01 production write.
    */
@@ -383,6 +407,7 @@ export class InterviewService {
   // 与 applications.start 合一事务（S2-C4 修法⑤）共用同一核心·签名/this 语义零变（dbid1 冒烟
   // Object.create(prototype) 直调形保持）；扣额路由与分码语义见 beginInterviewCore 头注。
   begin(principal: string, id: string, resumeId: string, requestId?: string, sourceQuizId?: string, targetRole?: string, focus?: string) {
+    this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'interview.begin');
     return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole, focus));
@@ -390,6 +415,7 @@ export class InterviewService {
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
   turn(principal: string, id: string, body: TurnDto, requestId?: string) {
+    this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const turn = body.turn;
     // 共享 Zod 契约是入口；service 仍做上界防御，避免内部调用绕过 pipe。
