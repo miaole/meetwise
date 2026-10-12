@@ -417,7 +417,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 成本轨 | ②-⑥ | AG-07 迁移四件套+合并语义+保留期（②nail 收官）·AG-12 估算③/AG-11 三件套④/AG-08 ⑤/#48 后继⑥ | ② **nail 收官**（0177+水位线+合并 max·windowing 38 臂绿·号位臂勘正）/③-⑥ 队列 |
 | 安全 | qbank 小刀 | AG-41+42（5 函数）+43 调度半+P5 | REQUEST 9484bc54 双审席1 在途（迁移 0176+） |
 | 计费 | billing rev | 用户全裁决落卷+B 端章+扩张包+全调用面表+明细列表 | **nail `1a332e5e` 收官**（merge `925b6cfc` 已推非 force·双审 BOTH PASS·设计蓝本非实施零码动·merge 后 docs:check EXIT=0·待拍板余 2 项归用户（话题定义/封顶终值）·P1/P2/P3 实施刀待立项·详情 checklist「Line BILLING-REV 蓝本 nail」段） |
-| 计费 | P1/P2 | 0170-0173 字段迁移+影子计量 | 立项待 AG 硬前置（B✓/E批/F）齐 |
+| 计费 | P1/P2 | 0170-0173 字段迁移+影子计量 | **P1 nail `a1241e90` 收官**（merge 已推非 force·双亲 `528c3221`+`b42c4e6b`·post 双席 BOTH PASS·merge 后门 27/57 臂+migrate:prove+typecheck 3/3+docs:check 全绿·0170 interview_question 三列+0171 question_usage_ledger 归集+七件接线·零行为变更（billing_mode 默认 per_session·旧行 NULL=不计费）·errata：EXEC 28 臂虚报实 27/三文件 4 处 union 冲突并集解·STILL OPEN：0172-0173 结算刀 P3/明细列表 §3.13 姊妹面·详情 checklist「Line BILL1 nail」段）·P2 影子计量待立项 |
 | 产品大刀 | AG-39 私有题库+AG-38 问答侧 | 题库分层/工具边界两设计决策 | 挂用户排期 |
 | 产品口径（批3） | I263 小刀 | #263 B 端「内部预览」标注收口（21 面+五同族口径面+Pages 公开面） | **nail `f5fdca0c` 收官**（merge `9ae70025` 已推非 force·post 双席 BOTH PASS·merge 后四门 14/14+uc003+docs:check 全绿+apps/ 零残留·批3 23/23 全收口·详情 checklist「Line I263 nail」段） |
 - 关联蓝本：ai-docs/delivery/ai-capability-review/（LANDING-INDEX 十三节）+billing-redesign/（INDEX 十三节）。
