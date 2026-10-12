@@ -172,6 +172,16 @@ merge `line/authz-harden` @`ee424923` → `feat/mysql-schema-skeleton`（--no-ff
 - **席2-R3 0167 种子敏感面建议**：0167 存量归一迁移对种子/测试数据存在敏感面——建议后继刀在 e2e 种子链路加显式覆盖（登记建议·不阻断）。
 - **nail 席复验计数口径两登记**：①派单「neg:interview 103 基线」系误记——三方实锚（merge-base `c042729b`/`ee424923`/并后树）静态 `A(` 恰 **102**·运行时 102 绿 EXIT=0 与卷内 席1-R1 更注（97→102）恰合·零丢臂零新红；②`migrate.proof.ts:435` 断言标签「166 文件」系 mig-runner EXEC 时点硬编码（现树 171 sql·断言本体动态全量 PASS）——标签陈旧同族于 席1-R1·归 mig-runner 刀域随其收口（本刀零触）。
 
+### §9.1 第二 nail 席补登（重复派单核验·append-only·2026-10-12）
+
+协调方对 5A-1 nail 存在双席同派——先行席已完成 merge `5cb78dab` 全链（§9 六登记+计数两登记+worktree 移除+删支+push），本席错峰（等并发席 e2e-scene-batch2 `f7082391` 收口及其 e2e 进程退出·后复避让 e2e-scene-409 席 merge 窗口）转核验席。派单四登记项对账：**①=席2-R1 ✓·③=席2-R3 ✓**；**②④先行席 §9 未对位**，按派单原值补登如次（收据本体归协调方双席收据面·如实登记不洗不改）：
+
+- **补登-A（派单②原值）**：neg-harness 深层镜像债——`interview.created_at` 42703（收据 0047/0093）——与席2-R2 之 `23_api_gateway.sql` 双住地镜像债为**两笔不同债**·并行登记。
+- **补登-B（派单④原值）**：席1/席2 锚漂登记——卷内既有 §0.5 rev2-席1-R3 锚小漂登记（pre-exec rev2 面·四处更锚）·派单④所指 **post-prove 双席锚漂明细归双席收据面**·本席按原值如实补登待协调方对账。
+- **补登-C（派单③ nuance）**：0167 种子敏感面派单原值含「neg:all 全量未全跑·建议协调方按既有收据面覆盖」——席2-R3 已登建议面·neg:all 未全跑 nuance 随本行如实留痕。
+- **补登-D（编码面披露·EXEC 原样非 merge 引入）**：`apps/api/test/neg-auth.proof.ts:206-207`（signup null 邮箱臂）源码含字面 NUL 字节+断言标签 mojibake——`git diff ee424923..HEAD`=0 亲证系 EXEC @`ee424923` 原样·JS 字符串字面量合法·断言语义零损（预期 400 invalid·先行席 neg:auth 90 臂运行记录 87 绿含本臂·3 红=deactivate 三臂）·静态核对 90 臂计数与 deactivate 三基线红臂（:396/:399/:402）零漂·登记不洗·归后继 docs/治理刀顺手更正。
+- **补登-E（本席独立复验第二绿数据点·码面自 `5cb78dab` 零变化亲证）**：`git diff 5cb78dab..HEAD` 仅 docs+e2e 场景件+收据·authz 码面（apps/api·packages/db·packages/domain·apps/web）零触——本席独立复跑 authz5a:mirror:prove **15/15 EXIT=0**·authz5a:normalize:prove **15/15 EXIT=0**·authz5a:constant-time:prove **16/16 EXIT=0**（收据 `receipts/authz-harden/twin2-*.log`）·静态恒等核 neg-auth `A(`=**90**·neg:interview `A(`=**102**·migrate:prove/neg:bend/neg:auth 全量值沿先行席 `5cb78dab` 记录（同码面有效）。
+
 ---
 
 *AUTHZ-HARDEN REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual ·base `feat/mysql-schema-skeleton` @`c042729b` · 分支 `line/authz-harden` · 工作树 `meetwise-authz` · 蓝本=批5 位图行双源（TASK-SOP-v2:82+LEDGER:84/:96 逐字）+更正版 issues-master 候选 16 件（:218-:278/:245-:249/:375/:389/:506 修法列逐字入 §1）+LEDGER :212 批5 水位（4/143 残 139）+形制 i3-job-mgmt-REQUEST（§0-§8·Ban/pins 同源）· 收编 12 件=#111+#131/#120半/#33/#34两半/#90/#180/#35/#112/#67/#100/#168/#18半（四簇=邮箱归一/login 改密/令牌会话/面硬化·簇切两子刀建议）· 不收 4 件=#108/#109（🔒DEPS S3）/#36（5C）/#62（5E）·#143 P4 随卷挂账 · 查重四条=I4 网关 owner 谓词（在飞未落 tip）/I3 assertPrincipal/GODFN-1c/Ha 系 RLS 守卫加固面全已闭零触 · 防重检查过（3 命中全登记性·无同名卷）· 现势并发登记=主工作树 I4 EXEC staged 20 文件未提交·锚全 HEAD 纯净态 git show 复核 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
