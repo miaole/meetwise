@@ -13,6 +13,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { z } from 'zod';
 import {
   asPrincipal, isInterviewPrivacyActive, claimModelInvocation, completeModelInvocation, failModelInvocationClaim,
+  releaseRefusedModelInvocationClaim,
   markAiCostDispatched, markAiCostUnknown, markAiTextCostRejected, markModelInvocationDispatched,
   markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, type Client, type DbPool,
 } from '@meetwise/db';
@@ -24,7 +25,7 @@ import { withAbortTimeout } from './timeout.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
 import type { CalibratedFactor } from './usage-reconciliation.ts';
 import {
-  admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition,
+  admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition, isAdmissionRefusalRetryable,
   type SharedModelAdmissionLease, type SharedModelFeeRecord,
 } from './model-admission.ts';
 
@@ -248,6 +249,26 @@ async function releaseSharedAdmissionBestEffort(
 }
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * AG-D（刀 D·AG-01 准入拒绝去终态化）：准入拒绝落账面分流。瞬时准入拒绝族（熔断开/半开忙/
+ * 并发满/预算尽/本地 admission 超时·known-not-sent 零外呼零费用）→ 释放 claim（案A 可写最小形：
+ * 0179 `ai_model_release_refused_claim_scoped` 白名单前置校验·保留 lease_token 原值仅置 lease
+ * 即刻过期·status 留 claimed·error_code/completed_at 零写）——同键重试走 0130 expired-claimed
+ * 重领=真重试（「过期 claimed+承袭 token=可重领标记」，拒绝码可观测面维持 invoke 返回值）。
+ * 族外确定性拒绝（operation_unknown/blocked/project_missing/disabled、failover cost policy
+ * mismatch、cost_policy/price_missing、privacy fence）维持 ai_model_fail_claim_scoped failed
+ * 终态原样（retry 必败不放大）。返回 false=claim 已被重领/已流转，调用方按现状抛
+ * model_invocation_admission_state（CAS 语义零变）。
+ */
+async function refuseOrReleaseModelInvocationClaim(
+  c: Client, owner: string, idempotencyKey: string, leaseToken: string, refusedCode: string,
+): Promise<boolean> {
+  if (isAdmissionRefusalRetryable(refusedCode)) {
+    return releaseRefusedModelInvocationClaim(c, owner, idempotencyKey, leaseToken, refusedCode);
+  }
+  return failModelInvocationClaim(c, owner, idempotencyKey, leaseToken, refusedCode);
+}
 export interface ModelDeadlineConfig {
   executionTimeoutMs: number;
   transportTimeoutMs: number;
@@ -662,7 +683,9 @@ async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhas
   const { spec, pool, owner, leaseToken, admissionPartition, executionTimeoutMs, span } = args;
   let { plan } = args;
   // MODEL-OP-02 共享准入 + 断路器入场 + 并发槽认领（单一权威，取代 per-adapter 限流）。
-  // 在 durable claim 之后、派发边界之前执行：拒绝=known-not-sent，claim 可安全 failed。
+  // 在 durable claim 之后、派发边界之前执行：拒绝=known-not-sent。AG-D（刀 D·AG-01）修法后：
+  // 瞬时准入族（breaker_open/half_open_busy/concurrency_exhausted）释放 claim 可重领（案A），
+  // 仅确定性配置拒绝仍 failed 终态（refuseOrReleaseModelInvocationClaim 分流）。
   // 决策 fail-closed（unknown/blocked/breaker_open/concurrency_exhausted → 确定性拒绝，零外呼）。
   let sharedLease: SharedModelAdmissionLease | undefined;
   if (admissionPartition) {
@@ -671,7 +694,7 @@ async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhas
     });
     if (!shared.ok) {
       await asPrincipal(pool, owner, async (c) => {
-        if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, shared.error))
+        if (!await refuseOrReleaseModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, shared.error))
           throw new Error('model_invocation_admission_state');
       });
       span(0, 'deterministic_refusal', 0);
@@ -739,7 +762,7 @@ async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhas
       ? 'model_failover_cost_policy_mismatch'
       : (admissionTimedOut ? 'model_admission_timeout' : 'model_admission_failed');
     await asPrincipal(pool, owner, async (c) => {
-      if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, code))
+      if (!await refuseOrReleaseModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, code))
         throw new Error('model_invocation_admission_state');
     });
     // MODEL-OP-02：本地 admission（plan.admit）失败仍必须释放已取得的共享槽/探针。
@@ -781,7 +804,9 @@ async function invokeReserveAndDispatchPhase<T>(
         });
         reservationDecision = reserve.decision;
         if (reserve.decision !== 'reserved' && reserve.decision !== 'held') {
-          await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, `cost_${reserve.decision}`);
+          // AG-D（刀 D·AG-01）：cost_budget_exhausted=瞬时准入族第三触发→释放 claim 可重领；
+          // cost_policy/price_missing=确定性配置拒绝→failed 终态原样（分流见共享准入臂同 helper）。
+          await refuseOrReleaseModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, `cost_${reserve.decision}`);
           return { ok: false as const, error: `cost_${reserve.decision}` };
         }
       }

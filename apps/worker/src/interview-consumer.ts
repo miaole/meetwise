@@ -245,12 +245,21 @@ async function failClaimedInterviewJob(
  *  2. PG 超时族 SQLSTATE `57014`（query_canceled=statement_timeout·principal GUC 15s 触发面）；
  *  3. PG 连接族 SQLSTATE 类 08 前缀（connection_exception：08P01/08S01 等·主从切换/断连）+ `57P01/57P02/57P03`
  *     （admin_shutdown/crash_shutdown/cannot_connect_now）；
- *  4. node socket 层 `ECONNRESET/EPIPE/ETIMEDOUT`。
+ *  4. node socket 层 `ECONNRESET/EPIPE/ETIMEDOUT`；
+ *  5. AG-D（刀 D·AG-01 准入拒绝去终态化·「只增」新增）：**瞬时准入拒绝族六码**——`model_circuit_open`/
+ *     `model_circuit_half_open`/`model_concurrency_exhausted`（ADMISSION_ERROR_CODES 三准入码）+
+ *     `cost_budget_exhausted` + `model_admission_timeout`/`model_admission_failed`（本地 admission 族）。
+ *     拒绝源=adaptive-interview-service 出题 seam（裁决项③落点）：invoke 侧已按案A 释放 claim（0179
+ *     `ai_model_release_refused_claim_scoped`·0130 expired-claimed 重领=到点真重试），service 抛带 code
+ *     异常中止节点→本白名单 requeue+退避。确定性配置拒绝（operation_unknown/blocked/project_missing/
+ *     disabled、model_failover_cost_policy_mismatch）**不在族内**→ 既有确定性终态零放宽。
  * 命中 → requeue（退避+上限闸见 requeueOrTerminalizeExhausted）；不命中 → :508 确定性终态现状零变零放宽。
  * 分类通道=errCode（errors 单一探测：AppError.code ∪ 结构 .code——PG SQLSTATE/标签形原生过面）。
  */
 export const TRANSIENT_INTERVIEW_JOB_ERROR_CODES: ReadonlySet<string> = new Set([
   'graph_fence_lost', '57014', '57P01', '57P02', '57P03', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
+  'model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted',
+  'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed',
 ]);
 /** 纯函数·确定性·prove 直行使（沿 parseFocusPayload 形制）。 */
 export function isTransientInterviewJobError(code: string | undefined): boolean {
