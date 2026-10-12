@@ -139,6 +139,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **E2（0176 缺号登记过时）**：§0.2-4「0176 缺号不回填（0164 同形）」→主线已由 qbank-control-sec 补齐 0176——**本刀影子表仍占 0179**（原勘误「本刀若占则 0179」结论零变·勿添重号纪律零变）。
 - **E3（收尾区行锚零漂确认）**：§0.1 adaptive-lifecycle `de3c26a5` merge 后零漂亲证→done 臂 `:475-546`/三分支 `:509-541`/AG-F 注记 `:504-508`/recordAskedQuestions `:543-545` 行锚零变（§0.2-2 漂移就此封账）。
 - **E4（「出题失败」终态双路径勘误）**：§1-修法②挂点只载 done 臂——施工实测 generation 终态（genQuestion fail-closed→`writeGenerationUnavailable`）在投影事务内 `return`、**不经过 done 臂 conclude 块**——「收尾事务外围」按全路径兑现=**两调用点**（done 臂 `recordAskedQuestions` 毗邻+出题失败 `writeGenerationUnavailable` 提交后·均 fail-soft 同形）；start 臂出题失败（首题前）零 `interview_question` 话题行=诚实零写·不挂钩。现行为如实登记·非语义新增。
+- **E5（迁移改号 0179→0180·post 席勘误·零码动 docs-only+迁移文件名改）**：post 审实测本刀原占号 0179 已被主线 AG-D 刀**合法实落**并线（`0179_ag_d_release_refused_claim.sql` @`ccf3e7e7`·本刀 post 席1 据此 FAIL=并线撞号非本刀码面瑕疵）——0180 全场空闲（主线+22 worktree 零占）·**协调方裁定 0180 归本刀**。行使：`git mv` `0179_topic_shadow_meter.sql`→`0180_topic_shadow_meter.sql`+文件内自引改号（首行文件名注+编号行·历史迁移 0001-0178 零字节铁律零变）+runner 注册面本门 sourcePaths 路径串随改（回执写手逐 sourcePath 读文件哈希·旧路径 ENOENT 即门红=迁移文件名自引机械承重·恰 2 行零逻辑零行为）；**门复证 `bill2-shadow-meter:prove` EXIT=0**（44 臂全过+回执落盘·隔离库真迁移链含 0180 在案）。本 REQUEST §0-§8 及 §9 既有行文中 0179 字样全系改号前史录·append 保史零改写；proof/码注释内 0179 字样同=史录（零码动纪律不触）。结论零变：影子表形 A/列集/RLS/幂等键/§9-4 门表全数承继（§9-4「0001→0179」=改号前实测史录）。
 
 ### §9-3 §8 三裁决行使（全按卷推荐）
 

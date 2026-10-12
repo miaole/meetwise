@@ -1,4 +1,4 @@
--- 0179_topic_shadow_meter.sql
+-- 0180_topic_shadow_meter.sql
 --
 -- billing 战役 P2（BILL2-SHADOW-METER）修法①（REQUEST §8 裁决项①按推荐行使=形 A 独立影子表）：
 -- topic_shadow_meter 影子计量表——「只算不扣」（billing-redesign README rev1 §7 上线序③ :411 原文
@@ -19,8 +19,9 @@
 --   存量 NULL 零回填——本迁移零 UPDATE 零回填语句）。
 -- RLS ENABLE+FORCE+owner 策略（0171 :37-42 形制范本逐字）；只授 SELECT,INSERT（影子面只增不改·
 --   0171 :36 同形）。
--- 编号=0179（落卷时链 max=0178 实测·0172/0173 留 P3 结算刀零触·0176 缺号已由主线
---   qbank-control-sec 补齐=REQUEST §0.2-4 勘误如实登记·0179 为链上首个空号）。
+-- 编号=0180（post 席勘误改号：原占号已由主线 AG-D 刀合法实落并线·协调方裁定 0180 归本刀·
+--   落卷时链 max=0178 实测·0172/0173 留 P3 结算刀零触·0176 缺号已由主线
+--   qbank-control-sec 补齐=REQUEST §0.2-4 勘误如实登记·详见 REQUEST §9-2 E5）。
 -- 历史迁移 0001-0178 零字节改 + sql/ 影子面零改（新迁移铁律）——本文件为本刀唯一新迁移。
 
 CREATE TABLE IF NOT EXISTS topic_shadow_meter (
