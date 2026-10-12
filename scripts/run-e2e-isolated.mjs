@@ -698,7 +698,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0170_interview_question_topic_fields.sql',
     'packages/db/migrations/0171_question_usage_ledger.sql',
   ],
-  // BILL2-SHADOW-METER（billing 战役 P2·只算不扣）:0179 topic_shadow_meter 影子计量表+收尾事务外围 fail-soft 钩子+meter_version 兑现+零扣费负臂·隔离库证明（0179 起号）。
+  // BILL2-SHADOW-METER（billing 战役 P2·只算不扣）:0180 topic_shadow_meter 影子计量表+收尾事务外围 fail-soft 钩子+meter_version 兑现+零扣费负臂·隔离库证明（0180 起号·改号勘误见 REQUEST §9-2 E5）。
   'bill2-shadow-meter:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/bill2-shadow-meter.proof.ts', 'apps/worker/src/interview-consumer.ts',
@@ -712,7 +712,7 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts',
     'packages/db/migrations/0170_interview_question_topic_fields.sql',
     'packages/db/migrations/0171_question_usage_ledger.sql',
-    'packages/db/migrations/0179_topic_shadow_meter.sql',
+    'packages/db/migrations/0180_topic_shadow_meter.sql',
   ],
   'ocr:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
