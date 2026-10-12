@@ -21,7 +21,7 @@ import {
   assessEg5ProductSsotProductClose,
   emitEg5ProductSsotProductCloseEvidence,
   hasEg5ProductSsotProductCloseEvidence,
-} from '../src/r4-eg5-product-ssot-product-close.ts';
+} from '../evidence/r4-eg5-product-ssot-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

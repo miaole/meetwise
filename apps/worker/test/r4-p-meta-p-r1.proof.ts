@@ -24,7 +24,7 @@ import {
   is01ANotEqual01,
   isRagFunnel01Closed,
   isR1Closed,
-} from '../src/r4-p-meta-p-r1-remaining.ts';
+} from '../evidence/r4-p-meta-p-r1-remaining.ts';
 import {
   isTechRoleFailClosedEnabled,
   LEGACY_TECH_ROLE_DEFAULT,
@@ -51,7 +51,7 @@ const r1HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r1-tech-role-fail
 const m4Path = join(repoRoot, 'ai-docs/delivery/m4-rag-hard-gates.md');
 const funnel01aPath = join(repoRoot, 'ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md');
 const principalPath = join(repoRoot, 'packages/db/src/principal.ts');
-const helperPath = join(workerRoot, 'src/r4-p-meta-p-r1-remaining.ts');
+const helperPath = join(workerRoot, 'evidence/r4-p-meta-p-r1-remaining.ts');
 const rolePath = join(workerRoot, 'src/adaptive-role-resolve.ts');
 const consumerPath = join(workerRoot, 'src/interview-consumer.ts');
 const mainPath = join(workerRoot, 'src/main.ts');
@@ -143,7 +143,7 @@ A('MR1 inventory / status still list P-META / G-R4-5 open',
   (/P-META/.test(inventory) || /P-META/.test(status))
   && (/G-R4-5|MetadataReviewReceipt|RAG-FUNNEL-01/.test(status) || /P-META/.test(inventory)));
 A('MR1 F6 MS1 product wire present',
-  existsSync(join(workerRoot, 'src/r4-p-meta-ms1-product-wire.ts')));
+  existsSync(join(workerRoot, 'evidence/r4-p-meta-ms1-product-wire.ts')));
 A('MR1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src', (() => {
   const files = walkTsFiles(join(workerRoot, 'src'));
   for (const f of files) {

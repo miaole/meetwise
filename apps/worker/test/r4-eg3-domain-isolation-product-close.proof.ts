@@ -21,7 +21,7 @@ import {
   assessEg3DomainIsolationProductClose,
   emitEg3DomainIsolationProductCloseEvidence,
   hasEg3DomainIsolationProductCloseEvidence,
-} from '../src/r4-eg3-domain-isolation-product-close.ts';
+} from '../evidence/r4-eg3-domain-isolation-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
