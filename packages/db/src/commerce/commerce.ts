@@ -6,7 +6,7 @@
  *  ① 幂等键 (owner, idempotency_key) 唯一 → 双击/重发只算一次（reserve 幂等返回既有；confirm/release 对终态幂等）
  *  ② reserve 用 `FOR UPDATE` 锁桶 + READ COMMITTED 的 EvalPlanQual 重判 + available-CAS → 并发不超卖；DB CHECK ck_bucket_capacity 兜底
  *  ③ reserve 全有全无：凑不够即 throw → asPrincipal 整事务回滚，不留半预留
- *  ④ confirm 按比例分账用**大余数法**：逐桶 consume 之和严格等于权威 settled 总额（杜绝逐桶独立四舍五入的分币泄漏）
+ *  ④ confirm 按比例分账：前 n-1 桶各按比例舍入（r2(a.units*ratio)）+ 尾桶吸收差额（settled-distributed）→ Σconsume 严格 === 权威 settled 总额（#21 勘误 2026-10-12：旧注「大余数法」与实现措辞不符——实现是尾桶吸收差额形，非经典最大余数法；「杜绝逐桶独立四舍五入的分币泄漏」定性不变，见 :185 行注与 confirm 循环体）
  *  ⑤ confirm/release 对桶 UPDATE 校验 rowCount=1（RLS 隐藏/并发异常不静默吞）
  *  ⑥ owner 必须等于已绑定 principal（防把 owner 当可信入参绕 RLS 的脚枪）
  *
@@ -182,7 +182,7 @@ export async function confirmConsumption(
 
   const settled = r2(Number(r.units_requested) * ratio);                                  // 权威总额（单一真相）
   const allocations: Allocation[] = r.allocations;
-  // ④ 大余数法：前 n-1 桶按比例舍入,最后一桶吸收差额 → Σconsume 严格 === settled,不漏分不重分
+  // ④ 比例分账：前 n-1 桶按比例舍入,最后一桶吸收差额 → Σconsume 严格 === settled,不漏分不重分（#21 勘误 2026-10-12：旧标「大余数法」措辞撤销——非经典最大余数法,与 :9 头注同勘）
   let distributed = 0;
   // B271 片2：payer 非空=企业路由行（0157）→ 桶增量经受控 DEFINER（owner 会话不可直写招聘方桶）；
   // payer NULL=C 端本人行 → 直写路径逐字节零改。
@@ -203,7 +203,12 @@ export async function confirmConsumption(
   }
   const finalStatus = ratio >= 1 ? 'confirmed' : 'partial_confirmed';
   await c.query('UPDATE entitlement_consumption SET status=$2, units_settled=$3 WHERE id=$1', [r.id, finalStatus, settled]);
-  // outbox 同事务投递（confirm 与结算意图原子；真正下游结算由 relay 消费者做,见 reconcile 注释）
+  // outbox 同事务投递（confirm 与结算意图原子）。下游结算=真实落账本（非 STUB）：settleOutbox 消费者以
+  // FOR UPDATE SKIP LOCKED 取 pending 入 settlement_ledger（UNIQUE(consumption_id)=at-least-once→exactly-once），
+  // 入账与标 relayed 同事务；由 commerce-reconciler 周期驱动（见 reconcile 注释）。
+  // 【#6/#22 勘误 2026-10-12】0001_baseline.sql:125 旧注「真实下游结算尚是 STUB」措辞已过时——该行 :138
+  // 又自注「不是 relay 占位 stub」，同文件两注矛盾。迁移本体受 checksum 铁律（migrate.ts:4 ④·0001:2 勘误铁注）
+  // 保护字节不可改，本注即对侧诚实化锚；docs 侧勘误见 ai-docs/architecture/backend/commerce-saga.md「已补实」节。
   await c.query(
     `INSERT INTO commerce_outbox(owner_user_id, kind, consumption_id, payload)
      VALUES ($1,'settlement_proposed',$2,$3)`, [owner, r.id, JSON.stringify({ unitsSettled: settled, ratio })]);

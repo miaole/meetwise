@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · Ban invent a fix · this commit is not coding authorization and is not a prove）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-05
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`a778255`** / full `a778255c8a600304001207a514621323e77da3d2`（Line R worktree `/Users/miaole/Desktop/golucky/meetwise-line-r` · branch `line/r-next-nhp`）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`a778255`** / full `a778255c8a600304001207a514621323e77da3d2`（Line R worktree `meetwise-line-r`（仓根同级 worktree）· branch `line/r-next-nhp`）
 **Knife**: **NHP-002-ADV-01 / UC-E2E-002 ADV 列 · 伪造 LED / 跨用户 session 真证据**（一刀一行 · ADV 一列；不是把 `uc002:http:prove` H-authz 单锚 / `uc010` R-authz / `uc033` X 系当 ADV 已铺——三者均无本行专用对抗矩阵收据、无 no-leak payload 断言、无伪造 LED 分类）
 **Gap id**: **`GAP-UC002-ADV-LED-CROSSUSER`**（本刀新具名 · 对应矩阵 ADV blind/case-only 读法「伪造 LED / 跨用户 session」未执行；不改任何既有 gap id）
 **Case id**: **`NHP-002-ADV-01`**

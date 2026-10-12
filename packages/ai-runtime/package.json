@@ -7,7 +7,8 @@
     ".": "./src/index.ts",
     "./g7-bootstrap": "./test/support/g7-bootstrap.ts",
     "./g7-bootstrap.ts": "./test/support/g7-bootstrap.ts",
-    "./g7-test-support": "./test/support/index.ts"
+    "./g7-test-support": "./test/support/index.ts",
+    "./test-support": "./test/support/fakes.ts"
   },
   "scripts": {
     "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts",
@@ -60,6 +61,7 @@
     "prove:g7-freetier-reprove-paths": "tsx test/g7-freetier-reprove-paths.proof.ts",
     "prove:g7-freetier-fix-round2": "tsx test/g7-freetier-fix-round2.proof.ts",
     "prove:g7-bootstrap-zero-prod-import": "tsx test/g7-bootstrap-zero-prod-import.proof.ts",
+    "prove:test-support-fakes": "tsx test/test-support-fakes.proof.ts",
     "prove:gap-rag05-classifier": "tsx test/gap-rag05-classifier.proof.ts"
   },
   "dependencies": {
@@ -67,6 +69,7 @@
     "@langfuse/otel": "5.10.0",
     "@langfuse/tracing": "5.10.0",
     "@meetwise/db": "workspace:*",
+    "@meetwise/errors": "workspace:*",
     "@meetwise/domain": "workspace:*",
     "ipaddr.js": "2.4.0",
     "@opentelemetry/sdk-node": "0.221.0",

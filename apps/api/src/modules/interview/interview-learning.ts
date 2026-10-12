@@ -43,9 +43,21 @@ export async function getLearningPlanFor(db: DbService, guard: PrivacyGuard, pri
 }
 
 // 标记某学习项完成(留存:打卡学过的)。topic 为键;幂等。
+// #121（5E 2026-10-12·blueprint :395 修法列后段）：topic 限定为**该场弱项**——只接受本场 ready 评估
+// 报告里 gap=true 的维度名（学习计划 generateLearningPlanCore→deriveLearningPlan 即由同源 gap 维度
+// 派生,item.topic=d.dimension 逐字,两源天然互洽）。此前任意字符串静默落 learning_progress 行=
+// 「learning_progress.topic 不对应真实弱项」审计面。如实注:本文件头注「机械迁出·零逻辑变更」纪律
+// 自本刀起对本函数失效（其余两函数零触）。
 export async function completeLearningItemFor(db: DbService, guard: PrivacyGuard, principal: string, id: string, b: { topic?: string }) {
   await db.asPrincipal(principal, async (c) => {
     await guard(c, id);
+    const ok = await c.query(
+      `SELECT 1 FROM assessment_report ar, jsonb_array_elements(ar.dimensions) d
+       WHERE ar.interview_id=$1 AND ar.owner_user_id=$2 AND ar.status='ready'
+         AND interview_privacy_active(ar.interview_id)
+         AND coalesce(btrim(d->>'dimension'),'')=$3 AND coalesce(d->>'gap','false')='true'
+       LIMIT 1`, [id, principal, b.topic]);
+    if (ok.rowCount === 0) throw new HttpException({ error: 'invalid_topic' }, HttpStatus.BAD_REQUEST);
     await c.query('INSERT INTO learning_progress(owner_user_id, interview_id, topic) VALUES ($1,$2,$3) ON CONFLICT DO NOTHING', [principal, id, b.topic]);
   });
   return { done: true };
