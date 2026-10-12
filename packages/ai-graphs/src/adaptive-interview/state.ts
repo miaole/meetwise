@@ -50,7 +50,17 @@ export interface ClarifyDirective {
   sources: string[];
   critique: string[];
   qkind: QuestionKind;
+  /**
+   * billing P1（BILL1-TOPIC-FIELDS 修法⑤）：澄清双因显式 cause——「用户答非所问」='non_answer'
+   * （图侧确定性 isNonAnswer 直派）、「引文核验失败」='quote_unverifiable'（assess quote_repair_exhausted
+   * 源）。模型判跑题（relevant=false 无 cause）缺省 undefined=cause 不入澄清指令。纯枚举标识符，
+   * 与 qkind 同类，可入 checkpoint。
+   */
+  clarifyCause?: 'non_answer' | 'quote_unverifiable';
 }
+
+/** billing P1（BILL1-TOPIC-FIELDS 修法③）：出题方式三值枚举（C14 边界=纯标识符·非 facts 非原文）。 */
+export type QuestionAskMode = 'pivot' | 'probe' | 'clarify';
 
 /**
  * A durable graph state may identify an answer but must never contain it.
@@ -80,6 +90,16 @@ export interface PendingQuestion {
    * 软预算可上调，非承诺非上限；旧 checkpoint/旧流缺省 undefined，消费者必须降级。
    */
   plannedTurns?: number;
+  /**
+   * billing P1（BILL1-TOPIC-FIELDS 修法③④⑤·additive 可选·向后兼容）：话题维度三标识符——
+   * askMode=出题方式（pivot=话题主问题/probe=同能力追问/clarify=澄清重发）；topicId=话题归集键
+   * （主问题填自己的 question_id，追问和澄清填主问题的 id；旧行为空=不按话题计费）；clarifyCause=
+   * 澄清双因（仅 clarify 重发行携带）。三者均为纯枚举/标识符（C14 边界=与 questionId/kind 同类），
+   * 旧 checkpoint 缺省 undefined，持久化层对 undefined 写 NULL。
+   */
+  askMode?: QuestionAskMode;
+  topicId?: string;
+  clarifyCause?: 'non_answer' | 'quote_unverifiable';
 }
 
 export interface AdaptiveDeps {
@@ -127,12 +147,19 @@ export interface AdaptiveDeps {
     answer: string,
     competency: string,
     turn: number,
-    identity?: Pick<PendingQuestion, 'questionId' | 'stateVersion'>,
+    identity?: Pick<PendingQuestion, 'questionId' | 'stateVersion' | 'topicId'>,
   ) => Promise<
     | {
         status?: 'scored'; score: number; evidence: string[]; relevant: boolean; hasHook?: boolean;
         /** #52 v6：0103 契约档位证据（派生物，无答案原文）；v6 评分回合必须供给。 */
         dispositions?: ScoredCriterionDisposition[];
+        /**
+         * billing P1（BILL1-TOPIC-FIELDS 修法⑤）：澄清双因显式 cause——quote_repair_exhausted 源
+         * =『quote_unverifiable』、剥离后非作答源=『non_answer』（两源在图侧合流点拆分）。
+         * 纯附加字段：score/relevant/evidence/dispositions 既有值逐位不变；模型判跑题
+         * （relevant=false 无钉因）缺省 undefined。
+         */
+        clarifyCause?: 'non_answer' | 'quote_unverifiable';
       }
     | { status: 'unscored'; reason: string }
   >;
@@ -160,12 +187,18 @@ export interface AdaptiveDeps {
 export const AdaptiveInterviewState = Annotation.Root({
   mind: Annotation<InterviewMind>({ reducer: (_, b) => b, default: () => initMind([]) }),
   transcript: Annotation<Turn[]>({ reducer: (a, b) => a.concat(b), default: () => [] }),
-  route: Annotation<{ competency: string; difficulty: number; qkind: QuestionKind } | 'conclude' | null>({
+  route: Annotation<{ competency: string; difficulty: number; qkind: QuestionKind; mode?: QuestionAskMode } | 'conclude' | null>({
     reducer: (_, b) => b,
     default: () => null,
   }),
   clarify: Annotation<ClarifyDirective | null>({ reducer: (_, b) => b, default: () => null }),
   pending: Annotation<PendingQuestion | null>({ reducer: (_, b) => b, default: () => null }),
+  /**
+   * billing P1（BILL1-TOPIC-FIELDS 修法④）：当前话题主问题 id（纯标识符·C14 边界可 checkpoint）。
+   * pivot 发射时=新 questionId 自己；probe/clarify 继承不写。旧 checkpoint 缺省 null →
+   * probe/clarify 的 topicId 落 NULL（不按话题计费语义，additive 兼容）。
+   */
+  topicMainQuestionId: Annotation<string | null>({ reducer: (_, b) => b, default: () => null }),
   submitted: Annotation<SubmittedAnswerRef | null>({ reducer: (_, b) => b, default: () => null }),
   /** 业务逻辑版本，独立于 LangGraph checkpoint id；跨标签页在 API ledger 中做 CAS/去重。 */
   stateVersion: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),

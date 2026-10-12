@@ -4,9 +4,9 @@
  * 每次模型调用过 invoke(双校验/exactly-once/trace),带 threadId(Langfuse 一场面试一棵树)+ sources/retrieval(provenance+topScore 信号)。
  */
 import { z } from 'zod';
-import { normalizeQuestion, type DbPool } from '@meetwise/db';
+import { asPrincipal, normalizeQuestion, recordUsage, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
@@ -183,6 +183,30 @@ export function buildCragPlannerQuery(competency: string, difficulty: number, ct
 export function scenarioDegradeTemplate(competency: string): string {
   return `（题库暂无「${competency}」的情景题素材，已降级为通用情景题）请描述一个你亲身处理过的、与「${competency}」相关的具体场景，说明背景、关键决策、取舍理由和最终验证方式。`;
 }
+
+/* ───────── billing P1（BILL1-TOPIC-FIELDS 修法⑦）：0171 question_usage_ledger 归集挂点（§8 裁决项②按推荐行使） ─────────
+ * 挂点=worker 侧本文件三调用点（plan `${threadId}:plan` / ask generate() 全体键（初诊+:gr{k}}+:r{k}）/ assess 评估键），
+ * ai-runtime 零触。归集行 usage 列由 recordUsage 从 ai_model_invocation 按键单语句复制（单真相零二次记账）；
+ * usage_source='missing' ↔ 上游 0174 打标行 'usage_missing'（§1.4 映射）。 */
+/** 派发前确定性拒绝（MODEL-OP-02 共享准入权威·零外呼臂错误码族）→ 'admission_rejected'；其余调用失败 → 'generation_failed'。 */
+export function usageCauseForInvokeError(error: string): 'generation_failed' | 'admission_rejected' {
+  return error === 'model_circuit_open' || error === 'model_circuit_half_open'
+    || error === 'model_concurrency_exhausted' || error.startsWith('budget')
+    ? 'admission_rejected'
+    : 'generation_failed';
+}
+/**
+ * 归集写=审计面 **fail-soft**（蓝本 §6.2 原文「只做成本侧和审计，不参与默认方案定价」——归集写失败
+ * 绝不阻断面试主链；与 reserve/settle 计费函数的 fail-loud 升级语义刻意相反）。recordUsage 内部
+ * PK (owner,invocation_key) ON CONFLICT DO NOTHING = 崩溃重放天然去重（蓝本 §6.5 原文）。
+ * 失败仅 stderr 观测（审计面可见性），零业务升级。
+ */
+function recordUsageSoft(pool: DbPool, owner: string, entry: QuestionUsageLedgerEntry): void {
+  void asPrincipal(pool, owner, (c) => recordUsage(c, owner, entry)).catch((error: unknown) => {
+    console.error('question_usage_ledger_write_failed', { cause: entry.cause, interviewId: entry.interviewId, error: String((error as Error)?.message ?? error) });
+  });
+}
+
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
@@ -284,13 +308,21 @@ export function filterCompetenciesByLeafDomain(names: readonly string[], relevan
  *  并线后形参序=focus(7)→job(8,I3 在先钉死)→quizQuestions(9)→relevanceLeaf(10),prompt vars 携 job+quizQuestions
  *  双段,QP 侧编号随演顺延两位;两可选段互斥缺省,语义零纠缠。 */
 export async function planCompetencies(pool: DbPool, owner: string, threadId: string, model: ModelClient, role: string, facts: string[], focus?: string[], job?: { competencies: string[]; jdSummary: string }, quizQuestions?: string[], relevanceLeaf?: string): Promise<CompetencySpec[]> {
+  // billing P1 修法⑦：plan 归集键（原内联串零变·仅提变量供归集行同值）。
+  const planInvocationKey = `${threadId}:plan`;
   const out = await invoke({
-    idempotencyKey: `${threadId}:plan`, operation: { id: 'interview.competency-planning.v1', businessRevision: `${threadId}:plan` }, threadId, privacyInterviewId: threadId,
+    idempotencyKey: planInvocationKey, operation: { id: 'interview.competency-planning.v1', businessRevision: planInvocationKey }, threadId, privacyInterviewId: threadId,
     // #201 硬闸(具名导出·prove 直行使):条数 3-5 + 单名 ≤100 封顶;businessValidate=相关性闸纯函数委托。
     schema: PlannerPlanSchema,
     businessValidate: (v) => plannerPlanBusinessError(v.competencies, relevanceLeaf),
     model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus, job, quizQuestions }),
   }, pool, owner);
+  // billing P1 修法⑦（裁决项②）：plan 调用归集行——成功 system_plan / 失败臂同写
+  // （MODEL-OP-02 零外呼拒绝臂=admission_rejected，余=generation_failed；usage 列由 recordUsage 归集复制）。
+  recordUsageSoft(pool, owner, {
+    invocationKey: planInvocationKey, interviewId: threadId, operationId: 'interview.competency-planning.v1',
+    cause: 'error' in out ? usageCauseForInvokeError(out.error) : 'system_plan',
+  });
   // 优雅降级:规划失败 → 用默认能力集,面试仍可开(不因规划抖动整场开不了)。
   // toCompetencySpecs(纯逻辑):top 1-2 标 core(追问上限 3)+ 确定性附加 1 个行为槽(题型 behavioral)。
   // #201 过滤臂:混合计划(部分离题)逐名滤除域外名(域内原序零误伤·被滤名不进组装产物);全滤空 → 默认集三件套。
@@ -453,7 +485,11 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // G7FIX-4R:键/revision 参数化——初诊沿用 `:0` 键+基础 revision;判重命中后的有界 re-roll
       // 逐次换 `:r{k}` 键+同步 revision(registry 契约:同键只会缓存回放同题,新 revision=新可审计 logical node)。
       // payload(schema/businessValidate/model/material)与初诊完全同一组确定性闸。
-      const generate = (idempotencyKey: string, businessRevision: string) => invoke({
+      // billing P1 修法⑦（裁决项②）：ask seam 全体键（初诊 `:0`/`:gr{k}`/`:r{k}`）经本包装逐调用落归集行——
+      // 成功 system_ask / 失败臂同写；出题调用先于 question identity 发射，question/topic 维度本行可空
+      // （ledger 列可空语义·题目行经 generationProvenance 与 lifecycle 时序对账）。
+      const generate = async (idempotencyKey: string, businessRevision: string) => {
+        const outcome = await invoke({
           idempotencyKey, operation: { id: 'interview.question-generation.v1', businessRevision },
           threadId: d.threadId, privacyInterviewId: d.threadId,
           sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
@@ -473,6 +509,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           // C6/S3:grounded 传选定事实(2-4 条);followUp=上轮上下文(闭包派生,不可信,buildData 封段标记)。
           model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined }, undefined, material),
         }, d.pool, d.owner);
+        recordUsageSoft(d.pool, d.owner, {
+          invocationKey: idempotencyKey, interviewId: d.threadId, operationId: QUESTION_OPERATION_ID,
+          cause: 'error' in outcome ? usageCauseForInvokeError(outcome.error) : 'system_ask',
+        });
+        return outcome;
+      };
       run.stage('generate');                                                           // 段名进下一帧心跳(纯时间窗,不为切段加帧)
       let out = await generate(initialKey, initialRevision);
       run.stage('validate');                                                           // invoke 返回后的确定性检查(查重/引文/refs 闸)段
@@ -601,7 +643,9 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       const { clean, detected } = stripScoringManipulation(answer);
       const scored = detected ? clean : answer;
       // **检到操纵 → 评分升级到 quality 模型(qwen-plus 更抗残留注入)**,并对剥空的直接判非作答(免一次模型调用 + 杜绝空输入误评)。
-      if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false, dispositions: [] };
+      // billing P1 修法⑤（席1 E7 显式钉）：剥离后非作答=澄清双因第三源 → clarifyCause='non_answer'
+      // （纯附加字段，既有 score/evidence/relevant/hasHook/dispositions 值逐位不变）。
+      if (detected && isNonAnswer(scored)) return { score: 0, evidence: ['含评分操纵企图,剥离后无实质作答(已忽略操纵指令)'], relevant: false, hasHook: false, dispositions: [], clarifyCause: 'non_answer' };
       // 同一 pending question 的 stateVersion/turn 写进 idempotency base。逐字引文
       // 无法核验时只澄清原题，不派生 repair key 再次调用模型。
       // Graph 调用始终提供 identity。保留这个固定 fallback 仅兼容旧的 isolated-deps
@@ -617,8 +661,22 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       });
       // 引文无法逐字核验而答案仍是正常作答时，不能写 unscored/能力画像；图会走 clarify，
       // 让用户以同一题补充一次。其余确定性/供应商失败仍严格 unscored（不编造分数）。
+      // billing P1 修法⑦（裁决项②）：评分调用归集行——键=primaryIdempotencyKey 实发键（含答案摘要
+      // 派生面）；scored/quote_repair_exhausted 均已消耗模型调用 → 'system_score'；failed → 'unknown'
+      // （REQUEST 失败臂）。危机触发短路臂（零外呼零消耗）不入账——归集行↔模型调用一一对应。
+      if (!(out.status === 'failed' && out.error === CRISIS_DISPOSITION_REASON)) {
+        recordUsageSoft(d.pool, d.owner, {
+          invocationKey: out.primaryIdempotencyKey, interviewId: d.threadId,
+          questionId: stableIdentity.questionId, topicId: stableIdentity.topicId,
+          operationId: 'interview.answer-scoring.v1',
+          cause: out.status === 'failed' ? 'unknown' : 'system_score',
+          answerLen: Buffer.byteLength(scored, 'utf8'),
+        });
+      }
       if (out.status === 'quote_repair_exhausted') {
-        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false, dispositions: [] };
+        // billing P1 修法⑤（席1 E7 显式钉）：quote_repair_exhausted 源 → clarifyCause='quote_unverifiable'
+        // （纯附加字段，既有 score/evidence/relevant/hasHook/dispositions 值逐位不变）。
+        return { status: 'scored' as const, score: 0, evidence: ['评分证据无法逐字核验，请围绕原题补充一次具体作答。'], relevant: false, hasHook: false, dispositions: [], clarifyCause: 'quote_unverifiable' };
       }
       if (out.status === 'failed') return { status: 'unscored' as const, reason: `evaluation_${out.error}` };
       // #52 v6：score=evaluate 侧确定性派生（档位×量表权重，非模型输出）；dispositions=0103
