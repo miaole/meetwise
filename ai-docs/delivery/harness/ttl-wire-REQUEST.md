@@ -1,6 +1,6 @@
 # TTL-WIRE REQUEST（AUTHZ-HARDEN 5A-2 R-1 接线小刀 · #18 滞留 payload TTL 清理原语生产接线 · 单一接线面零新原语）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）。
+**Status**: **`executed:awaiting_post_prove_dual`**（前态 **`draft:awaiting_pre_exec_dual`** 保史·EXEC 2026-10-12 开工三条款行使：预执行双审两外席 BOTH PASS 落卷+协调方常设 loop 授权派单+§1 修法清单与 §5 Ban/pins 零改动行使·执行序铁律先并主线 merge `feat/mysql-schema-skeleton`@`d12439d8`→merge commit `42b3b036`=EXEC 重锚零冲突·§0.3 勘误注 append·施工=恰一文件两处 `interview-consumer.ts` `:7` import 补名+`:537` `await purgeStaleInterviewJobPayloads(c, owner)`（asPrincipal 域内·terminalize 循环收尾后 return 前）·原语函数体零字节·零新配置/env 闸/定时器·§2 断言门全绿（17 臂回归原值 EXIT=0+接线臂 A+B 16 臂 EXIT=0+负臂 5 臂临时不落卷 EXIT=0+reaper 30 臂原值 EXIT=0+turbo typecheck 3/3 EXIT=0+api:validate EXIT=0+markers=0）·est live=0·⛔push·仍待 post-prove 双审两外席 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）。
 
 **席位**：TTL-WIRE 小刀起草席（AUTHZ-HARDEN 5A-2 post-prove 席2 R-1 登记承接·协调方裁「接线小刀」向·北星 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `7500ac73`（主线 tip·`git log -1` 实测 2026-10-12 16:30:38 +0800·docs(coord) LEDGER :352 勘误卷·零码面）。分支 `line/ttl-wire`·工作树 `meetwise-ttlwire`（`git worktree add ../meetwise-ttlwire -b line/ttl-wire` 本起草席已立·建前 worktree list + branch 双查实测不存在）。
@@ -31,6 +31,14 @@
 
 1. **reaper 路径**：登记/派单文字作 `apps/worker/src/interview/interview-consumer.ts:528`——实测真实路径 `apps/worker/src/interview-consumer.ts`（**无 `interview/` 子目录层**）·行号 `:528` 逐位吻合（`const res = await sweepStuckInterviewJobs(c, owner);`）·reaper 形态（仅调 sweep·零 purge）与预判全合——**非停止条件**·本卷全锚按实测路径钉。
 2. **prove 门名**：派单文字作 `authz5a2:stale-payload-ttl:prove`——实测注册名 `prove:authz5a2-stale-payload-ttl`（`packages/db/package.json:26`·运行形 `pnpm -C packages/db prove:authz5a2-stale-payload-ttl`）·同物异名·如实更锚。
+
+### 0.3 EXEC 重 pin 勘误注（EXEC 席 append·2026-10-12·开工 HEAD `6b70f770`·先并主线 merge `feat/mysql-schema-skeleton`@`d12439d8`→merge commit `42b3b036` 零冲突 EXIT=0·沿 §0 协议全锚重 pin·结论零变·STOP 状态随翻 `executed:awaiting_post_prove_dual` 前态保史）
+
+1. **重 pin 结果（三 blob 逐字节不变）**：`interview-consumer.ts`=`787f23fe`（570 行）·`interview-jobs.ts`=`775a9336`·`authz5a2-stale-payload-ttl.proof.ts`=`c92e1e64`（116 行）不变·另 `packages/db/src/index.ts`=`3fa6f9a8`/`apps/worker/test/reaper.proof.ts`=`48c690c0` 不变；`interview-consumer.ts`（:7/:523-525/:526-540/:527/:528/:529-536+`:537` return/:542-565/:548/:551/:568-570）与 `interview-jobs.ts`（:260-265/:266-279/:281-282/:284-293/:294-308）全部行锚逐位吻合——施工按原锚执行零更号。
+2. **行号漂移一处（结论不变只更号·与预执行双审席2 预判一致）**：`apps/worker/src/main.ts` 佐证锚 import `:30`→**`:31`**·`runInterviewConsumer` 常驻挂载 `:643`→**`:639`**（blob 随之→`00ba4084`）。
+3. **blob 漂移两处行锚不变（如实登记·非本刀触）**：`packages/db/package.json` `91eb0b2f`→`47684d82`（`:26` prove 门名逐字不变）；`ai-docs/delivery/execution-master-checklist.md` `7356acfd`→`5e7c2d88`（`:2268`/`:2276` 位不变·R-1 行逐字在——系主线 5E GROUP 收编 append·只读引用面）。
+4. **0.2-2 勘误补注（同物第三名）**：prove 门注册名 `prove:authz5a2-stale-payload-ttl` 之外·isolated wrapper 另注册 target 名 `authz5a2:stale-payload-ttl:prove`（`scripts/run-e2e-isolated.mjs:102`·spawn 形 `:2189`·运行形 `node scripts/run-e2e-isolated.mjs authz5a2:stale-payload-ttl:prove`=隔离库包装·本刀 17 臂门即经此跑）——三名同物·非新门。
+5. **rev3 措辞勘误（§2-3 `:65`「purge 异常注入不阻断同拍 terminalize 退款面」建议句·语义权威=§1-修法 rev2 版）**：该句与 rev2 已如实化的事务口径存在张力——purge 与 sweep/terminalize 同处 `asPrincipal` 单事务（`:527`），purge 抛错**回滚整拍（含同拍退款/终态 DB 面）**，真实隔离面=逐 owner 逐拍 catch（`:551-557`）+下拍（5000ms 默认）重试。EXEC 按修订口径执行断言（负臂实证：purge 注入抛错→整拍拒绝+ROLLBACK 在场+COMMIT 缺席（退款/终态面不半落）+下拍愈合返回原形·5 臂 EXIT=0·临时件不落卷零码痕）。§2-3 原句按此勘误读·卷内原文不回改（append 保史）。
 
 ## §1 红事实（接线缺口机证·全 @`7500ac73` 实测）
 
@@ -102,8 +110,14 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **待双审/EXEC 裁决项**：①purge 调用置位（推荐=terminalize 循环后 return 前·purge 与 sweep/terminalize 同处 `asPrincipal` 单事务（`:527`）·purge 抛错回滚整拍（含同拍退款/终态面）·真实隔离面=逐 owner 逐拍 catch（`:551-557`）+下拍（5000ms 默认）重试·推荐置位本身安全无害 vs `:528` sweep 后紧邻）；②新接线臂载体（假池/spy 单测+静态源断言双形并陈=推荐·单形亦须断言力≥3）；③接线臂命名与住地（`apps/worker/test/` 住地·EXEC 定名沿 reaper.proof 形）；④prove 复跑口径（17 臂臂计数复核方式·逐臂原值对账入收据）。
 
+**EXEC 三条款行使记录（2026-10-12·执行席·append）**：①预执行双审两外席 **BOTH PASS 已落卷**（rev2 后复审）；②**协调方明示授权**=常设 loop 授权+本刀开工派单（EXEC 席奉单开工）；③**§1 修法清单与 §5 Ban/pins 零改动行使**——pins 十一值零翻·修法按卷逐字施工（恰一文件两处·原语函数体零字节·零新配置/env 闸/定时器·quiz/diagnosis 镜像面零触）·基线/行号/blob 漂移仅按 §0 协议如实改锚登记（§0.3·未动 §1 修法语义与 §5 冻结面）·STOP 状态随翻 `executed:awaiting_post_prove_dual`（append 保史）·post-prove 双审待两外席。
+
+**EXEC 四裁决项行使落值（2026-10-12·执行席·append）**：①**置位=推荐置位**——`interview-consumer.ts:537`（terminalize 循环收尾 `:536` 后、return `:538` 前·asPrincipal 域内·语义按 rev2 口径：同事务·抛错回滚整拍·隔离=逐 owner catch+下拍重试·§0.3-5 同源）；②**载体=A+B 双形并陈（推荐全采）**——A=假池 spy 单测（真实 `reapStuckInterviewJobs`→真实 `@meetwise/db` 原语·16 臂）+B=静态源断言（同件静态节 8 臂：import 在场+生产调用点全仓恰一+置位正确+零 env 闸）·另 §2-3 负臂 5 臂临时执行不落卷；③**命名与住地=`apps/worker/test/reaper-purge-wire.proof.ts`**（沿 reaper.proof 形制·tsx 自证脚本+A() 计数·门名 `prove:reaper-purge-wire` 注册 `apps/worker/package.json:20`）；④**prove 复跑口径=逐臂原值对账**——17 臂逐 PASS 行亲数（迁移链 1+假时钟前提 1+fixture 2+臂①前置 1+臂① 5+臂② 2+臂③ 4+幂等 1=17）·EXIT=0 原值·reaper 30 臂同法对账·机器收据 `ai-docs/delivery/receipts/ttl-wire/`。
+
 ---
 
 *TTL-WIRE REQUEST · 2026-10-12 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`7500ac73`（git log -1 实测 2026-10-12 16:30:38 +0800）· 分支 `line/ttl-wire` · 工作树 `meetwise-ttlwire`（git worktree add 本起草席立·建前 worktree list+branch 双查不存在）· 立项出处=checklist `:2268`/`:2276` R-1 遗留行（挂协调方裁「接线小刀或降格声明」·本卷即接线小刀向起草·不自建 SSOT 行）+authz-harden-REQUEST §1-簇④:110/§2-6:120（5A-2 已落原语与 17 臂 prove 承接）· 防重双对表过（harness 无同名卷·delivery 全域零命中）· 红事实机证=rg 全仓 purge 恰 5 命中（定义+export+prove×3·生产零调用）+reaper 触发链逐行亲读（main.ts:643→consumer:568→:542→:548→:528 仅 sweep）+queued 滞留明文无清理触发面· 锚勘误两处如实登记（reaper 实径无 interview/ 子层·prove 实名 prove:authz5a2-stale-payload-ttl）· 修法=单一接线面恰一文件两处（import+asPrincipal 域内 purge 调用·推荐 terminalize 循环后）·零新原语·零迁移·零配置面 · 断言候选四条（17 臂回归原值+新接线臂+零行为回归+双声明）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
 
 *TTL-WIRE REQUEST rev2 · 2026-10-12 · rev 修正席（席1 FAIL 窄面锚勘误行使·结论零变·纯锚校准+口径如实化）四处处置摘要：①置位锚「`:537` 与 `:538` 之间」→「`:536` 与 `:537` 之间·terminalize 循环收尾后、return 前」（亲读 interview-consumer.ts 实证：`:536`=循环收尾 }·`:537`=return 语句·`:538`=`});`）；②catch 锚 `:555-559`→`:551-557`（catch `:551`，`interviewDispatchTick` 逐 owner 隔离块亲读实证）；③注释区间前导空行剔除：sweep 注释 `:259-265`→`:260-265`·reap 注释 `:522-525`→`:523-525`（卷内 §0.1/§1.3 引用同步更正）·循环表述「`:529-537` 循环」→「循环 `:529-536`+`:537` return」；④事务口径如实化：purge 与 sweep/terminalize 同处 `asPrincipal` 单事务（`:527`）·purge 抛错回滚整拍（含同拍退款/终态面）·真实隔离面=逐 owner 逐拍 catch（`:551-557`）+下拍（5000ms 默认）重试·推荐置位本身安全无害·裁决项①按此口径裁决。STOP `draft:awaiting_pre_exec_dual` 维持·§8-③ 冻结条款维持·pins 十一值零翻·markers=0·⛔push·待席2 复审*
+
+*TTL-WIRE EXEC · 2026-10-12 · 执行席（奉单开工·三条款行使+四裁决项落值详见 §8 append·重 pin 勘误详见 §0.3 append）执行摘要：先并主线 merge `feat/mysql-schema-skeleton`@`d12439d8`→merge commit `42b3b036`（零冲突·三 blob 逐字节不变·main.ts 佐证锚 :31/:639 与席2 预判合）→施工恰一文件两处（`apps/worker/src/interview-consumer.ts` `:7` import 补名+`:537` purge 调用·原语零字节·新 blob `885b5993`）→§2 断言门全绿（17 臂原值+接线臂 16 臂+负臂 5 臂不落卷+reaper 30 臂原值+turbo typecheck 3/3+api:validate+markers=0·全 EXIT=0·receipts `ttl-wire/`）→恰 2 commit（施工+状态行随翻）·est live=0·pins 十一值零翻·⛔push·STOP 状态随翻 `executed:awaiting_post_prove_dual`·待 post-prove 双审两外席*
