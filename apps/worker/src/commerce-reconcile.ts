@@ -12,7 +12,7 @@
  * 幂等/多实例安全:sweep 的 `WHERE status='reserved' AND lease<now RETURNING` 行锁 + settle 的 SKIP LOCKED 使并发/重叠拍不重复处理;
  * 已 released 的不会二次进 swept → 终态事件 exactly-once。一个 owner 抛不拖垮整拍;整拍从不抛(否则 drain-loop 会停)。
  */
-import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, markApplicationAssessmentUnavailable, errCode, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, markApplicationAssessmentUnavailable, listTopicSettlementMismatches, errCode, type DbPool } from '@meetwise/db';
 import { runDrainLoop } from './drain-loop.ts';
 
 /** 枚举有"待回收"的 owner：网关只能返回 owner id；每个 owner 的对账仍在 RLS 事务内。
@@ -85,6 +85,17 @@ export async function reconcileOwner(pool: DbPool, owner: string): Promise<Recon
         }
         abandoned++;
       }
+    }
+    // billing P3 修法⑧：对账巡检（蓝本 §7 对账行·只告警零修复零阻断）——per_topic_capped 已结算场中
+    // settled≠round(requested×LEAST(Σ,cap)/cap, 2) 的行（0173 触发器钉死新终态后的两类时序缺口兜底：
+    // 触发器上线前已结算存量 / 行值 billing_cap_units 影子期复核改值）。fail-soft：巡检自身失败仅日志。
+    try {
+      const mismatches = await listTopicSettlementMismatches(c, owner);
+      for (const m of mismatches) {
+        console.error('topic_settlement_mismatch', { owner, interviewId: m.interviewId, status: m.status, settled: m.settled, expected: m.expected, countedUnits: m.countedUnits });
+      }
+    } catch (inspectionError) {
+      console.error('topic_settlement_inspection_failed', { owner, error: String((inspectionError as Error)?.message ?? inspectionError) });
     }
     return { staleReleased: rec.staleReleased, settled: rec.settled, abandoned, fencedSkipped };
   });

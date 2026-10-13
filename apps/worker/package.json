@@ -21,6 +21,7 @@
     "prove:ag-d-admission": "tsx test/ag-d-admission.proof.ts",
     "prove:bill1-topic-fields": "tsx test/bill1-topic-fields.proof.ts",
     "prove:bill2-shadow-meter": "tsx test/bill2-shadow-meter.proof.ts",
+    "prove:bill3-settlement": "tsx test/bill3-settlement.proof.ts",
     "prove:reaper-purge-wire": "tsx test/reaper-purge-wire.proof.ts",
     "prove:commerce-reconcile": "tsx test/commerce-reconcile.proof.ts",
     "prove:fence-reflow-repair": "tsx test/fence-reflow-repair.proof.ts",
