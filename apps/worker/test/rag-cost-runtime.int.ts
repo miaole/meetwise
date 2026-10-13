@@ -47,6 +47,32 @@ async function main() {
   check('派发后传输结果未知：账本冻结，同一 invocation 不会触发第二次 provider 调用', first && second && uncertainCalls === 1
     && unknown.rows[0]?.status === 'unknown' && unknown.rows[0]?.reason_code === 'external_outcome_unknown');
 
+  // ── AG-24:预留 0083 九参口 revision 绑定断言臂（红事实 B：封死「新预留按 latest 隐式选价」双轨）──
+  const bound = await pool.query('SELECT price_revision FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2', [scope, `ok-${suffix}`]);
+  check('AG-24：预留行绑定 cfg.priceRevision（≠NULL·0083 九参口精确查价·封死 latest 隐式选价）', bound.rows[0]?.price_revision === cfg.priceRevision);
+
+  const cfg2 = { ...cfg, priceRevision: `r2-${suffix}` };
+  await configureRagCostGovernance(pool, cfg2);
+  const mismatch = await budgetedQbankEmbedding(pool, owner, okEmbedder, cfg2)(['不持久化的查询文本'], { cacheKey: 'opaque-mismatch-key', invocationId: `ok-${suffix}`, mode: 'claimed' })
+    .then(() => false)
+    .catch((error) => error instanceof Error && error.message === 'rag_cost_binding_mismatch');
+  check('AG-24：同 invocationId 换 revision 重放 → binding_mismatch 确定性拒绝（fail-closed·绝不静默按新价放行）', mismatch);
+
+  const cfg3 = { ...cfg, priceRevision: `missing-${suffix}` };
+  const missing = await budgetedQbankEmbedding(pool, owner, okEmbedder, cfg3)(['不持久化的查询文本'], { cacheKey: 'opaque-missing-key', invocationId: `missing-${suffix}`, mode: 'claimed' })
+    .then(() => false)
+    .catch((error) => error instanceof Error && error.message === 'rag_cost_price_missing');
+  check('AG-24：价格本缺行 → price_missing 确定性拒绝（启动期对表断言保正常路径·运行期兜确定性码）', missing);
+
+  const identicalVectors = await budgetedQbankEmbedding(pool, owner, okEmbedder, cfg)(['不持久化的查询文本'], { cacheKey: 'opaque-ident-key', invocationId: `ident-${suffix}`, mode: 'claimed' });
+  const identical = await pool.query('SELECT status,settled_micro_cny FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2', [scope, `ident-${suffix}`]);
+  check('AG-24：同输入同 revision 结算金额恒等（settle 按预留行捕获单价·绑定前后计费语义零变化）',
+    identicalVectors.length === 1 && identical.rows[0]?.status === 'settled' && Number(identical.rows[0]?.settled_micro_cny) === 200);
+
+  const observeVectors = await budgetedQbankEmbedding(pool, owner, { dim: 512, id: model, async embed(texts) { return texts.map(() => [1, 0]); } }, { mode: 'observe', maxInputTokens: 1000 })(['不持久化的查询文本'], { cacheKey: 'opaque-observe-key', invocationId: `observe-${suffix}`, mode: 'claimed' });
+  const observeRows = await pool.query('SELECT count(*)::int n FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2', [scope, `observe-${suffix}`]);
+  check('AG-24：observe 模式零账本触（零预留行·直连 embedder·零位移动臂）', observeVectors.length === 1 && Number(observeRows.rows[0]?.n) === 0);
+
   console.log(`\n${failures === 0 ? '✓ RAG 费用运行时集成全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);
