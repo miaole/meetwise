@@ -107,6 +107,11 @@ export const METRIC = {
   // emit 点在 model-client 非流+流式两 usage 解析面;label=逻辑 service(低基数,prompt 注册表单一真源)。
   modelUsageCachedInputTokens: 'model_usage_cached_input_tokens_total',
   modelUsageCacheFieldPresence: 'model_usage_cache_field_presence_total',
+  // AG-19 prompt 版本观测落库:版本归因 counter(纯观测·零评分语义)。
+  // {service, prompt_version} 标签值域有界:registry 八 service × 各现行 version(promptVersions()
+  // 单一真源)∪ '(unregistered)'/'none' 固定占位——绝不透传调用方字符串/自由字符串进标签(emit 点
+  // 在 invoke 入口,标签只经注册表派生;新序列首 emit 自建,基线缺失不丢数据只迟画图,沿 AG-COST1 形)。
+  modelInvocationPromptVersionTotal: 'model_invocation_prompt_version_total',
 } as const;
 
 /**
@@ -161,4 +166,10 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
       m.inc(METRIC.modelUsageCacheFieldPresence, { service, presence }, 0);
     m.inc(METRIC.modelUsageCachedInputTokens, { service }, 0);
   }
+  // AG-19:prompt 版本观测基线(开机即有序列)。service×version 对自 promptVersions() 单源播种
+  // (值域⊆registry 有界·禁自由字符串);registry 外调用走 '(unregistered)'/'none' 固定占位单序列。
+  for (const { service, version } of promptVersions()) {
+    m.inc(METRIC.modelInvocationPromptVersionTotal, { service, prompt_version: version }, 0);
+  }
+  m.inc(METRIC.modelInvocationPromptVersionTotal, { service: '(unregistered)', prompt_version: 'none' }, 0);
 }

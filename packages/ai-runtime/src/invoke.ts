@@ -19,6 +19,7 @@ import {
 } from '@meetwise/db';
 import { errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 import { doubleValidate } from './validators/index.ts';
+import { getPrompt } from './prompts.ts';
 import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 import { withAbortTimeout } from './timeout.ts';
@@ -186,6 +187,13 @@ export interface InvokeSpec<T> {
   /** Retained for source compatibility. Billable external attempts are never automatically retried. */
   maxRetries?: number;
   service?: string;
+  /**
+   * AG-19 观测标签：prompt 注册表版本。可缺省——invoke 入口按 `spec.service` 经 getPrompt
+   * 单源派生缺省填充（裁决项①(a)·调用方零改·registry 外 service→undefined→落库 NULL）；
+   * 显式传值仅观测语义（落 span/ai_model_invocation.prompt_version），**绝不**进
+   * requestDigest，也**绝不**进 metric 标签（标签值域有界·只取注册表派生版本）。
+   */
+  promptVersion?: string;
   sources?: string[];
   threadId?: string;
   /**
@@ -249,6 +257,27 @@ async function releaseSharedAdmissionBestEffort(
 }
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * AG-19：prompt 注册表版本单源派生（裁决项①(a)）。registry 内 service→注册表 version 常量；
+ * registry 外/缺省 service→undefined（claim 落 NULL·span 不带）。纯观测：派生失败绝不影响调用。
+ */
+function registryPromptVersion(service: string | undefined): string | undefined {
+  if (!service) return undefined;
+  try { return getPrompt(service).version; } catch { return undefined; }
+}
+
+/**
+ * AG-19 metric 版本标签（值域有界 Ban 的唯一执行点）：标签值只取注册表派生版本（service∈registry
+ * ⇒ service 标签逐字=注册表键）∪ 固定占位 `'(unregistered)'/'none'`——**绝不**透传调用方字符串
+ * （含显式 spec.promptVersion）进标签，禁自由字符串扩系列。
+ */
+function promptVersionMetricLabels(service: string | undefined): { service: string; prompt_version: string } {
+  const version = registryPromptVersion(service);
+  return version !== undefined && service !== undefined
+    ? { service, prompt_version: version }
+    : { service: '(unregistered)', prompt_version: 'none' };
+}
 
 /**
  * AG-D（刀 D·AG-01 准入拒绝去终态化）：准入拒绝落账面分流。瞬时准入拒绝族（熔断开/半开忙/
@@ -471,6 +500,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     deadline: prepared.deadline,
     span: prepared.span,
     plan: prepared.plan,
+    promptVersion: prepared.promptVersion,
   });
   if (claimed.terminal) return claimed.outcome;
   const admitted = await invokeAdmitPhase({
@@ -525,6 +555,8 @@ interface InvokePrepared {
   span: InvokeSpanFn;
   plan: ReadyModelCallPlan;
   digest: string;
+  /** AG-19：解析后的 prompt 版本观测标签（spec 显式值优先·缺省经注册表单源派生·registry 外=undefined）。 */
+  promptVersion: string | undefined;
 }
 
 /** claim 相位产出（原 :463-482 · durable lease token）。 */
@@ -547,6 +579,8 @@ interface InvokeClaimArgs<T> {
   deadline: number;
   span: InvokeSpanFn;
   plan: ReadyModelCallPlan;
+  /** AG-19：随 claim 冻结落 ai_model_invocation.prompt_version（全 outcome·identity-immutable）。 */
+  promptVersion: string | undefined;
 }
 
 interface InvokeAdmitArgs<T> {
@@ -624,9 +658,16 @@ async function invokeResolveAndPreparePhase<T>(
   const waitMs = modelInvocationWaitMs(spec);
   const executionTimeoutMs = modelExecutionTimeoutMs(spec);
   const deadline = Date.now() + waitMs;
+  // AG-19：prompt 版本观测标签——显式 spec.promptVersion 优先，缺省按 service 经注册表单源派生
+  // （registry 外 service→undefined→claim 落 NULL）。随 claim 冻结（全 outcome·identity-immutable），
+  // 附带 span/Langfuse metadata；绝不进 requestDigest（版本非语义输入·幂等/缓存语义零位移）。
+  const promptVersion = spec.promptVersion ?? registryPromptVersion(spec.service);
+  // AG-19 metric 版本标签（每逻辑调用恰一次计数·emit 点=invoke 入口）：标签只取注册表派生值,
+  // 值域有界（registry 版本 ∪ '(unregistered)'/'none' 占位——绝不透传调用方字符串）。
+  getMetrics().inc(METRIC.modelInvocationPromptVersionTotal, promptVersionMetricLabels(spec.service));
   const tracer = getTracer();
   const span: InvokeSpanFn = (attempt, outcome, latencyMs, usage) =>
-    tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens });
+    tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, promptVersion, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens });
 
   // Routing/breaker selection is pure pre-dispatch work. It can choose backup
   // only when primary is already unavailable; it must not send a request.
@@ -650,12 +691,12 @@ async function invokeResolveAndPreparePhase<T>(
   // Route selection is pure. Bind the actually selected endpoint policy only
   // after it is known, but still before the durable claim is created.
   const digest = invocationDigest(spec, plan.cost);
-  return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest };
+  return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest, promptVersion };
 }
 
 /** GODFN-1a 相位 2/5 · claim（原 :463-482 逐字搬移 · durable claim 轮询 + follower 20ms 真轮询）。 */
 async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhaseStep<T, InvokeClaimed>> {
-  const { spec, pool, owner, logicalNodeKey, digest, requestId, deadline, span, plan } = args;
+  const { spec, pool, owner, logicalNodeKey, digest, requestId, deadline, span, plan, promptVersion } = args;
   let leaseToken: string | undefined;
   for (;;) {
     const token = randomUUID();
@@ -666,6 +707,7 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
       priceRevision: plan.cost?.priceRevision, maxInputTokens: plan.cost?.maxInputTokens,
       maxOutputTokens: plan.cost?.maxOutputTokens,
       estimateInputTokens: plan.estimateInputTokens,
+      promptVersion,
     }));
     if (claim.action === 'execute') { leaseToken = claim.leaseToken; break; }
     if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }

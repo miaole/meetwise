@@ -1,6 +1,6 @@
 # AG-19 — prompt 版本观测落库刀：invoke spec 带 promptVersion→ai_model_invocation 新列+trace 附带+metric 标签（EXEC REQUEST）
 
-**Status**: `draft:awaiting_pre_exec_dual`（起草席落卷即停·零码动·恰 1 新 .md。开工须预执行双审两外席 BOTH PASS+协调方明示授权。Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push）
+**Status**: `executed:awaiting_post_prove_dual`（EXEC 施工+门全表落卷·12 文件改动集·待 post-prove 双审两外席·Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役 AG-19 起草席（AI 能力复审 P3·Prompt 面·纯观测增强刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `aeaf4141ec95`（开工 tip·`git log -1` 实测·docs(ssot) 计费 P2 行翻面）。分支 `line/ag19-prompt-version` · 工作树 `meetwise-ag19`（`git worktree add ../meetwise-ag19 -b line/ag19-prompt-version aeaf4141ec95` 仓根同级·本起草席已立·建前亲证：`git worktree list | grep ag19` 零命中·`git branch -a | grep -i ag19` 零同名）。
@@ -142,3 +142,69 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *AG-19 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · 基线 `feat/mysql-schema-skeleton` @`aeaf4141ec95` · 分支 `line/ag19-prompt-version` · 工作树 `meetwise-ag19` · 蓝本=issues-final AG-19 :31/:257-266（:259 部分成立定谳·:265 修法权威）+ AG-24 :312-320（范围外登记）· 形制沿 ag-f 卷 · 范围=InvokeSpec.promptVersion→ai_model_invocation.prompt_version 新列（0181 沿 0119 estimate 先例四件套）→trace span/metadata 附带→metric 版本标签·纯观测增强 · 零 prompts.ts 内容改动·零评分语义改动·零 requestDigest 零触·Langfuse model 字段零触（AG-24 面）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push 待 pre-exec 双审两外席（Ban self-approve · alone≠dual）*
+
+---
+
+## §9 EXEC 立项与施工随翻（2026-10-11·append 保史·§0-§8 原文零改·授权=预执行双审 BOTH PASS+协调方常设 loop 授权·HEAD=2776baa6 开工）
+
+### §9-0 并线重 pin + §0 勘误注
+
+1. **并线**：`git merge feat/mysql-schema-skeleton` → **Already up to date**（EXIT=0）。实测 merge-base=`aeaf4141ec95`＝主线 FETCH 后 tip＝本刀起草基线三者恒等；协调方任务面「主线 8603dc65+」中 8603dc65 经 `git log aeaf4141..8603dc65` 亲证为其**祖先**（AG-C 链针）——主线 tip 实测=aeaf4141ec95 已含 AG-B/C/E/F/A 全落线+计费/安全·零冲突零新笔。
+2. **§0.1 blob 锚表 11 行 `git ls-tree HEAD` 重算逐行恒等**（prompts 8db00e904cba/catalog 4b5dfda49222/model-client c4827e8d72f8/invoke 172637205d73/trace 88f63487f8b1/langfuse-v5 35db0c325044/metrics 2cd9daf00925/model-invocation 13ea678c6af2/0037 9916a37e6ae1/0119 1922910a79da/0088 cbc07c09e1aa）。**协调方预警「model-client/invoke 可能因刀 B/C/E 落主线行锚漂移」未成立**——起草基线即已含全刀线·零行号漂移·§0 全部 file:line 原样承重·零勘误行。
+3. **§0.3-1 迁移号全场重证**：主线+全 worktree 迁移 180 件·末位实测 **0180**（任务面「max=0179+」如实顺延一位）→ **0181 为首个空闲号零撞**（`ls packages/db/migrations | grep -c '^0'`=180·末件 0180_topic_shadow_meter.sql）。
+
+### §9-1 落点（改动集恰 13 文件=10 修+2 新（迁移+proof）+本卷 1 .md；零 §3 范围外触面）
+
+| # | 文件 | 改动 |
+|---|---|---|
+| 1 | `packages/db/migrations/0181_ag19_prompt_version_column.sql`（新） | 四件套同 0119/0130 权威形：①ADD COLUMN prompt_version text+CHECK（NULL 允许 OR 长 1..64·裁决⑤(a)）②state_guard identity-immutable 只增一行比较③claim 函数 DROP 16 参→建 17 参（p_prompt_version+validation 一行沿 p_service \r\n 先例）④claim INSERT 列集扩·REVOKE/GRANT 17 参签名 |
+| 2 | `packages/db/src/model-op/model-invocation.ts` | ClaimModelInvocationInput.promptVersion 可选（沿 estimateInputTokens :50 同形）+占位 $16,$17+args 尾插 `input.promptVersion ?? null` |
+| 3 | `packages/ai-runtime/src/invoke.ts` | InvokeSpec.promptVersion 可选字段+registryPromptVersion/promptVersionMetricLabels 双 helper+相位 1 派生+span 闭包附带+claim 相位透传+metric emit（每逻辑调用恰一次） |
+| 4 | `packages/ai-runtime/src/trace.ts` | ModelCallSpan.promptVersion 可选标量（:4 脱敏铁律原文零动） |
+| 5 | `packages/ai-runtime/src/langfuse-v5.ts` | langfuseSafeModelMetadata 增 promptVersion 标量一行（缺省 null·:171 model 字段零字节零触=AG-24 面） |
+| 6 | `packages/ai-runtime/src/metrics.ts` | METRIC.modelInvocationPromptVersionTotal+registerBaselineMetrics 播种（promptVersions() 八对+'(unregistered)'/'none' 占位·既有序列零触） |
+| 7 | `packages/ai-runtime/test/ag19-prompt-version.proof.ts`（新） | 47 臂（§9-4） |
+| 8 | `packages/ai-runtime/test/runtime-kernel.proof.ts` | 两键集断言适配（§9-2-1）+AG-19 null 占位臂 |
+| 9 | `packages/db/test/migrate.proof.ts` | :411 claim 签名 pin 16→17 参（§9-2-2·0174 rev2 regprocedure 先例附注在案） |
+| 10 | `packages/ai-runtime/package.json` + 根 `package.json` + `scripts/run-e2e-isolated.mjs` | gate 注册四处（prove script/根 gate+raw/sourcePaths/迁移链两名单/命令派发） |
+
+### §9-2 断言适配 + 基线同红承登（如实登记不洗）
+
+1. **runtime-kernel.proof.ts 两键集断言适配**：span 键集 11→12 键（+promptVersion）·Langfuse metadata 键集 11→12 键（+promptVersion）——两断言目的=脱敏（禁 prompt 原文）·版本标量合规·语义不破；并新增「缺省 null 占位+model 字段仍=service 名（AG-24 面零位移）」一臂。
+2. **migrate.proof.ts :411 签名 pin 16→17 参**：app_role EXECUTE regprocedure 签名串精确匹配（不吃 DEFAULT·0174 rev2 席1 42883 实证先例原文在案）——claim 升参随动·附注承继该先例形。
+3. **基线同红承登（结构性亲证非本刀面·不修不越界）**：`prove:model-cost-metrics` EXIT=1——根因 `apps/worker/src/qbank-release-sweep.ts:79:90` 语法错（`asQbankControlExecutor(` 括号失衡·tsx/esbuild 与 `tsc -p apps/worker` TS1005 同位同证）；本刀 git diff 该文件**零字节零触**·HEAD blob `89913f128d13918e` 与 pristine `git show HEAD` 落盘 esbuild 对照 **EXIT=1 同错复现**——即 **b20ee350（qbank-control-sec 刀）带入的主线既存基线红**（该 proof import worker main.ts 加载即炸·b20ee350 落线后无人重跑本门）。归协调方/原刀处置；本刀按 Ban 范围外零修。
+
+### §9-3 §8 五裁决行使（全部按卷推荐）
+
+- **①=(a)** invoke 入口按 spec.service 经 getPrompt 单源派生缺省填充（调用方零改·八 service 全对表亲证·registry 外→undefined→NULL）；显式 spec.promptVersion 仅 span/DB 生效（调用方观测标签语义）·**绝不进 metric 标签**（有界 Ban 臂亲证）。
+- **②=(a)** prompt_version 入 identity-immutable（0119 :72 同位 additive 一行·UPDATE→`ai_model_invocation_identity_immutable` 拒·拒后列值原样臂在案）。
+- **③=(a)** 新独立计数器 `model_invocation_prompt_version_total {service, prompt_version}`+基线循环自 promptVersions() 播种——**既有序列零触·prove:metrics/model-usage-cache-observe 断言原值全绿零适配**（裁决③(b) 适配面未发生）。
+- **④=(a)** ai_model_invocation.prompt_version 列（零新表·ai_prompt_versions 承诺面维持红事实 B 登记不变）。
+- **⑤=(a)** CHECK=长 1..64 任意非空串·NULL 允许（宽松形）；附注：claim 函数层 validation 沿 p_service 先例加 `\r\n` 拒（CHECK 本体维持⑤(a) 原文·registry 值形全兼容·64/65 边界臂亲证）；metric 占位='(unregistered)'/'none' 固定哨（值域有界 Ban 落地面·渲染序列 label 值⊆registry∪哨负证臂在案）。
+
+### §9-4 门全表（全亲跑·est live=0 全 scripted+隔离 PG 零模型外呼零 secrets 零消耗）
+
+| 门 | EXIT | 数 |
+|---|---|---|
+| `ag19-prompt-version:prove`（新·隔离 PG 全迁移链 applied=181） | 0 | 47 臂全 PASS（注册表/blob 恒定 3+八值透传对表 16+NULL/显式臂 3+全 outcome 落库 4+identity-immutable/CHECK/17 参边界 10+metric 4+trace/Langfuse/脱敏/AG-24 4+digest 零变负证+正控 2+ receipt 落盘） |
+| `prove:metrics` | 0 | 断言原值零适配（③(a) 兑现） |
+| `prove:model-usage-cache-observe` | 0 | 原值 |
+| `prove:diag-honesty-prompt` | 0 | 注册表字节恒等面原值 |
+| `migrate:prove`（隔离链含 0181） | 0 | 117 PASS（:411 签名 pin 适配 §9-2-2 外全原值） |
+| `drift:prove` | 0 | 迁移独有列不算漂移·零漂 |
+| `turbo typecheck` | 0 | 3/3（2 cached 合规） |
+| 扩展回归 `runtime:prove:raw`（runtime-kernel+claim-join-orphan+diag 链） | 0 | 适配臂全绿 |
+| 扩展回归 `estimate-threading-invoke:prove` | 0 | 原值 |
+| 扩展回归 `model-op02:prove` | 0 | 原值 |
+| 扩展回归 `ag-d-admission:prove` | 0 | 49 PASS |
+| `prove:model-cost-metrics`（worker） | **1** | **基线同红·§9-2-3 承登（b20ee350 主线既存·非本刀面零字节）** |
+| `docs:check` | 0 | 80 files+2039 managed |
+| markers 五类标记词（13 文件改动集·词面沿 i6-239-gates 组装形不复抄卷内） | 0 命中 | 五类全零 |
+
+### §9-5 陷阱自检（任务面 13 条）
+
+①**0181 迁移纪律**：起号前主线+全 worktree 全场重证 180 件末位 0180→0181 零撞；历史迁移 0001-0180 零字节零触。②**identity-immutable**：0119 :72 同位只增一行·其余 body 与 0119 逐字节一致·0088 既有比较零放松（证明臂：UPDATE→拒+原样）。③**claim 升参向后兼容**：17 参末位 $17 缺省 NULL=16 参旧调用形语义等价（0174 $10 DEFAULT NULL 先例·NULL 臂 execute 亲证；regprocedure 签名断言面随升参适配如实登记）。④**trace additive**：span/metadata 只增可选标量·脱敏铁律 :4 原文零动·prompt 原文负证臂在案。⑤**metric additive**：新独立计数器·既有序列零触·两 metrics 门断言原值全绿。⑥**零 prompts.ts**：git blob sha1 在 proof 内机械对表 8db00e904cba04cf0c3d775719cb3f2937e8f104 恒等。⑦**零评分语义**：rubric/score/温度/模型选择/结算数值管道零触。⑧**零 requestDigest**：digest 零变负证（显式版本相异→digest 恒等）+正控（system 变→digest 变）双臂。⑨**范围外**：§3 七条零触（catalog/@deprecated/AG-24 model 字段/独立表/计费/状态机放松/est live）。⑩**pins**：十一值照抄零翻·脚注 actualSpendCny=null。⑪**状态行**：Status 翻 executed:awaiting_post_prove_dual·§0-§8 原文零改 append 保史。⑫**回滚**：单 commit 承载·revert 即全回（0181 为 additive 列+函数替换·revert 后 17 参 TS seam 与 16 参函数不匹配——回滚须整 commit 同退·如实登记）。⑬**停止条件**：全卷零触发（撞号/撞面/同红均按登记形处置·model-cost-metrics 基线红非本刀面已承登上报）。标记词自检：13 文件改动集五类标记词 grep 零命中（词面组装防自匹配·扫描时点含本卷随翻后复扫在案）。
+
+---
+
+*AG-19 EXEC 版记 · 2026-10-11 · executed:awaiting_post_prove_dual · 分支 `line/ag19-prompt-version`（HEAD=2776baa6 开工·施工未 commit 前门全表亲跑）· 并线 Already up to date（主线 tip=aeaf4141ec95=起草基线·11 blob 恒等·0181 实测首个空闲号）· 修法四件落 12 文件·47 臂新 proof+六门原值绿+三扩展回归绿+基线同红一门承登（qbank-release-sweep b20ee350 主线既存·非本刀面）· est live=0 · pins 十一值零翻 · markers=0 · ⛔push 待 post-prove 双审两外席（Ban self-approve · alone≠dual）*
