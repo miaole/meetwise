@@ -3,7 +3,8 @@
  * 全部在 principal 上下文 client 上跑（asPrincipal 包事务，READ COMMITTED，RLS 生效）。口径见 02_commerce.sql / meetwise-pricing-model。
  *
  * 不丢/不重扣的保证（经对抗审计）：
- *  ① 幂等键 (owner, idempotency_key) 唯一 → 双击/重发只算一次（reserve 幂等返回既有；confirm/release 对终态幂等）
+ *  ① 幂等键 (owner, idempotency_key) 唯一 → 双击/重发只算一次（reserve 幂等返回既有；同键不同 units 报错
+ *     idempotency_units_mismatch——#31 修法⑦，不再静默吞；confirm/release 对终态幂等）
  *  ② reserve 用 `FOR UPDATE` 锁桶 + READ COMMITTED 的 EvalPlanQual 重判 + available-CAS → 并发不超卖；DB CHECK ck_bucket_capacity 兜底
  *  ③ reserve 全有全无：凑不够即 throw → asPrincipal 整事务回滚，不留半预留
  *  ④ confirm 按比例分账：前 n-1 桶各按比例舍入（r2(a.units*ratio)）+ 尾桶吸收差额（settled-distributed）→ Σconsume 严格 === 权威 settled 总额（#21 勘误 2026-10-12：旧注「大余数法」与实现措辞不符——实现是尾桶吸收差额形，非经典最大余数法；「杜绝逐桶独立四舍五入的分币泄漏」定性不变，见 :185 行注与 confirm 循环体）
@@ -20,6 +21,7 @@
  */
 import type { PoolClient as Client } from 'pg';   // 直接取 pg 类型,不从 ./index 桶引（否则 index↔commerce 成环）
 import type { CreditBucketKind } from './payment.ts';   // B271 片3 P3 形 A：kind 可选形参类型（类型面单源=./payment.ts）
+import { interviewBillingOf, topicCountedUnits } from './topic-charge.ts';   // billing P3 修法⑥：模式闸+Σ 面（topic-charge 单向依赖·零环）
 
 export interface Allocation { bucket_id: string; units: number }
 export type ReserveResult =
@@ -51,13 +53,22 @@ export async function reserveEntitlement(
     throw Object.assign(new Error('idempotency_key_required'), { code: 'idempotency_key_required' });
   }
 
-  // ① 幂等闸：先占坑,已存在则返回既有,绝不重复分配（同 key 不同 units 也按既有,不二次扣——掩盖客户端 bug,但保不重扣）
+  // ① 幂等闸：先占坑,已存在则返回既有,绝不重复分配（同 key 同 units 按既有=不二次扣；同 key 不同 units
+  //    =客户端 bug 显式报错 #31 修法⑦,不再静默吞——旧注「掩盖客户端 bug」自认面撤销,2026-10-12）
   const ins = await c.query(
     `INSERT INTO entitlement_consumption(owner_user_id, idempotency_key, service_type, units_requested, lease_expires_at)
      VALUES ($1,$2,$3,$4, now() + ($5 || ' seconds')::interval) ON CONFLICT (owner_user_id, idempotency_key) DO NOTHING
      RETURNING id`, [owner, idempotencyKey, serviceType, units, String(leaseSeconds)]);
   if (ins.rowCount === 0) {
-    const ex = await c.query('SELECT id, status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, idempotencyKey]);
+    const ex = await c.query('SELECT id, status, units_requested FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [owner, idempotencyKey]);
+    // billing P3 修法⑦（#31·蓝本 §4 末行「改成报错（409）」·裁决项④按推荐行使）：具名错
+    // idempotency_units_mismatch → begin catch 映射 409（沿 enterprise_insufficient_balance 分码先例）。
+    const existing = ex.rows[0];
+    if (existing && Number(existing.units_requested) !== units) {
+      throw Object.assign(new Error('idempotency_units_mismatch'), {
+        code: 'idempotency_units_mismatch', requested: units, existing: Number(existing.units_requested),
+      });
+    }
     return { status: 'duplicate', consumptionId: ex.rows[0].id, existingStatus: ex.rows[0].status };
   }
   const consumptionId = ins.rows[0].id;
@@ -215,6 +226,54 @@ export async function confirmConsumption(
   return { status: finalStatus, unitsSettled: settled };
 }
 
+/** 按绝对值部分结算（billing 战役 P3 修法④·蓝本 §6.5 行 2）：units 由调用方按方案②公式
+ *  r2(requested×LEAST(Σ,cap)/cap) 算得（与 0173 触发器比较式**同一公式**否则误报·蓝本 §5 原文；
+ *  SQL 面 round(x::numeric,2) 同式·REQUEST §0.2-7）。units=预留额⇒confirmed·<⇒partial_confirmed（#26 死代码
+ *  面在方案②下转活）；终态幂等（confirmed/partial noop·released 拒·沿 confirmConsumption 终态语义逐字）；
+ *  分账复用尾桶吸收差额形（#21 勘误措辞承继·与 confirmConsumption 同面）；B 端 payer 路由行经
+ *  applyAllocationDelta 同形；outbox settlement_proposed 同事务照投。 */
+export async function confirmConsumptionUnits(c: Client, owner: string, idempotencyKey: string, units: number): Promise<ConfirmResult> {
+  await assertPrincipal(c, owner);
+  const row = await c.query(
+    'SELECT id, status, units_requested, allocations, payer_user_id FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2 FOR UPDATE',
+    [owner, idempotencyKey]);
+  if (row.rowCount === 0) return { status: 'error', reason: 'not_found' };
+  const r = row.rows[0];
+  if (!r) return { status: 'error', reason: 'not_found' };
+  if (r.status === 'confirmed' || r.status === 'partial_confirmed') return { status: 'noop', finalStatus: r.status }; // 幂等：不重扣、不重投 outbox
+  if (r.status === 'released') return { status: 'error', reason: 'already_released' };                                // 被对账 sweeper 回收过 → 大声失败,绝不静默丢
+
+  const requested = Number(r.units_requested);
+  const settled = r2(units);                                                            // 权威总额（单一真相·调用方公式已归一 r2）
+  if (!(settled > 0) || settled > requested) return { status: 'error', reason: 'units_out_of_range' };
+  const ratio = requested > 0 ? settled / requested : 1;
+  const allocations: Allocation[] = r.allocations;
+  // ④ 比例分账：前 n-1 桶按比例舍入,最后一桶吸收差额 → Σconsume 严格 === settled,不漏分不重分（尾桶吸收差额形·#21 勘误措辞承继）
+  let distributed = 0;
+  const payerRouted = (r as { payer_user_id?: string | null }).payer_user_id != null;
+  for (let i = 0; i < allocations.length; i++) {
+    const a = allocations[i];
+    if (!a) throw Object.assign(new Error('confirm_allocation_missing'), { code: 'confirm_allocation_missing', index: i });
+    const consume = i < allocations.length - 1 ? r2(a.units * ratio) : r2(settled - distributed);
+    distributed = r2(distributed + consume);
+    if (payerRouted) {
+      await applyAllocationDelta(c, idempotencyKey, a, -a.units, consume, 'confirm_bucket_rowcount');
+    } else {
+      const upd = await c.query(
+        'UPDATE entitlement_bucket SET units_reserved = units_reserved - $2, units_consumed = units_consumed + $3, version = version + 1 WHERE id=$1',
+        [a.bucket_id, a.units, consume]);
+      if (upd.rowCount !== 1) throw Object.assign(new Error('confirm_bucket_rowcount'), { code: 'confirm_bucket_rowcount', bucket: a.bucket_id }); // ⑤ 不静默
+    }
+  }
+  const finalStatus = settled >= requested ? 'confirmed' : 'partial_confirmed';
+  await c.query('UPDATE entitlement_consumption SET status=$2, units_settled=$3 WHERE id=$1', [r.id, finalStatus, settled]);
+  // outbox 同事务投递（confirm 与结算意图原子·settleOutbox exactly-once 消费面同 confirmConsumption）。
+  await c.query(
+    `INSERT INTO commerce_outbox(owner_user_id, kind, consumption_id, payload)
+     VALUES ($1,'settlement_proposed',$2,$3)`, [owner, r.id, JSON.stringify({ unitsSettled: settled, ratio })]);
+  return { status: finalStatus, unitsSettled: settled };
+}
+
 export type ReleaseResult = { status: 'released' | 'noop'; } | { status: 'error'; reason: string };
 
 /** 释放：失败/中止全退预留回池；对终态幂等（已释放=noop,已落账=拒）。 */
@@ -240,6 +299,35 @@ export async function releaseConsumption(c: Client, owner: string, idempotencyKe
   return { status: 'released' };
 }
 
+/** 终态收口面的「结算或释放」二选一（billing P3 修法⑥·裁决③·蓝本 §6.5 行 4）：
+ *  per_topic_capped 且已关闭话题 Σ>0 → 按方案②公式 r2(requested×LEAST(Σ,cap)/cap) 部分结算
+ *  （已关闭话题照收·0173 触发器 counted>0 拒 released 的应用侧对偶）；Σ=0（全跳过/零已关闭话题）或
+ *  per_session（缺省）→ releaseConsumption 原路径（全退语义逐字节零变）。 */
+type TerminalSettlementResult = ReleaseResult | ConfirmResult;
+
+async function settleOrReleaseForTerminal(c: Client, owner: string, idempotencyKey: string): Promise<TerminalSettlementResult> {
+  const billing = await interviewBillingOf(c, owner, idempotencyKey);
+  if (billing && billing.billingCapUnits != null) {
+    const sum = await topicCountedUnits(c, owner, idempotencyKey);
+    if (sum > 0) {
+      const req = await c.query<{ units_requested: string }>(
+        'SELECT units_requested FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+        [owner, idempotencyKey]);
+      const requested = Number(req.rows[0]?.units_requested ?? 0);
+      const cap = billing.billingCapUnits as number;
+      return await confirmConsumptionUnits(c, owner, idempotencyKey, r2(requested * Math.min(sum, cap) / cap));
+    }
+  }
+  return await releaseConsumption(c, owner, idempotencyKey);
+}
+
+/** 终态收口结果的对外 released 报告值：released=全退 / settled=部分结算（已关闭话题照收）/ noop=幂等重放。 */
+function terminalReleasedOf(r: TerminalSettlementResult): 'released' | 'noop' | 'settled' {
+  if (r.status === 'released') return 'released';
+  if (r.status === 'confirmed' || r.status === 'partial_confirmed') return 'settled';
+  return 'noop';
+}
+
 /** 付费面试终态的唯一收口协议。
  *
  * `confirmConsumption`/`releaseConsumption` 自己能把额度账本串行化，却不能阻止调用方随后用无条件
@@ -250,11 +338,38 @@ export type CompleteInterviewResult = { status: 'completed' | 'already_completed
 
 export async function completeInterviewAndConfirm(c: Client, owner: string, interviewId: string): Promise<CompleteInterviewResult> {
   await assertPrincipal(c, owner);
-  const settlement = await confirmConsumption(c, owner, interviewId, 1);
+  // billing P3 修法⑤（#229·方案②公式·裁决②）：per_topic_capped 下按 r2(requested×LEAST(Σ,cap)/cap) 结算
+  // 并**允许 partial_confirmed**（现行 partial 抛错面仅 per_session 分支保留）；Σ=0（全跳过/零已关闭话题）
+  // ⇒ release（异常分支表「零有效分完成」行·0173 触发器 zero_usage_requires_release 的应用侧对偶）。
+  // per_session（缺省）分支原语义逐字节零变。
+  const billing = await interviewBillingOf(c, owner, interviewId);
+  let settlement: ConfirmResult | ReleaseResult;
+  let cappedUnitsSettled: number | undefined;
+  if (billing && billing.billingCapUnits != null) {
+    const sum = await topicCountedUnits(c, owner, interviewId);
+    if (sum > 0) {
+      const req = await c.query<{ units_requested: string }>(
+        'SELECT units_requested FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+        [owner, interviewId]);
+      const requested = Number(req.rows[0]?.units_requested ?? 0);
+      const cap = billing.billingCapUnits as number;
+      const out = await confirmConsumptionUnits(c, owner, interviewId, r2(requested * Math.min(sum, cap) / cap));
+      settlement = out;
+      if (out.status === 'confirmed' || out.status === 'partial_confirmed') cappedUnitsSettled = out.unitsSettled;
+    } else {
+      settlement = await releaseConsumption(c, owner, interviewId);
+    }
+  } else {
+    settlement = await confirmConsumption(c, owner, interviewId, 1);
+  }
   if (settlement.status === 'error')
     throw Object.assign(new Error(`interview_settlement_failed:${settlement.reason}`), { code: 'interview_settlement_failed', reason: settlement.reason });
-  if (settlement.status === 'partial_confirmed' || (settlement.status === 'noop' && settlement.finalStatus !== 'confirmed'))
-    throw Object.assign(new Error('interview_settlement_not_fully_confirmed'), { code: 'interview_settlement_not_fully_confirmed' });
+  if (!billing) {
+    // per_session 分支：partial 拒绝原面逐字保留（现行 :256-257 抛错面）。
+    // （'finalStatus' in settlement：noop 判别在 ConfirmResult|ReleaseResult 联合上须先收窄再比对。）
+    if (settlement.status === 'partial_confirmed' || (settlement.status === 'noop' && 'finalStatus' in settlement && settlement.finalStatus !== 'confirmed'))
+      throw Object.assign(new Error('interview_settlement_not_fully_confirmed'), { code: 'interview_settlement_not_fully_confirmed' });
+  }
 
   // 同一条带谓词 UPDATE 是状态机 CAS：若 abandon 已在别的事务中赢了，0 行 + 抛错会回滚上方确认。
   const updated = await c.query(
@@ -262,7 +377,7 @@ export async function completeInterviewAndConfirm(c: Client, owner: string, inte
       WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) {
-    return { status: 'completed', unitsSettled: settlement.status === 'confirmed' ? settlement.unitsSettled : undefined };
+    return { status: 'completed', unitsSettled: settlement.status === 'confirmed' ? settlement.unitsSettled : cappedUnitsSettled };
   }
 
   const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
@@ -281,11 +396,14 @@ export async function completeInterviewAndConfirm(c: Client, owner: string, inte
  * still-reserved unit and mark the interview failed in one transaction, so
  * callers cannot observe (failed, confirmed) or (active, released).
  */
-export type FailInterviewAndReleaseResult = { status: 'failed' | 'already_failed'; released: 'released' | 'noop' };
+export type FailInterviewAndReleaseResult = { status: 'failed' | 'already_failed'; released: 'released' | 'noop' | 'settled' };
 
 export async function failInterviewAndRelease(c: Client, owner: string, interviewId: string): Promise<FailInterviewAndReleaseResult> {
   await assertPrincipal(c, owner);
-  const release = await releaseConsumption(c, owner, interviewId);
+  // billing P3 修法⑥（裁决③「评分失败该话题 0 分·已完成话题照计·终态仍 failed 配 partial_confirmed」
+  // ·异常分支表行 5/6）：per_topic_capped 下 Σ>0 改走部分结算（0173 触发器 counted>0 拒 released 的
+  // 应用侧必经通路）·Σ=0 与 per_session（缺省）原全退逐字节零变。
+  const release = await settleOrReleaseForTerminal(c, owner, interviewId);
   // A start job may fail before it ever reserves an entitlement (for example a
   // free/legacy session).  There is then no cross-table pair to compensate;
   // `failed` is still a valid terminal state.  Any *existing* consumption,
@@ -299,7 +417,7 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
     `UPDATE interview SET status='failed', version=version+1
       WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user','migrating','paused')
       RETURNING status`, [interviewId, owner]);
-  if (updated.rowCount === 1) return { status: 'failed', released: release.status === 'released' ? 'released' : 'noop' };
+  if (updated.rowCount === 1) return { status: 'failed', released: terminalReleasedOf(release) };
 
   const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
   if (current.rowCount === 1 && current.rows[0].status === 'failed' && (release.status === 'noop' || (release.status === 'error' && release.reason === 'not_found')))
@@ -321,7 +439,7 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
  * `safe_terminating`→`safely_terminated`（状态机两步；清 lease）；不删 interview_event /
  * interview_question / interview 行（业务事实独立保全 · GAP-UC018-GRAPH）。
  */
-export type AbandonInterviewResult = { status: 'abandoned' | 'already_abandoned'; released: 'released' | 'noop' };
+export type AbandonInterviewResult = { status: 'abandoned' | 'already_abandoned'; released: 'released' | 'noop' | 'settled' };
 
 /** UC-E2E-018 §1b #2：abandon 成功后把该面试 thread 上非终态 AiGraphRun 安全终止。
  * 两步 CAS：非终态→safe_terminating（清 lease）→safely_terminated。无 run 则 noop。
@@ -352,7 +470,9 @@ async function finishAbandon(
 
 export async function abandonInterviewAndRelease(c: Client, owner: string, interviewId: string): Promise<AbandonInterviewResult> {
   await assertPrincipal(c, owner);
-  const release = await releaseConsumption(c, owner, interviewId);
+  // billing P3 修法⑥（裁决③「用户点放弃=已关闭话题照计·进行中话题不计」·异常分支表行 1）：
+  // per_topic_capped 下 Σ>0 改走部分结算·Σ=0 与 per_session（缺省）原全退零变·空壳支/CAS 零改。
+  const release = await settleOrReleaseForTerminal(c, owner, interviewId);
   if (release.status === 'error') {
     if (release.reason !== 'not_found') {
       throw Object.assign(new Error(`interview_release_failed:${release.reason}`), { code: 'interview_release_failed', reason: release.reason });
@@ -385,7 +505,7 @@ export async function abandonInterviewAndRelease(c: Client, owner: string, inter
       WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) {
-    return finishAbandon(c, owner, interviewId, { status: 'abandoned', released: release.status });
+    return finishAbandon(c, owner, interviewId, { status: 'abandoned', released: terminalReleasedOf(release) });
   }
 
   const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
@@ -426,17 +546,24 @@ export async function renewReservationLease(
 export interface SweptReservation { consumptionId: string; idempotencyKey: string; serviceType: string }
 
 /** 回收**租约已过期**（=持有进程崩了、没续约）的孤儿预留。心跳活着的长会话预留不会被扫——根治 backstop-TTL 误扫进行中会话。
- *  关键：状态翻转与 lease 复核在**同一条原子 UPDATE**里（行锁下再判 lease_expires_at），杜绝 heartbeat-vs-sweep TOCTOU
- *  （审计复核：分两步「无锁 SELECT 选中 → 释放时只复核 status」会放过"刚续约成功却仍被扫"的活会话）。
+ *  billing P3 修法⑥（裁决③「走人/崩溃=按已关闭话题结算·不能一律全退」·裁决项③按推荐行使）：
+ *  非面试 serviceType 行=原「单 UPDATE 直置 released」逐字保留；mock_interview 行拆「结算或释放」二选一——
+ *  SELECT…FOR UPDATE 先持行锁再按 topic_charge Σ 判定（Σ>0→方案②公式部分结算·Σ=0→release），
+ *  判定时点=锁获取时（心跳 renew 的 UPDATE 在行锁上排队·其 `AND status='reserved'` 谓词使其输掉即零行），
+ *  TOCTOU 由行锁封闭=「行锁+lease 复核」原子性零放松（审计 :428-431 原口径）。
  *  返回被回收笔的身份（consumptionId/idempotencyKey/serviceType）：业务层据此对孤儿会话发终态事件（无静默死胡同）。 */
 export async function sweepExpiredReservations(c: Client, owner: string): Promise<{ released: number; swept: SweptReservation[] }> {
   await assertPrincipal(c, owner);
-  const swept = await c.query(
+  let released = 0;
+  const reclaimed: SweptReservation[] = [];
+  // ① 非面试 serviceType 行：原单 UPDATE 直置 released（行锁+lease 复核同语句·非面试原样零变）。
+  const sweptPlain = await c.query(
     `UPDATE entitlement_consumption SET status='released'
        WHERE owner_user_id=$1 AND status='reserved' AND lease_expires_at < now()
+         AND service_type <> 'mock_interview'
        RETURNING id, idempotency_key, service_type, allocations, payer_user_id`, [owner]);
-  const reclaimed: SweptReservation[] = [];
-  for (const row of swept.rows) {
+  released += sweptPlain.rowCount ?? 0;
+  for (const row of sweptPlain.rows) {
     const payerRouted = (row as { payer_user_id?: string | null }).payer_user_id != null;
     for (const a of (row.allocations as Allocation[])) {
       if (payerRouted) {
@@ -448,7 +575,37 @@ export async function sweepExpiredReservations(c: Client, owner: string): Promis
     }
     reclaimed.push({ consumptionId: row.id, idempotencyKey: row.idempotency_key, serviceType: row.service_type });
   }
-  return { released: swept.rowCount ?? 0, swept: reclaimed };
+  // ② mock_interview 行：拆「结算或释放」二选一（行锁最窄面·flip 前判定·裁决项③推荐行使）。
+  const candidates = await c.query(
+    `SELECT id, idempotency_key, allocations, payer_user_id
+       FROM entitlement_consumption
+      WHERE owner_user_id=$1 AND status='reserved' AND lease_expires_at < now()
+        AND service_type='mock_interview'
+      FOR UPDATE`, [owner]);
+  for (const row of candidates.rows) {
+    const key: string = row.idempotency_key;
+    let settled = false;
+    const billing = await interviewBillingOf(c, owner, key);
+    if (billing && billing.billingCapUnits != null) {
+      const sum = await topicCountedUnits(c, owner, key);
+      if (sum > 0) {
+        const req = await c.query<{ units_requested: string }>(
+          'SELECT units_requested FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+          [owner, key]);
+        const requested = Number(req.rows[0]?.units_requested ?? 0);
+        const cap = billing.billingCapUnits as number;
+        const out = await confirmConsumptionUnits(c, owner, key, r2(requested * Math.min(sum, cap) / cap));
+        if (out.status === 'error') {
+          throw Object.assign(new Error(`sweep_settlement_failed:${out.reason}`), { code: 'sweep_settlement_failed', reason: out.reason });
+        }
+        settled = out.status === 'confirmed' || out.status === 'partial_confirmed';
+      }
+    }
+    if (!settled) await releaseConsumption(c, owner, key);   // Σ=0 / per_session（缺省）/无计费行值=原全退
+    reclaimed.push({ consumptionId: row.id, idempotencyKey: key, serviceType: 'mock_interview' });
+    released += 1;
+  }
+  return { released, swept: reclaimed };
 }
 
 /**

@@ -71,7 +71,7 @@ export async function releaseLease(c: Client, threadId: string, leaseOwner: stri
 
 // commerce saga（共享权益池 reserve/confirm/release + 租约心跳 + 结算消费者 + 对账）
 export {
-  reserveEntitlement, confirmConsumption, releaseConsumption, availableUnits,
+  reserveEntitlement, confirmConsumption, confirmConsumptionUnits, releaseConsumption, availableUnits,
   completeInterviewAndConfirm, failInterviewAndRelease, abandonInterviewAndRelease,
   renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile,
   reserveEntitlementForApplication,
@@ -82,6 +82,11 @@ export type {
   CompleteInterviewResult, FailInterviewAndReleaseResult, AbandonInterviewResult,
   EntpayReserveResult,
 } from './commerce/commerce.ts';
+
+// billing 战役 P3（BILL3-SETTLEMENT 修法③）：topic_charge 话题计费面——closeTopic 唯一写入口
+// （模式闸内嵌·per_session 零读零写零行为变更）+ 计费行值/Σ 读面 + 结算巡检（只告警）。
+export { closeTopic, interviewBillingOf, topicCountedUnits, listTopicSettlementMismatches } from './commerce/topic-charge.ts';
+export type { CloseTopicResult, CloseTopicStatus, InterviewBilling, TopicSettlementMismatch } from './commerce/topic-charge.ts';
 
 // 招聘方(B 端)岗位仓储(多租户 RLS 隔离)+ 候选人申请闭环(多方 RLS)
 export {
