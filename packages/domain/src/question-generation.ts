@@ -50,7 +50,17 @@ export interface QuestionGenerationProvenance {
 }
 
 export type QuestionGenerationResult =
-  | { ok: true; question: string; sources: string[]; provenance: QuestionGenerationProvenance }
+  | {
+      ok: true; question: string; sources: string[]; provenance: QuestionGenerationProvenance;
+      /**
+       * AG-37(检索 weighted-deficit 归零·修法③·additive 可选出参):worker 检索闭包本题更新后的
+       * weighted-deficit（纯数字数组·C14 边界;null=本题为非检索路径/缺省臂,值经此回流 genQuestion
+       * 写图 state 位 `weightedDeficit`,下一题读取——跨题 DRR 配额持久化,不再每 claim 归零）。
+       * 仅 success 形携带;失败形不携带（节点失败臂不写 state 位·通道原值保留）。旧 scripted deps/
+       * 直接调用缺省 undefined=键缺席,normalize passthrough 原样·节点不写（现状字节零改）。
+       */
+      weightedDeficit?: number[] | null;
+    }
   | { ok: false; error: QuestionGenerationErrorCode; provenance: QuestionGenerationProvenance };
 
 const NOT_CONFIGURED = /not_configured|policy_required|known_not_executed|provider_rejected|deterministic_refusal|admission|project_missing|project_disabled|operation_unknown|operation_blocked|prepare_failed|operation_policy/;

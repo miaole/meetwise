@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type QuestionGenerationResult, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
@@ -239,6 +239,15 @@ export interface AdaptiveServiceDeps {
   graphObserver?: GraphObserver;
   /** 运行时短暂水合答案；不得把原文放回图 state（状态）。 */
   loadAnswer?: AdaptiveDeps['loadAnswer'];
+  /**
+   * AG-37(检索 weighted-deficit 归零·修法②③接线面·per-claim 临时 seed/ref 导管):interview-consumer
+   * 每 claim 新建的 deficit 载体——seam 第 8 additive 参（genQuestion 读图 state 位 `weightedDeficit`
+   * 传入）经此 seed 检索闭包、rag.retrieve 更新后回写、再经 result 出参回流 genQuestion 写 state。
+   * **非持久化通道**:跨 claim 存续唯一合法通道=图 state checkpoint（Ban 内存/单例伪持久化——本 holder
+   * 只做 claim 内 seam→闭包传递,claim 结束即弃）。缺省 undefined=既有 scripted deps 零改
+   * （seam 不 seed 不 attach·现状字节）。
+   */
+  trackLocalDeficitRef?: { current: number[] | null };
 }
 
 /* ───────── QBANK-PLANNER-HONESTY #201(planner 输出上限/相关性·#270 同域):确定性闸构件(同文件 relevanceScore/weaknessMatches 先例形·零新依赖·禁 embedding) ───────── */
@@ -382,7 +391,21 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
     absoluteMaxTurns: d.absoluteMaxTurns,
     graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
-    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked) {
+    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit) {
+      // AG-37(检索 weighted-deficit 归零·修法③·裁决②a 第 8 additive 参):seed——genQuestion 读图
+      // state 位 `weightedDeficit`（上一题写下的持久化值·旧 checkpoint/首题=null）经第 8 参传入,
+      // 经 holder 写入 worker 检索闭包起跑值（interview-consumer 闭包读 ref·缺省臂全 0=现状字节）。
+      // undefined（既有 7 参调用/scripted deps）=不 seed·holder 原样零触。
+      if (d.trackLocalDeficitRef && weightedDeficit !== undefined) {
+        d.trackLocalDeficitRef.current = weightedDeficit;
+      }
+      // AG-37(修法③·出参回流):success 形结果 attach holder 现值（null=非检索路径/缺省臂·值=本题
+      // rag.retrieve 更新后 deficit）→ normalize passthrough → genQuestion 写图 state 位。失败形与
+      // 无 holder（scripted deps）原样返回零触（键缺席=节点不写·通道原值保留）。
+      const withDeficitOut = (r: QuestionGenerationResult): QuestionGenerationResult =>
+        d.trackLocalDeficitRef && r.ok === true
+          ? { ...r, weightedDeficit: d.trackLocalDeficitRef.current ?? null }
+          : r;
       // `attempt` remains in this compatibility seam so older graph fixtures
       // type-check, but a non-zero value must never issue another provider
       // request for the same logical node.  The graph only calls zero.
@@ -408,7 +431,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (kind === 'grounded' && groundedFacts.length === 0) {
         // 无可用选定事实(未授权/画像无事实/全被选择器过滤)→ 既有固定模板回退,零模型调用;
         // 模板文案与既有逐字一致(:107 无授权版 / :109 授权版),模板本身零改。
-        return approvedTemplateGeneration(
+        return withDeficitOut(approvedTemplateGeneration(
           d.resumeProfileAvailable
             // Do not repeat a resume fact: the question is checkpointed, sent by
             // interrupt/SSE, recorded in events and later normalized into an
@@ -416,7 +439,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
             // discuss without that original fact becoming a second data copy.
             ? `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`
             : `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`,
-        );
+        ));
       }
       // TOKSTREAM 阶段1(裁定触发面之一):interviewer.ask 模型调用面包装层回调——题间等待(检索→生成→校验)
       // 发生成进度事件(invoke 关口零改动;attempt≠0 重放与 grounded 无事实模板回退在上方早退,不产生进度事件;
@@ -432,7 +455,9 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (rollSeq > 0) rollSeq += 1;
       const initialKey = rollSeq === 0 ? `${d.threadId}:ask:t${turn}:0` : `${d.threadId}:ask:t${turn}:r${rollSeq}`;
       const initialRevision = rollSeq === 0 ? `${d.threadId}:ask:t${turn}` : initialKey;
-      return withGenerationProgress(d.pool, d.owner, d.threadId, {
+      // AG-37(修法③):progress 包装外单点出参回流——success 形（模型出题/scenario 降级模板/grounded-refs
+      // 回退模板）attach holder 现值;失败形 ok===false 原样（节点失败臂不写 state 位·通道原值保留）。
+      return withDeficitOut(await withGenerationProgress(d.pool, d.owner, d.threadId, {
         jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
         attemptKey: initialKey, segments: ['retrieve', 'generate', 'validate'],
       }, async (run) => {
@@ -649,7 +674,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       return modelGeneration(out.value.q, cited.sources, {
         operationId: QUESTION_OPERATION_ID, idempotencyKey, ...(familyRolls + rerolls > 0 ? { reroll: familyRolls + rerolls } : {}),
       });
-      });
+      }));
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。

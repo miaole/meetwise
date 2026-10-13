@@ -139,6 +139,14 @@ export interface AdaptiveDeps {
      * scripted deps/直接调用零改;只含题面文本,与 transcript 同源,无新增敏感面。
      */
     asked?: string[],
+    /**
+     * AG-37(检索 weighted-deficit 归零·裁决②a 第 8 additive 参沿 asked 第 7 参先例):图 state 位
+     * `weightedDeficit` 的持久化值（上一题写下的 DRR deficit·纯数字数组·C14 边界 checkpoint 安全）。
+     * genQuestion 从 state 读出传入,worker 检索闭包以它起跑（不再每 claim 全 0 归零）;更新值经
+     * result additive 出参 `weightedDeficit` 回流。additive 可选:缺省/旧 scripted deps(undefined)=
+     * worker 闭包按全 0 起跑（现状字节保留为缺省臂）。
+     */
+    weightedDeficit?: number[] | null,
   ) => Promise<QuestionGenerationResult | { question: string; sources: string[] }>;
   /** 评分故障必须 unscored，不能把 provider 不可用写成候选人 50 分；status 缺失兼容既有 scripted deps。 */
   /** identity 是已落库 pending question 的业务身份；评分内部 repair 必须复用它，绝不能另造回合。 */
@@ -212,6 +220,16 @@ export const AdaptiveInterviewState = Annotation.Root({
    * 后再耗尽 → 既有 failClosed 真终场。控制面元数据:纯数字、无题面/答案/事实内容,checkpoint 安全。
    */
   competencyExhaustions: Annotation<number>({ reducer: (_, b) => b, default: () => 0 }),
+  /**
+   * AG-37(检索 weighted-deficit 归零·修法①·沿 topicMainQuestionId/competencyExhaustions 双先例同形制):
+   * weighted-deficit 选择器（job-route-classifier nextWeightedDeficitLeaf·DRR 按轮配额）的跨题持久化
+   * 载体——每题 rag.retrieve 恰一次更新（genQuestion 返回即写=裁决③a）,下一 claim 从 checkpoint 恢复
+   * 读取,不再每 claim 归零,多叶岗位按 allocationBps 配额跨题收敛（6000/4000 两叶 5 题周期 3:2）。
+   * 纯数字数组控制字段、无题面/答案/事实内容（C14 边界 checkpoint 安全）;旧 checkpoint 缺省 null=
+   * 首题从全 0 起跑（现状字节=缺省臂·零回填零发明·additive 兼容）;null/长度不配由既有归一化兜底
+   * （qbank-track-local-retrieve/retrieval 双面）降化重置,非新行为。
+   */
+  weightedDeficit: Annotation<number[] | null>({ reducer: (_, b) => b, default: () => null }),
   /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。worker/SSE/report 不读。 */
   concludeReason: Annotation<DecisionProvenance | null>({ reducer: (_, b) => b, default: () => null }),
 });

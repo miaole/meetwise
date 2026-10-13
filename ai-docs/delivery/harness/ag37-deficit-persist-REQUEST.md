@@ -1,6 +1,6 @@
 # AG-37 — 检索 weighted-deficit 归零·持久化到图 state（REQUEST）
 
-**Status**: `draft:awaiting_pre_exec_dual`（docs-only·落卷即停·⛔push·零码动。本卷恰 1 新 .md·开工须预执行双审两外席 BOTH PASS+协调方明示授权。Ban self-approve · alone≠dual · Dual PASS ≠ 开工）
+**Status**: `executed:awaiting_post_prove_dual`（EXEC 施工落卷·预执行双审 BOTH PASS+协调方常设 loop 授权已行使·§9 随翻 append 保史·⛔push·待 post 席双审。Ban self-approve · alone≠dual · Dual PASS ≠ merge）
 
 **席位**：meetwise 战役 AG-37（检索 weighted-deficit 归零）REQUEST 起草席（docs-only·零码动·单文件落卷）。
 **基线**：主线 tip `aeaf4141ec95`（`git log -1` 开工实测·2026-10-13·docs(ssot) 刀位图计费 P2 行翻面笔）。分支 `line/ag37-deficit-persist` · 工作树 `../meetwise-ag37`（仓根同级·本起草席已立：`git worktree add ../meetwise-ag37 -b line/ag37-deficit-persist aeaf4141`·建前亲证 `worktree list` 24 树零 ag37·`branch -a` 零同名）。
@@ -122,3 +122,39 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *AG-37 REQUEST · 2026-10-13 · draft:awaiting_pre_exec_dual · 基线主线 tip `aeaf4141` · 分支 `line/ag37-deficit-persist` · 工作树 `../meetwise-ag37` · 蓝本=issues-final AG-37 :49/:455-464 + review-log :145/:148/:168 + LANDING-INDEX §十一 :86（pin 漂移·同批修）+ execution-master-checklist :2470 + LEDGER 刀位图 qbank 行 · 范围=deficit 持久化到图 state（additive 位沿 topicMainQuestionId 先例·每题更新·下一题读持久化值）· 五文件全 additive·零检索算法改动·零 CRAG 阈值改动·零迁移·纯状态传递 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push 待 pre-exec 双审两外席（Ban self-approve · alone≠dual）*
+
+## §9 EXEC 落卷随翻（2026-10-13 · append 保史·§0-§8 原文零改）
+
+**授权链**：预执行双审两外席 BOTH PASS 落卷 + 协调方常设 loop 授权（EXEC 任务序五项：并线重 pin/施工修法 a-d/断言门 §2/REQUEST 随翻/commit 回报）→ 本席按卷施工。
+
+**§9.0 并线重 pin（任务序①）**：`git merge feat/mysql-schema-skeleton` → **Already up to date**（EXIT=0·零冲突·主线 tip 实测 `aeaf4141`=本支父·任务书口径「主线 378b96e8+」系起草时点快照·`merge-base --is-ancestor` 亲证 378b96e8 ∈ aeaf4141 谱系·零新并线面）。§0 九 blob 锚 @开工树逐条 `git ls-tree` 复算：**九锚全零漂**（ee3a3028/79ceded8/18e6152a/10f2ae73/1c780343/c55e828f/5d52705a/7d7a0873/8f0faa8e 逐位亲证）。§0.2 勘误登记生效核对：interview-consumer 归零区现位 **:398 注释+:399 全 0 初始化 + :405-415 闭包（:410 deficit 入参+:413 回写）**——与本卷 §0.2「:397-399+:405-415」勘误登记一致·零再漂·**本节即「同批修 pin」履约完结**（execution-master-checklist :2470 登记项·nail 翻面权归协调方）。
+
+**§9.1 施工落点（任务序②·六文件全 additive·零算法改动）**：
+
+1. `packages/ai-graphs/src/adaptive-interview/state.ts`：:138-149 `AdaptiveDeps.retrieveAndGenerate` 第 8 additive 参 `weightedDeficit?: number[] | null`（:149·沿 asked 第 7 参先例·缺省 undefined=旧 scripted deps 零改）+ :223-232 state additive 位 `weightedDeficit: Annotation<number[] | null>({ reducer: (_, b) => b, default: () => null })`（:232·沿 topicMainQuestionId/competencyExhaustions 双先例同形制·旧 checkpoint 缺省 null 零回填）。
+2. `packages/domain/src/question-generation.ts`：:52-64 success 形 additive 可选出参 `weightedDeficit?: number[] | null`（:62·纯数字数组·仅 success 形）；`normalizeQuestionGenerationResult` passthrough 原样零改（键在场随透传·legacy 形键缺席）。
+3. `apps/worker/src/adaptive-interview-service.ts`：:243-250 `AdaptiveServiceDeps.trackLocalDeficitRef?`（per-claim 临时 seed/ref 导管·**非持久化通道**——跨 claim 唯一合法通道=图 state checkpoint）+ :394 seam 签名第 8 参 + :396-401 seed（undefined 不 seed·现状字节）+ :402-407 `withDeficitOut`（success 形 attach holder 现值·失败形/无 holder 原样）+ :446 grounded 模板臂/:461 progress 包装两处出参回流单点化。
+4. `apps/worker/src/adaptive-lifecycle.ts`：:130-136 `AdaptiveLifecycleDeps.trackLocalDeficitRef?` + :156 `makeDeps` 透传一行（**纯透传·零逻辑**·见 §9.3 承登②）。
+5. `apps/worker/src/interview-consumer.ts`：:398-405 注释+per-claim holder `trackLocalDeficitRef`（:405）+ :416 缺省臂 `trackLocalDeficitRef.current ?? routeSnapForRetrieve?.allocations?.map(() => 0) ?? []`（**既有全 0 表达式字节保留为缺省臂**）+ :419 回写 `trackLocalDeficitRef.current = out.deficit`（原 `let trackLocalDeficit` claim 局部量移除）+ :459 life 注入。**不归零**:下一题经 seam 第 8 参读上一题写下的 state 位值。
+6. `packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts`：:76 `weightedDeficitOut` + :91 seam 调用带第 8 参 `state.weightedDeficit ?? null` + :133 成功形取值 + :178 条件写位 `...(weightedDeficitOut !== undefined ? { weightedDeficit: weightedDeficitOut } : {})`（键缺席=通道继承不写·沿 topicMainQuestionId「继承不写」同形语义）。**evaluate-answer.ts 零字节**（§9.2 裁决③a）。
+
+**§9.2 裁决行使（§8 五项·全按推荐）**：①(a) 图 state additive 位（零迁移）✅；②(a) 第 8 additive 参入+result additive 出参 ✅；③(a) **genQuestion 返回即写**（rag.retrieve 一出·更新值当场落 checkpoint·间隙最小）✅——evaluate-answer 节点零字节：节点部分返回语义下未提键通道经 checkpoint 原值保留（同节点 topicMainQuestionId probe/clarify 继承先例），任务序②d「generate-question/evaluate-answer 节点收口写回」之 evaluate-answer 侧以零改动兑现收口（通道继承即写回语义的等价零字节形·如实登记）；④(a) 5 题整周期对照 `planWeightedDeficitRounds`（[0,1,0,1,0]+周期回零+配额 3:2）✅；⑤(a) `prove:ag37-deficit-persist` 新门（worker package.json+runner 三注册面 additive：package.json script/:raw sources+allowed/:raw isolatedCommand）✅。
+
+**§9.3 如实承登（两处偏差·语义零变）**：① **state 位名**：§1-修法① 原文 `trackLocalDeficit` → 实落 `weightedDeficit`（协调方 EXEC 任务书命名·本席随卷行使·类型/reducer/缺省语义与 §1① 逐位一致·零回填零发明）；② **接线面第六文件**：§1-修法⑤ 五文件清单 → 实落+`adaptive-lifecycle.ts` 纯透传 2 处（§9.1-4）——seam 第 8 参自图节点物理抵达 consumer 闭包的必经导管（makeDeps 显式字面量构造·无 spread 旁路）·零逻辑零行为。两处均不触 §3 范围外与 §5 Ban/pins（改 §1 修法清单之字面细节由授权任务书承载·修法本体=additive 位+每题更新+下一题读持久化值·零变）。
+
+**§9.4 断言门 EXIT 全表（任务序③）**：
+
+| 门 | 落卷后 | 基线对照（`git stash` 后 3b47df9a 洁树亲跑） |
+|---|---|---|
+| `prove:ag37-deficit-persist`（新·隔离 PG 真迁移） | **EXIT=0**（PASS 35/Fail 0·A() 断言恰 35 亲数·回执落盘 .tmp/isolated-proof-receipts） | —（本卷新增） |
+| `prove:qbank-corpus-retrieve` | EXIT=1（恰 1 FAIL:「fundamental 检索仍接通」business_invalid/question_critique_failed·scripted 题面 6 字符 too_short 族） | **EXIT=1 同红亲证**（同 1 FAIL 同形状·idempotencyKey 随机段差异仅 fixture UUID） |
+| `prove:r4-real-wire-impl` | EXIT=1（恰 5 FAIL·全 harness .md 存在性/文案面·**consumer/helper/main 源码断言全 PASS**） | **EXIT=1 同红亲证**（5 FAIL 逐条相同） |
+| `prove:adaptive-flow` | **EXIT=0**（全绿·真 deps 端到端） | 绿 |
+| `prove:r4-p-planner-unit` | EXIT=1（恰 2 FAIL·T7 harness .md 文案面·选择器纯函数断言全 PASS） | **EXIT=1 同红亲证**（2 FAIL 逐条相同） |
+| `pnpm turbo typecheck --force` | **EXIT=0**（3/3·0 cached·基线口径） | EXIT=0 |
+
+三处基线同红如实登记不洗（harness .md 文件未随本线落树/文案过期系在途 SSOT 面·非本刀改动集·零回归引入）。
+
+**§9.5 断言力要点（§2 全兑现）**：跨题臂真图真 seam 真节点真 checkpoint（MemorySaver 每 invoke 独立=claim 边界·`g.getState` 逐题读 cp）·值链 [-4000,4000]→[2000,-2000]→[-2000,2000]→[4000,-4000]→[0,0] 逐位精确+leaf 序列 [0,1,0,1,0]+leafTrackId 落叶可观察+配额 3:2；红面复现对照双臂（纯函数现状形恒 [0,0,0,0,0]+真图流 legacy 恒 [0,0]）；四兼容臂全过（旧 checkpoint null 起跑/单叶零变/clarify 继承真澄清臂（v6 合法 relevant=false 形·澄清题零检索零写位·通道 [-4000,4000] 原样）/长度不配既有兜底回全 0）；保守面三降级臂 deficit 原样穿透（[7,7] 逐位）+P-FAKEPLAN+G-R2-5。est live=0 口径：全 scripted model+隔离 PG 真迁移·零真实模型外呼·零 secrets。
+
+**§9.6 十三条件自检（任务序⑤回报单）**：①零检索算法改动=job-route-classifier/qbank-track-local-retrieve/qbank-track-local-retrieval 三文件**零字节改**（选择器四函数 nextWeightedDeficitLeaf/planInterviewTurn/assembleValidatedRetrievalPlan/planWeightedDeficitRounds 原样·git diff 亲证不在改动集）；②零 CRAG 阈值改动=crag.ts/qbank-retrieve-scope 零字节（G-R2-5/降级形状三臂原样穿透断言）；③零迁移=改动集零 .sql/零 runner 迁移面（图 state checkpoint 承载）；④pure state=deficit 纯数字数组·C14 边界·无题面/答案/事实内容（Ban 塞内容条兑现）；⑤additive=六文件全 additive（缺省臂=现状字节·legacy 7 参/无 holder 双断言）；⑥跨题持久化=唯一通道图 state checkpoint（holder 仅 claim 内导管·无内存/单例跨 claim 伪持久化）；⑦既有门回归=六门全表 §9.4（三基线同红亲证零回归·三绿维持）；⑧typecheck=EXIT=0 3/3；⑨pins 十一值照抄零翻（haStatus=NOT_HA/releaseEvidence=false/claimProductionHA=false/gR45Closed=true/coveredCount=8/ms3EqualsR4Closed=false/PG-retained/公开 DELETE=503/g7SuiteGreen=false/r1Closed=false/actualSpendCny=null）；⑩状态行=draft→executed:awaiting_post_prove_dual 随翻零洗史；⑪回滚=single commit `git revert` 即净（零迁移零共享 SSOT 触碰）；⑫停止条件=零触发（blob 九锚零漂/防重零撞/主线零触碰/⛔push 遵守）；⑬markers=0（改动集 TODO/FIXME/XXX/HACK 扫描零残留·唯一 'marker' 命中系既有 SSE 语义注释非本刀）。

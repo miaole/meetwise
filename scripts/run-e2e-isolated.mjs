@@ -289,6 +289,20 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
   ],
+  // AG-37(检索 weighted-deficit 归零·持久化到图 state):scripted model+隔离 PG 真迁移链 proof(est live=0)。
+  // 来源清单=proof+五文件接线面(state/seam/节点/consumer/lifecycle 透传)+domain 出参/选择器面。
+  'ag37-deficit-persist:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag37-deficit-persist.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/qbank-track-local-retrieve.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/domain/src/question-generation.ts',
+    'packages/domain/src/job-route-classifier.ts',
+    'packages/domain/src/qbank-track-local-retrieval.ts',
+  ],
   // AG 修复轨刀 D(AG-01 准入拒绝去终态化·案A 释放 claim+worker 衔接 requeue→真重试):
   // 隔离 PG 真迁移链 proof(est live=0)。来源清单=两 proof+invoke/model-admission/model-invocation
   // +0179 新迁移+service 抛出面+consumer 白名单+lifecycle 投影面。
@@ -1943,6 +1957,7 @@ if (![
   'ag-b-classify:prove:raw',
   'ag-e-report:prove:raw',
   'ag-f-reroll:prove:raw',
+  'ag37-deficit-persist:prove:raw',
   'ag-d-admission:prove:raw',
   'model-op00:prove:raw',
   'failover-price-policy:prove:raw',
@@ -2136,6 +2151,9 @@ const isolatedCommand = target === 'migrate:prove'
   // AG-F(刀F):worker ag-f-reroll 接隔离 PG runner·命令沿 worker 原生 script 名。
   : target === 'ag-f-reroll:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:ag-f-reroll']]
+  // AG-37(检索 weighted-deficit 归零·持久化到图 state):worker ag37-deficit-persist 接隔离 PG runner。
+  : target === 'ag37-deficit-persist:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:ag37-deficit-persist']]
   // AG-D(刀D):ag-d-admission 接隔离 PG runner·gate=ai-runtime 三臂+worker 衔接臂双 proof 同容器链跑
   // （命令=根 :raw 链式 script·沿 runner 对根 script 的 spawn 形）。
   : target === 'ag-d-admission:prove:raw'
