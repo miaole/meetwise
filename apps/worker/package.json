@@ -144,7 +144,8 @@
     "prove:qbank-planner-honesty": "tsx test/qbank-planner-honesty.proof.ts",
     "prove:ag-b-classify": "tsx test/ag-b-classify.proof.ts",
     "prove:ag-e-report": "tsx test/ag-e-report.proof.ts",
-    "prove:ag-f-reroll": "tsx test/ag-f-reroll.proof.ts"
+    "prove:ag-f-reroll": "tsx test/ag-f-reroll.proof.ts",
+    "prove:ag37-deficit-persist": "tsx test/ag37-deficit-persist.proof.ts"
   },
   "dependencies": {
     "@langchain/langgraph": "catalog:langchain",
