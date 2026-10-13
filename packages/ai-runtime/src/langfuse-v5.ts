@@ -73,6 +73,8 @@ export function langfuseSafeModelMetadata(span: ModelCallSpan, correlationSecret
     outcome: span.outcome,
     attempt: span.attempt,
     latencyMs: span.latencyMs,
+    // AG-19:prompt 注册表版本标量（观测标签·值域⊆registry∪null——非 prompt 内容,脱敏铁律不破）。
+    promptVersion: span.promptVersion ?? null,
     sourceCount: span.sources?.length ?? 0,
     retrievalCount: scores.length,
     topRetrievalScore: scores.length ? Math.max(...scores) : null,

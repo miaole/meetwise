@@ -408,7 +408,9 @@ export async function runMigrateProof(
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','INSERT') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','UPDATE') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','DELETE') allowed")).rows[0]?.allowed === false
-    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true
+    // AG-19（0181）：claim 函数随 prompt_version 列落库升 17 参（16 参旧签名已 DROP·0119 升参先例同形），
+    // 签名断言随升 17 参——regprocedure 签名串精确匹配不吃 DEFAULT（0174 rev2 席1 post-prove 42883 实证先例）。
+    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer,text)','EXECUTE') allowed")).rows[0]?.allowed === true
     // rev2(0174)：terminalize 经 0174 DROP+CREATE 镜像升 10 参($10 p_usage_source DEFAULT NULL)，
     // 签名断言随升 10 参——regprocedure 签名串精确匹配不吃 DEFAULT(席1 post-prove 42883 实证)。
     && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer,text)','EXECUTE') allowed")).rows[0]?.allowed === true);
