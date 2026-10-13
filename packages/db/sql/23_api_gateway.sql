@@ -741,3 +741,26 @@ $$;
 
 REVOKE ALL ON FUNCTION gateway_recruiter_contact_share(text, text[]) FROM PUBLIC, app_role, app_gateway_role;
 GRANT EXECUTE ON FUNCTION gateway_recruiter_contact_share(text, text[]) TO app_role;
+
+-- ── 积分明细列表 B 端（企业维度）受控读函数（0185 镜像·SECURITY DEFINER·0159 受控函数族同形·
+--    payer=principal 硬谓词单跳自证·零 payer 形参）──
+CREATE OR REPLACE FUNCTION gateway_billing_ledger_payer()
+RETURNS TABLE(created_at timestamptz, service_type text, units_requested numeric,
+              units_settled numeric, status text, payer_user_id text, idempotency_key text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = pg_catalog, public
+AS $$
+BEGIN
+  RETURN QUERY
+    SELECT ec.created_at, ec.service_type, ec.units_requested, ec.units_settled,
+           ec.status, ec.payer_user_id, ec.idempotency_key
+      FROM public.entitlement_consumption ec
+     WHERE ec.payer_user_id = current_setting('app.principal_user', true)
+     ORDER BY ec.created_at DESC
+     LIMIT 100;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION gateway_billing_ledger_payer() FROM PUBLIC, app_role, app_gateway_role;
+GRANT EXECUTE ON FUNCTION gateway_billing_ledger_payer() TO app_role;
