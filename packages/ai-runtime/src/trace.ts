@@ -14,6 +14,8 @@ export type ModelCallOutcome =
 
 export interface ModelCallSpan {
   service?: string;
+  /** AG-19:prompt 注册表版本标量(观测标签·值域⊆registry 版本集∪缺省——绝不带 prompt 原文,脱敏铁律不破)。 */
+  promptVersion?: string;
   owner: string;
   idempotencyKey: string;
   threadId?: string;       // 面试 id:Langfuse sessionId/traceId,一场面试归一棵树(跨调用 RCA)
