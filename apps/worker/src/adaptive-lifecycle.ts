@@ -128,6 +128,12 @@ export interface AdaptiveLifecycleDeps {
    * 该 drain 不执行写卡步（兼容旧 seam/测试）。生产由 consumer 注入 job 级 leaseOwner。
    */
   scoreWriterLeaseOwner?: string;
+  /**
+   * AG-37(检索 weighted-deficit 归零·纯 additive 透传导管):interview-consumer 每 claim 新建的
+   * deficit 载体,经 makeDeps 原样传入 buildAdaptiveDeps（seam 第 8 additive 参 seed/出参回流面）。
+   * 非持久化通道（跨 claim 唯一通道=图 state checkpoint）;缺省 undefined=既有调用零改。
+   */
+  trackLocalDeficitRef?: { current: number[] | null };
 }
 
 async function requireCurrentFence(c: Parameters<typeof assertInterviewGraphFence>[0], d: AdaptiveLifecycleDeps): Promise<void> {
@@ -147,6 +153,7 @@ function makeDeps(
     pool: d.pool, owner: d.owner, threadId: d.interviewId, model: d.model, fastModel: d.fastModel,
     competencies, resumeProfileAvailable, focusWeaknesses, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     targetRole: d.targetRole,
+    trackLocalDeficitRef: d.trackLocalDeficitRef,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
