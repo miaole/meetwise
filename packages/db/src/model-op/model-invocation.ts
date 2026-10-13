@@ -48,6 +48,13 @@ export interface ClaimModelInvocationInput {
    * 校准证据不偏向「输出校验通过」样本。缺省（旧 seam 未接预算器）落 NULL = 本调用无对账证据。
    */
   estimateInputTokens?: number;
+  /**
+   * AG-19 观测标签：prompt 注册表版本（ai-runtime prompts.ts version 单源派生）。claim 时
+   * 冻结落 ai_model_invocation.prompt_version（0181），覆盖全 outcome 且 identity-immutable
+   * （claim 后不可改）。缺省（registry 外 service/旧 seam）落 NULL = 本调用无版本标签。
+   * 纯观测：不进 requestDigest（版本非语义输入），不参与任何结算/重试/状态机语义判定。
+   */
+  promptVersion?: string;
   leaseToken: string;
   leaseSeconds: number;
 }
@@ -85,13 +92,14 @@ export async function claimModelInvocation(c: Client, input: ClaimModelInvocatio
   const [provider, model, region, priceRevision, maxInputTokens, maxOutputTokens] = bindingArgs(input);
   const r = await c.query<{ action: string; lease_token: string | null; output: unknown; error_code: string | null }>(
     `SELECT action,lease_token,output,error_code
-       FROM ai_model_claim_invocation_scoped($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9,$10,$11,$12,$13,$14,$15,$16)`,
+       FROM ai_model_claim_invocation_scoped($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
     [
       input.owner, input.idempotencyKey, nodeDigest, input.requestDigest,
       input.service ?? null, input.requestId ?? null, input.costScopeId ?? null,
       input.leaseToken, input.leaseSeconds,
       provider, model, region, priceRevision, maxInputTokens, maxOutputTokens,
       input.estimateInputTokens ?? null,
+      input.promptVersion ?? null,
     ],
   );
   const row = r.rows[0];

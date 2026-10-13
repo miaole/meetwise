@@ -224,7 +224,7 @@ async function main() {
   assert('ok span 出且带延迟(latencyMs>=0)', rec.spans.some((s) => s.outcome === 'ok' && s.latencyMs >= 0));
   assert('cached span 出(命中未真打模型)', rec.spans.some((s) => s.outcome === 'cached') && okM.calls === 1);
   assert('span 只含标量字段(无 prompt/简历原文,脱敏 by construction)',
-    rec.spans.every((s) => Object.keys(s).sort().join(',') === 'attempt,idempotencyKey,inputTokens,latencyMs,outcome,outputTokens,owner,retrieval,service,sources,threadId'));
+    rec.spans.every((s) => Object.keys(s).sort().join(',') === 'attempt,idempotencyKey,inputTokens,latencyMs,outcome,outputTokens,owner,promptVersion,retrieval,service,sources,threadId'));
   // 成本观测:模型返回 usage → span 带 token 数(喂 Langfuse 成本看板)
   const rec2 = recordingTracer(); setTracer(rec2);
   const tokM: Model = { async call() { return { ok: true, raw: { question: '带token题' }, usage: { inputTokens: 123, outputTokens: 45 } }; } };
@@ -243,7 +243,9 @@ async function main() {
   const external = JSON.stringify(metadata);
   assert('外送元数据只含数值/枚举/HMAC 伪名，不含原 owner/thread/幂等键/来源',
     !external.includes('userA') && !external.includes('IV1') && !external.includes('LF:answer') && !external.includes('qbank:b3')
-      && Object.keys(metadata).sort().join(',') === 'attempt,inputTokens,invocationRef,latencyMs,outcome,outputTokens,ownerRef,retrievalCount,sourceCount,threadRef,topRetrievalScore');
+      && Object.keys(metadata).sort().join(',') === 'attempt,inputTokens,invocationRef,latencyMs,outcome,outputTokens,ownerRef,promptVersion,retrievalCount,sourceCount,threadRef,topRetrievalScore');
+  assert('AG-19:版本标量外送为 null 缺省占位(此 span 未带 promptVersion),model 字段仍=service 名(AG-24 面零位移)',
+    metadata.promptVersion === null && ('promptVersion' in metadata));
   assert('同密钥同标识的外送伪名稳定、不同命名空间不可混用',
     pseudonymizeLangfuseIdentifier('fixture-correlation-secret', 'owner', 'userA') === metadata.ownerRef
       && pseudonymizeLangfuseIdentifier('fixture-correlation-secret', 'thread', 'userA') !== metadata.ownerRef);
