@@ -1,0 +1,69 @@
+
+> meetwise@0.1.0 ag19-prompt-version:prove /Users/miaole/Desktop/golucky/meetwise-ag24
+> node scripts/run-e2e-isolated.mjs ag19-prompt-version:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-46099-1791881980979 on 127.0.0.1:49206
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-ag24/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=183 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/ai-runtime@0.0.0 prove:ag19-prompt-version /Users/miaole/Desktop/golucky/meetwise-ag24/packages/ai-runtime
+> tsx test/ag19-prompt-version.proof.ts
+
+PASS  promptVersions()=八 service 版本对表逐字（单一真相在案）
+PASS  getPrompt(service).version 八值逐字（透传源=注册表常量）
+PASS  prompts.ts 字节恒定面（git blob sha1=8db00e904cba04cf0c3d775719cb3f2937e8f104·REGISTRY 零字节改动）
+PASS  透传[job.route-classify.v1]=p.v2:invoke ok+span.promptVersion 逐字
+PASS  透传[job.route-classify.v1]=p.v2:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[resume-quiz.generate]=v2:invoke ok+span.promptVersion 逐字
+PASS  透传[resume-quiz.generate]=v2:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[resume-diagnosis.generate]=v1:invoke ok+span.promptVersion 逐字
+PASS  透传[resume-diagnosis.generate]=v1:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[planner.competencies]=v4:invoke ok+span.promptVersion 逐字
+PASS  透传[planner.competencies]=v4:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[interviewer.ask]=v7:invoke ok+span.promptVersion 逐字
+PASS  透传[interviewer.ask]=v7:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[mock-interview.evaluate]=v6:invoke ok+span.promptVersion 逐字
+PASS  透传[mock-interview.evaluate]=v6:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[resume.vision]=v2:invoke ok+span.promptVersion 逐字
+PASS  透传[resume.vision]=v2:ai_model_invocation.prompt_version 落库逐字
+PASS  透传[report.generate]=v3:invoke ok+span.promptVersion 逐字
+PASS  透传[report.generate]=v3:ai_model_invocation.prompt_version 落库逐字
+PASS  八值对表全量：span 侧八 service 全带版本（无缺臂）
+PASS  registry 外 service:span 不带版本(undefined)+DB 落 NULL(旧行为字节等价)
+PASS  缺省 service:DB 落 NULL
+PASS  显式 spec.promptVersion 覆盖:span+DB 带显式值(调用方观测标签语义)
+PASS  全outcome[success]:status=succeeded+prompt_version=v3 冻结在案
+PASS  全outcome[schema-失败]:status=failed+prompt_version=v3 照落(不等成功)
+PASS  全outcome[business-失败]:error=business:*+status=failed+prompt_version=v3 照落
+PASS  全outcome[unknown]:status=unknown+prompt_version=v3 照落(观测事实 claim 时冻结)
+PASS  CHECK 目录在案：ck_ai_model_invocation_prompt_version=NULL 允许 OR 长 1..64（pg 反解析 BETWEEN 归一形）
+PASS  claim 边界:64 字符版本身份过(execute)+65 字符→claim_invalid_input 拒
+PASS  claim 缺省(NULL)向后兼容:16 参旧调用形语义不破(0174 先例同形)
+PASS  identity-immutable:claim 后 UPDATE prompt_version→触发器拒绝(ai_model_invocation_identity_immutable)
+PASS  identity-immutable:拒后列值原样(64 字符边界值零篡改)
+PASS  0181 claim 函数签名恰 17 参且第 17 参=p_prompt_version
+PASS  TS claim seam 占位 $16,$17 收尾（$17=新增版本参·向后兼容缺省 NULL 沿 0174 形）
+PASS  0181 claim INSERT 列集含 prompt_version 且 VALUES 供 p_prompt_version
+PASS  0181 REVOKE/GRANT 用 17 参签名（16 参旧签名已 DROP）
+PASS  0181 identity-immutable additive 一行（0119 :72 同位）
+PASS  基线播种零缺失:八对 {service,prompt_version} 零序列+占位序列在案(开机即有序列)
+PASS  emit 恰一次/调用:registry 内(interviewer.ask×1+显式覆盖×1=v7 计 2)·registry 外/缺省计占位 2
+PASS  值域有界负证:全部序列 label 值⊆registry 版本∪none × registry service∪(unregistered)(禁自由字符串)
+PASS  注入不进标签负证:显式 spec.promptVersion 后无 caller-injected/ag19-explicit 系列诞生
+PASS  Langfuse metadata.promptVersion 标量在案(带版本 span→逐字外送)
+PASS  Langfuse metadata.promptVersion 缺省 null(占位不省键·键集稳定)
+PASS  脱敏负证:metadata 无 prompt 原文(system 前缀/答案字面零出现·标量纪律)
+PASS  AG-24 已落面(语义翻转登记):model 真名归因=span.model 优先·缺省降级 service 名(safeName(span.model ?? span.service)原样字节)
+PASS  digest 零变负证:同 service/system/userData 双 invoke 显式版本相异→request_digest 恒等(版本不入摘要)
+PASS  digest 正控:system 变→request_digest 变(列真载语义摘要·非恒等凑数)
+
+✓ AG-19 prompt 版本观测落库(透传对表+全 outcome 落库+metric 标签+digest 零变)全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-13T08-59-50-919Z-46099-8144ad30-84b0-4465-a67a-f042e3c90b69.json release_evidence=false
