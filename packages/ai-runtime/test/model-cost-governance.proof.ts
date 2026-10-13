@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { AppError, createPool } from '@meetwise/db';
 import { z } from 'zod';
-import { failoverModel, invoke, modelFor, rateLimitedModel, type Model, type ModelClient, type ModelCostPolicy } from '../src/index.ts';
+import { failoverModel, invoke, modelFor, type Model, type ModelClient, type ModelCostPolicy } from '../src/index.ts';
 
 const pool = createPool();
 let failures = 0;
@@ -112,32 +112,9 @@ async function main() {
       && timeoutCostRow.rows[0]?.status === 'unknown' && timeoutCostRow.rows[0]?.settled_micro_cny === null
       && timeoutInvocationRow.rows[0]?.status === 'unknown' && timeoutInvocationRow.rows[0]?.error_code === 'model_execution_timeout');
 
-  // RPM admission is deliberately before cost/dispatch.  Establish one local
-  // send slot, then a second distinct request times out while waiting for the
-  // next slot: no provider call, no cost reservation, and a failed (known
-  // not-sent) invocation are the only valid outcomes.
-  let rateProviderCalls = 0;
-  const rateLimitedClient: ModelClient = rateLimitedModel({
-    costPolicy: policy,
-    async complete() {
-      rateProviderCalls++;
-      return { ok: true, raw: { answer: 'rate-ok' }, usage: { inputTokens: 1, outputTokens: 1 } };
-    },
-  }, { maxConcurrent: 1, rpm: 60 });
-  const rateFirst = await invoke({
-    idempotencyKey: 'cost:rpm-first', schema: Schema, businessValidate: () => null,
-    model: modelFor(rateLimitedClient, { service: 'proof.rate', system: 'trusted', userData: 'first' }),
-  }, pool, OWNER);
-  const rateSecond = await invoke({
-    idempotencyKey: 'cost:rpm-admission-timeout', schema: Schema, businessValidate: () => null,
-    model: modelFor(rateLimitedClient, { service: 'proof.rate', system: 'trusted', userData: 'second' }), executionTimeoutMs: 35,
-  }, pool, OWNER);
-  const rateCost = await pool.query(`SELECT count(*)::int n FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key='cost:rpm-admission-timeout'`, [SCOPE]);
-  const rateInvocation = await pool.query(`SELECT status,error_code FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='cost:rpm-admission-timeout'`, [OWNER]);
-  A('RPM 排队超时发生在派发前：第二请求零外呼、零费用预留且 durable claim=failed',
-    'value' in rateFirst && 'error' in rateSecond && rateSecond.error === 'model_admission_timeout'
-      && rateProviderCalls === 1 && Number(rateCost.rows[0]?.n) === 0
-      && rateInvocation.rows[0]?.status === 'failed' && rateInvocation.rows[0]?.error_code === 'model_admission_timeout');
+  // AG-24 残留清理登记：原「RPM 排队超时（本地 rateLimitedModel 准入）」臂随进程内限流残留件整臂删除——
+  // 并发/熔断准入已由迁移 0120 共享权威（model-admission.ts/invoke admit 相位）统一裁决，共享权威臂
+  // 归 model-op02 门原值保护（本卷零触）。
 
   // A non-cooperative admission adapter can resolve after the gateway timeout.
   // That late lease must release itself: the caller has already terminalized
@@ -172,22 +149,24 @@ async function main() {
       && lateAdmissionProviderCalls === 0 && lateAdmissionReleases === 1
       && lateAdmissionInvocation.rows[0]?.status === 'failed' && lateAdmissionInvocation.rows[0]?.error_code === 'model_admission_timeout');
 
-  // A pre-dispatch database/ledger error must release local admission capacity.
-  // NUL is rejected by PostgreSQL parameter encoding before any supplier send;
-  // it is a deterministic fault injection, not user-controlled production data.
+  // A pre-dispatch database/ledger error must fail fast before any supplier
+  // send.  NUL is rejected by PostgreSQL parameter encoding before any supplier
+  // send; it is a deterministic fault injection, not user-controlled production
+  // data.  (AG-24 登记：原经 rateLimitedModel 包裹观测 inflight/queued 槽位——进程内限流
+  // 残留删除后改为裸 scripted model 断言同一 fail-fast 语义：零外呼、prepare 相位确定性拒绝。)
   let faultProviderCalls = 0;
   const faultPolicy: ModelCostPolicy = { ...policy, scopeId: `fault\u0000scope` };
-  const faultGate = rateLimitedModel({
-    costPolicy: faultPolicy,
-    async complete() { faultProviderCalls++; return { ok: true, raw: { answer: 'must-not-send' } }; },
-  }, { maxConcurrent: 1 });
   const dispatchFault = await invoke({
     idempotencyKey: 'cost:dispatch-preflight-fault', schema: Schema, businessValidate: () => null,
-    model: modelFor(faultGate, { service: 'proof.fault', system: 'trusted', userData: 'fault' }),
+    model: {
+      requestDigest: 'e'.repeat(64),
+      async call() { faultProviderCalls++; return { ok: true, raw: { answer: 'must-not-send' } }; },
+      prepare() { return { ready: true as const, execute: () => this.call(1), cost: faultPolicy }; },
+    },
   }, pool, OWNER);
-  A('派发前畸形费用策略 fail-fast，不会取得 admission 槽位或外呼',
+  A('派发前畸形费用策略 fail-fast，零外呼（prepare 相位确定性拒绝）',
     'error' in dispatchFault && dispatchFault.error === 'model_cost_policy_invalid'
-      && faultProviderCalls === 0 && faultGate.inflight() === 0 && faultGate.queued() === 0);
+      && faultProviderCalls === 0);
 
   // Concurrent identical requests get one durable claim and the second waits for
   // safe cached output instead of holding a transaction while the model sleeps.

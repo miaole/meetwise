@@ -92,7 +92,7 @@ export function normalizeFocusHeader(raw: string | undefined): string[] | undefi
 
 /**
  * begin 语义核心（B271 片2 S2-C2/C4 模块化抽取·原 InterviewService.begin() asPrincipal 事务体逐字搬移）：
- * 在**给定事务客户端**上执行完整 begin 守卫链+扣额路由+入队——begin() 端点（C 端练习·原路径）与
+ * 在**给定事务客户端**上执行完整 begin 守卫链+扣额路由+入队——begin 端点（C 端练习·原路径）与
  * applications.start 合一事务（S2-C4 修法⑤·start+begin 同一事务·#227 缺陷收口）共用本函数。
  * 扣额路由（S2-C2）：interview.application_id 非空 ⇒ reserveEntitlementForApplication（0157 企业路由·
  * payer=job_application.recruiter_user_id 单跳派生·候选人桶零触）；IS NULL ⇒ reserveEntitlement 原路径
@@ -118,13 +118,13 @@ export async function beginInterviewCore(
   // PRIV01-C 应用层 tenant 强制第二层:E1 入口显式 owner + E2 必选谓词绑定——授权根仍为 RLS(应用层 tenant ≠ RLS)。
   const quizScope = buildRequiredOwnerFilter(owner, 'interview.begin.quizScope');
   const bindScope = buildRequiredOwnerFilter(owner, 'interview.begin.bind');
-  // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin(对齐 invoke 关口)——否则两并发都过 check-then-act = 双开。
+  // **并发竞态安全**:事务级 advisory 锁串行化同面试的并发 begin（对齐 invoke 关口）——否则两并发都过 check-then-act = 双开。
   await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['begin', id]);
   const cur = await c.query('SELECT status,resume_id,resume_privacy_epoch,application_id FROM interview WHERE id=$1 FOR UPDATE', [id]);
   if (cur.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
   await guardInterviewPrivacyTx(c, id);
   // **状态机守卫(此前 begin 一个守卫都没有 → 可复活终态面试 + 白扣额度,负测 BUG-PROBE 抓到)**:
-  //   终态(completed/failed/abandoned)绝不可再 begin(不可复活、不可二次扣额)。
+  //   终态(completed/failed/abandoned)绝不可再 begin（不可复活、不可二次扣额）。
   if (TERMINAL_INTERVIEW.includes(cur.rows[0].status))
     throw new HttpException({ error: 'interview_not_active', status: cur.rows[0].status }, HttpStatus.CONFLICT);
 
@@ -648,7 +648,7 @@ export class InterviewService {
   //   围栏面试(interview_privacy_active=false)被旧查询当"进行中"复用 → begin/abandon 全 410 → C 端永久无法新建;
   //   B 端岗位绑定面试(application_id≠NULL,recruiter 直插)同为非终态时不得被 C 端练习 create 捞走(新-#274)。
   //   只此三过滤(status NOT IN + 上述两谓词),禁再加任何第三谓词(破下方单会话幂等立法);
-  //   list() 既有 interview_privacy_active 谓词零改(同过滤面对齐)。
+  //   list 既有 interview_privacy_active 谓词零改(同过滤面对齐)。
   //   锚点漂移登记:审计引 create :513-527/复用查询 :519-521 @f47670e6 实树 :525-538/:531-532,rebase 后本文件 :528-541/:534-535(语义同形)。
   async create(principal: string) {
     this.denyPublicPreviewWrite();

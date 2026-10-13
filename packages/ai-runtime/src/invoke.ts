@@ -24,7 +24,7 @@ import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 import { withAbortTimeout } from './timeout.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
-import type { CalibratedFactor } from './usage-reconciliation.ts';
+import type { CalibratedFactor, EstimatorVersion } from './usage-reconciliation.ts';
 import {
   admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition, isAdmissionRefusalRetryable,
   type SharedModelAdmissionLease, type SharedModelFeeRecord,
@@ -110,8 +110,8 @@ export interface ModelCostPolicy {
    * the OpenAI-compatible transport rejects a billable policy that omits it.
    */
   contextWindowTokens?: number;
-  /** Conservative input estimator approved for this endpoint configuration. */
-  contextEstimator?: 'utf8-bytes-v1';
+  /** Conservative input estimator approved for this endpoint configuration (AG-12：已注册枚举，缺省仍 utf8-bytes-v1). */
+  contextEstimator?: EstimatorVersion;
   /** Tokens deliberately left unused for provider/template/tokenizer variance. */
   contextSafetyMarginTokens?: number;
   /**
@@ -539,7 +539,15 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
  * 时携带续行状态对象，由主函数经显式参数传给下一相位。`preparePlan` 闭包（原 :429-441）
  * 外提为模块级 `prepareModelPlan`（spec/executionTimeoutMs 显式传参），供相位 1/3 共用。
  */
-type InvokeSpanFn = (attempt: number, outcome: ModelCallOutcome, latencyMs: number, usage?: ModelUsage) => void;
+/**
+ * AG-24:span 携带的可选逐次附加值(标量·脱敏铁律不破)。model=G7 供应商回显(actualModel·仅 ok 臂在手时);
+ * settledCostMicroCny=账本结算权威值(仅终局 ok 臂结算就绪后携带)——两值缺省=该臂不携带,绝不静默补值。
+ */
+interface InvokeSpanExtra {
+  model?: string;
+  settledCostMicroCny?: number;
+}
+type InvokeSpanFn = (attempt: number, outcome: ModelCallOutcome, latencyMs: number, usage?: ModelUsage, extra?: InvokeSpanExtra) => void;
 
 type InvokePhaseStep<T, Next> =
   | { terminal: true; outcome: InvokeOutcome<T> }
@@ -666,8 +674,12 @@ async function invokeResolveAndPreparePhase<T>(
   // 值域有界（registry 版本 ∪ '(unregistered)'/'none' 占位——绝不透传调用方字符串）。
   getMetrics().inc(METRIC.modelInvocationPromptVersionTotal, promptVersionMetricLabels(spec.service));
   const tracer = getTracer();
-  const span: InvokeSpanFn = (attempt, outcome, latencyMs, usage) =>
-    tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, promptVersion, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens });
+  // AG-24:span.model 中间档=plan.cost?.model(受控策略模型名)——与 claim 相位(claimModelInvocation 的
+  // model: plan.cost?.model)同源同值;cost 身份在 durable claim 后冻结(failover 换轨 cost 不一致即确定性拒绝),
+  // 故捕获值跨全 invocation 恒真。声明臂在 plan 绑定前发射的 span 无此值(如 prepare 拒绝),走缺省 undefined。
+  let spanCostModel: string | undefined;
+  const span: InvokeSpanFn = (attempt, outcome, latencyMs, usage, extra) =>
+    tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, promptVersion, model: extra?.model ?? spanCostModel, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens, cachedInputTokens: usage?.cachedInputTokens, settledCostMicroCny: extra?.settledCostMicroCny });
 
   // Routing/breaker selection is pure pre-dispatch work. It can choose backup
   // only when primary is already unavailable; it must not send a request.
@@ -680,6 +692,7 @@ async function invokeResolveAndPreparePhase<T>(
   }
   if (initial.plan.ready === false) { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: initial.plan.error } }; }
   const plan: ReadyModelCallPlan = initial.plan;
+  spanCostModel = plan.cost?.model;
   // The scope becomes part of the durable claim before any local admission
   // lease is taken.  Reject malformed trusted configuration here so a database
   // encoding/constraint error cannot escape the claim loop or strand a caller.
@@ -708,6 +721,10 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
       maxOutputTokens: plan.cost?.maxOutputTokens,
       estimateInputTokens: plan.estimateInputTokens,
       promptVersion,
+      // AG-12 件②：估算器/因子版本标签随 claim 冻结（全 outcome·identity-immutable·0184）。
+      // 与 :708 maxOutputTokens 同位可选链：无 policy/无 calibration 臂落 NULL（配对侧 COALESCE 归 v1）。
+      estimatorVersion: plan.cost?.contextEstimator ?? null,
+      calibrationFactorVersion: plan.cost?.calibration?.factorVersion ?? null,
     }));
     if (claim.action === 'execute') { leaseToken = claim.leaseToken; break; }
     if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }
@@ -1094,6 +1111,9 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     span(1, error.startsWith('business:') ? 'business_error' : 'schema_retry', latencyMs, settledUsage);
     return { error };
   }
-  span(1, 'ok', latencyMs, settledUsage);
+  // AG-24:终局 ok 臂携带真名+成本——model 优先序=裁决①(a):G7 供应商回显 actualModel 优先(在手时),
+  // 缺省回闭包 spanCostModel(=plan.cost?.model·claim 同源);settledCostMicroCny=账本结算权威值
+  // (:1047 settleAiTextCost 已赋值),非计费调用(无 policy)不携带。中间 outcome 臂缺省不挂(缺省≠零)。
+  span(1, 'ok', latencyMs, settledUsage, { model: result.actualModel, settledCostMicroCny: policy ? settledCost : undefined });
   return { value: value! };
 }

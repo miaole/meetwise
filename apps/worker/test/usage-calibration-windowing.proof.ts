@@ -46,6 +46,17 @@ const A = (name: string, ok: boolean) => { assertions++; console.log(`${ok ? 'PA
 const errorOf = (fn: () => unknown): string => { try { fn(); return ''; } catch (e) { return e instanceof Error ? e.message : String(e); } };
 const suffix = `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
 const MIGRATION_SQL = readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0177_usage_calibration_ag07_windowing.sql', import.meta.url)), 'utf8');
+// AG-12（成本轨③·件③改写面授权）：0184 已把配对 v1/v2 DROP+CREATE 升为带 estimator_version 的
+// 8 列返回表——0177 原字节重放中的 7 列 CREATE OR REPLACE 撞「cannot change return type」。
+// 重放尾段随真链顺序追补 0184 配对函数节（v1 DROP 起至文件尾·恰含双函数+REVOKE/GRANT），
+// 使重放终态=链最新；0177 字节仍逐字全量重放·行为臂断言力不减。
+const MIGRATION_0184_PAIRING_SECTION = (() => {
+  const full = readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0184_ag12_estimator_claim_freeze.sql', import.meta.url)), 'utf8');
+  const marker = 'DROP FUNCTION IF EXISTS ai_usage_calibration_pairs_scoped(text);';
+  const idx = full.indexOf(marker);
+  if (idx < 0) throw new Error('ag12_0184_pairing_section_marker_missing');
+  return full.slice(idx);
+})();
 
 // ==========================================================================
 // H. 件⑥旋钮纪律（沿 AG-COST1 止血旋钮同族·纯 resolve 面）：缺省关停+bounded 非法即 throw
@@ -123,12 +134,18 @@ async function rebuildPre0177ObservationTable(): Promise<void> {
   await pool.query(`GRANT SELECT, INSERT ON ai_usage_calibration_observation TO app_role`);
 }
 
-/** 以 0177 文件原字节做单迁移事务重放（runner 同形：BEGIN → 文件全部语句 → COMMIT）。 */
+/** 以 0177 文件原字节做单迁移事务重放（runner 同形：BEGIN → 文件全部语句 → COMMIT）。
+ *  AG-12：0184 已把配对 v1/v2 升为 8 列返回表——同事务先 DROP 双函数（0181 :177 升参先例同形），
+ *  0177 字节照常全量重放（7 列 CREATE 全新建不撞型），尾段追补 0184 配对函数节（真链顺序
+ *  0177→0184·重放终态=链最新·0177 字节零截断·行为臂断言力不减）。 */
 async function replayMigration0177(): Promise<void> {
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    await client.query('DROP FUNCTION IF EXISTS ai_usage_calibration_pairs_scoped(text)');
+    await client.query('DROP FUNCTION IF EXISTS ai_usage_calibration_pairs_scoped_v2(text, timestamptz)');
     await client.query(MIGRATION_SQL);
+    await client.query(MIGRATION_0184_PAIRING_SECTION);
     await client.query('COMMIT');
   } catch (e) {
     await client.query('ROLLBACK');
