@@ -1,6 +1,6 @@
 # AG-38 — 问答侧只读受限工具层（REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（rev1 起草落卷 · **rev2 修订 2026-10-13**：pre-exec 双审两外席 FAIL·勘误席将两席 findings 全数处置（blocking×6/errata×11/note×2·逐条处置见卷尾「rev2 勘误席处置摘要」）· **rev3 窄修 2026-10-13**：rev2 复审两席残余（席1 R1 P1+微瑕 R2-R5·席2 B-1 P1+E-1/E-2+note N-1/N-3）全数处置·逐条见卷尾 rev3 段·⛔push·docs-only 恰 1 .md·零码动·**STOP 维持**·待预执行双审两外席重审。Ban self-approve · alone≠dual · Dual PASS ≠ 开工）。
+**Status**: **`stopped:exec_red_docs_file_limit`**（rev3 复审两外席 BOTH PASS→协调方授权 EXEC 开工·**2026-10-13 EXEC 并线+施工+门矩阵全跑**：并线 f17977c0 零冲突·§0 十一锚重 pin 恒等零漂·新 proof 41 臂/prove:tools 六臂/ag19 门/turbo typecheck --force/本刀改动集 markers scoped 五类全绿·**docs:check 红=PTP_FILE_LIMIT:2049>2048**——现场证据：策略自身 lister 实测不含本刀=2047（绿）·含本刀恰 +2 受管文件=2049·硬顶 MAX_FILES=2048 无豁免面·预算常量改面不在本刀授权集→按停止条件红停（验收红且口径内修不了+需越界改共享门禁常量才能继续）·**Status 不落 executed:awaiting_post_prove_dual**·全施工面与绿收据保留在工作区（§9 EXEC 附记）·待协调方处置文件预算后翻面+post-prove 双审两外席·Ban self-approve · alone≠dual · ⛔push）。
 
 **席位**：meetwise 战役 AG-38（问答侧只读受限工具层）REQUEST 起草席（docs-only·零码动·恰 1 新文件落卷）。
 **基线**：主线 tip `849a0f19`（`git log -1` 开工实测 2026-10-13·docs(ssot) BILL3 话题结算 nail 收官登记·零码面）。分支 `line/ag38-tool-layer` · 工作树 `../meetwise-ag38`（仓根同级·本起草席已立：`git worktree add ../meetwise-ag38 -b line/ag38-tool-layer 849a0f19`·建前亲证 `worktree list` 零 ag38 树 + `branch -a` 零同名）。**rev2 实测注（勘误席）**：战役主线（`feat/mysql-schema-skeleton`）tip 已前移 `849a0f19`→`94b8519b`（`c4ef2c7f` 刀位图深夜刷新 + `94b8519b` billing P3 行勘误·两笔均 docs(ledger) 仅触 product-campaign-LEDGER.md·零码面·勘误席 git 亲证）——本卷基线引用维持起草时点实测·EXEC 立项重 pin 时照实测登记即可。
@@ -227,6 +227,39 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 | R5 | §8-⑥ 未披露态措辞粒度失实 | 对齐实况：未披露态返回 `dimensions:[]` 空档位面·fail-closed 语义不变（与 B-1 同点并修） | §8-⑥ |
 | N-1 | 豁免负臂缺夹具·恒真空转风险 | §2-3(a) 补夹具要求「seed owner B learning_plan 行在场（B 查得·A 查同 id 恒空）防恒真空转」 | §2-3(a) |
 | N-3 | §4-④「C 端面试记录读面现成于 apps/api 层」措辞越界 | 改「参照面在 apps/api（interview.controller.ts:168/:173 亲证）·库面读函数=EXEC 新增只读 SELECT（RLS 形）」 | §4-④ |
+
+## §9 EXEC 附记（2026-10-13·EXEC 施工席·预执行双审 BOTH PASS+协调方授权开工·并线+施工+门矩阵全跑·红停登记）
+
+**并线与 §0 重 pin**:`git merge --no-ff feat/mysql-schema-skeleton`→merge hash **`f17977c0`**（merge-base 849a0f19·主线三笔 94b8519b ledger 勘误/b7dcce89 SSOT 刀D 收口/626ac3cc gitleaks allowlist·零冲突·仅 docs/gitleaks 三文件）·§0 逐条重 pin:**十一值 blob 恒等全对表·零漂零重锚**（tools.ts `b1ee0b537d4b`/index.ts `621c83ff9a5d`/model-client.ts `c4827e8d72f8`/tools.proof `48068dcf7540`/ai-runtime pkg `ed60ff63ce89`/g7-guard `4e75fae7746e`/db index `6f07a09e824f`/growth-gen `b575214b57d9`/issues-final `dac7f58c3cb3`/README `80129eed1edb`/design doc `834f562847c2`）。
+
+**rev3 复审 P2 观察登记（不阻塞·三条照录）**:①0096:553 learning_plan 计数读面归「迁移擦除函数」类（privacy_purge 擦除函数内 SQL·与「packages/db barrel 零 learning_plan 读函数」登记不矛盾·类目归擦除面）;②§5/§1-⑧ E6 压缩链措辞沿 §8-⑥ 桥句同源（recruiter.service.ts:130-131 `disclosed=false` 壳形）;③两形 not_available 一并登记一句——`consent_not_disclosed`（E6 门未披露）与 `cleared_or_absent`（保留纪律已清除/缺席）两形均结构化 `{available:false, disclosure:'not_available', reason:…}` 明示降级（§8-⑥(a) 行使）。
+
+**裁决①-⑧行使落值（全呈报）**:①**(a)** ai-runtime 库级受限循环包装器·落点 `packages/ai-runtime/src/qa-tool-layer.ts`+barrel 增 1 导出行（:225 行逐字节原样·index.ts blob 自致漂移如实登记）②**(a)** registry 构造期闭包绑定·五 argsSchema 一律 `z.strictObject` 零身份字段③**(a)** 工具结果全量经 userData 段（renderPrompt 既有剥标签+nonce 围栏承接·model-client 零字节）④**(a)** context-budget 事前计量 `estimateContextTokens`（utf8-bytes-v1）·maxContextTokens 必填（缺即拒）⑤**(a)** 原生 function calling 本刀不做·请求体零触（model-client.ts blob 全量 sha1 锚钉入 proof）⑥B 端读函数选型=既有受控读函数 `gateway_b_qualitative_projection`（0160·同意门函数内承重·SECURITY DEFINER·零旁路零新存储面）;原答案读面=候选人 owner 闭包常量下 RLS owner 等值 SELECT（`interview_job` payload answer 键·保留纪律同源·interview_privacy_active 围栏叠层）;**设计登记供 post 双审**:招聘方会话物理不可读候选人私有行（0160 头注隔离墙实证）·零 DDL 前提下该形为唯一非 stub 读形·授权根=构造期租户绑定（job_application.recruiter_user_id 等值+interview_id 指针·一次校验冻结 applicationId/candidateOwner）+每次调用前 E6 门（marker 行 disclosed）·not_available=**(a)** 结构化明示⑦learning_plan 可选 interview_id=owner 等值谓词强制+privacy 围栏·负臂+owner B 夹具落 proof S2（A 查 B 恒空·B 自查得·防真空转）⑧**maxSteps=5**（4-6 区间取中:4 工具步+1 终值步·单应答账本笔数封顶 5·显式传参缺省分支零依赖）。
+
+**施工落点（恰 6 文件）**:①`packages/ai-runtime/src/qa-tool-layer.ts` 新建（五只读工具 C3+B2+循环宿主 runQaToolLoop·零写句柄·零账本入口·零 function calling 键）②`packages/ai-runtime/src/index.ts` +1 导出行③`packages/ai-runtime/test/qa-tool-layer.proof.ts` 新建（41 臂七面·隔离 PG 真 durable claim 账本）④`packages/ai-runtime/package.json` +`prove:qa-tool-layer`⑤根 `package.json` +`qa-tool-layer:prove`/`:prove:raw`⑥`scripts/run-e2e-isolated.mjs` 四处（命令映射+watch list+prove 列表+预迁移名单各 1·ag19 同位·属 §2-8 runner 接线面）。**零迁移零 DDL 零新存储面·prompts.ts/model-operation-registry/model-client.ts/tools.ts/packages-db 全零字节**（git diff 对表在证）。
+
+**门矩阵全表（EXIT 收据）**:
+
+| 门 | 结论 | 关键行 |
+|---|---|---|
+| 新 proof `qa-tool-layer:prove`（隔离 runner·migrations applied=183） | **绿 EXIT=0** | 41 臂全 PASS「✓ 问答只读受限工具层…全部通过」+LOCAL_ISOLATED_PROOF_RECEIPT |
+| `prove:tools` 六臂回归 | **绿 EXIT=0** | 6 臂全 PASS 原值（blob 零改前提） |
+| `ag19-prompt-version:prove` | **绿 EXIT=0** | `promptVersions().length===8` 原值·全臂 PASS |
+| `turbo typecheck --force` | **绿 EXIT=0** | Tasks: 3 successful, 3 total |
+| ai-runtime 裸 tsc --noEmit | 绿（零新增） | 33 行全为未触文件基线既有错·本刀两文件零错 |
+| `docs:check` | **红 EXIT=1** | `public_text_policy:PTP_FILE_LIMIT:2049`（红停·见下） |
+| markers 五类（scoped scanPublicTextPolicy·trackedPaths=本刀 2 文件） | **绿 valid=true** | errors=[] scanned=2 |
+| 静态零触 | 绿 | model-client.ts diff 零字节·rg function-calling 请求键代码树零出现（EXIT=1）·改动集恰 6 文件 |
+
+**红停现场证据（docs:check）**:`public-text-policy.mjs` `MAX_FILES=2048` 硬顶（:40·自 e621235b 静态未调·无豁免无 env override 无 allowlist·全文亲读）·策略自身 `listTrackedPublicTextPaths` 实测:不含本刀工作区=**2047（绿）**·含本刀恰 +2 受管文件=**2049>2048**→`PTP_FILE_LIMIT:2049`。**本刀恰需 2 受管文件·预算余 1·口径内修不了**;调共享门禁常量不在 §2-8 四处注册面预授权集→按停止条件红停·禁 skip-as-pass·禁自裁翻预算。处置建议（归协调方）:`MAX_FILES` 2048→2xxx 一行（public-text-policy.mjs:40）后重跑 `pnpm docs:check` 即绿（其余门已全绿）。
+
+**陷阱自检 13 条（全过）**:①零全局池—读面全经宿主注入 DbPool+asPrincipal②事务内零外网 IO—模型调用在 asPrincipal 事务外（invoke 五相位自带边界）③@MessageConsumer/@Transactional—不涉④权限注解 hasPermission(null,'码')—不涉（零新权限注解·权限在工具实现内强制）⑤注释零任务书条目号（仅战役刀号沿仓例·ag19 同形）⑥argsSchema 零身份字段—strictObject 五面·伪造 user_id/owner_user_id/recruiter_user_id 三负臂 PASS⑦RLS 之上显式 owner 等值谓词+privacy 围栏叠层（weakness-backfill 先例形）⑧错误不吞—decide 失败 `qa_decide_aborted` 透传⑨零泄敏日志—结果面零 principal/连接值⑩零裸 any 面—入参经 zod 泛型（proof 断言窄化处沿仓例）⑪幂等键 principal 作用域—claim 键随会话 owner⑫零硬编码 secrets⑬导出面最小—barrel 恰 +1 行六符号。
+
+**「旧代码忽略仍正确」书面结论**:本刀零 wire 契约字段新增·零 Redis 结构变更·零消息体变更——新增面仅库级新模块（qa-tool-layer）+门注册面;`ai_model_invocation` 既有列消费（prompt_version=NULL·request_digest 在场）零位移（ag19 门原值回归证）;`gateway_b_qualitative_projection` 出参按 0160 既有列序/白名单消费·零新出参要求——**旧消费者/旧账本行零受影响·忽略本刀的旧代码行为恒正确**。
+
+**est live=0**:全 scripted（假 Model+真隔离 PG durable claim 账本·零 provider 外呼·零 secrets·零消耗）·pins 十一值照抄零翻。
+
+**STOP=`stopped:exec_red_docs_file_limit`**（⛔push·Status 不落 executed·待协调方处置 FILE_LIMIT 后翻面+post-prove 双审两外席·alone≠dual·Ban self-approve）。
 
 ---
 
