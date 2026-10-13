@@ -70,6 +70,10 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
     let critiqueIssues: string[];
     let hint: string | undefined;
     let provenance: QuestionGenerationProvenance = state.generationProvenance ?? { origin: 'model' };
+    // AG-37(检索 weighted-deficit 归零·修法③·裁决③a 写位=genQuestion 返回即写):本题 rag.retrieve
+    // 更新后的 deficit（seam 出参回流）。clarify 分支零 seam 调用 → 恒 undefined=不写（通道原值经
+    // checkpoint 原样继承·现状字节）;失败臂（耗尽换序/failClosed）亦不写（state 位保持上一题值）。
+    let weightedDeficitOut: number[] | null | undefined;
 
     if (clarifying) {
       ({ question, sources } = clarifying);
@@ -81,8 +85,10 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       // (buildAdaptiveDeps)直接渲染进模型请求的 <data-nonce> 围栏,不经本节点参数/state。
       // grounded 题面可引用事实所指经历,但 refs 须为事实原文子串且过 worker 侧组合闸
       // (refsGroundedInFacts,不过则丢弃重试/回退固定模板);fact 子串 refs 仅作闸料,禁入 sources。
+      // AG-37(修法③·裁决②a):第 8 additive 参=图 state 位 `weightedDeficit` 持久化值（上一题写下的
+      // DRR deficit·旧 checkpoint 缺省 null=worker 闭包全 0 起跑现状字节）——下一题读上一题值,不再归零。
       const generated = normalizeQuestionGenerationResult(
-        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked),
+        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null),
       );
       if (isQuestionGenerationFailure(generated)) {
         // AG-F(刀F·修法②/裁决②a):族内确定性失败（seam 有界 re-roll 预算已耗尽后才到达本节点）
@@ -123,6 +129,8 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       sources = generated.sources;
       critiqueIssues = critique.issues;
       provenance = generated.provenance;
+      // AG-37(修法③):deficit 出参只取成功形（undefined=旧 scripted deps/无 holder→键缺席不写）。
+      weightedDeficitOut = generated.weightedDeficit;
     }
 
     const stateVersion = state.stateVersion + 1;
@@ -164,6 +172,10 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       degraded: null,
       // AG-F(刀F):出题成功 → 连续耗尽计数归零（裁决②a「连续」语义只跨失败链存活）。
       competencyExhaustions: 0,
+      // AG-37(修法③·裁决③a):deficit 写位=genQuestion 返回即写（rag.retrieve 一出·更新值当场落
+      // checkpoint·间隙最小）。键条件缺席=旧 scripted deps/clarify/非检索成功臂不写——通道经 checkpoint
+      // 原值保留（reducer (_,b)=>b 只在键在场时生效·沿 topicMainQuestionId 「继承不写」同形语义）。
+      ...(weightedDeficitOut !== undefined ? { weightedDeficit: weightedDeficitOut } : {}),
     };
   };
 }

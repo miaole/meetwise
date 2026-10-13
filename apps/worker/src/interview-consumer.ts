@@ -395,8 +395,14 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         // QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf·与下方角色门
         // roleFromRouteSnapshot 同源同形读)。缺行/缺叶 → undefined=闸不适用(叶子源缺失零误杀,如实登记)。
         const routeLeafTrackId = routeSnapForRetrieve?.allocations?.[0]?.leafTrackId;
-        // Weighted-deficit across rag.retrieve calls within this job claim.
-        let trackLocalDeficit: number[] = routeSnapForRetrieve?.allocations?.map(() => 0) ?? [];
+        // AG-37(检索 weighted-deficit 归零·修法③·本刀主触面勘误重 pin :397-399+:405-415):deficit 不再
+        // 每 claim 归零——载体=图 state 位 `weightedDeficit`（checkpoint 跨 claim 持久化·每题恰一次更新）。
+        // 本 holder 只是 claim 内 seam→闭包的临时 seed/ref 导管（非持久化通道·claim 结束即弃）:
+        // genQuestion 经 seam 第 8 additive 参把 state 位值 seed 进 current（下一题读上一题写下的值）,
+        // rag.retrieve 一出 retrieveViaDispatchTrackLocal 按既有 DRR 消费面更新并回写 current,
+        // 再经 seam 出参回流 genQuestion 写 state。缺省臂:current=null（旧 checkpoint/首题）→ 下方
+        // `?? 全 0` 与现状字节逐位一致·零回填零发明。
+        const trackLocalDeficitRef: { current: number[] | null } = { current: null };
         const localRetrieve = (q: string): Promise<ScoredRef[]> => {
           if (!retrieveDecision.allowed) {
             return Promise.resolve([degradedRetrieval(retrieveDecision.reason)]);
@@ -407,10 +413,10 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
               owner,
               snapshot: routeSnapForRetrieve,
               query: q,
-              deficit: trackLocalDeficit,
+              deficit: trackLocalDeficitRef.current ?? routeSnapForRetrieve?.allocations?.map(() => 0) ?? [],
               deps: adaptive.trackLocal(owner),
             }).then((out) => {
-              trackLocalDeficit = out.deficit;
+              trackLocalDeficitRef.current = out.deficit;
               return out.refs;
             });
           }
@@ -448,6 +454,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             onBeforeResumeProfileHydration: adaptive.onBeforeResumeProfileHydration,
             // EXTREV-1 SCORE-WRITER S1（D3/D4）：写卡步 claim 的 lease_owner（job 级 worker 身份）。
             scoreWriterLeaseOwner: d.leaseOwner,
+            // AG-37(修法③):per-claim deficit holder——seam seed/出参回流的 claim 内导管(见上方注)。
+            trackLocalDeficitRef,
             // H2 #79(#259 供给线):用户显式岗位透传至 buildAdaptiveDeps(CRAG 查询岗位段)。
             targetRole: requestContext.targetRole,
             // QBANK-PLANNER-HONESTY #200-A(#259 供给线同形):押题题面(owner-scoped 读自 resume_quiz.questions,
