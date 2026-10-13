@@ -25,8 +25,7 @@ const KNOWN_METRICS = new Set([
   "up",
   "scrape_duration_seconds",
   "scrape_samples_scraped",
-  // worker /metrics 真实暴露(见 apps/worker/src/main.ts + circuit-breaker.ts,名与 ai-runtime METRIC 常量一致):
-  "model_circuit_breaker_open_total",   // counter:熔断打开(circuit-breaker.ts emit)
+  // worker /metrics 真实暴露(见 apps/worker/src/main.ts,名与 ai-runtime METRIC 常量一致):
   "refund_failed_total",                // counter:退款/额度释放失败(基线已注册;emit 待 commerce 接线,见交付报告)
   "worker_jobs_queued",                 // gauge:队列 queued 深度(worker 周期查 DB set)
   "worker_jobs_running_expired",        // gauge:running 超租约(卡住 job)

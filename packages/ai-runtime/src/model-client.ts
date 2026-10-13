@@ -647,7 +647,13 @@ export function openAICompatibleClient(cfg: {
       let attempt429 = 0;
       let reservationId: string | undefined;
 
-      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + rendered.userContent.length) / 4));
+      // AC-F13(G7 回退估算·成本小项):带图时 userContent 是数组(text 段+N 个 image_url 段),
+      // 数组 .length 是元素数非字符量——回退估算塌缩到 64 下限、系统性低估。修法=数组形对各段
+      // text/URL 字段求拼接字符量;无图字符串形 .length 恒等(零位移)。context 在手时仍走 plan.inputTokens 不变。
+      const fallbackUserContentChars = typeof rendered.userContent === 'string'
+        ? rendered.userContent.length
+        : rendered.userContent.reduce((sum, part) => sum + ('text' in part ? part.text.length : part.image_url.url.length), 0);
+      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + fallbackUserContentChars) / 4));
       const maxOut = maxOutputTokens ?? 2048;
 
       const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{

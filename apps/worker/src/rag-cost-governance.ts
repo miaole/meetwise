@@ -5,7 +5,7 @@
  * 一旦派发后的结果丢失，账本进入 unknown 并向上返回确定性降级码；不能把同一请求再发一次。
  */
 import {
-  asPrincipal, markAiCostDispatched, markAiCostUnknown, releaseAiCost, reserveAiCost, settleAiCost,
+  asPrincipal, markAiCostDispatched, markAiCostUnknown, releaseAiCost, reserveAiTextCost, settleAiCost,
   type DbPool, type QbankEmbeddingCallContext,
 } from '@meetwise/db';
 import { getMetrics, METRIC, type Embedder } from '@meetwise/ai-runtime';
@@ -107,9 +107,17 @@ export function budgetedQbankEmbedding(
       metricDecision('observe');
       return embedder.embed(texts);
     }
-    const reserved = await asPrincipal(pool, owner, (c) => reserveAiCost(c, {
+    // 预留走 0083 九参 text 口(语义:Caller-selected immutable price row;the database must never choose
+    // latest)——绑定 cfg.priceRevision,封死「新预留按时点 latest 隐式选价与配置 revision 脱钩」双轨
+    // (EG-B4·红事实 B)。embedding 无输出:maxOutputTokens=0(0083 input+output≥1 校验容忍 output=0)。
+    // 换 revision 同键重放→binding_mismatch→rag_cost_binding_mismatch 确定性拒绝(fail-closed,绝不静默
+    // 按新价放行);价格本缺行→price_missing→rag_cost_price_missing(启动期 configureRagCostGovernance
+    // 对表断言已保正常路径零新增拒绝面)。settle/release/dispatched/unknown 四件原样零字节:结算按预留行
+    // 捕获单价(old reservations keep their captured rate),预留绑死后结算自动随行。
+    const reserved = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
       scopeId: cfg.scopeId!, requestOwner: owner, idempotencyKey: context.invocationId,
-      provider: cfg.provider!, model: cfg.model!, region: cfg.region!, maxInputTokens: cfg.maxInputTokens,
+      provider: cfg.provider!, model: cfg.model!, region: cfg.region!, priceRevision: cfg.priceRevision!,
+      maxInputTokens: cfg.maxInputTokens, maxOutputTokens: 0,
     }));
     metricDecision(reserved.decision, 0);
     if (reserved.decision !== 'reserved') throw new RagCostError(`rag_cost_${reserved.decision}`);

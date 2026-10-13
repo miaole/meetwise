@@ -444,7 +444,6 @@
     "drift:prove": "node scripts/schema-drift-check.mjs",
     "env-schema:prove": "node scripts/run-e2e-isolated.mjs env-schema:prove:raw",
     "env-schema:prove:raw": "pnpm -C apps/api prove:env-schema",
-    "breaker:prove": "pnpm -C packages/ai-runtime prove:breaker",
     "failover:prove": "pnpm -C packages/ai-runtime prove:failover",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",
     "voice-reliability:prove": "pnpm -C packages/ai-runtime prove:voice-reliability",
