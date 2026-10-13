@@ -33,3 +33,22 @@
 
 ## STOP
 lifecycle：`exec:prove_green:awaiting_post_prove_dual` · STOP（本席止于 prove 绿 + 交付落账；dual 复核、pins 十一值批裁、合线另席）· Ban self-approve · alone≠dual。
+
+## §9 并线重锚注记（re-anchor · 2026-10-13 · 并线重锚席）
+- **并线**：worktree 挂树 `meetwise-obsr` → `git merge --no-ff feat/mysql-schema-skeleton`（fetch 后 local==origin==cfead6e4 恒等零漂·merge-base=f47670e6·behind 484）。冲突 6 文件全数逐值重放，零机械合并：
+  1. `apps/api/package.json`·`apps/worker/package.json`——prove 注册行并集：支线 `prove:obs-ready` + 主线 `prove:ha2-drain`/`prove:ha3-metrics-pool-errors` 双保留（并集解沿 BILL4 e1cb1110 协调方授权惯例）。
+  2. 根 `package.json`——支线 `obs-ready:prove`/`obs-ready:prove:raw` 两行保留；`breaker:prove` 随主线删除（724d61b5 AG-24 熔断残留清理两门整删·主线 ai-runtime package.json 无 `prove:breaker` 亲证，非注册行并集面）。
+  3. `apps/api/src/modules/health/health.controller.ts`——融合解：类注=支线三面描述（①SELECT 1 ②config 位 ③迁移版本位·`schema.migration` 固定枚举 ok/invalid/mismatch/unknown）+主线 HA-2 C4 排水段双保留；`apiReady` 体=主线排水门代码原位（先于 DB 探针·确定性信号）+支线 #91/#92 三面注释（db_unreachable→迁移位只能 unknown·fail-closed）。
+  4. `apps/worker/src/adaptive-lifecycle.ts`——取主线单条并集 import（`buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts` 四名一条+主线新增 `type ScoredCriterionDisposition`）＝支线 #92 相邻修复（同源 import 重复绑定、严格 ESM 链接即炸）同目标的终态结构；支线修复注释随之弃用（所述「两条同源 import」缺陷在新结构不复存在，保留即失真）。
+  5. `scripts/run-e2e-isolated.mjs`——映射链并集（支线 `obs-ready:prove:raw`→`pnpm -C apps/api prove:obs-ready` + 主线 `consent-min:prove:raw` 双保留）；migrate 名单并集=主线全量注册（ag-a/b/d/e/f、fence-reflow-repair、role-input、weakness、quiz-list、requeue-backoff、bill1/bill2/bill3/bill4、ag12、ag19、report-retry、scor-parity 等）+支线两插入（`obs-ready:prove:raw`+`env-schema:prove:raw`·随 `api:validate` 后位，后者系本刀补预迁移前提）；allowlist 区自动合并逐值复核双保留（env-schema 既存·obs-ready 支线增）。
+  - **自动合并区逐值复核**：`main.ts` workerReady fail-closed 落 `:267-270`（`?? false`+#92 注释三行）·`:769-771` workerReady 链=主线新结构（usageCalibration reconcile/retention 两循环 ENABLED 旋钮可选形 `?? true`·支线零触该链）；`drain-loop.ts` everSucceeded 首拍门 `:18/:49/:73-76` 完整+主线 HA-2 NamedStop/drainWithDeadline 段共存；`health.service.ts` 三态 ApiReadiness+`latestMigrationVersion`+`MIGRATIONS_DIR` fail-closed 完整；`validate.ts` readiness pin 2/4/5/5 完整。
+- **门矩阵（重锚复验 · 2026-10-13 · worktree meetwise-obsr）**：
+  - `pnpm obs-ready:prove`（runner·隔离 PG·migrate 名单在册）：**API 15/15 PASS · EXIT=0**（P0 口径自证至 P6b MIGRATIONS_DIR fail-closed 全链）。
+  - `pnpm -C apps/worker prove:obs-ready`：**红——既存主线基线红承登**（非本刀面·不修不越界·见下条）。
+  - `pnpm env-schema:prove`：**22/22 PASS · EXIT=0**。
+  - `pnpm turbo typecheck --force`：**3 任务 successful · 0 cached · EXIT=0**（worker 无 typecheck 任务·主线同构）。
+  - `pnpm docs:check`：**EXIT=0 · 2057 ≤ cap 2064**（首跑伪红 2067 系冲突六件未 add 时 `ls-files --cached` 按 stage 1/2/3 重复计数 +12 虚增；六件 add 后 2054+3=2057 对账即绿）。
+  - markers 五类（词面沿 i6-239 五类标记词口径运行时组装防自指·改动集 653 文件）：**零命中**。
+  - 补充证据 `pnpm -C apps/worker prove:drain`：**EXIT=0**（everSucceeded 首拍门重放面·import 链仅 drain-loop.ts 不经 main.ts，不受下条基线红染）。
+- **worker obs-ready 基线红承登（归协调方/原刀处置）**：`apps/worker/src/qbank-release-sweep.ts:79` `asQbankControlExecutor(` 括号失衡（少一闭括号·swc `Expected ',', got ';'`）。A/B 三证：①该文件非本刀触面（3684bc00 改动集零此文件·由主线侧 b20ee350 qbank-control-sec 刀带入）；②合并后 worktree 文件与 `git show cfead6e4` blob 逐字节恒等（diff 空）；③对 pristine cfead6e4 blob 独立 `@swc/core parseSync` 同位同错复现（79:1）。主线卷在案：ag19-prompt-version-REQUEST :175「b20ee350 带入的主线既存基线红…归协调方/原刀处置；本刀按 Ban 范围外零修」+ ag24 :230/:235 同登。本刀 exec 时该文件尚不存在故当时 worker 6/6 绿；并线后 main.ts 依赖链加载即炸致本门不可运行。W1-W4 断言本体零改动随卷，待基线红清欠后复跑；首拍门重放面现行证据=drain prove EXIT=0。
+- **卷状态**：`rebase 重锚完成·awaiting post dual`（上方 STOP 行 lifecycle 前值史录保留·零改）。⛔push（纯支线）。
