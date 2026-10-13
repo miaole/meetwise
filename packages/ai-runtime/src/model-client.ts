@@ -25,7 +25,7 @@ import {
 // production file performs zero `isG7FreetierReproveEnabled(process.env)`
 // direct reads and never imports the (test-support) outbound interceptor.
 import { g7RuntimeInjection } from './g7-runtime-injection.ts';
-import { refineEstimate } from './usage-reconciliation.ts';
+import { isKnownEstimatorVersion, refineEstimate, type EstimatorVersion } from './usage-reconciliation.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 
 export interface CompletionRequest {
@@ -72,7 +72,7 @@ function envForBoundOperationFence(cfgEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEn
 }
 
 export interface RenderedContextBudgetPlan {
-  estimator: 'utf8-bytes-v1';
+  estimator: EstimatorVersion;
   contextWindowTokens: number;
   maxInputTokens: number;
   maxOutputTokens: number;
@@ -178,6 +178,40 @@ export function byteEstimate(value: string): number {
   return Buffer.byteLength(value, 'utf8');
 }
 
+// AG-12 成本轨③（cjk-weighted-v1 加权区段集）：CJK 部首/表意/假名/注音（U+2E80–U+9FFF）、
+// CJK 兼容表意（U+F900–U+FAFF）、全角形（U+FF00–U+FFEF）逐码点计 1.0 token。谚文音节
+// U+AC00–D7AF 与谚文字母 U+1100–11FF **不在集合**（UTF-8 各 3 字节 → 3/3=1.0 系数值等价
+// 而非集合成员）；CJK Ext B U+20000+ 亦不在集合（落「其余 UTF-8 字节/3」臂 = 4/3，无 1.0 背书）。
+const CJK_WEIGHTED_REGIONS: ReadonlyArray<{ lo: number; hi: number }> = [
+  { lo: 0x2e80, hi: 0x9fff },
+  { lo: 0xf900, hi: 0xfaff },
+  { lo: 0xff00, hi: 0xffef },
+];
+
+/**
+ * AG-12 cjk-weighted-v1 加权估算原语（逐码点）：CJK 区段每码点计 1.0（issues-final 修法原例形
+ * 「中文 1.0 token/字」），其余码点按其 UTF-8 字节数 / 3（issues-final「ASCII 字节/3」形）；全串
+ * Σ 后 ceil，非空串结果 ≥1，空串 0。迭代必须逐**码点**（for..of）：按 UTF-16 单元错迭代会把
+ * astral 码点（如 U+2A6AE，4 字节）拆成两个孤代理各按 3 字节替换符计——双连串 8/3→ceil=3 会被
+ * 算成 12/3→ceil=4，proof 臂钉死唯一实现。诚实边界：本估算器是「分 script 加权保守估算」而非
+ * 绝对上界承诺（v1 的 bytes≥tokens 恒等式不跨版本外推）；低估防护由既有三网承接（refineEstimate
+ * 校准因子 + safetyMargin + underEstimated 显式打标 + usage_missing 剔除保因子样本洁净）。
+ */
+export function cjkWeightedEstimate(value: string): number {
+  if (value.length === 0) return 0;
+  let sum = 0;
+  for (const ch of value) {
+    const codePoint = ch.codePointAt(0)!;
+    if (CJK_WEIGHTED_REGIONS.some((r) => codePoint >= r.lo && codePoint <= r.hi)) {
+      sum += 1;
+    } else {
+      sum += Buffer.byteLength(ch, 'utf8') / 3;
+    }
+  }
+  const estimate = Math.ceil(sum);
+  return estimate >= 1 ? estimate : 1;
+}
+
 function validPositive(value: unknown, max = MAX_CONTEXT_WINDOW_TOKENS): value is number {
   return Number.isSafeInteger(value) && (value as number) >= 1 && (value as number) <= max;
 }
@@ -230,7 +264,9 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   const contextWindowTokens = policy.contextWindowTokens;
   const safetyMarginTokens = policy.contextSafetyMarginTokens;
   const toolReserveTokens = policy.contextToolReserveTokens ?? 0;
-  if (policy.contextEstimator !== 'utf8-bytes-v1'
+  // AG-12：门由单值相等放宽为已注册枚举属员判断（KNOWN_ESTIMATOR_VERSIONS 单真源；非法/缺省
+  // 版本仍 model_context_policy_invalid fail-closed）。端点缺省仍 utf8-bytes-v1，翻 v2 属运维显式决策。
+  if (!isKnownEstimatorVersion(policy.contextEstimator)
     || !validPositive(contextWindowTokens)
     || !validPositive(safetyMarginTokens)
     || !validPositive(policy.maxInputTokens)
@@ -241,7 +277,8 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   const nonce = '0'.repeat(10);
   const rendered = renderPrompt(req, nonce);
   const estimateTokens = (text: string): number => {
-    const raw = byteEstimate(text);
+    // AG-12：按 policy 声明的估算器版本分派原语（v1→byteEstimate 恒等零漂；v2→cjkWeightedEstimate）。
+    const raw = policy.contextEstimator === 'utf8-bytes-v1' ? byteEstimate(text) : cjkWeightedEstimate(text);
     if (text.length === 0) return 0;
     return policy.calibration ? refineEstimate(raw, policy.calibration) : raw;
   };

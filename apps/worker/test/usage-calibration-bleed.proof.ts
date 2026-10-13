@@ -76,11 +76,13 @@ A('间隔透传 pin：runUsageCalibrationReconciler(pool, intervalMs) → runDra
   /runDrainLoop\(async \(\) => \{ await usageCalibrationReconcileTick\(pool\); \}, intervalMs\)/.test(reconcileSrc));
 
 // ── 臂③ 域级本体 sha256 pin（§0.1 #3 重 pin·AG-COST2 授权触面：加窗路径+因子合并落本件·
-// cost1 零字节承诺由本刀显式解除并 re-pin 新值·沿 §0「漂则重 pin」锚协议·勘误注随 REQUEST 落卷） ──
+// cost1 零字节承诺由本刀显式解除并 re-pin 新值·沿 §0「漂则重 pin」锚协议·勘误注随 REQUEST 落卷；
+// AG-12 成本轨③同协议再 re-pin：件③三元组分组/per-row 归因落本件=REQUEST §1-件③ 授权触面，
+// 原 AG-COST2 值 429cdfdc…ac1 随之退役·勘误注随 REQUEST §9 落卷） ──
 const reconcilerPath = join(root, '../../packages/ai-runtime/src/usage-calibration-reconciler.ts');
 const reconcilerSha = createHash('sha256').update(readFileSync(reconcilerPath, 'utf8')).digest('hex');
-A('域级本体 sha256 pin：usage-calibration-reconciler.ts == AG-COST2 施工后 re-pin 值（防顺手触碰·原 cost1 值 3f375925…df1 已随授权触面退役）',
-  reconcilerSha === '429cdfdc51c3dba8f4fd04d35303249d98028f793fad738bab45b8b88fe76ac1');
+A('域级本体 sha256 pin：usage-calibration-reconciler.ts == AG-12 施工后 re-pin 值（防顺手触碰·原 AG-COST2 值 429cdfdc…ac1 已随授权触面退役）',
+  reconcilerSha === 'b78466413f336d7cc8a79c1a814182a56666a0eb143ec01168544e2bc9f15dbf');
 
 // ── 臂③ 活循环 smoke（零 DB：fake pool 触发 enumerate 失败 catch·tick 自吞整拍不抛） ────
 async function main() {

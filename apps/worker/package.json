@@ -69,6 +69,7 @@
     "prove:window": "tsx test/context-window.proof.ts",
     "prove:rag-cost": "tsx test/rag-cost-governance.proof.ts",
     "prove:model-cost": "tsx test/model-cost-governance.proof.ts",
+    "prove:estimator-v2-cjk": "tsx test/estimator-v2-cjk.proof.ts",
     "prove:deploy-worker-env": "tsx test/deploy-worker-env.proof.ts",
     "prove:model-cost-metrics": "tsx test/model-cost-metrics.proof.ts",
     "prove:rag-cost-runtime": "tsx test/rag-cost-runtime.int.ts",
