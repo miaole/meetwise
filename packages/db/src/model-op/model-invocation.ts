@@ -55,6 +55,18 @@ export interface ClaimModelInvocationInput {
    * 纯观测：不进 requestDigest（版本非语义输入），不参与任何结算/重试/状态机语义判定。
    */
   promptVersion?: string;
+  /**
+   * AG-12 观测标签：估算器版本（claim 时冻结落 ai_model_invocation.estimator_version，0184），
+   * 覆盖全 outcome 且 identity-immutable（claim 后不可改）。缺省落 NULL = 本调用无估算器标签
+   * （配对函数 COALESCE 存量 NULL → 'utf8-bytes-v1' 归因）。纯观测：不进 requestDigest。
+   */
+  estimatorVersion?: string | null;
+  /**
+   * AG-12 观测标签：校准因子版本（claim 时冻结落 ai_model_invocation.calibration_factor_version，
+   * 0184），覆盖全 outcome 且 identity-immutable。生产 policy.calibration 现无 setter，缺省落
+   * NULL 缝（回灌刀接线后始有值）。纯观测：不进 requestDigest。
+   */
+  calibrationFactorVersion?: string | null;
   leaseToken: string;
   leaseSeconds: number;
 }
@@ -92,7 +104,7 @@ export async function claimModelInvocation(c: Client, input: ClaimModelInvocatio
   const [provider, model, region, priceRevision, maxInputTokens, maxOutputTokens] = bindingArgs(input);
   const r = await c.query<{ action: string; lease_token: string | null; output: unknown; error_code: string | null }>(
     `SELECT action,lease_token,output,error_code
-       FROM ai_model_claim_invocation_scoped($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9,$10,$11,$12,$13,$14,$15,$16,$17)`,
+       FROM ai_model_claim_invocation_scoped($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
     [
       input.owner, input.idempotencyKey, nodeDigest, input.requestDigest,
       input.service ?? null, input.requestId ?? null, input.costScopeId ?? null,
@@ -100,6 +112,8 @@ export async function claimModelInvocation(c: Client, input: ClaimModelInvocatio
       provider, model, region, priceRevision, maxInputTokens, maxOutputTokens,
       input.estimateInputTokens ?? null,
       input.promptVersion ?? null,
+      input.estimatorVersion ?? null,
+      input.calibrationFactorVersion ?? null,
     ],
   );
   const row = r.rows[0];

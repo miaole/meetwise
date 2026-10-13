@@ -29,7 +29,7 @@ export type { RouteDecision } from './router/index.ts';
 export { resolveBinding } from './catalog/index.ts';
 export type { ModelBinding } from './catalog/index.ts';
 export type { DoubleValidateResult } from './validators/index.ts';
-export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation } from './model-client.ts';
+export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation, cjkWeightedEstimate } from './model-client.ts';
 export type { ModelClient, CompletionRequest, RenderedContextBudgetPlan, RenderedContextBudgetDecision } from './model-client.ts';
 export {
   TEXT_ENDPOINT_REGISTRY_VERSION,
@@ -193,12 +193,10 @@ export { weightedRrf, buildSearchIndex, expandQuery, multiQuerySearch } from './
 export type { QueryExpansionInvoker } from './search.ts';
 export type { SearchDoc, SearchOpts, SearchIndex } from './search.ts';
 
-export { circuitBreaker } from './circuit-breaker.ts';
-export type { BreakerOpts, BreakerPhase } from './circuit-breaker.ts';
-export { rateLimitedModel } from './rate-limit-model.ts';
+// 进程内限流/熔断残留(circuit-breaker.ts/rate-limit-model.ts)已删:MODEL-OP-02(迁移 0120)的共享
+// 权威(ai_model_admission_acquire_scoped·model-admission.ts)在 invoke() 内统一裁决并发/熔断。
+// failoverModel 为生产活导出(interview-service 主链消费)——零字节保留。
 export { failoverModel } from './failover-model.ts';
-export { resolveModelRateLimitConfig } from './rate-limit-model.ts';
-export type { RateLimitOpts, RateLimitedClient, ModelRateLimitConfig } from './rate-limit-model.ts';
 
 export {
   withTimeout,
