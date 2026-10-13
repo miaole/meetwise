@@ -241,6 +241,8 @@
     "ag-d-admission:prove:raw": "pnpm -C packages/ai-runtime prove:ag-d-admission && pnpm -C apps/worker prove:ag-d-admission",
     "ag19-prompt-version:prove": "node scripts/run-e2e-isolated.mjs ag19-prompt-version:prove:raw",
     "ag19-prompt-version:prove:raw": "pnpm -C packages/ai-runtime prove:ag19-prompt-version",
+    "qa-tool-layer:prove": "node scripts/run-e2e-isolated.mjs qa-tool-layer:prove:raw",
+    "qa-tool-layer:prove:raw": "pnpm -C packages/ai-runtime prove:qa-tool-layer",
     "model-slot-bypass:prove": "node scripts/run-e2e-isolated.mjs model-slot-bypass:prove:raw",
     "model-slot-bypass:prove:raw": "pnpm -C packages/ai-runtime prove:model-slot-bypass",
     "model-slot-bypass:static:prove": "pnpm -C packages/ai-runtime prove:model-slot-bypass-static",

@@ -223,6 +223,7 @@ export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './vo
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
+export { buildCandidateQaRegistry, buildRecruiterQaRegistry, runQaToolLoop, QA_TOOL_LOOP_MAX_STEPS, QA_SERVICE_GROWTH_ADVISOR, QA_SERVICE_RECRUITER_FOLLOWUP, type QaToolLoopConfig, type QaToolLoopOutcome } from './qa-tool-layer.ts';
 
 export * from './g7-freetier-reprove-guard.ts';
 // GODFN-1b: the outbound interceptor moved to the test-support face; its
