@@ -401,30 +401,37 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null`。
 
 
-## AG 能力修复+计费改造 战役刀位图（2026-10-12 立节·协调方·非 271 计件·沿 :301 配套管线先例·进度面板可见性用）
+## AG 能力修复+计费改造 战役刀位图（2026-10-13 深夜全面刷新·协调方·非 271 计件·沿 :301 配套管线先例·进度面板可见性用）
 
-> 北星四门禁不变（G7 全量收据未齐 g7SuiteGreen=false 钉死）。本节登记新战役刀位与状态·优先级栈已重排：**门3 0 BUG 主路径=AG 失败语义轨**。
+> 北星四门禁不变（G7 全量收据未齐 g7SuiteGreen=false 钉死）。本节 2026-10-13 深夜全面刷新：失败语义轨六刀（A-F）全落主线·安全轨收官·计费 P1/P2/P3 三刀落码·批3 全清。
 
-| 轨 | 刀 | 覆盖 | 状态 @2026-10-12 深夜 |
+| 轨 | 刀 | 覆盖 | 状态 @2026-10-13 深夜 |
 |---|---|---|---|
-| 失败语义 | 刀 A | AG-05 续跑+AG-26 | **nail `a89471ef` 收官**（merge 已推非 force·双亲 `b8206e53`+`cf4c92f2`·post 双席 BOTH PASS·merge 后四门 36/43 臂+typecheck 3/3+docs:check 全绿·零账本触面·残余窗口 dispatching→unknown 确定性 unavailable 如实披露归 AG-06 unknown ageing·AG-25 ask+1 归后继·详情 checklist「Line AG-A nail」段 @`bced81b1`） |
-| 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | **nail `2a2fee56` 收官**（merge `616d8ef3` 已推非 force·post 双席 BOTH PASS·merge 后四门 117/24 臂+typecheck 3/3+docs:check 全绿·AG-14 流式面/EG-B1=后继刀） |
-| 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | **nail `928b2612` 收官**（merge 已推非 force·双亲 `09768397`+`114f7189`·post 双席 BOTH PASS·merge 后五门 33/28/14 臂+typecheck 3/3+docs:check 全绿·白名单只增不清约束生效·AG-01 准入=刀 D 骨架已立·详情 checklist「Line AG-C nail」段） |
-| 失败语义 | 刀 D | AG-01 准入去终态化 | **nail `ccf3e7e7` 收官**（merge 已推非 force·双亲 `32bf35b8`+`7e0d64d0`·post 双席 BOTH PASS·merge 后门 49/25/33 臂+typecheck 3/3+docs:check 全绿·案A 可写最小形释放 claim（保留 lease_token 原值仅 SET lease_expires_at=clock_timestamp()·0037 CHECK/0088 guard/0130 重领三层守卫过）+迁移 0179 release 函数+invoke 三拒绝点改造+model-admission 六码白名单（含 model_circuit_half_open 呈报裁认）+consumer 只增+worker 衔接·三轮回炉终裁（rev1 席1 FAIL 释放形不可写→rev2 席2 FAIL 存储守卫双拦→rev3 可写最小形 BOTH PASS）·裁决③改判呈报=service invoke 拒收点·STILL OPEN：unknown ageing 归 AG-06/残余窗口归 AG-06/AG-15 可观测·详情 checklist「Line AG-D nail」段 @`640cff29`） |
-| 失败语义 | 刀 E | AG-03+EG-A1+**AG-10 守卫（跨轨硬约束≤本刀）** | **nail `a2b0795f` 收官**（merge 已推非 force·双亲 `8603dc65`+`0dc4f5d7`·post 双席 BOTH PASS·merge 后五门 51 断言五臂+migrate 173 含 0178+report-retry+typecheck 3/3+docs:check 全绿·AG-10 守卫与重试开关同 commit 硬约束履约·白名单只增不清·STILL OPEN：S12 阈值追认/多实例 Redis 归计费·详情 checklist「Line AG-E nail」段） |
-| 失败语义 | 刀 F | AG-02 残面四类有界 re-roll | **nail `74ca131c` 收官**（merge 已推非 force·双亲 `a89471ef`+`b29d861d`·post 双席 BOTH PASS·merge 后门 47/25/43 臂+typecheck 3/3+docs:check 全绿·四类族有界 re-roll（MAX_ERROR_REROLL=2·键+revision 双换·每 roll 重过全闸·MALFORMED 吸收刀 B 两码）+耗尽换 competency 不终场（连续耗尽帽=2）+unscored 0 分继续（concluded 禁置）·attempt 通道字节零改·STILL OPEN：0046 混合 unscored 放松归计费/provider_timeout 独立码归后继·详情 checklist「Line AG-F nail」段）·**失败语义轨六刀位图 @刀 D 收官=六刀全收官 A-F**：A `a89471ef`·B `2a2fee56`·C `928b2612`·D `ccf3e7e7`（本刀收官）·E `a2b0795f`·F `74ca131c`——六刀 merge 全并主线非 force·详情 checklist 各「Line AG-{A,B,C,D,E,F} nail」段 |
-| 成本轨 | ①止血+观测 | AG-07+#48 | **nail 6f2ed876 收官**（env 双旋钮缺省关停+三端点观测） |
-| 成本轨 | ②-⑥ | AG-07 迁移四件套+合并语义+保留期（②nail 收官）·AG-12 估算③/AG-11 三件套④/AG-08 ⑤/#48 后继⑥ | ② **nail 收官**（0177+水位线+合并 max·windowing 38 臂绿·号位臂勘正）/③-⑥ 队列 |
-| 安全 | qbank 小刀 | AG-41+42（5 函数）+43 调度半+P5 | **nail `d31be795` 收官**（merge 已推非 force·双亲 `d6ee387c`+`b20ee350`·post 双席 BOTH PASS·merge 后门 26 臂+dbhy1 27/28（P3-1 主线既存红双基线亲证 BILL1 遗留·红面 4→1 收窄）+typecheck 3/3+docs:check 全绿·0176 迁移 363 行+释放函数 executor-only（REVOKE app_role+GRANT qbank_control_executor）+五函数双空 23514（LANGUAGE sql 保守保留+INVOKER 断言助手）+调度 QBANK_RELEASE_SWEEP_ENABLED 缺省 false+P5 九支 GUC 策略 DROP 真空收口·errata 五条文书级·STILL OPEN：AG-43 manifest/0029:119/:121 两支/审核人半/AG-39/AG-37/dbhy1 P3-1 bill1 登记·详情 checklist「Line QSEC nail」段） |
-| 计费 | billing rev | 用户全裁决落卷+B 端章+扩张包+全调用面表+明细列表 | **nail `1a332e5e` 收官**（merge `925b6cfc` 已推非 force·双审 BOTH PASS·设计蓝本非实施零码动·merge 后 docs:check EXIT=0·待拍板余 2 项归用户（话题定义/封顶终值）·P1/P2/P3 实施刀待立项·详情 checklist「Line BILLING-REV 蓝本 nail」段） |
-| 计费 | P1/P2 | 0170-0173 字段迁移+影子计量 | **P1 nail `a1241e90` 收官**（merge 已推非 force·双亲 `528c3221`+`b42c4e6b`·post 双席 BOTH PASS·merge 后门 27/57 臂+migrate:prove+typecheck 3/3+docs:check 全绿·0170 interview_question 三列+0171 question_usage_ledger 归集+七件接线·零行为变更（billing_mode 默认 per_session·旧行 NULL=不计费）·errata：EXEC 28 臂虚报实 27/三文件 4 处 union 冲突并集解·STILL OPEN：0172-0173 结算刀 P3/明细列表 §3.13 姊妹面·详情 checklist「Line BILL1 nail」段）·**P2 nail `f3968440` 收官**（merge 已推非 force·双亲 `c7ae85d2`+`d1a8cb1a`·post 席1 FAIL 0179 撞号→rev 改号 0180→复审 PASS=双审 BOTH PASS·merge 后门 44/27 臂+typecheck 3/3+docs:check 全绿·0180 topic_shadow_meter 影子表 mirror §6.3 降结算语义（RLS 只授 SELECT/INSERT+PK 幂等）+收尾事务外围 fail-soft 钩子+meter_version shadow-v1 三挂点增量兑现存量零回填·零扣费铁律（零 topic_charge/零 commerce/零 entitlement/零 0046 放松/零 billing_mode）·errata：0179→0180 改号勘误注/BILL1 27 臂虚报 28 承登·STILL OPEN：影子期 2 周运营观察/封顶 6 终值复核/0172-0173 结算刀 P3·详情 checklist「Line BILL2 nail」段） |
-| 产品大刀 | AG-39 私有题库+AG-38 问答侧 | 题库分层/工具边界两设计决策 | 挂用户排期 |
-| 产品口径（批3） | I263 小刀 | #263 B 端「内部预览」标注收口（21 面+五同族口径面+Pages 公开面） | **nail `f5fdca0c` 收官**（merge `9ae70025` 已推非 force·post 双席 BOTH PASS·merge 后四门 14/14+uc003+docs:check 全绿+apps/ 零残留·批3 23/23 全收口·详情 checklist「Line I263 nail」段） |
-| 观测 | AG-19 | prompt 版本落库+trace+metric 纯观测增强（issues-final AG-19 :257-266·落库/打点缺失面） | **nail `6bc982a5` 收官**（merge 已推非 force·双亲 `aeaf4141`+`46e051ee`·post 双席 BOTH PASS·merge 后五门 ag19 47 臂+metrics 16+migrate 117+typecheck 3/3+docs:check 全绿·迁移 0181 prompt_version 列四件套+InvokeSpec.promptVersion 可选+span/Langfuse metadata/metric 标签三面·零 prompts.ts/零评分语义/零 requestDigest/零既有列改动·errata：0181 17 参无 SQL 级 DEFAULT 系 0119:175-196 同形非 0174 DEFAULT 先例勘误归档·STILL OPEN：AG-24 Langfuse model 字段归后继·详情 checklist「Line AG-19 nail」段 @`afab4a41`） |
-| 检索 | AG-37 | 检索 weighted-deficit 持久化（issues-final AG-37 :49/:455-464·deficit 每 claim 归零→多叶岗位恒落最大权重叶·修法 :463「持久化到图 state，每题更新」） | **nail `66e42d6e` 收官**（merge 已推非 force·双亲 `be883e85`+`15b67341`·post 双席 BOTH PASS·merge 后四门 ag37 35 臂+adaptive-flow+typecheck 3/3+docs:check 全绿·图 state additive Annotation weightedDeficit（reducer (_,b)=>b default null·旧 checkpoint 缺省 null 零回填沿 topicMainQuestionId 先例）+seam 第 8 additive 参沿 asked 第 7 参先例+consumer 读持久化值不再归零+generate-question 出参回流+lifecycle 纯透传·DRR 五题周期 [0,1,0,1,0] 配额 3:2·零检索算法改动·零 CRAG 阈值改动·零迁移·errata：三基线同红如实承登非本刀面·STILL OPEN：AG-39 私有题库另刀/AG-40 已修/AG-13 CRAG 阈值另刀·详情 checklist「Line AG-37 nail」段 @`ea3592f2`） |
-- 关联蓝本：ai-docs/delivery/ai-capability-review/（LANDING-INDEX 十三节）+billing-redesign/（INDEX 十三节）。
-
-
+| 失败语义 | 刀 A | AG-05 续跑+AG-26 | ✅ nail 收官 a89471ef |
+| 失败语义 | 刀 B | AG-06 四态分类+AG-14 折叠 | ✅ nail 收官 616d8ef3 |
+| 失败语义 | 刀 C | AG-04 requeue+#4+EG-A2 | ✅ nail 收官 928b2612 |
+| 失败语义 | 刀 D | AG-01 准入去终态化 | 🔧 EXEC 落码中 7e0d64d0（post 席1 PASS·席2 在飞） |
+| 失败语义 | 刀 E | AG-03 重试+EG-A1+AG-10 守卫 | ✅ nail 收官 b8206e53 |
+| 失败语义 | 刀 F | AG-02 残面 re-roll | ✅ nail 收官 74ca131c |
+| 成本轨 | ①止血+观测 | AG-07+#48 | ✅ nail 收官 6f2ed876 |
+| 成本轨 | ②-⑥ | 迁移②收官·AG-12/AG-11/AG-08 后继 | ② ✅ nail 收官 dfcadd9e·③-⑥ 队列 |
+| 安全 | qbank 小刀 | AG-41+42 五函数+43 调度半+P5 | ✅ nail 收官 32bf35b8 |
+| 计费 | 蓝本 rev | 全裁决落卷+B 端章改写+全调用面表 | ✅ nail 收官 925b6cfc |
+| 计费 | P1 字段迁移 | 0170-0171 topic_id/ledger | ✅ nail 收官 a1241e90 |
+| 计费 | P2 影子计量 | 0180 影子表+fail-soft 钩子 | ✅ nail 收官 f3968440 |
+| 计费 | P3 结算 | 0172-0173+八件函数 | 🔧 nail 红停（链深 pin 182→183 协调方修 8a234cc5）→待重推 |
+| 批3 | #263 内部预览收口 | 21 面+五同族口径面 | ✅ nail 收官 9ae70025 |
+| 补充 | AG-37 deficit 持久化 | 图 state additive | ✅ nail 收官 66e42d6e |
+| 补充 | AG-19 prompt 版本 | 0181+trace+metric | ✅ nail 收官 b8206e53 |
+| 起草 | billing P3 | 结算 REQUEST 503ccd59+rev 4bf1ce96 | ✅ 双审 BOTH PASS→EXEC 落卷 f4234c92 |
+| 起草 | qbank 起草 | AG-41/42/43+P5 | 落卷 9484bc54→EXEC b20ee350→post BOTH→nail 32bf35b8 |
+| 起草 | AG-37 起草 | deficit 持久化 | 落卷 3b47df9a→EXEC 15b67341→post BOTH→nail 66e42d6e |
+| 起草 | AG-19 起草 | prompt 版本 | 落卷 2776baa6→EXEC 46e051ee→post BOTH→nail b8206e53 |
+| 起草 | billing P1 起草 | 话题字段 | 落卷 2b44a0dc→EXEC b42c4e6b→post BOTH→nail a1241e90 |
+| 起草 | billing P2 起草 | 影子计量 | 落卷 73dbdc90→EXEC 7c980b49→post BOTH→nail f3968440 |
+| 排期 | AG-39 私有题库 | owner_kind+org_id+库内强制+来源审计 | 大型产品刀·挂用户排期 |
+| 排期 | AG-38 问答工具层 | runToolLoop 只读受限工具层 | 挂产品落地（成长顾问/B 端追问） |
+| 排期 | 批5 残项 | 批5 残 111 件 | 5E 32/143 已收·残归域刀 |
 ## BILL3 话题结算收官登记（2026-10-13 · nail 席红停→协调方接管修→收官 · 沿 :301 先例 · 非 271 计件面 · 权威值 146/271 维持）
 
 - merge fee425cd（--no-ff 双亲 0345b467+f4234c92）·bill3-settlement:prove 43 断言六臂隔离库 applied=183 全绿（含 0172/0173 各恰一行）·billing_mode 默认 per_session 零行为变更·方案② r2(requested×LEAST(Σ,cap)/cap)·abandon/sweep/fail 拆二选一·#31 报错 409·post-prove 双席 BOTH PASS·nail 席红停（链深 pin 182·实际 183）→协调方接管修 8a234cc5 已推。
