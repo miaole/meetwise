@@ -1,6 +1,6 @@
 # AG-24 — 成本与观测小项汇总刀：Langfuse model 真名+cached/cost 上报 · RAG 预留 0083 revision 绑定 · G7 回退估算数组修·进程内限流/熔断残留清理（EXEC REQUEST）
 
-**Status**: `draft:awaiting_pre_exec_dual`（起草席落卷即停·docs-only 恰 1 .md 零码动 · 预执行双审两外席 PASS + 协调方明示授权方可开工 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工收官随翻·落卷即停待 post-prove 双审两外席 · **Ban self-approve** · **alone≠dual** · ⛔push）·**rev2+exec**（rev2=pre-exec 双审两外席 FAIL findings 全数处置 BOTH PASS+协调方明示授权后 EXEC 立项施工；**EXEC 翻面随卷**：并线 `4f8b7402`+五件施工+门矩阵 17 门逐门 EXIT 收据·§9 EXEC 附记全呈报·§0-§8 原文零改（唯两条协调方授权复审 P2 登记性勘误：§0.1 #11「七行→六行」·处置表 #1 括注））。
 
 **rev2**（2026-10-13）：pre-exec 双审两外席均 FAIL·本卷按 findings 全数修订（两席共识 blocking 2+席1 独有 9+席2 独有 11=22 项逐条处置·1 项复测否证如实上报）·STOP=`draft:awaiting_pre_exec_dual` 维持·§0-§8 除 findings 指明处零改·基线/blob 零动·逐条处置表见卷尾「rev2 勘误席处置摘要」。
 
@@ -25,7 +25,7 @@
 | 8 | `packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql` | `fe6d5de12862` | **子项③形制蓝本**：:8-12 9 参 `ai_cost_reserve_text`（p_price_revision）/ :31 revision 形校验 `^[A-Za-z0-9._:-]{1,80}$` / :53-56 replay 换 revision→`binding_mismatch`（:52-55 条件·:56 返回）/ **:67-68 revision 精确查价+`effective_at <= clock_timestamp()`·:69-72 无行→`price_missing`**（块 :66-72·rev2 E7 微差校正）/ **:103-123 `ai_cost_text_price_binding_matches_scoped` 启动期对表**（:101-102 注释·rev2 E7 微差校正）/ :128-130 旧 latest-price 签名 REVOKE fail-closed / :134-146 scoped 9 参口 GRANT app_role **在案（子项③裁决③(a) 零新迁移依据·GRANT 恰在 :146）** |
 | 9 | `packages/ai-runtime/src/rate-limit-model.ts` | `00f406521a20` | **子项④残留件一（162 行整删·rev2 E1 勘误：原记 163）**：进程内并发/RPM 限流器（rateLimitedModel·:31-36 resolveModelRateLimitConfig 读 `MODEL_MAX_CONCURRENT`/`MODEL_RPM`·waiters 队列/nextStartAt 全进程内变量）/ :2-5 注释自称「Model concurrency/RPM admission」 |
 | 10 | `packages/ai-runtime/src/circuit-breaker.ts` | `90c3720a54f6` | **子项④残留件二（131 行整删）**：进程内熔断器（threshold 5/cooldown 30s/:20-24 halfOpenProbeHeld 注释原文自认「This lease is intentionally **process-local**, like this breaker itself」/ :34 emit METRIC.circuitBreakerOpen）——**复核快照只点名本文件；rate-limit-model.ts 系同族残留（MODEL-OP-02 收编同批对象）·本刀一并删（issues-final :319「删除残留实现」修法权威面内）** |
-| 11 | `packages/ai-runtime/src/index.ts` | `621c83ff9a5d` | :196-201 七行中**删 5 行=:196 `circuitBreaker`/:197 `BreakerOpts,BreakerPhase`/:198 `rateLimitedModel`/:200 `resolveModelRateLimitConfig`/:201 `RateLimitOpts,RateLimitedClient,ModelRateLimitConfig`**——**:199 `export { failoverModel } from './failover-model.ts'` 生产活导出·零字节零触（rev2 共识勘误：interview-service.ts:9 import+interview-service.ts:227 `failoverModel([primary, backup])` 主链+model-cost-governance.proof.ts:10 消费·删则 import 丢名编译红·Ban 见 §5）** |
+| 11 | `packages/ai-runtime/src/index.ts` | `621c83ff9a5d` | :196-201 六行中**删 5 行=:196 `circuitBreaker`/:197 `BreakerOpts,BreakerPhase`/:198 `rateLimitedModel`/:200 `resolveModelRateLimitConfig`/:201 `RateLimitOpts,RateLimitedClient,ModelRateLimitConfig`**——**:199 `export { failoverModel } from './failover-model.ts'` 生产活导出·零字节零触（rev2 共识勘误：interview-service.ts:9 import+interview-service.ts:227 `failoverModel([primary, backup])` 主链+model-cost-governance.proof.ts:10 消费·删则 import 丢名编译红·Ban 见 §5）** |
 | 12 | `packages/ai-runtime/src/metrics.ts` | `ddca34ad57e6` | :66 注释「emit 在 circuit-breaker.ts 相位翻到 open 时」/ :74 `circuitBreakerOpen: 'model_circuit_breaker_open_total'` / :122-123 registerBaselineMetrics 按 {dep:'model'/'fast_model'} 播种基线 0——**随删（§1-④·metrics.proof 适配如实登记）** |
 | 13 | `docker/monitoring/alert.rules.yml` | `9af72c994f3f` | :102-105 熔断告警 `sum(increase(model_circuit_breaker_open_total[15m])) > 0`——**死告警**：生产零 emit 源（残留件未接线）·基线恒 0→increase>0 恒假 |
 | 14 | `scripts/alerts-lint.mjs` | `b397fa9a588d` | :28-29 白名单行 `"model_circuit_breaker_open_total"`——随告警同删 |
@@ -173,7 +173,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 | # | finding | 处置 | 落点 |
 |---|---|---|---|
-| 1 | B-共识1 §1-③(a)「+结算切 text settle」与红事实 B/§3-4/§5 Ban 自相矛盾 | **采纳席2 方案（协调方裁决）**：③只绑预留（7 参→9 参 0083 口）·settleAiCost 原样零字节·「结算切 text settle」全卷删除·红事实 B 机制句同步改写 | §1 红事实 B 尾句/§1-③(a)/§8-③(a)（§3-4/§5 原文本已一致零动） |
+| 1 | B-共识1 §1-③(a)「+结算切 text settle」与红事实 B/§3-4/§5 Ban 自相矛盾 | **采纳席2 方案（协调方裁决）**：③只绑预留（7 参→9 参 0083 口）·settleAiCost 原样零字节·「结算切 text settle」全卷删除·红事实 B 机制句同步改写 | §1 红事实 B 尾句/§1-③(a)/§8-③(a)（§3-4 零动·§5 随 #2 同行增补 settleAiCost 零字节） |
 | 2 | B-共识2 index.ts :199 failoverModel 活导出误入删除面 | **采纳**：改「删 5 行=:196/:197/:198/:200/:201·:199 零字节零触」+§5 增 Ban（消费点三处全亲证：interview-service.ts:9/:227·model-cost-governance.proof.ts:10） | §0.1 #11/§1-④/§5 Ban |
 | 3 | 席1-B1 0035:68 ORDER BY 不存在（0035 全文 54 行） | **采纳（双 pin）**：0034:29 现行函数体（0034 OR REPLACE 取代 0033·:1-3 头注自证）+0033:115 原件；GRANT :49-51→**:50**；顺证 0035:14-21 scoped 口委托链 | §0.1 #7 |
 | 4 | 席1-B3 settle 消歧 | **并案共识1**（同上） | 同 #1 |
@@ -198,6 +198,56 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **复测差异登记（finding 数字 vs 亲测）**：席1-E1「三处」实为 4 处（全改）；席2-N8「约 9 个」实测全卷 19 处·结算臂段恰 9 处（两数并登）；席1-E6 否证（见 #10·唯一遗留争议）。
 
+## §9 EXEC 附记（2026-10-13·EXEC 席施工收官随翻·§0-§8 原文零改·裁决行使/门表/自检全呈报·⛔push）
+
+**并线+重 pin**：merge `4f8b7402`（--no-ff·双亲 `915000bb`+`626ac3cc`·零冲突·主线两笔=`b7dcce89` SSOT 收口+`626ac3cc` gitleaks 治理）。§0.1 blob 22 锚并线后逐条 `git ls-tree` 对表=**22/22 恒等零漂**（无重锚无勘误注需求）。随卷两条协调方授权复审 P2 登记性勘误已落：§0.1 #11「七行」→「六行」；处置表 #1 括注改「§3-4 零动·§5 随 #2 同行增补 settleAiCost 零字节」。
+
+**裁决项①-⑤行使落值（五项全按卷推荐行使·逐项落点）**：
+
+- **①(a) 行使**（actualModel→plan.cost?.model→undefined→Langfuse 侧 safeName(service) 降级）：`trace.ts` ModelCallSpan 增 `model?/cachedInputTokens?/settledMicroCny` 三可选标量（脱敏铁律不破·注释在位）；`invoke.ts` :542 InvokeSpanFn 扩可选参 `extra?: InvokeSpanExtra { model?; settledCostMicroCny? }`·span 闭包 `model: extra?.model ?? spanCostModel`（spanCostModel=plan 绑定后捕获·**与 claim 相位同源同值**·cost 身份 claim 后冻结不可换轨故全 invocation 恒真；prepare 声明臂在 plan 绑定前发射→undefined→现状降级零回归）·19 调用点中**仅终局 ok 臂 :1097 携值** `{ model: result.actualModel, settledCostMicroCny: policy ? settledCost : undefined }`（结算臂段其余 8 处 extra 缺省零字节·「触面按 9 处估」如实落窄）·cached 臂 :713 **零改零读携真名**（闭包捕获=裁决⑤(b) 行使）。
+- **②(a) 行使**（metadata.settledCostMicroCny 账本权威值）：`langfuse-v5.ts` metadata 白名单增 `settledCostMicroCny: span.settledCostMicroCny ?? null`（缺省=null 占位沿 promptVersion 同形·缺省≠零）；usageDetails 增 **`input_cached`** 条件挂键（`span.cachedInputTokens !== undefined` 时挂·undefined=键不出现·显式 0=挂 0）；:173 `model: safeName(span.model ?? span.service, 'unknown')`；span **名称** `meetwise.model.<safeName(service)>` 零字节（源钉断言在证）。
+- **③(a) 行使**（复用 0083 九参口只绑预留）：`apps/worker/src/rag-cost-governance.ts` 预留 `reserveAiCost`(7 参)→`reserveAiTextCost`(9 参 0083 口)·`priceRevision: cfg.priceRevision!`·`maxOutputTokens: 0`（embedding 无输出·0083 input+output≥1 容忍）；settleAiCost/release/dispatched/unknown 四件+价格本写入+预算检查**零字节**（git diff 亲证）；`binding_mismatch`→`rag_cost_binding_mismatch`/`price_missing`→`rag_cost_price_missing` 确定性拒绝由既有 `rag_cost_${decision}` 通用映射自然承载（注释登记 fail-closed 语义·绝不静默按新价放行）。
+- **④(a) 行使**（四处死 env 全删+残留清干净）：两残留件整删 `circuit-breaker.ts`(131 行)+`rate-limit-model.ts`(162 行)+`breaker.proof.ts`(138 行)；index.ts :196-201 删 5 行**保 :199 failoverModel 活导出**（零字节·新 proof 断言在证）；metrics.ts :66 注释/:74 METRIC 键/:122-123 基线播种；gate 两行（根 package.json `breaker:prove`+ai-runtime `prove:breaker`）；alert.rules.yml ModelCircuitBreakerOpen 完整告警块（**实为 :102-111**·§0 锚 :102-105 系 expr 行微差·整块删除防 YAML 残臂）+alerts-lint.mjs :28-29 注释与白名单行；死 env 四处（compose.prod.yml :36-37/compose.ha.yml :69-70/worker.env.example :119-121/api.env.example :48-49·**:118 WORKER_INTERVIEW_GLOBAL_INFLIGHT 活键保留**负证在证）；SSOT 三文件随批（current-runtime-truth.md :118 后半+:125 两句改共享权威事实·model-invocation-reliability.md :35+interview-question-bank-reliability-security.md :195/:333 改指 model-admission.ts）；interview-service.ts :205-206/:216-217 注释与 errors/index.ts :5 **零字节保留**。
+- **语义翻转（§2-2 清单全翻·非 additive 如实登记）**：runtime-kernel.proof :227 span 键集（+model/cachedInputTokens/settledCostMicroCny 三标量位）+:246 metadata 键集（+settledCostMicroCny）+:247-248（「model 字段仍=service 名」→「AG-24 翻转：成本标量逐字透传·model 真名走 generation 顶层字段」）；同段新增 AG-24 断言臂五条（裁决①(a) 回显优先/无回显=plan.cost?.model 对表/裁决⑤(b) cached 臂真名+非结算臂缺省不挂/prepare 拒绝臂降级零回归/settledCostMicroCny=账本 500 micro 对表·价格本 seeded 沿 model-cost-governance 先例）。
+
+**新 proof（§2-1 `prove:ag24-langfuse-model`·20 断言全绿·协调方门矩阵未单列、按「§2 门表全跑」口径行使·呈报）**：`packages/ai-runtime/test/ag24-langfuse-model.proof.ts`——①Langfuse 映射面（成本标量两态/脱敏负证/model 真名与 input_cached 与 span 名称三源钉/invoke 闭包三透传+签名扩参源钉）②G7 :650 数组形修+**:710 第三消费点随动**断言（fetch-stub 捕获 wire body 实算：带图=各段拼接字符量/4·≠数组元素数旧公式·≠64 塌缩；无图字符串形恒等零位移）③残留清理六面源证（两残留件不在树/导出撤五留一/metrics 键与基线序列零命中/门名两撤+新门在/死告警白名单撤/四处死 env 撤+活键保留/共享权威零触负证）。断言面分工呈报：span 三档真名/cached 在手/cost 对表臂在 runtime-kernel 可观测段（PG 载荷），Langfuse 映射/G7/残留面在新 proof——两面分工不双维护。
+
+**既有 proof 适配（compile-forced/翻转登记·不洗）**：metrics.proof（:26-35/:50/:53-54 原位编辑保 refund/jobs·:11/:17 legacy gauge 零触·照 §0.1 #16 重圈）；model-cost-governance.proof（:10 import 去 rateLimitedModel 保 failoverModel+:115-140 RPM 臂整删=§0.1 #17+**:178-190 faultGate 臂去 rateLimitedModel 包裹**（该臂第二消费点卷未点名·删模块后 compile-forced·语义保持=畸形 cost policy fail-fast+零外呼·如实登记））；model-usage-cache-observe.proof :170 计数钉 1→**3**（词面三处=型面一处+闭包透传行键值两处·语义翻转登记）；ag19-prompt-version.proof :298-299 源钉翻转（「AG-24 面零位移」→「AG-24 已落面」·AG-19 promptVersion 语义零位移·门 EXIT=0 亲证）。
+
+**门矩阵 EXIT 全表（17 门·收据=ai-docs/delivery/receipts/ag24-langfuse-model/）**：
+
+| # | 门 | EXIT | 备注 |
+|---|---|---|---|
+| 1 | ai-runtime 聚合 prove（首段 runtime-kernel+claim-join-orphan+diag-honesty+**末段 ag24 新 proof**） | **0** | 81 PASS·净库单轮（01）·聚合链末段 additive=门收紧非放松 |
+| 2 | model-op02:prove（隔离 runner） | **0** | 25 PASS·LOCAL_ISOLATED_PROOF_RECEIPT 在案（02） |
+| 3 | metrics:prove | **0** | 适配后全绿（03） |
+| 4 | rag-cost:prove（db ai-cost） | 1 | **既存环境绑定红**：`destructive_proof_requires_e2e_isolated`（云隔离靶门·本机无云凭据·守卫先于一切 proof 逻辑·本刀对 db ai-cost proof 零字节零触）（04） |
+| 5 | rag-cost-config:prove | **0** | 启动门原值（05） |
+| 6 | rag-cost-runtime:prove | 1 | **既存基线红 A/B 亲证**：runMigrations 账本调和（清单须覆盖账本全前缀）与 ≥0033 过滤链互斥·空库断 0011 `ai_invocation_trace`·base 版 proof 同错（一次性容器两形均试·内联探针实证）（06） |
+| 7 | prove:model-usage-cache-observe | **0** | 28 PASS·计数钉 1→3 语义翻转登记（07） |
+| 8 | breaker:prove（根）/prove:breaker（ai-runtime） | 已删 | rg 零命中+新 proof 断言在证（收据 01 §③） |
+| 9 | worker prove:model-cost | **0** | 10 PASS（09） |
+| 10 | worker prove:model-cost-metrics | 1 | **既存基线红**：qbank-release-sweep.ts:79 TransformError（§2-2 预判承登·零触）（10） |
+| 11 | ai-runtime prove:model-cost | 1 | **既存基线红 A/B 亲证**：base 净库同红「RPM 排队超时」+「迟到 lease 自释放」两臂·本刀删 RPM 臂后余既存 lateAdmission 臂一红=非本刀回归（08/08b） |
+| 12 | ag19-prompt-version:prove（隔离 runner） | **0** | 47 PASS·源钉翻转后门值零变亲证（11） |
+| 13 | provider-egress:prove | 1 | **既存基线红**：5 个既存未注册 consumer+4 个 `r4-p-*` 失效 env 引用（均不在本刀 diff）·本刀新文件 consumer+4 env 引用已按 test-fixture 形注册入 manifest·本刀条目零错误（12） |
+| 14 | env-schema:prove | **0** | 22 断言（13） |
+| 15 | turbo typecheck --force | **0** | 3 任务（14）·ai-runtime/worker 无 typecheck 任务·EXEC 补跑裸 tsc A/B：21=21、1=1 **零新增**（本刀两处新类型错即改：model-client :655 `'text' in part` 收窄） |
+| 16 | docs:check | **0** | manifest 随批后复扫仍绿（15） |
+| 17 | alerts:lint | **0** | 24 规则·白名单 0·原值（16） |
+
+**markers 五类**：五类之一（任务占位词类）1 命中=`interview-question-bank-reliability-security.md` :383 既存叙述句（「安全真实模型评测仍在该占位态」原文·本刀 diff 未触该行·词面沿 i6-239 组装形此处不复抄防自匹配）·其余四类 0 命中·零新增。
+
+**est live=0**：全 proof=scripted model/fetch-stub/隔离容器（model-op02+ag19 走 run-e2e-isolated·收据 `.tmp/isolated-proof-receipts/` 两笔）·零真实 provider 外呼·零 secrets·零消耗·pins 十一值零翻（脚注 actualSpendCny=null 同源）。
+
+**陷阱自检 13 条**：①span.model 值域受控（⊆受控策略模型名∪G7 供应商回显∪service fallback·闭包仅取 extra（invoke 内部 actualModel）∪spanCostModel·禁调用方注入）②缺席≠零两态分开（input_cached 条件挂键+settledMicroCny null 占位·负证断言在证）③usageDetails 键名=SDK 约定 `input_cached` 禁自造④index.ts :199 failoverModel 活导出零字节保留（消费点 interview-service.ts:9/:227+proof :10 在证）⑤settle/dispatched/release/unknown 四件+settleAiCost 零字节（git diff 亲证）⑥binding_mismatch fail-closed 不静默放行（0083 replay 判序先于 status 短路·绑定臂实测 rag_cost_binding_mismatch）⑦共享权威零触（0120/model-admission.ts/invoke admit 相位/model_circuit_* 决策码零字节·负证断言在证）⑧AG-19 promptVersion 面零触（langfuse-v5 :76-77/registryPromptVersion/metadata.promptVersion 行原值·ag19 门 47 PASS）⑨span 名称 meetwise.model.<service> 零字节（源钉在证）⑩计费语义零改（结算金额恒等臂 200 micro 对表·价格本写入/预算检查零字节）⑪脱敏铁律零扩（三新增标量皆数值/受控名·metadata 白名单形制 additive·负证在证）⑫interview-service 注释与 errors/index.ts :5 零字节保留（禁令语义仍真·免扩触面）⑬est live=0（零真实外呼·零 secrets·零生产操作）。
+
+**偏离任务书清单（全呈报）**：①新 proof+门接线落地（§2-1 点名·协调方矩阵未单列·按「§2 门表全跑」行使）②聚合 prove 末段 additive（收紧）③四处既有 proof 语义适配（metrics/模型费用 proof 双臂/计数钉/ag19 源钉·各自登记）④faultGate 臂去 rateLimitedModel 包裹（卷未点名的第二消费点·compile-forced·语义保持）⑤alert.rules 删除块 :102-111（§0 锚 :102-105 微差勘误·整块防残臂）⑥provider-egress manifest 注册本刀新文件一条 consumer+四条 env test-fixture（登记纪律）⑦五处基线红承登（rag-cost:prove/rag-cost-runtime:prove/provider-egress:prove/model-cost-metrics/ai-runtime model-cost·A/B 或机制证据）⑧本地测试基建动作（dev PG 清 3 张史前遗留表+全链迁移+app_role schema USAGE 恢复+一次性容器起拆·非代码非 SSOT）⑨metrics.proof 段注释随臂更新。
+
+**STOP（post-prove）· `executed:awaiting_post_prove_dual` · alone≠dual**：EXEC 施工+随翻落卷即停·待 post-prove 双审两外席·Ban self-approve·双审后并线序遵协调方。
+
 ---
 
 *AG-24 REQUEST · 2026-10-13 · draft:awaiting_pre_exec_dual · rev2 双审 findings 全数处置 · 基线 `feat/mysql-schema-skeleton` @`849a0f19517b` · 分支 `line/ag24-langfuse-model` · 工作树 `meetwise-ag24` · 蓝本=issues-final AG-24 :36/:312-320（:314 部分成立定谳·:319 修法权威·#72/#172/#210）+ EXPERT-REVIEWS §六 :54 EG-B4+§七 :67+:73 + review-log AC-F22 :88/AC-F13 :79 + ag-cost1 卷（cachedInputTokensOf 已落·裁决②「AG-24 归后继」授权面）· 范围=①Langfuse model 真名②cached/cost additive③RAG 预留 0083 revision 绑定（rev2 定谳：只绑预留·settle 零字节）④进程内限流/熔断残留清理（零行为影响确认在案）· 零共享权威触面·零计费语义改动·est live=0 · pins 十一值照抄 · markers=0 · ⛔push 待 pre-exec 双审两外席（Ban self-approve · alone≠dual · Dual PASS ≠ 开工）*
+
+*AG-24 REQUEST **exec** · 2026-10-13 · EXEC 席施工收官随翻（rev2 双审 BOTH PASS+协调方明示授权·⛔push·禁动主线）· **并线**：merge `4f8b7402` --no-ff（双亲 `915000bb`+`626ac3cc`·零冲突·§0 blob 22 锚重 pin 22/22 恒等零漂·两条协调方授权 P2 登记性勘误落卷）· **施工=五件裁决全按推荐行使**（①span.model 真名归因=actualModel→plan.cost?.model→service 降级+InvokeSpanFn 扩参+cached 臂零读取携真名②settledCostMicroCny metadata 标量+input_cached 条件挂键③RAG 预留切 0083 九参口绑 cfg.priceRevision·settle 四件零字节·binding_mismatch fail-closed④两残留件 293 行+死告警+死 env 四处+gate 两名+SSOT 三文件清干净·:199 failoverModel 零字节保留⑤语义翻转四处 proof 适配+新 proof `prove:ag24-langfuse-model` 20 断言）· **门矩阵 17 门逐门 EXIT 收据**（11 绿 5 既存基线红 A/B 或机制证据承登·1 已删在证·收据=ai-docs/delivery/receipts/ag24-langfuse-model/ 17 件）· markers 五类零新增（1 既存叙述句注明）· docs:check EXIT=0·turbo typecheck --force EXIT=0+裸 tsc A/B 零新增·est live=0·pins 十一值零翻·陷阱自检 13 条全过·偏离清单九条全呈报（§9）· 停止=**executed:awaiting_post_prove_dual**（待 post-prove 双审两外席·alone≠dual·Ban self-approve）*

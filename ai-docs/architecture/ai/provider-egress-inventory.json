@@ -135,6 +135,10 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/context-budget.proof.ts",
           "class": "local-adapter-test"
         },
@@ -1819,6 +1823,26 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/context-component-ledger.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
       "class": "test-fixture"
     },
     {

@@ -11,11 +11,11 @@
     "./test-support": "./test/support/fakes.ts"
   },
   "scripts": {
-    "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts",
+    "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts && tsx test/ag24-langfuse-model.proof.ts",
     "prove:diag-honesty": "tsx test/diag-honesty-prompt.proof.ts",
     "prove:claim-join-orphan": "tsx test/claim-join-orphan.proof.ts",
     "prove:retrieval": "tsx test/retrieval.proof.ts",
-    "prove:breaker": "tsx test/breaker.proof.ts",
+    "prove:ag24-langfuse-model": "tsx test/ag24-langfuse-model.proof.ts",
     "prove:vstream": "tsx test/voice-stream.proof.ts",
     "prove:voice-reliability": "tsx test/voice-reliability.proof.ts",
     "prove:interview-voice-seams": "tsx test/interview-voice-seams.proof.ts",
