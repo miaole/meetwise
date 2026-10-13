@@ -340,6 +340,7 @@ async function runUnderPlan(plan: PlanName, generationId: string, embedding: num
     await c.query('BEGIN');
     await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [S1]);
     await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [T1]);
+await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     for (const g of PLAN_GUCS[plan]) await c.query(g);
     // Mirror 0139 function SET on substituted body so EXPLAIN matches live iterative_scan（承 AQ P-HNSW 口径）。
     if (plan === 'P-HNSW') await c.query("SET LOCAL hnsw.iterative_scan = 'strict_order'");
