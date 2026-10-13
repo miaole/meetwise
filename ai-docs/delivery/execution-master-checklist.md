@@ -2510,3 +2510,13 @@ flowchart TD
 - [ ] **STILL OPEN（承接·非本刀面）**：AG-39 私有题库/私有优先（产品大刀挂用户排期·LEDGER 刀位图行另刀）·AG-40 检索快照 C 端双轨=已修（`634eb645`·LANDING-INDEX §十一 :84 定谳「不成立（现状）·历史成立」·本刀零触）·AG-13 CRAG 阈值（crag.ts 0.7/0.3/0.5）另刀面零触.
 - 预算：est live=0（全 proof scripted 假体+隔离库真迁移链·零模型外呼）·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+
+### Line BILL3 nail（2026-10-13·协调方常设授权·post 双席 BOTH PASS·43 断言六臂全绿）
+
+- Pins unchanged: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false（十一值）.
+- [x] **nail** merge fee425cd（--no-ff 双亲 0345b467+f4234c92·已知冲突 run-e2e-isolated.mjs union 并集解·adaptive-lifecycle hunk 级零交 auto-merge）·bill3-settlement:prove 43 断言六臂隔离库 applied=183 全绿·billing_mode 默认 per_session 零行为变更。
+- [x] **post-prove 双席 BOTH PASS**：席1（修法八件忠实·43 断言六臂+§9-2 六条独立复核·隔离库 applied=182 EXEC 时点+五门全绿）+席2（八件逐件忠实·16 数据行+六门独立全绿+blob 28/28+软交叠 union 预判）。
+- [ ] **STILL OPEN**：影子期 2 周运营观察+封顶 6 终值复核+明细列表 §3.13 姊妹面+扩张包+0046 混合 unscored 放松归计费战役。
+- 预算：est live=0·0 Key 值·`actualSpendCny=null`.
+- nail 席红停（链深 pin 182·并线后实际 183）→协调方接管修（4 行 182→183）→8a234cc5 已推。
