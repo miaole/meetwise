@@ -45,6 +45,7 @@ const T1 = 'v1';
 const S1 = 'backend/nodejs';
 const ORG_A = 'ag39-org-a';
 const ORG_B = 'ag39-org-b';
+const ORG_C = 'ag39-org-c';
 const QUERY_TOKEN = 'ag39isolation';
 
 function axis(i: number): number[] { const v = new Array<number>(DIM).fill(0); v[i] = 1; return v; }
@@ -72,7 +73,10 @@ const embedder: QbankEmbedder = {
 
 /* ─────────────────────────── fixtures：platform + org A + org B 各一题（同 leaf） ─────────────────────────── */
 interface Fixture { artifact: QbankQuestionArtifact; refIds: string[]; questionId: string }
-const DIST = { orgB: 0.05, orgA: 0.1, plat: 0.6 };
+// 距离形与 owner 秩逆序（plat 0.05 < orgA 0.3）：②-b 断言 org A 行先行时距离序站在反方——
+// 外层 owner 秩真被验证,杜绝「距离序恰与秩序同形→剜掉 owner 秩仍绿」的不可判异弱点;
+// orgB 0.05 维持「最近邻仍被库内排除」原语义（②-c-1 原值）。
+const DIST = { orgB: 0.05, orgA: 0.3, plat: 0.05 };
 
 function makeFixture(owner: 'platform' | 'org', ownerOrg: string | undefined, label: string, dist: number, ownAxis: number): Fixture {
   const questionId = `ag39q_${label}`;
@@ -170,6 +174,11 @@ async function main(): Promise<void> {
 
   /* ── 夹具入库（真写手 owner 贯通·ingestQuestionBankArtifacts→ingestQbank） ── */
   section('夹具：platform/orgA/orgB 三题经真写手入库');
+  // 治理通道 org seed 必经 org 信任根白名单（系统 seed 兜底例外仅平台灌库面）——
+  // 两夹具 org 预授系统灌库主体（按 org 显式授权形·非免白名单面）。
+  await pool.query(
+    `INSERT INTO qbank_org_curator(org_id, user_id) VALUES ($1,'__system_qbank__'),($2,'__system_qbank__') ON CONFLICT DO NOTHING`,
+    [ORG_A, ORG_B]);
   const ingested = await ingestQuestionBankArtifacts(pool, [plat.artifact, orgA.artifact, orgB.artifact], embedder);
   A('夹具 ingest 题数=3 块数=9', ingested.questionCount === 3 && ingested.chunkCount === 9);
 
@@ -324,6 +333,12 @@ async function main(): Promise<void> {
     A('④-10 平台公共源 org 招聘方拒（平台 curator 专属）', revPlatByOrg === false);
     const revPlatByCurator = await reviewSource(c, 'ag39src_p1', 'pending', 'approved', 'curated', { reviewer: 'ag39-platform-curator' });
     A('④-11 平台公共源平台 curator 过', revPlatByCurator === true);
+    const sysSeedOrg = await proposeSource(c, {
+      id: 'ag39src_s1', kind: 'manual', contentHash: dupHash + ':s1', addedBy: '__system_qbank__',
+      ownerKind: 'org', orgId: ORG_C,
+    }).then(() => null).catch((e: Error) => e.message);
+    A('④-12 org seed（__system_qbank__）未经白名单拒（seed 兜底例外仅平台灌库面）',
+      String(sysSeedOrg).includes('qbank_source_org_curator_required'));
   });
 
   /* ── ⑦ 值源派生臂（无绑定 interview 显式 platform·禁 RAISE） ── */

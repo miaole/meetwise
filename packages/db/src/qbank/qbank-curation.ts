@@ -62,7 +62,8 @@ async function isOrgCurator(c: Client, orgId: string, userId: string): Promise<b
  * **owner 作用域化**——冲突目标=uq_qsrc_active_hash_scoped (owner_kind, COALESCE(org_id,''), content_hash)，
  * org 源与平台源同 hash 不互斥不静默映射；dedup 反查同 owner 域直查（executor 通道 0066 ALL+RLS true），
  * 不再用全局 qbank_active_source_id（防跨 owner 反查映射）。org 提议须 (orgId, addedBy) ∈ org 信任根白名单
- * （系统 seed 主体 __system_qbank__ 例外=平台内容安全兜底灌库面）。owner 列缺席的历史前缀夹具走 platform 旧形制。
+ * （系统 seed 主体 __system_qbank__ 兜底例外**仅平台灌库面** ownerKind='platform'·org 提议无例外必经白名单）。
+ * owner 列缺席的历史前缀夹具走 platform 旧形制。
  */
 export async function proposeSource(c: Client, x: ProposeInput): Promise<ProposeResult> {
   const ownerKind = x.ownerKind ?? 'platform';
@@ -71,8 +72,9 @@ export async function proposeSource(c: Client, x: ProposeInput): Promise<Propose
   if (ownerKind === 'platform' && x.orgId !== undefined && x.orgId !== '') throw new Error('qbank_source_invalid_owner_kind');
   const ownerCols = await ownerColumnsPresent(c, 'qbank_source');
   if (ownerKind === 'org' && !ownerCols) throw new Error('qbank_source_owner_schema_missing');
-  if (ownerCols && ownerKind === 'org' && x.addedBy !== '__system_qbank__'
-    && !await isOrgCurator(c, x.orgId!, x.addedBy)) {
+  // 系统 seed '__system_qbank__' 兜底例外=平台内容安全兜底灌库面（ownerKind='platform'·不经本校验）;
+  // org 臂无例外——企业私有源提议必经 org 信任根白名单（防经治理 ingest 对任意 org 免白名单落源）。
+  if (ownerCols && ownerKind === 'org' && !await isOrgCurator(c, x.orgId!, x.addedBy)) {
     throw new Error('qbank_source_org_curator_required');   // 企业私有题维护=审核通过招聘方（#110 信任根）
   }
   const r = ownerCols
