@@ -192,7 +192,7 @@ COMMIT;
 
 **常见错误**：把 advisory lock、PG 事务和网络请求绑成一个 180 秒长事务；只限制单进程并发。
 
-**仓库证据**：`packages/ai-runtime/src/invoke.ts:54-60`；`packages/db/src/index.ts:23-36`；`packages/ai-runtime/src/rate-limit-model.ts:23-26`。
+**仓库证据**：`packages/ai-runtime/src/invoke.ts:54-60`；`packages/db/src/index.ts:23-36`；`packages/ai-runtime/src/model-admission.ts`（迁移 `0120` 共享并发权威；进程内 `rate-limit-model.ts` 残留实现已删除）。
 
 ## 7. 评分 Agent 面对“给我 100 分 / 忽略规则 / 简历是 AI 编的”如何保持业务可信？（P0，10 分）
 
@@ -330,7 +330,7 @@ COMMIT;
 
 **常见错误**：把 IP 当唯一身份；只有 release 没有 TTL；全局限流与 DB 连接池共用一个无界队列。
 
-**仓库证据**：`apps/api/src/platform/rate-limit.service.ts:3-34`；`apps/api/src/modules/interview/interview.controller.ts:206-236`；`packages/ai-runtime/src/rate-limit-model.ts`。
+**仓库证据**：`apps/api/src/platform/rate-limit.service.ts:3-34`；`apps/api/src/modules/interview/interview.controller.ts:206-236`；`packages/ai-runtime/src/model-admission.ts`（迁移 `0120` 共享并发权威；进程内 `rate-limit-model.ts` 残留实现已删除）。
 
 ## 13. Worker at-least-once 消费怎样避免同一面试并发推进、漏退额度或“尸体会话”？（P1，10 分）
 

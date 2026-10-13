@@ -1,0 +1,34 @@
+
+> @meetwise/ai-runtime@0.0.0 prove:model-usage-cache-observe /Users/miaole/Desktop/golucky/meetwise-ag24/packages/ai-runtime
+> tsx test/model-usage-cache-observe.proof.ts
+
+PASS  非流① OpenAI 兼容 cached_tokens=123 → cachedInputTokens=123 + 既有两字段原值
+PASS  非流① DeepSeek prompt_cache_hit_tokens=456 → cachedInputTokens=456
+PASS  非流① 百炼 prompt_tokens_details.cached_tokens=789 → cachedInputTokens=789
+PASS  非流② 字段缺席 → undefined（缺席≠零·绝不静默归零）
+PASS  非流③ 字段显式为 0 → 0（供应商显式回报零·与缺席分开）
+PASS  非流防御臂 三字段并存 → 取值序 cached_tokens 优先（互斥为常态·并存仅防御）
+PASS  非流边界 usage 载荷整体缺席 → ModelUsage=undefined（既有语义原值）
+PASS  流式① OpenAI 兼容形 → 终局 usage.cachedInputTokens=123 + onUsage 回调透传 123
+PASS  流式① DeepSeek 形 → 456 + onUsage 透传
+PASS  流式① 百炼形 → 789 + onUsage 透传
+PASS  流式② 字段缺席 → undefined（缺席≠零）+ onUsage 透传 undefined
+PASS  流式③ 字段显式为 0 → 0 + onUsage 透传 0
+PASS  流式既有字段原值（promptTokens=100/completionTokens=50·onUsage 形）
+PASS  METRIC 常量名（单一真源防漂移）
+PASS  presence 三态互斥：present_positive 恰三端点（非流+流式各计数）
+PASS  presence：缺席=absent（非流+流式各 1）
+PASS  presence：显式零=present_zero（非流+流式各 1·与 absent 分开打点）
+PASS  cached token counter：按解析值累计（123/456/789·非流+流式各一系列）
+PASS  显式零建序列不改值（inc(…,0) 只建序列·present_zero 面）
+PASS  字段缺席不建 token 序列（缺席≠零·无 0 假序列）
+PASS  usage 载荷整体缺席不打点（#48 面是载荷内字段在场性）
+PASS  # TYPE 头合法（counter 族）
+PASS  基线预注册：注册表 service 全集 presence 三态 0 序列（开机即有序列）
+PASS  基线预注册：token counter 0 序列
+PASS  零计费负臂：invoke.ts 中 cachedInputTokens 词面恰三处（型面 :74 一处+span 闭包透传行两处键值同形·settle/validUsage 仍零读·计数随 AG-24 语义翻转登记不洗）
+PASS  零计费负臂：usage-reconciliation.ts（对账/refineEstimate 面）零引用
+PASS  零计费负臂：打点恰两处（非流+流式各一 emit 点·无重复计数面）
+PASS  零计费负臂：价格本零缓存价（价格治理面零 cached 引用·沿 rg 红事实复证形）
+
+✓ #48 cached_tokens 观测三形证明全部通过

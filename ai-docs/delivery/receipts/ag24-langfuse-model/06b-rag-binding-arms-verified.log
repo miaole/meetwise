@@ -1,0 +1,48 @@
+# 06b — AG-24 RAG 绑定臂级复跑收据（§9 EXEC 附记勘误 E1 补登·post 勘误席亲跑·2026-10-13）
+#
+# 缘起：post-prove 双审席1 E1（P1）——§9 陷阱自检⑥⑩ 称「绑定臂实测」，但门矩阵收据 06 红于
+#       runMigrations（migration_ledger_unknown_version:0001_baseline）先于一切臂=无臂级收据。
+#       本件=按 post 审口径补登臂级真收据：一次性容器全链迁移后复跑 apps/worker/test/rag-cost-runtime.int.ts 的绑定臂。
+#       零码动：探针为临时 harness（.tmp/ag24-06b/rerun-binding-arms.int.ts·不入卷）；被复跑的臂断言与命名
+#       逐字取自该测试文件；唯一机制差异=先手跑全链 183 迁移（无过滤）——测试内 runMigrations 的 ≥0033
+#       过滤与「账本已记行必须全在传入清单」调和互斥（收据 06 红因本身），故臂复跑须先全链建库。
+# 底座：worktree meetwise-ag24 · branch line/ag24-langfuse-model · HEAD 7fb4d4b5a2f6a34e308dcc7f8a8c62f3529e7272（与门矩阵收据 01-16 同 tip·零码差）
+#
+# ── 命令与环境（run-e2e-isolated 同形：一次性容器·本地回环端口·跑毕即焚）──
+# 1) docker run --rm -d --name ag24-06b-pg -e POSTGRES_USER=meetwise -e POSTGRES_PASSWORD=meetwise_dev_password \
+#      -e POSTGRES_DB=meetwise -p 127.0.0.1::5432 pgvector/pgvector:pg16
+#    （镜像=scripts/run-e2e-isolated.mjs LEGACY_PG_IMAGE_DEFAULT 同形·口令=该 runner 内同一本地 fixture 值·一次性容器非 secrets）
+# 2) docker exec ag24-06b-pg pg_isready -U meetwise -d meetwise   → accepting connections（就绪轮询后）
+# 3) docker port ag24-06b-pg 5432/tcp                              → 127.0.0.1:56355
+# 4) cd /Users/miaole/Desktop/golucky/meetwise-ag24 && \
+#    PGHOST=127.0.0.1 PGPORT=56355 PGUSER=meetwise PGPASSWORD=meetwise_dev_password PGDATABASE=meetwise \
+#      ./node_modules/.bin/tsx .tmp/ag24-06b/rerun-binding-arms.int.ts        → EXIT=0
+# 5) docker rm -f ag24-06b-pg && docker ps -a | grep -c ag24-06b   → 0（容器已销毁·零残留）
+# est live=0：零真实 provider 外呼（embedder 为测试内 scripted 假体）·零 secrets（一次性容器本地 fixture）·零生产操作。
+#
+# ── 探针输出（原样捕获·未删节）──
+[env] PGHOST=127.0.0.1 PGPORT=56355 PGUSER=meetwise PGDATABASE=meetwise（PGPASSWORD 为一次性容器本地 fixture·同 scripts/run-e2e-isolated.mjs）
+[probe] 一次性容器复跑 AG-24 RAG 绑定臂 · suffix=1791886380450-69697
+[migrate] 全链迁移文件数=183（无过滤·对照测试内 ≥0033 过滤形=收据 06 红因）
+[migrate] applied=183 skipped=0 末件=0181_ag19_prompt_version_column
+PASS  调用前预留、provider 返回 usage 后按实际 token 结算
+PASS  派发后传输结果未知：账本冻结，同一 invocation 不会触发第二次 provider 调用
+PASS  AG-24：预留行绑定 cfg.priceRevision（≠NULL·0083 九参口精确查价·封死 latest 隐式选价）
+PASS  AG-24：同 invocationId 换 revision 重放 → binding_mismatch 确定性拒绝（fail-closed·绝不静默按新价放行）
+PASS  AG-24：同 invocationId 同 revision 兼容重放 → rag_cost_settled 确定性拒绝（0083 重放兼容语义·不误报 binding_mismatch·不重触 provider 调用）
+PASS  AG-24：价格本缺行 → price_missing 确定性拒绝（启动期对表断言保正常路径·运行期兜确定性码）
+PASS  AG-24：同输入同 revision 结算金额恒等（settle 按预留行捕获单价·绑定前后计费语义零变化）
+PASS  AG-24：observe 模式零账本触（零预留行·直连 embedder·零位移动臂）
+
+✓ AG-24 RAG 绑定臂级复跑收据（06b）全部通过
+PROBE_EXIT=0
+# ── 输出毕 ──
+#
+# ── 逐臂结果对表（post 审口径六项全覆盖·8/8 PASS·EXIT=0）──
+# 1. price_revision=cfg        → PASS「预留行绑定 cfg.priceRevision」
+# 2. binding_mismatch          → PASS「同 invocationId 换 revision 重放 → binding_mismatch 确定性拒绝」（fail-closed·自检⑥）
+# 3. 同 revision 兼容重放       → PASS「rag_cost_settled 确定性拒绝」（0083 重放兼容·与 2 互为对照·embedder 零重触）
+# 4. price_missing             → PASS「价格本缺行 → price_missing 确定性拒绝」
+# 5. 200 micro 恒等            → PASS「同输入同 revision 结算金额恒等」（settle 按预留行捕获价·自检⑩·另基线臂「按实际 token 结算」同 200 micro PASS）
+# 6. observe 零触              → PASS「observe 模式零账本触」（零预留行）
+# 附带：unknown 冻结臂（基线文件既有臂）同 PASS——「派发后传输结果未知：账本冻结，同一 invocation 不会触发第二次 provider 调用」。
