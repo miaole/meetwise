@@ -16,7 +16,9 @@
  */
 import type { Client } from '../principal.ts';
 
-/** estimate↔provider usage 配对（成功 + 校验失败的可计费调用；unknown 无 usage 不产出）。 */
+/** estimate↔provider usage 配对（成功 + 校验失败的可计费调用；unknown 无 usage 不产出）。
+ *  AG-12：estimator 系行自带归因（SQL 侧 COALESCE(estimator_version,'utf8-bytes-v1)——存量 NULL 行真值
+ *  =「历史全部系 v1 字节估算」），reconciler 按行分组绝不 blanket 盖章。 */
 export interface UsageCalibrationPair {
   idempotencyKey: string;
   service: string;
@@ -25,6 +27,7 @@ export interface UsageCalibrationPair {
   providerInputTokens: number;
   providerOutputTokens: number;
   observedAtMs: number;
+  estimator: string;
 }
 
 /** ai_usage_calibration 单行投影（域侧 toCalibratedFactor 再校验一次，双校验不重实现）。 */
@@ -40,7 +43,7 @@ export interface UsageCalibrationFactorRow {
 
 export async function listUsageCalibrationPairs(c: Client, owner: string): Promise<UsageCalibrationPair[]> {
   const r = await c.query(
-    `SELECT idempotency_key, service, model, estimate_input_tokens, provider_input_tokens, provider_output_tokens, observed_at_ms
+    `SELECT idempotency_key, service, model, estimate_input_tokens, provider_input_tokens, provider_output_tokens, observed_at_ms, estimator_version
        FROM ai_usage_calibration_pairs_scoped($1)`,
     [owner],
   );
@@ -52,6 +55,7 @@ export async function listUsageCalibrationPairs(c: Client, owner: string): Promi
     providerInputTokens: Number(row.provider_input_tokens),
     providerOutputTokens: Number(row.provider_output_tokens),
     observedAtMs: Number(row.observed_at_ms),
+    estimator: String(row.estimator_version),
   }));
 }
 
@@ -65,7 +69,7 @@ export async function listUsageCalibrationPairsSince(c: Client, owner: string, s
     throw Object.assign(new Error('usage_calibration_since_invalid'), { code: 'usage_calibration_since_invalid' });
   }
   const r = await c.query(
-    `SELECT idempotency_key, service, model, estimate_input_tokens, provider_input_tokens, provider_output_tokens, observed_at_ms
+    `SELECT idempotency_key, service, model, estimate_input_tokens, provider_input_tokens, provider_output_tokens, observed_at_ms, estimator_version
        FROM ai_usage_calibration_pairs_scoped_v2($1, $2)`,
     [owner, since],
   );
@@ -77,6 +81,7 @@ export async function listUsageCalibrationPairsSince(c: Client, owner: string, s
     providerInputTokens: Number(row.provider_input_tokens),
     providerOutputTokens: Number(row.provider_output_tokens),
     observedAtMs: Number(row.observed_at_ms),
+    estimator: String(row.estimator_version),
   }));
 }
 

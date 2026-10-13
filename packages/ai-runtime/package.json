@@ -52,6 +52,7 @@
     "prove:model-op02": "tsx test/model-op02-shared-provider.proof.ts",
     "prove:ag-d-admission": "tsx test/ag-d-admission.proof.ts",
     "prove:ag19-prompt-version": "tsx test/ag19-prompt-version.proof.ts",
+    "prove:ag12-estimator-freeze": "tsx test/ag12-estimator-freeze.proof.ts",
     "prove:model-slot-bypass": "tsx test/model-slot-bypass.proof.ts",
     "prove:model-slot-bypass-static": "tsx test/model-slot-bypass.static.proof.ts",
     "offline-eval:contract": "tsx scripts/run-offline-contract-regression.ts",
