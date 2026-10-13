@@ -1,0 +1,134 @@
+# AG39-ORG-QBANK REQUEST（AI 能力战役 AG-39 大型产品刀 S-XL · 企业私有题库 owner_kind/org_id 分层 + 检索函数库内强制过滤与私有优先排序 + 审核通过招聘方维护面 + 来源审计 platform/org:{id}/session_generated · docs-only 落卷即停）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+
+**席位**：meetwise 战役 AG-39（企业私有题库+私有优先检索）起草席（LANDING-INDEX §十一刀映射定谳「③AG-39=大型产品刀挂用户排期」承接·协调方派单·常设 loop）。
+**基线**：`feat/mysql-schema-skeleton` @ `94b8519b`（`94b8519b867a23d34c0ec96fd604a60fc8720bed`·主线 tip·`git log -1` 实测·**基线按落卷时 tip 重钉**·§0.2-1）。分支 `line/ag39-org-qbank`·工作树 `meetwise-ag39`（`git worktree add ../meetwise-ag39 -b line/ag39-org-qbank` 本起草席已立·建前三查亲证见 §0.0·建树时 HEAD 落 `849a0f19`、落卷前主线前移两笔全 docs 零码面亲证后 rebase 重钉·§0.2-1）。
+**立项出处（不自建 SSOT 行——行翻面权归协调方）**：蓝本四件全部精读引用——①`ai-docs/delivery/ai-capability-review/issues-final.md`（blob `dac7f58c`）：**AG-39 条目 `:478-487`**（P1 产品契合·「不支持企业私有题库、无私有优先检索；只有一份平台公共题库，无企业/租户字段」·复核结论=成立（已核实；无企业/租户字段）·file:line 锚=0013/0029/0031 qbank 表+qbank-acl §0/§1/§2/§5 P3+rg 零命中·修法=表加 `owner_kind(platform/org)` 与 `org_id`+检索函数按场景库内强制过滤并私有优先排序+企业私有题由审核通过的招聘方维护（关联 #110、#271）·企业审核+平台内容安全兜底·同样版本化）+ **AG-40 条目 `:489-496`**（已修登记参考·§0.2-2）；②同目录 `LANDING-INDEX.md`（blob `948fc7c7`）：**§十一交叉验证定谳 `:81-85`**（四条成立含 AG-39「无私有题库·产品层缺口·现状描述与设计决策节逐点吻合」+AG-40 改判不成立（现状）+**刀映射定谳 `:85`**：「①qbank 控制面鉴权收口小刀收 AG-41/43/42+P5」「②AG-43 审核人半=单行顺手项」「**③AG-39=大型产品刀挂用户排期**」「④AG-40 移除」）+ §七增量同步 `:50-68`（README「题库分层与私有优先」=用户 2026-10-12 决策·三类题库 platform/org/session_generated·场景强制检索规则·来源可审计·库内 SECURITY DEFINER 强制+私有优先·关联 #110/#271）；③同目录 `README.md`（blob `80129eed`）：**「设计决策：题库分层与私有优先（2026-10-12，用户决策）」`:116-157` 全文**（§1 红事实源·三类题库表+检索规则三场景+权限与实现建议四条）；④同目录 `qbank-acl.md`（blob `04b79936`）：**全文 60 行**（AG-39~43 源探索卷·基线 `2fab7946`·§5 P3=本刀直接红事实源·§0/§1/§2/§3 权限面为分层改造的基座描述）。
+
+## §0 现状锚（起草席亲读·base `849a0f19`·file:line 逐条 rg/sed/Read/git ls-tree 实测复核·**EXEC 立项照本节重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+### 0.0 防重三查（已终局·强制项）
+
+- `git worktree list` 建前 26 树实测（主仓+5e/ag19/ag24/ag37/aga~agf/authz/bill1/bill2/bill3/billrev/blite/cost1/cost2/e2sc/i263/i6/entpay/parity2/qsec/ttlwire）——**无 ag39 树**（qsec=qbank 控制面鉴权收口小刀树·其 0176 已并主线·零交叠）。
+- `git branch --list "*ag39*"` 建前空输出——**无同名分支**。
+- `rg -l "ag39-org-qbank" ai-docs/` **零命中**（harness 200+ 卷无同名刀卷；ai-capability-review 四件系蓝本登记卷非刀卷）。→ **停止条件未触发·可建树落卷**。
+
+### 0.1 blob 锚表（`git ls-tree HEAD` 亲算·全 @`849a0f19`）
+
+| 文件 | blob（8 hex·括号全 40 hex） | 关键行锚 |
+|---|---|---|
+| `packages/db/migrations/0013_qbank_source.sql` | `54204325`（`54204325785c49f4d7b172870a43f734834eff78`） | **qbank_source 现形 `:40-52`**：列=id/kind/status/added_by/reviewed_by/content_hash/version——**无 owner_kind/org_id**；qbank_curator 全局白名单 `:19-22`（user_id 单维·**无 org 维度**）；源审核 RLS 三策略 `:63-75`（approved 公开/提议者自己/curator 全部——**租户维度零**）；进池 approved 门触发器 `:132-142`；候选视图 `:146-150` |
+| `packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql` | `bb2d58ff`（`bb2d58ff451db6c7693cecb5dfc04e29113ced2b`） | qbank_chunk RLS `:40-54`（curator 策略·无 org）；generation 状态机表 `:107+`（state 五值·无 owner 维度） |
+| `packages/db/migrations/0031_qbank_question_artifact_rag.sql` | `27e11fbd`（`27e11fbdeb0cbd16df38cb9b43d2bb8b4eda1961`） | **qbank_question 现形 `:9-17`**：id/artifact_hash/competency/difficulty/state——**无 owner_kind/org_id**；qbank_question_chunk `:25-34`（role/ordinal/required） |
+| `packages/db/migrations/0066_qbank_control_executor.sql` | `1e3f21f8`（`1e3f21f84aaaac8d8dc349cad2702ce09870eb75`） | **鉴权 doctrine `:90-93`**：「Do not use current_setting('app.principal_user') for authorization inside SECURITY DEFINER functions: the executable grant is the authorization boundary」（owner GUC 系查询参数非鉴权根的教义根·§1-修法②合规依据）；executor 收写权 `:22-25`/`:66-72`；四控制函数 EXECUTE 收回授 executor `:162-165` |
+| `packages/db/migrations/0067_qbank_control_plane_read_boundary.sql` | `5188d0c2`（`5188d0c2471ac14ec0ffed76c7c8aca6af32a14d`） | executor 角色成员清零 `:30-34`；**app_role 原表 SELECT 收回 `:39-44`**（「qbank_is_curator() 是 GUC 路由上下文不能当鉴权根」）——检索只经 SECURITY DEFINER 函数=本刀库内强制过滤的承重面 |
+| `packages/db/migrations/0097_qbank_generation_serving_scope_projection.sql` | `fe660c49`（`fe660c491e32081c3728a684c33a4bfca6fc814c`） | **generation_chunk 投影 additive 扩列先例 `:57-65`**（ADD COLUMN taxonomy_version/serving_scope_id→SET NOT NULL）+PK 重塑三列 `:69-72`+FK 到 taxonomy_scope `:84-85`——修法① owner 维度进投影的同形范本 |
+| `packages/db/migrations/0106_qbank_track_local_serving_scope.sql` | `412eb975`（`412eb975a39f07b46ae7cf7b2731951367023c05`） | **双空放行旧分支 `:73-82`（历史原文·已被 0176 镜像体取代·§0.2-3）**；五函数 WHERE 赛道过滤四臂同形 `:121-127`/`:159-165`/`:196-202`/`:247-253`；qbank_retrieval_plan `:303-330`（owner_user_id/leaf_track_id/taxonomy_version/generation_id/recipe_id——**org 维度零**）+plan_event `:333-347` |
+| `packages/db/migrations/0170_interview_question_topic_fields.sql` | `8d57dba1`（`8d57dba1798f861870f6f429547a033d66c26024`） | **BILL1 已落先例**：对既有表纯加列三枚 `:19-21`+命名 CHECK 约束（DROP IF EXISTS+ADD CONSTRAINT 幂等形）`:23-31`+partial 索引 `:33-34`（`WHERE topic_id IS NOT NULL`·旧行为空不入索引）——修法①列/CHECK/索引形制范本+修法④ topic_id 已有列 |
+| `packages/db/migrations/0176_qbank_control_plane_authz_closeout.sql` | `38c1ec22`（`38c1ec22f22318a4730d73729de5873de7aff3af`） | **qsec 小刀产物=五函数现行权威体**：镜像纪律头注 `:3-5`（只加新迁移不回改 0106/0144/0146 原文）；AG-42 双空硬闸 `:118-135`（`qbank_assert_retrieval_scope()` 标量断言助手·双空 RAISE `qbank_retrieval_scope_missing` 23514·GRANT 两受者非 app_role）+五函数重定义 `:137`（tf_ ann 体）/`:173`（lexical）/`:208`（distances）/`:239`（evidence）/`:272`（question_evidence）+ACL 读面逐字镜像重申 `:340-345` |
+| `packages/db/src/qbank/qbank-generation-retrieval.ts` | `cd9bcb97`（`cd9bcb9709f1610b4c48d36cd7e602b6f913ca3d`·262 行亲读） | **QbankServingScopeInput `:39-42`**（taxonomyVersion+servingScopeId 两字段——**owner 字段零**）；validateServingScope `:47-53`；**setServingScope `:60-65`**（两 GUC `app.qbank_serving_scope`/`app.qbank_taxonomy_version`·`scope === undefined` 直接 return=调用方契约）；hybridQbankSearch `:221-262`（dense/rrf 两模式·RRF_K=60/MAX_K=50/MAX_CANDIDATES=200 常量 `:12-14`·RRF 融合排序 `:240-250` 只按 score+refId——**无私有优先键**）；qbankQuestionEvidenceForRefs `:156-189`/qbankEvidenceForRefs `:134-149`（第二可见性复检） |
+| `apps/worker/src/qbank-retrieve-scope.ts` | `fb46e7ce`（`fb46e7ce0032c74e507d19c8b10bf5220dbd444a`·74 行亲读） | resolveServingScopeFromRouteSnapshot `:40-60`（快照叶→scope·绝不发明赛道）；**decideRouteSnapshotRetrieve `:68-74`**（缺快照=检索拒绝 `route_snapshot_missing` 非无 scope 查询）——修法②场景臂（C 端/B 端）在此 decision 形上的扩点 |
+| `apps/worker/src/interview-consumer.ts` | `5ca3bb28`（`5ca3bb28cf06816c20895eda92e8595c11726ae5`·650 行亲读） | **H2 #202 双轨读 `:387-394`**（`routeSnapForRetrieve`=getInterviewRouteSnapshotForAdaptiveRole `:392-393`→`retrieveDecision`=decideRouteSnapshotRetrieve `:394`·AG-40 修复后在场面）；routeLeafTrackId `:397`；**localRetrieve seam `:411-434`**（trackLocal 臂 `:411-421` retrieveViaDispatchTrackLocal/production 臂 `:426-428` track_local_required fail-closed/compat 臂 `:430` adaptive.localRetrieve(owner, q, retrieveDecision.scope)）——场景臂 owner 维度注入的 worker 侧唯一汇流点 |
+| `apps/worker/src/qbank-track-local-retrieve.ts` | `18e6152a`（`18e6152a594be06c0be65b3c94c2c4af719bbc34`） | retrieveViaDispatchTrackLocal `:448`·assembleValidatedRetrievalPlan 消费 `:497`·dispatchTrackLocalRetrieval 唯一生产调用点 `:537`（plan 面零触·只读引用） |
+| `packages/db/src/qbank/qbank-track-local-retrieval.ts` | `6ba7c3ce`（`6ba7c3ce3ab8839acbbb914d7c35c1a4a665326d`） | qbank_retrieval_plan INSERT `:112`/CAS dispatched `:125-130`（owner 限定 plan 面·本刀零触只读） |
+| `packages/db/src/routing/candidate-route.ts` | `20fcae6a`（`20fcae6a54df0f8f620038c1eac29b3589a4fd7e`） | 双轨回退实现 `:116-121+`（旧 recruiter snapshot 优先→缺行 fallback candidate_profile_route_snapshot）——AG-40 修复体现状锚（本刀零触） |
+| `packages/db/migrations/0110_llm_qbank_miss_generation.sql` | `a390e5c9`（`a390e5c9995d551e9b0606fb7b8df6d3e12c68c8`） | question_issue_provenance `:101-106`（**origin CHECK 单值 `='llm_qbank_miss'`**·owner 限定·仅脱敏 digest）——生成题「不回流题库+只属本场」结构证据=「B 端禁本人练习记录」题库平面现状保证+修法④ source_bank 扩维底座 |
+| `packages/db/src/qbank/qbank-miss.ts` | `761610c8`（`761610c858e5a3d252be052e3b2219657251996e`） | provenance INSERT `:269-270`（origin=llm_qbank_miss·plan_id/leaf_track_id/taxonomy_version 现有审计列）——session_generated 来源类别的既有落点 |
+| `packages/db/src/qbank/qbank-curation.ts` | `e617a824`（`e617a824430545cbb9ce95fad41c94550a1af873`） | **proposeSource `:30-32`**（任何 principal 提议 pending·added_by=自己）；**reviewSource `:46-60`**（curator RLS+CAS·`:52-55` 审核人 coalesce `__system_qbank__`=AG-43 审核人半另单行项·本刀零触）；promoteToPool `:63`——修法③维护面（org 提议/审核隔离）的改造底座 |
+| `apps/worker/src/production-config.ts` | `dbe4c118`（`dbe4c1181cc506cd5167f022ac762c90cf8682d6`） | productionRequiresTrackLocal（consumer `:426` 消费·生产禁 compat 臂 fail-closed）——新 owner 断言臂生产语义对齐参考 |
+| 蓝本四件（只读引用） | issues-final `dac7f58c` / LANDING-INDEX `948fc7c7` / README `80129eed` / qbank-acl `04b79936` | 见卷首立项出处行锚 |
+| qsec 刀卷（只读引用·已收官并主线） | `ai-docs/delivery/harness/qbank-control-sec-REQUEST.md` | blob `887955e8`·0176 形制与镜像纪律出处 |
+
+### 0.2 漂移登记（蓝本锚=探索基线 `2fab7946` → 落卷 tip `849a0f19`·结论零变·EXEC 重 pin 时同协议处理）
+
+1. **主线 tip 会话内前移+基线重钉**：起草开工建树首测 `849a0f19`（BILL3 nail 收官 SSOT）→ 落卷前实测 **`94b8519b`**（LEDGER 刀位图 2026-10-13 深夜全面刷新 `c4ef2c7f`+billing P3 行勘误 `94b8519b`·两 commit 恰触 `ai-docs/delivery/harness/product-campaign-LEDGER.md` 一文件·`git diff --name-only 849a0f19..94b8519b` 排除该 docs 面后为空亲证·零码面）——本卷基线按落卷时 tip 重钉 @`94b8519b`·§0.1 全 blob 以新 HEAD 亲算（码面与蓝本四件 blob 与 `849a0f19` 逐位恒等·ls-tree 复算亲证）。
+2. **AG-40 已修（蓝本滞后项·本卷零触）**：qbank-acl/issues-final 载「C 端检索拿不到快照→route_snapshot_missing 降级」系基线 `2fab7946` 时点事实——现 tip 已由 `634eb645`（H2 #202·LANDING-INDEX §十一 `:84` 定谳「不成立（现状）·历史成立」）修复：begin 双轨写+检索面双轨读（interview-consumer `:387-394` routeSnapForRetrieve→getInterviewRouteSnapshotForAdaptiveRole+candidate-route `:116-121` fallback 双层）·0163 FK 使能。**本卷私有分层在「C 端已能检索公共题库」的现状之上叠加**（C 端臂=该检索面上的 owner_kind=platform 硬过滤），零回改 AG-40 修复面；0142 前存量回填=可选不阻刀（LANDING-INDEX 定谳原语义）。
+3. **AG-41/42/43 已由 qsec 小刀收口并主线（0176）**：qbank-acl P1（0146 GUC 鉴权）/P4（双空放行）的现状描述已过时——0176 已落（`qbank_assert_retrieval_scope` 双空 fail-closed+五函数现行权威体=0176 镜像体+释放函数收 executor+调度面 reconciler）。**本卷修法②在 0176 形之上叠加 owner 维度**：新迁移镜像 0176 现行权威体（非 0106 原文）·Ban 回改 0106/0144/0146/0176 历史原文（镜像纪律·qsec 刀卷头注原语义）。qbank-acl P5（遗留 GUC 策略）亦已由 0176 ④清九支（0029:119/:121 两支登记归后继——qsec 头注在案·本刀零触）。
+4. **bill1 0170 已落主线**：interview_question.topic_id/ask_mode/clarify_cause 在场（blob `8d57dba1`）——修法④「来源审计」沿 topic_id 已有列叠加 source_bank 维度·零回改 0170。
+5. **蓝本引用路径漂移（目录重构所致·结论零变）**：qbank-acl/issues-final 载 `packages/db/src/job-route-decision.ts:355-361`/`packages/db/src/candidate-route.ts:108-113` → 现位 `packages/db/src/routing/job-route-decision.ts`（快照 INSERT `:333`/读 `:358`）/`packages/db/src/routing/candidate-route.ts`（双轨回退 `:116-121`）——routing/ 子目录重构·机制原样。
+6. **AG-37 pin 漂移已由在飞机处理**：issues-final 载 interview-consumer `:257-273` → 现 tip deficit 面已移 `:397-399`+`:405-415` 区（`line/ag37-deficit-persist` 已并主线）——本刀零触 deficit 区（§4 软交叠登记）。
+7. **org 实体不存在（本刀诚实边界）**：全 migrations 105 表清单 grep 亲证零 org/tenant/company 表（§1.1-③）——修法① org_id 列落表时**无既有 FK 目标**：本刀列+CHECK+索引先行·org 实体建面=§3 范围外（企业账号体系另刀·org_id 约束形=§8 裁决项⑤）。
+8. **迁移编号链登记**：实测主线 max=**0181**（`0181_ag19_prompt_version_column` 已并主线）·全在飞分支（仅 `line/batch1-residual`·零迁移文件）零占号——**本刀拟占 0182（列+CHECK+索引）+0183（检索函数镜像扩 owner 维度+审计扩维）两号**（合一或拆件=§8 裁决项·EXEC 照裁决行号顺延）·**0184 起顺延·勿添重号**。
+
+## §1 红事实（机制链现 tip 重 pin·全 @`849a0f19` 实测·源=qbank-acl 全文+README 设计决策节 `:116-157` 用户决策全文+issues-final AG-39 `:478-487`+LANDING-INDEX §十一 `:81-85`）
+
+### 1.1 单租户现状链：只有一份平台公共题库·org 维度全链零（qbank-acl P3 现 tip 复核成立）
+
+逐行链（现 tip 行号）：①**表结构零 org 字段**：qbank_source（0013 `:40-52`）/qbank_chunk（0029）/qbank_question（0031 `:9-17`）/qbank_generation_chunk（0097 投影只加 taxonomy_version/serving_scope_id 两列 `:57-59`）——`rg "org_id|tenant|enterprise"` 在 qbank 迁移与代码中**零业务命中**（本席落卷 tip 复跑亲证·qbank-acl §0 原文「表里没有 org/tenant/company 列」现状维持）；②**全库零租户实体**：migrations 全表清单 105 表 grep 亲证零 org/tenant/company 表——「企业」在 schema 层无承载（§0.2-7）；③**信任根单维**：qbank_curator 全局白名单（0013 `:19-22` user_id 单列·无 org 维度）——审核权是全局布尔不是企业作用域；④**隔离只按赛道**：qbank-acl §0 原文「题与题之间的隔离靠『题域/岗位赛道（serving_scope / leaf_track）』，不按租户隔离」——检索函数 WHERE 只有 taxonomy/serving 两 GUC 谓词（0176 现行权威体 `:137-272` 五函数同形）+owner 维度零；⑤**检索计划面零 org**：qbank_retrieval_plan（0106 `:303-330`）owner_user_id/leaf_track_id/taxonomy_version/generation_id/recipe_id——org_id 零列；⑥**AG-39 复核结论逐点吻合现状**（LANDING-INDEX §十一 `:83` 验证席亲证「无私有题库·产品层缺口·现状描述与设计决策节逐点吻合」）。
+
+### 1.2 用户产品决策全文（README `:116-157`·2026-10-12 用户确认·**不是当前代码行为**——本刀使命=兑现该决策的题库平面）
+
+**三类题库**：平台公共题库（全站共用按赛道/能力过滤·`owner_kind=platform`）/企业私有题库（某企业自建仅本企业岗位面试可用·`owner_kind=org`+`org_id`）/本场生成题（题库未命中时 LLM 现场生成·仅本场面试不回流题库）。
+
+**检索规则（按场景强制）**：1. **C 端练习面试**——只用平台公共题库；公共题库未命中→现场生成；**不得使用任何企业私有题**。2. **C 端投递后的企业岗位面试（B 端评估链路）**——先查**该企业**私有题库（私有优先）；私有不足→用平台公共题库补；仍不足→现场生成；**不得使用其他企业的私有题**；**不得使用本人 C 端练习记录（含练习场次题目、作答、弱项等）作为出题来源**。3. **来源可审计**——每道发出的题必须记录来源题库（platform / org:{org_id} / session_generated）。
+
+**权限与实现建议（README 原文四条）**：1. 表结构——题库相关表增加 `owner_kind ∈ {platform, org}` 与可空 `org_id`（platform 时 org_id 为空；org 时必填且指向企业）。2. **检索函数内强制过滤——不要只靠应用层传参**：SECURITY DEFINER 检索函数按场景在库内强制（C 端练习 `owner_kind=platform`；企业岗位面试 `(owner_kind=org AND org_id=本场企业) OR owner_kind=platform`·并按**私有优先**排序（org 行排在 platform 之前））。3. 禁止串租户——任何查询不得返回 `org_id ≠ 本场企业` 的私有题；不得把 C 端练习 provenance/记忆当作 B 端出题素材。4. 企业私有题维护——由**审核通过的招聘方**维护（关联审计总表 **#110、#271**）；企业侧审核+平台内容安全兜底；与公共题库一样做版本化（源审核→池/代→发布/退役）。
+
+### 1.3 检索链现状（现 tip 重 pin·owner 维度注入面全图）
+
+①**五函数现行权威体=0176 镜像体**（§0.2-3）：tf_ ann（0176 `:137-171`）+lexical（`:173-206`）+distances（`:208`）+evidence（`:239`）+question_evidence（`:272`）——WHERE 首位 `qbank_assert_retrieval_scope()` 标量断言（双空报错）+serving/taxonomy 两 GUC 谓词——**owner 谓词零·私有优先排序键零**；②**应用层 scope 契约**：setServingScope（qbank-generation-retrieval `:60-65`）只设两 GUC·`scope === undefined` 直接 return（调用方契约=decideRouteSnapshotRetrieve 拒绝在先·永不无 scope）；**QbankServingScopeInput 只有两字段**（`:39-42`）——owner 字段扩点即此接口；③**worker 汇流点唯一**：interview-consumer `:394` retrieveDecision→`:411-430` 三臂（trackLocal/production/compat）——场景臂（C 端 practice/B 端 org）判别所依托的 route 快照双轨已落（`:392-393`·application_id 有无=0104 `:185` snapshot 列可判），owner 维度沿此决策面向两臂注入·**worker 侧只加注入·过滤强制仍在库内**（Ban 应用层过滤·§5）；④**RRF 融合排序**（qbank-generation-retrieval `:240-250`）按 score 降序+refId tie-break——私有优先需在 SQL 函数 ORDER BY 层或召回层落键（§8 裁决项②）；⑤**生产 fail-closed 形制**：productionRequiresTrackLocal（consumer `:426-428`）+`route_snapshot_missing` 拒绝形（qbank-retrieve-scope `:68-74`）——owner 断言臂沿同族 fail-closed 形（不静默降级为 platform-only）。
+
+### 1.4 隔离与禁则现状（C 端禁企业私有+B 端禁本人练习记录两禁令的题库平面现状）
+
+①**C 端练习禁企业私有**：现状无企业私有题可禁（全 platform 单池）——本刀落 owner 维度后该禁令从「 vacuous 真」变「可执行约束」，**必须在落列同拍生效**（C 端臂库内 platform-only 硬过滤·新 proof 隔离臂载·§2-①-a）——不能出现「列已落·C 端检索可命中 org 题」的中间态；②**B 端禁本人 C 端练习记录作出题素材**：题库平面现状=**结构保证**——生成题不回流（qbank-acl §4 原文「不写回任何 qbank_* 表·生成题不会被别人检索到」·0110 provenance owner 限定+interview_question owner RLS）·C 端练习题目/作答只存 interview_question/interview_answer_artifact 等 owner 表·qbank 检索函数查询面（generation_chunk+retrieval_candidate+chunk JOIN）**零接触 owner 内容表**——B 端出题素材在题库平面不含任何候选人练习行；跨场「弱项投影/记忆」素材面=B/C 记忆边界刀领地（非本刀·§3）；本刀责任=①**零弱化**该结构保证（owner 列与检索面改造不得引入 owner 内容表进查询面）+②**审计化**（修法④ source_bank 标记使「B 端题目来源不含 session_generated/他人练习」可机器验证）；③**企业间禁串**：现状单池 vacuous 真→本刀后成硬约束（B 端臂 org_id=本场企业谓词·跨租户零泄漏隔离臂·§2-①-b）。
+
+## §1-修法四件（严格按 README 用户决策四条建议+issues-final AG-39 修法原文·改造面=两新迁移+检索函数镜像+worker 注入+维护面+审计面·零检索算法零 CRAG）
+
+- **① 新迁移 0182（题库相关表 owner 维度·纯加列 expand-only）**：题库相关表加 `owner_kind text NOT NULL DEFAULT 'platform' CHECK (owner_kind IN ('platform','org'))` 与可空 `org_id text`+一致性 CHECK（platform→org_id IS NULL；org→org_id 必填非空·沿 0170 命名约束先例形 DROP IF EXISTS+ADD CONSTRAINT）+索引（`org_id` partial `WHERE owner_kind='org'`·沿 0170 `:33-34` partial 先例）——落表集（推荐=source/chunk/question/generation_chunk 投影四层 vs 窄面）与 generation_chunk 投影 PK 形（0097 `:57-72` additive 扩列+PK 重塑同形）=**§8 裁决项①**；存量行零回填（DEFAULT 'platform' 即 platform 公共题语义无损·org_id NULL）；历史迁移 0001-0181 零字节。
+- **② 检索函数库内强制过滤+私有优先排序（新迁移 0183·镜像 0176 现行权威体）**：新迁移 CREATE OR REPLACE 五函数+断言助手链（**0176 镜像纪律：不回改 0106/0144/0146/0176 原文**·signature/owner/SECURITY DEFINER/SET search_path/hnsw 设置逐字保留·ACL 读面逐字镜像重申）：新增 owner GUC 两枚（`app.qbank_owner_kind`/`app.qbank_org_id`·沿 setServingScope 同形 SET LOCAL 事务级·qbank-generation-retrieval setServingScope 扩点）+库内强制谓词：**C 端臂**（owner_kind='platform'）硬过滤·**B 端臂**（`(owner_kind='org' AND org_id=本场企业) OR owner_kind='platform'`）+**私有优先排序键**（org 行排 platform 之前·落位=§8 裁决项②）+**owner 断言助手**（owner GUC 缺失/半缺/非法组合→fail-closed RAISE·沿 0176 `qbank_assert_retrieval_scope` 23514 同族形·不静默 platform 降级）——**教义合规**：owner GUC 系查询参数（过滤值）非鉴权根·执行授权边界=EXECUTE grant 维持不动（0066 `:90-93` doctrine 原文·§5 Ban「GUC 作鉴权根」与此分界：鉴权根=授权面·过滤值=查询契约）；worker 注入=QbankServingScopeInput 扩 owner 字段（additive 可选·缺省臂=C 端语义 platform·调用方 decideRouteSnapshotRetrieve 场景臂扩点）+interview-consumer 三臂透传（`:411-430` 注入·零过滤逻辑——强制全在库内）。
+- **③ 企业私有题维护面（审核通过招聘方=关联 #110·沿既有版本化零新状态机）**：org 维度信任根=org-scoped curator 映射（审核通过的招聘方白名单·形沿 qbank_curator 0013 `:19-28` 信任根形：显式 REVOKE 写+不可自封·org_id+user_id 二维）；qbank_source 提议/审核按 org 隔离（org 源提议者=本 org 白名单招聘方·审核=企业侧白名单+**平台 curator 内容安全兜底审核权**·RLS 策略与触发器扩展沿 0013 `:63-95` 状态机/关键列不可变原形·**零新状态机**——org 源与公共源走同一 pending→approved/rejected 状态机+同一进池 approved 门（0013 `:132-142`）+同一代版本化（0029/0031 发布/退役）·满足 README「与公共题库一样做版本化」）；企业侧审核与平台兜底的权限边界=**§8 裁决项⑥**；qbank-curation.ts proposeSource/reviewSource org 参数化（additive 参数·全局公共源调用零变）。
+- **④ 来源审计（platform / org:{org_id} / session_generated·沿 0170 已有列）**：每道发出的题记录来源题库——**载体=§8 裁决项④**（推荐=question_issue_provenance 扩 `source_bank` 维度（origin CHECK 约束族沿 0170 命名约束形 additive 替换·org 来源附 org_id·0110 `:101-106` 底座）vs interview_question 沿 0170 topic_id 同拍加列）：qbank 命中题→platform / org:{org_id}（与检索臂 GUC 同源）；未命中生成题→session_generated（origin=llm_qbank_miss 既有 provenance 已载·映射入 source_bank 三值）；**审计零缺**（§5 Ban）：三场景全臂可机器验证「B 端题目来源 ∈ {本 org 私有, platform, session_generated} 且不含他人/他企业来源」——与 §1.4-② 结构保证互为表里（结构保证+审计标记双闸）。
+
+## §2 验收断言候选（pre-exec 双审核对单基面·断言力≥3）
+
+1. **新 proof**（隔离库真迁移链·完整版本化迁移 0001→0183 全链 applied·沿 bill1 0170/0171 proof 形制+qsec 0176 隔离库先例）：①**迁移臂**：owner_kind/org_id 列在场+DEFAULT 'platform'+一致性 CHECK 负臂（platform 行带 org_id / org 行缺 org_id / owner_kind 第三值 INSERT→23514）+partial 索引在场+存量旧行零回填语义（DEFAULT platform·org_id NULL）；②**隔离臂（四场景·本刀主断言）**：a. **C 端臂**——owner GUC=platform-only：org A/org B 各有私有题且赛道匹配·C 端检索**零命中任何 org 题**（只回 platform）——「C 端练习禁企业私有」可执行；b. **B 端臂私有优先+公共补足**——owner GUC=org A：org A 私有题与 platform 题同池可回且 **org A 行排序在 platform 前**（私有优先断言）·私有不足时 platform 题补足在场；c. **跨租户零泄漏**——owner GUC=org A：org B 私有题**零返回**（负臂·即使赛道匹配且距离更近）；d. **owner 断言 fail-closed**——owner GUC 缺失/半缺（只设 owner_kind 不设 org_id）/非法组合→RAISE（沿 0176 `qbank_retrieval_scope_missing` 同族 23514）零行·**绝不静默降级 platform**；③**审计臂**：qbank 命中题 source_bank=platform / org:{org_id}·生成题=session_generated·三值负臂（非法值拒）；④**回归负臂**：全局公共源检索路径（不带 owner 维度的既有调用形·缺省臂）行为逐位零变（platform-only 旧行为零改·BILL1 0170 旧行兼容同型）。
+2. **既有门回归（检索/迁移既有臂原值）**：migrate:prove+drift:prove 入本刀门表 EXIT=0（迁移面改动必跑·BILL1 刀 B rev2 教训）+qbank 族既有 proof（含 qsec 0176 交付的 scope/ACL 臂·rag03/rag04 族在案臂）零翻 EXIT=0——五函数 signature/ACL/半边语义零变（本刀只加 owner 维度·双空硬闸与赛道过滤原值）。
+3. **迁移纪律**：git diff 历史迁移 0001-0181 **零字节**+恰两新迁移文件（0182/0183·或照 §8 裁决件数）+`sql/` 影子面零改。
+4. **typecheck**：turbo typecheck（db/worker 触面包）EXIT=0。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **AG-40 检索快照双轨**（`634eb645` 已修并主线·LANDING-INDEX §十一 `:84` 改判定谳）——零触其修复面（interview-consumer `:387-394`/candidate-route 双轨读原样·0142 前存量回填=可选不阻刀归后继）。
+2. **AG-42 双空 GUC**（qsec 0176 已收口）——赛道过滤硬闸零触零改·Ban 回改 0176 原文（本刀在 0176 形之上叠加·§0.2-3）。
+3. **AG-37 weighted-deficit**（已并主线修复面 interview-consumer `:397-415` 区）——零触 deficit 区（§0.2-6）。
+4. **AG-41/AG-43**（qsec 0176 已收+审核人半单行项另登）——qbank-curation `:52-55` coalesce 审计行零触（§4 软交叠登记）。
+5. **检索算法本体零改**：RRF_K/MAX_K/MAX_CANDIDATES/dense|rrf 模式/candidateK/距离语义/CRAG（crag.ts 阈值 0.7/0.3/0.5 与决策面）——本刀只加过滤谓词与排序键·**零算法参数动零 CRAG 触**（AG-13 CRAG 阈值另刀面）。
+6. **owner_kind 落地细节=EXEC 裁决**（落表集/投影 PK 形/FK 目标/私有优先落位/GUC 契约形/审计载体/审核边界·§8 六项）——起草席按推荐形立卷·EXEC 照裁决行使·越推荐形须回炉。
+7. **org 实体/企业账号体系建面**（§0.2-7：schema 零 org 表）——org_id 挂后继实体刀（FK 目标后补·本刀格式 CHECK 先行）；企业账号/招聘方审批流产品面零触。
+8. **B/C 记忆边界面**（B 端禁练习记录的「记忆素材」维度=弱项投影/episode/consent·记忆边界刀领地）——本刀只落题库平面（§1.4-② 零弱化+审计化）·记忆面零触。
+9. **AG-38 工具面/成长顾问/B 端追问报告**（问答侧能力建设·挂产品排期）零触。
+10. **共享 SSOT 只读零改**（product-campaign-LEDGER/execution-master-checklist/issues-master/ai-capability-review 四件+INDEX）——本卷不自建 SSOT 行·行翻面权归协调方。
+11. est live=0（§6）。
+
+## §4 依赖
+
+**零未决硬依赖·可立即开工**：①**上游全已并主线**：AG-40 修复（`634eb645`·C 端检索面已在场=本刀 C 端臂承重面）/qsec 0176（五函数现行权威体=本刀镜像底座）/bill1 0170（topic_id 审计列=修法④底座）/0097 投影先例——四者全部在 `849a0f19` 主线亲证（§0.1）；②**软交叠如实登记**：a. AG-43 审核人半（qbank-curation.ts reviewSource `:52-55` 单行项另登未落）与本刀修法③同文件**异函数区**（本刀 org 参数化 proposeSource `:30-32`/reviewSource 签名扩参 vs 审核人 coalesce 行 `:52-55` 同函数近邻——**近邻交叠**：先落者为准·后到者 §0 重 pin·若审核人半先落本刀签名扩参照新基线适配）；b. 在飞 `line/batch1-residual`（零迁移文件零 qbank 面）零交点；c. org 实体刀（后继）**依赖本刀**列先行（下游·非依赖）；③**下游**：企业私有题运营化（招聘方审批流/企业账号体系）→org 实体刀；积分/计费面零交（topic_charge/0171 ledger 零触）。
+
+## §5 Ban 列表 + pins（沿 bill1/qsec 卷同源逐字誊 + 本刀面增补）
+
+**Ban 列表**：
+
+Ban push；Ban 自批（双审须独立外席）；Ban retry-to-green；Ban 翻 pins（§5 pins 十一值·含 `actualSpendCny=null` 不翻）；Ban 改共享 SSOT（product-campaign-LEDGER/execution-master-checklist/issues-master/ai-capability-review 四件+INDEX——行与统计只读引用·本刀不自建 SSOT 行·行翻面权归协调方）；**Ban 检索算法改动**（RRF_K/MAX_K/MAX_CANDIDATES/candidateK/dense|rrf/距离语义零动——只加过滤谓词与排序键）；**Ban 触 CRAG 面**（crag.ts 阈值与决策零改·AG-13 另刀）；**Ban 应用层过滤替代库内强制**（owner 过滤与私有优先必须落 SECURITY DEFINER 函数 WHERE/ORDER BY 内强制·应用层只注入 GUC 参数不得承担隔离——README 决策原文「不要只靠应用层传辞」·proof 隔离臂须以直连函数调用验证库内强制）；**Ban owner GUC 作鉴权根**（owner GUC=查询参数·鉴权根=EXECUTE grant·0066 `:90-93` doctrine·SECURITY DEFINER 内不得新增以 GUC 断言权限的守卫）；**Ban 静默降级**（owner GUC 缺失/半缺/非法→fail-closed RAISE·绝不静默按 platform 检索）；**Ban 来源审计缺位**（修法④为硬交付面·三值 platform/org:{org_id}/session_generated 全臂可验证）；**Ban 零弱化 B 端禁练习记录结构保证**（owner 内容表不得进 qbank 检索查询面·§1.4-②）；**Ban C 端企业私有中间态**（owner 列落库同拍 C 端 platform-only 硬过滤即生效·不许「列已落过滤未落」窗口·迁移编排序=裁决项①行使内容）；**Ban 历史迁移字节改**（0001-0181 零字节+`sql/` 影子零改·镜像纪律只加新迁移·0106/0144/0146/0176 原文零触）；**Ban 新状态机**（org 源走既有 pending→approved/rejected+进池门+代版本化·README「同样版本化」原语义）；**Ban 触他刀面**（AG-40 双轨读/AG-42 双空闸/AG-37 deficit/AG-43 审核人半/AG-13 CRAG/记忆边界面/B 端扣额 #271 面零触）；Ban 触其他工作树（在飞机互认）；Ban 伪造已问/已验来源；Ban 新 env 闸/新定时器/新配置面（owner GUC=事务级查询参数非配置面）；Ban 顺带升级依赖包（DEPS-AUDIT 域）。
+
+**pins（十一值照抄·零翻转）**：
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀 proof 全隔离库真迁移链+假体·零模型外呼·零消耗）
+
+## §6 est live=0
+
+本刀零模型真实外呼：新 proof=隔离库真迁移链（本地临时 PostgreSQL·零生产 DSN/零生产 Key/零凭据落盘）+检索函数直连调用面（owner 隔离臂全库内可证·零模型参与）+既有门全本地；typecheck/migrate:prove/drift:prove=本地门——零生产操作·零 secrets·零消耗（pins 脚注同源·EXEC 收据逐 prove 登记零外呼口径）。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（恰 1 .md·`ai-docs/delivery/harness/ag39-org-qbank-REQUEST.md`）**五类标记词 grep 零命中**（起草席亲跑·命令与回执沿 ttl-wire receipts 形留执行席收据·五类标记词不复抄卷内——避免自匹配·沿 bill1/authz-harden/ttl-wire 卷 §7 同形制）；docs:check（含 public text policy 路径标记扫描）落卷前后恒 EXIT=0·卷内全仓内相对径。
+
+## §8 STOP（开工三条款）+ 待裁决项
+
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（issues-final AG-39+LANDING-INDEX §十一刀映射+README 用户决策节系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 八条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 八条全系登记性·AG-40/42 已修现状与本刀叠加式修法正交）。
+
+**待双审/EXEC 裁决项**：①**owner 列落表集+迁移编排**（推荐=source/chunk/question/generation_chunk 投影四层同迁移落列·列先于函数镜像同刀两件 0182→0183 顺序编排（C 端 platform-only 过滤随 0183 生效·无裸列窗口）vs 窄面两表先行后补——投影 PK 重塑沿 0097 `:69-72` 形）；②**私有优先排序落位**（推荐=SQL 函数 ORDER BY 键内 owner 秩（org=0/platform=1 先序·距离/词频次序）vs 召回层双查询合并——后者破坏单函数强制形不推荐；RRF 融合层（应用侧 `:240-250`）不得承担优先序=§5 Ban 库内强制的延伸）；③**owner GUC 契约形**（推荐=两枚 `app.qbank_owner_kind`/`app.qbank_org_id` 沿 serving scope 同形·C 端=owner_kind=platform+org_id 空·B 端=owner_kind=org+org_id=本场企业 vs 单枚组合串（解析面脆弱不推荐）——断言助手校验组合合法性）；④**来源审计载体**（推荐=question_issue_provenance 扩 source_bank 三值+org_id 附列（0110 `:101-106` 底座·origin 约束族 additive 替换沿 0170 命名约束形）vs interview_question 沿 0170 同拍加列——前者审计面聚合单点·后者读取面零 JOIN）；⑤**org_id 约束形**（推荐=格式 CHECK+partial 索引先行·FK 目标挂后继 org 实体刀（本刀无实体可指·§0.2-7）vs 本刀顺手建 org 实体（越 §3-7 边界·须协调方明示扩权）；⑥**企业私有题审核边界**（推荐=org 白名单招聘方审核+平台 curator 保留兜底审核/撤回权（两角色同函数区 org 参数化·0013 状态机零新状态机）vs 平台全审（企业侧无审核权·运维成本高·与「企业侧审核」决策原文不符不推荐））。
+
+---
+
+*AG39-ORG-QBANK REQUEST · 2026-10-13 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`94b8519b`（主线 tip·git log -1 实测·会话内前移重钉 849a0f19→c4ef2c7f→94b8519b 全 docs 零码面·§0.2-1）· 分支 `line/ag39-org-qbank` · 工作树 `meetwise-ag39`（git worktree add 本起草席立·建前 worktree list 26 树+branch 双查+rg 三查不存在）· 立项出处=issues-final（blob `dac7f58c`·AG-39 `:478-487`+AG-40 `:489-496` 已修参考）+LANDING-INDEX（blob `948fc7c7`·§十一 `:81-85` 刀映射定谳「③AG-39=大型产品刀」）+README 用户决策节（blob `80129eed`·`:116-157` 题库分层与私有优先全文）+qbank-acl 全文（blob `04b79936`·P3 红事实源）· 防重三查过 · §0 blob 锚表 22 行 ls-tree 亲算+§0.2 漂移八条如实登记（基线重钉/AG-40 已修 634eb645/qsec 0176 五函数现行权威体/0170 已落/蓝本径漂移 routing//AG-37 已修/org 实体不存在/编号链 0182+0183 本刀·0184 起顺延）· 红事实四链现 tip 重 pin（单租户全链零 org/用户决策三类题库全文/检索链 owner 零维五函数 0176 权威体/C 端禁企业私有+B 端禁练习记录两禁令现状定界）· 修法四件（0182 owner 列+CHECK+索引/0183 五函数镜像库内强制过滤+私有优先+owner 断言 fail-closed·GUC=查询参数非鉴权根 0066:90-93/维护面 org 信任根+既有状态机零新状态机/来源审计三值沿 0170+0110 底座）· 断言候选四条（隔离库真迁移链四场景隔离臂+审计臂/既有门零翻含 qsec 交付臂/迁移纪律/typecheck）· est live=0 · pins 十一值照抄 · markers=0（亲跑）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
