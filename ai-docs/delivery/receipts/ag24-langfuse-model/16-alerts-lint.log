@@ -1,0 +1,7 @@
+
+> meetwise@0.1.0 alerts:lint /Users/miaole/Desktop/golucky/meetwise-ag24
+> node scripts/alerts-lint.mjs
+
+note: alertmanager receivers: default, critical, watchdog(占位,无真实密钥)
+
+alerts-lint OK —— 24 条告警规则全部引用真实指标,prometheus/alertmanager 结构合法;事件目录 12 条 + 白名单 0 条 + runbook 锚解析 12 条（HA-5 §4.9）全部通过。

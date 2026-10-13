@@ -80,6 +80,8 @@ export function langfuseSafeModelMetadata(span: ModelCallSpan, correlationSecret
     topRetrievalScore: scores.length ? Math.max(...scores) : null,
     inputTokens: span.inputTokens ?? 0,
     outputTokens: span.outputTokens ?? 0,
+    // AG-24:账本结算权威值(microCny·仅终局 ok 臂携带;缺省=null 占位沿 promptVersion 同形——缺省≠零)。
+    settledCostMicroCny: span.settledCostMicroCny ?? null,
   };
 }
 
@@ -170,8 +172,16 @@ export function createLangfuseV5Runtime(config: LangfuseConnectionConfig, option
       // `startObservation` inherits the active graph/node OTel context. A
       // model call outside a graph receives an independent safe trace instead.
       const generation = startObservation(`meetwise.model.${safeName(span.service, 'unknown')}`, {
-        model: safeName(span.service, 'unknown'),
-        usageDetails: { input: span.inputTokens ?? 0, output: span.outputTokens ?? 0 },
+        // AG-24:model 真名归因——span.model(受控策略模型名∪G7 供应商回显)优先;缺省臂降级
+        // safeName(service) 保留现状降级路径(幂等命中/拒绝臂零回归)。span **名称**保持 service 分组键零字节。
+        model: safeName(span.model ?? span.service, 'unknown'),
+        // AG-24:cached 上报沿 @langfuse/core SDK 约定键 input_cached——**仅字段在手时挂**
+        // (undefined=键不出现·显式 0=挂 0,缺席≠零铁律两态分开,绝不静默归零)。
+        usageDetails: {
+          input: span.inputTokens ?? 0,
+          output: span.outputTokens ?? 0,
+          ...(span.cachedInputTokens !== undefined ? { input_cached: span.cachedInputTokens } : {}),
+        },
         metadata: langfuseSafeModelMetadata(span, config.correlationSecret!),
         level: span.outcome === 'ok' || span.outcome === 'cached' ? 'DEFAULT' : 'WARNING',
       }, { asType: 'generation' });

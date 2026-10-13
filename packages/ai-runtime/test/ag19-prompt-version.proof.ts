@@ -242,8 +242,8 @@ async function main() {
     A('0181 claim 函数签名恰 17 参且第 17 参=p_prompt_version',
       paramLines.length === 17 && paramLines[16] === 'p_prompt_version');
     const claimTs = readFileSync(fileURLToPath(new URL('../../db/src/model-op/model-invocation.ts', import.meta.url)), 'utf8');
-    A('TS claim seam 占位 $16,$17 收尾（$17=新增版本参·向后兼容缺省 NULL 沿 0174 形）',
-      /\$16,\$17\)/.test(claimTs) && /input\.promptVersion \?\? null,/.test(claimTs));
+    A('TS claim seam 占位 $17,$18,$19 收尾（$17=0181 新增版本参·$18/$19=0184 冻结两参·向后兼容缺省 NULL 沿 0174 形）',
+      /\$17,\$18,\$19\)/.test(claimTs) && /input\.promptVersion \?\? null,/.test(claimTs));
     A('0181 claim INSERT 列集含 prompt_version 且 VALUES 供 p_prompt_version',
       /estimate_input_tokens,prompt_version\n/.test(migration) && /p_estimate_input_tokens,p_prompt_version\n/.test(migration));
     A('0181 REVOKE/GRANT 用 17 参签名（16 参旧签名已 DROP）',
@@ -295,8 +295,8 @@ async function main() {
     A('脱敏负证:metadata 无 prompt 原文(system 前缀/答案字面零出现·标量纪律)',
       !external.includes(systemSnippet) && !external.includes('上轮上下文'));
     const langfuseSrc = readFileSync(fileURLToPath(new URL('../src/langfuse-v5.ts', import.meta.url)), 'utf8');
-    A('AG-24 面零位移负证:model 字段仍=service 名(safeName(span.service))原样字节',
-      /model: safeName\(span\.service, 'unknown'\)/.test(langfuseSrc));
+    A('AG-24 已落面(语义翻转登记):model 真名归因=span.model 优先·缺省降级 service 名(safeName(span.model ?? span.service)原样字节)',
+      /model: safeName\(span\.model \?\? span\.service, 'unknown'\)/.test(langfuseSrc));
   }
 
   // ── 臂 7（digest 零变负证+正控：版本非语义输入·幂等/缓存语义零位移）。 ───────────────────

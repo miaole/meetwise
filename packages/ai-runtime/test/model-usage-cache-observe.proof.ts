@@ -167,8 +167,10 @@ async function main() {
     const invokeSrc = readFileSync(join(srcRoot, 'invoke.ts'), 'utf8');
     const usageReconSrc = readFileSync(join(srcRoot, 'usage-reconciliation.ts'), 'utf8');
     const modelClientSrc = readFileSync(join(srcRoot, 'model-client.ts'), 'utf8');
-    A('零计费负臂：invoke.ts 中 cachedInputTokens 恰一处（ModelUsage 型面·settle/validUsage 零读）',
-      (invokeSrc.match(/cachedInputTokens/g) ?? []).length === 1);
+    A('零计费负臂：invoke.ts 中 cachedInputTokens 词面恰三处（型面 :74 一处+span 闭包透传行两处键值同形·settle/validUsage 仍零读·计数随 AG-24 语义翻转登记不洗）',
+      (invokeSrc.match(/cachedInputTokens/g) ?? []).length === 3
+      && /cachedInputTokens\?: number/.test(invokeSrc)
+      && /cachedInputTokens: usage\?\.cachedInputTokens/.test(invokeSrc));
     A('零计费负臂：usage-reconciliation.ts（对账/refineEstimate 面）零引用',
       (usageReconSrc.match(/cachedInputTokens|cached_tokens/g) ?? []).length === 0);
     A('零计费负臂：打点恰两处（非流+流式各一 emit 点·无重复计数面）',

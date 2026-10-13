@@ -34,13 +34,16 @@ export interface ReconcileUsageCalibrationInput {
   owner: string;
   /** 观测批次标识（幂等 PK 分量）；同一批重复执行不重复落观测。 */
   batch: string;
-  /** 估算器版本；缺省 utf8-bytes-v1。未知版本 fail-closed。 */
+  /** AG-12 语义修订（原 blanket 缺省盖章已根除）：可选估算器过滤——缺省 = 全部已注册估算器组各自
+   *  对账（worker tick 不传 = 全组）；显式传入 = 只对账该估算器组。未知值 fail-closed。 */
   estimator?: EstimatorVersion;
 }
 
 export interface ReconcileUsageCalibrationGroupResult {
   service: string;
   model: string;
+  /** AG-12：组键第三元（per-row 归因透传）——组内估算器齐性由分组保证，归因可观测。 */
+  estimator: EstimatorVersion;
   /** 本组观测总数（含 providerInputTokens=0 的无信号观测）。 */
   observationCount: number;
   /** 本组有效观测数（providerInputTokens ≥ 1，参与因子计算）。 */
@@ -90,12 +93,18 @@ export async function resolveLatestCalibratedFactor(
   return row ? toCalibratedFactor(row) : null;
 }
 
-function groupByServiceModel(pairs: UsageCalibrationPair[]): { service: string; model: string; pairs: UsageCalibrationPair[] }[] {
-  const groups = new Map<string, { service: string; model: string; pairs: UsageCalibrationPair[] }>();
+/**
+ * AG-12：分组键由二元组 (service,model) 升三元组 (service,model,estimator)——每组内估算器天然齐性，
+ * observations 按行自带 estimator 构造（blanket 整组盖章已根除：字节口径与 CJK 口径比率不可比，
+ * 混入同组会损坏因子语义）。行携带未注册版本即 fail-closed（绝不猜测估算语义）。
+ */
+function groupByServiceModelEstimator(pairs: UsageCalibrationPair[]): { service: string; model: string; estimator: EstimatorVersion; pairs: UsageCalibrationPair[] }[] {
+  const groups = new Map<string, { service: string; model: string; estimator: EstimatorVersion; pairs: UsageCalibrationPair[] }>();
   for (const p of pairs) {
-    const key = JSON.stringify([p.service, p.model]);
+    if (!isKnownEstimatorVersion(p.estimator)) throw new Error('usage_estimator_unknown');
+    const key = JSON.stringify([p.service, p.model, p.estimator]);
     let g = groups.get(key);
-    if (!g) { g = { service: p.service, model: p.model, pairs: [] }; groups.set(key, g); }
+    if (!g) { g = { service: p.service, model: p.model, estimator: p.estimator, pairs: [] }; groups.set(key, g); }
     g.pairs.push(p);
   }
   return [...groups.values()];
@@ -107,21 +116,23 @@ function groupByServiceModel(pairs: UsageCalibrationPair[]): { service: string; 
  * 低估观测逐条显式落库（under_estimated）并在提交后累加 metric 告警。
  */
 export async function reconcileUsageCalibration(pool: DbPool, input: ReconcileUsageCalibrationInput): Promise<ReconcileUsageCalibrationResult> {
-  const estimator: EstimatorVersion = input.estimator ?? 'utf8-bytes-v1';
-  if (!isKnownEstimatorVersion(estimator)) return { ok: false, error: 'usage_estimator_unknown' };
+  // AG-12：input.estimator 修订为可选过滤（缺省 = 全部已注册估算器组各自对账）；显式传入未知值仍 fail-closed。
+  if (input.estimator !== undefined && !isKnownEstimatorVersion(input.estimator)) return { ok: false, error: 'usage_estimator_unknown' };
   if (typeof input.owner !== 'string' || input.owner.length < 1 || input.owner.length > 512) return { ok: false, error: 'usage_calibration_owner_invalid' };
   if (typeof input.batch !== 'string' || input.batch.length < 1 || input.batch.length > 256) return { ok: false, error: 'usage_calibration_batch_invalid' };
 
   const committed = await asPrincipal(pool, input.owner, async (c) => {
     const pairs = await listUsageCalibrationPairs(c, input.owner);
-    const groups = groupByServiceModel(pairs);
+    const groups = groupByServiceModelEstimator(pairs)
+      .filter((g) => input.estimator === undefined || g.estimator === input.estimator);
     const results: ReconcileUsageCalibrationGroupResult[] = [];
     let totalUnderEstimated = 0;
 
     for (const group of groups) {
-      const { service, model, pairs: groupPairs } = group;
+      const { service, model, estimator: groupEstimator, pairs: groupPairs } = group;
+      // 每组内估算器齐性由三元组分组保证：observations 按行自带 estimator 构造（绝不整组盖章）。
       const observations: UsageObservation[] = groupPairs.map((p) => ({
-        estimator,
+        estimator: groupEstimator,
         estimateInputTokens: p.estimateInputTokens,
         providerInputTokens: p.providerInputTokens,
         providerOutputTokens: p.providerOutputTokens,
@@ -130,7 +141,7 @@ export async function reconcileUsageCalibration(pool: DbPool, input: ReconcileUs
         batch: input.batch,
         observedAtMs: p.observedAtMs,
       }));
-      const outcome = reconcileUsage(observations, { estimator });
+      const outcome = reconcileUsage(observations, { estimator: groupEstimator });
       if (!outcome.ok) throw new Error(`usage_calibration_reconcile_failed:${outcome.error}`);
 
       let underEstimateCount = 0;
@@ -159,6 +170,7 @@ export async function reconcileUsageCalibration(pool: DbPool, input: ReconcileUs
       totalUnderEstimated += underEstimateCount;
       results.push({
         service, model,
+        estimator: groupEstimator,
         observationCount: observations.length,
         informativeCount: outcome.calibration?.observationCount ?? 0,
         factor: outcome.calibration,
@@ -225,8 +237,8 @@ export type ReconcileUsageCalibrationWindowedResult =
 export async function reconcileUsageCalibrationWindowed(
   pool: DbPool, input: ReconcileUsageCalibrationInput,
 ): Promise<ReconcileUsageCalibrationWindowedResult> {
-  const estimator: EstimatorVersion = input.estimator ?? 'utf8-bytes-v1';
-  if (!isKnownEstimatorVersion(estimator)) return { ok: false, error: 'usage_estimator_unknown' };
+  // AG-12：input.estimator 修订为可选过滤（缺省 = 全部已注册估算器组各自对账）；显式传入未知值仍 fail-closed。
+  if (input.estimator !== undefined && !isKnownEstimatorVersion(input.estimator)) return { ok: false, error: 'usage_estimator_unknown' };
   if (typeof input.owner !== 'string' || input.owner.length < 1 || input.owner.length > 512) return { ok: false, error: 'usage_calibration_owner_invalid' };
   if (typeof input.batch !== 'string' || input.batch.length < 1 || input.batch.length > 256) return { ok: false, error: 'usage_calibration_batch_invalid' };
 
@@ -235,14 +247,16 @@ export async function reconcileUsageCalibrationWindowed(
     const pairs = await listUsageCalibrationPairsSince(c, input.owner, since);
     if (pairs.length === 0) return { ok: true as const, groups: [] as ReconcileUsageCalibrationGroupResult[], watermarkFrom: since, watermarkTo: null };
 
-    const groups = groupByServiceModel(pairs);
+    const groups = groupByServiceModelEstimator(pairs)
+      .filter((g) => input.estimator === undefined || g.estimator === input.estimator);
     const results: ReconcileUsageCalibrationGroupResult[] = [];
     let totalUnderEstimated = 0;
 
     for (const group of groups) {
-      const { service, model, pairs: groupPairs } = group;
+      const { service, model, estimator: groupEstimator, pairs: groupPairs } = group;
+      // 每组内估算器齐性由三元组分组保证：observations 按行自带 estimator 构造（绝不整组盖章）。
       const observations: UsageObservation[] = groupPairs.map((p) => ({
-        estimator,
+        estimator: groupEstimator,
         estimateInputTokens: p.estimateInputTokens,
         providerInputTokens: p.providerInputTokens,
         providerOutputTokens: p.providerOutputTokens,
@@ -251,7 +265,7 @@ export async function reconcileUsageCalibrationWindowed(
         batch: input.batch,
         observedAtMs: p.observedAtMs,
       }));
-      const outcome = reconcileUsage(observations, { estimator });
+      const outcome = reconcileUsage(observations, { estimator: groupEstimator });
       if (!outcome.ok) throw new Error(`usage_calibration_reconcile_failed:${outcome.error}`);
 
       let underEstimateCount = 0;
@@ -270,8 +284,9 @@ export async function reconcileUsageCalibrationWindowed(
 
       // 合并语义：读 prev（同 principal 事务内·RLS 自有行）→ 有 prev 走 max 合并 insert-only
       // 新版本（绝不 UPDATE/DELETE 旧行）；无 prev（首窗）= 普通全量计算结果原样落库=现语义。
+      // AG-12：prev 按组键第三元 estimator 精确读取（v1/v2 因子历史互不串窗）。
       const prev = outcome.calibration
-        ? await latestUsageCalibrationFactor(c, input.owner, service, model, estimator)
+        ? await latestUsageCalibrationFactor(c, input.owner, service, model, groupEstimator)
         : null;
       const effective = outcome.calibration && prev
         ? mergeCalibratedFactorWithPrev(prev, outcome.calibration)
@@ -288,6 +303,7 @@ export async function reconcileUsageCalibrationWindowed(
       totalUnderEstimated += underEstimateCount;
       results.push({
         service, model,
+        estimator: groupEstimator,
         observationCount: observations.length,
         informativeCount: outcome.calibration?.observationCount ?? 0,
         factor: effective,
