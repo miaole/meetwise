@@ -419,7 +419,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 计费 | 蓝本 rev | 全裁决落卷+B 端章改写+全调用面表 | ✅ nail 收官 925b6cfc |
 | 计费 | P1 字段迁移 | 0170-0171 topic_id/ledger | ✅ nail 收官 a1241e90 |
 | 计费 | P2 影子计量 | 0180 影子表+fail-soft 钩子 | ✅ nail 收官 f3968440 |
-| 计费 | P3 结算 | 0172-0173+八件函数 | 🔧 nail 红停（链深 pin 182→183 协调方修 8a234cc5）→待重推 |
+| 计费 | P3 结算 | 0172-0173+八件函数 | ✅ nail 收官 fee425cd（红停→协调方修 8a234cc5→SSOT 849a0f19 登记） |
 | 批3 | #263 内部预览收口 | 21 面+五同族口径面 | ✅ nail 收官 9ae70025 |
 | 补充 | AG-37 deficit 持久化 | 图 state additive | ✅ nail 收官 66e42d6e |
 | 补充 | AG-19 prompt 版本 | 0181+trace+metric | ✅ nail 收官 b8206e53 |
