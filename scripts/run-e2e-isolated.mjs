@@ -399,6 +399,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0134_usage_calibration_gateway_owners.sql',
     'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
     'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
+    'packages/db/migrations/0184_ag12_estimator_claim_freeze.sql',
   ],
   'model-op02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
