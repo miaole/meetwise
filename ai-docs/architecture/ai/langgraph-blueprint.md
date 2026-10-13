@@ -34,7 +34,7 @@ LangGraph 的持久化、checkpointer、event streaming、interrupt 和 subgraph
 
 > **实现状态（对齐 `packages/ai-graphs/src` + `worker/main.ts`，区分已接线 vs 计划）**：
 > - ✅ **代码已接线，并有本地证明**：模拟面试使用**自适应 Agent**；生产组合根把 `ADAPTIVE_INTERVIEW=0` 视为启动错误，旧固定题单不能作为回退路径。正式拓扑见 [agent-harness.md](./agent-harness.md) §2.3，非下文 Graph 2 旧示意。报告生成、简历押题和简历诊断也有各自 worker 链路。
-> - ⬜ **未建**：**Graph 3 职业路径分析（career-path）尚无对应图文件**，为计划态。
+> - 🟡 **部分已落地（勘误 2026-10-11·#212·I5 口径刀）**：Graph 3 职业路径分析（career-path）**已实现**——图文件已存在：`packages/ai-graphs/src/career-path.ts`（GAP-UC004-FI3 Candidate A graph-wrap derive·见 0a3c8a8a）。接线分叉如实：API 手动路径 `POST /interview/:id/career-path` 经该图执行并落 `ai_graph_run(career-path)` 状态机；worker 自动成长链（#204 GROWTH-GEN 已落·`packages/db/src/growth-generation.ts`）直调 `deriveCareerPath` 不经图（观测面分叉，见 growth-generation.ts 头注）。下方 Graph 3 七节点图仍为原设计示意，现行拓扑=单节点图，具体以代码为准。
 > - 🟡 **部分接线**：跨会话精确题目去重和历史弱项软偏置已在自适应面试主链路运行；语义长期用户记忆、冻结 snapshot 与向量召回仍未接线（见 [memory-context-design.md](./memory-context-design.md)）。
 > 上述“已接线”不等于已经在云生产环境验证。当前可运行、已验证和发布阻断项以 [运行时事实矩阵](../current-runtime-truth.md) 为准。下面四张图为编排蓝图；具体拓扑以 agent-harness.md 为准。本文 Graph 2 和下方 `MeetwiseGraphState` 都是历史设计示意，**不是**当前运行时类型、不是 raw answer 存储方案，也不能作为长时 transcript 的实现依据。
 
@@ -168,7 +168,7 @@ flowchart TD
 - 等待用户输入必须由持久化状态表达，不能依赖内存连接。
 - SSE 只负责把 graph events 推给前端，不拥有业务状态。`session_concluded` 是练习控制流预览（`early_weak`/`thrashing`），**不是**终态，也不发明分数。
 
-## Graph 3：职业路径分析（⬜ 计划态，尚无图实现）
+## Graph 3：职业路径分析（🟡 部分已落地（见 0a3c8a8a·#212 勘误 2026-10-11）：单节点图已实现于 `packages/ai-graphs/src/career-path.ts`·下方 7 节点为原设计示意非现行拓扑）
 
 ```mermaid
 flowchart TD

@@ -5,11 +5,28 @@
 import { StateGraph, Annotation, START, END } from '@langchain/langgraph';
 import { aggregateScores } from '@meetwise/domain';
 
+/** #50 v3 逐题结构化摘要（仅 ID 引用，不传题目/答案原文）。 */
+export interface InterviewSummaryItem {
+  questionId: string;
+  competency: string;
+  score: number;
+  /** 证据引用（score_card 行 ID；非原文）。 */
+  cardId: string;
+}
 export interface InterviewSummary {
   interviewId: string;
   questionCount: number;
   scores: number[];
+  /** #50 v3：loadSummary 侧供给的 competency 分组结构；缺省=旧形状（v2 兼容）。 */
+  items?: InterviewSummaryItem[];
   owner?: string;   // 组合根注入(多 owner dispatcher 据此构 reportGenerator 的 owner/幂等键)
+  /**
+   * AG-03/EG-A1（刀 E·裁决项①(a) InterviewSummary 增非模型字段形）：单调派发序号（claimReport CAS
+   * 同语句自增·manual retry 不复位）。组合根据它构幂等键 `${interviewId}:report:a${n}`（键/revision
+   * 同源同换）。**非模型字段**——不进 prompt/不进 digest 模型面,只走键构造;缺省（旧测试注入形状）=
+   * 生产 drainReportsOnce 恒携带,组合根 fail-closed 拒缺。
+   */
+  reportDispatchSeq?: number;
 }
 export interface ReportContent { overall: number; sections: { title: string; body: string }[]; }
 /** 注入边界：真实由 ai-runtime.invoke（双校验）背书;失败应抛错（worker 据此标 report failed,不碰 interview）。 */

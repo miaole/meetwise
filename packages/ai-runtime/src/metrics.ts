@@ -3,6 +3,7 @@
  * 10 年依赖纪律:**自建极简注册表藏 seam 后**(counter/histogram/gauge + Prom exposition,~无依赖),
  *   日后压力大了换 prom-client/OTel 只换本文件,api/worker 不动。脱敏同 trace:label 只放低基数维度(route/status/outcome),绝不放 owner/PII/原文。
  */
+import { promptVersions } from './prompts.ts';
 export type Labels = Record<string, string>;
 const HIST_BUCKETS = [5, 10, 25, 50, 100, 250, 500, 1000, 2500, 5000];   // ms
 
@@ -62,18 +63,18 @@ export function getMetrics(): Metrics { return active; }
 /**
  * 指标名单一真源(emit 点、告警 expr、alerts-lint 白名单三方共用同一常量,防手滑漂移)。
  * 命名遵循 Prometheus 约定:counter 以 _total 收尾;label 低基数(dep/queue),绝不放 owner/PII/原文。
- *   - circuitBreakerOpen:模型关口熔断"打开"次数(counter)——emit 在 circuit-breaker.ts 相位翻到 open 时。
  *   - refundFailed:退款/额度释放失败次数(counter)——emit 点在 commerce 释放失败的 catch(本次任务边界外,见报告"诚实缺口")。
  *   - jobsQueued / jobsRunningExpired / jobsDead:worker 侧队列健康(gauge)——worker 周期从 DB 查全局计数 set(见 worker main.ts)。
+ *   - jobsFailed:worker 侧 job 终态失败次数(counter)——四消费端(interview/report/quiz/diagnosis)终态失败臂各恰一行 inc(HA-7 R-24;requeue 可重试臂不计);跨实例告警侧 sum(increase())。
  * gauge 是"全局绝对值":多 worker 实例各自查同一 DB 得同值,告警侧用 max() 去重实例视角(切勿 sum,会翻倍)。
  * counter 是"本实例事件数":跨实例告警侧用 sum(increase()) 合并(各实例熔断是不同真实事件)。
  */
 export const METRIC = {
-  circuitBreakerOpen: 'model_circuit_breaker_open_total',
   refundFailed: 'refund_failed_total',
   jobsQueued: 'worker_jobs_queued',
   jobsRunningExpired: 'worker_jobs_running_expired',
   jobsDead: 'worker_jobs_dead',
+  jobsFailed: 'worker_jobs_failed_total',
   ragRetrievalTotal: 'rag_retrieval_total',
   ragRetrievalLatencyMs: 'rag_retrieval_latency_ms',
   ragRetrievalCandidates: 'rag_retrieval_candidates',
@@ -99,6 +100,16 @@ export const METRIC = {
   aiTracePersistFailures: 'ai_trace_persist_failures_total',
   langfuseTracingState: 'langfuse_tracing_state',
   langfuseExportFailures: 'langfuse_export_failures_total',
+  // AG-COST1 #48 观测(只观测不改计费):cached prompt token 计数 + 缓存字段三态在场性。
+  // presence 三态=present_positive/present_zero/absent——**缺席≠零**:undefined=absent,0=present_zero 分开。
+  // emit 点在 model-client 非流+流式两 usage 解析面;label=逻辑 service(低基数,prompt 注册表单一真源)。
+  modelUsageCachedInputTokens: 'model_usage_cached_input_tokens_total',
+  modelUsageCacheFieldPresence: 'model_usage_cache_field_presence_total',
+  // AG-19 prompt 版本观测落库:版本归因 counter(纯观测·零评分语义)。
+  // {service, prompt_version} 标签值域有界:registry 八 service × 各现行 version(promptVersions()
+  // 单一真源)∪ '(unregistered)'/'none' 固定占位——绝不透传调用方字符串/自由字符串进标签(emit 点
+  // 在 invoke 入口,标签只经注册表派生;新序列首 emit 自建,基线缺失不丢数据只迟画图,沿 AG-COST1 形)。
+  modelInvocationPromptVersionTotal: 'model_invocation_prompt_version_total',
 } as const;
 
 /**
@@ -106,9 +117,9 @@ export const METRIC = {
  * counter inc(…, 0) 只建序列不改值。worker 组合根启动时调一次。
  */
 export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
-  m.inc(METRIC.circuitBreakerOpen, { dep: 'model' }, 0);
-  m.inc(METRIC.circuitBreakerOpen, { dep: 'fast_model' }, 0);
   m.inc(METRIC.refundFailed, undefined, 0);
+  // HA-7 R-24:失败计数 counter 按队列 0 预填(4 队列开机即有序列;emit 在四消费端终态失败臂——非 requeue 可重试臂)。
+  for (const queue of ['interview_job', 'report', 'quiz_job', 'diagnosis_job']) m.inc(METRIC.jobsFailed, { queue }, 0);
   for (const outcome of ['ok', 'not_ready', 'budget_exhausted', 'policy_missing', 'price_missing', 'unknown', 'claim_timeout', 'cache_dependency_unavailable', 'cache_value_invalid', 'internal_error']) {
     m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'dense' }, 0);
   }
@@ -144,4 +155,17 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);
   for (const state of ['disabled', 'enabled', 'flush_failed']) m.setGauge(METRIC.langfuseTracingState, 0, { state });
   m.inc(METRIC.langfuseExportFailures, { operation: 'flush' }, 0);
+  // AG-COST1 #48:缓存字段观测基线(开机即有序列)。service 集取 prompt 注册表(promptVersions 单一
+  // 真源防漂移);新 service 首次 emit 时自建序列,基线缺失不丢数据只迟画图。
+  for (const { service } of promptVersions()) {
+    for (const presence of ['present_positive', 'present_zero', 'absent'])
+      m.inc(METRIC.modelUsageCacheFieldPresence, { service, presence }, 0);
+    m.inc(METRIC.modelUsageCachedInputTokens, { service }, 0);
+  }
+  // AG-19:prompt 版本观测基线(开机即有序列)。service×version 对自 promptVersions() 单源播种
+  // (值域⊆registry 有界·禁自由字符串);registry 外调用走 '(unregistered)'/'none' 固定占位单序列。
+  for (const { service, version } of promptVersions()) {
+    m.inc(METRIC.modelInvocationPromptVersionTotal, { service, prompt_version: version }, 0);
+  }
+  m.inc(METRIC.modelInvocationPromptVersionTotal, { service: '(unregistered)', prompt_version: 'none' }, 0);
 }

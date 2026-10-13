@@ -20,7 +20,7 @@ const base = scriptedModelClient({
     ok: true,
     raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: [] },
   }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 88, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '滑动窗口' }] } }),
 });
 const model: ModelClient = base;
 
@@ -52,7 +52,8 @@ async function main() {
   const firstInput = { questionId, stateVersion: s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(answer), turn: 0, answer };
   A('API identity ledger 接受当前问题的首答', (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, IID, firstInput))).status === 'accepted');
   const first = await submitAdaptiveAnswer(d, firstInput);
-  A('首答 → 评分且得到下一题 identity', first.score === 88 && !!first.nextQuestionId && first.done === false);
+  // #52 v6：score=档位确定性派生（fixture exceeds→100），非 v5 自由 hint 分。
+  A('首答 → 评分且得到下一题 identity', first.score === 100 && !!first.nextQuestionId && first.done === false);
   // crash after checkpoint before event projection/requeue 的等价重放：同 answer identity 只重放投影，不会再次 resume 或二次事件。
   const replay = await submitAdaptiveAnswer(d, firstInput);
   A('同 answer identity 重放 → 不重评且 next question 不变', replay.score === first.score && replay.nextQuestionId === first.nextQuestionId);
@@ -71,7 +72,7 @@ async function main() {
     lastScore = r.score ?? 0; done = r.done; questionId = r.nextQuestionId ?? questionId;
   }
   A('submit 循环到收尾(done)', done === true);
-  A('每答经评估(score=88)', lastScore === 88);
+  A('每答经评估(档位派生 score=100)', lastScore === 100);
 
   const ev = await asPrincipal(pool, OWNER, (c) => c.query("SELECT kind, count(*)::int n FROM interview_event WHERE stream_key=$1 GROUP BY kind", [IID]));
   const kinds = Object.fromEntries(ev.rows.map((r: any) => [r.kind, r.n]));
@@ -168,7 +169,7 @@ async function main() {
       if (req.service === 'mock-interview.evaluate') {
         repairCalls.push({ system: req.system });
         // 有效答案故意碰到逐字 quote 失败；已派发的评分不得用 repair key 再发一次。
-        return { ok: true, raw: { score: 97, relevant: true, hasHook: true, evidence: [{ criterion: '伪造引文', quote: '不属于这次回答的文本' }] } };
+        return { ok: true, raw: { relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '不属于这次回答的文本' }] } };
       }
       return { ok: false, kind: 'deterministic' };
     },

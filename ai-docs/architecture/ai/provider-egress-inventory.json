@@ -135,7 +135,31 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/context-budget.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/ag-b-classify.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/ag-e-report.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/resume-grounding.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
           "class": "local-adapter-test"
         }
       ]
@@ -358,6 +382,7 @@
     }
   ],
   "transportSources": [
+    "packages/ai-runtime/src/model-client.ts",
     "packages/ai-runtime/src/timeout.ts",
     "packages/ai-runtime/src/voice-stream.ts"
   ],
@@ -1272,22 +1297,22 @@
     },
     {
       "name": "MODEL_API_KEY",
-      "source": "apps/worker/src/r4-p-meta-p-r1-remaining.ts",
+      "source": "apps/worker/evidence/r4-p-meta-p-r1-remaining.ts",
       "class": "test-isolation"
     },
     {
       "name": "MODEL_API_KEY",
-      "source": "apps/worker/src/r4-p-meta-serving-product-remaining.ts",
+      "source": "apps/worker/evidence/r4-p-meta-serving-product-remaining.ts",
       "class": "test-isolation"
     },
     {
       "name": "MODEL_API_KEY",
-      "source": "apps/worker/src/r4-p-meta-serving-remaining.ts",
+      "source": "apps/worker/evidence/r4-p-meta-serving-remaining.ts",
       "class": "test-isolation"
     },
     {
       "name": "MODEL_API_KEY",
-      "source": "apps/worker/src/r4-p-r1-fail-closed-remaining.ts",
+      "source": "apps/worker/evidence/r4-p-r1-fail-closed-remaining.ts",
       "class": "test-isolation"
     },
     {
@@ -1801,6 +1826,26 @@
       "class": "test-fixture"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
       "class": "test-fixture"
@@ -1839,6 +1884,146 @@
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "scripts/e2e-static-guards.proof.mjs",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "apps/api/src/platform/env-schema.ts",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/src/platform/env-schema.ts",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/qbank-planner-honesty.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/report-retry-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/role-input.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/report-retry.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/alerts/check-alerts-metrics-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/alerts/check-alerts-sandbox-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/ha/ha-sandbox.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/api/src/platform/env-schema.ts",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/alerts/check-alerts-metrics-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/alerts/check-alerts-sandbox-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/ha/ha-sandbox.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/qbank-planner-honesty.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/role-input.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/ag-b-classify.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/ag-e-report.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-isolation"
     }
   ],
   "deploymentReferences": [

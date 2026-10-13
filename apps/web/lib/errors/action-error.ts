@@ -1,3 +1,5 @@
+import { APPLICATION_START_REDIRECT_ERRORS } from '../jobs/application-start-error';
+
 /**
  * actionErrorMessage —— #250/#251/#224 错误文案映射刀（蓝本=errmsg-map-REQUEST.md @2e942ace rev2）。
  * 纯字符串面、零依赖（沿 lib/jobs/application-start-error.ts 同型先例）：server action 与 RSC 页面共用，
@@ -37,6 +39,13 @@ const BINDING_CONFLICT_TEXT = '你有一场未结束的面试：继续/放弃后
 // （E1 出口注：继续=列表「进入 →」按钮；放弃=进会话后 InterviewPanel「放弃」+确认弹层（放弃退还额度）
 //  ——两跳可达，页面自身即 /interviews 列表，故本行不带链接。）
 
+// ── 410 行（interview begin 确定性围栏；interviews 页域专属。FENCE-REFLOW F6/#243：
+//    文案=审计第五章 §5.2 建议 3 原文逐字「该面试已进入数据删除流程，请新建面试」；
+//    旧行为=映射 miss → begin_failed 兜底「稍后重试」——永久围栏给重试指引=教用户白点）──
+// （G4 #59：补 export=非文案行改动（REQUEST rev2 §1② 注记⑤·值零改）——turn-submit-error.ts 以 import 单源
+//  引用本常量落 410 同一性断言；既有四页行/文案零改。）
+export const INTERVIEW_PRIVACY_FENCED_TEXT = '该面试已进入数据删除流程，请新建面试';
+
 // ── 503 行 ────────────────────────────────────────────────────────────────
 const SERVICE_UNAVAILABLE_TEXT = '服务暂不可用';
 
@@ -64,6 +73,9 @@ const DIAGNOSIS_BEGIN_DEFENSIVE_CODES: ReadonlySet<string> = new Set([
   'diagnosis_resume_reference_conflict',
 ]);
 
+// ── jobs 页域专属行（B271 片2 S2-C6）：企业支付不可用分码·稳定文案单源=lib/jobs/application-start-error.ts ──
+const JOBS_ENTERPRISE_PAY_UNAVAILABLE_TEXT = APPLICATION_START_REDIRECT_ERRORS['application_enterprise_pay_unavailable'];
+
 /** 映射表逐码（§1③ 全文）：页域化 `actionErrorMessage(page, status, code)`。未知码→null（不渲染空壳）。 */
 export function actionErrorMessage(page: ActionErrorPage, status: number, code: string | null): ActionErrorMessage | null {
   if (code !== null && CREDITS_402_CODES.has(code)) {
@@ -72,6 +84,7 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
   if (page === 'interviews') {
     if (code === 'candidate_route_undecided') return { text: ROUTE_UNDECIDED_TEXT };
     if (code === 'interview_resume_binding_conflict') return { text: BINDING_CONFLICT_TEXT };
+    if (code === 'interview_privacy_fenced') return { text: INTERVIEW_PRIVACY_FENCED_TEXT };   // F6 410 行（interviews 页域·映射命中→不再落 begin_failed 兜底）
     if (code === 'create_failed') return { text: CREATE_FAILED_TEXT.interviews };
     if (code === 'begin_failed' || (code !== null && INTERVIEW_BEGIN_DEFENSIVE_CODES.has(code))) {
       return { text: INTERVIEWS_BEGIN_FAILED_TEXT };
@@ -84,7 +97,10 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
     ) {
       return { text: CREATE_FAILED_TEXT[page] };
     }
-  } // jobs：无专属行（redirect 通道只写 402 家族，#224 渲染面即 402 行）
+  } else if (page === 'jobs') {
+    // B271 片2 S2-C6：企业支付不可用（候选人稳定拒因·修法③文案）；费用文案（修法⑥）归片3。
+    if (code === 'application_enterprise_pay_unavailable') return { text: JOBS_ENTERPRISE_PAY_UNAVAILABLE_TEXT };
+  } // jobs 其余：无专属行（redirect 通道只写 402 家族，#224 渲染面即 402 行）
   if (code === 'public_preview_read_only' || status === 503) return { text: SERVICE_UNAVAILABLE_TEXT }; // 503 行（全局·含「及其余 503」）
   return null;                                                                    // 未知码：无渲染面
 }

@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503
 **Date**: 2026-10-07
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`50423a6f`** / full `50423a6fa6f18d4c9d193611cf84c4702e067208`（docs tip · not a prove tip · fetch 成功、本地 origin ref 与主仓 HEAD 一致）
-**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-ss2` · branch `line/ss2-sole-stack`（一切 git 写操作只在此 worktree；路径与分支在本 REQUEST 前已按基线 tip 预建于 `50423a6f`、干净零 diff，故未另建 `-2`）
+**Worktree**: `meetwise-line-ss2`（仓根同级 worktree）· branch `line/ss2-sole-stack`（一切 git 写操作只在此 worktree；路径与分支在本 REQUEST 前已按基线 tip 预建于 `50423a6f`、干净零 diff，故未另建 `-2`）
 **Knife**: **GAP-E2E-ISO-BANNER-PG-RETAINED · SOLE_STACK 代码路径对齐包**（N 线 `a778255` 显式遗留的「另包」· 行为语义裁决交双审 · **≠ sole cutover** · 本 REQUEST docs-only）
 **Gap id**: **`GAP-E2E-ISO-BANNER-PG-RETAINED`**（`ai-docs/delivery/gap-bug-backlog.md:63` · P1 · named gap · backlog 行状态本刀不改）
 **Experts**: `mw-e2e-ha` + `mw-privacy-int`（stub PENDING · Ban self-approve · alone ≠ dual · 不代签 peer · PG-retained 属隐私/栈域故 `mw-privacy-int` 入双审）

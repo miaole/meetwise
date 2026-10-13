@@ -20,7 +20,7 @@ import { LocaleSwitcher } from '@/components/LocaleSwitcher';
 
 type NavLink = { href: string; label: string };
 
-/** 顶部导航(Server Component:读 cookie 判登录态。recruiter cookie 只切到内部预览骨架，不是两套对等产品)+ i18n + 语言切换)。
+/** 顶部导航(Server Component:读 cookie 判登录态。recruiter cookie 切到招聘方功能面(#263 i263 收口)，不是两套对等产品)+ i18n + 语言切换)。
  *  未登录态展示完整产品导航 title(点击统一跳登录页,由 middleware / 页面内 redirect 兜底),登录态用 Avatar + DropdownMenu 收纳账户操作;H5 折叠进 Sheet(汉堡菜单)。 */
 export async function Nav() {
   const ck = await cookies();
@@ -38,6 +38,7 @@ export async function Nav() {
     { href: '/interviews', label: t('interviews') },
     { href: '/quiz', label: '押题' },
     { href: '/jobs', label: '找工作' },
+    { href: '/roles', label: '岗位匹配' },   // #268 S2a 入口(标签循 :39-40 字面中文先例·零 i18n 键·EXEC 裁登记)
     { href: '/notifications', label: t('notifications') },
     { href: '/pricing', label: t('billing') },
     { href: '/settings', label: t('settings') },
@@ -57,7 +58,7 @@ export async function Nav() {
     <header className="sticky top-0 z-40 w-full border-b border-border bg-background/85 backdrop-blur supports-[backdrop-filter]:bg-background/65">
     <nav className="mx-auto flex min-h-14 max-w-6xl flex-wrap items-center gap-x-5 gap-y-2 px-4 py-2.5 md:px-6">
       <Link href={authed ? home : '/'} className="mr-1 flex items-center gap-1.5 font-serif text-base font-bold tracking-tight">
-        {t('brand')}{isRecruiter ? <span className="font-sans text-xs font-normal text-muted-foreground">· 内部预览</span> : null}
+        {t('brand')}
       </Link>
 
       {authed ? (

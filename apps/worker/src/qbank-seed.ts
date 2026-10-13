@@ -1,8 +1,15 @@
 /**
  * 起步共享题库种子(**自撰通用能力题**,自有措辞、非抄录任何站点、无版权问题)。覆盖常见后端/系统能力。
  * 仅起步种子;真正策展/授权题库由运营离线灌(ingestQbank)。CRAG 据此检索真题接地出题。
+ *
+ * H2 QBANK-CORPUS(#75/#76/#77)扩容注记:QBANK_SEED_V2_SOURCE 为本刀新增 13 条**逐题撰写**种子
+ * (rubric/follow_up/anti_pattern 逐题互异,禁前缀整组复制)——难度覆盖 1-5 全谱(旧 33 条仅 3/4 两档:
+ * 3×28+4×5,1/2/5 零题),scope 沿 QBANK_TAXONOMY_V1 已释放叶子从三值扩至七值(新增 backend/go、
+ * backend/python、frontend/web、qa/quality_engineering)。**旧 33 条种子与其 COACHING 共享块字节
+ * 保留零改**——同 refId 内容不可变守卫(qbank-ingest 改版 fail-loud)禁止原位改写,其共享 rubric
+ * 症状(#76 病灶)以「旧通道兼容保留」裁决登记,新语料面(导入件+V2 种子)已逐题化。
  */
-import { QBANK_TAXONOMY_V1, type QbankItem, type QbankQuestionArtifact } from '@meetwise/db';
+import { buildQuestionArtifact, QBANK_TAXONOMY_V1, type QbankItem, type QbankQuestionArtifact } from '@meetwise/db';
 
 type BootstrapSeedItem = Pick<QbankItem, 'refId' | 'text' | 'kind'>;
 
@@ -60,11 +67,18 @@ const QBANK_SEED_SOURCE: BootstrapSeedItem[] = [
  * route is intentionally assigned at cut time, not inferred later from a job
  * or a retrieval query.  The seed does not pretend its broad systems questions
  * are language-specific; only JVM/JMM material lands in the Java leaf.
+ *
+ * H2 扩容:新前缀(go/py/fe/qa)按 QBANK_TAXONOMY_V1 已释放叶子(0086)显式落 leaf;
+ * 既有前缀路由逐字节保留。
  */
 const bootstrapScope = (refId: string): string => {
   const prefix = refId.split(':')[1]?.split('-')[0];
   if (prefix === 'jvm' || prefix === 'concur') return 'backend/java';
   if (prefix === 'rag') return 'ai_ml/applied';
+  if (prefix === 'go') return 'backend/go';
+  if (prefix === 'py') return 'backend/python';
+  if (prefix === 'fe') return 'frontend/web';
+  if (prefix === 'qa') return 'qa/quality_engineering';
   return 'backend/general';
 };
 
@@ -79,6 +93,7 @@ const COMPETENCY: Record<string, string> = {
   limit: '限流与过载保护', cache: '缓存与一致性', lock: '并发控制', concur: 'JVM 并发', db: '数据库',
   mq: '消息可靠性', design: '系统设计', net: '网络协议', os: '操作系统', micro: '分布式系统',
   obs: '可观测性', rag: 'Agent 与 RAG', jvm: 'JVM 运行时', sec: '应用安全',
+  go: 'Go 运行时', py: 'Python 运行时', fe: '前端工程', qa: '测试与质量',
 };
 
 const COACHING: Record<string, { rubric: string; followUp: string; antiPattern: string }> = {
@@ -158,8 +173,11 @@ const COACHING: Record<string, { rubric: string; followUp: string; antiPattern: 
  * Every bootstrap question becomes four independently retrievable chunks.  The title/prompt is deliberately not
  * the only vector: a hit on a rubric, a concrete follow-up or an anti-pattern resolves to the same question entity
  * and returns the complete source-rechecked package to the graph.
+ *
+ * H2 扩容:旧 33 条映射体(含 COACHING 共享块)逐字节保留;V2 种子经 buildQuestionArtifact 逐题
+ * 产四 chunk(三件套逐题互异,#76),难度/能力域逐题显式(#77),禁 `difficulty: prefix === …` 三元散布。
  */
-export const QBANK_ARTIFACTS: QbankQuestionArtifact[] = QBANK_SEED.map((item) => {
+const LEGACY_QBANK_ARTIFACTS: QbankQuestionArtifact[] = QBANK_SEED.map((item) => {
   const prefix = item.refId.split(':')[1]?.split('-')[0] ?? 'design';
   const coaching = COACHING[prefix] ?? COACHING.design!;
   const competency = COMPETENCY[prefix] ?? '工程系统设计';
@@ -179,3 +197,87 @@ export const QBANK_ARTIFACTS: QbankQuestionArtifact[] = QBANK_SEED.map((item) =>
     ],
   };
 });
+
+/** V2 逐题撰写种子(自撰·自有措辞):难度 1-5 全谱(1×2/2×6/5×5),scope 七叶子(旧三值+go/py/fe/qa)。 */
+interface QbankSeedV2Item extends BootstrapSeedItem {
+  difficulty: 1 | 2 | 3 | 4 | 5;
+  rubric: string;
+  followUp: string;
+  antiPattern: string;
+}
+
+const QBANK_SEED_V2_SOURCE: QbankSeedV2Item[] = [
+  // ── 难度 1(基础概念):入门可答,有标准答案骨架 ──
+  { refId: 'seed:net-4', difficulty: 1, text: 'TCP 和 UDP 的区别是什么,分别适合什么场景',
+    rubric: '说出面向连接/无连接、可靠与有序、报文vs字节流三组本质差异;能各举两个真实场景(如网页vs直播)并说明为什么。',
+    followUp: '如果一个实时语音产品把传输层从 UDP 换成 TCP,用户体验会具体坏在哪里?',
+    antiPattern: '只会背「TCP 可靠 UDP 不可靠」,说不出任何真实场景与取舍。' },
+  { refId: 'seed:db-5', difficulty: 1, text: '什么是数据库索引,为什么能加快查询,什么时候反而变慢',
+    rubric: '解释「用空间和写放大换读速度」的本质;举出一个索引拖慢写的具体例子并给出取舍判断。',
+    followUp: '一张写入频繁的日志表,你会给哪些列建索引、坚决不给哪些列建,为什么?',
+    antiPattern: '把索引当免费加速器,完全说不出写放大、存储与维护成本。' },
+  // ── 难度 2(入门应用):需要组合两个以上概念 ──
+  { refId: 'seed:cache-4', difficulty: 2, text: '设计一个进程内本地缓存,过期与淘汰策略怎么选',
+    rubric: '给出容量上限、过期(TTL/惰性+定期)与淘汰(LRU/LFU)的选型理由;说明本地缓存与共享缓存的边界。',
+    followUp: '多实例部署下同一 key 在不同节点缓存不一致,你接受到什么程度、用什么手段收敛?',
+    antiPattern: '只说「加个 Map」,没有容量边界、过期语义或一致性问题意识。' },
+  { refId: 'seed:os-3', difficulty: 2, text: '进程之间有哪些通信方式,各自适用什么场景',
+    rubric: '至少覆盖管道/消息队列/共享内存/信号量/套接字并给出各自适用前提;能按数据量与延迟需求做一次选型。',
+    followUp: '高频小消息和低频大文件两种场景,你会分别选哪种 IPC,为什么?',
+    antiPattern: '罗列名词不给适用条件,或把共享内存说成没有同步成本的方案。' },
+  { refId: 'seed:go-1', difficulty: 2, text: 'goroutine 和操作系统线程有什么区别,Go 调度器如何支撑高并发',
+    rubric: '说出 G-M-P 与抢占式调度的基本形态;解释用少量线程承载大量 goroutine 的原因与阻塞代价。',
+    followUp: '一个 goroutine 里执行了重量级 cgo 调用,调度器与 P 的行为会发生什么?',
+    antiPattern: '只说「goroutine 很轻」,说不出调度模型与系统线程的关系。' },
+  { refId: 'seed:py-1', difficulty: 2, text: 'Python 的 GIL 是什么,CPU 密集与 IO 密集任务分别怎么选并发模型',
+    rubric: '解释 GIL 对多线程的实际约束;给出 CPU 密集走多进程、IO 密集可用多线程/异步的选型与理由。',
+    followUp: '一个既含 CPU 计算又含大量 HTTP 调用的服务,你会怎么拆分并发模型?',
+    antiPattern: '声称 Python 多线程完全无用,或完全不知道 GIL 存在。' },
+  { refId: 'seed:fe-1', difficulty: 2, text: '浏览器从输入 URL 到首屏渲染经历了哪些阶段,如何优化首屏时间',
+    rubric: '按 DNS/连接/请求/解析/渲染链条定位瓶颈;给出至少三个分层(网络/资源/渲染)的优化手段与度量指标。',
+    followUp: '首屏优化后 LCP 仍高,你如何用性能面板定位是资源、阻塞还是渲染问题?',
+    antiPattern: '只会罗列「压缩合并缓存」,说不出渲染阻塞与关键资源概念。' },
+  { refId: 'seed:qa-1', difficulty: 2, text: '什么是测试金字塔,单元、集成、端到端测试的投入应该怎么分配',
+    rubric: '说明「多单元、少端到端」的成本与反馈速度依据;能对给定业务给出大致比例与各自职责边界。',
+    followUp: '如果一个团队端到端测试大量红但没人修,你会怎么推动结构化改善?',
+    antiPattern: '把金字塔背成教条,说不出层级之间的失败定位成本差异。' },
+  // ── 难度 5(专家权衡):跨域取舍、灾难场景与可回滚设计 ──
+  { refId: 'seed:limit-4', difficulty: 5, text: '跨国多机房部署下,全局限流的配额一致性与机房脑裂如何处置',
+    rubric: '给出配额分割/同步延迟/分区期间本地自治与事后对账的完整方案;量化脑裂期间的超发上界并说明补偿路径。',
+    followUp: '两机房间广域网分区 5 分钟,期间两地在本地配额内持续放行,恢复后你如何收敛总账与补偿?',
+    antiPattern: '把单机房令牌桶方案平移到多机房,对分区与同步延迟零讨论。' },
+  { refId: 'seed:micro-4', difficulty: 5, text: '跨区域多活写入的一致性仲裁怎么做,谈谈脑裂或错误写入的回滚决策',
+    rubric: '说明写入仲裁(共识/Last-Writer-Wins/区域亲和)的选型边界;给出一次具体脑裂或误写的隔离、审计与回滚决策链。',
+    followUp: '两个区域对同一账户并发扣款且都成功,对账发现后你的处置顺序是什么,哪些操作不可逆?',
+    antiPattern: '宣称「多活就选最终一致」而给不出冲突处置与资损补偿路径。' },
+  { refId: 'seed:db-6', difficulty: 5, text: '单表万亿级数据的在线扩容怎么做,双写迁移期间如何保证读写一致与可回滚',
+    rubric: '给出全量拷贝、增量同步、双写切换、数据校验、回滚门的完整时序;对每个阶段说清不一致窗口与观测手段。',
+    followUp: '切换后第 3 天发现旧库有一条写入没同步到新库,你如何定位根因并决定是否回滚?',
+    antiPattern: '只说「上分库分表中间件」,没有迁移时序、校验与回滚设计。' },
+  { refId: 'seed:rag-2', difficulty: 5, text: 'RAG 系统检索质量劣化如何归因,给出评测集设计、bad case 分层与上线护栏',
+    rubric: '区分语料/检索/生成三层劣化并给出可复现的归因方法;评测集有分层覆盖与版本化;上线护栏含回退门。',
+    followUp: '换 embedding 模型后线上投诉上升但离线指标变好,你如何解释并用数据裁决?',
+    antiPattern: '只看单一 Recall 指标,无法定位语料、检索与生成层的责任边界。' },
+  { refId: 'seed:jvm-2', difficulty: 5, text: '元空间与直接内存持续增长导致 OOM,如何定位并根治',
+    rubric: '区分堆外(元空间/直接内存/NIO)各来源的观测手段;结合类加载器泄漏或 Buffer 未释放给出根治路径与验证。',
+    followUp: '重启后症状消失但一周后复发,你如何用持久化观测证据锁定泄漏源而不是靠重启续命?',
+    antiPattern: '把堆外 OOM 当堆泄漏调 -Xmx,或只会说「加大元空间」掩盖问题。' },
+];
+
+const V2_QBANK_ARTIFACTS: QbankQuestionArtifact[] = QBANK_SEED_V2_SOURCE.map((item) => {
+  const prefix = item.refId.split(':')[1]?.split('-')[0] ?? '';
+  return buildQuestionArtifact({
+    refId: item.refId,
+    text: item.text,
+    competency: COMPETENCY[prefix] ?? '工程系统设计',
+    difficulty: item.difficulty,
+    taxonomyVersion: QBANK_TAXONOMY_V1,
+    servingScopeId: bootstrapScope(item.refId),
+    annotationSource: 'seed_v1_reviewed',
+    rubric: item.rubric,
+    followUp: item.followUp,
+    antiPattern: item.antiPattern,
+  });
+});
+
+export const QBANK_ARTIFACTS: QbankQuestionArtifact[] = [...LEGACY_QBANK_ARTIFACTS, ...V2_QBANK_ARTIFACTS];

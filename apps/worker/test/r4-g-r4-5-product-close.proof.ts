@@ -19,7 +19,7 @@ import {
   assessGR45AggregateProductClose,
   emitGR45AggregateProductCloseEvidence,
   hasGR45AggregateProductCloseEvidence,
-} from '../src/r4-g-r4-5-product-close.ts';
+} from '../evidence/r4-g-r4-5-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

@@ -2,7 +2,7 @@
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC）
 **Date**: 2026-10-07
-**Base**: `origin/feat/mysql-schema-skeleton` @`115c47f2` · 分支 `line/errmsg-map`（工作树 `/Users/miaole/Desktop/golucky/meetwise-line-errmsg`）
+**Base**: `origin/feat/mysql-schema-skeleton` @`115c47f2` · 分支 `line/errmsg-map`（工作树 `meetwise-line-errmsg`·仓根同级 worktree）
 **蓝本**: fix-roadmap 批 0 原文（协调方审定誊录）：「统一 actionErrorMessage(status, code) 覆盖四页；映射表：402→『额度不足，去哪里获取』·candidate_route_undecided→『暂时无法判断岗位方向』·interview_resume_binding_conflict→『你有一场未结束的面试：继续/放弃后重来』·503→『服务暂不可用』；/jobs 不再写『将消耗你 1 次额度』——D5 已决企业付费，#271 上线前如实提示。」——**唯一蓝本**，文案逐字忠实，**禁自由发挥**。
 **Honesty**: 本档全部 file:line 锚点在 `line/errmsg-map` @`115c47f2` 实树亲读验证（apps/web 四页+四 actions+lib/jobs+pricing/billing、apps/api interview/quiz/diagnosis service、apps/web/test/web-logic.proof.ts、product-campaign-EXECUTION-SOP.md——行号错=审席 FAIL）；「将消耗你 1 次额度」在 apps/web **零命中**（grep `消耗|次额度` 实证），该句为 Ban 项非改动项（§5-8）。
 

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowLeft, Download, CheckSquare, Square, Share2 } from 'lucide-react';
 import { getServerToken, serverGet } from '@/lib/api/server';
 import { retryReportAction, refreshReportAction } from './actions';
+import { startFocusRetrainAction } from '../../interviews/actions';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -14,26 +15,29 @@ import { AbilityBar } from '@/components/AbilityBar';
 import { AnnotationCard } from '@/components/AnnotationCard';
 import { Thinking } from '@/components/ui/Thinking';
 import { Skeleton, SkeletonText } from '@/components/ui/Skeleton';
-import { InterviewView } from '@meetwise/contracts';
+import { InterviewView, LEVEL_LABELS } from '@meetwise/contracts';
 import { interviewContextTitle, interviewResumeLabel, interviewTimeLabel } from '@/lib/interview/context';
+import { projectTurnAnnotations, type TranscriptTurn } from '@/lib/report/turn-annotations';
 
 export const metadata = { title: '面试报告 · 知面' };
 
 type ReportStatus = 'queued' | 'running' | 'ready' | 'failed' | 'quarantined' | 'interview_failed' | 'assessment_unavailable';
-type Report = { status: ReportStatus; content: { overall: number; sections: Array<{ title: string; body: string }> } | null };
+type Report = { status: ReportStatus; content: { overall: number; sections: Array<{ title: string; body: string }> } | null; attempts?: number };
 type Dimension = { dimension: string; score: number; gap: boolean; evidence?: string };
 type Assessment = { status?: string; dimensions?: Dimension[]; overall?: number };
 type LearningPlan = { items: Array<{ topic: string; priority: string; action: string; done: boolean }>; progress: { completed: number; total: number } };
 type Milestone = { stage: string; goal: string };
 type Career = { readiness?: string; level?: string; milestones?: Milestone[] };
 
-const LEVEL_LABEL: Record<string, string> = { junior: '初级', mid: '中级', senior: '高级' };
+// #125：档位标签单源读 contracts LEVEL_LABELS（五档·禁重抄字面量）。
+// v1 历史三档 junior/mid/senior 为五档表子集同文（初级/中级/高级）；未知值走中文兜底，不裸出英文枚举。
+const LEVEL_LABEL = LEVEL_LABELS as Record<string, string>;
 
-export default async function ReportPage({ params }: { params: Promise<{ id: string }> }) {
+export default async function ReportPage({ params, searchParams }: { params: Promise<{ id: string }>; searchParams: Promise<{ retry_error?: string }> }) {
   const { id } = await params;
+  const { retry_error } = await searchParams;   // #229 D2:重试 action 非 2xx 回跳携带的业务码 → 渲染明确提示条
   if (!(await getServerToken())) redirect('/login');
 
-  const base = process.env.NEXT_PUBLIC_API_BASE ?? '';
   const [r, interviewRaw] = await Promise.all([
     serverGet<Report>('/interview/' + id + '/report'),
     serverGet<unknown>('/interview/' + id),
@@ -53,6 +57,11 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
   const assessmentUnavailable = status === 'assessment_unavailable';
   const noReport = !r;   // 报告**还没生成**(面试进行中/未开始)——不是失败,引导回面试继续
   const overall = ready && typeof r?.content?.overall === 'number' ? r!.content!.overall : null;
+  const attempts = unavailable ? r?.attempts ?? 0 : 0;   // 已耗自动重试次数(④文案如实渲染;页面不承诺)
+  // 重试失败提示(#229 D2②「明确提示」义务):业务码 → 人话,不再静默吞 404/429。
+  const retryErrorText = retry_error === 'report_retry_limited' ? '重试太频繁，请稍后再试。'
+    : retry_error === 'no_retriable_report' ? '当前没有可重试的报告。'
+      : retry_error ? '重试请求未成功，请稍后再试。' : null;
 
   return (
     <main className="mx-auto max-w-3xl px-4 py-8 sm:px-6">
@@ -60,7 +69,8 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <Link href="/interviews" className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-foreground">
           <ArrowLeft className="h-4 w-4" /> 返回面试列表
         </Link>
-        <a href={base + '/interview/' + id + '/report/export'} className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary">
+        {/* #257:导出走同源代理(服务端 cookie→Bearer 转发,浏览器拿不到令牌)——不再直拼 API 主机(无 Authorization 头必 401)。 */}
+        <a href={'/api/interview/' + id + '/report/export'} className="inline-flex items-center gap-1 text-sm text-muted-foreground transition-colors hover:text-primary">
           <Download className="h-4 w-4" /> 导出 Markdown
         </a>
       </div>
@@ -80,7 +90,7 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           {overall != null ? (
             <div className="flex shrink-0 flex-col items-center">
               <ScoreRing score={overall} />
-              <span className="mt-2 text-center text-xs text-muted-foreground">本次练习反馈<br />不用于招聘决定</span>
+              <span className="mt-2 text-center text-xs text-muted-foreground">本场报告分<br />不用于招聘决定</span>
               {/* 运营层裂变:报告就绪后,owner 可一键生成可分享海报(仅聚合分数,无 PII)。 */}
               <Link
                 href={'/report/' + id + '/share'}
@@ -92,6 +102,13 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           ) : null}
         </div>
       </header>
+
+      {/* 重试失败提示条(#229 D2②「明确提示」义务·独立于状态卡:queued 态下 404 回跳也可见,不再静默吞)。 */}
+      {retryErrorText ? (
+        <div className="mb-6 rounded-md border border-destructive/30 bg-destructive/5 px-4 py-3 text-sm font-medium text-destructive" data-testid="retry-error" role="alert">
+          {retryErrorText}
+        </div>
+      ) : null}
 
       {ready && r?.content && (
         <section className="mb-8 space-y-4">
@@ -138,9 +155,10 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <CardContent className="p-6 text-center">
             <p className="mb-2 font-semibold">报告还没生成</p>
             <p className="mb-4 text-sm text-muted-foreground">这场面试还没完成——答完题、面试结束后,系统会自动生成你的综合报告。</p>
-            <a href={base + '/interview/' + id} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+            {/* #257:站内跳转用站内路由(SPA 导航),不再落到 API 主机。 */}
+            <Link href={'/interview/' + id} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               继续这场面试 →
-            </a>
+            </Link>
           </CardContent>
         </Card>
       )}
@@ -151,9 +169,10 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
           <CardContent className="p-6 text-center">
             <p className="mb-2 font-semibold text-destructive">面试已中断</p>
             <p className="mb-4 text-sm text-muted-foreground">这场面试因故未能完成,无法生成报告。你可以回到面试列表重新开始一场。</p>
-            <a href={base + '/interviews'} className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+            {/* #257:站内跳转用站内路由,不再落到 API 主机。 */}
+            <Link href="/interviews" className="inline-flex items-center gap-1 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
               回到面试列表 →
-            </a>
+            </Link>
           </CardContent>
         </Card>
       )}
@@ -172,7 +191,10 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
         <Card className="mb-8 border-destructive/30 bg-destructive/5">
           <CardContent className="p-6 text-center">
             <p className="mb-2 font-semibold text-destructive">报告暂不可用</p>
-            <p className="mb-4 text-sm text-muted-foreground">生成可能因临时故障被中断,可以重新尝试生成。</p>
+            {/* #229 D2 ④文案(逐字):N=attempts·零扣费承诺(账本规则=完成时 confirm 一次,重试不再扣费)。重试生成=唯一出口,不引导重开面试。 */}
+            <p className="mb-4 text-sm text-muted-foreground">
+              报告生成失败，系统已自动重试 {attempts} 次；你可以再次重试，不会重复扣费
+            </p>
             <form action={retry}>
               <SubmitButton pendingLabel="重试中…">重试生成</SubmitButton>
             </form>
@@ -182,10 +204,10 @@ export default async function ReportPage({ params }: { params: Promise<{ id: str
 
       <div className="space-y-8">
         <Suspense fallback={<SectionFallback label="能力评估加载中…" />}>
-          <AssessmentSection id={id} />
+          <AssessmentSection id={id} resumeId={interview?.resume_id ?? null} />
         </Suspense>
         <Suspense fallback={<SectionFallback label="学习计划加载中…" />}>
-          <LearningSection id={id} />
+          <LearningSection id={id} resumeId={interview?.resume_id ?? null} />
         </Suspense>
         <Suspense fallback={<SectionFallback label="职业路径加载中…" />}>
           <CareerSection id={id} />
@@ -223,40 +245,60 @@ function SectionFallback({ label }: { label: string }) {
   );
 }
 
-async function AssessmentSection({ id }: { id: string }) {
-  const assessment = await serverGet<Assessment>('/interview/' + id + '/assessment');
+async function AssessmentSection({ id, resumeId }: { id: string; resumeId: string | null }) {
+  const [assessment, transcript] = await Promise.all([
+    serverGet<Assessment>('/interview/' + id + '/assessment'),
+    // EVIDENCE-DELIVERY S2(C8)：逐题点评改吃 transcript（web 首次接线 GET :id/transcript）——
+    // 真题目+真判据，维度名/固定串冒充退役。投影纯函数薄消费（lib/report/turn-annotations.ts）。
+    serverGet<{ turns?: TranscriptTurn[] }>('/interview/' + id + '/transcript'),
+  ]);
   const dims = Array.isArray(assessment?.dimensions) ? assessment!.dimensions! : [];
-  if (!assessment || dims.length === 0) return null;
+  const annotations = projectTurnAnnotations(Array.isArray(transcript?.turns) ? transcript!.turns! : []);
+  if ((!assessment || dims.length === 0) && annotations.length === 0) return null;
+
+  // H4 R1(#252 修法①·再练入口):N=本场 gap 维度数(运行时派生,修法原文「3」为叙述值非硬编码);
+  // focus=本场 gap 维度名数组(上限=本 gap 数,页侧派生)→ startFocusRetrainAction 走既有 create+begin 链
+  // (携同简历 resume-id+focus 头,后端专项面 5-8 题预算+planner 上一轮弱点摘要)。缺简历绑定(理论不可达:
+  // begin 必绑简历)→ 入口不渲染,零死按钮。
+  const gapDims = dims.filter((d) => !!d.gap && typeof d.dimension === 'string' && d.dimension.trim().length > 0);
+  const gapCount = gapDims.length;
 
   return (
     <section>
       <SectionHeading>能力评估</SectionHeading>
-      {/* 维度总览:每维一条能力条,差距维度(gap)落主色强调 */}
-      <Card>
-        <CardContent className="space-y-3 p-6">
-          {dims.map((d, i) => (
-            <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
-          ))}
-        </CardContent>
-      </Card>
+      {dims.length > 0 ? (
+        // 维度总览:每维一条能力条,差距维度(gap)落主色强调(沿 assessment 面·维度总览≠逐题点评·语义分离)。
+        <Card>
+          <CardContent className="space-y-3 p-6">
+            {dims.map((d, i) => (
+              <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
+            ))}
+            {gapCount > 0 && resumeId ? (
+              <form action={startFocusRetrainAction} className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
+                <input type="hidden" name="resumeId" value={resumeId} />
+                <input type="hidden" name="focus" value={JSON.stringify(gapDims.map((d) => d.dimension))} />
+                <p className="text-sm text-muted-foreground">针对本场 {gapCount} 个差距维度，开启一场 5-8 题专项练习。</p>
+                <SubmitButton pendingLabel="启动中…" size="sm" className="shrink-0">再练这 {gapCount} 个弱项</SubmitButton>
+              </form>
+            ) : null}
+          </CardContent>
+        </Card>
+      ) : null}
 
-      {/* 逐题点评:每维一张签名批注卡。evidence 当点评,gap 维度同时落到能力条强调。 */}
-      <div className="mt-5 grid gap-4">
-        <div className="text-xs font-medium uppercase tracking-wide text-primary">逐题点评</div>
-        {dims.map((d, i) => (
-          <AnnotationCard
-            key={i}
-            question={d.dimension}
-            note={d.evidence ?? (d.gap ? '该维度低于达标线(60),建议优先补强。' : '该维度表现达标。')}
-            score={d.score}
-          />
-        ))}
-      </div>
+      {/* 逐题点评:transcript 逐回合真题目+真判据;evidence 缺失回合 note 天然隐藏(零回退文案);分数=ScoreCard,无卡无数值。 */}
+      {annotations.length > 0 ? (
+        <div className="mt-5 grid gap-4">
+          <div className="text-xs font-medium uppercase tracking-wide text-primary">逐题点评</div>
+          {annotations.map((a, i) => (
+            <AnnotationCard key={i} question={a.question} note={a.note} score={a.score} />
+          ))}
+        </div>
+      ) : null}
     </section>
   );
 }
 
-async function LearningSection({ id }: { id: string }) {
+async function LearningSection({ id, resumeId }: { id: string; resumeId: string | null }) {
   const learning = await serverGet<LearningPlan>('/interview/' + id + '/learning-plan');
   const items = Array.isArray(learning?.items) ? learning!.items : [];
   if (!learning || items.length === 0) return null;
@@ -276,7 +318,7 @@ async function LearningSection({ id }: { id: string }) {
             {items.map((it, i) => (
               <div key={i} className="flex gap-3 py-3 first:pt-0 last:pb-0">
                 {it.done ? <CheckSquare className="mt-0.5 h-4 w-4 shrink-0 text-primary" /> : <Square className="mt-0.5 h-4 w-4 shrink-0 text-muted-foreground" />}
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <div className="flex items-center gap-2">
                     <span className="font-semibold">{it.topic}</span>
                     {it.priority === 'high' ? (
@@ -287,6 +329,16 @@ async function LearningSection({ id }: { id: string }) {
                   </div>
                   <div className="mt-0.5 text-sm leading-relaxed text-muted-foreground">{it.action}</div>
                 </div>
+                {/* H4 R4(#214 修法「学习项改为去练按钮」·静态图标→真入口):未完成项携 topic=focus 开专项面
+                    (复用 R1 同一 action·begin 必绑同简历);完成后仅余打卡图标(勾选主径=R5 再练成绩自动回灌,
+                    completeLearningItem 手动端点保留不接前端=修法原文二径取一)。缺简历绑定 → 不渲染,零死按钮。 */}
+                {!it.done && resumeId ? (
+                  <form action={startFocusRetrainAction} className="shrink-0 self-center">
+                    <input type="hidden" name="resumeId" value={resumeId} />
+                    <input type="hidden" name="focus" value={JSON.stringify([it.topic])} />
+                    <SubmitButton pendingLabel="启动中…" variant="outline" size="sm">去练</SubmitButton>
+                  </form>
+                ) : null}
               </div>
             ))}
           </div>
@@ -300,7 +352,8 @@ async function CareerSection({ id }: { id: string }) {
   const career = await serverGet<Career>('/interview/' + id + '/career-path');
   if (!career) return null;
   const milestones = Array.isArray(career.milestones) ? career.milestones : [];
-  const levelLabel = career.level ? (LEVEL_LABEL[career.level] ?? career.level) : null;
+  // #125：未知级别不再直接显示原始英文枚举——中文兜底「未知级别」。
+  const levelLabel = career.level ? (LEVEL_LABEL[career.level] ?? '未知级别') : null;
 
   return (
     <section>

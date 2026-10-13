@@ -9,7 +9,7 @@
 import { randomUUID } from 'node:crypto';
 import { liveOcrResumePngBase64 } from './ocr-fixture.ts';
 import { createAssert } from './helpers/assert.ts';
-import { signupOrLogin, uidFromToken } from './helpers/auth.ts';
+import { adminHeaders, signupOrLogin, uidFromToken } from './helpers/auth.ts';
 import { createOrder, entitlement, isWebhookCreditResult, paidWebhookSignature, payWebhook, postPayWebhook } from './helpers/commerce.ts';
 import { createE2EReviewLedger, emitClassifiedE2EFailure, emitE2EFailure } from './helpers/failure.ts';
 import { BASE, readJson } from './helpers/http.ts';
@@ -60,7 +60,7 @@ async function main() {
   const visionKeyPresent = Boolean(String(process.env.DASHSCOPE_VISION_API_KEY ?? '').trim());
   if (!visionKeyPresent) {
     reviews.record({ class: 'capability', code: 'image_ocr_unavailable' });
-    console.log('⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text MODEL_API_KEY ≠ vision)');
+    console.log('⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text model key ≠ vision)');
   } else {
     const beforeOcr = await entitlement(H);
     const pngB64 = liveOcrResumePngBase64();
@@ -155,7 +155,7 @@ async function main() {
   const asrKeyPresent = Boolean(String(process.env.DASHSCOPE_ASR_API_KEY ?? '').trim());
   if (!ttsKeyPresent || !asrKeyPresent) {
     reviews.record({ class: 'capability', code: 'voice_unavailable' });
-    console.log('⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text MODEL_API_KEY ≠ voice)');
+    console.log('⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text model key ≠ voice)');
   } else {
     const voicePrompt = '请用中文回答，如何设计 Redis 令牌桶限流？';
     const spoken = await callLiveVoiceGateway('TTS', () => fetch(`${BASE}/interview/${interviewId}/speak`, {
@@ -273,10 +273,29 @@ async function main() {
   reviews.record({ class: 'worker', code: 'seg_step8_enter' }); // CMOP03-D M2: step8 B 端区入口
   const recruiter = await signupOrLogin(`e2e_rec_${tag}@x.com`, password, 'recruiter');
   const HR = recruiter.headers;
+  // B110 处方2 审批活契约(pending 落库为 0155 signup 默认):发岗先吃 403 分码,admin approve 后原 200 断言照旧兑现。
+  // 403 无副作用:RecruiterGuard 先于限流/解析,零桶消耗。拒绝支线 API 级已证(neg-bend),此处不加。
+  r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '审批门前岗位', competencies: ['审批门'] }) });
+  b = await readJson(r);
+  A(r.status === 403 && b.error === 'recruiter_pending_review', 'B端审批活契约:pending 发岗 → 403 分码 recruiter_pending_review', 'data_or_permission');
+  r = await fetch(`${BASE}/admin/recruiter-approvals/${uidFromToken(recruiter.token)}/decision`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
+  b = await readJson(r);
+  A(r.status === 200 && b.decided === true, 'B端审批活契约:admin approve → decided=true');
   r = await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: HR, body: JSON.stringify({ title: '后端工程师', competencies: ['高并发', '分布式锁', '限流'] }) });
   b = await readJson(r);
   A(r.status === 200 && typeof b.id === 'string', `B端:招聘方发岗位 → jobId(${b.id})`);
   const jobId = b.id;
+  // 【第4件·0157 fixture 随演（EXEC 发现·协调方授权扩入 2026-10-11）】B271 片2 S2-C4（0157）后岗位绑定
+  // 面试=start+begin 合一·企业额度预留（commerce.ts reserveEntitlementForApplication：payer=招聘方·
+  // FIFO 企业桶·候选人分码 402 application_enterprise_pay_unavailable）——招聘方须先持企业额度,
+  // 候选人 :400 区 begin 才能预留成功。fixture 经真 commerce API 购企业域商品 ent_pack_50 + 真 HMAC
+  // webhook 入账（镜像本套 createOrder/payWebhook 形·零 mock·零产品码·0157 语义零触）。
+  const entOrdered = await createOrder(HR, 'ent_pack_50', `${email}:entorder`);
+  A(entOrdered.response.status === 200 && typeof entOrdered.body.orderId === 'string', `[第4件·0157] 招聘方购企业包 ent_pack_50 → orderId(${entOrdered.body.amountCents}分)`);
+  const entPaid = await payWebhook(entOrdered.body.orderId, `txn_ent_${tag}`);
+  A(entPaid.response.status === 200 && isWebhookCreditResult(entPaid.body.result), `[第4件·0157] 企业包 webhook 验签入账 → ${entPaid.body.result}`);
+  const entUnits = await entitlement(HR);
+  A((entUnits.enterpriseAvailableUnits ?? 0) >= 1, `[第4件·0157] 企业额度到账(${entUnits.enterpriseAvailableUnits} 次·enterpriseAvailableUnits 并列读)`);
   const createJobKey = `e2e-job-${tag}-${randomUUID()}`;
   const createJobBody = { title: '幂等岗位', competencies: ['幂等', 'outbox'] };
   const idempotentOne = await readJson(await fetch(`${BASE}/recruiter/jobs`, { method: 'POST', headers: { ...HR, 'idempotency-key': createJobKey }, body: JSON.stringify(createJobBody) }));
@@ -290,6 +309,10 @@ async function main() {
   b = await readJson(r);
   A(r.status === 200 && (b.jobs ?? []).some((x: any) => x.id === jobId), 'B端:招聘方看到自己的岗位');
   const recruiter2 = await signupOrLogin(`e2e_rec2_${tag}@x.com`, password, 'recruiter');
+  // B110 处方2: recruiter2 须在 RLS 断言前过审批门(只令过门,不加第二遍分码断言/不加 reject 支线)。
+  r = await fetch(`${BASE}/admin/recruiter-approvals/${uidFromToken(recruiter2.token)}/decision`, { method: 'POST', headers: adminHeaders(), body: JSON.stringify({ decision: 'approve' }) });
+  b = await readJson(r);
+  A(r.status === 200 && b.decided === true, 'B端审批活契约:recruiter2 admin approve → decided=true');
   r = await fetch(`${BASE}/recruiter/jobs`, { headers: { authorization: `Bearer ${recruiter2.token}` } });
   b = await readJson(r);
   A(r.status === 200 && !(b.jobs ?? []).some((x: any) => x.id === jobId), 'B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)', 'data_or_permission');
@@ -318,24 +341,226 @@ async function main() {
 
   /* ════════ 专家评审全维度用例:异常 / 特殊 / 兜底 / 状态机 ════════ */
   reviews.record({ class: 'worker', code: 'seg_expert_enter' }); // CMOP03-D M4: 专家评审段入口(岔B)
-  const noEntitlement = await signupOrLogin(`e2e3_${tag}@x.com`, password);
-  const H3 = noEntitlement.headers;
+  // 0154_trial_bucket_grant 后新注册用户自带 trial 桶 1.00（「1 次面试=1.00 口径,恰够一场」），
+  // 原「无额度用户」夹具前提结构性失效（LIVE 复跑 :344 实测 202 定谳）。断言随演=显式耗尽形：
+  // 第一步正面行使 trial 赠与（begin 202 + 桶 -1 相对差值）；第二步在 trial 诚实耗尽后行使原 402
+  // 错误映射面（文案逐字保留）。设计红线（e2e-assert-refresh REQUEST §1-①）：
+  //   * 禁 abandon/释放第一场——abandon 会把预留 trial 单位还池（UC018 实证 released 后净 0），
+  //     402 前提自毁；
+  //   * 禁拿 duplicate/alreadyBegun 幂等分支冒充 402 不足面——同幂等键重放或复用 begin 走
+  //     interview.service begin 的 existing/active 短路（:221/:226），不是「不足」映射路径。
+  // 【EXEC 前提勘误登记（REQUEST §1-① 第二步机制前提漂移·2026-10-11 仪器跑亲证）】POST /interview
+  // 是 per-user 开放面试复用（interview.service create：非终态 open 行 → reused:true）——iv3 active 后
+  // 「新建」拿回同一 id，begin 走 alreadyBegun 短路返回 202，interview begin 结构上到不了不足映射位。
+  // 故 402 错误映射面行使位随演至同映射族的押题 begin（quiz.service.ts:59-62：同
+  // reserveEntitlement → insufficient_entitlement → PAYMENT_REQUIRED 管道，「不再被 mask 成 500」
+  // 的映射面本体；新 quiz id=新幂等键，无 reuse/duplicate 短路，FIFO 无可凑桶 → 真不足）。
+  const trialOnlyUser = await signupOrLogin(`e2e3_${tag}@x.com`, password);
+  const H3 = trialOnlyUser.headers;
   r = (await consentResumeProcessing(H3)).response;
-  A(r.status === 200, '[异常前置] 无额度用户仍可完成简历处理同意');
-  const noEntitlementUploaded = await uploadTextResume(H3, '合成后端工程师简历：三年分布式系统经验，熟悉 PostgreSQL、Redis、限流与消息队列。');
-  r = noEntitlementUploaded.response;
-  const noEntitlementResume = noEntitlementUploaded.body;
-  A(r.status === 200 && typeof noEntitlementResume.resumeId === 'string', '[异常前置] 无额度用户持有合法且本人所属的 resumeId');
+  A(r.status === 200, '[异常前置] trial 赠与用户仍可完成简历处理同意');
+  const trialUserUploaded = await uploadTextResume(H3, '合成后端工程师简历：三年分布式系统经验，熟悉 PostgreSQL、Redis、限流与消息队列。');
+  r = trialUserUploaded.response;
+  const trialUserResume = trialUserUploaded.body;
+  A(r.status === 200 && typeof trialUserResume.resumeId === 'string', '[异常前置] trial 赠与用户持有合法且本人所属的 resumeId');
+  // 第一步：trial 赠与正面行使——begin 预留成功（0154 注册赠 1.00 恰够一场）+ 桶扣减相对差值证据（沿 UC018 形）。
+  const trialUnitsBefore = (await entitlement(H3)).availableUnits ?? 0;
   const iv3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
-  r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': noEntitlementResume.resumeId }, body: '{}' });
+  r = await fetch(`${BASE}/interview/${iv3}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  b = await readJson(r);
+  A(r.status === 202 && b.accepted === true && typeof b.jobId === 'string', `[异常] trial 赠与生效:首场 begin 预留 → 202 accepted+jobId(${JSON.stringify(b).slice(0, 60)})`);
+  const trialUnitsAfterBegin = (await entitlement(H3)).availableUnits ?? 0;
+  A(trialUnitsAfterBegin === trialUnitsBefore - 1, `[异常] trial 桶扣减证据:begin 后额度 -1(${trialUnitsBefore}→${trialUnitsAfterBegin})`);
+  // 第二步a：同用户「再建面试」如实断言复用语义（不假称 402）——iv4 拿回 iv3（create reused:true 语义），
+  // begin 幂等 202 alreadyBegun（不二次预留）。
+  const iv4 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H3, body: '{}' }))).interviewId;
+  r = await fetch(`${BASE}/interview/${iv4}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
+  b = await readJson(r);
+  A(r.status === 202 && b.accepted === true && b.alreadyBegun === true, `[异常] 同用户开放面试复用:再建拿回 iv3(${iv4 === iv3}) → begin 幂等 202 alreadyBegun(不二次预留)`);
+  // 第二步b：trial 已耗尽（FIFO 无可凑桶）→ 押题 begin 行使原 402 insufficient_entitlement 映射面（文案逐字保留）。
+  const quiz4 = await readJson(await fetch(`${BASE}/quiz`, { method: 'POST', headers: H3, body: '{}' }));
+  const quiz4Id = quiz4.id ?? quiz4.quizId;
+  A(typeof quiz4Id === 'string', '[异常前置] trial 耗尽用户仍可建押题空壳(begin 前不扣费)');
+  r = await fetch(`${BASE}/quiz/${quiz4Id}/begin`, { method: 'POST', headers: { ...H3, 'resume-id': trialUserResume.resumeId }, body: '{}' });
   b = await readJson(r);
   A(r.status === 402 && b.error === 'insufficient_entitlement', '[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）', 'data_or_permission');
+  const trialUnitsAfter402 = (await entitlement(H3)).availableUnits ?? 0;
+  A(trialUnitsAfter402 === 0, `[异常] 402 后额度零泄漏(仍 ${trialUnitsAfter402},预留未落)`);
+
+  /* ════════ E2E-SCENE-409 三场追加段（R1 规整差分锚 / R2 歧义 P1 全旅程 / R3 #270 静默误判现状锚） ════════
+   * 卷=ai-docs/delivery/harness/e2e-scene-409-REQUEST.md §1（EXEC 立项重 pin 2026-10-11·§1/§5 零改·产品码零字节·
+   * 既有断言逐字保留·断言只增不弱·零 test.skip·零 capability 门控——三 fixture 全文本简历，不依赖 OCR/语音 Key 面）。
+   *
+   * 【EXEC 立项重 pin·定谳三行收据（REQUEST §2-4）】
+   *   ① 主线 policy 实测 = candidate-route-2026-10-frozen:v3（packages/domain/src/candidate-profile-route.ts:29
+   *     ·npx tsx 纯函数亲跑同值·2026-10-11）；
+   *   ② bb7ba6b6（policy v4）祖先关系 = git merge-base --is-ancestor bb7ba6b6 HEAD → exit=1 非祖先
+   *     （v4 未并主线·Ban 触 meetwise-qp 树·两向随演条款见 REQUEST §1-R3-2）；
+   *   ③ R3 预期叶定谳 = v3 现状锚 'qa/quality_engineering'（#270 静默误判主线可复现·v4 并线后随演 'backend/general'）。
+   *   三 fixture 分类器纯函数亲跑（npx tsx·2026-10-11）与 REQUEST §0.3 定谳表逐位一致：
+   *   B=backend/nodejs non-degraded · D=backend/general degraded(ambiguous_language_evidence) · E=qa/quality_engineering non-degraded。
+   *
+   * 【est live（REQUEST §6 如实申报）】R2 全旅程 ×1（真出题真作答至终态）+ R1/R3 begin-face 各 ≤1 题生成
+   * （abandon 前 worker start job 可能已出首题·如实另账）·上限 ≤3 场量级（含一次复跑余量）。
+   * 设计内还池如实记账：R1/R3 abandon=释放还池（额度净 0）·禁写「零消耗」。 */
+  // DB 直连形（g7fix1 :408-419 先例同形）：PG* env 缺失即 throw（fail-closed·Ban 静默跳过 DB 断言）·SELECT-only·连接 finally 释放。
+  async function scene409Pg() {
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    for (const n of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) if (!process.env[n]) throw new Error(`[路由409·DB] ${n} missing — isolated runner env contract required(g7fix1 同形 fail-closed)`);
+    const pgc = new Client({ host: process.env.PGHOST, port: Number(process.env.PGPORT), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    return pgc;
+  }
+  // decision/snapshot 双行读形：begin 事务内同步落库（供给先于扣额/入队·candidate-route.ts supplyCandidateProfileRoute），
+  // 有界轮询仅防可见性时序毛刺——cap 10s 后零行照 FAIL（零行即 FAIL·Ban 轮询洗绿）。
+  async function scene409RouteRows(pgc: any, interviewId: string) {
+    const t0 = Date.now();
+    let dec: any = { rowCount: 0, rows: [] as any[] };
+    for (;;) {
+      dec = await pgc.query(`SELECT route_outcome, attempt_outcome, leaf_track_id, allocation_bps, policy_version FROM candidate_profile_route_decision WHERE interview_id=$1`, [interviewId]);
+      if ((dec.rowCount ?? 0) > 0 || Date.now() - t0 >= 10_000) break;
+      await new Promise((res) => setTimeout(res, 500));
+    }
+    const snap = await pgc.query(`SELECT status, leaf_track_id, allocation_bps FROM candidate_profile_route_snapshot WHERE interview_id=$1`, [interviewId]);
+    return { dec, snap };
+  }
+
+  // ── R1 规整差分锚（e2e4_·fixture B「3 年 Node.js…」·begin 202 + decision/snapshot 双行 + abandon 还池）──
+  {
+    console.log('\n── E2E-SCENE-409 R1 规整差分锚(fixture B·backend/nodejs) ──');
+    const r1Session = await signupOrLogin(`e2e4_${tag}@x.com`, password);
+    const H4 = r1Session.headers;
+    A((await consentResumeProcessing(H4)).response.status === 200, '[路由R1] PIPL 采集同意 → 200');
+    const r1Up = await uploadTextResume(H4, '3 年 Node.js 后端开发，使用 NestJS、MySQL、Redis，负责订单服务。');
+    A(r1Up.response.status === 200 && typeof r1Up.body.resumeId === 'string', '[路由R1] 规整语料(fixture B)上传 → resumeId');
+    const r1ResumeId: string = r1Up.body.resumeId;
+    const r1UnitsBefore = (await entitlement(H4)).availableUnits ?? 0;
+    A(r1UnitsBefore >= 1, `[路由R1] trial 赠与前置额度≥1(${r1UnitsBefore})`);
+    const ivR1 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H4, body: '{}' }))).interviewId;
+    A(typeof ivR1 === 'string', `[路由R1] 建面试 → interviewId(${ivR1})`);
+    const r1Begin = await fetch(`${BASE}/interview/${ivR1}/begin`, { method: 'POST', headers: { ...H4, 'resume-id': r1ResumeId }, body: '{}' });
+    const r1BeginBody = await readJson(r1Begin);
+    A(r1Begin.status === 202 && r1BeginBody.accepted === true && typeof r1BeginBody.jobId === 'string',
+      `[路由R1] 规整 fixture begin → 202 accepted+jobId(§0.3 B 定谳 backend/nodejs·非 409; ${JSON.stringify(r1BeginBody).slice(0, 60)})`);
+    const r1UnitsAfterBegin = (await entitlement(H4)).availableUnits ?? 0;
+    A(r1UnitsAfterBegin === r1UnitsBefore - 1, `[路由R1] begin 后额度 -1(${r1UnitsBefore}→${r1UnitsAfterBegin})`);
+    {
+      const pgc = await scene409Pg();
+      try {
+        const { dec, snap } = await scene409RouteRows(pgc, ivR1);
+        A((dec.rowCount ?? 0) === 1, `[路由R1·DB] decision 恰 1 行(UNIQUE(interview_id)·零行即 FAIL; 实际 ${dec.rowCount ?? 0})`);
+        A(dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === 'backend/nodejs' && dec.rows[0]?.allocation_bps === 10000,
+          `[路由R1·DB] decision route_decided+backend/nodejs@10000bps(语言叶压通用栈·v3/v4 不变量; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+        console.log(`[路由R1] policy_version=${String(dec.rows[0]?.policy_version ?? 'n/a')} (软记录入收据·版本升级=他刀语义变更不碎本刀)`);
+        A((snap.rowCount ?? 0) === 1 && snap.rows[0]?.status === 'interview_snapshotted',
+          `[路由R1·DB] snapshot 恰 1 行+interview_snapshotted(实际 ${snap.rowCount ?? 0} 行/${snap.rows[0]?.status ?? 'none'})`);
+        A(snap.rows[0]?.leaf_track_id === dec.rows[0]?.leaf_track_id && snap.rows[0]?.allocation_bps === dec.rows[0]?.allocation_bps,
+          `[路由R1·DB] decision/snapshot 双行 leaf+bps 同值一致性(${String(snap.rows[0]?.leaf_track_id ?? 'none')})`);
+      } finally { await pgc.end().catch(() => {}); }
+    }
+    const r1Abandon = await fetch(`${BASE}/interview/${ivR1}/abandon`, { method: 'POST', headers: H4, body: '{}' });
+    const r1AbandonBody = await readJson(r1Abandon);
+    A(r1Abandon.status === 200 && r1AbandonBody.abandoned === true && r1AbandonBody.released === 'released',
+      `[路由R1] abandon → abandoned+released(UC018 同形·设计内还池如实记账·本场后续零消费; ${JSON.stringify(r1AbandonBody).slice(0, 80)})`);
+    const r1UnitsAfterAbandon = (await entitlement(H4)).availableUnits ?? 0;
+    A(r1UnitsAfterAbandon === r1UnitsBefore, `[路由R1] abandon 后额度净 0 还池(${r1UnitsBefore}→${r1UnitsAfterAbandon})`);
+  }
+
+  // ── R2 歧义 P1 全旅程（e2e5_·fixture D「自动化测试工程师…Python…」·degraded backend/general 兜底叶可开成完整面试）──
+  {
+    console.log('\n── E2E-SCENE-409 R2 歧义 P1 全旅程(fixture D·degraded backend/general·#133/#195 409 退役定谳) ──');
+    const r2Session = await signupOrLogin(`e2e5_${tag}@x.com`, password);
+    const H5 = r2Session.headers;
+    A((await consentResumeProcessing(H5)).response.status === 200, '[路由R2] PIPL 采集同意 → 200');
+    const r2Up = await uploadTextResume(H5, '自动化测试工程师，负责 Python 测试工具与接口测试平台开发。');
+    A(r2Up.response.status === 200 && typeof r2Up.body.resumeId === 'string', '[路由R2] 歧义语料(fixture D)上传 → resumeId');
+    const r2ResumeId: string = r2Up.body.resumeId;
+    const r2UnitsBefore = (await entitlement(H5)).availableUnits ?? 0;
+    const ivR2 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H5, body: '{}' }))).interviewId;
+    A(typeof ivR2 === 'string', `[路由R2] 建面试 → interviewId(${ivR2})`);
+    const r2Begin = await fetch(`${BASE}/interview/${ivR2}/begin`, { method: 'POST', headers: { ...H5, 'resume-id': r2ResumeId }, body: '{}' });
+    const r2BeginBody = await readJson(r2Begin);
+    A(r2Begin.status === 202 && r2BeginBody.accepted === true,
+      `[路由R2] 歧义简历 begin 硬断言 202 accepted(≠409/begin_failed·#133/#195 P1 旅程不变量·409 candidate_route_undecided 仅 profile_unavailable 防御可达本夹具结构不可触发; got ${r2Begin.status}/${JSON.stringify(r2BeginBody).slice(0, 60)})`);
+    const r2UnitsAfterBegin = (await entitlement(H5)).availableUnits ?? 0;
+    A(r2UnitsAfterBegin === r2UnitsBefore - 1, `[路由R2] begin 后额度 -1(${r2UnitsBefore}→${r2UnitsAfterBegin})`);
+    {
+      const pgc = await scene409Pg();
+      try {
+        const { dec, snap } = await scene409RouteRows(pgc, ivR2);
+        A((dec.rowCount ?? 0) === 1 && dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === 'backend/general' && dec.rows[0]?.allocation_bps === 10000,
+          `[路由R2·DB] decision 降级臂兜底 route_decided+backend/general@10000bps(§0.3 D 定谳 degraded ambiguous_language_evidence·qa/python 双 specific 不入闸; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+        A((snap.rowCount ?? 0) === 1 && snap.rows[0]?.leaf_track_id === dec.rows[0]?.leaf_track_id,
+          `[路由R2·DB] snapshot 恰 1 行+同叶一致性(backend/general; 实际 ${snap.rowCount ?? 0} 行/${String(snap.rows[0]?.leaf_track_id ?? 'none')})`);
+      } finally { await pgc.end().catch(() => {}); }
+    }
+    // 全旅程（真出题真作答·服务端 question identity 口径零改）——420s deadline 沿既有值·禁放宽。
+    const { INTERVIEW_TERMINALS } = await import('./helpers/interview.ts');
+    const r2Loop = await driveInterviewToTerminal({
+      interviewId: ivR2,
+      token: r2Session.token,
+      headers: H5,
+      assert: A,
+      questionAnswer: '我在 Python 接口测试平台做自动化,用 pytest 组织用例跑 CI 回归;服务端开发我用 Redis 做缓存、MySQL 做主存储,限流用令牌桶。',
+      questionAcceptedLabel: (n) => `[路由R2] 降级叶第 ${n} 题 canonical /turn → 202`,
+      clarificationAcceptedLabel: '[路由R2] 降级叶澄清 canonical /turn → 202',
+    });
+    if (r2Loop.terminal) reviews.recordTerminal(r2Loop.terminal);
+    A(r2Loop.questions >= 1, `[路由R2] 降级兜底叶真出题 ≥1(实际 ${r2Loop.questions} 道;事件:${[...r2Loop.kinds].join(',')})`);
+    A(r2Loop.terminal !== '' && (INTERVIEW_TERMINALS as readonly string[]).includes(r2Loop.terminal),
+      `[路由R2] 降级兜底叶全旅程到终态(${r2Loop.terminal})∈INTERVIEW_TERMINALS——无死胡同·degraded 叶可开成完整面试(用户旅程第 4 断点修复的 E2E 行为证) ✅`, 'worker');
+  }
+
+  // ── R3 #270 静默误判现状锚（e2e6_·fixture E「后端开发 Redis MySQL 自动化测试」·随演条款 §1-R3-2 两向定谳）──
+  {
+    console.log('\n── E2E-SCENE-409 R3 #270 静默误判现状锚(fixture E·随演条款 §1-R3-2:主线 policy=v4 → 预期 backend/general) ──');
+    const r3Session = await signupOrLogin(`e2e6_${tag}@x.com`, password);
+    const H6 = r3Session.headers;
+    A((await consentResumeProcessing(H6)).response.status === 200, '[路由R3] PIPL 采集同意 → 200');
+    const r3Up = await uploadTextResume(H6, '后端开发 Redis MySQL 自动化测试');
+    A(r3Up.response.status === 200 && typeof r3Up.body.resumeId === 'string', '[路由R3] #270 语料(fixture E)上传 → resumeId');
+    const r3ResumeId: string = r3Up.body.resumeId;
+    const r3UnitsBefore = (await entitlement(H6)).availableUnits ?? 0;
+    const ivR3 = (await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H6, body: '{}' }))).interviewId;
+    A(typeof ivR3 === 'string', `[路由R3] 建面试 → interviewId(${ivR3})`);
+    const r3Begin = await fetch(`${BASE}/interview/${ivR3}/begin`, { method: 'POST', headers: { ...H6, 'resume-id': r3ResumeId }, body: '{}' });
+    const r3BeginBody = await readJson(r3Begin);
+    A(r3Begin.status === 202 && r3BeginBody.accepted === true,
+      `[路由R3] #270 误判语料 begin → 202 accepted(误判面与 409 面互斥·两态共同预期·#270 原文「不报 409」; got ${r3Begin.status})`);
+    {
+      const pgc = await scene409Pg();
+      try {
+        const { dec } = await scene409RouteRows(pgc, ivR3);
+        // §1-R3-2 随演条款两向定谳（Ban 写死单值）：预期叶以 packages/domain/src/candidate-profile-route.ts
+        // 实测 policy 串为准——v3（bb7ba6b6 未并）→ qa/quality_engineering 现状锚；≥v4（bb7ba6b6 或后继已并）→
+        // backend/general（v4 闸关闭误判·降级臂）。2026-10-12 主线 efbf33b8 已并 v4，随演定谳=backend/general
+        //（实跑 got route_decided/backend/general/allocation_bps=10000/policy v4=REQUEST §0.3 E 行 v4 列逐字命中）。
+        // 未知 policy 版本 → 断言即红（fail-closed·Ban 静默漂移）。
+        const { CANDIDATE_ROUTE_POLICY_VERSION } = await import('../packages/domain/src/candidate-profile-route.ts');
+        const policyMajor = Number(/^candidate-route-2026-10-frozen:v(\d+)$/.exec(CANDIDATE_ROUTE_POLICY_VERSION)?.[1] ?? NaN);
+        const expectedLeaf = policyMajor === 3 ? 'qa/quality_engineering' : policyMajor >= 4 ? 'backend/general' : null;
+        A(expectedLeaf !== null && (dec.rowCount ?? 0) === 1 && dec.rows[0]?.route_outcome === 'route_decided' && dec.rows[0]?.leaf_track_id === expectedLeaf,
+          `[路由R3·DB] #270 静默误判现状锚·随演(§1-R3-2 两向): policy=${CANDIDATE_ROUTE_POLICY_VERSION} → 预期叶=${expectedLeaf ?? `unsupported_policy_${CANDIDATE_ROUTE_POLICY_VERSION}`}(v3→qa 现状/≥v4→general 降级·route_outcome 恒 route_decided; got ${JSON.stringify(dec.rows[0] ?? null)})`);
+      } finally { await pgc.end().catch(() => {}); }
+    }
+    const r3Abandon = await fetch(`${BASE}/interview/${ivR3}/abandon`, { method: 'POST', headers: H6, body: '{}' });
+    const r3AbandonBody = await readJson(r3Abandon);
+    A(r3Abandon.status === 200 && r3AbandonBody.abandoned === true && r3AbandonBody.released === 'released',
+      `[路由R3] abandon → abandoned+released(UC018 同形·设计内还池如实记账; ${JSON.stringify(r3AbandonBody).slice(0, 80)})`);
+    const r3UnitsAfterAbandon = (await entitlement(H6)).availableUnits ?? 0;
+    A(r3UnitsAfterAbandon === r3UnitsBefore, `[路由R3] abandon 后额度净 0 还池(${r3UnitsBefore}→${r3UnitsAfterAbandon})`);
+  }
 
   const { response: order2Res, body: ord } = await createOrder(H, 'pack_10', `${email}:order2`);
   A(order2Res.status === 200 && typeof ord.orderId === 'string', '[异常前置] 第二笔订单可用于错签断言');
-  const badSig = await postPayWebhook(ord.orderId, 't', 'deadbeef');
+  // 5A-2 #100 四段式:错签臂携合法新鲜 ts+伪 sig(ts 合法才落 403 bad_signature,不混入 400 invalid_callback)。
+  const badSigTs = Date.now();
+  const badSig = await postPayWebhook(ord.orderId, 't', 'deadbeef', badSigTs);
   A(badSig.response.status === 403, '[异常] webhook 错误签名 → 403(验签 fail-closed)');
-  const unknownOrder = await postPayWebhook('nope', 't', paidWebhookSignature('nope', 't'));
+  // 未知单号臂携新鲜合法签+ts(保 404 查不到单不入账断言语义)。
+  const unknownTs = Date.now();
+  const unknownOrder = await postPayWebhook('nope', 't', paidWebhookSignature('nope', 't', unknownTs), unknownTs);
   A(unknownOrder.response.status === 404, '[异常] webhook 未知订单 → 404(查不到单不入账)');
 
   const apply2 = await readJson(await fetch(`${BASE}/jobs/${jobId}/apply`, { method: 'POST', headers: H2, body: '{}' }));
@@ -401,7 +626,13 @@ async function main() {
     '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分(identities=q+c 孪生同步 1789e321)');
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
-  const scorelessBound = boundLoop.terminal === 'assessment_unavailable' || boundLoop.terminal === 'interview_unavailable'; // G7FIX-5 并入: 残余 unbound 面触发仍走统一臂(防御性契约钉)
+  // 【第5发现·断言随演（协调方裁 A 同型原则延伸·2026-10-11 登记）】report-retry D2（10-10 落主线）
+  // 引入报告 attempts/隔离族后,真模型旅程终态族实测扩出 'report_unavailable'（本套 3/3 跑一致·
+  // reason=max_attempts_exceeded）——finalize 服务端 outcome 恒为 'assessment_unavailable'（calibration
+  // hold 契约钉·applications.service finalize 常量返回,无 'completed' 分支）。scorelessBound 二元臂未含
+  // 该终态 → 误入 'completed' 期望臂必红。随演=终态族并一词（'report_unavailable' 亦属无可信评分族）,
+  // 期望恒臂不改·零产品码。
+  const scorelessBound = boundLoop.terminal === 'assessment_unavailable' || boundLoop.terminal === 'interview_unavailable' || boundLoop.terminal === 'report_unavailable'; // G7FIX-5 并入: 残余 unbound 面触发仍走统一臂(防御性契约钉)·+report_unavailable 族(第5发现随演)
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound, reason: (boundLoop.terminalPayload as any)?.reason ?? null })}\n`); // G7FIX-3: reason 入账(abandoned sweep vs generation 族归因判别)
   A(r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId && finalized.replayed === false && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'), `[状态机] 岗位终态后 {} finalize 统一面: 200 服务端仅认已绑定 interview+replayed:false(scoreless 族→assessment_unavailable·其余 completed)(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, reason=${(boundLoop.terminalPayload as any)?.reason ?? 'n/a'})`); // G7FIX-5 收敛: 三元 409 死支消解+replayed:false 契约钉(G7FIX-4 prove final3:21-22 形状 200+assessment_unavailable+replayed:false)
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
@@ -413,12 +644,241 @@ async function main() {
       '[状态机·可信] 无评分证据时招聘方只见 assessment_unavailable + score=NULL（不伪造 0 分）');
     const retry = await fetch(`${BASE}/applications/${app1}/start`, { method: 'POST', headers: H, body: JSON.stringify({ resumeId }) });
     const retried = await readJson(retry);
-    fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
-    A(retry.status === 200 && retried.status === 'started' && typeof retried.interviewId === 'string' && retried.interviewId !== boundInterviewId,
-      '[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）');
+    fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a5_retry', retryStatus: retry.status, retriedStatus: retried?.status, retriedError: retried?.error ?? null, newInterviewId: typeof retried?.interviewId === 'string' })}\n`);
+    // 【第6发现·断言随演（I2 W1 修法④ d4e51105 2026-10-11 落线·裁定⑥）】held（绑定面试 completed 的
+    // hold 终态）不可重试=有意产品语义（UI startable 收窄仅 failed 可重试+API 同源拒·防拦 UI 不拦 API 穿）。
+    // 旧「重试创建新 attempt」面退役 → 契约钉随演为 409 application_held_not_retryable fail-closed
+    // （不开新 attempt·不暴露分·message「本场面试已完成，评分待校准；无需重新开始」）。
+    A(retry.status === 409 && retried.error === 'application_held_not_retryable',
+      `[状态机·held] 评分待校准 hold 后显式重试 start → 409 application_held_not_retryable(不可重试 fail-closed·I2 W1 随演)(实际 ${retry.status}/${retried.error ?? 'n/a'})`);
   } else {
     A(cand?.status === 'completed' && Number.isInteger(cand?.score) && cand.score >= 0 && cand.score <= 100,
       `[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)`);
+  }
+
+  /* ════════ 第 10 段 · e2e-scene-batch2:R4 隐私升 LIVE(A/B 两臂)+ R5 同意撤回九步 ════════
+   * 卷尾追加落点(§1):既有全部简历/面试依赖断言已完成,擦除面后置零扰动。产品码+scripts 零字节。
+   * est live=0 场量级:R4 零 begin 零模型(空壳不 begin/围栏 410 扫/DB SELECT-only),R5 同意三态+文本上传纯本地摄取。
+   * 如实边界:软删受理≠物理清除(purgePending 恒真直至 S2·响应永不携带完成态字段);interview-data
+   * 公开 DELETE 503 冻结面正面行使(pin 值不翻·resume-data 202 升面不在 pin 立法域·两分读法)。
+   * EXEC 重 pin(2026-10-11 实读更正):privacy.service deleteResumeData :81-99 / HMAC 回落 AUTH_SECRET
+   * :101-108 / interview-data 恒 throw :67-71;privacy.controller DELETE resume-data=202 :67-71;
+   * resume.service 文本同意门 403 :203 / list 过滤 :226 / profile RLS 0 行 404 :312 / deduped :205;
+   * interview.service 围栏先判序 :521;四表=0001_baseline:38(interview_event)/:224(ai_report)/
+   * :253(interview_job)+0019_schema_drift_reconcile:19(question_feedback)。
+   * 0152 笔误更正(备查登记):仓内双 0152 重号=0152_consent_revoke_grant+0152_resume_soft_delete_fence;
+   * 墓碑=privacy_begin_resume_soft_delete(后者)·resume.erasure_requested_at 同文件补列。
+   */
+  console.log('\n── e2e-scene-batch2 · R4-A resume-data 全量软删(202 两态·过滤≠物理删除如实) ──');
+  // 无体请求剥 content-type:JSON 头+零长体会被 body-parser 400 拒(「Body cannot be empty when
+  // content-type is set to application/json」)——无体 DELETE/POST 沿 proof 蓝本纯 authorization 头形。
+  const noCT = (h: Record<string, string>): Record<string, string> => Object.fromEntries(Object.entries(h).filter(([k]) => k !== 'content-type'));
+  {
+    // R4-A-1 前置读:主旅程既有 resumeId 在册(软删前证据·resume.service list 过滤 :226 尚未排除)。
+    const listBefore = await readJson(await fetch(`${BASE}/resume`, { headers: H }));
+    A(Array.isArray(listBefore.resumes) && listBefore.resumes.some((x: any) => x.id === resumeId),
+      `[R4-A-1] 软删前 GET /resume 在册:resumes 含主旅程 resumeId(${String(resumeId).slice(0, 8)})`);
+
+    // R4-A-2 DELETE → 202 软删受理:mode=logical+purgePending(恒真)+resumesFenced≥1+requestId 在场。
+    const eraseRes = await fetch(`${BASE}/privacy/resume-data`, { method: 'DELETE', headers: noCT(H) });
+    const eraseBody = await readJson(eraseRes);
+    A(eraseRes.status === 202 && eraseBody.mode === 'logical' && eraseBody.purgePending === true
+      && Number(eraseBody.resumesFenced) >= 1 && typeof eraseBody.requestId === 'string',
+      `[R4-A-2] DELETE /privacy/resume-data → 202 软删受理(mode=logical+purgePending=true·S2 前 residual 非完成态)+resumesFenced=${eraseBody.resumesFenced}≥1+requestId 在场`);
+
+    // R4-A-3 重放 → 202 ∧ resumesFenced=0(空集同形幂等·不建第二份账)。
+    const eraseReplayRes = await fetch(`${BASE}/privacy/resume-data`, { method: 'DELETE', headers: noCT(H) });
+    const eraseReplay = await readJson(eraseReplayRes);
+    A(eraseReplayRes.status === 202 && eraseReplay.mode === 'logical' && eraseReplay.purgePending === true
+      && eraseReplay.resumesFenced === 0,
+      `[R4-A-3] 重放 DELETE → 202 ∧ resumesFenced=0(空集同形幂等·202 形如实)`);
+
+    // R4-A-4 list 重读:resumes 零含 resumeId(S1 即时可见面)。
+    const listAfter = await readJson(await fetch(`${BASE}/resume`, { headers: H }));
+    A(Array.isArray(listAfter.resumes) && !listAfter.resumes.some((x: any) => x.id === resumeId),
+      `[R4-A-4] 软删后 list 零含:resumes 不再含 resumeId(即时可见面)`);
+
+    // R4-A-5 profile → 404(0063 active-read RLS 0 行链·父行非 ingested)。直 fetch 取 Response(helper 丢 status 面·席2 登记3)。
+    const profileRes = await fetch(`${BASE}/resume/${resumeId}/profile`, { headers: H });
+    const profileBody = await readJson(profileRes);
+    A(profileRes.status === 404 && profileBody.error === 'not_found_or_forbidden',
+      `[R4-A-5] 软删后 profile → 404 not_found_or_forbidden(0063 active-read RLS 0 行→404)`, 'data_or_permission');
+
+    // R4-A-6 数据可携导出排除已删(privacy.service export :52 NOT IN erasure_fenced,erased)。
+    const exportBody = await readJson(await fetch(`${BASE}/privacy/export`, { headers: H }));
+    A(Array.isArray(exportBody.resumes) && !exportBody.resumes.some((x: any) => x.id === resumeId),
+      `[R4-A-6] GET /privacy/export 零含 resumeId(数据可携不含已删数据)`);
+
+    console.log('✓ R4-A resume-data 全量软删面 PASS(202 两态+读门+导出·物理行证在下 DB 直连段)');
+  }
+
+  console.log('\n── e2e-scene-batch2 · R4-B interview 预览围栏(零 begin 零 live·503 pin 正面行使) ──');
+  {
+    const fenceTag = randomUUID();
+    // R4-B-1 新建空壳:主用户既有面试全终态(completed/failed/abandoned 均被 create 复用过滤排除)→ reused=false。
+    const createRes = await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' });
+    const created = await readJson(createRes);
+    const fencedIv = created.interviewId ?? created.id ?? created.resultId;
+    A((createRes.status === 200 || createRes.status === 201) && created.reused === false && typeof fencedIv === 'string',
+      `[R4-B-1] 新建空壳面试 → 新 id(${String(fencedIv).slice(0, 8)}) ∧ reused=false(全终态不复用·零 begin 零 live)`);
+
+    // R4-B-2 公开 DELETE → 503 正面行使(冻结面·privacy.service :67-71 恒 throw·重放同形)。
+    const fenceKey = `e2e-erase-${tag}-${fenceTag}`;
+    const delRes = await fetch(`${BASE}/privacy/interview-data/${fencedIv}`, { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
+    const delBody = await readJson(delRes);
+    A(delRes.status === 503 && delBody.error === 'interview_erasure_authorization_not_available',
+      `[R4-B-2] 公开 DELETE interview-data → 503 interview_erasure_authorization_not_available(503 pin 正面行使·冻结面不开闸)`);
+
+    // R4-B-2b 同键重放仍 503(不因重放建账·proof 同形)。
+    const delReplayRes = await fetch(`${BASE}/privacy/interview-data/${fencedIv}`, { method: 'DELETE', headers: { ...noCT(H), 'idempotency-key': fenceKey } });
+    const delReplayBody = await readJson(delReplayRes);
+    A(delReplayRes.status === 503 && delReplayBody.error === 'interview_erasure_authorization_not_available',
+      `[R4-B-2b] 同键重放 DELETE 仍 503(不建账本)`);
+
+    // R4-B-3 预览 → 202 local_fenced+预览版+sinks≥22(user_memory=honest_unresolved)。
+    const previewKey = `e2e-preview-${tag}-${fenceTag}`;
+    const previewRes = await fetch(`${BASE}/privacy/erasure-preview`, {
+      method: 'POST', headers: { ...H, 'idempotency-key': previewKey },
+      body: JSON.stringify({ scope: 'interview_data', subjectId: fencedIv }),
+    });
+    const previewBody = await readJson(previewRes);
+    const sinkLines: any[] = Array.isArray(previewBody.sinks) ? previewBody.sinks : [];
+    A(previewRes.status === 202 && previewBody.status === 'local_fenced' && previewBody.editionLabel === '预览版'
+      && previewBody.productionSloClaimed === false && previewBody.completeness === 'preview_incomplete'
+      && sinkLines.length >= 22 && sinkLines.some((s: any) => s.sink === 'user_memory' && s.disposition === 'honest_unresolved'),
+      `[R4-B-3] 预览擦除 → 202 local_fenced:预览版+productionSloClaimed=false+preview_incomplete+sinks=${sinkLines.length}≥22(user_memory=honest_unresolved 如实)`);
+
+    // R4-B-4 GET 回执同 requestId。
+    const receiptRes = await fetch(`${BASE}/privacy/erasure-preview/${previewBody.requestId}`, { headers: H });
+    const receiptBody = await readJson(receiptRes);
+    A(receiptRes.status === 200 && receiptBody.requestId === previewBody.requestId,
+      `[R4-B-4] GET 预览回执 → 200 ∧ 同 requestId(${String(previewBody.requestId ?? '').slice(0, 8)})`);
+
+    // ── DB 直连 SELECT-only(g7fix1 同契约·缺 env 即 throw fail-closed·连接 finally 释放)──
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    for (const n of ['PGHOST', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE']) if (!process.env[n]) throw new Error(`[privacy-db] ${n} missing — isolated runner env contract required`);
+    const pgc = new Client({ host: process.env.PGHOST, port: Number(process.env.PGPORT), user: process.env.PGUSER, password: process.env.PGPASSWORD, database: process.env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    try {
+      // R4-A-7 物理行如实记账:列表过滤 ≠ 物理删除(0152 墓碑 status+erasure_requested_at·purge 归 S2)。
+      const tomb = await pgc.query('SELECT status, erasure_requested_at FROM resume WHERE id=$1', [resumeId]);
+      A(tomb.rowCount === 1 && tomb.rows[0]?.status === 'erasure_fenced' && tomb.rows[0]?.erasure_requested_at !== null,
+        `[R4-A-7] DB 直连:resume 物理行仍在(恰 1 行)∧ status=erasure_fenced ∧ erasure_requested_at 非空(过滤≠物理删除·purgePending 恒真直至 S2)`);
+
+      // R4-B-6 前读:四表按该 id 计数全 0(0001:38/:224/:253+0019:19·begin 写面反证:preview begin 只写预览两表+账本族)。
+      const fourTables = `SELECT
+        (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS events,
+        (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS reports,
+        (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback,
+        (SELECT count(*)::int FROM interview_job WHERE interview_id=$1) AS jobs`;
+      const beforeScan = await pgc.query(fourTables, [fencedIv]);
+      A(Number(beforeScan.rows[0]?.events) === 0 && Number(beforeScan.rows[0]?.reports) === 0
+        && Number(beforeScan.rows[0]?.feedback) === 0 && Number(beforeScan.rows[0]?.jobs) === 0,
+        `[R4-B-6a] 围栏后四表前读全 0:interview_event/ai_report/question_feedback/interview_job 按 id 计数=0(围栏零写证)`);
+
+      // R4-B-5 围栏后十端点扫 → 全 410(合法 DTO 体抵达 guard·围栏先判序 interview.service :521·Ban 400 冒充 410)。
+      const { createHash } = await import('node:crypto');
+      const turnAnswer = '预览围栏后不得落库的答案';
+      const legalTurn = {
+        questionId: 'q-v1-t0-c0', stateVersion: 1, turn: 0,
+        answerId: '00000000-0000-4000-8000-000000000001',
+        answerHash: createHash('sha256').update(turnAnswer, 'utf8').digest('hex'),
+        answer: turnAnswer,
+      };
+      const scan: Array<[string, Response]> = [];
+      scan.push(['GET interview', await fetch(`${BASE}/interview/${fencedIv}`, { headers: H })]);
+      scan.push(['POST begin', await fetch(`${BASE}/interview/${fencedIv}/begin`, { method: 'POST', headers: { ...H, 'resume-id': '00000000-0000-4000-8000-000000000002' }, body: '{}' })]);
+      scan.push(['POST abandon', await fetch(`${BASE}/interview/${fencedIv}/abandon`, { method: 'POST', headers: H, body: '{}' })]);
+      scan.push(['GET events', await fetch(`${BASE}/interview/${fencedIv}/events`, { headers: H })]);
+      scan.push(['GET report', await fetch(`${BASE}/interview/${fencedIv}/report`, { headers: H })]);
+      scan.push(['POST report/retry', await fetch(`${BASE}/interview/${fencedIv}/report/retry`, { method: 'POST', headers: noCT(H) })]);
+      scan.push(['GET report/export', await fetch(`${BASE}/interview/${fencedIv}/report/export`, { headers: H })]);
+      scan.push(['GET transcript', await fetch(`${BASE}/interview/${fencedIv}/transcript`, { headers: H })]);
+      const turnFenceRes = await fetch(`${BASE}/interview/${fencedIv}/turn`, { method: 'POST', headers: H, body: JSON.stringify(legalTurn) });
+      scan.push(['POST turn', turnFenceRes]);
+      scan.push(['POST feedback', await fetch(`${BASE}/interview/${fencedIv}/questions/0/feedback`, { method: 'POST', headers: H, body: JSON.stringify({ rating: 'up' }) })]);
+      const offList = await readJson(await fetch(`${BASE}/interview`, { headers: H }));
+      A(scan.length === 10 && scan.every(([, res]) => res.status === 410),
+        `[R4-B-5] 围栏后十端点扫 → 全 410(GET interview/begin/abandon/events/report/report.retry/report.export/transcript/turn[合法 TurnDto]/feedback)`);
+      const turnFenceBody = await readJson(turnFenceRes);
+      A(turnFenceBody.error === 'interview_privacy_fenced',
+        `[R4-B-5b] /turn 围栏体核:error=interview_privacy_fenced(合法体抵达 guard·410 非 400)`);
+      A(Array.isArray(offList.interviews) && !offList.interviews.some((x: any) => x.id === fencedIv),
+        `[R4-B-5c] C 端 list 不含围栏 id(interviews 零泄露)`);
+
+      // R4-B-6 后读:410 扫后仍全 0=零增长定谳面。
+      const afterScan = await pgc.query(fourTables, [fencedIv]);
+      A(Number(afterScan.rows[0]?.events) === 0 && Number(afterScan.rows[0]?.reports) === 0
+        && Number(afterScan.rows[0]?.feedback) === 0 && Number(afterScan.rows[0]?.jobs) === 0,
+        `[R4-B-6b] 410 扫后四表后读仍全 0(零增长·前后读零定谳)`);
+    } finally {
+      await pgc.end().catch(() => {});
+    }
+
+    console.log('✓ R4-B interview 预览围栏面 PASS(503 pin 正面行使+preview 202+410 扫+四表读零)');
+  }
+
+  console.log('\n── e2e-scene-batch2 · R5 同意撤回九步(独立用户 e2e7_·零 live) ──');
+  {
+    const withdrawer = await signupOrLogin(`e2e7_${tag}@x.com`, password);
+    const WH = withdrawer.headers;
+    A(withdrawer.response.status === 200 && typeof withdrawer.token === 'string',
+      `[R5-0] 独立用户 e2e7_ 注册 → 真 Bearer(撤回面独立主用户·零额度依赖)`);
+
+    // R5-1 授予(POST consent 幂等面:已同意不重插行·回 policyVersion)。
+    const grant = await consentResumeProcessing(WH);
+    A(grant.response.status === 200 && grant.body.recorded === true && typeof grant.body.policyVersion === 'string' && grant.body.policyVersion.length > 0,
+      `[R5-1] POST /privacy/consent → 200 ∧ recorded=true ∧ policyVersion 非空(${grant.body.policyVersion})`);
+
+    // R5-2 状态读。
+    const st1 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    A(st1.consented === true, `[R5-2] GET consent 状态 → consented=true`);
+
+    // R5-3 文本上传(纯本地摄取·零模型零额度)。
+    const resumeText7 = '合成后端工程师简历:五年 Java/Go 后端,熟悉 PostgreSQL 索引与查询优化、Redis 缓存、Kafka 消息队列与 Kubernetes 部署运维。';
+    const up1 = await uploadTextResume(WH, resumeText7);
+    A(up1.response.status === 200 && typeof up1.body.resumeId === 'string',
+      `[R5-3] 文本简历上传 → 200 ∧ resumeId(${up1.body.status})`);
+    const resumeId7: string = up1.body.resumeId;
+
+    // R5-4 撤回(G4:撤回=停止后续使用·已落 checkpoint/事件不回溯)。
+    const wdRes = await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { method: 'DELETE', headers: noCT(WH) });
+    const wdBody = await readJson(wdRes);
+    A(wdRes.status === 200 && wdBody.withdrawn === true,
+      `[R5-4] DELETE /privacy/consent 撤回 → 200 ∧ withdrawn=true`);
+
+    // R5-5 状态翻 false。
+    const st2 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    A(st2.consented === false, `[R5-5] 撤回后 GET 状态 → consented=false`);
+
+    // R5-6 重上传 → 403 consent_required(resume.service :203 硬门·先于扣费预留)。
+    const unitsBefore403 = (await entitlement(WH)).availableUnits ?? 0;
+    const up2 = await uploadTextResume(WH, resumeText7);
+    const unitsAfter403 = (await entitlement(WH)).availableUnits ?? 0;
+    A(up2.response.status === 403 && up2.body.error === 'consent_required' && up2.body.purpose === 'resume_processing',
+      `[R5-6] 撤回后重上传 → 403 consent_required+purpose=resume_processing(硬门如实·:203)`, 'data_or_permission');
+    A(unitsAfter403 === unitsBefore403,
+      `[R5-6b] 403 后额度零泄漏(同意门先于扣费预留:${unitsBefore403}→${unitsAfter403})`);
+
+    // R5-7 撤回≠擦除定谳面(Non-claims 行为证:已落数据不回溯清除)。
+    const prof7Res = await fetch(`${BASE}/resume/${resumeId7}/profile`, { headers: WH });
+    const prof7 = await readJson(prof7Res);
+    A(prof7Res.status === 200 && prof7.structured && typeof prof7.structured === 'object' && Object.keys(prof7.structured).length >= 1,
+      `[R5-7] 撤回≠擦除:既有 profile 仍 200 ∧ structured 非空(不回溯清除·Non-claims 行为证)`);
+
+    // R5-8 重授予。
+    const regrant = await consentResumeProcessing(WH);
+    const st3 = await readJson(await fetch(`${BASE}/privacy/consent?purpose=resume_processing`, { headers: WH }));
+    A(regrant.response.status === 200 && regrant.body.recorded === true && st3.consented === true,
+      `[R5-8] 重授予 POST consent → 200 ∧ 状态翻回 consented=true`);
+
+    // R5-9 恢复上传:deduped 复用同 id(部分唯一索引 WHERE status 子句命中·撤回不触 resume 行核·如实不假称新建)。
+    const up3 = await uploadTextResume(WH, resumeText7);
+    A(up3.response.status === 200 && up3.body.resumeId === resumeId7 && up3.body.status === 'deduped',
+      `[R5-9] 恢复后重上传 → 200 ∧ deduped 复用同 resumeId(${String(resumeId7).slice(0, 8)})(撤回不触行核·如实复用非新建)`);
+
+    console.log('✓ R5 同意撤回九步 PASS(授予→撤回→403 门→撤回≠擦除→重授予→deduped 恢复)');
   }
 
   reviews.emitSummary();

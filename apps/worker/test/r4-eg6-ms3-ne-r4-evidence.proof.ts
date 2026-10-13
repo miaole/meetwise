@@ -22,7 +22,7 @@ import {
   assessMs3NeR4PinRetentionEvidence,
   emitMs3NeR4PinRetentionEvidence,
   hasMs3NeR4PinRetentionEvidence,
-} from '../src/r4-eg6-ms3-ne-r4-evidence.ts';
+} from '../evidence/r4-eg6-ms3-ne-r4-evidence.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

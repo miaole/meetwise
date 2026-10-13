@@ -20,6 +20,12 @@ const { A, done } = mkAssert('neg:bend');
 const VALID_RESUME_ID = '11111111-1111-4111-8111-111111111111';
 const STALE_RESUME_ID = '22222222-2222-4222-8222-222222222222';
 
+// b110 §4.2「approve 后同账户 create/invite 200」是本套 neg 面首个真打 HTTP 建岗的用例:
+// createJob→createJobSemanticRevision 每次调用读 RAG_JOB_ROUTE_INPUT_HASH_KEY(≥32 字符),
+// 而隔离 runner 显式剥离操作手 shell 的该键(run-e2e-isolated.mjs 凭据剥离清单)→须在此以测试值补齐
+// (与 harness AUTH_SECRET/RESUME_ENC_KEY 同一模式;非凭据,不入 Ban §5.7 面)。
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'b110-neg-route-input-hmac-key-test-only-0123456789abcdef';
+
 // ── 灌 B 端表(harness 缺)+ 播种跨租户负测场景 ─────────────────────────────
 await h.pool.query('DROP TABLE IF EXISTS job_application CASCADE; DROP TABLE IF EXISTS job_posting CASCADE;');
 for (const f of ['17_recruiter.sql', '18_job_application.sql', '22_interview_invitation.sql']) await h.pool.query(sqlText(f));
@@ -34,6 +40,12 @@ await h.pool.query(
 await h.pool.query(
   "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,source) VALUES " +
   "('APP_VICTIM','JOB_REC','recU','victimU','invited','applied')");
+// b110 审核制种子(§4.1·_neg-harness.ts:73 同法直插;存量行经默认 approved 零回归):
+//   pendU=审核中 / rejU=已拒(R6 分码);freshC=全新 active candidate 专供恒等探针「真实建申请」路径(不触碰既有申请行)。
+//   adminU 已由 harness :73-76 直插(is_admin=true·role='candidate')——审批经 POST /admin/recruiter-approvals/:id/decision。
+await h.pool.query("INSERT INTO user_account(id,email,password_hash,role,approval_status) VALUES " +
+  "('pendU','pend@x.com','scrypt$p$p','recruiter','pending'),('rejU','rej@x.com','scrypt$rj$r','recruiter','rejected')," +
+  "('freshC','f@x.com','scrypt$f$f','candidate','approved')");
 // 旧库中可能存在「申请仍 in_progress、绑定面试已 abandoned」的历史行：
 // 0046/0082 会把运行时 start 约束收紧到 created/active，但不会伪造地重写
 // 这类历史事实。0123 只回填展示快照，不能因为 UPDATE 触发器再次检查 start
@@ -134,6 +146,11 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('GET /recruiter/jobs/:id 无鉴权→401', (await h.req('GET', '/recruiter/jobs/JOB_REC', anon)).status === 401);
   A('GET /recruiter/jobs/:id/candidates 无鉴权→401', (await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', anon)).status === 401);
   A('POST /recruiter/jobs/:id/invite 无鉴权→401', (await h.send('POST', '/recruiter/jobs/JOB_REC/invite', anon, { candidateId: 'userB' })).status === 401);
+  // I3 JOB-MGMT（#219/#220）：编辑/下线/路由读面/显式重试四端点负臂（401 无鉴权·403 非招聘方）。
+  A('PATCH /recruiter/jobs/:id 无鉴权→401', (await h.send('PATCH', '/recruiter/jobs/JOB_REC', anon, { title: 'x' })).status === 401);
+  A('POST /recruiter/jobs/:id/close 无鉴权→401', (await h.send('POST', '/recruiter/jobs/JOB_REC/close', anon, {})).status === 401);
+  A('GET /recruiter/jobs/:id/route 无鉴权→401', (await h.req('GET', '/recruiter/jobs/JOB_REC/route', anon)).status === 401);
+  A('POST /recruiter/jobs/:id/route-retry 无鉴权→401', (await h.send('POST', '/recruiter/jobs/JOB_REC/route-retry', anon, {})).status === 401);
   A('GET /admin/users 无鉴权→401', (await h.req('GET', '/admin/users', anon)).status === 401);
   A('GET /admin/orders 无鉴权→401', (await h.req('GET', '/admin/orders', anon)).status === 401);
   A('GET /admin/audit 无鉴权→401', (await h.req('GET', '/admin/audit', anon)).status === 401);
@@ -166,6 +183,10 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('candidate GET /recruiter/jobs/:id→403', (await h.req('GET', '/recruiter/jobs/JOB_REC', a)).status === 403);
   A('candidate GET /recruiter/jobs/:id/candidates→403', (await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', a)).status === 403);
   A('candidate POST /recruiter/jobs/:id/invite(借邀请枚举用户)→403', (await h.send('POST', '/recruiter/jobs/JOB_REC/invite', a, { candidateEmail: 'probe@x.com' })).status === 403);
+  A('candidate PATCH /recruiter/jobs/:id(篡改他人岗位)→403', (await h.send('PATCH', '/recruiter/jobs/JOB_REC', a, { title: '篡改' })).status === 403);
+  A('candidate POST /recruiter/jobs/:id/close(下线他人岗位)→403', (await h.send('POST', '/recruiter/jobs/JOB_REC/close', a, {})).status === 403);
+  A('candidate GET /recruiter/jobs/:id/route(窥探路由状态)→403', (await h.req('GET', '/recruiter/jobs/JOB_REC/route', a)).status === 403);
+  A('candidate POST /recruiter/jobs/:id/route-retry(滥用重试动作)→403', (await h.send('POST', '/recruiter/jobs/JOB_REC/route-retry', a, {})).status === 403);
   const r403 = await h.send('POST', '/recruiter/jobs', a, { title: '恶意岗位' });
   A('candidate 越权 /recruiter 错误体标 recruiter_required', r403.body?.error === 'recruiter_required');
   // adminU:is_admin=true 但 role=candidate → 仍非招聘方 → 403(admin 特权≠招聘方特权)
@@ -289,13 +310,14 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   // InviteCandidateDto:id 或 email 二选一,email 需合法
   A('invite 既无 id 也无 email→400', (await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, {})).status === 400);
   A('invite email 非法格式→400', (await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateEmail: 'not-an-email' })).status === 400);
-  // 邀请不存在的候选人 → 404 candidate_not_found
+  // b110 恒定壳(C8):邀请不存在候选人 → 与命中同形同码零信号(在/不在不可区分;applicationId/status 不再出响应,
+  // 逐字节恒等断言见 §14),真实状态以租户内 candidates 列表承载。
   const g1 = await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateId: 'ghost_candidate' });
-  A('invite 不存在候选人→404 candidate_not_found', g1.status === 404 && g1.body?.error === 'candidate_not_found');
-  // 反枚举:邀请另一个招聘方(role=recruiter)按 email → 视为未找到(不当 B 端账户 oracle)
+  A('invite 不存在候选人→恒定壳 200 received(零存在性信号)', g1.status === 200 && g1.body?.received === true && !('applicationId' in (g1.body ?? {})) && !('status' in (g1.body ?? {})));
+  // 反枚举:邀请另一个招聘方(role=recruiter)按 email → 同壳零信号(不当 B 端账户 oracle)
   const g2 = await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateEmail: 'rec2@x.com' });
-  A('invite 招聘方 email→404 candidate_not_found(不暴露 B 端账户)', g2.status === 404 && g2.body?.error === 'candidate_not_found');
-  // 越权岗位:recU 邀请合法候选人到 recU2 的岗位 → 404 job_not_found_or_forbidden
+  A('invite 招聘方 email→同壳零信号(不暴露 B 端账户)', g2.status === 200 && g2.body?.received === true && g2.body && Object.keys(g2.body).length === 1);
+  // R2 岗位归属预检前置:recU 邀请(合法候选人)到 recU2 的岗位 → 候选人解析之前恒 404(字节稳定,§14 钉死字节)
   const g3 = await h.send('POST', '/recruiter/jobs/JOB_REC2/invite', rec, { candidateId: 'userB' });
   A('recU 邀请到 recU2 岗位→404 job_not_found_or_forbidden', g3.status === 404 && g3.body?.error === 'job_not_found_or_forbidden');
 }
@@ -379,14 +401,197 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('RLS: candidate userA 改不动招聘方岗位(0 行受影响)', (upd.rowCount ?? 0) === 0);
 }
 
+/* ═════════════ 13) b110 审核制:pending/rejected 三分码门 + admin 审批解锁/留痕(§4.1/§4.2) ═════════════ */
+{
+  const pend = h.U('pendU'), rej = h.U('rejU'), adm = h.U('adminU');
+  // pending:B 端全 403 recruiter_pending_review(三分码·fail-closed·守卫先于限流/解析,零桶消耗)
+  const pg = await h.req('GET', '/recruiter/jobs', pend);
+  A('pending GET /recruiter/jobs→403 recruiter_pending_review', pg.status === 403 && pg.body?.error === 'recruiter_pending_review');
+  const pc = await h.send('POST', '/recruiter/jobs', pend, { title: '审核岗' });
+  A('pending POST /recruiter/jobs→403 recruiter_pending_review', pc.status === 403 && pc.body?.error === 'recruiter_pending_review');
+  const pt = await h.req('GET', '/recruiter/talent', pend);
+  A('pending GET /recruiter/talent→403 recruiter_pending_review', pt.status === 403 && pt.body?.error === 'recruiter_pending_review');
+  const pj = await h.req('GET', '/recruiter/jobs/JOB_REC', pend);
+  A('pending GET /recruiter/jobs/:id→403 recruiter_pending_review', pj.status === 403 && pj.body?.error === 'recruiter_pending_review');
+  const pcand = await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', pend);
+  A('pending GET /recruiter/jobs/:id/candidates→403 recruiter_pending_review', pcand.status === 403 && pcand.body?.error === 'recruiter_pending_review');
+  const pinv403 = await h.send('POST', '/recruiter/jobs/JOB_REC/invite', pend, { candidateEmail: 'a@x.com' });
+  A('pending POST invite→403 recruiter_pending_review', pinv403.status === 403 && pinv403.body?.error === 'recruiter_pending_review');
+  // rejected:R6 分码——被拒用户不得永久见「审核中」(分码仅错误码语义,处置裁决留协调方 §2.8)
+  const rg = await h.req('GET', '/recruiter/jobs', rej);
+  A('rejected GET /recruiter/jobs→403 recruiter_rejected', rg.status === 403 && rg.body?.error === 'recruiter_rejected');
+  const rc = await h.send('POST', '/recruiter/jobs', rej, { title: '拒后岗' });
+  A('rejected POST /recruiter/jobs→403 recruiter_rejected', rc.status === 403 && rc.body?.error === 'recruiter_rejected');
+  // 三分码互异:pending/rejected/required 实测三码各不相同(非 recruiter 基线零弱化)
+  const candCode = (await h.send('POST', '/recruiter/jobs', h.U('userA'), { title: '越权岗' })).body?.error;
+  A('三分码互异:pending_review/rejected/required 实测三码各不相同', new Set([pg.body?.error, rg.body?.error, candCode]).size === 3 && candCode === 'recruiter_required');
+  // DB 纵深(§4.1):绕 API guard 的 app_role 直调 gateway_active_candidate,对 pending/rejected 同拒
+  // (gateway_require_active_recruiter 0155 加审批维度〔回填重编号〕;gateway_active_candidate PERFORM 它=invite DB 门)
+  let depthPend = false;
+  try { await asP('pendU', "SELECT id FROM gateway_active_candidate('userB', NULL)"); }
+  catch (e) { depthPend = String(e).includes('gateway_recruiter_required'); }
+  A('纵深: DB 直调 gateway_active_candidate 对 pending recruiter 拒(gateway_recruiter_required)', depthPend);
+  let depthRej = false;
+  try { await asP('rejU', "SELECT id FROM gateway_active_candidate('userB', NULL)"); }
+  catch (e) { depthRej = String(e).includes('gateway_recruiter_required'); }
+  A('纵深: DB 直调对 rejected recruiter 同拒(fail-closed 只增不弱)', depthRej);
+  A('回归: approved recruiter DB 直调仍解析到活跃候选人(零弱化)', ((await asP('recU', "SELECT id FROM gateway_active_candidate('userB', NULL)")).rows[0]?.id === 'userB'));
+  // admin 审批面:队列 + decision 双层(guard+函数内复核)
+  const q = await h.req('GET', '/admin/recruiter-approvals', adm);
+  A('admin 审批队列→200 且含 pendU(pending 先审)', q.status === 200 && (q.body?.approvals ?? []).some((x: any) => x.id === 'pendU' && x.approval_status === 'pending'));
+  const q403 = await h.req('GET', '/admin/recruiter-approvals', h.U('userA'));
+  A('非 admin GET 审批队列→403 admin_required', q403.status === 403 && q403.body?.error === 'admin_required');
+  const d403 = await h.send('POST', '/admin/recruiter-approvals/pendU/decision', h.U('userA'), { decision: 'approve' });
+  A('非 admin POST decision→403(HTTP AdminGuard 层)', d403.status === 403 && d403.body?.error === 'admin_required');
+  let dDb = false;
+  try { await asP('userA', "SELECT gateway_admin_recruiter_approval('pendU','approve') AS decided"); }
+  catch (e) { dDb = String(e).includes('gateway_admin_required'); }
+  A('非 admin decision DB 双层拒(函数内复核 gateway_admin_required)', dDb);
+  A('decision 非法枚举值→400(zod 契约)', (await h.send('POST', '/admin/recruiter-approvals/pendU/decision', adm, { decision: 'purge' })).status === 400);
+  let badDecision = false;
+  try { await asP('adminU', "SELECT gateway_admin_recruiter_approval('pendU','purge')"); }
+  catch (e) { badDecision = String(e).includes('gateway_admin_recruiter_approval_invalid_decision'); }
+  A('DB 直调 decision 非法值→invalid_decision(函数自守·绕 HTTP 也拒)', badDecision);
+  // 审批解锁+留痕:approve → 同账户 create/invite 200 + admin_audit 有痕(actor/action/target)
+  const ap = await h.send('POST', '/admin/recruiter-approvals/pendU/decision', adm, { decision: 'approve' });
+  A('admin approve pendU→200 decided', ap.status === 200 && ap.body?.decided === true);
+  const trail = await h.pool.query("SELECT actor, action, target FROM admin_audit WHERE action='approve_recruiter' AND target='pendU' ORDER BY created_at DESC LIMIT 1");
+  console.log('[b110] admin_audit approve_recruiter row:', JSON.stringify(trail.rows[0] ?? null));   // §4.6 留痕输出入收据
+  A('approve_recruiter 留痕:actor/action/target 断言(照 0041:107-120 样板)', trail.rows[0]?.actor === 'adminU' && trail.rows[0]?.action === 'approve_recruiter' && trail.rows[0]?.target === 'pendU');
+  const unlocked = await h.send('POST', '/recruiter/jobs', pend, { title: '审核通过岗' });
+  const JOB_PEND = unlocked.body?.id as string;
+  A('approve 后同账户 create→200(解锁)', unlocked.status === 200 && typeof JOB_PEND === 'string');
+  const pinv = await h.send('POST', `/recruiter/jobs/${JOB_PEND}/invite`, pend, { candidateId: 'userB' });
+  A('approve 后同账户 invite→200 恒定壳', pinv.status === 200 && pinv.body?.received === true);
+  // reject:恒 403 recruiter_rejected + 留痕(R6)
+  const rj = await h.send('POST', '/admin/recruiter-approvals/pendU/decision', adm, { decision: 'reject' });
+  A('admin reject pendU→200 decided', rj.status === 200 && rj.body?.decided === true);
+  const trail2 = await h.pool.query("SELECT actor, action, target FROM admin_audit WHERE action='reject_recruiter' AND target='pendU' ORDER BY created_at DESC LIMIT 1");
+  console.log('[b110] admin_audit reject_recruiter row:', JSON.stringify(trail2.rows[0] ?? null));   // §4.6 留痕输出入收据
+  A('reject_recruiter 留痕:actor/action/target 断言', trail2.rows[0]?.actor === 'adminU' && trail2.rows[0]?.action === 'reject_recruiter' && trail2.rows[0]?.target === 'pendU');
+  const rjGate = await h.send('POST', '/recruiter/jobs', pend, { title: '拒后再试岗' });
+  A('reject 后恒 403 recruiter_rejected(分码断言)', rjGate.status === 403 && rjGate.body?.error === 'recruiter_rejected');
+  A('reject 后 GET /recruiter/talent 恒 403 recruiter_rejected', (await h.req('GET', '/recruiter/talent', pend)).body?.error === 'recruiter_rejected');
+  // decision 边界:candidate 目标/幽灵目标 → 404(role 过滤,无存在性信号)
+  A('decision 对 candidate 目标→404(role 过滤)', (await h.send('POST', '/admin/recruiter-approvals/userA/decision', adm, { decision: 'approve' })).status === 404);
+  A('decision 对幽灵目标→404', (await h.send('POST', '/admin/recruiter-approvals/ghost_rec/decision', adm, { decision: 'reject' })).status === 404);
+}
+
+/* ═════════════ 14) b110 枚举不可区分恒等断言 + 第四探针(越权岗位·R2)——raw 逐字节(§4.3) ═════════════ */
+{
+  const invRaw = (who: string, jobId: string, body: any) =>
+    h.raw('POST', `/recruiter/jobs/${jobId}/invite`, { ...h.U(who), 'content-type': 'application/json' }, JSON.stringify(body));
+  // 三路:注册候选人(命中·真实建申请)/ 幽灵 email / 招聘方 email → status+body 逐字节一致
+  // (恒等断言,非「都 404」弱化形——共享码是 200 恒定壳)
+  const pCand = await invRaw('recU', 'JOB_REC', { candidateEmail: 'f@x.com' });
+  const pGhost = await invRaw('recU', 'JOB_REC', { candidateEmail: 'ghost-probe@x.com' });
+  const pRec = await invRaw('recU', 'JOB_REC', { candidateEmail: 'rec2@x.com' });
+  A('枚举不可区分:三路 invite status+body 逐字节一致', pCand.status === pGhost.status && pCand.status === pRec.status && pCand.text === pGhost.text && pCand.text === pRec.text);
+  A('恒定壳钉死期望字节 {"received":true} 且 200(非「都 404」弱化形)', pCand.status === 200 && pCand.text === '{"received":true}');
+  // 命中=真实建申请:壳零信号,真实状态以租户内 candidates 列表承载(freshC 出现在 recU 的 JOB_REC 申请人里)
+  const lst = await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', h.U('recU'));
+  A('命中真实建申请:租户内 candidates 列表可见 freshC(壳外承载)', lst.status === 200 && (lst.body?.candidates ?? []).some((x: any) => x.candidate_user_id === 'freshC'));
+  // 第四探针(R2):越权岗位×{注册候选人, 幽灵} → 候选人解析之前已被归属预检拦下,双方恒 404 逐字节一致
+  const qCand = await invRaw('recU', 'JOB_REC2', { candidateEmail: 'f@x.com' });
+  const qGhost = await invRaw('recU', 'JOB_REC2', { candidateEmail: 'ghost-probe2@x.com' });
+  A('第四探针:越权岗位×注册候选人=×幽灵 status+body 逐字节一致', qCand.status === qGhost.status && qCand.text === qGhost.text);
+  A('第四探针:双方恒 404 期望字节 {"error":"job_not_found_or_forbidden"}(字节钉死)', qCand.status === 404 && qCand.text === '{"error":"job_not_found_or_forbidden"}');
+}
+
+/* ═════════════ 14a) I4 #221 通知写侧接线臂(裁决项①:0165 SECURITY DEFINER gateway_notify_invited·
+   命中→候选人通知行落库/未命中→零行零写·恒定壳字节零动——§14 恒等探针原样全绿即证) ═════════════ */
+{
+  const rec = h.U('recU');
+  // 命中臂:认证 invite 命中注册候选人 userB → 候选人站内通知行落库(owner=userB·kind=job_invited)。
+  const inv = await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateId: 'userB' });
+  A('i4 命中 invite→恒定壳零破(200 received:true·键集恰 1·沿 :310 形)', inv.status === 200 && inv.body?.received === true && Object.keys(inv.body ?? {}).length === 1);
+  const appRow = (await h.pool.query("SELECT id FROM job_application WHERE job_id='JOB_REC' AND candidate_user_id='userB' ORDER BY created_at DESC LIMIT 1")).rows[0];
+  const notif = (await h.pool.query('SELECT id, owner_user_id, kind, payload FROM notification WHERE id=$1', [`ntf_${appRow?.id}`])).rows[0];
+  A('i4 命中→候选人通知行落库(owner=userB·kind=job_invited·id=ntf_<applicationId> 幂等形)', !!notif && notif.owner_user_id === 'userB' && notif.kind === 'job_invited');
+  A('i4 通知 payload 恰 {jobId,jobTitle} 最小集(键集=2·零 PII 扩散)', notif?.payload?.jobId === 'JOB_REC' && notif?.payload?.jobTitle === '后端岗' && Object.keys(notif?.payload ?? {}).length === 2);
+  // 幂等:重邀请幂等复用既有申请 → 通知零堆积(ON CONFLICT (id) DO NOTHING)。
+  await h.send('POST', '/recruiter/jobs/JOB_REC/invite', rec, { candidateId: 'userB' });
+  const dup = (await h.pool.query('SELECT count(*)::int n FROM notification WHERE id=$1', [`ntf_${appRow?.id}`])).rows[0].n;
+  A('i4 重邀请幂等复用→通知行零堆积(ntf_<applicationId> 形)', dup === 1);
+  // 未命中零写一致性:全库 job_invited 通知行恰绑定真实命中申请(id=ntf_<applicationId> 且 owner=申请候选人),
+  // 孤儿行=0——未命中臂零写(b110 红线:零信号零写;恒定壳 200 形已由 §14 幽灵/招聘方 email 探针逐字节恒等承,
+  // 此处不另发 invite 请求——invite:ip 桶全进程共享,§15 末段钉置防自饥饿)。
+  const orphan = (await h.pool.query(
+    "SELECT count(*)::int n FROM notification nt WHERE nt.kind='job_invited' AND NOT EXISTS (SELECT 1 FROM job_application ja WHERE nt.id = 'ntf_' || ja.id AND nt.owner_user_id = ja.candidate_user_id)",
+  )).rows[0].n;
+  A('i4 未命中零写一致性:job_invited 通知行恰绑定真实申请·孤儿行=0', orphan === 0);
+}
+
+/* ═════════════ 14b) I4 #222 browseJobs 回包收窄臂(认证 GET /jobs 公开面零 owner_user_id·自有面零回归) ═════════════ */
+{
+  // 认证收窄臂:候选人 GET /jobs → 行键集恰公开六键(competencies/created_at/description/id/status/title),零 owner_user_id。
+  const pub = await h.req('GET', '/jobs', h.U('userA'));
+  const pubJobs = pub.body?.jobs ?? [];
+  const leakOwner = pubJobs.some((j: any) => 'owner_user_id' in j);
+  const keySets = new Set(pubJobs.map((j: any) => Object.keys(j).sort().join(',')));
+  A('i4 browseJobs 认证回包收窄:零 owner_user_id 泄漏(修法列原意·跨租户不暴露属主 id)', pub.status === 200 && pubJobs.length > 0 && !leakOwner);
+  A('i4 browseJobs 行键集恰公开六键钉死(competencies,created_at,description,id,status,title)', keySets.size === 1 && keySets.has('competencies,created_at,description,id,status,title'));
+  // 自有面零回归:recruiter listJobs(JobList 原形)仍含 owner_user_id。
+  const own = await h.req('GET', '/recruiter/jobs', h.U('recU'));
+  A('i4 recruiter 自有面零回归:listJobs 行仍含 owner_user_id(JobList 原形零动)', own.status === 200 && (own.body?.jobs ?? []).length > 0 && (own.body?.jobs ?? []).every((j: any) => 'owner_user_id' in j));
+}
+
+/* ═════════════ 14c) I4 #223 同意门识别列臂(0166 gateway_recruiter_contact_share·fail-closed:
+   无同意零出参/同意后出识别邮箱/非法 purpose 400 零回归) ═════════════ */
+{
+  // 无同意 → 招聘方读面零候选人邮箱出参(fail-closed·行内 contactEmail 恒 null)。
+  const pre = await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', h.U('recU'));
+  const preRows = pre.body?.candidates ?? [];
+  A('i4 无同意→candidates 读面零候选人邮箱出参(contactEmail 恒 null·fail-closed)', pre.status === 200 && preRows.length > 0 && preRows.every((r: any) => r.contactEmail === null));
+  // 非法 purpose→400 零回归(zod 白名单只增不改)。
+  A('i4 非法 purpose→400 零回归(CONSENT_PURPOSES 白名单)', (await h.send('POST', '/privacy/consent', h.U('userA'), { purpose: 'i4_unknown_purpose' })).status === 400);
+  // freshC 同意 recruiter_contact_share(只增 purpose)→ 读面识别列出其邮箱。
+  const cs = await h.send('POST', '/privacy/consent', h.U('freshC'), { purpose: 'recruiter_contact_share' });
+  A('i4 新 purpose recruiter_contact_share 进枚举面(consent 受理 200·零迁移)', cs.status === 200 && cs.body?.recorded === true);
+  const post = await h.req('GET', '/recruiter/jobs/JOB_REC/candidates', h.U('recU'));
+  const freshRow = (post.body?.candidates ?? []).find((r: any) => r.candidate_user_id === 'freshC');
+  const otherRows = (post.body?.candidates ?? []).filter((r: any) => r.candidate_user_id !== 'freshC');
+  A('i4 同意后→读面识别列出候选人邮箱(恰同意行 freshC=f@x.com·未同意行仍 null)', post.status === 200 && freshRow?.contactEmail === 'f@x.com' && otherRows.every((r: any) => r.contactEmail === null));
+  // talent 面同样承识别列(跨自有岗位聚合)。
+  const t = await h.req('GET', '/recruiter/talent', h.U('recU'));
+  const tFresh = (t.body?.talents ?? []).find((r: any) => r.candidate_user_id === 'freshC');
+  A('i4 talent 面同意后同样出识别列邮箱(fail-closed 同形)', t.status === 200 && tFresh?.contactEmail === 'f@x.com');
+}
+
 // 收尾:确认经过全部 IDOR 尝试后,受害申请仍然纹丝不动(端到端无越权副作用)
 {
   const s = await appStatus('APP_VICTIM');
   A('全部越权尝试后 APP_VICTIM 仍 invited & score 空(零副作用)', s.status === 'invited' && s.score === null);
 }
 
-// ── 用例条数统计:共 111 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path)──
-//   §1 未鉴权 22 · §2 坏 token/伪造主体 6 · §3 角色越权(recruiter)10 · §4 admin 越权 9 ·
+/* ═════════════ 15) b110 IP 维度限流(§4.4·§1.2.6:钉置末段——其余断言全部完成后执行,防 ip 桶被前置用例消耗自饥饿) ═════════════ */
+{
+  // signup:ip 桶 (10, 0.05)§1.2.6 钉死:同 IP 不同邮箱,第 capacity+1=11 次 → 429。
+  // 桶序 per-email→ip→global(|| 短路):前 10 次每封邮箱全新 → 只耗 ip+global,确定性耗尽。
+  const sig: { status: number }[] = [];
+  for (let i = 0; i < 10; i++) sig.push(await h.post('/auth/signup', {}, { email: `rl-signup-${i}@x.com`, password: 'rlpass1234' }));
+  A('signup:ip 桶:同 IP 前 10 次(容量内)全放行', sig.every((r) => r.status === 200));
+  const over = await h.post('/auth/signup', {}, { email: 'rl-signup-10@x.com', password: 'rlpass1234' });
+  A('signup:ip 桶:第 11 次(容量+1)→429 too_many_attempts', over.status === 429 && over.body?.error === 'too_many_attempts');
+  // invite:ip 桶 (12, 0.05):此前用例已耗 ~10(recU2 本体仅 §6 用 1)→ 有界循环至首个 429。
+  // 归因:循环内 recU2 per-principal 用量 ≤1+10=11 < 容量 12 → 429 必来自 ip 桶(桶序 per-principal→ip 钉死短路先查主体)。
+  let got429 = -1;
+  for (let i = 0; i < 10; i++) {
+    const r = await h.send('POST', '/recruiter/jobs/JOB_REC2/invite', h.U('recU2'), { candidateEmail: `rl-invite-${i}@x.com` });
+    if (r.status === 429) { got429 = i; break; }
+  }
+  A('invite:ip 桶:同 IP 超速→429(recU2 主体桶未满,429 必来自 ip 维度)', got429 >= 0 && got429 <= 9);
+  // per-principal 桶回归(§4.4):键/参数(12,0.05)/桶序零改(diff 可证);
+  // ip 桶拒后同主体后续 invite 恒 429(fail-closed,不因换桶而静默放行)。
+  const after = await h.send('POST', '/recruiter/jobs/JOB_REC2/invite', h.U('recU2'), { candidateEmail: 'rl-invite-after@x.com' });
+  A('invite 429 后同主体后续恒 429(fail-closed,不静默换道放行)', after.status === 429 && after.body?.error === 'too_many_requests');
+}
+
+// ── 用例条数统计:共 178 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path;mkAssert 实测口径;i4 nail 合并实跑值)──
+//   fixture 前置 5 · §1 未鉴权 26(含 I3 JOB-MGMT 四端点 401 臂 4) · §2 坏 token/伪造主体 6 · §3 角色越权(recruiter)14(含 I3 JOB-MGMT 四端点 403 臂 4) · §4 admin 越权 9 ·
 //   §5 admin 特权边界+返回体泄漏 6 · §6 跨租户 IDOR(recruiter)7 · §7 跨用户 IDOR(application)9 ·
-//   §8 申请闭环负路径 9（含禁止 client interviewId 注入）· §9 招聘方写负路径 8 · §10 roles 5 · §11 profile 15 · §12 DB 层 RLS 直证 6 · 收尾 1
+//   §8 申请闭环负路径 9（含禁止 client interviewId 注入）· §9 招聘方写负路径 8 · §10 roles 5 · §11 profile 13 ·
+//   §12 DB 层 RLS 直证 10 · §13 b110 审核制三分码+审批解锁/留痕 28 · §14 b110 枚举恒等+第四探针 5 ·
+//   §14a I4 通知写侧接线臂 5 · §14b I4 browseJobs 收窄臂 3 · §14c I4 同意门识别列臂 5 ·
+//   收尾 1 · §15 b110 IP 限流(末段) 4
 await done();

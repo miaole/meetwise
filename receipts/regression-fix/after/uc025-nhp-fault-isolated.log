@@ -1,0 +1,83 @@
+
+> meetwise@0.1.0 uc025:nhp-fault-isolated:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> node scripts/run-e2e-isolated.mjs uc025:nhp-fault-isolated:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-85636-1791712635626 on 127.0.0.1:62176
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc025-nhp-fault-isolated /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-025-nhp-fault-isolated.proof.ts
+
+UC-E2E-025 NHP-025-FAULT-01 isolated PG/HTTP evidence (GAP-UC025-FAULT-ISOLATED-01 · Line W)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending)
+Complementary to AA in-process (a8b98fc/3a6ec52) · Ban wash AA · Ban replace AA · EXIT0≠covered≠nail
+Not NEG (frozen) · Not BOUND wash · Not ADV · row/FAULT stay gap · Ban self-nail
+ATTEMPT_START  iso=2026-10-11T09:57:19.333Z · Ban retry-to-green · Ban fake-green
+
+PRIVACY_NOTE  _neg-harness AUTH_DEV_HEADER="<unset>" NODE_ENV="<unset>" (dual-gate: AUTH_DEV_HEADER==='1' && NODE_ENV!=='production')
+{"level":30,"time":1791712639692,"pid":85780,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:62196"}
+PRIVACY_NOTE_AFTER_BOOT  AUTH_DEV_HEADER="1" NODE_ENV="<unset>"
+ISO_SHELL  PGPORT=62176 DATABASE_URL_host_port_redacted=127.0.0.1
+PASS  [ISO] dynamic-PG-port-present(or DATABASE_URL)
+PIN   GAP-UC025-FAULT-ISO-PRIVACY-STUB: minimal privacy-active stub (≠ 0058 fence covered)
+PIN   GAP-UC025-FAULT-ISO-JOB-SCHEMA-STUB: interview_job resume_privacy_epoch + v64 check (≠ 0064 triggers covered)
+PIN   GAP-UC025-FAULT-ISO-0049-BIND-STUB: C-side allow-once resume bind (≠ full 0049 covered)
+PIN   GAP-UC025-FAULT-ISO-0142-SUPPLY-STUB: candidate-route supply face tables (≠ 0142 RLS/trigger full covered)
+ANCHOR_COL  resume_quiz.expires_at present=true data_type=timestamp with time zone udt=timestamptz (sql/20 mirror · 0135 ADD IF NOT EXISTS)
+PASS  [ISO] anchor-column-expires_at-timestamptz
+PASS  [PIN] order-NEG-before-FAULT-before-BOUND(static)
+PASS  [PIN] fault-throw-409-missing_quiz_expiry(static)
+SEED_QUIZ  id=QZ_F025_F1_MV3NG0H1 status=ready expires_at=NULL typeof=timestamp with time zone jsType=null
+{"level":30,"time":1791712639719,"pid":85780,"hostname":"miaole.local","reqId":"ab37d400-0257-427a-b798-d308237d6324","req":{"method":"POST","url":"/interview/IV_F025_F1_MV3NG0H1/begin","host":"127.0.0.1:62196","remoteAddress":"127.0.0.1","remotePort":62197},"msg":"incoming request"}
+{"level":30,"time":1791712639726,"pid":85780,"hostname":"miaole.local","reqId":"ab37d400-0257-427a-b798-d308237d6324","res":{"statusCode":409},"responseTime":6.796708999999964,"msg":"request completed"}
+F1_HTTP  status=409 body={"error":"missing_quiz_expiry"}
+PASS  [F1] ready-seed-not-stale_quiz(anti-fake-green)
+PASS  [F1] HTTP-409-missing_quiz_expiry
+PASS  [F1] zero-side-effect-snapshot(interview/jobs/consumption/bucket)
+PASS  [F1] interview-stays-created-unbound
+F2_PROBE  label=infinity stored_ok=true raw=null jsType=number dateGetTime=NaN isNaN=true
+F2_PROBE  label=-infinity stored_ok=true raw=null jsType=number dateGetTime=NaN isNaN=true
+SEED_QUIZ  id=QZ_F025_F2_MV3NG0H1 status=ready expires_at=null typeof=timestamp with time zone jsType=number
+F2_CHOSEN  label=infinity expiryMs=NaN
+{"level":30,"time":1791712639736,"pid":85780,"hostname":"miaole.local","reqId":"a5a81c83-9b41-4bfe-a862-2be70736baf3","req":{"method":"POST","url":"/interview/IV_F025_F2_MV3NG0H1/begin","host":"127.0.0.1:62196","remoteAddress":"127.0.0.1","remotePort":62197},"msg":"incoming request"}
+{"level":30,"time":1791712639741,"pid":85780,"hostname":"miaole.local","reqId":"a5a81c83-9b41-4bfe-a862-2be70736baf3","res":{"statusCode":409},"responseTime":4.518709000000172,"msg":"request completed"}
+F2_HTTP  status=409 body={"error":"missing_quiz_expiry"}
+PASS  [F2] ready-seed-not-stale_quiz(anti-fake-green)
+PASS  [F2] HTTP-409-missing_quiz_expiry(NaN-fold)
+PASS  [F2] zero-side-effect-snapshot
+SEED_QUIZ  id=QZ_F025_F3_MV3NG0H1 status=ready expires_at="2026-10-13T09:57:19.743Z" typeof=timestamp with time zone jsType=object
+{"level":30,"time":1791712639745,"pid":85780,"hostname":"miaole.local","reqId":"8699b2d3-8e20-42e4-b50f-a0746e3cdd65","req":{"method":"POST","url":"/interview/IV_F025_F3_MV3NG0H1/begin","host":"127.0.0.1:62196","remoteAddress":"127.0.0.1","remotePort":62197},"msg":"incoming request"}
+{"level":30,"time":1791712639749,"pid":85780,"hostname":"miaole.local","reqId":"8699b2d3-8e20-42e4-b50f-a0746e3cdd65","res":{"statusCode":409},"responseTime":3.1319999999998345,"msg":"request completed"}
+F3_HTTP  status=409 body={"error":"resume_version_mismatch"} sentinel=resume_version_mismatch
+PASS  [F3] not-missing_quiz_expiry(anti-overwide)
+PASS  [F3] not-stale_quiz(anti-fake-green)
+PASS  [F3] BOUND-sentinel-409-resume_version_mismatch
+SEED_QUIZ  id=QZ_F025_F4_MV3NG0H1 status=ready expires_at="2026-10-09T09:57:19.750Z" typeof=timestamp with time zone jsType=object
+{"level":30,"time":1791712639751,"pid":85780,"hostname":"miaole.local","reqId":"73172389-ef1e-45e3-80a4-940344a82c56","req":{"method":"POST","url":"/interview/IV_F025_F4_MV3NG0H1/begin","host":"127.0.0.1:62196","remoteAddress":"127.0.0.1","remotePort":62197},"msg":"incoming request"}
+{"level":30,"time":1791712639756,"pid":85780,"hostname":"miaole.local","reqId":"73172389-ef1e-45e3-80a4-940344a82c56","res":{"statusCode":409},"responseTime":3.9975839999999607,"msg":"request completed"}
+F4_HTTP  status=409 body={"error":"stale_quiz"}
+PASS  [F4] HTTP-409-stale_quiz(NEG-order-control)
+PASS  [F4] not-missing_quiz_expiry(orthogonal)
+{"level":30,"time":1791712639760,"pid":85780,"hostname":"miaole.local","reqId":"a3e050fa-b795-450f-a31f-dc288735924f","req":{"method":"POST","url":"/interview/IV_F025_F5_MV3NG0H1/begin","host":"127.0.0.1:62196","remoteAddress":"127.0.0.1","remotePort":62197},"msg":"incoming request"}
+{"level":30,"time":1791712639770,"pid":85780,"hostname":"miaole.local","reqId":"a3e050fa-b795-450f-a31f-dc288735924f","res":{"statusCode":202},"responseTime":9.18249999999989,"msg":"request completed"}
+F5_HTTP  status=202 body={"accepted":true,"jobId":"cea9e4f7-9d00-4ff9-895b-6acb9ed1b24e"}
+F5_SNAP  before={"interviewStatus":"created","resumeId":null,"jobCount":0,"consumptionCount":0,"bucketSum":5} after={"interviewStatus":"created","resumeId":"aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeee0251","jobCount":1,"consumptionCount":1,"bucketSum":5}
+PASS  [F5] no-quiz-id-not-missing_quiz_expiry
+PASS  [F5] no-quiz-id-not-stale_quiz
+PASS  [F5] no-quiz-id-begin-202-accepted(baseline-path)
+PASS  [F5] no-quiz-id-side-effects-observed(bind+job)
+PASS  [F5] snapshot-changed-vs-refusal-paths(F1-contrast)
+
+ATTEMPT_END  iso=2026-10-11T09:57:19.772Z EXIT=0 total=21 fail=0
+PASS  GAP-UC025-FAULT-ISOLATED-01  isolated PG+HTTP FAULT evidence for 409 missing_quiz_expiry (F1–F5)
+HTTP_ERROR_PIN  status=409 CONFLICT · error=missing_quiz_expiry
+EVIDENCE_SHAPE  isolated three-layer shell + real HTTP + real PG timestamptz · complementary to AA in-process · ≠ AA wash
+ROW_STILL_GAP  UC-E2E-025 FAULT column not flipped. NEG frozen · BOUND gap · ADV blind. coveredCount=8.
+NOTE  EXIT0≠covered≠nail≠HA · Ban self-nail · post dual e2e+privacy still required
+
+CMD=pnpm uc025:nhp-fault-isolated:prove EXIT=0
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T09-57-20-059Z-85636-b334b44b-82e0-41b9-a207-a9d3d2514a31.json release_evidence=false
+EXIT=0

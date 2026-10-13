@@ -3,13 +3,13 @@
   "releaseEvidence": false,
   "scope": "e2e/ test+assertion parity plus agreed critical prove scripts",
   "floors": {
-    "testCount": 48,
-    "assertionCount": 377
+    "testCount": 53,
+    "assertionCount": 472
   },
   "files": {
     "e2e/full.e2e.ts": {
       "testCount": 1,
-      "assertionCount": 84,
+      "assertionCount": 158,
       "tests": [
         {
           "kind": "implicit-suite",
@@ -18,6 +18,136 @@
         }
       ],
       "assertions": [
+        {
+          "kind": "A",
+          "label": "[R4-A-1] 软删前 GET /resume 在册:resumes 含主旅程 resumeId(${String(resumeId).slice(0, 8)})",
+          "conditionDigest": "sha256:573829b223bdafe0aff631bf327e8dc01e832eed106b33aa780205208b4c6dd0"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-A-2] DELETE /privacy/resume-data → 202 软删受理(mode=logical+purgePending=true·S2 前 residual 非完成态)+resumesFenced=${eraseBody.resumesFenced}≥1+requestId 在场",
+          "conditionDigest": "sha256:15919b91bf5196c55d0ea0051794e9d92a8908b03fb2ec3a6c0299e299e89102"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-A-3] 重放 DELETE → 202 ∧ resumesFenced=0(空集同形幂等·202 形如实)",
+          "conditionDigest": "sha256:cac6aa01ea84b2e734deec6dc7faec1a6148e0e6ee64583c7774ad5321b36738"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-A-4] 软删后 list 零含:resumes 不再含 resumeId(即时可见面)",
+          "conditionDigest": "sha256:ae2adfda228feaa0228f8a6d29e40f0d777ddd0e02efab3f6442475aed9a2f5a"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-A-6] GET /privacy/export 零含 resumeId(数据可携不含已删数据)",
+          "conditionDigest": "sha256:3e5f2f6fa7dd69bfbcc1f676a42e4f20effe3bc9c31b0102bf68adf62b3a1b1c"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-A-7] DB 直连:resume 物理行仍在(恰 1 行)∧ status=erasure_fenced ∧ erasure_requested_at 非空(过滤≠物理删除·purgePending 恒真直至 S2)",
+          "conditionDigest": "sha256:79e30eb2f97c49adf69f6e511d3eb98691daa36a6e29ad57b68db859041c5543"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-1] 新建空壳面试 → 新 id(${String(fencedIv).slice(0, 8)}) ∧ reused=false(全终态不复用·零 begin 零 live)",
+          "conditionDigest": "sha256:b4836036f22c97adbf7e954c96140fec06e23f6984aa0af9d1b406441c621c20"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-2] 公开 DELETE interview-data → 503 interview_erasure_authorization_not_available(503 pin 正面行使·冻结面不开闸)",
+          "conditionDigest": "sha256:04a86212c89c7eb74e86a1a7bec2be0460d2cd776e99d94593d9216fc5096e8f"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-2b] 同键重放 DELETE 仍 503(不建账本)",
+          "conditionDigest": "sha256:8ed188cb717a8079a6434369081d88f1fff33ee0e3b369fea1d34ca994c9276f"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-3] 预览擦除 → 202 local_fenced:预览版+productionSloClaimed=false+preview_incomplete+sinks=${sinkLines.length}≥22(user_memory=honest_unresolved 如实)",
+          "conditionDigest": "sha256:959d98a398ea60b698fd843b63f5e190b9e225827363a1e222d4674eb063eaed"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-4] GET 预览回执 → 200 ∧ 同 requestId(${String(previewBody.requestId ?? '').slice(0, 8)})",
+          "conditionDigest": "sha256:ac3a0cf964fccc55de95a50e1c59aea7f245bae4b974a23ae4d87fea64885a01"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-5] 围栏后十端点扫 → 全 410(GET interview/begin/abandon/events/report/report.retry/report.export/transcript/turn[合法 TurnDto]/feedback)",
+          "conditionDigest": "sha256:862dfd6bed82f624562366a3eb4573a97bf0c74135e7f2ccb40bbd6bd032ee80"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-5b] /turn 围栏体核:error=interview_privacy_fenced(合法体抵达 guard·410 非 400)",
+          "conditionDigest": "sha256:6f3af9ff2ea2104b29b631873c426bed57b419ca5b835268d7a2680f873ad5a6"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-5c] C 端 list 不含围栏 id(interviews 零泄露)",
+          "conditionDigest": "sha256:c5b29a5bb69a969dcc30a8532d28e8541bd93df4e017ad4b8c9faf0daa91dce0"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-6a] 围栏后四表前读全 0:interview_event/ai_report/question_feedback/interview_job 按 id 计数=0(围栏零写证)",
+          "conditionDigest": "sha256:5f247a974279bed69787aa917407f751e7bd4668da08ae64c6cad7d033a6e0b3"
+        },
+        {
+          "kind": "A",
+          "label": "[R4-B-6b] 410 扫后四表后读仍全 0(零增长·前后读零定谳)",
+          "conditionDigest": "sha256:281905543ae4381f1cd7337a8657361a937a402e92fce64b48c5690b8135210d"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-0] 独立用户 e2e7_ 注册 → 真 Bearer(撤回面独立主用户·零额度依赖)",
+          "conditionDigest": "sha256:6deedb92480c88faba89afef0606bdca77bedba33ed9ecf0cb07cc2d06e0f5fd"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-1] POST /privacy/consent → 200 ∧ recorded=true ∧ policyVersion 非空(${grant.body.policyVersion})",
+          "conditionDigest": "sha256:ee789df50298927dc889622a05fb84370de58f7536888cef9b133af5ae94cdcd"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-2] GET consent 状态 → consented=true",
+          "conditionDigest": "sha256:b648cb7a8c29f2882aedf1fd5a205db09040bab2248b8c80efc9c88aed8ca53e"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-3] 文本简历上传 → 200 ∧ resumeId(${up1.body.status})",
+          "conditionDigest": "sha256:4a8a008cc5d7c96751cb3b715a0c8dea6cca5f2f117905b8550220c446800156"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-4] DELETE /privacy/consent 撤回 → 200 ∧ withdrawn=true",
+          "conditionDigest": "sha256:3376c897a93a6ac5dcaf8512366ff3a493675201bc7da6c12a88babcdb9decc8"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-5] 撤回后 GET 状态 → consented=false",
+          "conditionDigest": "sha256:f859be916b0f676c4d7d6765a1a3c51146e80feb71512c7335df8d98ecd39073"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-6b] 403 后额度零泄漏(同意门先于扣费预留:${unitsBefore403}→${unitsAfter403})",
+          "conditionDigest": "sha256:58044fa17b751b7bbc3eb3503bcdf48c14fe0433e3666c2bae10c472fe93051c"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-7] 撤回≠擦除:既有 profile 仍 200 ∧ structured 非空(不回溯清除·Non-claims 行为证)",
+          "conditionDigest": "sha256:78b2e456d3706aa8c58681898aa1dff687929d6afa0e95a6f10eb4245cdfdc30"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-8] 重授予 POST consent → 200 ∧ 状态翻回 consented=true",
+          "conditionDigest": "sha256:05237b3d95db9c8f22be836d3ca5414cfa13c208b4e6c618b57beb811ee22c90"
+        },
+        {
+          "kind": "A",
+          "label": "[R5-9] 恢复后重上传 → 200 ∧ deduped 复用同 resumeId(${String(resumeId7).slice(0, 8)})(撤回不触行核·如实复用非新建)",
+          "conditionDigest": "sha256:2ec518f386423566ddb24f39c4f4997ee2ed7f3d9d3f35eb000b57aecc2f4319"
+        },
         {
           "kind": "A",
           "label": "[UC018] abandon 前置额度≥1(${beforeUnits})",
@@ -80,6 +210,21 @@
         },
         {
           "kind": "A",
+          "label": "[异常] 402 后额度零泄漏(仍 ${trialUnitsAfter402},预留未落)",
+          "conditionDigest": "sha256:0db1835e38f9da1d28864491ecbd97ebea0546c2927828371344f76acfe32bdc"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] trial 桶扣减证据:begin 后额度 -1(${trialUnitsBefore}→${trialUnitsAfterBegin})",
+          "conditionDigest": "sha256:90fd36aaa71f100c811ce895bd6bc9db0a532e5e0855a52a2e900aab16fa7d4a"
+        },
+        {
+          "kind": "A",
+          "label": "[异常] trial 赠与生效:首场 begin 预留 → 202 accepted+jobId(${JSON.stringify(b).slice(0, 60)})",
+          "conditionDigest": "sha256:9c47e4c4f395d0b3e0f1751b77e60ec7c5b644a0e7cab74a95234445d845baf6"
+        },
+        {
+          "kind": "A",
           "label": "[异常] webhook 未知订单 → 404(查不到单不入账)",
           "conditionDigest": "sha256:46ee2c97ef2db397ca8adb1aff53bcfabecb03d711c60cd862e30dc554b37028"
         },
@@ -90,8 +235,28 @@
         },
         {
           "kind": "A",
+          "label": "[异常] 同用户开放面试复用:再建拿回 iv3(${iv4 === iv3}) → begin 幂等 202 alreadyBegun(不二次预留)",
+          "conditionDigest": "sha256:4dead197507a59724907a1ddad2341d64bcf5eea619b38e40c2a52f5b1dfc783"
+        },
+        {
+          "kind": "A",
           "label": "[异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）",
           "conditionDigest": "sha256:082d0d73dfd15d3b0a3fe4331d5ceb718bdf01e61c6cd1d0917f5f4d4ea79a90"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] trial 耗尽用户仍可建押题空壳(begin 前不扣费)",
+          "conditionDigest": "sha256:f08100eca28995435a554d55bab3ea92ed7672066af6f735851cb6c503b5d5d9"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] trial 赠与用户仍可完成简历处理同意",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] trial 赠与用户持有合法且本人所属的 resumeId",
+          "conditionDigest": "sha256:8f92d8974662deea737f589ab25509b0ab661b50d2ba432044c6cd36bace81ea"
         },
         {
           "kind": "A",
@@ -115,6 +280,11 @@
         },
         {
           "kind": "A",
+          "label": "[状态机·held] 评分待校准 hold 后显式重试 start → 409 application_held_not_retryable(不可重试 fail-closed·I2 W1 随演)(实际 ${retry.status}/${retried.error ?? 'n/a'})",
+          "conditionDigest": "sha256:38d221767b5876395b40afaf1244ddde8444b68268318e935ad425d02450af7c"
+        },
+        {
+          "kind": "A",
           "label": "[状态机·可信] 招聘方看到 completed + **服务端推导**分数=${cand?.score}(非自报,跨方 RLS 可读)",
           "conditionDigest": "sha256:0af0adf2fcf261055a2be6c5f05b00ae70f3498d60c3769fc79b1bc7b7108231"
         },
@@ -135,8 +305,23 @@
         },
         {
           "kind": "A",
+          "label": "[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转 (实际 ${r.status})",
+          "conditionDigest": "sha256:ef0718f854bad3485a2ac9cd5457cdce219c5bb6c0b75fd032370cf5e42a2f42"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分(identities=q+c 孪生同步 1789e321)",
+          "conditionDigest": "sha256:817d635fa81b4b9899e5407e67dfc1fa7e96c46efc32ad1399186769ad74962f"
+        },
+        {
+          "kind": "A",
           "label": "[状态机] 岗位终态后 {} finalize → 200，服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'})",
           "conditionDigest": "sha256:e55f0b81f452a281ea1d258fad8f7370cd4b96199503524150350dc38fff3f05"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位终态后 {} finalize 统一面: 200 服务端仅认已绑定 interview+replayed:false(scoreless 族→assessment_unavailable·其余 completed)(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, reason=${(boundLoop.terminalPayload as any)?.reason ?? 'n/a'})",
+          "conditionDigest": "sha256:1dea77b2411da699c3f72967340d68cf525d2df662a8a6bc76999664c3f00677"
         },
         {
           "kind": "A",
@@ -147,6 +332,156 @@
           "kind": "A",
           "label": "[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)",
           "conditionDigest": "sha256:2f8cb3257fe508fa783fe2101a12ee9e7d724cbec119b1a7590a316a33c19af7"
+        },
+        {
+          "kind": "A",
+          "label": "[第4件·0157] 企业包 webhook 验签入账 → ${entPaid.body.result}",
+          "conditionDigest": "sha256:2998b56ccdd54fd535bd010f324b6135323e25ad16a509e6fa688dbb54ee96e8"
+        },
+        {
+          "kind": "A",
+          "label": "[第4件·0157] 企业额度到账(${entUnits.enterpriseAvailableUnits} 次·enterpriseAvailableUnits 并列读)",
+          "conditionDigest": "sha256:318e90b5da456ff8d79e1ec2d65dd2a70178107072b3552546e3687ca8ed422c"
+        },
+        {
+          "kind": "A",
+          "label": "[第4件·0157] 招聘方购企业包 ent_pack_50 → orderId(${entOrdered.body.amountCents}分)",
+          "conditionDigest": "sha256:91f3342c0c5ad4549833a3638bf7c1eb6003e4dcb28f681d482c34e72a2976a1"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1·DB] decision route_decided+backend/nodejs@10000bps(语言叶压通用栈·v3/v4 不变量; got ${JSON.stringify(dec.rows[0] ?? null)})",
+          "conditionDigest": "sha256:1cfadd65af7a1440f096854c71374030ee61dcd72b0feaa64b4fb92e20d6eece"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1·DB] decision 恰 1 行(UNIQUE(interview_id)·零行即 FAIL; 实际 ${dec.rowCount ?? 0})",
+          "conditionDigest": "sha256:8fefe81a636105a1446ba499bbecadca9f58a8967449048862cb354117cb1818"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1·DB] decision/snapshot 双行 leaf+bps 同值一致性(${String(snap.rows[0]?.leaf_track_id ?? 'none')})",
+          "conditionDigest": "sha256:ea07cbccf4a75c39bab3c5bd8905f560d6b9ca7bb52a7580b7822dcfc81f392a"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1·DB] snapshot 恰 1 行+interview_snapshotted(实际 ${snap.rowCount ?? 0} 行/${snap.rows[0]?.status ?? 'none'})",
+          "conditionDigest": "sha256:7d18246adb4adc26d859fa4f45f3f5af7bd55a2f0752c3e28ba04932faca75a2"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] abandon → abandoned+released(UC018 同形·设计内还池如实记账·本场后续零消费; ${JSON.stringify(r1AbandonBody).slice(0, 80)})",
+          "conditionDigest": "sha256:2d7e3fea1f1cad7d1da6475cec2cf24bb949d603d5d9073ce083a0a88b565ccf"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] abandon 后额度净 0 还池(${r1UnitsBefore}→${r1UnitsAfterAbandon})",
+          "conditionDigest": "sha256:be31432e6b2a963e52dce1c577e2e9d6f60cadc003ca15fe3239899eeee69689"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] begin 后额度 -1(${r1UnitsBefore}→${r1UnitsAfterBegin})",
+          "conditionDigest": "sha256:c402e7b51197b3a52c37c5865a7c121106476fd8a96bb37598d9a9ccc91fbc68"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] PIPL 采集同意 → 200",
+          "conditionDigest": "sha256:f054957ad85f87871e3149ba41e617ff427430f40bd794ec92ce0aa91e994a30"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] trial 赠与前置额度≥1(${r1UnitsBefore})",
+          "conditionDigest": "sha256:bbd94a6da216cba0921b434af7bce2862e006e2fe9db17b5c11e2a396c4e1d3d"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] 建面试 → interviewId(${ivR1})",
+          "conditionDigest": "sha256:dcb559bf50615050048f65a30804655a711b40f9b0c6431969135cbe50c53de3"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] 规整 fixture begin → 202 accepted+jobId(§0.3 B 定谳 backend/nodejs·非 409; ${JSON.stringify(r1BeginBody).slice(0, 60)})",
+          "conditionDigest": "sha256:a61d22e9fa0c46fac569db2f3ec4a1cdcf8571b56d844331c91536165ec0b175"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R1] 规整语料(fixture B)上传 → resumeId",
+          "conditionDigest": "sha256:1122ba75ab3dc38a060cd802d9abe6ffeb3760fd05c4948665b44ff1cad9132c"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2·DB] decision 降级臂兜底 route_decided+backend/general@10000bps(§0.3 D 定谳 degraded ambiguous_language_evidence·qa/python 双 specific 不入闸; got ${JSON.stringify(dec.rows[0] ?? null)})",
+          "conditionDigest": "sha256:e1823878fb596169c0d8ba1fd57da37f6436ce53ef9fb1d18c46acead6bdd6ee"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2·DB] snapshot 恰 1 行+同叶一致性(backend/general; 实际 ${snap.rowCount ?? 0} 行/${String(snap.rows[0]?.leaf_track_id ?? 'none')})",
+          "conditionDigest": "sha256:e50ac695ec25c8792df01ef651a6f12d546e4086b7fe97f855890375864b0619"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2] begin 后额度 -1(${r2UnitsBefore}→${r2UnitsAfterBegin})",
+          "conditionDigest": "sha256:f948f4618239cc52ffaf33a491392d8961f5d6712eaae3bb330bf4992d815a6e"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2] PIPL 采集同意 → 200",
+          "conditionDigest": "sha256:76cebad1068883049996ddf4d0526344ad6f81820cafd62cdf81228a28c757f9"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2] 建面试 → interviewId(${ivR2})",
+          "conditionDigest": "sha256:a0c37c3b9e18c9b25d46124ea232e1c05a08705f111459c8e0a4c3f3503f091f"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2] 歧义简历 begin 硬断言 202 accepted(≠409/begin_failed·#133/#195 P1 旅程不变量·409 candidate_route_undecided 仅 profile_unavailable 防御可达本夹具结构不可触发; got ${r2Begin.status}/${JSON.stringify(r2BeginBody).slice(0, 60)})",
+          "conditionDigest": "sha256:5a399fec9aab3583a8b0b2bac1aff12ef4e0168d3367d1c951a799c36577356d"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2] 歧义语料(fixture D)上传 → resumeId",
+          "conditionDigest": "sha256:aab99055248fe2c5a79fd5774a4dcd777b574e9a0c4de4fd09e38ede81082aa1"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R2] 降级兜底叶真出题 ≥1(实际 ${r2Loop.questions} 道;事件:${[...r2Loop.kinds].join(',')})",
+          "conditionDigest": "sha256:0dc4dac0c17e1042b609c96f56e52844cf8200fe928fdc8b507cb1664c17e1b5"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3·DB] #270 静默误判现状锚·随演(§1-R3-2 两向): policy=${CANDIDATE_ROUTE_POLICY_VERSION} → 预期叶=${expectedLeaf ?? `unsupported_policy_${CANDIDATE_ROUTE_POLICY_VERSION}`}(v3→qa 现状/≥v4→general 降级·route_outcome 恒 route_decided; got ${JSON.stringify(dec.rows[0] ?? null)})",
+          "conditionDigest": "sha256:951ee631d428da9746785b4edb747f2152b1059b213bd370d24e236ac77a2143"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3] #270 语料(fixture E)上传 → resumeId",
+          "conditionDigest": "sha256:232704045e9d4df5726a31156f6bfc862adc21624aa6371dda7ffdaa93624078"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3] #270 误判语料 begin → 202 accepted(误判面与 409 面互斥·两态共同预期·#270 原文「不报 409」; got ${r3Begin.status})",
+          "conditionDigest": "sha256:24c6ffc73e73e267bc6c2c9522b09ac9b7bbea65c077872146961ebebf06f9ef"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3] abandon → abandoned+released(UC018 同形·设计内还池如实记账; ${JSON.stringify(r3AbandonBody).slice(0, 80)})",
+          "conditionDigest": "sha256:4f07bc4a14665fe8386a0a1157c91a8bcb5b5c1c21451212bb52ca17ba1a44b9"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3] abandon 后额度净 0 还池(${r3UnitsBefore}→${r3UnitsAfterAbandon})",
+          "conditionDigest": "sha256:91ac5fdc4a75cfa1d2aa8cbfea84c9a8ebd5793f0f3e9dfcec053024c8d98382"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3] PIPL 采集同意 → 200",
+          "conditionDigest": "sha256:42ecbc1a95b675e17311cf60f461d029c0b04ff154a435b895af930628adf3af"
+        },
+        {
+          "kind": "A",
+          "label": "[路由R3] 建面试 → interviewId(${ivR3})",
+          "conditionDigest": "sha256:752d95a3a0349dd2743b3a772f08b29490fbc0f18a97fe350f773cf381cb744d"
         },
         {
           "kind": "A",
@@ -195,8 +530,33 @@
         },
         {
           "kind": "A",
+          "label": "B端审批活契约:admin approve → decided=true",
+          "conditionDigest": "sha256:d3cdfc372f4e0eed316ebdb34d5cdf7a6e4caff899253289df2600282e9dfe14"
+        },
+        {
+          "kind": "A",
+          "label": "B端审批活契约:recruiter2 admin approve → decided=true",
+          "conditionDigest": "sha256:d3cdfc372f4e0eed316ebdb34d5cdf7a6e4caff899253289df2600282e9dfe14"
+        },
+        {
+          "kind": "A",
           "label": "B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)",
           "conditionDigest": "sha256:b8b13dc71fa18e8c5bb89bb7c3cba941c01c4e1cbaf288da00414031d83e3ca3"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:08e95890d15cb3a76a1501ac1dc34e5f24811cdb357a14448e03f24fa6babf8c"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:9b9e7a6ecb98055c373e718516e936027871af4014025ec73b4de1b97ea95961"
+        },
+        {
+          "kind": "A",
+          "label": "data_or_permission",
+          "conditionDigest": "sha256:9c442c7d83bd607cddcdc1c4ec3a842ee4988bb334bc33badb46d45d0ed5afea"
         },
         {
           "kind": "A",
@@ -212,6 +572,16 @@
           "kind": "A",
           "label": "PIPL 采集同意 → 200",
           "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "PIPL 采集同意 → 200 (实际 ${r.status})",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "worker",
+          "conditionDigest": "sha256:120d8471842182bc7bd027e3b7c68de77184fd7e38b51cc458093441fb1702ae"
         },
         {
           "kind": "A",
@@ -458,13 +828,33 @@
       ]
     },
     "e2e/helpers/e2e-helpers.proof.ts": {
-      "testCount": 31,
-      "assertionCount": 223,
+      "testCount": 36,
+      "assertionCount": 244,
       "tests": [
+        {
+          "kind": "test",
+          "label": "adminHeaders 有令牌走 jsonHeaders Bearer 形，令牌原样透传不 rewrite",
+          "conditionDigest": "sha256:24de3e61f2ddbff52378dd83b3f7be2e1ede464dab424bc017f362279467eba5"
+        },
+        {
+          "kind": "test",
+          "label": "adminHeaders 缺/空 E2E_ADMIN_TOKEN 即 throw，不静默跳过审批步",
+          "conditionDigest": "sha256:390d8a6a5a3cd545b9872944f56d73ca842d9c36748371f5c5061d98c7707089"
+        },
         {
           "kind": "test",
           "label": "answerBody 绑定服务端身份 + 答案哈希，不另造 questionId",
           "conditionDigest": "sha256:0bfe47a805d0848617be7cc7cf7686f08aceb50866225007764f71703f85cc4a"
+        },
+        {
+          "kind": "test",
+          "label": "createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签",
+          "conditionDigest": "sha256:7e364b519cdeb2188950a5a1245a1a5fd91cc7d217b6d3b3bc35a4df57069d88"
+        },
+        {
+          "kind": "test",
+          "label": "full.e2e 源码锁：入账必须 200 且 credited|already，错签 403，未知单 404",
+          "conditionDigest": "sha256:0ae8c2da72b935ce2e3b87439d7f47d260ddce408125940a3836a0b807cc53c6"
         },
         {
           "kind": "test",
@@ -500,6 +890,11 @@
           "kind": "test",
           "label": "支付 webhook HMAC 绑定 orderId:txn:paid，不能换载荷复用签名",
           "conditionDigest": "sha256:09cb517f6c4fc4f987ea2905cc88a01caaff79b7c39e3124ceb8282cf2f9c4e9"
+        },
+        {
+          "kind": "test",
+          "label": "支付 webhook HMAC 绑定 orderId:txn:paid:ts 四段，换单/换流水/换事件/换 ts 都不能复用签名",
+          "conditionDigest": "sha256:a49cb4a7c0b7758a4197e30c76cb66e2821fdc6f6be054506c4113650c65b1db"
         },
         {
           "kind": "test",
@@ -646,6 +1041,11 @@
         {
           "kind": "assert.equal",
           "label": "",
+          "conditionDigest": "sha256:0d1e7f0d723497f6b89f668359b4a36a2f9734cd74c67667ec1bdd18fc94d995"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
           "conditionDigest": "sha256:21025b9444a887adefbbe814377e84a58fcea17a791696ae33fabb30d46907aa"
         },
         {
@@ -671,7 +1071,27 @@
         {
           "kind": "assert.equal",
           "label": "",
+          "conditionDigest": "sha256:cc22039deb288612d45a4f0842d16f286b68be34acb8d1c1ec76bf608e7212f0"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
           "conditionDigest": "sha256:d50e46b096f5c89b31320ad787721ee3fe0b94803f9eb1e32fb6181b3dffbd79"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:ead1abfdc9c5489c4f193ca8ab4818103ce8b4e813f3b935fa9f34e57b21d543"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "application/json",
+          "conditionDigest": "sha256:5ae4921d2e501b5a6ce23877786983d37514f8eb084af12d137361e392b22c6f"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "Bearer ${token}",
+          "conditionDigest": "sha256:53c77201f16ac2a836981f23438b4f7ae9eb7e4de246ca304d7dec9eab43e236"
         },
         {
           "kind": "assert.equal",
@@ -692,6 +1112,11 @@
           "kind": "assert.equal",
           "label": "BLOCKED_LIVE_KEY",
           "conditionDigest": "sha256:e5293d35a4d0bf74cd5b1e879da888f412e34ef6a9306ce99a70651355d29023"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "e2e-admin",
+          "conditionDigest": "sha256:fdcc1ee53e373460499c9cb98f49c5fa75414498b757c509f9e8414d569f0fe6"
         },
         {
           "kind": "assert.equal",
@@ -727,6 +1152,16 @@
           "kind": "assert.equal",
           "label": "FAIL_PROVIDER",
           "conditionDigest": "sha256:2aa76969f984b211aef377fe7e86477c92610bcb9acdaa6bf2bbc64c9ae38187"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "number",
+          "conditionDigest": "sha256:82f35f0d61e57830556dab0adaa985cb3370bb98cf68fb6ac59ade9aa40f0643"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ord-1:txn-1:paid:1700000000000",
+          "conditionDigest": "sha256:b70057d1d3cfd704b4abe16d5b99734c2ae7dd9a02566d283162897c5c5ff284"
         },
         {
           "kind": "assert.equal",
@@ -781,7 +1216,17 @@
         {
           "kind": "assert.match",
           "label": "",
+          "conditionDigest": "sha256:b6d3ce0138b238aa87cef95965cfdff798d37f690cab74c363228e5acef01c2a"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
           "conditionDigest": "sha256:c28b751b6ab2e0aae2b0410bee64643bbbfba92cc1930d494bc5c522a767f233"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:e770a9a25df6b132916d0d52f11e460637741b87398464c092876a3aa21af6da"
         },
         {
           "kind": "assert.match",
@@ -791,12 +1236,47 @@
         {
           "kind": "assert.notEqual",
           "label": "",
+          "conditionDigest": "sha256:43cc09f06e573fbe43311e076429e13259ab50379133953e0b36ccb392e3f7ea"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:51f4f28c76984b8fb299b7a6c55c34a6516f5e0870b8a995e43b95d80215bc3c"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
           "conditionDigest": "sha256:6ef8ed47f213da23320c1946f4d91105aff3dd152479ef18cd64eafa3f808c36"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:997057e95ebc9155fa1d451e8b9b07f4237812b855d419efd88b6e3f8f3b97cd"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:a71dd8ed55bcd37274ccf5b6decd87c19c7ee1454bc6b1ce4ca315f1ec3afcbc"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:d6dec2e91890d4395c034e9fad73cc5ce5645cda1716249442aab6fff415e1a4"
         },
         {
           "kind": "assert.ok",
           "label": "",
           "conditionDigest": "sha256:61bf69af885c8ac36e9f66994c9d6ac236d17569f23948efe8d4ca62df2581ca"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:2b196ab5e4823127829a8a945ed9025a940f17e781df740802695f15ce7c185b"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:31f781cf0d40060f66345d95d0c6fece7b8c720a62b67e6c6131ecdd3f68d0d4"
         },
         {
           "kind": "assert.throws",
@@ -807,6 +1287,26 @@
           "kind": "assert.throws",
           "label": "",
           "conditionDigest": "sha256:4e0ec54f1702686ff98ed07fcea6cae8789bc9051d2fc785aa7abdd28fe29c91"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:586394e3dfe903549e30e968e0c7fffb70d210c81fea9d8accb98d291c43225a"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:8f512c4c4282e960096fa5290a6848b00767f99709a4f3c2df974fb0bc52406e"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:8f512c4c4282e960096fa5290a6848b00767f99709a4f3c2df974fb0bc52406e"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:a600f8fc5e2e628f26521127a41f3858c88e98b500f43424930398cfa94ab141"
         },
         {
           "kind": "assert.throws",

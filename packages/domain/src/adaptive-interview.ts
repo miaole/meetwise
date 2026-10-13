@@ -119,6 +119,21 @@ export function derivedSoftBudget(competencies: (string | CompetencySpec)[]): nu
   return specs.reduce((n, s) => n + (s.core ? 3 : 2), 0);
 }
 
+/* ───────── H4 WEAKNESS-LOOP R3（#252 专项面 5-8 题预算·与 #201 通用 planner 上限分界：本刀只做专项面） ───────── */
+
+/** 专项面软预算下界（修法口径「带 focus 开 5–8 题专项面」·固定初值 EXEC 可调，不依赖 H1 校准）。 */
+export const FOCUS_SOFT_BUDGET_MIN = 5;
+/** 专项面软预算上界（同上；absoluteMaxTurns 杀开关照旧夹紧，专项预算只收窄软预算、绝不抬高平台上限）。 */
+export const FOCUS_SOFT_BUDGET_MAX = 8;
+/**
+ * 专项面软预算派生（纯函数·确定性）：由 focus 能力数派生 5–8 题——1 弱项=5 题起步、每多 1 个弱项 +1 题、封顶 8。
+ * 通用面 2-3 分界不受影响：仅 focus 在场时由 initMind 取本派生替换 derivedSoftBudget（通用覆盖计划零触）。
+ */
+export function derivedFocusSoftBudget(focusCount: number): number {
+  const n = Number.isInteger(focusCount) && focusCount > 0 ? focusCount : 1;
+  return Math.max(FOCUS_SOFT_BUDGET_MIN, Math.min(FOCUS_SOFT_BUDGET_MAX, n + FOCUS_SOFT_BUDGET_MIN - 1));
+}
+
 export function boundedSoftBudget(value: number | undefined, absoluteMax: number, derived: number): number {
   const raw = Number.isInteger(value) ? value as number : derived;
   return Math.max(1, Math.min(raw, absoluteMax));
@@ -170,9 +185,14 @@ export function sessionOf(mind: InterviewMind): InterviewSessionSignals {
   return { consecutivePivots: n(s?.consecutivePivots), unresolvedCount: n(s?.unresolvedCount), offRampCount: n(s?.offRampCount) };
 }
 
-export function initMind(competencies: (string | CompetencySpec)[], maxTurns?: number, absoluteMaxTurns?: number): InterviewMind {
+export function initMind(competencies: (string | CompetencySpec)[], maxTurns?: number, absoluteMaxTurns?: number, focusWeaknesses?: readonly string[]): InterviewMind {
   const absolute = boundedAbsoluteMaxTurns(absoluteMaxTurns);
-  const soft = boundedSoftBudget(maxTurns, absolute, derivedSoftBudget(competencies));
+  // H4 R3：focus 在场（专项面）→ 软预算由 focus 能力数派生 5-8 题（覆盖取 focus 集的短预算形）；
+  // 显式 maxTurns（隔离 E2E）优先级不变；通用面（focus 缺省）derivedSoftBudget 2-3 分界逐字节原样。
+  // focus 只改「考多久」的软预算，绝不触难度/信心（难度仍中性 2 起、confidence 恒 0 起）。
+  const soft = focusWeaknesses && focusWeaknesses.length > 0 && maxTurns === undefined
+    ? boundedSoftBudget(derivedFocusSoftBudget(focusWeaknesses.length), absolute, derivedSoftBudget(competencies))
+    : boundedSoftBudget(maxTurns, absolute, derivedSoftBudget(competencies));
   return {
     competencies: competencies.map(toSpec).map((s) => ({
       name: s.name, confidence: 0, depthProbed: 0, evidence: [], core: !!s.core, behavioral: !!s.behavioral,

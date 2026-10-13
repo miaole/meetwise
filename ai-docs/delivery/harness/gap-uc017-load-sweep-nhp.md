@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-07
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`1c4588f9`** / full `1c4588f952b77e6173acfadf7f3351c311b0cff0`（`git fetch origin` 本 turn **成功**（区别于 Line X 当次 curl 28）· pre-exec 前仍须复核线上 tip 未前进）
-**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-y`（branch `line/y-next-nhp`）
+**Worktree**: `meetwise-line-y`（仓根同级 worktree·branch `line/y-next-nhp`）
 **Knife**: **NHP-017-LOAD-w-01（Line Y）· 大量孤儿预占回收（bulk/concurrent orphan-reservation sweep）· blind→case/prove 显式化**
 **Gap id**: **`GAP-UC017-LOAD-01`**（本刀具名认领 · 全仓 grep 无既有 `GAP-UC017-*` 钉 · 不发明 covered）
 **Case id**: **`NHP-017-LOAD-w-01`**

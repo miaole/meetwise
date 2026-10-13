@@ -17,6 +17,21 @@ export const QUESTION_GENERATION_ERROR_CODES = [
 
 export type QuestionGenerationErrorCode = (typeof QUESTION_GENERATION_ERROR_CODES)[number];
 
+/**
+ * AG-F(刀F)裁决④(a·可调):确定性出题失败族=有界 re-roll+耗尽换 competency 面共用的族边界。
+ * 入族=schema 违例/provider malformed（含刀 B deterministic_output_*）/business 闸拒绝/
+ * external_outcome_unknown（LANDING-INDEX 四类文面含 unknown）。族外原判死零位移:
+ * provider_timeout(瞬态非确定,不入族——裁决④附带项)、provider_not_configured(重掷必败)、
+ * duplicate_question(判重 re-roll 既有终面,g7fix4 钉死)、attempt_replay_forbidden、
+ * generation_unavailable(兜底)。Ban re-roll 出族外(EXPERT §七 :65/Ban 列表)。
+ */
+export const QUESTION_GENERATION_REROLL_FAMILY: readonly QuestionGenerationErrorCode[] = [
+  'schema_invalid',
+  'provider_malformed',
+  'business_invalid',
+  'external_outcome_unknown',
+];
+
 export const QUESTION_GENERATION_ORIGINS = ['model', 'approved_template', 'unavailable'] as const;
 export type QuestionGenerationOrigin = (typeof QUESTION_GENERATION_ORIGINS)[number];
 
@@ -35,12 +50,26 @@ export interface QuestionGenerationProvenance {
 }
 
 export type QuestionGenerationResult =
-  | { ok: true; question: string; sources: string[]; provenance: QuestionGenerationProvenance }
+  | {
+      ok: true; question: string; sources: string[]; provenance: QuestionGenerationProvenance;
+      /**
+       * AG-37(检索 weighted-deficit 归零·修法③·additive 可选出参):worker 检索闭包本题更新后的
+       * weighted-deficit（纯数字数组·C14 边界;null=本题为非检索路径/缺省臂,值经此回流 genQuestion
+       * 写图 state 位 `weightedDeficit`,下一题读取——跨题 DRR 配额持久化,不再每 claim 归零）。
+       * 仅 success 形携带;失败形不携带（节点失败臂不写 state 位·通道原值保留）。旧 scripted deps/
+       * 直接调用缺省 undefined=键缺席,normalize passthrough 原样·节点不写（现状字节零改）。
+       */
+      weightedDeficit?: number[] | null;
+    }
   | { ok: false; error: QuestionGenerationErrorCode; provenance: QuestionGenerationProvenance };
 
 const NOT_CONFIGURED = /not_configured|policy_required|known_not_executed|provider_rejected|deterministic_refusal|admission|project_missing|project_disabled|operation_unknown|operation_blocked|prepare_failed|operation_policy/;
 const TIMEOUT = /timeout|timed_out|deadline_exceeded/;
-const MALFORMED = /schema_validation_failed|malformed|json_invalid|parse_error|empty_content|no_audio|usage_invalid/;
+// AG-F(刀F·刀 B 落主线重 pin 吸收):deterministic_output_invalid/truncated（AG-06 known_executed
+// 确定性输出失败码,HTTP 200+usage 在手）归 provider_malformed 族——它们正是「确定性坏输出」本体,
+// invoke 侧已注明「允许换 revision 重试·不重试同 key」;不吸收则它们落 generation_unavailable 兜底,
+// 四类 re-roll 族边界（§1-修法①/裁决④a）对刀 B 主交付面失明。
+const MALFORMED = /schema_validation_failed|malformed|json_invalid|parse_error|empty_content|no_audio|usage_invalid|deterministic_output_/;
 
 export function classifyQuestionGenerationError(invokeError: string): QuestionGenerationErrorCode {
   if (typeof invokeError !== 'string' || invokeError.length < 1 || invokeError.length > 200) {

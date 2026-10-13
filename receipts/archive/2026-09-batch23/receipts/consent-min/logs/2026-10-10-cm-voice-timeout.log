@@ -1,0 +1,17 @@
+
+> meetwise@0.1.0 voice-timeout:prove /Users/miaole/Desktop/golucky/meetwise-consentmin
+> pnpm -C apps/api prove:voice-timeout
+
+
+> @meetwise/api@0.0.0 prove:voice-timeout /Users/miaole/Desktop/golucky/meetwise-consentmin/apps/api
+> node --import @swc-node/register/esm-register test/voice-timeout.proof.ts
+
+PASS  provider 超时映射为 504 asr_timeout，前端可切文字作答
+PASS  超时只做归属、隐私围栏与语音同意门读取，不写音频、转写或业务状态
+PASS  客户端取消保持 asr_cancelled，不混入 504 supplier timeout（供应商超时）
+PASS  未收到调用方取消的供应商 AbortError 映射为 502 asr_failed，绝不伪造成 499
+PASS  TTS 下载舱壁满载映射为可区分的 503 tts_busy，并提供受控重试提示
+PASS  客户端关闭连接会把非流式 TTS 取消信号交给应用服务
+PASS  应用服务不吞掉取消信号，会把它传给 TTS 适配器
+
+✓ 语音超时 HTTP 合同全部通过

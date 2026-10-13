@@ -202,13 +202,15 @@ async function main() {
       WHERE owner_user_id=$1 AND idempotency_key=$2`,
     [OWNER, `hcg009:op-c:${suffix}`],
   );
-  A('max=2 时第三条 invoke 拒绝 concurrency_exhausted、零外呼、非 wait/dispatching',
+  // AG-D（刀 D·AG-01 案A 改写重钉）：并发满拒绝仍确定性拒绝+零外呼+非 wait/dispatching（本门原意零变），
+  // 账本面改钉案A 释放形（claimed+error_code 零写=可重领）——旧钉 status='failed' 系本刀废除的键毒化行为。
+  A('max=2 时第三条 invoke 拒绝 concurrency_exhausted、零外呼、非 wait/dispatching（案A：claim 释放可重领·非 failed 终态）',
     'error' in third && third.error === 'model_concurrency_exhausted'
       && third.error !== 'model_invocation_wait_timeout'
       && thirdCalls.n === 0
-      && thirdClaim.rows[0]?.status === 'failed'
+      && thirdClaim.rows[0]?.status === 'claimed'
       && thirdClaim.rows[0]?.status !== 'dispatching'
-      && thirdClaim.rows[0]?.error_code === 'model_concurrency_exhausted');
+      && thirdClaim.rows[0]?.error_code === null);
   A('拒绝第三条后仍只占两槽', (await occupiedScorerLeases()) === 2);
 
   holdA.finish({ ok: true, raw: { answer: 'a' } });

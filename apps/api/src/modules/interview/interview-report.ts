@@ -27,7 +27,8 @@ export async function reportView(db: DbService, guard: PrivacyGuard, principal: 
     if ((failed.rowCount ?? 0) > 0) return { status: 'interview_failed' as const, content: null };   // 200:页面显示"面试已中断"
     throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);   // 真·进行中
   }
-  return { status: r.status, content: r.status === 'ready' ? r.content : null };
+  // #229 D2 ④文案:回传 attempts(已耗自动重试次数)——报告页「系统已自动重试 N 次」如实渲染。
+  return { status: r.status, content: r.status === 'ready' ? r.content : null, attempts: r.attempts };
 }
 
 // 报告重试:失败/隔离的报告重新入队生成(舱壁降级后的用户侧恢复——报告挂了不连累面试,且可重试)。
@@ -86,7 +87,10 @@ export async function transcriptView(db: DbService, guard: PrivacyGuard, princip
     return { turns: ev.rows.filter((r: any) => isTrustedScoreIdentity(r.payload)).map((r: any, i: number) => {
       const p = r.payload ?? {};
       const t = Number.isInteger(Number(p.turn)) ? Number(p.turn) : i;
-      return { index: t, question: p.question || legacy[t] || '', competency: p.competency, score: totalByQuestion.get(p.questionId) ?? null, outcome: p.outcome ?? undefined };
+      return { index: t, question: p.question || legacy[t] || '', competency: p.competency, score: totalByQuestion.get(p.questionId) ?? null, outcome: p.outcome ?? undefined,
+        // EVIDENCE-DELIVERY S2(C7·出③)：模型判据(criterion)数组随转写带出。历史事件无键=空数组；脏值过滤；
+        // 上限沿 EvalSchema max(6)（apps/worker/src/interview-service.ts:40 权威源·不引入跨包共享常量）。
+        evidence: Array.isArray(p.evidence) ? p.evidence.filter((x: unknown) => typeof x === 'string').slice(0, 6) : [] };
     }) };
   });
 }

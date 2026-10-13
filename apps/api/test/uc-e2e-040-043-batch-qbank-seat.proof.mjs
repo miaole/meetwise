@@ -96,7 +96,7 @@ const checks = {
 
   'S3-qbank-ingest-ne-uc041-import-and-privacy-partial-ne-batch': () => {
     // RAG qbank-ingest exists but is NOT B-end HR file import (UC-041)
-    const ingest = resolve(repoRoot, 'packages/db/src/qbank-ingest.ts');
+    const ingest = resolve(repoRoot, 'packages/db/src/qbank/qbank-ingest.ts');
     assert.equal(existsSync(ingest), true, 'qbank-ingest.ts present as RAG旁证≠UC-041');
     const qi = readFileSync(ingest, 'utf8');
     assert.doesNotMatch(

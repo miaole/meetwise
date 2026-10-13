@@ -1,0 +1,664 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-46559-1791568086039 on 127.0.0.1:49829
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:all /Users/miaole/Desktop/golucky/meetwise-line-b110/apps/api
+> for g in auth commerce resume interview bend input; do node --import @swc-node/register/esm-register test/neg-$g.proof.ts || exit 1; done
+
+PASS  token/无 Authorization 头 → 401 unauthenticated
+PASS  token/非 Bearer 方案(Basic)→ 401 unauthenticated(不落 dev 回退)
+PASS  token/小写 bearer 前缀不被接受 → 401 unauthenticated
+PASS  token/裸 "Bearer"(无空格无令牌)→ 401 unauthenticated
+PASS  token/空令牌(Bearer + 空)→ 401 拒绝
+PASS  token/纯空白令牌 → 401 拒绝
+PASS  token/垃圾串(无 . 分隔)→ 401 invalid_token
+PASS  token/畸形 base64 两段(签名不符)→ 401 invalid_token
+PASS  token/被截断(仅 payload 无签名段)→ 401 invalid_token
+PASS  token/多段(payload.sig.extra.tail)→ 401 invalid_token
+PASS  token/payload 篡改(签名失配)→ 401 invalid_token
+PASS  token/签名段篡改 → 401 invalid_token
+PASS  token/错密钥签名(伪造)→ 401 invalid_token
+PASS  token/近似错密钥 → 401 invalid_token
+PASS  token/已过期(ttl 负)→ 401 invalid_token
+PASS  token/刚过期(exp<now)→ 401 invalid_token
+PASS  token/双 Bearer 前缀 → 401 invalid_token
+PASS  token/指向不存在用户(签名合法)→ 401 account_inactive(epoch=-1 天然拒)
+PASS  token/pwd_epoch 高于账户(伪造代次)→ 401 session_revoked
+PASS  token/pwd_epoch 差 1(不符)→ 401 session_revoked
+PASS  token/uid 撞保留 __system 前缀(伪造系统身份)→ 401 reserved_principal
+PASS  token/任意 __system* 前缀均拒 → 401 reserved_principal
+PASS  devheader/x-user-id 冒充 __system sentinel → 401 reserved_principal
+PASS  devheader/空 x-user-id → 401 unauthenticated
+PASS  devheader/存在的头但账户不存在 → 404 not_found(dev 头绕过验签,已知 dev-only 风险)
+PASS  signup/空 body → 400 invalid
+PASS  signup/缺 email → 400 invalid
+PASS  signup/缺 password → 400 invalid
+PASS  signup/空密码 → 400 invalid
+PASS  signup/弱密码(5<8)→ 400 invalid
+PASS  signup/密码边界 7 位(<8)→ 400 invalid
+PASS  signup/空邮箱 → 400 invalid
+PASS  signup/无 @ 邮箱 → 400 invalid
+PASS  signup/无域名邮箱 a@ → 400 invalid
+PASS  signup/无本地部邮箱 @x.com → 400 invalid
+PASS  signup/含空格邮箱 → 400 invalid
+PASS  signup/双 @ 邮箱 → 400 invalid
+PASS  signup/域名含空格邮箱 → 400 invalid
+PASS  signup/SQL 注入式邮箱 → 400 invalid(格式即拒,且参数化无注入)
+PASS  signup/邮箱含 null 字节 → 400 invalid
+PASS  signup/超长邮箱(400 本地部)→ 拒绝(>=400)
+PASS  signup/超长密码(4096)应被拒(缺 max → DoS 面;若通过=已发现 bug)
+PASS  signup/role 自封 admin(枚举外)→ 400 invalid(不可越权)
+PASS  signup/role 非法值 superadmin → 400 invalid
+PASS  signup/body 夹带 is_admin=true 被忽略(建成账户非 admin,阻止提权)
+PASS  signup/畸形 JSON body → 400
+PASS  signup/空原始 body → 400
+PASS  signup/JSON 数组 body(非对象)→ 400
+PASS  signup/JSON 字符串 body(非对象)→ 400
+PASS  signup/JSON null body → 400
+PASS  signup/重复邮箱 → 409 email_taken
+PASS  signup/同邮箱>3 突发 → 429 too_many_attempts(防注册滥用)
+PASS  login/空 body → 400 invalid_credentials
+PASS  login/缺 password → 400 invalid_credentials
+PASS  login/缺 email → 400 invalid_credentials
+PASS  login/空 email+password → 400 invalid_credentials
+PASS  login/畸形 JSON body → 400
+PASS  login/数组 body → 400 invalid_credentials(email 缺失)
+PASS  login/存在用户密码错 → 401 invalid_credentials
+PASS  login/用户不存在 → 401 invalid_credentials(与密码错同码,抗枚举)
+PASS  login/邮箱大小写不匹配(PW@X.COM≠pw@x.com)→ 401 invalid_credentials(精确匹配,大小写敏感)
+PASS  login/暴力破解前 5 次进校验 → 401
+PASS  login/同邮箱>5 突发 → 429 too_many_attempts(防爆破)
+PASS  login/错误方法 GET → 拒绝(>=400)
+PASS  changepw/未鉴权 → 401
+PASS  changepw/缺 old+new → 400 invalid_password
+PASS  changepw/缺 oldPassword → 400 invalid_password
+PASS  changepw/缺 newPassword → 400 invalid_password
+PASS  changepw/新密码过弱(<8)→ 400 invalid_password(即便旧密码对也先拒)
+PASS  changepw/新密码边界 7 位 → 400 invalid_password
+PASS  changepw/旧密码错 → 401 wrong_password
+PASS  changepw/失败路径不自增 pwd_epoch(仍为 0,无副作用)
+PASS  changepw/成功后 pwd_epoch 自增(0→1,会话代次前进)
+PASS  changepw/新密码只存 scrypt 派生(绝不明文)
+PASS  changepw/改密后旧代次令牌立即失效(重放)→ 401 session_revoked
+PASS  changepw/改密后旧明文密码登录被拒 → 401 invalid_credentials
+PASS  changepw/跨用户隔离:userB 代次/状态未受 pwUser 改密影响
+PASS  deactivate/未鉴权 → 401
+PASS  deactivate/停用后 DB status=disabled
+PASS  deactivate/停用后原令牌应即时失效 → 401 account_inactive(若通过=guard 缓存未随 deactivate 清除,已发现 bug)
+PASS  deactivate/停用后再登录被拒 → 401 invalid_credentials
+
+✓ neg:auth: 81 条负路径用例全绿
+PASS  create/unauth → 401 unauthenticated
+PASS  create/bad-bearer → 401 invalid_token
+PASS  create/reserved-principal → 401
+PASS  create/missing productId → 400 invalid
+PASS  create/productId wrong type → 400 invalid
+PASS  create/null body → 400
+PASS  create/unknown product → 400 unknown_product
+PASS  create/empty productId → 400 unknown_product
+PASS  create/malformed json → 4xx
+PASS  create/non-json content-type → 4xx
+PASS  create/oversized body → 413 payload_too_large
+PASS  create/tamper amountCents → 服务器价 9900(篡改无效)
+PASS  create/tamper amountCents → 落库金额仍 9900
+PASS  create/tamper units+amount → 忽略,价 9900
+PASS  create/inject units=0 → pack_30 权威 24900
+PASS  create/inject units=-1 → pack_30 权威 24900
+PASS  create/idem 同key不同body → 409 idempotency_key_conflict(不静默吞篡改品)
+PASS  create/idem 同key不同body → 不产生第二条订单(冲突前抛,原单不变)
+PASS  create/idem 同key同body → 仍只 1 条订单
+PASS  create/并发同key → DB 只落 1 条订单(不重复建)
+PASS  create/并发同key → 3 个调用均 200（重放不是冲突）
+PASS  create/并发同key → 3 个响应严格同一 orderId
+PASS  query/越权他人订单 → 404 not_found
+PASS  query/越权(token) → 404
+PASS  query/不存在订单 → 404 not_found
+PASS  query/未鉴权订单 → 401
+PASS  query/未鉴权额度 → 401
+PASS  query/未鉴权 products → 200(公开目录与 OpenAPI 对齐)
+PASS  pay/缺 providerTxn+sig → 400 invalid_callback
+PASS  pay/缺 sig → 400 invalid_callback
+PASS  pay/缺 providerTxn → 400 invalid_callback
+PASS  pay/空 providerTxn → 400 invalid_callback
+PASS  pay/伪签(等长)→ 403 bad_signature
+PASS  pay/短签名 → 403 bad_signature
+PASS  pay/错单签名 → 403 bad_signature
+PASS  pay/签名流水不符 → 403 bad_signature
+PASS  pay/不存在订单(合法签名)→ 404 order_not_found
+PASS  pay/越权他人订单(合法签名)→ 404 order_not_found
+PASS  pay/越权他人订单 → 不给受害者入账
+PASS  pay/已paid单再回调(流水不符)→ 409 order_conflict
+PASS  pay/已paid单再回调 → 不重复入账
+PASS  pay/并发双回调 → 都 200(无 5xx)
+PASS  pay/并发双回调 → 恰一个 credited(不双结算)
+PASS  pay/并发双回调 → 桶只加 1 次(不超卖)
+PASS  pay/并发双回调 → 入账额恰 10(单份)
+PASS  webhook/缺 sig → 400 invalid_callback
+PASS  webhook/伪签 → 403 bad_signature
+PASS  webhook/短签名 → 403 bad_signature
+PASS  webhook/不存在订单 → 404 order_not_found
+PASS  webhook/错 content-type → 400 invalid_callback
+PASS  webhook/超大 body → 413 payload_too_large
+PASS  webhook/body 冒充 owner → 200 credited(仅按 DB owner)
+PASS  webhook/body 冒充 owner → 攻击者 0 桶(冒充无效)
+PASS  webhook/body 冒充 owner → 真 owner 入账 1 桶
+PASS  webhook/重放 → 首次 credited
+PASS  webhook/重放 → 二次 already(幂等,不双入)
+PASS  webhook/重放 → 桶只 1 个(不重复入账)
+PASS  webhook/重放 → 入账额恰 10(单份)
+PASS  webhook/已paid换流水回放 → 409 order_conflict
+PASS  webhook/已paid换流水回放 → 不再入账
+PASS  webhook/并发双回调 → 都 200
+PASS  webhook/并发双回调 → 恰一个 credited
+PASS  webhook/并发双回调 → 桶只加 1(不双结算)
+PASS  webhook/并发双回调 → 入账额恰 10
+PASS  webhook/跨订单同 providerTxn → 恰一笔 200 credited
+PASS  webhook/跨订单同 providerTxn → 另一笔 409 order_conflict（非 5xx）
+PASS  webhook/跨订单同 providerTxn → provider_txn 落库仅 1 行
+PASS  webhook/跨订单同 providerTxn → 两个账户合计只发 10 单位
+PASS  consume/无额度 → 402 insufficient_entitlement
+PASS  consume/过期额度 → 402 insufficient_entitlement
+PASS  consume/缺 resume-id → 400 missing_resume_id
+PASS  consume/非 UUID resume-id(旧 r1 形态)→ 400 invalid_resume_id
+PASS  consume/越权他人面试 → 404 not_found_or_forbidden
+PASS  consume/未鉴权 begin → 401
+PASS  consume/并发超卖 → 恰一场被 402 拒(不超卖)
+PASS  consume/并发超卖 → 预留额不超过池上限 1.0
+PASS  consume/并发超卖 → 被拒方返 insufficient_entitlement
+PASS  consume/并发同面试双击 → 无 5xx
+PASS  consume/并发同面试双击 → 只预留一次(不双扣,reserved==1.0)
+PASS  consume/并发同面试双击 → 只 1 条 consumption(幂等)
+PASS  webhook/空 body → 400 invalid_callback
+PASS  pay/空 body → 400 invalid_callback
+PASS  webhook/错方法 GET → 4xx
+PASS  pay/他人已paid单越权 → 404 order_not_found
+
+✓ neg:commerce: 84 条负路径用例全绿
+PASS  userB 文本上传未同意 → 403
+PASS  userB 文本上传 error=consent_required
+PASS  userB 文本上传回带 purpose=resume_processing
+PASS  userB 图片上传未同意 → 422(OCR 能力门先答,计费前即拦,绝不先扣费)
+PASS  userB 图片上传 error=image_ocr_unavailable
+PASS  userB GET consent → consented=false
+PASS  userB 仅同意 marketing 后文本上传仍 403(purpose 隔离)
+PASS  userB 未知/无关 purpose 未泄漏成简历同意
+PASS  victimU 三次同意(含缺 purpose 默认)仅落 1 条记录(幂等)
+PASS  userA 重复同意仍仅 1 条记录(幂等)
+PASS  未鉴权 POST /resume → 401
+PASS  未鉴权 POST /resume/file → 401
+PASS  未鉴权 GET /resume → 401
+PASS  未鉴权 POST /resume/00000000-0000-0000-0000-000000000000/reparse → 401
+PASS  未鉴权 DELETE /resume/00000000-0000-0000-0000-000000000000 → 401
+PASS  未鉴权 GET /resume/00000000-0000-0000-0000-000000000000/profile → 401
+PASS  未鉴权 POST /privacy/consent → 401
+PASS  未鉴权 GET /privacy/consent → 401
+PASS  未鉴权 GET /privacy/export → 401
+PASS  未鉴权 DELETE /privacy/resume-data → 401
+PASS  未鉴权 export body error=unauthenticated
+PASS  文本上传畸形拒:空字符串 → 400
+PASS  文本上传畸形拒:纯短空白(5 空格 <20) → 400
+PASS  文本上传畸形拒:过短(2 字) → 400
+PASS  文本上传畸形拒:边界 19 字(< min20) → 400
+PASS  文本上传畸形拒:超大(>60000 字) → 400
+PASS  文本上传畸形拒:text 为数字(非字符串) → 400
+PASS  文本上传畸形拒:text 为 null → 400
+PASS  文本上传畸形拒:text 为数组 → 400
+PASS  文本上传畸形拒:text 为布尔 → 400
+PASS  文本上传缺 text 字段 → 400
+PASS  文本含 null 字节 → 不 5xx(落库前剥除 NUL 优雅处理,不崩)
+PASS  userA(已同意)含 PII 文本上传成功入库(前置:取 resumeId 定位库行)
+PASS  structured 不含明文手机号 13800138000
+PASS  structured 不含明文邮箱 zhangsan@example.com
+PASS  structured 不含明文身份证 11010119900307461X
+PASS  pii_summary.phone 计数 >=1
+PASS  pii_summary.email 计数 >=1
+PASS  pii_summary.idcard 计数 >=1
+PASS  pii_summary 只存计数不存掩码/明文值(值均为数字)
+PASS  分隔符/全角规避文本上传成功(前置:取 id)
+PASS  规避手机号(点分隔)被兜底脱敏,structured 不含 13800138000
+PASS  规避手机号(点分隔)原串不整段泄漏
+PASS  全角手机号被归一后脱敏,structured 不含半角 13612345678
+PASS  文件缺 filename → 400
+PASS  文件缺 contentBase64 → 400
+PASS  文件 filename 空串(< min1) → 400
+PASS  文件 filename 超长(>255) → 400
+PASS  文件 mimeType 超长(>255) → 400
+PASS  文件 contentBase64 空串(< min1) → 400
+PASS  非法 base64 padding(====) → 400，解码/解析前拒绝
+PASS  文件 base64 超上限 → 400(大文件 DoS 门)
+PASS  坏字节冒充 PDF → >=400 可解释(非 5xx 裸崩)
+PASS  mime 与内容不符(文本冒充 PDF) → >=400
+PASS  不支持类型/扩展(.exe) → 415 unsupported_file_format
+PASS  XLSX 未接专用表格 adapter 时 → 415，绝不乱码入库
+PASS  PPTX 即使 MIME 伪称 PDF 仍 → 415，文件名/MIME 双侧 fail-closed
+PASS  视频不走简历 text 解析 → 415，等待 ASR/时间轴摄取器
+PASS  路径穿越 filename 被安全处理(4xx,不写文件/不 5xx)
+PASS  文件提取文本过短 → 400(extracted_too_short)
+PASS  reparse 不存在 id → 404
+PASS  reparse 不存在 error=not_found_or_forbidden
+PASS  userB reparse userA 的简历 → 404(RLS 越权即不可见)
+PASS  reparse 非法 uuid → >=400(不 200 泄漏)
+PASS  delete 不存在 id → 503(fail-closed,不按存在性分叉)
+PASS  delete 不存在 error=resume_erasure_migration_in_progress
+PASS  userB 删 userA 的简历 → 503(恒 fail-closed,不按归属分叉,不泄漏存在性)
+PASS  越权删除后 userA 的简历依然存在(未被删)
+PASS  删除测试前置:创建一份 userA 简历
+PASS  首次删除自有简历 → 503(fail-closed,等异步擦除状态机)
+PASS  二次删除同一简历 → 503(幂等 fail-closed,不重复删/不 500/不分叉)
+PASS  二次删除 error=resume_erasure_migration_in_progress
+PASS  GET profile 不存在 id → 404
+PASS  userB 读 userA 的画像 → 404(RLS 越权)
+PASS  跨租户前置:victimU 上传一份简历
+PASS  userA 导出成功(前置:取 resumes 列表)
+PASS  userA 导出不含 victimU 的简历(跨租户隔离)
+PASS  userA 导出确实含自己的简历 RA(RLS 只己见,自证非空导错)
+PASS  userB 删除自有简历数据 → 503(fail-closed,等异步擦除状态机)
+PASS  userB 删除 error=resume_erasure_migration_in_progress(旧三字段形状随退疫退役)
+PASS  userB 的 OCR trace 行数在 503 后不变(fail-closed 不伪造删除;种子护栏 before>0)
+PASS  userB 的 OCR durable invocation 行数在 503 后不变(同上种子护栏)
+PASS  删除 userB 时不误删 userA 的 OCR 衍生记录
+PASS  userB 删数据后 userA 的 RA 仍在(跨用户不越界)
+PASS  userB 删数据后 victimU 的 RV 仍在(跨用户不越界)
+PASS  OCR 链路降级路径可解释(>=400,非 200 半成品)
+PASS  OCR 降级回带 error 标志(不静默)
+
+✓ neg:resume: 87 条负路径用例全绿
+PASS  begin 缺 resume-id 头 → 400 missing_resume_id
+PASS  begin 不存在的面试 → 404 not_found_or_forbidden
+PASS  begin 越权:userB begin userA 的 IV_ACT → 404(RLS 只见己)
+PASS  begin 越权:userA begin userB 的 IV_OTHER → 404(RLS)
+PASS  begin 无额度:userB begin 自己的 created 面试(IV_UBC)→ 402 insufficient_entitlement
+PASS  begin 未鉴权(无任何主体头)→ 401
+PASS  begin 坏令牌 → 401 invalid_token
+PASS  begin 幽灵账户令牌(账户不存在)→ 401(fail-closed)
+PASS  begin 逃逸通道:x-user-id=__system_qbank__ 保留主体 → 401 reserved_principal
+PASS  turn 空 body → 400 invalid(zod:turn/answer 必填)
+PASS  turn 缺 answer → 400 invalid(zod)
+PASS  turn 缺 turn → 400 invalid(zod)
+PASS  turn 负 turn → 400 invalid(zod:int≥0)
+PASS  turn 非整数 turn → 400 invalid(zod)
+PASS  turn 空字符串答案 → 400 invalid(zod:min 1)
+PASS  turn 超长答案(>8000)→ 400 invalid(zod max 先于 service 413 拦下,纵深第一线)
+PASS  turn 纯空白答案(过 zod min1,service trim 为空)→ 400 invalid_turn
+PASS  turn 越界 turn 号(>MAX_TURN 256,刷无限 job)→ 400 invalid_turn
+PASS  turn answerHash 与 UTF-8 原文不一致 → 422(服务端重算,不信客户端)
+PASS  turn stateVersion 不匹配 ledger → 409 stale_question(旧渲染批次不能覆盖当前题)
+PASS  turn 已撤销 questionId → 409 stale_question(旧 tab 不能唤醒新 interrupt)
+PASS  turn 同题不同 answerId/hash → 409 stale_question(双标签页不覆盖)
+PASS  turn 畸形 JSON 正文 → 400(解析/校验失败,不落库不入队)
+PASS  turn 终态 completed(IV_DONE)→ 409 interview_not_active
+PASS  turn 终态 failed(IV_FAIL)→ 409 interview_not_active
+PASS  turn 终态 abandoned(IV_ABND)→ 409 interview_not_active
+PASS  turn 越权:userB 答 userA 的 IV_ACT → 404(RLS)
+PASS  turn 不存在的面试 → 404
+PASS  turn 未鉴权 → 401
+PASS  legacy answer 对有效/终态/跨主体/不存在 id 均返回统一 410，避免资源探测
+PASS  legacy answer 未鉴权仍由 guard 拒绝 401
+PASS  legacy answer 绝不写入 answer_evaluated（杜绝 B 端评分污染）
+PASS  abandon 越权:userB 放弃 userA 的 IV_ACT → 404(RLS)
+PASS  abandon 越权:userA 放弃 userB 的 IV_OTHER → 404(RLS)
+PASS  abandon 不存在的面试 → 404
+PASS  abandon 未鉴权 → 401
+PASS  report GET 进行中(IV_ACT 无报告行/无 interview_unavailable)→ 404 not_found(不 500,不假装"继续答题")
+PASS  report GET created(IV_CREATED 无报告)→ 404 not_found
+PASS  report GET 越权:userB 读 userA 的 IV_ASMT 报告 → 404(RLS,不泄露他人报告)
+PASS  report GET 不存在 → 404
+PASS  report GET 未鉴权 → 401
+PASS  report/retry 报告已 ready(IV_ASMT)不可重试 → 404 no_retriable_report(仅 failed/quarantined 可重试)
+PASS  report/retry 无任何报告(IV_ACT)→ 404 no_retriable_report
+PASS  report/retry 越权:userB retry IV_ASMT → 404(RLS)
+PASS  report/retry 不存在 → 404
+PASS  report/retry 未鉴权 → 401
+PASS  report/export 未就绪(IV_ACT)→ 404 report_not_ready
+PASS  report/export 越权:userB 导出 IV_ASMT → 404(RLS,拿不到就绪报告)
+PASS  report/export 不存在 → 404
+PASS  report/export 未鉴权 → 401
+PASS  assessment POST 无可评分卡(IV_ACT 仅 question_ready)→ 409 no_scorable_cards(不落 overall=0 假报告)
+PASS  assessment POST created(IV_CREATED 无事件)→ 409 no_scorable_cards
+PASS  assessment POST completed 但无可评分卡(IV_DONE)→ 409 no_scorable_cards
+PASS  assessment POST 越权:userB 生成 IV_ASMT 评估 → 404(RLS)
+PASS  assessment POST 不存在 → 404
+PASS  assessment POST 未鉴权 → 401
+PASS  assessment GET 未生成(IV_ASMT 无 assessment_report 行)→ 404 not_found
+PASS  assessment GET 越权:userB 读 IV_ASMT 评估 → 404(RLS)
+PASS  assessment GET 不存在 → 404
+PASS  assessment GET 未鉴权 → 401
+PASS  learning-plan POST 无评估前置(IV_ASMT 未生成评估)→ 409 assessment_required
+PASS  learning-plan POST 无评估(IV_ACT)→ 409 assessment_required
+PASS  learning-plan GET 未生成 → 404 not_found
+PASS  learning-plan GET 越权:userB → 404(RLS)
+PASS  learning-plan/complete 缺 topic → 400(契约 zod 拒:error=invalid)
+PASS  learning-plan POST 未鉴权 → 401
+PASS  career-path POST 无评估前置 → 409 assessment_required
+PASS  career-path POST 无评估(IV_ACT)→ 409 assessment_required
+PASS  career-path GET 未生成 → 404 not_found
+PASS  career-path GET 越权:userB → 404(RLS)
+PASS  career-path POST 未鉴权 → 401
+PASS  events 越权:userB 订阅 userA 的 IV_ACT 事件流 → 404 not_found_or_forbidden(不泄露他人事件)
+PASS  events 不存在的面试 → 404 not_found_or_forbidden
+PASS  events 未鉴权 → 401
+PASS  transcript 越权:userB 读 IV_ACT 转写 → 404(RLS)
+PASS  transcript 不存在 → 404
+PASS  transcript 未鉴权 → 401
+PASS  questionFeedback 非法 rating(非 up/down)→ 400(契约 zod enum 拒:error=invalid)
+PASS  questionFeedback 负 index → 400 invalid_index
+PASS  questionFeedback 非数字 index → 400 invalid_index
+PASS  speak 空白文本(trim 后空)→ 400 empty_text
+PASS  speak 越权:userB 对 IV_ACT 合成 → 404(先校归属再花 TTS)
+PASS  speak 不存在 → 404
+PASS  transcribe 缺显式同意 → 400 invalid（在 ASR 前 fail-closed）
+PASS  transcribe 伪称双人电话/远端轨 → 400 invalid（能力未接入不得绕过）
+PASS  transcribe 畸形 base64 → 400 invalid（模型调用前拒绝）
+PASS  transcribe 越权:userB 对 IV_ACT 转写 → 404
+PASS  transcribe 不存在 → 404
+PASS  begin 终态 completed(IV_DONE)→409 interview_not_active（不可复活/不可二次扣额）
+PASS  begin 终态 failed(IV_FAIL)→409 interview_not_active
+PASS  begin 终态 abandoned(IV_ABND)→409 interview_not_active
+PASS  begin 已 active(IV_ACTB,INSERT 时预绑 resume)→202 alreadyBegun=true（不二次预留/入队）
+PASS  turn created(IV_CREATED 尚未 begin)→409 interview_not_started（不制造付费 answer job）
+PASS  legacy answer created(IV_CREATED 尚未 begin)也统一 410（端点不再读写面试）
+PASS  abandon 终态 completed(IV_DONE)→409 interview_not_active（不可退款覆盖已确认消费）
+PASS  abandon 终态 failed(IV_FAIL)→409 interview_not_active
+PASS  abandon 重复放弃(IV_ABND)→200 alreadyAbandoned + noop（不二次退款）
+
+✓ neg:interview: 97 条负路径用例全绿
+PASS  0123 回归 fixture 保留 production initially-deferred FK 精确表列形状
+PASS  0123 展示快照回填不被历史 abandoned 绑定行阻断
+PASS  历史死绑定只补展示快照，不改写申请状态/绑定 attempt
+PASS  0123 完成后 lineage 与 application binding trigger 均恢复启用
+PASS  迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝
+PASS  GET /jobs 无鉴权→401
+PASS  POST /jobs/:id/apply 无鉴权→401
+PASS  GET /applications 无鉴权→401
+PASS  POST /applications/:id/start 无鉴权→401
+PASS  POST /applications/:id/decline 无鉴权→401
+PASS  POST /applications/:id/finalize 无鉴权→401
+PASS  GET /recruiter/jobs 无鉴权→401
+PASS  POST /recruiter/jobs 无鉴权→401
+PASS  GET /recruiter/talent 无鉴权→401
+PASS  GET /recruiter/jobs/:id 无鉴权→401
+PASS  GET /recruiter/jobs/:id/candidates 无鉴权→401
+PASS  POST /recruiter/jobs/:id/invite 无鉴权→401
+PASS  GET /admin/users 无鉴权→401
+PASS  GET /admin/orders 无鉴权→401
+PASS  GET /admin/audit 无鉴权→401
+PASS  POST /admin/users/:id/disable 无鉴权→401
+PASS  GET /roles 无鉴权→401
+PASS  POST /roles/match 无鉴权→401
+PASS  GET /profile 无鉴权→401
+PASS  GET /profile/growth 无鉴权→401
+PASS  PATCH /profile/settings 无鉴权→401
+PASS  POST /profile/change-password 无鉴权→401
+PASS  GET /recruiter/jobs 垃圾 Bearer→401
+PASS  GET /admin/users 垃圾 Bearer→401
+PASS  GET /profile 错密钥签名 token→401
+PASS  GET /profile 幽灵账户(签名合法但账户不存在)→401
+PASS  GET /profile 保留系统主体 __system* 冒充→401
+PASS  POST /recruiter/jobs 保留系统主体→401
+PASS  candidate POST /recruiter/jobs→403
+PASS  candidate GET /recruiter/jobs→403
+PASS  candidate GET /recruiter/talent(枚举人才库)→403
+PASS  candidate GET /recruiter/jobs/:id→403
+PASS  candidate GET /recruiter/jobs/:id/candidates→403
+PASS  candidate POST /recruiter/jobs/:id/invite(借邀请枚举用户)→403
+PASS  candidate 越权 /recruiter 错误体标 recruiter_required
+PASS  adminU(role=candidate) POST /recruiter/jobs→403
+PASS  adminU GET /recruiter/talent→403
+PASS  victimU(candidate) GET /recruiter/jobs→403
+PASS  candidate GET /admin/users→403
+PASS  candidate GET /admin/orders→403
+PASS  candidate GET /admin/stats→403
+PASS  candidate GET /admin/audit→403
+PASS  candidate GET /admin/question-feedback→403
+PASS  candidate POST /admin/users/:id/disable(越权停用他人)→403
+PASS  非 admin 越权 /admin 错误体标 admin_required
+PASS  recruiter GET /admin/users→403
+PASS  recruiter POST /admin/users/:id/disable→403
+PASS  admin disable 不存在用户→404
+PASS  admin /users 不泄漏 password_hash/pwd_epoch/preferences
+PASS  admin /orders 不泄漏 password/secret/token/hash 字段
+PASS  admin 无 POST /admin/orders 写口→404
+PASS  admin 无 POST /admin/users(建用户)写口→404
+PASS  admin 无 POST /admin/users/:id/promote(提权)写口→404
+PASS  recU2 读 recU 的岗位→404 not_found_or_forbidden
+PASS  recU2 读 recU 的已关岗→404
+PASS  recU2 查 recU 岗位候选人→空(RLS 隔离,不见 victimU)
+PASS  recU2 邀请候选人到 recU 岗位→404 job_not_found_or_forbidden
+PASS  recU2 /recruiter/jobs 列表不含 recU 的 JOB_REC
+PASS  recU /recruiter/jobs 列表不含 recU2 的 JOB_REC2
+PASS  recU2 人才库不含 victimU(跨租户隔离)
+PASS  userB start victimU 的申请→noop(不推进)
+PASS  userB start 后 APP_VICTIM 仍 invited(DB 未越权修改)
+PASS  userB decline victimU 的邀请→noop
+PASS  userB decline 后 APP_VICTIM 仍 invited(未越权终结)
+PASS  userB finalize victimU 的申请→409 cannot_finalize
+PASS  userB finalize 后 APP_VICTIM.score 仍为空(未越权回填)
+PASS  userB /applications 不含 victimU 的 APP_VICTIM
+PASS  userA start 不存在申请→noop
+PASS  userA finalize 不存在申请→409
+PASS  apply 不存在岗位→404 job_not_found_or_closed
+PASS  apply 已关闭岗位→404(闭岗不可投)
+PASS  finalize 空对象→409（无绑定不收口）
+PASS  finalize 注入 interviewId 空串→400
+PASS  finalize 注入 interviewId 非字符串→400
+PASS  start 缺 resumeId→400
+PASS  start 非 UUID resumeId→400
+PASS  重复 apply 同岗位:两次返回同一 applicationId(幂等)
+PASS  重复 apply 不产生第二行(dup 约束生效)
+PASS  create job title 过短→400
+PASS  create job 缺 title→400
+PASS  create job competencies 超 30 条→400
+PASS  invite 既无 id 也无 email→400
+PASS  invite email 非法格式→400
+PASS  invite 不存在候选人→恒定壳 200 received(零存在性信号)
+PASS  invite 招聘方 email→同壳零信号(不暴露 B 端账户)
+PASS  recU 邀请到 recU2 岗位→404 job_not_found_or_forbidden
+PASS  roles/match 缺 resumeId→400 missing_resume_id
+PASS  roles/match 他人/不存在简历→404 not_found_or_forbidden
+PASS  无 POST /roles(自建角色)写口→404
+PASS  无 PATCH /roles(自升角色)写口→404
+PASS  无 POST /roles/promote(提权)写口→404
+PASS  GET /profile/userB(跨用户读)→无该路由 404
+PASS  settings 未知顶层 key→400
+PASS  settings preferences 内未知 key→400
+PASS  settings notifications 未知子 key→400
+PASS  settings theme 非法枚举→400
+PASS  settings locale 非法枚举→400
+PASS  settings preferences 非对象→400
+PASS  settings 缺 preferences→400
+PASS  settings 畸形 JSON 体→400
+PASS  change-password 新密码 <8→400 invalid_password
+PASS  change-password 缺字段→400
+PASS  change-password 旧密码错误→401 wrong_password
+PASS  /profile 响应不含 password_hash/pwd_epoch
+PASS  RLS: recU2 看不到 recU 租户的 APP_VICTIM
+PASS  RLS: userB 看不到 victimU 的 APP_VICTIM
+PASS  RLS: recU2 读不到 recU 的已关闭岗位 JOB_CLOSED
+PASS  RLS: userB 无法冒充 victimU 插入申请(WITH CHECK 拦截)
+PASS  RLS: recU2 无法为 recU 的岗位建邀请申请(EXISTS 归属自校验)
+PASS  DB guard: candidate 不能直接插入 completed/100 的伪造候选结果
+PASS  DB guard: 候选人不能改写岗位标题快照
+PASS  伪造完成行对受害招聘方可见数=0
+PASS  DB guard: 终态前后均不能篡改 job/recruiter 租户归属
+PASS  RLS: candidate userA 改不动招聘方岗位(0 行受影响)
+PASS  pending GET /recruiter/jobs→403 recruiter_pending_review
+PASS  pending POST /recruiter/jobs→403 recruiter_pending_review
+PASS  pending GET /recruiter/talent→403 recruiter_pending_review
+PASS  pending GET /recruiter/jobs/:id→403 recruiter_pending_review
+PASS  pending GET /recruiter/jobs/:id/candidates→403 recruiter_pending_review
+PASS  pending POST invite→403 recruiter_pending_review
+PASS  rejected GET /recruiter/jobs→403 recruiter_rejected
+PASS  rejected POST /recruiter/jobs→403 recruiter_rejected
+PASS  三分码互异:pending_review/rejected/required 实测三码各不相同
+PASS  纵深: DB 直调 gateway_active_candidate 对 pending recruiter 拒(gateway_recruiter_required)
+PASS  纵深: DB 直调对 rejected recruiter 同拒(fail-closed 只增不弱)
+PASS  回归: approved recruiter DB 直调仍解析到活跃候选人(零弱化)
+PASS  admin 审批队列→200 且含 pendU(pending 先审)
+PASS  非 admin GET 审批队列→403 admin_required
+PASS  非 admin POST decision→403(HTTP AdminGuard 层)
+PASS  非 admin decision DB 双层拒(函数内复核 gateway_admin_required)
+PASS  decision 非法枚举值→400(zod 契约)
+PASS  DB 直调 decision 非法值→invalid_decision(函数自守·绕 HTTP 也拒)
+PASS  admin approve pendU→200 decided
+PASS  approve_recruiter 留痕:actor/action/target 断言(照 0041:107-120 样板)
+PASS  approve 后同账户 create→200(解锁)
+PASS  approve 后同账户 invite→200 恒定壳
+PASS  admin reject pendU→200 decided
+PASS  reject_recruiter 留痕:actor/action/target 断言
+PASS  reject 后恒 403 recruiter_rejected(分码断言)
+PASS  reject 后 GET /recruiter/talent 恒 403 recruiter_rejected
+PASS  decision 对 candidate 目标→404(role 过滤)
+PASS  decision 对幽灵目标→404
+PASS  枚举不可区分:三路 invite status+body 逐字节一致
+PASS  恒定壳钉死期望字节 {"received":true} 且 200(非「都 404」弱化形)
+PASS  命中真实建申请:租户内 candidates 列表可见 freshC(壳外承载)
+PASS  第四探针:越权岗位×注册候选人=×幽灵 status+body 逐字节一致
+PASS  第四探针:双方恒 404 期望字节 {"error":"job_not_found_or_forbidden"}(字节钉死)
+PASS  全部越权尝试后 APP_VICTIM 仍 invited & score 空(零副作用)
+PASS  signup:ip 桶:同 IP 前 10 次(容量内)全放行
+PASS  signup:ip 桶:第 11 次(容量+1)→429 too_many_attempts
+PASS  invite:ip 桶:同 IP 超速→429(recU2 主体桶未满,429 必来自 ip 维度)
+PASS  invite 429 后同主体后续恒 429(fail-closed,不静默换道放行)
+
+✓ neg:bend: 157 条负路径用例全绿
+PASS  proto:text-plain-to-json/resume
+PASS  proto:text-plain-to-json/profile-settings
+PASS  proto:text-plain-to-json/commerce-orders
+PASS  proto:missing-content-type/resume
+PASS  proto:unknown-ct-xml/resume
+PASS  proto:unknown-ct-octet/resume
+PASS  proto:truncated-json/resume
+PASS  proto:trailing-comma/resume
+PASS  proto:trailing-garbage/resume
+PASS  proto:unterminated-array/resume
+PASS  proto:bare-word/resume
+PASS  proto:body-array/resume
+PASS  proto:body-null/resume
+PASS  proto:body-string/resume
+PASS  proto:body-number/resume
+PASS  proto:body-bool/resume
+PASS  proto:empty-body/resume
+PASS  proto:empty-body/turn
+PASS  proto:malformed-to-nopipe/begin
+PASS  proto:malformed-to-nopipe/roles-match
+PASS  proto:malformed-to-nopipe/privacy-consent
+PASS  proto:malformed-to-nopipe/pay-callback
+PASS  proto:literal-NaN/turn
+PASS  proto:literal-Infinity/turn
+PASS  proto:1e309-overflows-to-Infinity/turn
+PASS  proto:deep-nesting-bomb/resume
+PASS  proto:proto-pollution/resume
+PASS  proto:constructor-pollution/profile
+PASS  size:over-1MB/resume-413
+PASS  size:over-1MB/turn-413
+PASS  size:over-1MB/profile-settings-413
+PASS  size:over-1MB/quiz-create-413
+PASS  size:over-12MB/resume-file-413
+PASS  size:huge-id/interview-404
+PASS  size:huge-id/notification-read
+PASS  size:huge-id/commerce-order
+PASS  size:huge-querystring/interview
+PASS  size:huge-querystring/quiz
+PASS  type:resume-missing-text
+PASS  type:resume-text-number
+PASS  type:resume-text-object
+PASS  type:resume-text-array
+PASS  type:resume-text-null
+PASS  type:turn-missing-answer
+PASS  type:turn-missing-turn
+PASS  type:turn-turn-as-string
+PASS  type:turn-turn-float
+PASS  type:turn-turn-negative
+PASS  type:turn-answer-number
+PASS  type:turn-answer-bool
+PASS  type:turn-answer-object
+PASS  type:order-missing-productId
+PASS  type:order-productId-number
+PASS  type:order-productId-array
+PASS  type:settings-unknown-top-key
+PASS  type:settings-unknown-pref-key
+PASS  type:settings-locale-bad-enum
+PASS  type:settings-theme-bad-enum
+PASS  type:settings-notifications-unknown-key
+PASS  type:settings-notifications-email-string
+PASS  type:settings-notifications-not-object
+PASS  type:settings-preferences-missing
+PASS  type:settings-preferences-array
+PASS  type:feedback-bad-rating
+PASS  type:feedback-rating-missing
+PASS  type:learning-topic-missing
+PASS  type:learning-topic-number
+PASS  type:invite-neither-id-nor-email
+PASS  type:invite-bad-email
+PASS  type:finalize-missing-interviewId
+PASS  bound:resume-text-19(min-1)
+PASS  bound:resume-text-60001(max+1)
+PASS  bound:turn-answer-empty(min-1)
+PASS  bound:turn-answer-8001(max+1)
+PASS  bound:speak-text-empty(min-1)
+PASS  bound:speak-text-8001(max+1)
+PASS  bound:transcribe-audio-empty(min-1)
+PASS  bound:transcribe-mime-256(max+1)
+PASS  bound:file-filename-empty(min-1)
+PASS  bound:file-filename-256(max+1)
+PASS  bound:file-contentBase64-empty(min-1)
+PASS  bound:file-mime-256(max+1)
+PASS  bound:feedback-comment-1001(max+1)
+PASS  bound:learning-topic-empty(min-1)
+PASS  bound:learning-topic-201(max+1)
+PASS  bound:job-title-1(min-1)
+PASS  bound:job-title-121(max+1)
+PASS  bound:job-desc-8001(max+1)
+PASS  bound:job-competencies-31(max+1)
+PASS  bound:job-competency-item-61(max+1)
+PASS  bound:invite-candidateId-65(max+1)
+PASS  bound:invite-email-260(max+1)
+PASS  bound:finalize-interviewId-empty(min-1)
+PASS  unicode:nul-byte/resume
+PASS  unicode:whitespace-only/resume
+PASS  unicode:emoji-only/resume
+PASS  unicode:rtl-override/resume
+PASS  unicode:combining/resume
+PASS  unicode:long-no-space-word/turn
+PASS  unicode:traversal-in-filename
+PASS  inj:sqli-in-resume-text-nocrash
+FAIL  inj:sqli-in-status-query-nocrash
+PASS  inj:sqli-in-order-productId-nocrash
+PASS  inj:sqli-tables-still-intact
+PASS  inj:path-traversal/interview-plain
+PASS  inj:path-traversal/notification
+PASS  inj:non-uuid-id/resume-profile
+FAIL  inj:non-uuid-id/resume-delete
+PASS  inj:traversal-id/resume-profile
+PASS  inj:overlong-nonuuid-id/resume-profile
+PASS  inj:non-uuid-id/resume-reparse-caught-404
+PASS  inj:req-id-illegal-chars-sanitized
+PASS  inj:req-id-crlf-encoded-sanitized
+PASS  inj:req-id-overlong-replaced
+PASS  inj:prompt-injection/resume-nocrash
+PASS  inj:prompt-injection/resume-no-score-field
+PASS  inj:prompt-injection/resume-status-not-hijacked
+PASS  inj:prompt-injection/turn-nocrash
+PASS  inj:xss-in-resume-text-nocrash
+PASS  inj:xss-in-feedback-comment-nocrash
+PASS  inj:xss-in-learning-topic-nocrash
+PASS  method:POST-to-GET/health
+PASS  method:POST-to-GET/legal-policy
+PASS  method:POST-to-GET/metrics
+PASS  method:GET-to-POST/auth-login
+PASS  method:GET-to-POST/auth-signup
+PASS  method:PUT-to-PATCH/profile-settings
+PASS  method:DELETE-unknown/interview
+PASS  method:GET-to-POST/resume-file
+PASS  method:POST-to-GET/commerce-products
+PASS  method:PATCH-unknown/notifications
+PASS  method+body:diagnosis-nopipe-malformed
+PASS  method+body:quiz-nopipe-malformed
+PASS  method+body:privacy-consent-array-body
+PASS  method+body:roles-match-null-body
+
+✗ neg:input: 2/135 失败
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-46559-1791568086039 state_bytes=217 logs_bytes=0

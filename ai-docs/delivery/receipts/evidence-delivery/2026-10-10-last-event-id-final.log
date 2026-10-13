@@ -1,0 +1,16 @@
+
+> meetwise@0.1.0 last-event-id:unit:prove /Users/miaole/Desktop/golucky/meetwise-eviddel
+> pnpm -C apps/api prove:last-event-id
+
+
+> @meetwise/api@0.0.0 prove:last-event-id /Users/miaole/Desktop/golucky/meetwise-eviddel/apps/api
+> node --import @swc-node/register/esm-register test/last-event-id.proof.ts
+
+PASS  缺省 / 未传 header → 0（全量重放起点）
+PASS  空串失败关闭，不降级为全量重放
+PASS  0 与正整数合法
+PASS  负号、小数、科学计数、前导加号、前导零失败关闭
+PASS  Infinity / 超安全整数 / 非数字失败关闭，不降级为全量重放
+PASS  过长数字串失败关闭
+
+✓ last-event-id fail-closed parser passed

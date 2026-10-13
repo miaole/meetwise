@@ -55,14 +55,16 @@ const svc = read('apps/api/src/modules/interview/interview.service.ts');
 const mig61 = read('packages/db/migrations/0061_resume_derivative_reference_guard.sql');
 const sql20 = read('packages/db/sql/20_resume_quiz.sql');
 
-const bStart = svc.indexOf('begin(principal');
-const bEnd = svc.indexOf('turn(principal', bStart);
+// B271 片2 后 begin 事务体=beginInterviewCore 模块体(REG-FIX 组4b 区域锚随演):核心函数起·InterviewService 类止。
+const bStart = svc.indexOf('export async function beginInterviewCore(');
+const bEnd = svc.indexOf('export class InterviewService', bStart);
 const region = bStart >= 0 && bEnd > bStart ? svc.slice(bStart, bEnd) : '';
 A('S0-begin-region-parseable', region.length > 0);
 
 const cbAt = ctrl.indexOf('begin(@Param');
 const ctrlBegin = cbAt >= 0 ? ctrl.slice(cbAt, ctrl.indexOf('\n  }', cbAt)) : '';
-A('S1-controller-forwards-quiz-id', /@Headers\('quiz-id'\)\s*quizId/.test(ctrlBegin) && /\.begin\([^)]*quizId\s*\)/.test(ctrlBegin));
+// ROLE#259 后转发形 .begin(principal, id, resumeId, reqId, quizId, targetRole(, focus))——quizId 在实参表内即持(REG-FIX 组4b S1 正则随演)。
+A('S1-controller-forwards-quiz-id', /@Headers\('quiz-id'\)\s*quizId/.test(ctrlBegin) && /\.begin\([^)]*\bquizId\b[^)]*\)/.test(ctrlBegin));
 
 const BOUND_THROW_RE = /throw\s+new\s+HttpException\s*\(\s*\{\s*error:\s*'resume_version_mismatch'\s*\}\s*,\s*HttpStatus\.CONFLICT\s*\)/;
 const boundThrowAt = region.search(BOUND_THROW_RE);
@@ -88,7 +90,8 @@ A('S6-schema-pin-columns(0061+sql/20)',
   && /resume_id uuid/.test(sql20) && /privacy_epoch bigint/.test(sql20));
 
 // NEG frozen inventory (read-only, not counted as BOUND evidence): the B'' stale block text is untouched.
-const negBlockIntact = /SELECT status, expires_at FROM resume_quiz WHERE id=\$1 AND owner_user_id=\$2/.test(region)
+// REG-FIX 组4b:冻结清单 regex 随 GODFN-1c 合并查形(单查 owner-scoped)·NOTE-only 不进 EXIT(防假 NOTE)。
+const negBlockIntact = /SELECT q\.status, q\.expires_at[\s\S]{0,240}FROM\s+resume_quiz\s+q/.test(region)
   && /throw new HttpException\(\{ error: 'stale_quiz' \}, HttpStatus\.CONFLICT\)/.test(region);
 console.log(`NOTE  NEG B'' stale block text present/untouched=${negBlockIntact} (frozen · not BOUND evidence)`);
 

@@ -21,8 +21,8 @@ import {
   assessDefaultOnNoLegacyPathEvidence,
   emitDefaultOnNoLegacyPathEvidence,
   hasDefaultOnNoLegacyPathEvidence,
-} from '../src/r4-pr1c-default-on-no-legacy-evidence.ts';
-import { classifyPR1FailClosedRemaining } from '../src/r4-p-r1-fail-closed-remaining.ts';
+} from '../evidence/r4-pr1c-default-on-no-legacy-evidence.ts';
+import { classifyPR1FailClosedRemaining } from '../evidence/r4-p-r1-fail-closed-remaining.ts';
 import { isTechRoleFailClosedEnabled } from '../src/adaptive-role-resolve.ts';
 
 let failures = 0;

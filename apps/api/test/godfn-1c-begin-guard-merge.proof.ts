@@ -42,8 +42,10 @@ console.log('haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · PG-re
 
 // ── S: static inventory ─────────────────────────────────────────────
 const svc = read('apps/api/src/modules/interview/interview.service.ts');
-const bStart = svc.indexOf('begin(principal');
-const bEnd = svc.indexOf('turn(principal', bStart);
+// B271 片2 后 begin 事务体模块化为 beginInterviewCore(REG-FIX 组2 区域锚随演至新形状·断言体零改):
+// S 层 begin region = beginInterviewCore 模块体(核心函数起·InterviewService 类止)·薄委托方法零守卫码不再入区域。
+const bStart = svc.indexOf('export async function beginInterviewCore(');
+const bEnd = svc.indexOf('export class InterviewService', bStart);
 const region = bStart >= 0 && bEnd > bStart ? svc.slice(bStart, bEnd) : '';
 A('S0-begin-region-parseable', region.length > 0);
 

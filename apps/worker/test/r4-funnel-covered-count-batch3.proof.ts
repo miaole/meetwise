@@ -29,19 +29,19 @@ import {
   emitFunnelCoveredCountBatch3Evidence,
   isFunnel05Covered,
   isFunnel06Covered,
-} from '../src/r4-funnel-covered-count-batch3.ts';
+} from '../evidence/r4-funnel-covered-count-batch3.ts';
 import {
   isFunnel02ACovered,
   isFunnel02BCovered,
-} from '../src/r4-funnel-covered-count-batch2.ts';
+} from '../evidence/r4-funnel-covered-count-batch2.ts';
 import {
   isFunnel03Covered,
   isFunnel04Covered,
-} from '../src/r4-funnel-covered-count-batch1.ts';
+} from '../evidence/r4-funnel-covered-count-batch1.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
-} from '../src/r4-eg2-funnel-covered-matrix.ts';
+} from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -219,7 +219,7 @@ const mdLines = [
   '',
   '**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch3 post_prove_dual_pass** · coveredCount **4** honest keep-4 · 05/06 **not_covered** · **≠ invent covered** · `releaseEvidence=false` · ≠HA',
   `**Date**: ${nowLabel}`,
-  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3-aware) · Batch3 `apps/worker/src/r4-funnel-covered-count-batch3.ts` · prove `pnpm r4-funnel-covered-count-batch3:prove` / `pnpm r4-eg2-funnel-covered:prove`',
+  '**Emitter**: `apps/worker/evidence/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b+Batch3-aware) · Batch3 `apps/worker/evidence/r4-funnel-covered-count-batch3.ts` · prove `pnpm r4-funnel-covered-count-batch3:prove` / `pnpm r4-eg2-funnel-covered:prove`',
   '**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** · Batch3 may elevate **05/06** when assessors affirm · Ban elevating **07/08** · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban second knife',
   '',
   '| ID | Status | Basis |',

@@ -12,7 +12,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createPool, asPrincipal, annSearch } from '@meetwise/db';
-import { fakeEmbedder } from '@meetwise/ai-runtime';
+import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { ingestQbank, QBANK_OWNER, type QbankItem } from '@meetwise/db';
 import { reviewSource } from '@meetwise/db';
 import { createHash } from 'node:crypto';

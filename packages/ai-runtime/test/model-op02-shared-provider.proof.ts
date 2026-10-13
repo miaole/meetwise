@@ -233,8 +233,11 @@ async function main() {
   const settleFeeCount = await pool.query(`SELECT count(*)::int n FROM ai_model_fee_ledger WHERE owner_user_id=$1 AND idempotency_key='op02:settle'`, [OWNER]);
   A('invoke replay 幂等：零第二次外呼且 fee ledger 仍只一行', replayCalls.n === 0 && Number(settleFeeCount.rows[0]?.n) === 1);
 
-  // ── 测试 7：breaker_open 时 invoke 确定性拒绝（零外呼、claim=failed）。 ─────────
+  // ── 测试 7：breaker_open 时 invoke 准入拒绝→释放 claim 可重领（AG-D 刀 D·AG-01 案A 改写重钉）。 ──
   // 把 scorer 分区断路器 trip 到 open（阈值 5），invoke 应返回 model_circuit_open 且零外呼。
+  // 案A（rev3 可写最小形）：瞬时准入拒绝不再写 failed 终态（旧钉=键毒化：0130:179-181 重放锁死）——
+  // 0179 释放 claim：status 留 'claimed'+lease_token 承袭非空+lease_expires_at 即刻过期（恰匹配
+  // 0130:215 重领谓词）+completed_at/error_code 零写（0088 守卫禁写=拒绝码不经账本行承载）。
   for (let i = 0; i < 5; i++) {
     const a = await admitSharedModelOperation(pool, OWNER, { partition: scorerPartition, idempotencyKey: `op02:trip:${i}` });
     if (a.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, a.lease, 'failure'));
@@ -245,12 +248,26 @@ async function main() {
     schema: Schema, businessValidate: () => null,
     model: billable(Promise.resolve({ ok: true as const, raw: { answer: 'must-not-send' } }), breakerCalls),
   }, pool, OWNER);
-  const breakerInvocation = await pool.query(`SELECT status,error_code FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='op02:breaker-open'`, [OWNER]);
-  A('breaker_open → invoke 返回 model_circuit_open、零外呼、durable claim=failed',
+  const breakerInvocation = await pool.query(`SELECT status,error_code,lease_token,lease_expires_at,completed_at FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='op02:breaker-open'`, [OWNER]);
+  const brk = breakerInvocation.rows[0];
+  A('breaker_open → invoke 返回 model_circuit_open、零外呼、claim 释放（claimed+token 承袭非空+lease 即刻过期+completed_at/error_code 零写）',
     'error' in breakerInvoke && breakerInvoke.error === 'model_circuit_open' && breakerCalls.n === 0
-      && breakerInvocation.rows[0]?.status === 'failed' && breakerInvocation.rows[0]?.error_code === 'model_circuit_open');
-  // 清理：把 scorer 断路器复位（避免后续其它分区测试被连带拒绝——虽然本证明已收尾）。
+      && brk?.status === 'claimed' && brk.error_code === null && brk.lease_token !== null
+      && brk.completed_at === null && brk.lease_expires_at !== null
+      && new Date(brk.lease_expires_at as string).getTime() <= Date.now());
+  // 复位断路器 → 同键重 claim 走 0130 expired-claimed 重领=execute（键未毒化=AG-01 核心断言）。
   await pool.query(`UPDATE ai_model_breaker_state SET phase='closed', consecutive_failures=0, opened_at=NULL, half_open_probe_token=NULL, half_open_probe_expires_at=NULL WHERE operation_id='interview.answer-scoring.v1'`);
+  const breakerRetry = await invoke({
+    idempotencyKey: 'op02:breaker-open', operation: { id: 'interview.answer-scoring.v1', businessRevision: 'op02:breaker-open' },
+    schema: Schema, businessValidate: () => null,
+    model: billable(Promise.resolve({ ok: true as const, raw: { answer: 'retried-ok' }, usage: { inputTokens: 100, outputTokens: 200 } }), breakerCalls),
+  }, pool, OWNER);
+  const breakerRetryRow = await pool.query(`SELECT status,lease_token FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='op02:breaker-open'`, [OWNER]);
+  const breakerRetryOutcome = 'error' in breakerRetry ? `error:${breakerRetry.error}` : `value:${breakerRetry.value.answer}`;
+  A(`breaker 复位后同键重 claim=execute（真外呼 1 次+succeeded·终态清 token 为既有语义）[${breakerRetryOutcome}]`,
+    'value' in breakerRetry && breakerRetry.value.answer === 'retried-ok' && breakerCalls.n === 1
+      && breakerRetryRow.rows[0]?.status === 'succeeded');
+  // 清理：把 scorer 断路器复位（避免后续其它分区测试被连带拒绝——虽然本证明已收尾）。
 
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ MODEL-OP-02 共享 provider 准入/账本/并发/断路器全部通过');
   await pool.end();

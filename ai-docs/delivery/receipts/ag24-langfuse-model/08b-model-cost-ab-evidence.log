@@ -1,0 +1,15 @@
+# AG-24 EXEC 基线 A/B 证据（packages/ai-runtime prove:model-cost·2026-10-13 EXEC 席亲跑）
+# 环境：dev PG（meetwise-postgres-dev·全链 183 迁移）·ai_model_* 等八表 TRUNCATE 后净库单轮
+# A=base（git stash 全改动后 @4f8b7402 树）·B=本刀工作树（同清表序列）
+#
+# A(base) 9 PASS / 2 FAIL：
+#   FAIL  RPM 排队超时发生在派发前：第二请求零外呼、零费用预留且 durable claim=failed
+#   FAIL  准入超时后迟到取得的 lease 会自释放，零外呼且 durable claim=failed
+# B(本刀) 9 PASS / 1 FAIL：
+#   FAIL  准入超时后迟到取得的 lease 会自释放，零外呼且 durable claim=failed
+#
+# 判读：两臂在 base 即红（本机 Docker Desktop 时序敏感臂·非本刀回归）。
+# 本刀残留清理删除 rateLimitedModel 残留件→RPM 臂整臂随删（§0.1 #17）→B 较 A 少一既存红臂；
+# 迟到 lease 臂（invoke 本地 admission 迟到自释放·非残留件面）base/本刀同红=既存承登。
+# 附：跨轮不清表时该 proof 出现大面假红（dispatch_slot/header 残行连坐·attempt2 形），
+#     收据口径=净库单轮（与隔离 runner 每轮全新库同形）。

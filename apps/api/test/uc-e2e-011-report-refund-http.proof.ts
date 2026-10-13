@@ -191,10 +191,15 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   A('H2 GET report → 200 quarantined',
     got.status === 200 && got.body?.status === 'quarantined');
 
-  // regenerate 产品口：quarantined 上 requeueFailedReport 失败 → HTTP 404 no_retriable_report
+  // #229 D2 已决翻转旧诚实钉（旧语义 quarantined→404 no_retriable_report·见 git blame）：HTTP retry 口对 quarantined 解锁 200+预算重置
+  const beforeRetryUnits = await httpUnits(A_);
   const retry = await h.post(`/interview/${id}/report/retry`, A_, {});
-  A('H2 POST report/retry quarantined → 404 no_retriable_report（regenerate BLOCKED→UC-019）',
-    retry.status === 404 && retry.body?.error === 'no_retriable_report');
+  A('H2 POST report/retry quarantined → 200 requeued:true（#229 D2 翻转旧诚实钉·quarantine 出口解锁·旧语义见 git blame）',
+    retry.status === 200 && retry.body?.requeued === true);
+  const afterRq = await h.req('GET', `/interview/${id}/report`, A_);
+  A('H2 重排重置预算：queued + attempts=0',
+    afterRq.status === 200 && afterRq.body?.status === 'queued' && afterRq.body?.attempts === 0);
+  A('H2 重排零扣费：HTTP 额度不变', (await httpUnits(A_)) === beforeRetryUnits);
 }
 
 // ── H3 · 误退：confirmed 上 release 拒 + HTTP 额度不变 ──
@@ -226,13 +231,19 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H4 · honesty pin：refund webhook landed · wallet/balance-ui still GAP ────────');
   console.log('NOTE: PREREQ-6 — 口浮出后禁止继续用 404 GAP 冒充闭环；真 B-1 pins → pnpm uc011:refund-callback:prove');
 
-  // 等价 webhook 产品口已挂载：错签 → 403 bad_signature（≠ 口缺失 404）
-  const refundWh = await h.post('/commerce/webhook/refund/ORD_PAID', {}, { providerTxn: 'txn-r', sig: 'nosig' });
+  // 等价 webhook 产品口已挂载：错签(携合法新鲜 ts) → 403 bad_signature（≠ 口缺失 404）。
+  // 5A-2 #100 四段式(`id:txn:kind:ts`±300s 防重放窗)：坏签臂须携 fresh 合法 ts 才落
+  // 403 bad_signature——缺 ts 是 400 invalid_callback 结构性拒，两分码不混（语义只保不放宽）。
+  const refundWh = await h.post('/commerce/webhook/refund/ORD_PAID', {}, { providerTxn: 'txn-r', sig: 'nosig', ts: Date.now() });
   A('H4 POST /commerce/webhook/refund/:id 口已挂载 → 403 bad_signature（≠ 口缺失 404）',
     refundWh.status === 403 && refundWh.body?.error === 'bad_signature');
+  // 无 ts → 400 invalid_callback（防重放窗结构性拒·fail-closed 双向钉）
+  const refundWhNoTs = await h.post('/commerce/webhook/refund/ORD_PAID', {}, { providerTxn: 'txn-r', sig: 'nosig' });
+  A('H4 POST /commerce/webhook/refund/:id 无 ts → 400 invalid_callback（5A-2 #100 防重放窗结构性拒）',
+    refundWhNoTs.status === 400 && refundWhNoTs.body?.error === 'invalid_callback');
 
   // 字面契约名 /payment/refund-callback 仍可 404（等价口=webhook；不洗成 covered）
-  const refundCb = await h.post('/payment/refund-callback', A_, { orderId: 'ORD_PAID', providerTxn: 'txn-x', sig: 'nosig' });
+  const refundCb = await h.post('/payment/refund-callback', A_, { orderId: 'ORD_PAID', providerTxn: 'txn-x', sig: 'nosig', ts: Date.now() });
   // GODFN-1c 逐修(预存红根因:字面契约名已从「404 等价口」演进为真主口——GAP-UC011-ADV-01
   // payment-callback.controller.ts 落地;诚实意图不洗:口存在且 fail-closed,真 B-1 证据归
   // pnpm uc011:refund-callback:prove,此处仍不是 covered)。
@@ -274,8 +285,8 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('GAP_PIN: GAP-UC011-BALANCE-UI — apps/web/app/billing 为预览 stub（无余额展示/退款后 UI）；TC-E2E-011-balance-ui 仍缺');
   console.log('GAP_PIN: GAP-UC011-FAIL-HTTP-MOUTH — 无 POST /interview/:id/fail 用户口；fail 仅 worker/db failInterviewAndRelease');
   console.log('HONESTY: UC-011 stays partial · EXIT0≠covered · ADV stays gap/case-only · Ban wash ADV via mouth');
-  A('H4 honesty: webhook refund 口已挂载 + wallet/balance-ui 仍 gap + schema 不伪造 consumption.refunded',
-    refundWh.status === 403 && !/'refunded'/i.test(consDefs) && /'refunded'/i.test(orderDefs));
+  A('H4 honesty: webhook refund 口已挂载(fresh ts 伪签→403·无 ts→400 双向 fail-closed) + wallet/balance-ui 仍 gap + schema 不伪造 consumption.refunded',
+    refundWh.status === 403 && refundWhNoTs.status === 400 && !/'refunded'/i.test(consDefs) && /'refunded'/i.test(orderDefs));
 }
 
 // ── H5 · §1b：口已落库存（PREREQ-6）+ 抬 covered 仍缺（wallet/balance-ui/ADV/full.e2e）──
@@ -283,7 +294,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H5 · §1b refund-callback mouth landed inventory + remaining covered lift ────────');
   console.log('NOTE: PREREQ-6 生效 — 禁止 404 GAP 叙事；真 B-1 pins 在 uc011:refund-callback:prove；本绿 ≠ covered');
 
-  const paymentSrc = readRepo('packages/db/src/payment.ts');
+  const paymentSrc = readRepo('packages/db/src/commerce/payment.ts');
   const dbIndex = readRepo('packages/db/src/index.ts');
   const commerceCtrl = readRepo('apps/api/src/modules/commerce/commerce.controller.ts');
   const webhookCtrl = readRepo('apps/api/src/modules/commerce/commerce-webhook.controller.ts');
@@ -310,14 +321,15 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
     /当前不开放/.test(billingPage) && /退款/.test(billingPage));
 
   // 字面 /payment/refund-callback 仍可 404；等价 webhook 已挂
+  // （5A-2 #100：坏签臂携 fresh 合法 ts 才落 403，缺 ts=400 invalid_callback 两分码不混）
   const refundCb2 = await h.post('/payment/refund-callback', A_, {
-    orderId: 'ORD_H5', providerTxn: 'txn-h5', sig: 'nosig',
+    orderId: 'ORD_H5', providerTxn: 'txn-h5', sig: 'nosig', ts: Date.now(),
   });
   A('H5 POST /payment/refund-callback 字面已挂载 → fail-closed（≠ 404 口缺失；真 B-1 → uc011:refund-callback:prove）',
     refundCb2.status === 403 && refundCb2.body?.error === 'bad_signature');
 
   const refundWh2 = await h.post('/commerce/webhook/refund/ORD_H5', {}, {
-    providerTxn: 'txn-h5r', sig: 'nosig',
+    providerTxn: 'txn-h5r', sig: 'nosig', ts: Date.now(),
   });
   A('H5 POST /commerce/webhook/refund/:id 口已挂载 → 403 bad_signature',
     refundWh2.status === 403 && refundWh2.body?.error === 'bad_signature');

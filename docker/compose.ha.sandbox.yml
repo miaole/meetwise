@@ -1,0 +1,152 @@
+# HA-1 SANDBOX overlay — 仅供本地沙箱验证矩阵 V1-V6（非生产·禁入生产宿主）。
+#
+#   haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · est live=0
+#   本文件把 compose.prod.yml + compose.ha.yml 的生产形态在本地容器里以沙箱材质复现：
+#   bind-mount 源码 + 本地镜像 + 一次性 pg/redis（tmpfs·down 即灭）。生产契约（env 锚、
+#   端口铁律、健康判据、依赖图）零改——沙箱只覆写「镜像来源」与「云托管依赖落点」。
+#
+#   运行须经 scripts/ha/ha-sandbox.mjs（MEETWISE_HA_SANDBOX_AUTHORIZED=1 闸·缺省拒跑）：
+#     MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs up
+#
+#   ⚠ 本文件不是生产叠加层：read_only/健康检查/INSTANCE_ID/HOSTNAME 等生产语义全部继承自
+#     compose.ha.yml（合并语义），此处只写沙箱差异；两文件漂移时以 compose.ha.yml 为准。
+#
+# 服务清单：compose.ha.yml 七 service（api-a/api-b/web-a/web-b/worker-a/worker-b/lb）
+#   + 沙箱专用 ha-pg / ha-redis（一次性·无卷）+ migrate 改绑沙箱 pg。原 api/worker/web 仍被
+#   compose.ha.yml 的 profiles:["ha-disabled"] 停用（RX-1）。
+
+services:
+  # ---- 沙箱一次性 Postgres（tmpfs·down 即灭·承载全量迁移）----
+  # 15432 仅宿主回环（宿主侧 pnpm migrate 用·prepare-nest-pg 先例形；一次性沙箱凭据非生产）。
+  # 镜像须含 pgvector（0001_baseline.sql:282 CREATE EXTENSION vector；RAG/qbank 迁移族依赖）——
+  # postgres:16-alpine 无此扩展会死在迁移半程；pgvector/pgvector:pg16 =同 PG16+vector，仅沙箱材质。
+  ha-pg:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: meetwise_ha_pg_dev_password
+      POSTGRES_DB: meetwise
+      PGDATA: /var/lib/postgresql/data/pg
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    ports:
+      - "127.0.0.1:15432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 5s
+    expose:
+      - "5432"
+
+  # ---- 沙箱一次性 Redis（RAG_REDIS_URL 落点·非 TLS standalone）----
+  ha-redis:
+    image: redis:7-alpine
+    tmpfs:
+      - /data:rw,noexec,nosuid,size=64m
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+    expose:
+      - "6379"
+
+  # ---- migrate job：改指向沙箱 pg（本地镜像 + 源码 bind-mount）----
+  # 成本治理 observe（model-cost-governance.ts:122 开发态默认=observe「本地脚本化测试免定价密钥」；
+  # rag-cost-governance.ts:41-45 同形）——沙箱 NODE_ENV=development 下只覆写这一开关，
+  # compose.ha.yml 生产锚的 enforce 契约不动。假价格/假 Key 在 observe 下零校验零外呼。
+  migrate:
+    image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    depends_on:
+      ha-pg:
+        condition: service_healthy
+    environment:
+      NODE_ENV: development
+      DATABASE_SSL_MODE: disable
+      MODEL_COST_ENFORCEMENT: observe
+      RAG_COST_ENFORCEMENT: observe
+
+  # ---- api ×2 沙箱材质（生产 env 锚/健康判据/RX-3 INSTANCE_ID 全继承）----
+  # 成本治理 observe（见 migrate 注记·开发态设计默认·compose.ha.yml 生产锚 enforce 不动）。
+  api-a:
+    image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    environment:
+      NODE_ENV: development
+      DATABASE_SSL_MODE: disable
+      MODEL_COST_ENFORCEMENT: observe
+      RAG_COST_ENFORCEMENT: observe
+      HOME: /tmp
+  api-b:
+    image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    environment:
+      NODE_ENV: development
+      DATABASE_SSL_MODE: disable
+      MODEL_COST_ENFORCEMENT: observe
+      RAG_COST_ENFORCEMENT: observe
+      HOME: /tmp
+
+  # ---- worker ×2 沙箱材质（同上）----
+  worker-a:
+    image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    environment:
+      NODE_ENV: development
+      DATABASE_SSL_MODE: disable
+      MODEL_COST_ENFORCEMENT: observe
+      RAG_COST_ENFORCEMENT: observe
+      HOME: /tmp
+  worker-b:
+    image: ${MEETWISE_HA_SANDBOX_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    environment:
+      NODE_ENV: development
+      DATABASE_SSL_MODE: disable
+      MODEL_COST_ENFORCEMENT: observe
+      RAG_COST_ENFORCEMENT: observe
+      HOME: /tmp
+
+  # ---- web ×2 沙箱材质：standalone 生产同形（next build 产物由驱动 up 前确保在位：
+  #      node apps/web/server.js，WORKDIR=standalone 根——与生产 Dockerfile CMD 逐字同形）。
+  #      RX-2 HOSTNAME 契约由此被真实检验：docker 注入 HOSTNAME=容器 ID，compose.ha.yml 显式
+  #      覆写 0.0.0.0——缺它 standalone 即绑容器 ID 拒连（healthcheck 恒 unhealthy·既有坑复现面）。
+  #      两副本共享同一份 RO 语义的 standalone 树（同生产双副本同镜像构建）·无 dev 写冲突面。----
+  web-a:
+    image: ${MEETWISE_HA_SANDBOX_WEB_IMAGE:-node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436}
+    working_dir: /app/apps/web/.next/standalone
+    command: ["node", "apps/web/server.js"]
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    environment:
+      HOME: /tmp
+  web-b:
+    image: ${MEETWISE_HA_SANDBOX_WEB_IMAGE:-node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436}
+    working_dir: /app/apps/web/.next/standalone
+    command: ["node", "apps/web/server.js"]
+    volumes:
+      - type: bind
+        source: ..
+        target: /app
+    environment:
+      HOME: /tmp

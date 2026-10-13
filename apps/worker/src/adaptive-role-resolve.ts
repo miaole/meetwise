@@ -16,6 +16,11 @@ export const LEGACY_TECH_ROLE_DEFAULT = '技术岗';
 export const ADAPTIVE_ROLE_ROUTE_MISSING = 'adaptive_role_route_missing';
 
 export type AdaptiveRoleSources = {
+  /**
+   * #259 用户显式目标岗位（begin `target-role` 头 → job payload 标量）。
+   * 最高优先：只覆写 role 值，不解锁 fail-closed 供给存在性门（见下）。
+   */
+  roleFromUserInput?: string | null;
   /** Primary leaf / role label from InterviewRouteSnapshot when a row exists. */
   roleFromRouteSnapshot?: string | null;
   /** Explicit role carried on job / route metadata when present. */
@@ -46,19 +51,29 @@ function nonBlank(value: string | null | undefined): string | undefined {
 
 /**
  * Resolve the role string passed into startAdaptiveInterview.
- * Prefer route snapshot → job route metadata → (legacy only when flag off) deps → legacy default.
+ *
+ * #259 priority: user input (begin `target-role`) → route snapshot → job route
+ * metadata → (legacy only when flag off) deps → legacy default.
+ *
+ * Gate semantics UNCHANGED: under fail-closed (default ON), a missing route
+ * snapshot still throws `adaptive_role_route_missing` even when
+ * `roleFromUserInput` is present — user input overrides the role VALUE, never
+ * the route-ledger existence gate. candidate_route decision/snapshot rows
+ * remain the routing/audit truth; a user-supplied role never skips supply or
+ * snapshot reads (并存优先序, Ban 供给链旁路).
  */
 export function resolveAdaptiveInterviewRole(
   sources: AdaptiveRoleSources = {},
   env: NodeJS.ProcessEnv = process.env,
 ): string {
+  const fromUser = nonBlank(sources.roleFromUserInput);
   const fromRoute =
     nonBlank(sources.roleFromRouteSnapshot) ?? nonBlank(sources.roleFromJobRouteMetadata);
   if (isTechRoleFailClosedEnabled(env)) {
-    if (fromRoute) return fromRoute;
+    if (fromRoute) return fromUser ?? fromRoute;
     throw Object.assign(new Error(ADAPTIVE_ROLE_ROUTE_MISSING), {
       code: ADAPTIVE_ROLE_ROUTE_MISSING,
     });
   }
-  return fromRoute ?? nonBlank(sources.roleFromDeps) ?? LEGACY_TECH_ROLE_DEFAULT;
+  return fromUser ?? fromRoute ?? nonBlank(sources.roleFromDeps) ?? LEGACY_TECH_ROLE_DEFAULT;
 }

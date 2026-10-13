@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · Ban invent a fix · this commit is not coding authorization and is not a prove）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-03
-**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`0345315`** / full `0345315d19c92f038519e6e4b5ebd680f36c6441`（Line K worktree `/Users/miaole/Desktop/golucky/meetwise-line-k` · branch `line/k-next-nhp`）
+**Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`0345315`** / full `0345315d19c92f038519e6e4b5ebd680f36c6441`（Line K worktree `meetwise-line-k`（仓根同级 worktree）· branch `line/k-next-nhp`）
 **Knife**: **NHP-014-ADV-01 / UC-E2E-014·026 ADV 列 · webhook 重放/篡改七类真证据**（一刀一行 · ADV 一列；不是把 `neg:commerce` / `full.e2e` 既有子集断言当七类已全铺）
 **Gap id**: **`GAP-UC014-026-WEBHOOK-ADV`**（本刀新具名 · 对应矩阵 ADV gap 读法「重放/篡改七类未全铺」；不改任何既有 gap id）
 **Case id**: **`NHP-014-ADV-01`**

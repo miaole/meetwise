@@ -1,0 +1,13 @@
+== B1 retry (post-inject state continues; counters already lifted) ==
+api readyz 200 at watch_t+27ms (poll #1)
+== POST ==
+api pid/start after: 15290 2026-10-10T19:13:38.762127876Z
+worker pid/start after: 0 2026-10-10T19:13:38.767563167Z
+RestartCount api=0 worker=0
+uncaughtException api=0 worker=0
+db_pool_error api lines: 1
+db_pool_error worker lines: 6
+== api metrics after ==
+# TYPE meetwise_db_pool_errors_total counter
+meetwise_db_pool_errors_total{purpose="api"} 1
+== worker metrics after ==

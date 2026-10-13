@@ -1,0 +1,424 @@
+# HA-1 REDUNDANCY overlay — R-17 单机单副本→单机多副本（compose 内进程级冗余拓扑本体）。
+#
+#   haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false —— 本文件只交付拓扑本体
+#   与判定面，不翻转任何 pin；「生产 100% HA」叙事仍受 north-star-ha.md 证据阶梯与七硬闸约束。
+#   单机宿主仍是 SPOF（宿主级冗余归 S15/B4 终裁）；est live=0：生产宿主应用本拓扑须协调方另行授权。
+#
+# 用法（-f 合载，零原地改 compose.prod.yml —— 治理先例 compose.prod.override.yml:1-6）：
+#   docker compose -f docker/compose.prod.yml -f docker/compose.ha.yml config
+#   docker compose -f docker/compose.prod.yml -f docker/compose.ha.yml up -d
+#
+# RX-1（rev2 §9-1 硬前置）：compose -f 合载【不会移除】compose.prod.yml 的原 api/worker/web 三
+#   service——端口冲突 up 必败，或改绑端口后静默 3× 拓扑假绿。本叠加层以 profiles 覆盖停用原三
+#   service（下方三个 `profiles: ["ha-disabled"]` 单键重定义·其余键经合并原样继承）；默认不带
+#   --profile ha-disabled 启动时原三 service 不参与 up/ps。ha-status.mjs 副本计数按显式服务名
+#   清单（api-a/api-b/web-a/web-b/worker-a/worker-b/lb）并附「原三 service 不在 running」排除断言。
+#
+# RX-2（rev2 §9-2）：web-a/web-b 逐 service 显式 HOSTNAME: "0.0.0.0"——env 按 service 名合并，
+#   新 service 名不继承原 web 的 env；缺 HOSTNAME 时 standalone server 会拿容器 ID 当监听地址，
+#   healthcheck 恒 unhealthy（复踩既有坑）。
+#
+# RX-3（rev2 §9-3）：api-a/api-b 注 INSTANCE_ID（分流观测通道·先例 compose.ha-dual.yml:75/:88）。
+#   产品码零读 INSTANCE_ID（本刀零改产品码基线）：分流实证走 LB 侧 X-HA-Upstream 响应头 +
+#   $upstream_addr 日志（机器可判），INSTANCE_ID 以 printenv 收据留痕。
+#
+# 资源裁决（§2.1-6 / §5-4 二择一·EXEC 落卷）：选①「宿主升 4c8g」。per-replica mem_limit 与
+#   compose.prod.yml 现值逐项相同（api 512m/worker 1g/web 512m）+ lb 64m，全拓扑预算 4.0625G：
+#   超现 2c4g/4G 预览信封、入 W2 对照（w2-resource-sizing-receipts.md:32）的 4c8g 档。
+#   理由：减半（选②）会把 OOM 可用性风险永久烘进生产叠加工件——恰是 HA 要修的面；本刀 est live=0
+#   不落生产宿主，故不构成对现 4G 宿主的静默超售；**任何生产应用/翻转前必须先完成宿主升 4c8g**，
+#   该前置随预算表（receipts/ha-1/resource-budget.json）入 B4/S15 终裁继承面。
+#
+# web-b 宿主回环端口旋钮：默认 3001（REQUEST §2.1-3 契约值不变）。旋钮只为沙箱让路——本机 3001
+#   被无关进程占用时沙箱以 MEETWISE_HA_WEB_B_HOST_PORT=13001 旁路；生产 env 不设即 3001。
+#
+# 治理诚实注记（rev2 §9-10）：本叠加层沿 compose.prod.override.yml 既有「非治理运行时旋钮」惯例，
+#   惯例无仪式；日后升格治理契约另行裁定。
+#
+# 漂移风险注记：YAML 锚不跨文件，下方 x-ha-*-env/x-ha-runtime-security 为 compose.prod.yml 同名锚
+#   的逐字镜像（prod 锚仍是单一真相）；改 prod 锚须同步本镜像——ha-status.mjs 不校验锚一致性，
+#   漂移由 rev2 复审与人审把守。
+
+x-ha-runtime-security: &ha-runtime-security
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=64m
+
+x-ha-cloud-runtime-env: &ha-cloud-runtime-env
+  NODE_ENV: production
+  DATABASE_URL: ${RUNTIME_DATABASE_URL:?set RUNTIME_DATABASE_URL from the cloud secret manager}
+  DATABASE_SSL_MODE: verify-full
+  DATABASE_SSL_CA_PATH: /run/secrets/rds_ca
+  PGPOOL_MAX: "12"
+  WEB_ORIGIN: ${WEB_ORIGIN:?set the public HTTPS web origin}
+  AUTH_SECRET: ${AUTH_SECRET:?set AUTH_SECRET from the cloud secret manager}
+  PAY_PROVIDER_SECRET: ${PAY_PROVIDER_SECRET:?set PAY_PROVIDER_SECRET from the cloud secret manager}
+  RESUME_ENC_KEY: ${RESUME_ENC_KEY:?set RESUME_ENC_KEY from the cloud secret manager}
+  RESUME_HASH_SECRET: ${RESUME_HASH_SECRET:?set RESUME_HASH_SECRET from the cloud secret manager}
+  OCR_ENABLED: ${OCR_ENABLED:-0}
+  OCR_PREVIEW: ${OCR_PREVIEW:-0}
+  MODEL_TIMEOUT_MS: ${MODEL_TIMEOUT_MS:-30000}
+  MODEL_EXECUTION_TIMEOUT_MS: ${MODEL_EXECUTION_TIMEOUT_MS:-35000}
+  MODEL_INVOCATION_WAIT_MS: ${MODEL_INVOCATION_WAIT_MS:-35000}
+  MODEL_INVOCATION_RECONCILE_AFTER_MS: ${MODEL_INVOCATION_RECONCILE_AFTER_MS:-120000}
+  MODEL_INVOCATION_RECONCILE_BATCH: ${MODEL_INVOCATION_RECONCILE_BATCH:-100}
+  MODEL_COST_ENFORCEMENT: enforce
+  MODEL_COST_BUDGET_SCOPE: ${MODEL_COST_BUDGET_SCOPE:?set MODEL_COST_BUDGET_SCOPE}
+  MODEL_COST_MONTHLY_BUDGET_MICRO_CNY: ${MODEL_COST_MONTHLY_BUDGET_MICRO_CNY:?set MODEL_COST_MONTHLY_BUDGET_MICRO_CNY}
+  MODEL_PRIMARY_BILLING_PROVIDER: ${MODEL_PRIMARY_BILLING_PROVIDER:?set MODEL_PRIMARY_BILLING_PROVIDER}
+  MODEL_PRIMARY_BILLING_MODEL: ${MODEL_PRIMARY_BILLING_MODEL:?set MODEL_PRIMARY_BILLING_MODEL}
+  MODEL_PRIMARY_BILLING_REGION: ${MODEL_PRIMARY_BILLING_REGION:?set MODEL_PRIMARY_BILLING_REGION}
+  MODEL_PRIMARY_PRICE_REVISION: ${MODEL_PRIMARY_PRICE_REVISION:?set MODEL_PRIMARY_PRICE_REVISION}
+  MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION: ${MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION:?set MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION}
+  MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION: ${MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION:?set MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION}
+  MODEL_PRIMARY_PRICE_SOURCE_URL: ${MODEL_PRIMARY_PRICE_SOURCE_URL:?set MODEL_PRIMARY_PRICE_SOURCE_URL}
+  MODEL_PRIMARY_MAX_INPUT_TOKENS: ${MODEL_PRIMARY_MAX_INPUT_TOKENS:-16000}
+  MODEL_PRIMARY_MAX_OUTPUT_TOKENS: ${MODEL_PRIMARY_MAX_OUTPUT_TOKENS:-4000}
+  MODEL_PRIMARY_CONTEXT_WINDOW_TOKENS: ${MODEL_PRIMARY_CONTEXT_WINDOW_TOKENS:?set MODEL_PRIMARY_CONTEXT_WINDOW_TOKENS}
+  MODEL_PRIMARY_CONTEXT_ESTIMATOR: ${MODEL_PRIMARY_CONTEXT_ESTIMATOR:-utf8-bytes-v1}
+  MODEL_PRIMARY_CONTEXT_SAFETY_MARGIN_TOKENS: ${MODEL_PRIMARY_CONTEXT_SAFETY_MARGIN_TOKENS:?set MODEL_PRIMARY_CONTEXT_SAFETY_MARGIN_TOKENS}
+  MODEL_FAST_BILLING_PROVIDER: ${MODEL_FAST_BILLING_PROVIDER:?set MODEL_FAST_BILLING_PROVIDER}
+  MODEL_FAST_BILLING_MODEL: ${MODEL_FAST_BILLING_MODEL:?set MODEL_FAST_BILLING_MODEL}
+  MODEL_FAST_BILLING_REGION: ${MODEL_FAST_BILLING_REGION:?set MODEL_FAST_BILLING_REGION}
+  MODEL_FAST_PRICE_REVISION: ${MODEL_FAST_PRICE_REVISION:?set MODEL_FAST_PRICE_REVISION}
+  MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION: ${MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION:?set MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION}
+  MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION: ${MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION:?set MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION}
+  MODEL_FAST_PRICE_SOURCE_URL: ${MODEL_FAST_PRICE_SOURCE_URL:?set MODEL_FAST_PRICE_SOURCE_URL}
+  MODEL_FAST_MAX_INPUT_TOKENS: ${MODEL_FAST_MAX_INPUT_TOKENS:-16000}
+  MODEL_FAST_MAX_OUTPUT_TOKENS: ${MODEL_FAST_MAX_OUTPUT_TOKENS:-4000}
+  MODEL_FAST_CONTEXT_WINDOW_TOKENS: ${MODEL_FAST_CONTEXT_WINDOW_TOKENS:?set MODEL_FAST_CONTEXT_WINDOW_TOKENS}
+  MODEL_FAST_CONTEXT_ESTIMATOR: ${MODEL_FAST_CONTEXT_ESTIMATOR:-utf8-bytes-v1}
+  MODEL_FAST_CONTEXT_SAFETY_MARGIN_TOKENS: ${MODEL_FAST_CONTEXT_SAFETY_MARGIN_TOKENS:?set MODEL_FAST_CONTEXT_SAFETY_MARGIN_TOKENS}
+  RAG_REDIS_URL: ${RAG_REDIS_URL:?set TLS-protected Tair RAG_REDIS_URL}
+  RAG_REDIS_TOPOLOGY: ${RAG_REDIS_TOPOLOGY:-standalone}
+  RAG_REDIS_CONNECT_TIMEOUT_MS: ${RAG_REDIS_CONNECT_TIMEOUT_MS:-1000}
+  RAG_REDIS_COMMAND_TIMEOUT_MS: ${RAG_REDIS_COMMAND_TIMEOUT_MS:-1000}
+  RAG_QBANK_CACHE_HASH_KEY: ${RAG_QBANK_CACHE_HASH_KEY:?set RAG_QBANK_CACHE_HASH_KEY}
+  RAG_COST_ENFORCEMENT: enforce
+  RAG_EMBED_MAX_INPUT_TOKENS: ${RAG_EMBED_MAX_INPUT_TOKENS:-16000}
+  RAG_EMBED_BILLING_PROVIDER: ${RAG_EMBED_BILLING_PROVIDER:?set RAG_EMBED_BILLING_PROVIDER}
+  RAG_EMBED_BILLING_MODEL: ${RAG_EMBED_BILLING_MODEL:?set RAG_EMBED_BILLING_MODEL}
+  RAG_EMBED_BILLING_REGION: ${RAG_EMBED_BILLING_REGION:?set RAG_EMBED_BILLING_REGION}
+  RAG_EMBED_PRICE_REVISION: ${RAG_EMBED_PRICE_REVISION:?set RAG_EMBED_PRICE_REVISION}
+  RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION: ${RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION:?set RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION}
+  RAG_EMBED_PRICE_SOURCE_URL: ${RAG_EMBED_PRICE_SOURCE_URL:?set RAG_EMBED_PRICE_SOURCE_URL}
+  RAG_EMBED_MONTHLY_BUDGET_MICRO_CNY: ${RAG_EMBED_MONTHLY_BUDGET_MICRO_CNY:?set RAG_EMBED_MONTHLY_BUDGET_MICRO_CNY}
+  RAG_EMBED_BUDGET_SCOPE: ${RAG_EMBED_BUDGET_SCOPE:?set RAG_EMBED_BUDGET_SCOPE}
+  WEB_ALLOWLIST: ${WEB_ALLOWLIST:-}
+
+x-ha-worker-native-model-env: &ha-worker-native-model-env
+  DASHSCOPE_EMBED_API_KEY: ${DASHSCOPE_EMBED_API_KEY:?set DASHSCOPE_EMBED_API_KEY from the cloud secret manager}
+  DASHSCOPE_RERANK_API_KEY: ${DASHSCOPE_RERANK_API_KEY:?set DASHSCOPE_RERANK_API_KEY from the cloud secret manager}
+  DASHSCOPE_ASR_API_KEY: ${DASHSCOPE_ASR_API_KEY:?set DASHSCOPE_ASR_API_KEY from the cloud secret manager}
+  DASHSCOPE_TTS_API_KEY: ${DASHSCOPE_TTS_API_KEY:?set DASHSCOPE_TTS_API_KEY from the cloud secret manager}
+  DASHSCOPE_STREAM_ASR_API_KEY: ${DASHSCOPE_STREAM_ASR_API_KEY:?set DASHSCOPE_STREAM_ASR_API_KEY from the cloud secret manager}
+  DASHSCOPE_STREAM_TTS_API_KEY: ${DASHSCOPE_STREAM_TTS_API_KEY:?set DASHSCOPE_STREAM_TTS_API_KEY from the cloud secret manager}
+  DASHSCOPE_VISION_API_KEY: ${DASHSCOPE_VISION_API_KEY:-}
+  DASHSCOPE_EMBED_API_KEY_FINGERPRINT: ${DASHSCOPE_EMBED_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_RERANK_API_KEY_FINGERPRINT: ${DASHSCOPE_RERANK_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_ASR_API_KEY_FINGERPRINT: ${DASHSCOPE_ASR_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_TTS_API_KEY_FINGERPRINT: ${DASHSCOPE_TTS_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT: ${DASHSCOPE_STREAM_ASR_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT: ${DASHSCOPE_STREAM_TTS_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_VISION_API_KEY_FINGERPRINT: ${DASHSCOPE_VISION_API_KEY_FINGERPRINT:-}
+  DASHSCOPE_REVOKED_KEY_FINGERPRINTS: ${DASHSCOPE_REVOKED_KEY_FINGERPRINTS:-}
+  DASHSCOPE_ENDPOINT_PROFILE: ${DASHSCOPE_ENDPOINT_PROFILE:-cn-beijing-public}
+  DASHSCOPE_WORKSPACE_ID: ${DASHSCOPE_WORKSPACE_ID:-}
+  DASHSCOPE_ASR_MODEL: ${DASHSCOPE_ASR_MODEL:?set DASHSCOPE_ASR_MODEL}
+  DASHSCOPE_TTS_MODEL: ${DASHSCOPE_TTS_MODEL:?set DASHSCOPE_TTS_MODEL}
+  DASHSCOPE_EMBED_MODEL: ${DASHSCOPE_EMBED_MODEL:?set DASHSCOPE_EMBED_MODEL}
+  DASHSCOPE_RERANK_MODEL: ${DASHSCOPE_RERANK_MODEL:?set DASHSCOPE_RERANK_MODEL}
+  DASHSCOPE_VISION_MODEL: ${DASHSCOPE_VISION_MODEL:-qwen-vl-max}
+  DASHSCOPE_STREAM_ASR_MODEL: ${DASHSCOPE_STREAM_ASR_MODEL:?set DASHSCOPE_STREAM_ASR_MODEL}
+  DASHSCOPE_STREAM_TTS_MODEL: ${DASHSCOPE_STREAM_TTS_MODEL:?set DASHSCOPE_STREAM_TTS_MODEL}
+
+services:
+  # ---- RX-1：停用原三 service（单键重定义·其余经合并继承 base）----
+  api:
+    profiles: ["ha-disabled"]
+  worker:
+    profiles: ["ha-disabled"]
+  web:
+    profiles: ["ha-disabled"]
+
+  # ---- api ×2（A1）----
+  api-a:
+    <<: *ha-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
+    working_dir: /app/apps/api
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    hostname: api-a
+    environment:
+      <<: *ha-cloud-runtime-env
+      PORT: "8787"
+      HOST: 0.0.0.0
+      INSTANCE_ID: api-a
+    secrets: [rds_ca]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      # 宿主回环绑定铁律沿用：api 不 0.0.0.0 暴露（compose.prod.yml:250-253 同口径）。
+      - "127.0.0.1:8787:8787"
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/readyz/api').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  api-b:
+    <<: *ha-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
+    working_dir: /app/apps/api
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    hostname: api-b
+    environment:
+      <<: *ha-cloud-runtime-env
+      PORT: "8787"
+      HOST: 0.0.0.0
+      INSTANCE_ID: api-b
+    secrets: [rds_ca]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    ports:
+      - "127.0.0.1:8788:8787"
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/readyz/api').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  # ---- worker ×2（A3·租约互斥既有零新互斥码）----
+  worker-a:
+    <<: *ha-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
+    working_dir: /app/apps/worker
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    hostname: worker-a
+    environment:
+      <<: [*ha-cloud-runtime-env, *ha-worker-native-model-env]
+      MODEL_ENDPOINT_PROFILE: ${MODEL_ENDPOINT_PROFILE:-deepseek-cn-public}
+      MODEL_BACKUP_ENDPOINT_PROFILE: ${MODEL_BACKUP_ENDPOINT_PROFILE:-dashscope-cn-beijing}
+      MODEL_API_KEY: ${MODEL_API_KEY:?set MODEL_API_KEY from the cloud secret manager}
+      MODEL_NAME: ${MODEL_NAME:?set MODEL_NAME}
+      MODEL_FAST_NAME: ${MODEL_FAST_NAME:?set MODEL_FAST_NAME}
+      MODEL_BACKUP_API_KEY: ${MODEL_BACKUP_API_KEY:?set MODEL_BACKUP_API_KEY from the cloud secret manager}
+      MODEL_BACKUP_NAME: ${MODEL_BACKUP_NAME:?set MODEL_BACKUP_NAME}
+      MODEL_FAST_BACKUP_NAME: ${MODEL_FAST_BACKUP_NAME:?set MODEL_FAST_BACKUP_NAME}
+      MODEL_BACKUP_BILLING_PROVIDER: ${MODEL_BACKUP_BILLING_PROVIDER:?set MODEL_BACKUP_BILLING_PROVIDER}
+      MODEL_BACKUP_BILLING_MODEL: ${MODEL_BACKUP_BILLING_MODEL:?set MODEL_BACKUP_BILLING_MODEL}
+      MODEL_BACKUP_BILLING_REGION: ${MODEL_BACKUP_BILLING_REGION:?set MODEL_BACKUP_BILLING_REGION}
+      MODEL_BACKUP_PRICE_REVISION: ${MODEL_BACKUP_PRICE_REVISION:?set MODEL_BACKUP_PRICE_REVISION}
+      MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION: ${MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION:?set MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION}
+      MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION: ${MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION:?set MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION}
+      MODEL_BACKUP_PRICE_SOURCE_URL: ${MODEL_BACKUP_PRICE_SOURCE_URL:?set MODEL_BACKUP_PRICE_SOURCE_URL}
+      MODEL_BACKUP_MAX_INPUT_TOKENS: ${MODEL_BACKUP_MAX_INPUT_TOKENS:-16000}
+      MODEL_BACKUP_MAX_OUTPUT_TOKENS: ${MODEL_BACKUP_MAX_OUTPUT_TOKENS:-4000}
+      MODEL_BACKUP_CONTEXT_WINDOW_TOKENS: ${MODEL_BACKUP_CONTEXT_WINDOW_TOKENS:?set MODEL_BACKUP_CONTEXT_WINDOW_TOKENS}
+      MODEL_BACKUP_CONTEXT_ESTIMATOR: ${MODEL_BACKUP_CONTEXT_ESTIMATOR:-utf8-bytes-v1}
+      MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS: ${MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS:?set MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS}
+      MODEL_FAST_BACKUP_BILLING_PROVIDER: ${MODEL_FAST_BACKUP_BILLING_PROVIDER:?set MODEL_FAST_BACKUP_BILLING_PROVIDER}
+      MODEL_FAST_BACKUP_BILLING_MODEL: ${MODEL_FAST_BACKUP_BILLING_MODEL:?set MODEL_FAST_BACKUP_BILLING_MODEL}
+      MODEL_FAST_BACKUP_BILLING_REGION: ${MODEL_FAST_BACKUP_BILLING_REGION:?set MODEL_FAST_BACKUP_BILLING_REGION}
+      MODEL_FAST_BACKUP_PRICE_REVISION: ${MODEL_FAST_BACKUP_PRICE_REVISION:?set MODEL_FAST_BACKUP_PRICE_REVISION}
+      MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION: ${MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION:?set MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION}
+      MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION: ${MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION:?set MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION}
+      MODEL_FAST_BACKUP_PRICE_SOURCE_URL: ${MODEL_FAST_BACKUP_PRICE_SOURCE_URL:?set MODEL_FAST_BACKUP_PRICE_SOURCE_URL}
+      MODEL_FAST_BACKUP_MAX_INPUT_TOKENS: ${MODEL_FAST_BACKUP_MAX_INPUT_TOKENS:-16000}
+      MODEL_FAST_BACKUP_MAX_OUTPUT_TOKENS: ${MODEL_FAST_BACKUP_MAX_OUTPUT_TOKENS:-4000}
+      MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS: ${MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS:?set MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS}
+      MODEL_FAST_BACKUP_CONTEXT_ESTIMATOR: ${MODEL_FAST_BACKUP_CONTEXT_ESTIMATOR:-utf8-bytes-v1}
+      MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS: ${MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS:?set MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS}
+      MODEL_API_KEY_FINGERPRINT: ${MODEL_API_KEY_FINGERPRINT:-}
+      MODEL_BACKUP_API_KEY_FINGERPRINT: ${MODEL_BACKUP_API_KEY_FINGERPRINT:-}
+      MODEL_REVOKED_KEY_FINGERPRINTS: ${MODEL_REVOKED_KEY_FINGERPRINTS:-}
+      WORKER_BOOTSTRAP: "1"
+      WORKER_JOB_RECONCILE_INTERVAL_MS: ${WORKER_JOB_RECONCILE_INTERVAL_MS:-5000}
+      QBANK_CONTROL_DATABASE_URL: ${QBANK_CONTROL_DATABASE_URL:?set dedicated qbank control database URL}
+      RAG_CONTROL_DATABASE_URL: ${RAG_CONTROL_DATABASE_URL:?set dedicated generic RAG control database URL}
+      WORKER_METRICS_HOST: 0.0.0.0
+      INSTANCE_ID: worker-a
+    secrets: [rds_ca]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "9091"
+    restart: unless-stopped
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9091/readyz/worker').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  worker-b:
+    <<: *ha-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
+    working_dir: /app/apps/worker
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    hostname: worker-b
+    environment:
+      <<: [*ha-cloud-runtime-env, *ha-worker-native-model-env]
+      MODEL_ENDPOINT_PROFILE: ${MODEL_ENDPOINT_PROFILE:-deepseek-cn-public}
+      MODEL_BACKUP_ENDPOINT_PROFILE: ${MODEL_BACKUP_ENDPOINT_PROFILE:-dashscope-cn-beijing}
+      MODEL_API_KEY: ${MODEL_API_KEY:?set MODEL_API_KEY from the cloud secret manager}
+      MODEL_NAME: ${MODEL_NAME:?set MODEL_NAME}
+      MODEL_FAST_NAME: ${MODEL_FAST_NAME:?set MODEL_FAST_NAME}
+      MODEL_BACKUP_API_KEY: ${MODEL_BACKUP_API_KEY:?set MODEL_BACKUP_API_KEY from the cloud secret manager}
+      MODEL_BACKUP_NAME: ${MODEL_BACKUP_NAME:?set MODEL_BACKUP_NAME}
+      MODEL_FAST_BACKUP_NAME: ${MODEL_FAST_BACKUP_NAME:?set MODEL_FAST_BACKUP_NAME}
+      MODEL_BACKUP_BILLING_PROVIDER: ${MODEL_BACKUP_BILLING_PROVIDER:?set MODEL_BACKUP_BILLING_PROVIDER}
+      MODEL_BACKUP_BILLING_MODEL: ${MODEL_BACKUP_BILLING_MODEL:?set MODEL_BACKUP_BILLING_MODEL}
+      MODEL_BACKUP_BILLING_REGION: ${MODEL_BACKUP_BILLING_REGION:?set MODEL_BACKUP_BILLING_REGION}
+      MODEL_BACKUP_PRICE_REVISION: ${MODEL_BACKUP_PRICE_REVISION:?set MODEL_BACKUP_PRICE_REVISION}
+      MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION: ${MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION:?set MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION}
+      MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION: ${MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION:?set MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION}
+      MODEL_BACKUP_PRICE_SOURCE_URL: ${MODEL_BACKUP_PRICE_SOURCE_URL:?set MODEL_BACKUP_PRICE_SOURCE_URL}
+      MODEL_BACKUP_MAX_INPUT_TOKENS: ${MODEL_BACKUP_MAX_INPUT_TOKENS:-16000}
+      MODEL_BACKUP_MAX_OUTPUT_TOKENS: ${MODEL_BACKUP_MAX_OUTPUT_TOKENS:-4000}
+      MODEL_BACKUP_CONTEXT_WINDOW_TOKENS: ${MODEL_BACKUP_CONTEXT_WINDOW_TOKENS:?set MODEL_BACKUP_CONTEXT_WINDOW_TOKENS}
+      MODEL_BACKUP_CONTEXT_ESTIMATOR: ${MODEL_BACKUP_CONTEXT_ESTIMATOR:-utf8-bytes-v1}
+      MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS: ${MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS:?set MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS}
+      MODEL_FAST_BACKUP_BILLING_PROVIDER: ${MODEL_FAST_BACKUP_BILLING_PROVIDER:?set MODEL_FAST_BACKUP_BILLING_PROVIDER}
+      MODEL_FAST_BACKUP_BILLING_MODEL: ${MODEL_FAST_BACKUP_BILLING_MODEL:?set MODEL_FAST_BACKUP_BILLING_MODEL}
+      MODEL_FAST_BACKUP_BILLING_REGION: ${MODEL_FAST_BACKUP_BILLING_REGION:?set MODEL_FAST_BACKUP_BILLING_REGION}
+      MODEL_FAST_BACKUP_PRICE_REVISION: ${MODEL_FAST_BACKUP_PRICE_REVISION:?set MODEL_FAST_BACKUP_PRICE_REVISION}
+      MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION: ${MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION:?set MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION}
+      MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION: ${MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION:?set MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION}
+      MODEL_FAST_BACKUP_PRICE_SOURCE_URL: ${MODEL_FAST_BACKUP_PRICE_SOURCE_URL:?set MODEL_FAST_BACKUP_PRICE_SOURCE_URL}
+      MODEL_FAST_BACKUP_MAX_INPUT_TOKENS: ${MODEL_FAST_BACKUP_MAX_INPUT_TOKENS:-16000}
+      MODEL_FAST_BACKUP_MAX_OUTPUT_TOKENS: ${MODEL_FAST_BACKUP_MAX_OUTPUT_TOKENS:-4000}
+      MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS: ${MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS:?set MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS}
+      MODEL_FAST_BACKUP_CONTEXT_ESTIMATOR: ${MODEL_FAST_BACKUP_CONTEXT_ESTIMATOR:-utf8-bytes-v1}
+      MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS: ${MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS:?set MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS}
+      MODEL_API_KEY_FINGERPRINT: ${MODEL_API_KEY_FINGERPRINT:-}
+      MODEL_BACKUP_API_KEY_FINGERPRINT: ${MODEL_BACKUP_API_KEY_FINGERPRINT:-}
+      MODEL_REVOKED_KEY_FINGERPRINTS: ${MODEL_REVOKED_KEY_FINGERPRINTS:-}
+      WORKER_BOOTSTRAP: "1"
+      WORKER_JOB_RECONCILE_INTERVAL_MS: ${WORKER_JOB_RECONCILE_INTERVAL_MS:-5000}
+      QBANK_CONTROL_DATABASE_URL: ${QBANK_CONTROL_DATABASE_URL:?set dedicated qbank control database URL}
+      RAG_CONTROL_DATABASE_URL: ${RAG_CONTROL_DATABASE_URL:?set dedicated generic RAG control database URL}
+      WORKER_METRICS_HOST: 0.0.0.0
+      INSTANCE_ID: worker-b
+    secrets: [rds_ca]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    expose:
+      - "9091"
+    restart: unless-stopped
+    mem_limit: 1g
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9091/readyz/worker').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  # ---- LB（A4 api 入口·容器网 expose 不落宿主端口）----
+  lb:
+    <<: *ha-runtime-security
+    # nginx-unprivileged（uid 101 非 root）：官方 nginx 镜像 master 以 root 启动需 CHOWN/SETUID
+    # 权能建缓存目录——与 x-ha-runtime-security 的 cap_drop ALL 冲突（chown EPERM emerg 实证）。
+    # unprivileged 变体零权能需求（listen 8787 非特端口 + tmpfs /tmp·/var/run·/var/cache/nginx），
+    # 安全锚零弱化；健康判据 wget /livez 不变。
+    image: nginxinc/nginx-unprivileged:1.27-alpine@sha256:65e3e85dbaed8ba248841d9d58a899b6197106c23cb0ff1a132b7bfe0547e4c0
+    hostname: lb
+    volumes:
+      - type: bind
+        source: ./lb.nginx.conf
+        target: /etc/nginx/conf.d/default.conf
+        read_only: true
+    tmpfs:
+      # read_only rootfs 下 nginx 需要可写缓存/pid 目录。注意 YAML 锚合并语义：显式 tmpfs
+      # 覆盖锚内 /tmp——此处逐条重列（含 /tmp）以保持 x-ha-runtime-security 面完整。
+      - /tmp:rw,noexec,nosuid,nodev,size=64m
+      - /var/cache/nginx:rw,noexec,nosuid,nodev,size=32m
+      - /var/run:rw,noexec,nosuid,nodev,size=16m
+    depends_on:
+      api-a:
+        condition: service_healthy
+      api-b:
+        condition: service_healthy
+    expose:
+      - "8787"
+    restart: unless-stopped
+    mem_limit: 64m
+    healthcheck:
+      test: ["CMD", "wget", "-q", "-O", "-", "http://127.0.0.1:8787/livez"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 10s
+
+  # ---- web ×2（A2·RX-2 HOSTNAME 逐 service 显式）----
+  web-a:
+    <<: *ha-runtime-security
+    image: ${WEB_IMAGE:?set WEB_IMAGE = <registry>/<namespace>/meetwise-web@sha256:<digest>}
+    hostname: web-a
+    environment:
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set public API base URL}
+      # 服务端直连改走 LB 服务名（api-a/api-b 双后端·compose 私网）。
+      API_BASE_INTERNAL: http://lb:8787
+      PORT: "3000"
+      # RX-2：新 service 名不继承原 web env；缺 HOSTNAME → 容器 ID 当监听地址 → healthcheck 恒 unhealthy。
+      HOSTNAME: "0.0.0.0"
+      OCR_ENABLED: ${OCR_ENABLED:-0}
+      OCR_PREVIEW: ${OCR_PREVIEW:-0}
+      MODEL_COST_ENFORCEMENT: ${MODEL_COST_ENFORCEMENT:-enforce}
+      MEETWISE_PUBLIC_PREVIEW: ${MEETWISE_PUBLIC_PREVIEW:-0}
+    depends_on:
+      lb:
+        condition: service_healthy
+    ports:
+      # 宿主回环绑定铁律沿用：web 只由宿主 nginx 代理，不 0.0.0.0 暴露（compose.prod.yml:362-364 同口径）。
+      - "127.0.0.1:3000:3000"
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s
+
+  web-b:
+    <<: *ha-runtime-security
+    image: ${WEB_IMAGE:?set WEB_IMAGE = <registry>/<namespace>/meetwise-web@sha256:<digest>}
+    hostname: web-b
+    environment:
+      NEXT_PUBLIC_API_BASE: ${NEXT_PUBLIC_API_BASE:?set public API base URL}
+      API_BASE_INTERNAL: http://lb:8787
+      PORT: "3000"
+      HOSTNAME: "0.0.0.0"
+      OCR_ENABLED: ${OCR_ENABLED:-0}
+      OCR_PREVIEW: ${OCR_PREVIEW:-0}
+      MODEL_COST_ENFORCEMENT: ${MODEL_COST_ENFORCEMENT:-enforce}
+      MEETWISE_PUBLIC_PREVIEW: ${MEETWISE_PUBLIC_PREVIEW:-0}
+    depends_on:
+      lb:
+        condition: service_healthy
+    ports:
+      # web-b 宿主回环端口旋钮：默认 3001；仅沙箱在本机 3001 被占时以 env 拨动（见文件头注记）。
+      - "127.0.0.1:${MEETWISE_HA_WEB_B_HOST_PORT:-3001}:3000"
+    restart: unless-stopped
+    mem_limit: 512m
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:3000/login').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
+      interval: 10s
+      timeout: 3s
+      retries: 12
+      start_period: 20s

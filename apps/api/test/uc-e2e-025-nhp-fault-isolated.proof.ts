@@ -250,8 +250,9 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 
   // Static orthogonality pin (product code unchanged this turn — inventory only)
   const svc = readFileSync(fileURLToPath(new URL('../src/modules/interview/interview.service.ts', import.meta.url)), 'utf8');
-  const bStart = svc.indexOf('begin(principal');
-  const bEnd = svc.indexOf('turn(principal', bStart);
+  // B271 片2 后 begin 事务体=beginInterviewCore 模块体(REG-FIX 组4d 区域锚随演):核心函数起·InterviewService 类止。
+  const bStart = svc.indexOf('export async function beginInterviewCore(');
+  const bEnd = svc.indexOf('export class InterviewService', bStart);
   const region = bStart >= 0 && bEnd > bStart ? svc.slice(bStart, bEnd) : '';
   const faultAt = region.search(/error:\s*'missing_quiz_expiry'/);
   const staleAt = region.search(/error:\s*'stale_quiz'/);

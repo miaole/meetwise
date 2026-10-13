@@ -2,11 +2,13 @@
 
 status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零 spec 零实跑零 live 零容器——trio 实跑属下轮 EXEC 面）
 
+> erratum 2026-10-11：本刀已终局 nail 并被 G7TRIO-2 取代，此状态行陈旧·对终局卷 re-EXEC 无效·stub 0 字节维持（终局登记＝execution-master-checklist :1567/:1583 BOTH PASS·取代刀 EXEC `0d61379c`·append-only 注记·上行原文保留）
+
 **Pins（文首照抄 · 原值写死 · 零翻转）**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · **g7SuiteGreen=false** · **actualSpendCny=null**. Do not write covered.
 
 **Date**: 2026-10-08
 **Line**: **G7Y**（trio 复跑判定 · 三绿收官测量刀）
-**Base**: `origin/feat/mysql-schema-skeleton` = **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · 2026-10-08 fetch 后实测 tip，≥ `9265e4d8` 达成 · 本地同名分支已 ff 同点）· worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7y` · branch `line/g7y-trio-rerun`（新立自 origin tip · tracking **`origin/feat/mysql-schema-skeleton`**——`git worktree add -b` 派生默认 tracking 实况，rev3 更正；origin 上同名分支 `line/g7y-trio-rerun` 系本刀 push 时新立 · 禁 force push）。
+**Base**: `origin/feat/mysql-schema-skeleton` = **`9265e4d8`**（full `9265e4d8a58eaa064244eb3c5fd02c165e83d8fc` · 2026-10-08 fetch 后实测 tip，≥ `9265e4d8` 达成 · 本地同名分支已 ff 同点）· worktree `meetwise-line-g7y`（仓根同级 worktree）· branch `line/g7y-trio-rerun`（新立自 origin tip · tracking **`origin/feat/mysql-schema-skeleton`**——`git worktree add -b` 派生默认 tracking 实况，rev3 更正；origin 上同名分支 `line/g7y-trio-rerun` 系本刀 push 时新立 · 禁 force push）。
 
 **立项出处（引用既有登记 · 不自建 SSOT 行）**：协调方 G7Y trio 复跑判定刀——CMOP03-FIX nail「C-MO-P3 行关闭/翻转归协调方后续（**trio 复跑复核保留**）」+ G7V-CALIB nail「G7U 残红①关联子面处置**随 G7Y trio 复判**」+ CMOP03-D nail「trio stays OPEN（真测 1/1/1 retained）· 复判 run 归协调方」既有指向的行使。本 REQUEST 为独立全链 REQUEST（REQUEST → 预执行双审 → meetwise 授权 → EXEC → post-prove 双审 → meetwise 授权 nail）。
 

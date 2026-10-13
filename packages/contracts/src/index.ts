@@ -14,7 +14,7 @@ export type Credentials = z.infer<typeof Credentials>;
 /** 注册:含身份(求职者 C 端 / 招聘方 B 端)。 */
 export const SignupDto = z.object({ email: z.string().email().max(254), password: z.string().min(8).max(128), role: z.enum(['candidate', 'recruiter']).optional() });
 export type SignupDto = z.infer<typeof SignupDto>;
-export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional() });
+export const AuthResult = z.object({ token: z.string(), userId: z.string().optional(), role: z.string().optional(), approvalStatus: z.enum(['pending', 'approved', 'rejected']).optional() });
 export type AuthResult = z.infer<typeof AuthResult>;
 
 /* ───────────── resume ───────────── */
@@ -73,6 +73,9 @@ export const InterviewView = z.object({
   status: z.string(),
   job_title: z.string().nullable().optional(),
   resume_display_name: z.string().nullable().optional(),
+  /** H4 R1(#252 再练入口·additive optional):本场绑定简历 id——报告页「再练这 N 个弱项」携带同简历
+   *  走既有 create+begin 链(resume-id 头)。nullable=未绑定场;旧响应缺字段容忍(zod optional)。 */
+  resume_id: z.string().nullable().optional(),
   created_at: z.string().datetime().nullable().optional(),
   display_code: z.string().min(1).max(32).optional().default('场次信息同步中'),
   current_question_index: z.number().int().nullable(),
@@ -106,6 +109,11 @@ export const InterviewSignalConcludeReason = z.object({
 export type InterviewSignalConcludeReason = z.infer<typeof InterviewSignalConcludeReason>;
 export const SessionConcludedPayload = z.object({
   concludeReason: InterviewSignalConcludeReason,
+  // billing P3（BILL3-SETTLEMENT 修法⑧）：话题结算 additive 可选字段（P3 净新增面·蓝本 §6.6「事件带
+  // topicId/topicsCounted」API 行本列——topicId 已随 question_ready 落 P1）。可选=旧发射/旧流零破坏；
+  // .strict() 保留=未知键仍拒（score/band 走私面不变）。
+  topicsCounted: z.number().int().nonnegative().optional(),
+  topicsCapped: z.number().int().nonnegative().optional(),
 }).strict();
 export type SessionConcludedPayload = z.infer<typeof SessionConcludedPayload>;
 /**
@@ -113,9 +121,18 @@ export type SessionConcludedPayload = z.infer<typeof SessionConcludedPayload>;
  * 不覆盖录音持久化、电话/会议接入、远端音轨或说话人分离。
  */
 export const VOICE_CAPTURE_POLICY_VERSION = 'voice_ephemeral_v1' as const;
+/** 语音作答语义上限**单源**（#70 三值矛盾归一·5E 裁决项②=10MB·2026-10-12）。
+ *  此前三处各写：契约 base64≤13.5M 字符、api 全局 bodyLimit 12MiB、服务内 MAX_AUDIO_BYTES 10MB（互矛盾且
+ *  服务检查被前两层遮蔽=不可达）。归一口径：10MB=单题语音语义上限（唯一真源）；契约 base64 字符上限由本值
+ *  派生（4*ceil(n/3)=13,981,016）；api 全局 bodyLimit 12MiB 是简历+语音**共享传输信封**（为 ~8MB 简历原文
+ *  校准，见 apps/api/src/main.ts），不再是第三个语音上限——超 10MB 的语音由服务内 413 audio_too_large 兜底。
+ *  收紧/放宽语义如实呈报：有效受理窗由旧 bodyLimit 遮蔽出的 ~9.4MB 放宽到语义 10MB（9.4-10MB 区间旧 400/413
+ *  现受理）；>10MB 一律 413（旧为散落的 400/413）。 */
+export const VOICE_MAX_AUDIO_BYTES = 10 * 1024 * 1024;
+export const VOICE_MAX_AUDIO_BASE64_CHARS = 4 * Math.ceil(VOICE_MAX_AUDIO_BYTES / 3);
 const VoiceAudioBase64 = z.string()
   .min(4)
-  .max(13_500_000)
+  .max(VOICE_MAX_AUDIO_BASE64_CHARS)
   .regex(/^[A-Za-z0-9+/]*={0,2}$/)
   .refine((value) => value.length % 4 === 0, 'base64 padding is invalid');
 const VoiceMimeType = z.enum([
@@ -169,11 +186,12 @@ export type LearningCompleteDto = z.infer<typeof LearningCompleteDto>;
 /** 一道押题:q=预测训练问题,refs=接地考察点(简历里出现过的关键词,factuality 门保证非幻觉)。 */
 export const QuizItem = z.object({ q: z.string().max(2_000), refs: z.array(z.string().max(200)).max(20) });
 export type QuizItem = z.infer<typeof QuizItem>;
-/** 押题详情(GET /quiz/:id 响应)。ready 时 questions/report 有内容;generating/failed 据 status 渲染(无死胡同)。 */
+/** 押题详情(GET /quiz/:id 响应)。ready 时 questions/report 有内容;generating/failed 据 status 渲染(无死胡同)。
+ *  questions .max(20)=#210 schema 限题数面（2026-10-12·生成侧 prompt 定量约 5-8 题,20 为契约硬顶余量）。 */
 export const QuizView = z.object({
   id: z.string(),
   status: z.string(),
-  questions: z.array(QuizItem),
+  questions: z.array(QuizItem).max(20),
   report: z.object({ score: z.number().int(), grounded: z.number().int(), summary: z.string() }).nullable(),
 });
 export type QuizView = z.infer<typeof QuizView>;
@@ -229,11 +247,132 @@ export type DiagnosisBeginResult = z.infer<typeof DiagnosisBeginResult>;
 export const Product = z.object({ id: z.string(), name: z.string(), amountCents: z.number().int(), units: z.number().int() });
 export const Products = z.object({ products: z.array(Product) });
 export type Products = z.infer<typeof Products>;
-export const Entitlement = z.object({ availableUnits: z.number().int() });
+// B271 片3 P3（裁定②）：enterpriseAvailableUnits 恒并列（响应形状只增不改·C 端 parseEntitlement 读
+// availableUnits 逐值不变）；schema 侧 optional=对假想旧载荷向后兼容，现 API 恒返回（entpay-s3.proof 断言）。
+export const Entitlement = z.object({ availableUnits: z.number().int(), enterpriseAvailableUnits: z.number().int().optional() });
 export type Entitlement = z.infer<typeof Entitlement>;
-export const CreateOrderDto = z.object({ productId: z.string() });
+export const CreateOrderDto = z.object({ productId: z.string(), channel: z.enum(['online', 'offline']).optional() });
 export type CreateOrderDto = z.infer<typeof CreateOrderDto>;
+// B271 #271 片1（前席发现②）：企业商品独立端点契约——公开 /commerce/products 保持 C 端域 2 条不变；
+// 本端点 approved recruiter 门，返回 enterprise 域套餐（含 domain 判别域）。
+export const EnterpriseProduct = z.object({ id: z.string(), name: z.string(), amountCents: z.number().int(), units: z.number().int(), domain: z.string() });
+export const EnterpriseProducts = z.object({ products: z.array(EnterpriseProduct) });
+export type EnterpriseProducts = z.infer<typeof EnterpriseProducts>;
+
+// B271 #271 片1：对公录入/置败与开票资料/申请 DTO（服务器权威金额语义——entry 的 amountCents 是
+// 「到账金额」录入值，与订单 amount_cents 的一致性校验在受控 DB 函数内，客户端不可绕过）。
+export const OfflineRemitEntryDto = z.object({ bankRef: z.string().min(1).max(128), amountCents: z.number().int().positive() });
+export type OfflineRemitEntryDto = z.infer<typeof OfflineRemitEntryDto>;
+export const OfflineRemitFailDto = z.object({ reason: z.string().max(500).optional() });
+export type OfflineRemitFailDto = z.infer<typeof OfflineRemitFailDto>;
+export const InvoiceProfileDto = z.object({
+  title: z.string().min(1).max(200),
+  taxId: z.string().min(1).max(64),
+  addressPhone: z.string().max(300).optional(),
+  bankAccount: z.string().max(200).optional(),
+  email: z.string().email().max(200),
+});
+export type InvoiceProfileDto = z.infer<typeof InvoiceProfileDto>;
+export const InvoiceRequestDto = z.object({ orderId: z.string().min(1).max(64) });
+export type InvoiceRequestDto = z.infer<typeof InvoiceRequestDto>;
+export const InvoiceProfileView = z.object({
+  profile: z.object({
+    title: z.string(), tax_id: z.string(), address_phone: z.string().nullable(), bank_account: z.string().nullable(),
+    email: z.string(), updated_at: z.string(),
+  }).nullable(),
+});
+export type InvoiceProfileView = z.infer<typeof InvoiceProfileView>;
+export const InvoiceProfileSaved = z.object({ saved: z.boolean() });
+export type InvoiceProfileSaved = z.infer<typeof InvoiceProfileSaved>;
+export const InvoiceRequestList = z.object({
+  requests: z.array(z.object({
+    id: z.string(), order_id: z.string(), status: z.string(), invoice_no: z.string().nullable(),
+    reject_reason: z.string().nullable(), requested_at: z.string(),
+  })),
+});
+export type InvoiceRequestList = z.infer<typeof InvoiceRequestList>;
+export const InvoiceRequestCreated = z.object({
+  request: z.object({ id: z.string(), order_id: z.string(), status: z.string(), requested_at: z.string() }),
+});
+export type InvoiceRequestCreated = z.infer<typeof InvoiceRequestCreated>;
 export const OrderResult = z.object({ orderId: z.string(), amountCents: z.number().int(), status: z.string() });
+
+// B271 片3 P4：本人订单列表（RLS p_owner 仅本人·LIMIT 50 窗口·开票下拉数据源——web 侧仅取 status='paid' 行）。
+export const OrderList = z.object({
+  orders: z.array(z.object({
+    id: z.string(), product_id: z.string(), amount_cents: z.number().int(), units: z.number(),
+    status: z.string(), channel: z.string(), created_at: z.string(),
+  })),
+});
+export type OrderList = z.infer<typeof OrderList>;
+// B271 片3 P2：本人对公订单台账（0159 受控 DEFINER 读函数·本人行作用域·remit_status NULL=created 未入账）。
+export const OfflineOrderList = z.object({
+  orders: z.array(z.object({
+    order_id: z.string(), product_id: z.string(), amount_cents: z.number().int(), order_status: z.string(),
+    remit_status: z.string().nullable(), entered_at: z.string().nullable(), confirmed_at: z.string().nullable(),
+    created_at: z.string(),
+  })),
+});
+export type OfflineOrderList = z.infer<typeof OfflineOrderList>;
+
+/* ───────────── billing 明细列表（billing-redesign §3.13 升 P1 面·additive 只增不改） ───────────── */
+// 场景枚举：四活 service_type（mock_interview/ocr/resume_quiz/resume_diagnosis）+ topic/usage 粒度自标
+// + payment 获得行预留位（三账本零获得侧行·零映射行诚实空·Ban 伪造入账）。
+export const LedgerScene = z.enum(['mock_interview', 'ocr', 'resume_quiz', 'resume_diagnosis', 'topic', 'usage', 'payment']);
+export type LedgerScene = z.infer<typeof LedgerScene>;
+// 用户口径状态四值（映射表写死：reserved→reserved/confirmed→settled/partial_confirmed→settled/
+// released→released/interview.status='failed' 联结→failed/usage generation_failed→failed）。
+export const LedgerEntryStatus = z.enum(['settled', 'reserved', 'released', 'failed']);
+export type LedgerEntryStatus = z.infer<typeof LedgerEntryStatus>;
+// C 端逐笔行：引用四元逐源可空投影（consumption 行 interview_id 仅 mock_interview·topic/invocation 无列
+// 恒 NULL；topic 行无 invocation_key；usage 行 topic_id 可空）·幂等键=consumption 幂等键/usage
+// invocation_key/topic 自然键 interview_id:topic_id。
+export const LedgerEntry = z.object({
+  createdAt: z.string(),
+  source: z.enum(['consumption', 'topic', 'usage']),
+  scene: LedgerScene,
+  status: LedgerEntryStatus,
+  amountUnits: z.number(),
+  // consumption 行 units_requested 原值（partial_confirmed→settled 时 requested−settled 差额用户可见·topic/usage 无列 NULL）。
+  unitsRequested: z.number().nullable(),
+  interviewId: z.string().nullable(),
+  topicId: z.string().nullable(),
+  invocationKey: z.string().nullable(),
+  idempotencyKey: z.string(),
+  cause: z.string().nullable(),
+  topicStatus: z.enum(['counted', 'counted_capped', 'waived']).nullable(),
+  reason: z.string().nullable(),
+  ruleVersion: z.string().nullable(),
+});
+export type LedgerEntry = z.infer<typeof LedgerEntry>;
+// C 端页：keyset 值基三段复合游标（created_at DESC/source/natural_key）+ 分页头余额=读时快照非实时
+// 余额承诺（多桶 FIFO 下可用额≠Σ账本差·逐笔行不带余额）。
+export const BillingLedgerPage = z.object({
+  entries: z.array(LedgerEntry),
+  nextCursor: z.string().nullable(),
+  windowDays: z.number().int(),
+  availableUnits: z.number(),
+});
+export type BillingLedgerPage = z.infer<typeof BillingLedgerPage>;
+// B 端企业维度逐笔行（0185 受控 DEFINER 读函数·payer=principal 硬谓词·投影=函数七列+additive
+// unitsRequested（与 C 端同名·units_requested 原值·partial 差额用户可见）：
+// allocations jsonb/lease_expires_at 内部面不出户）。
+export const EnterpriseLedgerEntry = z.object({
+  created_at: z.string(),
+  service_type: z.string(),
+  units_requested: z.number(),
+  units_settled: z.number().nullable(),
+  unitsRequested: z.number().nullable(),
+  status: z.string(),
+  payer_user_id: z.string(),
+  idempotency_key: z.string(),
+});
+export type EnterpriseLedgerEntry = z.infer<typeof EnterpriseLedgerEntry>;
+export const EnterpriseLedgerPage = z.object({
+  entries: z.array(EnterpriseLedgerEntry),
+  enterpriseAvailableUnits: z.number(),
+});
+export type EnterpriseLedgerPage = z.infer<typeof EnterpriseLedgerPage>;
 
 /* ───────────── profile ───────────── */
 export const Profile = z.object({ id: z.string(), email: z.string(), status: z.string(), preferences: z.record(z.string(), z.unknown()).optional() });
@@ -301,28 +440,119 @@ export const JobView = z.object({
 export type JobView = z.infer<typeof JobView>;
 export const JobList = z.object({ jobs: z.array(JobView) });
 export type JobList = z.infer<typeof JobList>;
+/**
+ * I4 #222 browseJobs 公开收窄面(裁决项②倾向 A):候选人浏览开放岗位回包——零 owner_user_id
+ * (跨租户不暴露内部属主 id·修法列原意);description 保留供投递前可见(与 I3 JD 表单落地时序独立成立)。
+ * JobView/JobList 原形保留给 recruiter 自有面(listJobs/getJob/createJob)零动。
+ */
+export const JobPublicView = z.object({
+  id: z.string(), title: z.string(), description: z.string(),
+  competencies: z.array(z.string()), status: z.string(), created_at: z.string(),
+});
+export type JobPublicView = z.infer<typeof JobPublicView>;
+export const JobPublicList = z.object({ jobs: z.array(JobPublicView) });
+export type JobPublicList = z.infer<typeof JobPublicList>;
+
+/**
+ * I3 JOB-MGMT（裁决①如实化）：createJob 实回 `{id}`（recruiting/recruiter.ts createJob 返回形）——
+ * registry 此前声明 `response: JobView` 与实现错位（#220 第三子面），随本刀如实化。JobView 退役为读面专用。
+ */
+export const JobCreated = z.object({ id: z.string() });
+export type JobCreated = z.infer<typeof JobCreated>;
+/**
+ * I3 JOB-MGMT（#220 修法列·自 RAG-FUNNEL-03 冻结区前移至 apiContract 可达位——registry 注册需先声明）：
+ * 岗位编辑输入镜像 CreateJobDto：只允许 title/description/competencies 三个业务语义字段；
+ * 全可选（缺省=保持现值）；trackId/weight/confidence/override 等路由参数结构上不可由用户提交（没有这些字段）。
+ */
+export const UpdateJobDto = z.object({
+  title: z.string().min(2).max(120).optional(),
+  description: z.string().max(8_000).optional(),
+  competencies: z.array(z.string().max(60)).max(30).optional(),
+});
+export type UpdateJobDto = z.infer<typeof UpdateJobDto>;
+/** I3 JOB-MGMT（裁决①）：closeJob 响应（真关闭才有 200；false 臂由 service 映射 404 恒定壳，不出 {closed:false}）。 */
+export const JobClosed = z.object({ closed: z.literal(true) });
+export type JobClosed = z.infer<typeof JobClosed>;
+/**
+ * I3 JOB-MGMT（#219·裁决⑦）：招聘方侧语义路由状态读面。status 枚举=job-route-decision.ts
+ * JOB_SEMANTIC_REVISION_STATUSES 同源字符串；attemptOutcome/reasonCodes 来自最新 decision 摘要（仅 owner 可读）。
+ */
+export const JOB_SEMANTIC_REVISION_STATUS_VALUES = ['route_pending', 'rule_decided', 'model_prepared', 'result_validated', 'route_decided', 'route_unresolved'] as const;
+export const JobRouteStatusView = z.object({
+  revision: z.number().int(),
+  status: z.enum(JOB_SEMANTIC_REVISION_STATUS_VALUES),
+  attemptOutcome: z.enum(['rule_decided', 'result_validated', 'known_not_sent', 'dispatched_unknown', 'validation_rejected']).nullable(),
+  reasonCodes: z.array(z.string()),
+});
+export type JobRouteStatusView = z.infer<typeof JobRouteStatusView>;
+export const JobRouteStatusEnvelope = z.object({ route: JobRouteStatusView.nullable() });
+export type JobRouteStatusEnvelope = z.infer<typeof JobRouteStatusEnvelope>;
+/**
+ * I3 JOB-MGMT（裁决③）：显式重试路由结果。retried=写新 revision(route_pending) 走既有 drain；
+ * already_pending/already_decided/not_retryable=幂等门（非未决态不制造空 revision·有界非自动）。
+ */
+export const JobRouteRetryResult = z.object({
+  status: z.enum(['retried', 'already_pending', 'already_decided', 'not_retryable']).nullable(),
+  revision: z.number().int().nullable(),
+});
+export type JobRouteRetryResult = z.infer<typeof JobRouteRetryResult>;
+/** I3 JOB-MGMT（#219）：招聘方岗位列表读面——JobList 超集加可选 routes 旁车（jobId→最新 revision 路由态）；C 端 browseJobs 维持 JobList 不含本字段。 */
+export const RecruiterJobList = z.object({ jobs: z.array(JobView), routes: z.record(z.string(), JobRouteStatusView).optional() });
+export type RecruiterJobList = z.infer<typeof RecruiterJobList>;
 
 /* ───────────── 候选人 ↔ 岗位 ↔ 招聘方:申请闭环 ───────────── */
 /** 投递结果(幂等:重复投递返回既有申请 id)。 */
 export const ApplyResult = z.object({ applicationId: z.string() });
 export type ApplyResult = z.infer<typeof ApplyResult>;
+/**
+ * I2 B-DELIVERABLE（#218+修法④·裁定①形 a）：assessment_unavailable 终态的读侧派生区分——
+ * held=绑定面试 completed 的「已面完 · 待校准」（不可重试）；failed=绑定面试 failed 的系统失败
+ * （可重试 · 预留已释放）；其余（含 assessment_unavailable 但绑定面试缺失/进行中）恒 null。
+ * 派生口径收窄（E3）：仅 a.status='assessment_unavailable' 时按绑定面试 status 派生，
+ * 不向 C 端透传 interview 内部状态名（形 a·API 派生语义字段）。
+ */
+export const ApplicationTerminalKind = z.enum(['held', 'failed']);
+export type ApplicationTerminalKind = z.infer<typeof ApplicationTerminalKind>;
 /** 候选人侧:我投递的申请(缓存状态/分数)。 */
 export const MyApplications = z.object({
   applications: z.array(z.object({
     id: z.string(), job_id: z.string(), job_title: z.string().min(1).optional().default('岗位信息同步中'), interview_id: z.string().nullable(), resume_id: z.string().uuid().nullable(), status: z.string(), score: z.number().int().nullable(),
+    terminalKind: ApplicationTerminalKind.nullable().optional(),
     source: z.string().optional(),
   })),
 });
 export type MyApplications = z.infer<typeof MyApplications>;
 /** 招聘方侧:申请到某岗位的候选人（当前只返回最小状态；score 字段在
- * calibration hold 期间恒为 null，避免前端或未来消费者重新把它用于排名）。 */
+ * calibration hold 期间恒为 null，避免前端或未来消费者重新把它用于排名）。
+ * I2 W1 注记：候选列表不携带 terminalKind——interview 为候选人私有（RLS 隔离墙），
+ * 两态信号在申请详情面经 0160 受控函数承接（BQualitativeProjection.terminalKind）。 */
 export const JobCandidates = z.object({
   candidates: z.array(z.object({
     id: z.string(), candidate_user_id: z.string(), status: z.string(), score: z.number().int().nullable(),
     source: z.string().optional(),
+    /** I4 #223 同意门识别列:仅候选人存在 recruiter_contact_share 同意行时出邮箱,否则 null(fail-closed)。 */
+    contactEmail: z.string().nullable(),
   })),
 });
 export type JobCandidates = z.infer<typeof JobCandidates>;
+/**
+ * I2 W2 B 端最小定性投影（裁定②形 A·不出数字）：单申请人自身事实投影——能力维度名 + 强/中/弱/
+ * 证据不足档位（rubric disposition below/meets/exceeds 三值映射·Ban 自造档位）。
+ * disclosed=false=候选人未同意（未披露态·非空壳假数据）；disclosed=true 且 dimensions 空=
+ * 暂无可复核的评估记录（如实中性·Ban 假定性输出）。Ban 排序/过滤/跨申请人比较用途。
+ */
+export const BQualitativeDimension = z.object({
+  competency: z.string().min(1),
+  tiers: z.array(z.enum(['strong', 'mid', 'weak', 'insufficient'])),
+});
+export type BQualitativeDimension = z.infer<typeof BQualitativeDimension>;
+export const BQualitativeProjection = z.object({
+  disclosed: z.boolean(),
+  /** 绑定面试两态信号（E3 同源口径·0160 函数派生）——状态分流不进同意门（W3④ 承接）。 */
+  terminalKind: ApplicationTerminalKind,
+  dimensions: z.array(BQualitativeDimension),
+});
+export type BQualitativeProjection = z.infer<typeof BQualitativeProjection>;
 /** 启动岗位面试时明确选择已摄取简历；服务端把它冻结到 application-bound interview。 */
 export const StartApplicationDto = z.object({ resumeId: z.string().uuid() }).strict();
 export type StartApplicationDto = z.infer<typeof StartApplicationDto>;
@@ -356,14 +586,23 @@ export const InviteCandidateDto = z.object({
   candidateEmail: z.string().email().max(254).optional(),
 }).refine((v) => !!(v.candidateId || v.candidateEmail), { message: 'candidateId_or_email_required' });
 export type InviteCandidateDto = z.infer<typeof InviteCandidateDto>;
-/** 邀请结果(幂等:候选人已自投/已被邀请则复用既有申请 id)。 */
+/** 邀请结果(幂等:候选人已自投/已被邀请则复用既有申请 id)。declineApplication 仍用本 schema 零触(b110)。 */
 export const InviteResult = z.object({ applicationId: z.string(), status: z.string() });
 export type InviteResult = z.infer<typeof InviteResult>;
+/** b110 邀请受理恒定壳(反枚举):命中(真实建申请)/未命中/招聘方 email 同形同码零信号;
+ *  applicationId/status 不再出响应——真实申请状态以租户内 candidates 列表承载。 */
+export const InviteReceived = z.object({ received: z.literal(true) });
+export type InviteReceived = z.infer<typeof InviteReceived>;
+/** b110 admin 招聘方审批裁决体:approve=开通(企业付费主体诞生时刻,#271 挂点)·reject=拒绝。 */
+export const RecruiterDecisionDto = z.object({ decision: z.enum(['approve', 'reject']) });
+export type RecruiterDecisionDto = z.infer<typeof RecruiterDecisionDto>;
 /** 人才库一行:跨招聘方自有岗位聚合的候选人。评分校准发布前 score 恒为
  * null，B 端不得据此排序、筛选或作决定。 */
 export const TalentRowView = z.object({
   id: z.string(), job_id: z.string(), job_title: z.string(), candidate_user_id: z.string(),
   status: z.string(), score: z.number().int().nullable(), source: z.string(), created_at: z.string(),
+  /** I4 #223 同意门识别列(同 JobCandidates:无 recruiter_contact_share 同意行→null·fail-closed)。 */
+  contactEmail: z.string().nullable(),
 });
 export type TalentRowView = z.infer<typeof TalentRowView>;
 export const TalentPool = z.object({ talents: z.array(TalentRowView) });
@@ -390,6 +629,92 @@ export const PRIVACY_AUTHZ_DIGEST_RE = /^[a-f0-9]{64}$/;
 /** 契约冻结三个目的枚举；当前 DB 只签发 `interview_data_erasure`（其余为 MEM-00/后续复用预留，DB 侧 fail-closed 拒绝）。 */
 export const PRIVACY_AUTHZ_PURPOSES = ['interview_data_erasure', 'resume_data_erasure', 'account_data_erasure'] as const;
 export const PrivacyAuthzPurpose = z.enum(PRIVACY_AUTHZ_PURPOSES);
+/**
+ * 采集同意目的枚举（CONSENT-MIN · #82/#69 缩水件）：与上面的删除授权域枚举
+ * （PRIVACY_AUTHZ_PURPOSES）是**不同机制、零交集**，亦不含 memory_consent 域
+ * （0093 interview_prep/career/preference/self_improvement）。仅约束
+ * /privacy/consent 三入口的 purpose 值；库层 consent_record.purpose 仍为无 CHECK 的
+ * text（库层立法不在本刀）。
+ * I2 W3（裁定④）：`b_qualitative_share` = 候选人同意招聘方查看其申请的最小定性投影
+ * （能力维度 + 强/中/弱/证据不足档位，不含数字评分/答题内容/证据摘录原文）；撤回=删行，
+ * 0160 投影函数内同意门随即 fail-closed（无同意行→未披露形状）。
+ * I4（#223·裁决项③倾向 b）：`recruiter_contact_share` = 候选人同意招聘方在申请/人才库读面
+ * 以其邮箱作识别替代列（修法列「显示邀请邮箱/备注（候选人同意后）」的同意门形）；撤回=删行，
+ * 0166 gateway_recruiter_contact_share 函数内门随即 fail-closed（无同意行→零出参）。
+ */
+export const CONSENT_PURPOSES = ['resume_processing', 'interview_personalization', 'voice_capture', 'b_qualitative_share', 'recruiter_contact_share'] as const;
+export const ConsentPurpose = z.enum(CONSENT_PURPOSES);
+export type ConsentPurpose = z.infer<typeof ConsentPurpose>;
+/** POST /privacy/consent body：purpose 可选（缺省 resume_processing 由 controller 保留），strict 拒未知键。 */
+export const ConsentPurposeDto = z.object({ purpose: ConsentPurpose.optional() }).strict();
+export type ConsentPurposeDto = z.infer<typeof ConsentPurposeDto>;
+/** GET/DELETE /privacy/consent query：非 strict——只校 purpose 值，其余 query 键 strip 不拒。 */
+export const ConsentPurposeQueryDto = z.object({ purpose: ConsentPurpose.optional() });
+export type ConsentPurposeQueryDto = z.infer<typeof ConsentPurposeQueryDto>;
+/**
+ * 级别方案（LEVEL-SCHEME · #45/#102 单一出处立法 · H1 阈值决议 §4/附录 A'）。
+ *
+ * 【占位·待校准】——LEVEL_SCHEME_V2 数值 = H1 决议初值（附录 A' 冻结抄写面 16 字段·字段名即
+ * 契约·逐字照抄），**未经黄金集校准**（H1 §6 发布门未执行）；权威承载 = DB 行
+ * level_policy_version.scheme_version='v2' status='calibrating'（0160 迁移·append-only）。
+ * 不得宣称已校准；校准升版按 H1 §7 协议（新 scheme_version 新行·append-only）。
+ * LEVEL_SCHEME_ACTIVE_VERSION 恒 'v1'（现行三档 v1 转历史只读·H1 §3.3）——翻指针=独立刀+双审，
+ * 非 H3 EXEC 顺手（H1 §4.3）。运行时数值唯一权威 = level_policy_version 表 active 行（H1 §4.1），
+ * 本镜像为 TS 侧单源定义面（沿 GAP 先例：一处定义，全仓复用禁字面量散布 + rg 门）。
+ */
+export const LEVEL_SCHEME_VERSIONS = ['v1', 'v2'] as const;
+export const LevelSchemeVersion = z.enum(LEVEL_SCHEME_VERSIONS);
+export type LevelSchemeVersion = z.infer<typeof LevelSchemeVersion>;
+/** active 指针（H1 §4.3 冻结名·初值 'v1'·本刀不翻——v2 过发布门后随 calibration release 独立刀翻转）。 */
+export const LEVEL_SCHEME_ACTIVE_VERSION = 'v1' as const;
+/** 五档枚举（附录 A 第 1 条·L1..L5）。 */
+export const LEVEL_TIERS = ['junior', 'mid', 'senior', 'staff', 'principal'] as const;
+export const LevelTier = z.enum(LEVEL_TIERS);
+export type LevelTier = z.infer<typeof LevelTier>;
+/**
+ * v2 五档判定状态机（A.3.5·冻结抄写面外 additive 常量）：auto_final / capped_by_evidence /
+ * review_required / unavailable / reviewed / superseded / fenced 七态中，本刀判定纯函数只产出
+ * 前四态（reviewed/superseded/fenced 为存储与隐私围栏态·非派生输出）。
+ */
+export const LEVEL_JUDGMENT_STATUSES = ['auto_final', 'capped_by_evidence', 'review_required', 'unavailable'] as const;
+export const LevelJudgmentStatus = z.enum(LEVEL_JUDGMENT_STATUSES);
+export type LevelJudgmentStatus = z.infer<typeof LevelJudgmentStatus>;
+/** 规则把关理由码枚举（H1 §4.4+§2.3 码表照录·A.3.4 全表 + 信息/状态码三枚）。 */
+export const LEVEL_REASON_CODES = [
+  'insufficient_cards', 'insufficient_coverage', 'insufficient_hard_evidence', 'hard_question_underperform',
+  'core_competency_floor', 'inconsistent_profile', 'model_disagreement', 'voice_low_quality', 'language_not_applicable',
+  'suggested_above_max', 'suggested_below_rule', 'top_tier_manual', 'calibration_missing',
+  'below_l1_reference', 'capped_by_evidence', 'review_required',
+] as const;
+export const LevelReasonCode = z.enum(LEVEL_REASON_CODES);
+export type LevelReasonCode = z.infer<typeof LevelReasonCode>;
+/** 附录 A'：LEVEL_SCHEME_V2 冻结抄写面（16 字段逐字照抄·字段名即契约·Ban 增删改）。 */
+export const LEVEL_SCHEME_V2 = {
+  tiers: ['junior', 'mid', 'senior', 'staff', 'principal'],        // L1..L5
+  scoreFloor:   { junior: null, mid: 50, senior: 65, staff: 75, principal: 85 },
+  minCards:     { junior: 3, mid: 5, senior: 6, staff: 8, principal: 10 },
+  minCoverage:  { junior: 2, mid: 3, senior: 4, staff: 4, principal: 5 },
+  hardEvidence: {
+    mid:      { cardsDge3: 2, pDge3: 0.50 },
+    senior:   { cardsDge4: 3, pDge4: 0.55 },
+    staff:    { cardsDge4: 4, cardsEq5: 1, pDge4: 0.65 },
+    principal:{ cardsEq5: 3, p5: 0.60 },
+  },
+  coreFloor:    { mid: 35, senior: 40 },                        // S_c' 核心底线
+  consistencyMargin: 10,                                        // R6：中位数 ≥ 档阈 −10
+  weightByDifficulty: { 1: 0.5, 2: 0.75, 3: 1.0, 4: 1.5, 5: 2.0 },  // R1
+  shrinkage:    { k: 1.5, mu0: 50 },                            // R2
+  capabilityWeight: { core: 1.0, nonCore: 0.5 },                // R3（core 落库前 α=1+core_unknown）
+  confidenceCaps: { maxCardsForMid: 8, maxCardsForLow: 5 },     // R5
+  highestPassedDifficultyLine: 60,                              // R7（与 GAP 同值不同义）
+  belowL1Reference: 30,                                         // R8 信息码线
+  labels: { junior: '初级', mid: '中级', senior: '高级', staff: '资深', principal: '专家' },
+  milestoneSimulationPass: 70,                                  // S2 注册（待校准登记项）
+  gapLine: '@see GAP (packages/domain/src/assessment.ts) = 60', // S4 已单源·不重复定义
+} as const;
+export type LevelSchemeV2 = typeof LEVEL_SCHEME_V2;
+/** 五档中文标签（附录 A 第 1 条「中文标签放配置，不写进 DB CHECK」·单源=LEVEL_SCHEME_V2.labels 禁重抄）。 */
+export const LEVEL_LABELS = LEVEL_SCHEME_V2.labels;
 export const PrivacyAuthorizationSnapshot = z.object({
   iss: z.literal(PRIVACY_AUTHZ_ISSUER),
   aud: z.literal(PRIVACY_AUTHZ_AUDIENCE),
@@ -1100,6 +1425,11 @@ export interface ContractRoute {
   auth?: boolean;                     // 需 Bearer
   request?: z.ZodType;                // 请求体 schema(ZodValidationPipe + OpenAPI requestBody)
   response?: z.ZodType;               // 200 响应 schema(OpenAPI + 前端校验)
+  status?: number;                    // 成功响应状态码(默认 200)。#30：begin 实返 202,@HttpCode 已在,补登记 OpenAPI
+  headers?: Array<{ name: string; description?: string; required?: boolean }>;
+  // #30：自定义 header 参数登记(OpenAPI parameters·in:header)。begin 输入现走 header(resume-id/quiz-id/
+  // target-role/focus·controller @Headers 已在),此前 OpenAPI 不可见=契约缺口;header→body DTO 迁移属
+  // 裁决项⑫另一分支(行为面),本刀取零行为分支只补元数据登记。
 }
 
 /** 全站契约注册表。**新增端点在此登记** → 自动进 OpenAPI + 可被 pipe/前端复用。 */
@@ -1117,7 +1447,17 @@ export const apiContract: ContractRoute[] = [
   { id: 'uploadResumeFile', method: 'post', path: '/resume/file', summary: '上传简历文件(PDF/Word/图片→提取+清洗)', tags: ['resume'], auth: true, request: UploadResumeFileDto },
   { id: 'listInterview', method: 'get', path: '/interview', summary: '面试列表（含题目账本 issued/answered turns）', tags: ['interview'], auth: true, response: InterviewList },
   { id: 'getInterview', method: 'get', path: '/interview/{id}', summary: '面试详情（含题目账本进度投影）', tags: ['interview'], auth: true, response: InterviewView },
-  { id: 'beginInterview', method: 'post', path: '/interview/{id}/begin', summary: '开始面试', tags: ['interview'], auth: true, response: BeginResult },
+  // #30：begin 输入只在 header(resume-id/quiz-id/target-role/focus·H5 加后四参形)+实返 202——此前注册表
+  // 无 request/header/status 登记,OpenAPI 看不到输入且写 200 与实态不符;本行补元数据登记(零行为·@Headers
+  // 与 @HttpCode(202) 既有面零触)。header→body DTO 迁移=裁决项⑫另一分支(行为面)不在本刀。
+  { id: 'beginInterview', method: 'post', path: '/interview/{id}/begin', summary: '开始面试', tags: ['interview'], auth: true, status: 202,
+    headers: [
+      { name: 'resume-id', required: true, description: '源简历 id(必携·uuidv7)' },
+      { name: 'quiz-id', description: '源押题工件 id(可选·GAP-UC025-NEG-01)' },
+      { name: 'target-role', description: '用户显式目标岗位(可选·#259)' },
+      { name: 'focus', description: '再练弱项标签 JSON 数组文本(可选·H5 R2① #252)' },
+    ],
+    response: BeginResult },
   { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, request: TurnDto, response: TurnResult },
   { id: 'questionFeedback', method: 'post', path: '/interview/{id}/questions/{idx}/feedback', summary: '题目反馈(赞/踩 + 可选评语)', tags: ['interview'], auth: true, request: FeedbackDto },
   { id: 'completeLearningItem', method: 'post', path: '/interview/{id}/learning-plan/complete', summary: '标记学习项完成', tags: ['interview'], auth: true, request: LearningCompleteDto },
@@ -1137,13 +1477,25 @@ export const apiContract: ContractRoute[] = [
   { id: 'listProducts', method: 'get', path: '/commerce/products', summary: '面试包列表', tags: ['commerce'], response: Products },
   { id: 'getEntitlement', method: 'get', path: '/commerce/entitlement', summary: '剩余额度', tags: ['commerce'], auth: true, response: Entitlement },
   { id: 'createOrder', method: 'post', path: '/commerce/orders', summary: '创建订单', tags: ['commerce'], auth: true, request: CreateOrderDto, response: OrderResult },
-  { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobView },
-  { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离)', tags: ['recruiter'], auth: true, response: JobList },
+  { id: 'listEnterpriseProducts', method: 'get', path: '/commerce/enterprise-products', summary: '企业充值套餐(approved recruiter·B271 片1)', tags: ['commerce'], auth: true, response: EnterpriseProducts },
+  { id: 'getInvoiceProfile', method: 'get', path: '/commerce/invoice-profile', summary: '读取本人开票资料(RLS 仅本人)', tags: ['commerce'], auth: true, response: InvoiceProfileView },
+  { id: 'saveInvoiceProfile', method: 'post', path: '/commerce/invoice-profile', summary: '维护本人开票资料(approved recruiter)', tags: ['commerce'], auth: true, request: InvoiceProfileDto, response: InvoiceProfileSaved },
+  { id: 'listInvoiceRequests', method: 'get', path: '/commerce/invoice-requests', summary: '本人开票申请列表(RLS 仅本人)', tags: ['commerce'], auth: true, response: InvoiceRequestList },
+  { id: 'submitInvoiceRequest', method: 'post', path: '/commerce/invoice-requests', summary: '提交开票申请(仅 paid 订单·DB 触发器门)', tags: ['commerce'], auth: true, request: InvoiceRequestDto, response: InvoiceRequestCreated },
+  { id: 'listMyOrders', method: 'get', path: '/commerce/orders', summary: '本人订单列表(RLS 仅本人·片3 开票下拉数据源)', tags: ['commerce'], auth: true, response: OrderList },
+  { id: 'listMyOfflineOrders', method: 'get', path: '/commerce/offline-orders', summary: '本人对公订单台账(0159 受控 DEFINER 读函数·approved recruiter·片3)', tags: ['commerce'], auth: true, response: OfflineOrderList },
+  { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobCreated },
+  { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离·含路由状态旁车 routes)', tags: ['recruiter'], auth: true, response: RecruiterJobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },
+  // I3 JOB-MGMT（裁决①③·#219/#220）：编辑/下线/路由读面/显式重试四注册（additive）。
+  { id: 'updateJob', method: 'patch', path: '/recruiter/jobs/{id}', summary: '招聘方编辑岗位(语义变更→新路由 revision·owner 谓词)', tags: ['recruiter'], auth: true, request: UpdateJobDto, response: JobView },
+  { id: 'closeJob', method: 'post', path: '/recruiter/jobs/{id}/close', summary: '招聘方下线岗位(仅 open 可关·非 open/非自有同 404 壳)', tags: ['recruiter'], auth: true, response: JobClosed },
+  { id: 'getJobRoute', method: 'get', path: '/recruiter/jobs/{id}/route', summary: '招聘方读岗位语义路由状态(#219 可见面·仅 owner)', tags: ['recruiter'], auth: true, response: JobRouteStatusEnvelope },
+  { id: 'retryJobRoute', method: 'post', path: '/recruiter/jobs/{id}/route-retry', summary: '招聘方显式重试路由(写新 revision 走既有 drain·非自动重试)', tags: ['recruiter'], auth: true, response: JobRouteRetryResult },
   { id: 'jobCandidates', method: 'get', path: '/recruiter/jobs/{id}/candidates', summary: '招聘方查岗位申请人(多方 RLS)', tags: ['recruiter'], auth: true, response: JobCandidates },
-  { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteResult },
+  { id: 'inviteCandidate', method: 'post', path: '/recruiter/jobs/{id}/invite', summary: '招聘方邀请候选人面试(用同一引擎,数据严格隔离)', tags: ['recruiter'], auth: true, request: InviteCandidateDto, response: InviteReceived },
   { id: 'talentPool', method: 'get', path: '/recruiter/talent', summary: '招聘方人才库(跨自有岗位聚合候选人,租户隔离)', tags: ['recruiter'], auth: true, response: TalentPool },
-  { id: 'browseJobs', method: 'get', path: '/jobs', summary: '候选人浏览开放岗位', tags: ['jobs'], auth: true, response: JobList },
+  { id: 'browseJobs', method: 'get', path: '/jobs', summary: '候选人浏览开放岗位(公开面窄投影:零 owner_user_id)', tags: ['jobs'], auth: true, response: JobPublicList },
   { id: 'applyJob', method: 'post', path: '/jobs/{id}/apply', summary: '候选人投递岗位(幂等)', tags: ['jobs'], auth: true, response: ApplyResult },
   { id: 'myApplications', method: 'get', path: '/applications', summary: '候选人我的申请', tags: ['jobs'], auth: true, response: MyApplications },
   { id: 'startApplication', method: 'post', path: '/applications/{id}/start', summary: '创建或复用岗位绑定面试(一对一、不可替换为历史训练)', tags: ['jobs'], auth: true, request: StartApplicationDto, response: ApplicationStartResult },
@@ -1152,17 +1504,15 @@ export const apiContract: ContractRoute[] = [
   { id: 'privacyPreviewBegin', method: 'post', path: '/privacy/erasure-preview', summary: '预览版删除请求：盘点 sink 并返回诚实回执，不宣称跨存储生产删除 SLO', tags: ['privacy'], auth: true, request: PrivacyPreviewBeginDto, response: PrivacyPreviewReceipt },
   { id: 'privacyPreviewList', method: 'get', path: '/privacy/erasure-preview', summary: '列出当前用户的预览版删除回执（预览版，非生产完成态）', tags: ['privacy'], auth: true, response: PrivacyPreviewList },
   { id: 'privacyPreviewGet', method: 'get', path: '/privacy/erasure-preview/{requestId}', summary: '读取预览版删除回执（预览版，非生产完成态）', tags: ['privacy'], auth: true, response: PrivacyPreviewReceipt },
+  { id: 'listBillingLedger', method: 'get', path: '/billing/ledger', summary: '积分明细列表(本人三真账逐笔·keyset 游标·分页头余额=读时快照非实时余额承诺)', tags: ['billing'], auth: true, response: BillingLedgerPage },
+  { id: 'listEnterpriseBillingLedger', method: 'get', path: '/billing/ledger/enterprise', summary: '企业积分明细(0185 受控 DEFINER 读函数 payer=principal 硬谓词·approved recruiter)', tags: ['billing'], auth: true, response: EnterpriseLedgerPage },
 ];
 
 /* ───────────── RAG-FUNNEL-03 岗位意图路由（跨端冻结 schema，不入 apiContract） ───────────── */
-// 岗位编辑输入镜像 CreateJobDto：只允许 title/description/competencies 三个业务语义字段；
-// trackId/weight/confidence/override 等路由参数结构上不可由用户提交（没有这些字段）。
-export const UpdateJobDto = z.object({
-  title: z.string().min(2).max(120).optional(),
-  description: z.string().max(8_000).optional(),
-  competencies: z.array(z.string().max(60)).max(30).optional(),
-});
-export type UpdateJobDto = z.infer<typeof UpdateJobDto>;
+// I3 JOB-MGMT 勘注：UpdateJobDto 已前移至 recruiter DTO 区并登记 apiContract（updateJob PATCH）——
+// 冻结语义零改（title/description/competencies 三业务字段·全可选·无路由参数字段），只动声明位置
+// （apiContract 数组静态求值需引用先声明·TDZ）。trackId/weight/confidence/override 结构上仍不可提交。
+
 
 // 叶节点分配：allocations 以 basis points 计，总和必须 = 10000（万分之一）。仅冻结 schema，不登记 HTTP。
 export const JobRouteAllocation = z.object({

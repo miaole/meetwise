@@ -91,13 +91,22 @@ const LIVE_E2E_TARGETS = new Set(['e2e:prove', 'e2e:ui', 'performance:e2e']);
 const ROOT = new URL('..', import.meta.url).pathname;
 const target = process.argv[2] ?? 'e2e:prove';
 const isolatedReceiptSources = {
+  // AUTHZ-HARDEN 5A-1 五 prove 的来源清单（收据登记面）。
+  'authz5a:normalize:prove': ['scripts/run-e2e-isolated.mjs', 'packages/db/test/authz5a-email-normalization.proof.ts', 'packages/db/src/index.ts', 'packages/db/src/migrate.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/package.json', 'packages/db/migrations/0167_email_case_normalization.sql', 'packages/db/migrations/0168_gateway_auth_email_normalize.sql', 'packages/db/migrations/0169_auth_user_session.sql', 'packages/db/sql/23_api_gateway.sql'],
+  'authz5a:constant-time:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-constant-time.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/modules/auth/auth.controller.ts', 'packages/domain/src/auth.ts', 'packages/domain/src/index.ts', 'packages/contracts/src/index.ts'],
+  'authz5a:login-ip-throttle:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-login-ip-throttle.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
+  'authz5a:login-global-throttle:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-login-global-throttle.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
+  'authz5a:chgpwd-lock:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a-chgpwd-lock.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/profile/profile.service.ts', 'apps/api/src/platform/rate-limit.service.ts'],
+  // AUTHZ-HARDEN 5A-2 簇④ prove 来源清单(DB 面进隔离 runner;hmac/g7-refuse 零 DB 直跑不入本表)。
+  'authz5a2:password-max:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz5a2-password-max.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'packages/contracts/src/index.ts'],
+  'authz5a2:stale-payload-ttl:prove': ['scripts/run-e2e-isolated.mjs', 'packages/db/test/authz5a2-stale-payload-ttl.proof.ts', 'packages/db/src/index.ts', 'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/package.json'],
   'tokenstream:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/tokenstream-progress.proof.ts',
     'apps/worker/src/generation-progress.ts',
     'apps/worker/src/interview-service.ts', 'apps/worker/src/adaptive-interview-service.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts',
-    'packages/db/src/interview-event.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/interview/interview-event.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
   ],
   'uc001:nhp-neg:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -105,14 +114,14 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/platform/principal.guard.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/isolated-test-target.ts',
   ],
   'uc001:nhp-bound:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-001-nhp-bound.proof.ts',
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/isolated-test-target.ts',
   ],
   'uc001:nhp-adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -122,8 +131,8 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/resume/resume.controller.ts',
     'apps/api/src/platform/zod.pipe.ts',
     'packages/contracts/src/index.ts',
-    'packages/db/src/commerce.ts',
-    'packages/db/src/interview-question.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/interview/interview-question.ts',
     'packages/db/src/isolated-test-target.ts',
   ],
   'uc001:nhp-fault:prove:raw': [
@@ -132,9 +141,9 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/worker/src/report-worker.ts',
-    'packages/db/src/report.ts',
-    'packages/db/src/commerce.ts',
-    'packages/db/src/interview-question.ts',
+    'packages/db/src/report/report.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/interview/interview-question.ts',
     'packages/db/src/isolated-test-target.ts',
   ],
   'uc004:career-path-fault:prove:raw': [
@@ -150,7 +159,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-028-nhp-fault.proof.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/metrics.ts',
-    'packages/db/src/ai-cost-governance.ts', 'packages/db/src/model-invocation.ts',
+    'packages/db/src/model-op/ai-cost-governance.ts', 'packages/db/src/model-op/model-invocation.ts',
     'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0001_baseline.sql',  // DBHY-1: 预迁移单真相(原 sql/01_schema 兼容镜像退役)
     'packages/db/migrations/0033_ai_cost_governance.sql',
@@ -183,7 +192,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/platform/principal.guard.ts',
-    'packages/db/src/commerce.ts',
+    'packages/db/src/commerce/commerce.ts',
     'packages/db/src/isolated-test-target.ts',
     'packages/db/sql/02_commerce.sql',
     'packages/db/sql/20_resume_quiz.sql',
@@ -192,13 +201,13 @@ const isolatedReceiptSources = {
   'runtime:claim-join:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/claim-join-orphan.proof.ts',
-    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/model-invocation.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/model-op/model-invocation.ts',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
   ],
   'model-cost:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/model-cost-governance.proof.ts',
-    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/ai-cost-governance.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/model-op/ai-cost-governance.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
     'packages/db/migrations/0035_ai_cost_principal_scope.sql',
     'packages/db/migrations/0036_ai_text_cost_governance.sql',
@@ -214,7 +223,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/model-invocation-reconcile.proof.ts',
     'apps/worker/src/model-invocation-reconcile.ts',
-    'packages/db/src/model-invocation.ts', 'packages/db/src/ai-cost-governance.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/model-op/ai-cost-governance.ts',
     'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
     'packages/db/migrations/0056_model_invocation_reconcile.sql',
     'packages/db/migrations/0057_model_invocation_cost_scope.sql',
@@ -222,10 +231,98 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
   ],
+  // AG 修复轨刀 B（AG-06 known_executed 分类+AG-14 usage_missing 折叠）:本地 http 脚本 provider
+  // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+改造三源+迁移镜像两件。
+  'ag-b-classify:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag-b-classify.proof.ts', 'apps/worker/package.json',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/model-op/usage-calibration.ts',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
+    'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
+  ],
+  // qbank 控制面鉴权收口小刀（AG-41 释放函数 executor-only+definer 断言+AG-42 五函数双空报错+P5 九支清理·est live=0）。
+  'qbank-control-sec:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/qbank-control-sec.proof.ts', 'packages/db/package.json',
+    'packages/db/src/index.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0146_qbank_partition_lifecycle.sql',
+    'packages/db/migrations/0176_qbank_control_plane_authz_closeout.sql',
+  ],
+  // AG 修复轨刀 E（AG-03 报告重试真实化+EG-A1 单调派发序+AG-10 守卫同批）:本地 http 脚本 provider
+  // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+键构造/守卫/db 层+迁移 0178。
+  'ag-e-report:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag-e-report.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/main.ts', 'apps/worker/src/report-worker.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/interview-service.ts',
+    'packages/db/src/report/report.ts', 'packages/db/src/index.ts',
+    'packages/ai-graphs/src/report.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0001_baseline.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0178_ag_e_report_dispatch_seq.sql',
+  ],
+  // AG 修复轨刀 A（AG-05 alreadyApplied invoke(null) 续跑+AG-26 start 续跑）:lifecycle 投影层 proof
+  // （est live=0·脚本模型+MemorySaver+隔离 PG 投影面）。来源清单=proof+改造源+lifecycle 同源 service。
+  'ag-a-resume:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/adaptive-resume.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+  ],
+  // AG 修复轨刀 F(AG-02 残面四类出题失败有界 re-roll+耗尽换 competency+unscored 0 分继续):
+  // scripted model+隔离 PG 真迁移链 proof(est live=0)。来源清单=proof+seam/图侧节点/域分类+lifecycle 投影面。
+  'ag-f-reroll:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag-f-reroll.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts',
+    'packages/domain/src/question-generation.ts',
+    'packages/ai-runtime/src/invoke.ts',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+  ],
+  // AG-37(检索 weighted-deficit 归零·持久化到图 state):scripted model+隔离 PG 真迁移链 proof(est live=0)。
+  // 来源清单=proof+五文件接线面(state/seam/节点/consumer/lifecycle 透传)+domain 出参/选择器面。
+  'ag37-deficit-persist:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/ag37-deficit-persist.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/qbank-track-local-retrieve.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/domain/src/question-generation.ts',
+    'packages/domain/src/job-route-classifier.ts',
+    'packages/domain/src/qbank-track-local-retrieval.ts',
+  ],
+  // AG 修复轨刀 D(AG-01 准入拒绝去终态化·案A 释放 claim+worker 衔接 requeue→真重试):
+  // 隔离 PG 真迁移链 proof(est live=0)。来源清单=两 proof+invoke/model-admission/model-invocation
+  // +0179 新迁移+service 抛出面+consumer 白名单+lifecycle 投影面。
+  'ag-d-admission:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/ai-runtime/test/ag-d-admission.proof.ts', 'apps/worker/test/ag-d-admission.proof.ts',
+    'packages/ai-runtime/package.json', 'apps/worker/package.json',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-admission.ts',
+    'packages/db/src/model-op/model-invocation.ts',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/generation-progress.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0179_ag_d_release_refused_claim.sql',
+  ],
   'model-op00:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/model-op00-db-state.proof.ts',
-    'packages/db/src/model-invocation.ts', 'packages/db/src/ai-cost-governance.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/model-op/ai-cost-governance.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/ai-runtime/src/invoke.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
@@ -243,7 +340,7 @@ const isolatedReceiptSources = {
     'packages/ai-runtime/test/failover-price-policy.proof.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/failover-model.ts',
     'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/model-operation-registry.ts',
-    'packages/db/src/ai-cost-governance.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/model-op/ai-cost-governance.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
     'packages/db/migrations/0035_ai_cost_principal_scope.sql',
     'packages/db/migrations/0036_ai_text_cost_governance.sql',
@@ -258,7 +355,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/estimate-threading-invoke.proof.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/metrics.ts',
-    'packages/db/src/ai-cost-governance.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/model-op/ai-cost-governance.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
     'packages/db/migrations/0035_ai_cost_principal_scope.sql',
     'packages/db/migrations/0036_ai_text_cost_governance.sql',
@@ -275,8 +372,8 @@ const isolatedReceiptSources = {
     'packages/ai-runtime/src/usage-calibration-reconciler.ts',
     'packages/ai-runtime/src/usage-reconciliation.ts',
     'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/metrics.ts',
-    'packages/db/src/model-invocation.ts', 'packages/db/src/usage-calibration.ts',
-    'packages/db/src/ai-cost-governance.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/model-op/usage-calibration.ts',
+    'packages/db/src/model-op/ai-cost-governance.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
     'packages/db/migrations/0035_ai_cost_principal_scope.sql',
     'packages/db/migrations/0036_ai_text_cost_governance.sql',
@@ -288,13 +385,28 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
+  ],
+  // AG-COST2（AG-07 迁移四件套+因子合并语义+90 天保留期）：隔离库真迁移链行为 proof（沿 entpay-s1/ag-b 先例形）。
+  'ucal-windowing:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/usage-calibration-windowing.proof.ts', 'apps/worker/package.json',
+    'packages/ai-runtime/src/usage-calibration-reconciler.ts', 'packages/ai-runtime/src/usage-reconciliation.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/index.ts',
+    'packages/db/src/model-op/usage-calibration.ts', 'packages/db/src/jobs/gateway-dispatch.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts', 'packages/db/src/migrate.ts',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0134_usage_calibration_gateway_owners.sql',
+    'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
+    'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
+    'packages/db/migrations/0184_ag12_estimator_claim_freeze.sql',
   ],
   'model-op02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/model-op02-shared-provider.proof.ts',
     'packages/ai-runtime/src/model-admission.ts', 'packages/ai-runtime/src/invoke.ts',
     'packages/ai-runtime/src/model-operation-registry.ts',
-    'packages/db/src/model-operation-admission.ts', 'packages/db/src/ai-cost-governance.ts',
+    'packages/db/src/model-op/model-operation-admission.ts', 'packages/db/src/model-op/ai-cost-governance.ts',
     'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'apps/worker/src/interview-service.ts', 'apps/api/src/main.ts', 'apps/worker/src/main.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
@@ -316,8 +428,8 @@ const isolatedReceiptSources = {
     'packages/ai-runtime/test/model-slot-bypass.proof.ts',
     'packages/ai-runtime/src/model-admission.ts', 'packages/ai-runtime/src/invoke.ts',
     'packages/ai-runtime/src/model-operation-registry.ts',
-    'packages/db/src/model-operation-admission.ts', 'packages/db/src/ai-cost-governance.ts',
-    'packages/db/src/model-invocation.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/model-op/model-operation-admission.ts', 'packages/db/src/model-op/ai-cost-governance.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/src/principal.ts',
     'packages/db/migrations/0033_ai_cost_governance.sql',
     'packages/db/migrations/0035_ai_cost_principal_scope.sql',
@@ -336,8 +448,8 @@ const isolatedReceiptSources = {
   'privacy-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/checkpoint-privacy-erasure.proof.ts',
-    'packages/db/src/checkpoint-privacy.ts', 'packages/db/src/interview-jobs.ts',
-    'packages/db/src/model-invocation.ts', 'apps/worker/src/report-worker.ts',
+    'packages/db/src/checkpoint/checkpoint-privacy.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'apps/worker/src/report-worker.ts',
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
     'packages/db/migrations/0062_interview_privacy_event_stream_scope.sql',
@@ -350,7 +462,7 @@ const isolatedReceiptSources = {
   'privacy-erasure:pause-upgrade:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/privacy-erasure-pause-upgrade.proof.ts', 'apps/worker/src/privacy-worker-runtime.ts',
-    'packages/db/src/checkpoint-privacy.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/checkpoint/checkpoint-privacy.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
     'packages/db/migrations/0048_checkpoint_physical_erasure.sql',
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
@@ -362,7 +474,7 @@ const isolatedReceiptSources = {
   'privacy-erasure-preview:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/privacy-erasure-preview.proof.ts',
-    'packages/db/src/privacy-erasure-preview.ts',
+    'packages/db/src/privacy/privacy-erasure-preview.ts',
     'packages/domain/src/privacy-erasure-preview.ts',
     'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0129_privacy_erasure_preview_path.sql',
@@ -370,7 +482,7 @@ const isolatedReceiptSources = {
   'privacy-erasure:http:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/privacy-erasure-http.proof.ts', 'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/checkpoint-privacy.ts', 'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
+    'packages/db/src/checkpoint/checkpoint-privacy.ts', 'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
     'packages/db/migrations/0062_interview_privacy_event_stream_scope.sql',
     'packages/db/migrations/0075_privacy_erasure_authorization_pause.sql',
@@ -384,8 +496,8 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/unstube-erase.proof.ts', 'apps/api/src/modules/resume/resume.service.ts',
     'apps/api/src/modules/privacy/privacy.service.ts', 'apps/api/src/modules/profile/profile.service.ts',
-    'packages/db/src/resume-privacy.ts', 'packages/db/src/int-transcript-projection.ts',
-    'packages/db/src/memory-governance.ts', 'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/resume-privacy.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
+    'packages/db/src/memory/memory-governance.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/migrations/0060_resume_erasure_tombstone_foundation.sql',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
     'packages/db/migrations/0093_memory_governance.sql', 'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
@@ -397,7 +509,7 @@ const isolatedReceiptSources = {
     'apps/api/test/scor-00-http-db.proof.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/recruiter.ts',
+    'packages/db/src/recruiting/recruiter.ts',
     'packages/db/migrations/0028_application_bound_interview.sql',
     'packages/db/migrations/0046_application_assessment_recovery.sql',
     'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
@@ -411,7 +523,7 @@ const isolatedReceiptSources = {
   'checkpoint-role:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/checkpointer-runtime-role.proof.ts', 'apps/worker/src/checkpoint-principal.ts',
-    'packages/db/src/checkpoint-privacy.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/checkpoint/checkpoint-privacy.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0045_checkpoint_thread_rls.sql',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
     'packages/db/migrations/0048_checkpoint_physical_erasure.sql',
@@ -422,7 +534,7 @@ const isolatedReceiptSources = {
   ],
   'resume-erasure:foundation:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'apps/worker/test/resume-erasure-tombstone-foundation.proof.ts', 'packages/db/src/resume.ts',
+    'apps/worker/test/resume-erasure-tombstone-foundation.proof.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0060_resume_erasure_tombstone_foundation.sql',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
   ],
@@ -431,21 +543,21 @@ const isolatedReceiptSources = {
     'apps/worker/test/resume-derivative-reference.proof.ts',
     'apps/worker/src/quiz-consumer.ts', 'apps/worker/src/diagnosis-consumer.ts',
     'apps/worker/src/quiz-lifecycle.ts', 'apps/worker/src/diagnosis-lifecycle.ts',
-    'packages/db/src/quiz-jobs.ts', 'packages/db/src/diagnosis-jobs.ts', 'packages/db/src/resume.ts',
+    'packages/db/src/jobs/quiz-jobs.ts', 'packages/db/src/jobs/diagnosis-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
     'packages/db/migrations/0062_interview_privacy_event_stream_scope.sql',
   ],
   'resume-reference:http:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/resume-reference-http.proof.ts', 'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/resume.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
   'recruiter:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/recruiter-depth.proof.ts', 'packages/db/src/recruiter.ts',
-    'packages/db/src/commerce.ts', 'packages/db/migrations/0046_application_assessment_recovery.sql',
+    'packages/db/test/recruiter-depth.proof.ts', 'packages/db/src/recruiting/recruiter.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/migrations/0046_application_assessment_recovery.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
     'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
   ],
@@ -453,16 +565,26 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/g7fix4-finalize-contract.proof.ts',
     'apps/api/src/modules/jobs/applications.service.ts',
-    'packages/db/src/recruiter.ts', 'packages/db/src/commerce.ts',
-    'packages/db/src/job-route-decision.ts',
+    'packages/db/src/recruiting/recruiter.ts', 'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/routing/job-route-decision.ts',
     'packages/db/migrations/0046_application_assessment_recovery.sql',
     'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
     'packages/db/migrations/0144_db_trigfam_unify.sql',
   ],
+  // G7FIX-4R 补锤(nail 席):worker g7fix4-reroll 接隔离 PG·文件清单沿其真实依赖面(proof+判死链三源+prompts)。
+  'g7fix4-reroll:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/g7fix4-reroll.proof.ts',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/interview-consumer.ts', 'packages/ai-runtime/src/prompts.ts',
+    'packages/db/migrations/0046_application_assessment_recovery.sql',
+    'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+    'packages/db/migrations/0082_b_side_score_calibration_hold.sql',
+  ],
   'reqid:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reqid.proof.ts', 'apps/worker/src/interview-consumer.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/ai-runtime/src/invoke.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/ai-runtime/src/invoke.ts',
     'packages/db/migrations/0057_model_invocation_cost_scope.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
@@ -472,46 +594,98 @@ const isolatedReceiptSources = {
     'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/report-worker.ts',
     // EXTREV-1 SCORE-WRITER S1（写卡步 + 全链接线面）：
     'apps/worker/src/score-writer.ts', 'apps/worker/src/adaptive-interview-service.ts',
-    'packages/db/src/scoring-wire.ts', 'packages/db/src/scoring-fact-root.ts',
-    'packages/db/src/scoring-aggregation.ts', 'packages/db/src/scoring-evidence-conflict.ts',
+    'packages/db/src/scoring-wire.ts', 'packages/db/src/scoring/scoring-fact-root.ts',
+    'packages/db/src/scoring/scoring-aggregation.ts', 'packages/db/src/scoring/scoring-evidence-conflict.ts',
     'packages/domain/src/scoring-aggregation.ts', 'packages/domain/src/assessment.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/interview-question.ts', 'packages/db/src/int-transcript.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/resume.ts',
+    'packages/db/src/interview/interview-question.ts', 'packages/db/src/transcript/int-transcript.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
     'packages/db/migrations/0100_scoring_fact_root.sql',
     'packages/db/migrations/0103_scoring_deterministic_aggregation.sql',
     'packages/db/migrations/0109_scoring_evidence_conflict_uncertainty.sql',
     'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+    // #204 GROWTH-GEN（成长链自动生成·D1 形A worker 钩子 + D2a 共享单源 + D3 职业单事务 upsert）：
+    // （receipt source 上限 32——db index 再导出面与 0001 基线迁移不单列：前者随核心文件覆盖，
+    //  后者由 isolated 全量 migrate 亲跑覆盖。）
+    'packages/db/src/growth-generation.ts',
+    'apps/api/src/modules/interview/interview-assessment.ts',
+    'apps/api/src/modules/interview/interview-learning.ts',
+    'packages/domain/src/learning.ts', 'packages/domain/src/career.ts',
+    'packages/domain/src/growth.ts', 'packages/domain/src/scoring-honesty.ts',
+  ],
+  'role-input:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/role-input.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-role-resolve.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/adaptive-interview-service.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/routing/candidate-route.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/test/role-input.proof.ts',
+    'apps/web/app/interviews/page.tsx', 'apps/web/app/interviews/actions.ts',
+    // H5-ROLE-INPUT(#230 押题岗位 B 片落槽·本刀触面如实登记):
+    'apps/api/src/modules/quiz/quiz.controller.ts', 'apps/api/src/modules/quiz/quiz.service.ts',
+    'packages/db/src/jobs/quiz-jobs.ts', 'apps/worker/src/quiz-consumer.ts', 'apps/worker/src/quiz-lifecycle.ts',
+    'apps/worker/src/interview-service.ts', 'packages/ai-runtime/src/prompts.ts',
   ],
   'stress:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/context-stress.proof.ts', 'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/interview-service.ts',
-    'apps/worker/src/report-worker.ts', 'packages/db/src/interview-jobs.ts',
+    'apps/worker/src/report-worker.ts', 'packages/db/src/interview/interview-jobs.ts',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
   'memory:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/memory.proof.ts', 'apps/worker/src/memory-service.ts',
-    'packages/db/src/memory-store.ts', 'packages/db/migrations/0001_baseline.sql',
+    'packages/db/src/memory/memory-store.ts', 'packages/db/migrations/0001_baseline.sql',
+  ],
+  // H3 LEVEL-SCHEME（#45/#102·level_policy_version 0160 迁移 prove·additive 注册沿 migrate:prove 同形）。
+  'level-policy-migrate:prove': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/level-policy-version.proof.ts', 'packages/db/migrations/0160_level_policy_version.sql',
+  ],
+  // H2 QBANK-CORPUS（#75-79+#202·语料供给/难度谱/近重复/已问排除/检索面切 candidate-route·additive 注册沿 level-policy-migrate:prove 同形）。
+  'qbank-corpus:prove': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/qbank-corpus.proof.ts', 'packages/db/src/qbank/qbank-corpus.ts',
+    'packages/db/src/qbank/qbank-served-refs.ts', 'packages/db/src/qbank/qbank-track-local-retrieval.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
+    'packages/db/migrations/0162_qbank_served_question_ref.sql',
+    'packages/db/migrations/0163_qbank_plan_snapshot_interview_fk.sql',
+  ],
+  'qbank-corpus-retrieve:prove': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/qbank-corpus-retrieve.proof.ts', 'apps/worker/src/qbank-track-local-retrieve.ts',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'packages/db/src/routing/candidate-route.ts',
+  ],
+  // H4 WEAKNESS-LOOP（#252 族·weakness.proof.ts R1-R8 断言族·additive 注册沿 memory:prove 同形）。
+  'weakness:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/weakness.proof.ts', 'apps/worker/src/weakness-backfill.ts',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/report-worker.ts',
+    'packages/db/src/memory/memory-store.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/domain/src/adaptive-interview.ts', 'packages/ai-runtime/src/prompts.ts',
   ],
   'report:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/report-bulkhead.proof.ts', 'apps/worker/src/report-worker.ts',
-    'packages/db/src/report.ts', 'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
+    'packages/db/src/report/report.ts', 'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
   ],
   'quiz:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/quiz.proof.ts', 'apps/worker/src/quiz-consumer.ts',
-    'apps/worker/src/quiz-lifecycle.ts', 'packages/db/src/quiz-jobs.ts',
+    'apps/worker/src/quiz-lifecycle.ts', 'packages/db/src/jobs/quiz-jobs.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
   ],
   'diagnosis:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/diagnosis.proof.ts', 'apps/worker/src/diagnosis-consumer.ts',
-    'apps/worker/src/diagnosis-lifecycle.ts', 'packages/db/src/diagnosis-jobs.ts',
+    'apps/worker/src/diagnosis-lifecycle.ts', 'packages/db/src/jobs/diagnosis-jobs.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
   ],
   'uc016:nhp-fault:prove:raw': [
@@ -521,7 +695,7 @@ const isolatedReceiptSources = {
     'apps/worker/src/quiz-lifecycle.ts', 'apps/worker/src/diagnosis-lifecycle.ts',
     'apps/worker/src/interview-service.ts',
     'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/validators/index.ts',
-    'packages/db/src/quiz-jobs.ts', 'packages/db/src/diagnosis-jobs.ts', 'packages/db/src/commerce.ts',
+    'packages/db/src/jobs/quiz-jobs.ts', 'packages/db/src/jobs/diagnosis-jobs.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0001_baseline.sql', 'packages/db/migrations/0007_resume_quiz.sql',
     'packages/db/migrations/0008_resume_diagnosis.sql', 'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
@@ -530,29 +704,128 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reaper.proof.ts', 'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/quiz-consumer.ts', 'apps/worker/src/job-heartbeat.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/quiz-jobs.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/resume.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/jobs/quiz-jobs.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+  ],
+  // AG-C-REQUEUE（AG-04 刀C）:consumer 瞬时错误分类 requeue+退避+上限+EG-A2 滞留行终态化·隔离库证明（0175 起号）。
+  'requeue-backoff:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/requeue-backoff.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/commerce/commerce.ts',
+    'packages/db/migrations/0175_interview_job_next_attempt_at.sql',
+  ],
+  // BILL1-TOPIC-FIELDS（billing 战役 P1）:0170 话题三列+0171 question_usage_ledger 归集+clarify_cause 透传·隔离库证明（0170/0171 起号）。
+  'bill1-topic-fields:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/bill1-topic-fields.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/decide.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/db/src/interview/interview-question.ts', 'packages/db/src/model-op/question-usage-ledger.ts',
+    'packages/db/migrations/0170_interview_question_topic_fields.sql',
+    'packages/db/migrations/0171_question_usage_ledger.sql',
+  ],
+  // BILL2-SHADOW-METER（billing 战役 P2·只算不扣）:0180 topic_shadow_meter 影子计量表+收尾事务外围 fail-soft 钩子+meter_version 兑现+零扣费负臂·隔离库证明（0180 起号·改号勘误见 REQUEST §9-2 E5）。
+  'bill2-shadow-meter:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/bill2-shadow-meter.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/decide.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
+    'packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+    'packages/db/src/interview/interview-question.ts', 'packages/db/src/model-op/question-usage-ledger.ts',
+    'packages/db/src/model-op/topic-shadow-meter.ts', 'packages/db/src/index.ts',
+    'packages/db/src/principal.ts',
+    'packages/db/migrations/0170_interview_question_topic_fields.sql',
+    'packages/db/migrations/0171_question_usage_ledger.sql',
+    'packages/db/migrations/0180_topic_shadow_meter.sql',
+  ],
+  // AG-19（prompt 版本观测落刀）:InvokeSpec.promptVersion→ai_model_invocation.prompt_version(0181)
+  // +trace span/Langfuse metadata 标量+metric 版本标签(promptVersions() 播种)·纯观测增强·隔离库证明（0181 起号）。
+  'ag19-prompt-version:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/ai-runtime/test/ag19-prompt-version.proof.ts',
+    'packages/ai-runtime/package.json', 'packages/ai-runtime/src/index.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/prompts.ts',
+    'packages/ai-runtime/src/trace.ts', 'packages/ai-runtime/src/langfuse-v5.ts',
+    'packages/ai-runtime/src/metrics.ts', 'packages/ai-runtime/src/model-client.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/principal.ts',
+    'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0181_ag19_prompt_version_column.sql',
+  ],
+  // AG-12（成本轨③:claim 冻结参数+配对 per-row 估算器归因）:0184 冻结两列+identity-immutable
+  // +claim 19 参+配对 v1/v2 加列 COALESCE+三元组分组·隔离库证明（0184 起号）。
+  'ag12-estimator-freeze:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/ai-runtime/test/ag12-estimator-freeze.proof.ts',
+    'packages/ai-runtime/package.json', 'packages/ai-runtime/src/index.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/usage-calibration-reconciler.ts',
+    'packages/ai-runtime/src/usage-reconciliation.ts', 'packages/ai-runtime/src/model-client.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/model-op/usage-calibration.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
+    'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
+    'packages/db/migrations/0181_ag19_prompt_version_column.sql',
+    'packages/db/migrations/0184_ag12_estimator_claim_freeze.sql',
+  ],
+  // BILL3-SETTLEMENT（billing 战役 P3 话题结算）:0172 topic_charge+interview 计费列+0173 tf_ 触发器改写+closeTopic/
+  // confirmConsumptionUnits/complete/abandon/sweep 拆分+#31 报错·隔离库证明（0172/0173 起号）。
+  'bill3-settlement:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/bill3-settlement.proof.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'apps/worker/src/commerce-reconcile.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/commerce/topic-charge.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0172_topic_charge.sql',
+    'packages/db/migrations/0173_tf_interview_consumption_terminal_pair.sql',
+  ],
+  // BILL4-LEDGER-LIST（billing 战役明细列表）:C 端三真账 UNION RLS 直读+keyset 值基三段复合游标+
+  // B 端 0185 受控 DEFINER 读函数（payer=principal 硬谓词）+影子零引用·隔离库证明（0185 起号）。
+  'bill4-ledger-list:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/bill4-ledger-list.proof.ts',
+    'packages/db/src/commerce/ledger.ts', 'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/index.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0171_question_usage_ledger.sql',
+    'packages/db/migrations/0172_topic_charge.sql',
+    'packages/db/migrations/0185_gateway_billing_ledger_payer.sql',
+    'packages/db/sql/23_api_gateway.sql',
+    'packages/contracts/src/index.ts',
+    'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/billing-ledger.controller.ts',
   ],
   'ocr:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/ocr.proof.ts', 'packages/ai-runtime/src/resume-ocr.ts',
-    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/resume.ts',
-    'packages/db/src/commerce.ts', 'packages/db/migrations/0038_resume_ocr_artifact.sql',
+    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/resume/resume.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/migrations/0038_resume_ocr_artifact.sql',
     'packages/db/migrations/0057_model_invocation_cost_scope.sql',
   ],
   'adaptive-degrade:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/adaptive-degrade.proof.ts', 'apps/worker/src/adaptive-interview-service.ts',
-    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/model-invocation.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/db/src/model-op/model-invocation.ts',
     'packages/db/migrations/0057_model_invocation_cost_scope.sql',
   ],
   'rag-generation:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'apps/worker/test/qbank-generation.proof.ts', 'packages/db/src/qbank-ingest.ts',
-    'apps/worker/src/qbank-generation.ts', 'packages/db/src/qbank-generation-retrieval.ts',
-    'packages/db/src/qbank-retrieval-cache.ts', 'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
+    'apps/worker/test/qbank-generation.proof.ts', 'packages/db/src/qbank/qbank-ingest.ts',
+    'apps/worker/src/qbank-generation.ts', 'packages/db/src/qbank/qbank-generation-retrieval.ts',
+    'packages/db/src/qbank/qbank-retrieval-cache.ts', 'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
     'packages/db/migrations/0031_qbank_question_artifact_rag.sql',
     'packages/db/migrations/0065_qbank_artifact_integrity.sql',
     'packages/db/migrations/0066_qbank_control_executor.sql',
@@ -567,13 +840,13 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0089_qbank_taxonomy_definer_manifest.sql',
     'packages/db/migrations/0097_qbank_generation_serving_scope_projection.sql',
     'packages/db/migrations/0098_qbank_active_source_id_executor_grant.sql',
-    'packages/db/src/qbank-generation-projection.ts', 'packages/db/src/qbank-provider-input.ts',
+    'packages/db/src/qbank/qbank-generation-projection.ts', 'packages/db/src/qbank/qbank-provider-input.ts',
   ],
   'qbank-integrity-upgrade:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'apps/worker/test/qbank-integrity-upgrade.proof.ts', 'packages/db/src/qbank-ingest.ts',
+    'apps/worker/test/qbank-integrity-upgrade.proof.ts', 'packages/db/src/qbank/qbank-ingest.ts',
     'apps/worker/src/qbank-generation.ts', 'packages/db/src/migrate.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/migrations/0067_qbank_control_plane_read_boundary.sql',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/migrations/0067_qbank_control_plane_read_boundary.sql',
     'packages/db/migrations/0068_qbank_content_fact_immutability.sql',
     'packages/db/migrations/0069_qbank_legacy_integrity_quarantine.sql',
     'packages/db/migrations/0070_qbank_low_privilege_control_definer_rls.sql',
@@ -600,7 +873,7 @@ const isolatedReceiptSources = {
   'qbank-handoff-closure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/qbank-handoff-closure.proof.ts', 'packages/db/src/principal.ts',
-    'packages/db/src/isolated-test-target.ts', 'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/qbank/qbank-ingest.ts', 'packages/db/src/qbank/qbank-curation.ts',
     'packages/db/migrations/0013_qbank_source.sql',
     'packages/db/migrations/0022_qbank_retrieval_cache.sql',
     'packages/db/migrations/0024_qbank_cache_epoch_lock.sql',
@@ -618,9 +891,9 @@ const isolatedReceiptSources = {
   'embed-cache:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/qbank-embedding-compute-cache.proof.ts',
-    'packages/db/src/qbank-embedding-compute-cache.ts',
-    'packages/db/src/qbank-retrieval-cache.ts',
-    'packages/db/src/qbank-ingest.ts',
+    'packages/db/src/qbank/qbank-embedding-compute-cache.ts',
+    'packages/db/src/qbank/qbank-retrieval-cache.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
     'packages/db/src/principal.ts',
     'packages/db/src/index.ts',
     'packages/db/package.json',
@@ -634,8 +907,8 @@ const isolatedReceiptSources = {
   'qbank-retrieval-eval:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/qbank-retrieval-eval-pg.proof.ts', 'apps/worker/smoke/qbank-retrieval-release.ts',
-    'apps/worker/src/qbank-seed.ts', 'packages/db/src/qbank-ingest.ts', 'apps/worker/src/qbank-generation.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/principal.ts',
+    'apps/worker/src/qbank-seed.ts', 'packages/db/src/qbank/qbank-ingest.ts', 'apps/worker/src/qbank-generation.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
     'packages/db/migrations/0031_qbank_question_artifact_rag.sql',
     'packages/db/migrations/0065_qbank_artifact_integrity.sql',
@@ -654,7 +927,7 @@ const isolatedReceiptSources = {
   ],
   'rag-control-role:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/rag-control-role.proof.ts', 'packages/db/src/principal.ts', 'packages/db/src/rag-corpus-versioning.ts',
+    'packages/db/test/rag-control-role.proof.ts', 'packages/db/src/principal.ts', 'packages/db/src/retrieval/rag-corpus-versioning.ts',
     'packages/db/migrations/0032_rag_corpus_version_control.sql',
     'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
@@ -664,7 +937,7 @@ const isolatedReceiptSources = {
   ],
   'rag-control-upgrade:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/rag-control-upgrade.proof.ts', 'packages/db/src/rag-corpus-versioning.ts',
+    'packages/db/test/rag-control-upgrade.proof.ts', 'packages/db/src/retrieval/rag-corpus-versioning.ts',
     'packages/db/migrations/0032_rag_corpus_version_control.sql',
     'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
@@ -685,7 +958,7 @@ const isolatedReceiptSources = {
   'migrate-cli:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/migrate-cli.proof.ts', 'packages/db/src/migrate-cli.ts', 'packages/db/src/principal.ts',
-    'packages/db/src/qbank-ingest.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
     'packages/db/migrations/0066_qbank_control_executor.sql',
     'packages/db/migrations/0067_qbank_control_plane_read_boundary.sql',
     'packages/db/migrations/0068_qbank_content_fact_immutability.sql',
@@ -704,15 +977,15 @@ const isolatedReceiptSources = {
   ],
   'rag-corpus-version:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/rag-corpus-version.proof.ts', 'packages/db/src/rag-corpus-versioning.ts', 'packages/db/src/principal.ts',
+    'packages/db/test/rag-corpus-version.proof.ts', 'packages/db/src/retrieval/rag-corpus-versioning.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0032_rag_corpus_version_control.sql',
     'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
     'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
   ],
   'qbank-pipeline:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'apps/worker/test/qbank-pipeline.proof.ts', 'packages/db/src/qbank-ingest.ts',
-    'apps/worker/src/qbank-generation.ts', 'packages/db/src/qbank-generation-retrieval.ts',
+    'apps/worker/test/qbank-pipeline.proof.ts', 'packages/db/src/qbank/qbank-ingest.ts',
+    'apps/worker/src/qbank-generation.ts', 'packages/db/src/qbank/qbank-generation-retrieval.ts',
     'apps/worker/src/main.ts',
     'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
     'packages/db/migrations/0031_qbank_question_artifact_rag.sql',
@@ -731,48 +1004,48 @@ const isolatedReceiptSources = {
   ],
   'commerce:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/commerce-saga.proof.ts', 'packages/db/src/commerce.ts',
+    'packages/db/test/commerce-saga.proof.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/migrations/0001_baseline.sql',
     'packages/db/migrations/0046_application_assessment_recovery.sql',
   ],
   'uc017:orphan:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-017-orphan-reservation.proof.ts', 'packages/db/src/commerce.ts',
+    'packages/db/test/uc-e2e-017-orphan-reservation.proof.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc017:nhp-load:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-017-nhp-load.proof.ts', 'packages/db/src/commerce.ts',
+    'packages/db/test/uc-e2e-017-nhp-load.proof.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc018:abandon:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-018-user-abandon.proof.ts', 'packages/db/src/commerce.ts',
+    'packages/db/test/uc-e2e-018-user-abandon.proof.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc018:graph:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-018-graph-safely-terminated.proof.ts', 'packages/db/src/commerce.ts',
+    'packages/db/test/uc-e2e-018-graph-safely-terminated.proof.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc018:ttl:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/uc-e2e-018-ttl-sweeper-abandon.proof.ts', 'apps/worker/src/commerce-reconcile.ts',
-    'packages/db/src/commerce.ts', 'packages/db/migrations/0001_baseline.sql',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/migrations/0001_baseline.sql',
   ],
   'uc018:abandon:http:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-018-user-abandon-http.proof.ts', 'apps/api/test/_neg-harness.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts',
+    'packages/db/src/commerce/commerce.ts',
   ],
   'uc018:adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-018-adv.proof.ts', 'apps/api/test/_neg-harness.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts',
+    'packages/db/src/commerce/commerce.ts',
   ],
   'uc018:perf-load:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -780,11 +1053,11 @@ const isolatedReceiptSources = {
     'apps/api/test/uc-e2e-018-perf-load.proof.ts', 'apps/api/test/_neg-harness.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts',
+    'packages/db/src/commerce/commerce.ts',
   ],
   'uc011:report-refund:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-011-report-refund.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
+    'packages/db/test/uc-e2e-011-report-refund.proof.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc011:report-refund:http:prove:raw': [
@@ -795,7 +1068,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/report.ts', 'packages/db/src/payment.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts', 'packages/db/src/commerce/payment.ts',
   ],
   'uc011:adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -803,7 +1076,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce.controller.ts',
     'apps/api/src/modules/commerce/commerce.service.ts',
     'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
-    'packages/db/src/payment.ts',
+    'packages/db/src/commerce/payment.ts',
   ],
   'uc011:refund-callback:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -811,11 +1084,11 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce.controller.ts',
     'apps/api/src/modules/commerce/commerce.service.ts',
     'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
-    'packages/db/src/payment.ts',
+    'packages/db/src/commerce/payment.ts',
   ],
   'uc019:report-regenerate:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
+    'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'uc019:report-regenerate:http:prove:raw': [
@@ -825,11 +1098,31 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce.service.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
-    'packages/db/src/commerce.ts', 'packages/db/src/report.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
+  ],
+  'report-retry:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/report-retry.proof.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
+    'packages/db/migrations/0001_baseline.sql',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview-report.ts',
+    'apps/worker/src/report-worker.ts',
+    // web 契约文件路径含 [id] 方括号，收据源字符白名单（local-e2e-receipt assertRelativeSourcePaths）
+    // 不纳方括号——web 契约面由 proof 运行时静态门（readRepo）钉真实文件，不入收据摘要。
+  ],
+  'report-retry:http:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/report-retry-http.proof.ts', 'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview-report.ts',
+    'apps/api/src/platform/rate-limit.service.ts',
+    'apps/worker/src/report-worker.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
   ],
   'uc002:lease:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/uc-e2e-002-cross-device-lease.proof.ts', 'packages/db/src/interview-graph-lease.ts',
+    'packages/db/test/uc-e2e-002-cross-device-lease.proof.ts', 'packages/db/src/interview/interview-graph-lease.ts',
     'packages/db/migrations/0001_baseline.sql',
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
@@ -923,9 +1216,9 @@ const isolatedReceiptSources = {
     'ai-docs/requirements/use-cases/e2e-scenarios.md',
     'ai-docs/rules/global/status-machine.md',
     'ai-docs/architecture/ai/human-review-design.md',
-    'packages/db/src/qbank-curation.ts',
+    'packages/db/src/qbank/qbank-curation.ts',
     'packages/domain/src/scoring-operation-routing.ts',
-    'packages/db/src/resume.ts',
+    'packages/db/src/resume/resume.ts',
     'e2e/full.e2e.ts',
   ],
   'uc040-043:batch-qbank-seat:prove:raw': [
@@ -950,7 +1243,7 @@ const isolatedReceiptSources = {
   ],
   'resume:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
-    'packages/db/test/resume-ingest.proof.ts', 'packages/db/src/resume.ts',
+    'packages/db/test/resume-ingest.proof.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0001_baseline.sql',
     'packages/db/migrations/0060_resume_erasure_tombstone_foundation.sql',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
@@ -959,7 +1252,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/adaptive-consumer.proof.ts',
     'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/resume.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
   ],
@@ -971,7 +1264,7 @@ const isolatedReceiptSources = {
     'packages/domain/src/index.ts', 'packages/domain/src/sealed-ocr-binding.ts',
     'packages/ai-graphs/src/adaptive-interview/state.ts',
     'packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts',
-    'packages/db/src/resume.ts',
+    'packages/db/src/resume/resume.ts',
     'packages/db/migrations/0063_resume_active_content_read_gate.sql',
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
     'packages/db/migrations/0152_consent_revoke_grant.sql',
@@ -979,9 +1272,9 @@ const isolatedReceiptSources = {
   'uc052:internal-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-internal-erasure.proof.ts',
-    'packages/db/src/uc052-internal-erasure.ts',
-    'packages/db/src/int-transcript-projection.ts',
-    'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts',
+    'packages/db/src/transcript/int-transcript-projection.ts',
+    'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/privacy-authorization.ts',
@@ -992,8 +1285,8 @@ const isolatedReceiptSources = {
   'uc052:external-sink-retention:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-external-sink-retention.proof.ts',
-    'packages/db/src/uc052-internal-erasure.ts', 'packages/db/src/int-transcript-projection.ts',
-    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
+    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
     'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
@@ -1002,9 +1295,9 @@ const isolatedReceiptSources = {
   'uc052:external-sink-async-purge:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-external-sink-async-purge.proof.ts',
-    'packages/db/src/uc052-external-sink-async-purge.ts',
-    'packages/db/src/uc052-internal-erasure.ts', 'packages/db/src/int-transcript-projection.ts',
-    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts',
+    'packages/db/src/privacy/uc052-external-sink-async-purge.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts', 'packages/db/src/transcript/int-transcript-projection.ts',
+    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
     'packages/db/migrations/0091_privacy_authorization_issuer.sql',
     'packages/db/migrations/0096_int_transcript_remaining_sinks.sql',
@@ -1014,11 +1307,11 @@ const isolatedReceiptSources = {
   'uc052:checkpoint-physical:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc052-checkpoint-physical.proof.ts',
-    'packages/db/src/uc052-checkpoint-physical.ts',
-    'packages/db/src/uc052-internal-erasure.ts',
-    'packages/db/src/checkpoint-privacy.ts',
+    'packages/db/src/privacy/uc052-checkpoint-physical.ts',
+    'packages/db/src/privacy/uc052-internal-erasure.ts',
+    'packages/db/src/checkpoint/checkpoint-privacy.ts',
     'apps/worker/src/checkpoint-principal.ts',
-    'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts',
     'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/privacy-authorization.ts',
@@ -1042,15 +1335,15 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/tenant-wiring-neg.proof.ts', 'packages/db/test/tenant-wiring.manifest.ts',
     'packages/db/test/tenant-wiring-e5.proof.ts', 'packages/db/test/tenant-enforcement.proof.ts',
-    'packages/db/src/tenant/index.ts', 'packages/db/src/notification.ts',
-    'packages/db/src/recruiter.ts', 'packages/db/src/candidate-route.ts',
+    'packages/db/src/tenant/index.ts', 'packages/db/src/notification/notification.ts',
+    'packages/db/src/recruiting/recruiter.ts', 'packages/db/src/routing/candidate-route.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
   'privacy-authorization:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/privacy-authorization.proof.ts',
-    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/auth.ts',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
     'packages/db/migrations/0048_checkpoint_physical_erasure.sql',
@@ -1066,10 +1359,10 @@ const isolatedReceiptSources = {
     'packages/db/scripts/dbid1-api-guard-smoke.ts',
     'packages/db/src/ids.ts', 'packages/db/src/index.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
-    'packages/db/src/int-transcript.ts', 'packages/db/src/recruiter.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/candidate-route.ts',
-    'packages/db/src/qbank-route-scope-cache.ts', 'packages/db/src/qbank-miss.ts',
-    'packages/db/src/free-text-route-decision.ts',
+    'packages/db/src/transcript/int-transcript.ts', 'packages/db/src/recruiting/recruiter.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/routing/candidate-route.ts',
+    'packages/db/src/qbank/qbank-route-scope-cache.ts', 'packages/db/src/qbank/qbank-miss.ts',
+    'packages/db/src/routing/free-text-route-decision.ts',
     'packages/domain/src/scoring-honesty.ts',
     'apps/web/lib/stream/scoring-honesty.ts',
     'packages/db/package.json',
@@ -1083,7 +1376,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/db-trigfam-unify.proof.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
-    'packages/db/src/migrate.ts', 'packages/db/src/ai-cost-governance.ts',
+    'packages/db/src/migrate.ts', 'packages/db/src/model-op/ai-cost-governance.ts',
     'package.json', 'packages/db/package.json',
     'packages/db/migrations/0028_application_bound_interview.sql',
     'packages/db/migrations/0046_application_assessment_recovery.sql',
@@ -1123,14 +1416,14 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0149_money_status_constraints.sql',
     'packages/db/sql/01_schema.sql',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
-    'packages/db/src/payment.ts', 'packages/db/src/commerce.ts', 'packages/db/src/interview-event.ts',
+    'packages/db/src/commerce/payment.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview/interview-event.ts',
     'packages/db/package.json',
   ],
   'db-acl:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/db-acl.proof.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts',
-    'packages/db/src/isolated-test-target.ts', 'packages/db/src/report.ts',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/report/report.ts',
     'packages/db/package.json', 'package.json',
     'packages/db/migrations/0143_db_id_v7_unify.sql',
     'packages/db/migrations/0150_uuidv7_grant_acl.sql',
@@ -1150,8 +1443,8 @@ const isolatedReceiptSources = {
   'memory-governance:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-governance.proof.ts',
-    'packages/db/src/memory-governance.ts', 'packages/db/src/memory-store.ts', 'packages/db/src/index.ts',
-    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/memory/memory-governance.ts', 'packages/db/src/memory/memory-store.ts', 'packages/db/src/index.ts',
+    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-governance.ts', 'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
@@ -1165,7 +1458,7 @@ const isolatedReceiptSources = {
   'memory-admission:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-admission.proof.ts',
-    'packages/db/src/memory-admission.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-admission.ts', 'packages/db/src/index.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-admission.ts', 'packages/domain/src/memory-governance.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
@@ -1175,8 +1468,8 @@ const isolatedReceiptSources = {
   'memory-fact-adjudication:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-fact-adjudication.proof.ts',
-    'packages/db/src/memory-fact-adjudication.ts', 'packages/db/src/index.ts',
-    'packages/db/src/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/memory/memory-fact-adjudication.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-fact-adjudication.ts', 'packages/domain/src/memory-admission.ts', 'packages/domain/src/memory-governance.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
     'packages/db/migrations/0093_memory_governance.sql',
@@ -1186,8 +1479,8 @@ const isolatedReceiptSources = {
   'memory-index-generation:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-index-generation.proof.ts',
-    'packages/db/src/memory-index-generation.ts', 'packages/db/src/index.ts',
-    'packages/db/src/memory-fact-adjudication.ts', 'packages/db/src/memory-admission.ts',
+    'packages/db/src/memory/memory-index-generation.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-fact-adjudication.ts', 'packages/db/src/memory/memory-admission.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-index-generation.ts', 'packages/domain/src/memory-fact-adjudication.ts',
     'packages/domain/src/memory-admission.ts', 'packages/domain/src/memory-governance.ts', 'packages/domain/src/index.ts',
@@ -1200,9 +1493,9 @@ const isolatedReceiptSources = {
   'memory-two-stage-recall:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-two-stage-recall.proof.ts',
-    'packages/db/src/memory-two-stage-recall.ts', 'packages/db/src/index.ts',
-    'packages/db/src/memory-index-generation.ts', 'packages/db/src/memory-fact-adjudication.ts',
-    'packages/db/src/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/memory/memory-two-stage-recall.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-index-generation.ts', 'packages/db/src/memory/memory-fact-adjudication.ts',
+    'packages/db/src/memory/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-two-stage-recall.ts', 'packages/domain/src/memory-index-generation.ts',
     'packages/domain/src/memory-fact-adjudication.ts', 'packages/domain/src/memory-admission.ts',
     'packages/domain/src/memory-governance.ts', 'packages/domain/src/index.ts',
@@ -1216,9 +1509,9 @@ const isolatedReceiptSources = {
   'memory-control-surface:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-control-surface.proof.ts',
-    'packages/db/src/memory-control-surface.ts', 'packages/db/src/index.ts',
-    'packages/db/src/memory-index-generation.ts', 'packages/db/src/memory-fact-adjudication.ts',
-    'packages/db/src/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/memory/memory-control-surface.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-index-generation.ts', 'packages/db/src/memory/memory-fact-adjudication.ts',
+    'packages/db/src/memory/memory-admission.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-control-surface.ts', 'packages/domain/src/memory-index-generation.ts',
     'packages/domain/src/memory-fact-adjudication.ts', 'packages/domain/src/memory-admission.ts',
     'packages/domain/src/memory-governance.ts', 'packages/domain/src/index.ts',
@@ -1233,7 +1526,7 @@ const isolatedReceiptSources = {
   'ctx03-event-source:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/ctx03-event-source.proof.ts',
-    'packages/db/src/ctx03-event-source.ts', 'packages/db/src/index.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/index.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/ctx03-event-source.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
@@ -1243,8 +1536,8 @@ const isolatedReceiptSources = {
   'mem02-summary:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/mem02-summary.proof.ts',
-    'packages/db/src/memory-summary.ts', 'packages/db/src/index.ts',
-    'packages/db/src/ctx03-event-source.ts', 'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/memory/memory-summary.ts', 'packages/db/src/index.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-summary.ts', 'packages/domain/src/index.ts',
     'packages/domain/src/ctx03-event-source.ts', 'packages/domain/src/privacy-authorization.ts',
@@ -1257,8 +1550,8 @@ const isolatedReceiptSources = {
   'mem03-summary-tree:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/mem03-summary-tree.proof.ts',
-    'packages/db/src/memory-summary-tree.ts', 'packages/db/src/memory-summary.ts', 'packages/db/src/index.ts',
-    'packages/db/src/ctx03-event-source.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/memory/memory-summary-tree.ts', 'packages/db/src/memory/memory-summary.ts', 'packages/db/src/index.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/memory-summary-tree.ts', 'packages/domain/src/memory-summary.ts', 'packages/domain/src/index.ts',
     'packages/domain/src/ctx03-event-source.ts',
     'packages/contracts/src/index.ts',
@@ -1271,8 +1564,8 @@ const isolatedReceiptSources = {
   'ctx04-compression-snapshot:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/ctx04-compression-snapshot.proof.ts',
-    'packages/db/src/context-compression-snapshot.ts', 'packages/db/src/index.ts',
-    'packages/db/src/ctx03-event-source.ts', 'packages/db/src/memory-summary.ts',
+    'packages/db/src/context/context-compression-snapshot.ts', 'packages/db/src/index.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/memory/memory-summary.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/ctx04-compression-snapshot.ts', 'packages/domain/src/memory-summary.ts',
@@ -1285,8 +1578,8 @@ const isolatedReceiptSources = {
   'ctx05-concurrency-recovery:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/ctx05-concurrency-recovery.proof.ts',
-    'packages/db/src/context-compression-dispatch.ts', 'packages/db/src/index.ts',
-    'packages/db/src/ctx03-event-source.ts', 'packages/db/src/context-compression-snapshot.ts',
+    'packages/db/src/context/context-compression-dispatch.ts', 'packages/db/src/index.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/context/context-compression-snapshot.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/ctx05-compression-boundary.ts', 'packages/domain/src/ctx03-event-source.ts',
@@ -1299,9 +1592,9 @@ const isolatedReceiptSources = {
   'ctx06-deletion-closure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/ctx06-deletion-closure.proof.ts',
-    'packages/db/src/context-compression-erasure.ts', 'packages/db/src/index.ts',
-    'packages/db/src/ctx03-event-source.ts', 'packages/db/src/context-compression-snapshot.ts',
-    'packages/db/src/context-compression-dispatch.ts', 'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/context/context-compression-erasure.ts', 'packages/db/src/index.ts',
+    'packages/db/src/context/ctx03-event-source.ts', 'packages/db/src/context/context-compression-snapshot.ts',
+    'packages/db/src/context/context-compression-dispatch.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/ctx06-deletion-closure.ts', 'packages/domain/src/privacy-authorization.ts',
@@ -1321,8 +1614,8 @@ const isolatedReceiptSources = {
   'memory-vector-chunk-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/memory-vector-chunk-erasure.proof.ts',
-    'packages/db/src/memory-vector-chunk-erasure.ts', 'packages/db/src/index.ts',
-    'packages/db/src/memory-governance.ts', 'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/memory/memory-vector-chunk-erasure.ts', 'packages/db/src/index.ts',
+    'packages/db/src/memory/memory-governance.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/memory-vector-chunk-deletion.ts', 'packages/domain/src/privacy-authorization.ts',
@@ -1337,8 +1630,8 @@ const isolatedReceiptSources = {
   'vector-plane-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/vector-plane-erasure.proof.ts',
-    'packages/db/src/vector-plane-erasure.ts', 'packages/db/src/memory-vector-chunk-erasure.ts',
-    'packages/db/src/index.ts', 'packages/db/src/privacy-authorization.ts',
+    'packages/db/src/privacy/vector-plane-erasure.ts', 'packages/db/src/memory/memory-vector-chunk-erasure.ts',
+    'packages/db/src/index.ts', 'packages/db/src/privacy/privacy-authorization.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/memory-vector-chunk-deletion.ts', 'packages/domain/src/privacy-authorization.ts',
@@ -1358,14 +1651,14 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/platform/public-preview.ts',
-    'packages/db/src/int-transcript.ts',
+    'packages/db/src/transcript/int-transcript.ts',
     'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
   ],
   'int-transcript-answer-fact-root:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/int-transcript-answer-fact-root.proof.ts',
-    'packages/db/src/int-transcript.ts', 'packages/db/src/index.ts',
-    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/checkpoint-privacy.ts',
+    'packages/db/src/transcript/int-transcript.ts', 'packages/db/src/index.ts',
+    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/checkpoint/checkpoint-privacy.ts',
     'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
     'packages/db/migrations/0047_checkpoint_privacy_fence.sql',
@@ -1380,9 +1673,9 @@ const isolatedReceiptSources = {
   'int-answer-dual-write-fence:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/int-answer-dual-write-fence.proof.ts',
-    'packages/db/src/interview-answer-dual-write.ts',
-    'packages/db/src/interview-jobs.ts', 'packages/db/src/int-transcript.ts',
-    'packages/db/src/interview-event.ts', 'packages/db/src/index.ts',
+    'packages/db/src/interview/interview-answer-dual-write.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/transcript/int-transcript.ts',
+    'packages/db/src/interview/interview-event.ts', 'packages/db/src/index.ts',
     'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
     'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
     'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
@@ -1390,8 +1683,8 @@ const isolatedReceiptSources = {
   'int-transcript-remaining-sinks:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/int-transcript-remaining-sinks.proof.ts',
-    'packages/db/src/int-transcript-projection.ts', 'packages/db/src/index.ts',
-    'packages/db/src/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/transcript/int-transcript-projection.ts', 'packages/db/src/index.ts',
+    'packages/db/src/privacy/privacy-authorization.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/privacy-authorization.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
     'packages/db/migrations/0019_schema_drift_reconcile.sql',
@@ -1412,8 +1705,8 @@ const isolatedReceiptSources = {
   'scor-01:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/scor-01.proof.ts',
-    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/index.ts',
-    'packages/db/src/int-transcript.ts', 'packages/db/src/checkpoint-privacy.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/index.ts',
+    'packages/db/src/transcript/int-transcript.ts', 'packages/db/src/checkpoint/checkpoint-privacy.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
@@ -1423,11 +1716,30 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
     'packages/db/migrations/0100_scoring_fact_root.sql',
   ],
+  // G1 SCORE-S3 #42：TS↔SQL 评分状态机/公式对拍（live DB 行为实测）+ #43 0158 INSERT 守门正负测。
+  'scor-parity:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/scor-parity.proof.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/scoring/scoring-aggregation.ts',
+    'packages/db/src/scoring/scoring-evidence-conflict.ts', 'packages/db/src/index.ts',
+    'packages/db/src/transcript/int-transcript.ts', 'packages/db/src/checkpoint/checkpoint-privacy.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/scoring-aggregation.ts', 'packages/domain/src/index.ts',
+    'packages/contracts/src/index.ts',
+    'packages/db/migrations/0001_baseline.sql',
+    'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
+    'packages/db/migrations/0091_privacy_authorization_issuer.sql',
+    'packages/db/migrations/0092_int_transcript_answer_fact_root.sql',
+    'packages/db/migrations/0100_scoring_fact_root.sql',
+    'packages/db/migrations/0103_scoring_deterministic_aggregation.sql',
+    'packages/db/migrations/0109_scoring_evidence_conflict_uncertainty.sql',
+    'packages/db/migrations/0158_score_card_insert_guard.sql',
+  ],
   'scor-02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/scor-02.proof.ts',
-    'packages/db/src/scoring-aggregation.ts', 'packages/db/src/scoring-fact-root.ts',
-    'packages/db/src/index.ts', 'packages/db/src/int-transcript.ts',
+    'packages/db/src/scoring/scoring-aggregation.ts', 'packages/db/src/scoring/scoring-fact-root.ts',
+    'packages/db/src/index.ts', 'packages/db/src/transcript/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/scoring-aggregation.ts', 'packages/domain/src/scoring-fact-root.ts',
     'packages/domain/src/memory-admission.ts', 'packages/domain/src/index.ts',
@@ -1442,8 +1754,8 @@ const isolatedReceiptSources = {
   'scor03-evidence-conflict:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/scor-03.proof.ts',
-    'packages/db/src/scoring-evidence-conflict.ts', 'packages/db/src/scoring-aggregation.ts',
-    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/index.ts', 'packages/db/src/int-transcript.ts',
+    'packages/db/src/scoring/scoring-evidence-conflict.ts', 'packages/db/src/scoring/scoring-aggregation.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/index.ts', 'packages/db/src/transcript/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/scoring-evidence-conflict.ts', 'packages/domain/src/scoring-aggregation.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/memory-admission.ts', 'packages/domain/src/index.ts',
@@ -1459,8 +1771,8 @@ const isolatedReceiptSources = {
   'growth:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/growth.proof.ts',
-    'packages/db/src/index.ts', 'packages/db/src/scoring-aggregation.ts',
-    'packages/db/src/scoring-fact-root.ts', 'packages/db/src/int-transcript.ts',
+    'packages/db/src/index.ts', 'packages/db/src/scoring/scoring-aggregation.ts',
+    'packages/db/src/scoring/scoring-fact-root.ts', 'packages/db/src/transcript/int-transcript.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/growth.ts', 'packages/domain/src/scoring-aggregation.ts',
     'packages/domain/src/scoring-fact-root.ts', 'packages/domain/src/index.ts',
@@ -1475,7 +1787,7 @@ const isolatedReceiptSources = {
   'rag03-route:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/job-route-decision.proof.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/job-route-classifier.ts', 'packages/domain/src/index.ts',
     'packages/contracts/src/index.ts',
@@ -1490,10 +1802,10 @@ const isolatedReceiptSources = {
   'rag04-track-local:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag04-track-local-retrieval.proof.ts',
-    'packages/db/src/qbank-track-local-retrieval.ts', 'packages/db/src/qbank-retrieval-cache.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-generation-projection.ts',
-    'packages/db/src/qbank-ingest.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/qbank/qbank-track-local-retrieval.ts', 'packages/db/src/qbank/qbank-retrieval-cache.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/qbank/qbank-generation-projection.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/qbank-track-local-retrieval.ts', 'packages/domain/src/job-route-classifier.ts', 'packages/domain/src/index.ts',
@@ -1514,8 +1826,8 @@ const isolatedReceiptSources = {
   'rag03-filter-locus:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag03-filter-locus.proof.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts', 'packages/db/src/retrieval-legacy.ts',
-    'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/retrieval/retrieval-store.ts', 'packages/db/src/retrieval/retrieval-legacy.ts',
+    'packages/db/src/qbank/qbank-ingest.ts', 'packages/db/src/qbank/qbank-curation.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
@@ -1529,8 +1841,8 @@ const isolatedReceiptSources = {
   'rag03-hnsw-completeness:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag03-hnsw-completeness.proof.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts', 'packages/db/src/retrieval-legacy.ts',
-    'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/retrieval/retrieval-store.ts', 'packages/db/src/retrieval/retrieval-legacy.ts',
+    'packages/db/src/qbank/qbank-ingest.ts', 'packages/db/src/qbank/qbank-curation.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
@@ -1545,8 +1857,8 @@ const isolatedReceiptSources = {
   'rag03c-exactk-observe:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag03c-exactk-observe.proof.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/retrieval-store.ts',
-    'packages/db/src/qbank-ingest.ts', 'packages/db/src/qbank-curation.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/retrieval/retrieval-store.ts',
+    'packages/db/src/qbank/qbank-ingest.ts', 'packages/db/src/qbank/qbank-curation.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/db/migrations/0029_qbank_generation_hybrid_retrieval.sql',
@@ -1566,14 +1878,14 @@ const isolatedReceiptSources = {
     'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/main.ts',
     'apps/worker/package.json',
-    'packages/db/src/qbank-track-local-retrieval.ts', 'packages/db/src/qbank-retrieval-cache.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-generation-projection.ts',
-    'packages/db/src/qbank-ingest.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/qbank/qbank-track-local-retrieval.ts', 'packages/db/src/qbank/qbank-retrieval-cache.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/qbank/qbank-generation-projection.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/qbank-track-local-retrieval.ts', 'packages/domain/src/index.ts',
-    'ai-docs/delivery/harness/r4-wrong-track-adv-live-pg.md',
-    'ai-docs/delivery/harness/r4-wrong-track-adv.md',
+    'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv-live-pg.md',
+    'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv.md',
     'ai-docs/delivery/harness/r4-domain-isolation-status.md',
   ],
   'nhp-r4-adv-covered:prove:raw': [
@@ -1586,17 +1898,17 @@ const isolatedReceiptSources = {
     'apps/worker/src/interview-consumer.ts',
     'apps/worker/src/main.ts',
     'apps/worker/package.json',
-    'packages/db/src/qbank-track-local-retrieval.ts', 'packages/db/src/qbank-retrieval-cache.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-generation-projection.ts',
-    'packages/db/src/qbank-ingest.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/qbank/qbank-track-local-retrieval.ts', 'packages/db/src/qbank/qbank-retrieval-cache.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/qbank/qbank-generation-projection.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/qbank-track-local-retrieval.ts', 'packages/domain/src/index.ts',
-    'ai-docs/delivery/harness/nhp-r4-adv-covered-path.md',
-    'ai-docs/delivery/eval/nhp-r4-adv-covered-path.eval.md',
-    'ai-docs/delivery/nhp-r4-adv-covered-path.slice.md',
-    'ai-docs/delivery/harness/r4-wrong-track-adv-live-pg.md',
-    'ai-docs/delivery/harness/r4-wrong-track-adv.md',
+    'receipts/archive/2026-09-batch23/harness/nhp-r4-adv-covered-path.md',
+    'receipts/archive/2026-09-batch23/eval/nhp-r4-adv-covered-path.eval.md',
+    'receipts/archive/2026-09-batch23/slices/nhp-r4-adv-covered-path.slice.md',
+    'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv-live-pg.md',
+    'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv.md',
     'ai-docs/delivery/harness/r4-domain-isolation-status.md',
     'ai-docs/delivery/non-happy-path-perf-load-case-matrix.md',
   ],
@@ -1612,25 +1924,25 @@ const isolatedReceiptSources = {
     'apps/worker/src/production-config.ts',
     'apps/worker/package.json',
     'packages/ai-runtime/src/metrics.ts',
-    'packages/db/src/qbank-track-local-retrieval.ts', 'packages/db/src/qbank-retrieval-cache.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-generation-projection.ts',
-    'packages/db/src/qbank-ingest.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/qbank/qbank-track-local-retrieval.ts', 'packages/db/src/qbank/qbank-retrieval-cache.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/qbank/qbank-generation-projection.ts',
+    'packages/db/src/qbank/qbank-ingest.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/domain/src/qbank-track-local-retrieval.ts', 'packages/domain/src/index.ts',
-    'ai-docs/delivery/harness/r4-f1-wrong-track-prod-surface.md',
-    'ai-docs/delivery/eval/r4-f1-wrong-track-prod-surface.eval.md',
-    'ai-docs/delivery/r4-f1-wrong-track-prod-surface.slice.md',
-    'ai-docs/delivery/harness/r4-wrong-track-adv-live-pg.md',
-    'ai-docs/delivery/harness/r4-wrong-track-adv.md',
+    'receipts/archive/2026-09-batch23/harness/r4-f1-wrong-track-prod-surface.md',
+    'receipts/archive/2026-09-batch23/eval/r4-f1-wrong-track-prod-surface.eval.md',
+    'receipts/archive/2026-09-batch23/slices/r4-f1-wrong-track-prod-surface.slice.md',
+    'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv-live-pg.md',
+    'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv.md',
     'ai-docs/delivery/harness/r4-domain-isolation-status.md',
   ],
   'rag05-qbank-miss:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag05-qbank-miss.proof.ts',
-    'packages/db/src/qbank-miss.ts', 'packages/db/src/interview-event.ts', 'packages/db/src/interview-question.ts', 'packages/db/src/scoring-fact-root.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-ingest.ts',
-    'packages/db/src/job-route-decision.ts', 'packages/db/src/recruiter.ts',
+    'packages/db/src/qbank/qbank-miss.ts', 'packages/db/src/interview/interview-event.ts', 'packages/db/src/interview/interview-question.ts', 'packages/db/src/scoring/scoring-fact-root.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/qbank/qbank-ingest.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/qbank-miss.ts', 'packages/domain/src/qbank-track-local-retrieval.ts', 'packages/domain/src/job-route-classifier.ts', 'packages/domain/src/index.ts',
@@ -1651,8 +1963,8 @@ const isolatedReceiptSources = {
   'rag06-route-scope-cache:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag06-route-scope-cache.proof.ts',
-    'packages/db/src/qbank-route-scope-cache.ts',
-    'packages/db/src/qbank-generation-retrieval.ts', 'packages/db/src/qbank-retrieval-cache.ts', 'packages/db/src/qbank-ingest.ts',
+    'packages/db/src/qbank/qbank-route-scope-cache.ts',
+    'packages/db/src/qbank/qbank-generation-retrieval.ts', 'packages/db/src/qbank/qbank-retrieval-cache.ts', 'packages/db/src/qbank/qbank-ingest.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/qbank-route-scope-cache.ts', 'packages/domain/src/qbank-track-local-retrieval.ts', 'packages/domain/src/qbank-miss.ts', 'packages/domain/src/job-route-classifier.ts', 'packages/domain/src/index.ts',
@@ -1675,7 +1987,7 @@ const isolatedReceiptSources = {
   'rag07-free-text-route:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/rag07-free-text-route.proof.ts',
-    'packages/db/src/free-text-route-decision.ts',
+    'packages/db/src/routing/free-text-route-decision.ts',
     'packages/db/src/index.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/package.json',
     'packages/domain/src/free-text-route.ts', 'packages/domain/src/job-route-classifier.ts', 'packages/domain/src/index.ts',
@@ -1687,23 +1999,39 @@ const isolatedReceiptSources = {
 };
 if (![
   'e2e:prove', 'e2e:ui', 'performance:e2e',
-  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'migrate:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
+  // AUTHZ-HARDEN 5A-1（簇①归一五臂+镜像 cmp/簇②恒时序计数+限流三臂·隔离容器·est live=0）。
+  'authz5a:normalize:prove', 'authz5a:constant-time:prove', 'authz5a:login-ip-throttle:prove', 'authz5a:login-global-throttle:prove', 'authz5a:chgpwd-lock:prove',
+  // AUTHZ-HARDEN 5A-2（簇④:R4 密码上界+滞留 TTL 假时钟三臂·隔离容器·est live=0;hmac/g7-refuse 零 DB 直跑）。
+  'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
+  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
-  'qbank-source:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
+  'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
-  'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw',
+  // #232 G2 刀:押题列表扩投影隔离库证明(fixture 直插 resume+resume_quiz,绝不触碰开发库)。
+  'quiz-list:prove',
+  'qbank:prove:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'consent-min:prove:raw', 'privacy-erasure:pause-upgrade:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw',
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
   'recruiter:prove:raw',
   'commerce-reconcile:prove:raw',
+  // FENCE-REFLOW C10（§4-4 具名 prove 导入方）:ops/recovery 一次性修复工具的隔离库证明。
+  'fence-reflow-repair:prove:raw',
   'model-invocation-reconcile:prove:raw',
+  'ag-b-classify:prove:raw',
+  'ag-e-report:prove:raw',
+  'ag-f-reroll:prove:raw',
+  'ag37-deficit-persist:prove:raw',
+  'ag-d-admission:prove:raw',
   'model-op00:prove:raw',
   'failover-price-policy:prove:raw',
   'estimate-threading-invoke:prove:raw',
   'model-op00-usage-reconciler:prove:raw',
+  'ucal-windowing:prove:raw',
   'model-op02:prove:raw',
   'model-slot-bypass:prove:raw',
+  // G7FIX-4R 补锤(nail 席·QP #201 min(3) 后 fixture 刷新实跑):worker g7fix4-reroll 接隔离 PG runner·additive 注册沿 memory:prove 同形。
+  'g7fix4-reroll:prove:raw',
   'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw',
   'memory-governance:prove:raw',
@@ -1726,6 +2054,7 @@ if (![
   'scor-01:prove:raw',
   'scor-02:prove:raw',
   'scor03-evidence-conflict:prove:raw',
+  'scor-parity:prove:raw',
   'growth:prove:raw',
   'rag03-route:prove:raw',
   'rag04-track-local:prove:raw',
@@ -1761,6 +2090,7 @@ if (![
   'uc025:nhp-adv:prove:raw',
   'uc028:nhp-fault:prove:raw',
   'dbhy1:prove:raw',
+  'qbank-control-sec:prove:raw',
   'uc016:nhp-fault:prove:raw',
   'uc011:adv:prove:raw', 'uc011:refund-callback:prove:raw',
   'g7fix4:finalize:prove:raw',
@@ -1772,8 +2102,16 @@ if (![
 // package invocations deliberately avoid calling the public script again.
 const isolatedCommand = target === 'migrate:prove'
   ? ['pnpm', ['-C', 'packages/db', 'prove:migrate']]
+  : target === 'level-policy-migrate:prove'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:level-policy']]
+  : target === 'qbank-corpus:prove'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:qbank-corpus']]
+  : target === 'qbank-corpus-retrieve:prove'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:qbank-corpus-retrieve']]
   : target === 'dbhy1:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:dbhy1']]
+  : target === 'qbank-control-sec:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:qbank-control-sec']]
   : target === 'runtime:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove']]
   : target === 'runtime:claim-join:prove:raw'
@@ -1814,6 +2152,10 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc019-report-regenerate']]
   : target === 'uc019:report-regenerate:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc019-report-regenerate-http']]
+  : target === 'report-retry:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:report-retry']]
+  : target === 'report-retry:http:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:report-retry-http']]
   : target === 'uc002:lease:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc002-lease']]
   : target === 'uc002:http:prove:raw'
@@ -1862,20 +2204,39 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-degrade']]
   : target === 'adaptive-life:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-life']]
+  : target === 'ag-a-resume:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-resume']]
   : target === 'adaptive-flow:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-flow']]
   : target === 'resume-grounding:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:resume-grounding']]
+  // G7FIX-4R 补锤(nail 席):worker g7fix4-reroll 接隔离 PG runner·命令沿 worker 原生 script 名。
+  : target === 'g7fix4-reroll:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:g7fix4-reroll']]
+  // AG-F(刀F):worker ag-f-reroll 接隔离 PG runner·命令沿 worker 原生 script 名。
+  : target === 'ag-f-reroll:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:ag-f-reroll']]
+  // AG-37(检索 weighted-deficit 归零·持久化到图 state):worker ag37-deficit-persist 接隔离 PG runner。
+  : target === 'ag37-deficit-persist:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:ag37-deficit-persist']]
+  // AG-D(刀D):ag-d-admission 接隔离 PG runner·gate=ai-runtime 三臂+worker 衔接臂双 proof 同容器链跑
+  // （命令=根 :raw 链式 script·沿 runner 对根 script 的 spawn 形）。
+  : target === 'ag-d-admission:prove:raw'
+    ? ['pnpm', ['ag-d-admission:prove:raw']]
   : target === 'tokenstream:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:tokenstream']]
   : target === 'reqid:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:reqid']]
   : target === 'interview:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:interview']]
+  : target === 'role-input:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:role-input']]
   : target === 'stress:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:stress']]
   : target === 'memory:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:memory']]
+  : target === 'weakness:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:weakness']]
   : target === 'report:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:report']]
   : target === 'quiz:prove:raw'
@@ -1884,6 +2245,16 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:diagnosis']]
   : target === 'reaper:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:reaper']]
+  : target === 'requeue-backoff:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:requeue-backoff']]
+  : target === 'bill1-topic-fields:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:bill1-topic-fields']]
+  : target === 'bill2-shadow-meter:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:bill2-shadow-meter']]
+  : target === 'bill3-settlement:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:bill3-settlement']]
+  : target === 'bill4-ledger-list:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:bill4-ledger-list']]
   : target === 'ocr:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:ocr']]
   : target === 'rag-generation:prove:raw'
@@ -1936,8 +2307,16 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:failover-price-policy']]
   : target === 'estimate-threading-invoke:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:estimate-threading-invoke']]
+  // AG-19(刀 AG-19):ag19-prompt-version 接隔离 PG runner·命令沿 ai-runtime 原生 script 名。
+  : target === 'ag19-prompt-version:prove:raw'
+    ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:ag19-prompt-version']]
+  // AG-12(成本轨③):ag12-estimator-freeze 接隔离 PG runner·命令沿 ai-runtime 原生 script 名。
+  : target === 'ag12-estimator-freeze:prove:raw'
+    ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:ag12-estimator-freeze']]
   : target === 'model-op00-usage-reconciler:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:usage-calibration-reconciler']]
+  : target === 'ucal-windowing:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:usage-calibration-windowing']]
   : target === 'model-op02:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:model-op02']]
   : target === 'model-slot-bypass:prove:raw'
@@ -2008,6 +2387,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:scor-02']]
   : target === 'scor03-evidence-conflict:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:scor-03']]
+  : target === 'scor-parity:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:scor-parity']]
   : target === 'growth:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'growth']]
   : target === 'rag03-route:prove:raw'
@@ -2034,8 +2415,36 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag07-free-text-route']]
   : target === 'api:validate'
     ? ['pnpm', ['-C', 'apps/api', 'validate']]
+    : target === 'authz5a:normalize:prove'
+      ? ['pnpm', ['-C', 'packages/db', 'prove:authz5a-email-normalization']]
+    : target === 'authz5a:constant-time:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'authz5a:constant-time']]
+    : target === 'authz5a:login-ip-throttle:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'authz5a:login-ip-throttle']]
+    : target === 'authz5a:login-global-throttle:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'authz5a:login-global-throttle']]
+    : target === 'authz5a:chgpwd-lock:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'authz5a:chgpwd-lock']]
+    : target === 'authz5a2:password-max:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'authz5a2:password-max']]
+    : target === 'authz5a2:stale-payload-ttl:prove'
+      ? ['pnpm', ['-C', 'packages/db', 'prove:authz5a2-stale-payload-ttl']]
     : target.startsWith('neg:') || target === 'turn-idempotency:prove'
       ? ['pnpm', ['-C', 'apps/api', target]]
+    : target === 'trial:grant:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'trial:grant:prove']]
+    : target === 'quiz-list:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'quiz-list:prove']]
+    : target === 'entpay:s1:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'entpay:s1:prove']]
+    : target === 'entpay:s2:preverify'
+      ? ['pnpm', ['-C', 'apps/api', 'entpay:s2:preverify']]
+    : target === 'entpay:s2:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'entpay:s2:prove']]
+    : target === 'entpay:s3:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'entpay:s3:prove']]
+    : target === 'i2b:prove'
+      ? ['pnpm', ['-C', 'apps/api', 'i2b:prove']]
     : target === 'isolated-env:prove'
     ? ['node', ['scripts/isolated-env.proof.mjs']]
   : target === 'sole-stack:wiring:prove'
@@ -2054,6 +2463,8 @@ const isolatedCommand = target === 'migrate:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:env-schema']]
   : target === 'obs-ready:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:obs-ready']]
+  : target === 'consent-min:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:consent-min']]
   : undefined;
 
 const container = `meetwise-e2e-${process.pid}-${Date.now()}`;
@@ -2531,11 +2942,11 @@ async function main() {
       `E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; ` +
       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
     );
-    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'obs-ready:prove:raw', 'env-schema:prove:raw', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'model-invocation-reconcile:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
-  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
+    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'obs-ready:prove:raw', 'env-schema:prove:raw', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'fence-reflow-repair:prove:raw', 'model-invocation-reconcile:prove:raw', 'ag-b-classify:prove:raw', 'ag-e-report:prove:raw', 'ag-f-reroll:prove:raw', 'ag-d-admission:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'quiz-list:prove', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'report-retry:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
+  'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw'].includes(target)) {
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });

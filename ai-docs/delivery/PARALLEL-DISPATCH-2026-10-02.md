@@ -21,5 +21,5 @@ Pins（所有线共用，禁止改口）: `haStatus=NOT_HA` · `releaseEvidence=
 | J | HA D3 报价文档（不买云） | mw-core | e2e-ha | 禁 claim 生产 HA |
 
 仓库: `miaole/meetwise` 分支 `feat/mysql-schema-skeleton`  
-本机: `/Users/miaole/Desktop/golucky/meetwise`  
+本机: `<repo>`（本仓根）  
 协调: meetwise（本 bot）开 dual / 授权 nail；实现默认 mw-core。

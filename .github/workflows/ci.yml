@@ -91,6 +91,16 @@ jobs:
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
         run: pnpm arch
 
+      # #96 typecheck 门（CI-WIRING 收窄裁形·零错域先点亮）：执行面 EXIT=0 + dry=json 选择面双向断言。
+      # 选择面恰 = //#typecheck(root e2e) + web + contracts 三任务；五 strict 债包（api/worker/db/ai-runtime/domain）
+      # 无 typecheck script 不选中——显式 Non-claims：禁给五债包新增 typecheck script，strict 债点亮归清债刀（后刀位另立·本刀不预支）。
+      # 选择面漂移（债包被点亮/零错域被摘除）= 红 = fail-loud。
+      - name: typecheck gate (turbo zero-error domains · #96 narrowed)
+        run: |
+          pnpm turbo run typecheck --dry=json > /tmp/turbo-typecheck-dry.json
+          node -e "const d=require('/tmp/turbo-typecheck-dry.json');const lit=d.tasks.filter((t)=>t.task==='typecheck'&&t.command!=='<NONEXISTENT>').map((t)=>t.taskId).sort();const expect=['//#typecheck','@meetwise/contracts#typecheck','@meetwise/web#typecheck'];if(JSON.stringify(lit)!==JSON.stringify(expect)){console.error('typecheck selection-face drift: '+lit.join(','));process.exit(1);}console.log('typecheck selection-face OK (zero-error domains lit · five strict-debt packages not selected): '+lit.join(', '));"
+          pnpm turbo typecheck
+
       # 面试公平轮转合同（无库）：owner 量子、失败关闭预算、retry/idle、切片隔离。
       # 远程 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；不得改起本地 Docker）。
       - name: interview dispatch fairness (no database)
@@ -146,8 +156,14 @@ jobs:
       # 可复跑验证 gate（红即阻断合并）
       - name: 四原语（CAS / 幂等 / RLS 越权=0 / 事件 seq）
         run: pnpm db:prove
+      - name: 迁移编号唯一性门（数值前缀·#140 修法②·豁免登记面·MIG-RUNNER 裁决项③ 本刀落码·CI-WIRING 只登记接线）
+        run: node scripts/check-migration-version-uniqueness.mjs
       - name: 版本化迁移运行器（只跑待应用·幂等·事务·漂移检测·advisory锁）
         run: pnpm migrate:prove
+      # #175 drift 门恢复（CI-WIRING 裁②=径1·scripts/schema-drift-check.mjs 对账 sql/ 镜像 25 文件：
+      # 临时库 A 全迁移建 vs B 全镜像建，逐列+UNIQUE/PK 约束单向 diff（sql⊆mig）·dbhy1 退役残面经脚本内豁免登记面放行·未登记漂移=红）
+      - name: schema 漂移门（迁移路径 vs sql/ 真相 逐列+约束比对;防"改 sql/ 忘写迁移"致 fresh deploy 缺表/列/约束）
+        run: pnpm drift:prove
       - name: B端历史快照迁移回归（stale binding + deferred FK pending events）
         run: pnpm neg:bend
       - name: DBHY-1 卫生刀 prove（死表退役+sql/ 兼容镜像退役残面门+fresh deploy 重建+qbank 分区释放例程）
@@ -206,6 +222,9 @@ jobs:
           pnpm privacy-erasure:pause-upgrade:prove
       - name: 评分旁路停用（真实 HTTP + 当前迁移组合根零副作用）
         run: pnpm scor-00:http:prove
+      # G1 SCORE-S3 #42：TS↔SQL 评分状态机/总分公式对拍进 per-push（isolated-runner 一次性本地 PG·沿 scor-00 先例）+#43 0158 INSERT 守门正负测。
+      - name: 评分状态机/公式 TS↔SQL 对拍 + INSERT 初始态守门
+        run: pnpm scor-parity:prove
       - name: agent 模型可观测（token / 延迟 / 成本落库）
         run: |
           pnpm metrics:prove
@@ -292,3 +311,12 @@ jobs:
       # run-e2e.mjs 要求 E2E_ISOLATED=1 + MODEL_API_KEY，缺 Key 必须非零退出。
       # 禁止 skip-if-absent。nightly.yml 当前也没有跑 e2e:isolated / e2e:ui:isolated。
       # 本地有 Key 时用 `pnpm regression --live`；浏览器层另需 web production build。
+
+      # ── CI-WIRING 纪律注记（批5 第三刀）────────────────────────────────────────────
+      # 本文件对基线「只增不减」：既有步骤零改语义/零删除/零重排；断言只增不减，新增门一律 fail-loud。
+      # 本刀实际接线归属：#96 typecheck 门（零错域先点亮·五 strict 债包 Non-claims 归清债刀）+
+      # #175 drift 门（sql 镜像对账 25 文件·退役残面豁免登记）。#114 neg:*+uc033 六步经本地实跑核：
+      # neg:commerce/resume/interview/uc033 绿、neg:auth 3/81 与 neg:input 3/135 基线既有确定性红——
+      # 停止条件上报未接线（零落码），归后刀红面清偿后纳。
+      # MIG-RUNNER 裁③迁移唯一性步归属留名：line/mig-runner 刀（scripts/check-migration-version-uniqueness.mjs
+      # 接线步）——本刀零触该步（该步在本刀基线 ci.yml 297 行尚未并入·见 line/mig-runner @30084d98 299 行形）。

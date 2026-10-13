@@ -2,12 +2,14 @@
 
 status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零再生零门状态翻转——再生属下轮 EXEC 面；本 REQUEST 的全部门读数均为只读实测，再生设计已在 /tmp 副本干跑验证、仓库本体零触碰）
 
+> **勘误 2026-10-12（协调方·账实分离清账）**：本状态行陈旧——EXEC `f548c0d9`（REQUEST 蓝本 `3ab1f805` 同日紧随·parent 关系亲证）已落主线，nail 登记见 execution-master-checklist「parity 门红收官」段（:1594 区·floors 367→377·84 身份追加式·check/prove EXIT=0）——**B1 已被消耗**。现势 parity 门重红（tip `cd2f39cc` 实跑 EXIT=1·101 错=assertion_removed 12+assertion_untracked 81+test_removed 3+test_untracked 5·滞后 452 commit·主漂移源=authz #100 HMAC 四段式+scene 批次线）。后继=**PARITY-B2 全新起草**（沿本卷形制·基线点以起草时实跑为准·git log -S 逐源归因账沿 B1 §1 先例·扩面裁定交预执行双审），非本卷 rev。
+
 haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null
 
 ## 0. Base line 与 worktree 披露
 
 - fetch 2026-10-08：`origin/feat/mysql-schema-skeleton` = `9265e4d8`（≥ `9265e4d8` 达成；本地同名分支已 ff 至同点）。
-- 本刀 worktree：`/Users/miaole/Desktop/golucky/meetwise-line-parity`（仓库根同级新建）；分支 `line/e2e-parity-baseline-regen`（新立自 `origin/feat/mysql-schema-skeleton`，跟踪同名 upstream）。
+- 本刀 worktree：`meetwise-line-parity`（仓根同级 worktree·仓库根同级新建）；分支 `line/e2e-parity-baseline-regen`（新立自 `origin/feat/mysql-schema-skeleton`，跟踪同名 upstream）。
 - 立项出处：**协调方 PARITY-B · e2e-parity baseline 再生刀（CMOP03-D nail `9265e4d8` 登记的收尾项——本文引用之，不自建 SSOT 行）**。
 - 全部 blob 锚均为 mw-core 在本 worktree 于 base 点以 `git ls-tree` 亲算，非转录：
 

@@ -2,7 +2,7 @@
  * Shared fail-closed checks for DashScope-native JSON bodies.
  * A 200 with missing/empty/non-finite payload is malformed, not an empty success.
  */
-import { AppError } from '@meetwise/db';
+import { AppError } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 
 export function requireRecord(value: unknown, code: string): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error(code);

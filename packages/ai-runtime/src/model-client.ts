@@ -4,7 +4,7 @@
  * 安全铁律落地:**不可信用户数据进 user 的 <data> 块,绝不拼进 system 指令**(防注入越权)。
  */
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult } from './invoke.ts';
+import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult, type ModelUsage } from './invoke.ts';
 import { combineAbortSignals, ExternalHttpStatusError, fetchJsonWithTimeout, timeoutSignal } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
@@ -25,7 +25,8 @@ import {
 // production file performs zero `isG7FreetierReproveEnabled(process.env)`
 // direct reads and never imports the (test-support) outbound interceptor.
 import { g7RuntimeInjection } from './g7-runtime-injection.ts';
-import { refineEstimate } from './usage-reconciliation.ts';
+import { isKnownEstimatorVersion, refineEstimate, type EstimatorVersion } from './usage-reconciliation.ts';
+import { getMetrics, METRIC } from './metrics.ts';
 
 export interface CompletionRequest {
   service: string;       // 逻辑服务 key(catalog 解析模型/提示词版本)
@@ -71,7 +72,7 @@ function envForBoundOperationFence(cfgEnv?: NodeJS.ProcessEnv): NodeJS.ProcessEn
 }
 
 export interface RenderedContextBudgetPlan {
-  estimator: 'utf8-bytes-v1';
+  estimator: EstimatorVersion;
   contextWindowTokens: number;
   maxInputTokens: number;
   maxOutputTokens: number;
@@ -177,6 +178,40 @@ export function byteEstimate(value: string): number {
   return Buffer.byteLength(value, 'utf8');
 }
 
+// AG-12 成本轨③（cjk-weighted-v1 加权区段集）：CJK 部首/表意/假名/注音（U+2E80–U+9FFF）、
+// CJK 兼容表意（U+F900–U+FAFF）、全角形（U+FF00–U+FFEF）逐码点计 1.0 token。谚文音节
+// U+AC00–D7AF 与谚文字母 U+1100–11FF **不在集合**（UTF-8 各 3 字节 → 3/3=1.0 系数值等价
+// 而非集合成员）；CJK Ext B U+20000+ 亦不在集合（落「其余 UTF-8 字节/3」臂 = 4/3，无 1.0 背书）。
+const CJK_WEIGHTED_REGIONS: ReadonlyArray<{ lo: number; hi: number }> = [
+  { lo: 0x2e80, hi: 0x9fff },
+  { lo: 0xf900, hi: 0xfaff },
+  { lo: 0xff00, hi: 0xffef },
+];
+
+/**
+ * AG-12 cjk-weighted-v1 加权估算原语（逐码点）：CJK 区段每码点计 1.0（issues-final 修法原例形
+ * 「中文 1.0 token/字」），其余码点按其 UTF-8 字节数 / 3（issues-final「ASCII 字节/3」形）；全串
+ * Σ 后 ceil，非空串结果 ≥1，空串 0。迭代必须逐**码点**（for..of）：按 UTF-16 单元错迭代会把
+ * astral 码点（如 U+2A6AE，4 字节）拆成两个孤代理各按 3 字节替换符计——双连串 8/3→ceil=3 会被
+ * 算成 12/3→ceil=4，proof 臂钉死唯一实现。诚实边界：本估算器是「分 script 加权保守估算」而非
+ * 绝对上界承诺（v1 的 bytes≥tokens 恒等式不跨版本外推）；低估防护由既有三网承接（refineEstimate
+ * 校准因子 + safetyMargin + underEstimated 显式打标 + usage_missing 剔除保因子样本洁净）。
+ */
+export function cjkWeightedEstimate(value: string): number {
+  if (value.length === 0) return 0;
+  let sum = 0;
+  for (const ch of value) {
+    const codePoint = ch.codePointAt(0)!;
+    if (CJK_WEIGHTED_REGIONS.some((r) => codePoint >= r.lo && codePoint <= r.hi)) {
+      sum += 1;
+    } else {
+      sum += Buffer.byteLength(ch, 'utf8') / 3;
+    }
+  }
+  const estimate = Math.ceil(sum);
+  return estimate >= 1 ? estimate : 1;
+}
+
 function validPositive(value: unknown, max = MAX_CONTEXT_WINDOW_TOKENS): value is number {
   return Number.isSafeInteger(value) && (value as number) >= 1 && (value as number) <= max;
 }
@@ -229,7 +264,9 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   const contextWindowTokens = policy.contextWindowTokens;
   const safetyMarginTokens = policy.contextSafetyMarginTokens;
   const toolReserveTokens = policy.contextToolReserveTokens ?? 0;
-  if (policy.contextEstimator !== 'utf8-bytes-v1'
+  // AG-12：门由单值相等放宽为已注册枚举属员判断（KNOWN_ESTIMATOR_VERSIONS 单真源；非法/缺省
+  // 版本仍 model_context_policy_invalid fail-closed）。端点缺省仍 utf8-bytes-v1，翻 v2 属运维显式决策。
+  if (!isKnownEstimatorVersion(policy.contextEstimator)
     || !validPositive(contextWindowTokens)
     || !validPositive(safetyMarginTokens)
     || !validPositive(policy.maxInputTokens)
@@ -240,7 +277,8 @@ export function planContextBudget(req: CompletionRequest, policy: ModelCostPolic
   const nonce = '0'.repeat(10);
   const rendered = renderPrompt(req, nonce);
   const estimateTokens = (text: string): number => {
-    const raw = byteEstimate(text);
+    // AG-12：按 policy 声明的估算器版本分派原语（v1→byteEstimate 恒等零漂；v2→cjkWeightedEstimate）。
+    const raw = policy.contextEstimator === 'utf8-bytes-v1' ? byteEstimate(text) : cjkWeightedEstimate(text);
     if (text.length === 0) return 0;
     return policy.calibration ? refineEstimate(raw, policy.calibration) : raw;
   };
@@ -494,7 +532,7 @@ export interface ModelTextStreamOpts {
   signal?: AbortSignal;
   /** 码点完整 JS 字符串；调用方不得假设分帧=token 边界。 */
   onDelta: (d: { text: string }) => void;
-  onUsage?: (u: { completionTokens?: number; promptTokens?: number }) => void;
+  onUsage?: (u: { completionTokens?: number; promptTokens?: number; cachedInputTokens?: number }) => void;
 }
 
 /**
@@ -504,6 +542,38 @@ export interface ModelTextStreamOpts {
 export type OpenAICompatibleClient = ModelClient & {
   completeStream(req: CompletionRequest, opts: ModelTextStreamOpts): Promise<ModelResult>;
 };
+
+/**
+ * #48 观测（AG-COST1 §1-②·只观测不改计费）：供应商 usage 载荷类型 + 三端点缓存字段名兼容。
+ * OpenAI 兼容 `cached_tokens` ∥ DeepSeek `prompt_cache_hit_tokens` ∥ 百炼 `prompt_tokens_details.cached_tokens`
+ * （字段名经官方文档核实·review-log §四 :139-141 + AC-F1/AC-F2）。三端点互斥为常态；多字段并存时
+ * 取值序=EXEC 细化（见 cachedInputTokensOf）。**缺席≠零**：全缺席=undefined，显式零=0，两态分开。
+ */
+type ProviderUsagePayload = {
+  prompt_tokens?: number;
+  completion_tokens?: number;
+  cached_tokens?: number;
+  prompt_cache_hit_tokens?: number;
+  prompt_tokens_details?: { cached_tokens?: number };
+};
+
+/** 三端点缓存字段兼容读取。取值序 cached_tokens → prompt_cache_hit_tokens → prompt_tokens_details.cached_tokens（并存仅防御,常态互斥）。全缺席=undefined——绝不静默归零。 */
+function cachedInputTokensOf(usage: ProviderUsagePayload): number | undefined {
+  if (usage.cached_tokens !== undefined) return usage.cached_tokens;
+  if (usage.prompt_cache_hit_tokens !== undefined) return usage.prompt_cache_hit_tokens;
+  return usage.prompt_tokens_details?.cached_tokens;
+}
+
+/**
+ * #48 观测打点（非流+流式两 usage 解析面各恰一处）：presence 三态 + token 计数。
+ * undefined=absent（字段缺席）·0=present_zero（显式为零）·>0=present_positive——三态互斥。
+ * 只在 usage 载荷存在时打点（usage 整体缺席是既有退化路径,#48 面是载荷内缓存字段的在场性）。
+ */
+function emitUsageCacheObservation(service: string, cached: number | undefined): void {
+  const presence = cached === undefined ? 'absent' : cached > 0 ? 'present_positive' : 'present_zero';
+  getMetrics().inc(METRIC.modelUsageCacheFieldPresence, { service, presence });
+  if (cached !== undefined) getMetrics().inc(METRIC.modelUsageCachedInputTokens, { service }, cached);
+}
 
 /** 真适配器(OpenAI 兼容,境内合规端点)。endpoint/key 从受控 profile 注册表解析;未配置→当瞬时不可用(触发降级,不崩)。 */
 export function openAICompatibleClient(cfg: {
@@ -614,13 +684,19 @@ export function openAICompatibleClient(cfg: {
       let attempt429 = 0;
       let reservationId: string | undefined;
 
-      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + rendered.userContent.length) / 4));
+      // AC-F13(G7 回退估算·成本小项):带图时 userContent 是数组(text 段+N 个 image_url 段),
+      // 数组 .length 是元素数非字符量——回退估算塌缩到 64 下限、系统性低估。修法=数组形对各段
+      // text/URL 字段求拼接字符量;无图字符串形 .length 恒等(零位移)。context 在手时仍走 plan.inputTokens 不变。
+      const fallbackUserContentChars = typeof rendered.userContent === 'string'
+        ? rendered.userContent.length
+        : rendered.userContent.reduce((sum, part) => sum + ('text' in part ? part.text.length : part.image_url.url.length), 0);
+      const estimatedInputTokens = context?.ok === true ? context.plan.inputTokens : Math.max(64, Math.ceil((rendered.system.length + fallbackUserContentChars) / 4));
       const maxOut = maxOutputTokens ?? 2048;
 
       const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{
         model?: string;
-        choices?: { message?: { content?: string } }[];
-        usage?: { prompt_tokens?: number; completion_tokens?: number };
+        choices?: { message?: { content?: string }; finish_reason?: string }[];
+        usage?: ProviderUsagePayload;
       }>(chatUrl, {
         method: 'POST',
         redirect: 'error',   // 3xx 即拒绝：文本路由绝不跟随重定向（防 SSRF 跳内网）
@@ -659,15 +735,52 @@ export function openAICompatibleClient(cfg: {
           const j = g7
             ? await g7RuntimeInjection().withOutboundAllow(() => dispatchOnce(activeModel))
             : await dispatchOnce(activeModel);
-          const content = j.choices?.[0]?.message?.content;
-          if (!content) {
+          // ── AG-06/AG-14 管道改造缝（EXPERT-REVIEWS §四 :35：dispatchOnce 返回与 parse 之间）──
+          const choice = j.choices?.[0];
+          const content = choice?.message?.content;
+          // 修法③：finish_reason 补读（choices 类型扩读）——截断（'length'）从「半个 JSON 撞 parse
+          // 抛错」的间接面变显式判据。
+          const finishReason: 'length' | undefined = choice?.finish_reason === 'length' ? 'length' : undefined;
+          const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
+          // 修法④（AG-14 口径 2 折叠·EXPERT §四 :37）：usage 存在但字段缺失 → 缺失字段按上限
+          // （policy max）补齐并打标 usageSource='usage_missing'，绝不按 0（原 `?? 0` 形废除）；
+          // usage 整体缺失保持 undefined（invoke validUsage 判无效归并既有 provider_usage_invalid
+          // 臂·不新造语义）。
+          const promptTokens = j.usage?.prompt_tokens;
+          const completionTokens = j.usage?.completion_tokens;
+          const usage: ModelUsage | undefined = j.usage
+            ? {
+              inputTokens: promptTokens ?? costPolicy?.maxInputTokens ?? estimatedInputTokens,
+              outputTokens: completionTokens ?? maxOut,
+              estimateInputTokens,
+              cachedInputTokens: cachedInputTokensOf(j.usage),   // #48 观测:缺席=undefined 与显式 0 分开
+              ...((promptTokens === undefined || promptTokens === null || completionTokens === undefined || completionTokens === null)
+                ? { usageSource: 'usage_missing' as const }
+                : {}),
+            }
+            : undefined;
+          if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
+          // 修法②③：HTTP 200 已执行但输出确定性不可用（空 content / finish_reason='length' 截断）——
+          // usage 在手即分类 known_executed（携 usage+finish_reason+确定性失败码；结算归 invoke 侧
+          // settled-failed 先例臂）；usage 缺失维持既有 unknown 落点（零回归）。
+          const outputInvalidCode = !content
+            ? 'deterministic_output_invalid'
+            : finishReason === 'length'
+              ? 'deterministic_output_truncated'
+              : undefined;
+          const knownExecutedResult = outputInvalidCode !== undefined && usage !== undefined
+            ? { ok: false as const, kind: 'deterministic' as const, externalOutcome: 'known_executed' as const, errorCode: outputInvalidCode, usage, finishReason }
+            : undefined;
+          if (!content && !knownExecutedResult) {
             if (g7 && reservationId) { releaseG7ReservationOnSharedLedger(reservationId, process.env); reservationId = undefined; }
             return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
           }
-          const estimateInputTokens = context?.ok === true ? context.plan.inputTokens : undefined;
-          const usage = j.usage
-            ? { inputTokens: j.usage.prompt_tokens ?? 0, outputTokens: j.usage.completion_tokens ?? 0, estimateInputTokens }
-            : undefined;
+          // 修法②：JSON.parse 与传输错误分离（管道改造点）——解析失败不再落 catch 兜底与传输错误
+          // 同归 transient unknown；usage 在手 → known_executed（已到手 usage 带出，绝不丢弃），
+          // usage 缺失 → 原 SyntaxError 照旧抛入 catch（既有 unknown 落点·零回归）。
+          let raw: unknown;
+          let parseError: unknown;
+          try { raw = JSON.parse(content ?? ''); } catch (error) { parseError = error; }
           const finishedAt = new Date().toISOString();
           if (g7) {
             const actualModel = typeof j.model === 'string' && j.model.trim() ? j.model.trim() : '';
@@ -685,9 +798,18 @@ export function openAICompatibleClient(cfg: {
               evidenceClass: fallbackInfo ? 'paid_fallback' : 'free_quota_wiring_only',
             }, process.env);
             reservationId = undefined;
-            return { ok: true, raw: JSON.parse(content), usage, actualModel };
+            if (knownExecutedResult) return knownExecutedResult;
+            if (parseError === undefined) return { ok: true, raw, usage, actualModel };
+          } else if (knownExecutedResult) {
+            return knownExecutedResult;
           }
-          return { ok: true, raw: JSON.parse(content), usage };
+          if (parseError !== undefined) {
+            if (usage !== undefined) {
+              return { ok: false, kind: 'deterministic', externalOutcome: 'known_executed', errorCode: 'deterministic_output_invalid', usage, finishReason };
+            }
+            throw parseError;   // usage 缺失 → 既有 catch 兜底（transient unknown）·零回归
+          }
+          return { ok: true, raw, usage };
         } catch (error) {
           if (g7 && error instanceof ExternalHttpStatusError && error.status === 429) {
             try {
@@ -755,7 +877,7 @@ export function openAICompatibleClient(cfg: {
       opts: {
         signal?: AbortSignal;
         onDelta: (d: { text: string }) => void;          // 码点完整 JS 字符串；调用方不得假设分帧=token 边界
-        onUsage?: (u: { completionTokens?: number; promptTokens?: number }) => void;
+        onUsage?: (u: { completionTokens?: number; promptTokens?: number; cachedInputTokens?: number }) => void;
       },
     ): Promise<ModelResult> {
       if (!isModelTextStreamPreviewEnabled(process.env)) {
@@ -821,7 +943,7 @@ export function openAICompatibleClient(cfg: {
       let stopSeen = false;
       let usageSeen = false;
       let doneSeen = false;
-      let usageRecord: { prompt_tokens?: number; completion_tokens?: number } | undefined;
+      let usageRecord: ProviderUsagePayload | undefined;
       let midStreamErrorFrame = false;   // ①流中 error frame（即刻截断）
       let idleWatchdogFired = false;     // ③idle watchdog（无字节 >10s）
       let buffer = '';
@@ -839,7 +961,7 @@ export function openAICompatibleClient(cfg: {
           }
           const chunk = parsed as {
             choices?: { delta?: { content?: unknown }; finish_reason?: unknown }[] | null;
-            usage?: { prompt_tokens?: number; completion_tokens?: number } | null;
+            usage?: ProviderUsagePayload | null;
           } | null;
           const choice = chunk?.choices?.[0];
           const deltaContent = choice?.delta?.content;
@@ -850,7 +972,11 @@ export function openAICompatibleClient(cfg: {
           if (Array.isArray(chunk?.choices) && chunk?.choices?.length === 0 && usagePayload) {
             usageSeen = true;
             usageRecord = usagePayload;
-            opts.onUsage?.({ completionTokens: usagePayload.completion_tokens, promptTokens: usagePayload.prompt_tokens });
+            opts.onUsage?.({
+              completionTokens: usagePayload.completion_tokens,
+              promptTokens: usagePayload.prompt_tokens,
+              cachedInputTokens: cachedInputTokensOf(usagePayload),   // #48 观测:缺席=undefined 与显式 0 分开
+            });
           }
         }
       };
@@ -935,8 +1061,14 @@ export function openAICompatibleClient(cfg: {
         return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
       }
       const usage = usageRecord
-        ? { inputTokens: usageRecord.prompt_tokens ?? 0, outputTokens: usageRecord.completion_tokens ?? 0, estimateInputTokens }
+        ? {
+            inputTokens: usageRecord.prompt_tokens ?? 0,
+            outputTokens: usageRecord.completion_tokens ?? 0,
+            estimateInputTokens,
+            cachedInputTokens: cachedInputTokensOf(usageRecord),   // #48 观测:缺席=undefined 与显式 0 分开
+          }
         : undefined;
+      if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
       // raw=完整 JSON 解析（与非流式同型）；非 JSON 载荷（重放卷未启 json_object·如 S2 probe-b prose
       // fixture）按完整原文兜底零截断——§E-② 对照面：三联齐=成功终态，不因载荷非 JSON 降级。
       let raw: unknown;
@@ -981,7 +1113,7 @@ export function modelFor(client: ModelClient, req: CompletionRequest): Model {
 
 /** 推荐入口:从**版本化注册表**取 prompt(不内联),渲染请求 → Model。可带 images 走多模态视觉模型;可带 rag 让检索素材独立分账。 */
 export function promptedModel(client: ModelClient, service: string, vars: Record<string, unknown>, images?: string[], rag?: string): Model {
-  const p = getPrompt(service);
+  const p = getPrompt(service, vars);   // #213 diag-honesty 修法②:vars 透传,声明 systemByVars 的 service 按 role 组装 system(其余 service 字节零变)
   // rag 与 userData 分离传递,让预算器把检索素材独立分账(而非烤进 userData 变不可拆总量)。
   return modelFor(client, { service, system: p.system, userData: p.buildData(vars), images, rag });
 }

@@ -1,0 +1,56 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-2216-1791812280931 on 127.0.0.1:52548
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-cost2/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=173 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:usage-calibration-windowing /Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker
+> tsx test/usage-calibration-windowing.proof.ts
+
+PASS  H 保留期旋钮：缺省 ENABLED=false（清除=生产数据删除·启用=显式运维决策·可调）
+PASS  H 保留期旋钮：缺省 DAYS=90（裁决基准值）·INTERVAL=86_400_000（按天低频）
+PASS  H 保留期旋钮：非法 ENABLED/DAYS/INTERVAL → throw 专用 code（绝不静默回退）
+PASS  H 保留期旋钮：合法值生效（1/3650 边界·ENABLED=1）
+PASS  A 真迁移链在册：0177 恰一条 schema_migrations 记录（预迁移真链已应用）
+PASS  A 号位纪律：0175/0176 零 claim（刀 C/qsec 号位不占）
+PASS  B① 历史膨胀行去重：同 (owner,key) 三 batch → 恰留一行
+PASS  B① 保留最早 batch（cal-…08 字典序最早·非任意行）
+PASS  B① 唯一调用零丢失：两键全存·总行数=键数（膨胀行恰删净）
+PASS  B② 新 PK 生效：列集恰 (owner_user_id, invocation_idempotency_key) 两列
+PASS  B② 同 key 跨 batch 二次 INSERT → ON CONFLICT 新 PK 命中（幂等仍绿·行零新增）
+PASS  B② batch 列保留为溯源列（NOT NULL 维持）
+PASS  C 水位线首推=入参值
+PASS  C 回拨尝试（更小 last_completed_at UPSERT）→ GREATEST 兜住·值不降
+PASS  C 前移生效（更大值推进）
+PASS  D v1 全史对照臂：同 fixture 仍返回全史 2 配对（旧函数零字节保留·行为不变）
+PASS  D v2 加窗：p_since=两时刻中点 → 恰返回窗口内 1 配对（先完成旧配对剔除）
+PASS  D v2 加窗：p_since=未来 → 零行（窗口语义）
+PASS  D v2 加窗：p_since=epoch → 全量 2（首窗=全史等价）
+PASS  D 枚举 v2 加窗：p_since=中点 → 含本 owner（窗口内有新配对）
+PASS  D 枚举 v2 加窗：p_since=未来 → 不含本 owner（owner 无窗红事实根除）
+PASS  D 端到端：加窗 reconcile 恰观测窗口内 1 条·旧数据不入对账
+PASS  D 端到端：水位线推进至本批 max(completed_at)（>入窗水位）
+PASS  D 幂等重放安全：窗口空 → ok·零组·水位线不写不回拨（watermarkTo=null）
+PASS  E fixture①：prev 0.9 vs 增量 0.7×1.2=0.84 → merged=0.9（绝不静默缩水）
+PASS  E fixture②：增量 1.5×1.2=1.8 → merged=1.8（只升）·observationCount 相加（5+1）
+PASS  E 合并链：merged factorVersion 形态合法·含 prev 因子链（异于 prev/增量版本）
+PASS  E 伴随语义：hasUnderEstimate = prev OR 增量·safetyMargin=增量侧常量·rawMaxRatio=两肩有效值
+PASS  E DB 窗1（首窗无 prev）=普通全量计算：恰 1 因子行·observationCount=1
+PASS  E DB append-only：窗2 后恰 2 行·旧行原值在位（绝不 UPDATE/DELETE）
+PASS  E DB 合并 max：新行 factor=max(factor_prev, rawMax_增量×(1+0.1))·observationCount 相加=2
+PASS  E 低增量不降：窗3 低比率（0.2）→ 因子行只增版本不降值·merged 过 P3 双校验读回
+PASS  F floor=水位线整批下界（MIN·非空且 ≤ 本 owner 水位）
+PASS  F 枚举 v2 以 floor 驱动：窗口内有新配对的 owner 在册（无窗红事实根除·取比 floor 更晚完成配对的 owner）
+PASS  G 保留期清除：恰删 90 天前 1 行·50/10 天行保留
+PASS  G 越界天数 fail-closed：keepDays=0 → throw（TS 侧守门·SQL 侧同域 RAISE）
+PASS  G GRANT 纪律：观测表 app_role 保持无 DELETE（0119 insert-only 零破坏）·水位线 SELECT/INSERT/UPDATE 无 DELETE
+PASS  G 函数授权：purge→app_role·枚举 v2/floor→app_gateway_role
+
+✓ AG-COST2 迁移四件套+合并语义+保留期 全臂通过（38 臂）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T13-38-08-586Z-2216-fe232fe2-83b6-49b7-8c9d-1b2f3446d78b.json release_evidence=false

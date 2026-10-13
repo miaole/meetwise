@@ -1,5 +1,5 @@
 /** Fake-seam voice-adaptive contract. Not product E2E. pnpm voice-adaptive:prove */
-import { fakeStreamingAsr, fakeStreamingTts } from '@meetwise/ai-runtime';
+import { fakeStreamingAsr, fakeStreamingTts } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { runVoiceAdaptiveInterview } from '../src/voice-adaptive.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 async function* audio(n: number) { for (let i = 0; i < n; i++) yield new Uint8Array([i]); }

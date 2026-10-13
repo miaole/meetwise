@@ -1,7 +1,7 @@
 /**
  * 能力曲线(设计语言:克制琥珀 + 纯 SVG,无图表库)。
  * 服务端组件友好(纯渲染,零 client / 零动画 → 天然 reduced-motion 安全)。
- * 主曲线 = 综合分随训练演进(真实纵向数据);若某维度在 ≥2 场都出现,叠加为细线(否则只画综合,绝不臆造单点连线)。
+ * 主曲线 = 本场报告分随训练演进(真实纵向数据·#262 口径命名);若某维度在 ≥2 场都出现,叠加为细线(否则只画主分,绝不臆造单点连线)。
  * 入参 points 已按时间升序;分值缺失(null)的点断线(不插值假数据)。
  */
 interface Pt { at: string; interviewId: string; overall: number | null; dims: Record<string, number> }
@@ -80,7 +80,7 @@ export function GrowthChart({ points: rawPoints }: { points: Pt[] }) {
   return (
     <figure className="m-0">
       <svg viewBox={`0 0 ${W} ${H}`} className="h-auto w-full" role="img"
-        aria-label={`能力曲线:综合分随 ${total} 场面试演进，最新 ${overalls[n - 1] ?? '—'} 分`}>
+        aria-label={`能力曲线:本场报告分随 ${total} 场面试演进，最新 ${overalls[n - 1] ?? '—'} 分`}>
         {/* 横向网格 + 刻度 */}
         {[0, 25, 50, 75, 100].map((g) => (
           <g key={g}>
@@ -108,7 +108,7 @@ export function GrowthChart({ points: rawPoints }: { points: Pt[] }) {
 
       {/* 图例 */}
       <figcaption className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
-        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-0.5 w-4 rounded bg-primary" />综合分</span>
+        <span className="inline-flex items-center gap-1.5"><span className="inline-block h-0.5 w-4 rounded bg-primary" />本场报告分</span>
         {dimSeries.map((s, si) => (
           <span key={s.name} className="inline-flex items-center gap-1.5" title={s.name}>
             <span className="inline-block h-0.5 w-4 rounded" style={{ backgroundColor: DIM_COLORS[si] }} />

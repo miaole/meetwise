@@ -30,14 +30,22 @@ async function main() {
     attrs?.rolsuper === false && attrs?.rolbypassrls === false && attrs?.rolcreaterole === false
     && attrs?.rolcreatedb === false && attrs?.rolinherit === false && attrs?.app_member === true && attrs?.gateway_member === true);
 
-  await admin.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('runtime-a','role-user-a','created'),('runtime-b','role-user-b','created') ON CONFLICT DO NOTHING");
-  await admin.query("INSERT INTO interview_job(owner_user_id,interview_id,kind,payload,status) VALUES ('role-user-a','runtime-a','start','{}','queued')");
+  // REG-FIX 组7(双层随演):①0058 interview_job_privacy_active_write_guard——interview_job 种子 asPrincipal
+  // 包裹解析 principal_user + owner 谓词('runtime-a' owner='role-user-a' 同体;admin 裸连接→NULL-principal
+  // →RAISE interview_privacy_fenced)。②0064 v64 形——start job 必须 resume_id+resume_privacy_epoch 与
+  // interview 绑定一致(tf_interview_job_resume_reference:interview_job_start_resume_epoch_required)。
+  // 种子链 user_account → resume(ingested·epoch=1) → interview 绑 resume 引用 → start job 携引用。
+  // interview 表无 INSERT 隐私触发器;runtime-b 无 job 零变;gateway_dispatch/RLS 断言面零改(种子属 fixture 非断言)。
   await admin.query(`INSERT INTO user_account(id,email,password_hash,role,is_admin) VALUES
     ('role-user-a','role-a@example.test','scrypt$test$a','candidate',false),
     ('role-user-b','role-b@example.test','scrypt$test$b','candidate',false),
     ('role-recruiter','role-recruiter@example.test','scrypt$test$r','recruiter',false),
     ('role-admin','role-admin@example.test','scrypt$test$admin','candidate',true)
     ON CONFLICT (id) DO UPDATE SET status='active', role=EXCLUDED.role, is_admin=EXCLUDED.is_admin`);
+  await admin.query("INSERT INTO resume(id,owner_user_id,status,content_sha,privacy_epoch) VALUES ('00000000-0000-4000-8000-000000000a01','role-user-a','ingested','runtime-role-seed-sha',1) ON CONFLICT DO NOTHING");
+  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ('runtime-a','role-user-a','created','00000000-0000-4000-8000-000000000a01',1) ON CONFLICT DO NOTHING");
+  await admin.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('runtime-b','role-user-b','created') ON CONFLICT DO NOTHING");
+  await asPrincipal(admin, 'role-user-a', (c) => c.query("INSERT INTO interview_job(owner_user_id,interview_id,kind,payload,status,resume_id,resume_privacy_epoch) VALUES ('role-user-a','runtime-a','start','{}','queued','00000000-0000-4000-8000-000000000a01',1)"));
   await admin.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('runtime-order','role-user-a','pack_10',9900,10,'created') ON CONFLICT DO NOTHING");
   await admin.query("INSERT INTO ai_cost_budget_policy(scope_id,monthly_limit_micro_cny,enabled) VALUES ('runtime-budget',1000,true) ON CONFLICT (scope_id) DO UPDATE SET monthly_limit_micro_cny=1000,enabled=true");
   await admin.query("INSERT INTO ai_cost_budget_month(scope_id,period_key,limit_micro_cny,reserved_micro_cny,settled_micro_cny) VALUES ('runtime-budget',to_char(clock_timestamp() AT TIME ZONE 'UTC','YYYY-MM'),1000,100,250) ON CONFLICT (scope_id,period_key) DO UPDATE SET reserved_micro_cny=100,settled_micro_cny=250");

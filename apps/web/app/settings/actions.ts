@@ -4,14 +4,19 @@ import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
 
 export async function saveSettingsAction(formData: FormData) {
+  // I4 #265:payload 修形——lang→locale·移除旧通知开关键(locale/theme/notifications 白名单见 contracts
+  // updateSettingsSchema .strict();此前发送体恒 400=保存钮既有红,本修顺手清零后端改动)。
   const preferences = {
-    lang: String(formData.get('lang') ?? 'zh'),
-    notify: formData.get('notify') === 'on',
+    locale: String(formData.get('locale') ?? 'zh'),
   };
-  await serverFetch('/profile/settings', {
+  // #63（5E 2026-10-12）残面修补：此前 await serverFetch 后不看响应即 revalidate=失败静默假成功。
+  // 现补响应检查+响亮失败（沿同文件改密码显式反馈精神与 jobs/actions ensureOk「不看响应即放行」禁令
+  // 同构；UI 表单零触→e2e 消费面零险）。useActionState 表单内联红字升级属 UX 打磨残面，如实登记不在本刀。
+  const res = await serverFetch('/profile/settings', {
     method: 'PATCH',
     body: JSON.stringify({ preferences }),
   });
+  if (!res.ok) throw new Error(`偏好保存未受理(${res.status})，未当作已保存；请稍后重试。`);
   revalidatePath('/settings');
 }
 

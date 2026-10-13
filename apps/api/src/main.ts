@@ -10,6 +10,7 @@ import { AppModule } from './app.module';
 import { AllExceptionsFilter } from './platform/all-exceptions.filter';
 import { installPublicPreviewIngressGate, resolvePublicPreviewMode } from './platform/public-preview';
 import { assertCriticalEnv } from './platform/env-schema';
+import { getSseRegistry, type SseRegistry } from './platform/sse-registry';
 
 // GODFN-1b composition-root single read point: G7_FREETIER_REPROVE is read
 // exactly ONCE here (env key name and `=1` activation semantics unchanged —
@@ -19,6 +20,12 @@ import { assertCriticalEnv } from './platform/env-schema';
 // predicate + outbound ticket into the runtime package. Production builds
 // carry zero static g7-bootstrap import (prove:g7-bootstrap-zero-prod-import).
 const g7FreetierReproveEnabled = isG7FreetierReproveEnabled(process.env);
+// AUTHZ-HARDEN 5A-2 #168(G7 生产拒启):测试支撑拦截器仅限非生产调试——production 组合根上开关为真
+// 即配置错误 → fail-closed throw 拒启(先于任何动态 import/端口绑定;非 production 放行)。
+// GODFN-1b 单读点不变:本守卫只复用上方唯一一次读取结果,不二次读 G7_FREETIER_REPROVE。
+if (g7FreetierReproveEnabled && process.env.NODE_ENV === 'production') {
+  throw new Error('refusing_to_start: G7_FREETIER_REPROVE=1 is test-support only and is forbidden when NODE_ENV=production (#168)');
+}
 if (g7FreetierReproveEnabled) {
   const support = await import('@meetwise/ai-runtime/g7-test-support');
   configureG7RuntimeInjection({
@@ -28,9 +35,72 @@ if (g7FreetierReproveEnabled) {
   support.installG7OutboundInterceptor(process.env);
 }
 
+// ── HA-2 优雅停机(R-18·REQUEST §1 W1)──────────────────────────────────────────
+// 导出为注入式 proof 缝(ha-2-drain.proof.ts 沿 createApp 既有导出先例);生产装配在
+// bootstrap()——E2E/嵌入者导入 createApp 零感(旗/handler 只在直执行模块内挂)。
+
+/** 健康探针豁免清单:排水期 /livez 恒 200;/readyz/api 与 /health(同 handler)由 C4 翻 503。 */
+export const HEALTH_PROBE_PATHS: ReadonlySet<string> = new Set(['/livez', '/readyz/api', '/health']);
+
+/**
+ * W1② onRequest 拒新门:排水期非健康探针路由即刻 503 service_unavailable_draining
+ * (信封沿 AllExceptionsFilter 形制 + connection: close)。装配序在 public-preview 门
+ * 之后、路由 handler 之前(onRequest 先于 body 解析/鉴权)。
+ */
+export function drainGateHook(registry: Pick<SseRegistry, 'isDraining'>) {
+  return (req: any, reply: any, done: (err?: Error) => void): void => {
+    if (!registry.isDraining()) { done(); return; }
+    const path = String(req.url ?? '').split('?')[0] ?? '';
+    if (HEALTH_PROBE_PATHS.has(path)) { done(); return; }
+    reply.code(503).header('connection', 'close').send({ error: 'service_unavailable_draining' });
+  };
+}
+
+export interface ApiShutdownChainDeps {
+  registry: SseRegistry;
+  /** 真 app.close():点亮 SseNotifyLifecycle 既有钩子(LISTEN 池首次被真正收掉)。 */
+  closeApp: () => Promise<void>;
+  timeoutMs: number;
+  exit: (code: number) => void;
+  log: (...args: unknown[]) => void;
+  error: (...args: unknown[]) => void;
+}
+
+/**
+ * W1①③④ 关闭链(R2:禁 enableShutdownHooks——Nest 自注册 SIGTERM 与自定义 handler
+ * 并存 = 同信号双路各触发 app.close()〔@nestjs/core 11.1.27 nest-application-context.js
+ * :126-132/:168-182 亲证〕;本自定义 handler 是唯一关闭单路)。顺序:
+ *   beginDrain(单源旗:503 门+readiness 翻脸即刻生效) → drainAll(SSE 帧间停取,R1 置旗
+ *   不 end) → 等注册表归零(各泵在帧边界完成单点 end) → await app.close() → exit 0;
+ *   API_SHUTDOWN_TIMEOUT_MS(默认 10s)deadline 计时器(不 unref)全程兜底,到点
+ *   api_drain_timeout + exit 0——内部上限 < 容器宽限(W4 钉 15s),SIGKILL 兜不到。
+ */
+export function createApiShutdownChain(deps: ApiShutdownChainDeps): (signal: string) => void {
+  let shuttingDown = false;
+  return (signal: string) => {
+    if (shuttingDown) return;                       // SIGTERM/SIGINT 双落·重复信号幂等
+    shuttingDown = true;
+    void (async () => {
+      deps.registry.beginDrain();
+      const registered = deps.registry.drainAll();
+      deps.log(`api_drain_start signal=${signal} sse_registered=${registered}`);
+      const timer = setTimeout(() => {
+        deps.error('api_drain_timeout');
+        deps.exit(0);
+      }, deps.timeoutMs);                           // 不 unref:进程生命周期必须被上限钉住
+      while (deps.registry.count() > 0) {           // 等各泵帧边界收尾(异常滞留由上方 deadline 裁决)
+        await new Promise((resolve) => setTimeout(resolve, 10));
+      }
+      await deps.closeApp();
+      clearTimeout(timer);
+      deps.log('api_drained, exiting');
+      deps.exit(0);
+    })();
+  };
+}
+
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
-export async function createApp(): Promise<NestFastifyApplication> {
-  // 审计 #91 配置集中校验刀:关键必需 env(AUTH_SECRET/数据库目标)启动期 fail-fast,
+export async function createApp(): Promise<NestFastifyApplication> {  // 审计 #91 配置集中校验刀:关键必需 env(AUTH_SECRET/数据库目标)启动期 fail-fast,
   // 缺失/格式错 → 抛 env_schema_invalid(一次性列全缺失项),进程启动即死——
   // 不再出现「AUTH_SECRET 缺失照常启动并通过 readiness、登录/验签运行时才全瘫」。
   // 只做启动校验层,不改写散落的 process.env 读法(审计口径 Ban 大规模重构)。
@@ -48,7 +118,10 @@ export async function createApp(): Promise<NestFastifyApplication> {
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
     new FastifyAdapter({
-      bodyLimit: 12 * 1024 * 1024,   // 12MB:容 base64 简历文件(8MB 原文)
+      // 12MiB=简历+语音共享的**传输信封**（为 ~8MB 简历原文 base64≈10.7MB+JSON 余量校准）。
+      // #70 勘误（5E 2026-10-12）：此值不再是第三个「语音上限」——语音语义上限单源=contracts
+      // VOICE_MAX_AUDIO_BYTES(10MB，契约 base64 字符上限由其派生，超限由服务内 413 audio_too_large 兜底)。
+      bodyLimit: 12 * 1024 * 1024,
       logger: {
         level: 'info',
         redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
@@ -124,8 +197,25 @@ async function bootstrap() {
   const app = await createApp();
   const port = Number(process.env.PORT || 8787);
   const host = process.env.HOST || '127.0.0.1';   // 默认仅回环;容器/反向代理需显式 HOST=0.0.0.0(审计:默认 0.0.0.0 会把写 API+/docs 暴露到所有网卡)
+  // HA-2 W1②:排水拒新门挂在直执行 bootstrap(createApp 复用面零感);序在
+  // public-preview 门(其在 createApp 内先行注册)之后、路由 handler 之前。
+  const fastify = app.getHttpAdapter().getInstance() as any;
+  fastify.addHook('onRequest', drainGateHook(getSseRegistry()));
   await app.listen(port, host);
   console.log(`api on ${host}:${port}`);
+  // HA-2 W1①③④:SIGTERM/SIGINT 同链(容器 stop 与本地 Ctrl+C 同语义);deadline
+  // API_SHUTDOWN_TIMEOUT_MS 默认 10_000 < 容器宽限(compose.prod api 15s)。
+  const rawTimeout = Number(process.env.API_SHUTDOWN_TIMEOUT_MS || 10_000);
+  const shutdown = createApiShutdownChain({
+    registry: getSseRegistry(),
+    closeApp: () => app.close(),
+    timeoutMs: Number.isFinite(rawTimeout) && rawTimeout > 0 ? rawTimeout : 10_000,
+    exit: (code) => process.exit(code),
+    log: console.log,
+    error: console.error,
+  });
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 }
 
 // `createApp()` is deliberately exported for real HTTP E2E tests and embedders.
