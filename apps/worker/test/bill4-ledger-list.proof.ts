@@ -15,15 +15,16 @@
  *      投影逐字段断言（consumption 非 mock 场 interview_id NULL/topic 无 invocation_key/usage topic 可空）。
  *   ② 映射臂：confirmed→settled/partial_confirmed→settled/reserved→reserved(-requested)/released→
  *      released(0)/interview.status='failed' 联结→failed/waived(reason=skipped)→settled 0 值子行/
- *      counted_capped→settled/usage generation_failed→failed（映射表逐值）。
+ *      counted_capped→settled/usage generation_failed→failed（映射表逐值）+ partial 行 unitsRequested
+ *      原值透传（settled 差额用户可见）+B 端投影 unitsRequested 同步（真 service 直调）。
  *   ③ B 端 DEFINER 臂：asPrincipal(recruiter) 直调 0185——payer=principal 行可见（跨候选人两行）·
  *      payer≠principal 行零·payer IS NULL 行零·伪造 payer 形参 42883（函数签名零形参+硬谓词双遮蔽）·
  *      approved recruiter 门谓词探针（approved=1/pending=0/candidate=0·生产 SQL 逐字镜像）。
  *   ④ 影子零引用臂：影子计量行在场而 listLedger 响应零影子衍生行（行数恰=三真账种子数）+
  *      静态零 topic_shadow_meter 引用。
  *   ⑤ 分页稳定臂：三段复合游标翻页不重不漏（同 created_at 三源混排·source 段+自然键段全 exercised）·
- *      窗界（200 天行缺省窗不现/365 天窗现）·窗越界 fail-closed·垃圾游标 fail-closed·
- *      游标边界行删除后翻页不重不漏（值基抗删行）。
+ *      窗界（200 天行缺省窗不现/365 天窗现）·窗越界/垃圾游标双层（DB 层具名错 fail-closed AND service
+ *      包装层 HTTP 400 映射·真 CommerceService 最小 seam 直调）·游标边界行删除后翻页不重不漏（值基抗删行）。
  *   ⑥ 零行为变更负臂：listLedger 双读逐字节一致（纯读幂等）+ 种子行原值未动（读面零写运行时证）
  *      + API 装配静态（service 门序/薄 controller/契约注册）。
  */
@@ -35,6 +36,7 @@ import {
   type DbPool,
 } from '@meetwise/db';
 import { ingestResume } from '@meetwise/domain';
+import { CommerceService } from '../../../apps/api/src/modules/commerce/commerce.service.ts';
 
 const pool = createPool();
 let failures = 0;
@@ -86,6 +88,21 @@ async function fetchAll(owner: string, windowDays = 365) {
   }
   throw new Error('fetch_all_page_guard_exceeded');
 }
+
+/** 最小 DbService seam（entpay-s3 同型）：asPrincipal 直连隔离池——真 service 包装层直调载体（RLS/事务边界全真）。 */
+const seamDb = {
+  asPrincipal: (owner: string, fn: (c: never) => unknown) => asPrincipal(pool, owner, fn as never),
+} as never;
+const commerce = new CommerceService(seamDb);
+
+/** HttpException 鸭子型解构（status+响应体 error 码）——Ban 跨包 instanceof 单例歧义。 */
+const httpErrOf = (e: unknown): { status: number; code: string } => {
+  const x = e as { getStatus?: () => number; getResponse?: () => { error?: string } };
+  return {
+    status: typeof x?.getStatus === 'function' ? x.getStatus() : 0,
+    code: x?.getResponse?.()?.error ?? '',
+  };
+};
 
 async function main() {
   await assertIsolatedTestTarget(pool);
@@ -229,6 +246,15 @@ async function main() {
   A('②-i usage generation_failed→failed（cause 为 failed 字面承载）·0 值审计行',
     usageNoTopic.status === 'failed' && usageNoTopic.amountUnits === 0 && usageNoTopic.cause === 'generation_failed');
   A('②-j usage retrieval→settled 0 值审计行（cause 子标注原样）', usageRow.status === 'settled' && usageRow.cause === 'retrieval');
+  // post-errata：partial_confirmed→settled 的 settled 差额用户可见——unitsRequested additive 透传原值。
+  const partialRow = byKey('consumption', 'b4-iv-partial');
+  const entSvcPage = await commerce.listEnterpriseLedger(REC);
+  const entSvcRow = entSvcPage.entries.find((r: Record<string, unknown>) => r.idempotency_key === 'ent-iv-1') as Record<string, unknown> | undefined;
+  A('②-k partial settled 差额可见+B 端投影同步：C 端 partial 行 unitsRequested=units_requested 原值×amountUnits=-settled（requested−settled 用户可见）·confirmed 行原值同透·topic/usage 无列 NULL·B 端真 service 直调 unitsRequested 同值在册',
+    partialRow.unitsRequested === 1 && partialRow.amountUnits === -0.5
+    && entDone.unitsRequested === 1
+    && topicRow.unitsRequested === null && usageRow.unitsRequested === null
+    && entSvcRow !== undefined && Number(entSvcRow.unitsRequested) === 1 && Number(entSvcRow.units_settled) === 1);
 
   /* ───────── ③ B 端 DEFINER 臂 ───────── */
   section('③ B 端 DEFINER 臂：payer=principal 硬谓词单跳自证');
@@ -341,6 +367,15 @@ async function main() {
     afterDelete.entries.length === 74
     && new Set(afterDelete.entries.map((e) => `${e.source}:${e.idempotencyKey}`)).size === 74
     && afterPg.length === 55);
+  // post-errata 双层（与 ⑤-g DB 层 fail-closed 成 AND）：AllExceptionsFilter 只透传 HttpException，
+  // plain Error 冒泡即 500——真 service 包装层直调（最小 seam·零 HTTP 面）断言映射 400 同码。
+  let httpCur = { status: 0, code: '' };
+  let httpWin = { status: 0, code: '' };
+  try { await commerce.listMyLedger(OWNER_A, { cursor: 'garbage-cursor' }); } catch (e) { httpCur = httpErrOf(e); }
+  try { await commerce.listMyLedger(OWNER_A, { windowDays: 366 }); } catch (e) { httpWin = httpErrOf(e); }
+  A('⑤-j HTTP 层 400 映射（与 ⑤-g DB 层 fail-closed 双层）：垃圾游标/窗越界经 service 包装层→HttpException 400 同码（ledger_cursor_invalid/ledger_window_invalid·用户得 400 不再落 500）',
+    httpCur.status === 400 && httpCur.code === 'ledger_cursor_invalid'
+    && httpWin.status === 400 && httpWin.code === 'ledger_window_invalid');
 
   /* ───────── ⑥ 零行为变更负臂 ───────── */
   section('⑥ 零行为变更负臂：纯读幂等+种子原值+API 装配静态');

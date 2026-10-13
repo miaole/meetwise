@@ -333,6 +333,8 @@ export const LedgerEntry = z.object({
   scene: LedgerScene,
   status: LedgerEntryStatus,
   amountUnits: z.number(),
+  // consumption 行 units_requested 原值（partial_confirmed→settled 时 requested−settled 差额用户可见·topic/usage 无列 NULL）。
+  unitsRequested: z.number().nullable(),
   interviewId: z.string().nullable(),
   topicId: z.string().nullable(),
   invocationKey: z.string().nullable(),
@@ -352,13 +354,15 @@ export const BillingLedgerPage = z.object({
   availableUnits: z.number(),
 });
 export type BillingLedgerPage = z.infer<typeof BillingLedgerPage>;
-// B 端企业维度逐笔行（0185 受控 DEFINER 读函数·payer=principal 硬谓词·投影钉死七列：
+// B 端企业维度逐笔行（0185 受控 DEFINER 读函数·payer=principal 硬谓词·投影=函数七列+additive
+// unitsRequested（与 C 端同名·units_requested 原值·partial 差额用户可见）：
 // allocations jsonb/lease_expires_at 内部面不出户）。
 export const EnterpriseLedgerEntry = z.object({
   created_at: z.string(),
   service_type: z.string(),
   units_requested: z.number(),
   units_settled: z.number().nullable(),
+  unitsRequested: z.number().nullable(),
   status: z.string(),
   payer_user_id: z.string(),
   idempotency_key: z.string(),

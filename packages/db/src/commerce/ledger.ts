@@ -18,7 +18,9 @@
  *              usage invocation_key/topic 自然键 interview_id||':'||topic_id。
  *   数额       consumption=-(units_settled)（reserved 取 units_requested·released 已回 0）·
  *              topic=-units·usage=0（审计行）——非逐笔余额推导（多桶 FIFO 下可用额≠Σ账本差），
- *              余额只以读时快照口径在分页头承载。
+ *              余额只以读时快照口径在分页头承载。consumption 行另透传 unitsRequested=units_requested
+ *              原值——partial_confirmed→settled 时 requested−settled 差额由此对用户可见（topic/usage
+ *              无此列 NULL）。
  *   分页       keyset 值基三段复合游标 (created_at DESC, source_discriminator, natural_key)——
  *              natural_key 序列化钉死：consumption=idempotency_key·usage=invocation_key·
  *              topic=interview_id||':'||topic_id；值基抗删行（游标载值非行偏移）。
@@ -43,6 +45,8 @@ export interface LedgerEntry {
   status: LedgerEntryStatus;
   /** 带符号数额（扣分为负·released 已回 0·usage 审计行 0）。 */
   amountUnits: number;
+  /** consumption 行 units_requested 原值（partial_confirmed→settled 时 requested−settled 差额用户可见·topic/usage 无列 NULL）。 */
+  unitsRequested: number | null;
   interviewId: string | null;
   topicId: string | null;
   invocationKey: string | null;
@@ -128,13 +132,13 @@ export async function listLedger(c: Client, owner: string, opts: ListLedgerOptio
   const cur = opts.cursor ? decodeLedgerCursor(opts.cursor) : null;
   const r = await c.query<{
     created_at: Date; created_at_us: string; source: LedgerSource; scene: string; status: LedgerEntryStatus;
-    amount_units: number; interview_id: string | null; topic_id: string | null;
+    amount_units: number; requested_units: number | null; interview_id: string | null; topic_id: string | null;
     invocation_key: string | null; natural_key: string; cause: string | null;
     topic_status: 'counted' | 'counted_capped' | 'waived' | null; reason: string | null;
     rule_version: string | null;
   }>(
     `SELECT created_at, to_char(created_at AT TIME ZONE 'UTC', 'YYYY-MM-DD"T"HH24:MI:SS.US"Z"') AS created_at_us,
-            source, scene, status, amount_units, interview_id, topic_id,
+            source, scene, status, amount_units, requested_units, interview_id, topic_id,
             invocation_key, natural_key, cause, topic_status, reason, rule_version
        FROM (
          SELECT ec.created_at,
@@ -146,6 +150,7 @@ export async function listLedger(c: Client, owner: string, opts: ListLedgerOptio
                      ELSE 'released' END AS status,
                 CASE WHEN ec.status = 'reserved' THEN -ec.units_requested
                      ELSE -COALESCE(ec.units_settled, 0) END::float8 AS amount_units,
+                ec.units_requested::float8 AS requested_units,
                 CASE WHEN ec.service_type = 'mock_interview' THEN ec.idempotency_key END AS interview_id,
                 NULL::text AS topic_id,
                 NULL::text AS invocation_key,
@@ -157,7 +162,8 @@ export async function listLedger(c: Client, owner: string, opts: ListLedgerOptio
           WHERE ec.owner_user_id = $1
          UNION ALL
          SELECT tc.created_at, 'topic'::text, 'topic'::text, 'settled'::text,
-                (-tc.units)::float8, tc.interview_id, tc.topic_id, NULL::text,
+                (-tc.units)::float8, NULL::float8 AS requested_units,
+                tc.interview_id, tc.topic_id, NULL::text,
                 (tc.interview_id || ':' || tc.topic_id),
                 NULL::text, tc.status, tc.reason, tc.rule_version
            FROM topic_charge tc
@@ -165,7 +171,8 @@ export async function listLedger(c: Client, owner: string, opts: ListLedgerOptio
          UNION ALL
          SELECT qu.created_at, 'usage'::text, 'usage'::text,
                 CASE WHEN qu.cause = 'generation_failed' THEN 'failed'::text ELSE 'settled' END,
-                0::float8, qu.interview_id, qu.topic_id, qu.invocation_key, qu.invocation_key,
+                0::float8, NULL::float8 AS requested_units,
+                qu.interview_id, qu.topic_id, qu.invocation_key, qu.invocation_key,
                 qu.cause, NULL::text, NULL::text, NULL::text
            FROM question_usage_ledger qu
           WHERE qu.owner_user_id = $1
@@ -183,6 +190,7 @@ export async function listLedger(c: Client, owner: string, opts: ListLedgerOptio
     scene: row.scene,
     status: row.status,
     amountUnits: Number(row.amount_units),
+    unitsRequested: row.requested_units === null ? null : Number(row.requested_units),
     interviewId: row.interview_id,
     topicId: row.topic_id,
     invocationKey: row.invocation_key,

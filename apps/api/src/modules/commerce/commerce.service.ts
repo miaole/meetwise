@@ -197,7 +197,18 @@ export class CommerceService {
   // 同事务内与明细同拍读出（availableUnits 只读余额读函数·扣费路径零触）。
   async listMyLedger(principal: string, opts: { cursor?: string | null; windowDays?: number }) {
     return this.db.asPrincipal(principal, async (c) => {
-      const page = await listLedger(c, principal, { cursor: opts.cursor ?? null, windowDays: opts.windowDays });
+      let page: Awaited<ReturnType<typeof listLedger>>;
+      try {
+        page = await listLedger(c, principal, { cursor: opts.cursor ?? null, windowDays: opts.windowDays });
+      } catch (e: unknown) {
+        // 用户可触发入参错（垃圾游标/窗越界）必须 400 而非 500：AllExceptionsFilter 只透传 HttpException，
+        // DB 层 plain Error（.code 具名）原样冒泡会落 500 internal_error——此处按 #31 409 先例同形把该两
+        // 具名错包成 400（error 码原样承载·AllExceptionsFilter 零触）。其余错照旧诚实冒泡。
+        const code = errCode(e);
+        if (code === 'ledger_cursor_invalid' || code === 'ledger_window_invalid')
+          throw new HttpException({ error: code }, HttpStatus.BAD_REQUEST);
+        throw e;
+      }
       const bal = await availableUnits(c, principal);
       return { ...page, availableUnits: bal };
     });
@@ -210,7 +221,7 @@ export class CommerceService {
     await this.requireApprovedRecruiter(principal);
     return this.db.asPrincipal(principal, async (c) => {
       const r = await c.query(
-        'SELECT created_at, service_type, units_requested::float8 AS units_requested, units_settled::float8 AS units_settled, status, payer_user_id, idempotency_key FROM gateway_billing_ledger_payer()');
+        'SELECT created_at, service_type, units_requested::float8 AS units_requested, units_settled::float8 AS units_settled, units_requested::float8 AS "unitsRequested", status, payer_user_id, idempotency_key FROM gateway_billing_ledger_payer()');
       const enterpriseAvailableUnits = await availableUnits(c, principal, 'enterprise');
       return { entries: r.rows, enterpriseAvailableUnits };
     });
