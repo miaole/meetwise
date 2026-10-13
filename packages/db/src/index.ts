@@ -88,6 +88,11 @@ export type {
 export { closeTopic, interviewBillingOf, topicCountedUnits, listTopicSettlementMismatches } from './commerce/topic-charge.ts';
 export type { CloseTopicResult, CloseTopicStatus, InterviewBilling, TopicSettlementMismatch } from './commerce/topic-charge.ts';
 
+// billing-redesign §3.13 明细列表只读面：三真账 UNION 逐笔读（C 端 RLS 直读·keyset 值基三段复合
+// 游标·状态/场景映射钉死·只读零写面·影子表零引用）。
+export { listLedger, LEDGER_PAGE_SIZE } from './commerce/ledger.ts';
+export type { LedgerEntry, LedgerPage, LedgerSource, LedgerEntryStatus, ListLedgerOptions } from './commerce/ledger.ts';
+
 // 招聘方(B 端)岗位仓储(多租户 RLS 隔离)+ 候选人申请闭环(多方 RLS)
 export {
   createJob, listJobs, getJob, closeJob, updateJob,

@@ -22,7 +22,7 @@
  *    列出的组件上降级。
  */
 import { isKnownEstimatorVersion, refineEstimate, type CalibratedFactor, type EstimatorVersion } from './usage-reconciliation.ts';
-import { byteEstimate } from './model-client.ts';
+import { byteEstimate, cjkWeightedEstimate } from './model-client.ts';
 import { assertCalibrationModelMatch } from './g7-freetier-reprove-guard.ts';
 // GODFN-1b: G7 test-state sensing arrives via composition-root injection —
 // zero `isG7FreetierReproveEnabled(process.env)` direct reads in production src.
@@ -133,14 +133,16 @@ export type ContextBudgetDecision =
   | { ok: true; plan: ContextBudgetPlan }
   | { ok: false; error: ContextBudgetError };
 
-/** 保守估算器：版本化 + 可选校准。utf8-bytes-v1 = UTF-8 字节数（恒 ≥ 渲染文本 token），未知版本 fail-closed。 */
+/** 保守估算器：版本化 + 可选校准。utf8-bytes-v1 = UTF-8 字节数（恒 ≥ 渲染文本 token），未知版本 fail-closed。
+ *  AG-12：按版本分派原语——v1→byteEstimate（恒等零漂），cjk-weighted-v1→cjkWeightedEstimate（CJK 逐码点加权）。 */
 export function estimateContextTokens(value: string, estimator: EstimatorVersion, calibration?: CalibratedFactor): number {
   if (!isKnownEstimatorVersion(estimator)) {
     // fail-closed：未知估算器版本的语义无法确定（未来新增版本必须先登记进 KNOWN_ESTIMATOR_VERSIONS），绝不猜测。
     throw new Error('context_estimator_unknown');
   }
   if (value.length === 0) return 0; // 空组件 0 token；refineEstimate 要求 ≥1，空串不套校准因子（0×factor=0）。
-  const raw = byteEstimate(value); // 复用 model-client 的保守估算原语（四原语复用，不重实现字节计数）。
+  // 复用 model-client 的保守估算原语（四原语复用，不重实现字节计数）；按 estimator 版本分派，v1 路径逐字节恒等。
+  const raw = estimator === 'utf8-bytes-v1' ? byteEstimate(value) : cjkWeightedEstimate(value);
   return calibration ? refineEstimate(raw, calibration) : raw; // 复用 usage-reconciliation 的精化（上界不变、更贴真实）。
 }
 

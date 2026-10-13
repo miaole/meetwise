@@ -1,0 +1,72 @@
+
+> meetwise@0.1.0 provider-egress:prove /Users/miaole/Desktop/golucky/meetwise-ag24
+> node scripts/provider-egress-inventory.proof.mjs
+
+node:internal/modules/run_main:123
+    triggerUncaughtException(
+    ^
+
+AssertionError [ERR_ASSERTION]: adapter_consumer_unregistered:openai-compatible-chat:apps/worker/test/ag-b-classify.proof.ts
+adapter_consumer_unregistered:openai-compatible-chat:apps/worker/test/ag-e-report.proof.ts
+adapter_consumer_unregistered:openai-compatible-chat:apps/worker/test/resume-grounding.proof.ts
+adapter_consumer_unregistered:openai-compatible-chat:packages/ai-runtime/test/model-client-stream.proof.ts
+adapter_consumer_unregistered:openai-compatible-chat:packages/ai-runtime/test/model-usage-cache-observe.proof.ts
+environment_reference_not_found:MODEL_API_KEY:apps/worker/src/r4-p-meta-p-r1-remaining.ts
+environment_reference_not_found:MODEL_API_KEY:apps/worker/src/r4-p-meta-serving-product-remaining.ts
+environment_reference_not_found:MODEL_API_KEY:apps/worker/src/r4-p-meta-serving-remaining.ts
+environment_reference_not_found:MODEL_API_KEY:apps/worker/src/r4-p-r1-fail-closed-remaining.ts
+environment_reference_source_invalid:MODEL_API_KEY:apps/worker/src/r4-p-meta-p-r1-remaining.ts
+environment_reference_source_invalid:MODEL_API_KEY:apps/worker/src/r4-p-meta-serving-product-remaining.ts
+environment_reference_source_invalid:MODEL_API_KEY:apps/worker/src/r4-p-meta-serving-remaining.ts
+environment_reference_source_invalid:MODEL_API_KEY:apps/worker/src/r4-p-r1-fail-closed-remaining.ts
+environment_reference_unregistered:DASHSCOPE_VISION_API_KEY:apps/api/src/platform/env-schema.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/api/src/platform/env-schema.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/api/test/qbank-planner-honesty.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/api/test/report-retry-http.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/api/test/role-input.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/worker/evidence/r4-p-meta-p-r1-remaining.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/worker/evidence/r4-p-meta-serving-product-remaining.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/worker/evidence/r4-p-meta-serving-remaining.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/worker/evidence/r4-p-r1-fail-closed-remaining.ts
+environment_reference_unregistered:MODEL_API_KEY:apps/worker/test/resume-grounding.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:packages/ai-runtime/test/model-client-stream.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:packages/ai-runtime/test/model-usage-cache-observe.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:packages/db/test/report-retry.proof.ts
+environment_reference_unregistered:MODEL_API_KEY:scripts/alerts/check-alerts-metrics-smoke.mjs
+environment_reference_unregistered:MODEL_API_KEY:scripts/alerts/check-alerts-sandbox-smoke.mjs
+environment_reference_unregistered:MODEL_API_KEY:scripts/ha/ha-sandbox.mjs
+environment_reference_unregistered:MODEL_BACKUP_API_KEY:apps/api/src/platform/env-schema.ts
+environment_reference_unregistered:MODEL_BACKUP_API_KEY:packages/ai-runtime/test/model-client-stream.proof.ts
+environment_reference_unregistered:MODEL_BACKUP_API_KEY:packages/ai-runtime/test/model-usage-cache-observe.proof.ts
+environment_reference_unregistered:MODEL_BACKUP_API_KEY:scripts/alerts/check-alerts-metrics-smoke.mjs
+environment_reference_unregistered:MODEL_BACKUP_API_KEY:scripts/alerts/check-alerts-sandbox-smoke.mjs
+environment_reference_unregistered:MODEL_BACKUP_API_KEY:scripts/ha/ha-sandbox.mjs
+environment_reference_unregistered:MODEL_BASE_URL:apps/api/test/qbank-planner-honesty.proof.ts
+environment_reference_unregistered:MODEL_BASE_URL:apps/api/test/role-input.proof.ts
+environment_reference_unregistered:MODEL_ENDPOINT_PROFILE:apps/worker/test/resume-grounding.proof.ts
+environment_reference_unregistered:MODEL_ENDPOINT_PROFILE:packages/ai-runtime/test/model-client-stream.proof.ts
+environment_reference_unregistered:MODEL_ENDPOINT_PROFILE:packages/ai-runtime/test/model-usage-cache-observe.proof.ts
+environment_reference_unregistered:MODEL_TEST_TRANSPORT_OVERRIDES:apps/worker/test/ag-b-classify.proof.ts
+environment_reference_unregistered:MODEL_TEST_TRANSPORT_OVERRIDES:apps/worker/test/ag-e-report.proof.ts
+environment_reference_unregistered:MODEL_TEST_TRANSPORT_OVERRIDES:apps/worker/test/resume-grounding.proof.ts
+environment_reference_unregistered:MODEL_TEST_TRANSPORT_OVERRIDES:packages/ai-runtime/test/model-client-stream.proof.ts
+environment_reference_unregistered:MODEL_TEST_TRANSPORT_OVERRIDES:packages/ai-runtime/test/model-usage-cache-observe.proof.ts
+transport_source_unregistered:packages/ai-runtime/src/model-client.ts
+
+false !== true
+
+    at TC-MODEL-002-E3-inventory-main (file:///Users/miaole/Desktop/golucky/meetwise-ag24/scripts/provider-egress-inventory.proof.mjs:28:12)
+    at file:///Users/miaole/Desktop/golucky/meetwise-ag24/scripts/provider-egress-inventory.proof.mjs:76:3
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  generatedMessage: false,
+  code: 'ERR_ASSERTION',
+  actual: false,
+  expected: true,
+  operator: 'strictEqual',
+  diff: 'simple'
+}
+
+Node.js v22.22.3
+ ELIFECYCLE  Command failed with exit code 1.

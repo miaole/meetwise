@@ -11,11 +11,11 @@
     "./test-support": "./test/support/fakes.ts"
   },
   "scripts": {
-    "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts",
+    "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts && tsx test/ag24-langfuse-model.proof.ts",
     "prove:diag-honesty": "tsx test/diag-honesty-prompt.proof.ts",
     "prove:claim-join-orphan": "tsx test/claim-join-orphan.proof.ts",
     "prove:retrieval": "tsx test/retrieval.proof.ts",
-    "prove:breaker": "tsx test/breaker.proof.ts",
+    "prove:ag24-langfuse-model": "tsx test/ag24-langfuse-model.proof.ts",
     "prove:vstream": "tsx test/voice-stream.proof.ts",
     "prove:voice-reliability": "tsx test/voice-reliability.proof.ts",
     "prove:interview-voice-seams": "tsx test/interview-voice-seams.proof.ts",
@@ -52,6 +52,7 @@
     "prove:model-op02": "tsx test/model-op02-shared-provider.proof.ts",
     "prove:ag-d-admission": "tsx test/ag-d-admission.proof.ts",
     "prove:ag19-prompt-version": "tsx test/ag19-prompt-version.proof.ts",
+    "prove:ag12-estimator-freeze": "tsx test/ag12-estimator-freeze.proof.ts",
     "prove:model-slot-bypass": "tsx test/model-slot-bypass.proof.ts",
     "prove:model-slot-bypass-static": "tsx test/model-slot-bypass.static.proof.ts",
     "offline-eval:contract": "tsx scripts/run-offline-contract-regression.ts",
