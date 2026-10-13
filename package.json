@@ -272,6 +272,8 @@
     "bill1-topic-fields:prove:raw": "pnpm -C apps/worker prove:bill1-topic-fields",
     "bill2-shadow-meter:prove": "node scripts/run-e2e-isolated.mjs bill2-shadow-meter:prove:raw",
     "bill2-shadow-meter:prove:raw": "pnpm -C apps/worker prove:bill2-shadow-meter",
+    "bill3-settlement:prove": "node scripts/run-e2e-isolated.mjs bill3-settlement:prove:raw",
+    "bill3-settlement:prove:raw": "pnpm -C apps/worker prove:bill3-settlement",
     "rag:adversarial:fixture:prove": "pnpm -C apps/worker exec tsx smoke/rag-adversarial-fixture.proof.ts",
     "rag:adversarial:eval": "pnpm -C apps/worker exec tsx smoke/rag-adversarial-eval.ts",
     "rag:adversarial:pg-eval": "pnpm -C apps/worker exec tsx smoke/rag-adversarial-pg-eval.ts",

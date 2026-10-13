@@ -3,7 +3,7 @@
  * graph checkpoint 是运行态；question ledger + event key 是 API/SSE 的可恢复业务边界。
  */
 import {
-  asPrincipal, appendEvent, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
+  asPrincipal, appendEvent, closeTopic, completeInterviewAndConfirm, failInterviewAndRelease, enqueueReport, markApplicationAssessmentUnavailable, markApplicationNoEligibleScore,
   writeNoEvidenceReadyReport, NO_EVIDENCE_REPORT_CONTENT,
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
   assertInterviewGraphFence, publishRubricAndIssueContract,
@@ -94,6 +94,23 @@ function writeShadowMeterSoft(pool: DbPool, owner: string, interviewId: string, 
   void asPrincipal(pool, owner, (c) => writeTopicShadowMeter(c, owner, interviewId, { generationReason })).catch((error: unknown) => {
     console.error('topic_shadow_meter_write_failed', { interviewId, generationReason: generationReason ?? null, error: String((error as Error)?.message ?? error) });
   });
+}
+
+/* ───────── billing P3（BILL3-SETTLEMENT 修法⑧）：closeTopic 双挂点接线 ─────────
+ * 挂点一=换话题 pivot 关闭上一话题（answer 投影事务内·next.askMode==='pivot' 时）；挂点二=收尾 done 块
+ * 关闭尾话题（完成臂/零有效分臂·fail+release 臂**不关**=未完成话题 0 分不计，裁决③「已关闭话题照计·
+ * 进行中不计」）。上一/尾话题=刚作答题的 topic_id（interview_question 行值·P1 0170 落列；旧行 NULL=
+ * 不按话题计费零关）。closeTopic 内嵌模式闸：billing_mode≠'per_topic_capped'（含缺省 per_session）
+ * 零读零写零行为变更（REQUEST §5 增补行①）；PK ON CONFLICT DO NOTHING=重放幂等；同事务原子
+ * （结算面错误升级语义·零 fail-soft，与影子钩子相反）。 */
+async function closeTopicForQuestion(
+  c: Parameters<typeof assertInterviewGraphFence>[0], d: AdaptiveLifecycleDeps, questionId: string,
+): Promise<void> {
+  const row = await c.query<{ topic_id: string | null }>(
+    'SELECT topic_id FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3',
+    [d.owner, d.interviewId, questionId]);
+  const topicId = row.rows[0]?.topic_id;
+  if (topicId) await closeTopic(c, d.owner, d.interviewId, topicId);
 }
 
 export interface AdaptiveLifecycleDeps {
@@ -395,6 +412,8 @@ async function submitAdaptiveAnswerImpl(
         // billing P1（BILL1-TOPIC-FIELDS 修法⑥）：答案投影下一题同形透传（本点在收尾三分支区 :442-488 之外）。
         topicId: next.topicId, askMode: next.askMode, clarifyCause: next.clarifyCause,
       });
+      // billing P3 修法⑧：closeTopic 挂点一=换话题 pivot 关闭上一话题（本事务内原子·模式闸内嵌）。
+      if (next.askMode === 'pivot') await closeTopicForQuestion(c, d, input.questionId);
       // EXTREV-1 D1：answer 投影事务内的下一题同样发 rubric+契约（与 persistAndEmitQuestion 同形）。
       await publishRubricAndIssueContract(c, {
         interviewId: d.interviewId, questionId: next.questionId, stateVersion: next.stateVersion, turn: next.turn,
@@ -529,12 +548,18 @@ async function submitAdaptiveAnswerImpl(
       // 在 DB 层钉死「answer_unscored 事件在场 ⇒ 禁 completed」结算完整性法（历史迁移零字节 Ban）。
       // 「混合面 completed+照计」需放松 0046=计费结算语义,归 billing rev 战役,本刀如实登记不越界。
       if (unscored === 0 && eligible > 0) {
+        // billing P3 修法⑧：closeTopic 挂点二=收尾关闭尾话题（完成臂·与结算同事务原子）。
+        await closeTopicForQuestion(c, d, input.questionId);
         await completeInterviewAndConfirm(c, d.owner, d.interviewId);
         await enqueueReport(c, d.owner, d.interviewId);
       } else if (unscored === 0) {
         // A fully skipped / unresolved B-side session is not a zero-score
         // completion.  The interaction is still completed and paid, but its
         // application becomes visibly retryable without inventing evidence.
+        // billing P3 修法⑧：尾话题关闭先行（零有效分臂）——全跳过话题落 waived 行 reason='skipped'
+        // （裁决项②·明细可见）；per_topic_capped 下 Σ=0 ⇒ completeInterviewAndConfirm 走 release
+        // （「全跳过=0 分则全退」异常分支表行 6）·per_session 原全额语义零变。
+        await closeTopicForQuestion(c, d, input.questionId);
         await completeInterviewAndConfirm(c, d.owner, d.interviewId);
         const mark = await markApplicationNoEligibleScore(c, d.owner, d.interviewId);
         // A C-side interview has no application projection.  Preserve its

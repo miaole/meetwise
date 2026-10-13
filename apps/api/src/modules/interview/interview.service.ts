@@ -261,6 +261,12 @@ export async function beginInterviewCore(
         if (applicationId != null) throw new HttpException({ error: 'enterprise_insufficient_balance' }, HttpStatus.CONFLICT);
         throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
       }
+      // billing P3 修法⑦（#31·蓝本 §4 末行「改成报错（409）」）：同键不同 units=客户端 bug 显式报错
+      // （reserveEntitlement 具名错 idempotency_units_mismatch）→ 409，沿 enterprise_insufficient_balance
+      // 分码先例。预留形/1.00 单位/既有 402/409 分码零触（REQUEST §5 Ban 面）。
+      if (errCode(e) === 'idempotency_units_mismatch') {
+        throw new HttpException({ error: 'idempotency_units_mismatch' }, HttpStatus.CONFLICT);
+      }
       throw e;
     }
     if (rr.status !== 'reserved') {
