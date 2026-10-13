@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
-import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, requireOwnerUserId, newEntityId, errCode, asErr, type Client, type CreditBucketKind } from '@meetwise/db';
+import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, listLedger, requireOwnerUserId, newEntityId, errCode, asErr, type Client, type CreditBucketKind } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 
 /**
@@ -189,6 +189,31 @@ export class CommerceService {
     const r = await this.db.asPrincipal(principal, (c) =>
       c.query('SELECT order_id, product_id, amount_cents, order_status, remit_status, entered_at, confirmed_at, created_at FROM gateway_entpay_my_offline_orders()'));
     return { orders: r.rows };
+  }
+
+  // ── 积分明细列表（billing-redesign §3.13 升 P1 面·additive 只读·零写面零结算语义变更）──
+  // C 端本人逐笔：三真账 UNION RLS 直读（零 DEFINER 零特权·p_owner FORCE 兜底）+ keyset 值基三段
+  // 复合游标。分页头余额=读时快照非实时余额承诺（多桶 FIFO 下可用额≠Σ账本差·逐笔行不带余额），
+  // 同事务内与明细同拍读出（availableUnits 只读余额读函数·扣费路径零触）。
+  async listMyLedger(principal: string, opts: { cursor?: string | null; windowDays?: number }) {
+    return this.db.asPrincipal(principal, async (c) => {
+      const page = await listLedger(c, principal, { cursor: opts.cursor ?? null, windowDays: opts.windowDays });
+      const bal = await availableUnits(c, principal);
+      return { ...page, availableUnits: bal };
+    });
+  }
+
+  // B 端企业维度逐笔：approved recruiter 门先行 + 0185 受控 DEFINER 读函数经 asPrincipal(recruiter)
+  // （调用母形=listMyOfflineOrders 同款）。零 payer 形参——伪造 payer 入口在 API query 层即被函数内
+  // payer_user_id=current_setting 硬谓词遮蔽。分页头余额=企业桶读时快照（entitlement 双算口径）。
+  async listEnterpriseLedger(principal: string) {
+    await this.requireApprovedRecruiter(principal);
+    return this.db.asPrincipal(principal, async (c) => {
+      const r = await c.query(
+        'SELECT created_at, service_type, units_requested::float8 AS units_requested, units_settled::float8 AS units_settled, status, payer_user_id, idempotency_key FROM gateway_billing_ledger_payer()');
+      const enterpriseAvailableUnits = await availableUnits(c, principal, 'enterprise');
+      return { entries: r.rows, enterpriseAvailableUnits };
+    });
   }
 
   // ── B271 片1 开票面（audit①「企业开票资料 RLS 仅招聘方本人可读写 + 开票申请仅 paid 订单」）──
