@@ -162,3 +162,67 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 *BILL3-SETTLEMENT REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`aeaf4141`（主线 tip·git log -1 实测·开工=落卷零前移）· 分支 `line/bill3-settlement` · 工作树 `meetwise-bill3`（git worktree add 本起草席立·建前 worktree list 22 树+branch 双查+rg 零命中三查不存在）· 立项出处=billing-redesign README rev1（blob `cd4c060f`·532 行·§4 `:233-253` 16 数据行/§6.3 `:310-336`/§6.4 `:338-371`/§6.5 `:373-381`/§6.6 `:383-387`/§7 `:391-413`）+LANDING-INDEX（blob `0694ff22`·七 `:41-47`/十二 `:50-57` 四裁决/十三 `:60-63`/十四 `:66-70`）+LEDGER `:420` 承接行· 防重三查过· §0 blob 锚表 28 行 ls-tree 亲算+§0.2 漂移七条如实登记（tip 零前移/收尾区 `:442-488`→`:490-557` 漂移 48 行三分支零变/commerce 锚 ±1 内 #31·begin 原位/编号链 0172+0173 本刀·0181+ 空闲/影子五值 vs 结算三值差异=裁决项②/AG 六刀收官+续约锚 `:300,309`→`:357`+`:366`/r2 SQL 面同式登记）· 红事实五链现 tip 重 pin（结算缺位=topic_charge 不存在+按场固定 1 分+无话题粒度消费者/#229 完成即全额确认 ratio=1+partial 抛错结构性不可达/#31 同键不同 units 静默吞/触发器配对面 GAP-COMM-PARTIAL-PAIR+0046 完整性触发器零放松定界/放弃走人崩溃收口现行面）· 修法八件（0172 计费三列+ck_interview_cap+topic_charge/0173 tf_ CREATE OR REPLACE per_session 逐字保留+per_topic_capped 方案②比较式/closeTopic FOR UPDATE 串行化/confirmConsumptionUnits 绝对值部分结算/completeInterviewAndConfirm 允 partial/abandon+sweep 拆二选一/#31 报错 409/接线八面 begin 零改）+异常分支表（蓝本 §4 16 数据行）逐条落点 · 断言候选四条（隔离库真迁移链六臂新 proof 含方案②逐值 0.33/封顶/舍入同式/触发器 per_session 原值回归/既有门 27+44+57 原值/迁移纪律/typecheck）· §3 范围外八条（影子计量 B 端残面明细 UI 扩张包 F15 0046 开放项存量灰度 SSOT）· §4 依赖=P1+P2+AG 六刀全兑现 · est live=0 · pins 十一值照抄 · 增补三行（per_session 零行为变更/flag 关回按场/存量桶零换算）· markers=0（亲跑）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual · **rev 勘误席处置（席1 FAIL 一 blocking+四 errata·2026-10-11 全数落改）**：B1 contracts 行虚构现状锚删改三处（§0.1 行/§1-⑧/§4 依赖①——事件 additive 字段系 P3 净新增面·蓝本 §6.6/§7 API 行本列·grep packages/contracts/ 事件字段零命中亲证·旧锚三行实为 DiagnosisList/Entitlement/JobPublicList）+E1 计数勘误（十四行→16 数据行·立项出处/§1.6/卷尾三处同步·蓝本 §4 表 grep 亲数 16 数据行·本卷 §1.6 表 15 行=蓝本「invoke 内部重试」自注不存在不单列）+E2 行锚五组重 pin（0046 触发器 :118-135+RAISE :130-131/0170 ix_iq_topic :33-34/0001 units_settled :115+四值 CHECK :116-117+uq :121/0180 status :37 区+cap_hit :47 区）+E3 续约两调用点 :357+:366（租约结论零变）+E4 reason 可空（蓝本 §6.3 SQL 仅 rule_version NOT NULL）——核心八件修法/断言四条/§8-③ 冻结/STOP/markers/pins 十一值零变*
+
+---
+
+## §9 EXEC 附记（随翻·append 保史·§0-§8 原文零改·2026-10-13）
+
+**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+
+**施工落点（恰 15 文件：新 4+改 10+本卷随翻 1）**：新=packages/db/migrations/0172_topic_charge.sql+0173_tf_interview_consumption_terminal_pair.sql（两新迁移·零历史迁移触）+packages/db/src/commerce/topic-charge.ts（closeTopic/interviewBillingOf/topicCountedUnits/listTopicSettlementMismatches）+apps/worker/test/bill3-settlement.proof.ts（43 断言六臂）；改=packages/db/src/commerce/commerce.ts（#31+confirmConsumptionUnits+complete/fail/abandon/sweep 模式感知拆分+settleOrReleaseForTerminal/terminalReleasedOf）+packages/db/src/index.ts（导出区 additive 两块）+apps/worker/src/adaptive-lifecycle.ts（import+closeTopicForQuestion+pivot 挂点+done 两分支尾挂点）+apps/worker/src/commerce-reconcile.ts（import+巡检 fail-soft 只告警块）+apps/api/src/modules/interview/interview.service.ts（#31 409 catch 一支 additive）+packages/contracts/src/index.ts（SessionConcludedPayload 两可选字段）+apps/worker/test/bill2-shadow-meter.proof.ts（两枚过期负臂随翻·§9-2 E4）+scripts/run-e2e-isolated.mjs（四处注册只增不清·node --check EXIT=0）+根 package.json+apps/worker/package.json（门名各两行/一行）。
+
+### §9-1 并线重 pin（§8-③ 照本节协议行使）
+
+- **并线**：`git merge feat/mysql-schema-skeleton`——**Already up to date**（协调方载「主线 8603dc65+」=锚族表述·实测主线 tip=`aeaf4141`（=起草基线·merge-base=tip=零新笔·`git log HEAD..feat/mysql-schema-skeleton` 空输出亲证）·零冲突预期兑现·无 merge commit。
+- **§0 席2 勘误并入后全量重 pin 零漂亲证**（施工前 sed/Read 逐锚）：0001 entitlement_consumption `:109-123`（units_settled `:115`/四值 CHECK `:116-117`/uq `:121`）·0020 enforce 原体 `:26-60`+触发器 `:62-64`·0046 scoring 完整性触发器 `:118-135`+RAISE `:130-131`+enforce failed 纳入 `:144-173`·0144 tf_ 现行体 `:365-395`（SELECT 单列 INTO `:378-381`/completed↔confirmed RAISE `:386-389`/abandoned·failed↔released RAISE `:390-393`/§2.6 注 `:363-364`）+enforce 外层 `:397-403`+GRANT `:411`·0170 ix_iq_topic `:33-34`·0171 RLS `:36-42`·0180 status 五值 `:37` 区+cap_value/cap_hit `:46-47` 区·commerce.ts r2 `:34`/#31 `:54-62`/confirmConsumption `:167-216`（ratio 闸 `:171`/settled `:183`/尾桶 `:185-194`/outbox `:212-214`）/completeInterviewAndConfirm `:251-277`（ratio=1 `:253`/partial 抛错 `:256-257`/CAS `:260-263`）/abandonInterviewAndRelease `:353-399`（release 先行 `:355`/空壳 `:362-369`/CAS `:383-386`）/sweepExpiredReservations `:432-452`（单 UPDATE `:434-437`）·interview.service.ts begin 双路 `:253-268`（预留三元 `:256-258`/catch 分码 `:259-264`）·adaptive-lifecycle 收尾区 `:490-557`/三分支 `:524-556`·interview-consumer.ts 续约两调用点 `:357`+`:366`——**承重锚全部原位零漂·§0.2 七条漂移登记就此封账**。
+- **迁移链重 pin**：落卷链 max=**0180**·**0172/0173 全树零占**（ls+主线 ls-tree 双查）·本刀恰占零新增号·0184 起顺延勿添重号（§0.2-4 结论零变）。
+
+### §9-2 勘误注（登记级·结论零变）
+
+- **E1（proof 首臂计数勘误·亲跑承登）**：schema_migrations 版本键=**完整文件名词干**（非数字前缀）——0143/0152/0160 三对「重号」系同前缀不同词干两行并存·真链 applied=**182** 行（migrate-cli 日志同值亲证）·proof 首臂初版按前缀去重 179 误设→已按实跑勘正（`version LIKE '0172%'` 同形）。
+- **E2（GRANT 探针勘误·亲跑承登）**：`has_function_privilege('PUBLIC',…)` 系伪角色不可查（42704）→改 `pg_proc p, aclexplode(p.proacl) g … g.grantee=0`（grantee 0=PUBLIC）形·结论零变（GRANT EXECUTE TO PUBLIC 在场 PASS）。
+- **E3（bill2 两枚过期负臂随翻）**：bill2 proof ④臂「topic_charge 关系不存在（0172 未落亲证）」与「interview 计费列零新增」两枚负臂的**前提由本刀落地兑现**——按其铁律本体（零扣费零 billing_mode 出手）翻正向重申：「topic_charge 在场而本刀真链场零结算行」+「计费三列缺省恒 per_session/cap·rule_version NULL」·**臂数 44 恒定**·复跑 EXIT=0 原值。P2 码面（0180/topic-shadow-meter.ts/writeShadowMeterSoft）零字节零触。
+- **E4（fail 臂纳入「结算或释放」拆分·修法⑥同落点扩充如实登记）**：§1-⑥ 修法清单载 abandon+sweep 两函数——施工实测 0173 per_topic_capped 分支 counted>0 拒 released ⇒ **fail 臂三调用点**（interview-consumer terminalizeUnsettledInterview/adaptive-lifecycle 出题失败与混合 unscored 臂/commerce-reconcile B 端被扫臂）在 capped 面结构性 23514——按裁决③「该话题 0 分·已完成话题照计·终态仍 failed 配 partial_confirmed」（异常分支表行 5 落点=修法②⑤）将 failInterviewAndRelease 纳入共享 helper `settleOrReleaseForTerminal`（abandon/sweep/fail 三终态面同拆分）·**per_session（缺省）面逐字节零变**（⑤-d 臂原值+②-c 触发器三臂原值回归背书）。
+- **E5（修法⑧「begin 落三列」本刀不落）**：协调方任务序明载「begin 零改（billing_cap_units 后续刀）」——三列由 0172 additive 落表（DEFAULT per_session·零行为变更）·flag 载体=行值（proof `beginCappedSession` 直写行使）·begin 双路 `:256-268` 预留形/1.00 单位/402/409 分码零触亲证；begin 写列随后续 flag-on 刀。
+- **E6（事件 additive 承载如实登记）**：contracts `SessionConcludedPayload` 增 `topicsCounted/topicsCapped` 两可选字段（.strict() 保留=未知键仍拒·可选=旧发射零破坏）·本刀零生产事件流变化（per_topic_capped 场仅隔离 proof 行值直写）·承载接线随 flag-on 刀（§9-2 E5 同刀）·明细消费面=§3-3 姊妹刀读 topic_charge 直查（零事件依赖）。
+
+### §9-3 §8 四裁决行使（全按卷推荐）
+
+- **①topic_charge 行权形状=RLS ENABLE+FORCE+p_owner 策略+只授 SELECT,INSERT**（0171 `:36-42` 形制范本逐字·计费事实表只增不改·更正走红冲/后行）——42501 UPDATE/DELETE 负臂 live 在 proof。
+- **②跳过话题落行+closeTopic 挂点=waived 行 reason='skipped'+双挂点**（跳过话题落 waived 行明细可见·三值 CHECK 逐字容纳·与 0180 五值观测映射 skipped→waived+reason）·closeTopic 挂换话题 pivot（answer 投影事务 `next.askMode==='pivot'` 关闭上一话题）+收尾 done 块关闭尾话题（完成臂/零有效分臂两分支·与结算同事务原子）·**fail+release 臂不挂尾话题**=未完成话题 0 分不计（裁决③「已关闭话题照计·进行中不计」·出题失败臂同此零挂）。
+- **③sweep 拆分挂点=sweepExpiredReservations 内 mock_interview 行按 topic_charge Σ 判定**——非面试 serviceType 行原「单 UPDATE 直置 released」逐字保留；mock 行 SELECT…FOR UPDATE 先持行锁（判定时点=锁获取·心跳 renew 在锁上排队且其 status='reserved' 谓词使其必输=TOCTOU 由锁封闭）再 Σ>0→方案②公式部分结算/Σ=0→releaseConsumption·行锁+lease 复核原子性零放松（裁决项③「flip 前判定·行锁最窄面」推荐行使）·commerce-reconcile reconcileOwner 被扫臂随共享 helper 自动衔接（围栏先检/B 端 assessment_unavailable 通路零改）。
+- **④#31 报错形状=具名错 `idempotency_units_mismatch`+begin catch 409 映射**（沿 enterprise_insufficient_balance 分码先例·23514 与「约束违例」语义混叠按卷否决）·同键同 units duplicate 原语义零变（④臂双面）·全仓四生产调用面（ocr/quiz/mock_interview/diagnosis）唯一键零合法路径影响亲证。
+
+### §9-4 门 EXIT 全表（EXEC 亲跑·2026-10-13·全隔离容器·零模型真实外呼·零真实扣费）
+
+| 门 | EXIT | 数 |
+|---|---|---|
+| bill3-settlement:prove（新·隔离库真迁移链 applied=182·0172/0173 在账） | 0 | 43 断言全 PASS（⓪迁移 16+①结算 8+②触发器 7+③closeTopic 4+④#31 3+⑤per_session 原值 5） |
+| bill1-topic-fields:prove | 0 | 27 原值 |
+| bill2-shadow-meter:prove | 0 | 44 原值（两枚随翻臂正向重申·E3） |
+| interview:prove | 0 | 57 原值 |
+| adaptive-life:prove / reaper:prove | 0 | 43 / 28 原值 |
+| uc018:abandon:prove / commerce-reconcile:prove / commerce:prove | 0 | 全 PASS（放弃断言 per_session 面原值） |
+| migrate:prove / drift:prove | 0 | 迁移运行器+schema 无漂移 |
+| turbo typecheck --force | 0 | 3/3（0 cached·contracts/web/root e2e 三 tsconfig） |
+| docs:check | 0 | 80 required+2041 managed |
+| markers（改动集新增行五类标记词） | 0 命中 | node --check runner EXIT=0 |
+| 历史迁移 0001-0180 零字节 + sql/ 影子面零改 | ✓ | git diff 双查零字节·恰两新文件 0172/0173 |
+
+pins 十一值照抄零翻（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false·r1Closed=false·脚注 actualSpendCny=null）·est live=0（bill3/bill1/bill2/interview/adaptive-life/reaper/uc018/reconcile/commerce/migrate/drift 全门隔离容器+scripted 假体·零生产 DSN/零生产 Key/零凭据落盘·收据=.tmp/isolated-proof-receipts/* release_evidence=false）。
+
+### §9-5 陷阱自检 13 条
+
+1. **0172-0173 避撞**：落卷链 max=0180 亲证·0172/0173 全树零占双查·恰占零新增号·勿添重号纪律零变（0143/0152/0160 重号=同前缀不同词干·E1 勘误登记）。
+2. **per_session 逐字保留**：0173 per_session 分支=0144 `:386-393` 两 RAISE 原文逐字（pg_get_functiondef 臂+②-c 触发器三臂原值回归+⑤ 真链四臂原值）——默认即旧行为·回滚=恢复 0144 函数体。
+3. **触发器 GRANT 语义**：CREATE OR REPLACE 不动 ACL（aclexplode grantee=0=PUBLIC 臂·E2 勘误承登）·外层 enforce_（0144 `:397-403`）与 0020 触发器零改（trg 在场臂）·0046 scoring 完整性触发器零放松（0046 面零触·bill2 C 臂 mixed-unscored=failed 语义零变背书）。
+4. **方案②公式同式**：应用侧 r2(requested×LEAST(Σ,cap)/cap) 与触发器 round(x::numeric,2) 同式（§0.2-7·正数域 half-away 一致）——①-a 0.33 逐值+①-b 封顶 1.00+①-d 0.005 边界 0.01 双面一致臂承重；触发器错值拒臂（0.50≠0.33→23514）反证比较式在场。
+5. **closeTopic 锁**：先 entitlement_consumption FOR UPDATE 串行化同场关闭（③-a cap=1 双话题并发恰 1 counted+1 capped）+PK ON CONFLICT DO NOTHING 幂等（③-b 重放 written=false 行数零增）。
+6. **partial 允许**：completeInterviewAndConfirm capped 分支允许 partial_confirmed（①-a 0.33 partial+completed 配对通过）；per_session 分支 partial 拒绝原面逐字保留（`interview_settlement_not_fully_confirmed` 原抛错路径零位移）。
+7. **#31 报错**：同键不同 units→具名 `idempotency_units_mismatch`（④臂·非 duplicate）·同键同 units→duplicate 原语义（幂等保不重扣零变）·begin catch 409 additive（既有 402/409 分码与预留形零触）。
+8. **abandon/sweep 拆**：Σ>0 部分结算（②-d failed+partial/②-e abandoned+partial 合法臂·released 报告值='settled' 诚实区分）/Σ=0 原全退（①-c/⑤-b/⑤-c）·sweep 非面试 serviceType 原单 UPDATE 逐字·行锁+lease 复核零放松。
+9. **begin 零改**：interview.service.ts `:253-268` 区仅 catch 加一支 additive（修法⑦明文落点）·预留三元/1.00 单位/402/409 分码逐字零触（E5）。
+10. **范围外零触**：P1/P2 已落面（0170/0171/0180/recordUsage/writeTopicShadowMeter/writeShadowMeterSoft）零字节零再触（bill1 27+bill2 44 原值背书）·B 端残面（recruiter.ts application 幂等）/明细列表 §3.13/扩张包/F15/usage 口径/模型调用面/检索面/共享 SSOT 四件+INDEX 只读零改。
+11. **pins**：十一值照抄零翻·脚注 actualSpendCny=null 承接（全门隔离容器零真实扣费零消耗）。
+12. **状态行**：本卷 Status 翻面 draft:awaiting_pre_exec_dual→**executed:awaiting_post_prove_dual**（本节 append·§0-§8 及头部 Status 史录零改·沿 bill1/bill2 同形）·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+13. **回滚**：flag 关=行值回 per_session（新场旧行为·进行中 capped 场按其行值收口=§7 步⑥「进行中面试不切换」）·0173 回滚=恢复 0144 函数体（CREATE OR REPLACE 前体在案）·0172 回滚=列不用（默认 per_session 零行为）·topic_charge 停写即止·历史迁移零字节恒真。

@@ -109,6 +109,11 @@ export const InterviewSignalConcludeReason = z.object({
 export type InterviewSignalConcludeReason = z.infer<typeof InterviewSignalConcludeReason>;
 export const SessionConcludedPayload = z.object({
   concludeReason: InterviewSignalConcludeReason,
+  // billing P3（BILL3-SETTLEMENT 修法⑧）：话题结算 additive 可选字段（P3 净新增面·蓝本 §6.6「事件带
+  // topicId/topicsCounted」API 行本列——topicId 已随 question_ready 落 P1）。可选=旧发射/旧流零破坏；
+  // .strict() 保留=未知键仍拒（score/band 走私面不变）。
+  topicsCounted: z.number().int().nonnegative().optional(),
+  topicsCapped: z.number().int().nonnegative().optional(),
 }).strict();
 export type SessionConcludedPayload = z.infer<typeof SessionConcludedPayload>;
 /**

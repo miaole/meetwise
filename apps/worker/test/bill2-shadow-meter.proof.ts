@@ -16,8 +16,9 @@
  *      （tokens 合计=ledger 直查一致）。
  *   ③ 幂等臂：崩溃重放零重复（PK 幂等键去重·重放=false 沿 recordUsage 返回形）。
  *   ④ 零扣费负臂（本刀命门）：影子写前后 entitlement_consumption 原值恒等（per_session 结算语义零变·
- *      settled 恒 1.00 非按话题比例）·topic_charge 关系不存在（0172 未落亲证）·interview 计费列
- *      （billing_mode/billing_cap_units/billing_rule_version）零新增·0046 触发器在场零放松·402/409 零触。
+ *      settled 恒 1.00 非按话题比例）·topic_charge 结算面零触（BILL3 随翻：0172 落地后翻为
+ *      「表在场而本刀真链场零结算行」正向重申）·interview 计费列缺省零行为变更（BILL3 随翻同形）·
+ *      0046 触发器在场零放松·402/409 零触。
  *   ⑤ fail-soft 臂：影子写注错（REVOKE INSERT）→收尾主链零阻断（事件流与对照场同形·stderr 观测在案）。
  */
 import { randomUUID } from 'node:crypto';
@@ -495,8 +496,9 @@ async function main() {
     writeTopicShadowMeter(c, OWNER, `bill2-fresh-${Date.now()}`, {}));
   A('零话题行场（无 interview_question 话题行）→零写返回 false（诚实无数据面）', firstWrite === false);
 
-  /* ───────── ④ 零扣费负臂（本刀命门） ───────── */
-  section('④ 零扣费负臂：entitlement_consumption 原值恒等+topic_charge 不存在+计费列零新增+0046 零放松');
+  /* ───────── ④ 零扣费负臂（本刀命门·BILL3 随翻注记：topic_charge/计费列两枚「未落」负臂的前提已由
+     P3（0172/0173）兑现落地面翻新为「在场但 per_session 行为零变」正向重申——零扣费铁律本体不变·臂数 44 恒定） ───────── */
+  section('④ 零扣费负臂：entitlement_consumption 原值恒等+topic_charge 结算零写+计费列缺省零行为变更+0046 零放松');
   const consumptionAfter = await consumptionOf(iidB);
   await new Promise((resolve) => setTimeout(resolve, 400));   // 影子写（异步）落定后再采一次
   const consumptionFinal = await consumptionOf(iidB);
@@ -508,14 +510,24 @@ async function main() {
   A('失败场 released：consumption 终态值域零越界（402/409 分码路径零触·零新错误态·影子写零改）',
     consumptionD?.status === 'released' && Number(consumptionD?.units_settled ?? 0) === 0
     && consumptionE?.status === 'released' && Number(consumptionE?.units_settled ?? 0) === 0);
-  const chargeAbsent = await asPrincipal(pool, OWNER, (c) => c.query<{ absent: boolean }>(
-    "SELECT to_regclass('public.topic_charge') IS NULL AS absent"));
-  A('topic_charge 关系不存在（0172 未落亲证·零影子别面偷渡）', chargeAbsent.rows[0]?.absent === true);
-  const billingCols = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
-    `SELECT count(*)::int n FROM information_schema.columns
-      WHERE table_name='interview' AND column_name IN ('billing_mode','billing_cap_units','billing_rule_version')`));
-  A('interview 计费列零新增（billing_mode/billing_cap_units/billing_rule_version 全缺·零 billing_mode 出手）',
-    Number(billingCols.rows[0]?.n) === 0);
+  // BILL3 随翻（原臂「topic_charge 关系不存在（0172 未落亲证）」的前提由 P3 落地兑现——反转为：
+  // 表已落（0172）但 per_session 真链场**零结算行**+消费行原值恒等=「只算不扣→结算面不触 per_session 场」正向重申）。
+  const chargePresentAndEmpty = await asPrincipal(pool, OWNER, (c) => c.query<{ present: boolean; ownRows: string }>(
+    `SELECT to_regclass('public.topic_charge') IS NOT NULL AS present,
+            COALESCE((SELECT count(*)::text FROM topic_charge WHERE owner_user_id=$1), 'n/a') AS "ownRows"`, [OWNER]));
+  A('topic_charge 在场（0172 已落·BILL3）而本刀全部真链场零结算行+零扣费（只算不扣铁律在结算落地面仍恒真）',
+    chargePresentAndEmpty.rows[0]?.present === true && String(chargePresentAndEmpty.rows[0]?.ownRows) === '0');
+  // BILL3 随翻（原臂「计费列全缺」→ 三列在场但缺省 per_session/cap NULL=「零 billing_mode 出手」正向重申）。
+  const billingCols = await asPrincipal(pool, OWNER, (c) => c.query<{ perSessionDefaults: boolean }>(
+    `SELECT NOT EXISTS (
+       SELECT 1 FROM information_schema.columns
+        WHERE table_name='interview' AND column_name IN ('billing_mode','billing_cap_units','billing_rule_version')
+     ) OR NOT EXISTS (
+       SELECT 1 FROM interview WHERE owner_user_id=$1
+         AND (billing_mode IS DISTINCT FROM 'per_session' OR billing_cap_units IS NOT NULL OR billing_rule_version IS NOT NULL)
+     ) AS "perSessionDefaults"`, [OWNER]));
+  A('interview 计费列缺省零行为变更（billing_mode 恒 per_session/cap 与 rule_version 恒 NULL·零 billing_mode 出手）',
+    billingCols.rows[0]?.perSessionDefaults === true);
   const trigger0046 = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
     "SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_interview_scoring_completion_integrity'"));
   A('0046 结算完整性触发器在场（零放松·混合 unscored=failed_release 照实=C 臂实证）',
