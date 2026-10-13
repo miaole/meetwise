@@ -24,7 +24,7 @@ import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 import { withAbortTimeout } from './timeout.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
-import type { CalibratedFactor } from './usage-reconciliation.ts';
+import type { CalibratedFactor, EstimatorVersion } from './usage-reconciliation.ts';
 import {
   admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition, isAdmissionRefusalRetryable,
   type SharedModelAdmissionLease, type SharedModelFeeRecord,
@@ -110,8 +110,8 @@ export interface ModelCostPolicy {
    * the OpenAI-compatible transport rejects a billable policy that omits it.
    */
   contextWindowTokens?: number;
-  /** Conservative input estimator approved for this endpoint configuration. */
-  contextEstimator?: 'utf8-bytes-v1';
+  /** Conservative input estimator approved for this endpoint configuration (AG-12：已注册枚举，缺省仍 utf8-bytes-v1). */
+  contextEstimator?: EstimatorVersion;
   /** Tokens deliberately left unused for provider/template/tokenizer variance. */
   contextSafetyMarginTokens?: number;
   /**
@@ -708,6 +708,10 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
       maxOutputTokens: plan.cost?.maxOutputTokens,
       estimateInputTokens: plan.estimateInputTokens,
       promptVersion,
+      // AG-12 件②：估算器/因子版本标签随 claim 冻结（全 outcome·identity-immutable·0184）。
+      // 与 :708 maxOutputTokens 同位可选链：无 policy/无 calibration 臂落 NULL（配对侧 COALESCE 归 v1）。
+      estimatorVersion: plan.cost?.contextEstimator ?? null,
+      calibrationFactorVersion: plan.cost?.calibration?.factorVersion ?? null,
     }));
     if (claim.action === 'execute') { leaseToken = claim.leaseToken; break; }
     if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }
