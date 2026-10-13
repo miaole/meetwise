@@ -215,7 +215,7 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 
 **合计**：271 条中 **158 条收口（58.3%）**（批表增量同步 2026-10-12 I263 笔·前值 145=15+26+40+22+10+32（其沿革：前值 120 系 5E 并线前时点数=15+26+40+22+10+7·+3=AUTHZ-HARDEN 5A-2 簇④ #67/#100/#168 @4a5528a5·+1=I6 D6 #239 @89530dea·+25=5E GROUP 批量收编 @eb5c3f09（22 整件+#63/#39 两残面+#212 清理面·merge --no-ff 双亲 7500ac73+9d3e927f·post-prove 双席 BOTH PASS）·逐件 hash 见文末 5E GROUP 收编登记节）·现=15+26+40+**23**+10+32·**+1=I263 #263 @f5fdca0c**（B 端「内部预览」标注收口·批3 最后一件·用户保守默认裁如实现状·nail merge @9ae70025 --no-ff 双亲 378b96e8+f5fdca0c·post-prove 双席 BOTH PASS·is-ancestor 对 HEAD 亲证 EXIT=0 后落笔·批3 23/23 全收口））+2 条部分面（#51/#199·原 4 中 #266/#268 随 H5 转全闭）；批0/批1/批3/批4 四批全闭·批2 大半·批5 过半（5A-2 簇④+5E 批量+5A-1 主体 @5cb78dab 已落·残 #34 两半起草中）·**2026-10-13 SSOT 翻面笔 +4**：#31（5C 额度幂等·BILL3 修法⑦「同键不同 units 抛错→409」全闭 @fee425cd）+#18（5A 滞留明文 TTL·原语半 @4a5528a5+接线半 @ce021b22 两半均闭·旧「半件不计」口径前提失效）+#179+#145（5B·MIG-RUNNER 全闭 @685498f1·卷状态行 nailed）·**2026-10-13 SSOT 翻面笔 +8**（同日第二笔·SSOT 勘误席）：AUTHZ-HARDEN 5A-1 八件 #111/#131/#120/#33/#90/#180/#35/#112——主体早已 EXEC+nail（@ee424923 EXEC 2026-10-12·merge @5cb78dab --no-ff 双亲 229c8dad+ee424923·12:17 先于 5A-2 @4a5528a5·原卷 authz-harden-REQUEST.md §9/§9.1 post-prove 双席 BOTH PASS·迁移 0167/0168/0169）·SSOT 四处「未开工」系侦察过期就此勘误·九件实态锚对 HEAD 亲证在树（auth.service.ts:45 归一/recruiter.service.ts:168-170/profile.service.ts:122-135 限流/domain auth.ts:16 恒时序/auth.service.ts:82-85 三桶/domain auth.ts:48-94 kid/jti/auth.controller.ts:29-36 登出）·#34 第九件半闭不计（残两半=scrypt 异步化+chunked 流计数封顶·auth.service.ts:57/:94、profile.service.ts:132/:141 零 await+main.ts:159-164 无封顶·残面小刀起草中）·现=15+26+**41**+23+10+**43**=**158**（沿本笔派单计件分法；涉引 hash 全经 `git merge-base --is-ancestor` 对 HEAD 亲证为祖先）。
 
-- 【2026-10-13 SSOT 翻面席登记·批5 段·待裁勿自裁】**#94/#162 ±1 计件歧义**：批5/5E 计件口径中 #94/#162 两件存在 ±1 计件歧义（5E GROUP 收编登记「已闭剔除 2（#94/#162）」口径与批5 残清单名目对表出入）——**归协调方裁决·本席只登记不裁**；本节 150/271 按派单口径落，裁定后如有出入由后继笔一行更正。
+- 【2026-10-13 SSOT 翻面席登记·批5 段·待裁勿自裁】**#94/#162 ±1 计件歧义**：批5/5E 计件口径中 #94/#162 两件存在 ±1 计件歧义（5E GROUP 收编登记「已闭剔除 2（#94/#162）」口径与批5 残清单名目对表出入）——**归协调方裁决·本席只登记不裁**；本节合计按派单口径落（本条登记时点 150/271·勘误 2026-10-13 SSOT 勘误席：现权威值随 5A-1 翻面笔演进=**158/271（58.3%）**·本条 ±1 歧义裁决面不变），裁定后如有出入由后继笔一行更正。
 - 【2026-10-13 侦察席主攻序建议·协调方采纳待派单·勘误 2026-10-13 SSOT 修面席：CI-WIRING 行系 nail 前旧账·已随翻·勘误 2026-10-13 SSOT 勘误席：AUTHZ 5A-1 行系侦察过期·已随翻（#34 两半归槽登记防双派·issues-master 属仓外本席不触）】批5 下一步主攻序建议一行：**CI-WIRING 主体已 nailed @6ca2275b（收窄裁形）·12 件真开放转 ci-wiring2 续刀待立项/AUTHZ 5A-1 主体已 nailed @5cb78dab（侦察过期勘误）·残 #34 两半起草中/5B-MIG 消费方（~17 件·runner 前置已解除·顺手核销 #115/#140 半件）**。
 
 ### D. 片3/伴随打磨残留登记表（后继刀排队·总对账席登记）
@@ -426,6 +426,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 批3 | #263 内部预览收口 | 21 面+五同族口径面 | ✅ nail 收官 9ae70025 |
 | 补充 | AG-37 deficit 持久化 | 图 state additive | ✅ nail 收官 66e42d6e |
 | 补充 | AG-19 prompt 版本 | 0181+trace+metric | ✅ nail 收官 b8206e53 |
+| 补充 | AG-24 Langfuse model 归因 | span.model 真名+cached/cost 上报+RAG 预留 0083 revision 绑定+限流/熔断残留清理（零迁移） | ✅ nail 收官 eb5a00cd（SSOT 详情=execution-master-checklist「Line AG-24 nail」段·文末收官登记节） |
 | 起草 | billing P3 | 结算 REQUEST 503ccd59+rev 4bf1ce96 | ✅ 双审 BOTH PASS→EXEC 落卷 f4234c92 |
 | 起草 | qbank 起草 | AG-41/42/43+P5 | 落卷 9484bc54→EXEC b20ee350→post BOTH→nail 32bf35b8 |
 | 起草 | AG-37 起草 | deficit 持久化 | 落卷 3b47df9a→EXEC 15b67341→post BOTH→nail 66e42d6e |
