@@ -423,3 +423,9 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 观测 | AG-19 | prompt 版本落库+trace+metric 纯观测增强（issues-final AG-19 :257-266·落库/打点缺失面） | **nail `6bc982a5` 收官**（merge 已推非 force·双亲 `aeaf4141`+`46e051ee`·post 双席 BOTH PASS·merge 后五门 ag19 47 臂+metrics 16+migrate 117+typecheck 3/3+docs:check 全绿·迁移 0181 prompt_version 列四件套+InvokeSpec.promptVersion 可选+span/Langfuse metadata/metric 标签三面·零 prompts.ts/零评分语义/零 requestDigest/零既有列改动·errata：0181 17 参无 SQL 级 DEFAULT 系 0119:175-196 同形非 0174 DEFAULT 先例勘误归档·STILL OPEN：AG-24 Langfuse model 字段归后继·详情 checklist「Line AG-19 nail」段 @`afab4a41`） |
 | 检索 | AG-37 | 检索 weighted-deficit 持久化（issues-final AG-37 :49/:455-464·deficit 每 claim 归零→多叶岗位恒落最大权重叶·修法 :463「持久化到图 state，每题更新」） | **nail `66e42d6e` 收官**（merge 已推非 force·双亲 `be883e85`+`15b67341`·post 双席 BOTH PASS·merge 后四门 ag37 35 臂+adaptive-flow+typecheck 3/3+docs:check 全绿·图 state additive Annotation weightedDeficit（reducer (_,b)=>b default null·旧 checkpoint 缺省 null 零回填沿 topicMainQuestionId 先例）+seam 第 8 additive 参沿 asked 第 7 参先例+consumer 读持久化值不再归零+generate-question 出参回流+lifecycle 纯透传·DRR 五题周期 [0,1,0,1,0] 配额 3:2·零检索算法改动·零 CRAG 阈值改动·零迁移·errata：三基线同红如实承登非本刀面·STILL OPEN：AG-39 私有题库另刀/AG-40 已修/AG-13 CRAG 阈值另刀·详情 checklist「Line AG-37 nail」段 @`ea3592f2`） |
 - 关联蓝本：ai-docs/delivery/ai-capability-review/（LANDING-INDEX 十三节）+billing-redesign/（INDEX 十三节）。
+
+
+## BILL3 话题结算收官登记（2026-10-13 · nail 席红停→协调方接管修→收官 · 沿 :301 先例 · 非 271 计件面 · 权威值 146/271 维持）
+
+- merge fee425cd（--no-ff 双亲 0345b467+f4234c92）·bill3-settlement:prove 43 断言六臂隔离库 applied=183 全绿（含 0172/0173 各恰一行）·billing_mode 默认 per_session 零行为变更·方案② r2(requested×LEAST(Σ,cap)/cap)·abandon/sweep/fail 拆二选一·#31 报错 409·post-prove 双席 BOTH PASS·nail 席红停（链深 pin 182·实际 183）→协调方接管修 8a234cc5 已推。
+- STILL OPEN：影子期 2 周运营观察+封顶 6 终值复核+明细列表 §3.13 姊妹面+扩张包+0046 混合 unscored 放松。
