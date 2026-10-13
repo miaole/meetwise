@@ -28,6 +28,8 @@ related:
 5. 受管根和文本扩展名随新增子系统扩展：`ops/`、`docs/` 纳入受管根，`.conf/.service/.timer/.html/.css/.txt/.pem/.py` 纳入文本扩展名。这样 ECS 预览的 systemd/nginx/Python 引导文件，以及 GitHub Pages 项目展示，同样受同一套扫描覆盖。已删除的 `preview-site/` 不再是受管根。
 6. 策略补充「云端标识兜底」规则，输出 `PTP_PRIVATE_KEY`、`PTP_CLOUD_IDENTIFIER`、`PTP_API_KEY` 三类原因码，拦截 gitleaks 全历史扫描抓不到的标识泄漏——私钥 PEM、`izbp*` 实例 ID、Tailscale `*.ts.net`、阿里云 RDS `*.{pg,redis,mysql,mssql,mariadb}.rds.aliyuncs.com` hostname，以及 `LTAI*/AKIA*/ASIA*/sk-*` 凭据形状。真正的密钥/凭据仍由 gitleaks 与 `check-staged-secrets` 负责；本规则只兜住「标识」而非「秘密」。
 7. 合成夹具（fake tailnet `tail0000000.ts.net`、fake RDS `pgm-(test|proof).pg.rds.aliyuncs.com`）经 `SYNTHETIC_IDENTIFIER_PATTERNS` 精确放行，避免 proof 里的占位值被误判为真实泄漏；放行只匹配显式登记的整段值，任何其它同形值（含不同尾号）仍照常拦截。
+8. 刀文书默认落点=顶屋 `receipts/`（2026-10-10 `217dde27` 先例·**既成事实登记非新政策**）；历史刀文书归档落 `receipts/archive/<batch>/`，出受管根即出扫描域。
+9. `MAX_FILES=2048`（`scripts/ai-docs/public-text-policy.mjs:40`·`e621235b` 2026-08-18 引入）为现行静态预检上限；超限早退遮蔽内容规则的事故面由 `line/ptp-archive` 清债刀登记归档（ADR 本体不 pin 数字——数字修订归治理流程）。
 
 ## 被否方案
 

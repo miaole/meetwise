@@ -21,6 +21,9 @@ export function toInterviewView(row: any) {
           content_sha: row.resume_content_sha,
         })
       : null,
+    // H4 R1(#252 再练入口·additive):本场绑定简历 id 直透(行查询已 SELECT i.resume_id·零新查询);
+    // 报告页「再练这 N 个弱项」携同简历走既有 create+begin 链。未绑定=null。
+    resume_id: row.resume_id ?? null,
     current_question_index: row.current_question_index,
     issued_turns: row.issued_turns,
     answered_turns: row.answered_turns,

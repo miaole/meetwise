@@ -4,6 +4,7 @@
  * + **可改写建议**(红笔批注:原句→改写句,只优化表达、绝不虚构经历)。每条结论带**接地依据**(refs,非幻觉)。
  * 无死胡同由 diagnosis-state 视图模型保证:加载/错误/空/不可用都有出口(重试/返回)。amber/serif design-kit。
  */
+import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Loader2, ListChecks, Sparkle, AlertTriangle, Target, FileText, PencilLine, CheckCircle2 } from 'lucide-react';
 import { useDiagnosisStream } from '@/lib/hooks/useDiagnosisStream';
@@ -72,7 +73,22 @@ function SectionCard({ s }: { s: DiagSection }) {
 }
 
 export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
-  const { view, display } = useDiagnosisStream(diagnosisId);
+  const { view, display, retry } = useDiagnosisStream(diagnosisId);
+  // #213 diag-honesty 修法①:图侧 factuality 歪曲门剔除计数(rejectedCount)SSE 面取不到 → ready 后经同源 GET 代理
+  // /api/diagnosis/:id 取报告详情补展示。只读透传值,不夸大不淡化不改写数值;0/缺省/非有限数 → undefined → 零渲染(不添常态噪声)。
+  const [rejectedCount, setRejectedCount] = useState<number | undefined>(undefined);
+  useEffect(() => {
+    if (view.phase !== 'ready') return;
+    const ac = new AbortController();
+    fetch(`/api/diagnosis/${encodeURIComponent(diagnosisId)}`, { signal: ac.signal, cache: 'no-store' })
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d: { report?: { rejectedCount?: unknown } | null } | null) => {
+        const n = d?.report?.rejectedCount;
+        setRejectedCount(typeof n === 'number' && Number.isFinite(n) ? n : undefined);
+      })
+      .catch(() => { /* 取数失败不计为诊断失败(SSE 面已完整),仅剔除条不展示 */ });
+    return () => ac.abort();
+  }, [view.phase, diagnosisId]);
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
@@ -98,6 +114,13 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* #213 diag-honesty:事实闸剔除计数如实披露——图侧歪曲门过滤数,原样展示;0/缺省零渲染(typeof 收窄+rejectedCount > 0 单门控)。 */}
+      {typeof rejectedCount === 'number' && rejectedCount > 0 && (
+        <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <AlertTriangle className="size-3.5 shrink-0" />已剔除 {rejectedCount} 条无依据结论（未能锚定简历事实,不计入诊断）。
+        </p>
       )}
 
       {/* 逐维度诊断:边到边渲染 */}
@@ -139,9 +162,9 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
           ? <Thinking label={display.message} />
           : <p className="flex items-center gap-2 text-sm text-muted-foreground"><Loader2 className="size-4 animate-spin motion-reduce:hidden" />{display.message}</p>
       )}
-      {/* 重连/连接态出口(即便未 degraded 也给手动重试) */}
+      {/* 重连/连接态出口(即便未 degraded 也给手动重试)。SSE-RESILIENCE W2:重试=驱动重连信号出口,不整页刷新。 */}
       {!display.degraded && display.action.kind === 'retry' && (
-        <Button variant="outline" onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }} className="disabled:cursor-not-allowed disabled:opacity-50">{display.action.label}</Button>
+        <Button variant="outline" onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} title="立即重连(重置退避),不刷新页面" className="disabled:cursor-not-allowed disabled:opacity-50">{display.action.label}</Button>
       )}
 
       {/* 完成总结 / 空诊断出口 */}
@@ -152,7 +175,8 @@ export function DiagnosisPanel({ diagnosisId }: { diagnosisId: string }) {
             {(view.total ?? view.sections.length) === 0 ? (
               <p className="mt-2 text-muted-foreground">本次未能从简历中提取到可诊断的内容。请完善简历后<Link href="/diagnosis" className="font-medium text-primary underline-offset-4 hover:underline">重新诊断</Link>。</p>
             ) : view.sections.length === 0 && (
-              <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">内容加载不全？点此重新加载</button>
+              // 终态已到但维度事件未随重放到达(罕见):重启驱动重放(SSE-RESILIENCE W2:不 reload,凭服务端账本重放)。
+              <button onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }} className="mt-2 text-sm text-primary underline-offset-4 hover:underline disabled:cursor-not-allowed disabled:opacity-50">内容加载不全？点此重新加载</button>
             )}
             <Button asChild variant="link" className="mt-2 h-auto p-0"><Link href="/quiz">据这份简历去押题 →</Link></Button>
           </CardContent>

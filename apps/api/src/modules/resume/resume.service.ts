@@ -12,13 +12,15 @@ import { bindResumeOcr, visionOcr, type ModelClient } from '@meetwise/ai-runtime
 import type { UploadResumeDto, UploadResumeFileDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
 import { RateLimitService } from '../../platform/rate-limit.service';
+import { UUID_RE } from '../../platform/uuid.ts';   // #85 单源化(5E 2026-10-12):通用形正则+404 语义表见单源头注
 import { isOcrFeatureEnabled } from './ocr-model-client.ts';
 import { resumeDisplayName } from './resume-display.ts';
 
 const MAX_RESUME_BYTES = 8 * 1024 * 1024;   // 8MB 上限(防大文件 DoS)
 const MAX_RESUME_TEXT = 60_000;             // 提取文本末线(对齐文本路径契约;防解压炸弹/超大文档提取出 MB 级文本无界落库+喂模型,安全审计 F3)
 const PARSE_MAX = Number(process.env.RESUME_PARSE_MAX ?? 6);   // 全站同时解析上限(安全审计 F2 纵深:并发炸弹不堆积压垮事件循环)
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;   // 简历 id(uuid 列)守卫:非 uuid 直查会 22P02→500,提前当 not_found 兜成 404
+// #85 单源化（5E 2026-10-12）：正则本体迁 apps/api/src/platform/uuid.ts（UUID_RE 通用形），语义表见单源头注。
+// 简历 id(uuid 列)守卫:非 uuid 直查会 22P02→500,提前当 not_found 兜成 404。
 /** OCR 视觉模型客户端 DI token:组合根(app.module)决定真(qwen-vl)/假(scripted,测试)——service 不硬编、只认注入的 seam,故 /resume/file 可真端到端测(非 demo)。 */
 export const OCR_VISION_CLIENT = Symbol.for('meetwise.OCR_VISION_CLIENT');
 

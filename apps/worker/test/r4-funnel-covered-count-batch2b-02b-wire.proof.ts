@@ -21,20 +21,20 @@ import {
   R4_FUNNEL_COVERED_COUNT_BATCH2B_02B_WIRE_EMITTER_WIRED,
   R4_FUNNEL_COVERED_COUNT_BATCH2B_02B_WIRE_EVIDENCE_KIND,
   emitFunnelCoveredCountBatch2b02BWireEvidence,
-} from '../src/r4-funnel-covered-count-batch2b-02b-wire.ts';
+} from '../evidence/r4-funnel-covered-count-batch2b-02b-wire.ts';
 import {
   assessFunnel02BDurableEmbeddingComputeCache,
   isFunnel02ACovered,
   isFunnel02BCovered,
-} from '../src/r4-funnel-covered-count-batch2.ts';
+} from '../evidence/r4-funnel-covered-count-batch2.ts';
 import {
   isFunnel03Covered,
   isFunnel04Covered,
-} from '../src/r4-funnel-covered-count-batch1.ts';
+} from '../evidence/r4-funnel-covered-count-batch1.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
-} from '../src/r4-eg2-funnel-covered-matrix.ts';
+} from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -191,7 +191,7 @@ const mdLines = [
   '',
   '**Status**: honest inventory emitted · **EG2 STILL OPEN** · **Batch2b post_prove_dual_pass** · **≠ invent covered** · `releaseEvidence=false` · ≠HA',
   `**Date**: ${nowLabel}`,
-  '**Emitter**: `apps/worker/src/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b-aware) · Batch1 `apps/worker/src/r4-funnel-covered-count-batch1.ts` · Batch2 `apps/worker/src/r4-funnel-covered-count-batch2.ts` · Batch2b `apps/worker/src/r4-funnel-covered-count-batch2b-02b-wire.ts` · prove `pnpm r4-funnel-covered-count-batch2b-02b-wire:prove` / `pnpm r4-eg2-funnel-covered:prove`',
+  '**Emitter**: `apps/worker/evidence/r4-eg2-funnel-covered-matrix.ts` (Batch1+Batch2+Batch2b-aware) · Batch1 `apps/worker/evidence/r4-funnel-covered-count-batch1.ts` · Batch2 `apps/worker/evidence/r4-funnel-covered-count-batch2.ts` · Batch2b `apps/worker/evidence/r4-funnel-covered-count-batch2b-02b-wire.ts` · prove `pnpm r4-funnel-covered-count-batch2b-02b-wire:prove` / `pnpm r4-eg2-funnel-covered:prove`',
   '**Hard**: Ban invent FUNNEL covered · Batch1 may elevate **03/04** · Batch2/Batch2b may elevate **02A/02B** when assessors affirm · Ban flip checklist SSOT · ≠ R4/题域/G-R4-5 product closed · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · post_prove_dual_pass · Ban second knife',
   '',
   '| ID | Status | Basis |',

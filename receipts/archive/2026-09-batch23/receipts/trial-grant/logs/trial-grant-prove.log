@@ -1,0 +1,65 @@
+
+> meetwise@0.1.0 trial:grant:prove /Users/miaole/Desktop/golucky/meetwise-line-trial001
+> node scripts/run-e2e-isolated.mjs trial:grant:prove
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-54849-1791568517632 on 127.0.0.1:51656
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 trial:grant:prove /Users/miaole/Desktop/golucky/meetwise-line-trial001/apps/api
+> node --import @swc-node/register/esm-register test/trial-grant.proof.ts
+
+trial-grant[0] runner_first_pass applied=153 total=153 last=0152_trial_bucket_grant
+trial-grant[0] runner:virgin-ledger full-manifest apply + rerun idempotent + owner-coherent: OK
+{"level":30,"time":1791568523233,"pid":55067,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:51692"}
+PASS  0152/裸 SQL 文本双 apply 不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申可重跑）
+PASS  0152/gateway_auth_signup 属主 == entitlement_bucket 属主 == 应用角色（0152 与既有 gateway fn 同属主角色，EXEC 注意④）
+PASS  0152/partial unique index 在库：UNIQUE btree (owner_user_id) WHERE kind=trial
+{"level":30,"time":1791568523260,"pid":55067,"hostname":"miaole.local","reqId":"2c285649-8717-444a-9d3f-a4641814ba3f","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51693},"msg":"incoming request"}
+{"level":30,"time":1791568523296,"pid":55067,"hostname":"miaole.local","reqId":"2c285649-8717-444a-9d3f-a4641814ba3f","res":{"statusCode":200},"responseTime":35.709334000000126,"msg":"request completed"}
+PASS  signup HTTP 成功 2xx
+{"level":30,"time":1791568523299,"pid":55067,"hostname":"miaole.local","reqId":"3702a6b4-6fed-4283-8190-627437531b8e","req":{"method":"GET","url":"/commerce/entitlement","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51694},"msg":"incoming request"}
+{"level":30,"time":1791568523303,"pid":55067,"hostname":"miaole.local","reqId":"3702a6b4-6fed-4283-8190-627437531b8e","res":{"statusCode":200},"responseTime":3.424083000000337,"msg":"request completed"}
+PASS  GET /commerce/entitlement → availableUnits=1
+PASS  trial 桶恰 1 行
+PASS  trial 桶 units_total=1.00（1 次面试口径）
+PASS  trial 桶 source_order_id IS NULL（无单）
+PASS  trial 桶 expires_at ≈ now()+365d（同 paid 先例）
+{"level":30,"time":1791568523306,"pid":55067,"hostname":"miaole.local","reqId":"69f4918d-0741-44dc-911e-dcc87014cc27","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51693},"msg":"incoming request"}
+{"level":30,"time":1791568523306,"pid":55067,"hostname":"miaole.local","reqId":"5d804c4b-ed01-4667-b896-6f494d8e974d","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51694},"msg":"incoming request"}
+{"level":30,"time":1791568523340,"pid":55067,"hostname":"miaole.local","reqId":"69f4918d-0741-44dc-911e-dcc87014cc27","res":{"statusCode":200},"responseTime":34.16362500000014,"msg":"request completed"}
+{"level":30,"time":1791568523375,"pid":55067,"hostname":"miaole.local","reqId":"5d804c4b-ed01-4667-b896-6f494d8e974d","res":{"statusCode":409},"responseTime":68.28758299999981,"msg":"request completed"}
+PASS  并发双注册恰一 2xx
+PASS  败者 409 email_taken（UNIQUE(email) 23505 映射·非 5xx）
+PASS  并发收敛后赢家 trial 桶恰 1 行（发放不重复）
+PASS  裸 INSERT 第二 trial → 23505（partial unique index 拒·非应用层软约束）
+PASS  23505 后桶仍恰 1 行（无部分写入）
+PASS  交错真并发/裸胜者提交后 ON CONFLICT 败者 DO NOTHING 收敛 rowCount=0
+PASS  交错真并发/ON CONFLICT 收敛后该 owner trial 桶恰 1 行
+PASS  交错真并发/裸败者撞 partial unique index → 23505（索引层并发兜底已证）
+PASS  交错真并发/裸败者被拒后该 owner trial 桶恰 1 行
+{"level":30,"time":1791568523392,"pid":55067,"hostname":"miaole.local","reqId":"71e7470f-d109-414f-b693-e528ab6c92f3","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51693},"msg":"incoming request"}
+{"level":30,"time":1791568523427,"pid":55067,"hostname":"miaole.local","reqId":"71e7470f-d109-414f-b693-e528ab6c92f3","res":{"statusCode":200},"responseTime":34.00737499999968,"msg":"request completed"}
+PASS  402 链前置：signup 2xx（trial 1.00 到账）
+{"level":30,"time":1791568523435,"pid":55067,"hostname":"miaole.local","reqId":"79acd658-61da-4e39-b465-031152093cac","req":{"method":"POST","url":"/interview/TG_IV_1/begin","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51693},"msg":"incoming request"}
+{"level":30,"time":1791568523444,"pid":55067,"hostname":"miaole.local","reqId":"79acd658-61da-4e39-b465-031152093cac","res":{"statusCode":202},"responseTime":8.658957999999984,"msg":"request completed"}
+PASS  begin#1 → 202 accepted（trial 1.00 被预留）
+{"level":30,"time":1791568523445,"pid":55067,"hostname":"miaole.local","reqId":"0385c27c-f434-46b2-990c-12e7541c9a37","req":{"method":"POST","url":"/interview/TG_IV_2/begin","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51694},"msg":"incoming request"}
+{"level":30,"time":1791568523450,"pid":55067,"hostname":"miaole.local","reqId":"0385c27c-f434-46b2-990c-12e7541c9a37","res":{"statusCode":402},"responseTime":5.55862500000012,"msg":"request completed"}
+PASS  begin#2 → 402 insufficient_entitlement（既有映射零新代码）
+PASS  预留后桶面：total=1.00·reserved=1.00·consumed=0（available=0，第二场凑不够）
+{"level":30,"time":1791568523451,"pid":55067,"hostname":"miaole.local","reqId":"154882bf-3f36-4615-a299-c9d8191b89be","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51693},"msg":"incoming request"}
+{"level":30,"time":1791568523483,"pid":55067,"hostname":"miaole.local","reqId":"154882bf-3f36-4615-a299-c9d8191b89be","res":{"statusCode":409},"responseTime":31.176375000000007,"msg":"request completed"}
+PASS  同邮箱顺序重复注册 → 409 email_taken
+PASS  重复注册后 trial 桶仍恰 1 行（不重复发放）
+{"level":30,"time":1791568523484,"pid":55067,"hostname":"miaole.local","reqId":"8b2a2234-7e1f-4f71-8eaa-f2fd3a3d0ed2","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51693},"msg":"incoming request"}
+{"level":30,"time":1791568523486,"pid":55067,"hostname":"miaole.local","reqId":"8b2a2234-7e1f-4f71-8eaa-f2fd3a3d0ed2","res":{"statusCode":400},"responseTime":1.449666999999863,"msg":"request completed"}
+PASS  gateway 输入校验不变：role 非法 → 400 invalid（23:17-20 未动）
+{"level":30,"time":1791568523488,"pid":55067,"hostname":"miaole.local","reqId":"5d2f62df-bcdb-451b-9799-cb50c6681930","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:51692","remoteAddress":"127.0.0.1","remotePort":51694},"msg":"incoming request"}
+{"level":30,"time":1791568523489,"pid":55067,"hostname":"miaole.local","reqId":"5d2f62df-bcdb-451b-9799-cb50c6681930","res":{"statusCode":400},"responseTime":0.6383749999999964,"msg":"request completed"}
+PASS  输入校验不变：弱密码 → 400 invalid
+PASS  harness 播种用户（不经 gateway fn）零 trial 桶（夹具形制未被污染·EXEC 注意①形制保真）
+
+✓ trial:grant:prove: 27 条负路径用例全绿

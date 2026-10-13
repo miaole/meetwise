@@ -34,7 +34,7 @@ export default function PricingPage() {
         </CardHeader>
         <CardContent className="space-y-3 text-sm leading-relaxed text-muted-foreground">
           <p>支付、退款、权益结算和对账需要独立的服务合同、异常处理和真实环境验证。它们完成前，预览页不会显示价格、购买按钮或退款保证。</p>
-          <p>若你在其他页面看到练习次数或额度字段，它们仅表示界面或开发流程状态，不构成可购买服务、报价或销售要约。</p>
+          <p>若你在其他页面看到练习次数或额度字段，它们来自你的账户余额查询，反映开始练习时的剩余额度；预览环境不提供支付、购买或退款，不构成可购买服务、报价或销售要约。</p>
         </CardContent>
       </Card>
 

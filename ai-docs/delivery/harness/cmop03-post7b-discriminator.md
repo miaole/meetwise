@@ -7,7 +7,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ## 0. Base line 与 worktree 披露
 
 - fetch 2026-10-08：`origin/feat/mysql-schema-skeleton` = `cb89c23d195ecc6fcb9b8f04a753f87f9607ce96`（≥ cb89c23d 达成；本地同名分支已 ff 至同点）。
-- 本刀 worktree：`/Users/miaole/Desktop/golucky/meetwise-line-post7b`（仓库根同级新建）；分支 `line/cmop03-post7b-discriminator`（新立自 `origin/feat/mysql-schema-skeleton`，跟踪同名 upstream）。
+- 本刀 worktree：`meetwise-line-post7b`（仓根同级 worktree·仓库根同级新建）；分支 `line/cmop03-post7b-discriminator`（新立自 `origin/feat/mysql-schema-skeleton`，跟踪同名 upstream）。
 - 立项出处：**协调方 CMOP03-D · GAP-CMOP03-POST7B 鉴别刀（刀① nail 登记中——本文引用之，不自建 SSOT 行）**。红读数系协调方卷面记载，本 REQUEST 未实测（docs-only · 零实跑）。
 - 全部 blob/行号锚均为 mw-core 在本 worktree 于 base 点以 `git ls-tree` / `git rev-parse` 亲算，非转录：
 

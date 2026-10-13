@@ -94,10 +94,10 @@ const checks = {
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
     requireText(homeZh, '真实经历 → 自适应面试 → 可复盘成长', 'Chinese home story');
     requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
-    requireText(pagesHtml, '招聘不在本预览范围', 'Pages hiring out-of-scope');
-    requireText(homeZh, '招聘不在本预览范围', 'Chinese home hiring out-of-scope');
-    requireText(homeEn, 'Hiring is out of scope', 'English home hiring out-of-scope');
-    assert.equal((pagesHtml.match(/招聘不在本预览范围/g) ?? []).length, 1, 'Pages may state hiring is out of scope once');
+    requireText(pagesHtml, '招聘功能面向企业账户开放', 'Pages hiring caliber');
+    requireText(homeZh, '招聘功能面向企业账户开放', 'Chinese home hiring caliber');
+    requireText(homeEn, 'Hiring features are available to enterprise accounts', 'English home hiring caliber');
+    assert.equal((pagesHtml.match(/招聘功能面向企业账户开放/g) ?? []).length, 1, 'Pages may state hiring caliber once');
     forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}\n${runtimeTruth}\n${frontendBlueprint}\n${localDemo}\n${pagesDirectoryChecklist}`, [
       '双受众定位',
       '招聘侧是后续方向',
@@ -184,6 +184,24 @@ const checks = {
     forbid(legalApi, ['删除权(删除简历/数据)', 'retentionDays: 365'], 'public legal API');
     requireText(legalApi, '删除/注销即时生效（立即停止处理与访问），跨存储清除回执异步完成', 'public legal API');
   },
+  'TC-PUBLIC-COPY-G3': () => {
+    // G3 BEGIN-GUARD #261 W2④（R3 落槽写死：pricing/faq 文案断言落本管道）。
+    // ① 真读数上屏 → 口径句改如实转述（裁定③：措辞去「实时」——余额=渲染时点读数 ≠ 实时余额保证，§7 Non-claim 对齐。
+    // forbid 面窄化到本刀句式（faq :26 既有「请以页面实时状态为准」属他句，零触碰）。
+    requireText(pricing, '它们来自你的账户余额查询，反映开始练习时的剩余额度', 'pricing credits copy');
+    requireText(faq, '页面中的额度信息来自你的账户余额查询，反映开始练习时的剩余额度', 'FAQ credits copy');
+    forbid(pricing, ['实时'], 'pricing credits copy');
+    forbid(faq, ['额度信息实时', '账户实时查询', '实时余额'], 'FAQ credits copy');
+    // ② 旧假读数短语禁回潮（真读数上屏后旧句失真）。
+    forbid(pricing, ['仅表示界面或开发流程状态'], 'pricing credits copy');
+    forbid(faq, ['仅用于展示'], 'FAQ credits copy');
+    // ③ post-prove 判收硬项：两尾段免责句逐字保留（一字不动）。
+    requireText(pricing, '不构成可购买服务、报价或销售要约', 'pricing disclaimer verbatim');
+    requireText(faq, '不构成销售要约', 'FAQ disclaimer verbatim');
+    // ④ 预览零支付口径两页原样（E2 家族句不因本刀漂移）。
+    requireText(pricing, '预览环境不提供支付、购买或退款', 'pricing no-payment copy');
+    requireText(faq, '当前为预览环境，不对外提供支付、购买或退款服务', 'FAQ no-payment copy');
+  },
   'TC-PUBLIC-COPY-E8': () => {
     forbid(billing, ['serverGet(', 'BuyButton', '¥'], 'billing page');
     forbid(billingAction, ['serverFetch(', '/commerce/orders'], 'billing action');
@@ -196,7 +214,7 @@ const checks = {
   'TC-PUBLIC-COPY-E9': () => {
     requireText(poster, '非能力认证 · 不得用于招聘、资格或录用判断', 'downloadable poster');
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
-    requireText(recruiterTalent, '内部预览', 'recruiter talent page');
+    requireText(recruiterTalent, '投递骨架', 'recruiter talent page');
     requireText(recruiterTalent, '不是人才库产品', 'recruiter talent page');
     requireText(recruiterTalent, '也不是招聘方产品', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
@@ -237,11 +255,11 @@ const checks = {
     requireText(recruiterJobCandidates, '不会把失败说成「还没有候选人」', 'recruiter job candidates');
     requireText(recruiterTalent, '查看状态', 'recruiter talent page');
     requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
-    requireText(recruiterJobs, '内部预览', 'recruiter jobs page');
+    requireText(recruiterJobs, '岗位骨架', 'recruiter jobs page');
     requireText(recruiterJobs, '不是招聘方产品', 'recruiter jobs page');
     requireText(candidateJobs, '不是正式招聘', 'candidate jobs page');
     requireText(candidateJobs, '不是招聘方产品', 'candidate jobs page');
-    requireText(loginPage, '内部预览', 'login page');
+    requireText(loginPage, '招聘方功能面向企业招聘流程', 'login page');
     requireText(loginPage, '不是与求职者对等的第二套产品', 'login page');
     forbid(loginPage, ['求职者 C 端 / 招聘方 B 端'], 'login page');
     requireText(candidateJobs, 'applicationScoreVisible', 'candidate applications consume the score gate');
@@ -279,13 +297,13 @@ const checks = {
     requireText(pagesHtml, '不提供支付、购买、退款或自动扣费', 'Pages showcase');
     requireText(pagesHtml, 'https://github.com/miaole/meetwise', 'Pages showcase');
     requireText(runtimeTruth, '仅面试练习', 'Pages runtime truth');
-    requireText(runtimeTruth, '招聘不在本预览范围', 'Pages runtime truth');
+    requireText(runtimeTruth, '招聘功能面向企业账户开放', 'Pages runtime truth');
     requireText(frontendBlueprint, '仅面试练习', 'Pages frontend blueprint');
-    requireText(frontendBlueprint, '招聘不在本预览范围', 'Pages frontend blueprint');
+    requireText(frontendBlueprint, '招聘功能面向企业账户开放', 'Pages frontend blueprint');
     requireText(localDemo, '仅面试练习', 'Pages local-demo preview directory');
-    requireText(localDemo, '招聘不在本预览范围', 'Pages local-demo preview directory');
+    requireText(localDemo, '招聘功能面向企业账户开放', 'Pages local-demo preview directory');
     requireText(pagesDirectoryChecklist, '仅面试练习', 'Pages directory checklist');
-    requireText(pagesDirectoryChecklist, '招聘不在本预览范围', 'Pages directory checklist');
+    requireText(pagesDirectoryChecklist, '招聘功能面向企业账户开放', 'Pages directory checklist');
     requireText(pagesWorkflow, "github.ref == 'refs/heads/main'", 'Pages workflow');
     requireText(pagesWorkflow, 'docs/index.html', 'Pages workflow');
     requireText(pagesWorkflow, "cp docs/index.html docs/styles.css docs/.nojekyll .pages-dist/", 'Pages workflow stages docs/ only');

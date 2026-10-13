@@ -92,10 +92,16 @@ async function main() {
   A('真实 gateway 执行超时 → 图评分 unscored，AbortSignal 已传到模型适配器',
     timedOutEval?.status === 'unscored' && timedOutEval.reason === 'evaluation_external_outcome_unknown'
       && !('score' in timedOutEval) && evalAborts === 1);
-  A('出题超时 → ok:false + timeout/unknown，不发明题，AbortSignal 已传到适配器',
+// AG-F(刀F)裁决④a 断言适配(沿 g7fix4 改写旧断言先例·如实登记 REQUEST 随翻):超时在 invoke 出口=
+// external_outcome_unknown(unknown 臂统一返回形 :916-930·执行超时 reason 只入账面),入四类确定性
+// 失败族 → 帽内有界 re-roll(初诊+2 roll=3 次 hang·AbortSignal 逐次透传)。核心不变量保留:AbortSignal
+// 已传到适配器+不发明题面;计数/轨迹断言随语义更新(genAborts 1→3·reroll===2·键停 :r2)。
+  A('出题超时(AG-F unknown 族) → 帽内 re-roll 耗尽:reroll===2·genAborts===3·AbortSignal 已传·不发明题',
     isQuestionGenerationFailure(timedOutGen)
-    && (timedOutGen.error === 'provider_timeout' || timedOutGen.error === 'external_outcome_unknown')
-    && !('question' in timedOutGen) && genAborts === 1);
+    && timedOutGen.error === 'external_outcome_unknown'
+    && timedOutGen.provenance.reroll === 2
+    && timedOutGen.provenance.idempotencyKey === `${threads.timeout}:ask:t0:r2`
+    && !('question' in timedOutGen) && genAborts === 3);
 
   const malformed = scriptedModelClient({
     'interviewer.ask': () => ({ ok: true, raw: { notAQuestion: true } }),

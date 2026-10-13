@@ -21,7 +21,7 @@ import {
   assessGR43R1ProductClose,
   emitGR43R1ProductCloseEvidence,
   hasGR43R1ProductCloseEvidence,
-} from '../src/r4-pr1-product-close.ts';
+} from '../evidence/r4-pr1-product-close.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

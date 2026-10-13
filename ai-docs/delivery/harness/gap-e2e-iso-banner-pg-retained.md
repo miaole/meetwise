@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503
 **Date**: 2026-10-03
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`8dde8e3`** / full `8dde8e3c795178395b4fb9bf0e759aeb11693b90`（docs tip · not a prove tip · 本地 origin ref；fetch 当时网络超时，见 §遗留）
-**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-n` · branch `line/n-iso-banner-align`（一切 git 写操作只在此 worktree）
+**Worktree**: `meetwise-line-n`（仓根同级 worktree）· branch `line/n-iso-banner-align`（一切 git 写操作只在此 worktree）
 **Knife**: **GAP-E2E-ISO-BANNER-PG-RETAINED**（isolated e2e banner × `adr-postgres-retained` 一致性对齐 · docs 口径修正 · **≠ sole cutover** · **零产品行为变更**）
 **Gap id**: **`GAP-E2E-ISO-BANNER-PG-RETAINED`**（`gap-bug-backlog.md:63` · P1 · Line B N1 named gap · backlog 行状态本刀不改）
 **Experts**: `mw-e2e-ha` + `mw-privacy-int`（stubs PENDING · Ban self-approve · alone ≠ dual · PG-retained 属隐私/栈域故 `mw-privacy-int` 入双审）

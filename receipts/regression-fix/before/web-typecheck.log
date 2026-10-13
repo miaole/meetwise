@@ -1,0 +1,5 @@
+
+> @meetwise/web@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-regfix/apps/web
+> tsc --noEmit
+
+EXIT=0

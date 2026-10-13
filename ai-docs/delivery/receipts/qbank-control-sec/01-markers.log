@@ -1,0 +1,17 @@
+# markers=0 卫生门（本刀改动集 14 件·2026-10-12 EXEC 亲跑）
+## 冲突标记
+EXIT_CONFLICT=1
+## fake-green/绕过词(fake-pass|fake-green|always-pass|skip-gate)
+scripts/run-e2e-isolated.mjs:7: * with receipts; non-allowlisted sole requests EXIT=3 with PREREQ checklist (forbid fake-green).
+scripts/run-e2e-isolated.mjs:2311:        `Refuse silent fake-green via unmarked PG image. releaseEvidence=false · Not HA.`,
+scripts/run-e2e-isolated.mjs:2321:        `\nRefuse silent fake-green. Use ${LEGACY_STACK} explicitly for pgvector fixture proves. ` +
+EXIT_FAKEGREEN=0
+## 测试门弱化(.only|.skip(|xit(|@ts-ignore|@ts-expect-error|eslint-disable)
+EXIT_WEAKEN=1
+## 遗留标(TODO|FIXME|HACK|XXX)
+EXIT_TODO=1
+## secrets 样值(sk-[a-zA-Z0-9]{8,}|BEGIN.*PRIVATE KEY)
+EXIT_SECRETS=1
+
+## 附注：fake-green 3 命中均为 run-e2e-isolated.mjs 既有拒跑护栏文案（:7/:2311/:2321·「Refuse silent fake-green」守门语·非本刀新增行——本刀仅 SOURCE_FILES/isolatedCommand/unsupported/migrate 四处 additive 注册）；其余四类 EXIT=1 零命中。
+# est live=0:新 proof/dbhy1/rag04/worker 门全隔离容器（run-e2e-isolated.mjs 起 postgis/pgvector 临时实例·迁移全量 173 文件亲跑）·零模型外呼·零 secrets·零消耗（pins 脚注 actualSpendCny=null 同源）

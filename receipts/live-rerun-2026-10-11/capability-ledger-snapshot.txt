@@ -1,0 +1,13 @@
+# capability ledger snapshot — S1 diag inner run（2026-10-11T12:0xZ · c7142596 工作树）
+# 套内 reviews.record 全量（E2E_REVIEW 行）+ OCR/语音条件跳过原文；suit 未走完（死于 :344），:344 后段 ledger 未生成
+   4 E2E_REVIEW class=worker code=report_unavailable
+   2 E2E_REVIEW class=worker code=seg_step9_green
+   2 E2E_REVIEW class=worker code=seg_step8_enter
+   2 E2E_REVIEW class=worker code=seg_expert_enter
+   2 E2E_REVIEW class=worker code=seg_diag_green_enter
+   2 E2E_REVIEW class=worker code=quiz_ready
+   2 E2E_REVIEW class=worker code=diagnosis_ready
+   2 E2E_REVIEW class=capability code=voice_unavailable
+   2 E2E_REVIEW class=capability code=image_ocr_unavailable
+   1 ⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text model key ≠ voice)
+   1 ⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text model key ≠ vision)

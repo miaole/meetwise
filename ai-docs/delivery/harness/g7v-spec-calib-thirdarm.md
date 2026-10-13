@@ -5,7 +5,7 @@
 **Line**: **G7V-CALIB**（knife id=**G7V-CALIB** · P2 OPEN · 由 G7V-FIX nail（进行中 · `line/g7v-thirdarm-copy-fix` 工作卷未提交 backlog 编辑）登记于 `ai-docs/delivery/gap-bug-backlog.md:812`：六硬条件①独立 REQUEST+pre-exec dual 全链+协调方授权 ②`:229-230` named 本体零 diff ③spec-only diff（恰 spec 一文件）④Ban 借校准碰产品码 ⑤prove 沿单 attempt/not-demonstrated 纪律 ⑥字串臂间唯一性机扫证明——本 REQUEST 即该登记行的指名 REQUEST · 六条件逐条兑现映射见 §2.2 · 零 backlog 操作零 SSOT 改写）
 **授权链**: G7V EXEC（分支 A 定谳 · 校准 `92f70db7` 落码）→ G7V-FIX REQUEST `00bdfd5e` → rev2 `298c9c79` → rebase 硬门 EXIT=0 → coding `4faa61ef`（初稿 B 逐字落产品 · 恰两文件）→ EXEC 收据 `e55b2363`（主证单 attempt **EXIT=1=落臂矩阵①**：named 红 `:229-230` 实测转绿 · 失败栈指 `:232` = **预declared 仪器结构红** · `receipts/g7v-thirdarm-copy-fix/`）→ post-prove 双审 BOTH PASS（两席签署回填进行中）→ G7V-FIX nail（进行中）登记 **G7V-CALIB P2 OPEN**（`:812` · 「两席 post-dual 均支持并给条件」）→ 协调方派刀（本 REQUEST 指令 · 两席条件全文见 §2.1）→ **本 REQUEST（本 commit · docs-only）→ 预执行双审（mw-e2e-ha + mw-model-op）→ meetwise 授权 → spec 校准 + prove 一次优先 → post-prove 双审 → meetwise 授权 nail**。双审 PASS ≠ 本 stub 自批 ≠ nail ≠ trio 翻绿。
 **输入事实（只读在案引用）**: G7V-FIX EXEC 已把第三臂文案改为初稿 B 逐字（`view-model.ts:71` @blob `e19a843b`：「面试已完成并扣费结算，但未获得可信评分，本次不生成报告。岗位面试可从“我的投递”重新开始；其他面试可新建一场。」· U+201C/U+201D 全角引号 · 运行时 a11y 快照同帧在卷 `receipts/g7v-thirdarm-copy-fix/mobile-thirdarm-runtime-snapshot.excerpt.md:12` 与码面逐字吻合）；而校准仪器 `recruiting-bound.spec.ts:232` 的 `Promise.any` 等待集仍在等旧 copy 字串（`REPORT_DOWN_MSG_PART='报告暂时无法生成'` / `PRACTICE_FEEDBACK_PART='练习完成 · 本次练习反馈'`）→ 初稿 B 不含两子串 → 第三臂落臂 run 无可等字串 → 双 120s Timeout 恒超时（G7V-FIX 主证 EXIT=1 的失败栈实测指 `:232` · 在卷）。本刀=把 `:232` 等待集校准为初稿 B 正向断言，恢复判别力。
-**Base**: `origin/feat/mysql-schema-skeleton` **`c9f1daa3`**（full `c9f1daa3fb876f74b580eeb4c1eb6a1afef34548` · worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7vcalib` · branch `line/g7v-spec-calib-thirdarm`）· **双 tip 只读纪律**：本 base 尚不含 G7V-FIX 产品态（`view-model.ts` @c9f1daa3 仍为旧单分支文案）；产品侧事实（初稿 B 逐字/两触碰面 blob/运行时快照）一律引 **G7V-FIX EXEC tip `e55b2363`** 亲算值；spec blob `2b232748` 在双 tip **逐字节同值亲算一致**（G7V-FIX 零碰 spec）——EXEC 前置硬门见 §5.0
+**Base**: `origin/feat/mysql-schema-skeleton` **`c9f1daa3`**（full `c9f1daa3fb876f74b580eeb4c1eb6a1afef34548` · worktree `meetwise-line-g7vcalib`（仓根同级 worktree）· branch `line/g7v-spec-calib-thirdarm`）· **双 tip 只读纪律**：本 base 尚不含 G7V-FIX 产品态（`view-model.ts` @c9f1daa3 仍为旧单分支文案）；产品侧事实（初稿 B 逐字/两触碰面 blob/运行时快照）一律引 **G7V-FIX EXEC tip `e55b2363`** 亲算值；spec blob `2b232748` 在双 tip **逐字节同值亲算一致**（G7V-FIX 零碰 spec）——EXEC 前置硬门见 §5.0
 **Pins（原值全抄 · 未动）**: `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · **公开 DELETE=503** · **`g7SuiteGreen=false`** · **`actualSpendCny=null`**
 **Retained（本刀零翻转）**: trio **OPEN**（`1/1/1`）· G7U 残红①处置随 G7Y trio 复判（G7V-FIX nail 注记 · 本刀不洗）· golden(chromium) 冷启面 env/候选（归协调方）· CMD1/CMD3 api 面 **G7S 同形 retained** · GAP-G7K-API-REDS **P1 OPEN**（`0c6c3287` 不翻）· GAP-G7V-THIRDARM-COPY-SETTLEMENT 已 **CLOSED（fixed）**（G7V-FIX nail 行处置注记 · 本刀引用不碰行）· **G7V-CALIB P2 OPEN**（`:812` · 本刀prove 不翻行——状态行归协调方 nail 改）· `r1Closed=false` · Disclosure-1 OPEN · `techRoleFailClosedOptOutG7Only=true`
 
@@ -13,7 +13,7 @@
 
 ## 0. 本 turn 只读纪律声明（Ban coding / Ban prove 的证据来源披露）
 
-本 REQUEST 的设计**零实跑、零 live 调用、零 Key 加载、零 DB 连接、零产品码改动、零 spec 改动、零 backlog/SSOT 改动**，证据全部来自只读：**(a)** 本 worktree（@`c9f1daa3`）git 只读亲读——spec 全锚行号实测（§3.2）；**(b)** G7V-FIX worktree（`/Users/miaole/Desktop/golucky/meetwise-line-g7v-fix` @`e55b2363`）只读亲算——初稿 B 逐字与 blob 全表（§3.1/§4）、唯一性机扫 rg 亲算（§4.1）、运行时 a11y 快照亲读；**(c)** G7V-FIX harness/slice/收据（committed @`e55b2363`）+ backlog 登记行（工作卷未提交态如实披露）亲读。不发明任何未在案明细；spec 行号 EXEC 期按当 tip 重核回填（G7V-FIX rev1→rev2 行号勘误先例承续）。**「校准后第三臂 run 全绿」本 turn 无运行时读数——是码面结构推演（§5.2 落臂矩阵），Ban 冒充运行时读数；运行时定谳归 EXEC 单 attempt。**
+本 REQUEST 的设计**零实跑、零 live 调用、零 Key 加载、零 DB 连接、零产品码改动、零 spec 改动、零 backlog/SSOT 改动**，证据全部来自只读：**(a)** 本 worktree（@`c9f1daa3`）git 只读亲读——spec 全锚行号实测（§3.2）；**(b)** G7V-FIX worktree（`meetwise-line-g7v-fix` @`e55b2363`）只读亲算——初稿 B 逐字与 blob 全表（§3.1/§4）、唯一性机扫 rg 亲算（§4.1）、运行时 a11y 快照亲读；**(c)** G7V-FIX harness/slice/收据（committed @`e55b2363`）+ backlog 登记行（工作卷未提交态如实披露）亲读。不发明任何未在案明细；spec 行号 EXEC 期按当 tip 重核回填（G7V-FIX rev1→rev2 行号勘误先例承续）。**「校准后第三臂 run 全绿」本 turn 无运行时读数——是码面结构推演（§5.2 落臂矩阵），Ban 冒充运行时读数；运行时定谳归 EXEC 单 attempt。**
 
 ## 1. 立项依据（恒超时=等待字串被修复结构性作废 · 校准=恢复判别力非避红）
 
@@ -143,7 +143,7 @@
 ### 5.1 主证 CMD（恰好一次 · 期望 EXIT=0 全测绿）
 
 ```bash
-cd /Users/miaole/Desktop/golucky/meetwise-line-g7vcalib \
+cd meetwise-line-g7vcalib \
   && set -a && source ~/.meetwise-secrets/load-model-api-key.sh && set +a \
   && E2E_UI_GREP='C→B: real browser binds application' pnpm e2e:ui:isolated
 ```

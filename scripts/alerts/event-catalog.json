@@ -1,0 +1,108 @@
+{
+  "version": 1,
+  "description": "HA-5 R-47 关键事件目录（机读唯一真源）。severity 分层逐字沿 ai-docs/observability/observability-strategy.md:112-116：Page=触碰零丢失/可恢复红线立即响应；Ticket=降级在发生但未丢数据·工作时间排查；Trend=产品/质量观察·周期复盘不打扰 on-call。matcher 形制：json=精确 event 名匹配（沿 packages/db/src/principal.ts:896 JSON 结构化事件先例·容忍 compose logs 前缀）；regex=日志行正则（HA-2 drain 双事件 key=value 文本形兼容·零改码）；compose_exit=compose ps ExitCode 源（一次性 migrate 任务 restart:no·Prometheus up 指标抓不到的面）；df_watermark=宿主 df 水位探针（单机视角）。reaper_takeover 的 job_ref=聚合计数形 requeued:<count>（sweep 批量 UPDATE 无 RETURNING·绝不记 owner_user_id 等租户标识·脱敏纪律同 principal.ts:881-884）。",
+  "events": [
+    {
+      "event": "db_pool_error",
+      "matchers": [{ "type": "json", "field": "event", "value": "db_pool_error" }],
+      "severity": "Ticket",
+      "source": "packages/db/src/principal.ts:896",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-db_pool_error"
+    },
+    {
+      "event": "worker_drain_timeout",
+      "matchers": [{ "type": "regex", "pattern": "worker_drain_timeout signal=" }],
+      "severity": "Ticket",
+      "source": "apps/worker/src/main.ts:787",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-worker_drain_timeout"
+    },
+    {
+      "event": "api_drain_timeout",
+      "matchers": [{ "type": "regex", "pattern": "api_drain_timeout" }],
+      "severity": "Ticket",
+      "source": "apps/api/src/main.ts:82",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-api_drain_timeout"
+    },
+    {
+      "event": "reaper_takeover",
+      "matchers": [{ "type": "json", "field": "event", "value": "reaper_takeover" }],
+      "severity": "Ticket",
+      "source": "packages/db/src/interview/interview-jobs.ts:269",
+      "source_also": ["packages/db/src/report/report.ts:86", "packages/db/src/jobs/quiz-jobs.ts:88"],
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-reaper_takeover"
+    },
+    {
+      "event": "migrate_failed",
+      "matchers": [{ "type": "compose_exit", "service": "migrate" }],
+      "severity": "Page",
+      "source": "docker/compose.prod.yml:223",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-migrate_failed"
+    },
+    {
+      "event": "disk_enospc",
+      "matchers": [{ "type": "regex", "pattern": "ENOSPC|No space left on device" }],
+      "severity": "Page",
+      "source": "scripts/alerts/check-alerts.mjs:180",
+      "source_note": "发射面=docker json-file driver 任意容器 stderr（仓内零发射码·docker/compose.prod.yml 无 logging 块=无界已知风险·runbook 登记）",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-disk_enospc"
+    },
+    {
+      "event": "disk_watermark",
+      "matchers": [{ "type": "df_watermark", "threshold_pct": 85 }],
+      "severity": "Ticket",
+      "source": "scripts/alerts/check-alerts.mjs:189",
+      "source_note": "宿主 df 探针（单机视角）·零码动",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-disk_watermark"
+    },
+    {
+      "event": "generation_progress_write_failed",
+      "matchers": [{ "type": "json", "field": "event", "value": "generation_progress_write_failed" }],
+      "severity": "Trend",
+      "source": "apps/worker/src/generation-progress.ts:58",
+      "source_note": "Trend 依 REQUEST rev2（席1 裁决）：码面头部纪律自认进度不是健康信号（generation-progress.ts:11）·只周期复盘不做健康告警",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-generation_progress_write_failed"
+    },
+    {
+      "event": "ai_trace_persist_failed",
+      "matchers": [{ "type": "json", "field": "event", "value": "ai_trace_persist_failed" }],
+      "severity": "Trend",
+      "source": "packages/ai-runtime/src/invoke.ts:388",
+      "source_note": "Trend 依 REQUEST rev2（席1 裁决）：事件含 P0001 幂等命中正常重放形态（apps/api/test/uc-e2e-028-nhp-fault.proof.ts:220-224）·直接 Page/Ticket 必噪音化·复盘看 errorName/pgCode 分布再定升级",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-ai_trace_persist_failed"
+    },
+    {
+      "event": "queue_backlog",
+      "matchers": [{ "type": "metrics_gauge", "metric": "worker_jobs_queued", "threshold": 100 }],
+      "severity": "Ticket",
+      "source": "scripts/alerts/check-alerts.mjs:382",
+      "source_note": "HA-7 R-24：阈值/severity 逐字对齐 docker/monitoring/alert.rules.yml:116-123 WorkerQueueBacklog（max(worker_jobs_queued)>100 for 10m·warning→Ticket 同层）；check-alerts 快照单遍无 for 去抖（瞬时超阈即报·假阳性由白名单承担·差异声明 runbook §3.10）",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_backlog"
+    },
+    {
+      "event": "queue_stuck_running",
+      "matchers": [{ "type": "metrics_gauge", "metric": "worker_jobs_running_expired", "threshold": 5 }],
+      "severity": "Ticket",
+      "source": "scripts/alerts/check-alerts.mjs:382",
+      "source_note": "HA-7 R-24：对齐 docker/monitoring/alert.rules.yml:126-133 WorkerStuckRunningJobs（max(worker_jobs_running_expired)>5 for 5m·warning→Ticket 同层）；快照无 for 去抖同上",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_stuck_running"
+    },
+    {
+      "event": "queue_dead_letter",
+      "matchers": [{ "type": "metrics_gauge", "metric": "worker_jobs_dead", "threshold": 10 }],
+      "severity": "Page",
+      "source": "scripts/alerts/check-alerts.mjs:382",
+      "source_note": "HA-7 R-24：对齐 docker/monitoring/alert.rules.yml:136-143 WorkerDeadLetterBacklog（max(worker_jobs_dead)>10 for 10m·critical→Page 同层）；DLQ 终态行只增不减（零 retention）=已知风险登记 runbook §4·处置归 R-51 生命周期后刀",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_dead_letter"
+    }
+  ],
+  "registered_exclusions": [
+    {
+      "ref": "apps/worker/src/interview-consumer.ts:225",
+      "note": "reservation lease renew failed（文本形失败日志·性质同 :439 reap failed）= 首批外：零改兼容口径，不列首批 matcher 断言面（HA-5 REQUEST rev2 §1 W1① 登记·排除亦登记不沉默缺席）"
+    },
+    {
+      "ref": "apps/worker/smoke/cloud-readiness.ts:15",
+      "note": "cloud_connectivity_receipt = 非事件（烟测工具收据形·同族 apps/worker/smoke/cloud-test-serial.ts:12 cloud_test_serial_receipt）——不入目录不入事件普查（HA-5 REQUEST rev2 §1 W1① 登记）"
+    }
+  ]
+}

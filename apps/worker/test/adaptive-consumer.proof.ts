@@ -26,7 +26,7 @@ let askSeq = 0;
     ok: true,
     raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['https://allow.example/deep'] },
   }),
-  'mock-interview.evaluate': () => ({ ok: true, raw: { score: 30, evidence: [{ criterion: '讲清滑动窗口', quote: '滑动窗口' }] } }),
+  'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'below', quote: '滑动窗口' }] } }),
 });
 const askRequests: Array<{ system: string; userData: string; rag?: string }> = [];
 let modelCalls = 0;

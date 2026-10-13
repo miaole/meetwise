@@ -99,7 +99,8 @@ export { sampleQuestions, candidateView, containsBankSecret } from './bank-secur
 export type { BankQuestion } from './bank-security.ts';
 
 // 认证核心（密码哈希 + 会话令牌）
-export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull } from './auth.ts';
+// AUTHZ-HARDEN 5A-1 增:kid(keyIdFor)/邮箱归一(normalizeEmail)/恒时序登录 verify(verifyLogin+LOGIN_DUMMY_HASH)。
+export { hashPassword, verifyPassword, signToken, verifyToken, verifyTokenFull, keyIdFor, normalizeEmail, verifyLogin, LOGIN_DUMMY_HASH } from './auth.ts';
 export type { VerifiedToken } from './auth.ts';
 
 // 隐私删除授权签发器（ECDSA P-256 / ES256 JWS，与模型网关 Ed25519 刻意分离）
@@ -152,8 +153,8 @@ export { deriveLearningPlan } from './learning.ts';
 export type { LearnItem, LearningPlan } from './learning.ts';
 
 // 职业路径
-export { deriveCareerPath } from './career.ts';
-export type { Milestone, CareerPath } from './career.ts';
+export { deriveCareerPath, evaluateLevelPolicy } from './career.ts';
+export type { Milestone, CareerPath, EvidenceProfile, LevelJudgment } from './career.ts';
 
 // 成长档案/能力曲线（读侧聚合,纯逻辑）
 export { deriveGrowth, toGrowthRow } from './growth.ts';
@@ -166,6 +167,8 @@ export {
   MAX_CLARIFY, MAX_PROBE, SAFETY_CEILING_TURNS, DEFAULT_MAX_TURNS, DEFAULT_ABSOLUTE_MAX_TURNS,
   PLATFORM_ABSOLUTE_CEILING_TURNS, SOFT_BUDGET_RAISE_STEP, LONG_INTERVIEW_ABSOLUTE_BANDS,
   MIN_EARLY_TURNS, EARLY_WEAK_ABORTS, THRASH_PIVOTS,
+  // H4 WEAKNESS-LOOP R3（#252 专项面 5-8 题软预算派生·纯函数 additive）:
+  derivedFocusSoftBudget, FOCUS_SOFT_BUDGET_MIN, FOCUS_SOFT_BUDGET_MAX,
   toCompetencySpecs, BEHAVIORAL_COMPETENCY,
   type InterviewMind, type Competency, type CompetencySpec, type NextAction, type QuestionKind, type TurnSignal, type TurnVerdict,
   type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance,
@@ -197,7 +200,7 @@ export { classifyInterviewResearchBoundary, type ResearchBoundaryDecision } from
 
 export { critiqueQuestion, type QuestionCritique } from './question-critique.ts';
 export {
-  QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS,
+  QUESTION_GENERATION_ERROR_CODES, QUESTION_GENERATION_ORIGINS, QUESTION_GENERATION_REROLL_FAMILY,
   classifyQuestionGenerationError, unavailableGeneration, approvedTemplateGeneration, modelGeneration,
   normalizeQuestionGenerationResult, isQuestionGenerationFailure, resolveCitedSources,
 } from './question-generation.ts';
@@ -222,10 +225,11 @@ export type {
 export { isAllowed, isPrivateHost, extractMaterial, webExplore, deepExplore, createSafeFetch, normalizeResearchQuery, formatUntrustedResearchMaterial, type AllowedSource, type FetchFn, type FetchedPage, type RawFetch, type RawResponse, type SafeFetchOpts, type DeepExploreOpts, type DeepExploreResult } from './web-explore.ts';
 
 // 评分测量事实根（SCOR-01）纯域状态机：ScoreCard 证据流转移表 + 可评分判定（与迁移 0100 触发器逐值一致）。
+// isPracticeReadableScoreCard = G5 SCOR-S3 C 端读面收窄谓词（0161/ADR-0020 :54·TS 向 SQL 对齐）。
 export {
   SCORE_CARD_STATUSES, SCORE_REQUEST_STATUSES, QUESTION_RUBRIC_STATUSES,
   SCORE_CARD_TRANSITIONS, SCORE_CARD_NON_SCORING_STATUSES,
-  canTransitionScoreCard, isScoreCardScorable,
+  canTransitionScoreCard, isScoreCardScorable, isPracticeReadableScoreCard,
 } from './scoring-fact-root.ts';
 export type { ScoreCardStatus, ScoreRequestStatus, QuestionRubricStatus } from './scoring-fact-root.ts';
 
@@ -243,21 +247,27 @@ export type {
 } from './job-route-classifier.ts';
 
 // 候选人面 track 路由（G7S 通用 begin 供给面）纯域原语：candidate-profile-derived 能力语义 rule
-// 分类（唯一叶才命中 · 0 外发）+ canonical digest。与 job 面（岗位要求语义）刻意分离，零 IO 零模型零 db。
+// 分类（0 外发；v3 起降级臂 backend/general 兜底；v4 起 #270 general+单叶 qa/ai_ml 更强证据闸）+
+// canonical digest + leaf 领域证据词表（#201 planner 相关性闸同源消费面）。与 job 面（岗位要求语义）
+// 刻意分离，零 IO 零模型零 db。
 export {
   CANDIDATE_ROUTE_TAXONOMY_VERSION, CANDIDATE_ROUTE_POLICY_VERSION, CANDIDATE_ROUTE_REVISION,
   CANDIDATE_ROUTE_ALLOCATION_BPS, CANDIDATE_ROUTE_LEAF_RE,
+  CANDIDATE_PROFILE_SIGNALS, CANDIDATE_ROUTE_LEAF_PROFESSION_TOKENS,
   canonicalCandidateProfileDigest, candidateRouteDecisionHash, classifyCandidateProfileByRule,
 } from './candidate-profile-route.ts';
-export type { CandidateProfileRouteRuleResult } from './candidate-profile-route.ts';
+export type { CandidateProfileRouteRuleResult, CandidateProfileRouteDegradedFrom } from './candidate-profile-route.ts';
 
 // 评分确定性聚合（SCOR-02）纯域原语：确定性总分公式 + span/digest 文本级复验 + C 端 ScoreCard 评估消费面。
-// dispositionFromHintScore（S1 过渡桥·rev2 D6）：score<60 below / 60≤score<85 meets / ≥85 exceeds。
+// #52 v6（S2）起：模型直出 criterionId+quote+disposition，quote→span/digest 派生单源
+// scoreDispositionFromCodeUnitSpan；S1 的 v5→disposition 过渡桥已废除（rg 门零残留）。
+export type { ScoredCriterionDisposition } from './scoring-aggregation.ts';
 export {
   SCORE_SPAN_OFFSET_KIND, DISPOSITION_BANDS, DISPOSITION_BAND_VALUE,
-  SCORE_HINT_EXCEEDS_THRESHOLD, dispositionFromHintScore,
+  scoreDispositionFromCodeUnitSpan,
   canonicalScoreSpan, scoreSpanDigest, reverifyScoreEvidenceSpan,
   computeDeterministicTotal, computeCoverage, aggregateScoreCards, deriveScoreCardAssessment,
+  deriveScoreCardAssessmentLegacy,
 } from './scoring-aggregation.ts';
 
 // SCOR-00 消费面诚实闸：可信 identity、practice hint、禁止映射 B 端分、证据不足 ≠ 0。
@@ -547,3 +557,10 @@ export type {
   LifecycleTriggerAllowReason, LifecycleTriggerBlockReason, LifecycleTriggerPrecondition,
   LifecycleTriggerVerdict, LifecycleTriggerRequest,
 } from './mem09-lifecycle-triggers.ts';
+
+// D6 #239-② 危机/自伤话术固定处置（确定性触发词面，纯函数零状态机）。
+export {
+  CRISIS_TRIGGER_PATTERNS,
+  matchesCrisisTrigger,
+  CRISIS_DISPOSITION_REASON,
+} from './crisis-disposition.ts';

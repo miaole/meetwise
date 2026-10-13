@@ -1,11 +1,11 @@
 # Meetwise 北星 · Harness 执行 Loop（总控 · 其他 AI 按本文执行）
 
 > **给用户的一句话（复制即发）**  
-> `严格按 /Users/miaole/Desktop/golucky/meetwise/ai-docs/delivery/harness/NORTH-STAR-EXECUTION-LOOP.md 执行 Meetwise 北星 loop：不到北星不停；一刀一双审；实现不自批；交 tip 给 meetwise 验收。`
+> `严格按 <repo>/ai-docs/delivery/harness/NORTH-STAR-EXECUTION-LOOP.md 执行 Meetwise 北星 loop：不到北星不停；一刀一双审；实现不自批；交 tip 给 meetwise 验收。`
 
 **协调 / 验收 bot**：meetwise（只开 dual 闸、验收、授权 nail；不写产品代码除非用户改派）  
 **实现默认**：mw-core · 仓库 `miaole/meetwise` · 分支 `feat/mysql-schema-skeleton`  
-**本机源**：`/Users/miaole/Desktop/golucky/meetwise`  
+**本机源**：`<repo>`（本仓根）  
 **当前 tip（开刀前必 `git fetch` + ff）**：以 `origin/feat/mysql-schema-skeleton` 为准（本文起草时 = **`f3cf84c`**）  
 **并发派工补充**：`ai-docs/delivery/PARALLEL-DISPATCH-2026-10-03.md`
 
@@ -42,6 +42,8 @@ ms3EqualsR4Closed=false
 PG-retained（业务+LangGraph PostgresSaver+pgvector；禁 MySQL/Qdrant 业务切流叙事）
 公开 DELETE /privacy/interview-data/:id = 503
 ```
+
+> **UNSTUB-ERASE supersession（2026-10-10 · nail · nail tip=本落卷 commit · branch `feat/mysql-schema-skeleton` · 上行原文保留 append 注记 · 注记不入上代码块、pins 抄写面零改）**：代码块内「公开 DELETE /privacy/interview-data/:id = 503」行**原值照抄不动**——其所指 interview-data 公开 DELETE **仍 503 关闭**。UNSTUB-ERASE 刀（蓝本 `ai-docs/delivery/harness/unstube-erase.md` rev2 @`40e31da9` · 主线 impl `f9383f76`/pin `c9200502`/docs `217dde27`/chore `c47b5523`）经 pre-exec + post-prove dual BOTH PASS + 协调方授权完成 pin supersession（rev2 §3.0 立法意图继承：**不得虚称删除/擦除已完成**）：**简历/账户轨**公开删除面（`DELETE /resume/:id` · `DELETE /privacy/resume-data` · `POST /profile/deactivate` 账户级）= **202 软删受理（mode=logical · purgePending=true 恒真直至 S2 逐 sink 回执 · 物理清除完成禁宣称）**；interview-data 面与 0129 预览（`preview_incomplete` 三钉）原值不动。
 
 另钉：`canHonestlyFlip=false`（UC-018）直至独立 covered-lift 刀；UC-018 / UC-052 行多为 **partial** ≠ covered。
 

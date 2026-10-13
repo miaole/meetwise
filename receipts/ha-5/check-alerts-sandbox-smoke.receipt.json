@@ -1,0 +1,475 @@
+{
+  "at": "2026-10-10T19:03:06.795Z",
+  "durationMs": 16454,
+  "result": "OK",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "estLive": "0 (local sandbox dumb credentials; zero production operations, zero real traffic, zero model calls billed)",
+  "carrier": "docker/compose.ha.sandbox.yml 零改复用（最小栈 ha-pg + migrate·COMPOSE_BASE 同 ha-sandbox.mjs 形）",
+  "migrateExitCode": 0,
+  "judge": {
+    "exit": 1,
+    "receipt": {
+      "at": "2026-10-10T19:03:06.035Z",
+      "durationMs": 217,
+      "mode": {
+        "sandbox": true,
+        "offline": false,
+        "report": false,
+        "since": "1h"
+      },
+      "catalog": {
+        "path": "/Users/miaole/Desktop/golucky/meetwise-ha5/scripts/alerts/event-catalog.json",
+        "events": 9
+      },
+      "whitelist": {
+        "path": "/Users/miaole/Desktop/golucky/meetwise-ha5/scripts/alerts/alert-whitelist.json",
+        "valid": 0,
+        "invalid": [],
+        "expired": []
+      },
+      "sources": {
+        "logs": "lines=109",
+        "ps": "entries=2",
+        "df": "host /",
+        "sourceErrors": [],
+        "absentServices": []
+      },
+      "alerts": [
+        {
+          "event": "db_pool_error",
+          "severity": "Ticket",
+          "count": 2,
+          "first_seen": "ha-pg-1",
+          "samples": [
+            "ha-pg-1    | 2026-10-10T19:03:04.678749263Z 2026-10-10 19:03:04.678 UTC [94] ERROR:  {\"event\":\"db_pool_error\",\"purpose\":\"smoke\",\"count\":1,\"error_name\":\"ECONNRESET\",\"error_message\":\"ha-5 sandbox smoke …",
+            "ha-pg-1    | 2026-10-10T19:03:04.678778722Z 2026-10-10 19:03:04.678 UTC [94] STATEMENT:  DO $do$ BEGIN RAISE EXCEPTION '{\"event\":\"db_pool_error\",\"purpose\":\"smoke\",\"count\":1,\"error_name\":\"ECONNRESET\",\"…"
+          ],
+          "runbook": "ai-docs/observability/alerting-runbook.md#ev-db_pool_error",
+          "source": "packages/db/src/principal.ts:896"
+        }
+      ],
+      "suppressed": [],
+      "openPageTicketCount": 1,
+      "exit": 1,
+      "semantics": "fail-closed: 未决 Page/Ticket 或源失效=1；干净=0；--report 恒 0；本判定器≠告警闭环全量（常驻评估+通知+值班归 S15）",
+      "steps": [
+        {
+          "step": "source compose logs",
+          "ok": true,
+          "detail": "109 lines since=1h"
+        },
+        {
+          "step": "source compose ps",
+          "ok": true,
+          "detail": "2 entries"
+        },
+        {
+          "step": "source df",
+          "ok": true,
+          "detail": "host /"
+        }
+      ]
+    }
+  },
+  "whitelistRun": {
+    "exit": 0,
+    "receipt": {
+      "at": "2026-10-10T19:03:06.297Z",
+      "durationMs": 229,
+      "mode": {
+        "sandbox": true,
+        "offline": false,
+        "report": false,
+        "since": "1h"
+      },
+      "catalog": {
+        "path": "/Users/miaole/Desktop/golucky/meetwise-ha5/scripts/alerts/event-catalog.json",
+        "events": 9
+      },
+      "whitelist": {
+        "path": "/Users/miaole/Desktop/golucky/meetwise-ha5/.tmp/ha-sandbox/smoke-whitelist.json",
+        "valid": 1,
+        "invalid": [],
+        "expired": []
+      },
+      "sources": {
+        "logs": "lines=109",
+        "ps": "entries=2",
+        "df": "host /",
+        "sourceErrors": [],
+        "absentServices": []
+      },
+      "alerts": [],
+      "suppressed": [
+        {
+          "event": "db_pool_error",
+          "severity": "Ticket",
+          "count": 2,
+          "first_seen": "ha-pg-1",
+          "samples": [
+            "ha-pg-1    | 2026-10-10T19:03:04.678749263Z 2026-10-10 19:03:04.678 UTC [94] ERROR:  {\"event\":\"db_pool_error\",\"purpose\":\"smoke\",\"count\":1,\"error_name\":\"ECONNRESET\",\"error_message\":\"ha-5 sandbox smoke …",
+            "ha-pg-1    | 2026-10-10T19:03:04.678778722Z 2026-10-10 19:03:04.678 UTC [94] STATEMENT:  DO $do$ BEGIN RAISE EXCEPTION '{\"event\":\"db_pool_error\",\"purpose\":\"smoke\",\"count\":1,\"error_name\":\"ECONNRESET\",\"…"
+          ],
+          "runbook": "ai-docs/observability/alerting-runbook.md#ev-db_pool_error",
+          "source": "packages/db/src/principal.ts:896",
+          "whitelist_reason": "ha-5 smoke: injected fixture line",
+          "whitelist_expires": "2099-01-01"
+        }
+      ],
+      "openPageTicketCount": 0,
+      "exit": 0,
+      "semantics": "fail-closed: 未决 Page/Ticket 或源失效=1；干净=0；--report 恒 0；本判定器≠告警闭环全量（常驻评估+通知+值班归 S15）",
+      "steps": [
+        {
+          "step": "source compose logs",
+          "ok": true,
+          "detail": "109 lines since=1h"
+        },
+        {
+          "step": "source compose ps",
+          "ok": true,
+          "detail": "2 entries"
+        },
+        {
+          "step": "source df",
+          "ok": true,
+          "detail": "host /"
+        }
+      ]
+    }
+  },
+  "steps": [
+    {
+      "step": "env fallback DASHSCOPE_ASR_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_ASR_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_EMBED_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_EMBED_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_RERANK_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_RERANK_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_ASR_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_ASR_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_TTS_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_TTS_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_TTS_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_TTS_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback PAY_PROVIDER_SECRET",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RESUME_ENC_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RESUME_HASH_SECRET",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "sandbox env-file generated (mirrored form)",
+      "ok": true,
+      "detail": "85 required vars + knob; /Users/miaole/Desktop/golucky/meetwise-ha5/.tmp/ha-sandbox/sandbox.env"
+    },
+    {
+      "step": "compose up -d ha-pg",
+      "ok": true,
+      "detail": "started"
+    },
+    {
+      "step": "ha-pg healthy",
+      "ok": true,
+      "detail": "6s"
+    },
+    {
+      "step": "compose up -d migrate (one-shot)",
+      "ok": true,
+      "detail": "started"
+    },
+    {
+      "step": "migrate exited",
+      "ok": true,
+      "detail": "ExitCode=0 in 6s"
+    },
+    {
+      "step": "inject db_pool_error into ha-pg container log (psql RAISE EXCEPTION)",
+      "ok": true,
+      "detail": "emitted via postgres server log (json-file driver)·psql exit non-zero expected"
+    },
+    {
+      "step": "check-alerts --sandbox: db_pool_error 产条目 + migrate_failed 零条目 + 未决 Ticket=EXIT 1",
+      "ok": true,
+      "detail": "exit=1 db_pool_error=true(count=2) migrate_failed=false migrateExitCode=0"
+    },
+    {
+      "step": "whitelist consumption live: EXIT 0 + suppressed=1",
+      "ok": true,
+      "detail": "exit=0 suppressed=1"
+    },
+    {
+      "step": "compose down -v (sandbox fully destroyed)",
+      "ok": true,
+      "detail": "removed"
+    }
+  ]
+}

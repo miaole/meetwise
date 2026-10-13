@@ -1,14 +1,19 @@
 /**
  * 能力评估（纯逻辑,无 IO）：面试各题得分 → 能力维度 + 差距标记 + 弱项清单(喂成长档案)。
- * 达标线 GAP=60;gap 维度=弱项,回写 user_memory 形成成长闭环(由服务层做)。
+ * 达标线 GAP=60;gap 维度=弱项（#217 勘误 2026-10-12：旧注「回写 user_memory 形成成长闭环(由服务层做)」
+ * 与实态不符——现役写侧只产 kind='episode'（apps/worker/src/memory-service.ts recordAskedQuestions），
+ * 弱项走 assessment_report 只读投影（historicalWeakDimensions）做软偏置，**不**回写 user_memory）。
  */
 export interface AssessTurn { question: string; score: number; competency?: string }
-export interface Dimension { dimension: string; score: number; gap: boolean; evidence: string }
+// EVIDENCE-DELIVERY S2(C9)：evidence 可选化——deriveAssessment 停写固定串冒充点评；legacy-parity
+// 形状冻结面（deriveScoreCardAssessmentLegacy·SCORE-WRITER D5）仍写该键，本刀零触。
+export interface Dimension { dimension: string; score: number; gap: boolean; evidence?: string }
 export interface Assessment { overall: number; dimensions: Dimension[]; weaknesses: string[] }
 
 /**
- * 达标线单源（EXTREV-1 SCORE-WRITER rev2 D5(i)/D6）：60 一处定义，全仓复用禁字面量散布。
- * SCORE-WRITER S1 的 disposition 过渡桥（dispositionFromHintScore）以本值为 below/meets 分界锚。
+ * 达标线单源（EXTREV-1 SCORE-WRITER rev2 D5(i)）：60 一处定义，全仓复用禁字面量散布。
+ * SCORE-WRITER S2 起消费方：deriveScoreCardAssessmentLegacy 的 gap 判定（#103 切换）；
+ * S1 的 v5→disposition 过渡桥已随 #52 提示词 v6 上线废除（S2 rg 门零残留）。
  */
 export const GAP = 60;
 
@@ -54,7 +59,10 @@ export function deriveAssessment(turns: AssessTurn[]): Assessment {
     dimension: r.dimension,
     score: r.score,
     gap: r.score < GAP,
-    evidence: r.score < GAP ? '低于达标线，需加强' : '达标',
+    // EVIDENCE-DELIVERY S2(C9)：固定串冒充点评停写退役——web 唯一读面 report/[id]/page.tsx 逐题点评
+    // 已改吃 transcript 判据（本字段不再被读）。assessment_report 旧行残键零迁移零回填（读侧已不读）；
+    // SCORE-WRITER D5 legacy-parity 适配（scoring-aggregation.ts deriveScoreCardAssessmentLegacy）
+    // 形状冻结归彼刀域，本刀零触。
   }));
   const overall = aggregateScores(turns.map((turn) => turn.score));   // overall 仍按逐题均分(不受聚合影响)
   const weaknesses = dimensions.filter((d) => d.gap).map((d) => d.dimension);

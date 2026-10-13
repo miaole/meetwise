@@ -2,12 +2,14 @@
  * 前端承重逻辑证明（纯函数,无浏览器）：SSE 解码(含 CRLF/心跳/分块)、契约客户端(状态分流+幂等键)、视图归约的优雅降级与无静默死胡同。
  *   pnpm web:prove
  */
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
 import {
   reduceInterview, applyEvent, applyEvents, initialView, onStreamClosed, onReconnectExhausted, isTerminal,
 } from '../lib/stream/interview-state.ts';
 import { interviewDisplay, isDeadEnd, signalConcludePracticeCopy } from '../lib/view-model.ts';
-import { makeInterviewApi, type FetchLike, type FetchResponse } from '../lib/api/client.ts';
 import { runInterviewStream, type StreamOpener } from '../lib/stream/interview-stream.ts';
 import type { InterviewView } from '../lib/stream/interview-state.ts';
 import {
@@ -19,6 +21,7 @@ import { interviewTurnWindow } from '../lib/stream/turn-window.ts';
 import { buildTurnSubmission } from '../lib/interview/turn-submission.ts';
 import { interviewActionLabel, interviewDisplayStatus, interviewProgressLabel, isInterviewEnterable, overviewAnsweredLabel } from '../lib/interview/progress.ts';
 import { resumeOptionLabel, resumeStatusLabel } from '../lib/resume/display.ts';
+import { jobRouteBadgeVariant, jobRouteStatusLabel } from '../lib/recruiter/route-status.ts';
 import { isOcrPreviewEnabled, isOcrPreviewRequested, isProductionOcrLocked } from '../lib/ocr-preview.ts';
 import {
   isProductionVoiceStreamLocked,
@@ -50,7 +53,72 @@ import {
   RECRUITER_ARCHITECTURE_HIGHLIGHTS,
   RECRUITER_ARCHITECTURE_IDS,
 } from '../lib/recruiter/surface.ts';
-import { actionErrorMessage } from '../lib/errors/action-error.ts';
+import { actionErrorMessage, INTERVIEW_PRIVACY_FENCED_TEXT } from '../lib/errors/action-error.ts';
+import { turnSubmitFeedback } from '../lib/errors/turn-submit-error.ts';
+import { isEligibleResume, resumeEmptyState } from '../lib/resume/display.ts';
+import { parseEntitlement, entitlementLineView } from '../lib/commerce/display.ts';
+import { interviewProgressBadge } from '../lib/interview/progress-badge.ts';
+import {
+  InterviewPrivacyFencedError, isInterviewPrivacyFencedError, iterateInterviewSseBody, iterateSseBody,
+  throwIfPrivacyFencedStatus,
+} from '../lib/stream/sse-cursor.ts';
+import { projectTurnAnnotations, type TranscriptTurn } from '../lib/report/turn-annotations.ts';
+import { growthDeltaComparable, growthDeltaView } from '../lib/growth/comparable.ts';
+import { isVoiceModeEntryVisible } from '../lib/voice-mode-entry.ts';
+
+// ─── 类型化契约客户端·测试自持形（#60 处置·5E 裁决项③「删并迁测试自持形」）─────────────────
+// 原 apps/web/lib/api/client.ts（makeInterviewApi 生产公共客户端）全仓生产调用方零命中（rg 亲证：
+// 仅本 proof 消费；生产 UI 实走 server actions/裸 fetch 面）→ 生产文件本刀删除，实现体逐字节
+// 下沉至此自持（零行为；InterviewView 契约型与本 proof 既有 interview-state 的 InterviewView
+// 视图型同名，故别名 ContractInterviewView 防撞）。
+import { InterviewView as ContractInterviewView, TurnDto, TurnResult } from '@meetwise/contracts';
+import type { z } from 'zod';
+
+interface FetchResponse { status: number; json(): Promise<unknown> }
+type FetchLike = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<FetchResponse>;
+
+type ApiResult<T> =
+  | { ok: true; value: T }
+  | { ok: false; kind: 'business'; status: number; error?: string }
+  | { ok: false; kind: 'transport'; status?: number }
+  | { ok: false; kind: 'drift'; status: number }
+  | { ok: false; kind: 'invalid_request' };
+
+async function callClient<T>(schema: z.ZodType<T>, fetchImpl: FetchLike, url: string, init?: Parameters<FetchLike>[1]): Promise<ApiResult<T>> {
+  let res: FetchResponse;
+  try { res = await fetchImpl(url, init); } catch { return { ok: false, kind: 'transport' }; }
+  let body: unknown;
+  try { body = await res.json(); } catch { return { ok: false, kind: 'transport', status: res.status }; }
+  if (res.status >= 500) return { ok: false, kind: 'transport', status: res.status };
+  if (res.status >= 400) return { ok: false, kind: 'business', status: res.status, error: (body as { error?: string })?.error };
+  const p = schema.safeParse(body);
+  return p.success ? { ok: true, value: p.data } : { ok: false, kind: 'drift', status: res.status };
+}
+
+function makeInterviewApi(baseUrl: string, fetchImpl: FetchLike) {
+  return {
+    getInterview(id: string, headers: Record<string, string> = {}) {
+      return callClient(ContractInterviewView, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}`, { headers });
+    },
+    submitAnswer(id: string, body: z.infer<typeof TurnDto>, idempotencyKey: string, headers: Record<string, string> = {}) {
+      const v = TurnDto.safeParse(body);
+      if (!v.success) return Promise.resolve<ApiResult<z.infer<typeof TurnResult>>>({ ok: false, kind: 'invalid_request' });
+      if (!idempotencyKey) return Promise.resolve<ApiResult<z.infer<typeof TurnResult>>>({ ok: false, kind: 'business', status: 400, error: 'missing_idempotency_key' });
+      return callClient(TurnResult, fetchImpl, `${baseUrl}/interview/${encodeURIComponent(id)}/turn`, {
+        method: 'POST',
+        headers: { ...headers, 'content-type': 'application/json', 'idempotency-key': idempotencyKey },
+        body: JSON.stringify(v.data),
+      });
+    },
+  };
+}
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+/** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·F2 源断言用）。 */
+function lineOf(src: string, re: RegExp, from = 0): number {
+  const lines = src.split('\n');
+  for (let i = from; i < lines.length; i++) if (re.test(lines[i]!)) return i + 1;
+  return -1;
+}
 
 /** 把若干 chunk 串成异步流(模拟 ReadableStream 分块)。 */
 async function* streamOf(...chunks: string[]) { for (const c of chunks) yield c; }
@@ -282,14 +350,14 @@ async function main() {
   A('重连凭 Last-Event-ID=2 续(seq>2 重放,不丢不重)', seenLastIds[1] === 2);
   A('续上报告 → report_ready', resumed.phase === 'report_ready' && resumed.report?.overall === 88);
 
-  section('SSE 驱动：重连耗尽 → degraded 出口(不无限重连)');
+  section('SSE 驱动：重连耗尽 → 慢速永续不降级;绝对上限仍有界 degraded(#53 W1② 基线更新:旧「≤maxRetries+1 即 degraded」语义废除,见 REQUEST C9×W1 调和披露)');
   let opens = 0;
   const exhaustedRun = await runInterviewStream({
     open: () => { opens++; return streamOf(ev(1, 'waiting_user', {})); },   // 每次都只到 waiting 就断,永不出报告
     onView: () => {}, sleep: noSleep, maxRetries: 2,
   });
-  A('重连耗尽(≤maxRetries+1 次)后 degraded 收尾', exhaustedRun.degraded && exhaustedRun.connection === 'closed');
-  A('确实有界,不无限重连', opens <= 3);
+  A('maxRetries 耗尽后不即时 degraded;绝对上限(缺省 100)兜底仍有界 degraded 收尾', exhaustedRun.degraded && exhaustedRun.connection === 'closed');
+  A('确实有界,不无限重连(无进展宽限5+失败预算+永续至绝对上限,opens=101;不再钉 ≤3)', opens > 3 && opens <= 105);
 
   section('SSE 驱动：终态 report_unavailable 不再重连(优雅降级)');
   let opens2 = 0;
@@ -501,7 +569,7 @@ async function main() {
   A('断流自动重连凭 Last-Event-ID=1 续 → ready', qSeen.length === 2 && qSeen[1] === 1 && qResumed.phase === 'ready');
   let qOpens = 0;
   const qExhaust = await runQuizStream({ open: () => { qOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
-  A('永不出终态 → 有界重连后 degraded(不无限转圈)', qExhaust.degraded && qExhaust.connection === 'closed' && qOpens <= 3);
+  A('永不出终态 → 慢速永续不即时降级;绝对上限仍有界 degraded(不无限转圈,#53 W1② 基线更新:不再钉 ≤3)', qExhaust.degraded && qExhaust.connection === 'closed' && qOpens > 3 && qOpens <= 105);
   const qBadIds: number[] = [];
   const qBad = await runQuizStream({
     open: (lastId) => { qBadIds.push(lastId); throw new InvalidLastEventIdError(); },
@@ -575,7 +643,7 @@ async function main() {
   A('断流自动重连凭 Last-Event-ID=1 续 → ready', dSeen.length === 2 && dSeen[1] === 1 && dResumed.phase === 'ready');
   let dOpens = 0;
   const dExhaust = await runDiagnosisStream({ open: () => { dOpens++; return streamOf(ev(1, 'progress', {})); }, onView: () => {}, sleep: noSleep, maxRetries: 2 });
-  A('永不出终态 → 有界重连后 degraded(不无限转圈)', dExhaust.degraded && dExhaust.connection === 'closed' && dOpens <= 3);
+  A('永不出终态 → 慢速永续不即时降级;绝对上限仍有界 degraded(不无限转圈,#53 W1② 基线更新:不再钉 ≤3)', dExhaust.degraded && dExhaust.connection === 'closed' && dOpens > 3 && dOpens <= 105);
   const dBadIds: number[] = [];
   const dBad = await runDiagnosisStream({
     open: (lastId) => { dBadIds.push(lastId); throw new InvalidLastEventIdError(); },
@@ -841,6 +909,1074 @@ async function main() {
     actionErrorMessage('interviews', 409, 'not_a_mapped_code') === null
     && actionErrorMessage('interviews', 402, 'not_a_mapped_code') === null
     && actionErrorMessage('jobs', 402, 'not_a_mapped_code') === null);
+
+  section('ROLE-INPUT #259 表单→begin 传输：目标岗位空串不发头（静态源面断言）');
+  // server action('use server' + next/navigation redirect)无法在无浏览器纯函数 proof 内行使;
+  // 沿 godfn-1c S 层形制断言源面形制:trim 归一 + 真值门(空/缺省 → falsy → 不发 target-role 头=现状字节)。
+  const webTestRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+  const readSrc = (rel: string) => {
+    const p = resolve(webTestRoot, rel);
+    if (!existsSync(p)) return '';
+    return readFileSync(p, 'utf8');
+  };
+  const ivActions = readSrc('app/interviews/actions.ts');
+  A('#259 action 读取 targetRole 且 trim 归一',
+    /const targetRole = String\(formData\.get\('targetRole'\) \?\? ''\)\.trim\(\);/.test(ivActions));
+  A('#259 begin 头基座仅 resume-id(现状字节)', /const headers: Record<string, string> = \{ 'resume-id': resumeId \};/.test(ivActions));
+  A('#259 target-role 头走真值门(空串/缺省 falsy → 不发头)', /if \(targetRole\) headers\['target-role'\] = targetRole;/.test(ivActions));
+  A('#259 begin 调用传 headers 变量(不再内联 resume-id 单键对象)',
+    /serverFetch\('\/interview\/' \+ interviewId \+ '\/begin', \{ method: 'POST', headers \}\)/.test(ivActions));
+  A('#259 表单含目标岗位可选输入(name=targetRole·maxLength=100·镜像 diagnosis 形制)',
+    /<Input id="targetRole" name="targetRole" maxLength=\{100\}/.test(readSrc('app/interviews/page.tsx')));
+
+  section('H5-ROLE-INPUT #268/#230/#266(S2a 入口+押题岗位表单+注册引导位:静态源面断言)');
+  const navSrc = readSrc('components/Nav.tsx');
+  const dashSrc = readSrc('app/dashboard/page.tsx');
+  const rolesSrc = readSrc('app/roles/page.tsx');
+  const ivPageSrc = readSrc('app/interviews/page.tsx');
+  const quizPageSrc = readSrc('app/quiz/page.tsx');
+  const quizActionsSrc = readSrc('app/quiz/actions.ts');
+  // C-1/C-2(#268 入口):
+  A('#268 Nav candidateLinks 含 /roles 入口(岗位匹配·/jobs 邻位·字面中文先例零 i18n 键)',
+    /href: '\/roles', label: '岗位匹配'/.test(navSrc));
+  A('#268 dashboard QUICK_ACTIONS 含 /roles 行(文案含「岗位匹配」)', /href: '\/roles', t: '岗位匹配'/.test(dashSrc));
+  // C-3(#268 roles CTA → interviews prefill):
+  A('#268 roles 匹配行含「用这个方向开始面试」CTA', rolesSrc.includes('用这个方向开始面试'));
+  A('#268 CTA href 带 encodeURIComponent(m.title) prefill 形',
+    /href=\{`\/interviews\?targetRole=\$\{encodeURIComponent\(m\.title\)\}`\}/.test(rolesSrc));
+  A('#268 interviews searchParams 读 targetRole(additive 一键·merge 随演:QP ?quiz= 并线后 destructure 顺延)',
+    /targetRole\?: string/.test(ivPageSrc) && /const \{ limit, error, reused, targetRole, quiz \} = await searchParams;/.test(ivPageSrc));
+  A('#268 interviews Input defaultValue 消费 prefill(仅初值·用户可改=「可改的 UI」语义)',
+    /defaultValue=\{targetRole \?\? ''\}/.test(ivPageSrc));
+  // B-1/B-2(#230 押题岗位 web 段·S1 同形镜像):
+  A('#230 quiz action 读 targetRole 且 trim 归一(镜像 interviews/actions)',
+    /const targetRole = String\(formData\.get\('targetRole'\) \?\? ''\)\.trim\(\);/.test(quizActionsSrc));
+  A('#230 quiz begin 头基座仅 resume-id(现状字节)', /const headers: Record<string, string> = \{ 'resume-id': resumeId \};/.test(quizActionsSrc));
+  A('#230 quiz target-role 头走真值门(空串/缺省 falsy → 不发头=现状字节)', /if \(targetRole\) headers\['target-role'\] = targetRole;/.test(quizActionsSrc));
+  A('#230 quiz 表单含目标岗位可选输入(name=targetRole·maxLength=100·镜像 interviews 形制)',
+    /<Input id="targetRole" name="targetRole" maxLength=\{100\}/.test(quizPageSrc));
+  // D-1(#266 引导位·零迁移零存储·负断言=禁偏好存储虚假声明):
+  A('#266 dashboard 引导卡在位(引导文案含「目标岗位」+两出口链接)',
+    dashSrc.includes('完善求职方向') && dashSrc.includes('去填目标岗位') && dashSrc.includes('去匹配岗位方向'));
+  A('#266 负断言:零偏好存储虚假声明(禁「已记住/已保存」类文案·且显式声明偏好不被保存)',
+    !/已记住|已保存你的|为你保存/.test(dashSrc) && dashSrc.includes('不被保存'));
+  // ───────────────────────── SSE-RESILIENCE 批1 波A(#53/#54/#55/#56+#61 · rev2 dual_pass)新增六组证明 ─────────────────────────
+  const {
+    iterateSseBody, isSseOpenStatusError, SseOpenStatusError, classifySseOpenStatus,
+  } = await import('../lib/stream/sse-cursor.ts');
+  const { jitteredBackoff, capJitterBackoff, SSE_BACKOFF_BASE_MS, SSE_BACKOFF_CAP_MS } = await import('../lib/stream/backoff.ts');
+  const { makeDraftStore, draftKeyExact, draftKeyFallback, restoreDraftIfEmpty, sessionDraftStorage } = await import('../lib/interview/draft-store.ts');
+  const { ensureOk } = await import('../lib/jobs/ensure-ok.ts');
+  const { redirect } = await import('next/navigation');
+  const flushMicro = async (n = 25) => { for (let i = 0; i < n; i++) await Promise.resolve(); };
+  /** 非 OK Response → iterateSseBody 首次 next() 应抛的错(生成器体惰性执行,首 next 才跑)。 */
+  const openErr = async (status: number): Promise<unknown> => {
+    try { await iterateSseBody(new Response(null, { status })).next(); return null; } catch (e) { return e; }
+  };
+
+  section('SSE-RESILIENCE 1/6(#53):断网 30s 不 degraded(新旧对照)+C1 full-jitter 钉值');
+  {
+    // 新旧对照:旧退避 200+400+800=1400ms≈1.4s 三连败即 degraded;新钉值 full-jitter base=500/cap=30s,连续耗尽转慢速永续。
+    A('新旧对照锚:旧退避 200+400+800=1400ms(≈1.4s 即 degraded);新生产钉值 base=500ms/cap=30000ms',
+      200 + 400 + 800 === 1400 && SSE_BACKOFF_BASE_MS === 500 && SSE_BACKOFF_CAP_MS === 30_000);
+    A('C1 full-jitter 包络 [0,min(cap,base·factor^(n-1))] 封顶 cap;注入 rand 确定性', (() => {
+      const det = jitteredBackoff(500, 2, 30_000, () => 1);
+      const zero = jitteredBackoff(500, 2, 30_000, () => 0);
+      const cap = capJitterBackoff(30_000, () => 1);
+      return det(1) === 500 && det(2) === 1000 && det(3) === 2000 && det(7) === 30_000 && det(99) === 30_000
+        && zero(1) === 0 && zero(99) === 0 && cap() === 30_000;
+    })());
+    // 恒抛传输错 + 虚拟时钟推进 ≥30s(确定性包络 rand=0.5;cap 档注入定值 30s):全程 reconnecting、degraded=false。
+    const ac30 = new AbortController();
+    let vclock = 0;
+    let dropOpens = 0;
+    const r30 = await runInterviewStream({
+      open: () => { dropOpens++; throw new Error('net down'); },
+      onView: () => {},
+      signal: ac30.signal,
+      backoffMs: jitteredBackoff(500, 2, 30_000, () => 0.5),
+      capBackoffMs: () => 30_000,
+      sleep: (ms) => { vclock += ms; if (vclock >= 30_000) ac30.abort(); return Promise.resolve(); },
+    });
+    A('恒抛传输错+虚拟时钟 ≥30s:全程 reconnecting、degraded=false(旧实现 ≈1.4s 已 degraded——同一时钟下 4 拍内即死)',
+      r30.connection === 'reconnecting' && !r30.degraded && r30.phase === 'connecting' && vclock >= 30_000);
+    A('30s 内有界推进:恰好 4 次 open(250+500+1000 + 永续cap档 30000 = 31750ms;耗尽后进入 cap 档永续,不再 degraded)',
+      dropOpens === 4 && vclock === 31_750);
+  }
+
+  section('SSE-RESILIENCE 2/6(#53+注记B):online/visible→立即唤醒+重置退避;retry 同缝;监听随退出路径 dispose');
+  {
+    const registered: Array<{ kind: string; disposed: boolean }> = [];
+    const stubSignals = {
+      onOnline: (cb: () => void) => { const r = { kind: 'online', disposed: false }; registered.push(r); void cb; return () => { r.disposed = true; }; },
+      onVisible: (cb: () => void) => { const r = { kind: 'visible', disposed: false }; registered.push(r); void cb; return () => { r.disposed = true; }; },
+      onRetry: (cb: () => void) => { const r = { kind: 'retry', disposed: false }; registered.push(r); void cb; return () => { r.disposed = true; }; },
+    };
+    const triggers: Array<() => void> = [];
+    const captureSignals = {
+      onOnline: (cb: () => void) => { triggers.push(cb); return stubSignals.onOnline(cb); },
+      onVisible: (cb: () => void) => { triggers.push(cb); return stubSignals.onVisible(cb); },
+      onRetry: (cb: () => void) => { triggers.push(cb); return stubSignals.onRetry(cb); },
+    };
+    const pending: Array<() => void> = [];
+    let mode: 'fail' | 'done' = 'fail';
+    const ladderCalls: number[] = [];
+    const run = runInterviewStream({
+      open: () => { if (mode === 'done') return streamOf(ev(1, 'report_ready', { overall: 50 })); throw new Error('offline'); },
+      onView: () => {},
+      sleep: () => new Promise<void>((r) => { pending.push(r); }),
+      backoffMs: (a) => { ladderCalls.push(a); return 1000; },
+      capBackoffMs: () => 1000,
+      maxRetries: 1,
+      resumeSignals: captureSignals,
+    });
+    await flushMicro();
+    A('传输错断流 → 进入退避等待(阶梯请求 attempt=1,每个失败恰对应 1 个待唤醒 sleep)', ladderCalls.length === 1 && ladderCalls[0] === 1 && pending.length === ladderCalls.length);
+    triggers[0]();   // online → 立即重连+重置退避
+    await flushMicro();
+    A('online → 跳过剩余退避等待立即重连;退避重置(下一失败仍从 attempt=1 爬坡)', ladderCalls.length === 2 && ladderCalls[1] === 1 && pending.length === ladderCalls.length);
+    triggers[1]();   // visible → 若在退避等待立即唤醒
+    await flushMicro();
+    A('visible → 剩余退避等待被跳过(立即重连,阶梯仍重置)', ladderCalls.length === 3 && ladderCalls[2] === 1 && pending.length === ladderCalls.length);
+    triggers[2]();   // 手动重试(W2 去 reload 出口)→ 同一 resume 缝
+    await flushMicro();
+    A('retry → 同一 resume 缝(立即重连+重置退避)——面板 :489 去 reload 的驱动面', ladderCalls.length === 4 && ladderCalls[3] === 1 && pending.length === ladderCalls.length);
+    mode = 'done';
+    pending.splice(0).forEach((r) => r());   // 放行全部等待 → 下一连接送达终态
+    const doneView = await run;
+    A('resume 后驱动照常消费业务流到终态收尾;resumeSignals 监听随退出路径全部 dispose(注记B:online/visible/retry 三缝)',
+      doneView.phase === 'report_ready' && doneView.connection === 'closed' && registered.length === 3 && registered.every((r) => r.disposed));
+  }
+
+  section('SSE-RESILIENCE 3/6(#55+补钉1+C10):干净 end 不计失败;超宽限入预算(禁1Hz轮询);抛错对照组绝对上限;sawTraffic 心跳重置');
+  {
+    let cleanOpens = 0;
+    const cleanRun = await runInterviewStream({
+      open: () => { cleanOpens++; return cleanOpens <= 5 ? streamOf() : streamOf(ev(1, 'report_ready', { overall: 66 })); },
+      onView: () => {}, sleep: async () => {}, cleanEndReconnectMs: 0,
+    });
+    A('干净 end(空流,模拟 10min 轮换压缩)连打 5 轮(宽限内)不计失败,第 6 连接续到终态且不降级',
+      cleanOpens === 6 && cleanRun.phase === 'report_ready' && !cleanRun.degraded);
+    let errOpens = 0;
+    const errRun = await runInterviewStream({
+      open: () => { errOpens++; throw new Error('transport'); },
+      onView: () => {}, sleep: async () => {}, maxTotalReconnects: 3, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('对照组:抛错流仍计失败并可按绝对上限 degraded(既有语义保留,opens=4 有界)', errRun.degraded && errOpens === 4);
+    let npOpens = 0;
+    const npRun = await runInterviewStream({
+      open: () => { npOpens++; return streamOf(); },   // 恒空流=DB 取数失败第三种 clean-end 的客户端观感
+      onView: () => {}, sleep: async () => {}, maxRetries: 2, maxTotalReconnects: 8, backoffMs: () => 0, capBackoffMs: () => 0, cleanEndReconnectMs: 0,
+    });
+    A('补钉1:连续 >5 次无进展 clean end 重新计入失败预算走退避,绝对上限(8)处有界 degraded(禁 1Hz 永续轮询退化向量)',
+      npRun.degraded && npOpens === 9);
+    let hbOpens = 0;
+    const hbRun = await runInterviewStream({
+      open: () => { hbOpens++; return hbOpens <= 8 ? streamOf(': ping\n\n') : streamOf(ev(1, 'report_ready', { overall: 70 })); },
+      onView: () => {}, sleep: async () => {}, cleanEndReconnectMs: 0,
+    });
+    let silentOpens = 0;
+    const silentRun = await runInterviewStream({
+      open: () => { silentOpens++; return silentOpens <= 11 ? streamOf() : streamOf(ev(1, 'report_ready', { overall: 70 })); },
+      onView: () => {}, sleep: async () => {}, maxRetries: 2, maxTotalReconnects: 8, backoffMs: () => 0, capBackoffMs: () => 0, cleanEndReconnectMs: 0,
+    });
+    A('C10 sawTraffic:带心跳字节(`: ping`)的无进展流重置预算,8 轮后仍续到终态不降级(心跳盲区修复)',
+      hbOpens === 9 && hbRun.phase === 'report_ready' && !hbRun.degraded);
+    A('对照组:同起步的无字节空流在第 9 连接即按预算+绝对上限 degraded(心跳旗的差分对照面;终态被推到第 12 连接以暴露预算差异)',
+      silentRun.degraded && silentOpens === 9 && silentRun.streamStopReason === undefined);
+  }
+
+  section('SSE-RESILIENCE 4/6(#54+注记A):draft-store 写读/跨题隔离/成功清除/换场前缀不误清/空框恢复前提/SSR 守卫');
+  {
+    const backing = new Map<string, string>();
+    const store = makeDraftStore({
+      getItem: (k) => backing.get(k) ?? null,
+      setItem: (k, v) => { backing.set(k, v); },
+      removeItem: (k) => { backing.delete(k); },
+      get length() { return backing.size; },
+      key: (i) => Array.from(backing.keys())[i] ?? null,
+    });
+    const k1 = draftKeyExact('r1', 'q-v1-t0-c0');
+    const k2 = draftKeyExact('r1', 'q-v1-t1-c1');
+    store.save(k1, '长答案草稿A');
+    store.save(k2, '草稿B');
+    A('写入/读取回显(纯函数+注入 stub;防抖由面板层负责)', store.load(k1) === '长答案草稿A' && store.load(k2) === '草稿B');
+    A('跨题隔离:不同 questionId 键互不串扰', k1 !== k2 && store.load(k1) !== store.load(k2));
+    store.save(k2, '');
+    A('空白文本 save=清除(不存空草稿——提交成功/清空路径不残留)', store.load(k2) === null);
+    store.save(k2, '草稿B');
+    store.clear(k1);
+    A('成功提交清除面:clear 精确删本键(:210 同拍;面板在 setAnswer("") 同事务语义先清草稿)', store.load(k1) === null && store.load(k2) === '草稿B');
+    A('换 resultId:前缀清除只删本场(r1)全部键,不误伤他场 r2(:96 面)', (() => {
+      store.save(k1, 'A');
+      const other = draftKeyExact('r2', 'q-v1-t0-c0');
+      store.save(other, '他场草稿');
+      const rm = store.clearByPrefix('r1:');
+      return rm.length === 2 && rm.includes(k1) && store.load(k1) === null && store.load(k2) === null && store.load(other) === '他场草稿';
+    })());
+    A('降级键形状 `${resultId}:${turns.length}`(questionId 缺失兜底;与精确键不碰撞;只写不自动恢复防跨题误复用)',
+      draftKeyFallback('r1', 3) === 'r1:3' && draftKeyFallback('r1', 3) !== draftKeyExact('r1', 'q-v1-t0-c0'));
+    A('注记A:恢复以「当前输入框为空」为前提——非空框不砸活内存;空框才落存储值;空/空白存储值不恢复',
+      restoreDraftIfEmpty('正在打字', '旧草稿') === '正在打字'
+      && restoreDraftIfEmpty('', '旧草稿') === '旧草稿'
+      && restoreDraftIfEmpty('', null) === ''
+      && restoreDraftIfEmpty('', '   ') === '');
+    A('SSR 守卫:无 sessionStorage 环境回退内存实现,构造/读写不抛', (() => {
+      try { const s = makeDraftStore(sessionDraftStorage()); s.save('x', 'y'); return s.load('x') === 'y' && s.clearByPrefix('x').length === 1; } catch { return false; }
+    })());
+  }
+
+  section('SSE-RESILIENCE 5/6(#56+#61):401/429/5xx/404 分类消费+iterateSseBody 抛分类+三面板文案分臂+ensureOk 401→NEXT_REDIRECT');
+  {
+    A('守卫函数:isSseOpenStatusError 对实例/同名 Error 为真;对 InvalidLastEventIdError/普通错为假;classify 钉值 401/404/429/5xx/其余4xx', (() => {
+      const e = new SseOpenStatusError(429);
+      const shadow = Object.assign(new Error('sse_open_status_429'), { name: 'SseOpenStatusError' });
+      return isSseOpenStatusError(e) && e.status === 429 && isSseOpenStatusError(shadow)
+        && !isSseOpenStatusError(new InvalidLastEventIdError()) && !isSseOpenStatusError(new Error('x'))
+        && classifySseOpenStatus(401) === 'auth' && classifySseOpenStatus(404) === 'not_found'
+        && classifySseOpenStatus(429) === 'rate_limited' && classifySseOpenStatus(500) === 'server'
+        && classifySseOpenStatus(403) === 'transport';
+    })());
+    A('iterateSseBody 非 OK(401/404/429/500/503)→ SseOpenStatusError(status);400 仍 InvalidLastEventIdError(既有语义零改)', await (async () => {
+      for (const s of [401, 404, 429, 500, 503]) {
+        const e = await openErr(s);
+        if (!isSseOpenStatusError(e) || e.status !== s) return false;
+      }
+      return isInvalidLastEventIdError(await openErr(400));
+    })());
+    let authOpens = 0;
+    const authRun = await runInterviewStream({
+      open: () => { authOpens++; return iterateSseBody(new Response(null, { status: 401 })); },
+      onView: () => {}, sleep: async () => {},
+    });
+    A('401 → 停转零重连(open 恰 1 次)+degraded+streamStopReason=auth(不再空流假断线;跳转由 hooks 层执行)',
+      authOpens === 1 && authRun.streamStopReason === 'auth' && authRun.degraded && authRun.connection === 'closed');
+    let nfOpens = 0;
+    const nfRun = await runInterviewStream({
+      open: () => { nfOpens++; return iterateSseBody(new Response(null, { status: 404 })); },
+      onView: () => {}, sleep: async () => {},
+    });
+    A('404 → fail-closed degraded+not_found,不无限重连(open 恰 1 次)',
+      nfOpens === 1 && nfRun.streamStopReason === 'not_found' && nfRun.degraded);
+    let rlOpens = 0;
+    const rlLadder: number[] = [];
+    const rlCap: number[] = [];
+    const rlReasons: Array<string | undefined> = [];
+    const rlRun = await runInterviewStream({
+      open: () => { rlOpens++; return iterateSseBody(new Response(null, { status: 429 })); },
+      onView: (v) => { rlReasons.push(v.streamStopReason); },
+      sleep: async () => {}, maxRetries: 0, maxTotalReconnects: 3,
+      backoffMs: (a) => { rlLadder.push(a); return 0; },
+      capBackoffMs: () => { rlCap.push(1); return 0; },
+    });
+    A('429 → rate_limited 停升级慢速重试(不走失败阶梯,走 cap 档;reconnecting 态透出原因),绝对上限 3 封顶 degraded(opens=4)',
+      rlOpens === 4 && rlRun.streamStopReason === 'rate_limited' && rlRun.degraded && rlReasons.includes('rate_limited') && rlLadder.length === 0 && rlCap.length >= 3);
+    let svOpens = 0;
+    const svLadder: number[] = [];
+    const svRun = await runInterviewStream({
+      open: () => { svOpens++; return iterateSseBody(new Response(null, { status: 500 })); },
+      onView: () => {}, sleep: async () => {}, maxTotalReconnects: 3,
+      backoffMs: (a) => { svLadder.push(a); return 0; }, capBackoffMs: () => 0,
+    });
+    A('5xx → 计失败走 W1 退避(阶梯 1,2,3 爬坡),绝对上限 degraded+server',
+      svOpens === 4 && svRun.streamStopReason === 'server' && svRun.degraded && svLadder.join(',') === '1,2,3');
+    A('interview 文案分臂:rate_limited→连接过多+多标签提示;server→服务恢复中;干净 end→软措辞(注记C);缺省→原文案逐字', (() => {
+      const rl = interviewDisplay(baseV({ connection: 'reconnecting', streamStopReason: 'rate_limited' }));
+      const sv = interviewDisplay(baseV({ connection: 'reconnecting', streamStopReason: 'server' }));
+      const ce = interviewDisplay(baseV({ connection: 'reconnecting', cleanEndReconnect: true }));
+      const df = interviewDisplay(baseV({ connection: 'reconnecting' }));
+      return rl.heading === '连接过多' && rl.message.includes('标签') && !isDeadEnd(rl)
+        && sv.heading === '服务恢复中' && !isDeadEnd(sv)
+        && ce.heading === '正在切换连接' && !ce.message.includes('网络中断') && !isDeadEnd(ce)
+        && df.heading === '网络中断' && df.message === '正在用同一面试重连,已答内容不会丢失…';
+    })());
+    A('interview 停转臂:auth→登录已过期+重新登录;not_found→fail-closed;server→已暂停重连;缺省/游标→原文案逐字', (() => {
+      const au = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'auth' }));
+      const nf = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'not_found' }));
+      const sv = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'server' }));
+      const cu = interviewDisplay(baseV({ connection: 'closed', degraded: true, streamStopReason: 'cursor' }));
+      const df = interviewDisplay(baseV({ connection: 'closed', degraded: true }));
+      return au.heading === '登录已过期' && au.action.label === '重新登录' && !isDeadEnd(au)
+        && nf.heading === '练习不存在或无权访问' && !isDeadEnd(nf)
+        && sv.message.includes('已暂停自动重连') && !isDeadEnd(sv)
+        && cu.message.includes('不会再用同一续传编号') && df.message === cu.message;
+    })());
+    A('quiz/diagnosis 文案分臂同构:rate_limited/server/软措辞 reconnecting + auth 停转(无死胡同不变量保持)', (() => {
+      const qr = quizDisplay({ phase: 'generating', questions: [], degraded: false, connection: 'reconnecting', lastEventId: 0, streamStopReason: 'rate_limited' });
+      const qs = quizDisplay({ phase: 'generating', questions: [], degraded: false, connection: 'reconnecting', lastEventId: 0, streamStopReason: 'server' });
+      const qce = quizDisplay({ phase: 'generating', questions: [], degraded: false, connection: 'reconnecting', lastEventId: 0, cleanEndReconnect: true });
+      const qa = quizDisplay({ phase: 'generating', questions: [], degraded: true, connection: 'closed', lastEventId: 0, streamStopReason: 'auth' });
+      const dr = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: false, connection: 'reconnecting', lastEventId: 0, streamStopReason: 'rate_limited' });
+      const dce = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: false, connection: 'reconnecting', lastEventId: 0, cleanEndReconnect: true });
+      const da = diagnosisDisplay({ phase: 'generating', sections: [], rewrites: [], degraded: true, connection: 'closed', lastEventId: 0, streamStopReason: 'auth' });
+      return qr.heading === '连接过多' && !isQuizDeadEnd(qr) && qs.heading === '服务恢复中' && qce.heading === '正在切换连接'
+        && qa.heading === '登录已过期' && !isQuizDeadEnd(qa)
+        && dr.heading === '连接过多' && dce.heading === '正在切换连接' && da.heading === '登录已过期' && !isDiagnosisDeadEnd(da);
+    })());
+    A('ensureOk:401 → redirect(/login?expired=1) 抛 NEXT_REDIRECT(digest 含目标路径);402 既有分支零改;409 容忍集不抛不跳;其余非 ok 仍抛 action_failed_<status>', await (async () => {
+      try { ensureOk(new Response(null, { status: 401 }), 'apply', [409]); return false; } catch (e) {
+        const err = e as { message?: string; digest?: string };
+        if (err.message !== 'NEXT_REDIRECT' || !(err.digest ?? '').includes('/login?expired=1')) return false;
+      }
+      try { ensureOk(new Response(null, { status: 402 }), 'apply'); return false; } catch (e) {
+        if (!((e as { digest?: string }).digest ?? '').includes('apply_credits_unavailable')) return false;
+      }
+      try { ensureOk(new Response(null, { status: 409 }), 'apply', [409]); } catch { return false; }
+      try { ensureOk(new Response(null, { status: 500 }), 'apply'); return false; } catch (e) {
+        return (e as { message?: string }).message === 'action_failed_500';
+      }
+    })());
+  }
+
+  section('SSE-RESILIENCE 6/6:集成回归锚——耗尽转永续后仍可恢复到终态(三驱动);绝对上限缺省文案逐字;retry 唤醒后终态收尾');
+  {
+    // W1② 回归钉:连续失败超过 maxRetries(缺省 3)后驱动仍活着,后续连接续到终态(旧实现第 4 拍已 degraded 死亡)。
+    let pOpens = 0;
+    const pRun = await runInterviewStream({
+      open: (lastId) => { pOpens++; if (pOpens <= 4) throw new Error('down'); return lastId === 0 ? streamOf(ev(1, 'question_ready', { question: 'Q' })) : streamOf(ev(2, 'report_ready', { overall: 81 })); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('interview:耗尽(4>3)转慢速永续不降级,第 5/6 连接续到 report_ready(旧实现第 4 拍即 degraded)',
+      pOpens === 6 && pRun.phase === 'report_ready' && !pRun.degraded);
+    let qPins = 0;
+    const qPin = await runQuizStream({
+      open: () => { qPins++; return qPins <= 4 ? Promise.reject(new Error('down')) : streamOf(ev(1, 'quiz_ready', { count: 0 })); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('quiz 同构:耗尽转永续不降级,第 5 连接续到 ready', qPins === 5 && qPin.phase === 'ready' && !qPin.degraded);
+    let dPins = 0;
+    const dPin = await runDiagnosisStream({
+      open: () => { dPins++; return dPins <= 4 ? Promise.reject(new Error('down')) : streamOf(ev(1, 'diagnosis_ready', { sectionCount: 0 })); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0,
+    });
+    A('diagnosis 同构:耗尽转永续不降级,第 5 连接续到 ready', dPins === 5 && dPin.phase === 'ready' && !dPin.degraded);
+    let capOpens = 0;
+    const capRun = await runInterviewStream({
+      open: () => { capOpens++; throw new Error('x'); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0, maxTotalReconnects: 5,
+    });
+    A('绝对上限(cap 档,opens=6)degraded:从未连上(connecting)耗尽 → phase=error 终态收尾(既有语义零改)',
+      capOpens === 6 && capRun.degraded && capRun.phase === 'error' && capRun.streamStopReason === undefined);
+    // 绝对上限缺省文案逐字(非终态中途耗尽面):先拿到题面再断,耗尽不落在 error 终态 → 走缺省停转文案(游标同臂,既有断言锚不被本刀改写)。
+    let cap2Opens = 0;
+    const cap2Run = await runInterviewStream({
+      open: (lastId) => { cap2Opens++; return lastId === 0 ? streamOf(ev(1, 'question_ready', { question: 'Q' })) : Promise.reject(new Error('x')); },
+      onView: () => {}, sleep: async () => {}, backoffMs: () => 0, capBackoffMs: () => 0, maxTotalReconnects: 4,
+    });
+    const cap2Disp = interviewDisplay(cap2Run);
+    A('绝对上限缺省文案逐字保留(degraded+closed+非终态+无分类 → 原文)',
+      cap2Opens === 5 && cap2Run.degraded && cap2Run.connection === 'closed' && cap2Run.phase === 'question'
+      && cap2Run.streamStopReason === undefined
+      && cap2Disp.message === '练习连接已停止，不会再用同一续传编号自动重连。可重试本场练习或返回列表。');
+  }
+
+  section('FENCE-REFLOW F6(#243)：SSE 410 围栏 → 停转不重连直接出口（判据=status 状态基·非 body 码基）');
+  A('actionErrorMessage("interviews",410,"interview_privacy_fenced") 文案逐字=「该面试已进入数据删除流程，请新建面试」（审计 §5.2-3 原文·§4-3①）',
+    actionErrorMessage('interviews', 410, 'interview_privacy_fenced')?.text === '该面试已进入数据删除流程，请新建面试');
+  A('410 映射命中 → 不再落 begin_failed 兜底（≠「稍后重试」家族·§4-3②）',
+    actionErrorMessage('interviews', 410, 'interview_privacy_fenced')?.text !== actionErrorMessage('interviews', 410, 'begin_failed')?.text
+    && actionErrorMessage('interviews', 410, 'begin_failed')?.text === actionErrorMessage('interviews', 0, 'begin_failed')?.text);
+  A('410 → 抛 InterviewPrivacyFencedError；400/502/401 不走围栏通道',
+    (() => {
+      try { throwIfPrivacyFencedStatus(410); return false; } catch (err) {
+        if (!isInterviewPrivacyFencedError(err)) return false;
+      }
+      throwIfPrivacyFencedStatus(400);
+      throwIfPrivacyFencedStatus(502);
+      throwIfPrivacyFencedStatus(401);
+      return true;
+    })());
+  {
+    // 代理 :60-69 对 410 换 body（stream_unavailable）→ 围栏判据只能 status 基（§4 标题承诺②）。
+    const proxied410 = await sseProxyFailureResponse(new Response('', { status: 410 }));
+    A('SSE 代理 410 原样透传且换 body（status=410·body=stream_unavailable → 判据必须 status 基）',
+      proxied410.status === 410 && (await proxied410.text()) === 'stream_unavailable');
+    // quiz/diagnosis 同款 iterateSseBody：410 走 SSE-RESILIENCE 既有 SseOpenStatusError 分类通道（transport→有界退避重连），
+    // 绝不入围栏停转通道（#243 审计域=interview 流·他流零 FENCE 语义新增;旧基"非 OK=空结束"已被 #56 分类臂取代,行为等价面=不停转不围栏）。
+    const quiz410Err = await (async () => { try { await iterateSseBody(new Response('stream_unavailable', { status: 410 })).next(); return null; } catch (e) { return e; } })();
+    A('iterateSseBody（quiz/diagnosis 同款）410 → SseOpenStatusError 既有分类（transport 有界重连·不入围栏停转,他流零 FENCE 语义新增）',
+      isSseOpenStatusError(quiz410Err) && quiz410Err.status === 410 && !isInterviewPrivacyFencedError(quiz410Err));
+    let interview410Threw = false;
+    try {
+      for await (const frame of iterateInterviewSseBody(new Response('stream_unavailable', { status: 410 }))) void frame;
+    } catch (err) {
+      interview410Threw = isInterviewPrivacyFencedError(err);
+    }
+    A('iterateInterviewSseBody 410 → 抛围栏错（interview 流 fence 停转通道）', interview410Threw);
+  }
+  {
+    const fenceOpenIds: number[] = [];
+    const fencedRun = await runInterviewStream({
+      open: (lastId) => { fenceOpenIds.push(lastId); throw new InterviewPrivacyFencedError(); },
+      onView: () => {}, sleep: noSleep, maxRetries: 5,
+    });
+    const fencedDisp = interviewDisplay(fencedRun);
+    A('SSE 410 围栏 → open 恰 1 次·0 次重连（重连/耗尽路径均不触达）', fenceOpenIds.length === 1);
+    A('围栏出口 view：privacyFenced=true + degraded + connection=closed',
+      fencedRun.privacyFenced === true && fencedRun.degraded === true && fencedRun.connection === 'closed');
+    A('围栏出口一句话=「该面试已进入数据删除流程，请新建面试」（审计 §5.2-3 原文逐字）',
+      fencedDisp.message === '该面试已进入数据删除流程，请新建面试');
+    A('围栏出口复用 :40 degraded 出口形（不转圈+retry 出口·非死胡同）',
+      fencedDisp.degraded && !fencedDisp.spinner && fencedDisp.action.kind === 'retry' && !isDeadEnd(fencedDisp));
+  }
+
+  section('FENCE-REFLOW F2(#238 C 面)：选择面契约——reused 必达页面 + 两出口可达（静态源断言+纯函数文案·沿 :793 先例）');
+  {
+    const actionsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/actions.ts'), 'utf8');
+    const pageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/page.tsx'), 'utf8');
+    // ① reused=true → 信号透传必达 /interviews 页；选择面仅由 ?reused 门控（reused=false 页面 byte 级不变）。
+    const reusedPassthrough = lineOf(actionsSrc, /createdBody\.reused === true\) redirect\(`\/interviews\?reused=/);
+    const bannerGate = lineOf(pageSrc, /\{reused && \(\(\) => \{/);
+    A('F2① create reused=true → ?reused=<id> 透传回列表页（选择面必达）·页面仅 ?reused 门控',
+      reusedPassthrough > 0 && bannerGate > 0);
+    // ② 两出口：继续=进既有会话；放弃后重来=POST :id/abandon 后重跑 create+begin。
+    const continueExit = lineOf(pageSrc, /href=\{`\/interview\/\$\{reusedId\}`\}/);
+    const restartForm = lineOf(pageSrc, /action=\{restartInterviewAction\}/);
+    const restartAbandon = lineOf(actionsSrc, /abandon', \{ method: 'POST' \}/);
+    const restartRerun = lineOf(actionsSrc, /await startInterviewAction\(formData\)/);
+    A('F2② 出口一「继续」=进既有会话（Link /interview/:id）', continueExit > 0);
+    A('F2② 出口二「放弃后重来」=restartInterviewAction（abandon 后重跑 create+begin·两路径各自可达）',
+      restartForm > 0 && restartAbandon > 0 && restartRerun > 0);
+    // ③ 文案=BINDING_CONFLICT 家族（不新增第三文案；caption 取自 errmsg-map 映射）。
+    const captionMap = actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict');
+    const captionUse = lineOf(pageSrc, /actionErrorMessage\('interviews', 0, 'interview_resume_binding_conflict'\)/);
+    A('F2③ 选择面文案=BINDING_CONFLICT 家族「你有一场未结束的面试：继续/放弃后重来」（不新增第三文案）',
+      captionMap?.text === '你有一场未结束的面试：继续/放弃后重来' && captionUse > 0);
+    // ④ 无未结束面试（reused=false）→ 主链不变：create→begin 顺序与 402/401/码解析面原样（静态在位）。
+    const beginCall = lineOf(actionsSrc, /serverFetch\('\/interview\/' \+ interviewId \+ '\/begin'/);
+    const codeFallback = lineOf(actionsSrc, /actionErrorMessage\('interviews', 0, raw\) \? raw : 'begin_failed'/);
+    const branch402 = lineOf(actionsSrc, /begin\.status === 402/);
+    const branch401 = lineOf(actionsSrc, /begin\.status === 401/);
+    A('F2④ reused=false 主链逐字段不变（begin 调用/402/401 分支/begin_failed 码解析兜底原样在位）',
+      beginCall > 0 && branch402 > 0 && branch401 > 0 && codeFallback > 0 && beginCall > reusedPassthrough);
+  }
+
+  section('EVIDENCE-DELIVERY(S1+S2)：evidence 随事件/转写带出+报告页冒充退役（P2 四串零出现·P3 投影纯函数·无 React harness）');
+  {
+    // ① SSE wire（S1 出①）：带 evidence 帧解析保真；历史形状（无 evidence 键）仍解析成功（optional·断线 catch-up 重放不杀）。
+    const withEvidence = toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0,"answerId":"11111111-1111-4111-8111-111111111111","answerHash":"' + 'a'.repeat(64) + '","competency":"限流","evidence":["answer_quality"]}' })!;
+    A('answer_evaluated 带 evidence 帧解析保真（zod 双端同刀·上限 max(6)）',
+      withEvidence.event === 'answer_evaluated' && withEvidence.data.evidence?.length === 1 && withEvidence.data.evidence![0] === 'answer_quality');
+    const withoutEvidence = toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"questionId":"q-v1-t0-c0","stateVersion":1,"turn":0}' })!;
+    A('无 evidence 键的历史形状帧仍解析成功（optional 兼容·重放不杀）', withoutEvidence.event === 'answer_evaluated' && withoutEvidence.data.evidence === undefined);
+    const overlong = toBusinessEvent({ event: 'answer_evaluated', id: 2, data: '{"score":80,"evidence":["a","b","c","d","e","f","g"]}' })!;
+    A('evidence 超 max(6) 的帧被 schema 闸拒绝（fail-closed 非 strip）', overlong === null);
+
+    // ② 投影纯函数（S2 出④·P3）：question=真题目文本（非维度名冒充形状）·note=evidence 判据·score null⇒undefined。
+    const turns: TranscriptTurn[] = [
+      { index: 0, question: '请设计一个高并发限流方案', competency: '系统设计', score: 75, evidence: ['answer_quality'] },
+      { index: 1, question: '请说明 Redis 持久化机制', competency: '存储', score: null, evidence: [] },
+      { index: 2, question: '旧数据回合（无 evidence 键）', competency: '遗留能力', score: null },
+    ];
+    const projected = projectTurnAnnotations(turns);
+    A('投影 question=真题目文本（非维度名/competency 冒充形状）',
+      projected[0]!.question === '请设计一个高并发限流方案' && projected[0]!.question !== turns[0]!.competency);
+    A('投影 note=evidence 模型判据列表（固定串退役）', projected[0]!.note === 'answer_quality');
+    A('空 evidence⇒note 不渲染（undefined·AnnotationCard note?…:null 天然隐藏·零回退文案）',
+      projected[1]!.note === undefined);
+    A('evidence 键缺失（旧行/未评分回合）⇒note 同样隐藏（P2 回退隐藏）', projected[2]!.note === undefined);
+    A('无 ScoreCard（score=null）⇒无数值呈现（SCOR-02 分数权威纪律·无卡无数值）',
+      projected[1]!.score === undefined && projected[2]!.score === undefined);
+    A('有卡回合分数透传（数值权威仍=ScoreCard deterministic_total）', projected[0]!.score === 75);
+
+    // ③ P2 四串零出现：投影渲染路径零出现 + 两退役源文件（assessment.ts 两串·page.tsx 两回退串）字面退役。
+    const rendered = JSON.stringify(projected);
+    const fourStrings = ['低于达标线，需加强', '达标', '该维度低于达标线(60),建议优先补强。', '该维度表现达标。'];
+    A('P2 四固定串在任何渲染路径零出现（投影输出全量 JSON 不含四串）',
+      fourStrings.every((s) => !rendered.includes(s)));
+    const assessmentSrc = readFileSync(resolve(repoRoot, 'packages/domain/src/assessment.ts'), 'utf8');
+    const reportPageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/report/[id]/page.tsx'), 'utf8');
+    A('assessment.ts 冒充串退役（deriveAssessment 停写·D5 冻结面归 scoring-aggregation 零触）',
+      !assessmentSrc.includes('低于达标线，需加强') && lineOf(assessmentSrc, /evidence:\s*r\.score < GAP/) === -1);
+    A('page.tsx 两回退串退役+维度名冒充退役（逐题点评改吃 transcript 投影）',
+      !reportPageSrc.includes('该维度低于达标线(60),建议优先补强。') && !reportPageSrc.includes('该维度表现达标。')
+      && lineOf(reportPageSrc, /question=\{d\.dimension\}/) === -1 && lineOf(reportPageSrc, /note=\{d\.evidence/) === -1);
+    A('page.tsx 薄消费在位（projectTurnAnnotations import+调用·P3 形态钉死）',
+      lineOf(reportPageSrc, /projectTurnAnnotations/) > 0 && lineOf(reportPageSrc, /from '@\/lib\/report\/turn-annotations'/) > 0);
+  }
+
+  section('G3 #260 简历下拉可用性过滤：isEligibleResume 六态表 + 空态三臂（纯函数级·R3 落槽写死）');
+  {
+    const r = (id: string, status: string) => ({ id, status, display_name: `简历 ${id}` });
+    // 六态逐态：唯一可用=ingested（服务端 begin/bind 同语义；Ban 第二谓词）。
+    for (const s of ['uploaded', 'ingesting', 'ingested', 'failed', 'erasure_fenced', 'erased']) {
+      A(`isEligibleResume 六态 ${s} → ${s === 'ingested'}`, isEligibleResume(r(`id-${s}`, s)) === (s === 'ingested'));
+    }
+    // RSC 组合面纯函数级：混合列表过滤后仅含 ingested、默认值=首 ingested id（§4.1）。
+    const mixed = [r('a-failed', 'failed'), r('b-ingested', 'ingested'), r('c-fenced', 'erasure_fenced'), r('d-ingested', 'ingested')];
+    const eligible = mixed.filter(isEligibleResume);
+    A('混合列表过滤后仅含 ingested 且默认值=首 ingested id',
+      eligible.length === 2 && eligible[0].id === 'b-ingested' && eligible[0].id === mixed.filter(isEligibleResume)[0]!.id);
+    // 空态三臂（三页同一纯函数单源）。
+    const emptyNone = resumeEmptyState([]);
+    A('空态三臂① resumes=0 →「还没有简历」逐字不变（既有文案零字污染）',
+      emptyNone !== null && emptyNone.text === '还没有简历。' && emptyNone.linkHref === '/resume' && emptyNone.linkText === '先去上传简历 →');
+    const emptyStuck = resumeEmptyState([r('a', 'failed'), r('b', 'erasure_fenced'), r('c', 'ingesting')]);
+    A('空态三臂② resumes>0 且可用=0 → 新「暂不可用」臂（只述状态不解释围栏细节·带 /resume 链）',
+      emptyStuck !== null
+      && emptyStuck.text === '简历暂不可用（解析中/失败/删除处理中），先去简历页处理。'
+      && emptyStuck.linkHref === '/resume');
+    A('空态三臂③ ingested≥1 → null（表单照旧）', resumeEmptyState([r('a', 'ingested'), r('b', 'failed')]) === null);
+    // 页面组合层（RSC 数据面/表单门/下拉渲染）= proof 盲区 → 缺口登记 coverage-matrix（nail 时）；
+    // 此处仅静态源锚（沿 F2 :1237 先例）：三页过滤面/门/默认值全切 eligible，零 resumes 全量渲染残留。
+    const interviewsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/page.tsx'), 'utf8');
+    const quizSrc = readFileSync(resolve(repoRoot, 'apps/web/app/quiz/page.tsx'), 'utf8');
+    const diagnosisSrc = readFileSync(resolve(repoRoot, 'apps/web/app/diagnosis/page.tsx'), 'utf8');
+    const eligibleLine = (src: string) => lineOf(src, /const eligibleResumes = resumes\.filter\(isEligibleResume\)/) > 0;
+    A('三页同源过滤在位（静态源锚）且零 resumes 全量下拉/全量默认值残留',
+      eligibleLine(interviewsSrc) && eligibleLine(quizSrc) && eligibleLine(diagnosisSrc)
+      && (interviewsSrc.match(/eligibleResumes\.map/g) ?? []).length === 2
+      && !/resumes\.map\(/.test(interviewsSrc) && !/resumes\.map\(/.test(quizSrc) && !/resumes\.map\(/.test(diagnosisSrc)
+      && !/defaultValue=\{resumes\[0\]/.test(interviewsSrc) && !/defaultValue=\{resumes\[0\]/.test(quizSrc) && !/defaultValue=\{resumes\[0\]/.test(diagnosisSrc));
+    A('interviews 重来表单门切 eligible 面（静态源锚）', lineOf(interviewsSrc, /\{eligibleResumes\.length > 0 && \(/) > 0);
+  }
+
+  section('G3 #261 余额行：entitlement 三形状 {3}/{0}/null（纯函数级·降级零伪读数）');
+  {
+    // 形状① {availableUnits:3} → 「余额 3 · 本次消耗 1 次额度」+预览注记、无不足提示。
+    const v3 = entitlementLineView(parseEntitlement({ availableUnits: 3 }));
+    A('entitlement {availableUnits:3} → 余额行逐字+预览口径注记+无不足提示',
+      parseEntitlement({ availableUnits: 3 }) === 3
+      && v3?.balanceLine === '余额 3 · 本次消耗 1 次额度'
+      && v3.previewNote === '预览环境额度仅展示，不构成购买'
+      && v3.insufficientHint === null);
+    // 形状② {availableUnits:0} → 中性不足提示（不拦提交、不给购买入口、不恐吓——服务端 402 才是权威）。
+    const v0 = entitlementLineView(parseEntitlement({ availableUnits: 0 }));
+    A('entitlement {availableUnits:0} → 「余额 0」行+中性不足提示',
+      v0?.balanceLine === '余额 0 · 本次消耗 1 次额度' && v0?.insufficientHint === '余额不足，开始将无法预留');
+    // 形状③ null/形状漂移 → 整行不渲染（降级零假数，禁「余额 —」类伪读数）。
+    A('entitlement null/网络失败/形状漂移/非整数 → 整行不渲染（null）',
+      entitlementLineView(null) === null
+      && parseEntitlement(null) === null
+      && parseEntitlement({ foo: 1 }) === null
+      && parseEntitlement({ availableUnits: 2.5 }) === null
+      && parseEntitlement({ availableUnits: '3' }) === null);
+    // 静态源锚：RSC 消费在位（serverGet 形沿 :38 同鉴权；testid 行挂开始按钮前）。
+    const interviewsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/page.tsx'), 'utf8');
+    A('interviews RSC 消费 /commerce/entitlement + 余额行挂载（静态源锚）',
+      lineOf(interviewsSrc, /parseEntitlement\(await serverGet<unknown>\('\/commerce\/entitlement'\)\)/) > 0
+      && lineOf(interviewsSrc, /data-testid="entitlement-line"/) > 0
+      && lineOf(interviewsSrc, /entitlementLineView\(availableUnits\)/) > 0);
+  }
+
+  section('G3 #161 connecting 真进度：三臂（有帧拼文案/进题清除/零帧逐字兜底）+ isDeadEnd 零违例');
+  {
+    // 臂1：connecting 期 generation_progress 帧（retrieve/已 3 秒）→ 静态文案拼真实进度（沿 answered 臂同形）。
+    const progressFrame = toBusinessEvent({ event: 'generation_progress', id: 1, data: JSON.stringify({ attemptKey: 'e2e-progress', stage: 'retrieve', elapsedMs: 3000 }) })!;
+    const withProgress = interviewDisplay(reduceInterview([progressFrame]));
+    A('臂1 connecting 期进度帧 → 「正在建立连接…（AI 生成中 · 检索素材 · 已 3 秒）」',
+      withProgress.message === '正在建立连接…（AI 生成中 · 检索素材 · 已 3 秒）');
+    A('臂1 isDeadEnd 零违例（spinner+非空 message+取消出口）', !isDeadEnd(withProgress) && withProgress.spinner && withProgress.action.kind === 'reconnecting');
+    // 臂2：question_ready 到达 → 进度态清除+题面渲染（业务事件清除红线，进度帧不改 phase）。
+    const questionFrame = toBusinessEvent({ event: 'question_ready', id: 2, data: JSON.stringify({ question: 'Q1', questionId: 'q-v2-t0-c0', stateVersion: 2, turn: 0, plannedTurns: 5 }) })!;
+    const afterQuestion = reduceInterview([progressFrame, questionFrame]);
+    A('臂2 question_ready 到达 → 进度清除+phase=question（进度帧不改 phase 红线）',
+      afterQuestion.phase === 'question' && afterQuestion.generationProgress === undefined && afterQuestion.plannedTurns === 5);
+    // 臂3：零进度帧 → 静态文案逐字兜底（不空转不编造）。
+    const silent = interviewDisplay(initialView);
+    A('臂3 零进度帧 → 「正在建立连接…」逐字+isDeadEnd 零违例',
+      silent.message === '正在建立连接…' && !isDeadEnd(silent));
+    // 降级细臂：未知段名/无数值不崩、缺 elapsedMs 无时长尾。
+    const bareFrame = toBusinessEvent({ event: 'generation_progress', id: 3, data: JSON.stringify({ attemptKey: 'k' }) })!;
+    A('connecting 缺数值帧 → 只有「AI 生成中」段头（无编造时长）',
+      interviewDisplay(reduceInterview([bareFrame])).message === '正在建立连接…（AI 生成中）');
+  }
+
+  section('G3 #256 进度徽标（形制 A）：N 派生（1 基勘误口径·微漂⑥）+ M 约数可调 + 缺失降级');
+  {
+    const idv = (turn: number) => ({ questionId: `q-v2-t${turn}-c0`, stateVersion: 2, turn });
+    // §4.4 示例（勘误口径：服务端 turn 0 基→显示 1 基，微漂⑥全录）：turn=2+plannedTurns=5 → 第 3 题 / 预计约 5 题。
+    A('turn=2+plannedTurns=5 → 「第 3 题 / 预计约 5 题」勘误口径（0 基 turn→1 基显示·微漂⑥）',
+      interviewProgressBadge({ questionIdentity: idv(2), turns: [], plannedTurns: 5 })?.label === '第 3 题 / 预计约 5 题（自适应，可能调整）');
+    A('首题 turn=0 → 「第 1 题」（防 0 基漏显「第 0 题」）',
+      interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: 5 })?.label === '第 1 题 / 预计约 5 题（自适应，可能调整）');
+    // identity 缺失（旧流）→ 降级 turns.length（本身 1 基）。
+    A('identity 缺失 → 降级 turns.length（3 题 → 第 3 题，与 identity 臂同口径）',
+      interviewProgressBadge({ questionIdentity: undefined, turns: [{ q: 'a', followUp: false }, { q: 'b', followUp: false }, { q: 'c', followUp: false }], plannedTurns: undefined })?.label === '第 3 题');
+    // plannedTurns 缺失/非法 → 只显「第 N 题」。
+    A('plannedTurns 缺失 → 只显「第 N 题」',
+      interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: undefined })?.label === '第 1 题'
+      && interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: undefined })?.planned === null);
+    A('plannedTurns 非法（0/负/非整数）→ 同降级（只显第 N 题）',
+      [0, -2, 2.5].every((m) => interviewProgressBadge({ questionIdentity: idv(0), turns: [], plannedTurns: m })?.planned === null));
+    // 追问不增 N 口径：N 只由 identity.turn（或 turns.length）派生，绝不数 followUp 旗。
+    const probeHist = (followUp: boolean) => [{ q: 'a', followUp }, { q: 'b', followUp }];
+    A('追问（followUp）不增 N：同 identity.turn、追问旗不同 → 同一 N',
+      interviewProgressBadge({ questionIdentity: idv(3), turns: probeHist(true), plannedTurns: 8 })?.current === 4
+      && interviewProgressBadge({ questionIdentity: idv(3), turns: probeHist(false), plannedTurns: 8 })?.current === 4);
+    // 无任何题 → 不渲染（防「第 0 题」幻影）。
+    A('空视图（无 identity/零轮）→ null 不渲染', interviewProgressBadge(initialView) === null);
+    // 旧流 question_ready 缺 plannedTurns 字段零破坏：schema 宽容+投影 undefined。
+    const legacyQ = toBusinessEvent({ event: 'question_ready', id: 4, data: JSON.stringify({ question: '旧流题' }) })!;
+    const legacyView = reduceInterview([legacyQ]);
+    A('旧流缺 plannedTurns → schema 零破坏+投影 undefined（显示面降级）',
+      legacyView.phase === 'question' && legacyView.plannedTurns === undefined);
+  }
+
+  section('G4 #59 提交失败分码映射：turnSubmitFeedback 纯函数输出断言（形制 A·mock res 仅输入叙述）+ 组件源码静态接线（read-file 四件）');
+  {
+    // ── 纯函数输出断言（REQUEST rev2 §4.2 洞A·形制 A 本意——不做组件端到端 mock 执行）──
+    A('401/unauthorized → 「登录已过期，请重新登录」+action=login（组件跳 /login?expired=1·沿 server.ts:30 同参形）',
+      turnSubmitFeedback(401, 'unauthorized').text === '登录已过期，请重新登录'
+      && turnSubmitFeedback(401, 'unauthorized').action === 'login');
+    A('409/interview_not_active → 「该面试已结束」+action=back_to_interviews（回列表出路）',
+      turnSubmitFeedback(409, 'interview_not_active').text === '该面试已结束'
+      && turnSubmitFeedback(409, 'interview_not_active').action === 'back_to_interviews');
+    A('409/interview_answer_submission_conflict → 中性防重文案+无导航（作答保留、既有回滚行为零改）',
+      turnSubmitFeedback(409, 'interview_answer_submission_conflict').text === '该作答已提交，请勿重复提交'
+      && turnSubmitFeedback(409, 'interview_answer_submission_conflict').action === undefined);
+    A('410/interview_privacy_fenced → #243 文案常量同一性（import 单源：proof 与实现引同一常量）+action=back_to_interviews',
+      turnSubmitFeedback(410, 'interview_privacy_fenced').text === INTERVIEW_PRIVACY_FENCED_TEXT
+      && INTERVIEW_PRIVACY_FENCED_TEXT === '该面试已进入数据删除流程，请新建面试'
+      && turnSubmitFeedback(410, 'interview_privacy_fenced').action === 'back_to_interviews');
+    A('503（码通道 public_preview_read_only/status 通道含无码/未知码）→ 与 actionErrorMessage 503 行同文「服务暂不可用」',
+      turnSubmitFeedback(503, 'public_preview_read_only').text === '服务暂不可用'
+      && turnSubmitFeedback(503, null).text === actionErrorMessage('interviews', 503, null)?.text
+      && turnSubmitFeedback(503, 'some_future_code').text === '服务暂不可用');
+    A('未知码/无码/空串码 → 既有兜底逐字「提交失败,请重试」+无 action（原文一字不改）',
+      turnSubmitFeedback(400, 'missing_idempotency_key').text === '提交失败,请重试'
+      && turnSubmitFeedback(400, 'missing_idempotency_key').action === undefined
+      && turnSubmitFeedback(500, null).text === '提交失败,请重试' && turnSubmitFeedback(500, null).action === undefined
+      && turnSubmitFeedback(403, '').text === '提交失败,请重试' && turnSubmitFeedback(403, '').action === undefined
+      && turnSubmitFeedback(402, 'insufficient_entitlement').text === '提交失败,请重试');
+    // ── 组件源码静态接线四件（rev2 洞A·沿 :863 readSrc read-file 先例）──
+    const panelSrc = readSrc('components/InterviewPanel.tsx');
+    A('静态接线①:提交失败臂接线 turnSubmitFeedback（判定在纯函数·执行在组件:toast+login/back 薄执行）',
+      /const fb = turnSubmitFeedback\(res\.status, typeof j\?\.error === 'string' \? j\.error : null\);/.test(panelSrc)
+      && /toast\.error\(fb\.text\);/.test(panelSrc)
+      && /if \(fb\.action === 'login'\) router\.push\('\/login\?expired=1'\);/.test(panelSrc)
+      && /router\.push\('\/interviews'\)/.test(panelSrc));
+    A('静态接线②:j?.message 全文件零残留（提交臂+voice 臂双撤·Ban 裸透传）', !panelSrc.includes('j?.message'));
+    A('静态接线③:失败臂回滚三行形仍在（回滚回显+clearSubmitBridge+return·作答保留零回归）',
+      /toast\.error\(fb\.text\);[\s\S]*?setAnswers\(\(m\) => \{ const n = \{ \.\.\.m \}; delete n\[lastIdx\]; return n; \}\);\s*\/\/ 回滚回显\s*[\r\n]\s*clearSubmitBridge\(\);\s*\/\/ 回到作答态,保留输入框内容\s*[\r\n]\s*return;/.test(panelSrc));
+    A('静态接线④:网络层 catch 文案逐字零改「提交未成功，请重试」', panelSrc.includes("toast.error('提交未成功，请重试');"));
+    A('记账:组件行为面无 DOM 载体·静态+人工对账（上四件为源面接线断言,非浏览器 DOM 证明）', true);
+  }
+
+  // ══ B271 片3（entpay-slice3-REQUEST rev2 §4·RX-1/RX-2 载体·read-file 静态断言·est live=0）══════════
+  {
+    section('B271 片3 §4-1 修法③链既有复验+新增 read-file（RX-2：既有面=entpay:s2 28/28+上 ERRMSG-MAP 段复跑·以下两件=本刀新增断言）');
+    const startErrSrc = readSrc('lib/jobs/application-start-error.ts');
+    A('片3-1a 注册表分码文案逐字（application-start-error.ts :21-23·application_enterprise_pay_unavailable→稳定拒因）',
+      startErrSrc.includes("application_enterprise_pay_unavailable: '该岗位面试暂不可用，请联系招聘方'"));
+    const jobsPageSrc = readSrc('app/jobs/page.tsx');
+    A('片3-1b jobs 页 402 渲染块静态接线（page.tsx :60-72 区·actionErrorMessage(\'jobs\',0,error)+role=alert·既有零改面）',
+      /const actionError = actionErrorMessage\('jobs', 0, error \?\? null\);/.test(jobsPageSrc)
+      && /role="alert"/.test(jobsPageSrc)
+      && /actionError\.text/.test(jobsPageSrc));
+
+    section('B271 片3 §4-2 P1-a 修法⑥字面+P1-b 招聘方卡（RX-1：文案与裁定⑤定稿逐字绑定+卡区既有四行零字节锚）');
+    A('片3-2a 修法⑥知情行逐字在 /jobs 渲染面（「本场由企业支付，不消耗你的额度」·startable 婉拒按钮邻位）',
+      jobsPageSrc.includes('本场由企业支付，不消耗你的额度')
+      && jobsPageSrc.indexOf('declineApplicationAction.bind(null, app.id)') < jobsPageSrc.indexOf('本场由企业支付，不消耗你的额度'));
+    const appCardSrc = readSrc('app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+    A('片3-2b P1-b 知情行逐字（「候选人开始本场面试由贵司企业额度支付；额度不足时候选人将无法开始」）',
+      appCardSrc.includes('候选人开始本场面试由贵司企业额度支付；额度不足时候选人将无法开始'));
+    A('片3-2c P1-b 充值链接逐字绑定（「企业额度不足，请充值」→ href /recruiter/billing·目标面已存在）',
+      appCardSrc.includes('企业额度不足，请充值')
+      && /href="\/recruiter\/billing"[^>]*>企业额度不足，请充值<\/Link>/.test(appCardSrc));
+    A('片3-2d 卡区既有 dl 四行零字节锚（候选人/来源/状态/评估·P1 改动不触既有面）',
+      ['候选人', '来源', '状态', '评估'].every((label) => appCardSrc.includes(`<dt className="text-muted-foreground">${label}</dt>`)));
+
+    section('B271 片3 §4-4 P3 余额挂件（裁定②形 A·零参调用读并列值·读时快照非实时承诺）');
+    const billingSrc = readSrc('app/recruiter/billing/page.tsx');
+    A('片3-3a 挂件零参调用读并列 enterpriseAvailableUnits（一次调用双算·响应只增）',
+      billingSrc.includes("serverGet<{ availableUnits: number; enterpriseAvailableUnits: number }>('/commerce/entitlement')")
+      && billingSrc.includes('enterpriseAvailableUnits'));
+    A('片3-3b 挂件语境行（「候选人岗位面试由企业额度支付」+快照非实时注记·首屏套餐卡之上）',
+      billingSrc.includes('候选人岗位面试由企业额度支付（读时快照，非实时余额承诺）。')
+      && billingSrc.indexOf('<BalanceSection /></Suspense>') < billingSrc.indexOf('<ProductsSection /></Suspense>'));
+
+    section('B271 片3 §4-5 P4 开票 paid 下拉（裁定③：禁用不保留手填·仅 paid 行）');
+    const formsSrc = readSrc('app/recruiter/billing/RechargeForms.tsx');
+    A('片3-4a 手填 Input 零残留（<Input id="inv-order" 撤除·orderId 只落 select）',
+      !formsSrc.includes('<Input id="inv-order"') && /<select[^>]*name="orderId"/.test(formsSrc));
+    A('片3-4b 空表回退=下拉禁用+「暂无已支付订单」逐字（不保留手填口）',
+      /disabled=\{orders\.length === 0\}/.test(formsSrc) && formsSrc.includes('暂无已支付订单'));
+    A('片3-4c 数据源仅 paid（billing 页 filter status===\'paid\'·>50 窗外老 paid 单不可选=如实边界）',
+      /paidOrders = ordersRes\?\.orders\?\.filter\(\(o\) => o\.status === 'paid'\)/.test(billingSrc));
+    A('片3-4d submitInvoiceRequestAction 既有 409/403 面零改（recruiter/billing/actions.ts·E8 域归位随迁·DB 仅-paid 触发器双层承）',
+      /if \(res\.status === 409\) return \{ ok: false, error: '仅已支付订单可申请开票（或该订单已申请过）。' \};/.test(readSrc('app/recruiter/billing/actions.ts'))
+      && readSrc('app/recruiter/billing/actions.ts').includes("if (res.status === 403) return { ok: false, error: '开票申请需审核通过的招聘方账户。' };"));
+
+    section('B271 片3 §4-3 web 面 P2 对公订单卡（只读无操作口·三态徽标）');
+    A('片3-5a offline-orders 只读卡在位（零参 serverGet·本人台账）',
+      billingSrc.includes("serverGet<{ orders: OfflineOrder[] }>('/commerce/offline-orders')"));
+    A('片3-5b 三态徽标（remit_status NULL=created→entered→confirmed·failed=destructive·无操作口）',
+      billingSrc.includes('remitBadge[o.remit_status ?? \'created\']')
+      && billingSrc.includes("failed: { text: 'failed', variant: 'destructive' }")
+      && !/OfflineOrdersSection[\s\S]*?(SubmitButton|<form action=)/.test(billingSrc));
+  }
+
+  // ───────── H4 WEAKNESS-LOOP（R1/R4/R8·复审处方①② read-file 静态接线·沿 :1307-1313 先例形制） ─────────
+  section('H4 处方①:报告页「再练这 N 个弱项」入口+action 携 focus(read-file 静态接线)');
+  {
+    const reportPageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/report/[id]/page.tsx'), 'utf8');
+    const interviewsActionsSrc = readFileSync(resolve(repoRoot, 'apps/web/app/interviews/actions.ts'), 'utf8');
+    A('H4-1a 报告页 src 含再练入口(「再练这 {gapCount} 个弱项」·N=本场 gap 数运行时派生非硬编码)',
+      reportPageSrc.includes('再练这 {gapCount} 个弱项')
+      && lineOf(reportPageSrc, /const gapDims = dims\.filter/) > 0
+      && lineOf(reportPageSrc, /const gapCount = gapDims\.length/) > 0);
+    A('H4-1b 报告页接 startFocusRetrainAction(走既有 create+begin 链·零新导航模式)',
+      lineOf(reportPageSrc, /import \{ startFocusRetrainAction \} from '\.\.\/\.\.\/interviews\/actions'/) > 0);
+    A('H4-1c action 携 focus(begin headers focus=JSON 数组文本·api 侧 normalizeFocusHeader 白名单消费)',
+      lineOf(interviewsActionsSrc, /export async function startFocusRetrainAction\(/) > 0
+      && lineOf(interviewsActionsSrc, /focus: JSON\.stringify\(labels\)/) > 0);
+    A('H4-1d 表单 hidden focus=gap 维度名数组(上限=本 gap 数)',
+      lineOf(reportPageSrc, /name="focus" value=\{JSON\.stringify\(gapDims\.map\(\(d\) => d\.dimension\)\)\}/) > 0);
+  }
+
+  section('H4 处方②:LearningSection 静态图标→「去练」真入口(携 topic=focus)');
+  {
+    const reportPageSrc = readFileSync(resolve(repoRoot, 'apps/web/app/report/[id]/page.tsx'), 'utf8');
+    A('H4-2a 学习项「去练」按钮在位(未完成项渲染)', reportPageSrc.includes('去练') && lineOf(reportPageSrc, /!\w+\.done && resumeId \? \(/) > 0);
+    A('H4-2b 去练表单携 topic=focus(单项数组·复用同一 action)',
+      lineOf(reportPageSrc, /name="focus" value=\{JSON\.stringify\(\[it\.topic\]\)\}/) > 0);
+  }
+
+  section('H4 R8:成长曲线可比性(维度名交集约束+delta 可比标注·#269+新-#277 实现面锚)');
+  {
+    const growthSrc = readFileSync(resolve(repoRoot, 'apps/web/app/growth/page.tsx'), 'utf8');
+    // 纯函数矩阵:交集非空+双分→可比;交集空→不可比;缺分→不可比。
+    A('H4-8a 可比:双分+维度交集非空 → delta 数值',
+      growthDeltaView({ overall: 70, dims: { 高并发: 60 } }, { overall: 80, dims: { 高并发: 75, 算法: 50 } }).comparable === true
+      && (growthDeltaView({ overall: 70, dims: { 高并发: 60 } }, { overall: 80, dims: { 高并发: 75, 算法: 50 } }) as { delta: number }).delta === 10);
+    A('H4-8b 不可比:双分但维度名交集空 → comparable=false(delta 不渲染)',
+      growthDeltaComparable({ overall: 70, dims: { 高并发: 60 } }, { overall: 80, dims: { 算法: 50 } }) === false);
+    A('H4-8c 缺分不可比(null overall 恒不可比·与现状零 delta 一致)',
+      growthDeltaComparable({ overall: null, dims: { 高并发: 60 } }, { overall: 80, dims: { 高并发: 75 } }) === false);
+    A('H4-8d 页面接 growthDeltaView+不可比中性标注(data-testid=delta-not-comparable)',
+      lineOf(growthSrc, /import \{ growthDeltaView \} from '@\/lib\/growth\/comparable'/) > 0
+      && growthSrc.includes('delta-not-comparable') && growthSrc.includes('维度口径不同 · 不可比'));
+  }
+
+  // ══ I2 B-DELIVERABLE（i2-b-deliverable-REQUEST §4-3·两态徽/startable 收窄/同意触面/定性区·纯函数+read-file 静态·est live=0）══
+  {
+    section('I2 B-DELIVERABLE §4-3：W1 两态徽+startable 收窄+拒因并列+W3 同意触面+W2 定性区（纯函数输出+read-file 静态·组件行为面无 DOM 载体如实记账）');
+    // 纯函数：两态徽（E3 派生口径）+ 招聘方评估列三态（裁定⑤文案逐字）。
+    A('I2-1a held 徽（绑定面试 completed）→「已面完 · 待校准」outline（neutral·destructive 转 neutral）',
+      applicationStatusLabel('assessment_unavailable', 'held').text === '已面完 · 待校准'
+        && applicationStatusLabel('assessment_unavailable', 'held').variant === 'outline');
+    A('I2-1b failed 徽（绑定面试 failed）→「面试失败 · 可重试」destructive',
+      applicationStatusLabel('assessment_unavailable', 'failed').text === '面试失败 · 可重试'
+        && applicationStatusLabel('assessment_unavailable', 'failed').variant === 'destructive');
+    A('I2-1c 无派生信号 fail-closed →「评分暂不可用」（不臆测终态·不承诺可重试）',
+      applicationStatusLabel('assessment_unavailable', null).text === '评分暂不可用'
+        && applicationStatusLabel('assessment_unavailable').text === '评分暂不可用');
+    A('I2-1d 招聘方评估列三态（held/failed/无派生·recruiterAssessmentLabel 扩参向后兼容）',
+      recruiterAssessmentLabel('assessment_unavailable', null, 'held') === '已面完 · 评分待校准'
+        && recruiterAssessmentLabel('assessment_unavailable', 68, 'failed') === '面试失败 · 可重试'
+        && recruiterAssessmentLabel('assessment_unavailable', 68) === '评分暂不可用');
+    // jobs 页：startable 收窄 + held 注记 + W3③ 同意触面接线（read-file 静态）。
+    const jobsSrcI2 = readSrc('app/jobs/page.tsx');
+    A('I2-2a startable 收窄（修法④）：assessment_unavailable 仅 terminalKind===\'failed\' 可重试·旧无条件入口撤除',
+      /app\.status === 'assessment_unavailable' && app\.terminalKind === 'failed'/.test(jobsSrcI2)
+        && !jobsSrcI2.includes("|| app.status === 'assessment_unavailable';"));
+    A('I2-2b held 中性注记逐字（W3①·非时间承诺）',
+      jobsSrcI2.includes('本场面试已完成；评分校准完成后与结果一起提供，不提供重试。'));
+    A('I2-2c W3③ 同意触面接线（consent/withdraw 双 action 绑定在 isHeld 行区·per-user consent 态读取）',
+      jobsSrcI2.includes('consentQualitativeShareAction') && jobsSrcI2.includes('withdrawQualitativeShareAction')
+        && /serverGet<\{ consented: boolean \}>\('\/privacy\/consent\?purpose=b_qualitative_share'\)/.test(jobsSrcI2));
+    A('I2-2d 同意触面现场语境文案逐字（「招聘方将看到什么」）',
+      jobsSrcI2.includes('同意后招聘方仅可见能力维度与强/中/弱/证据不足档位，不含数字评分、答题内容与证据摘录原文；可随时撤回，撤回后立即停止展示。'));
+    A('I2-2e 修法⑥ 知情行仍随 startable 块收敛（W3② 渲染条件核对·零语义改动）',
+      jobsSrcI2.includes('本场由企业支付，不消耗你的额度'));
+    // actions：同意/撤回走 #82 既有三入口（POST body + DELETE query·purpose=b_qualitative_share）。
+    const jobsActionsSrc = readSrc('app/jobs/actions.ts');
+    A('I2-2f 同意触面 API 形（POST /privacy/consent {purpose} + DELETE /privacy/consent?purpose·零新协议）',
+      /body: JSON\.stringify\(\{ purpose: 'b_qualitative_share' \}\)/.test(jobsActionsSrc)
+        && jobsActionsSrc.includes("serverFetch('/privacy/consent?purpose=b_qualitative_share', { method: 'DELETE' })"));
+    // 拒因并列表（裁定⑥·既有四行零改）。
+    const startErrSrcI2 = readSrc('lib/jobs/application-start-error.ts');
+    A('I2-2g 新拒因 application_held_not_retryable 并列 subclasses（既有四行零改·409 服务侧守卫面）',
+      startErrSrcI2.includes("'application_held_not_retryable',")
+        && startErrSrcI2.indexOf("'application_held_not_retryable',") > startErrSrcI2.indexOf("'application_start_unexpected',"));
+    // 招聘方两页：列表行零触（interview RLS 隔离墙 by-design——候选人面试元数据对招聘方会话
+    // 不可读，列表行 join 派生不可达·i2b:prove attempt3 实证全 null）→ 列表恒既有兜底文案；
+    // 两态信号经详情页 0160 受控函数 terminalKind 承接（裁定③落点 A 的详情页半区全兑）。
+    const candListSrc = readSrc('app/recruiter/jobs/[id]/page.tsx');
+    A('I2-3a 列表行零触（隔离墙 by-design·原 applicationStatusLabel(c.status)/recruiterAssessmentLabel(c.status,c.score) 逐字节零改·fail-closed 不臆测终态）',
+      /applicationStatusLabel\(c\.status\)/.test(candListSrc)
+        && /recruiterAssessmentLabel\(c\.status, c\.score\)/.test(candListSrc)
+        && !candListSrc.includes('terminalKind'));
+    const detailSrc = readSrc('app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+    A('I2-3b 定性区端点消费（仅 assessment_unavailable 读取·契约 zod safeParse·失败中性）',
+      /serverGet<unknown>\(`\/recruiter\/jobs\/\$\{id\}\/applications\/\$\{applicationId\}\/qualitative`\)/.test(detailSrc)
+        && /BQualitativeProjection\.safeParse\(qualRes\)/.test(detailSrc));
+    A('I2-3b2 两态信号经 0160 函数承接（terminalKind = 候选列表缺位回落 qual.terminalKind·状态徽/评估行/免责卡同源分流）',
+      /const terminalKind = application\.terminalKind \?\? qual\?\.terminalKind \?\? null;/.test(detailSrc)
+        && /applicationStatusLabel\(application\.status, terminalKind\)/.test(detailSrc)
+        && /recruiterAssessmentLabel\(application\.status, undefined, terminalKind\)/.test(detailSrc)
+        && detailSrc.includes('{terminalKind === \'held\''));
+    A('I2-3c 定性区三态如实（未同意/暂无可复核的评估记录/档位徽·Ban 假定性输出）',
+      detailSrc.includes('候选人未同意披露能力概要。候选人同意后，这里显示能力维度与强/中/弱/证据不足档位。')
+        && detailSrc.includes('暂无可复核的评估记录。')
+        && detailSrc.includes('能力概要暂不可用，请稍后重试。'));
+    A('I2-3d 档位徽表（rubric disposition 三值映射 Ban 自造档位·强/中/弱/证据不足·不出数字）',
+      detailSrc.includes("strong: { text: '强', variant: 'success' }")
+        && detailSrc.includes("mid: { text: '中', variant: 'secondary' }")
+        && detailSrc.includes("weak: { text: '弱', variant: 'outline' }")
+        && detailSrc.includes("insufficient: { text: '证据不足', variant: 'outline' }"));
+    A('I2-3e 排序红线注记（fix-roadmap:117 承接·Ban 排序比较叙事在页面）',
+      detailSrc.includes('单申请人评估事实投影：不可用于候选人之间排序比较，不含数字评分、答题内容与证据摘录原文。'));
+    A('I2-3f 免责卡两态分流+主句零改（W3④·held=待校准语义/failed=失败语义/主句「证据不够就不给分」零字节）',
+      detailSrc.includes('「已面完 · 待校准」表示这场面试已完成、还没有可比较的校准分')
+        && detailSrc.includes('「面试失败」表示这场面试因系统原因未完成评估；候选人可重试，已预留的额度已释放。')
+        && detailSrc.includes('校准完成前，申请分数不会出现在这里。证据不够就不给分，也不会用 0 分凑数。'));
+    A('I2-3g B 端定性页面零计数渲染（Ban 数字分列：页面源零 strong_count/mid_count/weak_count/insufficient_count）',
+      !detailSrc.includes('strong_count') && !detailSrc.includes('mid_count')
+        && !detailSrc.includes('weak_count') && !detailSrc.includes('insufficient_count'));
+    A('记账:组件行为面无 DOM 载体·静态+人工对账（I2-2/I2-3 为源面接线断言·纯函数断言为 I2-1·非浏览器 DOM 证明）', true);
+  }
+
+  // ───────────────────────── #213 DIAG-HONESTY 修法①：rejectedCount 数据通路+零渲染负断言（静态源面断言·沿 :868 readSrc 先例）─────────────────────────
+  section('#213 diag-honesty 修法①:同源 GET 代理路由存在+panel ready 取数接线+剔除条 >0 单门控渲染');
+  {
+    const diagRouteSrc = readSrc('app/api/diagnosis/[id]/route.ts');
+    const diagEventsSrc = readSrc('app/api/diagnosis/[id]/events/route.ts');
+    const diagPanelSrc = readSrc('components/DiagnosisPanel.tsx');
+    A('代理路由文件存在且为 GET 导出(镜像同目录 events 形制:服务端读令牌→加 Bearer 透传)',
+      diagRouteSrc.includes('export async function GET') && diagRouteSrc.includes('getServerToken'));
+    A('代理路由同源鉴权:无令牌 401(不泄露上游)',
+      diagRouteSrc.includes("if (!token) return new Response('unauthorized', { status: 401 });"));
+    A('代理路由透传既有后端 GET /diagnosis/:id(零后端 API 改·非 SSE events 路径)',
+      diagRouteSrc.includes('/diagnosis/${encodeURIComponent(id)}`') && diagEventsSrc.includes('/diagnosis/${encodeURIComponent(id)}/events`'));
+    A('代理路由用户态数据不缓存(no-store·对齐 serverFetch 纪律)', diagRouteSrc.includes("cache: 'no-store'"));
+    A('panel ready 后经代理取数(phase 门+fetch 接线)',
+      /if \(view\.phase !== 'ready'\) return;/.test(diagPanelSrc)
+      && diagPanelSrc.includes('`/api/diagnosis/${encodeURIComponent(diagnosisId)}`'));
+    A('rejectedCount 归一化:非有限数(NaN 等)→undefined(负断言兜底)',
+      /typeof n === 'number' && Number\.isFinite\(n\) \? n : undefined/.test(diagPanelSrc));
+    A('剔除条单门控渲染:rejectedCount > 0 才出(0/缺省/undefined 零渲染)',
+      /rejectedCount > 0 && \(/.test(diagPanelSrc));
+    A('剔除条文案含计数字面与「剔除」字样(如实·不夸大不淡化)',
+      diagPanelSrc.includes('已剔除 {rejectedCount} 条无依据结论'));
+    A('负断言:无裸 falsy 门(`{rejectedCount && x}` 形·0 会把字面 0 渲进 DOM)',
+      !/\{rejectedCount &&/.test(diagPanelSrc));
+    A('取数失败静默(SSE 面已完整,剔除条缺席不降级诊断)',
+      /\/\* 取数失败不计为诊断失败/.test(diagPanelSrc));
+  }
+
+  section('I3 JOB-MGMT §2-4（#258/#197/#219 表单 JD 字段+编辑下线入口+路由可见+宣称⇒供给同源·readSrc 静态先例形）');
+  {
+    const jobFormSrc = readSrc('app/recruiter/jobs/JobCreateForm.tsx');
+    A('I3-4a #258 表单含 JD 字段（name=description·maxLength=8000·后端 CreateJobDto 原生上限）',
+      /name="description"/.test(jobFormSrc) && /maxLength=\{8000\}/.test(jobFormSrc));
+    const jobActionsSrc = readSrc('app/recruiter/jobs/actions.ts');
+    A('I3-4b #220 编辑/下线/重试三动作接线（PATCH jobs/:id + POST close + POST route-retry）',
+      /method: 'PATCH'/.test(jobActionsSrc)
+      && /\/close`/.test(jobActionsSrc)
+      && /\/route-retry`/.test(jobActionsSrc));
+    A('I3-4c create 动作透传 description（有值才带·空值不发明键）',
+      /JSON\.stringify\(description \? \{ title, description, competencies \} : \{ title, competencies \}\)/.test(jobActionsSrc));
+    const recruiterJobsSrc = readSrc('app/recruiter/jobs/page.tsx');
+    A('I3-4d #219 列表暴露路由状态徽（routes 旁车读面+可断言状态字样单源）',
+      /routes\?/.test(recruiterJobsSrc) && /jobRouteStatusLabel\(routes\[jb\.id\]\.status\)/.test(recruiterJobsSrc));
+    const jobDetailSrc = readSrc('app/recruiter/jobs/[id]/page.tsx');
+    A('I3-4e #219 详情路由读面+未决警示（/route 读面+route_unresolved 分支文案+reasonCodes 摘要）',
+      /\/recruiter\/jobs\/\$\{id\}\/route/.test(jobDetailSrc)
+      && /route\?\.status === 'route_unresolved'/.test(jobDetailSrc)
+      && jobDetailSrc.includes('该岗位路由未决，候选人暂无法开始面试。')
+      && /route\.reasonCodes\.join/.test(jobDetailSrc));
+    A('I3-4f #220 详情编辑/下线/重试入口（JobAdminPanel 接线·关闭=二次确认在面板内）',
+      /import \{ JobAdminPanel \} from '\.\/JobAdminPanel'/.test(jobDetailSrc) && /<JobAdminPanel/.test(jobDetailSrc));
+    const adminPanelSrc = readSrc('app/recruiter/jobs/[id]/JobAdminPanel.tsx');
+    A('I3-4g 下线二次确认+重试仅未决态（confirm 壳+routeStatus 条件门）',
+      /globalThis\.confirm\('确认下线该岗位\？下线后候选人不可再投递。'\)/.test(adminPanelSrc)
+      && /routeStatus === 'route_unresolved'/.test(adminPanelSrc));
+    A('I3-4h 路由状态文案含可断言枚举字样（route_pending/route_decided/route_unresolved 原文在标签内）',
+      jobRouteStatusLabel('route_pending').includes('route_pending')
+      && jobRouteStatusLabel('route_decided').includes('route_decided')
+      && jobRouteStatusLabel('route_unresolved').includes('route_unresolved'));
+    A('I3-4i 未知路由状态 fail-closed（「路由状态待同步」不伪装已决/未决+徽次级色）',
+      jobRouteStatusLabel('future_internal_state') === '路由状态待同步'
+      && jobRouteBadgeVariant('future_internal_state') === 'secondary');
+    // 裁决⑤（推荐兑现·已随簇③落地）：宣称存在 ⇒ 供给链三环在位（同源蕴含断言·宣称可删但供给不可伪）。
+    const dashboardSrc = readSrc('app/dashboard/page.tsx');
+    const jdClaimed = dashboardSrc.includes('简历×JD 匹配');
+    const plannerPromptSrc = readSrc('../../packages/ai-runtime/src/prompts.ts');
+    const consumerSrc = readSrc('../../apps/worker/src/interview-consumer.ts');
+    const supplyChainPresent = /岗位要求\(招聘方发布·仅提示考什么能力·非难度信号\)/.test(plannerPromptSrc)
+      && /getJobPlannerInputForInterview/.test(consumerSrc)
+      && /name="description"/.test(jobFormSrc);
+    A('I3-4j #258 「简历×JD 匹配」宣称⇒供给同源（宣称在 ⇒ planner 岗位段+consumer 供给门+表单 JD 三链全在）',
+      !jdClaimed || supplyChainPresent,
+      `claimed=${jdClaimed} supply=${supplyChainPresent}`);
+  }
+
+  // ══ I4 INVITE-FACE（i4-invite-face-REQUEST rev2 §2·read-file 静态断言·est live=0）══════════
+  {
+    section('I4 §A #265 宣称-兑现对齐:settings 页零「邮件通知」宣称残留 + actions payload 修(lang→locale·删 notify)');
+    const webRootI4 = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+    const readSrcI4 = (rel: string) => {
+      const p = resolve(webRootI4, rel);
+      if (!existsSync(p)) return '';
+      return readFileSync(p, 'utf8');
+    };
+    const settingsI4 = readSrcI4('app/settings/page.tsx');
+    const settingsActionsI4 = readSrcI4('app/settings/actions.ts');
+    A('i4-265-1 settings 页零邮件通知宣称(「接收邮件通知」checkbox 撤除·宣称零残留)',
+      !settingsI4.includes('接收邮件通知') && !settingsI4.includes("name=\"notify\"") && !settingsI4.includes('pref.notify'));
+    A('i4-265-2 actions payload 修形:locale 白名单键在位·notify 键删除·lang 键删除(contracts updateSettingsSchema .strict() 白名单零后端改)',
+      /locale: String\(formData\.get\('locale'\) \?\? 'zh'\)/.test(settingsActionsI4)
+        && !settingsActionsI4.includes('notify') && !settingsActionsI4.includes("formData.get('lang')"));
+    A('i4-265-3 settings 页语言读回 locale(legacy pref.lang 仅回落·零宣称残留)',
+      /typeof pref\.locale === 'string'/.test(settingsI4));
+
+    section('I4 §B #221 通知读侧标签:KIND_LABELS 承 job_invited(读侧零新管道·只补一行)');
+    const notifI4 = readSrcI4('app/notifications/page.tsx');
+    A('i4-221-1 KIND_LABELS 新增 job_invited 标签(0165 写侧落地读侧承接·既有两标签零动)',
+      /job_invited: '收到岗位邀请'/.test(notifI4)
+        && notifI4.includes("report_ready: '面试报告已就绪'") && notifI4.includes("assessment_ready: '练习反馈已就绪'"));
+
+    section('I4 §C #222 web jobs 页零破坏核(本地 4 字段接口零动·回包收窄纯 API 直调面)');
+    const jobsPageI4 = readSrcI4('app/jobs/page.tsx');
+    A('i4-222-1 jobs 页本地 Job 接口仍 4 字段(回包收窄零破坏核·渲染面零消费过宽字段)',
+      /interface Job \{ id: string; title: string; competencies: string\[\]; status: string \}/.test(jobsPageI4));
+
+    section('I4 §D #223 同意门识别列三页枚举(fail-closed 条件渲染·8 位截断形制零改)');
+    const candListI4 = readSrcI4('app/recruiter/jobs/[id]/page.tsx');
+    const talentI4 = readSrcI4('app/recruiter/talent/page.tsx');
+    const detailI4 = readSrcI4('app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx');
+    A('i4-223-1 三页识别列条件渲染接线(contactEmail 真值门·同意门前零显示)',
+      /\{c\.contactEmail \? <span/.test(candListI4) && /\{t\.contactEmail \? <span/.test(talentI4) && /\{application\.contactEmail \? <span/.test(detailI4));
+    A('i4-223-2 8 位截断形制零改(slice(0, 8) 三锚仍在·识别=加替代手段非展开完整 id)',
+      candListI4.includes('candidate_user_id.slice(0, 8)')
+        && talentI4.includes('candidate_user_id.slice(0, 8)')
+        && detailI4.includes('candidate_user_id.slice(0, 8)'));
+  }
+
+  // ───────────────────────── I5-CALIBER 九件（#225/#234/#212/#233/#235/#231/#262/#264/#267 · docs+web 静态源断言·沿 :869 readSrc 先例·est live=0）─────────────────────────
+  section('I5-CALIBER: 三态标注+计数勘误+文案口径+语音入口开关（静态源/docs 断言·零外呼）');
+  {
+    const cnt = (src: string, re: RegExp) => (src.match(re) ?? []).length;
+    const readDoc = (rel: string) => {
+      const p = resolve(repoRoot, rel);
+      return existsSync(p) ? readFileSync(p, 'utf8') : '';
+    };
+    const bend = readDoc('ai-docs/requirements/use-cases/bend-recruiting.md');
+    const vision = readDoc('ai-docs/product/vision.md');
+    const ucReadme = readDoc('ai-docs/requirements/use-cases/README.md');
+    const blueprint = readDoc('ai-docs/architecture/ai/langgraph-blueprint.md');
+    const roadmap = readDoc('ai-docs/delivery/roadmap.md');
+    const modality = readDoc('ai-docs/requirements/use-cases/interview-modality.md');
+    const cend = readDoc('ai-docs/requirements/use-cases/cend-identity-account.md');
+    const assessTerm = readDoc('ai-docs/requirements/use-cases/application-assessment-terminal.md');
+    const zhMsg = readDoc('apps/web/messages/zh.json');
+    const enMsg = readDoc('apps/web/messages/en.json');
+    const dashSrc = readSrc('app/dashboard/page.tsx');
+    const growthSrc = readSrc('app/growth/page.tsx');
+    const reportSrc = readSrc('app/report/[id]/page.tsx');
+    const chartSrc = readSrc('components/GrowthChart.tsx');
+    const quizSrc = readSrc('components/QuizPanel.tsx');
+    const panelSrc = readSrc('components/InterviewPanel.tsx');
+    const voiceSpec = readSrc('e2e-ui/voice-duplex.spec.ts');
+
+    // ── #225：bend 三态/status/计数/vision 措辞/005-0082 互洽 ──
+    A('I5-#225a bend frontmatter status 下调为 draft 且 active 零残留',
+      /^status: draft$/m.test(bend) && !/^status: active$/m.test(bend));
+    A('I5-#225b 「28 UC」零残留且 UC 标题计数=29 与 frontmatter「29 UC / 141 TC」自洽',
+      !bend.includes('28 UC') && cnt(bend, /^### UC-/gm) === 29 && bend.includes('29 UC / 141 TC'));
+    A('I5-#225c 抽查清单 29 行×三态值域封闭（已实现 6·仅设计 23·有意关闭 0）',
+      cnt(bend, /^> \| UC-\S+ \| (已实现|仅设计|有意关闭) \|/gm) === 29
+      && cnt(bend, /^> \| UC-\S+ \| 已实现 \|/gm) === 6
+      && cnt(bend, /^> \| UC-\S+ \| 仅设计 \|/gm) === 23
+      && !/^\> \| UC-\S+ \| 有意关闭 \|/m.test(bend));
+    A('I5-#225d vision 「物理隔离」字面量零残留·替换措辞含 RLS 事实表述·承诺本体（永不互通/不筛人）逐字保留',
+      !vision.includes('物理隔离') && vision.includes('数据隔离（同库行级 RLS）') && vision.includes('永不互通')
+      && vision.includes('绝不把求职者的练习数据用于企业筛人'));
+    A('I5-#225e UC-AIIV-005 标注与 0082 二文互洽（标注层引用 0082 迁移+无分收口语义·权威文在场·规格零改写）',
+      bend.includes('0082_b_side_score_calibration_hold.sql') && bend.includes('assessment_unavailable')
+      && assessTerm.includes('0082_b_side_score_calibration_hold.sql')
+      && lineOf(bend, /实现态标注（2026-10-11 · I5 口径刀 · 与 .application-assessment-terminal\.md. 二文互洽勘误）/) > 0
+      && bend.includes('TC 表注（2026-10-11 · I5 口径刀）'));
+
+    // ── #234：索引三行「仅设计」标注（三行逐一） ──
+    A('I5-#234a README 索引作答辅助行含「（仅设计·未落代码）」', ucReadme.includes('`answer-assist.md`（仅设计·未落代码）'));
+    A('I5-#234b README 索引 3D 数字人行含「（仅设计·未落代码）」', ucReadme.includes('`avatar-3d.md`（仅设计·未落代码）'));
+    A('I5-#234c README 索引兑换码行含「（仅设计·未落代码）」', ucReadme.includes('`redemption.md`（仅设计·未落代码）'));
+
+    // ── #212：blueprint/roadmap 实态勘误（career-path 实存+接线分叉如实+#204 互引一致） ──
+    A('I5-#212a blueprint「尚无对应图文件/尚无图实现」零残留·career-path 实路径+0a3c8a8a 注在卷',
+      !blueprint.includes('尚无对应图文件') && !blueprint.includes('尚无图实现')
+      && blueprint.includes('packages/ai-graphs/src/career-path.ts') && blueprint.includes('0a3c8a8a'));
+    A('I5-#212b career-path 图文件实存断言（引用路径非悬空）', existsSync(resolve(repoRoot, 'packages/ai-graphs/src/career-path.ts')));
+    A('I5-#212c roadmap Phase 4 职业路径行同步勘误（❌→🟡+实路径+接线分叉如实）',
+      roadmap.includes('职业路径分析（单节点图已落') && roadmap.includes('0a3c8a8a')
+      && roadmap.includes('worker 自动链直调 derive') && !/^- ❌ 职业路径分析。$/m.test(roadmap));
+    A('I5-#212d 两文互洽：#204 GROWTH-GEN 引用一致（blueprint/roadmap 同源）',
+      blueprint.includes('#204') && roadmap.includes('#204 GROWTH-GEN'));
+
+    // ── #233/#235：逐 UC 三态标注（21/9·值域封闭）+status 下调+披露块零回归 ──
+    A('I5-#233a interview-modality 逐 UC 三态标注存在且计数=21（与 UC 标题计数一致）',
+      cnt(modality, /^> \*\*实现态（2026-10-11 I5 口径刀）：/gm) === 21 && cnt(modality, /^## UC-MODE-\d+ /gm) === 21);
+    A('I5-#233b interview-modality 三态值域封闭集（已实现|仅设计|有意关闭）全覆盖 21 行',
+      cnt(modality, /^> \*\*实现态（2026-10-11 I5 口径刀）：(已实现|仅设计|有意关闭)\*\*/gm) === 21);
+    A('I5-#233c interview-modality status 保持 draft+TARGET 规格导语零回归',
+      /^status: draft$/m.test(modality) && modality.includes('本文是 TARGET 规格'));
+    A('I5-#235a cend 逐 UC-AUTH 三态标注存在且计数=9（值域封闭）',
+      cnt(cend, /^> \*\*实现态（2026-10-11 I5 口径刀）：(已实现|仅设计|有意关闭)\*\*/gm) === 9
+      && cnt(cend, /^## UC-AUTH-\d+ /gm) === 9);
+    A('I5-#235b cend frontmatter status 下调为 draft 且 active 零残留',
+      /^status: draft$/m.test(cend) && !/^status: active$/m.test(cend));
+    A('I5-#235c cend :18「邮箱+密码」披露块零回归（修法列主句既有满足面不洗）',
+      cend.includes('当前登录为**邮箱+密码**') && cend.includes('无微信/OAuth'));
+
+    // ── #231：押题提示诚实化（备战提示落位·refs 拼装机制字节零触）——旧话术字面量经 join 拆写（沿 public-copy prohibitedMarketingPhrases 先例·保全仓 rg EXIT=1 形） ──
+    const maybeFollowUp = ['可能追', '问'].join('');
+    A('I5-#231a 旧押题话术在 QuizPanel/dashboard 双文件零残留（全仓 rg 负断言入收据·EXIT=1 形）',
+      !quizSrc.includes(maybeFollowUp) && !dashSrc.includes(maybeFollowUp));
+    A('I5-#231b 「备战提示」落位钉死行形：QuizPanel 用户文案行（非 :83 注释自匹配）+dashboard 快捷卡行',
+      /备战提示：就「\{q\.refs\.join\('、'\)\}」准备原理、权衡与踩坑/.test(quizSrc)
+      && dashSrc.includes('标考察点与备战提示'));
+    A('I5-#231c refs 拼装机制零触（length 门+map 渲染+join 原样在场=数据链 diff 零的静态代理）',
+      quizSrc.includes('q.refs.length > 0') && quizSrc.includes('q.refs.map((r, k) =>') && quizSrc.includes("q.refs.join('、')"));
+
+    // ── #262：分数口径三元命名（面试中提示分/本场报告分/近期平均）四落点 ──
+    A('I5-#262a dashboard「练习反馈」独立标签零残留→「近期平均」+来源口径说明落位',
+      !dashSrc.includes('练习反馈') && dashSrc.includes('近期平均')
+      && dashSrc.includes('面试中提示分') && dashSrc.includes('本场报告分'));
+    A('I5-#262b growth「最新综合分」→「最新本场报告分」+曲线口径行对齐',
+      growthSrc.includes('最新本场报告分') && !growthSrc.includes('最新综合分')
+      && growthSrc.includes('场已评估面试的本场报告分'));
+    A('I5-#262c 成长曲线（GrowthChart）图例/aria 对齐「本场报告分」·取数链零触（组件签名未动的静态代理）',
+      chartSrc.includes('能力曲线:本场报告分随') && chartSrc.includes('/>本场报告分</span>')
+      && !chartSrc.includes('综合分随') && /export function GrowthChart/.test(chartSrc));
+    A('I5-#262d 报告 overall 标签对齐「本场报告分」（ScoreRing 组件与取数链零触）',
+      reportSrc.includes('本场报告分') && !reportSrc.includes('本次练习反馈'));
+
+    // ── #264：首页文案用户语言（工程话术零残留+承诺语义保留） ──
+    A('I5-#264a zh「写入有双记」「prove 门」工程话术零残留',
+      !zhMsg.includes('写入有双记') && !zhMsg.includes('prove 门'));
+    A('I5-#264b zh stat 四卡落位裁决⑥逐字值（越问越深/进度不丢/点评有据/练完即复盘）',
+      zhMsg.includes('"stat1n": "越问越深"') && zhMsg.includes('"stat2n": "进度不丢"')
+      && zhMsg.includes('"stat3n": "点评有据"') && zhMsg.includes('"stat4n": "练完即复盘"'));
+    A('I5-#264c zh arch 区承诺语义保留（本地校验门=打开页面不算数·双份留底=不丢不乱）',
+      zhMsg.includes('光打开页面不算数') && zhMsg.includes('双份留底'));
+    A('I5-#264d en.json 同构键同步（键名零改只改 value·四卡+arch 落位）',
+      enMsg.includes('"stat1n": "Deeper every round"') && enMsg.includes('"arch5Title": "Nothing lost"')
+      && enMsg.includes('opening a page is not acceptance') && !enMsg.includes('local prove gates'));
+    A('I5-#264e 公共文案门零回归（「不构成能力认证」zh 残留·en「not a calibrated capability assessment」在场）',
+      zhMsg.includes('不构成能力认证') && enMsg.includes('not a calibrated capability assessment'));
+
+    // ── #267：语音入口开关（裁决⑦=缺省显示·零后端零 API） ──
+    A('I5-#267a 开关纯函数行为：未配置/任意值=显示（缺省显示=裁决⑦落值）·显式 off=关闭',
+      isVoiceModeEntryVisible(undefined) === true && isVoiceModeEntryVisible('on') === true
+      && isVoiceModeEntryVisible('1') === true && isVoiceModeEntryVisible('off') === false
+      && isVoiceModeEntryVisible(' OFF ') === false);
+    A('I5-#267b 面板接线：按钮包条件渲染（关闭→不渲染恒断言臂的静态形）+lib 导入',
+      /isVoiceModeEntryVisible\(\) && \(\n\s*<button/.test(panelSrc) 
+      && /import \{ isVoiceModeEntryVisible \} from '@\/lib\/voice-mode-entry';/.test(panelSrc));
+    A('I5-#267c 缺省渲染=现状字节：按钮文案/回落 title 零触（voice-duplex e2e 消费面天然绿的静态前提）',
+      panelSrc.includes('<Mic className="size-3.5" />语音模式')
+      && panelSrc.includes('预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话')
+      && /isVoiceModeEntryVisible\(\) && \(\n\s*<button[\s\S]*?setMode\('voice'\)/.test(panelSrc));
+    A('I5-#267d voice-duplex spec 消费面在场且零改动核（按钮 role+name 断言行·本刀零改 spec）',
+      voiceSpec.includes("getByRole('button', { name: '语音模式', exact: true })") 
+      && existsSync(resolve(repoRoot, 'apps/web/e2e-ui/voice-duplex.spec.ts')));
+    A('I5-#267e 零后端零 API：开关仅前端静态读（lib 文件无 fetch/import server 依赖）',
+      !/fetch\(|import .*api|from '@meetwise/.test(readSrc('lib/voice-mode-entry.ts')));
+  }
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);

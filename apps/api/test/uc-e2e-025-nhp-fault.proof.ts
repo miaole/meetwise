@@ -58,14 +58,17 @@ console.log('EVIDENCE_SHAPE  in-process + fake DB · ≠ isolated PG/HTTP E2E ·
 const ctrl = read('apps/api/src/modules/interview/interview.controller.ts');
 const svc = read('apps/api/src/modules/interview/interview.service.ts');
 
-const bStart = svc.indexOf('begin(principal');
-const bEnd = svc.indexOf('turn(principal', bStart);
+// B271 片2 后 begin 事务体=beginInterviewCore 模块体(REG-FIX 组4a 区域锚随演):核心函数起·InterviewService 类止。
+const bStart = svc.indexOf('export async function beginInterviewCore(');
+const bEnd = svc.indexOf('export class InterviewService', bStart);
 const region = bStart >= 0 && bEnd > bStart ? svc.slice(bStart, bEnd) : '';
 A('S0-begin-region-parseable', region.length > 0);
 
 const cbAt = ctrl.indexOf('begin(@Param');
 const ctrlBegin = cbAt >= 0 ? ctrl.slice(cbAt, ctrl.indexOf('\n  }', cbAt)) : '';
-A('S1-controller-forwards-quiz-id', /@Headers\('quiz-id'\)\s*quizId/.test(ctrlBegin) && /\.begin\([^)]*quizId\s*\)/.test(ctrlBegin));
+// ROLE#259 后转发形 .begin(principal, id, resumeId, reqId, quizId, targetRole(, focus))——quizId 第 5 参/共 6-7 参:
+// 在 begin 实参表内即持(不再钉末位·REG-FIX 组4a S1 正则随演)。
+A('S1-controller-forwards-quiz-id', /@Headers\('quiz-id'\)\s*quizId/.test(ctrlBegin) && /\.begin\([^)]*\bquizId\b[^)]*\)/.test(ctrlBegin));
 
 const FAULT_THROW_RE = /throw\s+new\s+HttpException\s*\(\s*\{\s*error:\s*'missing_quiz_expiry'\s*\}\s*,\s*HttpStatus\.CONFLICT\s*\)/;
 const faultThrowAt = region.search(FAULT_THROW_RE);
@@ -96,8 +99,9 @@ A('S6-error-code-orthogonal-to-neg-bound',
   && /error:\s*'resume_version_mismatch'/.test(region)
   && /error:\s*'missing_quiz_expiry'/.test(region));
 
-// NEG + BOUND frozen inventory (read-only · not FAULT evidence)
-const negBlockIntact = /SELECT status, expires_at FROM resume_quiz WHERE id=\$1 AND owner_user_id=\$2/.test(region)
+// NEG + BOUND frozen inventory (read-only · not FAULT evidence)——REG-FIX 组4a:冻结清单 regex 随 GODFN-1c
+// 合并查形(单查 owner-scoped)·NOTE-only 不进 EXIT(防假 NOTE)。
+const negBlockIntact = /SELECT q\.status, q\.expires_at[\s\S]{0,240}FROM\s+resume_quiz\s+q/.test(region)
   && /throw new HttpException\(\{ error: 'stale_quiz' \}, HttpStatus\.CONFLICT\)/.test(region);
 const boundThrowIntact = /throw new HttpException\(\{ error: 'resume_version_mismatch' \}, HttpStatus\.CONFLICT\)/.test(region);
 console.log(`NOTE  NEG B'' stale block text present/untouched=${negBlockIntact} (frozen · not FAULT evidence)`);

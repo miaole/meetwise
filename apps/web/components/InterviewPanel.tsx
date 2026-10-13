@@ -5,6 +5,7 @@
  * 自适应引擎做追问(同能力=追问 probe、换能力=pivot);面板把它呈现出来。无死胡同由 view-model 保证。
  */
 import { useEffect, useMemo, useRef, useState } from 'react';
+import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Loader2, Mic, Send, Square, CornerDownRight, Sparkle } from 'lucide-react';
 import { toast } from 'sonner';
@@ -15,6 +16,16 @@ import { VoiceCallPanel } from '@/components/VoiceCallPanel';
 import { Thinking } from '@/components/ui/Thinking';
 import { interviewTurnWindow, VISIBLE_TURN_LIMIT } from '@/lib/stream/turn-window';
 import { buildTurnSubmission, newAnswerId } from '@/lib/interview/turn-submission';
+// D6 #239-②:危机/自伤话术固定处置(确定性触发词·纯本地判定·与 domain crisis-disposition 合同对齐不引包)。
+import { matchesCrisisTrigger, CRISIS_DISPOSITION_NOTICE_HEADING, CRISIS_DISPOSITION_NOTICE_BODY } from '@/lib/interview/crisis-disposition';
+import { interviewProgressBadge } from '@/lib/interview/progress-badge';
+// #267:语音模式入口显示开关(纯前端静态·缺省显示=现状字节;NEXT_PUBLIC_VOICE_MODE_ENTRY=off 时按钮不渲染)。
+import { isVoiceModeEntryVisible } from '@/lib/voice-mode-entry';
+// G4 #59:提交失败分码映射(纯函数·action 判定在函数/执行在组件)——撤裸透传读数(错误体={error:code}无 message 字段)。
+import { turnSubmitFeedback } from '@/lib/errors/turn-submit-error';
+// SSE-RESILIENCE #54(W2/C6/C7)：作答草稿 sessionStorage 持久化(按 resultId+questionId;降级键只写不恢复;注记A 空框恢复前提)。
+import { makeDraftStore, sessionDraftStorage, draftKeyExact, draftKeyFallback, restoreDraftIfEmpty } from '@/lib/interview/draft-store';
+import { grantVoiceCaptureConsentAction } from '@/app/interview/actions';
 
 /** Blob → base64(剥掉 data:URL 前缀)。FileReader 路径避免大数组 btoa 爆栈。 */
 function blobToBase64(blob: Blob): Promise<string> {
@@ -63,7 +74,7 @@ function Typewriter({ text }: { text: string }) {
 }
 
 export function InterviewPanel({ resultId, applicationId }: { resultId: string; applicationId?: string }) {
-  const { view, display } = useInterviewStream(resultId);
+  const { view, display, retry } = useInterviewStream(resultId);
   const [mode, setMode] = useState<'text' | 'voice'>('text');  // 打字 / 单人本机语音模式,共用同一条 SSE 流
   const [answer, setAnswer] = useState('');
   const [answers, setAnswers] = useState<Record<number, string>>({});   // turnIndex → 已提交答案(本地保留以显示对话)
@@ -71,6 +82,7 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
   const [historyPage, setHistoryPage] = useState(0);
   const [rec, setRec] = useState<'idle' | 'recording' | 'transcribing'>('idle');   // 语音作答状态机
   const [submitting, setSubmitting] = useState(false);   // 已提交答案↔下一题到达之间的"AI 思考中"桥接(本地态,SSE 推进即清)
+  const [crisisNotice, setCrisisNotice] = useState(false);   // D6 #239-②:危机话术固定处置警示(本地确定性拦截时出示,改稿即清)
   const [voiceErr, setVoiceErr] = useState<string | null>(null);
   const [voiceCaptureConsented, setVoiceCaptureConsented] = useState(false);
   const [voiceConsentPrompt, setVoiceConsentPrompt] = useState(false);
@@ -88,12 +100,48 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
   const finalizedApplicationRef = useRef<string | null>(null);
   const canAnswer = display.action.kind === 'answer';
   const lastIdx = view.turns.length - 1;
+  // #256 显示面：当前题进度徽标（纯派生 lib/interview/progress-badge；仅当前题可作答时渲染一处，不逐题历史重复）。
+  const progressBadge = canAnswer ? interviewProgressBadge(view) : null;
   const turnWindow = useMemo(() => interviewTurnWindow(view.turns.length, historyPage), [view.turns.length, historyPage]);
   const visibleTurns = useMemo(() => view.turns.slice(turnWindow.start, turnWindow.end), [view.turns, turnWindow.start, turnWindow.end]);
 
   useEffect(() => { if (historyPage === 0) endRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [view.turns.length, display.action.kind, historyPage]);
   useEffect(() => { setHistoryPage(0); }, [resultId]);
-  useEffect(() => { answerAttemptIdsRef.current.clear(); setAnswer(''); setAnswers({}); }, [resultId]);
+  // W2 :96:resultId 切换清除**只清匹配前缀键**(旧场草稿),不误伤他场;既有本地作答态重置照旧。
+  const prevResultRef = useRef(resultId);
+  useEffect(() => {
+    if (prevResultRef.current !== resultId) {
+      try { getDraftStore().clearByPrefix(`${prevResultRef.current}:`); } catch { /* 存储不可用不碍作答 */ }
+      prevResultRef.current = resultId;
+    }
+    answerAttemptIdsRef.current.clear(); setAnswer(''); setAnswers({});
+  }, [resultId]);
+
+  // ── W2 草稿持久化(C6/C7):sessionStorage 按 `${resultId}:${questionId}`;防抖写入;成功提交同拍清除;空框才恢复(注记A)。──
+  const draftStoreRef = useRef<ReturnType<typeof makeDraftStore> | null>(null);
+  function getDraftStore() {
+    if (!draftStoreRef.current) draftStoreRef.current = makeDraftStore(sessionDraftStorage());
+    return draftStoreRef.current;
+  }
+  const draftIdentity = view.questionIdentity;
+  // questionId 在手 → 精确键(可恢复);缺失 → 降级键 `${resultId}:${turns.length}`(只写,**不自动恢复**,防跨题误复用·注记A)。
+  const currentDraftKey = draftIdentity
+    ? draftKeyExact(resultId, draftIdentity.questionId)
+    : view.turns.length > 0 ? draftKeyFallback(resultId, view.turns.length) : null;
+  // 输入防抖写入(300ms;任一 setAnswer 路径——打字/语音转写——都汇入 answer state,统一经此落盘)。
+  useEffect(() => {
+    if (!currentDraftKey) return;
+    const t = setTimeout(() => { try { getDraftStore().save(currentDraftKey, answer); } catch { /* 配额/隐私模式失败不碍作答 */ } }, 300);
+    return () => clearTimeout(t);
+  }, [answer, currentDraftKey]);
+  // 恢复入框:仅当前输入框为空 + 有 questionId 精确键(注记A:防存储落后于活内存砸掉更新键入;防降级键跨题误复用)。
+  useEffect(() => {
+    if (answer !== '' || !draftIdentity) return;
+    let stored: string | null = null;
+    try { stored = getDraftStore().load(draftKeyExact(resultId, draftIdentity.questionId)); } catch { stored = null; }
+    const restored = restoreDraftIfEmpty(answer, stored);
+    if (restored !== answer) setAnswer(restored);
+  }, [answer, draftIdentity, resultId]);
   // 岗位面试完成后确认回填。即便 URL applicationId 被改写，代理/API 也不会接收 interviewId，
   // 而是从 application 的持久化绑定校验 owner/job/resume/终态；数据库 trigger 还是浏览器关闭时的兜底。
   useEffect(() => {
@@ -151,8 +199,14 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         });
         if (!res.ok) {
           const j = await res.json().catch(() => ({} as any));
-          const msg = j?.message ?? '语音转写失败，请改用文字作答';                    // 503 asr_unavailable / 502 asr_failed
-          setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
+          // CONSENT-MIN(#69):同意门 403 consent_required → 重开协议卡,不误报转写失败;
+          // 其余(503 asr_unavailable / 502 asr_failed)既有出路不变。
+          if (res.status === 403 && j?.error === 'consent_required') {
+            setVoiceCaptureConsented(false); setVoiceConsentPrompt(true);
+          } else {
+            const msg = '语音转写失败，请改用文字作答';                                    // 503 asr_unavailable / 502 asr_failed（G4 #59 收编:撤 message 死读数——错误体={error:code}无 message 字段,裸读恒 undefined 恒落兜底;固定文案逐字兜底,零行为变化）
+            setVoiceErr(msg); toast.error(msg);                                          // 显式反馈:不静默吞掉这一答
+          }
         } else {
           const body = await res.json().catch(() => null) as { text?: unknown } | null;
           const text = body?.text;
@@ -185,6 +239,11 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
     if (!sent.trim() || submitting) return;       // 防空答 / 防双提交(in-flight 期间再点直接忽略)
     const identity = view.questionIdentity;
     if (!identity) { toast.error('题目安全身份尚未就绪，为防止陈旧回答误入账，请刷新或稍后重试'); return; }
+    // D6 #239-② 危机/自伤话术固定处置:命中触发词面即暂缓提交(不外发不评分),出示固定
+    // 处置文案+转介信息;草稿保留在输入框,可修改后重答(非死胡同,不做状态机)。服务端
+    // worker 口 invokeEvaluationOnce 同词表兜底(打字/语音一切入口)。
+    if (matchesCrisisTrigger(sent)) { setCrisisNotice(true); return; }
+    setCrisisNotice(false);
     const attemptKey = `${identity.questionId}\u0000${sent}`;
     const answerId = answerAttemptIdsRef.current.get(attemptKey) ?? newAnswerId();
     answerAttemptIdsRef.current.set(attemptKey, answerId);
@@ -202,11 +261,19 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
       });
       if (!res.ok) {
         const j = await res.json().catch(() => ({} as any));
-        toast.error(j?.message ?? '提交失败,请重试');                 // 显式反馈,绝不静默失败
+        // G4 #59:错误体={error: code}无 message 字段——撤裸透传读数(生产面恒 undefined 恒落泛化,401 无引导/409 无出路);
+        // 分码映射 turnSubmitFeedback(401 登录/409 回列表/410 围栏/503/兜底)——action 判定在纯函数,跳转在组件薄执行。
+        const fb = turnSubmitFeedback(res.status, typeof j?.error === 'string' ? j.error : null);
+        toast.error(fb.text);                                          // 显式反馈,绝不静默失败
+        if (fb.action === 'login') router.push('/login?expired=1');    // 401:跳登录(沿 lib/api/server.ts:30 同参形)
+        else if (fb.action === 'back_to_interviews') router.push('/interviews');   // 409 已结束/410 围栏:回列表出路
         setAnswers((m) => { const n = { ...m }; delete n[lastIdx]; return n; });   // 回滚回显
         clearSubmitBridge();                                          // 回到作答态,保留输入框内容
         return;
       }
+      // W2 :210 同拍:成功提交 → 清该题草稿 + 清空作答框(同事务语义,先清草稿防防抖回写);
+      // 失败/异常路径不动草稿(输入框内容本就保留,草稿随在)。
+      if (currentDraftKey) { try { getDraftStore().clear(currentDraftKey); } catch { /* 存储不可用不碍流程 */ } }
       setAnswer('');                                       // 仅成功才清空作答框
     } catch {
       toast.error('提交未成功，请重试');
@@ -317,13 +384,16 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
       <header className="flex items-center justify-between border-b pb-3">
         <h2 className="font-semibold tracking-tight">模拟面试</h2>
         <div className="flex items-center gap-3">
-          <button
-            type="button" onClick={() => setMode('voice')}
-            title="预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话"
-            className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium hover:border-primary hover:text-primary"
-          >
-            <Mic className="size-3.5" />语音模式
-          </button>
+          {/* #267:按能力开关显示语音入口——缺省显示(开关未配置=现状字节·voice-duplex e2e 消费面天然绿);显式 off→不渲染。回落文案(title)零触。 */}
+          {isVoiceModeEntryVisible() && (
+            <button
+              type="button" onClick={() => setMode('voice')}
+              title="预览版语音：AI 朗读题目，你通过本机麦克风作答；失败回文字，不接入电话"
+              className="inline-flex items-center gap-1.5 rounded-lg border px-2.5 py-1 text-xs font-medium hover:border-primary hover:text-primary"
+            >
+              <Mic className="size-3.5" />语音模式
+            </button>
+          )}
           <button
             type="button"
             data-testid="uc018-abandon-trigger"
@@ -345,6 +415,10 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
 
       {/* 对话历史 */}
       <div className="space-y-4">
+        {/* #256 第 N 题/预计约 M 题（形制 A）：当前题头部一处；约数+可调注记，非承诺非上限（提前结束🔒D3 零触碰）。 */}
+        {progressBadge && (
+          <p data-testid="interview-progress-badge" role="status" className="text-xs text-muted-foreground">{progressBadge.label}</p>
+        )}
         {turnWindow.maxPage > 0 && (
           <div data-testid="history-window" className="flex flex-wrap items-center justify-between gap-2 rounded-md border bg-muted/30 px-3 py-2 text-xs text-muted-foreground" role="status">
             <span>显示第 {turnWindow.start + 1}–{turnWindow.end} 轮 / 共 {view.turns.length} 轮（每页最多 {VISIBLE_TURN_LIMIT} 轮，保护长会话性能）</span>
@@ -406,6 +480,16 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         <div className="rounded-lg border bg-accent p-4 text-center text-accent-foreground">
           练习完成 · 本次练习反馈 <span className="text-2xl font-extrabold text-primary">{display.report.overall}</span>
           <p className="mt-1 text-xs text-muted-foreground">仅供个人复盘，不用于招聘决定。</p>
+          {/* #254:report_ready 产出 view_report(view-model 单一出处)——横幅卡内给「查看完整报告」入口(SPA 导航 /report/{resultId}),
+              修"产出即死":完成面试后用户由此进逐题报告。label 用 display.action.label 既有值,零新文案。 */}
+          {display.action.kind === 'view_report' && (
+            <Link
+              href={'/report/' + resultId}
+              data-testid="banner-view-report"
+              className="mt-3 inline-flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90">
+              {display.action.label}
+            </Link>
+          )}
         </div>
       )}
       {display.degraded && <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">{display.message}</p>}
@@ -418,11 +502,20 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
         </div>
       )}
 
+      {/* D6 #239-② 危机/自伤话术固定处置+转介信息(固定文案·法务复核保留项·只指向公开求助渠道,
+          不冒充正式医疗/心理服务承诺)。提交被本地确定性拦截,警示区沿 :487/:572 role="alert" 同形。 */}
+      {crisisNotice && canAnswer && !submitting && (
+        <div role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+          <p className="font-medium">{CRISIS_DISPOSITION_NOTICE_HEADING}</p>
+          <p className="mt-1 leading-relaxed">{CRISIS_DISPOSITION_NOTICE_BODY}</p>
+        </div>
+      )}
+
       {/* 作答输入(思考中时收起,交给上方"AI 思考中"占位;30s 兜底必回作答态,无死胡同) */}
       {canAnswer && !submitting && view.questionIdentity && (
         <div className="sticky bottom-4 space-y-2 rounded-lg border bg-card p-3 shadow-[0_1px_0_rgba(26,26,26,.03),0_8px_24px_-18px_rgba(26,26,26,.25)]">
           <textarea
-            value={answer} onChange={(e) => setAnswer(e.target.value)} rows={3}
+            value={answer} onChange={(e) => { setAnswer(e.target.value); setCrisisNotice(false); }} rows={3}
             placeholder="打字作答…(答得简略时,AI 会就同一能力追问,逼你说透)"
             className="w-full resize-none rounded-lg border-0 bg-transparent p-1 text-base outline-none placeholder:text-muted-foreground"
           />
@@ -468,7 +561,18 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
               <div className="mt-3 flex gap-2">
                 <button
                   type="button"
-                  onClick={() => { setVoiceCaptureConsented(true); setVoiceConsentPrompt(false); void startRecording(); }}
+                  onClick={async () => {
+                    // CONSENT-MIN(#69):await 落库(consent_record voice_capture)成功才开录;
+                    // 失败重开协议卡,不假前进、不请求麦克风。
+                    try {
+                      await grantVoiceCaptureConsentAction();
+                      setVoiceCaptureConsented(true);
+                      setVoiceConsentPrompt(false);
+                      void startRecording();
+                    } catch {
+                      setVoiceConsentPrompt(true);
+                    }
+                  }}
                   className="rounded bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground hover:bg-primary/90"
                 >
                   同意并开始录音
@@ -486,7 +590,8 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
       )}
       {display.action.kind === 'retry' && (
         <button
-          onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); location.reload(); }}
+          onClick={(e) => { e.currentTarget.disabled = true; e.currentTarget.setAttribute('aria-busy', 'true'); retry(); }}
+          title="立即重连(重置退避),不刷新页面——恢复不走整页刷新(#53 口径)"
           className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary disabled:cursor-not-allowed disabled:opacity-50">
           {display.action.label}
         </button>
@@ -497,6 +602,16 @@ export function InterviewPanel({ resultId, applicationId }: { resultId: string; 
           className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary">
           {display.action.label}
         </button>
+      )}
+      {/* #254:view_report kind 渲染分支(沿 retry/view_applications 同形;kind 间构造性互斥不破坏)——
+          同源相对路径 /report/{resultId},站内路由不落 API 主机。 */}
+      {display.action.kind === 'view_report' && (
+        <Link
+          href={'/report/' + resultId}
+          data-testid="action-view-report"
+          className="inline-flex items-center gap-1.5 rounded-lg border px-4 py-2 text-sm hover:border-primary">
+          {display.action.label}
+        </Link>
       )}
     </div>
   );

@@ -1,0 +1,16 @@
+# markers=0 卫生门（本刀 EXEC 改动集 16 件·2026-10-12 亲跑）
+## 冲突标记
+EXIT_CONFLICT=1
+## fake-green/绕过词
+scripts/run-e2e-isolated.mjs:3: * fake-green risk. E2E_PG_IMAGE ≠ sole-stack truth; local green ≠ RAG migrated.
+scripts/run-e2e-isolated.mjs:7: * with receipts; non-allowlisted sole requests EXIT=3 with PREREQ checklist (forbid fake-green).
+scripts/run-e2e-isolated.mjs:2407:        `Refuse silent fake-green via unmarked PG image. releaseEvidence=false · Not HA.`,
+scripts/run-e2e-isolated.mjs:2417:        `\nRefuse silent fake-green. Use ${LEGACY_STACK} explicitly for pgvector fixture proves. ` +
+EXIT_FAKEGREEN=0
+## 测试门弱化（词界形）
+EXIT_WEAKEN=1
+## 遗留标
+EXIT_TODO=1
+## secrets 样值
+EXIT_SECRETS=1
+# 附注：fake-green 原始模式 4 命中全在 scripts/run-e2e-isolated.mjs 既有反 fake-green 护栏叙述行（:3/:7/:2407/:2417·本刀零新增该词面·git diff 亲证）·非绕过标记；weaken 宽松形 process.exit( 子串误中沿刀 B 07 收据同附注·词界形重扫 0 命中。

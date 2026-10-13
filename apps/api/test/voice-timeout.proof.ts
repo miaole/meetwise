@@ -37,7 +37,7 @@ async function main() {
     }
   }
   assert('provider 超时映射为 504 asr_timeout，前端可切文字作答', status === 504 && payload?.error === 'asr_timeout');
-  assert('超时只做归属和隐私围栏读取，不写音频、转写或业务状态', queries === 2 && statements.every((sql) => /^\s*SELECT\b/i.test(sql)));
+  assert('超时只做归属、隐私围栏与语音同意门读取，不写音频、转写或业务状态', queries === 3 && statements.every((sql) => /^\s*SELECT\b/i.test(sql)));
 
   const cancelledService = new InterviewService(
     { asPrincipal: async (_principal: string, fn: (c: { query: () => Promise<unknown> }) => unknown) => fn({ query: async () => ({ rowCount: 1, rows: [] }) }) } as any,

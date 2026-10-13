@@ -32,7 +32,7 @@ owner: architecture
   - **E6 超时/断线：** `prepare`、准入和 HTTP 传输收到 AbortSignal（中断信号）；准入前超时=确定未发送，已派发超时=`unknown`。迟到成功不得写成功工件、trace（追踪）或覆盖未知终态。机制：AbortSignal、持久状态机、幂等键。
 - **后置 Postcondition：** 每个调用处于 `succeeded`、`failed` 或 `unknown`；`claimed` 仅在未发送租约期内可接管，`dispatching` 不可自动重发。费用与模型调用在已派发异常时都可审计且冻结。
 - **验收 Acceptance：** 同键并发供应商派发数 `=1`（follower 只 `wait`/`cached`/`failed`/`unknown`，不得因孤儿 permit 或无行冲突而第二次 `execute`）；半开并发仅 `1` 个主端点探针进入供应商，配置备用端点的 follower（跟随者）派发数 `=1` 且两条幂等键均成功；准入超时调用/费用预留 `=0`；迟到成功后的成功工件/trace `=0`；危险“执行时限 ≥ 对账窗口−宽限”配置启动失败；对账后陈旧 `dispatching` 数 `=0` 且同键二次外呼 `=0`；跨 scope 同键的无关费用状态不变；跨主体读取/更新 `=0` 行；对账基础设施连续失败使 worker 就绪状态为 `false`。
-- **关联：** `packages/ai-runtime/src/invoke.ts`、`circuit-breaker.ts`、`rate-limit-model.ts`、`packages/db/src/model-invocation.ts`；状态机 `claimed → dispatching → succeeded|failed|unknown`；原语为 CAS、幂等键、RLS、持久事件/审计账本。
+- **关联：** `packages/ai-runtime/src/invoke.ts`、`packages/ai-runtime/src/model-admission.ts`（迁移 `0120` 共享准入/熔断权威；进程内 `circuit-breaker.ts`/`rate-limit-model.ts` 残留实现已删除）、`packages/db/src/model-invocation.ts`；状态机 `claimed → dispatching → succeeded|failed|unknown`；原语为 CAS、幂等键、RLS、持久事件/审计账本。
 - **七类覆盖：** 正常、异常、特殊（可计费/非可计费）、逃逸通道（降级/人工对账）、高并发、复杂（供应商与两个账本）、刁钻（迟到成功、半开并发、终态库故障）均覆盖。
 
 ### 测试用例

@@ -4,7 +4,7 @@
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-06
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`4766d4fc`** / full `4766d4fc2a9d06f2d95a7ab7759430c4cc494bfc`（`git fetch origin` 当次网络失败：curl 28 连不上 github.com:443 · 以本地 origin ref 为准 = 恰为预期下限 ≥`4766d4fc` · pre-exec 前须复核线上 tip 未前进）
-**Worktree**: `/Users/miaole/Desktop/golucky/meetwise-line-x`（branch `line/x-next-knife`）
+**Worktree**: `meetwise-line-x`（仓根同级 worktree·branch `line/x-next-knife`）
 **Knife**: **NHP-028-FAULT-01（Line X）· trace/账本写失败不阻塞业务（A1 fail-open）· gap→case/prove 显式化**
 **Gap id**: **`GAP-UC028-FAIL-OPEN`**（本刀具名 · 服务 NHP-028-FAULT-01；`GAP-UC028-RECON` / `GAP-UC028-TRUTH-BLOCK-E2E` / `GAP-UC028-INJECT` 仍 open · 不发明 covered）
 **Case id**: **`NHP-028-FAULT-01`**

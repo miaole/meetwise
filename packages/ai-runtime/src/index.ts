@@ -20,7 +20,7 @@ export type { ModelOperationInputKind, ModelOperationBindingInput, ModelOperatio
 export { resolveModelOperationBinding, validateOperationBindingProfiles, INPUT_KIND_ENDPOINT_PROFILES } from './operation-binding.ts';
 export type { BoundModelOperation, BoundOperationEndpoint, OperationBindingDecision } from './operation-binding.ts';
 // MODEL-OP-02 共享准入/账本/断路器/并发 的单一权威（取代 per-adapter 限流）。
-export { resolveModelAdmissionPartition, admitSharedModelOperation, recordSharedModelOperation } from './model-admission.ts';
+export { resolveModelAdmissionPartition, admitSharedModelOperation, recordSharedModelOperation, ADMISSION_REFUSAL_RETRYABLE_CODES, isAdmissionRefusalRetryable } from './model-admission.ts';
 export type {
   SharedModelAdmissionLease, AdmitSharedModelOperationInput, AdmitSharedModelOperationResult, SharedModelFeeRecord,
 } from './model-admission.ts';
@@ -29,7 +29,7 @@ export type { RouteDecision } from './router/index.ts';
 export { resolveBinding } from './catalog/index.ts';
 export type { ModelBinding } from './catalog/index.ts';
 export type { DoubleValidateResult } from './validators/index.ts';
-export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation } from './model-client.ts';
+export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation, cjkWeightedEstimate } from './model-client.ts';
 export type { ModelClient, CompletionRequest, RenderedContextBudgetPlan, RenderedContextBudgetDecision } from './model-client.ts';
 export {
   TEXT_ENDPOINT_REGISTRY_VERSION,
@@ -78,13 +78,16 @@ export type {
   ContextBudgetPolicy, ContextBudgetComponentEntry, ContextBudgetPlan,
   ContextBudgetError, ContextBudgetDecision,
 } from './context-budget.ts';
-// usage 对账校准接线（MODEL-OP-00 收尾）：域级 reconciler（P2）+ 因子读面双校验（P3）。
+// usage 对账校准接线（MODEL-OP-00 收尾 + AG-COST2 加窗/水位线/因子合并）：域级 reconciler（P2 全史 + 加窗增量）+
+// 因子读面双校验（P3）+ 合并语义（factor'=max(factor_prev, rawMax_增量×(1+safety))·insert-only 合并链）。
 // 复用纯模块 reconcileUsage/refineEstimate，不重实现因子公式。
 export {
   toCalibratedFactor, resolveLatestCalibratedFactor, reconcileUsageCalibration,
+  reconcileUsageCalibrationWindowed, mergeCalibratedFactorWithPrev, buildMergedFactorVersion,
 } from './usage-calibration-reconciler.ts';
 export type {
   ReconcileUsageCalibrationInput, ReconcileUsageCalibrationGroupResult, ReconcileUsageCalibrationResult,
+  ReconcileUsageCalibrationWindowedResult,
 } from './usage-calibration-reconciler.ts';
 export {
   visionOcr, bindResumeOcr, bindResumeOcrOperation, resumeOcrMediaDigest,
@@ -135,9 +138,9 @@ export {
 export type { OfflineContractGateCommand, OfflineContractGateResult, OfflineContractCaseResult, OfflineContractReceipt } from './offline-evaluation-runner.ts';
 export { onlineJudgeStratum, selectOnlineJudgeLot, sampleOnlineJudgeAttempts } from './online-judge-sampling.ts';
 export type { OnlineJudgeEligibleAttempt } from './online-judge-sampling.ts';
+// #74：fakeAsr/fakeTts 公共导出移 '@meetwise/ai-runtime/test-support'（test/support/fakes.ts）——
+// 生产主入口零 fake（disabled* 真关断 stub 非本族，生产 seams 在用，保留）。
 export {
-  fakeAsr,
-  fakeTts,
   disabledAsr,
   disabledTts,
   VOICE_EGRESS_DISABLED_ID,
@@ -174,7 +177,8 @@ export {
   STREAMING_TTS_NOT_CONFIGURED,
 } from './voice-stream-preview.ts';
 // 检索 / RAG（向量化 seam + 混合检索 + 召回度量）
-export { dashscopeEmbedder, fakeEmbedder, cosine } from './embedder.ts';
+// #74：fakeEmbedder 公共导出移 '@meetwise/ai-runtime/test-support'（test/support/fakes.ts）。
+export { dashscopeEmbedder, cosine } from './embedder.ts';
 export type { Embedder } from './embedder.ts';
 export { cachingEmbedder, inMemoryEmbeddingStore } from './embedder-cache.ts';
 export type { EmbeddingStore } from './embedder-cache.ts';
@@ -189,12 +193,10 @@ export { weightedRrf, buildSearchIndex, expandQuery, multiQuerySearch } from './
 export type { QueryExpansionInvoker } from './search.ts';
 export type { SearchDoc, SearchOpts, SearchIndex } from './search.ts';
 
-export { circuitBreaker } from './circuit-breaker.ts';
-export type { BreakerOpts, BreakerPhase } from './circuit-breaker.ts';
-export { rateLimitedModel } from './rate-limit-model.ts';
+// 进程内限流/熔断残留(circuit-breaker.ts/rate-limit-model.ts)已删:MODEL-OP-02(迁移 0120)的共享
+// 权威(ai_model_admission_acquire_scoped·model-admission.ts)在 invoke() 内统一裁决并发/熔断。
+// failoverModel 为生产活导出(interview-service 主链消费)——零字节保留。
 export { failoverModel } from './failover-model.ts';
-export { resolveModelRateLimitConfig } from './rate-limit-model.ts';
-export type { RateLimitOpts, RateLimitedClient, ModelRateLimitConfig } from './rate-limit-model.ts';
 
 export {
   withTimeout,
@@ -211,7 +213,9 @@ export {
   ExternalResponseJsonError,
 } from './timeout.ts';
 
-export { fakeStreamingAsr, fakeStreamingTts, disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
+// #74：fakeStreamingAsr/fakeStreamingTts 公共导出移 '@meetwise/ai-runtime/test-support'——
+// disabled*/dashscope*/streamingVoiceTurn 为生产面保留。
+export { disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';

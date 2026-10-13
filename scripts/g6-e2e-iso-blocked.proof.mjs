@@ -240,7 +240,9 @@ if (uc001Proof && /live blocked|MODEL_API_KEY|live_provider_key_missing/.test(uc
 
 // —— 9. Lightweight behavior: direct runner fail-closed (no isolated docker) ——
 {
-  const env = { ...process.env, E2E_ISOLATED: '1' };
+  // REG-FIX 组8b 门注入:E2E_SKIP_DOTENV='1'(与 delete MODEL_API_KEY 并用)——runner 不回灌仓根 .env,
+  // Key-unset 快速失败在任何宿主形态必达(行为门语义完整行使·非 skip-as-pass)。
+  const env = { ...process.env, E2E_ISOLATED: '1', E2E_SKIP_DOTENV: '1' };
   delete env.MODEL_API_KEY;
   const r = spawnSync(process.execPath, [join(root, 'scripts/run-e2e.mjs')], {
     env,

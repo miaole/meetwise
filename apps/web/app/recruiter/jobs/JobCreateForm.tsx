@@ -6,6 +6,7 @@ import { createJobAction } from './actions';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Spinner } from '@/components/ui/Spinner';
 
 /** Client-owned refresh prevents a successful B-end write being stranded in Server Action pending on mobile. */
@@ -43,6 +44,18 @@ export function JobCreateForm() {
       <div className="space-y-2">
         <Label htmlFor="title">岗位名称</Label>
         <Input id="title" name="title" placeholder="如:高级后端工程师" required minLength={2} />
+      </div>
+      {/* I3 JOB-MGMT（#258）：岗位描述(JD) 字段——后端 CreateJobDto.description 早已支持（≤8000 字），
+          此前仅表单缺失。JD 经创建链进语义 revision 与 planner 供给（真实接线，非宣称）。 */}
+      <div className="space-y-2">
+        <Label htmlFor="description">岗位描述(JD·可选)</Label>
+        <Textarea
+          id="description"
+          name="description"
+          maxLength={8000}
+          rows={5}
+          placeholder="岗位职责、任职要求等(≤8000 字·将用于岗位路由与面试出题规划)"
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="competencies">目标能力(逗号分隔)</Label>

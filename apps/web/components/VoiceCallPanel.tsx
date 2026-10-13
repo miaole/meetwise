@@ -19,6 +19,7 @@ import { Loader2, Mic, PhoneOff, Keyboard, Volume2, Square, CheckCircle2, AlertT
 import type { InterviewView } from '@/lib/stream/interview-state';
 import type { Display } from '@/lib/view-model';
 import { buildTurnSubmission, type TurnSubmission } from '@/lib/interview/turn-submission';
+import { grantVoiceCaptureConsentAction } from '@/app/interview/actions';
 
 /** Blob → base64(剥 data:URL 前缀)。FileReader 路径避免大数组 btoa 爆栈。 */
 function blobToBase64(blob: Blob): Promise<string> {
@@ -441,7 +442,17 @@ export function VoiceCallPanel({
           capture: { mode: 'single_local_microphone', consent: true, policyVersion: VOICE_CAPTURE_POLICY_VERSION },
         }),
       });
-      if (!res.ok) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); } return; }   // 503/502 → 出路:切回打字
+      if (!res.ok) {
+        // CONSENT-MIN(#69):同意门 403 consent_required → 回协议卡重开(既有 consent_required 文案,零新增),
+        // 不误报 asr_down;其余(503/502)既有出路 byte 级不变。
+        const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
+        if (res.status === 403 && errBody?.error === 'consent_required') {
+          if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
+          return;
+        }
+        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
+        return;
+      }   // 503/502 → 出路:切回打字
       const body = await res.json().catch(() => null) as { text?: unknown } | null;
       const transcribed = body?.text;
       if (typeof transcribed !== 'string') {
@@ -490,7 +501,16 @@ export function VoiceCallPanel({
           capture: { mode: 'single_local_microphone', consent: true, policyVersion: VOICE_CAPTURE_POLICY_VERSION },
         }),
       });
-      if (!res.ok) { if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); } return; }
+      if (!res.ok) {
+        // CONSENT-MIN(#69):重试路同主路——403 consent_required 回协议卡,不误报 asr_down。
+        const errBody = await res.json().catch(() => null) as { error?: unknown } | null;
+        if (res.status === 403 && errBody?.error === 'consent_required') {
+          if (gen === genRef.current) { setCaptureConsented(false); setStatus('consent_required'); }
+          return;
+        }
+        if (gen === genRef.current) { setStatus('asr_down'); toast.error('语音转写暂不可用,可切回打字继续'); }
+        return;
+      }
       const retryBody = await res.json().catch(() => null) as { text?: unknown } | null;
       const text = retryBody?.text;
       if (typeof text !== 'string') {
@@ -611,7 +631,17 @@ export function VoiceCallPanel({
             <div className="mt-3 flex flex-wrap gap-2">
               <button
                 type="button"
-                onClick={() => { setCaptureConsented(true); setStatus('connecting'); }}
+                onClick={async () => {
+                  // CONSENT-MIN(#69):await 落库(consent_record voice_capture)成功才进 connecting;
+                  // 失败停留 consent_required(卡保持),不假前进、不请求麦克风(:516 能力门语义保持)。
+                  try {
+                    await grantVoiceCaptureConsentAction();
+                    setCaptureConsented(true);
+                    setStatus('connecting');
+                  } catch {
+                    setStatus('consent_required');
+                  }
+                }}
                 className="rounded-md bg-primary px-3 py-2 text-xs font-medium text-primary-foreground hover:bg-primary/90"
               >
                 同意并启用本机语音

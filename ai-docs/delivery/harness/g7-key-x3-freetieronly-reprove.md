@@ -192,8 +192,8 @@
 |----|------|
 | Repo 用法 | `packages/ai-runtime/src/voice.ts` 缺省 `process.env.DASHSCOPE_ASR_MODEL ?? 'qwen-audio-turbo-latest'`；模板 `docker/env/worker.env.example` / `api.env.example` 同名 |
 | 用户百炼配额列表 | **不在**列表（coordinator） |
-| 公开文档 | 仍见模型页： [音频理解（Qwen-Audio）](https://help.aliyun.com/zh/model-studio/audio-language-model) — **仅供免费体验**；额度用完不可调用且 **不支持付费**；生产建议迁 **Qwen-Omni**；限流页仍列 `qwen-audio-turbo-latest`（[限流](https://help.aliyun.com/zh/model-studio/rate-limit)） |
-| 模型大全 | 语音/全模态推广 Omni / 新 ASR 名（如 `qwen-audio-3.1-asr-*` · `qwen3.8-omni-flash`）· [模型大全](https://help.aliyun.com/zh/model-studio/models) |
+| 公开文档 | 仍见模型页： 音频理解（Qwen-Audio）（云端帮助页） — **仅供免费体验**；额度用完不可调用且 **不支持付费**；生产建议迁 **Qwen-Omni**；限流页仍列 `qwen-audio-turbo-latest`（限流·云端帮助页） |
+| 模型大全 | 语音/全模态推广 Omni / 新 ASR 名（如 `qwen-audio-3.1-asr-*` · `qwen3.8-omni-flash`）· 模型大全（云端帮助页） |
 | 结论 | **非未知下线公告**，但是 **免费体验-only · 无付费路径**；不在按量配额 UI 与「仅免费体验」叙述一致 · **不适合**作为生产 ASR 证据 |
 | 命名 gap | **`GAP-MODEL-ASR-QWEN-AUDIO-TURBO-STATUS`**（本刀登记 · 非共享 SSOT） |
 

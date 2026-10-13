@@ -272,6 +272,129 @@
       "removedFile": false,
       "testCountDelta": 0,
       "assertionCountDelta": -2
+    },
+    {
+      "id": "E2E-PARITY-20261012-parity-b2-regen-full",
+      "path": "e2e/full.e2e.ts",
+      "reason": "f548c0d9→89530dea 窗口 scene/route 增量与断言随演、R4/R5 隐私面升 LIVE、recruiter 审批活契约、g7 捕获刀换面，替换身份入库未下调 floors",
+      "removedTests": [],
+      "removedAssertions": [
+        {
+          "kind": "A",
+          "label": "[异常前置] 无额度用户仍可完成简历处理同意",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "PIPL 采集同意 → 200",
+          "conditionDigest": "sha256:74ffed4a65f934d29225233229ac0c6fad980577ead45d9680ad77c3dec2e206"
+        },
+        {
+          "kind": "A",
+          "label": "[异常前置] 无额度用户持有合法且本人所属的 resumeId",
+          "conditionDigest": "sha256:484f491b472cd5f61758ea894758fb2b64e8fde21fbab5c0ef8165ecc13feda4"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] start 原子创建岗位专属会话(${String(boundInterviewId).slice(0, 12)})并返回可信跳转",
+          "conditionDigest": "sha256:ef0718f854bad3485a2ac9cd5457cdce219c5bb6c0b75fd032370cf5e42a2f42"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分",
+          "conditionDigest": "sha256:424cf09a68ffe72c493b9a86422dce7f16c559c2bf79c1a9268c7dced380353c"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机] 岗位终态后 {} finalize → 200，服务端仅认已绑定 interview(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, error=${finalized.error ?? 'none'})",
+          "conditionDigest": "sha256:e55f0b81f452a281ea1d258fad8f7370cd4b96199503524150350dc38fff3f05"
+        },
+        {
+          "kind": "A",
+          "label": "[状态机·恢复] 评分不可用后显式重试创建新 attempt（旧会话不复活）",
+          "conditionDigest": "sha256:6491a1cd6ea3289ce245066671653c0413df2e058e9f89613e5743e1b65cee5e"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": 0,
+      "assertionCountDelta": -7
+    },
+    {
+      "id": "E2E-PARITY-20261012-parity-b2-regen-helpers",
+      "path": "e2e/helpers/e2e-helpers.proof.ts",
+      "reason": "authz 5A-2 #100 HMAC 四段式三 test 重写（并线 4a5528a5·8a8633ce）+recruiter-gate 双 adminHeaders test（e2479961），重写与新身份入库、被替换身份入账未下调 floors",
+      "removedTests": [
+        {
+          "kind": "test",
+          "label": "createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签",
+          "conditionDigest": "sha256:7b83dff36338b8941abbe756f6f0b8b8b4dae3c941e9000648c1db1d49ab5ab4"
+        },
+        {
+          "kind": "test",
+          "label": "full.e2e 源码锁：入账必须 200 且 credited|already，错签 403，未知单 404",
+          "conditionDigest": "sha256:c377dadd60a1b7121b2769bdaa2085faf58a2590a891552506844ab66d921818"
+        },
+        {
+          "kind": "test",
+          "label": "支付 webhook HMAC 绑定 orderId:txn:paid，换单/换流水/换事件都不能复用签名",
+          "conditionDigest": "sha256:5c1e1fcebb15ea5006e5101cdf31f7005fd252faa7b6c3af3df4f5a42078ab36"
+        }
+      ],
+      "removedAssertions": [
+        {
+          "kind": "assert.equal",
+          "label": "",
+          "conditionDigest": "sha256:21025b9444a887adefbbe814377e84a58fcea17a791696ae33fabb30d46907aa"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:6ef8ed47f213da23320c1946f4d91105aff3dd152479ef18cd64eafa3f808c36"
+        },
+        {
+          "kind": "assert.equal",
+          "label": "ord-1:txn-1:paid",
+          "conditionDigest": "sha256:13939cc3bc3bf337b386a315f89faeba100fd23978e04b34e9f404a1b7db4983"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:59026ac6446c6570846950602469b3ebd957d6fc0c3c29b1b7b0d7604912a6fe"
+        },
+        {
+          "kind": "assert.match",
+          "label": "",
+          "conditionDigest": "sha256:aae4d7f08789ef81000142b0675c4375c6523bc3894339ff1c7fd677c5dea2cc"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:5f32a30957f03908a1cf5be1c36380dc322741a34567021897a04013451f9aa0"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:7f62fd8a47ffabd8bf3560387ff1e16e29f91829f8f73665c76b842105ed60ab"
+        },
+        {
+          "kind": "assert.notEqual",
+          "label": "",
+          "conditionDigest": "sha256:906e09361259d93acc618bd1a4f52b1245d61ccfbd51fd4d53ffea1e09b9541a"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:2c949136e0e56221a2ba5aa6cee70bf664b663a10b2e50966d28f8052f7e0c83"
+        },
+        {
+          "kind": "assert.throws",
+          "label": "",
+          "conditionDigest": "sha256:d56525187e9038155ec31cfb98782dee0d0124596fcfd0bbdada8f296485341b"
+        }
+      ],
+      "removedFile": false,
+      "testCountDelta": -3,
+      "assertionCountDelta": -10
     }
   ]
 }

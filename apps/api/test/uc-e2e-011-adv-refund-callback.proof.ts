@@ -77,7 +77,7 @@ function isExplainableRejectNotGap(status: number): boolean {
   // ── INV · 静态库存（产品口缺失前提 · 与 H5 对齐，不发明口）──
   {
     console.log('\n──────── INV · static inventory（refund 产品面）────────');
-    const paymentSrc = readRepo('packages/db/src/payment.ts');
+    const paymentSrc = readRepo('packages/db/src/commerce/payment.ts');
     const webhookCtrl = readRepo('apps/api/src/modules/commerce/commerce-webhook.controller.ts');
     const commerceCtrl = readRepo('apps/api/src/modules/commerce/commerce.controller.ts');
     const commerceSvc = readRepo('apps/api/src/modules/commerce/commerce.service.ts');
@@ -177,13 +177,13 @@ function isExplainableRejectNotGap(status: number): boolean {
     const wrongSig = paySig('forged-unrelated-string');
     const garbageShort = 'zz';
     const r1 = await h.post(primaryPath, h.U(owner), {
-      orderId: paidOrd, providerTxn: 'adv011-a1-txn', sig: wrongSig,
+      orderId: paidOrd, providerTxn: 'adv011-a1-txn', ts: Date.now(), sig: wrongSig,
     });
     const r2 = await h.post(primaryPath, h.U(owner), {
-      orderId: paidOrd, providerTxn: 'adv011-a1-txn', sig: garbageShort,
+      orderId: paidOrd, providerTxn: 'adv011-a1-txn', ts: Date.now(), sig: garbageShort,
     });
     const r3 = await h.post(equivPath, {}, {
-      providerTxn: 'adv011-a1-txn', sig: wrongSig,
+      providerTxn: 'adv011-a1-txn', ts: Date.now(), sig: wrongSig,
     });
 
     console.log(`A1 OBSERVE primary wrongSig → HTTP ${r1.status} body=${JSON.stringify(r1.body)?.slice(0, 160)}`);
@@ -236,10 +236,13 @@ function isExplainableRejectNotGap(status: number): boolean {
 
     // 无产品口 = 无法构造「合法签名回调」。仍发出两次同体请求以证明执行面不可达，
     // 并断言：不得把 404 记成「幂等 already/no-op」。
+    // 5A-2 #100 签名 fixture 形随:载荷 `${id}:${txn}:refunded:${ts}`(±300s 窗)·同体重放窗内 → 幂等腿可达。
+    const replayTs = Date.now();
     const body = {
       orderId: paidOrd,
       providerTxn: 'adv011-a2-replay-txn',
-      sig: paySig(`${paidOrd}:adv011-a2-replay-txn:refunded`),
+      ts: replayTs,
+      sig: paySig(`${paidOrd}:adv011-a2-replay-txn:refunded:${replayTs}`),
     };
     const first = await h.post(primaryPath, h.U(owner), body);
     const second = await h.post(primaryPath, h.U(owner), body);
@@ -293,7 +296,7 @@ function isExplainableRejectNotGap(status: number): boolean {
       console.log(`  GAP-ITEM leg=${f.leg} assertion="${f.name}"`);
     }
     console.log(`${GAP_PRODUCT} — POST /payment/refund-callback + markOrderRefunded / webhook refund 产品口未落（H4/H5 一致）`);
-    console.log('依据: apps/api/src/modules/commerce/commerce-webhook.controller.ts（仅 pay/:id）· commerce.service.ts（无 refund*）· packages/db/src/payment.ts（无 markOrderRefunded）');
+    console.log('依据: apps/api/src/modules/commerce/commerce-webhook.controller.ts（仅 pay/:id）· commerce.service.ts（无 refund*）· packages/db/src/commerce/payment.ts（无 markOrderRefunded）');
     console.log('处置: row UC-E2E-011 stays partial · ADV stays gap/case-only · coveredCount=8 · 不翻行；attempts 台账记 EXIT=1');
     console.log('非宣称: ≠ covered · ≠ ADV partial · ≠ 产品口已落 · ≠ HA · Ban self-nail');
     console.log(`CMD=${CMD} EXIT=1`);

@@ -21,12 +21,14 @@ export type QuestionKind = z.infer<typeof QuestionKind>;
 export const BusinessEvent = z.discriminatedUnion('event', [
   z.object({ event: z.literal('progress'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // question identity 由服务端持久化发放；旧流可显示题面但不能取得可提交身份（UI fail-closed）。
+  // #256 形制 A：plannedTurns=发射时点软预算约数（additive 可选，旧流缺字段零破坏；仅显示面消费，非承诺非上限）。
   z.object({ event: z.literal('question_ready'), id: z.number().int(), data: z.object({
     question: z.string(), competency: z.string().optional(),
     questionId: z.string().regex(/^q-v\d+-t\d+-c\d+$/).optional(),
     stateVersion: z.number().int().nonnegative().optional(),
     turn: z.number().int().nonnegative().optional(),
     qkind: QuestionKind.optional(),
+    plannedTurns: z.number().int().nonnegative().optional(),
   }) }),
   z.object({ event: z.literal('waiting_user'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
   // outcome 区分 answered / unresolved(跳过/探尽未决):unresolved 不是"得0分",前端标 skipped、不展示惩罚分;报告侧亦剔除。
@@ -39,6 +41,9 @@ export const BusinessEvent = z.discriminatedUnion('event', [
     answerId: z.string().uuid().optional(),
     answerHash: z.string().regex(/^[a-f0-9]{64}$/).optional(),
     competency: z.string().min(1).optional(),
+    // EVIDENCE-DELIVERY S1(C6)：模型判据(criterion)列表；optional=断线 catch-up 重放的历史事件无此键(strict 会杀重放解析)。
+    // 上限沿 EvalSchema max(6)（apps/worker/src/interview-service.ts:40 权威源·不引入跨包共享常量·写读双端同刀）。
+    evidence: z.array(z.string()).max(6).optional(),
   }) }),
   // 引导事件(**非终态**):回答没正面回应本题 → 图已发放一条新的 pending question
   // identity（不是旧题的重放许可），前端必须随事件替换提交令牌，否则重答会被服务端拒绝为 stale。
@@ -75,8 +80,11 @@ export type BusinessEvent = z.infer<typeof BusinessEvent>;
 export interface SSEFrame { id?: number; event?: string; data: string }
 
 /** 流式 SSE 解码：在**空行分隔符**(CRLF/CR/LF 皆可,spec)切帧;返回完整帧 + 未完成尾巴(rest,下次拼接,不归一以免拆裂不完整分隔符)。
- *  审计 MEDIUM 修复:`split('\n\n')` 遇 `\r\n\r\n` 切不出帧 → 永久转圈;改按 `/\r\n\r\n|\r\r|\n\n/` 分,行内按 `/\r\n|\r|\n/` 拆。 */
-export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string } {
+ *  审计 MEDIUM 修复:`split('\n\n')` 遇 `\r\n\r\n` 切不出帧 → 永久转圈;改按 `/\r\n\r\n|\r\r|\n\n/` 分,行内按 `/\r\n|\r|\n/` 拆。
+ *  SSE-RESILIENCE #55(W3 可选小件 C10):`sawTraffic`=本次解码见过任何非空白字节(含 `: ping` 注释/心跳行——它们在 :88,:94 被静默丢弃,
+ *  驱动从此旗得知"连接还活着",收到即重置失败预算;frames 语义零改,既有 `{frames,rest}` 解构不受影响)。 */
+export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string; sawTraffic: boolean } {
+  const sawTraffic = buffer.trim().length > 0;
   const parts = buffer.split(/\r\n\r\n|\r\r|\n\n/);
   const rest = parts.pop() ?? '';                       // 最后一段可能不完整(含半截分隔符),留到下次
   const frames: SSEFrame[] = [];
@@ -94,7 +102,7 @@ export function decodeSSE(buffer: string): { frames: SSEFrame[]; rest: string } 
     if (f.event === undefined) continue;                // 纯心跳/注释帧(无 event)不产出幻象帧
     frames.push(f);
   }
-  return { frames, rest };
+  return { frames, rest, sawTraffic };
 }
 
 /** 帧 → 强类型业务事件。schema 不过(未知事件/坏 payload)返回 null（前端只信契约内的事件,不裸用）。 */

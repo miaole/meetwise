@@ -859,6 +859,37 @@ export function readPoolErrorTotal(purpose: string): number {
 }
 
 /**
+ * Purposes of pools created in this process, deduped, in creation order.  The
+ * /metrics exposition renders one 0-prefilled series per registered purpose
+ * so a scrape sees the counter from process start, not from the first fault.
+ */
+const registeredPoolPurposes: string[] = [];
+
+/** Read-only registered-purpose view for the /metrics exposition. */
+export function readRegisteredPoolPurposes(): readonly string[] {
+  return registeredPoolPurposes;
+}
+
+/**
+ * Prometheus text lines for the pool-error counter (R-22 observability
+ * surface, rendered after the shared registry output on BOTH existing scrape
+ * faces — worker /metrics and api GET /metrics; no new endpoint).  One line
+ * per registered purpose.  The counter is an observability gauge, not a
+ * health signal: a rising count records faults, it does not describe
+ * recovery.  Labels are POOL_PURPOSE-validated infrastructure tags only;
+ * never principal/tenant/connection/SQL values.  /readyz never consults any
+ * of this (candidate-B boundary unchanged).
+ */
+export function renderPoolErrorsTotalLines(): string {
+  if (registeredPoolPurposes.length === 0) return '';
+  const lines = ['# TYPE meetwise_db_pool_errors_total counter'];
+  for (const purpose of registeredPoolPurposes) {
+    lines.push(`meetwise_db_pool_errors_total{purpose=${JSON.stringify(purpose)}} ${poolErrorTotal.get(purpose) ?? 0}`);
+  }
+  return lines.join('\n') + '\n';
+}
+
+/**
  * GAP-PRINCIPAL-POOL-NO-ERROR-LISTENER: pg surfaces one connection break
  * through up to two EventEmitter emissions (pg@8.22.0 `Client
  * ._handleErrorEvent` always `emit('error')` on the client after rejecting the
@@ -906,6 +937,7 @@ function observePoolError(purpose: string, error: unknown): void {
 export function createPool(o: PoolOverrides = {}): DbPool {
   if (o.purpose !== undefined && !POOL_PURPOSE.test(o.purpose)) invalidDatabaseConfig('database_pool_purpose_invalid');
   const purpose = o.purpose ?? 'default';
+  if (!registeredPoolPurposes.includes(purpose)) registeredPoolPurposes.push(purpose);
   const pool = new Pool({
     connectionString: resolveDatabaseConnectionString(o),
     ssl: resolveSsl(o),
@@ -916,6 +948,20 @@ export function createPool(o: PoolOverrides = {}): DbPool {
     idle_in_transaction_session_timeout: Number(process.env.PG_IDLE_TX_TIMEOUT_MS ?? 15000),
     connectionTimeoutMillis: Number(process.env.PG_CONN_TIMEOUT_MS ?? 5000),
     idleTimeoutMillis: Number(process.env.PG_IDLE_TIMEOUT_MS ?? 30000),
+    // R-22: TCP keepalive hard-pinned on. The pg driver defaults it to false
+    // (pg@8.22.0 client.js:95 `c.keepAlive || false`), so behind cloud LBs /
+    // NAT a silently dropped idle socket stays half-open inside the pool until
+    // first use.  keepAliveInitialDelayMillis bounds only the FIRST probe;
+    // the subsequent per-probe interval is kernel `tcp_keepalive_*` and is
+    // not reachable from this process (honest boundary, out of scope here).
+    keepAlive: true,
+    keepAliveInitialDelayMillis: Number(process.env.PG_KEEPALIVE_INITIAL_DELAY_MS ?? 10000),
+    // R-22: driver-level query timer (pg@8.22.0 client.js:660
+    // `config.query_timeout || this.connectionParameters.query_timeout`).
+    // Two distinct timeout layers coexist: this one is the client-side socket
+    // deadline per query; `statement_timeout` above is the server-side GUC.
+    // Each covers what the other cannot see; defaults are kept aligned.
+    query_timeout: Number(process.env.PG_QUERY_TIMEOUT_MS ?? 15000),
   });
   // pg-pool removes its idle error listener while a client is checked out
   // (`_acquireClient` → `client.removeListener('error', idleListener)`), so a

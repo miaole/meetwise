@@ -1,0 +1,31 @@
+
+> meetwise@0.1.0 authz5a:normalize:prove /Users/miaole/Desktop/golucky/meetwise
+> node scripts/run-e2e-isolated.mjs authz5a:normalize:prove
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-40160-1791779034600 on 127.0.0.1:65162
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:authz5a-email-normalization /Users/miaole/Desktop/golucky/meetwise/packages/db
+> tsx test/authz5a-email-normalization.proof.ts
+
+PASS  迁移清单含 0167/0168/0169（编号重 pin·0164 空号如实登记）
+PASS  预链(≤0166)一次通过
+PASS  [4] 冲突行整组原样保留（只报告不合并·处置归运营·Ban 静默合并）
+PASS  [4] 无冲突行照常归一（Normal@x.com 已 lower——报告与归一并行不悖）
+PASS  [4] 预检报告输出（authz_0167_conflict_report WARNING 列明冲突组）
+PASS  [4] 冲突未清 → 唯一索引延后不建（防中途 UNIQUE 坠迁移·派单裁决）
+PASS  清障后 0167-0169 过链（新增三迁移恰全应用·预链 ledger 前缀衔接）
+PASS  [1] signup/大写+空白邮箱 → 库内归一 lower(btrim) 落库
+PASS  [2] login/大写邮箱登录命中同一账户（入参先归一·裁决项①）
+PASS  [3] invite/大写+空白 email 键经 gateway_active_candidate 命中候选人（200 非 404 的承重谓词）
+PASS  [5] 重跑幂等/0167 体两次重放行映像零 diff
+PASS  [5] 重跑幂等/runMigrations 重放全 skipped
+PASS  [5] 重跑幂等/ux_user_email_lower 在位（lower(email) 唯一索引·§1 逐字名）
+PASS  R5/0169 retention_class 值域恒 auth_session（≠ memory 0112 的 session/account/derived）
+PASS  R5/auth_user_session.jti 主键唯一（与 0091 privacy_authorization_snapshot.jti 表级分离）
+
+✓ authz5a:normalize:prove: 15 条断言全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T04-24-01-853Z-40160-45fea731-3590-4e1d-8aea-ee154647d356.json release_evidence=false

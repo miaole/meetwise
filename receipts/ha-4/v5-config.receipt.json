@@ -1,0 +1,20 @@
+{
+  "kind": "ha4-v5-config",
+  "ok": true,
+  "cmds": [
+    {"name": "backup-only config (stub all :? vars)", "cmd": "docker compose -f docker/compose.backup.yml --project-directory . --env-file .tmp/ha4-config-stubs.env config -q", "exit": 0},
+    {"name": "merged prod+backup config", "cmd": "docker compose -f docker/compose.prod.yml -f docker/compose.backup.yml --project-directory . --env-file .tmp/ha4-config-stubs.env config", "exit": 0},
+    {"name": "prod-only baseline config", "cmd": "docker compose -f docker/compose.prod.yml --project-directory . --env-file .tmp/ha4-config-stubs.env config", "exit": 0}
+  ],
+  "stubVars": 87,
+  "stubFile": ".tmp/ha4-config-stubs.env (gitignored; RDS_CA_HOST_PATH→dummy pem, BACKUP_DIR_HOST→.tmp/ha4-backup/backups, rest =ha4-config-stub)",
+  "prodZeroDrift": {
+    "method": "per-service YAML slice diff (awk 2-space-indent scoping) prod-only vs merged",
+    "services": {"migrate": 97, "api": 108, "worker": 167, "web": 41},
+    "allByteEqual": true,
+    "mergedAddsOnly": ["service backup", "network default (shared)", "secret rds_ca (identical definition)"],
+    "topLevelName": "meetwise (both)",
+    "runs": "twice (base 9f6edf8f tree + post-rebase 141da56f tree after mid-run mainline advance) — identical results"
+  },
+  "gateNegativeControl": {"cmd": "bash scripts/backup/sandbox-seed.sh (MEETWISE_HA4_BACKUP_AUTHORIZED unset)", "exit": 3, "stderr": "ha4_seed_not_authorized"}
+}

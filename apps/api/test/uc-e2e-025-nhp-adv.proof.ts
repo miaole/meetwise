@@ -274,27 +274,39 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
     } finally { cli.release(); }
   };
 
-  // ── Static anchors @ tip (product source read-only · line numbers pinned by REQUEST) ──
+  // ── Static anchors (product source read-only · REG-FIX 组4c 主案:形状锚=唯一命中定位) ──
+  // 行位锚已三漂(priv01-C owner 改名 → GODFN-1c 三守卫合并 → H4 focus 入参·下方旧注释自证二漂):at(N) 行位
+  // 机制废除,第三次重钉仍必漂。主案=形状锚:区域 scoped=beginInterviewCore 起 → InterviewService 类止(与组2/
+  // 4a/4b 同域·全文件 indexOf 面废除);八锚语义目标不变(owner-scoped 单查 / 404 / stale_quiz / toLowerCase /
+  // resume_version_mismatch / bind owner 谓词 / reserve / enqueue),各 regex 区域**唯一命中**方过(零/多命中=
+  // 锚失真即红);404 锚用行首谓词(§5.1 收紧——区域双同形行:单行 if+throw 同含原样子串·行首谓词唯一命中
+  // quiz 404 独立 throw 行)。
   const svcPath = fileURLToPath(new URL('../src/modules/interview/interview.service.ts', import.meta.url));
   const svc = readFileSync(svcPath, 'utf8');
   const L = svc.split('\n');
-  const at = (n: number) => L[n - 1] ?? '';
-  // GODFN-1c 逐修(预存红根因①:行锚随 priv01-C owner 改名与 begin 三守卫合并漂移):重钉至合并后现行行号,
-  // 各锚语义目标不变(owner-scoped 单查 / 404 / stale_quiz / toLowerCase / resume_version_mismatch / bind owner
-  // 谓词 / reserve / enqueue)。
-  A('PIN', 'anchor :196 owner-scoped merged quiz SELECT(3→1)', /SELECT q\.status, q\.expires_at,/.test(at(196)));
-  A('PIN', 'anchor :206 404 not_found_or_forbidden', /not_found_or_forbidden/.test(at(206)) && /NOT_FOUND/.test(at(206)));
-  A('PIN', 'anchor :212 stale_quiz', /'stale_quiz'/.test(at(212)));
-  A('PIN', 'anchor :227 toLowerCase compare', /toLowerCase\(\)\s*!==\s*resumeId\.toLowerCase\(\)/.test(at(227)));
-  A('PIN', 'anchor :230 409 resume_version_mismatch', /'resume_version_mismatch'/.test(at(230)) && /CONFLICT/.test(at(230)));
-  A('PIN', 'anchor :264 resume owner check in bind', /r\.owner_user_id=\$2/.test(at(264)));
-  A('PIN', 'anchor :304 reserveEntitlement', /reserveEntitlement\(c, owner, id, 'mock_interview', 1\.0\)/.test(at(304)));
-  A('PIN', 'anchor :312 enqueueInterviewJob', /enqueueInterviewJob\(/.test(at(312)));
-  // A3-b premise: no query binds the header resume-id before :266 (owner gate only at bind :288-301)
-  const bStart = svc.indexOf('begin(principal');
-  const boundAt = svc.indexOf("error: 'resume_version_mismatch'", bStart);
-  const preBound = bStart >= 0 && boundAt > bStart ? svc.slice(bStart, boundAt) : '';
-  A('PIN', 'no header resume-id SQL param (owner gate) before :266 (A3-b premise)',
+  const coreAt = L.findIndex((l) => l.startsWith('export async function beginInterviewCore('));
+  const clsAt = L.findIndex((l) => l.startsWith('export class InterviewService'));
+  const regionLines = coreAt >= 0 && clsAt > coreAt ? L.slice(coreAt, clsAt) : [];
+  A('PIN', 'anchor region beginInterviewCore→InterviewService parseable', regionLines.length > 0);
+  const uniqueHit = (re: RegExp): string | null => {
+    const hits = regionLines.filter((l) => re.test(l));
+    return hits.length === 1 ? hits[0] : null;   // 恰一命中→该行;零/多命中→null(红)
+  };
+  A('PIN', 'anchor owner-scoped merged quiz SELECT(3→1)', !!uniqueHit(/SELECT q\.status, q\.expires_at,/));
+  A('PIN', 'anchor 404 not_found_or_forbidden(line-start throw predicate · §5.1)',
+    !!uniqueHit(/^\s*throw new HttpException\(\{ error: 'not_found_or_forbidden' \}/));
+  A('PIN', 'anchor stale_quiz(409 CONFLICT)', (() => { const l = uniqueHit(/'stale_quiz'/); return !!l && /CONFLICT/.test(l); })());
+  A('PIN', 'anchor toLowerCase compare', !!uniqueHit(/toLowerCase\(\)\s*!==\s*resumeId\.toLowerCase\(\)/));
+  A('PIN', 'anchor 409 resume_version_mismatch(CONFLICT)', (() => { const l = uniqueHit(/'resume_version_mismatch'/); return !!l && /CONFLICT/.test(l); })());
+  A('PIN', 'anchor resume owner check in bind', !!uniqueHit(/r\.owner_user_id=\$2/));
+  A('PIN', 'anchor reserveEntitlement', !!uniqueHit(/reserveEntitlement\(c, owner, id, 'mock_interview', 1\.0\)/));
+  A('PIN', 'anchor enqueueInterviewJob', !!uniqueHit(/enqueueInterviewJob\(/));
+  // A3-b premise: no query binds the header resume-id inside the guard window (owner gate only at bind)
+  // (preBound 窗 bStart 随演→beginInterviewCore 锚·实参 [sourceQuizId, quizScope.value]/[id] 亲证零 resumeId 绑定)
+  const coreIdx = svc.indexOf('export async function beginInterviewCore(');
+  const boundIdx = svc.indexOf("error: 'resume_version_mismatch'", coreIdx);
+  const preBound = coreIdx >= 0 && boundIdx > coreIdx ? svc.slice(coreIdx, boundIdx) : '';
+  A('PIN', 'no header resume-id SQL param (owner gate) inside guard window (A3-b premise)',
     preBound.length > 0 && !/\[[^\]]*\bresumeId\b[^\]]*\]/.test(preBound));
 
   // ── Seeds (offline · admin pool · non-product) ──

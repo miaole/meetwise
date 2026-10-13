@@ -1,0 +1,168 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-46111-1791568061684 on 127.0.0.1:49730
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:bend /Users/miaole/Desktop/golucky/meetwise-line-b110/apps/api
+> node --import @swc-node/register/esm-register test/neg-bend.proof.ts
+
+PASS  0123 回归 fixture 保留 production initially-deferred FK 精确表列形状
+PASS  0123 展示快照回填不被历史 abandoned 绑定行阻断
+PASS  历史死绑定只补展示快照，不改写申请状态/绑定 attempt
+PASS  0123 完成后 lineage 与 application binding trigger 均恢复启用
+PASS  迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝
+PASS  GET /jobs 无鉴权→401
+PASS  POST /jobs/:id/apply 无鉴权→401
+PASS  GET /applications 无鉴权→401
+PASS  POST /applications/:id/start 无鉴权→401
+PASS  POST /applications/:id/decline 无鉴权→401
+PASS  POST /applications/:id/finalize 无鉴权→401
+PASS  GET /recruiter/jobs 无鉴权→401
+PASS  POST /recruiter/jobs 无鉴权→401
+PASS  GET /recruiter/talent 无鉴权→401
+PASS  GET /recruiter/jobs/:id 无鉴权→401
+PASS  GET /recruiter/jobs/:id/candidates 无鉴权→401
+PASS  POST /recruiter/jobs/:id/invite 无鉴权→401
+PASS  GET /admin/users 无鉴权→401
+PASS  GET /admin/orders 无鉴权→401
+PASS  GET /admin/audit 无鉴权→401
+PASS  POST /admin/users/:id/disable 无鉴权→401
+PASS  GET /roles 无鉴权→401
+PASS  POST /roles/match 无鉴权→401
+PASS  GET /profile 无鉴权→401
+PASS  GET /profile/growth 无鉴权→401
+PASS  PATCH /profile/settings 无鉴权→401
+PASS  POST /profile/change-password 无鉴权→401
+PASS  GET /recruiter/jobs 垃圾 Bearer→401
+PASS  GET /admin/users 垃圾 Bearer→401
+PASS  GET /profile 错密钥签名 token→401
+PASS  GET /profile 幽灵账户(签名合法但账户不存在)→401
+PASS  GET /profile 保留系统主体 __system* 冒充→401
+PASS  POST /recruiter/jobs 保留系统主体→401
+PASS  candidate POST /recruiter/jobs→403
+PASS  candidate GET /recruiter/jobs→403
+PASS  candidate GET /recruiter/talent(枚举人才库)→403
+PASS  candidate GET /recruiter/jobs/:id→403
+PASS  candidate GET /recruiter/jobs/:id/candidates→403
+PASS  candidate POST /recruiter/jobs/:id/invite(借邀请枚举用户)→403
+PASS  candidate 越权 /recruiter 错误体标 recruiter_required
+PASS  adminU(role=candidate) POST /recruiter/jobs→403
+PASS  adminU GET /recruiter/talent→403
+PASS  victimU(candidate) GET /recruiter/jobs→403
+PASS  candidate GET /admin/users→403
+PASS  candidate GET /admin/orders→403
+PASS  candidate GET /admin/stats→403
+PASS  candidate GET /admin/audit→403
+PASS  candidate GET /admin/question-feedback→403
+PASS  candidate POST /admin/users/:id/disable(越权停用他人)→403
+PASS  非 admin 越权 /admin 错误体标 admin_required
+PASS  recruiter GET /admin/users→403
+PASS  recruiter POST /admin/users/:id/disable→403
+PASS  admin disable 不存在用户→404
+PASS  admin /users 不泄漏 password_hash/pwd_epoch/preferences
+PASS  admin /orders 不泄漏 password/secret/token/hash 字段
+PASS  admin 无 POST /admin/orders 写口→404
+PASS  admin 无 POST /admin/users(建用户)写口→404
+PASS  admin 无 POST /admin/users/:id/promote(提权)写口→404
+PASS  recU2 读 recU 的岗位→404 not_found_or_forbidden
+PASS  recU2 读 recU 的已关岗→404
+PASS  recU2 查 recU 岗位候选人→空(RLS 隔离,不见 victimU)
+PASS  recU2 邀请候选人到 recU 岗位→404 job_not_found_or_forbidden
+PASS  recU2 /recruiter/jobs 列表不含 recU 的 JOB_REC
+PASS  recU /recruiter/jobs 列表不含 recU2 的 JOB_REC2
+PASS  recU2 人才库不含 victimU(跨租户隔离)
+PASS  userB start victimU 的申请→noop(不推进)
+PASS  userB start 后 APP_VICTIM 仍 invited(DB 未越权修改)
+PASS  userB decline victimU 的邀请→noop
+PASS  userB decline 后 APP_VICTIM 仍 invited(未越权终结)
+PASS  userB finalize victimU 的申请→409 cannot_finalize
+PASS  userB finalize 后 APP_VICTIM.score 仍为空(未越权回填)
+PASS  userB /applications 不含 victimU 的 APP_VICTIM
+PASS  userA start 不存在申请→noop
+PASS  userA finalize 不存在申请→409
+PASS  apply 不存在岗位→404 job_not_found_or_closed
+PASS  apply 已关闭岗位→404(闭岗不可投)
+PASS  finalize 空对象→409（无绑定不收口）
+PASS  finalize 注入 interviewId 空串→400
+PASS  finalize 注入 interviewId 非字符串→400
+PASS  start 缺 resumeId→400
+PASS  start 非 UUID resumeId→400
+PASS  重复 apply 同岗位:两次返回同一 applicationId(幂等)
+PASS  重复 apply 不产生第二行(dup 约束生效)
+PASS  create job title 过短→400
+PASS  create job 缺 title→400
+PASS  create job competencies 超 30 条→400
+PASS  invite 既无 id 也无 email→400
+PASS  invite email 非法格式→400
+PASS  invite 不存在候选人→恒定壳 200 received(零存在性信号)
+PASS  invite 招聘方 email→同壳零信号(不暴露 B 端账户)
+PASS  recU 邀请到 recU2 岗位→404 job_not_found_or_forbidden
+PASS  roles/match 缺 resumeId→400 missing_resume_id
+PASS  roles/match 他人/不存在简历→404 not_found_or_forbidden
+PASS  无 POST /roles(自建角色)写口→404
+PASS  无 PATCH /roles(自升角色)写口→404
+PASS  无 POST /roles/promote(提权)写口→404
+PASS  GET /profile/userB(跨用户读)→无该路由 404
+PASS  settings 未知顶层 key→400
+PASS  settings preferences 内未知 key→400
+PASS  settings notifications 未知子 key→400
+PASS  settings theme 非法枚举→400
+PASS  settings locale 非法枚举→400
+PASS  settings preferences 非对象→400
+PASS  settings 缺 preferences→400
+PASS  settings 畸形 JSON 体→400
+PASS  change-password 新密码 <8→400 invalid_password
+PASS  change-password 缺字段→400
+PASS  change-password 旧密码错误→401 wrong_password
+PASS  /profile 响应不含 password_hash/pwd_epoch
+PASS  RLS: recU2 看不到 recU 租户的 APP_VICTIM
+PASS  RLS: userB 看不到 victimU 的 APP_VICTIM
+PASS  RLS: recU2 读不到 recU 的已关闭岗位 JOB_CLOSED
+PASS  RLS: userB 无法冒充 victimU 插入申请(WITH CHECK 拦截)
+PASS  RLS: recU2 无法为 recU 的岗位建邀请申请(EXISTS 归属自校验)
+PASS  DB guard: candidate 不能直接插入 completed/100 的伪造候选结果
+PASS  DB guard: 候选人不能改写岗位标题快照
+PASS  伪造完成行对受害招聘方可见数=0
+PASS  DB guard: 终态前后均不能篡改 job/recruiter 租户归属
+PASS  RLS: candidate userA 改不动招聘方岗位(0 行受影响)
+PASS  pending GET /recruiter/jobs→403 recruiter_pending_review
+PASS  pending POST /recruiter/jobs→403 recruiter_pending_review
+PASS  pending GET /recruiter/talent→403 recruiter_pending_review
+PASS  pending GET /recruiter/jobs/:id→403 recruiter_pending_review
+PASS  pending GET /recruiter/jobs/:id/candidates→403 recruiter_pending_review
+PASS  pending POST invite→403 recruiter_pending_review
+PASS  rejected GET /recruiter/jobs→403 recruiter_rejected
+PASS  rejected POST /recruiter/jobs→403 recruiter_rejected
+PASS  三分码互异:pending_review/rejected/required 实测三码各不相同
+PASS  纵深: DB 直调 gateway_active_candidate 对 pending recruiter 拒(gateway_recruiter_required)
+PASS  纵深: DB 直调对 rejected recruiter 同拒(fail-closed 只增不弱)
+PASS  回归: approved recruiter DB 直调仍解析到活跃候选人(零弱化)
+PASS  admin 审批队列→200 且含 pendU(pending 先审)
+PASS  非 admin GET 审批队列→403 admin_required
+PASS  非 admin POST decision→403(HTTP AdminGuard 层)
+PASS  非 admin decision DB 双层拒(函数内复核 gateway_admin_required)
+PASS  decision 非法枚举值→400(zod 契约)
+PASS  DB 直调 decision 非法值→invalid_decision(函数自守·绕 HTTP 也拒)
+PASS  admin approve pendU→200 decided
+PASS  approve_recruiter 留痕:actor/action/target 断言(照 0041:107-120 样板)
+PASS  approve 后同账户 create→200(解锁)
+PASS  approve 后同账户 invite→200 恒定壳
+PASS  admin reject pendU→200 decided
+PASS  reject_recruiter 留痕:actor/action/target 断言
+PASS  reject 后恒 403 recruiter_rejected(分码断言)
+PASS  reject 后 GET /recruiter/talent 恒 403 recruiter_rejected
+PASS  decision 对 candidate 目标→404(role 过滤)
+PASS  decision 对幽灵目标→404
+PASS  枚举不可区分:三路 invite status+body 逐字节一致
+PASS  恒定壳钉死期望字节 {"received":true} 且 200(非「都 404」弱化形)
+PASS  命中真实建申请:租户内 candidates 列表可见 freshC(壳外承载)
+PASS  第四探针:越权岗位×注册候选人=×幽灵 status+body 逐字节一致
+PASS  第四探针:双方恒 404 期望字节 {"error":"job_not_found_or_forbidden"}(字节钉死)
+PASS  全部越权尝试后 APP_VICTIM 仍 invited & score 空(零副作用)
+PASS  signup:ip 桶:同 IP 前 10 次(容量内)全放行
+PASS  signup:ip 桶:第 11 次(容量+1)→429 too_many_attempts
+PASS  invite:ip 桶:同 IP 超速→429(recU2 主体桶未满,429 必来自 ip 维度)
+PASS  invite 429 后同主体后续恒 429(fail-closed,不静默换道放行)
+
+✓ neg:bend: 157 条负路径用例全绿

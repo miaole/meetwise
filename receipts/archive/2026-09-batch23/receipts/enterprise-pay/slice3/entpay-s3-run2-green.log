@@ -1,0 +1,37 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-43339-1791660000103 on 127.0.0.1:62580
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 entpay:s3:prove /Users/miaole/Desktop/golucky/meetwise-s3d/apps/api
+> node --import @swc-node/register/esm-register test/entpay-s3.proof.ts
+
+PASS  S3-0 真迁移链全量应用 0001→0159（末位=0159 片3 P2 受控读函数）
+PASS  S3-0b 重跑全 skipped（幂等·CREATE OR REPLACE+自包含 REVOKE/GRANT）
+PASS  S3-0c 0159 函数在位（SECURITY DEFINER·prosecdef）
+PASS  §4-3④ 0159 函数体+ACL 与 23_api_gateway.sql 镜像逐字节同文（S1-C2 承重墙判据·neg 直载同源）
+PASS  §4-3③ app_role 会话直读 offline_remit_record 被拒（42501 permission denied·台账零 GRANT）
+PASS  §4-3①a REC 恰见本人 4 张对公单（他方 s3-ord-other 零行·线上单不入台账）
+PASS  §4-3①b REC2 恰见本人 1 张（本人行作用域双向成立）
+PASS  §4-3①c 错配反例：principal 与任何 owner 不匹配 → 零行（Ban 无作用域全表读）
+PASS  §4-3②a 无台账行=created（remit_status NULL）
+PASS  §4-3②b 台账 entered=entered
+PASS  §4-3②c 台账 confirmed=confirmed
+PASS  §4-3②d 台账 failed=failed
+PASS  §4-3②e created_at DESC 时序（首行=最新对公单 s3-ord-failed·线上单不入列）+ 伴随列随态（entered_at/confirmed_at）
+PASS  §4-3⑤a 非 approved principal → 403 recruiter_required（门复用 :28-30 谓词）
+PASS  §4-3⑤b 他人单零行不可区分：REC2 视图内不见 REC 单号（empty/仅本人行，无存在性泄漏）
+PASS  §4-4a 缺省=全桶未过期和（3+5=8·expired 7.00 界外·与既有 C 端口径逐值一致）
+PASS  §4-4b kind=enterprise 恰企业桶（5.00·expired 企业桶界外）
+PASS  §4-4c kind=paid 恰个人桶（3.00·过滤双向不串桶）
+PASS  §4-4d entitlement 一次调用双算恒并列（availableUnits=8 不变+enterpriseAvailableUnits=5 只增）
+PASS  §4-5a listMyOrders 仅本人行（CAND 51+ 域内·零 REC/REC2 单泄漏）
+PASS  §4-5b LIMIT 50 窗（>50 窗外老 paid 单不可选=裁定③如实边界）
+PASS  §4-5c created_at DESC（最新在前·窗口裁的是最老行 s3-bulk-51）
+PASS  §4-5d REC 视图含四态 status+channel 行级事实（web 仅-paid 过滤的行级事实源）
+PASS  §4-5e 开票仅-paid 负例面复验：created 单 → 409 invoice_request_order_not_paid（触发器双层承·不弱）
+PASS  §4-7a P6 更正文本在位（四锚+第五锚：0041:14-20·09_auth.sql:23-27·principal.ts:949·0001:372）
+PASS  §4-7b 「实无 RLS」失准表述零残留（勘误之勘误·slice1 收据 append-only 零改）
+
+✓ entpay:s3:prove: 26 条负路径用例全绿

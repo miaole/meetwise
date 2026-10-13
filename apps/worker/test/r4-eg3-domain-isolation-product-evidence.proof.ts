@@ -22,7 +22,7 @@ import {
   assessDomainIsolationProductEvidence,
   emitDomainIsolationProductEvidence,
   hasDomainIsolationProductEvidence,
-} from '../src/r4-eg3-domain-isolation-product-evidence.ts';
+} from '../evidence/r4-eg3-domain-isolation-product-evidence.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

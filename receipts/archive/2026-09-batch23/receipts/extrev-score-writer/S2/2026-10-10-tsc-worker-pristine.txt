@@ -1,0 +1,44 @@
+apps/worker/src/adaptive-lifecycle.ts(178,19): error TS2532: Object is possibly 'undefined'.
+apps/worker/src/production-equivalent-funnel-08-eval.ts(282,7): error TS2322: Type 'number | undefined' is not assignable to type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+apps/worker/test/nhp-r4-adv-covered.proof.ts(156,11): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms1-product-wire.proof.ts(333,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms1-product-wire.proof.ts(335,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms1-product-wire.proof.ts(336,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms2-facets-product.proof.ts(350,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms2-facets-product.proof.ts(352,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms2-facets-product.proof.ts(353,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms3-deploy-product.proof.ts(381,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms3-deploy-product.proof.ts(383,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-ms3-deploy-product.proof.ts(384,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-p-r1.proof.ts(239,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-p-r1.proof.ts(241,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-p-r1.proof.ts(242,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-serving-product.proof.ts(289,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-serving-product.proof.ts(291,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-serving-product.proof.ts(292,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-serving.proof.ts(223,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-serving.proof.ts(225,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-meta-serving.proof.ts(226,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-r1-fail-closed.proof.ts(239,21): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-r1-fail-closed.proof.ts(241,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-p-r1-fail-closed.proof.ts(242,9): error TS18048: 'body' is possibly 'undefined'.
+apps/worker/test/r4-wrong-track-prod-surface.proof.ts(260,11): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/r4-wrong-track-prod-surface.proof.ts(260,60): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/signal-conclude-event.proof.ts(24,40): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/signal-conclude-event.proof.ts(24,81): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/signal-conclude-event.proof.ts(25,8): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/signal-conclude-event.proof.ts(25,37): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/signal-conclude-event.proof.ts(26,34): error TS2532: Object is possibly 'undefined'.
+apps/worker/test/uc-e2e-016-nhp-fault.proof.ts(263,66): error TS2339: Property 'eventKind' does not exist on type '{ stream: string; jobStatus: string; objStatus: string; }'.
+apps/worker/test/uc-e2e-016-nhp-fault.proof.ts(267,63): error TS2339: Property 'eventKind' does not exist on type '{ stream: string; jobStatus: string; objStatus: string; }'.
+packages/ai-graphs/src/adaptive-interview/graph.ts(57,30): error TS2353: Object literal may only specify known properties, and 'recursionLimit' does not exist in type '{ checkpointer?: boolean | BaseCheckpointSaver<number> | undefined; store?: BaseStore | undefined; cache?: BaseCache<unknown> | undefined; ... 4 more ...; transformers?: [] | undefined; }'.
+packages/ai-runtime/src/interview-voice-seams.ts(67,22): error TS7006: Parameter 'audio' implicitly has an 'any' type.
+packages/ai-runtime/src/interview-voice-seams.ts(67,29): error TS7006: Parameter 'opts' implicitly has an 'any' type.
+packages/ai-runtime/src/interview-voice-seams.ts(77,22): error TS7006: Parameter 'text' implicitly has an 'any' type.
+packages/ai-runtime/src/interview-voice-seams.ts(77,28): error TS7006: Parameter 'opts' implicitly has an 'any' type.
+packages/domain/src/adaptive-interview.ts(113,31): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+packages/domain/src/interview-control-signals.ts(103,29): error TS18047: 'c' is possibly 'null'.
+packages/domain/src/privacy-erasure-preview.ts(159,71): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.

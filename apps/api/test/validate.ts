@@ -58,6 +58,8 @@ async function validate() {
   }
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status) VALUES ('ABND','userA','created')`);
   await db.pool.query(`INSERT INTO interview(id,owner_user_id,status,questions) VALUES ('ASMT','userA','completed','["订单限流方案","分布式锁可靠性"]')`);
+  // EVIDENCE-DELIVERY S2(出③) fixture：completed 场次（fence 同 ASMT 面）供 transcript evidence 断言。
+  await db.pool.query(`INSERT INTO interview(id,owner_user_id,status,questions) VALUES ('EVDEL','eviddelUser','completed','["请说明限流方案","请说明降级策略"]')`);
   // 图内 issueQuestionId 编码 q-v{stateVersion}-t{turn}-c{clarifyAttempts}，stateVersion 从 0 起、每题 +1：
   // turn 0 → stateVersion 1（q-v1-t0-c0），turn 1 → stateVersion 2（q-v2-t1-c0）。0021 的
   // UNIQUE(owner_user_id,interview_id,state_version) 要求同场两题 state_version 不同，故第二题用 2。
@@ -399,8 +401,11 @@ async function validate() {
     ocrAfter.consumption === ocrBefore.consumption && ocrAfter.artifact === ocrBefore.artifact && ocrAfter.invocation === ocrBefore.invocation);
 
   // 语音未配置时 API 给可恢复的显式降级；真实双向语音由 live E2E 用百炼完成。
+  // CONSENT-MIN(#69)登记更新:transcribe 链在 guardInterviewPrivacy 之后新增 voice_capture 同意门,
+  // userA fixture 无该同意行(seed 仅 resume_processing)→ 先改判 403 consent_required(门先于 ASR 503 判);
+  // 门过后的 503 asr_unavailable 形状由 prove:consent-min e 案承接。
   r = await postJson('/interview/R1/transcribe', { 'x-user-id': 'userA' }, { audioBase64: Buffer.from([1, 2, 3, 4]).toString('base64'), mimeType: 'audio/webm', capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' } });
-  A('未配置 ASR → 503 asr_unavailable（前端可回落文字）', r.status === 503 && r.body.error === 'asr_unavailable');
+  A('未授 voice_capture 同意 → 403 consent_required（同意门先于 ASR 判,前端回协议卡）', r.status === 403 && r.body.error === 'consent_required' && r.body.purpose === 'voice_capture');
   r = await postJson('/interview/R1/speak', { 'x-user-id': 'userA' }, { text: '请介绍一下你自己' });
   A('未配置 TTS → 503 tts_unavailable（前端可回落文字）', r.status === 503 && r.body.error === 'tts_unavailable');
   r = await postJson('/interview/R9/transcribe', { 'x-user-id': 'userA' }, { audioBase64: Buffer.from([1, 2, 3]).toString('base64'), mimeType: 'audio/webm', capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' } });
@@ -417,6 +422,32 @@ async function validate() {
   r = await req('GET', '/interview', { 'x-user-id': 'userB' }); A('userB 列表看不到 userA 的面试(RLS)', r.status === 200 && !r.body.interviews.some((x: any) => x.id === newIv));
   r = await req('GET', `/interview/${newIv}/transcript`, { 'x-user-id': 'userA' }); A('转写(空题目→空 turns)', r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 0);
   r = await req('GET', `/interview/${newIv}/transcript`, { 'x-user-id': 'userB' }); A('userB 越权取转写 → 404', r.status === 404);
+  // EVIDENCE-DELIVERY S2(出③)：answer_evaluated.payload 带 evidence（模型判据）→ transcript turns[].evidence 在场；
+  // 历史形状（无 evidence 键）→ evidence=[]（P2 旧行回退隐藏的上游投影）；quote 原文键不入投影（脱敏边界）。
+  // 专用 client 上重绑 session principal（池化连接可能残留跨用户 HTTP 段设置的 userB 等 principal）。
+  {
+    const seedClient = await db.pool.connect();
+    try {
+      await seedClient.query("SELECT set_config('app.principal_user', 'eviddelUser', false)");
+      await seedClient.query(
+        `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,status,answer_id,answer_hash)
+         VALUES ('eviddelUser','EVDEL','q-v1-t0-c0',1,0,'请说明限流方案','高并发','answered','11111111-1111-4111-8111-111111111111',repeat('a',64)),
+                ('eviddelUser','EVDEL','q-v2-t1-c0',2,1,'请说明降级策略','高并发','answered','22222222-2222-4222-8222-222222222222',repeat('b',64))`,
+      );
+      await seedClient.query(
+        `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES
+           ('eviddelUser','EVDEL',1,'answer_evaluated',$1),
+           ('eviddelUser','EVDEL',2,'answer_evaluated',$2)`,
+        [JSON.stringify({ questionId: 'q-v1-t0-c0', stateVersion: 1, answerId: '11111111-1111-4111-8111-111111111111', answerHash: 'a'.repeat(64), turn: 0, competency: '高并发', score: 80, outcome: 'answered', question: '请说明限流方案', evidence: ['answer_quality'] }),
+         JSON.stringify({ questionId: 'q-v2-t1-c0', stateVersion: 2, answerId: '22222222-2222-4222-8222-222222222222', answerHash: 'b'.repeat(64), turn: 1, competency: '高并发', score: 40, outcome: 'answered', question: '请说明降级策略' })],
+      );
+    } finally { seedClient.release(); }
+  }
+  r = await req('GET', '/interview/EVDEL/transcript', { 'x-user-id': 'eviddelUser' });
+  A('转写带 evidence：判据数组逐元素在场（出③）', r.status === 200 && r.body.turns[0]?.evidence?.length === 1 && r.body.turns[0].evidence[0] === 'answer_quality');
+  A('转写历史形状回合 evidence=[]（缺键→空数组·P2 回退隐藏上游）', r.status === 200 && Array.isArray(r.body.turns[1]?.evidence) && r.body.turns[1].evidence.length === 0);
+  A('转写投影零 quote 原文（脱敏边界·响应面无 quote/evidenceRecords 键）',
+    r.status === 200 && r.body.turns.every((t: any) => !('quote' in t) && !('evidenceRecords' in t)));
   // 面试列表过滤 + 简历重解析
   r = await req('GET', '/interview?status=completed', { 'x-user-id': 'userA' }); A('按 status 过滤面试列表', r.status === 200 && r.body.interviews.every((x: any) => x.status === 'completed') && r.body.interviews.some((x: any) => x.id === 'ASMT'));
   r = await postJson('/resume/' + resumeId + '/reparse', { 'x-user-id': 'userA' }, {}); A('简历重解析 → 200(解密重结构化)', r.status === 200 && r.body.reparsed === true);
@@ -456,11 +487,13 @@ async function validate() {
   A('同幂等键重试 → 同一订单(不重复下单)', oA === oB);
   const cnt = (await db.pool.query("SELECT count(*)::int n FROM payment_order WHERE idempotency_key='idem-1'")).rows[0].n; A('幂等键只一条订单', cnt === 1);
   const ordId = r.body.orderId;
-  const sig = createHmac('sha256','test-pay-secret').update(ordId+':txn-001:paid').digest('hex');
-  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', sig: 'deadbeef' }); A('伪造签名回调 → 403', r.status === 403);
-  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', sig }); A('验签通过回调 → credited', r.status === 200 && r.body.result === 'credited');
+  // 5A-2 #100:回调签名载荷 `${id}:${txn}:${kind}:${ts}`(±300s 防重放窗)·body 携 ts。
+  const cbTs = Date.now();
+  const sig = createHmac('sha256','test-pay-secret').update(ordId+':txn-001:paid:'+cbTs).digest('hex');
+  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', ts: cbTs, sig: 'deadbeef' }); A('伪造签名回调 → 403', r.status === 403);
+  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', ts: cbTs, sig }); A('验签通过回调 → credited', r.status === 200 && r.body.result === 'credited');
   const balA = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body.availableUnits; A('入账 +10 额度', balA === balB + 10);
-  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', sig }); A('重复回调 → already(幂等)', r.status === 200 && r.body.result === 'already');
+  r = await postJson('/commerce/orders/'+ordId+'/pay-callback', { 'x-user-id': 'userA' }, { providerTxn: 'txn-001', ts: cbTs, sig }); A('重复回调 → already(幂等)', r.status === 200 && r.body.result === 'already');
   const balA2 = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body.availableUnits; A('重复回调不二次入账(余额不变)', balA2 === balA);
   r = await req('GET', '/commerce/orders/'+ordId, { 'x-user-id': 'userB' }); A('userB 越权看订单 → 404(RLS)', r.status === 404);
   // 职业路径:成长链终点(评估→学习→职业路径)

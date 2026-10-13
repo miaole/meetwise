@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -23,6 +23,75 @@ import {
 } from './interview-dispatch-fairness.ts';
 
 type Checkpointer = PostgresSaver;     // 直接取类型,不从 main 引(否则 main↔consumer 成环)
+
+/* ───────── H4 R2③(#252 focus 进题链·payload→consumer 断点):focus 白名单解析(纯函数·确定性·prove 直行使) ───────── */
+/** focus 标签上限:≤8 个维度名(报告页 gap 维度数远小于此,帽=防滥用;每名 ≤100 字符沿 targetRole 形制)。 */
+export const FOCUS_LABEL_MAX_COUNT = 8;
+export const FOCUS_LABEL_MAX_CHARS = 100;
+
+/** I3 JOB-MGMT（#197/#258·裁决⑥）：JD 摘要确定性有界截取上限（字符）——空白折叠后 slice，零模型调用。
+ * 只作 planner「考哪些能力」提示段，帽=防超大 JD 撑爆 prompt 预算（沿 facts 有界截取同纪律）。 */
+export const JD_SUMMARY_MAX_CHARS = 400;
+
+/**
+ * 解析 start job payload 的 focus 标量(payload->>'focus' = JSON 数组文本):
+ * 缺失/非 JSON/非字符串数组/全空白 → undefined(容忍不崩,沿 targetRole/requestId 同形制——专项面退化为通用面);
+ * 合法 → trim/去空/逐名截断 100 字符/总量帽 8,产纯 string[]。
+ */
+export function parseFocusPayload(raw: string | undefined): string[] | undefined {
+  if (typeof raw !== 'string' || !raw.trim()) return undefined;
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); } catch { return undefined; }
+  if (!Array.isArray(parsed)) return undefined;
+  const labels = parsed
+    .filter((x): x is string => typeof x === 'string')
+    .map((x) => x.trim().slice(0, FOCUS_LABEL_MAX_CHARS))
+    .filter((x) => x.length > 0)
+    .slice(0, FOCUS_LABEL_MAX_COUNT);
+  return labels.length > 0 ? labels : undefined;
+}
+
+/* ───────── QBANK-PLANNER-HONESTY #200-A ⑶(押题→planner 内容传递·断点③):payload sourceQuizId → owner-scoped 读题面 ───────── */
+/** 押题题面进 planner 输入的预算帽:条数 ≤6(resume-quiz.generate 每次产 3 题,帽=防滥用)、逐题 ≤300 字符
+ *  (题面是短问题文本;沿 FOCUS_LABEL 与 PLANNER_FACTS 既有有界纪律)。 */
+export const QUIZ_QUESTIONS_MAX_COUNT = 6;
+export const QUIZ_QUESTION_MAX_CHARS = 300;
+/**
+ * 解析 resume_quiz.questions(jsonb;quiz-lifecycle 写面=QuizItem[]{q,refs})→ 有界纯 string[](题面文本):
+ * 缺失/空/非数组/全空白 → undefined(容忍不崩沿 focus 同形制——planner 走无押题段回退=现状字节);
+ * 合法 → 逐题取 q 字符串/trim/截断 300 字符/去空/总量帽 6。纯函数·确定性·prove 直行使。
+ */
+export function parseQuizQuestionsPayload(raw: unknown): string[] | undefined {
+  if (raw == null) return undefined;
+  let parsed: unknown = raw;
+  if (typeof raw === 'string') {
+    if (!raw.trim()) return undefined;
+    try { parsed = JSON.parse(raw); } catch { return undefined; }
+  }
+  if (!Array.isArray(parsed)) return undefined;
+  const questions = parsed
+    .map((x) => (x && typeof x === 'object' && 'q' in x ? String((x as { q: unknown }).q ?? '') : typeof x === 'string' ? x : ''))
+    .map((q) => q.trim().slice(0, QUIZ_QUESTION_MAX_CHARS))
+    .filter((q) => q.length > 0)
+    .slice(0, QUIZ_QUESTIONS_MAX_COUNT);
+  return questions.length > 0 ? questions : undefined;
+}
+/**
+ * worker owner-scoped 读押题题面(begin 守卫块 interview.service 同表同谓词 SELECT 形:`WHERE q.id=$1 AND
+ * q.owner_user_id=$2`·asPrincipal owner 闭包·RLS 承重;他人 quiz-id → 0 行 → undefined 不供题面)。
+ * 只读不改——押题生成/过期/生命周期面零触(§3-4);行缺失(过期清理)/questions 空/任何读取异常 → undefined
+ * (best-effort 富化,绝不因押题读取阻断开面;沿 focus 容忍不崩同形制)。缺 sourceQuizId → 零查询直返。
+ */
+export async function loadQuizQuestionsForPlanner(pool: DbPool, owner: string, sourceQuizId: string | undefined): Promise<string[] | undefined> {
+  if (!sourceQuizId) return undefined;
+  return asPrincipal(pool, owner, async (c) => {
+    const r = await c.query<{ questions: unknown }>(
+      'SELECT questions FROM resume_quiz q WHERE q.id=$1 AND q.owner_user_id=$2',
+      [sourceQuizId, owner],
+    );
+    return parseQuizQuestionsPayload(r.rows[0]?.questions);
+  }).catch(() => undefined);
+}
 
 // **全链路 request-id 的进程内接力**:v50 gate 后只读 payload.requestId 标量,把整段生命周期处理跑在 ALS 上下文里,
 // 深埋在 lifecycle/service 里的每个 invoke 关口自动读到同一 reqId → 落 ai_invocation_trace.request_id(现有 invoke 调用零改动)。
@@ -75,7 +144,7 @@ export type DrainResult = 'start' | 'answer' | 'idle' | 'failed' | 'retry';
  * failed interview with a reserved charge.
  */
 async function terminalizeUnsettledInterview(
-  c: Parameters<typeof failInterviewAndRelease>[0], owner: string, interviewId: string, reason: 'job_failed' | 'worker_died', kind?: string,
+  c: Parameters<typeof failInterviewAndRelease>[0], owner: string, interviewId: string, reason: 'job_failed' | 'worker_died' | 'retry_exhausted', kind?: string,
 ): Promise<'settled' | 'unavailable'> {
   try {
     await failInterviewAndRelease(c, owner, interviewId);
@@ -159,6 +228,7 @@ async function failClaimedInterviewJob(
   await asPrincipal(d.pool, owner, async (c) => {
     const stillMine = await markJobFailed(c, owner, job.id, d.leaseOwner, (error as any)?.message ?? 'err');
     if (!stillMine) return;
+    getMetrics().inc(METRIC.jobsFailed, { queue: 'interview_job' });   // HA-7 R-24 观测行：markFailed CAS 胜出=终态失败定格计数·零改失败语义（requeue 臂不计）
     try {
       await terminalizeUnsettledInterview(c, owner, job.interviewId, 'job_failed', job.kind);
     } catch (terminalError: unknown) {
@@ -166,6 +236,63 @@ async function failClaimedInterviewJob(
       throw terminalError;
     }
   });
+}
+
+/* ───────── AG-04 刀C（AG-C-REQUEUE·失败语义轨）：consumer 瞬时错误分类 requeue + #4 退避 + attempts 上限 ───────── */
+/**
+ * 瞬时错误白名单（裁决项①·按卷推荐四族全集行使·落定后受「只增不清」Ban 约束——后续刀只能加不能减）：
+ *  1. `graph_fence_lost`——既有 :502 保留语义（租约交接可恢复·adaptive-lifecycle Object.assign code 惯例）；
+ *  2. PG 超时族 SQLSTATE `57014`（query_canceled=statement_timeout·principal GUC 15s 触发面）；
+ *  3. PG 连接族 SQLSTATE 类 08 前缀（connection_exception：08P01/08S01 等·主从切换/断连）+ `57P01/57P02/57P03`
+ *     （admin_shutdown/crash_shutdown/cannot_connect_now）；
+ *  4. node socket 层 `ECONNRESET/EPIPE/ETIMEDOUT`；
+ *  5. AG-D（刀 D·AG-01 准入拒绝去终态化·「只增」新增）：**瞬时准入拒绝族六码**——`model_circuit_open`/
+ *     `model_circuit_half_open`/`model_concurrency_exhausted`（ADMISSION_ERROR_CODES 三准入码）+
+ *     `cost_budget_exhausted` + `model_admission_timeout`/`model_admission_failed`（本地 admission 族）。
+ *     拒绝源=adaptive-interview-service 出题 seam（裁决项③落点）：invoke 侧已按案A 释放 claim（0179
+ *     `ai_model_release_refused_claim_scoped`·0130 expired-claimed 重领=到点真重试），service 抛带 code
+ *     异常中止节点→本白名单 requeue+退避。确定性配置拒绝（operation_unknown/blocked/project_missing/
+ *     disabled、model_failover_cost_policy_mismatch）**不在族内**→ 既有确定性终态零放宽。
+ * 命中 → requeue（退避+上限闸见 requeueOrTerminalizeExhausted）；不命中 → :508 确定性终态现状零变零放宽。
+ * 分类通道=errCode（errors 单一探测：AppError.code ∪ 结构 .code——PG SQLSTATE/标签形原生过面）。
+ */
+export const TRANSIENT_INTERVIEW_JOB_ERROR_CODES: ReadonlySet<string> = new Set([
+  'graph_fence_lost', '57014', '57P01', '57P02', '57P03', 'ECONNRESET', 'EPIPE', 'ETIMEDOUT',
+  'model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted',
+  'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed',
+]);
+/** 纯函数·确定性·prove 直行使（沿 parseFocusPayload 形制）。 */
+export function isTransientInterviewJobError(code: string | undefined): boolean {
+  if (!code) return false;
+  return code.startsWith('08') || TRANSIENT_INTERVIEW_JOB_ERROR_CODES.has(code);
+}
+
+/**
+ * AG-04 刀C（修法③）：**所有 requeue 调用点统一上限闸**——attempts≥MAX_INTERVIEW_JOB_ATTEMPTS
+ * （:15 单一真相·取 claim 自增后现值）→ 不再 requeue：markJobFailed+terminalizeUnsettledInterview
+ * reason=`retry_exhausted`（终态+退款同拍事务沿 failClaimedInterviewJob 既有形·事件 dedupe 键
+ * `*_unavailable:retry_exhausted`）；未达上限 → requeue（退避由 requeueInterviewJob 写 next_attempt_at）。
+ * EG-A2 热循环断根点：瞬时故障持续时至多 MAX 次领跑即终态,绝不无界 5s 拍重跑。
+ */
+async function requeueOrTerminalizeExhausted(
+  d: ConsumerDeps, owner: string, job: { id: string; interviewId: string; kind: string; attempts: number }, error: unknown,
+): Promise<'retry' | 'failed'> {
+  if (job.attempts >= MAX_INTERVIEW_JOB_ATTEMPTS) {
+    await asPrincipal(d.pool, owner, async (c) => {
+      const stillMine = await markJobFailed(c, owner, job.id, d.leaseOwner, `retry_exhausted:${(error as any)?.code ?? 'err'}`);
+      if (!stillMine) return;
+      getMetrics().inc(METRIC.jobsFailed, { queue: 'interview_job' });
+      try {
+        await terminalizeUnsettledInterview(c, owner, job.interviewId, 'retry_exhausted', job.kind);
+      } catch (terminalError: unknown) {
+        getMetrics().inc(METRIC.refundFailed);
+        throw terminalError;
+      }
+    });
+    return 'failed';
+  }
+  await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
+  return 'retry';
 }
 
 /** 领一个 job 跑完(start/answer)→ markDone;失败 markFailed。模型/图在生命周期里的短事务,不与 claim 同事务。 */
@@ -191,8 +318,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     if (error?.message === 'interview_privacy_fenced') {
       // Do not leave a naked running row occupying the per-owner cap until
       // lease expiry. Lease CAS=0 is ignored: we are no longer the holder.
-      await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-      return 'retry';
+      // AG-04 刀C（修法③）：requeue 调用点统一上限闸（attempts≥MAX → retry_exhausted 终态,不再无限 requeue）。
+      return requeueOrTerminalizeExhausted(d, owner, job, error);
     }
     throw raw;
   }
@@ -218,6 +345,12 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     if (!answer.stillClaimed) return 'retry';
     answerPayload = answer.payload;
   }
+  // QBANK-PLANNER-HONESTY #200-A ⑶:start job 且 payload 源押题标识在场(begin quiz-id 头透传)→ owner-scoped
+  // 读押题题面(answer job 零读·缺 sourceQuizId 零查询=现状字节)。缺省/行缺失/畸形 → undefined 容忍不崩,
+  // planner 走无押题段回退(focus v3 逐字节回退同纪律);押题生成/过期/生命周期面零触(§3-4 只读)。
+  const quizQuestions = job.kind === 'start'
+    ? await loadQuizQuestionsForPlanner(d.pool, owner, requestContext.sourceQuizId)
+    : undefined;
   // **预留租约续约(C1;北极星:活会话不被对账误扫)**:本 worker 正推进此面试的 job → 证明 liveness,把预留租约(key=interviewId,与 begin 预留同键)往后推。
   // 长面试跨多轮、用户思考间隔可 >1800s 预留租约 → 每领一 job 续一次,活会话绝不被 commerce reconcile 当孤儿回收。
   // 仅对仍 reserved 有效(已 confirmed/released → 0 行 → false,无害);原子 UPDATE 复核 lease → 与 sweep 无 TOCTOU。续约失败不阻断处理(记日志,对账兜底)。
@@ -251,11 +384,25 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         // Compat/test (no trackLocal): primary-leaf scoped localRetrieve (partial P-WIRE).
         // P-FAKEPLAN banned. retrieve-side only; P-START separate.
         // ≠ 题域已隔离; ≠ wrong_track=0; wire green ≠ R4 closed; releaseEvidence=false.
+        // H2 #202(收编):检索面(routeSnapForRetrieve)读源切 candidate-route 双轨——旧 recruiter
+        // snapshot(0104)优先(B 端岗位面零回归)→ 缺行 fallback candidate_profile_route_snapshot
+        // (0142,解禁 getInterviewRouteSnapshotForAdaptiveRole 供检索消费)。门语义零弱化:缺行/缺叶
+        // 仍 route_snapshot_missing → degraded → deny_external(crag.ts 决策面零 diff),永不 unscoped;
+        // G-R2-5 语义零改。C 端无岗位简历面试由此解锁题库检索(此前必 route_snapshot_missing)。
         const routeSnapForRetrieve = await asPrincipal(d.pool, owner, (c) =>
-          getInterviewRouteSnapshot(c, owner, job.interviewId));
+          getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
         const retrieveDecision = decideRouteSnapshotRetrieve(routeSnapForRetrieve);
-        // Weighted-deficit across rag.retrieve calls within this job claim.
-        let trackLocalDeficit: number[] = routeSnapForRetrieve?.allocations?.map(() => 0) ?? [];
+        // QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf·与下方角色门
+        // roleFromRouteSnapshot 同源同形读)。缺行/缺叶 → undefined=闸不适用(叶子源缺失零误杀,如实登记)。
+        const routeLeafTrackId = routeSnapForRetrieve?.allocations?.[0]?.leafTrackId;
+        // AG-37(检索 weighted-deficit 归零·修法③·本刀主触面勘误重 pin :397-399+:405-415):deficit 不再
+        // 每 claim 归零——载体=图 state 位 `weightedDeficit`（checkpoint 跨 claim 持久化·每题恰一次更新）。
+        // 本 holder 只是 claim 内 seam→闭包的临时 seed/ref 导管（非持久化通道·claim 结束即弃）:
+        // genQuestion 经 seam 第 8 additive 参把 state 位值 seed 进 current（下一题读上一题写下的值）,
+        // rag.retrieve 一出 retrieveViaDispatchTrackLocal 按既有 DRR 消费面更新并回写 current,
+        // 再经 seam 出参回流 genQuestion 写 state。缺省臂:current=null（旧 checkpoint/首题）→ 下方
+        // `?? 全 0` 与现状字节逐位一致·零回填零发明。
+        const trackLocalDeficitRef: { current: number[] | null } = { current: null };
         const localRetrieve = (q: string): Promise<ScoredRef[]> => {
           if (!retrieveDecision.allowed) {
             return Promise.resolve([degradedRetrieval(retrieveDecision.reason)]);
@@ -266,10 +413,10 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
               owner,
               snapshot: routeSnapForRetrieve,
               query: q,
-              deficit: trackLocalDeficit,
+              deficit: trackLocalDeficitRef.current ?? routeSnapForRetrieve?.allocations?.map(() => 0) ?? [],
               deps: adaptive.trackLocal(owner),
             }).then((out) => {
-              trackLocalDeficit = out.deficit;
+              trackLocalDeficitRef.current = out.deficit;
               return out.refs;
             });
           }
@@ -307,6 +454,15 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             onBeforeResumeProfileHydration: adaptive.onBeforeResumeProfileHydration,
             // EXTREV-1 SCORE-WRITER S1（D3/D4）：写卡步 claim 的 lease_owner（job 级 worker 身份）。
             scoreWriterLeaseOwner: d.leaseOwner,
+            // AG-37(修法③):per-claim deficit holder——seam seed/出参回流的 claim 内导管(见上方注)。
+            trackLocalDeficitRef,
+            // H2 #79(#259 供给线):用户显式岗位透传至 buildAdaptiveDeps(CRAG 查询岗位段)。
+            targetRole: requestContext.targetRole,
+            // QBANK-PLANNER-HONESTY #200-A(#259 供给线同形):押题题面(owner-scoped 读自 resume_quiz.questions,
+            // 上方 start 分支专用读;只进 planner 输入组装,禁入图 state/checkpoint/SSE)。缺省 undefined=无押题段(现状字节)。
+            quizQuestions,
+            // QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf)。缺省 undefined=闸不适用。
+            routeLeaf: routeLeafTrackId,
           };
           if (job.kind === 'start') {
             // `resume_id` is the sole source locator. Never revive a
@@ -345,30 +501,59 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             // (no silent 技术岗). Flag-off keeps legacy default inside resolver.
             // G7S 通用 begin 供给面收口:角色门供给读 = 旧 recruiter snapshot 优先 → fallback
             // candidate_profile_route_snapshot(0142 新结构;通用 begin 面供给先行,先于扣额/入队)。
-            // 检索面(routeSnapForRetrieve / G-R2-5)维持旧表直读不动——candidate 面 retrieval 走
-            // 既有 degradedRetrieval('route_snapshot_missing') 语义。门语义零弱化:缺行/缺叶仍
-            // throw adaptive_role_route_missing(adaptive-role-resolve 零改动)。
+            // H2 #202(收编)勘注:本注释「检索面维持旧表直读不动」的旧态已由本刀收编解除——检索面
+            // (上方 routeSnapForRetrieve)与角色门同走 candidate-route 双轨(旧表优先→candidate
+            // fallback);角色门 fail-closed 语义(adaptive-role-resolve 零改动)与检索门语义(缺行/缺叶
+            // 仍 route_snapshot_missing→deny_external·永不 unscoped)双双零弱化。
             // 死源处置(C-MO-S3):原 roleFromJobRouteMetadata(声明从未赋值)已删除,非接线——
             // 通用面供给走独立 candidate 结构,Ban 冒用 job 维度 metadata。
             let roleFromRouteSnapshot: string | undefined;
+            // I3 JOB-MGMT（#197/#258·裁决⑥ 读侧 join 形）：岗位侧 planner 供给（competencies+JD 摘要）。
+            // 条件化：经 RLS 读 job_posting + 快照同源门（db getJobPlannerInputForInterview——live 文本
+            // canonical digest 必须等于绑定 revision 存证 digest 才供给；岗位编辑后旧面试不喂新文本，
+            // C 端无岗位面试（candidate 快照 job_id=''）/缺快照/闭岗 → null → 既有缺省路径零伪造）。
+            // JD 摘要=确定性有界截取（零模型·非 LLM 摘要），只进「考哪些能力」面，绝不触难度/confidence。
+            let jobPlannerContext: { competencies: string[]; jdSummary: string } | undefined;
             if (isTechRoleFailClosedEnabled()) {
               const snap = await asPrincipal(d.pool, owner, (c) =>
                 getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
-              const primary = snap?.allocations?.[0]?.leafTrackId;
-              if (typeof primary === 'string' && primary.trim()) roleFromRouteSnapshot = primary.trim();
+              // I3 JOB-MGMT（#197 顺手面·改道条件化）：多叶子按 allocationBps 最高权重取 primary——
+              // 单叶与原 [0] 形逐字节等价；并列权重取快照序首个（reduce 保守比较·确定性）。
+              // #259 透传线（下方 roleFromUserInput）与 G-R2-5 检索门（上方 routeSnapForRetrieve）零触。
+              const allocations = snap?.allocations ?? [];
+              const primaryLeaf = allocations.length > 0
+                ? allocations.reduce((best, a) => (a.allocationBps > best.allocationBps ? a : best))
+                : undefined;
+              if (primaryLeaf && typeof primaryLeaf.leafTrackId === 'string' && primaryLeaf.leafTrackId.trim()) {
+                roleFromRouteSnapshot = primaryLeaf.leafTrackId.trim();
+              }
+              const jobInput = await asPrincipal(d.pool, owner, (c) =>
+                getJobPlannerInputForInterview(c, owner, job.interviewId));
+              if (jobInput) {
+                const jdSummary = jobInput.description.replace(/\s+/g, ' ').trim().slice(0, JD_SUMMARY_MAX_CHARS);
+                jobPlannerContext = { competencies: jobInput.competencies, jdSummary };
+              }
             }
+            // #259: 用户显式岗位(payload->>'targetRole',begin 头透传)置最高优先源;旧 job 缺键 →
+            // undefined(容忍不崩,沿 requestId 同形制)。门语义零改:缺 snapshot 仍 throw(下方 resolver)。
             const role = resolveAdaptiveInterviewRole({
+              roleFromUserInput: requestContext.targetRole,
               roleFromRouteSnapshot,
               roleFromDeps: adaptive.role,
             });
-            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : []);
+            // H4 R2③(#252 focus 进题链·断点④):payload->>'focus'(JSON 数组文本)解析白名单化——
+            // 缺失/畸形/越界 → undefined(容忍不崩沿 targetRole 同形制;专项面退化为通用面,零 fail 硬死)。
+            // focus 只作 planner 提示+专项软预算面,绝不触难度/confidence(隔离铁律)。
+            const focus = parseFocusPayload(requestContext.focus);
+            // I3 JOB-MGMT（#197/#258）：岗位侧供给第 5 参（additive 可选·job 缺省 undefined=通用面逐字节原样）。
+            await startAdaptiveInterview(life, role, admitted.ok && admitted.resumeProfileAvailable ? facts : [], focus, jobPlannerContext);
           } else {
             await submitAdaptiveAnswer(life, answerPayload as any);
           }
         }));
         if (!fenced.acquired) {
-          await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-          return 'retry';
+          // AG-04 刀C（修法③）：requeue 调用点统一上限闸（attempts≥MAX → retry_exhausted 终态）。
+          return requeueOrTerminalizeExhausted(d, owner, job, Object.assign(new Error('interview_graph_fence_unavailable'), { code: 'interview_graph_fence_unavailable' }));
         }
       }
       const done = await asPrincipal(d.pool, owner, (c) => markJobDone(c, owner, job.id, d.leaseOwner));
@@ -379,9 +564,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     // durable fence 失效时，旧 worker 的 graph checkpoint 可能已经前进、但业务投影事务被
     // requireCurrentFence 整体回滚。此时不能把一次可恢复的 lease 交接误判为业务失败/退款：
     // 归还同一 job，下一持有者会从 checkpoint 识别 alreadyApplied 并只补投影。
-    if (errCode(e) === 'graph_fence_lost') {
-      await asPrincipal(d.pool, owner, (c) => requeueInterviewJob(c, owner, job.id, d.leaseOwner));
-      return 'retry';
+    // AG-04 刀C（修法①）：errCode 白名单分类——瞬时族（fence 交接/PG 超时/连接族/socket 层）requeue+退避
+    // （上限闸在 requeueOrTerminalizeExhausted：attempts≥MAX → retry_exhausted 终态,杜绝无界热循环）；
+    // **白名单外一律确定性终态——现状语义零变零放宽（Ban 列表）**。
+    if (isTransientInterviewJobError(errCode(e))) {
+      return requeueOrTerminalizeExhausted(d, owner, job, e);
     }
     // **租约守卫**在共享 helper 内：若 job 已被重领/终态，CAS=0，绝不发假
     // unavailable 或释放现持有者的预留额度。
@@ -402,6 +589,9 @@ export async function drainOwnerJobs(d: ConsumerDeps, owner: string): Promise<vo
 
 /** Reaper 一拍(北极星:无静默死胡同)：收割 owner 名下崩在 running 且租约过期的孤儿 job。
  *  未超上限 → requeue(下次 drain 重领);已达上限 → 终结 failed + 发 interview_unavailable 终态事件(前端降级不死等)+ 退预留额度(不泄漏)。
+ *  AG-04 刀C（EG-A2·裁决④②形）：sweep queued 超限臂返回的 retryExhaustedInterviews 同拍终态化——
+ *  reason=`retry_exhausted` 终态事件+退款（滞留 queued 行唯一终态化面）；与 worker_died 面同面试双命中时
+ *  以 worker_died 先到为准（免 release 冲突重入）。返回面 {requeued,failed} 形零变（TTL-WIRE 置位锚兼容）。
  *  事件+退款与 sweep 同一 principal 事务,RLS 限定到本 owner。 */
 export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Promise<{ requeued: number; failed: number }> {
   return asPrincipal(d.pool, owner, async (c) => {
@@ -414,6 +604,16 @@ export async function reapStuckInterviewJobs(d: ConsumerDeps, owner: string): Pr
         throw terminalError;
       }
     }
+    for (const interviewId of res.retryExhaustedInterviews) {
+      if (res.failedInterviews.includes(interviewId)) continue;   // 同面试双臂命中:worker_died 已终态,retry_exhausted 免重入
+      try {
+        await terminalizeUnsettledInterview(c, owner, interviewId, 'retry_exhausted');
+      } catch (terminalError: unknown) {
+        getMetrics().inc(METRIC.refundFailed);
+        throw terminalError;
+      }
+    }
+    await purgeStaleInterviewJobPayloads(c, owner);   // #18 滞留半:TTL 旁路清理与收割同拍同事务(抛错回滚整拍,隔离面=逐 owner catch+下拍重试)
     return { requeued: res.requeued, failed: res.failed };
   });
 }

@@ -13,12 +13,17 @@ import { boot, mkAssert, tokenFor, AUTH_SECRET } from './_neg-harness';
  *                          {error} ∈ invalid_token / account_inactive / session_revoked / reserved_principal / unauthenticated
  *  - POST /profile/change-password: 缺字段/新密码<8 → 400{invalid_password};旧密码错 → 401{wrong_password};成功自增 pwd_epoch 吊销旧令牌
  *  - POST /profile/deactivate: status→disabled
+ *  - [5A-1 簇③ additive] POST /auth/logout(PrincipalGuard·吊销当前 jti → session_revoked/legacy 如实 revoked:false);
+ *    kid 多钥窗(AUTH_SECRET_PREVIOUS 窗内过/窗外 invalid_token);R-1 对账:原「大写邮箱 401 精确匹配」臂随
+ *    #111 邮箱归一翻新为「归一后仍不存在的大写形 401」(命中面归归一五臂 db prove)。
  */
 
 const CT = { 'content-type': 'application/json' };
 const bearer = (t: string) => ({ authorization: 'Bearer ' + t });
 
 async function main() {
+  // 5A-1 簇③:kid 轮换窗(环境配置面)——旧钥暂留 PREVIOUS,boot 前预置(轮换窗内旧钥令牌照验的受测配置)。
+  process.env.AUTH_SECRET_PREVIOUS = 'legacy-window-secret';
   const h = await boot();
   const { A, done } = mkAssert('neg:auth');
   const me = (headers: Record<string, string>) => h.req('GET', '/profile', headers);
@@ -296,8 +301,11 @@ async function main() {
     A('login/用户不存在 → 401 invalid_credentials(与密码错同码,抗枚举)', r.status === 401 && r.body?.error === 'invalid_credentials');
   }
   {
-    const r = await h.post('/auth/login', {}, { email: 'PW@X.COM', password: 'oldpass12' });   // 播种为小写 pw@x.com
-    A('login/邮箱大小写不匹配(PW@X.COM≠pw@x.com)→ 401 invalid_credentials(精确匹配,大小写敏感)', r.status === 401 && r.body?.error === 'invalid_credentials');
+    // 5A-1 R-1 对账(原臂「PW@X.COM≠pw@x.com→401 精确匹配,大小写敏感」随 #111 邮箱归一翻新——旧行为已被修法取代):
+    // 归一后大写**存在**邮箱命中同账户(200 正面归「归一五臂」db prove);此处保留负面判别:归一后**仍不存在**的
+    // 大写形邮箱恒 401——抗枚举拒绝面不因归一弱化。
+    const r = await h.post('/auth/login', {}, { email: 'NO-SUCH-UPPER@X.COM', password: 'oldpass12' });
+    A('login/归一后仍不存在的邮箱(大写形)→ 401 invalid_credentials(抗枚举不变,#111 归一不弱化拒绝面)', r.status === 401 && r.body?.error === 'invalid_credentials');
   }
   {
     // 暴力破解节流:同邮箱 capacity=5。前 5 次进 verify(401),第 6 次被桶拒 → 429
@@ -394,11 +402,64 @@ async function main() {
     A('deactivate/停用后再登录被拒 → 401 invalid_credentials', login.status === 401 && login.body?.error === 'invalid_credentials');
   }
 
+  // ══════════════════════════════════════════════════════════════════════════
+  // 6) AUTHZ-HARDEN 5A-1 簇③ additive 面(派单授权增臂):kid 窗内过/窗外 401/logout 后 jti 复用 401
+  //    session_revoked/异 jti 不互吊/legacy 无态路径 pin/legacy logout 如实 revoked:false。
+  //    注: kid 窗内过与异 jti 存活为判别对的正半(负半同段紧邻)——无正半则窗/不互吊语义不可证。
+  // ══════════════════════════════════════════════════════════════════════════
+  {
+    // kid 轮换窗内(裁决=环境配置面):AUTH_SECRET_PREVIOUS(main() 内预置)→ 旧钥(kid 匹配 PREVIOUS)令牌照验。
+    // legacy pin:tokenFor 签发无 jti → 守卫跳过会话查,只走验签+exp+status+代次既有机械(R1 无态路径)。
+    const r = await me(bearer(tokenFor('userA', { secret: 'legacy-window-secret' })));
+    A('kid/旧钥令牌窗内(AUTH_SECRET_PREVIOUS 配置期)→ 通过(200;无 jti 走 legacy 无态路径 pin·R1)', r.status === 200);
+  }
+  {
+    // 窗外:kid 不匹配任何候选钥(已轮出且未配 PREVIOUS 的钥)→ 401 invalid_token(与错钥同码,抗探测)。
+    const r = await me(bearer(tokenFor('userA', { secret: 'retired-out-of-window-secret' })));
+    A('kid/旧钥令牌窗外(kid 不匹配任何候选钥)→ 401 invalid_token', r.status === 401 && r.body?.error === 'invalid_token');
+  }
+  {
+    // logout/jti 四臂:signup 会话令牌(带 jti)登出 → 行 revoked_at 落账 + 复用 401 session_revoked + 异 jti 不互吊。
+    const s = await h.post('/auth/signup', {}, { email: 'authz-logout@x.com', password: 'logoutpw12' });
+    const t0 = s.body?.token, uid = s.body?.userId;
+    const l1 = await h.post('/auth/login', {}, { email: 'authz-logout@x.com', password: 'logoutpw12' });
+    const t1 = l1.body?.token;
+    const out0 = await h.post('/auth/logout', bearer(t0), {});
+    A('logout/服务端登出(带 jti)→ 200 {loggedOut:true,revoked:true}(#112 吊销当前 jti)', out0.status === 200 && out0.body?.loggedOut === true && out0.body?.revoked === true);
+    const q = await h.pool.query('SELECT count(*)::int n FROM auth_user_session WHERE user_id=$1 AND revoked_at IS NOT NULL', [uid]);
+    A('logout/0169 会话行 revoked_at 落账(恰 1 行吊销,行保留供审计·无 DELETE)', q.rows[0]?.n === 1);
+    const reuse = await me(bearer(t0));
+    A('logout/登出后同 jti 复用 → 401 session_revoked(#112 服务端吊销即效)', reuse.status === 401 && reuse.body?.error === 'session_revoked');
+    const other = await me(bearer(t1));
+    A('logout/异 jti 不互吊(登出会话 0,会话 1 照常)→ 200(单点登出≠全端登出)', other.status === 200);
+    await h.post('/auth/logout', bearer(t1), {});
+    const dead1 = await me(bearer(t1));
+    A('logout/第二会话登出后同轨 → 401 session_revoked(对照)', dead1.status === 401 && dead1.body?.error === 'session_revoked');
+  }
+  {
+    // legacy 无 jti 令牌 logout:如实 revoked:false(无会话行可吊销,R1)——不假宣称服务端吊销;令牌无态活到 TTL(如实披露)。
+    const legacy = tokenFor('userB', { pwdEpoch: 0 });
+    const out = await h.post('/auth/logout', bearer(legacy), {});
+    A('logout/legacy 无 jti 令牌 → 200 {loggedOut:true,revoked:false}(如实无会话可吊销·R1)', out.status === 200 && out.body?.loggedOut === true && out.body?.revoked === false);
+    const still = await me(bearer(legacy));
+    A('logout/legacy 令牌登出后仍有效(无态至 TTL·如实披露非静默)→ 200', still.status === 200);
+  }
+
   await done();
 }
 
 main();
 
 // ── 用例统计 ──
-// 令牌/会话负例:25 · signup 负例:29 · login 负例:14 · change-password 负例:9 · deactivate 负例:4
-// 合计:81 条纯负路径断言(A 调用),零 happy-path 主张(成功调用仅作触发后续负例的前置,不被断言)。
+// 令牌/会话负例:25 · signup 负例:29 · login 负例:14 · change-password 负例:9 · deactivate 负例:4 ·
+// 5A-1 簇③ additive(kid 窗内/窗外+jti 登出四臂+legacy 两臂):9(R-1 翻新臂 1 系原臂改写非新增)
+// 合计:90 条断言(A 调用)。5A-1 R-1 对账:原「PW@X.COM 大小写敏感 401」臂随 #111 归一翻新为
+// 「归一后仍不存在的大写形 401」(断言面翻新,触发面零变)。kid 窗内过/异 jti 存活两臂为派单授权的
+// 判别对正半(负半紧邻)。
+// ── 5A-1 EXEC 停止条件级登记(禁静默):deactivate 三臂 **HEAD 基线即红**(stash 后 HEAD 实测 3/81 EXIT=1):
+// deactivate 密码复核契约(UNSTUB-ERASE rev2)落腔后本段触发调用仍发空 body → 400 password_required;
+// 补 password 后更暴露 neg-harness 深层缺镜(interview.created_at 缺列 42703 + memory_begin_account_erasure/
+// privacy_deletion_target(0047/0093 系)未载)——均系 neg-harness 对 privacy/memory 域的镜像债,**非本刀
+// authz 面**(修复归 neg-harness/记忆治理属主刀)。本刀按 §2-7「EXIT 原值·base 同红登记不洗」保持 HEAD
+// 原触发形,三臂红因与 HEAD 逐字节同因;本刀 9 条 additive 臂全绿,旧臂零翻(红集与 HEAD 恒等)。
+// 原 81 臂零翻(增臂不翻旧臂);成功调用仅作触发后续负例的前置或判别对正半,不作未授权 happy 主张。

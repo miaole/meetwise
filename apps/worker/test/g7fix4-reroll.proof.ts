@@ -235,7 +235,10 @@ async function main() {
   let boundAsks = 0;
   const lifecycleModel: ModelClient = {
     async complete(req) {
-      if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: ['并发'] } };
+      // [g7fix4-reroll 补锤·nail 席落]QP #201 PlannerPlanSchema min(3) 收紧后,scripted planner 输出须 ≥3 条域内名
+      // (后端域·与 adaptive-flow/resume-grounding 同名刷新先例):1 条=schema 拒→默认集,断言面虽仍绿但不再行使
+      // 「planner 真输出进组装」路径;补至 3 条=真计划臂重行使,判死/re-roll 键账断言零依赖 planner 条数。
+      if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: ['并发', '消息队列', '分布式锁'] } };
       if (req.service === 'interviewer.ask') { boundAsks += 1; return { ok: true, raw: { q: S1, refs: [] } }; }
       return { ok: false, kind: 'deterministic' };
     },

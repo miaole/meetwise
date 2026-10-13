@@ -1,0 +1,89 @@
+
+> meetwise@0.1.0 ag-d-admission:prove /Users/miaole/Desktop/golucky/meetwise-agd
+> node scripts/run-e2e-isolated.mjs ag-d-admission:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-18082-1791821587119 on 127.0.0.1:51127
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-agd/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=178 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 ag-d-admission:prove:raw /Users/miaole/Desktop/golucky/meetwise-agd
+> pnpm -C packages/ai-runtime prove:ag-d-admission && pnpm -C apps/worker prove:ag-d-admission
+
+
+> @meetwise/ai-runtime@0.0.0 prove:ag-d-admission /Users/miaole/Desktop/golucky/meetwise-agd/packages/ai-runtime
+> tsx test/ag-d-admission.proof.ts
+
+PASS  拒绝族常量=六码（三准入码+预算+本地 admission 两码）
+PASS  族外确定性拒绝恒 false（failover policy mismatch/配置族不在族内）
+PASS  seed claim=execute（fixture 就位）
+PASS  release（族内码）→ true
+PASS  案A 承袭直证：status=claimed+lease_token 原值承袭零改+lease_expires_at 即刻过期+error_code/completed_at 零写
+PASS  释放后同键重 claim=execute 且 token 重领覆写（0130:211-212·键未毒化）
+PASS  白名单外码（确定性 failover mismatch）→ RAISE invalid_input（拒绝码不经账本行承载）
+PASS  stale token → false（CAS=不得释放他人重领所得·permit 撤回）
+PASS  熔断臂：invoke 返回 model_circuit_open、零外呼、零钱面（known-not-sent）
+PASS  熔断臂：账本=案A 释放形（非 failed 终态·零 completed_at）
+PASS  熔断臂：breaker 相位不变（no_signal 恒持·零失败计数放大）
+PASS  熔断臂：复位后同键重 claim=execute（真外呼+succeeded·30s 窗过后不再 replay failed）[value:breaker-retry-ok]
+PASS  并发臂：槽位 fixture 就位（1/1 占满）
+PASS  并发臂：invoke 返回 model_concurrency_exhausted、零外呼
+PASS  并发臂：账本=案A 释放形
+PASS  并发臂：还槽后同键重 claim=execute（真外呼+succeeded）[value:conc-retry-ok]
+PASS  预算臂：invoke 返回 cost_budget_exhausted、零外呼、零预留冻结
+PASS  预算臂：账本=案A 释放形
+PASS  预算臂：零钱面残留（无 reservation 行=零预留冻结）
+PASS  预算臂：窗口复位后同键重 claim=execute（真外呼+succeeded）[value:budget-retry-ok] calls=1
+PASS  负臂：succeeded cached 重放原样（0130:171-173·零第二次外呼）
+PASS  负臂：payload digest mismatch 恒 failed 原样（0130:163-169）
+PASS  负臂：logical_node mismatch 恒 failed 原样（0130:191-193）
+PASS  负臂：dispatching wait 原样（0130:187-189·禁自动重发）
+PASS  负臂：族外确定性拒绝 failed 终态原样（privacy fence 同形·0130:179-181 重放 failed 不放宽）
+PASS  负臂：succeeded 可重放 cached 原样（臂 1 重领后 complete→cached）
+
+✓ AG-D 准入拒绝去终态化（案A 释放可重试）全部通过
+
+> @meetwise/worker@0.0.0 prove:ag-d-admission /Users/miaole/Desktop/golucky/meetwise-agd/apps/worker
+> tsx test/ag-d-admission.proof.ts
+
+PASS  fixture ag-d-tid-1791821596974 经生产同链供给 route snapshot（0142）
+PASS  fixture ag-d-tid2-1791821596974 经生产同链供给 route snapshot（0142）
+
+──────── ① 分类纯函数臂：准入族六码入白名单（只增）·确定性拒绝不入（零放宽） ────────
+PASS  白名单只增：刀 C 四族原八码全在
+PASS  准入族六码 → 瞬时（requeue 面）
+PASS  族外确定性拒绝 → 非瞬时（failed 终态零放宽）
+
+──────── ② requeue 臂：熔断 trip → drain 准入拒绝 → job requeued（非判死终态·零退款·账本=案A 释放形） ────────
+PASS  出题分区断路器已 trip=open（注入就位）
+PASS  drain 返回 retry（拒绝族分流 requeue·非 failed）
+PASS  job 翻 queued 且 next_attempt_at 退避落值（刀 C 0175 面·attempts=1 → ≈2s）
+PASS  额度未动（零退款·interview 不终场）
+PASS  零 unavailable 终态事件（图投影判死链未触发）
+PASS  ask 键账本=案A 释放形（claimed+token 承袭非空+lease 即刻过期+error_code/completed_at 零写·非 failed）
+
+──────── ③ 真重试臂：断路器复位+退避到点 → 同键重领=模型真重试（出题成功·job done） ────────
+PASS  drain 返回 start（重领执行完成）
+PASS  job 终态 done（attempts=2·键未毒化的 job 面证据）
+PASS  首题已投影 issued（出题真重试成功·非 generation_unavailable）
+PASS  ask 键账本=同键 succeeded（0130:211-212 重领覆写后真重试完成·终态清 token 为既有语义）[rows=["4:ask:t0:0:succeeded:null"]]
+
+──────── ④ 耗尽臂：拒绝族连续打到 attempts=MAX → retry_exhausted 兜底终态（拒绝风暴有界） ────────
+PASS  拒绝 attempts=1（<MAX）→ 仍 requeue
+PASS  拒绝 attempts=2（<MAX）→ 仍 requeue
+PASS  拒绝 attempts=3（<MAX）→ 仍 requeue
+PASS  拒绝 attempts=4（<MAX）→ 仍 requeue
+PASS  拒绝 attempts=5（=MAX）→ 上限闸 retry_exhausted 终态
+PASS  last_error 标注 retry_exhausted:model_circuit_open（拒绝风暴断根）
+PASS  终态事件 reason=retry_exhausted
+PASS  超限退款：预留额度退还（+1.0·有界终态非悬挂）
+
+✓ AG-D worker 衔接（准入拒绝→requeue→真重试→有界耗尽）全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T16-13-17-896Z-18082-672b9844-1c2f-4faf-9061-17e45b7665ad.json release_evidence=false

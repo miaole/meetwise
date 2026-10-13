@@ -12,12 +12,63 @@ import { createRequire } from 'node:module';
 const API = process.env.E2E_API_BASE ?? 'http://127.0.0.1:8787';
 const PASSWORD = 'strongpw123';
 
+// 0155_recruiter_approval_gate 后 recruiter 注册落 approval_status='pending'，signup server action
+// 早退反馈审核中（auth-actions.ts:29-31:零 cookie 零跳转），不再直落 /recruiter/jobs。recruiter 臂
+// 随演为审核门三拍（e2e-assert-refresh REQUEST §1-②）：
+//   拍1（本 helper 内）= pending 中间态断言：审核中反馈文案可见 + 未发生跳转（仍滞 /login）+ 零 mw_token cookie；
+//   拍2 approveRecruiterViaAdminApi = 真 admin API approve（Ban mock·缺 E2E_ADMIN_TOKEN 即 throw fail-closed）；
+//   拍3 loginViaUi = approve 后真 UI 登录，恢复原 waitForURL('**/recruiter/jobs', 20s) 断言行使
+//       （login 模式无 approvalStatus 分流，auth-actions.ts:39 按角色 redirect）。
+// candidate 臂零改（dashboard 直落）。
 async function signUp(page: Page, email: string, role: 'candidate' | 'recruiter') {
   await page.goto('/login');
   if (role === 'recruiter') await page.getByRole('tab', { name: /招聘方/ }).click();
   await page.fill('input[name="email"]', email);
   await page.fill('input[name="password"]', PASSWORD);
   await page.getByRole('button', { name: /注册|Sign up/i }).click();
+  if (role === 'recruiter') {
+    // 拍1:审核门中间态——文案锚「招聘方注册已提交」稳定前缀（auth-actions.ts:30）;早退必须零会话。
+    await expect(page.getByText(/招聘方注册已提交/)).toBeVisible({ timeout: 20_000 });
+    await expect(page).toHaveURL(/\/login$/, { timeout: 5_000 });
+    expect((await page.context().cookies()).some((c) => c.name === 'mw_token'),
+      'pending 早退不得建立会话（auth-actions.ts:29-31 零 mw_token cookie）').toBe(false);
+    return;
+  }
+  await page.waitForURL('**/dashboard', { timeout: 20_000 });
+}
+
+// 拍2 的 admin 身份:isolated runner（run-e2e-ui.mjs）seedAdmin+HMAC 铸 E2E_ADMIN_TOKEN 经 spawn env 交接
+// （镜像 e2e-recruiter-gate C1 形）。缺 token 即 throw fail-closed——Ban 静默跳过审批步
+// （先例=e2e/helpers/auth.ts adminHeaders）。本 helper 只做 fail-closed 收窄,不伪造任何决策响应。
+function adminAuthHeaders(): Record<string, string> {
+  const token = process.env.E2E_ADMIN_TOKEN;
+  if (typeof token !== 'string' || token.length === 0) {
+    throw new Error('e2e_admin_bootstrap_missing: E2E_ADMIN_TOKEN absent — recruiter approval gate must not be skipped or mocked');
+  }
+  return { authorization: `Bearer ${token}`, 'content-type': 'application/json' };
+}
+
+// 拍2:真 admin API approve——先例=本 spec provisionPaidInterviewCredit（「唯一非 UI 的环境准备」形）。
+// GET /admin/recruiter-approvals 按 email 取目标 id → POST decision {decision:'approve'} → 200 {decided:true}
+// （admin.controller.ts recruiter-approvals 两端点;0155 admin_audit 留痕为 DB 侧副产品,零断言负担）。
+async function approveRecruiterViaAdminApi(request: APIRequestContext, email: string) {
+  const queue = await request.get(`${API}/admin/recruiter-approvals`, { headers: adminAuthHeaders() });
+  expect(queue.status()).toBe(200);
+  const { approvals } = await queue.json() as { approvals: Array<{ id: string; email: string; approval_status: string }> };
+  const target = approvals.find((a) => a.email === email);
+  expect(target, `审批队列应含待审 recruiter ${email}`).toBeTruthy();
+  const decision = await request.post(`${API}/admin/recruiter-approvals/${target!.id}/decision`, { headers: adminAuthHeaders(), data: { decision: 'approve' } });
+  expect(decision.status()).toBe(200);
+  expect(await decision.json()).toEqual({ decided: true });
+}
+
+// 拍3:approve 后真 UI 登录——原 signUp :21 的 waitForURL 断言在此恢复行使（注册路径已不能直落,
+// 登录路径才是审核放行后的真入口）。
+async function loginViaUi(page: Page, email: string, role: 'candidate' | 'recruiter') {
+  await page.goto('/login');
+  await page.fill('input[name="email"]', email);
+  await page.fill('input[name="password"]', PASSWORD);
+  await page.getByRole('button', { name: '登录', exact: true }).click();
   await page.waitForURL(role === 'recruiter' ? '**/recruiter/jobs' : '**/dashboard', { timeout: 20_000 });
 }
 
@@ -35,8 +86,30 @@ async function provisionPaidInterviewCredit(request: APIRequestContext, token: s
   expect(order.status()).toBe(200);
   const { orderId } = await order.json() as { orderId: string };
   const providerTxn = `ui-cb-${nonce}`;
-  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid`).digest('hex');
-  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig } });
+  // 5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`(±300s 防重放窗)·body 携 ts。
+  const ts = Date.now();
+  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid:${ts}`).digest('hex');
+  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig, ts } });
+  expect(paid.status()).toBe(200);
+}
+
+// 【第4件·0157 fixture 随演（EXEC 发现·协调方授权扩入 2026-10-11）】B271 片2 S2-C4（0157）后岗位绑定
+// 面试=企业额度支付：候选人 UI「开始面试」走 start+begin 合一·预留招聘方企业桶
+// （commerce.ts reserveEntitlementForApplication payer=招聘方），零余额 → 402 application_enterprise_pay_unavailable。
+// 招聘方经真 commerce API 购企业域商品 ent_pack_50 + 真 HMAC webhook 入账（镜像 provisionPaidInterviewCredit
+// 形·真 webhook 零 mock·零产品码）——须在候选人点「开始面试」前到账。
+async function provisionEnterpriseCredit(request: APIRequestContext, recruiterToken: string, nonce: string) {
+  const order = await request.post(`${API}/commerce/orders`, {
+    headers: { authorization: `Bearer ${recruiterToken}`, 'content-type': 'application/json', 'idempotency-key': `ui-ent:${nonce}` },
+    data: { productId: 'ent_pack_50' },
+  });
+  expect(order.status()).toBe(200);
+  const { orderId } = await order.json() as { orderId: string };
+  const providerTxn = `ui-ent-${nonce}`;
+  // 5A-2 #100:载荷 `${id}:${txn}:paid:${ts}`(±300s 防重放窗)·body 携 ts。
+  const ts = Date.now();
+  const sig = createHmac('sha256', process.env.PAY_PROVIDER_SECRET ?? 'e2e-pay-secret').update(`${orderId}:${providerTxn}:paid:${ts}`).digest('hex');
+  const paid = await request.post(`${API}/commerce/webhook/pay/${orderId}`, { data: { providerTxn, sig, ts } });
   expect(paid.status()).toBe(200);
 }
 
@@ -161,10 +234,16 @@ test('C→B: real browser binds application to a new interview, completes it, an
   // 真实支付回调是本用例唯一非 UI 的环境准备：前端不提供「假装支付成功」入口。
   await provisionPaidInterviewCredit(request, candidateToken, suffix);
 
-  // B 端：独立浏览器身份注册、建岗、邀请这个已注册的候选人。
+  // B 端:独立浏览器身份注册（拍1:pending 中间态）→ 真 admin API approve（拍2）→ approve 后真 UI 登录
+  // 恢复 waitForURL('**/recruiter/jobs') 行使（拍3·0155 审核门三拍）。
   const recruiterContext = await browser.newContext({ baseURL: process.env.PLAYWRIGHT_BASE_URL ?? 'http://127.0.0.1:3100' });
   const recruiter = await recruiterContext.newPage();
   await signUp(recruiter, recruiterEmail, 'recruiter');
+  await approveRecruiterViaAdminApi(request, recruiterEmail);
+  await loginViaUi(recruiter, recruiterEmail, 'recruiter');
+  // 第4件·0157:岗位绑定面试改企业额度支付——招聘方购企业包(真 webhook 入账)后候选人才可开始。
+  // 候选人个人包仍保留(真支付回调环境准备原样·C 端购买面收据)。
+  await provisionEnterpriseCredit(request, await tokenOf(recruiter.context()), `${suffix}-ent`);
   const publishedAt = Date.now();
   await recruiter.fill('input[name="title"]', jobTitle);
   await recruiter.fill('input[name="competencies"]', '高并发, 幂等, 限流');
@@ -177,7 +256,10 @@ test('C→B: real browser binds application to a new interview, completes it, an
   await recruiter.getByRole('button', { name: '邀请候选人' }).click();
   await recruiter.fill('input[name="candidateEmail"]', candidateEmail);
   await recruiter.getByRole('button', { name: '发送邀请' }).click();
-  await expect(recruiter.getByRole('status')).toContainText(/已邀请/, { timeout: 20_000 });
+  // 【red②-face2·断言随演（同根 0155/b110·abf80ce6 2026-10-10 落线）】邀请 status 文案已由「已邀请」
+  // 随演为「已受理；若对方是注册求职者将收到邀请」——锚新文案稳定前缀（邀请是否真落 app 面由下方
+  // API 侧 status='in_progress' 契约断言承重,此处只行使 UI 文案面）。
+  await expect(recruiter.getByRole('status')).toContainText(/已受理/, { timeout: 20_000 });
 
   // C 端：从真实「我的投递」选择简历并点击开始。URL 的 interviewId 是服务端持久化 binding 返回值。
   await page.goto('/jobs');
@@ -251,6 +333,11 @@ test('C→B: real browser binds application to a new interview, completes it, an
   await statusLink.click();
   await expect(recruiter.getByRole('heading', { name: '申请状态' })).toBeVisible({ timeout: 20_000 });
   await expect(recruiter.getByText(/看不到面试内容/)).toBeVisible();
-  await expect(recruiter.getByText(/综合评分|我的回答|已完成/)).toHaveCount(0);
+  // 【第7发现·断言随演（I2 W3④免责卡 d4e51105 2026-10-11 落线）】申请状态页新增 hold 中性注记句
+  // 「已面完 · 待校准表示这场面试已完成、还没有可比较的校准分…」——子串 /已完成/ 会误伤该免责句。
+  // 随演=已完成 改 exact 全词匹配（仍禁裸「已完成」状态徽回退）+ 候选内容词（综合评分/我的回答）
+  // 维持子串零容忍——隐私牙不弱化：逐题内容与数值分仍零出现为 PASS 前提。
+  await expect(recruiter.getByText('已完成', { exact: true })).toHaveCount(0);
+  await expect(recruiter.getByText(/综合评分|我的回答/)).toHaveCount(0);
   await recruiterContext.close();
 });

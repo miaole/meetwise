@@ -207,6 +207,34 @@ END $fn$;
 GRANT EXECUTE ON FUNCTION scoring_list_scorable_score_cards(text) TO app_role;
 `);
 
+//    ⑦ G5 SCOR-S3（GET 重闸 prove 接线·§1 行6）：scoring_aggregate_interview_scores 在本 harness
+//       缺失（影子 schema sql/ 族无 SCOR 聚合函数）→ 窄复刻。函数体逐字同 0161 收窄后（practice_eligible
+//       单态 + superseded/fenced 外层排除）；上方 list 复刻件仍为 0103 原文（其消费路径 POST assessment
+//       本证明不触；GET 重闸只消费本聚合函数的 eligible 计数）。
+await h.pool.query(`
+CREATE OR REPLACE FUNCTION scoring_aggregate_interview_scores(p_interview_id text)
+RETURNS TABLE (eligible_card_count bigint, deterministic_overall numeric, non_scoring_card_count bigint)
+LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $fn$
+DECLARE
+  principal text := current_setting('app.principal_user', true);
+BEGIN
+  IF principal IS NULL OR length(principal)=0 OR p_interview_id IS NULL OR length(p_interview_id)=0 THEN
+    RAISE EXCEPTION 'scoring_aggregate_invalid' USING ERRCODE='22023';
+  END IF;
+  RETURN QUERY
+    SELECT count(*) FILTER (WHERE c.status = 'practice_eligible')::bigint AS eligible_card_count,
+           CASE WHEN count(*) FILTER (WHERE c.status = 'practice_eligible') = 0
+                THEN NULL::numeric
+                ELSE round(avg(c.deterministic_total) FILTER (WHERE c.status = 'practice_eligible'))
+           END AS deterministic_overall,
+           count(*) FILTER (WHERE c.status <> 'practice_eligible')::bigint AS non_scoring_card_count
+    FROM score_card c
+    WHERE c.owner_user_id = principal AND c.interview_id = p_interview_id
+      AND c.status NOT IN ('superseded','fenced');
+END $fn$;
+GRANT EXECUTE ON FUNCTION scoring_aggregate_interview_scores(text) TO app_role;
+`);
+
 // 额外边界种子(与 harness 固定种子并存,避免与"IV_ACT 事件为空"的断言相互耦合)
 await h.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_DUP','userA','active'),('IV_DUP2','userA','active'),('IV_UBC','userB','created')");
 // API 拒绝路径也必须带真实 server-issued identity，不能用少字段 body 把业务守卫遮住。
@@ -429,6 +457,42 @@ A('career-path POST 未鉴权 → 401',
   is(await h.post('/interview/IV_ASMT/career-path', {}, {}), 401));
 
 // ─────────────────────────────────────────────────────────────────────────
+// 7b) G5 SCOR-S3 GET 重闸（ADR-0020 :56 收口·D2 落卷）—— persisted ready 而底层卡资格已失
+//     （fenced / 仅 b_review）→ fail-closed 409；读后校验落点：无 persisted 行仍 404 原值
+//     （上 6)/7) 段既有断言零翻即旁证）；信封复用既有码零新增（no_scorable_cards /
+//     insufficient_evidence 对齐各自 POST 先例）。夹具挂影子 schema 窄复刻件（负路径证明·非真实写路径伪造）。
+// ─────────────────────────────────────────────────────────────────────────
+await h.pool.query(`
+INSERT INTO question_rubric(id, question_id, competency)
+  VALUES ('00000000-0000-4000-8000-000000000501', 'q-g5-gate', '沟通表达')
+  ON CONFLICT (id) DO NOTHING;
+INSERT INTO interview(id, owner_user_id, status)
+  VALUES ('IV_G5OK','userA','active'),('IV_G5F','userA','active'),('IV_G5B','userA','active')
+  ON CONFLICT (id) DO NOTHING;
+INSERT INTO score_card(owner_user_id, interview_id, question_id, rubric_id, deterministic_total, coverage, status) VALUES
+  ('userA','IV_G5OK','q-g5-gate','00000000-0000-4000-8000-000000000501',80,1,'practice_eligible'),
+  ('userA','IV_G5F','q-g5-gate','00000000-0000-4000-8000-000000000501',80,1,'fenced'),
+  ('userA','IV_G5B','q-g5-gate','00000000-0000-4000-8000-000000000501',100,1,'b_review_eligible');
+INSERT INTO assessment_report(id, owner_user_id, interview_id, status, dimensions, overall) VALUES
+  ('ar-g5-ok','userA','IV_G5OK','ready','[]'::jsonb,80),
+  ('ar-g5-f','userA','IV_G5F','ready','[]'::jsonb,80),
+  ('ar-g5-b','userA','IV_G5B','ready','[]'::jsonb,90);
+INSERT INTO career_path(id, owner_user_id, interview_id, readiness, level, milestones) VALUES
+  ('cp-g5-ok','userA','IV_G5OK','ready','junior','[]'::jsonb),
+  ('cp-g5-f','userA','IV_G5F','ready','junior','[]'::jsonb);
+`);
+A('G5 assessment GET persisted ready + practice 卡在 → 200 原值（重闸正测·资格在原样返回）',
+  is((await h.req('GET', '/interview/IV_G5OK/assessment', A_)), 200));
+A('G5 assessment GET persisted ready 但卡 fenced → 409 no_scorable_cards（fail-closed·不发失配行）',
+  is(await h.req('GET', '/interview/IV_G5F/assessment', A_), 409, 'no_scorable_cards'));
+A('G5 assessment GET persisted ready 但仅 b_review 卡（0161 收窄不入 C 端）→ 409 no_scorable_cards',
+  is(await h.req('GET', '/interview/IV_G5B/assessment', A_), 409, 'no_scorable_cards'));
+A('G5 career-path GET persisted + practice 卡在 → 200 原值（重闸正测）',
+  is((await h.req('GET', '/interview/IV_G5OK/career-path', A_)), 200));
+A('G5 career-path GET persisted 但卡 fenced → 409 insufficient_evidence（对齐 POST career-path 先例）',
+  is(await h.req('GET', '/interview/IV_G5F/career-path', A_), 409, 'insufficient_evidence'));
+
+// ─────────────────────────────────────────────────────────────────────────
 // 8) events(SSE) / transcript —— 越权 / 不存在 / 未鉴权(404/401 在 hijack 前返 JSON)
 // ─────────────────────────────────────────────────────────────────────────
 A('events 越权:userB 订阅 userA 的 IV_ACT 事件流 → 404 not_found_or_forbidden(不泄露他人事件)',
@@ -512,5 +576,7 @@ A('abandon 终态 failed(IV_FAIL)→409 interview_not_active',
 //   §8 events/transcript 6
 //   §9 feedback/voice .. 8
 //   状态机硬不变量 .... 9
-//   ── 合计:97 条纯负路径断言（所有状态守卫均为精确码断言）
+//   ── 合计:102 条纯负路径断言（所有状态守卫均为精确码断言）
+//   [AUTHZ-HARDEN 5A-1 席1-R1 随刀更注] 原注「合计:97」系 H3 EXEC 时点值,后续刀增臂未更注;
+//   本次 rg 实测静态 A( 断言恰 102,按实测更正(97→102·只更注零臂动)。
 await done();

@@ -13,7 +13,7 @@ import {
   refuseBSideScoreFromInterviewStream, reviewInterviewProvenance, unscoredReason,
 } from './interview.ts';
 import { parseSseBuffer, payloadHasNumericScore, rejectForgedProgressScores } from './sse.ts';
-import { signupOrLogin, uidFromToken } from './auth.ts';
+import { adminHeaders, signupOrLogin, uidFromToken } from './auth.ts';
 import { classifyFailure } from './classify-failure.ts';
 import {
   AI_SYSTEM_TERMINAL_REVIEWS,
@@ -212,17 +212,21 @@ await test('终态集合包含成功报告与舱壁失败，不能只认任意�
   assert.equal(STALE_QUESTION_ERROR, 'stale_question');
 });
 
-await test('支付 webhook HMAC 绑定 orderId:txn:paid，换单/换流水/换事件都不能复用签名', () => {
+await test('支付 webhook HMAC 绑定 orderId:txn:paid:ts 四段，换单/换流水/换事件/换 ts 都不能复用签名', () => {
   const secret = 'e2e-pay-secret';
   assert.equal(PAID_WEBHOOK_EVENT, 'paid');
-  assert.equal(paidWebhookCanonical('ord-1', 'txn-1'), 'ord-1:txn-1:paid');
-  assert.throws(() => paidWebhookCanonical('', 'txn-1'), /e2e_webhook_canonical_missing/);
-  assert.throws(() => paidWebhookCanonical('ord-1', ''), /e2e_webhook_canonical_missing/);
-  const sig = paidWebhookSignature('ord-1', 'txn-1', secret);
-  assert.equal(sig, createHmac('sha256', secret).update('ord-1:txn-1:paid').digest('hex'));
-  assert.notEqual(sig, paidWebhookSignature('ord-1', 'txn-2', secret));
-  assert.notEqual(sig, paidWebhookSignature('ord-2', 'txn-1', secret));
-  assert.notEqual(sig, createHmac('sha256', secret).update('ord-1:txn-1:refunded').digest('hex'));
+  assert.equal(paidWebhookCanonical('ord-1', 'txn-1', 1700000000000), 'ord-1:txn-1:paid:1700000000000');
+  assert.throws(() => paidWebhookCanonical('', 'txn-1', 1700000000000), /e2e_webhook_canonical_missing/);
+  assert.throws(() => paidWebhookCanonical('ord-1', '', 1700000000000), /e2e_webhook_canonical_missing/);
+  // 5A-2 #100 ts 边界臂:缺 ts / 非有限数 → throw(镜像服务端 invalid_callback 结构性拒的 helper 形)。
+  assert.throws(() => paidWebhookCanonical('ord-1', 'txn-1', undefined as unknown as number), /e2e_webhook_canonical_missing/);
+  assert.throws(() => paidWebhookCanonical('ord-1', 'txn-1', Number.NaN), /e2e_webhook_canonical_missing/);
+  const sig = paidWebhookSignature('ord-1', 'txn-1', 1700000000000, secret);
+  assert.equal(sig, createHmac('sha256', secret).update('ord-1:txn-1:paid:1700000000000').digest('hex'));
+  assert.notEqual(sig, paidWebhookSignature('ord-1', 'txn-2', 1700000000000, secret));
+  assert.notEqual(sig, paidWebhookSignature('ord-2', 'txn-1', 1700000000000, secret));
+  assert.notEqual(sig, paidWebhookSignature('ord-1', 'txn-1', 1700000000001, secret));
+  assert.notEqual(sig, createHmac('sha256', secret).update('ord-1:txn-1:refunded:1700000000000').digest('hex'));
   assert.deepEqual([...WEBHOOK_CREDIT_RESULTS], ['credited', 'already']);
   assert.equal(isWebhookCreditResult('credited'), true);
   assert.equal(isWebhookCreditResult('already'), true);
@@ -252,9 +256,36 @@ await test('uidFromToken 正例走 domain signToken，三节 JWT 即使 header/p
   assert.throws(() => uidFromToken(forgedJwt), /e2e_token_uid_missing/);
 });
 
+await test('adminHeaders 缺/空 E2E_ADMIN_TOKEN 即 throw，不静默跳过审批步', () => {
+  const original = process.env.E2E_ADMIN_TOKEN;
+  try {
+    delete process.env.E2E_ADMIN_TOKEN;
+    assert.throws(() => adminHeaders(), /e2e_admin_bootstrap_missing/);
+    process.env.E2E_ADMIN_TOKEN = '';
+    assert.throws(() => adminHeaders(), /e2e_admin_bootstrap_missing/);
+  } finally {
+    if (original === undefined) delete process.env.E2E_ADMIN_TOKEN;
+    else process.env.E2E_ADMIN_TOKEN = original;
+  }
+});
+
+await test('adminHeaders 有令牌走 jsonHeaders Bearer 形，令牌原样透传不 rewrite', () => {
+  const original = process.env.E2E_ADMIN_TOKEN;
+  try {
+    const token = issuedToken('e2e-admin');
+    process.env.E2E_ADMIN_TOKEN = token;
+    const headers = adminHeaders();
+    assert.equal(headers['content-type'], 'application/json');
+    assert.equal(headers.authorization, `Bearer ${token}`);
+    assert.equal(uidFromToken(token), 'e2e-admin');
+  } finally {
+    if (original === undefined) delete process.env.E2E_ADMIN_TOKEN;
+    else process.env.E2E_ADMIN_TOKEN = original;
+  }
+});
+
 await test('createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用独立 createHmac 核对，错签不代签', async () => {
   const secret = 'e2e-pay-secret';
-  const expectedPaidSig = createHmac('sha256', secret).update('ord-1:txn-1:paid').digest('hex');
   const seen: FetchCall[] = [];
   await withMockFetch(async (call) => {
     seen.push(call);
@@ -275,7 +306,7 @@ await test('createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用�
     const paid = await payWebhook('ord-1', 'txn-1', secret);
     assert.equal(paid.response.status, 200);
     assert.equal(isWebhookCreditResult(paid.body.result), true);
-    await postPayWebhook('ord-1', 't', 'deadbeef');
+    await postPayWebhook('ord-1', 't', 'deadbeef', 1700000000000);
     const units = await entitlement({ authorization: 'Bearer t' });
     assert.equal(units.availableUnits, 4);
   });
@@ -288,10 +319,16 @@ await test('createOrder/payWebhook/entitlement 走对应 path+method，HMAC 用�
   assert.equal(seen[1]?.method, 'POST');
   assert.match(seen[1]?.url ?? '', /\/commerce\/webhook\/pay\/ord-1$/);
   assert.equal(seen[1]?.body.providerTxn, 'txn-1');
+  // 5A-2 #100:payWebhook 内部单次绑定 ts,独立用该 ts 重算四段 HMAC 核对(sig 与 body.ts 同源)。
+  const wiredTs = seen[1]?.body.ts;
+  assert.equal(typeof wiredTs, 'number');
+  assert.equal(Number.isFinite(wiredTs), true);
+  const expectedPaidSig = createHmac('sha256', secret).update(`ord-1:txn-1:paid:${wiredTs}`).digest('hex');
   assert.equal(seen[1]?.body.sig, expectedPaidSig);
-  assert.notEqual(seen[1]?.body.sig, createHmac('sha256', secret).update('ord-1:txn-1:refunded').digest('hex'));
+  assert.notEqual(seen[1]?.body.sig, createHmac('sha256', secret).update(`ord-1:txn-1:refunded:${wiredTs}`).digest('hex'));
   assert.equal(seen[2]?.method, 'POST');
   assert.equal(seen[2]?.body.sig, 'deadbeef');
+  assert.equal(seen[2]?.body.ts, 1700000000000);
   assert.notEqual(seen[2]?.body.sig, expectedPaidSig);
   assert.equal(seen[3]?.method, 'GET');
   assert.match(seen[3]?.url ?? '', /\/commerce\/entitlement$/);
@@ -305,8 +342,8 @@ await test('full.e2e 源码锁：入账必须 200 且 credited|already，错签 
   assert.match(scenario, /ordered\.response\.status === 200 && typeof ordered\.body\.orderId === 'string'/);
   assert.match(scenario, /paid\.response\.status === 200 && isWebhookCreditResult\(paid\.body\.result\)/);
   assert.match(scenario, /\(units\.availableUnits \?\? 0\) >= 1/);
-  assert.match(scenario, /postPayWebhook\(ord\.orderId, 't', 'deadbeef'\)/);
-  assert.match(scenario, /postPayWebhook\('nope', 't', paidWebhookSignature\('nope', 't'\)\)/);
+  assert.match(scenario, /postPayWebhook\(ord\.orderId, 't', 'deadbeef', badSigTs\)/);
+  assert.match(scenario, /postPayWebhook\('nope', 't', paidWebhookSignature\('nope', 't', unknownTs\), unknownTs\)/);
   assert.match(scenario, /badSig\.response\.status === 403/);
   assert.match(scenario, /unknownOrder\.response\.status === 404/);
 });

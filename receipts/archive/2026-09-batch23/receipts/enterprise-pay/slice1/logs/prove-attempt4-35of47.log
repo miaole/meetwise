@@ -1,0 +1,141 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-87638-1791610553818 on 127.0.0.1:59557
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 entpay:s1:prove /Users/miaole/Desktop/golucky/meetwise-line-entpay/apps/api
+> node --import @swc-node/register/esm-register test/enterprise-pay-s1.proof.ts
+
+{"level":30,"time":1791610559200,"pid":87805,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:59573"}
+FAIL  S1-0 真迁移链 0001→0156 全量应用+重跑幂等（部署车）
+{"level":30,"time":1791610559213,"pid":87805,"hostname":"miaole.local","reqId":"53a3b8e5-05e8-49a4-a225-40fb3bcbb6dd","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559218,"pid":87805,"hostname":"miaole.local","reqId":"53a3b8e5-05e8-49a4-a225-40fb3bcbb6dd","res":{"statusCode":403},"responseTime":5.306250000000091,"msg":"request completed"}
+FAIL  S1-1a 企业线上单创建 200（approved recruiter）
+{"level":30,"time":1791610559222,"pid":87805,"hostname":"miaole.local","reqId":"63ef028a-bce9-48bd-b9e5-746f01bef629","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559225,"pid":87805,"hostname":"miaole.local","reqId":"63ef028a-bce9-48bd-b9e5-746f01bef629","res":{"statusCode":403},"responseTime":2.243084000000181,"msg":"request completed"}
+PASS  S1-1b 候选人买企业商品 → 403 recruiter_required（0155 同门）
+{"level":30,"time":1791610559226,"pid":87805,"hostname":"miaole.local","reqId":"52928956-d8f5-4c2a-895b-49a8fee8df7a","req":{"method":"POST","url":"/commerce/webhook/pay/undefined","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559228,"pid":87805,"hostname":"miaole.local","reqId":"52928956-d8f5-4c2a-895b-49a8fee8df7a","res":{"statusCode":404},"responseTime":1.6609579999999369,"msg":"request completed"}
+FAIL  S1-1c webhook 入账 credited（HMAC fail-closed 复用）
+FAIL  S1-1d 企业桶恰一：kind=enterprise·owner=下单招聘方·units=50·source_order_id=订单（S1-C3 落位）
+FAIL  S1-1e 到期沿 365 天惯例
+{"level":30,"time":1791610559229,"pid":87805,"hostname":"miaole.local","reqId":"56d565ea-134a-48de-bf5a-cf614c272fe4","req":{"method":"POST","url":"/commerce/webhook/pay/undefined","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559231,"pid":87805,"hostname":"miaole.local","reqId":"56d565ea-134a-48de-bf5a-cf614c272fe4","res":{"statusCode":404},"responseTime":1.280250000000251,"msg":"request completed"}
+FAIL  S1-1f 回调重放→already（幂等不双入）
+FAIL  S1-1g 企业桶仍恰一行（exactly-once）
+{"level":30,"time":1791610559232,"pid":87805,"hostname":"miaole.local","reqId":"6d54ce71-e8ca-4027-b733-075b04cf72e4","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559234,"pid":87805,"hostname":"miaole.local","reqId":"6d54ce71-e8ca-4027-b733-075b04cf72e4","res":{"statusCode":403},"responseTime":1.8339579999997113,"msg":"request completed"}
+{"level":30,"time":1791610559235,"pid":87805,"hostname":"miaole.local","reqId":"89949ed5-8c22-4285-870d-b64dd8768132","req":{"method":"POST","url":"/commerce/webhook/pay/undefined","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559236,"pid":87805,"hostname":"miaole.local","reqId":"89949ed5-8c22-4285-870d-b64dd8768132","res":{"statusCode":404},"responseTime":1.3698339999996278,"msg":"request completed"}
+FAIL  S1-1h 同 provider_txn 指向另一单 → 409 conflict（0020 CAS 语义）
+FAIL  S1-1i 另一单仍 created 零入账
+{"level":30,"time":1791610559238,"pid":87805,"hostname":"miaole.local","reqId":"0cc03f26-355b-487d-b13e-7b41c76667de","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559239,"pid":87805,"hostname":"miaole.local","reqId":"0cc03f26-355b-487d-b13e-7b41c76667de","res":{"statusCode":403},"responseTime":1.5917500000000473,"msg":"request completed"}
+FAIL  S1-2a 对公单创建（channel=offline·停 created）
+{"level":30,"time":1791610559240,"pid":87805,"hostname":"miaole.local","reqId":"90424145-110a-4669-916a-7eb9e807b023","req":{"method":"GET","url":"/admin/offline-remits","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559243,"pid":87805,"hostname":"miaole.local","reqId":"90424145-110a-4669-916a-7eb9e807b023","res":{"statusCode":200},"responseTime":3.52154100000007,"msg":"request completed"}
+FAIL  S1-2b admin 台账队列可见 offline 单
+{"level":30,"time":1791610559244,"pid":87805,"hostname":"miaole.local","reqId":"0d5f7628-1393-4b0c-b4b2-255ea949431a","req":{"method":"GET","url":"/admin/offline-remits","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559247,"pid":87805,"hostname":"miaole.local","reqId":"0d5f7628-1393-4b0c-b4b2-255ea949431a","res":{"statusCode":403},"responseTime":2.4150829999998678,"msg":"request completed"}
+PASS  S1-2c candidate 访问 admin 台账 → 403（AdminGuard）
+{"level":30,"time":1791610559249,"pid":87805,"hostname":"miaole.local","reqId":"4152d9a8-64c6-4af7-88f7-d993bd0e5d3b","req":{"method":"POST","url":"/admin/offline-remits/undefined/confirm","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559250,"pid":87805,"hostname":"miaole.local","reqId":"4152d9a8-64c6-4af7-88f7-d993bd0e5d3b","res":{"statusCode":403},"responseTime":1.481249999999818,"msg":"request completed"}
+PASS  S1-2d 非 admin HTTP 确认 → 403（guard 层）
+PASS  S1-2e 非 admin 直调受控函数 → gateway_admin_required（函数层双层）
+{"level":30,"time":1791610559252,"pid":87805,"hostname":"miaole.local","reqId":"c05432c8-77f3-4e00-b516-336b8eb3a5da","req":{"method":"POST","url":"/admin/offline-remits/undefined/entry","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559256,"pid":87805,"hostname":"miaole.local","reqId":"c05432c8-77f3-4e00-b516-336b8eb3a5da","res":{"statusCode":404},"responseTime":3.1832500000000437,"msg":"request completed"}
+FAIL  S1-2f admin 录入 bank_ref+到账金额 → true
+FAIL  S1-2g 确认前本单企业桶零入账·订单仍 created（停 created 语义）
+{"level":30,"time":1791610559257,"pid":87805,"hostname":"miaole.local","reqId":"4ac026b8-ae7a-4179-9c8f-e20e1e0bcb48","req":{"method":"POST","url":"/admin/offline-remits/undefined/confirm","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559261,"pid":87805,"hostname":"miaole.local","reqId":"4ac026b8-ae7a-4179-9c8f-e20e1e0bcb48","res":{"statusCode":409},"responseTime":4.403209000000061,"msg":"request completed"}
+FAIL  S1-2h 录入人==确认人 → 409 offline_remit_segregation_required（双人分离）
+FAIL  S1-2h2 拒后本单仍零入账·仍 created
+{"level":30,"time":1791610559262,"pid":87805,"hostname":"miaole.local","reqId":"df4f1e21-318a-48db-9d36-31798242ca1c","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559264,"pid":87805,"hostname":"miaole.local","reqId":"df4f1e21-318a-48db-9d36-31798242ca1c","res":{"statusCode":403},"responseTime":1.7511249999997744,"msg":"request completed"}
+{"level":30,"time":1791610559264,"pid":87805,"hostname":"miaole.local","reqId":"bf4993e7-55d2-413d-9cf5-5c834c70fc42","req":{"method":"POST","url":"/admin/offline-remits/undefined/entry","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559267,"pid":87805,"hostname":"miaole.local","reqId":"bf4993e7-55d2-413d-9cf5-5c834c70fc42","res":{"statusCode":404},"responseTime":3.0985829999999623,"msg":"request completed"}
+{"level":30,"time":1791610559268,"pid":87805,"hostname":"miaole.local","reqId":"6ecb9dba-fec1-4510-812b-ad79f0845e26","req":{"method":"POST","url":"/admin/offline-remits/undefined/confirm","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559271,"pid":87805,"hostname":"miaole.local","reqId":"6ecb9dba-fec1-4510-812b-ad79f0845e26","res":{"statusCode":409},"responseTime":3.1372910000000047,"msg":"request completed"}
+FAIL  S1-2i 金额不符 → 409 offline_remit_amount_mismatch（拒且不入账）
+{"level":30,"time":1791610559271,"pid":87805,"hostname":"miaole.local","reqId":"032c9acc-d6b5-4264-9b91-db846e318792","req":{"method":"POST","url":"/admin/offline-remits/undefined/confirm","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559274,"pid":87805,"hostname":"miaole.local","reqId":"032c9acc-d6b5-4264-9b91-db846e318792","res":{"statusCode":409},"responseTime":3.106333000000177,"msg":"request completed"}
+FAIL  S1-2j 第二 admin 确认 → 200 confirmed（双人分离过·CAS 入账）
+FAIL  S1-2k 订单 paid + 本单企业桶恰一（kind=enterprise·units=200·来源=受控函数落位）
+{"level":30,"time":1791610559275,"pid":87805,"hostname":"miaole.local","reqId":"19cd8957-d68b-4f3c-8b55-386f8389cecf","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559277,"pid":87805,"hostname":"miaole.local","reqId":"19cd8957-d68b-4f3c-8b55-386f8389cecf","res":{"statusCode":403},"responseTime":1.477624999999989,"msg":"request completed"}
+{"level":30,"time":1791610559277,"pid":87805,"hostname":"miaole.local","reqId":"a39d8026-c665-49e0-9722-9ff08913037b","req":{"method":"POST","url":"/admin/offline-remits/undefined/entry","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559280,"pid":87805,"hostname":"miaole.local","reqId":"a39d8026-c665-49e0-9722-9ff08913037b","res":{"statusCode":404},"responseTime":2.928124999999909,"msg":"request completed"}
+{"level":30,"time":1791610559280,"pid":87805,"hostname":"miaole.local","reqId":"da006d33-9827-43a4-bb68-3bb548fe3d3e","req":{"method":"POST","url":"/admin/offline-remits/undefined/confirm","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559283,"pid":87805,"hostname":"miaole.local","reqId":"da006d33-9827-43a4-bb68-3bb548fe3d3e","res":{"statusCode":409},"responseTime":2.9659590000001117,"msg":"request completed"}
+FAIL  S1-2l 同一银行流水号确认第二单 → 409 offline_remit_provider_txn_conflict（0020 CAS）
+{"level":30,"time":1791610559284,"pid":87805,"hostname":"miaole.local","reqId":"6b2c5523-4378-465f-a889-d033ce0ba9d1","req":{"method":"POST","url":"/admin/offline-remits/undefined/fail","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559288,"pid":87805,"hostname":"miaole.local","reqId":"6b2c5523-4378-465f-a889-d033ce0ba9d1","res":{"statusCode":404},"responseTime":4.029375000000073,"msg":"request completed"}
+FAIL  S1-2m 置败 → 200 failed·订单 failed
+FAIL  S1-2n entry audit（actor=adminU·detail bank_ref/amount）
+FAIL  S1-2o confirm audit 四元（操作人/订单/流水号/金额·审计⑦逐条）
+FAIL  S1-2p fail audit（reason+actor）
+{"level":30,"time":1791610559290,"pid":87805,"hostname":"miaole.local","reqId":"aad554f8-acb8-45ca-868b-ddfb1611324d","req":{"method":"POST","url":"/commerce/webhook/refund/undefined","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559291,"pid":87805,"hostname":"miaole.local","reqId":"aad554f8-acb8-45ca-868b-ddfb1611324d","res":{"statusCode":404},"responseTime":1.4601669999997284,"msg":"request completed"}
+FAIL  S1-3a 企业订单退款 webhook → refunded
+FAIL  S1-3b 只减 enterprise 桶（-200）·C 端 paid 桶前后相等（S1-C5 过滤）
+{"level":30,"time":1791610559292,"pid":87805,"hostname":"miaole.local","reqId":"96488b21-7ae4-49ed-981a-da29bf6c23d9","req":{"method":"POST","url":"/commerce/webhook/refund/undefined","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559293,"pid":87805,"hostname":"miaole.local","reqId":"96488b21-7ae4-49ed-981a-da29bf6c23d9","res":{"statusCode":404},"responseTime":1.3178330000000642,"msg":"request completed"}
+FAIL  S1-3c 退款重放 → already（红冲 exactly-once 回归）
+{"level":30,"time":1791610559294,"pid":87805,"hostname":"miaole.local","reqId":"9e673d5d-5bcf-4241-bfb4-a25e92305dc2","req":{"method":"POST","url":"/commerce/invoice-profile","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559296,"pid":87805,"hostname":"miaole.local","reqId":"9e673d5d-5bcf-4241-bfb4-a25e92305dc2","res":{"statusCode":403},"responseTime":1.9799169999996593,"msg":"request completed"}
+FAIL  S1-4a 开票资料维护 → saved（approved recruiter）
+{"level":30,"time":1791610559296,"pid":87805,"hostname":"miaole.local","reqId":"9649d2d4-760c-458d-8b62-64816f1b15a8","req":{"method":"GET","url":"/commerce/invoice-profile","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559298,"pid":87805,"hostname":"miaole.local","reqId":"9649d2d4-760c-458d-8b62-64816f1b15a8","res":{"statusCode":200},"responseTime":1.7679579999999078,"msg":"request completed"}
+FAIL  S1-4b 本人可读回（抬头/税号）
+{"level":30,"time":1791610559298,"pid":87805,"hostname":"miaole.local","reqId":"b71dd475-177b-4b1f-9ef5-a72cf6bedf59","req":{"method":"GET","url":"/commerce/invoice-profile","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559300,"pid":87805,"hostname":"miaole.local","reqId":"b71dd475-177b-4b1f-9ef5-a72cf6bedf59","res":{"statusCode":200},"responseTime":1.5798329999997804,"msg":"request completed"}
+PASS  S1-4c 他招聘方 SELECT → 零行（RLS 仅本人）
+PASS  S1-4d 候选人 principal 直查 → 0 行（RLS FORCE）
+{"level":30,"time":1791610559302,"pid":87805,"hostname":"miaole.local","reqId":"e9aba92a-8e8e-4f89-9e0e-d8ae5e6b3428","req":{"method":"POST","url":"/commerce/invoice-profile","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559303,"pid":87805,"hostname":"miaole.local","reqId":"e9aba92a-8e8e-4f89-9e0e-d8ae5e6b3428","res":{"statusCode":403},"responseTime":1.5270829999999478,"msg":"request completed"}
+PASS  S1-4e 候选人维护开票资料 → 403（recruiter 门）
+{"level":30,"time":1791610559303,"pid":87805,"hostname":"miaole.local","reqId":"7a5cbd3e-720a-4654-88d4-4a9fbfe8fb51","req":{"method":"POST","url":"/commerce/invoice-requests","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559304,"pid":87805,"hostname":"miaole.local","reqId":"7a5cbd3e-720a-4654-88d4-4a9fbfe8fb51","res":{"statusCode":400},"responseTime":0.4600829999999405,"msg":"request completed"}
+FAIL  S1-4f created 单申请开票 → 409（invoice_request_order_not_paid）
+{"level":30,"time":1791610559304,"pid":87805,"hostname":"miaole.local","reqId":"1fd99b27-62d9-4dfb-b5c3-bfd4b9c7e9b2","req":{"method":"POST","url":"/commerce/invoice-requests","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559304,"pid":87805,"hostname":"miaole.local","reqId":"1fd99b27-62d9-4dfb-b5c3-bfd4b9c7e9b2","res":{"statusCode":400},"responseTime":0.17316699999992125,"msg":"request completed"}
+FAIL  S1-4g refunded 单申请开票 → 409（负例·审计⑦）
+{"level":30,"time":1791610559305,"pid":87805,"hostname":"miaole.local","reqId":"bfa993f1-e309-4463-bfa5-f2aa33559bae","req":{"method":"POST","url":"/commerce/invoice-requests","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559305,"pid":87805,"hostname":"miaole.local","reqId":"bfa993f1-e309-4463-bfa5-f2aa33559bae","res":{"statusCode":400},"responseTime":0.11670800000001691,"msg":"request completed"}
+FAIL  S1-4h paid 单申请开票 → 200 submitted（仅-paid 门正例）
+{"level":30,"time":1791610559305,"pid":87805,"hostname":"miaole.local","reqId":"d74e022c-48f3-4037-85b6-ea75623194bf","req":{"method":"POST","url":"/commerce/invoice-requests","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559305,"pid":87805,"hostname":"miaole.local","reqId":"d74e022c-48f3-4037-85b6-ea75623194bf","res":{"statusCode":400},"responseTime":0.11387500000000728,"msg":"request completed"}
+FAIL  S1-4i 同单重复申请 → 409（一单至多一张）
+{"level":30,"time":1791610559306,"pid":87805,"hostname":"miaole.local","reqId":"3e6130d9-f224-47bb-b748-86744a6ead2e","req":{"method":"POST","url":"/commerce/invoice-requests","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559306,"pid":87805,"hostname":"miaole.local","reqId":"3e6130d9-f224-47bb-b748-86744a6ead2e","res":{"statusCode":400},"responseTime":0.12991699999975026,"msg":"request completed"}
+FAIL  S1-4j 他人 paid 单申请 → 409（RLS/owner 双门·无存在性信号）
+{"level":30,"time":1791610559306,"pid":87805,"hostname":"miaole.local","reqId":"29345a34-61b9-41a3-98c4-2df50a2fbcb5","req":{"method":"GET","url":"/commerce/invoice-requests","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559308,"pid":87805,"hostname":"miaole.local","reqId":"29345a34-61b9-41a3-98c4-2df50a2fbcb5","res":{"statusCode":200},"responseTime":1.8065000000001419,"msg":"request completed"}
+FAIL  S1-4k 本人申请列表恰一（submitted）
+{"level":30,"time":1791610559308,"pid":87805,"hostname":"miaole.local","reqId":"b7093edb-3ee2-4005-9cff-8b2194c97856","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559310,"pid":87805,"hostname":"miaole.local","reqId":"b7093edb-3ee2-4005-9cff-8b2194c97856","res":{"statusCode":200},"responseTime":1.9645829999999478,"msg":"request completed"}
+{"level":30,"time":1791610559310,"pid":87805,"hostname":"miaole.local","reqId":"d859f814-080a-4ebf-90d8-dd5e9824ed0c","req":{"method":"POST","url":"/commerce/webhook/pay/ord_01a1244f9b4c7ab18a8325bb681b7d6e","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559314,"pid":87805,"hostname":"miaole.local","reqId":"d859f814-080a-4ebf-90d8-dd5e9824ed0c","res":{"statusCode":200},"responseTime":3.613083000000188,"msg":"request completed"}
+PASS  S1-5a C 端 paid 单入账回归 credited
+PASS  S1-5b C 端落桶 kind=paid（默认参数路径零退化·source_order_id 溯源同列）
+{"level":30,"time":1791610559315,"pid":87805,"hostname":"miaole.local","reqId":"5633d2ad-db20-4acf-90f7-ebe91f599bdf","req":{"method":"GET","url":"/commerce/products","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559315,"pid":87805,"hostname":"miaole.local","reqId":"5633d2ad-db20-4acf-90f7-ebe91f599bdf","res":{"statusCode":200},"responseTime":0.11400000000003274,"msg":"request completed"}
+PASS  S1-5c 公开商品目录仍恰 2 条（C 端域子集·neg-commerce:389 契约零弱化）
+{"level":30,"time":1791610559315,"pid":87805,"hostname":"miaole.local","reqId":"d9408a88-fa06-4e27-9c48-550522d848d2","req":{"method":"GET","url":"/commerce/enterprise-products","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559316,"pid":87805,"hostname":"miaole.local","reqId":"d9408a88-fa06-4e27-9c48-550522d848d2","res":{"statusCode":403},"responseTime":1.2285829999996167,"msg":"request completed"}
+FAIL  S1-5d 企业商品独立端点恰 2 条（ent_ 域·recruiter 门·前席发现②兼容）
+{"level":30,"time":1791610559317,"pid":87805,"hostname":"miaole.local","reqId":"27d8c2ae-c283-4b69-b575-e7ef93a55d04","req":{"method":"GET","url":"/commerce/enterprise-products","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559318,"pid":87805,"hostname":"miaole.local","reqId":"27d8c2ae-c283-4b69-b575-e7ef93a55d04","res":{"statusCode":403},"responseTime":1.1546669999997903,"msg":"request completed"}
+PASS  S1-5e 候选人访问企业商品端点 → 403（recruiter 门）
+{"level":30,"time":1791610559318,"pid":87805,"hostname":"miaole.local","reqId":"bba9c12f-1ab5-48d5-8d12-212aced6cf55","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59575},"msg":"incoming request"}
+{"level":30,"time":1791610559320,"pid":87805,"hostname":"miaole.local","reqId":"bba9c12f-1ab5-48d5-8d12-212aced6cf55","res":{"statusCode":200},"responseTime":1.4929999999999382,"msg":"request completed"}
+{"level":30,"time":1791610559320,"pid":87805,"hostname":"miaole.local","reqId":"6b26051d-d9d4-41a0-bd9e-be6214c08119","req":{"method":"POST","url":"/commerce/webhook/pay/ord_01a1244f9b567352aa7c5f4e230aec8c","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559323,"pid":87805,"hostname":"miaole.local","reqId":"6b26051d-d9d4-41a0-bd9e-be6214c08119","res":{"statusCode":200},"responseTime":3.2396660000003976,"msg":"request completed"}
+{"level":30,"time":1791610559324,"pid":87805,"hostname":"miaole.local","reqId":"7a2035ec-47ba-4c0c-85bf-92ac0e0a80fb","req":{"method":"POST","url":"/commerce/webhook/refund/ord_01a1244f9b567352aa7c5f4e230aec8c","host":"127.0.0.1:59573","remoteAddress":"127.0.0.1","remotePort":59574},"msg":"incoming request"}
+{"level":30,"time":1791610559328,"pid":87805,"hostname":"miaole.local","reqId":"7a2035ec-47ba-4c0c-85bf-92ac0e0a80fb","res":{"statusCode":200},"responseTime":4.028583000000253,"msg":"request completed"}
+PASS  S1-5f C 端红冲语义回归（paid 桶 -10·无过滤路径零弱化）
+
+✗ enterprise:pay:s1:prove: 35/47 失败
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-87638-1791610553818 state_bytes=217 logs_bytes=0

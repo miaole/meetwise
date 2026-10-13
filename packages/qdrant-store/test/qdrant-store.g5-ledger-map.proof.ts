@@ -46,7 +46,7 @@ const migration0091 = join(repoRoot, 'packages/db/migrations/0091_privacy_author
 const migration0125 = join(repoRoot, 'packages/db/migrations/0125_memory_vector_chunk_erasure.sql');
 const contractsPath = join(repoRoot, 'packages/contracts/src/index.ts');
 const rootPkgPath = join(repoRoot, 'package.json');
-const retrievalPath = join(repoRoot, 'packages/db/src/retrieval-store.ts');
+const retrievalPath = join(repoRoot, 'packages/db/src/retrieval/retrieval-store.ts');
 
 let exitCode = 0;
 const lines: string[] = [];

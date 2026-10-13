@@ -1,0 +1,6 @@
+[diag] api livez ok at 3067ms
+[diag] signup -> 200 {"token":"eyJ1aWQiOiI4NWU4NzU2NC1lNTlhLTRkNDItYmRhYS0wNTY0OWM5NzY2ZWIiLCJleHAiOjE3OTIzMjQ4NTgsInBlIjowfQ.3Me_1soV8S83VGu14h_NnLnF_5Z3JXSzpyAEiFzYkYw","userId":"85e87564-e59a-4d42-bdaa-05649c9766eb","role":"candidate"}
+[diag] consent -> 200 {"recorded":true,"policyVersion":"v1"}
+[diag] resume upload -> 200 {"resumeId":"01a12ad6-6f81-729a-bc96-07f5eba16d1d","status":"ingested"}
+[diag] interview create -> 200 {"interviewId":"iv_01a12ad66f9370c7840f8c772864dc15","status":"created","reused":false}
+[diag] INTERVIEW BEGIN (assertion expects 402 insufficient_entitlement) -> 202 {"accepted":true,"jobId":"01a12ad6-6fa9-7f71-a3ef-49335ad9a61a"}

@@ -22,7 +22,7 @@ import {
   assessProductSsotAuthorizeEvidence,
   emitProductSsotAuthorizeEvidence,
   hasProductSsotAuthorizeEvidence,
-} from '../src/r4-eg5-product-ssot-evidence.ts';
+} from '../evidence/r4-eg5-product-ssot-evidence.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {

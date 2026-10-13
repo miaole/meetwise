@@ -1,0 +1,51 @@
+{
+  "result": "OK",
+  "v": "V2",
+  "kills": [
+    {
+      "svc": "api-a",
+      "container": "meetwise-api-a-1",
+      "killedAt": "2026-10-10T15:56:04.385Z",
+      "crash": "host-pid-ns-sigkill(pid1·non-graceful·engine-classified-crash)",
+      "crashConfirmed": true,
+      "policyRestarted": true,
+      "healed": true,
+      "healSeconds": 6,
+      "via": "docker-health",
+      "engineFrozen": false,
+      "engineCorrectiveRestart": false
+    },
+    {
+      "svc": "web-a",
+      "container": "meetwise-web-a-1",
+      "killedAt": "2026-10-10T15:56:11.277Z",
+      "crash": "host-pid-ns-sigkill(pid1·non-graceful·engine-classified-crash)",
+      "crashConfirmed": true,
+      "policyRestarted": true,
+      "healed": true,
+      "healSeconds": 3,
+      "via": "app-probe+engine-restart",
+      "engineFrozen": false,
+      "engineCorrectiveRestart": false
+    },
+    {
+      "svc": "worker-a",
+      "container": "meetwise-worker-a-1",
+      "killedAt": "2026-10-10T15:56:17.565Z",
+      "crash": "host-pid-ns-sigkill(pid1·non-graceful·engine-classified-crash)",
+      "crashConfirmed": true,
+      "policyRestarted": true,
+      "healed": true,
+      "healSeconds": 5,
+      "via": "app-probe+engine-restart",
+      "engineFrozen": false,
+      "engineCorrectiveRestart": false
+    }
+  ],
+  "crashSemantics": "docker kill API bypasses unless-stopped policy on engine 29.1.3 (manual-stop semantics, RestartCount=0 observed) — faithful crash = host-PID-namespace SIGKILL of replica PID1 via --pid=host helper (chaos-standard, dockerd not involved → engine-classified crash → real policy restart); heal measured by compose-identical readiness probe",
+  "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v2",
+  "note": "non-graceful crash + restart:unless-stopped self-heal; local sandbox ≠ production HA",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}

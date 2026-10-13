@@ -1,0 +1,230 @@
+/**
+ * Durable model-invocation claim.  Every function here runs inside one short
+ * principal transaction; callers must never hold this transaction while doing
+ * network I/O.  The lease only protects `claimed` (pre-dispatch) work.  Once
+ * a request becomes dispatching, a timeout is an auditable unknown rather than
+ * an invitation to send the same billable request again.
+ */
+import { createHash } from 'node:crypto';
+import type { Client } from '../principal.ts';
+
+export type ModelInvocationClaim =
+  | { action: 'execute'; leaseToken: string }
+  | { action: 'cached'; output: unknown }
+  | { action: 'wait' }
+  | { action: 'failed'; error: string }
+  | { action: 'unknown'; error: string };
+
+export interface ClaimModelInvocationInput {
+  owner: string;
+  idempotencyKey: string;
+  /**
+   * Server-computed business-node identity.  Only its digest is persisted;
+   * direct database writers never receive a raw prompt, answer, or route.
+   *
+   * The fallback exists solely for older local proof seams. Production invoke
+   * rejects an omitted key before it reaches this helper.
+   */
+  logicalNodeKey?: string;
+  requestDigest: string;
+  service?: string;
+  requestId?: string | null;
+  /** Immutable cost-budget scope selected by the pure pre-dispatch route. */
+  costScopeId?: string;
+  /**
+   * Frozen billed dispatch binding (MODEL-OP-00-BINDING-001).  Required as a
+   * complete set exactly when `costScopeId` is present; the header freezes it
+   * and dispatch only pairs with a reservation that matches it exactly.
+   */
+  provider?: string;
+  model?: string;
+  region?: string;
+  priceRevision?: string;
+  maxInputTokens?: number;
+  maxOutputTokens?: number;
+  /**
+   * 派发前保守估算的输入 token（utf8-bytes-v1 = UTF-8 字节上界）。在 claim 时落库，
+   * 覆盖 success / schema-失败 / business-失败 / unknown 全 outcome——异步 usage 对账的
+   * 校准证据不偏向「输出校验通过」样本。缺省（旧 seam 未接预算器）落 NULL = 本调用无对账证据。
+   */
+  estimateInputTokens?: number;
+  /**
+   * AG-19 观测标签：prompt 注册表版本（ai-runtime prompts.ts version 单源派生）。claim 时
+   * 冻结落 ai_model_invocation.prompt_version（0181），覆盖全 outcome 且 identity-immutable
+   * （claim 后不可改）。缺省（registry 外 service/旧 seam）落 NULL = 本调用无版本标签。
+   * 纯观测：不进 requestDigest（版本非语义输入），不参与任何结算/重试/状态机语义判定。
+   */
+  promptVersion?: string;
+  /**
+   * AG-12 观测标签：估算器版本（claim 时冻结落 ai_model_invocation.estimator_version，0184），
+   * 覆盖全 outcome 且 identity-immutable（claim 后不可改）。缺省落 NULL = 本调用无估算器标签
+   * （配对函数 COALESCE 存量 NULL → 'utf8-bytes-v1' 归因）。纯观测：不进 requestDigest。
+   */
+  estimatorVersion?: string | null;
+  /**
+   * AG-12 观测标签：校准因子版本（claim 时冻结落 ai_model_invocation.calibration_factor_version，
+   * 0184），覆盖全 outcome 且 identity-immutable。生产 policy.calibration 现无 setter，缺省落
+   * NULL 缝（回灌刀接线后始有值）。纯观测：不进 requestDigest。
+   */
+  calibrationFactorVersion?: string | null;
+  leaseToken: string;
+  leaseSeconds: number;
+}
+
+function logicalNodeKeyDigest(input: ClaimModelInvocationInput): string {
+  const key = input.logicalNodeKey ?? `legacy:${input.idempotencyKey}`;
+  if (key.length < 1 || key.length > 512 || /[\u0000\r\n]/.test(key))
+    throw new Error('model_logical_node_key_invalid');
+  return createHash('sha256').update(key, 'utf8').digest('hex');
+}
+
+/**
+ * A billed claim must freeze its complete provider/model/region/revision and
+ * token-bound identity; an unbilled claim must carry none of those fields.
+ * Mirrors the database-side header shape check before any SQL is attempted.
+ */
+function bindingArgs(input: ClaimModelInvocationInput): [string | null, string | null, string | null, string | null, number | null, number | null] {
+  const billed = input.costScopeId !== undefined;
+  const fields = [input.provider, input.model, input.region, input.priceRevision, input.maxInputTokens, input.maxOutputTokens] as const;
+  const present = fields.filter((value) => value !== undefined);
+  if (billed) {
+    if (present.length !== fields.length
+      || !Number.isSafeInteger(input.maxInputTokens) || !Number.isSafeInteger(input.maxOutputTokens)) {
+      throw new Error('model_invocation_claim_binding_incomplete');
+    }
+  } else if (present.length > 0) throw new Error('model_invocation_claim_binding_without_cost_scope');
+  return [
+    input.provider ?? null, input.model ?? null, input.region ?? null, input.priceRevision ?? null,
+    input.maxInputTokens ?? null, input.maxOutputTokens ?? null,
+  ];
+}
+
+export async function claimModelInvocation(c: Client, input: ClaimModelInvocationInput): Promise<ModelInvocationClaim> {
+  const nodeDigest = logicalNodeKeyDigest(input);
+  const [provider, model, region, priceRevision, maxInputTokens, maxOutputTokens] = bindingArgs(input);
+  const r = await c.query<{ action: string; lease_token: string | null; output: unknown; error_code: string | null }>(
+    `SELECT action,lease_token,output,error_code
+       FROM ai_model_claim_invocation_scoped($1,$2,$3,$4,$5,$6,$7,$8::uuid,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18,$19)`,
+    [
+      input.owner, input.idempotencyKey, nodeDigest, input.requestDigest,
+      input.service ?? null, input.requestId ?? null, input.costScopeId ?? null,
+      input.leaseToken, input.leaseSeconds,
+      provider, model, region, priceRevision, maxInputTokens, maxOutputTokens,
+      input.estimateInputTokens ?? null,
+      input.promptVersion ?? null,
+      input.estimatorVersion ?? null,
+      input.calibrationFactorVersion ?? null,
+    ],
+  );
+  const row = r.rows[0];
+  if (!row) throw new Error('model_invocation_claim_no_decision');
+  const action = String(row.action);
+  if (action === 'execute' && row.lease_token) return { action, leaseToken: String(row.lease_token) };
+  if (action === 'cached') return { action, output: row.output };
+  if (action === 'wait') return { action };
+  if (action === 'failed' || action === 'unknown')
+    return { action, error: String(row.error_code ?? (action === 'failed' ? 'model_invocation_failed' : 'external_outcome_unknown')) };
+  throw new Error('model_invocation_claim_invalid_decision');
+}
+
+/** Atomically establishes the durable post-dispatch boundary. */
+export async function markModelInvocationDispatched(
+  c: Client, owner: string, idempotencyKey: string, leaseToken: string, costScopeId?: string,
+): Promise<boolean> {
+  const r = await c.query(
+    'SELECT ai_model_transition_dispatched_scoped($1,$2,$3::uuid,$4) AS ok',
+    [owner, idempotencyKey, leaseToken, costScopeId ?? null],
+  );
+  return r.rows[0]?.ok === true;
+}
+
+/** Fails a pre-dispatch claim without ever recording an external-send boundary. */
+export async function failModelInvocationClaim(c: Client, owner: string, idempotencyKey: string, leaseToken: string, error: string): Promise<boolean> {
+  const r = await c.query(
+    'SELECT ai_model_fail_claim_scoped($1,$2,$3::uuid,$4) AS ok',
+    [owner, idempotencyKey, leaseToken, error],
+  );
+  return r.rows[0]?.ok === true;
+}
+
+/**
+ * AG-D（刀 D·AG-01 准入拒绝去终态化·案A）：释放一个 pre-dispatch 准入拒绝（known-not-sent·
+ * 零外呼零费用）的 durable claim，使其可被同键重领（0130 expired-claimed 重领现成落点）。
+ * 可写最小形（rev3 双层 shipped 守卫亲证）：保留 lease_token 原值仅 SET lease_expires_at=
+ * clock_timestamp()——过 0037:27-28 CHECK（claimed⇒token/expires 双非空）与 0088:92-104
+ * claimed→claimed 守卫（可变面恰唯双列且须双非空·error_code 禁写=拒绝码不经账本行承载，
+ * 可观测面维持 invoke 返回值）；status 留 'claimed'·completed_at 零写。
+ * 拒绝码白名单（瞬时准入族六码）由 0179 SQL 函数前置校验，族外确定性拒绝不得经此释放。
+ * CAS 语义与 fail 同形：claim 已被重领/已流转 → false（调用方抛 model_invocation_admission_state）。
+ */
+export async function releaseRefusedModelInvocationClaim(c: Client, owner: string, idempotencyKey: string, leaseToken: string, refusedCode: string): Promise<boolean> {
+  const r = await c.query(
+    'SELECT ai_model_release_refused_claim_scoped($1,$2,$3::uuid,$4) AS ok',
+    [owner, idempotencyKey, leaseToken, refusedCode],
+  );
+  return r.rows[0]?.ok === true;
+}
+
+export interface CompleteModelInvocationInput {
+  owner: string;
+  idempotencyKey: string;
+  output?: unknown;
+  replayable?: boolean;
+  error?: string;
+  inputTokens?: number;
+  outputTokens?: number;
+  latencyMs?: number;
+  /**
+   * AG-14 修法④：usage 存在但字段缺失时按 policy 上限补齐结算的打标（`usage_missing`·绝不按 0）。
+   * 落 ai_model_invocation.usage_source（0174 列）；打标行被校准配对剔除（0119 镜像迁移 0174）。
+   * 缺省 NULL = 供应商上报的真实 usage。
+   */
+  usageSource?: 'usage_missing';
+}
+
+export async function completeModelInvocation(c: Client, input: CompleteModelInvocationInput): Promise<boolean> {
+  const succeeded = input.error === undefined;
+  const r = await c.query(
+    `SELECT ai_model_terminalize_scoped($1,$2,$3,$4,$5::jsonb,$6,$7,$8,$9,$10::text) AS ok`,
+    [
+      input.owner, input.idempotencyKey, succeeded ? 'succeeded' : 'failed', input.error ?? null,
+      succeeded ? JSON.stringify(input.output) : null, input.replayable ?? true,
+      input.inputTokens ?? null, input.outputTokens ?? null, input.latencyMs ?? null,
+      input.usageSource ?? null,
+    ],
+  );
+  return r.rows[0]?.ok === true;
+}
+
+export async function markModelInvocationUnknown(c: Client, owner: string, idempotencyKey: string, error: string): Promise<boolean> {
+  const r = await c.query(
+    `SELECT ai_model_terminalize_scoped($1,$2,'unknown',$3,NULL::jsonb,true,NULL,NULL,NULL) AS ok`,
+    [owner, idempotencyKey, error],
+  );
+  return r.rows[0]?.ok === true;
+}
+
+export interface ReconciledModelInvocation { idempotencyKey: string; costScopeId?: string }
+
+/**
+ * Terminalizes only stale post-dispatch records.  The caller must freeze the
+ * corresponding cost rows in the same principal transaction.  `SKIP LOCKED`
+ * makes overlapping reconcilers cooperate without a global process lock.
+ */
+export async function reconcileStaleModelInvocations(
+  c: Client, owner: string, olderThanMs: number, limit: number,
+): Promise<ReconciledModelInvocation[]> {
+  if (!Number.isSafeInteger(olderThanMs) || olderThanMs < 35_000 || olderThanMs > 3_600_000)
+    throw new Error('model_invocation_reconcile_window_invalid');
+  if (!Number.isSafeInteger(limit) || limit < 1 || limit > 1_000)
+    throw new Error('model_invocation_reconcile_limit_invalid');
+  const r = await c.query<{ idempotency_key: string; cost_scope_id: string | null }>(
+    `SELECT idempotency_key,cost_scope_id
+       FROM ai_model_reconcile_stale_scoped($1,$2,$3)`,
+    [owner, olderThanMs, limit],
+  );
+  return r.rows.map((row) => ({
+    idempotencyKey: String(row.idempotency_key),
+    ...(row.cost_scope_id ? { costScopeId: String(row.cost_scope_id) } : {}),
+  }));
+}

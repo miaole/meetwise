@@ -16,7 +16,7 @@ import {
   hybridQbankSearch, loadMigrations, qbankEvidenceForRefs,
   qbankQuestionEvidenceForRefs, runMigrations,
 } from '@meetwise/db';
-import { fakeEmbedder } from '@meetwise/ai-runtime';
+import { fakeEmbedder } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { ingestQbank, ingestQuestionBankArtifacts, type QbankQuestionArtifact } from '@meetwise/db';
 import { ensureActiveQbankGeneration, qbankEmbeddingRecipe } from '../src/qbank-generation.ts';
 
@@ -132,9 +132,9 @@ async function main(): Promise<void> {
   const [queryEmbedding] = await embedder.embed(['历史正文漂移']);
   if (!queryEmbedding) throw new Error('qbank_integrity_upgrade_embedding_missing');
   const beforeEvidence = await asPrincipal(pool, owner, (client) =>
-    qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600));
+    qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   const beforeQuestion = await asPrincipal(pool, owner, (client) =>
-    qbankQuestionEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600));
+    qbankQuestionEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('0067 baseline exposes a complete clean artifact before the simulated old vulnerability',
     beforeEvidence.length === 1 && beforeEvidence[0]?.excerpt.includes('原始训练问题') === true
     && beforeQuestion.length === 1 && beforeQuestion[0]?.evidence.length === 3);
@@ -195,7 +195,7 @@ async function main(): Promise<void> {
     );
   });
   const poisonedBeforeUpgrade = await asPrincipal(pool, owner, (client) =>
-    qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600));
+    qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('0067 upgrade fixture reproduces body/vector drift before the hardening migration',
     typeof dirtyFact?.source_id === 'string'
     && poisonedBeforeUpgrade.length === 1
@@ -251,6 +251,9 @@ async function main(): Promise<void> {
   );
   const firstHardening = await runMigrationsAsRole(migrationRole, hardening);
   const [afterHardeningEvidence, afterHardeningQuestion, afterHardeningHits, afterHardeningLexical, afterHardeningFullDigest] = await asPrincipal(pool, owner, async (client) => {
+    // AG-42 形 A（0176）随锚：双空 GUC 已改报错——本块检索臂统一设夹具 scope（METADATA=v1/backend/general）。
+    await client.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
+      [METADATA.servingScopeId, METADATA.taxonomyVersion]);
     const evidence = await qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const question = await qbankQuestionEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const hits = await hybridQbankSearch(client, {
@@ -357,6 +360,9 @@ async function main(): Promise<void> {
     && allReasons.statuses.every((row) => row.status === 'rejected'));
 
   const [afterEvidence, afterQuestion, afterHits, afterLexical] = await asPrincipal(pool, owner, async (client) => {
+    // AG-42 形 A（0176）随锚：同上设夹具 scope。
+    await client.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
+      [METADATA.servingScopeId, METADATA.taxonomyVersion]);
     const evidence = await qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const question = await qbankQuestionEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const hits = await hybridQbankSearch(client, {
@@ -368,7 +374,7 @@ async function main(): Promise<void> {
     return [evidence, question, hits, lexical.rows] as const;
   });
   const cleanEvidence = await asPrincipal(pool, owner, (client) =>
-    qbankEvidenceForRefs(client, g1.recipe.id, [clean.refId], 600));
+    qbankEvidenceForRefs(client, g1.recipe.id, [clean.refId], 600, { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId }));
   A('post-upgrade ANN, lexical, evidence and complete-question paths fail closed for the old poisoned ref',
     afterEvidence.length === 0 && afterQuestion.length === 0
     && !afterHits.some((hit) => hit.refId === dirty.chunks[0]!.refId)
@@ -471,6 +477,7 @@ async function main(): Promise<void> {
       artifactLowOwnerGeneration!.recipe.id,
       ['qlegacy:builder-failure:prompt'],
       600,
+      { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId },
     ));
   A('the isolated low-privilege complete-question reader returns one immutable artifact package after a real rebuild',
     artifactLowOwnerGeneration?.status === 'activated'

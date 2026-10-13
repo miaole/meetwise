@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "role-input:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 13036,
+  "startedAt": "2026-10-10T10:19:41.092Z",
+  "finishedAt": "2026-10-10T10:19:54.128Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/role-input.proof.ts": "sha256:075a43d77c27deb103b82fe457d9e564f66a5473f3e3f95e8d7ddebd79b9f452",
+    "apps/worker/src/interview-consumer.ts": "sha256:1585a83effb117a6d657e4fb31f5d79f8014e0372b659ae22159bec5a64b9fe4",
+    "apps/worker/src/adaptive-role-resolve.ts": "sha256:99d36deb813bee2d52f53f511499c788d77bd9872b36f6e525cd7d2e2aac0213",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:7257fa6325c7a8507a68e26af056f514a5079e80d4bed4771018ee38aa341b99",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:f927e9e256c359c248ef82e5bdd0c52a1055d23c587c970abe4d6414c4214b85",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:88692dc01d2161634448b62664c23c0b34834becaa3d5b844a25b949cf6c38b6",
+    "packages/db/src/routing/candidate-route.ts": "sha256:70568a737575de4bcbe217f960dfd1e5d4ea4fd2f45498855c8b586d38a862c9",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:e8a394c97af2b96963c30b4b163aa03a022ad48debb486db772e06246ad1bdb1",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:0c1543f3a007011c72d2334f6bc1acc218f3a1605ad031d3b690b1348cad1e3a",
+    "apps/api/test/role-input.proof.ts": "sha256:f759d3095442a3af0d6f17f8e9bc80e74e7154828e72004aee26477377fb9945",
+    "apps/web/app/interviews/page.tsx": "sha256:4f1e79cb654c4b203d649d8a0dfc64ca57a354e8079af4ca286f6a1d8bba9624",
+    "apps/web/app/interviews/actions.ts": "sha256:c274ebce050ff736b325bdb2f08ecc8b010178c098e65b4604eebe8872c9f474"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

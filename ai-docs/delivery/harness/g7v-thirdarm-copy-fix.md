@@ -5,7 +5,7 @@
 **Line**: **G7V-FIX**（G7V EXEC 升级交接 #1 的指名后继：G7V EXEC SUMMARY「第三臂产品面：`no_eligible_scored_answer` UI 文案『额度已释放』与已扣费结算相悖（码面+运行时双证）——文案/结算一致性修复须另派」→ 协调方派刀 G7V-FIX · knife id=**GAP-G7V-THIRDARM-COPY-SETTLEMENT**（缺陷行由 G7V nail 并行登记 P1 OPEN · 本 REQUEST 仅引用缺陷号 · 零 backlog 操作零 SSOT 改写））
 **授权链**: G7V REQUEST `14f507e9` → G7V pre-exec dual BOTH PASS（mw-e2e-ha `05da6668` C-HA-V1~V7 + mw-model-op `f4b481ad` C-MO-V1~V7）→ G7V EXEC（甄别三读数随卷 · 分支 A 定谳 · spec 校准 `92f70db7` +52/−5 恰 spec · 第三臂运行时复现 1/2 · 收据 `ai-docs/delivery/receipts/gap-adaptive-early-stop/`）→ 协调方（本刀 REQUEST 指令）→ **本 REQUEST rev1（`c12702dc` · docs-only）→ 预执行双审 FAIL（mw-model-op a/c/f + mw-e2e-ha c/f · b 项判锚对齐合法 · 两席处方收敛）→ rev2 修订（本 commit · 按合并处方）→ 重审（协调方派席）BOTH PASS → meetwise 授权 → coding+prove 一次优先（rebase 硬门 §3.0 先行）→ post-prove 双审 → meetwise 授权 nail**。双审 PASS ≠ 本 stub 自批 ≠ nail ≠ trio 翻绿。
 **输入事实（只读在案引用）**: G7V EXEC `01-readings.md` §2——mobile `iv_8d0ee32e`（8 events）seq7 `session_concluded conclude=early_weak@turn4` → seq8 `assessment_unavailable reason=no_eligible_scored_answer`，**臂=第三臂**（unscored=0 ∧ eligible=0 → `completeInterviewAndConfirm` **已扣费不释放** + `markApplicationNoEligibleScore`），UI 经同一 SSE 通道同现 view-model.ts:68「本次预留额度已释放」文案——**已扣费却宣示已释放 = 文案与结算相悖运行时复现**；chromium `iv_8d3e2138` 对照=扣费·报告暂不可用臂（该面文案「报告暂时无法生成」与扣费结算一致 · 零缺陷）。校准 spec 已将第三臂落字 named 诚实红（`recruiting-bound.spec.ts:229-230` · 不作 PASS 容忍面）——本刀 prove 即行使该 named 红转绿。
-**Base**: `origin/feat/mysql-schema-skeleton` **`84bbef23`**（full `84bbef2367b0870d30385d2e107449133876ad60` · worktree `/Users/miaole/Desktop/golucky/meetwise-line-g7v-fix` · branch `line/g7v-thirdarm-copy-fix`）· **rev2 时序勘误（如实 · 双席共同处方）**：rev1「本地 origin 引用与主仓 tip 恰等、无 turn 内 origin 前进证据」系 fetch 未成功下的**无凭据过度声称**——rev2 修订时点实测主线已前进两 docs nail（`fe218b7a` G7V nail〔含 GAP-G7V-THIRDARM-COPY-SETTLEMENT P1 OPEN 登记〕+ `209f71c7` G7W nail）；本刀分支仍按派刀指令基于 `84bbef23` 切出（rev1 commit `c12702dc` 在其上），EXEC coding 前 **rebase 硬门**见 §3.0，行号/blob 一律按 rebase 后当 tip 重核
+**Base**: `origin/feat/mysql-schema-skeleton` **`84bbef23`**（full `84bbef2367b0870d30385d2e107449133876ad60` · worktree `meetwise-line-g7v-fix`（仓根同级 worktree）· branch `line/g7v-thirdarm-copy-fix`）· **rev2 时序勘误（如实 · 双席共同处方）**：rev1「本地 origin 引用与主仓 tip 恰等、无 turn 内 origin 前进证据」系 fetch 未成功下的**无凭据过度声称**——rev2 修订时点实测主线已前进两 docs nail（`fe218b7a` G7V nail〔含 GAP-G7V-THIRDARM-COPY-SETTLEMENT P1 OPEN 登记〕+ `209f71c7` G7W nail）；本刀分支仍按派刀指令基于 `84bbef23` 切出（rev1 commit `c12702dc` 在其上），EXEC coding 前 **rebase 硬门**见 §3.0，行号/blob 一律按 rebase 后当 tip 重核
 **Pins（原值全抄 · 未动）**: `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · **PG-retained** · **公开 DELETE=503** · **`g7SuiteGreen=false`** · **`actualSpendCny=null`**
 **Retained（本刀零翻转）**: trio **OPEN**（`1/1/1` · G7U 真测 retained · 本刀 prove 非 trio 三 CMD，翻绿权不在本刀）· 红① **STILL OPEN**（构成=G7V 校准已落码待行使 · 第三臂 named 红由本刀 prove 行使，行使结果不影响红①的 SSOT 状态——状态行归协调方 nail 改）· golden(chromium) 冷启面 **env/候选**（归协调方）· CMD1/CMD3 api 面 **G7S 同形 retained**（另刀边界）· recruiting-bound ×2 残红（G7U 口径）不因本刀洗绿 · GAP-G7K-API-REDS **P1 OPEN**（`0c6c3287` 不翻）· **GAP-G7V-THIRDARM-COPY-SETTLEMENT** 待 G7V nail 登记（本刀引用不建行不翻行）· `r1Closed=false` · Disclosure-1 **OPEN** · `techRoleFailClosedOptOutG7Only=true`
 
@@ -69,7 +69,7 @@ EXEC coding 前（授权后、动第一行码前）强制：`git fetch && git re
 ### 3.1 主证 CMD（恰好一次 · 期望按落臂矩阵如实两段）
 
 ```bash
-cd /Users/miaole/Desktop/golucky/meetwise-line-g7v-fix \
+cd meetwise-line-g7v-fix \
   && set -a && source ~/.meetwise-secrets/load-model-api-key.sh && set +a \
   && E2E_UI_GREP='C→B: real browser binds application' pnpm e2e:ui:isolated
 ```
@@ -80,7 +80,7 @@ cd /Users/miaole/Desktop/golucky/meetwise-line-g7v-fix \
   - **已知代价面（如实申报 · rev2 锚对齐改判后果）**：初稿 B 无锚词 → 第三臂落臂 project 将**红于 `:232` 超时门**（`Promise.any` 120s 双等待拒绝 = 仪器期望先于修复的既存结构）→ 该 project 该测 FAIL → **EXIT=1 原值记录**，五分类归「仪器结构面」（**Ban 归咎本刀修复 · Ban 洗**）→ 升级协调方裁「仪器校准另刀」（§2.2 改判段）。
   - **落臂矩阵**：①第三臂落臂 → EXIT=1（恰红于 `:232` · 修复已行使 · named 红已转绿）→ 收据记「修复合同兑现 + 仪器结构红申报」；②释放臂/扣费报告臂落臂 → 零改动面全 PASS → EXIT=0；③双 project 均未落第三臂 → EXIT=0 但**修复未被行使 = not-demonstrated** → 如实记录 + 升级协调方（Ban 追臂重跑）。
 - **单 attempt · Ban retry-to-green · Ban 重跑追臂**：EXIT 原值逐档记录（含非零原值 · 落臂矩阵①类非零=在案已知代价，不构成迭代刀触发）；红于矩阵外形态 → EXIT 原值 + 五分类 + 根因假设如实登记 → 迭代刀重走 REQUEST。**臂指派数据依赖如实申报**：G7V EXEC 实测 1/2 落第三臂；EXEC run 后逐 project 按结算面读数记录落臂（journey 时间线/结算文案面），`releasedCopyOnCharged` 实测值随收据。
-- **副证 CMD（回归门 · 恰好一次 · 零 diff 期望）**：`cd /Users/miaole/Desktop/golucky/meetwise-line-g7v-fix && pnpm -C apps/web prove`——`web-logic.proof.ts` 全绿（`:209-214` 释放臂夹具不动即绿 · EXIT=0 期望 · 非零如实记录）。
+- **副证 CMD（回归门 · 恰好一次 · 零 diff 期望）**：`cd meetwise-line-g7v-fix && pnpm -C apps/web prove`——`web-logic.proof.ts` 全绿（`:209-214` 释放臂夹具不动即绿 · EXIT=0 期望 · 非零如实记录）。
 - **机检四强制进收据（rev2 重写）**：①**触碰面形**——两触碰面（`view-model.ts`/`interview-state.ts`）`git diff` 链后≠链前且恰为申报变更（plumb + reason 三分派），numstat 恰两文件；②**blob 等值**——六禁改面（`adaptive-lifecycle.ts`/`commerce.ts`/`business-events.ts`/`recruiter.ts`/`recruiting-bound.spec.ts`/`web-logic.proof.ts`）+ 旁证面（`InterviewPanel.tsx`/`jobs/page.tsx`）链前=链后全等（`git rev-parse HEAD:<path>` 逐面亲算 · rev2 修 rev1「八面全等 ∧ 恰两文件」自相矛盾——mw-e2e-ha 处方）；③**正负双向逐字（mw-model-op 处方）**——负面禁则字表「已释放/释放/退还/退回/补偿/稍后自动」第三臂文案零出现，正面扣费主句「已完成并扣费结算」逐字在案，第三臂**实际渲染文案全文入收据**；④**rebase 后 HEAD SHA**（§3.0 · 两席共同处方）。
 
 ### 3.2 预算与 Key 卫生（沿用 G7V readings 口径）

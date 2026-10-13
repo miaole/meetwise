@@ -22,7 +22,7 @@ import {
   assertIsolatedTestTarget, createPool, asPrincipal, asQbankControlExecutor,
   createJob, updateJob, applyToJob, startApplicationInterview, classifyJobRoute, getInterviewRouteSnapshot,
   ingestQbank, ingestQuestionBankArtifacts,
-  hybridQbankSearch, qbankRetrievalCacheKey, dispatchTrackLocalRetrieval,
+  qbankRetrievalCacheKey, dispatchTrackLocalRetrieval,
   type QbankEmbedder, type QbankQuestionArtifact, type QbankRetrievalCacheBackend,
   type QbankRetrievalCacheAddress, type QbankRetrievalCacheLock, type QbankRetrievalHit,
   type InterviewRouteSnapshotView,
@@ -314,10 +314,22 @@ async function main() {
     && ev1.rows[1]?.from_status === 'dispatched' && ev1.rows[1]?.to_status === 'served'
     && Number(ev1.rows[1]?.event_seq) === Number(ev1.rows[0]?.event_seq) + 1);
 
-  section('② forbid-global-Top-K：全局 Top-1 是 java，但 DB scope 过滤在 ORDER BY/LIMIT 之前');
-  const javaGlobal = await asPrincipal(pool, cand, (c) => hybridQbankSearch(c, { query: JAVA_PROMPT, embedding: deterministicVector(JAVA_PROMPT), k: 5, expectedRecipeId: recipeId, retrievalMode: 'dense' }));
-  A('全局（无 scope）检索 Top-1 = java chunk（java 全局最相似）',
-    javaGlobal.length >= 1 && String(javaGlobal[0]!.refId).startsWith('java_'));
+  section('② forbid-global-Top-K：DB scope 过滤在 ORDER BY/LIMIT 之前（0176 形 A：无 scope 直接报错）');
+  // AG-42 形 A（0176）随锚：原臂断言「双空 GUC=全局无过滤放行（Top-1=java）」——该放行路径本身已被
+  // qbank_retrieval_scope_missing 删除，臂意翻转为硬闸演示（无 scope 的全局检索在 DB 层不可达）；
+  // 「java 全局最相似」的对照事实由 ②b java-leaf 对照臂+② 同 query nodejs-scope 零 java 承接。
+  const javaGlobalMissing = await asPrincipal(pool, cand, async (c) => {
+    try {
+      await c.query('SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,5)',
+        [generationId, `[${deterministicVector(JAVA_PROMPT).join(',')}]`]);
+      return 'no_raise';
+    } catch (error) {
+      const err = error as { code?: string; message?: string };
+      return `${String(err.code)}|${String(err.message).split('\n')[0]}`;
+    }
+  });
+  A('全局（无 scope）检索已被 0176 删除：双空 GUC → qbank_retrieval_scope_missing（check_violation）',
+    javaGlobalMissing.startsWith('23514|') && javaGlobalMissing.includes('qbank_retrieval_scope_missing'));
   const plan2 = mkPlan(snapshot!, generationId, NODEJS_LEAF, { competencyId: 'concurrency-adversarial' });
   const r2 = await dispatchTrackLocalRetrieval(pool, cand, plan2, { query: JAVA_PROMPT, embedderVersion: EMBEDDER_ID, k: 5, embed: embedSeam, cache: new MemoryQbankCache() });
   A('同一 java query 走 nodejs scope → 零 java（全局 Top-1 被 DB 层排除，非应用层剔除）',

@@ -80,9 +80,10 @@ function askScript(opts: { fabricatedGroundedRefs?: boolean }) {
 const dispatchModel = (captured: Captured[], opts: { fabricatedGroundedRefs?: boolean } = {}): ModelClient => {
   const ask = askScript(opts);   // 剧本实例随 client 提升:seq 跨 ask 递增(题题不同,过 critique 判重)
   return captureModel((req) => {
-    if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: [COMPETENCY] } };
+    // QBANK-PLANNER-HONESTY #201 min(3) 收紧后 fixture 如实刷新:单条=非法输出(schema 拒→默认集),3 条合法且 COMPETENCY 保持首位(top-1 core=S1-2/S3-2 模板逐字节)。
+    if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: [COMPETENCY, '消息队列', '分布式锁'] } };
     if (req.service === 'interviewer.ask') return ask(req);
-    if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { score: 55, evidence: [{ criterion: '讲清了限流要点', quote: '限流' }] } };
+    if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'below', quote: '限流' }] } };
     return { ok: false, kind: 'deterministic' as const };
   }, captured);
 };

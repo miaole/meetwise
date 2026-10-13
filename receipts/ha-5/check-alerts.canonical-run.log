@@ -1,0 +1,14 @@
+[alerts:check] PASS source compose logs — injected 1 lines
+[alerts:check] PASS source compose ps — injected
+[alerts:check] PASS source df — injected
+===== RECEIPT alerts:check =====
+result: CLEAN
+mode: sandbox=false offline=true report=false since=24h
+catalog: 9 events (/Users/miaole/Desktop/golucky/meetwise-ha5/scripts/alerts/event-catalog.json)
+alerts: 0 open / 0 suppressed / openPageTicket=0
+receipt: /Users/miaole/Desktop/golucky/meetwise-ha5/receipts/ha-5/check-alerts.receipt.json
+step: PASS | source compose logs | injected 1 lines
+step: PASS | source compose ps | injected
+step: PASS | source df | injected
+===== END RECEIPT =====
+CMD=node scripts/alerts/check-alerts.mjs --offline --log-file x1 --ps-file --df-file EXIT=0

@@ -1,0 +1,216 @@
+{
+  "result": "OK",
+  "v": "V3",
+  "windowSeconds": 37,
+  "probes": [
+    {
+      "i": 0,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 1,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 2,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 3,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 4,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 5,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 6,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 7,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 8,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 9,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 10,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 11,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 12,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 13,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 14,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 15,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 16,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 17,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 18,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 19,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 20,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    },
+    {
+      "i": 21,
+      "readiness": true,
+      "business": true,
+      "lb": {
+        "200": 1
+      },
+      "bizStatus": 200
+    }
+  ],
+  "failureCount": 0,
+  "crashConfirmed": true,
+  "policyRestarted": true,
+  "healed": true,
+  "healSeconds": 0,
+  "businessProbe": "GET /profile (auth business path) via LB; readiness GET /readyz/api via LB; zero manual intervention",
+  "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v3",
+  "note": "passive probe detection window covered by nginx proxy_next_upstream; local sandbox ≠ production HA",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}

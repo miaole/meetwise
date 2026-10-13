@@ -4,20 +4,21 @@
  * 职责：拥有 PostgresSaver checkpointer、把 checkpointer + ai-runtime.invoke 注入纯 ai-graphs，
  * 凭 threadId 续跑/恢复。ai-graphs 因此得以保持纯逻辑（不引 db/checkpointer）。
  *
- * 骨架：当前给出组合根装配点；真实的队列消费/续跑循环 S5 落（见 production-backlog）。
+ * 消费循环已真跑（#170 勘误 2026-10-12：旧注「骨架…真实的队列消费/续跑循环 S5 落」与实态不符——
+ * 本组合根 boot 即启动报告调度+面试 job 消费+押题/诊断/路由分类消费循环与 commerce/model-op/usage
+ * 对账循环，见下文 bootstrap 区与 production-backlog S5 行「✅ 内核 code-validated」）。
  */
 import { hostname } from 'node:os';
 import { createServer, type Server } from 'node:http';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
-import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import {
   createPool, resolveDatabaseConnectionString, asPrincipal, asQbankControlExecutor, assertQbankControlExecutorIdentity, assertQbankControlDefinerOwnership, activeQbankGeneration, cachedQbankSearch, gatewayCostBudgetSnapshot, gatewayJobGauges,
-  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
+  qbankEvidenceForRefs, qbankQuestionResultsForHits, listScorableScoreCards, renderPoolErrorsTotalLines, type GatewayCostBudgetSnapshot, type QbankServingScopeInput,
 } from '@meetwise/db';
 import { configureG7RuntimeInjection, createLangfuseV5Runtime, isG7FreetierReproveEnabled, resolveLangfuseConnection, resolveModelDeadlineConfig, resolveDashscopeNativeConfig, setTracer, dashscopeEmbedder, cachingEmbedder, inMemoryEmbeddingStore, getMetrics, registerBaselineMetrics, METRIC, type Embedder, type ModelClient } from '@meetwise/ai-runtime';
 import { assertLegacyInterviewGraphDisabled } from './production-config.ts';
-import { runDrainLoop } from './drain-loop.ts';
+import { runDrainLoop, drainWithDeadline, wireSignalShutdown, type NamedStop } from './drain-loop.ts';
 import { startWorkerJobWakeupListener } from './job-wakeup-listener.ts';
 import {
   createWakeupRedisClient,
@@ -26,12 +27,14 @@ import {
   startWorkerJobWakeupRedisListener,
 } from './worker-job-wakeup-redis.ts';
 import { defaultModelClient, fastModelClient, reportGenerator } from './interview-service.ts';
-import { runReportDispatcher, type ReportWorkerDeps } from './report-worker.ts';
+import { runReportDispatcher, reportDispatchKey, type ReportWorkerDeps } from './report-worker.ts';
 import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
-import { runUsageCalibrationReconciler } from './usage-calibration-reconcile.ts';
+import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
+import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
+import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -60,6 +63,12 @@ import { initializeRagControlStartup } from './rag-control-runtime.ts';
 // package. Production builds carry zero static g7-bootstrap import
 // (prove:g7-bootstrap-zero-prod-import).
 const g7FreetierReproveEnabled = isG7FreetierReproveEnabled(process.env);
+// AUTHZ-HARDEN 5A-2 #168(G7 生产拒启):测试支撑拦截器仅限非生产调试——production 组合根上开关为真
+// 即配置错误 → fail-closed throw 拒启(先于任何动态 import/消费循环;非 production 放行)。
+// GODFN-1b 单读点不变:本守卫只复用上方唯一一次读取结果,不二次读 G7_FREETIER_REPROVE。
+if (g7FreetierReproveEnabled && process.env.NODE_ENV === 'production') {
+  throw new Error('refusing_to_start: G7_FREETIER_REPROVE=1 is test-support only and is forbidden when NODE_ENV=production (#168)');
+}
 if (g7FreetierReproveEnabled) {
   const support = await import('@meetwise/ai-runtime/g7-test-support');
   configureG7RuntimeInjection({
@@ -130,19 +139,15 @@ export function createCheckpointer(connString?: string, useRuntimeRole = false):
   // pg Pool and would silently bypass our CA/verify-full TLS policy. Sharing the
   // same factory makes ordinary DB work and LangGraph checkpoints one target and
   // one transport-security policy.
-  const pool = createPool({ connectionString: url.toString() });
+  const pool = createPool({ connectionString: url.toString(), purpose: 'checkpoint' });
   return new PostgresSaver(useRuntimeRole ? new PrincipalBoundCheckpointPool(pool).asPool() : pool);
 }
+// 【#170 码半·2026-10-12】buildMockInterviewRunner 已删：全仓调用方零命中（rg 亲证·仅定义无消费），
+// 生产消费循环走 interview-consumer/interview-service 装配，不经此 mock runner。死导出删除=零行为。
 
-/** 组合根装配：把持久 checkpointer 注入纯 mock-interview 图。 */
-export async function buildMockInterviewRunner(questions: string[], checkpointer?: PostgresSaver) {
-  const cp = checkpointer ?? createCheckpointer();
-  await cp.setup();
-  return buildMockInterviewGraph(cp, questions);
-}
-
-/** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。 */
-function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
+/** 报告 worker 依赖。loadSummary 从事件账本聚合真实分数；generate **经 invoke 关口真模型出**(双校验,失败抛错→舱壁标 report failed)。
+ *  （刀 E 起导出：隔离库 proof 走同一生产闭包——键构造零复制,AG-03 键形有且只有这一处。） */
+export function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClient): ReportWorkerDeps {
   const rawFaultInvocations = process.env.E2E_REPORT_FAIL_INVOCATIONS;
   const rawForceAll = process.env.E2E_REPORT_FAIL_ALL;
   if ((rawFaultInvocations !== undefined || rawForceAll !== undefined) && process.env.E2E_ISOLATED !== '1')
@@ -168,16 +173,29 @@ function reportWorkerDeps(pool: ReturnType<typeof createPool>, model: ModelClien
     }
   }
   let reportInvocations = 0;
-  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) =>
+  const generateLiveReport = (s: import('@meetwise/ai-graphs').InterviewSummary) => {
+    // AG-03（刀 E）：键=revision 同源双换——键含单调派发序（claimReport CAS 同语句自增）,重试必得
+    // 新键新 revision,0130 终态重放不再吞掉重试。缺派发序=序号穿透接线断→fail-closed 拒派
+    // （绝不静默回落同键——那正是 AG-03 要修的原病）。
+    if (typeof s.reportDispatchSeq !== 'number' || !Number.isInteger(s.reportDispatchSeq) || s.reportDispatchSeq < 1)
+      throw new Error('report_dispatch_seq_missing');
     // progressStream=interviewId(TOKSTREAM 阶段1):报告叙述生成发生成进度事件(SSE→前端报告期等待变真实进度)。
-    reportGenerator(pool, s.owner!, `${s.interviewId}:report`, model, s.interviewId)(s);
+    return reportGenerator(pool, s.owner!, reportDispatchKey(s.interviewId, s.reportDispatchSeq), model, s.interviewId)(s);
+  };
   return {
     loadSummary: (owner, interviewId) => asPrincipal(pool, owner, async (c) => {
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
       // 无卡 → scores 空(aggregateScores 空集会抛 score_aggregate_empty,报告走 unavailable,绝不回退 legacy 分数)。
       const cards = await listScorableScoreCards(c, interviewId);
       const scores = cards.map((card) => card.deterministicTotal);
-      return { interviewId, questionCount: scores.length, scores, owner };
+      return {
+        interviewId, questionCount: scores.length, scores, owner,
+        // #50 v3：competency 分组结构化摘要（仅 ID 引用,不传题目/答案原文）。
+        items: cards.map((card) => ({
+          questionId: card.questionId, competency: card.competency,
+          score: card.deterministicTotal, cardId: card.cardId,
+        })),
+      };
     }),
     // 真报告:经 invoke 关口(双校验)出。owner/幂等键据 summary;失败抛错 → worker 标 report failed(舱壁,不碰 interview)。
     // Isolated E2E may inject a *post-provider* fault to exercise the report
@@ -236,7 +254,10 @@ export function startMetricsExposition(options: { ragReady?: () => boolean; work
     const path = (req.url ?? '').split('?')[0];
     if (req.method === 'GET' && path === '/metrics') {
       res.writeHead(200, { 'content-type': 'text/plain; version=0.0.4' });
-      res.end(getMetrics().render());
+      // R-22: append per-purpose pool-error counter lines (registered purposes,
+      // 0-prefilled).  Observability gauge, never a health signal; /readyz
+      // untouched.
+      res.end(getMetrics().render() + renderPoolErrorsTotalLines());
     } else if (req.method === 'GET' && (path === '/healthz' || path === '/livez')) {
       res.writeHead(200, { 'content-type': 'text/plain' }); res.end('ok\n');
     } else if (req.method === 'GET' && path === '/readyz/rag') {
@@ -420,7 +441,7 @@ async function bootstrap() {
   // 「启动期校验」名不副实——一旦未来改动移掉/延后 embedder 构造，这些校验就静默消失。这里显式解析
   // 一次：任何一把已挂载的原生 Key 命中撤销清单或与期望指纹不符，都在启动期 fail-closed。
   resolveDashscopeNativeConfig();
-  const pool = createPool();
+  const pool = createPool({ purpose: 'worker' });
   // 观测:预注册基线指标序列(熔断打开/退款失败 counter 置 0)+ 自挂 /metrics 端点(Prometheus 抓取,up 即 worker 存活数据源)。
   registerBaselineMetrics();
   // Schema migration 由独立的一次性 migrate 服务完成；运行时 worker 绝不持有 DDL 权限，
@@ -491,7 +512,7 @@ async function bootstrap() {
   // It is required only for a governed bootstrap rebuild; serving a previously
   // promoted immutable generation uses the normal read-only runtime path.
   const qbankControlUrl = process.env.QBANK_CONTROL_DATABASE_URL?.trim();
-  const qbankControlPool = qbankControlUrl ? createPool({ connectionString: qbankControlUrl }) : undefined;
+  const qbankControlPool = qbankControlUrl ? createPool({ connectionString: qbankControlUrl, purpose: 'qbank-control' }) : undefined;
   if (qbankControlPool) {
     await assertQbankControlExecutorIdentity(qbankControlPool);
     await assertQbankControlDefinerOwnership(qbankControlPool);
@@ -651,7 +672,7 @@ async function bootstrap() {
   // This is a dedicated, otherwise-idle PG session. It never performs RLS
   // work or claims jobs: every notification merely coalesces a normal drain
   // across all queue classes. Notifications contain no job or tenant data.
-  const jobWakeupListener = startWorkerJobWakeupListener(createPool({ max: 1 }), () => {
+  const jobWakeupListener = startWorkerJobWakeupListener(createPool({ max: 1, purpose: 'job-wakeup' }), () => {
     reportLoop.wake();
     interviewLoop.wake();
     quizLoop.wake();
@@ -698,7 +719,28 @@ async function bootstrap() {
   const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
   // MODEL-OP-wire：usage 校准因子周期 reconciler（读 estimate↔usage 配对 → 版本化因子落库）。
   // Dual reconciler 同列 · ≠ MODEL-OP fake green / ≠ SLO / ≠ Redis cutover / PG LISTEN retained.
-  const usageCalibrationReconcileLoop = runUsageCalibrationReconciler(pool);
+  // AG-07 止血（AG-COST1 §1-①）：env 旋钮取代 60s 硬编码默认。缺省 ENABLED=false（裁决项①推荐 (b)·
+  // 因子纯写不读故关停零功能代价·②迁移三件套落地后再启）→ 不起循环（沿 privacyErasureLoop 可选循环先例）；
+  // 非法 env=启动失败非静默回退（resolveUsageCalibrationReconcileConfig·AG-18 同族纪律）。
+  const usageCalibrationControl = resolveUsageCalibrationReconcileConfig();
+  const usageCalibrationReconcileLoop = usageCalibrationControl.enabled
+    ? runUsageCalibrationReconciler(pool, usageCalibrationControl.intervalMs)
+    : undefined;
+  // AG-COST2 裁决项①(a)：usage 校准观测 90 天保留期清除（0177 件⑥ SECURITY DEFINER·app_role 无 DELETE
+  // 纪律零破坏）。缺省 ENABLED=false 不起循环（沿 privacyErasureLoop 可选循环先例·清除是生产数据删除，
+  // 启用=显式运维决策）；非法 env=启动失败非静默回退（resolveUsageCalibrationRetentionConfig·AG-18 同族）。
+  const usageCalibrationRetentionControl = resolveUsageCalibrationRetentionConfig();
+  const usageCalibrationRetentionLoop = usageCalibrationRetentionControl.enabled
+    ? runUsageCalibrationRetention(pool, usageCalibrationRetentionControl)
+    : undefined;
+  // AG-43 调度半（qbank-control-sec 刀）：0146:9「Ban 自动清理调度」由协调方派单明示解除（裁决项③落值·
+  // 0146 原文零改）后的受控调度。缺省 ENABLED=false（0146 设计内 Ban 的保守延续·显式 opt-in 才起循环，
+  // 沿 usageCalibration ENABLED 旋钮先例）；非法 env=启动失败非静默回退（resolveQbankReleaseSweepConfig·AG-18）。
+  // 入参必须走 qbank 控制面 pool：0176 收口后释放函数 executor-only（REVOKE app_role+GRANT qbank_control_executor）。
+  const qbankReleaseSweepControl = resolveQbankReleaseSweepConfig();
+  const qbankReleaseSweepLoop = qbankControlPool && qbankReleaseSweepControl.enabled
+    ? runQbankReleaseSweep(qbankControlPool, qbankReleaseSweepControl.intervalMs)
+    : undefined;
   const privacyErasureLoop = privacyPool ? runCheckpointPrivacyEraser(privacyPool, `${leaseOwner}:privacy`) : undefined;
   // GAP-PRIV-04：向量面 sweep 步（0141 · 0125 memory_vector_chunk 同形收尾）。仅
   // sink='memory_vector_chunk'；INT sink='vector' 诚实 no-target；qbank 永不删；
@@ -708,11 +750,25 @@ async function bootstrap() {
   const gaugeLoop = runDrainLoop(() => Promise.all([
     refreshJobGauges(pool), refreshRagCostGauges(pool, ragCost.scopeId), refreshModelCostGauges(pool, modelCost.scopeId),
   ]).then(() => undefined), Number(process.env.WORKER_GAUGE_INTERVAL_MS || 15000));
+  // HA-2 排水证明 stub(REQUEST §4 B6/B7·rev2-R4):env-gated·绝不触发真实模型调用
+  // (守 est live=0 与 pins actualSpendCny=null)。MEETWISE_HA2_STUB_TICK_MODE:
+  //   pg-roundtrip — 每 tick 一次真 PG 往返(select 1)+ha2_stub_tick_done 日志(B6 短
+  //                  tick 自然完退:在飞 tick 完整收尾后自退,排水等待可观测);
+  //   hang        — 首个 tick 挂死永不 resolve(B7:deadline 裁决路径,worker_drain_timeout)。
+  // 未设 env 零行为零成本;stub 循环进 drainStops 清单(name=stub-tick),不入 workerReady
+  // (stub 不参与生产 readiness 语义)。落库断言口径:stub 为 PG 往返 tick,非真实 job
+  // markDone(真实 markDone 需真租约 job→模型管线,违 R4 绝不触发真实模型)——记账如实。
+  const stubTickMode = process.env.MEETWISE_HA2_STUB_TICK_MODE?.trim();
+  const stubLoop = stubTickMode ? runDrainLoop(async () => {
+    if (stubTickMode === 'hang') await new Promise<void>(() => {});            // 挂死:deadline 裁决
+    else await pool.query('select 1').then(() => console.log(`ha2_stub_tick_done pid=${process.pid}`));
+  }, 200) : undefined;
+  if (stubLoop) console.log(`ha2_stub_tick_loop enabled mode=${stubTickMode}`);
   const metricsServer = startMetricsExposition({
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && usageCalibrationReconcileLoop.ready() && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -730,8 +786,59 @@ async function bootstrap() {
       void initializeQbankReadModel(qbankControlPool, embedder, qbankReadModel);
     }
   }
-  process.on('SIGTERM', async () => { await jobWakeupListener.stop().catch(() => {}); await jobWakeupRedisListener.stop().catch(() => {}); await jobWakeupRedisClient?.close().catch(() => {}); await Promise.allSettled([Promise.resolve(reportLoop.stop()), interviewLoop.stop(), quizLoop.stop(), diagnosisLoop.stop(), routeClassifyLoop.stop(), commerceLoop.stop(), modelInvocationReconcileLoop.stop(), usageCalibrationReconcileLoop.stop(), privacyErasureLoop?.stop() ?? Promise.resolve(), gaugeLoop.stop(), ragCache.close(), privacyPool?.end() ?? Promise.resolve(), qbankControlPool?.end() ?? Promise.resolve(), ragControlPool?.end() ?? Promise.resolve(), langfuse?.shutdown()]); metricsServer.close(); console.log('drained, exiting'); process.exit(0); });   // 优雅排空在飞 job 再退
-  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
+  // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
+  // 竞速 + SIGINT 同链。清单 18 项(R3 勘误:原 allSettled 实数 15,补漏
+  // vectorPlaneErasureLoop?.stop() 后 16;AG-COST2 增 usage-calibration-retention
+  // 16→17;qbank-control-sec 刀增 qbank-release-sweep 17→18):
+  // 13 loop.stop(report/interview/quiz/diagnosis/
+  // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
+  // usageCalibrationRetention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge)
+  // + ragCache.close + 3 pool.end(privacy/
+  // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
+  // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
+  // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
+  const drainStops: NamedStop[] = [
+    { name: 'report', stop: () => reportLoop.stop() },
+    { name: 'interview', stop: () => interviewLoop.stop() },
+    { name: 'quiz', stop: () => quizLoop.stop() },
+    { name: 'diagnosis', stop: () => diagnosisLoop.stop() },
+    { name: 'route-classify', stop: () => routeClassifyLoop.stop() },
+    { name: 'commerce', stop: () => commerceLoop.stop() },
+    { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
+    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
+    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve() },
+    { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve() },
+    { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
+    { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
+    { name: 'gauge', stop: () => gaugeLoop.stop() },
+    { name: 'rag-cache', stop: () => ragCache.close() },
+    { name: 'privacy-pool', stop: () => privacyPool?.end() ?? Promise.resolve() },
+    { name: 'qbank-control-pool', stop: () => qbankControlPool?.end() ?? Promise.resolve() },
+    { name: 'rag-control-pool', stop: () => ragControlPool?.end() ?? Promise.resolve() },
+    { name: 'langfuse', stop: () => langfuse?.shutdown() ?? Promise.resolve() },
+    ...(stubLoop ? [{ name: 'stub-tick', stop: () => stubLoop.stop() }] : []),
+  ];
+  let workerShuttingDown = false;
+  const shutdownWorker = (signal: string): void => {
+    if (workerShuttingDown) return;                 // SIGTERM/SIGINT 双落·重复信号幂等
+    workerShuttingDown = true;
+    void (async () => {
+      await jobWakeupListener.stop().catch(() => {});
+      await jobWakeupRedisListener.stop().catch(() => {});
+      await jobWakeupRedisClient?.close().catch(() => {});
+      const outcome = await drainWithDeadline(drainStops, boundedIntEnv('WORKER_DRAIN_TIMEOUT_MS', 30_000, 1_000, 300_000), (inFlight) => {
+        console.error(`worker_drain_timeout signal=${signal} in_flight=${inFlight.join(',')}`);
+      });
+      await Promise.race([                          // 上限 2s:metrics 收口诚实但不悬挂(极简败者纪律)
+        new Promise<void>((resolve) => metricsServer.close(() => resolve())),
+        new Promise<void>((resolve) => { const t = setTimeout(resolve, 2_000); t.unref?.(); }),
+      ]);
+      console.log(`drained (${outcome}), exiting`);
+      process.exit(0);
+    })();
+  };
+  wireSignalShutdown(['SIGTERM', 'SIGINT'], () => shutdownWorker('SIGTERM'));   // 优雅排空在飞 job 再退;两信号同一 handler
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + qbank release sweep(${qbankReleaseSweepLoop ? 'enabled' : 'off'}) + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();
