@@ -160,6 +160,9 @@ interface QbankFact {
   content: string;
   taxonomyVersion: string | null;
   servingScopeId: string | null;
+  /** AG39 owner layer（0186）: 投影 owner 值穿链承重——缺 0186 列的历史前缀夹具恒 'platform'/null。 */
+  ownerKind: string;
+  orgId: string | null;
 };
 
 async function generationSchemaPresent(pool: DbPool): Promise<boolean> {
@@ -183,6 +186,24 @@ async function projectionSchemaPresent(pool: DbPool): Promise<boolean> {
          SELECT 1 FROM information_schema.columns
           WHERE table_schema='public' AND table_name='qbank_generation_chunk'
             AND column_name='serving_scope_id'
+       ) AS present`,
+    );
+    return r.rows[0]?.present === true;
+  });
+}
+
+/**
+ * AG39（0186）owner 列缝:qbank_generation_chunk 已落 owner_kind/org_id 时，投影写手把 qbank_chunk 的
+ * owner 值穿链进每一冻结行（org 块投影恒落 platform = 对所有人可检索的永久泄漏态，故缺列时宁可
+ * platform 旧形制也不得半态）。历史前缀夹具（<0186）走 platform 缺省臂。
+ */
+async function ownerSchemaPresent(pool: DbPool): Promise<boolean> {
+  return asQbankControlExecutor(pool, async (c) => {
+    const r = await c.query(
+      `SELECT EXISTS (
+         SELECT 1 FROM information_schema.columns
+          WHERE table_schema='public' AND table_name='qbank_generation_chunk'
+            AND column_name='owner_kind'
        ) AS present`,
     );
     return r.rows[0]?.present === true;
@@ -235,7 +256,7 @@ async function unrebuildableLegacyRefs(pool: DbPool): Promise<string[]> {
   });
 }
 
-async function snapshotFacts(pool: DbPool, projection: boolean): Promise<{ epoch: string; facts: QbankFact[] }> {
+async function snapshotFacts(pool: DbPool, projection: boolean, ownerStore: boolean): Promise<{ epoch: string; facts: QbankFact[] }> {
   return asQbankControlExecutor(pool, async (c) => {
     const epoch = await c.query('SELECT epoch::text AS epoch FROM qbank_corpus_epoch WHERE singleton=true');
     if (epoch.rowCount !== 1) throw new Error('qbank_generation_epoch_missing');
@@ -264,6 +285,7 @@ async function snapshotFacts(pool: DbPool, projection: boolean): Promise<{ epoch
         facts: facts.rows.map((r) => ({
           refId: String(r.ref_id), contentHash: String(r.content_hash), content: String(r.content),
           taxonomyVersion: null, servingScopeId: null,
+          ownerKind: 'platform', orgId: null,
         })),
       };
     }
@@ -271,38 +293,67 @@ async function snapshotFacts(pool: DbPool, projection: boolean): Promise<{ epoch
     // shared raw cut expands to one frozen row per leaf.  ORDER BY is the
     // canonical, deterministic projection order; no scope is chosen by input
     // order, and every approved fact must carry at least one reviewed leaf.
+    // AG39（0186）: owner 列在场时随读路径逐位穿链（source.owner_kind/org_id → facts → INSERT）。
     const facts = await c.query(
-      `SELECT ch.ref_id, ch.content_hash, ch.content, cs.taxonomy_version, cs.serving_scope_id
-         FROM qbank_chunk ch
-         JOIN qbank_pool_entry pool
-           ON pool.ref_id=ch.ref_id
-          AND pool.source_id=ch.source_id
-          AND pool.content_hash=ch.content_hash
-         JOIN qbank_source source
-           ON source.id=pool.source_id
-          AND source.content_hash=pool.content_hash
-         LEFT JOIN qbank_chunk_serving_scope cs ON cs.ref_id=ch.ref_id
-        WHERE source.status='approved'
-          AND (
-            pool.content_hash=left(encode(digest(convert_to(ch.content, 'UTF8'), 'sha256'), 'hex'), 32)
-            OR pool.content_hash=encode(digest(convert_to(ch.content, 'UTF8'), 'sha256'), 'hex')
-          )
-        ORDER BY ch.ref_id, cs.taxonomy_version, cs.serving_scope_id`,
+      ownerStore
+        ? `SELECT ch.ref_id, ch.content_hash, ch.content, cs.taxonomy_version, cs.serving_scope_id,
+                  ch.owner_kind, ch.org_id
+             FROM qbank_chunk ch
+             JOIN qbank_pool_entry pool
+               ON pool.ref_id=ch.ref_id
+              AND pool.source_id=ch.source_id
+              AND pool.content_hash=ch.content_hash
+             JOIN qbank_source source
+               ON source.id=pool.source_id
+              AND source.content_hash=pool.content_hash
+             LEFT JOIN qbank_chunk_serving_scope cs ON cs.ref_id=ch.ref_id
+            WHERE source.status='approved'
+              AND (
+                pool.content_hash=left(encode(digest(convert_to(ch.content, 'UTF8'), 'sha256'), 'hex'), 32)
+                OR pool.content_hash=encode(digest(convert_to(ch.content, 'UTF8'), 'sha256'), 'hex')
+              )
+            ORDER BY ch.ref_id, cs.taxonomy_version, cs.serving_scope_id`
+        : `SELECT ch.ref_id, ch.content_hash, ch.content, cs.taxonomy_version, cs.serving_scope_id
+             FROM qbank_chunk ch
+             JOIN qbank_pool_entry pool
+               ON pool.ref_id=ch.ref_id
+              AND pool.source_id=ch.source_id
+              AND pool.content_hash=ch.content_hash
+             JOIN qbank_source source
+               ON source.id=pool.source_id
+              AND source.content_hash=pool.content_hash
+             LEFT JOIN qbank_chunk_serving_scope cs ON cs.ref_id=ch.ref_id
+            WHERE source.status='approved'
+              AND (
+                pool.content_hash=left(encode(digest(convert_to(ch.content, 'UTF8'), 'sha256'), 'hex'), 32)
+                OR pool.content_hash=encode(digest(convert_to(ch.content, 'UTF8'), 'sha256'), 'hex')
+              )
+            ORDER BY ch.ref_id, cs.taxonomy_version, cs.serving_scope_id`,
     );
     const rows = facts.rows.map((r) => ({
       refId: String(r.ref_id), contentHash: String(r.content_hash), content: String(r.content),
       taxonomyVersion: r.taxonomy_version == null ? null : String(r.taxonomy_version),
       servingScopeId: r.serving_scope_id == null ? null : String(r.serving_scope_id),
+      ownerKind: ownerStore ? String(r.owner_kind ?? 'platform') : 'platform',
+      orgId: ownerStore && r.org_id != null ? String(r.org_id) : null,
     }));
     const unrouted = rows.find((row) => row.taxonomyVersion == null || row.servingScopeId == null);
     if (unrouted) {
       throw new Error(`qbank_generation_unrouted_chunk_without_serving_scope:${unrouted.refId}`);
     }
+    // AG39 owner 承重守卫:owner 列在场而 fact 缺 owner 值 = fail-closed（绝不半态投影）。
+    if (ownerStore) {
+      const ownerMissing = rows.find((row) => !row.ownerKind
+        || !['platform', 'org'].includes(row.ownerKind)
+        || (row.ownerKind === 'org' && row.orgId == null)
+        || (row.ownerKind === 'platform' && row.orgId != null));
+      if (ownerMissing) throw new Error(`qbank_generation_owner_scope_invalid:${ownerMissing.refId}`);
+    }
     return { epoch: String(epoch.rows[0].epoch), facts: rows };
   });
 }
 
-async function insertGenerationRows(pool: DbPool, generationId: string, facts: QbankFact[], vectors: number[][], projection: boolean): Promise<void> {
+async function insertGenerationRows(pool: DbPool, generationId: string, facts: QbankFact[], vectors: number[][], projection: boolean, ownerStore: boolean): Promise<void> {
   for (let start = 0; start < facts.length; start += INSERT_BATCH) {
     const current = facts.slice(start, start + INSERT_BATCH);
     const params: unknown[] = [];
@@ -315,6 +366,16 @@ async function insertGenerationRows(pool: DbPool, generationId: string, facts: Q
         if (fact.taxonomyVersion == null || fact.servingScopeId == null) {
           throw new Error(`qbank_generation_projection_scope_missing:${fact.refId}`);
         }
+        if (ownerStore) {
+          if (!['platform', 'org'].includes(fact.ownerKind)
+            || (fact.ownerKind === 'org' && fact.orgId == null)
+            || (fact.ownerKind === 'platform' && fact.orgId != null)) {
+            throw new Error(`qbank_generation_owner_scope_invalid:${fact.refId}`);
+          }
+          const p = offset * 8;
+          params.push(generationId, fact.refId, fact.taxonomyVersion, fact.servingScopeId, fact.contentHash, fact.ownerKind, fact.orgId, `[${vector.join(',')}]`);
+          return `($${p + 1},$${p + 2},$${p + 3},$${p + 4},$${p + 5},$${p + 6},$${p + 7},$${p + 8}::vector)`;
+        }
         const p = offset * 6;
         params.push(generationId, fact.refId, fact.taxonomyVersion, fact.servingScopeId, fact.contentHash, `[${vector.join(',')}]`);
         return `($${p + 1},$${p + 2},$${p + 3},$${p + 4},$${p + 5},$${p + 6}::vector)`;
@@ -325,8 +386,11 @@ async function insertGenerationRows(pool: DbPool, generationId: string, facts: Q
     }).join(',');
     await asQbankControlExecutor(pool, (c) => c.query(
       projection
-        ? `INSERT INTO qbank_generation_chunk(generation_id,ref_id,taxonomy_version,serving_scope_id,content_hash,embedding) VALUES ${values}
-           ON CONFLICT (generation_id,ref_id,taxonomy_version,serving_scope_id) DO NOTHING`
+        ? ownerStore
+          ? `INSERT INTO qbank_generation_chunk(generation_id,ref_id,taxonomy_version,serving_scope_id,content_hash,owner_kind,org_id,embedding) VALUES ${values}
+             ON CONFLICT (generation_id,ref_id,taxonomy_version,serving_scope_id) DO NOTHING`
+          : `INSERT INTO qbank_generation_chunk(generation_id,ref_id,taxonomy_version,serving_scope_id,content_hash,embedding) VALUES ${values}
+             ON CONFLICT (generation_id,ref_id,taxonomy_version,serving_scope_id) DO NOTHING`
         : `INSERT INTO qbank_generation_chunk(generation_id,ref_id,content_hash,embedding) VALUES ${values}
            ON CONFLICT (generation_id,ref_id) DO NOTHING`,
       params,
@@ -355,7 +419,8 @@ export async function ensureActiveQbankGeneration(pool: DbPool, embedder: Embedd
     return { status: 'blocked_unrebuildable_legacy', recipe, chunkCount: 0, unrebuildableLegacyRefs: unknownLegacy };
   }
   const projection = await projectionSchemaPresent(pool);
-  const snapshot = await snapshotFacts(pool, projection);
+  const ownerStore = projection && await ownerSchemaPresent(pool);
+  const snapshot = await snapshotFacts(pool, projection, ownerStore);
   const generationId = 'qgen-' + randomUUID();
   await asQbankControlExecutor(pool, async (c) => {
     await c.query(
@@ -375,7 +440,7 @@ export async function ensureActiveQbankGeneration(pool: DbPool, embedder: Embedd
       ? await embedFactsViaDurableComputeCache(pool, embedder, snapshot.facts, computeCache)
       : await embedder.embed(snapshot.facts.map((f) => f.content));
     if (vectors.length !== snapshot.facts.length) throw new Error('qbank_generation_embedding_count_mismatch');
-    await insertGenerationRows(pool, generationId, snapshot.facts, vectors, projection);
+    await insertGenerationRows(pool, generationId, snapshot.facts, vectors, projection, ownerStore);
     await asQbankControlExecutor(pool, (c) => c.query('SELECT qbank_validate_generation($1)', [generationId]));
     await asQbankControlExecutor(pool, (c) => c.query('SELECT qbank_activate_generation($1)', [generationId]));
     return { status: 'activated', recipe, generationId, chunkCount: snapshot.facts.length };

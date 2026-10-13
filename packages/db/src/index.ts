@@ -185,6 +185,10 @@ export type { QbankActiveGeneration, QbankHybridHit, QbankEvidenceExcerpt, Qbank
 export { cachedQbankSearch, qbankRetrievalCacheKey, RagCacheDependencyError } from './qbank/qbank-retrieval-cache.ts';
 export type { CachedQbankSearchInput, CachedQbankSearchResult, QbankCacheStatus, QbankRetrievalHit, QbankRetrievalCacheKeyInput, QbankEmbeddingCallContext, QbankRetrievalCacheBackend, QbankRetrievalCacheAddress, QbankRetrievalCacheLock } from './qbank/qbank-retrieval-cache.ts';
 
+// AG39 企业私有题库：owner 作用域服务端派生（裁决⑦值源·interview→job_application→recruiter 信任根链）。
+export { deriveQbankOwnerScope } from './qbank/qbank-owner.ts';
+export type { QbankOwnerScope } from './qbank/qbank-owner.ts';
+
 // 共享题库数据面（策展门 + 灌库/题面 artifact 摄取）。原散在 apps/worker/src，现收敛回 packages/db，
 // 与早已在此的检索面 qbank-generation-retrieval 同层——消除 packages→apps 越界（arch 承重边界）。
 // 灌库/摄取只依赖 db 控制面身份(asQbankControlExecutor)+本地 Embedder seam，不依赖任何 worker 装配。
