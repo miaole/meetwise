@@ -315,6 +315,19 @@
       "disposition": "fenced"
     },
     {
+      "id": "web-proxy-abandon",
+      "kind": "web-proxy",
+      "exposure": "public-reachable",
+      "method": "POST",
+      "path": "/api/interview/:id/abandon",
+      "source": "apps/web/app/api/interview/[id]/abandon/route.ts",
+      "handler": "POST",
+      "writes": ["interview"],
+      "stateClass": "interview",
+      "fences": ["web-middleware"],
+      "disposition": "fenced"
+    },
+    {
       "id": "web-proxy-finalize",
       "kind": "web-proxy",
       "exposure": "public-reachable",
@@ -372,7 +385,7 @@
       "exposure": "internal-only",
       "method": null,
       "path": null,
-      "source": "packages/db/src/scoring-aggregation.ts",
+      "source": "packages/db/src/scoring/scoring-aggregation.ts",
       "handler": "writeFinalScoreCard",
       "writes": ["score_card"],
       "stateClass": "scoring",
