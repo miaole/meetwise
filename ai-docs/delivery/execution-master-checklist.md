@@ -2273,7 +2273,7 @@ flowchart TD
 - **merge 后三门复验（nail 席主线树亲跑）**：pnpm e2e-helpers:prove EXIT=0（28 断言）+ npx tsc -p tsconfig.e2e.json --noEmit EXIT=0 + pnpm uc011:report-refund:http:prove EXIT=0（53 臂全绿·收据 .tmp/isolated-proof-receipts/2026-10-12T06-40-48-829Z-*·EXIT0≠covered）.
 - **冲突面如实登记（预期偏差）**：预期冲突=e2e/full.e2e.ts（主线 R3 块 vs rev2 :549-556）——实际 git 自动并零冲突，nail 席亲证 R3 运行时版本闸形（:515-552 含 §1-R3-2 两向定谳+CANDIDATE_ROUTE_POLICY_VERSION 闸）与 rev2 fresh ts 双臂（:557-563 错签臂携新鲜 ts→403+未知单臂携合法签+ts→404）语义共存；实际唯一冲突=.dockerignore（HEAD 侧 CI-WIRING #169 apps/worker/evidence vs line 侧 #168 **/test·两侧语义独立零重叠）——dual-keep 纪律两侧注释+排除项全保·HOTFIX-178 铁律 grep `^<<<<<<<`（apps packages scripts e2e ai-docs）零命中亲证.
 - **基线红如实不洗**：邻件 uc011:adv:prove:raw 基线红 18 臂 4 红（INV 3 陈旧清单+INV 期 A2 1·断言 refundWebhook 不存在而基线已在·非本刀翻红·归后继刀不修不洗·rev2 重审席 sha256 物证锁定）+ entpay S2-0 恒等不洗.
-- [ ] **STILL OPEN（R-1 遗留·#18 项已翻面）**：#18 purgeStaleInterviewJobPayloads 生产零调用点=原语已落未接线——挂协调方裁「接线小刀或降格声明」→**已由 TTL-WIRE 闭环 @本 merge（ce021b22·「接线小刀」向兑现·见「Line TTL-WIRE nail」段·原语已落≠接线完成 红事实就此消除）**；另 AUTHZ-HARDEN 5A-1（簇①②③ 账号/会话面）未开工；#143 P4 随卷挂账零码动（启用前改应用侧加密）.
+- [ ] **STILL OPEN（R-1 遗留·#18 项已翻面）**：#18 purgeStaleInterviewJobPayloads 生产零调用点=原语已落未接线——挂协调方裁「接线小刀或降格声明」→**已由 TTL-WIRE 闭环 @本 merge（ce021b22·「接线小刀」向兑现·见「Line TTL-WIRE nail」段·原语已落≠接线完成 红事实就此消除）**；另 AUTHZ-HARDEN 5A-1 主体已 nailed @5cb78dab（原卷 authz-harden-REQUEST.md §9/§9.1 双席 BOTH PASS·簇①②③·迁移 0167/0168/0169）·残 #34 两半未闭（scrypt 异步化+chunked 流计数封顶·auth.service.ts:57/:94、profile.service.ts:132/:141 零 await+main.ts:159-164 无封顶）；#143 P4 随卷挂账零码动（启用前改应用侧加密）.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · 原语已落≠接线完成 · nail≠gap closed · 实现方不 self-approve.
 
@@ -2342,7 +2342,7 @@ flowchart TD
 - **errata（臂数标签误计两条·post-prove 如实登记·不阻门·nail 席 A( 亲数双证）**：①REQUEST/EXEC 卷载「接线臂 A+B 16 臂」——实测 `reaper-purge-wire.proof.ts` `A(` 计数=**14**（nail 席主线树门复跑逐 PASS 行亲数=14 与之互证）；②卷载「reaper 既有 30 臂原值」——实测 `apps/worker/test/reaper.proof.ts` `A(` 计数=**28**（30 系 5A-2 时点旧数·主线漂移两臂·非本刀触·回归原值判定不受影响）——两处均以实测为准·EXIT=0 判定不受影响·REQUEST 原文不回改（append 保史）.
 - **R-1 行翻面**：AUTHZ-HARDEN 5A-2 段 STILL OPEN（R-1 遗留）行 `:2276` 的 #18 接线项随本 nail 标「已由 TTL-WIRE 闭环 @本 merge（ce021b22）」——同行 5A-1/#143 两项维持 STILL OPEN 原文·行内勾选框维持 `[ ]`（残两项未闭）.
 - **边界铁律亲证**：原语/迁移零字节（`interview-jobs.ts`/`quiz-jobs.ts`/migrations 零触·merge diff 亲证 11 文件=REQUEST+receipts 六+package.json 门名+consumer+proof·`sweepStuckInterviewJobs` 语义零改）；quiz/diagnosis 镜像 reaper 面零触（§3-3 维持）；TTL 86_400 原值零调参；R-1 行翻面权=协调方常设 loop 授权本 nail 行使.
-- [ ] **STILL OPEN（承接·非本刀面）**：AUTHZ-HARDEN 5A-1（簇①②③ 账号/会话面）未开工；#143 P4 随卷挂账零码动（启用前改应用侧加密）——5A-2 段原文维持.
+- [ ] **STILL OPEN（承接·非本刀面）**：AUTHZ-HARDEN 5A-1 主体已 nailed @5cb78dab（原卷 authz-harden-REQUEST.md §9/§9.1 双席 BOTH PASS·簇①②③·迁移 0167/0168/0169）·残 #34 两半未闭（scrypt 异步化+chunked 流计数封顶·auth.service.ts:57/:94、profile.service.ts:132/:141 零 await+main.ts:159-164 无封顶）；#143 P4 随卷挂账零码动（启用前改应用侧加密）——5A-2 段原文维持.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
 
