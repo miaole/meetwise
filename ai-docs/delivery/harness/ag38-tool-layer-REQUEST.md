@@ -1,6 +1,6 @@
 # AG-38 — 问答侧只读受限工具层（REQUEST）
 
-**Status**: **`stopped:exec_red_docs_file_limit`**（rev3 复审两外席 BOTH PASS→协调方授权 EXEC 开工·**2026-10-13 EXEC 并线+施工+门矩阵全跑**：并线 f17977c0 零冲突·§0 十一锚重 pin 恒等零漂·新 proof 41 臂/prove:tools 六臂/ag19 门/turbo typecheck --force/本刀改动集 markers scoped 五类全绿·**docs:check 红=PTP_FILE_LIMIT:2049>2048**——现场证据：策略自身 lister 实测不含本刀=2047（绿）·含本刀恰 +2 受管文件=2049·硬顶 MAX_FILES=2048 无豁免面·预算常量改面不在本刀授权集→按停止条件红停（验收红且口径内修不了+需越界改共享门禁常量才能继续）·**Status 不落 executed:awaiting_post_prove_dual**·全施工面与绿收据保留在工作区（§9 EXEC 附记）·待协调方处置文件预算后翻面+post-prove 双审两外席·Ban self-approve · alone≠dual · ⛔push）。
+**Status**: **`executed:awaiting_post_prove_dual`**（**2026-10-13 红停解除翻面**：协调方授权 FILE_LIMIT 门顶调整落地（主线 `59a3826b`·本树并线 `fd678206`）·翻面前复验 docs:check EXIT=0（2049≤2064）+qa-tool-layer:prove EXIT=0·详见 §9 红停解除注记·原红停叙事保留如下：rev3 复审两外席 BOTH PASS→协调方授权 EXEC 开工·**2026-10-13 EXEC 并线+施工+门矩阵全跑**：并线 f17977c0 零冲突·§0 十一锚重 pin 恒等零漂·新 proof 41 臂/prove:tools 六臂/ag19 门/turbo typecheck --force/本刀改动集 markers scoped 五类全绿·**docs:check 红=PTP_FILE_LIMIT:2049>2048**——现场证据：策略自身 lister 实测不含本刀=2047（绿）·含本刀恰 +2 受管文件=2049·硬顶 MAX_FILES=2048 无豁免面·预算常量改面不在本刀授权集→按停止条件红停（验收红且口径内修不了+需越界改共享门禁常量才能继续）·**Status 不落 executed:awaiting_post_prove_dual**·全施工面与绿收据保留在工作区（§9 EXEC 附记）·待协调方处置文件预算后翻面+post-prove 双审两外席·Ban self-approve · alone≠dual · ⛔push）。
 
 **席位**：meetwise 战役 AG-38（问答侧只读受限工具层）REQUEST 起草席（docs-only·零码动·恰 1 新文件落卷）。
 **基线**：主线 tip `849a0f19`（`git log -1` 开工实测 2026-10-13·docs(ssot) BILL3 话题结算 nail 收官登记·零码面）。分支 `line/ag38-tool-layer` · 工作树 `../meetwise-ag38`（仓根同级·本起草席已立：`git worktree add ../meetwise-ag38 -b line/ag38-tool-layer 849a0f19`·建前亲证 `worktree list` 零 ag38 树 + `branch -a` 零同名）。**rev2 实测注（勘误席）**：战役主线（`feat/mysql-schema-skeleton`）tip 已前移 `849a0f19`→`94b8519b`（`c4ef2c7f` 刀位图深夜刷新 + `94b8519b` billing P3 行勘误·两笔均 docs(ledger) 仅触 product-campaign-LEDGER.md·零码面·勘误席 git 亲证）——本卷基线引用维持起草时点实测·EXEC 立项重 pin 时照实测登记即可。
@@ -260,6 +260,8 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **est live=0**:全 scripted（假 Model+真隔离 PG durable claim 账本·零 provider 外呼·零 secrets·零消耗）·pins 十一值照抄零翻。
 
 **STOP=`stopped:exec_red_docs_file_limit`**（⛔push·Status 不落 executed·待协调方处置 FILE_LIMIT 后翻面+post-prove 双审两外席·alone≠dual·Ban self-approve）。
+
+**红停解除注记（2026-10-13·协调方授权 FILE_LIMIT 门顶调整·执行席翻面）**:主线 `feat/mysql-schema-skeleton` 落 `59a3826b`（docs(ci): 受管文件预算 2048→2064——AG-38 批次刀净增·协调方授权·`public-text-policy.mjs:40` 仅 MAX_FILES 一行+注释·DENY 规则/内容扫描零触·计数预算非内容策略·push 后主线 tip=`59a3826b`）·本树并线 `fd678206`（`git merge --no-ff feat/mysql-schema-skeleton`·零冲突·恰拉入 5 文件含门顶调整）·**翻面前复验**：`pnpm docs:check` **EXIT=0**（public text policy scanned **2049** managed worktree files≤2064·80 required files verified·红停前对照=EXIT=1 `PTP_FILE_LIMIT:2049>2048`）+`pnpm qa-tool-layer:prove` **EXIT=0**（41 臂全 PASS·隔离 runner 收据 `.tmp/isolated-proof-receipts/`·兜底复跑·门顶调整不影响施工面实证）·turbo typecheck 按执行席任务书免除（并线仅触门禁脚本+docs+主线侧 proof·未触本刀码面）·**Status 翻 `executed:awaiting_post_prove_dual`**·其余 §0-§8 零改·待 post-prove 双审两外席（alone≠dual·Ban self-approve·⛔push）。
 
 ---
 
