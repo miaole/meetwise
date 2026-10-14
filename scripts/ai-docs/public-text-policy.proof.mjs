@@ -249,7 +249,7 @@ const checks = {
   'TC-quality-04-E11': () => {
     const fixture = createFixtureRoot();
     try {
-      // cap 数字行为断言：恰好 2104 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2104）。
+      // cap 数字行为断言：恰好 2112 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2112）。
       // AG-12 成本轨③：cap 2048→2064（任务书派单 sanctioned 值）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减·偏离清单随 REQUEST §9 落卷）。
       // ciw2 nail：cap 2064→2072（2026-10-14 协调方授权）——主线侧历史步注记。
@@ -266,21 +266,23 @@ const checks = {
       // 5B-MIG nail 并线后 sanction：cap 2090→2104（2026-10-14 协调方 sanction·+14 沿 +8 系先例形·
       // 并线树 f7fe7078 实测 2093>2090 红停·双亲增量并集+四刀并集余量）——本臂 fabricated 数随 cap 再联动
       // 同步（cap 数字行为断言语义不变·强度不减）。
+      // ssepush-notify 回归修复刀：cap 2104→2112（2026-10-14 协调方 sanction·+8 本刀收据受管件增量·沿 +8 先例形）——本臂 fabricated 数随 cap 再联动
+      // 同步（cap 数字行为断言语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_104; i += 1) {
+      for (let i = 0; i < 2_112; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_104);
-      // 超限错误码形状断言：第 2105 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2105`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2104.md'] });
+      assert.equal(atCap.scannedFiles, 2_112);
+      // 超限错误码形状断言：第 2113 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2113`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2112.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2105`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2113`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
