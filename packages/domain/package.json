@@ -22,6 +22,7 @@
     "prove:critique": "tsx test/question-critique.proof.ts",
     "prove:question-generation-fail-closed": "tsx test/question-generation-fail-closed.proof.ts",
     "prove:web-explore": "tsx test/web-explore.proof.ts",
+    "prove:b2c1-web-egress": "tsx test/b2c1-web-egress.proof.ts",
     "prove:resume-extract": "tsx test/resume-extract.proof.ts",
     "prove:rag-chunking": "tsx test/rag-chunking.proof.ts",
     "prove:ctx-01-input-routing": "tsx test/input-routing.proof.ts",

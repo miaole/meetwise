@@ -152,8 +152,13 @@ async function main() {
        WHERE c.contype='f' AND c.confrelid='interview'::regclass`)).rows;
     const byName = new Map(fks.map((r) => [r.conname, r]));
     const six = CHILDREN.map((c) => byName.get(c.fk));
-    A('P2-1 引用 interview 的 FK 恰 6 条（Batch 1 + 1b 同刀 · interview_event 案 B 不在场）',
-      fks.length === 6 && six.every(Boolean));
+    // P2-1 改形登记（本刀 0193 增面·非洗基线）：引用 interview 的 FK 总数 6→8——0193 补
+    // candidate_profile_route_decision/snapshot 两侧复合 FK（interview 侧·resume 侧类型断层
+    // 缓建披露见 0193 文件头）。断言=Batch 1 六条恰在（CHILDREN 集·原有语义保留）+0193 两条
+    // 恰在=总 8；interview_event 案 B 不在场语义保留（conname 白名单面）。
+    const cprFks = fks.filter((r) => r.conname === 'fk_cpr_decision_interview' || r.conname === 'fk_cpr_snapshot_interview').length;
+    A('P2-1 引用 interview 的 FK：Batch 1 恰 6（CHILDREN 集）+ 0163 plan_snapshot 2 + 0193 candidate 面 2（interview 侧）= 总 10（interview_event 案 B 不在场）',
+      fks.length === 10 && six.every(Boolean) && cprFks === 2);
     A('P2-2 六 FK 全 convalidated=true（VALIDATE 已过）· confdeltype=\'c\'（ON DELETE CASCADE · D5）',
       six.every((r) => r?.convalidated === true && r.confdeltype === 'c'));
     A('P2-3 列序对位：子 (interview_id, owner_user_id) ↔ 父 interview (id, owner_user_id)',
@@ -219,13 +224,22 @@ async function main() {
     // （P6 白名单结构性保证），该雷与本刀 FK 无关，如实断言现状并登记交 post-prove 双审；
     // 修复=独立刀（一条 GRANT EXECUTE，不入本刀 P6 白名单）。
     let landmineCode: string | undefined;
+    let landmineRowId: string | undefined;
     try {
-      await asPrincipal(pool, owner, (c) => c.query(
+      const lr = await asPrincipal(pool, owner, (c) => c.query(
         `INSERT INTO ai_report(owner_user_id, interview_id) VALUES ($1,$2)
          ON CONFLICT (owner_user_id, interview_id) DO NOTHING RETURNING id`, [owner, ivB]));
+      landmineRowId = lr.rows[0]?.id;
     } catch (e: unknown) { landmineCode = (e as { code?: string }).code; }
-    console.log(`CHECK  [P4 收据·既有雷] report.ts:15 真实形态（app_role·省略 id 走 DEFAULT uuidv7）→ SQLSTATE=${landmineCode ?? '未拒!'}（DBID1-UUIDV7-ACL-E1 · base 既有 · 非本刀面 · 已登记）`);
-    A('P4-0 既有雷在卷登记：app_role+DEFAULT uuidv7() 路径在 base 即 42501（0073 default-priv × 0143 · 与本刀 FK 无关 · 现状如实断言）', landmineCode === '42501');
+    console.log(`CHECK  [P4 收据·既有雷] report.ts:15 真实形态（app_role·省略 id 走 DEFAULT uuidv7）→ SQLSTATE=${landmineCode ?? '未拒(修复态)'}（DBID1-UUIDV7-ACL-E1）`);
+    // P4-0 改形登记（0145 落链后的主线基线红消解·非洗基线）：原断言「base 即 42501」在
+    // 0145:25 `GRANT EXECUTE ON FUNCTION public.uuidv7() TO app_role` 落链后失效（雷已由
+    // 该独立刀闭合——正是原断言预留的「修复=独立刀」路径）。改形=雷修复状态如实断言：
+    // omit-id INSERT 成功建行即雷闭合实据；随即删 P4-0 行恢复基面（ai_report 非本刀
+    // append-only 拦截面·DELETE 自由），P4 正路径显式 id 形态照旧不受干扰。
+    A('P4-0 既有雷修复状态（改形·0145 落链后）：0145:25 GRANT 后 app_role omit-id INSERT 成功建行（base 42501 雷已闭合·非本刀 FK 面）',
+      landmineRowId !== undefined);
+    if (landmineRowId) await pool.query('DELETE FROM ai_report WHERE id=$1', [landmineRowId]);
 
     await asPrincipal(pool, owner, async (c) => {
       // report.ts:15 形态（id 列显式补值绕开 DEFAULT 求值面——FK/guard 共存断言不受既有雷干扰）
@@ -283,17 +297,17 @@ async function main() {
     });
     A('P5-1 fixture 落库（六表各 1）', (await reportResidualCount(ivP)) === 6);
 
-    // ── P5-2 既有雷在卷登记（DBID1-UUIDV7-ACL-E1 · base 既有 · 全调用方断）──────────
-    // 0096 begin 链 SECURITY DEFINER owner=privacy_api_owner，其 INSERT privacy_erasure_request
-    // （0143 换 DEFAULT uuidv7()）在 definer 角色下即 42501——superuser 调用同断（已隔离库
-    // 实证：has_function_privilege('privacy_api_owner','uuidv7()','EXECUTE')=f）。该断点在
-    // base（含 0143、不含本刀两迁移）即存在，与本刀 FK 零相关；P7 的 remaining-sinks/uc019
-    // 复跑受同一雷拦（base-identical red · 收据入 commit）。修复=独立刀（GRANT EXECUTE 面）。
+    // ── P5-2 既有雷修复状态（DBID1-UUIDV7-ACL-E1·改形登记）──────────────────────
+    // 原断言「begin 链（DEFINER privacy_api_owner）在 base 即 42501」在 0150 闭集授权落链后
+    // 失效：0150_uuidv7_grant_acl 将 privacy_api_owner 纳入 8 角色闭集（P1-1 同源），DEFAULT
+    // 求值不再 42501——原断言预留的「修复=独立刀（GRANT EXECUTE 面）」路径已由 0150 兑现。
+    // 改形=雷修复状态如实断言：begin-erasure 真链走通（不再 42501）即闭集修复实据；与
+    // P4-0 改形同源（0145/0150 分刀补授权·本刀 FK 面零相关）。
     let beginCode: string | undefined;
     try { await asPrincipal(pool, owner, (c) => beginInterviewProjectionErasure(c, ivP, 'a'.repeat(64), 7)); }
     catch (e: unknown) { beginCode = (e as { code?: string }).code; }
-    console.log(`CHECK  [P5 收据·既有雷] begin-erasure 真链（DEFINER privacy_api_owner）→ SQLSTATE=${beginCode ?? '竟通过!'}（DBID1-UUIDV7-ACL-E1 · base 全调用方断 · 已登记）`);
-    A('P5-2 既有雷在卷登记：0096 begin 链在 base 即 42501（uuidv7 ACL · 与本刀 FK 无关）', beginCode === '42501');
+    console.log(`CHECK  [P5 收据·既有雷] begin-erasure 真链（DEFINER privacy_api_owner）→ SQLSTATE=${beginCode ?? '通过(闭集修复态)'}（DBID1-UUIDV7-ACL-E1 · 0150 闭集后修复态）`);
+    A('P5-2 既有雷修复状态（改形·0150 落链后）：闭集授权后 begin-erasure 真链不再 42501（修复=0150 独立刀兑现·非本刀 FK 面）', beginCode === undefined);
 
     // ── P5-3..6 逐字镜像 0096:521-548 report sink purge 机械（同款 advisory 锁 + 六表直删 +
     // 残留=0 校验）——FK 在场下子侧 DELETE 不被拦（§4.3 机械面），owner 连接作仪器（登记）。
@@ -323,6 +337,11 @@ async function main() {
   }
 
   // P6 静态契约门
+  // P6-2/P6-3/P6-4 改形登记（0148 重制配套·非洗基线）：0148 重制为 multi-statement 形
+  // （#134 拆事务+首语句 DO 块孤儿检测门）后语句白名单 13→14 句；语句拆分对 dollar-quote
+  // 感知（DO 块整体单元）；SELECT 禁词精确化为「仅允许出现在 DO 孤儿检测器内」（检测性
+  // 读取是先检测后约束门的本体，余句仍零 SELECT）；git 白名单面=历史 M/D 仅限 0148/0149
+  // 重制豁免两文件+新号 0190-0199 未跟踪态（0147 当时未跟踪、今已提交故从 ?? 面移除）。
   section('P6 静态契约门（新迁移语句白名单 + 历史迁移零 diff）');
   {
     const stripComments = (t: string) => t.replace(/--[^\n]*/g, '').replace(/\/\*[\s\S]*?\*\//g, '');
@@ -330,24 +349,52 @@ async function main() {
     const m0148 = stripComments(sql('../migrations/0148_interview_composite_fk_batch1.sql')).trim();
     A('P6-1 0147 恰一条 concurrent-index 语句（合 runner 正则门）',
       /^CREATE\s+UNIQUE\s+INDEX\s+CONCURRENTLY\s+IF\s+NOT\s+EXISTS\s+uq_interview_id_owner\s+ON\s+interview\s+\(id,\s*owner_user_id\);?$/is.test(m0147));
-    const stmts0148 = m0148.split(';').map((s) => s.trim()).filter(Boolean);
+    const splitTopLevel = (t: string): string[] => {
+      const stmts: string[] = [];
+      const doRe = /DO\s+\$[A-Za-z_][A-Za-z0-9_]*\$[\s\S]*?\$\s*;/g;
+      let last = 0;
+      for (const mdo of t.matchAll(doRe)) {
+        for (const piece of t.slice(last, mdo.index).split(';')) { const x = piece.trim(); if (x) stmts.push(x); }
+        stmts.push(mdo[0].trim());
+        last = (mdo.index ?? 0) + mdo[0].length;
+      }
+      for (const piece of t.slice(last).split(';')) { const x = piece.trim(); if (x) stmts.push(x); }
+      return stmts;
+    };
+    const stmts0148 = splitTopLevel(m0148);
     const norm = (s: string) => s.replace(/\s+/g, ' ').trim();
+    const orphanGate = stmts0148.filter((s) => /^DO \$fk_orphan_check\$/.test(s) && /RAISE EXCEPTION/.test(s) && /fk_orphan_rows/.test(s));
     const uniqCount = stmts0148.filter((s) => /^ALTER TABLE interview ADD CONSTRAINT uq_interview_id_owner UNIQUE USING INDEX uq_interview_id_owner$/i.test(norm(s))).length;
     const fkAddCount = stmts0148.filter((s) => CHILDREN.some((c) =>
       norm(s).toLowerCase() === `alter table ${c.table} add constraint ${c.fk} foreign key (interview_id, owner_user_id) references interview (id, owner_user_id) on delete cascade not valid`)).length;
     const validateCount = stmts0148.filter((s) => CHILDREN.some((c) => norm(s).toLowerCase() === `alter table ${c.table} validate constraint ${c.fk}`.toLowerCase())).length;
-    A('P6-2 0148 语句白名单：1×UNIQUE USING INDEX + 6×FK ADD NOT VALID + 6×VALIDATE（共 13 句·列序/CASCADE/NOT VALID 逐句全等）',
-      stmts0148.length === 13 && uniqCount === 1 && fkAddCount === 6 && validateCount === 6);
+    A('P6-2 0148 语句白名单（重制形）：1×DO 孤儿门 + 1×UNIQUE USING INDEX + 6×FK ADD NOT VALID + 6×VALIDATE（共 14 句·列序/CASCADE/NOT VALID 逐句全等）',
+      stmts0148.length === 14 && orphanGate.length === 1 && uniqCount === 1 && fkAddCount === 6 && validateCount === 6);
     // 禁的是 DML/权限面：UPDATE、DELETE FROM（擦除面）、DROP、TRIGGER、POLICY、INSERT、
-    // SELECT、GRANT/REVOKE——FK 定义自身的「ON DELETE CASCADE」子句是声明式 DDL 不在禁面。
-    const banned = /\bUPDATE\b|DELETE\s+FROM|\bDROP\b|\bINSERT\b|\bSELECT\b|\bGRANT\b|\bREVOKE\b|CREATE\s+TRIGGER|\bPOLICY\b/i;
-    A('P6-3 两新迁移零 UPDATE/DELETE/DROP/TRIGGER/POLICY 及任何 DML/权限语句（additive 硬保证）',
-      !banned.test(m0147) && !banned.test(m0148));
+    // GRANT/REVOKE——FK 定义自身的「ON DELETE CASCADE」子句是声明式 DDL 不在禁面；
+    // SELECT 仅允许出现在首语句 DO 孤儿检测器内（检测性读取·先检测后约束门的本体），
+    // 检测器之外的语句仍零 SELECT。
+    const banned = /\bUPDATE\b|DELETE\s+FROM|\bDROP\b|\bINSERT\b|\bGRANT\b|\bREVOKE\b|CREATE\s+TRIGGER|\bPOLICY\b/i;
+    const withoutOrphanGate = stmts0148.filter((s) => !/^DO \$fk_orphan_check\$/.test(s)).join(' ; ');
+    A('P6-3 两新迁移零 UPDATE/DELETE/DROP/TRIGGER/POLICY 及任何 DML/权限语句（additive 硬保证·SELECT 仅限 DO 检测器内）',
+      !banned.test(m0147) && !banned.test(m0148) && !/\bSELECT\b/i.test(withoutOrphanGate));
     const porcelain = execFileSync('git', ['status', '--porcelain', '--', 'packages/db/migrations'], { cwd: REPO_ROOT, encoding: 'utf8' })
       .split('\n').map((l) => l.trim()).filter(Boolean);
-    const allowed = new Set(['?? packages/db/migrations/0147_interview_owner_unique_index.sql', '?? packages/db/migrations/0148_interview_composite_fk_batch1.sql']);
-    const illegal = porcelain.filter((l) => !allowed.has(l));
-    A('P6-4 历史迁移零改动（git 面仅允许两新文件未跟踪态；0001-0143 零 M/D/R）', illegal.length === 0);
+    const newFiles = new Set([
+      '?? packages/db/migrations/0190_outbox_consumption_unique_concurrent.sql',
+      '?? packages/db/migrations/0191_outbox_consumption_fk.sql',
+      '?? packages/db/migrations/0192_interview_event_created_at_kind_check.sql',
+      '?? packages/db/migrations/0193_candidate_route_status_fk_harden.sql',
+      '?? packages/db/migrations/0194_money_consistency_graph_run_terminal.sql',
+      '?? packages/db/migrations/0195_interview_event_settlement_append_only.sql',
+      '?? packages/db/migrations/0196_trigfam_execute_least_privilege.sql',
+      '?? packages/db/migrations/0197_qbank_release_storage_lock_timeout.sql',
+      '?? packages/db/migrations/0198_trace_created_at_index.sql',
+      '?? packages/db/migrations/0199_redundant_index_drop.sql',
+    ]);
+    const rewriteExempt = /packages\/db\/migrations\/(0148_interview_composite_fk_batch1|0149_money_status_constraints)\.sql$/;
+    const illegal = porcelain.filter((l) => !newFiles.has(l) && !rewriteExempt.test(l));
+    A('P6-4 历史迁移零改动（git 面 M/D 仅限 0148/0149 重制豁免两文件·新号仅限 0190-0199 未跟踪态；0001-0147 零出现）', illegal.length === 0);
   }
 
   // P7 回归复跑接线收据（四项复跑以顶层命令执行 · 收据入 commit）
@@ -374,7 +421,32 @@ async function main() {
       dbPkg.scripts['recruiter'] === 'tsx test/recruiter-depth.proof.ts');
   }
 
-  console.log(`\n${failures === 0 ? '✓ db-intfk:prove 全部通过' : '✗ ' + failures + ' 失败'}（interview 复合 FK · P1-P7 · rev2）`);
+  // P8 claim 不变量载体（#3/#13 · 裁决④案c：零 DB 面 proof 断言 · 弱修先行）
+  section('P8 claim 不变量载体（#3/#13 · 案c 零 DB 面 proof 断言）');
+  {
+    // 裁决④案c 行使登记：三案中唯一零码面可执行=案c。案a partial unique 需 claim 谓词
+    // 状态前置（过期-running 先置态=码面触·越界）；案b EXCLUDE 需 btree_gist+租约起点列
+    // （interview_job 仅 lease_expires_at·加列+claim 写点=码面触·越界）且底层索引随
+    // ADD CONSTRAINT 原位非并发建。案c=不变量载体（「每面试至多一个有效 running」）仍
+    // 落 claim SQL，本段把载体书面固化——claim 移位/谓词被删即本门红示警；案a/案b 锁窗
+    // 评估与码面授权披露如实登记交付报告（弱修·非全闭）。
+    const jobsSrc = sql('../src/interview/interview-jobs.ts');
+    A('P8-1 claim 载体在位：interview-jobs.ts claim UPDATE 过期-running 重领臂（j.status=\'running\' AND j.lease_expires_at < now()）',
+      /j\.status\s*=\s*'running'\s+AND\s+j\.lease_expires_at\s*<\s*now\(\)/.test(jobsSrc));
+    A('P8-2 claim 载体在位：同面试有效 running NOT EXISTS 守卫（r.status=\'running\' AND r.lease_expires_at >= now()）',
+      /NOT EXISTS\s*\(SELECT 1 FROM interview_job r WHERE r\.interview_id\s*=\s*j\.interview_id AND r\.status\s*=\s*'running' AND r\.lease_expires_at\s*>=\s*now\(\)\)/.test(jobsSrc));
+    A('P8-3 claim 载体在位：failed 僵尸兄弟守卫（NOT EXISTS … f.status=\'failed\'）',
+      /NOT EXISTS\s*\(SELECT 1 FROM interview_job f WHERE f\.interview_id\s*=\s*j\.interview_id AND f\.status\s*=\s*'failed'\)/.test(jobsSrc));
+    const uq0019 = await pool.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_constraint WHERE conrelid='interview_job'::regclass AND contype='u'`);
+    const runningPartial = await pool.query<{ n: number }>(
+      `SELECT count(*)::int AS n FROM pg_indexes
+        WHERE schemaname='public' AND tablename='interview_job' AND indexdef ILIKE '%running%'`);
+    A('P8-4 DB 面现状（弱修基线如实固化）：双提交防=0019 表级 UNIQUE 在位；running 部分唯一索引零在（案a 未行使）',
+      (uq0019.rows[0]?.n ?? 0) >= 1 && runningPartial.rows[0]?.n === 0);
+  }
+
+  console.log(`\n${failures === 0 ? '✓ db-intfk:prove 全部通过' : '✗ ' + failures + ' 失败'}（interview 复合 FK · P1-P8 · rev2）`);
 }
 
 async function cleanup() {

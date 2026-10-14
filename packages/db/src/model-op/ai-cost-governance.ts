@@ -58,11 +58,19 @@ export async function settleAiCost(c: Client, scopeId: string, requestOwner: str
   return Number(r.rows[0]?.micro_cny);
 }
 
+/** AG-11/EG-B2：settle 结果扩 overage 标记（真实消耗超预留的显式打标；SQL 侧 scoped
+ *  wrapper settle 后回读 reservation 行）。调用方据此计数告警，结算本身不拒绝。 */
+export interface AiTextCostSettleResult {
+  microCny: number;
+  overage: boolean;
+}
+
 export async function settleAiTextCost(
   c: Client, scopeId: string, requestOwner: string, idempotencyKey: string, actualInputTokens: number, actualOutputTokens: number,
-): Promise<number> {
-  const r = await c.query('SELECT ai_cost_settle_text_scoped($1,$2,$3,$4,$5) AS micro_cny', [scopeId, requestOwner, idempotencyKey, actualInputTokens, actualOutputTokens]);
-  return Number(r.rows[0]?.micro_cny);
+): Promise<AiTextCostSettleResult> {
+  const r = await c.query('SELECT micro_cny, overage FROM ai_cost_settle_text_scoped($1,$2,$3,$4,$5)', [scopeId, requestOwner, idempotencyKey, actualInputTokens, actualOutputTokens]);
+  const row = r.rows[0];
+  return { microCny: Number(row?.micro_cny), overage: row?.overage === true };
 }
 
 /** 仅当模型端点返回了明确的、未执行请求的拒绝响应时调用；超时和 5xx 必须进 unknown。 */
