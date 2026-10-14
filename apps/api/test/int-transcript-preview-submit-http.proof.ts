@@ -149,12 +149,15 @@ async function main() {
   };
   // GODFN-1c 逐修(协议面):full-migrate 靶上 0058 write-guard trigger 与 FORCE RLS 生效——admin 直插/直改
   // 必须经 principal GUC 事务(行身份=OWNER,与生产 asPrincipal 写路径同形);账本核对读同。
-  const adminAs = async <T>(owner: string, fn: (q: (sql: string, params?: unknown[]) => Promise<any>) => Promise<T>): Promise<T> => {
+  const adminAs = async <T>(owner: string, fn: (q: <R extends Record<string, any>>(sql: string, params?: unknown[]) => Promise<{ rows: R[]; rowCount: number | null }>) => Promise<T>): Promise<T> => {
     const cli = await admin.connect();
     try {
       await cli.query('BEGIN');
       await cli.query("SELECT set_config('app.principal_user', $1, true)", [owner]);
-      const out = await fn((sql: string, params?: unknown[]) => cli.query(sql, params));
+      const out = await fn(async <R extends Record<string, any>>(sql: string, params?: unknown[]) => {
+        const r = await cli.query(sql, params);
+        return { rows: r.rows as R[], rowCount: r.rowCount };
+      });
       await cli.query('COMMIT');
       return out;
     } catch (e) { await cli.query('ROLLBACK').catch(() => {}); throw e; } finally { cli.release(); }

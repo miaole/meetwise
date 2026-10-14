@@ -14,6 +14,7 @@ import { CommerceController } from './modules/commerce/commerce.controller';
 import { CommerceWebhookController } from './modules/commerce/commerce-webhook.controller';
 import { PaymentCallbackController } from './modules/commerce/payment-callback.controller';
 import { CommerceService } from './modules/commerce/commerce.service';
+import { BillingLedgerController } from './modules/commerce/billing-ledger.controller';
 import { PrivacyController } from './modules/privacy/privacy.controller';
 import { NotificationController } from './modules/notification/notification.controller';
 import { NotificationService } from './modules/notification/notification.service';
@@ -36,7 +37,7 @@ import { MetricsController } from './modules/metrics/metrics.controller';
 
 @Module({
   imports: [PlatformModule, InterviewModule, QuizModule, DiagnosisModule],
-  controllers: [HealthController, AuthController, ResumeController, CommerceController, CommerceWebhookController, PaymentCallbackController, PrivacyController, NotificationController, ProfileController, LegalController, AdminController, RolesController, RecruiterController, JobsController, ApplicationsController, MetricsController],
+  controllers: [HealthController, AuthController, ResumeController, CommerceController, BillingLedgerController, CommerceWebhookController, PaymentCallbackController, PrivacyController, NotificationController, ProfileController, LegalController, AdminController, RolesController, RecruiterController, JobsController, ApplicationsController, MetricsController],
   providers: [
     ResumeService,
     // OCR 预览双旗（OCR_ENABLED=1 且 OCR_PREVIEW=1）可派发；生产/enforce/

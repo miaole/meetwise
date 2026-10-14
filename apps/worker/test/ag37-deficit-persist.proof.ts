@@ -21,6 +21,7 @@ import { join, dirname } from 'node:path';
 import { MemorySaver, Command } from '@langchain/langgraph';
 import {
   createPool, asPrincipal, assertIsolatedTestTarget, runMigrations, loadMigrations,
+  type InterviewRouteSnapshotView,
 } from '@meetwise/db';
 import {
   assembleValidatedRetrievalPlan, nextWeightedDeficitLeaf, planWeightedDeficitRounds,
@@ -51,7 +52,10 @@ const LEAVES5 = [0, 1, 0, 1, 0];
 const eqArr = (a: unknown, b: number[]): boolean =>
   Array.isArray(a) && a.length === b.length && b.every((v, i) => (a as number[])[i] === v);
 
-const snapOf = (interviewId: string) => ({ interviewId, routeDigest: `ag37-digest-${interviewId}`, allocations: ALLOC });
+const snapOf = (interviewId: string): InterviewRouteSnapshotView => ({
+  interviewId, jobId: `ag37-job-${interviewId}`, revision: 1, decisionId: `ag37-decision-${interviewId}`,
+  routeDigest: `ag37-digest-${interviewId}`, allocations: ALLOC,
+});
 
 /** §C 夹具:interview-consumer 新闭包同形镜像(seed→真消费面→回写)+leaf 观察。
  *  zeroAlways=true=现状形(旧闭包每 claim `map(() => 0)` 起跑)红面复现。 */

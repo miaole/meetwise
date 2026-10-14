@@ -39,10 +39,21 @@ export type QbankRetrievalMode = 'dense' | 'rrf';
 export interface QbankServingScopeInput {
   taxonomyVersion: string;
   servingScopeId: string;
+  /**
+   * AG39 owner layer（题库分层）: 'platform' = 平台公共池（C 端练习·禁企业私有题）;
+   * 'org' = B 端企业岗位面试（该企业私有题优先 + platform 公共补足）。
+   * Additive optional — 缺省臂 = C 端语义 platform（DB helper 对空串/NULL 归一后恒为合法组合）。
+   * 值源纪律: orgId 服务端从面试链路派生（interview→job_application→recruiter 信任根），禁客户端直供。
+   */
+  ownerKind?: 'platform' | 'org';
+  /** Required (non-empty) when ownerKind='org'; must be absent/empty when 'platform'. */
+  orgId?: string;
 }
 
 const SERVING_SCOPE_RE = /^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*){0,3}$/;
 const TAXONOMY_VERSION_RE = /^v[1-9][0-9]{0,15}$/;
+const QBANK_OWNER_KINDS = ['platform', 'org'] as const;
+export type QbankOwnerKind = (typeof QBANK_OWNER_KINDS)[number];
 
 function validateServingScope(scope: QbankServingScopeInput): void {
   if (!scope || typeof scope !== 'object'
@@ -50,18 +61,57 @@ function validateServingScope(scope: QbankServingScopeInput): void {
     || typeof scope.servingScopeId !== 'string' || !SERVING_SCOPE_RE.test(scope.servingScopeId)) {
     throw new Error('qbank_retrieval_invalid_serving_scope');
   }
+  const ownerKind = scope.ownerKind ?? 'platform';
+  if (!(QBANK_OWNER_KINDS as readonly string[]).includes(ownerKind)) {
+    throw new Error('qbank_retrieval_invalid_serving_scope');
+  }
+  if (ownerKind === 'org' && (typeof scope.orgId !== 'string' || scope.orgId.length < 1 || scope.orgId.length > 512)) {
+    throw new Error('qbank_retrieval_invalid_serving_scope');   // org 半缺 org_id = fail-closed，绝不静默降级 platform
+  }
+  if (ownerKind === 'platform' && scope.orgId !== undefined && scope.orgId !== '') {
+    throw new Error('qbank_retrieval_invalid_serving_scope');   // platform + 非空 org_id = 非法组合
+  }
 }
 
 /**
  * Set the session GUCs that the SECURITY DEFINER retrieval functions read.  The
  * `true` = SET LOCAL, scoped to the caller's transaction, so it cannot leak
- * across pooled connections.  Unset (no scope) keeps the legacy no-filter path.
+ * across pooled connections.  Unset (no scope) keeps the fail-closed path:
+ * the DB assertion raises `qbank_retrieval_scope_missing` on missing/half/illegal
+ * owner context (0187) — never a silent platform degradation.
+ *
+ * AG39 owner layer: when a scope is provided, the two owner GUCs are always set —
+ * `ownerKind` defaults to the explicit C-side 'platform' with an empty org id
+ * (normalized to NULL by the helper's NULLIF), so two-field callers keep byte-identical
+ * platform-era behavior while org callers hard-filter to their own private rows.
  */
 async function setServingScope(c: Client, scope?: QbankServingScopeInput): Promise<void> {
   if (scope === undefined) return;
   validateServingScope(scope);
   await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [scope.servingScopeId]);
   await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [scope.taxonomyVersion]);
+  const ownerKind = scope.ownerKind ?? 'platform';
+  await c.query("SELECT set_config('app.qbank_owner_kind', $1, true)", [ownerKind]);
+  await c.query("SELECT set_config('app.qbank_org_id', $1, true)", [ownerKind === 'org' ? scope.orgId! : '']);
+}
+
+/**
+ * Normalizes an owner scope to the explicit (ownerKind, orgId) pair used by the
+ * retrieval GUC contract and the source-bank audit values.
+ */
+export function normalizeQbankOwnerScope(
+  scope?: Pick<QbankServingScopeInput, 'ownerKind' | 'orgId'>,
+): { ownerKind: QbankOwnerKind; orgId: string } {
+  const ownerKind = scope?.ownerKind ?? 'platform';
+  if (!(QBANK_OWNER_KINDS as readonly string[]).includes(ownerKind)) throw new Error('qbank_retrieval_invalid_serving_scope');
+  if (ownerKind === 'org') {
+    if (typeof scope?.orgId !== 'string' || scope.orgId.length < 1 || scope.orgId.length > 512) {
+      throw new Error('qbank_retrieval_invalid_serving_scope');
+    }
+    return { ownerKind, orgId: scope.orgId };
+  }
+  if (scope?.orgId !== undefined && scope.orgId !== '') throw new Error('qbank_retrieval_invalid_serving_scope');
+  return { ownerKind, orgId: '' };
 }
 
 export interface QbankEvidenceExcerpt {

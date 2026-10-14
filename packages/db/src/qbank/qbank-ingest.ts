@@ -69,7 +69,13 @@ export interface QbankIngestOptions {
   allowLegacyMetadataFixture?: boolean;
 }
 
-export interface QbankItem extends QbankServingMetadata { refId: string; text: string; kind?: QbankSourceKind }
+export interface QbankItem extends QbankServingMetadata {
+  refId: string; text: string; kind?: QbankSourceKind;
+  /** AG39 owner layer（0186）: additive 可选，缺省=platform（全局公共语料调用零变）。 */
+  ownerKind?: 'platform' | 'org';
+  /** ownerKind='org' 时必填（服务端信任根派生·禁客户端直供）。 */
+  orgId?: string;
+}
 export const QBANK_QUESTION_CHUNK_ROLES = ['prompt', 'rubric', 'follow_up', 'example', 'anti_pattern', 'source_note'] as const;
 export type QbankQuestionChunkRole = (typeof QBANK_QUESTION_CHUNK_ROLES)[number];
 
@@ -97,6 +103,36 @@ export interface QbankQuestionArtifact {
   servingScopeId: string;
   annotationSource: QbankAnnotationSource;
   chunks: readonly QbankQuestionArtifactChunk[];
+  /** AG39 owner layer（0186）: additive 可选，缺省=platform。org 工件全链（chunk/question）owner 一致穿链。 */
+  ownerKind?: 'platform' | 'org';
+  /** ownerKind='org' 时必填。 */
+  orgId?: string;
+}
+
+const OWNER_KINDS: readonly string[] = ['platform', 'org'];
+
+/** owner 组合校验（与 0186 列 CHECK 同形:platform→org_id 空;org→org_id 必填非空≤512）。 */
+function validateOwnerScope(owner: { ownerKind?: 'platform' | 'org'; orgId?: string }, label: string): void {
+  const ownerKind = owner.ownerKind ?? 'platform';
+  if (!OWNER_KINDS.includes(ownerKind)) throw new Error(`qbank_invalid_owner_kind:${label.slice(0, 160)}`);
+  if (ownerKind === 'org' && (!owner.orgId || owner.orgId.length > 512)) {
+    throw new Error(`qbank_invalid_owner_kind:${label.slice(0, 160)}`);
+  }
+  if (ownerKind === 'platform' && owner.orgId !== undefined && owner.orgId !== '') {
+    throw new Error(`qbank_invalid_owner_kind:${label.slice(0, 160)}`);
+  }
+}
+
+/** 0186 owner 列在场与否（历史迁移前缀夹具零 owner 列→platform 旧形制写入·allowLegacyMetadataFixture 同族缝）。 */
+async function ownerColumnsPresent(c: import('pg').PoolClient, table: string): Promise<boolean> {
+  const r = await c.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.columns
+        WHERE table_schema='public' AND table_name=$1 AND column_name='owner_kind'
+     ) AS present`,
+    [table],
+  );
+  return r.rows[0]?.present === true;
 }
 
 const hashOf = (s: string) => createHash('sha256').update(s).digest('hex').slice(0, 32);
@@ -156,6 +192,7 @@ export async function ingestQbank(
     if (!SAFE_REF_ID.test(item.refId)) throw new Error(`qbank_invalid_ref_id:${item.refId.slice(0, 32)}`);
     if (!item.text.trim() || item.text.length > 24_000) throw new Error(`qbank_invalid_content:${item.refId}`);
     validateServingMetadata(item, item.refId);
+    validateOwnerScope(item, item.refId);
   }
   // A raw cut can receive independently reviewed projections.  A repeated
   // `(ref, version, scope)` is only idempotent when the canonical content and
@@ -167,7 +204,9 @@ export async function ingestQbank(
     const previous = byProjection.get(key);
     if (previous && (previous.text !== item.text
       || (previous.kind ?? 'question_bank') !== (item.kind ?? 'question_bank')
-      || previous.annotationSource !== item.annotationSource)) {
+      || previous.annotationSource !== item.annotationSource
+      || (previous.ownerKind ?? 'platform') !== (item.ownerKind ?? 'platform')
+      || (previous.ownerKind === 'org' ? previous.orgId : undefined) !== (item.ownerKind === 'org' ? item.orgId : undefined))) {
       throw new Error(`qbank_conflicting_projection_input:${item.refId}`);
     }
     byProjection.set(key, item);
@@ -191,6 +230,8 @@ export async function ingestQbank(
       "SELECT to_regclass('qbank_taxonomy_release') IS NOT NULL AND to_regclass('qbank_taxonomy_scope') IS NOT NULL AND to_regclass('qbank_chunk_serving_scope') IS NOT NULL AS ok",
     )).rows[0]?.ok === true,
   );
+  // AG39（0186）owner 列缝:在场则 qbank_chunk 真写手贯 owner 值;缺席（历史前缀夹具）走 platform 旧形制。
+  const ownerStore = await asQbankControlExecutor(pool, async (c) => ownerColumnsPresent(c, 'qbank_chunk'));
   if (generationStore && !governed) {
     throw new Error('qbank_generation_requires_governed_source_pool');
   }
@@ -229,6 +270,7 @@ export async function ingestQbank(
           : (await proposeSource(c, {
               id: 'qs-' + hash, kind: item.kind ?? 'question_bank',
               uri: 'seed://' + refId, contentHash: hash, addedBy: QBANK_OWNER,
+              ownerKind: item.ownerKind, orgId: item.orgId,
             })).sourceId;
         if (!(await isApprovedSource(c, sourceId))) {                // 半途 provision 恢复:pending → approve
           const ok = await reviewSource(c, sourceId, 'pending', 'approved', 'seed auto-approved (trusted system corpus)');
@@ -240,17 +282,37 @@ export async function ingestQbank(
         // pool 条目:PK 随 refId('qp-'+sha(refId))与 ON CONFLICT(ref_id) 仲裁对齐 → 无 PK 逃逸;该 chunk 从此受治理(lane a)。
         await promoteToPool(c, { id: 'qp-' + hashOf(refId), sourceId, refId, contentHash: hash });
         if (generationStore) {
-          const priorFact = await c.query('SELECT content_hash, source_id FROM qbank_chunk WHERE ref_id=$1', [refId]);
+          const priorFact = await c.query(
+            ownerStore
+              ? 'SELECT content_hash, source_id, owner_kind, org_id FROM qbank_chunk WHERE ref_id=$1'
+              : 'SELECT content_hash, source_id FROM qbank_chunk WHERE ref_id=$1',
+            [refId],
+          );
           const priorChunk = priorFact.rows[0];
           if (priorFact.rowCount && (!priorChunk || priorChunk.content_hash !== hash || priorChunk.source_id !== sourceId)) {
             throw new Error(`qbank refId ${refId} immutable fact mismatch; use a new refId and revoke the prior source`);
           }
-          await c.query(
-            `INSERT INTO qbank_chunk(ref_id, source_id, content_hash, content)
-             VALUES ($1,$2,$3,$4)
-             ON CONFLICT (ref_id) DO NOTHING`,
-            [refId, sourceId, hash, item.text],
-          );
+          // AG39 owner 不可变守卫:同 refId 既有治理块的 owner 域不可静默重指（org↔platform 换域=改版,走新 refId）。
+          if (ownerStore && priorChunk
+            && ((priorChunk.owner_kind ?? 'platform') !== (item.ownerKind ?? 'platform')
+              || (priorChunk.owner_kind === 'org' ? priorChunk.org_id : null) !== (item.ownerKind === 'org' ? item.orgId : null))) {
+            throw new Error(`qbank refId ${refId} owner immutable mismatch; use a new refId and revoke the prior source`);
+          }
+          if (ownerStore) {
+            await c.query(
+              `INSERT INTO qbank_chunk(ref_id, source_id, content_hash, content, owner_kind, org_id)
+               VALUES ($1,$2,$3,$4,$5,$6)
+               ON CONFLICT (ref_id) DO NOTHING`,
+              [refId, sourceId, hash, item.text, item.ownerKind ?? 'platform', item.ownerKind === 'org' ? item.orgId! : null],
+            );
+          } else {
+            await c.query(
+              `INSERT INTO qbank_chunk(ref_id, source_id, content_hash, content)
+               VALUES ($1,$2,$3,$4)
+               ON CONFLICT (ref_id) DO NOTHING`,
+              [refId, sourceId, hash, item.text],
+            );
+          }
           if (metadataStore) {
             const chunkMetadataHash = qbankMetadataHash('qbank-chunk-scope:v1', item);
             await c.query(
@@ -306,6 +368,7 @@ export function validateQuestionArtifacts(artifacts: readonly QbankQuestionArtif
     if (!artifact.competency.trim() || artifact.competency.length > 128) throw new Error(`qbank_question_invalid_competency:${artifact.id}`);
     if (!Number.isInteger(artifact.difficulty) || artifact.difficulty < 1 || artifact.difficulty > 5) throw new Error(`qbank_question_invalid_difficulty:${artifact.id}`);
     validateServingMetadata(artifact, artifact.id);
+    validateOwnerScope(artifact, artifact.id);
     if (artifact.chunks.length < 3 || artifact.chunks.length > 12) throw new Error(`qbank_question_invalid_chunk_count:${artifact.id}`);
     const refIds = new Set<string>();
     const seenRoleOrdinal = new Set<string>();
@@ -364,6 +427,8 @@ export async function ingestQuestionBankArtifacts(
     taxonomyVersion: artifact.taxonomyVersion,
     servingScopeId: artifact.servingScopeId,
     annotationSource: artifact.annotationSource,
+    ownerKind: artifact.ownerKind,
+    orgId: artifact.orgId,
   })));
   const rawContent = new Map<string, { text: string; kind: QbankSourceKind }>();
   for (const chunk of allChunks) {
@@ -380,15 +445,26 @@ export async function ingestQuestionBankArtifacts(
     const receipt = artifactHash(artifact);
     await asQbankControlExecutor(pool, async (c) => {
       const metadataHash = qbankMetadataHash('qbank-artifact-metadata:v1', artifact);
+      // AG39（0186）owner 列缝:qbank_question 在场则贯 owner 值+owner 不可变校验;缺席走 platform 旧形制。
+      const ownerStore = await ownerColumnsPresent(c, 'qbank_question');
       const existing = await c.query(
-        metadataStore
-          ? `SELECT artifact_hash,state,metadata_state,taxonomy_version,serving_scope_id,annotation_source,metadata_hash
+        metadataStore && ownerStore
+          ? `SELECT artifact_hash,state,metadata_state,taxonomy_version,serving_scope_id,annotation_source,metadata_hash,owner_kind,org_id
                FROM qbank_question WHERE id=$1 FOR UPDATE`
-          : 'SELECT artifact_hash,state FROM qbank_question WHERE id=$1 FOR UPDATE',
+          : metadataStore
+            ? `SELECT artifact_hash,state,metadata_state,taxonomy_version,serving_scope_id,annotation_source,metadata_hash
+                 FROM qbank_question WHERE id=$1 FOR UPDATE`
+            : 'SELECT artifact_hash,state FROM qbank_question WHERE id=$1 FOR UPDATE',
         [artifact.id],
       );
       if (existing.rowCount && existing.rows[0].artifact_hash !== receipt) {
         throw new Error(`qbank_question_immutable_artifact_mismatch:${artifact.id}`);
+      }
+      if (ownerStore && existing.rowCount && (
+        (existing.rows[0].owner_kind ?? 'platform') !== (artifact.ownerKind ?? 'platform')
+        || (existing.rows[0].owner_kind === 'org' ? existing.rows[0].org_id : null) !== (artifact.ownerKind === 'org' ? artifact.orgId : null)
+      )) {
+        throw new Error(`qbank_question_owner_immutable_mismatch:${artifact.id}`);
       }
       if (metadataStore && existing.rowCount && (
         existing.rows[0].metadata_state !== 'reviewed'
@@ -400,19 +476,33 @@ export async function ingestQuestionBankArtifacts(
         throw new Error(`qbank_question_metadata_immutable_mismatch:${artifact.id}`);
       }
       if (!existing.rowCount) {
-        await c.query(
-          metadataStore
-            ? `INSERT INTO qbank_question(
+        if (metadataStore && ownerStore) {
+          await c.query(
+            `INSERT INTO qbank_question(
+                 id,artifact_hash,competency,difficulty,state,
+                 metadata_state,taxonomy_version,serving_scope_id,annotation_source,metadata_hash,
+                 owner_kind,org_id
+               ) VALUES ($1,$2,$3,$4,'draft','reviewed',$5,$6,$7,$8,$9,$10)`,
+            [artifact.id, receipt, artifact.competency.trim(), artifact.difficulty,
+              artifact.taxonomyVersion, artifact.servingScopeId, artifact.annotationSource, metadataHash,
+              artifact.ownerKind ?? 'platform', artifact.ownerKind === 'org' ? artifact.orgId! : null],
+          );
+        } else if (metadataStore) {
+          await c.query(
+            `INSERT INTO qbank_question(
                  id,artifact_hash,competency,difficulty,state,
                  metadata_state,taxonomy_version,serving_scope_id,annotation_source,metadata_hash
-               ) VALUES ($1,$2,$3,$4,'draft','reviewed',$5,$6,$7,$8)`
-            : `INSERT INTO qbank_question(id,artifact_hash,competency,difficulty,state)
+               ) VALUES ($1,$2,$3,$4,'draft','reviewed',$5,$6,$7,$8)`,
+            [artifact.id, receipt, artifact.competency.trim(), artifact.difficulty,
+              artifact.taxonomyVersion, artifact.servingScopeId, artifact.annotationSource, metadataHash],
+          );
+        } else {
+          await c.query(
+            `INSERT INTO qbank_question(id,artifact_hash,competency,difficulty,state)
                VALUES ($1,$2,$3,$4,'draft')`,
-          metadataStore
-            ? [artifact.id, receipt, artifact.competency.trim(), artifact.difficulty,
-              artifact.taxonomyVersion, artifact.servingScopeId, artifact.annotationSource, metadataHash]
-            : [artifact.id, receipt, artifact.competency.trim(), artifact.difficulty],
-        );
+            [artifact.id, receipt, artifact.competency.trim(), artifact.difficulty],
+          );
+        }
       }
       for (const chunk of artifact.chunks) {
         await c.query(

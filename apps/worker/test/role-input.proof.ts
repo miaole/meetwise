@@ -18,7 +18,7 @@ import {
   enqueueInterviewJob, getInterviewRouteSnapshotForAdaptiveRole, reserveEntitlement,
   supplyCandidateProfileRoute, transitionResume, completeIngestion,
 } from '@meetwise/db';
-import { ingestResume } from '@meetwise/domain';
+import { ingestResume, type ResumeProfile } from '@meetwise/domain';
 import type { CompletionRequest, ModelClient, ModelResult } from '@meetwise/ai-runtime';
 import { selectPlannerFacts, buildResumeFactPool } from '../src/adaptive-interview-service.ts';
 import {
@@ -228,12 +228,14 @@ async function main() {
     && quizPrompt.system.includes('严禁编造简历中不存在的技能或经历')
     && quizPrompt.system.includes('每题的 refs 必须是简历里出现过的关键词原文'));
   const quizFacts = ['负责订单系统限流改造，使用 Redis 计数器和滑动窗口保护下游。'];
+  // 最小合法 ResumeProfile(quizGenerator 闭包只用捕获的 resumeFacts,profile 形参只满足图注入类型)。
+  const emptyProfile: ResumeProfile = { experience: [], skills: [], facts: [], pii: [], blocked: [] };
   // ⑤c 缺省(undefined=旧 job 缺键经 consumer/lifecycle 透传的同形)→ userData 与 v1 逐字节一致(facts join·零岗位段)。
-  await (quizGenerator(pool, OWNER, quizFacts, `role-input-quiz-v1-${process.pid}`, deps.model))();
+  await (quizGenerator(pool, OWNER, quizFacts, `role-input-quiz-v1-${process.pid}`, deps.model))(emptyProfile);
   const q1 = captureAll.filter((x) => x.service === 'resume-quiz.generate').at(-1);
   A('⑤c 缺省回退 v1 字节(userData=facts join·零岗位段·旧 job 无键同形不崩)', !!q1 && q1.userData === quizFacts.join('\n'), q1?.userData.slice(0, 40));
   // ⑤d 填岗位 → userData=「目标岗位:<用户串>\n」条件段+facts 接地同帧。
-  await (quizGenerator(pool, OWNER, quizFacts, `role-input-quiz-v2-${process.pid}`, deps.model, undefined, USER_ROLE))();
+  await (quizGenerator(pool, OWNER, quizFacts, `role-input-quiz-v2-${process.pid}`, deps.model, undefined, USER_ROLE))(emptyProfile);
   const q2 = captureAll.filter((x) => x.service === 'resume-quiz.generate').at(-1);
   A('⑤d 填岗位:目标岗位条件段前缀(diagnosis :59 同形)', !!q2 && q2.userData.startsWith(`目标岗位:${USER_ROLE}\n`), q2?.userData.slice(0, 40));
   A('⑤e v2 userData 仍含 facts 接地(岗位段与事实同帧)', !!q2 && q2.userData.endsWith(quizFacts.join('\n')));

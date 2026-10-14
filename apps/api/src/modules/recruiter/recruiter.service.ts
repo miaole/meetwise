@@ -185,6 +185,8 @@ export class RecruiterService {
         // I4 #221:候选人站内通知写侧只经裁决形通道(0165 gateway_notify_invited·SECURITY DEFINER+
         // 窄接口:kind/payload 固定·id=ntf_<applicationId> 幂等零堆积·owner 谓词 fail-closed——
         // 非自有/不存在零写零信号,b110 恒定壳「未命中零写」红线由函数内承重)。未命中分支零进此臂。
+        // 竞态防御(预检后岗位被删):inviteCandidate 零命中 → 零写零信号,恒定壳同码不受影响。
+        if (!app) return;
         await c.query('SELECT gateway_notify_invited($1,$2)', [principal, app.applicationId]);
       });
     }
