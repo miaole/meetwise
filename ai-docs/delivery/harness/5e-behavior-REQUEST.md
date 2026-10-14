@@ -1,0 +1,137 @@
+# 5E-BEHAVIOR REQUEST（5E 残簇E 行为/设计面小刀 · 10 件 · 开放执行面 6 条 + 转登记 2 件 + 依赖划外登记 2 件 · 挂起登记 2 件零触 · issues-master 第5批-E 原文行逐件亲证 · 5E GROUP 裁决项⑴「呈报归独立行为小刀」承接立项 · 体量 M）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-14·先逐件亲证现态后起草·本刀起草阶段恰 1 .md 零码动·EXEC/任何实施须预执行双审两外席 **BOTH PASS 落卷** + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工** · ⛔push）
+
+**席位**：#5E 残簇E 行为/设计面 REQUEST 起草席（北星 loop · 批5 残项 · 5E GROUP（25 件 @eb5c3f09 已并主线）收编后残簇E 十件承接立项）。
+**基线**：`feat/mysql-schema-skeleton` @ `12ecb34b`（主线最新 tip·CIW2 nail 收官 SSOT 提交·本席 `git fetch origin` 实测 origin 等值零新笔 2026-10-14·`git rev-parse` 本地/远端双值 `12ecb34b1…` 亲证一致）。分支 `line/5e-behavior`·工作树 `meetwise-5eb`（`git worktree add ../meetwise-5eb -b line/5e-behavior 12ecb34b` 本起草席已立·建前 `git worktree list` 实查无此树·建后 tip 亲证）。5E GROUP EXEC 并线 merge `8ee77301` 与 nail `eb5c3f09` 对 HEAD `git merge-base --is-ancestor` 祖先亲证 EXIT=0（簇A-D 25 面已落·簇E 零触=本卷前提）。
+**蓝本**：①LEDGER `ai-docs/delivery/harness/product-campaign-LEDGER.md` :89（5E 文档/清理 38 件清单·簇E 十件号全列）+:87（5C 可靠性行「#164/#182 进度写」**无 ✅ 标记**=依赖件未落亲证）+:213（批5 51/143·增量列「+#187（随 @dc7e6daf D3）」已翻计 vs 残列「5E 簇E 11 件呈报（行为/设计面）+#26/#32 挂起（REQUEST 卷逐条）」名目并存——本卷 §0 如实对勘·SSOT 同步呈报裁决⑧）+:216（合计 166/271）②`5e-group-REQUEST.md`（同目录）:64-77（簇E 11 件表·:64 行头「收编与否=裁决项⑴呈报·本卷 §1 零触」）/:193-209（§3-1 簇E 零触 + §4-⑦「#165/#167 dep #164（5C 进度写在飞）=簇E 呈报面连带」）/:233（裁决项①「簇E 11 件收编与否与归刀（建议独立行为小刀或 5C 后继子刀·#187 growth-gen 让渡面承接形）」）/:268（footer「簇E 11 件呈报…挂起 2=#26（待 D3）/#32（修法列自记不单独修）」·全卷 268 行 wc -l 亲证）③更正版审计 issues-master（`~/Documents/Meetwise产品审计-更正版/issues-master.md`）第5批-E 十件原文行 :361/:370/:399/:401/:402/:406/:407/:414/:415/:426 + 挂起 :369/:374 + 依赖件 #164 :273（P2 进度写占池·第5批-C）④`growth-gen-REQUEST.md` :39（D3 裁定原文「worker 侧新代码走**单事务 upsert**…API 侧状态机本刀**零触**…拆不拆归 5E 批量清理刀——审计修法『核心空缺（#204/#40）补齐前**不再加厚**』…**观测面分叉如实登记**：ai_graph_run(career-path) 行仅在 API 路径产生」）/:43/:89（「Ban 拆 API 侧 career-path AiGraphRun 状态机（#187 归 5E·契约冻结·本刀只在新面用简化形）」）⑤`execution-master-checklist.md` :2262（「D1/D2/D3 裁定全落实…D3 worker 单事务 upsert+API 零触（#187 不再加厚）」登记行）⑥TASK-SOP-v2 :85（「| 5E | CLEANUP 批量 | 38 条文档/死代码/注释 |」位图行）⑦形制沿同目录 5e-group-REQUEST rev2（§0-§8 全·Ban/pins 同源誊录）。
+
+## §0 现状锚（起草席亲读·base `12ecb34b`·file:line 逐条 rg/sed/Read 实测·**五起过期前车在案：EXEC 立项照本节逐件重 pin**——基线漂移如实改锚·结论不变则只更行号；任一件实态结论翻转即回炉重审不得沿用）
+
+### 0.0 已终局防重检查记录（强制项·回执=起草席 2026-10-14 实跑）
+
+- `rg -l "5e-behavior" ai-docs/`（基线树实跑）→ **零命中**（EXIT=1 亲证）·本卷落卷后=唯一占有载体。
+- `ls ai-docs/delivery/harness/ | grep -i behavior` → **零命中**（EXIT=1 亲证）·harness 无同名卷。
+- `execution-master-checklist.md` 十件号词界检索（`#27[^0-9]`/`#128[^0-9]`/`#130[^0-9]`/`#132[^0-9]`/`#148[^0-9]`/`#149[^0-9]`/`#165[^0-9]`/`#167[^0-9]`/`#187[^0-9]`/`#26[^0-9]`/`#32[^0-9]` 逐 pattern 实跑）→ **恰 1 命中=`:2262`**（「D3 worker 单事务 upsert+API 零触（#187 不再加厚）」=growth-gen D 系裁定登记面·非刀卷占有）；其余九件与 #26/#32 全部零命中（EXIT=1 亲证）。
+- 邻刀占有逐卷复核：growth-gen 卷 :39/:43/:89 #187 让渡三处=**明示让渡非占有**（本卷承接登记）；5e-group 卷 :64-77 簇E 呈报=本卷立项母卷（裁决项⑴承接载体）；5C 卷未立卷（`line/5c-queue` 分支与主线 tip 同点 `12ecb34b` `git rev-parse` 亲证·在飞未落零新提交；#92 OBS 在飞 `@3684bc00` 在 line 分支非主线祖先·LEDGER :213 亲读如实）；AUTHZ 残刀 #34 两半小刀起草中（LEDGER :213·与十件零文件交集）；MIG 卷已全闭翻面（LEDGER :213 残列亲读）。→ **停止条件未触发·可落卷**。
+
+### 0.1 盘点总表（残簇E 10 件逐件·四分类判定·三源对勘=issues-master 十行×LEDGER :89/:213×实树锚实测）
+
+**分类口径**：〔A〕开放执行面=现树亲证缺陷在·本卷固化修法；〔B〕部分闭合·残面执行=主面已由先行刀顺带闭合·残面收窄后固化；〔C〕转登记零触=裁决/产品前置已定谳或已落·本卷登记不执行；〔D〕依赖划外登记=硬闸依赖未落·零触登记。
+
+| 件 | issues-master（行号·要点·修法列） | 现态判定 | 实树锚（`12ecb34b` 实测） |
+|---|---|---|---|
+| #2 | :361 P3·预留租约 1800s 只在 job claim/心跳续期，用户思考>30 分钟即被回收（**有意设计，体验取舍**·已核实「设计取舍」）；修法列「产品确认 30 分钟上限；如需放宽，在题目下发/作答页心跳时续租并在前端提示剩余时间」 | 〔C〕转登记零触 | `packages/db/src/commerce/commerce.ts:34` 头注「预留租约默认时长(秒)。长会话靠 renewReservationLease 心跳续约;租约过期=进程崩了 → 对账回收」+`:35` `DEFAULT_LEASE_SECONDS = 1800`+`:47` reserve 缺省参+`:58-59` INSERT `lease_expires_at=now()+1800s`+`:534-535` renewReservationLease 定义；`apps/worker/src/interview-consumer.ts:355-357`（claim 时续·注释「长面试跨多轮、用户思考间隔可 >1800s 预留租约 → 每领一 job 续一次」）+`:360-367`（心跳同拍续·「C1 审计中-1」注）——**生产续租点全仓恰 2 处**（rg `renewReservationLease` 实测=consumer :357/:366+定义/导出/测试）；回收扫描 `commerce.ts:556` sweepExpiredReservations+`:562`/`:582` `lease_expires_at < now()` 无心跳复核。设计取舍面=产品决议前置·**本刀零触（裁决⑨）** |
+| #27 | :370 P3·interview.status='active' 被读取，但生产代码无写入 active 的地方；修法列「删 active 分支或补齐状态机并加 CHECK」 | 〔A〕开放·处置面待裁（裁决①） | 读侧 `apps/api/src/modules/interview/interview.service.ts:236` `if (cur.rows[0].status === 'active') return { accepted: true, alreadyBegun: true }`（其上 `:235` 注「已 active(worker 已开面/已出题)但无 start job 行(边角恢复态)→ 幂等返回」）+`packages/db/src/commerce/commerce.ts:377/:418/:452/:505` 四处 CAS/守卫 IN 列表含 `'active'` 成员；**写侧全仓零命中**（rg `SET status='active'` 全 apps+packages 实测：interview 表写侧恰 5 处**全在测试种子**=uc-e2e-002-cross-device-http.proof.ts:88/uc-e2e-010-sse-resume.proof.ts:73/scor-00-http-db.proof.ts:151/sse-push-notify.proof.ts:120/uc-e2e-002-adv-led-crossuser.proof.ts:110·其余命中均 ai_graph_run/memory_summary/level_policy 等异表）；`0001_baseline.sql:18` CREATE TABLE interview·`:21` `status text NOT NULL` **无 CHECK 约束**（awk 表体抽取实测）。读无写=死分支坐实·**开放** |
+| #128 | :399 P3·空闲回收兜底分支裸 UPDATE interview=abandoned，不终止 graph run/不 cancel 题；修法列「删除兜底分支或改走 abandonInterviewAndRelease 同口径」 | 〔B〕部分闭合·残面执行（裁决②） | **主面已顺带闭合**：`apps/worker/src/commerce-reconcile.ts:70-75` 兜底主臂现走 `abandonInterviewAndRelease`（「UC-E2E-018 §1b #3 / GAP-UC018-TTL: same terminal口径 as user abandon — …AiGraphRun safely_terminated via abandonInterviewAndRelease (not raw UPDATE)·Ban wash: commerce-reconcile:prove 旁证 alone ≠ this dedicated path closed」注释亲证）·graph 终止在 `packages/db/src/commerce/commerce.ts:465-468` finishAbandon→`safelyTerminateAiGraphRunsOnAbandon`；**残面=catch 臂**：`commerce-reconcile.ts:76-84` 当 errCode ∈ {`interview_abandon_conflict`,`interview_release_failed`}（抛点=`commerce.ts:478`/`:495-496`/`:516-517`）时 `:81` `UPDATE interview SET status='abandoned', version=version+1 …` 裸 UPDATE **不终止 graph run** 仍可触达。旧锚 :58-64 漂移·主闭残开·**残面开放** |
+| #130 | :401 P3·预留续租失败只 console.error，极窄窗口下可能被对账当孤儿回收（心跳 30s 同拍续租已缓解）；修法列「续租失败重试并打指标；对账回收前复核最近心跳」 | 〔A〕开放 | `apps/worker/src/interview-consumer.ts:357-358` `renewReservationLease(...).catch((err) => console.error('reservation lease renew failed', job.interviewId, (err as any)?.code ?? err))` ——**仅 console.error 零重试零指标**亲证；回收侧 `commerce/commerce.ts:562`/`:582` 扫描仅 `lease_expires_at < now()` 谓词·mock_interview 分支 `:577-600` FOR UPDATE 后仅 billing/topic 判定·**无最近续租/心跳复核**亲证。**开放** |
+| #132 | :402 P3·sse-pump safeWrite 忽略 write() 返回 false（背压），慢客户端缓冲堆积（有 5 槽与 10 分钟上限）；修法列「处理 drain 事件/背压，超阈值断开」 | 〔A〕开放 | `apps/api/src/platform/sse-pump.ts:67-70` `const safeWrite = (s: string) => { if (draining) { closed = true; return false; } try { reply.raw.write(s); return true; } catch { closed = true; return false; } };` ——**write() 的 false 返回被弃、try 臂恒 return true** 亲证（HA-2 停机排水旗 `:63-75` 已落但与背压无关）；`:85` `const deadline = Date.now() + 10 * 60_000`（10min 封顶）+`:89` while 条件+`:109` ping 写失败即断；5 槽上限=`apps/api/src/modules/interview/interview.controller.ts:262` `acquireSlot(slotKey, 5)` 429 `too_many_streams`（quiz/diagnosis controller 同形）。B5 四件套单源化后 safeWrite 全仓单点（rg 实测仅本文件）=修点集中。**开放** |
+| #148 | :406 P3·「应用层 tenant 第二层」是 MySQL 原型，owner 取自 principal 再回灌，不构成独立校验；trim 可能致身份不一致；修法列「明确 RLS 为唯一授权根，删除或改名该层；去掉 trim 或改为拒绝含空白 id」 | 〔A〕开放（窄面执行·全量面裁决⑤） | `packages/db/src/tenant/index.ts:1-2` 头注「App-level tenant enforcement prototype — ADDITIVE path for future MySQL」+`:4-8` 「应用层 tenant ≠ RLS…does **not** replace, weaken, or bypass PostgreSQL RLS」（诚实化注释已在=修法列前半大部分已由注释承载）；**trim 面在**：`:58` `const trimmed = ownerUserId.trim()`+`:62` `return trimmed`（静默 trim=身份不一致面）；`:101-109` buildRequiredOwnerFilter 回灌 `trimmed` 值；调用面 `apps/api/src/modules/interview/interview.service.ts:119-120`（begin 双 scope）/:419/:440（owner=requireOwnerUserId(principal)）=「owner 取自 principal 再回灌」亲证；**调用面 18 文件**（rg `requireOwnerUserId|buildRequiredOwnerFilter` 实测清单含 recruiter.ts/notification.ts/tenant-wiring 族测试等）。**开放** |
+| #149 | :407 P3·PG uuidv7() 同毫秒非单调而 TS 有计数器单调，口径不一；注册表注释与 nr-/qip- 前缀不符；修法列「修正注释口径；必要时统一由应用生成 id」 | 〔A〕开放（注释口径·窄面） | `packages/db/src/ids.ts:6` 头注「时间有序（同 ms 进程内计数器单调 → 字典序 = 生成序）」+`:43` `/** UUIDv7 去连字符 32hex…字典序 = 生成序。 */` ——两处**未限定 TS 进程内作用域**的全称表述在；TS 侧计数器实体=`:39-40`（「单调状态：同 ms 内 rand_a 作 12bit 计数器」+lastMs/lastRandA）；PG 侧=`packages/db/migrations/0143_db_id_v7_unify.sql:14` `CREATE OR REPLACE FUNCTION public.uuidv7()`+`:18` `ts_ms := floor(extract(epoch FROM clock_timestamp())*1000)`+`:21-23` rand_a/rand_b 取自 `gen_random_uuid()` 熵源（**同 ms 无单调保证**）+`:37-39` COMMENT「48bit unix_ms 时间有序 + 74bit 随机尾部」；PG 侧使用面=`DEFAULT uuidv7()` 恰 3 迁移（0143/0150/0160 rg 实测）。注册表子面=`ids.ts:25-26` 注「分隔符沿用各表现行形态：多数 `_`，qbank 负结果/溯源为 `-`」+`:31-32` `nr: 'nr-'`/`qip: 'qip-'` 登记在——**前缀不符子面已被后继注释消化**（如实登记）。**口径面开放**（迁移本体 0143 受 checksum 铁律零触=修法单侧落 ids.ts 注释） |
+| #165 | :414 P3·进度幂等键写死 attempt 0，重试/重生成时同键不添行，前端看不到第二次进度；修法列「attemptKey 带真实 attempt 序号」 | 〔D〕依赖划外登记（dep #164·裁决⑦） | 键形=`apps/worker/src/adaptive-interview-service.ts:456` `const initialKey = rollSeq === 0 ? \`${d.threadId}:ask:t${turn}:0\` : \`${d.threadId}:ask:t${turn}:r${rollSeq}\``+`:462` `attemptKey: initialKey` 入 `withGenerationProgress`（`:467` 调用）——**job 级重试维度仍复位 `:0`**（AG-F 刀F `:451-455` 注仅覆盖「同 turn 再入」回环=`:r{k}` 键·重试/重生成 job 重入时 rollSeq 归零同键）；写侧幂等=`apps/worker/src/generation-progress.ts:43-44`「幂等键（=invoke idempotencyKey）；同 attemptKey 重放经 event_key 不添行」+`:87-95` first-token 事件键 `generation:${attemptKey}:first-token`；去重点=`packages/db/src/interview/interview-event.ts:23-24` prior SELECT+`:30-33` `ON CONFLICT (stream_key,event_key) … DO NOTHING`。**硬闸 #164（进度写重构·issues-master :273 P2）未落**：LEDGER :87 5C 行「#164/#182 进度写」无 ✅ 亲证·5C 四子刀残（LEDGER :213 残列）。**划外零触** |
+| #167 | :415 P3·前端进度归约无条件替换 attemptKey，乱序旧帧可覆盖新 attempt 显示（按 seq 有序流中难出现·独立复核视作 P4）；修法列「按 attempt 序号比较后再替换」 | 〔D〕依赖划外登记（dep #165 链·裁决⑦） | `apps/web/lib/stream/generation-progress.ts:55` `applyGenerationProgress`+:60-62 `case 'generation_started': // 新生成段开始：直接替换（不同 attemptKey = 新一轮生成）。 return { attemptKey: e.data.attemptKey, … }` ——**无条件替换亲证**（旧帧携带旧 attemptKey 到达即覆盖新态·`:70-77` generation_progress 臂有 same-attemptKey 守卫唯 started 臂无）；测试面=`apps/web/test/web-logic.proof.ts:518-550`（attemptKey `i1:ask:t0:0` 用形）。dep #165→#164 链=同闸未落。**划外零触** |
+| #187 | :426 P3·career-path 零模型纯函数却包整套 ai_graph_run 状态机（租约/最多 4 事务〔成功 3〕/advisory 锁·过度设计）；修法列「核心空缺（#204/#40）补齐前不再加厚；可简化为单事务 upsert」 | 〔C〕转登记零触（**D3 裁决处置已落·LEDGER 已翻计**·裁决⑧） | **裁决兑现双支亲证**：①「不再加厚」前置=#204 已落（`dc7e6daf`「#204 S1+S2 EXEC——成长链断链接通」·`git merge-base --is-ancestor dc7e6daf HEAD` 祖先亲证 EXIT=0）；②「可简化为单事务 upsert」=worker 新面已落：`packages/db/src/growth-generation.ts:84-86` `INSERT INTO career_path…ON CONFLICT (owner_user_id, interview_id) DO UPDATE SET …version+1` 单事务 upsert+`:74` 注「API 路径仍走 interview.service.ts 状态机（零触）」+`:17-18` 「ai_graph_run(career-path) 行仅在 API 路径产生，worker 自动路径不产生（该表为观测面非读面，career_path 表是唯一读真相）」=观测分叉登记亲证；API 侧状态机维持=裁定明示（checklist :2262「API 零触（#187 不再加厚）」+growth-gen 卷 :39「API 侧状态机本刀零触…拆不拆归 5E 批量清理刀」）·现树 `apps/api/src/modules/interview/interview.service.ts:792-798`（状态机注释+generateCareerPath）/:816-817（C-HA-2 seam）/:818（runCareerPathGraph）/:843-845（upsert）/`:861`（transition error）——本形零变属**裁定保留面非开放缺陷**；冻结签名=`packages/domain/src/career.ts:172-180`。计件=LEDGER :213 增量列「+#187（随 @dc7e6daf D3）」已翻计入批5 51/143；残列「簇E 11 件」名目未同步=**SSOT 呈报项（裁决⑧·非本刀改）**。growth-gen 卷 :89 Ban「拆 API 侧状态机（#187 归 5E·契约冻结）」让渡承接=如实登记不落弃。**转登记零触** |
+
+**挂起 2 件（5E GROUP 卷 :31-32/:268 同口径·本刀零触登记）**：
+
+| 件 | issues-master | 现态亲证 | 判定 |
+|---|---|---|---|
+| #26 | :369 P3·比例结算（ratio<1/partial_confirmed）面试路径死代码；2026-10-09 独立复核注「待 D3 决策…不得删除」 | begin 预留 1.0=`apps/api/src/modules/interview/interview.service.ts:257-258`（reserveEntitlementForApplication/reserveEntitlement 两支尾参 `1.0`）；收尾 ratio=1=`packages/db/src/commerce/commerce.ts:339-359` completeInterviewAndConfirm per_session 分支 `confirmConsumption(c, owner, interviewId, 1)`（`:359`·per_session 逐字节零变注 :341-343）；**BILL3（@f4234c92 修法⑤）已让 per_topic_capped 分支 partial_confirmed 部分转活**（`:344-357` capped 分支·「允许 partial_confirmed（现行 partial 抛错面仅 per_session 分支保留）」注亲证）——主面（per_session 全额预留/全额收尾）仍死代码 | **挂起待 D3·零触**（BILL3 转活面如实登记） |
+| #32 | :374 P3·需求备忘：begin 固定预留 1.0、收尾 ratio=1；修法列自记「**产品决策后集中改常量（单位常量化），不单独修**」 | 同 #26 锚（:257-258/:359） | **需求备忘件·自排除独立修·零触** |
+
+### 0.2 漂移登记（issues-master/5E GROUP 卷旧锚 vs `12ecb34b` 实测）
+
+| 旧锚 | 现锚（实测）·漂移主因 |
+|---|---|
+| #2 `interview-consumer.ts:224,233` | `:355-357`/`:360-367`（AG-C/HA 等后落刀推挤·续租两点同形在·C1 同拍续注新增） |
+| #2 `commerce.ts:26,323-331` | `packages/db/src/commerce/commerce.ts:34-35`/`:534-535`/`:556`+`:562`/`:582`（**文件迁子目录 commerce/**=主漂因） |
+| #27 `interview.service.ts:290` | `:236`（后落刀推挤）·读形零变 |
+| #27 `commerce.ts:174` | `:377/:418/:452/:505`（IN 列表读成员·bill3 围栏/计费面扩充推挤） |
+| #128 `commerce-reconcile.ts:58-64` | `:66-85`·**性质变**：主臂 :75 已同口径化（UC-E2E-018 §1b #3/GAP-UC018-TTL 刀顺带）·裸 UPDATE 降级 :81 catch 兜底=残面收窄如实登记 |
+| #130 `interview-consumer.ts:224-233` | `:357-358`（console.error 原形在·行漂） |
+| #132 `sse-pump.ts:59,64,92-93` | `:67-70`（safeWrite 本体·B5 单源化+HA-2 排水旗推挤·write() 返回弃置原病零变）+`:85` deadline+interview.controller.ts:262（5 槽） |
+| #148 `interview.service.ts:170-173` | `:119-120/:419/:440`（后落刀推挤）+tenant/index.ts:58/:62/:101-109 |
+| #149 `ids.ts:6,23-35,44-62` | `:6`/`:39-40`/`:43`（行漂·两处全称表述在）；0143:14-39 零漂（迁移本体冻结必然） |
+| #165 `adaptive-interview-service.ts:113-115` | `:448-457`（AG-F 刀F 同 turn 再入 `:r{k}` 键已落=键形半演进·job 重试维度 `:0` 复位原病零变） |
+| #165 `main.ts:172` | **锚消**：进度接线已内联 adaptive-interview-service.ts:467（main.ts :165-180 现为 e2e_report_fault/AG-03 report 键域·rg withGenerationProgress main.ts 零命中亲证） |
+| #165 `interview-event.ts:22-25,31` | `packages/db/src/interview/interview-event.ts:23-24/:30-33`（文件迁子目录 interview/=主漂因） |
+| #167 `generation-progress.ts:59-61,69-78` | `:60-62`/`:70-77`（行漂±1-2·替换原病零变）；proof `:459-462`→web-logic.proof.ts:518-550 |
+| #187 issues-master `interview.service.ts:649-718` / 5E GROUP 卷 `:768` | `:792-863`（growth-gen/SCORE/BILL3 等后落刀推挤·状态机本形零变+D3 worker 面已落=判定从「开放」翻「转登记」如实登记） |
+| #26 `interview.service.ts:304` | `:257-258`（后落刀推挤）·1.0 形零变；收尾锚 `commerce.ts:339-359`（BILL3 capped 分支新增=partial_confirmed 部分转活如实登记） |
+
+**重 pin 免责**：本节锚为起草席 base `12ecb34b` 一次性亲读（10 件全深核·无浅核件如实声明）；EXEC 立项/双审照例全量重 pin，漂移只更行号不改结论（5E GROUP 卷 §0.2 同款先例）；**任一件现态结论翻转（如 #164 已落、#128 残面已他刀闭合、#187 SSOT 翻面回摆）即回炉重审**（五起过期前车纪律）。
+
+## §1 修法（逐条固化·file:line 实锚·EXEC 立项重 pin·**每条可独立判定做没做对**）
+
+### 执行面（R1-R6·对应 §0.1 判定〔A〕/〔B〕）
+
+- **R1（#27·裁决①定面）**：死分支处置二选一。**A 形（推荐·零行为）**：删 `apps/api/src/modules/interview/interview.service.ts:235-236` 死读分支（含 :235 注·生产写侧全仓零命中已亲证=不可达死码）；**B 形（A+全域·行为等价收紧）**：A + `commerce/commerce.ts:377/:418/:452/:505` 四处 CAS/守卫 IN 列表摘除 `'active'` 成员 + 新迁移 **0188**（编号实测：`ls packages/db/migrations | wc -l`=187·最大号 0187 亲证·0188 起顺延）interview.status CHECK 枚举收窄（'created','waiting_user','completed','abandoned','failed' 五值——现存值域实测）+ §0.1 所列 5 个测试种子文件改形（种子改用 'waiting_user' 等可达值）。B 形收紧语义如实呈报：生产现网行为零变化（active 本不可达）·测试域变更 5 文件连带如实登记。
+- **R2（#128 残面·裁决②定形）**：`apps/worker/src/commerce-reconcile.ts:76-84` catch 臂（`interview_abandon_conflict`/`interview_release_failed` 分支）裸 UPDATE（`:81`）处置二选一。**A 形（推荐·保守）**：兜底臂补 graph 终止——同事务调用 `safelyTerminateAiGraphRunsOnAbandon`（`commerce.ts:465-468` 现为 finishAbandon 私有链·导出面或 `@meetwise/db` 增导出=EXEC 按 §8 裁决②子项定·零新迁移）后保留 soft-set；**B 形**：删兜底臂改大声 throw（外层既有 catch-continue 语义核对后如实呈报收窄面）。伴随 commerce-reconcile:prove 兜底臂新断言（触发时 ai_graph_run 无 active 残留）。
+- **R3（#130·裁决③定值）**：`apps/worker/src/interview-consumer.ts:357-358` 续租失败处置：有限次重试（次数/退避值=裁决③定值·禁无限）+结构化指标（复用 `getMetrics()/METRIC` 族形·指标名=裁决③定名·沿 HA-7 R-24 `:225` 观测行先例）+对账回收前复核：`commerce/commerce.ts:577-600` mock_interview FOR UPDATE 分支补「最近续租时点」复核谓词（**零新迁移列**·复用 lease_expires_at 与 renew 同语句原子性或回收前同事务复查=裁决③子项定形）。
+- **R4（#132·裁决④定值）**：`apps/api/src/platform/sse-pump.ts:67-70` safeWrite 消费 `reply.raw.write()` 返回 false（现弃置恒 true）+连接级缓冲计数+超阈值断开（`closed=true`+raw.end 单点收尾沿 `:112` 既有单点纪律·**阈值数值=裁决④定值**）；既有 10min deadline（`:85`）与 5 槽门（interview.controller.ts:262）零改。
+- **R5（#148·裁决⑤定面）**：窄面= `packages/db/src/tenant/index.ts:58` `trim()` 改**拒绝含空白 id**（throw `tenant_owner_user_id_required` 同码 fail-closed·`:62` 返回原值）+头注沿用既有诚实化形；调用面 18 文件回归（tenant-wiring-e5/tenant-enforcement/tenant-wiring-neg proves 原值）。全量面（删除或改名该层）=裁决⑤ B/C 分支·默认不行（M2 卷登记面+m2-tenant 两 docs 引用面连带大·非小刀体量）。
+- **R6（#149·注释口径·零行为）**：`packages/db/src/ids.ts:6` 头注与 `:43` 行注「字典序 = 生成序」加作用域限定（「TS 进程内计数器单调；PG 侧 uuidv7()（0143）同 ms 不保序·两生成路径口径分立如实」形·逐字=裁决⑥A 子项）；**0143 迁移本体与其 COMMENT 零触**（checksum 铁律·单侧落 ids.ts）。「统一由应用生成 id」设计面=划外登记（裁决⑥B 若行使归后继刀）。
+
+### 登记面（R7-R10·零码动）
+
+- **R7（#2·转登记）**：30 分钟预留租约=产品确认设计取舍（issues-master :361 已核实「设计取舍」·修法列首支即「产品确认 30 分钟上限」）·本刀零触；若产品决议放宽→题目下发/作答页心跳续租+前端剩余时间提示=**独立行为刀另立**（修法方向留存本条）。
+- **R8（#187·转登记）**：D3 裁决处置已落（§0.1 亲证双支兑现）·本刀零触；SSOT 残列「簇E 11 件」名目与 LEDGER :213 增量列「+#187」已翻计的出入=呈报协调方/SSOT 刀同步（裁决⑧）·本刀零触 SSOT。
+- **R9/R10（#165/#167·依赖划外）**：硬闸 #164（5C 进度写·LEDGER :87 无 ✅+5E GROUP 卷 §4-⑦ 亲读）未落·零触；修法方向留存=「attemptKey 带真实 attempt 序号」+「按 attempt 序号比较后再替换」（issues-master :414/:415 修法列原文）·归 5C 进度写刀后继或其并线后本卷回炉回收（§4 重 pin 条款）。
+- **挂起登记（#26/#32）**：维持 5E GROUP 卷 :31-32/:268 口径零触；BILL3 capped 分支 partial_confirmed 部分转活如实随行（§0.1 挂起表）·主面待 D3/产品排期。
+
+## §2 验收断言候选（静态源断言+既有 prove 回归形制·pre-exec 双审核对单基面·EXEC 立项重 pin·断言力≥3）
+
+1. **#27 断言**：随裁决①分支——A 形：interview.service.ts 内 interview 表域 `status === 'active'` 读分支零残留断言 + 生产写侧零命中复证（rg `SET status='active'` interview 域仅测试种子）；B 形：+commerce 四 CAS 语句 `'active'` 成员零残留 + 0188 CHECK 存在断言 + 5 测试种子改形后 proves 全绿原值。
+2. **#128 断言**：commerce-reconcile:prove 新增兜底臂断言 EXIT=0（兜底臂触发时 ai_graph_run 无 active 残留 / B 形=throw 路径断言）+既有 commerce-reconcile.proof 28 断言族原值。
+3. **#130 断言**：续租重试分支+指标计数行存在断言（静态源）+consumer 既有 prove 回归原值。
+4. **#132 断言**：safeWrite 内 write() 返回值被消费断言（false 分支计数/断开路径存在·静态源）+`sse-slot:prove`/`last-event-id:unit:prove`/neg:interview SSE 臂原值。
+5. **#148 断言**：tenant/index.ts `trim()` 零残留断言（含空白 id 拒绝负测）+tenant 三 proves 原值。
+6. **#149 断言**：ids.ts 头注/行注作用域限定表述存在断言（静态 docs 断言）+typecheck/db prove 原值（零行为面复证）。
+7. **迁移铁律断言**：`git diff <base> -- packages/db/migrations` 既有 187 件字节零触断言（仅裁决①B 行使时新增 0188 一件·其余零 diff）。
+8. **回归门预申明**：`turbo typecheck` EXIT=0 + `db:prove`/`migrate:prove` + `interview:prove` + `commerce-reconcile:prove` + `adaptive-life:prove` + web prove + `neg:interview` 全 EXIT 原值·base 同红登记不洗（E5 流程·批前实测基线入收据）；E2E 零新增场景。
+9. **markers=0（§7）+est live=0（§6）双声明入收据**。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **#165/#167 码面零触**（dep #164 硬闸未落·§4-1）——R9/R10 登记条 only。
+2. **#2/#187 零触**（转登记·R7/R8）；**#26/#32 零触**（挂起·D3/产品前置·BILL3 capped 转活面亦零触）。
+3. **`packages/db/migrations/` 既有 187 件字节零触**（migrate checksum 守卫铁律+0143 COMMENT 冻结）——新迁移仅裁决①B 分支授权时恰 1 件（0188）·否则零新迁移。
+4. **SSOT 只读**：LEDGER/batch-residual-plan/execution-master-checklist/issues-master/TASK-SOP-v2 行与统计零改（#187 残列名目同步呈报归 SSOT 刀·R8）。
+5. **SCORE/聚合器面、G7 面/车道/live 套件、Meridian、buy cloud、E2E 场景面零新增**（沿 5E GROUP 卷 §3 同源）。
+6. **I5/H5/BILL3 已收面零触**；growth-gen 落面（growth-generation.ts/report-worker.ts/adaptive-interview-service biasByPastWeakness 域）零触——R2/R3 触 commerce-reconcile.ts 与 interview-consumer.ts 行级面与 growth-gen 让渡面零重叠（§0.0 邻刀复核）。
+7. **est live=0**：零模型真实外呼·零生产操作·零 secrets·零 SMTP。
+8. **公网文本政策面**：本卷与后续 EXEC 收据零外部引用链接/零本地绝对路径/零云标识（沿仓 policy 现行）。
+
+## §4 依赖
+
+1. **硬闸 #164（5C 进度写·含 #165/#167 链）**：LEDGER :87 无 ✅+5E GROUP 卷 §4-⑦ 亲读=未落→R9/R10 划外即此闸兑现。**EXEC 时点重 pin**：若 #164 已并主线（5C 子刀 nail）→ R9/R10 按裁决⑦分支回炉回收执行（改判须回炉重审·不得沿用划外结论直接开工）。
+2. **在飞邻刀**：#92 OBS 在飞 `@3684bc00`（line 分支·非主线祖先·LEDGER :213 亲读如实）=worker 面相邻·与本刀触面（commerce-reconcile.ts/interview-consumer.ts/sse-pump.ts/tenant/index.ts/ids.ts/interview.service.ts 死分支）行级零重叠登记；`line/5c-queue` 分支=主线 tip 同点（`git rev-parse` 双值一致亲证·零新提交）。
+3. **已并前置**：5E GROUP @eb5c3f09/8ee77301 祖先亲证在（簇E 零触前提）；BILL3 @f4234c92 祖先在（#26/#32 挂起面注记）；growth-gen @dc7e6daf 祖先在（#187 D3 面）——三者 `git merge-base --is-ancestor` 对 HEAD 本席亲证 EXIT=0。
+4. **AUTHZ 残刀（#34 两半）**：起草中·触 auth/profile 面与本刀零交集。
+5. **SSOT/邻卷零冲突预期**：本刀 docs 触面=恰 1 新 .md（本卷）。
+
+## §5 Ban 列表 + pins（沿 5E GROUP 卷 §5 同源逐字誊 + 本刀面增补）
+
+**Ban 列表**：Ban push；Ban 自批（双审须独立外席）；Ban retry-to-green；Ban 翻 pins（§5 pins 十一值·含 `actualSpendCny=null` 不翻）；Ban 改共享 SSOT（LEDGER/batch-residual-plan/execution-master-checklist/issues-master/TASK-SOP-v2 行与统计只读引用）；Ban 迁移越权（既有 187 件字节零触·新迁移仅裁决①B 授权 0188 一件）；Ban 触其他工作树（meetwise-5e/i5/mig/authz/ciw/ciw2/e2ar/entpay/qp/5c-queue 等零触）；Ban 伪造已问/已验来源（Ban 假称深核·§0 重 pin 如实）；**本刀增补**：Ban 触 #165/#167 任何码面（dep #164 未落·裁决⑦未回收前）；Ban 触 #2/#187/#26/#32 码面（登记/挂起面·R7/R8+挂起条）；Ban #27 处置引入行为变化（A/B 形均须行为等价呈报·B 形收紧语义如实呈报禁静默）；Ban #132/#130 阈值/次数/指标名自造值（裁决③④定值前行）；Ban #148 全量拆除面（删除/改名该层=裁决⑤未行使前）；Ban 弱化既有安全语义（tenant fail-closed 面只收紧不放松·RLS 唯一授权根表述零改）；Ban 删审计/观测信息至失真；Ban 触 E2E 场景面/新增 Playwright 场景；Ban 触 SCORE 聚合/S2-S3 面；Ban 弱化 #187 D3 裁决（API 侧状态机=裁定保留面·拆除归后刀非本刀）；Ban secrets/`.env*`（Key name-only）；Ban G7 面/车道/live 套件；Ban Meridian；Ban buy cloud。
+
+**pins（十一值照抄·零翻转）**：
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀 prove 全静态/回归·零模型外呼·零消耗）
+
+## §6 est live=0
+
+本刀零模型真实外呼：全部断言=静态源断言+docs 静态断言+既有 prove 回归（typecheck/db:prove/migrate:prove/interview:prove/commerce-reconcile:prove/adaptive-life:prove/web prove/neg:interview EXIT 原值）；零生产操作·零 secrets·零 SMTP·零消耗（pins 脚注 `actualSpendCny=null` 同源·EXEC 收据逐 prove 登记零外呼口径）。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（起草阶段恰 1 .md·`ai-docs/delivery/harness/5e-behavior-REQUEST.md`）五类标记词 grep 零命中（起草席自检·命令与回执留 prove）。五类标记词不复抄卷内（避免自匹配·沿 5E GROUP/I3/I4/I5 卷 §7 同形制）。
+
+## §8 STOP（开工三条款）
+
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀起草阶段恰 1 .md）。EXEC/任何实施须：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐件重 pin·任一件现态结论翻转即回炉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+
+**待双审/EXEC 裁决项**：①#27 处置面（A 形仅删 :235-236 死读分支 vs B 形 A+commerce 四 CAS 成员摘除+0188 CHECK 迁移+5 测试种子改形·推荐 A·B 形测试域连带如实呈报）；②#128 残面形（A 形兜底臂补 safelyTerminateAiGraphRunsOnAbandon 复用（含 @meetwise/db 导出面）vs B 形删兜底臂大声 throw·推荐 A）；③#130 定值（续租重试次数/退避+指标名+回收复核形三子项定值·禁自造）；④#132 定值（背压阈值数值+断开形定值·禁自造）；⑤#148 面（A 形仅 trim→拒绝含空白 fail-closed vs B/C 形全量删除/改名该层·推荐 A·全量面归后刀）；⑥#149 面（A 形仅注释口径 scoping vs B 形+「统一由应用生成 id」设计面划外另立·推荐 A）；⑦#165/#167 划外登记确认与 EXEC 时点 #164 重 pin 回收分支（已落→回炉改判）；⑧#187 转登记确认+SSOT 残列「簇E 11 件」名目与 :213 增量列「+#187」出入的同步呈报（归 SSOT 刀·本刀零触 SSOT）；⑨#2 转登记确认（挂产品 30 分钟上限决议·放宽另立刀）；⑩执行切片（单刀 vs R1-R6 分片·沿 5C 四子刀先例）与 R2 导出面（finishAbandon 链复用形）；⑪#26/#32 挂起维持确认（BILL3 capped 转活面随行登记）。
+
+---
+
+*5E-BEHAVIOR REQUEST · 2026-10-14 起草落卷 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`12ecb34b` · 分支 `line/5e-behavior` · 工作树 `meetwise-5eb` · 承接=5E GROUP（@eb5c3f09 已并·簇E 裁决项⑴「呈报归独立行为小刀」）+growth-gen 让渡三处（:39/:43/:89·#187 承接登记）· 蓝本=LEDGER :87/:89/:213/:216 + 5e-group-REQUEST.md :64-77/:193-209/:233/:268 + issues-master 十件原文行 :361/:370/:399/:401/:402/:406/:407/:414/:415/:426+挂起 :369/:374+依赖件 :273 + checklist :2262 + TASK-SOP-v2 :85 · 十件判定=开放执行面 4（#130/#132/#148/#149）+开放待裁 2（#27/#128 残）+转登记 2（#2 产品前置/#187 D3 已落）+依赖划外 2（#165/#167 dep #164）· 挂起登记 2（#26/#32 零触·BILL3 capped 转活面如实）· §0 全锚亲证（10 件深核·漂移登记 15 行·文件迁子目录 commerce/ 与 interview/ 两处主漂因）· 防重检查过（5e-behavior 零命中·无同名卷·checklist 十件号恰 1 命中=:2262 登记面）· 迁移号实证=187 件/最大 0187/新迁移仅裁决①B 授权 0188 一件 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
