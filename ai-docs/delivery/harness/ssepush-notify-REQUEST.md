@@ -1,6 +1,6 @@
 # SSEPUSH-NOTIFY REQUEST（sse-push:notify 2/35 恒红回归修复刀·0189 并线自然实验定谳·双臂异臂同根=降级日志捕获窗错位·docs-only+恰 1 proof seam 位移·落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14·⛔push·本 commit 不预 claim 任何 post-commit EXIT·alone≠dual·Dual PASS ≠ 开工）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14·rev2 处置 2026-10-14=审席1 P1+P2×3 全数处置·卷尾摘要·⛔push·本 commit 不预 claim 任何 post-commit EXIT·alone≠dual·Dual PASS ≠ 开工）。
 **席位**：ssepush-notify 回归修复刀起草席（协调方派单·诊断+起草·⛔push·⛔改产品码——本卷唯一预期码改=1 个测试文件的捕获窗 seam 位移·无任何 src/迁移/SSOT 触面）。
 **基线**：`feat/mysql-schema-skeleton` @ `cf501273`（5C-API-HARDEN nail 收官 SSOT commit·链 189 头 0189·docs:check 2081≤cap 2088 起草席本树亲跑）· 分支 `line/ssepush-notify`（建前 `git branch --list` 恰 0 命中·本席 `git worktree add ../meetwise-spn -b line/ssepush-notify feat/mysql-schema-skeleton` 亲立·HEAD 落 `cf501273` 亲证）· 工作树 `meetwise-spn`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-14·自然实验指涉：主线 `cf501273` 恒等 2/35 红而并线树 `04cd8298` 同门 35/35 绿·差异面收敛 0189）；②SSOT 记录 `e9bca574`（TOKSTREAM-S4b 并线预备 commit 题面：「门矩阵支线树 04cd8298 亲跑=sse-push:notify:prove 35/35 全绿」——绿臂权威读数在卷）；③SSOT 记录 `809cd46e`+`cf501273`（5C-API-HARDEN nail 收官·EXEC `f31d56d1`→修复 `c31fd11e`·NOINHERIT 仲裁+SD 四函数+两表零 GRANT·0189 全链在卷）；④起草席活体复现收据 `.tmp/isolated-proof-receipts/2026-10-14T17-25-09-211Z-95214-9cf2a9e1-42f5-43cf-bd0d-60e54a77c24f.json`（exitCode=1·durationMs=58444·target=sse-push:notify:prove:raw·§1.1 读数全源）；⑤结构范本 `ai-docs/delivery/harness/g7w-tail-death-REQUEST.md`（meetwise-g7w 树·§7/§8 形制沿承）。
@@ -21,7 +21,7 @@
 | `apps/api/src/platform/sse-notify.service.ts` | `93904f20`（327 行） | **`:68-71` `onPrincipalEvict()` 首订阅者即 `getSseNotify().whenHealthy()`（0189 增）**·`:87` reason 枚举·`:127-128` 初态 `{healthy:false, reason:'listen_down'}`+lastLoggedReason=undefined·`:133` 生产日志缝=console.warn·`:145-149` whenHealthy→ensureStarted·`:198-213` ensureStarted（专用池 max:1·void establish）·**:258-271 degrade()（`:262` 同因去重 `wasHealthy‖lastLoggedReason!==reason` 才打·`:264-269` 行格式 `SSE_NOTIFY_DEGRADED reason=<r> fallback=legacy_2s_poll hint=…`）**·`:273-310` establish（`:284-286` 双 LISTEN·**:289-296 pg_trigger 实证 0 行→loseClient('trigger_missing')**）·`:313-319` 单例懒起 |
 | `apps/api/src/platform/principal.guard.ts` | `50b38bc5`（112 行） | **`:35-38` 模块顶层 `onPrincipalEvict('uid',…)`+`getSseNotify().whenHealthy()`——`git blame` 亲证引入 commit=`f31d56d1`（0189 EXEC）·注释自证「注册即起 LISTEN(不等首个 SSE 流·吊销广播从进程启动即有效)」=0189 吊销广播 sanctioned 行为** |
 | `apps/api/test/_neg-harness.ts` | `b03cb16b`（305 行） | `:7` 静态 `import { createApp } from '../src/main'`（ESM 模块图入口）·`:59-63` createApp·`:65` assertIsolatedTestTarget（隔离库属主连接·非 app_role/app_gateway_role）·**:72-73 装载 sql/01_schema 等 22 卷自 DROP 重置→0143 trigger 不在场**·`:258` app.listen |
-| `packages/db/migrations/0189_api_harden_shared_state.sql` | `a291b62e`（163 行） | `:47` 两表零 GRANT 注释（platform_rl_bucket+platform_slot_lease）·`:49-142` SD 四函数 gateway_rl_bucket_take/gateway_slot_lease_acquire/gateway_slot_lease_release/gateway_rl_bucket_cleanup（`:139-142` EXECUTE 仅授 app_gateway_role）·`:160` user_account 触发器 platform_principal_state_notify——**interview/interview_event/0143/LISTEN 面零触碰（rg 全文亲证）** |
+| `packages/db/migrations/0189_api_harden_shared_state.sql` | `a291b62e`（163 行） | `:47` 两表零 GRANT 注释（platform_rl_bucket+platform_slot_lease）·`:49-142` SD 四函数 gateway_rl_bucket_take/gateway_slot_lease_acquire/gateway_slot_lease_release/gateway_rl_bucket_cleanup（`:139-142` EXECUTE 仅授 app_gateway_role）·`:160` user_account 触发器 platform_principal_state_notify——**interview/interview_event/0143/LISTEN 实质触面零触碰（rev2 rg 亲证更正：全文命中恰 4 行且全为叙事注释——`:16` 0143 同形·`:17` interview_event_ch 通道名·`:18` LISTEN 措辞·`:144` 0143 同形；DDL 零触及）** |
 | `packages/db/migrations/0143_sse_push_notify.sql` | `4d4bf7c4`（37 行） | `sse_event_notify_after_insert()` SECURITY INVOKER+`interview_event` AFTER INSERT 触发器（proof Phase B 自装件） |
 | `apps/api/test/api-harden-shared-state.proof.ts` | `157376c2`（320 行·**31 断言 rg 计数亲证**） | 0189 门 proof·本刀零触（§3-3） |
 | `scripts/i6-239-gates.proof.mjs` | `339f92f4` | §2-7 markers=0 五类标记词定义（词面运行时组装防自指·五类词不复抄卷内） |
@@ -32,7 +32,7 @@
 ### 0.2 漂移登记（派单 brief/SSOT → `cf501273` 现状·**EXEC 重 pin 同协议**）
 
 1. **简报假说漂移①（权限半假说·证伪）**：派单 brief 指涉「0189（NOINHERIT 权限模型·SD 四函数重写·零表 GRANT）断掉 notify 写路径权限」——**证伪**：0189 触面=两桶表+SD 四函数+user_account 触发器（§0.1 第五行）·interview/interview_event/0143/LISTEN 零交集；起草席活体 run 写路径全通（P-2a 真实 HTTP 2s 轮询 2041ms/P-1 INSERT→帧 36ms/P-5 独立 LISTEN 实收裸 stream_key/P-4 双 waiter 双醒·§1.1）；且 harness 池为隔离库属主连接（`_neg-harness.ts:65`）·NOINHERIT 仲裁面不在本证明路径。
-2. **简报假说漂移②（日志半假说·方向对·机制修正）**：「断掉结构化日志依赖」——实况=结构化日志**照常发出且格式与 regex 期望逐字相符**（活体 stdout 铁证 §1.1-3）·红因=发出时机先于 proof 的 console.warn tap 安装（§1.3 时序链）·非依赖断非格式漂移。
+2. **简报假说漂移②（日志半假说·方向对·机制修正）**：「断掉结构化日志依赖」——实况=结构化日志**照常发出且格式与 regex 期望逐字相符**（活体 stdout 证据 §1.1-3·目击+机制推演）·红因=发出时机先于 proof 的 console.warn tap 安装（§1.3 时序链）·非依赖断非格式漂移。
 3. **迁移号漂移**：brief「主线链顶 189 顺延占位 0190·若 5B nail 落 0190-0199 改 0202+」——现状：主线链顶实存 max=**0189**（`ls packages/db/migrations | tail` 亲证）·并行波 `line/batch5b-mig` 树已实占至 **0199**（meetwise-b5m 树 ls 亲证·未并线）·**本刀预期零迁移**（§0.3）。
 4. **lint 基线口径**：主线 SSOT 权威值（cf501273 5C nail 卷亲跑在卷）=root 5210>5200+api 1431>1421 双红承登；tokstream 树 `e9bca574` 记 root 5223>5213 系 834e830e 支线自带 +13 面·未并主线·**非主线口径**。本刀 EXEC 亲跑实测为准·恒等判定见 §2-6。
 
@@ -49,7 +49,7 @@
    - 臂①＝proof `:204-205` **P-2a 约束②结构化降级日志**——`PIN OPT1-C2-LIVE-DEGRADED-LOG MISSING`（活体 tap 未捕获任何 `reason=trigger_missing` 线）；
    - 臂②＝proof `:244` **P-2d 约束②收据**——`PIN OPT1-C2-DEGRADED-WINDOW reason=trigger_missing window_ms=0`（MISSING 兜底 t=调用当下→窗口塌 0·`windowMs>0` 假）。
 2. **其余 33 臂全 PASS**：含 P-2a 约束①状态臂（`:201-202` reason=trigger_missing 在位=状态机正确抵达降级态）·P-2a 退化轮询真实 HTTP 首 ping 2041ms∈[1800,3600]·P-2c/P-2d 全部单元臂（注入 log 缝·tap 无关）·P-1 真延迟 36ms·P-3/P-4/P-5。
-3. **活体铁证（stdout 时序·复现 run 原样）**：`SSE_NOTIFY_DEGRADED reason=listen_down …` → `SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143` → `Server listening at http://127.0.0.1:…` → prove 横幅——**两条降级日志均先于 boot() 返回、更先于 proof:66-75 tap 安装**；且 trigger_missing 线与 `:205` regex `/^SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=/` **逐字相符**=产品日志行为正确·仅捕获窗错位。
+3. **活体 stdout 时序证据（rev2 证据等级如实降格=起草席目击+机制推演：复现 run 全量 stdout 未入收据 JSON·无独立可复验原物；时序结论不变）·复现 run 原样所见**：`SSE_NOTIFY_DEGRADED reason=listen_down …` → `SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143` → `Server listening at http://127.0.0.1:…` → prove 横幅——**两条降级日志均先于 boot() 返回、更先于 proof:66-75 tap 安装**；且 trigger_missing 线与 `:205` regex `/^SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=/` **逐字相符**=产品日志行为正确·仅捕获窗错位。
 
 ### 1.2 双臂归因（异臂同根·同一缺失捕获·两断言分别塌）
 
@@ -80,7 +80,7 @@
 
 ## §1-修法（proof 捕获窗回归原意·预期零产品码零迁移·三件）
 
-- **件① tap 块前移（唯一码改·`apps/api/test/sse-push-notify.proof.ts`）**：将 `:66-75` 活体 tap 块整体（degradedLogs 数组+originalWarn 捕获+console.warn 覆写+triggerMissingLog 函数——块自包含·零 `h` 引用）位移至 `:59` `const h = await boot();` **之前**（建议紧随 `:62` 横幅行前后·落点=boot 调用前即可）；其余语句零改·**35 条断言首参文本+regex+阈值逐字冻结零 diff**（位移致行号平移·如实登记）。**不弱化论证**：捕获窗从「boot 返回后」恢复为约束②原意「进程起全窗」；断言集合/断言力/33 绿臂零扰动（tap=前缀过滤旁路记录·原样透传）。
+- **件① tap 块前移（唯一码改·`apps/api/test/sse-push-notify.proof.ts`）**：将 `:66-75` 活体 tap 块整体（degradedLogs 数组+originalWarn 捕获+console.warn 覆写+triggerMissingLog 函数——块自包含·零 `h` 引用）位移至 `:59` `const h = await boot();` **之前**——落点=紧随 `:58` 之后、`:59` `const h = await boot();` 之前（proof 体首个 top-level await 之前的同步先导段内·rev2 亲证更正：末行 import 实为 `:57`·`:58` 为 import 块后空行——锚位 `:58/:59` 之间唯一）；**任何不早于 `:59` 的落点（含 `:62` 横幅附近——该行实测在 boot 返回之后）禁止**；其余语句零改·**35 条断言首参文本+regex+阈值逐字冻结零 diff**（位移致行号平移·如实登记）。**不弱化论证**：捕获窗从「boot 返回后」恢复为约束②原意「进程起全窗」；断言集合/断言力/33 绿臂零扰动（tap=前缀过滤旁路记录·原样透传）。**落位注释（rev2 残余边界登记·G7_FREETIER_REPROVE 外泄面）**：`src/main.ts:30-37` 为全 src 唯一模块级 `await import`（`:31` 动态载 `@meetwise/ai-runtime/g7-test-support`·处于 `if (g7FreetierReproveEnabled)` 分支内·rg 计数亲证恰 1 处）——该 env 分支若被外泄置位，其效应发生于 ESM 模块图评估期（proof `:54`→`_neg-harness.ts:7`·先于 proof 体任何语句·含前移后 tap）；现隔离面三重=`_neg-harness.ts` 全卷零读写该 env（rg 亲证零命中）+隔离 runner 仅 baseEnv 显式携带才透传（`run-e2e-isolated.mjs:2700`·`:2690-2697` 附属 ledger 分支同门）+本 proof 目标 baseEnv 不携带；残余若兑现→件③ 结局族 (b)/(c) 兜底停。tap 前移不新增此面·仅登记。
 - **件② 归因登记（docs·本卷 §1.2/§1.3/§1.5 承载）**：双臂异臂同根定谳候选+0189 权限假说证伪+产品行为面零翻案声明。
 - **件③ 复绿判别 run（EXEC 期·预注册结局族）**：`pnpm sse-push:notify:prove` 恰 1 有效 attempt·预注册读数：`OPT1-C2-LIVE-DEGRADED-LOG`=真线非 MISSING·`OPT1-C2-DEGRADED-WINDOW window_ms`>0 且<60000·35/35 EXIT=0。结局族：**(a) 35/35 绿**=修法成立+归因闭合（行关闭效力归协调方·§8-⑤）；**(b) 双臂仍红**=§1.3 根因被证伪→**停止条件②回炉**（Ban 就地改因）；**(c) 他臂新红/表外形**→停·升级协调方；**(d) 隔离基建红**（isolated_postgres_database_not_ready 等未进 prove 进程·起草席亲历一例后次跑成功）→允许重启重试·attempts 全台账（基建红≠断言红·不适用恰 1 attempt 纪律）；prove 进程内断言红→恰 1 attempt·Ban 重跑冲销。
 
@@ -118,7 +118,7 @@
 ## §6 est live=0（起草 turn）+ EXEC 门预申明
 
 - **起草 turn（本 commit）**：est live=**0**——零模型外呼零 Key 加载（复现 run 纯本地隔离 PG·harness `:61-62` 显式 delete MODEL_API_KEY/MODEL_BASE_URL 自证）·零生产操作·零消耗。
-- **EXEC 期门预申明（授权后方可行）**：①件① seam 位移落位+件③ 判别 run 恰 1 有效 attempt（结局族预注册）；②门矩阵 §2 九项全跑全落收据；③`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；④隔离容器用后即焚零残留·外来容器零触碰；⑤收据落点 `ai-docs/delivery/receipts/ssepush-notify/`（00-exec.md+proof receipt 原物+attempts 全台账+pre/post 断言清单对照）+harness 本卷推进注记（append-only）。
+- **EXEC 期门预申明（授权后方可行）**：①件① seam 位移落位+件③ 判别 run 恰 1 有效 attempt（结局族预注册）；②门矩阵 §2 九项全跑全落收据；③`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；④隔离容器用后即焚零残留·外来容器零触碰；⑤收据落点 `ai-docs/delivery/receipts/ssepush-notify/`（00-exec.md+proof receipt 原物+attempts 全台账+pre/post 断言清单对照+**件③ 判别 run 全量 stdout tee 落卷**——收据 JSON 无 stdout 字段（rev2 十二键亲证：class/dataHandling/durationMs/exitCode/finishedAt/outcome/releaseEvidence/schemaMigrationManifest/schemaVersion/sourceDigests/startedAt/target）·预注册双 PIN 读数全系 stdout 承载（proof `:206`/`:243` console.log·非 JSON 键）·不落 stdout 则件③ 预注册读数无从复核）+harness 本卷推进注记（append-only）。
 
 ## §7 markers=0（卫生声明）
 
@@ -129,7 +129,7 @@
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1.3 时序根因结论与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·含 §0.2 四条漂移复核与 §0.3 迁移号实占复核）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（tap 块迁位/断言行变/懒起钩被他人改/链顶非 0189）→停·重 pin 回炉；**机制不满足**=件① 落位后判别 run 命中结局族 (b)/(c)（双臂仍红=根因证伪·或他臂新红）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何产品码/0189 行为面/兄弟 proof/wrapper 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/docs:check/uniqueness/lint 漂移）且根因不在本刀交付面→停·如实登记（基线红 stash 对照先例·Ban 借机修·docs:check >2088 红即停上报）。
 
 **待双审/EXEC 裁决项**：
-- **①tap 前移定性追认**：seam 修正（捕获窗回归约束②原意）非「为绿改测试」——证据=断言文本/regex/阈值逐字冻结（§2-1）+活体时序铁证（§1.1-3）+33 绿臂零扰动。推荐=追认行使 vs 翻案（翻案即回炉）。
+- **①tap 前移定性追认**：seam 修正（捕获窗回归约束②原意）非「为绿改测试」——证据=断言文本/regex/阈值逐字冻结（§2-1）+活体时序证据（§1.1-3·目击+机制推演）+33 绿臂零扰动。推荐=追认行使 vs 翻案（翻案即回炉）。
 - **②双臂异臂同根归因追认+0189 权限假说证伪登记**（§1.2/§1.5）——若任一席提出权限面残余疑点→停·升级协调方（Ban 就地扩权验证）。
 - **③迁移号**：预期零确认；若 EXEC 复判需迁移→§0.3 协调规则（0190 起顺延实测·5B 实占 0190-0199 则 0202 起）。
 - **④产品侧替代方案否决追认**（§3-3）：`principal.guard.ts:38` 移 onApplicationBootstrap 修不了本红（时序论证）·若协调方仍裁产品侧行使→另刀全链（本刀零码不变）。
@@ -138,3 +138,12 @@
 ---
 
 *SSEPUSH-NOTIFY REQUEST · 2026-10-14 起草 · STOP=`draft:awaiting_pre_exec_dual` · 起草 base=`feat/mysql-schema-skeleton` @`cf501273` · 分支 `line/ssepush-notify` · 工作树 `meetwise-spn`（本起草席立·建前 worktree list+branch 双查不存在）· 立项出处=协调方派单 brief（自然实验 cf501273 2/35 vs 04cd8298 35/35）+SSOT `e9bca574`/`809cd46e`/`cf501273` · 根因=0189（`f31d56d1`）principal.guard.ts:35-38 模块级懒起 LISTEN→trigger_missing 结构化降级线于 boot() await 窗内发出（先于 proof:66-75 tap 安装·:262 同因去重永不重发）→P-2a②/P-2d② 双臂确定性恒红（异臂同根）· 0189 权限假说证伪（触面零交集+写路径活体全通）· 修法=proof tap 块前移至 boot 前（断言逐字冻结·零产品码零迁移）· est live=0（起草）· markers=0 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+
+## rev2 处置摘要（审席1 PASS 附 P1 必改+P2×3 全数处置·2026-10-14·docs-only 恰本卷 1 个 .md·STOP 与 §5 Ban/pins 零翻转）
+
+1. **P1（必改·修法落点钉死）**：§1-件① 原「建议紧随 `:62` 横幅行前后」系自相矛盾措辞——实测 `:62` 横幅在 `:59` boot 返回之后·照抄必把 tap 装到捕获窗之外→双臂仍红→误触结局族 (b) 根因证伪回炉。已改无歧义锚：**落点=紧随 `:58` 之后、`:59` `const h = await boot();` 之前（proof 体首个 top-level await 之前的同步先导段内）·任何不早于 `:59` 的落点（含 `:62` 横幅附近）禁止**。附亲证更正一处：末行 import 实为 `:57`·`:58` 为 import 块后空行（proof:54-58 五行 import 亲读）——锚位 `:58/:59` 按审席指示保留·括注按实测如实化。
+2. **P2-1（收据承载面+证据等级如实化）**：①§6-⑤ 增补「件③ 判别 run 全量 stdout tee 落卷」——收据 JSON 十二键亲证无 stdout 字段·预注册双 PIN 读数全系 stdout 承载（proof `:206`/`:243` console.log·mkAssert PASS/FAIL 亦 stdout）·不落 stdout 则件③ 读数无从复核；②§1.1-3「活体铁证」降格为「起草席目击+机制推演」（复现 run 全量 stdout 未入收据·无独立可复验原物·时序结论不变）·§0.2-2 与 §8-① 两处「铁证」引述同步对齐（不改结论）。
+3. **P2-2（0189 触面措辞如实化）**：§0.1 第五行原「rg 全文亲证（零命中）」与实测不符——rg 实测全文命中恰 4 行且全为叙事注释（`:16` 0143 同形/`:17` interview_event_ch 通道名/`:18` LISTEN 措辞/`:144` 0143 同形）·DDL 零触及。已改「实质触面零触碰」+四行明列。附亲证补一行：审席口径「:16/:17/:144 三处」漏计 `:18`（LISTEN）·按实测四行落笔。
+4. **P2-3（G7_FREETIER_REPROVE 外泄残余边界登记）**：§1-件① 增落位注释——`src/main.ts:30-37` 全 src 唯一模块级 `await import`（`:31`·rg 计数亲证恰 1）在该 env 分支内·harness 全卷零读写该 env（rg 亲证零命中）·隔离 runner 仅 baseEnv 显式携带才透传（`run-e2e-isolated.mjs:2700`·`:2690-2697` 附属 ledger 分支同门）·本 proof 目标 baseEnv 不携带；残余若兑现→件③ 结局族 (b)/(c) 兜底停。tap 前移不新增此面·仅登记。
+
+**rev2 自检**：docs:check EXIT=0（本树亲跑·≤cap 2088）·markers 五类（词面见 i6-239-gates §2-7·不入卷防自指）改动卷直扫零新增·STOP=`draft:awaiting_pre_exec_dual` 维持·alone≠dual·Dual PASS ≠ 开工·⛔push·本 rev2 commit 不预 claim 任何 post-commit EXIT。
