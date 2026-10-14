@@ -176,6 +176,7 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // 即把 bodyless req.raw 推入 flowing——消息即刻消费完成,'close' 在连接未断时就提前发出,SSE 泵
   // 事后挂的 reqRaw close 侦测失聪(断开后 waiter/槽滞留至 deadline=真泄漏)。超阈后 content-type-parser
   // 对包装流的等待由 reply.sent 短路终结(hooks.js preParsingHookRunner `if (reply.sent) return` + handleRequest 首行守卫)。
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fastify 实例上确为 any(见 getInstance() as any),钩子签名沿本文件既有 onRequest/onResponse 钩子同形,改真类型需动实例转换面,非本行内最小形
   fastify.addHook('preParsing', (req: any, reply: any, body: any, done: any) => {
     const method = String(req.method ?? '').toUpperCase();
     const url = String(req.url ?? '').split('?')[0] ?? '';
