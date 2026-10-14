@@ -588,7 +588,7 @@ CREATE POLICY p_candidate_profile_route_snapshot_owner ON candidate_profile_rout
   // ════════════════════════════════════════════════════════════════════════
   const BEGIN = (id: string) => `/interview/${id}/begin`;
   {
-    // userB 无任何额度桶 → 消费触发 402。**必须从 created 态 begin**(IV_OTHER 是 active → begin 幂等短路不扣额)。
+    // userB 无任何额度桶 → 消费触发 402。**必须从 created 态 begin**(IV_OTHER 无绑 resume 且非 created → begin 在绑定面 409 短路不扣额)。
     await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_UBC2','userB','created') ON CONFLICT DO NOTHING");
     const r = await h.post(BEGIN('IV_UBC2'), { ...U('userB'), 'resume-id': R_UBC2 }, {});
     A('consume/无额度 → 402 insufficient_entitlement', r.status === 402 && r.body?.error === 'insufficient_entitlement');

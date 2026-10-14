@@ -93,7 +93,7 @@ async function main() {
     const owner = OWN('r1'), id = IID('r1');
     await seed(owner, 5.0);
     await pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
       [id, owner],
     );
     const r1 = await asPrincipal(pool, owner, (c) =>
@@ -121,7 +121,7 @@ async function main() {
     const owner = OWN('r2'), id = IID('r2');
     await seed(owner, 5.0);
     await pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
       [id, owner],
     );
     await asPrincipal(pool, owner, (c) =>
@@ -168,7 +168,7 @@ async function main() {
     const owner = OWN('r3'), id = IID('r3');
     await seed(owner, 5.0);
     await pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
       [id, owner],
     );
     await asPrincipal(pool, owner, (c) =>

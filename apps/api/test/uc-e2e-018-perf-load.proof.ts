@@ -230,7 +230,7 @@ async function seedAbandonTargets(prefix: string, count: number, withGraph: bool
     const id = `${prefix}_${i}_${S}`;
     ids.push(id);
     await h.pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
       [id],
     );
     await asPrincipal(h.pool, 'userA', (c) =>
