@@ -26,7 +26,7 @@ const model: ModelClient = base;
 
 async function main() {
   await runMigrations(pool, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [IID, OWNER]);
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID, OWNER]);
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [OWNER]);
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));   // begin 预留
 
@@ -159,7 +159,7 @@ async function main() {
 
   console.log('\n──── quote evidence 单次拒绝的 lifecycle/权益投影证明 ────');
   const repairIid = `life-quote-repair-${Date.now()}`;
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [repairIid, OWNER]);
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [repairIid, OWNER]);
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, repairIid, 'mock_interview', 1.0));
   const repairCalls: { system: string }[] = [];
   const repairModel: ModelClient = {
@@ -190,7 +190,7 @@ async function main() {
 
   // TC-MODEL-ROUTE-04-E4: 出题 invoke 失败不得发明 question_ready。
   const failIid = 'life-fail-' + Date.now();
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [failIid, OWNER]);
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [failIid, OWNER]);
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, failIid, 'mock_interview', 1.0));
   const failingAsk = scriptedModelClient({
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
