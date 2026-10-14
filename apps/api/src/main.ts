@@ -174,6 +174,7 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // 超阈即 413 与既有 1MiB 钩子同信封同错码,并销毁包装流停转发(content-type-parser 不再缓冲);
   // GET/HEAD 无体请求流计数恒 0≤限,零特判零新分支。超阈后 content-type-parser 对包装流的等待由
   // reply.sent 短路终结(hooks.js preParsingHookRunner `if (reply.sent) return` + handleRequest 首行守卫)。
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fastify 实例上确为 any(见 getInstance() as any),钩子签名沿本文件既有 onRequest/onResponse 钩子同形,改真类型需动实例转换面,非本行内最小形
   fastify.addHook('preParsing', (req: any, reply: any, body: any, done: any) => {
     const url = String(req.url ?? '').split('?')[0] ?? '';
     if (UPLOAD_ROUTES.some((re) => re.test(url)) || req.headers['content-length'] !== undefined) { done(null, body); return; }
