@@ -111,7 +111,7 @@ if (bBucket.rowCount === 0) {
   console.log('\n──────── ADV-Replay · replay abandon · no double release ────────');
   const id = IID('replay');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   const before = await bal('userA');
@@ -150,7 +150,7 @@ if (bBucket.rowCount === 0) {
   const target = IID('tamper_t');
   const decoy = IID('tamper_d');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active'),($2,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created'),($2,'userA','created')",
     [target, decoy],
   );
   await asPrincipal(h.pool, 'userA', (c) =>
@@ -170,7 +170,7 @@ if (bBucket.rowCount === 0) {
   A('ADV-Tamper body spoof → 200 abandons path id only',
     tamperBody.status === 200 && tamperBody.body?.abandoned === true);
   A('ADV-Tamper path target → abandoned', (await ivStatus(target)) === 'abandoned');
-  A('ADV-Tamper decoy 仍 active（不跨面）', (await ivStatus(decoy)) === 'active');
+  A('ADV-Tamper decoy 仍 created（不跨面）', (await ivStatus(decoy)) === 'created');
   A('ADV-Tamper decoy consumption 仍 reserved', (await consStatus('userA', decoy)) === 'reserved');
   A('ADV-Tamper target consumption=released', (await consStatus('userA', target)) === 'released');
 
@@ -189,7 +189,7 @@ if (bBucket.rowCount === 0) {
   const weird = await h.post(`/interview/${encodeURIComponent('../' + decoy)}/abandon`, A_, {});
   A('ADV-Tamper path traversal-ish → 404 (or not decoy mutate)',
     weird.status === 404 || weird.status === 400 || weird.status >= 400);
-  A('ADV-Tamper decoy 仍 active after weird path', (await ivStatus(decoy)) === 'active');
+  A('ADV-Tamper decoy 仍 created after weird path', (await ivStatus(decoy)) === 'created');
   A('ADV-Tamper decoy consumption 仍 reserved', (await consStatus('userA', decoy)) === 'reserved');
 
   // Cleanup decoy via legit abandon so bucket is clean for later classes
@@ -253,7 +253,7 @@ if (bBucket.rowCount === 0) {
   console.log('\n──────── ADV-Forged-auth · missing/bad token · no side effects ────────');
   const id = IID('forge');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   const before = await bal('userA');
@@ -263,7 +263,7 @@ if (bBucket.rowCount === 0) {
 
   const missing = await h.post(`/interview/${id}/abandon`, {}, {});
   A('ADV-Forge missing auth → 401', missing.status === 401);
-  A('ADV-Forge missing 后仍 active', (await ivStatus(id)) === 'active');
+  A('ADV-Forge missing 后仍 created', (await ivStatus(id)) === 'created');
   A('ADV-Forge missing 额度未回补', (await bal('userA')) === before - 1);
   A('ADV-Forge missing consumption 仍 reserved', (await consStatus('userA', id)) === 'reserved');
 
@@ -271,22 +271,22 @@ if (bBucket.rowCount === 0) {
     authorization: 'Bearer garbage.token.here',
   }, {});
   A('ADV-Forge garbage Bearer → 401', garbage.status === 401);
-  A('ADV-Forge garbage 后仍 active', (await ivStatus(id)) === 'active');
+  A('ADV-Forge garbage 后仍 created', (await ivStatus(id)) === 'created');
 
   const badSig = await h.post(`/interview/${id}/abandon`, {
-    authorization: `Bearer ${tokenFor('userA', { secret: 'wrong-secret-key-not-auth' })}`,
+    authorization: `Bearer ${tokenFor('userA', { secret: 'wrong-secret-key-not-auth-test-only' })}`,
   }, {});
   A('ADV-Forge bad signature → 401', badSig.status === 401);
-  A('ADV-Forge badSig 后仍 active', (await ivStatus(id)) === 'active');
+  A('ADV-Forge badSig 后仍 created', (await ivStatus(id)) === 'created');
 
   const ghost = await h.post(`/interview/${id}/abandon`, {
     authorization: `Bearer ${tokenFor('ghostUser_no_account')}`,
   }, {});
   A('ADV-Forge ghost principal → 401/403/404',
     ghost.status === 401 || ghost.status === 403 || ghost.status === 404);
-  A('ADV-Forge ghost 后仍 active', (await ivStatus(id)) === 'active');
+  A('ADV-Forge ghost 后仍 created', (await ivStatus(id)) === 'created');
   A('ADV-Forge ghost 额度未回补', (await bal('userA')) === before - 1);
-  A('ADV-Forge 全程无 abandoned 副作用', (await ivStatus(id)) === 'active');
+  A('ADV-Forge 全程无 abandoned 副作用', (await ivStatus(id)) === 'created');
   A('ADV-Forge 全程 consumption 仍 reserved', (await consStatus('userA', id)) === 'reserved');
 
   // Valid token (HMAC with AUTH_SECRET) for owner should still work (sanity · not happiness wash)
@@ -304,7 +304,7 @@ if (bBucket.rowCount === 0) {
   const id = IID('inject');
   const other = IID('inject_o');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active'),($2,'userB','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created'),($2,'userB','active')",
     [id, other],
   );
   const aBefore = await bal('userA');
@@ -321,7 +321,7 @@ if (bBucket.rowCount === 0) {
   }, '{"abandoned":true,');
   A('ADV-Inject malformed JSON → 4xx structural reject',
     mal.status >= 400 && mal.status < 500);
-  A('ADV-Inject malformed 后 target 仍 active', (await ivStatus(id)) === 'active');
+  A('ADV-Inject malformed 后 target 仍 created', (await ivStatus(id)) === 'created');
   A('ADV-Inject malformed 后 other 仍 active', (await ivStatus(other)) === 'active');
   A('ADV-Inject malformed userA 额度未回补', (await bal('userA')) === aBefore - 1);
   A('ADV-Inject malformed userB 额度未变', (await bal('userB')) === bBefore - 1);
@@ -341,8 +341,8 @@ if (bBucket.rowCount === 0) {
   if (inj.status === 200) {
     A('ADV-Inject path target abandoned (body ignored)', (await ivStatus(id)) === 'abandoned');
   } else {
-    A('ADV-Inject rejected → target 仍 active 或 abandoned 安全',
-      (await ivStatus(id)) === 'active' || (await ivStatus(id)) === 'abandoned');
+    A('ADV-Inject rejected → target 仍 created 或 abandoned 安全',
+      (await ivStatus(id)) === 'created' || (await ivStatus(id)) === 'abandoned');
   }
   A('ADV-Inject other(userB) 未变 active', (await ivStatus(other)) === 'active');
   A('ADV-Inject other consumption 仍 reserved', (await consStatus('userB', other)) === 'reserved');

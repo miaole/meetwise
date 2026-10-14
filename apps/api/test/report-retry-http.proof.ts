@@ -107,7 +107,7 @@ async function setupConfirmedWithReport(owner: string, interviewId: string) {
     [owner],
   );
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
     [interviewId, owner],
   );
   await asPrincipal(h.pool, owner, (c) => reserveEntitlement(c, owner, interviewId, 'mock_interview', 1.0));
