@@ -10,10 +10,11 @@
  */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslations } from 'next-intl';
 import { runInterviewStream, type ResumeSignals } from '../stream/interview-stream';
 import { initialView, type InterviewView } from '../stream/interview-state';
 import { iterateInterviewSseBody, lastEventIdHeaderValue } from '../stream/sse-cursor';
-import { interviewDisplay, type Display } from '../view-model';
+import { interviewDisplay, type CopyLabels, type Display } from '../view-model';
 import { useFrameCoalescedState } from './useFrameCoalescedState';
 
 /** 打开 SSE 流:走**同源 Next 代理** `/api/interview/:id/events`,浏览器自动带 httpOnly cookie,代理服务端加 Bearer(修审计 P0:不再 x-user-id:'demo')。 */
@@ -48,6 +49,8 @@ export interface UseInterviewStream { view: InterviewView; display: Display; ret
 export function useInterviewStream(resultId: string): UseInterviewStream {
   const { state: view, publish, cancelPending, replaceImmediately } = useFrameCoalescedState<InterviewView>(initialView);
   const router = useRouter();
+  const tInterview = useTranslations('interview');
+  const labels: CopyLabels = (key) => tInterview(key);
   const [nonce, setNonce] = useState(0);
   const fireRef = useRef<(() => void) | null>(null);
   useEffect(() => {
@@ -75,5 +78,5 @@ export function useInterviewStream(resultId: string): UseInterviewStream {
     if (fireRef.current) fireRef.current();
     else setNonce((n) => n + 1);
   }, []);
-  return { view, display: interviewDisplay(view), retry };
+  return { view, display: interviewDisplay(view, labels), retry };
 }

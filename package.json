@@ -214,6 +214,7 @@
     "uc031-032:injection-jailbreak:prove:raw": "pnpm -C apps/api prove:uc031-032-injection-jailbreak",
     "uc003:i18n-locale:prove": "node scripts/run-e2e-isolated.mjs uc003:i18n-locale:prove:raw",
     "uc003:i18n-locale:prove:raw": "pnpm -C apps/web prove:uc003-i18n-locale",
+    "uc003:i18n-locale-ui:prove": "E2E_UI_GREP=UC003-I18N-locale-en E2E_UI_PROJECT=chromium E2E_UI_SKIP_WORKER=1 node scripts/run-e2e-isolated.mjs e2e:ui",
     "resume:prove": "node scripts/run-e2e-isolated.mjs resume:prove:raw",
     "recruiter:prove": "node scripts/run-e2e-isolated.mjs recruiter:prove:raw",
     "recruiter:prove:raw": "pnpm -C packages/db recruiter",
