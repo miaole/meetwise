@@ -1,5 +1,8 @@
 /**
  * TOKSTREAM 阶段1 prove（EXEC @REQUEST a31a7bbe · TS-P1..P5 · fake seam 零 live 零模型外呼）。
+ * fake-seam 标注：本 proof=noteModelFirstToken 未接线 seam 的自调证明面（fake-seam proof·生产链路零证明;
+ * 生产调用方零命中=unwired 原样登记，接线归流式真链后继刀）。
+
  * 断言面（harness/token-stream-design.md §3.7 预注册 · 裁定后钉死）：
  *   TS-P1 首 token 事件链：generation_started→model_first_token 产生且 firstTokenMs 记录；进度事件经
  *        API 同形 SSE 读路径（interview.service.ts:950 同 SQL）可见时延 ≤ 2s poll + ε（实测值落输出）。

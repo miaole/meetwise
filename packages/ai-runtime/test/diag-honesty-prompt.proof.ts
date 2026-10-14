@@ -11,7 +11,8 @@ import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { getPrompt } from '../src/prompts.ts';
-import { promptedModel, type ModelClient, type CompletionRequest, type ModelResult } from '../src/model-client.ts';
+import { promptedModel, type ModelClient, type CompletionRequest } from '../src/model-client.ts';
+import type { ModelResult } from '../src/invoke.ts';
 
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
