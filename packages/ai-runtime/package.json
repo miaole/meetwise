@@ -24,6 +24,7 @@
     "smoke:tts-download-live": "tsx scripts/tts-download-live-smoke.ts",
     "prove:metrics": "tsx test/metrics.proof.ts",
     "prove:tools": "tsx test/tools.proof.ts",
+    "prove:qa-tool-layer": "tsx test/qa-tool-layer.proof.ts",
     "prove:failover": "tsx test/failover.proof.ts",
     "prove:eval-metrics": "tsx test/eval-metrics.proof.ts",
     "prove:langfuse-eval": "tsx test/langfuse-evaluation-contract.proof.ts",
