@@ -517,12 +517,28 @@ export async function runMigrations(pool: Pool, migrations: Migration[], options
             if (recordedStep !== stepChecksum) throw migrationError(`migration_step_drift:${m.version}#${index}`);
             continue;                                                                          // 断点续跑:已记账句 skip
           }
+          // Same env-bounded timeouts as the transactional arm below (shared
+          // MIGRATION_STATEMENT_TIMEOUT_MS / MIGRATION_LOCK_TIMEOUT_MS carriers),
+          // scoped to the per-step transaction and restored in finally.  A
+          // timeout fires as statement cancellation: the step transaction rolls
+          // back with zero ledger progress and the run fails loud — no
+          // retry-to-green.
+          const priorStatementTimeout = await client.query<{ statement_timeout: string }>('SHOW statement_timeout');
+          const priorLockTimeout = await client.query<{ lock_timeout: string }>('SHOW lock_timeout');
+          const statementTimeout = transactionalMigrationTimeoutMs('MIGRATION_STATEMENT_TIMEOUT_MS', 60_000);
+          const lockTimeout = transactionalMigrationTimeoutMs('MIGRATION_LOCK_TIMEOUT_MS', 15_000);
           await client.query('BEGIN');
           try {
+            await client.query("SELECT set_config('statement_timeout',$1,false), set_config('lock_timeout',$2,false)", [String(statementTimeout), String(lockTimeout)]);
             await client.query(stepSql);
             await client.query('INSERT INTO schema_migrations_steps(version, step_index, checksum) VALUES ($1,$2,$3)', [m.version, index, stepChecksum]);
             await client.query('COMMIT');
           } catch (e) { await client.query('ROLLBACK'); throw tagMigrationFailure(e, m.version); }
+          finally {
+            const restoreStatementTimeout = priorStatementTimeout.rows[0]?.statement_timeout ?? '0';
+            const restoreLockTimeout = priorLockTimeout.rows[0]?.lock_timeout ?? '0';
+            await client.query("SELECT set_config('statement_timeout',$1,false), set_config('lock_timeout',$2,false)", [restoreStatementTimeout, restoreLockTimeout]);
+          }
         }
         await client.query('BEGIN');
         try {
