@@ -168,8 +168,8 @@ async function main() {
       /runToolLoop\(decide,\s*cfg\.registry,\s*\{\s*maxSteps:\s*cfg\.maxSteps\s*\}\)/.test(src));
     const mc = readFileSync(fileURLToPath(new URL('../src/model-client.ts', import.meta.url)), 'utf8');
     const mcSha = createHash('sha1').update(`blob ${Buffer.byteLength(mc)}\0`).update(mc).digest('hex');
-    A('model-client.ts 字节恒定面(请求体/数据围栏/G7 预留调用点零字节·blob 锚 c4827e8d72f8)',
-      mcSha === 'c4827e8d72f85c24df3967a4ce8f1b6a41b29483');
+    A('model-client.ts 字节恒定面(请求体/数据围栏/G7 预留调用点零字节·blob 锚 bef16cbdc2a1)',
+      mcSha === 'bef16cbdc2a1244935de837b26b3eb45d951631e');
   }
 
   // ── S1 C 端读面(RLS+显式 owner 谓词) ──────────────────────────────────────────────
