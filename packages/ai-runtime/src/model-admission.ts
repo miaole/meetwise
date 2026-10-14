@@ -62,6 +62,10 @@ export function isAdmissionRefusalRetryable(errorCode: string | undefined): bool
 /**
  * 从 `spec.operation` 派生准入分区（四字段，绝不 caller 供）。
  * 非 operation-scoped（legacy）返回 undefined——那是 MODEL-OP-00 账本路径，不走共享权威。
+ *
+ * 分区键的 providerAccount|region 两维在 admit 相位可被**端点身份**改写（见
+ * `withAdmissionEndpointPartition`）：端点身份只来自 model-client prepare 的冻结
+ * profile 注册表（服务器派生），InvokeSpec 永不携带端点字段。
  */
 export function resolveModelAdmissionPartition(
   spec: { operation?: { id: string; businessRevision: string } },
@@ -71,6 +75,28 @@ export function resolveModelAdmissionPartition(
   if (!resolved.ok) return undefined;
   const { providerAccount, region, modelOrRecipe } = resolved.definition.admission;
   return { providerAccount, region, modelOrRecipe, operationId: resolved.definition.operationId };
+}
+
+/** 端点准入身份（providerAccount|region 两维）。只由 model 层（prepare）从冻结的
+ *  endpoint profile 注册表服务器派生；vision 与无身份路径不产生该值。 */
+export interface ModelEndpointAdmissionIdentity {
+  providerAccount: string;
+  region: string;
+}
+
+/**
+ * admit 相位叠加（裁决①(a)）：plan 携带端点身份时，把分区的 providerAccount|region
+ * 两维改写为实际所选端点（准入/熔断/并发自此按端点分域——主备不再共享同一熔断行与
+ * 槽系）；modelOrRecipe|operationId 两维恒沿 registry 原值。plan 无端点身份
+ * （vision / legacy / 无 prepare 客户端）→ 分区原值返回（registry 字段降级为
+ * legacy 回退值，dashscope-native vision 行与旧四字键分区零漂）。
+ */
+export function withAdmissionEndpointPartition(
+  partition: ModelAdmissionPartition,
+  endpoint: ModelEndpointAdmissionIdentity | undefined,
+): ModelAdmissionPartition {
+  if (!endpoint) return partition;
+  return { ...partition, providerAccount: endpoint.providerAccount, region: endpoint.region };
 }
 
 /** 一次成功 acquire 的跨副本租约（槽位 + 探针 + 断路器阈值），record 时按此身份释放。 */

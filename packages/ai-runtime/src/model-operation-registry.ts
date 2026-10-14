@@ -18,6 +18,7 @@
  */
 import { createHash } from 'node:crypto';
 import type { ModelOperationInputKind } from './model-operation-binding.ts';
+import type { TextEndpointProfile } from './text-endpoint-config.ts';
 
 export const MODEL_OPERATION_REGISTRY_VERSION = 'model-op-registry-v1';
 
@@ -58,6 +59,13 @@ export interface ModelOperationDefinition {
 /**
  * Currently wired text operations (UC-MODEL-ROUTE-02 six invoke surfaces +
  * R2 P-MODEL `job.route-classify.v1`).
+ *
+ * AG-08 成本轨⑤语义降级注记：下列 `admission.providerAccount|region` 字面值
+ * 自 0200 起为 **legacy/缺省回退值**——仅 plan 无端点身份的路径（vision / 无
+ * prepare 客户端 / legacy seam）仍落此旧四字键分区（legacy 回退集，容忍僵尸）。
+ * 端点身份真源 = plan.admissionEndpoint（model-client prepare 从冻结 endpoint
+ * profile 注册表服务器派生，见 text-endpoint-config.ts / 0200 迁移种子）。
+ * 七行字面值零删除（静态门/proof 兼容面）。
  */
 const WIRED_TEXT_OPERATIONS: readonly ModelOperationDefinition[] = [
   {
@@ -223,6 +231,45 @@ export function modelOperationAdmissionKey(definition: ModelOperationDefinition)
     definition.admission.modelOrRecipe,
     definition.operationId,
   ].join('|');
+}
+
+/**
+ * AG-08 成本轨⑤（裁决③(b) 有界形·数据面）：预绑定端点 failover 对——键闭集 =
+ * **endpoint profile id × operation_id**（静态 14 行 = 七 text op × 主/备两侧各一行）。
+ * 主备 cost binding（provider/model/region/priceRevision）留**运行时派生**（env 可变，
+ * 装不下静态种子）；本对表是该语义的唯一静态白名单源：0130 墙一归一化/半开放行面的
+ * 消费判归 AG-09 联动刀（本刀 :806 全等门与 mismatch 终态语义零改）。行面只能改这里
+ * 并走评审；profile 闭集之外无行（type 级保证），对表基数=14 为静态等式（proof 遍历钉）。
+ */
+export const MODEL_COST_FAILOVER_PREBOUND_ENDPOINT_KEYS: readonly {
+  profile: TextEndpointProfile;
+  operationId: string;
+}[] = Object.freeze([
+  { profile: 'deepseek-cn-public', operationId: 'interview.competency-planning.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'interview.competency-planning.v1' },
+  { profile: 'deepseek-cn-public', operationId: 'interview.question-generation.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'interview.question-generation.v1' },
+  { profile: 'deepseek-cn-public', operationId: 'interview.answer-scoring.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'interview.answer-scoring.v1' },
+  { profile: 'deepseek-cn-public', operationId: 'interview.quiz-generation.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'interview.quiz-generation.v1' },
+  { profile: 'deepseek-cn-public', operationId: 'resume.diagnosis.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'resume.diagnosis.v1' },
+  { profile: 'deepseek-cn-public', operationId: 'report.narrative.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'report.narrative.v1' },
+  { profile: 'deepseek-cn-public', operationId: 'job.route-classify.v1' },
+  { profile: 'dashscope-cn-beijing', operationId: 'job.route-classify.v1' },
+] as const);
+
+/** 纯函数：某 text operation 的预绑定主/备 profile 对（不在对表闭集 → undefined）。 */
+export function preboundCostFailoverProfiles(
+  operationId: string,
+): { primary: TextEndpointProfile; backup: TextEndpointProfile } | undefined {
+  const rows = MODEL_COST_FAILOVER_PREBOUND_ENDPOINT_KEYS.filter((r) => r.operationId === operationId);
+  if (rows.length !== 2) return undefined;
+  const primary = rows.find((r) => r.profile === 'deepseek-cn-public');
+  const backup = rows.find((r) => r.profile === 'dashscope-cn-beijing');
+  return primary && backup ? { primary: primary.profile, backup: backup.profile } : undefined;
 }
 
 export type ModelOperationResolution =

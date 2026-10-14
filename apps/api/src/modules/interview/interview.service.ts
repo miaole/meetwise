@@ -34,7 +34,7 @@ const TURN_RL = { capacity: 30, refillPerSec: 0.2 };
 // 手动报告重试(#229 D2):重排即给一轮全新 3 次自动重试预算(每轮都是付费模型调用) → 无限点击 = 成本 DoS。
 // **每份报告 3 次/小时**令牌桶(突发 3,稳态 3/3600 每秒)·阈值=建议值待用户追认(S12)·常量钉死可调,改值不需重开 REQUEST。
 const REPORT_RETRY_RL = { capacity: 3, refillPerSec: 3 / 3600 };
-// interview 表状态机:created → active →(completed | failed | abandoned)。终态集中一处定义,begin/turn/abandon 守卫共用。
+// interview 表状态机:created →(completed | failed | abandoned)（A 形 5E 摘除 active 直达）。终态集中一处定义,begin/turn/abandon 守卫共用。
 const TERMINAL_INTERVIEW = ['completed', 'abandoned', 'failed'];
 const MAX_TURN = 256;             // turn 号上界(默认绝对杀开关 120 + clarify 冗余;防超大 turn 号刷无限 job)
 // DBID-1 post-dual 席2：版本组字符类放宽 [1-5]→[0-9a-f]（纳 v7 · resume.id 已 DEFAULT uuidv7()）·变位锁 [89ab] 与守卫逻辑不动。
@@ -232,8 +232,6 @@ export async function beginInterviewCore(
     const anyExistingStart = await c.query("SELECT 1 FROM interview_job WHERE interview_id=$1 AND kind='start'", [id]);
     if (anyExistingStart.rowCount! > 0)
       throw new HttpException({ error: 'legacy_resume_reference_unavailable' }, HttpStatus.CONFLICT);
-    // 已 active(worker 已开面/已出题)但无 start job 行(边角恢复态)→ 幂等返回,绝不二次预留额度。
-    if (cur.rows[0].status === 'active') return { accepted: true, alreadyBegun: true };
     // G7S 通用 begin 供给面收口(C-MO-S4 事务序):candidate-profile-derived route decision + snapshot
     // 同步落库,先于扣额/入队(同 asPrincipal 事务,未决 throw → 整体回滚零悬账)。通用面
     // (application_id IS NULL)才供给;recruiter-flow 面的 bound interview 由 recruiter 启动事务的
@@ -371,8 +369,8 @@ export class InterviewService {
   }
 
   /** 语音端点共用限流闸(ASR/TTS 无额度预留 → 防成本 DoS)。超速 → 429。 */
-  private voiceGate(principal: string) {
-    if (!this.rl.allow(`voice:${principal}`, VOICE_RL.capacity, VOICE_RL.refillPerSec))
+  private async voiceGate(principal: string) {
+    if (!(await this.rl.allow(`voice:${principal}`, VOICE_RL.capacity, VOICE_RL.refillPerSec)))
       throw new HttpException({ error: 'too_many_requests', message: '语音请求过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
@@ -421,7 +419,7 @@ export class InterviewService {
   }
 
   // 提交一题答案:入队 answer job(worker 续图+评分)。text 答案;音频先 ASR 转写再走此端点。
-  turn(principal: string, id: string, body: TurnDto, requestId?: string) {
+  async turn(principal: string, id: string, body: TurnDto, requestId?: string) {
     this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const turn = body.turn;
@@ -435,7 +433,7 @@ export class InterviewService {
     if (overlong.accepted === false)
       throw new HttpException({ error: overlong.policy.errorCode, max: overlong.policy.maxLength }, HttpStatus.PAYLOAD_TOO_LARGE);
     // 成本 DoS 闸(每 turn = 一条付费评分 job):per-principal 令牌桶,超速 → 429(安全审计 F1)。
-    if (!this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec))
+    if (!(await this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec)))
       throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
     const owner = requireOwnerUserId(principal, 'interview.turn');   // PRIV01-C 第二层 E1(授权根仍 RLS)
     return this.db.asPrincipal(owner, async (c) => {
@@ -462,13 +460,13 @@ export class InterviewService {
    * Preview-path ledger write. Calls the existing 0092 submitInterviewAnswer
    * rehearsal. Does not enqueue a plaintext /turn job and is not 01 cutover.
    */
-  submitPreviewAnswer(principal: string, id: string, body: InterviewAnswerPreviewSubmitDto): Promise<InterviewAnswerSubmitResult> {
+  async submitPreviewAnswer(principal: string, id: string, body: InterviewAnswerPreviewSubmitDto): Promise<InterviewAnswerSubmitResult> {
     this.requirePublicPreviewControlledWrite();
     if (!body.answer.trim()) throw new HttpException({ error: 'interview_answer_body_empty' }, HttpStatus.BAD_REQUEST);
     const overlong = resolveOverlongAnswerPolicy('interview_route', body.answer.length);
     if (overlong.accepted === false)
       throw new HttpException({ error: overlong.policy.errorCode, max: overlong.policy.maxLength }, HttpStatus.PAYLOAD_TOO_LARGE);
-    if (!this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec))
+    if (!(await this.rl.allow(`turn:${principal}`, TURN_RL.capacity, TURN_RL.refillPerSec)))
       throw new HttpException({ error: 'too_many_requests', message: '作答过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
     const owner = requireOwnerUserId(principal, 'interview.submitPreviewAnswer');   // PRIV01-C 第二层 E1
     const issuedScope = buildRequiredOwnerFilter(owner, 'interview.submitPreview.issued');   // E2 必选谓词(原 GUC 直读改参数绑定,RLS 会话内同值)
@@ -549,7 +547,7 @@ export class InterviewService {
   // 语音作答转写:音频 → ASR 文本。**modality-agnostic 不破**——转写文本即文本答案,后续仍走 /turn。
   // 边缘 I/O(ASR)直调 ai-runtime voice seam(在 invoke 关口之外)。隐私:只回转写文本,原始录音不落库(rules 隐私铁律——录音需单独同意才存)。
   async transcribe(principal: string, id: string, dto: TranscribeDto, options?: { signal?: AbortSignal }) {
-    this.voiceGate(principal);
+    await this.voiceGate(principal);
     const owner = requireOwnerUserId(principal, 'interview.transcribe');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
     // Check the same durable fence before any audio leaves the process.  This
     // closes delete-wins; dispatch-wins provider retention receipts remain a
@@ -566,7 +564,7 @@ export class InterviewService {
 
   /** TTS:把 AI 题/追问合成语音(qwen-tts),供单人语音模式播报。未配置/失败 → 降级(前端回落文字读题)。 */
   async speak(principal: string, id: string, dto: { text: string }, options: { signal?: AbortSignal } = {}) {
-    this.voiceGate(principal);
+    await this.voiceGate(principal);
     const owner = requireOwnerUserId(principal, 'interview.speak');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
     await this.db.asPrincipal(owner, (c) => this.guardInterviewPrivacy(c, id));
     const text = (dto.text ?? '').trim();
@@ -577,7 +575,7 @@ export class InterviewService {
   /** 流式 TTS 前置:归属校验(404)+ 文本校验(400)+ 配置校验(503)。**真正的 chunk 写入是 Fastify raw 流胶水,留在 controller**(对齐 SSE 边界 F5)。
    *  把"首音延迟"从整段合成下载(qwen-tts ~9s)降到首块到达(cosyvoice WS ~1-2s);未配置/中断 → 前端回落非流式 /speak 再回落文字读题(无死胡同)。 */
   async speakStreamPrepare(principal: string, id: string, dto: { text: string }) {
-    this.voiceGate(principal);
+    await this.voiceGate(principal);
     const owner = requireOwnerUserId(principal, 'interview.speakStreamPrepare');   // PRIV01-C 第二层 E1(授权根仍 RLS;guard 0 行→404 fail-closed)
     await this.db.asPrincipal(owner, (c) => this.guardInterviewPrivacy(c, id));
     const text = (dto.text ?? '').trim();
@@ -746,7 +744,7 @@ export class InterviewService {
   // #229 D2:入口前置**每份报告 3 次/小时**令牌桶频控(重排给全新自动预算=付费调用,无限点击=成本 DoS);超限 429 report_retry_limited。
   async retryReport(principal: string, id: string) {
     this.denyPublicPreviewWrite();
-    if (!this.rl.allow('report_retry:' + id, REPORT_RETRY_RL.capacity, REPORT_RETRY_RL.refillPerSec))
+    if (!(await this.rl.allow('report_retry:' + id, REPORT_RETRY_RL.capacity, REPORT_RETRY_RL.refillPerSec)))
       throw new HttpException({ error: 'report_retry_limited' }, HttpStatus.TOO_MANY_REQUESTS);
     return retryReportById(this.db, this.guardInterviewPrivacy.bind(this), principal, id);
   }

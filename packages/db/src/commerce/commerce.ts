@@ -374,7 +374,7 @@ export async function completeInterviewAndConfirm(c: Client, owner: string, inte
   // 同一条带谓词 UPDATE 是状态机 CAS：若 abandon 已在别的事务中赢了，0 行 + 抛错会回滚上方确认。
   const updated = await c.query(
     `UPDATE interview SET status='completed', version=version+1
-      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active')
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) {
     return { status: 'completed', unitsSettled: settlement.status === 'confirmed' ? settlement.unitsSettled : cappedUnitsSettled };
@@ -415,7 +415,7 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
   }
   const updated = await c.query(
     `UPDATE interview SET status='failed', version=version+1
-      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user','migrating','paused')
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','waiting_user','migrating','paused')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) return { status: 'failed', released: terminalReleasedOf(release) };
 
@@ -434,7 +434,7 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
  * 先在 consumption 行上串行化 release，再条件更新 interview；若完成方已先确认，release 返回
  * `already_confirmed` 并抛错，绝不把 completed 覆盖为 abandoned。created 且从未 reserve 的空壳可直接
  * abandoned，但 UPDATE 同时检查「现在仍不存在消费记录」，堵住 begin 与 abandon 的窗口。
- * 有消费记录时 CAS 允许集：`created|active|waiting_user`（对齐 UC-E2E-018 active/waiting_user→abandoned）。
+ * `created|waiting_user`（对齐 UC-E2E-018 waiting_user→abandoned；active 非生产写入态·死成员已摘除）。
  * 成功放弃（含 already_abandoned 幂等）时同步将同 thread 的 AiGraphRun
  * `safe_terminating`→`safely_terminated`（状态机两步；清 lease）；不删 interview_event /
  * interview_question / interview 行（业务事实独立保全 · GAP-UC018-GRAPH）。
@@ -497,12 +497,12 @@ export async function abandonInterviewAndRelease(c: Client, owner: string, inter
     });
   }
 
-  // CAS 允许集对齐 UC-E2E-018 主流程：Interview active/waiting_user → abandoned
-  // （created 含 begin 后 worker 置 active 前；waiting_user = 题间等待用户作答）。
+  // CAS 允许集对齐 UC-E2E-018 主流程：Interview created/waiting_user → abandoned
+  // （waiting_user = 题间等待用户作答；active 非生产写入态·死成员已摘除）。
   // 不含 migrating/paused（Interview 业务枚举无此二态；AiGraphRun 另表，见 finishAbandon）。
   const updated = await c.query(
     `UPDATE interview SET status='abandoned', version=version+1
-      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','active','waiting_user')
+      WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','waiting_user')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) {
     return finishAbandon(c, owner, interviewId, { status: 'abandoned', released: terminalReleasedOf(release) });
