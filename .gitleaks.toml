@@ -18,6 +18,9 @@ paths = [
   # E2E 收据假 token 假阳性：LIVE 复跑 diag 于本机 127.0.0.1 一次性栈 signup 自签 JWT
   # （uid=运行内随机 UUID·role=candidate·验证实例跑毕 SIGKILL 已销毁·不可登录任何生产/三方服务）。
   '''(^|/)receipts/live-rerun-2026-10-11/diag-entitlement-flow\.log$''',
+  # 测试断言假值·非凭据：ai-runtime exports map 封闭性断言行（`P6_ALLOWED.size` 标识符文本被
+  # generic-api-key 启发式误读·比对对象仅为 '.'/'./g7-bootstrap' 等包内子路径字面量·零密钥语义）。
+  '''(^|/)packages/ai-runtime/test/test-support-fakes\.proof\.ts$''',
 ]
 # Matched "secrets" are pnpm script suffixes / honesty phrases, not API keys.
 regexes = [

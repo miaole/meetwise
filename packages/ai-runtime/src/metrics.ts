@@ -94,6 +94,9 @@ export const METRIC = {
   modelCostGovernanceEnabled: 'model_cost_governance_enabled',
   modelCostBudgetRemainingRatio: 'model_cost_budget_remaining_ratio',
   modelCostUnknownReservations: 'model_cost_unknown_reservations',
+  // AG-11/EG-B2：settle 真实消耗超预留（overage）显式计数——月限只告警不拒绝的告警载体。
+  // 政策稳态=0，>0 即告警；零 label（低基数纪律），月超额上界≈穿仓瞬间在飞预留并发×单调用封顶。
+  modelCostSettleOverageTotal: 'model_cost_settle_overage_total',
   modelInvocationReconcileInvocations: 'model_invocation_reconcile_invocations_total',
   modelInvocationReconcileFrozenCosts: 'model_invocation_reconcile_frozen_costs_total',
   // UC-028 fail-open(NHP-028-FAULT-01):ai_invocation_trace 写失败(fail-open 旁路)的结构化观测计数。
@@ -146,6 +149,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.modelCostSettledMicroCny, undefined, 0);
   m.inc(METRIC.modelEstimateUnderestimated, undefined, 0);
   m.inc(METRIC.modelEstimateCalibrationUnderestimated, undefined, 0);
+  m.inc(METRIC.modelCostSettleOverageTotal, undefined, 0);
   m.setGauge(METRIC.modelCostGovernanceEnabled, 0);
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
