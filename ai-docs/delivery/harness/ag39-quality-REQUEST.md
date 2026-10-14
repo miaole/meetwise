@@ -41,7 +41,7 @@
 1. **行号漂移（结论不变）**：checklist `:2588` 与母卷裁决②写「应用侧 qbank-generation-retrieval `:240-250`」·现 tip 实测融合段=`:290-300`（A6·0186+0187 并线后同文件函数体扩展所致·机制描述逐字成立）。
 2. **「迁移号预期零」实证修订（起草席结论·裁决项⑤）**：派单指令预写「迁移号预期零（纯函数+proof）」——**实证不成立**：修法①强形态需把 owner_kind 暴露到函数返回面（A8/A10 两函数返回面无 owner·A15/A16 RLS `qbank_is_curator()` 挡服务角色直读表·应用层无 per-row owner 数据源）→ 返回类型变更=DROP+CREATE=迁移；修法②两案至少一案落 SQL 体（CREATE OR REPLACE 亦须迁移承载）→ **预期恰 1 迁移 `0201`**（A22·rev2 B1 改占 0200→**EXEC 改占勘误 0201**·0200 已被成本⑤实占）·零迁移仅剩「登记不动」退化案=不解决 STILL OPEN（不推荐·§1 两案并陈如实列）。
 3. **C 端零影响（结论锚）**：C 端 owner_kind='platform' 查询经内层谓词恒只见 platform 行（A9/A10 谓词面）→ org 行不在候选池·双行面仅 org 调用方存在——两修法对 C 端臂（A21 ②-a/⑤ 区）逐位零变。
-4. **cache 交互（结论锚）**：融合层排序/折叠语义变更→`cachedQbankSearch` 语义随之变→缓存键 v5→v6 必跳（A18）·升版动作随裁决⑥形态定（同刀一次跳）·**零残留论证（rev2 F4）**：版本串内嵌于键→旧 v5 键在新代码下不可达+TTL 有界自净（代码缺省 `DEFAULT_TTL_SECONDS=120`·`qbank-retrieval-cache.ts:22` 亲证·调用面自定义上界沿审席口径 ≤3600s）+PG `qbank_retrieval_fill_intent` 旧键行 inert（键含版本串新代码永不命中·singleflight 面 :175-196）+滚动部署新旧实例键空间不相交（版本串不同）→零跨版本脏读残留；**v4→v5 归属勘正**：v5=AG-39 母刀 EXEC `1408d8c2` 升版绑 owner 两值（文件头注 :16-18「v5 additionally binds the AG39 owner layer」可验·`git log -L` 亲证）·**非 AG-24**。
+4. **cache 交互（结论锚）**：融合层排序/折叠语义变更→`cachedQbankSearch` 语义随之变→缓存键 v5→v6 必跳（A18）·升版动作随裁决⑥形态定（同刀一次跳）·**零残留论证（rev2 F4）**：版本串内嵌于键→旧 v5 键在新代码下不可达+TTL 有界自净（代码缺省 `DEFAULT_TTL_SECONDS=120`·`qbank-retrieval-cache.ts:27` 亲证（**nail 前勘正**：EXEC v6 头注恰 +5 行推位·原 :22→:27·§12 E3）·调用面自定义上界沿审席口径 ≤3600s）+PG `qbank_retrieval_fill_intent` 旧键行 inert（键含版本串新代码永不命中·singleflight 面 :180-201（**nail 前勘正**：原 :175-196+5·§12 E3））+滚动部署新旧实例键空间不相交（版本串不同）→零跨版本脏读残留；**v4→v5 归属勘正**：v5=AG-39 母刀 EXEC `1408d8c2` 升版绑 owner 两值（文件头注 :16-18「v5 additionally binds the AG39 owner layer」可验·`git log -L` 亲证）·**非 AG-24**。
 
 ## §1 红事实 + 修法（两件·对应 STILL OPEN 第①②项·每件两案并陈·落位形=裁决项）
 
@@ -186,7 +186,7 @@ node scripts/ai-docs/check-docs.mjs  # EXIT=0
 | # | 门 | 结论 | 关键行 |
 |---|---|---|---|
 | 1 | `ag39-org-qbank:prove` | **EXIT=0 ALL GREEN** | 50 臂零翻（PASS 行 53=50 臂+2 夹具行·FAIL=0）·②-a/②-b-1/②-b-2/⑤-1/④ 区逐位原值·C 端逐位零变硬验收保持 |
-| 2 | `ag39-quality:prove`（新注册门） | **EXIT=0 ALL GREEN** | 22 臂（迁移 3+红②可复现 2+折叠 6+融合秩 5+question 解析 2+夹具 4·FAIL=0）·②-0 逆转可构造 minPlat=0.029877>maxOrg=0.016393（红①复现性）·②-1 rrf owner 秩落位·③-3 org 域 ann 9 行（k 槽位回收）·③-5/②-4 C 端逐位零变 |
+| 2 | `ag39-quality:prove`（新注册门） | **EXIT=0 ALL GREEN** | 21 断言臂+收尾（迁移 3+红②可复现 2+折叠 6+融合秩 5+question 解析 2+夹具 3·FAIL=0·**nail 前勘正**：原记「22 臂/夹具 4」系誊写误·§12 E2）·②-0 逆转可构造 minPlat=0.029877>maxOrg=0.016393（红①复现性）·②-1 rrf owner 秩落位·③-3 org 域 ann 9 行（k 槽位回收）·③-5/②-4 C 端逐位零变 |
 | 3 | `migrate:prove` | **EXIT=0** | 全链含 0201·连续前缀守卫 PASS·幂等/事务控制门全绿 |
 | 4 | `drift:prove` | **EXIT=0** | schema 无漂移（函数面不涉列/约束比对·豁免面既有） |
 | 5 | `check-migration-version-uniqueness` | **EXIT=0** | `files=189 violations=0 exemptions=0143,0152,0160`（189=并线 188+0201·恰合派单预期） |
@@ -195,11 +195,15 @@ node scripts/ai-docs/check-docs.mjs  # EXIT=0
 | 8 | markers 五类 | **零命中** | 改动集新增行 653 行（`git diff 5a55f253 -U0`+两新件全文口径·五类词族=TODO/FIXME/XXX/HACK/冲突标记·i6-239 门口径）零命中 |
 | 9 | 新 proof 注册面 | **EXIT=0** | 根 package.json `ag39-quality:prove`/`:raw`+apps/worker `prove:ag39-quality`+run-e2e-isolated 三点位（文件表/命令分支/白名单×2）·node --check+JSON parse 双绿 |
 | 10 | `docs:check` | **EXIT=1（红·STOP 因）** | `public_text_policy:PTP_FILE_LIMIT:2081`>cap **2080**——红因：本刀受管新文件 +2（0201 迁移+新 proof 件）而并线后基线 2079 已贴线（暂移两新件实测 EXIT=0=2079≤2080）；派单预期 `uniqueness files=189` 仅预算迁移 +1·新 proof 件未入文件预算——cap 上调三先例均「协调方授权上调·沿派单 sanctioned 值」（public-text-policy.mjs:40-45 步注）·EXEC 自行上调=越界·故 STOP 上报 |
+| 11 | `qbank-control-sec:prove` | **EXIT=0（post 席2 代跑）** | 0201 函数体变更高敏面（门预申明「若 0201 落地增跑」所列）·2026-10-14 16:09-16:11Z 时窗·收据归主会话批边界·本表注明代跑口径·零新红（**nail 前勘正补登·§12 E1**） |
+| 12 | `rag03-filter-locus:prove` | **EXIT=0（post 席2 代跑）** | 0201 函数体变更高敏面（同 #11 口径）·零新红（**nail 前勘正补登·§12 E1**） |
+| 13 | `rag03-hnsw-completeness:prove` | **EXIT=0（post 席2 代跑）** | 0201 函数体变更高敏面（同 #11 口径）·零新红（**nail 前勘正补登·§12 E1**） |
 
 ### ⑪-3 §0 重 pin 漂移登记（并线 `5a55f253` 后全量 22 锚复测）
 
 - **行号漂（结论不变只更行号）**：A1 :2583→**:2585**·A2 :2588→**:2590**（checklist +2）；A20 main.ts :569→**:568**（merge 携入·rg 全集仍恰两处生产调用·track-local :266 零漂）；A21 根 package.json :386-389→**:391-393**·apps/worker/package.json :57→**:61**。
 - **零漂**：A3（:126-130）·A4/A5·A6（:271-312 全部子行）·A7-A11（0187 全文）·A13/A14（0186 :110-112）·A15/A16（0029）·A17（ingest 五点）·A18（cache :19/:22/:283）·A19（store :25/:78）·A21 五十臂行（:254-256/:259-260/:274-275/:304-314）。
+- **A18 终态行号勘正（nail 前 errata·结论不变只更行号）**：上行零漂登记系并线 `5a55f253` 时点实测（当时 cache :19/:22/:283 无误）——EXEC 自身 v6 头注恰 +5 行（`git diff 5a55f253` 亲证·v6 注记插于 v5 块之后）使终态 tip 漂为 CACHE_KEY_VERSION **:24**·DEFAULT_TTL_SECONDS **:27**·fill_intent singleflight 面 **:180-201**（原 :175-196+5 恒等映射）·cachedQbankSearch 内 hybridQbankSearch 调用 :283→**:288**——系本刀自身推位非并线漂移·§0.2-4 引用行已随勘（§12 E3）。
 - **A12 机制补全（结论不变·机制面增记）**：DROP+CREATE 实证须先摘 **0068 :142-216 四条 candidate 视图 RLS 策略**（p_qbank_source_candidate_view/p_qbank_pool_candidate_view/p_qbank_chunk_candidate_view/p_qbank_generation_candidate_reader——USING 内 `::regprocedure` 常量对函数建 pg_depend 跟踪·初版迁移 migrate:prove 红于 reportDependentObjects 亲证）·函数重建后策略**逐字原形重放**（regprocedure 重指新 OID=依赖关系原样重建·语义零改·同 ACL 原形重放先例）；**CREATE OR REPLACE 增尾列亦被禁**（临时库实证 `cannot change return type of existing function`——A12「CREATE OR REPLACE 不可改返回类型」钉死成立）。
 
 ### ⑪-4 est live=0 与收据
@@ -219,5 +223,17 @@ node scripts/ai-docs/check-docs.mjs  # EXIT=0
 - **两受管件点名**：`packages/db/migrations/0201_qbank_fusion_owner_rank_org_dedup.sql`（迁移 +1·派单预算内）+`apps/worker/test/ag39-quality-fusion-rank-dedup.proof.ts`（新 proof 件·派单预期 uniqueness files=189 未预算之 +1=红停成因）。
 - **门复跑（翻面席亲跑·施工面零字节变动·⑪-2 收据在案有效）**：docs:check EXIT=0（`scanned 2081 managed worktree files`≤cap 2081）·markers 五类零命中（改动集新增行+两新件全文口径·词族申报自指行防自指排除·沿 i6-239 门口径）·public-text-policy:prove EXIT=0（12/12·E11 联动臂绿）·ag39-org-qbank:prove EXIT=0（PASS 53=50 臂+2 夹具行·FAIL=0）·ag39-quality:prove EXIT=0 ALL GREEN（断言 PASS 21+收尾·FAIL=0）·migrate:prove EXIT=0（链头 0201·连续前缀守卫 PASS）·drift:prove EXIT=0 零漂移·check-migration-version-uniqueness EXIT=0 `files=189 violations=0`·turbo typecheck --force 8/8 EXIT=0·turbo lint 触面恒等（db **1040=1040**+worker **950=950** 贴线绿 EXIT=0·api **1431>1421**+root **5210>5200** 双红=既登 AUTHZ 基线恒等承登不变·merge 携入非本刀新红）。
 - **翻面**：Status `executed:halted_docs_file_cap_awaiting_sanction`→`executed:awaiting_post_prove_dual`·commit 随本刀落（⛔push·待 post 双席 prove·alone≠dual）。
+
+## §12 nail 前 errata 勘正席处置摘要（2026-10-14·post 双审 BOTH PASS·errata 随 nail 落卷·docs-only 恰 1 .md=本卷·零码动·STOP 维持 `executed:awaiting_post_prove_dual`）
+
+**处置计数**：post 双审 errata 三条全数处置=E1（⑪-2 三门收据补登）+E2（⑪-2 计数勘正）+E3（§0.2-4/⑪-3 行号批）+N1/N2 观察登记两行（登记零动作）·改动集恰 1 .md=本卷·commit=nail 前 errata·⛔push。
+
+1. **E1·⑪-2 门矩阵补三行收据**：`qbank-control-sec:prove`/`rag03-filter-locus:prove`/`rag03-hnsw-completeness:prove` 三门系门预申明「若 0201 落地增跑」所列·0201 函数体变更高敏面回归门——EXEC 门矩阵原十行未含（⑪-6 翻面复跑集亦未涉此三门）·**post 席2 代跑全 EXIT=0**（2026-10-14 16:09-16:11Z 时窗·收据归主会话批边界·本卷按派单口径注明代跑·非 EXEC 亲跑行）·落点=⑪-2 表新增 #11-#13 三行。
+2. **E2·⑪-2 计数勘正**：「22 臂（夹具 4）」→「**21 断言臂+收尾（夹具 3）**」——proof `apps/worker/test/ag39-quality-fusion-rank-dedup.proof.ts` `A('` 臂实测恰 21（夹具 3=:134/:137/:141+迁移 3=:154/:162/:170+红②可复现 2=:180/:182+折叠 6=:196-:212+融合秩 5=:231-:261+question 解析 2=:271/:275·rg/Read 亲证）·与 ⑪-6「断言 PASS 21+收尾」恒等·原记「22 臂/夹具 4」系誊写误·落点=⑪-2 行 2。
+3. **E3·行号批（§0.2-4+⑪-3）**：本刀 v6 头注恰 +5 行（`git diff 5a55f253` 亲证·v6 注记插于 v5 头注块之后）——CACHE_KEY_VERSION :19→**:24**·DEFAULT_TTL_SECONDS :22→**:27**·fill_intent singleflight 面 :175-196→**:180-201**（+5 恒等映射·rg/Read 终态亲证）·cachedQbankSearch 内 hybridQbankSearch 调用 :283→:288·落点=§0.2-4 随文勘正+⑪-3 增 A18 终态勘正注；§0.1 A18 锚/§2-5/§9-6 沿 base 实测与历史席次记录保史不追改（派单点名落点仅 §0.2-4/⑪-3 两处）。
+4. **N1 观察登记（零动作）**：ann 孪生镜像=**基谓词成员非窗成员**·排除先于窗截断→现实不可误杀（同内容排除 NOT EXISTS 判定作用于候选行自身可见性·孪生只需为基谓词成员即触发排除·无需入距离窗·窗截断在排除之后·「唯一可召回副本因窗截断被误杀」形不成立）；+0201 **:117** 外层 `ORDER BY (CASE WHEN a.owner_kind='org' THEN 0 ELSE 1 END), a.dist` **无 refId tiebreak 系 0187 :110 既有形**（两行逐字同构亲证·同分序靠 dist 隐定·应用侧三级键 refId 兜稳）非本刀回归——外层 tiebreak 若需库内稳定序归后继刀面·本刀零动。
+5. **N2 观察登记（零动作）**：NOT EXISTS 反连接索引观察项——同内容排除谓词反连接路径在 org 域候选集放量下的索引利用（generation/taxonomy_version/serving_scope_id/content_hash 组合入口）留后继性能观察·本刀零动（§3-4 索引形态 Ban 面零触）。
+
+**自检**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（2081≤cap 2081·本树亲跑）；markers 五类改动集新增行零命中；STOP 维持 `executed:awaiting_post_prove_dual`（nail 翻面归主会话批边界·alone≠dual·⛔push）。
 
 **Sibling sections stay as written. alone≠dual · EXIT0≠covered · 实现方不 self-approve · ⛔push。**
