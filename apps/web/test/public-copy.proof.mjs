@@ -278,9 +278,20 @@ const checks = {
   'TC-PUBLIC-COPY-E11': () => {
     forbid(`${resume}\n${resumeForms}\n${resumeOcrUi}`, ['求职者', '面试官'], 'resume OCR preview copy');
     forbid(resumeForms, ['OCR 接线中', 'image/*'], 'closed resume file input');
-    requireText(resumeOcrUi, '不是生产视觉质量承诺', 'resume OCR preview copy');
+    // UC003-I18N 修法②随迁（§8 裁决⑥ 双源）：help text / card description / banner 文案迁
+    // messages/{zh,en}.json（resumeUpload namespace）后，两针失锚改指 zh.json 源文；
+    // 「不会编造文字」针仍锚留守 map（upload_timeout 值）原样不动。en 侧=键存在+值
+    // CJK-free（不逐字断言 EXEC 自撰译文）。forbid 面（:279/:280/:292）不随迁（rev3 P2-③：
+    // 扫描目标仍指 read() 源文件；messages 面由 S2 key parity + S4 CJK-free 接管）。
+    requireText(homeZh, '不是生产视觉质量承诺', 'resume OCR preview copy');
     requireText(resumeOcrUi, '不会编造文字', 'resume OCR preview copy');
-    requireText(resumeOcrUi, '图片识别未开放', 'resume OCR closed copy');
+    requireText(homeZh, '图片识别未开放', 'resume OCR closed copy');
+    const resumeUploadEnCatalog = JSON.parse(homeEn).resumeUpload ?? {};
+    const resumeUploadCjkPattern = /[\u4e00-\u9fff]/;
+    for (const key of ['helpPreview', 'helpStandard', 'cardPreview', 'cardStandard', 'banner']) {
+      assert.equal(typeof resumeUploadEnCatalog[key], 'string', `en.json resumeUpload.${key} must exist (UC003-I18N migration)`);
+      assert.equal(resumeUploadCjkPattern.test(resumeUploadEnCatalog[key]), false, `en.json resumeUpload.${key} must be CJK-free`);
+    }
     requireText(resumeOcrPreview, "OCR_ENABLED === '1' && env.OCR_PREVIEW === '1'", 'resume OCR preview flags');
     requireText(resumeOcrPreview, "MEETWISE_PUBLIC_PREVIEW === '1'", 'resume OCR public-preview lock');
     requireText(resume, 'isOcrPreviewEnabled', 'resume page wires the preview gate');
