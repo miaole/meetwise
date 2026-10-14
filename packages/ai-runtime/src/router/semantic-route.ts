@@ -27,6 +27,16 @@
  * （AD P4）+ 预算重报 + 阈值先冻（`SEMANTIC_ROUTE_PERF_BUDGET` 已先于首调冻结）+
  * H19 temperature=0 + 固定 prompt 版本 + 决策持久化。
  *
+ * **生产未接线（Wiring preconditions · #171）**：本模块当前**生产调用点=0**（仅 proof/scripted
+ * 缝消费），生产未接线是本文件头的明示契约。接线前三前置，缺一不可：
+ *   ① 必须走 invoke() 关口——durable claim + 幂等 + 计费账本 + MODEL-OP-02 共享准入单一权威；
+ *      禁止绕开计费面另开第二口径（`costHardCapCny` 属 Stage-S 实验预算面，不是生产计费）。
+ *   ② 缝超时改真 abort——`withTimeout` 现为 reject-only（到点仅 reject，底层模型缝 promise 不
+ *      取消、计费照烧）；接线前必须改造为能取消底层调用的 abort 语义。
+ *   ③ `ledger` 只增面改持久化/有界——现进程内数组只增不落盘无上界（`attempts()` 是其唯一
+ *      收官读点）；接线后即为语义审计漏斗口径，须先改持久化或加界。
+ * Stage L live 授权链不变；下方 pins「router 生产接线宣称 ≠ …」否定式在接线完成并获授权前维持不翻。
+ *
  * Pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true ·
  * coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) ·
  * EXIT0 ≠ GAP-RAG-05 `:73` CLOSED ≠ 语义质量冻结 ≠ covered flip ≠ `:70`/`:71` close ≠
