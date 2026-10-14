@@ -73,7 +73,7 @@ async function main() {
   stage = 'RESUME_EPOCH_READ';
   const resumeEpoch = Number((await admin.query<{ privacy_epoch: number }>('SELECT privacy_epoch FROM resume WHERE id=$1', [up.resumeId])).rows[0]?.privacy_epoch);
   stage = 'INTERVIEW_INSERT';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [IID, OWNER, up.resumeId, resumeEpoch]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [IID, OWNER, up.resumeId, resumeEpoch]);
   const FENCE_RACE = 'FENCE-RACE';
   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [FENCE_RACE, OWNER, up.resumeId, resumeEpoch]);
   stage = 'ROUTE_SNAPSHOT_SUPPLY';
@@ -249,7 +249,7 @@ async function main() {
   // terminal path instead, remaining explicit for the erasure classifier.
   stage = 'LEGACY_START_GATES';
   const LEGACY = 'LEGACY-MISSING-TYPED-REF';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [LEGACY, OWNER]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [LEGACY, OWNER]);
   const legacyBefore = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, LEGACY, 'mock_interview', 1.0));
   // A migration fixture emulates a row that existed before 0054. Runtime
@@ -299,7 +299,7 @@ async function main() {
   // audited upgrade may promote it to v50.  The consumer must not infer that
   // matching UUIDs make a historical task safe to run.
   const LEGACY_BOUND = 'LEGACY-BOUND-REF';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [LEGACY_BOUND, OWNER, up.resumeId, resumeEpoch]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [LEGACY_BOUND, OWNER, up.resumeId, resumeEpoch]);
   const legacyBoundBefore = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, LEGACY_BOUND, 'mock_interview', 1.0));
   await admin.query('ALTER TABLE interview_job DISABLE TRIGGER trg_interview_job_resume_reference');
@@ -328,7 +328,7 @@ async function main() {
     && Number(boundLegacyState.enrollment.rows[0]?.n) === 0 && Number(boundLegacyState.graphRuns.rows[0]?.n) === 0
     && (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === legacyBoundBefore);
   const LEGACY_NULL_START = 'LEGACY-NULL-START';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [LEGACY_NULL_START, OWNER]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [LEGACY_NULL_START, OWNER]);
   const nullStartBefore = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, LEGACY_NULL_START, 'mock_interview', 1.0));
   await admin.query('ALTER TABLE interview_job DISABLE TRIGGER trg_interview_job_resume_reference');
@@ -353,7 +353,7 @@ async function main() {
     && Number(nullStartState.enrollment.rows[0]?.n) === 0 && Number(nullStartState.graphRuns.rows[0]?.n) === 0
     && (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === nullStartBefore);
   const LEGACY_NULL_BOUND_START = 'LEGACY-NULL-BOUND-START';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [LEGACY_NULL_BOUND_START, OWNER, up.resumeId, resumeEpoch]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [LEGACY_NULL_BOUND_START, OWNER, up.resumeId, resumeEpoch]);
   const nullBoundStartBefore = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, LEGACY_NULL_BOUND_START, 'mock_interview', 1.0));
   await admin.query('ALTER TABLE interview_job DISABLE TRIGGER trg_interview_job_resume_reference');
@@ -382,7 +382,7 @@ async function main() {
   // schema-version gate before checkpoint/profile/model activity.
   stage = 'LEGACY_ANSWER_GATES';
   const LEGACY_ANSWER_V49 = 'LEGACY-ANSWER-V49';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [LEGACY_ANSWER_V49, OWNER, up.resumeId, resumeEpoch]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [LEGACY_ANSWER_V49, OWNER, up.resumeId, resumeEpoch]);
   const legacyAnswerV49Before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, LEGACY_ANSWER_V49, 'mock_interview', 1.0));
   await admin.query('ALTER TABLE interview_job DISABLE TRIGGER trg_interview_job_resume_reference');
@@ -407,7 +407,7 @@ async function main() {
     && Number(v49AnswerState.enrollment.rows[0]?.n) === 0 && Number(v49AnswerState.graphRuns.rows[0]?.n) === 0
     && (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === legacyAnswerV49Before);
   const LEGACY_ANSWER_NULL = 'LEGACY-ANSWER-NULL';
-  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [LEGACY_ANSWER_NULL, OWNER, up.resumeId, resumeEpoch]);
+  await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [LEGACY_ANSWER_NULL, OWNER, up.resumeId, resumeEpoch]);
   const legacyAnswerNullBefore = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, LEGACY_ANSWER_NULL, 'mock_interview', 1.0));
   await admin.query('ALTER TABLE interview_job DISABLE TRIGGER trg_interview_job_resume_reference');
