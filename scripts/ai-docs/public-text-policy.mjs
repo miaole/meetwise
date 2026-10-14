@@ -43,7 +43,9 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2064→2072（2026-10-14 协调方授权上调：ciw2 四新件+主线增长·计数预算非内容策略·主线侧历史步注记）·
 // cap 2072→2080（AG-11 成本轨④ post 补证派单：新 settle 五相 proof 件净增 1 受管文件·EXEC 已触顶 2064·
 // 沿前次 +16 同步长·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 附记落卷）。
-const MAX_FILES = 2_080;
+// cap 2080→2081（2026-10-14 协调方 sanction：ag39q 迁移+新 proof 两受管件·EXEC 红停 PTP_FILE_LIMIT 2081>2080·
+// 最小步 +1·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_081;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],

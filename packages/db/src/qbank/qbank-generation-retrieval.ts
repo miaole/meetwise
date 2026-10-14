@@ -282,21 +282,26 @@ export async function hybridQbankSearch(
   // Dense needs only `k` rows; RRF keeps its deliberately wider independent candidate pools before fusion.
   // The default is release-controlled from measured holdouts, not an assumption that extra channels always help.
   const n = mode === 'rrf' ? Math.min(MAX_CANDIDATES, Math.max(input.k * 8, input.candidateK ?? 40)) : input.k;
-  const denseRows = await c.query('SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,$3)', [active.generationId, vec(input.embedding), n]);
+  const denseRows = await c.query('SELECT ref_id, distance, owner_kind FROM qbank_generation_ann_search($1,$2::vector,$3)', [active.generationId, vec(input.embedding), n]);
   if (mode === 'dense') {
     return denseRows.rows.map((row) => ({ refId: String(row.ref_id), distance: Number(row.distance), channels: ['dense'] as ('dense' | 'lexical')[] }));
   }
-  const lexicalRows = await c.query('SELECT ref_id, lexical_score FROM qbank_generation_lexical_search($1,$2,$3)', [active.generationId, input.query, n]);
-  const rank = new Map<string, { score: number; channels: Set<'dense' | 'lexical'> }>();
-  const add = (refId: string, position: number, channel: 'dense' | 'lexical') => {
-    const x = rank.get(refId) ?? { score: 0, channels: new Set<'dense' | 'lexical'>() };
+  const lexicalRows = await c.query('SELECT ref_id, lexical_score, owner_kind FROM qbank_generation_lexical_search($1,$2,$3)', [active.generationId, input.query, n]);
+  // AG39 quality follow-up (migration 0201): the fusion output inherits the SQL-side owner rank (org=0 /
+  // platform=1, isomorphic to the 0187 outer ORDER BY CASE) as the leading key of a three-level stable sort
+  // (ownerRank → fused score → refId). This only adds ordering on top of the in-database owner filters and
+  // outer owner rank — it never weakens or replaces them. Dense mode still returns SQL order untouched.
+  const ownerRank = (ownerKind: unknown): number => (String(ownerKind) === 'org' ? 0 : 1);
+  const rank = new Map<string, { score: number; channels: Set<'dense' | 'lexical'>; ownerRank: number }>();
+  const add = (refId: string, position: number, channel: 'dense' | 'lexical', ownerKind: unknown) => {
+    const x = rank.get(refId) ?? { score: 0, channels: new Set<'dense' | 'lexical'>(), ownerRank: ownerRank(ownerKind) };
     x.score += 1 / (RRF_K + position + 1);
     x.channels.add(channel); rank.set(refId, x);
   };
-  denseRows.rows.forEach((r, i) => add(String(r.ref_id), i, 'dense'));
-  lexicalRows.rows.forEach((r, i) => add(String(r.ref_id), i, 'lexical'));
+  denseRows.rows.forEach((r, i) => add(String(r.ref_id), i, 'dense', r.owner_kind));
+  lexicalRows.rows.forEach((r, i) => add(String(r.ref_id), i, 'lexical', r.owner_kind));
   const fused = [...rank.entries()]
-    .sort((a, b) => b[1].score - a[1].score || a[0].localeCompare(b[0]))
+    .sort((a, b) => a[1].ownerRank - b[1].ownerRank || b[1].score - a[1].score || a[0].localeCompare(b[0]))
     .slice(0, input.k);
   if (!fused.length) return [];
   const ds = await c.query(
