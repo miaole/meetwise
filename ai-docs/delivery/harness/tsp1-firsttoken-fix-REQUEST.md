@@ -1,6 +1,6 @@
 # TSP1-FIRSTTOKEN-FIX REQUEST — tokenstream:prove 恰 1 红臂「TS-P1 ask 面 model_first_token 落表」根因修复刀（红因=H2 #79 scenario 空检索降级早退致夹具零模型调用·断言改形=恰 1 测试文件 1 行夹具改·tsp1-firsttoken-fix 战役·docs-only REQUEST 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · pre-exec 双审两外席待派 · alone≠dual · Dual PASS ≠ 开工（开工须协调方明示授权+committed SHA 重钉）· 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-14 · pre-exec 双审 **BOTH PASS 落卷**（席1 `agent_674bdb29`+席2 `agent_1cc4a906` 会签）·协调方明示 EXEC 授权（committed SHA 重钉=`f548a2cb`）·EXEC 并线主线 `51c310d2`（--no-ff 并 `feat/mysql-schema-skeleton` @`5bd92ce8` 零冲突）→§0 全量重 pin 十锚 blob 复算恒等零漂移（席1 P2 随 pin 落锚·只读引用七件 blob 补全）→件① 恰 1 文件 1 行夹具改→tokenstream:prove **20/20 翻绿**（改前必做 run 恰一次 19 PASS/1 FAIL 红名单逐字恒等）→门矩阵十二门全绿→**EXEC 落卷=本 commit（§9 EXEC 记录）·STOP 翻面（nail/行翻面归协调方/主会话批边界·alone≠dual·⛔push）**）
 
 **席位**：tsp1-firsttoken-fix REQUEST 起草席（诊断+起草双责·协调方派·TSP1-FIRSTTOKEN-FIX 基线红根因刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `3b32b6c8`（origin tip fetch 后亲证恒等·tokstream-s4b nail 收官 SSOT commit·docs:check 2117≤cap 2120 本树亲跑）· 分支 `line/tsp1-firsttoken-fix`（本起草席 `git worktree add ../meetwise-tsp -b line/tsp1-firsttoken-fix 3b32b6c8` 亲立·HEAD 落 `3b32b6c8` 亲证）· 工作树 `meetwise-tsp`（仓根同级·**node_modules ABSENT 现状亲证——EXEC 工序 0 必做 `pnpm install --frozen-lockfile`**）。
@@ -12,19 +12,22 @@
 ### 0.0 防重双对表 + 在飞交叠复核
 
 - `git worktree list` 建后 27 树实测（主仓+既有 25+本 tsp 树）——无第二 tsp1 同名树；`git branch --list "line/tsp1*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | rg -i "tsp1|firsttoken"` 建前零命中→落卷后唯一同名卷=本卷。
-- **在飞交叠预扫（起草席已跑·EXEC 立项日照本协议复扫）**：全 branch 集（除本席支）对唯一触面 `apps/worker/test/tokenstream-progress.proof.ts` 逐一 `git log -1 -- <file>` + `merge-base --is-ancestor` 扫描——唯一非祖先命中=`line/model-token-stream` @`045ded0f`（2026-10-08）·**判定=历史残枝非在飞**：该支=phase-1 原始开发支（tip `10accdae` 同日·较基线超期 5 commit 未并）·其 proof 内容与主线同作 `3acc6fb5` 逐字等效（同题 commit message·主线以等效落卷吸收）·对基线树该文件 diff 恰 +3 行=头注 fake-seam 标注（`86303901` 同款·断言/驱动零差）。复扫翻翻转（该支对 proof 有新提交或现活信号）→触停止条件「现场漂移」。
+- **在飞交叠预扫（起草席已跑·EXEC 立项日照本协议复扫）**：全 branch 集（除本席支）对唯一触面 `apps/worker/test/tokenstream-progress.proof.ts` 逐一 `git log -1 -- <file>` + `merge-base --is-ancestor` 扫描——唯一非祖先命中=`line/model-token-stream` @`045ded0f`（2026-10-08）·**判定=历史残枝非在飞**：该支=phase-1 原始开发支（tip `10accdae` 同日·较基线超期 5 commit 未并）·其 proof 内容与主线同作 `3acc6fb5` 逐字等效（同题 commit message·主线以等效落卷吸收）·对基线树该文件 diff 恰 +3 行=头注 fake-seam 标注（`86303901` 同款·断言/驱动零差）。复扫翻转（该支对 proof 有新提交或现活信号）→触停止条件「现场漂移」。
 
-### 0.1 blob 锚表（`git rev-parse 3b32b6c8:<path>` 亲算）
+### 0.1 blob 锚表（起草席 `git rev-parse 3b32b6c8:<path>` 亲算·EXEC 席 @`51c310d2` 全量复算十值恒等零漂移·席1 P2 随 pin 落锚=只读引用七件 blob 补全入表）
 
 | 文件 | blob（8 hex） | 关键行锚 |
 |---|---|---|
 | `apps/worker/test/tokenstream-progress.proof.ts` | `7f79c03f`（208 行） | **`:33` 断言器 A()·`:39-47` familyRows（:42-44 同 SQL 查 interview_event 三 kind）·`:73-87` observingDelayedModel fake seam（:79 拦截条件 `req.service === opts.service`·:81 onFirstToken 观察点）·`:97-105` quiz 面 fixture（绿面对照）·`:156` interview 行夹具 INSERT·`:157` askKey=`${IID}:ask:t0:0`·`:159-164` askModel（:162 service='interviewer.ask'/delayMs 3000/firstTokenAtMs 1200·:163 onFirstToken→noteModelFirstToken(stream=IID)）·:168 `localRetrieve: async () => [], webExplore: async () => [],`（**本刀唯一码改行**）·`:171` `deps.retrieveAndGenerate('并发', 2, 0, 0, [], 'scenario')`（kind='scenario'）·`:172` askRows·`:176` TS-P0 ask 臂（PASS）·`:177-178` TS-P1 started+segments 臂（PASS）·`:179` `A('TS-P1 ask 面 model_first_token 落表', askRows.some((r) => r.kind === 'model_first_token'))`（**唯一红臂**）·`:196` TS-P5 allFamily 三流全查** |
 | `apps/worker/src/adaptive-interview-service.ts` | `373c4032`（753 行） | **`:18-21` nativeRetrievalFailureToken（仅匹配 embedder/reranker 族）·`:23` AskSchema（q 1-2000+refs 数组）·`:445-447` TOKSTREAM 阶段1 触发面注释·`:461-471` S4b withTokenStream 外包裹+withGenerationProgress 内包裹（attemptKey=initialKey·segments=['retrieve','generate','validate']）·`:473` `const useRetrieval = kind === 'fundamental' \|\| kind === 'scenario'`·`:493-497` H2 #79 scenario 空素材降级早退（:494 `return approvedTemplateGeneration(scenarioDegradeTemplate(competency), …)`·:492 注释自证「零 fail 硬死、绝不静默拿空素材喂模型发明情景题」）·`:543` `model: promptedModel(d.model, 'interviewer.ask', …)`** |
 | `apps/worker/src/generation-progress.ts` | `fb9490d4`（164 行） | **`:85-87` 头注自证「未接线观察 seam（unwired：生产调用方零命中——阶段1 仅 fake seam/prove 自调；生产非流式下恒静默，真流式链接线归后继刀）」·`:89-96` noteModelFirstToken（event_key=`generation:${attemptKey}:first-token` 幂等）·`:108-164` withGenerationProgress（:138 generation_started 幂等首写——ask 面该行 PASS 的写点）** |
-| `packages/domain/src/crag.ts` | —（只读引用） | **`:11-17` ScoredRef（ref/score/evidence?/availability?）·`:30-41` gradeRetrieval（:34 高分≥0.7→`use_local`·kept=score≥keep 全保留·:32 degraded→deny_external·:35 零命中→fallback_web）·`:76-77` `use_local` 臂 web 恒 `[]`（零 web 探索）** |
-| `packages/domain/src/question-generation.ts` | —（只读引用） | **`:141-150` resolveCitedSources（:145 knownRefs 空恒 ok·:146 仅「引用了未知 ref」才 fail——citedRefs 空数组恒 ok）** |
-| `packages/ai-runtime/src/model-client.ts` | —（只读引用） | **`:1131` modelFor（CompletionRequest 携 service 全程绑定）·`:1175-1179` promptedModel（service 字面透传 modelFor）——proof fake seam :79 拦截条件在 ask 面可达的机制证据** |
-| `packages/ai-runtime/src/invoke.ts` | —（只读引用） | **`:738` sources/retrieval 仅 tracer 记录（零闸·fixture 供素材零旁出新闸面）** |
+| `packages/domain/src/crag.ts` | `255c1461`（79 行·只读引用） | **`:11-17` ScoredRef（ref/score/evidence?/availability?）·`:30-41` gradeRetrieval（:34 高分≥0.7→`use_local`·kept=score≥keep 全保留·:32 degraded→deny_external·:35 零命中→fallback_web）·`:76-77` `use_local` 臂 web 恒 `[]`（零 web 探索）** |
+| `packages/domain/src/question-generation.ts` | `31079959`（150 行·只读引用） | **`:141-150` resolveCitedSources（:145 knownRefs 空恒 ok·:146 仅「引用了未知 ref」才 fail——citedRefs 空数组恒 ok）** |
+| `packages/ai-runtime/src/model-client.ts` | `61471ed4`（1179 行·只读引用） | **`:1131` modelFor（CompletionRequest 携 service 全程绑定）·`:1175-1179` promptedModel（service 字面透传 modelFor）——proof fake seam :79 拦截条件在 ask 面可达的机制证据** |
+| `packages/ai-runtime/src/invoke.ts` | `44e137f6`（1204 行·只读引用） | **`:738` sources/retrieval 仅 tracer 记录（零闸·fixture 供素材零旁出新闸面）** |
+| `packages/domain/src/grounded-questions.ts` | `d9934dec`（48 行·只读引用） | **`:9` SourceDoc·`:10` GroundedQuestion·`:16-25` isVerbatimCopy（minRun=12 连续子串判抄——本刀夹具 web=[] sources 空不触）·`:31-48` validateGrounded 四门** |
+| `packages/domain/src/question-critique.ts` | `92b7d6e3`（27 行·只读引用） | **`:11` QuestionCritique·`:13-27` critiqueQuestion 确定性四门（:21 too_short·:22 duplicate·:23 leading·:25 off_competency）** |
+| `apps/worker/src/memory-service.ts` | `d01ce6c8`（35 行·只读引用） | **`:12-14` wasAsked（episode 归一化精确判重只读）·`:20-26` recordAskedQuestions·`:33-35` pastWeakDimensions（历史弱项只读投影）** |
 
 ### 0.2 派单 brief 漂移登记（结论零变·如实改锚）
 
@@ -113,12 +116,43 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.2 根因结论与 §5 Ban/pins 与 §1-修法件① 唯一码改面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞复扫必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `executed:awaiting_post_prove_dual`（§9 EXEC 落卷随翻·开工三条款已满足：①pre-exec 双审两外席 BOTH PASS 落卷（席1 `agent_674bdb29`+席2 `agent_1cc4a906` 会签）②协调方明示 EXEC 授权（committed SHA 重钉=`f548a2cb`）③立项零改 §1.2 根因结论/§5 Ban/pins/§1-修法件① 唯一码改面·停止条件四类全数未触（§9 亲证）·码面/门矩阵 EXEC 侧已收口·post 双审两外席待派·nail 与 TS-P1 基线红行翻面权归协调方/主会话批边界 · alone≠dual · ⛔ push）。** 开工三条款（起草卷原文存档）：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.2 根因结论与 §5 Ban/pins 与 §1-修法件① 唯一码改面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞复扫必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且 §1.2 结论受疑（如 `:473`/`:493-497` 早退面改写/noteModelFirstToken 被生产接线/fake seam 拦截形变更/proof 臂总数≠20/改前必做 run 红名单≠恰此 1 臂/§0.0 复扫残枝判定翻转）→停·重 pin 回炉。
 - **机制不满足**：件② 改后 prove run `:179` 臂未翻绿或 quiz 面任臂意外翻红（fixture 供素材致旁闸新红如 unavailableGeneration/schema 闸重试）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1-修法件① 恰 1 文件 1 行夹具面（需触产品码/断言文本/S4b 通道/迁移/同簇面）→停·另刀或协调方裁决（§1.3 候选甲/乙/丙否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻 proof 新红/lint 值上升/docs:check>2120）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 记录（EXEC 席落卷·2026-10-14·授权链=pre-exec 双审 BOTH PASS（席1 `agent_674bdb29`+席2 `agent_1cc4a906`）+协调方 EXEC 授权（committed SHA 重钉=`f548a2cb`）·收据=件③ `receipts/tsp1-firsttoken-fix/00-exec.md`（untracked·仓根非受管根·路径偏离见下））
+
+**工序与 commit 链**：①工序 0 `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改（node_modules ABSENT 前置申明兑现）→②并主线 `git fetch`（origin tip 亲证=`5bd92ce8` 恒等派单值·`3b32b6c8` 为其祖先 merge-base --is-ancestor YES）→`git merge --no-ff feat/mysql-schema-skeleton`→merge commit **`51c310d2`**（双亲=`f548a2cb`+`5bd92ce8`·ort 策略·**零冲突**：merge-tree 预演冲突标记计数=0·实并零手解·8 文件 393+/6-·触及面与本刀零交·package.json lint 预算行 5224→5235 随主线 sanctioned 携入）→③§0 全量重 pin（十锚 blob 复算全恒等零漂移：proof `7f79c03f`/adaptive `373c4032`/generation-progress `fb9490d4`/crag `255c1461`/question-generation `31079959`/model-client `61471ed4`/invoke `44e137f6`+席1 P2 落锚新增 grounded-questions `d9934dec`/question-critique `92b7d6e3`/memory-service `d01ce6c8`·行号锚 file:line 逐一亲读恒等·§0.0 在飞复扫=`line/model-token-stream` 残枝判定维持非翻转）→④改前必做 run 恰一次→⑤件① 恰 1 文件 1 行夹具改（`:168`·diff numstat 1+/1-）→⑥改后 prove run 恰一次 20/20→⑦门矩阵十二门→⑧本 §9 落卷=EXEC commit。
+
+**改前必做 run（件②①·恰一次不计 prove·`51c310d2` 树）**：`pnpm tokenstream:prove` EXIT=1·**19 PASS/1 FAIL**·红名单恰 `TS-P1 ask 面 model_first_token 落表` 逐字恒等（隔离收据 `.tmp/isolated-proof-receipts/2026-10-14T23-32-01-888Z-*` exit=1）——对 §1.1 证据④ 分母恒等·零现场漂移。
+
+**件① 落点亲证**：`apps/worker/test/tokenstream-progress.proof.ts:168`——`localRetrieve: async () => [],`→`localRetrieve: async () => [{ ref: 'qbank:ts-scenario-1', score: 0.9 }],`（`webExplore: async () => []` 原样保持·ScoredRef 形=`crag.ts:11-17`·qbank-corpus-retrieve.proof :147-161 同款绿先例）·`git diff 51c310d2 --numstat`=恰 2 tracked 路径=本件 .ts（1+/1-）+本卷 .md（重 pin+P3 正字+§8 随翻+§9）·断言 20 臂文本/数恒等。
+
+**门矩阵十二门终值（并线树基 `51c310d2`·EXEC commit 状态实测·全绿）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 1 | tokenstream:prove | **20/20 全 PASS**·PASS 名单 diff（改前 19 分母本树自证）**恰 1 条**=`:179` 臂翻绿·零第 2 条·SSE 同形可见时延实测 84ms≤2500ms | 0 |
+| 2 | s4b-invoke-delta:prove | PASS **12**/FAIL 0（隔离收据 exit=0） | 0 |
+| 3 | s4b-token-stream:prove | PASS **17**/FAIL 0（隔离收据 exit=0） | 0 |
+| 4 | s4b-delta-arm:prove | PASS **21**/FAIL 0·`✓ delta 臂矩阵全部通过` | 0 |
+| 5 | s4b-web-token-delta:prove | PASS **20**/FAIL 0·`✓ web token_delta 矩阵全部通过` | 0 |
+| 6 | model-client-stream | PASS **56**/FAIL 0·watchdog 实测=10003ms 总闸实测=1004ms | 0 |
+| 7 | sse-push:notify:prove | **35/35**（双 LISTEN 三通道并集愈合链维持·隔离收据 exit=0） | 0 |
+| 8 | migrate 链三门 | migrate:prove 全 PASS·链 **201** 头 `0201_qbank_fusion_owner_rank_org_dedup.sql`（merge 零新迁移）；uniqueness `files=201 violations=0 exemptions=0143,0152,0160`；drift:prove `✓ schema 无漂移` | 0 |
+| 9 | typecheck | `pnpm turbo typecheck --force`=`Tasks: 8 successful, 8 total`·`Cached: 0 cached, 8 total` | 0 |
+| 10 | lint 五值恰等 | 12/12 包全绿全 0 errors·**root `5235`/web `601`/api `1421`/worker `954`/ai-runtime `628` 全恰等**（余包 db 1042/domain 115/contracts 265/ai-graphs 47/qdrant-store 27 恒等随记） | 0 |
+| 11 | docs:check | `scanned 2120`≤cap **2120** EXIT=0（**恰贴帽零余量**：2117 基线+本卷 REQUEST 1+merge 携入 admin-disable-evict/ag04-consumer-fix 两 REQUEST=2120·受管根新增件即 2121 PTP_FILE_LIMIT 红——件③ 收据因此落仓根非受管根·见偏离①） | 0 |
+| 12 | markers+diff 面机检+卫生 | markers 五类（i6-239 §2-7 门词族·词面运行时组装防自指不复抄）改动集新增行零命中；diff 面=恰 2 tracked 路径（件① .ts 1+/1-+本卷 .md）+收据目录 untracked；frozen-lockfile EXIT=0 零 lockfile 改；根 `.env*` ABSENT（tracked 仅 docker/env/*.env.example 4 件模板既登恒等）；`actualSpendCny=null`·est live=0（fake seam 零模型外呼） | 0 |
+
+**偏离登记（本席如实呈报·Ban 借机修沿承）**：①**件③ 收据路径偏离**：原定 `ai-docs/delivery/receipts/tsp1-firsttoken-fix/00-exec.md` → 实落仓根 `receipts/tsp1-firsttoken-fix/00-exec.md`（untracked 口径不变·七字段照交付）——根因=merge 携入 2 受管新件后 cap 2120 恰贴零余量·受管根落收据实测 `PTP_FILE_LIMIT:2121` 红（本席 A/B 亲证并回滚）；沿 `a76277f9`（evkind-scorecard-fix）「仓根非受管根零 docs:check 增量·untracked 交付」先例。②**席1 P3 三处正字**：本席客观可证仅 1 处（§0.0「复扫翻翻转」→「复扫翻转」·重复字机扫全卷唯一命中）已随 pin 改；余 2 处无席1 评审原文坐标·Ban 臆改未动——待协调方补发坐标或后继落卷。③**重复执行登记（非红冲销·零 retry-to-green）**：s4b-token-stream 误触 1 次 `:raw` 直跑（无隔离壳无收据·无仓库副作用·门证据以隔离壳收据 exit=0+17 臂首跑为准）；s4b-delta-arm 计数复核多跑 1 次（EXIT=0·21 臂恒等）；turbo lint 共 3 跑（全 EXIT=0 五值恒等）。④**多 worktree turbo daemon 风险观察**（沿 `a76277f9` 同族登记）：本树 lint 五值恰等 sanctioned 值+typecheck 8/8 与非污染形态自洽·未动共享 daemon（Ban 触其他工作树）。
+
+**停止条件四类全数未触**（现场漂移=十锚 blob 复算零漂移+§0.0 残枝判定维持+改前红名单恰此 1 臂；机制不满足=`:179` 臂翻绿+quiz/report 面 19 臂零意外红；越界需要=修法恒等件① 恰 1 文件 1 行夹具面；验收红不可修=十二门全绿·cap 贴边经偏离① 合规消解）·**§1.2 根因结论/§5 Ban/pins 十一值/§1-修法件① 唯一码改面零改零翻转**。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与 TS-P1 基线红行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+
 ---
 
-*TSP1-FIRSTTOKEN-FIX REQUEST · 2026-10-14 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（本 commit=起草落卷·docs-only 恰 1 .md·⛔push）· base `feat/mysql-schema-skeleton` @`3b32b6c8`（origin tip 亲证）· 分支 `line/tsp1-firsttoken-fix` · 工作树 `meetwise-tsp`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=协调方派单 brief+S4b 卷 :209 红登③+S4b exec-receipt :25 同因归档+ci-wiring2 `86303901` 六件基线红登记+tip STILL OPEN · 红臂=`apps/worker/test/tokenstream-progress.proof.ts:179`· 根因=**断言过时（fixture 前提被 H2 #79 产品裁决作废）**——`634eb645` 引入 `adaptive-interview-service.ts:493-497` scenario 空检索降级早退（:494·裁定行为非缺陷）·proof `:168` 双空检索夹具+:171 kind='scenario' 恒落早退→`:543` 模型调用面零达→fake seam `:79-81` 零触发→noteModelFirstToken（`generation-progress.ts:89`·生产零调用 unwired seam）零执行→IID 零 model_first_token 行·「落表」字面核=缺行非落错表（quiz 面同写链绿+ask 面 generation_started 同围栏绿双对照）·与 S4b interview_token_ch 双 LISTEN/ssepush/UC003 零因果（S4b 治 token_delta pg_notify 传输态·本红持久面且写点未触发·S4b 前已存在·卷内明文登记不洗）· 修法裁决=**断言改形（候选丁）**：恰 1 测试文件 1 行夹具改（`:168` localRetrieve 供一条 `ScoredRef{ref:'qbank:ts-scenario-1',score:0.9}`→use_local→早退谓词恒假→全链真达模型面）·候选甲（产品接线·后继刀）/乙（反向断言·弱化证明族）/丙（换 kind·弃 CRAG 全链）否决在卷· 断言文本/断言数恰 20 恒等· 门矩阵十二门（tokenstream 20/20+邻面六门 12/17/21/20+56+35/35 不回退+migrate 链 201 三门+typecheck 8/8+lint 五值恰等 root 5235+docs:check≤2120 红停+markers+diff 面机检+卫生）· 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*TSP1-FIRSTTOKEN-FIX REQUEST · 2026-10-14 起草 · **`executed:awaiting_post_prove_dual` @并线树 `51c310d2`（§9 EXEC 记录·门矩阵十二门全绿·tokenstream 20/20 翻绿·post 双审待派·nail/行翻面归协调方）**（起草落卷=docs-only 恰 1 .md·EXEC 落卷=本 commit·⛔push）· base `feat/mysql-schema-skeleton` @`3b32b6c8`（origin tip 亲证）· 分支 `line/tsp1-firsttoken-fix` · 工作树 `meetwise-tsp`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=协调方派单 brief+S4b 卷 :209 红登③+S4b exec-receipt :25 同因归档+ci-wiring2 `86303901` 六件基线红登记+tip STILL OPEN · 红臂=`apps/worker/test/tokenstream-progress.proof.ts:179`· 根因=**断言过时（fixture 前提被 H2 #79 产品裁决作废）**——`634eb645` 引入 `adaptive-interview-service.ts:493-497` scenario 空检索降级早退（:494·裁定行为非缺陷）·proof `:168` 双空检索夹具+:171 kind='scenario' 恒落早退→`:543` 模型调用面零达→fake seam `:79-81` 零触发→noteModelFirstToken（`generation-progress.ts:89`·生产零调用 unwired seam）零执行→IID 零 model_first_token 行·「落表」字面核=缺行非落错表（quiz 面同写链绿+ask 面 generation_started 同围栏绿双对照）·与 S4b interview_token_ch 双 LISTEN/ssepush/UC003 零因果（S4b 治 token_delta pg_notify 传输态·本红持久面且写点未触发·S4b 前已存在·卷内明文登记不洗）· 修法裁决=**断言改形（候选丁）**：恰 1 测试文件 1 行夹具改（`:168` localRetrieve 供一条 `ScoredRef{ref:'qbank:ts-scenario-1',score:0.9}`→use_local→早退谓词恒假→全链真达模型面）·候选甲（产品接线·后继刀）/乙（反向断言·弱化证明族）/丙（换 kind·弃 CRAG 全链）否决在卷· 断言文本/断言数恰 20 恒等· 门矩阵十二门（tokenstream 20/20+邻面六门 12/17/21/20+56+35/35 不回退+migrate 链 201 三门+typecheck 8/8+lint 五值恰等 root 5235+docs:check≤2120 红停+markers+diff 面机检+卫生）· 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
