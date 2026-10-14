@@ -47,6 +47,8 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // （10 版本化迁移+1 运维手册·均为派单授权产出）触顶 2073>2064；计数预算非内容策略·越限臂 fabricated 数
 // 随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 EXEC 附记显耀登记·post 双审/协调方可否决·
 // 并线时主线侧已由 AG-11 同值至 2080·union 并集解·cap 终值 2080 维持）。
+// cap 2080→2081（2026-10-14 协调方 sanction：ag39q 迁移+新 proof 两受管件·EXEC 红停 PTP_FILE_LIMIT 2081>2080·
+// 最小步 +1·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2080→2088（2026-10-14 协调方授权 sanction：API-HARDEN 0189 迁移+proof/卷三受管件+并集增长·计数预算非内容策略·
 // 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2080→2090（2026-10-14 · 5B-MIG nail 续作协调方授权上调：line/batch5b-mig 并主线 union 并集

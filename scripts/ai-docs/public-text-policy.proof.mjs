@@ -258,6 +258,7 @@ const checks = {
       // REQUEST §9 EXEC 附记显耀登记·post 双审/协调方可否决·并线时主线侧已由 AG-11 同值至 2080·
       // union 并集解·cap 终值 2080 维持）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减）。
+      // ag39q：cap 2080→2081（2026-10-14 协调方 sanction·最小步）——本臂 fabricated 数随 cap 再联动。
       // API-HARDEN nail：cap 2080→2088（2026-10-14 协调方 sanction·0189 迁移+proof/卷三受管件+并集增长）——本臂 fabricated 数随 cap 再联动。
       // 5B-MIG nail 续作：cap 2080→2090（2026-10-14 协调方授权·line/batch5b-mig 并主线 union 并集
       // 必然越顶 2080·沿 ciw2 5580a059 形制·双 sanctioned 取大 union 并集解）——本臂 fabricated 数随 cap 再联动
