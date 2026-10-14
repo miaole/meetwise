@@ -8,6 +8,7 @@ import type { BusinessEvent, QuestionKind } from './business-events';
 import type { QuestionIdentity } from '../interview/turn-submission';
 import { practiceHintScore } from './scoring-honesty';
 import { applyGenerationProgress, type GenerationProgressView } from './generation-progress';
+import { gradeTokenStitchIdentityWeb } from './token-stitch';
 
 // 单一真相:所有 phase 列在此,类型从它派生(防止"加了 phase 但测试/类型漏掉"——见 web:prove 遍历 ALL_PHASES)。
 export const ALL_PHASES = ['connecting', 'question', 'waiting_user', 'answered', 'report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error'] as const;
@@ -63,6 +64,12 @@ export interface InterviewView {
   /** TOKSTREAM 阶段1 生成进度态：非权威、非终态；幂等覆盖写（同 attempt 取 max）；任何业务事件到达即清
    *  （断线重放防"已完成题重新显示生成中"）。进度帧不改 phase/不触发 degraded——缺帧回段级兜底,不死等。 */
   generationProgress?: GenerationProgressView;
+  /** TOKSTREAM S4b：token_delta 传输态缓冲（attemptKey 键控·仅内存·非权威非终态）。maxSeq=已并入最大
+   *  序号（(attemptKey,seq) max-seq 幂等去重）；终态/权威业务事件到达=stitch 对照+清缓冲+权威覆盖。 */
+  tokenBuffer?: { attemptKey: string; text: string; maxSeq: number };
+  /** TOKSTREAM S4b/R6：终态到达时 Σdelta 缓冲 vs 终态全文 T0 对照遥测（不阻断·仍用终态权威；失配≠错误——
+   *  json_object 卷缓冲=JSON 源文、权威=解析字段，失配为已知形态如实遥测）。 */
+  tokenStitch?: { attemptKey: string; pass: boolean; lengthRatio: number };
   /** SSE-RESILIENCE #56(C5)：本次停转/降级/慢速重试的原因分类（401/429/5xx/404/400 游标）。
    *  缺省=普通传输断线（不透出状态码臂）。view-model 按它分臂透出真实原因，不止"网络中断"一句话。 */
   streamStopReason?: StreamStopReason;
@@ -80,6 +87,13 @@ export const initialView: InterviewView = { phase: 'connecting', degraded: false
 export const TERMINAL_PHASES: InterviewPhase[] = ['report_ready', 'report_unavailable', 'assessment_unavailable', 'interview_unavailable', 'error'];
 export const isTerminal = (p: InterviewPhase): boolean => TERMINAL_PHASES.includes(p);
 
+/** TOKSTREAM S4b/R6：权威事件携带的可对照单值全文面（无单值全文的 kind 返回 undefined=只清缓冲不对照）。 */
+function authoritativeFullText(e: BusinessEvent): string | undefined {
+  if (e.event === 'question_ready') return e.data.question;
+  if (e.event === 'clarification_needed') return e.data.question;
+  return undefined;
+}
+
 /**
  * Apply one network batch with one copy of the turn array. The previous implementation copied `turns` for every
  * `question_ready`; a 10k replay in one SSE chunk was therefore O(n²) CPU/allocation even though React commits
@@ -90,10 +104,27 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
   const turns = [...v.turns];
   const next: InterviewView = { ...v, turns, connection: 'live' };
   for (const e of events) {
-    next.lastEventId = Math.max(next.lastEventId, e.id);
+    // TOKSTREAM S4b 光标守卫（F2·P1）：token_delta 全表唯一 id optional 成员——undefined 帧跳过游标
+    // 推进（EXEC 定谳=id===undefined 跳过，窄于 Number.isFinite 守卫），禁 NaN 毒化 lastEventId
+    // （重连 lastEventIdHeaderValue 的 Number.isSafeInteger 抛 InvalidLastEventIdError→重连永久 degraded）。
+    if (e.event === 'token_delta') {
+      if (e.id !== undefined) next.lastEventId = Math.max(next.lastEventId, e.id);
+    } else {
+      next.lastEventId = Math.max(next.lastEventId, e.id);
+    }
     // TOKSTREAM:业务事件(非进度家族)到达即清进度态——权威事件推进了流程,重放的旧进度不得把已完成段重新显示"生成中"。
-    if (e.event !== 'generation_started' && e.event !== 'model_first_token' && e.event !== 'generation_progress') {
+    // S4b：token_delta 与进度家族同待遇（非权威·不触发清除），否则逐 token 帧会反复清掉"AI 生成中"进度行。
+    if (e.event !== 'generation_started' && e.event !== 'model_first_token' && e.event !== 'generation_progress' && e.event !== 'token_delta') {
       next.generationProgress = undefined;
+      // S4b/R6：权威业务事件到达=stitch 对照（telemetry·不阻断）+清缓冲——终态权威覆盖（§E-⑦ 原文）。
+      if (next.tokenBuffer) {
+        const auth = authoritativeFullText(e);
+        if (auth !== undefined) {
+          const verdict = gradeTokenStitchIdentityWeb(next.tokenBuffer.text, auth);
+          next.tokenStitch = { attemptKey: next.tokenBuffer.attemptKey, ...verdict };
+        }
+        next.tokenBuffer = undefined;
+      }
     }
     switch (e.event) {
     case 'question_ready': {
@@ -163,6 +194,20 @@ export function applyEvents(v: InterviewView, events: readonly BusinessEvent[]):
     case 'generation_progress':
       next.generationProgress = applyGenerationProgress(next.generationProgress, e);
       break;
+    // TOKSTREAM S4b：token_delta 缓冲归约（非权威·不改 phase/lastScore/report·不触发 degraded）。
+    // (attemptKey,seq) max-seq 幂等去重——重复/回退帧不回退缓冲（R5-vi 臂·承接 worker seq 单调与
+    // attemptKey 重执行登记）；attemptKey 换代=缓冲换代不互毒（F6）；seq gap=丢帧标记照常并入
+    // （不死等·§C-5 缺帧不 degraded），唯一恢复路径=终态权威覆盖。
+    case 'token_delta': {
+      const cur = next.tokenBuffer;
+      if (cur && cur.attemptKey === e.data.attemptKey) {
+        if (e.data.seq <= cur.maxSeq) break;   // 同 (attemptKey,seq) 重复/旧帧丢弃（幂等覆盖·不回退）
+        next.tokenBuffer = { attemptKey: e.data.attemptKey, text: cur.text + e.data.text, maxSeq: e.data.seq };
+      } else {
+        next.tokenBuffer = { attemptKey: e.data.attemptKey, text: e.data.text, maxSeq: e.data.seq };
+      }
+      break;
+    }
     case 'session_concluded': {
       // 非终态：只记控制流理由。不得改 phase / lastScore / report（不发明分）。
       next.signalConcludeReason = e.data.concludeReason;

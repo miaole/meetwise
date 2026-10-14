@@ -31,6 +31,16 @@ export type { ModelBinding } from './catalog/index.ts';
 export type { DoubleValidateResult } from './validators/index.ts';
 export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation, cjkWeightedEstimate } from './model-client.ts';
 export type { ModelClient, CompletionRequest, RenderedContextBudgetPlan, RenderedContextBudgetDecision } from './model-client.ts';
+// TOKSTREAM S4b（R2 复用面·纯增量导出行）：worker token-stream.ts 复用 L1 合帧/码点安全切分钉值常量。
+// 零触上行 :32/:33 既有导出行（model-client-stream.proof 静态门 pin 原值）。
+export {
+  MODEL_STREAM_IDLE_WATCHDOG_MS,
+  MODEL_STREAM_L1_COALESCE_WINDOW_MS,
+  MODEL_STREAM_FRAME_MAX_BYTES,
+  coalesceTokenDeltas,
+  splitCodepointSafeByBytes,
+} from './model-client.ts';
+export type { CoalescedTokenFrame, TokenDeltaFrameInput } from './model-client.ts';
 export {
   TEXT_ENDPOINT_REGISTRY_VERSION,
   resolveTextEndpointConfig,

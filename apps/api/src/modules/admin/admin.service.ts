@@ -63,6 +63,7 @@ export class AdminService {
     const r = await this.db.asPrincipal(principal, (c) => c.query(
       'SELECT gateway_admin_disable($1) AS disabled', [id]));
     if (r.rows[0]?.disabled !== true) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
+    evictPrincipalStatus(id);   // 本进程守卫缓存即时清(停用后旧令牌下一请求即 401·调用点在 asPrincipal COMMIT 之后=事务外);跨实例由 0189 触发器同事务 pg_notify 广播逐缓存(LISTEN 断连退回 ≤60s TTL 兜底)
     return { disabled: true };
   }
 
