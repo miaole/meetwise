@@ -16,17 +16,24 @@
  *   D1 DEGRADED-FALLBACK db 桩恒抛 → 共享桶 allow 走本地桶(fail-open 保可用)、acquireSlot fail-open
  *                       放行；结构化降级日志(console.warn RL_SHARED_DEGRADED)被捕获。
  *   M1 MEM-LRU(#129)    RL_MEM_CAPACITY=3 时进程内桶 5 distinct key → Map 尺寸=3(淘汰最旧,新 key 满额建桶)。
+ *   J1 SESSION-ROW      签发带 jti 会话行(守卫吊销真相源在位)。
+ *   J2 JTI-LIVE-WIRE    revokeSession(对侧池·单语句 CTE UPDATE+NOTIFY 同事务) → 广播窗内本侧池
+ *                       isSessionActive 翻 false(吊销广播 live 线·与 W1 uid 侧对称)。
+ *   N1 PROD-IDENTITY    生产身份线(post 修复席·B1 仲裁处方式)：隔离库 provisionRuntimeLogin 形建
+ *                       NOINHERIT 低权 login → 负对照=直连表 DML 42501(证非超身·臂非真空) → S2 形
+ *                       经 asGateway+SD 网关函数跨实例消费共享桶恰 3 → cleanup 函数(DELETE 收口在
+ *                       函数内·表 DELETE 授权面随之消解)低权可执行。
  *
  * 运行：pnpm -C apps/api prove:api-harden（隔离 runner 注入全迁移链·含 0189）。
  * releaseEvidence=false · Not HA · 本绿≠跨进程端到端(双实例拓扑面) · actualSpendCny=null
  */
 import { randomUUID } from 'node:crypto';
-import { createPool, assertIsolatedTestTarget, asGateway, asPrincipal } from '@meetwise/db';
+import { createPool, assertIsolatedTestTarget, asGateway, asPrincipal, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString } from '@meetwise/db';
 import type { Client, DbPool } from '@meetwise/db';
 import { hashPassword } from '@meetwise/domain';
 import { RateLimitService } from '../src/platform/rate-limit.service.ts';
 import { accountState } from '../src/platform/principal.guard.ts';
-import { isSessionActive, issueSessionToken } from '../src/platform/auth-session.ts';
+import { isSessionActive, issueSessionToken, revokeSession } from '../src/platform/auth-session.ts';
 import { getSseNotify, notePrincipalEvicted as noteEvict, principalEvictGeneration } from '../src/platform/sse-notify.service.ts';
 
 /** 双实例模拟:每池一个结构形 DbService(DbService 构造器自建池,proof 需指定池故按同形薄封装)。 */
@@ -83,6 +90,7 @@ function throwingDb() {
     pool: {
       query: async () => { throw new Error('pg_down_injected'); },
     },
+    asGateway: async () => { throw new Error('pg_down_injected'); },
   } as unknown as DbServiceLike;
 }
 
@@ -241,11 +249,64 @@ async function main() {
     delete process.env.RL_MEM_CAPACITY;
   }
 
-  // jti 真吊销线(revokeSession 单语句 CTE 内 UPDATE+NOTIFY 同事务):同进程本地 evict 即时面。
+  // jti 真吊销线(revokeSession 单语句 CTE 内 UPDATE+NOTIFY 同事务):同进程本地 evict 即时面
+  // + J2 live 广播臂(对侧池吊销 → 本侧池 isSessionActive 翻 false·post 席1 E2)。
   {
     const token = await issueSessionToken(dbA, uid, 1);
-    const row = await poolA.query('SELECT 1 AS ok FROM auth_user_session WHERE user_id=$1 AND revoked_at IS NULL LIMIT 1', [uid]);
-    A('J1 签发带 jti 会话行(守卫吊销真相源在位)', token !== null && row.rows.length === 1);
+    const row = await poolA.query('SELECT jti FROM auth_user_session WHERE user_id=$1 AND revoked_at IS NULL LIMIT 1', [uid]);
+    const jti = String(row.rows[0]?.jti ?? '');
+    A('J1 签发带 jti 会话行(守卫吊销真相源在位)', token !== null && row.rows.length === 1 && jti !== '');
+    A('J2 吊销前 A 侧 isSessionActive=true(缓存已回填)', (await isSessionActive(dbA, uid, jti, Date.now())) === true);
+    const revoked = await revokeSession(dbB, uid, jti);
+    const t0 = Date.now();
+    let flipped = false;
+    let elapsed = Number.MAX_SAFE_INTEGER;
+    while (Date.now() - t0 < 1000) {
+      await sleep(20);
+      if ((await isSessionActive(dbA, uid, jti, Date.now())) === false) {
+        flipped = true;
+        elapsed = Date.now() - t0;
+        break;
+      }
+    }
+    A(`J2 revokeSession(对侧池)→本侧广播窗内翻 false(revoked=${revoked}·实测 ${flipped ? elapsed : 'timeout'}ms)`, revoked && flipped);
+  }
+
+  // ── N1 生产身份线:provisionRuntimeLogin 形 NOINHERIT 低权 login(post 修复席·B1 仲裁处方式)──
+  {
+    const roleName = `n1_p_${randomUUID().replaceAll('-', '').slice(0, 12)}`;
+    const password = 'n1-noinherit-proof-passw0rd';
+    await provisionRuntimeLogin(poolA, { roleName, password });
+    const lowPool: DbPool = createPool({
+      purpose: 'api',
+      connectionString: rebindDatabaseLogin(resolveDatabaseConnectionString(), { roleName, password }),
+    });
+    try {
+      // 负对照:直连表 DML 恒 42501(NOINHERIT 下 ∈app_role 不隐式带权)——证本臂真跑在低权身份上,
+      // 下方网关函数臂非真空;亦即 B1(直连 DML 生产恒 42501)的机理实证。
+      let denied = false;
+      try {
+        await lowPool.query('SELECT 1 FROM public.platform_rl_bucket LIMIT 1');
+      } catch (e) {
+        denied = (e as { code?: string }).code === '42501' || String((e as Error).message).includes('42501');
+      }
+      A('N1 直连表 DML 42501(负对照·NOINHERIT login 非超身)', denied);
+      // S2 形:低权 login 经 asGateway+SD 网关函数跨实例消费共享桶(恰 3·与 A 池交替)。
+      const rlLow = new RateLimitService(dbFromPool(lowPool));
+      const n1Key = `login:n1:${randomUUID()}:global`;
+      let n1ok = 0;
+      for (let i = 0; i < 4; i++) {
+        const allowed = i % 2 === 0 ? await rlLow.allow(n1Key, 3, 0) : await rlA.allow(n1Key, 3, 0);
+        if (allowed) n1ok += 1;
+      }
+      A('N1 NOINHERIT 生产身份经 SD 网关函数跨实例消费共享桶(恰 3·S2 形)', n1ok === 3);
+      // B2 消解实证:清理 DELETE 收口在函数内——低权 login 可执行(表 DELETE 授权面随函数化消解)。
+      await asGateway(lowPool, (c) => c.query('SELECT gateway_rl_bucket_cleanup($1::float8)', [Date.now() + 1e12]));
+      const remaining = await poolA.query('SELECT count(*)::int AS n FROM platform_rl_bucket WHERE bucket_key=$1', [n1Key]);
+      A('N1 cleanup 函数低权可执行(DELETE 在 SD 函数内·B2 消解)', remaining.rows[0]?.n === 0);
+    } finally {
+      await lowPool.end().catch(() => undefined);
+    }
   }
 
   await getSseNotify().stop();

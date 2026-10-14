@@ -10,6 +10,9 @@ import { DbService } from './db.service';
  * `resume-parse:global`)落 PG 槽 lease 表 `platform_slot_lease`:acquire=单语句 INSERT … ON CONFLICT
  * (slot_key) DO UPDATE … WHERE n<max OR expired(原子占,过期接管 n 归 1),release 对称减零减穿。
  * now 默认 Date.now;桶按时间补充令牌,超速即拒;桶参数全部由调用点传入(值零改)。
+ * **调用面=SECURITY DEFINER 网关函数(0189 `gateway_rl_bucket_*`/`gateway_slot_lease_*`,经
+ * `asGateway`)**:canonical 生产身份是 provisionRuntimeLogin 建的 NOINHERIT 运行时登录,直连 DML 恒
+ * 42501——服务对两表零表权,读写只经固定 SQL 契约的网关函数(0041 同制),语义与直连语句逐式同。
  *
  * **降级形(可用性优先·降级可观测)**:PG 往返失败/不可达时——桶退回进程内本地桶、槽 fail-open 放行
  * (槽位是资源保护非安全边界;429 语义在共享层可用时保持精确),每次转变打一行结构化日志
@@ -73,7 +76,7 @@ export class RateLimitService {
     if (this.sharedOpsSinceCleanup < RateLimitService.cleanupEveryOps) return;
     this.sharedOpsSinceCleanup = 0;
     try {
-      await this.db!.pool.query('DELETE FROM platform_rl_bucket WHERE last_ms < $1', [now - RateLimitService.bucketTtlMs]);
+      await this.db!.asGateway((c) => c.query('SELECT gateway_rl_bucket_cleanup($1::float8)', [now - RateLimitService.bucketTtlMs]));
     } catch { /* 清理是尽力而为;主判定不受影响 */ }
   }
 
@@ -100,21 +103,11 @@ export class RateLimitService {
       try {
         // 单行原子 UPSERT=令牌桶全式(补充折算与进程内同式;now 单调前进前提与进程内一致)。
         // 拒绝分支(WHERE 不满足)不写行——补充折算每调用从 last_ms 重算,幂等等价,无语义差。
-        const r = await this.db.pool.query(
-          `WITH up AS (
-             INSERT INTO platform_rl_bucket AS b (bucket_key, tokens, last_ms)
-             VALUES ($1, $2::float8 - 1, $3::float8)
-             ON CONFLICT (bucket_key) DO UPDATE SET
-               tokens = LEAST($2::float8, b.tokens + (($3::float8 - b.last_ms) / 1000.0) * $4::float8) - 1,
-               last_ms = $3::float8
-             WHERE LEAST($2::float8, b.tokens + (($3::float8 - b.last_ms) / 1000.0) * $4::float8) >= 1
-             RETURNING 1 AS ok
-           )
-           SELECT true AS ok FROM up
-           UNION ALL
-           SELECT false WHERE NOT EXISTS (SELECT 1 FROM up)`,
+        // p_consume=true=消费形(扣 1);全式在 0189 SECURITY DEFINER 函数内,经 asGateway 调用。
+        const r = await this.db.asGateway((c) => c.query(
+          'SELECT gateway_rl_bucket_take($1, $2::float8, $3::float8, $4::float8, true) AS ok',
           [key, capacity, now, refillPerSec],
-        );
+        ));
         this.markSharedRecovered();
         void this.maybeCleanupBuckets(now);
         return r.rows[0]?.ok === true;
@@ -136,21 +129,11 @@ export class RateLimitService {
   async hasToken(key: string, capacity: number, refillPerSec: number, now: number = Date.now()): Promise<boolean> {
     if (this.db && RateLimitService.isSharedBucketKey(key) && this.shouldProbeShared(now)) {
       try {
-        const r = await this.db.pool.query(
-          `WITH up AS (
-             INSERT INTO platform_rl_bucket AS b (bucket_key, tokens, last_ms)
-             VALUES ($1, $2::float8, $3::float8)
-             ON CONFLICT (bucket_key) DO UPDATE SET
-               tokens = LEAST($2::float8, b.tokens + (($3::float8 - b.last_ms) / 1000.0) * $4::float8),
-               last_ms = $3::float8
-             WHERE LEAST($2::float8, b.tokens + (($3::float8 - b.last_ms) / 1000.0) * $4::float8) >= 1
-             RETURNING 1 AS ok
-           )
-           SELECT true AS ok FROM up
-           UNION ALL
-           SELECT false WHERE NOT EXISTS (SELECT 1 FROM up)`,
+        // p_consume=false=非消费探针形(建桶/折算但不扣额);全式同在 0189 网关函数内。
+        const r = await this.db.asGateway((c) => c.query(
+          'SELECT gateway_rl_bucket_take($1, $2::float8, $3::float8, $4::float8, false) AS ok',
           [key, capacity, now, refillPerSec],
-        );
+        ));
         this.markSharedRecovered();
         void this.maybeCleanupBuckets(now);
         return r.rows[0]?.ok === true;
@@ -179,22 +162,11 @@ export class RateLimitService {
         // 过期接管分支:held_until_ms < now → n 归 1(崩溃残留回收);否则 n+1。WHERE n<max OR expired:
         // 满额且未过期 → 不更新、零行 → false(429)。
         // $3=新 lease 终点(now+TTL,成功即刷新);$4=当前时刻——过期判定恒对 now,不得对刷新后的
-        // lease 终点(否则每次 acquire 都把「未过期」判定自刷新成真,容量形同虚设)。
-        const r = await this.db.pool.query(
-          `WITH up AS (
-             INSERT INTO platform_slot_lease AS s (slot_key, n, held_until_ms)
-             VALUES ($1, 1, $3::float8)
-             ON CONFLICT (slot_key) DO UPDATE SET
-               n = CASE WHEN s.held_until_ms < $4::float8 THEN 1 ELSE s.n + 1 END,
-               held_until_ms = $3::float8
-             WHERE s.n < $2::int OR s.held_until_ms < $4::float8
-             RETURNING 1 AS ok
-           )
-           SELECT true AS ok FROM up
-           UNION ALL
-           SELECT false WHERE NOT EXISTS (SELECT 1 FROM up)`,
+        // lease 终点(否则每次 acquire 都把「未过期」判定自刷新成真,容量形同虚设)。全式在 0189 函数内。
+        const r = await this.db.asGateway((c) => c.query(
+          'SELECT gateway_slot_lease_acquire($1, $2::int, $3::float8, $4::float8) AS ok',
           [key, max, now + RateLimitService.slotLeaseMs, now],
-        );
+        ));
         this.markSharedRecovered();
         return r.rows[0]?.ok === true;
       } catch {
@@ -213,11 +185,8 @@ export class RateLimitService {
     const now = Date.now();
     if (this.db && this.shouldProbeShared(now)) {
       try {
-        const dec = await this.db.pool.query(
-          'UPDATE platform_slot_lease SET n = n - 1 WHERE slot_key=$1 AND n > 1', [key]);
-        if ((dec.rowCount ?? 0) === 0) {
-          await this.db.pool.query('DELETE FROM platform_slot_lease WHERE slot_key=$1 AND n <= 1', [key]);
-        }
+        // 双语句形(UPDATE n>1→0 行再 DELETE n≤1)在 0189 函数内保持,单次调用一个事务。
+        await this.db.asGateway((c) => c.query('SELECT gateway_slot_lease_release($1)', [key]));
         this.markSharedRecovered();
         return;
       } catch {
