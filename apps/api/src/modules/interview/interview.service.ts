@@ -232,8 +232,6 @@ export async function beginInterviewCore(
     const anyExistingStart = await c.query("SELECT 1 FROM interview_job WHERE interview_id=$1 AND kind='start'", [id]);
     if (anyExistingStart.rowCount! > 0)
       throw new HttpException({ error: 'legacy_resume_reference_unavailable' }, HttpStatus.CONFLICT);
-    // 已 active(worker 已开面/已出题)但无 start job 行(边角恢复态)→ 幂等返回,绝不二次预留额度。
-    if (cur.rows[0].status === 'active') return { accepted: true, alreadyBegun: true };
     // G7S 通用 begin 供给面收口(C-MO-S4 事务序):candidate-profile-derived route decision + snapshot
     // 同步落库,先于扣额/入队(同 asPrincipal 事务,未决 throw → 整体回滚零悬账)。通用面
     // (application_id IS NULL)才供给;recruiter-flow 面的 bound interview 由 recruiter 启动事务的

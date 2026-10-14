@@ -99,7 +99,7 @@ async function ivStatus(id: string): Promise<string | undefined> {
  */
 async function setupFailedReport(owner: string, interviewId: string, leaseOwner: string) {
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
     [interviewId, owner],
   );
   await asPrincipal(h.pool, owner, (c) =>
@@ -236,7 +236,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H3 · A3 退款先赢 GAP + quarantined POST report/retry → 404（出口 BLOCKED） ────────');
   const id = IID('h3');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   await asPrincipal(h.pool, 'userA', (c) =>

@@ -110,7 +110,7 @@ await h.pool.query(
   console.log('\n──────── H1 · HTTP active+reserved abandon ────────');
   const id = IID('h1');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   const before = await bal('userA');
@@ -151,7 +151,7 @@ await h.pool.query(
   console.log('\n──────── H2 · HTTP 二次 abandon + begin 拒复活 ────────');
   const id = IID('h2');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   await asPrincipal(h.pool, 'userA', (c) =>
@@ -178,7 +178,7 @@ await h.pool.query(
   const live = IID('live');
   const dead = IID('dead');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created'),($2,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created'),($2,'userA','created')",
     [live, dead],
   );
   await asPrincipal(h.pool, 'userA', (c) =>

@@ -102,7 +102,7 @@ async function main() {
   {
     const owner = OWN('t2'), id = IID('t2');
     await seedOwner(owner, 5.0);
-    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [id, owner]);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [id, owner]);
     await insertGraphRun(owner, id, 'active');
     await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, id, 'mock_interview', 1.0));
     await expireLease(owner, id);
