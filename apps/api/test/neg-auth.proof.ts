@@ -391,7 +391,7 @@ async function main() {
     const s = await h.post('/auth/signup', {}, { email: 'willdie@x.com', password: 'diepass12' });
     const uid = s.body?.userId, tok = s.body?.token;
     // 前置(不作 happy 断言):停用自身
-    await h.post('/profile/deactivate', bearer(tok), {});
+    await h.post('/profile/deactivate', bearer(tok), { password: 'diepass12' });
     const q = await h.pool.query('SELECT status FROM user_account WHERE id=$1', [uid]);
     A('deactivate/停用后 DB status=disabled', q.rows[0]?.status === 'disabled');
     // 停用后旧令牌应立即失效(status 非 active → 401 account_inactive)

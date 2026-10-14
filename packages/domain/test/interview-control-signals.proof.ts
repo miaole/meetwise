@@ -137,9 +137,10 @@ function thrashMind(): InterviewMind {
 {
   let m = withCurrent(initMind([{ name: 'A' }, { name: 'B' }], 12), 'A');
   m = ingestAssessment(m, 'A', 30, ['弱1']);
+  const afterWeak = decideNext(m);
   A('复: 单次弱答 → 仍 probe 同能力，不 early_weak',
     observeInterviewSignals(m).kind === 'none'
-    && decideNext(m).kind === 'ask' && decideNext(m).mode === 'probe' && decideNext(m).competency === 'A');
+    && afterWeak.kind === 'ask' && afterWeak.mode === 'probe' && afterWeak.competency === 'A');
   m = ingestAssessment(m, 'A', 28, ['弱2']);
   const afterOff = decideNext(m);
   A('复: 单能力 off-ramp 后 pivot，不 conclude',

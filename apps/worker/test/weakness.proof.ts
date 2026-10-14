@@ -221,7 +221,7 @@ async function dbSections() {
     && (await progressTopics(pool, W2_OWNER, 'bw-prior')).includes('高并发能力'));
   A('D10 异名不勾(消息队列 不被 高并发/系统设计 误挡命中)', !(await progressTopics(pool, W2_OWNER, 'bw-prior')).includes('消息队列'));
   A('D11 本场计划排除(bw-curr 自身计划项不回灌)', (await progressTopics(pool, W2_OWNER, 'bw-curr')).length === 0);
-  A('D12 计划本体零重写(Ban 一次性覆盖写·items 逐字节)', JSON.stringify((await asPrincipal(pool, W2_OWNER, (c) => c.query<{ items: unknown }>('SELECT items FROM learning_plan WHERE interview_id=$1', ['bw-prior']))).rows[0].items) === JSON.stringify(planBefore.rows[0].items));
+  A('D12 计划本体零重写(Ban 一次性覆盖写·items 逐字节)', JSON.stringify((await asPrincipal(pool, W2_OWNER, (c) => c.query<{ items: unknown }>('SELECT items FROM learning_plan WHERE interview_id=$1', ['bw-prior']))).rows[0]!.items) === JSON.stringify(planBefore.rows[0]!.items));
   const out2 = await backfillLearningProgressFromAssessment(pool, W2_OWNER, 'bw-curr');
   A('D13 幂等重放:再跑 marked=0·行数不变', out2.marked === 0 && (await progressTopics(pool, W2_OWNER, 'bw-prior')).length === 1);
   A('D14 provenance 观测面(gapDimensions=本场 gap 名)', JSON.stringify(out1.gapDimensions) === JSON.stringify(['高并发', '系统设计']));

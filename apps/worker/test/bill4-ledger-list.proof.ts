@@ -172,7 +172,7 @@ async function main() {
   const proc = await pool.query<{ prosecdef: boolean; pronargs: number }>(
     "SELECT prosecdef, pronargs::int FROM pg_proc WHERE proname='gateway_billing_ledger_payer'");
   A('⓪-a 0185 函数在位且 SECURITY DEFINER·零形参（伪造 payer 形参面=签名不存在）',
-    proc.rows.length === 1 && proc.rows[0].prosecdef && proc.rows[0].pronargs === 0);
+    proc.rows.length === 1 && proc.rows[0]!.prosecdef && proc.rows[0]!.pronargs === 0);
   const migSrc = root('packages/db/migrations/0185_gateway_billing_ledger_payer.sql');
   const sql23 = root('packages/db/sql/23_api_gateway.sql');
   A('⓪-b 0185 函数体+ACL 与 23_api_gateway.sql 镜像逐字节同文（0159:17-18 同款承重墙判据）',
@@ -318,8 +318,8 @@ async function main() {
   });
   const p1 = await asPrincipal(pool, OWNER_A, (c) => listLedger(c, OWNER_A, { windowDays: 365 }));
   A('⑤-a 单页宽=50（commerce 列表窗先例同宽）·同时戳块内全序：自然键字节 DESC 连号（b4-mix-* 字节序沉底·usage 段 61 行满 50）',
-    p1.entries.length === 50 && p1.entries[0].idempotencyKey === 'bill4-pg-059'
-    && p1.entries[49].idempotencyKey === 'bill4-pg-010');
+    p1.entries.length === 50 && p1.entries[0]!.idempotencyKey === 'bill4-pg-059'
+    && p1.entries[49]!.idempotencyKey === 'bill4-pg-010');
   A('⑤-b nextCursor 回显自洽（三段载荷 source=natural_key 双段在场·窗回显 365）',
     p1.nextCursor !== null
     && (() => { const p = JSON.parse(Buffer.from(p1.nextCursor!, 'base64url').toString('utf8')); return p.s === 'usage' && p.k === 'bill4-pg-010'; })()
