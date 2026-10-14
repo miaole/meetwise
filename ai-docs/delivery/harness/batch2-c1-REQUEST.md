@@ -175,7 +175,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 | ④ typecheck | `pnpm exec turbo typecheck --force` + 根 `pnpm typecheck` | **绿**：8/8 successful 0 cached EXIT=0；根 EXIT=0 |
 | ⑤ 账本纪律 | `git diff` 断言 | **绿**：migrations/** 零增零改（diff 空）·`ai-runtime/src/index.ts`/`rate-limit.service.ts`/LEDGER 零触（diff name-only 缺席）·semantic-route.ts diff 全注释行=码面零字节 |
 | ⑥ docs 门 | `node scripts/ai-docs/check-docs.mjs` | **绿 EXIT=0**：80 required verified·scanned **2068** ≤ cap **2072**（ciw2 后 cap 值） |
-| markers 五类 | 净增行+全文件 grep（ag-a-resume receipts/05-markers 形） | **零新增**：冲突 0/fake-green 全文件 1 处=main.ts:714 前在行（6cd621cc·本刀净增行 0 命中）/弱化 0/遗留标 0/secrets 0 |
+| markers 五类 | 净增行+全文件 grep（ag-a-resume receipts/05-markers 形） | **零新增**：冲突 0/绕过词类全文件 1 处=main.ts:714 前在行（词面组装形不复抄·消自匹配·沿 §7 同形制·本刀净增行 0 命中）/弱化 0/遗留标 0/secrets 样值 0 |
 | 收据复核 §3-9 | `pnpm adaptive-consumer:prove` | **红（基线红·归因非本刀）**：33 PASS/2 FAIL EXIT=1——**stash 本刀全改动后对干净并线树 `f7486f96` 复跑同门同红（33/2·EXIT=1）**=并线携入主线基线红（merge 携入 interview-consumer.ts/adaptive-lifecycle.ts 主线改动·proof 文件本身零漂）·非 §2 六门·修复越 §3-9 边界（触主线 worker 行为面）→如实登记归协调方·禁 retry-to-green 已守 |
 
 **EXEC 中两红消解记录（均在口径内·非 retry-to-green）**：①新 proof ②臂首跑红=期望串未计现状「去标签以空格替换」语义（标签→空格·非删除）·按现状语义修正期望串（' 请描述令牌桶限流的实现原理？ '）——语义与 :50-52 既有臂口径恒一；②①臂 cancel 探针首跑红=proof 侧 fake 流切块过疏致 abort 时刻源已 pull 耗尽 close（Web Streams spec：对已 close 流 cancel 不再回调底层 cancel）·生产码面无病（拒源 null 无条件成立·真 undici 中景流 cancel 必达）·fake 切块加密至 512B 使 abort 先于源耗尽·cancel 传播确定性直证。门4 typecheck 首跑红=新 proof 同步假 fetch 返回 `RawResponse` 非 `Promise<RawResponse>`·全量改 async 形（proof 侧·零生产面）。
@@ -187,3 +187,12 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **偏离任务书清单（两项·均机械性登记）**：①`packages/domain/package.json` +1 prove 脚本——§2-② 新 proof 门的可执行登记（树内全 proof 均有 script 的既定形制·门矩阵无此命令不可跑）；②main.ts :548 SSRF 门注释句「每跳 allowlist/私网复核」→「每跳 allowlist/私网/解析后 IP 复核」——#119 接线点的同句随翻（防注释与实现双口径·§1-修法②(c) 同旨）。交付报告载体：协调方 EXEC 令指定最终消息回报+本 §9 附记·`ai-docs/delivery/receipts/b2c1/` 目录未另立（沿协调方令五项回报形）。
 
 **STOP**：`executed:awaiting_post_prove_dual`（EXEC 落卷即停·⛔push 维持·待 post-prove 双审两外席·Ban self-approve·alone≠dual）。commit=`fix(worker): BATCH2-C1 EXEC——…`（见该 commit 全文）。
+
+**post errata 勘正登记（2026-10-14 · post 双审两外席 BOTH PASS·errata 归勘正席落卷·docs+一行码面收紧·Status 维持 `executed:awaiting_post_prove_dual`·⛔push）**：
+
+- **errata-1（授权码面一行+proof 一臂）**：`createSafeFetch` 在 resolve 相位返回后、rawFetch 调用前重算 `remainingMs = deadline - Date.now()` 并对 ≤0 返 null——消「resolve 相位不折减」残面（原形 fetch 信号仍持进跳全量预算·单跳最坏 2× 预算）；remainingMs 计算位次注记随新形同步（`const`→`let` 每跳重取+resolve 后重算折减两注）；web-explore.proof 补一预算臂（resolve 占时 100ms → fetch 信号 ~100ms 到点而非全量 200ms 断言）。
+- **errata-2（头注残留声明三行）**：web-explore.ts 头注残留声明补三行——fec0::/10（deprecated site-local·RFC 3879 已废址，如 fec0::1）字面放行/64:ff9b:1::/48（RFC 8215 local-use NAT64）字面放行（现行仅判 64:ff9b::/96）/非规范 IPv4 字面（非点分十进制形）按域名 fail-open（树内入口均经 URL hostname 规范化不可达·仅导出误用构成 Exposure）——三形勘正席 node 亲测均放行在证。
+- **登记①（stash 收据弱口径）**：门矩阵「收据复核 §3-9」行的基线红归因证据=stash 全改动后对干净并线树 `f7486f96` 复跑同门同红——stash 形收据系弱口径：stash 仅覆盖 tracked 改动、复跑与收跑非同窗环境、归因粒度止于「并线携入」级（携入 commit 粒度未证）。「非本刀」结论维持（本刀六门全绿+同门对照双证）·证据强度如实降格登记·精确归因归协调方后继。
+- **登记②（动态臂脆性）**：claim-join 退避动态臂（leader 压 300ms 窗内 claim 事务计数形 ≤9/≥16）系时标敏感断言——loaded runner/容器抖动下计数形存在脆性（阈值非恒定保证）；后继复跑如翻红按基线红口径如实登记归因（禁 retry-to-green）·静态臂（退避常量 20/2/1000）时序无关恒稳。
+- **登记③（旧数勾销）**：errata-1 增一臂后，§0.1 blob 行/§2-1/门矩阵① 各处「33 臂」「`A(` 亲数 33 恒等」数字自此勾销——现值 **33+1=34**（§0.1 行系起草基线史锚原样保留·现值以本登记与届时亲跑为准）；b2c1-web-egress 16 臂零变。
+- **登记④（receipts 目录偏离）**：§8 交付报告格式载「落 `ai-docs/delivery/receipts/b2c1/`」——EXEC 未另立该目录（收据以协调方令「最终消息回报+本 §9 附记」形承载·偏离清单已载一句）·升格为正式登记：偏离成立·补立与否归协调方裁决·后继刀收据载体沿本形制登记。
