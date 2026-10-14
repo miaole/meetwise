@@ -428,6 +428,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 补充 | AG-37 deficit 持久化 | 图 state additive | ✅ nail 收官 66e42d6e |
 | 补充 | AG-19 prompt 版本 | 0181+trace+metric | ✅ nail 收官 b8206e53 |
 | 补充 | AG-24 Langfuse model 归因 | span.model 真名+cached/cost 上报+RAG 预留 0083 revision 绑定+限流/熔断残留清理（零迁移） | ✅ nail 收官 9ea52bc0（收官 merge·初笔 eb5a00cd 系 pull --rebase 丢弃后悬空·勘误见 checklist「Line AG-24 nail」段·SSOT 详情=同段+文末收官登记节） |
+| 补充 | AG-38 问答工具层 | runToolLoop 只读受限工具层（五只读工具+构造期权限绑定+E6 同意门+有界循环+既有账本对表·零迁移） | ✅ nail 收官 e6a481c9（blob 锚重钉 20e2f442+cost3 egress 面补账 16114f7d·SSOT 详情=execution-master-checklist「Line AG-38 nail」段） |
 | 起草 | billing P3 | 结算 REQUEST 503ccd59+rev 4bf1ce96 | ✅ 双审 BOTH PASS→EXEC 落卷 f4234c92 |
 | 起草 | qbank 起草 | AG-41/42/43+P5 | 落卷 9484bc54→EXEC b20ee350→post BOTH→nail 32bf35b8 |
 | 起草 | AG-37 起草 | deficit 持久化 | 落卷 3b47df9a→EXEC 15b67341→post BOTH→nail 66e42d6e |
@@ -435,8 +436,9 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 起草 | billing P1 起草 | 话题字段 | 落卷 2b44a0dc→EXEC b42c4e6b→post BOTH→nail a1241e90 |
 | 起草 | billing P2 起草 | 影子计量 | 落卷 73dbdc90→EXEC 7c980b49→post BOTH→nail f3968440 |
 | 管线 | 刀D nail | AG-01 准入去终态化 | rev3 2b86722c→EXEC 7e0d64d0→post 双席 BOTH PASS→nail ccf3e7e7（merge 双亲 32bf35b8+7e0d64d0 已推·SSOT 详情=execution-master-checklist「Line AG-D nail」段·失败语义轨六刀 A-F 全收官） |
+| 管线 | AG-38 nail | 问答工具层 | REQUEST 004fd4cf→rev2 d4dd47a8→rev3 e74eec63→EXEC 7119ade3（红停 FILE_LIMIT→协调方修 59a3826b→翻面 0a59fa43）→post 双席 PASS→勘正 74847e8c→上席 merge 497aff89→重钉 20e2f442→nail merge e6a481c9（egress 补账 16114f7d 随行·SSOT 详情=execution-master-checklist「Line AG-38 nail」段） |
 | 排期 | AG-39 私有题库 | owner_kind+org_id+库内强制+来源审计 | 大型产品刀·挂用户排期 |
-| 排期 | AG-38 问答工具层 | runToolLoop 只读受限工具层 | 挂产品落地（成长顾问/B 端追问） |
+| 排期 | AG-38 问答工具层 | runToolLoop 只读受限工具层 | 收官翻面→见上「补充 AG-38」行（✅ nail 收官 e6a481c9·宿主接线=成长顾问/B 端追问挂后继刀） |
 | 排期 | 批5 残项 | 批5 残 100 件 | 43/143 已收（5E 35+5A-1 八件 @5cb78dab·残 #34 两半起草中）·残归域刀 |
 ## BILL3 话题结算收官登记（2026-10-13 · nail 席红停→协调方接管修→收官 · 沿 :301 先例 · 非 271 计件面 · 权威值 146/271 维持）
 
