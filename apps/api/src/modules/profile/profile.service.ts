@@ -129,16 +129,19 @@ export class ProfileService {
     const r = await this.db.asPrincipal(principal, (c) => c.query(
       'SELECT password_hash FROM user_account WHERE id=$1', [principal]));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
-    if (!verifyPassword(b.oldPassword, r.rows[0].password_hash)) {
+    if (!(await verifyPassword(b.oldPassword, r.rows[0].password_hash))) {   // #34:verify await 化,错密分支先行(恒时序比对不变)
       this.rl.allow(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL);   // #120 失败锁扣减(连败满容量后入口锁定)
       throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);
     }
     // 单语句原子改哈希 + 代次自增:并发两次改密各自 read-modify-write 在行锁内串行,代次 0→1→2 不丢更新,两个旧代次令牌均失效。
     // 边角:并发双改密时先提交者回签的令牌内嵌旧代次(如 1),会被终值(2)判失效——极罕见的自锁,可接受。
     const newPassword = b.newPassword;   // 守卫后已收窄为 string；const 捕获进闭包(strictNullChecks 下 b 参数不收窄进回调)
+    // #34:新密哈希 hoist 到 UPDATE 前(verifyPassword 错密分支后)——错密早抛路径零新密 scrypt 计算;
+    // 两次 scrypt 连跑计数不变(verify→hash 顺序保留),KDF 移 libuv 线程池不阻塞事件循环。
+    const newHash = await hashPassword(newPassword);
     const up = await this.db.asPrincipal(principal, (c) => c.query(
       'UPDATE user_account SET password_hash=$2, pwd_epoch = pwd_epoch + 1 WHERE id=$1 RETURNING pwd_epoch',
-      [principal, hashPassword(newPassword)]));
+      [principal, newHash]));
     const epoch = up.rows[0].pwd_epoch;
     evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 单实例下旧令牌下一请求即 401;多实例仅本机即时,其余实例 ≤60s 缓存过期后生效
     // 签发**新代次**令牌回给当前会话,避免用户改完密码就被自己踢下线(无死胡同);缺密钥时降级为仅 changed。
@@ -167,7 +170,7 @@ export class ProfileService {
     const acct = await this.db.asPrincipal(principal, (c) => c.query(
       'SELECT password_hash, status FROM user_account WHERE id=$1', [principal]));
     if (acct.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
-    if (!verifyPassword(password, acct.rows[0].password_hash)) {
+    if (!(await verifyPassword(password, acct.rows[0].password_hash))) {   // #34:verify await 化,错密分支零副作用语义零变
       throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);   // 零副作用失败路径
     }
     const result = await this.db.asPrincipal(principal, async (c: any) => {

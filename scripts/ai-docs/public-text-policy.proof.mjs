@@ -253,6 +253,7 @@ const checks = {
       // AG-12 成本轨③：cap 2048→2064（任务书派单 sanctioned 值）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减·偏离清单随 REQUEST §9 落卷）。
       // ciw2 nail：cap 2064→2072（2026-10-14 协调方授权）——本臂按同协议随件同步。
+      // AG-11 成本轨④ post 补证：cap 2072→2080（沿 +16 同步长）——本臂 fabricated 数随 cap 再联动。
       // S4b 翻面：cap 2072→2080（2026-10-14 协调方授权）——本臂按同协议随件同步。
       const paths = [];
       for (let i = 0; i < 2_080; i += 1) {
