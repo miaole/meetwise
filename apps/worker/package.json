@@ -32,6 +32,7 @@
     "prove:usage-calibration-bleed": "tsx test/usage-calibration-bleed.proof.ts",
     "prove:usage-calibration-windowing": "tsx test/usage-calibration-windowing.proof.ts",
     "prove:model-op00-db-state": "tsx test/model-op00-db-state.proof.ts",
+    "prove:ag11-settle-relax": "tsx test/ag11-settle-relax.proof.ts",
     "prove:security": "tsx test/security.proof.ts",
     "prove:memory": "tsx test/memory.proof.ts",
     "prove:drain": "tsx test/drain-loop.proof.ts",

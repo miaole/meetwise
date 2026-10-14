@@ -231,3 +231,34 @@ pre-exec 双审两外席均 **FAIL**：席1 = B1+6 errata+门矩阵预申明·�
 **§9-7 偏离任务书清单（如实呈报·余零）**：①§2-1「迁移+放宽 proof（新 proof 件·settle 五相 α/β/β-0/γ/δ/ε+replay+wrapper 幂等七组）」**未随刀立项**——协调方施工清单（三件+静态钉 model-op00 ≤ 臂+e2e 零漂门+门矩阵 §2-3 全表）未含新 proof 件；其门矩阵未列新 proof 门·本席不越权新增 proof 文件+runner 白名单+三处 package.json 注册（越界面）。settle 放宽/月限松绑的 SQL 语义现验证面=migrate:prove 链 188 全 apply（SQL 有效性/约束名正确性 fail-closed）+typecheck·**五相行为断言缺口如实移交 post 双审/协调方裁补**（补则沿 §2-1 候选形状立新刀）。②「P2 勘误五条随立项落」=rev2 D4-D8（席2-E1 行内扩单调/ E2 部署窗口/ E3 live=2/ E4 资损上界/ E5 ⑥接口注）——rev2 已落卷·EXEC 逐条复验在案（E1 落 0188 GREATEST 形+⑤(β-0) 防线·E2 登记本 §9-8·E3 恰数锚亲证 live=2·E4 阈值 >0 即告警落 §9-3·E5 零预支亲证 digest 零字节）。
 
 **§9-8 卫生回执**：**est live=0**（迁移+proof 全隔离库/静态·零模型外呼·零生产操作·零 secrets·零消耗）；**pins 十一值零翻转**（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null）；**部署窗口登记（rev2 §0.3-4 承接）**：0188 上线前在飞预留（reserved=header max）上线后同键重放携 LEAST 值→0083 :46-58 `binding_mismatch` 确定性拒绝·有界自限·期望行为非缺陷；**markers 五类**改动集新增行零命中（git diff -U0 新增行口径·五类词族沿 ha-5/qbank-control-sec receipt 先例不复抄卷内避免自匹配·EXIT=1 零命中亲跑）；docs:check 终态见本卷落卷后亲跑回执；**⛔push**（EXEC 后 STOP=`executed:awaiting_post_prove_dual`·交 post 双审两外席）；历史迁移 0001-0187 零字节；共享 SSOT 四件零触。
+
+---
+
+## §9-9 post 补证附记（2026-10-14 · post 补证席落卷 · STOP=`executed:awaiting_post_prove_dual` 维持）
+
+**授权与 B1 消解**：post 双审席1 PASS/席2 FAIL B1 P1——「settle 放宽体（0188:282-372）全宇宙零执行覆盖」（plpgsql CREATE 仅语法校验·首跑即生产首跑=EG-B2 事故级）。协调方授权线内补立（§2-1① 候选形状：新 proof 件+白名单+注册三处）·本附记随翻·⛔push 维持·Ban self-approve·B1 自本件起消解（0188:282-372 由零执行覆盖→八臂行为级全绿隔离库直证）。
+
+**补证件① `apps/worker/test/ag11-settle-relax.proof.ts`（新·隔离库真迁移链·applied=188 skipped=0·EXIT=0 八臂 8 PASS/0 FAIL 亲跑）**：
+
+- **α 等值结算**：actual=reserved(40/40) → `{microCny:80, overage:false}`·行终态 settled 金额原路径（0188:323-325 CEIL 式）零变·月行 reserved−80/settled+80/version+1。
+- **β 预留<actual≤header max**：预留(40/40)<actual(60/40)≤header max_input(100) → settled 行内扩 input_tokens_reserved 40→60（仅 actual>reserved 侧单调扩·输出侧 40=header max_output 恒保持）·金额 100·overage=true·月行 reserved−原预留80/settled+actual100 净增断言（快照差分亲证）。
+- **β-0 actual_input=0**：结算绿 `{40,false}`·input_tokens_reserved 恒 40 不触扩不缩（0033:47 `CHECK (input_tokens_reserved > 0)` 防线锁·0 消耗不被歪曲）。
+- **γ 封顶不破**：actual(11)>header max_input(10) → raise `ai_cost_actual_exceeds_reservation` 原码·行态 dispatching/settled_micro NULL·月行三值零动。
+- **δ COALESCE fail-closed**：无 invocation/header 匹配 fixture → 上限退回预留自值（0188:304-319 defensive）：actual(41)>预留自值 raise 同码=严格语义·等值预留(40/40)仍结算绿 `{80,false}`·月行恰一次结转。
+- **ε 月限穿仓**：月行拉至旧 CHECK 边界（1000/1000）后 overage 结算 920+100=1020>1000 **成功不拒**+overage=true（0033:35 表级 `CHECK ...<= limit_micro_cny` DROP CONSTRAINT 行为级证明·`pg_constraint` 目录 `ai_cost_budget_month_check` 零残留双证）·reserve 期闸自限原值（0144:513-516）：同 scope 新 reserve → `budget_exhausted`。
+- **ζ 幂等+重放防线**：scoped 二次调用回 `{100,true}` 同额同标（0188:302 已 settled 幂等返回+wrapper 回读 overage）·同键异信封(40→41) reserve → `binding_mismatch` 决策+零金额（0083:46-58 零放松锁）。
+- **η ACL 回归**：`app_role` 对新签名 `ai_cost_settle_text_scoped(text,text,text,integer,integer)` EXECUTE=true·PUBLIC revoked=false·pg_proc 恰 1 无 overload·返回形 `TABLE(micro_cny bigint, overage boolean)`（0188:353-372 恰一 DROP+CREATE 后 ACL 随发亲证·0036:187/:190 同形）。
+
+**补证件② 注册三处（沿仓内 gate 四点注册先例）**：`scripts/run-e2e-isolated.mjs` 四点=isolatedReceiptSources 源清单+unsupported 白名单+isolatedCommand 映射（`pnpm -C apps/worker prove:ag11-settle-relax`）+migrate 名单；根 package.json=`ag11-settle:prove`（runner 包装）+`ag11-settle:prove:raw`；`apps/worker/package.json`=`prove:ag11-settle-relax`。
+
+**E1 钳制（席2 授权顺带·invoke.ts:865 恰一行）**：`Math.max(1, Math.min(policy.maxInputTokens, plan.estimateInputTokens ?? policy.maxInputTokens))` 下界钳——reserve 输入侧域约束（0036 `p_input_tokens>=0` 且 `input+output>=1`）防御性兜底·现产不可达（0119:27-33 estimate 冻结值域下界 ≥1+invoke :425-426 非法估算显式拒）·零漂（估算链恒 ≥1 钳不触）。
+
+**席1 E1 行号勘正（324/325）**：post 席1 E1 行号勘正落卷——settle 金额原路径两 CEIL 项实测 `0188:324-325`（input 项 :324/output 项 :325·本席 sed 亲证吻合·历史层不重写·以本注登记）。
+
+**席2 E2/E3 登记形**：**E2=0190 残留指针**——§9-2 迁移号终裁后起草/rev2 历史层仍存 `:0190` 字样（防重双对表/§0.3-1/§0.3-4/§1-修法头注/件①件②头注/月限 bullet/§2-1/§3-5/§3-7/§5/§8 裁决②/卷尾/rev2 摘要 D1/D2/D5/处置后自查各行）·按 append-only 纪律历史层不重写·**登记注：上述各处 `0190` 一律按 §9-2 读作 `0188`（0190 号位未占用未实落）**；**E3 以登记形收录**（内容随 post 席2 报告归档·不涉本刀码面·补证席未收原文不代述）。
+
+**门矩阵（本附记全数亲跑·EXIT 实测）**：ag11-settle:prove **EXIT=0**（八臂 8 PASS/0 FAIL·链 188 applied=188 skipped=0）·model-op00:prove **EXIT=0**（21 臂在册/19 打印 PASS/0 FAIL·链 188）·usage-reconciliation **EXIT=0**（15 PASS）·context-budget **EXIT=0**（49 PASS）·migrate:prove **EXIT=0**（链 188）·turbo typecheck --force **EXIT=0**（3/3）·docs:check **EXIT=0**（scanned 2065 ≤ cap 2080）·markers 五类改动集净增行+新文件全行 **零命中**；随附 public-text-policy:prove **EXIT=0**（12/12·cap 联动臂同步后）。
+
+**偏离任务书清单（如实呈报）**：①**cap 2064→2080**（`scripts/ai-docs/public-text-policy.mjs` MAX_FILES+`public-text-policy.proof.mjs` 越限臂 fabricated 数联动）——EXEC 已触顶 2064·新 proof 件 +1 受管文件即结构性 `PTP_FILE_LIMIT:2065` 红·沿 2048→2064 派单 sanctioned 同机制落法（+16 同步长）·docs:check 转绿 EXIT=0（2065 scanned）+cap 联动 proof EXIT=0（12/12）亲证·语义不变强度不减。余零。
+
+**卫生回执**：est live=0（本补证全隔离库/静态·零模型外呼·零生产操作·零 secrets·零消耗）·pins 十一值零翻转·历史迁移零字节·共享 SSOT 四件零触·⛔push（STOP=`executed:awaiting_post_prove_dual` 维持·待 post 双审对本附记复审）。
