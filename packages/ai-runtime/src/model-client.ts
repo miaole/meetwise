@@ -611,6 +611,13 @@ export function openAICompatibleClient(cfg: {
   const resolved = cfg.backup === true ? resolveTextBackupEndpointConfig()
     : cfg.vision === true ? resolveVisionEndpointConfig(cfg.env ?? process.env)
     : resolveTextEndpointConfig();
+  // AG-08 成本轨⑤（裁决②(a)）：端点准入身份源=冻结 profile 注册表（profile id × region='cn'，
+  // 与 0200 种子同源）。vision 先判（pre-exec 复审 P2①）：`vision===true` 恒不携带端点身份——
+  // vision/dashscope-native 分区维持 registry 派生原值零漂（防 vision OCR 生产全断）；仅 text
+  // 双 profile 族（主/备）填充。该身份只进共享准入分区，不进 claim、不进 requestDigest。
+  const admissionEndpoint = cfg.vision === true
+    ? undefined
+    : Object.freeze({ providerAccount: resolved.profile, region: resolved.region });
   const baseUrl = cfg.baseUrl ?? resolved.baseUrl;
   const apiKey = cfg.apiKey ?? resolved.apiKey;
   const model = cfg.model ?? resolved.model;
@@ -644,7 +651,14 @@ export function openAICompatibleClient(cfg: {
       if (context?.ok === false) return { ready: false, error: context.error };
       // 把派发前保守估算挂到 plan 上：invoke 在 claim 时落 ai_model_invocation.estimate_input_tokens（P1），
       // 覆盖 success/schema-失败/unknown 全 outcome（不再只依赖 !error 的 trace 落库）。
-      return { ready: true, execute: (executionSignal) => client.complete(req, attempt, executionSignal ?? signal), cost: costPolicy, estimateInputTokens: context?.ok === true ? context.plan.inputTokens : undefined };
+      // admissionEndpoint=上面 vision 先判所得（text 双 profile 族带身份；vision 恒 undefined）。
+      return {
+        ready: true,
+        execute: (executionSignal) => client.complete(req, attempt, executionSignal ?? signal),
+        cost: costPolicy,
+        estimateInputTokens: context?.ok === true ? context.plan.inputTokens : undefined,
+        admissionEndpoint,
+      };
     },
     async complete(req, _attempt, executionSignal) {
       if (policyRequired && costPolicy === undefined) {

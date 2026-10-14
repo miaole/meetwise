@@ -172,12 +172,15 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // #34 残半 chunked 封顶(preParsing 流计数):onRequest 生命周期拿不到 body 流,preParsing 才收到——
   // 仅覆盖**无 content-length** 形(有头路径行为零改,仍走上方 onRequest 钩子);计数包装转发(PassThrough),
   // 超阈即 413 与既有 1MiB 钩子同信封同错码,并销毁包装流停转发(content-type-parser 不再缓冲);
-  // GET/HEAD 无体请求流计数恒 0≤限,零特判零新分支。超阈后 content-type-parser 对包装流的等待由
-  // reply.sent 短路终结(hooks.js preParsingHookRunner `if (reply.sent) return` + handleRequest 首行守卫)。
+  // GET/HEAD(bodyless)必直通零包装:fastify 对 bodyless 不缓冲不 parse 封顶无对象,且对流挂 data/end
+  // 即把 bodyless req.raw 推入 flowing——消息即刻消费完成,'close' 在连接未断时就提前发出,SSE 泵
+  // 事后挂的 reqRaw close 侦测失聪(断开后 waiter/槽滞留至 deadline=真泄漏)。超阈后 content-type-parser
+  // 对包装流的等待由 reply.sent 短路终结(hooks.js preParsingHookRunner `if (reply.sent) return` + handleRequest 首行守卫)。
   // eslint-disable-next-line @typescript-eslint/no-explicit-any -- fastify 实例上确为 any(见 getInstance() as any),钩子签名沿本文件既有 onRequest/onResponse 钩子同形,改真类型需动实例转换面,非本行内最小形
   fastify.addHook('preParsing', (req: any, reply: any, body: any, done: any) => {
+    const method = String(req.method ?? '').toUpperCase();
     const url = String(req.url ?? '').split('?')[0] ?? '';
-    if (UPLOAD_ROUTES.some((re) => re.test(url)) || req.headers['content-length'] !== undefined) { done(null, body); return; }
+    if (method === 'GET' || method === 'HEAD' || UPLOAD_ROUTES.some((re) => re.test(url)) || req.headers['content-length'] !== undefined) { done(null, body); return; }
     const capped = new PassThrough();
     let received = 0;
     let settled = false;

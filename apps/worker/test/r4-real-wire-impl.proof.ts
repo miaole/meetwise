@@ -37,7 +37,7 @@ const plannerHelperPath = join(workerSrc, 'qbank-planner-retrieval-plan.ts');
 const consumerPath = join(workerSrc, 'interview-consumer.ts');
 const mainPath = join(workerSrc, 'main.ts');
 const scopePath = join(workerSrc, 'qbank-retrieve-scope.ts');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-real-wire-impl.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-real-wire-impl.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const parentHarness = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation.md');
 
@@ -162,10 +162,10 @@ A('harness pins wire green ≠ R4 closed ≠ wrong_track=0',
   (/接线绿|wire green|≠ R4/.test(harness) || /NOT closed/.test(harness))
   && /wrong_track=0/.test(harness)
   && /releaseEvidence=false/.test(harness));
-A('status still pins 题域隔离 NOT closed + releaseEvidence=false',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
-A('parent harness still pins 题域隔离 NOT closed',
-  /题域隔离 NOT closed/.test(parent));
+A('status still pins ≠ 题域已隔离 + releaseEvidence=false',
+  /≠ 题域已隔离/.test(status) && /releaseEvidence=false/.test(status));
+A('parent harness still pins ≠ 题域已隔离',
+  /≠ 题域已隔离/.test(parent));
 A('no claim wrong_track=0 proven in harness',
   /wrong_track=0/.test(harness) && (/未证|≠ wrong_track|ADV|禁止|不得|否/.test(harness)));
 

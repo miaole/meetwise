@@ -15,6 +15,7 @@ import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { asPrincipal, claimModelInvocation, createPool } from '@meetwise/db';
 import { invoke, type Model } from '../src/index.ts';
+import { CLAIM_POLL_BACKOFF_INITIAL_MS, CLAIM_POLL_BACKOFF_FACTOR, CLAIM_POLL_BACKOFF_CAP_MS } from '../src/invoke.ts';
 
 const pool = createPool();
 let failures = 0;
@@ -156,6 +157,53 @@ async function main() {
     'HC-GAP-011-concurrent-no-row: two invoke() with no row yet → calls=1 and both return the same value',
     raceModel.calls === 1 && sameInvokeValue(raced[0], raced[1]),
   );
+
+  section('B2C1 #173 follower exponential-backoff pacing');
+  // 静态臂：退避常量导出面（初值 20 / 倍率 2 / 封顶 1000）。首拍与旧恒定 20ms 形等延迟（join 快路径
+  // 零劣化）；封顶 1000ms ⇒ join 尾延迟 ≤ cap、deadline（model_invocation_wait_timeout）判定仍在拍界内。
+  assert(
+    '#173-backoff-constants: CLAIM_POLL_BACKOFF_INITIAL_MS=20 / _FACTOR=2 / _CAP_MS=1000',
+    CLAIM_POLL_BACKOFF_INITIAL_MS === 20 && CLAIM_POLL_BACKOFF_FACTOR === 2 && CLAIM_POLL_BACKOFF_CAP_MS === 1000,
+  );
+
+  // 动态臂：leader 压 300ms，follower 等待窗内 claim 事务（ai_model_claim_invocation_scoped）次数 ≤ 9
+  // （恒定 20ms 形同窗 ≥ 16 次：0/20/40/…/300 共 16+1）——退避只改等待节奏：leader calls=1、双 invoke
+  // 同值（join 三不变式）零变；deadline 路径可达性由 runtime-kernel E2（wait 至 model_invocation_wait_timeout）回归覆盖。
+  {
+    const backoffKey = 'R1:b2c1-backoff-pacing';
+    const backoffModel: Model & { calls: number } = {
+      calls: 0,
+      async call() { this.calls++; await new Promise((resolve) => setTimeout(resolve, 300)); return { ok: true, raw: { question: '退避节奏题' } }; },
+    };
+    const claimScoped = { n: 0 };
+    type MinimalClient = { query: (sql: unknown, ...rest: unknown[]) => Promise<unknown>; release: () => void };
+    const countingConnect = async (): Promise<MinimalClient> => {
+      const client = (await pool.connect()) as unknown as MinimalClient & Record<string, unknown>;
+      return new Proxy(client, {
+        get(ct, prop) {
+          if (prop !== 'query') return Reflect.get(ct, prop);
+          return async (sql: unknown, ...rest: unknown[]) => {
+            if (typeof sql === 'string' && sql.includes('ai_model_claim_invocation_scoped(')) claimScoped.n++;
+            return (ct.query as (...a: unknown[]) => Promise<unknown>)(sql, ...rest);
+          };
+        },
+      });
+    };
+    const countingPool = new Proxy(pool, {
+      get(target, prop) {
+        if (prop !== 'connect') return Reflect.get(target, prop);
+        return countingConnect;
+      },
+    }) as unknown as typeof pool;
+    const racedBackoff = await Promise.all([
+      invoke({ idempotencyKey: backoffKey, schema: QSchema, businessValidate: () => null, model: backoffModel }, countingPool, OWNER),
+      invoke({ idempotencyKey: backoffKey, schema: QSchema, businessValidate: () => null, model: backoffModel }, countingPool, OWNER),
+    ]);
+    assert(
+      '#173-backoff-pacing: follower 等待窗 claim 事务 ≤ 9（恒定 20ms 形 ≥ 16）且 leader calls=1 同值（退避零改 join 语义）',
+      claimScoped.n >= 3 && claimScoped.n <= 9 && backoffModel.calls === 1 && sameInvokeValue(racedBackoff[0], racedBackoff[1]),
+    );
+  }
 
   section('HC-GAP-011-orphan-concurrent · clearing leftover permit must not open a second execute');
   const orphanRaceKey = 'R1:hc-gap-011-orphan-race';
