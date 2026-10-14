@@ -34,7 +34,7 @@ const workerSrc = join(repoRoot, 'apps/worker/src');
 const helperPath = join(workerSrc, 'qbank-planner-retrieval-plan.ts');
 const consumerPath = join(workerSrc, 'interview-consumer.ts');
 const scopePath = join(workerSrc, 'qbank-retrieve-scope.ts');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-p-planner.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-p-planner.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 
 const GEN = 'qgen-11111111-1111-4111-8111-111111111111';
@@ -240,8 +240,8 @@ A('T7 harness pins ≠ R4 closed / ≠ wrong_track=0 / releaseEvidence=false',
   /≠ R4|NOT closed|题域隔离 NOT closed/.test(harness)
   && /wrong_track=0/.test(harness)
   && /releaseEvidence=false/.test(harness));
-A('T7 status still pins 题域隔离 NOT closed',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
+A('T7 status still pins ≠ 题域已隔离',
+  /≠ 题域已隔离/.test(status) && /releaseEvidence=false/.test(status));
 
 A('helper module present (production-capable seam)', existsSync(helperPath), helperPath);
 const helper = existsSync(helperPath) ? readFileSync(helperPath, 'utf8') : '';
