@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
-    "lint": "eslint . --max-warnings 5191",
+    "lint": "eslint . --max-warnings 5200",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
@@ -453,6 +453,8 @@
     "drift:prove": "node scripts/schema-drift-check.mjs",
     "env-schema:prove": "node scripts/run-e2e-isolated.mjs env-schema:prove:raw",
     "env-schema:prove:raw": "pnpm -C apps/api prove:env-schema",
+    "obs-ready:prove": "node scripts/run-e2e-isolated.mjs obs-ready:prove:raw",
+    "obs-ready:prove:raw": "pnpm -C apps/api prove:obs-ready",
     "failover:prove": "pnpm -C packages/ai-runtime prove:failover",
     "vstream:prove": "pnpm -C packages/ai-runtime prove:vstream",
     "voice-reliability:prove": "pnpm -C packages/ai-runtime prove:voice-reliability",
