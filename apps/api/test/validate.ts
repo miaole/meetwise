@@ -302,12 +302,12 @@ async function validate() {
   {
     const rl = app.get(RateLimitService);
     let allowed = 0; const t0 = 1_000_000;
-    for (let i = 0; i < 5; i++) if (rl.allow('rl-test', 3, 0.1, t0)) allowed++;   // 突发容量 3 → 前 3 个放行、后 2 个拒
+    for (let i = 0; i < 5; i++) if (await rl.allow('rl-test', 3, 0.1, t0)) allowed++;   // 突发容量 3 → 前 3 个放行、后 2 个拒
     A('[F1/F8] 令牌桶:突发容量 3 → 恰放行 3 个(第4/5被限流)', allowed === 3);
-    A('[F1/F8] 令牌桶补充:10 秒后按 0.1/秒补 1 个令牌 → 再放行 1', rl.allow('rl-test', 3, 0.1, t0 + 10_000) === true);
-    A('[F5] 并发槽 acquireSlot:上限 2 → 前 2 占用成功、第 3 拒', rl.acquireSlot('sse-test', 2) && rl.acquireSlot('sse-test', 2) && rl.acquireSlot('sse-test', 2) === false);
-    rl.releaseSlot('sse-test');
-    A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', rl.acquireSlot('sse-test', 2) === true);
+    A('[F1/F8] 令牌桶补充:10 秒后按 0.1/秒补 1 个令牌 → 再放行 1', (await rl.allow('rl-test', 3, 0.1, t0 + 10_000)) === true);
+    A('[F5] 并发槽 acquireSlot:上限 2 → 前 2 占用成功、第 3 拒', (await rl.acquireSlot('sse-test', 2)) && (await rl.acquireSlot('sse-test', 2)) && (await rl.acquireSlot('sse-test', 2)) === false);
+    await rl.releaseSlot('sse-test');
+    A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', (await rl.acquireSlot('sse-test', 2)) === true);
   }
   q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='answer'"); A('answer job 已落队列', q.rows[0].n === 1);
   // 放弃面试:退还预留额度(不漏扣)

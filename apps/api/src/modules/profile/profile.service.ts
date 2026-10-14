@@ -121,16 +121,16 @@ export class ProfileService {
   //   400 形校验失败不入桶(与 signup 同序:桶在体校验后);wrong_password 计失败。
   async changePassword(principal: string, b: { oldPassword?: string; newPassword?: string }, ip?: string) {
     if (!b.oldPassword || !b.newPassword || b.newPassword.length < 8) throw new HttpException({ error: 'invalid_password' }, HttpStatus.BAD_REQUEST);
-    if (!this.rl.allow(`chgpwd:${principal}`, CHGPWD_CAPACITY, CHGPWD_REFILL)
-      || !this.rl.allow(`chgpwd:ip:${ip ?? 'unknown'}`, CHGPWD_IP_CAPACITY, CHGPWD_IP_REFILL))
+    if (!(await this.rl.allow(`chgpwd:${principal}`, CHGPWD_CAPACITY, CHGPWD_REFILL))
+      || !(await this.rl.allow(`chgpwd:ip:${ip ?? 'unknown'}`, CHGPWD_IP_CAPACITY, CHGPWD_IP_REFILL)))
       throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
-    if (!this.rl.hasToken(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL))
+    if (!(await this.rl.hasToken(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL)))
       throw new HttpException({ error: 'password_retry_later' }, HttpStatus.TOO_MANY_REQUESTS);
     const r = await this.db.asPrincipal(principal, (c) => c.query(
       'SELECT password_hash FROM user_account WHERE id=$1', [principal]));
     if (r.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     if (!verifyPassword(b.oldPassword, r.rows[0].password_hash)) {
-      this.rl.allow(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL);   // #120 失败锁扣减(连败满容量后入口锁定)
+      await this.rl.allow(`chgpwd:fail:${principal}`, CHGPWD_FAIL_CAPACITY, CHGPWD_FAIL_REFILL);   // #120 失败锁扣减(连败满容量后入口锁定)
       throw new HttpException({ error: 'wrong_password' }, HttpStatus.UNAUTHORIZED);
     }
     // 单语句原子改哈希 + 代次自增:并发两次改密各自 read-modify-write 在行锁内串行,代次 0→1→2 不丢更新,两个旧代次令牌均失效。
@@ -140,7 +140,7 @@ export class ProfileService {
       'UPDATE user_account SET password_hash=$2, pwd_epoch = pwd_epoch + 1 WHERE id=$1 RETURNING pwd_epoch',
       [principal, hashPassword(newPassword)]));
     const epoch = up.rows[0].pwd_epoch;
-    evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 单实例下旧令牌下一请求即 401;多实例仅本机即时,其余实例 ≤60s 缓存过期后生效
+    evictPrincipalStatus(principal);   // 本进程守卫缓存即时清(旧令牌下一请求即 401);跨实例由 0189 触发器同事务 pg_notify 广播逐缓存(LISTEN 断连退回 ≤60s TTL 兜底)
     // 签发**新代次**令牌回给当前会话,避免用户改完密码就被自己踢下线(无死胡同);缺密钥时降级为仅 changed。
     // 5A-1 簇③:回签走会话签发(新 kid/jti+0169 会话行·R1 产点清单第二处)——旧 jti 会话由 pwd_epoch
     // 前进天然失效(守卫既有机械零改);缺 AUTH_SECRET 时 issueSessionToken 返 null,降级仅 changed(原语义保留)。
@@ -200,7 +200,7 @@ export class ProfileService {
       if (up.rowCount === 0) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
       return { deletedAt: up.rows[0].deleted_at as string, resumesFenced, interviewsFenced, memoryRequestId: memory.requestId };
     });
-    evictPrincipalStatus(principal);   // 清本进程守卫缓存 → 注销后旧令牌下一请求即 401
+    evictPrincipalStatus(principal);   // 本进程守卫缓存即时清(注销后旧令牌下一请求即 401);跨实例由 0189 触发器广播(status/pwd_epoch 在 UPDATE 列集内)
     return {
       deactivated: true as const,
       mode: 'logical' as const,
