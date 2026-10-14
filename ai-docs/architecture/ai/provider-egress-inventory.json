@@ -1976,6 +1976,11 @@
       "class": "test-fixture"
     },
     {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/worker/test/estimator-v2-cjk.proof.ts",
+      "class": "test-fixture"
+    },
+    {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/qbank-planner-honesty.proof.ts",
       "class": "test-isolation"
