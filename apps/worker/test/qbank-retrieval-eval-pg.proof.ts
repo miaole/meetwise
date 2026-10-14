@@ -139,6 +139,7 @@ async function main() {
   const lexicalShortProbe = await asPrincipal(pool, OWNER, async (c) => {
     await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
       [probeScope.servingScopeId, probeScope.taxonomyVersion]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     return c.query(
       'SELECT ref_id FROM qbank_generation_lexical_search($1,$2,$3)', [generationId, '限流', 10],
     );
