@@ -327,7 +327,7 @@ async function main() {
     }, pool, OWNER);
     const rowC = await invocationRow(keyC);
     A('digest 正控:system 变→request_digest 变(列真载语义摘要·非恒等凑数)',
-      rowC?.request_digest != null && rowC.request_digest !== rowA.request_digest);
+      rowA?.request_digest != null && rowC?.request_digest != null && rowC.request_digest !== rowA.request_digest);
   }
 
   setTracer({ record() {} });

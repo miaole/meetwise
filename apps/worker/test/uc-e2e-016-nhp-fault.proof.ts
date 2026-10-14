@@ -102,7 +102,7 @@ const evCount = async (stream: string, kind: string) => Number((await asPrincipa
 
 /** C-HA-1 micro-patch 键面枚举（逐字语义）：failed 且对象非 ready → 入逐 job 终态事件断言面；
  *  failed 且对象 ready（alreadySettled）→ 不在断言面内（N1 负向 + N3 兜底），本函数同时返回两集合供双面断言。 */
-function keyFace(jobs: Array<{ stream: string; jobStatus: string; objStatus: string }>) {
+function keyFace(jobs: Array<{ stream: string; jobStatus: string; objStatus: string; eventKind: string }>) {
   const failedNotReady = jobs.filter((j) => j.jobStatus === 'failed' && j.objStatus !== 'ready');
   const failedReady = jobs.filter((j) => j.jobStatus === 'failed' && j.objStatus === 'ready');
   return { failedNotReady, failedReady };

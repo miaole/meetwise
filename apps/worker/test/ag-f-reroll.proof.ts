@@ -42,7 +42,7 @@ function countingAskModel(scripts: AskScript[], planner: string[] = ['并发', '
     async complete(req) {
       if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: planner } };
       if (req.service === 'interviewer.ask') {
-        const script = scripts[Math.min(askCalls, scripts.length - 1)];
+        const script = scripts[Math.min(askCalls, scripts.length - 1)]!;
         askCalls += 1;
         if ('schemaBad' in script) return { ok: true, raw: { q: 42, refs: [] } };
         if ('boom' in script) throw new Error('simulated_provider_blackhole');

@@ -266,8 +266,11 @@ async function main() {
     `SELECT idempotency_key,completed_at FROM ai_model_invocation
       WHERE owner_user_id=$1 AND idempotency_key IN ($2,$3) AND completed_at IS NOT NULL`,
     [OWNER, v2Key, nullKey]);
-  const tV2 = new Date(times.rows.find((r) => r.idempotency_key === v2Key)?.completed_at);
-  const tNull = new Date(times.rows.find((r) => r.idempotency_key === nullKey)?.completed_at);
+  const rowV2 = times.rows.find((r) => r.idempotency_key === v2Key);
+  const rowNull = times.rows.find((r) => r.idempotency_key === nullKey);
+  if (!rowV2 || !rowNull) throw new Error('ag12: 窗口锚两行 completed_at 缺失（前置步骤失败）');
+  const tV2 = new Date(rowV2.completed_at);
+  const tNull = new Date(rowNull.completed_at);
   const sinceMid = new Date(Math.floor((tV2.getTime() + tNull.getTime()) / 2));
   const windowPairs = await asPrincipal(pool, OWNER, (c) => listUsageCalibrationPairsSince(c, OWNER, sinceMid));
   A('④ v2 配对函数（p_since=中点）：只回窗口内行且归因透传（0177 p_since 窗原值保留）',
