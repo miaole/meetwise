@@ -51,10 +51,13 @@ export class AuthService {
     // 故捕获为 const 再进 asGateway 回调,否则 strictNullChecks 下又退回 string | undefined。
     // #111:入库前归一(trim+lower,与登录/邀请侧同一 helper);SQL 网关函数(0168)内再兜底一次(双闸)。
     const password = b.password;
+    // #34:scrypt KDF 异步形,哈希 hoist 出 query 实参(置 try 前)——等价注记:hoist 后 scrypt 异常不经
+    // errCode(e)==='23505' 分支而直抛,该分支本就对非 23505 错 `throw e` 照抛 = 行为等价。
+    const hash = await hashPassword(password);
     try {
       await this.db.asGateway((c) => c.query(
         'SELECT gateway_auth_signup($1,$2,$3,$4)',
-        [id, email, hashPassword(password), role],
+        [id, email, hash, role],
       ));
     } catch (e: unknown) {
       if (errCode(e) === '23505') throw new HttpException({ error: 'email_taken' }, HttpStatus.CONFLICT);   // 仅唯一冲突=邮箱已注册;其它 DB 错(连接/约束)照抛,不误报 email_taken 掩盖故障
@@ -91,7 +94,8 @@ export class AuthService {
     // 统一错误 + #33 恒时序:verifyLogin 对「真实哈希或同一内存假哈希」**恒跑恰一次**——账户不存在/停用
     // 也同参 scrypt 同耗时,响应差异/时序皆不可枚举账号(verify 调用次数与账户状态无关,计数证非墙钟);
     // 状态判定移到 verify 之后。注释自此与实现相符(旧注释「都跑一次 verify」系短路与实现不符,已如实化)。
-    const passOk = verifyLogin(u?.password_hash, b.password);
+    // #34:KDF await 化(libuv 线程池),verify 恰一次语义/桶序零变。
+    const passOk = await verifyLogin(u?.password_hash, b.password);
     const ok = u !== undefined && u.status === 'active' && passOk;
     if (!ok) throw new HttpException({ error: 'invalid_credentials' }, HttpStatus.UNAUTHORIZED);
     // 令牌须内嵌**当前**密码代次 pwd_epoch:否则改密自增代次后,新登录令牌仍是旧代次 → 守卫拒绝 → 用户被锁死(F4 必修)。

@@ -208,6 +208,7 @@ async function main(): Promise<void> {
   await pool.query(`GRANT ${migrationRole} TO CURRENT_USER`);
   await pool.query(`GRANT USAGE, CREATE ON SCHEMA public TO ${migrationRole}`);
   await pool.query(`GRANT SELECT, INSERT ON schema_migrations TO ${migrationRole}`);
+  await pool.query(`GRANT SELECT, INSERT, DELETE ON schema_migrations_steps TO ${migrationRole}`);
   for (const table of [
     'qbank_curator',
     'qbank_source',

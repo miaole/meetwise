@@ -2,6 +2,7 @@ import 'reflect-metadata';
 import { randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { resolve } from 'node:path';
+import { PassThrough } from 'node:stream';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
 import { configureG7RuntimeInjection, getMetrics, isG7FreetierReproveEnabled, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
@@ -152,8 +153,12 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
     done();
   });
   // **传输层封顶(纵深 + 防 DoS 放大)**:全局 bodyLimit 为容 base64 简历/音频上传开到 12MB,但纯文本端点逻辑只需 KB 级。
-  // 在 body 缓冲/JSON.parse **之前**(onRequest)按 content-length 拒掉超大请求:仅 base64 上传路由放行到 12MB,其余封 1MB →
+  // 在 body 缓冲/JSON.parse **之前**拒掉超大请求:仅 base64 上传路由放行到 12MB,其余封 1MB →
   // `{"answer":"<11MB>"}` 这类在传输边界即 413,不会先缓冲 11MB + 同步 parse 阻塞事件循环(审计中:Zod 在 parse 之后才跑,挡不住缓冲)。
+  // #34 残半:content-length 只覆盖有头形态——chunked(transfer-encoding)/HTTP/1.0 close-delimited 无 content-length,
+  // 下钩 len=0 恒放行 → 差异化 1MiB 封顶失守回落 12MiB 信封。补下方 preParsing 流计数闸:无 content-length 的
+  // 非上传请求按**流计数**封同一 SMALL_BODY_LIMIT(案A·chunked 与 content-length 同政策),上传路由不增钩——
+  // fastify bodyLimit 的 content-type-parser 流计数对 chunked 已按 12MiB 信封兜底,不重复其职责。
   const UPLOAD_ROUTES = [/\/resume\/file$/, /\/interview\/[^/]+\/transcribe$/];
   const SMALL_BODY_LIMIT = 1 * 1024 * 1024;   // 非上传端点 1MB(简历文本 60000 字 UTF-8 ≈180KB,绰绰有余)
   fastify.addHook('onRequest', (req: any, reply: any, done: any) => {
@@ -163,6 +168,35 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
       if (!UPLOAD_ROUTES.some((re) => re.test(url))) { reply.code(413).send({ error: 'payload_too_large' }); return; }
     }
     done();
+  });
+  // #34 残半 chunked 封顶(preParsing 流计数):onRequest 生命周期拿不到 body 流,preParsing 才收到——
+  // 仅覆盖**无 content-length** 形(有头路径行为零改,仍走上方 onRequest 钩子);计数包装转发(PassThrough),
+  // 超阈即 413 与既有 1MiB 钩子同信封同错码,并销毁包装流停转发(content-type-parser 不再缓冲);
+  // GET/HEAD(bodyless)必直通零包装:fastify 对 bodyless 不缓冲不 parse 封顶无对象,且对流挂 data/end
+  // 即把 bodyless req.raw 推入 flowing——消息即刻消费完成,'close' 在连接未断时就提前发出,SSE 泵
+  // 事后挂的 reqRaw close 侦测失聪(断开后 waiter/槽滞留至 deadline=真泄漏)。超阈后 content-type-parser
+  // 对包装流的等待由 reply.sent 短路终结(hooks.js preParsingHookRunner `if (reply.sent) return` + handleRequest 首行守卫)。
+  fastify.addHook('preParsing', (req: any, reply: any, body: any, done: any) => {
+    const method = String(req.method ?? '').toUpperCase();
+    const url = String(req.url ?? '').split('?')[0] ?? '';
+    if (method === 'GET' || method === 'HEAD' || UPLOAD_ROUTES.some((re) => re.test(url)) || req.headers['content-length'] !== undefined) { done(null, body); return; }
+    const capped = new PassThrough();
+    let received = 0;
+    let settled = false;
+    body.on('data', (chunk: Buffer | string) => {
+      if (settled) return;
+      received += typeof chunk === 'string' ? Buffer.byteLength(chunk) : chunk.length;
+      if (received > SMALL_BODY_LIMIT) {
+        settled = true;
+        reply.code(413).send({ error: 'payload_too_large' });   // 与既有 1MiB 钩子同信封同错码
+        capped.destroy();   // 停转发:下游不再缓冲;请求体未消费,响应后由 Node 关闭连接
+        return;
+      }
+      capped.write(chunk);
+    });
+    body.once('end', () => { if (!settled) capped.end(); });
+    body.once('error', (err: Error) => { if (!settled) capped.destroy(err); });
+    done(null, capped);
   });
   fastify.addHook('onResponse', (req: any, reply: any, done: any) => {
     const route = req.routeOptions?.url ?? req.routerPath ?? 'unknown';   // /interview/:id 模板,非具体 id

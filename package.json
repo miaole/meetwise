@@ -103,6 +103,8 @@
     "authz5a:login-ip-throttle:prove": "node scripts/run-e2e-isolated.mjs authz5a:login-ip-throttle:prove",
     "authz5a:login-global-throttle:prove": "node scripts/run-e2e-isolated.mjs authz5a:login-global-throttle:prove",
     "authz5a:chgpwd-lock:prove": "node scripts/run-e2e-isolated.mjs authz5a:chgpwd-lock:prove",
+    "authz34:scrypt-async:prove": "node scripts/run-e2e-isolated.mjs authz34:scrypt-async:prove",
+    "authz34:chunked-cap:prove": "node scripts/run-e2e-isolated.mjs authz34:chunked-cap:prove",
     "neg:commerce": "node scripts/run-e2e-isolated.mjs neg:commerce",
     "trial:grant:prove": "node scripts/run-e2e-isolated.mjs trial:grant:prove",
     "quiz-list:prove": "node scripts/run-e2e-isolated.mjs quiz-list:prove",
