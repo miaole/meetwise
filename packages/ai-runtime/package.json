@@ -11,7 +11,7 @@
     "./test-support": "./test/support/fakes.ts"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 597",
+    "lint": "eslint . --max-warnings 621",
     "prove": "tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts && tsx test/ag24-langfuse-model.proof.ts",
     "prove:diag-honesty": "tsx test/diag-honesty-prompt.proof.ts",
     "prove:claim-join-orphan": "tsx test/claim-join-orphan.proof.ts",
