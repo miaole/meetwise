@@ -162,7 +162,7 @@ async function main2() {
 
   section('§5.5c fundamental 行为零改+behavioral 不接检索(白名单裁决)');
   let fundQuery = '';
-  const fundModel = scriptedAskModel('基础题面样本');
+  const fundModel = scriptedAskModel('基础题面样本：解释缓存一致性');
   const fundThreadId = `h2q-fund-${randomUUID()}`;
   await seedInterview(fundThreadId, 'h2q-fund');
   const fund = buildAdaptiveDeps({
