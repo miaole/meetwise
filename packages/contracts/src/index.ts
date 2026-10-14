@@ -315,6 +315,65 @@ export const OfflineOrderList = z.object({
 });
 export type OfflineOrderList = z.infer<typeof OfflineOrderList>;
 
+/* ───────────── billing 明细列表（billing-redesign §3.13 升 P1 面·additive 只增不改） ───────────── */
+// 场景枚举：四活 service_type（mock_interview/ocr/resume_quiz/resume_diagnosis）+ topic/usage 粒度自标
+// + payment 获得行预留位（三账本零获得侧行·零映射行诚实空·Ban 伪造入账）。
+export const LedgerScene = z.enum(['mock_interview', 'ocr', 'resume_quiz', 'resume_diagnosis', 'topic', 'usage', 'payment']);
+export type LedgerScene = z.infer<typeof LedgerScene>;
+// 用户口径状态四值（映射表写死：reserved→reserved/confirmed→settled/partial_confirmed→settled/
+// released→released/interview.status='failed' 联结→failed/usage generation_failed→failed）。
+export const LedgerEntryStatus = z.enum(['settled', 'reserved', 'released', 'failed']);
+export type LedgerEntryStatus = z.infer<typeof LedgerEntryStatus>;
+// C 端逐笔行：引用四元逐源可空投影（consumption 行 interview_id 仅 mock_interview·topic/invocation 无列
+// 恒 NULL；topic 行无 invocation_key；usage 行 topic_id 可空）·幂等键=consumption 幂等键/usage
+// invocation_key/topic 自然键 interview_id:topic_id。
+export const LedgerEntry = z.object({
+  createdAt: z.string(),
+  source: z.enum(['consumption', 'topic', 'usage']),
+  scene: LedgerScene,
+  status: LedgerEntryStatus,
+  amountUnits: z.number(),
+  // consumption 行 units_requested 原值（partial_confirmed→settled 时 requested−settled 差额用户可见·topic/usage 无列 NULL）。
+  unitsRequested: z.number().nullable(),
+  interviewId: z.string().nullable(),
+  topicId: z.string().nullable(),
+  invocationKey: z.string().nullable(),
+  idempotencyKey: z.string(),
+  cause: z.string().nullable(),
+  topicStatus: z.enum(['counted', 'counted_capped', 'waived']).nullable(),
+  reason: z.string().nullable(),
+  ruleVersion: z.string().nullable(),
+});
+export type LedgerEntry = z.infer<typeof LedgerEntry>;
+// C 端页：keyset 值基三段复合游标（created_at DESC/source/natural_key）+ 分页头余额=读时快照非实时
+// 余额承诺（多桶 FIFO 下可用额≠Σ账本差·逐笔行不带余额）。
+export const BillingLedgerPage = z.object({
+  entries: z.array(LedgerEntry),
+  nextCursor: z.string().nullable(),
+  windowDays: z.number().int(),
+  availableUnits: z.number(),
+});
+export type BillingLedgerPage = z.infer<typeof BillingLedgerPage>;
+// B 端企业维度逐笔行（0185 受控 DEFINER 读函数·payer=principal 硬谓词·投影=函数七列+additive
+// unitsRequested（与 C 端同名·units_requested 原值·partial 差额用户可见）：
+// allocations jsonb/lease_expires_at 内部面不出户）。
+export const EnterpriseLedgerEntry = z.object({
+  created_at: z.string(),
+  service_type: z.string(),
+  units_requested: z.number(),
+  units_settled: z.number().nullable(),
+  unitsRequested: z.number().nullable(),
+  status: z.string(),
+  payer_user_id: z.string(),
+  idempotency_key: z.string(),
+});
+export type EnterpriseLedgerEntry = z.infer<typeof EnterpriseLedgerEntry>;
+export const EnterpriseLedgerPage = z.object({
+  entries: z.array(EnterpriseLedgerEntry),
+  enterpriseAvailableUnits: z.number(),
+});
+export type EnterpriseLedgerPage = z.infer<typeof EnterpriseLedgerPage>;
+
 /* ───────────── profile ───────────── */
 export const Profile = z.object({ id: z.string(), email: z.string(), status: z.string(), preferences: z.record(z.string(), z.unknown()).optional() });
 export type Profile = z.infer<typeof Profile>;
@@ -1445,6 +1504,8 @@ export const apiContract: ContractRoute[] = [
   { id: 'privacyPreviewBegin', method: 'post', path: '/privacy/erasure-preview', summary: '预览版删除请求：盘点 sink 并返回诚实回执，不宣称跨存储生产删除 SLO', tags: ['privacy'], auth: true, request: PrivacyPreviewBeginDto, response: PrivacyPreviewReceipt },
   { id: 'privacyPreviewList', method: 'get', path: '/privacy/erasure-preview', summary: '列出当前用户的预览版删除回执（预览版，非生产完成态）', tags: ['privacy'], auth: true, response: PrivacyPreviewList },
   { id: 'privacyPreviewGet', method: 'get', path: '/privacy/erasure-preview/{requestId}', summary: '读取预览版删除回执（预览版，非生产完成态）', tags: ['privacy'], auth: true, response: PrivacyPreviewReceipt },
+  { id: 'listBillingLedger', method: 'get', path: '/billing/ledger', summary: '积分明细列表(本人三真账逐笔·keyset 游标·分页头余额=读时快照非实时余额承诺)', tags: ['billing'], auth: true, response: BillingLedgerPage },
+  { id: 'listEnterpriseBillingLedger', method: 'get', path: '/billing/ledger/enterprise', summary: '企业积分明细(0185 受控 DEFINER 读函数 payer=principal 硬谓词·approved recruiter)', tags: ['billing'], auth: true, response: EnterpriseLedgerPage },
 ];
 
 /* ───────────── RAG-FUNNEL-03 岗位意图路由（跨端冻结 schema，不入 apiContract） ───────────── */

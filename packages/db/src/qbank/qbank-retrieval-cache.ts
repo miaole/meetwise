@@ -13,7 +13,15 @@ import { hybridQbankSearch, type QbankRetrievalMode, type QbankServingScopeInput
 
 // v4 binds the track-local serving scope into the cache identity so two leaves
 // never share a hot-cache entry (a global-Top-K hit must not leak across tracks).
-const CACHE_KEY_VERSION = 'qbank-retrieval-cache:v4';
+// v5 additionally binds the AG39 owner layer (owner_kind/org_id): an org-private
+// result set must never collide with a platform (or other-org) key — the DB-side
+// owner filter changed what a hit means, so every pre-v5 entry is cold by design.
+// v6 additionally binds the AG39 quality follow-up fusion layer (migration 0201):
+// the owner-rank leading key + org dual-row content dedup changed hit order and
+// result sets, so every pre-v6 entry is cold by design (the version string is
+// embedded in the cache key, making old entries unreachable — REQUEST §0.2-4
+// zero-residue argument).
+const CACHE_KEY_VERSION = 'qbank-retrieval-cache:v6';
 const MAX_QUERY_CHARS = 12_000;
 const MAX_EMBEDDER_VERSION_CHARS = 256;
 const DEFAULT_TTL_SECONDS = 120;
@@ -136,6 +144,10 @@ export function qbankRetrievalCacheKey(input: QbankRetrievalCacheKeyInput): stri
     query: input.query,
     servingScopeId: input.scope?.servingScopeId ?? null,
     taxonomyVersion: input.scope?.taxonomyVersion ?? null,
+    // Owner 归一:缺省臂=platform（与 setServingScope 缺省注入同语义）——两字段调用与显式
+    // platform 调用同键;org 键凭 ownerKind/orgId 与 platform（及他 org）恒异键。
+    ownerKind: input.scope?.ownerKind ?? 'platform',
+    orgId: input.scope?.ownerKind === 'org' ? (input.scope.orgId ?? null) : null,
   })).digest('hex');
 }
 

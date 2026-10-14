@@ -7,6 +7,18 @@
 --       零 UPDATE/DELETE/INSERT/DROP COLUMN/ALTER COLUMN TYPE/CREATE INDEX/TRIGGER/RLS/GRANT（prove P6 静态门）。
 -- 编号：0144–0148 由协调方让位序预留（DBTF-1=0144 · DBHY-1=0145+0146 · DBFK-1=0147+0148），
 --       落号时亲核（2026-10-08 fetch 后全分支可见面无 0144–0148 实占文件）→ 0149 为 DBM3-1 落号。
+--
+-- @migration-mode multi-statement
+--
+-- 重制注记（#135 遗留锁面清偿）：原形 ADD CHECK 未用 NOT VALID——对
+-- payment_order/settlement_ledger/ai_graph_run 全表扫描持 ACCESS EXCLUSIVE（热表锁窗），
+-- 且 DROP 与 ADD 分裂为两条语句之间存在无约束裸窗。重制为熔单 ALTER：逐约束
+-- 「DROP CONSTRAINT IF EXISTS …, ADD CONSTRAINT … CHECK(…) NOT VALID」单语句原子
+-- （无裸 DROP 窗·短 ACCESS EXCLUSIVE 不扫存量），VALIDATE ×4 后行各自独立短事务
+-- （仅 SHARE UPDATE EXCLUSIVE·语句级 lock/statement_timeout 由运行器语句事务承载）。
+-- 10 语句 = 1 DO 块前置脏值检测（原形逐字保持）+ 4 熔单 ALTER + 1 D3 DROP + 4 VALIDATE。
+-- checksum 变更 = 重制预期形：已应用环境对账红属预期，处置 = 隔离库重建；
+-- releaseEvidence=false，零生产库在案。
 
 -- ── 前置脏值检测（先于一切 ADD CONSTRAINT · 非 0 即炸 · 具名可行动） ──────────────────
 DO $dbm3_detect$
@@ -32,30 +44,40 @@ BEGIN
 END $dbm3_detect$;
 
 -- ── 轨1 法币：amount_cents 正数 CHECK（严格正——目录价均正；0 元权益走 gift/trial 桶不经 payment_order） ──
-ALTER TABLE payment_order DROP CONSTRAINT IF EXISTS ck_payment_order_amount_cents_positive;
-ALTER TABLE payment_order ADD CONSTRAINT ck_payment_order_amount_cents_positive
-  CHECK (amount_cents > 0);
+ALTER TABLE payment_order
+  DROP CONSTRAINT IF EXISTS ck_payment_order_amount_cents_positive,
+  ADD CONSTRAINT ck_payment_order_amount_cents_positive
+  CHECK (amount_cents > 0) NOT VALID;
 
 -- ── 轨2 权益：units 案B 护栏（与落点 entitlement_bucket numeric(12,2) 逻辑等价：>0 · ≤9999999999.99 · 2 位小数锚）
 --    22003 炸点前移：脏 units 今日在回调入账（payment.ts:84 落 numeric(12,2)）才炸，此后在下单时即 23514 拒绝。
-ALTER TABLE payment_order DROP CONSTRAINT IF EXISTS ck_payment_order_units_range;
-ALTER TABLE payment_order ADD CONSTRAINT ck_payment_order_units_range
-  CHECK (units > 0 AND units <= 9999999999.99 AND units = round(units, 2));
+ALTER TABLE payment_order
+  DROP CONSTRAINT IF EXISTS ck_payment_order_units_range,
+  ADD CONSTRAINT ck_payment_order_units_range
+  CHECK (units > 0 AND units <= 9999999999.99 AND units = round(units, 2)) NOT VALID;
 
 -- ── 轨2 权益：settlement_ledger 同族兜底（D4 入刀 · 一行成本） ─────────────────────────
-ALTER TABLE settlement_ledger DROP CONSTRAINT IF EXISTS ck_settlement_units_settled_nonneg;
-ALTER TABLE settlement_ledger ADD CONSTRAINT ck_settlement_units_settled_nonneg
-  CHECK (units_settled >= 0);
+ALTER TABLE settlement_ledger
+  DROP CONSTRAINT IF EXISTS ck_settlement_units_settled_nonneg,
+  ADD CONSTRAINT ck_settlement_units_settled_nonneg
+  CHECK (units_settled >= 0) NOT VALID;
 
 -- ── status 枚举：ai_graph_run 11 值（D6 全收 · 词表亲核见 harness §1.3 逐值 file:line 溯源）
 --    脏值此前静默绕过 uq_active_run partial unique 不变量（脏 status 落谓词之外 → 同 (graph,thread) 双活 run 无报错）。
-ALTER TABLE ai_graph_run DROP CONSTRAINT IF EXISTS ck_ai_graph_run_status;
-ALTER TABLE ai_graph_run ADD CONSTRAINT ck_ai_graph_run_status
+ALTER TABLE ai_graph_run
+  DROP CONSTRAINT IF EXISTS ck_ai_graph_run_status,
+  ADD CONSTRAINT ck_ai_graph_run_status
   CHECK (status IN ('created','active','waiting_user','migrating','paused','quarantined',
-                    'safe_terminating','safely_terminated','succeeded','completed','failed'));
+                    'safe_terminating','safely_terminated','succeeded','completed','failed')) NOT VALID;
 
 -- ── D3：interview_event 双重唯一删一——删 0027 表级约束（全行背衬 btree = 每笔 INSERT 纯开销），
 --    保 0021 partial index（ON CONFLICT (stream_key,event_key) WHERE event_key IS NOT NULL 的实际 arbiter）。
 --    NULL 语义等价（partial 不收录 NULL 行 · 约束 NULLS DISTINCT 均允许多 NULL）→ 纯冗余消除。
 --    联动：packages/db/sql/01_schema.sql fixture 同刀对齐（drift:prove 方向=sql/ 有迁移缺即红）。
 ALTER TABLE interview_event DROP CONSTRAINT IF EXISTS uq_interview_event_key_constraint;
+
+-- ── VALIDATE ×4（NOT VALID 后行·各自独立短事务·仅子表 SHARE UPDATE EXCLUSIVE） ──────────
+ALTER TABLE payment_order VALIDATE CONSTRAINT ck_payment_order_amount_cents_positive;
+ALTER TABLE payment_order VALIDATE CONSTRAINT ck_payment_order_units_range;
+ALTER TABLE settlement_ledger VALIDATE CONSTRAINT ck_settlement_units_settled_nonneg;
+ALTER TABLE ai_graph_run VALIDATE CONSTRAINT ck_ai_graph_run_status;

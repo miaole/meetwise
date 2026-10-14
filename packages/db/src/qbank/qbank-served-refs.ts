@@ -13,11 +13,18 @@ import { asPrincipal, type DbPool } from '../principal.ts';
 const SAFE_QUESTION_REF = /^[A-Za-z0-9:_-]{1,160}$/;
 const MAX_REFS_PER_SERVE = 64;
 
-/** served 转换事务内登记(ON CONFLICT DO NOTHING:plan 重放/重复 serve 幂等不添行)。 */
+const SAFE_SOURCE_BANK = /^(platform|org:.{1,512})$/;
+
+/** served 转换事务内登记(ON CONFLICT DO NOTHING:plan 重放/重复 serve 幂等不添行)。
+ *  AG39（0186·裁决④行使）:sourceBank=来源题库审计值,与检索臂 owner GUC 同源派生
+ *  （org 面试→`org:${orgId}`;platform/练习臂→'platform'）;缺省臂='platform'
+ *  （0162 落地时只有公共题库,旧行 DEFAULT 语义无损）。session_generated 值由
+ *  question_issue_provenance.origin='llm_qbank_miss'（0110）承载,不入本表。 */
 export async function recordServedQbankQuestionRefs(
-  c: Client, owner: string, interviewId: string, questionRefs: readonly string[],
+  c: Client, owner: string, interviewId: string, questionRefs: readonly string[], sourceBank: string = 'platform',
 ): Promise<number> {
   if (!interviewId || interviewId.length > 512) throw new Error('qbank_served_ref_invalid_interview');
+  if (!SAFE_SOURCE_BANK.test(sourceBank)) throw new Error('qbank_served_ref_invalid_source_bank');
   const uniq = [...new Set(questionRefs)];
   if (uniq.length > MAX_REFS_PER_SERVE) throw new Error('qbank_served_ref_batch_too_large');
   for (const ref of uniq) {
@@ -27,10 +34,10 @@ export async function recordServedQbankQuestionRefs(
   let written = 0;
   for (const ref of uniq) {
     const r = await c.query(
-      `INSERT INTO qbank_served_question_ref(owner_user_id, interview_id, question_ref)
-       VALUES ($1,$2,$3)
+      `INSERT INTO qbank_served_question_ref(owner_user_id, interview_id, question_ref, source_bank)
+       VALUES ($1,$2,$3,$4)
        ON CONFLICT (owner_user_id, interview_id, question_ref) DO NOTHING`,
-      [owner, interviewId, ref],
+      [owner, interviewId, ref, sourceBank],
     );
     written += r.rowCount ?? 0;
   }

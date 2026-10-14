@@ -123,7 +123,7 @@ async function main() {
     const stZero = await streamOnce('proof.stream.zero', zeroUsage);
     A('流式③ 字段显式为 0 → 0 + onUsage 透传 0', stZero.result.ok === true && stZero.result.usage?.cachedInputTokens === 0 && stZero.usages[0]?.cachedInputTokens === 0);
     A('流式既有字段原值（promptTokens=100/completionTokens=50·onUsage 形）',
-      stOpenai.usages[0]?.promptTokens === 100 && stOpenai.usages[0]?.completionTokens === 50 && stOpenai.result.usage?.inputTokens === 100 && stOpenai.result.usage?.outputTokens === 50);
+      stOpenai.result.ok === true && stOpenai.usages[0]?.promptTokens === 100 && stOpenai.usages[0]?.completionTokens === 50 && stOpenai.result.usage?.inputTokens === 100 && stOpenai.result.usage?.outputTokens === 50);
 
     // ── metrics registry render()：三态互斥计数 + token 计数 + 缺席零计 Counter 形 ─────
     const out = (await import('../src/index.ts')).getMetrics().render();

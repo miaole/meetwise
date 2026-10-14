@@ -15,6 +15,7 @@ import {
 } from '@meetwise/db';
 import {
   invoke, admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition,
+  ADMISSION_REFUSAL_RETRYABLE_CODES, isAdmissionRefusalRetryable,
   type Model, type ModelCostPolicy,
 } from '../src/index.ts';
 
@@ -75,7 +76,12 @@ async function main() {
   );
   const allowedSeed = Number(policyRows.rows.find((r) => r.admission_status === 'allowed')?.n ?? 0);
   const blockedSeed = Number(policyRows.rows.find((r) => r.admission_status === 'blocked')?.n ?? 0);
-  A('迁移种子：8 个 admission=allowed（含 job.route-classify）+ 8 个 admission=blocked（共享准入仍未放行预览语音）', allowedSeed === 8 && blockedSeed === 8);
+  // AG-08 成本轨⑤ carve-out（pre-exec rev2 预申明·沿 cost3 形改写重钉·强度不减）：
+  // 0200 主备端点种子 14 行（deepseek-cn-public/dashscope-cn-beijing × 七 text op）落地后，
+  // allowed 总账 8→22（8 legacy=0120 七 text+vision+0131 classify 一 + 14 端点分域新增）；
+  // blocked 集零扩零缩（8）。改写仅限本臂，其余 24 原值臂零改写。
+  A('迁移种子：22 个 admission=allowed（8 legacy 含 job.route-classify + 14 端点分域新增）+ 8 个 admission=blocked（共享准入仍未放行预览语音）',
+    allowedSeed === 8 + 14 && blockedSeed === 8);
 
   // 8 个 admission-allowed operation 的分区都可从 registry 派生（resolve 返回分区）。
   const wiredIds = [
@@ -268,6 +274,85 @@ async function main() {
     'value' in breakerRetry && breakerRetry.value.answer === 'retried-ok' && breakerCalls.n === 1
       && breakerRetryRow.rows[0]?.status === 'succeeded');
   // 清理：把 scorer 断路器复位（避免后续其它分区测试被连带拒绝——虽然本证明已收尾）。
+
+  // ── 测试 8：端点分域（AG-08 成本轨⑤·0200 主备种子）——准入/熔断/并发按端点分区，主备互不连带。 ──
+  // 分区=registry 派生 partition（modelOrRecipe|operationId 两维原值）叠加端点身份
+  // （providerAccount|region 两维=profile id×'cn'，与 0200 种子同源）。
+  const epPrimary = { ...resolveModelAdmissionPartition({ operation: { id: 'interview.competency-planning.v1', businessRevision: 'op02' } })!, providerAccount: 'deepseek-cn-public', region: 'cn' };
+  const epBackup = { ...epPrimary, providerAccount: 'dashscope-cn-beijing' };
+
+  // ① 主端点身份分区 admit ok（0200 种子行在 → admitted·槽认领）。
+  const epPrimaryAdmit = await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: 'op02:ep:primary-1' });
+  A('主端点身份分区（deepseek-cn-public/cn）admitted（0200 种子行在·槽认领）',
+    epPrimaryAdmit.ok === true && epPrimaryAdmit.lease.partition.providerAccount === 'deepseek-cn-public');
+  if (epPrimaryAdmit.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, epPrimaryAdmit.lease, 'no_signal'));
+
+  // ② 备端点身份分区独立槽系=并发 4×2 容量实证：主分区占满 4 槽后第 5 拒；
+  // 备分区（同 operation）4 槽全 admitted（共享键系则必 concurrency_exhausted）。
+  const primarySlots: Awaited<ReturnType<typeof admitSharedModelOperation>>[] = [];
+  for (let i = 0; i < 4; i++) {
+    primarySlots.push(await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: `op02:ep:p-slot-${i}` }));
+  }
+  const primaryFifth = await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: 'op02:ep:p-slot-4' });
+  const backupSlots: Awaited<ReturnType<typeof admitSharedModelOperation>>[] = [];
+  for (let i = 0; i < 4; i++) {
+    backupSlots.push(await admitSharedModelOperation(pool, OWNER, { partition: epBackup, idempotencyKey: `op02:ep:b-slot-${i}` }));
+  }
+  const backupFifth = await admitSharedModelOperation(pool, OWNER, { partition: epBackup, idempotencyKey: 'op02:ep:b-slot-4' });
+  A('主备分区独立槽系：主 4 槽满第 5 拒 + 备 4 槽全 admitted（4×2 容量）+ 备第 5 拒',
+    primarySlots.every((a) => a.ok === true) && primaryFifth.ok === false && primaryFifth.error === 'model_concurrency_exhausted'
+      && backupSlots.every((a) => a.ok === true) && backupFifth.ok === false && backupFifth.error === 'model_concurrency_exhausted');
+  for (const a of [...primarySlots, ...backupSlots]) {
+    if (a.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, a.lease, 'no_signal'));
+  }
+
+  // ③ 熔断分域否证臂（承重断言=issues-final 触发例直证）：主端点分区 5×failure trip →
+  // model_circuit_open；同 operation 备端点分区同刻 admit ok=true（不再连带拒绝）。
+  const tripEp = async (key: string) => {
+    const a = await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: key });
+    if (a.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, a.lease, 'failure'));
+    return a;
+  };
+  for (let i = 0; i < 5; i++) await tripEp(`op02:ep:trip-${i}`);
+  const epPrimaryOpen = await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: 'op02:ep:open' });
+  const epBackupWhileOpen = await admitSharedModelOperation(pool, OWNER, { partition: epBackup, idempotencyKey: 'op02:ep:backup-while-open' });
+  A('主端点熔断 open → 主分区 breaker_open 拒 + 备分区同刻 admit ok（熔断分域·连带拒绝面拆除）',
+    epPrimaryOpen.ok === false && epPrimaryOpen.error === 'model_circuit_open' && epBackupWhileOpen.ok === true);
+  if (epBackupWhileOpen.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, epBackupWhileOpen.lease, 'no_signal'));
+
+  // ④ 半开互不累及：主分区冷却到期 → half_open 探针被占（breaker_half_open_busy）不阻备分区 admit。
+  await pool.query(`UPDATE ai_model_admission_policy SET breaker_cooldown_ms=0 WHERE provider_account='deepseek-cn-public' AND operation_id='interview.competency-planning.v1'`);
+  const epProbe = await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: 'op02:ep:probe' });
+  const epProbeBusy = await admitSharedModelOperation(pool, OWNER, { partition: epPrimary, idempotencyKey: 'op02:ep:probe-busy' });
+  const epBackupWhileHalfOpen = await admitSharedModelOperation(pool, OWNER, { partition: epBackup, idempotencyKey: 'op02:ep:backup-while-half-open' });
+  A('主分区 half_open 探针被占（breaker_half_open_busy）不阻备分区 admit（半开互不累及）',
+    epProbe.ok === true && epProbeBusy.ok === false && epProbeBusy.error === 'model_circuit_half_open' && epBackupWhileHalfOpen.ok === true);
+  if (epProbe.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, epProbe.lease, 'success'));
+  if (epBackupWhileHalfOpen.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, epBackupWhileHalfOpen.lease, 'no_signal'));
+  // 复位主分区断路器（本证明收尾清洁）。
+  await pool.query(`UPDATE ai_model_breaker_state SET phase='closed', consecutive_failures=0, opened_at=NULL, half_open_probe_token=NULL, half_open_probe_expires_at=NULL WHERE provider_account='deepseek-cn-public' AND operation_id='interview.competency-planning.v1'`);
+
+  // ⑤ 未知端点身份 → operation_unknown（种子闭集 fail-closed）。
+  const epUnknown = await admitSharedModelOperation(pool, OWNER, {
+    partition: { ...epPrimary, providerAccount: 'unknown-endpoint-proof' }, idempotencyKey: 'op02:ep:unknown',
+  });
+  A('未知端点身份（无策略行）→ operation_unknown（种子闭集 fail-closed）',
+    epUnknown.ok === false && epUnknown.error === 'model_admission_operation_unknown');
+
+  // ⑥ legacy 回退分区零漂：registry 派生原值分区（dashscope-main/cn-beijing）仍 admitted。
+  const legacyPartition = resolveModelAdmissionPartition({ operation: { id: 'interview.competency-planning.v1', businessRevision: 'op02' } })!;
+  const legacyAdmit = await admitSharedModelOperation(pool, OWNER, { partition: legacyPartition, idempotencyKey: 'op02:ep:legacy' });
+  A('legacy 回退分区（registry 原值 dashscope-main/cn-beijing）零漂仍 admitted',
+    legacyAdmit.ok === true && legacyPartition.providerAccount === 'dashscope-main' && legacyPartition.region === 'cn-beijing');
+  if (legacyAdmit.ok) await asPrincipal(pool, OWNER, (c) => recordSharedModelOperation(c, OWNER, legacyAdmit.lease, 'no_signal'));
+
+  // ⑦ 0179 六码族与族语义零扩零缩（AG-D 刀 C 面「只增」白名单/终端态原值——本刀端点维度入键不入码）。
+  A('瞬时准入拒绝族=六码零扩零缩 + failover mismatch 终态不在族内（端点维度入键不入码）',
+    ADMISSION_REFUSAL_RETRYABLE_CODES.size === 6
+      && ['model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted', 'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed']
+        .every((c) => ADMISSION_REFUSAL_RETRYABLE_CODES.has(c))
+      && !isAdmissionRefusalRetryable('model_failover_cost_policy_mismatch')
+      && !isAdmissionRefusalRetryable('model_admission_operation_unknown'));
 
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ MODEL-OP-02 共享 provider 准入/账本/并发/断路器全部通过');
   await pool.end();
