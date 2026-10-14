@@ -13,6 +13,11 @@ export interface PublicPreviewWriteSurface {
 
 export declare function isPreviewControlledWriteSurface(surface: unknown): boolean;
 export declare function inventoryPath(repoRoot: string): string;
+export declare function extractMutatingHttpRoutes(
+  source: string,
+  file: string,
+): { method: string; path: string; handler: string; source: string }[];
+export declare function extractGetHandlers(source: string): string[];
 export declare function listPublicHttpWriteSurfaces(manifest: unknown): PublicPreviewWriteSurface[];
 export declare function validatePublicPreviewWriteInventory(
   manifest: unknown,
