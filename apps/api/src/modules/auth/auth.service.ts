@@ -43,7 +43,7 @@ export class AuthService {
     // b110 §1.2.6:桶序钉死 per-email→ip→global(|| 短路;429 断言确定性);signup:ip 桶参数钉死 (10, 0.05)。
     // 5A-1 #111:per-email 桶 key 用归一邮箱——大小写变体共享同桶,不产生第二限流身份。
     const email = normalizeEmail(b.email);
-    if (!this.rl.allow(`signup:${email}`, 3, 0.02) || !this.rl.allow(`signup:ip:${ip ?? 'unknown'}`, SIGNUP_IP_CAPACITY, SIGNUP_IP_REFILL) || !this.rl.allow('signup:global', 60, 1))
+    if (!(await this.rl.allow(`signup:${email}`, 3, 0.02)) || !(await this.rl.allow(`signup:ip:${ip ?? 'unknown'}`, SIGNUP_IP_CAPACITY, SIGNUP_IP_REFILL)) || !(await this.rl.allow('signup:global', 60, 1)))
       throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
     const role = b.role === 'recruiter' ? 'recruiter' : 'candidate';   // 身份:招聘方(B)/ 求职者(C),默认 C
     const id = randomUUID();
@@ -82,9 +82,9 @@ export class AuthService {
     const email = normalizeEmail(parsedEmail.data);
     // 防爆破三桶(#180):对齐 signup 桶序 per-email→ip→global(|| 短路;429 断言确定性)——封「分散 email 喷洒」:
     // 同 IP 多邮箱连击吃 ip 桶,全库喷洒吃 global 桶(R2:RL_LOGIN_IP/RL_LOGIN_GLOBAL env 覆写口)。
-    if (!this.rl.allow(`login:${email}`, 5, 0.2)
-      || !this.rl.allow(`login:ip:${ip ?? 'unknown'}`, LOGIN_IP_CAPACITY, LOGIN_IP_REFILL)
-      || !this.rl.allow('login:global', LOGIN_GLOBAL_CAPACITY, LOGIN_GLOBAL_REFILL))
+    if (!(await this.rl.allow(`login:${email}`, 5, 0.2))
+      || !(await this.rl.allow(`login:ip:${ip ?? 'unknown'}`, LOGIN_IP_CAPACITY, LOGIN_IP_REFILL))
+      || !(await this.rl.allow('login:global', LOGIN_GLOBAL_CAPACITY, LOGIN_GLOBAL_REFILL)))
       throw new HttpException({ error: 'too_many_attempts' }, HttpStatus.TOO_MANY_REQUESTS);
     const r = await this.db.asGateway((c) => c.query(
       'SELECT id, password_hash, status, role, pwd_epoch FROM gateway_auth_login($1)',

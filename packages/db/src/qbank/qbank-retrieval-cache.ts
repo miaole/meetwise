@@ -16,7 +16,12 @@ import { hybridQbankSearch, type QbankRetrievalMode, type QbankServingScopeInput
 // v5 additionally binds the AG39 owner layer (owner_kind/org_id): an org-private
 // result set must never collide with a platform (or other-org) key — the DB-side
 // owner filter changed what a hit means, so every pre-v5 entry is cold by design.
-const CACHE_KEY_VERSION = 'qbank-retrieval-cache:v5';
+// v6 additionally binds the AG39 quality follow-up fusion layer (migration 0201):
+// the owner-rank leading key + org dual-row content dedup changed hit order and
+// result sets, so every pre-v6 entry is cold by design (the version string is
+// embedded in the cache key, making old entries unreachable — REQUEST §0.2-4
+// zero-residue argument).
+const CACHE_KEY_VERSION = 'qbank-retrieval-cache:v6';
 const MAX_QUERY_CHARS = 12_000;
 const MAX_EMBEDDER_VERSION_CHARS = 256;
 const DEFAULT_TTL_SECONDS = 120;

@@ -211,3 +211,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 11. 停止条件：零不可修红——normalize 基线红在协调方授权随翻面内修（归因 stash 干跑同红=非本刀引入·§9.2）·其余门全绿 ✓
 12. ⛔push：本卷零 push（commit 后停·Status=`executed:awaiting_post_prove_dual` 待 post-prove 双审两外席）✓
 13. est live=0+markers=0+pins 十一值零翻：§9.4 双声明 ✓
+
+## §9.6 sse-push 回归修复附记（S4b sse-push 红诊断修复席落卷 · 2026-10-14 · 施工②引入真回归·最小修复 · ⛔push）
+
+**红事实**：S4b nail 停 sse-push:notify:prove 3/35 红（P-2a/P-3/P-4 三臂同断言 `router 归零`·四树归因收敛引入窗=批2-C1 nail merge 61d5911d）。
+
+**精确引入 commit+文件（二分亲证）**：本刀 EXEC `989adfdd` 施工② main.ts preParsing 流计数钩子。二分：窗基 `c4025186` 跑门 **EXIT=0 · 35/35 绿**；`989adfdd` 跑门 **EXIT=1 · 同三臂红**（P-2a/P-3/P-4 逐字复现）·窗内 `c4025186..989adfdd` 门相关触面（apps/api+packages/db）唯一=`989adfdd`·merge `5dede1a2` 双亲之一 `cfead6e4` 经 `merge-base --is-ancestor` 亲证为窗基祖先（带入面零）。
+
+**根因（(a) 真回归·非断言随形）**：钩子对无 content-length 请求（含 SSE 的 GET）给载荷流挂 `data/end` 监听——fastify 5.12.5 preParsing 首轮载荷流=`request.raw`（route.js `runPreParsing` :657 `request[kRequestPayloadStream]=request.raw`），挂监听即把 bodyless IncomingMessage 推入 flowing→空消息即刻消费完成→`close` 在连接未断时提前发出（node:http 探针：挂监听形 `req.close@+1ms` vs 真 abort `socket.close@+414ms`；无监听形 `close` 仅在真断开发出）。SSE 泵（sse-pump.ts :86）在 handler/hijack 之后才挂 `reqRaw.on('close')`——事件已发永不达→客户端断开不可侦测→pump 循环兜底计时器续转（退化 2s/健康 30s）直至 10min deadline，waiter 不注销。P-2a/P-3 直接红（`until(waitingCount===0,2000)` 超时）；P-3 尾 :293 同款等待未断言只等待→泄漏滞留→P-4 同步 dispose 自身三 waiter 后计数仍>0 连带红。生产影响=每弃连 SSE 持 waiter+SSE 槽+限流槽至 10min（真泄漏非测试断言漂移）。
+
+**修复形（最小·源修）**：`apps/api/src/main.ts` preParsing 钩顶增 bodyless 早退直通 `method === 'GET' || method === 'HEAD' → done(null, body)`（fastify bodyless 分类=GET/HEAD：本不缓冲不 parse，封顶政策无对象；并消流消费副作用）·:175 错误注释「零特判零新分支」如实更正（该句所依赖的「挂监听零副作用」前提不成立）。chunked-cap 门静态三断言（`addHook('preParsing'`/`req.headers['content-length'] !== undefined`/`new PassThrough()`)与七动态臂（全 chunked POST）零扰动。
+
+**门矩阵（本席支线树 line/sse-push-fix @修复后亲跑）**：sse-push:notify:prove **EXIT=0 · 35/35 全绿**（修复前同树 3/35 红）+authz34:chunked-cap:prove **EXIT=0 · 7 臂全绿**+authz34:scrypt-async:prove **EXIT=0 · 14 臂全绿**+sse-slot:prove **EXIT=0**+interview:prove **EXIT=0 · 57 PASS**+turbo typecheck --force **EXIT=0 · 8/8 · 0 cached**+turbo lint **api 1431>1421+root 5210>5200 双红=§9.4 既登基线恒等零新增**（worker 950=950/db 1040=1040/domain 115/ai-runtime 621 贴线绿直跑亲证）+docs:check **EXIT=0**（2078 managed ≤ cap 2080）。est live=0（全 isolated 容器/本地门·零外呼零 secrets）·markers 门按先例 commit 后净树亲跑（未提交态改面恰符臂=申报面属 i6-239 历史刀清单·红属协议形非门失效）。

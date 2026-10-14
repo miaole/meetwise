@@ -63,7 +63,7 @@ async function reportIdOf(owner: string, interviewId: string) {
 /** complete+confirm + enqueue + single fail → status=failed (attempts=1, not quarantined). */
 async function setupFailedReport(owner: string, interviewId: string, leaseOwner: string) {
   await pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
     [interviewId, owner],
   );
   await asPrincipal(pool, owner, (c) =>
@@ -176,7 +176,7 @@ async function main() {
     const owner = OWN('g3'), id = IID('g3');
     await seed(owner, 5.0);
     await pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
       [id, owner],
     );
     await asPrincipal(pool, owner, (c) =>
