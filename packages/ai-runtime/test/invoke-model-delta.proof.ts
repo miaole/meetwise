@@ -115,7 +115,10 @@ async function main() {
     A('静态：层2 防御性同刀（modelFor call 臂）flag-aware 路由在位（直调 parity·duck-type 收窄）',
       modelForBlock.includes('shouldRouteModelTextStream()') && modelForBlock.includes('streamClient.completeStream(req, { signal, onDelta: onDelta ?? noopOnModelDelta })'));
     A('静态：路由条件单源恰 2 调用位（两可路由臂）+ g7 freetier 例外在单源内（R8(a) 防线）',
-      (src.match(/shouldRouteModelTextStream\(\)/g) ?? []).filter((m) => m === 'shouldRouteModelTextStream()').length >= 2
+      // 调用位计数=剔除单源定义行与全行注记后恰 2（防定义/注记稀释计数）。
+      src.split('\n').filter((line) => line.includes('shouldRouteModelTextStream()')
+        && !line.includes('export function shouldRouteModelTextStream()')
+        && !line.trimStart().startsWith('//')).length === 2
       && /shouldRouteModelTextStream\(\)/g.test(prepareArm) && /shouldRouteModelTextStream\(\)/g.test(modelForBlock)
       && routerFn.includes('isModelTextStreamPreviewEnabled(process.env)') && routerFn.includes('!g7RuntimeInjection().freetierReproveEnabled()'));
     A('静态：层3 三结构性非流式落点零路由注记（completeStream 自回退/modelFor prepare 缺省臂/failover prepare 缺省臂）',

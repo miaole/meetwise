@@ -19,7 +19,7 @@ EXEC 施工席 · 2026-10-14 · 分支 `line/tokstream-s4b` · 工作树 `meetwi
 | 2 | `prove:stitch-validator` | **EXIT=0** | T0/T1/T2 承重全过 |
 | 3 | `prove:token-coalesce` | **EXIT=0** | probe-b 重放+合成卷④ |
 | 4 | 新·`prove:invoke-model-delta`（ai-runtime） | **EXIT=0** | 12 臂（R1 四臂+R8(a) 行为臂+静态七臂·隔离 PG run-e2e-isolated） |
-| 5 | 新·`prove:token-stream`（worker） | **EXIT=0** | 17 臂（R2 五+R3 三面+R7 两侧+静态二·隔离 PG LISTEN 实收） |
+| 5 | 新·`prove:token-stream`（worker） | **EXIT=0** | 17 断言（R2 六臂七断言+R3 三面六+R7 两侧+静态二·post 后复跑见 §8·隔离 PG LISTEN 实收） |
 | 6 | 新·`prove:s4b-delta-arm`（api） | **EXIT=0** | 21 臂（R4(i)-(iv)+fan-out/坏帧/环丢旧/唤醒源区分/基线回归·零 DB 单元缝） |
 | 7 | 新·`prove:token-delta`（web） | **EXIT=0** | 19 臂（R5 六臂+R6 三态+probe-b L3 pacing+UX-A·纯函数） |
 | 8 | `tokenstream:prove`（既有·隔离） | **EXIT=1=基线红** | 唯一红臂 `TS-P1 ask 面 model_first_token 落表`——stash A/B 基线亲证同红同形（H2 #79 scenario 空检索模板降级后 ask 面零模型调用·proof 自调 noteModelFirstToken seam 无从触发）·**非本刀回归·登记不洗（cost1 先例）** |
@@ -34,7 +34,7 @@ EXEC 施工席 · 2026-10-14 · 分支 `line/tokstream-s4b` · 工作树 `meetwi
 | 17 | `docs:check` | **EXIT=1** | `PTP_FILE_LIMIT:2077>2072`——本刀 +7 受管新文件（施工新件 5+新 proof 2）·沿 AG38 `stopped:exec_red_docs_file_limit` 先例·处置建议=`public-text-policy.mjs` MAX_FILES 一行调顶 ≥2077（建议 2080） |
 | 18 | markers 五类（TODO/FIXME/XXX/HACK/conflict）改动集直扫 | **零命中** | `git status` 全集 grep 五类零命中（回执本收据 §5） |
 
-新 proof 臂电图：R1 (i)(ii)(iii)(iv) 四臂全绿（含 flag 双开正路端到端=transport seam 注入→`invoke(spec{onModelDelta})` 实收拼接==raw 原文）；R1b① 静态（层1/层2 路由在位+单源恰 2 调用位+层3 三落点零路由注记+`.completeStream(` 恰 2 调用位=R7(iv)）；R2 a-e 五臂；R3 quiz/report/adaptive 三面各两臂；R4 (i)(ii)(iii)(iv)+共醒/丢旧/fan-out；R5 (i)-(vi)；R6 三态+pacing；R7 (i)(iii) worker 侧+(iv) 静态。
+新 proof 臂电图：R1 (i)(ii)(iii)(iv) 四臂全绿（含 flag 双开正路端到端=transport seam 注入→`invoke(spec{onModelDelta})` 实收拼接==raw 原文）；R1b① 静态（层1/层2 路由在位+单源恰 2 调用位+层3 三落点零路由注记+`.completeStream(` 恰 2 调用位=R7(iv)）；R2 a-f 六臂（f=Σdelta 对账非恒 0·post 补）；R3 quiz/report/adaptive 三面各两臂；R4 (i)(ii)(iii)(iv)+共醒/丢旧/fan-out；R5 (i)-(vi)；R6 三态+pacing；R7 (i)(iii) worker 侧+(iv) 静态。
 
 ## 2. R1-R8 逐条落点（rg 产出物路径=本收据同目录 grepables.txt）
 
@@ -47,7 +47,7 @@ EXEC 施工席 · 2026-10-14 · 分支 `line/tokstream-s4b` · 工作树 `meetwi
 - **R4**：单例同连接第二 `LISTEN interview_token_ch`（失败降级不拖垮权威通道）+`subscribeToken` 广播复制（**fan-out 定谳=广播复制·禁互偷帧**）+`dispatchTokenFrame` 坏帧即丢+SsePumpOptions.deltaSource 可选注入+delta 臂（环形 256 有界丢旧 coalesced 痕记·无 id 帧·**delta-only 唤醒免 fetchMore；notify 唤醒恒取数=notifyWoke 唤醒源区分**）+interview 控制器接线+quiz/diagnosis 零触。
 - **R5**：`token_delta` 全表唯一 id optional 成员+zod loose data+decodeSSE/toBusinessEvent 零改+归约缓冲（attemptKey 键控 max-seq 幂等·换代不互毒）+**光标守卫**（`interview-state.ts` id===undefined 跳过游标推进=定谳窄守卫+`interview-stream.ts` highestId 不动上游半）。
 - **R6**：UX-A 打字机（token-typewriter.ts 纯函数）+L3 frame-coalescer 复用+对照器 web 半（token-stitch.ts·T0 镜像·telemetry 不阻断仍用终态权威）+probe-b 曲线 L3 pacing 臂。
-- **R7**：断开不取消语义生产化——worker 两侧注记+proof 四断言（无听众照常终态/usage 恰一次=R1(iii)/流中失败禁自动重 invoke=恰一次臂/「为补 delta 重跑」`.completeStream(` 恰 2 调用位静态零新增）。
+- **R7**：断开不取消语义生产化——worker 两侧注记+proof 四断言（无听众照常终态〔R7(i) worker 臂=弱代理：零听众面 worker 不可观测·臂证业务终态不依赖 delta 消费者·见 §8〕/usage 恰一次=R1(iii)/流中失败禁自动重 invoke=恰一次臂/「为补 delta 重跑」`.completeStream(` 恰 2 调用位静态零新增）。
 - **R8**：零翻 flag+《翻转策略》落 `receipts/tokstream-s4b/flip-policy.md`（序列/锁面/回滚/g7 注记/R8(a)(b) 两增条）。
 
 ## 3. 五裁决项行使记录
@@ -72,6 +72,7 @@ EXEC 施工席 · 2026-10-14 · 分支 `line/tokstream-s4b` · 工作树 `meetwi
 8. **sse-pump 唤醒源区分补全**：上波 delta-only 臂缺「notify 唤醒恒 fetchMore」逆命题半（连续 delta 流可饿死权威行取数）——本席随补 `notifyWoke` 旗（保守方向：stale waiter 误置旗=多取数不丢数据）+proof 共醒臂。
 9. **新 proof 基座补齐**：invoke-model-delta 补 MODEL_API_KEY/G7 台账 env/wire JSON 修正（上波件跑不通的缝面）·worker token-stream adaptive 臂改 grounded 带事实面（scenario 空检索=模板降级零模型调用·与 TS-P1 基线红同根非本刀面）。
 10. **裁决④收敛行使**（CLAUDE.md 零触·见 §3）。
+11. **web 渲染组件接线保留至 UI 刀**（post 席·协调方裁决 B1 采纳方案 (a) 登记）：streamingTextDisplay/token-typewriter 为显示原语（纯函数）·组件消费归 UI 刀域——渲染组件接线未含于本刀交付面（flip-policy §7 措辞随件勘正「渲染=归约+纯函数显示原语·组件接线未含」）。
 
 ## 5. markers 五类回执 + pins 自检
 
@@ -90,3 +91,13 @@ EXEC 施工席 · 2026-10-14 · 分支 `line/tokstream-s4b` · 工作树 `meetwi
 ## 7. STOP
 
 **STOP=`stopped:exec_red_gate_budget`**（沿 AG38 `stopped:exec_red_docs_file_limit` 先例形）：施工全量落码+新 proof 四门全绿+既有门零新红（基线红双门 A/B 承登）；docs:check FILE_LIMIT 与 lint 四预算超支=授权面红·**Status 不落 executed**·待协调方处置（cap ≥2077+lint 四值重钉或清偿授权）后翻面 `executed:awaiting_post_prove_dual`+post-prove 双审两外席。⛔push · alone≠dual · Ban self-approve。
+
+## 8. POST 修复席补记（2026-10-14 · 协调方裁决执行 · Status `executed:awaiting_post_prove_dual` 维持·@1f1a5160 后）
+
+- **B1（登记形）**：偏离 #11 登记（见 §4）+ flip-policy §7 改词「渲染（=归约+纯函数显示原语·组件接线未含·组件消费接线归 UI 刀域）」。
+- **E1 deltaChars 对账复活**：`token-stream.ts` pushDelta 补 `deltaChars += text.length`（原变量只声明零累计=endUsage `token_stream_reconcile` 遥测恒 0 死面·两半全死之「产侧半」）+ worker proof 补 R2-f 臂（换装 console.log 捕获 reconcile 行·deltaChars===5>0）——复跑对账日志实值 51/39/43/45 非恒 0 亲证复活。
+- **E3 启动期哨兵**：`token-stream.ts` 模块装载期 `MODEL_EXECUTION_TIMEOUT_MS>60_000` 结构化 warn（`token_stream_single_writer_window_open`·单写者前提破窗提示·缺省 35s 档零告警·仅提示不改行为）。
+- **E2 门名勘正**：错误名 `s4b-token-stream:prove` 实位=worker proof 头注运行行（exec-receipt §1 原名本正无勘）→ 勘正为 runner 形 `node scripts/run-e2e-isolated.mjs s4b-token-stream:prove:raw` + pnpm 门名 `prove:token-stream`。
+- **N1 静态臂收紧**：invoke-model-delta「路由单源恰 2 调用位」`>=2`→**调用位恰 2**（实现形=剔除单源定义行与全行注记后计数 `===2`；raw 全文出现 4 次=定义+层1 注记+两调用位，字面整串 `===2` 必红——实现形偏离如实登记·语义=臂名「恰 2 调用位」的强制化）。
+- **N2 R7(i) 弱代理注记**：worker proof R7(i) 臂加注（「零听众」worker 侧不可观测——本 proof 自身持 LISTEN；臂只证业务终态不依赖 delta 消费者·零听众静默丢弃由 PG best-effort 语义承底）+§2 R7 行随注。
+- **post 门矩阵复跑全绿**：四新 proof 全 EXIT=0（invoke-model-delta 12 臂/token-stream 17 断言/s4b-delta-arm 21 臂/token-delta 全过）+ `turbo typecheck --force` 8/8（0 cached）+ `turbo lint` 12/12（root warnings 5213 实数恰钉零新增·ai-runtime 628/worker 954/web 581 未触顶）+ `docs:check` EXIT=0（2077≤2080）+ markers 五类改动集零命中。⛔push · Ban self-approve。
