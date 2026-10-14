@@ -10,7 +10,7 @@ import { DbService } from '../../platform/db.service';
 export class JobsService {
   constructor(private readonly db: DbService) {}
 
-  browse(principal: string) {
+  browse(principal: string): Promise<{ jobs: Awaited<ReturnType<typeof listOpenJobs>> }> {
     return this.db.asPrincipal(principal, async (c) => ({ jobs: await listOpenJobs(c) }));
   }
 

@@ -102,7 +102,7 @@ for (const f of files) {
 const undecided = files.filter((f) => outcomes.get(f)!.decided === false);
 A('后端类（全语料）candidate_route_undecided 计数 = 0（v3 降级臂下分类器对非空输入恒 decided）',
   undecided.length === 0);
-const landedQa = files.filter((f) => outcomes.get(f)!.decided && outcomes.get(f)!.leafTrackId === 'qa/quality_engineering');
+const landedQa = files.filter((f) => { const r = outcomes.get(f)!; return r.decided && r.leafTrackId === 'qa/quality_engineering'; });
 A('#270 反例不落 qa：落 qa 的恰为纯 QA 类+强证据正臂（s09/s14/q1/q2/q3/ce8），「后端+裸自动化测试」零落 qa',
   landedQa.join(',') === 'ce8-backend-qa-strong-evidence.txt,q1-qa-dev-selenium.txt,q2-qa-software-jmeter.txt,q3-qa-sdet-api.txt,s09-qa-selenium.txt,s14-qa-tester-mysql.txt');
 const degradedAll = files.filter((f) => { const r = outcomes.get(f)!; return r.decided && r.degraded; });

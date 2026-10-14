@@ -132,8 +132,9 @@ async function main() {
     const classified = await classifyJobRoute(admin, recruiter, jobIdResolved, revision, {
       modelClassify: async () => { throw new Error('scor00_rule_path_must_not_call_model'); },
     });
-    if (classified.status !== 'route_decided' || classified.attemptOutcome !== 'rule_decided') {
-      throw new Error(`scor00_job_route_not_decided:${classified.status}:${classified.attemptOutcome ?? ''}`);
+    const attemptOutcome = 'attemptOutcome' in classified ? classified.attemptOutcome : null;
+    if (classified.status !== 'route_decided' || attemptOutcome !== 'rule_decided') {
+      throw new Error(`scor00_job_route_not_decided:${classified.status}:${attemptOutcome ?? ''}`);
     }
     console.log('[G7-SCOR00-PG-FIXTURE] R5-MARKED-RED · pgvector-legacy opt-in · ≠ sole capacity · ≠ R5 retired · legacy EXIT≠G7 close alone');
     const invitation = await asPrincipal(admin, recruiter, (c) => inviteCandidate(c, recruiter, jobIdResolved, candidate.userId));

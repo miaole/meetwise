@@ -219,7 +219,7 @@ A('MS4 SOLE allowlist 恰 5 · F3 NOT on allowlist', (() => {
   const runner = read(join(repoRoot, 'scripts/run-e2e-isolated.mjs'));
   const m = runner.match(/const SOLE_WIRING_ALLOWLIST = new Set\(\[([\s\S]*?)\]\)/);
   if (!m) return false;
-  const body = m[1];
+  const body = m[1]!;
   const items = [...body.matchAll(/'([^']+)'/g)].map((x) => x[1]);
   return items.length === 5
     && !body.includes('r4-p-meta-serving')
