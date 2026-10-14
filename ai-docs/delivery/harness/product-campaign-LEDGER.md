@@ -431,6 +431,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 补充 | AG-38 问答工具层 | runToolLoop 只读受限工具层（五只读工具+构造期权限绑定+E6 同意门+有界循环+既有账本对表·零迁移） | ✅ nail 收官 e6a481c9（blob 锚重钉 20e2f442+cost3 egress 面补账 16114f7d·SSOT 详情=execution-master-checklist「Line AG-38 nail」段） |
 | 批5 | CI-WIRING2 五簇 | LINT S3-S5 点亮+五债包 typecheck 清债+worker 破面修复+voice 红门复活+neg 六步纳 per-push+#226 钉臂 nightly-ciw2+归置清单化（#96/#114/#226/#155/#99/#159/#176/#177 八件·零迁移） | ✅ nail 收官 ad78e0ff（双亲 d68ffe17+5580a059·union 三红三授权处置随行·S7 keyed 四件维持开放明示·SSOT 详情=execution-master-checklist「Line CI-WIRING2 nail」段） |
 | 批5 | OBS-READY | #92 readiness 深化=API 迁移版本位 schema.migration 三态 fail-closed+worker workerReady 缺省 fail-closed+首拍门（零迁移） | ✅ nail 收官 b284d8ca（双亲 12ecb34b+28b9da2f·union lint 双红两授权修复 f29ceb59+28b9da2f 随行·api 15+worker 6 断言·SSOT 详情=execution-master-checklist「Line OBS-READY nail」段） |
+| 补充 | 基线红五件清欠 | qbank-integrity steps 旁表 GRANT+r4 双钉重指（archive 现址+EG3 新句「≠ 题域已隔离」）+corpus scripted 题面 6→14 字+dbhy1 P3-1 bill1-4 登记（零迁移零产品码） | 🔄 EXEC executed:awaiting_post_prove_dual @line/baseline-red5（五门隔离复跑逐件 EXIT=0·五门=integrity/corpus/dbhy1/r4 双门+turbo typecheck --force 8/8+docs:check+markers 零命中·SSOT 详情=execution-master-checklist「Line AG-37 nail」段基线红五件清欠随注+baseline-red5-REQUEST 卷） |
 | 起草 | billing P3 | 结算 REQUEST 503ccd59+rev 4bf1ce96 | ✅ 双审 BOTH PASS→EXEC 落卷 f4234c92 |
 | 起草 | qbank 起草 | AG-41/42/43+P5 | 落卷 9484bc54→EXEC b20ee350→post BOTH→nail 32bf35b8 |
 | 起草 | AG-37 起草 | deficit 持久化 | 落卷 3b47df9a→EXEC 15b67341→post BOTH→nail 66e42d6e |
