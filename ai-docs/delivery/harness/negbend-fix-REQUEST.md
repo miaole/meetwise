@@ -1,6 +1,6 @@
 # NEGBEND-FIX REQUEST — neg:bend 4/178 红臂修复刀（approve 解锁读路径=守卫缓存本地 evict 缺失·恰 1 产品文件一行修·negbend-fix 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-15 · **rev3**（pre-exec 双审两外席 **BOTH PASS 落卷**（席1 `agent_b1c540a6`+席2 `agent_68a4c9e9` 会签）·协调方明示 EXEC 授权（committed SHA 重钉=`cfc68287`）·席2 P2×2 折入·摘要见卷尾节 · ⛔push））
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-15 · pre-exec 双审 **BOTH PASS 落卷**（席1 `agent_b1c540a6`+席2 `agent_68a4c9e9` 会签）·协调方明示 EXEC 授权（committed SHA 重钉=`cfc68287`）·rev3（席2 P2×2 折入·摘要见卷尾节）·**EXEC 落卷 @`1e686576`（§9 记录）·门矩阵十二门全绿·STOP 翻面（nail/行翻面归主会话批边界·alone≠dual·⛔push）**）
 
 **席位**：negbend-fix 起草席（诊断+起草双责·协调方派·neg:all 全量收据 tip=`cf501273` 四红清单立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `cf501273`（5C-API-HARDEN nail 收官 SSOT commit·docs:check 2081≤cap 2088 本树亲跑）· 分支 `line/negbend-fix`（建前 `git branch --list "line/negbend*"` 零命中·本起草席 `git worktree add ../meetwise-nbf -b line/negbend-fix feat/mysql-schema-skeleton` 亲立·HEAD 落 `cf501273` 亲证）· 工作树 `meetwise-nbf`（仓根同级）。
@@ -123,7 +123,7 @@
 
 ---
 
-*NEGBEND-FIX REQUEST · 2026-10-15 起草 · `draft:awaiting_pre_exec_dual` · base `feat/mysql-schema-skeleton` @`cf501273` · 分支 `line/negbend-fix` · 工作树 `meetwise-nbf`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=neg:all 收据四红清单（.tmp/receipts/negbend 20261015·主树易失件）+协调方派单 brief · 四臂根因=approve/reject 写路径（DB 函数内 UPDATE+audit 门控亲证）成功而读路径守卫缓存（`f31d56d1` #118 三查并一·60s TTL）在负测环境不可失效（0143/0189 双缺位→广播生产者+消费者双缺·生产者缺位真实成因=0189 不在挑选单·sql/09:3 DROP 仅兜底防御性登记·rev2）→滞留 pending 态→臂① 解锁 403/臂② 级联 undefined invite/臂③④ 分码错为 `recruiter_pending_review`·AUTHZ-34 排除归因（§0.2-2）· 修法=候选甲恰 1 文件一行本地 evict（`profile.service.ts:146` 先例形·approve/reject 双向对称·跨实例 0189 广播零改）· 候选乙（harness 补链）候选丙（断言改形）否决在卷 · 门矩阵十二门（neg:bend 178/178+neg:all 551 全绿+api-harden:prove 26 臂+migrate/drift/uniqueness 189/typecheck/lint 承登双红/docs:check≤2088/markers/diff 面机检/卫生）· 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*NEGBEND-FIX REQUEST · 2026-10-15 起草 · **`executed:awaiting_post_prove_dual` @`1e686576`（§9 EXEC 记录·门矩阵十二门全绿·post 双审待派·nail/行翻面归协调方）** · base `feat/mysql-schema-skeleton` @`cf501273` · 分支 `line/negbend-fix` · 工作树 `meetwise-nbf`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=neg:all 收据四红清单（.tmp/receipts/negbend 20261015·主树易失件）+协调方派单 brief · 四臂根因=approve/reject 写路径（DB 函数内 UPDATE+audit 门控亲证）成功而读路径守卫缓存（`f31d56d1` #118 三查并一·60s TTL）在负测环境不可失效（0143/0189 双缺位→广播生产者+消费者双缺·生产者缺位真实成因=0189 不在挑选单·sql/09:3 DROP 仅兜底防御性登记·rev2）→滞留 pending 态→臂① 解锁 403/臂② 级联 undefined invite/臂③④ 分码错为 `recruiter_pending_review`·AUTHZ-34 排除归因（§0.2-2）· 修法=候选甲恰 1 文件一行本地 evict（`profile.service.ts:146` 先例形·approve/reject 双向对称·跨实例 0189 广播零改）· 候选乙（harness 补链）候选丙（断言改形）否决在卷 · 门矩阵十二门（neg:bend 178/178+neg:all 551 全绿+api-harden:prove 26 臂+migrate/drift/uniqueness 189/typecheck/lint 承登双红/docs:check≤2088/markers/diff 面机检/卫生）· 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
 
 ---
 
@@ -147,3 +147,36 @@
 2. **R3-2（席2 P2-B）**：件① 补「调用点位于 asPrincipal COMMIT 之后（`principal.ts:998` 先于 await resolve）·Ban 移入回调内（事务内 evict 并发下经回填竞态复现 60s 陈旧窗·TOCTOU 守卫不可捕获）」排序语义句（落点=§1-修法件①）。亲证：`packages/db/src/principal.ts:991-1002` `asPrincipal` 函数体 `const r = await fn(c); await c.query('COMMIT'); return r;`——`:998` COMMIT 先于 `return r`·await 侧 resolve 必在提交后；回调内 evict 的失效窗=evict（代次++）先于 COMMIT·并发读者起读晚于 evict 时 `genBefore` 已取新代次·读得旧快照后在 `:61` 以新代次回填（gen 比对恒过）→60s 陈旧窗复现·`:60-:61` 代次守卫只覆盖「读在飞中遇 evict」一相。
 
 **自检（rev3 commit 前亲跑）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（并线树 cap 2104 口径·实测值随 commit 记）·markers 五类改动集零命中（改动集恰 1 .md·五类词族沿 i6-239 门口径·词面不复抄卷内防自匹配）·pins 十一值零翻转·§1.2 四臂根因结论/§5 Ban/§8 停止条件零改·本 commit=rev3（docs-only 恰 1 .md·⛔push）。
+
+---
+
+## §9 EXEC 记录（EXEC 席落卷·2026-10-14·授权链=pre-exec 双审 BOTH PASS+协调方 EXEC 授权 @`cfc68287`·收据=件③ `ai-docs/delivery/receipts/negbend-fix/00-exec.md`+01/02/03 raw log·untracked §2-11 口径）
+
+**工序与 commit 链**：①并主线 `git merge --no-ff feat/mysql-schema-skeleton @55584f1f`（零冲突 ort·43 文件）→`1ce04516`；②rev3 errata（席2 P2×2 折入·docs-only）→`4ac521ac`；③件① 恰 1 产品文件净 +2 行（import+`evictPrincipalStatus(id);` 调用行带注释·rev2 单参形·`profile.service.ts:146` 先例形·落点=:85 decided 守卫后 :86 return 前·调用点在 asPrincipal COMMIT 之后事务外）→`1e686576`；④本 §9 落卷=commit 3。
+
+**改前必做 run（件② rev2 升必做条款·恰一次不计 prove）**：`4ac521ac` 树 EXIT=1·**174 PASS/4 FAIL**·红名单恰 `:463`/`:465`/`:473`/`:474` 四臂；**四臂实测 `body.error` 指纹全=`recruiter_pending_review`**（rev3 R3-1 义务·树外零侵入直通 fetch preload 随 run 顺载·臂② 级联形 `POST /recruiter/jobs/undefined/invite` 同码）——与 §1.2 推定形逐字相符·机制归因链闭面·「机制不满足」停止条件未触。
+
+**门矩阵十二门终值（并线树基 `1ce04516`·commit 2=`1e686576` 状态实测·全绿）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 1 | neg:bend | **178/178**·`✓ 全绿`·PASS 名单 diff（改前 174 分母本树自证）**恰 4 条**=四臂翻绿·零弱化零第 5 条 | 0 |
+| 2 | neg:all 六段 | **686/686 全绿**（auth 90+commerce 90+resume 91+interview 102+bend 178+input **135 首达**）·邻四套件对基线 PASS 名单逐套 diff=∅ | 0 |
+| 3 | api-harden:prove | PASS 31/FAIL 0·proof 文件自基线 `cf501273` 零字节变更=零扰动实质绿（口径更 26→31·见下） | 0 |
+| 4 | migrate:prove | 全 PASS·链 **201 头 0201** | 0 |
+| 5 | drift:prove | `✓ schema 无漂移`（豁免 2 项既登恒等） | 0 |
+| 6 | uniqueness | `files=201 violations=0 exemptions=0143,0152,0160` | 0 |
+| 7 | typecheck | `Tasks: 8 successful, 8 total`·0 cached | 0 |
+| 8 | lint 承登 | **恰双红恒等既登**：api `1431>1421`+root `5212>5200`（0 errors·零第三红·与并线携入 AUTHZ 基线逐字恒等） | 1（承登） |
+| 9 | docs:check | `scanned 2100`≤cap **2104** | 0 |
+| 10 | markers 五类 | 改动集新增行零命中（i6-239 词族口径） | 1（零命中） |
+| 11 | diff 面机检 | 恰 2 tracked 路径=件① .ts（2+/0-）+本卷 .md（rev3+§9）+收据目录 untracked | — |
+| 12 | 卫生 | frozen-lockfile EXIT=0·`.env*` ABSENT 双向三查·`actualSpendCny=null`·est live=0 | 0 |
+
+**口径如实更三处（§2「数字口径以实跑实测为准」条款内·非偏离）**：api-harden 26→**31**（proof 自卷面基线零字节变更·26 系沿 `f31d56d1` EXEC 期旧登记·`c31fd11e` 修复增臂后即 31）；neg:all 551→**686**（551=收据 fail-fast 五段分母·input 段本轮首达 135 臂全绿）；cap/链深/唯一性分母随并线 2088→**2104**/0189→**0201**/189→**201**（§2-4/9 括注「届时值如实记」预授权）。
+
+**运行副效应登记**：typecheck 门运行曾翻动 `apps/web/tsconfig.tsbuildinfo`（tracked 增量构建状态件·1/1 行·非交付面）——`git checkout` 回滚基线以保门 11 恰 2 路径·零内容改动交付。
+
+**停止条件四类全数未触**（现场漂移=§0.1 十锚 blob 复算零漂移+§0.0 在飞复核 b110 残枝判定；机制不满足=四臂指纹推定形相符+四臂全翻绿；越界需要=修法恒等件① 恰 1 文件面；验收红不可修=十二门全绿+承登双红恒等）·**§1.2 四臂根因结论/§5 Ban/pins 十一值/§8 三条款零改零翻转**。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与 neg:bend 红清单行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
