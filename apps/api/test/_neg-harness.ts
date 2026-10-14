@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createHmac } from 'node:crypto';
 import { hashPassword, signToken } from '@meetwise/domain';
-import { assertIsolatedTestTarget } from '@meetwise/db';
+import { assertIsolatedTestTarget, type DbPool } from '@meetwise/db';
 import { createApp } from '../src/main';
 import { DbService } from '../src/platform/db.service';
 
@@ -27,7 +27,7 @@ export function tokenFor(uid: string, opts: { pwdEpoch?: number; ttlSec?: number
 }
 
 export interface Harness {
-  base: string; pool: any;
+  base: string; pool: DbPool;
   req: (method: string, path: string, headers?: Record<string, string>) => Promise<{ status: number; body: any; headers: Headers }>;
   send: (method: string, path: string, headers: Record<string, string>, body: any) => Promise<{ status: number; body: any; headers: Headers }>;
   post: (path: string, headers: Record<string, string>, body: any) => Promise<{ status: number; body: any; headers: Headers }>;
@@ -77,6 +77,11 @@ export async function boot(): Promise<Harness> {
   // AG 修复轨刀 E（AG-03/EG-A1）：ai_report.dispatch_seq 单调派发序列——claimReport 生产 SQL 引用该列，
   // 负测夹具须随迁移链补列（幂等 ADD COLUMN IF NOT EXISTS·sql/04_report 镜像无此列）。
   await db.pool.query(sql('0178_ag_e_report_dispatch_seq.sql', 'migrations'));
+  // billing 战役 P3（BILL3）：interview 计费三列+ck 约束+topic_charge 明细表+tf_interview_consumption_terminal_pair
+  // 整体改写——abandon/结算生产闭包（settleOrReleaseForTerminal→interviewBillingOf SELECT billing_mode）引用该列，
+  // 负测夹具挑选单须随迁移链（0172 幂等 IF NOT EXISTS/0173 CREATE OR REPLACE·可重复加载）。
+  await db.pool.query(sql('0172_topic_charge.sql', 'migrations'));
+  await db.pool.query(sql('0173_tf_interview_consumption_terminal_pair.sql', 'migrations'));
   await db.pool.query(sql('23_api_gateway.sql'));
   // AUTHZ-HARDEN 5A-1:负测环境与生产归一/会话面同构——0167(存量归一+lower(email) 唯一索引·幂等,种子全
   // 小写零冲突=索引恒建)/0168(网关函数换体·与 23 auth 族区逐字节同文,此处重放即活体一致性佐证)/
@@ -171,6 +176,67 @@ export async function boot(): Promise<Harness> {
       RETURN QUERY SELECT v_request, p_resume_id, false, v_fenced_at;
     END;
     $fn$;`);
+
+  // UNSTUB-ERASE neg-mirror 续:deactivate 账户删除闭包在**本负测环境**的最小镜像——
+  // ①interview.created_at/job_title_snapshot（0123 最小列面:ADD COLUMN IF NOT EXISTS+DEFAULT now();
+  //   整 0123 载入需 0028 application 链不在负测挑选单——deactivate 枚举 ORDER BY created_at 与
+  //   /interview 列表面读 job_title_snapshot 只需列存在,真相=0123 迁移链）。
+  await db.pool.query('ALTER TABLE interview ADD COLUMN IF NOT EXISTS created_at timestamptz');
+  await db.pool.query('ALTER TABLE interview ADD COLUMN IF NOT EXISTS job_title_snapshot text');
+  await db.pool.query('ALTER TABLE interview ALTER COLUMN created_at SET DEFAULT now()');
+  // ②assert_interview_privacy_active（0058 真函数体逐字:仅依赖 interview_privacy_active——后者本环境
+  //   已有同形镜像;写侧围栏与读侧同源,行为面一致）。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION assert_interview_privacy_active(target_interview text)
+    RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $$
+    BEGIN
+      IF NOT interview_privacy_active(target_interview) THEN
+        -- Deliberately collapse missing, cross-owner and deleted into one error;
+        -- direct repository callers must not gain an existence oracle.
+        RAISE EXCEPTION 'interview_privacy_fenced' USING ERRCODE='P0001';
+      END IF;
+    END $$;`);
+  // ②memory_begin_account_erasure（0093 契约面）:同头 fail-closed 校验（principal+64hex 键+账户存在）+
+  //   幂等复用 account_data 受理。本环境无 memory_consent/memory_fact（sql/07 镜像仅 user_memory）与
+  //   privacy_deletion_target（0047 链不在挑选单）——撤回/fence/三 target 账面无从落,单行契约回执
+  //   （digest 由同式 HMAC 派生非真账）;真相=0093/0047 迁移链（memory 账面 prove 归 memory/privacy 主证）。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION memory_begin_account_erasure(p_idempotency_key_hash text)
+    RETURNS TABLE (request_id uuid, request_status text, privacy_epoch bigint, target_set_digest text, sink text, resource_hmac text, replayed boolean)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $mfn$
+    DECLARE
+      principal text := current_setting('app.principal_user', true);
+      v_request uuid; v_hmac text; v_digest text;
+    BEGIN
+      IF principal IS NULL OR length(principal)=0
+         OR p_idempotency_key_hash IS NULL OR p_idempotency_key_hash !~ '^[a-f0-9]{64}$' THEN
+        RAISE EXCEPTION 'memory_erasure_invalid' USING ERRCODE='22023';
+      END IF;
+      PERFORM 1 FROM user_account ua WHERE ua.id = principal;
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'memory_erasure_account_not_found' USING ERRCODE='42501';
+      END IF;
+      SELECT r.id INTO v_request FROM privacy_erasure_request r
+       WHERE r.owner_user_id = principal AND r.idempotency_key_hash = p_idempotency_key_hash
+       ORDER BY r.created_at DESC LIMIT 1;
+      IF v_request IS NULL THEN
+        INSERT INTO privacy_erasure_request(owner_user_id, scope, subject_id, idempotency_key_hash, status, privacy_epoch)
+          VALUES (principal, 'account_data', principal, p_idempotency_key_hash, 'fenced', 1)
+          ON CONFLICT (owner_user_id, idempotency_key_hash) DO NOTHING
+          RETURNING id INTO v_request;
+        IF v_request IS NULL THEN
+          SELECT r.id INTO v_request FROM privacy_erasure_request r
+           WHERE r.owner_user_id = principal AND r.idempotency_key_hash = p_idempotency_key_hash;
+        END IF;
+      END IF;
+      v_hmac := encode(hmac(principal || ':memory_fact:' || v_request::text, p_idempotency_key_hash, 'sha256'), 'hex');
+      v_digest := encode(digest('memory_fact:' || v_hmac, 'sha256'), 'hex');
+      RETURN QUERY SELECT v_request, 'fenced'::text, 1::bigint, v_digest, 'memory_fact'::text, v_hmac, false;
+    END;
+    $mfn$;`);
 
   // ── 种子:各种状态,专供负测(绝不含"正常成功"作为断言目标)──
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES " +

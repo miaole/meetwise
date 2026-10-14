@@ -305,7 +305,7 @@ async function main(): Promise<void> {
     let hits = 0;
     const walk = (dir: string) => {
       let entries: string[] = [];
-      try { entries = readFileSync.toString && [] as any; } catch { /* */ }
+      try { entries = []; } catch { /* */ }
       // use shell-free recursive via node fs sync walk
     };
     void walk;

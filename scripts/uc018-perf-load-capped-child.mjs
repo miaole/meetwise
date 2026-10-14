@@ -22,6 +22,10 @@
  * must re-verify reachability honestly before relying on it.
  *
  * If caps cannot be enforced → write enforced:false and still run (prove will EXIT≠0).
+ *
+ * CI 纳入登记：#176 归置清单 ai-docs/delivery/harness/ci-wiring2-prove-placement.md——
+ * 本 prove 不在 per-push/既有 nightly；Linux(CI runner) 拓扑真验证=独立 workflow 步行使，留后继批
+ * 按单件时长实测另裁（网络参数即上节 reachability 面，无新增开关）。
  */
 import { spawnSync, execFileSync } from 'node:child_process';
 import { mkdirSync, writeFileSync, readFileSync, existsSync } from 'node:fs';

@@ -44,13 +44,27 @@ export async function upsertVectorChunk(
  *
  *   perf 诚实注:JOIN+DISTINCT 使规划器难采用 HNSW,退化为受可见集约束的精确扫描——demo/当前规模无碍;共享题库达
  *   ~10 万+ 块时应改"vector_chunk 上物化 visible 布尔列 + WHERE 谓词部分 HNSW 索引"以保住 O(log N)(后续)。
+ *
+ * AG39 owner 层(裁决③行使=补 owner+既有 serving/taxonomy GUC 同形注入,零静默放行):本直连点与
+ *   setServingScope(qbank-generation-retrieval)同契约——0187 起 SECURITY DEFINER 检索函数在 owner GUC
+ *   缺失/半缺/非法组合时 fail-closed RAISE 'qbank_retrieval_scope_missing',故本函数在 qbank 臂恒注入两枚
+ *   owner GUC(ownerKind 缺省=platform·与 TS scope 契约同形;org 必带非空 orgId,半缺抛错不降级)。
+ *   生产检索主路径经 hybridQbankSearch(四 GUC 自注入);本直连面为 index.ts 导出的兼容读入口。
  */
 export async function annSearch(
   c: Client, owner: string, kind: 'qbank' | 'memory', queryEmbedding: number[], k: number,
-  opts: { qbankRecipeId?: string } = {},
+  opts: { qbankRecipeId?: string; qbankOwnerKind?: 'platform' | 'org'; qbankOrgId?: string } = {},
 ): Promise<{ refId: string; distance: number }[]> {
   const qvec = vec(queryEmbedding);
   if (kind === 'qbank') {
+    const ownerKind = opts.qbankOwnerKind ?? 'platform';
+    if (ownerKind !== 'platform' && ownerKind !== 'org') throw new Error('qbank_retrieval_invalid_serving_scope');
+    if (ownerKind === 'org' && (!opts.qbankOrgId || opts.qbankOrgId.length > 512)) {
+      throw new Error('qbank_retrieval_invalid_serving_scope');   // org 半缺 org_id = fail-closed
+    }
+    if (ownerKind === 'platform' && opts.qbankOrgId !== undefined && opts.qbankOrgId !== '') {
+      throw new Error('qbank_retrieval_invalid_serving_scope');   // platform + 非空 org_id = 非法组合
+    }
     // 0029+ has an immutable generation pointer. A query embedding without its recipe receipt is unsafe:
     // same dimension does not mean same vector space. Do not fall through to legacy vector_chunk here.
     // activeQbankGeneration is fail-closed (throws on a legacy/pre-generation DB), so there is no
@@ -59,6 +73,8 @@ export async function annSearch(
     if (!opts.qbankRecipeId || active.recipeId !== opts.qbankRecipeId) {
       throw new Error(`qbank_generation_recipe_mismatch:active=${active.recipeId}:query=${opts.qbankRecipeId ?? 'missing'}`);
     }
+    await c.query("SELECT set_config('app.qbank_owner_kind', $1, true), set_config('app.qbank_org_id', $2, true)",
+      [ownerKind, ownerKind === 'org' ? opts.qbankOrgId! : '']);
     const r = await c.query('SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,$3)', [active.generationId, qvec, k]);
     return r.rows.map((row) => ({ refId: row.ref_id as string, distance: Number(row.distance) }));
   }

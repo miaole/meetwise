@@ -109,7 +109,7 @@ export const EARLY_WEAK_ABORTS = 2;
 export const THRASH_PIVOTS = 3;
 
 export function boundedAbsoluteMaxTurns(value: number | undefined): number {
-  if (!Number.isInteger(value)) return DEFAULT_ABSOLUTE_MAX_TURNS;
+  if (value === undefined || !Number.isInteger(value)) return DEFAULT_ABSOLUTE_MAX_TURNS;
   return Math.max(1, Math.min(value, PLATFORM_ABSOLUTE_CEILING_TURNS));
 }
 
