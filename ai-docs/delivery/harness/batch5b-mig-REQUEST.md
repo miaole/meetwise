@@ -1,6 +1,6 @@
 # BATCH5B-MIG REQUEST（批5·5B 迁移消费方批量刀 · 19 触点=17 件+#115/#140 两半 · 4 簇迁移/纪律面+登记 2 件 · M+ 体量）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀恰 1 .md 零码动·⛔push。EXEC/任何实施须预执行双审两外席 BOTH PASS 落卷 + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工完随翻 2026-10-14·pre-exec 双审 rev2 BOTH PASS+协调方授权开工·门矩阵全绿后落卷·⛔push·post 双审两外席待审·post PASS 后翻面归协调方）。
 
 **席位**：批5-5B 迁移消费方批量刀 REQUEST 起草席（北星 loop · MIG-RUNNER 后继消费面 · 协调方派单）。
 **基线**：`feat/mysql-schema-skeleton` @ `28cdee05`（主线 tip·2026-10-13 `git pull --ff-only` 实测 Already up to date·`git log -1` 亲证）。分支 `line/batch5b-mig`·工作树 `meetwise-b5m`（`git worktree add ../meetwise-b5m -b line/batch5b-mig 28cdee05` 本起草席已立·建前 `git worktree list` 32 树实测无 b5m·建后 33 树——树计数=起草时点值非恒定·rev2 复测 13 树（2026-10-14）·EXEC 立项日以 `git worktree list` 复测为准）。本卷属会话工单（harness 卷宗）·派单时由主会话显式给路径·Context Lock 口径。
@@ -61,6 +61,8 @@
 4. **#3 issues 原锚路径漂移**：`packages/db/src/interview-jobs.ts`→现位 `packages/db/src/interview/interview-jobs.ts`（结论不变只更路径）。
 5. **#122 DROP 机制缺口（如实披露）**：concurrent-index 臂解析器 `:203-217` 仅受 CREATE INDEX 形（DROP 撞 migration_concurrent_index_sql_invalid）；multi-statement 臂逐语句 BEGIN/COMMIT 包裹而 `DROP INDEX CONCURRENTLY` 禁止事务块内运行——**两现成模式皆不能直接承载 DROP CONCURRENTLY**。处置=裁决项⑨（B2 改号对齐 §8 权威清单·三案并陈·不得由执行者自行选择）。
 6. **路径漂移补登记（rev2 F4）**：①`packages/db/src/commerce.ts`→现位 `packages/db/src/commerce/commerce.ts`（#25 写入路径亲证锚·0145:23 注释内旧路径=历史引文不改）②卷内 `interview-report.ts:24` 补全路径=`apps/api/src/modules/interview/interview-report.ts`（结论不变只更路径·沿 §0.3-4 先例）。
+7. **迁移号 claim 实测勘误（EXEC 立项日 2026-10-14·并线后链顶亲证）**：主线 `feat/mysql-schema-skeleton` @`d68ffe17`（AG-39 nail 收官·链 185→187·0186+0187 已占）·并线 merge `5f71af51`（--no-ff·零冲突·本刀树 @merge 后实测 `ls packages/db/migrations`=197 文件）；在飞占号复测：cost4 树（`line/ag-cost4` @`e100a2a7`）已占 `0188_ag11_cost_reserve_least_and_settle_relax.sql`·ciw2 树零新号→**本刀自首个空闲号 0189 起**；实际 claim=**0190–0199 共 10 号**（0190/0191 起因=#25 唯一约束循 #115 纪律半拆 concurrent-index+multi-statement 两号；#3/#13 裁决④案c 零 DB 面不占号；0148/0149 重制循豁免面原号不占新号；0189 空置=claim 表按件起号顺延的自然空档·如实登记防复用）。预估 11±2 号窗内（10 号）。
+8. **复审 P2 勘误注三件落卷（EXEC 施工执行）**：①「0148 步数条件形 13/14」=按裁决①结论+E6 择形①（首语句 DO 块孤儿检测）落 14 语句（EXEC 干跑 splitTopLevelStatements 实数 pin=14·复刻真函数源码干跑·0149=10 与 rev2 E4 静态预测一致）；②「裁决④ 案c 先行锁窗评估」=案c 先行落 db-int-fk.proof P8 臂（零 DB 面·claim 载体书面固化）·案a/案b 锁窗与码面授权披露随 §9-4 呈报；③「簇⓪ 观测臂改形机制句」=migrate.proof 观测臂改形机制注已落（三臂全覆盖 set_config 后恢复观测窗后移 runMigrations 收尾之外·pool LIFO 同 client·恢复语义断言保留·断言 2→3 净增）。
 
 ## §1 修法（四簇+登记·逐条对应 §0.1 件号·**⛔ 不得更改**项随条标注·EXEC 立项重 pin）
 
@@ -175,6 +177,111 @@ node scripts/ai-docs/check-docs.mjs   # EXIT=0（docs:check）
 5. **豁免面自证**：0148/0149 diff 全文+其余 0001-0181 零字节 `git diff` 亲证回执。
 6. **卫生双声明**：markers 五类亲跑回执+est live=0（逐 prove 零外呼口径）+pins 十一值零翻。
 7. **停止条件核查**：四类逐条命中与否（未命中=明写未命中）。
+
+## §9-EXEC 附记（2026-10-14·施工席落卷·七节全·⛔push·STOP=`executed:awaiting_post_prove_dual`）
+
+### 1. 迁移号 claim 表（并线 merge `5f71af51` 后实测·链顶 0187·cost4 在飞占 0188）
+
+| 号位 | 模式 | 文件名 | 件号 | 语句步数（干跑实数） |
+|---|---|---|---|---|
+| 0148（重制·豁免面） | multi-statement | 0148_interview_composite_fk_batch1.sql（改写） | #134+#135 | 14（1 DO+1 UNIQUE+6 NOT VALID+6 VALIDATE） |
+| 0149（重制·豁免面） | multi-statement | 0149_money_status_constraints.sql（改写） | #135 | 10（1 DO+4 熔单 ALTER+1 D3+4 VALIDATE） |
+| 0190 | concurrent-index | 0190_outbox_consumption_unique_concurrent.sql | #25 半1 | 1 |
+| 0191 | multi-statement | 0191_outbox_consumption_fk.sql | #25 半2 | 4 |
+| 0192 | multi-statement | 0192_interview_event_created_at_kind_check.sql | #16 | 4 |
+| 0193 | multi-statement | 0193_candidate_route_status_fk_harden.sql | #151 | 7 |
+| 0194 | multi-statement | 0194_money_consistency_graph_run_terminal.sql | #152 | 5 |
+| 0195 | transactional | 0195_interview_event_settlement_append_only.sql | #15/#23 | 6 |
+| 0196 | transactional | 0196_trigfam_execute_least_privilege.sql | #150+#141 注释通道 | 12 |
+| 0197 | transactional | 0197_qbank_release_storage_lock_timeout.sql | #137 | 1 |
+| 0198 | concurrent-index | 0198_trace_created_at_index.sql | #122 半1 | 1 |
+| 0199 | transactional | 0199_redundant_index_drop.sql | #122 半2 | 2 |
+
+### 2. 逐件七项（19 触点+1 残余）
+
+| 件 | 裁决行使 | 触面 | 新号 | 断言臂 | 门 | 定性 |
+|---|---|---|---|---|---|---|
+| #134 | ①案1+E6 择形① | 0148 重制+migrate.proof §2-8+db-int-fk P6-2/3 | — | §2-8 五臂+P6-2 白名单 14 句 | migrate:prove EXIT=0 | 执行完 |
+| #135 | ①案1 | 0149 重制（熔单 ALTER×4+VALIDATE×4） | — | §2-8 重制 0149 臂+convalidated 动态臂 | migrate:prove EXIT=0 | 执行完 |
+| #25 | ⑤（FK=entitlement_consumption(id)·NO ACTION·唯一约束=CONCURRENTLY+USING INDEX 双号形） | 0190+0191 | 0190/0191 | migrate.proof 全量应用+db:prove 四原语 | EXIT=0 | 执行完 |
+| #16 | ③（kind 值域 19 值=catalog+写点全量 rg 亲证闭合） | 0192 | 0192 | §2-8 同上+migrate:prove fresh 全量 | EXIT=0 | 执行完 |
+| #3/#13 | ④案c（先行·弱修·零 DB 面） | db-int-fk.proof P8（4 臂） | 不占号 | P8-1..4 claim 载体固化 | db-intfk:prove EXIT=0 | 条款收口（案a/案b 呈报 §9-4） |
+| #15/#23 | 前置硬门过（rg -U 零合法 UPDATE）·transactional 合一 | 0195 | 0195 | migrate.proof 全量应用+db:prove | EXIT=0 | 执行完 |
+| #122 | ⑨案a（非并发 DROP·锁窗评估=元数据级短锁+小表） | 0198+0199 | 0198/0199 | migrate.proof 全量应用 | EXIT=0 | 执行完（drift 不对账普通索引·sql/ fixture 零触守住触面清单·出入呈报 §9-4） |
+| #137 | ⑦（函数内非并发 DETACH+SET LOCAL lock_timeout='15s'·0176 版体逐字+体内一行） | 0197+运维手册 1 .md+meta/index 登记 | 0197 | migrate.proof 全量应用 | EXIT=0 | 执行完 |
+| #141 | ⑧（db-acl 扩臂·泛化门）+0145 注释通道=0196 文件头 | db-acl.proof §4+0196 | 0196（注释载体） | §4-1/§4-2 泛化臂 | db-acl:prove EXIT=0 | 执行完 |
+| #142 | ⑥=缓行归 CI 域（ciw2 在飞·本刀零触 ci.yml） | — | — | — | — | 登记呈报（§9-4） |
+| #150 | ⑤（角色集=app_role·六函数 REVOKE PUBLIC+GRANT app_role·死件删除=翻他刀 proof 触面越界→缓删呈报） | 0196 | 0196 | migrate.proof 全量应用 | EXIT=0 | 执行完（死件缓删呈报 §9-4） |
+| #151 | ⑤（status 三值·interview 侧复合 FK；**resume 侧类型断层**：resume.id=uuid vs 0142 resume_id=text 不可 FK·缓建呈报） | 0193 | 0193 | migrate.proof 全量+db-int-fk P2-1 改形 | EXIT=0 | 执行完（resume 侧呈报 §9-4） |
+| #152 | ⑤（金额一致性=settlement_ledger≤consumption 触发器·终态冻结=宽转移严终态·双终态并存保留·触发器 INVOKER 不新增 SD 面） | 0194 | 0194 | migrate.proof 全量应用 | EXIT=0 | 执行完 |
+| #115 | 纪律半=簇C 条款收口（0190/0198 存量热表一律 CONCURRENTLY 自证）+runner 半 MIG 已闭 | — | — | — | — | 全闭 |
+| #144 | 纪律条款：本刀零 0145 型操作自证（零 DROP TABLE·零 GRANT 热修混入） | — | — | — | — | 条款收口 |
+| #136 | 登记件 | 0176:98-99 闭合证据=本表转录 | — | — | — | 登记呈报（§9-4） |
+| #140 | 登记件 | 三向闭合证据（migrate.ts:236-243 比较器/ci.yml:159-160 唯一性门/起号演进）=本表转录 | — | — | — | 登记呈报（§9-4） |
+| 簇⓪ 基建残余 | ②（multi-statement 臂=env 载体 MIGRATION_STATEMENT_TIMEOUT_MS 60s/MIGRATION_LOCK_TIMEOUT_MS 15s 与 transactional 臂同族·每语句事务内 set_config+finally 恢复·零 retry-to-green） | migrate.ts multi-statement 臂+migrate.proof 观测臂改形 | — | 改形三臂（in_tx/in_ms/afterRun 恢复） | migrate:prove EXIT=0 | 执行完 |
+
+### 3. 门全表（§2 八命令+扩充·2026-10-14 实跑）
+
+| 门 | 结论 | 关键行 |
+|---|---|---|
+| node scripts/check-migration-version-uniqueness.mjs | EXIT=0 | files=197 violations=0·豁免 0143/0152/0160 基线不变 |
+| pnpm migrate:prove | EXIT=0·**123 PASS/0 FAIL** | 基线 117→123（+5 簇A+1 观测臂改形净增·只增不减）·fresh 全量 197 链应用+幂等 skip+零数据丢失 |
+| pnpm migrate-cli:prove | EXIT=0 | 全通过（原值） |
+| pnpm drift:prove | EXIT=0 | 零漂移（豁免登记 2 项=dbhy1 残面基线不变） |
+| pnpm db:prove | EXIT=0 | dev 库重建后四原语全过（重建=簇A checksum 预期形处置·见偏离④） |
+| pnpm db-acl:prove | EXIT=0·failures=0 | 既有臂原值回归+泛化门 §4-1/§4-2 绿+**基线红六处消解**（P2-A 构造/P0-0/P7-1/P1-6/P6-1..3/P7-2..3·详偏离②） |
+| pnpm db-intfk:prove | EXIT=0 全通过 | P8 案c 四臂绿+**基线红三处消解**（P4-0/P5-2=0145/0150 修复态·P2-1=0193 增面计数）+P6 改形四臂绿 |
+| turbo typecheck --force | EXIT=0 | 3/3 0 cached；根 pnpm typecheck EXIT=0 |
+| pnpm docs:check | EXIT=0 | 80 required·scanned 2074 ≤ cap 2080（cap 上调见偏离③） |
+| markers 五类 | 零命中 | 改动 17 文件亲跑 0 matches |
+| 五包 typecheck（协调方预警项） | 3/3（包数=3） | worker/api/db/ai-runtime 无 typecheck script（AG-39 窄化已落主线 d68ffe17·并线树实测 turbo typecheck=3 task）·非本刀面·如实归因 |
+
+### 4. SSOT 呈报（不落 SSOT·处置归协调方）
+
+- **LEDGER :86 翻面出入**：#134/#135 重制面本刀落地·#115 纪律半本刀收口（翻面依据已实）；建议 LEDGER 5B 行 #134/#135/#115 注记更新为全闭 @本刀 commit。
+- **#136（登记件）**：`0176_qbank_control_plane_authz_closeout.sql:98-99` REVOKE ALL … FROM PUBLIC,app_role+GRANT qbank_control_executor·守卫 1 替换=:54-58（IF :58）——qsec 刀已闭合·issues-master :260「仍存在」建议翻面。
+- **#140（登记件）**：字节序=migrate.ts:236-243 注释块+比较器；CI=ci.yml:159-160+scripts/check-migration-version-uniqueness.mjs；起号已演进（本刀前链顶 0187）——issues-master :264 建议翻面。
+- **#3/#13 案a/案b 呈报**：案a 须 claim 谓词状态前置（过期-running 先置态=码面越界）；案b EXCLUDE 需 btree_gist+租约起点列（interview_job 仅 lease_expires_at·加列+claim 写点=码面越界）且底层索引原位非并发建（锁窗=ACCESS EXCLUSIVE 至索引建完·量级=interview_job 行数）。两案均越界未行使·案c 已落（弱修）。
+- **#151 resume 侧类型断层呈报**：resume.id=uuid vs candidate_profile_route_decision/snapshot.resume_id=text（0142 仅 length CHECK=跨型断层结构根因）——FK 不可建形·ALTER COLUMN TYPE=非 additive+应用写面触险未行使。后继处置建议=应用面 id 语义统一或列型迁移刀。
+- **#150 死件缓删呈报**：interview_derived_score 删除将翻 db-trigfam-unify.proof P1 在位断言/P3 公式臂（非本刀触面）——建议后继刀连 proof 改形一并处置。
+- **#142 呈报**：ci.yml 增 db-acl 步+「新增角色强制运行」=归 ciw2 续刀（在飞 @`2977c2a5`·裁决⑥=缓行归 CI 域行使）。
+- **#122 sql/ fixture 出入呈报**：DROP ix_user_email/ix_qfb_rating 后 sql/09_auth.sql:17、sql/16_feedback.sql:13 仍载 CREATE 形——schema-drift-check 对账范围=列+UNIQUE/PK 约束（不含普通索引·脚本零 INDEX 字样亲证）→drift 不红；fixture 索引面滞留差异=门范围外·如实登记（sql/ 不在本刀触面清单零触）。
+- **issues-master 翻面建议**：#115/#134/#135/#25/#16/#3/#13/#15/#23/#122/#150/#151/#152/#137/#141 全闭；#142 半闭（proof 半已备·CI 纳入归 ciw2）；#136/#140 登记转翻。
+
+### 5. 豁免面自证
+
+- 0148/0149 重制 diff=本刀 commit 全文（14/10 语句·头注记+DO 门+NOT VALID→VALIDATE 分语句事务）。
+- 其余历史迁移零字节：db-int-fk.proof P6-4 亲证（M/D 仅限 0148/0149·新号仅限 0190-0199·0001-0147 零出现）+db-acl.proof P6-1 改形门（diff-to-base 零 D/R·M 仅限豁免两文件）+P6-2 ledger checksum 机械证（0143 及以前逐文件 sha256==ledger）。
+- migrate.proof 漂移检测臂数据面：改历史迁移→checksum 对账红（机制零弱化在跑）。
+
+### 6. 卫生双声明
+
+- markers 五类：改动集 17 文件 rg 亲跑 0 matches（含新迁移 10+重制 2+proof 3+runner+手册+index）。
+- est live=0：migrate/drift/db/db-acl/db-intfk/migrate-cli/public-text-policy 全 prove=隔离库/fixture/dev 库机械断言·零模型外呼·零 secrets·零生产操作（dev 库重建=本地 docker compose 卷复位·releaseEvidence=false）。
+- pins 十一值零翻：haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false·r1Closed=false·actualSpendCny=null。
+
+### 7. 停止条件核查（四类逐条）
+
+- 现场漂移：**未命中**——链顶实测 0187+cost4 占 0188=按 §0.3-1 顺延规则处置（勘误注 §0.3-7 落卷）·0148/0149 未被他刀先动·migrate.ts AG-39 未触（§0.2 锚全对拍恒等）。
+- 机制不满足：**未命中**——multi-statement/逐步记账/旁表交换/concurrent-index 实测与 §0.2 锚符（干跑 14/10 pin+prove 绿）；#15/#23 前置 rg 零命中；#122 前置 rg 零命中；0148/0149 拆分可行。（resume 侧 FK 类型断层=#151 修法条款内裁决⑤引用列亲证披露·非停手级·呈报 §9-4。）
+- 越界需要：**未命中**——应用码面/SSOT/e2e runner/历史迁移豁免面外/ci.yml 全零触（#3 案a/案b·#150 死件·#151 resume 侧·#142 ci.yml 均按裁决缓行呈报未越界）。
+- 验收红不可修：**未命中**——全部门绿；db-acl/db-intfk 九处基线红均归因 0145/0150/0163 链演进（非本刀引入）且口径内改形消解（触面内文件·改形登记随注释落卷）。
+
+### 8. 裁决落值汇总（①-⑩按推荐行使）
+
+①案1+E6①（0148 首语句 DO 门·14 语句）·②multi-statement 臂 env 同族 60s/15s+#137 '15s' 字面·③kind 19 值闭合·④案c 先行·⑤#25 FK=entitlement_consumption(id)/NO ACTION+双号唯一形·#151 三值+interview 侧·#152 触发器双器+双终态冻结·#150=app_role+死件缓删·⑥缓行归 ciw2·⑦函数内非并发 DETACH+SET LOCAL·⑧db-acl 扩臂+0196 注释通道·⑨案a 非并发 DROP·⑩单刀一波（协调方派单已定）。
+
+### 9. 偏离清单（非零·逐条）
+
+1. **FILE_LIMIT cap 2064→2080**（scripts/ai-docs/public-text-policy.mjs+proof 联动数 2064→2080）：本刀 +11 受管文件触顶 2073>2064。卷宗触面清单未含此两文件·按 AG-12/COST2 先例机制（sanctioned 值 EXEC 落+偏离清单落卷）最小实现·AG-38 先例另形=红停待协调方修顶——两先例并陈·post 双审/协调方可否决回滚（回滚=docs:check 红·不涉内容策略）。
+2. **db-acl.proof 七处既有臂改形**（P0-0 构造≤0143 化/P2-A 构造修复/P7-1 窗口补齐/P1-6 0145 退役豁免-1/P6-1..3 机械门移交/P7-2..3 参数化）：九 FAIL 均归因 0145（GRANT app_role）/0150（闭集）/0163（FK）链演进主线基线红·非本刀引入；改形=触面内（db-acl.proof 为簇D 授权触面）+机制句随注释落卷+0145 退役豁免与 dbhy1 登记同源。
+3. **db-int-fk.proof 三处既有臂改形+P8 新臂**（P2-1 计数 6→10/P4-0、P5-2 雷修复态/P6 组 14 句+porcelain 白名单）：P4-0/P5-2=0145/0150 修复态主线基线红消解；P2-1=本刀 0193 增面如实计数；P6-2/3/4=0148 重制配套。
+4. **dev 库重建**（docker compose down -v/up）：0148/0149 重制 checksum 对账红=簇A 预期形·卷宗明文处置（「dev 库重建（隔离面 db:down/up）+交付报告登记」）·本地 dev 容器卷复位·releaseEvidence=false·est live=0 不变。
+5. **migrate.proof 观测臂改形**（0902 restored→in_ms 生效+pool LIFO 后置恢复观测）：席2 B1 申报面按机制句落地（协调方 P2 勘误注③）·断言 2→3 净增非洗。
+
+### 10. STOP 确认
+
+**`executed:awaiting_post_prove_dual`**——本刀 EXEC 施工+门矩阵全绿+随翻落卷毕·**⛔push**（未 push·本地 commit 待查收）·post 双审两外席待审·post PASS 后翻面权归协调方。est live=0·零模型外呼。
 
 ---
 
