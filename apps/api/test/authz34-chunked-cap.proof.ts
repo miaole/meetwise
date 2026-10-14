@@ -19,7 +19,7 @@ import { boot, mkAssert } from './_neg-harness';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-interface ChunkedResult { status: number; body: any; raw: string | null }
+interface ChunkedResult { status: number; body: Record<string, unknown> | null; raw: string | null }
 
 /**
  * chunked 注入 helper(**additive**·harness 既有 req/send/post/patch/raw 均 fetch 形恒带 content-length,零改):
@@ -38,12 +38,13 @@ function chunkedPost(base: string, path: string, body: string, opts: { chunkSize
     const settle = () => {
       if (settled) return;
       settled = true;
-      let parsed: any = null;
+      let parsed: Record<string, unknown> | null = null;
       if (raw != null && raw.length > 0) { try { parsed = JSON.parse(raw); } catch { parsed = { _raw: raw }; } }
       resolve({ status, body: parsed, raw });
     };
     const req = httpRequest({
       host: u.hostname, port: Number(u.port) || 80, path, method: 'POST',
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- HTTP 头 wire 名连字符小写为传输格式字面值,非代码标识符,不可改名(行内豁免)
       headers: { 'content-type': 'application/json', 'transfer-encoding': 'chunked', ...(opts.headers ?? {}) },
     }, (res) => {
       responded = true;
@@ -84,6 +85,7 @@ async function main() {
   // ── ① chunked 1MiB+α 至非上传路由 → 413 payload_too_large(案A)──
   {
     const big = '{"productId":"' + 'x'.repeat(1_100_000) + '"}';
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
     const r = await chunkedPost(h.base, '/commerce/orders', big, { headers: { 'x-user-id': 'userA' } });
     A('chunked/1MiB+α 非上传路由 → 413 payload_too_large(案A 阈值·同信封同错码)',
       r.status === 413 && r.body?.error === 'payload_too_large');
@@ -105,6 +107,7 @@ async function main() {
 
   // ── ⑥(负控)chunked KB 级正常体至非上传路由 → 正常受理(闸只在超阈触发)──
   {
+    // eslint-disable-next-line @typescript-eslint/naming-convention -- x-user-id 为服务端约定 wire 头名,非代码标识符,不可改名(行内豁免)
     const r = await chunkedPost(h.base, '/commerce/orders', JSON.stringify({ productId: 'pack_10' }), { headers: { 'x-user-id': 'userA' } });
     A('chunked/KB 级正常体非上传路由 → 200 正常受理(未超阈不 413)', r.status === 200);
   }

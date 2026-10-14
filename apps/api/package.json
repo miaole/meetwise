@@ -47,6 +47,7 @@
   "prove:report-retry-http": "node --import @swc-node/register/esm-register test/report-retry-http.proof.ts",
   "prove:uc014-webhook-adv": "node --import @swc-node/register/esm-register test/uc-e2e-014-026-webhook-adv.proof.ts",
   "prove:env-schema": "node --import @swc-node/register/esm-register test/env-schema.proof.ts",
+  "prove:api-harden": "node --import @swc-node/register/esm-register test/api-harden-shared-state.proof.ts",
   "prove:obs-ready": "node --import @swc-node/register/esm-register test/obs-ready.proof.ts",
     "prove:ha2-drain": "node --import @swc-node/register/esm-register test/ha-2-drain.proof.ts",
     "prove:ha3-metrics-pool-errors": "node --import @swc-node/register/esm-register test/ha3-metrics-pool-errors.proof.ts",
