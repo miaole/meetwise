@@ -64,7 +64,10 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // +sse-delta-arm/token-stitch/token-typewriter/token-delta/worker token-stream 及其 proof/invoke-model-delta
 // proof 计面 8 件·主线 2106+并集=2114 实测红停 PTP_FILE_LIMIT:2114>2112·沿 +8 先例取 2120 头空；
 // 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_120;
+// cap 2120→2128（2026-10-14 协调方预 sanction·+8 evkind-scorecard-fix 收官并线 feat/mysql-schema-skeleton
+// @5bd92ce8 新增 admin-disable-evict/ag04-consumer-fix 两受管件+余量·沿 +8 先例形；
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_128;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
