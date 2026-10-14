@@ -444,6 +444,10 @@ async function maybeDispatchMissGenerationOnCleanMiss(
 /**
  * Production retrieve: assemble validated plan from true planner + active generation/recipe,
  * then dispatchTrackLocalRetrieval. Never hard-stuffs primary leaf (P-FAKEPLAN).
+ *
+ * AG39: additive `qbankOwnerScope`（服务端派生·interview→application→recruiter 信任根链）透传
+ * dispatchTrackLocalRetrieval——owner 过滤强制在库内（0187），本层零过滤逻辑只透传注入值；
+ * 缺省臂=platform（C 端语义）。
  */
 export async function retrieveViaDispatchTrackLocal(input: {
   pool: DbPool;
@@ -452,6 +456,7 @@ export async function retrieveViaDispatchTrackLocal(input: {
   query: string;
   deficit: number[];
   deps: TrackLocalRetrieveDeps;
+  qbankOwnerScope?: { ownerKind: 'platform' | 'org'; orgId?: string };
 }): Promise<{ refs: ScoredRef[]; deficit: number[] }> {
   const started = performance.now();
   const finish = (refs: ScoredRef[], deficit: number[]) => {
@@ -539,6 +544,7 @@ export async function retrieveViaDispatchTrackLocal(input: {
     input.owner,
     assembled.plan,
     { ...input.deps, query: input.query },
+    input.qbankOwnerScope,
   );
 
   // RAG-FUNNEL-06: record durable negative on empty serve / revalidate on hits.

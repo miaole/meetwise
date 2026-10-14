@@ -29,7 +29,7 @@ export type { RouteDecision } from './router/index.ts';
 export { resolveBinding } from './catalog/index.ts';
 export type { ModelBinding } from './catalog/index.ts';
 export type { DoubleValidateResult } from './validators/index.ts';
-export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation } from './model-client.ts';
+export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation, cjkWeightedEstimate } from './model-client.ts';
 export type { ModelClient, CompletionRequest, RenderedContextBudgetPlan, RenderedContextBudgetDecision } from './model-client.ts';
 export {
   TEXT_ENDPOINT_REGISTRY_VERSION,
@@ -221,6 +221,7 @@ export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './vo
 export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
+export { buildCandidateQaRegistry, buildRecruiterQaRegistry, runQaToolLoop, QA_TOOL_LOOP_MAX_STEPS, QA_SERVICE_GROWTH_ADVISOR, QA_SERVICE_RECRUITER_FOLLOWUP, type QaToolLoopConfig, type QaToolLoopOutcome } from './qa-tool-layer.ts';
 
 export * from './g7-freetier-reprove-guard.ts';
 // GODFN-1b: the outbound interceptor moved to the test-support face; its

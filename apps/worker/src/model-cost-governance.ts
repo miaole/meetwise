@@ -118,7 +118,9 @@ function endpoint(
     maxInputTokens,
     maxOutputTokens,
     contextWindowTokens,
-    contextEstimator: required(env, `${prefix}_CONTEXT_ESTIMATOR`, /^utf8-bytes-v1$/) as 'utf8-bytes-v1',
+    // AG-12：估算器 env 门放宽为已注册枚举双值（值域与 KNOWN_ESTIMATOR_VERSIONS 对齐，禁自由
+    // 字符串）；缺省存量配置仍 utf8-bytes-v1 零漂，翻 v2 属运维显式决策。required() 缺失即启动失败原值保留。
+    contextEstimator: required(env, `${prefix}_CONTEXT_ESTIMATOR`, /^(utf8-bytes-v1|cjk-weighted-v1)$/) as ModelCostPolicy['contextEstimator'],
     contextSafetyMarginTokens,
   };
 }

@@ -234,6 +234,7 @@ async function runUnderPlan(plan: PlanName, generationId: string, embedding: num
     await c.query('BEGIN');
     await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [S1]);
     await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [T1]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     for (const g of PLAN_GUCS[plan]) await c.query(g);
     const ex = await c.query(`EXPLAIN (ANALYZE, FORMAT JSON) ${body}`);
     const explain = ex.rows[0]['QUERY PLAN'];
@@ -397,6 +398,7 @@ async function main() {
   const lexical = await asPrincipal(pool, PRINCIPAL, async (c) => {
     await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [S1]);
     await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [T1]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     return (await c.query('SELECT count(*)::int n FROM qbank_generation_lexical_search($1,$2,40)', [g2, NO_LEXICAL_QUERY])).rows[0].n as number;
   });
   receipt.fStarveRrf = { returned: fmtHits(rrf), lexicalRows: lexical };

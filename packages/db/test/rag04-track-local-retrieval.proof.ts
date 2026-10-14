@@ -342,17 +342,20 @@ async function main() {
   const bothSetRows = await asPrincipal(pool, cand, async (c) => {
     await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [NODEJS_LEAF]);
     await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [JOB_ROUTE_TAXONOMY_VERSION]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     return c.query('SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,5)', [generationId, nodejsVec]);
   });
   A('对照组：两个 GUC 都设 → 检索命中 nodejs 行（排除“查询本身失效”造成的假 0 行）',
     (bothSetRows.rowCount ?? 0) > 0 && bothSetRows.rows.every((r) => String(r.ref_id).startsWith('nodejs_')));
   const onlyScopeRows = await asPrincipal(pool, cand, async (c) => {
     await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [NODEJS_LEAF]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入(半设臂语义=taxonomy 缺→0 行·owner 维度不改变本臂判据)
     return c.query('SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,5)', [generationId, nodejsVec]);
   });
   A('仅设 app.qbank_serving_scope（不设 taxonomy）→ 0 行', onlyScopeRows.rowCount === 0);
   const onlyTaxonomyRows = await asPrincipal(pool, cand, async (c) => {
     await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [JOB_ROUTE_TAXONOMY_VERSION]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入(半设臂语义=serving 缺→0 行)
     return c.query('SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,5)', [generationId, nodejsVec]);
   });
   A('仅设 app.qbank_taxonomy_version（不设 scope）→ 0 行', onlyTaxonomyRows.rowCount === 0);
