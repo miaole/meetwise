@@ -1,6 +1,7 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import type { OfflineRemitEntryDto, OfflineRemitFailDto, RecruiterDecisionDto } from '@meetwise/contracts';
 import { DbService } from '../../platform/db.service';
+import { evictPrincipalStatus } from '../../platform/principal.guard';
 
 /**
  * B271 片1：对公转账 DB 具名拒绝 → HTTP 分码映射（AdminGuard 之外的第二层语义保真；
@@ -83,6 +84,7 @@ export class AdminService {
       'SELECT gateway_admin_recruiter_approval($1,$2) AS decided', [id, b.decision]));
     // false=目标不存在或非招聘方账户(含 candidate)→ 404(不区分两者,无存在性信号)
     if (r.rows[0]?.decided !== true) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
+    evictPrincipalStatus(id);   // 本进程守卫缓存即时清(approve/reject 双向对称·调用点在 asPrincipal COMMIT 之后=事务外);跨实例由 0189 触发器同事务 pg_notify 广播逐缓存
     return { decided: true };
   }
 
