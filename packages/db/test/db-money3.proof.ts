@@ -102,6 +102,16 @@ async function main() {
       await c.query('ALTER TABLE payment_order DROP CONSTRAINT IF EXISTS ck_payment_order_units_range');
       await c.query('ALTER TABLE settlement_ledger DROP CONSTRAINT IF EXISTS ck_settlement_units_settled_nonneg');
       await c.query('ALTER TABLE ai_graph_run DROP CONSTRAINT IF EXISTS ck_ai_graph_run_status');
+      // 0194 伴随（post 修复·偏离③）：settlement 脏注入改引真实 consumption 行——0194 金额一致性
+      // BEFORE INSERT 触发器先于 CHECK 求值，consumption 缺行即 RAISE settlement_consumption_missing
+      // （23514），gen_random_uuid() 假 id 注入在 0194 落链后必炸 P0。前置真实行取 units_settled NULL
+      // （reserved 态·触发器超额臂 v_consumed IS NULL 不触发）→ -1 脏值直达 0149 CHECK 摘除面
+      // （检测计数不变=1）。本行为合法造数前提非脏行，故置于 SAVEPOINT 前（ROLLBACK TO p0_neg
+      // 不回滚·脏行不残留语义不变）。
+      const negConsId = (await c.query<{ id: string }>(
+        `INSERT INTO entitlement_consumption(id, owner_user_id, idempotency_key, service_type, units_requested)
+         VALUES (gen_random_uuid(), $1, $2, 'dbm3-neg', 1) RETURNING id`,
+        [owner, `dbm3-neg-cons-${process.pid}`])).rows[0]!.id;
       await c.query('SAVEPOINT p0_neg');
       // 注入四类脏行各 1（检测器非恒真自证：若检测器恒过 0 则本块 FAIL 而非静默绿）。
       await c.query(
@@ -112,7 +122,7 @@ async function main() {
          VALUES ('dbm3-neg-ord-b', $1, 'pack_10', 9900, 1.005)`, [owner]);
       await c.query(
         `INSERT INTO settlement_ledger(owner_user_id, consumption_id, units_settled, service_type)
-         VALUES ($1, gen_random_uuid(), -1, 'dbm3-neg')`, [owner]);
+         VALUES ($1, $2, -1, 'dbm3-neg')`, [owner, negConsId]);
       await c.query(
         `INSERT INTO ai_graph_run(graph_name, thread_id, owner_user_id, status)
          VALUES ('dbm3-neg', $2, $1, 'runing')`, [owner, ivId]);
