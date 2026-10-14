@@ -12,6 +12,9 @@
  *    逐一过 isPrivateHost,任一私网即拒该源;生产组合根已注入 node:dns resolver。**未注入 resolve 的嵌入方仍残留
  *    DNS rebinding 窗**(allowlist 域可被解析到私网 IP 而不被本包发现);且 resolve-then-connect 仍有 TOCTOU
  *    重绑定残窗——彻底堵需"pin 该 IP 连接",属网络层加固,不在纯逻辑层,由生产出口/网络层再兜。
+ *  - 判定面残留如实声明:fec0::/10(deprecated site-local,RFC 3879 已废址,如 fec0::1)字面放行;
+ *    64:ff9b:1::/48(RFC 8215 local-use NAT64)字面放行(现行仅判 64:ff9b::/96);非规范 IPv4 字面(非点分十进制形)
+ *    不入 IPv4 分支 → 按域名 fail-open——树内入口均经 URL hostname 规范化不可达,仅本函数被导出误用时构成 Exposure。
  */
 import type { SourceDoc } from './grounded-questions.ts';
 
@@ -205,7 +208,7 @@ export function createSafeFetch(rawFetch: RawFetch, allowlist: AllowedSource[], 
       const deadline = Date.now() + timeoutMs;                               // 不是“每一跳各 8 秒”，整条 redirect chain 共用预算。
       for (let hop = 0; hop <= maxRedirects; hop++) {
         if (!isAllowed(url, allowlist)) return null;                          // 每一跳都复核(起始 URL + 每次重定向目标)
-        const remainingMs = deadline - Date.now();
+        let remainingMs = deadline - Date.now();                              // 每跳进跳取余(非每跳重置,整链共用 deadline);resolve 相位耗毕后再重算折减
         if (remainingMs <= 0) return null;
         // 解析后 IP 私网校验(resolver 注入缝):dns.lookup 无超时参,与整链剩余时长 Promise.race——到点即弃该源(fail-soft)。
         if (opts.resolve) {
@@ -217,6 +220,8 @@ export function createSafeFetch(rawFetch: RawFetch, allowlist: AllowedSource[], 
           if (raceTimer !== undefined) clearTimeout(raceTimer);
           if (ips === null) return null;                                      // 解析失败/超时 → 弃该源
           if (ips.some((ip) => isPrivateHost(ip))) return null;               // 任一解析 IP 私网 → 拒(DNS rebinding 收口)
+          remainingMs = deadline - Date.now();                                // resolve 相位耗时折减:不重算则 fetch 仍持进跳时全预算(单跳最坏 2× 预算)
+          if (remainingMs <= 0) return null;                                  // resolve 吃满余量 → 弃该源(与 race 到点同路)
         }
         const res = await rawFetch(url, { redirect: 'manual', signal: AbortSignal.timeout(remainingMs) });  // 整链硬超时:慢/死源不阻塞
         if (res.status >= 300 && res.status < 400) {                         // 重定向:取 Location,下一跳循环开头重新校验
