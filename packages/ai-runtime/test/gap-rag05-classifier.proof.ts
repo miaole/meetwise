@@ -24,11 +24,12 @@
  */
 import {
   canonicalSemanticRouteDigest, createSemanticRouteClassifier, SEMANTIC_ROUTE_PERF_BUDGET,
-  type JobRouteModelOutput, type SemanticRouteDecision, type SemanticRouteModelClassify,
+  type SemanticRouteDecision, type SemanticRouteModelClassify,
 } from '../src/router/semantic-route.ts';
 import {
   TAXONOMY_V1_LEAVES, JOB_ROUTE_TAXONOMY_VERSION, JOB_ROUTE_POLICY_VERSION,
   canonicalJobSemanticDigest, canonicalFreeTextSemanticDigest,
+  type JobRouteModelOutput,
 } from '@meetwise/domain';
 
 let failures = 0;

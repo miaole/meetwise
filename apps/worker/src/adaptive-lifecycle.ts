@@ -215,8 +215,9 @@ async function loadInterviewResumeGrounding(d: AdaptiveLifecycleDeps): Promise<I
           AND r.status='ingested'
           AND r.privacy_epoch=i.resume_privacy_epoch`, [d.interviewId, d.owner],
     );
-    const resumeId = parent.rows[0]?.resume_id;
-    if (!resumeId) return { available: false, pool: [] };
+    const parentRow = parent.rows[0];
+    const resumeId = parentRow?.resume_id;
+    if (!parentRow || !resumeId) return { available: false, pool: [] };
     d.onBeforeResumeProfileHydration?.();
     const profile = await c.query<{ structured: unknown; ocr_binding: unknown }>(
       'SELECT structured, ocr_binding FROM resume_profile WHERE resume_id=$1 AND owner_user_id=$2', [resumeId, d.owner],
@@ -224,7 +225,7 @@ async function loadInterviewResumeGrounding(d: AdaptiveLifecycleDeps): Promise<I
     const structured = profile.rows[0]?.structured as { facts?: unknown; experience?: unknown; skills?: unknown } | undefined;
     const facts = structured?.facts;
     const admitted = admitInterviewResume({
-      sourceKind: parent.rows[0].source_kind,
+      sourceKind: parentRow.source_kind,
       facts: Array.isArray(facts) ? facts : [],
       ocrBinding: profile.rows[0]?.ocr_binding ?? undefined,
     });
