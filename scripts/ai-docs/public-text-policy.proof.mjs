@@ -249,26 +249,27 @@ const checks = {
   'TC-quality-04-E11': () => {
     const fixture = createFixtureRoot();
     try {
-      // cap 数字行为断言：恰好 2080 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2080）。
+      // cap 数字行为断言：恰好 2088 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2088）。
       // AG-12 成本轨③：cap 2048→2064（任务书派单 sanctioned 值）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减·偏离清单随 REQUEST §9 落卷）。
       // ciw2 nail：cap 2064→2072（2026-10-14 协调方授权）——主线侧历史步注记。
       // AG-11 成本轨④ post 补证：cap 2072→2080（沿 +16 同步长）——本臂 fabricated 数随 cap 再联动。
+      // API-HARDEN nail：cap 2080→2088（2026-10-14 协调方 sanction·0189 迁移+proof/卷三受管件+并集增长）——本臂 fabricated 数随 cap 再联动。
       const paths = [];
-      for (let i = 0; i < 2_080; i += 1) {
+      for (let i = 0; i < 2_088; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_080);
-      // 超限错误码形状断言：第 2081 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2081`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2080.md'] });
+      assert.equal(atCap.scannedFiles, 2_088);
+      // 超限错误码形状断言：第 2089 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2089`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2088.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2081`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2089`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

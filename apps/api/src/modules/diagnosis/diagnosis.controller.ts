@@ -53,7 +53,7 @@ export class DiagnosisController {
     const initial = await this.diagnoses.events(req.principal, id, lastEventId);
     if (initial === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
     const slotKey = `sse:${req.principal}`;            // per-principal SSE 并发上限(安全审计 F5)
-    if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
+    if (!(await this.rl.acquireSlot(slotKey, 5))) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
     try {
       const isTerminal = (k: string) => k === 'diagnosis_ready' || k === 'diagnosis_unavailable' || k === 'error';   // 终态集合原值参数化,零合并
       await pumpSseEvents({
@@ -64,6 +64,6 @@ export class DiagnosisController {
         fetchMore: (lastSeq) => this.diagnoses.events(req.principal, id, String(lastSeq)),
         isTerminal,
       });
-    } finally { this.rl.releaseSlot(slotKey); }
+    } finally { await this.rl.releaseSlot(slotKey); }
   }
 }
