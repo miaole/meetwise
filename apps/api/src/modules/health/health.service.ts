@@ -50,7 +50,9 @@ export class HealthService {
         'SELECT max(version COLLATE "C") AS v FROM schema_migrations',
       );
       const ledgerMax = ledger.rows[0]?.v ?? null;             // 空账本/表缺失(COLLATE 不救 to_regclass 之外情形) → null
-      const dirMax = latestMigrationVersion(migrationsDir());  // 目录不可读 → undefined → 不等
+      const dirMax = latestMigrationVersion(migrationsDir());
+      // 目录不可读 = readdirSync 抛 → 下方 catch → migration_mismatch；undefined 仅空目录
+      // （readdirSync 成功但零 .sql）。两路均 fail-closed：不等或 undefined 即 mismatch，绝不 fail-open。
       return dirMax !== undefined && ledgerMax === dirMax ? 'ok' : 'migration_mismatch';
     } catch {
       // 账本不可读（schema_migrations 缺失=未迁移目标等）→ 无法证明一致 → fail-closed。
