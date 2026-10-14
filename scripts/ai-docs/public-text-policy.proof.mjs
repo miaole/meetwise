@@ -249,26 +249,38 @@ const checks = {
   'TC-quality-04-E11': () => {
     const fixture = createFixtureRoot();
     try {
-      // cap 数字行为断言：恰好 2080 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2080）。
+      // cap 数字行为断言：恰好 2104 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2104）。
       // AG-12 成本轨③：cap 2048→2064（任务书派单 sanctioned 值）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减·偏离清单随 REQUEST §9 落卷）。
       // ciw2 nail：cap 2064→2072（2026-10-14 协调方授权）——主线侧历史步注记。
       // AG-11 成本轨④ post 补证：cap 2072→2080（沿 +16 同步长）——本臂 fabricated 数随 cap 再联动。
+      // 5B 迁移消费刀 EXEC：cap 2064→2080（按 AG-12/COST2 先例机制·+11 受管文件触顶·偏离清单随
+      // REQUEST §9 EXEC 附记显耀登记·post 双审/协调方可否决·并线时主线侧已由 AG-11 同值至 2080·
+      // union 并集解·cap 终值 2080 维持）——本臂 fabricated 数随 cap 联动
+      // 同步（cap 数字行为断言语义不变·强度不减）。
+      // ag39q：cap 2080→2081（2026-10-14 协调方 sanction·最小步）——本臂 fabricated 数随 cap 再联动。
+      // API-HARDEN nail：cap 2080→2088（2026-10-14 协调方 sanction·0189 迁移+proof/卷三受管件+并集增长）——本臂 fabricated 数随 cap 再联动。
+      // 5B-MIG nail 续作：cap 2080→2090（2026-10-14 协调方授权·line/batch5b-mig 并主线 union 并集
+      // 必然越顶 2080·沿 ciw2 5580a059 形制·双 sanctioned 取大 union 并集解）——本臂 fabricated 数随 cap 再联动
+      // 同步（cap 数字行为断言语义不变·强度不减）。
+      // 5B-MIG nail 并线后 sanction：cap 2090→2104（2026-10-14 协调方 sanction·+14 沿 +8 系先例形·
+      // 并线树 f7fe7078 实测 2093>2090 红停·双亲增量并集+四刀并集余量）——本臂 fabricated 数随 cap 再联动
+      // 同步（cap 数字行为断言语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_080; i += 1) {
+      for (let i = 0; i < 2_104; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_080);
-      // 超限错误码形状断言：第 2081 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2081`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2080.md'] });
+      assert.equal(atCap.scannedFiles, 2_104);
+      // 超限错误码形状断言：第 2105 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2105`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2104.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2081`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2105`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

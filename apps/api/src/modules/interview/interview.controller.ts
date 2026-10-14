@@ -259,7 +259,7 @@ export class InterviewController {
     if (initial === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
     // per-principal SSE 并发上限(安全审计 F5):每条 SSE 长期占一 DB 池周期查询;不封顶 → 开几十条即打满连接池饿死鉴权。
     const slotKey = `sse:${req.principal}`;
-    if (!this.rl.acquireSlot(slotKey, 5)) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
+    if (!(await this.rl.acquireSlot(slotKey, 5))) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
     try {
       // session_concluded 是练习控制流预览，故意不在终态集合，前端须继续等 report_* / assessment_*。(终态集合原值参数化,零合并)
       const isTerminal = (k: string) => k === 'report_ready' || k === 'report_unavailable' || k === 'assessment_unavailable' || k === 'interview_unavailable' || k === 'error';
@@ -271,6 +271,6 @@ export class InterviewController {
         fetchMore: (lastSeq) => this.interviews.events(req.principal, id, String(lastSeq)),
         isTerminal,
       });
-    } finally { this.rl.releaseSlot(slotKey); }        // 释放并发槽(所有退出路径:断开/终态/超时)
+    } finally { await this.rl.releaseSlot(slotKey); }        // 释放并发槽(所有退出路径:断开/终态/超时)
   }
 }
