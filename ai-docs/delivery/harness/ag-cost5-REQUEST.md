@@ -149,7 +149,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **停止条件（四类·命中即停并回报协调方·绝不带病续刀）**：
 
-- **现场漂移**：EXEC 立项 §0 重 pin 时恰数锚实测偏离（registry 硬编码行≠7／allowed 种子总账≠8／准入三拒绝点≠3／决策码≠8／瞬时族≠6／五 proof 臂数（`rg -c "A\('"` 口径）任一≠24/14/23/15/11（model-op02 :78 预声明改写后允许 22 或 8+14 分计·其余四值不容偏差）／failoverModel 生产构造点≠1／链顶≠§0.3-1 登记值／0188 占用方≠cost④／0190-0199 占用方≠5B-MIG〔rev2 登记〕）·或 blob 漂移超出「结论不变只更行号」判读——停·重 pin 复核后请示。
+- **现场漂移**：EXEC 立项 §0 重 pin 时恰数锚实测偏离（registry 硬编码行≠7／allowed 种子总账≠8／准入三拒绝点≠3／决策码≠8／瞬时族≠6／五 proof 臂数（`rg -c "A\('"` 口径）任一≠24/14/23/15/11（model-op02 :78 预声明改写后允许 22 或 8+14 分计〔量纲括注：22=allowedSeed **种子总账** 8 legacy+14 端点分域·**臂总数恒 24 非 22**（:78 系在位改写非增删臂）·post 勘误登记〕·其余四值不容偏差）／failoverModel 生产构造点≠1／链顶≠§0.3-1 登记值／0188 占用方≠cost④／0190-0199 占用方≠5B-MIG〔rev2 登记〕）·或 blob 漂移超出「结论不变只更行号」判读——停·重 pin 复核后请示。
 - **机制不满足**：plan 携带端点身份撞 prepare 契约墙（model-client :41-43「Pure endpoint selection」形变受阻·scripted/非 operation seam 破坏）·或 0120 :29-32 CHECK 正则拒收裁决②所选身份值形·或裁决③(a) 行使时 0130/header 归一化撞 PG 函数签名/依赖墙·或 cost④ 并线后 admit 区行号漂移致 §0 重 pin 无法结论不变——停·呈报。
 - **越界需要**：修法行使中发现必须动 AG-09 digest 语义/0179 族/MODEL-OP-04 网关面/EG-B5/0120 DDL 才能达成验收——停·绝不越界顺手做·呈报裁决。
 - **验收红不可修**：§2 门矩阵既有臂基线红超出已登记项·或新增臂两轮修复不绿且根因在本刀改动面外——停·如实登记上报不洗不 retry-to-green。
@@ -175,7 +175,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 4. **席2 P1-1 op02 :78 carve-out（预申明）**：:78 臂 `A('迁移种子：8 个 admission=allowed（含 job.route-classify）+ 8 个 admission=blocked…', allowedSeed===8 && blockedSeed===8)` 亲证——0200 种子 14 行落地后 22 必红（三条款互锁=§5 Ban 新增臂外零改写+§2-3 恰数锚+件② 14 行）。沿 cost3 :121 形预声明「改写重钉仅限本面·收据登记·强度不减」落 §5；§2-3 记「24 原值+:78 预声明改写（8→22 或按身份域分计 8+14）」。
 5. **席2 P1-3 件③(b) OR 消解（协调方单选裁决：TS 常量对表）**：「数据表（或 TS 常量对表）」→ **TS 常量对表**单选（(b) 形 DB 数据表无读者=死重不采）；对表键改 `endpoint profile id × operation_id`（静态闭集·主备 binding 映射留运行时派生·env 可变装不下静态种子的矛盾消解）；§2-1 增 ⑧ 条件验收臂（裁决③(b) 行使时方验收）。
 6. **席2 P2-1 存量行处置登记（裁决④ 扩名）**：旧四字键（dashscope-main/cn-beijing 族）breaker/policy 行=**legacy 回退集容忍僵尸**（件① registry admission 字段降级 legacy 回退值）+并发 **lease 过期自愈**（0120 :120-130 租约过期自清）+**冷启动重检窗 ≤threshold**（breaker_threshold=5 上界·0120 :52-57/:59 亲证）；**部署顺序=迁移先于 TS overlay**（0200 先 apply·件① 代码后上线）。落裁决④ 附带段。
-7. **席1 勘误三处**：0130 墙二 :168-170→**:167-170**（:167 `IF invocation.cost_scope_id IS DISTINCT FROM p_cost_scope_id`／:170 `END IF` 亲证）；#11 :222→**:221**（`const primary = endpoint(...)` 亲证行）；§0.3-3 rg「零命中」→**零活引用（3 处在证）**：ai-runtime index.ts :196 删除注释／ag24 proof :132/:133/:137/:174 整删断言／errors index.ts :5 迁移注释（rg 亲证 3 文件 7 行皆删除在证非活引用）。
+7. **席1 勘误三处**：0130 墙二 :168-170→**:167-170**（:167 `IF invocation.cost_scope_id IS DISTINCT FROM p_cost_scope_id`／:170 `END IF` 亲证）；#11 :222→**:221**（`const primary = endpoint(...)` 亲证行）；§0.3-3 rg「零命中」→**零活引用（3 处在证）**：ai-runtime index.ts :196 删除注释／ag24 proof :132/:133/:137/:174 整删断言／errors index.ts :5 迁移注释（rg 亲证 3 文件 6 行皆删除在证非活引用〔7→6 计数勘正=1+1+4 逐行亲证：errors index :5 一行+ai-runtime index :196 一行+ag24 proof :132/:133/:137/:174 四行·post 勘误登记〕）。
 8. **自检**：docs:check EXIT=0（scanned 实测留回执）·markers 五类零命中（改动集 grep·词面运行时组装不落卷面）·STOP=`draft:awaiting_pre_exec_dual` 维持·⛔push·commit=rev2。
 
 ## §9 EXEC 附记（2026-10-14·EXEC 施工席·STOP=`executed:awaiting_post_prove_dual`·⛔push）
@@ -210,6 +210,10 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **恰数锚 post-change 复测**：registry 硬编码=7（零删）·allowed 总账=8 legacy+14 新=22（op02 种子臂实证）·准入三拒绝点=3·决策码=8·瞬时族=6·五 proof 臂数原值 24/14/23/15/11 全保（新增臂全数落 op02 新块与新文件·零既有臂语义改写）·failoverModel 构造点=1·链顶 0187+0200=188。**停止条件零命中**。
 
+**连接预算零影响推导（post 勘误登记）**：4×2 独立槽系 vs ha-6 连接预算（稳态账 **76**/帽 **97**·约束 `6P+4≤97`·P=`PGPOOL_MAX`=12·锚 `receipts/ha-6/resource-budget.json`+`docker/compose.ha.yml` :56）**零影响**——①并发槽全数落 `ai_model_concurrency_lease` 行（0120 :120-130）=**租约行不持连接**（acquire/release 经 `ai_model_admission_acquire_scoped` SECURITY DEFINER 函数调用连接即还·不随槽位驻留）；②模型派发为 provider HTTP 外呼=**派发不持池**（外呼窗内零 PG 连接占用）；③连接面恒由 `PGPOOL_MAX=12` 池帽静态封顶=**池帽静态**（槽系 4→4×2 扩容不触 compose/池参数一行）⇒ 连接预算账 76/97 分毫不动。
+
+**部署登记条目（post 勘误登记）**：**违序窗**（件① TS overlay 先于 0200 apply）后果=**fail-closed 全站 AI 停**——代码先行时 plan 携新端点身份（`'deepseek-cn-public'/'cn'` 族）撞种子缺行→`operation_unknown` 确定性拒绝（种子闭集 fail-closed·0120 :183 决策码原值）·MODEL-OP-02 全 text 面（七 op 主备两路）同刻被拒=issues-final :143「整站 AI 功能不可用」面（拒绝而非错路由=保守侧·零脏写）；**迁移先行纯 runbook 约束**——代码层零强制·顺序义务（0200 先 apply·件① 后上线）仅存于部署 runbook（裁决④ 附带段同源·本笔补全其后果面与约束性质登记）。
+
 **陷阱 13 条自检（本刀 ServiceImpl 等价面=ai-runtime src 四文件+registry+两 proof）**：
 1. 分区键 caller 供=禁——端点身份仅 model 层 prepare 从冻结 profile 注册表派生，spec 零新字段（③负臂直证）✓
 2. :664 resolve 原行零字节（静态门正则钉零重钉亲证）✓
@@ -225,6 +229,17 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 12. est live=0（全 proof fixture/隔离容器/scripted·零真实 provider·零 secrets）✓
 13. 零意图文件零残留（tsbuildinfo 构建产物 checkout 还原·改动集 11 文件全为本刀清单内）✓
 
-**est live=0 收据**：门 1/2/3/4/5/7=隔离 pgvector 容器+fixture（LOCAL_ISOLATED_PROOF_RECEIPT 在案 `.tmp/isolated-proof-receipts/`·release_evidence=false）·门 6/8/9/12/13=静态扫描·零模型外呼零消耗（pins 脚注 `actualSpendCny=null` 维持）。
+**est live=0 收据**：门 1/2/3/4/5=隔离 pgvector 容器+fixture（LOCAL_ISOLATED_PROOF_RECEIPT 在案 `.tmp/isolated-proof-receipts/`·release_evidence=false）·**门 7 migrate:prove=隔离容器跑·runner 既有行为不产该收据**（`run-e2e-isolated.mjs` `isolatedReceiptSources` 无 `migrate:prove` 键=零写·post 勘正措辞收窄）·门 6/8/9/12/13=静态扫描·零模型外呼零消耗（pins 脚注 `actualSpendCny=null` 维持）。
 
 **STOP=`executed:awaiting_post_prove_dual`** · ⛔push（push 归主会话批边界）· commit=fix(ai-runtime) AG-COST5 EXEC。
+
+## post 双审勘误登记（2026-10-14·post 两席 BOTH PASS·nail 前勘正席落笔·docs-only 恰 1 .md 零码动·⛔push·Status 维持 `executed:awaiting_post_prove_dual`）
+
+处置计数：**E1 一处+E3 两笔+P2 三则=六处落笔**（本登记节计一处）。逐项（每处亲证后落笔·登记归本席·翻面权仍归 nail 席）：
+
+1. **E1（席1）est-live 收据行措辞收窄**：§9 收据行原「门 1/2/3/4/5/7=…LOCAL_ISOLATED_PROOF_RECEIPT 在案」把门 7 误计入收据在案面——亲证 `scripts/run-e2e-isolated.mjs` `isolatedReceiptSources` **无 `migrate:prove` 键**（:3087 `const sources = isolatedReceiptSources[target]`·无键即零写收据）=门 7 隔离容器跑属实但 runner 既有行为不产该收据。已收窄为「门 1/2/3/4/5=收据在案·门 7 migrate:prove=隔离容器跑·runner 既有行为不产该收据」·est live=0 结论零变（收据有无≠隔离跑否·隔离容器执行事实不受影响）。
+2. **E3（席1+席2）§9 增两笔**：①「4×2 槽 vs ha-6 76/97 连接预算零影响」推导一段（租约行不持连接·派发不持池·池帽静态——ha-6 预算锚=`receipts/ha-6/resource-budget.json`+`ha-6-companion-REQUEST.md` :97 稳态账 76/约束 6P+4≤97/P=12+`docker/compose.ha.yml` :56 亲证）；②「违序窗=fail-closed 全站 AI 停·迁移先行纯 runbook 约束」部署登记条目（裁决④ 附带「部署顺序=迁移先于 TS overlay」的后果面与约束性质补全）。
+3. **P2-1（席2）§8 括注量纲**：§8 停止条件臂数括注「允许 22 或 8+14 分计」易误读为**臂数**可 22——量纲括注已补（22=allowedSeed 种子总账·臂总数恒 24 非 22）。亲证：`rg -c "A\('"` model-op02=31（单引名臂·含 :78 carve-out 在位改写+新增分域 7）+模板名臂 :273 一行（rev2 勘正同源·单引口径不计）=总臂数 32；:78 系在位改写非增删臂·「24 原值」量纲自洽。
+4. **P2-2（席2）「7 行」→「6 行」**：rev2 处置摘要第 7 条「3 文件 7 行」计数误——亲证 `rg -n "circuit-breaker|rate-limit-model" packages apps`=恰 **6** 行（errors/src/index.ts :5 一行+ai-runtime/src/index.ts :196 一行+ag24-langfuse-model.proof.ts :132/:133/:137/:174 四行=1+1+4·原列锚即六行）·已改「3 文件 6 行」。
+5. **P2-3（席2）两则登记（零码零文改·纯登记）**：①**vision+backup 谓词优先级**——model-client.ts 两谓词优先级分层亲证：端点解析三元式 **backup 先判**（`cfg.backup===true → resolveTextBackupEndpointConfig()`）·身份填充表达式 **vision 先判**（`cfg.vision===true → admissionEndpoint=undefined`）——vision+backup 同真组合解析落备 profile 而**身份不填**→落 registry 派生 dashscope-native vision 分区（与 §9 裁决落值 P2①「以 vision 分区为准=保守侧」一致零矛盾·组合生产接线不存在维持）；②**⑧对表基数等式可选**——新 proof 对表臂「基数=14 等式」（`keys.length===14`）系冗余可选：operationId 闭集=wired 七 op 全覆盖臂+profile 闭集×(profile×operation_id) 全表唯一臂两臂已唯一蕴含 14=7×2（基数臂非独立承重断言·保留属断言增强非依赖）。
+6. **门**：docs:check EXIT=0（本笔后复跑留回执）·markers 五类零命中（本笔改动集 grep·词面运行时组装不落卷面·§7 同形制）·STOP=`executed:awaiting_post_prove_dual` 维持（BOTH PASS 翻面归 nail 席）·⛔push·commit=post errata 登记。
