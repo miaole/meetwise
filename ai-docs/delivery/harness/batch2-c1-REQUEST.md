@@ -1,6 +1,6 @@
 # BATCH2-C1 REQUEST（批2 域刀 C1 · 外呼检索与 invoke 域收尾刀 · 四件修法 #80 外呼源裁决 + #119 流式读/超限 abort/解析后 IP 校验 + #173 follower 指数退避 + #171 接线三前置书面契约 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·零码动·待 pre-exec 双审两外席 **BOTH PASS** 落卷 + 协调方明示授权后方可 EXEC 立项·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工** · ⛔push）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工席四件落卷+§2 六门全绿·待 post-prove 双审两外席·**Ban self-approve** · ⛔push · 裁决①-③落值与门矩阵全表见文末 §9 EXEC 附记）。
 
 **席位**：批2 域刀 C1 REQUEST 起草席（批2 H7 挂账四件收刀·协调方派单）。
 **基线**：`feat/mysql-schema-skeleton` @ `f0147886`（起草时主线 tip·`git log -1` 实测 2026-10-13·AG-COST3 成本轨③ nail 收官随翻三件 docs commit）·分支 `line/batch2-c1`·工作树 `meetwise-b2c1`（`git worktree add ../meetwise-b2c1 -b line/batch2-c1 f0147886` 本起草席已立·建前 `worktree list` 无同名树·`git branch` 无同名分支双查实测）。origin fetch 当时 SSL 失败（离线窗）·本地 `feat/mysql-schema-skeleton` 与 `origin/feat/mysql-schema-skeleton` 同步且 `origin/main` 为其祖先（merge-base 亲证）——EXEC 立项照 §0 协议对届时 tip 重 pin。
@@ -153,3 +153,37 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **席1 P2 同步（2 项·并入上行落点）**：①触面枚举形（见 R2-F1 行）；②§2-2③ 补「本臂 fake 携 `body` 流非 text()-only 形」半句——排除与⑥ fail-closed 形混淆（否则③ null 归因两可）。
 - **现状固化（rev3 席 node 复测实录）**：现行 `isPrivateHost`（web-explore.ts :43-48 字面前缀形）对 `febf::1`/`0:0:0:0:0:ffff:a9fe:a9fe`/`0::ffff:a9fe:a9fe`/`64:ff9b::a9fe:a9fe` 四形全放行·既有臂 `fe80::1`/`::ffff:a9fe:a9fe` 仍拒=三盲区+压缩形在证·既有臂零劣化。
 - **自检（rev3 席亲跑）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（scanned 2050 ≤ cap 2064）·markers 五类对本卷净增行零命中（grep EXIT=1·命令沿 ag-a-resume receipts/05-markers 形）·STOP 维持 `draft:awaiting_pre_exec_dual` · commit=`docs(b2c1): BATCH2-C1 REQUEST rev3——四条机械修补（:100 触面/机制钉死/NAT64/②bis·⛔push）`。
+
+---
+
+## §9 EXEC 附记（2026-10-14 · EXEC 施工席落卷·Status→`executed:awaiting_post_prove_dual`·⛔push）
+
+**并线**：`git fetch` EXIT=0 → `git merge --no-ff feat/mysql-schema-skeleton`（tip=`12ecb34b` CIW2 nail 随翻）零冲突 EXIT=0，merge commit=`f7486f96`（双亲 b83f2bfc+12ecb34b）。
+
+**§0 重 pin（@`f7486f96` git ls-tree 亲证）**：六触面 blob 恒等零漂——main.ts `950417b5`（841 行）/web-explore.ts `82d978da`/web-explore.proof.ts `38d29dfd`/invoke.ts `030d273b`/claim-join-orphan.proof.ts `9edc2dfc`/semantic-route.ts `fb11ee46`——机制结论零漂·STOP(a) 未触发。环境锚三值漂移（照 §0.2-5 协议如实更锚·只更行号）：①root `package.json` `9e16ab22`→`2f8af282`·`web-explore:prove` :521→**:528**；②`ai-runtime/src/index.ts` `e6ecc64e`→`e37499b7`（并线 +1 行）·AG-24 删除面自证 :196 行锚实测未移；③migrations 184→**187**（0185/0186/0187 并线落号·§0.2-5 预报值精确合·下一新链位 0188+ 归协调方·**本刀零迁移结论不变**）。`ci.yml` node-version: 22 :39 恒在·docs cap=2072（public-text-policy.mjs :43 ciw2 授权上调）。
+
+**裁决落值（三项全按推荐）**：**①=案A 默认关**——`DEFAULT_WEB_ALLOWLIST: AllowedSource[] = []`（类型保留·`src()` 因 env 覆盖路径 :102 仍活·零死码），五注释触面随翻=头注（默认空=CRAG 外呼默认关闭·env 显式 opt-in 才启用）+env 注释+:100 行尾注（`// 未设 → 默认空=外呼关闭`）+组合根注+seam 注，**:99-103 语句零动·:629 `length > 0` 门零字节自适配**（空集→deepResearch 关·webExplore 空跑·落本地题库既有降级面）。案B 不行使（零新增未验证 egress）。**②=案A 指数退避·推荐参数**——`CLAIM_POLL_BACKOFF_INITIAL_MS=20 / _FACTOR=2 / _CAP_MS=1000`（invoke.ts 模块常量导出供 proof 静态断言），首拍 20ms 与旧形等延迟；**:489-494 冻结注随改**（「sleep(20)」字样撤·承替登记显式载 #173 行为授权·claim 判定序零变声明在注）+**:710 头注随改**（follower 指数退避真轮询）。案B LISTEN/NOTIFY 不行使。演算：join 尾延迟 ≤ cap 1000ms·deadline 过冲 ≤ 1000ms/35s（≈2.9%）。**③=案A 头注扩写**——semantic-route.ts 头注 Stage-S 段后 pins 前增「生产未接线（Wiring preconditions · #171）」段·五要素全落（(i) 生产调用点=0 明示句/(ii) invoke() 关口前置（durable claim+幂等+计费账本+MODEL-OP-02 单一权威·costHardCapCny=Stage-S 实验预算面）/(iii) withTimeout reject-only→接线前改真 abort/(iv) ledger 只增面改持久化/有界/(v) Stage L 授权链不变+pins 否定式维持不翻）；锚以符号名载（withTimeout/ledger/attempts/costHardCapCny——行号随插行漂移故不嵌数字）·**码面零字节改**（diff 全为 ` * ` 注释行）。
+
+**改动文件清单（8 文件·预期 7±2 内）**：`apps/worker/src/main.ts` 841→837 行（#80 五触面+#119 resolve 接线·`node:dns/promises` import + `lookupAll`）；`packages/domain/src/web-explore.ts` 245→320 行（#119 三段：RawResponse `body?` 扩面/SafeFetchOpts `resolve?` 缝/isPrivateHost 全展开规范化收刀（新私有 `ipv6Hextets`）+createSafeFetch 流式读/超限 abort/resolve race 相位/头注随翻）；`packages/ai-runtime/src/invoke.ts` 1119→1136 行（#173 三处）；`packages/ai-runtime/src/router/semantic-route.ts` 260→270 行（#171 头注·码面零改）；`packages/domain/test/web-explore.proof.ts` 111→120 行（resp 助手同刀扩齐字节流面·**33 臂零增减语义零变**）；`packages/domain/test/b2c1-web-egress.proof.ts` **新件 93 行 16 臂**；`packages/ai-runtime/test/claim-join-orphan.proof.ts` 191→239 行（5→**7 断言臂**：+#173-backoff-constants 静态臂+#173-backoff-pacing 动态臂）；`packages/domain/package.json` +1（`prove:b2c1-web-egress` 脚本登记）。
+
+**门矩阵全表（六门+收据复核·2026-10-14 亲跑）**：
+| 门 | 命令 | 结论 |
+|---|---|---|
+| ① 33 臂回归 | `pnpm web-explore:prove` | **绿 EXIT=0**·`A(` 亲数 33 恒等·全 PASS（200 去标签/逐跳/重定向环/总超时/fail-soft/非 2xx 全绿=接口扩面非回归破坏） |
+| ② 新 proof | `pnpm -C packages/domain prove:b2c1-web-egress` | **绿 EXIT=0·16 臂全 PASS**（①流式超限 null+cancel 探针/②未超限跨 chunk 多字节零碎裂/②bis 字节计直证/③a-f 解析后 IP 六形拒（10.0.0.5/169.254.169.254/febf::1/全展开 mapped/压缩形/NAT64）/④公网不误杀/⑤resolve 抛错/⑥text()-only fail-closed/⑦第二跳每跳重校验/⑧旧自白句族 rg 缺席匹配/⑨⑩isPrivateHost 收刀直证+零劣化）——≥9 达标 |
+| ③ invoke prove 扩臂 | `pnpm runtime:isolated:prove`（隔离 PG·=`pnpm -C packages/ai-runtime prove` 四连链原样） | **绿 EXIT=0**·claim-join 5 基线臂零变绿+**#173 双臂 PASS**（静态常量 20/2/1000+动态：leader 压 300ms 窗内 claim 事务 ≤9 恒定形 ≥16 且 calls=1 同值）+runtime-kernel 三门（毫秒时限拒/wait 无效拒/E2 并发）零红·全链 83 PASS 零 FAIL |
+| ④ typecheck | `pnpm exec turbo typecheck --force` + 根 `pnpm typecheck` | **绿**：8/8 successful 0 cached EXIT=0；根 EXIT=0 |
+| ⑤ 账本纪律 | `git diff` 断言 | **绿**：migrations/** 零增零改（diff 空）·`ai-runtime/src/index.ts`/`rate-limit.service.ts`/LEDGER 零触（diff name-only 缺席）·semantic-route.ts diff 全注释行=码面零字节 |
+| ⑥ docs 门 | `node scripts/ai-docs/check-docs.mjs` | **绿 EXIT=0**：80 required verified·scanned **2068** ≤ cap **2072**（ciw2 后 cap 值） |
+| markers 五类 | 净增行+全文件 grep（ag-a-resume receipts/05-markers 形） | **零新增**：冲突 0/fake-green 全文件 1 处=main.ts:714 前在行（6cd621cc·本刀净增行 0 命中）/弱化 0/遗留标 0/secrets 0 |
+| 收据复核 §3-9 | `pnpm adaptive-consumer:prove` | **红（基线红·归因非本刀）**：33 PASS/2 FAIL EXIT=1——**stash 本刀全改动后对干净并线树 `f7486f96` 复跑同门同红（33/2·EXIT=1）**=并线携入主线基线红（merge 携入 interview-consumer.ts/adaptive-lifecycle.ts 主线改动·proof 文件本身零漂）·非 §2 六门·修复越 §3-9 边界（触主线 worker 行为面）→如实登记归协调方·禁 retry-to-green 已守 |
+
+**EXEC 中两红消解记录（均在口径内·非 retry-to-green）**：①新 proof ②臂首跑红=期望串未计现状「去标签以空格替换」语义（标签→空格·非删除）·按现状语义修正期望串（' 请描述令牌桶限流的实现原理？ '）——语义与 :50-52 既有臂口径恒一；②①臂 cancel 探针首跑红=proof 侧 fake 流切块过疏致 abort 时刻源已 pull 耗尽 close（Web Streams spec：对已 close 流 cancel 不再回调底层 cancel）·生产码面无病（拒源 null 无条件成立·真 undici 中景流 cancel 必达）·fake 切块加密至 512B 使 abort 先于源耗尽·cancel 传播确定性直证。门4 typecheck 首跑红=新 proof 同步假 fetch 返回 `RawResponse` 非 `Promise<RawResponse>`·全量改 async 形（proof 侧·零生产面）。
+
+**陷阱自检 13 条（本刀改动集适配表·全过）**：①域包纯逻辑零 IO——`node:dns` 只入 main.ts·resolve 为注入缝（diff 面亲证）；②fail-closed 取向三处（无 body→null/resolve 失败→null/race 到点→null）不吞错不半状态；③超限=abort 拒源非截断续用（`.slice` 移除·null 直返·Ban 截断续用守恒）；④默认关双口径清除——五注释触面+:100 行尾注随翻·⑧静态臂 rg 缺席匹配在证；⑤门形零字节——:629 `length > 0` 未触·自适配生效；⑥join 三不变式零动——claim 判定序/deadline :732/leaseSeconds :718 零字节·claim-join 全臂绿；⑦冻结注承替显式——:489-494 载 #173 行为授权·非静默偷改；⑧AG-24 已删面零复活——index.ts 零触·无进程内限流/熔断面新建；⑨迁移零面——migrations diff 空·0188+ 链位未占；⑩pins 零翻——semantic-route pins :30-33（现 :40-43）否定式零字节·十一值照抄；⑪断言力形——⑧缺席匹配/②bis 字节计必漏形直证·NAT64 收刀配对断言③f 在位；⑫proof fake 保真——fake body 流与 undici `Response.body` 同形·cancel 探针 determinism 剪裁已注明；⑬非目标面零触——deepExplore/webExplore 预算形/adaptive-consumer 缝/e2e/API/前端零字节（git status 8 文件恒一）。
+
+**est live=0 收据**：web-explore:b2c1-egress=纯注入（fake byteStream/fake resolve·零 DNS 查询零真网）·invoke 链=隔离 PG 容器（run-e2e-isolated·DATABASE_URL 由 runner 供）+确定性 stub·零 provider 外呼；typecheck/lint/docs:check 本地门——零生产操作·零 secrets·零消耗。pins 脚注 `actualSpendCny=null` 守恒。
+
+**偏离任务书清单（两项·均机械性登记）**：①`packages/domain/package.json` +1 prove 脚本——§2-② 新 proof 门的可执行登记（树内全 proof 均有 script 的既定形制·门矩阵无此命令不可跑）；②main.ts :548 SSRF 门注释句「每跳 allowlist/私网复核」→「每跳 allowlist/私网/解析后 IP 复核」——#119 接线点的同句随翻（防注释与实现双口径·§1-修法②(c) 同旨）。交付报告载体：协调方 EXEC 令指定最终消息回报+本 §9 附记·`ai-docs/delivery/receipts/b2c1/` 目录未另立（沿协调方令五项回报形）。
+
+**STOP**：`executed:awaiting_post_prove_dual`（EXEC 落卷即停·⛔push 维持·待 post-prove 双审两外席·Ban self-approve·alone≠dual）。commit=`fix(worker): BATCH2-C1 EXEC——…`（见该 commit 全文）。

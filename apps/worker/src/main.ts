@@ -10,6 +10,7 @@
  */
 import { hostname } from 'node:os';
 import { createServer, type Server } from 'node:http';
+import { lookup as dnsLookup } from 'node:dns/promises';
 import { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { webExplore, deepExplore, createSafeFetch, degradedRetrieval, type AllowedSource, type RawFetch } from '@meetwise/domain';
 import {
@@ -79,25 +80,18 @@ if (g7FreetierReproveEnabled) {
 }
 
 /**
- * web 探索默认许可源:**权威公开技术源**(尊重 ToS、内容稳定可引)。构造 URL 走各站公开检索端点。
- * 默认非空 = CRAG fallback 真外呼已启用(SSRF 门在 createSafeFetch/isAllowed 里承重)。
+ * web 探索默认许可源:**默认空 = CRAG fallback 真外呼默认关闭**(成本/可用性默认可算,检索 miss 落本地题库,零新增未经验证 egress)。
+ * env WEB_ALLOWLIST 显式 opt-in(逗号分隔域)后真外呼才启用;SSRF 门在 createSafeFetch/isAllowed 里承重。
  */
 function src(domain: string, searchUrl: (q: string) => string): AllowedSource { return { domain, searchUrl }; }
-const DEFAULT_WEB_ALLOWLIST: AllowedSource[] = [
-  src('postgresql.org', (q) => `https://www.postgresql.org/search/?u=%2Fdocs%2F&q=${encodeURIComponent(q)}`),
-  src('kubernetes.io', (q) => `https://kubernetes.io/search/?q=${encodeURIComponent(q)}`),
-  src('redis.io', (q) => `https://redis.io/docs/latest/?q=${encodeURIComponent(q)}`),
-  src('developer.mozilla.org', (q) => `https://developer.mozilla.org/en-US/search?q=${encodeURIComponent(q)}`),
-  src('nginx.org', (q) => `https://nginx.org/en/docs/?q=${encodeURIComponent(q)}`),
-  src('en.wikipedia.org', (q) => `https://en.wikipedia.org/w/index.php?search=${encodeURIComponent(q)}`),
-];
+const DEFAULT_WEB_ALLOWLIST: AllowedSource[] = [];
 
 /**
- * env WEB_ALLOWLIST 覆盖(逗号分隔域名)。未设 → 用默认权威源;显式设空串 → [](关闭外呼,只用本地题库)。
+ * env WEB_ALLOWLIST 覆盖(逗号分隔域名)。未设 → 默认空=外呼关闭;显式设值 → opt-in 域集(真外呼启用);显式设空串 → [](关闭外呼,只用本地题库)。
  * env 覆盖的域用通用 `?q=` 检索端点占位(运营配了就自负其责);SSRF 门仍在 isAllowed/createSafeFetch 兜底。
  */
 function resolveWebAllowlist(raw: string | undefined): AllowedSource[] {
-  if (raw === undefined) return DEFAULT_WEB_ALLOWLIST;                 // 未设 → 默认权威源
+  if (raw === undefined) return DEFAULT_WEB_ALLOWLIST;                 // 未设 → 默认空=外呼关闭
   const domains = raw.split(',').map((s) => s.trim().toLowerCase()).filter(Boolean);
   return domains.map((domain) => src(domain, (q) => `https://${domain}/?q=${encodeURIComponent(q)}`));   // 设了(含空=[]) → 覆盖
 }
@@ -541,12 +535,14 @@ async function bootstrap() {
   // generation exists or a boot-time build is unavailable.
   const qbankReadModel = { ready: false };
   const retrievalMode = qbankRetrievalMode();
-  // web 探索许可源:默认权威公开技术源(启用 CRAG 外呼);env WEB_ALLOWLIST 覆盖,显式空串=关闭。
+  // web 探索许可源:默认空(CRAG 外呼默认关闭);env WEB_ALLOWLIST 显式 opt-in 才启用真外呼。
   // 之前漏声明 → 真跑 web-explore 路径时 ReferenceError 崩(E2E 实测抓到;假 gate 不跑此路径所以漏)。
   const WEB_ALLOWLIST: AllowedSource[] = resolveWebAllowlist(process.env.WEB_ALLOWLIST);
-  // SSRF 门:真 fetch 包成 safeFetch——手动逐跳重定向 + 每跳 allowlist/私网复核 + 8s 硬超时 + fail-soft。
+  // 解析后 IP 私网校验的 DNS resolver(node:dns 只在 worker 组合根引入,域包保持纯逻辑零 IO)。
+  const lookupAll = async (h: string): Promise<string[]> => (await dnsLookup(h, { all: true })).map((r) => r.address);
+  // SSRF 门:真 fetch 包成 safeFetch——手动逐跳重定向 + 每跳 allowlist/私网/解析后 IP 复核 + 8s 硬超时 + fail-soft。
   const rawFetch: RawFetch = (u, init) => fetch(u, init);
-  const safeFetch = createSafeFetch(rawFetch, WEB_ALLOWLIST, { timeoutMs: 8000 });
+  const safeFetch = createSafeFetch(rawFetch, WEB_ALLOWLIST, { timeoutMs: 8000, resolve: lookupAll });
   assertLegacyInterviewGraphDisabled(process.env);
   const adaptive = {
     // R4 REAL-WIRE-IMPL: production retrieve prefers trackLocal → dispatchTrackLocalRetrieval
@@ -624,7 +620,7 @@ async function bootstrap() {
       }                                                                // 降级:无检索 → CRAG 走能力出题
     },
     // 单源 explorer 只作兼容 seam；运行中的低置信 CRAG 注入下方 deepResearch（最多 3 个
-    // allowlist 源、每源 4k/总 12k 字符，safeFetch 已承重 SSRF/跳转/超时）。显式空串=只用本地。
+    // allowlist 源、每源 4k/总 12k 字符，safeFetch 已承重 SSRF/跳转/超时）。默认空=外呼关闭,只用本地;env opt-in 后真外呼启用。
     webExplore: (q: string) => webExplore(q, WEB_ALLOWLIST, safeFetch),
     deepResearch: WEB_ALLOWLIST.length > 0
       ? async (q: string) => (await deepExplore(q, WEB_ALLOWLIST, safeFetch, {

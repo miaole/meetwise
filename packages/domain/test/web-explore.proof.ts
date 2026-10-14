@@ -41,8 +41,17 @@ const docs2 = await webExplore('x', allow, async () => { throw new Error('网络
 A('抓取失败 → 跳过不拖垮(降级)', docs2.length === 0);
 
 // ── createSafeFetch:手动逐跳重定向 + 每跳复核 + fail-soft ──
+// #119 扩面:RawResponse 增可选字节流面,生产真 Response 恒有 body——fake 助手同刀扩齐(默认单 chunk),
+// 既有臂经流式读路径语义零变;createSafeFetch 对无 body 的 text()-only 形 fail-closed 拒(b2c1-web-egress ⑥ 直证)。
+const byteStream = (bytes: Uint8Array): ReadableStream<Uint8Array> => {
+  let sent = false;
+  return new ReadableStream<Uint8Array>({
+    pull(c) { if (sent || bytes.length === 0) { c.close(); return; } c.enqueue(bytes); sent = true; },
+  });
+};
 const resp = (status: number, opts: { location?: string; body?: string } = {}): RawResponse => ({
   status, headers: { get: (n: string) => (n.toLowerCase() === 'location' ? opts.location ?? null : null) }, text: async () => opts.body ?? '',
+  body: byteStream(new TextEncoder().encode(opts.body ?? '')),
 });
 const rec = (fn: (url: string) => RawResponse) => { const seen: string[] = []; return { seen, raw: async (u: string) => { seen.push(u); return fn(u); } }; };
 
