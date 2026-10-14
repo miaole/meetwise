@@ -1,0 +1,17 @@
+
+> meetwise@0.1.0 drift:prove /Users/miaole/Desktop/golucky/meetwise-spn
+> node scripts/schema-drift-check.mjs
+
+PASS  sql/ 的列迁移路径全覆盖(fresh deploy 不缺·退役残面经登记豁免)
+  列缺口 5 项(豁免登记 5·未登记 0):
+     - consumption_record.status(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+     - consumption_record.owner_user_id(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+     - consumption_record.idempotency_key(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+     - consumption_record.id(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+     - consumption_record.interview_id(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+PASS  sql/ 的UNIQUE/PK 约束迁移路径全覆盖(fresh deploy 不缺·退役残面经登记豁免)
+  UNIQUE/PK 约束缺口 2 项(豁免登记 2·未登记 0):
+     - consumption_record UNIQUE (id)(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+     - consumption_record UNIQUE (idempotency_key,owner_user_id)(豁免·0145 dbhy1 DROP 死表·sql/ 夹具仍载历史镜像（dbhy1 P1-2/P4⑤ 登记同源）)
+
+✓ schema 无漂移:迁移路径覆盖 sql/ 真相(退役残面经登记豁免·fresh deploy 安全)
