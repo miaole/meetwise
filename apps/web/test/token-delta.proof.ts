@@ -17,7 +17,7 @@
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
-import { applyEvents, applyEvent, initialView, isTerminal } from '../lib/stream/interview-state.ts';
+import { applyEvent, initialView } from '../lib/stream/interview-state.ts';
 import type { InterviewView } from '../lib/stream/interview-state.ts';
 import { lastEventIdHeaderValue } from '../lib/stream/sse-cursor.ts';
 import { makeFrameCoalescer } from '../lib/stream/frame-coalescer.ts';
