@@ -4,7 +4,7 @@
  * 三事务式:claim 提交 → 生命周期(模型在各自短事务,经 invoke) → markDone。同面试保序、租约崩溃可重领。
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
-import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
+import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
@@ -392,6 +392,11 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         const routeSnapForRetrieve = await asPrincipal(d.pool, owner, (c) =>
           getInterviewRouteSnapshotForAdaptiveRole(c, owner, job.interviewId));
         const retrieveDecision = decideRouteSnapshotRetrieve(routeSnapForRetrieve);
+        // AG39(裁决⑦值源): owner 作用域服务端派生——绑定面试(application_id 非空)→org(recruiter_user_id
+        // 信任根·job_application 0005);无绑定(C 端练习·application_id NULL)→显式 platform 禁 RAISE。
+        // owner 过滤强制在库内(0187 SECURITY DEFINER 谓词),worker 侧只注入 GUC 参数不承担隔离。
+        const qbankOwnerScope = await asPrincipal(d.pool, owner, (c) =>
+          deriveQbankOwnerScope(c, owner, job.interviewId));
         // QBANK-PLANNER-HONESTY #201:planner 输出相关性闸叶子源(路由快照 primary leaf·与下方角色门
         // roleFromRouteSnapshot 同源同形读)。缺行/缺叶 → undefined=闸不适用(叶子源缺失零误杀,如实登记)。
         const routeLeafTrackId = routeSnapForRetrieve?.allocations?.[0]?.leafTrackId;
@@ -415,6 +420,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
               query: q,
               deficit: trackLocalDeficitRef.current ?? routeSnapForRetrieve?.allocations?.map(() => 0) ?? [],
               deps: adaptive.trackLocal(owner),
+              qbankOwnerScope,
             }).then((out) => {
               trackLocalDeficitRef.current = out.deficit;
               return out.refs;
@@ -427,7 +433,8 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
             return Promise.resolve([degradedRetrieval('track_local_required')]);
           }
           // Test/compat seam only — production main injects trackLocal.
-          return adaptive.localRetrieve(owner, q, retrieveDecision.scope);
+          // AG39: owner 作用域并入 scope（platform 缺省臂语义零变;org 臂=企业私有优先+platform 补足,库内强制）。
+          return adaptive.localRetrieve(owner, q, { ...retrieveDecision.scope, ...qbankOwnerScope });
         };
         // 每次 claim 都新建固定 skill 目录，因此预算不跨 owner/interview/job 共享；模型没有
         // 可控的“工具名→执行器”旁路。一个 job 只推进一个 pending question，RAG/深检索各至多一次。

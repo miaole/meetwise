@@ -107,7 +107,7 @@ export interface PrivacyPreviewReceiptView {
   sinks: PrivacyPreviewSinkLine[];
 }
 
-const fail = (code: string): never => {
+const fail: (code: string) => never = (code) => {
   throw Object.assign(new Error(code), { code });
 };
 
