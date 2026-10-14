@@ -153,7 +153,7 @@ A('C4 SOLE allowlist not expanded for covered knife', (() => {
   const runner = read(join(repoRoot, 'scripts/run-e2e-isolated.mjs'));
   const m = runner.match(/const SOLE_WIRING_ALLOWLIST = new Set\(\[([\s\S]*?)\]\)/);
   if (!m) return false;
-  return !m[1].includes('nhp-r4-adv-covered');
+  return !m[1]!.includes('nhp-r4-adv-covered');
 })());
 
 section('C2/C3 unit ADV 旁证 (honesty surfaces; ≠ covered alone)');

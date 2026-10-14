@@ -3,11 +3,11 @@ import { hashPassword, verifyPassword, signToken, verifyToken } from '../src/ind
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const SECRET = 's3cr3t-hmac-key', NOW = 1_000_000;
 
-A('正确密码验证通过', verifyPassword('hunter2', hashPassword('hunter2')));
-A('错误密码拒绝', !verifyPassword('wrong', hashPassword('hunter2')));
-A('同密码两次哈希不同(随机盐)', hashPassword('x') !== hashPassword('x'));
-A('哈希不含明文密码', !hashPassword('mySecretPw').includes('mySecretPw'));
-A('畸形 stored 拒绝', !verifyPassword('x', 'garbage'));
+A('正确密码验证通过', await verifyPassword('hunter2', await hashPassword('hunter2')));
+A('错误密码拒绝', !(await verifyPassword('wrong', await hashPassword('hunter2'))));
+A('同密码两次哈希不同(随机盐)', await hashPassword('x') !== await hashPassword('x'));
+A('哈希不含明文密码', !(await hashPassword('mySecretPw')).includes('mySecretPw'));
+A('畸形 stored 拒绝', !(await verifyPassword('x', 'garbage')));
 
 const tok = signToken('userA', SECRET, 3600, NOW);
 A('令牌校验还原 uid', verifyToken(tok, SECRET, NOW) === 'userA');

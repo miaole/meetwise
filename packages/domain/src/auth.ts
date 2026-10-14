@@ -2,13 +2,22 @@
  * 认证核心（纯密码学,无 IO）：密码 scrypt KDF 哈希 + HMAC 签名会话令牌。替掉 x-user-id 骨架。
  * 铁律:密码绝不明文存/日志;只存 scrypt 派生;令牌 HMAC 签名防篡改 + 带过期。nowSec 注入便于 gate 确定性。
  * AUTHZ-HARDEN 5A-1(AUTHZ-HARDEN REQUEST rev2 簇①②③):邮箱归一单一 helper + kid/jti 会话令牌 + 恒时序登录 verify。
+ * #34 残半:scrypt KDF 由同步形改 promisify 异步形——KDF 移入 libuv 线程池(UV_THREADPOOL_SIZE 默认 4),
+ * 事件循环零阻塞;**参数三参形零改**(默认 N=16384/r=8/p=1 与同步形共享)→ 派生输出逐字节等价 →
+ * 存量 password_hash 零重哈希(零迁移根基)。非 worker_threads(node:crypto 异步形原生线程池)。
  */
-import { scryptSync, randomBytes, createHmac, createHash, timingSafeEqual } from 'node:crypto';
+import { scrypt as scryptCallback, randomBytes, createHmac, createHash, timingSafeEqual } from 'node:crypto';
+import { promisify } from 'node:util';
 
-/** 密码 → `scrypt$salt$dk`(随机盐,同密码两次哈希不同)。绝不存明文。 */
-export function hashPassword(password: string): string {
+// promisify 后显式钉签名形:三参调用(无 options 重载),派生恒为 Buffer——与旧同步调用形逐参一致。
+const scrypt = promisify(scryptCallback) as (
+  password: string | Buffer, salt: string | Buffer, keylen: number,
+) => Promise<Buffer>;
+
+/** 密码 → `scrypt$salt$dk`(随机盐,同密码两次哈希不同)。绝不存明文。KDF 异步形(libuv 线程池),三参形零改=输出与旧同步形逐字节等价。 */
+export async function hashPassword(password: string): Promise<string> {
   const salt = randomBytes(16);
-  const dk = scryptSync(password, salt, 32);
+  const dk = await scrypt(password, salt, 32);
   return `scrypt$${salt.toString('hex')}$${dk.toString('hex')}`;
 }
 
@@ -19,8 +28,9 @@ export const LOGIN_DUMMY_HASH = `scrypt$${'0'.repeat(32)}$${'0'.repeat(64)}`;
  * AUTHZ-HARDEN 5A-1 #33 恒时序登录 verify:stored 缺失(账户不存在)时对同一内存假哈希跑同一 verify——
  * **verify 恰调用一次,与账户存在性/状态无关**(调用计数相等,时序面以计数证非墙钟;状态判定由调用方移到本函数之后)。
  * verify 参数可注入(计数证断言用),默认=verifyPassword 真实 scrypt 同参路径。
+ * #34:async 形——注入 verify 签名换 `(password, stored) => Promise<boolean>`;「verify 恰调用一次」语义零变。
  */
-export function verifyLogin(stored: string | null | undefined, password: string, verify: (password: string, stored: string) => boolean = verifyPassword): boolean {
+export async function verifyLogin(stored: string | null | undefined, password: string, verify: (password: string, stored: string) => Promise<boolean> = verifyPassword): Promise<boolean> {
   return verify(password, stored ?? LOGIN_DUMMY_HASH);
 }
 
@@ -29,11 +39,11 @@ export function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-/** 常量时间比对验证密码,防时序侧信道。 */
-export function verifyPassword(password: string, stored: string): boolean {
+/** 常量时间比对验证密码,防时序侧信道。#34:KDF await 化(异步形);**timingSafeEqual 比对保持同步恒时序**——异步化只移 KDF,不移比对。 */
+export async function verifyPassword(password: string, stored: string): Promise<boolean> {
   const [alg, saltHex, dkHex] = stored.split('$');
   if (alg !== 'scrypt' || !saltHex || !dkHex) return false;
-  const dk = scryptSync(password, Buffer.from(saltHex, 'hex'), 32);
+  const dk = await scrypt(password, Buffer.from(saltHex, 'hex'), 32);
   const expected = Buffer.from(dkHex, 'hex');
   return dk.length === expected.length && timingSafeEqual(dk, expected);
 }

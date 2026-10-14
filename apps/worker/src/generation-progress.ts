@@ -82,7 +82,8 @@ async function writeEventRow(
 }
 
 /**
- * 阶段2 观察 seam（阶段1 仅 fake seam/produce 调用；生产非流式下无人调用=恒静默）。
+ * 未接线观察 seam（unwired：生产调用方零命中——阶段1 仅 fake seam/prove 自调；生产非流式下恒静默，
+ * 真流式链接线归后继刀）。
  * 首 token 时刻自 dispatch 起算由调用方提供；event_key 幂等 → 同 attemptKey 至多 1 行。
  */
 export async function noteModelFirstToken(
