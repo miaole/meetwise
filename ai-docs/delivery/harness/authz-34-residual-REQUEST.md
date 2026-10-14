@@ -170,8 +170,8 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **§9.2 normalize 随链随翻登记（独立随翻义务 · 沿链深 pin 随翻先例·非越界）**：
 
-- **归因**：`authz5a:normalize:prove` 基线红 `migration_ledger_not_contiguous_prefix`——上席 stash 干跑同红=非本刀施工引入。根因=该 proof 阶段 A staging 只剔除 0167/0168/0169 三前缀，而主线迁移链已 183→185（0170-0185 在树）——阶段 A 把 0170+ 一并提前应用，ledger 变成「≤0166+0170…0185」非全 manifest 字节序前缀，阶段 B 全链重放时 runner 前缀守卫（migrate.ts `expectedPrefix` 逐位比对）fail-closed。该 proof 属主线已 nail 面（authz-harden 5A-1 @`5cb78dab` 所携），本支线随翻随本刀落主线归主线。
-- **修复形（判据化·非全列硬编码）**：`packages/db/test/authz5a-email-normalization.proof.ts`（blob `40a423c0`→`d80be809`）——阶段 A staging 过滤由「剔除三前缀」改**字节序判据** `manifest.filter((m) => m.version < '0167')`（预链=严格字节序前缀 <0167 即 ≤0166·与 runner 自身 byte-order 前缀语义同源）——≥0167 整段（0167/0168/0169+主线延伸段 0170-0185·现 17 文件）统一延后到阶段 B 一次过链。主线链尾再延伸（0186+）判据自动覆盖零再翻。阶段 B 断言算式 `manifest.length - preManifest.length` 与 0167/0168/0169 恰在 applied 的 every 臂零改自然成立；臂计划名如实更注「≥0167 整段过链」。**臂数 15 零变**（门基线值 §0.5 不扰动）。
+- **归因**：`authz5a:normalize:prove` 基线红 `migration_ledger_not_contiguous_prefix`——上席 stash 干跑同红=非本刀施工引入。根因=该 proof 阶段 A staging 只剔除 0167/0168/0169 三前缀，而主线迁移链已 183→185（≥0167 现存 17 文件·0182/0183 空号）——阶段 A 把 0170+ 一并提前应用，ledger 变成「≤0166+0170…0185」非全 manifest 字节序前缀，阶段 B 全链重放时 runner 前缀守卫（migrate.ts `expectedPrefix` 逐位比对）fail-closed。该 proof 属主线已 nail 面（authz-harden 5A-1 @`5cb78dab` 所携），本支线随翻随本刀落主线归主线。
+- **修复形（判据化·非全列硬编码）**：`packages/db/test/authz5a-email-normalization.proof.ts`（blob `40a423c0`→`9531d7c2`）——阶段 A staging 过滤由「剔除三前缀」改**字节序判据** `manifest.filter((m) => m.version < '0167')`（预链=严格字节序前缀 <0167 即 ≤0166·与 runner 自身 byte-order 前缀语义同源）——≥0167 整段（0167/0168/0169+主线延伸段 0170-0185·现 17 文件）统一延后到阶段 B 一次过链。主线链尾再延伸（0186+）判据自动覆盖零再翻。阶段 B 断言算式 `manifest.length - preManifest.length` 与 0167/0168/0169 恰在 applied 的 every 臂零改自然成立；臂计划名如实更注「≥0167 整段过链」。**臂数 15 零变**（门基线值 §0.5 不扰动）。
 - **语义核验（落笔前亲读 runner）**：migrate.ts 应用序=manifest 字节序排序后逐个应用、ledger 须为传入 manifest 的精确字节序前缀——随翻后阶段 A 恰应用 ≤0166 前缀、阶段 B 全 manifest 一次过链（17 applied=0167…0185 恰全）·重放全 skipped 臂原值绿=幂等零扰动。
 
 **§9.3 门矩阵全表（续作席本树亲跑 · 2026-10-14）**：
@@ -203,7 +203,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 3. 修法①恒时序保持：timingSafeEqual 同步比对在位（新门静态臂）·verifyLogin 恰一次语义零变（计数三臂）·限流桶序/桶参数/Credentials 接线/失败锁零改（六门臂数原值即机械闸）✓
 4. 修法②有头路径零改：既有 onRequest content-length 钩子原值（chunked-cap 静态臂在证）·neg:commerce 既有 413 双臂原值绿 ✓
 5. 零迁移：改动集零 .sql · 历史迁移 0001-0185 零字节 · `git status` 零迁移文件 ✓
-6. R8 防漂：零 worker_threads 引入（rg 全改动码面唯一命中=auth.ts:7「非 worker_threads」如实声明注释·非使用）·resume-extract 面 git diff 零字节 ✓
+6. R8 防漂：零 worker_threads 引入（rg 全改动码面使用点零·命中两处均系否定声明文本：auth.ts:7「非 worker_threads」如实声明注释+authz34-scrypt-async.proof.ts:30 静态臂断言名·非使用）·resume-extract 面 git diff 零字节 ✓
 7. normalize 随链随翻三核验：臂数 15 零变 · 判据化修复形（非 0170-0185 全列硬编码·链尾延伸自动覆盖）· runner 字节序前缀语义亲读后落笔（§9.2）✓
 8. 既有臂零回归：门 1-8/10-12 臂数全原值（normalize 15/mirror 15/constant-time 16/login-ip 2/login-global 2/chgpwd 3/neg-auth 90/neg-commerce 90/password-max 10/domain-auth 11）·neg:auth 3 基线红 deactivate 三臂恒等承登不洗不增 ✓
 9. 越面自查：UPLOAD_ROUTES 清单只读复用零增删 · bodyLimit 12MiB 零改 · controller 校验面零触 · commerce 账务语义零触 · 共享 SSOT（LEDGER/checklist/issues-master/batch-residual-plan）只读零改 · worker/web 零触（web tsbuildinfo 型构建缓存本次 typecheck 抖动已 checkout 还原不入卷）✓
