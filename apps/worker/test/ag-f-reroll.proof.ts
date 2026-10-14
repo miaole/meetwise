@@ -100,7 +100,7 @@ async function askKeyRows(owner: string, threadId: string) {
 
 async function insertInterview(id: string, owner: string): Promise<void> {
   await asPrincipal(pool, owner, (c) => c.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active') ON CONFLICT (id) DO NOTHING", [id, owner]));
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created') ON CONFLICT (id) DO NOTHING", [id, owner]));
 }
 
 async function main() {
@@ -299,8 +299,8 @@ async function main() {
     uEv0.rows.some((r: any, i: number) => r.kind === 'answer_unscored' && r.event_key === `answer_unscored:${uStart.questionId}`
       && uEv0.rows.slice(i + 1).some((s: any) => s.kind === 'question_ready' && s.event_key === `question_ready:${uFirst.nextQuestionId}`)));
   const uStatus0 = await pool.query('SELECT status FROM interview WHERE id=$1', [threads.unscored]);
-  A('unscored 面零终态:interview 仍 active·无 assessment_unavailable/interview_unavailable',
-    uStatus0.rows[0]?.status === 'active'
+  A('unscored 面零终态:interview 仍 created·无 assessment_unavailable/interview_unavailable',
+    uStatus0.rows[0]?.status === 'created'
     && !uEv0.rows.some((r: any) => r.kind === 'assessment_unavailable' || r.kind === 'interview_unavailable'));
   // 后续回合评分照常,直至软预算收尾 → 混合 unscored 完成面。
   let uDone = false; let uQid = uFirst.nextQuestionId!; let guard = 0;
