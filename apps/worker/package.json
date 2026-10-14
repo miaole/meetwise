@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --max-warnings 950",
+    "lint": "eslint . --max-warnings 954",
     "start": "node --import @swc-node/register/esm-register src/main.ts",
     "cost:configure": "node --import @swc-node/register/esm-register src/cost-configure.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",

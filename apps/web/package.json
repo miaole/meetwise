@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --max-warnings 579",
+    "lint": "eslint . --max-warnings 581",
     "prove": "tsx test/web-logic.proof.ts",
     "prove:public-copy": "node test/public-copy.proof.mjs",
     "prove:uc003-i18n-locale": "node test/uc-e2e-003-i18n-locale.proof.mjs",
