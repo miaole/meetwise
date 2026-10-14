@@ -10,10 +10,15 @@
 --   触发器函数 INVOKER（不新增 SECURITY DEFINER 对象——密封清单未知 SD fail-closed
 --   目录门禁面零触）。前置存量脏值检测（fail-loud·不洗存量）。
 -- ②ai_graph_run 终态冻结（转移触发器·宽转移严终态形）：词表 11 值（0149 CHECK
---   在位零改）；转移面放宽——现网写点实测 interview.service.ts:835 续约臂无前态
---   守卫（任意非终态→active 必须放行），故触发器只冻结终态不可迁出：
---   OLD.status ∈ {succeeded, completed, failed, safely_terminated} 且 NEW.status
---   ≠ OLD.status → RAISE（双终态 succeeded/completed 并存保留 = Ban 业务语义变更）。
+--   在位零改）。写点实测：两处续约臂均无 status 过滤（interview.service.ts:827-836
+--   career-path latest 行 FOR UPDATE 任意前态→active·interview-graph-lease.ts:42
+--   adaptive-interview 同构）＝终态行复用重试槽——failed/succeeded/safely_terminated
+--   三态皆有续约或重试语义（failed→active=uc004 FI3-RETRY-VERSION-INCREMENTS 契约
+--   重试臂·succeeded→active=成功后重复 POST 同走续约臂·safely_terminated→active=
+--   abandon 后 assessment 先行流续约臂仍可达），冻结任一即生产对应路径恒 23514→500，
+--   皆不冻结。冻结集缩至真死终态='completed' 单值（零生产写点·kernel 纪元词表遗留·
+--   双终态并存保留=Ban 业务语义变更）：
+--   OLD.status='completed' 且 NEW.status≠OLD.status → RAISE。
 -- 5 语句 = 1 DO 块 + 2 CREATE OR REPLACE FUNCTION + 2 CREATE TRIGGER。
 
 DO $settlement_consistency_detect$
@@ -62,5 +67,5 @@ CREATE TRIGGER ai_graph_run_terminal_guard
   BEFORE UPDATE OF status ON ai_graph_run
   FOR EACH ROW
   WHEN (OLD.status IS DISTINCT FROM NEW.status
-        AND OLD.status IN ('succeeded','completed','failed','safely_terminated'))
+        AND OLD.status = 'completed')
   EXECUTE FUNCTION assert_ai_graph_run_terminal_frozen();
