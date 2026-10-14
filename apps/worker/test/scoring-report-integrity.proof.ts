@@ -9,7 +9,7 @@ import { fileURLToPath } from 'node:url';
 import { MemorySaver, Command } from '@langchain/langgraph';
 import { createPool, asPrincipal, loadMigrations, runMigrations } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { buildAdaptiveInterviewGraph, buildReportGraph, createEphemeralAnswerVault } from '@meetwise/ai-graphs';
+import { buildAdaptiveInterviewGraph, buildReportGraph, createEphemeralAnswerVault, type Turn } from '@meetwise/ai-graphs';
 import { aggregateScores } from '@meetwise/domain';
 import { invokeEvaluationOnce, reportGenerator } from '../src/interview-service.ts';
 import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
@@ -173,7 +173,7 @@ async function main() {
     await graph.invoke(new Command({ resume: unavailableAnswerVault.issue('我用令牌桶处理突发流量，超限时快速失败并降级。') }), cfg);
   }
   const snapshot: any = await graph.getState(cfg);
-  const transcript: any[] = snapshot.values.transcript ?? [];
+  const transcript: Turn[] = snapshot.values.transcript ?? [];
   const unscoredTurn = transcript.at(-1);
   // 断言随翻（AG-F 修法③/裁决③a 契约·观测语义亲证）：单点评分失败不再作废整场——unscored
   // 轨迹按 0 计（score 0·reason 原样保留在 turn 上·relevant=false），concluded 禁置、degraded
