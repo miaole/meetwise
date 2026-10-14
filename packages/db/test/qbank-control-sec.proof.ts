@@ -121,6 +121,8 @@ async function main() {
       try {
         await client.query('BEGIN');
         await client.query("SELECT set_config('app.qbank_serving_scope','backend/general',true), set_config('app.qbank_taxonomy_version','v1',true)");
+        // AG39(0187·裁决⑧ setup 注入):owner GUC 补设 platform+空——断言臂零改。
+        await client.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");
         const scopedEvi = (await client.query('SELECT ref_id FROM qbank_generation_evidence($1,ARRAY[$2,$3],64) ORDER BY ref_id', [G2, 'qsec:a', 'qsec:b'])).rows;
         const scopedAnn = (await client.query('SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,$3)', [G2, qvec, 5])).rows;
         await client.query('COMMIT');
@@ -133,6 +135,7 @@ async function main() {
       try {
         await client.query('BEGIN');
         await client.query("SELECT set_config('app.qbank_serving_scope','backend/general',true), set_config('app.qbank_taxonomy_version','',true)");
+        await client.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
         const onlyScope = (await client.query('SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,$3)', [G2, qvec, 5])).rows;
         await client.query('COMMIT');
         A('B7 仅设 serving_scope（taxonomy 清空）→ 0 行', onlyScope.length === 0);
@@ -143,6 +146,7 @@ async function main() {
       try {
         await client.query('BEGIN');
         await client.query("SELECT set_config('app.qbank_serving_scope','',true), set_config('app.qbank_taxonomy_version','v1',true)");
+        await client.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
         const onlyTax = (await client.query('SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,$3)', [G2, qvec, 5])).rows;
         await client.query('COMMIT');
         A('B8 仅设 taxonomy（scope 清空）→ 0 行', onlyTax.length === 0);
@@ -184,11 +188,11 @@ async function main() {
     A('A3c ACL：app_role 不在 proacl（executor-only·REVOKE 生效）', !acl.includes('app_role') && acl.includes('qbank_control_executor'));
 
     // A4-A7：executor 路径端到端（AG-43 调度半的生产调用形）。
-    const releasable = await asQbankControlExecutor(pool, (c: any) => c.query(
+    const releasable = await asQbankControlExecutor(pool, (c) => c.query<{ id: string; state: string }>(
       `SELECT id, state FROM qbank_vector_generation
          WHERE state IN ('retired','failed') AND storage_released_at IS NULL ORDER BY id`));
     A('A6 executor 枚举未释放终态代可读（调度枚举读权·0066 executor SELECT）',
-      releasable.rows.some((r: any) => r.id === G1) && releasable.rows.some((r: any) => r.id === G4));
+      releasable.rows.some((r) => r.id === G1) && releasable.rows.some((r) => r.id === G4));
 
     const e1 = await epochNow();
     try {

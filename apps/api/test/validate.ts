@@ -36,7 +36,7 @@ async function validate() {
   let interviewEventCatchUpQueries = 0;
   db.pool.on('connect', (client) => {
     client.query("SELECT set_config('app.principal_user', 'userA', false)").catch(() => {});
-    const origQuery = client.query.bind(client);
+    const origQuery = client.query.bind(client) as (...args: any[]) => Promise<unknown>;
     client.query = ((...args: any[]) => {
       const text = typeof args[0] === 'string' ? args[0] : args[0]?.text ?? '';
       if (/FROM\s+interview_event\s+WHERE\s+stream_key=\$1\s+AND\s+seq>\$2/i.test(text)) {
