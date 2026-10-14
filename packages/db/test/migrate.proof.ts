@@ -559,7 +559,7 @@ export async function runMigrateProof(
       && fusedAlterCount(mig0149.sql) === 4
       && notValidCount(mig0149.sql) === 4
       && validateCount(mig0149.sql) === 4);
-    const revalidated = await pool.query<{ n: number; v: number }>(
+    const revalidated = (await pool.query(
       `SELECT count(*)::int AS n, count(*) FILTER (WHERE convalidated)::int AS v FROM pg_constraint
         WHERE (conrelid, conname) IN (
           ('ai_report'::regclass,'fk_ai_report_interview_owner'),
@@ -571,13 +571,13 @@ export async function runMigrateProof(
           ('payment_order'::regclass,'ck_payment_order_amount_cents_positive'),
           ('payment_order'::regclass,'ck_payment_order_units_range'),
           ('settlement_ledger'::regclass,'ck_settlement_units_settled_nonneg'),
-          ('ai_graph_run'::regclass,'ck_ai_graph_run_status'))`);
+          ('ai_graph_run'::regclass,'ck_ai_graph_run_status'))`)) as { rows: Array<{ n: number; v: number }> };
     A('重制 0148/0149: fresh 全量应用后 6 FK + 4 CHECK 全在位且 convalidated=true（VALIDATE 后行生效实据）',
       revalidated.rows[0]?.n === 10 && revalidated.rows[0]?.v === 10);
-    const msResidue = await pool.query<{ n: number }>(
-      "SELECT count(*)::int AS n FROM schema_migrations_steps WHERE version IN ('0148_interview_composite_fk_batch1','0149_money_status_constraints')");
-    const msLedger = await pool.query<{ n: number }>(
-      "SELECT count(*)::int AS n FROM schema_migrations WHERE version IN ('0148_interview_composite_fk_batch1','0149_money_status_constraints')");
+    const msResidue = (await pool.query(
+      "SELECT count(*)::int AS n FROM schema_migrations_steps WHERE version IN ('0148_interview_composite_fk_batch1','0149_money_status_constraints')")) as { rows: Array<{ n: number }> };
+    const msLedger = (await pool.query(
+      "SELECT count(*)::int AS n FROM schema_migrations WHERE version IN ('0148_interview_composite_fk_batch1','0149_money_status_constraints')")) as { rows: Array<{ n: number }> };
     A('重制 0148/0149: 完成原子交换落地（ledger 恰 2 行·逐步记账旁表零残留=三守卫面）',
       msResidue.rows[0]?.n === 0 && msLedger.rows[0]?.n === 2);
   }
