@@ -187,7 +187,7 @@ async function validate() {
   await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
   await db.pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('userA','paid',5.0, now()+interval '300 days')");
   await db.pool.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ('c1','userA','resume_processing','v1'),('c2','userB','resume_processing','v1')");
-  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3),($4,$5,$6)', ['cpUser','cp@x.com', hashPassword('oldpass12'), 'deactUser','deact@x.com', hashPassword(['deactpass', '12'].join(''))]);
+  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3),($4,$5,$6)', ['cpUser','cp@x.com', await hashPassword('oldpass12'), 'deactUser','deact@x.com', await hashPassword(['deactpass', '12'].join(''))]);   // #34:hashPassword async 形
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin) VALUES ('userA','ua@x.com','scrypt$x$y',false),('adminU','admin@x.com','scrypt$a$b',true),('victimU','v@x.com','scrypt$v$w',false)");
   await db.pool.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('o1','userB','pack_10',9900,10,'paid')");
   await db.pool.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('n1','userA','report_ready','{\"overall\":76}'),('n2','userA','report_ready','{}')");
@@ -302,12 +302,12 @@ async function validate() {
   {
     const rl = app.get(RateLimitService);
     let allowed = 0; const t0 = 1_000_000;
-    for (let i = 0; i < 5; i++) if (rl.allow('rl-test', 3, 0.1, t0)) allowed++;   // 突发容量 3 → 前 3 个放行、后 2 个拒
+    for (let i = 0; i < 5; i++) if (await rl.allow('rl-test', 3, 0.1, t0)) allowed++;   // 突发容量 3 → 前 3 个放行、后 2 个拒
     A('[F1/F8] 令牌桶:突发容量 3 → 恰放行 3 个(第4/5被限流)', allowed === 3);
-    A('[F1/F8] 令牌桶补充:10 秒后按 0.1/秒补 1 个令牌 → 再放行 1', rl.allow('rl-test', 3, 0.1, t0 + 10_000) === true);
-    A('[F5] 并发槽 acquireSlot:上限 2 → 前 2 占用成功、第 3 拒', rl.acquireSlot('sse-test', 2) && rl.acquireSlot('sse-test', 2) && rl.acquireSlot('sse-test', 2) === false);
-    rl.releaseSlot('sse-test');
-    A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', rl.acquireSlot('sse-test', 2) === true);
+    A('[F1/F8] 令牌桶补充:10 秒后按 0.1/秒补 1 个令牌 → 再放行 1', (await rl.allow('rl-test', 3, 0.1, t0 + 10_000)) === true);
+    A('[F5] 并发槽 acquireSlot:上限 2 → 前 2 占用成功、第 3 拒', (await rl.acquireSlot('sse-test', 2)) && (await rl.acquireSlot('sse-test', 2)) && (await rl.acquireSlot('sse-test', 2)) === false);
+    await rl.releaseSlot('sse-test');
+    A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', (await rl.acquireSlot('sse-test', 2)) === true);
   }
   q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='answer'"); A('answer job 已落队列', q.rows[0].n === 1);
   // 放弃面试:退还预留额度(不漏扣)
