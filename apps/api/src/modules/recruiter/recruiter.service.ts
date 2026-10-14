@@ -158,9 +158,9 @@ export class RecruiterService {
   async invite(principal: string, jobId: string, dto: InviteCandidateDto, ip?: string) {
     // 反账号枚举(安全审计 F8 + b110 §1.2.6):桶序钉死 per-principal→ip(|| 短路;429 断言确定性)。
     // per-principal 桶零改(回归锚):突发 12、稳态 0.05/秒;invite:ip 桶同档,封「批量注册 recruiter 绕过主体桶」。
-    if (!this.rl.allow(`invite:${principal}`, 12, 0.05))
+    if (!(await this.rl.allow(`invite:${principal}`, 12, 0.05)))
       throw new HttpException({ error: 'too_many_requests', message: '邀请过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
-    if (!this.rl.allow(`invite:ip:${ip ?? 'unknown'}`, 12, 0.05))
+    if (!(await this.rl.allow(`invite:ip:${ip ?? 'unknown'}`, 12, 0.05)))
       throw new HttpException({ error: 'too_many_requests', message: '邀请过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
     // candidateId 与 email 两条入参路径**对称**地都经受控解析,确认目标是活跃候选人——
     // 杜绝招聘方对任意 userId(含他人招聘方)建幽灵申请,也不暴露 B 端账户。
@@ -185,6 +185,8 @@ export class RecruiterService {
         // I4 #221:候选人站内通知写侧只经裁决形通道(0165 gateway_notify_invited·SECURITY DEFINER+
         // 窄接口:kind/payload 固定·id=ntf_<applicationId> 幂等零堆积·owner 谓词 fail-closed——
         // 非自有/不存在零写零信号,b110 恒定壳「未命中零写」红线由函数内承重)。未命中分支零进此臂。
+        // 竞态防御(预检后岗位被删):inviteCandidate 零命中 → 零写零信号,恒定壳同码不受影响。
+        if (!app) return;
         await c.query('SELECT gateway_notify_invited($1,$2)', [principal, app.applicationId]);
       });
     }

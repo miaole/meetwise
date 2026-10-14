@@ -6,6 +6,7 @@ import {
   reserveEntitlement, confirmConsumption, releaseConsumption,
   requireOwnerUserId, buildRequiredOwnerFilter, beginResumeSoftDelete,
   type ResumeOcrBindingSnapshot, type ResumeSourceKind, errCode, asErr,
+  type Client,
 } from '@meetwise/db';
 import { ingestResume, extractResumeText, parseSealedOcrProvenance } from '@meetwise/domain';
 import { bindResumeOcr, visionOcr, type ModelClient } from '@meetwise/ai-runtime';
@@ -34,22 +35,24 @@ export class ResumeService {
   constructor(private readonly db: DbService, @Inject(OCR_VISION_CLIENT) private readonly vision: ModelClient, private readonly rl: RateLimitService) {}
 
   // 文件上传 = CPU 重的解析(PDF/docx,可炸弹)+ 可能触发付费 OCR → per-principal 令牌桶(安全审计 F2)。突发 15、稳态 0.1/秒(~6/分),正常传够、滥用循环被摁住。
-  private uploadGate(principal: string) {
-    if (!this.rl.allow(`resume-file:${principal}`, 15, 0.1))
+  private async uploadGate(principal: string) {
+    if (!(await this.rl.allow(`resume-file:${principal}`, 15, 0.1)))
       throw new HttpException({ error: 'too_many_requests', message: '文件上传过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
   /** 文件上传(PDF/Word/图片):解码 → **提取+清洗文本** → 复用文本上传链路(consent/加密/结构化)。图片走 OCR(按次计费)。 */
   async uploadFile(principal: string, dto: UploadResumeFileDto) {
-    this.uploadGate(principal);                                              // 限流先行:解码/解析前就摁住滥用(防炸弹并发压事件循环)
+    await this.uploadGate(principal);                                              // 限流先行:解码/解析前就摁住滥用(防炸弹并发压事件循环)
     const buffer = Buffer.from(dto.contentBase64, 'base64');
     if (buffer.length === 0) throw new HttpException({ error: 'empty_file' }, HttpStatus.BAD_REQUEST);
     if (buffer.length > MAX_RESUME_BYTES) throw new HttpException({ error: 'file_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
     // **全局解析并发闸(安全审计 F2 纵深)**:PDF/docx 解析是 CPU 重活压事件循环;即使多用户各自限流内并发涌入,
     // 全站同时最多 PARSE_MAX 个在解析,超出快速失败(503)不堆积——把"并发炸弹压垮事件循环"的爆炸半径钉死。配合已有 8s 提取超时 + 字节/文本封顶。
-    if (!this.rl.acquireSlot('resume-parse:global', PARSE_MAX))
+    if (!(await this.rl.acquireSlot('resume-parse:global', PARSE_MAX)))
       throw new HttpException({ error: 'server_busy', message: '解析繁忙,请稍候重试' }, HttpStatus.SERVICE_UNAVAILABLE);
-    let extracted: { text: string; format: string };
+    // `!` 定值断言:imageNeedsOcr=true 分支在 :75 使用前必已 return,而 CFA 无法跨标志位收敛赋值分析。
+    let extracted!: { text: string; format: string };
+    let imageNeedsOcr = false;
     try {
       extracted = await extractResumeText(buffer, dto.mimeType, dto.filename);
     } catch (e: unknown) {
@@ -61,12 +64,14 @@ export class ResumeService {
         throw new HttpException({ error: 'encrypted', hint: '文件已加密，无法解析；请解除密码保护后重传或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
       }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
-      // finally 在 return 前也会执行 → 解析槽恰好释放一次(不在此显式释放,避免并发下双减)。
-      if (errCode(e) === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);
-      throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
+      // OCR 分支置标、finally 释放解析槽后再转向——禁跨带 await 的 finally 直接 `return 未决 promise`:
+      // 其拒绝若落在 finally 的 await 窗口内即成 unhandledRejection(进程致命);先释槽后转向,时序与原形一致。
+      if (errCode(e) === 'image_needs_ocr') imageNeedsOcr = true;
+      else throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
     } finally {
-      this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向 return/解析失败 throw)都恰好释放一次
+      await this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向/解析失败 throw)都恰好释放一次
     }
+    if (imageNeedsOcr) return this.uploadImageViaOcr(principal, buffer, dto);
     // 扫描型 PDF(文本层空)：本期图片 OCR 已通,PDF→逐页图渲染是快随项(见 UC-RES-003 A2),暂给可解释降级不静默。
     if (extracted.text.trim().length < 20) throw new HttpException({ error: 'extracted_too_short', format: extracted.format, hint: '未从文件读到足够文字;若为扫描件/图片型 PDF,请改传清晰图片或粘贴文本' }, HttpStatus.BAD_REQUEST);
     if (extracted.text.length > MAX_RESUME_TEXT) throw new HttpException({ error: 'extracted_too_long', format: extracted.format, max: MAX_RESUME_TEXT, hint: '文件内容过长(疑似非常规简历/解压炸弹),请精简后重传或粘贴核心文本' }, HttpStatus.PAYLOAD_TOO_LARGE);   // 安全审计 F3:防超大提取文本无界落库/喂模型
@@ -92,7 +97,7 @@ export class ResumeService {
     let provenance: ResumeOcrBindingSnapshot | null = null;
 
     // 费用预留是短事务；视觉供应商请求绝不占住数据库事务/连接。
-    await this.db.asPrincipal(principal, async (c: any) => {
+    await this.db.asPrincipal(principal, async (c: Client) => {
       // PIPL:处理简历 PII(且要付费)前必须先有采集同意,绝不先扣费再拒。
       const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='resume_processing' LIMIT 1");
       if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'resume_processing' }, HttpStatus.FORBIDDEN);
@@ -121,7 +126,7 @@ export class ResumeService {
         persistValidatedText: (c, value) => persistResumeOcrArtifact(c, principal, ocrKey, value),
       });
       if (ocr.ok === false) {
-        await this.db.asPrincipal(principal, async (c: any) => {
+        await this.db.asPrincipal(principal, async (c: Client) => {
           await releaseConsumption(c, principal, ocrKey);
           await deleteResumeOcrArtifact(c, principal, ocrKey);
         });
@@ -142,14 +147,14 @@ export class ResumeService {
     //  预留在此保持 reserved；加密工件允许中断后的同图重传继续提交，不靠盲目重调视觉模型。
     const sealed = parseSealedOcrProvenance(provenance);
     if (!sealed) {
-      await this.db.asPrincipal(principal, async (c: any) => {
+      await this.db.asPrincipal(principal, async (c: Client) => {
         await releaseConsumption(c, principal, ocrKey);
         await deleteResumeOcrArtifact(c, principal, ocrKey);
       });
       throw new HttpException({ error: 'ocr_binding_invalid', hint: '图片简历缺少可解析的 OCR binding,已退还额度,请改传 PDF/Word 或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
     }
     if (ingestResume(text).facts.length === 0) {                                 // 转写成功但提取不到有效简历事实 → 画像不可用 → 退费
-      await this.db.asPrincipal(principal, async (c: any) => {
+      await this.db.asPrincipal(principal, async (c: Client) => {
         await releaseConsumption(c, principal, ocrKey);
         await deleteResumeOcrArtifact(c, principal, ocrKey);
       });
@@ -159,7 +164,7 @@ export class ResumeService {
     // “有画像未扣费”或“已扣费但下次又重调”的不一致。事务失败时保留 artifact+reserve，
     // 重传可从工件继续；不把基础设施故障误判为应退费的业务失败。
     // 文本 HMAC 去重命中既有 text/pdf（或另一张图）时不得 confirm 本图 OCR 费。
-    const structured = await this.db.asPrincipal(principal, async (c: any) => {
+    const structured = await this.db.asPrincipal(principal, async (c: Client) => {
       const dedupeFilter = buildRequiredOwnerFilter(principal, 'resume.ocrConfirm.dedupe');   // PRIV01-C 第二层 E2
       const saved = await this.uploadInTransaction(c, principal, { text }, 'needs_review', { sourceKind: 'image', ocrBinding: sealed });
       if (saved.status === 'deduped') {
@@ -190,7 +195,7 @@ export class ResumeService {
 
   /** profileStatus:OCR/图片源传 'needs_review'(系统不冒充判真伪,给人工复核落地位);文本/PDF 文本层默认 'ok'。 */
   upload(principal: string, dto: UploadResumeDto, profileStatus: 'ok' | 'needs_review' = 'ok') {
-    return this.db.asPrincipal(principal, (c: any) => this.uploadInTransaction(c, principal, dto, profileStatus));
+    return this.db.asPrincipal(principal, (c: Client) => this.uploadInTransaction(c, principal, dto, profileStatus));
   }
 
   /** 由普通上传和 OCR 终态事务共用；调用方决定最外层事务，禁止在 OCR 内嵌套独立提交。 */
@@ -215,7 +220,7 @@ export class ResumeService {
     // 授权根仍为 RLS;此谓词为纵深防御第二层(应用层 tenant ≠ RLS)。空列表=合法(集合端点,E5 白名单)。
     const owner = requireOwnerUserId(principal, 'resume.list');
     const listFilter = buildRequiredOwnerFilter(owner, 'resume.list.scope');
-    return this.db.asPrincipal(owner, async (c: any) => {
+    return this.db.asPrincipal(owner, async (c: Client) => {
       // S1 软删即时可见面（UNSTUB-ERASE rev2 §2.2-C）：已围栏/已 erased 简历从「我的简历」
       // 消失（列表过滤 ≠ 物理删除——行仍在,0153/S2 面受理 prove 断言物理行不变）。
       const r = await c.query(`
@@ -243,7 +248,7 @@ export class ResumeService {
     const existingFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.existing');
     const profileFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.updateProfile');
     const statusFilter = buildRequiredOwnerFilter(owner, 'resume.reparse.updateStatus');
-    return this.db.asPrincipal(owner, async (c: any) => {
+    return this.db.asPrincipal(owner, async (c: Client) => {
       const raw = await decryptResumeBlob(c, owner, id).catch(() => null);
       if (!raw) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
       const existing = await c.query<{ ocr_binding: unknown }>(
@@ -287,7 +292,7 @@ export class ResumeService {
    */
   async remove(principal: string, id: string) {
     if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-    return this.db.asPrincipal(principal, async (c: any) => {
+    return this.db.asPrincipal(principal, async (c: Client) => {
       let receipt;
       try {
         receipt = await beginResumeSoftDelete(c, principal, id);
@@ -309,7 +314,7 @@ export class ResumeService {
 
   profile(principal: string, id: string) {
     if (!UUID_RE.test(id)) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);   // 非 uuid → 22P02 500 兜底成 404(负测抓到)
-    return this.db.asPrincipal(principal, async (c: any) => {
+    return this.db.asPrincipal(principal, async (c: Client) => {
       const r = await c.query('SELECT structured, pii_summary, blocked_count, status, confidence FROM resume_profile WHERE resume_id=$1', [id]);
       if (r.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // RLS 0 行→404
       return r.rows[0];

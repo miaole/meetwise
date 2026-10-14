@@ -3,7 +3,7 @@
  * 0173 tf_ 触发器改写（per_session 逐字保留+per_topic_capped 方案②）· closeTopic/confirmConsumptionUnits/
  * completeInterviewAndConfirm/abandon/sweep 拆分 · #31 报错（REQUEST §2-1 六臂）。
  *
- * 此测试只能由 `scripts/run-e2e-isolated.mjs` 在完整版本化迁移（0001→0184 全链 applied）后运行。
+ * 此测试只能由 `scripts/run-e2e-isolated.mjs` 在完整版本化迁移（0001→0185 全链 applied）后运行。
  * 禁止用 `packages/db/sql/` 影子 schema（影子数据库结构）伪造通过。
  * 零模型真实外呼：scriptedModelClient 假体（bill1/bill2 proof 同形）；零生产 DSN/零凭据落盘；零真实扣费。
  *
@@ -213,14 +213,14 @@ async function main() {
   });
 
   /* ───────── ⓪ 迁移臂：0172 表形+CHECK 负臂+RLS+0173 函数现形+GRANT ───────── */
-  section('⓪ 迁移臂：0172 topic_charge/interview 计费列 + 0173 tf_ 函数现形（真链 0001→0184 applied）');
+  section('⓪ 迁移臂：0172 topic_charge/interview 计费列 + 0173 tf_ 函数现形（真链 0001→0185 applied）');
   const chain = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number; v172: boolean; v173: boolean }>(
     `SELECT count(*)::int n,
             count(*) FILTER (WHERE version LIKE '0172%')::int = 1 AS v172,
             count(*) FILTER (WHERE version LIKE '0173%')::int = 1 AS v173
        FROM schema_migrations`));
-  A('隔离库真迁移链全链 applied（184 版本在账·版本键=完整文件名词干）·0172/0173 各恰一行',
-    Number(chain.rows[0]?.n) === 184 && chain.rows[0]?.v172 === true && chain.rows[0]?.v173 === true);
+  A('隔离库真迁移链全链 applied（185 版本在账·版本键=完整文件名词干）·0172/0173 各恰一行',
+    Number(chain.rows[0]?.n) === 185 && chain.rows[0]?.v172 === true && chain.rows[0]?.v173 === true);
   const shape = await asPrincipal(pool, OWNER, (c) => c.query<{ relforcerowsecurity: boolean; pk: string }>(
     `SELECT c.relforcerowsecurity,
             (SELECT pg_get_constraintdef(oid) FROM pg_constraint
