@@ -1,6 +1,6 @@
 # ADMIN-DISABLE-EVICT REQUEST — gateway_admin_disable 零 evict 同型缺陷修复刀（principal.guard:16 契约在链唯一违例闭合·恰 1 产品文件 +2 行 evict+neg 邻面增 1 判别臂·admin-disable-evict 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · **rev2 2026-10-14**=pre-exec 双审双 FAIL 同敛 P0「判别臂走 U() dev-header 支路→修前修后均 403 臂恒红」→判别传输面改 Bearer（本 commit·六项处置见卷尾 rev2 处置摘要）· 复审维持 awaiting · pre-exec 双审两外席待复审 · alone≠dual · Dual PASS ≠ 开工 · 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-14 · **rev2 2026-10-14**=pre-exec 双审双 FAIL 同敛 P0「判别臂走 U() dev-header 支路→修前修后均 403 臂恒红」→判别传输面改 Bearer（六项处置见卷尾 rev2 处置摘要）· rev2 pre-exec 双审会签 **PASS**（席1 agent_ba62a3f4+席2 agent_ff74cef6）+协调方明示 EXEC 授权 → **EXEC 2026-10-14 落卷**（merge `e1d1b368` 并主线 `148cf83b`·件①② 施工·门矩阵十二门全绿·§9 EXEC 记录+收据 `ai-docs/delivery/receipts/admin-disable-evict/00-exec.md`）· ⛔push）
 
 **席位**：admin-disable-evict REQUEST 起草席（诊断由 negbend-fix post 席2 猎出·本席补全亲证+起草双责·协调方派）。
 **基线**：`feat/mysql-schema-skeleton` @ `1af9803f`（LINT-CLEAN nail 收官 SSOT commit·docs:check 2099≤cap 2104 本树亲跑 EXIT=0）· 分支 `line/admin-disable-evict`（本起草席 `git worktree add ../meetwise-ade -b line/admin-disable-evict feat/mysql-schema-skeleton` 亲立·HEAD 落 `1af9803f` 亲证·建前 `git branch --list "line/admin-disable*"` 零命中）· 工作树 `meetwise-ade`（仓根同级）· **tip pin=1af9803f**（起草日 `git fetch` 后 `origin/feat/mysql-schema-skeleton` 与本地同值亲证·零更新零重 pin；rev2 日 fetch 实测主线已前进至 `3dc286a4`——本分支基线不追·届时基线适配归 §0.0 重 pin 清单）。
@@ -14,6 +14,7 @@
 - `git worktree list` 建后 24 树实测（主仓+既有 22 树+本 ade 树）——无第二 admin-disable 同名树；`git branch --list "line/admin-disable*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/` 建前 `admin-disable` 零命中→落卷后唯一同名卷=本卷。
 - **本刀双产品触面在飞交叠全量预扫**（逐 branch `git log -1 -- <两径>` 取末触 commit + `git merge-base --is-ancestor <branch> HEAD` 判吸收态·2026-10-14 亲跑）：branch 集末触非基线祖者仅 **`line/negbend-fix` @`1e686576`（非 HEAD 祖先·meetwise-nbf 树·STOP=`executed:awaiting_post_prove_dual`）**——对 `admin.service.ts` 有主线 `1af9803f` 之后新增提交（recruiterDecision evict·negbend 战役交付面）；对 `neg-bend.proof.ts` 零触（negbend §3-1 测试文件零触·nbf 树 597 行与本基线全等亲证）。其余 branch 全为基线祖先（已吸收）或历史残枝（`a322d627`/`ab420f61`/`abf80ce6`/`ee02bf4d` 尾随者）。**同文件交叠处置=§4-2（managed 非停止·merge 序无关论证在卷）**；EXEC 立项日对本表重扫·出现 negbend 之外新增 novel 触者→触停止条件「现场漂移」停手上报。
 - **EXEC 立项重 pin 清单（rev2 点名·三项必做·漏做即未完成立项）**：①**nbf tip 引用更新为届时值**——本卷所钉 `line/negbend-fix` @`c046262d`/`1e686576` 系起草日值·立项日照 `line/negbend-fix` 届时 tip 亲取更新（波及 §0.1 跨线锚行/§4-2/必读清单时序登记）；②**§2 门 8 root lint 判据随届时主线 sanction 值适配**——rev2 日 fetch 实测主线 tip `3dc286a4` sanction 已 root **5224**/web **601**/api 1421（uc003-i18n nail `68ffcb58` 落值承登）·本卷 §2-8 所钉 root 5202 系基线 `1af9803f` 时值·立项日以届时 SSOT/LEDGER sanction 值照抄适配；③**门 9 docs:check 预期值随届时基线 +1**——rev2 日实测主线 cap 已 2104→**2112**（`8b577e8b` 落值）·主线现值 2106·本卷 §2-9 所钉 2100/2104 系基线时值·立项日预期值=届时基线现值 +1（cap 与现值均以届时实测为准）。
+- **EXEC 立项日（2026-10-14）三项重 pin 亲证落值**（merge `e1d1b368` `--no-ff` 并主线 tip **`148cf83b`** 后本树亲跑·零冲突 auto-merge·62 文件 +10372/-233·admin.service.ts 主线带入恰 +2 行=negbend recruiterDecision 区先例形·与 §4-2 预告恒等）：①**negbend 已 nail 并线**——`line/negbend-fix` 届时 tip **`f3021ab9`** 系 `148cf83b` 祖先（`git merge-base --is-ancestor` EXIT=0 亲证）·`git cat-file -e 148cf83b:ai-docs/delivery/harness/negbend-fix-REQUEST.md` EXIT=0 亲证吸收·本卷引用改主线 tip 现值 **`148cf83b`**（blob 跨线锚 `923fb426` 即本树 `admin.service.ts` 现 blob 亲算恒等·§4-2 二态取「已吸收」支）；②**门 8 判据落值 root ≤5224/web ≤601/api ≤1421**（checklist `148cf83b` 树 ssepush/uc003-i18n 承登段三值贴边亲证·§2-8 已改）；③**门 9 预期值落值**——本合并树 docs:check 亲跑 **2109**≤cap **2112**（2108=主线 + 本卷 REQUEST .md 1 件）·收尾加 untracked 收据 1 件预期 **2110**（§2-9 已改）。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`1af9803f`）
 
@@ -32,7 +33,7 @@
 | `packages/db/sql/23_api_gateway.sql` | `67e99f04`（766 行） | `:182-:199` 镜像同函数（**`:192` UPDATE status='disabled'**·`:437` REVOKE·`:444` GRANT） |
 | `packages/db/migrations/0189_api_harden_shared_state.sql` | `a291b62e`（163 行） | **`:152` `pg_notify('meetwise_principal_evict_v1',…)`·`:159-:163` 触发器 AFTER UPDATE OF `status`,pwd_epoch,role,approval_status,is_admin ON user_account（status 在列集内=disable UPDATE 必触发同事务广播）** |
 | `apps/api/src/modules/profile/profile.service.ts` | `2dce92db`（216 行） | `:10` import·`:146`/`:206` 本地写路径即时 evict 先例两处（注释自证跨实例归 0189 广播·LISTEN 断连退回 ≤60s TTL 兜底）——件① 注释形照此 |
-| （跨线锚）`line/negbend-fix` 树 `apps/api/src/modules/admin/admin.service.ts` | `923fb426` | `:4` import evictPrincipalStatus·`:87` `evictPrincipalStatus(id);`（recruiterDecision·negbend 件① 交付形=本刀修法先例·nbf 树 blob 亲算）·**形状参照·非权威证据源·blob 923fb426**（rev2 加注：该行系跨线形状引用·机制/行为权威锚=本基线树各行·届时 tip 照 §0.0 重 pin 清单更新） |
+| （跨线锚）`line/negbend-fix` 树 `apps/api/src/modules/admin/admin.service.ts` | `923fb426` | `:4` import evictPrincipalStatus·`:87` `evictPrincipalStatus(id);`（recruiterDecision·negbend 件① 交付形=本刀修法先例·nbf 树 blob 亲算）·**形状参照·非权威证据源·blob 923fb426**（rev2 加注：该行系跨线形状引用·机制/行为权威锚=本基线树各行·届时 tip 照 §0.0 重 pin 清单更新）·**EXEC 立项日随 pin① 更新**：negbend 已 nail 并线主线 tip `148cf83b`——本 blob 即本树 `admin.service.ts` 现 blob（`git hash-object` 亲算恒等）·`:87` 先例行本树在场亲读·跨线引用升格为同树锚 |
 
 ### 0.2 派单简报漂移登记（结论零变·如实改锚）
 
@@ -74,11 +75,11 @@ neg-bend.proof.ts（178 臂）disable 相关臂全量=`:157`（无鉴权 401）/
 
 ## §1-修法（恰 1 产品文件 +2 行 + 1 负测邻面文件纯增三处·零迁移零 DDL）
 
-- **件①（唯一产品码改·`apps/api/src/modules/admin/admin.service.ts` 现 `6a9c62cf`）**：
-  1. import 区（`:3` 后）增 `import { evictPrincipalStatus } from '../../platform/principal.guard';`（照 `2dce92db` `:10`/`923fb426` `:4` 形）；
-  2. `disable` 函数 `:64` not-found 守卫**之后**、`:65` return **之前**增一行（逐字）：
+- **件①（唯一产品码改·`apps/api/src/modules/admin/admin.service.ts` 现 `6a9c62cf`·**EXEC 立项日改锚**：merge `e1d1b368` 并主线后本树 blob=`923fb426`（131 行·negbend +1 import 行致本函数域各行 +1 位移·结论零变只更行号）——import 已在 `:4` 免重·落点=**`:65` not-found 守卫后、`:66` return 前**·净 +1 行）**：
+  1. import 区（`:3` 后）增 `import { evictPrincipalStatus } from '../../platform/principal.guard';`（照 `2dce92db` `:10`/`923fb426` `:4` 形）——**EXEC 立项日免重：已在（§4-2 已吸收支）**；
+  2. `disable` 函数（基线 `:64`/并线后 `:65`）not-found 守卫**之后**、return（基线 `:65`/并线后 `:66`）**之前**增一行（逐字）：
      `evictPrincipalStatus(id);   // 本进程守卫缓存即时清(停用后旧令牌下一请求即 401·调用点在 asPrincipal COMMIT 之后=事务外);跨实例由 0189 触发器同事务 pg_notify 广播逐缓存(LISTEN 断连退回 ≤60s TTL 兜底)`
-     （单参形 `evictPrincipalStatus(id)`——导出签名 `uid: string` 单参 `50b38bc5` `:33` 亲证·两参形必撞 TS2554（negbend rev2 承卷）；`:64` 守卫后=404 路径零 evict（DB 零变更勿清）；注释沿 `2dce92db` `:146` 形。）
+     （单参形 `evictPrincipalStatus(id)`——导出签名 `uid: string` 单参 `50b38bc5` `:33` 亲证·两参形必撞 TS2554（negbend rev2 承卷）；守卫后=404 路径零 evict（DB 零变更勿清）；注释沿 `2dce92db` `:146` 形。）
   3. **调用点排序语义（negbend rev3 R3-2 承卷）**：调用点位于 `asPrincipal` **COMMIT 之后**——`c31cbac0` `:991-:1002` 函数体 `fn(c)`→`:998` `COMMIT`→`return r` 逐行亲证，调用侧 `await this.db.asPrincipal(…)` resolve 时事务必已提交=事务外。**Ban 移入回调内**：事务内 evict（清缓存时写未提交）·并发读晚于 evict 起读经 `50b38bc5` `:61` 回填旧快照→60s 陈旧窗复现·`:48`/`:61` TOCTOU 代次守卫只防「读在飞中遇 evict」一相不可捕获。
   4. **diff 预期=件① 恰 1 文件净 +2 行**（import+调用行带注释）。
 - **件②（neg 邻面增 1 判别臂·`apps/api/test/neg-bend.proof.ts` 现 `f076c99b`·纯增三处·既有 178 臂断言本体零字节改）**：
@@ -110,8 +111,8 @@ neg-bend.proof.ts（178 臂）disable 相关臂全量=`:157`（无鉴权 401）/
 5. **drift:prove 零漂移**：`pnpm drift:prove` EXIT=0。
 6. **migration uniqueness**：`node scripts/check-migration-version-uniqueness.mjs`→`files=201 violations=0`（files 对届时链顶亲数·violations 恒 0）。
 7. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（8/8·0 cached 口径沿 SSOT 门矩阵）。
-8. **lint 全绿贴边口径（LINT-CLEAN nail 后）**：`pnpm turbo lint` 12 任务全绿·root ≤**5202**+api ≤**1421**（**贴边零余量**——任一 +1 warning 即红→触停止条件「验收红不可修」·Ban 借机消偿 Ban 自升 sanction·消偿归协调方）·**rev2 加注**：root 5202 系基线 `1af9803f` 时值——EXEC 立项日照 §0.0 重 pin 清单②随届时主线 sanction 适配（rev2 日主线 tip `3dc286a4` 实测现值 root **5224**/web **601**/api 1421）。
-9. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned ≤cap **2104**（现值 2099 本树亲跑·本卷 +1 受管件预期 **2100**·**>2104 红停上报**·cap 张弛归协调方）·**rev2 加注**：2100/2104 系基线时值——立项日预期值=届时基线现值 +1·cap 以届时值为准（rev2 日主线 tip `3dc286a4` 实测 cap **2112**/现值 2106）。
+8. **lint 全绿贴边口径（LINT-CLEAN nail 后）**：`pnpm turbo lint` 12 任务全绿·root ≤**5224**+web ≤**601**+api ≤**1421**（**贴边零余量**——任一 +1 warning 即红→触停止条件「验收红不可修」·Ban 借机消偿 Ban 自升 sanction·消偿归协调方）·**rev2 加注**：root 5202 系基线 `1af9803f` 时值——EXEC 立项日照 §0.0 重 pin 清单②随届时主线 sanction 适配（rev2 日主线 tip `3dc286a4` 实测现值 root **5224**/web **601**/api 1421）·**EXEC 立项日落值（重 pin②）**：判据钉 root **5224**/web **601**/api **1421**（主线 tip `148cf83b` checklist ssepush/uc003-i18n 承登段三值贴边亲证·5202 系基线时值仅存档）。
+9. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned ≤cap **2112**（**EXEC 立项日落值（重 pin③）**：本合并树亲跑现值 **2109**=主线 2108+本卷 REQUEST .md 1 件·收尾加 untracked 收据 1 件预期 **2110**·**>2112 红停上报**·cap 张弛归协调方·2100/2104 系基线时值仅存档·rev2 日主线现值 2106）。
 10. **markers 五类+冲突标记零命中**：本刀改动集（本卷 1 .md+件① 1 .ts+件② 1 .ts·收据 untracked 不入集）五类标记词（沿 `scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·**词面不复抄卷内防自匹配**）+冲突标记 grep 零命中（命令与回执入收据）。
 11. **diff 面机检**：`git diff --numstat <base>` 恰 **3 tracked 路径**=件① `admin.service.ts`（+2/0-）+件② `neg-bend.proof.ts`（纯增三处·既有 178 臂零字节改）+本卷 .md——多任何 tracked 路径即停（越界需要类·typecheck 增量副效应 `apps/web/tsconfig.tsbuildinfo` 翻动则 `git checkout` 回滚保门 11·negbend EXEC §9 副效应登记先例）。
 12. **卫生**：`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·`.env*` ABSENT 双向记录·`actualSpendCny=null`·零模型外呼（neg 面全离线·est live=0）。
@@ -128,7 +129,7 @@ neg-bend.proof.ts（178 臂）disable 相关臂全量=`:157`（无鉴权 401）/
 ## §4 依赖
 
 1. **上游已满足**：#118 三查并一+0189 件④ 在链（`1af9803f` 亲证）=被修复机制本体；LINT-CLEAN nail 收官=lint 全绿贴边基线（`1af9803f` 题面承）。
-2. **同文件在飞（managed·预登记非停止）**：`line/negbend-fix` @`c046262d`（`1e686576` 件①）对本刀件① 同文件——**merge 序无关论证**：函数域不相交（disable `:60-:66` vs recruiterDecision `:81-:87`）·调用行异地·import 行两侧同文（同内容加行 git 自动合）→任一序并线零冲突预期。EXEC 立项日处置二态：届时主线已吸收 negbend（`git cat-file -e <届时tip>:ai-docs/delivery/harness/negbend-fix-REQUEST.md` 可解析判）→件① import 行免重（已在）·仅增调用行·件① diff 净 +1 行如实记；未吸收→照抄 import 行（净 +2）。§0.0 重扫出现 negbend 之外 novel 触者→停「现场漂移」。**EXEC 立项重 pin 清单（rev2 点名·与 §0.0 第三项同源）**：nbf tip 引用更新为届时值（本条所钉 `c046262d`/`1e686576` 系起草日值）+§2 门 8 root lint 判据随届时主线 sanction 值适配（rev2 日主线现值 **5224** 起）+门 9 docs:check 预期值随届时基线 +1（rev2 日主线 cap 2112/现值 2106）。
+2. **同文件在飞（managed·预登记非停止）**：`line/negbend-fix` @`c046262d`（`1e686576` 件①）对本刀件① 同文件——**merge 序无关论证**：函数域不相交（disable `:60-:66` vs recruiterDecision `:81-:87`）·调用行异地·import 行两侧同文（同内容加行 git 自动合）→任一序并线零冲突预期。EXEC 立项日处置二态：届时主线已吸收 negbend（`git cat-file -e <届时tip>:ai-docs/delivery/harness/negbend-fix-REQUEST.md` 可解析判）→件① import 行免重（已在）·仅增调用行·件① diff 净 +1 行如实记；未吸收→照抄 import 行（净 +2）。§0.0 重扫出现 negbend 之外 novel 触者→停「现场漂移」。**EXEC 立项重 pin 清单（rev2 点名·与 §0.0 第三项同源）**：nbf tip 引用更新为届时值（本条所钉 `c046262d`/`1e686576` 系起草日值）+§2 门 8 root lint 判据随届时主线 sanction 值适配（rev2 日主线现值 **5224** 起）+门 9 docs:check 预期值随届时基线 +1（rev2 日主线 cap 2112/现值 2106）。**EXEC 立项日二态裁定=「已吸收」支**（merge `e1d1b368` 并主线 tip `148cf83b`·`git cat-file -e` EXIT=0 亲证·nbf 届时 tip `f3021ab9` 系主线祖先 `merge-base --is-ancestor` EXIT=0 亲证）——实并零冲突 auto-merge 亲证（ort·admin.service.ts 主线带入恰 +2 行=recruiterDecision 区先例形）·**件① import 行免重（本树 `:4` 已在亲读）·仅增调用行·件① diff 净 +1 行**；§0.0 交叠重扫=merge 引入集内 negbend 之外零 novel 触本刀双径者（merge 62 文件清单逐览亲证）·lint 重 pin 落值/门 9 落值见 §0.0 EXEC 立项日段。
 3. **迁移号**：§0.3 预期零。**下游**：neg 邻面判别臂增益随 bend 段归卷主·SSOT 行翻面与 nail 排序归协调方。
 
 ## §5 Ban 列表 + pins
@@ -171,3 +172,21 @@ neg-bend.proof.ts（178 臂）disable 相关臂全量=`:157`（无鉴权 401）/
 **rev2 附带增锚（§0.1 协议自洽·判别臂新依赖入表受重 pin 管辖）**：principal.guard 行补 rev2 判别臂锚（`:66-:102` Bearer 支路 `:87-:89`/`:93`/`:94`/`:95`/`:98`+`:104-:108` dev-header 支路）·harness 行补 `:16`/`:25-:26`/`:52`·proof.ts 行补 `:3` import tokenFor·新两行 `packages/domain/src/auth.ts`（blob `697da7dc`·109 行·`:69` signToken）与 `packages/db/sql/09_auth.sql`（blob `9082403f`·28 行·`:14` pwd_epoch DEFAULT 0）——blob 对 `1af9803f` 亲算（`git diff --name-only 1af9803f HEAD` 仅本 .md=工作树 hash-object 即基线 blob）。基线栏补记 rev2 日 fetch 主线已前进 `1af9803f`→`3dc286a4`（本分支基线不追·届时适配归重 pin 清单）。
 
 **rev2 自检（本树亲跑）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（`2100≤cap 2104` 本树·基线时值；届时值归重 pin 清单③）·本卷五类标记词+冲突标记零命中（i6-239 §2-7 运行时组装同法 node 亲跑 hits=0·词面不复抄卷内）·**STOP=`draft:awaiting_pre_exec_dual` 维持**（复审重派两外席·alone≠dual·Dual PASS ≠ 开工）·diff 面=本卷 1 .md。commit：`docs(admin-disable-evict): REQUEST rev2——判别臂改 Bearer 传输面+机制描述随形（⛔push）`。
+
+## §9 EXEC 记录（2026-10-14 · EXEC 席 · STOP=`executed:awaiting_post_prove_dual` · ⛔push）
+
+**授权链**：rev2 pre-exec 双审会签 **PASS**（席1 agent_ba62a3f4+席2 agent_ff74cef6）→协调方明示 EXEC 授权（本席开工）。
+
+**工序与现场**：①`git fetch` 主线 tip 实测 `148cf83b` 恒等任务书→`git merge --no-ff feat/mysql-schema-skeleton`→merge **`e1d1b368`**（ort **零冲突** auto-merge·62 文件 +10372/-233·任务书预告恒等：negbend 已改 recruiterDecision 区·disable 函数不同区域自动合）·②§0.0 三项重 pin 落卷（见收据六节全表）·③件② 落树→**改前必做 run**（恰一次判定）→修前指纹探针→④件① 落树→⑤门矩阵十二门全绿→本记录+收据落卷。
+
+**改前指纹（门 1 判据·恒等兑现）**：判定 run EXIT=1·**178 PASS/1 FAIL**·唯一红名=新臂 `admin disable 后该用户下一请求即时 401(本进程守卫缓存 evict·非 60s TTL 兜底)`（stdout tee=收据目录 `judgment-run-prechange-stdout.log`）；修前 evictU 三腿实测=填充 **403 admin_required**/停用 **200 disabled:true**/**复请求 403 admin_required（非 401）**——rev2 Bearer 形机制推定（陈旧 active 缓存→status 检查过→AdminGuard 403）逐点兑现·「机制不满足」零触发。改后 prove **179/179** EXIT=0·PASS 名单 diff 恰 +1（新臂翻绿·178 条零弱化）。
+
+**两件落点**：
+- **件①**（merge 后 blob `923fb426` 基础上·净 **+1 行**）：`apps/api/src/modules/admin/admin.service.ts` disable 函数 `:65` not-found 守卫后、`:66` return 前 +`evictPrincipalStatus(id);` 单参（注释沿 negbend `:87` 先例形·post-COMMIT asPrincipal 回调外·Ban 移入回调内遵守）·import 免重（negbend 并线已在 `:4`·§4-2 已吸收支裁定）。404 路径零 evict（守卫后）。
+- **件②**（`apps/api/test/neg-bend.proof.ts`·纯增三处+簿记两行·既有 178 臂断言本体零字节）：`:44` 注释尾追加 evictU 专用说明+`:48` 种子行逐字改（追加 `('evictU','ev@x.com','scrypt$ev$v','candidate','approved')`）+`:221/:222` 之间插复合单臂（恰 1 个 A(·填充/复请求两腿 Bearer `tokenFor('evictU')`·停用腿 `adm` dev 头 rev2 择定）+`:597` 条数 178→179（括注尾 `+admin-disable-evict 增臂 1`）+`:599` §5 泄漏 6→7。
+
+**门矩阵十二门**：全绿（install EXIT=0 零 lockfile 改·neg:bend **179/179**·neg:all **687/687** 六段·api-harden **31/0**·migrate 链 **201** 头 **0201** 零迁移·drift 零漂移·uniqueness files=201 violations=0·typecheck **8/8** 0 cached·lint 12/12 三值恰等贴边 root **5224**/web **601**/api **1421**（api+root cache miss 新跑实测零 +1 消费）·docs:check 终态 **2110≤2112**·markers 五类 HITS=0·diff 面恰 **3 tracked**·卫生 `.env*` ABSENT+est live=0）——全表 EXIT 原值见收据三节。
+
+**偏离**：实质偏离**零**·形制登记五条（件① 净 +1 行预告形/根隔离 wrapper 代直跑·内层命令恒等/基建红两次前置零臂执行/门 2 stash 基线对照跑·§8 先例形/tsbuildinfo 回滚一次·§2-11 预案）——逐条见收据七节。
+
+**交付 commit**：本 commit（`fix(admin): gateway_admin_disable 补 post-COMMIT evict+neg 增判别臂——principal.guard:16 契约最后违例闭合`）·diff 恰 3 tracked（收据 untracked 不入集）。**STOP=`executed:awaiting_post_prove_dual`**（post 双审两外席待命·Ban push·行翻面/nail 排序归协调方）。
