@@ -1,6 +1,6 @@
 # AG-COST5 — 成本轨第⑤步：AG-08 熔断键按端点∥（MODEL-OP-02 准入/熔断/并发分区键从注册表硬编码 dashscope-main/cn-beijing 改随实际端点+主备分别建种子+claim 后 failover 同 cost scope 预绑定切换〔裁决项③定行使度〕）（B 席六步之⑤ · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·⛔push·est live=0·docs-only 恰 1 .md 零码动。Ban self-approve · alone≠dual · Dual PASS ≠ 开工。**rev2**=pre-exec 双审两席 FAIL 全数处置稿·STOP 维持·仍候双审重跑+协调方授权）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工席完工停·⛔push·est live=0。pre-exec 双审 rev2 双 PASS+协调方授权开工在案；并线主线 @`12ecb34b`→merge `338e5f1b` 零冲突·三件落值+门矩阵全绿见 §9 EXEC 附记。Ban self-approve · alone≠dual · post 双审未过 ≠ 收官）
 
 **席位**：meetwise 战役 AG 成本轨第⑤步起草席（AG-08 熔断键按端点∥ · EXPERT-REVIEWS §七 :67 成本轨 B 席六步之 **⑤**「⑤AG-08 熔断键按端点∥」——①止血+观测已 nail `6f2ed876`、②迁移 dfcadd9e 收官、③AG-12 已 nail `9d69a5b1`（0184 在链）、④AG-11 三件套+EG-B2 EXEC 在飞（`line/ag-cost4` @`e100a2a7`·0188 已占·STOP=`executed:awaiting_post_prove_dual`）·**⑤=队列下一刀**·系失败语义轨六刀（全收官）与 cost④ reserve/settle 面之外的**模型客户端熔断新面**（AG-08 原案）：本刀「熔断」=0120 MODEL-OP-02 durable 共享熔断（`ai_model_breaker_state`）·与 AG-24 已删 in-process 死代码（circuit-breaker.ts/rate-limit-model.ts·`724d61b5` 主线在链）零关零复活）。
 **基线**：`feat/mysql-schema-skeleton` @ **`d68ffe17`**（本工作树 tip·AG-39 nail 收官随翻笔·合并后迁移链深 **187**·`ls packages/db/migrations | wc -l`=187 亲证）。分支 `line/ag-cost5` · 工作树 `meetwise-cost5`（`git worktree add -b line/ag-cost5 d68ffe17` 初建即在本 tip·`git status --short` 除本卷外零输出亲证）。**在飞交叠披露**：cost④（`line/ag-cost4`）已改 `packages/ai-runtime/src/invoke.ts`（reserve LEAST :862 区+settle 解构 :963/:1064 区）未并主线——本刀 invoke.ts 触面（admit 区 :664-:833）与其零同区·并线预合成义务见 §0.3-2。
@@ -177,3 +177,54 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 6. **席2 P2-1 存量行处置登记（裁决④ 扩名）**：旧四字键（dashscope-main/cn-beijing 族）breaker/policy 行=**legacy 回退集容忍僵尸**（件① registry admission 字段降级 legacy 回退值）+并发 **lease 过期自愈**（0120 :120-130 租约过期自清）+**冷启动重检窗 ≤threshold**（breaker_threshold=5 上界·0120 :52-57/:59 亲证）；**部署顺序=迁移先于 TS overlay**（0200 先 apply·件① 代码后上线）。落裁决④ 附带段。
 7. **席1 勘误三处**：0130 墙二 :168-170→**:167-170**（:167 `IF invocation.cost_scope_id IS DISTINCT FROM p_cost_scope_id`／:170 `END IF` 亲证）；#11 :222→**:221**（`const primary = endpoint(...)` 亲证行）；§0.3-3 rg「零命中」→**零活引用（3 处在证）**：ai-runtime index.ts :196 删除注释／ag24 proof :132/:133/:137/:174 整删断言／errors index.ts :5 迁移注释（rg 亲证 3 文件 7 行皆删除在证非活引用）。
 8. **自检**：docs:check EXIT=0（scanned 实测留回执）·markers 五类零命中（改动集 grep·词面运行时组装不落卷面）·STOP=`draft:awaiting_pre_exec_dual` 维持·⛔push·commit=rev2。
+
+## §9 EXEC 附记（2026-10-14·EXEC 施工席·STOP=`executed:awaiting_post_prove_dual`·⛔push）
+
+**并线**：`git merge --no-ff feat/mysql-schema-skeleton`（tip=`12ecb34b` CIW2 nail 收官）→ **merge `338e5f1b`** 零冲突（95 文件·与本刀触面零重叠亲证）·链深 **187** 维持（主线未增迁移·链顶 0187·0188=cost④ 支线仍未并线·0190-0199=5B-MIG 未并线=§0.3-1 登记值全维持）。**§0 全量重 pin**：恰数锚全数实测维持（registry 硬编码=7／allowed 种子=8 legacy 原值／准入三拒绝点=3（:750-763/:816-833/:865-869 现界）／决策码=8／瞬时族=6／五 proof 臂数（`rg -c "A\('"`）=**24/14/23/15/11** 恒等／failoverModel 生产构造点=1（interview-service :227））；25 blob 锚 23 恒等，2 漂移如实登记：`ag-d-admission.proof.ts`（`19f2c2e5`→`9bc8d683`·CIW2 strictNull 最小窄化 1 处）与 `model-slot-bypass.proof.ts`（`516b5d76`→`07e30ce3`·CIW2 冗余恒真条件删 1 行）——**臂数 23/11 不变+断言语义零变=「结论不变」判读成立**（漂移源=主线 `ad78e0ff` union 三红消解，非本刀面）。**迁移号终裁=0200**（EXEC 实测：主线链顶 0187·0200 空闲·`check-migration-version-uniqueness` files=188 violations=0 终裁·协调方裁决在案）。
+
+**裁决落值（全部按 rev2 推荐行使）**：**①(a)** admit 相位叠加——invoke.ts :664 `resolveModelAdmissionPartition(spec)` 原行零字节（静态门 :70-71 正则钉**零重钉亲证**），端点身份在 admit 相位 `if (admissionPartition)` 守卫内经 `withAdmissionEndpointPartition` 纯函数叠加（model-admission.ts 新增，:664 之后 :751 区）后调 `admitSharedModelOperation`（单 await 调用守恒）；**②(a)** endpoint profile id 形——`providerAccount=profile id（'deepseek-cn-public'/'dashscope-cn-beijing'）·region='cn'`（TextEndpointConfig.region 同源·0120 :29-30 CHECK 收纳亲证），0200 种子 14 行静态落库；**③(b)** 有界形——件①件②全量+预绑定对 **TS 常量对表**（registry `MODEL_COST_FAILOVER_PREBOUND_ENDPOINT_KEYS` 14 行字面+`preboundCostFailoverProfiles` 唯一派生纯函数·键闭集=profile id×operation_id·主备 binding 映射留运行时派生）；:806 `sameCostPolicyBinding` 全等门与 `model_failover_cost_policy_mismatch` 终态**语义零改**·0130 墙一/0088 墙四零字节·墙一归一化判归 **AG-09 联动刀**（对表即其消费源·承接关系本笔登记）；**④(a)** 种子照建+存量行处置登记——旧四字键（dashscope-main/cn-beijing 族）=legacy 回退集（registry `admission` 字段注释降级·七行字面零删除）·容忍僵尸+lease 过期自愈（0120 原机制）+冷启动重检窗 ≤threshold=5+**部署顺序=迁移先于 TS overlay**。**P2① vision 先判落值**：model-client.ts 身份填充表达式 `cfg.vision===true` 恒先判不填（即便 backup 同真也不带身份——vision/dashscope-native 分区恒 registry 派生零漂·vision OCR 生产面不受本刀影响；vision+backup 组合生产接线不存在，若未来出现以 vision 分区为准=保守侧）。
+
+**三件落点**：
+- **件①**：`packages/ai-runtime/src/model-admission.ts`（+`ModelEndpointAdmissionIdentity` 接口+`withAdmissionEndpointPartition` 纯函数·resolve 头注扩记）·`packages/ai-runtime/src/invoke.ts`（ready 臂+可选 `admissionEndpoint` 字段·**不进 claim 不进 requestDigest**=墙一零字节·admit 相位叠加 1 处）·`packages/ai-runtime/src/model-client.ts`（:611-613 三分支后+身份常量·vision 先判·prepare 返回形填身份）·`packages/ai-runtime/src/failover-model.ts`（:19 无 prepare 回退形显式 `admissionEndpoint: undefined`=legacy 零漂）。
+- **件②**：`packages/db/migrations/0200_ag08_admission_partition_per_endpoint_seeds.sql`（新·恰 1 迁移·14 行 allowed ON CONFLICT DO NOTHING·既有 0120/0131 行零字节）+ `packages/ai-runtime/test/model-op02-shared-provider.proof.ts` :78 **carve-out 改写收据**（沿 cost3 :121 形·预申明兑现：`allowedSeed===8+14`·8 legacy+14 端点分域分计·blocked===8 零扩零缩·改写仅限本臂·其余 24 原值臂零改写·强度不减反增）。
+- **件③(b)**：`packages/ai-runtime/src/model-operation-registry.ts`（对表 14 行字面+派生纯函数+wired text 头注 legacy 降级注记）。
+- **门注册（新 proof 机械必需·随卷登记）**：`packages/ai-runtime/package.json`（+`prove:model-op02-endpoint-partition`）·根 `package.json`（+`model-op02-endpoint-partition:prove`/`:raw` 两 script）·`scripts/run-e2e-isolated.mjs`（receipt sources+validity 列表+migrate 列表+命令分派四处·沿 model-op02 同形 additive）。
+
+**门矩阵全表（§2 门表·全绿·est live=0 全程零外呼）**：
+
+| # | 门 | 结论 | 关键行 |
+|---|---|---|---|
+| 1 | `model-op02:prove` | **绿 EXIT=0** | 32 臂全 PASS=24 原值+:78 carve-out 改写 1+新增分域臂 7（①主端点 admit②独立槽系 4×2 容量③**熔断分域否证臂**④半开互不累及⑤未知端点 operation_unknown⑥legacy 零漂⑦六码族零扩零缩） |
+| 2 | `model-op02-endpoint-partition:prove`（**新**·两轮） | **绿 EXIT=0** | 11 臂全 PASS（⑧对表 5 臂含基数=14 等式+0200 种子 14 行在库+相位①备 profile 分区随动②legacy 零漂③spec 透传负臂④vision 负臂+text 主备身份臂） |
+| 3 | `model-op00:prove` | **绿 EXIT=0** | 同 key 并发/冻结 binding/围栏原值 |
+| 4 | `ag-d-admission:prove` | **绿 EXIT=0** | ai-runtime 23 原值+worker 15 原值全 PASS |
+| 5 | `model-slot-bypass:prove` | **绿 EXIT=0** | 11 原值臂（HC-GAP-009 缝原值） |
+| 6 | `model-slot-bypass:static:prove` | **绿 EXIT=0** | 14 原值臂·:70-71 正则钉**零重钉**（件①保 :664 原行设计约束亲证） |
+| 7 | `migrate:prove` | **绿 EXIT=0** | applied=**188** skipped=0（0200 全 apply·幂等形在链） |
+| 8 | `drift:prove` | **绿 EXIT=0** | schema 无漂移 |
+| 9 | `check-migration-version-uniqueness` | **绿 EXIT=0** | files=188 violations=0（0200 唯一·三历史双号豁免维持） |
+| 10 | `turbo typecheck --force` | **绿 EXIT=0** | 8/8（两轮·proof 改名后复跑） |
+| 11 | `turbo lint --force` | **绿 EXIT=0** | 12/12（ai-runtime 621=cap 621 **未动 cap**·新 proof 两告警修净零残留） |
+| 12 | `docs:check` | **绿 EXIT=0** | 80 required+scanned **2069** |
+| 13 | markers 五类 | **零命中** | 改动集 11 文件五类标记词（词面不落卷面·§7 同形制）grep 零输出 |
+
+**恰数锚 post-change 复测**：registry 硬编码=7（零删）·allowed 总账=8 legacy+14 新=22（op02 种子臂实证）·准入三拒绝点=3·决策码=8·瞬时族=6·五 proof 臂数原值 24/14/23/15/11 全保（新增臂全数落 op02 新块与新文件·零既有臂语义改写）·failoverModel 构造点=1·链顶 0187+0200=188。**停止条件零命中**。
+
+**陷阱 13 条自检（本刀 ServiceImpl 等价面=ai-runtime src 四文件+registry+两 proof）**：
+1. 分区键 caller 供=禁——端点身份仅 model 层 prepare 从冻结 profile 注册表派生，spec 零新字段（③负臂直证）✓
+2. :664 resolve 原行零字节（静态门正则钉零重钉亲证）✓
+3. admit 单 await 调用守恒+守卫块结构不破（静态门 :74/:79 两臂绿）✓
+4. 端点身份不进 claim/requestDigest（墙一/0130 零字节=AG-09 面不越界）✓
+5. 八决策码/0179 六码族零扩零缩（码面零改·端点维度入键不入码·⑦臂断言）✓
+6. vision 负臂亲证（dashscope-native 分区零漂·OCR 生产面零波及）✓
+7. legacy/无 prepare 路径零漂（registry 回退原值·②臂+failover-model 显式 undefined）✓
+8. 0120 DDL/PK/REVOKE/SECURITY DEFINER 范式零改（0200 纯 INSERT ON CONFLICT DO NOTHING）✓
+9. 既有种子行零字节（0120 :52-68+0131 :14 原值·种子臂 8 legacy 分计直证）✓
+10. 对表静态闭集 type 级+遍历双保险（14=7×2 等式臂+prebound 派生臂）✓
+11. 无 retry-to-green（新 proof 首跑即绿；lint 两告警系修净非 skip-as-pass）✓
+12. est live=0（全 proof fixture/隔离容器/scripted·零真实 provider·零 secrets）✓
+13. 零意图文件零残留（tsbuildinfo 构建产物 checkout 还原·改动集 11 文件全为本刀清单内）✓
+
+**est live=0 收据**：门 1/2/3/4/5/7=隔离 pgvector 容器+fixture（LOCAL_ISOLATED_PROOF_RECEIPT 在案 `.tmp/isolated-proof-receipts/`·release_evidence=false）·门 6/8/9/12/13=静态扫描·零模型外呼零消耗（pins 脚注 `actualSpendCny=null` 维持）。
+
+**STOP=`executed:awaiting_post_prove_dual`** · ⛔push（push 归主会话批边界）· commit=fix(ai-runtime) AG-COST5 EXEC。
