@@ -12,7 +12,7 @@ import { createHash, randomUUID } from 'node:crypto';
  * 真源码依据(Read 于本次任务):
  *   - interview.controller.ts:begin(202,读 resume-id 头)/turn(202,ZodValidationPipe TurnDto)/legacy answer(410)/
  *     abandon(200)/report·retry·export/assessment·learning-plan·career-path/events(SSE)/transcript。
- *   - interview.service.ts:begin 对终态拒绝且对已有 start/active 幂等；turn 仅允许已 begin 的非终态会话；
+ *   - interview.service.ts:begin 对终态拒绝且对已有 start 幂等（A 形 5E 摘除 active·非终态即 created 复用）；turn 仅允许已 begin 的非终态会话；
  *     abandon 拒绝已完成/失败且对已放弃幂等；RLS 越权→0 行→404;report 无行→(interview_unavailable?→200 interview_failed : 404);
  *     generateAssessment 无可评分卡→409 no_scorable_cards;learning/career 无评估→409 assessment_required。
  *   - principal.guard.ts:无/坏令牌→401;账户非 active/不存在→401;__system* 保留主体→401。
