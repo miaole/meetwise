@@ -389,6 +389,17 @@ flowchart TD
 - [ ] 对每个关闭候选执行独立对抗复审；“实现者自审”“静态门绿”“本地回执”不能替代该步骤。
 - [ ] 只在对应范围满足真实运行、观测、告警、回滚和文档一致性时，将登记册改为 `已关闭`；未覆盖能力保持显式未验证。
 
+### E2E 现值登记（2026-10-15 · 登记式回填 · docs-only）
+
+> 协调方裁决：`testing/e2e-performance-evidence.md` 附录卷自身证据纪律禁无收据回填·**不动该卷**——E2E 现值改于本节登记式落卷（逐值标注出处 hash·登记不翻矩阵不闭 gap·append-only·后续以本节为现值锚）。
+
+- **neg:all 687/687**（admin-disable 增臂后·六段 auth 90+commerce 90+resume 91+interview 102+bend 179+input 135）——**如实分记**：主线现值 **686/686**（出处=5e-behavior nail merge `62e162ca`·negbend-fix nail 随并 `5aa6f17f`）+1 判别臂在途（`line/admin-disable-evict` EXEC `32b50110`·支线门矩阵 179/179+687/687 十二门全绿·卷 `admin-disable-evict-REQUEST.md` §9 亲读·**ade 支线待 nail 未并主线**）。
+- **sse-push 35/35**（ssepush nail 起）——出处=ssepush-notify nail merge `da65e0fb`（LEDGER「SSEPUSH-NOTIFY sse-push 2/35 承登红翻面登记」节 :512-519·主线自该刀起门绿 35/35）。
+- **neg:bend 179/179**（同上分记）——主线现值 **178/178**（出处同 `62e162ca`）+1 判别臂在途（出处同 ade EXEC `32b50110`）。
+- **UI 门⑥ pending**（live MODEL_API_KEY 环境受阻·非产品红）——出处=uc003-i18n nail merge `68ffcb58`（卷 `uc003-i18n-REQUEST.md` :119/:274·`run-e2e-ui.mjs:53` 强制 live MODEL_API_KEY 本环境确无→Playwright 零执行·DOM 首跑收据 pending·矩阵 stays partial）。
+- **interview:prove 红**（0192×0103 对撞·2026-10-14 perf-prep 门3 首曝）——出处=`7152cd3c` BATCH5B-MIG 迁移 0192 值域溯源面×0103 SECURITY DEFINER 函数体写点（`ck_interview_event_kind` 拒 score_card_written·SQLSTATE 23514 整事务回滚）；修复刀 `line/evkind-scorecard-fix` REQUEST `66d200d5`（**双审中**·draft:awaiting_pre_exec_dual）。
+- **perf-load+adaptive-consumer 两基线红在册不洗**——perf-load=oxc 容器环境面（非产品·5e-behavior nail `148cf83b` STILL OPEN 承登）；adaptive-consumer=AG-04 退避时序根因（`114f7189` 两臂 payload-only start·同上承登）·根因刀 `line/ag04-consumer-fix`（REQUEST `807ba02e` 已并主线 tip `6b9191e9`·**acf EXEC 中**）。
+
 ## 11. 原整改登记映射
 
 | 登记 ID | 本清单工作包 | 处理原则 |
