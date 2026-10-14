@@ -41,11 +41,11 @@ await h.pool.query(
   "INSERT INTO job_application(id,job_id,recruiter_user_id,candidate_user_id,status,source) VALUES " +
   "('APP_VICTIM','JOB_REC','recU','victimU','invited','applied')");
 // b110 审核制种子(§4.1·_neg-harness.ts:73 同法直插;存量行经默认 approved 零回归):
-//   pendU=审核中 / rejU=已拒(R6 分码);freshC=全新 active candidate 专供恒等探针「真实建申请」路径(不触碰既有申请行)。
+//   pendU=审核中 / rejU=已拒(R6 分码);freshC=全新 active candidate 专供恒等探针「真实建申请」路径(不触碰既有申请行)。evictU=active candidate 专供「admin disable→后续请求即时 401」判别臂(§5)。
 //   adminU 已由 harness :73-76 直插(is_admin=true·role='candidate')——审批经 POST /admin/recruiter-approvals/:id/decision。
 await h.pool.query("INSERT INTO user_account(id,email,password_hash,role,approval_status) VALUES " +
   "('pendU','pend@x.com','scrypt$p$p','recruiter','pending'),('rejU','rej@x.com','scrypt$rj$r','recruiter','rejected')," +
-  "('freshC','f@x.com','scrypt$f$f','candidate','approved')");
+  "('freshC','f@x.com','scrypt$f$f','candidate','approved'),('evictU','ev@x.com','scrypt$ev$v','candidate','approved')");
 // 旧库中可能存在「申请仍 in_progress、绑定面试已 abandoned」的历史行：
 // 0046/0082 会把运行时 start 约束收紧到 created/active，但不会伪造地重写
 // 这类历史事实。0123 只回填展示快照，不能因为 UPDATE 触发器再次检查 start
@@ -219,6 +219,13 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   // disable 不存在用户 → 404 not_found(非静默成功)
   const dz = await h.send('POST', '/admin/users/ghost_nonexistent/disable', adm, {});
   A('admin disable 不存在用户→404', dz.status === 404 && dz.body?.error === 'not_found');
+  // admin-disable-evict 件②:停用后下一请求即时 401(本进程 evict 契约臂·判别传输面=Bearer(rev2)·修前此臂红=守卫缓存滞留 active:
+  // 填充腿 Bearer 经 principal.guard :93 accountState 读 cache miss→DB active→回填 :61(缓存落 active 点)→:94 过→403 落 AdminGuard :18 accountState 读/:19 isAdmin!==true;
+  // 停用 200 落库;无本地 evict 时复请求腿 Bearer :93 吃陈旧 active 缓存→:94 过→403(AdminGuard)非 401)
+  A('admin disable 后该用户下一请求即时 401(本进程守卫缓存 evict·非 60s TTL 兜底)',
+    (await h.req('GET', '/admin/users', { authorization: 'Bearer ' + tokenFor('evictU') })).status === 403 &&
+    (await h.send('POST', '/admin/users/evictU/disable', adm, {})).status === 200 &&
+    (await h.req('GET', '/admin/users', { authorization: 'Bearer ' + tokenFor('evictU') })).status === 401);
   // 泄漏防线:/admin/users 跨用户只读,响应体绝不含 password_hash / pwd_epoch / preferences
   const us = await h.req('GET', '/admin/users', adm);
   const leakUser = Array.isArray(us.body?.users) && us.body.users.some((u: any) => 'password_hash' in u || 'pwd_epoch' in u || 'preferences' in u);
@@ -587,9 +594,9 @@ A('迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝'
   A('invite 429 后同主体后续恒 429(fail-closed,不静默换道放行)', after.status === 429 && after.body?.error === 'too_many_requests');
 }
 
-// ── 用例条数统计:共 178 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path;mkAssert 实测口径;i4 nail 合并实跑值)──
+// ── 用例条数统计:共 179 条纯负路径断言(全部为拒绝/隔离/无副作用,零 happy-path;mkAssert 实测口径;i4 nail 合并实跑值+admin-disable-evict 增臂 1)──
 //   fixture 前置 5 · §1 未鉴权 26(含 I3 JOB-MGMT 四端点 401 臂 4) · §2 坏 token/伪造主体 6 · §3 角色越权(recruiter)14(含 I3 JOB-MGMT 四端点 403 臂 4) · §4 admin 越权 9 ·
-//   §5 admin 特权边界+返回体泄漏 6 · §6 跨租户 IDOR(recruiter)7 · §7 跨用户 IDOR(application)9 ·
+//   §5 admin 特权边界+返回体泄漏 7 · §6 跨租户 IDOR(recruiter)7 · §7 跨用户 IDOR(application)9 ·
 //   §8 申请闭环负路径 9（含禁止 client interviewId 注入）· §9 招聘方写负路径 8 · §10 roles 5 · §11 profile 13 ·
 //   §12 DB 层 RLS 直证 10 · §13 b110 审核制三分码+审批解锁/留痕 28 · §14 b110 枚举恒等+第四探针 5 ·
 //   §14a I4 通知写侧接线臂 5 · §14b I4 browseJobs 收窄臂 3 · §14c I4 同意门识别列臂 5 ·
