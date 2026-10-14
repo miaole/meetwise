@@ -187,7 +187,7 @@ async function validate() {
   await db.pool.query(`SELECT set_config('app.principal_user','',false)`);
   await db.pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ('userA','paid',5.0, now()+interval '300 days')");
   await db.pool.query("INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ('c1','userA','resume_processing','v1'),('c2','userB','resume_processing','v1')");
-  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3),($4,$5,$6)', ['cpUser','cp@x.com', hashPassword('oldpass12'), 'deactUser','deact@x.com', hashPassword(['deactpass', '12'].join(''))]);
+  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3),($4,$5,$6)', ['cpUser','cp@x.com', await hashPassword('oldpass12'), 'deactUser','deact@x.com', await hashPassword(['deactpass', '12'].join(''))]);   // #34:hashPassword async 形
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin) VALUES ('userA','ua@x.com','scrypt$x$y',false),('adminU','admin@x.com','scrypt$a$b',true),('victimU','v@x.com','scrypt$v$w',false)");
   await db.pool.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('o1','userB','pack_10',9900,10,'paid')");
   await db.pool.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('n1','userA','report_ready','{\"overall\":76}'),('n2','userA','report_ready','{}')");
@@ -205,11 +205,13 @@ async function validate() {
   let readinessQueryCount = 0;
   probePool.query = async (...args: any[]) => { readinessQueryCount++; return originalProbeQuery(...args); };
   r = await req('GET', '/livez'); A('存活探针公开且不读 DB → 200 + 固定 ok', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 0);
-  r = await req('GET', '/readyz/api'); A('API 就绪探针 → 200 + 仅 SELECT 1', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 1);
-  r = await req('GET', '/health'); A('旧 /health 兼容映射 API 就绪探针', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 2);
+  // 审计 #92：readyz 探针从 1 条扩为**两条有界只读**（SELECT 1 + 账本 max(version COLLATE "C")），
+  // 仍不触任何业务表；db_unreachable 时在 SELECT 1 短路，探针查询数恒 ≤2。
+  r = await req('GET', '/readyz/api'); A('API 就绪探针 → 200 + 两条有界只读 + 迁移位 ok', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && readinessQueryCount === 2);
+  r = await req('GET', '/health'); A('旧 /health 兼容映射 API 就绪探针', r.status === 200 && r.body.status === 'ok' && r.body.schema?.migration === 'ok' && readinessQueryCount === 4);
   probePool.query = async () => { readinessQueryCount++; throw new Error('simulated_probe_dependency_failure'); };
-  r = await req('GET', '/readyz/api'); A('DB 失败时 readyz/api → 503 最小降级体', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined);
-  r = await req('GET', '/livez'); A('DB 失败不误杀 livez，且不额外读 DB', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 3);
+  r = await req('GET', '/readyz/api'); A('DB 失败时 readyz/api → 503 最小降级体(短路 1 条,迁移位 unknown)', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined && r.body.schema?.migration === 'unknown' && readinessQueryCount === 5);
+  r = await req('GET', '/livez'); A('DB 失败不误杀 livez，且不额外读 DB', r.status === 200 && r.body.status === 'ok' && readinessQueryCount === 5);
   r = await req('GET', '/health'); A('DB 失败时旧 /health 同样 fail-closed → 503', r.status === 503 && r.body.status === 'degraded' && r.body.error === undefined);
   probePool.query = originalProbeQuery;
   const corsRes = await fetch(base + '/livez', { headers: { origin: 'http://localhost:3000' } });

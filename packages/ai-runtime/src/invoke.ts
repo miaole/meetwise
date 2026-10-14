@@ -876,7 +876,13 @@ async function invokeReserveAndDispatchPhase<T>(
         const reserve = await reserveAiTextCost(c, {
           scopeId: policy.scopeId, requestOwner: owner, idempotencyKey: spec.idempotencyKey,
           provider: policy.provider, model: policy.model, region: policy.region, priceRevision: policy.priceRevision,
-          maxInputTokens: policy.maxInputTokens, maxOutputTokens: policy.maxOutputTokens,
+          // AG-11：预留改 LEAST(上限, 派发前估算)——估多少占多少，静态上限只作上界封顶。
+          // refine(estimate) 载体=plan.estimateInputTokens（prepare 相位已套 calibration refine，
+          // 与 claim 冻结值同源同值）；估算缺失（非预算 seam/scripted）回退上限=现行为零漂。
+          // 下界钳 1：reserve 输入侧域约束（p_input_tokens>=0 且 input+output>=1）防御性兜底，
+          // 现产估算链值域下界 ≥1 不可达。
+          maxInputTokens: Math.max(1, Math.min(policy.maxInputTokens, plan.estimateInputTokens ?? policy.maxInputTokens)),
+          maxOutputTokens: policy.maxOutputTokens,
         });
         reservationDecision = reserve.decision;
         if (reserve.decision !== 'reserved' && reserve.decision !== 'held') {
@@ -974,10 +980,14 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         return { error: 'external_outcome_unknown' };
       }
       let settledCost = 0;
+      let settledOverage = false;
       try {
         await asPrincipal(pool, owner, async (c) => {
           if (policy) {
-            settledCost = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+            // AG-11/EG-B2：settle 返回扩 overage 标记（真实消耗超预留的显式打标·结算不拒绝）。
+            const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+            settledCost = settled.microCny;
+            settledOverage = settled.overage;
           }
           const completed = await completeModelInvocation(c, {
             owner, idempotencyKey: spec.idempotencyKey, replayable: !spec.redactOutput,
@@ -995,6 +1005,8 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         if (policy) {
           getMetrics().inc(METRIC.modelCostDecisions, { decision: 'settled' });
           getMetrics().inc(METRIC.modelCostSettledMicroCny, undefined, settledCost);
+          // AG-11/EG-B2 月限只告警：overage 系异常态（政策稳态=0），>0 即告警载体计数。
+          if (settledOverage) getMetrics().inc(METRIC.modelCostSettleOverageTotal);
         }
       } catch {
         // 结算/落账失败 → 既有 settle 失败臂同形（:910-926）：breaker success（传输健康）+钱 unknown 待对账。
@@ -1071,6 +1083,7 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
   let stored: unknown;
   let value: T | undefined;
   let settledCost = 0;
+  let settledOverage = false;
   if (validated.ok) {
     value = validated.value;
     stored = spec.storeOutput ? spec.storeOutput(value) : (spec.redactOutput ? { redacted: true } : value);
@@ -1078,7 +1091,10 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
   try {
     await asPrincipal(pool, owner, async (c) => {
       if (policy) {
-        settledCost = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+        // AG-11/EG-B2：settle 返回扩 overage 标记（真实消耗超预留的显式打标·结算不拒绝）。
+        const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+        settledCost = settled.microCny;
+        settledOverage = settled.overage;
       }
       // A redacted invocation result cannot be replayed. Persist its encrypted
       // domain artifact atomically with the durable success marker, otherwise a
@@ -1106,6 +1122,8 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     if (policy) {
       getMetrics().inc(METRIC.modelCostDecisions, { decision: 'settled' });
       getMetrics().inc(METRIC.modelCostSettledMicroCny, undefined, settledCost);
+      // AG-11/EG-B2 月限只告警：overage 系异常态（政策稳态=0），>0 即告警载体计数。
+      if (settledOverage) getMetrics().inc(METRIC.modelCostSettleOverageTotal);
     }
   } catch {
     // We received a billable response but could not durably settle/record it.
