@@ -91,15 +91,21 @@ jobs:
       - name: 架构边界（无环 / 依赖向下 / ai-graphs 纯 / ai-runtime 关口）
         run: pnpm arch
 
-      # #96 typecheck 门（CI-WIRING 收窄裁形·零错域先点亮）：执行面 EXIT=0 + dry=json 选择面双向断言。
-      # 选择面恰 = //#typecheck(root e2e) + web + contracts 三任务；五 strict 债包（api/worker/db/ai-runtime/domain）
-      # 无 typecheck script 不选中——显式 Non-claims：禁给五债包新增 typecheck script，strict 债点亮归清债刀（后刀位另立·本刀不预支）。
-      # 选择面漂移（债包被点亮/零错域被摘除）= 红 = fail-loud。
+      # #96 typecheck 门（CI-WIRING 收窄裁形·零错域先点亮→清债刀五债包 strict 清零点亮·Ban 例外授权扩容）：执行面 EXIT=0 + dry=json 选择面双向断言。
+      # 选择面恰 = //#typecheck(root e2e) + web + contracts + api/worker/db/ai-runtime/domain 五债包 = 八任务（五债包 typecheck script 已点亮且 tsc 错数 0 后纳门·扩容随清债先后·禁预扩未点亮包）。
+      # 选择面漂移（任务增减·零错域被摘除）= 红 = fail-loud。
       - name: typecheck gate (turbo zero-error domains · #96 narrowed)
         run: |
           pnpm turbo run typecheck --dry=json > /tmp/turbo-typecheck-dry.json
-          node -e "const d=require('/tmp/turbo-typecheck-dry.json');const lit=d.tasks.filter((t)=>t.task==='typecheck'&&t.command!=='<NONEXISTENT>').map((t)=>t.taskId).sort();const expect=['//#typecheck','@meetwise/contracts#typecheck','@meetwise/web#typecheck'];if(JSON.stringify(lit)!==JSON.stringify(expect)){console.error('typecheck selection-face drift: '+lit.join(','));process.exit(1);}console.log('typecheck selection-face OK (zero-error domains lit · five strict-debt packages not selected): '+lit.join(', '));"
+          node -e "const d=require('/tmp/turbo-typecheck-dry.json');const lit=d.tasks.filter((t)=>t.task==='typecheck'&&t.command!=='<NONEXISTENT>').map((t)=>t.taskId).sort();const expect=['//#typecheck','@meetwise/ai-runtime#typecheck','@meetwise/api#typecheck','@meetwise/contracts#typecheck','@meetwise/db#typecheck','@meetwise/domain#typecheck','@meetwise/web#typecheck','@meetwise/worker#typecheck'];if(JSON.stringify(lit)!==JSON.stringify(expect)){console.error('typecheck selection-face drift: '+lit.join(','));process.exit(1);}console.log('typecheck selection-face OK (zero-error domains + five strict-debt packages lit): '+lit.join(', '));"
           pnpm turbo typecheck
+
+      # #96 LINT S3-S5 点亮（lint-design §1.5·四规则 warn 态零修复点亮）：turbo lint 全量绿 = per-workspace
+      # "lint": "eslint . --max-warnings N"（N=点亮日 dlx dry-run 实测基线：api 1412/web 579/worker 950/
+      # ai-graphs 47/ai-runtime 597/config 0/contracts 265/db-mysql 0/db 1038/domain 115/qdrant-store 27）——
+      # 存量不破门、潜增即红；error 恒红（点亮日 dry-run 实测 error=0）。
+      - name: lint gate (turbo lint · #96 LINT S3-S5 lit)
+        run: pnpm turbo lint
 
       # 面试公平轮转合同（无库）：owner 量子、失败关闭预算、retry/idle、切片隔离。
       # 远程 PostgreSQL 证明不在 per-push CI（需 E2E_CLOUD_ISOLATED=1；不得改起本地 Docker）。
@@ -166,6 +172,22 @@ jobs:
         run: pnpm drift:prove
       - name: B端历史快照迁移回归（stale binding + deferred FK pending events）
         run: pnpm neg:bend
+      # #114 负路径六步纳 per-push（七面红面清偿后一次纳·裁⑦）：本地实跑全绿（auth 90/commerce 90/resume 91/
+      # interview 102/input 135/uc033 51·无 key 隔离库·与 api:validate 同 runner 形）——负例门=合并闸语义，
+      # 不作 nightly 软化；红面清偿=断言零改夹具补单（0172/0173 挑选单随链+deactivate 密码复核随形+
+      # 0123 列面/0058 assert 函数/0093 契约面负测镜像），产品码零触。
+      - name: 负路径·认证/会话域（停用后令牌即时失效/再登录拒/防枚举）
+        run: pnpm neg:auth
+      - name: 负路径·commerce 域（额度/订单/回调负路径）
+        run: pnpm neg:commerce
+      - name: 负路径·resume/隐私域（越权/围栏/擦除负路径）
+        run: pnpm neg:resume
+      - name: 负路径·interview 域（终态/跨用户/abandon 幂等）
+        run: pnpm neg:interview
+      - name: 负路径·输入对抗域（注入/穿越/超长/unicode 不 5xx）
+        run: pnpm neg:input
+      - name: uc033 跨用户授权负路径（报告/面试/学习全臂）
+        run: pnpm uc033:cross-user-authz:prove
       - name: DBHY-1 卫生刀 prove（死表退役+sql/ 兼容镜像退役残面门+fresh deploy 重建+qbank 分区释放例程）
         run: pnpm dbhy1:prove
       - name: 模型熔断器（连败→降级快速失败不打模型→冷却半开→恢复关闭）

@@ -16,21 +16,21 @@ import { verifyPassword, verifyLogin, LOGIN_DUMMY_HASH, normalizeEmail } from '@
 async function main() {
   const { A, done } = mkAssert('authz5a:constant-time');
 
-  // ── ①/② verify 调用计数（注入计数 verify——计数证非墙钟）──
+  // ── ①/② verify 调用计数（注入计数 verify——计数证非墙钟;#34 async 形注入签名 (pw,stored)=>Promise<boolean>）──
   const counts = { missing: -1, existing: -1 };
   const countingVerify = (() => {
     let n = 0;
-    return { run: (pw: string, stored: string) => { n++; return verifyPassword(pw, stored); }, get: () => n, reset: () => { n = 0; } };
+    return { run: async (pw: string, stored: string) => { n++; return verifyPassword(pw, stored); }, get: () => n, reset: () => { n = 0; } };
   })();
   {
     countingVerify.reset();
-    const r = verifyLogin(undefined, 'whatever1', countingVerify.run);   // 账户不存在路径（u=undefined）
+    const r = await verifyLogin(undefined, 'whatever1', countingVerify.run);   // 账户不存在路径（u=undefined）
     counts.missing = countingVerify.get();
     A('恒时序/不存在账户 verify 恰跑 1 次（假哈希补位）', counts.missing === 1 && r === false);
   }
   {
     countingVerify.reset();
-    const r = verifyLogin('scrypt$0123456789abcdef0123456789abcdef$' + 'ab'.repeat(32), 'wrongpw99', countingVerify.run);   // 存在账户·错密路径
+    const r = await verifyLogin('scrypt$0123456789abcdef0123456789abcdef$' + 'ab'.repeat(32), 'wrongpw99', countingVerify.run);   // 存在账户·错密路径
     counts.existing = countingVerify.get();
     A('恒时序/存在账户错密 verify 恰跑 1 次（真实哈希同参）', counts.existing === 1 && r === false);
   }
@@ -39,7 +39,7 @@ async function main() {
   // ── ③ 假哈希同形 + 真跑 scrypt ──
   A('恒时序/LOGIN_DUMMY_HASH 与 hashPassword 输出同形（scrypt$<32hex>$<64hex>）',
     /^scrypt\$[0-9a-f]{32}\$[0-9a-f]{64}$/.test(LOGIN_DUMMY_HASH));
-  A('恒时序/假哈希经 verifyPassword 真跑一次 scrypt（同参可验·恒 false）', verifyPassword('whatever1', LOGIN_DUMMY_HASH) === false);
+  A('恒时序/假哈希经 verifyPassword 真跑一次 scrypt（同参可验·恒 false）', (await verifyPassword('whatever1', LOGIN_DUMMY_HASH)) === false);
   A('恒时序/normalizeEmail 归一形（trim+lower 单一 helper）', normalizeEmail('  AbC@X.COM ') === 'abc@x.com');
 
   // ── ④ 服务接线静态断言（auth.service 源面：单点 verifyLogin·零短路 verifyPassword）──
