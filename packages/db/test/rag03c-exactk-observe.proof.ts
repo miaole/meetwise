@@ -461,7 +461,7 @@ async function main() {
   /* ── 判别读数：P-HNSW（强制计划） ── */
   section('readings: P-HNSW（GUC-forced ordered HNSW）');
   const pHnsw = await runUnderPlan('P-HNSW', generationId, query, K);
-  receipt.pHnsw = {
+  const pHnswReading = {
     planSource: pHnsw.planSource, livePlan: pHnsw.livePlan, HNSW_USED: pHnsw.hnswUsed, hnswIndexName: pHnsw.hnswIndexName,
     hnswReturned: pHnsw.rows.length, hnswExactFillObserved: exactFive(pHnsw.rows),
     planFilterShape: { substituted_body: pHnsw.subShape, live: pHnsw.liveShape },
@@ -469,7 +469,8 @@ async function main() {
     returned: fmtHits(pHnsw.rows), noticeCount: pHnsw.noticeCount,
     explainJson: pHnsw.explain, liveExplainJson: pHnsw.liveExplain,
   };
-  console.log(`RAG03C_READING P-HNSW HNSW_USED=${pHnsw.hnswUsed} hnswReturned=${pHnsw.rows.length} hnswExactFillObserved=${receipt.pHnsw.hnswExactFillObserved} shape sub=${pHnsw.subShape} live=${pHnsw.liveShape} index=${pHnsw.hnswIndexName} returned=${JSON.stringify(fmtHits(pHnsw.rows))}`);
+  receipt.pHnsw = pHnswReading;
+  console.log(`RAG03C_READING P-HNSW HNSW_USED=${pHnsw.hnswUsed} hnswReturned=${pHnsw.rows.length} hnswExactFillObserved=${pHnswReading.hnswExactFillObserved} shape sub=${pHnsw.subShape} live=${pHnsw.liveShape} index=${pHnsw.hnswIndexName} returned=${JSON.stringify(fmtHits(pHnsw.rows))}`);
   if (ARM === 'P1') {
     A('R3C-P1-HNSW-USED', pHnsw.hnswUsed && !!pHnsw.hnswIndexName, `HNSW_USED=${pHnsw.hnswUsed} index=${pHnsw.hnswIndexName}`);
   } else {
@@ -481,25 +482,26 @@ async function main() {
   /* ── 判别读数：P-DEFAULT（自然规划器） ── */
   section('readings: P-DEFAULT（natural planner）');
   const pDefault = await runUnderPlan('P-DEFAULT', generationId, query, K);
-  receipt.pDefault = {
+  const pDefaultReading = {
     planSource: pDefault.planSource, livePlan: pDefault.livePlan, HNSW_USED: pDefault.hnswUsed,
     hnswIndexName: pDefault.hnswIndexName, returned: fmtHits(pDefault.rows),
     planFilterShape: { substituted_body: pDefault.subShape, live: pDefault.liveShape },
     nodeFacts: { substituted_body: planNodeFacts(pDefault.explain), live: pDefault.liveExplain ? planNodeFacts(pDefault.liveExplain) : null },
   };
+  receipt.pDefault = pDefaultReading;
   console.log(`RAG03C_READING P-DEFAULT HNSW_USED=${pDefault.hnswUsed} returned=${pDefault.rows.length} shape sub=${pDefault.subShape} live=${pDefault.liveShape} rows=${JSON.stringify(fmtHits(pDefault.rows))}`);
   A('R3C-SAFETY', safe(pDefault.rows), `plan=P-DEFAULT returned=${pDefault.rows.length}`);
 
   /* ── 门禁：读数全录 ── */
-  const readingsRecorded = typeof receipt.pHnsw.hnswReturned === 'number'
-    && typeof receipt.pHnsw.hnswExactFillObserved === 'boolean'
-    && typeof receipt.pHnsw.planFilterShape.substituted_body === 'string'
-    && typeof (receipt.pHnsw.planFilterShape as { live: string }).live === 'string'
-    && typeof receipt.pDefault.HNSW_USED === 'boolean'
-    && typeof receipt.pDefault.planFilterShape.substituted_body === 'string';
+  const readingsRecorded = typeof pHnswReading.hnswReturned === 'number'
+    && typeof pHnswReading.hnswExactFillObserved === 'boolean'
+    && typeof pHnswReading.planFilterShape.substituted_body === 'string'
+    && typeof pHnswReading.planFilterShape.live === 'string'
+    && typeof pDefaultReading.HNSW_USED === 'boolean'
+    && typeof pDefaultReading.planFilterShape.substituted_body === 'string';
   receipt.readingsRecorded = readingsRecorded;
   A('R3C-READINGS-RECORDED', readingsRecorded,
-    `hnswReturned=${receipt.pHnsw.hnswReturned} exactFill=${receipt.pHnsw.hnswExactFillObserved} shapes=${receipt.pHnsw.planFilterShape.substituted_body}/${(receipt.pHnsw.planFilterShape as { live: string }).live} defaultUsed=${receipt.pDefault.HNSW_USED}`);
+    `hnswReturned=${pHnswReading.hnswReturned} exactFill=${pHnswReading.hnswExactFillObserved} shapes=${pHnswReading.planFilterShape.substituted_body}/${pHnswReading.planFilterShape.live} defaultUsed=${pDefaultReading.HNSW_USED}`);
 
   /* ── 结局预注册映射（登记非定谳 · 定谳权归协调方） ── */
   const n = pHnsw.rows.length;

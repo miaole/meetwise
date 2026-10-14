@@ -160,7 +160,7 @@ A('⑤ MODEL_FAST 第三值 fail-closed：model_cost_invalid_model_fast_context_
 A('⑤ MODEL_BACKUP 第三值 fail-closed：model_cost_invalid_model_backup_context_estimator',
   failsWith({ ...backupEnv('utf8-bytes-v1', 'utf8-bytes-v1'), MODEL_BACKUP_CONTEXT_ESTIMATOR: '' }));
 A('⑤ MODEL_FAST_BACKUP 缺失 fail-closed（required 缺失即启动失败原值保留）',
-  failsWith((() => { const e: Record<string, string> = { ...backupEnv('utf8-bytes-v1', 'utf8-bytes-v1') }; delete e.MODEL_FAST_BACKUP_CONTEXT_ESTIMATOR; return e as NodeJS.ProcessEnv; })()));
+  failsWith((() => { const e: NodeJS.ProcessEnv = { ...backupEnv('utf8-bytes-v1', 'utf8-bytes-v1') }; delete e.MODEL_FAST_BACKUP_CONTEXT_ESTIMATOR; return e; })()));
 
 console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ AG-12 cjk-weighted-v1 估算器五臂证明全部通过（零 DB 零外呼）');
 process.exit(failures ? 1 : 0);

@@ -84,7 +84,7 @@ A('盘点文档与代码同 sink 名，并诚实保留 user_memory / ai_invocati
   && !inventory.includes('完整删除已完成'));
 
 const checkBody = migration.match(/CHECK \(sink IN \(([\s\S]*?)\)\)/)?.[1] ?? '';
-const checkSinks = [...checkBody.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]).sort();
+const checkSinks = [...checkBody.matchAll(/'([a-z_]+)'/g)].map((m) => m[1]!).sort();
 const domainUnion = [...new Set([
   ...PRIVACY_AUTHZ_SINK_KINDS,
   ...MEMORY_AUTHZ_SINK_KINDS,
