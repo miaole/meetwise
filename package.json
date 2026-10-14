@@ -230,6 +230,8 @@
     "ag-f-reroll:prove:raw": "pnpm -C apps/worker prove:ag-f-reroll",
     "model-op00:prove": "node scripts/run-e2e-isolated.mjs model-op00:prove:raw",
     "model-op00:prove:raw": "pnpm -C apps/worker prove:model-op00-db-state",
+    "ag11-settle:prove": "node scripts/run-e2e-isolated.mjs ag11-settle:prove:raw",
+    "ag11-settle:prove:raw": "pnpm -C apps/worker prove:ag11-settle-relax",
     "model-op00-usage-reconciler:prove": "node scripts/run-e2e-isolated.mjs model-op00-usage-reconciler:prove:raw",
     "model-op00-usage-reconciler:prove:raw": "pnpm -C packages/ai-runtime prove:usage-calibration-reconciler",
     "ucal-windowing:prove:raw": "node scripts/run-e2e-isolated.mjs ucal-windowing:prove:raw",

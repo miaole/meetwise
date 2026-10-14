@@ -862,7 +862,9 @@ async function invokeReserveAndDispatchPhase<T>(
           // AG-11：预留改 LEAST(上限, 派发前估算)——估多少占多少，静态上限只作上界封顶。
           // refine(estimate) 载体=plan.estimateInputTokens（prepare 相位已套 calibration refine，
           // 与 claim 冻结值同源同值）；估算缺失（非预算 seam/scripted）回退上限=现行为零漂。
-          maxInputTokens: Math.min(policy.maxInputTokens, plan.estimateInputTokens ?? policy.maxInputTokens),
+          // 下界钳 1：reserve 输入侧域约束（p_input_tokens>=0 且 input+output>=1）防御性兜底，
+          // 现产估算链值域下界 ≥1 不可达。
+          maxInputTokens: Math.max(1, Math.min(policy.maxInputTokens, plan.estimateInputTokens ?? policy.maxInputTokens)),
           maxOutputTokens: policy.maxOutputTokens,
         });
         reservationDecision = reserve.decision;
