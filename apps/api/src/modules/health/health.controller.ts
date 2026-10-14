@@ -8,9 +8,10 @@ import { getSseRegistry } from '../../platform/sse-registry';
  * `/livez` 只回答进程存活；`/readyz/api` 读取三面（任一失败即 503）：
  * ①数据库可达（SELECT 1）②启动配置校验状态（审计 #91：`config.envSchema` 布尔位）
  * ③迁移版本一致（审计 #92：账本 max(version) = 迁移目录 max——`schema.migration` 位，
- * 未迁移完/漂移即 503）。位值只有 ok/invalid/mismatch/unknown 固定枚举，
- * 不携带键名、版本号字符串或拓扑（本类注记纪律）。旧 `/health` 保留为 readiness（就绪）
- * 别名，避免已有编排器把兼容升级误判为可接流量。
+ * 未迁移完/漂移即 503）。`schema.migration` 位实发恰 ok/mismatch/unknown 三值固定枚举
+ * （invalid 仅属 `config.envSchema` 配置域，不混入本位）。位面不携带键名、版本号字符串或
+ * 拓扑（本类注记纪律）。旧 `/health` 保留为 readiness（就绪）别名，避免已有编排器把兼容
+ * 升级误判为可接流量。
  *
  * HA-2（R-18 排水链·C4）：SIGTERM 排水期 `/readyz/api` 与 `/health`（同 handler 天然
  * 同翻）读进程级排水旗翻 503——这是编排方摘流量的既有依据（compose healthcheck 即读
