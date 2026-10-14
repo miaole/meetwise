@@ -199,7 +199,7 @@ async function main() {
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [OWNER]);
   const newInterview = async (tag: string) => {
     const iid = `rg-${tag}-${Date.now()}-${randomUUID().slice(0, 8)}`;
-    await pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [iid, OWNER, up.resumeId, resumeEpoch]);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [iid, OWNER, up.resumeId, resumeEpoch]);
     await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, iid, 'mock_interview', 1.0));   // begin 预留(收尾结算面,adaptive-life 同款)
     return iid;
   };

@@ -59,7 +59,7 @@ async function main() {
   await asPrincipal(pool, OWNER, async (c) => {
     await c.query(
       `INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch)
-       VALUES ($1,$2,'active',$3,$4),($5,$2,'active',$3,$4)`,
+       VALUES ($1,$2,'created',$3,$4),($5,$2,'created',$3,$4)`,
       [IID, OWNER, resumeId, resumeEpoch, CID],
     );
     await c.query(`INSERT INTO resume_quiz(id,owner_user_id,status) VALUES ($1,$2,'created')`, [QID, OWNER]);

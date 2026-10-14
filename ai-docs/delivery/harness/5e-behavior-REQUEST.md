@@ -1,6 +1,6 @@
 # 5E-BEHAVIOR REQUEST（5E 残簇E 行为/设计面小刀 · 10 件 · 开放执行面 6 条 + 转登记 2 件 + 依赖划外登记 2 件 · 挂起登记 2 件零触 · issues-master 第5批-E 原文行逐件亲证 · 5E GROUP 裁决项⑴「呈报归独立行为小刀」承接立项 · 体量 M）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-14·**rev2 勘误席处置落卷 2026-10-14：pre-exec 双审两席 FAIL 全数处置**（见卷尾「rev2 勘误席处置摘要」·STOP 维持待复审）·**rev3 修订席落卷 2026-10-14：rev2 复审残 1-3+席1 N1/N2 处置·协调方裁决①定 A 形**（见卷尾「rev3 修订席处置摘要」·STOP 维持待复审）·**rev4 勘误席落卷 2026-10-14：rev3 复审双席 FAIL（席1 F1-F5·席2 P0-1/P1-1/P2-1/P2-2）全数处置·A 形扩测试面对应修+盲区登记补全**（见卷尾「rev4 勘误席处置摘要」·STOP 维持待复审）·**rev5 修订席落卷 2026-10-14：rev4 复审双席 FAIL（席1 R-1~R-4·席2 P1 扩面+P2×3）全数处置·测试面对应修扩面十一文件+face-1 口径修**（见卷尾「rev5 修订席处置摘要」·STOP 维持待复审）·**rev6 修订席落卷 2026-10-14：rev5 复审席1 PASS·席2 FAIL（六未登记 CAS 流入面+P2×2）全数处置·CAS 流入面扩至二十面/十七门**（见卷尾「rev6 处置摘要」·STOP 维持待复审）·先逐件亲证现态后起草·本刀起草/勘误/修订阶段恰 1 .md 零码动·EXEC/任何实施须预执行双审两外席 **BOTH PASS 落卷** + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工** · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-14·**rev2 勘误席处置落卷 2026-10-14：pre-exec 双审两席 FAIL 全数处置**（见卷尾「rev2 勘误席处置摘要」·STOP 维持待复审）·**rev3 修订席落卷 2026-10-14：rev2 复审残 1-3+席1 N1/N2 处置·协调方裁决①定 A 形**（见卷尾「rev3 修订席处置摘要」·STOP 维持待复审）·**rev4 勘误席落卷 2026-10-14：rev3 复审双席 FAIL（席1 F1-F5·席2 P0-1/P1-1/P2-1/P2-2）全数处置·A 形扩测试面对应修+盲区登记补全**（见卷尾「rev4 勘误席处置摘要」·STOP 维持待复审）·**rev5 修订席落卷 2026-10-14：rev4 复审双席 FAIL（席1 R-1~R-4·席2 P1 扩面+P2×3）全数处置·测试面对应修扩面十一文件+face-1 口径修**（见卷尾「rev5 修订席处置摘要」·STOP 维持待复审）·**rev6 修订席落卷 2026-10-14：rev5 复审席1 PASS·席2 FAIL（六未登记 CAS 流入面+P2×2）全数处置·CAS 流入面扩至二十面/十七门**（见卷尾「rev6 处置摘要」·STOP 维持待复审）·先逐件亲证现态后起草·本刀起草/勘误/修订阶段恰 1 .md 零码动·EXEC/任何实施须预执行双审两外席 **BOTH PASS 落卷** + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工** · ⛔push） → **`executed:awaiting_post_prove_dual`**（**EXEC 落卷 2026-10-14·5E-BEHAVIOR EXEC 席**：rev6 pre-exec 双审 BOTH PASS（席1+席2 会签）+协调方明示授权开工=§8 三条款行使（§9 亲证）·并线 merge `d1be34a3`（双亲 cf397409+主线 1af9803f·零冲突）·R1 切片 A 形三件+二十面改形全落（R2-R6 非本派单授权面零触）·§0 全量重 pin 零结论翻转（§9 漂移清单）·门矩阵：静态门全绿+十七门 15 绿+3 面基线同红在册定责不洗（adaptive-consumer:prove/uc018:perf-load:prove/neg:all bend 段·§9 定责证据）·零迁移·pins 十一值零翻·est live=0·⛔push·待 post-prove 双审·详见 §9）
 
 **席位**：#5E 残簇E 行为/设计面 REQUEST 起草席（北星 loop · 批5 残项 · 5E GROUP（25 件 @eb5c3f09 已并主线）收编后残簇E 十件承接立项）。
 **基线**：`feat/mysql-schema-skeleton` @ `12ecb34b`（起草时点主线最新 tip·CIW2 nail 收官 SSOT 提交·本席 `git fetch origin` 实测 origin 等值零新笔 2026-10-14·`git rev-parse` 本地/远端双值 `12ecb34b1…` 亲证一致）。分支 `line/5e-behavior`·工作树 `meetwise-5eb`（`git worktree add ../meetwise-5eb -b line/5e-behavior 12ecb34b` 本起草席已立·建前 `git worktree list` 实查无此树·建后 tip 亲证）。5E GROUP EXEC 并线 merge `8ee77301` 与 nail `eb5c3f09` 对 HEAD `git merge-base --is-ancestor` 祖先亲证 EXIT=0（簇A-D 25 面已落·簇E 零触=本卷前提）。**rev2 漂移明示（§0「基线漂移如实改锚」条款已触发）**：rev2 时点 `git fetch origin` 亲证主线 tip 已推进至 `6cd1b936`（越过分派所指 `7d2a4f3d`——其上 AUTHZ34 nail `ed82b873`+SSOT `6cd1b936` 两笔·`44f0f6b6`/`7d2a4f3d` 对 origin tip `merge-base --is-ancestor` EXIT=0 亲证）·本卷 §0 行号锚仍系起草基线 `12ecb34b` 树读数（=本支线 fork 点·内部自洽）·rev2 亲证 §0 参照文件对 `6cd1b936` 仅 `db/src/index.ts`（+1 行 latestMigrationVersion re-export）与 `migrate.ts`（+17 行）两处漂且均不涉本卷任一锚行（casTransition 仍 `:52-54` 亲证）·EXEC 立项照 §0 条款以当期 tip 全量重 pin。
@@ -137,7 +137,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*5E-BEHAVIOR REQUEST · 2026-10-14 起草落卷·同日 rev2 勘误落卷+rev3 修订落卷+rev4 勘误落卷+rev5 修订落卷+rev6 修订落卷（处置见卷尾五摘要） · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`12ecb34b`（rev2 时点主线 tip `6cd1b936` 漂移明示·§0 锚仍起草基线读数·EXEC 全量重 pin） · 分支 `line/5e-behavior` · 工作树 `meetwise-5eb` · 承接=5E GROUP（@eb5c3f09 已并·簇E 裁决项⑴「呈报归独立行为小刀」）+growth-gen 让渡三处（:39/:43/:89·#187 承接登记）· 蓝本=LEDGER :87/:89/:213/:216 + 5e-group-REQUEST.md :64-77/:193-209/:233/:268 + issues-master 十件原文行 :361/:370/:399/:401/:402/:406/:407/:414/:415/:426+挂起 :369/:374+依赖件 :273 + checklist :2262 + TASK-SOP-v2 :85 · 十件判定=开放执行面 4（#130/#132/#148/#149）+开放待裁 2（#27/#128 残·#27 处置面 rev3 裁决①定 A 形）+转登记 2（#2 产品前置/#187 D3 已落）+依赖划外 2（#165/#167 dep #164）· 挂起登记 2（#26/#32 零触·BILL3 capped 转活面如实）· §0 全锚亲证（10 件深核·漂移登记 15 行+rev2 增 3 行·文件迁子目录 commerce/ 与 interview/ 两处主漂因）· 防重检查过（5e-behavior 零命中·无同名卷·checklist 十件号恰 1 命中=:2262 登记面）· 迁移号实证（rev2 更正）=起草基线 187 件/最大 0187·**0188 已被 AG-11 成本轨④占用（rev2 亲证）**·新迁移仅裁决①B 授权恰 1 件（rev3 定 A 形·B 不行使=零迁移）·编号 EXEC 时点实测顺延（现势 0201 起） · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*5E-BEHAVIOR REQUEST · 2026-10-14 起草落卷·同日 rev2 勘误落卷+rev3 修订落卷+rev4 勘误落卷+rev5 修订落卷+rev6 修订落卷（处置见卷尾五摘要） · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`12ecb34b`（rev2 时点主线 tip `6cd1b936` 漂移明示·§0 锚仍起草基线读数·EXEC 全量重 pin） · 分支 `line/5e-behavior` · 工作树 `meetwise-5eb` · 承接=5E GROUP（@eb5c3f09 已并·簇E 裁决项⑴「呈报归独立行为小刀」）+growth-gen 让渡三处（:39/:43/:89·#187 承接登记）· 蓝本=LEDGER :87/:89/:213/:216 + 5e-group-REQUEST.md :64-77/:193-209/:233/:268 + issues-master 十件原文行 :361/:370/:399/:401/:402/:406/:407/:414/:415/:426+挂起 :369/:374+依赖件 :273 + checklist :2262 + TASK-SOP-v2 :85 · 十件判定=开放执行面 4（#130/#132/#148/#149）+开放待裁 2（#27/#128 残·#27 处置面 rev3 裁决①定 A 形）+转登记 2（#2 产品前置/#187 D3 已落）+依赖划外 2（#165/#167 dep #164）· 挂起登记 2（#26/#32 零触·BILL3 capped 转活面如实）· §0 全锚亲证（10 件深核·漂移登记 15 行+rev2 增 3 行·文件迁子目录 commerce/ 与 interview/ 两处主漂因）· 防重检查过（5e-behavior 零命中·无同名卷·checklist 十件号恰 1 命中=:2262 登记面）· 迁移号实证（rev2 更正）=起草基线 187 件/最大 0187·**0188 已被 AG-11 成本轨④占用（rev2 亲证）**·新迁移仅裁决①B 授权恰 1 件（rev3 定 A 形·B 不行使=零迁移）·编号 EXEC 时点实测顺延（现势 0201 起） · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual · **EXEC 落卷 2026-10-14（§9）**：rev6 双审 BOTH PASS+协调方授权开工·并线 `d1be34a3`（零冲突）·R1 切片 A 形三件+二十面改形全落·零迁移·静态门全绿+十七门 15 绿+基线同红三面在册定责不洗（adaptive-consumer/perf-load/neg:all bend·§9 定责）·STOP=`executed:awaiting_post_prove_dual`·待 post-prove 双审*
 
 
 ---
@@ -227,3 +227,83 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 | 4 | **计数同步**：§1-R1 三处+§2-1/§2-8「十一文件/十一门/十四面」A 形计数全数改「十七文件/十七门（十一+六）/二十面」+④段头扩「fail 链/完成链」链型名（ⓝ/ⓞ/ⓠ 三件系 completed 链·非原「报告链/abandon 链」两型所能涵）——B 形存档「多行 INSERT 盲区十四文件清单」系另一清单（多行 INSERT 面·与 A 形测试面计数无涉）零触零误伤 | A 形计数面逐处 rg 定位修后复扫亲证+B 形存档段十四文件清单原样在卷核亲证（§0.1 #27 子集指针句同步零触） |
 
 **自检回执（rev6 修订席实跑）**：`pnpm docs:check` EXIT=0；五类标记词本卷改动集 grep 零新增；全角括号逐行平衡复扫零失衡行（rev3 N2 教训·python 逐行计数回执）；STOP=`draft:awaiting_pre_exec_dual` 维持；结论翻转件=0（A 形定案维持·扩面系 A 形可执行性事实补登非现态翻转）；本表与正文处置一一对应。
+
+---
+
+## §9 EXEC 记录（2026-10-14·executed:awaiting_post_prove_dual·R1 切片·改形落点/收据/门矩阵/偏离全录）
+
+**三条款行使亲证**：①预执行双审两外席 **BOTH PASS 落卷**（rev6 后双审：席1 `agent_3586d812`+席2 `agent_41da0d56` 会签 PASS）；②**协调方明示授权 EXEC**（派单面）；③EXEC 立项**未改 §1 修法清单与 §5 Ban/pins**（A 形定案维持·R1 切片行使=裁决⑩分片支·R2-R6 非本派单授权面零触·pins 十一值逐字零翻）。
+
+**① 并线 merge**：`git fetch origin` EXIT=0 亲证 `origin/feat/mysql-schema-skeleton`=`1af9803f`（与派单 tip 等值）→ `git merge --no-ff feat/mysql-schema-skeleton` → merge commit **`d1be34a3`**（双亲 `cf397409`+`1af9803f`·`git ls-files -u` unmerged=0·**零冲突**·并集解惯例未触发·禁 pull --rebase 守住）。merge 后树：迁移链 201 件（0188-0201 自主线并入）·apps/api 全树对主线 tip `git diff --name-only` 零差亲证。
+
+**② §0 全量重 pin（重 pin 后以锚为准·漂移清单·零结论翻转）**：R1 执行锚全零漂——interview.service.ts 死读分支 :235-236 原位（:235 注+:236 读形逐字）·commerce.ts 三 CAS :377/:418/:505 原位（IN 列表值与 §0.1 逐字）·:452 ai_graph_run safe_terminating 面原位（零触确认）·interview.service.ts :500 `item.status === 'active'` 亲证系 answer-snapshot item 域非 interview 表域（零触）；二十面锚 ⓐ-⓱+三面（neg-interview :251/:546-553/:239/:469-470（重 pin 现树 :478）/adaptive-lifecycle :29/:162/:193/reaper :61-62）逐文件 rg/cat -n 全等值零漂；其余件读侧微漂如实（#130 console.error :358（卷载 :357-358 臂内 ±1）·#187 career_path upsert :86（卷载 :84-86 臂内）·#167 started 臂 :61-65（卷载 :60-62 ±2）·interview-event ON CONFLICT :32（卷载 :30-33 臂内）——均为臂内行漂·结论零翻·不涉本刀触面）。
+
+**③ 修法三件落点（现树行号）**：①删 `apps/api/src/modules/interview/interview.service.ts` 死读分支（原 :235 注+::236 读·现树 :234 throw 后直接 ：235 G7S 注=两行整删零余）②`packages/db/src/commerce/commerce.ts` 三 CAS 摘除 'active'：:377 →`IN ('created')`·:418 →`IN ('created','waiting_user','migrating','paused')`·:505 →`IN ('created','waiting_user')`（:452 ai_graph_run 零触原样）③二十面测试改形逐文件见下。
+
+**④ 二十面改形逐文件（'active'→'created'·方向按卷载链向）**：
+- 面1 neg-interview.proof.ts（apps/api/test）：:251 IV_ACTB 种子→'created'+增插 :252-259 匹配 start job 行（kind='start'·reference_schema_version=64·resume_id=R1·resume_privacy_epoch=1·固定 job id 常量·uc-e2e-033 :92 先例形）+断言块 :554-568 协同改形（202+alreadyBegun=true+jobId=种子 id+interview_job 行数零增+userA 预留行数零增·锚 :217-231 幸存幂等机制）+连带注释 :298 与 neg-commerce.proof.ts :591 措辞随形更新（零断言依赖）；_neg-harness :249-250 IV_ACT/IV_OTHER 零改形按登记保留。
+- 面2 adaptive-lifecycle.proof.ts（apps/worker/test）：:29/:162/:193 三种子→'created'（completed/fail 链公共成员）。
+- 面3 reaper.proof.ts（apps/worker/test）：:61-62 双行种子（IID+CID）→'created'。
+- ⓐuc-e2e-018-user-abandon.proof.ts（packages/db/test）：:72/:113/:151（双行）→'created'（abandon 链择一统一）。
+- ⓑreport-retry.proof.ts（packages/db/test）：:57/:249→'created'（completed 链必选）。
+- ⓒuc-e2e-019-report-regenerate.proof.ts（packages/db/test）：:66/:179→'created'。
+- ⓓuc-e2e-011-report-refund.proof.ts（packages/db/test）：:96/:124/:171→'created' 统一。
+- ⓔuc-e2e-018-user-abandon-http.proof.ts（apps/api/test）：:113/:154/:181（双行）→'created'。
+- ⓕreport-retry-http.proof.ts（apps/api/test）：:110→'created'。
+- ⓖuc-e2e-019-report-regenerate-http.proof.ts（apps/api/test）：:102/:239→'created'。
+- ⓗuc-e2e-011-report-refund-http.proof.ts（apps/api/test）：:134/:169/:210→'created' 统一。
+- ⓘag-e-report.proof.ts（apps/worker/test）：:112/:242→'created'。
+- ⓙag-f-reroll.proof.ts（apps/worker/test）：:103 助手单点 INSERT→'created'+:302 标签字面「仍 active」→「仍 created」+:303 期望值→'created'（标签随值防自相矛盾·rev6 P2 同款）；:239 failed 期望零改。
+- ⓚuc-e2e-018-ttl-sweeper-abandon.proof.ts（apps/worker/test）：:105→'created'；:106 insertGraphRun ai_graph_run 'active' 零触。
+- ⓛuc-e2e-018-adv.proof.ts（apps/api/test）：改形四种子 :114/:153 双行/:256/:307 id 行→'created'；中途态断言连带 :173/:192/:266/:274/:280/:287/:289/:324/:344-345（标签+期望值同改）；零改形保留 :209 bId 种子/:227/:307 other 行（userB）/:325/:347/:359（RLS-404-only 面）；:185 动态比读零改；终态 abandoned 期望零改。
+- ⓜuc-e2e-018-perf-load.proof.ts（apps/api/test）：seedAbandonTargets :233→'created'（调用点 :274/:339 全量经 abandon 链）；:241 ai_graph_run 零触。
+- ⓝadaptive-consumer.proof.ts（apps/worker/test）：CAS 流入七种子 :76（completed 链）/:252/:302/:331/:356/:385/:410（fail 链）→'created'；:78 FENCE_RACE/:436 DUP 零改形按登记保留。
+- ⓞadaptive-resume.proof.ts（apps/worker/test）：:129 助手单点→'created'（五调用点随语句）；:247-249 completed 期望零改。
+- ⓟrequeue-backoff.proof.ts（apps/worker/test）：:112 循环单语句→'created'（五种子统一）。
+- ⓠresume-grounding.proof.ts（apps/worker/test）：:202 助手→'created'；:283/:315 seam 零改形按登记保留。
+
+**⑤ 门矩阵（全表·隔离跑零模型外呼 est live=0）**：
+
+| # | 门 | EXIT | 摘录 |
+|---|---|---|---|
+| G1 | `pnpm turbo typecheck --force` | 0 | 8/8 successful |
+| G2 | `pnpm turbo lint --force` | 0 | 12/12·root 5202 problems(0 errors)≤5202 |
+| G3 | apps/api eslint `--max-warnings 1421` | 0 | 1421 problems 恰等（JSON 计数 api_warnings=1421 复证） |
+| G4 | `pnpm docs:check` | 0 | 80 required files·managed 2100≤cap 2104（改形后树+§9 落卷前双跑同绿） |
+| G5 | `node scripts/schema-drift-check.mjs` | 0 | 零漂移（豁免残面经登记） |
+| G6 | `node scripts/check-migration-version-uniqueness.mjs` | 0 | files=201 violations=0（链 201 与派单等） |
+| G7 | markers 五类标记词改动集 grep | 0 命中 | 恰 23 改动文件逐文件五类标记词+冲突标记零命中（词面沿运行时组装惯例不落卷） |
+| G8 | `pnpm migrate:prove` | 0 | applied=201·迁移运行器全部通过（零新迁移=改动集 migrations 零 diff） |
+| G9 | `pnpm adaptive-life:prove`（面2） | 0 | 全臂通过 |
+| G10 | `pnpm reaper:prove`（面3） | 0 | 全段通过 |
+| G11 | `pnpm neg:interview`（面1·neg:all 内段显式行） | 0 | 「neg:interview: 102 条负路径用例全绿」（neg:all 运行日志显式行） |
+| G12 | ⓐ `pnpm uc018:abandon:prove` | 0 | 原值 |
+| G13 | ⓑ `pnpm report-retry:prove` | 0 | 原值 |
+| G14 | ⓒ `pnpm uc019:report-regenerate:prove` | 0 | 原值 |
+| G15 | ⓓ `pnpm uc011:report-refund:prove` | 0 | 原值 |
+| G16 | ⓔ `pnpm uc018:abandon:http:prove` | 0 | 原值 |
+| G17 | ⓕ `pnpm report-retry:http:prove` | 0 | 原值 |
+| G18 | ⓖ `pnpm uc019:report-regenerate:http:prove` | 0 | 原值 |
+| G19 | ⓗ `pnpm uc011:report-refund:http:prove` | 0 | 原值 |
+| G20 | ⓘ `pnpm ag-e-report:prove` | 0 | 原值 |
+| G21 | ⓙ `pnpm ag-f-reroll:prove` | 0 | 原值 |
+| G22 | ⓚ `pnpm uc018:ttl:prove` | 0 | 原值 |
+| G23 | ⓛ `pnpm uc018:adv:prove` | 0 | 原值（末次收据=夹具措辞合规调整后终内容复跑 76 断言全过） |
+| G24 | ⓜ `pnpm uc018:perf-load:prove` | **1=基线同红不洗** | 见下方定责 |
+| G25 | ⓝ `pnpm adaptive-consumer:prove` | **1=基线同红不洗** | 见下方定责 |
+| G26 | ⓞ `pnpm adaptive-resume:prove` | 0 | 原值 |
+| G27 | ⓟ `pnpm requeue-backoff:prove` | 0 | 原值 |
+| G28 | ⓠ `resume-grounding:prove:raw`（runner 隔离） | 0 | ①②③④+G1-G4 全过（apps/worker :69 裸名 raw 需隔离 env·经 runner 目标 `resume-grounding:prove:raw` 行使） |
+| G29 | `pnpm neg:all` 六段 | **1=基线同红不洗·零回退** | 547 PASS+4 FAIL（neg-bend recruiter approve/reject 面·与本刀零回退判据见定责） |
+| G30 | `pnpm api-harden:prove` | 0 | 31 断言全过不回退 |
+
+**基线同红三面定责证据（E5 流程·批前/批后实测基线入收据·不洗）**：
+- **ⓝ adaptive-consumer:prove**（fail_count=2·「遗留 payload-only start」臂 ：294/:296）：stash 全改动后纯净 merge 树 runner 复跑同 fail_count=2 exit=1；原 'active' 种子（:252 回翻）raw 复跑同两断言红（四连重复）；根因=AG-04 刀C `114f7189`（`merge-base --is-ancestor` 对 cf397409 EXIT=0 祖先在案）requeue 无条件退避（2^attempts 秒）×本 proof :271-275 元数据领+requeue→:278 即时 drain 的时序互作用（drain 领被时闸挡下返回 'idle'）；两 merge 亲在该 proof+consumer+claim 三文件 `git diff` 零差=非 merge 引入·与本刀 'active' 摘除正交（'active' 种子同红实证）；本刀改形七种子臂全绿（pass_count 33 中两红恰系该正交臂）。
+- **ⓜ uc018:perf-load:prove**：stash 纯净 merge 树 TRUE_EXIT=1；带改动复跑日志对基线 diff（去容器 id/receipt 路径）**逐字节零差**=同模态同红；失败模态=caps API 子进程 oxc-resolver 原生绑定缺失崩（容器内 Node 20 环境面·非断言非行为）；冻结阈值门未走到断言层·环境基建面呈报。
+- **neg:all bend 段 4 FAIL**（recruiter approve/reject 四断言）：stash 纯净 merge 树同 547 PASS+同 4 FAIL 逐字相同=零回退；cf397409 支线基点对照树（临时 worktree）`neg:bend` EXIT=0 全绿 178 PASS→红系主线 tip `1af9803f` 自带（merge 树 apps/api 对主线 tip `git diff --name-only` 零差亲证·merge 零冲突非并解失误·主线 lint-clean nail 九门矩阵不含 neg:all 故未在主线显形）；修法面=主线 recruiter 域·越本刀授权边界零触呈报。
+
+**⑥ §2-1 断言面复证（rg 门）**：interview.service.ts interview 表域 `status === 'active'` 读分支零残留（:500 系 answer-snapshot item 域·:830-854 系 ai_graph_run 面·均零触在册）；三 CAS 语句 'active' 成员零残留（commerce.ts 全文件带引号字面仅余 :452 ai_graph_run 零触在册行）；生产写侧 `SET status='active'` interview 域零命中（恰余 §0.1 在册五测试种子文件）；casTransition 生产调用面零命中（仅定义+注释）；改形面种子残留=登记豁免面恰合（neg-interview :239/:478·adv :209/:307 other·perf-load :241·adaptive-consumer :78/:436·resume-grounding :283/:315·ttl :106·commerce :452）。
+
+**⑦ 偏离任务书清单（三笔·零行为）**：①commerce.ts :437/:500-501 两处 CAS 允许集直述注释随三语句同步（语句摘 'active' 后注释留旧即自相矛盾表述·rev6 ⓙ 标签连带同款纪律·措辞「active 非生产写入态·死成员已摘除」如实化）；②neg-interview.proof.ts :557 改形注释内 'active' 带引号字面去引号（防 blunt rg 门误报·零语义）；③adv proof :277 夹具错签名密钥字面追加自描述尾标 `-test-only`（commit secret-gate 放行类目合规——该行系前史遗留非本刀改行·hook 政策明文「自描述夹具放行」而原值不含放行词位·断言语义零变=任意错密钥→401·G23 终内容复跑绿）。其余零偏离：R2-R6/#2/#26/#32/#165/#167/#187 码面零触·SSOT 四件零触·migrations 零 diff·E2E 场景零新增·G7/SCORE 面·其他工作树零触。
+
+**⑧ 收尾声明**：markers=0（G7）·est live=0（全静态/隔离回归·零模型外呼·零生产操作·零 secrets·零 SMTP·`actualSpendCny=null` 脚注同源）·pins 十一值零翻·migrations 零新迁移零字节触（G8+改动集零迁移文件）·改动集恰 23 文件（2 生产+21 测试）+本卷 §9 落卷·est 基线红三面如实在册不洗呈报 post-prove 双审·⛔push（全程零 push）。**STOP=`executed:awaiting_post_prove_dual`·待 post-prove 双审两外席·alone≠dual。**

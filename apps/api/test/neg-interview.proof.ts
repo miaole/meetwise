@@ -248,7 +248,15 @@ const R1 = '11111111-1111-4111-8111-111111111111';
 const R2 = '22222222-2222-4222-8222-222222222222';
 const SHA64 = 'a'.repeat(64);
 await h.pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind,privacy_epoch) VALUES ($1,'userA','ingested',$2,'text',1),($3,'userB','ingested',$2,'text',1) ON CONFLICT DO NOTHING", [R1, SHA64, R2]);
-await h.pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ('IV_ACTB','userA','active',$1,1)", [R1]);
+await h.pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ('IV_ACTB','userA','created',$1,1)", [R1]);
+// 幂等重放形种子:IV_ACTB 预插匹配 start job(kind='start'·reference_schema_version=64·resume_id=R1·epoch=1),
+// begin 命中 start-job 幂等查询 → 202 alreadyBegun(不二次预留/不入队第二个 start)。
+const NEG_IV_ACTB_JOB_ID = '33333333-3333-4333-8333-333333333333';
+await h.pool.query(
+  `INSERT INTO interview_job(id,owner_user_id,interview_id,kind,seq,payload,reference_schema_version,resume_id,resume_privacy_epoch)
+   VALUES ($1,'userA','IV_ACTB','start',0,'{}'::jsonb,64,$2,1) ON CONFLICT (id) DO NOTHING`,
+  [NEG_IV_ACTB_JOB_ID, R1],
+);
 {
   const cli = await h.pool.connect();
   try {
@@ -287,7 +295,7 @@ A('begin 越权:userB begin userA 的 IV_ACT → 404(RLS 只见己)',
   is(await h.post('/interview/IV_ACT/begin', { ...B_, ...rid }, {}), 404, 'not_found_or_forbidden'));
 A('begin 越权:userA begin userB 的 IV_OTHER → 404(RLS)',
   is(await h.post('/interview/IV_OTHER/begin', { ...A_, ...rid }, {}), 404, 'not_found_or_forbidden'));
-// 无额度 402 需从 created 态 begin(IV_OTHER 是 active → begin 幂等短路 alreadyBegun,不触发扣额)。用 userB 自己的 created IV_UBC。
+// 无额度 402 需从 created 态 begin(IV_OTHER 无绑 resume 且非 created → begin 在绑定面 409 短路,不触发扣额)。用 userB 自己的 created IV_UBC。
 A('begin 无额度:userB begin 自己的 created 面试(IV_UBC)→ 402 insufficient_entitlement',
   is(await h.post('/interview/IV_UBC/begin', { ...B_, ...rb }, {}), 402, 'insufficient_entitlement'));
 A('begin 未鉴权(无任何主体头)→ 401',
@@ -544,12 +552,19 @@ A('begin 终态 failed(IV_FAIL)→409 interview_not_active',
 A('begin 终态 abandoned(IV_ABND)→409 interview_not_active',
   is(await h.post('/interview/IV_ABND/begin', { ...A_, ...rid }, {}), 409, 'interview_not_active'));
 {
-  // active 即便异常缺少历史 start job，也必须短路：不重新 reserve、不再入队第二个 start。
-  // (GODFN-1c 逐修:改用 INSERT 时已绑 resume 的 IV_ACTB——sql/22 binding-immutable trigger 禁 resume_id
-  //  UPDATE,且 active 短路路径要求 existingResumeId===header resume-id;断言语义不变:active → 202 alreadyBegun。)
+  // created 且已有匹配 start job(幂等重放形)也必须短路：不重新 reserve、不再入队第二个 start。
+  // (GODFN-1c 逐修:IV_ACTB 仍 INSERT 时预绑 resume——sql/22 binding-immutable trigger 禁 resume_id
+  //  UPDATE,且幂等路径要求 existingResumeId===header resume-id;死 active 读分支已摘,幂等短路
+  //  唯一幸存机制=start job 幂等查询,断言 202 alreadyBegun=true 且 jobId=种子 start job id。)
+  const jobsBefore = await h.pool.query("SELECT count(*)::int AS n FROM interview_job WHERE interview_id='IV_ACTB'");
+  const rsvBefore = await h.pool.query("SELECT count(*)::int AS n FROM entitlement_consumption WHERE owner_user_id='userA'");
   const r = await h.post('/interview/IV_ACTB/begin', { ...A_, ...rid }, {});
-  A('begin 已 active(IV_ACTB,INSERT 时预绑 resume)→202 alreadyBegun=true（不二次预留/入队）',
-    r.status === 202 && r.body?.alreadyBegun === true);
+  const jobsAfter = await h.pool.query("SELECT count(*)::int AS n FROM interview_job WHERE interview_id='IV_ACTB'");
+  const rsvAfter = await h.pool.query("SELECT count(*)::int AS n FROM entitlement_consumption WHERE owner_user_id='userA'");
+  A('begin created(IV_ACTB,预绑 resume)+已匹配 start job→202 alreadyBegun=true（不二次预留/入队）',
+    r.status === 202 && r.body?.alreadyBegun === true && r.body?.jobId === NEG_IV_ACTB_JOB_ID
+    && jobsAfter.rows[0].n === jobsBefore.rows[0].n
+    && rsvAfter.rows[0].n === rsvBefore.rows[0].n);
 }
 A('turn created(IV_CREATED 尚未 begin)→409 interview_not_started（不制造付费 answer job）',
   is(await h.post('/interview/IV_CREATED/turn', A_, VALID_TURN), 409, 'interview_not_started'));
