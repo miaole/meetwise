@@ -437,7 +437,8 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 起草 | billing P2 起草 | 影子计量 | 落卷 73dbdc90→EXEC 7c980b49→post BOTH→nail f3968440 |
 | 管线 | 刀D nail | AG-01 准入去终态化 | rev3 2b86722c→EXEC 7e0d64d0→post 双席 BOTH PASS→nail ccf3e7e7（merge 双亲 32bf35b8+7e0d64d0 已推·SSOT 详情=execution-master-checklist「Line AG-D nail」段·失败语义轨六刀 A-F 全收官） |
 | 管线 | AG-38 nail | 问答工具层 | REQUEST 004fd4cf→rev2 d4dd47a8→rev3 e74eec63→EXEC 7119ade3（红停 FILE_LIMIT→协调方修 59a3826b→翻面 0a59fa43）→post 双席 PASS→勘正 74847e8c→上席 merge 497aff89→重钉 20e2f442→nail merge e6a481c9（egress 补账 16114f7d 随行·SSOT 详情=execution-master-checklist「Line AG-38 nail」段） |
-| 排期 | AG-39 私有题库 | owner_kind+org_id+库内强制+来源审计 | 大型产品刀·挂用户排期 |
+| 管线 | AG-39 nail | 企业私有题库 | REQUEST c5a11362（基线 94b8519b）→rev2 1345d078→rev3 5803d451→rev4 1720c2b4（三轮回炉 docs-only·pre-exec 双审 BOTH PASS）→EXEC 1408d8c2（迁移号改占勘误 0182+0183→0186+0187·四件落点+裁决①-⑧行使）→post 双席 PASS→errata 修复 1a070625（50 臂）→并线预合成两轮 84554d66+518484de（含主线 497aff89）→nail merge ce44fb72（链 185→187·SSOT 详情=execution-master-checklist「Line AG-39 nail」段） |
+| 排期 | AG-39 私有题库 | owner_kind+org_id+库内强制+来源审计 | ✅ nail 收官 ce44fb72（防同表自相矛盾·随翻登记·SSOT 详情=execution-master-checklist「Line AG-39 nail」段） |
 | 排期 | AG-38 问答工具层 | runToolLoop 只读受限工具层 | 收官翻面→见上「补充 AG-38」行（✅ nail 收官 e6a481c9·宿主接线=成长顾问/B 端追问挂后继刀） |
 | 排期 | 批5 残项 | 批5 残 100 件 | 43/143 已收（5E 35+5A-1 八件 @5cb78dab·残 #34 两半起草中）·残归域刀 |
 ## BILL3 话题结算收官登记（2026-10-13 · nail 席红停→协调方接管修→收官 · 沿 :301 先例 · 非 271 计件面 · 权威值 146/271 维持）
