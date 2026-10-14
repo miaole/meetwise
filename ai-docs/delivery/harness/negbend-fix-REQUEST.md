@@ -180,3 +180,26 @@
 **停止条件四类全数未触**（现场漂移=§0.1 十锚 blob 复算零漂移+§0.0 在飞复核 b110 残枝判定；机制不满足=四臂指纹推定形相符+四臂全翻绿；越界需要=修法恒等件① 恰 1 文件面；验收红不可修=十二门全绿+承登双红恒等）·**§1.2 四臂根因结论/§5 Ban/pins 十一值/§8 三条款零改零翻转**。
 
 **STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与 neg:bend 红清单行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+
+## §9 append · 并线预备附记（nail 预备席落卷·2026-10-14·⛔push·上行 STOP 维持不翻·翻面权仍归协调方/主会话批边界）
+
+**工序 1 并主线（本席唯一树内动作=本附记段 docs 落卷）**：`git fetch` 后本地与 origin 同指 `feat/mysql-schema-skeleton`=`f1b899e6`（主线 tip 亲证恒等·UC003 SSOT nail 收官随并）→ `git merge --no-ff feat/mysql-schema-skeleton` → merge commit **`aeaa2782`**（双亲=`c046262d`+`f1b899e6`·ort 策略·**零冲突**：`git merge-tree --write-tree` 预跑 EXIT=0 零冲突面·实并同零冲突·20 文件 898+/147−·新件恰 2=`ai-docs/delivery/harness/uc003-i18n-REQUEST.md`+`apps/web/e2e-ui/uc003-i18n-locale.spec.ts`）。**冲突解=∅（零手解·无 union 手拼行）**：任务书预置三类解法（cap 行取主线/lint 预算取主线 sanctioned 值/注册行并集）全数未被触发——lint 预算 `apps/web/package.json` 579→**601**+根 5200→**5224**（主线 sanctioned 值随 ort auto 携入）+`apps/web/tsconfig.json` include 增 `e2e-ui/**/*` 随并·`apps/api/src/main.ts` 零交 auto·admin.service.ts 与主线零交未入 diff 面。禁 pull --rebase 遵守。
+
+**门矩阵十门（merge 后树 `aeaa2782` 本席亲跑·全绿·数字实测）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 1 | neg:bend | **178/178**·`✓ neg:bend: 178 条负路径用例全绿`（§9 四臂 recruiter_pending_review 翻绿态维持） | 0 |
+| 2 | neg:all 六段 | **686/686**（auth 90+commerce 90+resume 91+interview 102+bend 178+input 135·PASS 行总数机检=686） | 0 |
+| 3 | api-harden:prove | PASS **31**/FAIL 0·`✓ api-harden shared-state passed` | 0 |
+| 4 | migrate:prove | 全 PASS·`✓ 迁移运行器 全部通过`·链 **201 头 0201**（`packages/db/migrations` 机检 201 文件·尾=`0201_qbank_fusion_owner_rank_org_dedup.sql`） | 0 |
+| 5 | drift:prove | `✓ schema 无漂移`（豁免 2 项=0145 dbhy1 既登恒等） | 0 |
+| 6 | uniqueness | `files=201 violations=0 exemptions=0143,0152,0160` | 0 |
+| 7 | typecheck | `pnpm turbo typecheck --force`=`Tasks: 8 successful, 8 total`·`Cached: 0 cached, 8 total` | 0 |
+| 8 | turbo lint | 12/12 包全绿 EXIT=0·三贴线**恰等**：web `601≤601`+api `1421≤1421`+root `5224≤5224`（全包 0 errors·union 实测零超支线面·上轮 §9 承登双红=api 1431>1421/root 5212>5200 已随主线 sanction 预算与码面收敛在本树实测转绿） | 0 |
+| 9 | docs:check | `scanned 2103`≤cap **2104** EXIT=0（2100→2103 归因=merge 新件 2+前席落卷 untracked 收据 00-exec.md 1·`ls-files --others` 口径入扫·零自升零触 cap） | 0 |
+| 10 | markers 五类 | merge 引入行扫描（`git diff c046262d..aeaa2782` `^+` 口径·i6-239 词族）恰 1 命中=主线门记录散文词族枚举行（`f1b899e6` 侧原文逐字·1af9803f 引入·与既登 `ag37-deficit-persist-REQUEST.md:162`/`ag39-quality-REQUEST.md:195` 同形·非代码 marker·非本席笔·零手解故无解言行）；本席自笔（本附记段）新增行同口径**零命中** | 承登 |
+
+**运行副效应登记**：typecheck 门翻动 `apps/web/tsconfig.tsbuildinfo`（tracked 1 路径·非交付面）——`git checkout` 回滚基线（沿 §9 同款处置·本 commit diff 面恰 1 .md）。
+
+**下波 pusher 收尾清单**：①本附记 commit 落卷后 `line/negbend-fix` tip 即本 commit（父=`aeaa2782`）·pusher 收尾动作=仅 `git push origin line/negbend-fix`（⛔force push/禁 rebase/禁改史维持）；②STOP=`executed:awaiting_post_prove_dual` 维持不随本附记翻面（post 双审两外席待派·alone≠dual·nail 与 neg:bend 红清单行翻面权归协调方/主会话批边界）；③untracked 收据目录 `ai-docs/delivery/receipts/negbend-fix/`（00-03 四件）保持 untracked 口径不随 push 入库；④push 前若协调方令复跑，以本表为基线仅复跑翻红项·docs:check 余量=1（2104−2103）·后继任何新增受管文件刀需先过 cap 关。
