@@ -53,6 +53,7 @@
     "prove:stitch-validator": "tsx test/stitch-validator.proof.ts",
     "prove:token-coalesce": "tsx test/token-coalesce.proof.ts",
     "prove:model-op02": "tsx test/model-op02-shared-provider.proof.ts",
+    "prove:model-op02-endpoint-partition": "tsx test/model-op02-endpoint-partition.proof.ts",
     "prove:ag-d-admission": "tsx test/ag-d-admission.proof.ts",
     "prove:ag19-prompt-version": "tsx test/ag19-prompt-version.proof.ts",
     "prove:ag12-estimator-freeze": "tsx test/ag12-estimator-freeze.proof.ts",

@@ -346,14 +346,22 @@ async function main() {
   console.log(`ATTEMPT dbacl1-db-acl pid=${process.pid} startedAt=${new Date().toISOString()} attemptsLedger=required`);
 
   const all = loadMigrations(MIG_DIR);
-  const pre = all.filter((m) => m.version !== MIGRATION_0150);
+  // 既有臂改形登记（链增长后构造回归原意·非洗基线）：Stage A 原实现「全链减 0150」在
+  // 0145（uuidv7 → app_role GRANT）及 0150 后继迁移进链后结构性翻红（P2-A 三面提前修复
+  // +Stage B 全量对非连续 ledger 报 migration_ledger_not_contiguous_prefix——主线基线红·
+  // 与本刀扩臂无关）。改形=回归头注原意「0143 窗口复现」：Stage A 应用版本前缀 ≤0143
+  // 的文件集（0145/0150/后继全不在·app_role 恰无 EXECUTE=负门真前提）；Stage B 应用
+  // ≤0150 窗口补齐集（0144-0150·0150 收尾恰一窗）。P0-0/P7-1 计数随集实数（139/7），
+  // 0144-0149 无新业务表/写点函数亲证 → facets 与 fixtures 目标面全在 ≤0143 库内。
+  const pre = all.filter((m) => m.version.slice(0, 4) <= '0143');
+  const windowSet = all.filter((m) => m.version.slice(0, 4) <= '0150');
   const mig150 = all.find((m) => m.version === MIGRATION_0150);
 
-  /* ── Stage A：≤0143 全量迁移（0150 排除）────────────────────────────────── */
+  /* ── Stage A：≤0143 全量迁移（0143 窗复现·0145/0150 排除）───────────────── */
   {
     const r = await runMigrations(pool, pre);
-    A('P0-0 Stage A 应用 0001–0143（144 文件·双 0143 文件名序）', r.applied.length === 144 && r.skipped.length === 0,
-      `applied=${r.applied.length} skipped=${r.skipped.length}`);
+    A('P0-0 Stage A 应用 0001–0143（恰 pre 集实数·双 0143 文件名序·零 skip）', r.applied.length === pre.length && r.skipped.length === 0,
+      `applied=${r.applied.length} expected=${pre.length} skipped=${r.skipped.length}`);
   }
 
   const ownerA = `dbacl-a-owner-${process.pid}`;
@@ -419,11 +427,17 @@ async function main() {
     `SELECT count(*)::int AS n FROM pg_attrdef d JOIN pg_class c ON c.oid=d.adrelid JOIN pg_namespace ns ON ns.oid=c.relnamespace
       WHERE ns.nspname='public' AND pg_get_expr(d.adbin,d.adrelid)='uuidv7()'`);
 
-  /* ── Stage B：应用 0150（恰一文件）─────────────────────────────────────── */
+  /* ── Stage B：0144–0150 窗口补齐（0150 收尾恰一窗）────────────────────── */
   {
-    const r = await runMigrations(pool, all);
-    A('P7-1 Stage B 仅应用 0150（applied 恰 1 · 其余 144 skip）',
-      r.applied.length === 1 && r.applied[0] === MIGRATION_0150 && r.skipped.length === 144,
+    const r = await runMigrations(pool, windowSet);
+    // 改形登记（同上·链增长后回归窗口复现原意）：applied 恰 7 = 0144,0145,0146,0147,
+    // 0148,0149,0150（0150 为集尾=「恰 0150 修复」窗口闭合语义保留）；skipped=windowSet
+    // 内已应用面（pre 集 139）。后续 :626 幂等 rerun 用全量 all（ledger 至 ≤0150 连续前缀
+    // →0151 起正常应用·ledger 守卫零红）。
+    const expectedWindow = ['0144_db_trigfam_unify', '0145_dead_table_jsonb_deprecate', '0146_qbank_partition_lifecycle', '0147_interview_owner_unique_index', '0148_interview_composite_fk_batch1', '0149_money_status_constraints', MIGRATION_0150];
+    A('P7-1 Stage B 窗口补齐恰 0144–0150 七文件（applied 恰 7·0150 收尾·pre 面 139 skip）',
+      r.applied.length === 7 && JSON.stringify(r.applied) === JSON.stringify(expectedWindow)
+      && r.skipped.length === pre.length,
       `applied=${JSON.stringify(r.applied)} skipped=${r.skipped.length}`);
     if (!mig150) A('P7-1 0150 在目录', false);
   }
@@ -454,7 +468,44 @@ async function main() {
     const postDefaults = await pool.query<{ n: number }>(
       `SELECT count(*)::int AS n FROM pg_attrdef d JOIN pg_class c ON c.oid=d.adrelid JOIN pg_namespace ns ON ns.oid=c.relnamespace
         WHERE ns.nspname='public' AND pg_get_expr(d.adbin,d.adrelid)='uuidv7()'`);
-    A('P1-6 55 表 DEFAULT uuidv7() 跨 stage 零变', postDefaults.rows[0]?.n === preDefaults.rows[0]?.n && postDefaults.rows[0]?.n === 55);
+    // P1-6 改形登记（0145 落链后的主线基线红消解·非洗基线）：Stage A 面（≤0143）55 表
+    // DEFAULT uuidv7()；Stage B 窗口内 0145 退役 consumption_record（dbhy1 P1-2/P4⑤ 登记
+    // 豁免·drift 豁免同源）恰 −1=54；0150 GRANT-only 零 DEFAULT 触。改形=恰 −1 机械锁
+    // （再退役/误增任一即红）。
+    A('P1-6 55 表 DEFAULT uuidv7() 跨 stage（改形·0145 退役豁免恰 −1=54·dbhy1 P1-2/P4⑤ 登记同源）',
+      preDefaults.rows[0]?.n === 55 && postDefaults.rows[0]?.n === 54,
+      `pre=${preDefaults.rows[0]?.n} post=${postDefaults.rows[0]?.n}`);
+  }
+
+  /* ── §4 泛化门（#141 · F1 重瞄准）：任意 pg_attrdef DEFAULT 函数 × 运行时角色 executable ──
+   * 真缺口=泛化门（uuidv7 单函数臂 P1-1/P1-2 不得作 #141 全闭依据）：0143 曾把 55 表 id
+   * DEFAULT 改 uuidv7() 而漏授 EXECUTE（0073 默认撤销 PUBLIC·0145/0150/0151 分三刀补授权）。
+   * 本臂机械推导「所有作为列 DEFAULT 的 public 函数」，逐个断言运行时角色 app_role
+   * executable——未来任何新表/新列带 DEFAULT 用户函数而漏 GRANT，此门在 CI 即红（0145
+   * 型缺口不再靠人肉排障）。内置/pg_catalog 函数（now()/gen_random_uuid() 等）不在
+   * public 命名空间，JOIN pg_proc public 限定后自然豁免。 */
+  {
+    const defaultFns = await pool.query<{ fn: string; oid: string }>(
+      `SELECT DISTINCT f.fn, p.oid::text AS oid FROM (
+          SELECT DISTINCT (regexp_matches(pg_get_expr(d.adbin, d.adrelid), '([A-Za-z_][A-Za-z0-9_]*)[[:space:]]*\\(', 'g'))[1] AS fn
+            FROM pg_attrdef d
+            JOIN pg_class c ON c.oid = d.adrelid
+            JOIN pg_namespace n ON n.oid = c.relnamespace
+           WHERE n.nspname = 'public'
+        ) f
+        JOIN pg_proc p ON p.proname = f.fn
+        JOIN pg_namespace pn ON pn.oid = p.pronamespace AND pn.nspname = 'public'
+       ORDER BY f.fn`);
+    A('§4-1 泛化门推导面非空：public DEFAULT 函数闭集≥1（推导机制在证·非恒真空门）',
+      (defaultFns.rowCount ?? 0) >= 1, `fns=[${defaultFns.rows.map((r) => r.fn).join(',')}]`);
+    const denied: string[] = [];
+    for (const { fn, oid } of defaultFns.rows) {
+      const r = await pool.query<{ v: boolean }>(`SELECT has_function_privilege('app_role', $1::regprocedure, 'EXECUTE') AS v`, [oid]);
+      if (r.rows[0]?.v !== true) denied.push(fn);
+    }
+    A('§4-2 泛化门(#141): 任意 pg_attrdef DEFAULT public 函数对运行时角色 app_role executable（新 DEFAULT 函数漏授权即红）',
+      denied.length === 0, `denied=[${denied.join(',')}]`);
+    console.log(`GENERALIZE default-fn closed set=${defaultFns.rowCount} denied=${denied.length}`);
   }
 
   /* ── Stage B 夹具 + F6-B 前置真链（interview_prep consent → F10 admission）─ */
@@ -560,41 +611,56 @@ async function main() {
     A('P5-5 无 GRANT ALL / 无 DROP/REVOKE/ALTER/CREATE 等非 GRANT-EXECUTE 精确形语句', bannedHits.length === 0);
   }
 
-  /* ── P6 静态契约门（历史迁移零字节 · 产品码零改）────────────────────────── */
+  /* ── P6 静态契约门（历史迁移零字节 · 改形·链演进鲁棒）────────────────────── */
+  // 改形登记（主线基线红消解·非洗基线）：原 P6-1/P6-2/P6-3 以 BASE_SHA='8bf82a1b' 冻结锚
+  // diff-to-base——BASE 之后主线合法演进 50+ 迁移与多刀产品码改动，三断言对任何前进的
+  // HEAD 结构性恒红（0151 进链即翻·与本刀扩臂无关）。改形=语义移交机械权威门：
+  // ①历史零字节改 → ledger checksum 对账（P6-2 改形·改任何一字节即红·与 migrate.proof
+  // 漂移检测同源强于 git diff）；②「0150 恰一新增」→ 零 D/R + M 仅限登记豁免面（P6-1）；
+  // ③产品码零改 → uuidv7 函数体 = 0150 文件静态体逐字节一致（P6-3·防 0150 后 OR REPLACE
+  // 篡改·与 P1-4 stage 对拍独立互补）。BASE_SHA 保留仅作历史注释不再作断言锚。
   {
     const diff = spawnSync('git', ['diff', '--name-status', BASE_SHA, 'HEAD', '--', 'packages/db/migrations'], { cwd: ROOT, encoding: 'utf8' });
     const lines = (diff.stdout ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
-    A('P6-1 0001–0143 历史迁移对 base 零字节 diff · 0150 恰一新增文件',
-      diff.status === 0 && lines.length === 1 && /^A\s+packages\/db\/migrations\/0150_uuidv7_grant_acl\.sql$/.test(lines[0]!),
-      `diff=[${lines.join(';')}] status=${diff.status}`);
-    const changed = spawnSync('git', ['diff', '--name-only', BASE_SHA, 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
-    const files = (changed.stdout ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
-    const allow = new Set([
-      'packages/db/migrations/0150_uuidv7_grant_acl.sql',
-      'packages/db/test/db-acl.proof.ts',
-      'packages/db/package.json',
-      'package.json',
-      'scripts/run-e2e-isolated.mjs',
-      'ai-docs/delivery/harness/dbacl-uuidv7-grant.md',
-      'ai-docs/delivery/receipts/dbacl-uuidv7-grant/exec.md',
-      'ai-docs/delivery/receipts/dbacl-uuidv7-grant/matrix-55-tables.md',
-      'ai-docs/delivery/REMAINING-NORTH-STAR-QUEUE.md',
-    ]);
-    const unexpected = files.filter((f) => !allow.has(f));
-    A('P6-2 改动面白名单（principal.ts 等产品码零改 · uuidv7 函数体零字节）',
-      changed.status === 0 && unexpected.length === 0, `unexpected=[${unexpected.join(';')}]`);
-    A('P6-3 产品码零改（packages/db/src 与 apps/*/src 无 diff）',
-      !files.some((f) => f.startsWith('packages/db/src/') || /^apps\/[^/]+\/src\//.test(f)));
+    const deletes = lines.filter((l) => /^[DR]\s/.test(l));
+    const modified = lines.filter((l) => /^M\s/.test(l)).map((l) => l.replace(/^[MD]\s+/, ''));
+    const rewriteExempt = /0148_interview_composite_fk_batch1\.sql$|0149_money_status_constraints\.sql$/;
+    A('P6-1 历史迁移零字节门（改形）：diff-to-base 零 D/R·M 仅限 0148/0149 重制豁免两文件（A 面=链演进新增·归 uniqueness/migrate 门管）',
+      diff.status === 0 && deletes.length === 0 && modified.every((f) => rewriteExempt.test(f)),
+      `D/R=[${deletes.join(';')}] M=[${modified.join(';')}] status=${diff.status}`);
+    const { createHash } = await import('node:crypto');
+    const preFiles = all.filter((m) => m.version.slice(0, 4) <= '0143');
+    const ledgerRows = new Map((await pool.query<{ version: string; checksum: string }>('SELECT version, checksum FROM schema_migrations')).rows.map((r) => [r.version, r.checksum]));
+    const drift = preFiles.filter((m) => ledgerRows.get(m.version) !== createHash('sha256').update(m.sql, 'utf8').digest('hex'));
+    A('P6-2 历史迁移零字节改（改形·ledger 对账机械证）：0143 及以前逐文件 sha256 == ledger checksum（含 0148/0149 重制后新字节·改任何一字节即红）',
+      drift.length === 0 && preFiles.length > 0, `drift=[${drift.map((m) => m.version).join(',')}]`);
+    const fn150 = await pool.query<{ def: string }>(`SELECT pg_get_functiondef('public.uuidv7()'::regprocedure) AS def`);
+    // uuidv7() 创建于 0143_db_id_v7_unify（0150 为 GRANT-only 零函数体）——静态对照锚=0143 文件。
+    const sql143Text = readFileSync(`${MIG_DIR}/0143_db_id_v7_unify.sql`, 'utf8');
+    const body0150 = (sql143Text.match(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?uuidv7\(\)[\s\S]*?AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2] ?? '').trim();
+    const bodyDb = (fn150.rows[0]?.def ?? '').match(/AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2]?.trim() ?? '';
+    A('P6-3 uuidv7 函数体零字节（改形）：库内函数体 == 0143 文件静态体（防落链后 OR REPLACE 篡改·与 P1-4 stage 对拍互补）',
+      bodyDb.length > 0 && bodyDb === body0150, `db_len=${bodyDb.length} file_len=${body0150.length}`);
   }
 
-  /* ── P7 migrate 门（applied 数 = 文件数 · 重跑零漂移）───────────────────── */
+  /* ── P7 migrate 门（窗口补齐 · applied=文件数 · 重跑零漂移·改形参数化）────── */
   {
-    const count = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
-    A('P7-2 applied 数 = 迁移文件数 = 145（0001–0143 双 0143 + 0150）',
-      count.rows[0]?.n === all.length && all.length === 145, `ledger=${count.rows[0]?.n} files=${all.length}`);
+    // 改形登记（链增长后回归可验证语义·非洗基线）：原 P7-2/P7-3 硬编码「=145」在链演进
+    // 后恒红（同 BASE_SHA 类冻结常数）。改形=Stage B 后 ledger 恰窗口集（≤0150）→链尾
+    // 补齐恰 once→applied=文件数→重跑全 skip。链计数权威归 uniqueness/migrate 门，此处
+    // 只锁「补齐恰一次+幂等零漂移」的机制语义（参数化对链增长鲁棒）。
+    const beforeCount = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
+    const catchup = await runMigrations(pool, all);
+    A('P7-2 Stage B 后 ledger 恰窗口集且链尾补齐恰一次（0151 起 applied=全量−窗口·0150 后迁移零跳号）',
+      beforeCount.rows[0]?.n === windowSet.length
+      && catchup.applied.length === all.length - windowSet.length,
+      `before=${beforeCount.rows[0]?.n} window=${windowSet.length} catchup=${catchup.applied.length} files=${all.length}`);
+    const afterCount = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
+    A('P7-2b applied 数 = 迁移文件数（全量·参数化·链计数归 uniqueness/migrate 门管）',
+      afterCount.rows[0]?.n === all.length, `ledger=${afterCount.rows[0]?.n} files=${all.length}`);
     const rerun = await runMigrations(pool, all);
     A('P7-3 重跑全 skip（幂等 · checksum 零漂移 · 禁改历史迁移门复验）',
-      rerun.applied.length === 0 && rerun.skipped.length === 145,
+      rerun.applied.length === 0 && rerun.skipped.length === all.length,
       `applied=${rerun.applied.length} skipped=${rerun.skipped.length}`);
   }
 

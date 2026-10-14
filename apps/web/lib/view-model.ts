@@ -6,6 +6,7 @@ import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import { isTerminal, type InterviewView } from './stream/interview-state';
 import { generationProgressLabel } from './stream/generation-progress';
 import type { TypewriterCursor } from './stream/token-typewriter';
+import zhMessages from '../messages/zh.json';
 
 /**
  * TOKSTREAM S4b/R6：token 流显示面（UX-A 打字机·纯函数）。无游标=全量缓冲即时显示（组件升级前缺省）；
@@ -19,11 +20,19 @@ export function streamingTextDisplay(v: InterviewView, cursor?: TypewriterCursor
   return buf.text.slice(0, Math.max(0, Math.min(cursor.revealedChars, buf.text.length)));
 }
 
-export function signalConcludePracticeCopy(code: InterviewSignalConcludeReason['code']): string {
+// Copy labels: callers may pass a next-intl bound lookup; the default bundle reads the zh
+// catalog verbatim, so the zh output stays byte-identical to the previous in-file literals.
+export type CopyLabels = (key: string) => string;
+
+const INTERVIEW_COPY_ZH = zhMessages.interview as unknown as Record<string, string>;
+
+const defaultInterviewLabels: CopyLabels = (key) => INTERVIEW_COPY_ZH[key] ?? key;
+
+export function signalConcludePracticeCopy(code: InterviewSignalConcludeReason['code'], labels: CopyLabels = defaultInterviewLabels): string {
   if (code === 'early_weak') {
-    return '练习因持续偏弱或多次未决提前结束（自适应控制流，不是能力等级或招聘结论）';
+    return labels('concludeEarlyWeak');
   }
-  return '练习因反复换题空转提前结束（自适应控制流，不是能力等级或招聘结论）';
+  return labels('concludeSpin');
 }
 
 export type ActionKind = 'answer' | 'retry' | 'view_report' | 'view_applications' | 'reconnecting' | 'none';
@@ -39,24 +48,24 @@ export interface Display {
   signalConclude?: { code: InterviewSignalConcludeReason['code']; message: string };
 }
 
-export function interviewDisplay(v: InterviewView): Display {
+export function interviewDisplay(v: InterviewView, labels: CopyLabels = defaultInterviewLabels): Display {
   const signalConclude = v.signalConcludeReason
-    ? { code: v.signalConcludeReason.code, message: signalConcludePracticeCopy(v.signalConcludeReason.code) }
+    ? { code: v.signalConcludeReason.code, message: signalConcludePracticeCopy(v.signalConcludeReason.code, labels) }
     : undefined;
   // 连接中断重连 → 永远显式告知"重连中"+可手动重试,绝不冻结。
   // SSE-RESILIENCE #56(C5)：reconnecting 按 reason 分臂透出真实原因（429 多标签/5xx 服务端）;
   // 注记C：无错干净 end（服务器 10min 轮换）给软措辞——不是断网,是换一条连接无缝续传。
   if (v.connection === 'reconnecting') {
     if (v.streamStopReason === 'rate_limited') {
-      return { heading: '连接过多', message: '当前连接数过多(可能开了多个标签页),已放慢自动重连,已答内容不会丢失。可关闭其它标签页,或手动重试。', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+      return { heading: labels('rlHeading'), message: labels('rlMessage'), spinner: true, action: { kind: 'retry', label: labels('retryManual') }, degraded: v.degraded, signalConclude };
     }
     if (v.streamStopReason === 'server') {
-      return { heading: '服务恢复中', message: '服务暂时不可用,正在自动重连,已答内容不会丢失,未提交的草稿也已保留在本页。', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+      return { heading: labels('svHeading'), message: labels('svMessage'), spinner: true, action: { kind: 'retry', label: labels('retryManual') }, degraded: v.degraded, signalConclude };
     }
     if (v.cleanEndReconnect) {
-      return { heading: '正在切换连接', message: '服务端正在轮换连接,正在无缝续传,已答内容不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+      return { heading: labels('ceHeading'), message: labels('ceMessage'), spinner: true, action: { kind: 'retry', label: labels('retryManual') }, degraded: v.degraded, signalConclude };
     }
-    return { heading: '网络中断', message: '正在用同一面试重连,已答内容不会丢失…', spinner: true, action: { kind: 'retry', label: '手动重试' }, degraded: v.degraded, signalConclude };
+    return { heading: labels('dfHeading'), message: labels('dfMessage'), spinner: true, action: { kind: 'retry', label: labels('retryManual') }, degraded: v.degraded, signalConclude };
   }
   // 非法 Last-Event-ID / 重连耗尽 / 401 / 404：连接已关且非终态 → 失败关闭出口，不当成仍可作答。
   // SSE-RESILIENCE #56(C5)：按 reason 分臂（auth 引导重新登录/not_found fail-closed/server 暂停重连）;
@@ -65,37 +74,37 @@ export function interviewDisplay(v: InterviewView): Display {
   // 出口形（heading/action/degraded 同形，:40 家族），message=「该面试已进入数据删除流程，请新建面试」逐字。
   if (v.privacyFenced && v.connection === 'closed') {
     return {
-      heading: '练习连接已停止',
-      message: '该面试已进入数据删除流程，请新建面试',
-      spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+      heading: labels('fencedHeading'),
+      message: labels('fencedMessage'),
+      spinner: false, action: { kind: 'retry', label: labels('retry') }, degraded: true, signalConclude,
     };
   }
   if (v.degraded && v.connection === 'closed' && !isTerminal(v.phase)) {
     if (v.streamStopReason === 'auth') {
       return {
-        heading: '登录已过期',
-        message: '登录状态已过期,练习连接已停止。请重新登录后继续,已答内容已在服务端保存。',
-        spinner: false, action: { kind: 'retry', label: '重新登录' }, degraded: true, signalConclude,
+        heading: labels('authHeading'),
+        message: labels('authMessage'),
+        spinner: false, action: { kind: 'retry', label: labels('relogin') }, degraded: true, signalConclude,
       };
     }
     if (v.streamStopReason === 'not_found') {
       return {
-        heading: '练习不存在或无权访问',
-        message: '未找到这场练习,或当前账号无权访问,已停止自动重连。可返回列表。',
-        spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+        heading: labels('nfHeading'),
+        message: labels('nfMessage'),
+        spinner: false, action: { kind: 'retry', label: labels('retry') }, degraded: true, signalConclude,
       };
     }
     if (v.streamStopReason === 'server') {
       return {
-        heading: '练习连接已停止',
-        message: '练习服务持续不可用,已暂停自动重连。可稍后重试或返回列表。',
-        spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+        heading: labels('stopHeading'),
+        message: labels('stopMessage'),
+        spinner: false, action: { kind: 'retry', label: labels('retry') }, degraded: true, signalConclude,
       };
     }
     return {
-      heading: '练习连接已停止',
-      message: '练习连接已停止，不会再用同一续传编号自动重连。可重试本场练习或返回列表。',
-      spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude,
+      heading: labels('closedHeading'),
+      message: labels('closedMessage'),
+      spinner: false, action: { kind: 'retry', label: labels('retry') }, degraded: true, signalConclude,
     };
   }
   switch (v.phase) {
@@ -109,19 +118,19 @@ export function interviewDisplay(v: InterviewView): Display {
     case 'question':
       // 引导态(回答没正面回应):显式提示 + 可重答/跳过(非死胡同),否则正常出题。
       return v.guidance
-        ? { heading: '换个角度回答', message: v.guidance.hint, spinner: false, action: { kind: 'answer', label: '重新作答 / 回复「跳过」' }, degraded: false, signalConclude }
-        : { heading: '面试进行中', message: v.question ?? '', spinner: false, action: { kind: 'answer', label: '作答(打字/语音)' }, degraded: false, signalConclude };
+        ? { heading: labels('guidanceHeading'), message: v.guidance.hint, spinner: false, action: { kind: 'answer', label: labels('guidanceAction') }, degraded: false, signalConclude }
+        : { heading: labels('questionHeading'), message: v.question ?? '', spinner: false, action: { kind: 'answer', label: labels('answerAction') }, degraded: false, signalConclude };
     case 'waiting_user':
-      return { heading: '请作答', message: v.question ?? '请回答上一题', spinner: false, action: { kind: 'answer', label: '作答(打字/语音)' }, degraded: false, signalConclude };
+      return { heading: labels('waitingHeading'), message: v.question ?? labels('waitingFallback'), spinner: false, action: { kind: 'answer', label: labels('answerAction') }, degraded: false, signalConclude };
     case 'answered': {
       // TOKSTREAM 阶段1:题间/报告期等待有进度态时 loading 变真实进度(段名+时长/token 计数;R-B 无思考原文);
       // 无进度帧(断线跳过/未到首帧)回既有文案——缺帧兜底,不死等。
       const progress = generationProgressLabel(v.generationProgress);
       const base = v.signalConcludeReason
-        ? '练习控制流已结束，正在生成练习反馈…'
+        ? labels('concludingMessage')
         : `本题得分 ${v.lastScore ?? '—'},正在出下一题…`;
       return {
-        heading: '已作答',
+        heading: labels('answeredHeading'),
         message: progress ? `${base}（${progress}）` : base,
         spinner: true, action: { kind: 'none', label: '' }, degraded: false, signalConclude,
       };
@@ -130,23 +139,23 @@ export function interviewDisplay(v: InterviewView): Display {
       return { heading: '练习报告', message: `本次练习反馈 ${v.report?.overall ?? '—'}（仅供个人复盘）`, spinner: false, action: { kind: 'view_report', label: '查看完整报告' }, report: v.report, degraded: false, signalConclude };
     case 'report_unavailable':
       // 优雅降级:报告暂不可用 → 给出路(重试/联系),**绝不无限等 report_ready**
-      return { heading: '报告暂不可用', message: '面试已完成,但报告暂时无法生成。可稍后重试或联系支持。', spinner: false, action: { kind: 'retry', label: '重试生成报告' }, degraded: true, signalConclude };
+      return { heading: labels('reportUnavailableHeading'), message: labels('reportUnavailableMessage'), spinner: false, action: { kind: 'retry', label: labels('retryReport') }, degraded: true, signalConclude };
     case 'assessment_unavailable':
       // 同一 kind 两种钱面（adaptive-lifecycle 分派），文案按 reason 分臂、绝不谎报资金变动（GAP-G7V-THIRDARM-COPY-SETTLEMENT）：
       if (v.assessmentUnavailableReason === 'no_eligible_scored_answer') {
         // 第三臂：已 completeInterviewAndConfirm 扣费结算，且 bound 路径不生成报告（enqueueReport 仅 unbound 可达）——「本次不生成报告」如实，Ban 释放字样。
-        return { heading: '本次评分暂不可用', message: '面试已完成并扣费结算，但未获得可信评分，本次不生成报告。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+        return { heading: labels('assessHeading'), message: labels('assessSettledMessage'), spinner: false, action: { kind: 'view_applications', label: labels('toApplications') }, degraded: true, signalConclude };
       }
       if (v.assessmentUnavailableReason === 'evaluation_unscored') {
         // 释放臂：failInterviewAndRelease 补偿释放——「额度已释放」此时为真，文案逐字保留。
-        return { heading: '本次评分暂不可用', message: '没有得到足够可信的评分证据，本次预留额度已释放。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+        return { heading: labels('assessHeading'), message: labels('assessReleasedMessage'), spinner: false, action: { kind: 'view_applications', label: labels('toApplications') }, degraded: true, signalConclude };
       }
       // 未知/缺失 reason：fail-closed 中性——既不称释放也不称扣费，不冒认任何资金变动。
-      return { heading: '本次评分暂不可用', message: '本次未能获得可信评分，面试已结束。岗位面试可从“我的投递”重新开始；其他面试可新建一场。', spinner: false, action: { kind: 'view_applications', label: '前往我的投递' }, degraded: true, signalConclude };
+      return { heading: labels('assessHeading'), message: labels('assessUnknownMessage'), spinner: false, action: { kind: 'view_applications', label: labels('toApplications') }, degraded: true, signalConclude };
     case 'interview_unavailable':
-      return { heading: '面试暂不可用', message: '面试启动/处理遇到问题,已停止。可重试或联系支持——不会让你干等。', spinner: false, action: { kind: 'retry', label: '重新开始面试' }, degraded: true, signalConclude };
+      return { heading: labels('unavailableHeading'), message: labels('unavailableMessage'), spinner: false, action: { kind: 'retry', label: labels('restartInterview') }, degraded: true, signalConclude };
     case 'error':
-      return { heading: '出错了', message: '面试遇到问题。你的进度已保存,可重试。', spinner: false, action: { kind: 'retry', label: '重试' }, degraded: true, signalConclude };
+      return { heading: labels('errorHeading'), message: labels('errorMessage'), spinner: false, action: { kind: 'retry', label: labels('retry') }, degraded: true, signalConclude };
   }
 }
 

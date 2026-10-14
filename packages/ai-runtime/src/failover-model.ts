@@ -21,7 +21,15 @@ export function failoverModel(clients: ModelClient[]): ModelClient {
         // （failover 链经 failoverModel.prepare 逐成员转发同臂即达），本层零路由零改。
         const plan = client.prepare
           ? await client.prepare(req, attempt, signal)
-          : { ready: true as const, execute: (executeSignal?: AbortSignal) => client.complete(req, attempt, executeSignal), cost: client.costPolicy };
+          // 无 prepare 的客户端（scripted/legacy seam）：显式不带端点准入身份（AG-08 成本轨⑤）——
+          // plan 原样穿透本链，身份面由有 prepare 的真实端点客户端填充；此处 undefined=准入分区
+          // 维持 registry 派生原值（legacy 回退集零漂）。
+          : {
+            ready: true as const,
+            execute: (executeSignal?: AbortSignal) => client.complete(req, attempt, executeSignal),
+            cost: client.costPolicy,
+            admissionEndpoint: undefined,
+          };
         if (plan.ready === true) return plan;
         last = plan.error;
       } catch {

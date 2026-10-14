@@ -27,7 +27,8 @@ import { resolveModelOperation } from './model-operation-registry.ts';
 import type { CalibratedFactor, EstimatorVersion } from './usage-reconciliation.ts';
 import {
   admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition, isAdmissionRefusalRetryable,
-  type SharedModelAdmissionLease, type SharedModelFeeRecord,
+  withAdmissionEndpointPartition,
+  type SharedModelAdmissionLease, type SharedModelFeeRecord, type ModelEndpointAdmissionIdentity,
 } from './model-admission.ts';
 
 const REQID_ALS_KEY = Symbol.for('meetwise.ai-runtime.requestIdContext');
@@ -174,6 +175,14 @@ export type ModelCallPlan =
      * 不依赖输出校验通过才落（trace 只在 !error 时写，会偏置校准样本）。
      */
     estimateInputTokens?: number;
+    /**
+     * AG-08 成本轨⑤：本 plan 实际所选端点的准入身份（providerAccount|region 两维）。
+     * 只由 model 层（prepare）从冻结 endpoint profile 注册表**服务器派生**——InvokeSpec
+     * 永不携带端点字段（caller 供=禁）。undefined = 无端点身份（vision / legacy / 无
+     * prepare 客户端）→ 共享准入分区维持 registry 派生原值（dashscope-native vision 行
+     * 与 legacy 回退集零漂）。该身份不进 durable claim、不进 requestDigest。
+     */
+    admissionEndpoint?: ModelEndpointAdmissionIdentity;
   }
   | { ready: false; error: string };
 type ReadyModelCallPlan = Extract<ModelCallPlan, { ready: true }>;
@@ -799,8 +808,13 @@ async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhas
   // 决策 fail-closed（unknown/blocked/breaker_open/concurrency_exhausted → 确定性拒绝，零外呼）。
   let sharedLease: SharedModelAdmissionLease | undefined;
   if (admissionPartition) {
+    // AG-08 成本轨⑤（裁决①(a) admit 相位叠加）：准入/熔断/并发分区键随 plan 实际所选端点——
+    // 仅 providerAccount|region 两维由端点身份改写（身份源=prepare 从冻结 profile 注册表服务器
+    // 派生，绝不 caller 供）；无端点身份（vision/legacy/无 prepare 客户端）→ registry 派生分区
+    // 原值零漂。上方 resolve 相位派生原行零字节（model-slot-bypass 静态门正则钉承重面）。
+    const partition = withAdmissionEndpointPartition(admissionPartition, plan.admissionEndpoint);
     const shared = await admitSharedModelOperation(pool, owner, {
-      partition: admissionPartition, scopeId: plan.cost?.scopeId, idempotencyKey: spec.idempotencyKey,
+      partition, scopeId: plan.cost?.scopeId, idempotencyKey: spec.idempotencyKey,
     });
     if (!shared.ok) {
       await asPrincipal(pool, owner, async (c) => {
