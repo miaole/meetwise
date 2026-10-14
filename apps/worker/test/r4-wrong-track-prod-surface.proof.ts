@@ -257,7 +257,7 @@ A('PS3 SOLE allowlist not expanded for F1 knife', (() => {
   const runner = read(join(repoRoot, 'scripts/run-e2e-isolated.mjs'));
   const m = runner.match(/const SOLE_WIRING_ALLOWLIST = new Set\(\[([\s\S]*?)\]\)/);
   if (!m) return false;
-  return !m[1].includes('r4-wrong-track-prod-surface') && !m[1].includes('prod-surface');
+  return !m[1]!.includes('r4-wrong-track-prod-surface') && !m[1]!.includes('prod-surface');
 })());
 
 section('PS1/PS2 live wired 旁证 (unit ADV + LIVE_PG; ≠ this knife alone)');

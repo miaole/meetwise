@@ -309,7 +309,7 @@ async function main() {
   for (const owner of owners) {
     // pre === units_total - M - 1 = 0（造数断言已锚）→ post 必须 === pre + M === units_total - 1 = 5.0
     const post = await asPrincipal(pool, owner, (c) => availableUnits(c, owner));
-    if (!eq(post, BUCKET_TOTAL - ORPHAN_UNITS) || !eq(availPreSweep[owner], 0)) { l2AvailExact = false; break; }
+    if (!eq(post, BUCKET_TOTAL - ORPHAN_UNITS) || !eq(availPreSweep[owner]!, 0)) { l2AvailExact = false; break; }
   }
   A('L2 sweep 窗口 avail 回补恰等孤儿 units（逐 owner：0 → 5.0 = total−1 fresh holdout）', l2AvailExact);
   let l2ReservedExact = true;
@@ -397,7 +397,7 @@ async function main() {
     idemLog.length === 2 && idemLog.every((wr) => wr.calls.every((c) => c.released === 0 && c.settled === 0)));
   let idemBooksUnchanged = true;
   for (const owner of allOwners) {
-    if (!eq(await bucketReservedSum(owner), snapReserved[owner])) { idemBooksUnchanged = false; break; }
+    if (!eq(await bucketReservedSum(owner), snapReserved[owner]!)) { idemBooksUnchanged = false; break; }
   }
   A('N4 账面零漂移：bucket units_reserved 与 Wave1 后逐 owner 相等', idemBooksUnchanged);
   A('N4 稳态残留仍 === 0', (await expiredReservedCount()) === 0);
