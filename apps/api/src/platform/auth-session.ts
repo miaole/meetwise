@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto';
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { signToken } from '@meetwise/domain';
 import { DbService } from './db.service';
+import { notePrincipalEvicted, onPrincipalEvict, principalEvictGeneration } from './sse-notify.service';
 
 /**
  * AUTHZ-HARDEN 5A-1 簇③（#35/#112）：kid/jti 会话令牌签发 + 会话表吊销读侧的共享原语。
@@ -17,12 +18,19 @@ import { DbService } from './db.service';
  */
 export const SESSION_TTL_SEC = 7 * 24 * 3600;
 
-/** 会话吊销缓存（沿 PrincipalGuard status 60s 缓存同形）：单实例 logout 同步 evict 即时生效；多实例 evict 只清本进程，其余 ≤60s 缓存过期（与既有 status 缓存同源 seam，#36 归 5C 不动）。 */
+/**
+ * 会话吊销缓存（沿 PrincipalGuard status 60s 缓存同形）：吊销失效=本进程 evict 即时 + pg_notify 广播
+ * （meetwise_principal_evict_v1 第二通道；revokeSession 单语句内 UPDATE+NOTIFY 同事务随 commit 送达，
+ * 禁先广播后提交）——多实例吊销窗=广播送达窗+在途请求窗，60s TTL 仅 LISTEN 断连时兜底。
+ */
 const SESSION_TTL_MS = 60_000;
 interface SessionState { active: boolean; exp: number }
 const sessionCache = new Map<string, SessionState>();
-/** 登出/吊销后调用 → 立即清缓存,让吊销即时生效(不等 60s)。 */
-export function evictSessionRevocation(jti: string): void { sessionCache.delete(jti); }
+/** 登出/吊销后调用 → 序自增+清本进程缓存,让吊销即时生效(不等 60s);跨实例由同语句 pg_notify 广播。 */
+export function evictSessionRevocation(jti: string): void { notePrincipalEvicted('jti', jti); }
+
+// 收播分派(sse-notify 第二通道):收播即清本进程会话缓存(注册面与 PrincipalGuard uid 侧同形)。
+onPrincipalEvict('jti', (jti) => { sessionCache.delete(jti); });
 
 /**
  * 签发会话令牌并落会话行（同请求内原子先后：INSERT 成功才返回令牌——任何发出的 jti 令牌必有会话行，
@@ -41,31 +49,37 @@ export async function issueSessionToken(db: DbService, uid: string, pwdEpoch = 0
 }
 
 /**
- * 服务端吊销当前 jti（#112 登出服务端化）：UPDATE revoked_at（无 DELETE，行保留供审计）+ 即时 evict。
- * 返回是否真吊销了一行（legacy 无 jti 令牌无行可吊销 → false，调用方如实回告，不假宣称）。
+ * 服务端吊销当前 jti（#112 登出服务端化）：UPDATE revoked_at（无 DELETE，行保留供审计）+ 同语句
+ * CTE 内 pg_notify 广播（与吊销 UPDATE 同事务原子——先广播后提交会让收播实例回读旧态回填）+ 本进程
+ * 即时 evict。返回是否真吊销了一行（legacy 无 jti 令牌无行可吊销 → false，调用方如实回告，不假宣称）。
  */
 export async function revokeSession(db: DbService, uid: string, jti: string): Promise<boolean> {
   const r = await db.asPrincipal(uid, (c) => c.query(
-    'UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL',
-    [jti],
+    `WITH upd AS (
+       UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL RETURNING 1
+     )
+     SELECT (SELECT pg_notify('meetwise_principal_evict_v1', $2) FROM upd LIMIT 1) IS NOT NULL AS revoked`,
+    [jti, JSON.stringify({ t: 'jti', k: jti })],
   ));
   evictSessionRevocation(jti);
-  return (r.rowCount ?? 0) > 0;
+  return r.rows[0]?.revoked === true;
 }
 
 /**
  * 会话仍有效（未吊销）?带 60s 缓存。**fail-closed**：行缺失/已吊销 → false（会话行是 jti 令牌吊销真相源；
  * 签发与 INSERT 同请求先后保证任何发出的 jti 令牌必有行，行缺失即异常态，拒）。仅对带 jti 令牌调用。
+ * 回填代次比对：DB 读开始后序前进（广播/本地 evict）→ 该读可能早于远端 commit，放弃落缓存（仅本请求用）。
  */
 export async function isSessionActive(db: DbService, uid: string, jti: string, now: number): Promise<boolean> {
   const c = sessionCache.get(jti);
   if (c && c.exp > now) return c.active;
+  const genBefore = principalEvictGeneration('jti', jti);
   const r = await db.asPrincipal(uid, (conn) => conn.query(
     'SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL',
     [jti],
   ));
   const active = (r.rowCount ?? 0) > 0;
-  sessionCache.set(jti, { active, exp: now + SESSION_TTL_MS });
+  if (principalEvictGeneration('jti', jti) === genBefore) sessionCache.set(jti, { active, exp: now + SESSION_TTL_MS });
   return active;
 }
 

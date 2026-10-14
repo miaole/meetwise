@@ -2,6 +2,8 @@
 import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
+import type { Locale } from '../../i18n/request';
 import { isOcrPreviewEnabled } from '../../lib/ocr-preview';
 import {
   RESUME_MAX_BYTES,
@@ -21,6 +23,21 @@ import {
  * 简历相关 Server Actions:在服务端跑、带 httpOnly 令牌调 api、改完 revalidatePath 重渲列表。
  * 表单 action 直接绑这些函数,无需客户端 JS / fetch 包装,提交即走服务端。
  */
+
+// 上传面内联文案的双语载体(zh 缺省逐字节=迁移前字面;en 值 CJK-free 由 uc003-i18n-locale prove S4 逐处断言)。
+// 作用域=上传面五处;deleteResumeAction 的四处内联文案不在本刀迁移面,零触。
+const UPLOAD_MESSAGES = {
+  textTooShort: { zh: '简历正文至少需要 20 个字符。', en: 'Resume text needs at least 20 characters.' },
+  uploadIncomplete: { zh: '上传暂未完成，请检查网络后重试；不会重复扣费。', en: 'The upload did not complete. Check your network and try again; you will not be charged twice.' },
+  chooseFile: { zh: '请选择要上传的文件。', en: 'Please choose a file to upload.' },
+  fileTooLarge: { zh: '文件超过 8MB 上限。', en: 'File exceeds the 8MB limit.' },
+  fileUploadIncomplete: { zh: '文件上传暂未完成，请检查文件和网络后重试。不会编造识别结果。', en: 'The file upload did not complete. Check the file and network and try again. Recognition results are never invented.' },
+} as const;
+
+// locale 仅取自 cookie(i18n/request.ts 同契约;Accept-Language 另刀)。
+async function resumeUploadLocale(): Promise<Locale> {
+  return (await cookies()).get('locale')?.value === 'en' ? 'en' : 'zh';
+}
 
 /** 硬失败兜底:非 ok 抛错落根错误边界(可读 + 重试),绝不静默 revalidate 让操作"点了没反应"。 */
 function assertOk(res: Response) {
@@ -67,36 +84,38 @@ export async function withdrawInterviewPersonalizationAction(): Promise<void> {
  * authoritative list with a new no-store navigation. Calling revalidatePath inside this action made its RSC response
  * wait on an unnecessary render and itself could leave the form pending, so uploads never revalidate server-side.
  */
-async function readUploadFailure(res: Response): Promise<ResumeUploadFailure> {
+async function readUploadFailure(res: Response, locale: Locale): Promise<ResumeUploadFailure> {
   let body: unknown = null;
   try { body = await res.json(); } catch { /* non-JSON stays mapped as upload_failed */ }
-  return mapResumeUploadError(res.status, body);
+  return mapResumeUploadError(res.status, body, locale);
 }
 
 export async function uploadResumeAction(formData: FormData): Promise<ResumeUploadActionResult> {
+  const locale = await resumeUploadLocale();
   const text = String(formData.get('text') ?? '');
-  if (text.trim().length < 20) return { ok: false, message: '简历正文至少需要 20 个字符。' };
+  if (text.trim().length < 20) return { ok: false, message: UPLOAD_MESSAGES.textTooShort[locale] };
   try {
     // API upload is content-HMAC idempotent. Bound the internal hop: an unavailable API must return a recoverable
     // result to the browser instead of holding React's transition pending forever.
     const res = await serverFetch('/resume', { method: 'POST', body: JSON.stringify({ text }), signal: AbortSignal.timeout(RESUME_TEXT_UPLOAD_TIMEOUT_MS) });
     if (res.status === 401) redirect('/login?expired=1');
-    if (!res.ok) return readUploadFailure(res);
+    if (!res.ok) return readUploadFailure(res, locale);
     return { ok: true };
   } catch (error) {
-    if (isUploadTimeoutError(error)) return mapResumeUploadAbort();
-    return { ok: false, message: '上传暂未完成，请检查网络后重试；不会重复扣费。' };
+    if (isUploadTimeoutError(error)) return mapResumeUploadAbort(locale);
+    return { ok: false, message: UPLOAD_MESSAGES.uploadIncomplete[locale] };
   }
 }
 
 /** 文件上传(PDF/Word/预览图片):Server Action 直收 File → base64 → /resume/file。失败不编造转写。 */
 export async function uploadResumeFileAction(formData: FormData): Promise<ResumeUploadActionResult> {
+  const locale = await resumeUploadLocale();
   const file = formData.get('file') as File | null;
-  if (!file || file.size === 0) return { ok: false, message: '请选择要上传的文件。' };
-  if (file.size > RESUME_MAX_BYTES) return { ok: false, message: '文件超过 8MB 上限。' };
+  if (!file || file.size === 0) return { ok: false, message: UPLOAD_MESSAGES.chooseFile[locale] };
+  if (file.size > RESUME_MAX_BYTES) return { ok: false, message: UPLOAD_MESSAGES.fileTooLarge[locale] };
   const image = isResumeImageUpload(file.name, file.type);
-  if (image && !isOcrPreviewEnabled()) return resumeImageRefusedLocally();
-  if (image && !isPreviewOcrImage(file.name, file.type)) return resumePreviewFormatRefused();
+  if (image && !isOcrPreviewEnabled()) return resumeImageRefusedLocally(locale);
+  if (image && !isPreviewOcrImage(file.name, file.type)) return resumePreviewFormatRefused(locale);
   const timeoutMs = image ? RESUME_OCR_PREVIEW_TIMEOUT_MS : RESUME_TEXT_UPLOAD_TIMEOUT_MS;
   try {
     const contentBase64 = Buffer.from(await file.arrayBuffer()).toString('base64');
@@ -106,11 +125,11 @@ export async function uploadResumeFileAction(formData: FormData): Promise<Resume
       signal: AbortSignal.timeout(timeoutMs),
     });
     if (res.status === 401) redirect('/login?expired=1');
-    if (!res.ok) return readUploadFailure(res);
+    if (!res.ok) return readUploadFailure(res, locale);
     return { ok: true };
   } catch (error) {
-    if (isUploadTimeoutError(error)) return mapResumeUploadAbort();
-    return { ok: false, message: '文件上传暂未完成，请检查文件和网络后重试。不会编造识别结果。' };
+    if (isUploadTimeoutError(error)) return mapResumeUploadAbort(locale);
+    return { ok: false, message: UPLOAD_MESSAGES.fileUploadIncomplete[locale] };
   }
 }
 
