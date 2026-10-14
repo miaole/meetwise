@@ -109,7 +109,7 @@ async function main() {
   await asPrincipal(pool, OWNER, async (c) => {
     for (const iid of [TID, DID, CAPID, STRID, GID]) {
       await c.query(
-        "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)",
+        "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
         [iid, OWNER, resumeId, resumeEpoch],
       );
     }

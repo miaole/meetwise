@@ -109,7 +109,7 @@ async function setupConfirmedWithReport(owner: string, interviewId: string) {
   await pool.query(
     "INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')",
     [owner]);
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [interviewId, owner]);
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [interviewId, owner]);
   await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, interviewId, 'mock_interview', 1.0));
   await asPrincipal(pool, owner, (c) => completeInterviewAndConfirm(c, owner, interviewId));
   return (await asPrincipal(pool, owner, (c) => enqueueReport(c, owner, interviewId))).reportId;
@@ -239,7 +239,7 @@ async function main() {
   {
     // —— D1：C 端 unbound（无 application 投影）——
     const owner = OWN('d1'), id = IID('d1');
-    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [id, owner]);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [id, owner]);
     await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [owner]);
     await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, id, 'mock_interview', 1.0));
     let askSeq = 0;   // 题面逐轮唯一（adaptive-lifecycle.proof 同形）——固定题面会触发 generation_duplicate_question 收尾岔路

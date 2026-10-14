@@ -126,7 +126,7 @@ const directGraph = (cp: any, iid: string, input: { answerId: string; answer: st
 };
 
 const seedInterview = async (iid: string) => {
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [iid, OWNER]);
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [iid, OWNER]);
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, iid, 'mock_interview', 1.0));
 };
 const eventCount = async (iid: string, kind: string, eventKey?: string) => {
