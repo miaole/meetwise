@@ -1,6 +1,6 @@
 # AG39-QUALITY REQUEST（AG-39 质量收尾小刀 · RRF 融合层 owner 秩补全 + org 调用方同内容双行内容级去重 · docs-only 落卷即停）
 
-**Status**: `draft:awaiting_pre_exec_dual`（起草席写完即停零码动·本刀恰 1 .md·待 pre-exec 双审两外席+协调方授权。Ban self-approve · alone≠dual · Dual PASS ≠ 开工）· **rev2 勘误席已落**：pre-exec 双审两席 FAIL findings 全数处置（B1 迁移号改占+A17 重锚+谓词镜像+夹具不对称形+裁决①⑦收紧+缓存零残留+行号勘正·§9 处置摘要）·STOP 维持本态
+**Status**: `draft:awaiting_pre_exec_dual`（起草席写完即停零码动·本刀恰 1 .md·待 pre-exec 双审两外席+协调方授权。Ban self-approve · alone≠dual · Dual PASS ≠ 开工）· **rev2 勘误席已落**：pre-exec 双审两席 FAIL findings 全数处置（B1 迁移号改占+A17 重锚+谓词镜像+夹具不对称形+裁决①⑦收紧+缓存零残留+行号勘正·§9 处置摘要）· **rev3 勘误席已落**：rev2 复审双席残余六项全数处置（R1 夹具首位形+R2 应用序前置条件+R3 谓词枚举补全+R4 支配性公式修正+R5 处置计数勘正+R6 链深口径勘正·§10 处置摘要）·STOP 维持本态
 
 **席位**：meetwise 战役「AG-39 质量收尾小刀（RRF owner 秩+org 双行）」REQUEST 起草席（docs-only·零码动·单文件落卷）。
 **基线**：主线 tip `d68ffe17`（`git log -1` 开工实测·2026-10-14·docs(ssot) AG-39 nail 收官随翻三件笔）。分支 `line/ag39-quality` · 工作树 `../meetwise-ag39q`（仓根同级·本起草席已立：`git worktree add ../meetwise-ag39q -b line/ag39-quality d68ffe17`·建前亲证 `worktree list` 13 树零 ag39q·`branch -a` 零同名质量线）。
@@ -34,7 +34,7 @@
 | A19 | `packages/db/src/retrieval/retrieval-store.ts:52-56` / `:78` | 直连兼容读入口 `SELECT ref_id, distance FROM qbank_generation_ann_search(...)`——additive 增列逐位兼容·本刀零触面（无 RRF 融合·无折叠语义） |
 | A20 | `apps/worker/src/main.ts:569` + `packages/db/src/qbank/qbank-track-local-retrieval.ts:266`·**rev2 勘正**（原锚 main.ts `:554` 实为注释行非调用·rg 全集重 pin 恰两处） | 生产调用点=两处 `cachedQbankSearch`（经 A18 缓存包裹进融合层·main.ts:554 同点位系「localRetrieve remains compat/test seam」注释行不计） |
 | A21 | `package.json:386-389` + `apps/worker/package.json:57` + `apps/worker/test/ag39-org-qbank-isolation.proof.ts` | 门注册链 `ag39-org-qbank:prove`→`prove:ag39-org-qbank`→`test/ag39-org-qbank-isolation.proof.ts`；**`  A('` 实测恰 50 臂**；②-b-1 `:254-256`（B 端 ann org 行序在 platform 前）/②-b-2 `:259-260`（lexical 同）/⑤-1 `:274-275`（platform 零变负臂）/④ `:304-314`（curation scoped 去重臂·dupHash 同 hash 双 owner 源共存实证臂形） |
-| A22 | 迁移号现场（跨树 `ls`+`git ls-tree` 实测·2026-10-14·**rev2 勘误注：派单指令原预留「0190 起若需」失效——0190-0199 已被 5B-MIG 在飞实占·按协调方 B1 裁决改占 0200**） | 主线链深 187（checklist A1 段「applied=187」）；`meetwise-cost4` 树 `packages/db/migrations/0188_ag11_cost_reserve_least_and_settle_relax.sql` 在飞占号；**0190-0199 恰十号已被 5B-MIG 在飞实占**（`meetwise-b5m` 树 @`7152cd3c` `git ls-tree` 亲证：`0190_outbox_consumption_unique_concurrent.sql`…`0199_redundant_index_drop.sql` 十文件在场）；0189 全树零占用（16 工作树 `ls` 亲证）但占之违链单调（0190 序已在飞在前·后落 0189 应用序倒挂）·**协调方 B1 分配本刀改占 0200** → 若需迁移自 **0200** 起 |
+| A22 | 迁移号现场（跨树 `ls`+`git ls-tree` 实测·2026-10-14·**rev2 勘误注：派单指令原预留「0190 起若需」失效——0190-0199 已被 5B-MIG 在飞实占·按协调方 B1 裁决改占 0200**） | 主线链深 187（checklist A1 段「applied=187」）；`meetwise-cost4` 树 `packages/db/migrations/0188_ag11_cost_reserve_least_and_settle_relax.sql` 在飞占号；**0190-0199 恰十号已被 5B-MIG 在飞实占**（`meetwise-b5m` 树 @`7152cd3c` `git ls-tree` 亲证：`0190_outbox_consumption_unique_concurrent.sql`…`0199_redundant_index_drop.sql` 十文件在场）；0189 全树零占用（16 工作树 `ls` 亲证）但占之违链单调（0190 序已在飞在前·后落 0189 应用序倒挂）·**协调方 B1 分配本刀改占 0200** → 若需迁移自 **0200** 起；**rev3 应用序前置条件**：0200 的应用序须在 5B-MIG 0190-0199 merge+apply 之后——账本连续前缀守卫（migrate.ts:436-438）要求账本行=manifest 连续前缀逐位相等·若 0200 先应用而后 0190-0199 方到场→`migration_ledger_not_contiguous_prefix` fail-closed；缺号本身零敏感（0182-0183 先例：母刀改占 0186+0187 后两号永久空号·migrations 目录亲证零文件·守卫只比 manifest 在场项） |
 
 ### 0.2 漂移登记 + 起草席实证结论
 
@@ -47,7 +47,7 @@
 
 ### 1.1 红事实
 
-- **红①（RRF 融合层 owner 秩缺位）**：0187 已使 ann/lexical 两通道行序 owner 秩在先（A9/A10）·但融合层（A6 `:290-300`）只按通道位置分 `1/(RRF_K+pos+1)` 累加——org 行仅经「位置分」**部分**继承优先序：跨通道累加可逆转 owner 秩——逆转例**只可取通道成员不对称形（rev2 E2 改写）**：dense 距离窗（A6 :285）与 lexical 词频窗（:289）成员集天然不对称·org 行仅入单通道（dense）且居候选池末位（累分 1/(60+n)·n=池宽）·platform 行双通道在池（累分 ≥1/(60+p+1)+1/(60+q+1)·恒大于单通道末位分）→融合序 platform 先于 org=owner 秩逆转（原稿例「org dense@1+lex@1 vs platform dense@0+lex@0」**不可构造**：外层 A9 :110 owner 秩在先使同通道内 org 行恒先于 platform 行·platform @0 须该通道零 org 行与 org 在池矛盾）·与 README 端到端「私有优先」语义有缝·母卷 0187 头注如实登记（A7）。
+- **红①（RRF 融合层 owner 秩缺位）**：0187 已使 ann/lexical 两通道行序 owner 秩在先（A9/A10）·但融合层（A6 `:290-300`）只按通道位置分 `1/(RRF_K+pos+1)` 累加——org 行仅经「位置分」**部分**继承优先序：跨通道累加可逆转 owner 秩——逆转例**只可取通道成员不对称形（rev3 定形·rev2 E2 末位形勘误）**：dense 距离窗（A6 :285）与 lexical 词频窗（:289）成员集天然不对称·**org 行单条居 dense 池首位（外层 A9 :110 owner 秩先序恒使 org 居同通道 platform 之前=头部区块）·累分 1/61；platform 行双通道在池——dense 次位 1/62+lexical 首位 1/61≈0.0325>0.0164**→融合序 platform 先于 org=owner 秩逆转（rev2「org 居候选池末位（1/(60+n)）」形**不可构造**：外层 A9 :110 owner 秩在先使同通道内 org 行恒居头部区块·末位形与 platform 同池矛盾；原稿例「org dense@1+lex@1 vs platform dense@0+lex@0」同不可构造）·与 README 端到端「私有优先」语义有缝·母卷 0187 头注如实登记（A7）。
 - **红②（org 调用方同内容双行）**：A14 scoped 唯一索引使 org A 与 platform 对同 content_hash 各持活跃源（合法·母卷裁决⑥ E1 反静默映射的既定代价）→ 两源各自派生不同 refId 的 chunk/question 进同代投影（A17 refId=调用方供给+ON CONFLICT(ref_id)）→ org A 查询经 A9/A10 谓词同见 org 行+platform 行 → 融合层 A6 **按 refId 去重不按内容** → 同内容占两槽（k 槽位浪费·排序噪声）。C 端恒单行不受影响（0.2-3）。
 
 ### 1.2 修法① RRF 融合层 owner 秩补全（禁触 ann 内层前导排序键 Ban）
@@ -58,13 +58,13 @@
 
 ### 1.3 修法② org 双行内容级去重
 
-- **案②-A（推荐）SQL 层同内容排除（谓词法·零签名变更）**：0200 同迁移（与①-A 合流则一迁移两用·rev2 B1 改占）对 ann/lexical（及 distances/evidence 取证一致性面·EXEC 按 rg 普查定）CREATE OR REPLACE **体**增同内容排除谓词：**仅当 owner GUC=org 时**·同 generation 投影内存在 `owner_kind='org' AND org_id=当前org AND content_hash=g.content_hash AND visible` 行则排除该 platform 行（org 行存活=私有优先语义自然结果）·**谓词镜像钉死（rev2 F1）**：NOT EXISTS 子查询须镜像本查询全谓词（同 generation+同 taxonomy_version+同 serving_scope_id+visible+candidate 成员+owner 域）——孪生在本查询不可召回则 platform 行存活（防跨 scope 误杀唯一可召回副本）；排除谓词内容级承重面=源级 `uq_qsrc_active_hash_scoped`（A14·0186 :111）+hash 由应用层从正文派生（0029 :37）+单活跃源纪律（A17 rev2 重锚）——**rev2 勘误**：原「同 owner 内无双行走 A17 UNIQUE(owner,kind,hash) 既有保证」失实（A17）·同 owner 同内容双 refId 行机械可达·**同 owner 双 refId 行不属本刀修面（登记边界）**·谓词零签名变更（返回类型不动·CREATE OR REPLACE 合法）。
+- **案②-A（推荐）SQL 层同内容排除（谓词法·零签名变更）**：0200 同迁移（与①-A 合流则一迁移两用·rev2 B1 改占）对 ann/lexical（及 distances/evidence 取证一致性面·EXEC 按 rg 普查定）CREATE OR REPLACE **体**增同内容排除谓词：**仅当 owner GUC=org 时**·同 generation 投影内存在 `owner_kind='org' AND org_id=当前org AND content_hash=g.content_hash AND visible` 行则排除该 platform 行（org 行存活=私有优先语义自然结果）·**谓词镜像钉死（rev2 F1·rev3 枚举补全）**：NOT EXISTS 子查询须镜像本查询全谓词（同 generation+同 taxonomy_version+同 serving_scope_id+visible+candidate 成员+owner 域——**rev3 补全**：lexical 臂谓词另含 `@@q.tsq` 词项匹配（0187:144-145）与 qbank_chunk join（:141）·candidate 成员=ref_id 单列 join（0187:96/:142 形·非 :278 双列形））——孪生在本查询不可召回则 platform 行存活（防跨 scope 误杀唯一可召回副本）；排除谓词内容级承重面=源级 `uq_qsrc_active_hash_scoped`（A14·0186 :111）+hash 由应用层从正文派生（0029 :37）+单活跃源纪律（A17 rev2 重锚）——**rev2 勘误**：原「同 owner 内无双行走 A17 UNIQUE(owner,kind,hash) 既有保证」失实（A17）·同 owner 同内容双 refId 行机械可达·**同 owner 双 refId 行不属本刀修面（登记边界）**·谓词零签名变更（返回类型不动·CREATE OR REPLACE 合法）。
 - **案②-B 函数面暴露 content_hash → 融合层二次折叠**：与①-A 同迁移把 `content_hash` 一并暴露到返回面·融合层 refId 去重（现状 `:290-295`）后按 content_hash 二次折叠（同 hash 多 refId 保 owner 秩最高者·次序=裁决随①定）——数据经 SECURITY DEFINER 出 RLS 面进应用层·折叠面多一手实现。
 - **共同面**：C 端臂逐位零变（0.2-3）；qbank_question 展面（curation 面）同内容双行=登记边界不并入（裁决项⑦）；缓存键同拍 v6。
 
 ## §2 验收断言候选（pre-exec 双审核对单基面·EXEC 立项重 pin·断言力≥3）
 
-1. **融合 owner 秩臂（修法①）**：新 proof 构造**通道成员不对称**累分逆转夹具（rev2 E2 改形：org 行仅入 dense 距离窗 A6 :285 且居候选池末位·lexical 词频窗 :289 成员缺席；platform 行双通道在池——两窗成员天然不对称可构造·原稿「org 双通道次位+platform 双通道首位」形在现状外层 A9 :110 全 org 先于 platform 下不可构造）·断言 rrf 模式输出 org 行序先于 platform 行（案①-A 落位后）——逆转夹具在**现状**必红（融合序 platform 先于 org=红①可复现性=断言力第 1 层）；dense 模式同夹具输出零变。
+1. **融合 owner 秩臂（修法①）**：新 proof 构造**通道成员不对称**累分逆转夹具（rev3 定形：org 行单条入 dense 距离窗 A6 :285 且居池首位（A9 :110 owner 秩先序）·累分 1/61·lexical 词频窗 :289 成员缺席；platform 行双通道在池——dense 次位 1/62+lexical 首位 1/61≈0.0325>0.0164 逆转可构造·rev2「org 居池末位」形与原稿「org 双通道次位+platform 双通道首位」形均在现状外层 A9 :110 全 org 先于 platform 下不可构造）·断言 rrf 模式输出 org 行序先于 platform 行（案①-A 落位后）——逆转夹具在**现状**必红（融合序 platform 先于 org=红①可复现性=断言力第 1 层）；dense 模式同夹具输出零变。
 2. **双行折叠臂（修法②）**：沿 A21 ④区 dupHash 臂形扩展——org A 与 platform 各持同 content_hash 活跃源+各自 refId 入投影·断言 org A 检索输出同内容恰 1 行（org 行）·k 槽位不被双行消耗——现状必现双行（红②可复现性=断言力第 2 层）·**org 孪生 question 解析臂（rev2 F5）**：②-A 换 refId 后 org 行 refId 经 question_evidence 按 qc.ref_id 映射（0187 :263 `qc.ref_id=hit.ref_id`+:276-277 `g/ch.ref_id=qc.ref_id`）取证链可解析其 question 证据（断言在场）·被排除 platform 孪生 refId 不进本查询取证输入面（若单独入参仍沿 owner 行级谓词解析其自身 question=边界登记裁决⑦）。
 3. **C 端零变负臂**：platform 查询对折叠/秩臂夹具输出与现状逐位一致（0.2-3 断言化=断言力第 3 层）。
 4. **50 臂回归原值**：A21 全 50 臂原值零翻（②-b-1/②-b-2/⑤-1/④ 区逐位）。
@@ -110,11 +110,11 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **裁决项（pre-exec 双审/EXEC 行使·七项）**：
 
-1. **修法①落位形**：案①-A（SQL 面 additive 暴露 owner_kind·推荐）vs 案①-B（零迁移退化注记·不推荐）；若①-A：融合叠序形**限三级稳定排序键单选**（owner_rank→fused_score→refId·与 0187 外层 `:110` CASE 同构·rev2 F3 钉为默认落位形）——融合分内 owner 加权仅作备选且须附支配性约束：**org 加成>融合分最大极差（1/61−1/(60+n)·n=候选池实测宽度≤MAX_CANDIDATES=200）**·约束不可满足或不固定权重值则选加权即须**显式降级承认**（加权形不构成 owner 秩硬保证·仅软偏置）否则回落三级键。
-2. **修法②落位形**：案②-A（SQL 谓词排除·推荐·零签名变更·数据不出 RLS 面）vs 案②-B（暴露 content_hash+融合层二次折叠·与①-A 同迁移合流可省一函数面）；若②-A 则**谓词镜像钉死（rev2 F1）**：NOT EXISTS 须镜像本查询全谓词（同 generation+同 taxonomy_version+同 serving_scope_id+visible+candidate 成员+owner 域）·孪生不可召回则 platform 行存活（防跨 scope 误杀唯一可召回副本·与 §1.3 同文）。
+1. **修法①落位形**：案①-A（SQL 面 additive 暴露 owner_kind·推荐）vs 案①-B（零迁移退化注记·不推荐）；若①-A：融合叠序形**限三级稳定排序键单选**（owner_rank→fused_score→refId·与 0187 外层 `:110` CASE 同构·rev2 F3 钉为默认落位形）——融合分内 owner 加权仅作备选且须附支配性约束（**rev3 公式修正·两审一致收敛**）：**org 加成 ≥1/61（充分界）**——owner 秩先序耦合下 platform 行最大累分（1/(61+a)+1/(61+b)·a/b=两通道 org 首位块宽）与 org 行最小累分（单通道 1/(60+a)）之极差**严格 <1/61**（与池宽无关）→加成 ≥1/61 即硬支配（rev2 原「极差=1/61−1/(60+n)·n≤MAX_CANDIDATES=200」式废；池宽勘正：dense 臂入融合行数上界实测=**50**——0187:85 `least(…,50)` 截断+:111 外层 LIMIT 收口·:284 n≤MAX_CANDIDATES=200 系传参上界非融合池宽）·约束不可满足或不固定权重值则选加权即须**显式降级承认**（加权形不构成 owner 秩硬保证·仅软偏置）否则回落三级键。
+2. **修法②落位形**：案②-A（SQL 谓词排除·推荐·零签名变更·数据不出 RLS 面）vs 案②-B（暴露 content_hash+融合层二次折叠·与①-A 同迁移合流可省一函数面）；若②-A 则**谓词镜像钉死（rev2 F1·rev3 枚举补全）**：NOT EXISTS 须镜像本查询全谓词（同 generation+同 taxonomy_version+同 serving_scope_id+visible+candidate 成员+owner 域·lexical 臂另含 `@@q.tsq` 词项匹配 0187:144-145+qbank_chunk join :141·candidate 成员=ref_id 单列 join 0187:96/:142 形非 :278 双列形）·孪生不可召回则 platform 行存活（防跨 scope 误杀唯一可召回副本·与 §1.3 同文）。
 3. **学说衔接核可（双审前置门）**：母卷裁决②「RRF 融合层不承担优先序=§5 Ban 延伸」（A3/A7）与本刀修法①的修订关系——本刀定位=0187 库内 owner 秩之上的**叠序**（库内谓词/秩零削弱·隔离语义不变·仅融合输出序补全端到端语义）·须 pre-exec 双审明示核可后方可进 EXEC·0187 头注 A7 段随 0200 迁移头注同步勘误（历史迁移字节零改·注记更新落新迁移头注）。
 4. **质量面定界确认**：org_id 过渡形态+存量回填（STILL OPEN 第④项）本刀**划界外**（推荐）vs 并入——推荐划界·org 实体刀落位面零触。
-5. **迁移号确认**：起草席实证「预期零」不成立（0.2-2·RLS 挡直读+返回面无 owner/content 数据源）→ 预期恰 1 迁移 **0200**（**rev2 B1 改占**：0188 cost4 在飞占用+0190-0199 已被 5B-MIG 在飞实占（b5m @7152cd3c ls-tree 亲证）+0189 全树零占用但占之违链单调·协调方分配 0200·A22 亲证）vs 退化零迁移案（=裁决①选①-B 连带·不推荐）。
+5. **迁移号确认**：起草席实证「预期零」不成立（0.2-2·RLS 挡直读+返回面无 owner/content 数据源）→ 预期恰 1 迁移 **0200**（**rev2 B1 改占**：0188 cost4 在飞占用+0190-0199 已被 5B-MIG 在飞实占（b5m @7152cd3c ls-tree 亲证）+0189 全树零占用但占之违链单调·协调方分配 0200·A22 亲证；**rev3 应用序前置条件**：0200 应用须在 5B-MIG 0190-0199 merge+apply 之后——账本连续前缀守卫 migrate.ts:436-438·先应用 0200 而后 0190-0199 方到场→`migration_ledger_not_contiguous_prefix` fail-closed·缺号零敏感（0182-0183 先例））vs 退化零迁移案（=裁决①选①-B 连带·不推荐）。
 6. **缓存键升版形**：v5→v6 单跳（两修法同刀·推荐）vs 分刀各跳——同刀单跳。
 7. **qbank_question 展面双行边界**：不并入本刀·登记后继（推荐·curation 面另刀）vs 并入（扩权须协调方明示）·**rev2 F5 边界登记**：②-A 换 refId 后 question 解析下游走 question_evidence 按 qc.ref_id 映射（0187 :263+:276-277）——org 孪生 refId 取证可解析（§2-2 解析臂）·被排除 platform 孪生 refId 若单独入参（历史 served 记录等）仍沿 owner 行级谓词解析其自身 question（取证面 owner 谓词零改·无优先序语义）·该交互边界随展面双行一并登记后继。
 
@@ -135,22 +135,35 @@ node scripts/ai-docs/check-docs.mjs  # EXIT=0
 # 若 0200 落地增跑：migrate:prove · drift:prove · check-migration-version-uniqueness · qbank-control-sec:prove · rag03-filter-locus:prove · rag03-hnsw-completeness:prove（全 EXIT=0 零新红）
 ```
 
-**交付报告格式（EXEC 收尾随翻·append 保史·§0-§8 原文零改）**：①门矩阵逐门 EXIT 实测值+新 proof 臂计数；②裁决①-⑦行使结果逐项落值；③0200 迁移号占用登记（若落）+链深实测（applied=188 预期·四处独立复现沿母卷形）；④改动集文件清单+markers 五类改动集扫描回执；⑤缓存 v6 升版 rg 回执；⑥§0 重 pin 漂移登记（如有）；⑦STOP 翻面建议（`executed:awaiting_post_prove_dual`）归协调方。
+**交付报告格式（EXEC 收尾随翻·append 保史·§0-§8 原文零改）**：①门矩阵逐门 EXIT 实测值+新 proof 臂计数；②裁决①-⑦行使结果逐项落值；③0200 迁移号占用登记（若落）+链深实测（**rev3 口径勘正：主线链深实测+1**·不预写 applied 绝对值——0200 前置序含 5B-MIG 0190-0199 在先 apply 则链深非 187+1·四处独立复现沿母卷形）；④改动集文件清单+markers 五类改动集扫描回执；⑤缓存 v6 升版 rg 回执；⑥§0 重 pin 漂移登记（如有）；⑦STOP 翻面建议（`executed:awaiting_post_prove_dual`）归协调方。
 
 **Sibling sections stay as written. alone≠dual · EXIT0≠covered · 实现方不 self-approve。**
 
 
 ## §9 rev2 勘误席处置摘要（2026-10-14·pre-exec 双审两席 FAIL findings 全数处置·docs-only 恰 1 .md·零码动·STOP 维持 `draft:awaiting_pre_exec_dual`）
 
-**处置计数**：双审 findings 八族全数处置=B1（协调方裁决）+席1 E1/E2/E3+席2 F1/F2/F3/F4/F5/F6（E1+F2 合并处置=A17 重锚·E3+F6 合并处置=行号勘正）·改动集恰 1 .md=本卷·commit=rev2·⛔push。占号串 rg 实测：改前 13 串/12 行（协调方口径 9 处·以 rg 实测为准全改·偏差如实登记）·改后「0190」仅存 A22/§5 Ban/裁决⑤/本节之「0190-0199 已被 5B-MIG 实占」事实句·占号语义零残留。
+**处置计数**：双审 findings 八族全数处置=B1（协调方裁决）+席1 E1/E2/E3+席2 F1/F2/F3/F4/F5/F6（E1+F2 合并处置=A17 重锚·E3+F6 合并处置=行号勘正）·改动集恰 1 .md=本卷·commit=rev2·⛔push。占号串 rg 实测：改前 13 串/12 行（**rev3 勘正：rg 复测实为 13 串/10 行**·串数 13 无误·「12 行」系 rev2 誊写误·协调方口径 9 处·以 rg 实测为准全改·偏差如实登记）·改后「0190」仅存 A22/§5 Ban/裁决⑤/本节之「0190-0199 已被 5B-MIG 实占」事实句·占号语义零残留。
 
 1. **B1·迁移号改占 0200（协调方裁决）**：0190-0199 已被 5B-MIG 在飞实占（`meetwise-b5m` 树 @`7152cd3c` `git ls-tree` 亲证十文件在场·本席复跑同证）；0189 全树零占用（16 工作树 `ls` 亲证）但占之违链单调·协调方分配本刀改占 **0200**。落点=A22 重写（含勘误注）+0.2-2/案①-A/案②-A/§4/裁决③/裁决⑤/门预申明注释/交付报告③ 全部占号语义改 0200+§5 Ban「只加 0190 新迁移」同步改「只加 0200 新迁移」（含 0144 镜像落点 0200）。
 2. **席1 E1+席2 F2（P1）·A17 重锚**：「UNIQUE(owner,kind,hash) 既有保证」失实亲证（该 UNIQUE 属 legacy vector_chunk upsert `retrieval-store.ts:25`；qbank 路径 qbank_chunk PK=ref_id 0029 :31/qbank_generation_chunk PK(generation_id,ref_id) 0029 :145·零内容级唯一约束；同 owner 同内容双 refId 行机械可达=qbank-ingest.ts :305/:312 ON CONFLICT(ref_id) 仲裁+头注 :12/:22 legacy 语义陈旧残留）。落点=A17 重锚（真实承重面=源级 uq_qsrc_active_hash_scoped 0186 :111+hash 派生约定 0029 :37+单活跃源纪律）+案②-A 承重面改引+§1.3 登记边界「同 owner 双 refId 行不属本刀修面」。
 3. **席2 F1（P1）·谓词镜像钉死**：案②-A+裁决② 补「NOT EXISTS 须镜像本查询全谓词（同 generation+同 taxonomy_version+同 serving_scope_id+visible+candidate 成员+owner 域）·孪生不可召回则 platform 行存活」（防跨 scope 误杀唯一可召回副本）。
-4. **席1 E2（P1）·夹具改通道成员不对称形**：亲证现状外层（0187 :110 CASE）使同通道内 org 行恒先于 platform 行→原稿例「org dense@1+lex@1 vs platform dense@0+lex@0」不可构造；改形=org 行仅入 dense 距离窗（qbank-generation-retrieval.ts :285）居池末位·platform 行双通道在池（lexical 词频窗 :289 成员天然不对称·双通道累分恒大于单通道池末位分）→融合序逆转·「现状必红」断言力保持（红①例证+§2-1 同步改写）。
-5. **席2 F3·裁决① 收紧**：三级稳定排序键钉为单选默认落位形；加权形降为备选并须附支配性约束「org 加成>融合分最大极差（1/61−1/(60+n)·n=池宽≤MAX_CANDIDATES=200）」·不满足则须显式降级承认（软偏置非硬保证）否则回落三级键。
+4. **席1 E2（P1）·夹具改通道成员不对称形（rev3 勘误修订形）**：亲证现状外层（0187 :110 CASE）使同通道内 org 行恒先于 platform 行→原稿例「org dense@1+lex@1 vs platform dense@0+lex@0」不可构造；rev2 原记改形「org 行仅入 dense 距离窗（qbank-generation-retrieval.ts :285）居池末位」仍**不可构造**（同因：owner 秩先序使 org 恒居池头部区块·末位形与 platform 同池矛盾）→rev3 改席位2 建议可构造形=org 行单条入 dense 距离窗**居池首位**·累分 1/61·platform 行双通道在池——dense 次位 1/62+lexical 首位 1/61≈0.0325>0.0164（lexical 词频窗 :289 成员天然不对称）→融合序逆转·「现状必红」断言力保持（红①例证+§2-1 同步改写·rev3 同勘）。
+5. **席2 F3·裁决① 收紧（rev3 公式勘正）**：三级稳定排序键钉为单选默认落位形；加权形降为备选并须附支配性约束——rev2 原记「org 加成>融合分最大极差（1/61−1/(60+n)·n=池宽≤MAX_CANDIDATES=200）」公式形与池宽界均失实→rev3 两审一致收敛修正=「**org 加成 ≥1/61（充分界）**：owner 秩先序耦合下极差严格 <1/61（与池宽无关）→加成 ≥1/61 即硬支配·dense 臂入融合行数上界实测=50（0187:85 least(…,50) 截断+:111 外层 LIMIT 收口·:284 n≤200 系传参上界非融合池宽）」·不满足则须显式降级承认（软偏置非硬保证）否则回落三级键。
 6. **席2 F4·缓存零残留+v4→v5 归属勘正**：§0.2-4+§2-5 补零残留论证（版本串内嵌键→旧键不可达+TTL 有界自净（缺省 `DEFAULT_TTL_SECONDS=120` `qbank-retrieval-cache.ts:22` 亲证·审席上界口径 ≤3600s）+fill_intent 旧键行 inert（:175-196 singleflight 面）+滚动部署键空间不相交）；v4→v5 归属勘正=AG-39 母刀 EXEC `1408d8c2`（`git log -L` 亲证·头注 :16-18「v5 additionally binds the AG39 owner layer」）·非 AG-24。
 7. **席2 F5·org 孪生 question 解析臂/边界登记**：§2-2 增解析臂断言（②-A 换 refId 后 org refId 经 question_evidence 按 qc.ref_id 映射 0187 :263/:276-277 可取证）+裁决⑦ 增边界登记（被排除 platform refId 单独入参仍沿 owner 行级谓词解析其自身 question·取证面 owner 谓词零改）。
 8. **席2 F6+席1 E3·行号勘正**：A20 main.ts `:554` 删（亲证系注释行「localRetrieve remains compat/test seam」非调用·rg 全集恰两处生产调用）·锚定 main.ts **:569**+track-local **:266**（两处均亲证为 `cachedQbankSearch(` 调用行）；A9 `:108`→**:106**（内层 LIMIT）·`:112`→**:111**（外层 LIMIT k）；A10 `:157`→**:156**（LIMIT k）·owner 秩 ORDER BY 精化为 :154-155。A9/A10 其余引用（:102-104/:110/:105/:120-121/:151-153）与本卷他处行号（A6 :284-:300/A14 0186 :111/裁决①③ 0187 :110）本席复验零漂。
+
+**自检**：`node scripts/ai-docs/check-docs.mjs` EXIT=0；markers 五类改动集新增行零命中；STOP 维持 `draft:awaiting_pre_exec_dual`（alone≠dual·待双审复验+协调方授权·⛔push）。
+
+## §10 rev3 勘误席处置摘要（2026-10-14·rev2 复审 pre-exec 双审两席 FAIL 残余六项全数处置（席1 R1/R4+席2 R2/R3/R4/R5/R6）·docs-only 恰 1 .md·零码动·STOP 维持 `draft:awaiting_pre_exec_dual`）
+
+**处置计数**：残余六项全数处置=R1（双席共识 P1·夹具形修订）+R2（席2 P1·应用序前置条件）+R3（席2·谓词枚举补全）+R4（席1+席2·支配性公式修正）+R5（席2·处置计数勘正）+R6（席2·链深口径勘正）·改动集恰 1 .md=本卷·commit=rev3·⛔push。全部落点每处 rg/Read/ls 亲证后改（0187 :85/:96/:110/:111/:128/:141-145/:278+migrate.ts:436-438+migrations 目录+融合层 :284-:300）。
+
+1. **R1（双席共识 P1）·夹具首位形修订**：rev2 E2 形「org 行仅入 dense 且居候选池末位（1/(60+n)）」**不可构造**亲证——0187:110 外层 `ORDER BY (CASE WHEN a.owner_kind='org' THEN 0 ELSE 1 END), a.dist` 使同通道内 org 行恒居 platform 之前（头部区块）·末位形与 platform 同池矛盾。改席位2 建议可构造形：**org 行单条居 dense 池首位（owner 秩先序恒居 platform 之前）·累分 1/61；platform 行双通道在池——dense 次位 1/62+lexical 首位 1/61≈0.0325>0.0164→逆转**（lexical 词频窗成员天然不对称=org 行缺席·假体 embedder 夹具可构造）。落点=红① :50+§2-1 :67+§9-4 同勘·断言力三层（现状必红/修后绿/dense 臂零变）保持零损。
+2. **R2（席2 P1）·0200 应用序前置条件补登**：亲证 migrate.ts:436-438 账本连续前缀守卫（expectedPrefix=manifest 前 doneRows.length 项逐位比对·违者 :438 `migration_ledger_not_contiguous_prefix` fail-closed）→0200 若先于 5B-MIG 0190-0199 merge+apply 应用则账本非连续前缀必红；缺号本身零敏感（0182-0183 永久空号在链先例=母刀 ce44fb72 改占 0186+0187 所遗·migrations 目录亲证零文件·守卫只比 manifest 在场项）。落点=A22 :37+裁决⑤ :117。
+3. **R3（席2）·谓词镜像枚举补全**：亲证 0187:144-145（`q.tsq <> ''`+`@@ q.tsq` 词项匹配）+:141（qbank_chunk join）+:96/:142（candidate `ON candidate.ref_id=g.ref_id` 单列形）+:278（`ON candidate.ref_id=ch.ref_id AND candidate.content_hash=ch.content_hash` 双列形·question_evidence 面）——NOT EXISTS 镜像枚举补「lexical 臂另含 @@q.tsq 词项匹配+qbank_chunk join·candidate 成员=ref_id 单列 join（:96/:142 形非 :278 双列形）」。落点=案②-A :61+裁决② :114。
+4. **R4（席1+席2）·支配性约束公式修正**：rev2「org 加成>融合分最大极差（1/61−1/(60+n)·n≤MAX_CANDIDATES=200）」两处失实亲证——①公式形错：owner 秩先序耦合下 platform 最大累分 1/(61+a)+1/(61+b) 与 org 单通道最劣 1/(60+a) 之极差=1/(61+b)−1/((61+a)(60+a))**严格 <1/61**（a/b=两通道 org 首位块宽·与池宽无关）→改「**org 加成 ≥1/61（充分界·两审一致收敛）**」；②池宽界错：dense 臂入融合行数上界=**50** 非 200（0187:85 `least(coalesce(p_k,1),50)` 截断+:111 外层 `LIMIT k` 收口·应用层 :284 n≤MAX_CANDIDATES=200 系传参上界非融合池宽；lexical 臂 k 截 200（0187:128）但极差界与池宽无关·≥1/61 两臂同适用）。落点=裁决① :113+§9-5 同勘。
+5. **R5（席2）·§9 处置计数勘正**：rg 复测 rev1（72c3e8f5）「0190」占号串实为 **13 串/10 行**（rev2 记「13 串/12 行」之 12 系誊写误·串数 13 无误）·落点=§9 处置计数行随文勘注。
+6. **R6（席2）·交付报告③ 链深口径勘正**：R2 序前置条件下 0200 前可能有 5B-MIG 0190-0199 在先 apply→主线链深非必然 187+1·「applied=188 预期」预写绝对值失当→改「**主线链深实测+1**」口径（四处独立复现沿母卷形保持）。落点=交付报告③ :138。
 
 **自检**：`node scripts/ai-docs/check-docs.mjs` EXIT=0；markers 五类改动集新增行零命中；STOP 维持 `draft:awaiting_pre_exec_dual`（alone≠dual·待双审复验+协调方授权·⛔push）。
