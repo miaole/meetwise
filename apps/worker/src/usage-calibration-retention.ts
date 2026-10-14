@@ -64,7 +64,14 @@ export function resolveUsageCalibrationRetentionConfig(env: NodeJS.ProcessEnv = 
 /** 一拍：保留期清除。整拍不抛（drain-loop 要求）；清除失败自吞下拍重试（at-least-once）。 */
 export async function usageCalibrationRetentionTick(pool: DbPool, keepDays: number): Promise<number> {
   try {
-    return await purgeExpiredUsageCalibrationObservations(pool, keepDays);
+    // 显式借用一条连接再交 Client 形参（池对象直传系类型谎言；运行时语义与池级 query 等价：
+    // 同一登录身份、同一 SECURITY DEFINER 函数、用毕归还）。
+    const client = await pool.connect();
+    try {
+      return await purgeExpiredUsageCalibrationObservations(client, keepDays);
+    } finally {
+      client.release();
+    }
   } catch (e) {
     console.error('usage calibration retention purge failed', e);
     return 0;

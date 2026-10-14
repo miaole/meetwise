@@ -16,6 +16,9 @@ import {
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
+/** 联合类型窄化：仅 deny 臂（ok:false）携带 error；allow 臂经由此处断言恒假。 */
+const bindError = (d: ReturnType<typeof bindResumeOcr>, code: string): boolean =>
+  d.ok === false && d.error === code;
 
 const PAYLOAD = Buffer.from('AAAA', 'base64');
 const DIGEST = createHash('sha256').update(PAYLOAD).digest('hex');
@@ -38,15 +41,15 @@ A('TC-MODEL-OCR-01-main：resume.ocr.v1 + 合法 digest → 密封 provenance',
 
 A('TC-MODEL-OCR-01-E4：未登记 operation → binding 缺失，零适配器',
   bindResumeOcrOperation('interview.unknown.v1', DIGEST).ok === false
-  && bindResumeOcrOperation('interview.unknown.v1', DIGEST).error === 'model_operation_unknown');
+  && bindError(bindResumeOcrOperation('interview.unknown.v1', DIGEST), 'model_operation_unknown'));
 
 A('TC-MODEL-OCR-01-特：未接线 native operation 不能冒充 OCR binding',
   bindResumeOcrOperation('voice.asr.v1', DIGEST).ok === false
   && bindResumeOcrOperation('qbank.embedding-build.v1', DIGEST).ok === false);
 
 A('非法 digest 拒绝（非 sha256 hex）',
-  bindResumeOcr('not-a-digest').error === 'ocr_media_digest_invalid'
-  && bindResumeOcr('').error === 'ocr_media_digest_invalid');
+  bindError(bindResumeOcr('not-a-digest'), 'ocr_media_digest_invalid')
+  && bindError(bindResumeOcr(''), 'ocr_media_digest_invalid'));
 
 const dummyPool = {} as DbPool;
 const dummyClient = {
