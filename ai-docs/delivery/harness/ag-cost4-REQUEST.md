@@ -1,6 +1,6 @@
 # AG-COST4 — 成本轨第④步：AG-11 三件套+补收 EG-B2（双等值点 `≤` 镜像 + settle 放宽/行内扩 `overage` 标记 + 预留传参 `LEAST(max, refine(estimate))`）+ parity-b2 静态钉同批（B 席六步之④ · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停零码动·本刀恰 1 .md。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push · est live=0 · markers=0）。**rev2（2026-10-14）**：pre-exec 双审两席均 **FAIL**（席1 B1+6 errata+门矩阵预申明·席2 B1 P0+B2/B3 P1+E1-E5）——rev2 勘误席对每处亲证（rg/Read/sed 实测·含对审席引行的复核纠偏）后全数处置落卷·处置明细与计数见卷尾「rev2 勘误席处置摘要」·STOP 原值维持·复送双审）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工收官·⛔push·est live=0·门矩阵全表见 §9。历史：`draft:awaiting_pre_exec_dual` → rev2（2026-10-14：pre-exec 双审两席均 **FAIL**（席1 B1+6 errata+门矩阵预申明·席2 B1 P0+B2/B3 P1+E1-E5）——rev2 勘误席对每处亲证（rg/Read/sed 实测·含对审席引行的复核纠偏）后全数处置落卷·处置明细与计数见卷尾「rev2 勘误席处置摘要」·复送双审）→ pre-exec 双审两外席复审核 **BOTH PASS** + 协调方明示授权开工（2026-10-14）→ EXEC 施工席按 rev2 §1 逐条施工+裁决①-④按推荐行使（落值全呈 §9）→ **STOP=`executed:awaiting_post_prove_dual`**。Ban self-approve · alone≠dual · Dual PASS ≠ 开工）
 
 **席位**：meetwise 战役 AG 成本轨第④步起草席（AG-11 三件套+补收 EG-B2 · EXPERT-REVIEWS §七 成本轨 B 席六步之 **④**「④AG-11 三件套+补收（EG-B2 一并）」——①止血+观测已 nail `6f2ed876`、②迁移 dfcadd9e 收官（0177+水位线+合并 max+保留期）、③AG-12 估算器+claim 冻结缝已 nail `9d69a5b1`（0184 在链）·**④=队列下一刀**·系 **#48/#49 收口硬前置**（批 2 侦察席定谳）·与失败语义轨六刀（全收官）零文件交集）。
 **基线**：`feat/mysql-schema-skeleton` @ **`e1cb1110`**（本工作树 tip·merge(bill4) 收官 merge·合并后迁移链深 **185**·commit 头注原文亲证「迁移链纪律 0184 先于 0185 落地·合并后链深 185」）。**起草窗口主线前移披露**：本席建树时点 tip=`f0147886`（AG-COST3 nail 收官随翻笔）→ 起草中途前移至 `e1cb1110`（bill4 积分明细列表 nail 并线·`git diff --stat f0147886 e1cb1110` 恰 14 文件 bill4/commerce 面+新迁移 0185·**§0.1 十九锚中十八 blob 两 tip 逐字节恒等**·唯一漂移 `packages/db/src/index.ts` `6f07a09e824f`→`7c9c00ed414c`（bill4 删导出使行移 :216→:221·语义零变）**已照新 tip 重 pin**）。分支 `line/ag-cost4` · 工作树 `meetwise-cost4`（`git worktree add` 初建误落 `origin/main` `c4244470`——`git fetch --all` 网络失败（`RPC failed; curl 16 Error in the HTTP2 framing layer`）致远端跟踪陈旧·本席 `reset --hard f0147886`→复核后再 `reset --hard e1cb1110` 两次修正·树净 `git status --short` 零输出亲证·与主线 tip 树恒等）。
@@ -47,7 +47,7 @@
 
 ### 0.3 现势并发登记（强制）
 
-1. **主线前移+迁移号占用图**：起草窗口 `f0147886`→`e1cb1110`（merge(bill4)·恰 14 文件 bill4/commerce 面+0185·§0.1 十九锚十八 blob 恒等·db/src/index.ts 重 pin）。链顶=**0185**·0186/0187 主线未占未写·**0188/0189=5B-MIG（`line/batch5b-mig`）/S4b（`line/tokstream-s4b`）拟占**（协调方分配指令·两支线迁移目录零实落亲证：`git ls-tree` 各顶 0181/0184）→ **本刀迁移号 0190 起**；EXEC 立项日按主线链顶顺延登记（若 0186-0189 有实落/让位变化·find 实测顺延·`check-migration-version-uniqueness` 终裁）；本刀计划恰 1 新迁移（件①+件② SQL+月限表级 CHECK 松绑〔rev2·席2-B1〕同卷多节·沿 0184 多节先例·裁决②(a) 行使时 scoped DROP+CREATE 亦入同卷）·裁决行使若拆件自 0190 连续顺延并随卷登记。**非纯代码刀**（含迁移）。
+1. **主线前移+迁移号占用图**：起草窗口 `f0147886`→`e1cb1110`（merge(bill4)·恰 14 文件 bill4/commerce 面+0185·§0.1 十九锚十八 blob 恒等·db/src/index.ts 重 pin）。链顶=**0185**·0186/0187 主线未占未写·**0188/0189=5B-MIG（`line/batch5b-mig`）/S4b（`line/tokstream-s4b`）拟占**（协调方分配指令·两支线迁移目录零实落亲证：`git ls-tree` 各顶 0181/0184）→ **本刀迁移号 0190 起**；EXEC 立项日按主线链顶顺延登记（若 0186-0189 有实落/让位变化·find 实测顺延·`check-migration-version-uniqueness` 终裁）；本刀计划恰 1 新迁移（件①+件② SQL+月限表级 CHECK 松绑〔rev2·席2-B1〕同卷多节·沿 0184 多节先例·裁决②(a) 行使时 scoped DROP+CREATE 亦入同卷）·裁决行使若拆件自 0190 连续顺延并随卷登记。**非纯代码刀**（含迁移）。**〔EXEC 立项勘误注（2026-10-14·协调方裁决「顺延规则优先」）〕**：EXEC 并线主线 `d68ffe17`（AG-39 nail 收官并入·**0186+0187 已被 AG-39 合法实落占位**·链 185→187）→ 卷估「0190 起」与「0188/0189=5B-MIG/S4b 拟占」**作废**——按主线链顶实测算（max=**0187**）顺延 → **本刀迁移号改占 `0188`**（`0188_ag11_cost_reserve_least_and_settle_relax.sql`）；`check-migration-version-uniqueness` 终裁 **files=188 violations=0** EXIT=0。§0.1 #8 链顶基线随并线漂移（0185→0187 链顶·0185 blob `022016586394` 恒等亲证零变）。
 2. **跨轨/同族交点**：⑤AG-08 熔断键按端点=队列下一刀（现无在飞支线·本刀与其零文件冲突预期：AG-08 面=breaker/admission 键·本刀面=reserve/settle SQL+invoke reserve 相位一行）；⑥回灌接线（resolveLatestCalibratedFactor→policy.calibration 生产 setter）+显式缓存（nonce 围栏渲染结构·EXPERT :73）=后继·本刀零触；EG-B1 unknown ageing=失败语义轨面零触；AG-24 已收官并线（model-client :650 区 blob 已随其变更——本刀 model-client 零字节·§0.1 #11 为现树新 blob）；EG-B3 fee ledger 对账/EG-B4 RAG embedding 旧轨双轨=范围外（§3）。**共享 SSOT 四件**（product-campaign-LEDGER/execution-master-checklist/issues-master/ai-capability-review）零触（刀位图翻面权归协调方）。**⑥接口注（rev2·席2-E5）**：calibration 不在 binding digest（costPolicyBinding invoke.ts :348-364 摘要集亲读无 calibration/estimator 字段·sameCostPolicyBinding :378 同集比较）——**⑥回灌接线后 LEAST 输入须取 claim 冻结值**（plan.estimateInputTokens 与 :722 claim 同源同值）**或届时扩 binding digest**·本刀零触零预支。
 3. **本刀与 ③ 交付的承重关系（如实链）**：③ 落 claim 冻结缝（0184 estimator_version/calibration_factor_version + 0119 estimate_input_tokens 三列 identity-immutable）=EXPERT §三 :25 冻结半已承接——本刀件③ reserve 相位取 `plan.estimateInputTokens` 与 claim 冻结值**同源同值**（同一 plan 对象同相位算得·:722 claim 落库/:862 reserve 取用）；**0083 :46-58 binding_mismatch fail-closed 语义保留不放松**（同键重放携新 token 信封=0083 头注「must not present a newly configured envelope」原义·漂移防线库级兜底）——防重放漂移=冻结审计（0184）+binding fail-closed（0083）双层，非 reserve 值放松。
 4. **部署窗口登记（rev2·席2-E2）**：0190 上线前在飞预留系旧等值语义（reserved=header max）——上线后**同键重放携 LEAST 值**即撞 0083 重放绑定防线（identity 五判 :52-55·token 两判 :54-55·返回 :56）→ `binding_mismatch` 确定性拒绝·**有界自限**：仅命中「0190 前建键且上线后携新信封重放」的同键面·新键一律按 LEAST 全新预留·在飞旧行仍按己行 settle/release 走完不受累——如实登记为**部署窗口期望行为**（fail-closed 双层防漂移的表层代价）非缺陷·EXEC 部署收据须载本条。
@@ -185,3 +185,49 @@ pre-exec 双审两外席均 **FAIL**：席1 = B1+6 errata+门矩阵预申明·�
 | D15 | 席1 门矩阵 | 预申明 | 门矩阵补三 proof | §2-3 增：`prove:model-invocation-reconcile`（:56/:189/:346 非空 scope 三调用点·≤ 改形后原值绿）+`prove:ag-d-admission`（:260/:280 NULL→:528 IF 块跳过）+`prove:bill1-topic-fields`（:226/:231/:236 同形判据） | sed model-invocation-reconcile.proof.ts :56/:189/:346；`grep markModelInvocationDispatched` 两 proof 均不带 scope→wrapper :136 `?? null`→0088:528 `IF p_cost_scope_id IS NOT NULL` 整块跳过 |
 
 **处置后自查**：本刀仍恰 1 .md（仅本卷）·STOP=`draft:awaiting_pre_exec_dual` 原值维持·§1 修法清单/§5 Ban/pins 由 rev2 勘误席行使修订（EXEC 仍受 STOP ③ 约束不得再改）·迁移号 0190 起不变·est live=0 不变·markers 复扫见下方回执。复送预执行双审。
+
+---
+
+## §9 EXEC 附记（2026-10-14 · 施工席落卷 · STOP=`executed:awaiting_post_prove_dual`）
+
+**授权链**：rev2 落卷 → 预执行双审两外席复审核 **BOTH PASS** → 协调方明示授权开工（2026-10-14·迁移号裁决「顺延规则优先」随授权下达）→ EXEC 施工席按 rev2 §1 逐条施工·裁决①-④按推荐行使·⛔push（EXEC 后 STOP=`executed:awaiting_post_prove_dual`）。
+
+**§9-1 并线记录**：`git merge --no-ff feat/mysql-schema-skeleton`（tip=`d68ffe17`·AG-39 nail 收官带入 0186_qbank_org_owner_columns+0187_qbank_owner_scoped_retrieval·链 185→187）→ merge commit **`3e8f1771`**（双亲 `2dacd4a0`+`d68ffe17`）·**零冲突**（预期内：AG-39 面=qbank/org·与本刀成本面零交叠）。§0 逐条重 pin：十九锚 **17 blob 恒等**（invoke.ts/0088/0184/0036/0083/0033/0119/0185/ai-cost-governance.ts/model-invocation.ts/model-client.ts/usage-reconciliation.ts/context-budget.ts/usage-calibration-reconciler.ts/model-cost-governance.ts/model-op00 proof/metrics.ts 全零漂）；**两锚重锚勘误**（结论不变·AG-39 导出新增行使行移）：#18 `packages/db/src/index.ts` `7c9c00ed414c`→`2088940ab788`（AG39 qbank-owner 导出 +3 行·cost 族导出行 :221→:225·语义零变）·#19 `packages/ai-runtime/src/index.ts` `e6ecc64ef778`→`e37499b764f0`（qa-tool-layer 导出 +1 行·reconciler 族 :85 区零变）。file:line 锚全部亲证吻合（:862 reserve/963+1064 settle/0184 :73-:209 guard 体+184/:185/0088 :480-:579+550+553+528-554/0036 :101-:137+171-176+183-191/0083 :46-58/0033 :35/:47/0119 :27-33/0144 :513-516 判 :513 返回 :514）。
+
+**§9-2 迁移号勘误（协调方裁决·终裁）**：卷估 0190 作废——主线链顶实测 **max=0187**（AG-39 占 0186/0187）→ 本刀占 **`0188`**（`0188_ag11_cost_reserve_least_and_settle_relax.sql`·恰 1 新迁移·0001-0187 历史迁移零字节）；uniqueness 门终裁 **files=188 violations=0 EXIT=0**；§0.3-1 勘误注已登记；5B-MIG/S4b 拟占号位以本实测为准让位。
+
+**§9-3 裁决行使落值（全按 rev2 推荐）**：**①=(a)** 双点同批 `≤` 镜像——0188 内 guard（0184 :73-:209 现行体逐字节·仅 :184 输入谓词改 `<=`）+transition（0088 :480-:579 现行体逐字节·仅 :550 改 `<=`）双 CREATE OR REPLACE·签名零变零 ACL 重发·输出侧等值 :185/:551 逐字保留·死体 3（0088:162/0119:147/0181:145）零触（镜像逐字节 diff 亲证各恰 1 行差异）。**②=(a)** wrapper 返回形扩 overage——SQL 侧 `ai_cost_settle_text_scoped` bigint→`TABLE(micro_cny bigint, overage boolean)` 身份变更·0188 内**恰一 `DROP FUNCTION`+`CREATE FUNCTION`**（零 OUT 叠加 overload）·ACL 随发（REVOKE FROM PUBLIC+GRANT app_role=0036 :187/:190 同形）·内层 `ai_cost_settle_text` 保持 RETURNS bigint 5 参签名零变·**overage 取值路径=settle 后回读 reservation 行**（scoped 内 SELECT r.overage）·TS 侧 `settleAiTextCost` 返回 `{ microCny, overage }`·两调用点解构+`METRIC.modelCostSettleOverageTotal`（`model_cost_settle_overage_total`·无 label 低基数·registerBaselineMetrics 基线预注册）·阈值建议 **>0 即告警**（政策稳态=0）落 §1 资损上界口径。**③=(a)** `LEAST(max, estimate)`·estimate 缺失回退 max——`invoke.ts` reserve 相位恰一行 `maxInputTokens: Math.min(policy.maxInputTokens, plan.estimateInputTokens ?? policy.maxInputTokens)`（plan 同相位与 claim 冻结值同源同值）。**④=(a)** settle header 上限解析=函数内 join+COALESCE fail-closed·签名 5 参零变（REVOKE/GRANT/migrate.proof 零连锁）。月限表级 CHECK 松绑：`ALTER TABLE ai_cost_budget_month DROP CONSTRAINT ai_cost_budget_month_check`（约束名 **pg_constraint 实测**：dev 库链 185 实查 `ai_cost_budget_month_check`·定义 `CHECK (((reserved_micro_cny + settled_micro_cny) <= limit_micro_cny))`·列级 CHECK 五条+PKEY/FKEY 零触）；reserve 期月限闸 0144 :513-516 原值零字节亲证。
+
+**§9-4 三件落点+0188 内容摘要**：改动文件恰 **6**——①`packages/db/migrations/0188_*.sql`（新·382 行：§① guard ≤ 镜像+transition ≤ 镜像+overage 加列+settle_text 放宽形+scoped DROP/CREATE/ACL+月限 CHECK 松绑）；②`packages/ai-runtime/src/invoke.ts`（件③ reserve LEAST 恰一行+件② 两 settle 调用点解构/两 overage metric 点）；③`packages/ai-runtime/src/metrics.ts`（METRIC 单真源 +1 值+基线预注册 +1 行）；④`packages/db/src/model-op/ai-cost-governance.ts`（settleAiTextCost 返回形 `{microCny,overage}`+SQL 改列选·AiTextCostSettleResult 接口）；⑤`apps/worker/test/model-op00-db-state.proof.ts`（静态钉新增 ≤ 语义臂恰 2：输入侧 LEAST(6)<max(10) 过派发边界 dispatching/slot=1 正臂+输出侧 8≠10 仍 `_binding_mismatch` 拒绝不放松显式锁负臂·19 在册臂既有语义零改写）；⑥本卷（Status 翻面+§0.3-1 勘误注+本 §9）。SQL reserve 族（ai_cost_reserve_text/0036 :81-84/0144 tf_ :513-516/0083 :46-58 binding fail-closed）**零字节**亲证；claim 冻结缝（0184 :219+ 19 参/0119/claim 相位）零触；digest 摘要集（costPolicyBinding）零字节亲证。
+
+**§9-5 门矩阵全表（pre 基线+post 改后·全数亲跑 EXIT 实测）**：
+
+| 门 | pre 基线 | post 改后 |
+|---|---|---|
+| uniqueness | EXIT=0 files=187 | **EXIT=0 files=188 violations=0** |
+| drift:prove | EXIT=0 | EXIT=0 |
+| e2e-parity:check（零漂门） | EXIT=0 | EXIT=0（e2e floors rg 零命中亲证） |
+| usage-reconciliation | 15 PASS | 15 PASS EXIT=0 |
+| estimate-threading | 6 PASS | 6 PASS EXIT=0 |
+| context-budget | 49 PASS | 49 PASS EXIT=0 |
+| model-usage-cache-observe | 28 PASS | 28 PASS EXIT=0 |
+| usage-calibration-reconciler（隔离） | 28 PASS | 28 PASS EXIT=0 |
+| usage-calibration-bleed | 26 PASS | 26 PASS EXIT=0 |
+| ucal-windowing（隔离） | 37 PASS+1 FAIL（0176 号位陈旧钉基线红） | 37 PASS+1 FAIL **同臂同文逐字节承登** EXIT=1 |
+| estimator-v2-cjk | 38 PASS | 38 PASS EXIT=0 |
+| ag12-estimator-freeze（隔离） | 37 PASS | 37 PASS EXIT=0 |
+| migrate:prove（隔离·链 188） | 117 PASS（链 187） | **117 PASS EXIT=0（链 188 全 apply+全 skip 幂等）** |
+| model-op00:prove（隔离·静态钉） | 19 臂在册/17 打印 PASS | **19+2=21 臂在册/19 打印 PASS FAIL=0**（:273/:274 系失败路径守卫臂不打印） |
+| model-invocation-reconcile（隔离·D15 预申明） | 17 PASS | 17 PASS EXIT=0（非空 scope 三调用点 :56/:189/:346 零影响判据成立） |
+| ag-d-admission（隔离·D15 预申明） | 49 PASS | 49 PASS EXIT=0（NULL scope→0088 :528 IF 块跳过判据成立） |
+| bill1-topic-fields（隔离·D15 预申明） | 27 PASS | 27 PASS EXIT=0（同形判据成立） |
+| prove:ai-cost | EXIT=1 `database_config_invalid:database_target_missing`（无 runner 靶·结构性拒裸跑） | **同错同形 EXIT=1**（B2k 判例同型红·pre/post 逐字节同形·非本刀新红·Ban 补靶） |
+| turbo typecheck --force | EXIT=0 3/3 | EXIT=0 3/3 |
+| docs:check | EXIT=0（2063 扫描） | 见 §9-8 终扫 |
+| markers 五类 | 改动集零命中 | 见 §9-8 终扫 |
+
+**§9-6 陷阱 13 条自检（施工席逐条·涉改 TS 面 invoke.ts/metrics.ts/ai-cost-governance.ts/model-op00 proof）**：①事务内外呼——零新增（settle/complete 事务内仅 DB 调用·亲证）；②consumer 内 @Transactional——零触面（invoke 非 MQ consumer）；③权限注解 hasAuthority——零新增注解（SQL ACL 层行使·GRANT 形沿 0036 原值）；④注释带任务号——零（注释只写 AG-11/EG-B2 机制语义·无 N-xxx/A3 类编号）；⑤吞异常静默——settle overage 不吞（显式标记+metric·catch 臂原值 unknown 语义零改）；⑥返值失真——wrapper 返回形扩 overage 后两调用点全部解构消费·无第三调用点（rg 全仓亲证=invoke.ts 恰 2 生产+1 静态 regex 断言）；⑦SQL 注入拼接——零拼接（LEAST 在 TS 算得后照常参数化传值·$8 位不变）；⑧NULL 语义——estimate 缺失 `?? max` 显式回退·header 缺行 COALESCE 退预留自值 fail-closed；⑨幂等——settle 已 settled 幂等返回原值行 :116 逐字保留；⑩并发——FOR UPDATE 行锁原值·月度结转 version+1 原形；⑪金额精度——CEIL per-term 原式逐字节保留·GREATEST 只扩不缩（不缩史值写死）；⑫基线红漂移——windowing 0176 臂 pre/post 同文·零新红（门表全绿除承登两处）；⑬诚实边界——settle 五相库级直证臂（§2-1 候选新 proof 件）未随本刀立项·如实登记 §9-7 不洗。
+
+**§9-7 偏离任务书清单（如实呈报·余零）**：①§2-1「迁移+放宽 proof（新 proof 件·settle 五相 α/β/β-0/γ/δ/ε+replay+wrapper 幂等七组）」**未随刀立项**——协调方施工清单（三件+静态钉 model-op00 ≤ 臂+e2e 零漂门+门矩阵 §2-3 全表）未含新 proof 件；其门矩阵未列新 proof 门·本席不越权新增 proof 文件+runner 白名单+三处 package.json 注册（越界面）。settle 放宽/月限松绑的 SQL 语义现验证面=migrate:prove 链 188 全 apply（SQL 有效性/约束名正确性 fail-closed）+typecheck·**五相行为断言缺口如实移交 post 双审/协调方裁补**（补则沿 §2-1 候选形状立新刀）。②「P2 勘误五条随立项落」=rev2 D4-D8（席2-E1 行内扩单调/ E2 部署窗口/ E3 live=2/ E4 资损上界/ E5 ⑥接口注）——rev2 已落卷·EXEC 逐条复验在案（E1 落 0188 GREATEST 形+⑤(β-0) 防线·E2 登记本 §9-8·E3 恰数锚亲证 live=2·E4 阈值 >0 即告警落 §9-3·E5 零预支亲证 digest 零字节）。
+
+**§9-8 卫生回执**：**est live=0**（迁移+proof 全隔离库/静态·零模型外呼·零生产操作·零 secrets·零消耗）；**pins 十一值零翻转**（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null）；**部署窗口登记（rev2 §0.3-4 承接）**：0188 上线前在飞预留（reserved=header max）上线后同键重放携 LEAST 值→0083 :46-58 `binding_mismatch` 确定性拒绝·有界自限·期望行为非缺陷；**markers 五类**改动集新增行零命中（git diff -U0 新增行口径·五类词族沿 ha-5/qbank-control-sec receipt 先例不复抄卷内避免自匹配·EXIT=1 零命中亲跑）；docs:check 终态见本卷落卷后亲跑回执；**⛔push**（EXEC 后 STOP=`executed:awaiting_post_prove_dual`·交 post 双审两外席）；历史迁移 0001-0187 零字节；共享 SSOT 四件零触。
