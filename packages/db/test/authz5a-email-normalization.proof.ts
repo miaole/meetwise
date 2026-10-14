@@ -38,8 +38,11 @@ async function main() {
   // 清障后全链过（=真实运营时序:预检报告 → 处置 → 迁移链闭合）。
   const db = await freshDb(admin, 'authz5a_main');
 
-  // ── 阶段 A：预链(≤0166)+冲突行 → 臂 [4]（只报告不合并·索引延后）──
-  const preManifest = manifest.filter((m) => !m.version.startsWith('0167_') && !m.version.startsWith('0168_') && !m.version.startsWith('0169_'));
+  // ── 阶段 A：预链(字节序前缀 <0167,即 ≤0166)+冲突行 → 臂 [4]（只报告不合并·索引延后）──
+  // staging 随链判据：预链只取 manifest 严格字节序前缀 <0167（runner 铁律=ledger 须为传入
+  // manifest 的字节序前缀,否则 migration_ledger_not_contiguous_prefix fail-closed）,
+  // ≥0167 整段（0167/0168/0169+主线延伸段）统一延后到阶段 B 一次过链——主线链尾再延伸,前缀恒连续。
+  const preManifest = manifest.filter((m) => m.version < '0167');
   const pre = await runMigrations(db, preManifest);
   A('预链(≤0166)一次通过', pre.applied.length === preManifest.length);
   await db.query("INSERT INTO user_account(id, email, password_hash, role) VALUES ('c1','Foo@X.com','scrypt$aa$bb','candidate')");
@@ -63,10 +66,10 @@ async function main() {
   const deferredIdx = await db.query("SELECT indexname FROM pg_indexes WHERE indexname='ux_user_email_lower'");
   A('[4] 冲突未清 → 唯一索引延后不建（防中途 UNIQUE 坠迁移·派单裁决）', deferredIdx.rowCount === 0 && notices.some((n) => n.includes('authz_0167_ux_user_email_lower_deferred')));
 
-  // ── 阶段 B：模拟运营清障（DELETE 重复行=运营处置,非迁移合并）→ 全链（0167-0169 过链）──
+  // ── 阶段 B：模拟运营清障（DELETE 重复行=运营处置,非迁移合并）→ 全链（≥0167 整段过链）──
   await db.query("DELETE FROM user_account WHERE id='c2'");
   const first = await runMigrations(db, manifest);
-  A('清障后 0167-0169 过链（新增三迁移恰全应用·预链 ledger 前缀衔接）',
+  A('清障后 ≥0167 整段过链（随链 staging·预链 ledger 前缀衔接·0167/0168/0169 恰在内）',
     first.applied.length === manifest.length - preManifest.length
     && ['0167_email_case_normalization', '0168_gateway_auth_email_normalize', '0169_auth_user_session'].every((v) => first.applied.includes(v)));
 

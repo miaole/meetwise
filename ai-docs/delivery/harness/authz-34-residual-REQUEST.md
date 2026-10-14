@@ -1,6 +1,6 @@
 # AUTHZ-34-RESIDUAL REQUEST（AUTHZ 残面小刀 · #34 三半之②③ · ①scrypt 异步化（promisify 形）+②chunked 封顶钩子 · 零迁移 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停 · 本刀 docs-only 恰 1 .md 零码动 · EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工** · ⛔push）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已按卷施工+断言门矩阵落卷·待 post-prove 双审两外席。起草席原状态 `draft:awaiting_pre_exec_dual`·pre-exec 双审 rev2 处置落卷 + 协调方明示授权开工已满足（上席施工两件 @merge `5dede1a2` + 续作席收尾·normalize 随链随翻同授权）· **Ban self-approve** · **alone≠dual** · Dual PASS ≠ post PASS · ⛔push · est live=0 · markers=0 · §9 EXEC 附记落卷）。
 
 **席位**：AUTHZ #34 残面小刀起草席（批5 AUTHZ-HARDEN 续刀 · 5A-1 账号会话簇已 nailed @`5cb78dab` 之后 · #34 三半中残 2/3 的收口刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `8d1ff99e`（pull 后主线 tip · `git log -1` 实测 2026-10-13 · fix(ci) provider-egress 出站清单补账）。分支 `line/authz-34-residual` · 工作树 `meetwise-a34`（`git worktree add ../meetwise-a34 -b line/authz-34-residual 8d1ff99e` 本起草席已立 · 建前 worktree list 30 树无 a34 + `git branch --list line/authz-34-residual` 空输出双查亲证 · HEAD 落 `8d1ff99e` 亲证）。
@@ -157,3 +157,57 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 | N3（登记不阻） | `:141` hoist 位置钉死（verifyPassword 错密分支后·UPDATE 前） | §1-修法① :141 条目 | profile.service.ts :132-136 错密分支/:139-140 `const newPassword` 捕获/:141-143 UPDATE query 亲读 |
 
 **rev2 自检**：docs:check EXIT=0 · 五类标记词 grep 零命中（命令与回执留 rev2 席 prove · 不复抄卷内）· §8 STOP（`draft:awaiting_pre_exec_dual`）与 Status 行零改维持 · 本刀 docs-only 恰 1 .md（本卷）· ⛔push。
+
+## §9 EXEC 附记（续作席落卷 · 2026-10-14 · 施工两件承接 + normalize 随链随翻登记 + 门全表 · ⛔push）
+
+**§9.0 开工现势重 pin**：开工 HEAD=`5dede1a2`（`merge(authz): AUTHZ-34-RESIDUAL EXEC 并线主线 feat/mysql-schema-skeleton @cfead6e4`——上席已并线并重 pin §0 · 施工改动在树未提交 · 分支 `line/authz-34-residual` · 树 `meetwise-a34`）。§0 锚在新 HEAD 复核：`rg "scryptSync" packages/domain/src/auth.ts` EXIT=1（0 命中=修法①静态验收 §0.5）·生产面 await 调用点 rg 计数**恰 5**（§0.5 ±0 熔断过）·resume-extract 面 `git diff` 零字节（R8 过）。
+
+**§9.1 上席施工两件落点承接（本席逐 diff 复核）**：
+
+1. **修法① scrypt 异步化（promisify 形·§1-修法① 全条落地）**：`packages/domain/src/auth.ts`（blob `0184b5b9`→`697da7dc`）——import 换形 `scrypt as scryptCallback`+`promisify` · `const scrypt = promisify(scryptCallback)` 显式钉三参签名形 · hashPassword/verifyPassword/verifyLogin 三函数 async 化 · **参数三参形零改**（默认 N/r/p 共享 → 派生逐字节等价=存量 password_hash 零重哈希零迁移根基 · 新门参数等价臂机械证明）· `timingSafeEqual` 比对保持同步恒时序 · LOGIN_DUMMY_HASH 零改 · 导出名集合零变（packages/domain/src/index.ts 零字节）。生产调用点 5 处 await 化：auth.service.ts signup hash **hoist 出 query 实参**（等价注记随码）+login `await verifyLogin` · profile.service.ts changePassword verify await+新密 hash **hoist 钉死在错密分支后 UPDATE 前**（rev2 N3 形）+deactivate verify await。测试面 4 文件随翻：`_neg-harness.ts:180`/`validate.ts:190` 两种子 await 化 · `packages/domain/test/auth.proof.ts` 五臂 await 化改写 · `authz5a-constant-time.proof.ts` 计数注入形+假哈希臂 await 化改写（臂数 16 零变）。
+2. **修法② chunked 封顶钩子（§8 裁决项① **案A** 落地）**：`apps/api/src/main.ts`（`7199c6df`→`99ffb688`）——preParsing 流计数闸：仅无 `content-length` 形触发 · 非上传路由封 `SMALL_BODY_LIMIT`(1MiB)（chunked 与 content-length 同政策·真闭合差异面）· UPLOAD_ROUTES/SMALL_BODY_LIMIT 单源复用零新常量 · 上传路由零增钩（fastify bodyLimit 12MiB 流计数已兜底·不重复）· GET/HEAD 零特判 · 413 同信封同错码 `payload_too_large` · 计数包装 PassThrough 超阈 destroy 停转发 · `:154-156` 注释随修法如实化（注释-实现相符）。既有 onRequest content-length 钩子原值零改（有头路径零变化·新门静态臂在证）。
+3. **两新门三处 additive 注册（AG-D 先例形）**：`apps/api/package.json`（`authz34:scrypt-async`/`authz34:chunked-cap` 两直跑门）+root `package.json`（两 `:prove` isolated 包装）+`scripts/run-e2e-isolated.mjs` 三处（:95 区来源清单两条/:2006 区门清单两条/:2433 区命令映射两臂）。两新 proof 落 `apps/api/test/authz34-scrypt-async.proof.ts`（14 臂）/`authz34-chunked-cap.proof.ts`（7 臂）。
+
+**§9.2 normalize 随链随翻登记（独立随翻义务 · 沿链深 pin 随翻先例·非越界）**：
+
+- **归因**：`authz5a:normalize:prove` 基线红 `migration_ledger_not_contiguous_prefix`——上席 stash 干跑同红=非本刀施工引入。根因=该 proof 阶段 A staging 只剔除 0167/0168/0169 三前缀，而主线迁移链已 183→185（0170-0185 在树）——阶段 A 把 0170+ 一并提前应用，ledger 变成「≤0166+0170…0185」非全 manifest 字节序前缀，阶段 B 全链重放时 runner 前缀守卫（migrate.ts `expectedPrefix` 逐位比对）fail-closed。该 proof 属主线已 nail 面（authz-harden 5A-1 @`5cb78dab` 所携），本支线随翻随本刀落主线归主线。
+- **修复形（判据化·非全列硬编码）**：`packages/db/test/authz5a-email-normalization.proof.ts`（blob `40a423c0`→`d80be809`）——阶段 A staging 过滤由「剔除三前缀」改**字节序判据** `manifest.filter((m) => m.version < '0167')`（预链=严格字节序前缀 <0167 即 ≤0166·与 runner 自身 byte-order 前缀语义同源）——≥0167 整段（0167/0168/0169+主线延伸段 0170-0185·现 17 文件）统一延后到阶段 B 一次过链。主线链尾再延伸（0186+）判据自动覆盖零再翻。阶段 B 断言算式 `manifest.length - preManifest.length` 与 0167/0168/0169 恰在 applied 的 every 臂零改自然成立；臂计划名如实更注「≥0167 整段过链」。**臂数 15 零变**（门基线值 §0.5 不扰动）。
+- **语义核验（落笔前亲读 runner）**：migrate.ts 应用序=manifest 字节序排序后逐个应用、ledger 须为传入 manifest 的精确字节序前缀——随翻后阶段 A 恰应用 ≤0166 前缀、阶段 B 全 manifest 一次过链（17 applied=0167…0185 恰全）·重放全 skipped 臂原值绿=幂等零扰动。
+
+**§9.3 门矩阵全表（续作席本树亲跑 · 2026-10-14）**：
+
+| # | 门 | 命令 | 结果 |
+|---|---|---|---|
+| 1 | authz5a:normalize:prove（随翻后） | `pnpm authz5a:normalize:prove`（isolated） | **EXIT=0 · 15 断言全绿**（臂数原值·「≥0167 整段过链」臂绿） |
+| 2 | authz5a:mirror:prove | `pnpm authz5a:mirror:prove` | **EXIT=0 · 15 臂全绿** |
+| 3 | authz5a:constant-time:prove | `pnpm authz5a:constant-time:prove`（isolated） | **EXIT=0 · 16 臂全绿**（await 化改写后臂数 16 零变） |
+| 4 | authz5a:login-ip-throttle:prove | `pnpm authz5a:login-ip-throttle:prove`（isolated） | **EXIT=0 · 2 臂全绿** |
+| 5 | authz5a:login-global-throttle:prove | `pnpm authz5a:login-global-throttle:prove`（isolated） | **EXIT=0 · 2 臂全绿** |
+| 6 | authz5a:chgpwd-lock:prove | `pnpm authz5a:chgpwd-lock:prove`（isolated） | **EXIT=0 · 3 臂全绿** |
+| 7 | authz34:scrypt-async:prove（新门） | `pnpm authz34:scrypt-async:prove`（isolated） | **EXIT=0 · 14 臂全绿**（含参数逐字节等价+await 恰 5 静态臂） |
+| 8 | authz34:chunked-cap:prove（新门） | `pnpm authz34:chunked-cap:prove`（isolated） | **EXIT=0 · 7 臂全绿**（案A 阈值 413 同信封+存活臂） |
+| 9 | neg:auth | `pnpm neg:auth`（isolated） | **EXIT=1 · 3/90 失败=deactivate 三臂基线红恒等承登**（§0.5 原值·87 PASS 零新红） |
+| 10 | neg:commerce | `pnpm neg:commerce`（isolated） | **EXIT=0 · 90 臂全绿**（含既有 content-length 1MiB 双臂原值） |
+| 11 | authz5a2:password-max:prove | `node scripts/run-e2e-isolated.mjs authz5a2:password-max:prove` | **EXIT=0 · 10 臂全绿** |
+| 12 | packages/domain prove:auth | `pnpm -C packages/domain prove:auth` | **EXIT=0 · 11 臂全绿**（await 化改写后） |
+| 13 | typecheck 权威形 | `pnpm turbo typecheck --force` | **EXIT=0 · 3 successful/3 total · 0 cached** |
+| 14 | docs:check | `pnpm docs:check` | **EXIT=0**（80 required files · scanned 2057） |
+| 15 | markers 五类 | 五类标记词 grep ×本刀改动集（15 文件） | **零新增**（冲突/遗留标/secrets 三类 EXIT=1·弱化词界形复扫 EXIT=1·fake-green 4 命中=runner 既有拒跑护栏文案非本刀新增行·附注见 §9.4） |
+
+**§9.4 卫生双声明**：est live=0（门 1-12 全 isolated 容器/静态源断言/契约假体·门 13/14 本地构建·零模型外呼零生产操作零 secrets 零消耗·pins 脚注 `actualSpendCny=null` 同源）· markers=0 零新增（沿 qbank-control-sec 收据附注先例：五类=冲突标记/绕过词/门弱化/遗留标/secrets 样值——冲突/遗留标/secrets 三类零命中；门弱化原始形 `xit\(` 子串误中 `process.exit(` 已按 ag-b-classify 先例词界形复扫 EXIT=1；fake-green 词 4 命中全在 `scripts/run-e2e-isolated.mjs` :3/:7/:2537/:2547 既有「Refuse silent fake-green」拒跑护栏文案——本刀该文件仅三处 additive 注册行（:100-105/:2006-2010/:2433-2441·git diff hunk 行域亲证）·非本刀新增）。词面运行时组装不入卷。pins 十一值零翻。
+
+**§9.5 越面自查（13 条陷阱自检）**：
+
+1. 并线重 pin：上席已并线 `5dede1a2`（merge 双亲 `f06f5cb2`+`cfead6e4`·施工改动在其上未提交）·本席 §9.0 复核静态锚全过 ✓
+2. 修法①机制等价根基：参数三参形零改·promisify(scrypt) 与 scryptSync 派生逐字节相等（新门参数等价臂机械证明）=存量哈希零重哈希 ✓
+3. 修法①恒时序保持：timingSafeEqual 同步比对在位（新门静态臂）·verifyLogin 恰一次语义零变（计数三臂）·限流桶序/桶参数/Credentials 接线/失败锁零改（六门臂数原值即机械闸）✓
+4. 修法②有头路径零改：既有 onRequest content-length 钩子原值（chunked-cap 静态臂在证）·neg:commerce 既有 413 双臂原值绿 ✓
+5. 零迁移：改动集零 .sql · 历史迁移 0001-0185 零字节 · `git status` 零迁移文件 ✓
+6. R8 防漂：零 worker_threads 引入（rg 全改动码面唯一命中=auth.ts:7「非 worker_threads」如实声明注释·非使用）·resume-extract 面 git diff 零字节 ✓
+7. normalize 随链随翻三核验：臂数 15 零变 · 判据化修复形（非 0170-0185 全列硬编码·链尾延伸自动覆盖）· runner 字节序前缀语义亲读后落笔（§9.2）✓
+8. 既有臂零回归：门 1-8/10-12 臂数全原值（normalize 15/mirror 15/constant-time 16/login-ip 2/login-global 2/chgpwd 3/neg-auth 90/neg-commerce 90/password-max 10/domain-auth 11）·neg:auth 3 基线红 deactivate 三臂恒等承登不洗不增 ✓
+9. 越面自查：UPLOAD_ROUTES 清单只读复用零增删 · bodyLimit 12MiB 零改 · controller 校验面零触 · commerce 账务语义零触 · 共享 SSOT（LEDGER/checklist/issues-master/batch-residual-plan）只读零改 · worker/web 零触（web tsbuildinfo 型构建缓存本次 typecheck 抖动已 checkout 还原不入卷）✓
+10. 回滚面：改动集=6 码/测文件改+2 新 proof+3 注册文件+1 随翻 proof+本卷 §9——单 commit 分节可整回滚·零迁移=零 DDL 回滚面 ✓
+11. 停止条件：零不可修红——normalize 基线红在协调方授权随翻面内修（归因 stash 干跑同红=非本刀引入·§9.2）·其余门全绿 ✓
+12. ⛔push：本卷零 push（commit 后停·Status=`executed:awaiting_post_prove_dual` 待 post-prove 双审两外席）✓
+13. est live=0+markers=0+pins 十一值零翻：§9.4 双声明 ✓
