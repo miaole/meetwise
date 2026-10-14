@@ -422,6 +422,7 @@ async function main() {
         try {
           await client.query('BEGIN');
           await client.query("SELECT set_config('app.qbank_serving_scope','backend/nodejs',true), set_config('app.qbank_taxonomy_version','v1',true)");
+          await client.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
           const rows = (await client.query('SELECT ref_id FROM qbank_generation_evidence($1,ARRAY[$2,$3],64) ORDER BY ref_id', [g, 'dbhy1:a', 'dbhy1:b'])).rows;
           await client.query('COMMIT');
           return rows;
