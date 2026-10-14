@@ -1,5 +1,4 @@
 import { END, START, StateGraph, type BaseCheckpointSaver } from '@langchain/langgraph';
-import { DEFAULT_ABSOLUTE_MAX_TURNS } from '@meetwise/domain';
 import { awaitAnswerNode } from './nodes/await-answer.ts';
 import { concludeNode } from './nodes/conclude.ts';
 import { decideNode } from './nodes/decide.ts';
@@ -47,7 +46,7 @@ export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<nu
       // 返回「route 已顺延+pending=null+concluded 未置」时,本边回 genQuestion（新 route 重出题）
       // 而非 conclude;其余形状语义零位移:pending → awaitAnswer;concluded(真终场 failClosed)/
       // route 缺席或 'conclude' → conclude。回环受节点侧 MAX_COMPETENCY_EXHAUST_SWITCH 硬帽约束,
-      // 叠加 compile recursionLimit（:57）双保险,无循环放大。
+      // 叠加 langgraph invoke 侧默认 recursionLimit 上限,无循环放大。
       (state) => (state.pending
         ? 'awaitAnswer'
         : !state.concluded && state.route && state.route !== 'conclude' ? 'genQuestion' : 'conclude'),
@@ -60,6 +59,8 @@ export function buildAdaptiveInterviewGraph(checkpointer: BaseCheckpointSaver<nu
       { decide: 'decide', conclude: 'conclude' },
     )
     .addEdge('conclude', END)
-    // 单段 invoke 结构死循环阀；interrupt resume 会重置计数。整场长度由 soft/absolute 政策决定。
-    .compile({ checkpointer, recursionLimit: Math.min(64, DEFAULT_ABSOLUTE_MAX_TURNS) });
+    // 死循环阀=langgraph invoke 侧默认 recursionLimit（interrupt resume 重置计数）；
+    // compile 选项契约无 recursionLimit 形参——曾置键被运行时静默丢弃,移除系类型真化,行为零变。
+    // 整场长度由 soft/absolute 政策决定。
+    .compile({ checkpointer });
 }
