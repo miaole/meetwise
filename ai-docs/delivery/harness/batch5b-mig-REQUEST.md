@@ -283,6 +283,58 @@ node scripts/ai-docs/check-docs.mjs   # EXIT=0（docs:check）
 
 **`executed:awaiting_post_prove_dual`**——本刀 EXEC 施工+门矩阵全绿+随翻落卷毕·**⛔push**（未 push·本地 commit 待查收）·post 双审两外席待审·post PASS 后翻面权归协调方。est live=0·零模型外呼。
 
+## §9-POST 修复附记（2026-10-14·post 修复席·席1 FAIL 两 P1 处置+席2 PASS 维持·协调方授权按席1 最小修复清单执行·⛔push·Status `executed:awaiting_post_prove_dual` 维持）
+
+### P-1. B1 修复形：0194 冻结集重裁（本刀新文件原号重写·非历史迁移回改·豁免面纪律不涉）
+
+- **冻结集终值 = `('completed')` 单值**（原四值 `succeeded/completed/failed/safely_terminated`）。逐值裁定（file:line 本席亲证）：
+  - `'failed'` 剔出：interview.service.ts:827-836 续约臂无 status 过滤（latest 行 FOR UPDATE 任意前态→active 复用重试槽）——failed→active=uc004 `FI3-RETRY-VERSION-INCREMENTS`（uc-e2e-004-career-path-fault.proof.ts:397）契约重试臂，冻结即重试必 23514→500、生产 career-path 重试恒红（=席1 B1 原判）。
+  - `'succeeded'` 剔出（协调方裁决一并剔出）：成功后重复 POST 同走 :835 续约臂（现状亦 500）——续约语义在，不得冻结。
+  - `'safely_terminated'` 剔出：abandon 两步 CAS（commerce/commerce.ts:447-459）产该态后，assessment 先行流（interview active 面评分卡→assessment→abandon）下 career-path POST 仍可达续约臂——privacy fence 只拦擦除请求不拦 abandoned（0058 `interview_privacy_active` 亲证）、assessment 端点无 interview status 门——同一「**续约臂无 status 过滤=终态行复用重试槽**」机制覆盖，冻结即窄流恒 500。
+  - `'completed'` 留守：全库生产写点零（词表 11 值中唯一无生产写点的值·kernel 纪元词表遗留·双终态并存保留=Ban 业务语义变更不变）——既无重试语义又无续约路径的真死终态。**冻结集非空 → 触发器维持 RAISE 形**（不降记录型·不删）。
+- 头注机制句按真实语义重写（三终态逐条剔出依据+completed 留守依据落卷）；语句结构零变（仍 5 语句=1 DO+2 函数+2 触发器·migrate.proof 无 0194 语句数/WHEN 集 pin·uniqueness files=197 不变）。
+- 0194 原号重写=checksum 变更（同簇A 预期形）：隔离库 migrate:prove 全链重放零影响；dev 容器如载旧 0194，下次 migrate 对账红=预期形，处置沿偏离④ 前例（db:down/up 重建）。
+- 伴随自证（非本席门·如实记录）：db-int-fk P6-4 porcelain 白名单与 db-acl P6-1 diff 门按「EXEC commit 后树净」形态在卷，本席改动随本附记 commit 落树后该两面口径不变。
+
+### P-2. B2 修复形：db-money3 P0 夹具伴随（**偏离③**·post 修复席编号；EXEC §9-9 偏离 1-5 编号不动）
+
+- 修法：P0 settlement 脏注入改引**真实存在的 entitlement_consumption 行**（units_settled NULL=reserved 态·0194 金额一致性触发器超额臂 `v_consumed IS NULL` 不触发），**保留 units=-1** 直达 0149 CHECK 摘除面——P0-2 四计数=1 断言语义零变；真实行置于 SAVEPOINT p0_neg 之前（合法造数前提非脏行·ROLLBACK TO 不残留语义不变）。机制句随注释落卷（db-money3.proof.ts P0 块：0194 BEFORE INSERT 触发器先于 CHECK 求值·consumption 缺行即 RAISE settlement_consumption_missing 23514）。
+- 伴随注记（如实·零改动）：P2-7（假 id·units=-1→23514）在 0194 落链后其 23514 改由触发器缺行臂先抛（同一 SQLSTATE·断言仍绿·机制面从 D4 CHECK 前移至 0194 触发器）——P2-7 非席1 点名面零改·注记备查。
+
+### P-3. §9 补登记（0195 伴随影响+硬门缺口注记+口径勘正·登记不落码）
+
+1. **0195 清理句降级影响**：`interview_event_append_only_guard`（BEFORE UPDATE OR DELETE·FOR EACH STATEMENT 一律 RAISE 23514）落链后，两处 proof 清理句首条 `DELETE FROM interview_event` 必炸、其后全部清理句被短路（cleanup() 异常仅 console.error·断言 EXIT 不受影响·隔离库夹具残留跨轮累积）：
+   - `apps/api/test/g7fix4-finalize-contract.proof.ts:123`（其后 :124-129 interview/job_application/entitlement_consumption/resume 等清理全不执行）；
+   - `packages/db/test/recruiter-depth.proof.ts:350`（其后 :351-365 同理）。
+   两文件非本刀触面零改·如实登记。后继处置建议（归裁决/后继刀，本席不行使）：清理句改 TRUNCATE 载体（FOR EACH STATEMENT DELETE 触发器不拦 TRUNCATE·须另证权限/级联面）或隔离库一次性重建策略。
+2. **0195 执行前置硬门 UPDATE-only 缺口注记**：0195 头注硬门=「rg 实测 UPDATE interview_event/UPDATE settlement_ledger 在 packages/db/src+apps 零合法调用点」——口径双重收窄：①仅 UPDATE 词面（触发器同拦 DELETE·DELETE 未扫）；②仅生产码目录（test/proof 面未扫）。零合法调用点结论对生产码本席复核仍成立；缺口恰好落在上条两处 proof 清理句 DELETE 上=0195 落链影响未入 EXEC 预判面·如实注记。
+3. **「九处/七处」口径勘正**（对 §7-4/偏离②·勘正附记不洗原文；按 7152cd3c diff 亲证）：db-acl.proof 基线红改形=**六组九臂**（P0-0/P2-A/P7-1/P1-6/P6-1/P6-2/P6-3/P7-2/P7-3；§4-1/§4-2 泛化门=新臂非改形不计数）；db-int-fk.proof 基线红消解=**三处**（P2-1/P4-0/P5-2；P6-2/3/4 改形=0148 重制配套·P8=新臂·均不计基线红）。据此：偏离②「**七处**既有臂改形」为计数笔误（其实列六组·按臂实数九）；偏离②「九 FAIL」=db-acl 单文件按臂实数口径✓；§7-4「db-acl/db-intfk 九处」应读「db-acl 九臂+db-int-fk 三处=合计 12 臂/处」——「九处」仅与 db-acl 臂数或「六组+三处」组数合计偶合·两文件按臂/处直加口径下不成立。
+
+### P-4. 门矩阵（post 修复后重跑·2026-10-14·改动集恰 3 文件）
+
+| 门 | 结论 | 关键行 |
+|---|---|---|
+| node scripts/check-migration-version-uniqueness.mjs | EXIT=0 | files=197 violations=0（豁免 0143/0152/0160 基线不变） |
+| pnpm migrate:prove | EXIT=0·**123 PASS/0 FAIL** | 基线 123 只增不减·0194 重裁形 fresh 全量 197 链应用+幂等 skip+零漂移 |
+| pnpm db-money3:prove | **P0 臂全绿（B2 闭合）·整门 EXIT=1 残余 6 FAIL=基线红单列** | P0-1..4 全 PASS（run#1 RAISE dbm3_dirty_rows 四计数=1·P0-2 语义保真·run#2 幂等）；残余 FAIL=P3-2/P3-4/P5-1/P6-1/P6-2/P6-3——归因见 P-4.1·非本席改动面·不上修 |
+| pnpm uc004:career-path-fault:prove | **FI3 臂复活（B1 修复直接验证）·attempt EXIT=1 三臂红=基线红单列** | `FI3-RETRY-VERSION-INCREMENTS` PASS（failed v2→v4·续约臂穿重裁后触发器·retry explainable/零半写/账本净零全 PASS·FI3-GRAPH-RUN-FAILED-TRANSITION PASS）；attempt 红=CONTROL-0-GET-200/FI2-SERVER-ALIVE/FI3-SERVER-ALIVE=GET 409 insufficient_evidence——归因见 P-4.1·非本席面·不上修 |
+| pnpm db:prove | EXIT=0 | 四原语全过（dev 容器 primitives 沙盒自建表·与迁移触发器面隔离） |
+| pnpm drift:prove | EXIT=0 | 零漂移（豁免登记 2 项=dbhy1 残面·基线不变） |
+| turbo typecheck --force | EXIT=0 | 3/3 0 cached |
+| pnpm docs:check | EXIT=0 | 80 required verified·scanned 2074 ≤ cap 2080 |
+| markers 五类（改动集 3 文件） | 零命中 | 词面运行时组装防自指·0 matches |
+
+**P-4.1 残余基线红归因（单列上报·均先于本席修复存在·非本席改动面·处置权归协调方）**：EXEC 态时点 db-money3:prove 在 P0 即 crash（席1 B2 原判·无 try/catch 注入炸 0194 触发器缺行臂），后续臂从未达——本席 P0 修复后 proof 首次可跑全程，下列潜伏红随之首次显形：
+1. db-money3 P6-1/P6-2/P6-3（文本门）：解析 0149 原文——EXEC 簇A 0149 重制（熔单 ALTER DROP+ADD `NOT VALID`+VALIDATE·现文 7 处 NOT VALID 亲证）与 DBM3 时代白名单式不再匹配（P6-1 白名单期望分离 DROP/ADD 语句·P6-2 禁词表含 NOT VALID）——门文本随 0149 重制失陪改·非本席面；
+2. db-money3 P5-1：`sql/01_schema.sql:48` 注释行含「CONSTRAINT uq_event_key」字样·断言正则命中注释=fixture 注释自匹配·fixture/断言二选一失陪改·非本席面；
+3. db-money3 P3-2/P3-4（钱流面）：markOrderPaidAndCredit 发桶计数与 settlement ≥0 行计数断言红——P3-1 全链（credited/幂等重放）PASS 亲证路径通·红因在 DBM3 后链演进（0150..0199）夹具/语义漂移·根因定位与修法归后继·非本席面；
+4. uc004 GET 面三臂：G5 GET 重闸（`requireCurrentScorableCards`·interview-assessment.ts:73-81·aec29f01 g5-scor-s3 落码·`git merge-base --is-ancestor` 亲证为 7152cd3c 祖先）后 career GET 409 insufficient_evidence——本 proof 夹具仅种 assessment_report 无 ScoreCard 行·POST 面（读种行）200 而 GET 重闸 409·fixture 未随 G5 收口改形·非本席面。
+FI3 契约面（B1 点名面）不受上述四项影响：FI3 各臂 POST/SQL/账本断言全 PASS·重试臂复活由 `FI3-RETRY-VERSION-INCREMENTS` PASS 直接钉证。
+
+### P-5. STOP 确认
+
+**`executed:awaiting_post_prove_dual` 维持**——post 修复席按协调方授权最小清单执行（0194 冻结集重裁+db-money3 P0 夹具伴随+本节补登记·三件外零触）·⛔push·post 双审复审与翻面权归协调方。est live=0（零模型外呼·全隔离库/dev 库机械断言）·pins 十一值零翻。
+
 ---
 
 *BATCH5B-MIG REQUEST · 2026-10-13 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`28cdee05`（pull --ff-only Already up to date 亲证）· 分支 `line/batch5b-mig` · 工作树 `meetwise-b5m`（本起草席立·建前 32 树实测无 b5m）· 蓝本=mig-runner-REQUEST（nailed @685498f1·§0.1 归槽+§4 余 17 件+§9 席2 观察②）+LEDGER :86/:96+TASK-SOP-v2:81+issues-master 19 触点行号亲证（#3=211/#13=365/#15=215/#16=216/#23=219/#25=368/#115=252/#122=396/#134=258/#135=259/#136=260/#137=261/#140=264/#141=265/#142=403/#144=404/#150=408/#151=409/#152=410）· 现态=开放 15 件+基建残余 1（multi-statement 语句级 timeout）+部分/纪律 2（#115/#144）+已闭合转登记 2（#136=0176:98-99·#140=字节序+唯一性门+起号演进三向全闭）· 修法四簇（⓪ runner 单点补全/A 0148-0149 重制裁决①/B 九件新迁移/C #122 索引裁决⑨+#115 纪律条款/D #141-#142 ACL/CI/E 登记件）· 迁移号拟占 0188 起（在飞 0184 cost3/0185 bill4/0186+0187 ag39 三树 ls 亲证·EXEC 立项日链顶顺延）· LEDGER :86 翻面出入如实登记（#134/#135/#115 纪律半现树零落·处置权归协调方）· 迁移号规则/纪律条款/豁免面=⛔ 不得更改钉死项·裁决十项归双审/EXEC· 停止条件四类全（漂移/机制/越界/验收红）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
