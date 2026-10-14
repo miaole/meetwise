@@ -31,7 +31,7 @@ const hasLoneSurrogate = (s: string) => {
   return false;
 };
 
-const S2_DIR = '../../../ai-docs/delivery/receipts/tokstream-s2-probe/2026-10-07';
+const S2_DIR = '../../../receipts/archive/2026-09-batch23/receipts/tokstream-s2-probe/2026-10-07';   // A19/§0.2-② 归档现位重 pin（ptp-archive 426e0b28 git mv 后 S4b EXEC 随基线漂移如实改锚·fixture 字节零触）
 interface ProbeBShape {
   attempts: [{
     facts: { stitchedText: string; nonEmptyDeltas: number; chunkCount: number };
