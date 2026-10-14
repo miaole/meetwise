@@ -423,10 +423,12 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 计费 | P1 字段迁移 | 0170-0171 topic_id/ledger | ✅ nail 收官 a1241e90 |
 | 计费 | P2 影子计量 | 0180 影子表+fail-soft 钩子 | ✅ nail 收官 f3968440 |
 | 计费 | P3 结算 | 0172-0173+八件函数 | ✅ nail 收官 fee425cd（红停→协调方修 8a234cc5→SSOT 849a0f19 登记） |
+| 计费 | P4 明细列表 | 0185+C 端三真账 UNION RLS 直读+B 端 payer 自证 | ✅ nail 收官 e1cb1110（冲突三方机械并集解·errata 两件修复 42f63b09·post 双审 PASS·SSOT 详情=文末收官登记节） |
 | 批3 | #263 内部预览收口 | 21 面+五同族口径面 | ✅ nail 收官 9ae70025 |
 | 补充 | AG-37 deficit 持久化 | 图 state additive | ✅ nail 收官 66e42d6e |
 | 补充 | AG-19 prompt 版本 | 0181+trace+metric | ✅ nail 收官 b8206e53 |
 | 补充 | AG-24 Langfuse model 归因 | span.model 真名+cached/cost 上报+RAG 预留 0083 revision 绑定+限流/熔断残留清理（零迁移） | ✅ nail 收官 9ea52bc0（收官 merge·初笔 eb5a00cd 系 pull --rebase 丢弃后悬空·勘误见 checklist「Line AG-24 nail」段·SSOT 详情=同段+文末收官登记节） |
+| 补充 | AG-38 问答工具层 | runToolLoop 只读受限工具层（五只读工具+构造期权限绑定+E6 同意门+有界循环+既有账本对表·零迁移） | ✅ nail 收官 e6a481c9（blob 锚重钉 20e2f442+cost3 egress 面补账 16114f7d·SSOT 详情=execution-master-checklist「Line AG-38 nail」段） |
 | 起草 | billing P3 | 结算 REQUEST 503ccd59+rev 4bf1ce96 | ✅ 双审 BOTH PASS→EXEC 落卷 f4234c92 |
 | 起草 | qbank 起草 | AG-41/42/43+P5 | 落卷 9484bc54→EXEC b20ee350→post BOTH→nail 32bf35b8 |
 | 起草 | AG-37 起草 | deficit 持久化 | 落卷 3b47df9a→EXEC 15b67341→post BOTH→nail 66e42d6e |
@@ -434,8 +436,10 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | 起草 | billing P1 起草 | 话题字段 | 落卷 2b44a0dc→EXEC b42c4e6b→post BOTH→nail a1241e90 |
 | 起草 | billing P2 起草 | 影子计量 | 落卷 73dbdc90→EXEC 7c980b49→post BOTH→nail f3968440 |
 | 管线 | 刀D nail | AG-01 准入去终态化 | rev3 2b86722c→EXEC 7e0d64d0→post 双席 BOTH PASS→nail ccf3e7e7（merge 双亲 32bf35b8+7e0d64d0 已推·SSOT 详情=execution-master-checklist「Line AG-D nail」段·失败语义轨六刀 A-F 全收官） |
-| 排期 | AG-39 私有题库 | owner_kind+org_id+库内强制+来源审计 | 大型产品刀·挂用户排期 |
-| 排期 | AG-38 问答工具层 | runToolLoop 只读受限工具层 | 挂产品落地（成长顾问/B 端追问） |
+| 管线 | AG-38 nail | 问答工具层 | REQUEST 004fd4cf→rev2 d4dd47a8→rev3 e74eec63→EXEC 7119ade3（红停 FILE_LIMIT→协调方修 59a3826b→翻面 0a59fa43）→post 双席 PASS→勘正 74847e8c→上席 merge 497aff89→重钉 20e2f442→nail merge e6a481c9（egress 补账 16114f7d 随行·SSOT 详情=execution-master-checklist「Line AG-38 nail」段） |
+| 管线 | AG-39 nail | 企业私有题库 | REQUEST c5a11362（基线 94b8519b）→rev2 1345d078→rev3 5803d451→rev4 1720c2b4（三轮回炉 docs-only·pre-exec 双审 BOTH PASS）→EXEC 1408d8c2（迁移号改占勘误 0182+0183→0186+0187·四件落点+裁决①-⑧行使）→post 双席 PASS→errata 修复 1a070625（50 臂）→并线预合成两轮 84554d66+518484de（含主线 497aff89）→nail merge ce44fb72（链 185→187·SSOT 详情=execution-master-checklist「Line AG-39 nail」段） |
+| 排期 | AG-39 私有题库 | owner_kind+org_id+库内强制+来源审计 | ✅ nail 收官 ce44fb72（防同表自相矛盾·随翻登记·SSOT 详情=execution-master-checklist「Line AG-39 nail」段） |
+| 排期 | AG-38 问答工具层 | runToolLoop 只读受限工具层 | 收官翻面→见上「补充 AG-38」行（✅ nail 收官 e6a481c9·宿主接线=成长顾问/B 端追问挂后继刀） |
 | 排期 | 批5 残项 | 批5 残 100 件 | 43/143 已收（5E 35+5A-1 八件 @5cb78dab·残 #34 两半起草中）·残归域刀 |
 ## BILL3 话题结算收官登记（2026-10-13 · nail 席红停→协调方接管修→收官 · 沿 :301 先例 · 非 271 计件面 · 权威值 146/271 维持）
 
@@ -463,3 +467,15 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 - **不计 271 条件数（查证如实处置）**：AG-12 系 AG 战役（issues-final AG-xx 面）非 271 universe·**本刀无 271 件可翻·批表零翻**；合计维持 **146/271**（沿 AG-24 收官登记节权威口径）。
 - [ ] **STILL OPEN**：④AG-11 LEAST 预留+settle 放宽（本刀只落其前置）/⑥回灌接线+显式缓存（resolveLatestCalibratedFactor 生产接线零字节维持·收口待观测数据）/⑤AG-08 熔断键按端点+EG-B1 ageing/缺省翻转归运维显式决策（env 翻转与在飞 digest 换代裁度随行）/windowing 0176 陈旧钉清偿归后继刀/REQUEST 卷状态行翻面归卷主（沿 G7Y/G7TRIO-2 R5 只登记先例）。
 - 预算：est live=0（prove 全谱=纯函数 fixture+隔离库真迁移链+scripted model·零模型外呼·零 secrets·零生产操作）· 0 Key 值 · `actualSpendCny=null`。
+
+## BILL4 积分明细列表 nail 收官登记（2026-10-13 · nail 席 · 任务书授权（本波唯一主线推送席·重试·冲突解已授权=方案 A 三方机械并集解·⛔force push） · 沿 :456 配套在飞管线先例（B-lite→PARITY-B2→TTL-WIRE→AG-COST1→BILL3→AG-24→AG-COST3 同链） · 非 271 计件面 · **现权威值 146/271 维持 · 批表零翻**）
+
+> 全链：REQUEST `b45a26b6` 卷（`bill4-ledger-list-REQUEST.md` · 起草基线 `94b8519b` · pre-exec 双审两席 FAIL 残余四件全数处置 rev2 `9c484d21` 复审终过 **BOTH PASS**+协调方明示授权）→ 并线 merge `68368e5c`（--no-ff·双亲 `9c484d21`+`59a3826b`·§0 重 pin 恰 6 文件全为 docs/gitleaks 面）→ EXEC `4b55e226`（施工六件+迁移 0185 落卷+新 proof 45 臂·门矩阵全表 EXIT 留证·§9 偏离三项）→ post-prove 双审：**两席 PASS 带 errata 修复条件**（席1 E1-E4+席2 note-1-4 观察项全部不阻塞·§9-F3/F4 标签照录）→ 支线修复 `42f63b09`（fix(bill4)：errata 两件+proof 45→47 臂·§9-F1/F2 落点）→ merge --no-ff 并主线（**收官 merge @`e1cb1110` 双亲 `f0147886`+`42f63b09`·origin/feat/mysql-schema-skeleton 已推非 force**）。分支 `line/bill4-ledger-list`·工作树 `meetwise-bill4`。涉引 hash 全经主线 git log/merge-base 亲证。
+
+- **收官内容（六件修法·EXEC §9 落值如实转写）**：①C 端 `GET /billing/ledger`=ledger.ts 三真账 UNION 有界投影（entitlement_consumption+topic_charge+question_usage_ledger·RLS 直读零 DEFINER·状态映射写死 reserved→reserved/confirmed→settled/partial_confirmed→settled/released→released+failed=LEFT JOIN interview·场景四活直透+payment 预留位诚实空·keyset 值基三段复合游标 (created_at DESC,source,natural_key) 载微秒文本·窗 90/365·单页 50·读错诚实抛错零 fail-soft）；②B 端迁移 **0185** `gateway_billing_ledger_payer`（0159 形逐字构 SECURITY DEFINER+search_path+payer_user_id=current_setting 硬谓词+零 payer 形参+REVOKE PUBLIC,app_role,app_gateway_role+GRANT EXECUTE app_role）+`sql/23_api_gateway.sql` 同位追加镜像逐字节同文（proof 直载比对臂）+service 两方法 additive（listMyLedger 分页头 availableUnits 同事务同拍=listMyOfflineOrders 母形同序·listEnterpriseLedger requireApprovedRecruiter 门先行）+薄 controller billing-ledger.controller.ts（@Controller('billing') 双 GET·commerce.controller 零触）；③余额面=裁决③(c) 分页头口径（逐笔不带余额·多桶 FIFO 可用额≠Σ账本差承 §1.5）；④索引裁决落值=不行使（零索引迁移·值基游标 74 行翻页实测零重零漏）；⑤contracts additive 六 schema+apiContract 双 operation；⑥db index additive 导出。
+- **冲突并集解登记（任务书方案 A 授权·两文件三处真冲突·支线分叉 23 提交）**：①`bill3-settlement.proof.ts:6` 链深表述——HEAD 侧 0184（AG-COST3 B1 重钉版）vs 支线侧 0185（bill4 EXEC 随翻版）取演进终态=「0001→0185 全链 applied」；②`scripts/run-e2e-isolated.mjs` 两注册行（:2008/:2946）——取并集，ag12-estimator-freeze:prove:raw（cost3 带入）与 bill4-ledger-list:prove:raw（本刀）两条全保留·两行三方逐 token 亲证（22+22→23·71+71→72·两入各项守本侧槽位=ag12 承主线位/bill4 承支线位）；③`:216` 支线侧「真链 0001→0183」系陈旧快照弃用（git ort auto-merge 取 HEAD 0184 版）。其余 auto-merge 零冲突。**合并后 bill3 pin 现值核验**（协调方授权随行重钉 184→185·8a234cc5 先例四行钉面同款）：`:216`「真链 0001→0185 applied」+`:222`「185 版本在账」+`:223` `=== 185`。编辑后逐文件 node --check 过（runner EXIT=0·proof EXIT=0·node v22.22.3）。
+- **errata 两件修复（`42f63b09` 承载·proof 45→47 臂）**：errata-1=cursor/window 具名错 500→400 用户可触发入参错映射（`commerce.service.ts` listMyLedger try/catch 探测 `ledger_cursor_invalid`/`ledger_window_invalid`→HttpException 400 同码·#31 409 先例同形·all-exceptions.filter 零字节·B 端不加 catch=无 cursor/window 入参零死代码·proof 增臂 **⑤-j** DB 层 fail-closed AND HTTP 层 400 双层）；errata-2=partial_confirmed 行 settled 差额用户可见（contracts 两 entry additive `unitsRequested: nullable`+ledger.ts consumption 臂透传 `ec.units_requested`+B 端 listEnterpriseLedger SELECT additive·0185 函数与 23 镜像零字节·proof 增臂 **②-k**）。
+- **nail 席主仓门矩阵复验（@`e1cb1110` 亲跑·逐门 EXIT）**：`migrate:prove` **EXIT=0**（链 185=合并树 migrations 实数·0184 先于 0185 落地）·`drift:prove` **EXIT=0** 零漂移（豁免登记两件原值）·`check-migration-version-uniqueness` **EXIT=0**（**files=185** violations=0·豁免 0143/0152/0160 原值）·`bill4-ledger-list:prove` **EXIT=0**（**47 臂合并树实测**）·`bill3-settlement:prove` **EXIT=0**（**「185 版本在账」重钉后实测**·0172/0173 各恰一行）·`bill1-topic-fields:prove` **EXIT=0**·`bill2-shadow-meter:prove` **EXIT=0**·`commerce:prove` **EXIT=0**·`commerce-reconcile:prove` **EXIT=0**·`uc018:abandon:prove` **EXIT=0**·`ag19-prompt-version:prove` **EXIT=0**·`turbo typecheck --force` **EXIT=0**（3/3·0 cached）·`docs:check` **EXIT=0**（80 required files·scanned 2054 ≤ cap 2064）·markers 五类**零新增**（合并改动集 14 文件全量 grep·fake-green/门弱化两类命中均为两侧既有 runner 叙述 4=4=4/6=6=6·ag-cost2 先例已登记误中口径）。**零新红=无停止条件**。
+- **不计 271 条件数（查证如实处置）**：BILL4 系计费战役 P4 姊妹刀（billing-redesign §3.13+INDEX 十三-2 用户裁决面·非 271 universe）·**本刀无 271 件可翻·批表零翻**；合计维持 **146/271**（沿 AG-COST3 收官登记节权威口径）。BILL3 收官登记 STILL OPEN 行「明细列表 §3.13 姊妹面」由本刀兑现（原行翻面归卷主·沿 G7Y/G7TRIO-2 R5 只登记先例）。
+- [ ] **STILL OPEN**：前端双端积分明细页（蓝本 §7 :404·本刀为 API 读面后继）/payment 获得行（三账本零获得侧行·bucket 时间基属后续刀·裁决⑧）/影子期 2 周运营观察+封顶 6 终值复核+扩张包+0046 混合 unscored 放松（沿 BILL3 STILL OPEN 承接）/REQUEST 卷状态行翻面归卷主（沿同先例）。
+- 预算：est live=0（全门隔离容器零模型外呼零真实扣费·收据 .tmp/isolated-proof-receipts/* release_evidence=false）· 0 Key 值 · `actualSpendCny=null`。

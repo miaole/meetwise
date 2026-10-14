@@ -223,12 +223,18 @@ async function finalizePlanRecheckFailed(c: Client, owner: string, planId: strin
 /**
  * 图内 planner 消费 seam：单叶、单轮、不混桶。多桶岗位由调用方按
  * `nextWeightedDeficitLeaf` 每轮选**单个** leaf 分别派发，绝不把多叶混进一次检索。
+ *
+ * AG39（裁决⑦/④行使）：additive `qbankOwnerScope`（服务端派生·禁客户端直供）并入检索 scope
+ * ——owner 过滤强制仍在库内（0187 SECURITY DEFINER 谓词），本层只注入 GUC 参数；
+ * 来源审计 source_bank 与同一 scope 同源派生（org → `org:${orgId}`，platform → 'platform'）。
+ * 缺省臂=platform（C 端语义·既有调用形零变）。
  */
 export async function dispatchTrackLocalRetrieval(
   pool: DbPool,
   owner: string,
   plan: RetrievalPlan,
   deps: DispatchTrackLocalRetrievalDeps,
+  qbankOwnerScope?: { ownerKind: 'platform' | 'org'; orgId?: string },
 ): Promise<DispatchTrackLocalRetrievalResult> {
   // Phase 1: 服务端校验 plan 属于不可变 snapshot（复用 RAG-03 validatePlannerOutput）。
   // H2 #202(收编):读源切 candidate-route 双轨(旧 recruiter snapshot 优先→缺行 fallback
@@ -250,7 +256,13 @@ export async function dispatchTrackLocalRetrieval(
   if (frozen.action === 'replay') return { status: 'replayed', planId: frozen.planId, planStatus: frozen.planStatus };
 
   // Phase 3: 检索（模型/cache I/O 一律在 DB 事务外）。
-  const scope = planScope(plan);
+  // AG39: owner scope additive 并入（platform 缺省臂=既有调用形零变）;审计值与检索 scope 同源。
+  const ownerKind = qbankOwnerScope?.ownerKind ?? 'platform';
+  if (ownerKind !== 'platform' && ownerKind !== 'org') throw codeError('qbank_retrieval_invalid_serving_scope');
+  const ownerOrgId = ownerKind === 'org' ? qbankOwnerScope?.orgId : undefined;
+  if (ownerKind === 'org' && (!ownerOrgId || ownerOrgId.length > 512)) throw codeError('qbank_retrieval_invalid_serving_scope');
+  const scope = { ...planScope(plan), ownerKind, ...(ownerKind === 'org' ? { orgId: ownerOrgId! } : {}) };
+  const sourceBank = ownerKind === 'org' ? `org:${ownerOrgId!}` : 'platform';
   const search = await cachedQbankSearch(pool, owner, {
     query: deps.query,
     k: deps.k ?? 5,
@@ -311,7 +323,7 @@ export async function dispatchTrackLocalRetrieval(
     await finalizePlanServed(c, owner, frozen.planId);
     const servedQuestionRefs = [...new Set(results.map((r) => r.ref))];
     if (servedQuestionRefs.length > 0) {
-      await recordServedQbankQuestionRefs(c, owner, plan.snapshotId, servedQuestionRefs);
+      await recordServedQbankQuestionRefs(c, owner, plan.snapshotId, servedQuestionRefs, sourceBank);
     }
   });
   return { status: 'served', planId: frozen.planId, cacheStatus: search.cacheStatus, results, recheckedRefs: refs.length,

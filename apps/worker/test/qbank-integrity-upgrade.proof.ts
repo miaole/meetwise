@@ -254,6 +254,7 @@ async function main(): Promise<void> {
     // AG-42 形 A（0176）随锚：双空 GUC 已改报错——本块检索臂统一设夹具 scope（METADATA=v1/backend/general）。
     await client.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
       [METADATA.servingScopeId, METADATA.taxonomyVersion]);
+    await client.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     const evidence = await qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const question = await qbankQuestionEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const hits = await hybridQbankSearch(client, {
@@ -363,6 +364,7 @@ async function main(): Promise<void> {
     // AG-42 形 A（0176）随锚：同上设夹具 scope。
     await client.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
       [METADATA.servingScopeId, METADATA.taxonomyVersion]);
+    await client.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
     const evidence = await qbankEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const question = await qbankQuestionEvidenceForRefs(client, g1.recipe.id, [dirty.chunks[0]!.refId], 600);
     const hits = await hybridQbankSearch(client, {
