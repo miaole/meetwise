@@ -23,7 +23,10 @@ import { randomUUID } from 'node:crypto';
 const CJK = /[\u4e00-\u9fff]/;
 
 // Named residual faces (zero-touch this knife): source-verbatim unmigrated chrome.
+// Values are per-DOM-text-node strings (SSR splits JSX text/expression children with
+// comment separators, so combined source lines surface as separate nodes).
 const ALLOWED_CJK_FACES: Record<string, string[]> = {
+  navHardcodedLabels: ['押题', '找工作', '岗位匹配'], // Nav.tsx candidate links (:39-41 literal zh)
   resumePageHeader: [
     '简历 · 知面',
     '用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。删除即时生效（立即停止处理与访问）；跨存储清除回执稍后在隐私边界说明中保持如实状态。',
@@ -31,8 +34,9 @@ const ALLOWED_CJK_FACES: Record<string, string[]> = {
   ],
   resumePageUploadCard: ['上传简历'],
   resumePagePersonalization: [
-    '面试出题个性化：已同意（简历要点将发送给模型服务商用于出题）',
-    '面试出题个性化：未同意（面试仅使用通用题库）',
+    '面试出题个性化：',
+    '已同意（简历要点将发送给模型服务商用于出题）',
+    '未同意（面试仅使用通用题库）',
     '撤回出题个性化',
   ],
   resumePageListChrome: [
@@ -65,7 +69,17 @@ const ALLOWED_CJK_FACES: Record<string, string[]> = {
     '取消',
   ],
   resumeStatusLabels: ['已上传', '解析中', '解析完成', '解析失败', '删除处理中', '已删除', '状态未知'],
-  localeSwitch: ['中文'],
+  localeSwitcher: ['中'], // LocaleSwitcher.tsx zh toggle label (:10 literal; EN arm is CJK-free)
+  // deleteResumeAction failure messages (actions.ts) — named known-residual, failure paths
+  // only: this spec's happy path never triggers a delete, so these nodes never surface.
+  // The third entry keeps the source form with a <status> placeholder (runtime-interpolated
+  // in the DOM); if that arm ever renders here the node shows up UNKNOWN on purpose.
+  deleteResumeActionLiterals: [
+    '网络错误，请稍后重试；简历未被删除。',
+    '找不到这份简历，或它已被删除。',
+    '删除请求未受理（<status>），未当作已删除。',
+    '删除受理形状不合法，未当作已删除。',
+  ],
 };
 
 const ALLOWED_CJK = new Set(Object.values(ALLOWED_CJK_FACES).flat());

@@ -37,7 +37,7 @@ export interface Display {
 
 export function interviewDisplay(v: InterviewView, labels: CopyLabels = defaultInterviewLabels): Display {
   const signalConclude = v.signalConcludeReason
-    ? { code: v.signalConcludeReason.code, message: signalConcludePracticeCopy(v.signalConcludeReason.code) }
+    ? { code: v.signalConcludeReason.code, message: signalConcludePracticeCopy(v.signalConcludeReason.code, labels) }
     : undefined;
   // 连接中断重连 → 永远显式告知"重连中"+可手动重试,绝不冻结。
   // SSE-RESILIENCE #56(C5)：reconnecting 按 reason 分臂透出真实原因（429 多标签/5xx 服务端）;
