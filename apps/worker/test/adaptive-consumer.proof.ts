@@ -275,6 +275,11 @@ async function main() {
   if (preclaimedLegacy) await asPrincipal(pool, OWNER, (c) => requeueInterviewJob(c, OWNER, preclaimedLegacy.id, 'legacy-metadata-audit'));
   const modelCallsBeforeLegacy = modelCalls;
   const decryptionsBeforeLegacy = resumeDecryptions;
+  // AG-04 requeue writes an exponential backoff next_attempt_at, so the first
+  // drain is gated out ('idle') until the due time is rewound with the fake
+  // clock (same backdate shape as requeue-backoff.proof.ts backdateDue).
+  const gatedDrainResult = await drainInterviewJobOnce(d, OWNER);
+  await admin.query("UPDATE interview_job SET next_attempt_at=now()-interval '1 second' WHERE interview_id=$1", [LEGACY]);
   const legacyResult = await drainInterviewJobOnce(d, OWNER);
   const legacyState = await asPrincipal(pool, OWNER, async (c) => ({
     job: await c.query("SELECT status FROM interview_job WHERE interview_id=$1", [LEGACY]),
@@ -283,6 +288,7 @@ async function main() {
     graphRuns: await c.query("SELECT count(*)::int n FROM ai_graph_run WHERE thread_id=$1", [LEGACY]),
   }));
   const legacyStartContract = {
+    gate: gatedDrainResult === 'idle',
     result: legacyResult === 'failed',
     models: modelCalls === modelCallsBeforeLegacy,
     decryptions: resumeDecryptions === decryptionsBeforeLegacy,
@@ -291,7 +297,7 @@ async function main() {
     enrollment: Number(legacyState.enrollment.rows[0]?.n) === 0,
     graphRuns: Number(legacyState.graphRuns.rows[0]?.n) === 0,
   };
-  A('遗留 payload-only start 在任何图副作用前失败：模型=0、job failed、终态事件恰一条',
+  A('遗留 payload-only start 退避时闸成立且过闸后在任何图副作用前失败：即时 drain=idle、模型=0、job failed、终态事件恰一条',
     Object.values(legacyStartContract).every(Boolean));
   A('遗留 payload-only start 走一次既有 paired release，额度精确恢复',
     (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === legacyBefore);
