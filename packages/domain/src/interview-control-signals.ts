@@ -86,7 +86,8 @@ function scoreFlips(scores: number[]): number {
 export function observeInterviewSignals(mind: InterviewMindSignalView | null | undefined): InterviewControlSignal {
   if (!mind || !Array.isArray(mind.competencies)) return emptySignal(0, 0, 0);
   const comps = mind.competencies;
-  const probed = comps.filter((c) => typeof c?.depthProbed === 'number' && c.depthProbed >= 1);
+  const probed = comps.filter((c): c is { confidence?: number; depthProbed?: number } =>
+    typeof c?.depthProbed === 'number' && c.depthProbed >= 1);
   const trailReady = Array.isArray(mind.recentScores);
   const scores = asFiniteScores(mind.recentScores);
   const flips = scoreFlips(scores);

@@ -268,10 +268,8 @@ export function runProductionEquivalentFunnel08Eval(
     }
 
     const sorted = [...latencies].sort((a, b) => a - b);
-    const p95 =
-      sorted.length === 0
-        ? 0
-        : sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95))];
+    const p95Idx = sorted.length === 0 ? -1 : Math.min(sorted.length - 1, Math.floor(sorted.length * 0.95));
+    const p95 = p95Idx < 0 ? 0 : (sorted[p95Idx] ?? 0);
 
     perLeaf.push({
       leafTrackId: leaf,

@@ -563,7 +563,6 @@ export function VoiceCallPanel({
     else if (!canAnswer && !display.report && !display.degraded && processedQuestionKeyRef.current === questionKey && status !== 'speaking' && status !== 'listening') {
       setStatus((s) => (s === 'submitting' || s === 'transcribing' ? s : 'thinking'));
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [view.turns.length, view.question, view.questionIdentity?.questionId, view.questionIdentity?.stateVersion, view.questionIdentity?.turn, display.action.kind, display.report?.overall, display.degraded, captureConsented]);
 
   // ── 渲染 ──

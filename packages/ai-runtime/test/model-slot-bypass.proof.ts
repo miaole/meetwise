@@ -206,7 +206,6 @@ async function main() {
   // 账本面改钉案A 释放形（claimed+error_code 零写=可重领）——旧钉 status='failed' 系本刀废除的键毒化行为。
   A('max=2 时第三条 invoke 拒绝 concurrency_exhausted、零外呼、非 wait/dispatching（案A：claim 释放可重领·非 failed 终态）',
     'error' in third && third.error === 'model_concurrency_exhausted'
-      && third.error !== 'model_invocation_wait_timeout'
       && thirdCalls.n === 0
       && thirdClaim.rows[0]?.status === 'claimed'
       && thirdClaim.rows[0]?.status !== 'dispatching'
