@@ -56,13 +56,7 @@ import type { Client } from '@meetwise/db';
 import { getSseNotify, SseNotifyService, SSE_NOTIFY_CHANNEL, SSE_NOTIFY_TRIGGER_NAME } from '../src/platform/sse-notify.service.ts';
 import { pumpSseEvents } from '../src/platform/sse-pump.ts';
 
-const h = await boot();
-const { A, done } = mkAssert('sse-push:notify');
-
-console.log('SSE-PUSH prove · Opt1 通道健康分级兜底 · releaseEvidence=false · Not HA');
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
+// must stay above `await boot()` — early SSE_NOTIFY_DEGRADED lines escape capture otherwise (was 2/35 red).
 // ── constraint ② live receipt tap: capture the PRODUCTION console.warn seam ──
 const degradedLogs: Array<{ line: string; t: number }> = [];
 const originalWarn = console.warn.bind(console);
@@ -73,6 +67,13 @@ console.warn = ((line: unknown, ...rest: unknown[]) => {
 function triggerMissingLog(): { line: string; t: number } {
   return degradedLogs.find((l) => l.line.includes('reason=trigger_missing')) ?? { line: 'MISSING', t: Date.now() };
 }
+
+const h = await boot();
+const { A, done } = mkAssert('sse-push:notify');
+
+console.log('SSE-PUSH prove · Opt1 通道健康分级兜底 · releaseEvidence=false · Not HA');
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 // Real 0143 migration bytes (self-install after degraded phase; harness DROP made
 // any runner-pre-applied trigger impossible — memo 876eaeac §0 anchor 2).

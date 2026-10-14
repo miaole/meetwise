@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
 import Link from 'next/link';
+import { getTranslations } from 'next-intl/server';
 import { getServerToken, serverGet } from '../../lib/api/server';
 import { reparseResumeAction, grantConsentAction, withdrawInterviewPersonalizationAction } from './actions';
 import { startDiagnosisAction } from '../diagnosis/actions';
@@ -11,7 +12,7 @@ import { Badge } from '@/components/ui/badge';
 import { ResumeList, type ResumeRef as Resume } from '@meetwise/contracts';
 import { resumeStatusLabel } from '@/lib/resume/display';
 import { isOcrPreviewEnabled } from '@/lib/ocr-preview';
-import { resumeUploadCardDescription } from '@/lib/resume/ocr-preview-ui';
+import { resumeUploadCardDescription, type ResumeUploadCopyLabels } from '@/lib/resume/ocr-preview-ui';
 
 export const metadata = { title: '简历 · 知面' };
 
@@ -33,6 +34,8 @@ export default async function ResumePage() {
   const consented = consent?.consented === true;   // null(取数失败)→ 当未同意,安全默认展示同意门
   const interviewPersonalized = interviewConsent?.consented === true;
   const ocrPreview = isOcrPreviewEnabled();
+  const tResumeUpload = await getTranslations('resumeUpload');
+  const resumeUploadLabels: ResumeUploadCopyLabels = (key) => tResumeUpload(key);
 
   return (
     <main className="mx-auto max-w-3xl space-y-6">
@@ -67,7 +70,7 @@ export default async function ResumePage() {
       <Card>
         <CardHeader>
           <CardTitle>上传简历</CardTitle>
-          <CardDescription>{resumeUploadCardDescription(ocrPreview)}</CardDescription>
+          <CardDescription>{resumeUploadCardDescription(ocrPreview, resumeUploadLabels)}</CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
           <ResumeUploadForms ocrPreview={ocrPreview} />
