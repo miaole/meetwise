@@ -56,6 +56,7 @@ import type { Client } from '@meetwise/db';
 import { getSseNotify, SseNotifyService, SSE_NOTIFY_CHANNEL, SSE_NOTIFY_TRIGGER_NAME } from '../src/platform/sse-notify.service.ts';
 import { pumpSseEvents } from '../src/platform/sse-pump.ts';
 
+// must stay above `await boot()` — early SSE_NOTIFY_DEGRADED lines escape capture otherwise (was 2/35 red).
 // ── constraint ② live receipt tap: capture the PRODUCTION console.warn seam ──
 const degradedLogs: Array<{ line: string; t: number }> = [];
 const originalWarn = console.warn.bind(console);

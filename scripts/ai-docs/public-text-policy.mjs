@@ -57,7 +57,9 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2090→2104（2026-10-14 协调方 sanction·+14 沿 +8 系先例形：并线树 f7fe7078 实测 2093>2090 红停——
 // 5B-MIG 0190-0199 十迁移+批5b 卷/proof 受管件+主线 0189 后 +3 件双亲增量并集·并覆盖成本⑤/ag39q/S4b
 // 后继四刀并集+余量；计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_104;
+// cap 2104→2112（2026-10-14 协调方 sanction·+8 本刀收据受管件增量·沿 +8 先例形·
+// ssepush-notify 回归修复刀并线树受管件并集+余量；计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_112;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
