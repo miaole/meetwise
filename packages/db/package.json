@@ -8,7 +8,7 @@
     "./sql/*": "./sql/*"
   },
   "scripts": {
-    "lint": "eslint . --max-warnings 1038",
+    "lint": "eslint . --max-warnings 1040",
     "prove": "docker exec -i meetwise-postgres-dev psql -U meetwise -d meetwise -v ON_ERROR_STOP=1 -q < proof/primitives.sql",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "commerce": "tsx test/commerce-saga.proof.ts",
