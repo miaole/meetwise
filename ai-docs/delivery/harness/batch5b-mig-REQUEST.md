@@ -335,6 +335,51 @@ FI3 契约面（B1 点名面）不受上述四项影响：FI3 各臂 POST/SQL/�
 
 **`executed:awaiting_post_prove_dual` 维持**——post 修复席按协调方授权最小清单执行（0194 冻结集重裁+db-money3 P0 夹具伴随+本节补登记·三件外零触）·⛔push·post 双审复审与翻面权归协调方。est live=0（零模型外呼·全隔离库/dev 库机械断言）·pins 十一值零翻。
 
+## §9 nail 续作三授权处置附记（2026-10-14·nail 续作修复席·协调方三授权·并线树 fedff14a 基础上·改动集恰 6 文件·⛔push·STOP=`executed:awaiting_post_prove_dual` 维持）
+
+**红停背景**：line/batch5b-mig 并主线 feat/mysql-schema-skeleton nail merge @fedff14a 后 union 新红三处（①db 包 typecheck 4 错 ②db lint 超预算 ③docs:check 2090>cap 2080）红停，协调方三授权现给，本席逐一处置·亲证后落笔。
+
+### N-1. 授权①：db 包 typecheck 4 错最小窄化（语义零变·沿 AG-39 proof 窄化先例=ciw2 5580a059 形制）
+
+tsc 亲证基线（窄化前）：`test/db-int-fk.proof.ts(446,7) TS2532` + `test/migrate.proof.ts(562,31)/(577,29)/(579,28) TS2347×3`。
+
+1. **db-int-fk.proof.ts:446**（P8-4 弱修基线观测臂）：`uq0019.rows[0]?.n >= 1` → `(uq0019.rows[0]?.n ?? 0) >= 1`。仓内先例形=checkpoint-privacy-erasure/qbank-retrieval-eval-pg `(rowCount ?? 0) >= 1`（checklist「Line CI-WIRING2 nail」union 三红处置③同载）；运行时恒等论证：`undefined>=1` 与 `0>=1` 同假·行在时 `n>=1` 逐值同判。
+2. **migrate.proof.ts:562/577/579**（§2-2 重制 0148/0149 三查询臂）：根因=全函数域 `runMigrateProof(pool: any)`（:29 亲证）untyped call 不受类型实参（TS2347）——改形=**结果级窄化**：`await pool.query<T>(sql)` → `(await pool.query(sql)) as { rows: Array<{...}> }`（类型注记意图原样保持·断言仅 TS 层·运行时零变）；仓内先例形=db-trigfam-unify.proof.ts:249 结果级 `{ rows: Array<...> }` 窄化。下游 `rows[0]?.n` 判等式逐字零触。
+3. **亲证**：`pnpm -C packages/db exec tsc -p tsconfig.json --noEmit` EXIT=0（窄化后）·`pnpm turbo typecheck --force` **8/8 EXIT=0**。
+
+### N-2. 授权②：db lint 预算 1040→1042（union 后实测 +2·登记归因·清偿归后继刀）
+
+`packages/db/package.json` lint `--max-warnings 1040→1042`。亲证：eslint 实测 **1042 problems（0 errors·1042 warnings）**；+2 归因=**src/migrate.ts 观测臂 statement_timeout/lock_timeout 两 snake_case Type Property naming warn**（:472-473/:526-527/:558-559 三对中 union 自增面·post 双审已裁改形不回改）·预算面收口非清偿·清偿归后继刀·沿 f29ceb59/28b9da2f（OBS-READY）与 5580a059（ciw2）先例形制。
+
+### N-3. 授权③：FILE_LIMIT cap 2080→2090（union 并集必然越顶·sanctioned·沿先例注记）
+
+1. `scripts/ai-docs/public-text-policy.mjs`：`MAX_FILES = 2_080 → 2_090`，cap 注记按 AG-12/COST2 先例机制与 ciw2 5580a059 形制随件落卷（计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·偏离随本附记落卷）。
+2. `scripts/ai-docs/public-text-policy.proof.mjs` 联动臂 TC-quality-04-E11：fabricated 数 2080→2090·超限注入路径 f-2080→f-2090·错误码断言 `PTP_FILE_LIMIT:2081→2091`（cap 数字行为断言语义不变强度不减·沿 AG-11/5B 迁移消费刀历次联动形）。
+3. **亲证**：`pnpm public-text-policy:prove` **12/12 EXIT=0**（含 E11 改形臂）；`pnpm docs:check` EXIT=0「scanned **2090** managed worktree files」≤cap 2090=union 并集实数恰触顶亲证。
+
+### N-4. 门矩阵全表（并线树 fedff14a 基础上·本席改动集 6 文件亲跑）
+
+| 门 | 结论 | 关键行 |
+|---|---|---|
+| pnpm turbo typecheck --force | **EXIT=0** | 8 successful/8 total·0 cached（N-1 窄化后全绿） |
+| pnpm turbo lint | EXIT=1 双红承登 | **db 1042=1042 贴线绿（N-2 落定）**；api 1431>1421+root **5212**>5200=AUTHZ 既登基线恒等双红承登（root 5210→5212=union 并集口径注·协调方「主仓 5212 口径注」亲证吻合·root `pnpm lint` 独跑 EXIT=1「ESLint found too many warnings (maximum: 5200)」亲证）；余 9 包（worker 950/contracts 265/ai-runtime 621/domain 115/web 579/ai-graphs 47/qdrant-store 27/config 0/db-mysql 0）全在预算内 |
+| pnpm docs:check | **EXIT=0** | 80 required verified·scanned **2090** ≤ cap **2090**（N-3 落定） |
+| pnpm migrate:prove | **EXIT=0** | **123 PASS/0 FAIL**（基线 123 只增不减·fresh 全量 198 链应用+幂等+字节序+CI 唯一性臂全过）·**链 198**（migrations 198 文件亲证） |
+| pnpm db:prove | **EXIT=0** | 四原语全部通过 |
+| pnpm db-money3:prove | **P0 臂全绿·整门 EXIT=1 残余 6 FAIL=既登基线单列** | P0-1..4 全 PASS；残余 FAIL=P3-2/P3-4/P5-1/P6-1/P6-2/P6-3 恰 6=§9-POST P-4/P-4.1 归因面逐字吻合·非本席面·不上修 |
+| pnpm uc004:career-path-fault:prove | **FI3 全臂绿·EXIT=1 三臂红=既登基线单列** | FI3-F1/F2A/F2B/F3+FI3-GRAPH-RUN-FAILED-TRANSITION 全 PASS（B1 修复维持）；红=CONTROL-0-GET-200/FI2-SERVER-ALIVE-AFTER/FI3-SERVER-ALIVE-AFTER 恰 3=P-4.1④ G5 重闸 fixture 面吻合·非本席面·不上修 |
+| pnpm uc004:career-path:prove（静态绊线） | EXIT=1=SSOT 预期绊线 | 3 PASS（S1/S4/S5）+3 FAIL（S2/S3/G-GAP）=e2e-requirement-coverage-matrix「expected tripwire」既登面 |
+| pnpm db-acl:prove | **EXIT=0** | 62 PASS |
+| pnpm db-intfk:prove | **EXIT=0** | 全过（N-1 窄化文件运行时亲证恒等·P8-4 臂绿） |
+| pnpm drift:prove | **EXIT=0** | schema 无漂移（退役残面豁免登记=基线不变） |
+| node scripts/check-migration-version-uniqueness.mjs | **EXIT=0** | **files=198 violations=0**（豁免 0143/0152/0160 基线不变） |
+| pnpm i6-gates:prove | 39 PASS/1 FAIL（结构性单列） | 唯一红=「改动集恰符」臂（i6-239 自指申报清单不含后续刀触面·树净 vs HEAD~1 形制·对任何后继刀 commit 结构性红·非产品臂）；产品臂全过含 ⑦ markers=0+est live=0（本席新增行五类标记词零命中·沿 AG-24 零新增口径） |
+| pnpm public-text-policy:prove（本席自证触面） | **EXIT=0** | 12/12（N-3 E11 改形臂在验） |
+
+### N-5. STOP 确认
+
+**`executed:awaiting_post_prove_dual` 维持**——nail 续作修复席按协调方三授权最小清单执行（窄化 4 处+1042+cap 2090·授权外零触）·⛔push·翻面权归协调方。est live=0·零模型外呼。
+
 ---
 
 *BATCH5B-MIG REQUEST · 2026-10-13 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`28cdee05`（pull --ff-only Already up to date 亲证）· 分支 `line/batch5b-mig` · 工作树 `meetwise-b5m`（本起草席立·建前 32 树实测无 b5m）· 蓝本=mig-runner-REQUEST（nailed @685498f1·§0.1 归槽+§4 余 17 件+§9 席2 观察②）+LEDGER :86/:96+TASK-SOP-v2:81+issues-master 19 触点行号亲证（#3=211/#13=365/#15=215/#16=216/#23=219/#25=368/#115=252/#122=396/#134=258/#135=259/#136=260/#137=261/#140=264/#141=265/#142=403/#144=404/#150=408/#151=409/#152=410）· 现态=开放 15 件+基建残余 1（multi-statement 语句级 timeout）+部分/纪律 2（#115/#144）+已闭合转登记 2（#136=0176:98-99·#140=字节序+唯一性门+起号演进三向全闭）· 修法四簇（⓪ runner 单点补全/A 0148-0149 重制裁决①/B 九件新迁移/C #122 索引裁决⑨+#115 纪律条款/D #141-#142 ACL/CI/E 登记件）· 迁移号拟占 0188 起（在飞 0184 cost3/0185 bill4/0186+0187 ag39 三树 ls 亲证·EXEC 立项日链顶顺延）· LEDGER :86 翻面出入如实登记（#134/#135/#115 纪律半现树零落·处置权归协调方）· 迁移号规则/纪律条款/豁免面=⛔ 不得更改钉死项·裁决十项归双审/EXEC· 停止条件四类全（漂移/机制/越界/验收红）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*

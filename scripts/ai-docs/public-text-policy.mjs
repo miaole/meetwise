@@ -47,7 +47,10 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // （10 版本化迁移+1 运维手册·均为派单授权产出）触顶 2073>2064；计数预算非内容策略·越限臂 fabricated 数
 // 随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 EXEC 附记显耀登记·post 双审/协调方可否决·
 // 并线时主线侧已由 AG-11 同值至 2080·union 并集解·cap 终值 2080 维持）。
-const MAX_FILES = 2_080;
+// cap 2080→2090（2026-10-14 · 5B-MIG nail 续作协调方授权上调：line/batch5b-mig 并主线 union 并集
+// 受管文件必然越顶 2080；计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·
+// 沿 AG-12/COST2 先例机制与 ciw2 5580a059 形制·偏离清单随 REQUEST §9 附记落卷）。
+const MAX_FILES = 2_090;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],

@@ -443,7 +443,7 @@ async function main() {
       `SELECT count(*)::int AS n FROM pg_indexes
         WHERE schemaname='public' AND tablename='interview_job' AND indexdef ILIKE '%running%'`);
     A('P8-4 DB 面现状（弱修基线如实固化）：双提交防=0019 表级 UNIQUE 在位；running 部分唯一索引零在（案a 未行使）',
-      uq0019.rows[0]?.n >= 1 && runningPartial.rows[0]?.n === 0);
+      (uq0019.rows[0]?.n ?? 0) >= 1 && runningPartial.rows[0]?.n === 0);
   }
 
   console.log(`\n${failures === 0 ? '✓ db-intfk:prove 全部通过' : '✗ ' + failures + ' 失败'}（interview 复合 FK · P1-P8 · rev2）`);
