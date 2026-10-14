@@ -259,6 +259,17 @@ async function releaseSharedAdmissionBestEffort(
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
 /**
+ * #173：claim follower 等待节奏——指数退避（初值 20ms · 倍率 ×2 · 封顶 1000ms）取代恒定 sleep(20)，
+ * 收敛同键风暴下的 follower 轮询事务量（N × 恒定 50 拍/秒 → 退避后拍距指数拉长）。首拍与旧形等延迟
+ * （join 快路径零劣化）；封顶 1000ms 保证 join 尾延迟 ≤ cap、deadline（model_invocation_wait_timeout）
+ * 判定仍在拍界内可达。只改等待节奏：claim 判定序与 join 三不变式（execute=1/wait=1/calls=1）零动。
+ * 导出供 proof 静态断言（claim-join-orphan 退避常量臂）。
+ */
+export const CLAIM_POLL_BACKOFF_INITIAL_MS = 20;
+export const CLAIM_POLL_BACKOFF_FACTOR = 2;
+export const CLAIM_POLL_BACKOFF_CAP_MS = 1000;
+
+/**
  * AG-19：prompt 注册表版本单源派生（裁决项①(a)）。registry 内 service→注册表 version 常量；
  * registry 外/缺省 service→undefined（claim 落 NULL·span 不带）。纯观测：派生失败绝不影响调用。
  */
@@ -489,7 +500,9 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   // GODFN-1a：主函数只做五相位编排——resolve+prepare → claim → admit → reserve+dispatch →
   // execute+settle。各相位本体为同文件私有函数，跨相位状态经显式参数对象传递（禁闭包共享可变态）。
   // 每相位代码逐字搬移自拆解前行界（:404-461/:463-482/:487-570/:572-629/:631-773）：
-  // 错误码/抛序/SQL 事务边界/时序常量（sleep(20)/60s lease/deadline）零变，导出面签名零变。
+  // 错误码/抛序/SQL 事务边界/时序常量（60s lease/deadline）零变，导出面签名零变。
+  // 承替登记：GODFN-1a 自等价声明中「sleep(20) 恒定轮询」一项由 #173 行为修刀承替——claim
+  // follower 改指数退避（20ms×2 封顶 1000ms，CLAIM_POLL_BACKOFF_* 常量），claim 判定序零变。
   const prepared = await invokeResolveAndPreparePhase(spec, owner);
   if (prepared.terminal) return prepared.outcome;
   const claimed = await invokeClaimPhase({
@@ -707,10 +720,11 @@ async function invokeResolveAndPreparePhase<T>(
   return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest, promptVersion };
 }
 
-/** GODFN-1a 相位 2/5 · claim（原 :463-482 逐字搬移 · durable claim 轮询 + follower 20ms 真轮询）。 */
+/** GODFN-1a 相位 2/5 · claim（原 :463-482 逐字搬移 · durable claim 轮询 + follower 指数退避真轮询（20ms×2 封顶 1000ms · #173））。 */
 async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhaseStep<T, InvokeClaimed>> {
   const { spec, pool, owner, logicalNodeKey, digest, requestId, deadline, span, plan, promptVersion } = args;
   let leaseToken: string | undefined;
+  let pollWaitMs = CLAIM_POLL_BACKOFF_INITIAL_MS;
   for (;;) {
     const token = randomUUID();
     const claim = await asPrincipal(pool, owner, (c) => claimModelInvocation(c, {
@@ -730,9 +744,12 @@ async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhas
     if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }
     if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: claim.error } }; }
     if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { terminal: true, outcome: { error: 'model_invocation_wait_timeout' } }; }
-    // Followers must join, never execute.  20ms is still a real poll of durable
-    // status (claimed/dispatching → succeeded), not an in-process single-flight.
-    await sleep(20);
+    // Followers must join, never execute.  Exponential backoff (#173: 20ms ×2 capped at 1000ms)
+    // only paces the wait — each wake is still a real poll of durable status (claimed/dispatching
+    // → succeeded), not an in-process single-flight. Claim decision order and the deadline check
+    // above are untouched; the first wake interval equals the old constant 20ms pacing.
+    await sleep(pollWaitMs);
+    pollWaitMs = Math.min(pollWaitMs * CLAIM_POLL_BACKOFF_FACTOR, CLAIM_POLL_BACKOFF_CAP_MS);
   }
   return { terminal: false, leaseToken: leaseToken! };
 }
