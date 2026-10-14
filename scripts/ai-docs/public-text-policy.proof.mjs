@@ -250,8 +250,13 @@ const checks = {
     const fixture = createFixtureRoot();
     try {
       // cap 数字行为断言：恰好 2080 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2080）。
-      // cap 2048→2064（AG-12 成本轨③ sanctioned 值）→2064→2080（5B 迁移消费刀 EXEC 按 AG-12/COST2 先例
-      // 机制·+11 受管文件触顶·偏离清单随 REQUEST §9 EXEC 附记显耀登记）——本臂 fabricated 数随 cap 联动
+      // AG-12 成本轨③：cap 2048→2064（任务书派单 sanctioned 值）——本臂 fabricated 数随 cap 联动
+      // 同步（cap 数字行为断言语义不变·强度不减·偏离清单随 REQUEST §9 落卷）。
+      // ciw2 nail：cap 2064→2072（2026-10-14 协调方授权）——主线侧历史步注记。
+      // AG-11 成本轨④ post 补证：cap 2072→2080（沿 +16 同步长）——本臂 fabricated 数随 cap 再联动。
+      // 5B 迁移消费刀 EXEC：cap 2064→2080（按 AG-12/COST2 先例机制·+11 受管文件触顶·偏离清单随
+      // REQUEST §9 EXEC 附记显耀登记·post 双审/协调方可否决·并线时主线侧已由 AG-11 同值至 2080·
+      // union 并集解·cap 终值 2080 维持）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减）。
       const paths = [];
       for (let i = 0; i < 2_080; i += 1) {

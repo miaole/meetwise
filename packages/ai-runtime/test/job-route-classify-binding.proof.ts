@@ -22,6 +22,9 @@ const A = (name: string, ok: boolean, detail?: string) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}${detail ? ` — ${detail}` : ''}`);
   if (!ok) failures++;
 };
+/** 联合类型窄化：仅 deny 臂（ok:false）携带 error；allow 臂经由此处断言恒假。 */
+const bindError = (d: ReturnType<typeof bindJobRouteClassify>, code: string): boolean =>
+  d.ok === false && d.error === code;
 
 const DIGEST = createHash('sha256').update('job-route-classify-proof', 'utf8').digest('hex');
 
@@ -55,13 +58,13 @@ A('bindJobRouteClassify(合法 semanticDigest) → 密封 provenance（无 Key /
 
 A('未登记 / 错 kind operation → binding 缺失 fail-closed',
   bindJobRouteClassifyOperation('interview.unknown.v1', DIGEST).ok === false
-  && bindJobRouteClassifyOperation('interview.unknown.v1', DIGEST).error === 'model_operation_unknown'
+  && bindError(bindJobRouteClassifyOperation('interview.unknown.v1', DIGEST), 'model_operation_unknown')
   && bindJobRouteClassifyOperation('resume.ocr.v1', DIGEST).ok === false
   && bindJobRouteClassifyOperation('qbank.embedding-build.v1', DIGEST).ok === false);
 
 A('非法 semanticDigest 拒绝（非 sha256 hex）',
-  bindJobRouteClassify('not-a-digest').error === 'job_route_semantic_digest_invalid'
-  && bindJobRouteClassify('').error === 'job_route_semantic_digest_invalid');
+  bindError(bindJobRouteClassify('not-a-digest'), 'job_route_semantic_digest_invalid')
+  && bindError(bindJobRouteClassify(''), 'job_route_semantic_digest_invalid'));
 
 A('未知 operation / 未接线仍 fail-closed（旁证）',
   resolveModelOperation('interview.unknown.v1', 'r1').ok === false
