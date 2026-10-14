@@ -76,7 +76,7 @@ export async function qbankReleaseSweepTick(pool: DbPool): Promise<QbankReleaseS
       `SELECT id, state FROM qbank_vector_generation
          WHERE state IN ('retired','failed') AND storage_released_at IS NULL
          ORDER BY id`,
-    ).then((r) => r.rows.map((row) => ({ id: String(row.id), state: String(row.state) })));
+    ).then((r) => r.rows.map((row) => ({ id: String(row.id), state: String(row.state) }))));
   } catch (e) {
     console.error('qbank release sweep enumerate failed', e);
     return { released: 0, pending: 0 };

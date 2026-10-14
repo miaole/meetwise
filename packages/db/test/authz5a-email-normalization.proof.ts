@@ -47,7 +47,7 @@ async function main() {
   await db.query("INSERT INTO user_account(id, email, password_hash, role) VALUES ('c3','Normal@x.com','scrypt$ee$ff','candidate')");
   const client = await db.connect();
   const notices: string[] = [];
-  client.on('notice', (n: { message: string }) => notices.push(n.message));
+  client.on('notice', (n: { message?: string }) => { if (n.message !== undefined) notices.push(n.message); });
   try {
     await client.query('BEGIN');
     await client.query(migSql('0167_email_case_normalization.sql'));

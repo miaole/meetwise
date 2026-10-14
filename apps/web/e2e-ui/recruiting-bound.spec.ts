@@ -133,12 +133,18 @@ const RELEASED_MSG_PART = '本次预留额度已释放';
 const REPORT_DOWN_MSG_PART = '报告暂时无法生成';
 const PRACTICE_FEEDBACK_PART = '练习完成 · 本次练习反馈';
 const NO_REPORT_ON_CHARGED_MSG = '面试已完成并扣费结算，但未获得可信评分，本次不生成报告。岗位面试可从“我的投递”重新开始；其他面试可新建一场。';
-function settlementFaces(page: Page) {
-  return [page.getByText(EARLY_STOP_COPY), page.getByText(RELEASED_MSG_PART), page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)];
+/**
+ * 钉死单一期望臂：本夹具脚本化弱输入旅程的产品收尾面=早停控制流（EARLY_STOP_COPY·与下方定锚层
+ * 「signal-conclude-reason 逐字」同一口径——正常完成/释放/扣费文案面到达即反例=红，升级披露）。
+ * 原 settlementFaces 四臂 race 等待面按收拢方向=增强撤除（Ban race OR 作谓词的收紧形态）。
+ */
+async function waitForExpectedTerminal(page: Page, timeout: number): Promise<'terminal'> {
+  await page.getByText(EARLY_STOP_COPY).waitFor({ state: 'visible', timeout });
+  return 'terminal' as const;
 }
 async function waitForTerminalOrAnswer(page: Page, timeout = 90_000): Promise<'terminal' | 'answer'> {
   const answer = page.locator('textarea[placeholder^="打字作答"]');
-  const terminal = Promise.any(settlementFaces(page).map((f) => f.waitFor({ state: 'visible', timeout })));
+  const terminal = waitForExpectedTerminal(page, timeout);
   return Promise.race([
     terminal.then(() => 'terminal' as const),
     answer.waitFor({ state: 'visible', timeout }).then(() => 'answer' as const),
@@ -284,9 +290,9 @@ test('C→B: real browser binds application to a new interview, completes it, an
     const answer = page.locator('textarea[placeholder^="打字作答"]');
     await answer.fill('我会用稳定幂等键约束写操作，配合 outbox、重试退避和指标告警确保最终一致。');
     await page.getByRole('button', { name: '提交', exact: true }).click();
-    // 非最后一题等待当前编辑器卸载；最后一题则可能直接进入报告终态（早停族结算面同判）。
+    // 非最后一题等待当前编辑器卸载；最后一题则可能直接进入报告终态（早停期望臂同判——钉死单一臂）。
     await Promise.race([
-      Promise.any(settlementFaces(page).map((f) => f.waitFor({ state: 'visible', timeout: 20_000 }))),
+      waitForExpectedTerminal(page, 20_000),
       answer.waitFor({ state: 'hidden', timeout: 20_000 }),
     ]);
   }
@@ -311,8 +317,11 @@ test('C→B: real browser binds application to a new interview, completes it, an
     // 观测到 → 诚实红 + 五分类 + 升级披露（UI 文案释放声称与已扣费结算码面相悖），Ban 断言其为 PASS。
     const releasedCopyOnCharged = await page.getByText(RELEASED_MSG_PART).waitFor({ state: 'visible', timeout: 3_000 }).then(() => true).catch(() => false);
     expect(releasedCopyOnCharged, '第三臂 no_eligible_scored_answer：UI「本次预留额度已释放」文案与已扣费结算（completeInterviewAndConfirm）相悖——C-HA-V1 不作 PASS 容忍面，须升级披露').toBe(false);
-    // 扣费臂（已扣费 · business-events.ts:55 语义「面试已经完成并扣费」）：等报告 worker 异步结算面分臂（实测 ~40s，cap 120s）。
-    await Promise.any([page.getByText(NO_REPORT_ON_CHARGED_MSG, { exact: true }), page.getByText(REPORT_DOWN_MSG_PART), page.getByText(PRACTICE_FEEDBACK_PART)].map((f) => f.waitFor({ state: 'visible', timeout: 120_000 })));
+    // 扣费臂（已扣费 · business-events.ts:55 语义「面试已经完成并扣费」）：钉死单一期望臂——
+    // 校准 hold（无可信评分不生成报告 · view-model.ts:66 落字）= 本弱旅程扣费面的产品收尾真面，
+    // 与下方 B 端面板断言（「评分暂不可用」在场·零「已完成」·零评分行）同口径；
+    // worker 失败（报告暂时无法生成）或报告就绪（练习反馈）出观 = 反例即红（升级披露，不再 race 容忍）。
+    await page.getByText(NO_REPORT_ON_CHARGED_MSG, { exact: true }).waitFor({ state: 'visible', timeout: 120_000 });
     if (await page.getByText(PRACTICE_FEEDBACK_PART).isVisible()) {
       // 扣费·报告就绪臂：complete+enqueueReport 成功 → 练习反馈面（仅供个人复盘）。
       await expect(page.getByText(PRACTICE_FEEDBACK_PART)).toBeVisible();
