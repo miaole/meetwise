@@ -245,7 +245,7 @@ export async function reconcileUsageCalibrationWindowed(
   const committed = await asPrincipal(pool, input.owner, async (c) => {
     const since = (await getUsageCalibrationWatermark(c, input.owner)) ?? new Date(0);
     const pairs = await listUsageCalibrationPairsSince(c, input.owner, since);
-    if (pairs.length === 0) return { ok: true as const, groups: [] as ReconcileUsageCalibrationGroupResult[], watermarkFrom: since, watermarkTo: null };
+    if (pairs.length === 0) return { ok: true as const, groups: [] as ReconcileUsageCalibrationGroupResult[], totalUnderEstimated: 0, watermarkFrom: since, watermarkTo: null };
 
     const groups = groupByServiceModelEstimator(pairs)
       .filter((g) => input.estimator === undefined || g.estimator === input.estimator);
@@ -318,7 +318,7 @@ export async function reconcileUsageCalibrationWindowed(
     // 幂等不致错但 observationCount 跨窗重复相加；+1ms 半开区间语义（已对账完成=窗口左闭右闭）
     // 恰好严格排除边界·单调性由 GREATEST 独立保证（EXEC 细化·勘误注随 REQUEST 登记面）。
     const watermarkTo = await upsertUsageCalibrationWatermark(c, input.owner, new Date(Math.max(...pairs.map((p) => p.observedAtMs)) + 1));
-    return { ok: true as const, groups: results, watermarkFrom: since, watermarkTo };
+    return { ok: true as const, groups: results, totalUnderEstimated, watermarkFrom: since, watermarkTo };
   });
 
   // metric 在提交后累加：回滚不虚增告警计数（counter 是本实例真实事件数）。

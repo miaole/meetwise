@@ -7,6 +7,7 @@
     ".": "./src/index.ts"
   },
   "scripts": {
+    "lint": "eslint . --max-warnings 115",
     "prove:candidate-route": "tsx test/candidate-profile-route.proof.ts",
     "prove:auth": "tsx test/auth.proof.ts",
     "prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts",
@@ -34,7 +35,8 @@
     "prove:sealed-ocr-binding": "tsx test/sealed-ocr-binding.proof.ts",
     "prove:sealed-job-route-classify-binding": "tsx test/sealed-job-route-classify-binding.proof.ts",
     "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
-    "prove:r4-p-planner-unit": "tsx test/r4-p-planner.proof.ts"
+    "prove:r4-p-planner-unit": "tsx test/r4-p-planner.proof.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "mammoth": "^1.12.0",

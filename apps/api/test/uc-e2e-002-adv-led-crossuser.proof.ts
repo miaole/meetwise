@@ -177,7 +177,7 @@ async function readSseCatchUp(
     clearTimeout(timer);
   }
   const ids = [...buf.matchAll(/^id: (\d+)$/gm)].map((m) => Number(m[1]));
-  const kinds = [...buf.matchAll(/^event: (\w+)$/gm)].map((m) => m[1]);
+  const kinds = [...buf.matchAll(/^event: (\w+)$/gm)].map((m) => m[1]!);
   return {
     status,
     ids,

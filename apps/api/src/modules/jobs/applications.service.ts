@@ -21,7 +21,7 @@ const ENTERPRISE_PAY_UNAVAILABLE_MESSAGE = '该岗位面试暂不可用，请联
 export class ApplicationsService {
   constructor(private readonly db: DbService) {}
 
-  mine(principal: string) {
+  mine(principal: string): Promise<{ applications: Awaited<ReturnType<typeof listMyApplications>> }> {
     const owner = requireOwnerUserId(principal, 'applications.mine');   // PRIV01-C 第二层 E1
     return this.db.asPrincipal(owner, async (c) => ({ applications: await listMyApplications(c, owner) }));
   }

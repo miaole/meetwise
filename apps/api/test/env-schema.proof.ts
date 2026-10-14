@@ -68,13 +68,13 @@ A('A4 AUTH_SECRET 空白视同缺失 + URL 协议错列 invalid',
 A('A5 缺数据库目标（两路全缺）→ database_target_missing 且列出全部组件名',
   (() => {
     const r = parseCriticalEnv({ AUTH_SECRET: 's' } as NodeJS.ProcessEnv);
-    return !r.ok && r.problems.length === 1 && r.problems[0].startsWith('database_target_missing')
-      && r.problems[0].includes('PGHOST,PGPORT,PGUSER,PGPASSWORD,PGDATABASE');
+    return !r.ok && r.problems.length === 1 && r.problems[0]!.startsWith('database_target_missing')
+      && r.problems[0]!.includes('PGHOST,PGPORT,PGUSER,PGPASSWORD,PGDATABASE');
   })());
 A('A6 PG 五件套缺一件（无 PGPORT）→ database_target_missing 只列缺件',
   (() => {
     const r = parseCriticalEnv({ AUTH_SECRET: 's', PGHOST: 'h', PGUSER: 'u', PGPASSWORD: 'p', PGDATABASE: 'd' } as NodeJS.ProcessEnv);
-    return !r.ok && r.problems.length === 1 && r.problems[0].endsWith('(lacking: PGPORT)');
+    return !r.ok && r.problems.length === 1 && r.problems[0]!.endsWith('(lacking: PGPORT)');
   })());
 A('A7 PGPORT 越界 → invalid:PGPORT 且数据库目标仍按缺件列（去重不重复计）',
   (() => {
@@ -85,7 +85,7 @@ A('A7 PGPORT 越界 → invalid:PGPORT 且数据库目标仍按缺件列（去�
 A('A8 空串 DATABASE_URL/PGHOST 视同缺失（与 @meetwise/db nonEmpty 口径一致）',
   (() => {
     const r = parseCriticalEnv({ AUTH_SECRET: 's', DATABASE_URL: '', PGHOST: ' ' } as NodeJS.ProcessEnv);
-    return !r.ok && r.problems.length === 1 && r.problems[0].startsWith('database_target_missing');
+    return !r.ok && r.problems.length === 1 && r.problems[0]!.startsWith('database_target_missing');
   })());
 A('A9 assertCriticalEnv 抛 env_schema_invalid 且消息一次性列全缺失项',
   (() => {
