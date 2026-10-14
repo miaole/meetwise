@@ -262,7 +262,7 @@
 | turbo typecheck --force | EXIT=0（8/8·过程两次中间红 TS1308+TS2454 即改即清如实登记） |
 | turbo lint --force | EXIT=0（12/12·基线 1421=帽值·新增 6 warning（naming-convention）即改即清·净增 0） |
 | docs:check | EXIT=0（2075 ≤ cap） |
-| markers | 五类标记词改动集 21 文件 grep 零命中（TODO/FIXME/XXX/HACK/冲突标记） |
+| markers | 五类标记词改动集 21 文件 grep 零命中（词面运行时组装防自指·沿 §7 不复抄卷内） |
 | check-migration-version-uniqueness | EXIT=0（files=189·violations=0） |
 
 基线红单列：无（全部所报门对本刀收口时点全绿；唯一基线关联红=件⑥ 若强行落行将致 web-logic.proof 红——已按停手登记规避）。
@@ -289,6 +289,7 @@
 11. 16 调用点桶 key/capacity/refillPerSec 逐值原值（diff 亲证）；429/503 码面与文案原值（too_many_streams/server_busy 零触）✓
 12. 越界面零触：worker wakeup 通道本体/SSOT 翻面/compose 预算账改数/S15 云依赖/apps/api 新依赖——全部零触（package.json 仅 prove script 行）✓
 13. 测试缝兼容：`new RateLimitService()`（无 db）=纯进程内模式——sse-principal-slot.proof 桩形与 `.slots` Map 断言面零改保持绿；降级形（throwingDb）有独立 D1 臂 ✓
+14. **E7a 陈旧释放竞态登记（post 席1 E3·零改）**：release 两语句形（UPDATE n>1→0 行→DELETE n≤1）与并发 acquire 交错时，DELETE 分支可能删掉并发 acquire 刚建的占用行——表现为幻影 +1（可占额度暂时 +1），≤12min lease 到期被接管自愈；方向保守（只朝放行向偏差·槽位=资源保护非安全边界·429 不误伤）——登记不实施，随 5C-SSE-API 槽面复核。
 
 ### 9.8 「旧代码忽略仍正确」书面结论（wire 契约变更义务）
 
@@ -299,3 +300,63 @@
 ### 9.9 收尾声明（EXEC）
 
 est live=0（全门隔离库/静态·零模型外呼·零生产操作·零 secrets·actualSpendCny=null 脚注同源）·pins 十一值零翻转·markers=0·⛔push（全程零 push）·commit=`fix(api): API-HARDEN EXEC`·STOP=`executed:awaiting_post_prove_dual`——post 双审待派（本席不自批·alone≠dual）。
+
+---
+
+## §10 post 修复附记（post 席1 FAIL(B1 P1)+席2 FAIL(B1) 仲裁与处置 · 2026-10-14 · post 修复席 · Status 维持 `executed:awaiting_post_prove_dual` · ⛔push）
+
+### 10.1 仲裁结论（NOINHERIT 证据链·亲证）
+
+**裁定：席1 深（NOINHERIT 全 DML 42501·SD 函数化）成立；席2 浅（一行 GRANT DELETE）前提为假。** 席2 对 B2 事实观察正确（0189:34 桶表 GRANT 恰缺 DELETE）但机制判断错误——席2 修法（补 GRANT）在 canonical 生产身份下**仍恒 42501**，非一行可修。证据链全 file:line 亲证 @`f31d56d1`：
+
+1. `packages/db/src/principal.ts:574`/`:581`——provisionRuntimeLogin 建/改运行时登录恒 `LOGIN NOINHERIT NOSUPERUSER …`；`:589` `GRANT app_role TO %I`（成员授予≠权限带有效）；`:593-597` 若 app_gateway_role 存在则一并授予成员。docstring `:562-564` 逐字：「`NOINHERIT` forces request code through `asPrincipal()` before it gains application-table privileges」。
+2. `packages/db/src/principal.ts:937-979` createPool——连接池按 DATABASE_URL/PG* 直连，**连接级零 SET ROLE**（`pool.on('connect')` 只挂 error observer）；会话角色=登录本身。
+3. `packages/db/src/principal.ts:991-1001` asPrincipal（`BEGIN`+`SET LOCAL ROLE app_role`+GUC）与 `:2114-2123` asGateway（`BEGIN`+`SET LOCAL ROLE app_gateway_role`）=仅有的两条带权路径；`apps/api/src/platform/db.service.ts:13-16` asGateway 头注自证「仅执行版本化固定 SECURITY DEFINER 函数；网关角色没有任何业务表权限」。
+4. EXEC 落码的共享 DML 五调用点（rate-limit.service.ts 修前 ：76/:103/:139/:183/:216-219）全走 `this.db.pool.query` 直连——NOINHERIT 登录下 `GRANT … TO app_role` 不隐式生效→**生产恒 42501→catch→静默退化**（桶回本地=共享化失效·槽 fail-open），共享层五件在生产形同虚设且**无任何日志**（sharedHealthy 恒 false 后连降级日志都只打一次，之后静默）。
+5. 测试为何全绿看不见：隔离 runner 容器 `POSTGRES_USER=meetwise`（scripts/run-e2e-isolated.mjs:2989/:2675）=容器**超级用户**——超身不受 NOINHERIT/GRANT 约束，直连 DML 畅通，26 臂因此全绿。CI 与生产的身份差即 B1 P1。
+6. NOINHERIT 下 `SET ROLE` 仍可用（INHERIT 只控隐式继承不控 SET ROLE 能力，principal.ts:166 注释自证）——故「asGateway+SECURITY DEFINER 函数」是既定合法带权路径（gateway_auth_signup 等 0041 族生产同制在跑）。
+
+### 10.2 修复形（任务书处方式 (a)·SD 函数化）
+
+- **0189 原地重写（授权在卷：0189 未在任何环境落账·branch-only）**：表 DDL/触发器半原值；表对象 GRANT 全删（gateway 形制=两角色对两表零表权·0041 同口径）；共享桶/槽 DML 收口四函数（`gateway_rl_bucket_take(text,float8,float8,float8,boolean)`=allow/hasToken 统一形·`p_consume` 一参之差逐式同前；`gateway_slot_lease_acquire(text,integer,float8,float8)`；`gateway_slot_lease_release(text)`=双语句形保持；`gateway_rl_bucket_cleanup(float8)`=TTL 清理 DELETE 一并入函数）——全 `SECURITY DEFINER SET search_path = pg_catalog, public`、`REVOKE ALL … FROM PUBLIC, app_role`+`GRANT EXECUTE … TO app_gateway_role`（服务调用面走 asGateway·0040/0042 同制；不授 app_role=非主体作用域的平台面最小权）。幂等 expand-only 保持。
+- **rate-limit.service.ts 五调用点改函数调用（零逻辑改）**：allow/hasToken→`gateway_rl_bucket_take(…,true/false)`；acquireSlot→`gateway_slot_lease_acquire`；releaseSlot→`gateway_slot_lease_release`（两次往返合一函数单事务·双语句形在函数内保持）；maybeCleanupBuckets→`gateway_rl_bucket_cleanup`。桶 key/capacity/refill 参数与返回语义逐值原值；降级形/试探节流/日志零改。头注与 seam 注释如实化（「表权走函数」机制注记）。
+- **B2 随函数化消解**：DELETE 只存在于 SD 函数体内（definer 身份执行），调用角色无需表 DELETE 权——「缺 DELETE 授权」面在函数化后不复存在（N1 第三臂实证）。
+- **往返负账如实披露**：单次共享操作由 1 往返变 asGateway 的 4 往返（BEGIN/SET ROLE/SELECT/COMMIT·同池复用零新增连接）——频度=入口/连接建立频度，为生产身份正确性的必要代价；ha-6 帽后连接账零改（零新池零新连接）。
+
+### 10.3 E1-E5 处置（post 席1 五点）
+
+| 点 | 处置 |
+|---|---|
+| E1 | REQUEST:265（§9.5 markers 行）字面去自匹配：标记词清单改「词面运行时组装防自指·沿 §7 不复抄卷内」措辞（scripts/i6-239-gates.proof.mjs:152 同制）——本卷改动集 markers 复扫零命中 |
+| E2 | 补 jti live 广播臂 J2：revokeSession(对侧池 dbB·单语句 CTE UPDATE+NOTIFY 同事务)→本侧池 isSessionActive 广播窗内翻 false——与 W1 uid 侧对称，会话吊销跨实例线补全 |
+| E3 | §9.7 第 14 条登记 E7a 陈旧释放竞态+「幻影 +1 ≤12min 自愈·方向保守」——零改登记，随 5C-SSE-API 槽面复核 |
+| E4/E5 | **登记占位**：派单文仅命「E4/E5 登记」未附原文，post 席1 卷面不在本工作树（仓内零 post 收据档）——本席禁凭空转述（伪造=Ban 面），如实占位待协调方将 E4/E5 原文随卷归档后补处置。此项列入偏离清单 |
+| 低权身份臂 | N1（席1 处方）：隔离库 provisionRuntimeLogin 形建 NOINHERIT 低权 login（rebindDatabaseLogin 重绑池）→负对照=直连表 DML 42501（证臂非真空）→S2 形经 asGateway+SD 函数跨实例消费恰 3→cleanup 函数低权可执行（B2 消解实证） |
+
+### 10.4 门矩阵复验（post 修复席实跑·十一门全绿零新红）
+
+| 门 | 结果 |
+|---|---|
+| **api-harden:prove** | EXIT=0（**31 臂**=EXEC 基线 26 + 新 N1×3 + J2×2；N1 负对照=直连表 DML **42501** 实证 NOINHERIT 机理·N1 SD 函数跨实例消费恰 3·N1 cleanup 低权可执行=B2 消解·J2 revokeSession 对侧池→本侧翻 false 实测 **26ms**） |
+| neg:auth | EXIT=0（90 负路径臂全绿） |
+| prove:env-schema | EXIT=0（22 臂） |
+| prove:sse-slot | EXIT=0（5+1 429+共享主体桶·桩形零改保持绿） |
+| api:validate | EXIT=0（204 臂面·真 NestJS+Fastify） |
+| drift:prove | EXIT=0（零新漂移·豁免 2 项=既存 dbhy1 残面登记同源） |
+| turbo typecheck --force | EXIT=0（8/8·首跑 TS2304 proof 缺 revokeSession import 即改即清如实登记） |
+| turbo lint --force | EXIT=0（12/12·0 error·根帽值内零新增 warning） |
+| docs:check | EXIT=0（2075 受管文件 ≤ cap 2080·本席零新增文件） |
+| markers | 改动集 4 文件五类标记词零命中（词面运行时组装） |
+| check-migration-version-uniqueness | EXIT=0（files=189·violations=0） |
+
+基线关联红：无。全部所报门对本席收口时点实跑全绿。
+
+### 10.5 「旧代码忽略仍正确」（§9.8 义务延续·函数化 wire 变更）
+
+- **四网关函数+表对象零 GRANT 新形态**：EXEC 形旧码（直连 DML+表 GRANT 版 0189）在重写版 0189 库上——直连 DML 42501→既有降级形接住（桶本地/槽 fail-open+RL_SHARED_DEGRADED 留痕）=不崩溃不误 429，仅共享化退化为 EXEC 时已申报的降级形（如实披露：混合窗共享层按降级运行）。0189 未在任何环境落账（branch-only），本形预期零混合窗。
+- **0189 重写合法性**：migrate.ts:4 checksum 守卫会拒「已应用迁移内容变更」——正因 0189 零 ledger 行（任何环境），重写不触发该守卫；隔离 runner 每次 fresh 建库自证。若事后实证任何环境已落账旧 0189，须回炉改道新迁移号（此为任务书断言项，本席按断言行使）。
+- **pg_notify 通道/触发器半**：与 §9.8 原结论逐字同（零改）。
+
+### 10.6 post 修复收尾声明
+
+est live=0（全门隔离库/静态）·pins 十一值零翻转·markers=0（本席改动集复扫）·⛔push（全程零 push）·commit=`fix(api): API-HARDEN post 修复——共享 DML 生产身份仲裁+修复`·STOP=`executed:awaiting_post_prove_dual` 维持（修复=FAIL 处置，post 复审派单权在协调方·本席不自批·alone≠dual）。
