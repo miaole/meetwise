@@ -290,7 +290,7 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
   A('PIN', 'anchor region beginInterviewCore→InterviewService parseable', regionLines.length > 0);
   const uniqueHit = (re: RegExp): string | null => {
     const hits = regionLines.filter((l) => re.test(l));
-    return hits.length === 1 ? hits[0] : null;   // 恰一命中→该行;零/多命中→null(红)
+    return hits.length === 1 ? hits[0]! : null;   // 恰一命中→该行;零/多命中→null(红)
   };
   A('PIN', 'anchor owner-scoped merged quiz SELECT(3→1)', !!uniqueHit(/SELECT q\.status, q\.expires_at,/));
   A('PIN', 'anchor 404 not_found_or_forbidden(line-start throw predicate · §5.1)',

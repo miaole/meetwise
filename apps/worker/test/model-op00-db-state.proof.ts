@@ -87,6 +87,57 @@ async function main() {
     && Number(sameKeyLedger.rows[0]?.slots) === 1
     && Number(sameKeyLedger.rows[0]?.permits) === 0);
 
+  // ── AG-11 `≤` 语义臂：输入侧预留改 LEAST(上限, 估算) 后，派发边界两道同值锁放宽为
+  // 输入侧 `≤`；输出侧等值逐字保留（无派发前估算面·不放松显式锁）。
+  const leastKey = `least-reserve:${suffix}`;
+  const leastClaim = await billedClaim(leastKey, `proof:${leastKey}`);
+  const leastDispatched = leastClaim.action === 'execute'
+    && await asPrincipal(pool, owner, async (c) => {
+      const cost = await reserveAiTextCost(c, {
+        scopeId: scope, requestOwner: owner, idempotencyKey: leastKey,
+        provider, model, region, priceRevision: 'r1', maxInputTokens: 6, maxOutputTokens: 10,
+      });
+      return cost.decision === 'reserved'
+        && await markModelInvocationDispatched(c, owner, leastKey, leastClaim.leaseToken, scope);
+    });
+  const leastState = await pool.query(
+    `SELECT i.status,
+            (SELECT count(*)::int FROM ai_model_dispatch_slot s
+              WHERE s.owner_user_id=i.owner_user_id AND s.logical_node_key_digest=i.logical_node_key_digest) AS slots
+       FROM ai_model_invocation i WHERE i.owner_user_id=$1 AND i.idempotency_key=$2`,
+    [owner, leastKey],
+  );
+  A('输入侧预留(6)＜header 上限(10) 的 LEAST 预留越过派发边界（≤ 语义），状态 dispatching、slot=1',
+    leastDispatched && leastState.rows[0]?.status === 'dispatching' && Number(leastState.rows[0]?.slots) === 1);
+
+  const outputEqKey = `output-eq:${suffix}`;
+  const outputEqClaim = await billedClaim(outputEqKey, `proof:${outputEqKey}`);
+  let outputEqRejected = false;
+  if (outputEqClaim.action === 'execute') {
+    await asPrincipal(pool, owner, async (c) => {
+      await reserveAiTextCost(c, {
+        scopeId: scope, requestOwner: owner, idempotencyKey: outputEqKey,
+        provider, model, region, priceRevision: 'r1', maxInputTokens: 6, maxOutputTokens: 8,
+      });
+      try {
+        await c.query('SAVEPOINT output_eq_dispatch');
+        await markModelInvocationDispatched(c, owner, outputEqKey, outputEqClaim.leaseToken, scope);
+      } catch (error) {
+        outputEqRejected = String((error as Error).message).includes('ai_model_dispatch_cost_reservation_binding_mismatch');
+        await c.query('ROLLBACK TO SAVEPOINT output_eq_dispatch');
+      }
+    });
+  }
+  const outputEqState = await pool.query(
+    `SELECT i.status,
+            (SELECT count(*)::int FROM ai_model_dispatch_slot s
+              WHERE s.owner_user_id=i.owner_user_id AND s.logical_node_key_digest=i.logical_node_key_digest) AS slots
+       FROM ai_model_invocation i WHERE i.owner_user_id=$1 AND i.idempotency_key=$2`,
+    [owner, outputEqKey],
+  );
+  A('输出侧等值保留：reserved output(8)≠header max_output(10) 仍拒绝派发（binding_mismatch·不放松显式锁），状态 claimed、slot=0',
+    outputEqRejected && outputEqState.rows[0]?.status === 'claimed' && Number(outputEqState.rows[0]?.slots) === 0);
+
   // ── 异常: billed dispatch without any reservation is rejected pre-slot.
   const noReservationKey = `no-reservation:${suffix}`;
   const noReservationClaim = await billedClaim(noReservationKey, `proof:${noReservationKey}`);

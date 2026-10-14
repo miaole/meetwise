@@ -14,7 +14,7 @@ export class ApplicationsController {
   constructor(private readonly applications: ApplicationsService) {}
 
   @Get()
-  mine(@Req() req: any) {
+  mine(@Req() req: any): ReturnType<ApplicationsService['mine']> {
     return this.applications.mine(req.principal);
   }
 

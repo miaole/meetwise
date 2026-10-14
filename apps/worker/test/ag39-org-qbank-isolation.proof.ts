@@ -131,7 +131,7 @@ const errCodeOf = async (fn: () => Promise<unknown>): Promise<string | null> => 
   try { await fn(); return null; } catch (e) { return (e as { code?: string })?.code ?? 'ERR'; }
 };
 const errMsgOf = async (fn: () => Promise<unknown>): Promise<string> => {
-  try { await fn(); return 'no_raise'; } catch (e) { return String((e as Error).message).split('\n')[0]; }
+  try { await fn(); return 'no_raise'; } catch (e) { return String((e as Error).message).split('\n')[0] ?? ''; }
 };
 
 async function main(): Promise<void> {
@@ -297,7 +297,7 @@ async function main(): Promise<void> {
   const originCk = await pool.query(
     `SELECT pg_get_constraintdef(oid) AS def FROM pg_constraint WHERE conname LIKE 'question_issue_provenance_origin%'`);
   A('③-5 session_generated 载体登记（provenance origin CHECK 在场=llm_qbank_miss 单值族）',
-    originCk.rowCount >= 1 && String(originCk.rows[0].def).includes('llm_qbank_miss'));
+    (originCk.rowCount ?? 0) >= 1 && String(originCk.rows[0].def).includes('llm_qbank_miss'));
   await pool.query(`DELETE FROM qbank_served_question_ref WHERE owner_user_id=$1`, [AUDIT_USER]);
 
   /* ── ④ curation 臂（裁决⑥行使） ── */
