@@ -131,7 +131,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H1 · failInterviewAndRelease + HTTP entitlement 额度净变 0 ────────');
   const id = IID('h1');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   const before = await httpUnits(A_);
@@ -166,7 +166,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H2 · report quarantine 后 HTTP entitlement 不回补 ────────');
   const id = IID('h2');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   await asPrincipal(h.pool, 'userA', (c) =>
@@ -207,7 +207,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── H3 · confirmed 上 release → already_confirmed；HTTP 额度不变 ────────');
   const id = IID('h3');
   await h.pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
     [id],
   );
   await asPrincipal(h.pool, 'userA', (c) =>

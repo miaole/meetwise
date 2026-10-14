@@ -54,7 +54,7 @@ async function seed(owner: string, units = 5.0) {
 /** complete+confirm + enqueue（付费基座：报告 job 在 confirmed 账本上重试，零新增扣费口）。 */
 async function setupConfirmedWithReport(owner: string, interviewId: string) {
   await pool.query(
-    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
     [interviewId, owner],
   );
   await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, interviewId, 'mock_interview', 1.0));
@@ -246,7 +246,7 @@ async function main() {
     await seed(owner, 5.0);
     // 存量行 fixture：不走 drain 链，直接 INSERT 一条"历史遗留"quarantined 行（attempts 已耗尽）。
     await pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')",
       [id, owner],
     );
     await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, id, 'mock_interview', 1.0));
