@@ -177,7 +177,7 @@ export async function boot(): Promise<Harness> {
     "('userA','a@x.com','scrypt$x$y',false,'candidate'),('userB','b@x.com','scrypt$b$w',false,'candidate')," +
     "('adminU','admin@x.com','scrypt$a$b',true,'candidate'),('recU','rec@x.com','scrypt$r$r',false,'recruiter')," +
     "('recU2','rec2@x.com','scrypt$r2$r',false,'recruiter'),('victimU','v@x.com','scrypt$v$w',false,'candidate')");
-  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['pwUser', 'pw@x.com', hashPassword('oldpass12')]);
+  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['pwUser', 'pw@x.com', await hashPassword('oldpass12')]);   // #34:hashPassword async 形
   // 面试:各状态(终态 completed/failed/abandoned、进行中 active/created、他人的)
   await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES " +
     "('IV_ACT','userA','active'),('IV_CREATED','userA','created'),('IV_DONE','userA','completed')," +
