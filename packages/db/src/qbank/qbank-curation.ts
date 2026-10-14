@@ -18,34 +18,125 @@ import type { PoolClient as Client } from 'pg';
 export type QbankSourceKind = 'official_doc' | 'question_bank' | 'manual';
 export type QbankSourceStatus = 'pending' | 'approved' | 'rejected';
 export type ReviewDecision = 'approved' | 'rejected';
+/** AG39 owner layer（0186）: platform=平台公共源; org=企业私有源（orgId 必填）。 */
+export type QbankSourceOwnerKind = 'platform' | 'org';
 
-export interface ProposeInput { id: string; kind: QbankSourceKind; uri?: string; contentHash: string; addedBy: string }
+export interface ProposeInput {
+  id: string; kind: QbankSourceKind; uri?: string; contentHash: string; addedBy: string;
+  /** AG39 additive 可选——缺省臂=platform（全局公共源调用零变）。 */
+  ownerKind?: QbankSourceOwnerKind;
+  /** ownerKind='org' 时必填（服务端信任根派生值·禁客户端直供）。 */
+  orgId?: string;
+}
 export interface ProposeResult { sourceId: string; dedup: boolean }
+
+const OWNER_KINDS: readonly string[] = ['platform', 'org'];
+
+/** 0186 owner 列在场与否（历史迁移前缀夹具零 owner 列→platform 旧形制写入）。 */
+async function ownerColumnsPresent(c: Client, table: string): Promise<boolean> {
+  const r = await c.query(
+    `SELECT EXISTS (
+       SELECT 1 FROM information_schema.columns
+        WHERE table_schema='public' AND table_name=$1 AND column_name='owner_kind'
+     ) AS present`,
+    [table],
+  );
+  return r.rows[0]?.present === true;
+}
+
+/** org 信任根白名单（0186 qbank_org_curator·#110 形）: (orgId, userId) 是否在册。 */
+async function isOrgCurator(c: Client, orgId: string, userId: string): Promise<boolean> {
+  const r = await c.query(
+    'SELECT 1 FROM qbank_org_curator WHERE org_id=$1 AND user_id=$2',
+    [orgId, userId],
+  );
+  return r.rowCount === 1;
+}
 
 /**
  * 提议一条策展源(低信任输入)。RLS 强制 added_by=当前 principal 且只能落 pending。
  * 去重仅对活跃源(非 rejected)生效 → 被拒的 hash 可重新提议(不永久占坑)。
  * 命中去重时经 qbank_active_source_id(SECURITY DEFINER,绕 RLS)诚实取既有活跃源 id,不返回未落库的幽灵 id。
+ *
+ * AG39（0186·rev2 E1 裁决⑥增补行使）: owner 列在场时写入 owner_kind/org_id，且 content_hash 去重
+ * **owner 作用域化**——冲突目标=uq_qsrc_active_hash_scoped (owner_kind, COALESCE(org_id,''), content_hash)，
+ * org 源与平台源同 hash 不互斥不静默映射；dedup 反查同 owner 域直查（executor 通道 0066 ALL+RLS true），
+ * 不再用全局 qbank_active_source_id（防跨 owner 反查映射）。org 提议须 (orgId, addedBy) ∈ org 信任根白名单
+ * （系统 seed 主体 __system_qbank__ 兜底例外**仅平台灌库面** ownerKind='platform'·org 提议无例外必经白名单）。
+ * owner 列缺席的历史前缀夹具走 platform 旧形制。
  */
 export async function proposeSource(c: Client, x: ProposeInput): Promise<ProposeResult> {
-  const r = await c.query(
-    `INSERT INTO qbank_source(id, kind, uri, content_hash, status, added_by)
-       VALUES ($1,$2,$3,$4,'pending',$5)
-       ON CONFLICT (content_hash) WHERE status <> 'rejected' DO NOTHING
-       RETURNING id`,
-    [x.id, x.kind, x.uri ?? null, x.contentHash, x.addedBy]);
+  const ownerKind = x.ownerKind ?? 'platform';
+  if (!OWNER_KINDS.includes(ownerKind)) throw new Error('qbank_source_invalid_owner_kind');
+  if (ownerKind === 'org' && (!x.orgId || x.orgId.length > 512)) throw new Error('qbank_source_invalid_owner_kind');
+  if (ownerKind === 'platform' && x.orgId !== undefined && x.orgId !== '') throw new Error('qbank_source_invalid_owner_kind');
+  const ownerCols = await ownerColumnsPresent(c, 'qbank_source');
+  if (ownerKind === 'org' && !ownerCols) throw new Error('qbank_source_owner_schema_missing');
+  // 系统 seed '__system_qbank__' 兜底例外=平台内容安全兜底灌库面（ownerKind='platform'·不经本校验）;
+  // org 臂无例外——企业私有源提议必经 org 信任根白名单（防经治理 ingest 对任意 org 免白名单落源）。
+  if (ownerCols && ownerKind === 'org' && !await isOrgCurator(c, x.orgId!, x.addedBy)) {
+    throw new Error('qbank_source_org_curator_required');   // 企业私有题维护=审核通过招聘方（#110 信任根）
+  }
+  const r = ownerCols
+    ? await c.query(
+      `INSERT INTO qbank_source(id, kind, uri, content_hash, status, added_by, owner_kind, org_id)
+         VALUES ($1,$2,$3,$4,'pending',$5,$6,$7)
+         ON CONFLICT (owner_kind, coalesce(org_id, ''), content_hash) WHERE status <> 'rejected' DO NOTHING
+         RETURNING id`,
+      [x.id, x.kind, x.uri ?? null, x.contentHash, x.addedBy, ownerKind, ownerKind === 'org' ? x.orgId! : null])
+    : await c.query(
+      `INSERT INTO qbank_source(id, kind, uri, content_hash, status, added_by)
+         VALUES ($1,$2,$3,$4,'pending',$5)
+         ON CONFLICT (content_hash) WHERE status <> 'rejected' DO NOTHING
+         RETURNING id`,
+      [x.id, x.kind, x.uri ?? null, x.contentHash, x.addedBy]);
   if (r.rowCount === 1) return { sourceId: r.rows[0].id as string, dedup: false };
-  const e = await c.query('SELECT qbank_active_source_id($1) AS id', [x.contentHash]);   // 绕 RLS 取真既有活跃源 id
+  // 命中去重:owner 作用域反查（同 owner 域至多一条活跃源=scoped 部分唯一索引保证）;绕 RLS 直查同 qbank_active_source_id 语义。
+  const e = ownerCols
+    ? await c.query(
+      `SELECT id FROM qbank_source
+        WHERE content_hash=$1 AND status <> 'rejected' AND owner_kind=$2 AND org_id IS NOT DISTINCT FROM $3
+        ORDER BY id LIMIT 1`,
+      [x.contentHash, ownerKind, ownerKind === 'org' ? x.orgId! : null])
+    : await c.query('SELECT qbank_active_source_id($1) AS id', [x.contentHash]);
   return { sourceId: e.rows[0].id as string, dedup: true };
 }
 
 /**
  * 审核:仅 curator(RLS)+ 合法跃迁 + 关键列不可篡改(触发器)+ CAS(from→to,陈旧落败)。返回是否真改了一行。
  * 候选人调用 → RLS USING 假 → 0 行 → false(改不动)。传错的 fromStatus → CAS 0 行 → false。
+ *
+ * AG39（0186·裁决⑥行使）: additive 审核边界校验参数 reviewerScope——传入时（org 维护面通道）目标源为 org
+ * 私有源则 reviewer 须 ∈ qbank_org_curator(orgId) 或平台 curator（内容安全兜底审核/撤回权）;平台公共源须
+ * 平台 curator。不传=既有调用形零变（系统 seed 自动审核臂/历史 proof）。RLS 审核策略已被 0176 真空收口,
+ * 数据面写授权=executor 通道（0066 executable grant）,本校验是授权之上的信任根断言,非鉴权根。
  */
 export async function reviewSource(
   c: Client, sourceId: string, fromStatus: QbankSourceStatus, decision: ReviewDecision, reviewNote?: string,
+  reviewerScope?: { reviewer: string; orgId?: string },
 ): Promise<boolean> {
+  if (reviewerScope !== undefined) {
+    const target = await c.query(
+      'SELECT owner_kind, org_id FROM qbank_source WHERE id=$1',
+      [sourceId],
+    );
+    const row = target.rows[0] as { owner_kind?: string; org_id?: string | null } | undefined;
+    if (!row) return false;
+    const ownerKind = row.owner_kind ?? 'platform';
+    const isPlatformCurator = await c.query(
+      'SELECT 1 FROM qbank_curator WHERE user_id=$1',
+      [reviewerScope.reviewer],
+    );
+    const platformCurator = isPlatformCurator.rowCount === 1;
+    if (ownerKind === 'org') {
+      const orgId = row.org_id ?? reviewerScope.orgId;
+      if (!orgId) return false;
+      const inOrg = await isOrgCurator(c, orgId, reviewerScope.reviewer);
+      if (!inOrg && !platformCurator) return false;   // 企业侧白名单或平台兜底,其余拒
+    } else if (!platformCurator) {
+      return false;   // 平台公共源=平台 curator 审
+    }
+  }
   const r = await c.query(
     `UPDATE qbank_source
         SET status=$3,
