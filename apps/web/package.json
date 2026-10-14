@@ -15,6 +15,7 @@
     "prove:authz5a2-csp": "tsx test/authz5a2-csp.proof.ts",
     "prove:application-start-error": "tsx test/application-start-error.proof.ts",
     "prove:interviews-actions": "tsx test/interviews-actions.proof.ts",
+    "prove:token-delta": "tsx test/token-delta.proof.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

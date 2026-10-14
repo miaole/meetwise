@@ -28,6 +28,25 @@ import { createPool, type Client, type DbPool } from '@meetwise/db';
 export const SSE_NOTIFY_CHANNEL = 'interview_event_ch';
 export const SSE_NOTIFY_TRIGGER_NAME = 'interview_event_sse_notify';
 
+/**
+ * TOKSTREAM S4b：token delta 专用 NOTIFY 通道（worker token-stream.ts 同名常量）。
+ * 纯 NOTIFY 通道零表零触发器（worker `SELECT pg_notify` 直发）=**零迁移**根据；同专用连接
+ * 第二 LISTEN 命令（A11 单例纪律零破·禁每 SSE 一连接）。
+ */
+export const SSE_TOKEN_CHANNEL = 'interview_token_ch';
+
+/** worker→api token 帧（§C-2 帧契约逐字；api→browser emit 面剥 v/streamKey=流键已由路由承载）。 */
+export interface SseTokenFrame {
+  v: number;
+  streamKey: string;
+  attemptKey: string;
+  seq: number;
+  text: string;
+  coalesced?: boolean;
+}
+
+export type SseTokenSubscriber = (frame: SseTokenFrame) => void;
+
 /** 降级原因(协调方约束②枚举;listen_down 兼作未建立/断连的初始态)。 */
 export type SseNotifyReason = 'listen_down' | 'trigger_missing';
 export type SseNotifyHealth = { healthy: true } | { healthy: false; reason: SseNotifyReason };
@@ -56,6 +75,9 @@ const DEFAULT_MAX_MS = 5_000;
 @Injectable()
 export class SseNotifyService {
   private readonly router = new Map<string, Set<() => void>>();
+  /** TOKSTREAM S4b：token 帧订阅路由（同流多订阅者广播复制·禁互偷帧——A 帧被 pump₁ 消费不得致 pump₂ 丢帧）。 */
+  private readonly tokenRouter = new Map<string, Set<SseTokenSubscriber>>();
+  private tokenListenDegraded = false;
   private readonly connectOverride: (() => Promise<ListenClient>) | undefined;
   private readonly logLine: (line: string) => void;
   private readonly reconnectBaseMs: number;
@@ -112,6 +134,33 @@ export class SseNotifyService {
   waitingCount(): number {
     let n = 0;
     for (const set of this.router.values()) n += set.size;
+    return n;
+  }
+
+  /**
+   * TOKSTREAM S4b：订阅本流 token delta 帧（连续广播订阅·非 edge-trigger）。fan-out 语义=**广播复制**
+   * （EXEC 定谳）：同 streamKey 多订阅者各得同一帧对象（只读不变形），A 帧被任一 pump 消费不得致其他
+   * pump 丢帧（禁互偷帧）。回调内零 SQL 纪律同 waitFor。dispose=注销（断开/终态全路径调用）。
+   */
+  subscribeToken(streamKey: string, onFrame: SseTokenSubscriber): { dispose(): void } {
+    this.ensureStarted();
+    let set = this.tokenRouter.get(streamKey);
+    if (!set) { set = new Set(); this.tokenRouter.set(streamKey, set); }
+    set.add(onFrame);
+    return {
+      dispose: () => {
+        const s = this.tokenRouter.get(streamKey);
+        if (!s) return;
+        s.delete(onFrame);
+        if (s.size === 0) this.tokenRouter.delete(streamKey);
+      },
+    };
+  }
+
+  /** token 订阅者总数(ops/proof:断连注销无泄漏断言面)。 */
+  tokenSubscriberCount(): number {
+    let n = 0;
+    for (const set of this.tokenRouter.values()) n += set.size;
     return n;
   }
 
@@ -179,13 +228,40 @@ export class SseNotifyService {
   }
 
   private readonly onNotification = (message: { channel: string; payload?: string }) => {
-    if (this.stopped || message.channel !== SSE_NOTIFY_CHANNEL) return;
+    if (this.stopped) return;
+    if (message.channel === SSE_TOKEN_CHANNEL) { this.dispatchTokenFrame(message.payload); return; }   // TOKSTREAM S4b 第二通道分流
+    if (message.channel !== SSE_NOTIFY_CHANNEL) return;
     const key = message.payload;
     if (!key) return;
     const set = this.router.get(key);
     if (!set) return;
     for (const entry of [...set]) entry();   // 同流多等待者全醒(P-4);回调内零 SQL
   };
+
+  /**
+   * token 帧分流（TOKSTREAM S4b）：解析+形状校验（有损通道·坏帧即丢不补发 §C-3）→ 同流订阅者广播
+   * 复制。订阅者回调异常吞没不外溢（泵侧 safeWrite 自守卫写失败）。
+   */
+  private dispatchTokenFrame(payload?: string): void {
+    if (!payload) return;
+    let parsed: unknown;
+    try { parsed = JSON.parse(payload); } catch { return; }
+    const f = parsed as Partial<SseTokenFrame> | null;
+    if (!f || typeof f !== 'object') return;
+    if (f.v !== 1 || typeof f.streamKey !== 'string' || !f.streamKey
+      || typeof f.attemptKey !== 'string' || !f.attemptKey
+      || typeof f.text !== 'string'
+      || typeof f.seq !== 'number' || !Number.isSafeInteger(f.seq) || f.seq < 1) return;
+    const frame: SseTokenFrame = {
+      v: 1, streamKey: f.streamKey, attemptKey: f.attemptKey, seq: f.seq, text: f.text,
+      ...(f.coalesced === true ? { coalesced: true as const } : {}),
+    };
+    const set = this.tokenRouter.get(f.streamKey);
+    if (!set) return;
+    for (const sub of [...set]) {
+      try { sub(frame); } catch { /* 订阅者异常不外溢 */ }
+    }
+  }
 
   private readonly onClientError = () => { if (this.active) this.loseClient('listen_down'); };
   private readonly onClientEnd = () => { if (this.active) this.loseClient('listen_down'); };
@@ -225,6 +301,18 @@ export class SseNotifyService {
       client.on('error', this.onClientError as never);
       client.on('end', this.onClientEnd as never);
       await client.query(`LISTEN ${SSE_NOTIFY_CHANNEL}`);
+      // TOKSTREAM S4b：同连接第二 LISTEN（零新连接零迁移·A11 单例纪律零破）。token 通道=有损
+      // best-effort（§C-3 不补发）——其失败只降级 token 臂（结构化日志一次），绝不拖垮权威事件
+      // 通道健康面（health() 语义原值=事件通道 LISTEN+0143 trigger 双条件）。
+      try {
+        await client.query(`LISTEN ${SSE_TOKEN_CHANNEL}`);
+        this.tokenListenDegraded = false;
+      } catch {
+        if (!this.tokenListenDegraded) {
+          this.tokenListenDegraded = true;
+          this.logLine('SSE_TOKEN_CHANNEL_DEGRADED reason=listen_failed hint=token_delta_arm_off_authoritative_channel_unaffected');
+        }
+      }
       // 约束①条件2:establish 期恰一次 trigger 实证(每连接一次;缺席即降级并退避
       // 重连——迁移后发版的自愈路径:下次 establish 重新实证)。
       const trig = await client.query(

@@ -136,6 +136,23 @@ export interface ModelCostPolicy {
 /** A pre-dispatch admission lease (for example, one rate-limit slot). */
 export interface ModelAdmission { release(): void; }
 
+/**
+ * TOKSTREAM S4b：模型 delta 纯观察回调（S3 §D-2 逐字）。经 `InvokeSpec.onModelDelta` 注入、
+ * 透传至 `plan.execute`；**关口零改动**——claim/幂等/计费/doubleValidate 不因回调存在而分叉；
+ * 回调抛错一律吞为观察失败（见 `swallowObserverThrows`），绝不影响业务结果面。emit 顺序=到达顺序。
+ */
+export type OnModelDelta = (d: { text: string }) => void;
+
+/**
+ * 观察失败吞没（§D-2「回调抛错一律吞为观察失败」本体）：包一层 try/catch 后再交给传输面——
+ * 流式通道内的 ΣdeltaLen==accLen 守恒账面由通道自记，观察回调抛错不破门、不改写 ModelResult。
+ */
+export function swallowObserverThrows(onDelta: OnModelDelta): OnModelDelta {
+  return (d) => {
+    try { onDelta(d); } catch { /* 观察失败吞没：纯观察层异常绝不冒泡进派发/结算面 */ }
+  };
+}
+
 export type ModelCallPlan =
   | {
     ready: true;
@@ -144,7 +161,12 @@ export type ModelCallPlan =
      * boundary.  A timeout here is known-not-sent, never `unknown`.
      */
     admit?: (signal?: AbortSignal) => Promise<ModelAdmission>;
-    execute: (signal?: AbortSignal) => Promise<ModelResult>;
+    /**
+     * TOKSTREAM S4b（additive 第 2 参）：可选 delta 观察位——invoke 把 spec.onModelDelta（已包
+     * 吞没）透传至此；流式可路由臂借此接 completeStream，非流式臂忽略该参（语义原值）。
+     * 可选参不破既有签名：既有 prepare 实现（少参声明）照旧 TS 兼容。
+     */
+    execute: (signal?: AbortSignal, onDelta?: OnModelDelta) => Promise<ModelResult>;
     cost?: ModelCostPolicy;
     /**
      * 派发前保守估算的输入 token（utf8-bytes-v1 = UTF-8 字节上界，planContextBudget 算得）。
@@ -157,7 +179,11 @@ export type ModelCallPlan =
 type ReadyModelCallPlan = Extract<ModelCallPlan, { ready: true }>;
 
 export interface Model {
-  call(attempt: number, signal?: AbortSignal): Promise<ModelResult>;
+  /**
+   * TOKSTREAM S4b（additive 第 3 参）：可选 delta 观察位（与 ModelCallPlan.execute 第 2 参同源
+   * 透传；直调面与生产面同刀——modelFor call 臂 flag-aware 路由接 completeStream）。
+   */
+  call(attempt: number, signal?: AbortSignal, onDelta?: OnModelDelta): Promise<ModelResult>;
   /** Optional pre-dispatch routing seam. `prepare` must not make a network request. */
   prepare?(attempt: number, signal?: AbortSignal): Promise<ModelCallPlan> | ModelCallPlan;
   /** SHA-256 of the immutable prompt/model/input snapshot; normal production models provide it. */
@@ -166,6 +192,14 @@ export interface Model {
 
 export interface InvokeSpec<T> {
   idempotencyKey: string;
+  /**
+   * TOKSTREAM S4b（S3 §D-2·additive 可选观察缝）：模型 delta 纯观察回调（如 worker TokenSink）。
+   * 缺省 undefined=零触（flag 缺省 OFF 双保险）；注入时 invoke 透传至 plan.execute 第 2 参
+   * （已包吞没包装）；关口链（claim/幂等/计费/doubleValidate）零分叉、不产生第二账面。
+   * G7 车道：freetier 下恒走非流式（路由臂 refuse-closed）；stream 通道不进 g7 预约/终结面；
+   * 未来 ON 须另刀 g7 车道审批（本刀仅声明）。
+   */
+  onModelDelta?: OnModelDelta;
   /**
    * Canonical, server-computed identity of the business node/revision that is
    * allowed to reach a provider once. It is deliberately separate from the
@@ -635,7 +669,7 @@ async function prepareModelPlan<T>(
     const plan = await withAbortTimeout(
       (signal) => spec.model.prepare
         ? Promise.resolve(spec.model.prepare(1, signal))
-        : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal) => spec.model.call(1, executeSignal), cost: undefined }),
+        : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal, onDelta?: OnModelDelta) => spec.model.call(1, executeSignal, onDelta), cost: undefined }),
       executionTimeoutMs,
       () => { timedOut = true; },
     );
@@ -909,7 +943,9 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
   let result: ModelResult;
   let executionTimedOut = false;
   try {
-    result = await withAbortTimeout((signal) => plan.execute(signal), executionTimeoutMs, () => { executionTimedOut = true; });
+    // TOKSTREAM S4b：spec.onModelDelta 透传至 plan.execute 第 2 参（§D-2 观察缝）——注入前包
+    // 吞没包装（回调抛错=观察失败，绝不影响业务结果面）；缺省 undefined=既有单参调用逐字节原值。
+    result = await withAbortTimeout((signal) => plan.execute(signal, spec.onModelDelta ? swallowObserverThrows(spec.onModelDelta) : undefined), executionTimeoutMs, () => { executionTimedOut = true; });
   }
   catch { result = { ok: false, kind: 'transient', externalOutcome: 'unknown' }; }
   finally { admission?.release(); }

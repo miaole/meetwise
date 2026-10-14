@@ -4,7 +4,7 @@
  * 安全铁律落地:**不可信用户数据进 user 的 <data> 块,绝不拼进 system 指令**(防注入越权)。
  */
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
-import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult, type ModelUsage } from './invoke.ts';
+import { resolveModelDeadlineConfig, type Model, type ModelCallPlan, type ModelCostPolicy, type ModelResult, type ModelUsage, type OnModelDelta } from './invoke.ts';
 import { combineAbortSignals, ExternalHttpStatusError, fetchJsonWithTimeout, timeoutSignal } from './timeout.ts';
 import { getPrompt } from './prompts.ts';
 import { rejectTextTransportOverride, resolveTextBackupEndpointConfig, resolveTextEndpointConfig } from './text-endpoint-config.ts';
@@ -364,6 +364,20 @@ export function assertModelTextStreamPreviewComposition(env: NodeJS.ProcessEnv =
   }
 }
 
+/**
+ * TOKSTREAM S4b（R1b①·flag-aware 路由条件单源）：双 preview flag 双开（isModelTextStreamPreviewEnabled
+ * fail-closed 缺省 OFF）且 **g7 freetier 例外恒走非流式**（R8(a) 防线——stream 通道不进 g7 预约/终结面，
+ * freetier 下恒 complete 既有全路径）。可路由两臂共用本判定：层1=openAICompatibleClient prepare execute 臂
+ * （唯一生产臂），层2=modelFor call 臂（直调 parity 防双标）；三结构性非流式落点（completeStream 自回退/
+ * modelFor prepare 缺省臂/failover prepare 缺省臂）零路由。completeStream 本体 flag 门（自回退）原值保留=双保险。
+ */
+export function shouldRouteModelTextStream(): boolean {
+  return isModelTextStreamPreviewEnabled(process.env) && !g7RuntimeInjection().freetierReproveEnabled();
+}
+
+/** TOKSTREAM S4b：无观察者时的 no-op delta 位（completeStream onDelta 必填参占位；零行为零账面）。 */
+const noopOnModelDelta: OnModelDelta = () => {};
+
 /** §E-③ idle watchdog 钉值：无字节 >10s → 截断走流中 error 同路径（①）。 */
 export const MODEL_STREAM_IDLE_WATCHDOG_MS = 10_000;
 
@@ -644,7 +658,17 @@ export function openAICompatibleClient(cfg: {
       if (context?.ok === false) return { ready: false, error: context.error };
       // 把派发前保守估算挂到 plan 上：invoke 在 claim 时落 ai_model_invocation.estimate_input_tokens（P1），
       // 覆盖 success/schema-失败/unknown 全 outcome（不再只依赖 !error 的 trace 落库）。
-      return { ready: true, execute: (executionSignal) => client.complete(req, attempt, executionSignal ?? signal), cost: costPolicy, estimateInputTokens: context?.ok === true ? context.plan.inputTokens : undefined };
+      // TOKSTREAM S4b（R1b① 层1·唯一生产可路由臂）：flag-aware 路由——shouldRouteModelTextStream()
+      // （双 flag 双开 ∧ g7 freetier 恒非流式）为真即接 completeStream（onDelta 缺席=noop 观察位），
+      // 否则 complete 既有面逐字节原值（flag 缺省 OFF=零触）。claim/幂等/计费/doubleValidate 关口零改动。
+      return {
+        ready: true,
+        execute: (executionSignal, onDelta) => (shouldRouteModelTextStream()
+          ? client.completeStream(req, { signal: executionSignal ?? signal, onDelta: onDelta ?? noopOnModelDelta })
+          : client.complete(req, attempt, executionSignal ?? signal)),
+        cost: costPolicy,
+        estimateInputTokens: context?.ok === true ? context.plan.inputTokens : undefined,
+      };
     },
     async complete(req, _attempt, executionSignal) {
       if (policyRequired && costPolicy === undefined) {
@@ -881,6 +905,8 @@ export function openAICompatibleClient(cfg: {
       },
     ): Promise<ModelResult> {
       if (!isModelTextStreamPreviewEnabled(process.env)) {
+        // R1b① 层3 结构性非流式落点（注记·零路由）：本臂=completeStream 本体自回退（fail-safe），
+        // 非分派器——flag-aware 路由施为位在 openAICompatibleClient prepare execute 臂与 modelFor call 臂。
         return client.complete(req, 1, opts.signal);     // flag 门 fail-closed：恒走非流式（零回归）
       }
       // 与 complete 非流式 preflight 同型（:363-376 语义镜像；stream 通道自身零 g7 面）。
@@ -1060,12 +1086,25 @@ export function openAICompatibleClient(cfg: {
         // 与非流式 :446 空 content 语义同型（三联齐但零 delta=异常空输出）。
         return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
       }
+      // R1b④（F3·翻转前置修复）：AG-14 口径对齐非流式 complete 基准形（:745-761 逐字同构）——usage
+      // 存在但字段缺失 → 缺失字段按 policy 上限/估算补齐并打标 usageSource='usage_missing'，绝不按 0
+      // （原 `?? 0` 形废除）；usage 整体缺失保持 undefined（invoke validUsage 判无效归并既有
+      // provider_usage_invalid 臂·不新造语义）。
+      const promptTokens = usageRecord?.prompt_tokens;
+      const completionTokens = usageRecord?.completion_tokens;
       const usage = usageRecord
         ? {
-            inputTokens: usageRecord.prompt_tokens ?? 0,
-            outputTokens: usageRecord.completion_tokens ?? 0,
+            inputTokens: promptTokens ?? costPolicy?.maxInputTokens ?? estimateInputTokens
+              ?? Math.max(64, Math.ceil((rendered.system.length
+                + (typeof rendered.userContent === 'string'
+                  ? rendered.userContent.length
+                  : rendered.userContent.reduce((sum, part) => sum + ('text' in part ? part.text.length : part.image_url.url.length), 0))) / 4)),
+            outputTokens: completionTokens ?? maxOutputTokens ?? 2048,
             estimateInputTokens,
             cachedInputTokens: cachedInputTokensOf(usageRecord),   // #48 观测:缺席=undefined 与显式 0 分开
+            ...((promptTokens === undefined || promptTokens === null || completionTokens === undefined || completionTokens === null)
+              ? { usageSource: 'usage_missing' as const }
+              : {}),
           }
         : undefined;
       if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
@@ -1104,7 +1143,19 @@ export function modelFor(client: ModelClient, req: CompletionRequest): Model {
   })).digest('hex');
   return {
     requestDigest,
-    call: (attempt, signal) => client.complete(req, attempt, signal),
+    // TOKSTREAM S4b（R1b① 层2·防御性同刀）：invoke 路径死码（modelFor 的 prepare 键恒在→invoke.ts
+    // prepare 三元恒走 prepare 分支，本 call 臂于 invoke 链不可达）；存续理由=直调 parity（`.call()`
+    // 直调用户/测试面）——与生产面同刀 flag-aware 路由防双标。ModelClient 共享接口无 completeStream，
+    // duck-type 收窄（openAICompatibleClient 实例在场才可路由）。
+    call: (attempt, signal, onDelta) => {
+      const streamClient = client as Partial<OpenAICompatibleClient>;
+      return shouldRouteModelTextStream() && typeof streamClient.completeStream === 'function'
+        ? streamClient.completeStream(req, { signal, onDelta: onDelta ?? noopOnModelDelta })
+        : client.complete(req, attempt, signal);
+    },
+    // R1b① 层3 结构性非流式落点（注记·EXEC 定谳=注记声明恒非流式不施工）：本臂仅 prepare-less
+    // client 可达；prepare-less ⇒ 无 completeStream 可路由（OpenAICompatibleClient 恒自带 prepare，
+    // 库内无一「有流式通道而无 prepare」的实现）→ 恒非流式 fail-safe，路由在此结构性不可达。
     prepare: (attempt, signal) => client.prepare
       ? client.prepare(req, attempt, signal)
       : { ready: true, execute: (executeSignal) => client.complete(req, attempt, executeSignal), cost: client.costPolicy },
