@@ -1,6 +1,6 @@
 # UC003-I18N REQUEST（UC-E2E-003 i18n 收口刀 · 错误码 en 产品映射 + 热库去硬编码 zh + Playwright locale=en DOM spec · 三面收口 · 零迁移 · 单日级）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停·零码动·恰 1 .md·待 pre-exec 双审两外席 BOTH PASS 落卷 + 协调方明示授权方开工 · **Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。**rev2**：pre-exec 双审两席 FAIL（席1 B1/B2+E/R·席2 F0-F9）七条处置已落卷（docs-only 恰 1 .md·逐处亲证·见卷尾「rev2 勘误席处置摘要」）·**rev3**：双审复审席1 PASS（P2×5）/席2 FAIL（P1 超限臂死臂+P2×4）处置落卷（docs-only 恰 1 .md·逐处亲证·见卷尾「rev3 勘误席处置摘要」）·**rev3.1**：席2 复审两则 P2 随修落卷（步骤③(b) 措辞精确化+§2-1 门① S4 补「上传面五处」限定词·docs-only 恰 1 .md·见卷尾「rev3.1 errata」）·**STOP 维持·待双审复审**。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已施工落卷·待 post-prove 双审两外席 · **Ban self-approve** · **alone≠dual**）。**rev2**：pre-exec 双审两席 FAIL（席1 B1/B2+E/R·席2 F0-F9）七条处置已落卷（docs-only 恰 1 .md·逐处亲证·见卷尾「rev2 勘误席处置摘要」）·**rev3**：双审复审席1 PASS（P2×5）/席2 FAIL（P1 超限臂死臂+P2×4）处置落卷（docs-only 恰 1 .md·逐处亲证·见卷尾「rev3 勘误席处置摘要」）·**rev3.1**：席2 复审两则 P2 随修落卷（步骤③(b) 措辞精确化+§2-1 门① S4 补「上传面五处」限定词·docs-only 恰 1 .md·见卷尾「rev3.1 errata」）·**EXEC**：rev3 双审会签 PASS（席1 agent_83ab47d4·席2 agent_4aa3e730）+协调方明示授权后开工（工序序：并线→rev3.1 errata→施工→门矩阵→§9 落卷·见卷尾「§9 EXEC 记录」）。
 
 **席位**：UC-E2E-003 i18n 收口刀 REQUEST 起草席（E2E 矩阵侦察席定谳：UC-E2E-003 行 NEG=**gap** / FAULT=**blind** / BOUND=**partial**（key parity）/ ADV=**blind**；残余三面=错误码 en 产品映射 + 硬编码 zh UI 去除 + Playwright locale=en DOM spec；NEG 面用错误码负路径断言收；无 Key 无 Docker 重依赖（本地 Chromium）·单日级 · 北星 loop）。
 
@@ -235,3 +235,54 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 2. **§2-1 门① S4 子句补「上传面五处」限定词**：「内联面 en 文案零 CJK」补钉作用域=**上传面五处**（与 §1-修法③ S4 rev3 P2-1 作用域钉死同步——禁 actions.ts 文件级扫描·delete 四处现存 zh 零触防误伤条款在卷）。
 
 **自检**：本节改动恰 1 .md（本卷）· 五类标记词零命中 · STOP=`draft:awaiting_pre_exec_dual` 维持（本节为协调方授权 EXEC 后的开工随修·非翻 STOP）· ⛔push。
+
+---
+
+## §9 EXEC 记录（2026-10-14 · UC-E2E-003 i18n 收口刀 · rev3 双审会签 PASS（席1 agent_83ab47d4·席2 agent_4aa3e730）+协调方明示授权后开工 · executed:awaiting_post_prove_dual · Ban self-approve · ⛔push）
+
+### 9.0 立项重 pin（§0 义务·并线后树亲证）
+
+- 并线：`git fetch` + `git merge --no-ff feat/mysql-schema-skeleton`（主线 tip=`cf501273`·merge=`035513cc`·双亲 `dabfd3ce`+`cf501273`）——**零冲突**（主线来面 api/worker/db/scripts/docs 与本刀触面零交叠·cap 行取大/注册行并集惯例未触发）。`merge-base --is-ancestor` 亲证主线 tip 已含。
+- §0.1 锚全数重 pin 恒等：view-model 35 CJK 字面行（插值恰 3 ∈{:94,:109,:117}·静态 32）/ocr-preview-ui 25/interview-state 7（全行尾注）/en-zh 145-145 parity/actions.ts 内联 zh message 九处（上传五 `:78/:88/:95/:96/:113`+delete 四 `:138/:141/:142/:145`）/e2e-ui 7 spec 零 locale 断言/prove 基线 raw EXIT=0+3 GAP pins/public-copy 14/14 EXIT=0——与卷记载逐项恒等·**零漂移零改锚**。
+
+### 9.1 逐工序落点
+
+1. **工序1 并线**：merge=`035513cc`（如上·零冲突）。
+2. **工序2 rev3.1 errata（commit `d7eb03b7`·docs-only 恰 1 .md）**：席2 复审两则 P2 随修——(a) 步骤③(b) 措辞精确化（现场亲证 `actions.ts:97-99`：`:98/:99` 本地拒绝臂=preview 布尔二选一·消息引自 map 成员·经 setInputFiles 实为可触）；(b) §2-1 门① S4 补「上传面五处」限定词。
+3. **工序3 EXEC 施工（commit `200af27e`·恰 14 文件 +533/-141）**：
+   - **修法①（案A·裁决①）**：`apps/web/lib/resume/ocr-preview-ui.ts` 增 `ERROR_MESSAGES_EN`（20 键与 zh map parity·值 CJK-free）+ 四导出函数增 locale 可选参缺省 'zh'（unknown code 回落 upload_failed 同构）；locale 参类型以本域 `ResumeUploadLocale='zh'|'en'` 承载（该件被客户端组件共享·禁引 `i18n/request`→`next/headers`·结构恒等·收据登记）；`apps/web/app/resume/actions.ts` 唯一生产调用点 `readUploadFailure` 增 locale 形参+`(await cookies()).get('locale')` 读取（Next 15 async cookies 契约与 `i18n/request.ts:10` 同形）+ 上传面五处入 `UPLOAD_MESSAGES` 双语载体（zh 逐字节=原字面·en CJK-free·恰五 entries）；**delete 四处零字节未触**（diff hunk 核验+S4 内零触守卫针）。
+   - **修法②（案A·裁决②⑦）**：namespace 定名 **`interview`**（44 键）+**`resumeUpload`**（5 键）入 `messages/{zh,en}.json`（各 +53 行纯增量·S2 parity 198/198）；zh 值逐字节誊写以脚本对 HEAD 旧字面全量比对亲证（byte-identity OK）；`view-model.ts` `interviewDisplay(v, labels?)/signalConcludePracticeCopy(code, labels?)` labels 参形·zh 缺省 bundle=lib 内 import zh.json·**插值型 3 行整行零触**（迁移后 :103/:118/:126·内容钉 '连接面试'/'本题得分'/'本次练习反馈'）；伴生三件 `resumeFileHelpText/resumeUploadCardDescription/resumeOcrPreviewBanner` labels 化；`interview-state.ts` **零 diff**（7 行尾注假阳性由 S5 剥离口径归零·注释零字节未动）；生产接线：`useInterviewStream.ts` `useTranslations('interview')`（layout `NextIntlClientProvider` 零参形态继承全 messages·v4 契约）+`ResumeUploadForms.tsx` `useTranslations('resumeUpload')`（组件五处字面+`:57 button === '提取并上传'` 比较零触）+`resume/page.tsx` `getTranslations('resumeUpload')`。
+   - **修法③（裁决③④）**：`test/uc-e2e-003-i18n-locale.proof.mjs` 翻面 **S4**（20/20 parity+en CJK-free+locale 参在场断言（旧 `:99` 无参断言反转）+内联面五处逐处 en CJK-free+delete 零触守卫针）/ **S5**（行尾 `//` 剥离口径·view-model 非插值=0+插值恰 3 内容钉·interview-state=0·ocr-preview-ui 非 map 块=0 两 map 块豁免）/ **G3'**（具名 spec 三要素）·S1–S3 原值零动·EXIT 语义零动·`:95-97`/`:163-168` 措辞同步；新 spec `e2e-ui/uc003-i18n-locale.spec.ts`（Grep 锚 `UC003-I18N-locale-en`·步骤① cookie 预置→② golden 注册/登录+PIPL 同意门→/resume 迁移区三点元素级断言→③ **空文件臂单臂**（0 字节 buffer 过 `required`·`#resume-upload-error` en 断言 CJK-free+needle）→④ /login en 冒烟→⑤ 全页 CJK 文本节点∈具名 allowlist（11 面）+清点计数 attach 入收据）；UI 门注册 `uc003:i18n-locale-ui:prove`（root package.json·沿 uc018:ui:prove 三旋钮形制·裁决③定名）；`apps/web/tsconfig.json` include +`"e2e-ui/**/*"`（裁决④·spec 入 typecheck 面）。
+   - **裁决⑥（双源·推荐项）**：`public-copy.proof.mjs` E11 两失锚针（'不是生产视觉质量承诺'/'图片识别未开放'）requireText 改指 `messages/zh.json` 源文+en 侧键存在+值 CJK-free（rev3 P2-2 不逐字断言自撰译文）；'不会编造文字' 针留守 map 锚（`ocr-preview-ui.ts:36` upload_timeout 值·rev3 P2-4 2/3+1）**原样零动**；forbid 面 `:279/:280/:292` 不随迁（rev3 P2-③）。窄 diff 逐 hunk 亲证=恰断言迁移块（禁删断言/禁改强度守恒）。
+   - **翻面注记义务（F6/F7）**：`ai-docs/delivery/harness/uc-e2e-003-i18n-locale.md` append §6（G-GAP-1/2/3 → S4/S5/G3' 翻面注记·append-only·`:33-35` 表行本体零改）。
+4. **工序4 门矩阵**：见 9.2。
+5. **工序5 本节落卷+STOP 翻面**（`executed:awaiting_post_prove_dual`）。
+
+### 9.2 门矩阵全表（并线后树=035513cc + 施工 commit 200af27e 亲跑）
+
+| 门 | CMD | 结果 | 关键收据 |
+|----|-----|------|----------|
+| ①prove | `node apps/web/test/uc-e2e-003-i18n-locale.proof.mjs`（raw） | **EXIT=0** | S1–S3+S4+S5+G3' 六查全 PASS·GAP pins=0 |
+| ①prove | `pnpm uc003:i18n-locale:prove`（isolated 包装） | **EXIT=0** | 与 raw 断言面/结果恒等（§2-7 双口径一致性过·isolated receipt `.tmp/isolated-proof-receipts/2026-10-14T17-39-20-702Z-*.json`） |
+| ②web:prove | `pnpm web:prove` | **EXIT=0** | 全臂绿·zh 缺省逐字节锚全数恒等（`:480` includes('重连')/`:162` 进度待同步/`:591`/`:660`/`:710-732` 伴生三件逐字/`:1183-1270` interviewDisplay 逐字含 `:1270` EXACT 臂） |
+| ②git-diff | `git diff --exit-code apps/web/test/web-logic.proof.ts` | **过（零改）** | web-logic 全文件零字节未触 |
+| ②窄 diff | `git diff apps/web/test/public-copy.proof.mjs` | **过** | 单 hunk 恰 E11 断言迁移块（+13/-2） |
+| ③typecheck | `pnpm typecheck`（root e2e） | **EXIT=0** | — |
+| ③typecheck | `pnpm -C apps/web typecheck` | **EXIT=0** | 含 e2e-ui spec（裁决④扩面后） |
+| ④docs:check | `node scripts/ai-docs/check-docs.mjs` | **EXIT=0** | 80 required files·**2083 managed ≤ cap 2088**（rev3 基线 2078 + 并线主线并集 +3 + 新 spec 1 = 2083·未触顶·零自升） |
+| ⑤public-copy | `pnpm -C apps/web prove:public-copy` | **EXIT=0** | 14/14·含 E11 随迁后复跑绿+`:288-290` 源名断言在场 |
+| ⑥UI 实跑 | `pnpm uc003:i18n-locale-ui:prove` | **环境受阻→pending 残留登记（不虚报 EXIT）** | docker 在场（隔离 PG migrations applied=189·pre-prove ready×3）·栈 boot 前置红 `class=provider code=live_provider_key_missing`（`run-e2e-ui.mjs:53` 强制 live MODEL_API_KEY·本环境确无·est live=0 与卷 pins 同源·Ban 伪造不虚设）→**Playwright 零执行·spec 未实跑**；spec 已落+G3' 静态绿+typecheck 绿=首跑载体就绪·**DOM 首跑收据 pending**·矩阵 stays partial |
+| 绊线 cite | `node scripts/eval-harness-matrix-cite.proof.mjs` | **EXIT=1 基线红承登** | FAIL **38**/PASS **303** 与卷 §1.4①/rev2 登记恒等（零漂移）·UC-E2E-003 两子项 `:139` harness cite+`:333` matrix partial **双 PASS**·绊线零触发 |
+| 卫生 markers | 五类标记词改动集直扫（词面组装防自指） | **零命中** | TODO/FIXME/XXX/HACK/冲突标记 五类×改动集 14+1 文件 |
+| 卫生 est live | 本卷 §6 口径 | **est live=0** | 全门静态/本地 node/tsx/docker 隔离 PG·零 MODEL_API_KEY·零 secrets·零消耗 |
+
+### 9.3 偏离任务书清单
+
+1. **门⑥ 环境矩阵比 §1-修法③/§2-6 预申明多一维**：卷预申明的附条件仅「docker 有/无」；本环境 docker 在场但 isolated UI 栈 boot 前置还强制 live `MODEL_API_KEY`（`run-e2e-ui.mjs:53`·`live_provider_key_missing`）——同归「环境能力缺失→首跑收据 pending」残留路径（§2-6 申明的残留登记形），如实登记根因差异，非断言红非越界自修。
+2. **locale 参类型本域承载**：修法①卷面写 `locale: Locale = 'zh'`；实落 `ResumeUploadLocale = 'zh' | 'en'` 本域类型——`ocr-preview-ui.ts` 为客户端共享件（`ResumeUploadForms` 直 import），引 `i18n/request` 会拖入 `next/headers` 破坏客户端 bundle；结构恒等、机制/缺省/S4 断言面零差。
+3. **S5 插值豁免的行号钉以内容钉承接**：rev3 P2-② 钉「行号 ∈{:94,:109,:117}」为迁移前基线锚；施工迁 32 静态行后三插值行位移至 :103/:118/:126（+9 行头注）——S5 以**内容钉**（'连接面试'/'本题得分'/'本次练习反馈' 三行恰在）+计数恰 3 承接同一枚举（行号钉在开工前基线亲证满足 9.0）。基线漂移语义未变：计数≠3 或内容出集→停。
+4. **门① S4 修一行 prove 自身缺陷（施工中发现即修）**：内联 entries 解构初版误取 match full 元素+zh 组（致假红）——取组下标修正为 `m[3]`；属同件 prove 构造修正非断言放宽。
+
+### 9.4 自检与终态
+
+恰三 commit（`d7eb03b7` errata·`200af27e` 施工·本节卷 commit）+并线 `035513cc`·零 push·五类标记词零命中·pins 十一值零翻（coveredCount=8 不变·矩阵 stays partial·`actualSpendCny=null`）·Ban 列全守（web-logic 零改/既有 7 spec 与 playwright.config 零 diff（git status 亲证）/i18n locale 源管道零改（cookie-only 契约）/模型面零触/零迁移·DDL/progress.ts·quiz-state.ts·diagnosis-state.ts·ResumeUploadForms 组件字面零触/delete 四处零触）·**STOP=`executed:awaiting_post_prove_dual`**（待 post-prove 双审两外席·Ban self-approve·alone≠dual）。
