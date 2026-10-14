@@ -102,7 +102,7 @@ const isolatedReceiptSources = {
   'authz5a2:stale-payload-ttl:prove': ['scripts/run-e2e-isolated.mjs', 'packages/db/test/authz5a2-stale-payload-ttl.proof.ts', 'packages/db/src/index.ts', 'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/package.json'],
   // AUTHZ #34 残面两 prove 来源清单(scrypt 异步化 promisify 形 + chunked 封顶钩子 preParsing 流计数·隔离容器·est live=0)。
   'authz34:scrypt-async:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz34-scrypt-async.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/modules/profile/profile.service.ts', 'packages/domain/src/auth.ts', 'packages/domain/src/index.ts'],
-  'authz34:chunked-cap:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz34-chunked-cap.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/main.ts'],
+  'authz34:chunked-cap:prove': ['scripts/run-e2e-isolated.mjs', 'apps/api/test/authz34-chunked-cap.proof.ts', 'apps/api/test/_neg-harness.ts', 'apps/api/src/main.ts', 'packages/domain/src/auth.ts'],
   'tokenstream:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/tokenstream-progress.proof.ts',
