@@ -1,0 +1,51 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-38849-1791991135886 on 127.0.0.1:56135
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-perfp/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=188 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:scoring-integrity /Users/miaole/Desktop/golucky/meetwise-perfp/apps/worker
+> tsx test/scoring-report-integrity.proof.ts
+
+
+──── ① 可验证证据 + hasHook + answer hash 幂等 ────
+PASS  hasHook 通过 schema/invoke 保留
+PASS  首次成功返回原始 schema 值：dispositions 携带 quote 且无 span/hash 脱敏形
+PASS  同 answer 重放命中缓存，模型只打 1 次
+PASS  缓存命中重放值为 span+hash 记录形：quote 原文不出 invoke 边界
+PASS  同 turn 换答案必须重新评分（answer SHA-256 参与幂等键）
+PASS  存储层为两个不同答案留两个幂等实体
+PASS  评分 trace 不存候选人 quote 原文，只存 span+hash
+
+──── ①b quote evidence 单次拒绝（真 DB + invoke）────
+PASS  quote 校验失败只调用一次模型，并以 quote_repair_exhausted 拒绝结果收口
+PASS  quote 拒绝重放读取同一失败状态（落库机器码），不再重打模型
+PASS  DB 不持久化未通过逐字校验的 quote 输出
+
+──── ①c graph 只消费一次评分结果，不新开业务 turn ────
+PASS  graph 经同一 pending question identity 评分；quote 不可核验只调用一次并进入同题 clarify
+PASS  clarify turn 不在 checkpoint 复制原始回答
+PASS  quote 校验失败且输入仍有效 → clarify；不写 91 分、不标记 unscored 终止
+PASS  quote-repair clarify turn 不在完成态 checkpoint 复制原始回答
+
+──── ② 失败只能是 unscored，不得冒充人的分数 ────
+PASS  repair 后引文仍不属于答案 → quote_repair_exhausted，不产出任何评分值
+PASS  供应商不可用 → failed 带可审计原因，绝不生成 50 分
+PASS  unscored 轨迹按 0 计继续不整场终止、reason 原样保留、不驱动能力画像、评分每题只打一次
+PASS  unscored turn 不在完成态 checkpoint 复制原始回答
+
+──── ③ 报告总分、段落去重与模型越权防护 ────
+PASS  报告 overall 为确定性 aggregateScores([70,80])=75，模型 1 分无效
+PASS  报告图拒绝模型编造的 overall
+PASS  报告图拒绝重复 section
+PASS  报告图拒绝不同 section 重复同一段落
+PASS  空 score 集合不是 0 分，必须走 unavailable/unscored
+
+✓ 评分/报告 P0 完整性全部通过
+SCORING_EXIT=0
