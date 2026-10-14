@@ -1,6 +1,6 @@
 # 5C-API-HARDEN REQUEST（批5 5C 子刀 · 进程内状态共享化 + 部署约束 · #36/#37/#17/#129/#118 五件 + R10 顺手 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席 `apid-draft` · docs-only 恰 1 .md 零码动 · Ban coding · Ban prove 实跑 · Ban self-approve · **alone≠dual** · **Dual PASS ≠ 开工** · **⛔push** · 本 commit 不预claim 任何 post-commit EXIT）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席 2026-10-14 落码+门矩阵十三门全绿·§9 EXEC 附记在卷·⛔push·post 双审待派）
 **Date**: 2026-10-14
 **刀位**: `ai-docs/delivery/harness/product-campaign-LEDGER.md:87`（5C 可靠性行逐字：「…#36/#37/#17/#139 多实例…#129…#118… — 🆕 分 4 子刀（OBS/QUEUE/SSE-API/API-HARDEN）」——本刀=**API-HARDEN 子刀**·进程内状态共享化+部署约束域）+:234（R10 行逐字：「ensure-ok server-only 标注…归 **5C-API-HARDEN 顺手**」）+ ha-6 处置档 `ha-6-companion-disposition.md:23`（「Redis 共享桶：归 S15/波2 云侧需 Redis 面时**另刀**」——**本刀即该另刀候选·但与 S15 买云授权解耦：本地可用形态先立**）
 **Base**: `feat/mysql-schema-skeleton` @`d68ffe17`（full `d68ffe17cb9875c5e0d3c6437500c140b931ab76`·2026-10-14 fetch 后实测 tip·origin/main `c4244470` 为其祖先 `git merge-base --is-ancestor` 亲证）· 分支 `line/api-harden`（仓根同级工作树 `meetwise-apid`：`git -C ../meetwise worktree add ../meetwise-apid -b line/api-harden d68ffe17`）
@@ -167,7 +167,7 @@
 
 ## §8 STOP（开工三条款）+ 待裁决项 + 停止条件
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（含裁决项①-⑨ 逐项行使）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 已落卷·见 §9）· alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（含裁决项①-⑨ 逐项行使）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
 
 ### 待裁决项（九项 · 双审/EXEC 行使 · 推荐案已注）
 
@@ -211,3 +211,91 @@
 - **E7（EXEC 注意）**：件③ 槽位登记改**单语句** `INSERT … ON CONFLICT (slot_key) DO UPDATE … WHERE n<max OR expired`——原「UPDATE…无行则 INSERT」两语句形在双实例并发首占时同撞 INSERT→unique violation·单语句原子占消除该竞争面（原文本未覆盖此竞争面）。
 
 **rev2 自检**：docs:check EXIT=0·markers 五类标记词改动集 grep 零命中·STOP=`draft:awaiting_pre_exec_dual` 维持（alone≠dual·席1 FAIL 在卷·席2 下波派·Dual PASS ≠ 开工）·pins 十一值零翻转·est live=0·⛔push。
+---
+
+## §9 EXEC 附记（施工席落卷 · 2026-10-14 · Status=`executed:awaiting_post_prove_dual` · ⛔push）
+
+### 9.1 并线与 §0 重 pin
+
+- 并线主线：`git fetch` + `git merge --no-ff feat/mysql-schema-skeleton` @`7d2a4f3d`（AG-11 成本④ nail 收官·链 188·迁移 0188 带入）→ **merge `450a2b97` 零冲突**（初拟冲突解消息已 amend 诚实化为零冲突）。
+- §0 全量重 pin @HEAD：十一 pin 值逐一亲证在位（haStatus=NOT_HA/releaseEvidence=false/claimProductionHA=false/gR45Closed=true/coveredCount=8/ms3EqualsR4Closed=false/PG-retained/公开 DELETE=503/g7SuiteGreen=false/r1Closed=false/actualSpendCny=null）。漂移仅三处 ±1 行（resume.service.ts allow `:38→:39`、acquireSlot `:50→:51`、releaseSlot `:68→:69`）·±2 熔断内·零触结论。调用点计数复测：allow 14 行·16 调用点（auth.service.ts:46 单行三连）·hasToken 1（profile.service.ts:127）·acquireSlot/releaseSlot 各 4·evictPrincipalStatus 生产 2·revokeSession 生产 1——**全部与卷面一致**。
+
+### 9.2 迁移号终裁
+
+- **0189 恰 1 个**：`packages/db/migrations/0189_api_harden_shared_state.sql`（件② 共享桶表 platform_rl_bucket + 件③ 槽 lease 表 platform_slot_lease + 件④ 触发器 platform_principal_state_notify·三 DDL 半合一）。实证现场：主线链顶=0188（merge 带入 0188_ag11）·0190-0199=line/batch5b-mig 在飞亲证（git ls-tree 十件在列）·0189=唯一空档——**两 DDL 半合一迁移以避开在飞号段**（卷面预算 0-2 内·占号登记此为对账值）。`check-migration-version-uniqueness` EXIT=0（files=189·violations=0）。
+
+### 9.3 裁决①-⑨ 落值
+
+| 项 | 落值 |
+|---|---|
+| ① 载体总形 | **甲=PG 本地可用形**：共享桶表+槽 lease 表+既有 LISTEN 复用；apps/api 零新依赖（package.json 仅增 prove script 行）；seam 注释三处如实化改写（rate-limit/principal.guard/auth-session） |
+| ② 吊销窗与 TOCTOU | 广播窗=送达窗+在途请求窗（proof W1 实测 **26ms**·断言 <1s·裁决预算 p99≤1s 内）；60s TTL 兜底维持零改；TOCTOU=**单调 evict 序**（回填前比对·序前进即放弃落缓存·proof T1 双侧） |
+| ③ fail 语义 | 统一退化：桶→进程内本地桶、槽→**fail-open 放行**；每次转变一行结构化日志 `RL_SHARED_DEGRADED reason=pg_error fallback=…`/`RL_SHARED_RECOVERED`（沿 SSE_NOTIFY_DEGRADED 形制）；降级期每秒至多试探一次 PG |
+| ④ 通道与连接面 | 通道名 `meetwise_principal_evict_v1`；**复用 sse-notify 既有 max:1 专用 LISTEN 挂第二通道**（establish 增第二 LISTEN+onNotification 白名单双分支=卷面 :227/:182 双处接线）·零新增连接·ha-6 帽后账 76/97 零改零增登记 |
+| ⑤ #184 收编 | **不并入（偏离推荐案·停止条件纪律取零改形）**：推荐案「顺手收编」先占槽换序将翻转 sse-principal-slot.proof 既有断言「overflow 各付 1 次 catch-up === 8」（被拒连接不再付 catch-up → 8→5）·与 Ban「sse-principal-slot 原值回归」+§2-6「零语义翻转」硬约束冲突·按 Ban 优先——interview.controller.ts:258-262 取数/占槽**时序零改**·#184 留 5C-SSE-API 子刀 |
+| ⑥ 件④ 失效路径 | **(i) DB 触发器广播**（0189 内 0143 同形·`AFTER UPDATE OF status,pwd_epoch,role,approval_status,is_admin ON user_account`·与状态 UPDATE 同事务随 commit 送达=结构满足 E5 禁先广播后提交）·**吊销方向对称覆盖**（审批拒绝/撤权同触发同窗·proof W2 grant 方向实证 26ms 级） |
+| ⑦ #87 归槽+件⑤ 上限 | #87 成本分级/全局桶按 IP 分摊=**留后续**（16 调用点桶 key/capacity/refillPerSec 值逐个原值·diff 亲证零改）；件⑤ 容量上限=`RL_MEM_CAPACITY`·默认 10000·沿 RL_* env 形制·真 LRU（访问重排+打满淘汰最旧·新 key 满额建桶·proof M1） |
+| ⑧ 迁移号 | 见 §9.2（0189 恰 1） |
+| ⑨ 槽 lease TTL | **12min**（SSE 10min 封顶+2min 缓冲）·acquire 顺带清过期（过期接管分支 n=CASE WHEN expired THEN 1 ELSE n+1 END）·零新增周期任务；解析槽同形；release 对称减·n≤1 删行零减穿 |
+
+### 9.4 六件落点（文件级）
+
+1. **件① #36**：`principal.guard.ts`（evictPrincipalStatus→notePrincipalEvicted 序自增+本进程 evict；accountState 扩五列+回填代次比对；模块级 onPrincipalEvict('uid') 注册+whenHealthy 起听）·`auth-session.ts`（revokeSession 单语句 CTE 内 UPDATE+pg_notify 同事务；evictSessionRevocation 同形；isSessionActive 回填比对；onPrincipalEvict('jti') 注册）·`sse-notify.service.ts`（PRINCIPAL_EVICT_CHANNEL+第二 LISTEN @establish+onNotification 白名单双分支+evict 序/注册面）。
+2. **件② #37**：`rate-limit.service.ts`（全局/IP 桶按 key 形分级迁 PG 单行原子 UPSERT·补充折算 SQL 内同式；per-principal/per-email 桶维持进程内）——16 调用点仅 await 化零值改。
+3. **件③ #17**：`rate-limit.service.ts`（acquireSlot 单语句 INSERT…ON CONFLICT…WHERE n<max OR expired…RETURNING·零行=false→调用点既有 429/503 映射原值；releaseSlot 对称减+删行）——4 调用点 await 化；`slot_key` 唯一索引=PRIMARY KEY 显式建（0189）。
+4. **件④ #118**：`principal.guard.ts` accountState 一查五列（status,pwd_epoch,role,approval_status,is_admin）+导出；`recruiter.guard.ts`/`admin.guard.ts` 改读守卫缓存态零各自 SQL（三分码 admin_required/recruiter_* 面原值）；审批态变更经 0189 触发器广播（裁决⑥(i)）。
+5. **件⑤ #129**：`rate-limit.service.ts`（进程内桶 RL_MEM_CAPACITY 上限+LRU；共享桶表 7 天惰性 TTL 采样清理=行数有界）。
+6. **件⑥ R10**：**未落码（机制冲突停手登记·偏离清单 §9.6-3）**——证据三条：①'server-only' 全仓零安装零声明（package.json/pnpm why/node_modules 零命中·tsx 下 import 实证 `Cannot find package 'server-only'`）；②ensure-ok.ts:10-11 头注自证「独立纯模块…使 prove4 可真实断言 401 分支」=无 server-only 系**设计内**非遗漏；③web-logic.proof.ts:969 无桩直 import ensure-ok.ts+:1216 ensureOk 断言臂——落行即翻既有 proof 红。R10 LEDGER 行维持开放（SSOT 不属本刀）·处置建议：随 web 侧 prove 桩机制（f5-hooks 形）一并裁·留协调方。
+
+### 9.5 门矩阵全表（十三门·零新红）
+
+| 门 | 结果 |
+|---|---|
+| neg:auth | EXIT=0（90 负路径臂全绿） |
+| neg:resume | EXIT=0（91 臂·含 OCR 降级臂） |
+| authz5a:constant-time / login-ip-throttle / login-global-throttle / chgpwd-lock | EXIT=0 ×4（16+2+2+3 臂） |
+| prove:env-schema | EXIT=0（22 臂） |
+| prove:sse-slot | EXIT=0（18 臂·429 三路共享桶+释放语义原值） |
+| api:validate | EXIT=0（204 臂·含 F5 槽臂+F1/F8 令牌桶臂） |
+| drift:prove | EXIT=0（无漂移·豁免 2 项=既存 dbhy1 残面） |
+| **api-harden:prove（新）** | EXIT=0（26 臂：S1 双实例槽恰5+零减穿+**E7a 过期接管**；S2 双实例桶恰3+补充折算+hasToken 探针；W1 吊销广播线 **26ms**；W2 审批态广播；T1 TOCTOU 双侧；T2 evict 序；D1 降级形；M1 LRU；J1 会话行） |
+| turbo typecheck --force | EXIT=0（8/8·过程两次中间红 TS1308+TS2454 即改即清如实登记） |
+| turbo lint --force | EXIT=0（12/12·基线 1421=帽值·新增 6 warning（naming-convention）即改即清·净增 0） |
+| docs:check | EXIT=0（2075 ≤ cap） |
+| markers | 五类标记词改动集 21 文件 grep 零命中（TODO/FIXME/XXX/HACK/冲突标记） |
+| check-migration-version-uniqueness | EXIT=0（files=189·violations=0） |
+
+基线红单列：无（全部所报门对本刀收口时点全绿；唯一基线关联红=件⑥ 若强行落行将致 web-logic.proof 红——已按停手登记规避）。
+
+### 9.6 偏离任务书清单（三项·均已上报理由）
+
+1. **裁决⑤ 不收编**（卷面推荐「顺手收编」）：与 Ban/§2-6 零语义翻转硬约束冲突（§9.3 详证）——取 §3-2 零改形。
+2. **迁移 0-2 个 → 恰 1 个（三 DDL 半合一）**：0190-0199 在飞占用下 0189 唯一空档，合一以避撞号；卷面预算内。
+3. **件⑥ R10 未落码**：机制冲突（§9.4 详证三条）——非「不作为」，系「落行必红既有 proof」的停止条件形；建议随 web prove 桩机制另裁。
+4. **allow/hasToken/acquireSlot/releaseSlot 异步化**（签名内敛变更）：REQUEST 件②「签名零改」按「名称/参数/调用契约零改·返回值随机制异步化」行使——同步签名物理上不可能承载 PG 往返；16+4 调用点仅加 await·桶参数/429/503 语义逐值原值。此为机制文本（单语句 UPSERT/UPSERT 频度=入口频度）的必然后果，登记为解释性说明非改约。
+
+### 9.7 陷阱 13 条自检（TS 适配形·被改 service 面=rate-limit/auth-session/sse-notify/principal.guard+resume）
+
+1. 广播时序 E5（禁先广播后提交）：uid 路径=0189 触发器随 UPDATE 事务；jti 路径=revokeSession 单语句 CTE——同事务同连接 ✓
+2. 收播回调零 SQL（LISTEN 回调只动进程内 Map·沿既有 pump 纪律）：dispatchPrincipalEvict 仅 evict+序自增 ✓
+3. 降级必留痕：RL_SHARED_DEGRADED/RECOVERED 转变日志+降级期试探节流（防连接超时放大）✓
+4. 槽计数零减穿/零楔死：UPDATE n>1+DELETE n≤1 双语句（弃 CTE 同语句双写同一行——EPQ 重评会误删已减行·E7a 防腐坏纪律）+过期接管对 **now** 判定非对刷新后 lease（自测 S1 抓到自刷新 bug 并修正）✓
+5. 单语句原子占（E7a）：INSERT…ON CONFLICT…WHERE 原子占·并发首占零 unique violation ✓
+6. 跨 async finally 返回未决 promise 窗口（unhandledRejection 致命）：resume uploadFile OCR 分支重构为置标+finally 后转向（api:validate 基线绿/改动红归因试验亲证·最小复现在案）✓
+7. finally 语义：控制器 finally await release 不跨 return-promise（pump 系 await-in-try 形）✓
+8. 行数有界：桶 7d 惰性 TTL 采样清理+LRU；槽 n≤1 删行+过期接管复用行；无新增周期任务 ✓
+9. 失败不抛入 finally：releaseSlot 全路径吞错返 void（finally 上下文安全）✓
+10. 注释与实现相符：三处 seam 注释（rate-limit「单实例内存」/principal.guard「多实例 ≤60s/Redis seam」/auth-session「#36 归 5C 不动」）如实化改写+profile 两处 evict 注释更新+「叙事红线」不超估（广播窗≠零窗·TTL 兜底如实）✓
+11. 16 调用点桶 key/capacity/refillPerSec 逐值原值（diff 亲证）；429/503 码面与文案原值（too_many_streams/server_busy 零触）✓
+12. 越界面零触：worker wakeup 通道本体/SSOT 翻面/compose 预算账改数/S15 云依赖/apps/api 新依赖——全部零触（package.json 仅 prove script 行）✓
+13. 测试缝兼容：`new RateLimitService()`（无 db）=纯进程内模式——sse-principal-slot.proof 桩形与 `.slots` Map 断言面零改保持绿；降级形（throwingDb）有独立 D1 臂 ✓
+
+### 9.8 「旧代码忽略仍正确」书面结论（wire 契约变更义务）
+
+- **pg_notify 通道 `meetwise_principal_evict_v1`（载荷 JSON {t:'uid'|'jti',k}）**：纯新增通道——旧版 api 实例不 LISTEN 该通道=收不到广播，退回既有 ≤60s TTL 兜底行为（正确·仅时效回旧）；旧实例自身发出的 evict 不广播，但 uid 路径广播由 **DB 触发器**发出（与应用版本无关）——旧实例写路径照样触发广播，新实例照常收播；jti 路径广播在 revokeSession 新语句内，旧实例登出仅本进程即时+他实例 ≤60s（旧基线行为·正确）。
+- **platform_rl_bucket/platform_slot_lease 两表**：旧实例零读零写零感知（其 allow/槽全走进程内）——单旧+单新混布时，全局/IP 桶与槽计数仅在新实例侧共享（混合期 ×2 稀释部分回归至旧基线水平·不劣于升级前·不产生超发）；两表行可安全 TRUNCATE 重建（桶=令牌态按满额重建等价·槽=连接态重建后长连释放按幂等零减穿处理）。
+- **迁移 0189 幂等**（IF NOT EXISTS/DROP TRIGGER IF EXISTS+CREATE）·expand-only·回放零 diff ✓。
+
+### 9.9 收尾声明（EXEC）
+
+est live=0（全门隔离库/静态·零模型外呼·零生产操作·零 secrets·actualSpendCny=null 脚注同源）·pins 十一值零翻转·markers=0·⛔push（全程零 push）·commit=`fix(api): API-HARDEN EXEC`·STOP=`executed:awaiting_post_prove_dual`——post 双审待派（本席不自批·alone≠dual）。

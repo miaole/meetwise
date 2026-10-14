@@ -35,22 +35,24 @@ export class ResumeService {
   constructor(private readonly db: DbService, @Inject(OCR_VISION_CLIENT) private readonly vision: ModelClient, private readonly rl: RateLimitService) {}
 
   // 文件上传 = CPU 重的解析(PDF/docx,可炸弹)+ 可能触发付费 OCR → per-principal 令牌桶(安全审计 F2)。突发 15、稳态 0.1/秒(~6/分),正常传够、滥用循环被摁住。
-  private uploadGate(principal: string) {
-    if (!this.rl.allow(`resume-file:${principal}`, 15, 0.1))
+  private async uploadGate(principal: string) {
+    if (!(await this.rl.allow(`resume-file:${principal}`, 15, 0.1)))
       throw new HttpException({ error: 'too_many_requests', message: '文件上传过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
   }
 
   /** 文件上传(PDF/Word/图片):解码 → **提取+清洗文本** → 复用文本上传链路(consent/加密/结构化)。图片走 OCR(按次计费)。 */
   async uploadFile(principal: string, dto: UploadResumeFileDto) {
-    this.uploadGate(principal);                                              // 限流先行:解码/解析前就摁住滥用(防炸弹并发压事件循环)
+    await this.uploadGate(principal);                                              // 限流先行:解码/解析前就摁住滥用(防炸弹并发压事件循环)
     const buffer = Buffer.from(dto.contentBase64, 'base64');
     if (buffer.length === 0) throw new HttpException({ error: 'empty_file' }, HttpStatus.BAD_REQUEST);
     if (buffer.length > MAX_RESUME_BYTES) throw new HttpException({ error: 'file_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
     // **全局解析并发闸(安全审计 F2 纵深)**:PDF/docx 解析是 CPU 重活压事件循环;即使多用户各自限流内并发涌入,
     // 全站同时最多 PARSE_MAX 个在解析,超出快速失败(503)不堆积——把"并发炸弹压垮事件循环"的爆炸半径钉死。配合已有 8s 提取超时 + 字节/文本封顶。
-    if (!this.rl.acquireSlot('resume-parse:global', PARSE_MAX))
+    if (!(await this.rl.acquireSlot('resume-parse:global', PARSE_MAX)))
       throw new HttpException({ error: 'server_busy', message: '解析繁忙,请稍候重试' }, HttpStatus.SERVICE_UNAVAILABLE);
-    let extracted: { text: string; format: string };
+    // `!` 定值断言:imageNeedsOcr=true 分支在 :75 使用前必已 return,而 CFA 无法跨标志位收敛赋值分析。
+    let extracted!: { text: string; format: string };
+    let imageNeedsOcr = false;
     try {
       extracted = await extractResumeText(buffer, dto.mimeType, dto.filename);
     } catch (e: unknown) {
@@ -62,12 +64,14 @@ export class ResumeService {
         throw new HttpException({ error: 'encrypted', hint: '文件已加密，无法解析；请解除密码保护后重传或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
       }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
-      // finally 在 return 前也会执行 → 解析槽恰好释放一次(不在此显式释放,避免并发下双减)。
-      if (errCode(e) === 'image_needs_ocr') return this.uploadImageViaOcr(principal, buffer, dto);
-      throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
+      // OCR 分支置标、finally 释放解析槽后再转向——禁跨带 await 的 finally 直接 `return 未决 promise`:
+      // 其拒绝若落在 finally 的 await 窗口内即成 unhandledRejection(进程致命);先释槽后转向,时序与原形一致。
+      if (errCode(e) === 'image_needs_ocr') imageNeedsOcr = true;
+      else throw new HttpException({ error: 'parse_failed', format: undefined }, HttpStatus.UNPROCESSABLE_ENTITY);   // 解析失败可解释,不裸崩
     } finally {
-      this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向 return/解析失败 throw)都恰好释放一次
+      await this.rl.releaseSlot('resume-parse:global');   // 所有路径(成功/图片重定向/解析失败 throw)都恰好释放一次
     }
+    if (imageNeedsOcr) return this.uploadImageViaOcr(principal, buffer, dto);
     // 扫描型 PDF(文本层空)：本期图片 OCR 已通,PDF→逐页图渲染是快随项(见 UC-RES-003 A2),暂给可解释降级不静默。
     if (extracted.text.trim().length < 20) throw new HttpException({ error: 'extracted_too_short', format: extracted.format, hint: '未从文件读到足够文字;若为扫描件/图片型 PDF,请改传清晰图片或粘贴文本' }, HttpStatus.BAD_REQUEST);
     if (extracted.text.length > MAX_RESUME_TEXT) throw new HttpException({ error: 'extracted_too_long', format: extracted.format, max: MAX_RESUME_TEXT, hint: '文件内容过长(疑似非常规简历/解压炸弹),请精简后重传或粘贴核心文本' }, HttpStatus.PAYLOAD_TOO_LARGE);   // 安全审计 F3:防超大提取文本无界落库/喂模型

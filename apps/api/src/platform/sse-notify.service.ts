@@ -28,6 +28,61 @@ import { createPool, type Client, type DbPool } from '@meetwise/db';
 export const SSE_NOTIFY_CHANNEL = 'interview_event_ch';
 export const SSE_NOTIFY_TRIGGER_NAME = 'interview_event_sse_notify';
 
+/**
+ * 守卫缓存吊销广播通道(#36 同 seam 第二缓存共用)：与 interview_event_ch 同一条专用 LISTEN
+ * 连接挂第二通道(同连接多 LISTEN·零新增连接预算)。收播=本进程 evict 对应缓存 + 单调 evict 序
+ * 自增(回填 TOCTOU 守卫比对源)。生产端=user_account 触发器(0189)与 revokeSession 单语句
+ * pg_notify——都与状态 UPDATE 同事务随 commit 送达；LISTEN 断连/未建立时退回各缓存 ≤60s TTL 兜底。
+ */
+export const PRINCIPAL_EVICT_CHANNEL = 'meetwise_principal_evict_v1';
+export type PrincipalEvictKind = 'uid' | 'jti';
+type PrincipalEvictHandler = (key: string) => void;
+
+const principalEvictHandlers: Record<PrincipalEvictKind, Set<PrincipalEvictHandler>> = {
+  uid: new Set(),
+  jti: new Set(),
+};
+/** 单调 evict 序(每进程每键)：回填前比对——DB 读开始后若序前进,该读可能先于远端 commit,放弃回填。 */
+const principalEvictSeq: Record<PrincipalEvictKind, Map<string, number>> = {
+  uid: new Map(),
+  jti: new Map(),
+};
+
+export function principalEvictGeneration(kind: PrincipalEvictKind, key: string): number {
+  return principalEvictSeq[kind].get(key) ?? 0;
+}
+
+/**
+ * 本进程 evict 入口(本地吊销写路径调用,也由收播分派调用)：序自增 + 触发全部已注册本进程 evict。
+ * 序前进即「此后完成的 DB 读可能读到旧态」的信号,回填侧据此放弃落缓存。
+ */
+export function notePrincipalEvicted(kind: PrincipalEvictKind, key: string): void {
+  const seq = principalEvictSeq[kind];
+  seq.set(key, (seq.get(key) ?? 0) + 1);
+  for (const h of principalEvictHandlers[kind]) {
+    try { h(key); } catch { /* evict 处理器只动进程内 Map,不抛 */ }
+  }
+}
+
+/** 注册本进程 evict 处理器；首个订阅者触发 LISTEN 建立(不等首个 SSE 流,吊销窗从进程启动即生效)。 */
+export function onPrincipalEvict(kind: PrincipalEvictKind, handler: PrincipalEvictHandler): void {
+  principalEvictHandlers[kind].add(handler);
+  getSseNotify().whenHealthy();
+}
+
+/** 收播分派(载荷=JSON {t,k};只动进程内 Map,零 SQL)。畸形载荷丢弃(TTL 兜底恒在)。 */
+function dispatchPrincipalEvict(raw: string | undefined): void {
+  if (!raw) return;
+  let kind: string, key: string;
+  try {
+    const p = JSON.parse(raw) as { t?: string; k?: string };
+    kind = p.t ?? '';
+    key = p.k ?? '';
+  } catch { return; }
+  if ((kind !== 'uid' && kind !== 'jti') || typeof key !== 'string' || key.length === 0 || key.length > 512) return;
+  notePrincipalEvicted(kind, key);
+}
+
 /** 降级原因(协调方约束②枚举;listen_down 兼作未建立/断连的初始态)。 */
 export type SseNotifyReason = 'listen_down' | 'trigger_missing';
 export type SseNotifyHealth = { healthy: true } | { healthy: false; reason: SseNotifyReason };
@@ -179,7 +234,9 @@ export class SseNotifyService {
   }
 
   private readonly onNotification = (message: { channel: string; payload?: string }) => {
-    if (this.stopped || message.channel !== SSE_NOTIFY_CHANNEL) return;
+    if (this.stopped) return;
+    if (message.channel === PRINCIPAL_EVICT_CHANNEL) { dispatchPrincipalEvict(message.payload); return; }
+    if (message.channel !== SSE_NOTIFY_CHANNEL) return;
     const key = message.payload;
     if (!key) return;
     const set = this.router.get(key);
@@ -225,6 +282,8 @@ export class SseNotifyService {
       client.on('error', this.onClientError as never);
       client.on('end', this.onClientEnd as never);
       await client.query(`LISTEN ${SSE_NOTIFY_CHANNEL}`);
+      // 守卫吊销广播第二通道:同连接多 LISTEN(零新增连接预算);随本连接断连/重连生命周期同寿。
+      await client.query(`LISTEN ${PRINCIPAL_EVICT_CHANNEL}`);
       // 约束①条件2:establish 期恰一次 trigger 实证(每连接一次;缺席即降级并退避
       // 重连——迁移后发版的自愈路径:下次 establish 重新实证)。
       const trig = await client.query(
