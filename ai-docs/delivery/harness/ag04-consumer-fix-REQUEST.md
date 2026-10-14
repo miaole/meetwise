@@ -1,9 +1,9 @@
 # AG04-CONSUMER-FIX REQUEST — adaptive-consumer 基线红 2 臂根因刀（AG-04 刀C `114f7189` requeue 指数退避×claim 时闸×proof 即时 drain 假设过时·裁决测试改形恰 1 文件·零产品语义变更·ag04-consumer-fix 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · pre-exec 双审两外席待派 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权·committed SHA 重钉）· 本 commit 不预 claim 任何 post-commit EXIT · STOP 未翻）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-14 · pre-exec 双审 **BOTH PASS 落卷**（席1 `agent_eda33b7b`+席2 `agent_80e409c8` 会签·P2×2 折入随 pin 落卷=§0.4）·协调方明示 EXEC 授权（committed SHA 重钉=`807ba02e`）·**EXEC 落卷=门矩阵九门全绿·adaptive-consumer:prove 35/35 两臂翻绿（§9 记录）·STOP 翻面（行翻面/nail 归主会话批边界·alone≠dual·⛔push）**）
 
 **席位**：ag04-consumer-fix 起草席（诊断+起草双责·协调方派·adaptive-consumer:prove 主线恒红 fail_count=2 在靶）。
-**基线**：`feat/mysql-schema-skeleton` @ `148cf83b`（=origin tip·fetch 后 `git rev-parse origin/feat/mysql-schema-skeleton` 亲证恒等·5E-BEHAVIOR nail 收官 SSOT commit·docs:check 2108≤cap 2112 本树亲跑）· 分支 `line/ag04-consumer-fix`（本起草席 `git worktree add ../meetwise-acf -b line/ag04-consumer-fix origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `148cf83b` 亲证）· 工作树 `meetwise-acf`（仓根同级）。
+**基线**：`feat/mysql-schema-skeleton` @ `148cf83b`（=origin tip·fetch 后 `git rev-parse origin/feat/mysql-schema-skeleton` 亲证恒等·5E-BEHAVIOR nail 收官 SSOT commit·docs:check 2108≤cap 2112 base 裸树亲跑；**本卷落卷后本支改前基线=2109（=2108+本卷 REQUEST 1 件·pre-exec 双审 P2 纠正）；EXEC @merge `6b9191e9`（主线并至 `4ff1ec6a`）首测=2110（+主线 e2e-stress nail 1 件）·全值见 §0.4 重 pin**）· 分支 `line/ag04-consumer-fix`（本起草席 `git worktree add ../meetwise-acf -b line/ag04-consumer-fix origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `148cf83b` 亲证）· 工作树 `meetwise-acf`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①5E nail SSOT `148cf83b` STILL OPEN 登记原文「adaptive-consumer AG-04 114f7189 退避时序根因（两臂 payload-only start）登记归后继」（commit 题面亲读）；②协调方派单 brief（2026-10-14·ag04-consumer-fix 战役·根因链 :252/:134/:275/:278/:294/:296 指派+修法 (a)/(b) 裁决授权）；③本席当日同 tip 实测三件套：隔离 runner run（receipt `.tmp/isolated-proof-receipts/2026-10-14T21-09-03-506Z-19638-af4d4779-8b6d-4436-a7e4-eee6a1253e0f.json`·`passCount=33 failCount=2 failureClass=child_exit_nonzero`·易失件·值已誊入本卷）+ 树外直通 raw run（`/tmp/acf-proof-raw.log`·易失件·FAIL 原文两行誊入 §1.2）+ 临时隔离库 DB 行级取证（§1.1-⑤·容器已拆·观测值誊入）；④形制范本 `ai-docs/delivery/harness/negbend-fix-REQUEST.md`（§0-§8 骨架·本基线树内 `git cat-file -e 148cf83b:<本路径>` 在场亲证）。
 
 ## §0 现状锚（起草席亲读·file:line+blob 逐条 rg/Read/git hash-object 实测 @`148cf83b`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
@@ -31,6 +31,21 @@
 - 主线链顶实测：`ls packages/db/migrations | wc -l`=**201**·头 `0201_qbank_fusion_owner_rank_org_dedup.sql`（隔离 runner 当日 run migrate `applied=201 skipped=0` 同证）。
 - 本刀修法=纯测试夹具段改形（§1-修法件①）·**预期零迁移零 DDL**。EXEC 期若实测产生非预期迁移需求→**停（越界需要类）上报**，认领号对届时链顶亲数后最小未占号顺延·Ban 抢号。
 
+### 0.4 EXEC 重 pin（EXEC 席 2026-10-14·对 merge 后树 HEAD=`6b9191e9`（双亲=`807ba02e`+主线 tip `4ff1ec6a`·`--no-ff` ort 零冲突）全量亲证）
+
+| 锚 | 起草 pin | EXEC 重 pin | 结论 |
+|---|---|---|---|
+| proof blob/行数 | `a1b89c84`/464 | `a1b89c84`/464（`git hash-object` 亲算） | 恒等·行锚 `:271/:275/:276-:277/:278/:285/:286/:294/:296/:301-:433` 零漂 |
+| interview-jobs blob/行数 | `7ebdff1a`/339 | `7ebdff1a`/339 | 恒等·`:15-:18/:126/:131-:134/:245-:248/:249-:257/:252/:281-:304` 零漂 |
+| interview-consumer blob/行数 | `27ddbcf1`/657 | `27ddbcf1`/657 | 恒等·`:277/:299/:305-:308` 零漂 |
+| requeue-backoff blob/行数 | `2dbe7c33`/248 | `2dbe7c33`/248 | 恒等·`:20/:89-:91/:93-:95` 零漂 |
+| 迁移链 | 201·头 0201 | 201·头 `0201_qbank_fusion_owner_rank_org_dedup.sql`（隔离 run `applied=201 skipped=0` 同证） | 恒等 |
+| §0.2 简报六锚 | 六值零漂 | `:252/:134`+proof `:275/:278/:294/:296` 六值零漂·`requestId:'legacy-payload-only'`+resumeRaw sentinel `:260-:264` 恒等 | 恒等 |
+| §0.0 在飞复核 | 五组残枝零碰撞 | 同五组（`4323d81f`/`19ddcbb4`/`a2eb45dc`/`c3de7fe6`+cursor 两支 `b07e509c`/`c13209c9`@09-04 更远古）·全支顶对 proof 文件无主线 `148cf83b` 后新增提交（逐支 `git log -1`+`merge-base --is-ancestor` 亲证） | 零碰撞·不触停 |
+| docs:check | 2108（base 裸树） | 改前基线 **2109**（P2 纠正=2108+本卷 REQUEST 1 件）·merge 后首测 **2110**（+主线 e2e-stress nail 1 件·`4ff1ec6a` 题面自证 2109 同链） | P2② 落卷 |
+
+**pre-exec 双审 P2×2 折入（协调方授权随 pin 落卷）**：①直排臂计数四→五（§1.1-⑤ 已改·五臂名亲数如上）；②docs:check 改前基线 2109（§0 基线行+§2-7 已改）。两处均为计数纠偏·§1.1/§1.2/§1.3 根因结论与裁决零改。
+
 ## §1 红事实与修法裁决（机制链全部亲证·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
 
 ### 1.1 根因机制链（五环·每环 file:line 亲证）
@@ -39,7 +54,7 @@
 2. **requeue 写退避**：proof `:275` 调 `requeueInterviewJob`——`interview-jobs.ts:252` 同条 UPDATE 写 `next_attempt_at=now()+least(2^attempts,300)`，attempts 取本 UPDATE 前现值=1→**退避窗=2 秒**（AG-04 刀C `114f7189` 引入·`:16-:18`/`:245-:248` 注释自证产品有意·report.ts:53 范本形）。
 3. **即时 drain 被时闸挡下**：proof `:278` 立即 `drainInterviewJobOnce`——`interview-consumer.ts:305-:307` claim→`interview-jobs.ts:134` 谓词 `next_attempt_at <= now()` 不满足（2 秒窗未逝）→claim 返 null→`interview-consumer.ts:308` **`return 'idle'`**。此时该 owner 无其余可领 job（`:198` 「所有 job done」绿在先·DUP 面 `:436` 在后）——'idle' 判定确定无歧义。
 4. **契约落空**：`legacyResult==='idle'≠'failed'`→`:286` result=false；job 滞 `'queued'`≠`'failed'`（`:289` false）；`interview_unavailable`=0≠1（`:290` false）→**红臂① `:294` FAIL**。paired release 永未发生→`availableUnits` 维持 `legacyBefore-1.0`→**红臂② `:296-:297` FAIL**。
-5. **DB 行级实证（当日临时隔离库观测·容器已拆）**：requeue 臂行终态=`status='queued'·attempts=1·next_attempt_at IS NOT NULL·last_error`空；对照四个**无 requeue 直排** legacy 臂全数 `status='failed'·last_error='interview_resume_reference_missing_or_mismatched'` 且 `interview_unavailable` 恰 1——LEGACY-MISSING-TYPED-REF（唯一经 claim→requeue 的面试）是 unavailable 事件清单唯一缺席者。**时序窗证据**：2 秒退避窗 < 后续臂间隔（`:317` 等直排臂全绿·零级联）——恰 2 红非 7 红的算术自洽。
+5. **DB 行级实证（当日临时隔离库观测·容器已拆）**：requeue 臂行终态=`status='queued'·attempts=1·next_attempt_at IS NOT NULL·last_error`空；对照五个**无 requeue 直排** legacy 臂全数 `status='failed'·last_error='interview_resume_reference_missing_or_mismatched'` 且 `interview_unavailable` 恰 1（**五臂=pre-exec 双审 P2 纠正·起草误记四**：LEGACY_BOUND/LEGACY_NULL_START/LEGACY_NULL_BOUND_START/LEGACY_ANSWER_V49/LEGACY_ANSWER_NULL 五臂 EXEC 对 `:301-:433` 亲数恒等·根因结论零变）——LEGACY-MISSING-TYPED-REF（唯一经 claim→requeue 的面试）是 unavailable 事件清单唯一缺席者。**时序窗证据**：2 秒退避窗 < 后续臂间隔（`:317` 等直排臂全绿·零级联）——恰 2 红非 7 红的算术自洽。
 6. **实测总账**：隔离 runner `exit=1 pass_count=33 fail_count=2`；raw 直跑 33 PASS/2 FAIL·FAIL 原文两行（§1.2）——与 5E nail SSOT 登记「两臂 payload-only start」恒等。
 
 ### 1.2 两红臂断言原文（raw run 当日实测·byte-for-byte 誊录）
@@ -74,7 +89,7 @@ FAIL  遗留 payload-only start 走一次既有 paired release，额度精确恢
 4. **migration uniqueness**：`node scripts/check-migration-version-uniqueness.mjs`→`files=201 violations=0`（files 对届时链顶亲数·violations 恒 0）。
 5. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（`8 successful, 8 total`·0 cached）。
 6. **lint 三值**：`pnpm turbo lint` EXIT=0·12 任务全绿·三贴线**恰等**：web `601≤601`+api `1421≤1421`+root `5224≤5224`（零第四红·出现即停）。
-7. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned ≤cap **2112**（现值 2108 本树亲跑·**>2112 红停上报**）。
+7. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned ≤cap **2112**（改前基线 **2109**=2108 裸树+本卷 REQUEST 1 件·pre-exec 双审 P2 纠正；EXEC @merge `6b9191e9` 首测 **2110**=+主线 e2e-stress nail 1 件·收据落卷后终测值见 §9·**>2112 红停上报**）。
 8. **markers 五类零命中**：本刀改动集（本卷 1 .md+件① 1 .ts+EXEC 收据目录 untracked）五类标记词（词族=`scripts/i6-239-gates.proof.mjs:151-:163` 运行时组装四词+冲突标记对·**词面本卷不复抄防自匹配**）grep 零命中（命令与回执入收据）。
 9. **diff 面机检**：`git diff --numstat <base>` 恰 2 tracked 路径=`apps/worker/test/adaptive-consumer.proof.ts`+本卷 .md（EXEC 阶段另加收据目录 untracked）——多任何 tracked 路径即停（越界需要类）·typecheck 若翻动 `apps/web/tsconfig.tsbuildinfo`→`git checkout` 回滚（negbend §9 同款处置）。
 
@@ -114,4 +129,30 @@ FAIL  遗留 payload-only start 走一次既有 paired release，额度精确恢
 
 ---
 
-*AG04-CONSUMER-FIX REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`148cf83b`（=origin tip fetch 亲证）· 分支 `line/ag04-consumer-fix` · 工作树 `meetwise-acf`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=5E nail SSOT `148cf83b` STILL OPEN 登记（adaptive-consumer AG-04 114f7189 归后继）+协调方派单 brief+本席当日三件套实测（隔离 runner 33/2 receipt+raw 直跑 FAIL 两行原文+DB 行级取证）+形制范本 negbend-fix-REQUEST · 根因链五环亲证=`:271` claim（attempts 0→1）→`:275` requeue（`interview-jobs.ts:252` 写 `now()+2^1=+2s` 退避）→`:278` 即时 drain 被 `:134` 时闸挡下（`interview-consumer.ts:308` 'idle'）→`:286-:293` 契约落空→`:294`/`:296` 两臂红·2 秒窗<臂间隔=恰 2 红零级联·DB 实证=requeue 臂 `queued/attempts=1/next_attempt_at 非空` vs 四直排臂全 `failed`+终态事件恰 1 · 裁决=候选甲测试改形（退避系产品有意行为双注释自证+requeue-backoff 33 臂专属绿证族·proof 即时 drain 假设早于 AG-04 过时）·候选乙产品修否决（重开 AG-C 裁决+削雷群防护+连锁翻绿证族）· 修法=件① 恰 1 测试文件三处（`:278` 展开为 gated drain→backdateDue 形回拨→二次 drain+契约增 gate 成员+`:294` 文案改形·`:296` 零改·33 绿臂零触·断言总数恒 35）· 门矩阵九门（35/35+邻面三命令+migrate 201 零新+uniqueness+typecheck 8/8+lint 三值恰等 601/1421/5224+docs:check≤2112 红停+markers 五类+diff 面机检恰 2 路径）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+## §9 EXEC 记录（EXEC 席落卷·2026-10-14·授权链=pre-exec 双审 BOTH PASS（席1 `agent_eda33b7b`+席2 `agent_80e409c8` 会签）+协调方明示 EXEC 授权（committed SHA 重钉=`807ba02e`）·收据=件③ `ai-docs/delivery/receipts/ag04-consumer-fix/00-exec.md`+改前 raw log·untracked §2-9 口径）
+
+**工序与 commit 链**：①`git fetch` 主线 tip 亲证 `4ff1ec6a`（恒等派单值）→`git merge --no-ff feat/mysql-schema-skeleton`→**`6b9191e9`**（ort 零冲突·delta 5 文件：execution-master-checklist+g7k-api-reds-REQUEST+LEDGER+next.config.mjs+nail-prep 收据·proof/产品四文件零触）；②§0 全量重 pin（§0.4 全表）+P2×2 折入；③改前复跑恰 1 次（件②①）=隔离 run EXIT=1 **33/2**·failure_class=child_exit_nonzero+raw 直跑（一次性临时 pgvector 容器·用后拆）**33 PASS/2 FAIL·FAIL 两行 byte-for-byte 恒等 §1.2**——现场漂移熔断零触发；④件① 改形落点（`apps/worker/test/adaptive-consumer.proof.ts`·blob `a1b89c84`→`2eb0703e`·numstat **+7/−1**=预期 +5/−1+3 注释行容差内）：`:278` 单行展开三行（gated drain 断言观测值→`admin.query` 内联 backdate（语句形照 `requeue-backoff.proof.ts:91`·作用域恰 LEGACY 单 job）→二次 drain）+`legacyStartContract` 增 `gate` 成员（七→八·列于 result 前·判据仍 `Object.values(...).every(Boolean)`）+`:294` 文案改形（即时 drain=idle 语义入文）·`:296-:297` 字节零改·`:272-:274` 元数据审计臂与 33 绿臂零触；⑤THE prove 恰 1 次（件②②）=EXIT=0 **35/35**·failure_class=none·receipt `.tmp/isolated-proof-receipts/2026-10-14T21-59-49-207Z-...json`；⑥门矩阵九门全绿（下表）；⑦本 §9 落卷=commit 2（merge+落卷两 commit·无 rev 单独 errata——P2 随 pin 折入协调方授权）。
+
+**门矩阵九门全表（实跑实测·2026-10-14 @merge 后树）**：
+
+| # | 门 | 命令 | 结果 | 证据 |
+|---|---|---|---|---|
+| 1 | adaptive-consumer:prove | `pnpm adaptive-consumer:prove` | **EXIT=0 35/35**（33+2 翻绿·熔断 0 容差满足） | `pass_count=35 fail_count=0 failure_class=none`·migrate applied=201 skipped=0 |
+| 2 | 邻面不回退 | `pnpm requeue-backoff:prove`/`adaptive-life:prove`/`reaper:prove` | 全 EXIT=0：**33/33**（族臂数恒等）/43 PASS/28 PASS | 三族对基线零回退·文件零触 |
+| 3 | migrate 链 | `pnpm migrate:prove` | EXIT=0·链 201·头 0201·**零新迁移** | 「迁移运行器 全部通过」 |
+| 4 | uniqueness | `node scripts/check-migration-version-uniqueness.mjs` | **files=201 violations=0**（exemptions 0143/0152/0160 既登记） | EXIT=0 |
+| 5 | typecheck | `pnpm turbo typecheck --force` | EXIT=0·**8 successful, 8 total**（0 cached） | — |
+| 6 | lint 三值 | `pnpm turbo lint` | EXIT=0·12 任务全成功·**web 601≤601+api 1421≤1421+root 5224≤5224 恰等**·零第四红 | 0 errors 全任务 |
+| 7 | docs:check | `node scripts/ai-docs/check-docs.mjs` | EXIT=0·改前（merge 后）**2110**≤cap 2112·落卷终测 **2111**≤cap 2112（余 1） | >2112 红停未触发 |
+| 8 | markers 五类 | 改动集 grep（词面运行时组装四词+冲突对·同 `i6-239-gates.proof.mjs:151-:163` 形） | **hits=0**（改动集 5 文件=卷+proof+收据目录 3 件） | 收据同验 |
+| 9 | diff 面机检 | `git diff --numstat` | **恰 2 tracked 路径**=本 proof.ts（+7/−1）+本卷 .md（+46/−5）·收据目录 untracked | typecheck 翻动 `apps/web/tsconfig.tsbuildinfo`→`git checkout` 回滚（§2-9 预案·negbend §9 同款）·多路径即停未触发 |
+
+**翻绿收据（PASS 名单 diff·`sort|uniq -c` 协议·分母=件②① 本树改前 raw run）**：改前 33 PASS 名单+改后 THE prove `fail_count=0` 35 全过——diff 恰 2 条=`:294` 臂（文案改形后翻绿）+`:296` 臂（文案字节零改自然复绿）·其余 33 条名单零弱化（隔离 runner 对 `adaptive-consumer:prove:raw` 结构性扣留臂名 stdout（`ISOLATED_POSTGRES_OUTPUT_WITHHELD`）·THE prove 臂名经 `fail_count=0`+改前 raw 名单联合推证·非偏离·同起草席三件套仪器形制）。
+
+**偏离任务书清单**：①改前 raw 直跑与拆容器系 EXEC 自备仪器（起草席三件套同形·非任务书件②列名 run·不占 prove 预算——件②① 隔离 run 恰 1+THE prove 恰 1 各司其职恒成立）；②docs:check 改前基线三值链（2108 裸树→2109 本支→2110 merge 后）较 P2 单值 2109 更细·如实全记（cap 口径零变）；③零其余偏离——产品码四文件 blob 恒等、33 绿臂零触、Ban 列表零违、pins 十一值零翻（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false·r1Closed=false·actualSpendCny=null）。
+
+**STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·LEDGER 红清单行与 5E STILL OPEN 行翻面权归协调方 nail·alone≠dual·⛔push。
+
+---
+
+*AG04-CONSUMER-FIX REQUEST · 2026-10-14 起草 · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵九门全绿·35/35 两臂翻绿·post 双审待派·行翻面/nail 归协调方）** · base `feat/mysql-schema-skeleton` @`148cf83b`（=起草时 origin tip·EXEC 并线至 `4ff1ec6a` 零冲突）· 分支 `line/ag04-consumer-fix` · 工作树 `meetwise-acf`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=5E nail SSOT `148cf83b` STILL OPEN 登记（adaptive-consumer AG-04 114f7189 归后继）+协调方派单 brief+本席当日三件套实测（隔离 runner 33/2 receipt+raw 直跑 FAIL 两行原文+DB 行级取证）+形制范本 negbend-fix-REQUEST · 根因链五环亲证=`:271` claim（attempts 0→1）→`:275` requeue（`interview-jobs.ts:252` 写 `now()+2^1=+2s` 退避）→`:278` 即时 drain 被 `:134` 时闸挡下（`interview-consumer.ts:308` 'idle'）→`:286-:293` 契约落空→`:294`/`:296` 两臂红·2 秒窗<臂间隔=恰 2 红零级联·DB 实证=requeue 臂 `queued/attempts=1/next_attempt_at 非空` vs 五直排臂全 `failed`+终态事件恰 1（五臂=pre-exec P2 纠正）· 裁决=候选甲测试改形（退避系产品有意行为双注释自证+requeue-backoff 33 臂专属绿证族·proof 即时 drain 假设早于 AG-04 过时）·候选乙产品修否决（重开 AG-C 裁决+削雷群防护+连锁翻绿证族）· 修法=件① 恰 1 测试文件三处（`:278` 展开为 gated drain→backdateDue 形回拨→二次 drain+契约增 gate 成员+`:294` 文案改形·`:296` 零改·33 绿臂零触·断言总数恒 35）· 门矩阵九门（35/35+邻面三命令+migrate 201 零新+uniqueness+typecheck 8/8+lint 三值恰等 601/1421/5224+docs:check≤2112 红停+markers 五类+diff 面机检恰 2 路径）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
