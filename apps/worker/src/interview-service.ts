@@ -10,6 +10,7 @@ import { invoke, getPrompt, promptedModel, openAICompatibleClient, failoverModel
 import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, scoreDispositionFromCodeUnitSpan, groundedByFacts, matchesCrisisTrigger, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 import { withGenerationProgress } from './generation-progress.ts';
+import { withTokenStream, type TokenSink } from './token-stream.ts';
 
 export const QuizSchema = z.object({ items: z.array(z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) })) });   // q 封顶:模型出题理应短,超长=异常输出 → schema 闸拦下并以失败/降级收口
 /**
@@ -240,19 +241,25 @@ export function fastModelClient(costs: { primary?: ModelCostPolicy; backup?: Mod
  *  缺省 undefined=vars 零 role 键段不渲染,与 v1 产物逐字节一致(缺省回退守卫)。 */
 export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[], idempotencyKey: string, model: ModelClient, progressStream?: string, role?: string): GenerateQuestions {
   return async (): Promise<QuizItem[]> => {
-    const call = async (): Promise<QuizItem[]> => {
+    const call = async (tokenSink?: TokenSink): Promise<QuizItem[]> => {
       const out = await invoke({
         idempotencyKey, operation: { id: 'interview.quiz-generation.v1', businessRevision: idempotencyKey }, schema: QuizSchema,
         businessValidate: (v) => (v.items.length === 0 ? 'empty_quiz' : v.items.some((it) => !it.q.trim()) ? 'blank_question' : null),
         model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts, role }),
+        // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
+        ...(tokenSink ? { onModelDelta: (d: { text: string }) => tokenSink.pushDelta(d.text) } : {}),
       }, pool, owner);
+      tokenSink?.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
       if ('error' in out) throw new Error('quiz:' + out.error);
       return out.value.items;
     };
     if (!progressStream) return call();
-    return withGenerationProgress(pool, owner, progressStream, {
-      jobKind: 'quiz', operationId: 'interview.quiz-generation.v1', attemptKey: idempotencyKey, segments: ['generate'],
-    }, () => call());
+    // TOKSTREAM S4b（R3 三触发面之一）：withTokenStream 包裹（token_delta 传输态·pg_notify 不落表），
+    // 阶段1 generation_* 持久粗进度面零字节零回归（两通道正交）。
+    return withTokenStream(pool, owner, progressStream, { attemptKey: idempotencyKey, jobKind: 'quiz' }, (tokenSink) =>
+      withGenerationProgress(pool, owner, progressStream, {
+        jobKind: 'quiz', operationId: 'interview.quiz-generation.v1', attemptKey: idempotencyKey, segments: ['generate'],
+      }, () => call(tokenSink)));
   };
 }
 
@@ -335,7 +342,7 @@ export function evaluateOutcomeFromValue(value: z.infer<typeof EvalSchema>, answ
 export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: string, model: ModelClient, progressStream?: string): GenerateReport {
   return async (s: InterviewSummary): Promise<ReportContent> => {
     const overall = aggregateScores(s.scores); // 空集或越界 score 由确定性聚合门拒绝，不交给模型猜。
-    const call = async (): Promise<ReportContent> => {
+    const call = async (tokenSink?: TokenSink): Promise<ReportContent> => {
       const out = await invoke({
         idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
         businessValidate: (v) => {
@@ -343,13 +350,18 @@ export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: str
           catch (error: unknown) { return (asErr(error)?.message ?? 'invalid_report') as string; }
         },
         model: promptedModel(model, 'report.generate', { scores: s.scores, items: s.items ?? [] }),
+        // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
+        ...(tokenSink ? { onModelDelta: (d: { text: string }) => tokenSink.pushDelta(d.text) } : {}),
       }, pool, owner);
+      tokenSink?.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
       if ('error' in out) throw new Error('report:' + out.error);
       return { overall, sections: out.value.sections };
     };
     if (!progressStream) return call();
-    return withGenerationProgress(pool, owner, progressStream, {
-      jobKind: 'report', operationId: 'report.narrative.v1', attemptKey: idempotencyKey, segments: ['generate'],
-    }, () => call());
+    // TOKSTREAM S4b（R3 三触发面之二）：withTokenStream 包裹；阶段1 progress 面零字节零回归。
+    return withTokenStream(pool, owner, progressStream, { attemptKey: idempotencyKey, jobKind: 'report' }, (tokenSink) =>
+      withGenerationProgress(pool, owner, progressStream, {
+        jobKind: 'report', operationId: 'report.narrative.v1', attemptKey: idempotencyKey, segments: ['generate'],
+      }, () => call(tokenSink)));
   };
 }

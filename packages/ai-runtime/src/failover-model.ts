@@ -14,6 +14,11 @@ export function failoverModel(clients: ModelClient[]): ModelClient {
     let last = 'model_endpoint_unavailable';
     for (const client of chain) {
       try {
+        // TOKSTREAM S4b（R1b① 层3 结构性非流式落点·注记零路由）：本 prepare 缺省 execute 臂仅
+        // prepare-less 成员可达；生产 failover 链成员全 openAICompatibleClient（interview-service
+        // endpoint()=openAICompatibleClient·prepare 恒在）→ 臂生产不可达，且 prepare-less ⇒ 无
+        // completeStream 可路由=恒非流式 fail-safe。flag-aware 路由施为位=成员自身 prepare execute 臂
+        // （failover 链经 failoverModel.prepare 逐成员转发同臂即达），本层零路由零改。
         const plan = client.prepare
           ? await client.prepare(req, attempt, signal)
           // 无 prepare 的客户端（scripted/legacy seam）：显式不带端点准入身份（AG-08 成本轨⑤）——
