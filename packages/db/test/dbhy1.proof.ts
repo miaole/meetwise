@@ -209,6 +209,12 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   'apps/api/test/entpay-s3.proof.ts',
   'apps/api/test/i2b.proof.ts',
   'packages/db/test/authz5a-gateway-mirror.proof.ts',
+  // bill1/bill2/bill3 同上纪律注释族（头注「禁止用 sql/ 影子 schema」文本提及·非加载器·dbhy1 隔离复跑采集）：
+  'apps/worker/test/bill1-topic-fields.proof.ts',
+  'apps/worker/test/bill2-shadow-meter.proof.ts',
+  'apps/worker/test/bill3-settlement.proof.ts',
+  // bill4 按 entpay-s3 形：0185 函数体与 23_api_gateway.sql 镜像逐字节对账承重消费（⓪-b 直载比对·非影子替代）：
+  'apps/worker/test/bill4-ledger-list.proof.ts',
 ]);
 
 /** P4⑤ 对象类豁免：sql/ 侧独有但经亲核判定为夹具辅助/演示对象（非 fresh deploy 承载面）——逐对象登记理由。 */
