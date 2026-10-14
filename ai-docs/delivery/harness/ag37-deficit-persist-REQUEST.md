@@ -1,6 +1,6 @@
 # AG-37 — 检索 weighted-deficit 归零·持久化到图 state（REQUEST）
 
-**Status**: `executed:awaiting_post_prove_dual`（EXEC 施工落卷·预执行双审 BOTH PASS+协调方常设 loop 授权已行使·§9 随翻 append 保史·⛔push·待 post 席双审。Ban self-approve · alone≠dual · Dual PASS ≠ merge）
+**Status**: `closed`（2026-10-15 卷主翻面·协调方三裁决之一授权·一行依据=checklist「Line AG-37 nail」段 :2506 已载 post-prove 双席 BOTH PASS+merge --no-ff 并主线 @`66e42d6e`（双亲 `be883e85`+`15b67341`·对 HEAD is-ancestor 亲证）——原 `executed:awaiting_post_prove_dual` 系滞后登记·沿 ag-cost5 STILL OPEN ⑦「状态行翻面归卷主」先例 · Ban self-approve · alone≠dual）
 
 **席位**：meetwise 战役 AG-37（检索 weighted-deficit 归零）REQUEST 起草席（docs-only·零码动·单文件落卷）。
 **基线**：主线 tip `aeaf4141ec95`（`git log -1` 开工实测·2026-10-13·docs(ssot) 刀位图计费 P2 行翻面笔）。分支 `line/ag37-deficit-persist` · 工作树 `../meetwise-ag37`（仓根同级·本起草席已立：`git worktree add ../meetwise-ag37 -b line/ag37-deficit-persist aeaf4141`·建前亲证 `worktree list` 24 树零 ag37·`branch -a` 零同名）。
