@@ -5,7 +5,8 @@
  * releaseEvidence=false · Not HA · 本绿 ≠ UC-E2E-003 covered · 本绿 ≠ 全链路 E2E covered
  * Playwright DOM 扫描 = secondary / 本 prove 不跑
  *
- * S1–S3 钉可证结构；G-GAP-* 诚实标红（EXIT=0 = 诚实钉 ≠ 产品闭环）
+ * S1–S3 钉可证结构；S4/S5/G3' 钉三面收口后的绿结构（原 G-GAP-1/2/3 翻面，见 harness 翻面注记）；
+ * EXIT=0 = 结构绿 ≠ 产品闭环 ≠ covered（矩阵 stays partial）
  */
 import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
@@ -31,6 +32,28 @@ function flatten(obj, prefix = '') {
   return out;
 }
 
+// Strip a trailing `//` comment before line-level scanning so trailing-comment
+// text (e.g. interview-state) is not miscounted as copy. Line-leading comments
+// are skipped separately by the caller.
+function stripTrailingLineComment(line) {
+  const idx = line.indexOf('//');
+  return idx === -1 ? line : line.slice(0, idx);
+}
+
+function cjkLiteralLines(rel) {
+  const out = [];
+  read(rel).split('\n').forEach((raw, i) => {
+    const line = stripTrailingLineComment(raw);
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) return;
+    if (CJK.test(trimmed) && /['"`]/.test(trimmed)) out.push({ line: i + 1, text: trimmed });
+  });
+  return out;
+}
+
+function parseStringMapEntries(block) {
+  return new Map([...block.matchAll(/^\s*([A-Za-z0-9_]+)\s*:\s*'([^']*)'/gm)].map((m) => [m[1], m[2]]));
+}
 
 const gaps = [];
 function pinGap(id, detail) {
@@ -73,75 +96,90 @@ const checks = {
     }
   },
 
-  'G-GAP-error-code-en-map': () => {
+  // Flipped from G-GAP-error-code-en-map: the en map, the locale param, and the
+  // upload-face inline bilingual carrier are now asserted green, per-place.
+  'S4-error-code-en-map': () => {
     const src = read('apps/web/lib/resume/ocr-preview-ui.ts');
-    assert.match(src, /ERROR_MESSAGES\s*:\s*Record<string,\s*string>/, 'ERROR_MESSAGES map must exist (inventory target)');
-    const block = src.match(/ERROR_MESSAGES\s*:\s*Record<string,\s*string>\s*=\s*\{([\s\S]*?)\n\};/);
-    assert.ok(block, 'ERROR_MESSAGES object block parseable');
-    const entries = [...block[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*:\s*'([^']*)'/gm)];
-    assert.ok(entries.length >= 8, 'ERROR_MESSAGES must list machine codes');
-    const zhOnly = entries.filter(([, , msg]) => CJK.test(msg));
-    const hasLocaleBranch = /locale|getTranslations|messages\/en|ERROR_MESSAGES_EN|enMap/i.test(src);
-    if (zhOnly.length === entries.length && !hasLocaleBranch) {
-      pinGap(
-        'GAP-UC003-ERROR-CODE-EN-MAP',
-        `ocr-preview-ui ERROR_MESSAGES is zh-only (${zhOnly.length}/${entries.length} codes); no en locale branch — A2 错误码→en 映射未闭环`,
-      );
-    } else if (zhOnly.length > 0) {
-      pinGap(
-        'GAP-UC003-ERROR-CODE-EN-MAP',
-        `partial zh leftovers in ERROR_MESSAGES (${zhOnly.length}); en map incomplete`,
-      );
-    } else {
-      console.log('PASS  ERROR_MESSAGES appears locale-clean (unexpected — re-check product)');
-    }
-    // mapResumeUploadError has no locale param → structural pin
-    assert.match(src, /function mapResumeUploadError\s*\(\s*status:\s*number,\s*body:\s*unknown\s*\)/, 'mapResumeUploadError signature has no locale arg');
-  },
-
-  'G-GAP-hardcoded-zh-ui': () => {
-    const hot = [
-      'apps/web/lib/view-model.ts',
-      'apps/web/lib/resume/ocr-preview-ui.ts',
-      'apps/web/lib/stream/interview-state.ts',
-    ];
-    let cjkLines = 0;
-    const samples = [];
-    for (const rel of hot) {
-      const text = read(rel);
-      for (const line of text.split('\n')) {
-        const trimmed = line.trim();
-        if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) continue;
-        if (CJK.test(trimmed) && /['"`]/.test(trimmed)) {
-          cjkLines += 1;
-          if (samples.length < 5) samples.push(`${rel}: ${trimmed.slice(0, 80)}`);
-        }
-      }
-    }
-    assert.ok(cjkLines > 0, 'expected known hard-coded zh UI surfaces (inventory honesty)');
-    pinGap(
-      'GAP-UC003-HARDCODED-ZH-UI',
-      `hot lib surfaces have ${cjkLines} string-literal lines with CJK (sample: ${samples[0] ?? 'n/a'}) — locale=en would still show zh leftovers outside messages/*.json`,
+    const zhBlock = src.match(/const ERROR_MESSAGES\s*:\s*Record<string,\s*string>\s*=\s*\{([\s\S]*?)\n\};/);
+    const enBlock = src.match(/const ERROR_MESSAGES_EN\s*:\s*Record<string,\s*string>\s*=\s*\{([\s\S]*?)\n\};/);
+    assert.ok(zhBlock, 'zh ERROR_MESSAGES map parseable');
+    assert.ok(enBlock, 'en ERROR_MESSAGES_EN map parseable');
+    const zh = parseStringMapEntries(zhBlock[1]);
+    const en = parseStringMapEntries(enBlock[1]);
+    assert.equal(zh.size, 20, `zh map must keep exactly 20 machine codes (got ${zh.size})`);
+    assert.deepEqual([...en.keys()].sort(), [...zh.keys()].sort(), 'ERROR_MESSAGES_EN keys must be 20/20 parity with zh');
+    const cjkEn = [...en.entries()].filter(([, v]) => CJK.test(v)).map(([k]) => k);
+    assert.deepEqual(cjkEn, [], `en map values must be CJK-free: ${cjkEn.join(',')}`);
+    // locale contract (inverted former no-locale-param pin): third optional param defaulting to zh
+    assert.match(
+      src,
+      /function mapResumeUploadError\s*\(\s*status:\s*number,\s*body:\s*unknown,\s*locale:\s*[A-Za-z]+\s*=\s*'zh'\s*\)/,
+      'mapResumeUploadError must carry a locale param defaulting to zh',
     );
+    // upload-face inline bilingual carrier — scope pinned to the FIVE upload faces
+    // (deleteResumeAction keeps its four zh messages untouched; never file-scan actions.ts).
+    const actions = read('apps/web/app/resume/actions.ts');
+    assert.match(actions, /\(await cookies\(\)\)\.get\('locale'\)/, 'upload actions read the locale cookie');
+    const inline = actions.match(/const UPLOAD_MESSAGES\s*=\s*\{([\s\S]*?)\n\} as const;/);
+    assert.ok(inline, 'UPLOAD_MESSAGES bilingual carrier parseable');
+    const entries = [...inline[1].matchAll(/^\s*([A-Za-z0-9_]+)\s*:\s*\{\s*zh:\s*'([^']*)',\s*en:\s*'([^']*)'\s*\}/gm)];
+    assert.equal(entries.length, 5, `inline upload face must be exactly five bilingual entries (got ${entries.length})`);
+    for (const m of entries) {
+      assert.ok(!CJK.test(m[3]), `inline upload-face en value must be CJK-free: ${m[1]}`);
+    }
+    for (const name of entries.map((m) => m[1])) {
+      assert.ok(actions.includes(`UPLOAD_MESSAGES.${name}[locale]`), `upload face consumes its bilingual entry: ${name}`);
+    }
+    // delete face zero-touch honesty guard: the four zh messages must stay verbatim.
+    for (const needle of ['网络错误，请稍后重试；简历未被删除。', '找不到这份简历，或它已被删除。', '删除请求未受理（', '删除受理形状不合法，未当作已删除。']) {
+      assert.ok(actions.includes(needle), `deleteResumeAction zh message must stay untouched: ${needle}`);
+    }
   },
 
-  'G-GAP-dom-e2e-ui': () => {
-    const e2eUi = resolve(repoRoot, 'apps/web/e2e-ui');
-    assert.equal(existsSync(e2eUi), true, 'e2e-ui dir exists');
-    const specs = readdirSync(e2eUi).filter((f) => f.endsWith('.ts') || f.endsWith('.js'));
-    let localeHit = false;
-    for (const f of specs) {
-      const body = readFileSync(join(e2eUi, f), 'utf8');
-      if (/locale|i18n|中文残留|no.?chinese|error.?code.*en/i.test(body)) localeHit = true;
+  // Flipped from G-GAP-hardcoded-zh-ui: hot three copy lines asserted structurally zero
+  // under the comment-stripped scanner, with the interpolation exemption pinned.
+  'S5-hot-lib-zh-structural-zero': () => {
+    // view-model: non-interpolation copy lines == 0; interpolation residual lines are a
+    // known-residual exemption pinned by content (whole lines incl. inline static members).
+    const vm = cjkLiteralLines('apps/web/lib/view-model.ts');
+    const vmInterp = vm.filter((l) => l.text.includes('${'));
+    const vmStatic = vm.filter((l) => !l.text.includes('${'));
+    assert.deepEqual(
+      vmStatic.map((l) => `${l.line}: ${l.text.slice(0, 70)}`),
+      [],
+      'view-model non-interpolation CJK copy lines must be 0',
+    );
+    assert.equal(vmInterp.length, 3, `view-model interpolation CJK lines must be exactly 3 (got ${vmInterp.length})`);
+    for (const pin of ['连接面试', '本题得分', '本次练习反馈']) {
+      assert.ok(vmInterp.some((l) => l.text.includes(pin)), `interpolation residual line must stay present: ${pin}`);
     }
-    if (!localeHit) {
-      pinGap(
-        'GAP-UC003-DOM-E2E-UI',
-        `no e2e-ui spec asserts en DOM / error-code en map (specs=${specs.join(',')}); Playwright secondary — not wired this prove`,
-      );
-    } else {
-      console.log('PASS  e2e-ui has some locale mention (still ≠ UC covered)');
-    }
+    // interview-state: all former CJK hits were trailing comments; stripped → 0.
+    const ist = cjkLiteralLines('apps/web/lib/stream/interview-state.ts');
+    assert.deepEqual(ist.map((l) => `${l.line}: ${l.text.slice(0, 70)}`), [], 'interview-state CJK copy lines must be 0 after comment strip');
+    // ocr-preview-ui: copy lines outside the two co-located map blocks must be 0;
+    // both map blocks are exempt (zh map stays co-located; en map parity handled by S4).
+    const ocr = read('apps/web/lib/resume/ocr-preview-ui.ts');
+    const ocrNoMaps = ocr.replace(/const ERROR_MESSAGES(?:_EN)?\s*:\s*Record<string,\s*string>\s*=\s*\{[\s\S]*?\n\};/g, '');
+    const offenders = [];
+    ocrNoMaps.split('\n').forEach((raw, i) => {
+      const line = stripTrailingLineComment(raw);
+      const trimmed = line.trim();
+      if (!trimmed || trimmed.startsWith('//') || trimmed.startsWith('*') || trimmed.startsWith('/*')) return;
+      if (CJK.test(trimmed) && /['"`]/.test(trimmed)) offenders.push(`${i + 1}: ${trimmed.slice(0, 70)}`);
+    });
+    assert.deepEqual(offenders, [], 'ocr-preview-ui non-map-block CJK copy lines must be 0');
+  },
+
+  // Flipped from G-GAP-dom-e2e-ui: the dedicated locale DOM spec must exist with the
+  // three structural elements. Static presence ≠ DOM green (UI gate runs separately).
+  'G3-dom-locale-spec-present': () => {
+    const specRel = 'apps/web/e2e-ui/uc003-i18n-locale.spec.ts';
+    assert.equal(existsSync(resolve(repoRoot, specRel)), true, 'uc003-i18n-locale.spec.ts must exist');
+    const spec = read(specRel);
+    assert.ok(spec.includes('UC003-I18N-locale-en'), 'spec must carry the UC003-I18N-locale-en grep anchor');
+    assert.match(spec, /addCookies/, 'spec must preset the locale cookie (cookie-only contract)');
+    assert.match(spec, /resume-upload-error/, 'spec must assert the error-code en DOM face');
+    assert.match(spec, /CJK/, 'spec must carry a DOM CJK scan');
   },
 };
 
@@ -161,11 +199,11 @@ for (const [name, fn] of Object.entries(checks)) {
 
 console.log('');
 if (gaps.length === 0) {
-  console.log('NOTE  no GAP pins emitted — unexpected for current tree; do not auto-promote covered');
+  console.log("NOTE  no GAP pins — S4/S5/G3' flipped the three former G-GAP structural gaps to green structural assertions (UC003-I18N)");
 } else {
   console.log(`NOTE  honesty GAP pins=${gaps.length}: ${gaps.map((g) => g.id).join(', ')}`);
-  console.log('NOTE  EXIT=0 with GAP pins = honest mark-red ≠ product closed ≠ UC-E2E-003 covered');
 }
+console.log('NOTE  EXIT=0 with GAP pins = honest mark-red ≠ product closed ≠ UC-E2E-003 covered');
 
 const exitCode = failed === 0 ? 0 : 1;
 console.log(`\nCMD=pnpm uc003:i18n-locale:prove EXIT=${exitCode}`);
