@@ -27,6 +27,7 @@
 
 ## 4. 验收
 diff 恰 9 文件亲证+五门逐件 EXIT=0+基线红修前实跑五门原值在案（非引史值）+tsbuildinfo typecheck 门漂移 checkout 还原零入 commit（沿 AG-37 nail 先例）+⛔push（STOP=executed:awaiting_post_prove_dual·合并归协调方 post-dual 后）。
+- **落卷后复核（2026-10-14 nail 席 P2-1 补行·亲跑非引史值）**：`docs:check` **EXIT=0·80 required+2070 managed**（支线独立树 `03adfbe6` 亲跑·临时 worktree 实测·≤cap 2080；EXEC 落卷时点注记值 2069 与本卷落卷在案一致）——并线 `8f2f7769` 后支线树同门 **2078 managed** 亦 EXIT=0·nail 收官合并树（`92681a34`）SSOT 随翻后同门复跑随 docs 卷交付在案.
 
 ## 5. 偏离任务书
 零（五件修法逐件照诊断落点·SSOT 三面+卷宗随翻均任务书内）。
