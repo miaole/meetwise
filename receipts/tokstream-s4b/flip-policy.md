@@ -38,5 +38,5 @@ NOTIFY envelope 上限 8000 字节；worker 侧预算钉 `TOKEN_NOTIFY_MAX_PAYLO
 
 ## 7. 计件与责任
 
-- 本刀交付面：worker 观察缝（`onModelDelta`）→ `interview_token_ch` → api delta 臂 → web `token_delta` 渲染全链在**缺省 OFF** 下零触；全链 flag OFF=既有非流式行为逐字节原值（回归门原值在案）。
+- 本刀交付面：worker 观察缝（`onModelDelta`）→ `interview_token_ch` → api delta 臂 → web `token_delta` 渲染（=归约+纯函数显示原语·组件接线未含·组件消费接线归 UI 刀域）全链在**缺省 OFF** 下零触；全链 flag OFF=既有非流式行为逐字节原值（回归门原值在案）。
 - 实际翻转（PREVIEW/ENABLED 置位）＝上线旗标，归协调方另裁另刀；翻转前后须复跑 `prove:model-client-stream` + `prove:invoke-model-delta` + `s4b-delta-arm:prove` 三门并留收据。

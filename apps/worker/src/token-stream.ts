@@ -42,6 +42,21 @@ export const TOKEN_STREAM_NOTIFY_CHANNEL = 'interview_token_ch';
  */
 export const TOKEN_NOTIFY_MAX_PAYLOAD_BYTES = 7500;
 
+/**
+ * 单写者前提启动期哨兵（文件头「配置上界声明」配套）：部署若配 MODEL_EXECUTION_TIMEOUT_MS
+ * 超过 claim lease 60s，启动即结构化 warn 标记二写者窗已开——seq 回归由 web 侧 max-seq 幂等
+ * 吸收（缺省 35_000 档零告警；仅提示不改行为）。
+ */
+const executionTimeoutMsFromEnv = Number.parseInt(process.env.MODEL_EXECUTION_TIMEOUT_MS ?? '', 10);
+if (Number.isFinite(executionTimeoutMsFromEnv) && executionTimeoutMsFromEnv > 60_000) {
+  console.warn(JSON.stringify({
+    event: 'token_stream_single_writer_window_open',
+    executionTimeoutMs: executionTimeoutMsFromEnv,
+    leaseSeconds: 60,
+    mitigation: 'web_max_seq_dedupe',
+  }));
+}
+
 /** D-3 元信息（签名逐字：meta: { attemptKey, jobKind }）。 */
 export interface TokenStreamMeta {
   /** 幂等键（=invoke idempotencyKey）；seq 计数与遥测对账的键面。 */
@@ -153,6 +168,7 @@ export async function withTokenStream<T>(
     pushDelta(text) {
       if (ended || !text) return;
       const bytes = Buffer.byteLength(text, 'utf8');
+      deltaChars += text.length;                   // Σdelta 字符累计（endUsage 对账遥测半·非恒 0）
       pending.push({ tMs: Date.now(), text });
       pendingBytes += bytes;
       if (pendingBytes >= MODEL_STREAM_FRAME_MAX_BYTES) {

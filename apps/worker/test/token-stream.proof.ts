@@ -1,17 +1,19 @@
 /**
  * TOKSTREAM S4b · worker token-stream proof（门预申明①新 proof · fake seam+隔离 PG 零模型外呼·actualSpendCny=null）。
  *
- * R2 验收四臂（REQUEST §2 R2·fake pool 捕获 pg_notify 载荷，零真 PG 依赖）：
+ * R2 验收六臂（REQUEST §2 R2·fake pool 捕获 pg_notify 载荷，零真 PG 依赖）：
  *   R2-a seq 单调（(streamKey,attemptKey) 内自 1 递增·帧契约 v:1/streamKey/attemptKey 齐备）；
  *   R2-b 超限切分（L1 4KB 预算触顶同步冲帧·码点安全不丢字符）；
  *   R2-c NOTIFY 载荷按 JSON.stringify 后实算 ≤7500（R8(b) EXEC 定谳=超限切分）；
- *   R2-d 写败不阻断业务返回值（§C-3 best-effort 丢帧）。
+ *   R2-d 写败不阻断业务返回值（§C-3 best-effort 丢帧）；
+ *   R2-f Σdelta 对账非恒 0（endUsage 遥测 deltaChars>0·pushDelta 字符累计）。
  * R3 三触发面接线臂（隔离 PG·专用连接 LISTEN interview_token_ch 实收）：
  *   quiz/report/adaptive 三面各一臂：帧流键/attemptKey/seq 正确+拼接==模型 raw 全文+generation_* 落表
  *   与基线一致（generation_started 在位；全臂行为基线由 prove:tokenstream 原值回归承底）。
  * R7 worker 侧断言：断开不取消（无听众生成照常至终态）/流中失败禁自动重 invoke（单飞恰一次）/
  *   「为补 delta 重跑」静态零新增。
- * 运行：pnpm s4b-token-stream:prove（经 scripts/run-e2e-isolated.mjs 隔离 PG）；裸跑需隔离 DATABASE_URL。
+ * 运行：node scripts/run-e2e-isolated.mjs s4b-token-stream:prove:raw（隔离 PG）；直跑
+ * pnpm -C apps/worker prove:token-stream 需隔离 DATABASE_URL。
  */
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
@@ -143,6 +145,30 @@ async function main() {
       frames.map((f) => f.text).join('') === 'pre',
       { frames });
   }
+  {
+    // R2-f Σdelta 对账臂：换装 console.log 捕获 endUsage 遥测行（deltaChars 累计推送字符数）。
+    const { pool: fp } = fakeNotifyPool();
+    const origLog = console.log;
+    const logLines: string[] = [];
+    console.log = ((...args: unknown[]) => { logLines.push(String(args[0])); }) as typeof console.log;
+    try {
+      await withTokenStream(fp, OWNER, 's4b-r2f', { attemptKey: 'k-f', jobKind: 'quiz' }, async (t) => {
+        t.pushDelta('ab');
+        t.pushDelta('cde');
+        t.endUsage({ completionTokens: 2 });
+        return 'biz-ok-f';
+      });
+    } finally {
+      console.log = origLog;
+    }
+    const reconciles = logLines
+      .map((line) => { try { return JSON.parse(line) as { event?: string; deltaChars?: number }; } catch { return undefined; } })
+      .filter((o): o is { event: string; deltaChars: number } => o?.event === 'token_stream_reconcile');
+    const reconcile = reconciles[0];
+    A('R2-f Σdelta 对账非恒 0：deltaChars 累计推送字符数（>0）与 completionTokens 并排落盘',
+      reconciles.length === 1 && reconcile !== undefined && reconcile.deltaChars === 5 && reconcile.deltaChars > 0,
+      { logLines: logLines.length, reconciles });
+  }
 
   /* ═══ R3 三触发面接线臂（隔离 PG·LISTEN 实收）═══ */
   const listener: Client = await pool.connect();
@@ -229,6 +255,8 @@ async function main() {
   /* ── R7 worker 侧：断开不取消+流中失败禁自动重 invoke ── */
   {
     // (i) 无听众（无 LISTEN 订阅者注册）生成照常至终态——delta 无听众=廉价 no-op·终态权威照落。
+    //     弱代理注记：worker 侧「零听众」不可观测（本 proof 自身持 LISTEN 连接），本臂只证
+    //     「业务终态不依赖 delta 消费者」；零听众时 NOTIFY 静默丢弃由 PG best-effort 语义承底。
     const NID = `s4bn-${Date.now()}`;
     const raw = `{"items":[{"q":"${MARKER}无听众臂","refs":[]}]}`;
     const items = await quizGenerator(pool, OWNER, [], `${NID}:quiz`, streamingModel({ 'resume-quiz.generate': raw }), NID)(EMPTY_PROFILE);
