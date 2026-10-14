@@ -158,7 +158,7 @@ async function main() {
   A('并：同 key 并发恰 1 预览请求且回执同一 requestId',
     concurrentCount === 1
     && concurrentOk.length >= 1
-    && concurrentOk.every((row) => row.value.requestId === concurrentOk[0].value.requestId));
+    && concurrentOk.every((row) => row.value.requestId === concurrentOk[0]!.value.requestId));
 
   if (failures) {
     console.error(`\n✗ privacy-erasure-preview db ${failures} 失败`);

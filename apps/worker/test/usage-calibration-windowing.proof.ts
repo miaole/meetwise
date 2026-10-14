@@ -372,7 +372,12 @@ async function main() {
       [OWNER_FIX, SERVICE, MODEL],
     );
   }
-  const purged = await purgeExpiredUsageCalibrationObservations(pool, 90);
+  // purge 须 Client 形参：显式借用一条连接（池直传系类型谎言；运行时同登录身份同函数）。
+  const purgeWithPool = async (keepDays: number): Promise<number> => {
+    const client = await pool.connect();
+    try { return await purgeExpiredUsageCalibrationObservations(client, keepDays); } finally { client.release(); }
+  };
+  const purged = await purgeWithPool(90);
   const remaining = await pool.query(
     `SELECT invocation_idempotency_key FROM ai_usage_calibration_observation WHERE owner_user_id=$1 AND invocation_idempotency_key LIKE 'ret-%' ORDER BY invocation_idempotency_key`,
     [OWNER_FIX]);
@@ -380,7 +385,7 @@ async function main() {
     && remaining.rows.some((r: { invocation_idempotency_key: string }) => r.invocation_idempotency_key === rMid)
     && remaining.rows.some((r: { invocation_idempotency_key: string }) => r.invocation_idempotency_key === rNew));
   let rejectZero = false;
-  try { await purgeExpiredUsageCalibrationObservations(pool, 0); } catch (e) {
+  try { await purgeWithPool(0); } catch (e) {
     rejectZero = (e as { code?: string }).code === 'usage_calibration_retention_invalid';
   }
   A('G 越界天数 fail-closed：keepDays=0 → throw（TS 侧守门·SQL 侧同域 RAISE）', rejectZero);

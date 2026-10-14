@@ -277,7 +277,8 @@ async function main() {
     detFailed === true && detReplay.action === 'failed' && detReplay.error === 'privacy_fenced_pre_dispatch'
       && detRow?.status === 'failed' && detRow.completed_at !== null);
   const cachedComplete = await asPrincipal(pool, OWNER, async (c) => {
-    const dispatched = await markModelInvocationDispatched(c, OWNER, seedKey, reclaimed.leaseToken!);
+    if (reclaimed.action !== 'execute') return false;
+    const dispatched = await markModelInvocationDispatched(c, OWNER, seedKey, reclaimed.leaseToken);
     if (!dispatched) return false;
     return completeModelInvocation(c, { owner: OWNER, idempotencyKey: seedKey, output: { answer: 'seeded-ok' } });
   });
