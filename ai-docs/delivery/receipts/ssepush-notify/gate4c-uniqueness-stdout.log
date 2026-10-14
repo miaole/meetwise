@@ -1,0 +1,4 @@
+migration_prefix_duplicate_exempt prefix=0143 files=0143_db_id_v7_unify.sql,0143_sse_push_notify.sql
+migration_prefix_duplicate_exempt prefix=0152 files=0152_consent_revoke_grant.sql,0152_resume_soft_delete_fence.sql
+migration_prefix_duplicate_exempt prefix=0160 files=0160_b_qualitative_projection.sql,0160_level_policy_version.sql
+migration_prefix_uniqueness dir=/Users/miaole/Desktop/golucky/meetwise-spn/packages/db/migrations files=201 violations=0 exemptions=0143,0152,0160

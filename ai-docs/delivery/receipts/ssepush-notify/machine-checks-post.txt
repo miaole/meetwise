@@ -1,5 +1,0 @@
-60:const degradedLogs: Array<{ line: string; t: number }> = [];
-61:const originalWarn = console.warn.bind(console);
-66:function triggerMissingLog(): { line: string; t: number } {
-203:  const trigLog = triggerMissingLog();
-242:  const windowMs = healthyAt - triggerMissingLog().t;
