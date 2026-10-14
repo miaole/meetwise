@@ -91,3 +91,9 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 - `mw-e2e-ha`：确认未把 partial 写成 covered；确认 Playwright 标 secondary；确认 G-GAP-* 为诚实钉而非假闭环
 - product sense via e2e：确认 A1/A2 结构面边界（模型语言归 ai-eval）；确认 `ERROR_MESSAGES` zh-only 列为下一刀产品债
+
+---
+
+## 6. 翻面注记（UC003-I18N EXEC · append-only · 上文表行本体零改）
+
+2026-10-14 `line/uc003-i18n` EXEC 落地 UC003-I18N 刀后，同件 prove `apps/web/test/uc-e2e-003-i18n-locale.proof.mjs` 三钉翻面：**G-GAP-1 → S4**（`ERROR_MESSAGES_EN` 20/20 键 parity + en 值 CJK-free + `mapResumeUploadError` locale 参在场 + 上传面五处内联双语载体逐处 en CJK-free；作用域钉死上传面五处，`deleteResumeAction` 四处 zh 零触并在 prove 内有零触守卫针）、**G-GAP-2 → S5**（hot 三件扫描器测前剥离行尾 `//` 注释后分文件断言：view-model 非插值型文案行=0（插值型残留恰 3 行按内容钉=known-residual·裁决⑦）/ interview-state=0 / ocr-preview-ui 非 map 块文案行=0（zh map 留守 co-located+en map 由 S4 接管））、**G-GAP-3 → G3'**（`e2e-ui/uc003-i18n-locale.spec.ts` 具名在册：locale cookie 预置 + DOM CJK 扫描 + `#resume-upload-error` 错误码 en 断言三要素；静态存在性 ≠ DOM 实跑绿，UI 实跑走 `pnpm uc003:i18n-locale-ui:prove`，矩阵 stays partial）。S1–S3 原值零动；EXIT 语义零动（EXIT=0=结构绿≠covered）；§1 G-GAP 表行与「明确不测/BLOCKED」表保留作历史钉原文，实态以本注记为准。

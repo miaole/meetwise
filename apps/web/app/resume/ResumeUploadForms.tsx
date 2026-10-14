@@ -1,11 +1,12 @@
 'use client';
 
 import { type FormEvent, type ReactNode, useState, useTransition } from 'react';
+import { useTranslations } from 'next-intl';
 import { uploadResumeAction, uploadResumeFileAction, type ResumeUploadActionResult } from './actions';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/Spinner';
 import { Textarea } from '@/components/ui/textarea';
-import { resumeFileAccept, resumeFileHelpText, resumeOcrPreviewBanner } from '@/lib/resume/ocr-preview-ui';
+import { resumeFileAccept, resumeFileHelpText, resumeOcrPreviewBanner, type ResumeUploadCopyLabels } from '@/lib/resume/ocr-preview-ui';
 
 type UploadAction = (formData: FormData) => Promise<ResumeUploadActionResult>;
 
@@ -58,11 +59,13 @@ function UploadForm({
 }
 
 export function ResumeUploadForms({ ocrPreview }: { ocrPreview: boolean }) {
+  const tResumeUpload = useTranslations('resumeUpload');
+  const labels: ResumeUploadCopyLabels = (key) => tResumeUpload(key);
   return (
     <>
       {ocrPreview ? (
         <p role="note" className="rounded-md border border-border bg-brand-soft/60 px-3 py-2 text-xs text-ink2">
-          {resumeOcrPreviewBanner()}
+          {resumeOcrPreviewBanner(labels)}
         </p>
       ) : null}
       <UploadForm action={uploadResumeFileAction} button="提取并上传" className="flex flex-wrap items-center gap-3 rounded-md border border-dashed border-border bg-secondary/40 p-4">
@@ -70,7 +73,7 @@ export function ResumeUploadForms({ ocrPreview }: { ocrPreview: boolean }) {
           type="file" name="file" accept={resumeFileAccept(ocrPreview)} required
           className="text-sm file:mr-3 file:rounded-md file:border file:border-input file:bg-background file:px-3 file:py-1.5 file:text-sm file:font-medium"
         />
-        <span className="w-full text-xs text-muted-foreground sm:w-auto">{resumeFileHelpText(ocrPreview)}</span>
+        <span className="w-full text-xs text-muted-foreground sm:w-auto">{resumeFileHelpText(ocrPreview, labels)}</span>
       </UploadForm>
 
       <div className="flex items-center gap-3 text-xs text-muted-foreground"><span className="h-px flex-1 bg-border" />或粘贴文本<span className="h-px flex-1 bg-border" /></div>
