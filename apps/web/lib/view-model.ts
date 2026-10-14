@@ -5,6 +5,19 @@
 import type { InterviewSignalConcludeReason } from '@meetwise/contracts';
 import { isTerminal, type InterviewView } from './stream/interview-state';
 import { generationProgressLabel } from './stream/generation-progress';
+import type { TypewriterCursor } from './stream/token-typewriter';
+
+/**
+ * TOKSTREAM S4b/R6：token 流显示面（UX-A 打字机·纯函数）。无游标=全量缓冲即时显示（组件升级前缺省）；
+ * 有游标=按已揭示量截取（advanceTypewriter 每 tick 预算推进·L3 rAF 批量由 useFrameCoalescedState
+ * 既有桥承载）。终态权威覆盖：终态事件到达即清缓冲 → 本面返回 undefined，权威 question/report 面接管。
+ */
+export function streamingTextDisplay(v: InterviewView, cursor?: TypewriterCursor): string | undefined {
+  const buf = v.tokenBuffer;
+  if (!buf) return undefined;
+  if (!cursor || cursor.attemptKey !== buf.attemptKey) return buf.text;
+  return buf.text.slice(0, Math.max(0, Math.min(cursor.revealedChars, buf.text.length)));
+}
 
 export function signalConcludePracticeCopy(code: InterviewSignalConcludeReason['code']): string {
   if (code === 'early_weak') {

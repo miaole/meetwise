@@ -73,6 +73,20 @@ export const BusinessEvent = z.discriminatedUnion('event', [
   z.object({ event: z.literal('generation_progress'), id: z.number().int(), data: z.object({
     attemptKey: z.string(), stage: z.string().optional(), tokensSoFar: z.number().optional(), elapsedMs: z.number().optional(),
   }).loose() }),
+  // TOKSTREAM S4b(§F 代码块逐字):token_delta=**全表唯一 id optional 成员**——delta 帧一律不带 id
+  // (§C-4 光标防毒:携带数值 id 会污染 interview_event seq 游标=跳行/重放错行);非持久 kind(无
+  // interview_event 行·仅 SSE 传输态);text=生成内容仅传输态(Ban 落持久表·0126 围栏精神);seq gap=
+  // 丢失标记(不死等·§C-5)。decodeSSE/toBusinessEvent 零改——旧前端 unknown→null 丢弃=向后兼容免费获得。
+  z.object({
+    event: z.literal('token_delta'),
+    id: z.number().int().optional(),          // ← 全表唯一 optional 成员:delta 帧不带 id(§C-4 光标防毒)
+    data: z.object({
+      attemptKey: z.string(),
+      seq: z.number().int().positive(),       // (streamKey, attemptKey) 内单调;gap=丢失标记(不死等)
+      text: z.string(),                       // 生成内容·仅传输态·Ban 落持久表(§C-5)
+      coalesced: z.boolean().optional(),      // L1 合帧标记(帧≠供应商 chunk 边界)
+    }).loose(),                               // .loose() 容演进字段(沿 generation_* 成员惯例)
+  }),
   z.object({ event: z.literal('error'), id: z.number().int(), data: z.record(z.string(), z.unknown()) }),
 ]);
 export type BusinessEvent = z.infer<typeof BusinessEvent>;

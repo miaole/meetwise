@@ -48,6 +48,7 @@
     "prove:vision-endpoint-config": "tsx test/vision-endpoint-config.proof.ts",
     "prove:model-client-dispatch": "tsx test/model-client-dispatch.proof.ts",
     "prove:model-client-stream": "tsx test/model-client-stream.proof.ts",
+    "prove:invoke-model-delta": "tsx test/invoke-model-delta.proof.ts",
     "prove:model-usage-cache-observe": "tsx test/model-usage-cache-observe.proof.ts",
     "prove:stitch-validator": "tsx test/stitch-validator.proof.ts",
     "prove:token-coalesce": "tsx test/token-coalesce.proof.ts",

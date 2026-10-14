@@ -6,6 +6,7 @@ import { PrincipalGuard } from '../../platform/principal.guard';
 import { PublicPreviewControlledWriteGuard } from '../../platform/preview-controlled-write.guard';
 import { RateLimitService } from '../../platform/rate-limit.service';
 import { pumpSseEvents } from '../../platform/sse-pump';
+import { getSseNotify } from '../../platform/sse-notify.service';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 
 /**
@@ -270,6 +271,8 @@ export class InterviewController {
         initial,
         fetchMore: (lastSeq) => this.interviews.events(req.principal, id, String(lastSeq)),
         isTerminal,
+        // TOKSTREAM S4b:delta 臂接线(单例同连接第二 LISTEN·零新连接零迁移);quiz/diagnosis 控制器零触(裁决⑤ interview 先行)。
+        deltaSource: (onFrame) => getSseNotify().subscribeToken(id, onFrame),
       });
     } finally { this.rl.releaseSlot(slotKey); }        // 释放并发槽(所有退出路径:断开/终态/超时)
   }
