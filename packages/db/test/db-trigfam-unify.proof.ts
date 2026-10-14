@@ -112,7 +112,11 @@ async function superTry(sql: string, params: unknown[] = [], principal?: string,
     await c.query('BEGIN');
     if (principal) await c.query("SELECT set_config('app.principal_user',$1,true)", [principal]);
     // AG-42 形 A（0176）随锚：scope GUC 可选注入（默认不设=旧调用位零变；双空 GUC 现为 qbank_retrieval_scope_missing 报错）。
-    if (scopeGucs) await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)", [scopeGucs.servingScopeId, scopeGucs.taxonomyVersion]);
+    if (scopeGucs) {
+      await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)", [scopeGucs.servingScopeId, scopeGucs.taxonomyVersion]);
+      // AG39(0187·裁决⑧ setup 注入):owner GUC 随 scopeGucs 补设 platform+空——断言/期望值零改。
+      await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");
+    }
     await c.query(sql, params);
     await c.query('COMMIT');
     return 'OK';
@@ -252,6 +256,7 @@ async function behaviorMatrix(stage: string): Promise<Behavior> {
     try {
       await gucClient.query('BEGIN');
       await gucClient.query(`SELECT set_config('app.qbank_serving_scope','backend/general',true), set_config('app.qbank_taxonomy_version','v1',true)`);
+      await gucClient.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入
       const ann = await gucClient.query(`SELECT count(*)::int AS n FROM qbank_generation_ann_search('none','[1,2,3]'::vector,5)`);
       out.ann.empty_corpus = String((ann.rows[0] as { n: number })?.n);
       await gucClient.query('COMMIT');
