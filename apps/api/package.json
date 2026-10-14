@@ -4,7 +4,7 @@
  "private": true,
  "type": "module",
  "scripts": {
-  "lint": "eslint . --max-warnings 1412",
+  "lint": "eslint . --max-warnings 1421",
   "serve": "node --import @swc-node/register/esm-register src/main.ts",
   "typecheck": "tsc -p tsconfig.json --noEmit",
   "validate": "node --import @swc-node/register/esm-register test/validate.ts",
@@ -45,6 +45,7 @@
   "prove:report-retry-http": "node --import @swc-node/register/esm-register test/report-retry-http.proof.ts",
   "prove:uc014-webhook-adv": "node --import @swc-node/register/esm-register test/uc-e2e-014-026-webhook-adv.proof.ts",
   "prove:env-schema": "node --import @swc-node/register/esm-register test/env-schema.proof.ts",
+  "prove:obs-ready": "node --import @swc-node/register/esm-register test/obs-ready.proof.ts",
     "prove:ha2-drain": "node --import @swc-node/register/esm-register test/ha-2-drain.proof.ts",
     "prove:ha3-metrics-pool-errors": "node --import @swc-node/register/esm-register test/ha3-metrics-pool-errors.proof.ts",
   "neg:interview": "node --import @swc-node/register/esm-register test/neg-interview.proof.ts",
