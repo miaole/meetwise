@@ -92,6 +92,7 @@
 
 0. **改前基线 run（必做·恰 1 次·不计 prove·零 retry 冲销·沿 negbend-fix 件② 先例）**：并主线后改前树 `pnpm -C packages/ai-runtime prove:model-usage-cache-observe`→期望 EXIT=1 **恰 27 绿 1 红·红臂名含「词面恰三处」**（=臂一）——红数≠1 或红臂非臂一→停（机制不满足类）。改前 run 须记录词符实测值（`node -e` 同法·期望 9·≠9→停·现场漂移类）。
 1. **prove 复绿**：`pnpm -C packages/ai-runtime prove:model-usage-cache-observe` EXIT=0·**28/28**（臂数≠28 即停）·改前改后 PASS 名单 diff（`sort|uniq -c` 协议·分母=门 0 改前 run）恰 1 条=臂一翻绿·其余 27 条零变（diff 出第 2 条即停）。
+  > **P2 判据消解注记（post 双审会签 PASS 双认授权·append 注记形不洗·原判据行原文保全）**：实测 2 hunk=臂一翻绿+臂四随件④ 随翻改名（字节恒等）——原『恰 1 条』系未计入本卷件④ 改名效果的措辞缺口·post 席1 裁定授权面内。
 2. **邻面·cost-columns 件② 面不回退**：`pnpm -C apps/worker prove:ag11-settle-relax` EXIT=0 **12/12 臂**（8 既有+ι/κ/λ/μ·臂数≠12 即停）。
 3. **邻面·model-op 族四门**：`pnpm -C apps/worker prove:model-op00-db-state`+`pnpm model-op02:prove`+`pnpm model-op02-endpoint-partition:prove`+`pnpm failover:prove` 全 EXIT=0。
 4. **邻面·neg 六段**：`pnpm neg:all` EXIT=0 **687**（90+90+91+102+179+135·对届时实测·总臂差≠0 如实登记归因）。
@@ -187,6 +188,8 @@
 **停止条件四类全数未触**（现场漂移=六锚+cap+链头+词符 9 全恒等+§0.0 复扫零非残枝触面；机制不满足=门 0 恰 27 绿 1 红臂一+件③ 新断言 GREEN；越界需要=修法恒等恰 1 测试文件面；验收红不可修=十四门全绿）·**§1 红事实结论/§5 Ban/pins 十一值/§8 停止条件四类/§1-修法定稿文本面零改零翻转**。
 
 **STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与批表/行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+
+**P2 勘正注记（nail 随卷·post 双审会签 PASS 双认授权·append 注记形不洗·上段原文保全不动）**：偏离分类归口以收据 §⑤ 四项清单为准。
 
 ---
 
