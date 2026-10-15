@@ -1,6 +1,6 @@
 # CI-WIRING3 REQUEST — 主线五门接线刀（scoring-integrity/tokenstream/stress/uc003:i18n-locale 四门 per-push；件② lint 注释对表刷新已摘除·归属让渡 ci-red-clear；ha6:prove 亲证基线红登记不接线·恰 1 workflow 文件·docs-only 修订卷 rev3·ci-wiring3 战役·修订落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-15 · **rev2 修订同日**：pre-exec 双审双 FAIL 回炉——P1-1=件② 归属对撞（ci-red-clear `b0877528` 在飞持同 lint 注释面→协调方裁决**摘除·归属让渡**）+P1-2=stress 熔断自触（热测 25.9s>3 倍相对线→改绝对预算）+CI `ci` workflow 300 跑零绿铁证→EXEC 立项序写死 ci-red-clear 先行 · **复审维持 awaiting** · 两外席待重派 · **rev3 修订同日**：rev2 窄域复审 FAIL 回炉五项全落（P1=§2-4 纯增行数 16→19 勘正+P2 四则=a §1.3/trailer 预算硬上限口径+b+d 件① stress 注释冷热双口径+c §0.0 ci-red-clear/ha6-repin pin 复核补记）·docs-only 仍恰 1 .md · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已落码落卷 2026-10-15 · 开工链=rev3 窄域复审 PASS `agent_7a80eab2`→协调方明示 EXEC 授权（立项前置=ci-red-clear 已 nail 并线 `0c06033d`）·并线 `1be05b4b`·件①③ 逐字节落码+件④ 收据·门矩阵 11 绿+**门 8 docs:check `PTP_FILE_LIMIT:2137>2136` 红=停止条件「验收红不可修」红停上报·cap 裁决权归协调方·本席零自修**（§9 EXEC 记录+收据 §9-1）·ha6 已重钉转绿登记不接线维持·⛔push · est live=0）
 
 **席位**：ci-wiring3 REQUEST 起草席（诊断已由 CI 对账席在案·本席核验+起草·协调方派；rev2 修订席同席回炉）。
 **基线**：`feat/mysql-schema-skeleton` @ `79382f4d`（fetch 后 origin tip 与本地恒等亲证·UC003-FOLLOWUP nail 收官 SSOT commit）· 分支 `line/ci-wiring3`（建前 `git branch --list "line/ci-wiring*"` 恰 `line/ci-wiring2` 一支·本席 `git worktree add ../meetwise-ciw3 -b line/ci-wiring3 feat/mysql-schema-skeleton` 亲立）· 工作树 `meetwise-ciw3`（仓根同级）。
@@ -173,3 +173,23 @@ rev2 窄域复审判定 FAIL=恰一处 P1+P2 四则·协调方处置清单五项
 - **如实登记（不在本轮处置清单·未改）**：§2-2（:110）存同族「裁入上限×余量硬红线」字样一处（rg 亲证）·语义同族于 P2-a·留复审裁量。
 
 *rev3 处置摘要 · 修订席落卷 · 五项对应协调方处置清单·STOP 维持 awaiting*
+
+---
+
+## §9 EXEC 记录（2026-10-15·执行席落卷·post-prove 双审前）
+
+**Status 翻面**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**（开工链=rev3 窄域复审 PASS `agent_7a80eab2`→协调方明示 EXEC 授权·立项前置=ci-red-clear 并线 `0c06033d` 亲证（`git merge-base --is-ancestor line/ci-red-clear origin/feat/mysql-schema-skeleton` EXIT=0·其 EXEC `bb1627d8` 为 tip 祖先）·⛔push）。
+
+- **并线**：`git merge --no-ff origin/feat/mysql-schema-skeleton`→**`1be05b4b`**（origin tip=`0c06033d`·fetch 后本地与 origin 恒等·merge-tree 预演 tree `01b2caca` EXIT=0 零冲突先证·实测零冲突零 dual-keep 需·卷入 85 文件=ci-red-clear/ha6-repin/batch-residual-plan/perfload-env-fix 等合法落刀·⛔pull --rebase 未用）。
+- **重 pin（对 `1be05b4b` 全 12 锚）**：11 锚 blob 恒等（package.json `3b04b871`/nightly 双件 `ac47e884`+`09cd220a`/run-e2e-isolated `e69e317a`/run-e2e-ui `84f9cd2d`/五 proof 本体+markers 组装件）·ci.yml=`e7d2031a`/**342 行**/verify steps=**98**（=起草卷预描并线后形态逐项恒等·blob 更 pin）·僵尸步 0 命中·scor-parity `:246-:247`/下一既有步 `:248` 锚位逐字命中·唯一漂移=ha6-companion.proof.mjs `d640cc6a`→`740df0a3`（424 行·ha6-repin 合法落刀·本刀零触结论不变·§1.5 对表见下）。
+- **件①**：ci.yml 纯增 15 行逐字节材料化（scor-parity run `:247` 后·「agent 模型可观测」`:248` 前·REQUEST `:78-:92` vs 树内 `:248-:262` `diff` EXIT=0）·steps **98→102**（98+4·新增恰 4 熔断内）·四步恰 name+run 两键·run 值四名对 package.json 注册面 `:495`/`:536`/`:275`/`:215` 恰命中·**剪除新增四步后余 98 步 name 序列对基线逐位恒等**（零错位=既有步零重排零删除）。
+- **件③**：末行 `:342` 后纯增注记恰 4 行逐字节（REQUEST `:99-:102` vs 树内 `:358-:361` `diff` EXIT=0）·ha6 接线前置表述按协调方指令维持（届时已绿不回写·归另批）。
+- **件② 零双写对表**：本刀 diff 删行恰 0·lint 注释块（`:103-:106` 十二值形）零触——其面归 ci-red-clear 已在其 EXEC `bb1627d8` 落主线树·零双写零双删。
+- **件④**：收据 `ai-docs/delivery/receipts/ci-wiring3/00-exec.md`（七字段+红与偏差登记）。
+- **门矩阵十二门终值**：门1 解析 steps=102+剪除恒等 **绿**·门2 四门实跑 **EXIT=0·PASS 恰 23/20/29/7**（scoring 10.220s/tokenstream 18.758s（收据 18311ms）/stress 8.798s 冷（收据 8404ms）/uc003 3.045s（收据 2675ms）·各恰 1 run 零 retry·单步均 ≤56.8s 硬上限）**绿**·门3 ha6 **EXIT=0·75 PASS/0 FAIL**（「少 FAIL=已重钉」臂·26→0 零新增 FAIL·归 ha6-repin 对表·**接线维持不接归另批**）**绿（如实登记）**·门4 邻面 diff 删行恰 0 纯增恰 **19** **绿**·门5 nightly 双件 blob 恒等 **绿**·门6 ui 零接线 1→1 **绿**·门7 typecheck **8/8 EXIT=0**（7 cached·零副产）**绿**·门8 docs:check **红=PTP_FILE_LIMIT:2137>2136 红停上报**·门9 markers 五类零命中 **绿**·门10 diff 面机检 码面恰 1 tracked=ci.yml（19/0）·落卷恰 2+收据 untracked **绿**·门11 卫生（frozen-lockfile EXIT=0 零 lockfile 改+.env* ABSENT+actualSpendCny=null+零模型外呼）**绿**·门12 CI 推 PR 后观察归 pusher/协调方 **移交**。
+- **邻面不回退（协调方加门）**：neg:bend **179/179 EXIT=0**（6.5s）·sse-push:notify **35/35 EXIT=0**（56.651s·收据 56212ms）·tokenstream 20·scoring-integrity 23——四值恰等零回退。**migrate 链 202 头 0202**（+四门收据 manifest count=202 互证）**绿**。
+- **停止条件「验收红不可修」命中登记（Ban 借机修·裁决归协调方）**：门 8 红构成=**并线后基线恰 2136=cap 零余量+件④ 收据 1=2137>2136**。stash 对照亲证：收据移出同树 `check-docs` **EXIT=0·2136≤2136 绿**（本刀 tracked 改动 ci.yml 计数贡献=0）。根因=ci-red-clear sanction cap 2136 时其树实测 2135 余 1，其后主线 `0a787906` 并入 batch-residual-plan.md 恰耗尽余量·件④ 收据（§1-修法钉定路径·受管根下非忽略 .md）必入计无从在 cap 内落卷。本席零自改 cap（cap 史全部协调方 sanction·perfload-env-fix 先例「EXEC 红停 PTP_FILE_LIMIT:2131>2128」同形）·**请协调方裁决上调幅度（最少 +1 至 2137·沿 +8 先例取 2144 可选）**。删收据避红=Ban（件④ 任务书强制产出）。
+- **ha6 已重钉转绿登记（非红非漂移）**：proof blob `d640cc6a`→`740df0a3`（424 行）·`pnpm ha6:prove` **EXIT=0·75 PASS/0 FAIL**·proof 尾注自证 rolling registry active（baseline 8ba93f0b retired 2026-10-14）——§1.5 红名单 26 FAIL→0=「已重钉」臂·对表归 ha6-repin·件①/件③ 登记注记为历史亲证记录逐字节未改。
+- **卫生**：markers 五类零命中（ci.yml diff+本卷+收据改动集 grep·词族运行时组装）·tracked 码面恰 1 路径（ci.yml）·零 lockfile 改·零迁移零 DDL 零依赖升级零产品码·共享 SSOT 零触·隔离容器 6 件次 runner 自清残留 0·est live=0。
+- **pins 十一值零翻**（承 §5 原文）。
+- **STOP=**`executed:awaiting_post_prove_dual`**（post 双审归协调方派·门 8 cap 裁决为其前置事项之一）·本 commit 不预 claim CI 运行结果（门 12 推 PR 后观察归 pusher/协调方）·⛔push**。
