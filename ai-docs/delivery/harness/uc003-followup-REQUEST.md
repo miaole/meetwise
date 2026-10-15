@@ -221,6 +221,38 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **STOP=`executed:awaiting_post_prove_dual`**（EXEC 修法+门矩阵毕·待 post-prove 双审·Ban self-approve·alone≠dual）·⛔push。
 
+### §9.2 pending LIVE 翻绿重跑记录（2026-10-15 · 协调方 wave78 特授权恰 1 次·沿 wave75 UC003-arm4 先例形·loader 方式 b·结果=仍红如实上报勿修饰勿再跑）
+
+**授权与通道**：协调方 wave78 特授权 LIVE 翻绿重跑恰 1 次（§9.1 末「spec 步骤⑤ UI 实跑诚实登记」唯一 pending 项）。Key 双通道在位亲证：仓根 `.env` 含 MODEL_API_KEY（主仓根非本 worktree·grep 计 1）+`~/.meetwise-secrets/load-model-api-key.sh`（`export MODEL_API_KEY="$(tr -d '\n' <…/MODEL_API_KEY)"`·117 字节 Key 文件·指纹 c9bc97e7）。采 loader 方式 b 同 shell 进程 env 注入·零 .env 落盘（runner :2730 注释明文真模型评测禁读开发者 .env·与通道口径自洽）。
+
+**前置并线**：`git fetch`→origin tip 实测 `fb97734c`（≥授权下限）→`git merge --no-ff origin/feat/mysql-schema-skeleton`→**merge `500eb39a`**（ort 零冲突·merge-base=`d0d1bffd` 即并前本支线 tip=主线已含本支线·`git diff HEAD origin/… --stat` 零行=并后 tree 与 origin tip 恒等亲证·131 文件 +25957/−226 全随主线 delta·迁移链 202→**204** 随 0203/0204 在树·cap 2128→**2168**·docs:check 基线 2122→2156）。新立 worktree `meetwise-u4`（`git worktree add`·建前 list+branch 双查）+`pnpm install --frozen-lockfile` 零 lockfile 改（机械前置）。
+
+**恰 1 次 run（零 retry）**：`pnpm uc003:i18n-locale-ui:prove`（=E2E_UI_GREP=UC003-I18N-locale-en E2E_UI_PROJECT=chromium E2E_UI_SKIP_WORKER=1 node scripts/run-e2e-isolated.mjs e2e:ui）→**RUN_EXIT=1·1 failed/1 executed·红**。isolated 栈 boot 正常：PG 容器 meetwise-e2e-71236-1792090516317@127.0.0.1:51049·migrate applied=204·production next build+start :31544·Playwright 单 worker 执行。
+
+**臂账（顺序执行至臂⑤方红·①-④ 全过）**：①locale=en cookie 预置——过；②迁移区 help span CJK-free（`spec.ts:105` 断言）+OCR banner 条件臂——过；③空文件臂 en 错误码 `'Please choose a file to upload'`（`:128/:129`）——过；④/login en 冒烟（`:133-134` Sign up/Log in / Sign up）——过；⑤全页残面清点（`:157:96` `expect(unknown).toEqual([])`）——**红**：22 distinct 文本节点=14 allowlisted+**8 UNKNOWN**。8 UNKNOWN 明细：**7 条** `self.__next_f.push(…)` RSC Flight `<script>` 载荷文本节点（page 骨架/zh metadata/nav 面板/not-found 面/locale switcher/main 内容/messages bundle——含 en messages 内「知面」品牌词与 zh metadata title/keywords/OG 全套）+**1 条** SSR `<title>` 文本节点「简历 · 知面 · 知面 Meetwise」（React 19 将 hoistable title 流入 body 被 TreeWalker 捕获）。根因=`spec.ts:141` `createTreeWalker(document.body, NodeFilter.SHOW_TEXT)` 无 script/style 过滤。
+
+**归因（如实·零产品码零 messages 涉诉）**：本红两类与 **UC003-ARM4-FILTER knife（`746ffaeb`·§1.2 归因 a=7/b=1/c=0）同构同数**（a 类 script 载荷恰 7 条+b 类 meta title 恰 1 条）。该修法三 hunk（头注 scan-scope 口径成文+`resumePageMetaTitle` 具名面+TreeWalker `acceptNode` 对 `script,style` 祖先 FILTER_REJECT·blob `2cc3e5f0`）**现仅在 `line/uc003-arm4-filter` 支线**（tip `5eef925c`·worktree meetwise-u3·其卷已 closed·wave75 LIVE 重跑 EXIT=0 1 passed(2.4s) 先例）——**不在主线亦不在本树**（`git merge-base --is-ancestor 746ffaeb HEAD` EXIT=1 亲证·主线 spec 文件史=200af27e→bfcd3fab→f93b3613 无 arm4 件）。故 pending 翻面清单=**零项翻面**：原「MODEL_API_KEY 缺环境受阻 pending」已解除（Key 在位栈正常 boot 执行至臂⑤），但门本身实测红——pending 转为「红有实据·修法在邻支线待并」态。协调方注意：`line/uc003-arm4-filter` 未来并主线时与本支线在同文件（spec.ts）双侧重改（头注段/allowlist 块/walker 段交叠）·预期冲突需按并集解惯例手解。
+
+**清理**：`apps/web/.next`（450M）+`apps/web/test-results` 用例产物（trace/screenshot/error-context）删除·tracked `test-results/.last-run.json` checkout 回滚基线（沿 arm4 EXEC 副效应处置形）·`git status --porcelain` 净仅余本收据 untracked·PG 容器 runner 自清（docker ps -a 零 meetwise-e2e 残留）。
+
+**收据**：`receipts/uc003-followup/01-ui-live-rerun-wave78.log`（全量 stdout+stderr 123 行·尾行 `RUN_EXIT=1`）。**Status 行零改**（翻面权归协调方·本席仅 append 记录）·⛔push·⛔force push 未用。
+
+### §9.3 收口记录（2026-10-15 · 协调方 wave79 收口授权·并主线+门⑥复跑+pending 翻面·沿 §9.2 先例形）
+
+**并线**：`git fetch`→origin tip 实测 `0036ddd8`（nul-escape-visibility nail 波 tip·≥arm4 码面补录波 `3229360a`=授权下界满足）→`git merge --no-ff origin/feat/mysql-schema-skeleton`→**merge `639a16d9`**（全 hex `639a16d923648aadcdf64207687fcc87465418db`·merge-base=`fb97734c`·ort 策略**零冲突** 14 文件 +536/−13·并前预检两侧改动面**零交叠**：本支线=卷宗+收据 2 files/主线=码面+SSOT 13 files·comm 空集亲证·冲突沿并集解预置未触发·spec 码面 blob **`2cc3e5f0`** 合并树内恒等亲证（`git ls-tree`）·origin tip `--is-ancestor` EXIT=0·⛔pull --rebase 未用·⛔force push 未用）。
+
+**恰 1 次 LIVE 复跑（零 retry·loader 方式 b 同 shell 进程 env 注入·零 .env 落盘）**：`pnpm uc003:i18n-locale-ui:prove`→**RUN_EXIT=0·1 passed (2.2s)·绿**。isolated 栈 boot 正常：PG 容器 meetwise-e2e-8700-1792094553916@127.0.0.1:62379·migrate applied=204·production next build+start :29222·Playwright 单 worker 1.5s。
+
+**臂账（①-⑤ 全过）**：①locale=en cookie 预置——过；②迁移区 help span CJK-free（`:105`）+OCR banner 条件臂——过；③空文件臂 en 错误码 `'Please choose a file to upload'`（`:133`）——过；④/login en 冒烟（`:137-138` Sign up/Log in / Sign up）——过；⑤全页残面清点（`:164` `expect(unknown).toEqual([])`）——**过**：15 distinct 文本节点**全 allowlisted·0 UNKNOWN**（对照 §9.2 红账 22=14 allowlisted+8 UNKNOWN：7 条 RSC Flight `<script>` 载荷节点被 blob `2cc3e5f0` acceptNode `script,style` 祖先 FILTER_REJECT 拒采不再入账·1 条 SSR title「简历 · 知面 · 知面 Meetwise」经具名面 `resumePageMetaTitle` 在册——「filter 在+具名面在」双修复机制实测直证·红账两类逐一闭环）。
+
+**§9.1 pending 翻面声明**：§9.1 末唯一 pending 项「spec 步骤⑤ UI 实跑（环境受阻 MODEL_API_KEY 缺·pending 不虚报）」→ **翻面为绿收口**（本复跑绿有实据·翻面权沿例归协调方·本席如实记账）。
+
+**§9.2 红记录闭环注记**：§9.2 红因（TreeWalker 无 script/style 过滤+title 未具名挂靠）已由主线 **UC003-ARM4 码面补录 `3229360a`**（spec 三 hunk·blob `2cc3e5f0`）兑现并入主线（§9.2 归因「修法在邻支线待并」态就此解除）——本复跑同文件同门实测转绿直证。§9.1/§9.2 两记录**原文保全（append 不洗·本节为唯一增量）**。
+
+**清理**：`apps/web/.next`+`apps/web/test-results` 用例产物删除·tracked 零翻动（`git status --porcelain` 净仅余本收据 untracked·本次 run 零 tracked 副效应）·PG 容器 runner 自清（`docker ps -a` 零 meetwise-e2e 残留）·docs:check 两跑绿（append 后 **EXIT=0 2158** managed ≤ cap 2168/编号落定复跑 **EXIT=0 2158 恒等**·两跑均 ≤ cap 2168·本席亲跑）。
+
+**收据**：`receipts/uc003-followup/02-ui-live-close-wave79.log`（全量 stdout+stderr 47 行·尾行 `RUN_EXIT=0`）。⛔push·⛔force push 未用。
+
 ---
 
 *UC003-FOLLOWUP REQUEST · 2026-10-14 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`3b32b6c8`（全 hex `3b32b6c8066527b77343f8021d13978e6d25f382`·fetch 后 origin tip 同指亲证）· 分支 `line/uc003-followup` · 工作树 `meetwise-u3f`（git worktree add 本起草席立·建前 worktree list+branch 双查不存在）· 立项出处=checklist `:2729` STILL OPEN ④ 五观察面+`spec.ts:73-82` 席2 P2 在树登记+UC003 REQUEST §9.5 P1-1(d)（不自建 SSOT 行·翻面权归协调方）· 防重双对表过（rg EXIT=1 零同名卷）· 红事实五面机证（error.tsx `:8/:9/:10/:12/:13` 五处+digest 插值·Nav `:49-51` 三标签 mw_role 条件·PublicPreviewNav `:10-13/:19/:20` 六面 env 条件·delete 四消息 `:157/:160/:161/:164`+`<status>`/res.status 插值·'中' LocaleSwitcher `:10` 维持）· 行号漂移勘误 `:138/:141/:142/:145`→`:157/:160/:161/:164` 如实在案· messages 7 namespace 194/194 实测（interview 44/resumeUpload 5 与 brief 恰等）· locale 读法沿 UC003 先例（cookie-only+四导出 locale 参 `:112/:117/:129/:137`）· must-not-break 面（S2 194/194·web-logic/public-copy 零改·S1-S5+G3' 现绿·allowlist 其余 10 面零动·守卫针 `proof:134-135` 必迁断言面钉死）· 修法四件+⑤ 明文不动·零迁移·est live=0·markers=0·pins 十一值照抄零翻·门预申明七门+绊线承登+偏差熔断十款（门④ 2120 红停·门⑥ 三值 601/5235/1421 恰等·root 基线红承登沿例）· §8 六裁决项· 基线三门起草席亲跑全过（prove raw/docs:check 2117≤2120/public-copy 14/14）· **rev2 八项处置落卷**（§9·docs:check EXIT=0 2118≤2120 本树亲跑·STOP=awaiting 复审维持）· ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
