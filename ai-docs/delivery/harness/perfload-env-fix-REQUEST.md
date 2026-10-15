@@ -15,6 +15,8 @@
 
 ## §0 现状锚（起草席亲读·file:line+blob 逐条 rg/sed/Read/git hash-object 实测 @`156dd977`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
 
+> **EXEC 重 pin 记录（2026-10-14·pre-exec 双审 BOTH PASS+协调方 EXEC 授权后·对 `b827d1d8`=本线并 `feat/mysql-schema-skeleton`@`3559c5c9` 后 tip 亲证）**：§0.1 全部 8 锚 blob 逐字恒等（`8ac5f942`/`3b04b871`/`c63259c0`/`e69e317a`/`910ff4f8`/`e69420d4`/`af9c3f38`/`bf1af79e`）·master-checklist `:1122`/`:2755`/`:2756` 三锚行号零漂·结论零翻。行号漂移恰 1 处如实改锚：capped-child `--cpus/--memory` 实锚 **`:130-:131`**（起草卷误记 `:137-:138`——该两行实为 `-w`/`-u` 参数·`--cpus`/`--memory` 在 create 数组首两参位 `:130-:131`·表已更）。§0.0 在飞交叠复核亲证：全部 worktree 在飞 `line/*` 分支对 `pnpm-workspace.yaml` 在 `156dd977..branch` 零命中（`feature/*` 旧预览历史分支非在飞·`c3de7fe6` 非 `156dd977` 祖先不属本仓在飞面）。双审 P2 四项随 pin 落：①capped-child 锚 `:130-:131`（本表已更）②候选丁臂数改「八十余脚本（api 89 实测）」（§1.4 已更·api package.json 全 script 键亲数 89）③「run-e2e-isolated 门矩阵内唯一」+HA compose 族旁注 ha-3 `:36`（§1.2 已增）④成本登记行入收据模板（§1-修法 件④ 已增）。
+
 ### 0.0 防重双对表
 
 - 本席建树后 `git worktree list` 无第二 perfload 同名树；`git branch --list "line/perfload*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | rg perfload` 建前零命中→落卷后唯一同名卷=本卷。
@@ -26,7 +28,7 @@
 |---|---|---|
 | `pnpm-workspace.yaml` | `8ac5f942`（17 行） | 仅 packages/catalog/catalogs 三键——**零 supportedArchitectures 零 .npmrc（根 `.npmrc` ls ABSENT 亲证）**＝平台过滤按默认=仅 current 平台物化（本刀修法点） |
 | `package.json`（root） | `3b04b871` | `:148` `"uc018:perf-load:prove"`→`node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw`·`:149` `":raw"`→`node scripts/uc018-perf-load-capped-child.mjs`（三层门链 :132-:135 同形对照=abandon 族宿主面） |
-| `scripts/uc018-perf-load-capped-child.mjs` | `c63259c0`（201 行） | **`:42` `NODE_IMAGE = process.env.UC018_PERF_NODE_IMAGE || 'node:20-bookworm'`（Debian glibc·容器 linux 面）·`:136` `-v ${ROOT}:${ROOT}` 宿主树 bind-mount（同径挂载·pnpm symlink 树容器内可解析）·`:137-:138` `--cpus=2 --memory=4g`·`:147` PGHOST 单点注入·`:148-:154` docker CMD=`node --import @swc-node/register/esm-register test/uc-e2e-018-perf-load.proof.ts`（-w apps/api）＝容器内触发点·`:110-:123` passEnv 无 MODEL_API_KEY 通道（est live=0 承证）** |
+| `scripts/uc018-perf-load-capped-child.mjs` | `c63259c0`（201 行） | **`:42` `NODE_IMAGE = process.env.UC018_PERF_NODE_IMAGE || 'node:20-bookworm'`（Debian glibc·容器 linux 面）·`:136` `-v ${ROOT}:${ROOT}` 宿主树 bind-mount（同径挂载·pnpm symlink 树容器内可解析）·`:130-:131` `--cpus=2 --memory=4g`（EXEC 重 pin 改锚·起草卷误记 `:137-:138`）·`:147` PGHOST 单点注入·`:148-:154` docker CMD=`node --import @swc-node/register/esm-register test/uc-e2e-018-perf-load.proof.ts`（-w apps/api）＝容器内触发点·`:110-:123` passEnv 无 MODEL_API_KEY 通道（est live=0 承证）** |
 | `scripts/run-e2e-isolated.mjs` | `e69e317a`（3189 行） | `:2258-:2259` target 映射 perf-load→`['node', ['scripts/uc018-perf-load-capped-child.mjs']]`（宿主侧 spawn）·`:2217-` 系列其余全部目标 `['pnpm', …]` 宿主直跑（其余全绿与 perf 恒红并存的结构性原因）·`:3056` perf 目标 PG 侧 caps |
 | `apps/api/package.json` | `910ff4f8` | `:41` `prove:uc018-perf-load`＝`node --import @swc-node/register/esm-register test/uc-e2e-018-perf-load.proof.ts`（宿主孪生形）·`:113-:114` devDependencies `"@swc-node/register": "^1.11.1"`+`"@swc/core": "^1.15.43"` |
 | `apps/worker/package.json` | `e69420d4` | `:8-:9`/`:42` swc-node 装载面·`:173-:174` devDeps 同 api（同链第二消费面·本刀零触） |
@@ -57,7 +59,7 @@
 - 过滤默认的仓内成因：根 `.npmrc` ABSENT（ls 亲证）+ `pnpm-workspace.yaml` 无 `supportedArchitectures` 键（blob `8ac5f942` 全文 17 行亲读）→ pnpm 走默认=仅 current 平台。
 - **perf-load 是唯一把 proof 进程放进 linux 容器的目标**：capped-child `:136` `-v ${ROOT}:${ROOT}` 宿主树 bind-mount 进 `node:20-bookworm`（Debian glibc·arm64·`:42`）容器；容器内 Node 经 pnpm symlink 树（同径挂载→symlink 可解析）加载 `@swc-node/register/esm-register`→`@swc/core`→`oxc-resolver`→require 平台绑定→仓 store 仅 darwin 物化→`Cannot find module '@oxc-resolver/binding-linux-arm64-gnu'` **模块加载期同步 throw→EXIT=1**。
 - 崩溃点在 `assertIsolatedTestTarget`（`bf1af79e` `:72-:73`）**之前**＝冻结阈值门未走到断言层（5E 收据 `:26` 同口径亲证）——**环境基建面·非断言非产品行为**，与 5E nail SSOT STILL OPEN ① 登记逐字一致。
-- **对照实证（其余目标全绿与 perf 恒红并存无矛盾）**：其余全部 prove 目标由 run-e2e-isolated.mjs 在**宿主 darwin** 直接 spawn（`:2217-:2259` 系列 `['pnpm', …]`/宿主 `node`）——宿主 darwin 绑定在场→宿主面全绿；唯 perf-load 经 capped-child 进容器→容器面恒红。
+- **对照实证（其余目标全绿与 perf 恒红并存无矛盾）**：其余全部 prove 目标由 run-e2e-isolated.mjs 在**宿主 darwin** 直接 spawn（`:2217-:2259` 系列 `['pnpm', …]`/宿主 `node`）——宿主 darwin 绑定在场→宿主面全绿；唯 perf-load 经 capped-child 进容器→容器面恒红。**run-e2e-isolated 门矩阵内唯一（双审 P2③ 亲证）**：runner 全 target 映射表中容器路由恰 1 条=`:2258-:2259` perf-load→`['node', ['scripts/uc018-perf-load-capped-child.mjs']]`，其余全为宿主 `['pnpm', …]`；`capped-child` 在 runner 内另一次出现 `:1156` 属 file-watch 依赖清单非 spawn 面——本刀修的是门矩阵内唯一容器化目标，宿主面零触碰。**HA compose 族旁注（ha-3 收据 `:36`）**：HA compose proof 面曾沿 ha-2 先例对 bind-mount 容器外科式补 4 linux 包（gitignore 面·不入树）——本刀落 `supportedArchitectures` 后该外科先例面整体为声明式替代覆盖，compose 族后继卷可直接受益（本刀零触 compose/镜像面）。
 - **复红实证（候选乙不可持久的证据）**：2026-10-07 收据实验形（untracked supportedArchitectures 临时追加→attempts 2/3/4 全绿→**按设计立即还原**）＝临时形在场即绿、还原即红的完整对照；fresh worktree 场景复红同签名（出处④ `:69`）。
 
 ### 1.3 proof 侧触发点（诊断问③：何处 require oxc）
@@ -71,7 +73,7 @@
 - **候选甲（采纳）＝安装面声明式修**：`supportedArchitectures` 键入 `pnpm-workspace.yaml`（pnpm 10 canonical 配置位·仓库已验证形逐字照抄出处③ `:32`：os `[darwin, linux]`+cpu `[arm64, x64]`）。效果：宿主物化 darwin+linux 双平台**全部** optional 变体——oxc-resolver/swc/core/tailwind-oxide/esbuild/napi-canvas 等全闭包**一次性**物化（外科逐包补的 whack-a-mole 问题整体消解）；lockfile 零改（变体本已全量登记·出处③ `:33` 实证 `pnpm install --frozen-lockfile` EXIT=0 ≈1m54s）；darwin 绑定共存零铲（ha-2 `:67` 先例=双平台共存宿主 proofs 全绿零破坏）；fresh worktree/CI 重装同形自愈（声明式入树=可持久）。
 - **候选乙（否决·登记先例）＝外科式补包/容器内装**（ha-2 `:67`/ha-3 `:36` 三~四包外科补）：机器本地 gitignore 面操作·不入树·fresh worktree 必复红（§1.2 复红实证）＝不可持久；容器内整树 `pnpm install` 另被 NO_TTY 保险正确拦下（ha-2 `:67` 防铲 darwin 绑定）——方向已由先例否决。
 - **候选丙（否决）＝proof 环境门「缺绑定时 skip-as-known 登记」**：skip-as-pass 形＝Ban（诚实红线）；登记形虽诚实但使冻结阈值门（NHP-018-PERF/LOAD·Method freeze·Ban post-hoc retune·proof 头注释亲读）**永不执行**——perf-load:prove 的存在意义即执行阈值门，登记形＝功能放弃非修复。本刀后若仍环境红，如实登记升级（§8 停止条件承）·Ban 以登记形替代修复。
-- **候选丁（否决）＝换纯 JS resolver 路径**：oxc-resolver 是 @swc-node/register 的**传递依赖**（`:6145`）非可直换件；替换 TS 装载器＝触 api+worker 全部 prove 脚本面（apps/api `:8-:92` 六十余脚本+worker 同面）·爆炸半径不可界·与安装面 8 行配置修完全不成比例。
+- **候选丁（否决）＝换纯 JS resolver 路径**：oxc-resolver 是 @swc-node/register 的**传递依赖**（`:6145`）非可直换件；替换 TS 装载器＝触 api+worker 全部 prove 脚本面（apps/api 全 script 键亲数 **89**＝八十余脚本+worker 同面更大·双审 P2② 改锚）·爆炸半径不可界·与安装面 8 行配置修完全不成比例。
 
 ## §1-修法（权限链修复刀·预期恰 1 配置文件码改·零迁移零产品码零 proof/runner 文件改动）
 
@@ -97,7 +99,7 @@
   ```
   （任一 grep 计数偏离/lockfile 出 diff→「机制不满足」停止条件·`.pnpm` 目录命名以 pnpm 10.18.0 实测为准·模式按 `@oxc-resolver`/`@swc` 面宽匹配计数）
 - **件③（prove·attempts 全台账·恰终态 1 绿）**：`pnpm uc018:perf-load:prove`——fresh 隔离 PG per attempt（per-run 随机容器+动态端口+token GUC 惯例零改）·**attempts 全台账不弃单**：env 红如实归因沿 `:1122` 先例协议（1,0,0,0 形·环境层归因须附日志摘证）；行为红（断言/阈值 miss）**Ban retry 冲销**；终态要求 EXIT=0（`SUMMARY allPass=true capsEnforced=true`）+ 终 run machine receipt 与 `_caps-evidence.json`（enforced=true）嵌入收据。容器内零模型外呼（passEnv `:110-:123` 无模型 Key 通道·est live=0）。
-- **件④（收据）**：`ai-docs/delivery/receipts/perfload-env-fix/00-exec.md`——七字段（门矩阵全表+EXIT 原值+attempts 台账+件② 材化断言回执+diff numstat+重 pin 全表+pins 零翻声明）。
+- **件④（收据）**：`ai-docs/delivery/receipts/perfload-env-fix/00-exec.md`——七字段（门矩阵全表+EXIT 原值+attempts 台账+件② 材化断言回执+diff numstat+重 pin 全表+pins 零翻声明）+**成本登记行（双审 P2④·三值据席2 实测）**：生产镜像 **+~185MB**／CI 冷跑 **+0.65-1.3GB 每次**／宿主 store 一次性 **+1.6-2GB**（双平台物化面一次性成本·CI/fresh worktree 因 store 共享可摊薄）。
 
 ## §2 验收门矩阵（pre-exec 双审核对单基面·十门·数字口径以实测为准·偏差熔断阈值明示）
 
@@ -146,6 +148,22 @@
 - **越界需要**：修法诉求超出 `pnpm-workspace.yaml` 单文件面（需触 proof/runner/lockfile/产品码/镜像/CI/assert 白名单）→ 停·另刀或协调方裁决（§3 全清单沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻面 neg:abandon 红·lint 五值漂移·docs:check>2128·typecheck 红）→ 停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 记录（2026-10-15·执行席落卷·post-prove 双审前）
+
+**Status 翻面**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**（开工链=双审席1 `agent_2c63fc07`+席2 `agent_187f6195` BOTH PASS→协调方 EXEC 授权·⛔push）。
+
+- **并线**：`git merge --no-ff feat/mysql-schema-skeleton`→**`b827d1d8`**（origin tip=`3559c5c9`·merge-base `156dd977`·merge-tree 预演 tree `9e48b77c` EXIT=0 零冲突先证·实测零冲突零 dual-keep 需·⛔pull --rebase 未用）。§0.0 在飞交叠复核亲证零命中（在飞 `line/*` 分支对 `pnpm-workspace.yaml` 零新增提交）。
+- **重 pin**：对 `b827d1d8` 全 8 锚 blob 逐字恒等·行号漂移恰 1（capped-child `:137-:138`→**`:130-:131`**·P2① 已更 §0.1）·双审 P2 四项全落卷（§0 重 pin 记录块+§1.2+§1.4+§1-修法 件④）。
+- **件①**：`pnpm-workspace.yaml` +8/-0（supportedArchitectures os `[darwin,linux]`+cpu `[arm64,x64]`·验证形逐字·既有 17 行零字节改）。
+- **件②**：重装 EXIT=0（16m33.8s）·材化四断言全绿：oxc darwin-arm64 恰 1+oxc linux-arm64-gnu 恰 1+swc core-linux-arm64-gnu 恰 1+`git diff --exit-code pnpm-lock.yaml` EXIT=0（零 lockfile 改）。
+- **件③**：`pnpm uc018:perf-load:prove` **EXIT=0 attempts 恰 1 零 retry**·`SUMMARY allPass=true capsEnforced=true`·`_caps-evidence.json` enforced=true blocker=null·machine receipt+7 件机检落 `ai-docs/delivery/receipts/uc018-perf-load/`（proof 设计 TRACKED_DIR·史上有绿故首现）·改前环境红基线在册不洗（:2755 ⓜ/:2756 ①）。
+- **件④**：收据 `ai-docs/delivery/receipts/perfload-env-fix/00-exec.md`（七字段+§7 成本登记行三值+§6 红与偏差登记）。
+- **门矩阵十门终值**：门1 prove 翻绿**绿**·门2 neg:bend **179/179 EXIT=0 绿**（runner 隔离行使·直跑形缺宿主 env 红为取道缺配如实记 §6-3）·门3 abandon **EXIT=0 绿**·门4 migrate 链 202 头 0202 **绿**·门5 drift 零漂+uniqueness files=202 violations=0 **绿**·门6 typecheck 8/8 0 cached **绿**·门7 lint 12/12 五值恰等 web 601/root 5235/api 1421/worker 954/ai-runtime 628 全 0 errors **绿**·门8 docs:check **红=PTP_FILE_LIMIT:2131>2128（+本收据 2132）红停上报**·门9 markers 五类零命中 **绿**·门10 diff 恰 2 tracked 路径+零 lockfile 改+.env* 三查 ABSENT+actualSpendCny=null+est live=0 **绿**。
+- **停止条件「验收红不可修」命中登记（Ban 借机修·裁决归协调方）**：门 8 红构成=基线 2124（stash 对照亲证 clean `b827d1d8` **2124≤2128 EXIT=0 绿**·本席 tracked 改动计数贡献=0）+件③ 强制机检 7+件④ 收据 1=**2132>2128**。根因=sanctioned cap 对「merge 漂 +1+prove 首绿机检件 +7」无预算（起草底值 2122 预期落卷 2123 无从预见首绿产出）·本席零自改 cap（cap 史全部协调方 sanction·先例「EXEC 红停 2081>2080」同形）·**请协调方裁决上调幅度**（最少 +4 至 2132·沿 +8 先例取 2136 头空可选）。
+- **门 3 臂数偏差登记**：题面 46→实测 **33 PASS/0 FAIL/EXIT=0**——proof 本体在基线内 `5b1208a1`（5E 二十面测试改形·`156dd977` 祖先亲证）已改形至 33 `A()` 臂·起草卷照抄旧 SSOT 行未复测·门本体绿·钉漂移如实上报。
+- **卫生**：markers 五类零命中（9 件+收据复扫）·tracked 恰 2 路径（`pnpm-workspace.yaml`+本卷·typecheck 触发 `tsconfig.tsbuildinfo` 副产已还原如实记）·零 lockfile 改·零迁移·proof/runner/caps/assert 产品面零触·共享 SSOT 零触·est live=0·actualSpendCny=null。
+- **pins 十二值零翻**（承 §5 原文·翻绿外推禁令沿承·PERF/LOAD stays local partial）。
+
 ---
 
-*PERFLOAD-ENV-FIX REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`156dd977` · 分支 `line/perfload-env-fix` · 工作树 `meetwise-ple`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=5E nail SSOT STILL OPEN ①（master-checklist :2756/:2755/:1122）+2026-10-07 收据（:26 归因+:28-:37 untracked 验证形）+fresh worktree 复红实证 · 红根因=`@swc-node/register@1.11.1`（api :113/worker :173 devDep）→`oxc-resolver@11.21.3`（lockfile :6145）→`@oxc-resolver/binding-*` 19 变体（:1331-:1421）经 pnpm optional 平台过滤宿主 darwin 只物化 darwin 枚·perf-load 唯一容器化 proof（capped-child :136 bind-mount+:42 node:20-bookworm+:148-:154 swc-node 装载）在 linux 容器内模块加载期崩·断言层未达·环境基建面 · 修法=候选甲 supportedArchitectures 声明式入 pnpm-workspace.yaml（验证形逐字照抄·+8 行·lockfile 零改·darwin 共存·fresh worktree 自愈）·候选乙外科补/容器装（不可持久）候选丙 skip-as-known（Ban skip-as-pass·阈值门弃执行）候选丁换纯 JS resolver（爆炸半径不可界）全否决在卷 · 门矩阵十门（perf-load 翻绿+neg:bend 179/179 邻面+uc018:abandon 邻面+migrate 链 202 头 0202+drift/uniqueness+typecheck 8/8+lint 五值承登+docs:check≤2128+markers+diff 面机检卫生）· 迁移预期零 · est live=0 · markers=0 · pins 十二值照抄+翻绿外推禁令 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*PERFLOAD-ENV-FIX REQUEST · 2026-10-14 起草 · 2026-10-15 EXEC 落卷 · 起草 base `feat/mysql-schema-skeleton` @`156dd977` · EXEC 线 tip=`b827d1d8`+本卷 · 分支 `line/perfload-env-fix` · 工作树 `meetwise-ple`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=5E nail SSOT STILL OPEN ①（master-checklist :2756/:2755/:1122）+2026-10-07 收据（:26 归因+:28-:37 untracked 验证形）+fresh worktree 复红实证 · 红根因=`@swc-node/register@1.11.1`（api :113/worker :173 devDep）→`oxc-resolver@11.21.3`（lockfile :6145）→`@oxc-resolver/binding-*` 19 变体（:1331-:1421）经 pnpm optional 平台过滤宿主 darwin 只物化 darwin 枚·perf-load 唯一容器化 proof（capped-child :136 bind-mount+:42 node:20-bookworm+:130-:131 caps+:148-:154 swc-node 装载）在 linux 容器内模块加载期崩·断言层未达·环境基建面 · 修法=候选甲 supportedArchitectures 声明式入 pnpm-workspace.yaml（验证形逐字照抄·+8 行·lockfile 零改·darwin 共存·fresh worktree 自愈·**EXEC 已落码翻绿实证**）·候选乙外科补/容器装（不可持久）候选丙 skip-as-known（Ban skip-as-pass·阈值门弃执行）候选丁换纯 JS resolver（爆炸半径不可界·api script 键 89 实测）全否决在卷 · 门矩阵十门 EXEC 终值=8 绿+门 8 cap 红（红停上报·裁决归协调方）+门 3 臂数 33 偏差登记 · 迁移零 · est live=0 · markers=0 · pins 十二值零翻+翻绿外推禁令 · 停止条件「验收红不可修」命中登记 · **`executed:awaiting_post_prove_dual`** · ⛔push*
