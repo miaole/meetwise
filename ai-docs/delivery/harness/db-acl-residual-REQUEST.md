@@ -171,7 +171,7 @@ ciw2 时点基线红（归置卷 ：25）→批5b 迁移簇 EXEC `7152cd3c` **�
 | 10 | lint 五值恰等 | **EXIT=0 · web 601 / root 5235 / api 1421 / worker 954 / ai-runtime 628 全恰等 · 全域 0 errors · 零第六值** |
 | 11 | docs:check | **EXIT=0 · scanned 2149 ≤ cap 2152**（cap=`public-text-policy.mjs:90` 主线 `591d07cf` sanction 落值·终值含件③收据面·余量 3） |
 | 12 | markers 五类 | **零命中**（改动集 2 tracked 词面运行时组装扫描·沿 `i6-239-gates.proof.mjs:151-163` 形·EXIT=0） |
-| 13 | diff 面机检 | **恰 2 tracked**=`packages/db/test/db-acl2.proof.ts`（+76/−39）+本卷 .md（+9/−4）+收据目录 untracked（件③·零多 tracked） |
+| 13 | diff 面机检 | **恰 2 tracked**=`packages/db/test/db-acl2.proof.ts`（+76/−39）+本卷 .md（+48/−5）+收据目录 untracked（件③·零多 tracked） |
 | 14 | 卫生 | **`pnpm install --frozen-lockfile` EXIT=0 lockfile 零改 · `.env*` ABSENT 双向记录 · 零模型外呼（est live=0·两 proof 均无 key 隔离容器机械断言）· `apps/web/tsconfig.tsbuildinfo` 运行翻动 checkout 归位不入 commit（cost-columns 先例形）· `actualSpendCny=null`** |
 
 **pins 零翻声明**：§5 十一值+`actualSpendCny=null` 脚注全数照抄零翻转。**偏离清单**：①门 8 neg:all 裸命令形缺 PG env 红（环境供给面·runner 形绿·如实登记非就地处置）②门 2 db-acl:prove 两跑全绿账（首跑 EXIT 码丢失于管道·复跑捕获·两跑均绿）③§0.1 run-e2e-isolated.mjs blob 漂移重 pin（主线合法并线·非本刀触）④门 11 cap 联动 2144→2152（主线 sanction 已落值·本卷 §0.1 行随更）——四项均如实登记·零停止条件触发。**件③ 收据**：`ai-docs/delivery/receipts/db-acl-residual/00-exec.md`（untracked·七字段）。**STOP → `executed:awaiting_post_prove_dual`**（待 post-prove 双审·Ban self-approve·alone≠dual·⛔push）。
