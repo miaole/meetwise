@@ -205,3 +205,5 @@
 2. **docs:check 届时基线实测**：merge 后终树实测值承登 §9 门 4（预期≤cap 2160）。
 3. **worktree 计数重 pin**：起草时 25 树→**26 树**（`git worktree list` 实测·+1=本刀 `meetwise-u3`·uc003 同名树仍恰 1）。
 4. **spec 触分支计数重 pin**：起草时 42→**44**（本支线本地分支口径 `git branch` 逐支 `git log -1 -- <spec>` 实测）·44 支 spec 触顶全数 HEAD `c5d9f77a`/origin tip `317ea3df` 祖先（`merge-base --is-ancestor` 逐支扫描零非祖先）=**§0.0 在飞交叠复核重跑零在飞新触**·停止条件「现场漂移」未触。
+
+**§9-R 翻绿重跑记录（append 一行·2026-10-16·授权链=协调方 wave75 特授权「恰 1 次翻绿重跑·前红=环境供给非断言红·非 retry-to-green 凑绿」）**：Key 供给=**方式 b**（`source ~/.meetwise-secrets/load-model-api-key.sh` 注入进程 env·LIVE 协议 U1 loader 先例通道·零 worktree `.env` 落盘·零 tracked 触碰）→`pnpm uc003:i18n-locale-ui:prove` **恰 1 run·EXIT=0 绿**（`1 passed (2.4s)`·chromium 单测全臂链）·**臂①②③④ 全绿零影响·⑤全页清点 15 条 distinct CJK 节点全 `[allowlisted]`·UNKNOWN=0 归零**（b 类 `简历 · 知面 · 知面 Meetwise` 在册=resumePageMetaTitle 收编兑现·7 条 a 类经 script/style TreeWalker filter 出清）·**§1.2 归因 a=7/b=1/c=0 由未证态转证实**·runner 全链过 pre-flight（next build→production start→Playwright）·运行副效应零（`git status --porcelain` 空·tsbuildinfo 未翻动·PG 容器零残留·日志零失败标记）·门 1 主门红转绿·STOP 裁决与 post 双审派席权归协调方 · ⛔push
