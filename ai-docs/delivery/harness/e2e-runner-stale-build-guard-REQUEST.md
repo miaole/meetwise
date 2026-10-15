@@ -1,0 +1,289 @@
+# E2E-RUNNER-STALE-BUILD-GUARD REQUEST — run-e2e-ui.mjs 防再发微刀（件① stale-build guard=BUILD_ID mtime<HEAD commit time 强制重建·件② web-build 扣留输出非零退出落盘 .tmp/e2e-ui-build-log·恰 1 tracked 代码文件·e2e-ui 零回归·起草落卷即停）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停·pre-exec 双审两外席待派·alone≠dual·Dual PASS ≠ 开工·⛔push）
+
+**席位**：E2E-RUNNER-STALE-BUILD-GUARD 起草席（诊断+起草双责·协调方派·⛔push⛔merge 主线）。
+**基线**：`feat/mysql-schema-skeleton` 主线 tip=`77ba32ab`（origin tip 亲证恒等·fetch 后 `git log --oneline -1 origin/feat/mysql-schema-skeleton` 亲读·任务书锚「origin tip≥77ba32ab」等值满足）· 分支 `line/e2e-runner-stale-build-guard`（建前 `git branch --list "line/e2e-runner-stale*"` 零命中·本起草席 `git worktree add ../meetwise-sbg -b line/e2e-runner-stale-build-guard` 亲立·建后 `git reset --hard 77ba32ab` 钉 origin tip 亲证）· 工作树 `meetwise-sbg`（仓根同级）。
+**立项出处**：
+1. **协调方派单 brief**（2026-10-14·E2E-RUNNER-STALE-BUILD-GUARD 防再发微刀战役）：复跑席实证双改进候选=①**stale-build guard**（BUILD_ID mtime 早于 HEAD commit time→告警+强制重建·或保守形告警不强制·择一定稿）②**构建 stderr 落盘**（runner 内嵌 next build 非零退出时扣留的 stdout/stderr 只计数不落盘·诊断盲区）·工序=读码定稿→起草 REQUEST（§0 锚表·§1 修法两件·§1.3 候选否决·§2 门矩阵含 runner 自证·§3 Ban 面·§5 pins·§8 停止条件·STOP=`draft:awaiting_pre_exec_dual` 三处）→自检落卷 commit（⛔push）。
+2. **事故登记（UC003 门⑥陈旧产物）**：`.next/BUILD_ID` mtime 早于 UC003 接线 4 天·runner「BUILD_ID 在即不重建」单一判据（`scripts/run-e2e-ui.mjs:190-191` recorded-blocker 注）→ `next start` 服务陈旧构建→**假红**被当真红追查。事故现场具体天数系派单口径·本席未独立复核当时现场（已不在本基线树）——判据本体（mtime<HEAD time→强制重建）不依赖具体天数·按机制采纳（§0.2-1 如实登记）。
+3. **复跑席实证（件② 直接动因）**：web-build 非零退出时扣留输出**只计数不落盘**（`tailAppend` :88-91 计 chunks/bytes·`emitFailureDiagnostics` :92-96 仅打印 `E2E_PROCESS_OUTPUT_WITHHELD … chunks=9 bytes=3014` 形）·**9 chunks/3014B 不可回收**·靠手动同 env 复现才定位——诊断盲区亲历实证。
+4. **形制范本**：`ai-docs/delivery/harness/cache-observe-repin-REQUEST.md`（§0-§9 全形制·STOP 三处·§2「数字口径以实跑实测为准+偏差熔断」纪律）·`ai-docs/delivery/harness/negbend-fix-REQUEST.md`（改前必做 run 先例·停止条件四类措辞）。
+
+**必读清单（EXEC 开工前逐件亲读·显式路径）**：`AGENTS.md`（总则+生成前门禁）·本卷·`scripts/run-e2e-ui.mjs` 全文（248 内容行·wc -l 口径）·`scripts/e2e-platform/secret-redaction.mjs`（RUNNER_WITHHOLD/LOG_LEAK 契约——修法形约束源）·`scripts/e2e-static-guards.mjs`（runner 形制守卫段）·`scripts/run-e2e-isolated.mjs` :3013-:3051（.tmp 落盘先例）·`scripts/withheld-output.mjs`（label_bytes 合同）·`ai-docs/delivery/harness/cache-observe-repin-REQUEST.md`（形制范本）。
+
+## §0 现状锚（起草席亲读·file:line/blob 逐条 Read/rg/wc/git rev-parse 实测 @`77ba32ab`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+### 0.0 防重双对表 + 在飞交叠复核
+
+- `git branch --list "line/e2e-runner-stale*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | grep "stale-build\|e2e-runner"` 建前零命中→落卷后唯一同名卷=本卷。
+- **在飞交叠全支线扫描（本席亲跑·对 `scripts/run-e2e-ui.mjs` 单径·`git log -1 <branch> -- <径>`+`merge-base --is-ancestor` 全 150+ 本地支线）**：非祖先命中若干·**支线顶触提交全部为 HEAD 祖先或远古残枝**——最近者 `91c04145`（2026-10-11·9 支线共指·**`git merge-base --is-ancestor 91c04145 HEAD` EXIT=0 亲证已在主线**=e2e-assert-refresh EXEC 落卷·内容经后续并线吸收）；其余顶触 `057701c4`(2026-10-02)/`cc8050d5`(2026-09-23)/`7da29707`(2026-09-04)/`e621235b`(2026-08-18)/`c3de7fe6`(2026-08-14) 全早于本波战役并已吸收或属 backup/feature 远古残枝（backup/*·codex/fix-cd-*·feature/ecs-* 等·判据沿 cache-observe-repin §0.0=对径支线顶新增提交日期晚于基线方计作在飞触面·全部不满足）。**零非残枝在飞触面。EXEC 立项日必做重扫**：任一支线顶对 `scripts/run-e2e-ui.mjs` 存在基线后新增提交→触停止条件「现场漂移」停手上报。
+
+### 0.1 blob 锚表（`git rev-parse --short=8 77ba32ab:<path>` 亲算·base=@`77ba32ab`）
+
+| # | 文件 | base blob | 关键行锚 |
+|---|---|---|---|
+| 1 | `scripts/run-e2e-ui.mjs` | `84f9cd2d`（248 内容行·wc -l 口径·末行无换行差异注明） | **:5-6 头注**（:6「已有生产构建则不重建(构建太慢)」）；**:8-10 imports**（:8 `import { spawn } from 'node:child_process';`·:10 `import { readFileSync, existsSync, mkdirSync } from 'node:fs';`）；**:15** `ROOT`（尾带 `/`）；**:86-96 扣留机制段**（:87 `processDiagnostics` Map·:88-91 `tailAppend` 只计数 chunks/bytes 不存内容·:92-96 `emitFailureDiagnostics` 仅打印 `E2E_PROCESS_OUTPUT_WITHHELD process=<n> chunks=<c> bytes=<b>`）；**:97-109 spawnProc**（`forwardOutput=true` 缺省·非 E2E_VERBOSE 下输出不透传）；**:138-139** REG/`NEXT_BIN`；**:190-208 BUILD_ID 检查段+内嵌 build 调用段**（详 §1.1）；**:202-207 非零退出臂**（`emitFailureDiagnostics()`→`emitE2EFailure({class:'frontend',code:'web_not_ready'})`→exit）；**:210-217 next start spawn**；**:228-234 playwright spawn**（forwardOutput=false+显式 forward） |
+| 2 | `scripts/e2e-platform/secret-redaction.mjs` | `2e51284c` | :19 `SENSITIVE` 词表（token/Authorization/audioBase64/contentBase64/MODEL_API_KEY/PAY_PROVIDER_SECRET/AUTH_SECRET）·:20 `LOG_LEAK` 正则（console 行含敏感词即 `log_leaks_secret`）·:22-26 `RUNNER_WITHHOLD` 含本 runner·:52-59 合同检查=源须含 `E2E_PROCESS_OUTPUT_WITHHELD`/`withheldOutputSummary`/`label_bytes=` 之一否则 `child_output_must_be_withheld_as_byte_counts` |
+| 3 | `scripts/e2e-static-guards.mjs` | `01127803` | :35-43 `REQUIRED_E2E_RUNNER_PATHS` 含本 runner·:141-142 IMPORT/CALL 正则（`assertNoFakeServiceFlags` import+call 恒在）·:267/:283-284 `scanFakeServiceGuards` 对每 runner 断言 |
+| 4 | `scripts/run-e2e-isolated.mjs` | `0787a7ff` | :3013-3014 `.tmp/sole-stack-receipts` mkdir `0o700`·:3050-3051 `writeFileSync` mode `0o600`+partial+`renameSync`——**本刀件② 落盘形先例** |
+| 5 | `scripts/withheld-output.mjs` | `caefe488` | :6-9 `withheldOutputSummary` 只出 `label_bytes=N`（禁 preview/hash/slice·:143/:305 上游守卫钉死）——件② **不**改此模块·不 经此落盘 |
+| 6 | `.gitignore` | `b84e2b41` | :15 `.tmp/`（件② 落盘目录天然 gitignored·零 .gitignore 改） |
+| 7 | `package.json` | `3b04b871` | :217 `uc003:i18n-locale-ui:prove`（`E2E_UI_GREP=UC003-I18N-locale-en E2E_UI_PROJECT=chromium E2E_UI_SKIP_WORKER=1 node scripts/run-e2e-isolated.mjs e2e:ui`）·:342 `e2e:ui` |
+| 8 | `scripts/ai-docs/public-text-policy.mjs` | — | :92 `MAX_FILES = 2_160`（cap·sanction `317ea3df`）·本刀零自升 |
+| 9 | 迁移链 | 204 文件·头 `0204`（cache-observe-repin 卷 §0.1 #6 口径） | 本刀**零迁移**·链深对届时实测 |
+
+### 0.2 口径登记（派单/上游口径漂移如实改正·问=答）
+
+1. **「mtime 早于接线 4 天」数字口径**：派单 brief 事故叙事·本席未独立复核当时现场（现场已不在基线树）——本刀判据为机制形（mtime<HEAD commit time 即陈旧·见 §1-修法件①）·不锚定任何具体天数·4 天叙事仅作立项出处存档。
+2. **「runner 是 .mjs 脚本·可否 node 直测自证」问=定稿答（本卷最重要勘验）**：**两路直测均不可行**——①整 runner 直跑（`node scripts/run-e2e-ui.mjs`）**不可达 BUILD_ID 段**：:46 `E2E_ISOLATED !== '1'` 即 throw `e2e_ui_isolation_required`、:53 缺 `MODEL_API_KEY` 即 throw、过此二者后 :146 起真启 api/worker 子进程·BUILD_ID 段在 :192 **后置**·无 docker DB 必 `web_not_ready` 早退；②**import 级单测不可行**：:16-67 顶层 side-effect（env 回灌/isolation throw）import 即执行即 throw。故自证定稿=**源级守卫断言（对真文件）+守卫决策/落盘副本直测（同构判定式 node -e 评估·伪造旧 BUILD_ID mtime→重建路径断言）**双件合成（§2-2 全命令）·副本强度局限（副本≠import·源级断言锚定源面同构）如实登记。
+3. **cap 现值**：2160（sanction `317ea3df`·public-text-policy.mjs :92）·起草基线树 `node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2153** 本席亲跑——落卷后预期 **2154**（+本卷 1）≤2160 ✓（余量 6·cap sanction 权归协调方·Ban 自升）。
+4. **static-guards 直跑形态亲证**：`node scripts/e2e-static-guards.mjs` 改前树 EXIT=0 本席亲跑（门 0/门 3 可直接复制）。
+
+## §1 红事实（读码定稿·机制链·全部亲证 @`84f9cd2d`·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
+
+### 1.1 落点一：BUILD_ID 检查段（件① 现行为·:190-208 逐字亲读）
+
+- :190-191 注释钉死现行为——`// Recorded blocker: next start with no production build → web_not_ready.` + `// Build only when BUILD_ID is absent. Do not rebuild a tree that already has one.`
+- :192-193 判据**单一**：`const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';` + `if (!existsSync(nextBuildId)) {`——**存在即不重建·对产物新鲜度零检**（mtime/内容/构建时 commit 身份三路全无）。陈旧构建（如事故态：BUILD_ID 在·但早于接线 4 天）照走 :210-217 `next start` 直接服务 → 假红。此即事故机制链的全部必要环节。
+- :195-201 内嵌 build 调用（缺 BUILD_ID 臂）：`spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {PORT…API_BASE_INTERNAL…NEXT_PUBLIC_API_BASE…E2E_UI_STRESS:'1'})` → `const buildCode = await new Promise((res) => build.on('exit', res));`
+- :202-207 非零退出臂：`if (buildCode !== 0 || !existsSync(nextBuildId)) { emitFailureDiagnostics(); emitE2EFailure({ class: 'frontend', code: 'web_not_ready' }); cleanup(); process.exit(buildCode && buildCode !== 0 ? buildCode : 1); }`——诊断面=仅 emitFailureDiagnostics 计数（见 1.2）·**零内容回收路径**。
+
+### 1.2 落点二：tailAppend 扣留机制段（件② 现行为·:86-109 逐字亲读）
+
+- :87 `const processDiagnostics = new Map();` :88-91 `tailAppend(name, chunk)` 只累加 `{chunks, bytes}`（`Buffer.byteLength(String(chunk))`）·**chunk 文本即刻丢弃**——全 spawn 面（api/worker/web-build/web）一视同仁扣留。
+- :92-96 `emitFailureDiagnostics()` 失败时仅 `console.error('E2E_PROCESS_OUTPUT_WITHHELD process=… chunks=… bytes=…')`——复跑席亲历「9 chunks/3014B」即此行输出·内容不可回收·唯一救济=手动同 env 重放（非自动化·非证据面）。
+- 契约约束（修法形边界·亲证）：`scripts/e2e-platform/secret-redaction.mjs` :52-59 要求本 runner 源**恒含** `E2E_PROCESS_OUTPUT_WITHHELD`（或等价）→件② **不得**改为实时透传（候选戊 §1.3）·落盘只能走**非零退出时的保留尾缓冲**旁路。
+
+### 1.3 修法候选淘汰登记（防 EXEC 期重开）
+
+- **件①候选甲（否决）=保守形告警不强制**：`console.warn` 后照旧服务既有构建——告警依赖人读 CI 日志·事故面恰是陈旧信号无人看·假红代价（门矩阵误判+人工复跑+错诊方向）≫重建耗时（数十秒级）·且强制形使门语义自洁。**本刀定稿=强制重建形**（协调方 brief 同推荐）。
+- **件①候选乙（否决）=抽独立纯函数 helper**（如 `scripts/e2e-ui-build-guard.mjs`）换 import 级单测：+1 tracked 代码文件破本刀恰 1 代码面·且 runner 现形（tailAppend/spawnProc）同为内联内聚·自证走源级断言+副本双件（§2-2）已足·否决。
+- **件①候选丙（否决）=BUILD_ID 内容级哈希比对**（构建时 commit 树哈希入产物）：Next.js 不暴露 build 输入哈希·需包装产物 manifest=跨面改·mtime 地板已覆盖事故形态（陈旧 4 天）·留作后继刀·否决。
+- **件①候选丁（否决）=每次全量重建**（去 exists 短路）：常态重建耗时无谓·guard 形只在陈旧时重建·否决。
+- **件②候选戊（否决）=web-build 输出取消扣留实时透传**：破 secret-redaction RUNNER_WITHHOLD 合同（`child_output_must_be_withheld_as_byte_counts`）+未消毒子进程输出直冲 CI 日志面·否决。
+- **件②候选己（否决）=落盘仓外 OS temp**：诊断产物离仓不可随树追溯·`.tmp/` 已 gitignored 且仓内落盘有先例（:62 g7-ledgers·run-e2e-isolated.mjs :3013-:3051 0o700/0o600）·否决。
+- **件②候选庚（否决）=构建成功也落盘**：非零退出才有诊断价值·成功落盘徒增磁盘面与误读面·定稿=仅失败落盘。
+
+## §1-修法（恰 1 tracked 代码文件 4 编辑·**以下定稿文本 ⛔ 不得更改——EXEC 逐字节照抄·Ban 自由发挥**·行号系起草基线锚·并线漂移以内容锚 rg 定位·禁按行号自上而下套用）
+
+- **件①-a（imports·:8/:10 两行整行替换）**：
+```js
+import { spawn, spawnSync } from 'node:child_process';
+```
+```js
+import { readFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+```
+- **件①-b（头注 :6 整行替换·消「已有生产构建则不重建」与 guard 行为的注释矛盾）**：
+```js
+ * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
+```
+- **件②-a（helper 块·在 `emitFailureDiagnostics` 定义收口 `};`（:96）与 `const spawnProc`（:97）之间整块插入）**：
+```js
+// STALE_BUILD_GUARD(件①):HEAD commit time 单次获取;git 不可用/非 git 树/解析失败 → null
+// (检测面 fail-open=按现行为服务既有构建;陈旧判定面 fail-closed=强制重建·假红代价>重建耗时)。
+const headTimeSec = () => {
+  try {
+    const r = spawnSync('git', ['log', '-1', '--format=%ct', 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
+    const t = Number(String(r.stdout ?? '').trim());
+    return Number.isFinite(t) && t > 0 ? t : null;
+  } catch {
+    return null;
+  }
+};
+// 件②:web-build 扣留输出保留缓冲(仅内嵌 next build 挂接·尾上限 ≤400 行且 ≤64KiB 先触为准)
+// ——非零退出时落盘 .tmp/e2e-ui-build-log/<ts>.log(gitignored·0o600·沿 run-e2e-isolated :3050 先例)
+// +stderr 回放同缓冲;构建成功零写盘零行为变化。落盘系本地诊断·非收据非证据面。
+const BUILD_LOG_DIR = `${ROOT}.tmp/e2e-ui-build-log`;
+const BUILD_LOG_TAIL_LINES = 400;
+const BUILD_LOG_TAIL_BYTES = 64 * 1024;
+const buildRetained = [];
+let buildRetainedBytes = 0;
+let buildRetainedDropped = false;
+const buildSink = (stream, chunk) => {
+  const text = String(chunk);
+  buildRetained.push({ stream, text });
+  buildRetainedBytes += Buffer.byteLength(text);
+  while (buildRetained.length > 1 && (buildRetainedBytes > BUILD_LOG_TAIL_BYTES || buildRetained.length > BUILD_LOG_TAIL_LINES)) {
+    buildRetainedBytes -= Buffer.byteLength(buildRetained[0].text);
+    buildRetained.shift();
+    buildRetainedDropped = true;
+  }
+};
+const writeBuildLog = () => {
+  try {
+    mkdirSync(BUILD_LOG_DIR, { recursive: true, mode: 0o700 });
+    const logPath = `${BUILD_LOG_DIR}/${new Date().toISOString().replace(/[:.]/g, '-')}.log`;
+    const body = `${buildRetainedDropped ? '[e2e-ui-build-log: 早期内容已按尾上限截断·仅保留最后 ≤400 行/64KiB]\n' : ''}${buildRetained.map((c) => `[web-build:${c.stream}] ${c.text}`).join('')}`;
+    writeFileSync(logPath, body, { encoding: 'utf8', mode: 0o600 });
+    console.error(`E2E-UI-BUILD-LOG: web-build 非零退出·扣留输出已落盘 ${logPath}(保留尾 ≤400 行·同内容 stderr 回放如下)`);
+    process.stderr.write(body);
+  } catch (e) {
+    console.error(`E2E-UI-BUILD-LOG: 落盘失败(${e?.code ?? e?.message ?? 'unknown'})·扣留输出维持只计数`);
+  }
+};
+```
+- **件①-c+件②-b（BUILD_ID 检查段·:190-208 整段替换）**：
+```js
+  // Recorded blocker: next start with no production build → web_not_ready.
+  // Build when BUILD_ID is absent — or when STALE_BUILD_GUARD finds the existing
+  // build older than HEAD(陈旧构建假红防线·UC003 门⑥事故:BUILD_ID mtime 早于接线
+  // 仍「在即不重建」→ 服务陈旧构建假红·复跑席再实证扣留输出不可回收)。
+  const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
+  let forceRebuild = false;
+  if (existsSync(nextBuildId)) {
+    const headCommitTimeSec = headTimeSec();
+    if (headCommitTimeSec === null) {
+      console.warn('E2E-UI: STALE_BUILD_GUARD HEAD commit time 不可得(git 不可用/非 git 树)→ 按现行为服务既有构建');
+    } else {
+      try {
+        const buildIdMtimeMs = statSync(nextBuildId).mtimeMs;
+        if (buildIdMtimeMs / 1000 < headCommitTimeSec) {
+          forceRebuild = true;
+          console.warn(`E2E-UI: STALE_BUILD_GUARD .next/BUILD_ID mtime=${new Date(buildIdMtimeMs).toISOString()} 早于 HEAD commit time=${new Date(headCommitTimeSec * 1000).toISOString()} → 强制重建(防陈旧构建假红)`);
+        }
+      } catch {
+        console.warn('E2E-UI: STALE_BUILD_GUARD BUILD_ID mtime 读取失败 → 按现行为服务既有构建');
+      }
+    }
+  }
+  if (!existsSync(nextBuildId) || forceRebuild) {
+    console.log(forceRebuild ? 'E2E-UI: STALE_BUILD_GUARD 判定陈旧构建 → 强制 next build…' : 'E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
+    const build = spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {
+      PORT: String(webPort),
+      API_BASE_INTERNAL: apiBase,
+      NEXT_PUBLIC_API_BASE: apiBase,
+      E2E_UI_STRESS: '1',
+    });
+    build.stdout.on('data', (d) => buildSink('stdout', d));
+    build.stderr.on('data', (d) => buildSink('stderr', d));
+    const buildCode = await new Promise((res) => build.on('exit', res));
+    if (buildCode !== 0 || !existsSync(nextBuildId)) {
+      writeBuildLog();
+      emitFailureDiagnostics();
+      emitE2EFailure({ class: 'frontend', code: 'web_not_ready' });
+      cleanup();
+      process.exit(buildCode && buildCode !== 0 ? buildCode : 1);
+    }
+  }
+```
+- **守恒断言**：`spawnProc` 定义（:97-109）·:210-217 next start 段·:228-234 playwright 段·其余全文件**零字节零触**；`E2E_PROCESS_OUTPUT_WITHHELD` 词面恒在（secret-redaction RUNNER_WITHHOLD 合同·:94 原行零触）；`assertNoFakeServiceFlags` import/call 恒在（static-guards :141-142）；新增 console 行零敏感词（token/Authorization/audioBase64/contentBase64/MODEL_API_KEY/PAY_PROVIDER_SECRET/AUTH_SECRET·secret-redaction LOG_LEAK :20 判据）；spawnProc 签名零改（件② 挂接走 spawn 后追加 listener·多监听者与 tailAppend 并存·顺序=tailAppend 先）；diff 面恰 1 tracked 代码文件=`scripts/run-e2e-ui.mjs`（约 +55/−3·对届时 numstat 实测）+本卷 .md 新增。
+- **行为语义登记（非偏离·本刀明示语义）**：①陈旧判定=mtime 秒 `<` HEAD %ct 严格小于·相等不判陈旧（保守服务）；②检测面失败（git 不可用/非 git 树/mtime 读失败）=fail-open 按现行为+warn（防「无 git 环境」全量 break·零回归纪律）——与陈旧判定面 fail-closed（强制重建）分立；③HEAD time 系地板判据：未提交工作树改动不可检（已知局限·候选丙留后继）；④fresh build of old commit（pull 后旧代码重构建）mtime 新于 HEAD time→不判陈旧——同属地板判据已知局限·如实登记不讳。
+
+## §2 验收断言（pre-exec 双审核对单基面·门矩阵·**数字口径以实跑实测为准+偏差熔断**·命令原样可复制）
+
+0. **改前基线 run（必做·并主线后改前树）**：`node scripts/e2e-static-guards.mjs` EXIT=0 + `node scripts/e2e-platform/prove.mjs` EXIT=0 + `node scripts/ai-docs/check-docs.mjs` EXIT=0（scanned 对届时实测·起草基线=2153）——基线任一红→停（现场漂移类）。
+1. **既有 e2e-ui 面零回归·真环境门（条件执行）**：`pnpm uc003:i18n-locale-ui:prove` EXIT=0——**可跑判定**=docker DB 在跑+`MODEL_API_KEY` 在场+隔离包装器可用；**不可跑→如实记 SKIP·零降格零假绿**·零回归判据转由门 3/门 4 静态面+门 2 自证面承载（门 3/4 恒等通过=runner 形制与 redaction 契约零破坏的机检证据·真 UI 路径行为面零回归另由本刀「只拓宽重建入口条件·不改任何既有路径行为」的结构事实承载：BUILD_ID 缺失臂/非零退出臂/next start 臂/playwright 臂逐字节零触面见 §1-修法守恒断言）。
+2. **runner 自证三件（必做·环境无关·副本强度局限如实登记=副本≠import·与自证一源级断言合成锚定）**：
+   - **自证一·源级守卫断言（对真文件·防守卫被静默摘除）**：
+```bash
+node -e '
+const fs = require("node:fs");
+const src = fs.readFileSync("scripts/run-e2e-ui.mjs", "utf8");
+const checks = [
+  ["guard-warn-word", src.includes("STALE_BUILD_GUARD")],
+  ["stale-compare", /buildIdMtimeMs \/ 1000 < headCommitTimeSec/.test(src)],
+  ["forced-rebuild-wiring", src.includes("!existsSync(nextBuildId) || forceRebuild")],
+  ["head-time-git", src.includes("--format=%ct")],
+  ["build-log-dir", src.includes(".tmp/e2e-ui-build-log")],
+  ["build-log-on-fail-arm", /buildCode !== 0 \|\| !existsSync\(nextBuildId\)\) \{\n      writeBuildLog\(\);/.test(src)],
+  ["withheld-contract-kept", src.includes("E2E_PROCESS_OUTPUT_WITHHELD")],
+  ["tail-cap-registered", src.includes("BUILD_LOG_TAIL_LINES = 400") && src.includes("64 * 1024")],
+];
+const bad = checks.filter(([, ok]) => !ok);
+if (bad.length) { console.error("SELF-PROBE-1 FAIL: " + bad.map(([n]) => n).join(",")); process.exit(1); }
+console.log("PASS source-level guard assertions " + checks.length + "/" + checks.length);
+'
+```
+   - **自证二·守卫决策副本直测（伪造旧 BUILD_ID 触发重建路径断言·真 git HEAD %ct）**：
+```bash
+node -e '
+const fs = require("node:fs"); const os = require("node:os");
+const { spawnSync } = require("node:child_process");
+const head = Number(spawnSync("git", ["log", "-1", "--format=%ct", "HEAD"], { encoding: "utf8" }).stdout.trim());
+if (!Number.isFinite(head) || head <= 0) process.exit(1);
+const dir = fs.mkdtempSync(os.tmpdir() + "/sbg-probe-");
+const stale = dir + "/BUILD_ID-old";
+fs.writeFileSync(stale, "probe");
+fs.utimesSync(stale, new Date(0), new Date(0));
+const fresh = dir + "/BUILD_ID-new";
+fs.writeFileSync(fresh, "probe");
+const future = new Date(Date.now() + 3600000);
+fs.utimesSync(fresh, future, future);
+const isStale = (p) => fs.statSync(p).mtimeMs / 1000 < head;
+if (isStale(stale) !== true) process.exit(1);
+if (isStale(fresh) !== false) process.exit(1);
+console.log("PASS replica stale-decision: old->rebuild, fresh->serve (head=" + head + ")");
+'
+```
+   - **自证三·落盘副本直测（尾上限截断+截断标记+尾保留）**：
+```bash
+node -e '
+const fs = require("node:fs"); const os = require("node:os"); const path = require("node:path");
+const CAP_LINES = 400, CAP_BYTES = 64 * 1024;
+const retained = []; let bytes = 0; let dropped = false;
+const sink = (t) => { retained.push(t); bytes += Buffer.byteLength(t);
+  while (retained.length > 1 && (bytes > CAP_BYTES || retained.length > CAP_LINES)) { bytes -= Buffer.byteLength(retained[0]); retained.shift(); dropped = true; } };
+for (let i = 0; i < 500; i++) sink("line-" + i + "\n");
+const dir = fs.mkdtempSync(os.tmpdir() + "/sbg-log-");
+const p = path.join(dir, "probe.log");
+fs.writeFileSync(p, (dropped ? "[truncated]\n" : "") + retained.join(""), { mode: 0o600 });
+const out = fs.readFileSync(p, "utf8");
+if (!out.startsWith("[truncated]")) process.exit(1);
+if (retained.length !== 400) process.exit(1);
+if (!out.includes("line-499")) process.exit(1);
+console.log("PASS replica build-log: cap=" + retained.length + " lines, truncated marker, tail kept");
+'
+```
+   - 三件全 EXIT=0；任一 FAIL→触停止条件「机制不满足」。
+3. **静态邻面守卫**：`node scripts/e2e-static-guards.mjs` EXIT=0（assertNoFakeServiceFlags import/call 恒在+runner 形制）。
+4. **静态邻面·e2e-platform:prove**：`node scripts/e2e-platform/prove.mjs` EXIT=0（secret-redaction RUNNER_WITHHOLD+LOG_LEAK 在改后树仍绿）。
+5. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（8/8·0 cached）。
+6. **lint**：`pnpm turbo lint` EXIT=0 全域 0 errors·五值对届时实测（起草参照=cache-observe-repin 卷门 10：web 601/root 5235/api 1421/worker 954/ai-runtime 628·漂移如实登记·非本刀面所致方可）。
+7. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·**scanned≤cap 2160**（预期 2154=基线 2153+本卷 1·**>2160 红停上报**·cap sanction 权归协调方·Ban 自升）。
+8. **markers 五类零命中**：改动集（本卷 1 .md——EXEC 期扩为 .md+runner 两件）五类标记词 grep 零命中（`scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·词面不复抄卷内防自匹配·命令与回执入收据）。
+9. **diff 面机检+卫生**：`git diff --numstat <base>`（`<base>` 钉明=届时主线 tip=EXEC 工序 1 并线 merge 第二亲——防对起草基线 union diff 连他件假停·沿 cache-observe-repin §2-13 rev2 形）恰 2 tracked 路径=**①代码面恰 1 tracked 修改=`scripts/run-e2e-ui.mjs`（派单「恰 1 tracked」所指）**+**②本卷 .md 新增（卷宗本体·沿 cache-observe-repin §2-13 计数形）**——多任何其余 tracked 路径即停；`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；`.env*` ABSENT 双向记录；`actualSpendCny=null`；est live=0。
+10. **副效应登记**：typecheck 门运行可能翻动 `apps/web/tsconfig.tsbuildinfo`（tracked 构建状态件）——`git checkout` 回滚保门 9 恰 2 路径（沿 cache-observe-repin §9 先例·非交付面）；`.next/`·`.tmp/` 均 gitignored 不入 diff（门 9 机检兜底）；`.tmp/e2e-ui-build-log/*.log` 运行副产物 Ban 入树（§3-7）。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **prove 断言面全 Ban**：一切 `*.proof.ts`/`*.proof.mjs`/prove 脚本/Playwright specs（含 uc003 spec）零字节——本刀零断言改动·runner 自证三件系 ad-hoc node 副本探针**不入树**（命令仅入本卷面·Ban 新增任何 tracked 测试/证明文件·候选乙 §1.3）。
+2. **产品码全 Ban**：`apps/*` src·`packages/*` src 零字节。
+3. **其他 runner/helper 零字节**：`run-e2e.mjs`/`run-e2e-isolated.mjs`/`run-e2e-performance-suite.mjs`/`run-performance-e2e.mjs`/`capture-screenshots.mjs`/`e2e-fake-service-flags.mjs`/`e2e-live-capability-env.mjs`/`e2e/helpers/failure-class.mjs`/`withheld-output.mjs` 零触。
+4. **CI/workflow/pnpm scripts 零改**（package.json 零字节——门 1 现形直接可用）·零 .gitignore 改（`.tmp/` 已在 :15）。
+5. **共享 SSOT 零改**：LEDGER/checklist/backlog/north-star 只读（本刀无批表行·行翻面权归协调方）。
+6. **零迁移零 DDL**（§0.1 #9）·零依赖升级·零 cap 自升（§2-7）。
+7. **`.tmp/e2e-ui-build-log/*.log` 运行副产物 Ban 入树入 commit**（gitignored 双保险·Ban `add -f`）；落盘内容 Ban 作为收据/证据面引用（本地诊断性质·secret 暴露面已由 0o600+行上限+gitignored 三重收窄）。
+
+## §4 依赖
+
+**①上游**：无（自足小刀·基线=origin tip `77ba32ab` 已含全部前置·零跨卷语义依赖）。
+**②无同文件并发**：§0.0 全支线扫描=零非残枝在飞触面（91c04145 已 HEAD 祖先亲证）·EXEC 立项日必做重扫。
+**③迁移号**：预期零（§0.1 #9）。
+**④下游**：EXEC 绿→post 双审→nail 归协调方；事故面（UC003 门⑥陈旧产物假红）与诊断盲区（扣留输出不可回收）两防线随本刀闭合；后继候选（构建时 commit 身份内容级判据·候选丙）留独立刀。
+
+## §5 Ban 列表 + pins
+
+**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban merge 主线（本席⛔·并线归 EXEC 工序）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban 翻 pins（§5 十一值+`actualSpendCny=null`·零翻转）；Ban 触 prove 断言面/产品码/其他 runner/helper（§3-1/2/3）；Ban 自由发挥定稿文本（§1-修法 ⛔ 条款）；Ban 新增 tracked 测试/证明文件（§3-1）；Ban 改 spawnProc 签名/`:210` 起 next start 段/playwright 段（守恒断言）；Ban 摘除 `E2E_PROCESS_OUTPUT_WITHHELD` 词面或改实时透传（候选戊·secret-redaction 合同）；Ban 弱化陈旧判定（候选甲保守形复辟·定稿=强制重建形）；Ban 检测面失败改 fail-closed 硬败（§1-修法行为语义②·零回归纪律）；Ban 落盘日志入树/作证据面引用（§3-7）；Ban 触共享 SSOT/批表行翻面（§3-5）；Ban 迁移 Ban DDL Ban 依赖升级 Ban cap 自升（§3-6/§2-7）；Ban retry-to-green（门矩阵任一门红不重跑冲销·如实登记升级）；Ban 就地归因邻面新红（§2 任一门红根因不在本刀面→停·Ban 借机修）；Ban 触其他工作树；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）；Ban 造 .env*/写 Key 值入树入据。
+
+**pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
+
+## §6 est live=0（起草 turn·EXEC 期同）
+
+- 起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（读码+静态门+docs:check 全离线）。EXEC 期：门 1 条件门若跑即真栈真浏览器（docker DB+MODEL_API_KEY·隔离面）——消耗面=既有 e2e:ui 形·无新增外呼语义；门 0/2/3/4/5/6/7/8 全离线·est live 仍按「零模型外呼新增」口径=0·实跑如有如实登记收据。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（本卷 1 .md·起草 turn）**五类标记词 grep 零命中**（起草席亲跑·回执随 EXEC 收据留痕·五类词沿 `scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·词面不复抄卷内防自匹配——沿 negbend/g7w/authz 卷 §7 同形制）。
+
+## §8 STOP（开工三条款 + 停止条件四类）
+
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实结论与 §5 Ban/pins 与 §1-修法定稿文本面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠重扫必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+- **现场漂移**：届时 `run-e2e-ui.mjs` blob 对 `84f9cd2d` 漂移·关键行锚（:86-96 扣留段/:190-208 BUILD_ID 段）漂移·§0.0 重扫出新非残枝在飞触面·门 0 基线在改前树红→停·重 pin 回炉。
+- **机制不满足**：自证一源级断言任一 FAIL·自证二副本判定 RED（stale≠true/fresh≠false）·自证三截断形 RED→证伪诊断→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
+- **越界需要**：修法诉求超出恰 1 tracked 代码文件面（需触其他 runner/helper/proof/产品码/.gitignore/package.json）→停·另刀或协调方裁决（§1.3 候选乙/戊/己沿承）。
+- **验收红不可修**：门矩阵任一门红且根因不在本刀交付面（邻面新红/lint 漂红/docs:check>2160/uc003 真环境门红且归因陈旧产物以外）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
+
+---
+
+*E2E-RUNNER-STALE-BUILD-GUARD REQUEST · 2026-10-14 起草落卷 · **`draft:awaiting_pre_exec_dual`（pre-exec 双审两外席待派·alone≠dual·⛔push）** · base 主线 tip `77ba32ab`（origin tip 亲证恒等·起草时 docs:check EXIT=0 scanned 2153≤cap 2160 本席亲跑·cap=sanction `317ea3df`）· 分支 `line/e2e-runner-stale-build-guard` · 工作树 `meetwise-sbg`（本起草席立·reset 钉 origin tip 亲证）· 立项出处=UC003 门⑥陈旧产物事故（.next/BUILD_ID mtime 早于接线 4 天·「BUILD_ID 在即不重建」单一判据→服务陈旧构建假红）+复跑席实证（web-build 非零退出扣留输出 9 chunks/3014B 只计数不落盘不可回收·靠手动同 env 复现定位）+协调方派单 brief 双改进候选 · 读码定稿=run-e2e-ui.mjs `84f9cd2d` 三落点（:86-96 tailAppend/emitFailureDiagnostics 扣留机制·:97-109 spawnProc·:190-208 BUILD_ID 检查+内嵌 build 调用+非零退出臂）· runner 直测不可行双证（:46 isolation throw+:53 provider key throw+全栈前置不可达 BUILD_ID 段·import 顶层 side-effect 即 throw）→自证=源级守卫断言+决策/落盘副本直测三件合成（副本强度局限如实登记）· 修法=恰 1 tracked 代码文件 4 编辑（件① stale-build guard 强制重建形=mtime<HEAD %ct 严格小于·检测面 fail-open/判定面 fail-closed 分立·候选甲乙丙丁否决在卷；件② build 输出落盘=非零退出时保留尾 ≤400 行/64KiB 写 `.tmp/e2e-ui-build-log/<ts>.log` 0o600 gitignored+stderr 回放·成功零写盘·候选戊己庚否决在卷）· 门矩阵十门（改前基线+uc003 真环境条件门可跑则跑不可跑 SKIP 零假绿+runner 自证三件+static-guards+e2e-platform:prove+typecheck 8/8+lint 五值+docs:check≤2160+markers+diff 恰 1 tracked 代码文件+本卷 .md=2 tracked+卫生）· 契约恒在（E2E_PROCESS_OUTPUT_WITHHELD 词面·assertNoFakeServiceFlags import/call·LOG_LEAK 零敏感词）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
