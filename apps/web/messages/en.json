@@ -14,7 +14,10 @@
     "faq": "FAQ",
     "login": "Log in / Sign up",
     "account": "Account",
-    "menu": "Menu"
+    "menu": "Menu",
+    "recruiterJobs": "Jobs",
+    "recruiterTalent": "Applications",
+    "recruiterNotes": "Notes"
   },
   "home": {
     "pill": "Preview",
@@ -206,5 +209,26 @@
     "cardPreview": "Upload a PDF / Word file, or an image in preview environments. Image recognition failures never invent content.",
     "cardStandard": "Upload a PDF / Word file, or paste text directly. Image recognition is not enabled in this environment.",
     "banner": "Preview image recognition, not a production visual-quality promise. Failures are reported as-is; resume text is never invented."
+  },
+  "errorBoundary": {
+    "title": "Something went wrong",
+    "description": "The page hit an error. You can retry; if it keeps happening, please come back later.",
+    "digestLabel": "Error ID: {digest}",
+    "retry": "Retry",
+    "backToDashboard": "Back to overview"
+  },
+  "publicPreview": {
+    "brand": "Meetwise",
+    "home": "Home",
+    "features": "Features",
+    "faq": "FAQ",
+    "legal": "Data boundary",
+    "previewNavAria": "Preview navigation"
+  },
+  "resumeDelete": {
+    "networkError": "Network error. Please try again later; the resume was not deleted.",
+    "notFound": "This resume was not found, or it has already been deleted.",
+    "notAccepted": "Delete request not accepted (status {status}); not treated as deleted.",
+    "invalidShape": "The delete response shape is invalid; not treated as deleted."
   }
 }
