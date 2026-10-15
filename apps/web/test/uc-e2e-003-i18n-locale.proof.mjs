@@ -6,6 +6,7 @@
  * Playwright DOM 扫描 = secondary / 本 prove 不跑
  *
  * S1–S3 钉可证结构；S4/S5/G3' 钉三面收口后的绿结构（原 G-GAP-1/2/3 翻面，见 harness 翻面注记）；
+ * S6 钉 UC003 i18n 后刀五面迁移（error 壳/Nav 招聘方三标签/PublicPreviewNav 六面/delete 四消息）；
  * EXIT=0 = 结构绿 ≠ 产品闭环 ≠ covered（矩阵 stays partial）
  */
 import assert from 'node:assert/strict';
@@ -117,7 +118,8 @@ const checks = {
       'mapResumeUploadError must carry a locale param defaulting to zh',
     );
     // upload-face inline bilingual carrier — scope pinned to the FIVE upload faces
-    // (deleteResumeAction keeps its four zh messages untouched; never file-scan actions.ts).
+    // (deleteResumeAction's four failure messages have moved to the messages resumeDelete
+    // namespace; their assertions live in the inverted guard below and in S6).
     const actions = read('apps/web/app/resume/actions.ts');
     assert.match(actions, /\(await cookies\(\)\)\.get\('locale'\)/, 'upload actions read the locale cookie');
     const inline = actions.match(/const UPLOAD_MESSAGES\s*=\s*\{([\s\S]*?)\n\} as const;/);
@@ -130,10 +132,27 @@ const checks = {
     for (const name of entries.map((m) => m[1])) {
       assert.ok(actions.includes(`UPLOAD_MESSAGES.${name}[locale]`), `upload face consumes its bilingual entry: ${name}`);
     }
-    // delete face zero-touch honesty guard: the four zh messages must stay verbatim.
+    // delete face migration guard (inverted former zero-touch guard — assertion migration,
+    // not relaxation), three branches:
+    // ① actions.ts source must carry zero residual of the four inline zh messages;
     for (const needle of ['网络错误，请稍后重试；简历未被删除。', '找不到这份简历，或它已被删除。', '删除请求未受理（', '删除受理形状不合法，未当作已删除。']) {
-      assert.ok(actions.includes(needle), `deleteResumeAction zh message must stay untouched: ${needle}`);
+      assert.ok(!actions.includes(needle), `deleteResumeAction inline zh message must be migrated out of actions.ts: ${needle}`);
     }
+    // ② the resumeDelete namespace must register the four keys on both sides, en CJK-free;
+    const enFlat = flatten(JSON.parse(read('apps/web/messages/en.json')));
+    const zhFlat = flatten(JSON.parse(read('apps/web/messages/zh.json')));
+    for (const key of ['networkError', 'notFound', 'notAccepted', 'invalidShape']) {
+      assert.ok(`resumeDelete.${key}` in enFlat, `resumeDelete.${key} must be registered on the en side`);
+      assert.ok(`resumeDelete.${key}` in zhFlat, `resumeDelete.${key} must be registered on the zh side`);
+      assert.ok(!CJK.test(String(enFlat[`resumeDelete.${key}`])), `resumeDelete en value must be CJK-free: ${key}`);
+    }
+    // ③ zh values pinned verbatim to the pre-migration literals (the third arm's source
+    // string-concat form becomes the {status} ICU placeholder — the only allowed change).
+    const zhDelete = JSON.parse(read('apps/web/messages/zh.json')).resumeDelete;
+    assert.equal(zhDelete.networkError, '网络错误，请稍后重试；简历未被删除。', 'resumeDelete zh networkError must stay verbatim');
+    assert.equal(zhDelete.notFound, '找不到这份简历，或它已被删除。', 'resumeDelete zh notFound must stay verbatim');
+    assert.equal(zhDelete.notAccepted, '删除请求未受理（{status}），未当作已删除。', 'resumeDelete zh notAccepted must pin the {status} ICU form verbatim');
+    assert.equal(zhDelete.invalidShape, '删除受理形状不合法，未当作已删除。', 'resumeDelete zh invalidShape must stay verbatim');
   },
 
   // Flipped from G-GAP-hardcoded-zh-ui: hot three copy lines asserted structurally zero
@@ -180,6 +199,62 @@ const checks = {
     assert.match(spec, /addCookies/, 'spec must preset the locale cookie (cookie-only contract)');
     assert.match(spec, /resume-upload-error/, 'spec must assert the error-code en DOM face');
     assert.match(spec, /CJK/, 'spec must carry a DOM CJK scan');
+  },
+
+  // UC003 i18n follow-up knife — five migrated faces asserted per-place with DELIMITED
+  // source needles only (never bare-word or file-level CJK scans: the error.tsx :4 header
+  // comment keeps a bare `重试` and Nav.tsx :41 keeps the zero-i18n `label: '岗位匹配'`
+  // face, so undelimited needles would be structurally ever-red after migration).
+  'S6-followup-migrated-faces': () => {
+    // New-namespace keys registered on both sides, en values CJK-free (S2/S3 parity and
+    // CJK scans cover the whole catalogs; this pins registration per namespace).
+    const en = flatten(JSON.parse(read('apps/web/messages/en.json')));
+    const zh = flatten(JSON.parse(read('apps/web/messages/zh.json')));
+    const newNamespaces = {
+      errorBoundary: ['title', 'description', 'digestLabel', 'retry', 'backToDashboard'],
+      publicPreview: ['brand', 'home', 'features', 'faq', 'legal', 'previewNavAria'],
+      resumeDelete: ['networkError', 'notFound', 'notAccepted', 'invalidShape'],
+    };
+    for (const [ns, keys] of Object.entries(newNamespaces)) {
+      for (const key of keys) {
+        assert.ok(`${ns}.${key}` in en, `en side must register ${ns}.${key}`);
+        assert.ok(`${ns}.${key}` in zh, `zh side must register ${ns}.${key}`);
+        assert.ok(!CJK.test(String(en[`${ns}.${key}`])), `en value must be CJK-free: ${ns}.${key}`);
+      }
+    }
+    for (const key of ['recruiterJobs', 'recruiterTalent', 'recruiterNotes']) {
+      assert.ok(`nav.${key}` in en && `nav.${key}` in zh, `nav namespace must register ${key} on both sides`);
+      assert.ok(!CJK.test(String(en[`nav.${key}`])), `en value must be CJK-free: nav.${key}`);
+    }
+    // ① error.tsx error shell: five zh faces zero residual (`重试</Button>` delimited so the
+    // :4 header comment's bare `重试` cannot false-positive).
+    const errorShell = read('apps/web/app/error.tsx');
+    assert.match(errorShell, /useTranslations\('errorBoundary'\)/, 'error shell must consume the errorBoundary namespace');
+    for (const needle of ['出错了', '页面遇到一个错误', '错误标识:', '重试</Button>', '返回总览']) {
+      assert.ok(!errorShell.includes(needle), `error.tsx zh face must be migrated: ${needle}`);
+    }
+    // ② Nav.tsx recruiter trio zero residual (quote-delimited `label: '岗位'` is not a
+    // substring of the zero-touch `label: '岗位匹配'` face).
+    const nav = read('apps/web/components/Nav.tsx');
+    for (const needle of ["label: '岗位'", "label: '投递'", "label: '笔记'"]) {
+      assert.ok(!nav.includes(needle), `Nav.tsx recruiter label must be migrated: ${needle}`);
+    }
+    // ③ PublicPreviewNav six faces zero residual (labels migrate with the links array).
+    const previewNav = read('apps/web/components/PublicPreviewNav.tsx');
+    assert.match(previewNav, /getTranslations\('publicPreview'\)/, 'PublicPreviewNav must consume the publicPreview namespace');
+    for (const needle of ["label: '首页'", '预览导航', '知面 Meetwise', '产品能力', '常见问题', '数据边界']) {
+      assert.ok(!previewNav.includes(needle), `PublicPreviewNav face must be migrated: ${needle}`);
+    }
+    // ④ actions.ts delete face: the cookie-locale pipe into resumeDelete, ICU {status}
+    // interpolation instead of string concatenation, and no residual message source shape.
+    const deleteActions = read('apps/web/app/resume/actions.ts');
+    assert.match(
+      deleteActions,
+      /getTranslations\(\{\s*locale:\s*await resumeUploadLocale\(\),\s*namespace:\s*'resumeDelete'\s*\}\)/,
+      'deleteResumeAction must feed the cookie locale into the resumeDelete namespace',
+    );
+    assert.match(deleteActions, /t\('notAccepted',\s*\{\s*status:\s*res\.status\s*\}\)/, 'notAccepted arm must use the {status} ICU interpolation');
+    assert.ok(!deleteActions.includes("'+ res.status + '"), 'delete face must not concatenate res.status');
   },
 };
 
