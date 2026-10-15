@@ -553,6 +553,7 @@ async function main() {
   const directSqlBoundary = await asPrincipal(pool, OWNER, async (c) => {
     await c.query("SELECT set_config('app.qbank_serving_scope',$1,true), set_config('app.qbank_taxonomy_version',$2,true)",
       [METADATA.servingScopeId, METADATA.taxonomyVersion]);
+    await c.query("SELECT set_config('app.qbank_owner_kind','platform',true), set_config('app.qbank_org_id','',true)");   // AG39 裁决⑧ setup 注入（qbank-scope-fix 刀·0187 owner 维度夹具供给）
     const retiredAnn = await c.query(
       'SELECT ref_id FROM qbank_generation_ann_search($1,$2::vector,$3)',
       [gContent!.generationId, `[${directVector!.join(',')}]`, 999_999],
