@@ -18,6 +18,9 @@ export interface ModelCostPolicySet {
 export interface ModelCostPriceRow extends ModelCostPolicy {
   inputMicroCnyPerMillion: number;
   outputMicroCnyPerMillion: number;
+  /** #48/#49：缓存命中输入价（micro-CNY/百万 token）。null=未设缓存价（列不写，结算回退
+   *  input 价=现行保守语义）；仅入 priceRows 捕获链，ModelCostPolicy/policies 面零字节。 */
+  cachedInputMicroCnyPerMillion: number | null;
   sourceUrl: string;
 }
 export interface ModelCostGovernanceConfig {
@@ -36,6 +39,7 @@ export interface ModelCostPriceBinding {
   priceRevision: string;
   inputMicroCnyPerMillion: number;
   outputMicroCnyPerMillion: number;
+  cachedInputMicroCnyPerMillion: number | null;
   sourceUrl: string;
 }
 
@@ -44,7 +48,8 @@ export function modelCostPriceBindings(cfg: ModelCostGovernanceConfig): ModelCos
   return cfg.priceRows.map((row) => ({
     scopeId: cfg.scopeId!, provider: row.provider, model: row.model, region: row.region,
     priceRevision: row.priceRevision, inputMicroCnyPerMillion: row.inputMicroCnyPerMillion,
-    outputMicroCnyPerMillion: row.outputMicroCnyPerMillion, sourceUrl: row.sourceUrl,
+    outputMicroCnyPerMillion: row.outputMicroCnyPerMillion,
+    cachedInputMicroCnyPerMillion: row.cachedInputMicroCnyPerMillion, sourceUrl: row.sourceUrl,
   }));
 }
 
@@ -93,6 +98,12 @@ function positive(env: NodeJS.ProcessEnv, name: string, max = 1_000_000_000): nu
   if (!Number.isInteger(value) || value < 1 || value > max) throw new Error(`model_cost_invalid_${name.toLowerCase()}`);
   return value;
 }
+/** #48/#49：cached 价可选键——缺席→null（列不写=现行为恒等）；在场→正整数（非法启动
+ * 失败沿 positive() 先例同码）。 */
+function optionalPositive(env: NodeJS.ProcessEnv, name: string, max = 1_000_000_000): number | null {
+  if (env[name] === undefined) return null;
+  return positive(env, name, max);
+}
 
 function endpoint(
   env: NodeJS.ProcessEnv, prefix: string, scopeId: string, expectedModel: string,
@@ -114,6 +125,7 @@ function endpoint(
     priceRevision: required(env, `${prefix}_PRICE_REVISION`, /^[A-Za-z0-9._:-]{1,80}$/),
     inputMicroCnyPerMillion: positive(env, `${prefix}_INPUT_MICRO_CNY_PER_MILLION`),
     outputMicroCnyPerMillion: positive(env, `${prefix}_OUTPUT_MICRO_CNY_PER_MILLION`),
+    cachedInputMicroCnyPerMillion: optionalPositive(env, `${prefix}_CACHED_INPUT_MICRO_CNY_PER_MILLION`),
     sourceUrl: required(env, `${prefix}_PRICE_SOURCE_URL`, /^https:\/\/.{1,1992}$/),
     maxInputTokens,
     maxOutputTokens,
@@ -176,19 +188,22 @@ export async function configureModelCostGovernance(pool: DbPool, cfg: ModelCostG
     await c.query('BEGIN');
     for (const row of cfg.priceRows) {
       await c.query(
-        `INSERT INTO ai_cost_price_book(provider,model,region,revision,input_micro_cny_per_million,output_micro_cny_per_million,source_url,effective_at)
-         VALUES($1,$2,$3,$4,$5,$6,$7,clock_timestamp())
+        `INSERT INTO ai_cost_price_book(provider,model,region,revision,input_micro_cny_per_million,output_micro_cny_per_million,cached_input_micro_cny_per_million,source_url,effective_at)
+         VALUES($1,$2,$3,$4,$5,$6,$7,$8,clock_timestamp())
          ON CONFLICT(provider,model,region,revision) DO NOTHING`,
-        [row.provider, row.model, row.region, row.priceRevision, row.inputMicroCnyPerMillion, row.outputMicroCnyPerMillion, row.sourceUrl],
+        [row.provider, row.model, row.region, row.priceRevision, row.inputMicroCnyPerMillion, row.outputMicroCnyPerMillion, row.cachedInputMicroCnyPerMillion, row.sourceUrl],
       );
       const stored = await c.query(
-        `SELECT input_micro_cny_per_million,output_micro_cny_per_million,source_url FROM ai_cost_price_book
+        `SELECT input_micro_cny_per_million,output_micro_cny_per_million,cached_input_micro_cny_per_million,source_url FROM ai_cost_price_book
           WHERE provider=$1 AND model=$2 AND region=$3 AND revision=$4`,
         [row.provider, row.model, row.region, row.priceRevision],
       );
       const actual = stored.rows[0];
+      const storedCached = actual?.cached_input_micro_cny_per_million ?? null;
       if (stored.rowCount !== 1 || Number(actual?.input_micro_cny_per_million) !== row.inputMicroCnyPerMillion
-        || Number(actual?.output_micro_cny_per_million) !== row.outputMicroCnyPerMillion || actual?.source_url !== row.sourceUrl) {
+        || Number(actual?.output_micro_cny_per_million) !== row.outputMicroCnyPerMillion || actual?.source_url !== row.sourceUrl
+        || (storedCached === null) !== (row.cachedInputMicroCnyPerMillion === null)
+        || (row.cachedInputMicroCnyPerMillion !== null && Number(storedCached) !== row.cachedInputMicroCnyPerMillion)) {
         throw new Error('model_cost_price_revision_conflict');
       }
     }

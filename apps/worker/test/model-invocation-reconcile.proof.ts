@@ -11,6 +11,8 @@ import {
   asPrincipal, assertIsolatedTestTarget, claimModelInvocation, createPool,
   failModelInvocationClaim, markAiCostDispatched, markModelInvocationDispatched, reserveAiTextCost,
 } from '@meetwise/db';
+import { gatewayModelInvocationBacklog } from '@meetwise/db';
+import { METRIC, setMetrics } from '@meetwise/ai-runtime';
 import { modelInvocationReconcileTick, resolveModelInvocationReconcileConfig } from '../src/model-invocation-reconcile.ts';
 
 const pool = createPool();
@@ -451,6 +453,115 @@ async function main() {
   );
   A('对账基础设施/配对失败向 drain loop 传播，事务回滚且不会假报 ready',
     surfacedFailure && brokenAfter.rows[0]?.status === 'dispatching');
+
+  // Backlog observability arms (additive): the read-only gateway function and
+  // the tick wiring expose the aged-dispatching depth and the unresolved
+  // unknown stock.  No behavior under test changes: every arm below only
+  // reads aggregates, rejects a bad window, checks the ACL wall, or observes
+  // gauges through an injected capture instance.
+
+  // The infrastructure-failure arm above deliberately leaves `broken` as an
+  // aged dispatching invocation whose cost pair was deleted (that planted
+  // landmine is its assertion).  Any later tick would trip over it — the
+  // pair-freeze RAISEs and rolls the owner transaction back — before ever
+  // reaching the backlog fixtures.  The backlog arms therefore first restore
+  // the pair and reset the row's age: fixture repair only, the already-proven
+  // assertion above stands untouched.
+  await asPrincipal(pool, owner, async (c) => {
+    const repair = await reserveAiTextCost(c, {
+      scopeId: scope, requestOwner: owner, idempotencyKey: broken,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 10, maxOutputTokens: 10,
+    });
+    if (repair.decision !== 'reserved') throw new Error(`test_backlog_repair_reserve_${repair.decision}`);
+    if (!await markAiCostDispatched(c, scope, owner, broken)) throw new Error('test_backlog_repair_dispatch_failed');
+  });
+  const repairConnection = await pool.connect();
+  try {
+    await repairConnection.query("SET session_replication_role='replica'");
+    await repairConnection.query(
+      'UPDATE ai_model_invocation SET dispatched_at=clock_timestamp() WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, broken],
+    );
+  } finally {
+    await repairConnection.query("SET session_replication_role='origin'").catch(() => undefined);
+    repairConnection.release();
+  }
+
+  // ① Empty baseline: reading the pure aggregate twice without seeding
+  // anything must return the same pair (net double-zero delta for this arm).
+  const backlogBase = await gatewayModelInvocationBacklog(pool, config.olderThanMs);
+  const backlogBaseAgain = await gatewayModelInvocationBacklog(pool, config.olderThanMs);
+  A('空基线：零扰动下积压读数稳定且本臂净增量双 0',
+    backlogBaseAgain.dispatchingAged === backlogBase.dispatchingAged
+    && backlogBaseAgain.unknownUnresolved === backlogBase.unknownUnresolved);
+
+  // ② Hanging depth: a dispatch aged past the ambiguity window enters
+  // dispatching_aged and is not part of the unknown stock.
+  const backlogStale = `backlog-stale:${suffix}`;
+  await dispatch(owner, backlogStale);
+  await ageInvocation(owner, backlogStale);
+  const backlogAged = await gatewayModelInvocationBacklog(pool, config.olderThanMs);
+  A('悬挂深度：超窗派发计入 dispatching_aged 且不计入 unknown_unresolved',
+    backlogAged.dispatchingAged === backlogBase.dispatchingAged + 1
+    && backlogAged.unknownUnresolved === backlogBase.unknownUnresolved);
+
+  // ③ Outside the window: a fresh dispatch (dispatched_at=now) must not be
+  // counted as aged backlog.
+  const backlogFresh = `backlog-fresh:${suffix}`;
+  await dispatch(owner, backlogFresh);
+  const backlogNotAged = await gatewayModelInvocationBacklog(pool, config.olderThanMs);
+  A('窗口外不计：未超窗的新派发不进入悬挂深度计数',
+    backlogNotAged.dispatchingAged === backlogAged.dispatchingAged
+    && backlogNotAged.unknownUnresolved === backlogAged.unknownUnresolved);
+
+  // ④ Unknown stock: reconciling the aged row moves it into the unresolved
+  // unknown stock and the aged depth returns to its prior level.
+  const backlogTick = await modelInvocationReconcileTick(pool, config);
+  const backlogResolved = await gatewayModelInvocationBacklog(pool, config.olderThanMs);
+  A('unknown 存量：对账翻 unknown 后未决存量 +1 且悬挂深度回落',
+    backlogTick.invocations === 1
+    && backlogResolved.dispatchingAged === backlogAged.dispatchingAged - 1
+    && backlogResolved.unknownUnresolved === backlogAged.unknownUnresolved + 1);
+
+  // ⑤ Window guard: the gateway function rejects out-of-band windows with the
+  // shared reconcile-window error (22023 family).
+  const backlogWindowBlocked = await gatewayModelInvocationBacklog(pool, 34_999)
+    .then(() => false)
+    .catch((error: unknown) => error instanceof Error
+      && error.message.includes('gateway_model_invocation_reconcile_window_invalid'));
+  A('窗口校验：34999ms 低于下限被网关函数拒绝（22023 族）', backlogWindowBlocked === true);
+
+  // ⑥ ACL: the REVOKE/GRANT shape keeps the aggregate function unreachable
+  // from an ordinary runtime principal (the bootstrap pool is the cluster owner).
+  const backlogAclDenied = await asPrincipal(pool, owner, (c) =>
+    c.query('SELECT dispatching_aged,unknown_unresolved FROM gateway_model_invocation_backlog($1)', [config.olderThanMs]))
+    .then(() => false)
+    .catch((error: unknown) => String((error as Error).message).includes('permission denied'));
+  A('ACL：runtime principal 无权 EXECUTE 积压函数（REVOKE 生效）', backlogAclDenied === true);
+
+  // ⑦ Tick wiring: an injected capture metrics instance observes both gauges
+  // matching the live database state.  Last arm, so the capture instance
+  // cannot affect any other arm.
+  const capturedGauges = new Map<string, number>();
+  setMetrics({
+    inc: () => undefined,
+    observe: () => undefined,
+    setGauge: (name, value) => { capturedGauges.set(name, value); },
+    render: () => '',
+  });
+  await modelInvocationReconcileTick(pool, config);
+  const backlogOracle = await pool.query(
+    `SELECT
+       (SELECT count(*)::int FROM ai_model_invocation
+         WHERE status='dispatching'
+           AND dispatched_at < clock_timestamp() - make_interval(secs => $1::double precision / 1000.0)) AS aged,
+       (SELECT count(*)::int FROM ai_model_invocation
+         WHERE status='unknown' AND completed_at IS NULL) AS unknowns`,
+    [config.olderThanMs],
+  );
+  A('gauge 接线：tick 后两积压 gauge 与库态相符',
+    capturedGauges.get(METRIC.modelInvocationReconcileDispatchingAged) === Number(backlogOracle.rows[0]?.aged)
+    && capturedGauges.get(METRIC.modelInvocationUnknownBacklog) === Number(backlogOracle.rows[0]?.unknowns));
 
   console.log(failures === 0
     ? '\n✓ 模型派发后对账：冻结未知、幂等、并发与 RLS 全部通过'
