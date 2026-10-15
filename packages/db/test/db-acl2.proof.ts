@@ -4,20 +4,29 @@
  *
  * 跑在 run-e2e-isolated.mjs 起的临时 Postgres 上（本 target 不预迁移 —— prove 自管两段式 ·
  * DBACL-1 同型）：
- *   Stage A：runMigrations(0001–0143 全部 144 文件 · 0151 排除) →
+ *   Stage A：runMigrations(版本前缀 ≤0143 全部 · 0143 窗复现负门前提) →
  *     P0 复现负门（SET LOCAL ROLE memory_runtime 直调 pgp_sym_encrypt 恰 42501 +
  *          app_role 经 conversation_event_append 全链恰 42501 + 修复前 proacl 实证）
  *     §3 catalog 机检推导闭集（全迁移 SD 函数体 pgp_sym_* 调用 → distinct proowner ·
  *          双向核 · 逐行 owner|function|call-site|arity 证据 · 三参面/decrypt 面零 SD 调用）
- *   Stage B：runMigrations(全部 · 仅应用 0151) →
+ *   Stage B：runMigrations(版本前缀 ≤0151 窗口 · 补齐 0144–0151 恰八件 · 0151 收尾恰一窗) →
  *     P1 proacl 实证（EXECUTE grantee 恰 = 闭集 ∪ app_role 原样 · PUBLIC=false ·
  *          decrypt/三参面全原样 · 全 pgp_sym_* 面 ACL 快照差恰一处 · 函数体跨 stage 逐字节全等）
  *     P2 全链绿（conversation_event_append 真函数非 mock：event+artifact 双 INSERT 落行 +
  *          ciphertext 真解密回原文 + 幂等重放单份）
  *     P3 过度授权负门（新建无关系角色仍恰 42501 + 0151 全文白名单机检 · 基线=§3 推导集）
- *     P4 静态契约门（0001–0143 对 base 零字节 diff · 0151 恰一文件 · 改动面白名单 ·
- *          产品码零改）
- *     P5 migrate 门（ledger=磁盘=145 · 重跑全 skip 零漂移 · 官方 migrate:prove 子进程全绿）
+ *     P4 静态契约门（历史零字节改=ledger checksum 对账 · diff-to-base 零 D/R/M ·
+ *          conversation_event_append 静态体锚=0108 原点）
+ *     P5 migrate 门（窗口→链尾 catchup 参数化 · ledger=磁盘 · 重跑全 skip 零漂移 ·
+ *          官方 migrate:prove 子进程全绿）
+ *
+ * 既有臂改形登记（链 145→204 演进后构造回归原意·非洗基线·沿 db-acl.proof.ts 同型先例）：
+ * Stage A 原『全量−0151 挖洞』在 0144-0150 与 0152-0204 进链后 mid-chain 缺口结构性翻红
+ * （P0-0 冻结 144 vs 诊断实测 201 + Stage B 全量对缺 0151 ledger 报
+ * migration_ledger_not_contiguous_prefix——主线基线红·与本刀扩臂无关）。改形=0143 版本
+ * 前缀窗复现负门前提 + ≤0151 窗口补齐（0151 收尾恰一窗·applied 恰 expectedWindow 八名
+ * 恰序表）+ 链尾 catchup 参数化 + P4/P5 静态门语义移交机械权威（ledger checksum +
+ * 0108 静态体锚）·负门/正门/白名单/闭集推导全数原样保留。
  *
  * EXIT=0 才过；attempts 全账（每轮运行无论红绿都记收据 · Ban retry-to-green）。
  */
@@ -32,7 +41,7 @@ import type { DbPool } from '../src/principal.ts';
 const ROOT = fileURLToPath(new URL('../../..', import.meta.url));
 const MIG_DIR = fileURLToPath(new URL('../migrations', import.meta.url));
 const MIGRATION_0151 = '0151_pgp_sym_encrypt_grant';
-/** base = REQUEST rev2 蓝本提交（历史迁移零字节 diff 的对照锚 · 授权文本钉死）。 */
+/** base = REQUEST rev2 蓝本提交（diff-to-base 零 D/R/M 门的对照起点 · 历史注释 · 不再作恰一 A 行锚 · 授权文本钉死）。 */
 const BASE_SHA = '95911975';
 
 const pool: DbPool = createPool();
@@ -174,7 +183,10 @@ async function main() {
   console.log(`ATTEMPT dbacl2-db-acl pid=${process.pid} startedAt=${new Date().toISOString()} attemptsLedger=required`);
 
   const all = loadMigrations(MIG_DIR);
-  const pre = all.filter((m) => m.version !== MIGRATION_0151);
+  // 改形=0143 版本前缀窗（镜像 db-acl 同形·双 0143 文件名序均在）；windowSet=Stage B
+  // ≤0151 补齐集（0144–0151 恰八件·0151 收尾恰一窗）。
+  const pre = all.filter((m) => m.version.slice(0, 4) <= '0143');
+  const windowSet = all.filter((m) => m.version.slice(0, 4) <= '0151');
   if (!all.some((m) => m.version === MIGRATION_0151)) A('P0-0 0151 在目录', false);
 
   /* ── P5-4 官方 migrate:prove 子进程全绿（专用第二净库 · 主库两段式零污染）
@@ -199,11 +211,11 @@ async function main() {
     }
   }
 
-  /* ── Stage A：0001–0143 全量（0151 排除 · 本支在卷基线）────────────────── */
+  /* ── Stage A：版本前缀 ≤0143 全量（0143 窗复现·0144+ 全排除）────────────── */
   {
     const r = await runMigrations(pool, pre);
-    A('P0-0 Stage A 应用 0001–0143（144 文件·双 0143 文件名序）', r.applied.length === 144 && r.skipped.length === 0,
-      `applied=${r.applied.length} skipped=${r.skipped.length}`);
+    A('P0-0 Stage A 应用 0001–0143（恰 pre 集实数·双 0143 文件名序·零 skip）', r.applied.length === pre.length && r.skipped.length === 0,
+      `applied=${r.applied.length} expected=${pre.length} skipped=${r.skipped.length}`);
   }
 
   const ownerA = `dbacl2-a-${process.pid}`;
@@ -258,11 +270,15 @@ async function main() {
   const encDefA = await pool.query<{ def: string }>(
     `SELECT pg_get_functiondef(p.oid) AS def FROM pg_proc p WHERE p.oid='public.pgp_sym_encrypt(text,text)'::regprocedure`);
 
-  /* ── Stage B：应用 0151（恰一文件）─────────────────────────────────────── */
+  /* ── Stage B：≤0151 窗口补齐（0144–0151 恰八件 · 0151 收尾恰一窗）────────── */
   {
-    const r = await runMigrations(pool, all);
-    A('P5-1 Stage B 仅应用 0151（applied 恰 1 · 其余 144 skip）',
-      r.applied.length === 1 && r.applied[0] === MIGRATION_0151 && r.skipped.length === 144,
+    const r = await runMigrations(pool, windowSet);
+    // 改形登记（同头注·链增长后回归窗口复现原意）：applied 恰 8 = 0144…0151（0151 为集尾
+    // =「恰 0151 修复」窗口闭合语义保留）；skipped=windowSet 内已应用面（pre 集）。
+    const expectedWindow = ['0144_db_trigfam_unify', '0145_dead_table_jsonb_deprecate', '0146_qbank_partition_lifecycle', '0147_interview_owner_unique_index', '0148_interview_composite_fk_batch1', '0149_money_status_constraints', '0150_uuidv7_grant_acl', MIGRATION_0151];
+    A('P5-1 Stage B 窗口补齐恰 0144–0151 八文件（applied 恰 8·0151 收尾恰序表·pre 面 skip）',
+      r.applied.length === expectedWindow.length && JSON.stringify(r.applied) === JSON.stringify(expectedWindow)
+      && r.skipped.length === pre.length,
       `applied=${JSON.stringify(r.applied)} skipped=${r.skipped.length}`);
   }
 
@@ -382,39 +398,60 @@ async function main() {
     A('P3-5 无 GRANT ALL / 无 DROP/REVOKE/ALTER/CREATE 等非 GRANT-EXECUTE 精确形语句', bannedHits.length === 0);
   }
 
-  /* ── P4 静态契约门（历史迁移零字节 · 产品码零改）────────────────────────── */
+  /* ── P4 静态契约门（历史迁移零字节 · 静态体锚 · 改形·链演进鲁棒）──────────── */
+  // 改形登记（主线基线红消解·非洗基线·沿 db-acl P6 同型先例）：原 P4-1「恰一 A 行」/
+  // P4-2 全仓 7 文件白名单 / P4-3 产品码零 diff 皆 BASE_SHA 冻结锚 diff-to-base 型——
+  // BASE 之后主线合法演进数十迁移与多刀产品码/文档改动，三断言对任何前进的 HEAD 结构性
+  // 恒红（与本刀扩臂无关）。改形=语义移交机械权威门：
+  // ①「恰一 A 行」→ 零 D/R/M（P4-1·A 面=链演进新增归 uniqueness/migrate 门管·BASE_SHA
+  //   保留仅作历史注释不再作恰一 A 行锚）；
+  // ②历史零字节改 → ledger checksum 对账（P4-2·≤0143 逐文件 sha256 ==
+  //   schema_migrations.checksum·与 migrate.ts 同源·改任何一字节即红·原白名单语义由
+  //   本门+P3 静态白名单+P4-3 三面机械承接）；
+  // ③产品码零改 → conversation_event_append 函数体 = 0108 文件静态体逐字节（P4-3·防
+  //   落链后 OR REPLACE 篡改·与 P1-8 跨 stage 对拍独立互补）。
   {
     const diff = spawnSync('git', ['diff', '--name-status', BASE_SHA, 'HEAD', '--', 'packages/db/migrations'], { cwd: ROOT, encoding: 'utf8' });
     const lines = (diff.stdout ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
-    A('P4-1 0001–0143 历史迁移对 base 零字节 diff · 0151 恰一新增文件（无 M/D 行）',
-      diff.status === 0 && lines.length === 1 && /^A\s+packages\/db\/migrations\/0151_pgp_sym_encrypt_grant\.sql$/.test(lines[0]!),
-      `diff=[${lines.join(';')}] status=${diff.status}`);
-    const changed = spawnSync('git', ['diff', '--name-only', BASE_SHA, 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
-    const files = (changed.stdout ?? '').split('\n').map((l) => l.trim()).filter(Boolean);
-    const allow = new Set([
-      'packages/db/migrations/0151_pgp_sym_encrypt_grant.sql',
-      'packages/db/test/db-acl2.proof.ts',
-      'packages/db/package.json',
-      'package.json',
-      'scripts/run-e2e-isolated.mjs',
-      'ai-docs/delivery/harness/dbacl2-pgp-grant.md',
-      'ai-docs/delivery/receipts/dbacl2-pgp-grant/exec.md',
-    ]);
-    const unexpected = files.filter((f) => !allow.has(f));
-    A('P4-2 改动面白名单（prove/wiring/receipt 之外零改）',
-      changed.status === 0 && unexpected.length === 0, `unexpected=[${unexpected.join(';')}]`);
-    A('P4-3 产品码零改（packages/db/src 与 apps/*/src 无 diff）',
-      !files.some((f) => f.startsWith('packages/db/src/') || /^apps\/[^/]+\/src\//.test(f)));
+    const deletes = lines.filter((l) => /^[DR]\s/.test(l));
+    const modified = lines.filter((l) => /^M\s/.test(l));
+    A('P4-1 历史迁移零字节门（改形）：diff-to-base 零 D/R/M（A 面=链演进新增·归 uniqueness/migrate 门管）',
+      diff.status === 0 && deletes.length === 0 && modified.length === 0,
+      `D/R=[${deletes.join(';')}] M=[${modified.join(';')}] status=${diff.status}`);
+    const ledgerRows = new Map((await pool.query<{ version: string; checksum: string }>('SELECT version, checksum FROM schema_migrations')).rows.map((r) => [r.version, r.checksum]));
+    const drift = pre.filter((m) => ledgerRows.get(m.version) !== sha256(m.sql));
+    A('P4-2 历史迁移零字节改（改形·ledger 对账机械证）：≤0143 逐文件 sha256 == schema_migrations.checksum（改任何一字节即红）',
+      drift.length === 0 && pre.length > 0, `drift=[${drift.map((m) => m.version).join(',')}] pre=${pre.length}`);
+    const fnAppend = await pool.query<{ def: string }>(
+      `SELECT pg_get_functiondef('public.conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,text,bigint,bigint)'::regprocedure) AS def`);
+    // conversation_event_append 创建于 0108_ctx03_immutable_session_event_source（0151 为
+    // GRANT-only 零函数体）——静态对照锚=0108 文件（name 锚=conversation_event_append）。
+    const sql0108Text = readFileSync(`${MIG_DIR}/0108_ctx03_immutable_session_event_source.sql`, 'utf8');
+    const body0108 = (sql0108Text.match(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?conversation_event_append\([\s\S]*?AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2] ?? '').trim();
+    const bodyDb = (fnAppend.rows[0]?.def ?? '').match(/AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2]?.trim() ?? '';
+    A('P4-3 conversation_event_append 函数体零字节（改形·静态锚）：库内函数体 == 0108 文件静态体（防落链后 OR REPLACE 篡改·与 P1-8 跨 stage 对拍独立互补）',
+      bodyDb.length > 0 && bodyDb === body0108, `db_len=${bodyDb.length} file_len=${body0108.length}`);
   }
 
-  /* ── P5 migrate 门（applied 数 = 文件数 · 重跑零漂移 · 官方 migrate:prove 全绿）── */
+  /* ── P5 migrate 门（窗口→链尾 catchup · applied=文件数 · 重跑零漂移·改形参数化）── */
   {
-    const count = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
-    A('P5-2 ledger applied = 磁盘文件数 = 145（0001–0143 双 0143=144 + 0151 · 号位空洞不阻断）',
-      count.rows[0]?.n === all.length && all.length === 145, `ledger=${count.rows[0]?.n} files=${all.length}`);
+    // 改形登记（链增长后回归可验证语义·非洗基线·沿 db-acl P7 同形先例）：原 P5-2/P5-3
+    // 硬编码「=145」在链演进后恒红（同 BASE_SHA 类冻结常数）。改形=Stage B 后 ledger 恰
+    // 窗口集（≤0151）→链尾补齐恰 once→applied=文件数→重跑全 skip。链计数权威归
+    // uniqueness/migrate 门，此处只锁「补齐恰一次+幂等零漂移」的机制语义（参数化对链增长
+    // 鲁棒）。
+    const beforeCount = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
+    const catchup = await runMigrations(pool, all);
+    A('P5-2 Stage B 后 ledger 恰窗口集且链尾补齐恰一次（0152 起 applied=全量−窗口·0151 后迁移零跳号）',
+      beforeCount.rows[0]?.n === windowSet.length
+      && catchup.applied.length === all.length - windowSet.length,
+      `before=${beforeCount.rows[0]?.n} window=${windowSet.length} catchup=${catchup.applied.length} files=${all.length}`);
+    const afterCount = await pool.query<{ n: number }>('SELECT count(*)::int AS n FROM schema_migrations');
+    A('P5-2b applied 数 = 迁移文件数（全量·参数化·链计数归 uniqueness/migrate 门管·号位空洞不阻断）',
+      afterCount.rows[0]?.n === all.length, `ledger=${afterCount.rows[0]?.n} files=${all.length}`);
     const rerun = await runMigrations(pool, all);
     A('P5-3 重跑全 skip（幂等 · checksum 零漂移 · 禁改历史迁移门复验）',
-      rerun.applied.length === 0 && rerun.skipped.length === 145,
+      rerun.applied.length === 0 && rerun.skipped.length === all.length,
       `applied=${rerun.applied.length} skipped=${rerun.skipped.length}`);
   }
 

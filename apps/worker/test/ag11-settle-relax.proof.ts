@@ -3,7 +3,8 @@
  * (0188: ai_cost_settle_text widened body + scoped wrapper TABLE return +
  * ai_cost_budget_month table-level CHECK drop).
  *
- * Eight behavior arms over the settle relaxation body (0188:282-372):
+ * Twelve behavior arms over the settle relaxation body (0188:282-372) and
+ * the cached-input price face (0204: cached price columns + six-param settle):
  *   α equal-settle (actual=reserved → overage=false, amount via original path)
  *   β reserved<actual≤header max (row expansion + overage + month net deltas)
  *   β-0 actual_input=0 (input side never expands — 0033:47 CHECK lock intact)
@@ -13,6 +14,10 @@
  *     still self-limits with budget_exhausted)
  *   ζ scoped idempotent replay + same-key drifted envelope → binding_mismatch
  *   η app_role EXECUTE on the new TABLE-return signature (ACL after DROP+CREATE)
+ *   ι cached=0 bitwise identity (new formula value == legacy full-price formula)
+ *   κ distinct cached price revision (reservation captures cached price; split settle)
+ *   λ NULL cached price falls back to input price for the cached CEIL term
+ *   μ cached>input raises ai_cost_cached_exceeds_input (fail-closed guard)
  *
  * prove-shell via the isolated runner: domain/negative-path proof on a fresh
  * migration chain — NOT HTTP/SSE live E2E covered. No provider is contacted
@@ -131,7 +136,7 @@ async function settleRaises(scopeId: string, key: string, actualInput: number, a
     let message: string | null = null;
     try {
       await c.query('SAVEPOINT ag11_settle_raise');
-      await settleAiTextCost(c, scopeId, owner, key, actualInput, actualOutput);
+      await settleAiTextCost(c, scopeId, owner, key, actualInput, actualOutput, 0);
     } catch (error) {
       message = String((error as Error).message);
     } finally {
@@ -152,7 +157,7 @@ async function main() {
     const key = `equal:${suffix}`;
     const reserve = await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const monthBefore = await readMonth(scopeA);
-    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 40, 40));
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 40, 40, 0));
     const row = await readReservation(scopeA, key);
     const monthAfter = await readMonth(scopeA);
     A('α 等值结算 actual=reserved：{80,false}·行终态 settled 金额原路径零变·月行 reserved−80/settled+80',
@@ -171,7 +176,7 @@ async function main() {
     const key = `expand:${suffix}`;
     const reserve = await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const monthBefore = await readMonth(scopeA);
-    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40));
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 0));
     const row = await readReservation(scopeA, key);
     const monthAfter = await readMonth(scopeA);
     A('β 预留(40)<actual(60)≤header max(100)：settled 行扩 60/金额 100·overage=true·月行 reserved−80/settled+100 净增',
@@ -188,7 +193,7 @@ async function main() {
   {
     const key = `zero-input:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
-    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 0, 40));
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 0, 40, 0));
     const row = await readReservation(scopeA, key);
     A('β-0 actual_input=0：结算绿·input_tokens_reserved 恒 40 不触扩·0 消耗不被歪曲·overage=false',
       result.microCny === 40 && result.overage === false
@@ -228,7 +233,7 @@ async function main() {
     });
     const monthBefore = await readMonth(scopeA);
     const raised = await settleRaises(scopeA, key, 41, 40, 'ai_cost_actual_exceeds_reservation');
-    const strictStillGreen = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 40, 40));
+    const strictStillGreen = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 40, 40, 0));
     const row = await readReservation(scopeA, key);
     const monthAfter = await readMonth(scopeA);
     A('δ 无 invocation/header：actual(41)>预留自值 raise 封顶=严格语义 fail-closed·等值预留仍结算绿（{80,false}）·月行仅一次结转',
@@ -249,7 +254,7 @@ async function main() {
       `UPDATE ai_cost_budget_month SET reserved_micro_cny=1000 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
       [scopeE],
     );
-    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeE, owner, key, 60, 40));
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeE, owner, key, 60, 40, 0));
     const month = await readMonth(scopeE);
     const constraint = await pool.query(
       `SELECT count(*)::int AS n FROM pg_constraint
@@ -270,8 +275,8 @@ async function main() {
   {
     const key = `idempotent:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
-    const first = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40));
-    const second = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40));
+    const first = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 0));
+    const second = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 0));
     const driftKey = `envelope-drift:${suffix}`;
     await asPrincipal(pool, owner, async (c) => {
       const r = await reserveAiTextCost(c, {
@@ -292,7 +297,7 @@ async function main() {
 
   // ── η app_role 对新签名 TABLE 返回 scoped settle 的 EXECUTE 特权（DROP+CREATE 后 ACL 回归锁）。
   {
-    const signature = 'ai_cost_settle_text_scoped(text,text,text,integer,integer)';
+    const signature = 'ai_cost_settle_text_scoped(text,text,text,integer,integer,integer)';
     const acl = await pool.query(
       `SELECT has_function_privilege('app_role',$1,'EXECUTE') AS app_role_execute,
               has_function_privilege('public',$1,'EXECUTE') AS public_execute,
@@ -310,8 +315,91 @@ async function main() {
       && String(row?.return_shape) === 'TABLE(micro_cny bigint, overage boolean)');
   }
 
+  // ── ι cached=0 逐位恒等：同 input/output 下新公式值==旧公式值对表（0204 行为保持铁律①）。
+  {
+    const key = `cached-zero-identity:${suffix}`;
+    await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 0));
+    const legacyFormula = Math.ceil((60 * RATE) / 1_000_000) + Math.ceil((40 * RATE) / 1_000_000);
+    const row = await readReservation(scopeA, key);
+    A('ι cached=0 逐位恒等：新公式值==旧公式值对表（60×1+40×1=100）·行态 settled 同全价路径形',
+      legacyFormula === 100 && result.microCny === legacyFormula && result.overage === true
+      && row?.status === 'settled' && row.settledMicro === 100
+      && row.inputActual === 60 && row.outputActual === 40);
+  }
+
+  // ── κ 有缓存价分账：r2 revision 携 cached 价 400_000→预留行捕获该价+settle 三段 CEIL 精确对表。
+  {
+    const key = `cached-price:${suffix}`;
+    const cachedRate = 400_000;
+    await pool.query(
+      `INSERT INTO ai_cost_price_book(provider,model,region,revision,input_micro_cny_per_million,output_micro_cny_per_million,cached_input_micro_cny_per_million,source_url,effective_at)
+       VALUES($1,$2,$3,'r2',$4,$4,$5,'https://example.test/ag11-settle-relax',clock_timestamp())`,
+      [provider, model, region, RATE, cachedRate],
+    );
+    const claim = await asPrincipal(pool, owner, (c) => claimModelInvocation(c, {
+      owner, idempotencyKey: key, logicalNodeKey: `proof:ag11:${key}`, requestDigest: digest,
+      service: 'proof.ag11_settle_relax', leaseToken: randomUUID(), leaseSeconds: 120,
+      costScopeId: scopeA, provider, model, region, priceRevision: 'r2',
+      maxInputTokens: 100, maxOutputTokens: 40,
+    }));
+    if (claim.action !== 'execute') throw new Error(`ag11_fixture_claim_not_executable:${key}:${claim.action}`);
+    const reserve = await asPrincipal(pool, owner, async (c) => {
+      const r = await reserveAiTextCost(c, {
+        scopeId: scopeA, requestOwner: owner, idempotencyKey: key,
+        provider, model, region, priceRevision: 'r2', maxInputTokens: 40, maxOutputTokens: 40,
+      });
+      if (r.decision !== 'reserved') throw new Error(`ag11_fixture_reserve_refused:${key}:${r.decision}`);
+      if (!await markModelInvocationDispatched(c, owner, key, claim.leaseToken as string, scopeA)) throw new Error(`ag11_fixture_dispatch_refused:${key}`);
+      if (!await markAiCostDispatched(c, scopeA, owner, key)) throw new Error(`ag11_fixture_dispatch_refused:${key}`);
+      return r;
+    });
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 20));
+    const row = await readReservation(scopeA, key);
+    const capturedCached = await pool.query(
+      'SELECT cached_input_micro_cny_per_million AS c FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2',
+      [scopeA, key],
+    );
+    A('κ 有缓存价分账：预留行捕获 cached 价 400_000（缺口②闭）·settle(60,40,cached 20)=CEIL(40×1)+CEIL(20×0.4)+CEIL(40×1)=88·overage=true',
+      reserve.reservedMicroCny === 80 && result.microCny === 88 && result.overage === true
+      && Number(capturedCached.rows[0]?.c) === cachedRate
+      && row?.status === 'settled' && row.settledMicro === 88 && row.overage === true);
+  }
+
+  // ── λ NULL 缓存价回退：r1 cached 价 NULL→cached(20) 部分按 input 价计（铁律②·非 cached 计 0 的 80）。
+  {
+    const key = `cached-null-fallback:${suffix}`;
+    await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
+    const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 20));
+    const row = await readReservation(scopeA, key);
+    A('λ NULL 缓存价回退：cached(20) 部分按 input 价计=CEIL(40)+CEIL(20)+CEIL(40)=100（cached 计 0 形会得 80）·overage=true',
+      result.microCny === 100 && result.overage === true
+      && row?.status === 'settled' && row.settledMicro === 100);
+  }
+
+  // ── μ cached>input 拒绝：六参守卫 fail-closed raise 原码·行态零写（savepoint 回滚）。
+  {
+    const key = `cached-over-input:${suffix}`;
+    await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
+    const raised = await asPrincipal(pool, owner, async (c) => {
+      let message: string | null = null;
+      try {
+        await c.query('SAVEPOINT ag11_cached_raise');
+        await settleAiTextCost(c, scopeA, owner, key, 40, 40, 41);
+      } catch (error) {
+        message = String((error as Error).message);
+      } finally {
+        await c.query('ROLLBACK TO SAVEPOINT ag11_cached_raise');
+      }
+      return message !== null && message.includes('ai_cost_cached_exceeds_input');
+    });
+    const row = await readReservation(scopeA, key);
+    A('μ cached(41)>input(40)：raise ai_cost_cached_exceeds_input·行态 dispatching 零写·月行零动',
+      raised && row?.status === 'dispatching' && row.settledMicro === null && row.overage === false);
+  }
+
   console.log(failures === 0
-    ? '\n✓ AG-11 settle 放宽体八臂行为级补证全部通过（0188 settle/body+scoped TABLE+月限 CHECK 松绑）'
+    ? '\n✓ AG-11 settle 放宽体十二臂行为级补证全部通过（0188 settle/body+scoped TABLE+月限 CHECK 松绑+0204 cached 价列六参结算）'
     : `\n✗ ${failures} 臂失败`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);

@@ -15,3 +15,11 @@ catalogs:
     '@langchain/core': 1.2.1
     '@langchain/langgraph': 1.4.7
     '@langchain/langgraph-checkpoint-postgres': 1.0.4
+
+supportedArchitectures:
+  os:
+    - darwin
+    - linux
+  cpu:
+    - arm64
+    - x64

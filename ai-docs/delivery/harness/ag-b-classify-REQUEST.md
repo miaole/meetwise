@@ -1,6 +1,6 @@
 # AG-B-CLASSIFY REQUEST（AG 修复轨·失败语义刀 B · AG-06 确定性失败结算分类 + AG-14 解析层折叠（同文件同刀）· 沿既有 settled-failed 先例路由接线 · 零新结算语义）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）→ **append 2026-10-12：`executed:awaiting_post_prove_dual`**（pre-exec 双审两外席 **BOTH PASS** 落协调方+协调方常设 loop 授权开工·EXEC 施工六条+§2 全门跑毕见 §0.3/§8 行使记录与 receipts/ag-b-classify/·⛔push 保持·待 post-prove 双审两外席）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-B nail」段 :2373 已载 rev2 后 post 双席 BOTH PASS+nail merge @`616d8ef3`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：AG 修复轨刀 B 起草席（EXPERT-REVIEWS §七 失败语义轨刀 B 承接·**先于一切重试刀**·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `ce021b22`（主线 tip·`git log -1` 实测·ttl-wire merge commit·零码面）。分支 `line/ag-b-classify`·工作树 `meetwise-agb`（`git worktree add ../meetwise-agb -b line/ag-b-classify ce021b22` 本起草席已立·建前 worktree list + branch 双查实测不存在·HEAD 落 `ce021b22` 亲证）。
