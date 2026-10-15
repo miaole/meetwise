@@ -12,19 +12,22 @@
 
 - `git worktree list` 建后 17 树实测——无第二 db-acl-residual 同名树；`git branch --list "line/db-acl*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | rg db-acl-residual` 建前零命中→落卷后唯一同名卷=本卷。
 - **在飞交叠复核规则（EXEC 立项日必做）**：本刀唯一码触面=`packages/db/test/db-acl2.proof.ts`（现 blob `9efeae31`·426 行·末次变更=`419f85f1` DBACL-2 自身 EXEC 收据·已在主线）。届时对各在飞分支执行 `git log <branch> -1 -- packages/db/test/db-acl2.proof.ts` 逐树复核，任一分支顶对该文件存在主线 `418f16e8` 之后的新增提交→触停止条件「现场漂移」停手上报。
+- **EXEC 期交叠复核重跑（@merge `dca42710`·origin tip `f417d8e7`·2026-10-15）**：全分支逐树复核——唯一非 `419f85f1` 顶触=`line/db-pgp-acl` 顶 `650b018e`（2026-10-08 20:23 DBACL-2 原始支线·其文件 blob=`9efeae31` 与主线恒等·时间早于主线基线 `418f16e8`（2026-10-15）一周=**非「418f16e8 之后新增」**·属既并线工作原始血统分支）；余全分支顶触=`419f85f1` ancestor-ok——**零在飞新触·停止条件未触发**。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`418f16e8`）
+
+> **EXEC 重 pin 总注（@origin tip `f417d8e7`·merge `dca42710`·2026-10-15）**：七 blob 中六值恒等（db-acl2.proof.ts `9efeae31`/db-acl.proof.ts `570f5741`/migrate.ts `f472f356`/0151 `e6e76af1`/0108 `351aeb45`/package.json `3b04b871`）·唯一漂移=`run-e2e-isolated.mjs`（`e69e317a`→`0787a7ff`·行内重 pin 见该行）——**结论零变**（接线语义亲证恒等·本刀零触面）。`package.json` 行锚亲证恒等（`:405-:408` 双行+`:8` root lint 预算 5235）。db-acl2.proof.ts 行锚对 blob `9efeae31`（改形前基）逐条亲证恒等；改形后新行锚归 §9 EXEC 记录。
 
 | 文件 | blob（8 hex） | 关键行锚 |
 |---|---|---|
 | `packages/db/test/db-acl2.proof.ts` | `9efeae31`（426 行） | **`:2-:23` 头注（Stage A/P4/P5 冻结描述=改形对象）·`:34-:36` ROOT/MIG_DIR/0151 名+BASE_SHA=`95911975`·`:46` EXPECTED_CLOSED_SET 恰 1=memory_runtime·`:177` pre 过滤=`version !== MIGRATION_0151`（mid-chain 洞形状=红根①）·`:178` 0151 在目录臂·`:180-:200` P5-4 官方 migrate:prove 子进程（专用第二净库·现跑绿）·`:202-:207` Stage A+P0-0（`:205` 断言 `applied.length===144` 冻结常数=红臂本体）·`:209-:232` P0 负门四臂·`:234-:252` §3 推导六臂·`:254-:259` Stage A 快照（aclA/appendDefA/encDefA）·`:261-:267` Stage B `runMigrations(pool, all)`+P5-1（`:264-:266` applied 恰 1/skipped 恰 144 冻结）·`:269-:311` P1 九臂·`:313-:352` P2 五臂·`:354-:383` P3 五臂（`:369-:382` 0151 全文白名单机检）·`:385-:408` P4 三臂（`:387-:391` P4-1 对 base 恰一 A 行冻结·`:392-:405` P4-2 全仓 7 文件白名单冻结·`:406-:407` P4-3 产品码对 base 零 diff 冻结）·`:410-:419` P5-2/P5-3（`:414` `all.length===145` 冻结·`:417` `skipped===145` 冻结）** |
 | `packages/db/test/db-acl.proof.ts` | `570f5741`（694 行） | **改形先例本体（本刀零触）·`:349-:357` Stage A 改形登记（「0145/0150 后继迁移进链后结构性翻红…migration_ledger_not_contiguous_prefix…改形=回归头注原意」·本刀 §1.3 同型根因的既裁文字）·`:356-:357` 版本前缀窗 `slice(0,4)<='0143'`/`<='0150'`·`:437-:441` P7-1 expectedWindow 恰序表形·`:614-:644` P6 三段改形（P6-1 零 D/R+M 豁免/P6-2 ledger checksum/P6-3 静态体锚）·`:646-:665` P7-2/P7-2b/P7-3 catchup 参数化形** |
-| `packages/db/src/migrate.ts` | `f472f356` | **`:28` `migration_ledger_not_contiguous_prefix` 守卫定义·`:438` 抛点——本刀零触（守卫语义是被依赖对象非修法对象）** |
+| `packages/db/src/migrate.ts` | `f472f356`（**EXEC 三值并列恒等：@`418f16e8`=@`f417d8e7`（origin tip）=merge 后本树工作树**·612 行） | **`:26-:28` `migrationError` 守卫 helper（声明 ：27·起草行锚 `:28` 为函数体尾行）·`:438` `migration_ledger_not_contiguous_prefix` 抛点（EXEC 亲证恒等）——本刀零触（守卫语义是被依赖对象非修法对象）** |
 | `packages/db/migrations/0151_pgp_sym_encrypt_grant.sql` | `e6e76af1` | 注释块+**恰 1 条 GRANT 语句**（`GRANT EXECUTE ON FUNCTION public.pgp_sym_encrypt(text,text) TO memory_runtime;`）——P3-3/3-4/3-5 静态机检面·本刀零字节零触 |
 | `packages/db/migrations/0108_ctx03_immutable_session_event_source.sql` | `351aeb45` | `:177` `conversation_event_append` 创建·`:255` `pgp_sym_encrypt(p_body, p_enc_key)` 唯一调用点·`$`-quote 体可静态提取（P4-3' 静态锚原点） |
-| `scripts/run-e2e-isolated.mjs` | `e69e317a` | `:1526-:1534` db-acl:prove:raw 触发集·`:1535-:1545` db-acl2:prove:raw 触发集·`:2150-:2151` 跑单注册·`:2477-:2480` 命令映射——接线完好·本刀零触 |
+| `scripts/run-e2e-isolated.mjs` | `0787a7ff`（**EXEC 重 pin·起草时 `e69e317a`·主线 ci-wiring3 等波合法并线所致·blob 漂移但接线语义恒等·3201 行**） | **EXEC 重 pin 行锚：`:1538-:1546` db-acl:prove:raw 触发集·`:1547-:1558` db-acl2:prove:raw 触发集·`:2162-:2163` 跑单注册·`:2489-:2492` 命令映射——接线完好亲证·本刀零触** |
 | `package.json` | `3b04b871` | `:405-:408` db-acl:prove/db-acl2:prove 双行（run-e2e-isolated 包装）+`:406/:408` raw→`pnpm -C packages/db prove:db-acl(2)`·`:8` root lint 预算 5235 |
-| `scripts/ai-docs/public-text-policy.mjs` | —（行锚） | `:78` `MAX_FILES = 2_144`（docs:check cap 现值·简报 2136 勘误对表锚） |
+| `scripts/ai-docs/public-text-policy.mjs` | —（行锚） | 起草时 `:78` `MAX_FILES = 2_144`；**EXEC 重 pin `:90` `MAX_FILES = 2_152`**（主线 `591d07cf` cap sanction 落值·本卷 §2-11 门沿 cap 联动语义=≤2152） |
 
 ### 0.2 派单简报漂移登记（结论零变·如实改锚）
 
@@ -35,6 +38,7 @@
 ### 0.3 迁移号登记（预期零迁移）
 
 - 主线链顶实测：`ls packages/db/migrations | wc -l`=**202**·头 `0202_interview_event_kind_score_card_written.sql`；`loadMigrations` 实测（本席 tsx 亲跑）：**all=202 · pre(≤0143)=144（双 0143 文件名序均在·`0143_db_id_v7_unify`+`0143_sse_push_notify`）· win(≤0151)=152 · winAdd=8 · catchup=50**。
+- **EXEC 期重 pin（@merge `dca42710`·origin tip `f417d8e7`·2026-10-15·本席 node 亲跑）**：链=**204**·头 `0204_ai_cost_cached_input_price`（`0203_gateway_model_invocation_backlog`+`0204` 随主线合法并线进链·派单简报「链 203」为时点前置值如实更）；`loadMigrations` 实测：**all=204 · pre(≤0143)=144（双 0143 恒等）· win(≤0151)=152 · winAdd=8 · catchup=52**；expectedWindow 八名逐字亲证恒等；uniqueness 实测 `files=204 violations=0 exemptions=0143,0152,0160`。§1.3 红①「实测 201」=起草时点 202 链诊断历史值不改（同型形状对 204 链=203·机制结论零变）。
 - 本刀修法=纯 proof 断言层改形（§1-修法件①）·**预期零迁移零 DDL**。协调规则：EXEC 期若实测产生非预期迁移需求→**停（越界需要类）上报**·认领号=对届时链顶亲数+在飞分支题面复核后最小未占号顺延·Ban 抢号 Ban 私占。
 
 ## §1 红事实（机制链·全部亲证·本席两 run 现跑收据）
@@ -45,12 +49,13 @@
 |---|---|---|---|---|
 | db-acl:prove | `pnpm db-acl:prove` | **0** | **62 PASS / 0 FAIL**（`RESULT dbacl1-db-acl failures=0`） | 运行日志留存席（/tmp 下易失·FAIL=∅ 无名单可摘） |
 | db-acl2:prove | `pnpm db-acl2:prove` | **1** | 跑前段 **11 PASS / 1 FAIL** 后**中途崩溃**：`migration_ledger_not_contiguous_prefix`（proof `:263` Stage B→`migrate.ts:438`←`:28`）·**25 臂未及执行**（P5-1/P1-1..9/P2-1..5/P3-1..5/P4-1..3/P5-2/P5-3） | 隔离收据 `.tmp/isolated-proof-receipts/2026-10-15T09-08-15-661Z-7190-eb4e71f5-1e6d-49aa-8622-d5d46812996c.json` |
+| db-acl:prove（**失败首尝试·EXEC 补账**） | `pnpm db-acl:prove` | **1** | 臂账未达（收据只记 outcome/exitCode/duration·无 FAIL 名单字段·失败根因未留痕） | 起草席 09:04:22.495Z 起跑·duration 121590ms·09:06:24.085Z 收据落卷 `.tmp/isolated-proof-receipts/2026-10-15T09-06-24-085Z-3155-3772f1b9-fed5-454e-b45c-45f8a4b3158e.json`（schemaMigrationManifest count=202 latest=0202）；**随后 09:07:00 重跑 33374ms EXIT=0 62 PASS=上表绿行凭据**。本行=pre-exec 双审 N2 要求补登的一笔如实账（起草席 §1.1 原表漏记）·attempts 全账口径补齐·零改判上行绿账 |
 
 **崩溃 run 的强旁证（零语义漂移的结构性证据）**：Stage A 当时以「全量−0151」形状应用了 **含 0152-0202 的 201 文件**——§3 推导门在全链库上全 PASS：`sdTotal=307 · pgp_sym_* SD 调用恰 1 条=memory_runtime|conversation_event_append|pgp_sym_encrypt(p_body,p_enc_key)|arity=2|encrypt`（§3-4/3-5/3-6 PASS）+P0-1..P0-4 负门全 PASS+P5-4 官方 migrate:prove 子进程（202 链全量重放）PASS——**ACL 语义面在当前全链零漂移·残红纯系冻结形状**。
 
 ### 1.2 db-acl:prove 翻绿归属链（本刀零触面·如实闭账）
 
-ciw2 时点基线红（归置卷 ：25）→批5b 迁移簇 `7152cd3c` EXEC+nail 续作三授权 `60d3fb68`「db proof 窄化」改形（db-acl.proof.ts :349-:357/:614-:665 改形登记在卷）→checklist :2692 门矩阵「db-acl failures=0」→本树现跑 EXIT=0。**该面已闭·本刀零触**（§3-2）·#142 残面收窄为 **db-acl2:prove 单 proof**。
+ciw2 时点基线红（归置卷 ：25）→批5b 迁移簇 EXEC `7152cd3c` **「db proof 窄化」改形落地**（db-acl.proof.ts 末次码改=该提交亲证·:349-:357/:614-:665 改形登记在卷）+nail 续作三授权 `60d3fb68` 为该窄化的 **sanction 授权面**（授权处置提交·对 db-acl.proof.ts 零码改——归属两 hash 分立如实措辞·pre-exec N3）→checklist :2692 门矩阵「db-acl failures=0」→本树现跑 EXIT=0。**该面已闭·本刀零触**（§3-2）·#142 残面收窄为 **db-acl2:prove 单 proof**。
 
 ### 1.3 db-acl2:prove 红臂逐条根因（file:line·本席亲证）
 
@@ -135,4 +140,42 @@ ciw2 时点基线红（归置卷 ：25）→批5b 迁移簇 `7152cd3c` EXEC+nail
 
 ---
 
-*DB-ACL-RESIDUAL REQUEST · 2026-10-15 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`418f16e8`（=origin tip fetch 后亲证）· 分支 `line/db-acl-residual` · 工作树 `meetwise-dar`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=台账 ：86 #142 指针（残面归后继刀）+归置卷 ：25-26/:106-109+本席两 run 现跑收据 · 诊断=db-acl:prove 已随批5b `60d3fb68`「db proof 窄化」翻绿（62/62·零触闭账）+db-acl2:prove 残红=红① P0-0 冻结 144 vs 实测 201（`:177` 挖洞形状+`:205` 冻结常数）+红② Stage B `:263` 非连续 ledger 崩溃（`migrate.ts:28/:438` 守卫·级联 25 臂未达）+红③ 六处冻结常数潜伏面（P5-1/P5-2/P5-3/P4-1/P4-2/P4-3）·零语义漂移铁证=全链库 §3 推导恰 1（sdTotal=307）+P0 负门全 PASS+P5-4 官方轮绿 · 修法=候选甲恰 1 文件六处改形（0143 前缀窗+≤0151 窗口 0151 收尾+catchup 参数化+P4 三段静态门机械承接·镜像 db-acl 先例形）·臂 37→38 零删门 · dbhy1/interview/neg 邻面与 docs:check 2136 勘误登记（§0.2）· 门矩阵十四门 · 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+## §9 EXEC 记录（2026-10-15 · EXEC 席·pre-exec 双审会签 PASS 席1 agent_9ffa0cc6+席2 agent_e22738db→协调方 EXEC 授权）
+
+**并线**：`git fetch` 后 origin/feat/mysql-schema-skeleton tip=`f417d8e7`（亲证）；`git merge --no-ff feat/mysql-schema-skeleton` → **merge=`dca42710`**（merge-base `418f16e8`·merge-tree 预演 EXIT=0·**零冲突零并集解需要**·delta=33 commits·⛔pull --rebase 未用）。
+
+**全量重 pin（N1·结论零变只更值）**：链 **204** 头 `0204_ai_cost_cached_input_price`（简报 203=时点前置值如实更）；loadMigrations 实测 all=204·pre=144·win=152·winAdd=8·catchup=52；blob 七值六恒一漂（`run-e2e-isolated.mjs` `e69e317a`→`0787a7ff`·行锚重 pin 接线恒等）；expectedWindow 八名逐字恒等；§0.0 交叠复核重跑零在飞新触（`line/db-pgp-acl`=`650b018e` 2026-10-08 原始血统支线·blob 恒等·早于主线非新增）；其余详见 §0.0/§0.1/§0.3 EXEC 注行。停止条件四类全程未触发。
+
+**件① 六处改形落点（恰 1 文件 `packages/db/test/db-acl2.proof.ts`·改形前 blob `9efeae31` 基）**：
+1. 头注（:2-:23 区）：Stage A/B/P4/P5 描述随改形更新+既有臂改形登记段（沿 db-acl :349-:357 文形·链 145→204 演进·非洗基线）；
+2. Stage A 集（原 :177）：`version !== MIGRATION_0151` → `version.slice(0,4) <= '0143'`（0143 版本前缀窗·镜像 db-acl :356 形）+windowSet（≤0151）旁置；
+3. P0-0（原 :204-:206）：`applied.length === 144` 冻结 → `=== pre.length`（恰 pre 集实数·零 skip·镜像 db-acl :363 形）；
+4. Stage B 窗口化（原 :261-:267）：`runMigrations(pool, all)` → `runMigrations(pool, windowSet)`·P5-1=applied 恰 expectedWindow 八名恰序表（0151 收尾恰一窗）+skipped===pre.length（镜像 db-acl :437-:441 形）；
+5. P4 三段（原 :385-:408）：P4-1' 恰一 A 行→零 D/R/M（BASE_SHA 保留仅作历史注释）·P4-2' 全仓 7 文件白名单→ledger checksum 对账（≤0143 逐文件 sha256==schema_migrations.checksum·与 migrate.ts:365 同源）·P4-3' 产品码零 diff→conversation_event_append 静态体锚（库内函数体==0108 文件 `$`-quote 静态体·name 锚·镜像 db-acl :637-:643 形）；
+6. P5（原 :410-:419）四臂化：P5-2 catchup 参数化（beforeCount===windowSet.length && applied===all.length−windowSet.length）+P5-2b 新臂（ledger===all.length·删 `===145` 冻结·「号位空洞不阻断」自注保留）+P5-3（`===145` 冻结删·参数化）——P5-4 官方子进程零触。**臂 37→38 零删门零弱化**（负门 P0/正门 P1/P2/白名单 P3/闭集 §3 全数原样）。
+
+**件② prove（恰 1 run·零 retry-to-green）**：`pnpm db-acl2:prove` → **EXIT=0 · 38 PASS / 0 FAIL**（`RESULT dbacl2-db-acl failures=0`·DERIVE closed-set owners=memory_runtime sdTotal=282 恰 1 调用点 arity=2 encrypt）·隔离收据 `.tmp/isolated-proof-receipts/2026-10-15T14-12-22-990Z-59467-7781358d-463d-45bc-8d0e-4d5a6dfd5390.json`。38 臂全 PASS 名单=P5-4·P0-0·P0-1·P0-2·P0-3·P0-4·§3-1·§3-2·§3-3·§3-4·§3-5·§3-6·P5-1·P1-1..9（九臂）·P2-1..5（五臂）·P3-1..5（五臂）·P4-1·P4-2·P4-3·P5-2·**P5-2b（新臂）**·P5-3。
+
+**门矩阵十四门（EXIT 原值）**：
+| # | 门 | 结果 |
+|---|---|---|
+| 1 | db-acl2:prove | **EXIT=0 · 38/38 翻绿**（含 P5-2b 新臂·恰 1 run） |
+| 2 | db-acl:prove | **EXIT=0 · 62 PASS/0 FAIL 维持**（`RESULT dbacl1-db-acl failures=0`·blob `570f5741` 零触·本席两跑全绿如实账：首跑 grep 管道丢 EXIT 码·复跑显式捕获 EXIT=0 62/0·两跑均绿非 retry-to-green） |
+| 3 | migrate:prove | **EXIT=0**（全绿·链 204 头 0204 届时实数） |
+| 4 | drift:prove | **EXIT=0**（零漂移·豁免 2 项既登恒等） |
+| 5 | uniqueness | **EXIT=0 `files=204 violations=0 exemptions=0143,0152,0160`** |
+| 6 | dbhy1:prove | **EXIT=0 · 28/0**（对简报钉 28 偏差 0·§0.2-3 静态计数 26 口径差如实存档） |
+| 7 | interview:prove | **EXIT=0 · 57/0**（对简报钉 57 偏差 0） |
+| 8 | neg:all | **EXIT=0 · 687 PASS/0 FAIL 六段全绿**（对简报钉 687 偏差 0；isolated runner 形 `node scripts/run-e2e-isolated.mjs neg:all`——裸 `pnpm -C apps/api neg:all` 缺 PG env 即 env_schema_invalid 红=环境供给面非码红·如实登记；严格 `^FAIL`=0·6 处 "FAIL" 字样均 IV_FAIL 夹具 ID 载于 PASS 行） |
+| 9 | typecheck | **EXIT=0 · 8/8 successful · 0 cached** |
+| 10 | lint 五值恰等 | **EXIT=0 · web 601 / root 5235 / api 1421 / worker 954 / ai-runtime 628 全恰等 · 全域 0 errors · 零第六值** |
+| 11 | docs:check | **EXIT=0 · scanned 2149 ≤ cap 2152**（cap=`public-text-policy.mjs:90` 主线 `591d07cf` sanction 落值·终值含件③收据面·余量 3） |
+| 12 | markers 五类 | **零命中**（改动集 2 tracked 词面运行时组装扫描·沿 `i6-239-gates.proof.mjs:151-163` 形·EXIT=0） |
+| 13 | diff 面机检 | **恰 2 tracked**=`packages/db/test/db-acl2.proof.ts`（+76/−39）+本卷 .md（+9/−4）+收据目录 untracked（件③·零多 tracked） |
+| 14 | 卫生 | **`pnpm install --frozen-lockfile` EXIT=0 lockfile 零改 · `.env*` ABSENT 双向记录 · 零模型外呼（est live=0·两 proof 均无 key 隔离容器机械断言）· `apps/web/tsconfig.tsbuildinfo` 运行翻动 checkout 归位不入 commit（cost-columns 先例形）· `actualSpendCny=null`** |
+
+**pins 零翻声明**：§5 十一值+`actualSpendCny=null` 脚注全数照抄零翻转。**偏离清单**：①门 8 neg:all 裸命令形缺 PG env 红（环境供给面·runner 形绿·如实登记非就地处置）②门 2 db-acl:prove 两跑全绿账（首跑 EXIT 码丢失于管道·复跑捕获·两跑均绿）③§0.1 run-e2e-isolated.mjs blob 漂移重 pin（主线合法并线·非本刀触）④门 11 cap 联动 2144→2152（主线 sanction 已落值·本卷 §0.1 行随更）——四项均如实登记·零停止条件触发。**件③ 收据**：`ai-docs/delivery/receipts/db-acl-residual/00-exec.md`（untracked·七字段）。**STOP → `executed:awaiting_post_prove_dual`**（待 post-prove 双审·Ban self-approve·alone≠dual·⛔push）。
+
+---
+
+*DB-ACL-RESIDUAL REQUEST · 2026-10-15 起草 · **EXEC 落卷 2026-10-15（§9）**：pre-exec 双审 BOTH PASS（席1 agent_9ffa0cc6+席2 agent_e22738db）+协调方 EXEC 授权·并线 `dca42710`（--no-ff feat/mysql-schema-skeleton@f417d8e7·零冲突）·全量重 pin（链 204 头 0204·blob 六恒一漂·八名恒等·交叠复核零新触）·六处改形全落恰 1 文件·db-acl2:prove EXIT=0 **38/38 翻绿**（37 保留+P5-2b 新臂·零删门零弱化）·db-acl:prove 62/0 维持·门矩阵十四门全绿·STOP=**`executed:awaiting_post_prove_dual`**·待 post-prove 双审 · 基线 `feat/mysql-schema-skeleton` @`418f16e8`（起草时点 origin tip）→EXEC 时点 origin tip `f417d8e7` · 分支 `line/db-acl-residual` · 工作树 `meetwise-dar` · 修法=候选甲恰 1 文件六处改形·臂 37→38 零删门 · 迁移预期零=实际零（migrations 目录零字节触）· est live=0 · markers=0 · pins 十一值照抄零翻 · 停止条件四类全程未触发 · Ban self-approve · alone≠dual · ⛔push*
