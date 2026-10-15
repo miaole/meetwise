@@ -1,6 +1,6 @@
 # QBANK-INTEGRITY-CHAIN REQUEST（qbank 链窗修复刀 · retrieval 版面探针缝 + integrity 链窗 proof 红翻绿 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·rev2 修订随审落卷·本卷恰 1 .md·alone≠dual·Ban self-approve·rev2 落卷后席1 复审确认方会签·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·主门 qbank-integrity-upgrade:prove 红翻绿 20 PASS/0 FAIL·门矩阵 §2 全表已跑·两基线红承登非本刀因果如实登记·alone≠dual·Ban self-approve·待 post 双审两外席会签+协调方·⛔push）
 
 **席位**：meetwise 战役「QBANK-INTEGRITY-CHAIN-EXTEND 链窗修复刀」诊断+起草席（docs-only·零码动·单文件落卷）。
 **基线**：支线 `line/qbank-integrity-chain` @ `77ba32ab`（本起草席新建·`git worktree add ../meetwise-qit -b line/qbank-integrity-chain 77ba32ab`·工作树 `../meetwise-qit`·仓根同级）。`77ba32ab`=主线 nail（cache-observe-repin 收官卷·并线 feat/mysql-schema-skeleton@`317ea3df` 双亲 `ec8e19d6`+`317ea3df`）；fetch 实测 origin/main=`c4244470`（2026-09-04·**系 `77ba32ab` 祖先**·rev-list 亲证 `origin/main..77ba32ab`=2153/`77ba32ab..origin/main`=0）。**派单前提勘误注（如实登记）**：派单书「origin tip≥77ba32ab」按祖先序实测方向相反——origin/main 包含于 `77ba32ab`；且红签名文件 `packages/db/src/qbank/qbank-generation-retrieval.ts` 在 origin/main **不存在**（`git cat-file -e` 亲证 NOT_ON_ORIGIN·系本仓线栈增文件）→ 切基=本地线栈最新 nail `77ba32ab`（恰符「≥77ba32ab」下界语义·含 origin/main 全集）。
@@ -33,7 +33,7 @@
 | A18 | `git log -L 285,285:packages/db/src/qbank/qbank-generation-retrieval.ts` | — | 行史恰两 commit：`d9394e91`（建文件·`SELECT ref_id, distance` 无 owner_kind）→ **`45b14757`**（2026-10-14「fix(ag39q): cap sanction 翻面——2081」·dense/lexical 两 SELECT 加 owner_kind+融合 ownerRank+迁移 0201 落卷+cache v5→v6）——**retrieval 端引入 commit 定谳**（补记 rev2：`d9394e91` 建于前移路径 `packages/db/src/qbank-generation-retrieval.ts`·`a9d1cbdc` git mv 入 `qbank/`） |
 | A19 | `git log -S 'owner_kind' -- 同文件` | — | 恰两 commit=`1408d8c2`（AG39 母刀 EXEC·仅 `setServingScope` 两 GUC 行 `:94-95`·**未触 SELECT 列面**·0186+0187 落卷）+`45b14757`（A18·**红引入点**）——两红异源定谳=本刀承金标准并精化 |
 | A20 | ann_search 全演化链（migrations rg 亲证全集） | — | 0029（建·`RETURNS TABLE(ref_id,distance)`）→0067（窗内末次重定义·A13）→0068（regprocedure 接线·A14）→**0106/0138/0139/0144（trigfam 薄壳化 :659-668）/0176（tf_ 镜像 :137）/0186（表列 A15）/0187（owner 谓词+秩·返回面未变 A16）/0201（返回面+owner_kind A17）**——0069-0072/0086/0087 对该函数零触（rg 全集互斥亲证） |
-| A21 | `package.json:558` / `:348` / `:119` | — | 门注册：`qbank-integrity-upgrade:prove`→isolated `prove:qbank-integrity-upgrade`；`migrate:prove`；`neg:all` |
+| A21 | `package.json:119` / `:348` / `:558` | — | 门注册：`qbank-integrity-upgrade:prove`→isolated `prove:qbank-integrity-upgrade`；`migrate:prove`；`neg:all`（EXEC 重 pin 勘正：卷面原 `:558`/`:348`/`:119` 首尾两行号与门名对调·现树 sed 亲证 `:119`=主翻门·`:348`=migrate:prove·`:558`=neg:all·三行号均在位） |
 
 ### 0.2 实证结论 + 派单勘误注
 
@@ -76,13 +76,13 @@
 | # | 门 | 命令 | 判据 |
 |---|---|---|---|
 | 1 | **主翻门** | `pnpm qbank-integrity-upgrade:prove` | **EXIT=0 红翻绿**（`owner_kind` 42703 消解·`:261`+`:371` 两落点全过·臂计数照 `:98` 窗形断言+既有 A 系断言全 PASS 零 FAIL） |
-| 2-10 | **qbank 九邻面** | `pnpm qbank-pipeline:prove` / `pnpm qbank-control-sec:prove` / `pnpm qbank-source:prove` / `pnpm qbank-handoff-closure:prove` / `pnpm ag39-org-qbank:prove`（53 臂·承登：27224786 收据偏离②+blob 8b214386 三树恒等·静态恰 51·:149-154 三表循环一臂展三→运行时 53）/ `pnpm ag39-quality:prove` / `pnpm rag-cache:prove` / `pnpm rag03-filter-locus:prove` / `pnpm rag03-hnsw-completeness:prove` | 全 EXIT=0 零新红（ag39-org-qbank 53 臂逐位原值·ag39-quality 融合秩/折叠臂原值=≥0201 版面零变实证） |
+| 2-10 | **qbank 九邻面** | `pnpm qbank-pipeline:prove` / `pnpm qbank-control-sec:prove` / `pnpm qbank-source:prove` / `pnpm qbank-handoff-closure:prove` / `pnpm ag39-org-qbank:prove`（53 臂·承登：27224786 收据偏离②+blob 8b214386 三树恒等·静态恰 51·:148-153 三表循环一臂展三→运行时 53·内锚 EXEC 重 pin 勘正 :149-154→:148-153 现树 sed 亲证）/ `pnpm ag39-quality:prove` / `pnpm rag-cache:prove` / `pnpm rag03-filter-locus:prove` / `pnpm rag03-hnsw-completeness:prove` | 全 EXIT=0 零新红（ag39-org-qbank 53 臂逐位原值·ag39-quality 融合秩/折叠臂原值=≥0201 版面零变实证） |
 | 11 | rag-generation | `pnpm rag-generation:prove` | **40/40 EXIT=0**（前置登记 rev2：qbank-scope-fix `6414c562` qbank-generation.proof.ts owner 双 GUC 已随主线 `5ef0b505` nail 携入——纯 `77ba32ab` 基线树本门=已知红（CI step 71）非本刀因果·并主线后 40/40） |
 | 12 | migrate | `pnpm migrate:prove` | EXIT=0·**链 204 头 0204**（本刀零新迁移）+`pnpm drift:prove` 零漂 |
 | 13 | neg | `pnpm neg:all` | **687/687**（90+90+91+102+179+135） |
 | 14 | typecheck | `pnpm turbo typecheck --force` | **8/8 successful（0 cached）EXIT=0** |
 | 15 | lint 五值 | `pnpm turbo lint` | 五值恰等承登：web **601**/root **5235**/api **1421**/worker **954**/ai-runtime **628**（触面 db/worker 贴线绿·承登双红如现行登记恒等则如实转录） |
-| 16 | docs:check | `node scripts/ai-docs/check-docs.mjs` | EXIT=0（`≤cap 2160`） |
+| 16 | docs:check | `node scripts/ai-docs/check-docs.mjs` | EXIT=0（`≤cap 2168`·O1 随落：并线 fb97734c sanction 2160→2168·MAX_FILES=2_168 现树亲证） |
 | 17 | markers 五类 | `git diff 77ba32ab -U0` 改动集新增行直扫 | 五类标记词族（词面沿 §7 口径不复抄）**零命中**·预申明：扫描排除判据行自指文本/注释形扫描（消自匹配·rev2 落卷） |
 | 18 | diff 面 | `git diff --stat 77ba32ab` | 恰 1 码文件=`packages/db/src/qbank/qbank-generation-retrieval.ts`+本卷 .md；零迁移/零锁文件/零 `.env*` |
 
@@ -160,3 +160,19 @@
 8. **席2③**（§4）：0201 不 bump qbank_cache_epoch·滚动窗 TTL ≤120s——存量观察登记（非本刀引入非本刀处置面）。
 
 **rev2 自检回执（落卷席亲跑）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（2154≤cap 2160）；markers 五类 `git diff 77ba32ab -U0` 改动集新增行直扫零命中（词族与冲突标记双查·P1-R2 后词面全卷零再现·命令与回执沿 receipts 形留执行席收据）；改动集仍恰 1 .md=本卷。**STOP 终态**：三处（Status/§8/自检）恒 `draft:awaiting_pre_exec_dual`——rev2 落卷后席1 复审确认方会签·alone≠dual·⛔push。
+
+## §10 EXEC 记录（2026-10-15/16 EXEC 席落卷·append 保史·§0-§8 正文零改·仅 §0 头款授权内重 pin 锚更行号+O1-O3 随落）
+
+**授权链**：rev2 窄域确认 PASS（agent_1d83ef16·双审会签）→协调方 EXEC 授权（「本刀使命=CI step 72 最后残红翻面」）→本席执行。**序1 并线**：`git merge --no-ff origin/feat/mysql-schema-skeleton`@`fb97734c` 零冲突（7 files +345/−7·merge=`a3a84310` 双亲 `ccc344d1`+`fb97734c`·届时 tip=cap 2168 sanction 锚等值·⛔pull --rebase 未用）——携入 qbank-scope-fix 前置（§2-11 预登记条件成立面）。
+
+**① §0 重 pin（全 21 锚现树亲证·file:line+sed+rg+git log -L/-S 全套）**：A1-A20 零漂（:90-96/:98-103/:105/:253/:258/:261/:270-275/:363-371 第二落点 :371/:554-555/:285/:289/:158-162/:165/:219/:196-197/:222/:308/:290-294/:303-304/0067 :69-70/0068 :151-208/0186/0187 :77-78/0201 :17-19·:64-67·:124-125/行史 d9394e91→45b14757/-S 1408d8c2+45b14757/ann_search 全链 0029→…→0201·0069-0087 窗内零触 rg 复证）。三处随落+一处勘验不动：**A21** 行号↔门名映射勘正（`:119`=主翻门·`:348`=migrate:prove·`:558`=neg:all·卷面首尾两行号对调）；**O2**（确认席）§2-5 内锚 `:149-154`→`:148-153`（三表循环现树 sed 亲证）；**O1**（确认席）§2-16 cap 转录 `2160`→`2168`（`fb97734c` MAX_FILES=2_168 亲证）；**O3**（确认席「第二落点 :370」）勘验**不动**——现树 grep+sed 双证 hybridQbankSearch 第二次调用恰 `:371`·卷面 A6/§1.1 原值已符·提议值与现树差 1·按「漂则重锚·以实测为准」纪律不落。
+
+**② 裁决①-④行使（均推荐形）**：①候选乙维持（甲/丙否决承卷）；②探针形=EXISTS+proargnames（`retrievalOwnerSurface(c,签名)`·签名钉 `qbank_generation_ann_search(text, vector, integer)`/`qbank_generation_lexical_search(text, text, integer)`·`to_regprocedure($1)` 参数化零拼接·`'owner_kind' = ANY(proargnames)` 静态字面量·EXISTS 恒非 NULL·函数缺位既有 `activeQbankGeneration` 先行 fail-closed 零新豁免）；③legacy 秩缺省=platform(1)（`ownerRank(undefined)=1` 既有落值·dense 直返+rrf 排序逐位回退 score→refId=前 `45b14757` 序）；④双 SELECT 字面量=模块级 const 四值对（`DENSE_SEARCH_WITH_OWNER`/`DENSE_SEARCH_LEGACY`/`LEXICAL_SEARCH_WITH_OWNER`/`LEXICAL_SEARCH_LEGACY`·逐调用探针二择一·Ban 拼接/Ban memo/Ban env 特判全遵守）。**落值**：恰 1 产品文件 `packages/db/src/qbank/qbank-generation-retrieval.ts`（blob `2c5ed849`→`201bf1df`）·numstat **+30/−2·净增 +28**（+侧包络 18~28 上缘恰合；−2 低于 −4~−8 预估=两单行调用点 1:1 替换+A12 注释块禁触不 reflow·如实登记）；探针谓词 scratch DB 四象限排演（legacy 返回面 f/f·0201 返回面 t/t·RETURNS TABLE 出参入 proargnames 语义实证·用后即弃）。
+
+**③ 主翻门红翻绿（CI step 72 同面直证）**：修前同树红捕获（`a3a84310`：`error: column "owner_kind" does not exist` @ `retrieval.ts:285:21` ← proof `:261`·EXIT=1）→修后 `pnpm qbank-integrity-upgrade:prove` **EXIT=0·20 PASS/0 FAIL**（`:261` hardening 腿+`:371` upgrade 腿两落点全过·`:98` 窗形断言 PASS·A7 隔离力臂零改形全过）。修后形 rg 回执：`retrievalOwnerSurface` 1 处定义+2 处调用（dense :305·lexical :315 现树行号）·双 SELECT 字面量 4 const·`:285`/`:289` 原单行面消失=探针二择一形。
+
+**④ 门矩阵全表（§2 十八行）**：1 主门=绿（③）；2-10 九邻面=**7 绿+2 基线红承登**：qbank-control-sec 绿/qbank-source 绿/qbank-handoff-closure 绿/ag39-org-qbank **绿 53 臂**（判据 53 臂兑现·:148-153 三表循环一臂展三实证）/ag39-quality 绿 21 臂（融合秩/折叠臂原值=≥0201 版面零变实证）/rag03-filter-locus 绿 12/rag03-hnsw-completeness 绿 16；**qbank-pipeline 红（承登·非本刀翻红）**：EXIT=1 `qbank_retrieval_scope_missing` ← proof :72 `hitsFor` 无 scope 调用 × 0176/0187 fail-closed 断言——stash 同树对照直证基线红（a3a84310 无本刀改动同签名同行同臂 EXIT=1·改动弹回 numstat 30/2 恒等）+CI step 80 自 step 71/72 挡板长期 skipped（3229360a verify 恰 step 72 一红·:293 步 skipped 亲证）+branch 全史 ci.yml 100 runs 零 verify success=该门无在卷原值绿·机制面与本刀修面零交集·处置=承登不回炉（rev2 P1-R3 先例形·裁决权上交）；**rag-cache 红（承登·结构性未接线门）**：根脚本绕 runner 直连+runner isolatedCommand 零注册+proof 硬隔离 nonce 认资（dev 库结构性不可绿）——按 runner 同机制手工复刻隔离环境（nonce 容器+attestation env·零码动纯公开入口）后红=proof 自身 fixture（provisionPrerequisites 建表在先）×现行 `migrate.ts` 普查守卫冲突 `migration_uninitialized_nonempty_database` 确定性复现+在卷旧红两处（batch23 主线回归矩阵 root:rag-cache:prove exit=1·ci-wiring2 prove-placement「零动作登记」）·非本刀翻红非本刀处置面；11 rag-generation **绿 40/40**（并主线 qbank-scope-fix 前置·§2-11 预登记情形走并主线兑现）；12 migrate 绿（链 204·头 `0204_ai_cost_cached_input_price`·applied=204 skipped=0）+uniqueness 绿（204 files·0 violations·豁免 0143/0152/0160）+drift 绿（零漂·退役残面登记豁免·fresh deploy 安全）；13 neg:all **绿 687/687**（90+90+91+102+179+135 恰合）；14 typecheck **绿 8/8 successful（0 cached）**；15 lint **五值恰等** web 601/root 5235/api 1421/worker 954/ai-runtime 628（EXIT=0·本刀触文件单测 0 problems）；16 docs:check 绿 2156≤2168；17 markers 五类**零命中**（判据形=§2-17 `git diff 77ba32ab -U0` 改动集新增行直扫·i6-239 :151-163 口径运行时组装词面+冲突标记双查；附注：全文件形扫描命中均落并线携入两 SSOT 存量文本·非本刀新增行·新增行形双查零命中·收据申明沿 §7 预登记形）；18 diff 面=刀面恰 1 码文件+本卷 .md（`git diff a3a84310` 面）·并线面 7 files 系授权序1 另列·全集零迁移/零锁文件/零 `.env*`·typecheck 携出的 tracked `apps/web/tsconfig.tsbuildinfo` 伴生改动已 `git checkout --` 还原（卫生）。
+
+**⑤ §0 重 pin 漂移登记+在飞枚举（§0.0 式一句·收据⑤预登记兑现）**：漂移=零结构漂·仅 A21 映射勘正+O2 内锚 ±1+O1 cap 转录（①节）；在飞枚举=EXEC 时点在飞卷沿 cap sanction 卷 `fb97734c` 载明四卷 `nul-escape-visibility`/`qbank-integrity-chain`（本卷）/`e2e-runner-stale-build-guard`/`i18n-metadata-ssr` 各 +2 预算·本刀改动集九文件（并线 7+本刀 2）他卷零命中亲证。**存量观察登记（§4 席2③ 承卷一句）**：0201 不 bump `qbank_cache_epoch`——滚动窗 TTL ≤120s 界定存量陈旧上界·系存量现状观察·非本刀引入·非本刀处置面。**缓存键 v6 零跳核**：`qbank-retrieval-cache.ts` 零触（change set 零命中）·`CACHE_KEY_VERSION='qbank-retrieval-cache:v6'` 恒等·legacy 态行为恒等旧版即版本语义已含（§1.4 禁触遵守）。**停止条件四类盘点**：现场漂移未命中/机制不满足未命中（主门 20 臂零新红·rg 普查复证 owner_kind 函数返回列面仅 `:285`/`:289` 两处=修面盖全）/越界未命中（修法未触 §3 边界·两承登红处置面在刀外未自行扩权）/验收红=两基线红承登非原值翻红（§3 边界未触·裁决权上交协调方+post 双审）。
+
+**⑥ est live=0·actualSpendCny=null**（全隔离容器+假体 embedder·零模型外呼·零 secrets·scratch 排演库用后即弃·零生产操作）。**STOP 终态=`executed:awaiting_post_prove_dual`**（Status 行随翻·§8 体 draft 期 STOP 词面沿 append 保史零洗·EXEC 终态以本节+Status 为准·alone≠dual·待 post 双审两外席会签+协调方·⛔push 未用）。
