@@ -1,6 +1,6 @@
 # QBANK-CONTROL-SEC REQUEST（qbank 控制面鉴权收口小刀 · AG-41 全部+AG-43 调度半+AG-42 五函数+P5 缺号项 · SQL 主体·新迁移 0176+）
 
-**Status**: **`draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`**（EXEC 施工随翻 append 保史：并线 11a97342（feat/mysql-schema-skeleton@378b96e8 零冲突）+修法四件全落+断言门全表复跑·2026-10-12·§0-EXEC 勘误注与 §8-EXEC 五裁决行使记录见卷尾·⛔push 待 post-prove 双审两外席）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line QSEC nail」段 :2476 已载 post-prove 双席 BOTH PASS+nail merge @`d31be795`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：qbank 控制面鉴权收口小刀起草席（AG-39~43 验证席定谳后·协调方刀映射承接·北星 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `4fabecc3`（主线 tip·`git log -1` 实测 2026-10-12 19:09:12 +0800·INDEX 第十一节验证卷）。分支 `line/qbank-control-sec`·工作树 `meetwise-qsec`（仓根同级 worktree·`git worktree add ../meetwise-qsec -b line/qbank-control-sec` 本起草席已立·建前 worktree list + branch 双查实测不存在）。

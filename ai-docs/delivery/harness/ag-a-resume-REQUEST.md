@@ -1,6 +1,6 @@
 # AG-A-RESUME REQUEST（AG 修复轨·失败语义刀 A · AG-05 alreadyApplied invoke(null) 续跑语义 + AG-26 start 续跑同修 + 确定性 proof · 零账本触面）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。→ **`executed:awaiting_post_prove_dual`**（2026-10-12 EXEC 施工随翻 append 保史：双审 BOTH PASS+协调方常设 loop 授权开工·并线 `999febbf`+施工 commit·五门全绿·§0.3 勘误注+§8 行使记录落卷·⛔push 维持·待 post-prove 双审两外席）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-A nail」段 :2454 已载 post-prove 双席 BOTH PASS+nail merge @`a89471ef`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：AG 修复轨刀 A 起草席（AG-RESUME 失败语义簇最优先行·EXPERT-REVIEWS §七 失败语义轨刀 A 承接·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `d46cdd21`（主线 tip·`git log -1` 实测 2026-10-12 17:39:27 +0800·AG 复核双专家意见书合成卷落地 commit·零码面）。分支 `line/ag-a-resume`·工作树 `meetwise-aga`（`git worktree add ../meetwise-aga -b line/ag-a-resume` 本起草席已立·建前 worktree list + branch 双查实测不存在·HEAD 落 `d46cdd21` 亲证）。
