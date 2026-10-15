@@ -32,6 +32,22 @@ export async function gatewayModelInvocationOwners(pool: DbPool, olderThanMs: nu
   return result.rows.map((row) => String(row.owner_user_id));
 }
 
+export interface GatewayModelInvocationBacklog {
+  dispatchingAged: number;
+  unknownUnresolved: number;
+}
+
+/** Aggregate backlog water level for post-dispatch model calls: aged-dispatching depth and unresolved unknown stock; counts only, never owners or invocation content. */
+export async function gatewayModelInvocationBacklog(pool: DbPool, olderThanMs: number): Promise<GatewayModelInvocationBacklog> {
+  const result = await asGateway(pool, (c) =>
+    c.query('SELECT dispatching_aged,unknown_unresolved FROM gateway_model_invocation_backlog($1)', [olderThanMs]));
+  const row = result.rows[0];
+  return {
+    dispatchingAged: Number(row?.dispatching_aged) || 0,
+    unknownUnresolved: Number(row?.unknown_unresolved) || 0,
+  };
+}
+
 /** Global operational gauges expose only aggregate counts, never jobs, users, prompts, or payment details. */
 export async function gatewayJobGauges(pool: DbPool): Promise<GatewayJobGauge[]> {
   const result = await asGateway(pool, (c) => c.query('SELECT * FROM gateway_job_gauges()'));
