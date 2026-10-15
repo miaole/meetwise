@@ -350,3 +350,23 @@ console.log("PASS replica build-log: cap=" + retained.length + " lines, truncate
 **清理**：compose 栈 down（三容器+network 移除·volume 留置登记）·`apps/web/test-results/.last-run.json`（tracked 副产）`git checkout` 回滚（沿 §9-⑤ tsbuildinfo 先例形）·test-results 失败产物目录（trace.zip/screenshot/error-context）移档 `.tmp/gate1-rerun/test-results-archive/` 保证据（gitignored）·`.next` 零残留·`.tmp/e2e-ui-build-log` 零产生·终核 `git status --porcelain` **净**（tracked 零翻动）。
 
 **STOP · 门 1 补跑=executed:red_unresolved（红已承登·处置权归协调方） · alone≠dual · ⛔push**
+
+### §9-补2 post P2 勘误随卷（nail 席代落·post 双审会签 PASS 授权·2026-10-16·append 注记形不洗上文一字）
+
+- **P2-A（§9-补1 红臂证据段账目勘正）**：「inventory 22 distinct text nodes 中 12 allowlisted/**10 unknown**」应读「**14 allowlisted/8 unknown**」（22 总数不变）·「Received **+10**」系 **jest-diff 行计数伪影**——received 实为 **8** distinct 节点（**7 RSC chunk 条目 + 1 document title 文本节点**）·diff 渲染按物理行展开致行面计数虚高·对齐主线 i18n-metadata-ssr **8-UNKNOWN 先例**（`480a9f50` 门② 臂④ 修前账目同口径）。红臂归因（应用层残留断言面·非 runner 层）零变。
+- **P2-B（§9-补1 清理段勘正）**：「`.next` 零残留」**不实**——`.next/BUILD_ID` 实际留置 **`yLq3NhKY5teAt9FQx9rAC`**（mtime=补跑 build 时点 03:37·gitignored·nail 席时点亲证在树）；「新建 volume **四件**」应为「**三件**」（`meetwise-mysql-local_{mysql_local,qdrant_local,redis_mysql_local}`·`docker volume ls` 亲证）；后果=并线后 HEAD `%ct`=1792095709 > BUILD_ID mtime=1792093023 → **下次跑 STALE_BUILD_GUARD 判陈旧走强制重建臂·属件① 设计内行为**（防陈旧假红机制按预期行使·非事故形态）。
+- **P3-C（116 字符回执未归档登记）**：§9-补1 方式 b 段「`MODEL_API_KEY` PRESENT len=**116**」系补跑席现场观测·loader 输出与 env 指纹**未落任何归档文件**（prove log 只含测试输出·不含 loader 回执面；补跑席清理段移档清单只含 test-results 产物）·回执不可复核状态如实登记·归后继工具刀/流程勘误处置。
+
+### §9-补3 门 1 闭环补跑记录（nail 席·2026-10-16 04:25 CST·协调方特授权 LIVE·loader 方式 b·恰 1 run·append 形不洗上文一字）
+
+**授权链**：post 双审会签 PASS（席1 `agent_8c20e748`+席2 `agent_c18cbd8c`·门 1 红归因=**非 sbg 因果承登成立**·席2 勘误 2 处=P2-A/P2-B）→协调方特授权 nail 席门 1 闭环补跑（LIVE·loader 方式 b·**恰 1 run**）·预期绿（主线三度 1 passed 先例·红因已由主线 i18n-metadata-ssr 修复兑现）·非 retry-to-green·⛔push。
+
+**前置**：并线 merge `867a6af2` --no-ff 并 origin/feat/mysql-schema-skeleton@`1824b2d9`（cap 2176 sanction 锚恰等下界·零冲突 24 files +897/−45·arm4 spec blob `2cc3e5f0` 随并携入+主线 i18n 九文件修复在树=spec 现值 `7ab1ffd1` 对 `2cc3e5f0` 差**恰 1 行头注** i18n-metadata-ssr 休眠注记·断言/allowlist/步骤体零字节·blob diff 亲证）·工作树净（仅本卷勘误随改）·compose 栈三容器 ~15s 全 healthy（volume 三件既有复用非新建·P2-B 勘正口径）·`MODEL_API_KEY` PRESENT len=**116**（loader 方式 b 同 shell 注入·零 .env 落盘）·隔离 PG `applied=204 skipped=0`。
+
+**补跑实测（恰 1 run·全量输出存档 `.tmp/gate1-closure/prove-closure.log` gitignored）**：`pnpm uc003:i18n-locale-ui:prove` → **EXIT=0 绿**。臂账=**Running 1 test · 1 passed (2.3s) · 0 failed**·臂④ inventory=**14 distinct 全 allowlisted UNKNOWN=0**（与 §9-补2 P2-A 勘正 14-allowlisted 口径互证·§9-补1 红因应用层面出清直证）。
+
+**runner 层证据（sbg 两件真环境首演）**：件① **STALE_BUILD_GUARD 真环境首演成立**——留置 `.next/BUILD_ID`（mtime=2026-10-15T19:37:03Z·值 `yLq3NhKY5teAt9FQx9rAC`·P2-B 勘正口径）早于并线后 HEAD commit time=2026-10-15T20:21:49Z → `STALE_BUILD_GUARD … 早于 HEAD commit time → 强制重建(防陈旧构建假红)` warn 命中→走强制 next build 臂→build 成功→`next start` 正常服务（检测面零误报零漏报·判定/重建/服务全链真环境行使）；件② build 成功→`.tmp/e2e-ui-build-log` **零产生**（成功零写盘契约亲证）。build 后 BUILD_ID 翻新 `ow5qvSN7348MKc63SB3-W`。
+
+**清理**：compose 栈 down（三容器+network 移除·volume 三件留置）·test-results 绿跑产物移档 `.tmp/gate1-closure/test-results-archive/`（gitignored）·`.next` 为本次重建产物留置 gitignored（下次跑按 BUILD_ID mtime vs 届时 HEAD %ct 判定·件① 设计内）·tracked 零翻动。
+
+**STOP · 门 1 闭环补跑=executed:gate1_green（门矩阵十门全绿收官） · alone≠dual · ⛔push**
