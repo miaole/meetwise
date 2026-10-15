@@ -1,6 +1,6 @@
 # NEGBEND-FIX REQUEST — neg:bend 4/178 红臂修复刀（approve 解锁读路径=守卫缓存本地 evict 缺失·恰 1 产品文件一行修·negbend-fix 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-15 · pre-exec 双审 **BOTH PASS 落卷**（席1 `agent_b1c540a6`+席2 `agent_68a4c9e9` 会签）·协调方明示 EXEC 授权（committed SHA 重钉=`cfc68287`）·rev3（席2 P2×2 折入·摘要见卷尾节）·**EXEC 落卷 @`1e686576`（§9 记录）·门矩阵十二门全绿·STOP 翻面（nail/行翻面归主会话批边界·alone≠dual·⛔push）**）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line negbend-fix nail」段 :2742 已载 post 双审双 PASS+nail merge @`ed7df98b`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：negbend-fix 起草席（诊断+起草双责·协调方派·neg:all 全量收据 tip=`cf501273` 四红清单立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `cf501273`（5C-API-HARDEN nail 收官 SSOT commit·docs:check 2081≤cap 2088 本树亲跑）· 分支 `line/negbend-fix`（建前 `git branch --list "line/negbend*"` 零命中·本起草席 `git worktree add ../meetwise-nbf -b line/negbend-fix feat/mysql-schema-skeleton` 亲立·HEAD 落 `cf501273` 亲证）· 工作树 `meetwise-nbf`（仓根同级）。

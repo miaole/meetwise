@@ -1,6 +1,6 @@
 # AG04-CONSUMER-FIX REQUEST — adaptive-consumer 基线红 2 臂根因刀（AG-04 刀C `114f7189` requeue 指数退避×claim 时闸×proof 即时 drain 假设过时·裁决测试改形恰 1 文件·零产品语义变更·ag04-consumer-fix 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-14 · pre-exec 双审 **BOTH PASS 落卷**（席1 `agent_eda33b7b`+席2 `agent_80e409c8` 会签·P2×2 折入随 pin 落卷=§0.4）·协调方明示 EXEC 授权（committed SHA 重钉=`807ba02e`）·**EXEC 落卷=门矩阵九门全绿·adaptive-consumer:prove 35/35 两臂翻绿（§9 记录）·STOP 翻面（行翻面/nail 归主会话批边界·alone≠dual·⛔push）**）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line ag04-consumer-fix nail」段 :2799 已载 post 双审双 PASS（两外席会签）+nail merge @`619f0a92`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：ag04-consumer-fix 起草席（诊断+起草双责·协调方派·adaptive-consumer:prove 主线恒红 fail_count=2 在靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `148cf83b`（=origin tip·fetch 后 `git rev-parse origin/feat/mysql-schema-skeleton` 亲证恒等·5E-BEHAVIOR nail 收官 SSOT commit·docs:check 2108≤cap 2112 base 裸树亲跑；**本卷落卷后本支改前基线=2109（=2108+本卷 REQUEST 1 件·pre-exec 双审 P2 纠正）；EXEC @merge `6b9191e9`（主线并至 `4ff1ec6a`）首测=2110（+主线 e2e-stress nail 1 件）·全值见 §0.4 重 pin**）· 分支 `line/ag04-consumer-fix`（本起草席 `git worktree add ../meetwise-acf -b line/ag04-consumer-fix origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `148cf83b` 亲证）· 工作树 `meetwise-acf`（仓根同级）。

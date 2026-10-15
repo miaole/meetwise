@@ -14,7 +14,10 @@
     "faq": "常见问题",
     "login": "登录 / 注册",
     "account": "账户",
-    "menu": "菜单"
+    "menu": "菜单",
+    "recruiterJobs": "岗位",
+    "recruiterTalent": "投递",
+    "recruiterNotes": "笔记"
   },
   "home": {
     "pill": "预览版",
@@ -206,5 +209,26 @@
     "cardPreview": "上传 PDF / Word，或在预览环境下上传图片。图片识别失败不会编造文字。",
     "cardStandard": "上传 PDF / Word，或直接粘贴文本。图片识别未在本环境开放。",
     "banner": "预览版图片识别，不是生产视觉质量承诺。识别失败会原样提示，不会编造简历文字。"
+  },
+  "errorBoundary": {
+    "title": "出错了",
+    "description": "页面遇到一个错误,可以重试;若反复出现请稍后再来。",
+    "digestLabel": "错误标识:{digest}",
+    "retry": "重试",
+    "backToDashboard": "返回总览"
+  },
+  "publicPreview": {
+    "brand": "知面 Meetwise",
+    "home": "首页",
+    "features": "产品能力",
+    "faq": "常见问题",
+    "legal": "数据边界",
+    "previewNavAria": "预览导航"
+  },
+  "resumeDelete": {
+    "networkError": "网络错误，请稍后重试；简历未被删除。",
+    "notFound": "找不到这份简历，或它已被删除。",
+    "notAccepted": "删除请求未受理（{status}），未当作已删除。",
+    "invalidShape": "删除受理形状不合法，未当作已删除。"
   }
 }

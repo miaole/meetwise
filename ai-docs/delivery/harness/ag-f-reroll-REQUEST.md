@@ -1,6 +1,6 @@
 # AG-F — 失败语义轨刀 F：AG-02 残面·出题四类单发终场有界 re-roll（EXEC REQUEST）
 
-**Status**: ~~`draft:awaiting_pre_exec_dual`~~ → **`executed:awaiting_post_prove_dual`**（EXEC 施工+随翻落卷·⛔push 待 post-prove 双审。pre-exec 双审两外席 BOTH PASS 落协调方 + 协调方常设 loop 授权后开工；施工随翻见卷末 §9 EXEC 随翻（§0 重 pin 勘误注+五裁决行使+门全表）。Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-F nail」段 :2433 已载 post 双席 BOTH PASS+nail merge @`74ca131c`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役失败语义轨**刀 F**起草席（AG-02 残面·EXPERT-REVIEWS §七 A 席六刀之第六刀·「骑刀 B+预留上限」）。
 **基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（开工 tip·docs(ssot) AG+计费战役刀位图立节·`git log -1` 实测）。分支 `line/ag-f-reroll` · 工作树 `meetwise-agf`（`git worktree add ../meetwise-agf -b line/ag-f-reroll 2bc4e2bd` 仓根同级·本起草席已立·建前亲证：`worktree list` 15 树无 agf·`branch -a` 零同名——仅 `line/g7fix4-reroll-exec` 系 G7FIX-4R 旧执行线与本刀位名无关）。

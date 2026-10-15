@@ -1,6 +1,6 @@
 # I6 D6-COMPLIANCE REQUEST（批3 段 · D6 合规最低集四件 · #239 · M 体量如实呈报）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-12·本刀 docs+web 文案+api/worker 闸面小改·起草阶段恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push） → **`executed:awaiting_post_prove_dual`**（**EXEC 落卷 2026-10-12·I6 #239 EXEC 席 @`7b6d0f38`**：pre-exec 双审 BOTH PASS+协调方派单即 §8 开工授权·D6 合规最低集四件全落（恰 14 件·零迁移零新表·SSOT 零触·pins 十一值零翻转·est live=0）·七裁决项现裁见 §8.1 现裁记录·四门收据补录 `receipts/i6-239/`（机械门 40 断言 ALL PASS·web prove 427 PASS·uc003-i18n-locale·public-copy 14/14·全 EXIT=0）·post-prove 席1 裁定 FAIL（码面四件交付与 proof/回归抽验全绿·FAIL 全因文书义务三项+一条诚实性勘误·见 §8.2 erratum 小节）·文书收口席三义务修补落卷·⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line I6 D6-COMPLIANCE nail」段 :2302 已载 post 席1 FAIL 纯文书义务→文书收口 20950015 修复后席2 全态 PASS+nail merge @`89530dea`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：#批3 段 I6 组盘点起草席（北星 loop · 批3 残 2 之 #239 件 · D6-COMPLIANCE 刀 · 先盘点后起草）。
 **基线**：`feat/mysql-schema-skeleton` @ `8b8e20bc`（主线最新 tip·`git log -1` 实测 2026-10-12 13:03 merge(e2e-r3-v4-follow)·建树时点亲读）。分支 `line/i6-239`·工作树 `meetwise-i6`（`git worktree add ../meetwise-i6 -b line/i6-239` 本起草席已立·建前 `git worktree list` 实查不存在）。
