@@ -1,6 +1,6 @@
 # PERFLOAD-ENV-FIX REQUEST — uc018:perf-load:prove 恒红环境根因刀（oxc-resolver linux 原生绑定缺装·安装面声明式修·恰 1 配置文件·perfload-env-fix 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs-only REQUEST · 本 commit 恰 1 .md · Ban coding · Ban prove · Ban push · pre-exec dual BOTH PASS 后由协调方明示 EXEC 授权 · Ban self-approve · alone ≠ dual · 本 commit 不预 claim 任何 post-commit EXIT）
+**Status**: **`executed:awaiting_post_prove_dual`**（docs-only REQUEST · EXEC 已落码+post 双审会签 PASS·本行 P2-A 漏翻 nail 席顺带修·⛔push）
 
 **席位**：perfload-env-fix 起草席（诊断+起草双责·协调方派·工作树本席亲立）。
 **基线**：`feat/mysql-schema-skeleton` @ `156dd977`（PERF-PREP nail 收官 SSOT commit·本树亲证：docs:check **2122**≤cap 2128 EXIT=0·migrate 链 **202** 头 `0202_interview_event_kind_score_card_written.sql` `ls` 亲数）· 分支 `line/perfload-env-fix`（建前 `git branch --list "line/perfload*"` 零命中·本席 `git worktree add ../meetwise-ple -b line/perfload-env-fix feat/mysql-schema-skeleton` 亲立·fetch 后以 origin tip `156dd977` 为基·HEAD 落点亲证）· 工作树 `meetwise-ple`（仓根同级）。
