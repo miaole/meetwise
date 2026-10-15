@@ -45,8 +45,8 @@ export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from '.
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy/privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy/privacy-authorization.ts';
-export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayUsageCalibrationOwners, gatewayUsageCalibrationOwnersSince, gatewayUsageCalibrationWatermarkFloor, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
-export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
+export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayModelInvocationBacklog, gatewayUsageCalibrationOwners, gatewayUsageCalibrationOwnersSince, gatewayUsageCalibrationWatermarkFloor, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
+export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot, GatewayModelInvocationBacklog } from './jobs/gateway-dispatch.ts';
 
 /** 原语②：状态机 CAS——仅当当前态 == from 时迁移到 to 并 version+1，返回是否生效（陈旧落败=0 行）。 */
 export async function casTransition(c: Client, id: string, from: string, to: string): Promise<boolean> {
