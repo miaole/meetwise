@@ -22,10 +22,12 @@
 -- 两段式 ADD COLUMN+CHECK NOT VALID/VALIDATE 独立语句沿 0192 先例形（PG16 fast-default
 -- 元数据形零全表 rewrite·VALIDATE 分语句不持长锁）。
 --
--- 语句清单（14 语句）：两表各 3（ADD COLUMN / ADD CHECK NOT VALID / VALIDATE）+
--- reserve_text 九参 CREATE OR REPLACE 1（9 参签名+RETURNS TABLE 零变=REPLACE 合法零 DROP，
--- ACL 随 OR REPLACE 保留）+settle_text 六参 3（DROP+CREATE+REVOKE）+scoped 六参 4
--- （DROP+CREATE+REVOKE+GRANT）。
+-- 语句清单（15 语句）：两表各 3（ADD COLUMN / ADD CHECK NOT VALID / VALIDATE）+
+-- reserve_text 链 2（tf_ai_cost_reserve_text 九参全量体 CREATE OR REPLACE 1——9 参签名+
+-- RETURNS TABLE 零变=REPLACE 合法零 DROP·ACL 随 OR REPLACE 保留；ai_cost_reserve_text 九参
+-- 薄壳 CREATE OR REPLACE 1——0144:534-551 委托形逐字保留·db-trigfam P7
+-- pg_get_functiondef LIKE '%public.tf_%' 恰 1 行不变量）+settle_text 六参 3
+-- （DROP+CREATE+REVOKE）+scoped 六参 4（DROP+CREATE+REVOKE+GRANT）。
 --
 -- ACL 机制注记：settle_text 核心 ACL 原设于 0036:184（REVOKE ALL 五参 FROM PUBLIC,app_role）。
 -- 函数身份变更（五参→六参）→恰一 DROP+CREATE（禁 overload 双存沿 0188 先例），DROP 湮灭原设
@@ -53,17 +55,17 @@ ALTER TABLE ai_cost_reservation
 
 ALTER TABLE ai_cost_reservation VALIDATE CONSTRAINT ai_cost_reservation_cached_input_check;
 
--- reserve_text 体逐字承载 0083 现行形·仅 INSERT 列集与 VALUES 增 cached_input_micro_cny_per_million
--- / price.cached_input_micro_cny_per_million 恰两处（SELECT * INTO price %ROWTYPE 自扩展零改；
--- 绑定谓词五键 provider/model/region/revision/effective_at 对 cached 列失明=设计恒等·零改）。
-CREATE OR REPLACE FUNCTION ai_cost_reserve_text(
+-- tf_ai_cost_reserve_text 全量体逐字承载 0083 现行形·仅 INSERT 列集与 VALUES 增
+-- cached_input_micro_cny_per_million / price.cached_input_micro_cny_per_million 恰两处
+-- （SELECT * INTO price %ROWTYPE 自扩展零改；绑定谓词五键 provider/model/region/revision/
+-- effective_at 对 cached 列失明=设计恒等·零改）。
+CREATE OR REPLACE FUNCTION public.tf_ai_cost_reserve_text(
   p_scope_id text, p_request_owner text, p_idempotency_key text,
   p_provider text, p_model text, p_region text, p_price_revision text,
   p_input_tokens integer, p_output_tokens integer
 )
 RETURNS TABLE(decision text, reserved_micro_cny bigint, price_revision text)
 LANGUAGE plpgsql
-SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
@@ -148,6 +150,26 @@ BEGIN
     reserve_cost,'reserved'
   );
   RETURN QUERY SELECT 'reserved'::text, reserve_cost, p_price_revision;
+END;
+$$;
+
+-- ai_cost_reserve_text 薄壳（0144:534-551 委托形逐字·重声明 SD+SET 防 proconfig/prosecdef
+-- 重置·ACL/owner 随 OR REPLACE 自动保留）——db-trigfam P7 薄壳委托不变量保持。
+CREATE OR REPLACE FUNCTION ai_cost_reserve_text(
+  p_scope_id text, p_request_owner text, p_idempotency_key text,
+  p_provider text, p_model text, p_region text, p_price_revision text,
+  p_input_tokens integer, p_output_tokens integer
+)
+RETURNS TABLE(decision text, reserved_micro_cny bigint, price_revision text)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public, pg_temp
+AS $$
+BEGIN
+  RETURN QUERY SELECT * FROM public.tf_ai_cost_reserve_text(
+    p_scope_id, p_request_owner, p_idempotency_key,
+    p_provider, p_model, p_region, p_price_revision,
+    p_input_tokens, p_output_tokens);
 END;
 $$;
 
@@ -250,7 +272,7 @@ BEGIN
   v_micro := ai_cost_settle_text(p_scope_id,p_request_owner,p_idempotency_key,p_actual_input_tokens,p_actual_output_tokens,p_actual_cached_input_tokens);
   SELECT r.overage INTO v_overage
     FROM ai_cost_reservation AS r
-   WHERE r.scope_id=p_scope_id AND r.idempotency_key=r.idempotency_key AND r.request_owner_user_id=p_request_owner;
+   WHERE r.scope_id=p_scope_id AND r.idempotency_key=p_idempotency_key AND r.request_owner_user_id=p_request_owner;
   RETURN QUERY SELECT v_micro, COALESCE(v_overage, false);
 END;
 $$;
