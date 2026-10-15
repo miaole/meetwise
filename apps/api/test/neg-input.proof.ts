@@ -196,8 +196,8 @@ async function main() {
 
   /* ═══════════════════════ E. Unicode / 特殊字符:绝不 5xx(健壮性) ═══════════════════════ */
 
-  // E1 NUL 字节(Postgres text 不容  )→ 期望优雅 4xx;若 5xx=未拦截的落库崩溃(疑似 bug)
-  A('unicode:nul-byte/resume', noCrash((await h.post('/resume', AU, { text: 'valid head ' + ' ' + ' tail padding xxxxx' })).status));
+  // E1 NUL 字节(Postgres text 不容 \x00)→ 期望优雅 4xx;若 5xx=未拦截的落库崩溃(疑似 bug)
+  A('unicode:nul-byte/resume', noCrash((await h.post('/resume', AU, { text: 'valid head ' + '\x00' + ' tail padding xxxxx' })).status));
   // E2 纯空白 / 纯 emoji / RTL override / 组合字:不崩
   A('unicode:whitespace-only/resume', noCrash((await h.post('/resume', AU, { text: ' '.repeat(40) })).status));
   A('unicode:emoji-only/resume', noCrash((await h.post('/resume', AU, { text: '😀'.repeat(30) })).status));
@@ -312,7 +312,7 @@ main().catch((e) => { console.error(e); process.exit(1); });
  *           修法:controller/service 先校验 :id 为 uuid(zod uuid / 正则),非法即 404;
  *                 或 AllExceptionsFilter 把 22P02 映射成 400/404。对照组 reparse 因 `.catch(()=>null)`
  *                 已稳 404(inj:non-uuid-id/resume-reparse-caught-404),证明兜底可行。
- *   [疑似] NUL 字节写简历(unicode:nul-byte/resume):若 Postgres 拒   抛错未拦 → 500。
+ *   [疑似] NUL 字节写简历(unicode:nul-byte/resume):若 Postgres 拒 \x00 抛错未拦 → 500。
  *           本条以 noCrash 断言;若 FAIL 即须在落库前 strip/拒 NUL。
  *   [疑似] 深度嵌套炸弹(proto:deep-nesting-bomb/resume):若 JSON 解析递归栈溢出 → 500(DoS)。
  *
