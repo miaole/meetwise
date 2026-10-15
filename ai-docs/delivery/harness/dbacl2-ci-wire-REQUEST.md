@@ -124,3 +124,17 @@
 ---
 
 *DBACL2-CI-WIRE REQUEST · 2026-10-15 起草 · **`draft:awaiting_pre_exec_dual`**（落卷即停·待 pre-exec 双审两外席·Ban self-approve·alone≠dual·Dual PASS ≠ 开工）· base `feat/mysql-schema-skeleton` @`0036ddd8`（fetch 后 origin tip·i18n nail 波在史亲证）· 分支 `line/dbacl2-ci-wire` · 工作树 `meetwise-dcw`（本起草席立·建前 branch+worktree+卷名三查零同名）· 立项出处=批表 #142 半闭之另一半（LEDGER `:86`/`:463`+L-05/L-06·DB-ACL-RESIDUAL nail `7ac68ed7` 翻面后 CI 纳入重裁面）· 修法=件① ci.yml 增 1 步（dbhy1 邻位 `:192` 后·isolated-runner 恒同形 fail-loud·纯增 4 行·steps 102→103）+件② 收据· 裁位=候选甲 per-push（候选乙 local-only 失据否决/候选丙 nightly-only L-06 重裁对象否决/候选丁 db-acl 孪生面越界登记不接线·§1.3）· 时长=本地 warm 三跑 receipt 9585/11215/11640ms（墙钟 11.6-12.1s·简报 ~62s 漂移如实登记）·CI 首跑预估 band 8-25s·熔断 >56.8s·预算影响 verify job +8-25s/跑 <3%（§1.2）· 门矩阵十二门（解析 103 恰 +1+剪除恒等/actionlint 告警集恒等基线 3 既有/38 臂恰数/删行恰零纯增恰 4/锚位机检/零触 blob 五值/邻面 28+62/docs:check≤2168/markers/diff 面机检/卫生/CI 推 PR 后观察+步序平移注记）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · ⛔push ⛔merge 主线 · STOP*
+
+## §9 rev2 勘误落卷（pre-exec 席2 R1-R5 五项·2026-10-14·append 勘误注记形·§0-§8 上文原文零字节改·⛔触码面⛔push）
+
+**裁前案由**：pre-exec 双审=席1 agent_e6092093 **PASS**+席2 agent_fea41ddc **FAIL P1×2+P2×3**——席2 五项（R1-R5）本席逐项复核第一手证据成立·全部 docs-only 落卷·零码面零门语义改。**本节系 append 勘误注记形：§0-§8 原文零字节改留档，operative 口径以本节勘正值为准**（沿 i18n-metadata-ssr §9-append-2 同形制·落卷即停）。
+
+**五项逐项落点**：
+
+1. **R1（P1）§2-12 新增步 UI 序 39→40**：§2-12「（含新增步 UI 序 39·首跑实测时长回填收据）」勘正为「新增步 UI 序 **40**」——偏移依据：**GH UI 序=yaml 1-based+1（PR #108 GitHub UI 口径含 runner 隐式步·§0.2-1 已登记的同口径族）**·新步插入 yaml 1-based=39→**UI 40**；DBHY-1（yaml 1b 38）**维持 UI 39**·failover（yaml 1b 39）UI 40→**41**·§2-12 既有「step 71/72=qbank 面」→72/73 平移注记同口径承继不变——原「UI 序 39」系漏加隐式步之漂·与简报「dbhy1 step 39」同源。**§0.2-1 随注**：简报 39 与 §2-12 原 39 同漂同源（漏计 runner 隐式步）·机械权威仍=js-yaml 步序（插入后新步 index 38/1-based 39·本席复核 verify steps=102·DBHY-1 idx 37/failover idx 38 恒等）·GH UI 观察口径=40。
+2. **R2（P1）§2-10 diff 面机检基线 SHA 参数化**：§2-10「起草 turn `git diff --numstat 0036ddd8` 恰 1 tracked」锚死 SHA 勘正为「`git diff --numstat <届时基线 SHA>`」（沿 §2-4 `<届时基线 SHA>` 同形）——**起草日基线=`59127126`**（§0.3 并线后 tip·本席亲证 diff 对 `59127126` 恰 1 tracked=本卷 .md +126/−0；对 `0036ddd8` 已 12 tracked=i18n 波面混入·锚死 0036ddd8 系起草 turn 门假红源）；**EXEC 日=届时重 pin tip**；EXEC turn 预期恰 2 tracked（ci.yml+本卷 .md·+收据目录 untracked）**语义不变**。
+3. **R3（P2）§2-8 cap 字面 2168 陈旧注记**：§2-8/§8/卷尾「cap 2168」系起草树字面（本支线现势 `public-text-policy.mjs:94` MAX_FILES=2_168）——注记：**EXEC 重 pin 时随届时 cap 更新**（主线 `1824b2d9` 已 sanction 2168→**2176**·点名本卷 +2 预算（REQUEST+收据）·该 commit 尚未为本支线祖先·届时并线随落）——届时「≤2176」为 operative 红线·2168 字面留档不洗。
+4. **R4（P2）§0.0 在飞名单刷新注记**：§0.0 在飞线名单刷新——**i18n-metadata-ssr 已落地移出**（tip `59127126` is-ancestor 本支线 HEAD 亲证=随 merge `957691eb` 落·非在飞）·**补 `line/qbank-pipeline-scope`**（REQUEST 落卷 `95e9b0d5` 在史亲证）入在飞交叠复核名单（其余 `line/qbank-integrity-chain`/`line/e2e-runner-stale-build-guard` 承继在列）·**EXEC 立项日全量重跑**（§0.0 原「EXEC 立项日重跑」口径承继）。
+5. **R5（P2）§0.1 行锚两处漂勘正**：①§0.1 ci.yml 行「`:32-:34` 三 `uses` 步」勘正为「**`:32-:37`**」（三 uses=checkout `:32`+pnpm/action-setup `:34`+setup-node `:36`·末步 with 块延至 `:37`·grep -n 亲证）；②「`:337-:344` CI-WIRING 纪律注记块」勘正为「**`:350-:361`**」（块头 `:350`「CI-WIRING 纪律注记（批5 第三刀）」·块尾 `:361`·grep -n 亲证）——blob `97252708`/361 行/verify steps=102 恒等零漂·纯行号级漂·结论零变。
+
+**维持面**：§1 裁位（候选甲单步 per-push）+§1-修法件① 逐字节内容+件② 收据+§2 门矩阵十二门语义+§3 边界+§4 依赖+§5 Ban/pins 十一值+§6 est live=0+§7 markers=0+§8 开工三条款/停止条件四类——**零改零翻转**。**STOP=`draft:awaiting_pre_exec_dual` 三处（Status/§8/卷尾）维持**——rev2 落卷后待窄域复审会签·协调方 EXEC 授权仍归 §8-②·alone≠dual·Ban self-approve·Dual PASS ≠ 开工。
