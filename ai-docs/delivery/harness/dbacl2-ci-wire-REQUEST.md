@@ -32,6 +32,10 @@
 1. **简报「dbhy1 step 39 邻位」→ 现树 dbhy1=verify 步序 index 37（1-based 38）·插入后新步=index 38（1-based 39）**：js-yaml 机械亲证（`steps[37].name` 始于「DBHY-1」·`steps[38].name` 始于「跨供应商 failover」）——简报 39 系历史口径（PR #108 GitHub UI 序含 runner 隐式步·与仓内 CI 观察注记「step 71/72=qbank 面」同口径族）。本刀行锚以 js-yaml 步序为机械权威·GH UI 序随位注记（§2-12）。
 2. **简报「本地实测 ~62s」→ 本席实测 warm 三跑 receipt durationMs 11215/9585/11640（墙钟 11.56s/12.08s/12.08s）**：三跑全绿 38/38 收据在案（`.tmp/isolated-proof-receipts/2026-10-15T20-02-*.json` 三件）——~62s 口径与本树现测不符·归置卷红期读数 11.9s（`:26`）与本测互证·如实登记漂移（Ban 抄简报值顶替实测）。CI 首跑预估与熔断线见 §1.2。
 
+### 0.3 起草期主线合法并线补记（§0.1 全锚重 pin·结论零变只更锚）
+
+本卷落卷后、起草 turn 收卷前，主线 i18n-metadata-ssr nail 波 6 commits 随落（origin tip `0036ddd8`→**`59127126`**·LEDGER `:463` 邻行 UC003 漏项迁移刀收口）——本席沿并线惯例 `git merge --no-ff origin/feat/mysql-schema-skeleton`（merge `957691eb`·零冲突亲证：波面 11 文件=i18n REQUEST+SSOT 两卷+web 九码面·与本支线 docs-only 恰 1 卷宗零文件交叠·⛔pull --rebase 未用）。**并线后全锚复验（对 `59127126`）**：§0.1 六锚 blob **恒等**（ci.yml `97252708`/361 行+package.json `3b04b871`+runner `0787a7ff`+db-acl2.proof `31ce9fb5`+nightly 双件 `ac47e884`+`09cd220a`）+`0036ddd8..59127126` 对 ci.yml **恰 0 commit**（零触亲证）+verify steps=**102** 恒等+db-acl2 grep 零命中恒等——§0/§1 全部结论零变·**基线重 pin=届时 EXEC 立项日再对届时 tip 执行**（§8-③ 不变）。EXEC 立项日复核 `git merge-base --is-ancestor 59127126 <届时 tip>`。
+
 ## §1 红事实 + 裁位矩阵（本席亲跑实测 @`0036ddd8`·docker 29.1.3·node 22.22.3·pnpm 10.28.0·零 Key·零模型外呼）
 
 ### 1.1 现状
