@@ -1,6 +1,6 @@
 # E2E-RUNNER-STALE-BUILD-GUARD REQUEST — run-e2e-ui.mjs 防再发微刀（件① stale-build guard=BUILD_ID mtime<HEAD commit time 强制重建·件② web-build 扣留输出非零退出落盘 .tmp/e2e-ui-build-log·恰 1 tracked 代码文件·e2e-ui 零回归·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停·pre-exec 双审两外席待派·alone≠dual·Dual PASS ≠ 开工·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草落卷→pre-exec 双审会签 PASS（席1 `agent_e9fc9beb`+席2 `agent_bdce64cf`·P2 勘正/登记随卷见 §9-⑥）→协调方明示 EXEC 授权→**EXEC 落卷（§9 EXEC 记录七字段·门矩阵十门：九门全绿+门 1 真环境条件门 SKIP 如实登记·STOP 翻面**·post 双审两外席待派·nail/行翻面归协调方·alone≠dual·⛔push）
 
 **席位**：E2E-RUNNER-STALE-BUILD-GUARD 起草席（诊断+起草双责·协调方派·⛔push⛔merge 主线）。
 **基线**：`feat/mysql-schema-skeleton` 主线 tip=`77ba32ab`（origin tip 亲证恒等·fetch 后 `git log --oneline -1 origin/feat/mysql-schema-skeleton` 亲读·任务书锚「origin tip≥77ba32ab」等值满足）· 分支 `line/e2e-runner-stale-build-guard`（建前 `git branch --list "line/e2e-runner-stale*"` 零命中·本起草席 `git worktree add ../meetwise-sbg -b line/e2e-runner-stale-build-guard` 亲立·建后 `git reset --hard 77ba32ab` 钉 origin tip 亲证）· 工作树 `meetwise-sbg`（仓根同级）。
@@ -284,6 +284,47 @@ console.log("PASS replica build-log: cap=" + retained.length + " lines, truncate
 - **越界需要**：修法诉求超出恰 1 tracked 代码文件面（需触其他 runner/helper/proof/产品码/.gitignore/package.json）→停·另刀或协调方裁决（§1.3 候选乙/戊/己沿承）。
 - **验收红不可修**：门矩阵任一门红且根因不在本刀交付面（邻面新红/lint 漂红/docs:check>2160/uc003 真环境门红且归因陈旧产物以外）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 记录（EXEC 席落卷·2026-10-14·授权链=pre-exec 双审会签 PASS（席1 `agent_e9fc9beb`+席2 `agent_bdce64cf`·双 PASS 落卷）→协调方明示 EXEC 授权（committed SHA 重钉 `dd995ed1`）→本席 EXEC·⛔push·七字段+P2 勘正/登记随卷落点）
+
+**①工序与 commit 链**：①`git fetch` 后亲证 origin tip=`fb97734c`（≥任务书并线锚 `5a0bf9e4`·=cap 2168 sanction 锚等值）→`git merge --no-ff origin/feat/mysql-schema-skeleton` **零冲突** 7 files +345/−7·双亲=`dd995ed1`+`fb97734c`→并线 merge=`ae29d0fe`（禁 pull --rebase 遵守·⛔force push 未用）；②§0 全量重 pin：八锚 blob 对届时树（`ae29d0fe`）全恒等（runner `84f9cd2d`/secret-redaction `2e51284c`/static-guards `01127803`/run-e2e-isolated `0787a7ff`/withheld-output `caefe488`/.gitignore `b84e2b41`/package.json `3b04b871`）·主线 `77ba32ab..5a0bf9e4` 对 `scripts/run-e2e-ui.mjs` 零触亲证（`git log --oneline <range> -- <径>` 空）·`fb97734c` sanction 触面恰两 scripts 文件亲证（`public-text-policy.mjs`+`public-text-policy.proof.mjs`）·cap `MAX_FILES=2_168` 在场·迁移链头 `0204`（204 文件）恒等；§0.0 在飞交叠全支线重扫（本席亲跑全本地支线对 runner 单径）=`line/*` 顶触全 `91c04145`/`057701c4`/`cc8050d5`/`7da29707` 全 HEAD 祖先（`merge-base --is-ancestor` 逐核 EXIT=0）·唯一非祖先顶触=`c3de7fe6`（2026-08-14·feature/ecs-*/preview-* 远古残枝群·与起草 §0.0 登记全同形）=**零非残枝在飞触面**；③件①/件② 四编辑程序化套用（从本卷 §1-修法 提取五 fenced 块逐字节套用·沿 cache-observe-repin §9 工序③先例形）→五块对改后文件 `includes` 逐字节恒等核 PASS+守恒断言（spawnProc 定义/next start 臂/playwright 臂零触·旧头注行已消）PASS+`node --check` PARSE OK；④门矩阵十门（下表）；⑤本 §9+Status/footer STOP 翻面落卷=本 commit。
+
+**②改前基线 run（门 0·并线树 `ae29d0fe` 改前·零 retry）**：`node scripts/e2e-static-guards.mjs` EXIT=0（runners=6 helpers=21 flags=9 aiPaths=6）+ `node scripts/e2e-platform/prove.mjs` EXIT=0（5 guards）+ `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2156**≤cap 2168（与 sanction `fb97734c` 落值 2156 恒等）——基线任一红停条款未触。
+
+**③门矩阵十门终值（改后树· runners 唯一改动=`scripts/run-e2e-ui.mjs` +70/−6）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 0 | 改前基线（并线树 `ae29d0fe`） | static-guards 绿+prove 绿+docs:check scanned 2156≤2168 | 0 |
+| 1 | uc003:i18n-locale-ui:prove | **SKIP 如实登记（零假绿零降格）**：环境判定不可跑=隔离 compose（compose.mysql-local.yml·:33069）未在跑（docker 仅 dev PG）+`MODEL_API_KEY` 进程 env ABSENT+仓根 `.env` ABSENT（loader 方式 b 无注入源·Ban 造 .env·沿 uc003-arm4 EXEC「pre-flight live_provider_key_missing 停上报」先例形）·零回归判据由门 3/4 静态面+门 2 自证面+「只拓宽重建入口条件·不改任何既有路径行为」结构事实承载（§2-1 预设路径） | — |
+| 2 | runner 自证三件 | 自证一源级守卫断言 **8/8**（guard-warn-word/stale-compare/forced-rebuild-wiring/head-time-git/build-log-dir/build-log-on-fail-arm/withheld-contract-kept/tail-cap-registered）+自证二守卫决策副本（utimesSync 伪造旧 BUILD_ID→stale=true·伪造未来→false·真 HEAD %ct=1792090376）+自证三落盘副本（500 行入 sink→恰 400 保留+截断标记+line-499 尾存） | 0 |
+| 3 | e2e-static-guards（改后） | runners=6 helpers=21 flags=9 aiPaths=6·assertNoFakeServiceFlags import/call 恒在 | 0 |
+| 4 | e2e-platform:prove（改后） | PASS 5 guards（RUNNER_WITHHOLD 含本 runner+LOG_LEAK 全扫面对改后树绿） | 0 |
+| 5 | typecheck | `pnpm turbo typecheck --force` **8 successful, 8 total·0 cached** | 0 |
+| 6 | lint | `pnpm turbo lint` **12 successful, 12 total**·全域 **0 errors**·五值恰等 **web 601/root 5235/api 1421/worker 954/ai-runtime 628**（对起草参照五值逐值恒等） | 0 |
+| 7 | docs:check | EXIT=0 scanned **2156**≤cap **2168**（cap=sanction `fb97734c`·本刀零自升·本卷 .md 系既有 tracked 增行不改 scanned 文件数） | 0 |
+| 8 | markers 五类 | 改动集（runner+本卷 .md 两件）零命中（i6-239 §2-7 运行时组装口径·词面不复抄） | 0 |
+| 9 | diff 面机检 | 对 base=`fb97734c`（并线 merge 第二亲·防对起草基线 union diff 连他件假停）恰 **2 tracked**=①代码面恰 1=`scripts/run-e2e-ui.mjs`（**+70/−6**·git diff --numstat 亲测）+②本卷 .md（卷宗本体·沿 cache-observe-repin §2-13 计数形） | — |
+| 10 | 卫生 | `pnpm install --frozen-lockfile` EXIT=0（4s·新建 worktree node_modules 空修复·沿 qbank-scope-fix EXEC 先例形·lockfile 零改亲证）·`.env*` ABSENT 双向记录·`actualSpendCny=null`·est live=0（十门全离线·门 1 SKIP 零实跑） | 0 |
+
+**④runner 自证三件+三合同复跑（对改后文件）**：自证三件全 EXIT=0（上表门 2·副本强度局限=副本≠import 沿 §0.2-2 如实登记·源级断言对真文件锚定同构）；三合同复跑=`secret-redaction` 独跑 PASS（LOG_LEAK 对改后 console 行零敏感词命中+RUNNER_WITHHOLD 本 runner `E2E_PROCESS_OUTPUT_WITHHELD` 词面恒在）+`e2e-static-guards` 独跑 PASS（fake-service import/call 恒在+runner 形制恒在）——合成自证四件全绿，「机制不满足」停止条件未触。
+
+**⑤运行副效应与卫生**：typecheck 门曾翻动 `apps/web/tsconfig.tsbuildinfo`（tracked 构建状态件）——`git checkout` 回滚保门 9 恰 2 路径（沿 cache-observe-repin §9 先例·非交付面）；`.tmp/e2e-ui-build-log/*.log` 零产生（本刀零整 runner 实跑·直测不可行性沿 §0.2-2 双证）；门 1 SKIP 见上表。
+
+**⑥偏离清单（零偏离+P2 勘正/登记随卷落点·append 注记形不洗·本段以下勘正不改 §1/§2 原文一字）**：
+
+- **P2-1（席1·勘正已兑现）**：§1-修法守恒断言 numstat 自估「约 +55/−3」→**实测「约 +70/−6」勘正**——EXEC 实测 `git diff --numstat`=70/6 恰印证勘后估计·落点=本行+门 9 行。
+- **P2-2（席1·登记）**：件② stderr 回放语义登记一句——回放内容=next build 诊断输出（`buildRetained` 缓冲·spawn 后追加 listener 采集）·**非 env 回显面**·暴露级与裸转发（spawnProc forwardOutput 形）同级·0o600+gitignored+行上限三重收窄不变·落点=本行。
+- **P2-3（席1·局限④补句）**：§1-修法行为语义④地板判据补登记「固定化提交日期形态（`GIT_COMMITTER_DATE`/`--committer-date-is-author-date`）致 %ct 假旧误判新鲜」——固定化提交日期使 HEAD %ct 失真·陈旧判定地板随之失真·属地板判据已知局限族·候选丙（内容级判据）后继刀承接口·落点=本行（§1 原文不洗）。
+- **席2-P3-1（登记）**：件② 落盘形对 `run-e2e-isolated.mjs :3050-3051` 先例有**非原子写偏离**（先例=partial+`renameSync` 原子形·件②=`writeFileSync` 直写单文件非收据面·诊断性质可容忍·沿先例仅取 0o700/0o600 权限形）·落点=本行。
+- **席2-P3-2（登记）**：buildSink 尾上限形对**单巨条目超 64KiB 不设防**（`while (buildRetained.length > 1 …)` 恒保留末条·单 chunk >64KiB 时缓冲总量可超上限·落盘体相应超限·诊断面可容忍·如实登记）·落点=本行。
+- **席2-P3-3（登记）**：`.tmp/e2e-ui-build-log/` **无清理惯例**（落盘日志无自动清除·本地累积面·gitignored 不入树·如实登记）·落点=本行。
+- **席2-P3-并发窗口（登记·微扩一行）**：并发双 runner 同树「检测-重建」非原子·陈旧判定与 `next build` 落 BUILD_ID 之间存在竞态窗口（两 runner 同判陈旧各走重建·后者覆盖前者产物·幂等同向·如实登记）·落点=本行。
+- **席1-P2-6（登记）**：时钟偏斜假陈旧一行——宿主时钟回拨/偏斜可使 BUILD_ID mtime 相对 HEAD %ct 呈假旧→误判陈旧触发多余重建（安全向·仅耗重建时长·不产生假红）·落点=本行。
+
+**⑦停止条件四类核+STOP 终态**：现场漂移=八锚 blob+cap 2168+链头 0204 全恒等+§0.0 重扫零非残枝触面（未触）；机制不满足=自证一 8/8+自证二 stale=true/fresh=false+自证三截断形全绿（未触）；越界需要=修法面恒恰 1 tracked 代码文件 `scripts/run-e2e-ui.mjs`+本卷 .md（未触）；验收红不可修=门矩阵九门全绿+门 1 SKIP 系 §2-1 预设路径非红（未触）。§1 红事实结论/§5 Ban/pins 十一值/§8 停止条件四类/§1-修法定稿文本面**零改零翻转**（P2/P3 勘正登记全走本 §6 append 形）。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与批表/行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+
 ---
 
-*E2E-RUNNER-STALE-BUILD-GUARD REQUEST · 2026-10-14 起草落卷 · **`draft:awaiting_pre_exec_dual`（pre-exec 双审两外席待派·alone≠dual·⛔push）** · base 主线 tip `77ba32ab`（origin tip 亲证恒等·起草时 docs:check EXIT=0 scanned 2153≤cap 2160 本席亲跑·cap=sanction `317ea3df`）· 分支 `line/e2e-runner-stale-build-guard` · 工作树 `meetwise-sbg`（本起草席立·reset 钉 origin tip 亲证）· 立项出处=UC003 门⑥陈旧产物事故（.next/BUILD_ID mtime 早于接线 4 天·「BUILD_ID 在即不重建」单一判据→服务陈旧构建假红）+复跑席实证（web-build 非零退出扣留输出 9 chunks/3014B 只计数不落盘不可回收·靠手动同 env 复现定位）+协调方派单 brief 双改进候选 · 读码定稿=run-e2e-ui.mjs `84f9cd2d` 三落点（:86-96 tailAppend/emitFailureDiagnostics 扣留机制·:97-109 spawnProc·:190-208 BUILD_ID 检查+内嵌 build 调用+非零退出臂）· runner 直测不可行双证（:46 isolation throw+:53 provider key throw+全栈前置不可达 BUILD_ID 段·import 顶层 side-effect 即 throw）→自证=源级守卫断言+决策/落盘副本直测三件合成（副本强度局限如实登记）· 修法=恰 1 tracked 代码文件 4 编辑（件① stale-build guard 强制重建形=mtime<HEAD %ct 严格小于·检测面 fail-open/判定面 fail-closed 分立·候选甲乙丙丁否决在卷；件② build 输出落盘=非零退出时保留尾 ≤400 行/64KiB 写 `.tmp/e2e-ui-build-log/<ts>.log` 0o600 gitignored+stderr 回放·成功零写盘·候选戊己庚否决在卷）· 门矩阵十门（改前基线+uc003 真环境条件门可跑则跑不可跑 SKIP 零假绿+runner 自证三件+static-guards+e2e-platform:prove+typecheck 8/8+lint 五值+docs:check≤2160+markers+diff 恰 1 tracked 代码文件+本卷 .md=2 tracked+卫生）· 契约恒在（E2E_PROCESS_OUTPUT_WITHHELD 词面·assertNoFakeServiceFlags import/call·LOG_LEAK 零敏感词）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+*E2E-RUNNER-STALE-BUILD-GUARD REQUEST · 2026-10-14 起草落卷·同日 EXEC 落卷（§9 七字段+P2 勘正/登记随卷） · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十门：九门全绿+门 1 真环境条件门 SKIP 如实登记·post 双审待派·nail/行翻面归协调方）** · base 主线 tip `77ba32ab`（起草时）·并线=`ae29d0fe`（--no-ff 并 origin/feat/mysql-schema-skeleton@`fb97734c`=cap 2168 sanction·零冲突 7 files +345/−7·双亲 `dd995ed1`+`fb97734c`·届时 tip≥并线锚恒等）· 分支 `line/e2e-runner-stale-build-guard` · 工作树 `meetwise-sbg`（本起草席立·reset 钉 origin tip 亲证）· 立项出处=UC003 门⑥陈旧产物事故（.next/BUILD_ID mtime 早于接线 4 天·「BUILD_ID 在即不重建」单一判据→服务陈旧构建假红）+复跑席实证（web-build 非零退出扣留输出 9 chunks/3014B 只计数不落盘不可回收·靠手动同 env 复现定位）+协调方派单 brief 双改进候选 · 读码定稿=run-e2e-ui.mjs `84f9cd2d` 三落点（:86-96 tailAppend/emitFailureDiagnostics 扣留机制·:97-109 spawnProc·:190-208 BUILD_ID 检查+内嵌 build 调用+非零退出臂）· runner 直测不可行双证（:46 isolation throw+:53 provider key throw+全栈前置不可达 BUILD_ID 段·import 顶层 side-effect 即 throw）→自证=源级守卫断言+决策/落盘副本直测三件合成（副本强度局限如实登记）· 修法=恰 1 tracked 代码文件 4 编辑实测 +70/−6（件① stale-build guard 强制重建形=mtime<HEAD %ct 严格小于·检测面 fail-open/判定面 fail-closed 分立·候选甲乙丙丁否决在卷；件② build 输出落盘=非零退出时保留尾 ≤400 行/64KiB 写 `.tmp/e2e-ui-build-log/<ts>.log` 0o600 gitignored+stderr 回放·成功零写盘·候选戊己庚否决在卷）· 门矩阵十门承卷（改前基线+uc003 真环境条件门 SKIP 如实登记零假绿+runner 自证三件+static-guards+e2e-platform:prove+typecheck 8/8+lint 五值恰等+docs:check 2156≤cap 2168+markers+diff 恰 2 tracked=1 代码+本卷 .md+卫生·十门详 §9-③）· 契约恒在（E2E_PROCESS_OUTPUT_WITHHELD 词面·assertNoFakeServiceFlags import/call·LOG_LEAK 零敏感词）· 迁移零（链头 0204）· est live=0 · markers=0 · pins 十一值照抄零翻 · 停止条件四类全数未触 · Ban self-approve · alone≠dual · ⛔push · STOP*
