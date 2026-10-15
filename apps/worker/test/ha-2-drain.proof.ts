@@ -74,10 +74,14 @@ function drainChecklistSourceAssertions() {
   console.log('--- A.4 C5 源级清单断言（main.ts） ---');
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const src = readFileSync(join(root, 'src/main.ts'), 'utf8');
-  // R3 勘误清点：15 项既有 + 补漏 vector-plane-erasure = 16；stub-tick 为 env-gated 附加项。
+  // R3 勘误清点（rev3 重钉·协调方 wave70 授权·预存漂移非本刀引入）：16 项既有（64522c62 钉时真值=17 臂绿）
+  // + usage-calibration-retention（0dcc73f0 ag-cost2 接线·drainStops 16→17）+ qbank-release-sweep（b20ee350
+  // qbank-control-sec 接线·drainStops 17 项）= 18 具名项——两姊妹支线各增一笔均未回钉本清单（0dcc73f0 非本线
+  // b20ee350 祖先·本线 first-parent 组装点 d31be795 起真值 19 vs 钉 17）；stub-tick 为 env-gated 附加项。
   const required = [
     'report', 'interview', 'quiz', 'diagnosis', 'route-classify', 'commerce',
-    'model-invocation-reconcile', 'usage-calibration-reconcile', 'privacy-erasure',
+    'model-invocation-reconcile', 'usage-calibration-reconcile', 'usage-calibration-retention',
+    'qbank-release-sweep', 'privacy-erasure',
     'vector-plane-erasure', 'gauge', 'rag-cache', 'privacy-pool', 'qbank-control-pool',
     'rag-control-pool', 'langfuse',
   ] as const;
@@ -85,7 +89,7 @@ function drainChecklistSourceAssertions() {
     A(`清单项在位：${name}`, new RegExp(`\\{ name: '${name}', stop:`).test(src));
   }
   const drainBlock = src.slice(src.indexOf('const drainStops'), src.indexOf('let workerShuttingDown'));
-  A(`清单实数=16 具名项 + env-gated stub-tick（条件展开·实数 ${((drainBlock.match(/\{ name: '/g) ?? []).length)}）`, (drainBlock.match(/\{ name: '/g) ?? []).length === 17 && /\.\.\.\(stubLoop \? \[\{ name: 'stub-tick'/.test(drainBlock));
+  A(`清单实数=18 具名项 + env-gated stub-tick（条件展开·实数 ${((drainBlock.match(/\{ name: '/g) ?? []).length)}）`, (drainBlock.match(/\{ name: '/g) ?? []).length === 19 && /\.\.\.\(stubLoop \? \[\{ name: 'stub-tick'/.test(drainBlock));
   A('补漏件 vectorPlaneErasureLoop.stop 实接线（非仅字符串）', /vectorPlaneErasureLoop\?\.stop\(\) \?\? Promise\.resolve\(\)/.test(src));
   A('SIGTERM/SIGINT 同链接线（wireSignalShutdown 双信号）', /wireSignalShutdown\(\['SIGTERM', 'SIGINT'\]/.test(src));
   A('重复信号幂等闸在位（workerShuttingDown）', /if \(workerShuttingDown\) return/.test(src));
