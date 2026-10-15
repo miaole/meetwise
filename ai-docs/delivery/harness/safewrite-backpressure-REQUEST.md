@@ -2,6 +2,8 @@
 
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停·alone≠dual · Dual PASS ≠ 开工 · est live=0 · markers=0 · ⛔push · **rev2 双审回炉修订在卷（§9·席1 PASS+席2 FAIL 恰一处 P1）·复审维持 awaiting_pre_exec_dual**）
 
+**EXEC Status（append-only·2026-10-15）**：**`executed:stopped_gate_red_escalated`**（协调方 EXEC 授权后落码——件①② 绿·四新臂绿·门矩阵 12/15 绿；§8 停止条件命中停手上报：门5 ha2-drain api `:278` 词面臂与钉值点4 机制性相撞（修面需触 Ban proof 或改钉值形·均越 EXEC 授权）+api C4/worker 清单两红基线期已红（stash 对照亲证）——详见 §9-EXEC+收据 `receipts/safewrite-backpressure/00-exec.md` · 裁决权归协调方 · ⛔push）
+
 **席位**：safewrite-backpressure 起草席（诊断+起草双责·协调方派·批表盘点席在案 #132 真未闭立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `575b428e`（reconcile-retry nail 收官 SSOT commit·=origin tip·docs:check 2141≤cap 2144 本树亲跑 EXIT=0）· 分支 `line/safewrite-backpressure`（建前 `git branch --list "line/safewrite*"` 恰 1 命中=本席分支·零第二同名）· 工作树 `meetwise-swb`（仓根同级·本起草席 `git worktree add ../meetwise-swb -b line/safewrite-backpressure feat/mysql-schema-skeleton` 亲立·HEAD 落 `575b428e` 亲证）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①审计 issues-master **更正版** `~/Documents/Meetwise产品审计-更正版/issues-master.md` **`:402`**（逐字：「`| #132 | P3 | 技术缺陷 | 面试中 | sse-pump safeWrite 忽略 write() 返回 false（背压），慢客户端缓冲堆积（有 5 槽与 10 分钟上限） | apps/api/src/platform/sse-pump.ts:59,64,92-93 | 仍存在 | 推断 | 处理 drain 事件/背压，超阈值断开 | — | — | 第5批-E 文档/清理 | findings #132；… |  |`」·锚列行号系审计时点旧树·现树重锚见 §0.1）；②LEDGER `ai-docs/delivery/harness/product-campaign-LEDGER.md` `:89`（5E 行 #132 在未翻面枚举列·亲证零 ✅ 记）；③5E GROUP 卷 `ai-docs/delivery/harness/5e-group-REQUEST.md:73`（#132 行「**开放（亲证加重）**：…write() 的 false 返回被弃、恒 return true。B5 四件套单源化后此面收敛于此一处=修点集中」）；④5E-BEHAVIOR 卷 `ai-docs/delivery/harness/5e-behavior-REQUEST.md` **`:28`/:52/:74/:90/:118/:136**（R4 行=「safeWrite 消费 `reply.raw.write()` 返回 false（现弃置恒 true）+连接级缓冲计数+超阈值断开」+**rev2 两句消歧**原文（①背压断开不得复用 `closed=true` 单旗 ②阈值内 safeWrite 须仍返回 true 仅内部计数）+§2-4 断言口径+§5 Ban「#132 阈值/次数/指标名自造值」词面+裁决④待定值登记——该卷 EXEC `5b1208a1` 仅行使 R1 切片（A 形三件·checklist :2753 在案）·**R4 未行使·#132 承接本刀**）；⑤HA-2 EXEC 收据 `receipts/ha-2/exec-receipt.md`（R1 口径+A2 断言「end 恰一次·end 后 write=0（R1 封死）」=背压修法不可侵的既有语义面）；⑥形制范本 `ai-docs/delivery/harness/negbend-fix-REQUEST.md`（§0-§8+trailer·在树 `575b428e` 可解析）。
@@ -127,6 +129,14 @@
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻面新红/lint 五值破/docs:check>2144/贴边超件）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
 ## §9 rev2 处置摘要（pre-exec 双审回炉修订·2026-10-14·修订记录节）
+
+## §9-EXEC EXEC 记录（append-only·2026-10-15·executed 落卷）
+
+**授权链**：rev2 窄域复审 PASS（agent_40905acb）→协调方 EXEC 授权（0205 席·merge 序1 钦定）→本席 EXEC。
+**并线**：`git merge --no-ff feat/mysql-schema-skeleton` @ origin tip `f417d8e7` → merge `c9a3d2ef`·**零冲突**（ort 自动合并·19 文件·⛔pull --rebase 未用）。§0 全量重 pin 随并线如实改锚（cap 2144→2152·迁移链 203→204 头 0204·docs:check 基线 2141→2148·全表见收据 §4）·blob 锚表十一文件全恒等·§0.0 在飞复扫零新残枝。
+**落码**：件① `sse-pump.ts`（+35/-5·钉值五点全兑：1_048_576 阈值+drain 复位+自有旗 bpTripped+阈值内恒 true+超阈值拒写镜像形+end 单点不抑制·注释消歧措辞两处在位）；件② `sse-push-notify.proof.ts`（+140/-4·fakeSink 三缝 additive+四臂恰四臂 BP-1..BP-4·既有 35 臂零弱化）。
+**门矩阵**：12/15 绿——sse-push 改后 48/48（35+13·恰 1 次 prove·名单 diff 恰 13 BP 臂）+sse-slot+s4b-delta-arm+last-event-id+commerce+neg 隔离形 687 恰等+interview 57 恰等+migrate（链 204 头 0204）+drift+uniqueness files=204 violations=0+typecheck 8/8 0 cached+lint 五值恰等 601/5235/1421/954/628+卫生（install EXIT=0 零 lockfile 改·.env* ABSENT·零外呼）。
+**STOP · 停止条件命中停手上报（§8）**：门5 ha2-drain 双面红——api FAIL 恰 1 臂 `:278` while 条件词面正则**与本刀钉值点4 机制性相撞**（钉值钦定 while 条件纳入自有旗·:278 整行钉死旧词面·解法两枝均越授权面：更 :278=触 Ban proof 面/改等价 break 形=改钉值形·须协调方裁决回炉或授权扩面）+api C4 段崩溃与 worker 清单实数臂红（**基线 `e0e6c0fd` 已红**·stash 对照亲证在收据 §5-2·REQUEST §2-5「47/47+39/39」系 HA-2 收据时点旧值·#91/#92 readiness 位与 worker 挂死清单演进未回填）。行为臂（A.2 泵排水/取数窗/退出路径全 PASS）证机制行为零回归。**本 EXEC 不翻 §1-修法钉值·不触 Ban 面·四红如实登记（:278×1 本刀相撞+C4×1+worker×1 基线前在+门5 停止上报）**。收据=`ai-docs/delivery/receipts/safewrite-backpressure/00-exec.md`（OBS-1 镜像仅 return/write 行为+OBS-2 i6-239 恰符臂红协议形承登在卷）。est live=0·markers 按臂承登·pins 十一值零翻·⛔push。
 
 **双审结果**：席1 **PASS**+席2 **FAIL 恰一处 P1**→回炉 rev2（本 commit docs-only 恰 1 .md·零源码零测试触）。**P1 机制**：件① drain 监听挂载与三个直驱 proof 的 fake raw 无 `.on` 方法相撞——亲证 `ha-2-drain.proof.ts:31-:43`+`sse-delta-arm.proof.ts:60-:67` fake raw 仅 writeHead/write/end 三方法零 `on`·自然 `reply.raw.on('drain',…)` 挂载即 TypeError 两门全红（§2-3/§2-5 承载门本体）·修补该两 fake=违零触面·停止条件四类无合法出路→REQUEST 回炉修订（起草席处置·非 EXEC 期就地处置）。
 
