@@ -19,6 +19,9 @@
  * P-5 TRIGGER-E2E      dedicated test LISTEN connection receives payload =
  *                      bare stream_key (trigger real, not mock; id only — never
  *                      owner / kind / event data).
+ * BP-1..BP-4           #132 背压四臂(件②):阈值内计数恒 true / 超阈值自有旗断开+
+ *                      end 恰一次+registry 归零 / drain 复位(on 缝手动发) /
+ *                      源级静态词面断言(零行号锚)。
  *
  * Coordinator constraints (adjudicated Opt1):
  *   ① health = LISTEN 在位 + establish 期一次 pg_trigger SELECT 实证 0143 在场
@@ -55,6 +58,7 @@ import { boot, mkAssert } from './_neg-harness';
 import type { Client } from '@meetwise/db';
 import { getSseNotify, SseNotifyService, SSE_NOTIFY_CHANNEL, SSE_NOTIFY_TRIGGER_NAME } from '../src/platform/sse-notify.service.ts';
 import { pumpSseEvents } from '../src/platform/sse-pump.ts';
+import { createSseRegistry, type SseRegistry } from '../src/platform/sse-registry.ts';
 
 // must stay above `await boot()` — early SSE_NOTIFY_DEGRADED lines escape capture otherwise (was 2/35 red).
 // ── constraint ② live receipt tap: capture the PRODUCTION console.warn seam ──
@@ -358,19 +362,50 @@ function fakePgClient(opts: { triggerPresent?: boolean } = {}): Client {
   c.release = () => undefined;
   return c as unknown as Client;
 }
-type Sink = { writes: string[]; writeTimes: number[]; reply: unknown; reqRaw: EventEmitter };
+type Sink = {
+  writes: string[];
+  writeTimes: number[];
+  reply: unknown;
+  reqRaw: EventEmitter;
+  /** #132 背压件②缝:end() 调用计数(断言面=end 恰一次/零 end)。 */
+  getEndCount(): number;
+  /** #132 背压件②缝:注入 write 返回值(缺省恒 true=既有臂零行为差)。 */
+  setWriteImpl(impl: (s: string) => boolean): void;
+  /** #132 背压件②缝:手动触发泵经 reply.raw.on?.('drain',…) 挂载的监听(背压 drain(socket)≠HA-2 排水)。 */
+  fireDrain(): void;
+  /** #132 背压件②缝:泵已挂载的 drain 监听数(断言面=惰性挂载恰一次)。 */
+  drainListenerCount(): number;
+};
 function fakeSink(): Sink {
   const writes: string[] = [];
   const writeTimes: number[] = [];
+  const drainListeners: Array<() => void> = [];
+  let endCount = 0;
+  let writeImpl: (s: string) => boolean = () => true;
   const reply = {
     hijack() { /* noop */ },
     raw: {
       writeHead() { /* noop */ },
-      write: (s: string) => { writes.push(s); writeTimes.push(Date.now()); return true; },
-      end() { /* noop */ },
+      write: (s: string) => {
+        const ok = writeImpl(s);
+        writes.push(s);                    // false 亦落 writes:真流语义 write()=false 数据也已入缓冲,writes[]=实际尝试写的帧集
+        writeTimes.push(Date.now());
+        return ok;
+      },
+      on: (event: string, listener: () => void) => { if (event === 'drain') drainListeners.push(listener); },
+      end() { endCount += 1; },
     },
   };
-  return { writes, writeTimes, reply, reqRaw: new EventEmitter() };
+  return {
+    writes,
+    writeTimes,
+    reply,
+    reqRaw: new EventEmitter(),
+    getEndCount: () => endCount,
+    setWriteImpl: (impl) => { writeImpl = impl; },
+    fireDrain: () => { for (const l of drainListeners) l(); },
+    drainListenerCount: () => drainListeners.length,
+  };
 }
 function startPump(sink: Sink, o: {
   streamKey: string;
@@ -378,6 +413,7 @@ function startPump(sink: Sink, o: {
   fetchMore: (lastSeq: number) => Promise<{ rows: Array<{ seq: number; kind: string; payload: unknown }> } | null>;
   fallbackMsHealthy?: number;
   lastId?: number;
+  registry?: SseRegistry;
 }): Promise<void> {
   return pumpSseEvents({
     reply: sink.reply as unknown as FastifyReply,
@@ -388,6 +424,7 @@ function startPump(sink: Sink, o: {
     isTerminal: () => false,
     notify: o.notify,
     fallbackMsHealthy: o.fallbackMsHealthy,
+    registry: o.registry,
   });
 }
 
@@ -505,6 +542,105 @@ function startPump(sink: Sink, o: {
   await notify.stop();                                         // 计划内关停 ≠ 降级
   await sleep(120);
   A('P-2d 计划关停不打降级日志(关停 ≠ 退化转变)', logs.length === logCountBeforeStop);
+}
+
+// ═══ #132 背压四臂(件②):阈值内计数 / 超阈值断开 / drain 复位 / 源级静态 ═════════════════
+// 钉值语义(sse-pump.ts):累计未落盘字节阈值 1 MiB·阈值内 safeWrite 恒 true 仅计数·超阈值自有旗
+// bpTripped 拒写(镜像 draining 分支形)·drain 复位归零(背压 drain(socket)≠HA-2 排水)·end 单点不抑制。
+{
+  console.log('\n──────── BP · #132 背压四臂(阈值内计数·超阈值断开·drain 复位·源静态) ────────');
+
+  // BP-1 阈值内计数臂:注入 write 恒 false → 阈值内 safeWrite 仍返 true 仅内部计数(rev2 消歧②:
+  // false 早退会走 emit early-return 冻结 lastSeq 反放大积压)→ emit 照常推进·泵不早退不断开。
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    sink.setWriteImpl(() => false);
+    const cursors: number[] = [];
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_BP1', notify, fallbackMsHealthy: 50, lastId: 100,
+      fetchMore: async (lastSeq) => {
+        cursors.push(lastSeq);
+        if (lastSeq === 100) return { rows: [{ seq: 101, kind: 'progress', payload: { n: 1 } }, { seq: 102, kind: 'progress', payload: { n: 2 } }, { seq: 103, kind: 'progress', payload: { n: 3 } }] };
+        if (lastSeq === 103) return { rows: [{ seq: 104, kind: 'progress', payload: { n: 4 } }] };
+        return { rows: [] };
+      },
+    });
+    await until(() => sink.writes.some((w) => w.includes('id: 104')), 2000);
+    A('BP-1 阈值内计数:恒 false 注入下四帧全落(emit 未 early-return·阈值内恒 true 仅计数)',
+      ['id: 101', 'id: 102', 'id: 103', 'id: 104'].every((id) => sink.writes.some((w) => w.includes(id))));
+    A('BP-1 lastSeq 前进:第二轮取数游标含 103(若误冻结则停在 101)', cursors.includes(103));
+    sink.reqRaw.emit('close');
+    await Promise.race([finished, sleep(1500)]);
+    A('BP-1 阈值内零断开:close 拉起前泵未 trip(end 计数=0·背压断开会走 end 单点)', sink.getEndCount() === 0);
+    await notify.stop();
+  }
+
+  // BP-2 超阈值断开臂:恒 false × 12×100KiB 大帧累计越 1 MiB → 自有旗 trip → 帧边界退出 →
+  // end 恰一次(自有旗不复用 closed·:177 end 守卫不被抑制→客户端见干净 end 凭 Last-Event-ID 重连重放)
+  // + registry count() 归零(unregister 单点照走)。
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    sink.setWriteImpl(() => false);
+    const registry = createSseRegistry();
+    const pad = 'x'.repeat(100_000);
+    let fetches = 0;
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_BP2', notify, fallbackMsHealthy: 50, lastId: 200, registry,
+      fetchMore: async () => {
+        fetches += 1;
+        if (fetches === 1) return { rows: Array.from({ length: 12 }, (_, i) => ({ seq: 201 + i, kind: 'progress', payload: { pad } })) };
+        return { rows: [] };
+      },
+    });
+    const exited = await Promise.race([finished.then(() => true), sleep(5000).then(() => false)]);
+    A('BP-2 超阈值断开:累计 false > 1 MiB → 泵帧边界退出(不悬挂)', exited);
+    A('BP-2 拒写镜像形:trip 后早停(writes < 轮内全量 12 帧·超阈值后不落 write 零缓冲滞留)',
+      sink.writes.length > 0 && sink.writes.length < 12);
+    A('BP-2 end 恰一次:自有旗路径不抑制 raw.end(客户端见干净 end)', sink.getEndCount() === 1);
+    A('BP-2 registry 归零:超阈值退出走 unregister 单点(count()===0)', registry.count() === 0);
+    await notify.stop();
+  }
+
+  // BP-3 drain 复位臂:false 后经件① on 缝手动发 drain → 计数复位归零 → 次轮同尺寸大帧不误 trip →
+  // 泵继续正常写(两轮累计下发 >1 MiB 却零断开=复位生效)。
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    sink.setWriteImpl(() => false);
+    const pad = 'y'.repeat(600_000);
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_BP3', notify, fallbackMsHealthy: 120, lastId: 300,
+      fetchMore: async (lastSeq) => {
+        if (lastSeq === 300) return { rows: [{ seq: 301, kind: 'progress', payload: { pad } }] };
+        if (lastSeq === 301) return { rows: [{ seq: 302, kind: 'progress', payload: { pad } }] };
+        return { rows: [] };
+      },
+    });
+    await until(() => sink.writes.some((w) => w.includes('id: 301')), 2000);
+    A('BP-3 惰性挂载形:首次 false 后经 on 缝挂 drain 监听恰一次(fake 容忍面在证)', sink.drainListenerCount() === 1);
+    sink.fireDrain();                                            // 手动发 drain:计数复位归零(背压 drain(socket)≠HA-2 排水)
+    await until(() => sink.writes.some((w) => w.includes('id: 302')), 2000);
+    A('BP-3 drain 复位:复位后次轮 ~600KiB 大帧仍被接受(两轮累计下发 >1 MiB 零断开·end=0)',
+      sink.writes.some((w) => w.includes('id: 302')) && sink.getEndCount() === 0);
+    sink.reqRaw.emit('close');
+    await Promise.race([finished, sleep(1500)]);
+    await notify.stop();
+  }
+
+  // BP-4 源级静态臂:词面 includes 形(沿 sse-delta-arm 先例·零行号锚)。
+  {
+    const pumpSrc = readFileSync(fileURLToPath(new URL('../src/platform/sse-pump.ts', import.meta.url)), 'utf8');
+    A('BP-4 源静态:write() 返回值被消费(#132 原病=弃置恒 true 已修)', pumpSrc.includes('if (!reply.raw.write(s))'));
+    A('BP-4 源静态:阈值常量 1_048_576 词面在场(1 MiB=64×16KiB)', pumpSrc.includes('1_048_576'));
+    A('BP-4 源静态:自有旗 bpTripped 在场+消歧措辞在场(背压 drain(socket)≠HA-2 排水)',
+      pumpSrc.includes('bpTripped') && pumpSrc.includes('背压 drain(socket)≠HA-2 排水'));
+    A('BP-4 源静态:end 守卫词面零扩(if (!closed) 守卫行不被自有旗并入)', pumpSrc.includes('if (!closed) { try { reply.raw.end(); } catch'));
+  }
 }
 
 // ── 收尾:honesty pins + singleton 关停 ──────────────────────────────────────
