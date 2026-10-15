@@ -46,9 +46,9 @@ export async function Nav() {
 
   // B 端(招聘方)导航清单:登录后按角色切换。
   const recruiterLinks: NavLink[] = [
-    { href: '/recruiter/jobs', label: '岗位' },
-    { href: '/recruiter/talent', label: '投递' },
-    { href: '/recruiter/how-it-works', label: '笔记' },
+    { href: '/recruiter/jobs', label: t('recruiterJobs') },
+    { href: '/recruiter/talent', label: t('recruiterTalent') },
+    { href: '/recruiter/how-it-works', label: t('recruiterNotes') },
     { href: '/settings', label: t('settings') },
   ];
 
