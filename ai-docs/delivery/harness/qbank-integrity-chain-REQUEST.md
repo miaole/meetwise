@@ -161,6 +161,8 @@
 
 **rev2 自检回执（落卷席亲跑）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（2154≤cap 2160）；markers 五类 `git diff 77ba32ab -U0` 改动集新增行直扫零命中（词族与冲突标记双查·P1-R2 后词面全卷零再现·命令与回执沿 receipts 形留执行席收据）；改动集仍恰 1 .md=本卷。**STOP 终态**：三处（Status/§8/自检）恒 `draft:awaiting_pre_exec_dual`——rev2 落卷后席1 复审确认方会签·alone≠dual·⛔push。
 
+**rev3 处置摘要（2026-10-16·post 审读席2 P1×2+P2+席1 P2 随卷落·落卷席 append）**：四项勘误以 §11 注记形落卷（P1-R1 A21 勘正倒置改回原值+P1-R2 blob 锚勘正 `3fd0c292`+P2 STOP 生效面=Status :3+§10⑥+席1 P2 探针参数名假阳观察登记）——§0-§10 原文零洗·零码面·改动集恰 1 .md=本卷；markers 新增行直扫零命中（词面运行时组装+冲突标记双查）；docs:check EXIT=0 复跑（≤cap 2168）；**STOP 维持 `executed:awaiting_post_prove_dual`**（勘误随 post 双审会签一并裁·alone≠dual·⛔push）。
+
 ## §10 EXEC 记录（2026-10-15/16 EXEC 席落卷·append 保史·§0-§8 正文零改·仅 §0 头款授权内重 pin 锚更行号+O1-O3 随落）
 
 **授权链**：rev2 窄域确认 PASS（agent_1d83ef16·双审会签）→协调方 EXEC 授权（「本刀使命=CI step 72 最后残红翻面」）→本席执行。**序1 并线**：`git merge --no-ff origin/feat/mysql-schema-skeleton`@`fb97734c` 零冲突（7 files +345/−7·merge=`a3a84310` 双亲 `ccc344d1`+`fb97734c`·届时 tip=cap 2168 sanction 锚等值·⛔pull --rebase 未用）——携入 qbank-scope-fix 前置（§2-11 预登记条件成立面）。
@@ -176,3 +178,10 @@
 **⑤ §0 重 pin 漂移登记+在飞枚举（§0.0 式一句·收据⑤预登记兑现）**：漂移=零结构漂·仅 A21 映射勘正+O2 内锚 ±1+O1 cap 转录（①节）；在飞枚举=EXEC 时点在飞卷沿 cap sanction 卷 `fb97734c` 载明四卷 `nul-escape-visibility`/`qbank-integrity-chain`（本卷）/`e2e-runner-stale-build-guard`/`i18n-metadata-ssr` 各 +2 预算·本刀改动集九文件（并线 7+本刀 2）他卷零命中亲证。**存量观察登记（§4 席2③ 承卷一句）**：0201 不 bump `qbank_cache_epoch`——滚动窗 TTL ≤120s 界定存量陈旧上界·系存量现状观察·非本刀引入·非本刀处置面。**缓存键 v6 零跳核**：`qbank-retrieval-cache.ts` 零触（change set 零命中）·`CACHE_KEY_VERSION='qbank-retrieval-cache:v6'` 恒等·legacy 态行为恒等旧版即版本语义已含（§1.4 禁触遵守）。**停止条件四类盘点**：现场漂移未命中/机制不满足未命中（主门 20 臂零新红·rg 普查复证 owner_kind 函数返回列面仅 `:285`/`:289` 两处=修面盖全）/越界未命中（修法未触 §3 边界·两承登红处置面在刀外未自行扩权）/验收红=两基线红承登非原值翻红（§3 边界未触·裁决权上交协调方+post 双审）。
 
 **⑥ est live=0·actualSpendCny=null**（全隔离容器+假体 embedder·零模型外呼·零 secrets·scratch 排演库用后即弃·零生产操作）。**STOP 终态=`executed:awaiting_post_prove_dual`**（Status 行随翻·§8 体 draft 期 STOP 词面沿 append 保史零洗·EXEC 终态以本节+Status 为准·alone≠dual·待 post 双审两外席会签+协调方·⛔push 未用）。
+
+## §11 rev3 勘误注记（2026-10-16 post 审读落卷席·append 保史·§0.1/§8/§9/§10 原文零洗·仅以本节四注记勘误·STOP 维持 `executed:awaiting_post_prove_dual`）
+
+1. **P1-R1·A21 勘正倒置（落点=§0.1-A21 行+§10① A21 勘正句）**：rev3 注记改回原值——`:119`=neg:all·`:348`=migrate:prove·`:558`=主翻门 qbank-integrity-upgrade:prove（原卷 pin 本就正确·EXEC 勘正自身首尾颠倒·『现树 sed 亲证』证词与实测相反·席2 grep -n 实测为凭·落卷席同法 `grep -n package.json` 复核逐行亲证一致）。
+2. **P1-R2·blob 锚转录错（落点=§10② 落值句）**：§10② 「blob `2c5ed849`→`201bf1df`」rev3 注记勘正为→**`3fd0c292`**（交付 blob·席2 cat-file 实证·201bf1df 对象不存在系中间态误录·行数/numstat/收据 sha256 66c983ca/a2610be1 均无恙）。
+3. **P2·STOP 生效面**：本卷生效终态=Status `:3`+§10⑥（`executed:awaiting_post_prove_dual`）·§8 `:123` 与自检 `:147` draft 词面系条款节原文沿 append 保史零洗·非现态。
+4. **席1 P2·探针参数名假阳观察登记**：`retrievalOwnerSurface` 探针谓词 `'owner_kind' = ANY(proargnames)` 对 proargnames 参数名词面存在理论假阳面——现状零撞名·窗内三函数入参沿 `p_*` 前缀惯例（p_generation/p_embedding/p_query/p_k·0201 `:66/:129/:149` sed 亲证）·p_* 前缀惯例护住·纯观察登记零码动。
