@@ -50,11 +50,12 @@ export class DiagnosisController {
   // 与 quiz events 同形:catch-up 重放 → hold tail 到终态/断开/封顶,心跳保活,Last-Event-ID 续推语义零改。
   @Get(':id/events')
   async events(@Param('id') id: string, @Req() req: any, @Res() reply: FastifyReply, @Headers('last-event-id') lastEventId: string) {
-    const initial = await this.diagnoses.events(req.principal, id, lastEventId);
-    if (initial === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
+    // UC184:领槽先于取数——429 拒连路径零取数副作用·404/throw 路径经 finally 释放。
     const slotKey = `sse:${req.principal}`;            // per-principal SSE 并发上限(安全审计 F5)
     if (!(await this.rl.acquireSlot(slotKey, 5))) { reply.code(429).send({ error: 'too_many_streams', message: 'SSE 连接过多,请关闭其它页面后重试' }); return; }
     try {
+      const initial = await this.diagnoses.events(req.principal, id, lastEventId);
+      if (initial === null) { reply.code(404).send({ error: 'not_found_or_forbidden' }); return; }
       const isTerminal = (k: string) => k === 'diagnosis_ready' || k === 'diagnosis_unavailable' || k === 'error';   // 终态集合原值参数化,零合并
       await pumpSseEvents({
         reply,

@@ -94,7 +94,7 @@ async function main() {
   const diagnoses = new DiagnosisService(db as unknown as DbService);
 
   // Catch-up = first events() (no Last-Event-ID). Poll = loop with String(lastSeq).
-  // Holders polling must not increment catchUp, so overflow catch-up +2 is not racy.
+  // Holders polling must not increment catchUp; UC184: rejected connections pay zero catch-up (拒连已零付), so the count is not racy.
   const catchUp = new Map<string, number>();
   const pollCalls = new Map<string, number>();
   const wrapEvents = (svc: { events: (principal: string, id: string, lastEventId?: string) => unknown }) => {
@@ -161,15 +161,14 @@ async function main() {
     A(`满额后再开押题（共享桶）→ 429 too_many_streams（got ${sixthQz.status}/${sixthQzError ?? 'no-error'}）`, isReject(sixthQz, sixthQzError));
     A(`满额后再开诊断（第三路共享桶）→ 429 too_many_streams（got ${sixthDx.status}/${sixthDxError ?? 'no-error'}）`, isReject(sixthDx, sixthDxError));
     A('三次拒绝后槽仍为 5（被拒连接未占槽）', slotCount(rl, 'sse:userA') === 5);
-    A('overflow 各付 1 次 catch-up（counting stub；不入环 ≠ 零调用）', (catchUp.get('userA') ?? 0) === 8);
+    A('溢出拒连零 catch-up（UC184 领槽先于取数·拒连不付取数副作用）', (catchUp.get('userA') ?? 0) === 5);
 
     const other = await openSse(base, '/interview/iv-slot/events', 'userB');
     A('异主体不受 userA 槽占用影响 → 200', other.status === 200 && !!other.hold);
     if (other.hold) held.push(other.hold);
     A('userB 自有槽 = 1', slotCount(rl, 'sse:userB') === 1);
 
-    // Slot is acquired after the first events()/asPrincipal (documented; this slice does not move it).
-    // Rejected requests do one catch-up asPrincipal then 429; they must not start a 2s loop.
+    // Slot is acquired BEFORE the first events() (UC184): rejected requests pay zero catch-up then 429; they must not start a 2s loop.
     const afterReject = db.calls('userA');
     await sleep(2100);
     const polled = db.calls('userA') - afterReject;
