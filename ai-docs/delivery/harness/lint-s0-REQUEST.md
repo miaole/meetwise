@@ -1,6 +1,6 @@
 # LINT-S0 — C1 lint 门 S0 切片（@meetwise/config devDeps 依赖落位 · EXEC REQUEST）
 
-**Status**: **`exec:awaiting_post_prove_dual`**（pre_exec_dual BOTH PASS @`f728b509` · meetwise 协调方明示 EXEC 授权 · EXEC 已行使 2026-10-07 见 §9 · 送审史 append-only：`draft:awaiting_pre_exec_dual` → `exec:awaiting_post_prove_dual` · **Ban self-approve** · **alone≠dual**）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line LINT-DESIGN S0 依赖落地切片 NAIL」段 :2150 已载 post-prove 双审 BOTH PASS+协调方授权本 nail（EXEC db63fa78 经 rebase 以 6765881f 落主线）+nail merge @`6765881f`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `exec:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 **Date**: 2026-10-07
 **Base**: 主线 `feat/mysql-schema-skeleton` @`28db833f` · 分支 `line/lint-s0-request`（工作树 `meetwise-line-lints0`）
 **蓝本**: `ai-docs/delivery/harness/lint-design.md` @`line/lint-design` @`75584fa6`（五节设计定稿 nail · EXEC 定稿 @`7942f26a`）——**唯一蓝本**：设计 §1.5 切片节 S0 行原文范围为全部授权面，**禁增删**；设计 §1.1 选型结论 + §1.2 规则集 + §1.3 门禁挂点为 S0 行的引用结论，只引不扩。

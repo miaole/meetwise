@@ -67,7 +67,12 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2120→2128（2026-10-14 协调方预 sanction·+8 evkind-scorecard-fix 收官并线 feat/mysql-schema-skeleton
 // @5bd92ce8 新增 admin-disable-evict/ag04-consumer-fix 两受管件+余量·沿 +8 先例形；
 // 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_128;
+// cap 2128→2136（2026-10-15 协调方 sanction·+8 沿 +8 先例形：perfload-env-fix EXEC 红停
+// PTP_FILE_LIMIT:2132>2128——perf-load:prove 史上首绿·件③ 机检产出 7 件经 proof 设计 TRACKED_DIR
+// ai-docs/delivery/receipts/uc018-perf-load/ 首现+merge 漂 1+收据 1=2132·stash 对照亲证基线 2124 绿；
+// perf-load 机检产出 TRACKED_DIR 首现·协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随
+// cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_136;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],

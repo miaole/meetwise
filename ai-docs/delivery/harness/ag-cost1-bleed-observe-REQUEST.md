@@ -1,6 +1,6 @@
 # AG-COST1 — 成本轨第①步：AG-07 止血开关 + #48 cached_tokens 观测（B 席六步之① ∥ 最小一刀 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`**（2026-10-11 EXEC 施工完毕·状态行 append 保史。前态=起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-COST1 nail」段 :2361 已载 post-prove 双席 BOTH PASS+nail merge @`6f2ed876`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役 AG 成本轨第①步起草席（AG-07 止血开关 + #48 cached_tokens 观测 · EXPERT-REVIEWS §七 成本轨 B 席六步之 **①**——「①与②合并一个发布窗口」的前半·②迁移三件套系后继刀·与失败语义轨 A 席六刀零硬依赖可并行）。
 **基线**：`feat/mysql-schema-skeleton` @ `b95c9c4b`（开工建树时点主线 tip·`git log -1` 实测 2026-10-11·docs(ssot) TTL-WIRE nail 登记笔。起草窗口内主线自 `ce021b22` 前移一笔——仅 2 .md 文件·11 个本刀 code blob 两 tip 逐字节不变亲证·§0.3 登记）。分支 `line/ag-cost1-bleed-observe` · 工作树 `meetwise-cost1`（`git worktree add ../meetwise-cost1 -b line/ag-cost1-bleed-observe` 仓根同级·本起草席已立·建前亲证：worktree list 13 树无 cost1·`branch -a | grep -iE "cost|ag7|calib"` 命中仅 cmop03-weak-input-calib/g7v-spec-calib-thirdarm/model-op00-calibration-dispatch 三条**无关旧线**）。
