@@ -120,6 +120,7 @@
   },
   "common": {
     "loading": "Loading…",
+    "loadingAria": "Loading",
     "language": "Language",
     "zh": "中文",
     "en": "English"
@@ -230,5 +231,22 @@
     "notFound": "This resume was not found, or it has already been deleted.",
     "notAccepted": "Delete request not accepted (status {status}); not treated as deleted.",
     "invalidShape": "The delete response shape is invalid; not treated as deleted."
+  },
+  "meta": {
+    "titleDefault": "Meetwise · Preview",
+    "titleTemplate": "%s · Meetwise",
+    "description": "Meetwise preview: practice interviews built on real experience. The next question follows your last answer, progress stays resumable, and notes are only for your own recap.",
+    "keywords": "mock interview, interview preparation, resume tidy-up, technical interview, Meetwise",
+    "applicationName": "Meetwise",
+    "siteName": "Meetwise"
+  },
+  "resumeMeta": {
+    "title": "Resume"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "message": "The page you are looking for does not exist or has moved.",
+    "backHome": "Back to home",
+    "toOverview": "Go to overview"
   }
 }

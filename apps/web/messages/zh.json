@@ -120,6 +120,7 @@
   },
   "common": {
     "loading": "加载中…",
+    "loadingAria": "加载中",
     "language": "语言",
     "zh": "中文",
     "en": "English"
@@ -230,5 +231,22 @@
     "notFound": "找不到这份简历，或它已被删除。",
     "notAccepted": "删除请求未受理（{status}），未当作已删除。",
     "invalidShape": "删除受理形状不合法，未当作已删除。"
+  },
+  "meta": {
+    "titleDefault": "Meetwise 知面 · 预览版",
+    "titleTemplate": "%s · 知面 Meetwise",
+    "description": "知面预览版：按真实经历练面试。下一题跟着回答走，进度能留下来，点评只供复盘。",
+    "keywords": "模拟面试, 面试准备, 简历整理, 技术面试, 知面, Meetwise",
+    "applicationName": "Meetwise 知面",
+    "siteName": "Meetwise 知面"
+  },
+  "resumeMeta": {
+    "title": "简历 · 知面"
+  },
+  "notFound": {
+    "title": "页面不存在",
+    "message": "你要找的页面不存在或已移动。",
+    "backHome": "返回首页",
+    "toOverview": "进入总览"
   }
 }
