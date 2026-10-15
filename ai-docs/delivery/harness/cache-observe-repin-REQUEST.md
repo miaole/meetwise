@@ -1,6 +1,6 @@
 # CACHE-OBSERVE-REPIN REQUEST — model-usage-cache-observe 零计费负臂随翻重钉小刀（COST-COLUMNS 件②-b 授权语义翻转伴生证明适配·恰 1 测试文件 4 处编辑·28 臂守恒·cache-observe-repin 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（rev2 落卷·双审六项修订折入（§9）·落卷后须复审确认方会签——§8-③·pre-exec 双审两外席待派·alone≠dual·Ban self-approve·Dual PASS ≠ 开工·est live=0·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（rev2 落卷→窄域复审 PASS（`agent_e2faa007`·双审会签基线干净·可授权 EXEC）→协调方明示 EXEC 授权→**EXEC 落卷（§9 EXEC 记录·门矩阵十四门全绿·STOP 翻面**·nail/行翻面归协调方·alone≠dual·⛔push）
 
 **席位**：cache-observe-repin 起草席（诊断+起草双责·协调方派·承接 cost-columns 授权件②-b 的必然证伪·协调方已裁随翻重钉归后继小刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `aed9ba43`（origin tip 亲证恒等·fetch 后 `git rev-parse` 双指同值·ci-wiring3 nail SSOT commit）· 分支 `line/cache-observe-repin`（建前 `git branch --list "line/cache-observe*"` 零命中·本起草席 `git worktree add ../meetwise-cob -b line/cache-observe-repin feat/mysql-schema-skeleton` 亲立·HEAD 落 `aed9ba43` 亲证）· 工作树 `meetwise-cob`（仓根同级）。
@@ -152,4 +152,42 @@
 
 ---
 
-*CACHE-OBSERVE-REPIN REQUEST · 2026-10-14 起草·rev2 落卷同日（六项修订折入·§9） · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`aed9ba43`（origin tip 亲证恒等·起草时 docs:check EXIT=0 scanned 2143≤cap 2144 本席亲跑·rev2 cap 翻新 2152=sanction `591d07cf` 随 cost-columns nail f417d8e7 落主线·§0.2-2）· 分支 `line/cache-observe-repin` · 工作树 `meetwise-cob`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=cost-columns E3 四红第三红（卷内矛盾上报裁决原文）+协调方派单 brief（裁随翻重钉归后继小刀）· 诊断=件②-b（settle/validUsage cached 贯通）必然证伪负臂臂一前提——invoke.ts 词面 base 3 词符/2 行（:75/:738）→②-b 9 词符/7 行（:76/:481-:483×4/:744×2/:1044/:1151）·上游「词面 3→7」系行口径混用如实改正（§0.2-1·**重钉钉 9 非 7**）·臂四断言存活唯文本前提失真·臂二/臂三全绿零触·AG-24 计数钉 1→3 先例形（ag24 卷 :215/:227）· 修法=候选甲恰 1 文件 4 处编辑（头注 :13+块注释 :165+臂一改形断言 3→4 子句计数钉 9+settle 形钉恰 2+臂四文本随翻断言字节恒等）·28 臂守恒·候选乙（容忍双态）候选丙（触产品码）否决在卷· 门矩阵十四门（改前 run 27绿1红+prove 28/28 复绿+邻面 ag11 12/model-op 四门/neg 687/interview 57+migrate 链届时 204+drift+uniqueness+typecheck 8/8+lint 五值恰等+docs:check≤2152 红停（rev2 翻新·§0.2-2）+markers+diff 恰 2 tracked+卫生）· 执行前置=cost-columns nail 入主线（词符 9 在场）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+## §9 EXEC 记录（EXEC 席落卷·2026-10-14·授权链=rev2 `7edd9934`→窄域复审 PASS `agent_e2faa007`→协调方 EXEC 授权·收据=件⑤ `ai-docs/delivery/receipts/cache-observe-repin/00-exec.md` 七字段·untracked §2-11 口径·⛔push）
+
+**工序与 commit 链**：①并主线 `git merge --no-ff origin/feat/mysql-schema-skeleton @7ac68ed7`（fetch 后亲证 origin tip·零冲突·双亲=`7edd9934`+`7ac68ed7`·届时 tip≥任务书锚恒等·禁 pull --rebase 遵守）→`c4122888`；②§0 全量重 pin（六锚 blob+词符 9/7 行分布+链 204 头 0204+cap 2152 全恒等·§0.0 复扫三互异顶触 commit `d44c8307`/`8676777c`/`b03d0182` 全为 HEAD 祖先=零非残枝在飞）；③件①-④ 四编辑恰 1 测试文件（编辑顺序纪律=内容锚 rg 定位·程序化从本卷 §1-修法 提取定稿文本逐字节套用·proof.ts 7+/6−·臂数 28 守恒·臂四断言行字节恒等）；④门矩阵十四门（下表）；⑤本 §9+收据落卷=本 commit。
+
+**改前必做 run（门 0·恰一次不计 prove·零 retry 冲销）**：并线树 `c4122888` EXIT=1·**27 PASS/1 FAIL**·红臂恰=臂一「词面恰三处」·词符实测（node 同 proof 正则法）=9——与 §1.1 必然证伪机制推定形逐字相符·「机制不满足」停止条件未触。
+
+**门矩阵十四门终值（并线树 `c4122888` 基·全绿）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 0 | 改前基线 run | EXIT=1·27 绿 1 红臂一·词符 9 | 1（预期红） |
+| 1 | prove 复绿 | **28/28**·EXIT=0（PASS 名单 diff=臂一翻绿+臂四显示名随件④ 改名·§② 收据口径登记） | 0 |
+| 2 | ag11-settle-relax | **12/12 臂**（经根隔离 wrapper `pnpm ag11-settle:prove`·偏离②） | 0 |
+| 3 | model-op 四门 | op00/op02/op02-endpoint-partition/failover 全 EXIT=0 | 0 |
+| 4 | neg:all | **687/687**（90+90+91+102+179+135·对锚恒等） | 0 |
+| 5 | interview:prove | **57 臂** EXIT=0 | 0 |
+| 6 | migrate:prove | 全 PASS·链 **204 头 0204** | 0 |
+| 7 | drift:prove | 零漂移 | 0 |
+| 8 | uniqueness | `files=204 violations=0 exemptions=0143,0152,0160` | 0 |
+| 9 | typecheck | `8 successful, 8 total`·0 cached | 0 |
+| 10 | lint | 12 任务 EXIT=0·五值恰等 web 601/root 5235/api 1421/worker 954/ai-runtime 628·全域 0 errors | 0 |
+| 11 | docs:check | `scanned 2151`≤cap **2152** EXIT=0（终树含收据实测·余量 1·口径更见下） | 0 |
+| 12 | markers 五类 | 改动集（2 tracked+收据）零命中（i6-239 §2-7 运行时组装口径·词面不复抄） | 1（零命中） |
+| 13 | diff 面机检 | 对 base=`7ac68ed7`（并线 merge 第二亲）恰 2 tracked=proof.ts（7+/6−）+本卷 .md | — |
+| 14 | 卫生 | frozen-lockfile EXIT=0·`.env*` ABSENT 四查·`actualSpendCny=null`·est live=0 | 0 |
+
+**语义翻转登记（COST-COLUMNS 件②-b 随翻·沿 AG-24 :215/:227 先例形·不洗）**：臂一计数钉 3→**9**（词符口径·与 proof 正则同法·9 词符/7 行=型面 :76 一处+validUsage cached≤input 三查臂 :481/:482/:483 四处+span 闭包透传 :744 两处键值同形+settle 调用点 :1044/:1151 两处）·断言 3→4 子句新增 settle 形钉 `cachedInputTokens ?? 0` 恰 2·臂名「零计费负臂…词面恰三处」→「cached 贯通负臂…词面恰九处七行」·头注/块注释/臂四文本随翻·**授权语义翻转如实登记不洗**（非为绿改断言·单值钉死纪律维持·候选乙容忍双态形仍否决）。
+
+**运行副效应登记**：typecheck 门运行曾翻动 `apps/web/tsconfig.tsbuildinfo`（tracked 构建状态件·1/1 行）——`git checkout` 回滚基线以保门 13 恰 2 路径（沿 negbend-fix §9 先例·非交付面）。
+
+**口径如实更两处（§2「数字口径以实跑实测为准」条款内·非偏离）**：①docs:check 实测 **2151**（rev2 算术预估 ≈2148·+3 归因=并线携入受管文件多于预估·`ls-files --others` 收据入扫口径·≤cap 2152 判据恒等满足·余量 1·cap sanction 权归协调方零自升）；②门 2 命令形态=根隔离 wrapper `pnpm ag11-settle:prove`（卷面裸 `-C apps/worker` 缺隔离 DB target·runner 设计·cost-columns 收据同形·臂数判据 12 恒等）。**偏离清单一件（收据 §②/§⑤ 详）**：§2-1 PASS 名单 diff 呈 2 hunk=臂一翻绿（授权面）+臂四显示名随件④ 随翻改名（断言式字节恒等·与 §1-修法 件④ 定稿逐字节核验 log==mandated=true·outcome PASS→PASS 零变·其余 26 臂名逐条零变）——「恰 1 条」字面与件④ 改名效果相抵系卷内协议措辞口径·如实登记升级 post 双审。
+
+**停止条件四类全数未触**（现场漂移=六锚+cap+链头+词符 9 全恒等+§0.0 复扫零非残枝触面；机制不满足=门 0 恰 27 绿 1 红臂一+件③ 新断言 GREEN；越界需要=修法恒等恰 1 测试文件面；验收红不可修=十四门全绿）·**§1 红事实结论/§5 Ban/pins 十一值/§8 停止条件四类/§1-修法定稿文本面零改零翻转**。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与批表/行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+
+---
+
+*CACHE-OBSERVE-REPIN REQUEST · 2026-10-14 起草·rev2 落卷同日（六项修订折入·§9） · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十四门全绿·post 双审待派·nail/行翻面归协调方）** · base `feat/mysql-schema-skeleton` @`aed9ba43`（origin tip 亲证恒等·起草时 docs:check EXIT=0 scanned 2143≤cap 2144 本席亲跑·rev2 cap 翻新 2152=sanction `591d07cf` 随 cost-columns nail f417d8e7 落主线·§0.2-2）· 分支 `line/cache-observe-repin` · 工作树 `meetwise-cob`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=cost-columns E3 四红第三红（卷内矛盾上报裁决原文）+协调方派单 brief（裁随翻重钉归后继小刀）· 诊断=件②-b（settle/validUsage cached 贯通）必然证伪负臂臂一前提——invoke.ts 词面 base 3 词符/2 行（:75/:738）→②-b 9 词符/7 行（:76/:481-:483×4/:744×2/:1044/:1151）·上游「词面 3→7」系行口径混用如实改正（§0.2-1·**重钉钉 9 非 7**）·臂四断言存活唯文本前提失真·臂二/臂三全绿零触·AG-24 计数钉 1→3 先例形（ag24 卷 :215/:227）· 修法=候选甲恰 1 文件 4 处编辑（头注 :13+块注释 :165+臂一改形断言 3→4 子句计数钉 9+settle 形钉恰 2+臂四文本随翻断言字节恒等）·28 臂守恒·候选乙（容忍双态）候选丙（触产品码）否决在卷· 门矩阵十四门（改前 run 27绿1红+prove 28/28 复绿+邻面 ag11 12/model-op 四门/neg 687/interview 57+migrate 链届时 204+drift+uniqueness+typecheck 8/8+lint 五值恰等+docs:check≤2152 红停（rev2 翻新·§0.2-2）+markers+diff 恰 2 tracked+卫生）· 执行前置=cost-columns nail 入主线（词符 9 在场）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
