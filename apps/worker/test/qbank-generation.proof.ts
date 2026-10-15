@@ -377,12 +377,12 @@ async function main() {
     && expectedChunkCount === g1!.chunkCount && g1!.chunkCount === genRowFacts.rowCount);
 
   const projectionAll = await readGenerationQuestionChunkProjection(pool, { generationId: g1Id });
-  const byRefScope = new Map(projectionAll.map((p) => [`${p.refId} ${p.taxonomyVersion} ${p.servingScopeId}`, p]));
+  const byRefScope = new Map(projectionAll.map((p) => [`${p.refId}\u0000${p.taxonomyVersion}\u0000${p.servingScopeId}`, p]));
   A('canonical projection carries reviewed metadata for every row and its immutable receipt is byte-stable',
     projectionAll.length === g1!.chunkCount
     && projectionAll.every((p) => p.taxonomyVersion === 'v1' && p.servingScopeId !== '' && p.annotationSource === 'curator_reviewed')
-    && byRefScope.get('qgen:rate v1 backend/general')?.metadataHash === qbankMetadataHash('qbank-chunk-scope:v1', METADATA)
-    && byRefScope.get('qgen:rate v1 backend/general')?.contentHash === hash(items[0]!.text));
+    && byRefScope.get('qgen:rate\x00v1\x00backend/general')?.metadataHash === qbankMetadataHash('qbank-chunk-scope:v1', METADATA)
+    && byRefScope.get('qgen:rate\x00v1\x00backend/general')?.contentHash === hash(items[0]!.text));
 
   const goOnly = await readGenerationQuestionChunkProjection(pool, { generationId: g1Id, servingScopeId: 'backend/go' });
   const generalOnly = await readGenerationQuestionChunkProjection(pool, { generationId: g1Id, servingScopeId: 'backend/general' });
