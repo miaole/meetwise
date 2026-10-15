@@ -275,7 +275,10 @@ function sourceAssertions() {
   A('deadline 计时器不 unref（进程生命周期被上限钉住）', deadlineBlock !== null && !deadlineBlock[0].includes('unref'));
   const pumpSrc = readFileSync(join(root, 'src/platform/sse-pump.ts'), 'utf8');
   A('R1：raw.end 保持泵内单点（end 调用恰一处）', pumpSrc.match(/reply\.raw\.end\(\)/g)?.length === 1);
-  A('R1：while 条件同读 drain 旗（!draining）', /while \(!done && !closed && !draining && Date\.now\(\) < deadline\)/.test(pumpSrc));
+  // rev3 重钉（协调方 wave70 授权·随翻重钉沿 cache-observe-repin/ag24「随翻重钉」先例形）：件① 钉值点4 钦定 while 条件
+  // 纳入自有旗 bpTripped——本臂整行钉自 64522c62 旧三旗词面，与件① 后 sse-pump.ts:171 新词面机制性相撞（本刀归因①）。
+  // 重钉=四旗整词面字节级钉（泵内单 while 循环·语义增强：三旗→四旗·禁放宽为宽松匹配）。
+  A('R1：while 条件同读 drain 旗+背压旗（!draining && !bpTripped）', /while \(!done && !closed && !draining && !bpTripped && Date\.now\(\) < deadline\)/.test(pumpSrc));
   const regSrc = readFileSync(join(root, 'src/platform/sse-registry.ts'), 'utf8');
   A('C1：drainAll 只置旗（零 end 调用·剥注释后判）', !/\.end\(/.test(regSrc.replace(/\/\*[\s\S]*?\*\//g, '').replace(/\/\/[^\n]*/g, '')));
 }
@@ -283,10 +286,13 @@ function sourceAssertions() {
 // ── 5) C4 readiness 翻脸（真 HealthController + fake HealthService；置旗段置底） ──
 async function healthControllerProof() {
   console.log('--- C4 /readyz/api·/health 排水翻脸（同 handler） ---');
-  const fakeHealth = { livez: () => ({ status: 'ok' }), configReady: () => true, apiReady: async () => true } as never;
+  // rev3 重钉（协调方 wave70 授权·预存漂移回填非本刀引入）：3684bc00（audit #92 readiness 深化）将 HealthService.apiReady
+  // 契约由 boolean 改三值枚举（'ok'|'migration_mismatch'|其余→unknown）且 ok 体增 schema.migration 位——本段 fake 契约钉
+  // 与 ok 体 deepEqual 钉自 64522c62 后未随翻（本线组装点 b284d8ca 起红）。回填='ok' 合法枚举值+schema 位入断言（钉面增强）。
+  const fakeHealth = { livez: () => ({ status: 'ok' }), configReady: () => true, apiReady: async () => 'ok' } as never;
   const controller = new HealthController(fakeHealth);
   const okBody = await controller.apiReady();
-  assert.deepEqual(okBody, { status: 'ok', config: { envSchema: 'ok' } });
+  assert.deepEqual(okBody, { status: 'ok', config: { envSchema: 'ok' }, schema: { migration: 'ok' } });
   A('未排水 readiness ok', true);
   getSseRegistry().beginDrain();   // 进程单例置排水态（本段置底：后续断言不再依赖未排水态）
   try {
