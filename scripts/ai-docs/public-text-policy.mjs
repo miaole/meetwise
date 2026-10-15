@@ -36,7 +36,7 @@ export const PUBLIC_TEXT_POLICY_CODES = Object.freeze({
 const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops', 'docs']);
 const REQUIRED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts']);
 const ROOT_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md']);
-const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
+export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
 // cap 2048→2064（2026-10-13 协调方授权上调：AG-38 qa-tool-layer 等批次刀净增受管文件·计数预算非内容策略；
 // AG-12 成本轨③ EXEC 立项随翻同值——该清欠在飞未及落主线·本刀 +3 文件（2 proof+1 迁移）触顶 2050·
 // 按派单 sanctioned 值最小实现·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 落卷）。
