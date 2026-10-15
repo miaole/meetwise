@@ -70,7 +70,8 @@ export type ModelUsage = {
    * 三端点字段名兼容读取：OpenAI 兼容 `cached_tokens` ∥ DeepSeek `prompt_cache_hit_tokens` ∥
    * 百炼 `prompt_tokens_details.cached_tokens`。**缺席≠零铁律**：`undefined`=字段缺席（供应商
    * 未回报该字段），`0`=供应商显式回报零——两态分开打点，绝不静默归零（防御：供应商改版
-   * 响应结构时以缺席率跳变暴露）。settle/validUsage/预留/结算不读此字段（价格本无缓存价）。
+   * 响应结构时以缺席率跳变暴露）。结算读此字段（#48/#49 六参结算贯通·validUsage 校验
+   * cached≤input）：缺席按 0=现行保守语义·parse 层三态铁律不动。
    */
   cachedInputTokens?: number;
 };
@@ -475,6 +476,11 @@ function validUsage(usage: ModelUsage | undefined, policy: ModelCostPolicy): Mod
   if (!Number.isInteger(fallback.inputTokens) || !Number.isInteger(fallback.outputTokens)
     || fallback.inputTokens < 0 || fallback.outputTokens < 0
     || fallback.inputTokens > policy.maxInputTokens || fallback.outputTokens > policy.maxOutputTokens) return undefined;
+  // #48/#49：cached 实量（若有）必须是非负整数且 ≤input——cached>input 的畸形 usage
+  // 不再直通结算，fail-closed 归并既有 provider_usage_invalid 收口臂（零新语义）。
+  if (fallback.cachedInputTokens !== undefined
+    && (!Number.isInteger(fallback.cachedInputTokens) || fallback.cachedInputTokens < 0
+      || fallback.cachedInputTokens > fallback.inputTokens)) return undefined;
   // 保守估算(若有)必须是非负安全整数;损坏的估算会让对账结论失效,故 fail-closed(走 unknown 收口)而非静默丢弃。
   if (fallback.estimateInputTokens !== undefined
     && (!Number.isSafeInteger(fallback.estimateInputTokens) || fallback.estimateInputTokens < 1)) return undefined;
@@ -1035,7 +1041,7 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         await asPrincipal(pool, owner, async (c) => {
           if (policy) {
             // AG-11/EG-B2：settle 返回扩 overage 标记（真实消耗超预留的显式打标·结算不拒绝）。
-            const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+            const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens, settledUsage!.cachedInputTokens ?? 0);
             settledCost = settled.microCny;
             settledOverage = settled.overage;
           }
@@ -1142,7 +1148,7 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     await asPrincipal(pool, owner, async (c) => {
       if (policy) {
         // AG-11/EG-B2：settle 返回扩 overage 标记（真实消耗超预留的显式打标·结算不拒绝）。
-        const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+        const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens, settledUsage!.cachedInputTokens ?? 0);
         settledCost = settled.microCny;
         settledOverage = settled.overage;
       }
