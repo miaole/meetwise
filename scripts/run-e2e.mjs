@@ -16,7 +16,9 @@ const env = { ...process.env, AUTH_SECRET: process.env.AUTH_SECRET ?? 'e2e-dev-s
 // 加载 .env(RESUME 加密键 + 模型),不覆盖已设。
 // REG-FIX 组8b 测试钩:E2E_SKIP_DOTENV='1' 跳过仓根 .env 回灌(默认零变)——g6-e2e-iso-blocked 行为门用:
 // Key-unset 快速失败(live_provider_key_missing)在任何宿主形态(仓根 .env 存/缺)必达,不被 .env 静默绕过。
-if (process.env.E2E_SKIP_DOTENV !== '1') {
+// ISO-DOTENV-ISOLATION:isolated 形(E2E_ISOLATED=1)无论 E2E_SKIP_DOTENV 与否一律跳 .env 回灌——主仓 .env 在场时其环境语义键(APP_RUNTIME_DB_EXPECTED_ROLE/NODE_ENV/PORT 类)穿透隔离删单(:28-34 只删云凭据)漏入 api/worker 子进程=伪红源(G7K 诊断席环境发现);包装器 baseEnv 已供隔离全套 env,隔离形零回灌需求。
+// E2E_SKIP_DOTENV 语义保持:非 isolated 形仍按原钩跳过(默认零变·g6-e2e-iso-blocked 行为门语义不变)。
+if (process.env.E2E_SKIP_DOTENV !== '1' && env.E2E_ISOLATED !== '1') {
   if (existsSync(ROOT + '.env')) {
     for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
       const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
