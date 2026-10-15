@@ -1,6 +1,6 @@
 # RUNTIME-KERNEL-WIRE REQUEST — 运行内核接线修复刀（CI verify step 97 新首曝红·proof 由隔离 runner 预迁移而 CI 步指 raw 别名=结构性接线缺·恰 1 workflow 文件恰 1 行 run 值翻·runtime-kernel-wire 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-14·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-16·pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b+协调方 EXEC 授权·merge `80a22fc8` 并 12b21412+恰 1 行修法+门矩阵全绿（§9）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线）
 
 **席位**：RUNTIME-KERNEL-WIRE 诊断+起草席（诊断+起草双责·协调方派单·qpl nail 席 CI 逐帧定性=「结构性接线缺·rag-cache 同族」）。
 **基线**：`feat/mysql-schema-skeleton` @ `fc64c7c9`（qpl nail SSOT commit·fetch 后 origin tip 亲证=任务书下界恰等·`git log --oneline -1 origin/feat/mysql-schema-skeleton`=`fc64c7c9` 双值恒等）· 分支 `line/runtime-kernel-wire`（本起草席 `git worktree add ../meetwise-rkw -b line/runtime-kernel-wire fc64c7c9` 亲立·HEAD 落 `fc64c7c9` 亲证）· 工作树 `meetwise-rkw`（仓根同级）。
@@ -118,8 +118,47 @@
 5. **越界需要**：实测产生迁移/DDL/码面触面需求（§0.3/§3）→停上报走认领规则。
 6. **docs:check 超限**：落卷后 >2176→停上报（基线 2162·本卷 +1=2163·余量 13）。
 
-**STOP=`draft:awaiting_pre_exec_dual`**（起草席终态 2026-10-14·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve·EXEC 授权与 nail/行翻面归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）。
+**STOP=`executed:awaiting_post_prove_dual`**（EXEC 席终态 2026-10-16·原起草终态 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·nail/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）。
+
+## §9 EXEC 记录（2026-10-16·EXEC 席·pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b·协调方授权 EXEC）
+
+**序回执**：序1 `git fetch`+`merge --no-ff origin/feat/mysql-schema-skeleton@12b21412`（届时 tip=12b21412=ISO-DOTENV-ISOLATION+G7K-REDS-REMAP nail·≥任务书下界恰等·merge-base=fc64c7c9 亲证 is-ancestor·ort 零冲突 6 files +419/−1=checklist/backlog/remap 卷/iso 卷/LEDGER/run-e2e.mjs 隔离守卫·**qpl 波后携入零触 ci.yml 与 runner 零触 run-e2e-isolated.mjs**·冲突沿并集解预置未触发·禁 pull --rebase 遵守·**merge=`80a22fc8`** 双亲 0862948a+12b21412）→序2 §0 全量重 pin（字段④）→序3 EXEC 修法恰 1 行（ci.yml :331 run 值翻·逐字节沿 §1-修法件① 定稿）→序4 门矩阵（字段①）→本 §9 落卷+commit+STOP 三处翻面。
+
+**字段① 门矩阵全表（EXIT 原值·全绿）**：
+
+| # | 门 | 期望 | 实测（EXIT 原值） | 结论 |
+|---|---|---|---|---|
+| 0a | docs:check **改前基线**（并线后改前树=`80a22fc8`） | EXIT=0·≤cap 2176 | EXIT=0·scanned **2165**（=fc64c7c9 基线 2162+本卷 +1=2163+并线携入 iso/remap 两卷恰 +2·余量 11） | 绿 |
+| 1 | 主门 `pnpm runtime:isolated:prove` **恰 1 复跑**（件②·无管道） | CAPTURE_EXIT=0·四链 ✓·^PASS 83/^FAIL 0·零 retry | CAPTURE_EXIT=**0**·容器 meetwise-e2e-2031-1792107105075@127.0.0.1:61344·migrations **applied=204 skipped=0**·post-migrate consecutive=3·四链 ✓ 收官（runtime-kernel「全部通过」/「HC-GAP-011 claim-join named cases passed」/diag-honesty/AG-24）·`^PASS`=**83**/`^FAIL`=**0** 恰等起草环④基线·wall-clock 11s（字段⑦-P2-1） | 绿 |
+| 2 | 邻面 `pnpm runtime:claim-join:prove` 恰 1 单目标留痕 | CAPTURE_EXIT=0 | CAPTURE_EXIT=**0**·容器 meetwise-e2e-2572-1792107167803@127.0.0.1:61770·`^PASS`=7/`^FAIL`=0·收官 ✓ HC-GAP-011·receipt release_evidence=false | 绿 |
+| 3 | js-yaml 形模拟改后 | verify steps=102 恒等·idx95 run=新值·全步名面逐位恒等·恰 1 hunk +1/−1·零 env/if/retry 键增 | 4.3.2 双解析（`git show HEAD:` 改前 vs 工作树改后）：steps=**102** 恒等（3 uses+99 name/run）·运行内核 idx=**95** run=`pnpm runtime:isolated:prove`·全步名面 diff=**0**·run 值 diff 恰 1 处@idx95·env/if/retry 键前后恒等 0/0/0·numstat 恰 1 hunk +1/−1·yamllint 不在仓如实登记（dbacl2 先例） | 绿 |
+| 4 | typecheck/lint 零涉 | 不适用如实登记 | 本刀触面仅 ci.yml（零 .ts/.mjs）→两门不适用（§2-5）·EXEC 期零码面触（§8-5 未触） | 登记结 |
+| 5 | 红证闭合面 | EXEC 期零需重演（件②①） | CI `38813291785` step 97 签名+起草席环⑤空库复现双源在卷·EXEC 期零重演零 throwaway 容器 | 闭合 |
+| 6 | docs:check **改后**（§9 落卷+收据落盘后终态面） | EXIT=0·≤cap 2176 | EXIT=0·**2166**≤2176（余量 10·=改前 2165+收据件恰 +1——**收据 untracked 仍入 worktree 扫描面计数：起草 §2-6「收据 untracked 不计数」预期实测否定·偏离清单③如实登记**·ci-wiring3 cap 冲突同构成而本刀余量充足绿·cap sanction 权归协调方零自升） | 绿 |
+| 7 | markers 五类 | 改动集零命中 | 四标记词+冲突标记对（词面运行时组装·防自匹配·不落卷）对改动集两文件 grep -a·**零命中** | 零命中 |
+| 8 | diff 面 | EXEC 恰 2 tracked | vs HEAD `80a22fc8`：ci.yml **+1/−1**+本卷 .md（§9 append+三处终态翻转）；vs merge 第二亲 `12b21412`：ci.yml +1/−1+本卷 .md 全新增形（iso 勘误一同款口径）——两口径均恰 2 tracked 零第三·收据 untracked 不入库不入 diff | 恰等 |
+| 9 | 卫生 | est live=0·0 Key·.env* ABSENT·容器零残留·零 lockfile 改 | est live=0（四 mock model 零供应商外呼）·0 Key 值·根+apps `.env*` ABSENT 双向亲证·runner 容器自清（runner 只删自建机制）·零 lockfile 改·actualSpendCny=null | 恒等 |
+
+**字段② 改前改后行为对照**：ci.yml :331 单行 run 值翻（§1-修法件① 逐字节·8 空格缩进保持·步名 :330 零字节改·零步增删零 env 零 if 零 retry）——改前 `pnpm runtime:prove`（raw 直连 job env 服务 PG 54329·供应面恰 primitives 3 表·proof 首语句 TRUNCATE 首表 42P01 EXIT=1·步起约 2s·CI 帧 `38813291785`）；改后 `pnpm runtime:isolated:prove`（根别名 :85→runner `runtime:prove:raw`·隔离容器自持+DBHY-1 预迁移全链 204+四 proof 链同跑·服务 PG 零触）——断言面零字节改（proof `6db1edea` 恒等亲证·候选乙 Ban 沿承）·:332 起 raw 形步零触（§3 范围外沿承）。本地等价证=门 1 复跑绿（红绿对照：改前红=CI 帧+环⑤在卷·改后绿=门 1·同树零 retry）。
+
+**字段③ diff numstat**：`.github/workflows/ci.yml` **+1/−1**（:331 单行 run 值翻·恰 1 hunk）+本卷 .md（本 §9 append+Status/§8/卷尾三处终态翻转）——恰 2 tracked 路径零第三（门 8）。
+
+**字段④ 重 pin 全表（对届时树=`80a22fc8`）**：§0.1 十一锚逐一——ci.yml `97252708`/361 行**恒等**（行锚 :25/:30/:153/:164/:253/:256/:259/:262/:330/:331/:333 grep -n 逐条恒等）·proof `6db1edea`/321 **恒等**（:5/:13/:28-29/:35/:321 逐字亲证）·根 package.json `3b04b871` **恒等**（:84/:85/:86）·ai-runtime package.json `a671c092` **恒等**（:15 四链）·runner `0787a7ff`/3201 **恒等**（:2125 白名单/:2246-2247 命令映射/:3098 DBHY-1 预迁移名单/:225 receipt 面仅 claim-join/:3176 if(sources) 守卫/:2619 容器名——P2 残面零借机修沿承）·primitives `748808d0` **恒等**（:16/:24/:30 恰 3 表）·0085 行锚 :56 CREATE TABLE **恒等**·rag-cache `29ed66ab` **恒等**·dbhy1 `cd0c7fc6` **恒等**·ci-wiring3 `e23ac6b0` **恒等**·qpl 卷 `472719ea` **恒等**；**漂移一笔如实改锚**：LEDGER `d10bcf28`→`e484c6b7`（589 行=12b21412 iso+remap nail SSOT 四行携入·生命周期预期漂移·rag-cache 承登 :471 恒等/:524→:526 平移·结论零变）。迁移链 204·头 `0204_ai_cost_cached_input_price.sql` **恒等**（§0.3 恒等）。**步骤基线口径=102**（双口径落定：dbacl2 未并主线实证=ci.yml blob `97252708` 恒等→本刀行锚 **:331 维持**·非 :335 平移·verify steps **102 维持**·GH UI 序 97 双口径并列防漂沿承）——**停止条件 1 未触**。
+
+**字段⑤ 偏离清单（零实质偏离·三项透明登记）**：
+1. 主门 wall-clock 实测 11s 低于派单简报预估 band「+25-60s」下沿（P2-1 详字段⑦·如实登记非修饰）。
+2. 门 3 全步名面初版比对以临时快照文件按行切分，因 yaml 折行步名（名内含换行）错位误报漂移——改 HEAD/工作树双解析内存比对定谳步名 diff=0（比对方法学勘误·非现场漂移·门 3 结论零变·临时件清场）。
+3. 起草 §2-6「收据 untracked 不计数」预期实测否定：收据件落盘后 docs:check scanned 2165→**2166**（untracked 文件仍入 worktree 扫描面计数·ci-wiring3 门 8 cap 冲突同构成）——本刀 cap 2176 余量充足 EXIT=0 绿·零 cap 自改·如实登记归协调方知悉（后继刀若基线贴 cap 需预留收据 +1 预算）。
+
+**字段⑥ pins 零翻声明**：十一值照抄零翻转——haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。全门矩阵跑后零翻转。
+
+**字段⑦ P2 三件承载落点（协调方 EXEC 令·随卷注记）**：
+1. **P2-1 时长对照落 EXEC 收据**：改前失败形=CI step 97 步起约 **2s** 即触 42P01 EXIT=1（gh 帧 `38813291785` log 时戳 2026-10-15T22:06:45Z）；改后 isolated 形本地单次复跑 wall-clock 实测 **11s**（pnpm 全调用含容器 boot+204 迁移+四链·本机 docker 29.1.3·零 retry）——**Δ≈+9s/步·低于简报 band「+25-60s」下沿**，如实登记不修饰（band 系简报预估值·本地机与 CI runner 性能差面·CI 侧实际 wall-clock 归门 10 CI 观察面由 pusher/协调方逐帧照录）。收据=`ai-docs/delivery/receipts/runtime-kernel-wire/00-exec.md`（untracked 不入库·ci-wiring3 先例形）。
+2. **P2-2 dbacl2 pin 引注新鲜度（EXEC 日复核即清）**：dbacl2 tip `4ace2d5f`→**`08e0590c`**（rev2 勘误落卷 docs-only +14/−0 零触 ci.yml·`git log ccl/line/dbacl2-ci-wire -1 -- ci.yml` last-touch=`2d1cc66b` 已在主线=对本刀行面零基线后新增提交·§8-1 未触）；且 `08e0590c` 非 `12b21412` 祖亲（dbacl2 未并主线）→§0.0 预置双口径按届时树实测取 **「rkw 先并」臂=行锚 :331 维持/steps=102 维持**。残枝 `origin/line/db-hygiene` last-touch ci.yml 仍=`1ab83bd8`@2026-10-08 照录零变。
+3. **P2-3 proof :5 头注陈旧登记不修**：修后 CI 语境 proof.ts :5「pnpm runtime:prove (需 pnpm db:up)」陈旧化（CI 步改指 isolated 形=容器自持+预迁移零需 db:up·raw 形本地门值仍真）——沿 Ban 列表「Ban 触 proof 断言面」零字节不修（`6db1edea` 恒等亲证）·登记归协调方/后继刀酌处。
+
+**STOP=`executed:awaiting_post_prove_dual`**（§9 落卷即停·post-prove 双审两独立外席待派·nail/批表/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）
 
 ---
 
-*RUNTIME-KERNEL-WIRE REQUEST · 2026-10-14 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`fc64c7c9`（origin tip·fetch 后亲证=任务书下界恰等=qpl nail SSOT commit）· 分支 `line/runtime-kernel-wire` · 工作树 `meetwise-rkw`（`git worktree add ../meetwise-rkw -b line/runtime-kernel-wire fc64c7c9` 本起草席亲立）· 立项出处=协调方派单 brief（qpl nail 席 CI 逐帧定性·step 97 新首曝红 42P01@`runtime-kernel.proof.ts:35:3`·结构性接线缺·rag-cache 同族）+gh run `38813291785` 帧数据亲证（81-96 success/97 failure/98-103 skipped）· 诊断四项=proof 读码（TRUNCATE `:35` 首表=0085 建·依赖表集 0037/0085/0088/0033 四增量迁移+体注 DBHY-1 自承 runner 预迁移前提·本地门值=需 db:up+迁移链）+ci 现形（`:330-331` raw 别名·服务 PG 供应仅 db:up 空卷+db:prove primitives 3 表·全文件零迁移步）+rag-cache 同族对照（根脚本直连同族·runner 零注册/nonce 硬隔离/CI 零步三面全异=半同族）+修法裁决（甲采纳=runner 三处注册面全在·恰 1 行值翻·ci-wiring3/dbacl2-ci-wire 先例；乙 Ban=DBHY-1 已裁方向回填；丙失据=UC E1/E2/E4/E5+golden-tasks 挂门反证在卷）· 亲跑红绿对=空库 raw 逐字复现 CI 签名 42P01 TRUE_EXIT=1（throwaway 容器自清零残留）+isolated 形捕获跑 CAPTURE_EXIT=0（applied=204 skipped=0·四链 ✓·`^PASS` 83/`^FAIL` 0）· est live=0 · markers=0（亲跑）· docs:check 基线 2162≤2176 本席亲跑 · STOP=`draft:awaiting_pre_exec_dual` · ⛔push ⛔merge 主线 ⛔force push 未用*
+*EXEC 落卷 2026-10-16·序1 merge `80a22fc8` --no-ff 并 origin/feat/mysql-schema-skeleton@`12b21412`（=ISO+REMAP nail≥下界恰等·零冲突 6 files +419/−1·merge-base=fc64c7c9 亲证）·序2 §0 全量重 pin（十 blob 锚恒等+LEDGER `d10bcf28`→`e484c6b7` 漂移改锚=nail SSOT 四行携入·迁移链 204/0204 恒等·步骤基线口径=102·行锚 :331 维持=dbacl2 未并主线实证）·序3 EXEC 修法恰 1 行（ci.yml :331 run 值翻·逐字节沿 §1-修法件①）·序4 门矩阵全绿（改前基线 docs:check 2165+主门 `pnpm runtime:isolated:prove` 恰 1 复跑 CAPTURE_EXIT=0·applied=204 skipped=0·四链 ✓·`^PASS` 83/`^FAIL` 0·wall-clock 11s+邻面 claim-join CAPTURE_EXIT=0+js-yaml 形模拟 steps=102 恒等步名面 diff=0 run 值 diff 恰 1@idx95+markers 五类零命中+diff 恰 2 tracked+卫生恒等）·P2 三件落点在 §9 字段⑦（时长对照 Δ≈+9s 低于 band 下沿如实登记/dbacl2 新鲜度复核即清 tip `08e0590c` 零触本刀行面/proof :5 头注陈旧登记不修）·收据 `ai-docs/delivery/receipts/runtime-kernel-wire/00-exec.md` untracked 不入库·STOP=`executed:awaiting_post_prove_dual`·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*
