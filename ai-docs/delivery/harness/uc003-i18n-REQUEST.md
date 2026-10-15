@@ -1,6 +1,6 @@
 # UC003-I18N REQUEST（UC-E2E-003 i18n 收口刀 · 错误码 en 产品映射 + 热库去硬编码 zh + Playwright locale=en DOM spec · 三面收口 · 零迁移 · 单日级）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已施工落卷·待 post-prove 双审两外席 · **Ban self-approve** · **alone≠dual**）。**rev2**：pre-exec 双审两席 FAIL（席1 B1/B2+E/R·席2 F0-F9）七条处置已落卷（docs-only 恰 1 .md·逐处亲证·见卷尾「rev2 勘误席处置摘要」）·**rev3**：双审复审席1 PASS（P2×5）/席2 FAIL（P1 超限臂死臂+P2×4）处置落卷（docs-only 恰 1 .md·逐处亲证·见卷尾「rev3 勘误席处置摘要」）·**rev3.1**：席2 复审两则 P2 随修落卷（步骤③(b) 措辞精确化+§2-1 门① S4 补「上传面五处」限定词·docs-only 恰 1 .md·见卷尾「rev3.1 errata」）·**EXEC**：rev3 双审会签 PASS（席1 agent_83ab47d4·席2 agent_4aa3e730）+协调方明示授权后开工（工序序：并线→rev3.1 errata→施工→门矩阵→§9 落卷·见卷尾「§9 EXEC 记录」）。**post-prove 修复轮**：双审双 FAIL（席1 R1+R2/R3/R4/R5·席2 P1-1+P2-2/P2-3）七条全数处置——labels 补转发码修+spec allowlist 扩面 11 面+记录勘误/登记·门矩阵重跑全绿（门⑥ 环境受阻维持 pending）·见卷尾「§9.5 post-prove 修复记录」·**待重审**。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line uc003-i18n nail」段 :2724 已载 post 双审双 FAIL→修复 bfcd3fab→重审双 PASS+nail merge @`68ffcb58`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：UC-E2E-003 i18n 收口刀 REQUEST 起草席（E2E 矩阵侦察席定谳：UC-E2E-003 行 NEG=**gap** / FAULT=**blind** / BOUND=**partial**（key parity）/ ADV=**blind**；残余三面=错误码 en 产品映射 + 硬编码 zh UI 去除 + Playwright locale=en DOM spec；NEG 面用错误码负路径断言收；无 Key 无 Docker 重依赖（本地 Chromium）·单日级 · 北星 loop）。
 

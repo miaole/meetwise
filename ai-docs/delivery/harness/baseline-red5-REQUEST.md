@@ -1,6 +1,6 @@
 # BASELINE-RED5 — 基线红五件清欠小刀（integrity GRANT+r4 双钉重指+corpus fixture+dbhy1 登记）
 
-**状态**：`executed:awaiting_post_prove_dual`（EXEC 已落 line/baseline-red5：恰 9 文件 4 码面修复+SSOT 随翻·零迁移零产品码·⛔push·五门隔离复跑逐件 EXIT=0）· 前态：诊断席定谳五件全 S 级（陈旧钉/登记缺位/fixture 未随迁·零产品回归）·协调方授权一柄小刀全清（沿 g7fix/基线红清欠先例简卷）· 基线 = 主线 `feat/mysql-schema-skeleton` tip `c4025186`（pull 后实取·origin/main `c4244470` 系其祖先不含战役面·worktree 亲证）· 分支 `line/baseline-red5`。
+**状态**：**`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line BASELINE-RED5 nail」段 :2658 已载 post 点验双席 PASS（双签）+nail merge @`92681a34`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 ## 1. 五件修法（照诊断报告·逐件落点）
 1. **qbank-integrity-upgrade**：`apps/worker/test/qbank-integrity-upgrade.proof.ts:211` +1 行 `GRANT SELECT, INSERT, DELETE ON schema_migrations_steps TO ${migrationRole}`（30084d98 mig-runner 旁表新守卫面 proof 角色未随迁·修前隔离实跑红线=`permission denied for table schema_migrations_steps` @migrate.ts:442 via runMigrationsAsRole :252 亲证）。

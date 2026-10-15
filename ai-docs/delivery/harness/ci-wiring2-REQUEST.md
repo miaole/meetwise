@@ -125,7 +125,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §11 EXEC 附记（2026-10-14 EXEC 席·五簇收口·append-only·⛔push）
 
-**Status：`executed:awaiting_post_prove_dual`**（协调方授权开工·五簇全数处置·双亲并线 6743ce10=7bf0528c+cfead6e4 本刀开工前已在其位·fetch 复核主线 tip=cfead6e4 已是祖先·§0 重 pin：ci.yml 322 行/nightly.yml 65 行恒等）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line CI-WIRING2 nail」段 :2605 已载 post 双审 BOTH PASS+errata 10 条全数处置 de376741+nail merge @`ad78e0ff`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **簇Ⅱ（nail）**：第 0 步红进绿出两收据——修复前 voice:prove EXIT=1（`TransformError qbank-release-sweep.ts:79:90 Expected ")" but found ";"`）+worker tsc EXIT=2 恰 1 错 `TS1005(79,91)`（本席以 git show HEAD 还原破面亲跑在证）；修复后（恰 1 右括号·`}))`→`})));`）voice:prove **EXIT=0 七臂全 PASS**（空库 fixture·CI job 级同形——本地全迁库上该 proof 撞 0047 checkpoint privacy fence 42501 系既存本地/CI 环境差·CI job 库仅 primitives 三表+proof 自建表故恒绿·如实登记）。五债包点亮+tsc 清债：**api 33→0 / domain 27→0 / db 23→0 / ai-runtime 21→0 / worker 破面后实测 51→0**（五 package.json `"typecheck"` script rg=5/5·turbo typecheck EXIT=0 8/8·`--force` EXIT=0）。裁决①=顺序 domain/ai-runtime→db→worker→api（依赖序）+≤5 文件/批；裁决②=扩容随清债终形 8 任务+ci.yml :94-97 Non-claims 注释同步改写（原文/新文见 diff）+:101 断言面扩容（Ban 例外授权形·步骤 name 行未触严格守 Ban）；nest.json `_note` 过期表述随实况修正。附带：ai-graphs graph.ts `recursionLimit` compile 键系 langgraph 1.4.7 契约外惰性键（仓库零 invoke 侧引用·运行时默认 recursionLimit=25 恒兜底）——类型真化=移除惰性键+注释诚实化（行为字节级零变·激活归协调方后裁）。
 
