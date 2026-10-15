@@ -8,7 +8,7 @@
  * the same idempotency key again.
  */
 import {
-  asPrincipal, gatewayModelInvocationOwners, markAiCostsUnknownForModelReconcile,
+  asPrincipal, gatewayModelInvocationBacklog, gatewayModelInvocationOwners, markAiCostsUnknownForModelReconcile,
   reconcileStaleModelInvocations, type DbPool,
 } from '@meetwise/db';
 import { getMetrics, METRIC, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
@@ -119,6 +119,19 @@ export async function modelInvocationReconcileTick(
       getMetrics().inc(METRIC.modelInvocationReconcileInvocations, { result: 'owner_failed' });
       console.error('model invocation reconciliation owner failed');
     }
+  }
+  // Backlog water level is read after the owner loop (and before the failure
+  // throw) so the deepest-stuck state still refreshes the gauges: aged
+  // dispatching depth and the unresolved unknown stock.  Aggregate counts
+  // only; a read failure must fail the tick like every other leg.
+  try {
+    const backlog = await gatewayModelInvocationBacklog(pool, config.olderThanMs);
+    getMetrics().setGauge(METRIC.modelInvocationReconcileDispatchingAged, backlog.dispatchingAged);
+    getMetrics().setGauge(METRIC.modelInvocationUnknownBacklog, backlog.unknownUnresolved);
+  } catch {
+    getMetrics().inc(METRIC.modelInvocationReconcileInvocations, { result: 'backlog_failed' });
+    console.error('model invocation reconciliation backlog failed');
+    throw new Error('model_invocation_reconcile_backlog_failed');
   }
   if (ownerFailures > 0) throw new Error('model_invocation_reconcile_owner_failed');
   return { owners, invocations, frozenCosts };

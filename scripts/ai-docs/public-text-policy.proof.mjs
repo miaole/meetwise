@@ -278,6 +278,9 @@ const checks = {
       // perfload-env-fix：cap 2128→2136（2026-10-15 协调方 sanction·+8 沿 +8 先例形·perf-load 机检
       // 产出 TRACKED_DIR 首现·并线树实测 2132>2128 红停 PTP_FILE_LIMIT:2132）——本臂 fabricated 数
       // 随 cap 再联动同步（cap 数字行为断言语义不变·强度不减）。
+      // reconcile-retry：cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形·本刀迁移 .sql
+      // 受管件 +1 至 2137 红停 PTP_FILE_LIMIT:2137·三刀在飞共享余量）——本臂 fabricated 数随 cap
+      // 再联动同步（cap 数字行为断言语义不变·强度不减）。
       // UC184-SLOT-ORDER nail 并线：cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形·
       // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享）——本臂 fabricated 数随 cap 再联动
       // 同步（cap 数字行为断言语义不变·强度不减）。
