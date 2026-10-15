@@ -3,6 +3,7 @@ import { serverFetch } from '../../lib/api/server';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
+import { getTranslations } from 'next-intl/server';
 import type { Locale } from '../../i18n/request';
 import { isOcrPreviewEnabled } from '../../lib/ocr-preview';
 import {
@@ -25,7 +26,8 @@ import {
  */
 
 // 上传面内联文案的双语载体(zh 缺省逐字节=迁移前字面;en 值 CJK-free 由 uc003-i18n-locale prove S4 逐处断言)。
-// 作用域=上传面五处;deleteResumeAction 的四处内联文案不在本刀迁移面,零触。
+// 作用域=上传面五处;deleteResumeAction 的四条失败消息已迁 messages resumeDelete namespace(UC003 i18n 后刀承接,
+// 经 next-intl 管道按 cookie locale 渲染,由同 prove S6 逐处断言)。
 const UPLOAD_MESSAGES = {
   textTooShort: { zh: '简历正文至少需要 20 个字符。', en: 'Resume text needs at least 20 characters.' },
   uploadIncomplete: { zh: '上传暂未完成，请检查网络后重试；不会重复扣费。', en: 'The upload did not complete. Check your network and try again; you will not be charged twice.' },
@@ -150,18 +152,19 @@ export type ResumeDeleteActionResult =
   | { ok: false; message: string };
 
 export async function deleteResumeAction(id: string): Promise<ResumeDeleteActionResult> {
+  const t = await getTranslations({ locale: await resumeUploadLocale(), namespace: 'resumeDelete' });
   let res: Response;
   try {
     res = await serverFetch('/resume/' + encodeURIComponent(id), { method: 'DELETE' });
   } catch {
-    return { ok: false, message: '网络错误，请稍后重试；简历未被删除。' };
+    return { ok: false, message: t('networkError') };
   }
   if (res.status === 401) redirect('/login?expired=1');
-  if (res.status === 404) return { ok: false, message: '找不到这份简历，或它已被删除。' };
-  if (res.status !== 202) return { ok: false, message: '删除请求未受理（' + res.status + '），未当作已删除。' };
+  if (res.status === 404) return { ok: false, message: t('notFound') };
+  if (res.status !== 202) return { ok: false, message: t('notAccepted', { status: res.status }) };
   const body = await res.json().catch(() => null) as { mode?: string; purgePending?: boolean } | null;
   if (body?.mode !== 'logical' || body?.purgePending !== true) {
-    return { ok: false, message: '删除受理形状不合法，未当作已删除。' };
+    return { ok: false, message: t('invalidShape') };
   }
   revalidatePath('/resume');
   return { ok: true, purgePending: true };
