@@ -1,6 +1,6 @@
 # HA6-REPIN REQUEST — ha6:prove 26 红治理锚修复刀（A3 行号锚内容化+A5 滚动注册帧+max:1 内容锚·恰 1 治理脚本 `scripts/ha/ha6-companion.proof.mjs`·零迁移零产品码·ha6-repin 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · pre-exec 双审两外席待派 · alone≠dual · Dual PASS ≠ 开工 · 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）· **rev2 2026-10-14**：pre-exec 双审双 FAIL 机器实证收敛（席2 改后脚本落码实跑 75 PASS/1 FAIL·唯一红=flow11 互斥锚）修订席落卷·STOP 值维持待复审（卷尾 rev2 处置摘要）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 2026-10-15 落卷 · rev2 pre-exec 复审 PASS（窄域席 agent_c71b8478·原双审双 FAIL 收敛处方 R1-R7 全落）→协调方明示 EXEC 授权 · merge `c38e6e22` 双亲 `a5317ffd`+`bd262c1f` 零冲突 · ha6:prove **75/75 EXIT=0** · 门矩阵全绿见 §9 EXEC 记录 · post 双审两外席待派 · alone≠dual · ⛔push）· **rev2 2026-10-14**：pre-exec 双审双 FAIL 机器实证收敛（席2 改后脚本落码实跑 75 PASS/1 FAIL·唯一红=flow11 互斥锚）修订席落卷（卷尾 rev2 处置摘要）
 
 **席位**：ha6-repin 起草席（诊断由 HA-6 post 席1 定域在案·本席补全逐红取证+修法裁决+起草三责·协调方派）。
 **基线**：`feat/mysql-schema-skeleton` @ `8ae2a93e`（fetch 后 origin tip 与本地恒等亲证·SSOT 最新收官 commit）· 分支 `line/ha6-repin`（本席 `git worktree add ../meetwise-h6r -b line/ha6-repin feat/mysql-schema-skeleton` 亲立·建前 `git worktree list` 零同名树）· 工作树 `meetwise-h6r`（仓根同级）。
@@ -153,7 +153,7 @@ const ROLLING_REGISTRY = [
     registered: '8ae2a93e', note: 'HA6-REPIN 初注册（fail-closed 面整文件·旧 8ba93f0b 零 diff 态顺承）' },
   { file: 'package.json', kind: 'scripts-set',
     digest: '106e457929a535e9b87d303b94d7487adbbca054', registered: '8ae2a93e',
-    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=3ef5dc2f 与本值字节不同形已证·Ban 另造等价形替算）' },
+    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 EXEC 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）' },
 ];
 const SCRIPTS_MUST_EXIST = ['ha6:prove', 'migrate:prove', 'docs:check', 'drift:prove'];
 const SCRIPTS_MUST_NOT_EXIST = ['breaker:prove', 'prove:breaker']; // 724d61b5 AG24 sanctioned 双删·防复活（rev2 R3-P2 补第二键）
@@ -252,7 +252,51 @@ const SCRIPTS_MUST_NOT_EXIST = ['breaker:prove', 'prove:breaker']; // 724d61b5 A
 - **R3（P1）→守恒表重排**：A2 8→**10**（补 `:190` rendered/`:215` 消费点 count 两门）·receipt 形 4→**5**（补 `:269` zeroDriftConstants）·三处 `check()` 在位本席亲证·其余 44→**47**·左列和=**76**（=改前实跑 50+26 恒等·原卷漏账 3 修正·双列行和=列合计）·右列和=**75**（删锚案=19+3+1+1+1+2+1+47）·差额恰 1=flow11 删重复锚。
 - **R3-P2→件②落值 1/6**：`SCRIPTS_MUST_NOT_EXIST` 补第二键 `prove:breaker`（`724d61b5` 同刀双删·`8ae2a93e` 根 package.json 两键 rg 零命中亲证·防复活不设防补齐）。
 - **R4→§0.1 五行+§1.1 十一行+§1.2 五行**：「纯位移（内容零变）」改「位移+await 词面变（`f31d56d1` `!this.rl.`→`!(await this.rl.`）」·recruiter/quiz/ivc/resume/interview.service 五文件调用行词面变贡献逐一亲证补录（f31d56d1 触面 `git show --name-only` 亲证）·常量行（auth `:13-15`·resume `:22`·interview.service `:31/:33/:36`）零 await 面逐行 sed 亲证维持纯位移加注。
-- **R5（可选·采）→件②落值 1/3/6+ROLLING_REGISTRY**：增基线 scripts 键值集 digest 登记行（`106e457929a535e9b87d303b94d7487adbbca054`·计算式钉死 `git show <tip>:package.json | jq -cS '.scripts' | git hash-object --stdin` 一条·`8ae2a93e` 与 rev2 起草树恒等亲证·Node JSON.stringify 键排序形=`3ef5dc2f` 与之字节不同形已证并记 Ban 另造等价形）·digest 恒等臂入 pkg 注册账门**同断言内**·断言总数零增·保全全量 additive 语义。
+- **R5（可选·采）→件②落值 1/3/6+ROLLING_REGISTRY**：增基线 scripts 键值集 digest 登记行（`106e457929a535e9b87d303b94d7487adbbca054`·计算式钉死 `git show <tip>:package.json | jq -cS '.scripts' | git hash-object --stdin` 一条·`8ae2a93e` 与 rev2 起草树恒等亲证·Node JSON.stringify 键排序形=`96e70b39e30b781c3d9065c071613c9630d4729d` 与之字节不同形已证并记 Ban 另造等价形·rev2 复审 P2 EXEC 实测勘正原示例 `3ef5dc2f` 不可复现废）·digest 恒等臂入 pkg 注册账门**同断言内**·断言总数零增·保全全量 additive 语义。
 - **R6/R7→§3-3+§1.2 worker 行**：A1 `:51` anchor 门（proof `:77-79`·`anchorStartIdx === 50`）+principal `:946` 行号门（proof `:95-100`·`lineAt(principal, 946)`）两残留行号门风险登记备后刀（本刀零触·同款衰减机制·行使通道=同款 REQUEST 补审）·worker 位移链 commit 序注记（八 commit 时间序 old→new=`0dc4f5d7`→`0dcc73f0`→`b20ee350`→`3e4b5de9`→`d31be795`→`c6b2e437`→`9826c468`→`a769554a`·前七者 merge-base --is-ancestor 对 `a769554a` 逐个亲证为祖先·收口 merge 居链末非链起）。
 
 **自检**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（2122≤2128）·markers 五类零命中（词族沿 i6-239-gates §2-7 运行时组装口径·词面不落卷防自匹配）·STOP=`draft:awaiting_pre_exec_dual` 维持待复审。
+
+---
+
+## §9 EXEC 记录（EXEC 席落卷·2026-10-15·⛔push·**STOP=`executed:awaiting_post_prove_dual`**·append-only）
+
+**授权链**：rev2 pre-exec 复审 **PASS**（窄域席 agent_c71b8478·原双审双 FAIL 收敛处方 R1-R7 全落核）→ 协调方明示 EXEC 授权（committed SHA 重钉 @`a5317ffd`）·开工三条款满足·§8 三条款未改。
+
+**工序 1 并主线**：`pnpm install --frozen-lockfile`（node_modules ABSENT→装·8.4s 零 lock 变更）→ `git fetch` 后本地与 origin 同指 `feat/mysql-schema-skeleton`=`bd262c1f`（主线 tip 亲证恒等·链 202·cap 2128）→ `git merge --no-ff feat/mysql-schema-skeleton` → merge commit **`c38e6e22`**（双亲=`a5317ffd`+`bd262c1f`·ort 策略·**零冲突**：冲突解=∅·并集解惯例未触发·禁 pull --rebase 遵守）。
+
+**§0 重 pin（对 merge 后树·§0.1 十六锚 `git hash-object` 逐件复算全恒等零漂移）**：proof.mjs `d640cc6a`/auth `06c72cc1`/recruiter `d89d5a49`/quiz `e77480dd`/interview.controller `1426c175`/resume `1769589e`/interview.service `42cf316e`/sse-notify `655746c1`/worker main `b47aba76`/compose.ha `42a34908`/compose.prod `73462150`/根 package.json `3b04b871`/principal `c31cbac0`/probe.multi.mjs 全 40 hex `b91917e8ede075e08b080f7a9ae76933cfe36dcd`/ha-1 dilution `3e8a7415`/ha-6 census `7ea99014`。
+
+**§1-修法正则 count 复验（落码前对树机检·全等后落）**：A3 十九锚 count 全等（含 flow11 turn 词面 count=2 @`:436`/`:469`）·max:1 census 恰 2 处=`sse-notify:255`+`worker:671`·sse/worker 内容钉各 1·principal 三正则各 1·compose.ha PGPOOL_MAX "12" 恰 1+死 env 零命中·BANNED 15 文件存在全真+死 env 零残留·scripts-set digest 复算 jq 管道 @`8ae2a93e`=`106e457929a535e9b87d303b94d7487adbbca054` 与登记值恒等（且对工作树恒等=merge 零漂 scripts 集）。**P2 勘正落地**：Node JSON.stringify 键排序形实测=`96e70b39e30b781c3d9065c071613c9630d4729d`（原示例 `3ef5dc2f` 不可复现废）·卷 :156/:255 与 proof 注册行注记三处同勘正为实测值·登记值 `106e4579` 经 jq 管道复现确证。
+
+**§0.0 在飞复核（EXEC 立项日必做）**：全 `line/*` 支线对 proof.mjs 末触扫描=非 `90258ec3` 新触零支线（空值=零触面）→零在飞交叠。
+
+**改前对齐 run（不计 prove）**：merge 后改前实跑 EXIT=1·**50 PASS/26 FAIL**（=§0.2 口径恒等）。
+
+**改形落点（恰 1 码件·365→424 行·numstat +123/−64）**：件① `pins` 20 行钉→**19 内容锚**（flow11 删字节恒等重复锚·turn 双消费点由 count=2 门独承）+逐 pin 循环 count 门改形（值等 13 断言原样保留·命中行号只入 PASS 消息非门读数）+max:1 两行钉+census→内容集合三门；件② `BASELINE` 常量退役（全文件 rg BASELINE 零命中）→`ROLLING_REGISTRY`（probe.multi.mjs 整文件 blob 初注册+package.json scripts-set digest `106e4579` 登记行·SCRIPTS_MUST_EXIST 四键+SCRIPTS_MUST_NOT_EXIST 两键）+principal 零 diff/957:964 两门→行号自由内容锚两断言+probe 零 diff→注册 blob 门+C1 numstat→结构复合门+BANNED_COMPOSE 零 diff→存在+死 env 零残留复合门+pkg additive→注册脚本账门（4 must-exist 非空+2 must-not-exist 零命中+digest 恒等臂同断言内）·ha6:prove 值等断言原样；件③ 头 JSDoc 漂移账 append-only 落卷+输出段追加 `note: ha6-repin rolling registry active (baseline 8ba93f0b retired 2026-10-14)` 行。断言总数：40 静态 check 点循环展开恰 **75**（47 原样+19+3+1+1+1+2+1·守恒=改前 76−flow11 删锚 1）。
+
+**prove run（恰 1 次·Ban retry-to-green 遵守）**：`node scripts/ha/ha6-companion.proof.mjs` → **EXIT=0 · PASS 75 / FAIL 0**。输出钉读数：PGPOOL_MAX=12/steady=76/headroom=21/worstCase=148·86 stub·消费点 4（:156 :183 :210 :274）·13 流值等 13/13·`haStatus: NOT_HA`/`releaseEvidence: false`/`claimProductionHA: false` 三行原样·新增 rolling registry note 行在位。
+
+**门矩阵（§2 十二门+邻面·merge 后树改形落卷亲跑·数字实测）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 1 | ha6:prove | **PASS 75/FAIL 0**（原 76 删 1 互斥锚守恒） | 0 |
+| 2 | scoring-integrity:prove | **23 PASS 全绿**（主线已纳 perf-prep 修法 `6688e1e7` 为 `bd262c1f` 祖先 is-ancestor 亲证·协调方门值「23·主线已绿」实测相符·卷 §2-2 承登红预期被授权 merge 顺承消解） | 0 |
+| 3 | tokenstream:prove:raw | **20/20** | 0 |
+| 4 | sse-push:notify:prove:raw | **35/35**（`✓ sse-push:notify: 35 条负路径用例全绿`） | 0 |
+| 5 | neg:bend | **179/179**（`✓ neg:bend: 179 条负路径用例全绿`） | 0 |
+| 6 | interview:prove:raw | **57 PASS**（`✓ 当前 v64 面试链路全部通过`） | 0 |
+| 7 | migrate:prove | **123 PASS** 全通过·链 **202 头 0202**（`ls packages/db/migrations | wc -l`=202） | 0 |
+| 8 | drift+uniqueness | drift `✓ schema 无漂移` EXIT=0·uniqueness `files=202 violations=0 exemptions=0143,0152,0160` | 0 |
+| 9 | typecheck | `pnpm turbo typecheck --force`=`Tasks: 8 successful, 8 total`·`Cached: 0 cached, 8 total` | 0 |
+| 10 | turbo lint | `TURBO_DAEMON=false --force` 12/12 全绿·五值恰等：web **601**/root **5235**（0 errors, 5235 warnings）/api **1421**/worker **954**/ai-runtime（packages/ai-runtime）**628** | 0 |
+| 11 | docs:check | `scanned 2125 managed files`≤cap **2128**（merge 后 2124+本刀收据 1） | 0 |
+| 12 | markers 五类 | 改动集（proof.mjs+本卷 .md+收据 00-exec.md）五类词族零命中（沿 i6-239-gates §2-7 运行时组装口径） | 0 |
+| 13 | diff 面机检 | `git diff --numstat c38e6e22` tracked 恰 2=`scripts/ha/ha6-companion.proof.mjs`+本卷 .md（收据目录 untracked） | 0 |
+
+**运行副效应登记**：typecheck 门翻动 `apps/web/tsconfig.tsbuildinfo`（tracked 1/1 行·非交付面）——`git checkout` 回滚基线（沿 negbend-fix §9 同款处置·保门 13 恰 2 tracked 路径）。
+
+**停止条件四类全数未触**：现场漂移=十六锚 blob+正则 count 全恒等；机制不满足=改后 run 零 FAIL+总数恰 75+scoring-integrity 与协调方门值相符；越界需要=修法恒恰 1 文件面；验收红不可修=门矩阵全绿。**§1 红事实归因结论/§1-修法四裁决/§5 Ban/pins 十二值/「恰 1 文件 proof.mjs」唯一码改面 零改零翻转**。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口 · post 双审两外席待派 · alone≠dual · ⛔push**
