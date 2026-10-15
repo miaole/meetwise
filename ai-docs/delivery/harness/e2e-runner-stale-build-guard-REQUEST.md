@@ -328,3 +328,25 @@ console.log("PASS replica build-log: cap=" + retained.length + " lines, truncate
 ---
 
 *E2E-RUNNER-STALE-BUILD-GUARD REQUEST · 2026-10-14 起草落卷·同日 EXEC 落卷（§9 七字段+P2 勘正/登记随卷） · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十门：九门全绿+门 1 真环境条件门 SKIP 如实登记·post 双审待派·nail/行翻面归协调方）** · base 主线 tip `77ba32ab`（起草时）·并线=`ae29d0fe`（--no-ff 并 origin/feat/mysql-schema-skeleton@`fb97734c`=cap 2168 sanction·零冲突 7 files +345/−7·双亲 `dd995ed1`+`fb97734c`·届时 tip≥并线锚恒等）· 分支 `line/e2e-runner-stale-build-guard` · 工作树 `meetwise-sbg`（本起草席立·reset 钉 origin tip 亲证）· 立项出处=UC003 门⑥陈旧产物事故（.next/BUILD_ID mtime 早于接线 4 天·「BUILD_ID 在即不重建」单一判据→服务陈旧构建假红）+复跑席实证（web-build 非零退出扣留输出 9 chunks/3014B 只计数不落盘不可回收·靠手动同 env 复现定位）+协调方派单 brief 双改进候选 · 读码定稿=run-e2e-ui.mjs `84f9cd2d` 三落点（:86-96 tailAppend/emitFailureDiagnostics 扣留机制·:97-109 spawnProc·:190-208 BUILD_ID 检查+内嵌 build 调用+非零退出臂）· runner 直测不可行双证（:46 isolation throw+:53 provider key throw+全栈前置不可达 BUILD_ID 段·import 顶层 side-effect 即 throw）→自证=源级守卫断言+决策/落盘副本直测三件合成（副本强度局限如实登记）· 修法=恰 1 tracked 代码文件 4 编辑实测 +70/−6（件① stale-build guard 强制重建形=mtime<HEAD %ct 严格小于·检测面 fail-open/判定面 fail-closed 分立·候选甲乙丙丁否决在卷；件② build 输出落盘=非零退出时保留尾 ≤400 行/64KiB 写 `.tmp/e2e-ui-build-log/<ts>.log` 0o600 gitignored+stderr 回放·成功零写盘·候选戊己庚否决在卷）· 门矩阵十门承卷（改前基线+uc003 真环境条件门 SKIP 如实登记零假绿+runner 自证三件+static-guards+e2e-platform:prove+typecheck 8/8+lint 五值恰等+docs:check 2156≤cap 2168+markers+diff 恰 2 tracked=1 代码+本卷 .md+卫生·十门详 §9-③）· 契约恒在（E2E_PROCESS_OUTPUT_WITHHELD 词面·assertNoFakeServiceFlags import/call·LOG_LEAK 零敏感词）· 迁移零（链头 0204）· est live=0 · markers=0 · pins 十一值照抄零翻 · 停止条件四类全数未触 · Ban self-approve · alone≠dual · ⛔push · STOP*
+
+### §9-补1 门 1 补跑记录（补跑席·2026-10-16 03:36 CST·授权兑现跑·append 形不洗 §9 原文一字）
+
+**授权链**：post 席1（`agent_8c20e748`）裁定=门 1 SKIP 承登成立但子理由「loader 方式 b 无注入源」**事实性错误**（loader 亲证可注入 116 字符）·真实承重面=隔离 compose 栈未跑（`run-e2e-isolated` 零自启 compose·外部前置）→协调方特授权补跑席兑现门 1·**恰 1 run 授权兑现跑（非 retry-to-green）**·⛔push。
+
+**前置核**：`git status --porcelain` 净+HEAD=`0ff56cfb`（§9 EXEC 卷 commit）恒等。
+
+**栈**：`docker compose -f docker/compose.mysql-local.yml up -d`→meetwise-mysql-local/meetwise-redis-mysql-local/meetwise-qdrant-local 三容器 ~13s 全 `healthy`（新建 volume 四件系首起非残留）。
+
+**方式 b（loader 同 shell env 注入·零 .env 落盘）**：`source ~/.meetwise-secrets/load-model-api-key.sh` 与 `pnpm` 同 shell 进程·pre-run presence 核=`MODEL_API_KEY` PRESENT len=**116**（亲证推翻门 1 SKIP 承登「loader 无注入源」子理由·坐实 post 席1 勘正）。
+
+**补跑实测（恰 1 run·全量输出存档 `.tmp/gate1-rerun/prove-20261016-033634.log` gitignored）**：`pnpm uc003:i18n-locale-ui:prove` → **EXIT=1 红**。臂账=**Running 1 test·1 failed·0 passed**。
+
+**红臂证据（如实·不修饰·未再跑）**：`apps/web/e2e-ui/uc003-i18n-locale.spec.ts:80` › UC003-I18N-locale-en（断言点 `:157`）`expect(unknown).toEqual([])` 报「unallowlisted zh residual on /resume in locale=en」——Expected `Array []` / Received **+10**·inventory 22 distinct text nodes 中 12 allowlisted/**10 unknown**·received 全集=RSC flight payload `self.__next_f.push([1,…])` 内联 8 chunk（含 chunk 9 metadata title `"children":"简历 · 知面 · 知面 Meetwise"`）+ document title 文本节点「简历 · 知面 · 知面 Meetwise」——即红系**应用层 i18n 残留清点断言面**（RSC payload CJK 文本节点与页面 title 未入具名 allowlist）·非 runner 层错误。
+
+**runner 层证据（sbg 两件行为面·零回归证据在案）**：`run-e2e-ui.mjs` :21「无 .next/BUILD_ID，先 next build 再 next start」=既有重建臂被走（fresh 树无产物）·`STALE_BUILD_GUARD`/`forceRebuild` 词面全程零命中（件① 检测面零误报·未误判陈旧）·`E2E_PROCESS_OUTPUT_WITHHELD process=web-build stdout chunks=18 bytes=72188 + stderr chunks=5 bytes=1592`（件② sink 扣留契约恒在）·build 成功→`.tmp/e2e-ui-build-log` **零产生**（件②「成功零写盘」亲证成立）·`E2E_FAILURE class=frontend code=client_exited`（playwright 客户端失败如实上报）。
+
+**门 1 兑现判定**：SKIP→授权兑现跑完成·**结果红 EXIT=1·门 1 未绿**——红因在应用层残留断言面·归因与处置（allowlist 增补/另立卷/行翻面）权归协调方·本席停止条件「验收红且口径内修不了」命中即停·零 retry 零修饰。
+
+**清理**：compose 栈 down（三容器+network 移除·volume 留置登记）·`apps/web/test-results/.last-run.json`（tracked 副产）`git checkout` 回滚（沿 §9-⑤ tsbuildinfo 先例形）·test-results 失败产物目录（trace.zip/screenshot/error-context）移档 `.tmp/gate1-rerun/test-results-archive/` 保证据（gitignored）·`.next` 零残留·`.tmp/e2e-ui-build-log` 零产生·终核 `git status --porcelain` **净**（tracked 零翻动）。
+
+**STOP · 门 1 补跑=executed:red_unresolved（红已承登·处置权归协调方） · alone≠dual · ⛔push**
