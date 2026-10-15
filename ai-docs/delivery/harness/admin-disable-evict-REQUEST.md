@@ -1,6 +1,6 @@
 # ADMIN-DISABLE-EVICT REQUEST — gateway_admin_disable 零 evict 同型缺陷修复刀（principal.guard:16 契约在链唯一违例闭合·恰 1 产品文件 +2 行 evict+neg 邻面增 1 判别臂·admin-disable-evict 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-14 · **rev2 2026-10-14**=pre-exec 双审双 FAIL 同敛 P0「判别臂走 U() dev-header 支路→修前修后均 403 臂恒红」→判别传输面改 Bearer（六项处置见卷尾 rev2 处置摘要）· rev2 pre-exec 双审会签 **PASS**（席1 agent_ba62a3f4+席2 agent_ff74cef6）+协调方明示 EXEC 授权 → **EXEC 2026-10-14 落卷**（merge `e1d1b368` 并主线 `148cf83b`·件①② 施工·门矩阵十二门全绿·§9 EXEC 记录+收据 `ai-docs/delivery/receipts/admin-disable-evict/00-exec.md`）· ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line admin-disable-evict nail」段 :2789 已载 post 双审双 PASS+nail merge @`edec8c96`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：admin-disable-evict REQUEST 起草席（诊断由 negbend-fix post 席2 猎出·本席补全亲证+起草双责·协调方派）。
 **基线**：`feat/mysql-schema-skeleton` @ `1af9803f`（LINT-CLEAN nail 收官 SSOT commit·docs:check 2099≤cap 2104 本树亲跑 EXIT=0）· 分支 `line/admin-disable-evict`（本起草席 `git worktree add ../meetwise-ade -b line/admin-disable-evict feat/mysql-schema-skeleton` 亲立·HEAD 落 `1af9803f` 亲证·建前 `git branch --list "line/admin-disable*"` 零命中）· 工作树 `meetwise-ade`（仓根同级）· **tip pin=1af9803f**（起草日 `git fetch` 后 `origin/feat/mysql-schema-skeleton` 与本地同值亲证·零更新零重 pin；rev2 日 fetch 实测主线已前进至 `3dc286a4`——本分支基线不追·届时基线适配归 §0.0 重 pin 清单）。

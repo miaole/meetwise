@@ -1,6 +1,6 @@
 # AUTHZ-34-RESIDUAL REQUEST（AUTHZ 残面小刀 · #34 三半之②③ · ①scrypt 异步化（promisify 形）+②chunked 封顶钩子 · 零迁移 · docs-only 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已按卷施工+断言门矩阵落卷·待 post-prove 双审两外席。起草席原状态 `draft:awaiting_pre_exec_dual`·pre-exec 双审 rev2 处置落卷 + 协调方明示授权开工已满足（上席施工两件 @merge `5dede1a2` + 续作席收尾·normalize 随链随翻同授权）· **Ban self-approve** · **alone≠dual** · Dual PASS ≠ post PASS · ⛔push · est live=0 · markers=0 · §9 EXEC 附记落卷）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AUTHZ-34 nail」段 :2637 已载 post 双审 BOTH PASS+nail merge @`ed82b873`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：AUTHZ #34 残面小刀起草席（批5 AUTHZ-HARDEN 续刀 · 5A-1 账号会话簇已 nailed @`5cb78dab` 之后 · #34 三半中残 2/3 的收口刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `8d1ff99e`（pull 后主线 tip · `git log -1` 实测 2026-10-13 · fix(ci) provider-egress 出站清单补账）。分支 `line/authz-34-residual` · 工作树 `meetwise-a34`（`git worktree add ../meetwise-a34 -b line/authz-34-residual 8d1ff99e` 本起草席已立 · 建前 worktree list 30 树无 a34 + `git branch --list line/authz-34-residual` 空输出双查亲证 · HEAD 落 `8d1ff99e` 亲证）。

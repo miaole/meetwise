@@ -1,6 +1,6 @@
 # TTL-WIRE REQUEST（AUTHZ-HARDEN 5A-2 R-1 接线小刀 · #18 滞留 payload TTL 清理原语生产接线 · 单一接线面零新原语）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（前态 **`draft:awaiting_pre_exec_dual`** 保史·EXEC 2026-10-12 开工三条款行使：预执行双审两外席 BOTH PASS 落卷+协调方常设 loop 授权派单+§1 修法清单与 §5 Ban/pins 零改动行使·执行序铁律先并主线 merge `feat/mysql-schema-skeleton`@`d12439d8`→merge commit `42b3b036`=EXEC 重锚零冲突·§0.3 勘误注 append·施工=恰一文件两处 `interview-consumer.ts` `:7` import 补名+`:537` `await purgeStaleInterviewJobPayloads(c, owner)`（asPrincipal 域内·terminalize 循环收尾后 return 前）·原语函数体零字节·零新配置/env 闸/定时器·§2 断言门全绿（17 臂回归原值 EXIT=0+接线臂 A+B 16 臂 EXIT=0+负臂 5 臂临时不落卷 EXIT=0+reaper 30 臂原值 EXIT=0+turbo typecheck 3/3 EXIT=0+api:validate EXIT=0+markers=0）·est live=0·⛔push·仍待 post-prove 双审两外席 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line TTL-WIRE nail」段 :2348 已载 post-prove 双席 BOTH PASS+nail merge @`ce021b22`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：TTL-WIRE 小刀起草席（AUTHZ-HARDEN 5A-2 post-prove 席2 R-1 登记承接·协调方裁「接线小刀」向·北星 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `7500ac73`（主线 tip·`git log -1` 实测 2026-10-12 16:30:38 +0800·docs(coord) LEDGER :352 勘误卷·零码面）。分支 `line/ttl-wire`·工作树 `meetwise-ttlwire`（`git worktree add ../meetwise-ttlwire -b line/ttl-wire` 本起草席已立·建前 worktree list + branch 双查实测不存在）。

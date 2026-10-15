@@ -1,6 +1,6 @@
 # AG39-ORG-QBANK REQUEST（AI 能力战役 AG-39 大型产品刀 S-XL · 企业私有题库 owner_kind/org_id 分层 + 检索函数库内强制过滤与私有优先排序 + 审核通过招聘方维护面 + 来源审计 platform/org:{id}/session_generated · docs-only 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工完毕·门矩阵全绿+三基线红单列·⛔push·待 post-prove 双审两外席·**alone≠dual**·§0-§8 原文零改·EXEC 附记=§9-EXEC 段 append 保史）← 前态 `draft:awaiting_pre_exec_dual`（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）→ **rev4 复审回炉修订卷**（rev3 复审席1 FAIL（R1/R2 P1+R3 P2）·席2 PASS（P2×5 观察登记）·合并处置=§9-rev4 处置段·rev3 本体处置记录=§9-rev3 段·docs-only 恰 1 .md 零码动·落卷后重呈双审·STOP 维持）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-39 nail」段 :2596 已载 rev4 复审 BOTH PASS 后 post-prove 双席 PASS（errata 全数登记不阻塞）+nail merge @`ce44fb72`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役 AG-39（企业私有题库+私有优先检索）起草席（LANDING-INDEX §十一刀映射定谳「③AG-39=大型产品刀挂用户排期」承接·协调方派单·常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `94b8519b`（`94b8519b867a23d34c0ec96fd604a60fc8720bed`·主线 tip·`git log -1` 实测·**基线按落卷时 tip 重钉**·§0.2-1）。分支 `line/ag39-org-qbank`·工作树 `meetwise-ag39`（`git worktree add ../meetwise-ag39 -b line/ag39-org-qbank` 本起草席已立·建前三查亲证见 §0.0·建树时 HEAD 落 `849a0f19`、落卷前主线前移两笔全 docs 零码面亲证后 rebase 重钉·§0.2-1）。

@@ -1,6 +1,6 @@
 # AG-24 — 成本与观测小项汇总刀：Langfuse model 真名+cached/cost 上报 · RAG 预留 0083 revision 绑定 · G7 回退估算数组修·进程内限流/熔断残留清理（EXEC REQUEST）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工收官随翻·落卷即停待 post-prove 双审两外席 · **Ban self-approve** · **alone≠dual** · ⛔push）·**rev2+exec**（rev2=pre-exec 双审两外席 FAIL findings 全数处置 BOTH PASS+协调方明示授权后 EXEC 立项施工；**EXEC 翻面随卷**：并线 `4f8b7402`+五件施工+门矩阵 17 门逐门 EXIT 收据·§9 EXEC 附记全呈报·§0-§8 原文零改（唯两条协调方授权复审 P2 登记性勘误：§0.1 #11「七行→六行」·处置表 #1 括注））。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-24 nail」段 :2548 已载 post FAIL findings 22 项全数处置 BOTH PASS+nail merge @`9ea52bc0`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **rev2**（2026-10-13）：pre-exec 双审两外席均 FAIL·本卷按 findings 全数修订（两席共识 blocking 2+席1 独有 9+席2 独有 11=22 项逐条处置·1 项复测否证如实上报）·STOP=`draft:awaiting_pre_exec_dual` 维持·§0-§8 除 findings 指明处零改·基线/blob 零动·逐条处置表见卷尾「rev2 勘误席处置摘要」。
 

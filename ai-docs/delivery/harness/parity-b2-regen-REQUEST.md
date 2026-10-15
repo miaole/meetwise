@@ -1,6 +1,6 @@
 # PARITY-B2 · e2e-parity baseline 再生刀（B1 后继·全新起草） · REQUEST（docs-only）
 
-status: **`draft:awaiting_pre_exec_dual`**（REQUEST 就绪 · 预执行双审未做 · meetwise 未授权 EXEC · 本 commit 零码零再生零门状态翻转——再生属下轮 EXEC 面；本 REQUEST 全部门读数均为只读实测，仓库本体除本文零触碰） → **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/parity-b2-regen`：并线 `0a64400b`（feat/mysql-schema-skeleton@65bdf3f6 docs-only 双卷零冲突）+ 施工 commit `b0d7182e`（恰 4 产品面文件 636+/13−）+ 本随翻 commit；pre-exec 双审两外席 BOTH PASS 经协调方带外转达+协调方常设 loop 授权开工；再生账本增量：full.e2e 84→158（+74 键/单位）·helpers 223→244（+21 单位/20 键）·helpers tests 31→36（+5）·floors 48/377→**53/472**·allowlist 7→**9** 双条目（死 17 键+3 test 全 digest 机器匹配入账）；门：`e2e-parity:check` EXIT=0 `valid=true` `errors=[]`（pre-commit+post-commit 各 1）·`e2e-parity:prove` EXIT=0 **一次优先** 22 scenarios（同上各 1·零 retry 记账）·`generation-trust:prove` EXIT=0 保绿·`docs:check` 三类 70 行类集零新增（LOCAL_PATH 67+EXT 2+CODE_HOST 1·69 基线+本卷披露 1·B1 先例）；收据 `ai-docs/delivery/receipts/parity-b2-regen/` 七件·est live=0·⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line PARITY-B2 nail」段 :2336 已载 post-prove 双席 BOTH PASS+nail merge @`f547444e`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 pins 十一值（照抄零翻）：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null · r1Closed=false
 
