@@ -1,6 +1,6 @@
 # OPS-HYGIENE REQUEST — 基建卫生小刀两件（#93 运行时版本可观测性=镜像 ENV 注入补环·#95 部署失败 trap 语义亲证钉死零码改）· ops-hygiene 战役 · 起草落卷即停
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席随翻 2026-10-14·开工三条款全行使：pre-exec 双审两外席 **BOTH PASS 落卷**=席1 `agent_1d94c312`+席2 `agent_81ad61ca` 会签随 merge `f8edb071` message 在卷+**协调方明示 EXEC 授权**=重派席派单 brief（前席 quota 中途死·遗留并线 merge 与件① 未暂存 diff 亲证后收编·见 §9/收据偏离 D1）+**§0 全量重 pin 落行**=§9（锚零漂除 policy.mjs cap 锚随 nail 携入 2136·如实改锚·结论零变）·门矩阵十一门全绿·收据=件③ `ai-docs/delivery/receipts/ops-hygiene/00-exec.md` · §8 三条款禁改面零改 · alone≠dual · post 双审两外席待派 · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权两卷收口·沿 ag-cost5 先例·一行依据=刀位图「OPS-HYGIENE」行 `✅ nail 收官`（授权链含 post 双审会签 PASS·#93/#95 两名目 LEDGER 翻面 ✅·nail merge --no-ff 并主线 @`a02cb1d2`+SSOT `418f16e8` 对 HEAD is-ancestor 亲证）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）
 
 **席位**：ops-hygiene 起草席（诊断+起草双责·协调方派单 brief 2026-10-14·两件 #93/#95 指派+裁决方向随派）。
 **基线**：`feat/mysql-schema-skeleton` @ `7bc8ffaa`（origin tip 亲证·fetch 后 `git worktree add ../meetwise-ops -b line/ops-hygiene feat/mysql-schema-skeleton` 亲立·HEAD 落 `7bc8ffaa` 亲证）· 分支 `line/ops-hygiene`（建前 `git branch --list "line/ops*"` 零命中）· 工作树 `meetwise-ops`（仓根同级）。
