@@ -1,6 +1,6 @@
 # OPS-HYGIENE REQUEST — 基建卫生小刀两件（#93 运行时版本可观测性=镜像 ENV 注入补环·#95 部署失败 trap 语义亲证钉死零码改）· ops-hygiene 战役 · 起草落卷即停
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草即停 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席随翻 2026-10-14·开工三条款全行使：pre-exec 双审两外席 **BOTH PASS 落卷**=席1 `agent_1d94c312`+席2 `agent_81ad61ca` 会签随 merge `f8edb071` message 在卷+**协调方明示 EXEC 授权**=重派席派单 brief（前席 quota 中途死·遗留并线 merge 与件① 未暂存 diff 亲证后收编·见 §9/收据偏离 D1）+**§0 全量重 pin 落行**=§9（锚零漂除 policy.mjs cap 锚随 nail 携入 2136·如实改锚·结论零变）·门矩阵十一门全绿·收据=件③ `ai-docs/delivery/receipts/ops-hygiene/00-exec.md` · §8 三条款禁改面零改 · alone≠dual · post 双审两外席待派 · ⛔push）
 
 **席位**：ops-hygiene 起草席（诊断+起草双责·协调方派单 brief 2026-10-14·两件 #93/#95 指派+裁决方向随派）。
 **基线**：`feat/mysql-schema-skeleton` @ `7bc8ffaa`（origin tip 亲证·fetch 后 `git worktree add ../meetwise-ops -b line/ops-hygiene feat/mysql-schema-skeleton` 亲立·HEAD 落 `7bc8ffaa` 亲证）· 分支 `line/ops-hygiene`（建前 `git branch --list "line/ops*"` 零命中）· 工作树 `meetwise-ops`（仓根同级）。
@@ -24,8 +24,9 @@
 | `.github/workflows/ci.yml` | `4cfa1ed3` | `:149-:150` CI 同形 build-arg 双传——链一致性旁证·零改面 |
 | `ops/deploy/remote-deploy.sh` | `8fe96da2`（77 行） | **`:13` `set -euo pipefail`·`:39-:46` `restore_and_fail()`（`:41` .env 快照回滚·`:43` 上一版重拉（失败仅告警仍走 :45）·`:45` `exit 1`）·`:47` `trap restore_and_fail ERR`·`:72` `dc up --wait`（最后失败窗）·`:75` `trap - ERR`（成功解除）——失败语义=中断回滚 已在场** |
 | `apps/web/Dockerfile` | `d04dfcb5` | `:19-:24` 同形 ARG/LABEL（run stage）——**零触面登记：rg 全树 `APP_VERSION|APP_REVISION` 消费者仅 apps/api 两文件亲证·web 无运行时读取者·注入即空转（§3-1）** |
+| `docker/env/api.env.example`（双审 P2 增补锚·EXEC 落） | `3d7d2b2f` | `:4-:5` `APP_VERSION=`/`APP_REVISION=`（`:3` 注释自引 ADR-0022·「当前未接线，恒为 dev」措辞随件① 落地对 revision 臂陈旧·收据附注 A 登记）——**第三消费者声明面·零改面** |
 | `ai-docs/architecture/adr/0022-app-versioning-release.md` | `30dce003` | **`:51-53` §4：`version` 读 `APP_VERSION`、`revision` 读 `APP_REVISION`/`GIT_SHA`·「当前部署管线尚未把 git tag 写入这两个变量…尚未接线」·「刻意不读文件系统取版本…以环境注入为准」——修法裁决权源** |
-| `scripts/ai-docs/public-text-policy.mjs` | `dc9da5bd` | `:67` `MAX_FILES = 2_128`（cap 2120→2128 注释块自证 sanction 链）——docs:check 门 cap 锚 |
+| `scripts/ai-docs/public-text-policy.mjs` | **`cc90574e`**（EXEC 重 pin @`f8edb071`·起草值 `dc9da5bd` 已漂） | **`:75` `MAX_FILES = 2_136`（门 9 cap=**2136**·perfload-env-fix nail `45fb6196` cap sanction 2128→2136 随并线携入·双审 P2 预记行 `:70` 实测 `:75`=纯行号漂移结论零变·收据字段五 D2）——docs:check 门 cap 锚** |
 | `packages/db/migrations/` | —（目录实测） | `ls \| wc -l`=**202**·头 `0202_interview_event_kind_score_card_written.sql`——迁移链锚（预期零迁移） |
 
 ### 0.2 派单简报漂移登记（两件全登·结论处理沿 negbend-fix §0.2 先例）
@@ -116,3 +117,37 @@
 ---
 
 *OPS-HYGIENE REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`7bc8ffaa` · 分支 `line/ops-hygiene` · 工作树 `meetwise-ops`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=协调方派单 brief（5C 批余项 #93/#95·批表本体未落树·以 §0 亲证现场为基）+negbend-fix 形制范本+ADR-0022 · **#93**=运行时版本可观测性缺口，机制=`/meta` 恒 dev 五节断环链（version.ts 读 env 合规·镜像 ARG→LABEL 单写·容器 env 零注入·ADR-0022 §4 自证未接线·构建链 build-arg 已就绪），修法=候选甲 LABEL+ENV 双写恰 1 文件 1 ENV 行（`ENV APP_REVISION=$VCS_REF` 逐字固定）·revision 臂闭合·version（semver）臂 OPEN 归 release 链刀 · **#95**=简报前提不成立（`restore_and_fail` `exit 1` 自初版 `ed128830` 在场·blame 亲证·「静默继续」通道不存在），裁决=失败语义钉死**中断回滚**+零码改验证门（bash -n+四点机检+blob 恒等 `8fe96da2`）·候选乙盲补/候选丙改快速失败均否决 Ban · 门矩阵十一门（静态机检+构建运行时证明+bash -n+blob 五锚恒等+migrate 链 202 头 0202+typecheck+lint 五值恰等+docs:check≤2128 红停+markers 五类+diff 面机检+卫生）· 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+
+---
+
+## §9 EXEC 记录（EXEC 席落卷·2026-10-14·重派席·授权链=pre-exec 双审 BOTH PASS 席1 `agent_1d94c312`+席2 `agent_81ad61ca` 会签+协调方 EXEC 授权（重派 brief·前席 quota 中途死）·收据=件③ `ai-docs/delivery/receipts/ops-hygiene/00-exec.md` 七字段·untracked §2-11 口径）
+
+**工序与 commit 链（单 commit 收口）**：①并线 merge **`f8edb071`**（--no-ff 并 `feat/mysql-schema-skeleton @109e3eb1`=origin tip 亲证·双亲=`d8d03769`+`109e3eb1`·零冲突·`merge-base --is-ancestor` 双向 PASS——**前席落卷遗留·本席亲证后收编·不再重做**（重跑=`Already up to date`无意义）·偏离 D1）；②本 §9+§0 重 pin+双审 P2 折入（本卷）+件① 恰 1 产品文件 +3/0−（`Dockerfile:25-:27`·逐字=`ENV APP_REVISION=$VCS_REF`+2 注释行）+件② 验证only 零字节（`remote-deploy.sh` blob `8fe96da2` 恒等）+件③ 收据=恰 1 commit·⛔push。
+
+**双审 P2 折入四件（rev3 形·席亲证后落笔）**：
+1. **P2-A（cap 锚重 pin）**：§0.1 `public-text-policy.mjs` 起草 `dc9da5bd:67 cap 2128` →重 pin **`cc90574e:75 cap 2136`**（perfload-env-fix nail `45fb6196` sanction 随并线携入·亲读 `:75` `MAX_FILES = 2_136` 亲证）——门 9 cap=**2136**·双审预记行 `:70` 实测 `:75`=纯行号漂移结论零变·按 §0 协议改锚（偏离 D2）。
+2. **P2-B（第三消费者锚补）**：§0.1 增补行 `docker/env/api.env.example`=`3d7d2b2f`·`:4-:5` `APP_VERSION=`/`APP_REVISION=`（`:3` 注释自引 ADR-0022）——`APP_REVISION` 注入声明面第三消费者（部署 env 模板）·零改面。
+3. **P2-C（件① 收据附注）**：「无 `--build-arg` 本地构建→`/meta.revision`='**unknown**' 非 'dev'」语义钉死+措辞陈旧三处登记（`version.ts:4-:6`/`health.controller.ts:59`/ADR-0022 `:53`——均 §3 零触面·更辞权归后继刀）=收据附注 A。
+4. **P2-D（/meta 暴露域 P2 登记）**：`/meta` 零 Guard（控制器无 `@UseGuards`+`main.ts`/`app.module.ts` 零全局守卫亲证）·暴露域=loopback+tailnet·**仓转公开须重评**=收据附注 B。
+
+**门矩阵十一门终值（基 `f8edb071`·件① 工作树状态实测·全绿·全值与 EXIT 原值=收据字段一/二）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 1 | 件① 静态机检 | `^ENV APP_REVISION=\$VCS_REF$` 恰 1=`:27`（>ARG `:19`·<USER `:34`）·LABEL revision 恒 1 | 0 |
+| 2 | 件① 构建运行时证明 | build EXIT=0→容器 stdout `process.env.APP_REVISION`=**`f8edb0712db06729a995959fc975e0d649b96ae3`** 恰=传值·LABEL 双读数同值·探毕 rmi（daemon 29.1.3 在场） | 0/0/0 |
+| 3 | 件② bash -n | EXIT=0 | 0 |
+| 4 | 件② 四点+blob | `:13`/`:47`/`exit 1` 计 1（`:45`）/`:75`·blob **`8fe96da2`** 恒等=**#95 现状已对·批表错账翻面证据** | 0 |
+| 5 | 邻面五 blob | `d04dfcb5`/`42f67f31`/`4cfa1ed3`/`8152cd63`/`abe2c7b2` 恒等零漂 | 0 |
+| 6 | migrate 链 | migrate:prove 全 PASS·链 **202** 头 **0202**·uniqueness `files=202 violations=0` | 0/0 |
+| 7 | typecheck | `8 successful, 8 total`·`0 cached, 8 total`（tsbuildinfo 副产已还原·negbend §9 先例形） | 0 |
+| 8 | lint 五值恰等 | 12/12 包 0 errors·web **601**/root **5235**/api **1421**/worker **954**/ai-runtime **628** 恰等零翻转 | 0 |
+| 9 | docs:check | `scanned 2135`≤cap **2136** EXIT=0（2134 基+收据 1·`ls-files --others` 口径） | 0 |
+| 10 | markers 五类 | 双法零命中：策略引擎 `scanPublicTextPolicy` 对改动集 3 件定向扫描 `violations=0`+词面运行时组装（11+6+3=20 面·/tmp 中转不入卷）grep 改动集全行 EXIT=1（零命中） | 0 |
+| 11 | diff 面机检+卫生 | tracked 恰 **2**=`Dockerfile`（+3/0−）+本卷 .md（§0.1×2+§9）+收据目录 untracked·frozen-lockfile EXIT=0·`.env*` ABSENT 双向·`actualSpendCny=null`·est live=0 | 0 |
+
+**偏离清单（3·全登记零外扩·详=收据字段六）**：D1=前席遗留收编（merge `f8edb071`+件① 未暂存 diff 逐字亲证·派单「未落任何码」与实况漂移）；D2=双审 P2 行锚预记 `:70` 实测 `:75`（纯行漂·cap 2136 结论零变·按 §0 协议改锚）；D3=门 2 探针传值 sha=执行时 HEAD `f8edb071`（§2-2 字面口径·commit 前时点·机制证明与具体值无关·如实登记）。
+
+**停止条件四类全数未触**（现场漂移=§0.1 重 pin 十锚九恒等一漂如实改锚结论零变+§0.0 在飞复核全 branch 扫描零命中；机制不满足=门 2 双读数恰等传值断环已闭；越界需要=交付面恒等件① 恰 1 文件+本卷+收据；验收红不可修=十一门全绿零红）·**§0.2 两件漂移结论/§1.3 候选裁决/§5 Ban/pins 十一值/§1-修法件① 唯一码改面——零改零翻转**。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口（#93 件① 落码+#95 件② 验证翻面证据）· post 双审两外席待派 · 批表/共享 SSOT 行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
