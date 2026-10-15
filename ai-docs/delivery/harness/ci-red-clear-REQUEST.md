@@ -1,6 +1,6 @@
 # CI-RED-CLEAR REQUEST — PR #108 双红+僵尸步清欠刀（gitleaks allowlist 补登+provider-egress manifest 补账+breaker:prove 僵尸步删除+lint 基线注释对表·ci-red-clear 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · rev2 amend 2026-10-14＝pre-exec 双审双 FAIL 处置（P0 假 key 字面脱敏+P1 numstat 实测修正+P2 五项+§0.2-4 升级项登记）·旧起草卷 commit `b0877528` 已被 amend 重写失效·新 SHA=本 commit · pre-exec 双审两外席待派 · alone≠dual · 本 commit docs-only 恰 1 .md · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · rev2 amend 2026-10-14＝pre-exec 双审双 FAIL 处置（P0 假 key 字面脱敏+P1 numstat 实测修正+P2 五项+§0.2-4 升级项登记）·旧起草卷 commit `b0877528` 已被 amend 重写失效·新 SHA=`d056dd91` · rev3 2026-10-14＝§0.2-4 升级项协调方裁选项 (a) sanction＝件⑤ proof.mjs:31 计数同步单行并入（正常叠于 `d056dd91`·非 amend·rev2 SHA 映射仍有效）·修法四件→五件·三→四 tracked 文件 · pre-exec 双审两外席待派 · alone≠dual · STOP 维持 · 本 commit docs-only 恰 1 .md · ⛔push）
 
 **席位**：ci-red-clear 起草席（诊断已由 CI 对账席完成·本席四项现场核验+起草·协调方派）。
 **基线**：`feat/mysql-schema-skeleton` @ `79382f4d`（`git fetch` 后 origin/feat/mysql-schema-skeleton 与本地支线同指 `79382f4d` 亲证）· 分支 `line/ci-red-clear`（本起草席 `git worktree add ../meetwise-crc -b line/ci-red-clear feat/mysql-schema-skeleton` 亲立·HEAD 落 `79382f4d` 亲证）· 工作树 `meetwise-crc`（仓根同级）。
@@ -11,7 +11,7 @@
 ### 0.0 防重双对表
 
 - `git branch --list "line/ci-red-clear*"` 恰 1 命中=本席分支（建前零命中）；`git worktree list | grep -c crc`=1；`ls ai-docs/delivery/harness/ | grep -c ci-red-clear` 建前=0→落卷后唯一同名卷=本卷。
-- **在飞交叠复核（EXEC 立项日必做）**：本刀三产品触面=`.github/workflows/ci.yml`+`.gitleaks.toml`+`ai-docs/architecture/ai/provider-egress-inventory.json`。起草日扫描：全 `line/*` 分支逐一 `git log -1 --format=%H -- <file> <branch>`+`merge-base --is-ancestor` 判定=**三触面零在飞交叠**（全部末触 commit 均 HEAD 祖先亲证）。EXEC 日重扫同口径，任一分支出现非祖先新触→触停止条件「现场漂移」停手上报。
+- **在飞交叠复核（EXEC 立项日必做）**：本刀四产品触面=`.github/workflows/ci.yml`+`.gitleaks.toml`+`ai-docs/architecture/ai/provider-egress-inventory.json`+`scripts/provider-egress-inventory.proof.mjs`（rev3 增第四触面=件⑤）。rev2 起草日扫描：全 `line/*` 分支逐一 `git log -1 --format=%H -- <file> <branch>`+`merge-base --is-ancestor` 判定=三原触面零在飞交叠（全部末触 commit 均 HEAD 祖先亲证）；rev3 补扫第四触面（167 `line/*` 分支同口径·2026-10-14 亲跑）＝唯一非祖先末触 `line/provider-egress-ledger @a175b02a` **判定历史残枝非在飞**（a175b02a 与主线 `e300bfec` 同 subject 同日期双生件·proof.mjs diff 逐字节恒等 33→43 单行 1/1 形·分支 tip `d6c1538d` docs-only nail 2026-10-09 早于基线 2026-10-14 且零触 proof/manifest·内容全被主线吸收→零碰撞面）。EXEC 日重扫同口径四触面，任一分支出现非祖先新触→触停止条件「现场漂移」停手上报。
 - **ci-wiring3 互斥登记（rev2 增补·串行序写死）**：`line/ci-wiring3` tip=`fa8ad4e0`（docs-only 起草卷·基线同 `79382f4d`·其卷 `ci-wiring3-REQUEST.md` §0.0 自证起草日本分支尚零卷宗）——其 §1-修法件②=ci.yml lint gate 注释块对表刷新（彼卷锚 `:103-:106` 四行）与本刀件④ 同触同一注释块=唯一已知在飞交叠面（其件① 四门接线步亦触 ci.yml 但为 `:249` 后纯增行·与本刀 :104-:105 注释区+:193-:194 删行零语义交叠）。**互斥裁决=串行序写死：本刀 EXEC 先行落卷·ci-wiring3 EXEC 后行**——彼刀依其卷 §0.0 既定复核规则（`git log -1 line/ci-red-clear` 出现对同一注释块的非祖先新提交→摘除其件②·Ban 双写同一注释块）让面·对表归本刀件④ 独写。EXEC 立项日双向复核：`git log -1 line/ci-wiring3 -- .github/workflows/ci.yml` 出现主线 `79382f4d` 后非本刀新触→触停止条件「现场漂移」停手上报；本刀 EXEC 未落卷前 ci-wiring3 不得先行开工（次序写死·派单归协调方照此）。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`79382f4d`）
@@ -23,13 +23,14 @@
 | `ai-docs/architecture/ai/provider-egress-inventory.json` | `083bd226`（2112 行） | `schemaVersion=1`·`mode=observe-only`·`releaseEvidence=false`·adapters 5（openai-compatible-chat consumers 18·末条=:161-:164 `model-usage-cache-observe.proof.ts`/local-adapter-test）·environmentReferences **327**（MODEL_API_KEY 组末块=:1944-:1947 `scripts/ha/ha-sandbox.mjs`/test-fixture·`16114f7d` 即在此块尾 append 形制） |
 | `packages/ai-runtime/test/ag24-langfuse-model.proof.ts` | `2a703c58` | **`:85` `process.env.MODEL_API_KEY = 'ag24-proof-…'（全字面见 proof.ts:85）`（红① 被标行）·`:101-:104` `globalThis.fetch = (async …)` 全程 mock 拦截=零 provider 外呼**；假 key 值字面**源码面** rg 恰 1 命中（proof.ts:85·docs/receipts 面不计·零断言耦合·本卷 rev2 起草卷自身脱敏不复抄字面） |
 | `package.json`（根） | `3b04b871` | **`:36-:37` `provider-egress:inventory`/`provider-egress:prove`·`:467` `"failover:prove": "pnpm -C packages/ai-runtime prove:failover"`·全文件 rg `breaker` 零命中（script 缺位实证）** |
+| `scripts/provider-egress-inventory.proof.mjs` | `9807742c`（79 行） | **`:31` `assert.equal(result.stats.registeredConsumerSourcePairCount, 49);`（rev3 件⑤ 唯一落点·单行 49→51·其余 78 行零字节触·双先例 `e300bfec`/`55b68d67` numstat 同 1/1 形）** |
 
 ### 0.2 派单简报漂移登记（结论零变·如实归位）
 
 1. **红① 先例引证归正**：对账席 brief「allowlist 先例 .gitleaks 626ac3cc/16114f7d」——实测 `626ac3cc`=gitleaks allowlist 先例（receipts/log 假 token·+3 行）；`16114f7d`=**egress manifest 补账先例**（非 gitleaks 面·服务修法件②）；gitleaks allowlist 第二先例=**`98d4bab7`**（test-support-fakes.proof.ts·commit message 自证「沿 626ac3cc 形制」）。件① 沿 626ac3cc+98d4bab7·件② 沿 16114f7d——两先例各归其位·裁决方向零变。
 2. **红② 计数归正**：brief「两 proof 未登记+MODEL_API_KEY 引用」——实测 `node scripts/provider-egress-inventory.mjs` EXIT=1 恰 **3** findings：consumer 缺登 2（invoke-model-delta.proof.ts+model-op02-endpoint-partition.proof.ts·均 openai-compatible-chat）+env 缺登 **1**（MODEL_API_KEY 仅 invoke-model-delta.proof.ts——model-op02 用 `openAICompatibleClient({ env: {} })` 字面量（:160-:162）零 `process.env` 读·rg+检查器双证）。恰 3 非笼统「两+一组」。
 3. **红③ 补强证据**：`724d61b5` commit message 自证「残留清理：circuit-breaker.ts 131 行+rate-limit-model.ts 162 行+breaker.proof.ts 138 行整删+index.ts :196-201 删 5 保 :199 failoverModel+根 breaker:prove+ai-runtime prove:breaker 两门+alert.rules ModelCircuitBreakerOpen 块」——script 删除为 AG24 合法清理本体，CI 步接线为其残留。
-4. **rev2 实测新发现（升级协调方·未决前 Ban EXEC 立项）**：`scripts/provider-egress-inventory.proof.mjs:31` 硬编码断言 `registeredConsumerSourcePairCount===49`——件② verbatim 落码 /tmp 树实测：inventory EXIT=0（自报 51 pairs/328 env）而 **prove EXIT=1（`51 !== 49` 断言红·本席双面亲跑）**→门2「双绿」按现卷不可达。该计数断言随登记增存在既定机械跟进先例：`e300bfec`（egress1 EXEC·「proof.mjs:31 单行 33→43 机械跟进（486e1fad 同型·diff 亲证恰 1 行·其余断言零改·Ban 括注 proof.mjs:31 豁免）」）+`55b68d67`（AG-24 nail·「计数断言按实数同步 48→49·计数基线随 union 增非放宽」）——所需修法=proof.mjs `:31` 单行 49→51（恰 1 行·其余断言零改·沿先例同型）。但该文件现属 §3-2 Ban 面（零检查器触）→**扩权裁决归协调方**：选项 a=§3-2 增 proof.mjs:31 单行豁免括注+该单行并入修法（届时 4 tracked 文件）；选项 b=维持 3 文件则门2 prove 半门必红=「机制不满足」类停。本 rev2 不擅扩·件①-④ verbatim 零触照旧·门2 已附 rev2 交叉引用·pre-exec 复审必须先决本项。
+4. **rev2 实测新发现（升级协调方·未决前 Ban EXEC 立项）**：`scripts/provider-egress-inventory.proof.mjs:31` 硬编码断言 `registeredConsumerSourcePairCount===49`——件② verbatim 落码 /tmp 树实测：inventory EXIT=0（自报 51 pairs/328 env）而 **prove EXIT=1（`51 !== 49` 断言红·本席双面亲跑）**→门2「双绿」按现卷不可达。该计数断言随登记增存在既定机械跟进先例：`e300bfec`（egress1 EXEC·「proof.mjs:31 单行 33→43 机械跟进（486e1fad 同型·diff 亲证恰 1 行·其余断言零改·Ban 括注 proof.mjs:31 豁免）」）+`55b68d67`（AG-24 nail·「计数断言按实数同步 48→49·计数基线随 union 增非放宽」）——所需修法=proof.mjs `:31` 单行 49→51（恰 1 行·其余断言零改·沿先例同型）。但该文件现属 §3-2 Ban 面（零检查器触）→**扩权裁决归协调方**：选项 a=§3-2 增 proof.mjs:31 单行豁免括注+该单行并入修法（届时 4 tracked 文件）；选项 b=维持 3 文件则门2 prove 半门必红=「机制不满足」类停。本 rev2 不擅扩·件①-④ verbatim 零触照旧·门2 已附 rev2 交叉引用·pre-exec 复审必须先决本项。**rev3 处置（2026-10-14·协调方裁选项 (a) sanction）**：proof.mjs:31 计数同步单行并入修法=**件⑤**（§1-修法）+§3-2 单行豁免括注+门2/门4 口径更新——「未决前 Ban EXEC 立项」随 sanction 解除·本项自 rev3 起已决（件② 落码后实测 pairs=51·inventory+prove 双绿 rev3 临时树亲跑）。
 
 ### 0.3 迁移号登记（预期零迁移）
 
@@ -66,7 +67,7 @@
 - 红③ 候选「改指 failover:prove」「恢复 breaker script」：否决（§1.3）。
 - 红② 候选「放宽检查器/降级 warn」：否决——fail-closed 检查语义为 egress 治理本体（`scripts/provider-egress-policy.mjs` 策略面）·为绿改门=Ban 同类。
 
-## §1-修法（权限链修复刀·预期恰 3 tracked 文件·零迁移零测试码零产品码）
+## §1-修法（权限链修复刀·rev3 起预期恰 4 tracked 文件·零迁移零产品码·零测试码改形（件⑤ proof.mjs:31 计数同步单行=§3-2 豁免括注·非改形））
 
 - **件①（红① allowlist 补登）**：`.gitleaks.toml` `[allowlist]` paths 数组尾（现末条=test-support-fakes 行后、`]` 前）append 恰 3 行（原样照抄·沿 `626ac3cc` +3 行形制）：
   ```toml
@@ -103,41 +104,42 @@
         # package.json lint script 恰等：api 1421/web 601/worker 954/ai-graphs 47/ai-runtime 628/config 0/contracts 265/db-mysql 0/db 1042/domain 115/qdrant-store 27/root 5235）——
   ```
   断言：替换后注释所列 12 值与各 workspace package.json `lint` script 值**逐值恰等**（EXEC 以 rg 对表回执·一值不等即停）。
-- **件⑤（收据）**：`ai-docs/delivery/receipts/ci-red-clear/00-exec.md`——七字段（门矩阵全表+EXIT 原值+红① 改前 gitleaks finding 原文与改后消红对照+红② 改前 3 findings 原文与改后双绿+diff numstat（**基准=rev2 /tmp 树实测三文件逐件值：.gitleaks.toml +3/-0·manifest +13/-0·ci.yml +2/-4·门4**）+重 pin 全表+偏离清单（含 §0.2-4 升级项处置结果））。**untracked 口径不入库**（沿 negbend 收据先例）。
+- **件⑤（红② 计数同步单行·rev3 并入·协调方 sanction 选项 (a)·2026-10-14）**：`scripts/provider-egress-inventory.proof.mjs:31` 恰 1 行 `assert.equal(result.stats.registeredConsumerSourcePairCount, 49);` → `assert.equal(result.stats.registeredConsumerSourcePairCount, 51);`（其余 78 行零字节触·沿 `e300bfec`（egress1 EXEC·proof.mjs:31 单行 33→43 机械跟进·numstat 1/1）+`55b68d67`（AG-24 nail·48→49 按实数同步·numstat 1/1）双先例同型）。**实测依据（rev3 本席临时树 verbatim 件②+件⑤ 落码亲跑 @`d056dd91` 树）**：件② 落码后 registeredConsumerSourcePairCount 实测 **51**=18+2 consumers 新增配对——inventory EXIT=0 自报 `registered_consumer_source_pairs=51`+`environment_references=328`·prove EXIT=0 7/7 双绿·`git diff --numstat` 实测 proof.mjs **1+/1-**（git 配对下改行计 1 增 1 删·两先例 numstat 同 1/1 形·非 +1/-0）。计数系登记面直接函数=随 manifest consumers 数确定性派生·**计数同步非断言放宽**（§3-2 括注）。
+- **件⑥（收据·rev3 自件⑤ 顺延）**：`ai-docs/delivery/receipts/ci-red-clear/00-exec.md`——七字段（门矩阵全表+EXIT 原值+红① 改前 gitleaks finding 原文与改后消红对照+红② 改前 3 findings 原文+改前 prove `51 !== 49` 原文与改后双绿对照+diff numstat（**基准=rev2/rev3 临时树实测四文件逐件值：.gitleaks.toml +3/-0·manifest +13/-0·ci.yml +2/-4·proof.mjs +1/-1（rev3 实测）·合计 19+/5-·门4**）+重 pin 全表+偏离清单（含 §0.2-4 升级项处置结果=sanction (a) 件⑤ 落卷））。**untracked 口径不入库**（沿 negbend 收据先例）。
 
 ## §2 验收断言（pre-exec 双审核对单基面·门矩阵十一门·数字口径以实跑实测为准·偏差熔断见各门）
 
 > **实跑前置（rev2·适用门5/7/8）**：EXEC 先 `pnpm install --frozen-lockfile`（EXIT=0 且 `git status --porcelain pnpm-lock.yaml` 零输出=零 lockfile 变更·有输出即停越界类）再跑三门。
 
-1. **红① 消红（本地目标面）**：`gitleaks detect -c .gitleaks.toml -v --log-opts="origin/main..HEAD"` 输出中 `ag24-langfuse-model.proof.ts` 命中=**0**（verbose grep 实测·改前=逐 commit 重复命中）；`.gitleaks.toml` diff=恰 +3/-0；且 **verbose 输出中 `Commit:` 归属本分支新 commit（amend 后起草卷 SHA）的 finding=0·不限 proof.ts 文件面**（rev2 增列——起草卷自身此前即因假 key 字面入库被 gitleaks 标 `ci-red-clear-REQUEST.md:23` generic-api-key（旧 `b0877528` 指纹本席亲证）·rev2 脱敏后必须零·逐 Finding grep Commit 字段实测）。**CI 终审=推 PR 后观察 secrets-scan 绿**（CI pinned action 版本全量口径本地不可闭证——显式登记「推 PR 后观察」）。
-2. **红② 双绿**：`pnpm provider-egress:inventory` EXIT=0（环境引用实测 327→**328**·openai-compatible-chat consumers 18→**20**·检查器自报计数入收据）+`pnpm provider-egress:prove` EXIT=0（7/7·改前 EXIT=1 恰 3 findings 对照原文入收据）。**rev2 交叉引用**：prove 半门达成依赖 §0.2-4 升级项（proof.mjs:31 计数断言单行 49→51 机械跟进）协调方先决——未决时件② 落码后 prove 实测 EXIT=1（`51 !== 49`·本席亲证）=机制不满足类停·Ban 凑绿。
+1. **红① 消红（本地目标面）**：`gitleaks detect -c .gitleaks.toml -v --log-opts="origin/main..HEAD"` 输出中 `ag24-langfuse-model.proof.ts` 命中=**0**（verbose grep 实测·改前=逐 commit 重复命中）；`.gitleaks.toml` diff=恰 +3/-0；且 **verbose 输出中 `Commit:` 归属本分支新 commit（amend 后起草卷 SHA=`d056dd91`·rev3 起新 commit 同口径）的 finding=0·不限 proof.ts 文件面**（rev2 增列——起草卷自身此前即因假 key 字面入库被 gitleaks 标 `ci-red-clear-REQUEST.md:23` generic-api-key（旧 `b0877528` 指纹本席亲证）·rev2 脱敏后必须零·逐 Finding grep Commit 字段实测）。**CI 终审=推 PR 后观察 secrets-scan 绿**（CI pinned action 版本全量口径本地不可闭证——显式登记「推 PR 后观察」）。
+2. **红② 双绿**：`pnpm provider-egress:inventory` EXIT=0（环境引用实测 327→**328**·openai-compatible-chat consumers 18→**20**·`registered_consumer_source_pairs` 实测 **51**·检查器自报计数入收据）+`pnpm provider-egress:prove` EXIT=0（7/7·51=51·改前 EXIT=1 恰 3 findings+prove `51 !== 49` 对照原文入收据）。**rev3 处置（协调方 sanction 选项 (a)）**：§0.2-4 升级项已决＝件⑤ 单行并入（proof.mjs:31 计数同步·非断言放宽·§3-2 括注·`e300bfec`/`55b68d67` 双先例）——件②+件⑤ 落码后双绿 rev3 临时树亲跑（inventory EXIT=0+prove EXIT=0）·rev2「未决=机制不满足类停」条款随并入解除·届时 prove 若仍红即停（机制不满足类）·实测 pairs 非 51 即停（现场漂移类）。
 3. **ci.yml 解析门**：`actionlint .github/workflows/ci.yml` 判据=**actionlint 自身零 error 级 finding**（1.7.12 本地在位亲证·起草日对基线跑通零 error）；装 shellcheck 的主机对其 `:146`（SC1083 warning×2）与 `:155`（SC2034 warning）报**既存 3 条 SC warning=基线登记面·非本刀触面**（rev2 口径·本席实测基线与件③④落码后输出恒等·该情形 EXIT=1 不判红——判据=逐条 finding 归属面·非 EXIT 裸值）；推 PR 后观察 CI workflow 解析零红。
-4. **diff 面机检**：`git diff --numstat <起草卷 commit>` 恰 3 tracked 路径=`.github/workflows/ci.yml`（0+/2-+2+/2- 注释区）+`.gitleaks.toml`（3+/0- 件①）+manifest（**13+/0-** 件②＝consumers +8/-0+env +5/-0·rev2 /tmp 树逐件 verbatim 落码 `git diff --numstat` 实测·非估算）——多任何 tracked 路径即停（越界需要类）；收据目录 untracked 另记。
+4. **diff 面机检**：`git diff --numstat <起草卷 commit>` 恰 **4** tracked 路径=`.github/workflows/ci.yml`（2+/4-＝0+/2- 件③+2+/2- 件④ 注释区）+`.gitleaks.toml`（3+/0- 件①）+manifest（**13+/0-** 件②＝consumers +8/-0+env +5/-0·rev2 /tmp 树逐件 verbatim 落码 `git diff --numstat` 实测·非估算）+`scripts/provider-egress-inventory.proof.mjs`（**1+/1-** 件⑤·rev3 实测·改行 git 配对计 1 增 1 删·`e300bfec`/`55b68d67` 双先例 numstat 同 1/1 形·非 +1/-0）——合计 **19+/5-**（以实测为准落值·偏差即停）；多任何 tracked 路径即停（越界需要类）；收据目录 untracked 另记。
 5. **邻面不回退**：failover 步与全 job 步序列零动（diff 判据承门 4）+`pnpm failover:prove` EXIT=0 实跑（scripted 零外呼）。
 6. **migrate 链机检**：`ls packages/db/migrations | wc -l`=**202**·头=`0202_interview_event_kind_score_card_written.sql`（届时链顶顺延如实记·本刀零迁移）。
 7. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（8/8·0 cached 口径沿 SSOT 门矩阵）。
 8. **lint 五值**：`pnpm turbo lint` EXIT=0·贴线恰等 **api 1421/web 601/worker 954/ai-runtime 628/db 1042+root 5235**（以届时 package.json 实测为准·恰等不等即停）·零第三红。
 9. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·≤cap **2128**（基线 2123 本树亲跑·落卷后 2124·**>2128 红停上报**）。
-10. **markers 五类零命中**：本刀改动集（本卷 1 .md+3 tracked 修法件+收据目录）五类标记词 grep 零命中（词面不复抄卷内防自匹配·命令与回执入收据）。
+10. **markers 五类零命中**：本刀改动集（本卷 1 .md+4 tracked 修法件+收据目录）五类标记词 grep 零命中（词面不复抄卷内防自匹配·命令与回执入收据）。
 11. **CI 实跑终审（推 PR 后观察口径）**：secrets-scan 绿+provider-egress 两步绿+lint gate 绿+僵尸步消失后 job 全步贯通——本地不可行项（pinned gitleaks 版本全量/workflow 汇总）一律以推 PR 后 CI run 为终审·EXEC 报告登记 run 链接·**push 动作本身归协调方/pusher**（EXEC 席 ⛔push 不变）。
 
 ## §3 范围外（边界清单·越界即 FAIL）
 
-1. **零测试码零产品码**：两 proof 文件+ai-runtime src 零字节改（红① 红② 修法均在配置/清单侧·§1.5 改形否决承卷）。
-2. **零检查器/门语义改**：`scripts/provider-egress-*.mjs`/`scripts/ai-docs/*`/alerts 面/其余 workflow 文件零触。
+1. **零测试码零产品码**：两 proof 文件+ai-runtime src 零字节改（红① 红② 修法均在配置/清单侧·§1.5 改形否决承卷）。**rev3 注**：件⑤ 触 `scripts/provider-egress-inventory.proof.mjs:31` 单行＝§3-2 豁免括注面·计数同步非断言改形·本条两 proof 文件+ai-runtime src 零字节改仍全称成立。
+2. **零检查器/门语义改**：`scripts/provider-egress-*.mjs`/`scripts/ai-docs/*`/alerts 面/其余 workflow 文件零触。**单行豁免（rev3·协调方 sanction 选项 (a)）**：`scripts/provider-egress-inventory.proof.mjs:31` 计数同步恰 1 行（件⑤）——**系计数同步非断言放宽**（count 系登记面直接函数·随件② manifest consumers 18→20 确定性派生 49→51·双先例 `e300bfec`/`55b68d67` 同型）·豁免仅限 :31 本行·该文件其余行零触·fail-closed 门语义零放宽。
 3. **manifest 既有条目零改零删**：仅 append/insert 恰 3 新条目（§1-件②）·Ban 通配·Ban 重排既有序（现数组非全序·序不动）。
 4. **共享 SSOT 零改**：campaign LEDGER/backlog/checklist/north-star 只读引用——僵尸步删除的 LEDGER 行翻面权归协调方。
 5. **零迁移零 DDL**（§0.3）·零依赖升级·零 lockfile 改·零其他工作树触。
 
 ## §4 依赖
 
-**①上游已满足**：`724d61b5` AG24 清理（已并 feat/mysql-schema-skeleton）=僵尸步成因本体；`16114f7d`/`98d4bab7`/`626ac3cc` 三先例均在链；PR #108 红面=CI 对账席 brief 立靶。**②无同文件并发**：三触面在飞交叠起草日零命中（§0.0·EXEC 日重扫必做）。**③迁移号**：§0.3 预期零。**④下游**：本刀绿后 PR #108 job 贯通恢复=主线 merge 前提；行翻面与 nail 归协调方。
+**①上游已满足**：`724d61b5` AG24 清理（已并 feat/mysql-schema-skeleton）=僵尸步成因本体；`16114f7d`/`98d4bab7`/`626ac3cc` 三先例均在链；PR #108 红面=CI 对账席 brief 立靶。**②无同文件并发**：四触面在飞交叠扫描零在飞命中（三原触面 rev2 起草日+第四触面 rev3 补扫·唯一非祖先=provider-egress-ledger 历史残枝判定·§0.0·EXEC 日重扫必做）。**③迁移号**：§0.3 预期零。**④下游**：本刀绿后 PR #108 job 贯通恢复=主线 merge 前提；行翻面与 nail 归协调方。
 
 ## §5 Ban 列表 + pins
 
-**Ban 列表**：Ban push/force-push（git 写只本 worktree commit·push 归协调方/pusher）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban 越出 §1-修法四件触面（三 tracked 文件+收据·就地扩面即停）；Ban 为绿改 proof 断言/改测试码/改检查器语义（§1.5 候选否决沿承）；Ban 恢复 breaker script/复活 `724d61b5` 已删面（§1.3）；Ban 通配/重排/删改 manifest 既有条目（§3-3）；Ban 迁移 Ban DDL（§0.3·需则停上报）；Ban 改共享 SSOT（§3-4·Ban 执行席自翻 LEDGER）；Ban 翻 pins；Ban 造 .env*/写真 Key 值入树入据；Ban 顺带升级依赖包；Ban markers 词面入卷；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）。
+**Ban 列表**：Ban push/force-push（git 写只本 worktree commit·push 归协调方/pusher）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban 越出 §1-修法五件触面（四 tracked 文件+收据·就地扩面即停）；Ban 为绿改 proof 断言/改测试码/改检查器语义（§1.5 候选否决沿承·rev3 单一例外=件⑤ proof.mjs:31 计数同步·§3-2 括注·非放宽）；Ban 恢复 breaker script/复活 `724d61b5` 已删面（§1.3）；Ban 通配/重排/删改 manifest 既有条目（§3-3）；Ban 迁移 Ban DDL（§0.3·需则停上报）；Ban 改共享 SSOT（§3-4·Ban 执行席自翻 LEDGER）；Ban 翻 pins；Ban 造 .env*/写真 Key 值入树入据；Ban 顺带升级依赖包；Ban markers 词面入卷；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）。
 
-**pins（零翻转）**：manifest `schemaVersion=1`·`mode=observe-only`·`releaseEvidence=false` 恒等；gitleaks action pin=`dcedce43c6f43de0b836d1fe38946645c9c638dc` # v2 恒等；environmentReferences 327→328·openai-compatible-chat consumers 18→20；迁移链 202 头 0202（届时顺延如实记）；lint 贴线六口径 api 1421/web 601/worker 954/ai-runtime 628/db 1042/root 5235；docs:check cap 2128；`actualSpendCny=null` 脚注（本刀零消费面）。
+**pins（零翻转）**：manifest `schemaVersion=1`·`mode=observe-only`·`releaseEvidence=false` 恒等；gitleaks action pin=`dcedce43c6f43de0b836d1fe38946645c9c638dc` # v2 恒等；environmentReferences 327→328·openai-compatible-chat consumers 18→20·proof.mjs:31 `registeredConsumerSourcePairCount` 49→**51**（件⑤·随 manifest consumers 确定性派生·rev3 实测 51=18+2 新增配对）；迁移链 202 头 0202（届时顺延如实记）；lint 贴线六口径 api 1421/web 601/worker 954/ai-runtime 628/db 1042/root 5235；docs:check cap 2128；`actualSpendCny=null` 脚注（本刀零消费面）。
 
 ## §6 est live=0（起草 turn·EXEC 期同）
 
@@ -149,12 +151,12 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实四项结论与 §1.5 淘汰登记与 §5 Ban/pins 与 §1-修法件①-④ verbatim 落值**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠重扫必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
-- **现场漂移**：届时 tip 对 §0.1 任一锚 blob/行锚漂移且结论受疑（如 gitleaks action pin 变/manifest 计数非 327/18·ci.yml 僵尸步行号位移或已被他刀删·lint 值再漂）·或 §0.0 在飞重扫现非祖先新触→停·重 pin 回炉。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实四项结论与 §1.5 淘汰登记与 §5 Ban/pins 与 §1-修法件①-⑤ verbatim 落值**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠重扫必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+- **现场漂移**：届时 tip 对 §0.1 任一锚 blob/行锚漂移且结论受疑（如 gitleaks action pin 变/manifest 计数非 327/18/proof.mjs:31 断言非 49·ci.yml 僵尸步行号位移或已被他刀删·lint 值再漂）·或 §0.0 在飞重扫现非祖先新触→停·重 pin 回炉。
 - **机制不满足**：件①② 改后目标红未消（gitleaks 仍现 ag24 命中/egress 仍现 3 findings 任一）→归因链被证伪→停·如实升级协调方回炉（Ban 就地改裁决 Ban 凑绿）。
-- **越界需要**：修法诉求超出三 tracked 文件面（需触检查器/proof/迁移/共享 SSOT）→停·另刀或协调方裁决。
+- **越界需要**：修法诉求超出四 tracked 文件面（需触检查器/其余 proof 面/迁移/共享 SSOT）→停·另刀或协调方裁决。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（lint 第三红/typecheck 新红/docs:check>2128/邻 job 步新红）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
 ---
 
-*CI-RED-CLEAR REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`79382f4d` · 分支 `line/ci-red-clear` · 工作树 `meetwise-crc`（本起草席立·建前 branch+worktree+harness 同名卷三查零命中）· 立项出处=CI 对账席 brief（PR #108 近 5 run 全 failure）· 四项核验=①ag24:85 测试桩假 key（fetch :101 mock 零外呼·本地 gitleaks 8.30.1 range 扫指纹复现·裁决 allowlist 沿 626ac3cc+98d4bab7·改形否决）②egress EXIT=1 恰 3 findings 亲证（两 proof openAICompatibleClient 本地测试消费+invoke-model-delta 假 key env·补账沿 16114f7d 形制恰 3 条目）③breaker:prove 僵尸步（script `724d61b5` 整删+步 ci.yml:193-:194 残留·裁决删步+记账·改指/恢复双否决）④lint 注释五值+root 对表（点亮日旧值 vs package.json 现值逐值亲证）· 修法四件 verbatim 落值（.gitleaks.toml +3/manifest **+13/-0＝consumers +8/-0+env +5/-0 rev2 实测**/ci.yml 删 2+注释对表 +2/-4）· 门矩阵十一门（消红+双绿+actionlint+diff 面机检+邻面+migrate 202+typecheck+lint 六口径+docs:check≤2128+markers+CI 推 PR 后观察口径）· rev2 amend 自 `b0877528`（旧 SHA 失效·审席引用自知·新 SHA=本 commit）＝P0 假 key 字面 :23/:40 截断脱敏（全字面仅存 proof.ts:85）+P1 numstat 实测修正+门1 增列本分支新 commit finding=0+门3 SC warning 基线口径+门5/7/8 install 前置+件③ 对表豁免+§0.0 ci-wiring3 互斥串行写死+§0.2-4 proof:31 升级项待协调方 · 预期零迁移· est live=0 · markers=0 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*CI-RED-CLEAR REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`79382f4d` · 分支 `line/ci-red-clear` · 工作树 `meetwise-crc`（本起草席立·建前 branch+worktree+harness 同名卷三查零命中）· 立项出处=CI 对账席 brief（PR #108 近 5 run 全 failure）· 四项核验=①ag24:85 测试桩假 key（fetch :101 mock 零外呼·本地 gitleaks 8.30.1 range 扫指纹复现·裁决 allowlist 沿 626ac3cc+98d4bab7·改形否决）②egress EXIT=1 恰 3 findings 亲证（两 proof openAICompatibleClient 本地测试消费+invoke-model-delta 假 key env·补账沿 16114f7d 形制恰 3 条目）③breaker:prove 僵尸步（script `724d61b5` 整删+步 ci.yml:193-:194 残留·裁决删步+记账·改指/恢复双否决）④lint 注释五值+root 对表（点亮日旧值 vs package.json 现值逐值亲证）· 修法五件 verbatim 落值（.gitleaks.toml +3/manifest **+13/-0＝consumers +8/-0+env +5/-0 rev2 实测**/ci.yml 删 2+注释对表 +2/-4/proof.mjs **+1/-1** 件⑤ rev3 实测·合计 19+/5-）· 门矩阵十一门（消红+双绿+actionlint+diff 面机检+邻面+migrate 202+typecheck+lint 六口径+docs:check≤2128+markers+CI 推 PR 后观察口径）· rev2 amend 自 `b0877528`（旧 SHA 失效·审席引用自知·rev2 新 SHA=`d056dd91`）＝P0 假 key 字面 :23/:40 截断脱敏（全字面仅存 proof.ts:85）+P1 numstat 实测修正+门1 增列本分支新 commit finding=0+门3 SC warning 基线口径+门5/7/8 install 前置+件③ 对表豁免+§0.0 ci-wiring3 互斥串行写死+§0.2-4 proof:31 升级项 rev3 已决＝协调方 sanction (a) 并入件⑤（proof.mjs:31 计数同步单行·双先例 `e300bfec` 33→43/`55b68d67` 48→49 同型·门2 双绿 51=51 rev3 亲跑·本 rev3 正常叠于 `d056dd91` 非 amend·rev2 引用映射仍有效） · 预期零迁移· est live=0 · markers=0 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
