@@ -1,6 +1,6 @@
 # UC003-FOLLOWUP REQUEST（UC003 i18n 后刀 · 观察面五项收口 = error.tsx 错误壳 + Nav 招聘方三标签 + PublicPreviewNav 六面 + deleteResumeAction 四消息迁 messages + 已具名面维持 · 零迁移 · 单日级）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（rev1 起草席落卷→pre-exec 双审两外席**双 FAIL**（席1 R1+R2/R3/R4/R5+席2 P1/P2①②③·同判 P1=案A S6 裸针结构性永红）→ **rev2 修订席八项处置落卷**（§9 处置摘要·每处亲证后落笔·零码动·本刀恰 1 .md）·**待复审** · **Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+**Status**: **`executed:awaiting_post_prove_dual`**（rev1 起草席落卷→pre-exec 双审两外席**双 FAIL**（席1 R1+R2/R3/R4/R5+席2 P1/P2①②③·同判 P1=案A S6 裸针结构性永红）→ **rev2 修订席八项处置落卷**（§9 处置摘要）→ 窄域复审 agent_9aee3bf6 八项全过+协调方授权 EXEC → **EXEC 执行完毕**（§9.1 执行记录·并线 `ed0cee41`+修法四件+门矩阵七门全绿）·**待 post-prove 双审** · **Ban self-approve** · **alone≠dual**）。
 
 **席位**：UC003-FOLLOWUP i18n 后刀 REQUEST 起草席（协调方派单 brief：UC003-i18n 收口刀 nail 后 checklist STILL OPEN 后刀观察清单五项收口·源出处=`ai-docs/delivery/execution-master-checklist.md:2729` STILL OPEN ④ 逐字 + `apps/web/e2e-ui/uc003-i18n-locale.spec.ts:73-82`（post 重审席2 P2 在树登记物：deleteResumeActionLiterals 具名 known-residual 四条+`<status>` 运行时插值占位形+失败路径不触声明）+ `uc003-i18n-REQUEST.md` §9.5 P1-1(d) 登记出处。docs-only 起草卷·⛔push·⛔改产品码）。
 
@@ -11,6 +11,10 @@
 ---
 
 ## §0 现状锚（起草席亲读·base `3b32b6c8`·file:line 逐条 rg/Read/git ls-tree 实测·**EXEC 立项照本节重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+### 0.3 EXEC 重 pin（2026-10-15·协调方授权 EXEC 后并线实测）
+
+并线 `git merge --no-ff feat/mysql-schema-skeleton`→**merge `ed0cee41`**（双亲 `2e38f4e9`+`8ae2a93e`·ort 零冲突）：①origin tip 实测 `8ae2a93e`（协调方预告 `8ae2a93e+` 恰中）；②**apps/web 十八锚全零漂**（merge 13 文件涉 ai-docs/api·worker test/根 package.json/迁移 0202/scripts·ai-docs——`apps/web/**` 零文件·§0.1 全锚行号逐条 Read 复核恒等·结论零变只更本节）；③**漂移三值如实改锚**：根 lint 预算行 5224→**5235**（#13 漂移·sanction 随并线落行·门⑥ root 任务转 EXIT=0 硬绿·裁决4 无需 EXEC 行使）；cap 2120→**2128**（#15 漂移·`public-text-policy.mjs` MAX_FILES=2_128·d49865ee 落值）；迁移链 201→**202**（`0202_interview_event_kind_score_card_written.sql` 在树）；④**复审 P2 正字**：`spec.ts:29` 系 **navHardcodedLabels 行**（`navHardcodedLabels: ['押题','找工作','岗位匹配']` 三字面行）非 resumePageHeader 首条字面行——§1.2/§9-3 两处面名随 pin 正字；⑤并线后基线三门复跑：S2 parity 194/194+prove raw EXIT=0（6/6）+public-copy 14/14+docs:check 2122≤2128 全过。
 
 ### 0.0 防重双对表
 
@@ -56,7 +60,7 @@
 
 ### 1.2 面② Nav.tsx:49-51 招聘方分支三标签（mw_role cookie 条件面）
 
-`:49 岗位`/`:50 投递`/`:51 笔记` 三裸 zh 字面在 `recruiterLinks`（`:48-53`）·同清单 `:52` settings 已走 `t('settings')`·同文件 `:29` 已用 `getTranslations('nav')`——**同构 i18n 面内唯一裸字面区**。渲染条件=`authed && mw_role cookie==='recruiter'`（`:27/:28/:55/:64`）——**条件面**：spec 流程（golden 注册/登录→/resume·零 mw_role cookie）恒走 candidateLinks → 三标签 DOM 不可达·spec allowlist 亦未含此三面（引语锚 rev2 勘误=`ai-docs/delivery/harness/uc003-i18n-REQUEST.md:297(a)` P1-1(a) 登记语「recruiter 三面 `:49-51` 仅 recruiter cookie 渲染·不在本 spec 流程 DOM·不入列」——`spec.ts:29` 实测为 resumePageHeader 首条字面行·非注语）。`:39-41` 押题/找工作/岗位匹配系 #268 S2a 裁定零 i18n 键面（`:41` 注释）=**⑤ 维持面零触**。零测试锁定（§0.1-2 机证）。
+`:49 岗位`/`:50 投递`/`:51 笔记` 三裸 zh 字面在 `recruiterLinks`（`:48-53`）·同清单 `:52` settings 已走 `t('settings')`·同文件 `:29` 已用 `getTranslations('nav')`——**同构 i18n 面内唯一裸字面区**。渲染条件=`authed && mw_role cookie==='recruiter'`（`:27/:28/:55/:64`）——**条件面**：spec 流程（golden 注册/登录→/resume·零 mw_role cookie）恒走 candidateLinks → 三标签 DOM 不可达·spec allowlist 亦未含此三面（引语锚 rev2 勘误=`ai-docs/delivery/harness/uc003-i18n-REQUEST.md:297(a)` P1-1(a) 登记语「recruiter 三面 `:49-51` 仅 recruiter cookie 渲染·不在本 spec 流程 DOM·不入列」——`spec.ts:29` 实测为 navHardcodedLabels 行（EXEC §0 重 pin 正字·复审 P2·非注语）。`:39-41` 押题/找工作/岗位匹配系 #268 S2a 裁定零 i18n 键面（`:41` 注释）=**⑤ 维持面零触**。零测试锁定（§0.1-2 机证）。
 
 ### 1.3 面③ PublicPreviewNav 六面（环境条件面）
 
@@ -194,7 +198,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 1. **P1（R1·席1+席2 同判）→ §1-静态门载体案A 针清单改定界形**：`重试`→`重试</Button>`（error.tsx `:4` 注释在场亲证·注释面不迁移）·`岗位/投递/笔记`→`label: '…'` 引号定界（Nav.tsx `:41` `label: '岗位匹配'` 亲证·`label: '岗位'` 非其子串——席2 模拟实证：裸 `岗位` 迁移后 includes=true 永红·`label: '岗位'` =false）+防误伤 rationale 一句（针取定界形·禁裸词面）。
 2. **R2 → §1-修法④ 断言面两件 justification 分级**：(a) proof 守卫针反转=**门① 硬阻塞（必迁）**·(b) spec allowlist 移面=**死条目卫生+一致性义务（非门① 因子·仍强制）**。
-3. **R3 → §0.1-12 首查收窄+§1.2 引语锚勘误**：宽 alternation 首查在 test/e2e-ui/scripts 有具名面子串命中（rev2 逐处实测登记：`spec.ts:31/:33/:58`·`online-public.spec.ts:10/:26`·`golden.spec.ts:11/:13`·`scripts/ai-docs/check-docs.mjs:92`·`public-text-policy.mjs:123`）→ 改逐面定界形六查 EXIT 空（唯 `知面 Meetwise` 命中 `online-public.spec.ts:26` 首页品牌既有锁·如实登记非本面锁）；引语「recruiter 三面仅 recruiter cookie 渲染…」归属由 `spec.ts:29` 改 `uc003-i18n-REQUEST.md:297(a)`（spec.ts:29 实测=resumePageHeader 首条字面行·非注语）。
+3. **R3 → §0.1-12 首查收窄+§1.2 引语锚勘误**：宽 alternation 首查在 test/e2e-ui/scripts 有具名面子串命中（rev2 逐处实测登记：`spec.ts:31/:33/:58`·`online-public.spec.ts:10/:26`·`golden.spec.ts:11/:13`·`scripts/ai-docs/check-docs.mjs:92`·`public-text-policy.mjs:123`）→ 改逐面定界形六查 EXIT 空（唯 `知面 Meetwise` 命中 `online-public.spec.ts:26` 首页品牌既有锁·如实登记非本面锁）；引语「recruiter 三面仅 recruiter cookie 渲染…」归属由 `spec.ts:29` 改 `uc003-i18n-REQUEST.md:297(a)`（spec.ts:29 实测=navHardcodedLabels 行·EXEC §0 重 pin 正字·复审 P2·非注语）。
 4. **R4 → §1.6-② web-logic 交面一行**：`:933` 读 Nav 源+唯一 Nav 断言 `:940-941` 锁 `href: '/roles', label: '岗位匹配'`（`:41` 零触面·迁移零扰）+`:1865-1866` messages 读入全 `includes` 子串形（`:1950-1960`）·无键数断言=messages 增键增量安全（grep -n 行号亲证）。
 5. **R5 → 案A 增 `label: '首页'` 针+修法① `:9` 半角分号注记**：PublicPreviewNav `:10` 面收口（在场不渲染面同锁·§0.2-2）；`:9` 亲证「可以重试;」半角 `;` 在场——注记并入逐字誊（半角逗号+半角分号两枚标点原样）。
 6. **席2-P2① → §1-修法④(a) 反转断言补第三支 zh 值逐字钉**：zh.resumeDelete 四值 === 原四字面（四值 verbatim 亲证 `actions.ts:157/:160/:161/:164`·第三值 ICU 形 `删除请求未受理（{status}），未当作已删除。`）——缺此支则「断言迁移非放宽」申明在 zh 内容维度不成立；§2-1 门① 同步注（三支）。
@@ -202,6 +206,20 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 8. **席2-P2③ → 基线段主线 tip 前移登记**：`619f0a92`（ag04-consumer-fix nail merge·祖先链 `--is-ancestor 3b32b6c8 619f0a92` EXIT=0 亲证）·rev2 落笔时刻本/origin tip 实测 `5bd92ce8`（619f0a92 之上 ag04 SSOT 收官一件）——**EXEC 立项照 §0 头注重 pin 条款覆盖此前移**。
 
 **rev2 自检**：改动集=恰 1 .md（本卷）·docs:check **EXIT=0**（**2118** managed ≤ cap 2120·本树亲跑）·五类标记词+冲突标记对改动集直扫零命中·STOP=`draft:awaiting_pre_exec_dual`（**待复审**）维持·⛔push。
+
+### §9.1 EXEC 执行记录（2026-10-15 · 协调方授权 EXEC·rev2 pre-exec 复审 PASS+窄域复审 agent_9aee3bf6 八项全过）
+
+**开工三条款**：①rev2 pre-exec 复审 PASS（原双审双 FAIL 同 P1 收敛+窄域复审八项全过）落卷；②协调方明示授权 EXEC（EXEC 席派单 brief）；③§1-修法清单与 §5 Ban/pins 零改（照 §0 逐条重 pin·§0.3 落档）。
+
+**并线**：`git fetch`→origin tip 实测 `8ae2a93e`（与本地 tip 同指零漂）→`git merge --no-ff feat/mysql-schema-skeleton`→**merge `ed0cee41`**（全 hex `ed0cee41d1db1f3b4a64095a5aac810354465e46`·双亲 `2e38f4e9`+`8ae2a93e`·ort 策略**零冲突**·13 文件 627+/14-·apps/web 零文件）。
+
+**修法四件落点**（案A S6 定界针形）：①`error.tsx` 五面 en 化（`useTranslations('errorBoundary')` 沿 ResumeUploadForms 客户端先例·`:9` 半角逗号+分号逐字誊 zh·`:10` digest 条件分支保留=`t('digestLabel',{digest:error.digest})`·`:4` 注释零触）；②`Nav.tsx:49-51` 三标签 `t('recruiterJobs'/'recruiterTalent'/'recruiterNotes')`（`:29` 既有 t 零新 import·`:39-41` ⑤ 面零触·`:41` `label: '岗位匹配'` 零动）；③`PublicPreviewNav` 六面 `async`+`getTranslations('publicPreview')`（Nav 先例形·links 数组随迁函数体内构造·`layout.tsx:42` 调用面零改）；④delete 四消息迁 `resumeDelete` namespace（`getTranslations({locale:await resumeUploadLocale(),namespace:'resumeDelete'})` cookie 读法先例·`notAccepted` 走 ICU `{status}` 零拼接·四臂 `t()` 形·`actions.ts:27-28` 注释随迁改写=裁决6）+proof 守卫针反转三支（源零残留+双侧在册 en CJK-free+zh 四值逐字钉含 ICU 形）+`:120` 注释同步+spec `:73-82` 移面整除+spec 头注增 delete 面 S6 承接一句（裁决6 限措辞同步面内）+S6 新增（定界针清单全 false+四 namespace 注册双侧+en CJK-free+S5 插值恰 3 行维持）。messages parity 194→**212/212**（nav 15→18+errorBoundary 5+publicPreview 6+resumeDelete 4·恰裁决2 冻结值）。
+
+**门矩阵七门全绿**：①prove raw EXIT=0（S1–S6+G3' 七查全 PASS·S5 插值恰 3 行·S6 定界针全 false）+isolated `pnpm uc003:i18n-locale:prove` EXIT=0 恒等（双口径一致）；②`pnpm web:prove` EXIT=0 全臂原值+`web-logic.proof.ts`/`public-copy.proof.mjs` `git diff` **双空**（零断言改）；③`turbo typecheck` **8/8** EXIT=0+`pnpm -C apps/web typecheck` EXIT=0；④docs:check **EXIT=0（2122 managed ≤ cap 2128**·协调方更新线）；⑤public-copy **EXIT=0 selected=14/14**；⑥lint 五值恰等 EXIT=0：**web 601/root 5235/api 1421/worker 954/ai-runtime 628**（root 预算行 5235 随并线落行·门⑥ root 任务 EXIT=0 硬绿·裁决4 无需行使）；⑦markers 五类+冲突标记对改动集直扫**零命中**（九文件改动集·词面组装式）+est live=0（全门静态/本地·零模型外呼零消耗）。附：`migrate:prove` EXIT=0（链 **202**·0202 在树）；绊线 cite 承登未触（本刀零涉 eval-harness-matrix-cite 改动）。**spec 步骤⑤ UI 实跑诚实登记**：`uc003:i18n-locale-ui:prove` 环境受阻（isolated 栈 live `MODEL_API_KEY` 缺·本环境未设）→**pending 不虚报**沿 UC003 先例·en 面 S6 静态承接+known-residual 登记（裁决5）。
+
+**pins 十一值零翻**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
+
+**STOP=`executed:awaiting_post_prove_dual`**（EXEC 修法+门矩阵毕·待 post-prove 双审·Ban self-approve·alone≠dual）·⛔push。
 
 ---
 
