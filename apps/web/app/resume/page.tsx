@@ -14,7 +14,10 @@ import { resumeStatusLabel } from '@/lib/resume/display';
 import { isOcrPreviewEnabled } from '@/lib/ocr-preview';
 import { resumeUploadCardDescription, type ResumeUploadCopyLabels } from '@/lib/resume/ocr-preview-ui';
 
-export const metadata = { title: '简历 · 知面' };
+export async function generateMetadata() {
+  const t = await getTranslations('resumeMeta');
+  return { title: t('title') };
+}
 
 /**
  * 简历页(Server Component):服务端取令牌→未登录跳 /login;服务端 GET /resume 渲染列表;
