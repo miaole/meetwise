@@ -2813,3 +2813,16 @@ flowchart TD
 - **STILL OPEN（如实登记）**：①scoring-integrity 存量基线红（sci 定谳·perf-prep `6ca9f361` 修法在途 23/0 已验·sci-reconcile-fix 起草卷搁置 superseded）②score_card_written SSE 透传观察登记（件② 目录补录后 SSE 链路透传行为为观察项·归后继观察）.
 - 预算：est live=0（全门=本地 node/tsx+隔离容器零模型外呼·EXEC 收据 untracked 留支线工作树 `meetwise-evk` `receipts/evkind-scorecard-fix/00-exec.md` 仓根非受管根沿 perf-prep 先例）·0 Key 值·`actualSpendCny=null`·链深 **202** 头 0202（本刀恰 1 新迁移 0202）·非 271 计件面·权威值 **191/271**·批表零翻（本刀）·cap 2120→**2128**（协调方预 sanction 随刀落值·余 7）.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line HA-6 companion nail（2026-10-15 SSOT nail · 任务书授权（本波唯一主线推送席·⛔force push） · HA-6 COMPANION 闭卷登记刀（docs-only 零码零迁移·post 补位双审会签闭卷+disposition/LEDGER 滞后登记勘误翻面·HA 行映射面 6/9→9/9 零新增件·非 271 计件））
+
+- **授权链全链如实载**：REQUEST `ha-6-companion-REQUEST.md` 落卷 `8ba93f0b`（2026-10-11 · W1 连接预算帽 P=12+W2 限流 ×N 稀释处置+W3 PgBouncer 预览尺度不加+键值/密度/普查三收据·pre-exec 双审 BOTH PASS·协调方派单即 §8 开工授权）→ **EXEC `90258ec3`**（C1 `docker/compose.ha.yml` 锚块恰一行 `PGPOOL_MAX: "12"`（P=12 越界 [10,15] 即修法漂移）+C2 `receipts/ha-6/resource-budget.json`+C3 `receipts/ha-6/rate-limit-census.json`+ha6:prove 五断言面·disposition 落卷 `exec:awaiting_post_prove_dual`）→ **post 审+§七四登记项随 nail 落 → merge `88459afb`**（--no-ff 双亲 `c7142596`+`90258ec3`·merge-base `20186718`·对 HEAD `git merge-base --is-ancestor` 亲证）→ **本席补位双审会签闭卷**（协调方裁决：闭卷登记照席2 六项清单落+席1 R2 provenance/R1 漂移登记并入）.
+- **provenance（席1 R2·如实登记）**：merge 辞自称「post-prove 双席 BOTH PASS」按**未证叙事**处理——provenance=**本席补位双审**（席1 agent_c851a789 交付本体四项 PASS（W1/W2/W3/B1 四面机制核过）+行号锚腐烂定域；席2 agent_d5a319f4 三值裁决：(a) post 实质已发生+六项闭卷清单为本笔落卷依据）·本席复核 PASS.
+- **复验值（帧内·merge 辞载）**：`pnpm ha6:prove` EXIT=0 **76 PASS/0 FAIL** 对账+`ha-track:skeleton:prove` EXIT=0+根 package.json scripts 键数机检 **592→593**（removed=[] · added=[ha6:prove]）+`docker compose config` 渲染 EXIT=0 且 api-a/api-b/worker-a/worker-b **四 service `PGPOOL_MAX: "12"` 抽查 PASS**.
+- **本席现树抽查（语义面完好实证）**：compose.ha.yml `:56` `PGPOOL_MAX: "12"` 值恒等+锚合并消费点 count=4+`packages/db/src/principal.ts:946` `process.env.PGPOOL_MAX ?? 20` 单源在位+census `countClosure` flows=13/expected=13 全等.
+- **footnote**：merge 辞「8 files +742/−1」基线=**`90258ec3` vs merge-base `20186718`**（本席 `git diff --stat` 亲证复算恒等）.
+- **随卷注记（席1 R1 漂移登记并入）**：disposition §七 ①② 帧值系 **nail 树（`88459afb`）时点值**（①四消费点 `:158/:185/:212/:276`·②锚块末 `:113`/次锚 `:115`·本席 merge 树亲证）·现树 **−2 再漂归 `724d61b5`**（删锚块内 MODEL_MAX_CONCURRENT/MODEL_RPM 两行→四消费点现 `:156/:183/:210/:274`·锚块末 `:111`/次锚 `:113`）·`ha6:prove` 系**基线钉一次性门**——HEAD 实跑 EXIT=1（**50 PASS/26 FAIL**·本席亲跑复算恰等）26 FAIL 全归因后继授权刀（`f31d56d1` 异步化挪行 21 A3 锚+`724d61b5` 删门 4 锚）**非 ha-6 回归**·修复语义面现树完好（上条抽查）·**ha6-repin 后刀已立项**（行号锚→内容锚）.
+- **R3 勘误一行**：disposition §一「`rate-limit.service.ts:4` seam 注释维持原样零改」系**审查席 git-diff 亲证**·非 proof A5 断言面（§一 原行照 append-only 不回改·勘误随本段载）.
+- **滞后登记勘误翻面**：disposition `:3` `exec:awaiting_post_prove_dual`→**closed**（原系滞后登记·沿 ag-cost5 卷主翻面先例）·LEDGER `:214` HA 行 **6/9→9/9**（R-20/21/23 已闭 @`88459afb`）+`:255` 滞后行原位勘误（→nailed @`88459afb`）·权威值 **191/271 维持**（HA 行系行映射面·零新增件零批件翻动）.
+- 预算：est live=0（docs-only 零模型外呼·零 secrets）·0 Key 值·`actualSpendCny=null`·链深 **202**（本刀零新迁移）·cap **2128 维持**（本刀零新受管件·docs:check 2121≤2128）.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
