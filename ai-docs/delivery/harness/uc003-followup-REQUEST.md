@@ -1,6 +1,6 @@
 # UC003-FOLLOWUP REQUEST（UC003 i18n 后刀 · 观察面五项收口 = error.tsx 错误壳 + Nav 招聘方三标签 + PublicPreviewNav 六面 + deleteResumeAction 四消息迁 messages + 已具名面维持 · 零迁移 · 单日级）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（rev1 起草席落卷→pre-exec 双审两外席**双 FAIL**（席1 R1+R2/R3/R4/R5+席2 P1/P2①②③·同判 P1=案A S6 裸针结构性永红）→ **rev2 修订席八项处置落卷**（§9 处置摘要）→ 窄域复审 agent_9aee3bf6 八项全过+协调方授权 EXEC → **EXEC 执行完毕**（§9.1 执行记录·并线 `ed0cee41`+修法四件+门矩阵七门全绿）·**待 post-prove 双审** · **Ban self-approve** · **alone≠dual**）。
+**Status**: **`closed`**（2026-10-15 卷 Status 收口·docs 收口席·协调方授权批表翻面+卷 Status 收口批次·沿 ag-cost5 卷 closed 先例·一行依据=nail merge --no-ff 并主线 @`e48f64a5`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）+SSOT 收官卷 @`79382f4d`（「Line uc003-followup nail」段·同法祖先亲证·授权链 7b316af5→双审 P1→rev2 `2e38f4e9`→窄域复审→EXEC `ed0cee41`+`f93b3613`→post 双审会签 PASS 在卷）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）。
 
 **席位**：UC003-FOLLOWUP i18n 后刀 REQUEST 起草席（协调方派单 brief：UC003-i18n 收口刀 nail 后 checklist STILL OPEN 后刀观察清单五项收口·源出处=`ai-docs/delivery/execution-master-checklist.md:2729` STILL OPEN ④ 逐字 + `apps/web/e2e-ui/uc003-i18n-locale.spec.ts:73-82`（post 重审席2 P2 在树登记物：deleteResumeActionLiterals 具名 known-residual 四条+`<status>` 运行时插值占位形+失败路径不触声明）+ `uc003-i18n-REQUEST.md` §9.5 P1-1(d) 登记出处。docs-only 起草卷·⛔push·⛔改产品码）。
 
