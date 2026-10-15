@@ -117,7 +117,12 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
             const ev = toBusinessEvent(f);
             // 服务器按 seq>Last-Event-ID 重放，但代理、切换网络或错误客户端仍可能投递重复帧。
             // 在归约前拒绝 <= 水位的帧，防止重复题目/重复区块/重复 React 更新。
-            if (!ev || ev.id <= highestId) continue;
+            if (!ev) continue;
+            // TOKSTREAM S4b 光标守卫（F2 联动·interview-state 守卫的上游半）：token_delta 全表唯一
+            // id optional——不过水位滤网、**不动 highestId**（undefined 一经赋值会毒化本 chunk 内后续
+            // 权威帧的 `ev.id <= highestId` 去重比较，致重放帧漏过滤）。
+            if (ev.id === undefined) { events.push(ev); continue; }
+            if (ev.id <= highestId) continue;
             events.push(ev);
             highestId = ev.id;
           }

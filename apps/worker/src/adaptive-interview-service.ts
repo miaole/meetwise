@@ -12,6 +12,7 @@ import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } fro
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
 import { withGenerationProgress } from './generation-progress.ts';
+import { withTokenStream } from './token-stream.ts';
 
 /** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
 function nativeRetrievalFailureToken(reason: string): string | null {
@@ -457,7 +458,12 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       const initialRevision = rollSeq === 0 ? `${d.threadId}:ask:t${turn}` : initialKey;
       // AG-37(修法③):progress 包装外单点出参回流——success 形（模型出题/scenario 降级模板/grounded-refs
       // 回退模板）attach holder 现值;失败形 ok===false 原样（节点失败臂不写 state 位·通道原值保留）。
-      return withDeficitOut(await withGenerationProgress(d.pool, d.owner, d.threadId, {
+      // TOKSTREAM S4b（R3 三触发面之三）：withTokenStream 外包裹（token_delta 传输态·pg_notify 不落表），
+      // 阶段1 generation_* 持久粗进度面零字节零回归；attemptKey=initialKey（re-roll `:r{k}` 换 invoke 键
+      // 时 sink 帧内 attemptKey 恒为包装层注册键·seq 在该键内连续——web 按 attemptKey 键控缓冲不互毒）。
+      return withDeficitOut(await withTokenStream(d.pool, d.owner, d.threadId, {
+        attemptKey: initialKey, jobKind: 'next_question',
+      }, (tokenSink) => withGenerationProgress(d.pool, d.owner, d.threadId, {
         jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
         attemptKey: initialKey, segments: ['retrieve', 'generate', 'validate'],
       }, async (run) => {
@@ -535,7 +541,10 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           // C6/S3:grounded 传选定事实(2-4 条);followUp=上轮上下文(闭包派生,不可信,buildData 封段标记)。
           model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined }, undefined, material),
+          // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
+          onModelDelta: (delta: { text: string }) => tokenSink.pushDelta(delta.text),
         }, d.pool, d.owner);
+        tokenSink.endUsage(undefined);   // ⑦对账遥测（InvokeOutcome 零 usage 出参=只记 Σdelta 半·关口零改不扩出参）
         recordUsageSoft(d.pool, d.owner, {
           invocationKey: idempotencyKey, interviewId: d.threadId, operationId: QUESTION_OPERATION_ID,
           cause: 'error' in outcome ? usageCauseForInvokeError(outcome.error) : 'system_ask',
@@ -674,7 +683,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       return modelGeneration(out.value.q, cited.sources, {
         operationId: QUESTION_OPERATION_ID, idempotencyKey, ...(familyRolls + rerolls > 0 ? { reroll: familyRolls + rerolls } : {}),
       });
-      }));
+      })));
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。

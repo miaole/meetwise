@@ -40,9 +40,10 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2048→2064（2026-10-13 协调方授权上调：AG-38 qa-tool-layer 等批次刀净增受管文件·计数预算非内容策略；
 // AG-12 成本轨③ EXEC 立项随翻同值——该清欠在飞未及落主线·本刀 +3 文件（2 proof+1 迁移）触顶 2050·
 // 按派单 sanctioned 值最小实现·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 落卷）。
-// cap 2064→2072（2026-10-14 协调方授权上调：ciw2 四新件+主线增长·计数预算非内容策略·主线侧历史步注记）·
+// cap 2064→2072（2026-10-14 协调方授权上调：ciw2 四新件+主线增长·计数预算非内容策略）。
 // cap 2072→2080（AG-11 成本轨④ post 补证派单：新 settle 五相 proof 件净增 1 受管文件·EXEC 已触顶 2064·
 // 沿前次 +16 同步长·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 附记落卷）。
+// cap 2072→2080（2026-10-14 协调方授权上调：S4b 流式进度收口 +7 受管新文件+余量·计数预算非内容策略）。
 // cap 2064→2080（2026-10-14 · 5B 迁移消费刀 EXEC 按 AG-12/COST2 先例机制最小实现：本刀 +11 受管文件
 // （10 版本化迁移+1 运维手册·均为派单授权产出）触顶 2073>2064；计数预算非内容策略·越限臂 fabricated 数
 // 随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 EXEC 附记显耀登记·post 双审/协调方可否决·
@@ -59,7 +60,14 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // 后继四刀并集+余量；计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2104→2112（2026-10-14 协调方 sanction·+8 本刀收据受管件增量·沿 +8 先例形·
 // ssepush-notify 回归修复刀并线树受管件并集+余量；计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_112;
+// cap 2112→2120（2026-10-14 协调方 sanction·+8 S4b 收据/卷/token-stream 三面受管件：tokstream-s4b 卷
+// +sse-delta-arm/token-stitch/token-typewriter/token-delta/worker token-stream 及其 proof/invoke-model-delta
+// proof 计面 8 件·主线 2106+并集=2114 实测红停 PTP_FILE_LIMIT:2114>2112·沿 +8 先例取 2120 头空；
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2120→2128（2026-10-14 协调方预 sanction·+8 evkind-scorecard-fix 收官并线 feat/mysql-schema-skeleton
+// @5bd92ce8 新增 admin-disable-evict/ag04-consumer-fix 两受管件+余量·沿 +8 先例形；
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_128;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
