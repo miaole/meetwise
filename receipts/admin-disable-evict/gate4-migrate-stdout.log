@@ -1,0 +1,140 @@
+
+> meetwise@0.1.0 migrate:prove /Users/miaole/Desktop/golucky/meetwise-ade
+> node scripts/run-e2e-isolated.mjs migrate:prove
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-31349-1792012998515 on 127.0.0.1:62665
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:migrate /Users/miaole/Desktop/golucky/meetwise-ade/packages/db
+> tsx test/migrate.proof.ts
+
+PASS  首次:两迁移都应用(按序)
+PASS  表真建出来
+PASS  schema_migrations 记 2 条
+PASS  幂等:重跑无新应用(全 skip)
+PASS  只跑新增的 0003
+PASS  普通迁移禁止自带 BEGIN/COMMIT，DDL 与 ledger 只能由运行器同一事务托管
+PASS  同一行多语句和前置注释不能绕过事务控制门
+PASS  事务控制别名与两阶段提交不能脱离运行器事务
+PASS  字符串、注释和 PL/pgSQL dollar quote 内的 BEGIN 不会被误拒
+PASS  并发索引迁移: 真索引建成且随后才记账本
+PASS  并发索引迁移: 重跑只 skip，不重建或重复记账
+PASS  并发索引迁移: 夹带第二条 SQL 在 DDL 前拒绝且不记账
+PASS  并发索引迁移: 缺 IF NOT EXISTS 的不可恢复写法在 DDL 前拒绝
+PASS  并发索引迁移: 同名有效但表/列/谓词不符时不写账本
+PASS  并发索引迁移: 同名有效 BRIN 不能冒充声明的 B-tree，账本保持为空
+PASS  并发索引迁移: 同名 UNIQUE 属性错配时不写账本
+migration_invalid_index_cleanup version=0003c index=ix_mig_unique_conflict action=drop_invalid_retry
+PASS  并发唯一索引失败留下无效物理索引: 不记账、重跑恰一次清理重试后仍失败关闭(#145 恰一次 heal·R-1 改写)
+PASS  并发索引迁移: 已记账但物理索引被删时重跑失败关闭
+PASS  漂移检测:改已应用迁移(0001)→ 报错(禁止改历史)
+PASS  坏迁移抛错且不记录(事务回滚)
+PASS  非空且无迁移账本: DDL 前拒绝破坏性 baseline
+PASS  拒绝后业务表和行仍在
+PASS  拒绝后不创建迁移账本
+PASS  非连续迁移账本: 在缺失 baseline 的 DDL 前拒绝
+PASS  坏账本拒绝后业务表、数据和账本保持不变
+PASS  版本化目录没有普通迁移自带事务控制语句
+PASS  0121 简历 pgcrypto 迁移已纳入目录且文件字节 checksum 精确受管
+PASS  0121 位于版本化 manifest 的连续前缀尾部，未出现重复编号
+PASS  加载迁移(0001_baseline 起,≥3)
+PASS  加载 P0 commerce 迁移 0020
+PASS  加载 question identity 迁移 0021
+PASS  加载 event 唯一约束对齐迁移 0027
+PASS  加载 application-bound interview 迁移 0028
+PASS  加载 qbank generation/hybrid 迁移 0029
+PASS  加载 B 端岗位发布幂等迁移 0030
+PASS  加载题目业务实体/多 chunk RAG 迁移 0031
+PASS  加载通用 RAG corpus 版本控制迁移 0032
+PASS  加载 AI 费用账本与预算状态机迁移 0033
+PASS  加载已发布费用账本函数修复迁移 0034
+PASS  加载费用账本 principal 绑定迁移 0035
+PASS  加载文本/多模态模型费用迁移 0036
+PASS  加载模型调用持久幂等状态机迁移 0037
+PASS  加载 OCR 崩溃恢复加密工件迁移 0038
+PASS  加载 OCR binding provenance 迁移 0127
+PASS  加载简历 OCR 衍生记录删除迁移 0039
+PASS  加载低权网关调度迁移 0040
+PASS  加载 API 低权运行迁移 0041
+PASS  加载运行时指标低权网关迁移 0042
+PASS  加载 LangGraph checkpoint 低权迁移 0043
+PASS  加载 checkpoint thread RLS 迁移 0045
+PASS  加载评分不可用恢复迁移 0046
+PASS  加载简历稳定引用写门与在线部分索引迁移 0052–0055
+PASS  加载模型派发后未知结果对账迁移 0056
+PASS  加载模型调用费用 scope 绑定迁移 0057
+PASS  加载逻辑节点 canonical header 与单派发 slot 迁移 0085
+PASS  加载题库工件完整性迁移 0065
+PASS  加载题库独立控制执行器迁移 0066
+PASS  加载题库控制面原文读取与活动 generation 边界迁移 0067
+PASS  0121 ledger 记录与源码精确 checksum 一致（线上已执行版本不可漂移）
+PASS  baseline 应用 → 真生产 schema 建出来(user_account/payment_order/vector_chunk)
+PASS  0020 → providerTxn partial unique index 已建
+PASS  0020 → interview/consumption terminal-pair trigger 已建
+PASS  0065 → 题库已发布工件和映射不可原地改写 trigger 已建
+PASS  0066 → app_role 失去题库控制写/切换权限，独立 executor 获得最小控制函数权限
+PASS  0067 → app_role 无原始题库表读取权限，只能调用活动 generation metadata 受限读函数
+PASS  0021 → interview_question + 事件去重索引已建
+PASS  0027+0149 → 事件去重唯一最终态=仅 0021 partial（DBM3-1 D3 删 0027 表级约束·ON CONFLICT arbiter 不变）
+PASS  0028/0046 → application/interview attempt 唯一索引与自动回填 trigger 已建
+PASS  0029 → qbank 可重建事实、generation 指针、语料 epoch 与分区表已建
+PASS  0067 → qbank 分词仅由控制 executor 与受限 SECURITY DEFINER 检索函数使用，app_role 无原始辅助函数执行权
+PASS  0030 → 同招聘方岗位发布 idempotency 唯一索引已建
+PASS  0031 → qbank_question 与有角色的 qbank_question_chunk 已建
+PASS  0032 → 通用 corpus、generation、binding 与删除审计表已建
+PASS  0033 → 价格版本、月预算与预留账本已建
+PASS  0036 → 文本调用双向 token 价格与预留过程已建
+PASS  0037 → 模型调用持久幂等表、未知调用索引与强制行级安全已建
+PASS  0038 → OCR 加密恢复工件表与强制行级安全已建
+PASS  0127 → resume_profile.ocr_binding 存在且无明文 text 列
+PASS  0127 → OCR identity pairing/immutability trigger 存在
+PASS  0121 → app_role 仅获简历运行时所需的双参数 pgcrypto 能力，PUBLIC 与可选参数重载保持拒绝
+PASS  0039/0088 → app_role 仅保留 OCR trace 删除权，调用账本不得直接删除
+PASS  0040 → 无表权限的网关角色只获固定调度函数执行权
+PASS  0041 → user_account 强制 RLS，网关仅有固定函数执行权
+PASS  0042 → worker 仅有固定全局指标函数执行权，不具备费用账本 SELECT
+PASS  0043 → checkpoint schema 在迁移期建好，app_role 仅有运行时数据权限
+PASS  0045 → checkpoint thread enrollment 与三张保存表均强制 RLS
+PASS  0046 → 岗位申请可显式评分不可用、历史 attempt 唯一、failed 必须释放
+PASS  0052–0055 → 简历稳定引用门与遗留批量分类部分索引已建
+PASS  0056/0057 → 仅网关可枚举过期模型派发 owner，应用只可按绑定 scope 冻结自己的匹配费用
+PASS  0085/0088 → 逻辑节点 header/slot 与调用状态机由受控过程维护，app_role 没有 invocation 直写权限
+PASS  0174 → terminalize 升 10 参后 $10 DEFAULT 保 9 参调用面: 新签名 app_role 可 EXECUTE·pg_proc 10 参带 DEFAULT·9 参调用形解析进体(42501 守卫·非 42883)
+PASS  增量 0135 → resume_quiz 有 ALTER 加的 expires_at 列(非 DROP 重建·真迁移对象)
+PASS  再部署:全迁移 skip(不重跑任何 DROP)
+PASS  **零数据丢失**:再部署后业务数据仍在
+PASS  DBHY-1(0145):app_setting 死表已退役(fresh deploy 不再产死表)
+PASS  DBHY-1(0145):consumption_record 死表已退役(幂等真身=entitlement_consumption 在产)
+PASS  字节序切换前置: 现树 migrations/ 全量文件名 localeCompare 序==字节序逐对等价(197 文件·0143/0152/0160 双号对内序全等)
+PASS  字节序负测: 构造两序分歧样本证明比较器真切换(字节 B<a · locale a<B)
+PASS  字节序: PG ORDER BY v COLLATE "C" 序==runner 字节序(分歧样本进真排序算子·R-3 消两序残面)
+PASS  事务臂 timeout: 迁移事务内 set_config 生效(statement=5s/lock=4s 会话级观测对表)
+PASS  multi-statement 臂语句级 timeout: 步事务内 set_config 生效(5s/4s 同 client 语句内观测)
+PASS  臂间 finally 恢复: runMigrations 收尾后同池会话(LIFO 同 client)观测 GUC 恢复原值(恢复语义断言保留·改形非洗基线)
+PASS  重制 0148(#134): multi-statement 模式 + 首语句 DO 块孤儿检测门（六子表计数非 0 即 RAISE fail-loud·先检测后约束）
+PASS  重制 0148(#134): 6×ADD FK NOT VALID + 6×VALIDATE 结构计数（两段拆事务·NOT VALID 与 VALIDATE 各自独立语句事务）
+PASS  重制 0149(#135): multi-statement 模式 + 熔单 ALTER×4（DROP+ADD NOT VALID 单语句原子·无裸 DROP 窗）+ DO 块前置检测保持 + VALIDATE×4
+PASS  重制 0148/0149: fresh 全量应用后 6 FK + 4 CHECK 全在位且 convalidated=true（VALIDATE 后行生效实据）
+PASS  重制 0148/0149: 完成原子交换落地（ledger 恰 2 行·逐步记账旁表零残留=三守卫面）
+PASS  multi-statement: 第 k 句失败 fail-loud 且失败句零记账(独立短事务·前 k-1 句保留)
+PASS  multi-statement: 断点续跑 skip 已记账 2 句续跑剩余 2 句·完成事务 ledger+旁表原子交换(三守卫全程零破)
+PASS  multi-statement: 完成后重跑全 skip(与 transactional 同一幂等语义)
+PASS  multi-statement: 全成功 N 句形记账 1 行 ledger(checksum=全文件字节)·旁表清空
+PASS  multi-statement: loadMigrations 注记检测三值齐(同族正则·缺省仍 transactional)
+PASS  #145 前置: 预植失败构建留下 INVALID 索引(旧 runner 需人工 DROP 的卡死态)
+migration_invalid_index_cleanup version=0906 index=ix_mig_heal action=drop_invalid_retry
+PASS  #145 heal: 定义精确匹配的自身残留 INVALID → DROP CONCURRENTLY+重建重试恰一次成功(清理事件恰 1·日志面同源)
+PASS  双号容忍: 同数值前缀双文件字节序稳定过闸(0160×2 形·字节序下对内序确定)
+PASS  双号容忍: 全文件名级重复仍拒(:199 migration_manifest_duplicate_version 语义零弱化)
+PASS  字节序: 真树全量 ledger + fixture 追加后 ORDER BY version COLLATE "C" 序==runner manifest 序(前缀=真树全量)
+PASS  事务臂超预算: 长 DDL 触发 statement_timeout → fail-loud(57014+tagged version)
+PASS  事务臂超预算: 整事务回滚零残留表+ledger 零推进(零 retry-to-green)
+PASS  #145 边界: 定义不匹配的 INVALID 索引=非 runner 产物零触碰 fail-closed(裁决项⑤授权边界)
+PASS  CI 唯一性: 现树全量 migrations/ EXIT=0 且三历史双号(0143/0152/0160)豁免登记面全命中
+PASS  CI 唯一性: 构造数值前缀冲突样本 EXIT≠0(migration_prefix_duplicate)
+PASS  CI 唯一性: 豁免登记面前缀(0160×2 形 fixture) EXIT=0 且命中豁免行
+
+✓ 迁移运行器 全部通过
