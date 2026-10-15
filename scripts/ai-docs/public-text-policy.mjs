@@ -72,6 +72,11 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // ai-docs/delivery/receipts/uc018-perf-load/ 首现+merge 漂 1+收据 1=2132·stash 对照亲证基线 2124 绿；
 // perf-load 机检产出 TRACKED_DIR 首现·协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随
 // cap 联动同步·语义不变强度不减）。
+// cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：ci-wiring3 EXEC 红停
+// PTP_FILE_LIMIT:2137>2136——并线树恰 2136=cap 零余量（0a787906 batch-residual-plan.md 耗尽
+// ci-red-clear 余 1）+件④ 收据 1 至 2137·reconcile 迁移 +1 至 2137·三刀在飞共享余量·stash 对照
+// 亲证收据移出同树 2136≤2136 EXIT=0 绿；协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随
+// cap 联动同步·语义不变强度不减）。
 // cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：RECONCILE-RETRY EXEC 红停
 // PTP_FILE_LIMIT:2137>2136——merge 点 HEAD 实测恰 2136=cap 绿·红唯一增量=件① 迁移 .sql 受管计面 +1
 // 至 2137·三刀在飞共享余量·协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·
@@ -79,7 +84,10 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：UC184-SLOT-ORDER nail 并线树——
 // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享·沿 +8 先例·计数预算非内容策略·
 // 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_144;
+// cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形：COST-COLUMNS nail 并线树——
+// 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量·
+// 协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_152;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],

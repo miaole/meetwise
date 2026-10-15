@@ -196,6 +196,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'uc025:nhp-fault-isolated:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -241,6 +242,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'model-invocation-reconcile:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -253,6 +255,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   // AG 修复轨刀 B（AG-06 known_executed 分类+AG-14 usage_missing 折叠）:本地 http 脚本 provider
   // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+改造三源+迁移镜像两件。
@@ -381,6 +384,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'ag11-settle:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -398,6 +402,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0144_db_trigfam_unify.sql',
     'packages/db/migrations/0188_ag11_cost_reserve_least_and_settle_relax.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'failover-price-policy:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -414,6 +419,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'estimate-threading-invoke:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -429,6 +435,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql',
     'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'model-op00-usage-reconciler:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -450,6 +457,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
     'packages/db/migrations/0177_usage_calibration_ag07_windowing.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   // AG-COST2（AG-07 迁移四件套+因子合并语义+90 天保留期）：隔离库真迁移链行为 proof（沿 entpay-s1/ag-b 先例形）。
   'ucal-windowing:prove:raw': [
@@ -486,6 +494,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
     'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
     'packages/db/migrations/0131_job_route_classify_admission.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   // AG-08 成本轨⑤：端点分域相位+对表 proof 来源清单（沿 model-op02 同形·隔离容器+全量迁移）。
   'model-op02-endpoint-partition:prove:raw': [
@@ -511,6 +520,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
     'packages/db/migrations/0131_job_route_classify_admission.sql',
     'packages/db/migrations/0200_ag08_admission_partition_per_endpoint_seeds.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'model-slot-bypass:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -533,6 +543,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
     'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
     'packages/db/migrations/0131_job_route_classify_admission.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'privacy-erasure:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -1495,6 +1506,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql',
     'packages/db/migrations/0139_qbank_ann_hnsw_iterative_scan.sql',
     'packages/db/migrations/0144_db_trigfam_unify.sql',
+    'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
   'db-intfk:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',

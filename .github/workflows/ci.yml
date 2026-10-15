@@ -245,6 +245,21 @@ jobs:
       # G1 SCORE-S3 #42：TS↔SQL 评分状态机/总分公式对拍进 per-push（isolated-runner 一次性本地 PG·沿 scor-00 先例）+#43 0158 INSERT 守门正负测。
       - name: 评分状态机/公式 TS↔SQL 对拍 + INSERT 初始态守门
         run: pnpm scor-parity:prove
+      # CI-WIRING3 五门接线（scor-parity 邻位·isolated-runner 一次性本地 PG·fail-loud 红即阻断）。
+      # 裁位亲证 @79382f4d：四门本地实跑绿入 per-push；ha6:prove 基线红（50 PASS/26 FAIL·锚漂+治理门漂）
+      # 不接线——归属 line/ha6-repin 重钉着陆后另批。
+      # 评分/报告 P0 完整性（23 断言·本地实测 10.9s·总分确定性聚合+模型越权防护）
+      - name: 评分/报告 P0 完整性（隔离一次性 PG·总分聚合不可被模型越权改写）
+        run: pnpm scoring-integrity:prove
+      # 流式 token 进度接线（20 断言·本地实测 17.5s·ci-wiring2 时代基线红已由在链后刀清偿）
+      - name: 流式 token 进度接线（generation_started 先于业务结果落表+payload 白名单围栏）
+        run: pnpm tokenstream:prove
+      # 长上下文真实 v64 链路（29 断言·本地实测 冷 8.0s/热 25.9s 双口径·预算内裁 per-push 非 nightly-ciw2·合并闸语义）
+      - name: 长上下文真实 v64 队列/图/报告链路（大答案截断+载荷净化+额度精确）
+        run: pnpm stress:prove
+      # UC003 i18n locale 结构断言（七查·本地实测 2.9s·raw 口径；UI 件需 chromium+Key+生产构建不在 per-push）
+      - name: UC003 i18n locale 结构断言（S1-S6+G3' 七查·raw 隔离口径）
+        run: pnpm uc003:i18n-locale:prove
       - name: agent 模型可观测（token / 延迟 / 成本落库）
         run: |
           pnpm metrics:prove
@@ -340,3 +355,7 @@ jobs:
       # 停止条件上报未接线（零落码），归后刀红面清偿后纳。
       # MIG-RUNNER 裁③迁移唯一性步归属留名：line/mig-runner 刀（scripts/check-migration-version-uniqueness.mjs
       # 接线步）——本刀零触该步（该步在本刀基线 ci.yml 297 行尚未并入·见 line/mig-runner @30084d98 299 行形）。
+      # CI-WIRING3 接线归属登记：四门（scoring-integrity/tokenstream/stress/uc003:i18n-locale）per-push。
+      # ha6:prove 亲证基线红（50 PASS/26 FAIL）不接线·归属 line/ha6-repin 重钉后另批
+      # （接线前置=届时 tip 本地 ha6:prove 绿）；UI 件（chromium+MODEL_API_KEY+生产构建三缺）
+      # 与 nightly.yml/nightly-ciw2.yml 与 lint 注释面（归 ci-red-clear）本刀零触。
