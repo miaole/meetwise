@@ -22,6 +22,9 @@ LABEL org.opencontainers.image.revision=$VCS_REF \
       io.meetwise.source-tree=$SOURCE_TREE
 WORKDIR /app
 ENV NODE_ENV=production
+# 构建标识双写：LABEL 供镜像层审计（docker inspect 可读），ENV 供运行时 /meta.revision 读取（ADR-0022 §4）。
+# VCS_REF 由 deploy.yml/ci.yml --build-arg 传入 git sha；无 --build-arg 的本地构建回退 ARG 默认值 unknown。
+ENV APP_REVISION=$VCS_REF
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps ./apps
 COPY --from=deps /app/packages ./packages

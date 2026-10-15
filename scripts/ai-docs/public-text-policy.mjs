@@ -76,6 +76,9 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // PTP_FILE_LIMIT:2137>2136——merge 点 HEAD 实测恰 2136=cap 绿·红唯一增量=件① 迁移 .sql 受管计面 +1
 // 至 2137·三刀在飞共享余量·协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·
 // 语义不变强度不减）。
+// cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：UC184-SLOT-ORDER nail 并线树——
+// reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享·沿 +8 先例·计数预算非内容策略·
+// 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 const MAX_FILES = 2_144;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
