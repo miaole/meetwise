@@ -1,6 +1,6 @@
 # I263-PREVIEW REQUEST（B 端「内部预览」标注收口小刀 · #263 挂起解除独立收编 · 纯 web 文案+docs 口径·零后端零迁移零行为）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 起草阶段恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）。
+**Status**: **`closed`**（2026-10-14 协调方授权 Status 补翻席 docs-only 翻面·双依据一行=①checklist「Line I263 nail」段 :2385 载 post-prove 双席 **BOTH PASS**+merge --no-ff 并主线 @`9ae70025` 收官（批3 23/23 全收口）②merge `9ae70025` 对 HEAD is-ancestor 亲证 EXIT=0——**跳态翻面异常如实注明**：正常链 draft→executed→nailed→closed，本卷卷体 Status 链漏登 executed/nailed 两态（双审/post 记载在 checklist 段与 merge message·非卷体），故 draft 直翻 closed·落款行照录不改沿 ag-cost5 卷主翻面先例·原 `draft:awaiting_pre_exec_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）。原文照录：**`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 起草阶段恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + 协调方明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）。
 
 **席位**：I263-PREVIEW 小刀起草席（#263 挂起解除·协调方今裁「解除挂起·独立小刀收编」·评估席残面清册承接·北星 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `d12439d8`（主线 tip·`git log -1` 实测 2026-10-12 17:08:55 +0800·docs(ssot) LEDGER 批5 卷·零码面）。分支 `line/i263-preview`·工作树 `meetwise-i263`（`git worktree add ../meetwise-i263 -b line/i263-preview` 本起草席已立·建前 worktree list + branch 双查实测不存在）。
