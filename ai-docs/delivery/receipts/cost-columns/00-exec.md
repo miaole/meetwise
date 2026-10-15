@@ -81,3 +81,21 @@ Ban 列表全程遵守：零 push/零 retry-to-green（红不重跑冲销·基�
 **旧代码忽略仍正确（wire/结构变更义务）**：①`settleAiTextCost` 六参为 TS 必传+SQL 六参无 DEFAULT（fail-closed·漏改调用点编译期/SQL 期双显形）——仓内全部调用点已贯通（invoke.ts 两处+ag11 proof 8 处机械 +0+新臂 4 处·rg 亲证无第 15 处）；②`ai_cost_price_book`/`ai_cost_reservation` 新列 nullable 默认 NULL——旧 reader（binding 谓词 0083/0144 委托/settle 0188 旧体已换新）对 NULL 列语义=现行为（COALESCE 回退 input 价·cached=0 逐位恒等）·ag11 八既有臂+κ/λ 实跑亲证；③seed INSERT/回读断言 null 透传·缺 env 键=列 NULL=现行为恒等（model-cost 邻门其余臂全绿佐证）。
 
 **STOP=executed:awaiting_post_prove_dual** · 待 post-prove 双审两外席（alone≠dual · Ban self-approve）· ⛔push
+
+## 修复轮（post 双审残余 R1/R2 返工·EXEC 席续任·2026-10-15·append 保史）
+
+**双审残余亲证（修复前三处实锤）**：R1=`0204:253` scoped wrapper 回读谓词 `r.idempotency_key=r.idempotency_key` 恒真（对照 `0188:360` 原文 `r.idempotency_key=p_idempotency_key`——错读行→settledOverage 静默错报面）亲证属实；R2=`0204:59-152` reserve_text OR REPLACE 全量体换掉 `0144:535-551` 薄壳·破 db-trigfam P7 `pg_get_functiondef LIKE '%public.tf_%'` 恰 1 行断言亲证属实——基线全跑（stash 对照·恰一次）`failures=12` 臂红，其中恰 1 臂 `P7 十二薄壳均薄委托 :: ai_cost_reserve_text:0` 系本刀新破未登记，余 11 臂（StageB 恰只应用 0144/P1×2/P4×2/P5×4/P6×2）基线同红=链深陈旧在册面（同 bill3 pin 陈旧类）。
+
+**R1 修复**：谓词一词恢复 `p_idempotency_key`（修复后 `0204:275`）——与 0188:360 原文逐字同形。
+**R2 修复（协调方裁决选项 a）**：0204 对 `public.tf_ai_cost_reserve_text` 九参全量体 CREATE OR REPLACE（体=EXEC 全量体逐字零变·本席 diff 亲证 BODY IDENTICAL·属性归位 0144:441-448 tf_ 原形=LANGUAGE plpgsql+SET search_path 无 SD·INSERT 增 cached 恰两处保持）+`ai_cost_reserve_text` 薄壳 CREATE OR REPLACE 恢复 0144:535-551 委托形逐字（`RETURN QUERY SELECT * FROM public.tf_ai_cost_reserve_text(九参)`·SD+SET 重声明·本席 diff 亲证 SHELL STATEMENT IDENTICAL TO 0144:535-551）——P7 薄壳委托不变量恢复·reserve 链 cached 价捕获经 tf_ 体贯通（κ 臂 400_000 捕获复跑绿）。**行为语义零变复核**：tf_ 体与 EXEC 全量体逐字节同·薄壳与 0144 薄壳逐字节同·settle 面 R2 零触·R1 仅把回读谓词归位授权底本语义。
+
+**修复轮收据勘误**：
+1. **（R3）** §一 表 `run-e2e-isolated.mjs` 行「13 命中/恰 12 条目」勘误为「**12 命中**/恰 12 条目」——`grep -c 0204 scripts/run-e2e-isolated.mjs`=12 亲证（12 条目各恰 1 行·无第 13 处）；「13」实为预迁移单条目集 rg 分母模式（`0083_ai_text_cost_price_revision_binding|0188_ag11`）的命中数（ag11 条目 0083+0188 双行·REQUEST §0.1 行该口径自洽）·非 0204 词面计数·两口径于此切清。
+2. **（R4）** §二 门 9 docs:check「scanned 2143≤cap 2144」勘误为本树实测 **scanned 2144=cap 2144·零余量**（收据文件自身入管后 +1·EXIT=0 维持绿）——本修复轮零新增 ai-docs 文件·零余量如实登记：后继任何加管文件即触 2145>2144 红闸。
+3. **（随 R2）** §四 0204「258 行·blob `a5407acd`·14 语句」勘误为「**280 行·blob `3648e7d0`·15 语句**」（reserve 链 1→2=tf_ 全量体+薄壳各恰 1·两语句均 OR REPLACE·零 DROP 零新 ACL 面·非扩面）；§二 门 1 链面不变（applied=204 头 0204 恒等）。
+
+**修复轮门矩阵复跑（EXIT 原值·对修复后工作树）**：migrate:prove EXIT=0 绿（0204 15 语句施链绿）·drift:prove EXIT=0 绿·uniqueness EXIT=0 `files=204 violations=0`·ag11-settle:prove EXIT=0 **12/12 臂**（α-μ 全绿·ζ scoped 幂等臂=R1 行为面亲证）·**db-trigfam:prove 12 臂红→11 臂红（`P7 十二薄壳均薄委托` 复绿 PASS·本刀新破臂消）**·余 11 臂与 stash 基线逐臂全同红（链深陈旧·非本刀引入；P6 工作树净脏树期 FAIL=预期·commit 后归位）·model-op02:prove EXIT=0·model-op02-endpoint-partition:prove EXIT=0·interview:prove EXIT=0 恰 57 臂·neg:all EXIT=0 六段 687（90+90+91+102+179+135）·typecheck EXIT=0 8/8 0 cached·lint 五值恰等 601/1421/954/628/5235 全域 0 errors·docs:check EXIT=0 scanned 2144=cap 零余量（R4 勘误行）·markers 五类改动集零命中·卫生：tsbuildinfo 运行翻动 checkout 归位不入 commit。
+
+**修复轮偏离登记（零就地处置外全如实）**：①db-trigfam 余 11 臂基线红不在本刀修复授权面（链深陈旧类·报协调方后继裁决·Ban 借机修）；②0204 语句数 14→15=R2 选项 a 结构必致·如实勘误非扩面；③本收据以 append+勘误注落卷保史（13 命中/2143 两处原值不洗·勘误见上）。零越界零借机修零 retry-to-green（stash 基线对照每门恰一次）。
+
+**STOP=executed:awaiting_post_prove_dual 维持**（修复轮 commit `fix(cost-columns)`·重审归协调方派·alone≠dual·Ban self-approve）·⛔push
