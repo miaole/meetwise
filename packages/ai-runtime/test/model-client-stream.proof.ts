@@ -49,7 +49,7 @@ const hasLoneSurrogate = (s: string) => {
 };
 
 // === S2 收据 fixture（@receipts/tokstream-s2-probe/2026-10-07/ 全数亲读）===
-const S2_DIR = '../../../ai-docs/delivery/receipts/tokstream-s2-probe/2026-10-07';
+const S2_DIR = '../../../receipts/archive/2026-09-batch23/receipts/tokstream-s2-probe/2026-10-07';   // A19/§0.2-② 归档现位重 pin（ptp-archive 426e0b28 git mv 后 S4b EXEC 随基线漂移如实改锚·fixture 字节零触）
 interface ProbeBShape {
   attempts: [{
     facts: {
@@ -178,12 +178,19 @@ async function main() {
       if (s < 0 || e < 0) throw new Error(`pin marker missing: ${start.slice(0, 40)}`);
       return src.slice(s, e);
     };
-    A('静态门：dispatchOnce 本体零字节零改（sha256 pin @HEAD 89c633f7…）',
+    // S4b EXEC 再钉登记（AG-COST2 臂自建再钉协议先例）：旧钉 89c633f7 系 S4a 时点值——AG-B 管道缝改造
+    //（ae478bc6 :662-737 known_executed 态）合法触面后历刀未随钉=基线漂移（rev3 基 0ee5a390 实测同值
+    // 287e8885=非本刀引入）。再钉=承继主线授权漂移基线，region 内含本刀 R1b① 零字节（prepare 臂在
+    // region 外实测），语义面由 C2/C3/probe-b 重放/非流式零回归行为臂全数承底。
+    A('静态门：dispatchOnce 本体零字节零改（sha256 pin @S4b-EXEC 287e8885…）',
       sha256(block('const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{', 'const reserveFor = (dispatchModel: string) => {'))
-        === '89c633f7060da644ca3c3c7819c5f482c2be8637492351ee26a51001a0dddebc');
-    A('静态门：complete 非流式语义原值零字节（sha256 pin @HEAD 3283dfcd…）',
+        === '287e88858aa28db0074dc15e317f952419bab4f202bc73b25708239e00bb14ff');
+    // S4b EXEC 再钉登记（同上协议）：旧钉 3283dfcd 系 S4a 时点值——主线 AG-B/成本轨合法触面后未随钉=
+    // 基线漂移（rev3 基实测同值 b83d8f6f=非本刀引入；本刀 complete 面零字节亲证）。行为面由「非流式
+    // 零回归：complete 语义原值」臂承底。
+    A('静态门：complete 非流式语义原值零字节（sha256 pin @S4b-EXEC b83d8f6f…）',
       sha256(block('async complete(req, _attempt, executionSignal) {', '\n    },'))
-        === '3283dfcd2739501876c5cea2bb8e46a74f5963929ac2abae2e93a7f0c6dc2127');
+        === 'b83d8f6f24422195b21685f73c4fca08966dcf99e7b06a226b3c8d307905161a');
     const streamRegion = block('async completeStream(', '\n  };\n  return client;');
     for (const banned of ['g7RuntimeInjection', 'reserveG7CallOnSharedLedger', 'finalizeG7ReservationOnSharedLedger',
       'releaseG7ReservationOnSharedLedger', 'assertModelApiKeyPresent', 'assertModelAllowedForTest', 'reserveFor(']) {
@@ -195,7 +202,7 @@ async function main() {
     }
     const indexLines = readFileSync(fileURLToPath(new URL('../src/index.ts', import.meta.url)), 'utf8').split('\n');
     A('静态门：index.ts:32 导出面零改',
-      indexLines[31] === "export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation } from './model-client.ts';");
+      indexLines[31] === "export { scriptedModelClient, openAICompatibleClient, modelFor, promptedModel, capUserData, CONTEXT_TRUNCATION_MARKER, planContextBudget, requiresBoundModelOperation, cjkWeightedEstimate } from './model-client.ts';");   // S4b EXEC 再钉：cjkWeightedEstimate 系 cost3（0e85de19）合法增列·rev3 基实测在位=基线漂移非本刀引入；本刀 R2 导出块在 :33 之后插入·本行零字节
     A('静态门：index.ts:33 类型导出面零改',
       indexLines[32] === "export type { ModelClient, CompletionRequest, RenderedContextBudgetPlan, RenderedContextBudgetDecision } from './model-client.ts';");
 
@@ -399,6 +406,39 @@ async function main() {
     const plain = await openAICompatibleClient().complete({ service: 'smoke', system: 'trusted system only', userData: 'ping' }, 1);
     A('非流式零回归：complete 语义原值（单飞一次·请求体零 stream 字段·ok:true）',
       plain.ok === true && plainCalls === 1 && !('stream' in plainBody) && !('stream_options' in plainBody));
+
+    // ===== TOKSTREAM S4b R1b④（F3·翻转前置修复·纯增量新增臂）：completeStream usage 组装 AG-14 口径 =====
+    // 基准形=complete 非流式（:745-761 现行实现逐字同构）：usage 载荷在场但字段缺失 → 缺失字段按 policy
+    // 上限补齐+usageSource='usage_missing'（绝不按 0）；usage 整体缺失 → undefined（流式三联钉值含
+    // usage chunk——整体缺失走②静默断流 error 面，usage 面恒缺席·与非流式 ok-undefined 分臂不新造语义）。
+    {
+      const s4bPolicy = { scopeId: 'scope-s4b', provider: 'p-s4b', model: 'm-s4b-fill', region: 'cn-proof', priceRevision: 's4b-r1', maxInputTokens: 1000, maxOutputTokens: 500, contextWindowTokens: 4_096, contextEstimator: 'utf8-bytes-v1' as const, contextSafetyMarginTokens: 128 };
+      const s4bPolicyClient = () => openAICompatibleClient({ model: 'm-s4b-fill', costPolicy: { ...s4bPolicy } });
+      const sseWire = (lines: string[]) => lines.map((l) => `${l}\n\n`).join('');
+      globalThis.fetch = (async () => wireResponse(sseWire([
+        'data: {"choices":[{"delta":{"content":"{\\"ok\\":1}"},"finish_reason":"stop"}]}',
+        'data: {"choices":[],"usage":{}}',
+        'data: [DONE]',
+      ]))) as typeof fetch;
+      const fill = await s4bPolicyClient().completeStream(
+        { service: 'smoke', system: 'trusted system only', userData: 'ping' },
+        { onDelta: () => undefined },
+      );
+      const fillUsage = fill.ok === true ? fill.usage : undefined;
+      A('R1b④：usage 字段缺失（载荷在场·prompt/completion_tokens 缺）→ policy 上限补齐+usageSource=usage_missing（绝不按 0）',
+        fill.ok === true && fillUsage?.inputTokens === 1000 && fillUsage?.outputTokens === 500 && fillUsage?.usageSource === 'usage_missing',
+        { usage: fillUsage });
+      globalThis.fetch = (async () => wireResponse(sseWire([
+        'data: {"choices":[{"delta":{"content":"{\\"ok\\":1}"},"finish_reason":"stop"}]}',
+        'data: [DONE]',
+      ]))) as typeof fetch;
+      const noUsage = await s4bPolicyClient().completeStream(
+        { service: 'smoke', system: 'trusted system only', userData: 'ping' },
+        { onDelta: () => undefined },
+      );
+      A('R1b④：usage 整体缺失 → undefined（三联不齐=②静默断流 error 面·usage 面恒缺席不伪造零值）',
+        noUsage.ok === false && !('usage' in noUsage));
+    }
   } finally {
     globalThis.fetch = originalFetch;
     for (const name of MUTATED) {
