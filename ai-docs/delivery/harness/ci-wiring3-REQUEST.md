@@ -1,6 +1,6 @@
-# CI-WIRING3 REQUEST — 主线五门接线刀（scoring-integrity/tokenstream/stress/uc003:i18n-locale 四门 per-push；件② lint 注释对表刷新已摘除·归属让渡 ci-red-clear；ha6:prove 亲证基线红登记不接线·恰 1 workflow 文件·docs-only 修订卷 rev2·ci-wiring3 战役·修订落卷即停）
+# CI-WIRING3 REQUEST — 主线五门接线刀（scoring-integrity/tokenstream/stress/uc003:i18n-locale 四门 per-push；件② lint 注释对表刷新已摘除·归属让渡 ci-red-clear；ha6:prove 亲证基线红登记不接线·恰 1 workflow 文件·docs-only 修订卷 rev3·ci-wiring3 战役·修订落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-15 · **rev2 修订同日**：pre-exec 双审双 FAIL 回炉——P1-1=件② 归属对撞（ci-red-clear `b0877528` 在飞持同 lint 注释面→协调方裁决**摘除·归属让渡**）+P1-2=stress 熔断自触（热测 25.9s>3 倍相对线→改绝对预算）+CI `ci` workflow 300 跑零绿铁证→EXEC 立项序写死 ci-red-clear 先行 · **复审维持 awaiting** · 两外席待重派 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-15 · **rev2 修订同日**：pre-exec 双审双 FAIL 回炉——P1-1=件② 归属对撞（ci-red-clear `b0877528` 在飞持同 lint 注释面→协调方裁决**摘除·归属让渡**）+P1-2=stress 熔断自触（热测 25.9s>3 倍相对线→改绝对预算）+CI `ci` workflow 300 跑零绿铁证→EXEC 立项序写死 ci-red-clear 先行 · **复审维持 awaiting** · 两外席待重派 · **rev3 修订同日**：rev2 窄域复审 FAIL 回炉五项全落（P1=§2-4 纯增行数 16→19 勘正+P2 四则=a §1.3/trailer 预算硬上限口径+b+d 件① stress 注释冷热双口径+c §0.0 ci-red-clear/ha6-repin pin 复核补记）·docs-only 仍恰 1 .md · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT · ⛔push）
 
 **席位**：ci-wiring3 REQUEST 起草席（诊断已由 CI 对账席在案·本席核验+起草·协调方派；rev2 修订席同席回炉）。
 **基线**：`feat/mysql-schema-skeleton` @ `79382f4d`（fetch 后 origin tip 与本地恒等亲证·UC003-FOLLOWUP nail 收官 SSOT commit）· 分支 `line/ci-wiring3`（建前 `git branch --list "line/ci-wiring*"` 恰 `line/ci-wiring2` 一支·本席 `git worktree add ../meetwise-ciw3 -b line/ci-wiring3 feat/mysql-schema-skeleton` 亲立）· 工作树 `meetwise-ciw3`（仓根同级）。
@@ -11,9 +11,9 @@
 ### 0.0 防重双对表 + 在飞交叠
 
 - `git branch --list "line/ci-wiring*"` 建后恰 2 命中=`line/ci-wiring2`（已并线·EXEC `86303901` 在本基线历史）+本席 `line/ci-wiring3`；`ls ai-docs/delivery/harness/ | rg ci-wiring3` 建前零命中→落卷后唯一同名卷=本卷。
-- **ci-red-clear 边界（rev2 改判·归属让渡登记）**：`git rev-parse line/ci-red-clear` =`b0877528`（rev2 复核亲证·**已非基线零 delta**——其 REQUEST 落卷于本基线之上·docs-only 恰 1 .md `git diff-tree` 亲证）·在飞持 **PR #108 双红全上下文**·修法四件 verbatim EXEC-ready·与本刀交叠两面亲证：④lint 基线注释五值+root 对表（=原本刀件② 同一注释块 ci.yml `:103-:106`）+③breaker:prove 僵尸步删步（`ci.yml:193-:194` 恰删两行·步名「模型熔断器…」`sed` 亲证）。**协调方 rev2 裁决=件② 摘除·归属让渡 ci-red-clear**（其刀持双红全上下文+verbatim 块 EXEC-ready·同一注释块 Ban 双写）——本刀 §1-修法件② 撤出（§5 让渡 Ban 承载）。
+- **ci-red-clear 边界（rev2 改判·归属让渡登记）**：`git rev-parse line/ci-red-clear` =`b0877528`（rev2 复核亲证·**已非基线零 delta**——其 REQUEST 落卷于本基线之上·docs-only 恰 1 .md `git diff-tree` 亲证）·**rev3 pin 复核**：`b0877528` 已 amend 失效（is-ancestor 否证 exit=1 亲测）→`d056dd91`（amend 后起草落卷·处置席计值）·修订席落笔实测 tip=`d6ac92ed`（其上又并其 rev3 件⑤ egress 计数同步·docs-only 仍恰 1 .md 亲证）·活线届时值 EXEC 立项日复核·结论零变·在飞持 **PR #108 双红全上下文**·修法四件 verbatim EXEC-ready·与本刀交叠两面亲证：④lint 基线注释五值+root 对表（=原本刀件② 同一注释块 ci.yml `:103-:106`）+③breaker:prove 僵尸步删步（`ci.yml:193-:194` 恰删两行·步名「模型熔断器…」`sed` 亲证）。**协调方 rev2 裁决=件② 摘除·归属让渡 ci-red-clear**（其刀持双红全上下文+verbatim 块 EXEC-ready·同一注释块 Ban 双写）——本刀 §1-修法件② 撤出（§5 让渡 Ban 承载）。
 - **EXEC 立项序写死（rev2·铁证）**：GitHub Actions `ci` workflow **近 300 跑零绿**（协调方 pre-exec 铁证在案）→主线红线未清偿前 Ban 本刀立项。**本刀 EXEC 须在 ci-red-clear 并线之后立项**：EXEC 立项日复核 `git merge-base --is-ancestor line/ci-red-clear <届时 tip>`（或 `git log -1 line/ci-red-clear` 已含其 EXEC 落码 commit 且为本刀 tip 祖先）=并线确认·未并线→触停止条件「越界需要」停手上报；并线后按 §0 对届时 tip 全量重 pin（ci.yml 锚位 `:194` 后整体 −2 平移·steps 99→98·§0.1）。
-- **ha6-repin 在飞交叠**：`line/ha6-repin` 锚 rev2 重钉 `a5317ffd`→**`c38e6e22`**（协调方裁决登记·该分支 tip 后续位移按本条 EXEC 日复核规则处理）·**零 ci.yml 新触结论 rev2 亲证不变**（`git log 79382f4d..line/ha6-repin -- .github/workflows/ci.yml` 恰 **0** 命中）·其修法面=恰 1 治理脚本 `scripts/ha/ha6-companion.proof.mjs`（零 ci.yml 接线面·其卷自证）——与本刀 ci.yml 触面**零文件交叠**；本刀 Ban 接线 ha6（§5）与其修法面互补不冲突。EXEC 立项日对该分支对本刀唯一触面 `.github/workflows/ci.yml` 执行 `git log -1 line/ha6-repin -- .github/workflows/ci.yml` 复核，出现主线 `79382f4d` 后新触→触停止条件「现场漂移」停手上报。
+- **ha6-repin 在飞交叠**：`line/ha6-repin` 锚 rev2 重钉 `a5317ffd`→**`c38e6e22`**（协调方裁决登记·该分支 tip 后续位移按本条 EXEC 日复核规则处理）·**零 ci.yml 新触结论 rev2 亲证不变**（`git log 79382f4d..line/ha6-repin -- .github/workflows/ci.yml` 恰 **0** 命中）·其修法面=恰 1 治理脚本 `scripts/ha/ha6-companion.proof.mjs`（零 ci.yml 接线面·其卷自证）——与本刀 ci.yml 触面**零文件交叠**；本刀 Ban 接线 ha6（§5）与其修法面互补不冲突。EXEC 立项日对该分支对本刀唯一触面 `.github/workflows/ci.yml` 执行 `git log -1 line/ha6-repin -- .github/workflows/ci.yml` 复核，出现主线 `79382f4d` 后新触→触停止条件「现场漂移」停手上报。**rev3 pin 复核**：tip 现值 `b21fe709`（rev3 修订席实测·与处置值恒等）·零 ci.yml 不变量复核维持（`git log 79382f4d..line/ha6-repin -- .github/workflows/ci.yml` 恰 **0** 命中 rev3 亲测）。
 
 ### 0.1 blob 锚表（`git hash-object` 8 hex 亲算 @`79382f4d`·rev2 复核 ci.yml blob 恒等 `4cfa1ed3`）
 
@@ -57,7 +57,7 @@
 
 ### 1.3 stress 裁位写明（派单面「二择一」的裁决记录·rev2 绝对预算改判）
 
-**裁 per-push（ci.yml verify job）·不裁 nightly-ciw2（rev2 维持）**。判据：①**绝对预算口径（rev2 改·3 倍相对线废除）**：熔断=绝对上限 **≤56.8s×余量**（硬红线=宿内最贵件 sse-push 裁入上限 56.8s）——冷热双口径实测在案：冷 8.0s（起草席·收据 durationMs 7587/7623ms）·热 25.9s（复审席·收据 durationMs 25953ms·`outcome=passed`·墙钟口径 26.9s）·区间 8-26s；rev1 相对熔断线「超基准 3 倍=24.0s」已被热测 25.9s 自触（pre-exec P1-2 FAIL 实证）→相对线废除；**现测余量 2.1 倍**（56.8s/26.9s 墙钟热值）·26.9s 仍远低于宿内最贵件 56.8s→**裁位 per-push 维持**；②该门断言面=大答案链路截断/载荷净化/额度精确/舱壁不阻塞——合并闸语义，nightly 日跑软化违背 #114 确立的「负例门=合并闸语义·不作 nightly 软化」裁口径；③无 Key 依赖（scripted client·离线）无 per-push 障碍。
+**裁 per-push（ci.yml verify job）·不裁 nightly-ciw2（rev2 维持）**。判据：①**绝对预算口径（rev2 改·3 倍相对线废除）**：熔断=绝对上限 **≤56.8s（硬上限·现测余量 2.1 倍）**（硬红线=宿内最贵件 sse-push 裁入上限 56.8s）——冷热双口径实测在案：冷 8.0s（起草席·收据 durationMs 7587/7623ms）·热 25.9s（复审席·收据 durationMs 25953ms·`outcome=passed`·墙钟口径 26.9s）·区间 8-26s；rev1 相对熔断线「超基准 3 倍=24.0s」已被热测 25.9s 自触（pre-exec P1-2 FAIL 实证）→相对线废除；**现测余量 2.1 倍**（56.8s/26.9s 墙钟热值）·26.9s 仍远低于宿内最贵件 56.8s→**裁位 per-push 维持**；②该门断言面=大答案链路截断/载荷净化/额度精确/舱壁不阻塞——合并闸语义，nightly 日跑软化违背 #114 确立的「负例门=合并闸语义·不作 nightly 软化」裁口径；③无 Key 依赖（scripted client·离线）无 per-push 障碍。
 
 ### 1.4 uc003 UI 件 chromium 注记（派单面「+ui 件需 chromium 注记」的落卷）
 
@@ -84,7 +84,7 @@
       # 流式 token 进度接线（20 断言·本地实测 17.5s·ci-wiring2 时代基线红已由在链后刀清偿）
       - name: 流式 token 进度接线（generation_started 先于业务结果落表+payload 白名单围栏）
         run: pnpm tokenstream:prove
-      # 长上下文真实 v64 链路（29 断言·本地实测 8.0s·预算内裁 per-push 非 nightly-ciw2·合并闸语义）
+      # 长上下文真实 v64 链路（29 断言·本地实测 冷 8.0s/热 25.9s 双口径·预算内裁 per-push 非 nightly-ciw2·合并闸语义）
       - name: 长上下文真实 v64 队列/图/报告链路（大答案截断+载荷净化+额度精确）
         run: pnpm stress:prove
       # UC003 i18n locale 结构断言（七查·本地实测 2.9s·raw 口径；UI 件需 chromium+Key+生产构建不在 per-push）
@@ -109,7 +109,7 @@
 1. **ci.yml 解析门**：`node -e`（js-yaml@4.3.2 repo 内 realpath 加载）parse EXIT=0·verify steps=**102**（ci-red-clear 并线后基线 98+4·**新增步数熔断=恰 4**·多即停）·且**剪除新增四步后余 99 步（ci-red-clear 后 98 步）name 序列对基线逐位恒等**（js-yaml 抽取比对·错位即停=既有步被重排）。
 2. **四门本地实跑绿**：`pnpm scoring-integrity:prove`/`pnpm tokenstream:prove`/`pnpm stress:prove`/`pnpm uc003:i18n-locale:prove` 四命令各恰 1 run EXIT=0·PASS 计数**恰 23/20/29/7**（**熔断=0 容差**·实测≠即触「现场漂移」停）·时长入收据（冷热双口径基准在案：scoring 10.9s/tokenstream 17.5s（收据 16.9-21.0s）/stress 冷 8.0s 热 25.9s（收据 durationMs 7587-25953ms）/uc003 2.9s（收据 2.6-3.4s））·**熔断=绝对上限（rev2 改·3 倍相对线废除）**：任一门单步实测 >56.8s（宿内最贵件 sse-push 裁入上限×余量硬红线·现测余量 2.1 倍）即触「现场漂移」停手上报。
 3. **ha6 红登记恒等**：`pnpm ha6:prove` EXIT=1·50 PASS/**26 FAIL**·红名单与本卷 §1.5 **恒等**（多新 FAIL=现场漂移停·少 FAIL=已重钉·如实登记归 ha6-repin 对表）。
-4. **邻面不回退（diff 机检·rev2 删行预期改判）**：`git diff <届时基线 SHA> -- .github/workflows/ci.yml` 删行（`^-`）**恰零（本刀纯增）**——件② 已摘除让渡·对并线后基线全 diff 为纯增恰 16 行（件① 四步 12 行+件③ 注记 4 行）·出现任何删行/改行即停（只增不减纪律）。
+4. **邻面不回退（diff 机检·rev2 删行预期改判）**：`git diff <届时基线 SHA> -- .github/workflows/ci.yml` 删行（`^-`）**恰零（本刀纯增）**——件② 已摘除让渡·对并线后基线全 diff 为纯增恰 **19 行**（件① 15 行=块头注 3 行+四步各 3 行 12+件③ 注记 4 行·rev3 勘正：rev1/rev2 计值漏计件① 块头注 3 行·反向「删块头注凑 16 行」方案已否决·块头注为裁位亲证纪律面保留）·出现任何删行/改行即停（只增不减纪律）。
 5. **nightly 双件零触**：`git hash-object` 对 `.github/workflows/nightly.yml`=`ac47e884`+`nightly-ciw2.yml`=`09cd220a` 恒等（blob 前后全等）。
 6. **ui 件零接线**：`rg -c "i18n-locale-ui|e2e:ui" .github/workflows/ci.yml` 对基线恒等（=零新增命中）。
 7. **typecheck 不回退**：`pnpm turbo typecheck` EXIT=0（8/8·若翻动 `apps/web/tsconfig.tsbuildinfo`→`git checkout` 回滚沿 negbend §9 先例）。
@@ -157,4 +157,19 @@
 
 ---
 
-*CI-WIRING3 REQUEST · 2026-10-15 起草 · **rev2 修订同日**（pre-exec 双审双 FAIL 回炉：件② 摘除让渡 ci-red-clear+stress 绝对预算+98/102 重锚+ha6 26 勘误+立项序写死）· **`draft:awaiting_pre_exec_dual`**（复审维持）· base `feat/mysql-schema-skeleton` @`79382f4d` · 分支 `line/ci-wiring3` · 工作树 `meetwise-ciw3`（本起草席立·建前 branch+worktree 双查零同名）· 立项出处=CI 对账席五门未上 CI 对账+本席五门亲证实测（四绿一红·裁位矩阵 §1.1）· 修法=件① 四门接线步（scor-parity 邻位插入·neg 六步 isolated-runner 恒同形·fail-loud·verify steps 98→102）+件③ 卷尾纪律注记（ha6 接线前置=届时 tip 本地绿内联）+件④ 收据·**件② 已摘除·归属让渡 ci-red-clear**（`b0877528` 在飞 PR #108·§0.0）· stress 裁位=per-push 维持（绝对上限 ≤56.8s×余量·现测 2.1 倍·冷 8.0s/热 25.9s 双口径·§1.3）· ha6=亲证基线红 50 PASS/26 FAIL 登记不接线（归 ha6-repin 锚 `c38e6e22`·§1.5）· UI 件=chromium+Key+生产构建三缺注记不接线（§1.4）· **EXEC 立项序=ci-red-clear 并线之后（§0.0/§8）**· 门矩阵十二门（解析 102/四门 23-20-29-7/ha6 恒等/邻面 diff 删行恰零/nightly 双件 blob 恒等/ui 零接线/typecheck/docs:check≤2128/markers/diff 面机检/卫生/CI 推 PR 后观察）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*CI-WIRING3 REQUEST · 2026-10-15 起草 · **rev2 修订同日**（pre-exec 双审双 FAIL 回炉：件② 摘除让渡 ci-red-clear+stress 绝对预算+98/102 重锚+ha6 26 勘误+立项序写死） · **rev3 修订同日**（窄域复审 FAIL 回炉五项全落：§2-4 纯增行数勘正 16→19+预算硬上限口径+件① stress 注释双口径+§0.0 ci-red-clear/ha6-repin pin 复核补记·反向删块头注方案否决）· **`draft:awaiting_pre_exec_dual`**（复审维持）· base `feat/mysql-schema-skeleton` @`79382f4d` · 分支 `line/ci-wiring3` · 工作树 `meetwise-ciw3`（本起草席立·建前 branch+worktree 双查零同名）· 立项出处=CI 对账席五门未上 CI 对账+本席五门亲证实测（四绿一红·裁位矩阵 §1.1）· 修法=件① 四门接线步（scor-parity 邻位插入·neg 六步 isolated-runner 恒同形·fail-loud·verify steps 98→102）+件③ 卷尾纪律注记（ha6 接线前置=届时 tip 本地绿内联）+件④ 收据·**件② 已摘除·归属让渡 ci-red-clear**（`b0877528` 在飞 PR #108·§0.0）· stress 裁位=per-push 维持（绝对上限 ≤56.8s（硬上限·现测余量 2.1 倍）·冷 8.0s/热 25.9s 双口径·§1.3）· ha6=亲证基线红 50 PASS/26 FAIL 登记不接线（归 ha6-repin 锚 `c38e6e22`·§1.5）· UI 件=chromium+Key+生产构建三缺注记不接线（§1.4）· **EXEC 立项序=ci-red-clear 并线之后（§0.0/§8）**· 门矩阵十二门（解析 102/四门 23-20-29-7/ha6 恒等/邻面 diff 删行恰零/nightly 双件 blob 恒等/ui 零接线/typecheck/docs:check≤2128/markers/diff 面机检/卫生/CI 推 PR 后观察）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+
+---
+
+## rev3 处置摘要（rev2 窄域复审 FAIL 回炉·2026-10-15 同日·docs-only 恰 1 .md·修订席逐项亲证后落笔）
+
+rev2 窄域复审判定 FAIL=恰一处 P1+P2 四则·协调方处置清单五项全落（实测口径=rg/git/机械计数为准·Ban 抄处置计值顶替实测）：
+
+- **P1·§2-4（:112）纯增行数勘正**：「纯增恰 16 行（件① 四步 12 行+件③ 注记 4 行）」→「纯增恰 **19 行**（件① 15 行=块头注 3 行+四步各 3 行 12+件③ 注记 4 行）」——修订席 `sed` 机械计数亲证：件① yaml 块内容恰 15 行（块头注 3+四步各 3 行 12）+件③ 注记块恰 4 行=19·rev1/rev2 计值漏计件① 块头注 3 行=自触计值笔误·**反向「删块头注凑 16 行」方案已否决**（块头注为裁位亲证纪律面·保留）·trailer 无同值（「恰 16 行」全卷恰 :112 一处 rg 亲证·零同步需要）。
+- **P2-a·§1.3（:60）+trailer（:160）预算口径精化**：「≤56.8s×余量」→「≤56.8s（硬上限·现测余量 2.1 倍）」两处全落——56.8s 本身即硬上限·「×余量」再乘字样废除（歧义面）·现测余量 2.1 倍（56.8s/26.9s 墙钟热值）口径不变。
+- **P2-b/P2-d·件① yaml 注释 stress 行（:87）双口径**（两则复审项同落一处）：「本地实测 8.0s」→「本地实测 冷 8.0s/热 25.9s 双口径」——rg 亲证全卷「本地实测 8.0s」单口径恰此一处（其余 8.0s 表述 rev2 已双口径）·行数零变（19 行计值不受影响）。
+- **P2-c·§0.0（:14/:16）在飞 pin 复核补记**：ci-red-clear 补「`b0877528` 已 amend 失效→`d056dd91`（amend 后起草落卷·处置席计值）·修订席落笔实测 tip=`d6ac92ed`（其上又并其 rev3 件⑤ egress 计数同步·docs-only 仍恰 1 .md diff-tree 亲证）·结论零变」——处置席计值 d056dd91 与落笔实测 d6ac92ed 一格位移如实并记（活线·届时值 EXEC 立项日复核）·`b0877528` 非现 tip 祖先（is-ancestor exit=1 亲测）；ha6-repin 补「tip 现值 `b21fe709`（rev3 实测·与处置值恒等）·零 ci.yml 不变量复核维持（`git log 79382f4d..line/ha6-repin -- .github/workflows/ci.yml` 恰 **0** 命中 rev3 亲测）」。
+- **自检（rev3 落卷时）**：docs:check EXIT=0·**2124**≤cap 2128（受管文件计数口径·本刀零新文件计数不增）·markers 五类零命中（本卷改动集 grep 亲测）·STOP=**`draft:awaiting_pre_exec_dual`** 复审维持·est live=0（docs-only 零实跑零外呼）·commit=rev3·**⛔push**（CI 观察归 pusher/协调方）。
+- **如实登记（不在本轮处置清单·未改）**：§2-2（:110）存同族「裁入上限×余量硬红线」字样一处（rg 亲证）·语义同族于 P2-a·留复审裁量。
+
+*rev3 处置摘要 · 修订席落卷 · 五项对应协调方处置清单·STOP 维持 awaiting*
