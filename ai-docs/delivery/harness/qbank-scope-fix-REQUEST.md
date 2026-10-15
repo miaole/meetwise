@@ -1,6 +1,6 @@
 # QBANK-SCOPE-FIX REQUEST — agent 题库 generation 存量红首曝修复刀（directSqlBoundary 直调臂 owner GUC 供给缺位·恰 1 测试文件净 +1 行修·qbank-scope-fix 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·pre-exec 双审两独立外席待派·alone≠dual·Dual PASS ≠ 开工·Ban self-approve · est live=0 · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（原 `draft:awaiting_pre_exec_dual`·演进如实注：起草席落卷即停→pre-exec 双审两外席 **BOTH PASS 落卷**（席1 `agent_85bd8012`+席2 `agent_e353817b` 会签·「可授权 EXEC·nail 时并主线 cap 2160 生效」）→协调方明示 EXEC 授权→EXEC 收口（并线 `f21e5d74`+P2×3 勘误随卷+门矩阵补全+§9-append-2·post 双审两外席待派·nail/行翻面归协调方）· alone≠dual·Dual PASS ≠ 开工（PASS 只过审）·Ban self-approve · est live=0 · ⛔push）
 
 **席位**：QBANK-SCOPE-FIX 起草席（诊断+起草双责·协调方派·CI 首曝实测立靶=PR #108 verify step 71 run `38728371250`）。
 **基线**：`feat/mysql-schema-skeleton` @ `bab69561`（dbhy1-p4-fix nail SSOT commit·fetch 后与 origin tip 恒等亲证 `git rev-parse` 双值 `bab69561…`）· 分支 `line/qbank-scope-fix`（本起草席 `git worktree add ../meetwise-qsf -b line/qbank-scope-fix feat/mysql-schema-skeleton` 亲立·HEAD 落 `bab69561` 亲证）· 工作树 `meetwise-qsf`（仓根同级）。
@@ -139,6 +139,69 @@
 - **落卷席收尾记录（协调方直令执行·如实载）**：①核卷=Status `draft:awaiting_pre_exec_dual`·无双审会签·§1-修法件① 未落（夹具 blob `02f1675b` 恒等）·git status 恰卷 1 untracked；②夹具落地=perl 字节级恰 1 行（`ad696c38`·47049=46840+209 恰等·NUL 6/6 原值·sibling `qbank-integrity-upgrade.proof.ts:258` canonical 形同形换绑 `c`·探针臂与断言本体零字节改）；③prove=改前基线红 run 必做（`applied=203`→30 臂 PASS→`✗ qbank_retrieval_scope_missing`@`:556:24←principal.ts:997:15`·与 CI run `38728371250` 同签名）→改后恰 1 run **EXIT=0 红翻绿 40 臂全 PASS**（两关键臂=探针 RAISE 断言面零触仍绿+directSqlBoundary 本红抛点臂复绿）·R0 一次容器 boot 基建失败如实登记（未达 prove 面·`pnpm install --frozen-lockfile` 修复·lockfile 零改）·零 retry 零冲销；④复跑四面=主门绿+docs:check（本地读数如实记·见上）+markers 五类零命中+diff 面恰三面（夹具 1 文件 +1/−0+本卷+收据）·§2 其余门按协调方收窄清单未跑（留双审面照 §2 全表行使）；⑤锚重 pin=§0.1 全表零机制漂移（唯一 blob 变更=件① 自改面）·链 203 头 0203·零迁移零 DDL·est live=0·pins 十一值零翻·`.env*` ABSENT。收据=`ai-docs/delivery/receipts/qbank-scope-fix/00-exec.md`（七字段）。
 - **STOP 终态置定**：**维持 `draft:awaiting_pre_exec_dual`**（如实演进：前席起草落卷即停·pre-exec 双审两独立外席从未派审·本卷无会签痕迹；落卷席本收尾系协调方直令下的夹具落地面+红线直证·**非完整 EXEC**·本席不代签不 self-approve·alone≠dual）——落码事实与红翻绿直证已如实入卷+收据，**待 pre-exec 双审两外席对「卷+已落码面+收据」一并审**；若双审 BOTH PASS+协调方明示 EXEC/追认授权，post-prove 双审可直接复用本收据 §三 红绿对照与 §四 门读数起步。开工三条款中②之 cap sanction 已兑现（本节首行）·①双审与协调方 EXEC 明示授权仍悬。
 
+## §9-append-1 · pre-exec 双审会签 + P2×3 勘误注记（EXEC 席落卷·2026-10-16·append 注记形不洗·§0-§8 与上行 §9 原文逐字保全）
+
+- **双审会签与授权链（本席开工依据）**：pre-exec 双审席1 `agent_85bd8012`+席2 `agent_e353817b` **BOTH PASS 落卷**（两席均判「可授权 EXEC·nail 时并主线 cap 2160 生效」·会签修订=P2×3 随卷）→协调方明示 EXEC 授权（执行序=并线→P2×3 落卷→门矩阵补全→§9 EXEC 记录+commit·⛔push）。§8 三条款之①②就此兑现。
+- **P2-a（席2 修订·NUL 惯例清单勘误）**：§1.2-环④ 惯例清单补 **`packages/domain/test/resume-extract.proof.ts`（2 NUL）**（本席 EXEC 期 perl 逐字节亲证 NUL=2·与 projection/provider-input 同为 2 NUL 档）；§4-④ 清单计数随之勘正=「六文件」→「**七文件**」、「两 png」→「**十 png**」（png 数额沿席2 修订清单授权改·原文不洗·如实并记：本席 EXEC 期普查 tracked png=`apps/web/docs/screenshots/` 恰 **11** 件全数含 NUL·bab69561/6414c562/317ea3df/并线树四时点恒等——十 png 数额与 11 件普查读数的出入留后继 docs/工具刀普查时复核）。
+- **P2-b（席2 修订·union 算术行实测真值口径）**：上行 §9 首条「本地读数 `PTP_FILE_LIMIT:2146`…nail 并线 union 面算术必绿 2146≤2152」与收据 §四-2 同款算术行**勘正为实测真值口径**——「2146」预写算术值不作数·**并线后实测·按主线 `317ea3df` 时点 scanned 实数登记**（cap 以并线随入主线 sanction=**2160** 为准·预写「≤2152」上限随 cap 2160 sanction 过时；EXEC 实测值见 §9-append-2 门矩阵与收据附录·原文不洗）。
+- **P2-c（席2 修订·收据 §三 注记）**：落收据 `ai-docs/delivery/receipts/qbank-scope-fix/00-exec.md` §三（R1/R2 `.tmp` JSON 收据件不含臂计数/stdout 原件·红签名权威面=CI run `38728371250` step 71 日志·注记原文见收据勘误行）。
+
+## §9-append-2 · EXEC 记录（EXEC 席落卷·2026-10-16·七字段沿 negbend-fix §9/件③ 形·收据=`ai-docs/delivery/receipts/qbank-scope-fix/00-exec.md` 附录同步落卷）
+
+**工序与 commit 链**：①并主线 `git merge --no-ff origin/feat/mysql-schema-skeleton@317ea3df`（`git merge-tree --write-tree` 预演 EXIT=0 零冲突·实并同零冲突·双亲=`6414c562`+`317ea3df`·27 files +1814/−91·**cap 2160 sanction 随并生效**·链 204 头 0204 主线携入）→merge commit **`f21e5d74`**；②P2×3 勘误随卷（§9-append-1+收据 §三/§四 两注记·append 不洗）+本 §9-append-2+收据附录=EXEC 收尾 commit（并线后唯一 commit·⛔push）。禁 pull --rebase 遵守。
+
+**字段⑤·§8③ 届时 tip 全量重 pin（并线树 `f21e5d74` `git hash-object` 亲算）**：
+
+| 锚 | 卷 pin | 并线树实测 | 结论 |
+|---|---|---|---|
+| `apps/worker/test/qbank-generation.proof.ts` | `ad696c38`（件① 改后） | `ad696c38`（641 行·47049 B·NUL=6） | 恒等·主线 `bab69561..317ea3df` 对本文件零提交（`git log` 亲证空） |
+| `0187_qbank_owner_scoped_retrieval.sql` | `5eee1f56` | `5eee1f56` | 恒等·零触 |
+| `0176_qbank_control_plane_authz_closeout.sql` | `38c1ec22` | `38c1ec22` | 恒等·零触 |
+| `packages/db/src/qbank/qbank-generation-retrieval.ts` | `2c5ed849` | `2c5ed849` | 恒等·零触 |
+| `packages/db/src/principal.ts` | `c31cbac0` | `c31cbac0` | 恒等·零触 |
+| `.github/workflows/ci.yml` | `97252708` | `97252708` | 恒等·step 71 定义零触 |
+| `scripts/ai-docs/public-text-policy.mjs` | `7937bafa` | `3015b893` | **sanction 面随并**（MAX_FILES→2_160·协调方 `317ea3df` 落值·§3-5 本刀零自改兑现） |
+| `apps/worker/src/qbank-generation.ts` | `b3f0e0c5` | `b3f0e0c5` | 恒等·零触 |
+| 迁移链 | 203 头 0203（§0.3 届时值条款） | **204 头 0204**（`0204_ai_cost_cached_input_price.sql` 主线携入） | 顺延如实记·本刀零迁移零 DDL 兑现 |
+
+**字段①②·门矩阵补全终值（并线树 `f21e5d74` 本席亲跑·EXIT 原值·log 卷外 `/tmp/qsf-exec-gates/`·关键值转录如下）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 1 | `rag-generation:prove`（主门·复跑维持） | **40 臂全 PASS**·`✓ qbank generation: immutable recipe / atomic activation / rollback / retrieval policy / revoke / cache-DoS proof passed`（并线后主门复绿维持·登记两 run 均 EXIT=0：首 run 本席 log 管道 tail 截断仅存尾 22 PASS·复跑全量捕获 40/40·两 run 零红·系证据补全非 retry-to-green） | 0 |
+| 2 | `qbank-control-sec:prove` | 26 断言全绿·`✓ qbank-control-sec prove 26 断言全绿` | 0 |
+| 3 | `qbank-control-role:prove` | 12 PASS·`✓ qbank control-plane role proof passed` | 0 |
+| 4 | `qbank-handoff-closure:prove` | 16/16 PASS | 0 |
+| 5 | `dbhy1:prove` | 28 断言全绿 | 0 |
+| 6 | `ag39-org-qbank:prove` | **53 臂全 PASS**·`AG39 isolation proof: ALL GREEN`（卷面「50/50」系旧值：proof 文件 `bab69561`↔并线树零字节变更=臂数恒等·基线权威值实测 53·§2 前言「数字口径以实跑实测为准」条款内·非漂移·negbend api-harden 26→31 同款口径更先例） | 0 |
+| 7 | `rag03-filter-locus:prove` | 12 PASS 全绿 | 0 |
+| 8 | `rag03-hnsw-completeness:prove` | 16 PASS 全绿 | 0 |
+| 9 | `rag03c-exactk-observe:prove` | 7 PASS 全绿 | 0 |
+| 10 | `rag04-track-local:prove` | 33 PASS 全绿 | 0 |
+| 11 | `qbank-integrity-upgrade:prove` | **EXIT=1 承登基线红（§2-3 口径·非新红非阻塞）**：4 PASS 前缀后 `error: column "owner_kind" does not exist`@`qbank-generation-retrieval.ts:285`←proof`:261`←`principal.ts:997`——**基线树 `bab69561` 对照亲证同红同签名**（临时 worktree@bab69561+`--frozen-lockfile` 安装+同门实跑·`owner_kind` 红逐字恒等·后已拆除）·机制=legacy 夹具链止 0087 而检索码引 0186 owner 列·两树零因果面（proof/retrieval 两文件双树零触+并线窗 src diff 零交叠亲证）·ag39 EXEC「基线红三处单列」承登面（签名随主线演进如实记） | 1（承登） |
+| 12 | `qbank-corpus-retrieve:prove` | 37 PASS 全绿（ag39 时代承登红今实测转绿=主线收敛·如实记） | 0 |
+| 13 | `neg:all` | **687/687**（auth 90+commerce 90+resume 91+interview 102+bend 179+input 135·对基线恒等·零 FAIL） | 0 |
+| 14 | `interview:prove` | **57 PASS**·`✓ 当前 v64 面试链路全部通过` | 0 |
+| 15 | `migrate:prove` | 全 PASS（123 断言）·链 **204 头 0204**（`ls`+uniqueness 双证） | 0 |
+| 16 | `drift:prove` | `✓ schema 无漂移`（豁免 2 项=0145 dbhy1 退役残面既登恒等） | 0 |
+| 17 | uniqueness | `files=204 violations=0 exemptions=0143,0152,0160` | 0 |
+| 18 | typecheck | `pnpm turbo typecheck --force`=`Tasks: 8 successful, 8 total`·`Cached: 0 cached` | 0 |
+| 19 | lint | `pnpm turbo lint --force`=12/12·`Cached: 0 cached`·五值**恰等**：web `601`/root `5235`/api `1421`/worker `954`/ai-runtime `628`（全包 0 errors） | 0 |
+| 20 | `docs:check` | **`scanned 2153`≤cap `2160` EXIT=0**（**P2-b 实测真值口径兑现**：并线后实测值·「2146」预写算术作废见 §9-append-1·余量 7） | 0 |
+| 21 | markers 五类 | 改动集（本卷 .md+件① .ts+收据）运行时组装词面零命中（i6-239 形·`scripts/i6-239-gates.proof.mjs:151-163` canonical 同形·`grep`/node 全文件口径） | 0 |
+| 22 | diff 面机检 | `git diff --numstat 317ea3df` **恰 3 tracked 路径**=件① `.ts`（+1/−0）+本卷 .md+收据 .md（协调方「夹具+卷+收据恰 3」口径）·typecheck 副产 `apps/web/tsconfig.tsbuildinfo` 已 `git checkout` 回滚（§2-12② 沿例）·多任何 tracked 路径即停条款未触发 | 0 |
+| 23 | 卫生 | est live=0（全 prove 经 `run-e2e-isolated.mjs` 隔离容器·零宿主库直跑·drift 系既存 dev 容器只读检查·零模型外呼）·0 Key 值·`.env*` 真 env ABSENT（tracked 仅 `docker/env/*.env.example` 四模板·主线既有）·`actualSpendCny=null` | 0 |
+
+**字段③·红绿对照**：改前改后主门红绿对照=收据 §三（R1 红→R2 绿·40 臂）维持有效；本 EXEC 新增承登面对照=门 11（integrity-upgrade 双树同红亲证）+门 12（corpus-retrieve 承登红实测转绿）。门 11 红签名与 CI run `38728371250` step 71（`qbank_retrieval_scope_missing`）**非同面**（前者=legacy 夹具 owner 列缺位·后者=directSqlBoundary owner GUC 缺供给·两红机制异源·后者已由件① 修复翻绿）。
+
+**字段④·diff numstat**：`6414c562..317ea3df`（并线波面·主线携入）=27 files +1814/−91；本刀 delta 对 `317ea3df`=`apps/worker/test/qbank-generation.proof.ts` +1/−0+本卷 .md+收据 .md 恰 3 路径（numstat 亲证）；EXEC 收尾 commit 面=本卷 .md+收据 .md 恰 2 路径 docs-only。
+
+**字段⑥·偏离清单（EXEC 期·如实全登记）**：①主门复跑两 run（首 run log 截断·复跑全量捕获·均 EXIT=0 零红·证据补全非凑绿）；②ag39 臂数 53 对卷面 50（proof 双树零字节·基线权威值实测条款内·非漂移·见门 6 注）；③drift:prove 首跑 runner cwd 缺陷 EXIT 面呈 1（`ERR_PNPM_NO_IMPORTER_MANIFEST_FOUND` 于仓外目录·未达门面）→仓根重跑 EXIT=0·非门红；④承登面对照走临时 worktree@`bab69561` 实跑（+`--frozen-lockfile` 安装·对照后拆除·零主树污染）；⑤pre-exec 双审席验证 run 收据一帧（`.tmp/isolated-proof-receipts/2026-10-15T16-12-09-…json` EXIT=0·双审席自取证·非本席账）。
+
+**字段⑦·pins 零翻声明**：十一值零翻——haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · **actualSpendCny=null**。§1.2 根因四环结论/§5 Ban 列表/§8 停止条件四类/§1-修法件① 唯一码改面零改零翻转；停止条件四类全数未触（现场漂移=重 pin 表 sanctioned 面外全恒等；机制不满足=主门 40 臂复绿维持；越界需要=delta 恒件① 恰 1 文件 +1 行+docs；验收红不可修=门 11 承登红双树同红亲证零因果·门矩阵余门全绿）。
+
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口（并线 `f21e5d74`+P2×3+门矩阵补全全绿）· post 双审两外席待派 · nail 与批表行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+
 ---
 
-*QBANK-SCOPE-FIX REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`bab69561`（origin tip 恒等亲证）· 分支 `line/qbank-scope-fix` · 工作树 `meetwise-qsf`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=协调方派单 brief（CI run `38728371250` step 71 红靶）+negbend-fix 卷形制+ag39 卷裁决⑧ 语义先例 · 红根因四环=0187 owner 臂 RAISE（`:64`·message 恒等 P2-c 致「已设仍抛」表观矛盾）×directSqlBoundary 直调臂 serving-only 供给（`:554-555`·0176 时代绿）×生产四 GUC 面零嫌疑（`setServingScope` `:88-96`）×AG39 裁决⑧ rg 普查对 NUL 惯例文件静默跳过的工具盲区（六枚裸 NUL `:380/:384/:385`·枚举+兜底双漏）· 归因坐实=`1408d8c2`（2026-10-13·`git log -S` 亲证）·首曝=`0c06033d` 清欠更早步红后（is-ancestor 亲证时序）· 修法裁决=方向 (a) 夹具补 owner GUC（候选甲·照裁决⑧ canonical 形 `platform`+空串·sibling 两 proof 先例同形·恰 1 文件 +1 行）·方向 (b) 产品语义修=否决 Ban（rev2 B2 协调方裁决+三断言面承重）·方向 (c)=否决（NUL 拔除改缓存键语义·工具陷阱归 STILL OPEN）· 门矩阵（主门 rag-generation:prove 复绿+qbank 域九门+neg 687/interview 57+迁移链 203+typecheck/lint 五值+docs:check cap 红停+markers+diff 面机检+卫生·贴边三条=rg 二进制陷阱/tsbuildinfo 回滚/隔离容器）· #10/#184 邻域=门值基线出处+cap sanction 出处+触面零交叠（§4）· 预期零迁移（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · **起草自检红停在案=docs:check 2145>2144（§7②·cap sanction 归协调方·commit 待 sanction 后落）** · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP · ⛔push*
+*QBANK-SCOPE-FIX REQUEST · 2026-10-14 起草 · **`executed:awaiting_post_prove_dual`**（§9-append-2 EXEC 收口·并线 `f21e5d74`+P2×3+门矩阵补全全绿·post 双审待派·nail/行翻面归协调方）· base `feat/mysql-schema-skeleton` @`bab69561`（origin tip 恒等亲证）· 分支 `line/qbank-scope-fix` · 工作树 `meetwise-qsf`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=协调方派单 brief（CI run `38728371250` step 71 红靶）+negbend-fix 卷形制+ag39 卷裁决⑧ 语义先例 · 红根因四环=0187 owner 臂 RAISE（`:64`·message 恒等 P2-c 致「已设仍抛」表观矛盾）×directSqlBoundary 直调臂 serving-only 供给（`:554-555`·0176 时代绿）×生产四 GUC 面零嫌疑（`setServingScope` `:88-96`）×AG39 裁决⑧ rg 普查对 NUL 惯例文件静默跳过的工具盲区（六枚裸 NUL `:380/:384/:385`·枚举+兜底双漏）· 归因坐实=`1408d8c2`（2026-10-13·`git log -S` 亲证）·首曝=`0c06033d` 清欠更早步红后（is-ancestor 亲证时序）· 修法裁决=方向 (a) 夹具补 owner GUC（候选甲·照裁决⑧ canonical 形 `platform`+空串·sibling 两 proof 先例同形·恰 1 文件 +1 行）·方向 (b) 产品语义修=否决 Ban（rev2 B2 协调方裁决+三断言面承重）·方向 (c)=否决（NUL 拔除改缓存键语义·工具陷阱归 STILL OPEN）· 门矩阵（主门 rag-generation:prove 复绿+qbank 域九门+neg 687/interview 57+迁移链 203+typecheck/lint 五值+docs:check cap 红停+markers+diff 面机检+卫生·贴边三条=rg 二进制陷阱/tsbuildinfo 回滚/隔离容器）· #10/#184 邻域=门值基线出处+cap sanction 出处+触面零交叠（§4）· 预期零迁移（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · **起草自检红停在案=docs:check 2145>2144（§7②·cap sanction 归协调方·commit 待 sanction 后落）** · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP · ⛔push*
