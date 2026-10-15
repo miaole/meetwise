@@ -3,11 +3,11 @@
  * 跑 Playwright(headless chromium + Pixel 5 两端)驱动真实 UI → 拆栈。
  * 这是 HTTP 层 e2e(run-e2e.mjs)之外的浏览器证据:cookie 鉴权 / middleware 在真实浏览器里端到端跑通。
  * 用法:pnpm e2e:ui(需 docker DB 在跑)。没有 apps/web/.next/BUILD_ID 时先 `next build` 再 `next start`。
- * 已有生产构建则不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
+ * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
  */
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
-import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
@@ -92,6 +92,48 @@ const tailAppend = (name, chunk) => {
 const emitFailureDiagnostics = () => {
   for (const [name, summary] of processDiagnostics) {
     if (summary.bytes > 0) console.error(`E2E_PROCESS_OUTPUT_WITHHELD process=${name} chunks=${summary.chunks} bytes=${summary.bytes}`);
+  }
+};
+// STALE_BUILD_GUARD(件①):HEAD commit time 单次获取;git 不可用/非 git 树/解析失败 → null
+// (检测面 fail-open=按现行为服务既有构建;陈旧判定面 fail-closed=强制重建·假红代价>重建耗时)。
+const headTimeSec = () => {
+  try {
+    const r = spawnSync('git', ['log', '-1', '--format=%ct', 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
+    const t = Number(String(r.stdout ?? '').trim());
+    return Number.isFinite(t) && t > 0 ? t : null;
+  } catch {
+    return null;
+  }
+};
+// 件②:web-build 扣留输出保留缓冲(仅内嵌 next build 挂接·尾上限 ≤400 行且 ≤64KiB 先触为准)
+// ——非零退出时落盘 .tmp/e2e-ui-build-log/<ts>.log(gitignored·0o600·沿 run-e2e-isolated :3050 先例)
+// +stderr 回放同缓冲;构建成功零写盘零行为变化。落盘系本地诊断·非收据非证据面。
+const BUILD_LOG_DIR = `${ROOT}.tmp/e2e-ui-build-log`;
+const BUILD_LOG_TAIL_LINES = 400;
+const BUILD_LOG_TAIL_BYTES = 64 * 1024;
+const buildRetained = [];
+let buildRetainedBytes = 0;
+let buildRetainedDropped = false;
+const buildSink = (stream, chunk) => {
+  const text = String(chunk);
+  buildRetained.push({ stream, text });
+  buildRetainedBytes += Buffer.byteLength(text);
+  while (buildRetained.length > 1 && (buildRetainedBytes > BUILD_LOG_TAIL_BYTES || buildRetained.length > BUILD_LOG_TAIL_LINES)) {
+    buildRetainedBytes -= Buffer.byteLength(buildRetained[0].text);
+    buildRetained.shift();
+    buildRetainedDropped = true;
+  }
+};
+const writeBuildLog = () => {
+  try {
+    mkdirSync(BUILD_LOG_DIR, { recursive: true, mode: 0o700 });
+    const logPath = `${BUILD_LOG_DIR}/${new Date().toISOString().replace(/[:.]/g, '-')}.log`;
+    const body = `${buildRetainedDropped ? '[e2e-ui-build-log: 早期内容已按尾上限截断·仅保留最后 ≤400 行/64KiB]\n' : ''}${buildRetained.map((c) => `[web-build:${c.stream}] ${c.text}`).join('')}`;
+    writeFileSync(logPath, body, { encoding: 'utf8', mode: 0o600 });
+    console.error(`E2E-UI-BUILD-LOG: web-build 非零退出·扣留输出已落盘 ${logPath}(保留尾 ≤400 行·同内容 stderr 回放如下)`);
+    process.stderr.write(body);
+  } catch (e) {
+    console.error(`E2E-UI-BUILD-LOG: 落盘失败(${e?.code ?? e?.message ?? 'unknown'})·扣留输出维持只计数`);
   }
 };
 const spawnProc = (name, cmd, args, cwd = ROOT, extraEnv = {}, forwardOutput = true) => {
@@ -188,18 +230,40 @@ async function main() {
   }
 
   // Recorded blocker: next start with no production build → web_not_ready.
-  // Build only when BUILD_ID is absent. Do not rebuild a tree that already has one.
+  // Build when BUILD_ID is absent — or when STALE_BUILD_GUARD finds the existing
+  // build older than HEAD(陈旧构建假红防线·UC003 门⑥事故:BUILD_ID mtime 早于接线
+  // 仍「在即不重建」→ 服务陈旧构建假红·复跑席再实证扣留输出不可回收)。
   const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
-  if (!existsSync(nextBuildId)) {
-    console.log('E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
+  let forceRebuild = false;
+  if (existsSync(nextBuildId)) {
+    const headCommitTimeSec = headTimeSec();
+    if (headCommitTimeSec === null) {
+      console.warn('E2E-UI: STALE_BUILD_GUARD HEAD commit time 不可得(git 不可用/非 git 树)→ 按现行为服务既有构建');
+    } else {
+      try {
+        const buildIdMtimeMs = statSync(nextBuildId).mtimeMs;
+        if (buildIdMtimeMs / 1000 < headCommitTimeSec) {
+          forceRebuild = true;
+          console.warn(`E2E-UI: STALE_BUILD_GUARD .next/BUILD_ID mtime=${new Date(buildIdMtimeMs).toISOString()} 早于 HEAD commit time=${new Date(headCommitTimeSec * 1000).toISOString()} → 强制重建(防陈旧构建假红)`);
+        }
+      } catch {
+        console.warn('E2E-UI: STALE_BUILD_GUARD BUILD_ID mtime 读取失败 → 按现行为服务既有构建');
+      }
+    }
+  }
+  if (!existsSync(nextBuildId) || forceRebuild) {
+    console.log(forceRebuild ? 'E2E-UI: STALE_BUILD_GUARD 判定陈旧构建 → 强制 next build…' : 'E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
     const build = spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {
       PORT: String(webPort),
       API_BASE_INTERNAL: apiBase,
       NEXT_PUBLIC_API_BASE: apiBase,
       E2E_UI_STRESS: '1',
     });
+    build.stdout.on('data', (d) => buildSink('stdout', d));
+    build.stderr.on('data', (d) => buildSink('stderr', d));
     const buildCode = await new Promise((res) => build.on('exit', res));
     if (buildCode !== 0 || !existsSync(nextBuildId)) {
+      writeBuildLog();
       emitFailureDiagnostics();
       emitE2EFailure({ class: 'frontend', code: 'web_not_ready' });
       cleanup();

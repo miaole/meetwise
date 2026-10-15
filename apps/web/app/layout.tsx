@@ -1,7 +1,7 @@
 import './globals.css';
 import type { Metadata, Viewport } from 'next';
 import { NextIntlClientProvider } from 'next-intl';
-import { getLocale } from 'next-intl/server';
+import { getLocale, getTranslations } from 'next-intl/server';
 import { Nav } from '../components/Nav';
 import { PublicPreviewNav } from '../components/PublicPreviewNav';
 import { Toaster } from '../components/ui/sonner';
@@ -9,21 +9,26 @@ import { resolvePublicSiteUrl } from '@/lib/public-site';
 import { resolvePublicPreview } from '@/lib/public-preview';
 
 const SITE = resolvePublicSiteUrl();
-const DESC = '知面预览版：按真实经历练面试。下一题跟着回答走，进度能留下来，点评只供复盘。';
+// og:locale 是结构 locale tag(zh_CN/en_US),非用户文案,走代码映射不入 messages;非 en 一律按缺省 zh。
+const OG_LOCALE = { zh: 'zh_CN', en: 'en_US' } as const;
 
-/** 全站 SEO 元数据(服务端注入):title 模板、description、Open Graph、Twitter、canonical、robots。RSC 已让内容可爬,这里补元数据层。 */
-export const metadata: Metadata = {
-  metadataBase: SITE ?? undefined,
-  title: { default: 'Meetwise 知面 · 预览版', template: '%s · 知面 Meetwise' },
-  description: DESC,
-  keywords: ['模拟面试', '面试准备', '简历整理', '技术面试', '知面', 'Meetwise'],
-  applicationName: 'Meetwise 知面',
-  authors: [{ name: 'Meetwise' }],
-  alternates: SITE ? { canonical: '/' } : undefined,
-  openGraph: { title: 'Meetwise 知面 · 预览版', description: DESC, type: 'website', locale: 'zh_CN', siteName: 'Meetwise 知面', url: SITE?.toString() },
-  twitter: { card: 'summary_large_image', title: 'Meetwise 知面 · 预览版', description: DESC },
-  robots: SITE ? { index: true, follow: true, googleBot: { index: true, follow: true } } : { index: false, follow: false },
-};
+/** 全站 SEO 元数据(服务端注入):title 模板、description、Open Graph、Twitter、canonical、robots。RSC 已让内容可爬,这里补元数据层。文案走 messages meta namespace,随 cookie locale 出 zh/en。 */
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations('meta');
+  const locale = await getLocale();
+  return {
+    metadataBase: SITE ?? undefined,
+    title: { default: t('titleDefault'), template: t('titleTemplate') },
+    description: t('description'),
+    keywords: t('keywords').split(',').map(s => s.trim()).filter(Boolean),
+    applicationName: t('applicationName'),
+    authors: [{ name: 'Meetwise' }],
+    alternates: SITE ? { canonical: '/' } : undefined,
+    openGraph: { title: t('titleDefault'), description: t('description'), type: 'website', locale: OG_LOCALE[locale === 'en' ? 'en' : 'zh'], siteName: t('siteName'), url: SITE?.toString() },
+    twitter: { card: 'summary_large_image', title: t('titleDefault'), description: t('description') },
+    robots: SITE ? { index: true, follow: true, googleBot: { index: true, follow: true } } : { index: false, follow: false },
+  };
+}
 
 /** 多端 viewport:device-width 适配 PC/H5,允许放大(无障碍)。themeColor=琥珀(design-kit 主色)。 */
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, maximumScale: 5, themeColor: '#B5651D' };
