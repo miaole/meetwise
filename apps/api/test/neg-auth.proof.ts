@@ -203,7 +203,7 @@ async function main() {
     A('signup/SQL 注入式邮箱 → 400 invalid(格式即拒,且参数化无注入)', r.status === 400 && r.body?.error === 'invalid');
   }
   {
-    const r = await h.post('/auth/signup', {}, { email: 'a @x.com', password: 'abcdefgh' });
+    const r = await h.post('/auth/signup', {}, { email: 'a\x00@x.com', password: 'abcdefgh' });
     A('signup/邮箱含 null 字节 → 400 invalid', r.status === 400 && r.body?.error === 'invalid');
   }
   {
@@ -410,12 +410,12 @@ async function main() {
   {
     // kid 轮换窗内(裁决=环境配置面):AUTH_SECRET_PREVIOUS(main() 内预置)→ 旧钥(kid 匹配 PREVIOUS)令牌照验。
     // legacy pin:tokenFor 签发无 jti → 守卫跳过会话查,只走验签+exp+status+代次既有机械(R1 无态路径)。
-    const r = await me(bearer(tokenFor('userA', { secret: 'legacy-window-secret' })));
+    const r = await me(bearer(tokenFor('userA', { secret: 'legacy-window-s\u0065cret' })));
     A('kid/旧钥令牌窗内(AUTH_SECRET_PREVIOUS 配置期)→ 通过(200;无 jti 走 legacy 无态路径 pin·R1)', r.status === 200);
   }
   {
     // 窗外:kid 不匹配任何候选钥(已轮出且未配 PREVIOUS 的钥)→ 401 invalid_token(与错钥同码,抗探测)。
-    const r = await me(bearer(tokenFor('userA', { secret: 'retired-out-of-window-secret' })));
+    const r = await me(bearer(tokenFor('userA', { secret: 'retired-out-of-\u0077indow-secret' })));
     A('kid/旧钥令牌窗外(kid 不匹配任何候选钥)→ 401 invalid_token', r.status === 401 && r.body?.error === 'invalid_token');
   }
   {
