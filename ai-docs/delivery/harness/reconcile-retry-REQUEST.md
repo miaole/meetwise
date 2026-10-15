@@ -1,6 +1,6 @@
 # RECONCILE-RETRY REQUEST — #10（5C 批）翻案刀·model_invocation unknown 悬挂面处置（修法裁决=(c) 仅可观测化·积压水位双 gauge+gateway 只读函数·零行为变更·reconcile-retry 战役·docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本卷=起草落卷·pre-exec 双审两外席待派·alone≠dual·Dual PASS ≠ 开工·翻面权归协调方 · est live=0 · Ban self-approve · ⛔push）
+**Status**: **`stopped:exec_red_gate_baseline`**（EXEC 落卷·2026-10-15·门矩阵十绿一红承登：docs:check **PTP_FILE_LIMIT:2137>2136 红停**——红唯一根因=件① 迁移受管计面 +1（merge 点 HEAD 实测恰 2136=cap 绿）·cap 上抬权归协调方·沿 evkind `stopped:exec_red_gate_baseline`/tokstream/perfload-env-fix 先例 Status 不落 executed·沿承登记⛔就地自调 cap·翻面权归协调方 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：RECONCILE-RETRY 起草席（诊断+起草双责·协调方派·批表盘点席翻案 #10 真未闭立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `109e3eb1`（fetch 后 origin tip 同指亲证·docs:check 2133≤cap 2136 本树亲跑 EXIT=0）· 分支 `line/reconcile-retry`（建前 `git branch --list "line/reconcile*"` 零命中·本起草席 `git worktree add ../meetwise-rcr -b line/reconcile-retry feat/mysql-schema-skeleton` 亲立·HEAD 落 `109e3eb1` 亲证）· 工作树 `meetwise-rcr`（仓根同级）。
@@ -14,6 +14,7 @@
 - `git worktree list` 建后 **14** 树实测（主仓+13 支线树）——无第二 reconcile-retry 同名树；`git branch --list "line/reconcile*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | grep reconcile-retry` 建前零命中→落卷后唯一同名卷=本卷。
 - **在飞交叠复核规则（EXEC 立项日必做）**：本刀产品触面=6 码面（新迁移 0203+`gateway-dispatch.ts`+`packages/db/src/index.ts`+`metrics.ts`+`model-invocation-reconcile.ts`+`model-invocation-reconcile.proof.ts`）。届时对各在飞分支执行 `git log -1 -- <文件>` 逐树逐件复核，任一分支顶对任一触面存在主线 `109e3eb1` 之后的新增提交→触停止条件「现场漂移」停手上报。
 - 同名函数占用查：`rg -rn "gateway_model_invocation_backlog" packages apps` 本树**零命中**亲证=新函数名无撞面。
+- **EXEC 立项日复测（merge `4fbb2e26` 树·2026-10-15）**：`git worktree list`=**15** 树（主仓+14 支线）·`git branch --list "line/reconcile*"` 恰 1 命中=本分支·harness 目录 reconcile-retry 恰 1=本卷。在飞交叠复核**执行记录**：在飞刀分支（cost-columns/ci-wiring3/dbhy1-p4-fix/obs-ledger/ops-hygiene/status-flip2/uc184-slot-order/receipt-archive2/batch1-residual 及已并 batchflip/batch-residual-plan/ci-red-clear/perfload-env-fix）对 5 触面逐树逐件 last-touch 全数 `git merge-base --is-ancestor` 判=**`109e3eb1` 祖先（零后基线触面）**；陈旧支线若干命中后基线触面均为旧基线未并所致非在飞刀（沿 evkind 复核先例）→「现场漂移」零触。merge 本身 `git merge-tree --write-tree` 预演 EXIT=0（tree `2f4b3c22`）·实测零冲突·`git diff --name-only 109e3eb1 HEAD` 9 文件（ci.yml/.gitleaks.toml/egress json/checklist/batch-residual-plan.md/ci-red-clear-REQUEST.md/LEDGER/本卷/provider-egress proof.mjs）**零触 7 产品触面**。落件后 `rg -l "gateway_model_invocation_backlog" packages apps ai-docs scripts` 恰 4 命中=本刀四件+本卷（零外来撞面）。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`109e3eb1`）
 
@@ -32,6 +33,8 @@
 | `packages/db/src/jobs/gateway-dispatch.ts` | `1d6ad3e7`（85 行） | **`:29-33` gatewayModelInvocationOwners（asGateway 形=件② 同构范本）·`:35-37` gatewayJobGauges+「Global operational gauges expose only aggregate counts」注释（件①② 政策沿承）** |
 | `packages/db/migrations/0037_ai_model_invocation_durable_claim.sql` | `9916a37e`（41 行） | **`:32-33` 部分索引 `ix_ai_model_invocation_unknown ON ai_model_invocation(created_at) WHERE status IN ('dispatching','unknown')`——件① 两 COUNT 的承载索引（零新索引依据）** |
 
+**EXEC 重 pin（merge `4fbb2e26` 树·2026-10-15 亲证）**：上表 12/12 **blob 恒等+行数恒等**（逐件 `git hash-object` 复算=`119323b9`/`1d8acb7f`/`cbc07c09`/`2cce4019`/`6f78d8d7`/`17ffb25a`/`44e137f6`/`e8f2ccec`/`1e6284cb`/`b47aba76`/`1d6ad3e7`/`9916a37e`）——merge diff 零触上表 12 件。**四条锚勘误（pre-exec 双审席1 P2+席2 P3 随 pin 落·均 blob 恒等仅行锚误·本席 sed/Read 逐条亲证）**：①proof.ts「`:60-75` dispatch() 种子形·`:72` ageInvocation」→dispatch() 种子形实 **`:43-60`**·ageInvocation 实 **`:67-79`**（`:72` 回拨行恒等）；②proof.ts「`:438-455` bootstrap-vs-app_role ACL 臂形+owner 失败传播臂」→owner 失败传播臂实 **`:431-453`**（A 断言=`:452-453`·`:438-455` 涵摘要 console.log 行）；③proof.ts 头注自证句尾「without a retry/release path」跨 **`:6-7`**（原锚 `:1-6` 截尾）；④metrics.ts「jobsQueued 族注释 `:92-95`」→gauge 语义注释实 **`:67-70`**（「gauge 是全局绝对值…告警侧用 max() 去重」=`:69`·jobsQueued 族常量=`:74-77`）。其余行锚全表逐条 sed 亲验恒等（0088 `:170-183`/`:185`/`:271-273`/`:436-439`/`:456-476`/`:672`/`:705-716`·0033 `:51`/`:107-108`/`:126-131`/`:163-166`/`:179-184`/`:190-200`·0057 `:43-74`·0056 `:40-59`·0037 `:32-33`·invoke.ts `:788`/`:943-946`/`:987`/`:1019-1021`/`:1068-1069`·main.ts `:398-423`/`:422`/`:711-715`/`:803`·gateway-dispatch.ts `:29-33`/`:35-37`·model-invocation.ts `:4-6`/`:16`/`:125-126`/`:150-166`/`:199-205`/`:214-230`·metrics.ts `:100-101`/`:157-159`·reconcile.ts 全锚 `:5-7`/`:17-19`/`:25`/`:48-49`/`:64-69`/`:74`/`:78`/`:92-125`（`:100`/`:101-105`/`:107-122`/`:113-116`/`:123`）·proof.ts `:105`）。
+
 ### 0.2 派单简报核实登记（结论零变·如实精化）
 
 1. 简报「#10 真未闭——`:5-7` 注释自证 never retries or releases·卡死行永不重试永不释放」——**核实成立但机制描述精化**：悬挂 `dispatching` 行的**终态化（冻结）路径实存且机制完备**（§1.2·35s 起窗+误杀防护+SKIP LOCKED+原子对冻结+proof 承载）——「永不重试永不释放」的真身=①unknown 终态后同键重发被三层结构性封死（by-design·§1.3-a）②预算持有永不再动（§1.3-b）③**积压水位零观测**（§1.3-c）——③为真缺口。精化≠翻案方向推翻。
@@ -43,6 +46,7 @@
 
 - 主线链顶实测：`ls packages/db/migrations | wc -l`=**202**·头 `0202_interview_event_kind_score_card_written.sql`（本树亲证）。
 - 本刀占位号=**0203**（`0203_gateway_model_invocation_backlog.sql`）。协调规则：EXEC 立项日对届时主线链顶 `ls packages/db/migrations` 亲数+在飞分支题面复核后取最小未占号顺延（零硬编码·沿 evkind 0202/AG39 改占勘误先例）·Ban 抢号 Ban 私占·若届时 0203 已被占→按亲数取下一个最小未占号并全卷同步改锚（停止条件「现场漂移」零触·属认领规则内动作）。
+- **EXEC 立项日复测（merge `4fbb2e26` 树·2026-10-15）**：`ls packages/db/migrations | wc -l`=**202**·头 `0202_interview_event_kind_score_card_written.sql` 恒等——merge 零新增迁移；在飞九分支（cost-columns/ci-wiring3/dbhy1-p4-fix/obs-ledger/ops-hygiene/status-flip2/uc184-slot-order/receipt-archive2/batch1-residual）迁移目录逐树 `git ls-tree` 实数=202·**0203 零占用**（cost-columns 后 EXEC 改 0204 为协调方对 cost-columns 刀的授权注记·与本刀零交涉面）→**占号成立**（协调方授权 EXEC·0203 归本刀）。落件后 migrate 链头实测 `0203_gateway_model_invocation_backlog.sql`（门 3）。
 
 ## §1 红事实（机制链·全部亲证 @`109e3eb1`·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
 
@@ -177,6 +181,22 @@ GRANT EXECUTE ON FUNCTION gateway_model_invocation_backlog(integer) TO app_gatew
 - **越界需要**：修法诉求超出 §1-修法恰 6 件面（需触行为面/重试释放语义/成本会计/第二迁移/注册行/告警配置/SSOT）→停·另刀或协调方裁决（§1.4 (a)(b) 否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻套件新红/lint 五值任一超/docs:check>2136/drift 红/uniqueness violations>0）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 记录（2026-10-15·EXEC 施工席落卷）
+
+**授权链**：pre-exec 双审两外席 BOTH PASS（席1 agent_08ae74ed+席2 agent_8e7d4fd6 会签）→协调方 EXEC 授权（**EXEC·0203 归本刀**·cost-columns 后 EXEC 改 0204）→本席落卷·收据=`receipts/reconcile-retry/00-exec.md`（仓根非受管根·untracked 交付）。
+
+**工序**：①`pnpm install --frozen-lockfile`（node_modules ABSENT→EXIT=0 13.1s·零 lockfile 变更先行）；②`git fetch`+`git merge --no-ff feat/mysql-schema-skeleton`@`0c06033d`→merge **`4fbb2e26`**（merge-tree 预演 EXIT=0 tree `2f4b3c22`·冲突解=∅ 零 union 手解·merge diff 9 tracked 文件零触 7 产品触面·⛔pull --rebase 未用）；③§0 全量重 pin（**12/12 blob 恒等+行数恒等**·四条锚勘误随 pin 落=§0.1 EXEC 重 pin 段）+席1 P2-1+席2 P2-A 共同处方随 pin 落=**件③ metrics.ts `:157-158` 基线枚举补 `'backlog_failed'`**；④件① 迁移 `0203_gateway_model_invocation_backlog.sql`（链顶复测 202·头 0202·在飞九分支链均 202·0203 零占用·占号成立·SQL 与 §1-修法规格 diff 逐字恒等·恰 3 语句 CREATE FUNCTION+REVOKE+GRANT·`@migration-mode multi-statement`）；⑤件② db wrapper（gateway-dispatch.ts asGateway 同构+interface）+`packages/db/src/index.ts` 同名 export 双行；⑥件③ metrics 双 gauge 常量+基线预注册 `setGauge(...,0)` 两行+枚举 `'backlog_failed'`；⑦件④ tick 接线（owner 循环末与 ownerFailures throw 之间·backlog 读块+catch 臂镜像 `:101-105` 枚举形 inc `backlog_failed`+console.error 无载荷+throw `model_invocation_reconcile_backlog_failed`·块外 tick 零语句增删改）；⑧件⑤ proof 恰 7 新臂（尾段纯增量·既有断言零字节改·新臂块首 fixture repair 修复既有 broken-pair 臂遗留雷行=新码内·不在既有臂）；⑨件⑥ 收据仓根。
+
+**改前 run（恰一次·测量形）**：裸 `pnpm -C apps/worker prove:model-invocation-reconcile` 先试=boot 段 env 前置缺失（`database_target_missing`·未达测量面·如实登记）；测量经 `node scripts/run-e2e-isolated.mjs model-invocation-reconcile:prove:raw`=**17 PASS 全绿 EXIT=0**。改后 run **两次如实承登**：第一次=新臂④ tick 撞既有 broken-pair 臂故意遗留的 aged+cost-对已删雷行（freeze changed<>1→RAISE→owner_failed·run 中止·17 既有+新①②③ PASS）——一次性容器净态复刻同机制 `OWNER_OUTCOME {"invocations":1,"frozenCosts":1}` 成跑=件④机制零瑕·§1.3-(c) 推定形未被证伪（反被新①②③绿+复刻证实）→定性=件⑤ 新码 fixture 时序缺陷→修件⑤ 新码（新臂块首 fixture repair·既有字节零触）→第二次 **24 PASS 全绿 EXIT=0**（既有 17 名单逐字恒等零弱化+恰 7 新臂全过）。runner 形 `pnpm model-invocation-reconcile:prove`=同命令（root `:227`→`:raw` 注册形）如实记零重跑。
+
+**门矩阵（十一门）**：门1 raw 直跑主判据 **24 PASS EXIT=0**（改后第二次）·门2 interview:prove:raw **57 PASS 恒等** EXIT=0+neg:all **687 PASS** 六段全绿 EXIT=0（685+ade 判别臂=在飞口径恒等）·门3 migrate:prove EXIT=0 链 **203 头 0203**（harness 收据 manifest `count=203 latest=0203_gateway_model_invocation_backlog.sql`+字节序 197 文件全等）·门4 drift:prove EXIT=0 零漂·门5 uniqueness **files=203 violations=0**（exemptions 0143/0152/0160 恒等）·门6 typecheck **8/8·0 cached** EXIT=0·门7 lint 12 任务 0 errors **五值恰等 web 601/root 5235/api 1421/worker 954/ai-runtime 628** EXIT=0（首跑 worker 955=本席新 import 两行 import/order +1→仅动自己新行归位→954 恰等·如实承登）·门9 markers 五类改动集新增行零命中·门10 diff 恰 7 tracked 路径+收据 untracked 非受管根·门11 卫生绿（install 复跑零 lockfile 改·.env* ABSENT 三查·actualSpendCny=null·est live=0）。**门8 docs:check 红停（唯一红）**：EXIT=1 **`public_text_policy:PTP_FILE_LIMIT:2137`>cap 2136**——merge 点 HEAD 受管文本实测 **2136=cap 恰等绿**·红唯一增量=件① 迁移 .sql 受管计面 +1（本卷 §0/§9 增行零增文件·收据仓根非受管零计面）·沿 perfload-env-fix `PTP_FILE_LIMIT:2132>2128` 协调方 sanction 先例形·cap 上抬权归协调方·Ban 就地自调·如实红停上报。
+
+**STOP=`stopped:exec_red_gate_baseline`**（沿 evkind/tokstream 先例·门8 红承登·其余十门全绿·本刀产品件面自身零红·翻面权归协调方·cap sanction 处置后 post 双审续链）。
+
+**偏离清单（五笔全数登记）**：①门8 docs:check 红承登上报；②改后 run 两次（第一次红=件⑤新码 fixture 缺陷·根因+复刻证据+修复全登记·非凑绿重跑冲销）；③lint 首跑 worker 955 承登后仅自修新行归位 954 恰等；④门2 neg 分母实测 687=在飞口径恒等（§2-2「届时实测分母如实记」条款内动作）；⑤裸跑 boot 段 env 前置缺失一次如实登记（未达测量面）。
+
+est live=0 · markers=0 · pins 十一值零翻 · ⛔push。
+
 ---
 
-*RECONCILE-RETRY REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`109e3eb1` · 分支 `line/reconcile-retry` · 工作树 `meetwise-rcr`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=批表盘点席翻案（#10 真未闭·`:5-7` 注释自证 never retries or releases）+LEDGER `:87`「#10 unknown 结案」翻案靶+协调方派单 brief · 诊断=悬挂终态化路径实存且完备（§1.2·阈值/误杀防护/SKIP LOCKED/原子对冻结）而「永不重试永不释放」真身=unknown 语义三层结构性封死（by-design）+预算持有（政策）+**积压水位零观测（真缺口）** · 裁决=(c) 仅可观测化零行为变更（(a) 重做出局·(b) 三层禁+幂等键账单面出局）· 修法=件① 迁移 0203 gateway_model_invocation_backlog 只读双 COUNT（dispatching_aged/unknown_unresolved·0056 同族·0037 部分索引承载·零新索引）+件② db wrapper+件③ metrics 双 gauge+件④ tick 接线（ownerFailures throw 前·backlog_failed 镜像枚举臂）+件⑤ proof 恰 7 新臂+件⑥ 收据仓根 · 门矩阵十一门（reconcile proof raw 直跑主判据+interview 57/neg 六段邻面不回退+migrate 链 203+drift+uniqueness+typecheck 8/8+lint 五值恰等 601/5235/1421/954/628+docs:check≤2136 红停+markers/diff 恰 7 tracked 路径/卫生）· 迁移预期恰 1（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*RECONCILE-RETRY REQUEST · 2026-10-14 起草 · 2026-10-15 EXEC 落卷（§9）· **`stopped:exec_red_gate_baseline`**（门8 docs:check `PTP_FILE_LIMIT:2137>2136` 红停承登=件① 迁移受管计面 +1·merge 点 HEAD 实测恰 2136=cap 绿·cap 上抬权归协调方·沿 perfload-env-fix 先例·其余十门全绿·翻面权归协调方）· base 并线 `feat/mysql-schema-skeleton` @`0c06033d`→merge `4fbb2e26`（零冲突·tree 预演 `2f4b3c22`）· 分支 `line/reconcile-retry` · 工作树 `meetwise-rcr` · 修法=件① 迁移 0203 gateway_model_invocation_backlog 只读双 COUNT（dispatching_aged/unknown_unresolved·0056 同族·0037 部分索引承载·零新索引·恰 3 语句）+件② db wrapper+件③ metrics 双 gauge+基线枚举 `'backlog_failed'`（席1 P2-1+席2 P2-A 处方）+件④ tick 接线（ownerFailures throw 前·backlog_failed 镜像枚举臂）+件⑤ proof 恰 7 新臂（既有断言零字节改）+件⑥ 收据仓根 · 改前 17 PASS→改后 24 PASS 全绿（两次承登见 §9）· 门矩阵=十绿一红（红=门8 计数预算非内容策略）· est live=0 · markers=0 · pins 十一值零翻 · 停止条件四类（「验收红不可修」命中承登）· Ban self-approve · alone≠dual · ⛔push*
