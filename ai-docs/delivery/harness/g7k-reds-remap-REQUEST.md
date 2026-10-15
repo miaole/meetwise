@@ -1,6 +1,6 @@
 # G7K-REDS-REMAP REQUEST（行勘误刀 · docs-only · `:107` 三红映射换形注记 + 鉴别刀/韧性刀排程引用 · 零码零迁移零翻面）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停 · alone ≠ dual · ⛔push · Ban self-approve · est live=0 · `actualSpendCny=null`）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 落卷翻面·协调方 EXEC 授权+pre-exec 复审 PASS agent_57093c4f·原 `draft:awaiting_pre_exec_dual`·alone ≠ dual · ⛔push · Ban self-approve · est live=0 · `actualSpendCny=null`）
 
 **席位**：G7K-REDS-REMAP 行勘误刀 REQUEST 起草席（协调方派单令 · G7K 诊断排程刀 3 · docs-only）。
 **基线**：`feat/mysql-schema-skeleton` @ **`0c94d1ec`**（起草时 origin tip · fetch 后亲证 origin tip = 最近 integrity nail 波 tip——`0c94d1ec` 即 qbank-integrity-chain nail 本commit · `git rev-parse origin/feat/mysql-schema-skeleton` 恒等 · 前置条件「origin tip≥integrity nail 波 tip」满足）· worktree **`meetwise-grm`**（仓根同级 · `git worktree add ../meetwise-grm -b line/g7k-reds-remap origin/feat/mysql-schema-skeleton` 本起草席立 · 建前 `git worktree list` 零 grm 名树 + `git branch --list "line/g7k-reds-remap"` 零命中双查亲证）· branch **`line/g7k-reds-remap`**。
@@ -107,7 +107,7 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动。开工三条款：①预执行双审两外席 BOTH PASS 落卷；②协调方明示授权（本卷非授权本身）；③EXEC 立项不得改 §1-修法注记措辞实质与 §1.3 否决/§5 Ban/pins（改则回炉重审；落位行锚照 §0 对届时 tip 重 pin）。**Dual PASS ≠ 开工 · 注记落卷≠行翻面**。
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。**（2026-10-16 EXEC 落卷翻面·原 `draft:awaiting_pre_exec_dual`·开工三条款①②已行使=pre-exec 复审 PASS agent_57093c4f+协调方 EXEC 授权·③注记措辞 R1/R2/R5 修订随授权落定·§9-勘误段在卷） 起草席写完即停零码动。开工三条款：①预执行双审两外席 BOTH PASS 落卷；②协调方明示授权（本卷非授权本身）；③EXEC 立项不得改 §1-修法注记措辞实质与 §1.3 否决/§5 Ban/pins（改则回炉重审；落位行锚照 §0 对届时 tip 重 pin）。**Dual PASS ≠ 开工 · 注记落卷≠行翻面**。
 
 **停止条件（四类 · 命中即停手上报）**：
 1. **现场漂移**：EXEC 立项时对届时 tip 重 pin——backlog blob 漂移如实改锚；`:107`/`:108` 行锚漂移超 ±3 或行状态已被他刀翻转 → 停手上报（不得就地改注记实质）。
@@ -117,4 +117,24 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 
 ---
 
-*G7K-REDS-REMAP REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`** · ⛔push · alone ≠ dual · base `feat/mysql-schema-skeleton` @`0c94d1ec`（=起草时 origin tip·fetch 亲证≥integrity nail 波 tip·qbank-integrity-chain nail 即 tip）· worktree `meetwise-grm` · branch `line/g7k-reds-remap`（建前双查无同名）· 立项出处=协调方派单令（G7K 诊断席定谳转录）+backlog `:107`/`:108` 原文与 `:781`/`:788`/`:837`/`:846`-`:852` 登记链+checklist `:1383`-`:1388`/`:2760`+诊断席证据帧四源（NDJSON bootId 32166/33337/36973 三 boot 十五帧+consent 帧+verbose class=api 帧+machine receipt reviewLedger 恰 4 行终于 interview_unavailable×2）· 修法=恰一件 `:107` 行 append 换形注记（红② verified-green+红①③残余收敛新根「出题批判门 question_critique_failed 单发即终场」+鉴别刀/韧性刀排程引用·原文零字节改·行翻面权沿例归协调方）· §1.3 否决=Ban 直接翻面（残余未清）+Ban 删除行（洗史）· 门矩阵=docs:check+markers+diff 恰 1 tracked（docs-only）· 迁移号=零 · est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · Dual PASS ≠ 开工 · STOP*
+*G7K-REDS-REMAP REQUEST · 2026-10-16 起草 · **`executed:awaiting_post_prove_dual`**（EXEC 翻面 2026-10-16）· ⛔push · alone ≠ dual · base `feat/mysql-schema-skeleton` @`0c94d1ec`（=起草时 origin tip·fetch 亲证≥integrity nail 波 tip·qbank-integrity-chain nail 即 tip）· worktree `meetwise-grm` · branch `line/g7k-reds-remap`（建前双查无同名）· 立项出处=协调方派单令（G7K 诊断席定谳转录）+backlog `:107`/`:108` 原文与 `:781`/`:788`/`:837`/`:846`-`:852` 登记链+checklist `:1383`-`:1388`/`:2760`+诊断席证据帧四源（NDJSON bootId 32166/33337/36973 三 boot 十五帧+consent 帧+verbose class=api 帧+machine receipt reviewLedger 恰 4 行终于 interview_unavailable×2）· 修法=恰一件 `:107` 行 append 换形注记（红② verified-green+红①③残余收敛新根「出题批判门 question_critique_failed 单发即终场」+鉴别刀/韧性刀排程引用·原文零字节改·行翻面权沿例归协调方）· §1.3 否决=Ban 直接翻面（残余未清）+Ban 删除行（洗史）· 门矩阵=docs:check+markers+diff 恰 1 tracked（docs-only）· 迁移号=零 · est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · Dual PASS ≠ 开工 · STOP*
+
+---
+
+## §9 EXEC 记录（2026-10-16 · EXEC 席随翻落卷 · ⛔push 维持 · 待 post-prove 双审两外席 · alone ≠ dual · 本节零 SSOT 触碰 · 行翻面权归协调方）
+
+- **工序1 并线**：merge `3a9b2271` --no-ff 并 `origin/feat/mysql-schema-skeleton`@`fc64c7c9`（fetch 亲证届时 tip=fc64c7c9=qpl nail SSOT·≥派单预期锚·零冲突 4 files +235/−2=checklist +12/LEDGER +2/qbank-pipeline-scope REQUEST 新增/proof.ts +6−2·冲突沿并集解预置未触发·禁 pull --rebase 遵守）。
+- **工序2 §0 重 pin（对 `3a9b2271` · §8 停止条件①未触发）**：#1 backlog blob `05363bbf` **恒等**（913 行恒等·`:107`/`:108` 原文在位 P1 OPEN 未翻转·登记链 `:781`/`:788`/`:837`/`:846`-`:852` 行锚全中）；#2 checklist blob `bedf07f1`→**`bba9cc08`**（工序1 merge 携入 fc64c7c9 checklist +12 行如实改锚·`:1383`-`:1388`/`:2760` 行锚对 bba9cc08 重锚全中）；#3 uc018-abandon 「UI abandon proxy」=**:141** 恒等；#4 recruiting-bound C→B=**:222** 恒等；#5 `939f1b44` 祖先 `merge-base --is-ancestor` EXIT=0 恒等；#6 `b248b76d` 在树恒等；#7/#8 `.tmp` 证据帧对原件复读=§0.2 转录逐字段恒等（保真勘误两处见 §9-勘误段 R4·不触结论）。**结论零推翻**。
+- **工序3 EXEC 修法=恰一件 backlog append 勘误注记一条**：插入点=G7K 登记链注记区末尾 `:796` 注后（沿 `:837`/`:838`「本立项注下追加」先例形·对届时 tip 重 pin）· 注记+空行恰 2 行 append（backlog 913→915 行·注记落位 `:798`）· 措辞=§1-修法① 草案+pre-exec 复审 R1/R2/R5 修订落定（§9-勘误段）· `:107`/`:108` 及全部既有行零字节改（机检双证：`git diff --numstat` 纯 +2/−0；`:107`/`:108` 两行改前 blob `05363bbf` 与改后工作树 hash-object 恒等 `2aac914a`）· 行状态零翻转 P1 OPEN 维持·行翻面权归协调方。
+- **工序4 门矩阵（docs-only 三门全绿·本席亲跑）**：① docs:check EXIT=0（**2163** scanned ≤ cap 2176·余量 13·并线树=基线 2161+本卷+qpl 卷）；② markers 五类改动集零命中（`scripts/i6-239-gates.proof.mjs:151-163` 运行时组装四词+冲突标记对·词面沿 §7 不在卷复抄防自匹配·backlog 与本卷逐词亲跑零命中）；③ diff：阶段1（注记落卷后）**恰 1 tracked=backlog +2/−0**；阶段2（本卷 §9+勘误段 append+STOP 翻面三处后）**恰 2 tracked=backlog+本卷 .md**·零他 tracked 路径零删改。
+- **STOP=executed:awaiting_post_prove_dual 三处**（Status/§8/卷尾）· post-prove 双审两独立外席待派 · est live=0 · `actualSpendCny=null`。
+
+## §9-勘误段（pre-exec 复审 R1-R5 修订落卷 · 第三确认位复审 PASS（agent_57093c4f·R1/R2 修订随 EXEC 落）· 协调方 EXEC 派单令为授权 SSOT · append-only · §8 开工三条款③之下以授权修订落定·§5 Ban 条文本体零改写）
+
+- **R1（两岔判别措辞·席1 时间锚定形定稿）**：§1-修法① 草案「挂 `GAP-CMOP03-7A-DOWNGRADE` 同形+新根嫌疑两岔未分（岔A/岔B·鉴别刀排程引用）」段按定稿形落=「两岔判别=鉴别刀另卷在途·本注不预断两岔·若其定谳先于本注 EXEC 落卷如实改引其定谳」——**鉴别刀（QGEN-CRITIQUE-DISCRIMINATOR）定谳实况先于本注 EXEC 落卷**（已定谳**混合岔**：环境链路死 401×树 `b29d861d` 改道·题面字节直证模板回退 duplicate 单发终场·模型漂移直证排除）→ 按 R1 尾款注记采用**改引形**：「鉴别刀已定谳混合岔（环境链路死×`b29d861d` 改道·模型漂移直证排除·定谳卷另立 SSOT 待并）」· 处置句原「+鉴别刀排程引用」随之收去（已执行已定谳·改引如上）· 韧性刀排程引用保留·「挂 `GAP-CMOP03-7A-DOWNGRADE` 同形域」只读挂接保留零归因。
+- **R2（帧源口径）**：注记证据引用按席定稿扩为「形状 diff 同构核+帧源 B 三 boot consent 200 帧+五 receipt 31799/32988/36022/49005/56713 同构核」——本席对五 receipt 逐一亲证同构（outcome=failed·exitCode=1·failureClass=api·reviewLedger 恰 4 行=image_ocr_unavailable→voice_unavailable→interview_unavailable×2·manifest count=204 latest=0204·releaseEvidence=false·五值五 receipt 恰等）+三 boot consent 帧在 `.tmp/e2e-consent-capture.ndjson` 亲读（step=consent status=200·body `recorded:true policyVersion:v1`）。
+- **R3（Ban 前提勘误·append 登记形）**：§5 Ban「Ban 归因两岔任一岔（**鉴别刀未跑**·「同形+新根嫌疑」措辞冻结不升格为定谳）」的前提事实项「鉴别刀未跑」已因鉴别刀 EXEC+定谳**事实更替**——勘误=该 Ban「不自行归因」效力沿例维持（本注改引其定谳·不自行归因·不升格不推翻其定谳），仅前提事实如实登记更替；§5 Ban 条文本体零字节改写（本节 append 登记即 R3 全部落位形）。
+- **R4（转录保真两处·本席 §0.2 对原件 diff 亲证）**：① **帧序保真**——§0.2 帧源 A 转录序（done×2→question_ready→interview_unavailable→answer_unscored）与原件文件序（G7K 原帧活载体实序=done×2→interview_unavailable→answer_unscored→question_ready）不一致；字段/帧数/内容逐字段恒等·「单发即终场」判读不依赖文件序（15 帧中 `question_critique_failed` 恰 3=每 boot 恰 1 帧·零第二次 critique 失败帧零 retry 帧亲证恒在）。② **原件载体漂移**——`.tmp/e2e-7a-diag.ndjson` 已被鉴别刀 RUN2（bootId 57332 五帧）覆写·G7K 原三 boot（32166/33337/36973）十五帧现行活载体=**`.tmp/e2e-7a-diag.prev-g7k.ndjson`**（鉴别定谳卷 §5「G7K 原三跑帧·保全」）· §0.2 转录内容对保全件亲证恒等·转录效力不受影响（§0.3-D2 机制）。
+- **R5（可选半句·行使）**：改引形括注内增「模型漂移直证排除」半句（源=协调方派单令鉴别刀定谳实况转录+定谳卷 §0「G7K 原判『模型漂移』被直证排除」）· 注记已含。
+
+*G7K-REDS-REMAP EXEC 尾注（2026-10-16 · EXEC 席）· 注记落卷行锚=backlog `:798`（登记链后随行锚：`:837`→`:839`·`:846`-`:852`→`:848`-`:854`·`:107`/`:108`/`:781`/`:788` 不变）· STOP=**executed:awaiting_post_prove_dual** · ⛔push · alone ≠ dual · est live=0 · `actualSpendCny=null`*
