@@ -1,6 +1,6 @@
 # ISO-DOTENV-ISOLATION REQUEST — scripts/run-e2e.mjs isolated 形强制跳 .env 回灌微刀（恰 1 tracked 代码文件 ~3 行·E2E_SKIP_DOTENV 语义保持·G7K 诊断排程刀 4·P2·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停→pre-exec 双审两独立外席待派→协调方明示 EXEC 授权后方开工·本 commit 不预 claim 任何 post-commit EXIT·alone≠dual·⛔push⛔merge 主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-14·merge `0a3355d0`+单 hunk 修法+门矩阵全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线）
 
 **席位**：ISO-DOTENV-ISOLATION 起草席（G7K 诊断排程刀 4·P2·协调方派·⛔push⛔merge 主线）。
 **基线**：`feat/mysql-schema-skeleton` 主线 tip=`0c94d1ec`（fetch 后 `git rev-parse origin/feat/mysql-schema-skeleton` 亲读=`0c94d1ec`·=QBANK-INTEGRITY-CHAIN-EXTEND nail 落卷 commit·**origin tip≥integrity nail 波 tip 恰等下界满足**·origin/main=`c4244470` 为其祖先 `merge-base --is-ancestor` EXIT=0 亲证）· 分支 `line/iso-dotenv-isolation`（建前 `git branch --list "line/iso-dotenv*"` 零命中·本起草席 `git worktree add ../meetwise-idi -b line/iso-dotenv-isolation origin/feat/mysql-schema-skeleton` 亲立·HEAD=`0c94d1ec` 亲证）· 工作树 `meetwise-idi`（仓根同级·新建 worktree **仓根 `.env` ABSENT 天然成立**·`ls .env` No such file 亲证——起草期全部轻门在此树跑·零造 .env）。
@@ -185,6 +185,57 @@ console.log("PASS truth-table 4/4 (single flipped cell: iso,no-skip -> skip)");
 
 **STOP · `draft:awaiting_pre_exec_dual` · 起草落卷即停 · pre-exec 双审两独立外席待派 · nail/批表/行翻面权归协调方 · alone≠dual · ⛔push⛔merge 主线**
 
+**STOP=`executed:awaiting_post_prove_dual`**（EXEC 席终态 2026-10-14·原起草终态 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签 PASS 席1 agent_c1112bf8+席2 agent_64af9e65+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）——EXEC 授权与 nail/行翻面归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用。
+
+## §9 EXEC 记录（2026-10-14·EXEC 席·pre-exec 双审会签 PASS 席1 agent_c1112bf8+席2 agent_64af9e65·协调方授权 EXEC）
+
+**序回执**：序1 `git fetch`+`merge --no-ff origin/feat/mysql-schema-skeleton@fc64c7c9`（届时 tip=fc64c7c9=qpl nail·恰等下界亲证·ort 零冲突 4 files +235/−2（checklist/LEDGER/qpl 卷/proof.ts·**qpl 波零触 run-e2e.mjs**）·冲突沿并集解预置未触发·禁 pull --rebase 遵守·**merge=`0a3355d0`** 双亲 27fe2983+fc64c7c9）→序2 §0 全量重 pin→序3 EXEC 修法单 hunk→序4 自证三件+真值表副本直测→序5 门矩阵→本 §9 落卷+commit。
+
+**字段① 门矩阵全表（EXIT 原值·全绿）**：
+
+| # | 门 | 期望 | 实测（EXIT 原值） | 结论 |
+|---|---|---|---|---|
+| 0a | docs:check **改前基线**（并线后改前树 `0a3355d0`） | EXIT=0 | EXIT=0·scanned **2163**（=起草 2162+并线携入 qpl 卷恰 +1） | 绿 |
+| 0b | static-guards **改前基线** | EXIT=0·四值恰等起草基线 | EXIT=0·runners=6 helpers=21 flags=9 aiPaths=6 | 绿恰等 |
+| 0c | g6-e2e-iso-blocked:prove **改前基线** | EXIT=0 | EXIT=0（免 docker 轻门） | 绿 |
+| 1 | g6-e2e-iso-blocked:prove **改后**（isolated 形零回归行为门） | EXIT=0 | EXIT=0·isolated+SKIP+无 Key→`live_provider_key_missing` 行为级仍绿（真值表①④格行为级承载） | 绿 |
+| 2a | 自证一·源级守卫字节锚 | 7 断言 | PASS 7/7（guard-two-disjuncts/iso-comment-face/skip-token-kept/legacy-load-loop-kept/iso-strip-kept/fake-flags-contract/ui-runner-untouched） | 绿 |
+| 2b | 自证二·守卫真值表 | 4/4·单翻转格 | PASS truth-table 4/4（唯一翻转格 iso,no-skip→skip） | 绿 |
+| 2c | 自证三·runner 直跑双臂（改后树·本 worktree `.env` ABSENT 形） | 双臂 EXIT=1 码面恰等 | 臂一 EXIT=1 `code=e2e_isolation_required`（:43=原 :41+2）·臂二 `env -u MODEL_API_KEY -u E2E_SKIP_DOTENV E2E_ISOLATED=1` EXIT=1 `code=live_provider_key_missing`（:50=原 :48+2·零 spawn 秒级早退） | 绿恰等 |
+| 2d | 真值表副本直测（/tmp 哨兵 .env 副本·仓树零触） | 4/4·翻转格操作级对照 | 副本哈希亲证 修法=`94cbd5be`/旧码=`17cee8ce`·哨兵 .env 两行（E2E_FAKE_MODEL=1+MODEL_API_KEY=dummy-idi-probe·dummy 值非真 Key）·utimesSync mtime 归一——旧码四格=iso_req/iso_req/**裸崩 `Error: fake_service_mode_forbidden:E2E_FAKE_MODEL`**（哨兵穿透隔离形操作级复证）/live_provider_key_missing；修法四格=iso_req/iso_req/**`live_provider_key_missing`（唯一翻转格·.env 整体未回灌直证）**/live_provider_key_missing·探针副本已清场 | 绿 4/4 |
+| 2e | `node --check scripts/run-e2e.mjs` | PARSE-OK | PARSE-OK | 绿 |
+| 4 | static-guards **改后** | EXIT=0·四值恰等 | EXIT=0·runners=6 helpers=21 flags=9 aiPaths=6 | 绿恰等 |
+| 5 | typecheck（`turbo typecheck --force`） | 8/8·0 cached | EXIT=0·8/8·0 cached | 绿恰等 |
+| 6 | lint（`turbo lint --force`） | 12/12·0 cached·0 errors·五值恰等 | EXIT=0·12/12·0 cached·0 errors·web **601**/root **5235**/api **1421**/worker **954**/ai-runtime **628** 五值恰等 | 绿恰等 |
+| 7 | docs:check **改后** | EXIT=0·≤cap 2176 | EXIT=0·**2163**≤2176（余量 13·cap sanction 权归协调方零自升） | 绿 |
+| 8 | markers 五类 | 改动集零命中 | 词面运行时组装（i6-239 canonical 形·四 .join('')+冲突标记对·词面不入卷防自匹配）·改动集两文件·EXIT=0 零命中 | 零命中 |
+| 9 | diff 面 | 恰 2 tracked 路径 | `git diff --numstat fc64c7c9`（base 钉明=merge 第二亲）：本卷 .md **+190/−0**+`scripts/run-e2e.mjs` **+3/−1**（blob `17cee8ce`→`94cbd5be`）·零第三 tracked 路径 | 恰等 |
+| 10 | 卫生 | est live=0·0 Key·.env* ABSENT·零 lockfile 改 | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改（node_modules ABSENT 修复）·`ls .env*` ABSENT 双向记录（本 worktree 天然 ABSENT·主仓 `.env` 内容零读零复制）·est live=0·actualSpendCny=null·`apps/web/tsconfig.tsbuildinfo` 门运行翻动 `git checkout` 回滚保门 9 恰数（§2-10 先例形·非交付面） | 恒等 |
+
+**字段② 改前改后行为对照**：守卫行单行替换+两行注释（§1-修法定稿逐字节）——真值表四态 (SKIP,ISO)=(0,0) load·(1,0) skip·(0,1) **skip（唯一翻转格·本刀全部交付面）**·(1,1) skip，三格原样一格新语义；g6 行为门（SKIP+ISO 双旗格）改后树同绿=原行为零变行为级直证；非 isolated 形隔离 throw 早退面零变（自证三臂一）；翻转格操作级对照（2d）：旧码哨兵穿透裸崩 `fake_service_mode_forbidden`→修法分类失败 `live_provider_key_missing`（零回灌直证）。
+
+**字段③ diff numstat**：`scripts/run-e2e.mjs` +3/−1（:18/:19 间插两行注释+:19 守卫行整行替换为 `if (process.env.E2E_SKIP_DOTENV !== '1' && env.E2E_ISOLATED !== '1') {`·逐字节沿 §1-修法定稿·单 hunk）+本卷 .md（本 §9 append+Status/§8/卷尾三处终态翻转）——恰 2 tracked 路径零第三。
+
+**字段④ 重 pin 全表**：§0.1 十 blob 锚对届时树 `0a3355d0` 逐一恒等（`17cee8ce`/`3ceb6f14`/`edfcc96f`/`0787a7ff`/`bdaf6007`/`3b04b871`/`01127803`/`175998af`/`98c8160b`/`b7281d11`）·`run-e2e.mjs` 197 内容行 wc 恰等·关键行内容锚 rg 亲证零漂（:16-18 注释带/:19 守卫/:20-25 回灌/:27-40 删单 20 键/:41 throw/:42 fake flags/:48 key 失败）·迁移链 204 文件头 `0204_ai_cost_cached_input_price.sql` 恰等·§0.0 重扫=全 996 本地+远程 ref 对 `scripts/run-e2e.mjs` last-touch 恰一簇 `ea66b21e`@2026-10-11（卷 §0.0 已登记·早于基线）零在飞触面·qpl 波触面 4 files 零触本刀面——**基线漂移零·停止条件 1 未触**。
+
+**字段⑤ 偏离清单（零实质偏离·三项透明登记）**：
+1. 门 0 改前基线三件执行形=`git stash` 于并线后改前树（`0a3355d0`）跑毕 pop——§2-0「并主线后改前树」口径兑现（起草基线亲跑系起草席 @`0c94d1ec`·EXEC 基线对并线树重跑·docs:check 基线值 2161→2163=并线携入 qpl 卷恰 +1 非漂移）。
+2. 自证三抛出面行号 +2（:41→:43·:48→:50）=修法插入两行预期算术·非现场漂移。
+3. 真值表副本直测首跑 cell4 因 zsh 不分词 `env $pre` 双赋值并参→`E2E_ISOLATED` 值污染误入非隔离 throw 面（探针脚本缺陷·非代码缺陷）——cell4 显式重跑两副本得预期值双绿·探针临时件清场零残留。
+4. P2-③ 注记首写落笔含本机绝对径→docs:check 复跑 PTP_LOCAL_PATH 红（EXIT=1）——沿 `blite-fix-REQUEST.md` §F-A 已登记先例形改符号名 `meetwise-ccl`（仓根同级）+描述语承载·语义零变·改写后 docs:check 复跑 EXIT=0。
+
+**字段⑥ pins 零翻声明**：十一值照抄零翻转——haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。全门矩阵跑后零翻转。
+
+**字段⑦ P2 双审随卷四件落点（协调方 EXEC 令·append 注记）**：
+1. **P2-① 89 键实面登记**：席2 双审期以 name-only 方式实测主仓工作树 `.env`=**89 键**（内容零读·键名级口径）——派单口径「15+」系**低估**；**MODEL_API_KEY 在列=真外呼成本向量**（isolated 形误回灌即携真 Key 面临模型外呼消耗）——修法后隔离形零回灌=该成本向量随之闭合；本 EXEC 未复核未修饰该清单（§3-7 Ban 面沿承）。
+2. **P2-② `.env`-only Key 预期翻转操作者提示**：修后 isolated 形 `.env`-only 供给的 `MODEL_API_KEY` 不再回灌→fail-closed `live_provider_key_missing`（2d 翻转格实证）——**预期行为非回归**：Key 供给面=包装器 baseEnv 继承 shell 或壳层显式注入；曾依赖 `.env` 静默供 Key 的 isolated 跑将显式失败即停。
+3. **P2-③ ccl 远程 ref 口径确认**：`ccl` remote=本地路径 remote `meetwise-ccl`（仓根同级 worktree·`git remote -v` 亲证 fetch/push 双向指该本地路径）·`ccl/line/iso-dotenv-isolation@27fe2983` 系本地路径 remote 镜像反映——**非起草席向 GitHub push**（⛔push 未犯亲证）。
+4. **P2-④ 新注释行号陈旧 +2 登记**：修法插入两行后 `run-e2e.mjs` 原行号锚整体 +2（回灌循环 :20-25→:22-27·删单段 :27-40→:29-42·隔离 throw :41→:43·key 快速失败 :48→:50·spawn 面 :124/:129/:175→:126/:131/:177）·新注释内「:28-34 只删云凭据」引注系起草基线锚——沿卷头「行号系起草基线锚·并线漂移以内容锚 rg 定位」约定处理·后继刀勿按行号自上而下套用。
+
+**STOP=`executed:awaiting_post_prove_dual`**（§9 落卷即停·post-prove 双审两独立外席待派·nail/批表/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）
+
 ---
 
 *ISO-DOTENV-ISOLATION REQUEST · 2026-10-14 起草落卷 · **`draft:awaiting_pre_exec_dual`（起草席落卷即停·pre-exec 双审待派·协调方 EXEC 授权前码面零触）** · base 主线 tip `0c94d1ec`（=QBANK-INTEGRITY-CHAIN-EXTEND nail·origin tip≥integrity nail 波 tip 恰等下界亲证）· 分支 `line/iso-dotenv-isolation` · 工作树 `meetwise-idi`（本起草席立·仓根 `.env` ABSENT 天然）· 立项出处=G7K 诊断席环境发现（主仓 `.env` 4691B/mtime Oct 7 在场元数据亲证·内容零读·isolated 跑混入 15+ 环境语义键→class=worker 伪红 12.2s 转述存档·基线协议 ABSENT 等价需手携 E2E_SKIP_DOTENV=1 易漏）+协调方派单 brief（G7K 诊断排程刀 4·P2）· 读码定稿=回灌守卫 `run-e2e.mjs:19` 只识 SKIP_DOTENV 不识 E2E_ISOLATED（:16-18 注释带/:20-25 回灌循环/:27-40 删单盲区/:41 隔离 throw/:48 key 快速失败·:124/:129 worker 无 PORT 覆盖）+SKIP_DOTENV 全仓三消费点（:19 守卫/g6 :243-245 行为门/diag-expert-region :31）+E2E_ISOLATED 唯一 wrapper 注入点 `run-e2e-isolated.mjs:2758`（包装器自身零 .env 读取 :2729-2730=泄漏向量唯一性源证）+**波及面定稿=e2e:ui 独立 runner 不走 run-e2e.mjs**（run-e2e-ui.mjs :27-34 同构段/run-performance-e2e.mjs :24-29 无钩段/capture-screenshots.mjs :20-25 三同形残留承登后继刀）· 修法=恰 1 tracked 代码文件 1 编辑 +3/−1（:19 守卫增 `env.E2E_ISOLATED !== '1'` 第二判+两行注释·真值表四态三格原样一格新语义·SKIP_DOTENV 语义保持·候选甲删用户 .env/乙换 dotenv 库/丙同刀扩修/丁包装器注旗/戊删单扩键/己包装器层修全否决在卷）· 门矩阵十门承卷（改前基线三件亲跑绿+g6 isolated 轻门+自证三件合成[字节锚/真值表/直跑双臂]+非 isolated SKIP 语义不变三证+static-guards+typecheck+lint 五值+docs:check≤cap 2176+markers+diff 恰 1 tracked 代码面+卫生）· 迁移零（链头 0204）· est live=0 · markers=0 · pins 十一值照抄零翻 · 停止条件四类 · Ban self-approve · alone≠dual · ⛔push⛔merge 主线 · STOP*
+
+*EXEC 落卷 2026-10-14·序1 merge `0a3355d0` --no-ff 并 `fc64c7c9`（=qpl nail·零冲突 4 files +235/−2·qpl 波零触 run-e2e.mjs）·序2 §0 全量重 pin（十 blob 锚恒等+996 ref 重扫零在飞+迁移链 204/0204 恰等）·序3 单 hunk 落 `scripts/run-e2e.mjs`（`17cee8ce`→`94cbd5be`·+3/−1·逐字节沿 §1-修法定稿）·序4 自证三件+真值表副本直测 4/4（哨兵 .env 副本·旧码 c3 裸崩哨兵穿透→修法 c3 `live_provider_key_missing` 唯一翻转格·零回灌直证·仓树零触）·门矩阵全绿（改前基线三件 docs:check 2163/static-guards 6/21/9/6/g6 EXIT=0+g6 改后绿+字节锚 7/7+真值表 4/4+直跑双臂+static-guards+typecheck 8/8 0 cached+lint --force 12/12 0 cached 五值恰等 601/5235/1421/954/628+docs:check 2163≤2176+markers 五类零命中+diff 恰 2 tracked）·P2 四件落点在 §9 字段⑦（89 键实面登记/.env-only Key 预期翻转操作者提示/ccl 本地路径 remote 口径/新注释行号 +2 陈旧沿内容锚约定）·STOP=`executed:awaiting_post_prove_dual`·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*
