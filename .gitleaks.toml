@@ -21,6 +21,9 @@ paths = [
   # 测试断言假值·非凭据：ai-runtime exports map 封闭性断言行（`P6_ALLOWED.size` 标识符文本被
   # generic-api-key 启发式误读·比对对象仅为 '.'/'./g7-bootstrap' 等包内子路径字面量·零密钥语义）。
   '''(^|/)packages/ai-runtime/test/test-support-fakes\.proof\.ts$''',
+  # 测试桩假 key·非凭据：AG-24 Langfuse model proof 进程内 env 注入（globalThis.fetch :101 全程 mock 拦截·
+  # 零 provider 外呼·值仅满足 registry apiKey 在场断言·generic-api-key 启发式误读·沿 626ac3cc/98d4bab7 形制）。
+  '''(^|/)packages/ai-runtime/test/ag24-langfuse-model\.proof\.ts$''',
 ]
 # Matched "secrets" are pnpm script suffixes / honesty phrases, not API keys.
 regexes = [
