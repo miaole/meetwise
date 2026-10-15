@@ -99,6 +99,12 @@ export const METRIC = {
   modelCostSettleOverageTotal: 'model_cost_settle_overage_total',
   modelInvocationReconcileInvocations: 'model_invocation_reconcile_invocations_total',
   modelInvocationReconcileFrozenCosts: 'model_invocation_reconcile_frozen_costs_total',
+  // RECONCILE-RETRY（#10 翻案刀·仅可观测化零行为变更）：model_invocation 积压水位双 gauge。
+  // dispatching_aged=超窗悬挂深度（稳态 0，>0=对账落后）；unknown_backlog=未决账单歧义存量。
+  // 零 label（低基数纪律），读点在 reconcile tick（30s 一拍）；沿 jobsQueued 族「gauge 是全局
+  // 绝对值：多 worker 各自查同一 DB 得同值，告警侧 max() 去重」语义。
+  modelInvocationReconcileDispatchingAged: 'model_invocation_reconcile_dispatching_aged',
+  modelInvocationUnknownBacklog: 'model_invocation_unknown_backlog',
   // UC-028 fail-open(NHP-028-FAULT-01):ai_invocation_trace 写失败(fail-open 旁路)的结构化观测计数。
   aiTracePersistFailures: 'ai_trace_persist_failures_total',
   langfuseTracingState: 'langfuse_tracing_state',
@@ -154,9 +160,11 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
   m.inc(METRIC.aiTracePersistFailures, undefined, 0);
-  for (const result of ['terminalized', 'enumeration_failed', 'owner_failed'])
+  for (const result of ['terminalized', 'enumeration_failed', 'owner_failed', 'backlog_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);
+  m.setGauge(METRIC.modelInvocationReconcileDispatchingAged, 0);
+  m.setGauge(METRIC.modelInvocationUnknownBacklog, 0);
   for (const state of ['disabled', 'enabled', 'flush_failed']) m.setGauge(METRIC.langfuseTracingState, 0, { state });
   m.inc(METRIC.langfuseExportFailures, { operation: 'flush' }, 0);
   // AG-COST1 #48:缓存字段观测基线(开机即有序列)。service 集取 prompt 注册表(promptVersions 单一
