@@ -1,6 +1,6 @@
 # AG-19 — prompt 版本观测落库刀：invoke spec 带 promptVersion→ai_model_invocation 新列+trace 附带+metric 标签（EXEC REQUEST）
 
-**Status**: `executed:awaiting_post_prove_dual`（EXEC 施工+门全表落卷·12 文件改动集·待 post-prove 双审两外席·Ban self-approve · alone≠dual · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-19 nail」段 :2507 已载 post-prove 双席 BOTH PASS+nail merge @`6bc982a5`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役 AG-19 起草席（AI 能力复审 P3·Prompt 面·纯观测增强刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `aeaf4141ec95`（开工 tip·`git log -1` 实测·docs(ssot) 计费 P2 行翻面）。分支 `line/ag19-prompt-version` · 工作树 `meetwise-ag19`（`git worktree add ../meetwise-ag19 -b line/ag19-prompt-version aeaf4141ec95` 仓根同级·本起草席已立·建前亲证：`git worktree list | grep ag19` 零命中·`git branch -a | grep -i ag19` 零同名）。
