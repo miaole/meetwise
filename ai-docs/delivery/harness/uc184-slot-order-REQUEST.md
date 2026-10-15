@@ -1,6 +1,6 @@
 # UC184-SLOT-ORDER REQUEST — #184 SSE 领槽后置于取数序修复刀（429 拒连路径零取数副作用·恰 3 控制器同形调序+1 proof 断言翻面·uc184-slot-order 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码收口·门矩阵十二门全绿见 §9·post 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权两卷收口·沿 ag-cost5 先例·一行依据=#184 行已 SSOT 翻面=LEDGER :87 5C 行 `#184 ✅`+刀位图「UC184-SLOT-ORDER」行 `✅ nail 收官`（授权链含 post 双审会签 PASS·nail merge --no-ff 并主线 @`af9ab780`+SSOT `42527046` 对 HEAD is-ancestor 亲证）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）
 
 **席位**：uc184-slot-order REQUEST 起草席（诊断+起草双责·协调方派·批表盘点席在案靶点=`interview.controller.ts:259` initial 取数仍先于 `:263` acquireSlot·#184 真未闭且原样·5C 批余项）。
 **基线**：`feat/mysql-schema-skeleton` @ `7bc8ffaa`（ha6-repin nail 收官 SSOT commit·本地与 origin tip 恒等亲证·docs:check 2124≤cap 2128 本树亲跑 EXIT=0）· 分支 `line/uc184-slot-order`（建前 `git branch --list "line/uc184*"` 零命中·本起草席 `git worktree add ../meetwise-u184 -b line/uc184-slot-order feat/mysql-schema-skeleton` 亲立·HEAD 落 `7bc8ffaa` 亲证）· 工作树 `meetwise-u184`（仓根同级）。
