@@ -1,6 +1,6 @@
 # OBS-ENVSCHEMA — 配置集中校验刀（EXTREV-3C OBS-LOG #91 · EXEC 简版合并 REQUEST）
 
-**Status**: **`exec:awaiting_post_prove_dual`**（EXEC 已按审计口径实施+prove · 本档=简版合并 REQUEST+EXEC 记账 · **Ban self-approve** · **alone≠dual** · 待 post-prove 双审）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line OBS-ENVSCHEMA #91 配置校验刀 NAIL」段 :2208 已载 post-prove 双审闭环（席2 FAIL→修复 7a2ff21b→席1 补签 PASS）+授权本 nail（EXEC aedd834c 经 rebase 以 cbc2045e 落主线）+nail merge @`cbc2045e`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `exec:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 **Status+（EXEC append-only）**: prove 终态 `pnpm env-schema:prove` EXIT=0（21/21 全绿·isolated runner 容器 nonce attested）· 零回归批 12 绿 + 4 红（neg:input 4/135·resume-reference 5 红·uc001-neg 7/26·uc001-bound 11/17——**经 stash 基线复跑逐条实证为 base 6aa83c48 既有红同文同数，与本刀无关**，全账见 §3）· est live=0
 **Status++（rev2 · post-dual 席2 FAIL 窄口径修复 · append-only）**: databaseTargetProblem 误报缺陷已修（rawEnv 单源判定）+ A10 回归钉 · 复跑 EXIT=0 **22/22** · tsc 26→30（+4 TS2532 测试侧·26 既有零漂移实证）· 勘误归档见 §5 · 修复 commit author `mw-envschema-exec2` 直送席1 补签
 **Date**: 2026-10-07

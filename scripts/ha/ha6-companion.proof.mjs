@@ -29,6 +29,19 @@
  *   compose.ha.yml 恰一行新增（1 insertion 0 deletion）+ 既有 compose 治理面零触 +
  *   根 package.json additive（既有脚本零删改）。
  *
+ * HA6-REPIN 漂移账（append-only·禁删改旧行·后续任何再注册/再锚只追加新行）：
+ *   2026-10-14 复审 26 红四簇归因：簇 A 20（A3 行号钉全灭）=冻结基线 8ba93f0b 后主线演进
+ *     挪行·逐文件主因 commit——auth ee424923（normalizeEmail 内容变）+f31d56d1（await 词面
+ *     变）/recruiter d76eb5d2（经 c042729b 并线带入净 +46）/quiz e54fc551/interview.controller
+ *     baf31a4e（经 8676777c 并线）/resume 57370d67+86303901/interview.service 7b6d0f38+57370d67；
+ *     簇 B/C（max:1 两钉+census 行号集合失配）=位移链——sse-notify baf31a4e→f31d56d1→
+ *     8676777c、worker main.ts 接线刀链累积净 +10；簇 D 三红=724d61b5 AG24 sanctioned
+ *     合法清理撞冻结基线 diff 门（机制错非行为错·限流/预算值零实质漂移）。
+ *   裁决四条：①A3 行号钉→已验真内容正则+count 门（13 流值等断言保留·行号降非门读数）；
+ *     ②A5 冻结基线→滚动注册帧（重锚新基线否决·再注册唯一通道=REQUEST 补审 append）；
+ *     ③max:1 census→内容集合门；④漂移事实 append-only 登记。
+ *   冻结基线 8ba93f0b 退役（由滚动注册帧承替）·初注册提交 8ae2a93e。
+ *
  * releaseEvidence=false. NOT HA. prove EXIT=0 ≠ DONE (claimDone=false).
  */
 import { execFileSync, spawnSync } from 'node:child_process';
@@ -48,9 +61,17 @@ function check(ok, okMsg, failMsg) { if (ok) pass(okMsg); else fail(failMsg); }
 function readRepoText(p) { return readFileSync(join(root, p), 'utf8'); }
 function lineAt(text, n) { return (text.split('\n')[n - 1] ?? ''); }
 
-// 治理基线 = REQUEST 落卷提交（派单钉：HEAD 8ba93f0b·父=20186718）。
-// 对该基线取工作树 diff：commit 前后读数一致，且同时捕获「未提交越触」与「已提交越触」。
-const BASELINE = '8ba93f0b';
+// ── 滚动注册帧（HA6-REPIN REQUEST sanctioned 2026-10-14·append-only）──
+// 再注册唯一通道=REQUEST 补审（授权越触后更新 blob+追加登记行·Ban 静默改 blob）。
+const ROLLING_REGISTRY = [
+  { file: 'scripts/ha/probe.multi.mjs', blob: 'b91917e8ede075e08b080f7a9ae76933cfe36dcd',
+    registered: '8ae2a93e', note: 'HA6-REPIN 初注册（fail-closed 面整文件·旧 8ba93f0b 零 diff 态顺承）' },
+  { file: 'package.json', kind: 'scripts-set',
+    digest: '106e457929a535e9b87d303b94d7487adbbca054', registered: '8ae2a93e',
+    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）' },
+];
+const SCRIPTS_MUST_EXIST = ['ha6:prove', 'migrate:prove', 'docs:check', 'drift:prove'];
+const SCRIPTS_MUST_NOT_EXIST = ['breaker:prove', 'prove:breaker']; // 724d61b5 AG24 sanctioned 双删·防复活（rev2 R3-P2 补第二键）
 
 /** git-tracked + untracked-non-ignored file list under dirs (rg-face semantics). */
 function repoFiles(dirs) {
@@ -99,11 +120,7 @@ check(/max: Number\(o\.max \?\? process\.env\.PGPOOL_MAX \?\? 20\)/.test(l946),
   'principal.ts:946 single-source pool max expression pinned',
   'principal.ts:946 pool max single-source expression drifted');
 
-// 显式 max:1 生产池恰两处（sse-listen / job-wakeup）
-const maxOneExpected = new Set([
-  'apps/api/src/platform/sse-notify.service.ts:151',
-  'apps/worker/src/main.ts:661',
-]);
+// 显式 max:1 生产池恰两处（sse-listen / job-wakeup）——内容集合门（HA6-REPIN 内容化·命中行号只作非门读数）
 const maxOneHits = [];
 for (const f of repoFiles(['apps', 'packages'])) {
   if (!/\.(ts|mts|mjs)$/.test(f)) continue;
@@ -112,15 +129,23 @@ for (const f of repoFiles(['apps', 'packages'])) {
     if (/createPool\(\{\s*max: 1\s*,/.test(l)) maxOneHits.push(`${f}:${i + 1}`);
   });
 }
-check(maxOneHits.length === 2 && maxOneHits.every((h) => maxOneExpected.has(h)),
+const maxOneFiles = [...new Set(maxOneHits.map((h) => h.replace(/:\d+$/, '')))].sort();
+const maxOneFilesExpected = ['apps/api/src/platform/sse-notify.service.ts', 'apps/worker/src/main.ts'].sort();
+check(maxOneHits.length === 2 && maxOneFiles.join('|') === maxOneFilesExpected.join('|'),
   `explicit max:1 production pool sites exactly two: ${maxOneHits.join(' + ')}`,
-  `explicit max:1 census drifted: got [${maxOneHits.join(', ')}] expected [${[...maxOneExpected].join(', ')}]`);
-check(/max: 1, purpose: 'sse-listen'/.test(lineAt(readRepoText('apps/api/src/platform/sse-notify.service.ts'), 151)),
-  'sse-notify.service.ts:151 sse-listen max:1 pin',
-  'sse-notify.service.ts:151 content drifted');
-check(/createPool\(\{ max: 1, purpose: 'job-wakeup' \}/.test(lineAt(readRepoText('apps/worker/src/main.ts'), 661)),
-  'worker main.ts:661 job-wakeup max:1 pin',
-  'worker main.ts:661 content drifted');
+  `explicit max:1 census drifted: got [${maxOneHits.join(', ')}] expected files [${maxOneFilesExpected.join(', ')}]`);
+const sseMaxOneHits = readRepoText('apps/api/src/platform/sse-notify.service.ts').split('\n')
+  .map((l, i) => ({ l, n: i + 1 }))
+  .filter(({ l }) => /createPool\(\{ max: 1, purpose: 'sse-listen' \}\)/.test(l));
+check(sseMaxOneHits.length === 1,
+  `sse-notify.service.ts sse-listen max:1 content pin exactly one line (:${sseMaxOneHits[0]?.n ?? '?'})`,
+  `sse-notify.service.ts sse-listen max:1 content drifted: hit-lines=${sseMaxOneHits.length}`);
+const workerMaxOneHits = readRepoText('apps/worker/src/main.ts').split('\n')
+  .map((l, i) => ({ l, n: i + 1 }))
+  .filter(({ l }) => /createPool\(\{ max: 1, purpose: 'job-wakeup' \}\)/.test(l));
+check(workerMaxOneHits.length === 1,
+  `worker main.ts job-wakeup max:1 content pin exactly one line (:${workerMaxOneHits[0]?.n ?? '?'})`,
+  `worker main.ts job-wakeup max:1 content drifted: hit-lines=${workerMaxOneHits.length}`);
 
 // 6P+4 公式与数字双断言（调 P 必须同步改预期=漂移门）
 const EXPECTED_P = 12;
@@ -202,11 +227,15 @@ if (cfg.status === 0) {
   }
 }
 
-// C1 恰一行：compose.ha.yml 对 REQUEST 基线（8ba93f0b）恰 1 insertion / 0 deletion
-const numstat = execFileSync('git', ['diff', '--numstat', BASELINE, '--', 'docker/compose.ha.yml'], { cwd: root, encoding: 'utf8' }).trim();
-check(/^1\t0\tdocker\/compose\.ha\.yml$/.test(numstat),
-  `docker/compose.ha.yml diff vs REQUEST baseline ${BASELINE} is exactly +1/-0 (${numstat || '(no diff — C1 baseline drifted?)'})`,
-  `docker/compose.ha.yml diff vs REQUEST baseline ${BASELINE} is not exactly one added line: "${numstat}"`);
+// C1 结构复合门：PGPOOL_MAX: "12" 在位恰 1 行 + AG24 死 env 两键本文件零残留
+// （原「+1/-0 diff vs 冻结基线」语义由该结构态等价承替——HA6-REPIN 滚动注册帧）
+const pgpoolPinHits = haComposeLines
+  .map((l, i) => ({ l, n: i + 1 }))
+  .filter(({ l }) => /^  PGPOOL_MAX: "12"/.test(l));
+const deadEnvHits = haComposeLines.filter((l) => /MODEL_MAX_CONCURRENT|MODEL_RPM/.test(l));
+check(pgpoolPinHits.length === 1 && deadEnvHits.length === 0,
+  `docker/compose.ha.yml structural gate: PGPOOL_MAX: "12" exactly one line (:${pgpoolPinHits[0]?.n ?? '?'}) + AG24 dead env keys (MODEL_MAX_CONCURRENT|MODEL_RPM) zero residue`,
+  `docker/compose.ha.yml structural gate drifted: PGPOOL_MAX "12" hit-lines=${pgpoolPinHits.length}, dead env hits=${deadEnvHits.length} — 回 REQUEST 补审`);
 
 // 锚四消费点结构断言（api ×2 直挂 · worker ×2 另并 native-model-env）
 const consumeLines = haComposeLines
@@ -233,21 +262,36 @@ check(typeof census.driftFraming === 'string' && census.driftFraming.includes('6
   'census carries exact drift framing 「6 流 7 对 5 组」 (禁只写「5 锚」)',
   'census missing exact drift framing 「6 流 7 对 5 组」');
 
-// 逐流：值与 ha-1 current 列全等 + 新行号码面逐行命中（漂移表 7 对新锚实树一致·再漂=FAIL）
+// 逐流：值与 ha-1 current 列全等（保留）+ 内容锚 count 门（HA6-REPIN 内容化·行号只作 PASS 读数）。
+// flow11 rev2 R1：删字节恒等重复锚（want=1 与 turn count=2 门同形异值恒假红）·
+// 「turn 恰两消费点」治理语义由第三锚 count=2 门独承（现树两消费点同词面 rg 计数=2）。
 const pins = [
-  { file: 'apps/api/src/modules/auth/auth.service.ts', lines: { 28: /signup:\$\{b\.email\}`, 3, 0\.02/ }, flow: 0 },
-  { file: 'apps/api/src/modules/auth/auth.service.ts', lines: { 11: /'10,0\.05'/, 12: /SIGNUP_IP_CAPACITY/, 13: /SIGNUP_IP_REFILL/ }, flow: 1 },
-  { file: 'apps/api/src/modules/auth/auth.service.ts', lines: { 28: /'signup:global', 60, 1/ }, flow: 2 },
-  { file: 'apps/api/src/modules/auth/auth.service.ts', lines: { 54: /login:\$\{b\.email\}`, 5, 0\.2/ }, flow: 3 },
-  { file: 'apps/api/src/modules/recruiter/recruiter.service.ts', lines: { 114: /invite:\$\{principal\}`, 12, 0\.05/ }, flow: 4 },
-  { file: 'apps/api/src/modules/recruiter/recruiter.service.ts', lines: { 116: /invite:ip:\$\{ip \?\? 'unknown'\}`, 12, 0\.05/ }, flow: 5 },
-  { file: 'apps/api/src/modules/quiz/quiz.controller.ts', lines: { 56: /acquireSlot\(slotKey, 5\)/ }, flow: 6 },
-  { file: 'apps/api/src/modules/interview/interview.controller.ts', lines: { 262: /acquireSlot\(slotKey, 5\)/ }, flow: 7 },
-  { file: 'apps/api/src/modules/resume/resume.service.ts', lines: { 36: /resume-file:\$\{principal\}`, 15, 0\.1/ }, flow: 8 },
-  { file: 'apps/api/src/modules/resume/resume.service.ts', lines: { 20: /PARSE_MAX = Number\(process\.env\.RESUME_PARSE_MAX \?\? 6\)/, 48: /acquireSlot\('resume-parse:global', PARSE_MAX\)/ }, flow: 9 },
-  { file: 'apps/api/src/modules/interview/interview.service.ts', lines: { 25: /VOICE_RL = \{ capacity: 40, refillPerSec: 0\.3 \}/, 338: /voice:\$\{principal\}`, VOICE_RL\.capacity/ }, flow: 10 },
-  { file: 'apps/api/src/modules/interview/interview.service.ts', lines: { 27: /TURN_RL = \{ capacity: 30, refillPerSec: 0\.2 \}/, 399: /turn:\$\{principal\}`, TURN_RL\.capacity/, 432: /turn:\$\{principal\}`, TURN_RL\.capacity/ }, flow: 11 },
-  { file: 'apps/api/src/modules/interview/interview.service.ts', lines: { 30: /REPORT_RETRY_RL = \{ capacity: 3, refillPerSec: 3 \/ 3600 \}/, 701: /'report_retry:' \+ id, REPORT_RETRY_RL\.capacity/ }, flow: 12 },
+  { file: 'apps/api/src/modules/auth/auth.service.ts', flow: 0,
+    anchors: [[/rl\.allow\(`signup:\$\{email\}`, 3, 0\.02\)/, 1]] },
+  { file: 'apps/api/src/modules/auth/auth.service.ts', flow: 1,
+    anchors: [[/\?\? '10,0\.05'/, 1], [/^const SIGNUP_IP_CAPACITY = Number\(RL_SIGNUP_IP_RAW\[0\]\).*: 10;/m, 1], [/^const SIGNUP_IP_REFILL = Number\(RL_SIGNUP_IP_RAW\[1\]\).*: 0\.05;/m, 1]] },
+  { file: 'apps/api/src/modules/auth/auth.service.ts', flow: 2,
+    anchors: [[/rl\.allow\('signup:global', 60, 1\)/, 1]] },
+  { file: 'apps/api/src/modules/auth/auth.service.ts', flow: 3,
+    anchors: [[/rl\.allow\(`login:\$\{email\}`, 5, 0\.2\)/, 1]] },
+  { file: 'apps/api/src/modules/recruiter/recruiter.service.ts', flow: 4,
+    anchors: [[/rl\.allow\(`invite:\$\{principal\}`, 12, 0\.05\)/, 1]] },
+  { file: 'apps/api/src/modules/recruiter/recruiter.service.ts', flow: 5,
+    anchors: [[/rl\.allow\(`invite:ip:\$\{ip \?\? 'unknown'\}`, 12, 0\.05\)/, 1]] },
+  { file: 'apps/api/src/modules/quiz/quiz.controller.ts', flow: 6,
+    anchors: [[/rl\.acquireSlot\(slotKey, 5\)/, 1]] },
+  { file: 'apps/api/src/modules/interview/interview.controller.ts', flow: 7,
+    anchors: [[/rl\.acquireSlot\(slotKey, 5\)/, 1]] },
+  { file: 'apps/api/src/modules/resume/resume.service.ts', flow: 8,
+    anchors: [[/rl\.allow\(`resume-file:\$\{principal\}`, 15, 0\.1\)/, 1]] },
+  { file: 'apps/api/src/modules/resume/resume.service.ts', flow: 9,
+    anchors: [[/^const PARSE_MAX = Number\(process\.env\.RESUME_PARSE_MAX \?\? 6\)/m, 1], [/rl\.acquireSlot\('resume-parse:global', PARSE_MAX\)/, 1]] },
+  { file: 'apps/api/src/modules/interview/interview.service.ts', flow: 10,
+    anchors: [[/const VOICE_RL = \{ capacity: 40, refillPerSec: 0\.3 \}/, 1], [/rl\.allow\(`voice:\$\{principal\}`, VOICE_RL\.capacity, VOICE_RL\.refillPerSec\)/, 1]] },
+  { file: 'apps/api/src/modules/interview/interview.service.ts', flow: 11,
+    anchors: [[/const TURN_RL = \{ capacity: 30, refillPerSec: 0\.2 \}/, 1], [/rl\.allow\(`turn:\$\{principal\}`, TURN_RL\.capacity, TURN_RL\.refillPerSec\)/, 2]] },
+  { file: 'apps/api/src/modules/interview/interview.service.ts', flow: 12,
+    anchors: [[/const REPORT_RETRY_RL = \{ capacity: 3, refillPerSec: 3 \/ 3600 \}/, 1], [/rl\.allow\('report_retry:' \+ id, REPORT_RETRY_RL\.capacity, REPORT_RETRY_RL\.refillPerSec\)/, 1]] },
 ];
 const fileCache = new Map();
 for (const pin of pins) {
@@ -258,10 +302,12 @@ for (const pin of pins) {
   check(row?.current === ha1Row?.current,
     `flow #${pin.flow + 1} value all-equal vs ha-1 current column: "${row?.current}"`,
     `flow #${pin.flow + 1} value drifted: census "${row?.current}" vs ha-1 "${ha1Row?.current}"`);
-  for (const [n, re] of Object.entries(pin.lines)) {
-    check(re.test(fl[Number(n) - 1] ?? ''),
-      `${pin.file}:${n} hits expected pin (drift-table re-pin)`,
-      `${pin.file}:${n} no longer matches expected anchor content — 行号再漂，回 REQUEST 补审`);
+  for (const [re, want] of pin.anchors) {
+    const hitLines = fl.map((l, i) => ({ l, n: i + 1 })).filter(({ l }) => re.test(l)).map(({ n }) => n);
+    const got = hitLines.length;
+    check(got === want,
+      `${pin.file} flow #${pin.flow + 1} anchor hits ${got}/${want} (hit-lines :${hitLines.join(' :') || '-'})`,
+      `${pin.file} flow #${pin.flow + 1} anchor got ${got} != want ${want} — 值/锚形漂移，回 REQUEST 补审`);
   }
 }
 
@@ -305,21 +351,27 @@ check(!/redis/i.test(apiPkg), 'negative: apps/api/package.json zero "redis" (dep
 // ---------------------------------------------------------------------------
 // A5 治理回归断言
 // ---------------------------------------------------------------------------
-function gitDiffEmpty(path) {
-  const d = execFileSync('git', ['diff', BASELINE, '--', path], { cwd: root, encoding: 'utf8' });
-  return d.trim() === '';
-}
-check(gitDiffEmpty('packages/db/src/principal.ts'),
-  `packages/db/src/principal.ts zero diff vs REQUEST baseline ${BASELINE} (池参数/池创建面零触 · R-22 面零重做)`,
-  'packages/db/src/principal.ts has diff vs REQUEST baseline — 产品码越触');
+// principal.ts 行号自由内容锚两断言（跨刀共享面·池参数 facet 钉即治理本体·选内容锚弃 blob）
 const principalLines = principal.split('\n');
-check(/keepAlive: true/.test(principalLines[956]) &&
-  /query_timeout: Number\(process\.env\.PG_QUERY_TIMEOUT_MS \?\? 15000\)/.test(principalLines[963]),
-  'principal.ts:957 keepAlive + :964 query_timeout HA-3 face pinned (946-964 零改)',
-  'principal.ts 946-964 HA-3 pool-param face drifted');
-check(gitDiffEmpty('scripts/ha/probe.multi.mjs'),
-  `scripts/ha/probe.multi.mjs zero diff vs REQUEST baseline ${BASELINE} (fail-closed 面零改零弱化)`,
-  'scripts/ha/probe.multi.mjs has diff vs REQUEST baseline — 治理越触');
+const singleSourceHits = principalLines
+  .map((l, i) => ({ l, n: i + 1 }))
+  .filter(({ l }) => /max: Number\(o\.max \?\? process\.env\.PGPOOL_MAX \?\? 20\)/.test(l));
+check(singleSourceHits.length === 1,
+  `principal.ts single-source pool max expression exactly one line (:${singleSourceHits[0]?.n ?? '?'}) (池参数单源 · R-22 面零重做)`,
+  `principal.ts single-source pool max expression drifted: hit-lines=${singleSourceHits.length} — 回 REQUEST 补审`);
+const keepAliveHits = principalLines.filter((l) => /keepAlive: true/.test(l)).length;
+const queryTimeoutHits = principalLines.filter((l) => /query_timeout: Number\(process\.env\.PG_QUERY_TIMEOUT_MS \?\? 15000\)/.test(l)).length;
+check(keepAliveHits === 1 && queryTimeoutHits === 1,
+  'principal.ts HA-3 pool-param face pinned (keepAlive: true ×1 + query_timeout ×1)',
+  `principal.ts HA-3 pool-param face drifted: keepAlive=${keepAliveHits}, query_timeout=${queryTimeoutHits} — 回 REQUEST 补审`);
+
+// probe.multi.mjs 注册 blob 门（滚动注册帧·整文件登记行逐件全等）
+const registryFileRows = ROLLING_REGISTRY.filter((r) => r.kind !== 'scripts-set');
+const driftedRows = registryFileRows
+  .filter((r) => execFileSync('git', ['hash-object', join(root, r.file)], { cwd: root, encoding: 'utf8' }).trim() !== r.blob);
+check(driftedRows.length === 0,
+  `rolling registry full-file rows blob-identical (${registryFileRows.map((r) => `${r.file}@${r.blob.slice(0, 8)}`).join(', ')}) (fail-closed 面零改零弱化)`,
+  `rolling registry blob drifted: ${driftedRows.map((r) => r.file).join(', ')} 文件漂移——若为授权越触·走 REQUEST 补审重注册（append-only 追加登记行）·Ban 静默改 blob`);
 
 const BANNED_COMPOSE = [
   'docker/compose.prod.yml', 'docker/compose.prod.override.yml', 'docker/compose.monitoring.yml',
@@ -329,20 +381,26 @@ const BANNED_COMPOSE = [
   'docker/compose.backup.sandbox.yml', 'docker/compose.mysql-local.yml',
   'docker/compose.ha-2-proof.yml', 'docker/compose.ha-3-proof.yml',
 ];
-const touched = BANNED_COMPOSE.filter((f) => !gitDiffEmpty(f));
-check(touched.length === 0,
-  `既有治理 compose 零原地改（${BANNED_COMPOSE.length} files checked · 唯一落点=compose.ha.yml 一行）`,
-  `Ban violated: existing compose touched: ${touched.join(', ')}`);
+// 既有治理 compose 复合门：15 文件存在性全真 + AG24 死 env 两键 15 文件零残留（治理面结构态不回退）
+const missingCompose = BANNED_COMPOSE.filter((f) => !existsSync(join(root, f)));
+const deadEnvResidue = BANNED_COMPOSE.filter((f) => existsSync(join(root, f)) && /MODEL_MAX_CONCURRENT|MODEL_RPM/.test(readRepoText(f)));
+check(missingCompose.length === 0 && deadEnvResidue.length === 0,
+  `既有治理 compose 存在性全真（${BANNED_COMPOSE.length} files）+ AG24 死 env 两键零残留`,
+  `Ban violated: missing=[${missingCompose.join(', ')}] dead-env-residue=[${deadEnvResidue.join(', ')}]`);
 
-// 根 package.json additive：相对 REQUEST 基线既有脚本零删改 + ha6 注册在位（commit 前后同读数）
-const headPkg = JSON.parse(execFileSync('git', ['show', `${BASELINE}:package.json`], { cwd: root, encoding: 'utf8' }));
+// 根 package.json 注册脚本账：must-exist 四键非空 + must-not-exist 两键零命中
+//   + 基线 scripts 键值集 digest 复算恒等（登记式 jq 管道·值漂=非 additive 演进→REQUEST 补审 append）
 const curPkg = JSON.parse(readRepoText('package.json'));
-const headScripts = headPkg.scripts ?? {};
 const curScripts = curPkg.scripts ?? {};
-const removedOrChanged = Object.entries(headScripts).filter(([k, v]) => curScripts[k] !== v);
-check(removedOrChanged.length === 0,
-  `root package.json existing scripts zero removal/zero change (${Object.keys(headScripts).length} keys intact)`,
-  `package.json additive violated: ${removedOrChanged.map(([k]) => k).join(', ')}`);
+const missingMust = SCRIPTS_MUST_EXIST.filter((k) => !curScripts[k]);
+const bannedResurrect = SCRIPTS_MUST_NOT_EXIST.filter((k) => k in curScripts);
+const scriptsSetRow = ROLLING_REGISTRY.find((r) => r.kind === 'scripts-set');
+const recomputedDigest = scriptsSetRow
+  ? execFileSync('sh', ['-c', `git show HEAD:package.json | jq -cS '.scripts' | git hash-object --stdin`], { cwd: root, encoding: 'utf8' }).trim()
+  : '(scripts-set row missing)';
+check(missingMust.length === 0 && bannedResurrect.length === 0 && recomputedDigest === scriptsSetRow?.digest,
+  `root package.json registered scripts ledger: ${SCRIPTS_MUST_EXIST.length} must-exist keys non-empty + ${SCRIPTS_MUST_NOT_EXIST.length} must-not-exist keys absent + baseline scripts-set digest identical (${recomputedDigest.slice(0, 8)})`,
+  `package.json registered scripts ledger violated: missing=[${missingMust.join(', ')}] resurrected=[${bannedResurrect.join(', ')}] digest got=${recomputedDigest} want=${scriptsSetRow?.digest} — 值漂=非 additive 演进→REQUEST 补审 append`);
 check(curScripts['ha6:prove'] === 'node scripts/ha/ha6-companion.proof.mjs',
   'root package.json registers ha6:prove -> node scripts/ha/ha6-companion.proof.mjs (additive)',
   `package.json ha6:prove registration drifted: ${curScripts['ha6:prove']}`);
@@ -361,5 +419,6 @@ console.log('releaseEvidence: false');
 console.log('claimProductionHA: false');
 console.log('note: B1 sandbox live probe CUT by coordinator ruling (see header); static assertions close all three risk faces; est live=0');
 console.log(`note: P=${P} steady=${steady} headroom=${PG_APP_CAP - steady} worstCaseCoLocated=${steady + 3 * 2 * P} pgAppCap=${PG_APP_CAP}`);
+console.log('note: ha6-repin rolling registry active (baseline 8ba93f0b retired 2026-10-14)');
 console.log(`CMD=node ${SELF} EXIT=${exitCode}`);
 process.exit(exitCode);
