@@ -1,6 +1,6 @@
 # G7K-API-REDS REQUEST（产品刀 · 北星关键路 · 三红修法映射固化 + 残余产品面裁决包 · docs-only 零码零迁移）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已施工 · docs-only 零码零迁移维持 · Ban coding · trio 实跑/live 复验未行使（§9 如实登记） · **⛔push** · Ban 假绿/Ban retry-to-green · Ban 洗绿/Ban 为绿改产品/Ban 为绿改断言 · Ban 改 withhold 机制 · Ban self-approve · alone ≠ dual · 待 post-prove 双审两外席 · 本 commit 不预claim 任何 post-commit EXIT）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line g7k-api-reds nail」段 :2760 已载 post 双审两席会签八项勘误+勘误落卷 2ca5a613+nail merge @`6f2be138`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：G7K-API-REDS 产品刀 REQUEST 起草席（协调方指名派单 · 北星四门禁单点关键路刀）。
 **基线**：`feat/mysql-schema-skeleton` @ **`f0147886`**（pull 后主线 tip 实测 · 本地与 origin 全等 fetch 亲证 · 2026-10-13 提交链）· worktree **`meetwise-g7k`**（仓根同级 · `git worktree add ../meetwise-g7k -b line/g7k-api-reds feat/mysql-schema-skeleton` 本起草席立 · 建前 worktree list + branch 双查实测无同名树无同名分支）· branch **`line/g7k-api-reds`**。

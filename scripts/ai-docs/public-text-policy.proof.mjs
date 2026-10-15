@@ -249,7 +249,7 @@ const checks = {
   'TC-quality-04-E11': () => {
     const fixture = createFixtureRoot();
     try {
-      // cap 数字行为断言：恰好 2128 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2128）。
+      // cap 数字行为断言：恰好 2152 个真实存在的安全小文件 = 扫描上限内全量行使（valid:true·scannedFiles:2152）。
       // AG-12 成本轨③：cap 2048→2064（任务书派单 sanctioned 值）——本臂 fabricated 数随 cap 联动
       // 同步（cap 数字行为断言语义不变·强度不减·偏离清单随 REQUEST §9 落卷）。
       // ciw2 nail：cap 2064→2072（2026-10-14 协调方授权）——本臂按同协议随件同步。
@@ -275,21 +275,39 @@ const checks = {
       // evkind-scorecard-fix 收官：cap 2120→2128（2026-10-14 协调方预 sanction·+8 并线
       // feat/mysql-schema-skeleton @5bd92ce8 新增 admin-disable-evict/ag04-consumer-fix 两受管件+余量·
       // 沿 +8 先例形）——本臂 fabricated 数随 cap 再联动同步（cap 数字行为断言语义不变·强度不减）。
+      // perfload-env-fix：cap 2128→2136（2026-10-15 协调方 sanction·+8 沿 +8 先例形·perf-load 机检
+      // 产出 TRACKED_DIR 首现·并线树实测 2132>2128 红停 PTP_FILE_LIMIT:2132）——本臂 fabricated 数
+      // 随 cap 再联动同步（cap 数字行为断言语义不变·强度不减）。
+      // ci-wiring3：cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形·ci-wiring3 收据
+      // +reconcile 迁移三刀在飞共享余量·并线树实测 2137>2136 红停 PTP_FILE_LIMIT:2137）——本臂 fabricated 数
+      // 随 cap 再联动同步（cap 数字行为断言语义不变·强度不减）。
+      // reconcile-retry：cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形·本刀迁移 .sql
+      // 受管件 +1 至 2137 红停 PTP_FILE_LIMIT:2137·三刀在飞共享余量）——本臂 fabricated 数随 cap
+      // 再联动同步（cap 数字行为断言语义不变·强度不减）。
+      // UC184-SLOT-ORDER nail 并线：cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形·
+      // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享）——本臂 fabricated 数随 cap 再联动
+      // 同步（cap 数字行为断言语义不变·强度不减）。
+      // COST-COLUMNS nail 并线：cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形·
+      // 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量）——本臂
+      // fabricated 数随 cap 再联动同步（cap 数字行为断言语义不变·强度不减）。
+      // SAFEWRITE/QBANK 波后：cap 2152→2160（2026-10-15 协调方 sanction·+8 沿 +8 先例形·
+      // 主线 685befed 2151 余 1·cache-observe/qbank-scope-fix/uc003-arm4/g7-env-billing
+      // 四刀在飞共享余量）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_128; i += 1) {
+      for (let i = 0; i < 2_168; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_128);
-      // 超限错误码形状断言：第 2129 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2129`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2128.md'] });
+      assert.equal(atCap.scannedFiles, 2_168);
+      // 超限错误码形状断言：第 2169 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2169`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2168.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2129`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2169`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
