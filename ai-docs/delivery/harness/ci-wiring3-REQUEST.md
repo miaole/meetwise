@@ -1,6 +1,6 @@
 # CI-WIRING3 REQUEST — 主线五门接线刀（scoring-integrity/tokenstream/stress/uc003:i18n-locale 四门 per-push；件② lint 注释对表刷新已摘除·归属让渡 ci-red-clear；ha6:prove 亲证基线红登记不接线·恰 1 workflow 文件·docs-only 修订卷 rev3·ci-wiring3 战役·修订落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已落码落卷 2026-10-15 · 开工链=rev3 窄域复审 PASS `agent_7a80eab2`→协调方明示 EXEC 授权（立项前置=ci-red-clear 已 nail 并线 `0c06033d`）·并线 `1be05b4b`·件①③ 逐字节落码+件④ 收据·门矩阵 11 绿+**门 8 docs:check `PTP_FILE_LIMIT:2137>2136` 红=停止条件「验收红不可修」红停上报·cap 裁决权归协调方·本席零自修**（§9 EXEC 记录+收据 §9-1）·ha6 已重钉转绿登记不接线维持·⛔push · est live=0）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权三卷收口·沿 ag-cost5 先例·一行依据=刀位图「CI-WIRING3 五门接线刀」行 `✅ nail 收官`（授权链含 post 双审会签 PASS·nail merge --no-ff 并主线 @`ac31fbc5`+SSOT `aed9ba43` 对 HEAD is-ancestor 亲证）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）
 
 **席位**：ci-wiring3 REQUEST 起草席（诊断已由 CI 对账席在案·本席核验+起草·协调方派；rev2 修订席同席回炉）。
 **基线**：`feat/mysql-schema-skeleton` @ `79382f4d`（fetch 后 origin tip 与本地恒等亲证·UC003-FOLLOWUP nail 收官 SSOT commit）· 分支 `line/ci-wiring3`（建前 `git branch --list "line/ci-wiring*"` 恰 `line/ci-wiring2` 一支·本席 `git worktree add ../meetwise-ciw3 -b line/ci-wiring3 feat/mysql-schema-skeleton` 亲立）· 工作树 `meetwise-ciw3`（仓根同级）。
