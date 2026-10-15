@@ -13,6 +13,7 @@ import { randomUUID } from 'node:crypto';
  * rejects text candidates inside <script>/<style> (RSC Flight payload is data, not rendered
  * chrome), so the inventory counts visible page chrome only. Full-page zh clearance is a
  * later knife — matrix stays partial.
+ * i18n-metadata-ssr: metadata title/OG + not-found/loading/Spinner faces migrated to the messages pipeline (en side statically carried by S2/S3); `resumePageMetaTitle` is the zh-default render face — dormant post-en-migration, removal reserved for a later knife.
  *
  * Known DOM-unreachable arms (no API stub allowed): the mapResumeUploadError API-response
  * arm and the :88/:113 network-failure inline faces (their en side is carried by the S4
