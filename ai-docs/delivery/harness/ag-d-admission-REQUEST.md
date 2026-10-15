@@ -1,6 +1,6 @@
 # AG-D-ADMISSION REQUEST（AG 修复轨·失败语义刀 D · AG-01 准入拒绝去终态化（熔断开/并发满/预算尽三触发 → refused 可重试·不再写 failed 终态）· 骑刀 C 骨架 · docs-only 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工收官·落卷即停待 post-prove 双审两外席·**Ban self-approve** · **alone≠dual**）·**rev3+exec**（rev3=双审席2 FAIL 回炉修订：blocking×2+errata×9 全处置——处置记录见 §0.2-10 与卷尾 rev3 署名·rev3 双审 BOTH PASS+协调方常设 loop 授权后 EXEC 立项施工；**EXEC 翻面随卷**：并线 `80fa58fa`+案A 施工+门全绿·§0-EXEC 勘误注/§8-裁决行使/卷尾 exec 署名三面如实在案·⛔push）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-D nail」段 :2486 已载 post-prove 双席 BOTH PASS+nail merge @`ccf3e7e7`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：AG 修复轨刀 D 起草席（AG-RESUME 失败语义簇·EXPERT-REVIEWS §七 失败语义轨刀 D 承接·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（起草时主线 tip·`git log -1` 实测 2026-10-12 19:28:47 +0800·AG+计费战役刀位图立节 docs commit·零码面）——**rev2 亲证主线 tip 已进至 `378b96e8`**（刀 B 并线四 commit·§0.2-8 基线后漂移补登）——**rev3 亲证主线 tip 已再进至 `528c3221`**（刀 A nail/刀 C/刀 E/刀 F/成本②/i263 全并线·§0.2-10 全幅漂移补登·本分支仍基于 2bc4e2bd·**本卷 §0/§1 全表已按 rev3 对 `528c3221` 重 pin**·EXEC 立项对届时 tip 照 §0 协议再重 pin）。分支 `line/ag-d-admission`·工作树 `meetwise-agd`（`git worktree add ../meetwise-agd -b line/ag-d-admission` 本起草席已立·建前 worktree list + branch 双查实测不存在·HEAD 落 `2bc4e2bd` 亲证）。

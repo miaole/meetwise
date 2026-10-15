@@ -1,6 +1,6 @@
 # BATCH2-C1 REQUEST（批2 域刀 C1 · 外呼检索与 invoke 域收尾刀 · 四件修法 #80 外呼源裁决 + #119 流式读/超限 abort/解析后 IP 校验 + #173 follower 指数退避 + #171 接线三前置书面契约 · docs-only 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工席四件落卷+§2 六门全绿·待 post-prove 双审两外席·**Ban self-approve** · ⛔push · 裁决①-③落值与门矩阵全表见文末 §9 EXEC 附记）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line BATCH2-C1 nail」段 :2647 已载 post 双审两外席 BOTH PASS+nail merge @`61d5911d`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：批2 域刀 C1 REQUEST 起草席（批2 H7 挂账四件收刀·协调方派单）。
 **基线**：`feat/mysql-schema-skeleton` @ `f0147886`（起草时主线 tip·`git log -1` 实测 2026-10-13·AG-COST3 成本轨③ nail 收官随翻三件 docs commit）·分支 `line/batch2-c1`·工作树 `meetwise-b2c1`（`git worktree add ../meetwise-b2c1 -b line/batch2-c1 f0147886` 本起草席已立·建前 `worktree list` 无同名树·`git branch` 无同名分支双查实测）。origin fetch 当时 SSL 失败（离线窗）·本地 `feat/mysql-schema-skeleton` 与 `origin/feat/mysql-schema-skeleton` 同步且 `origin/main` 为其祖先（merge-base 亲证）——EXEC 立项照 §0 协议对届时 tip 重 pin。

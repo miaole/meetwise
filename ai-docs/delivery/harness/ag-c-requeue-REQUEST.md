@@ -1,6 +1,6 @@
 # AG-C-REQUEUE REQUEST（AG 修复轨·失败语义刀 C · AG-04 consumer 瞬时错误分类 requeue + #4 next_attempt_at 退避 + EG-A2 queued 超限终态 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）→ **`executed:awaiting_post_prove_dual`**（EXEC 施工+随翻落卷·append 保史·§0-§8 原文零改·断言门全绿·待 post-prove 双审两外席·⛔push·见卷尾 EXEC 附记）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-C nail」段 :2407 已载 post 双席 BOTH PASS+nail merge @`928b2612`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：AG 修复轨刀 C 起草席（AG-RESUME 失败语义簇·EXPERT-REVIEWS §七 失败语义轨刀 C 承接·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `b95c9c4b`（主线 tip·`git log -1` 实测·TTL-WIRE 收官 docs commit·零码面）。分支 `line/ag-c-requeue`·工作树 `meetwise-agc`（`git worktree add ../meetwise-agc -b line/ag-c-requeue` 本起草席已立·建前 worktree list + branch 双查实测不存在·HEAD 落 `b95c9c4b` 亲证）。

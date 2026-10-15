@@ -1,6 +1,6 @@
 # AG-COST2 — 成本轨第②步：AG-07 迁移三件套（去重换键/加窗/水位线）+ 因子合并语义 + 90 天保留期（B 席六步之② · EXEC REQUEST）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已按卷施工+断言门全绿落卷·待 post-prove 双审两外席。起草席原状态 `draft:awaiting_pre_exec_dual`·预执行双审两外席 BOTH PASS + 协调方常设 loop 授权已满足后开工·**Ban self-approve** · **alone≠dual** · Dual PASS ≠ post PASS · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line AG-COST2 nail」段 :2447 已载 post 双席 BOTH PASS+nail merge @`3e4b5de9`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役 AG 成本轨第②步起草席（AG-07 迁移三件套 + 因子合并语义 + 90 天保留期 · EXPERT-REVIEWS §七 成本轨 B 席六步之 **②**——「①与②合并一个发布窗口」（cost1 REQUEST §3-1/checklist :2357）的②·①止血旋钮已 nail `6f2ed876` 缺省关停·**本刀=关停态下为重启用做准备**·与失败语义轨 A 席六刀零硬依赖）。
 **基线**：`feat/mysql-schema-skeleton` @ `2bc4e2bd`（开工建树时点主线 tip·`git log -1` 实测 2026-10-11·docs(ssot) AG+计费战役刀位图立节笔。起草窗口内主线零前移（worktree 立-tip 与现 tip 同 hash 亲证））。分支 `line/ag-cost2-migrate` · 工作树 `meetwise-cost2`（`git worktree add ../meetwise-cost2 -b line/ag-cost2-migrate` 仓根同级·沿 cost1 卷同形·建前亲证：worktree list 15 树无 cost2·`branch -a | grep cost2` 零命中）。

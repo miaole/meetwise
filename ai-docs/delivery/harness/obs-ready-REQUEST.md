@@ -1,6 +1,6 @@
 # #92 — readiness 深化刀（obs-ready · 迁移版本位 + worker fail-closed）
 
-**状态**：`exec:prove_green` · base = 主线 `f47670e6`（origin/feat/mysql-schema-skeleton）· 分支 `line/obs-ready` · 立项依据 = W7 可靠性审计 #92 口径：API readiness 缺迁移版本维（#91 envschema 已 nail 落主线，本刀在其上深化）、worker `/readyz/worker` 缺省 fail-open（main.ts 原文 `options.workerReady?.() ?? true`）。
+**`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line OBS-READY nail」段 :2617 已载 post 双审 errata 落卷 7ff73111 BOTH PASS+nail merge @`b284d8ca`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `exec:prove_green` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push） · base = 主线 `f47670e6`（origin/feat/mysql-schema-skeleton）· 分支 `line/obs-ready` · 立项依据 = W7 可靠性审计 #92 口径：API readiness 缺迁移版本维（#91 envschema 已 nail 落主线，本刀在其上深化）、worker `/readyz/worker` 缺省 fail-open（main.ts 原文 `options.workerReady?.() ?? true`）。
 
 ## §0 背景与现状（亲读）
 - API readiness：`apps/api/src/modules/health/health.service.ts` + `health.controller.ts`（#91 已含 `config.envSchema` 位）；readiness = SELECT 1 + 配置位，**无迁移版本维**——迁移未跑完/漂移的库会被判可接流量。

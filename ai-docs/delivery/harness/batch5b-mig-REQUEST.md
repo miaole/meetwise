@@ -1,6 +1,6 @@
 # BATCH5B-MIG REQUEST（批5·5B 迁移消费方批量刀 · 19 触点=17 件+#115/#140 两半 · 4 簇迁移/纪律面+登记 2 件 · M+ 体量）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 施工完随翻 2026-10-14·pre-exec 双审 rev2 BOTH PASS+协调方授权开工·门矩阵全绿后落卷·⛔push·post 双审两外席待审·post PASS 后翻面归协调方）。
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line batch5b-mig nail」段 :2688 已载 post 修复 e368d544 后 nail 续作收官+nail merge @`36773207`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：批5-5B 迁移消费方批量刀 REQUEST 起草席（北星 loop · MIG-RUNNER 后继消费面 · 协调方派单）。
 **基线**：`feat/mysql-schema-skeleton` @ `28cdee05`（主线 tip·2026-10-13 `git pull --ff-only` 实测 Already up to date·`git log -1` 亲证）。分支 `line/batch5b-mig`·工作树 `meetwise-b5m`（`git worktree add ../meetwise-b5m -b line/batch5b-mig 28cdee05` 本起草席已立·建前 `git worktree list` 32 树实测无 b5m·建后 33 树——树计数=起草时点值非恒定·rev2 复测 13 树（2026-10-14）·EXEC 立项日以 `git worktree list` 复测为准）。本卷属会话工单（harness 卷宗）·派单时由主会话显式给路径·Context Lock 口径。
