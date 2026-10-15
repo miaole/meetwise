@@ -11,7 +11,7 @@
 ### 0.0 防重双对表
 
 - `git branch --list "line/ci-red-clear*"` 恰 1 命中=本席分支（建前零命中）；`git worktree list | grep -c crc`=1；`ls ai-docs/delivery/harness/ | grep -c ci-red-clear` 建前=0→落卷后唯一同名卷=本卷。
-- **在飞交叠复核（EXEC 立项日必做）**：本刀四产品触面=`.github/workflows/ci.yml`+`.gitleaks.toml`+`ai-docs/architecture/ai/provider-egress-inventory.json`+`scripts/provider-egress-inventory.proof.mjs`（rev3 增第四触面=件⑤）。rev2 起草日扫描：全 `line/*` 分支逐一 `git log -1 --format=%H -- <file> <branch>`+`merge-base --is-ancestor` 判定=三原触面零在飞交叠（**rev4 如实登记**·rev2 承袭句「全部末触 commit 均 HEAD 祖先亲证」撤换：三原触面各存在 1-2 处非祖先但已吸收的残枝 twin 末触：line/db-hygiene `1ab83bd8`↔主线 `ea4e5796`（ci.yml）·line/tokstream-s2-probe `369a07ca`↔主线 manifest `:1275/:1790`·line/provider-egress-ledger `a175b02a`↔主线 `e300bfec`（proof.mjs 双生件）——三枝 tip 均 ≤2026-10-09 早于基线且 nail 收官·『零在飞交叠』结论不变·证据句形制与第四触面残枝判定对齐）；rev3 补扫第四触面（167 `line/*` 分支同口径·2026-10-14 亲跑）＝唯一非祖先末触 `line/provider-egress-ledger @a175b02a` **判定历史残枝非在飞**（a175b02a 与主线 `e300bfec` 同 subject 同日期双生件·proof.mjs diff 逐字节恒等 33→43 单行 1/1 形·分支 tip `d6c1538d` docs-only nail 2026-10-09 早于基线 2026-10-14 且零触 proof/manifest·内容全被主线吸收→零碰撞面）。EXEC 日重扫同口径四触面，任一分支出现非祖先**且非本卷已登记残枝**（`1ab83bd8`/`369a07ca`/`a175b02a` 三枝）的新触（末触位移晚于 2026-10-14 扫描时点）→触停止条件「现场漂移」停手上报。
+- **在飞交叠复核（EXEC 立项日必做）**：本刀四产品触面=`.github/workflows/ci.yml`+`.gitleaks.toml`+`ai-docs/architecture/ai/provider-egress-inventory.json`+`scripts/provider-egress-inventory.proof.mjs`（rev3 增第四触面=件⑤）。rev2 起草日扫描：全 `line/*` 分支逐一 `git log -1 --format=%H <branch> -- <file>`（**rev4 复审 P2-1 修正字序·EXEC 随 pin 落卷**：原串 `-- <file> <branch>` 因 pathspec 隔断把 `<branch>` 并入路径过滤=退化为扫 HEAD·修正后才真扫 `<branch>` 历史）+`merge-base --is-ancestor` 判定=三原触面零在飞交叠（**rev4 如实登记**·rev2 承袭句「全部末触 commit 均 HEAD 祖先亲证」撤换：三原触面各存在非祖先但已吸收的残枝 twin 末触（**rev4 复审 P2-2 概称收窄·「1-2 处」按实测落值：ci.yml 1/manifest 2/.gitleaks.toml 0**）：line/db-hygiene `1ab83bd8`↔主线 `ea4e5796`（ci.yml）·line/tokstream-s2-probe `369a07ca`↔主线 manifest `:1275/:1790`·line/provider-egress-ledger `a175b02a`↔主线 `e300bfec`（proof.mjs 双生件）——三枝 tip 均 ≤2026-10-09 早于基线且 nail 收官·『零在飞交叠』结论不变·证据句形制与第四触面残枝判定对齐）；rev3 补扫第四触面（167 `line/*` 分支同口径·2026-10-14 亲跑）＝唯一非祖先末触 `line/provider-egress-ledger @a175b02a` **判定历史残枝非在飞**（a175b02a 与主线 `e300bfec` 同 subject 同日期双生件·proof.mjs diff 逐字节恒等 33→43 单行 1/1 形·分支 tip `d6c1538d` docs-only nail 2026-10-09 早于基线 2026-10-14 且零触 proof/manifest·内容全被主线吸收→零碰撞面）。EXEC 日重扫同口径四触面，任一分支出现非祖先**且非本卷已登记残枝**（`1ab83bd8`/`369a07ca`/`a175b02a` 三枝）的新触（末触位移晚于 2026-10-14 扫描时点）→触停止条件「现场漂移」停手上报。
 - **ci-wiring3 互斥登记（rev2 增补·串行序写死）**：`line/ci-wiring3` tip=`fa8ad4e0`（docs-only 起草卷·基线同 `79382f4d`·其卷 `ci-wiring3-REQUEST.md` §0.0 自证起草日本分支尚零卷宗）——其 §1-修法件②=ci.yml lint gate 注释块对表刷新（彼卷锚 `:103-:106` 四行）与本刀件④ 同触同一注释块=唯一已知在飞交叠面（其件① 四门接线步亦触 ci.yml 但为 `:249` 后纯增行·与本刀 :104-:105 注释区+:193-:194 删行零语义交叠）。**互斥裁决=串行序写死：本刀 EXEC 先行落卷·ci-wiring3 EXEC 后行**——彼刀依其卷 §0.0 既定复核规则（`git log -1 line/ci-red-clear` 出现对同一注释块的非祖先新提交→摘除其件②·Ban 双写同一注释块）让面·对表归本刀件④ 独写。EXEC 立项日双向复核：`git log -1 line/ci-wiring3 -- .github/workflows/ci.yml` 出现主线 `79382f4d` 后非本刀新触→触停止条件「现场漂移」停手上报；本刀 EXEC 未落卷前 ci-wiring3 不得先行开工（次序写死·派单归协调方照此）。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`79382f4d`）
@@ -170,3 +170,34 @@
 - **P1-B（EXEC 日重扫触发词钉死·P1 同项）**：§0.0 重扫触发改「非祖先**且非本卷已登记残枝**（`1ab83bd8`/`369a07ca`/`a175b02a` 三枝）的新触（末触位移晚于 2026-10-14 扫描时点）」·§8「现场漂移」条款+§4② 同步括注——防 EXEC 立项日扫出三处已登记残枝误触「现场漂移」停。
 - **P2（§0.2 增第 5 条·rev3 numstat 自述差）**：rev3 commit message numstat 自述（19+/17-）与实际（20+/18-·`git show --numstat d6ac92ed` 亲证）差 1 删登记——按实测数落卷=增删各差 1·系自述笔误非 diff 面漂移（恰 1 .md 恒等）·不影响门4 EXEC 预期值 19+/5-（恒等维持）。
 - **自检**：docs:check EXIT=0（2124≤cap 2128·恰 1 .md 就地编辑零新增受管文件）·markers 五类零命中（改动集 grep·词面运行时组装不落卷）·STOP=`draft:awaiting_pre_exec_dual` 维持。
+
+---
+
+## §8 随翻注记（EXEC 落卷 2026-10-14·上文 §8 原文照录零改·沿 i6-239 随翻形制）
+
+- **三条款行使**：①rev4 pre-exec 双审=窄域席 `agent_e8ac9578` PASS（rev4 复审恰一处 P1+P2 一则·处置已随本卷 P2 落卷）落卷；②**协调方明示 EXEC 授权**（派单令·本刀=CI 转绿关键刀·ci-wiring3 待本刀并线后立项·EXEC 先行序维持）；③§1 红事实四项结论/§1.5 淘汰登记/§5 Ban/pins/§1-修法件①-⑤ verbatim 落值零改·照 §0 协议对届时 tip 全量重 pin（重 pin 全表见 §9·零漂移零改锚）。
+- **STOP 状态**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**。
+
+## §9 EXEC 记录（2026-10-14·正常叠于 merge `eaf30eb2`·收据=`ai-docs/delivery/receipts/ci-red-clear/`（untracked 不入库·沿 negbend 先例）·⛔push）
+
+- **前置**：`pnpm install --frozen-lockfile` EXIT=0 且 lockfile 零变更（`git status --porcelain pnpm-lock.yaml` 零输出·门5/7/8 前置）。
+- **并线**：`git fetch`+`git merge --no-ff feat/mysql-schema-skeleton`@`109e3eb1`——**零冲突**（ort 策略·79 files·merge=`eaf30eb2`·parents `679b8779`+`109e3eb1`）·⛔pull --rebase 未用。
+- **重 pin 全表（@merge 后 HEAD·零漂移零改锚）**：六 blob 锚逐字节恒等 `4cfa1ed3`/`2b07fafc`/`083bd226`/`2a703c58`/`3b04b871`/`9807742c`·行数 344/30/2112/79 恒等·行锚全表恒等（ci.yml :10/:18-19 pin `dcedce43`#v2/:80-81/:104-105/:107/:193-194 僵尸步在位/:195-196/:337-344 注记块·manifest :161-164/:1944-1947·proof.mjs:31=49·package.json :36-37/:467·proof.ts :85/:101）·manifest schemaVersion=1/observe-only/releaseEvidence=false/adapters 5/consumers 18/env 327 恒等·迁移链 202 头 0202·lint 十二值逐值恒等。
+- **§0.0 重扫（2026-10-14 EXEC 日·修正字序 `git log -1 --format=%H <branch> -- <file>` 实跑=P2-1 随 pin 落卷）**：全 `line/*` 分支×四触面非祖先末触恰=已登记残枝三枝（ci.yml `1ab83bd8`×1·manifest `369a07ca`+`a175b02a`×2·`.gitleaks.toml` **0**·proof.mjs `a175b02a`×1）·全部 ≤2026-10-09 早于扫描时点→**零新触零在飞交叠**（P2-2 收窄值 ci.yml 1/manifest 2/.gitleaks.toml 0 同扫亲证）。
+- **ci-wiring3 互斥双向复核**：其 tip=`e1cc0c44`（docs-only rev3 卷）·其对 ci.yml 末触=`86303901`（2026-10-14 12:38·已随 merge 吸收为 HEAD 祖先）→彼刀零 EXEC 面开工·本刀先行串行序完好。
+- **改前基线（收据 01-05 log 载原文）**：gitleaks range 扫（origin/main..HEAD）EXIT=1 共 34 findings·其中 ag24 恰 2 finding（归属 `724d61b5`/`7fb4d4b5` 逐 commit 重复·File=proof.ts:85·RuleID=generic-api-key）·卷宗四 SHA（d6ac92ed/d056dd91/679b8779/eaf30eb2）归属 0·REQUEST 文件面 0；inventory EXIT=1 恰 3 findings（两 consumer_unregistered+一 environment_reference_unregistered·与 §1.2 逐字恒等）；prove EXIT=1（本树首红=consumer_unregistered 断言·`51 !== 49` 形=rev2/rev3 临时树亲证卷内已载）；actionlint 恰 3 条 SC warning（:146 SC1083×2+:155 SC2034·零 error 级）；docs:check 2134≤2136。
+- **修法五件落码·门4 numstat（`git diff --numstat eaf30eb2` 实测）**：`.gitleaks.toml` **3+/0-**（件①）·manifest **13+/0-**（件②=consumers 尾 +8/-0+MODEL_API_KEY 块尾 +5/-0）·ci.yml **2+/4-**（件③ 僵尸步删 0+/2-+件④ 注释对表 2+/2-）·proof.mjs **1+/1-**（件⑤）＝合计 **19+/5-·恰 4 tracked 路径**（与卷预值逐件恒等·收据目录 untracked 另记）。
+- **门矩阵十一门**（工作树门 EXIT 原值收据 06-13 log·post-commit 门实跑落收据·本节不预 claim）：
+  1. **红①消红**：commit 后 `gitleaks detect -c .gitleaks.toml -v --log-opts="origin/main..HEAD"` 判据=ag24 命中 0+本分支新 commit（卷宗 SHA+本 EXEC commit）finding=0·不限文件面（原文与对照落收据）·**CI 终审=推 PR 后观察 secrets-scan 绿**（本地 8.30.1 非 CI pinned 版本全量口径不可闭证）。
+  2. **红②双绿**：inventory EXIT=0（自报 adapters=5·operations=10·registered_consumer_source_pairs=51·environment_references=328）+prove EXIT=0（7/7·51=51）·python3 解析 consumers 18→20/env 327→328 亲证。
+  3. **actionlint**：改后输出与基线**逐字节恒等**（diff 空）=恰 3 条 SC warning 基线登记面·零 error 级 finding（判据=逐条归属面·非 EXIT 裸值）。
+  4. **diff 面**：19+/5-·恰 4 tracked 路径（ci.yml+gitleaks+manifest+proof.mjs）。
+  5. **邻面**：failover 步零触+`pnpm failover:prove` EXIT=0。
+  6. **migrate 链**：202·头 0202。
+  7. **typecheck**：EXIT=0·8/8·0 cached。
+  8. **lint**：EXIT=0·12/12·十二值贴线恰等（api 1421/web 601/worker 954/ai-runtime 628/db 1042/root 5235/ai-graphs 47/config 0/contracts 265/db-mysql 0/domain 115/qdrant-store 27）·零第三红。
+  9. **docs:check**：EXIT=0（中跑 2134≤2136·收据 .md 落卷后终值复跑落收据·cap 2136 届时口径）。
+  10. **markers**：五类词族沿 negbend 门 10 口径·改动集新增行（`git diff -U0` `^+`）零命中（词面运行时组装防自匹配·EXIT=1 零匹配·§9 落卷后复扫落收据）。
+  11. **CI 终审**：推 PR 后观察口径（secrets-scan 绿+verify 全步首过·:84 后 20 步首曝红属存量红翻面另刀口径·push 归协调方/pusher·EXEC ⛔push）。
+- **est live=0**（全部门=本地静态检查+scripted prove·零模型外呼零 Key 加载零生产操作零 secrets 零消耗）。
+- **STOP 终态**：**`executed:awaiting_post_prove_dual`**（post 双审两外席归协调方派席·行翻面/nail/推 PR 归协调方）。

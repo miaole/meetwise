@@ -161,6 +161,14 @@
         {
           "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-op02-endpoint-partition.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     },
@@ -1943,6 +1951,11 @@
     {
       "name": "MODEL_API_KEY",
       "source": "scripts/ha/ha-sandbox.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
       "class": "test-fixture"
     },
     {
