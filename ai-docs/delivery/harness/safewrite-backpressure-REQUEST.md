@@ -1,6 +1,6 @@
 # SAFEWRITE-BACKPRESSURE REQUEST — sse-pump safeWrite write=false 背压刀（#132 承刀·恰 1 产品文件机制修+既有 proof 增臂·safewrite-backpressure 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停·alone≠dual · Dual PASS ≠ 开工 · est live=0 · markers=0 · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停·alone≠dual · Dual PASS ≠ 开工 · est live=0 · markers=0 · ⛔push · **rev2 双审回炉修订在卷（§9·席1 PASS+席2 FAIL 恰一处 P1）·复审维持 awaiting_pre_exec_dual**）
 
 **席位**：safewrite-backpressure 起草席（诊断+起草双责·协调方派·批表盘点席在案 #132 真未闭立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `575b428e`（reconcile-retry nail 收官 SSOT commit·=origin tip·docs:check 2141≤cap 2144 本树亲跑 EXIT=0）· 分支 `line/safewrite-backpressure`（建前 `git branch --list "line/safewrite*"` 恰 1 命中=本席分支·零第二同名）· 工作树 `meetwise-swb`（仓根同级·本起草席 `git worktree add ../meetwise-swb -b line/safewrite-backpressure feat/mysql-schema-skeleton` 亲立·HEAD 落 `575b428e` 亲证）。
@@ -63,12 +63,13 @@
 ## §1-修法（背压机制刀·预期恰 1 产品文件+1 测试文件·零迁移）
 
 - **件①（唯一码改·`apps/api/src/platform/sse-pump.ts` 现blob `c95f7c5d`）**：safeWrite 消费 `reply.raw.write()` 返回值——**钉值五点（⛔ 不得更改·改则回炉重审）**：
-  1. **阈值钉值=1 MiB（1_048_576 字节）**：连接级累计「未落盘」字节计数（`write()` 返回 false 时按 `Buffer.byteLength(s)` 累加·返回 true 不计）·**`'drain'` 事件复位归零**（挂载于 `reply.raw`·写入侧缓冲排空即恢复）。定值理由：=64× http socket 默认 highWaterMark 16 KiB·单帧/常规 catch-up burst 不误断；5 槽/流键×1 MiB=每 principal 最坏 5 MiB 上界（现状无界）；持续慢客户端超限断开、瞬时抖动 drain 复位不误伤。
+  1. **阈值钉值=1 MiB（1_048_576 字节）**：连接级累计「未落盘」字节计数（`write()` 返回 false 时按 `Buffer.byteLength(s)` 累加·返回 true 不计）·**`'drain'` 事件复位归零**（挂载于 `reply.raw`·写入侧缓冲排空即恢复）·**drain 监听挂载形=fake 容忍——optional-call（`reply.raw.on?.('drain',…)`）或首次 write()===false 时惰性挂载（函数等价：drain 仅在 false 后有意义）·Ban 触 ha-2-drain/sse-delta-arm 两 proof 文件（其 fake raw 无 on·自然挂载即 TypeError 两门全红）**（rev2 P1 席1 修订句照录·亲证锚=`ha-2-drain.proof.ts:31-:43`+`sse-delta-arm.proof.ts:60-:67` fake raw 仅 writeHead/write/end 三方法零 `on`）。定值理由：=64× http socket 默认 highWaterMark 16 KiB·单帧/常规 catch-up burst 不误断；5 槽/流键×1 MiB=每 principal 最坏 5 MiB 上界（现状无界）；持续慢客户端超限断开、瞬时抖动 drain 复位不误伤。
   2. **断开形=自有旗**（本卷名 `bpTripped`·EXEC 命名可异·机制不可异）：累计超阈值→置自有旗+唤醒循环在帧边界退出——**Ban 复用 `closed=true` 单旗**（rev2 消歧①：`:177` `if (!closed)` 会跳过 `raw.end()`→socket 悬挂；背压断开 socket 未断·与 `:106` reqRaw close「客户端已断·end 免责」语义不同）·**Ban 复用 `draining` 旗**（HA-2 R1 语义不混·§1.1）。
-  3. **阈值内 `safeWrite` 恒返 true 仅内部计数**（rev2 消歧②逐字承袭：false 早退经 `:100` emit early-return 会冻结 `lastSeq` 不前进反而放大积压——阈值内只计数·超阈值才断）·`draining`/sync-throw 既有两早退分支语义零变。
+  3. **阈值内 `safeWrite` 恒返 true 仅内部计数**（rev2 消歧②逐字承袭：false 早退经 `:100` emit early-return 会冻结 `lastSeq` 不前进反而放大积压——阈值内只计数·超阈值才断）·`draining`/sync-throw 既有两早退分支语义零变·**超阈值后（自有旗已置）`safeWrite` 返回/写穿行为钉死=拒写镜像 `draining` 分支形（`return false` 不落 `write`·现 `:88` 分支即模板·零写穿零缓冲滞留）**（rev2 P2-①）。
   4. **收尾单点不变**：while 条件纳入自有旗（帧边界退出）·`:171-:174` dispose+unregister 单点照走（自有旗并入全退出路径集）·`:177` end 单点照走——自有旗路径**不抑制 `raw.end()`**（客户端见干净 end·凭 Last-Event-ID 重连重放·与 HA-2 drain 收尾同客户端语义）；`if (!closed)` 守卫行本身零改（自有旗非 closed）。
   5. **既有锚零改**：10min deadline（`:105`）/5 槽门（三控制器）/delta 环（`:74` 256）/ping 兜底（`:169`）/HA-2 registry 面（`sse-registry.ts` 全文件）·`diff --numstat` 预期=件① 净增常量+计数+监听+旗判定若干行（±注释）·`sse-registry.ts` blob 恒等 `94eb93d5`。
-- **件②（prove·`apps/api/test/sse-push-notify.proof.ts` 现blob `e4cf2354`·既有 35 臂零改零弱化）**：①fakeSink（`:361-:373`）增**write 返回值注入缝**（additive·现 `:369` 恒 true）+fake raw 增最小 `on` 缝（drain 监听挂载面）；②增背压臂恰四臂（形制沿本文件既有直驱先例+`sse-delta-arm.proof.ts:103` 静态断言形）：**(i) 阈值内计数臂**——注入 write 恒 false·断言泵不早退·emit 照常推进（lastSeq 前进/后续帧照写）；**(ii) 超阈值断开臂**——持续 false 累计>1 MiB→泵退出+`raw.end()` 恰一次+registry `count()` 归零；**(iii) drain 复位臂**——false 后发 drain·计数归零·泵继续正常写；**(iv) 源级静态臂**——safeWrite 源码内 write() 返回值被消费+阈值常量在场+自有旗不入 `:177` 守卫（静态源断言）。改后臂数=35+N（N 实测如实记·沿 RECONCILE-RETRY「恰 7 新臂 17→24」形制）·**改前基线 run 必做恰 1 次**（取改前 PASS 名单 35/35 自证分母·不计入 prove·零 retry 冲销纪律沿 negbend-fix rev2 形）。
+  - **注释措辞钉死（rev2 P2-③ 双审增补·非第六钉值点·五点计数不变）**：EXEC 期 drain 监听与自有旗处 in-code 注释沿用「背压 drain(socket)≠HA-2 排水」消歧措辞——Ban 裸写 `drain` 词不消歧（与 HA-2 排水语义混淆面·§1.1 正交性承袭）。
+- **件②（prove·`apps/api/test/sse-push-notify.proof.ts` 现blob `e4cf2354`·既有 35 臂零改零弱化）**：①fakeSink（`:361-:373`）增**write 返回值注入缝**（additive·现 `:369` 恒 true）+fake raw 增最小 `on` 缝（drain 监听挂载面）；②增背压臂恰四臂（形制沿本文件既有直驱先例+`sse-delta-arm.proof.ts:103` 静态断言形）：**(i) 阈值内计数臂**——注入 write 恒 false·断言泵不早退·emit 照常推进（lastSeq 前进/后续帧照写）；**(ii) 超阈值断开臂**——持续 false 累计>1 MiB→泵退出+`raw.end()` 恰一次+registry `count()` 归零；**(iii) drain 复位臂**——false 后发 drain·计数归零·泵继续正常写；**(iv) 源级静态臂**——沿 `sse-delta-arm.proof.ts:103-:107` 词面 includes 先例（`pumpSrc.includes('…')` 断言形·**勿锚行号**）：断言 safeWrite 源码内 write() 返回值被消费词面+阈值常量 `1_048_576` 词面在场+自有旗名不入 end 守卫（`if (!closed)` 行词面零扩）——静态源断言全走词面 includes·行号零锚（rev2 P2-②）。改后臂数=35+N（N 实测如实记·沿 RECONCILE-RETRY「恰 7 新臂 17→24」形制）·**改前基线 run 必做恰 1 次**（取改前 PASS 名单 35/35 自证分母·不计入 prove·零 retry 冲销纪律沿 negbend-fix rev2 形）。
 - **件③（收据·恰 1 件）**：`ai-docs/delivery/receipts/safewrite-backpressure/00-exec.md`——七字段（门矩阵全表+EXIT 原值+改前改后 sse-push PASS 名单 diff+diff numstat+重 pin 全表+偏离清单+pins 零翻声明）·**raw log 一律 `.tmp/` 树外**（收据超 1 件→docs:check 贴边红·§2-12 贴边注意）。
 
 ## §2 验收断言（pre-exec 双审核对单基面·门矩阵十五门·数字口径以实跑实测为准+偏差熔断）
@@ -77,7 +78,7 @@
 2. **sse-slot 邻位**：`pnpm -C apps/api prove:sse-slot` EXIT=0（静态计 14 臂·实跑为准·零新增红）。
 3. **s4b-delta-arm**：`pnpm -C apps/api prove:s4b-delta-arm` EXIT=0（静态计 21 臂·零新增红——`:103` safeWrite 单点契约面零翻）。
 4. **last-event-id**：`pnpm -C apps/api prove:last-event-id` EXIT=0（零新增红——重放语义零改的自证）。
-5. **ha2-drain 双面**：`pnpm -C apps/api prove:ha2-drain` + `pnpm -C apps/worker prove:ha2-drain` 各 EXIT=0（HA-2 收据基线 47/47+39/39·零新增红——R1「end 恰一次+end 后 write=0」语义面零侵的承载门）。
+5. **ha2-drain 双面**：`pnpm -C apps/api prove:ha2-drain` + `pnpm -C apps/worker prove:ha2-drain` 各 EXIT=0（HA-2 收据基线 47/47+39/39·零新增红——R1「end 恰一次+end 后 write=0」语义面零侵的承载门）·**观察登记（rev2 P2-④）**：`A(` 词面静态计 rg 实测=48 vs 收据 47/47——静态计≠收据 PASS 数差 1（不裁异·不就地归因）·**以 run 名单制实跑 PASS 名单为准**·静态计仅观察值不入熔断。
 6. **邻面 commerce**：`pnpm commerce-reconcile:prove` EXIT=0·基线 24/24（SSOT `575b428e` 题面·**熔断=零容差**：≠24 即触「现场漂移」）。
 7. **邻面 neg:all**：`pnpm -C apps/api neg:all` EXIT=0·六段 687（auth→commerce→resume→interview→bend→input·基线 SSOT·邻面不回退承载门·段序 PASS 名单 diff=∅）。
 8. **邻面 interview**：`pnpm interview:prove` EXIT=0·57 臂（authz-34 卷 :225 口径·零容差熔断同上）。
@@ -125,6 +126,20 @@
 - **越界需要**：修法诉求超出件①+件② 恰两面（需触 registry/控制器/delta 环/metrics/迁移/其他工作树）→停·另刀或协调方裁决（候选乙/丙否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻面新红/lint 五值破/docs:check>2144/贴边超件）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 rev2 处置摘要（pre-exec 双审回炉修订·2026-10-14·修订记录节）
+
+**双审结果**：席1 **PASS**+席2 **FAIL 恰一处 P1**→回炉 rev2（本 commit docs-only 恰 1 .md·零源码零测试触）。**P1 机制**：件① drain 监听挂载与三个直驱 proof 的 fake raw 无 `.on` 方法相撞——亲证 `ha-2-drain.proof.ts:31-:43`+`sse-delta-arm.proof.ts:60-:67` fake raw 仅 writeHead/write/end 三方法零 `on`·自然 `reply.raw.on('drain',…)` 挂载即 TypeError 两门全红（§2-3/§2-5 承载门本体）·修补该两 fake=违零触面·停止条件四类无合法出路→REQUEST 回炉修订（起草席处置·非 EXEC 期就地处置）。
+
+| # | 审级 | 处置 | 落点 |
+|---|---|---|---|
+| 1 | P1 | 件① 钉值补一句：drain 监听挂载形=fake 容忍——optional-call（`reply.raw.on?.('drain',…)`）或首次 write()===false 时惰性挂载（函数等价：drain 仅在 false 后有意义）·Ban 触 ha-2-drain/sse-delta-arm 两 proof 文件（其 fake raw 无 on·自然挂载即 TypeError 两门全红）（席1 修订句照录） | §1-修法 件① 钉值点1 |
+| 2 | P2-① | 超阈值后 safeWrite 返回/写穿行为钉死=拒写镜像 `draining` 分支形（`return false` 不落 `write`） | §1-修法 件① 钉值点3 |
+| 3 | P2-② | 臂(iv) 静态断言改词面 includes 形（沿 `sse-delta-arm.proof.ts:103-:107` 先例）勿锚行号 | §1-修法 件② 臂(iv) |
+| 4 | P2-③ | EXEC 期 in-code 注释沿用「背压 drain(socket)≠HA-2 排水」消歧措辞 | §1-修法 件① 末（五点外注释措辞钉） |
+| 5 | P2-④ | ha-2-drain 静态计 48 vs 收据 47/47 观察登记（不裁异·run 名单制实跑为准） | §2 门5 |
+
+**rev2 自检**：docs:check EXIT=0（scanned 2142≤cap 2144·本卷 +0 零新受管）·markers 臂 PASS 五类零命中（`pnpm i6-gates:prove` ⑦ markers=0 臂 PASS·恰符臂红=i6-239 历史刀申报面协议形承登沿 authz-34 :225 先例随卷承登）·STOP=`draft:awaiting_pre_exec_dual` 复审维持·est live=0·pins 十一值零翻转·钉值仍五点（P2-③ 系注释措辞钉非第六钉值点·P1/P2-① 系五点内补句）·§2/§3/§5/§8 门矩阵边界与 Ban/pins 零改（P2-④ 系观察登记非门值变更）。
+
 ---
 
-*SAFEWRITE-BACKPRESSURE REQUEST · 2026-10-14 起草落卷 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`575b428e`（=origin tip）· 分支 `line/safewrite-backpressure` · 工作树 `meetwise-swb`（本起草席立·建前 branch+worktree 双查无同名）· 立项出处=issues-master 更正版 `:402`+LEDGER `:89` #132 未翻+5E GROUP `:73` 开放（亲证加重）+5E-BEHAVIOR `:28/:74` R4 rev2 消歧两句（EXEC R1 切片已闭·R4 未行使·承接本刀）+HA-2 收据 R1 语境+盘点席在案 · 诊断=safeWrite 单点 `sse-pump.ts:87-:90` write() 返回值弃置恒 true（盘点席 worker 路径 rg 纠偏=产品码仅 api 平台层）·三点写入面 `:100/:135/:169`·消费方=三控制器+三 proof 全枚举·缺口后果=慢客户端 socket 缓冲无界（现值护栏仅 5 槽+10min·非背压）· 裁决=(a) 补 write=false 背压（候选乙排队缓冲/丙仅观测化否决在卷 §1.3）·钉值=1 MiB 累计+drain 复位+自有旗超阈值断开+阈值内恒 true+end 单点不抑制（5E-BEHAVIOR rev2 消歧逐字承袭）· 修面=恰 1 产品文件（sse-pump.ts）+1 测试文件（sse-push-notify.proof 增背压臂恰四臂·既有 35 臂零弱化）· 门矩阵十五门（本面 sse-push/sse-slot/delta-arm/last-event-id/ha2-drain 双面+邻面 commerce 24/neg 687/interview 57 不回退+migrate 链三件+typecheck 8/8+lint 五值恰等 601/5235/1421/954/628+docs:check ≤2144 贴边红停〔brief 2136 已被 sanction 上调·in-tree 实测如实登记〕+markers+diff 面机检+卫生）· 迁移预期零（需则顺延 0205 实测·0204 归 cost-columns 在飞）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+*SAFEWRITE-BACKPRESSURE REQUEST · 2026-10-14 起草落卷 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`575b428e`（=origin tip）· 分支 `line/safewrite-backpressure` · 工作树 `meetwise-swb`（本起草席立·建前 branch+worktree 双查无同名）· 立项出处=issues-master 更正版 `:402`+LEDGER `:89` #132 未翻+5E GROUP `:73` 开放（亲证加重）+5E-BEHAVIOR `:28/:74` R4 rev2 消歧两句（EXEC R1 切片已闭·R4 未行使·承接本刀）+HA-2 收据 R1 语境+盘点席在案 · 诊断=safeWrite 单点 `sse-pump.ts:87-:90` write() 返回值弃置恒 true（盘点席 worker 路径 rg 纠偏=产品码仅 api 平台层）·三点写入面 `:100/:135/:169`·消费方=三控制器+三 proof 全枚举·缺口后果=慢客户端 socket 缓冲无界（现值护栏仅 5 槽+10min·非背压）· 裁决=(a) 补 write=false 背压（候选乙排队缓冲/丙仅观测化否决在卷 §1.3）·钉值=1 MiB 累计+drain 复位+自有旗超阈值断开+阈值内恒 true+end 单点不抑制（5E-BEHAVIOR rev2 消歧逐字承袭）· 修面=恰 1 产品文件（sse-pump.ts）+1 测试文件（sse-push-notify.proof 增背压臂恰四臂·既有 35 臂零弱化）· 门矩阵十五门（本面 sse-push/sse-slot/delta-arm/last-event-id/ha2-drain 双面+邻面 commerce 24/neg 687/interview 57 不回退+migrate 链三件+typecheck 8/8+lint 五值恰等 601/5235/1421/954/628+docs:check ≤2144 贴边红停〔brief 2136 已被 sanction 上调·in-tree 实测如实登记〕+markers+diff 面机检+卫生）· 迁移预期零（需则顺延 0205 实测·0204 归 cost-columns 在飞）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · rev2=pre-exec 双审席1 PASS+席2 FAIL 恰一处 P1 回炉修订在卷 §9（五项处置落点）· 复审维持 awaiting_pre_exec_dual · ⛔push · STOP*
