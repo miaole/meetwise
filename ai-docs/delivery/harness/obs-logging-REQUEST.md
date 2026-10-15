@@ -1,6 +1,6 @@
 # OBSLOG REQUEST — #89 可观测性刀（关 logger:false·500 日志带 reqId/路径/堆栈）
 
-**exec:awaiting_post_prove_dual（EXEC 产物+prove 全绿已落·STOP · alone≠dual · Ban self-approve）** · 席 mw-core·W1 主路径线 · EXEC author `mw-obslog-exec` · 基座 `origin/feat/mysql-schema-skeleton` @ b429aebb · 工作树 `meetwise-line-obslog` · 分支 `line/obs-logging`
+**`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line OBS-LOGGING #89 可观测性刀 NAIL」段 :2188 已载 post-prove 双审 BOTH PASS+协调方授权本 nail（EXEC 44da47c0 经 rebase 以 5638491b 落主线）+nail merge @`5638491b`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `exec:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）** · 席 mw-core·W1 主路径线 · EXEC author `mw-obslog-exec` · 基座 `origin/feat/mysql-schema-skeleton` @ b429aebb · 工作树 `meetwise-line-obslog` · 分支 `line/obs-logging`
 
 ## §0 立靶依据
 产品审计 #89（排障前提）：现状 `apps/api/src/main.ts:38` Fastify 层零日志（`logger:false`·NestFactory 层亦 false → Nest Logger 全静默，filter 的 error 调用实际不落盘）+ `apps/api/src/platform/all-exceptions.filter.ts:24` 500 分支只拼 code+message（无 reqId/路径/堆栈）→ 线上 500 无从排障。本刀=最小面开启 fastify 内置 pino + 500 分支结构化日志。锚点亲读与审计口径一致（该行 `logger:false, abortOnError:false` 与 filter `unhandled` 行均已核）。

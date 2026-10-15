@@ -1,6 +1,6 @@
 # AG39-QUALITY REQUEST（AG-39 质量收尾小刀 · RRF 融合层 owner 秩补全 + org 调用方同内容双行内容级去重 · docs-only 落卷即停）
 
-**Status**: `executed:awaiting_post_prove_dual`（**cap sanction 翻面已落·docs:check 复跑绿 2081≤2081·门矩阵翻 10 绿（lint 双红既登基线恒等承登不变）**·2026-10-14·详 §11-6·⛔push·Ban self-approve · alone≠dual）· **rev2 勘误席已落**：pre-exec 双审两席 FAIL findings 全数处置（B1 迁移号改占+A17 重锚+谓词镜像+夹具不对称形+裁决①⑦收紧+缓存零残留+行号勘正·§9 处置摘要）· **rev3 勘误席已落**：rev2 复审双席残余六项全数处置（R1 夹具首位形+R2 应用序前置条件+R3 谓词枚举补全+R4 支配性公式修正+R5 处置计数勘正+R6 链深口径勘正·§10 处置摘要）· **EXEC 迁移号改占勘误已落**：rev2/rev3 占号 0200 已被成本⑤在飞实占（meetwise-cost5 树 `0200_ag08_admission_partition_per_endpoint_seeds.sql`·git ls-tree 亲证）——协调方裁决本刀改占 **0201**（全分支 migrations ls-tree 零占用亲证·沿母刀 0182+0183→0186+0187 改占先例）·卷内占号硬编码全改 0201+勘误注登记（A22/0.2-2/案①-A/案②-A/§5/裁决⑤/门预申明/交付报告③）·§11 EXEC 附记
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line ag39q nail」段 :2706 已载 post 双审 BOTH PASS+nail merge @`fdf32451`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：meetwise 战役「AG-39 质量收尾小刀（RRF owner 秩+org 双行）」REQUEST 起草席（docs-only·零码动·单文件落卷）。
 **基线**：主线 tip `d68ffe17`（`git log -1` 开工实测·2026-10-14·docs(ssot) AG-39 nail 收官随翻三件笔）。分支 `line/ag39-quality` · 工作树 `../meetwise-ag39q`（仓根同级·本起草席已立：`git worktree add ../meetwise-ag39q -b line/ag39-quality d68ffe17`·建前亲证 `worktree list` 13 树零 ag39q·`branch -a` 零同名质量线）。
