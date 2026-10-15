@@ -1,6 +1,6 @@
 # RECONCILE-RETRY REQUEST — #10（5C 批）翻案刀·model_invocation unknown 悬挂面处置（修法裁决=(c) 仅可观测化·积压水位双 gauge+gateway 只读函数·零行为变更·reconcile-retry 战役·docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`stopped:exec_red_gate_baseline`**（EXEC 落卷·2026-10-15·门矩阵十绿一红承登：docs:check **PTP_FILE_LIMIT:2137>2136 红停**——红唯一根因=件① 迁移受管计面 +1（merge 点 HEAD 实测恰 2136=cap 绿）·cap 上抬权归协调方·沿 evkind `stopped:exec_red_gate_baseline`/tokstream/perfload-env-fix 先例 Status 不落 executed·沿承登记⛔就地自调 cap·翻面权归协调方 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-15·红闸解除：协调方 sanction cap 2136→**2144**（+8·本刀迁移 .sql 受管 +1 至 2137·三刀在飞共享余量·沿 +8 先例）→cap 落值+docs:check 复跑 **EXIT=0 2137≤2144**·门8 红转绿=门矩阵十一门全绿（§9+§9 append）·沿 evkind `stopped:exec_red_gate_baseline` 解除先例 Status 翻 executed·post 双审归协调方派 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：RECONCILE-RETRY 起草席（诊断+起草双责·协调方派·批表盘点席翻案 #10 真未闭立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `109e3eb1`（fetch 后 origin tip 同指亲证·docs:check 2133≤cap 2136 本树亲跑 EXIT=0）· 分支 `line/reconcile-retry`（建前 `git branch --list "line/reconcile*"` 零命中·本起草席 `git worktree add ../meetwise-rcr -b line/reconcile-retry feat/mysql-schema-skeleton` 亲立·HEAD 落 `109e3eb1` 亲证）· 工作树 `meetwise-rcr`（仓根同级）。
@@ -197,6 +197,14 @@ GRANT EXECUTE ON FUNCTION gateway_model_invocation_backlog(integer) TO app_gatew
 
 est live=0 · markers=0 · pins 十一值零翻 · ⛔push。
 
+## §9 append · cap sanction 落值（2026-10-15·EXEC 席原地续跑收尾·协调方 sanction 链）
+
+**协调方 sanction**：cap **2136→2144**（+8·本刀迁移 .sql 受管 +1 至 2137·三刀在飞共享余量·沿 +8 先例）。落值三件：①`scripts/ai-docs/public-text-policy.mjs` `MAX_FILES` `2_136`→**`2_144`**+sanction 注记沿承注释链（reconcile 迁移受管件·协调方 sanction·三刀共享）；②`scripts/ai-docs/public-text-policy.proof.mjs` 越限臂 fabricated 数联动 **2144/2145**（at-cap 臂 `scannedFiles:2144`+超限臂第 2145 注入路径断言 `PTP_FILE_LIMIT:2145`·cap 数字行为断言语义不变强度不减·沿 perfload/ag39q/5b-mig 联动先例形·头注行 2136→2144 随件）；③门8 复跑：`node scripts/ai-docs/check-docs.mjs` **EXIT=0「scanned 2137 managed worktree files」≤cap 2144——红转绿**·`public-text-policy.proof.mjs` selected=12/12 EXIT=0 越限臂随件绿。
+
+**门8 终态=绿（sanction 落值后）**：门矩阵**十一门全绿**（其余十门绿在卷 §9 上段·零重跑零翻动）。**STOP=`stopped:exec_red_gate_baseline` 解除→`executed:awaiting_post_prove_dual`**（红闸解除链·post 双审归协调方派·本 append 不预 claim post-commit EXIT）。本 sanction 落值 commit 自身 diff 口径=恰 3 tracked（两 .mjs+本卷·sanction 授权面内如实记·与门10 六件交付 commit `727e79b0` 恰 7 tracked 分立口径）。
+
+est live=0 · markers=0 · pins 十一值零翻 · ⛔push。
+
 ---
 
-*RECONCILE-RETRY REQUEST · 2026-10-14 起草 · 2026-10-15 EXEC 落卷（§9）· **`stopped:exec_red_gate_baseline`**（门8 docs:check `PTP_FILE_LIMIT:2137>2136` 红停承登=件① 迁移受管计面 +1·merge 点 HEAD 实测恰 2136=cap 绿·cap 上抬权归协调方·沿 perfload-env-fix 先例·其余十门全绿·翻面权归协调方）· base 并线 `feat/mysql-schema-skeleton` @`0c06033d`→merge `4fbb2e26`（零冲突·tree 预演 `2f4b3c22`）· 分支 `line/reconcile-retry` · 工作树 `meetwise-rcr` · 修法=件① 迁移 0203 gateway_model_invocation_backlog 只读双 COUNT（dispatching_aged/unknown_unresolved·0056 同族·0037 部分索引承载·零新索引·恰 3 语句）+件② db wrapper+件③ metrics 双 gauge+基线枚举 `'backlog_failed'`（席1 P2-1+席2 P2-A 处方）+件④ tick 接线（ownerFailures throw 前·backlog_failed 镜像枚举臂）+件⑤ proof 恰 7 新臂（既有断言零字节改）+件⑥ 收据仓根 · 改前 17 PASS→改后 24 PASS 全绿（两次承登见 §9）· 门矩阵=十绿一红（红=门8 计数预算非内容策略）· est live=0 · markers=0 · pins 十一值零翻 · 停止条件四类（「验收红不可修」命中承登）· Ban self-approve · alone≠dual · ⛔push*
+*RECONCILE-RETRY REQUEST · 2026-10-14 起草 · 2026-10-15 EXEC 落卷（§9+§9 append）· **`executed:awaiting_post_prove_dual`**（红闸解除=协调方 sanction cap 2136→2144 +8 三刀共享·cap 落值两 .mjs+越限臂 2144/2145 联动·docs:check 复跑 EXIT=0 2137≤2144 门8 红转绿·门矩阵十一门全绿·post 双审归协调方派）· 门8 首曝红=`PTP_FILE_LIMIT:2137>2136`（件① 迁移受管计面 +1·merge 点 HEAD 实测恰 2136=cap 绿）承登在卷 §9 上段· base 并线 `feat/mysql-schema-skeleton` @`0c06033d`→merge `4fbb2e26`（零冲突·tree 预演 `2f4b3c22`）· 分支 `line/reconcile-retry` · 工作树 `meetwise-rcr` · 修法=件① 迁移 0203 gateway_model_invocation_backlog 只读双 COUNT（dispatching_aged/unknown_unresolved·0056 同族·0037 部分索引承载·零新索引·恰 3 语句）+件② db wrapper+件③ metrics 双 gauge+基线枚举 `'backlog_failed'`（席1 P2-1+席2 P2-A 处方）+件④ tick 接线（ownerFailures throw 前·backlog_failed 镜像枚举臂）+件⑤ proof 恰 7 新臂（既有断言零字节改）+件⑥ 收据仓根 · 改前 17 PASS→改后 24 PASS 全绿（两次承登见 §9）· 门矩阵终态=十一门全绿 · est live=0 · markers=0 · pins 十一值零翻 · 停止条件四类（「验收红不可修」曾命中已由 sanction 解除·全程如实承登）· Ban self-approve · alone≠dual · ⛔push*
