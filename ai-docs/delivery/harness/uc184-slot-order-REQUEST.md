@@ -1,6 +1,6 @@
 # UC184-SLOT-ORDER REQUEST — #184 SSE 领槽后置于取数序修复刀（429 拒连路径零取数副作用·恰 3 控制器同形调序+1 proof 断言翻面·uc184-slot-order 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·pre-exec 双审两独立外席待派·alone≠dual·Dual PASS ≠ 开工·Ban self-approve·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码收口·门矩阵十二门全绿见 §9·post 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push）
 
 **席位**：uc184-slot-order REQUEST 起草席（诊断+起草双责·协调方派·批表盘点席在案靶点=`interview.controller.ts:259` initial 取数仍先于 `:263` acquireSlot·#184 真未闭且原样·5C 批余项）。
 **基线**：`feat/mysql-schema-skeleton` @ `7bc8ffaa`（ha6-repin nail 收官 SSOT commit·本地与 origin tip 恒等亲证·docs:check 2124≤cap 2128 本树亲跑 EXIT=0）· 分支 `line/uc184-slot-order`（建前 `git branch --list "line/uc184*"` 零命中·本起草席 `git worktree add ../meetwise-u184 -b line/uc184-slot-order feat/mysql-schema-skeleton` 亲立·HEAD 落 `7bc8ffaa` 亲证）· 工作树 `meetwise-u184`（仓根同级）。
@@ -8,10 +8,15 @@
 
 ## §0 现状锚（起草席亲读·file:line+blob 逐条 rg/Read/git hash-object 实测 @`7bc8ffaa`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
 
+> **EXEC 立项重 pin 回执（2026-10-15·EXEC 席亲测 @并线后 tip `32cd5e70`）**：①并线 `feat/mysql-schema-skeleton` @`109e3eb1`（origin tip=brief「bb1627d8+」实测兑现·`bb1627d8` 系 line/ci-red-clear 支线 tip 非本链祖先·brief 「≈」口径成立）`--no-ff` 零冲突并线→`32cd5e70`；②§0.1 五锚 blob `git hash-object` 复算逐值全等（`1426c175`/`e77480dd`/`75a57e21`/`da936220`+零触面三件）→**行号零漂零改锚·结论零变**；③迁移链复数=202 头 `0202` 恒等；④交叠重扫见 §0.0 附表。
+
 ### 0.0 防重双对表
 
 - `git worktree list` 建后 11 树实测（主仓+本 u184 树等）——无第二 uc184 同名树；`git branch --list "line/uc184*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | rg -i "uc184|slot-order"` 建前零命中→落卷后唯一同名卷=本卷。
 - **在飞交叠复核规则（EXEC 立项日必做）**：本刀产品触面=3 SSE 控制器+1 proof 文件（§1-修法四件）。起草席已对全部 `line/*` 分支逐树扫描四文件（`git log -1 -- <file>`+`merge-base --is-ancestor` 双查）：唯一非祖先命中=`line/b2-uc025-wiring` 对 `interview.controller.ts`（file-tip `6cbaf04e` 2026-10-03）——**判定=历史残枝非在飞**（该分支全 tip `6e5252ad` 2026-10-03 早于基线 11 日；其文件版 blob `18004851` 缺 sse-pump 接线 import=旧形已被主线取代·`git diff HEAD line/b2-uc025-wiring -- <file>` 亲证纯落后零前瞻·沿 negbend-fix §0.0 b110 残枝同判例）。EXEC 日对届时在飞分支重扫·任一分支顶对四文件存在基线后新增提交→触停止条件「现场漂移」停手上报。
+- **EXEC 立项日重扫附表（2026-10-15·EXEC 席亲测）**：①`git worktree list` 实测 **14 树**（起草时 11 树→新增 meetwise-crc/ple/rcp2/stf2 等邻战役树·零第二 uc184 同名树·`git branch --list "line/uc184*"` 恰 1 命中=本席分支）；②非祖先命中两条·**均判历史残枝非在飞·零停止条件触发**：
+  - `line/b2-uc025-wiring`（承起草判例）：tip `6e5252ad` 2026-10-03·对 `interview.controller.ts` file-tip `6cbaf04e` 2026-10-03——纯落后零前瞻（同上判例原文）。
+  - `line/sse-notify-push`（新命中）：tip `49535514` 2026-10-08 16:51(+0800)·对三控制器最后触点 `a963ef19` 2026-10-08 16:30(+0800)——**早于基线 `7bc8ffaa`（2026-10-15 11:18+0800）7 日·零基线后新增提交**；其文件版（`6beb8136`/`205958e0`/`53f2456b`）为 API-HARDEN 前旧形（acquireSlot 非 async 签名+缺 `getSseNotify` 接线 import·`git diff HEAD 49535514` 亲证纯落后零前瞻）——沿 b2-uc025-wiring 残枝同判例。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`7bc8ffaa`）
 
@@ -117,10 +122,54 @@
 
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.2 定性与 §1.3 裁决结论与 §5 Ban/pins 与 §1-修法件①②③ 四文件面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且 §1.2 结论受疑（如三控制器 events 序已被动过/acquireSlot 契约变更/proof `:164` 前提结构漂移（firstFive 并发形状改）/§0.0 在飞分支对四文件有基线后新增提交/门 2 臂总数≠57·门 3 总臂≠687）→停·重 pin 回炉。
-- **机制不满足**：件③ 改后 sse-slot run `:164` 实测≠5（拒连仍付 catch-up=序未翻成）或 429 臂/404 臂翻码（neg:interview `:507-:511` 非 404/401）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
+- **机制不满足**：件③ 改后 sse-slot run `:164` 实测≠5（拒连仍付 catch-up=序未翻成）或 429 臂/404 臂翻码（neg:interview `:507-:511` 非 404/401）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。**归因注（pre-exec 席1 P2 附）**：若 neg 404 臂红·先核 12min 残留 lease 归因——共享 PG lease 模式（`rate-limit.service.ts:40-:41` `slotLeaseMs=12min`=SSE 10min 封顶+2min 缓冲）下前轮崩溃残留占用未到期可呈假性占用/拒绝红·残留到期即被下次 acquire 原子接管（`:21`）·归因先行 Ban 直改码。（EXEC 实测：三臂 404/404/401 全绿·本注未触发）
 - **越界需要**：修法诉求超出 §1-修法四文件面（需触 service 守卫/泵/限流机制/迁移/TOKSTREAM 面）→停·另刀或协调方裁决（§1.3 候选乙/丙否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻 proof 新红/lint 贴面新增超支/docs:check>2128）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 记录（2026-10-15·EXEC 席·pre-exec 双审会签 PASS（席1 agent_d4e4f7b9+席2 agent_6e6e1701）+协调方 EXEC 授权后开工·STOP=`executed:awaiting_post_prove_dual`）
+
+**立项并线**：`git fetch` 后 `feat/mysql-schema-skeleton` 本地=origin=`109e3eb1`（brief「origin tip≈bb1627d8+」实测兑现：`bb1627d8` 系 line/ci-red-clear 支线 tip 非本链祖先·109e3eb1 含 perfload-env-fix nail cap 2128→2136 续作+batchflip 并线）→`git merge --no-ff` 并线 **`32cd5e70` 零冲突**（并集解惯例零启用·⛔pull --rebase 未用）·并线对四文件零触（`git diff b4712353 HEAD -- <四文件>` 空·EXIT=0）。`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改。
+
+**改前机证（恰一次 run·不计 prove）**：`pnpm -C apps/api prove:sse-slot` EXIT=0·18 臂全 PASS·`:164` 现行标签「overflow 各付 1 次 catch-up」PASS=**现行序锁实测 8**（5 占槽+3 拒连各付 1）。
+
+**改形落点（件①②③·恰 4 tracked 文件·diff numstat 机检）**：
+| 文件 | numstat | 落点 |
+|---|---|---|
+| `apps/api/src/modules/interview/interview.controller.ts` | +3/−2 | `:259-:263` 取数序翻面：F5 注释+UC184 注+slotKey+acquireSlot 块整体上移至取数前·取数+判空 404+pump 全体纳入 try·finally releaseSlot 原样收口（404 return/守卫 throw 两退出路径均经 finally 恰一次释放·判空/throw 语义零改） |
+| `apps/api/src/modules/quiz/quiz.controller.ts` | +3/−2 | `:55-:58` 同形翻面（UC184 注+slotKey 尾注 F5 随块上移·try 纳入取数判空·finally 收口） |
+| `apps/api/src/modules/diagnosis/diagnosis.controller.ts` | +3/−2 | `:53-:56` 同形翻面（同上） |
+| `apps/api/test/sse-principal-slot.proof.ts` | +3/−4 | hunk-A `:164` `=== 8`→`=== 5`+标签翻「溢出拒连零 catch-up（UC184 领槽先于取数·拒连不付取数副作用）」；hunk-B `:171-:172` defer 注释翻面（「Slot is acquired BEFORE the first events() (UC184): rejected requests pay zero catch-up then 429; they must not start a 2s loop」）；hunk-C `:96-:97` 「overflow catch-up +2 is not racy」残留语清除翻「拒连已零付」 |
+
+**翻面确认（机制门）**：改后 prove run 恰一次 EXIT=0·18 臂全 PASS·`:164` 新标签 PASS=**实测 5**（改前 8/改后 5 对照=「拒连零取数」序翻面的机器实证·零 retry 冲销）·`:149`/`:163`/`:173-:176` 三断言（槽计数 5/拒连不占槽/拒连不入轮询）原样绿零触。
+
+**门矩阵十二门全表**：
+| # | 门 | 实测 | 结论 |
+|---|---|---|---|
+| 1 | sse-slot（机制门） | 改前 run `:164`=8 PASS EXIT=0（恰一次）→改后 prove `:164`=**5** PASS EXIT=0（恰一次·18 臂） | **绿（翻面）** |
+| 2 | interview:prove | `pnpm interview:prove` EXIT=0·**57** PASS·0 FAIL（题面 57 恒等·熔断未触发） | 绿 |
+| 3 | neg:all 六段 | `pnpm neg:all` EXIT=0·**687** PASS·0 FAIL（auth 90+commerce 90+resume 91+interview 102+bend 179+input 135 逐段题面恒等）·neg:interview `/events` 三臂 404/404/401 原码全绿（件① 判空/throw 搬移零改语义邻面承载） | 绿 |
+| 4 | SSE 邻面三门 | sse-push **35**/35 EXIT=0+delta-arm **21**/21 EXIT=0（见偏离 2）+uc010 **13**/13 EXIT=0（实测为准·零弱化） | 绿 |
+| 5 | migrate:prove | EXIT=0·123 臂全 PASS·链头实测 **0202**（链 `ls migrations | wc -l`=**202** 恒等·零迁移零 DDL） | 绿 |
+| 6 | uniqueness | `node scripts/check-migration-version-uniqueness.mjs` EXIT=0·**files=202 violations=0**（豁免 0143/0152/0160 登记面） | 绿 |
+| 7 | typecheck | `pnpm turbo typecheck --force` EXIT=0·**8/8·0 cached** | 绿 |
+| 8 | lint 五值恰等 | `pnpm turbo lint` 12 任务 EXIT=0 全 0 errors：web **601≤601**+root **5235≤5235**+api **1421≤1421**+worker **954≤954**+ai-runtime **628≤628** 恰等零超支·零第三贴面新增 | 绿 |
+| 9 | docs:check | `node scripts/ai-docs/check-docs.mjs` EXIT=0·**2134≤2136**（cap 2136=`public-text-policy.mjs:75` 亲证·并线带入 perfload 续作）·收据落卷后复跑终值见收据 | 绿 |
+| 10 | markers 五类 | 改动集（4 .ts+本卷 .md+收据目录）运行时组装四词+冲突标记对 grep **零命中**（命令+EXIT 回执入收据·词面不入卷防自匹配） | 绿 |
+| 11 | diff 面机检 | 改形时刻 `git diff --numstat HEAD` 恰 **4** tracked（3+3+3+3 行增/2+2+2+4 行减·上表）·本卷 .md（§0 重 pin+§8 附注+§9）与收据目录按协议随 EXEC commit（见偏离 5） | 绿 |
+| 12 | 卫生 | install --frozen-lockfile EXIT=0 零 lockfile 改·`.env*` ABSENT 亲扫（root+depth-3 find 零命中）·neg/proof 面全离线·`actualSpendCny=null`·est live=0 零模型外呼 | 绿 |
+
+**偏离清单（如实登记·Ban 就地扩面未触）**：
+1. **门 4 sse-push/uc010 入口形**：REQUEST 题面裸形 `pnpm -C apps/api prove:sse-push-notify`/`prove:uc010-sse-resume` 在本机红于 `env_schema_invalid: database_target_missing`（裸跑无 PG 环境注入·基建红非断言红）→改走 root 既有隔离包装 `pnpm sse-push:notify:prove`/`pnpm uc010:sse-resume:prove`（root `package.json:178-181` 亲证包装体即调同靶 raw 命令·ssepush-notify 战役收据同入口先例）→35/35·13/13 全绿。靶与臂数零变·非弱化。
+2. **门 4 delta-arm 臂数 21 对题面 20**：`sse-delta-arm.proof.ts` 在 `baf31a4e`（2026-10-14·基线前）/`7bc8ffaa`/`32cd5e70` 三点 blob 恒等·源内恰 21 断言——题面 20 系起草席误计（或与 tokenstream 20/20 邻门混淆）·非并线引入非现场漂移。按 §2 前言「数字口径以实跑实测为准」记 21/21 全绿零弱化·熔断条款未附此门·不上停。
+3. **门 3 邻五套件 PASS 名单 diff=∅ 载体**：树内无存量 PASS 名单基线文件可逐名 diff——以六段计数字面恰等题面（90/90/91/102/179/135）+0 FAIL+`/events` 三臂原码承载等效判定·本轮全量 PASS 名单存 `/tmp/u184-neg-all.log`（易失件·不提交）。
+4. **门 2 interview:prove 跑两次**：首跑 EXIT=0 绿但臂计数观测被 tail 截断未留痕→全量重跑一次留痕（57/57 PASS）。首跑即绿·非 retry-to-green 冲销（本门无恰一次条款·计数观测需要）·两 run 收据均在 `.tmp/isolated-proof-receipts/`。
+5. **门 11 口径**：REQUEST §2-11 原文「另本卷 .md+收据目录 untracked」与实态不符（本卷 .md 自 b4712353 起即 tracked）——EXEC 序 3/6 协议授权的 §0 重 pin+§8 P2 附注+§9 记录+件④ 收据随本 commit 入树（授权卷自身载体+收据面）·产品触面恰 4 tracked 在改形时刻机检锁定（上表）·多出 2 路径均为协议内载体非产品面。
+6. **§8 归因注触发态**：neg:interview 404/401 三臂全绿·12min 残留 lease 归因注未触发（预防性附注随 §8 落卷）。
+
+**pins 零翻声明**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null——十一值照抄零翻转。Ban 列表零触（零 push/零 retry-to-green 冲销/零 pins 翻/零为绿改断言/零 service 守卫-泵-限流机制触/零丢 throw 吞异常改响应码/零同簇扩面/零迁移 DDL/零 SSOT 改/零跨树触/零依赖升级）。
+
+**STOP**：**`executed:awaiting_post_prove_dual`**——post 双审两独立外席待派·nail/LEDGER #184 行翻面权归协调方·本席止步于此 commit（⛔push）。
+
 ---
 
-*UC184-SLOT-ORDER REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`7bc8ffaa` · 分支 `line/uc184-slot-order` · 工作树 `meetwise-u184`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=批表盘点席 brief+LEDGER `:87` 5C 开放清单行（issues-master 仓外卷不可达·brief 预授权口径承）+negbend-fix 形制范本 · 根因=SSE initial 取数先于 acquireSlot（interview `:259`/:263+quiz `:55-:58`+diagnosis `:53-:56` 三处同形·proof `da936220:171-:172` 注释自证 HC-GAP-007 有意 defer）→429 拒连路径各付 1 全池周期取数副作用（RLS 事务+owner 守卫+event SELECT·proof `:164` ==8 机证）·F5 防打满意图在取数面被绕过 · 定性=资源准入序缺陷非授权缺陷（asPrincipal RLS+guard 双层兜住亲证 §1.2）· 修法=候选甲三控制器同形调序（acquireSlot 前移·取数+判空+pump 纳入 try·finally 恰一次释放·判空/throw 语义原样搬移）+候选甲 proof `:164` 8→5 断言翻面锁「拒连零取数」新契约（候选乙只修 interview/候选丙泵内统一领槽/候选丁改断言凑绿否决在卷）· 新鲜度证=seq>lastId 重放+D5 waiter 先注册+fetch→pump 邻接序不变（§1.3）· 门矩阵（sse-slot 改前 8/改后 5+interview:prove 57+neg:all 687 六段+sse-push 35+delta 20+uc010+migrate 链 202 头 0202+uniqueness files=202+typecheck 8/8+lint 五值恰等 web 601/root 5235/api 1421/worker 954/ai-runtime 628+docs:check≤2128+markers 五类+diff 面机检恰 4 tracked+卫生）· 迁移预期零（需则链顶顺延认领）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*UC184-SLOT-ORDER REQUEST · 2026-10-14 起草 · 2026-10-15 EXEC 落码 · **`executed:awaiting_post_prove_dual`**（§9 EXEC 记录·门矩阵十二门全绿·post 双审两独立外席待派·nail/#184 行翻面归协调方） · base `feat/mysql-schema-skeleton` @`7bc8ffaa`→EXEC 并线 origin tip `109e3eb1`（merge **`32cd5e70`** 零冲突） · 分支 `line/uc184-slot-order`（EXEC 前 HEAD=`b4712353`） · 工作树 `meetwise-u184` · pre-exec 双审会签 PASS（席1 agent_d4e4f7b9+席2 agent_6e6e1701）+协调方 EXEC 授权 · 修法件①②③恰 4 tracked 文件落地（interview/quiz/diagnosis 三控制器取数序翻面=acquireSlot 前移+try 纳入取数判空+pump+finally 恰一次释放·proof `:164` 8→5 断言翻面+hunk-B/C 注释翻面）· 机制门改前 run `:164`=8→改后 prove `:164`=**5** 全绿（拒连零取数新契约机器锁定·零 retry 冲销）· 门矩阵=sse-slot 翻面绿+interview:prove 57+neg:all 687 六段（/events 404/404/401 原码）+sse-push 35/35+delta 21/21（题面 20 系起草误计·blob 三点恒等）+uc010 13/13+migrate 链 202 头 0202 123 臂+uniqueness files=202 violations=0+typecheck 8/8 0 cached+lint 五值恰等 web 601/root 5235/api 1421/worker 954/ai-runtime 628+docs:check 2134≤2136（cap 2136 并线带入）+markers 五类零命中+diff 面恰 4 tracked+卫生（.env* ABSENT·actualSpendCny=null·est live=0）· 偏离六条如实登记 §9（裸形门入口改隔离包装/20→21 臂数勘误/PASS 名单载体/interview 双跑留痕/门 11 协议载体口径/归因注未触发）· 零迁移零 DDL · pins 十一值照抄零翻 · 停止条件四类零触发 · Ban self-approve · alone≠dual · post 双审待派 · ⛔push · ⛔force push · STOP*
