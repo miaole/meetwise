@@ -90,3 +90,9 @@
 - **停止条件四类判定**：现场漂移=未触发（唯一 blob 变更=件① 自改面+qsf 预登记漂移·行锚零漂）；机制不满足=未触发（V1/V2 全恒等·改前改后臂级对照全恒等）；越界需要=未触发（恰 8 .ts 字面量域）；验收红不可修=未触发（门矩阵全绿·B2 系基建失败非门红）。
 - **F1 勘正句（§1.1-D 平台依赖注勘正·append 不洗·§1.1 原文零字节改）**：grep 降级形系 **GNU/BSD/ugrep 共有**（本席 darwin/BSD `/usr/bin/grep -n` 对改前 NUL 文件实测降级形「Binary file … matches」**无行号**——rev2 席2「darwin/BSD grep 含行号输出」注记据此撤·ugrep 同形降级实测）·**busybox 不降级**（本机 busybox 未装不可本地实测·句系双审授权勘正如实承登）·**`grep -an` 全实现恢复行号**（本席实测 53/195/198/242/245 恢复）——盲区族结论（NUL 触发工具族普遍降级）不变·§1.1-A/E 结论零触。
 - **STOP 终态**：三处（Status 头/§8/卷尾）置 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·nail/行翻面归协调方·⛔push ⛔merge 主线 ⛔force-push。**commit 态（D7 已处置）**：wave78 微扩面 2 行落码（:413/:418 值恒等转义形）+neg:auth 90/90+api lint 1421 恰等+checker 过闸·交付 commit 落地随本收据同 commit。**diff 面终值（扩面后）**：仍恰 8 tracked .ts（neg-auth 3 行→5 行改·11+/11− 文本面）+本卷 .md+本收据。
+
+## ⑧ P2 勘误注记（nail 随卷·post 双审会签 PASS 双认授权·append 注记形不洗·上文原文保全不动）
+
+- **勘误 a)（席2 P2）§⑥ 头行偏离计数**：头行原记「D1-D6」——勘正为「**D1-D7**」（偏离清单实载 D1-D7 七项·D7 系 wave78 微扩面处置段·头行笔误漏计·正文七项零改）。
+- **勘误 b)（席1 P2-1）checker NUL 整文件跳过行号**：§⑥-D7① 原记盲区跳过落 :66——勘正为「**:67**」（`scripts/check-staged-secrets.mjs` 现行树 `grep -n` 亲证 `if (content === null || content.includes('\0')) continue;` 实落 **:67**·同勘面=REQUEST §9-STOP 段同引 :66 一处·两处原文保全·勘正随本注记生效·连环发现行号口径以此为准·归后继工具刀）。
+- **勘误 c)（席1 P2-2）§⑤ V1 电池「dirty 69」口径注**：「dirty 69」之 69 系 **UTF-8 字节数口径**（非 UTF-16 code unit 数——dirty 串现树 `packages/domain/test/resume-extract.proof.ts:24` 亲证含 CJK 多字节字符·同串 UTF-16 `.length`=40·UTF-8 字节=69·`Buffer.byteLength(…,'utf8')` 亲证·恒等断言两口径各自恒等成立·不受口径注影响）。
