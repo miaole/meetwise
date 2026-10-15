@@ -10,7 +10,7 @@
  *   非流+流式两解析面各跑一遍；metrics registry render() 断言（沿 metrics.proof.ts 形制）；
  *   多字段并存取值序防御臂；usage 载荷整体缺席不打点（#48 面是载荷内字段在场性）；
  *   基线预注册形（registerBaselineMetrics·prompt 注册表 service 集）；
- *   只观测零计费负臂（invoke.ts 型面外零引用·usage-reconciliation 零引用·两解析面各恰一打点）。
+ *   观测面负臂（COST-COLUMNS 件②-b 随翻重钉：cached 已按授权语义贯通 settle/validUsage·贯通面外零引用·usage-reconciliation 零引用·两解析面各恰一打点·价格本零供应商 cached 字段词面）。
  *
  * 全 fake seam（globalThis.fetch mock 沿 model-client-dispatch.proof.ts:55/:77 形制·受控注册表
  * 端点+mock 响应·非 override 缝）：无网络、无真实凭据、actualSpendCny=null、est live=0。
@@ -162,20 +162,21 @@ async function main() {
       && /model_usage_cache_field_presence_total\{service="resume\.vision",presence="present_positive"\} 0/.test(base));
     A('基线预注册：token counter 0 序列', /model_usage_cached_input_tokens_total\{service="mock-interview\.evaluate"\} 0/.test(base));
 
-    // ── 只观测零计费负臂（源级：观测字段不得渗入结算/对账/计费面） ──────────────────────
+    // ── 观测面负臂（源级：cached 贯通恰形+贯通面外不得渗入·对账/计费词面零触） ──────────
     const srcRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../src');
     const invokeSrc = readFileSync(join(srcRoot, 'invoke.ts'), 'utf8');
     const usageReconSrc = readFileSync(join(srcRoot, 'usage-reconciliation.ts'), 'utf8');
     const modelClientSrc = readFileSync(join(srcRoot, 'model-client.ts'), 'utf8');
-    A('零计费负臂：invoke.ts 中 cachedInputTokens 词面恰三处（型面 :74 一处+span 闭包透传行两处键值同形·settle/validUsage 仍零读·计数随 AG-24 语义翻转登记不洗）',
-      (invokeSrc.match(/cachedInputTokens/g) ?? []).length === 3
+    A('cached 贯通负臂（COST-COLUMNS 件②-b 随翻重钉·沿 AG-24 计数钉语义翻转登记先例）：invoke.ts 中 cachedInputTokens 词面恰九处七行（型面一处+validUsage cached≤input 三查臂四处+span 闭包透传行两处键值同形+settle 调用点两处缺席→0 形·贯通面外零读·计数随 COST-COLUMNS 件②-b 授权语义翻转登记不洗）',
+      (invokeSrc.match(/cachedInputTokens/g) ?? []).length === 9
       && /cachedInputTokens\?: number/.test(invokeSrc)
-      && /cachedInputTokens: usage\?\.cachedInputTokens/.test(invokeSrc));
+      && /cachedInputTokens: usage\?\.cachedInputTokens/.test(invokeSrc)
+      && (invokeSrc.match(/cachedInputTokens \?\? 0/g) ?? []).length === 2);
     A('零计费负臂：usage-reconciliation.ts（对账/refineEstimate 面）零引用',
       (usageReconSrc.match(/cachedInputTokens|cached_tokens/g) ?? []).length === 0);
     A('零计费负臂：打点恰两处（非流+流式各一 emit 点·无重复计数面）',
       (modelClientSrc.match(/emitUsageCacheObservation\(req\.service/g) ?? []).length === 2);
-    A('零计费负臂：价格本零缓存价（价格治理面零 cached 引用·沿 rg 红事实复证形）',
+    A('零计费负臂：价格本零供应商 cached 字段词面（cached_tokens/prompt_cache_hit 零引用·cached 价经 COST-COLUMNS 件① 专用列 cached_input_micro_cny_per_million·非供应商词面·沿 rg 红事实复证形）',
       (readFileSync(join(srcRoot, '../../../apps/worker/src/model-cost-governance.ts'), 'utf8').match(/cached_tokens|prompt_cache_hit/g) ?? []).length === 0);
   } finally {
     globalThis.fetch = originalFetch;
