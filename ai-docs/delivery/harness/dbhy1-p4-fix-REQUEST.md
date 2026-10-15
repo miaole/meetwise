@@ -1,6 +1,6 @@
 # DBHY1-P4-FIX REQUEST — dbhy1 P4⑤ 对象类名录两索引未登记缺口补账刀（`ix_user_email`+`ix_qfb_rating`·恰 1 产品文件净 +3 行豁免登记·dbhy1-p4-fix 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码收口·门矩阵十二门全绿见 §9·post 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权三卷收口·沿 ag-cost5 先例·一行依据=刀位图「DBHY1-P4-FIX SQL 名录首曝刀」行 `✅ nail 收官`（授权链含 post 双审会签 PASS·nail merge --no-ff 并主线 @`5a425a1e`+SSOT `bab69561` 对 HEAD is-ancestor 亲证）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）
 
 **席位**：dbhy1-p4-fix 起草席（诊断+起草双责·协调方派单 2026-10-15·PR #108 CI run 实测存量红首曝口径指派）。
 **基线**：`feat/mysql-schema-skeleton` @ `0c06033d`（origin tip 亲证恒等·ci-red-clear nail SSOT commit）· 分支 `line/dbhy1-p4-fix`（本起草席 `git worktree add ../meetwise-dbh -b line/dbhy1-p4-fix origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `0c06033d` 亲证）· 工作树 `meetwise-dbh`（仓根同级）。

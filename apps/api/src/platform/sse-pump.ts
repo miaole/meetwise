@@ -73,6 +73,13 @@ const DEGRADED_POLL_MS = 2_000;
 /** TOKSTREAM S4b：进程内 per-streamKey delta 环形缓冲上界（有界丢旧；帧 ≤10/s 时 ≈25s 腹地）。 */
 const TOKEN_RING_MAX = 256;
 
+/**
+ * #132 背压刀：连接级累计「未落盘」字节阈值 = 1 MiB（=64× http socket 默认 highWaterMark
+ * 16 KiB）。持续慢客户端超限断开（断开=安全降级：权威行已持久化，客户端凭 Last-Event-ID
+ * 重连重放）；瞬时抖动由 drain 复位归零，不误伤。
+ */
+const SSE_BACKPRESSURE_MAX_BYTES = 1_048_576;
+
 export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   const notify = o.notify ?? getSseNotify();
   const registry = o.registry ?? getSseRegistry();
@@ -81,12 +88,35 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
   let closed = false;
   let draining = false;                             // HA-2 停机排水旗(R1:registry 条目持旗·只停取不 end)
+  let bpTripped = false;                            // #132 背压自有旗:超阈值断开用,与 closed/draining 正交(背压 drain(socket)≠HA-2 排水)
+  let bpBytes = 0;                                  // 连接级累计「未落盘」字节(write()===false 才计·返回 true 不计;drain 复位归零)
+  let bpDrainArmed = false;                         // 背压 drain 监听只挂一次(惰性:首次 write()===false 后才有意义)
   let wakeOnClose: (() => void) | undefined;
   // R1(sse-registry.ts 口径注):排水后写侧即刻失效——safeWrite 与 while 条件同读同旗,
   // 杜绝 drain 后任何 write 触达 socket(degraded 态 write-after-end 封死)。
+  // #132 背压口径:阈值内恒 return true 仅内部计数(false 早退经 emit early-return 会冻结
+  // lastSeq 不前进反而放大积压);超阈值置自有旗拒写。drain 复位与 HA-2 排水两语义正交。
+  const armBpDrain = () => {
+    if (bpDrainArmed) return;
+    bpDrainArmed = true;
+    // 惰性挂载于首次 write()===false 后·optional-call=fake 容忍(proof fake raw 无 on·零 TypeError):
+    // 背压 drain(socket)≠HA-2 排水——此处是 socket 写缓冲排空复位计数,非停机排水旗。
+    reply.raw.on?.('drain', () => { bpBytes = 0; });
+  };
   const safeWrite = (s: string) => {
     if (draining) { closed = true; return false; }
-    try { reply.raw.write(s); return true; } catch { closed = true; return false; }
+    if (bpTripped) return false;                    // 超阈值拒写:镜像 draining 分支形(return false 不落 write·零缓冲滞留)——自有旗不复用 closed(:177 end 守卫不被抑制,客户端见干净 end)
+    try {
+      if (!reply.raw.write(s)) {
+        bpBytes += Buffer.byteLength(s);
+        if (bpBytes > SSE_BACKPRESSURE_MAX_BYTES) {
+          bpTripped = true;                         // 背压自有旗:超阈值断开,帧边界退出;背压 drain(socket)≠HA-2 排水,与 registry 停机排水零交集
+          return false;
+        }
+        armBpDrain();
+      }
+      return true;
+    } catch { closed = true; return false; }
   };
   // HA-2 C1 注册:停机链 drainAll() 同步置旗(禁 end)并唤醒本轮 race;泵自身在帧边界
   // 停取退出,raw.end() 仍由本函数收尾单点触发一次(恰一次,断言面见 ha-2-drain.proof)。
@@ -138,7 +168,7 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   };
   let wait = notify.waitFor(o.streamKey);           // D5:先注册 waiter 再重放 catch-up
   if (!draining) emit(o.initial.rows);              // 1. 重放 catch-up(语义原值);排水已开 → 不写,凭账本重连重放
-  while (!done && !closed && !draining && Date.now() < deadline) {
+  while (!done && !closed && !draining && !bpTripped && Date.now() < deadline) {
     const waitMs = notify.health().healthy
       ? (o.fallbackMsHealthy ?? HEALTHY_FALLBACK_MS)
       : DEGRADED_POLL_MS;
@@ -170,9 +200,9 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   }
   wait.dispose();
   if (deltaSub) deltaSub.dispose();                 // TOKSTREAM S4b:delta 订阅随泵全退出路径注销(泄漏断言 tokenSubscriberCount()===0)
-  // HA-2 C1 注销:断开/终态/取数失败/deadline/drain 全退出路径共用本单点(泄漏断言 count()===0)。
+  // HA-2 C1 注销:断开/终态/取数失败/deadline/drain/背压超阈值(bpTripped)全退出路径共用本单点(泄漏断言 count()===0)。
   registry.unregister(o.streamKey, registryEntry);
-  // raw.end() 泵内单点(R1):全路径恰一次;排水路径同样走这里(客户端见干净 end,SSE-RESILIENCE
-  // 不计失败→凭 Last-Event-ID 重连续推,由存活实例从账本重放)。
+  // raw.end() 泵内单点(R1):全路径恰一次;排水路径与背压超阈值路径同样走这里(自有旗非 closed·
+  // end 不被抑制→客户端见干净 end,SSE-RESILIENCE 不计失败→凭 Last-Event-ID 重连续推,由存活实例从账本重放)。
   if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }
 }
