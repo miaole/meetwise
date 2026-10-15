@@ -1,6 +1,6 @@
 # SAFEWRITE-BACKPRESSURE REQUEST — sse-pump safeWrite write=false 背压刀（#132 承刀·恰 1 产品文件机制修+既有 proof 增臂·safewrite-backpressure 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停·alone≠dual · Dual PASS ≠ 开工 · est live=0 · markers=0 · ⛔push · **rev2 双审回炉修订在卷（§9·席1 PASS+席2 FAIL 恰一处 P1）·复审维持 awaiting_pre_exec_dual**）
+**Status**: **`draft:rev3:awaiting_post_dual`**（rev3 窄域重钉落卷即停·alone≠dual · est live=0 · markers=0 · ⛔push · **沿革：rev2 双审回炉（§9·席1 PASS+席2 FAIL 恰一处 P1）→ EXEC 落码红停上报（§9-EXEC·`executed:stopped_gate_red_escalated`）→ 协调方 wave70 授权 rev3 窄域重钉（§9-rev3·两 ha2-drain proof 陈旧钉随翻·ha2-drain 双面红翻绿）·rev3 修订随 post 双审一并裁**）
 
 **EXEC Status（append-only·2026-10-15）**：**`executed:stopped_gate_red_escalated`**（协调方 EXEC 授权后落码——件①② 绿·四新臂绿·门矩阵 12/15 绿；§8 停止条件命中停手上报：门5 ha2-drain api `:278` 词面臂与钉值点4 机制性相撞（修面需触 Ban proof 或改钉值形·均越 EXEC 授权）+api C4/worker 清单两红基线期已红（stash 对照亲证）——详见 §9-EXEC+收据 `receipts/safewrite-backpressure/00-exec.md` · 裁决权归协调方 · ⛔push）
 
@@ -149,6 +149,31 @@
 | 5 | P2-④ | ha-2-drain 静态计 48 vs 收据 47/47 观察登记（不裁异·run 名单制实跑为准） | §2 门5 |
 
 **rev2 自检**：docs:check EXIT=0（scanned 2142≤cap 2144·本卷 +0 零新受管）·markers 臂 PASS 五类零命中（`pnpm i6-gates:prove` ⑦ markers=0 臂 PASS·恰符臂红=i6-239 历史刀申报面协议形承登沿 authz-34 :225 先例随卷承登）·STOP=`draft:awaiting_pre_exec_dual` 复审维持·est live=0·pins 十一值零翻转·钉值仍五点（P2-③ 系注释措辞钉非第六钉值点·P1/P2-① 系五点内补句）·§2/§3/§5/§8 门矩阵边界与 Ban/pins 零改（P2-④ 系观察登记非门值变更）。
+
+## §9-rev3 rev3 修订（协调方 wave70 授权窄域重钉·append-only·落卷即停）
+
+**STOP · `draft:rev3:awaiting_post_dual`（rev3 修订随 post 双审一并裁·alone≠dual · 裁决权归协调方 · ⛔push）**
+
+**授权链**：EXEC `executed:stopped_gate_red_escalated` 停手上报（§9-EXEC·门5 相撞+api C4/worker 清单两红）→ **协调方 wave70 授权 rev3 窄域修订**（允触两 ha2-drain proof 文件的陈旧钉·**仅重钉·禁弱化断言语义**·其余 Ban 面不变）→ 本席归因分诊+rev3 起草落卷（本 commit）→ **复审待派：rev3 修订随 post 双审一并裁**。
+
+**归因分诊（红臂分立·证据链全亲证）**：
+
+- **红① api `:278` while 词面臂=本刀件① 直接归因（合法产品演进×静态钉机制性相撞·随翻重钉形）**：钉源 `64522c62`（ha-2-graceful EXEC·钉时真值=`while (!done && !closed && !draining && Date.now() < deadline)` 三旗词面·该 proof 文件自此零字节触——`git log -- apps/api/test/ha-2-drain.proof.ts` 单提交亲证）；本刀 `82826aca` 件① 按钉值点4「while 条件纳入自有旗」落 `sse-pump.ts:171` 新词面 `!done && !closed && !draining && !bpTripped && Date.now() < deadline`（`git log -L 165,175` 亲证恰此一笔引入 `!bpTripped`）。定性=静态整行钉撞合法产品演进·沿 cache-observe-repin/ag24「随翻重钉」先例形处置·非机制回退非钉值点变更。
+- **红② worker 清单臂 17≠19=预存漂移（非本刀引入·两姊妹支线各增一件均未回钉）**：钉源同 `64522c62`（`=== 17`=钉时真值 16 具名+env-gated stub-tick·收据 39/39 绿）；其后两条**互非祖先**的姊妹支线各增一件且均未回钉本 proof——`0dcc73f0`（ag-cost2·drainStops 16→17·+usage-calibration-retention·支线真值 18）+`b20ee350`（qbank-control-sec·drainStops 17 项·+qbank-release-sweep·支线真值 18·`git merge-base --is-ancestor 0dcc73f0 b20ee350` 否亲证）；本线 first-parent 组装点 `d31be795`（merge qbank-control-sec）联合树真值=**19**（18 具名+stub-tick 展开行·逐 commit 计数亲证 64522c62=17→0dcc73f0=18→b20ee350=18→82826aca=19）。本刀对 `apps/worker/src/main.ts` **零字节触**（`git diff c9a3d2ef 82826aca -- apps/worker/src/main.ts` 空输出亲证）=EXEC「两基线树字节恒等·红预存」定谳复核成立；改前基线本席复跑 `PASS=38 FAIL=1`（唯一红臂恰清单实数臂·38/39 口径与 EXEC 报吻合）。
+- **分诊附注（api C4 段崩溃·EXEC 记「基线期已红」·本席补定谳）**：`3684bc00`（audit #92 readiness 深化）将 HealthService.apiReady 契约由 boolean 改三值枚举（`'ok'|'migration_mismatch'|…→unknown`）且 ok 体增 `schema.migration` 位——本 proof 自 `64522c62` 零触→fake 契约钉（`apiReady: async () => true`）与 ok 体 deepEqual 钉两处陈旧（503 `degraded`/`migration:'unknown'` 即陈旧 fake 撞新契约）。本线携带组装点 `b284d8ca`（merge obs-ready·first-parent 逐节点 grep 亲证 ed0505a6=0→b284d8ca=1）。归**预存漂移非本刀引入**（`82826aca` 改动集恰 4 文件·health.controller.ts 与本 proof 均零字节触亲证）。同属「陈旧钉」授权面→随 rev3 一并回填（§9-EXEC 四红登记之 C4 红在此定谳收口）。
+
+**修订清单（恰 2 proof 文件+本卷 §9-rev3·零产品码零其他面）**：
+
+| # | 文件 | 落点 | 修订（语义保持或增强·禁放宽） |
+|---|---|---|---|
+| 1 | `apps/api/test/ha-2-drain.proof.ts` | while 词面臂（原 `:278`） | 正则重钉四旗整词面 `/while \(!done && !closed && !draining && !bpTripped && Date\.now\(\) < deadline\)/`——泵内单 while 循环字节级钉·三旗→四旗**增强**·臂名随翻（closed/draining/bpTripped 三旗+deadline 全含·未放宽为宽松匹配） |
+| 2 | 同上 | C4 段 | fake `apiReady` 契约钉 `true`→`'ok'`（3684bc00 后合法枚举值·契约强度保持）+ok 体 deepEqual 增 `schema: { migration: 'ok' }`（schema 位入断言=钉面**增强**）·in-code 归因注记两处 |
+| 3 | `apps/worker/test/ha-2-drain.proof.ts` | C5 清单臂 | 实数钉 17→**19**（现树实测真值·附归因）+required 具名清单 16→**18**（补 `usage-calibration-retention`+`qbank-release-sweep`·逐名在位臂 16→18 条=**增强**）+R3 注释勘误链（64522c62/0dcc73f0/b20ee350/d31be795 全链在注） |
+| 4 | 本卷 | §9-rev3 | 本节（归因分诊+修订清单+授权链+自检） |
+
+**Ban 面其余不变**：钉值五点/pins 十一值/件①② 落码字节/sse-registry/三控制器/delta 环/metrics 面全数零字节触；rev3 改动集恰 3 tracked 路径（两 proof+本卷）·零新增受管文件（docs:check scanned 恒 2149）。
+
+**rev3 自检（门复跑·本席亲跑·2026-10-15）**：ha2-drain api `47/47` EXIT=0（改前 `:278` FAIL+C4 崩·红翻绿）+ha2-drain worker `41/41` EXIT=0（改前 38/39 唯一清单臂红·39 既有臂全保+2 新增具名钉臂）+`pnpm sse-push:notify:prove` **48/48 维持** EXIT=0+turbo typecheck `8 successful, 8 total·0 cached` EXIT=0+docs:check EXIT=0（scanned **2149**≤cap 2152·零新增受管）+markers：`⑦ markers=0（改动集五类标记词零命中）` PASS·恰符臂 FAIL=`unexpected=apps/api/test/ha-2-drain.proof.ts,apps/worker/test/ha-2-drain.proof.ts`=**OBS-2 协议形承登精确兑现**（i6-239 历史刀申报面·沿 authz-34 :225+§9-EXEC 先例·本刀两 proof 不在既有申报清单=该臂协议形红如实承登·五类标记词零命中为实质门）。**diff 面如实列全（本刀累计触面 6 件）**：件① `apps/api/src/platform/sse-pump.ts`（+35/-5）+件② `apps/api/test/sse-push-notify.proof.ts`（+140/-4）+EXEC 收据 `receipts/safewrite-backpressure/00-exec.md`（+86）+rev3 两 proof（api +9/-3·worker +7/-3）+本卷（+10）。est live=0·markers=0·pins 十一值零翻转·钉值五点零翻。
 
 ---
 
