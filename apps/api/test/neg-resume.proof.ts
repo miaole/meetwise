@@ -119,8 +119,8 @@ const IMG_B64 = Buffer.from('fake-png-bytes-not-really-an-image').toString('base
     A(`文本上传畸形拒:${name} → 400`, r.status === 400);
   }
   A('文本上传缺 text 字段 → 400', (await h.post('/resume', AUTH_A, {})).status === 400);
-  // null 字节:通过 zod(合法 JS 串)但 Postgres text 拒   → 可解释失败(不静默入库)
-  const nul = await h.post('/resume', AUTH_A, { text: '有效简历文本用于测试' + ' ' + '再补足二十字以上以过契约长度门' });
+  // null 字节:通过 zod(合法 JS 串)但 Postgres text 拒 \x00 → 可解释失败(不静默入库)
+  const nul = await h.post('/resume', AUTH_A, { text: '有效简历文本用于测试' + '\x00' + '再补足二十字以上以过契约长度门' });
   A('文本含 null 字节 → 不 5xx(落库前剥除 NUL 优雅处理,不崩)', nul.status < 500);
 }
 

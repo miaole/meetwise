@@ -84,6 +84,8 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：UC184-SLOT-ORDER nail 并线树——
 // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享·沿 +8 先例·计数预算非内容策略·
 // 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2168→2176（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 59127126 2159·
+// 在飞四卷 qbank-integrity-chain/e2e-runner-stale-build-guard/qbank-pipeline-scope/dbacl2-ci-wire 各 +2 预算必越）
 // cap 2160→2168（2026-10-15 协调方 sanction·+8 沿 +8 先例形：主线 5a0bf9e4 2156 余 4·
 // 在飞四卷 nul-escape/qbank-integrity-chain/e2e-runner-stale-build-guard/i18n-metadata-ssr 各 +2 预算必越）
 // cap 2152→2160（2026-10-15 协调方 sanction·+8 沿 +8 先例形：主线 685befed docs:check 2151 余 1·
@@ -91,7 +93,7 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形：COST-COLUMNS nail 并线树——
 // 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量·
 // 协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_168;
+const MAX_FILES = 2_176;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
