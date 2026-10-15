@@ -1,6 +1,6 @@
 # HA6-REPIN REQUEST — ha6:prove 26 红治理锚修复刀（A3 行号锚内容化+A5 滚动注册帧+max:1 内容锚·恰 1 治理脚本 `scripts/ha/ha6-companion.proof.mjs`·零迁移零产品码·ha6-repin 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 2026-10-15 落卷 · rev2 pre-exec 复审 PASS（窄域席 agent_c71b8478·原双审双 FAIL 收敛处方 R1-R7 全落）→协调方明示 EXEC 授权 · merge `c38e6e22` 双亲 `a5317ffd`+`bd262c1f` 零冲突 · ha6:prove **75/75 EXIT=0** · 门矩阵全绿见 §9 EXEC 记录 · post 双审两外席待派 · alone≠dual · ⛔push）· **rev2 2026-10-14**：pre-exec 双审双 FAIL 机器实证收敛（席2 改后脚本落码实跑 75 PASS/1 FAIL·唯一红=flow11 互斥锚）修订席落卷（卷尾 rev2 处置摘要）
+**Status**: **`closed`**（2026-10-15 卷 Status 收口·docs 收口席·协调方授权批表翻面+卷 Status 收口批次·沿 ag-cost5 卷 closed 先例·一行依据=nail merge --no-ff 并主线 @`aa48c722`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）+SSOT 收官卷 @`7bc8ffaa`（「Line ha6-repin nail」段+LEDGER 刀位图行·post 双 PASS 席1 agent_350a1c69+席2 agent_91aaea46 双独立复跑 75/75 在卷）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · alone≠dual · ⛔push）· **rev2 2026-10-14**：pre-exec 双审双 FAIL 机器实证收敛（席2 改后脚本落码实跑 75 PASS/1 FAIL·唯一红=flow11 互斥锚）修订席落卷（卷尾 rev2 处置摘要）
 
 **席位**：ha6-repin 起草席（诊断由 HA-6 post 席1 定域在案·本席补全逐红取证+修法裁决+起草三责·协调方派）。
 **基线**：`feat/mysql-schema-skeleton` @ `8ae2a93e`（fetch 后 origin tip 与本地恒等亲证·SSOT 最新收官 commit）· 分支 `line/ha6-repin`（本席 `git worktree add ../meetwise-h6r -b line/ha6-repin feat/mysql-schema-skeleton` 亲立·建前 `git worktree list` 零同名树）· 工作树 `meetwise-h6r`（仓根同级）。
