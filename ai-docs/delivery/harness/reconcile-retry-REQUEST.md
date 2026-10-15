@@ -1,6 +1,6 @@
 # RECONCILE-RETRY REQUEST — #10（5C 批）翻案刀·model_invocation unknown 悬挂面处置（修法裁决=(c) 仅可观测化·积压水位双 gauge+gateway 只读函数·零行为变更·reconcile-retry 战役·docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-15·红闸解除：协调方 sanction cap 2136→**2144**（+8·本刀迁移 .sql 受管 +1 至 2137·三刀在飞共享余量·沿 +8 先例）→cap 落值+docs:check 复跑 **EXIT=0 2137≤2144**·门8 红转绿=门矩阵十一门全绿（§9+§9 append）·沿 evkind `stopped:exec_red_gate_baseline` 解除先例 Status 翻 executed·post 双审归协调方派 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权三卷收口·沿 ag-cost5 先例·一行依据=#10 行已 SSOT 翻面=LEDGER :87 5C 行 `#10 ✅`+刀位图「RECONCILE-RETRY 观测化刀」行 `✅ nail 收官`（授权链含 post 双审会签 PASS·nail merge --no-ff 并主线 @`06d79106`+SSOT `575b428e` 对 HEAD is-ancestor 亲证）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual）
 
 **席位**：RECONCILE-RETRY 起草席（诊断+起草双责·协调方派·批表盘点席翻案 #10 真未闭立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `109e3eb1`（fetch 后 origin tip 同指亲证·docs:check 2133≤cap 2136 本树亲跑 EXIT=0）· 分支 `line/reconcile-retry`（建前 `git branch --list "line/reconcile*"` 零命中·本起草席 `git worktree add ../meetwise-rcr -b line/reconcile-retry feat/mysql-schema-skeleton` 亲立·HEAD 落 `109e3eb1` 亲证）· 工作树 `meetwise-rcr`（仓根同级）。
