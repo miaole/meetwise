@@ -165,7 +165,7 @@ async function main() {
   const deps = buildAdaptiveDeps({
     pool, owner: OWNER, threadId: IID, model: askModel,
     competencies: ['并发'],
-    localRetrieve: async () => [], webExplore: async () => [],
+    localRetrieve: async () => [{ ref: 'qbank:ts-scenario-1', score: 0.9 }], webExplore: async () => [],
   });
   askGenStart = Date.now();
   const generation = await deps.retrieveAndGenerate('并发', 2, 0, 0, [], 'scenario');
