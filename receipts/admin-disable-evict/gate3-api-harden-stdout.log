@@ -1,0 +1,53 @@
+
+> meetwise@0.1.0 api-harden:prove /Users/miaole/Desktop/golucky/meetwise-ade
+> node scripts/run-e2e-isolated.mjs api-harden:prove
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-30977-1792012984375 on 127.0.0.1:62553
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-ade/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=201 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:api-harden /Users/miaole/Desktop/golucky/meetwise-ade/apps/api
+> node --import @swc-node/register/esm-register test/api-harden-shared-state.proof.ts
+
+PASS  S1 双实例交替占槽合计恰 5
+PASS  S1 第 6 槽双实例皆拒(429 语义上游=false)
+PASS  S1 对侧 release 腾出一槽 → A 可再占(跨实例可见)
+PASS  S1 零减穿:恰量+对齐 release 后计数行删尽(n 永不为负)
+PASS  S1 E7a 过期接管:满额残留被原子接管且 n 归 1
+PASS  S2 双实例交替消费合计恰 3(×2 稀释归零),第 4 拒
+PASS  S2 跨实例补充折算:10s×0.1/s → 对侧再放行 1
+PASS  S2 ip 桶双实例消费 2/2
+PASS  S2 hasToken 探针跨实例见消费(已空=false)
+PASS  S2 hasToken 非消费:探后 allow 仍拒(探查不扣额)
+PASS  S2 补满后探针转 true
+PASS  W0 LISTEN 健康(第二通道随 0143 同连接建立)
+PASS  W1 首查落缓存(第二次调用零新查询)
+PASS  W1 广播送达窗内缓存被逐并重查得新代次(<1s·实测 21ms)
+PASS  W2 审批态变更广播窗内 B 端守卫读侧生效(一查五列)
+PASS  T1 交错读返回值仅本请求可用(值如实)
+PASS  T1 陈旧读未落缓存(重查发生且读得真值:该主体不存在 epoch=-1,非缓存旧值 5)
+PASS  T1 jti 交错读返回值如实(active)
+PASS  T1 jti 陈旧读未落缓存(重查发生且读得真值:无会话行=false,非缓存 true)
+PASS  T2 evict 序单调自增(本地与收播同源)
+PASS  D1 共享桶 PG 不可达 → 本地桶兜底放行(可用性优先)
+PASS  D1 槽 PG 不可达 → fail-open 放行(资源保护非安全边界)
+PASS  D1 降级转变打一行结构化日志(RL_SHARED_DEGRADED)
+PASS  M1 容量上限 3:5 distinct key 后 Map 尺寸有界(淘汰最旧)
+PASS  M1 淘汰后新 key 满额桶语义正常(可消费)
+PASS  J1 签发带 jti 会话行(守卫吊销真相源在位)
+PASS  J2 吊销前 A 侧 isSessionActive=true(缓存已回填)
+PASS  J2 revokeSession(对侧池)→本侧广播窗内翻 false(revoked=true·实测 23ms)
+PASS  N1 直连表 DML 42501(负对照·NOINHERIT login 非超身)
+PASS  N1 NOINHERIT 生产身份经 SD 网关函数跨实例消费共享桶(恰 3·S2 形)
+PASS  N1 cleanup 函数低权可执行(DELETE 在 SD 函数内·B2 消解)
+
+✓ api-harden shared-state passed
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-14T21-23-12-502Z-30977-36658c2e-1362-499d-8097-59af750eee62.json release_evidence=false

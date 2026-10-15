@@ -1,6 +1,6 @@
 # HA-6 Companion 处置登记档（W2 限流 ×N + W3 PgBouncer 裁决 · EXEC 落卷）
 
-**Status**: `exec:awaiting_post_prove_dual`（EXEC 席落卷 · Ban self-approve · 待 post-prove 双审）
+**Status**: **`closed`**（2026-10-15 闭卷登记席翻面·协调方闭卷登记授权·一行依据=post 补位双审会签完成——席1 agent_c851a789 交付本体四项 PASS+行号锚腐烂定域+席2 agent_d5a319f4 三值裁决「post 实质已发生+六项闭卷清单」·nail merge @`88459afb`（双亲 `c7142596`+`90258ec3`·对 HEAD is-ancestor 亲证）·全链见 checklist「Line HA-6 companion nail」段——原 `exec:awaiting_post_prove_dual` 系滞后登记·沿 ag-cost5 卷主翻面先例 · Ban self-approve · alone≠dual）
 **Date**: 2026-10-11
 **REQUEST**: `ai-docs/delivery/harness/ha-6-companion-REQUEST.md`（@`8ba93f0b` 落卷 · pre-exec 双审 BOTH PASS · 协调方派单即 §8 开工授权）
 **机读卷**: `receipts/ha-6/resource-budget.json`（C2）· `receipts/ha-6/rate-limit-census.json`（C3 census）· `receipts/ha-6/proof.*`（收据）

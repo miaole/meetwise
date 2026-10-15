@@ -1,6 +1,6 @@
 # EVKIND-SCORECARD-FIX REQUEST — interview_event.kind 值域对撞修复刀（ck_interview_event_kind 拒 'score_card_written'·0202 扩域 +1 + 目录补录恰 2 产品件·零 TS 零测试改·docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-14 · pre-exec 双审两外席 BOTH PASS（席1 agent_26f888d0+席2 agent_c59b09b7 会签）· 协调方明示 EXEC 授权（2026-10-15 派单·钉定工作区 `line/evkind-scorecard-fix` @`66d200d5`）· EXEC 落卷 2026-10-15：并线 c830405f+§0 全量重 pin+件①② 落卷+改前红 18 PASS→23514 亲取+门矩阵全表见 §9 · post-prove 双审未派 · ⛔push）
+**Status**: **`closed`**（2026-10-15 卷主翻面·协调方授权批量滞后卷 Status 对账翻面·沿 ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line evkind-scorecard-fix nail」段 :2808 已载 任务书授权链 pre-exec 双审会签 BOTH PASS→EXEC→续作收官+nail merge @`0b88d2fe`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · est live=0 · Ban self-approve · alone≠dual · ⛔push）
 
 **席位**：EVKIND-SCORECARD-FIX 起草席（诊断+起草双责·协调方派·perf-prep 门矩阵 2026-10-14 首曝红立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `6ca9f3e7`（fetch 后 origin tip 同指亲证·docs:check 2109≤cap 2112 本树亲跑）· 分支 `line/evkind-scorecard-fix`（建前 `git branch --list "line/evkind*"` 零同名命中·本席 `git worktree add ../meetwise-evk -b line/evkind-scorecard-fix feat/mysql-schema-skeleton` 亲立·HEAD 落 `6ca9f3e7` 亲证）· 工作树 `meetwise-evk`（仓根同级）。

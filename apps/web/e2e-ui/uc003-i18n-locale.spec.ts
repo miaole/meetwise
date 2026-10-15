@@ -14,7 +14,10 @@ import { randomUUID } from 'node:crypto';
  * Known DOM-unreachable arms (no API stub allowed): the mapResumeUploadError API-response
  * arm and the :88/:113 network-failure inline faces (their en side is carried by the S4
  * static assertions), and the >8MB arm (blocked by the Next Server Action bodySizeLimit
- * before the action body runs). The :98/:99 local-refusal arms ARE reachable via
+ * before the action body runs). The deleteResumeAction four failure arms are likewise
+ * DOM-unreachable here (this spec's happy path never triggers a delete); after the
+ * follow-up migration their en side is carried by the S6 static assertions over the
+ * messages resumeDelete namespace. The :98/:99 local-refusal arms ARE reachable via
  * setInputFiles and may strengthen en-DOM assertions in a later knife.
  *
  * Grep anchor for dedicated prove CMD: UC003-I18N-locale-en
@@ -70,16 +73,6 @@ const ALLOWED_CJK_FACES: Record<string, string[]> = {
   ],
   resumeStatusLabels: ['已上传', '解析中', '解析完成', '解析失败', '删除处理中', '已删除', '状态未知'],
   localeSwitcher: ['中'], // LocaleSwitcher.tsx zh toggle label (:10 literal; EN arm is CJK-free)
-  // deleteResumeAction failure messages (actions.ts) — named known-residual, failure paths
-  // only: this spec's happy path never triggers a delete, so these nodes never surface.
-  // The third entry keeps the source form with a <status> placeholder (runtime-interpolated
-  // in the DOM); if that arm ever renders here the node shows up UNKNOWN on purpose.
-  deleteResumeActionLiterals: [
-    '网络错误，请稍后重试；简历未被删除。',
-    '找不到这份简历，或它已被删除。',
-    '删除请求未受理（<status>），未当作已删除。',
-    '删除受理形状不合法，未当作已删除。',
-  ],
 };
 
 const ALLOWED_CJK = new Set(Object.values(ALLOWED_CJK_FACES).flat());
