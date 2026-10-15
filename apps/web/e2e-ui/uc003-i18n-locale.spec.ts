@@ -9,7 +9,10 @@ import { randomUUID } from 'node:crypto';
  * error <p> — plus the empty-file validation arm must render CJK-free in locale=en.
  * The remaining page chrome is honest named-allowlist residual: every CJK text node found
  * on /resume must belong to a named unmigrated face, and the inventory is counted into the
- * run log as residual receipt. Full-page zh clearance is a later knife — matrix stays partial.
+ * run log as residual receipt. Scan scope excludes script/style data payload: the TreeWalker
+ * rejects text candidates inside <script>/<style> (RSC Flight payload is data, not rendered
+ * chrome), so the inventory counts visible page chrome only. Full-page zh clearance is a
+ * later knife — matrix stays partial.
  *
  * Known DOM-unreachable arms (no API stub allowed): the mapResumeUploadError API-response
  * arm and the :88/:113 network-failure inline faces (their en side is carried by the S4
@@ -30,6 +33,7 @@ const CJK = /[\u4e00-\u9fff]/;
 // comment separators, so combined source lines surface as separate nodes).
 const ALLOWED_CJK_FACES: Record<string, string[]> = {
   navHardcodedLabels: ['押题', '找工作', '岗位匹配'], // Nav.tsx candidate links (:39-41 literal zh)
+  resumePageMetaTitle: ['简历 · 知面 · 知面 Meetwise'], // SSR <title>: static page title × layout template (React 19 streams the hoistable <title> into body)
   resumePageHeader: [
     '简历 · 知面',
     '用于练习的简历内容会经过当前已覆盖的存储与访问约束；只提取必要结构化事实，不编造经历。删除即时生效（立即停止处理与访问）；跨存储清除回执稍后在隐私边界说明中保持如实状态。',
@@ -138,7 +142,10 @@ test('UC003-I18N-locale-en: locale=en DOM —— 迁移区三点 CJK 零残留 +
   await page.goto('/resume');
   await expect(page.getByRole('heading', { name: '我的简历' })).toBeVisible({ timeout: 20_000 });
   const textNodes = await page.evaluate(() => {
-    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+    const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT, {
+      acceptNode: (node) =>
+        node.parentElement?.closest('script,style') ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT,
+    });
     const out: string[] = [];
     while (walker.nextNode()) {
       const t = (walker.currentNode.textContent ?? '').replace(/\s+/g, ' ').trim();
