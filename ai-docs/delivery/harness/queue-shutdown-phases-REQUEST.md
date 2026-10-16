@@ -1,13 +1,13 @@
 # QUEUE-SHUTDOWN worker 收尾序两阶段化刀（5C-QUEUE 拆刀排程 Q1 · drainWithDeadline 单相并行→loop 相/依赖相两阶段排空 · EXEC REQUEST · 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · Ban self-approve · alone≠dual · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC · EXEC 写完本档即停零码动 · ⛔push · ⛔merge主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（pre-exec 双审 BOTH PASS 会签在卷：席1 `agent_0158b7a6`+席2 `agent_982e865c`·P2×3 随卷 EXEC 立项落笔 · 协调方明示 EXEC 授权 · EXEC 十门全绿落卷=本档 §9 · post 双审待开 · Ban self-approve · alone≠dual · post BOTH PASS ≠ push · ⛔push）
 **席位**：QUEUE-SHUTDOWN 两阶段化刀起草席（协调方派单·5C-QUEUE 拆刀排程 Q1·授权按 LEDGER :87 组标签+checklist :2624 锚定·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `f20e38c8`（gitleaks-archive-expand+hmac-consolidate 双 nail 收官 SSOT commit·docs:check 2176≤cap 2184 本席本树亲跑）· 分支 `line/queue-shutdown-phases`（本席 `git worktree add ../meetwise-q1s -b line/queue-shutdown-phases` 亲立·建树时落 `0ff55592`·起草中主线推进→`git merge --ff-only origin/feat/mysql-schema-skeleton` 随动至 `f20e38c8`——分支当时零 commit·ff 零冲突零 merge 节点·⛔pull --rebase 未用）· 工作树 `meetwise-q1s`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-16·5C-QUEUE 诊断席定谳承引：QUEUE 族四行 #157/#158/#181/#156=worker 收尾序·缺口正身=`drain-loop.ts:112-121` 单相并行全项同拍起跑·修法=两阶段排空·≤1 天可控）；②LEDGER :87 组标签（5C 可靠性行「#157/#158/#181/#156 worker 收尾序」在册未翻·本席亲读在卷）；③checklist :2624 STILL OPEN 行（「#157 旁路后刀（worker 收尾序 5C 队列·本刀 workerReady 面仅 #92 口径·收尾序零触）」·本席亲读在卷）；④issues-master 四行原文（#157/#158/#181/#156）**仓外待补**（协调方持有·不阻起草·EXEC 立项时如已入卷照 §0 重 pin 协议补锚）。
 
 ---
 
-## §0 现状锚（起草席亲读·file:line+blob 逐条 Read/git hash-object/活体 run 实测 @`f20e38c8`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
+## §0 现状锚（起草席亲读·file:line+blob 逐条 Read/git hash-object/活体 run 实测 @`f20e38c8`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号·EXEC 重 pin 已行 @`f2e8de7b`（merge `c9beb402`·见 §0.2-6））
 
 ### 0.0 防重双对表
 
@@ -15,7 +15,7 @@
 - `ls ai-docs/delivery/harness/ | grep queue-shutdown` 建前零命中→落卷后唯一同名卷=本卷。
 - 本刀在飞相 stock 面：`line/queue-family` 树零独有 commit（`git rev-list --count f20e38c8..397d037b` 口径下 `397d037b` 为 `f20e38c8` 祖先亲证）·与本刀零交叠（§3）。
 
-### 0.1 blob 锚表（`git hash-object` 亲算 @`f20e38c8`·核心五锚自 `0ff55592` 起零漂移亲证）
+### 0.1 blob 锚表（`git hash-object` 亲算 @`f20e38c8`·核心五锚自 `0ff55592` 起零漂移亲证·**EXEC 重 pin @`f2e8de7b`：四核心+八锚 blob 恒等亲证（纯改号）·唯一漂移=`public-text-policy.mjs` `322e277a`→`0548e848`（cap 2184→2192·行随实改锚）**）
 
 | 文件 | blob（8 hex） | 关键行锚 |
 |---|---|---|
@@ -30,7 +30,7 @@
 | `apps/api/package.json` | `266e64b8`（119 行·并线波 +1 行 csp-headers prove 接线·如实改锚） | `:52` `prove:ha2-drain` |
 | `package.json` | `3b04b871`（675 行） | `:8` lint max 5235·`:233-234` `ag-f-reroll:prove(:raw)` 接线·`:659` `i6-gates:prove` |
 | `scripts/i6-239-gates.proof.mjs` | `339f92f4` | §2-7 五类标记词定义（词面运行时组装防自指·不入卷）+改动集恰符臂（i6-239 历史刀申报面=协议形红承登载体·§7） |
-| `scripts/ai-docs/public-text-policy.mjs` | `322e277a` | `:98` `MAX_FILES = 2_184`（docs cap） |
+| `scripts/ai-docs/public-text-policy.mjs` | `322e277a`→EXEC 重 pin `0548e848`（398 行） | `:98` `MAX_FILES = 2_184`（docs cap·EXEC 重 pin：merge `f2e8de7b` 纯改号→cap **2_192**·`MAX_FILES` 移 `:100`） |
 
 ### 0.2 漂移登记（派单 brief/诊断席定谳 → `f20e38c8` 现状·**EXEC 重 pin 同协议**）
 
@@ -39,6 +39,7 @@
 3. **issues-master 仓外**：四行原文（#157/#158/#181/#156）协调方持有未入卷——不阻起草（派单 brief 明示）·EXEC 立项时如已入卷照 §0 协议补锚·未入卷则维持仓外登记。
 4. **「19 项源级断言」口径勘误（brief）**：worker proof 源级清单断言=**29 臂**（§0.1 第三行明列）·其中关于 19 具名清单的臂=18 具名逐项（`:88` 循环）+实数 19 臂（`:92`）=**19 臂**——brief 的「19 项源级断言」按此口径成立·本卷「19 项维持」即钉此 19 臂逐字冻结。
 5. **机制证据等级（诚实申明）**：SIGTERM 排水窗竞速三害（§1.3）系**源级机制链亲证+诊断席定谳承引·未活体复现**（起草席零真实 SIGTERM 生产窗复跑——复跑需真池/真 ragCache/langfuse 排水竞态注入·超出 docs 起草 turn 面）·EXEC 期亦以注入式 proof 承载（沿 worker proof 既有 fake 注入形制·零 IO）。
+6. **EXEC 重 pin 漂移登记（`f20e38c8`→`f2e8de7b`·2026-10-16）**：EXEC 序1 `git fetch`+`git merge --no-ff origin/feat/mysql-schema-skeleton`（届时 tip=`f2e8de7b`=派单下界以等号成立·merge=`c9beb402`·merge-base=`f20e38c8`·ort 零冲突·delta 仅 `scripts/ai-docs/public-text-policy.mjs`+`public-text-policy.proof.mjs` 两件 +9/−7·禁 pull --rebase 遵守）——四核心锚（drain-loop.ts `ead1b405`/worker main.ts `b47aba76`/worker ha-2-drain proof `8a864311`/api ha-2-drain proof `2a2f0828`）+八锚（drain-loop proof `2b401be2`/owner-drain-order `9cac1aa4`/ag-f `64ab8123`/worker package.json `e69420d4`/api package.json `266e64b8`/root package.json `3b04b871`/i6-239 `339f92f4`）blob **恒等亲证=纯改号**；唯一漂移=`public-text-policy.mjs` `322e277a`→`0548e848`（cap 2184→**2192**·`MAX_FILES` :98→:100）——docs:check 实读 2177（含本卷）≤ 2192·余量 15·cap sanction 权归协调方（P2① 承载）。三码文件 file:line 锚全数对中未漂（drain-loop.ts :84-88/:98-128/:14-80/:134-140·main.ts :785-836·worker proof :19-105）。
 
 ### 0.3 迁移号登记与协调规则（预期零·实证后定）
 
@@ -111,7 +112,7 @@ deadline 胜出→`worker_drain_timeout`（在飞名）→`process.exit(0)`（`:
 5. **drain 族邻面门**：`pnpm -w run owner-drain-order:unit:prove` EXIT=0。
 6. **typecheck 门**：`pnpm turbo typecheck --force` EXIT=0（8/8 0 cached 口径·沿 nail 卷形制）。
 7. **lint 承登口径**：`pnpm lint`（root max **5235**）+`pnpm -C apps/worker lint`（max **954**）亲跑实测——两文件+1 proof 改动零新增 warning 为预期·漂移即如实登记归因（**Ban 借机修 lint**）。
-8. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 2176·本卷 +1→**2177 ≤ cap 2184**·余量 7·>2184 红即停上报·cap sanction 权归协调方）。
+8. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 2176·本卷 +1→**2177 ≤ cap 2184**·余量 7·>2184 红即停上报·cap sanction 权归协调方·**EXEC 重 pin：cap 2184→2192（merge `f2e8de7b` 纯改号）·实读 2177 ≤ 2192·余量 15·零新增文件**）。
 9. **markers 门**：改动集（本卷 .md+三码文件）五类标记词零命中+`est live=0` 臂绿（词面见 `i6-239-gates.proof.mjs` §2-7 运行时组装·不入卷防自指）——**恰符臂红=协议形承登**（i6-239 历史刀申报面·沿 safewrite-backpressure OBS-2+authz-34 :225 先例·非本刀新增红·§7）。
 10. **diff 面（改动面窄断言）**：EXEC diff（对立项基线）=恰 4 类——本卷 .md+`apps/worker/src/drain-loop.ts`+`apps/worker/src/main.ts`+`apps/worker/test/ha-2-drain.proof.ts`（+收据目录可选）——`apps/api`/`apps/web`/`packages/`/`migrations/`/共享 SSOT 四卷零文件入 diff；`runDrainLoop` 函数体零字节（`git diff` 词面机检）。
 
@@ -145,7 +146,7 @@ deadline 胜出→`worker_drain_timeout`（在飞名）→`process.exit(0)`（`:
 
 ## §8 STOP（开工三条款 + 待双审/EXEC 裁决项）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·含 §0.2 五条漂移复核与 §0.3 迁移号实占复核）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（drainStops 增删项/NamedStop 被他刀改/drainWithDeadline 被他刀动/链顶异动）→停·重 pin 回炉；**机制不满足**=件①②③落位后 §2-1 命中红（19 具名臂非恰 2 演进外有 diff/分相臂不绿/时序窗演进后仍红）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/业务语义/租约面/exit 语义/依赖相 stop 体/共享 SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/docs:check>cap/lint 漂移）且根因不在本刀交付面→停·如实登记（Ban 借机修·docs:check >2184 红即停上报）。
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 十门全绿落卷=§9 · post 双审两外席待开 · post BOTH PASS ≠ push · push 权归协调方）· 原 `draft:awaiting_pre_exec_dual` 随 pre-exec 双审 BOTH PASS（席1 `agent_0158b7a6`+席2 `agent_982e865c`）+协调方明示 EXEC 授权翻面 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·含 §0.2 五条漂移复核与 §0.3 迁移号实占复核）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（drainStops 增删项/NamedStop 被他刀改/drainWithDeadline 被他刀动/链顶异动）→停·重 pin 回炉；**机制不满足**=件①②③落位后 §2-1 命中红（19 具名臂非恰 2 演进外有 diff/分相臂不绿/时序窗演进后仍红）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/业务语义/租约面/exit 语义/依赖相 stop 体/共享 SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/docs:check>cap/lint 漂移）且根因不在本刀交付面→停·如实登记（Ban 借机修·docs:check >2184 红即停上报）。
 
 **待双审/EXEC 裁决项**：
 - **①依赖相计数勘误追认（§0.2-1）**：brief「依赖相 4/loop 相 13」→代码真值「依赖相 5/loop 相 14（含 stub）」·19 具名口径三方互证——推荐=追认（修法设计不变·依赖相 5 项全数后行）vs 翻案（翻案即回炉）。
@@ -156,4 +157,45 @@ deadline 胜出→`worker_drain_timeout`（在飞名）→`process.exit(0)`（`:
 
 ---
 
-*QUEUE-SHUTDOWN REQUEST · 2026-10-16 起草 · STOP=`draft:awaiting_pre_exec_dual` · 起草 base=`feat/mysql-schema-skeleton` @`f20e38c8`（建树 `0ff55592`→ff 随动·⛔pull --rebase 未用）· 分支 `line/queue-shutdown-phases` · 工作树 `meetwise-q1s`（本起草席立·建前 branch/worktree 双查不存在）· 立项出处=协调方派单 brief（5C-QUEUE 诊断席定谳承引）+LEDGER :87 组标签+checklist :2624 锚定+issues-master 四行仓外待补 · 缺口=`drain-loop.ts:112-121` 单相 `Promise.allSettled` 全 19 具名同拍起跑（依赖相 5 项快 settle 先拆依赖 vs loop 相 13+1 项等在飞 tick）· 修法=两阶段排空（loop 相先行 70% 份额→依赖相后行 30% 份额·和恒等总上限 30s 零改·在飞名逐相日志·runDrainLoop 本体与崩溃安全兜底链零触）· 触面=drain-loop.ts+worker main.ts+worker ha-2-drain.proof.ts 恰三码文件 · 19 具名清单臂逐字冻结+恰 2 演进臂+分相臂新增 · est live=0（起草）· markers=0（恰符臂协议形承登）· 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · ⛔merge主线 · STOP*
+## §9 EXEC 记录（2026-10-16·EXEC 席落卷·十门全绿·`executed:awaiting_post_prove_dual`）
+
+**会签与授权**：pre-exec 双审 BOTH PASS 在卷——席1 `agent_0158b7a6`+席2 `agent_982e865c`（P2×3 随卷·EXEC 立项落笔）·协调方明示 EXEC 授权。
+
+**字段① merge（EXEC 序1）**：`git fetch` 后 `git merge --no-ff origin/feat/mysql-schema-skeleton@`f2e8de7b``→merge **`c9beb402`**（届时 tip=`f2e8de7b`=派单下界「≥f2e8de7b」以等号成立·merge-base=`f20e38c8`·merge-tree 预演 EXIT=0·ort 零冲突·delta=public-text-policy 两件 +9/−7·冲突沿并集解预置未触发·禁 pull --rebase 遵守）。
+
+**字段② 三文件落点（恰三码文件·EXEC 自改 working diff 对 `c9beb402`）**：
+- `apps/worker/src/drain-loop.ts`（件①）：`DrainPhase` 类型新增·`NamedStop` 增 `phase?: DrainPhase`（**字段序 name→stop→phase**·缺省 `'loop'`）·`LOOP_PHASE_SHARE = 0.7` 具名落源·`drainWithDeadline` 重构两相顺序排空（`loopStops`/`depsStops` filter·`loopShare = Math.ceil(timeoutMs * LOOP_PHASE_SHARE)`·`depsShare = timeoutMs - loopShare` 和恒等·`runPhase` 单相体原样下沉：per-phase pending Set+allSettled×deadline race+败者 clearTimeout 纪律+计时器不 unref+reject 不外抛·deps 相严格后行不并行）·`onTimeout` 增第二参 `phase`（逐相在飞名）·返回值枚举不变（任一相 timeout→`'timeout'`·双相 drained→`'drained'`）·`runDrainLoop` :14-80 **函数体 diff 逐字节恒等机检直证**·`wireSignalShutdown` 零字节。
+- `apps/worker/src/main.ts`（件②）：`drainStops` 19 项逐项贴标（13 loop `:797-809`+stub-tick `as const`=14·deps 5=rag-cache+三 pool.end+langfuse）·注记块随实更新（两相化+30s→loop 21s/deps 9s+19 具名勘误=loop 14/deps 5）·onTimeout 回调随签名·超时日志三要素 `worker_drain_timeout signal=${signal} phase=${phase} in_flight=${inFlight.join(',')}`·幂等闸/唤醒面先行停/boundedIntEnv 三参/metrics 2s race/exit 0 **全零字节**。
+- `apps/worker/test/ha-2-drain.proof.ts`（件③）：见字段③。
+
+**字段③ 臂账（41 维持+恰 2 演进+17 新增=58·机检在卷）**：pre/post 首参清单 diff=**恰 2 演进**（演进① `worker_drain_timeout 结构化日志含 signal+phase+in_flight` regex 三要素全钉·要素增即强；演进② 时序窗下界 `80`→`56`=`Math.ceil(80×0.7)` 机制推导·窗 [56,500)·断言文本如实）+**恰 17 新增**（A 分相序 2=事件序直证 deps 后行·B 份额 3=timeoutMs 100 注入→loop 70ms 到点非 100ms 全额+deps 30ms 余量跑完 settle 计数=1·C 逐相在飞名 4=loop/deps 相位标签逐一正确·D 退化形态 3=全 loop 相集+空 deps allSettled(空)即 drained 零行为漂移·E 源级 5=deps 恰 5/loop 恰 14/0.7 具名/和恒等式/日志 phase=）·其余 **39 臂逐字冻结**（19 具名清单臂全数零 diff 亲证·F 兜底零触=exit(0)/boundedIntEnv/metrics 2s/幂等闸既有臂逐字存活承载不另立）。实测 `pnpm -C apps/worker prove:ha2-drain` **PASS=58 FAIL=0 EXIT=0**。
+
+**字段④ 门矩阵十门全表（全绿）**：
+
+| # | 门 | 命令 | 结论 |
+|---|---|---|---|
+| 1 | worker 复绿 | `pnpm -C apps/worker prove:ha2-drain` | **58/58 EXIT=0**（41 维持+2 演进+17 新增） |
+| 2 | api 双面零回归 | `pnpm -C apps/api prove:ha2-drain` | **47/47 EXIT=0**（api 面零字节） |
+| 3 | drain 邻面 | `pnpm -C apps/worker prove:drain` | EXIT=0（runDrainLoop 本体零回归） |
+| 4 | ag-f 邻面 | `pnpm -w run ag-f-reroll:prove` | EXIT=0（§A-§F 全绿·隔离收据 `.tmp/isolated-proof-receipts/2026-10-16T08-32-39-…-3a2d79ea1486.json`） |
+| 5 | owner-drain-order 邻面 | `pnpm -w run owner-drain-order:unit:prove` | EXIT=0 |
+| 6 | typecheck | `pnpm turbo typecheck --force` | EXIT=0（**8/8·0 cached**·首跑红=stub 条件展开行 phase 字面量脱离上下文定型拓宽为 string·`as const` 口径内收口·复跑绿·零语义） |
+| 7 | lint | `pnpm lint`+`pnpm -C apps/worker lint` | 双绿 EXIT=0（root **5235/5235**·worker **954/954**·零漂移零新增 warning·Ban 借机修未犯） |
+| 8 | docs:check | `node scripts/ai-docs/check-docs.mjs` | EXIT=0（**2177 ≤ cap 2192**·零新增文件·收据=本节 inline 自裁最小集·余量 15） |
+| 9 | markers | `node scripts/i6-239-gates.proof.mjs` | 实质臂全绿（⑤邻面零触/⑤零迁移零新表/⑤SSOT 四卷零触/⑦改动集五类词面零命中/est live=0）·恰符臂红=**协议形承登**（unexpected=恰本刀三码文件·沿 safewrite-backpressure OBS-2+authz-34 :225 先例·§7 预申明形状如实复现·非本刀新增红） |
+| 10 | diff 面 | `git status/diff HEAD`（对立项基线 `6c124bb0` EXEC 自改面） | 恰 **4 tracked**=三码文件+本卷（typecheck 副产物 `apps/web/tsconfig.tsbuildinfo` 已还原出净·零收据目录新增·`apps/api`/`apps/web`/`packages/`/`migrations/` 零文件入 diff） |
+
+附：`pnpm install --frozen-lockfile` EXIT=0（零 lockfile 改）·零迁移实证（改动集零 SQL 零新表·§0.3 预期零成立）·est live=0（EXEC turn 全程本地 tsx/node+隔离 PG 容器·零模型外呼零 Key 加载零 secrets 读用）。
+
+**字段⑤ P2×3 承载落点（双审随卷·EXEC 立项落笔）**：
+- **P2① 基线锚重 pin**：`f20e38c8`→届时主线 tip `f2e8de7b`（merge `c9beb402`）——四核心 blob 恒等亲证=纯改号（§0.2-6 全表在卷）·§0.1 表行与 §2-8 门随实改锚（cap 2184→2192·`MAX_FILES` :98→:100）。
+- **P2② 收据补记挤压风险两条（已知语义取舍·随卷登记）**：其一 **loop 相预算收窄 30s→21s**（30s 默认下 loop 相份额 `Math.ceil(30000×0.7)=21000`——在飞 tick 若超 21s 即提前到点→`worker_drain_timeout(phase=loop)`→exit 0 兜底链·非新增风险面而系既有 crash-safe 语义的更早触发点）；其二 **deps 相上限 9s**（依赖面收尾被压入 30% 份额 9000ms——langfuse flush/pool 优雅关超 9s 即被斩尾）。两相份额和恒等 timeoutMs·总上限 30s 零改·取舍双向明示（挂死 loop 不再饿死依赖相 vs 依赖相预算从共享 30s 收窄为固定 9s）。
+- **P2③ D 臂断言文本显式豁免时序窗**：D 臂断言文本带「时序窗显式豁免不钉墙钟」落字+函数内注释落字（两相份额调度下总读数不钉·只钉 outcome/在飞名/相位语义面）。
+
+**字段⑥ 裁决项行使落字（§8 五条）**：①依赖相计数勘误**追认行使**（deps 5/loop 14 实证·19 具名三方互证恒等）；②空 deps 相退化语义**追认行使**（D 臂 allSettled(空)即 drained 零漂移）；③演进②时序窗行使**追认**（56=`Math.ceil(80×0.7)` 机制推导·其余 39 臂逐字冻结·力不减）；④**零迁移确认**（实证零）；⑤行关闭效力归协调方 nail（本刀不宣称关闭）。§1-修法定稿契约与 §5 Ban/pins **零改**（修法契约逐条落实·pins 全数维持：41/47/19 具名/5+14/70-30/30s/cap（重 pin 随动）/lint 5235·954/迁移 0）。
+
+**字段⑦ 落卷**：本 commit（§9 append+Status/§0 重 pin/§2-8/§8/footer 翻面）·STOP=**`executed:awaiting_post_prove_dual`**——post 双审两外席待开·post BOTH PASS ≠ push·push 权归协调方（⛔push 未犯·工作区交付）。
+
+---
+
+*QUEUE-SHUTDOWN REQUEST · 2026-10-16 起草 · EXEC 同日落卷 · STOP=`executed:awaiting_post_prove_dual` · 起草 base=`feat/mysql-schema-skeleton` @`f20e38c8`（建树 `0ff55592`→ff 随动·⛔pull --rebase 未用）→ EXEC 重 pin=`f2e8de7b`（merge `c9beb402`·四核心 blob 恒等纯改号·§0.2-6）· 分支 `line/queue-shutdown-phases` · 工作树 `meetwise-q1s`（本起草席立·建前 branch/worktree 双查不存在）· 立项出处=协调方派单 brief（5C-QUEUE 诊断席定谳承引）+LEDGER :87 组标签+checklist :2624 锚定+issues-master 四行仓外待补 · pre-exec 双审 BOTH PASS（席1 `agent_0158b7a6`+席2 `agent_982e865c`·P2×3 随卷）· 缺口=`drain-loop.ts:112-121` 单相 `Promise.allSettled` 全 19 具名同拍起跑（依赖相 5 项快 settle 先拆依赖 vs loop 相 13+1 项等在飞 tick）· 修法=两阶段排空（loop 相先行 70% 份额→依赖相后行 30% 份额·和恒等总上限 30s 零改·在飞名逐相日志·runDrainLoop 本体与崩溃安全兜底链零触）· 触面=drain-loop.ts+worker main.ts+worker ha-2-drain.proof.ts 恰三码文件 · 41 臂维持（39 冻结+2 演进）+17 分相臂新增=58/58 · 门矩阵十门全绿（门 9 恰符臂协议形承登）· P2×3 落卷=§0.2-6 重 pin+§9 字段⑤挤压风险两条+D 臂时序窗豁免落字 · est live=0（起草+EXEC 双 turn）· markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · post BOTH PASS ≠ push · ⛔push · ⛔merge主线 · STOP*
