@@ -328,6 +328,12 @@ export class SseNotifyService {
     if (client) { this.detach(client); try { client.release(new Error('sse_notify_listen_lost')); } catch { /* already released */ } }
     this.degrade(reason);
     this.scheduleReconnect();
+    this.wakeAllWaiters();
+  }
+
+  /** 掉线即唤醒全部在册等待者(跨流全醒):被醒泵循环头即读 health()=false 回落 legacy 2s cadence+fetchMore(lastSeq) 立即补偿拉取。快照遍历防变异(entry=self-removing resolve,同 onNotification P-4 形;回调内零 SQL)。 */
+  private wakeAllWaiters() {
+    for (const set of [...this.router.values()]) for (const entry of [...set]) entry();
   }
 
   private degrade(reason: SseNotifyReason) {

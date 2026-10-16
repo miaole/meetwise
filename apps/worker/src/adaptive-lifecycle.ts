@@ -12,7 +12,7 @@ import {
 } from '@meetwise/db';
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
-import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
+import type { ModelClient, GraphObserver, ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
@@ -151,6 +151,8 @@ export interface AdaptiveLifecycleDeps {
    * 非持久化通道（跨 claim 唯一通道=图 state checkpoint）;缺省 undefined=既有调用零改。
    */
   trackLocalDeficitRef?: { current: number[] | null };
+  /** AG-20(CTX-02 显式接线):ask 主端点成本政策（组合根同源·缺省 undefined=预算零触现状字节·管道面见 adaptive-interview-service AdaptiveServiceDeps.askCostPolicy 注）。 */
+  askCostPolicy?: ModelCostPolicy;
 }
 
 async function requireCurrentFence(c: Parameters<typeof assertInterviewGraphFence>[0], d: AdaptiveLifecycleDeps): Promise<void> {
@@ -171,6 +173,7 @@ function makeDeps(
     competencies, resumeProfileAvailable, focusWeaknesses, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     targetRole: d.targetRole,
     trackLocalDeficitRef: d.trackLocalDeficitRef,
+    askCostPolicy: d.askCostPolicy,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
@@ -358,9 +361,22 @@ async function submitAdaptiveAnswerImpl(
   // C2/G2(RESUME-GROUNDING):answer 链进入点同源注入——一次 RLS 读出授权位+consent 门控 facts 池
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
   const grounding = await loadInterviewResumeGrounding(d);
-  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
+  const gInitial = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
   const cfg = { configurable: { thread_id: d.interviewId } };
-  const before = await g.getState(cfg);
+  const before = await gInitial.getState(cfg);
+  // SFC(SUBMIT-FLOW-COMPETENCY-WIRE):submit 流向 competency 补供——start 形 planCompetencies 序经
+  // initMind 保序映射落 checkpoint mind.competencies(domain initMind :188 保序+decideNext 拷贝排序
+  // 不重排=序全程稳定),此处读回即 start 时 planner 终序(含弱项偏置)。genQuestion 换序臂
+  // (nextCompetencyAfter)是 answer 相族内失败换序消费点(deps.competencies;QGEN 件② 批判门为
+  // 第二换序形·同序消费·本刀补供同覆盖);plan 节点在本流向不可达(submit 必过 pending identity
+  // 门,图恒已过 START)。缺省臂:空/缺 mind(旧 checkpoint)→不重建→空序→既有单发终场逐字节原样。
+  // 重建=纯构造零 IO(graph.ts buildAdaptiveInterviewGraph 无外呼)。
+  const plannerSequence = ((before.values?.mind?.competencies ?? []) as Array<{ name?: string }>)
+    .map((c) => (typeof c?.name === 'string' && c.name.length > 0 ? c.name : ''))
+    .filter((name) => name.length > 0);
+  const g = plannerSequence.length > 0
+    ? buildAdaptiveInterviewGraph(d.cp, makeDeps(d, plannerSequence, grounding.available, input, grounding.pool))
+    : gInitial;
   const beforeTranscript = (before.values?.transcript ?? []) as { questionId?: string }[];
   const alreadyApplied = beforeTranscript[beforeTranscript.length - 1]?.questionId === input.questionId;
   // AG-05（EXPERT-REVIEWS §五 边界①②③）：evalAnswer superstep 已写 checkpoint、genQuestion 等模型

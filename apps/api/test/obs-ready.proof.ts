@@ -12,6 +12,10 @@
  *  P5. db_unreachable：SELECT 1 失败 → 503 + schema.migration=unknown（读不到≠已证一致），
  *      且探针查询短路（≤2 有界）。
  *  P6. 迁移目录不可达（MIGRATIONS_DIR 指向不存在路径）→ fail-closed mismatch。
+ *  P7. 原因位分类（#92 残面 N1）：账本查询窗内连接类错（ECONNREFUSED 注入）→
+ *      db_unreachable + HTTP 503 + schema.migration=unknown；非连接类错（无码 Error）
+ *      → migration_mismatch 保真（fail-closed 不松动）；注入下探针实发查询恰 2 条/拍
+ *      （≤2 有界不破，零新增查询）。
  */
 import { randomUUID } from 'node:crypto';
 import { assertIsolatedTestTarget, createPool, latestMigrationVersion } from '@meetwise/db';
@@ -111,6 +115,44 @@ try {
   delete process.env.MIGRATIONS_DIR;
   const ready9 = await get('/readyz/api');
   A('P6b 恢复目录后回 200', ready9.status === 200 && ready9.body.schema?.migration === 'ok');
+
+  // P7. 原因位分类（#92 残面 N1）：账本查询窗内连接类错 → db_unreachable（真态归类，
+  //     编排方不再误读为迁移漂移）；非连接类错（无码 Error）→ migration_mismatch 保真
+  //     （fail-closed 不松动）；注入下探针实发查询仍恰 2 条/拍（≤2 有界纪律不破，零新增查询）。
+  const originalQuery7 = pool.query.bind(pool);
+  const queryThrough7 = originalQuery7 as (...args: unknown[]) => Promise<unknown>;
+  const connErr = (): Error & { code?: string } => {
+    const e = new Error('obs_ready_injected_conn_lost') as Error & { code?: string };
+    e.code = 'ECONNREFUSED';
+    return e;
+  };
+  let p7Calls = 0;
+  pool.query = (sql?: unknown) => {
+    p7Calls++;
+    if (p7Calls % 2 === 1) return queryThrough7(sql) as Promise<never>;
+    return Promise.reject(connErr());
+  };
+  const p7aSvc = await service.apiReady();
+  const p7aHttp = await get('/readyz/api');
+  A('P7a 首查通/次查连接类错（ECONNREFUSED 注入）→ apiReady()=db_unreachable + HTTP 503 + schema.migration=unknown',
+    p7aSvc === 'db_unreachable' && p7aHttp.status === 503 && p7aHttp.body.schema?.migration === 'unknown');
+  const before7c = p7Calls;
+  const p7cSvc = await service.apiReady();
+  A('P7c P7a 注入下探针实发查询恰 2 条/拍（SELECT 1+账本各 1·≤2 有界不破·零新增查询）',
+    p7cSvc === 'db_unreachable' && p7Calls - before7c === 2);
+  let p7bCalls = 0;
+  pool.query = (sql?: unknown) => {
+    p7bCalls++;
+    if (p7bCalls % 2 === 1) return queryThrough7(sql) as Promise<never>;
+    return Promise.reject(new Error('obs_ready_injected_unclassified_no_code'));
+  };
+  const p7bSvc = await service.apiReady();
+  const p7bHttp = await get('/readyz/api');
+  A('P7b 次查非连接类错（无码 Error 注入）→ apiReady()=migration_mismatch + HTTP 503 + schema.migration=mismatch 保真（fail-closed 不松动）',
+    p7bSvc === 'migration_mismatch' && p7bHttp.status === 503 && p7bHttp.body.schema?.migration === 'mismatch');
+  pool.query = originalQuery7;
+  const readyP7 = await get('/readyz/api');
+  if (readyP7.status !== 200) throw new Error('obs_ready_p7_restore_failed');
 
   await app.close();
 } finally {

@@ -21,7 +21,7 @@
  * 容器 + 全量版本化迁移含 0181）。不 require 任何真实 provider；确定性 stub/seam（est live=0）。
  */
 import { createHash, randomUUID } from 'node:crypto';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { z } from 'zod';
 import { asPrincipal, assertIsolatedTestTarget, claimModelInvocation, createPool } from '@meetwise/db';
@@ -45,7 +45,7 @@ const EXPECTED: [string, string][] = [
   ['resume-quiz.generate', 'v2'],
   ['resume-diagnosis.generate', 'v1'],
   ['planner.competencies', 'v4'],
-  ['interviewer.ask', 'v7'],
+  ['interviewer.ask', 'v8'],
   ['mock-interview.evaluate', 'v6'],
   ['resume.vision', 'v2'],
   ['report.generate', 'v3'],
@@ -93,8 +93,45 @@ async function main() {
   {
     const content = readFileSync(fileURLToPath(new URL('../src/prompts.ts', import.meta.url)), 'utf8');
     const blobSha = createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex');
-    A('prompts.ts 字节恒定面（git blob sha1=8db00e904cba04cf0c3d775719cb3f2937e8f104·REGISTRY 零字节改动）',
-      blobSha === '8db00e904cba04cf0c3d775719cb3f2937e8f104');
+    A('prompts.ts 字节恒定面（git blob sha1=96acf9c3414f8dd19b781d795f8d04e779e04c5c·REGISTRY v8 随翻重钉(#51)·AG-20 单源提取恒等·blob=96acf9c3414f8dd19b781d795f8d04e779e04c5c）',
+      blobSha === '96acf9c3414f8dd19b781d795f8d04e779e04c5c');
+  }
+
+  // ── 臂 0-b（源级门·#14/#216「非空断言」落位=机检非运行时）：生产 src 全部 `await invoke({` 站点
+  // 清点（域=apps/worker/src+apps/api/src+packages/ai-runtime/src·test/proof 面排除）——逐站点断言
+  // 字面量块含 `service:`（现势恰 8 站点）+五补全值∈注册表键集（AG-19 prompt_version 顺势单源）。
+  {
+    const roots = [
+      fileURLToPath(new URL('../../../apps/worker/src', import.meta.url)),
+      fileURLToPath(new URL('../../../apps/api/src', import.meta.url)),
+      fileURLToPath(new URL('../src', import.meta.url)),
+    ];
+    const walk = (dir: string): string[] =>
+      readdirSync(dir, { withFileTypes: true }).flatMap((d) => {
+        const p = `${dir}/${d.name}`;
+        if (d.isDirectory()) return d.name === 'test' ? [] : walk(p);
+        return d.name.endsWith('.ts') && !d.name.includes('proof') ? [p] : [];
+      });
+    const siteRe = /await invoke\(\{/g;
+    const endRe = /\},\s*[A-Za-z_.]*pool/;
+    const sites: Array<{ file: string; hasService: boolean }> = [];
+    for (const root of roots) {
+      for (const f of walk(root)) {
+        const src = readFileSync(f, 'utf8');
+        for (const m of src.matchAll(siteRe)) {
+          const tail = src.slice(m.index ?? 0, (m.index ?? 0) + 4000);
+          const end = tail.search(endRe);
+          const block = end >= 0 ? tail.slice(0, end) : '';
+          sites.push({ file: f, hasService: end >= 0 && /\bservice:\s*['"`A-Za-z_]/.test(block) });
+        }
+      }
+    }
+    A('源级门:生产 src await invoke({ 站点机检清点=恰 8(worker+api+ai-runtime·test/proof 排除)', sites.length === 8);
+    A('源级门:每站点字面量块含 service:(非空断言源级落位·运行时零 throw·API 契约可选性维持)',
+      sites.length > 0 && sites.every((s) => s.hasService));
+    A('源级门:五补全值∈promptVersions() 键集(注册表键逐字·AG-19 prompt_version 顺势点亮)',
+      ['mock-interview.evaluate', 'resume-quiz.generate', 'report.generate', 'planner.competencies', 'interviewer.ask']
+        .every((s) => promptVersions().some((p) => p.service === s)));
   }
 
   // ── 独立干净指标实例+基线播种；recording tracer 就位。 ────────────────────────────────
@@ -262,9 +299,9 @@ async function main() {
       && promptVersionSeries(renderBase).length === 9);
 
     const reg = metrics.render();
-    const askCount = seriesFor(reg, 'interviewer.ask', 'v7');
+    const askCount = seriesFor(reg, 'interviewer.ask', 'v8');
     const missCount = seriesFor(reg, '(unregistered)', 'none');
-    A('emit 恰一次/调用:registry 内(interviewer.ask×1+显式覆盖×1=v7 计 2)·registry 外/缺省计占位 2',
+    A('emit 恰一次/调用:registry 内(interviewer.ask×1+显式覆盖×1=v8 计 2)·registry 外/缺省计占位 2',
       askCount === 2 && missCount === 2);
 
     // 值域有界负证：渲染序列 label 值 ⊆ registry 版本∪'none' × registry service∪'(unregistered)'。
@@ -275,7 +312,7 @@ async function main() {
       all.length > 0 && all.every((s) => registryVersions.has(s.prompt_version) && registryServices.has(s.service)));
     A('注入不进标签负证:显式 spec.promptVersion 后无 caller-injected/ag19-explicit 系列诞生',
       !all.some((s) => s.prompt_version.includes('ag19-explicit') || s.prompt_version.includes('injected'))
-      && seriesFor(reg, 'interviewer.ask', 'v7') === askCount);
+      && seriesFor(reg, 'interviewer.ask', 'v8') === askCount);
   }
 
   // ── 臂 6（trace/Langfuse 附带+脱敏负证+AG-24 面零位移负证）。 ──────────────────────────
