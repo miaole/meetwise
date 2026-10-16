@@ -14,8 +14,8 @@ import type { QuestionKind } from '@meetwise/domain';
 /**
  * Turn 的只读结构子集（AI-GRAPHS-CYCLE-BREAK 环解）：本模块只消费这六个 checkpoint 派生字段,
  * 以局部结构子集承接而不 import Turn——拆除 session-summary→state 回边后保单向
- * state→session-summary（state.ts 经 TurnCoversSessionTurnInput 编译期守卫钉死结构覆盖,
- * 子集漂移即 state.ts 红）。零运行时零行为变更。
+ * state→session-summary（state.ts 经 TurnCoversSessionTurnInput 编译期守卫+const 断言消费者
+ * 钉死结构覆盖,失覆盖漂移即 state.ts 断言行 TS2322 红）。零运行时副作用零行为变更。
  */
 export interface SessionTurnInput {
   q: string;
