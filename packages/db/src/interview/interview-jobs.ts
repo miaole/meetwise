@@ -314,7 +314,7 @@ export async function sweepStuckInterviewJobs(
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts >= $2
      RETURNING interview_id`, [owner, maxAttempts]);
   const rq = await c.query(
-    `UPDATE interview_job SET status='queued', lease_owner=NULL, version=version+1
+    `UPDATE interview_job SET status='queued', lease_owner=NULL, lease_expires_at=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
   if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));
