@@ -9,7 +9,7 @@ import {
   type QuestionKind,
   type ScoredCriterionDisposition,
 } from '@meetwise/domain';
-import type { SessionSummary } from './session-summary.ts';
+import type { SessionSummary, SessionTurnInput } from './session-summary.ts';
 
 export interface Turn {
   questionId: string;
@@ -43,6 +43,14 @@ export interface Turn {
    */
   evidence?: string[];
 }
+
+/**
+ * AI-GRAPHS-CYCLE-BREAK 环解编译期守卫（satisfies 语义·零运行时）：session-summary.ts 以局部
+ * SessionTurnInput 结构子集承接（不再 import Turn,拆 session-summary→state 回边·no-circular 绿）,
+ * 本守卫钉死 Turn 必须持续结构覆盖该子集——任一侧漂移失覆盖即本行编译红。守卫只借本文件既有的
+ * state→session-summary 单向边,零新增依赖零回环。
+ */
+export type TurnCoversSessionTurnInput = Turn extends SessionTurnInput ? true : never;
 
 export interface ClarifyDirective {
   competency: string;
