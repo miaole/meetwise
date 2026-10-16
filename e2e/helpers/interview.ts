@@ -69,6 +69,7 @@ export type InterviewLoopResult = {
   practiceHints: PracticeHint[];
   attributions: AttributableDecision[];
   provenance: InterviewProvenanceReview;
+  batchWallClock: Array<{ tMs: number; kinds: string[] }>; // G7W 案A seg3 S1: 批级 wall-clock(逐批 tMs+kinds·零 A() 触)
 };
 
 function isNonNegativeInt(value: unknown): value is number {
@@ -302,10 +303,13 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
   const kinds = new Set<string>();
   const seen: SseEvent[] = [];
   const started = Date.now();
+  const batchWallClock: Array<{ tMs: number; kinds: string[] }> = []; // G7W 案A seg3 S2a: 批级时钟收集器
 
   while (Date.now() - started < deadlineMs) {
+    const batchT0 = Date.now(); // G7W 案A seg3 S2b: W1 请求发出位(readSseEvents 批 t0·fetch 发出含括)
     const events = await readSseEvents(`/interview/${options.interviewId}/events`, options.token, lastSeq);
     reviewInterviewProvenance(events);
+    batchWallClock.push({ tMs: Date.now() - batchT0, kinds: events.map((e) => e.kind) }); // G7W 案A seg3 S2c: W3 流式完成位
     for (const event of events) {
       if (event.seq <= lastSeq) continue;
       lastSeq = event.seq;
@@ -381,5 +385,6 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
     practiceHints: provenance.practiceHints,
     attributions: provenance.attributions,
     provenance,
+    batchWallClock, // G7W 案A seg3 S3: 批级 wall-clock 随结果返回
   };
 }
