@@ -144,3 +144,13 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 7. **STOP 终态**：`executed:awaiting_post_prove_dual`（post 双审两外席待派·批表行/Status 翻面权归协调方）·est live=0·pins 十一值零翻（含 `actualSpendCny=null`）·⛔push ⛔force push 未用·⛔pull --rebase 未用。
 
 **§9 尾行登记**：G1 终值=docs:check EXIT=0·**2192**≤cap 2200（append 后亲跑·余 8·零新增文件计数不变·字段 5「见尾行登记」即此值）；markers G2 回执=改动集恰 3 文件·四词+冲突标记命中 **0**（脚本形沿 i6 门⑦·词面运行时组装零自指）。
+
+## §9-补 nail 席 append 注记（2026-10-16 · post 双审会签 PASS 后随 nail 落 · 上文 §0-§9 零字洗）
+
+**post 双审会签 PASS**：席1 `agent_bb27454a`+席2 重派 `agent_dd43ccc8`（两外席·随 nail 并线落主线）。§9-7 STOP 前值 `executed:awaiting_post_prove_dual` 史录保留·终值=**nail 落卷**（批表行/Status 翻面权归协调方·本席不宣称关闭）。
+
+1. **席1 观察登记①（install 前置·处置=补登）**：§9-5 门矩阵无「`pnpm install --frozen-lockfile` 前置」显式登记行（EXEC 期实跑与否卷面不可考）→ **补登一行**（非销案）：nail 席届树（merge `2ab6db99` 后）亲跑 `pnpm install --frozen-lockfile`=**EXIT=0（Done in 531ms·pnpm v10.18.0）·`git status --porcelain -- pnpm-lock.yaml` 空=lockfile 零改**·门矩阵前置工序补登即闭。
+2. **席1 观察登记②（21 串语料未落卷·处置=独立等价语料补强）**：§9-4 字段② 的 21 串语料词面未随卷落（逐串清单不可复现·仅登记了计数 guard-pass 6/reject 15）→ **补强**：nail 席**独立新构等价语料 33 串**（v7/v4/全零/全数字/422 串族四变位/含 g/尾缺位/尾超位/组错位/下划线/缺连字符/头尾空格/空串/短串/null/undefined/数字/对象/variant 位 5-1-c 变位/全 x/组内空格等·非原 21 串誊写）·独立重抄 inline literal（`new RegExp('^…{12}$','i')` 由 §0.1-a 词面独立誊写·非取源行）vs 单源 `UUID_RE`（模块实锚 import tsx 跑）匹配集 **mismatches=0**（guardPass 16/reject 17·EXIT=0）→ **byte 恒等结论独立补强·400 `privacy_preview_invalid` 语义零改维持**。
+3. **席2 P2×1（install 前置登记缺位·处置=补登一行）**：与席1 观察登记①同槽合流——补登见上条 1（一行补登·销案选项不行使）。
+
+**nail 工序注记**：merge `2ab6db99`（--no-ff 并 origin/feat/mysql-schema-skeleton@`d5dc0726`=ai-graphs 环解 nail 波 tip·派单下界等号亲证·merge-base `93b3db5a`·零冲突）·SSOT 三处+checklist 段+#85 残面登记兑现注记随 nail 落（LEDGER ·支线树内改主仓路径文件随支线推·⛔主仓单独 commit 未犯）。
