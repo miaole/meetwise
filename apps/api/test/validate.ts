@@ -310,6 +310,11 @@ async function validate() {
     A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', (await rl.acquireSlot('sse-test', 2)) === true);
   }
   q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='answer'"); A('answer job 已落队列', q.rows[0].n === 1);
+  // [Q2-VALIDATE-SCENE-FIX] 场景自洽:本 harness api-only 无 worker,上方 BEG1/RACE begin + R1 turn
+  // 断言恰累积 userA queued job 3 条,ABND begin(第 4 条)将撞 Q2 入队背压闸 429,遮蔽本块受测的
+  // 额度预留/退还语义。闸前清 queued=模拟 worker 已消费积压(仅 queued 受闸·窄谓词不触他行他主)。
+  await db.pool.query("DELETE FROM interview_job WHERE owner_user_id='userA' AND status='queued'");
+  q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE owner_user_id='userA' AND status='queued'"); A('ABND 前 userA queued 已清空(api-only 场景自洽·防 Q2 背压闸 429 遮蔽预留语义)', q.rows[0].n === 0);
   // 放弃面试:退还预留额度(不漏扣)
   const balBefore = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body?.availableUnits ?? (await (async()=>{const r2=await fetch(base+'/commerce/entitlement',{headers:{'x-user-id':'userA'}});return ((await r2.json()) as { availableUnits: number }).availableUnits;})());
   r = await req('POST', '/interview/ABND/begin', { 'x-user-id': 'userA', 'resume-id': abandonResumeId }); A('ABND begin → 202(预留 1.0)', r.status === 202);
