@@ -145,7 +145,13 @@ async function main() {
   // the suite wait 90 seconds for an event that could never arrive.
   if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
   if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
-  const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
+  // worker 首拍门生效后启动窗内 /readyz/worker 恒 503，单发探测命中启动窗会假红 worker_not_ready——
+  // 与同函数 api livez 同形的有界重试环（40×1s，先睡后探），环尽不就绪才落既有败臂。
+  let workerReady = false;
+  for (let i = 0; i < 40 && !workerReady; i++) {
+    await sleep(1000);
+    try { const r = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`); workerReady = r.ok; } catch {}
+  }
   if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
 
   // B110 处方2: 隔离库播 admin 身份 + 铸测试令牌(注册面无 admin 入口,AdminGuard 只认 is_admin=true 行)。

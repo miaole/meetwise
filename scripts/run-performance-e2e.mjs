@@ -100,7 +100,13 @@ async function main() {
   await sleep(3_000);
   if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
   if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
-  const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
+  // 同 run-e2e.mjs：worker 首拍门启动窗内 /readyz/worker 恒 503，单发探测会假红——
+  // 40×1s 有界重试环（先睡后探），环尽不就绪才落既有败臂。
+  let workerReady = false;
+  for (let i = 0; i < 40 && !workerReady; i++) {
+    await sleep(1000);
+    try { const r = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`); workerReady = r.ok; } catch {}
+  }
   if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
   const test = spawnNode('performance', [ROOT + 'node_modules/tsx/dist/cli.mjs', 'e2e/performance.e2e.ts'], ROOT, { E2E_BASE: apiBase }, false);
   test.stdout.on('data', (data) => process.stdout.write(data));
