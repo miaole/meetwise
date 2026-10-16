@@ -45,7 +45,7 @@ const EXPECTED: [string, string][] = [
   ['resume-quiz.generate', 'v2'],
   ['resume-diagnosis.generate', 'v1'],
   ['planner.competencies', 'v4'],
-  ['interviewer.ask', 'v7'],
+  ['interviewer.ask', 'v8'],
   ['mock-interview.evaluate', 'v6'],
   ['resume.vision', 'v2'],
   ['report.generate', 'v3'],
@@ -93,8 +93,8 @@ async function main() {
   {
     const content = readFileSync(fileURLToPath(new URL('../src/prompts.ts', import.meta.url)), 'utf8');
     const blobSha = createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex');
-    A('prompts.ts 字节恒定面（git blob sha1=8db00e904cba04cf0c3d775719cb3f2937e8f104·REGISTRY 零字节改动）',
-      blobSha === '8db00e904cba04cf0c3d775719cb3f2937e8f104');
+    A('prompts.ts 字节恒定面（git blob sha1=899be6f2a348703250447c30a0f15d83e626a1e5·REGISTRY v8 随翻重钉(#51)·blob=插值）',
+      blobSha === '899be6f2a348703250447c30a0f15d83e626a1e5');
   }
 
   // ── 独立干净指标实例+基线播种；recording tracer 就位。 ────────────────────────────────
@@ -262,9 +262,9 @@ async function main() {
       && promptVersionSeries(renderBase).length === 9);
 
     const reg = metrics.render();
-    const askCount = seriesFor(reg, 'interviewer.ask', 'v7');
+    const askCount = seriesFor(reg, 'interviewer.ask', 'v8');
     const missCount = seriesFor(reg, '(unregistered)', 'none');
-    A('emit 恰一次/调用:registry 内(interviewer.ask×1+显式覆盖×1=v7 计 2)·registry 外/缺省计占位 2',
+    A('emit 恰一次/调用:registry 内(interviewer.ask×1+显式覆盖×1=v8 计 2)·registry 外/缺省计占位 2',
       askCount === 2 && missCount === 2);
 
     // 值域有界负证：渲染序列 label 值 ⊆ registry 版本∪'none' × registry service∪'(unregistered)'。
@@ -275,7 +275,7 @@ async function main() {
       all.length > 0 && all.every((s) => registryVersions.has(s.prompt_version) && registryServices.has(s.service)));
     A('注入不进标签负证:显式 spec.promptVersion 后无 caller-injected/ag19-explicit 系列诞生',
       !all.some((s) => s.prompt_version.includes('ag19-explicit') || s.prompt_version.includes('injected'))
-      && seriesFor(reg, 'interviewer.ask', 'v7') === askCount);
+      && seriesFor(reg, 'interviewer.ask', 'v8') === askCount);
   }
 
   // ── 臂 6（trace/Langfuse 附带+脱敏负证+AG-24 面零位移负证）。 ──────────────────────────

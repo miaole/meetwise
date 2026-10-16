@@ -7,7 +7,7 @@ import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
 import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type QuestionGenerationResult, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
-import type { AdaptiveDeps } from '@meetwise/ai-graphs';
+import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
@@ -376,6 +376,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
   // genQuestion 后读(retrieveAndGenerate 渲染进 interviewer.ask v7 的 <data> 不可信段)。
   // 作答摘要派生顺序钉死:stripScoringManipulation **先**、确定性截取 ≤200 字符**后**(禁倒置);
   // 证据弱点 criteria-only(quote 在评分消费面已弃,禁改传 quotes);原始作答仍禁入 state/checkpoint。
+  // #51:会话级摘要(session 参)=transcript checkpoint 派生,与本闭包单槽作答摘要互补,双段同在 <data> 围栏内。
   let lastFollowUp: FollowUpAskContext | null = null;
   // AG-F(刀F):统一 per-turn 掷序计数器——`:r{k}` 键单调递增零复用（键空间纪律:同键重掷=缓存回放
   // 同错 invoke.ts cached 臂;键复用撞 0088 canonical mismatch）。判重 re-roll/四类族 re-roll/换
@@ -392,7 +393,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
     absoluteMaxTurns: d.absoluteMaxTurns,
     graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
-    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit) {
+    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit, session?: SessionSummary | null) {
       // AG-37(检索 weighted-deficit 归零·修法③·裁决②a 第 8 additive 参):seed——genQuestion 读图
       // state 位 `weightedDeficit`（上一题写下的持久化值·旧 checkpoint/首题=null）经第 8 参传入,
       // 经 holder 写入 worker 检索闭包起跑值（interview-consumer 闭包读 ref·缺省臂全 0=现状字节）。
@@ -557,7 +558,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           },
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           // C6/S3:grounded 传选定事实(2-4 条);followUp=上轮上下文(闭包派生,不可信,buildData 封段标记)。
-          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined }, undefined, material),
+          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined, session: session ?? undefined }, undefined, material),
           // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
           onModelDelta: (delta: { text: string }) => tokenSink.pushDelta(delta.text),
         }, d.pool, d.owner);

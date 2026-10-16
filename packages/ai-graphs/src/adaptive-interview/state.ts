@@ -9,6 +9,7 @@ import {
   type QuestionKind,
   type ScoredCriterionDisposition,
 } from '@meetwise/domain';
+import type { SessionSummary } from './session-summary.ts';
 
 export interface Turn {
   questionId: string;
@@ -147,6 +148,15 @@ export interface AdaptiveDeps {
      * worker 闭包按全 0 起跑（现状字节保留为缺省臂）。
      */
     weightedDeficit?: number[] | null,
+    /**
+     * SESSION-SUMMARY-DEEPEN(#51·第 9 additive 参沿 asked 第 7/weightedDeficit 第 8 双先例):
+     * 会话级结构化摘要（checkpoint transcript 派生字段聚合·session-summary.ts 纯函数）——
+     * genQuestion 从 state.transcript 派生传入,worker 闭包渲染进 interviewer.ask v8「本场至今」
+     * <data> 不可信段。additive 可选:既有 scripted deps/直接调用零改（少参实现结构兼容）;
+     * 缺省/旧调用(undefined)=段不渲染=buildData 输出与 v7 逐字节一致。绝不新增图 state 字段
+     * （S3/C13/C15 纪律零破——摘要只从 transcript 已有 checkpoint 字段派生,零冗余零回放分叉）。
+     */
+    session?: SessionSummary | null,
   ) => Promise<QuestionGenerationResult | { question: string; sources: string[] }>;
   /** 评分故障必须 unscored，不能把 provider 不可用写成候选人 50 分；status 缺失兼容既有 scripted deps。 */
   /** identity 是已落库 pending question 的业务身份；评分内部 repair 必须复用它，绝不能另造回合。 */
@@ -235,3 +245,4 @@ export const AdaptiveInterviewState = Annotation.Root({
 });
 
 export type AdaptiveInterviewGraphState = typeof AdaptiveInterviewState.State;
+export type { SessionSummary, SessionTurnDigest } from './session-summary.ts';
