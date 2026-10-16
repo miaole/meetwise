@@ -222,6 +222,34 @@ EXEC/LIVE 期判读以下列四行矩阵为准（原判读谱句以此节替换�
 
 **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev 落卷后待席2 修订清单五条落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev 后重审·alone ≠ dual）；开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）。
 
+### §9-rev2 rev2 修订注记（rev 后确认席 REJECTED R1·P1+R2·P2+R3·P2 三条回路 · rev2 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§9-rev 零洗** · 本节为 EXEC 期对前文对应句的权威修正续篇 · 沿 §9-rev 先例形）
+
+> **确认席 REJECTED 定谳（rev2 席逐位亲证成立）**：**R1（P1）删除口径漏计 N3a**——§9-rev.1 修正值「+9/±3/−1」仍假：N3a 原定稿「词级加 `appendFileSync`（净行 0）」系对 `run-e2e.mjs:8` 现行行 `import { readFileSync, existsSync, mkdirSync } from 'node:fs';`（blob `f55330b1` @`0d41d2cb` `git ls-tree` 亲读零漂移）的**改写**——git numstat 对现行行改写照计 **+1/−1**（rev2 席 /tmp 沙盒双形实测：词级加词形=+1/−1·独立新行形=+1/−0——净行 0≠numstat 0），而 N3c helper 体用 `appendFileSync`（§1 面③ N3c 定稿行亲读）必触 import 面→EXEC 实测必 **+10/−2** 非 +9/−1→B5「删除 ∈[0,1]」假停。**R2（P2）**——§9-rev 定谳段（`:178`）「原 §1 判读谱『帧无+心跳停→形 b』」系**席2 FAIL 词转写·非原卷字面**（rev2 席亲读原卷 `:95` 判读谱句：形 a/形 b 字样 0 命中亲证）。**R3（P2·出处闭环·协调方提供）**——「13 滞留分支」出处=**pre-exec 双审席1 报告原文**「触三针文件的未并线分支恰 13 条·全部 tip=2026-10-08/09 滞留一周」，系该席**两-dot diff 口径**（rev2 席 ai-docs 全域「13 滞留/滞留一周」词面直扫零命中=「13」无仓内对象亲证·两-dot 直 diff 把「分支缺案 A 帧」反向计入产生大面积伪交叠·**merge-base+ahead 独有提交口径才是真值=实测滞留恰 2 支**）。rev2 三条修订如次·STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（§9-rev2.4）。
+
+#### §9-rev2.1 rev2-①（R1）——N3a 改形定稿（§1 面③ N3a 行 `:85`+面③ 头量 `:81` 权威修正 · 冻结条款处理=本节权威修正句覆盖·§1 原文零洗）
+
+- §1 面③ N3a「`:8` import fs 行｜词级加 `appendFileSync`（净行 0）」→「**`:8` 行后独立新行｜`import { appendFileSync } from 'node:fs';` 1 行**（沿面② N2a 同形·零触 `:8` 现行行）」——EXEC 期以本节为权威（原 N3a 词级加词形**作废**）。
+- 面③ 量级「+5/−1」（`:81`）→「**+6/−1**」·合计（`:92` 承 §9-rev.1 修正值处）→「**+10/±3/−1**（−1=面③ N3b `:187` 改写删除·预授权）·硬帽 +20/−1（不变）」。
+- **B5 判据行核对（零改）**：§9-rev.1 修正值「合计 ∈[6,15]∩删除 ∈[0,1]∩硬帽 ≤20/−1」对 rev2 后合计 **+10/±3/−1 成立**（10∈[6,15]·−1∈[0,1]·+10≤20·−1≤1·面③ +6∈[3,8]）——B5 原判据即可行使·零改（修订面最小）。
+- **§9-rev.1 对表值同步**：其「EXEC 期 numstat 实测 +9/−1 为准」→「EXEC 期 numstat 实测 **+10/−1** 为准」（其「合计 +9/±3/−1」→「合计 **+10/±3/−1**」·其余零改）。
+- **§9-rev.6 对表值同步**：B 段句对表值=「EXEC numstat 预期 **+10/−1**（面① +1/−0·面② +3/−0·面③ +6/−1）·B5 判据行原值行使」。
+- 独立新行形零新 warning 面亲证：`packages/config/eslint.config.base.mjs` 仅注册 `import/order`（`:74`）·无 `import/no-duplicates` 规则面（rev2 席亲读）——两 `node:fs` import 行并存零 lint 新 warning。
+
+#### §9-rev2.2 rev2-②（R2）——席2 词转写标注（§9-rev 定谳段 `:178` 补注 · 防后席按字面回查原卷误引）
+
+§9-rev 定谳段 P1-2 内「原 §1 判读谱『帧无+心跳停→形 b』」补注：「**席2 FAIL 词转写·非原卷字面（原卷 `:95` 判读谱句无形 a/形 b 字样·形 a/形 b 系席2 词与 §9-rev.2 四行矩阵的概括记号）**」——EXEC/后席期回查判读谱以 §9-rev.2 四行矩阵为权威·不以 `:178` 引文为原卷字面。
+
+#### §9-rev2.3 rev2-③（R3）——§8-① 哨位「13 滞留分支」出处与口径勘记（补一行 · 承 §9-rev.5-5 已登记哨位）
+
+§8-① 现场漂移哨位（§9-rev.5-5 登记处）补：「**『13 滞留分支』出处=pre-exec 双审席1 报告原文『触三针文件的未并线分支恰 13 条·全部 tip=2026-10-08/09 滞留一周』——系该席两-dot diff 口径（两-dot 直 diff 把『分支缺案 A 帧』反向计入产生大面积伪交叠·merge-base+ahead 独有提交口径才是真值=实测滞留恰 2 支）·EXEC 期此哨以 merge-base+ahead 口径复算为准**」——出处链=席1 报告原文经协调方转录（rev2 席 ai-docs 全域直扫零仓内对象·如实登记非本席复算）。
+
+#### §9-rev2.4 rev2 后门矩阵回执+STOP 状态
+
+- **markers**：rev2 增量行五类标记词+冲突对直扫零命中（词族运行时组装不誊卷·沿 §7/§9-rev.6 同形制）——命令与回执随交付报告。
+- **docs:check**：EXIT=0 实测值见 commit 回执（文件计数制·本 rev2 append 零新增文件→计数不变）。
+- **A3 diff 面**：恰 1 tracked=本卷 .md 纯 append 零删改·零他 tracked（三码面/backlog/checklist/LEDGER 对 `0d41d2cb` 零 delta 机检随 commit 回执）。
+- **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev2 落卷后随 §9-rev.7 同路：待落点确认（或协调方裁定）→重派 pre-exec 双审两独立外席（alone ≠ dual）；开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev2 恰 1 doc 纯 append 零码面）·Ban self-approve。
+
 ---
 
 *G7W-DIAG-NEEDLES REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`**（起草席落卷终态 · 三处一致=Status 头/§8/卷尾）· ⛔push ⛔merge 主线 · alone ≠ dual · base `feat/mysql-schema-skeleton` @`d5dc0726`（=fetch 后 origin tip 恰等派单下界「origin tip≥最新」ai-graphs nail 波）· worktree `meetwise-gdn` · branch `line/g7w-diag-needles`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令三针原文+案 A 卷 `62ffaffa` §9-LIVE 新红证据基座+backlog `:108` P1 OPEN+案 A/案 B/7a_diag/consent-capture 先例链+LEDGER `:493`/`:484` · 读码三项=R2 循环零帧/batchWallClock 只差中途落盘/红路 stderr 即弃三缺口（0.2a）+NDJSON 新二缝白名单（0.2b）+est live 口径（0.2c）· 修法=面① full.e2e.ts R2 退出帧 +1/−0（`:519` 前·deadline 到期形钉死）+面② interview.ts 心跳中途落盘 +3/−0（N=5·四循环·防自伤）+面③ run-e2e.mjs 红路 tsx stderr 尾量 +5/−1（32KiB cap·两红臂·withhold 三证）· 合 +9/±3/−0 硬帽 +20/−0 · ledger 26≤32 零变更 · 零 A() 零产品码零迁移零第三码面 · 门矩阵=A 段起草三锚（docs:check 2194≤2200+markers+diff 恰 1）+B 段 EXEC 七门（typecheck:e2e/lint/e2e-helpers:prove/静态门族/码面 diff/通道双查/判别 run LIVE 另授）· 迁移号=零 · est live=0 · `actualSpendCny=null` · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
