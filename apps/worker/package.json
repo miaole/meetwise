@@ -16,6 +16,7 @@
     "prove:voice": "tsx test/voice.proof.ts",
     "prove:interview": "tsx test/interview.proof.ts",
     "prove:session-summary": "tsx test/session-summary.proof.ts",
+    "prove:context-budget-wire": "tsx test/context-budget-wire.proof.ts",
     "prove:stress": "tsx test/context-stress.proof.ts",
     "prove:quiz": "tsx test/quiz.proof.ts",
     "prove:diagnosis": "tsx test/diagnosis.proof.ts",
