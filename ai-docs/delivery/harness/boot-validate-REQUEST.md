@@ -1,6 +1,6 @@
 # BOOT-VALIDATE 启动校验三态小刀（批5 盘点 Top4 · #244 PREVIEW 三态归一单源 + #245 注册零半成功 + #246 env 启动期聚合 · 起草 REQUEST · 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停 · pre-exec 双审两外席待开 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 §9 · post-prove 双审两外席待派 · Ban self-approve · alone≠dual · Dual PASS ≠ nail（PASS 只过审·nail 须协调方明示授权）· ⛔push）
 **席位**：BOOT-VALIDATE 启动校验三态小刀诊断+起草席（协调方派单·批5 盘点席 Top4「三件一卷零迁移」·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `5c8e122c`（本席亲 fetch 亲证 origin tip=`5c8e122c`·派单下界「tip≥5c8e122c」以等号成立亲证·docs:check 2202≤cap 2208 本席本树亲跑 EXIT=0）· 分支 `line/boot-validate`（本席 `git worktree add ../meetwise-bv -b line/boot-validate` 亲立·建树先落本地 `93b3db5a` 亲证其=origin tip 祖先后 `git merge --ff-only 5c8e122c` 快进归位·分支零自造 merge 节点·⛔pull --rebase 未用）· 工作树 `meetwise-bv`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-16·批5 盘点席 Top4·三件一卷零迁移·靶=#244/#245/#246·量级≤1 天即起草）；②brief 三件原文（#244 MEETWISE_PUBLIC_PREVIEW 严格三态前后端各读各·非常值 API 启动行为分歧 / #245 缺 AUTH_SECRET 时注册半成功：先落 user_account 再 500 / #246 RESUME_ENC_KEY/HASH_SECRET 长度仅首传校验（<16 抛 500）非启动期·本席逐件源级亲证成立见 §1）；③issues-master 三行原文**仓外待补**（协调方持有·沿 obs-family REQUEST §立项出处④ Q1 先例·EXEC 立项时如已入卷照 §0 协议补锚）；④**编号同词异源防误并登记**：LEDGER :87 组标签在册的「#248/#245/#246 分 4 子刀（OBS…）」系 5C-OBS 子刀三行（语义=apiReady 原因位/runner 探测环/访问行 query 剥离·obs-family 卷已 nail 收官）——与本刀批5 盘点 #244/#245/#246（语义=env 启动校验/PREVIEW 三态/注册事务边界）**同编号词不同登记源**·本刀不触不并不宣称（§3-7）。
@@ -8,6 +8,8 @@
 ---
 
 ## §0 现状锚（起草席亲读·file:line+blob 逐条 Read/git hash-object 实测 @`5c8e122c`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+> **EXEC 重 pin 记（2026-10-16·届树=merge `b96ec58f` --no-ff 并 `origin/feat/mysql-schema-skeleton@10799a3e`）**：§0.1 二十 blob（十五主锚+五证锚）`git hash-object` 亲算**全数恒等**=零漂移·行号零漂·停止条件①未触发。一处行锚勘误随落：**web-middleware.proof 非常值 throw 臂 regex 钉实位 `:92`**（起草记 `:88-91` 系区间误记·pre-exec P2-3 勘误·blob `9cc997bb` 恒等亲证·proof 文件零触）。merge 携入=worker-hang-guard 波（apps/worker src+test+其 REQUEST+SSOT 两 docs）·与本刀二十锚零交集亲证。
 
 ### 0.0 防重三对表
 
@@ -115,7 +117,7 @@
 2. **env-schema 门**：`pnpm env-schema:prove`（**isolated 包装·raw 直跑红形=§0.2-3 登记非回归**）EXIT=0——22 既有臂逐字存活（pre/post 清单 diff=恰件④新增·零既有臂 diff）+新臂全绿（预期 ≥28/28）。
 3. **write-gate 邻面**：`pnpm public-preview-write-gate:prove` EXIT=0（`public-preview.ts` 委托后行为恒等承载）。
 4. **web 邻面三门**：`pnpm -C apps/web prove:middleware`（36 臂）+`prove:authz5a2-csp`（18 臂）+`prove:public-copy`（`:296` 词面钉臂·锁读者零触直证）全 EXIT=0。
-5. **obs-ready 邻面**：`pnpm obs-ready:prove`（isolated）EXIT=0（15 臂·configReady 联动面零漂承载）。
+5. **obs-ready 邻面**：`pnpm obs-ready:prove`（isolated）EXIT=0（15 臂·configReady 联动面零漂承载）。**EXEC 勘误（pre-exec P2-1·席1）**：臂数 15→**18**（起草误记·EXEC 亲跑 18/18 全绿承载）。
 6. **typecheck 门**：`TURBO_DAEMON=false pnpm turbo typecheck --force` EXIT=0（8/8 0 cached 口径）。
 7. **lint 门**：root `pnpm lint` + `pnpm -C apps/api lint`（**1421 贴边零余量**）+`pnpm -C packages/contracts lint`（预算 265 内）亲跑实测——零新增 warning 为预期·漂移即停如实登记归因（**Ban 借机修 lint**）。
 8. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 2202·本卷 +1→**2203 ≤ cap 2208 余 5**·>2208 红即停上报·cap sanction 权归协调方）。
@@ -155,7 +157,7 @@
 
 ## §8 STOP（开工三条款 + 待双审/EXEC 裁决项）
 
-**STOP · `draft:awaiting_pre_exec_dual`（pre-exec 双审两外席待开 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。）** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（env-schema.ts 被他刀改/三态 resolver 语义被改/signup 写点链被改/锁读者词面被改）→停·重 pin 回炉；**机制不满足**=件①②③④落位后 §2-2/3/4 命中红（既有臂非预期外有 diff/新臂不绿/错误词漂）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/main.ts/web boot 位/锁读者/SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/lint 贴边漂移/docs:check>2208）且根因不在本刀交付面→停·如实登记（Ban 借机修）。
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 已落卷=§9 · post-prove 双审两外席待派 · alone≠dual · Dual PASS ≠ nail（PASS 只过审·nail 须协调方明示授权）。前值 `draft:awaiting_pre_exec_dual`=史录。）** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（env-schema.ts 被他刀改/三态 resolver 语义被改/signup 写点链被改/锁读者词面被改）→停·重 pin 回炉；**机制不满足**=件①②③④落位后 §2-2/3/4 命中红（既有臂非预期外有 diff/新臂不绿/错误词漂）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/main.ts/web boot 位/锁读者/SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/lint 贴边漂移/docs:check>2208）且根因不在本刀交付面→停·如实登记（Ban 借机修）。
 
 **待双审/EXEC 裁决项**：
 - **①RESUME 双键 prod 缺失语义追认（§1-件①）**：镜像 requireSecret=prod 缺失列 problem+非 prod 缺失放行（dev 默认钥）——推荐=追认（逐字镜像零发明）vs prod 无条件必需（破坏 dev 人体工学·反 `:15` dev 支设计）。
@@ -164,6 +166,57 @@
 - **④零迁移确认（§0.3）**：预期零；若 EXEC 复判需迁移→§0.3 协调规则。
 - **⑤行关闭效力**：EXEC 命中门矩阵全绿+post 双审 BOTH PASS→批5 盘点 #244/#245/#246 三行（仓外 issues-master/协调方持有·编号同词异源防误并§立项出处④）的关闭/翻面登记权归协调方 nail（本刀交付读数·不宣称关闭）。
 
+## §9 EXEC 记录（EXEC 席落卷 2026-10-16·七字段+双审修订五件落点+部署注意呈报·STOP→`executed:awaiting_post_prove_dual`）
+
+**授权链**：起草落卷 `f7815f3d` → pre-exec 双审会签 **PASS×2**（席1 `agent_346a7088`+席2 `agent_94b949a9`·§8 五待裁全追认·修订五件 P2 随 EXEC 落）→ 协调方授权 EXEC → EXEC 本卷（merge `b96ec58f` --no-ff 并 `origin/feat/mysql-schema-skeleton@10799a3e`·派单下界「届时 tip≥10799a3e」等号成立亲证·**零冲突**·⛔pull --rebase 未用）。
+
+**① §0 重 pin**：届树二十 blob（十五主锚+五证锚）全数恒等·停止条件①未触发——详 §0 头「EXEC 重 pin 记」（内含 web-middleware proof 行锚 :92 勘误）。
+
+**② 门矩阵十一门+卫生全表**（并线树 `b96ec58f` 基·交付 commit 前亲跑）：
+
+| # | 门 | 判据 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|---|
+| 1 | env-schema（根 isolated 包装） | EXIT=0·22 既有臂逐字存活+新臂全绿（预期 ≥28/28） | **30/30 全绿**=既有 22（A1-A10/B1-B3/C1/D1/E1-E4/F1-F3 名录 diff 恰件④新增·零既有臂 diff）+新 8 臂 | 0 | 绿 |
+| 2 | write-gate 邻面 | EXIT=0（委托后行为恒等承载） | **110 assertions ✓**（`1`/`null`→throw 词面钉=write-gate proof :69 直转型等价亲证） | 0 | 绿 |
+| 3 | web 邻面三门 | middleware 36+authz5a2-csp 18+public-copy 词面钉 | **36 ✓+18 ✓+public-copy 14/14**（static_preflight_valid·:296 `MEETWISE_PUBLIC_PREVIEW === '1'` 词面钉零触直证） | 0 | 绿 |
+| 4 | obs-ready 邻面（isolated） | EXIT=0（**18 臂**=P2-1 勘误值） | **18/18 全绿** | 0 | 绿 |
+| 5 | neg authz 段门（isolated） | EXIT=0·断言数改前冻结 | **179 条负路径用例全绿**（neg-bend.proof.ts 零触承载） | 0 | 绿 |
+| 6 | typecheck | 8/8·0 cached | 8 successful, 8 total · Cached: 0 | 0 | 绿 |
+| 7 | lint 五值 | root 5235+api **1421 贴边**+contracts 预算 265 | root **5235** 恰等+api **1421** 恰等（中途 +14 红自纠·见 §9-⑥偏离1）+contracts **265/265** 恰等 | 0 | 绿 |
+| 8 | docs:check | EXIT=0·≤cap 2208 | **2205 ≤ 2208 余 3**（§9 落卷后终树复跑值·PTP 公开文字政策含本地路径/标记词两违例中途自纠归零） | 0 | 绿 |
+| 9 | markers | 改动集五类词零命中+est live=0 臂绿 | 改动集 8 文件直扫四标记词+行首冲突标记**零命中**（词表沿 `scripts/i6-239-gates.proof.mjs` 运行时组装口径·词面不誊防自匹配）·门 1-4 证尾 est live=0 臂绿在卷 | 0 | 绿 |
+| 10 | diff 面 | 恰 8 tracked 路径 | 7 修改+1 新增（`packages/contracts/src/public-preview.ts`）·tsbuildinfo 门副产 checkout 回滚·锁读者五处/main.ts/middleware.ts/layout.tsx/packages/ai-runtime/packages/db/migrations/SSOT 四卷零入 diff（`git status` 词面机检） | 0 | 绿 |
+| 11 | 零迁移 | 改动集零 SQL 零新表 | diff 零迁移文件零 SQL（§0.3 预期零实证） | 0 | 绿 |
+| 卫生 | frozen-lockfile+est live | lockfile 零改·纯本地 | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改 · est live=0（零模型外呼零容器新面·isolated PG 用后即焚）·`actualSpendCny=null` | 0 | 绿 |
+
+**③ 新臂账（件④·恰 8 新·既有 22 逐字零改）**：P1 PREVIEW 合法三态（剔除/'0'/'1'）→ok；P2 非常值（''/'true'/' 1'/'2'）→`invalid:MEETWISE_PUBLIC_PREVIEW:strict_three_state` 单列（空串不视同缺失）；P3 RESUME_ENC_KEY 15 字符→`invalid:min_length_16`；P4 恰 16 字符→ok（下界含等号）；P5 prod 缺 RESUME_HASH_SECRET（ENC 合法注入）→`missing:RESUME_HASH_SECRET:prod_required` 精确单列+非 prod 同态→ok（dev 默认支）；P6 双键同坏+PREVIEW 非法同现→problems 一次列全三（聚合不短路）；P-SRC1 AUTH_SECRET 前置校验行 index<网关写点 index（源级机检）；P-SRC2 `auth_not_configured` 错误词在 auth.service 源+网关写点恰 1。纯 parse 6+signup 源级 2=判据 ≥6+≥2 恰等。
+
+**④ diff numstat（对并线落点 `b96ec58f`）**：auth.service.ts +5/−0（件③）·env-schema.ts +40/−2（件①）·platform/public-preview.ts +6/−3（件②api 委托）·env-schema.proof.ts +47/−0（件④）·web/lib/public-preview.ts +3/−6（件②web 委托）·contracts/package.json +2/−1（件②exports 子径）·contracts/src/public-preview.ts 新增（件②真源）·本 REQUEST +§0 重 pin 记/§2-5 勘误/§8 STOP/§9（harness 推进注记 append-only）。**恰 8 tracked 路径**。
+
+**⑤ 双审修订五件落点（P2 账·全落）**：
+- **P2-1（席1·obs-ready 15→18 勘误）**→ §2-5 内联勘误注记+§9 门 4 实测 18/18。
+- **P2-1（席1·件② api 委托直转型）**→ platform/public-preview.ts 委托体 `resolvePublicPreview(raw as string | undefined)`——**零类型收窄改写**（无 typeof 分支·非 string raw 不降级 unset）·write-gate :69 `1`/`null`→throw 钉面等价亲证（门 2 110 ✓）。
+- **P2-2（席1·件① 纯函数形+两分支并入）**→ `resumeSecretProblems(env)` NODE_ENV 自 env 参取（不读 process.env）·`parseCriticalEnv` success/fail 两分支均并入 resumeProblems（P5/P6 臂承载）。
+- **P2-3（席2·web-middleware proof 行锚 :88-91→:92）**→ §0 EXEC 重 pin 记勘误登记（proof 文件零触·blob 恒等）。
+- **P2-2（席2·worker 覆盖面维持登记）**→ worker 零 RESUME 消费面（`packages/db` resume.ts 惰性工厂仅 api 上传链消费·worker src 零 import 亲证）·api 侧 boot 聚合+signup 前置校验完备·worker 零字节零臂（diff 面亲证）。
+
+**⑥ 部署注意呈报（P2-1·归协调方/用户）**：件① 聚合扩展生效后，**prod 部署若 RESUME_ENC_KEY/RESUME_HASH_SECRET 任一短钥（<16 字符）将在 boot 即拒启**（`env_schema_invalid: invalid:<KEY>:min_length_16` 聚合列全·前行为惰性首调 500 不挡启动）。compose `${VAR:?}` 仅挡缺省/空串**不挡短钥**（docker/compose.prod.yml:20-21·docker/compose.ha.yml:60-61 亲读）——**现网双钥长度核查归协调方/用户在部署升级前完成**；本刀不改 compose（Ban 面）·呈报即义务履行。
+
+**⑦ 偏离清单（理想零·登记两条非越面自纠/基线漂移）**：
+1. **api lint 中途 +14 红自纠（非偏离终局·自纠归因在案）**：件④ 新臂 env 名对象字面量键触发 naming-convention（1435>1421 贴边）——根因在本刀交付面（非「验收红不可修」停止条件·非 Ban 借机修 lint 的「借机」），沿 authz34-chunked-cap.proof.ts 行内豁免先例形（env 名=外部 wire 字面值不可改名）自纠：proof env 注入改成员赋值形（`envWith` helper）+wire 字面基座单点豁免，api lint 复归 **1421 恰等 EXIT=0**。断言强度零弱化（同键同值臂逐字等价·门 1 复跑 30/30）。
+2. **docs:check 基线漂移登记（非违约）**：任务书 §2-8 预期「本卷 +1→2203 余 5」——merge 携入 worker-hang-guard nail 使并线树基线=2203（origin tip 卷尾亲证值），本刀落卷后终树复跑=**2205 余 3 ≤ cap 2208**（contracts 新受管文件 +1+worker 卷 managed 计入差 +1·如实登记防误判）；§9 手迹两违例中途自纠（markers 行误誊四词面+七字段行本地路径各 1·PTP 红→归零复绿 EXIT=0）。
+
+**⑧ pins 零翻声明+停止条件判定**：§5 pins 全值对届树复验恰等（PREVIEW 合法值集 {undefined,'0','1'}/错误词逐字冻结/RESUME 最小 16 含等号/prod 缺失码/聚合前缀 `env_schema_invalid`/22·36·18 臂/typecheck 8/8/lint 三值/docs cap 2208/迁移 0/diff 8 tracked/est live=0）。停止条件四类逐条判定：①现场漂移——**未触发**（二十 blob 恒等）；②机制不满足——**未触发**（既有臂零 diff+新臂全绿+错误词恒等）；③越界需要——**未触发**（零迁移零 main.ts/锁读者/SSOT/web boot 位诉求）；④验收红不可修——**未触发**（唯一中途红 lint +14 根因在交付面·自纠复绿）。
+
+**⑨ 七字段（SOP trace）**：
+- **任务类型**：EXEC 席落码（boot-validate 启动校验三态小刀·契约定稿四件+十一门矩阵·L2+ 经 pre-exec 双审 PASS×2+协调方授权链）。
+- **工作区范围**：worktree `meetwise-bv`（仓根同级·分支 `line/boot-validate`·恰 8 tracked 路径·零他树触碰）。
+- **来源证据**：任务书 §0 二十锚重 pin 全恒等+§1 红事实三件源级亲读（本卷在卷）+门矩阵十一门 EXIT 收据（§9-②）+双审修订五件（协调方派单令载·落点 §9-⑤）。
+- **已读文档**：本任务书全文·`AGENTS.md`·`ai-docs/README.md`·`ai-docs/meta/task-sop.md`·worker-hang-guard-REQUEST §9.8（EXEC 记录先例形）·`scripts/i6-239-gates.proof.mjs`（markers 词表运行时组装口径）·`packages/config/eslint.config.base.mjs`（naming-convention 形）+件①②③④八路径源文件全文。
+- **跳过文档及原因**：`ai-docs/rules/*`（本刀零新规则面·契约由任务书 §1-修法定稿承载）·`ai-docs/product|requirements|architecture/*`（契约定稿面零涉·起草席已按 §0 亲证消费点）——L2+ 治理以双审会签+任务书契约为准·非 freehand。
+- **结论状态**：`executed:awaiting_post_prove_dual`（EXEC 落卷·门矩阵全绿·post-prove 双审两独立外席待派·行翻面权归协调方 nail）。
+- **验证命令**：§9-② 全表 11 门+卫生逐条亲跑 EXIT 在卷（env-schema/write-gate/middleware/authz5a2-csp/public-copy/obs-ready/neg:bend/typecheck/lint×3/docs:check/frozen-lockfile/markers/diff 机检）。
+
 ---
 
-*BOOT-VALIDATE REQUEST · 2026-10-16 起草 · **STOP=`draft:awaiting_pre_exec_dual`（pre-exec 双审两外席待开·本卷不预 claim 任何 post-commit EXIT）** · 起草 base=`feat/mysql-schema-skeleton` @`5c8e122c`（本席亲 fetch·origin tip 等号成立亲证·⛔pull --rebase 未用）· 分支 `line/boot-validate` · 工作树 `meetwise-bv`（本起草席立·建前 branch/worktree/同名卷三查不存在）· 立项出处=协调方派单 brief（批5 盘点席 Top4·三件一卷零迁移）+三件原文源级亲证成立（#244 三态两份 throw 形复制+五处静默直比·同一非常值 api boot 拒启/web 逐请求 500/锁读者静默 false 三行为分歧 + #245 gateway 写点→issue 500 半成功中间态·重试 409 撞死 + #246 requireSecret <16 惰性首调·启动零校验）· 修法三件+proof 件=env-schema 聚合扩展（preview 严格三态+RESUME 双键 min16/prod 缺失·稳定码三项）+PREVIEW 单源下移 contracts 子径（api/web 委托·锁读者零触）+signup 校验前置（auth_not_configured 前移写点前·零半成功）+22 既有臂冻结+新臂 ≥8 · 触面=8 tracked 路径恰类 · 零迁移零锁读者触零 SSOT 触 · est live=0（起草 turn）· markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · ⛔merge主线 · STOP*
+*BOOT-VALIDATE REQUEST · 2026-10-16 起草 · **STOP=`executed:awaiting_post_prove_dual`（EXEC 落卷=§9·post-prove 双审两外席待派·前值 `draft:awaiting_pre_exec_dual`=史录）** · EXEC 并线=merge `b96ec58f` --no-ff 并 `origin/feat/mysql-schema-skeleton@10799a3e`（下界等号成立亲证·零冲突）· 起草 base=`feat/mysql-schema-skeleton` @`5c8e122c`（本席亲 fetch·origin tip 等号成立亲证·⛔pull --rebase 未用）· 分支 `line/boot-validate` · 工作树 `meetwise-bv`（本起草席立·建前 branch/worktree/同名卷三查不存在）· 立项出处=协调方派单 brief（批5 盘点席 Top4·三件一卷零迁移）+三件原文源级亲证成立（#244 三态两份 throw 形复制+五处静默直比·同一非常值 api boot 拒启/web 逐请求 500/锁读者静默 false 三行为分歧 + #245 gateway 写点→issue 500 半成功中间态·重试 409 撞死 + #246 requireSecret <16 惰性首调·启动零校验）· 修法三件+proof 件=env-schema 聚合扩展（preview 严格三态+RESUME 双键 min16/prod 缺失·稳定码三项）+PREVIEW 单源下移 contracts 子径（api/web 委托·锁读者零触）+signup 校验前置（auth_not_configured 前移写点前·零半成功）+22 既有臂冻结+新臂 ≥8 · 触面=8 tracked 路径恰类 · 零迁移零锁读者触零 SSOT 触 · est live=0（起草 turn）· markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · ⛔merge主线 · STOP*
