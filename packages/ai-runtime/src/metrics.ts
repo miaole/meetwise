@@ -107,6 +107,9 @@ export const METRIC = {
   modelInvocationUnknownBacklog: 'model_invocation_unknown_backlog',
   // UC-028 fail-open(NHP-028-FAULT-01):ai_invocation_trace 写失败(fail-open 旁路)的结构化观测计数。
   aiTracePersistFailures: 'ai_trace_persist_failures_total',
+  // UC-028 丢失率分母:trace 持久化尝试总数(成功+失败都过 persistTraceBestEffort 入口计一次);
+  // 与上行分子配对后丢失率=failures/attempts(PromQL 侧除法,零新 gauge)。
+  aiTracePersistAttempts: 'ai_trace_persist_attempts_total',
   langfuseTracingState: 'langfuse_tracing_state',
   langfuseExportFailures: 'langfuse_export_failures_total',
   // AG-COST1 #48 观测(只观测不改计费):cached prompt token 计数 + 缓存字段三态在场性。
@@ -160,6 +163,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
   m.inc(METRIC.aiTracePersistFailures, undefined, 0);
+  m.inc(METRIC.aiTracePersistAttempts, undefined, 0);
   for (const result of ['terminalized', 'enumeration_failed', 'owner_failed', 'backlog_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);

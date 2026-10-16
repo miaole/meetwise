@@ -214,14 +214,24 @@ async function until(cond: () => boolean, timeoutMs: number, stepMs = 25): Promi
   // the exact behavior that re-greens sse-slot / uc010 unmodified; constraint ③).
   // NOTE: undici 不冲刷 hijack 响应的 headers——首 body 字节(此处=首个 ping)才一并到达,
   // 故延迟锚 = 请求发起时刻(非 fetch resolve 时刻)。
+  // 退化双臂(语义升级非弱化):loseClient→wakeAllWaiters 兑现后,首 ping=唤醒即取数(即时补偿拉取,
+  // <1000ms 较修前无唤醒的 ≥1800ms 收紧);退避节奏=唤醒驱动且被 legacy 2s 计时器封顶——失败重连每次
+  // wake 都唤醒等待者(早段间隔=重连退避节奏<2s),backoff 超 2s 后由 2s 计时器接管,绝无 30s 兜底沉睡。
   const S0 = 'IV_SSEPUSH0';
   await seedStream(S0, [{ seq: 1, kind: 'progress', payload: { pct: 10 } }]);
   const t0a = Date.now();
   const r = await openSse(S0, 1);
   const gotPing = await until(() => r.text().includes(': ping'), 3600);
-  const pingDelay = gotPing ? r.chunks.find((c) => c.text.includes(': ping'))!.t - t0a : -1;
-  A(`P-2a 退化=legacy 2s 轮询(真实 HTTP):首 ping 延迟 ${pingDelay}ms ∈[1800,3600](30s 兜底不可能绿)`,
-    gotPing && pingDelay >= 1800 && pingDelay <= 3600);
+  const firstPingMs = (r.chunks.find((c) => c.text.includes(': ping'))?.t ?? t0a) - t0a;
+  const pingCount = () => (r.text().match(/: ping/g) ?? []).length;
+  const gotFourPings = await until(() => pingCount() >= 4, 9000);
+  const pingTimesAll = r.chunks.filter((c) => c.text.includes(': ping')).map((c) => c.t);
+  const gaps = pingTimesAll.slice(1).map((t, i) => t - pingTimesAll[i]!);
+  const maxGap = gaps.length ? Math.max(...gaps) : -1;
+  A(`P-2a 退化=掉线唤醒即取数(真实 HTTP):首 ping 延迟 ${firstPingMs}ms <1000(wakeAllWaiters 唤醒兑现·非 30s 兜底)`,
+    gotPing && firstPingMs >= 0 && firstPingMs < 1000);
+  A(`P-2a 退化=legacy 2s 封顶 cadence(真实 HTTP):连续 ${gaps.length} 个 ping 间隔 max ${maxGap}ms ≤2100(唤醒驱动+2s 封顶·30s 兜底不可能绿)`,
+    gotFourPings && gaps.length >= 3 && gaps.every((g) => g > 0 && g <= 2100) && maxGap >= 1000);
   await r.abort();
   await until(() => notify.waitingCount() === 0, 2000);
   A('P-2a 断开后 router 归零(退化态 waiter 同样无泄漏)', notify.waitingCount() === 0);
@@ -542,6 +552,125 @@ function startPump(sink: Sink, o: {
   await notify.stop();                                         // 计划内关停 ≠ 降级
   await sleep(120);
   A('P-2d 计划关停不打降级日志(关停 ≠ 退化转变)', logs.length === logCountBeforeStop);
+}
+
+// ═══ P-2d N1-N6 · LISTEN 掉线唤醒臂族(loseClient→wakeAllWaiters:跨流全醒·补偿拉取/失败收尾·重连重放) ═════════════════
+// 语义(sse-notify.service.ts):LISTEN 掉线 loseClient 唤醒全部在册等待者→被醒泵循环头即读 health()=false
+// 回落 legacy 2s cadence+fetchMore(lastSeq) 立即补偿拉取;sse-pump.ts 零字节(既有语义零改,补偿失败
+// null→break 收尾→客户端 Last-Event-ID 重连重放兜底零丢失)。
+{
+  console.log('\n──────── P-2d N1-N6 · 掉线唤醒臂族(掉线即醒·跨流全醒·补偿拉取失败收尾·重连重放) ────────');
+
+  // N1 掉线即醒:健康建立→waitFor→client emit('end')→waiter <100ms resolve+health()=false reason=listen_down。
+  {
+    const logs: string[] = [];
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: (l) => logs.push(l), random: () => 0 });
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const w = notify.waitFor('UNIT_N1');
+    const t0 = Date.now();
+    client!.emit('end');
+    const woke = await Promise.race([w.promise.then(() => true), sleep(300).then(() => false)]);
+    const wakeMs = Date.now() - t0;
+    A(`P-2d N1 掉线即醒:emit('end') 后 waiter ${woke ? `${wakeMs}ms` : '未'}resolve(<100ms 不等注入 fallback)+health()=false reason=listen_down`,
+      woke && wakeMs < 100 && !notify.health().healthy && (notify.health() as { reason?: string }).reason === 'listen_down');
+    await notify.stop();
+  }
+
+  // N2 跨流全醒:双流三 waiter 掉线窗全 resolve(唤醒=跨流全醒,非单流)+在册归零。
+  {
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const wA1 = notify.waitFor('UNIT_N2A');
+    const wA2 = notify.waitFor('UNIT_N2A');
+    const wB1 = notify.waitFor('UNIT_N2B');
+    client!.emit('end');
+    const allWoke = await Promise.race([Promise.all([wA1.promise, wA2.promise, wB1.promise]).then(() => true), sleep(500).then(() => false)]);
+    A('P-2d N2 跨流全醒:双流三 waiter 掉线窗全 resolve+waitingCount 归零(全醒非单流)', allWoke && notify.waitingCount() === 0);
+    await notify.stop();
+  }
+
+  // N3 泵补偿拉取臂(30s 兜底注入):掉线唤醒→fetchMore 即调(不等 30s 兜底);补偿失败(null)→泵帧边界
+  // break 收尾(sse-pump 既有语义零改);客户端 Last-Event-ID 重连重放掉线窗持久化事件(零丢失)。
+  {
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });
+    let fetches = 0;
+    const sink = fakeSink();
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_N3', notify, fallbackMsHealthy: 30_000, lastId: 100,
+      fetchMore: async () => { fetches += 1; return null; },     // 补偿拉取注入失败(null→泵 break 收尾语义原值)
+    });
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const tDown = Date.now();
+    client!.emit('end');
+    const exited = await Promise.race([finished.then(() => true), sleep(1500).then(() => false)]);
+    const exitMs = Date.now() - tDown;
+    A('P-2d N3 泵补偿拉取臂:掉线唤醒后 fetchMore 即调恰 1 次(不等 30s 兜底)', fetches === 1);
+    A(`P-2d N3 补偿失败收尾臂:fetchMore null → 泵帧边界 break 收尾(${exited ? `${exitMs}ms` : '未'}退出 <1000ms·既有语义零改)`, exited && exitMs < 1000);
+    await notify.stop();
+
+    // 重连重放腿:客户端以 last-event-id=100 重连→控制器按游标重放掉线窗持久化事件(initial catch-up 语义原值)。
+    const notifyR = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sinkR = fakeSink();
+    const finishedR = pumpSseEvents({
+      reply: sinkR.reply as unknown as FastifyReply,
+      reqRaw: sinkR.reqRaw,
+      streamKey: 'UNIT_N3R',
+      initial: { lastId: 100, rows: [{ seq: 101, kind: 'progress', payload: { z: 1 } }] },
+      fetchMore: async () => ({ rows: [] }),
+      isTerminal: () => false,
+      notify: notifyR,
+      fallbackMsHealthy: 30_000,
+    });
+    await Promise.race([notifyR.whenHealthy(), sleep(2000)]);
+    sinkR.reqRaw.emit('close');
+    await Promise.race([finishedR, sleep(1500)]);
+    A('P-2d N3 客户端 Last-Event-ID 重连重放零丢失:重连按游标 100 重放掉线窗持久化事件 seq 101(帧三段原值·零丢失)', sinkR.writes.join('').includes('id: 101\nevent: progress\ndata: {"z":1}\n\n'));
+    await notifyR.stop();
+  }
+
+  // N4 trigger_missing 同醒:trigger 实证空→同走 loseClient→等待者被醒(同路全醒非 listen_down 专属)。
+  {
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient({ triggerPresent: false }); return client; }, log: () => {}, random: () => 0 });
+    const w = notify.waitFor('UNIT_N4');
+    const woke = await Promise.race([w.promise.then(() => true), sleep(1000).then(() => false)]);
+    A('P-2d N4 trigger_missing 同醒:trigger 实证空→loseClient 同路唤醒等待者+health reason=trigger_missing',
+      woke && !notify.health().healthy && (notify.health() as { reason?: string }).reason === 'trigger_missing');
+    await notify.stop();
+  }
+
+  // N5 源级臂:loseClient 函数体含 wake 唤醒词面(includes 形沿 BP-4 先例·零行号锚)。
+  {
+    const notifySrc = readFileSync(fileURLToPath(new URL('../src/platform/sse-notify.service.ts', import.meta.url)), 'utf8');
+    const at = notifySrc.indexOf('private loseClient');
+    const loseBody = at >= 0 ? notifySrc.slice(at, at + 480) : '';
+    A('P-2d N5 源级:loseClient 函数体含 wakeAllWaiters 唤醒调用+快照遍历词面在场(includes 形·零行号锚)',
+      loseBody.includes('this.wakeAllWaiters()') && notifySrc.includes('private wakeAllWaiters') && notifySrc.includes('[...this.router.values()]'));
+  }
+
+  // N6 卫生臂:醒后 entry 全自除(self-removing resolve)+dispose 幂等零抛+醒后可再注册。
+  {
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const w1 = notify.waitFor('UNIT_N6');
+    const w2 = notify.waitFor('UNIT_N6');
+    client!.emit('end');
+    await Promise.race([Promise.all([w1.promise, w2.promise]), sleep(500)]);
+    let reRegisterOk = false;
+    try {
+      w1.dispose();                                              // 醒后 dispose=幂等 no-op(不得抛)
+      const w3 = notify.waitFor('UNIT_N6');
+      reRegisterOk = notify.waitingCount() === 1;
+      w3.dispose();
+    } catch { reRegisterOk = false; }
+    A('P-2d N6 卫生臂:醒后 entry 全自除(waitingCount=0)+dispose 幂等零抛+醒后可再注册',
+      notify.waitingCount() === 0 && reRegisterOk);
+    await notify.stop();
+  }
 }
 
 // ═══ #132 背压四臂(件②):阈值内计数 / 超阈值断开 / drain 复位 / 源级静态 ═════════════════
