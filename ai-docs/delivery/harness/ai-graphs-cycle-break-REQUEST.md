@@ -29,7 +29,7 @@
 ### 1.1 甲案三件（恰 2 码文件·纯类型面零行为变更）
 
 - 件① `session-summary.ts`：:12 `import type { Turn } from './state.ts'` 删，换 `import type { QuestionKind } from '@meetwise/domain'`（domain 既有依赖零新包边）；新增导出 `SessionTurnInput` 结构子集（恰六字段=`buildSessionSummary` 实际只读面：`q: string`+`competency: string`+`score: number|null`+`outcome: 'answered'|'clarify'|'unresolved'|'unscored'`+`kind: QuestionKind`+`evidence?: string[]`·doc 注记环解出处与 state.ts 守卫联动）；:31 `kind: Turn['kind']` → `kind: SessionTurnInput['kind']`（型恒等 QuestionKind）；:56 形参 `readonly Turn[]` → `readonly SessionTurnInput[]`。函数体零字节·调用点兼容：`generate-question.ts:85` 传 `state.transcript`（Turn[] 结构覆盖子集·守卫钉死）。
-- 件② `state.ts`：:12 import 增 `SessionTurnInput`（沿② 单向边沿用零新边）；Turn 接口闭合后新增导出编译期覆盖守卫 `export type TurnCoversSessionTurnInput = Turn extends SessionTurnInput ? true : never;`（satisfies 语义零运行时——session-summary 不再 import Turn 后，子集与 Turn 的结构契约由本守卫钉死：任一侧漂移失覆盖即 state.ts 编译红）。
+- 件② `state.ts`：:12 import 增 `SessionTurnInput`（沿② 单向边沿用零新边）；Turn 接口闭合后新增导出编译期覆盖守卫 `export type TurnCoversSessionTurnInput = Turn extends SessionTurnInput ? true : never;`+模块内真实断言消费者 `const _turnCoversSessionTurnInput: TurnCoversSessionTurnInput = true;`（pre-exec 双审 rev 修订落卷·落 (a) 形真守卫优于文档化——satisfies 语义零运行时副作用：session-summary 不再 import Turn 后，子集与 Turn 的结构契约由守卫类型钉死、由 const 断言行消费钉实：任一侧漂移失覆盖即断言行 TS2322 编译红，漂移模拟活体证在案。**落地形偏离如实登记**：消费者落 `export` 形=base eslint `no-unused-vars` 仅 `argsIgnorePattern:'^_'` 无 `varsIgnorePattern`，非导出形 lint +1 破 ai-graphs cap 47 贴线（rev 期实跑亲证），导出形豁免且 TS2322 漂移语义等价零行为）。**反向漂移窗如实登记（常开观察面）**：SessionTurnInput 增「可选」死字段不红——可选字段不破坏 `Turn extends` 合法性，此向漂移守卫不设防（增必选字段或 Turn 失覆盖才红），EXEC 期 review 按常开观察面盯防（漂移模拟「子集增可选死字段」EXIT=0 实证在案）。
 - 件③（零字节项·如实登记非动面）：`state.ts:159` 第 9 参注解与 :248 re-export 零字节保留（沿② 单向合法）；`index.ts` type 块维持原源 `'./state.ts'` 零字节（type 路由经 :248 不变）。
 - 效果：拆沿①·保沿②单向·零环；纯类型面·运行时字节零变·v8 渲染/proof 语义零触。
 
@@ -42,11 +42,11 @@
 ## §2 验收断言（门矩阵·起草席亲跑实测 @支线树·EXEC 期重跑为准）
 
 - 门 1 **`pnpm arch` EXIT=0**（0 errors·circular 词面 0 命中·1110 modules/3396 deps cruised·8 warnings=既有 no-orphans 面零新增）← **PR #109 step 14 红翻绿主证**。
-- 门 2 ai-graphs 邻面三 prove：ai-graphs `prove:adaptive-graph` **34/34 EXIT=0** + worker `prove:interview`（隔离形 `run-e2e-isolated`·`LOCAL_ISOLATED_PROOF_RECEIPT` 在案 release_evidence=false）**57/57 EXIT=0** + worker `prove:session-summary` **17/17 EXIT=0**（34/57/17 恰等先例值·零断言红冲销）。
+- 门 2 ai-graphs 邻面三 prove：ai-graphs `prove:adaptive-graph` **34/34 EXIT=0** + worker `prove:interview`（隔离形 `run-e2e-isolated`·`LOCAL_ISOLATED_PROOF_RECEIPT` 在案——**注记（pre-exec 双审 P2 数字口径勘误）**：该 receipt 系 regfix 期先例 receipt 非本刀新出·本刀 57/57 为起草席隔离形亲跑·EXEC 期重跑为准·release_evidence=false）**57/57 EXIT=0** + worker `prove:session-summary` **17/17 EXIT=0**（34/57/17 恰等先例值·零断言红冲销）。
 - 门 3 `turbo typecheck --force` **8/8 EXIT=0**（0 cached）。
 - 门 4 `turbo lint --force` **12/12 EXIT=0**（ai-graphs `--max-warnings 47` 贴线）。
 - 门 5 `docs:check` EXIT=0（2186≤cap 2200·3cd159dd cap sanction +8 后首用·+1 新 REQUEST·执行后实跑回填）。
-- 门 6 markers 五类改动集新增行直扫零命中（词面不誊防自指·沿 batch5b-mig nail 口径）。
+- 门 6 markers 改动集全部新增行 102 行直扫零命中（数字口径 pre-exec 双审勘误：起草改动集全部新增行实数 102 行非「五类 42 行」·词面不誊防自指·沿 batch5b-mig nail 口径·rev 卷增量随卷重扫·EXEC 期全量重扫为准）。
 - 门 7 diff 面**恰 5 tracked**=2 码（件①②）+3 docs（本 REQUEST 新+LEDGER 刀位图行+checklist 段）。
 - 门 8 卫生：`pnpm install --frozen-lockfile` 零 lockfile 改·tsbuildinfo 门副产 checkout 回滚·est live=0·`actualSpendCny=null`·零迁移零 DDL 零 env 闸。
 
@@ -60,5 +60,6 @@
 
 - est live=0（纯类型面+docs·EXEC 期同）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · 零模型外呼。
 - **STOP=`draft:awaiting_pre_exec_dual`（三处同值：本 REQUEST §8 + LEDGER 刀位图「ai-graphs-cycle-break」行 + execution-master-checklist「Line ai-graphs-cycle-break」段）**。
+- rev 落卷（2026-10-16·pre-exec 双审席1 agent_54f5d327 **PASS** P2×2+席2 agent_6b56363e **FAIL** P1×1 后·码面 rev 随卷·沿 API-HARDEN rev2 `acee3bb9` EXEC 前落卷先例形）：①P1 守卫机制修订落 (a) 形=state.ts 真实断言消费者+措辞「零运行时」→「零运行时副作用」五处同步（§1.1 件②/state.ts 守卫注/session-summary.ts 子集注/checklist 修法行/LEDGER 管线行）②P2 反向漂移窗登记=常开观察面（本 §1.1 件②+state.ts 守卫注）③P2 数字口径=门 6「102 行」+门 2 receipt 注记。**STOP 值不变仍 `draft:awaiting_pre_exec_dual` 三处同值——rev 落卷后经席2 窄域确认（仅 rev 落点复验）方会签**。
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；若基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1 在 HEAD 已被他刀翻绿（→本刀降级为 docs-only 空转·如实呈报协调方裁决）③邻面 34/57/17 任一非恰等（→熔断呈报·禁 retry-to-green）。

@@ -45,12 +45,22 @@ export interface Turn {
 }
 
 /**
- * AI-GRAPHS-CYCLE-BREAK 环解编译期守卫（satisfies 语义·零运行时）：session-summary.ts 以局部
- * SessionTurnInput 结构子集承接（不再 import Turn,拆 session-summary→state 回边·no-circular 绿）,
- * 本守卫钉死 Turn 必须持续结构覆盖该子集——任一侧漂移失覆盖即本行编译红。守卫只借本文件既有的
- * state→session-summary 单向边,零新增依赖零回环。
+ * AI-GRAPHS-CYCLE-BREAK 环解编译期守卫（satisfies 语义·零运行时副作用·pre-exec 双审 rev 修订落卷）：
+ * session-summary.ts 以局部 SessionTurnInput 结构子集承接（不再 import Turn,拆 session-summary→state
+ * 回边·no-circular 绿）,本守卫钉死 Turn 必须持续结构覆盖该子集——任一侧漂移失覆盖即下方断言行编译红
+ * （TS2322）。守卫只借本文件既有的 state→session-summary 单向边,零新增依赖零回环。
+ * 反向漂移窗（常开观察面·如实登记）：SessionTurnInput 增「可选」死字段不红——可选字段不破坏
+ * `Turn extends` 合法性,此向漂移守卫不设防,靠 review 常开观察面盯防;增必选字段或 Turn 失覆盖才红。
  */
 export type TurnCoversSessionTurnInput = Turn extends SessionTurnInput ? true : never;
+
+/**
+ * 守卫的真实断言消费者（pre-exec 双审席2 P1 修订·落真守卫优于文档化）：类型注解钉住上方条件类型的
+ * 结果——Turn 失覆盖时该类型坍缩为 never,本行即 TS2322 编译红（漂移模拟活体证=rev 期 /tmp 三场景
+ * 复跑在案）。值恒 true 且永不读取,零运行时副作用。落 `export` 形如实登记=base eslint no-unused-vars
+ * 仅 argsIgnorePattern 非导出形 lint +1 破 ai-graphs cap 47 贴线（rev 期实跑亲证）,导出形豁免且语义等价。
+ */
+export const _turnCoversSessionTurnInput: TurnCoversSessionTurnInput = true;
 
 export interface ClarifyDirective {
   competency: string;
