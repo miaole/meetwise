@@ -1,6 +1,6 @@
 # SSD-EGRESS-MANIFEST REQUEST — PR #109 verify step 12 provider-egress 静态清单四错未登记补登刀（session-summary.proof.ts 消费者 +1+三 env 登记 · manifest +4 entry + prove 计数同步 51→52 · 恰 3 tracked · ssd-egress-manifest 战役 · 快速链起草落卷）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-14 起草落卷·协调方授权快速链=起草→自审（沿 rev 确认席先例·窄域）→EXEC→STOP·自审 PASS 即 EXEC·post 双审待派 · est live=0 · ⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-14 EXEC 落卷翻面·原 `draft:awaiting_pre_exec_dual` 起草态保全于 git 史 `673f4bd3`·快速链=起草→自审（沿 rev 确认席先例·窄域五项全 PASS 落卷）→EXEC→STOP·门矩阵八门全绿·post 双审待派 · est live=0 · ⛔push）
 
 **席位**：ssd-egress-manifest 诊断+起草+EXEC 一体席（协调方派单 2026-10-14·#51 nail 席如实上报·PR #109 synchronize 新曝红 step 12 口径指派·快速链授权链=派单 brief 明示「起草落卷后自审→EXEC→STOP」）。
 **基线**：`feat/mysql-schema-skeleton` @ `039d9baa`（origin tip 亲证=session-summary-deepen nail 序5 SSOT commit·PR #109 手术 head）· 分支 `line/ssd-egress-manifest`（本席 `git worktree add ../meetwise-seg -b line/ssd-egress-manifest origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `039d9baa` 亲证）· 工作树 `meetwise-seg`（仓根同级）。
@@ -100,7 +100,7 @@
 
 ## §8 STOP（快速链开工条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · 快速链授权=协调方派单 brief 明示「起草落卷后自审（沿 rev 确认席先例·窄域：§0 锚/修法/门矩阵/STOP/markers/docs:check 自查）→自审 PASS 即 EXEC→STOP」·本 commit 不预 claim 任何 post-commit EXIT。** 开工条款：①本席自审全项 PASS 落卷（授权链=派单 brief 快速链·pre-exec 双外席待派不阻快速链·alone≠dual 状态如实登记承 post 双审补位）；②EXEC 立项照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做）；③EXEC **不得改 §1.2 先例类定级与 §5 Ban/pins 与 §1-修法件①② 登记面**（改则回炉重审）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 落卷翻面·原 `draft:awaiting_pre_exec_dual` 保全于 `673f4bd3`·§9） · 快速链授权=协调方派单 brief 明示「起草落卷后自审（沿 rev 确认席先例·窄域：§0 锚/修法/门矩阵/STOP/markers/docs:check 自查）→自审 PASS 即 EXEC→STOP」·开工条款①自审五项全 PASS 已落卷。** 后续条款：②EXEC 立项照 §0 协议对届时 tip 全量重 pin（已行使·§9.1 全恒等）；③EXEC **不得改 §1.2 先例类定级与 §5 Ban/pins 与 §1-修法件①② 登记面**（已遵守·§9.5 偏离零越界）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且 §1.2 结论受疑（如 manifest 结构改写/计数≠328·51/proof.mjs 断言移位/§0.0 在飞分支对两触面有主线后新增提交）→停·重 pin 回炉。
 - **机制不满足**：件①② 落码后 inventory 四错未清零或曝第五错（=§1.2 归因有漏采）→停·如实升级协调方回炉（Ban 就地凑绿）。
 - **越界需要**：修法诉求超出 §1-修法件①② 面（需触 proof 件⑨/inventory 工具/policy/断言本体）→停·另刀或协调方裁决。
@@ -108,4 +108,59 @@
 
 ---
 
-*SSD-EGRESS-MANIFEST REQUEST · 2026-10-14 起草 · base `feat/mysql-schema-skeleton` @`039d9baa`（PR #109 head 亲证） · 分支 `line/ssd-egress-manifest` · 工作树 `meetwise-seg` · 修法=manifest 四 entry（1 consumers local-adapter-test+3 env 逐字承 resume-grounding 同族先例类值）+proof.mjs:31 计数同步 51→52（三先例同型机械跟进）· 预期计数 env 328→331/consumers 对 51→52 · **`draft:awaiting_pre_exec_dual`**（快速链：自审 PASS 即 EXEC·post 双审待派） · ⛔push · ⛔force push · STOP*
+*SSD-EGRESS-MANIFEST REQUEST · 2026-10-14 起草 · base `feat/mysql-schema-skeleton` @`039d9baa`（PR #109 head 亲证） · 分支 `line/ssd-egress-manifest` · 工作树 `meetwise-seg` · 修法=manifest 四 entry（1 consumers local-adapter-test+3 env 逐字承 resume-grounding 同族先例类值）+proof.mjs:31 计数同步 51→52（三先例同型机械跟进）· 预期计数 env 328→331/consumers 对 51→52 · **`executed:awaiting_post_prove_dual`**（EXEC 落卷·门矩阵八门全绿·快速链自审代 pre-exec 双审如实登记·post 双审待派） · ⛔push · ⛔force push · STOP*
+
+---
+
+## §9 EXEC 记录（2026-10-14·EXEC 席=起草席一体·快速链自审 PASS 后开工·STOP=`executed:awaiting_post_prove_dual`）
+
+### 9.0 快速链开工依据
+
+- 自审五项全 PASS 落卷：①§0 锚复测恒等（resume-grounding `f3af4b61`/360+四插入点 `:154`/`:1923`/`:2008`/`:2033` 逐一定位吻合）②修法形与先例逐字同构（key 序 name/source/class+缩进 6/8 空格双层）③门矩阵八门命令全部在案（package.json/worker package.json 亲证）④STOP 字面恰 3 处 ⑤markers hits=0+docs:check 2181≤2192。授权链=派单 brief 快速链（偏离登记 §9.5-2）。
+
+### 9.1 重 pin 全表（EXEC 立项日 @起草 commit `673f4bd3`·两码面 blob 恒等）
+
+§0.1 全表复测零漂（manifest `c2d7b9cc`/proof.mjs `3932fad7`/inventory.mjs `b196269c`/proof 件⑨ `8aa8c7ef`/ci.yml `d2dc8d2c`/先例 `f3af4b61` 全恒等·cap 锚 `:100`=2192 恒等·§0.0 在飞交叠复扫=两触面非祖先顶触 **0**·§0.2 两漂移复现恒等·四错清单逐字吻合）。
+
+### 9.2 落码面（件①+件②）
+
+- **件①**：manifest 四 entry 落位——consumers（openai-compatible-chat）resume-grounding entry 后 +1：`{"source": "apps/worker/test/session-summary.proof.ts", "class": "local-adapter-test"}`；environmentReferences 三 entry 各承 resume-grounding 先例 entry 之后：MODEL_API_KEY→test-fixture/MODEL_ENDPOINT_PROFILE→test-isolation/MODEL_TEST_TRANSPORT_OVERRIDES→test-isolation（source=session-summary.proof.ts 三件）。实计数 env 328→**331**/消费者对 51→**52**（python3 解析+inventory 自报双实测恰等）。
+- **件②**：`scripts/provider-egress-inventory.proof.mjs:31` 恰 1 行 `…registeredConsumerSourcePairCount, 51)` → `…, 52)`（其余 78 行零字节触）。
+
+### 9.3 门矩阵八门全表（EXIT 原值·各门恰一次改后 run·零 retry-to-green）
+
+| # | 门 | 命令 | EXIT | 实测 |
+|---|---|---|---|---|
+| 1 | provider-egress:inventory 红→绿 | `pnpm provider-egress:inventory` | 0 | `adapters=5; operations=10; registered_consumer_source_pairs=52; environment_references=331; releaseEvidence=false`（四错清零） |
+| 2 | provider-egress:prove | `pnpm provider-egress:prove` | 0 | `selected=7/7; releaseEvidence=false`（TC-main `:28`/`:31` 双锚过·52=52） |
+| 3 | session-summary 邻面 | `pnpm -C apps/worker prove:session-summary` | 0 | **17 PASS** ALL PASS（基线恒等·proof 文件零字节触） |
+| 4 | typecheck | `pnpm turbo typecheck --force` | 0 | 8/8·Cached: 0·tsbuildinfo 副产 checkout 回滚沿先例 |
+| 5 | lint 五值恰等 | `pnpm turbo lint --force` | 0 | 12/12 0 errors·root **5235**/web **601**/api **1421**/worker **954**/ai-runtime **628** 恰等钉值·零新增 warning |
+| 6 | docs:check ≤cap | `node scripts/ai-docs/check-docs.mjs` | 0 | 基线 2180→REQUEST 后 2181→**收据落盘终值 2182≤2192 余 10**（80 required files verified·cap 锚 `:100`） |
+| 7 | markers 五类 | 词面运行时组装扫改动集（manifest+proof.mjs+本卷+收据） | 0 | **hits=0** |
+| 8 | diff 面机检+卫生 | `git diff --numstat`+lockfile+`.env*` | — | 恰 **2 tracked 改动**=manifest **+19/−0**+proof.mjs **1+/1−**（本卷已在起草 commit·收据 untracked 不计）·pnpm-lock.yaml 零改·`.env*` ABSENT 双零命中 |
+
+### 9.4 改前/改后对照（门 1 机证）
+
+```
+改前（@039d9baa 亲跑）                            改后（本 EXEC run）
+  provider_egress_inventory_invalid:                static_provider_egress_inventory_valid:
+    adapter_consumer_unregistered:openai-…            adapters=5; operations=10;
+    environment_reference_unregistered:MODEL_API_KEY  registered_consumer_source_pairs=52;
+    environment_reference_unregistered:MODEL_ENDPOINT environment_references=331;
+    environment_reference_unregistered:MODEL_TEST_…   releaseEvidence=false
+  （inventory EXIT=1+prove EXIT=1 TC-main 红）       prove EXIT=0 selected=7/7
+```
+
+### 9.5 偏离清单（如实登记·两件·零越界）
+
+1. **manifest diff +19/−0（起草预期 +16/−0）**：§1-修法算术草稿漏计 env entry 各 5 行（name+source+class+双括号）vs consumer entry 4 行——实账=1×4+3×5=**19**（numstat 机证）·门 8 判据随实测定谳「净 +19/−0」·恰 4 entry 落位结论方向零变。
+2. **快速链自审代 pre-exec 双审**：派单 brief 明示授权（§8 开工条款①）——自审五项 PASS 落卷后开工·alone≠dual 状态如实登记·post 双审待派补位。
+
+### 9.6 markers 扫描回执
+
+命令形=四标记词运行时字符拼接+冲突标记对正则（词面不入卷防自匹配·`i6-239-gates.proof.mjs:151-:163` 同形）·改动集四文件（manifest JSON+proof.mjs+本卷 REQUEST+收据 00-exec）逐文件扫描——**hits=0 EXIT=0**（起草 turn 与 EXEC 终树两次行使全零）。
+
+### 9.7 pins 零翻声明
+
+十值照抄零翻转：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · actualSpendCny=null。Ban 列表零触（⛔push/proof 件⑨ 零触/inventory 工具+policy 面零触/断言本体零触——`:31` 恰 1 数字同步沿 e300bfec/55b68d67/ci-red-clear 件⑤ 三先例/SSOT 零触/恰一次 prove 零 retry）。收据 `ai-docs/delivery/receipts/ssd-egress-manifest/00-exec.md` 七字段 untracked 不入库（negbend §9 先例）。
