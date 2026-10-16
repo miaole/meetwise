@@ -458,9 +458,12 @@ async function main() {
   // F3a 红链同形生命周期(沿 resume-grounding S1 夹具形):resume 已入库+G1 未同意 →
   // grounding.available=true(有 facts 即真·consent 只控池)+facts 池空 → grounded 不降级达模板臂
   // (授权版)——q1=模板(并发);0 分继续复问同 competency(turn1)→ 同文模板 asked 判重命中拒收
-  // business_invalid → submit 侧图 deps 系 planner 序空位(既有架构事实:planner 序只在 start 传入,
-  // 族臂在该流向无序可换)→ 既有单发终场原形收场(§2 sanctioned 终场语义)——同文模板零二次发射
-  // (duplicate 题面永不入 question_ready·零 ask 模型零键消费),终场收据 business_invalid 诚实可审计。
+  // business_invalid(∈ QUESTION_GENERATION_REROLL_FAMILY)→ [wave94 协调方微扩面·语义升级·
+  // SUBMIT-FLOW-COMPETENCY-WIRE 补供后] planner 序自 checkpoint mind 补供→帽内换序「缓存」继续
+  // (模板路径零模型零键·done=false 新题 interrupt)——旧期望「submit 侧 deps 系 planner 序空位→
+  // 无序可换→单发终场」所描述场景已被补供消灭(stash 对照亲证红系本刀语义·非基线漂)·终场只留
+  // 帽满/全序耗尽;拒收收据三键(origin/errorCode/invokeError)零弱化=换序成功路存 checkpoint 历史
+  // (Non-claims 形)·历史面断言;成功归零(competencyExhaustions「连续」帽只跨失败链)=帽未锁死可再换。
   const F3_RESUME_RAW = [
     '5年后端经验,主导高并发网关改造',
     '工作经历',
@@ -499,21 +502,33 @@ async function main() {
   const tsInput = { questionId: tsStart.questionId, stateVersion: tsStart.stateVersion, answerId: randomUUID(), answerHash: answerHash(tsAnswer), turn: 0, answer: tsAnswer };
   A('换序场景首答 identity 被接受', (await asPrincipal(pool, owners.tmplSwitch!, (c) => claimInterviewAnswer(c, owners.tmplSwitch!, threads.tmplSwitch!, tsInput))).status === 'accepted');
   const tsOut = await submitAdaptiveAnswer(tmplSwitchDeps, tsInput);
-  A('turn1 同文模板拒收 → 无序可换单发终场:done 收场·零 nextQuestionId(拒绝不返模板)',
-    tsOut.score === 0 && tsOut.done === true && tsOut.nextQuestionId === undefined);
+  A('turn1 同文模板拒收(business_invalid∈族) → 帽内换序缓存继续:零分收据保持·新题 interrupt(done=false)',
+    tsOut.score === 0 && tsOut.done === false && !!tsOut.nextQuestionId);
   const tsQ = await pool.query(
     'SELECT competency,question FROM interview_question WHERE interview_id=$1 ORDER BY state_version', [threads.tmplSwitch]);
-  A('同文模板零二次发射:question_ready 恰 1(仅 q1·duplicate 题面永不入投影)',
-    tsQ.rows.length === 1 && tsQ.rows[0]?.question === tmplAuthorized('并发'));
+  A('同文并发模板零二次发射(duplicate 题面永不入投影)∧ 换序落点=缓存授权模板(question_ready 恰 2)',
+    tsQ.rows.length === 2 && tsQ.rows[0]?.question === tmplAuthorized('并发')
+    && tsQ.rows[1]?.competency === '缓存' && tsQ.rows[1]?.question === tmplAuthorized('缓存'));
   const tsEvents = await asPrincipal(pool, owners.tmplSwitch!, (c) => c.query(
     "SELECT kind,event_key,payload FROM interview_event WHERE stream_key=$1 AND kind IN ('question_ready','interview_unavailable')", [threads.tmplSwitch!]));
   const tsStatus = await pool.query('SELECT status FROM interview WHERE id=$1', [threads.tmplSwitch]);
-  A('终场收据诚实可审计:reason=generation_business_invalid·provenance invokeError=question_critique_failed',
-    tsStatus.rows[0]?.status === 'failed'
-    && tsEvents.rows.some((r) => r.kind === 'interview_unavailable'
-      && r.payload?.reason === 'generation_business_invalid'
-      && r.payload?.provenance?.invokeError === 'question_critique_failed')
-    && tsEvents.rows.filter((r) => r.kind === 'question_ready').length === 1);
+  A('终场仅帽满/全序耗尽(本面帽内):interview 仍未终场(created·非 failed/completed/abandoned)·零终态事件·question_ready 恰 2',
+    tsStatus.rows[0]?.status === 'created'
+    && tsEvents.rows.filter((r) => r.kind === 'interview_unavailable').length === 0
+    && tsEvents.rows.filter((r) => r.kind === 'question_ready').length === 2);
+  const tsReadGraph = buildAdaptiveInterviewGraph(tmplSwitchDeps.cp, buildAdaptiveDeps({ pool, owner: owners.tmplSwitch!, threadId: threads.tmplSwitch!, model: tmplSwitchModel, competencies: [], localRetrieve: async () => [], webExplore: async () => [] }));
+  const tsSnap = await tsReadGraph.getState({ configurable: { ['thread_id']: threads.tmplSwitch! } });
+  const tsView = tsSnap.values as { competencyExhaustions?: number } | undefined;
+  A('出题成功连续耗尽归零(「连续」帽只跨失败链·成功臂 :202 既有面):competencyExhaustions===0(帽未锁死可再换)',
+    tsView?.competencyExhaustions === 0);
+  let tsReceipt = false;
+  for await (const h of await tsReadGraph.getStateHistory({ configurable: { ['thread_id']: threads.tmplSwitch! } })) {
+    const v = h.values as { generationProvenance?: { origin?: string; errorCode?: string; invokeError?: string } } | undefined;
+    if (v?.generationProvenance?.invokeError === 'question_critique_failed'
+      && v?.generationProvenance?.errorCode === 'business_invalid' && v?.generationProvenance?.origin === 'unavailable') tsReceipt = true;
+  }
+  A('QGEN 件① 拒收收据三键零弱化(origin=unavailable·errorCode=business_invalid·invokeError=question_critique_failed)——换序成功路收据存 checkpoint 历史(Non-claims 形)·历史面可审计',
+    tsReceipt);
   A('全链零 interviewer.ask 模型调用(模板路径零模型·拒收亦零模型)', tmplAskCalls === 0);
   A('拒收零键消费(图级再入面):ask 键空间零 invoke 行',
     (await asPrincipal(pool, owners.tmplSwitch!, (c) => c.query(

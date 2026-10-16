@@ -24,6 +24,9 @@ paths = [
   # 测试桩假 key·非凭据：AG-24 Langfuse model proof 进程内 env 注入（globalThis.fetch :101 全程 mock 拦截·
   # 零 provider 外呼·值仅满足 registry apiKey 在场断言·generic-api-key 启发式误读·沿 626ac3cc/98d4bab7 形制）。
   '''(^|/)packages/ai-runtime/test/ag24-langfuse-model\.proof\.ts$''',
+  # 测试桩假 key·非凭据：TOKSTREAM S4b invoke 观察缝 proof 进程内 env 注入（globalThis.fetch 全程 mock 拦截·
+  # 零 provider 外呼·值仅满足 registry apiKey 在场断言与 g7 面 assertModelApiKeyPresent 前置·generic-api-key 启发式误读·沿 ag24/98d4bab7 形制）。
+  '''(^|/)packages/ai-runtime/test/invoke-model-delta\.proof\.ts$''',
 ]
 # Matched "secrets" are pnpm script suffixes / honesty phrases, not API keys.
 regexes = [
