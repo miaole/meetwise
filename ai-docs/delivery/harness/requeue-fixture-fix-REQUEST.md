@@ -1,6 +1,6 @@
-# REQUEUE-FIXTURE-FIX REQUEST — requeue-backoff.proof 同 owner 连排 5 笔入队撞 #117 饱和闸夹具适配刀（第 4 笔 STRID EXIT=1 · claim-drain 消账形 · 单文件测试夹具面 · 快速链一体席 · 沿 Q2-VSF 先例 · STOP=`draft:awaiting_exec`）
+# REQUEUE-FIXTURE-FIX REQUEST — requeue-backoff.proof 同 owner 连排 5 笔入队撞 #117 饱和闸夹具适配刀（第 4 笔 STRID EXIT=1 · claim-drain 消账形 · 单文件测试夹具面 · 快速链一体席 · 沿 Q2-VSF 先例 · STOP=`executed:awaiting_post_prove_dual`）
 
-**Status**: **`draft:awaiting_exec`**（2026-10-16 起草席落卷 · 快速链=诊断→起草→自审（窄域五项）→EXEC→STOP 同席连行使（协调方派单 brief 明示·总时长 40 分钟）· 修法裁决=b 随派单已定（post 席1 裁定「纯时序修复不可行·修复形二择」·协调方裁 b=claim-drain 清空 queued 再排后两笔·保同 owner 语义·轻）· post-prove 双审归协调方派席 · alone≠dual · Ban self-approve · est live=0 · `actualSpendCny=null` · ⛔push · ⛔merge 主线 · STOP 三处锚定=①卷头标题行②本 Status 行③§8 节 · 卷尾不载 STOP 值）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席同席翻面·前值 `draft:awaiting_exec`=起草态保全于 git 史 `3163973d` · 快速链=诊断→起草→自审（窄域五项 PASS）→EXEC→STOP 同席连行使（协调方派单 brief 明示·总时长 40 分钟）· 修法裁决=b 随派单已定（post 席1 裁定「纯时序修复不可行·修复形二择」·协调方裁 b=claim-drain 清空 queued 再排后两笔·保同 owner 语义·轻）· EXEC 落码=proof.ts 纯插入 +9/−0·门矩阵九门全绿·requeue-backoff 红翻绿双向亲证（§9 字段①）· post-prove 双审归协调方派席 · alone≠dual · Ban self-approve · est live=0 · `actualSpendCny=null` · ⛔push · ⛔merge 主线 · STOP 三处锚定=①卷头标题行②本 Status 行③§8 节 · 卷尾不载 STOP 值）
 
 **席位**：REQUEUE-FIXTURE-FIX 诊断+起草+EXEC 一体席·测试夹具面（协调方派单 2026-10-16 · QUEUE-CLOSEOUT post 双审定谳跨刀遗留 · 沿 Q2-VSF 快速链先例形 · ⛔push）。
 **基线**：`feat/mysql-schema-skeleton` @ **`d4d2155f`**（`git fetch` 后亲证 `origin/feat/mysql-schema-skeleton` tip=`d4d2155f` **恰等派单下界**（≥ 以等号成立·G7W-DIAG-NEEDLES nail 波 tip））· worktree **`meetwise-rqf`**（仓根同级 · `git worktree add ../meetwise-rqf -b line/requeue-fixture-fix` 本席亲立）· branch **`line/requeue-fixture-fix`**。
@@ -89,10 +89,46 @@
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `draft:awaiting_exec`（起草态·本值为卷内三处锚定=①卷头标题行②Status 行③本节 · 卷尾不载 STOP 值）。** 快速链开工三条款：①协调方派单令+修法裁决 b 随单已定=**已兑现**；②快速链授权（沿 Q2-VSF 先例·起草→自审→EXEC 同席连行使）=**已兑现**（派单 brief 明示「总时长 40 分钟」）；③⛔push（并线/推送归协调方）=**兑现中**（本刀零 push 零 merge 主线）。EXEC 面落卷后本值翻 `executed:awaiting_post_prove_dual`（§9 七字段随卷·三处同翻）。
+**STOP · `executed:awaiting_post_prove_dual`（2026-10-16 EXEC 席翻面·前值 `draft:awaiting_exec` 史录于 commit `3163973d`·本值为卷内三处锚定=①卷头标题行②Status 行③本节 · 卷尾不载 STOP 值 · 沿姊妹卷「自述三处实测四处」预勘误形=§9 字段⑦随卷复载为第四实测处）。** 快速链开工三条款兑现记录：①协调方派单令+修法裁决 b 随单已定=**已兑现**（派单 brief 明示「协调方裁决=b」）；②快速链授权（沿 Q2-VSF 先例·起草→自审→EXEC 同席连行使）=**已兑现**（派单 brief 明示「总时长 40 分钟」）；③⛔push（并线/推送归协调方）=**兑现**（本刀零 push 零 merge 主线）。EXEC 已落卷（§9 七字段）· post-prove 双审归协调方派席 · alone≠dual · Ban self-approve。
 
 **停止条件（四类 · 命中即停手上报）**：
 1. **现场漂移**：EXEC 面对届时 tip 重 pin——§0.1 锚漂移超 ±3 且结论受影响、或 `:123`-`:131` 序列块被他刀改写 → 停手上报。
 2. **机制不满足**：若改后 requeue-backoff 仍红且归因非本刀夹具面（如闸谓词/时闸语义与 §0.1 #2 锚不符）→ 停手上报回炉（不得就地改定性、Ban 为绿改产品码）。
 3. **越界需要**：执行中若需触 §3 任何域 → 停手上报。
 4. **验收红不可修**：门矩阵任一门红且无法在本刀范围内归因修复 → 停手上报（Ban 为绿放宽门）。
+
+---
+
+## §9 EXEC 记录（2026-10-16 · 快速链 EXEC 席同席落卷 · 七字段 · STOP 翻面三处随卷）
+
+**授权链**：协调方派单 brief（2026-10-16 · QUEUE-CLOSEOUT post 双审定谳跨刀遗留指派 + 修法裁决 b 随单已定）→ 起草 `3163973d`（draft:awaiting_exec）→ 窄域五项自审 PASS（EXEC 时点锚重 pin 零漂随卷）→ **EXEC 落码+门矩阵行使（本节）**→ post-prove 双审归协调方派席（alone≠dual）。EXEC 未改 §1 归因实质/§1.3 否决/§3 边界/pins。
+
+**序1 落码**：`apps/worker/test/requeue-backoff.proof.ts` 按 §1 两块**逐字节落笔**（`git diff --numstat`=**+9/−0 纯插入**·文件 248→257 行·插入甲=:125/:126 间 5 行·插入乙=:127/:128 间 4 行·既有行零改零删零重排机检：diff 零删除行）· 产品码/迁移/依赖零触（`git diff HEAD -- packages/db/migrations pnpm-lock.yaml`=空）· 操作注记=typecheck 副产物 `apps/web/tsbuildinfo` 残留 checkout 回滚（沿 5c-api-harden nail tsbuildinfo 副产物先例·非改动集）· 隔离库 runs 全程由 `scripts/run-e2e-isolated.mjs` 托管（自建自删 `meetwise-e2e-*` 容器）。
+
+**自审窄域五项（EXEC 落码前全 PASS）**：①锚 re-pin：EXEC 时点 `git hash-object` 三锚 `2dbe7c33`/`fbd43616`/`265798df` 恒等零漂+origin tip 恒 `d4d2155f`；②插入位机检：drain 在第 3 笔 CAPID 后第 4 笔 STRID 前、restore 在第 5 笔 GID 后 parkDue 注释前（diff hunk 单一邻域亲读）；③断言域零变：+9/−0 纯插入+30 `A(` 断言位点与文本逐字节零改；④窄谓词：两 UPDATE 均 `owner_user_id=$1 AND status=…` 单 owner 单状态（消费=queued 行·还原=done 行·零他触）；⑤红证先行：改前红 run 落档于任何落码动作前（无 retry-to-green·红绿两证全量在字段①）。
+
+**字段① 门矩阵全表（EXEC 时点九门实测）**：
+
+| # | 门 | 结果 | 结论 |
+|---|-----|------|------|
+| 1 | requeue-backoff 双向 | **改前红**：@`d4d2155f` `pnpm requeue-backoff:prove` EXIT=1 · `Error: interview_queue_saturated` at interview-jobs.ts:90:27 ← proof.ts:126:3（第 4 笔 STRID·零臂输出即崩·migrations applied=204）；**改后绿**：EXIT=0 · **PASS 33 / FAIL 0**（30 `A(` 位点·③+④循环臂 3 次行使=33 行运行时·`✓ AG-04 刀C（瞬时分类 requeue + 退避时闸 + 上限终态 + EG-A2 滞留行终态化）全部通过`·五臂断言域零变全绿） | **绿（红翻绿亲证）** |
+| 2 | 邻面 reaper | `reaper:prove:raw` EXIT=0 · PASS 28 / FAIL 0（`✓ Reaper(心跳防误收 + 双边界 requeue/终结 + 终态事件 + 退款 + 僵尸守卫 + 已结算不误终态)全部通过`） | 绿 |
+| 3 | 邻面 queue-enqueue-bp 承重面 | `interview:prove:raw` EXIT=0 · PASS 64 / FAIL 0（饱和判别臂/per-owner 维度臂/竞态臂收紧形⑥在册全绿·`✓ 当前 v64 面试链路全部通过`） | 绿 |
+| 4 | 邻面 neg interview 段 | `neg:interview` EXIT=0 · `✓ neg:interview: 107 条负路径用例全绿`（§10 429 映射臂在册·恰等 queue-enqueue-bp 基线 107） | 绿 |
+| 5 | typecheck | `pnpm turbo typecheck --force` EXIT=0「Tasks: 8 successful, 8 total / Cached: 0 cached, 8 total」 | 绿 |
+| 6 | lint | `pnpm lint` EXIT=0「5235 problems (0 errors, 5235 warnings)」零 error·5235 恰等 pin 零新警告 | 绿 |
+| 7 | docs:check | `node scripts/ai-docs/check-docs.mjs` EXIT=0「scanned **2207** managed worktree files」≤ cap 2208（基线 2206 本席基线亲跑+本卷 1·余 1·与 §0.1 #6 预期恰等） | 绿 |
+| 8 | markers 五类 | 改动集（proof.ts+本卷 .md）五类标记词（词族运行时组装·`i6-239-gates.proof.mjs:151`-`:163` 同形 grep）**0/0/0/0+冲突标记对 0** | 绿 |
+| 9 | diff 面 | porcelain 恰 2 tracked=本卷 .md（draft `3163973d` +98）+proof.ts（**+9/−0**）；migrations/pnpm-lock.yaml 零 delta；tsbuildinfo 副产物已回滚非改动集 | 绿 |
+
+**字段② 红绿两证**：改前红 receipt=`.tmp/isolated-proof-receipts/2026-10-16T22-54-20-745Z-25970-887edfab-eb3c-4b5f-bc25-369710057eab.json`（EXIT=1）；改后绿+邻面 receipt 目录同形（reaper `22-59-50-237Z`/interview `22-59-57-998Z` 在案）· release_evidence=false 全数如实（隔离库证明件非发布证据）。
+
+**字段③ 边界机检**：§3 全域零触——porcelain 全程仅 2 tracked（本卷 .md+proof.ts）·产品码/迁移/SSOT 四卷/worker 他证明件本体零字节改。
+
+**字段④ 预算**：est live=0（测试夹具面·零生产路径）· `actualSpendCny=null`。
+
+**字段⑤ 勘误**：零（§1 prose 与落码逐字节一致·无 Q2-VSF 式「恰 N 行」笔误类勘正）。
+
+**字段⑥ 五臂语义保真终核（改后绿 run 逐臂）**：①瞬时臂 6 PASS（attempts=1·2s 退避·额度未动）·②确定性臂 5 PASS（job_failed+退款+1.0）·①b 时闸面 3 PASS（拒领→重领 attempts 1→2→4s）·③+④超限臂 10 PASS（[2,4,8,16] 序列·attempts=5 终态 retry_exhausted:57014+退款）·③b 封顶臂 1 PASS（300s cap）·⑤滞留行臂 8 PASS（tick 收割+幂等+cap 同拍收割 erratum+GID 零触）——全数与改前设计断言域逐字对应，夹具适配零语义漂移。
+
+**字段⑦ STOP**：`executed:awaiting_post_prove_dual`（三处锚定=①卷头标题行②Status 行③§8 节·卷尾不载）· post-prove 双审归协调方派席 · alone≠dual · ⛔push。
