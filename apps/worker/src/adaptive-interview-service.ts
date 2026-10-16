@@ -5,10 +5,11 @@
  */
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
-import { invoke, promptedModel, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
+import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type QuestionGenerationResult, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
+import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
 import { withGenerationProgress } from './generation-progress.ts';
@@ -212,6 +213,12 @@ export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
   fastModel?: ModelClient;
+  /**
+   * AG-20(CTX-02 显式接线):interviewer.ask 主端点成本策略——组合根(main.ts resolveModelCostGovernance()
+   * .policies.primary)与 defaultModelClient primary 同源同值注入（failoverModel 不透出静态 costPolicy
+   * =modelFor requestDigest 消费面禁触）。缺省 undefined=会话段预算零触（scripted deps/测试现状字节）。
+   */
+  askCostPolicy?: ModelCostPolicy;
   competencies: (string | CompetencySpec)[];
   /**
    * Only an authorization bit may reach graph deps; resume text remains in the profile artifact.
@@ -530,6 +537,24 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         localMaterial,
         formatUntrustedResearchMaterial(web, 1_600),
       ].filter(Boolean).join('\n');
+      // AG-20(CTX-02 显式接线·issues-master :334「经 context-budget 裁剪」半·#51 残面):会话段派发前
+      // 经 planDispatchBudget 组件级预算降级裁定（ask-context-budget.ts 纯原语）——预算不足 summary
+      // 槽位最先裁,施为=sessionOut 置 undefined=段不渲染(#51 v8 缺省臂既有字节路径,零新形状)。
+      // session 缺省(#51 null 臂)/askCostPolicy 缺省(scripted deps/legacy/observe)→ 预算零触=现状字节
+      // (additive 缺省臂)。整请求拒绝臂仍归 transport planContextBudget 权威面(零重复拒绝,模块注)。
+      const askVars = { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined };
+      const askPrompt = getPrompt('interviewer.ask', askVars);
+      const summaryText = renderSessionSummarySection(session ?? undefined);
+      const sessionOut = summaryText === ''
+        ? undefined
+        : sessionSurvivesAskBudget({
+            system: askPrompt.system,
+            userData: askPrompt.buildData(askVars),
+            rag: material,
+            summary: summaryText,
+          }, d.askCostPolicy)
+          ? (session ?? undefined)
+          : undefined;
       // One logical question node has exactly one provider attempt.  Duplicate
       // detection is post-response and deterministic; since G7FIX-4R a hit no
       // longer dies on first contact — it re-rolls under a NEW revision (a new
@@ -560,7 +585,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           },
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           // C6/S3:grounded 传选定事实(2-4 条);followUp=上轮上下文(闭包派生,不可信,buildData 封段标记)。
-          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined, session: session ?? undefined }, undefined, material),
+          model: promptedModel(d.model, 'interviewer.ask', { ...askVars, session: sessionOut }, undefined, material),
           // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
           onModelDelta: (delta: { text: string }) => tokenSink.pushDelta(delta.text),
         }, d.pool, d.owner);
