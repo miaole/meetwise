@@ -280,7 +280,17 @@ export async function beginInterviewCore(
     if (targetRoleNormalized) startPayload.targetRole = targetRoleNormalized;
     if (focusNormalized) startPayload.focus = focusNormalized;
     if (sourceQuizIdNormalized) startPayload.sourceQuizId = sourceQuizIdNormalized;
-    const jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
+    let jobId: string;
+    try {
+      jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
+    } catch (e: unknown) {
+      // 入队背压闸：per-owner queued 深度满（具名错）→ 429（clients 侧重试友好）。
+      // start 臂同事务回滚=上方扣费预留同滚（零悬账）；applications.start 合一事务共用本核心，
+      // 429 原样透传（其 catch 仅重映射 enterprise_insufficient_balance，其余原抛）。
+      if (errCode(e) === 'interview_queue_saturated')
+        throw new HttpException({ error: 'interview_queue_saturated' }, HttpStatus.TOO_MANY_REQUESTS);
+      throw e;
+    }
     return { accepted: true, jobId };
 }
 
@@ -451,7 +461,16 @@ export class InterviewService {
       if (claim.status === 'not_ready') throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
       if (claim.status === 'stale') throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
       if (claim.status === 'conflict') throw new HttpException({ error: 'answer_conflict' }, HttpStatus.CONFLICT);
-      const jobId = await enqueueInterviewJob(c, owner, id, 'answer', { ...body, requestId }, turn + 1);
+      let jobId: string;
+      try {
+        jobId = await enqueueInterviewJob(c, owner, id, 'answer', { ...body, requestId }, turn + 1);
+      } catch (e: unknown) {
+        // 入队背压闸：per-owner queued 深度满（具名错）→ 429（沿 TURN_RL 429 分口）；
+        // claim 同事务回滚=零悬账可安全重试。
+        if (errCode(e) === 'interview_queue_saturated')
+          throw new HttpException({ error: 'interview_queue_saturated' }, HttpStatus.TOO_MANY_REQUESTS);
+        throw e;
+      }
       return { accepted: claim.status === 'accepted', replayed: claim.status === 'replayed', jobId };
     });
   }
