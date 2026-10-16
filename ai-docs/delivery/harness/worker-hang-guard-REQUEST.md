@@ -90,3 +90,56 @@
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；若基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1/门 2 基线臂账被他刀改动（→熔断呈报·禁 retry-to-green）③门 3 邻面任一非恰等（→熔断呈报）。
 - **起草卷后主线漂移登记（2026-10-16·append 注记形·上文零洗）**：本卷落卷后主线 tip 漂移 `d5dc0726`→`f7caa206`（他席 UUID-ID-CHECK nail 推进·reflog `update by push` 亲证·fastforward 线 `merge-base --is-ancestor` EXIT=0 亲证）——漂移面恰 5 files（`apps/api/src/modules/privacy/privacy.service.ts`+`apps/api/src/platform/uuid.ts`+3 docs）与本刀 §0.1 十四 blob 锚**零交集**亲证（`git diff --name-only d5dc0726..origin/feat/mysql-schema-skeleton` 逐名核对）；与 SSOT docs（checklist+LEDGER）同文件 append 位相交=EXEC 期并线沿**并集解**先例（ai-graphs nail 波同款）；派单下界「fetch 后 origin tip≥最新」以 fetch 时点等号成立亲证（`d5dc0726`=fetch 时 tip）·EXEC 开工按 §0 对届时 tip 重 pin 不受影响。
+
+## §9 rev 修订注记（pre-exec 双审席1 FAIL P1×1 修法算术回路·rev 席落卷 2026-10-16·**append 注记形·上文 §0-§8 零洗**·本节为 EXEC 期对前文对应句的权威修正与增补）
+
+> 席1 FAIL 定谳（rev 席逐位亲证成立）：`TICK_WATCHDOG_DEFAULT_MS=600_000`「不误伤」算术**只对 interview 成立且引用错位**——interview 真护栏=enqueue 帽 3/owner+requeue 退避 2^attempts 封顶 300s（非 launch cap 32）；quiz/diagnosis/report 三 loop 经 `owner-queue-drain.ts:19-21+:30-38` **严格串行无帽抽干**（深首 owner 占拍至 idle·`A,A,A,B` 形）——report 单 job 实测 31s（generate 图+成长链·enqueue 无背压帽）→积压 ≥15-20 单即 tick>600s **必误触**，且停摆恢复窗（本刀目标场景）正是积压最深处。误触后果链：叠跑 drain（每 watchdog 周期 +1 在飞僵尸）+告警噪音淹没真挂信号+ready() 持续噪红。rev 五条修订如次·STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（§9.7）。
+
+### §9.1 修订①（P1 核心裁量·EXEC 前定稿）——分组定值案
+
+**裁决：600s 缺省只保留给「结构性有界」loop；三串行抽干 loop 显式更大定值。** 全量 `runDrainLoop` 调用点勘补枚举=**14 处**（原 §0.2「~13 处」漏登 route-classify 与 stub 两处·如实补登）：interview 1+串行抽干显式组 3+缺省组 10（gauge `main.ts:746`+stub `main.ts:758` stub 模式专用+route-classify `route-classify-consumer.ts:63`+commerce-reconcile `:136`+model-invocation-reconcile `:144`+usage-calibration-reconcile `:114`+usage-calibration-retention `:83`+qbank-release-sweep `:106`+privacy eraser×2 `privacy-erasure-worker.ts:38+:59`）。1+3+10=14 恰等。
+
+- **A 组（保 600s 缺省=10 处缺省组+interview）·interview 600s 判据修正（引用错位修正）**：真护栏=①入队帽 `MAX_INTERVIEW_PER_OWNER_QUEUED=3`（`interview-jobs.ts:25`·同事务闸 `:89-91`·advisory lock 串行收紧形 `:79`）②requeue 指数退避 `2^attempts` 封顶 300s（`INTERVIEW_RETRY_BACKOFF_CAP_SECONDS=300` `:18`·写入 `:280`·claim 时闸 `:162`）③attempts≤5 reaper 终界（`:15`）——同 owner queued 深度结构性 ≤3+重入速率被退避节流→单 owner 每拍工作量小常数。launch cap 32/owner÷globalInflight 4（`interview-dispatch-fairness.ts:15-16+:10-13`）系**并发量子/livelock 防护非深度护栏**——原 §1.1 件①「launch cap 32 算术不误伤」引用错位·以此节为准。残余披露：跨 owner 极端满队（N≥7 owner 同时满队 ~4 job×90s 单 job 界÷inflight 4≈630s>600s）理论可触——产品量级罕见+误触后果非灾难（§9.4 承接）→维持 600s。**route-classify 结构披露（rev 亲证追加·席1 清单未列）**：`route-classify-consumer.ts:53-58` tick 亦系 `drainOwnersInListedOrder`（`:57`）串行抽干形——其队列=`job_semantic_revision.route_pending` 内部重分类（非用户动作队列·revision churn 量级）·单 job=1 classify invoke ≤35s+DB 界→内部量级判据下 600s 维持；产品化放量→独立刀槽（防隐没登记）。
+- **B 组（显式更大定值·经 `opts.tickWatchdogMs`）=quiz/diagnosis/report 三串行抽干 loop**：`drain-loop.ts` 新增导出常量 **`SERIAL_DRAIN_TICK_WATCHDOG_MS = 1_800_000`**（与 `TICK_WATCHDOG_DEFAULT_MS=600_000` 并列）；三 runner **体内** `runDrainLoop` 调用处显式第三参 `{ tickWatchdogMs: SERIAL_DRAIN_TICK_WATCHDOG_MS }`（`quiz-consumer.ts:108`/`diagnosis-consumer.ts:106`/`report-worker.ts:243` @`c3f1708e` 各恰 1 行）。runner 对外签名不变→**main.ts 调用点零改保持为真**。
+- **三 loop 定值算术行（rev 席各自亲算）**：
+  - **report=1_800_000（30min）**：单 job 实测 31s（LIVE 派单转录=generate 图 1 站 `report-worker.ts:170`+成长链 3 站 `:108/:132/:141`·共 4 模型站·每站 invoke execution 帽 35s `invoke.ts:374-376`→单 job 上界 140s）×目标深积压 30 job（停摆恢复窗量级=600s 缺省误触阈 600÷31≈19 job 的 ×1.5）=**930s**→裕度 ×2=1860s→定值 1_800_000 落 600s×3 运维网格（实裕度 1800÷930≈×1.94·等价吸收 ≈58 job@31s）。残余：report enqueue 无深度帽（`report.ts:13` 起 enqueueReport 零 count 闸亲证）→>58 job 积压仍可触=非灾难后果（§9.4）+入队背压独立域留槽（沿 QUEUE-ENQUEUE-BP 先例）。
+  - **quiz=1_800_000（30min）**：单 job=押题图 1 模型站（`quiz-lifecycle.ts:48` graph.invoke·parse→generate→validate→make_report 单 invoke）+DB 界链（claim/解密读/markDone 各 ≤15s 语句界 `principal.ts:947-950+:964`）→**单 job 保守墙钟界 60s**（35s invoke 上界+25s DB 链不叠满取整）；典型域派生 ~15s（report 31s÷4 站≈8s/站+同形 DB 链·**派生非实测·如实登记**）。目标深积压 30 job×保守界 60s=**1800s**→定值 1_800_000（保守界内嵌 per-job 余量→等效裕度 ≥×2；典型域 30×15=450s→×4）。**裁量披露**：按典型 ×2 法则=900s 罩不住保守界（恢复窗模型变慢域 30 job 必误触·而恢复窗恰本刀目标场景）→择保守界定值·代价=真挂检测时延上限 30min（≪永久静默·可接受）。
+  - **diagnosis=1_800_000（30min）**：同 quiz 形（诊断图 1 模型站 `diagnosis-lifecycle.ts:52`+同形 DB 界链）→同法定值 1_800_000·同裁量披露。
+- **「13 调用点零改」表述修正**：收窄为「**main.ts** 调用点零改」（runner 签名不变为真）；三串行 loop 的传参载体=runner 体内调用处显式第三参恰 3 行——原「13 调用点零改=零改面向后兼容」表述以此节为准。
+- **「零行为位移于正常拍」限定语修正**：修正为「**正常短拍+合法深队列长拍（tick 墙钟 ≤watchdog 定值）零位移**——合法深队列拍=watchdog 设计保护对象非误伤面；超值长拍=设计内到点中断（非灾难后果·§9.4）」。原 §1.1 件①「零 env 闸零行为位移于正常拍」句以此限定语为准。
+- **diff 面随之修正**：§2 门 8「恰 5 tracked=2 码+3 docs」→「**恰 8 tracked=5 码**（`drain-loop.ts`+`drain-loop.proof.ts`+`quiz-consumer.ts`+`diagnosis-consumer.ts`+`report-worker.ts`）**+3 docs**」；§1.1 件①「唯一产品码改面」→「恰 5 码面·worker 单包保持」；§5 pins 增 `SERIAL_DRAIN_TICK_WATCHDOG_MS=1_800_000`。
+
+### §9.2 修订②——门 2 臂清单补误伤判别臂
+
+门 2 watchdog 臂组（≥8 臂）增补：**误伤判别臂=注入多 job 慢 tick（墙钟>注入 watchdog 值）→正判别**（watchdog 到点具名中断·证明超值长拍确被覆盖）**+叠跑/计数/恢复行为确定性断言**（弃 tick 迟 settle 幂等照走+`consecutiveFailures++`+下一拍续跑+无崩溃）——与既有负形臂（正常拍零触发·stop 后零触发）合组=双向判别完备。EXEC 定值臂时以注入短值承载同形。
+
+### §9.3 修订③——§0.1 锚表 rev 增补行（blob @`c3f1708e`=草稿 tip·草稿零码面故=d5dc0726 同值亲证）
+
+| 文件 | blob | rev 定性 |
+|---|---|---|
+| `apps/worker/src/owner-queue-drain.ts` | `2ce26c6c` | **触面邻锚**（三 runner 串行抽干 tick 墙钟语义承载·`:19-21` 深首 owner 占拍+`:30-38` 抽干循环） |
+| `apps/worker/src/quiz-consumer.ts` | `477f09e8` | **rev 后触面**（B 组显式传参 `:108` 恰 1 行） |
+| `apps/worker/src/diagnosis-consumer.ts` | `14a7b39c` | **rev 后触面**（B 组显式传参 `:106` 恰 1 行） |
+| `apps/worker/src/report-worker.ts` | `a6a1f6c2` | **rev 后触面**（B 组显式传参 `:243` 恰 1 行） |
+
+引用如实登记：席1 FAIL 引 enqueue 帽「`interview-jobs.ts:79`」——`:79` 实系同闸 advisory lock 行·深度判定在 `:89`（@`d5dc0726` 亲证）——定值判据以 `:25+:79+:89-91` 为准。EXEC 期重 pin 沿 §0 规则（结论不变只更行号）。
+
+### §9.4 修订④（P2）——§1.2 堆叠语义扩登+门 2 堆叠披露臂
+
+watchdog **每次触发=弃当前 tick promise→+1 在飞僵尸**（DB 面 15s 终 settle 幂等照走/settle-less 闭包驻留至进程重启·§1.2 ①②承接）；**触发速率上界 ≤1/watchdog 值/loop**（B 组 ≤1/1800s·缺省组 ≤1/600s）；**误触恢复窗内可达多叠**（深积压跨 watchdog 周期持续→每周期 +1·如 30 job×90s 界≈2700s 域可达 1-2 叠）——叠跑僵尸各自幂等照走=重领安全网承接·**非静默**（`worker_tick_watchdog` 结构化日志每触必登·误触噪音即观测代价如实披露）。门 2 增**重复触发堆叠披露臂**：连续两慢 tick→两具名中断·在飞僵尸计数 2·loop 稳定无崩溃。
+
+### §9.5 修订⑤（P2/P3）——ready() 归因对齐+计数勘误
+
+- **§1.1 ready() 归因对齐**：挂死 tick 翻红**本由既有陈旧窗承载**（`max(intervalMs×3,5s)`=15s@缺省 intervalMs 5000·`drain-loop.ts:76`·§0.2「仅陈旧窗一肢可达」已亲证≈15s 即红）——watchdog 增量=①到点具名中断（摆脱永挂）②下一拍自愈（reaper/gauge/调度全责复活）③`consecutiveFailures++` 信号增强（入 3 连败臂）。原 §1.1「ready() 经 3 连败/陈旧窗翻 false（观测+自愈双面）」的**watchdog 增量归因**修正为「翻红由既有陈旧窗/3 连败臂承载·watchdog 供中断+自愈+计数增强」。
+- **计数勘误（P3）**：门 7/起草 commit「新增行 104」→**实测 103**（`git diff --numstat d5dc0726..c3f1708e`=10+1+92 亲证）——104→103 勘误·markers 直扫结论不变（rev 席增量行复扫见 §9.6）。
+
+### §9.6 门矩阵 rev 后口径（rev 席亲跑）
+
+- 门 6：`docs:check` EXIT=0 **2194≤cap 2200**（rev 席亲跑·文件计数制·本 rev 恰 1 doc 改零新增文件→计数不变）。
+- 门 7：rev 增量行 markers 直扫零命中（五类标记词+冲突对·词面不誊）+全树行首冲突标记 EXIT=1 零命中（rev 席亲扫）。
+- 门 2/门 8：沿 §9.1/§9.2/§9.4 rev 口径（B 组显式传参 3 行入 diff 面·误伤判别臂+堆叠披露臂入臂组）——EXEC 期全门重跑为准。
+- 卫生随承：`apps/web/tsconfig.tsbuildinfo` 门副产 checkout 回滚纪律保持。
+
+### §9.7 rev 后 STOP 状态
+
+**STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（本 REQUEST §8+LEDGER 管线「worker-hang-guard 起草」行+execution-master-checklist「Line worker-hang-guard」段·零改）。rev 落卷后待**窄域复审确认**五条修订落点（§9.1-§9.5）→**重派 pre-exec 双审两席**；开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）。
