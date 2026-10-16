@@ -9,7 +9,22 @@
  * 与隐私双约束,REQUEST §1.3 候选丙否决）；context-budget/CTX-02 接线（AG-20/#217 面·候选丁）；
  * 持久化（MEM-00 完成前禁写任何记忆摘要——execution-master-checklist :66）。
  */
-import type { Turn } from './state.ts';
+import type { QuestionKind } from '@meetwise/domain';
+
+/**
+ * Turn 的只读结构子集（AI-GRAPHS-CYCLE-BREAK 环解）：本模块只消费这六个 checkpoint 派生字段,
+ * 以局部结构子集承接而不 import Turn——拆除 session-summary→state 回边后保单向
+ * state→session-summary（state.ts 经 TurnCoversSessionTurnInput 编译期守卫钉死结构覆盖,
+ * 子集漂移即 state.ts 红）。零运行时零行为变更。
+ */
+export interface SessionTurnInput {
+  q: string;
+  competency: string;
+  score: number | null;
+  outcome: 'answered' | 'clarify' | 'unresolved' | 'unscored';
+  kind: QuestionKind;
+  evidence?: string[];
+}
 
 /** 聚合窗：最近 3 个已评分回合（更早回合只贡献弱点累计,不重复进窗）。 */
 export const SESSION_SUMMARY_MAX_TURNS = 3;
@@ -28,7 +43,7 @@ export interface SessionTurnDigest {
   /** 已评分回合序数（1 起,全场连续计——非 transcript 下标）。 */
   n: number;
   competency: string;
-  kind: Turn['kind'];
+  kind: SessionTurnInput['kind'];
   score: number;
   q: string;
 }
@@ -53,7 +68,7 @@ function bounded(s: string, max: number): string {
  * evidence 先界后并、精确串去重保首现、帽内截断。纯函数零 IO 零模型零墙钟。弱点去重=精确串
  * （确定性可 gate）；语义去重归后继（#203 weaknessMatches 先例可后挂,本刀不引 worker 依赖）。
  */
-export function buildSessionSummary(transcript: readonly Turn[]): SessionSummary | null {
+export function buildSessionSummary(transcript: readonly SessionTurnInput[]): SessionSummary | null {
   const scored = transcript.filter((t) => t.outcome === 'answered' && typeof t.score === 'number');
   if (scored.length === 0) return null;
   const windowed = scored.slice(-SESSION_SUMMARY_MAX_TURNS);
