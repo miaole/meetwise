@@ -1,6 +1,6 @@
-# QUEUE-CLOSEOUT 队列收尾微刀（批5 盘点 Top2+5C post P2-1 三件一卷·零迁移·STOP=`draft:awaiting_pre_exec_dual`）
+# QUEUE-CLOSEOUT 队列收尾微刀（批5 盘点 Top2+5C post P2-1 三件一卷·零迁移·STOP=`executed:awaiting_post_prove_dual`）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 G7W 先例「自述三处实测四处」教训预勘误·开工权归协调方·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 G7W 先例「自述三处实测四处」教训预勘误·开工权归协调方·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。
 
 **席位**：QUEUE-CLOSEOUT 队列收尾微刀起草席（协调方派单令·批5 盘点席 Top2+5C-BEHAVIOR post 席2 P2-1 三件一卷·量级微·⛔push·⛔merge 主线）。
 
@@ -38,7 +38,7 @@
 `UPDATE interview_job SET status='queued', lease_owner=NULL, lease_expires_at=NULL, version=version+1
 ```
 
-（恰 `lease_expires_at=NULL,` 一片段·余零字节）。语义定谳（本席亲读三面）：⑴ fence 臂 `:279` 同翻转（running→queued·lease 释放）已带 `lease_expires_at=NULL`——两臂数据面恒等化，清除「同语义两形」分叉；⑵ docstring `:302` 已宣告「requeue 回 queued(lease NULL…)」——现码仅清 `lease_owner` 未清 `lease_expires_at`=注释半与 SQL 半不符，修法使注释成真；⑶ 影响面亲读=现行为零位移动：claim `:154` 领取时无条件覆写 `lease_expires_at=now()+…`（重领 job 租约戳即新·stale 值不外溢到领取后）、claim queued 臂 `:162` 与 cap 计数 `:172-177` 均不读 queued 行租约列、purge `:354` queued 臂按 `created_at` 口径（有意形）、enumerate `:365` 按 status 口径——不清的实害=**行态不变量破面**（「queued ⇒ lease 双列 NULL」被 sweep 臂单独违反·重领前窗口内 queued 行带旧租约戳，监控/取证/未来读者按「非 NULL lease_expires_at=租约在场」判读即误判）+reaper 语义面与 fence 臂对照可判别的收尾残留。**判别臂**（`reaper.proof.ts`）：`:41-42` jobRow 选列补 `lease_expires_at`；`:96` 断言扩形——`A('job 回 queued 且 lease 释放(NULL)', after1.status === 'queued' && after1.lease_owner === null)` → `A('job 回 queued 且 lease 双列释放(NULL)', after1.status === 'queued' && after1.lease_owner === null && after1.lease_expires_at === null)`。改前红论证=fixture `:36` 种 `lease_expires_at=now()-interval '5 minutes'`，旧码 sweep 臂不清理 → 重领前该列=past timestamptz 非 NULL → 断言 FAIL；改后绿。EXEC 改前红取证沿 queue-enqueue-bp 先例=stash `interview-jobs.ts` 单文件跑 `prove:reaper` ② 段 FAIL 后恢复复跑绿（双向亲证）。
+（恰 `lease_expires_at=NULL,` 一片段·余零字节）。语义定谳（本席亲读三面）：⑴ fence 臂 `:279` 同翻转（running→queued·lease 释放）已带 `lease_expires_at=NULL`——两臂数据面恒等化，清除「同语义两形」分叉；⑵ docstring `:302` 已宣告「requeue 回 queued(lease NULL…)」——现码仅清 `lease_owner` 未清 `lease_expires_at`=注释半与 SQL 半不符，修法使注释成真；⑶ 影响面亲读=现行为零位移动：claim `:154` 领取时无条件覆写 `lease_expires_at=now()+…`（重领 job 租约戳即新·stale 值不外溢到领取后）、claim queued 臂 `:162` 与 cap 计数 `:172-177` 均不读 queued 行租约列、purge `:354` queued 臂按 `created_at` 口径（有意形）、enumerate `:365` 按 status 口径——不清的实害=**行态不变量破面**（「queued ⇒ lease 双列 NULL」被 sweep 臂单独违反·重领前窗口内 queued 行带旧租约戳，监控/取证/未来读者按「非 NULL lease_expires_at=租约在场」判读即误判）+reaper 语义面与 fence 臂对照可判别的收尾残留。**判别臂**（`reaper.proof.ts`）：`:41-42` jobRow 选列补 `lease_expires_at`；`:96` 断言扩形——`A('job 回 queued 且 lease 释放(NULL)', after1.status === 'queued' && after1.lease_owner === null)` → `A('job 回 queued 且 lease 双列释放(NULL)', after1.status === 'queued' && after1.lease_owner === null && after1.lease_expires_at === null)`。改前红论证=fixture `:36` 种 `lease_expires_at=now()-interval '5 minutes'`，旧码 sweep 臂不清理 → 重领前该列=past timestamptz 非 NULL → 断言 FAIL；改后绿。EXEC 改前红取证沿 queue-enqueue-bp 先例=stash `interview-jobs.ts` 单文件跑 `prove:reaper` ② 段 FAIL 后恢复复跑绿（双向亲证）。（EXEC 随批注记·双审 R4：本修=**租约列恒等化**——sweep 臂与 fence 臂 `:279` 两臂 `lease_owner`+`lease_expires_at` 双列同形清空；`next_attempt_at` 两臂分叉**维持原样不随修**=fence 臂 `:280` 写退避/sweep 臂不触，存量零害亲证=claim queued 臂 `:162` 谓词 `next_attempt_at IS NULL OR <= now()`（NULL=立即领·存量过去戳=已到期可领），sweep requeue 行两态均立即可领→修前修后行为逐字节同·退避语义差异系两臂设计内（fence=用户主动放弃重排·sweep=崩溃收割重领））
 
 **件③（5C post P2-1·⑨ 族加 1 判别断言）**：`commerce-reconcile.proof.ts` ⑨ 族（`:280-294`）两臂：⑴ `:284` reserve 后 seed issued 题——`await pool.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question) VALUES ($1,$2,'q-reclaim-closeout',1,0,'收口判别题')", [owner, iid]);`（status 缺省 `'issued'`·0021 `:12` CHECK 四值+`uq_interview_question_open` 单开题窗内恰一行）+fixture 就位断言（查回 `'issued'`）；⑵ `:286` 首拍后加 1 断言——`SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2` 返 `'cancelled'`（reclaim 拍前 seed issued 题→拍后 status='cancelled'·派单令原文逐字）。判别对象如实登记：reclaim 路径 cancel 收口联合判别钉=主臂 `finishAbandon`（`commerce.ts:490` 同事务 cancel）+兜底臂 `commerce-reconcile.ts:86`（soft-set 臂显式 cancel）两臂终态口径合一（trio 件① 双 wire）；对 trio 前码（finishAbandon 零触 interview_question+soft-set 臂零 cancel）本断言红（status 恒 `'issued'`）→对现 tip 码绿=防回退判别钉，兑现 P2-1「未立独立判别臂钉 reclaim 语义」销案。兜底臂独走全路径判别（须强置 `interview_abandon_conflict`）超出派单令断言形——登记 §8 归 EXEC 可选加强项不预支。
 
@@ -48,13 +48,13 @@
 
 1. **#4 autovacuum 调优半不认领**：LEDGER `:87` `#4（半闭注记 2026-10-13：退避半已随 AG-C 落…autovacuum 调优半无刀认领·维持开放勿翻面）`——autovacuum 系 DB 运维参数调优面（非代码缺陷·涉生产库配置域），超本微刀量级与域，维持开放归协调方另裁（§1.3 拒认领·非拒存在）。
 2. **迁移/存量回填否决**：对 queued 行带非 NULL 旧租约戳的存量行做一次性清理 UPDATE（迁移件）否决——本刀零迁移纪律；存量脏值对现行为零影响（§1-件① 三面亲读：claim 覆写/purge created_at 口径/enumerate status 口径），脏值随各 job 自然走完生命周期消化，回填零净收益纯迁移面开销。
-3. **扩族否决**：quiz/diagnosis 两族 reaper（`quiz-jobs.ts:81` 镜像面）同形缺口如有的普查与修复否决出卷——批5 盘点 Top2 只点名 interview 面 #5；扩族超「队列收尾微刀」边界，如实登记归后继（不销案不预支）。附带拒改：purge queued 臂改 lease 口径（否决·created_at=入队年龄语义正确）；claim `:154` 覆写行为改（否决·现语义正确）。
+3. **扩族否决**：quiz/diagnosis 两族 reaper（`quiz-jobs.ts:81` 镜像面）同形缺口如有的普查与修复否决出卷——批5 盘点 Top2 只点名 interview 面 #5；扩族超「队列收尾微刀」边界，如实登记归后继（不销案不预支）。附带拒改：purge queued 臂改 lease 口径（否决·created_at=入队年龄语义正确）；claim `:154` 覆写行为改（否决·现语义正确）。（EXEC 随批注记·双审 R1：同形**普查面**由「quiz/diagnosis 两族」放宽为「**quiz/diagnosis/report 等其余队列族**」——report 族同形缺口在树亲证两锚：`packages/db/src/report/report.ts:68` `requeueFailedReport` 置 `lease_owner=NULL…next_attempt_at=NULL` 未清 `lease_expires_at`、`:88` `sweepReports` requeue 臂 `SET status='queued', lease_owner=NULL, version=version+1` 同缺——本注记=登记非修码·修复仍归后继（本刀零扩族零触 report 族·否决面结论不变））
 
 ## §2 门矩阵（EXEC 期逐门亲跑·红停）
 
 | 门 | 门名 | 判据 |
 |----|------|------|
-| G1 | prove:reaper | `pnpm -C apps/worker prove:reaper` EXIT=0 全绿；件① 判别臂改前红（stash 单文件取证 FAIL）→改后绿双向亲证（沿 queue-enqueue-bp 判别臂先例）；邻门 `prove:requeue-backoff` EXIT=0 回归（reaper 邻面零翻） |
+| G1 | prove:reaper | `pnpm -C apps/worker prove:reaper` EXIT=0 全绿；件① 判别臂改前红（stash 单文件取证 FAIL）→改后绿双向亲证（沿 queue-enqueue-bp 判别臂先例）；邻门 `prove:requeue-backoff` EXIT=0 回归（reaper 邻面零翻）；邻门 `prove:reaper-purge-wire` EXIT=0（双审 R5·零库假池形） |
 | G2 | prove:commerce-reconcile | `pnpm -C apps/worker prove:commerce-reconcile` EXIT=0；⑨ 族既有 2 断言零翻+新增 2 臂（fixture 就位 issued+拍后 cancelled）全 PASS；①-⑧ 族回归零翻 |
 | G3 | neg:interview | `pnpm -C apps/api neg:interview` EXIT=0 恰等基线（本刀零 api 触·对届时实跑值亲证） |
 | G4 | typecheck | 8/8 包全绿（`pnpm -r typecheck`） |
@@ -91,4 +91,49 @@ EXEC 可选加强项（不预支·零必做）：兜底臂独走全路径判别�
 
 **停止条件四类**：①单件法则=件①/件③ 机制独立·单件机制不满足可停单件余件继续；②卷级门红全卷停；③现场漂移（锚漂超 ±3 且结论受影响·LEDGER `:87` 翻面被他刀先行行使→本刀翻面笔底稿作废如实改登）停手上报；④STOP 状态翻面权=pre-exec 双审 BOTH PASS 后归协调方（EXEC 授权随派单令）。
 
-**STOP · `draft:awaiting_pre_exec_dual`**（三处锚定=①卷头标题行+②Status 行+③本节）。开工三条款：①pre-exec 双审 BOTH PASS（两外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项）。双审前零 EXEC 零落码·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。
+**STOP · `executed:awaiting_post_prove_dual`**（三处锚定=①卷头标题行+②Status 行+③本节·前值 `draft:awaiting_pre_exec_dual` 史录=EXEC 落卷翻面·翻面授权=pre-exec 双审 BOTH PASS 后随协调方 EXEC 派单令）。开工三条款：①pre-exec 双审 BOTH PASS（两外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项）。双审前零 EXEC 零落码·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。
+
+## §9 EXEC 记录（2026-10-16·本席亲跑）
+
+**EXEC 授权链**：pre-exec 双审会签 PASS×2（席1 `agent_c79afe9f`+席2 `agent_7355ae12`）→协调方授权 EXEC（派单令随双审修订清单 R1-R5 与执行序五步）。
+
+**序1 并线**：fetch 亲证 `origin/feat/mysql-schema-skeleton`=`10799a3e`（派单下界「tip≥10799a3e」等号成立）→merge `0e022751` --no-ff（双亲 `0a4d6901`+`10799a3e`·ort 自动并零冲突·8 files +361/−9 全为 worker-hang-guard nail 波卷内容·⛔pull --rebase 未用·⛔force push 未用）。
+
+**字段① 门矩阵全表（G1-G9·EXEC 时点亲跑）**：
+
+| 门 | 判据与结果 | 结论 |
+|---|---|---|
+| G1 主 | `run-e2e-isolated.mjs reaper:prove:raw`——**改前红**（stash `interview-jobs.ts` 单文件取证）=恰 1 FAIL「job 回 queued 且 lease 双列释放(NULL)」·余 27 臂绿零回退·EXIT=1；**改后绿**=28 PASS/0 FAIL EXIT=0 | 绿（判别臂双向亲证） |
+| G1 邻 requeue-backoff | **基线红单列**：改前改后失败面逐字节同形=EXIT=1 `interview_queue_saturated`@`requeue-backoff.proof.ts:126`·0 臂执行（净树 stash 对照跑同值同错亲证）——根因=#117 饱和闸（QUEUE-ENQUEUE-BP 执行面主线在树）并线后该 proof 对同 owner 预置 5 行 queued start（TID/DID/CAPID/STRID/GID·第 4 笔撞 N=3 闸）未随迁=**跨刀遗留基线红·与本刀零涉**（本刀 sweep 臂半行与入队闸零交集·reaper 邻面零翻按本刀零 delta 口径成立）·修复（proof fixture 随迁）归协调方裁后继·本刀零代修不越界 | 红=基线（非本刀引入·单列上报） |
+| G1 邻 reaper-purge-wire（R5） | `pnpm -C apps/worker prove:reaper-purge-wire` **EXIT=0**（零库假池形·PASS 计 14） | 绿 |
+| G2 | `run-e2e-isolated.mjs commerce-reconcile:prove:raw` **EXIT=0**=49 PASS/0 FAIL；⑨ 族既有 2 断言零翻+新增 4 断言（seed 就位 issued/reclaim 拍收口 cancelled/终态-conflict 兜底臂独走双钉）全 PASS；①-⑧ 族回归零翻 | 绿 |
+| G3 | `run-e2e-isolated.mjs neg:interview` **EXIT=0**「✓ neg:interview: 107 条负路径用例全绿」恰等基线 | 绿 |
+| G4 | `pnpm turbo typecheck --force` **EXIT=0**「Tasks: 8 successful, 8 total / Cached: 0 cached, 8 total」 | 绿 |
+| G5 | `pnpm turbo lint --force` **EXIT=0**「Tasks: 12 successful, 12 total」五值恰等 pin：root **5235**/web **601**/api **1421**/worker **954**/db **1042**（+ai-runtime 628 等·零新警告） | 绿 |
+| G6 | docs:check **EXIT=0** scanned **2204** ≤cap 2208（余 4·计数谱系=起草时点 2202+并线携 worker-hang-guard 卷 1+worker-hang-guard nail 波 SSOT 计 1·本卷 append +0 零新增文件） | 绿 |
+| G7 | markers 改动集五类词+行首冲突标记零命中 **0/0**（词面运行时组装防自指） | 绿 |
+| G8 | diff 面=恰 4 tracked（本卷 `.md`+`interview-jobs.ts`+`reaper.proof.ts`+`commerce-reconcile.proof.ts`）·`tsconfig.tsbuildinfo` 副产物 checkout 复位不计（api-harden R4 先例）·零新增文件·零迁移 | 绿 |
+| G9 | migrations 全目录字节零触+LEDGER/checklist/SOP/issues 行本体零字节改（#5/#117 翻面笔仅存 §8 底稿+本节 R3 登记·归协调方 nail 时行使） | 绿 |
+
+**字段② EXIT 原值**：G1 改前 EXIT=1（「FAIL  job 回 queued 且 lease 双列释放(NULL)」+「✗ 1 项失败」）→改后 EXIT=0（「✓ Reaper(心跳防误收 + 双边界 requeue/终结 + 终态事件 + 退款 + 僵尸守卫 + 已结算不误终态)全部通过」·PASS 计 28）；G2 EXIT=0（「✓ C1 对账兜底调度侧:孤儿预留回收+终态事件+结算入账+幂等+并发安全 全部通过」·PASS 计 49）；G3 EXIT=0（107 全绿行亲录）；G4 EXIT=0（Tasks 行亲录）；G5 EXIT=0（12 successful+五值 ✖ 计数逐包亲录）；G6 EXIT=0（「ai-docs check passed: 80 required files verified; public text policy scanned 2204 managed worktree files」）；G7 自面 0/0；G8 porcelain 四行亲录；G1 邻 requeue-backoff 双态均 EXIT=1 同错同点（基线红单列·非本刀引入）。
+
+**字段③ 改前改后 PASS diff（判别链定稿）**：reaper 面=only-in-post=② 段「双列释放」臂 FAIL→PASS（stash 单文件双向亲证·非单 attempt 留证）；commerce-reconcile 面=only-in-post=⑨ 族 4 新断言 PASS·既有 45 断言恒等零回退。件③ 判别臂「改前红」如实记账=**论证红非实跑红**（红态在树不可达：现 tip 已含 5C-BEHAVIOR-TRIO cancel 接线·对 trio 前码 finishAbandon 零触 interview_question+soft-set 臂零 cancel→status 恒 `'issued'` 断言必红——沿 REQUEST §1-件③ 原文口径）；R2 子臂同口径（completed fixture 下 `:86` 兜底臂缺位则题恒 issued 必红=防回退钉）。
+
+**字段④ diff numstat**：EXEC 修法面=4 tracked：本卷 `.md` **+51/−6**（R1/R4/R5 三 append+§9 append+STOP 三处翻面）+`packages/db/src/interview/interview-jobs.ts` **+1/−1**（sweep 臂 `lease_expires_at=NULL,` 一片段）+`apps/worker/test/reaper.proof.ts` **+2/−2**（jobRow 选列+断言扩形）+`apps/worker/test/commerce-reconcile.proof.ts` **+26/−0**（⑨ 族 seed+4 断言+终态-conflict 子臂·numstat 实测）；并线 merge `0e022751` 携入 8 files 全为 worker-hang-guard nail 波卷内容非本刀修法面；tsbuildinfo 副产物 checkout 复位不计。
+
+**字段⑤ 重 pin 全表（并线后树 `0e022751` EXEC 时点）**：§0 十一锚——#1-#4 四码锚 blob **恒等零漂**（interview-jobs.ts `c69c03a3`/reaper.proof `0b9db078`/commerce-reconcile.ts `5ed1b0ed`/commerce-reconcile.proof `ac57bb51`·行数 367/171/140/300 恒等·`:317`/`:279`/`:96`/`:281-294` 挂点逐一对届树成立）；#7 SOP `eae68fe2`/#8 queue-enqueue-bp `b549dabf`/#9 5e-sweep-2 `28de5763`/#10 5c-trio `b4216cd9`/#11 neg proof `06f8e249` 五锚恒等；#5 LEDGER `33ea22d6`→`210e80a1`（644L→645L）+#6 checklist `bad5dd80`→`376fd5bc`（3360L→3371L）——漂移源=并线携 worker-hang-guard nail 波 SSOT append（非本刀触）·行锚 `:87`（5C 组行「#5/#117/#7/#9 背压」在册未翻）/`:89`（5C-BEHAVIOR-TRIO 翻面笔先例）/`:3299`（queue-enqueue-bp nail 段头）零漂·checklist `:3326`→`:3337` 移位 +11（5c-behavior-trio nail 段）——结论全数不变（§0.0 预勘「并线序自由先并则重 pin 非停」兑现）。
+
+**字段⑥ 偏离清单**：①**seed 执行形勘正**（非语义偏离）：commerce-reconcile.proof 件③ seed INSERT 初稿沿 REQUEST 语句面裸 superuser 池直插→撞 0058/0059 投影写护栏（session principal 缺席→`interview_privacy_fenced` RAISE·G2 首跑红停·沿 fail-loud 未绕门）→沿 `scor-00-http-db.proof.ts:155` asPrincipal 先例改 **asPrincipal(owner) 包裹执行**（INSERT 语句文本逐字未动=DBHY-1 迁移真相「投影写护栏要求 session principal=owner」·护栏注记随码）；②R2 加强项落点=⑨ 族块内 append 终态-conflict 子臂实测 +10 行（派单「约 +8 行」近似值·断言双钉=interview 保持 completed+题 cancelled）；③G1 邻门 requeue-backoff 基线红（字段①单列·跨刀遗留·零代修）；④其余零偏离（件①/件③ 逐字落笔·G8 恰 4 tracked·G9 SSOT 零触·quiz/diagnosis/report 族零码触·消费侧语义零触·每件独立可停未触发）。
+
+**字段⑦ pins 零翻声明**：§5 pins 十一值逐字零翻（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false·r1Closed=false·脚注 actualSpendCny=null）；est live=0 兑现（隔离容器/零库假池/静态门·零模型外呼·零生产操作·零 secrets 读用·actualSpendCny=null）；`pnpm install --frozen-lockfile` 环境准备（worktree node_modules 缺席·沿 queue-enqueue-bp 先例）lockfile **零字节变**；⛔push 未犯·⛔force push 未犯·⛔pull --rebase 未犯。
+
+**修订清单落点（双审 R1-R5 随 EXEC 落）**：
+- **R1**（席2）→§1.3-3 append 注记已落：同形普查面放宽为「quiz/diagnosis/report 等其余队列族」（`report.ts:68` requeueFailedReport/`:88` sweepReports requeue 臂两锚在树亲证·登记非修码·本刀零扩族零触 report 族码面）。
+- **R2**（席2·协调方裁决=行使加强项）→commerce-reconcile.proof ⑨ 族内补终态-conflict 子臂已落：seed `status='completed'` 终态 interview（INSERT 先于 reserve=0020 配对触发器 consumption NULL 放行）→主 CAS（`commerce.ts:529` WHERE IN created/waiting_user）0 行→`:539` 抛 `interview_abandon_conflict`→`commerce-reconcile.ts:79` 窄滤接住→soft-set no-op（completed 被排除）→`:86` 兜底臂独走 cancel·断言 cancelled+completed 零翻转双钉——**P2-1 销案升格为兜底臂独占钉**（该 fixture 下 cancel 唯一来源=`:86`·主臂 finishAbandon 不可达=独占判别）。
+- **R3**（席2）→**EXEC 只登记不改批表**：#5/#117 批表行翻面笔归协调方 nail 时同拍行使（§8 底稿逐字在卷零改·LEDGER `:87`/checklist `:3299` 段/SOP `:41` 行本体零字节改·本卷零代行零预支）。
+- **R4**（席2）→§1-件① append 注记已落：「租约列恒等化·next_attempt_at 分叉存量零害」（fence 臂 `:280` 写退避/sweep 臂不触·claim queued 臂 `:162` 谓词 `IS NULL OR <=now()` 两态均立即可领=修前修后逐字节同·两臂退避差异系设计内）。
+- **R5**（席2）→§2-G1 加列邻门 `prove:reaper-purge-wire` EXIT=0 已落已跑（EXIT=0·PASS 计 14·零库假池形无需隔离靶）。
+
+### §9-B STOP 翻面
+
+三处权威 STOP（①卷头标题行+②Status 行+③§8 节）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**（§0-§8 叙事原文不洗·append+勘正注形·卷尾行不载值沿三处锚定制）——post-prove 双审归后继席（两独立外席·alone≠dual）·G1 邻门 requeue-backoff 基线红如实单列呈报待裁（跨刀遗留·非本刀引入）·⛔push ⛔merge 主线 ⛔force push。
