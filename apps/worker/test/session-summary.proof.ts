@@ -189,7 +189,7 @@ function sectionC() {
   const state = readFileSync(fileURLToPath(new URL('../../../packages/ai-graphs/src/adaptive-interview/state.ts', import.meta.url)), 'utf8');
   A('C1 generate-question.ts:派生行 buildSessionSummary(state.transcript)+第 9 实参形在案',
     gq.includes('buildSessionSummary(state.transcript)') && gq.includes('state.weightedDeficit ?? null, session)'));
-  A('C2 service 消费点:vars 第 10 键 session: session ?? undefined 在案', svc.includes('session: session ?? undefined'));
+  A('C2 service 消费点:vars 第 10 键 session: sessionOut 在案(AG-20 预算裁定出口)', svc.includes('session: sessionOut'));
   A('C3 prompts.ts:version v8 在案', prompts.includes("version: 'v8'"));
   A('C4 state.ts:第 9 参签名子串 session?: SessionSummary 在案(前缀恒匹配)', state.includes('session?: SessionSummary'));
 }
