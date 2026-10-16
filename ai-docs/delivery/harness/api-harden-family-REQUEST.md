@@ -206,6 +206,15 @@ checklist :2685 明载「原文不在工作树…待协调方将原文随卷归�
 
 三处权威 STOP（Status 行/§8/文末尾注）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**（§0-§8 勘误留痕随行·叙事原文不洗·append+勘正注形）·**STOP · `executed:awaiting_post_prove_dual`**——post-prove 双审归后继席·⛔push ⛔merge主线 ⛔force push。
 
+### §9-补 post 双审 P2 随卷注记（2026-10-16 nail 席·post 双审会签 PASS 授权（席1 agent_95fac988+席2 重派 agent_8281b545）·append 注记形·§0-§9 上文零字节洗改·两件）
+
+- **注记一（席1：§9 门 8 恰符臂「unexpected=3 文件」词面计数漂勘记→净树复跑实为 4 文件）**：§9 门 8 恰符臂红详注所载 unexpected 词面=`apps/web/lib/jobs/ensure-ok.ts,apps/web/test/web-logic.proof.ts,apps/web/test/server-only-hooks.mjs` 三文件——系 EXEC 期改动集判定时点词面（EXEC 期 i6 复跑在落卷前·本卷 §9 段尚未入改动集）；**净树复跑口径**（门脚本改动集判定=树净 vs HEAD~1·`scripts/i6-239-gates.proof.mjs` :34-36）下 EXEC 落卷 `0de077ad` 的改动集=**恰 4 tracked**（`git diff --name-only 0de077ad~1 0de077ad` 本席亲证=本卷 .md+ensure-ok.ts+web-logic.proof.ts+server-only-hooks.mjs·与 §9 门 9 diff 面同集）·本卷 `api-harden-family-REQUEST.md` 不在 i6-239 历史刀冻结申报 14 文件集（`scripts/i6-239-gates.proof.mjs` §恰符清单 expected 集亲读在卷）→**亦 unexpected=4 文件全本刀触面**。协议形定性不变（恰符臂红仍=协议形承登·i6-239 冻结申报面机制零触·非本刀新增红·仅文字计数 3→4 勘正）。
+- **注记二（席1：tsbuildinfo checkout 操作注记）**：R4（§9-B）EXEC 期亲证 typecheck 副产物 `apps/web/tsconfig.tsbuildinfo` commit 前 `git checkout --` 复位为门 9 恰 4 tracked 前置工序；**markers/i6 门净树复跑同须先 checkout tsbuildinfo**（脏树 diffBase=HEAD 使改动集塌缩·恰符臂假绿机制=obs-family REQUEST §9-补 注记三同源机检亲证）·本 nail 波开工复证（工作树残留 tsbuildinfo 脏位·checkout 回滚后方行序 1 并线与序 3 docs:check 复跑）——后续席净树复跑沿此工序。
+
+---
+
+*nail 落卷 2026-10-16·post 双审会签 PASS（席1 agent_95fac988+席2 重派 agent_8281b545）后协调方派单 nail（本波唯一主线推送席）·序1 fetch+merge --no-ff origin/feat/mysql-schema-skeleton@`a9a8dcd9`（派单下界 tip≥a9a8dcd9 等号成立亲证=5c-obs nail 波 tip·merge `dda107d0` 双亲 0de077ad+a9a8dcd9·merge-tree 预演 EXIT=0 零冲突·开工前工作树 tsbuildinfo 副产物残留 checkout 回滚·⛔pull --rebase 未用）∥序2 顺携两支线并线（`git merge --no-ff line/sse-api-family@9af6bb99`=merge `9b2b508b` 零冲突 11 files +450/−4·`git merge --no-ff line/g7w-tail-seg-emit@30493162`=merge `51a06265` 零冲突 3 files +243·各 post 双审会签 PASS 随并落主线）∥序3 本卷 §9-补 post P2 随卷两件（append 注记形上文零洗=注记一 门 8 恰符臂 unexpected 词面 3→4 净树复跑勘记+注记二 tsbuildinfo checkout 操作注记）∥序4 SSOT 三处随卷（LEDGER 刀位图 5C-API-HARDEN 子刀行+配套管线 api-harden-family nail 行+checklist「Line api-harden-family nail」段·支线树内改主仓路径文件随支线推·⛔主仓单独 commit 未犯）∥序5 docs:check 复跑本席亲跑见卷∥序6 push（REMOTE-IS-ANCESTOR 机检后 `git push origin HEAD:feat/mysql-schema-skeleton` 直推非 force）+三支线 push origin∥序7 CI 结构面如实观察 PR #109·est live=0·actualSpendCny=null·⛔force push 未用·⛔pull --rebase 未用*
+
 ---
 
 *API-HARDEN-FAMILY REQUEST · 2026-10-16 · executed:awaiting_post_prove_dual · base `feat/mysql-schema-skeleton` @`6a6c7843`（EXEC 序1 并线 `3cd159dd`=merge `b8750ea5`）· 分支 `line/api-harden-family` · 工作树 `../meetwise-aph` · 蓝本=LEDGER:87 5C 组行/:234 R10 行/:216 计件笔 + checklist:2680/:2683/:2685 + 前刀卷 api-harden-REQUEST.md §9.4-6 停手三证据 + hmac-consolidate-REQUEST.md 乙案定谳 · 形制沿 api-harden/queue-shutdown-phases 卷 §0-§8 同构 · 修法四条（R10 落码+复核两件+E4/E5 呈报）· 裁决四项 · est live=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
