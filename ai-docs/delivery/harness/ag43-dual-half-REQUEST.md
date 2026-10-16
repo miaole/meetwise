@@ -46,6 +46,8 @@
 4. **「31 函数」计数面盘点**：两 proof pin（`:55`/`:82`）+sealed-manifest 规则文档五处（`:4/:31/:41/:55/:151`）=件①落值后的随翻面全集（rg `=== 31` 全仓恰两命中+规则文档五处·web-logic.proof `vclock === 31_750` 无关排除）。
 5. **issues-final 修法字面收窄**：「审核人缺失应拒绝」系审计时点两肢并列（「**或记明确错误**」）——AG39 reviewerScope 命名通道在场后·失真面收窄为「命名通道归因不走信任根值」·§1.3 候选甲否决承。
 6. **docs:check cap 谱系**：主线 fe4079a0 树 cap 2200（`:102` 亲读）·起草树实测 scanned **2200=cap 余 0**（本席 `node scripts/ai-docs/check-docs.mjs` EXIT=0 亲跑）——fe4079a0 卷（context-budget-wire nail）自证「cap 贴边触顶·余量 0·停手条件预置在案」·**本卷 +1 .md 即 2201 越限**（§2-6 红况如实登记·救济载体在途）。
+7. **回炉修订登记（pre-exec 席1 P0 FAIL→回炉·2026-10-16）**：席1 定谳 §1-修法件②(c) 原卷 params 数组尾两元素互换（旧形 `[sourceId, fromStatus, decision, reviewerScope?.reviewer ?? null, reviewNote ?? null]`）——pg 按位绑定下 index 3→`$4`=reviewer 值落 review_note·index 4→`$5`=reviewNote 值落 reviewed_by=**结构性串列**（审计双列失真；未命名 seed 臂同被证伪：reviewerScope undefined→review_note 落 NULL·reviewed_by 落 `'seed auto-approved…'` 备注文本）；且门矩阵对此全盲（ag39 proof 零 `reviewed_by` 断言 rg 亲证 EXIT=1）。**本回炉已修正** §1-修法件②(c) params=`[sourceId, fromStatus, decision, reviewNote ?? null, reviewerScope?.reviewer ?? null]`（SQL `review_note=$4` 原位保持·reviewer 占新增 `$5` 尾位→`coalesce($5,…)` 首臂）——按位绑定逐参推演与 seed 臂等值复验随回炉 commit 卷·**EXEC 期严禁沿回炉前旧文照抄·以本修订后文本为唯一抄写底本**。
+8. **备查登记（P2-3·非漂移非停止条件）**：修后 manifest 首次引用 0146 才存在的函数 `qbank_release_retired_generation_storage(text)`（0146 `CREATE OR REPLACE` 亲读=函数 0146 才出生）——迁移链 <0146 的存量环境 provision 将**新失败**（供给环 `principal.ts` `:401` `procedure.oid=$1::regprocedure` 签名解析不到即抛·fail-closed 形）·现网迁移链 head=**0204**（ls 亲证）标准路径下 0146 先于 provision 迁移到位→该失败面实际不可达（备查在案·非本刀新增风险面）。
 
 ## §1 红事实与修法定稿（两件·量级微·零迁移）
 
@@ -83,10 +85,10 @@ reviewSource UPDATE（`:146`）`reviewed_by=coalesce(nullif(current_setting('app
 
 (c) `packages/db/test/qbank-handoff-closure.proof.ts` `:82` `=== 31`→`=== 32`。
 
-(d) `ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md` 五处计数 31→32（`:4`/`:31`/`:41`/`:55`/`:151`）·§2.1 表 `qbank_mark_generation_failed` 行后追加一行：
+(d) `ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md` 五处计数 31→32（`:4`/`:31`/`:41`/`:55`/`:151`）·**表行落点=§2.2 表尾追加一行**（六列形含组别列——回炉 P2-2：函数出身=0146 释放终端·非 0086/0087/0089 原 18 锚波次·§2.1 表头明记「原 18 个控制面锚点（0086/0087/0089）」故不入 §2.1·亦非 §6.1–6.5 原组·出身由组别列如实自记；五处计数 31→32 与 `:151` 门禁描述不受落点影响）：
 
 ```markdown
-| `qbank_release_retired_generation_storage(text)` | 是 | 否 | 是 | `public, pg_temp` |
+| `qbank_release_retired_generation_storage(text)` | 是 | 否 | 是 | `public, pg_temp` | 0146 释放终端（非 §6.1–6.5 原组·非 0086/0087/0089 原 18 锚波次） |
 ```
 
 (e) `apps/worker/src/qbank-release-sweep.ts` `:13-19` Honesty pins 首条注记刷新（comment-only·零行为）——原文四行替换为：
@@ -119,7 +121,7 @@ reviewSource UPDATE（`:146`）`reviewed_by=coalesce(nullif(current_setting('app
             reviewed_by=coalesce($5, nullif(current_setting('app.principal_user', true), ''), '__system_qbank__'),
             review_note=$4, reviewed_at=now(), version=version+1
       WHERE id=$1 AND status=$2`,
-    [sourceId, fromStatus, decision, reviewerScope?.reviewer ?? null, reviewNote ?? null]);
+    [sourceId, fromStatus, decision, reviewNote ?? null, reviewerScope?.reviewer ?? null]);
 ```
 
 **效果链（机制自证）**：件① 供给环 `:398-415` 属主转移（现owner=迁移登录→definer·非迁移属主仍显式拒）→守卫 1 白名单生产恒过→调度半生产可用；ACL 归一环 `:507-541` 先 REVOKE 全体 EXECUTE 再按五元组补授（executor 补授=0176:98-99 现状恒等·PUBLIC/app_role 拒绝恒等）；断言门 `:2030-2067` 计数自洽（function_count=32=MANIFEST.length·security_definer_count/invoker_helper_count/safe_search_path_count 随 filter 自洽·unexpected_definer_function_count=0——**manifest 先行是唯一合法序**）。件② named 通道归因=信任根派生值（reviewerScope.reviewer 在 `:118-139` 已过白名单校验方至此）；未命名通道 `$5=NULL`→coalesce 原链逐字节等值（seed 臂/历史 proof 零行为差）。
