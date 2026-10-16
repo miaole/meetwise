@@ -3,6 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-16 · 起草即停零码动 · 三案并陈不择案——案A/B/C 利弊+推荐在卷，择案权与上限值/拒绝语义/维度裁决权归协调方/产品 · **案裁决=EXEC 前置**（§9）· pre-exec 双审两独立外席待派 · alone≠dual · Ban self-approve · ⛔push · ⛔merge 主线 · est live=0 · `actualSpendCny=null` · pins 十一值零翻）
 **席位**：QUEUE-ENQUEUE-BP 入队背压刀 诊断+两案并陈起草席（协调方派单令 · 5C-QUEUE 拆刀排程 Q2 · #117+#5 归槽随裁 · 承 Q1 queue-shutdown 先例与 G7W 两案并陈先例形 · ⛔push · ⛔merge 主线）。
 **基线**：`feat/mysql-schema-skeleton` @ **`3cd159dd`**（fetch 后亲证 origin tip `origin/feat/mysql-schema-skeleton`=`3cd159dd` **恰等派单下界**（≥ 以等号成立）· cap sanction 波 tip · docs:check 2185 ≤ cap 2200 本席本树亲跑）· worktree **`meetwise-q2b`**（仓根同级 · `git worktree add ../meetwise-q2b -b line/queue-enqueue-bp` 本席亲立）· branch **`line/queue-enqueue-bp`**。
+**基线 rev 登记（rev P2-4 · rev 席 fetch 亲证）**：origin tip 落卷后推进 **`24b75b17`**（`origin/feat/mysql-schema-skeleton`=`24b75b17` 亲证 · 树恒等 diff 空（`git diff 3cd159dd 24b75b17` 零文件）· `3cd159dd` 祖先亲证（`git merge-base --is-ancestor` EXIT=0））· **EXEC 按 ≥`3cd159dd` 重 pin**（§0 锚对届时 tip 复核沿 §0 前言·blob 恒等则只更行号）。
 **立项出处（不自建 SSOT 行——行翻面权沿例归协调方）**：①协调方派单令（5C-QUEUE 诊断席定谳承引：#117 靶=enqueueInterviewJob（interview-jobs.ts:27）零背压闸——interview.service:283/:454 无条件入队·仅扣费前置为隐式约束；#117 需产品裁决（上限值/拒绝语义/维度）·本席三案并陈不择案）；②`ai-docs/delivery/harness/product-campaign-LEDGER.md` `:87` 5C 组标签（「#5/#117/#7/#9 背压」在册未翻 · 本席亲读在卷）；③`ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` `:41` QUEUE-BACKPRESSURE 行（「#117 入队背压」原文在树 · 本席亲读在卷）；④`ai-docs/delivery/execution-master-checklist.md` `:2624` STILL OPEN 行+`:3204`-`:3206`「Line queue-shutdown-phases nail」段（5C-QUEUE 排程谱系 Q1 先例·本席亲读在卷）；⑤issues-master #117/#5 行原文**仓外待补**（协调方持有·沿 Q1 #157/#158 同款登记·不阻起草）；⑥结构范本=`harness/queue-shutdown-phases-REQUEST.md`（Q1 姊妹卷·§0/§1/§1.3/§2/§5/§8 形制承之）+`harness/g7w-tail-contract-ruling-REQUEST.md`（并陈卷先例·择案权归协调方形制承之）。
 
 ---
@@ -24,9 +25,9 @@
 | 3 | `apps/worker/src/interview-consumer.ts` | `27ddbcf1` | `:307` claim（budget 显式传入）·`:630` gatewayDispatchOwners('interview')·`:646` fairDrainInterviewOwners（预算缺省注入 `:305` `d.dispatchBudget ?? DEFAULT_INTERVIEW_DISPATCH_BUDGET`）·`:276`-`:296` requeueOrTerminalizeExhausted（attempts≥MAX 终态+退款） |
 | 4 | `apps/worker/src/interview-dispatch-fairness.ts` | `34f0144f`（162 行） | `:10`-`:13` DEFAULT_INTERVIEW_DISPATCH_BUDGET={perOwnerInflight:1, globalInflight:4}·`:16` OWNER_LAUNCH_CAP=32·`:18`-`:27` readInterviewDispatchBudget（WORKER_INTERVIEW_PER_OWNER_INFLIGHT 界 1..32·GLOBAL_INFLIGHT 界 1..64） |
 | 5 | `apps/api/src/platform/rate-limit.service.ts` | `fce544ff` | `:69`-`:71` isSharedBucketKey（**仅 `:global`/`:ip:` 键落共享表；per-principal 键恒进程内·多实例 ×N 稀释**）·`:101` allow(key,capacity,refillPerSec) 令牌桶 |
-| 6 | `apps/api/src/modules/jobs/applications.service.ts` | `e1bf8ff0` | `:48`/`:57` startApplicationInterview 与 beginInterviewCore 合一 asPrincipal 事务（B271 片2 S2-C2）——B 端招聘流第二上游同闸链 |
+| 6 | `apps/api/src/modules/jobs/applications.service.ts` | `e1bf8ff0` | `:53`-`:57` startApplicationInterview 与 beginInterviewCore 合一 asPrincipal 事务（B271 片2 S2-C2·rev P2-4 锚勘误原 `:48`/`:57`）——B 端招聘流第二上游同闸链 |
 | 7 | `apps/api/src/modules/interview/interview.controller.ts` | `d10db4ae` | `:28`-`:31` POST :id/begin · `:36`-`:39` POST :id/turn |
-| 8 | `apps/api/src/modules/jobs/applications.controller.ts` | `e12e76fd` | `:21`-`:25` POST :id/start（B 端上游路由） |
+| 8 | `apps/api/src/modules/jobs/applications.controller.ts` | `e12e76fd` | `:20`-`:25` POST :id/start（B 端上游路由·rev P2-4 锚勘误原 `:21`-`:25`） |
 | 9 | `packages/db/migrations/0001_baseline.sql` | `d68f8dd0` | `:253`-`:263` interview_job 表（status ∈ queued/running/done/failed·无 pending 上限列无 TTL）·`:268` ix_ijob_claim(owner_user_id,status,seq,created_at)=**per-owner depth count 索引前缀可支撑** |
 | 10 | `packages/db/migrations/0049_resume_reference_foundation.sql` | `7c95a713` | `:34`-`:37` ix_interview_job_resume_reference(owner_user_id,resume_id) partial——**interview_id 单列无专用索引**（per-interview 维度 count 设计点·§1-修法） |
 | 11 | `packages/db/src/jobs/quiz-jobs.ts` | `a56a0da4` | `:36`-`:45` claimNextQuizJob——**无 per-owner cap 无 per-owner advisory lock**（对照面） |
@@ -55,12 +56,12 @@
 - **inflight cap（消费侧·interview 有·quiz/diagnosis 无）**：claim 谓词 `:144`-`:149` count(unexpired running)<budget.perOwnerInflight，缺省 1（`:20`）；生产 budget=WORKER_INTERVIEW_PER_OWNER_INFLIGHT 缺省 1 界 1..32+globalInflight 缺省 4 界 1..64（dispatch-fairness `:18`-`:27`）+per-owner advisory xact lock `:124`（多副本防竞越）+同面试串行 `:136`+僵尸兄弟守卫 `:139`。对照面：quiz-jobs `:36`-`:45`、diagnosis-jobs `:28`-`:37` 均**无** cap 无 owner lock——interview 是三队列唯一有消费侧 cap 者。
 - **退避时闸**：requeue 指数退避 next_attempt_at=now()+2^attempts 封顶 300 秒（`:249`-`:257`·report.ts `:53`-`:56` 范本）+claim queued 臂时闸 `:131`-`:135`+attempts≥5 终态化（`:15`+reaper `:281`-`:304`+consumer `:276`-`:296` 统一上限闸）——**约束的是重试频率，不约束新入队**。
 - **租约面**：LEASE_SECONDS=120 `:11`+心跳续租 `:262`-`:270`+reaper 两臂+滞留 payload TTL 86400 `:307`——**约束的是运行中行的崩溃回收，不约束 queued 积压**。
-- **存储面**：interview_job 无 TTL 清理（done/failed 留存）、无 pending 上限；索引仅 ix_ijob_claim(owner,status,seq,created_at)（0001 `:268`）与 partial(owner,resume_id)（0049 `:34`）。
+- **存储面**：interview_job 无 TTL 清理（done/failed 留存）、无 pending 上限；interview_job 面索引/唯一约束**全枚举五条（rev P2-1 补全·rev 席 @`3cd159dd` 逐条亲读）**：①ix_ijob_claim(owner_user_id,status,seq,created_at)（0001 `:268`·per-owner count 前缀可支撑）②UNIQUE(owner_user_id,interview_id,kind,seq) 幂等键约束（0019 `:68`）③ix_interview_job_resume_reference(owner_user_id,resume_id) partial(resume_id IS NOT NULL)（0049 `:34`）④ix_interview_job_reference_legacy_backfill(created_at,id) partial(reference_schema_version IS NULL)（0055 `:10`）⑤ix_interview_job_v64_resume_epoch(owner_user_id,interview_id,reference_schema_version,resume_privacy_epoch,created_at) partial(reference_schema_version=64)（0064 `:36`·(owner,interview) 前缀）。
 - **HTTP 层既有闸**：TURN_RL per-principal 令牌桶（capacity 30/refill 0.2/s `:33`·`:435`-`:437`）+VOICE_RL `:31`+begin **零速率闸**（扣费为唯一刹车）；per-principal 桶进程内不跨实例共享（rate-limit.service `:69`-`:71` 仅 `:global`/`:ip:` 键落共享表·多实例 ×N 稀释）。
 
 ### 1.4 无界性实测（三个无界面·背压缺口定量面）
 
-1. **per-owner 深度无绝对上界**：per-interview answer 深度天然 ≤ MAX_TURN=256（`:39`+`:427`+kind+seq 唯一）+start ≤1，但 owner 可开并发面试数仅受余额约束（begin 1.0 单位/场·abandon/fail 退款既有）→ per-owner queued 总深度=并发场数×各场深度，无绝对上限。
+1. **per-owner 深度无绝对上界**：per-interview answer 深度天然 ≤257（**turn∈0..256**·`turn > MAX_TURN` 拒 `:427`·seq=turn+1∈1..257·kind+seq 唯一）+start 1=**258/面上界**（rev P2-2 勘误·原「≤ MAX_TURN=256」记法 off-by-one），但 owner 可开并发面试数仅受余额约束（begin 1.0 单位/场·abandon/fail 退款既有）→ per-owner queued 总深度=并发场数×各场深度，无绝对上限。
 2. **cross-owner 总深度无绝对上界**：各 owner 闸互不叠加；worker globalInflight=4 为消费侧速率界，生产侧无对应镜像。
 3. **worker 停机窗无界累积**：消费全停时 TURN_RL 0.2/s/principal 持续入队（burst 30）+begin 按余额持续入队——速率闸（既有）只减增速率，不减存量深度。
 
@@ -68,7 +69,7 @@
 
 | 维度 | 定义 | 可得性 | 评估 |
 |---|---|---|---|
-| 深度 | queued 行数（per-owner 或 per-interview） | per-owner count 走 ix_ijob_claim 前缀（索引支撑）；per-interview 无专用索引（0001/0049 亲证） | **直 bounds 目标量**（§1.4 三个无界面的公共正身=深度）；worker 停机窗内闸即触发 |
+| 深度 | queued 行数（per-owner 或 per-interview） | per-owner count 走 ix_ijob_claim 前缀（0001 `:268` 索引支撑）；per-interview 走 **0064 `:36` v64 partial 前缀可支撑·零补索引可行面**（rev P2-1 勘误·原「无专用索引」作废·五索引全枚举见 §1.3 存储面） | **直 bounds 目标量**（§1.4 三个无界面的公共正身=深度）；worker 停机窗内闸即触发 |
 | 速率 | 每秒入队 | HTTP 层现成（RateLimitService `:101`）| 只减增速率不减存量（§1.4-3）；begin 臂全新速率面 |
 | 租约占用率 | unexpired running/budget.perOwnerInflight | 复用 claim 同一 count 谓词形状 `:144`-`:149` | 生产 cap=1 → 占用率∈{0,1} **二值退化**（§1-修法案C 论证）；作信号可用作闸不可独立成立 |
 
@@ -78,7 +79,7 @@
 
 - **闸体**：enqueueInterviewJob 同事务 INSERT 前按裁决维度 count(queued) ≥ **N**（待产品裁）→ throw 具名错 `interview_queue_saturated` → HTTP 拒（**429 vs 503 待产品裁**·沿内容安全闸 503 `:325`-`:337` 与 TURN_RL 429 `:435`-`:437` 两先例分口）。两调用点+applications 上游单点收口（闸在 db 层=未来调用者同护）。
 - **失败语义红利**：start 臂同事务回滚=预留同滚（§1.1）零悬账零补偿；answer 臂同事务回滚=claim 同滚可安全重试。
-- **EXEC 设计点五件**（双审对象）：①维度=per-owner（索引现成）或 per-interview（需补索引或 claim 形子查询·10 号锚）待裁；②**幂等重放豁免**——`:80`-`:94` readback 在 INSERT 后，闸若裸置 INSERT 前则深度满时重放被误拒（既还 jobId 语义破坏），须先查幂等键或 count 排除本面试行；③竞态两并发同拍过闸=N+1 软超限，可沿 claim `:124` per-owner advisory lock 收紧（成本=同 owner 入队串行化·入队低频可承）；④N 值与 per-owner/per-interview 维度联动（N_owner ≥ N_interview 量级）；⑤错误码三口映射（begin C 端 4xx/5xx·begin B 端 enterprise 分口沿 `:259` 先例·turn 沿 `:437` 形）。
+- **EXEC 设计点五件**（双审对象）：①维度=per-owner（ix_ijob_claim 前缀现成·0001 `:268`）或 per-interview（**0064 `:36` v64 partial 前缀 (owner_user_id,interview_id) 可支撑·零补索引可行面**·rev P2-1 勘误原「需补索引或 claim 形子查询·10 号锚」作废）待裁；②**幂等重放豁免（rev P1-1：两豁免形不等价·预查形默认）**——`:80`-`:94` readback 在 INSERT 后，闸若裸置 INSERT 前则深度满时重放被误拒（既还 jobId 语义破坏）。两形**不等价**：**幂等键预查形=完备（默认形）**——预查 (owner,interview,kind,seq)（0019 `:68` 幂等键约束）存在即跳闸·任意行状态（queued/running/done/failed 皆豁免）；miss→过闸→INSERT ON CONFLICT 等待→readback，无次序死窗；/**count 排除形=存在误拒窗**——replay-after-done 系设计内流程（interview-question.ts `:104` 'replayed' 臂+service `:455` `replayed:true`·rev 席亲证），重放行非 queued 不在 count 内·他行饱和时重放仍被 `interview_queue_saturated` 误拒=设计点② 要防的 bug 在角落复活——**择 count 形须 EXEC proof 增 done/running 重放臂**；③竞态两并发同拍过闸=N+1 软超限，可沿 claim `:124` 形 per-owner advisory lock 收紧（成本=同 owner 入队串行化·入队低频可承）——**收紧形采用与否=裁决项⑥**（rev P2-3 新设·N 硬/软上限语义：采用=N 为硬上限；不采用=软上限·N+1 瞬时超限如实认列）·**EXEC 键串注记：入队闸 advisory lock 键串须 ≠ `meetwise.interview_dispatch.owner:*`**（claim `:124` 专用键·同键将令入队与 dispatch 互锁串行）；④N 值与 per-owner/per-interview 维度联动（N_owner ≥ N_interview 量级）；⑤错误码三口映射（begin C 端 4xx/5xx·begin B 端 enterprise 分口沿 `:259` 先例·turn 沿 `:437` 形）。
 - **利**：直 bounds §1.4 全部三个无界面；拒绝即回滚语义最干净；单点收口成本一次索引化 count。
 - **弊**：N 需产品裁（值错=误拒真实用户或形同虚设）；count 增一次查询；重放豁免与竞态收紧增实现复杂度。
 
@@ -97,12 +98,12 @@
 
 ### 推荐语与裁决项清单（EXEC 前置）
 
-**推荐=案A 定稿**（直 bounds 目标量+失败语义最干净+单点收口）；案B 备选框架（可组合）；案C 降级信号。**裁决项五件（全部 EXEC 前置·本卷零预支）**：①择案（A/B/C/组合）②阈值 N（案A）或速率 R（案B）③拒绝语义（429 vs 503·Retry-After 有无·错误码文案）④维度（per-owner/per-interview）⑤幂等重放豁免形（设计点②确认）。#117+#5 两行归槽随裁=本刀承登面，行翻面权归协调方。
+**推荐=案A 定稿**（直 bounds 目标量+失败语义最干净+单点收口）；案B 备选框架（可组合）；案C 降级信号。**裁决项六件（rev P2-3 后原五件→六件·全部 EXEC 前置·本卷零预支）**：①择案（A/B/C/组合）②阈值 N（案A）或速率 R（案B）③拒绝语义（429 vs 503·Retry-After 有无·错误码文案）④维度（per-owner/per-interview）⑤幂等重放豁免形=**预查形默认（完备形·rev P1-1 落定口径收窄）**——两形不等价注记见设计点②，若逆默认择 count 排除形须认其误拒窗+EXEC proof 增 done/running 重放臂；⑥**收紧形采用与否**（rev P2-3 新设·设计点③·N 硬/软上限语义）。#117+#5 两行归槽随裁=本刀承登面，行翻面权归协调方。
 
 ## §1.3 否决清单（veto · 双审/裁决/EXEC 违反任一即 FAIL）
 
 1. **Ban 本卷实施**：起草卷零码动——interview-jobs.ts/interview.service.ts/applications.service.ts/rate-limit.service.ts/worker 面零触碰（§0.1 锚全部只读）。
-2. **Ban 择案**：三案并陈不择案·择案权与五裁决项归协调方/产品——本卷推荐语非裁定（沿 G7W 并陈先例「择案权归协调方」形制）。
+2. **Ban 择案**：三案并陈不择案·择案权与六裁决项（rev P2-3 后）归协调方/产品——本卷推荐语非裁定（沿 G7W 并陈先例「择案权归协调方」形制）。
 3. **Ban 阈值预支**：N/R/维度/拒绝语义在本卷不定值不预设（裁决项=EXEC 前置·§9）。
 4. **Ban 在消费侧解生产侧缺口**：claim cap/退避/租约面既有语义零改（改消费侧不堵生产侧无界入队=域错位）；quiz/diagnosis 无 cap 缺口**另立登记不并入**（对照面只读）。
 5. **Ban 顺带改存储面**：done/failed 行 TTL 清理、索引增补均另域另刀（本卷登记设计点不实施）。
@@ -130,7 +131,7 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 
 ## §4 依赖与迁移号
 
-零新依赖——承重锚全部已在树/在卷（§0.1 十八锚）。**迁移号=零**（docs-only · 现树 max=0204 口径沿 Q1 卷登记 · 本卷不预占任何号）。**EXEC 期预告（不预支）**：若裁决=案A+per-interview 维度 → 可能需 interview_id 索引（10 号锚）；若裁决=案A per-owner 维度 → 现索引前缀已支撑（9 号锚）零迁移可行面。
+零新依赖——承重锚全部已在树/在卷（§0.1 十八锚）。**迁移号=零**（docs-only · 现树 max=0204 口径沿 Q1 卷登记 · 本卷不预占任何号）。**EXEC 期预告（不预支）**：若裁决=案A+per-interview 维度 → **0064 `:36` v64 partial 前缀可支撑·零补索引可行面**（rev P2-1 勘误·原「可能需 interview_id 索引（10 号锚）」随五索引全枚举作废）；若裁决=案A per-owner 维度 → 现索引前缀已支撑（9 号锚）零迁移可行面。两臂皆**零迁移可行面**。
 
 ## §5 Ban 列表 + pins
 
@@ -148,7 +149,7 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `draft:awaiting_pre_exec_dual`（本值为卷内三处锚定=①卷头标题行+②本 Status 行+③本节 · 卷尾行不载 STOP 值防多锚漂移 · 沿 G7W 先例「自述三处实测四处」教训预勘误）· 起草席写完即停零码动。** 开工三条款：①协调方/产品**案裁决**（五裁决项·§9——**案裁决=EXEC 前置**：无裁决不得 EXEC、EXEC REQUEST 须载裁决值）；②本卷 pre-exec 双审 BOTH PASS（双审对象=§1 诊断四项+§1-修法三案与推荐语+§0 锚保真+裁决项清单完备性 · 两独立外席 · alone≠dual）；③EXEC 授权+EXEC 预算随案另报。三者全属后继工序 · 本卷不含 EXEC。
+**STOP · `draft:awaiting_pre_exec_dual`（本值为卷内三处锚定=①卷头标题行+②本 Status 行+③本节 · 卷尾行不载 STOP 值防多锚漂移 · 沿 G7W 先例「自述三处实测四处」教训预勘误）· 起草席写完即停零码动。** 开工三条款：①协调方/产品**案裁决**（六裁决项·§9·rev P2-3 后五→六——**案裁决=EXEC 前置**：无裁决不得 EXEC、EXEC REQUEST 须载裁决值）；②本卷 pre-exec 双审 BOTH PASS（双审对象=§1 诊断四项+§1-修法三案与推荐语+§0 锚保真+裁决项清单完备性 · 两独立外席 · alone≠dual · **rev 落卷后席2 窄域复认方会签**）；③EXEC 授权+EXEC 预算随案另报。三者全属后继工序 · 本卷不含 EXEC。
 
 **停止条件（四类 · 命中即停手上报）**：
 1. **现场漂移**：pre-exec/EXEC 面对届时 tip 重 pin——`:283`/`:454` 调用点被他刀改写、`:87` 组标签翻面、或 §0 锚漂移超 ±3 且结论受影响 → 停手上报（不得就地改诊断实质）。
@@ -160,10 +161,18 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 
 ## §9 pre-exec dual 交接（预留 · 本节零 SSOT 触碰）
 
-- **双审对象四件**：§1 诊断四项（调用链全图两臂不对称勘误/零闸正身/容量普查/无界性三面+维度候选表·对照 §0.1 #1-#13 届时 blob 复核）· §1-修法三案利弊与推荐语（**推荐语≠裁定**·三案文本零预设值）· §0 锚保真（#8/#10 两锚 blob 已亲算补 pin=`e12e76fd`/`7c95a713`·届时复核恒等）· 裁决项清单完备性（五件是否穷尽 EXEC 设计面）。
-- **悬决项（归协调方/产品 · 全部 EXEC 前置）**：①择案（案A/B/C/组合·推荐案A 仅作参考）②阈值 N 或速率 R ③拒绝语义（429/503/Retry-After/错误码三口映射）④维度（per-owner/per-interview·涉索引面）⑤幂等重放豁免形确认；⑥EXEC 排程与预算（随案另报）· #117+#5 归槽宣称与 LEDGER/checklist 行翻面（行翻面权归协调方·本卷零代行）。
+- **双审对象四件**：§1 诊断四项（调用链全图两臂不对称勘误/零闸正身/容量普查/无界性三面+维度候选表·对照 §0.1 #1-#13 届时 blob 复核）· §1-修法三案利弊与推荐语（**推荐语≠裁定**·三案文本零预设值）· §0 锚保真（#8/#10 两锚 blob 已亲算补 pin=`e12e76fd`/`7c95a713`·届时复核恒等）· 裁决项清单完备性（**rev 后六件**是否穷尽 EXEC 设计面·原五件+⑥收紧形 rev P2-3）。
+- **悬决项（归协调方/产品 · 全部 EXEC 前置）**：①择案（案A/B/C/组合·推荐案A 仅作参考）②阈值 N 或速率 R ③拒绝语义（429/503/Retry-After/错误码三口映射）④维度（per-owner/per-interview·涉索引面）⑤幂等重放豁免形=**预查形默认（完备形·rev P1-1 收窄）**——逆默认择 count 排除形须认误拒窗+EXEC proof 增 done/running 重放臂；⑥**收紧形采用与否**（rev P2-3 新设·N 硬/软上限语义）；⑦EXEC 排程与预算（随案另报·原⑥顺延）· #117+#5 归槽宣称与 LEDGER/checklist 行翻面（行翻面权归协调方·本卷零代行）。
 - **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数+§1 诊断四项系读数登记（原值记账零冲销）——无论后继择何案/何值/何维度，诊断面不因裁决改写。
+- **rev 处置摘要（2026-10-16 rev 落卷席 · 席1 agent_e82e93f9 PASS P2×3 + 席2 agent_38d1cbfe FAIL P1×1+P2×5 · 两案并陈卷 draft 态 §8-③ 窗口内 rev 落卷 · 席2 六项全落·本节零 SSOT 触碰）**：
+  - **P1-1（唯一阻塞·已解）**：设计点②+裁决项⑤两豁免形不等价披露，**落预查形默认（完备形）**+count 形不等价注记——幂等键预查形=预查 (owner,interview,kind,seq)（0019 `:68`）存在即跳闸·任意行状态，miss→过闸→INSERT ON CONFLICT 等待→readback 无次序死窗；count 排除形=replay-after-done 设计内流程（interview-question.ts `:104` 'replayed' 臂+service `:455` `replayed:true`·rev 席亲证）重放行非 queued 不在 count 内·他行饱和时重放仍被误拒·择之须 EXEC proof 增 done/running 重放臂。落点=§1-修法设计点②+裁决项⑤+§9 悬决项⑤。**注**：⑤口径收窄系 rev 落定（协调方指令·席2 处置），非阈值预支（§1.3-3 Ban 之 N/R/维度/拒绝语义仍零预支零预设）。
+  - **P2-1**：索引枚举补五条（0001 `:268`/0019 `:68`/0049 `:34`/0055 `:10`/0064 `:36`·rev 席逐条亲读）·per-interview 维度改「**0064 v64 partial 前缀可支撑·零补索引可行面**」。落点=§1.3 存储面+§1.5 深度行+设计点①+**§4 EXEC 期预告随勘误**（原「可能需 interview_id 索引」作废·两臂皆零迁移可行面）——§0.1 #10 锚「interview_id 单列无专用索引」字面仍真未触。
+  - **P2-2**：§1.4-1 深度界改「**answer ≤257（turn∈0..256）+start 1=258/面上界**」（rev 席亲证 `:427` `turn > MAX_TURN` 拒→turn 0..256=257 值·seq=turn+1∈1..257；原「≤ MAX_TURN=256」off-by-one 勘误）。
+  - **P2-3**：设计点③+裁决项增⑥「**收紧形采用与否**」（N 硬/软上限语义：采用=硬上限·不采用=N+1 瞬时软超限认列）+**EXEC 键串注记：入队闸 advisory lock 键串 ≠ `meetwise.interview_dispatch.owner:*`**（claim `:124` 专用键亲证·同键=入队与 dispatch 互锁串行）。裁决项五件→六件（:100 清单+§8①+§9 双审对象/悬决项+卷尾计数随更；§9 悬决项原⑥EXEC 排程顺延⑦）。
+  - **P2-4**：§0.1 锚 #6 改 `:53`-`:57`、锚 #8 改 `:20`-`:25`（rev 席亲读亲证·blob `e1bf8ff0`/`e12e76fd` 恒等亲算）·基线行加「origin tip 落卷后推进 `24b75b17`」登记（rev 席 fetch 亲证·树恒等 diff 空零文件·`3cd159dd` 祖先亲证 EXIT=0）·EXEC 按 ≥`3cd159dd` 重 pin。
+  - **P2-5（勘误登记）**：起草 commit `9a24ad31` 括注「（择案/N/R/拒绝语义 429vs503/维度/重放豁免形）」**六目名目漂移**——同句称「五件」而列六名目（N/R 拆二所致），**卷内（起草时）五件清单为准**（②阈值=N 或 R 单目）；本 rev 后清单为六件系⑥收紧形新设（P2-3），与该括注六目名目无关两事，勿混。
+  - **rev 自检（本席亲跑 receipts）**：docs:check **EXIT=0**（2186 managed ≤ cap 2200·落卷前后同值·本卷系唯一改动件零新增件）·markers 五类改动集 grep **零命中**（四词词族 0/0/0/0+冲突标记对 0·词面不在卷内复抄沿 §2/§7 形制）·diff 面=本卷 1 tracked .md（行内修订+§9 append·零他 tracked 路径·SSOT 四卷零触）·STOP 维持原值三处锚不动（值面本 bullet 不复载防第四处锚·沿 §8「自述三处实测四处」预勘误教训）·**rev 落卷后席2 窄域复认方会签+案裁决=EXEC 前置**·⛔push ⛔merge 主线（本 commit 本 worktree append 不洗·零 force 零 rebase）。
 
 ---
 
-*QUEUE-ENQUEUE-BP REQUEST · 2026-10-16 起草 · 状态值见卷头（本卷尾行不另载·三处锚定制）· ⛔push ⛔merge 主线 · alone≠dual · base `feat/mysql-schema-skeleton` @`3cd159dd`（=fetch 后 origin tip 恰等派单下界）· worktree `meetwise-q2b` · branch `line/queue-enqueue-bp`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令+5C-QUEUE 诊断席定谳+LEDGER `:87` 组标签+extreview SOP `:41`+checklist `:2624`/`:3204`+issues-master 仓外待补（沿 Q1 同款）· 诊断四项=调用链全图（`:283` start 臂扣费前置同事务/`:454` answer 臂零扣费两臂不对称勘误）+零背压闸正身+容量约束普查（inflight cap interview 有 quiz/diagnosis 无+退避时闸+租约面）+无界性三面+背压维度候选表 · 三案并陈=案A 深度上限（推荐·定稿形·五设计点）+案B 速率闸（备选框架）+案C 租约占用率闸（降级信号·否弃论证）· 裁决项五件全 EXEC 前置 · 门矩阵=docs:check 2185≤2200+markers proof+diff 恰 1（docs-only）· 迁移号=零 · est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
+*QUEUE-ENQUEUE-BP REQUEST · 2026-10-16 起草 · 状态值见卷头（本卷尾行不另载·三处锚定制）· ⛔push ⛔merge 主线 · alone≠dual · base `feat/mysql-schema-skeleton` @`3cd159dd`（=fetch 后 origin tip 恰等派单下界）· worktree `meetwise-q2b` · branch `line/queue-enqueue-bp`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令+5C-QUEUE 诊断席定谳+LEDGER `:87` 组标签+extreview SOP `:41`+checklist `:2624`/`:3204`+issues-master 仓外待补（沿 Q1 同款）· 诊断四项=调用链全图（`:283` start 臂扣费前置同事务/`:454` answer 臂零扣费两臂不对称勘误）+零背压闸正身+容量约束普查（inflight cap interview 有 quiz/diagnosis 无+退避时闸+租约面）+无界性三面+背压维度候选表 · 三案并陈=案A 深度上限（推荐·定稿形·五设计点）+案B 速率闸（备选框架）+案C 租约占用率闸（降级信号·否弃论证）· 裁决项六件全 EXEC 前置（rev P2-3 五→六）· 门矩阵=docs:check+markers proof+diff 面三绿（docs-only·起草 receipts 原值记账·rev 复跑 receipts 见 §9 rev 摘要）· 迁移号=零 · est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
