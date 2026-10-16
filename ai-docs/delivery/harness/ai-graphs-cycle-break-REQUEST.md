@@ -63,3 +63,41 @@
 - rev 落卷（2026-10-16·pre-exec 双审席1 agent_54f5d327 **PASS** P2×2+席2 agent_6b56363e **FAIL** P1×1 后·码面 rev 随卷·沿 API-HARDEN rev2 `acee3bb9` EXEC 前落卷先例形）：①P1 守卫机制修订落 (a) 形=state.ts 真实断言消费者+措辞「零运行时」→「零运行时副作用」五处同步（§1.1 件②/state.ts 守卫注/session-summary.ts 子集注/checklist 修法行/LEDGER 管线行）②P2 反向漂移窗登记=常开观察面（本 §1.1 件②+state.ts 守卫注）③P2 数字口径=门 6「102 行」+门 2 receipt 注记。**STOP 值不变仍 `draft:awaiting_pre_exec_dual` 三处同值——rev 落卷后经席2 窄域确认（仅 rev 落点复验）方会签**。
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；若基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1 在 HEAD 已被他刀翻绿（→本刀降级为 docs-only 空转·如实呈报协调方裁决）③邻面 34/57/17 任一非恰等（→熔断呈报·禁 retry-to-green）。
+- **EXEC 落卷（2026-10-16·§9 落卷随附·本节上文零字洗）**：**STOP 现值=`executed:awaiting_post_prove_dual`**（§9-⑦·前值 `draft:awaiting_pre_exec_dual` 史录保留·本行 append 翻面）·post 双审两外席待派·⛔push。
+
+## §9 EXEC 记录（EXEC 席落卷·2026-10-16·授权链=rev 复审确认 PASS（agent_2dbbd639·「rev 确认·双审会签完成·可授权 EXEC」·tsc 活体证四场景全过）+协调方授权 EXEC（派单 brief·七字段沿 obs-family §9 先例形）·收据落点=本节 inline 自裁最小集（③全表承载各门 EXIT））
+
+**①授权链与并线工序**：`git fetch origin feat/mysql-schema-skeleton` tip 亲证 **`a9a8dcd9`**（=obs-family nail 波 tip·派单下界「≥三刀合一 nail 波 tip」满足亲证=5e-cleanup-sweep nail 波 tip 后续波）→`git merge --no-ff`=**`43604f3e`**（双亲 `6b754dd7`+`a9a8dcd9`·merge-base `3cd159dd`=sanction 2200 波落点·实测冲突恰 2 SSOT docs=checklist+LEDGER·**冲突沿并集解**=checklist「ai-graphs 起草」段+「obs-family nail」段双保·LEDGER ai-graphs 管线行+obs-family 管线行双保·码面 session-summary.ts/state.ts 与 obs 波触面（main.ts/health.service.ts/三 proof/三 runner）零交叠亲证·markers 零残留 grep 亲证·禁 pull --rebase 遵守）→§0 全量重 pin（详②）→码面 rev 后定稿逐字节核对→门矩阵八门→本 §9 落卷·两 commit（merge `43604f3e`+落卷）。
+
+**②码面落点（rev 后定稿逐字节核对·EXEC 零字节改如实登记）**：
+- **件①** `packages/ai-graphs/src/adaptive-interview/session-summary.ts`（blob `e64a5152`）：`:12` `import type { QuestionKind } from '@meetwise/domain'` 替 Turn import（沿① 拆）+`SessionTurnInput` 六字段结构子集（q/competency/score/outcome 四值并集/kind/evidence?）+`:46` `SessionTurnInput['kind']`+`:71` 形参 `readonly SessionTurnInput[]` 随翻·函数体零字节（`3cd159dd..HEAD` diff 恰两 hunk 纯注释/型面亲证）·调用点 `nodes/generate-question.ts:85` 零字节结构兼容·**六字段=buildSessionSummary 只读面 1:1 复核通过**（outcome/score/evidence/competency/kind/q 恰六读·无第七读）。
+- **件②** `packages/ai-graphs/src/adaptive-interview/state.ts`（blob `d387ab08`）：`:12` import 增 `SessionTurnInput`（沿② 单向沿用零新边）+`:55` `TurnCoversSessionTurnInput` 编译期覆盖守卫+`:63` `export const _turnCoversSessionTurnInput: TurnCoversSessionTurnInput = true;` 模块内真实断言消费者（rev (a) 形·export 豁免 lint 贴线如实登记）·`:177` 第 9 参 `session?: SessionSummary | null` 与 `:266` re-export 零字节（基线锚 `:159`/`:248` 行号位移 +18=守卫块上方插入所致·**结论不变只更行号·开工条款预授权形**）。
+- **件③ 零字节项亲证**：`adaptive-interview/index.ts` blob `47d381f2` 恒等+`.dependency-cruiser.cjs` blob `562f23c9` 恒等（§0.1 四锚重 pin：两码锚 `92f1a2ba`/`498c2be9`→`e64a5152`/`d387ab08` 的差异=**本支线起草 `692bb389`/rev `6b754dd7` 两卷已落的本刀自身修法**——merge 前后 blob 恒等（`6b754dd7` 树=merge 后树·git 亲证）·远端 obs 波零触·**停止条件①「blob 漂移且语义变」不命中**（语义=rev 定稿形恒等）。
+- **EXEC 修法零字节改申报**：派单序③「EXEC 修法」所指 rev 后定稿形已随起草/rev 两卷落码（沿 API-HARDEN rev2 `acee3bb9` EXEC 前落卷先例形）——本席 `git diff --no-index` 逐字节核对现树两文件=rev 定稿 verbatim·修法以「逐字节核对+门证」行使·零新增码面 commit。
+
+**③门矩阵八门全表（实跑实测·2026-10-16 @merge `43604f3e` 后树·本席亲跑）**：
+
+| # | 门 | 命令 | 结果 |
+|---|---|---|---|
+| 1 | `pnpm arch` | `pnpm arch` | **EXIT=0 红翻绿维持**（0 errors·circular 词面 0 命中·8 warnings=既有 no-orphans 面零新增·1110 modules/3397 deps——钉值 3396+1=obs 波码面并线携入·非本刀类型面·⑤-③）← **PR #109 step 14 红翻绿主证（step 14 同面直证）** |
+| 2 | 邻面三 prove | `pnpm -C packages/ai-graphs prove:adaptive-graph`+`pnpm -C apps/worker prove:session-summary`+`pnpm interview:prove`（隔离形 `run-e2e-isolated`） | **34/34+17/17+57/57 恰等全绿 EXIT=0**（interview `LOCAL_ISOLATED_PROOF_RECEIPT` 在案·release_evidence=false·**EXEC 期重跑兑现**·receipt 为本席隔离形新出） |
+| 3 | typecheck | `pnpm turbo typecheck --force` | **EXIT=0 8/8（0 cached）**（守卫类型恒真活体承载） |
+| 4 | lint | `pnpm turbo lint --force` | **EXIT=0 12/12（0 cached）·五值恰等**：root 5235+web 601+api 1421+db 1042+ai-graphs **47 贴线**（export 断言豁免形·本席 `npx eslint .` 直数 47 problems 0 errors 亲证） |
+| 5 | docs:check | `pnpm docs:check` | **EXIT=0 2187≤cap 2200**（+1=merge 携入 obs-family REQUEST·本刀 +1 新 REQUEST·余 13） |
+| 6 | markers | 改动集全部新增行直扫 | **零命中**（vs `a9a8dcd9` 改动集全部新增行 **111 行**直扫三标记词 EXIT=1 零命中·词面不誊防自指；基线纠缠面 `3cd159dd..HEAD` 新增行同扫零命中；全树行首标记 `git grep -E '^(<<<<<<< \|\|^=======$\|^>>>>>>> )'` EXIT=1 零命中） |
+| 7 | diff 面 | `git diff --name-only a9a8dcd9..HEAD` | **恰 5 tracked=2 码（session-summary.ts/state.ts·码面恰 2 tracked）+3 docs（REQUEST 新+LEDGER 行+checklist 段）**·零多零少·Ban 面（index.ts/.dependency-cruiser.cjs/prompts.ts/ag19 proof/迁移/CI/门脚本）零触亲证 |
+| 8 | 卫生 | `pnpm install --frozen-lockfile`+tsbuildinfo 回滚 | **EXIT=0 零 lockfile 改**·`apps/web/tsconfig.tsbuildinfo` 门副产 `git checkout` 回滚（落卷后树净亲证）·est live=0·`actualSpendCny=null`·零迁移零 DDL 零 env 闸 |
+
+**③-b tsc 漂移活体证三场景复跑（EXEC 期·/tmp stub 法沿 rev 席方法·真实 session-summary.ts/state.ts 逐字节副本+最小 domain/langgraph stub）**：控制组 **EXIT=0**（rev 定稿 verbatim 编译净·`git diff --no-index` verbatim 亲证）+Turn 删必选子集字段 `kind` 行即断言行 **TS2322 `Type 'true' is not assignable to type 'never'` 红=守卫有牙活体证**（恰落 `export const _turnCoversSessionTurnInput` 行）+SessionTurnInput 增 `ghostRevDriftProbe?: string` 可选死字段 **EXIT=0=反向漂移窗实证**（常开观察面口径复现）。探针 /tmp 清零亲证。
+
+**④proof 臂账**：34/57/17 既有臂零增零删零改零断言红冲销（本刀纯类型面零新臂·沿 §2 门 2 预期恰等·34/57/17 三值恰等即臂账）。
+
+**⑤偏离任务书清单（非零三项·逐条归因）**：
+1. **门 1 deps 3396→3397**：obs-family nail 波 `main.ts`/`health.service.ts` 码面并线携入 +1 dependency 词面·0 errors/8 warnings/circular 0 三钉值不变·非本刀触面。
+2. **门 6 数字口径 113→111**：rev 卷改动集（支线树 vs 基线）113 行→EXEC 期口径=本线 vs origin tip `a9a8dcd9` 改动集全部新增行 111 行（merge 并入后重算·直扫零命中语义不变）。
+3. **门 5 docs 2186→2187**：+1=merge 携入 obs-family REQUEST 文件（obs 波自身 +1 已随其卷申报）·本刀面 +1 新 REQUEST 维持·cap 2200 余 13。
+   修法/门面零偏离：恰 2 码文件 rev 定稿逐字节恒等·34/57/17 恰等·五 lint 值恰等·diff 恰 5 tracked·八门全绿。
+
+**⑥est live=0 + pins**：EXEC 期全门=本地 tsx/node/tsc/eslint+隔离 PG 容器（interview 隔离形一次性）+静态源读·零模型外呼零 Key 加载零 SMTP 零 secrets 读用零生产操作·`actualSpendCny=null`·零迁移零 DDL 零 env 闸·pins 零翻（四 blob 锚：index `47d381f2`/config `562f23c9` 恒等·两码锚前移=本刀自身落卷②；邻面 34/57/17·门 1 基线「8 warnings/0 errors」·lint ai-graphs cap 47 全命中）。
+
+**⑦STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·STOP 翻面三处同值（本 §8 append 行+LEDGER 刀位图行+checklist 段·append 注记形·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）·批表行与 STILL OPEN 行翻面权归协调方 nail·alone≠dual·EXIT0≠covered·⛔push。
