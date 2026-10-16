@@ -1,6 +1,6 @@
 # SUBMIT-FLOW-COMPETENCY-WIRE REQUEST（submit 流向 competency 供给修复刀 · 修法一件=submit 形图 deps 沿 checkpoint mind 序补供 · 恰 1 产品文件 · 零迁移零 DDL 零 SSOT 行零图包触）
 
-**Status**: **`executed:halted:awaiting_coordinator`**（EXEC 席 2026-10-14 落码+门矩阵行使·修法+6 新臂在树·§9-EXEC 卷尾记录·ag-f-reroll §F 三臂与 §1-合成项 语义冲突依停手纪律报协调方·post-prove 双审未达·⛔push） · 起草席原态=`draft:awaiting_pre_exec_dual`（2026-10-14·docs-only 恰 1 .md·pre-exec 双审会签 PASS 席1 agent_3befd22c+席2 agent_d3b05119 后协调方授权 EXEC） · base = 主线 `feat/mysql-schema-skeleton` @ `0ff55592`（全 hex `0ff55592`·fetch 后 origin tip 亲证恒等·cap sanction 2184 卷 tip 同指） · 分支 `line/submit-flow-competency-wire` · 工作树 `meetwise-sfc`（`git worktree add ../meetwise-sfc -b line/submit-flow-competency-wire 0ff55592` 本起草席已立·`git worktree list` 恰一本树在册）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席 2026-10-14 落码+门矩阵全绿·修法+6 新臂+wave94 微扩面三臂改写在树·§9-EXEC 七字段+§9-补 裁决处置记录卷尾·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push） · 起草席原态=`draft:awaiting_pre_exec_dual`（2026-10-14·docs-only 恰 1 .md·pre-exec 双审会签 PASS 席1 agent_3befd22c+席2 agent_d3b05119 后协调方授权 EXEC） · base = 主线 `feat/mysql-schema-skeleton` @ `0ff55592`（全 hex `0ff55592`·fetch 后 origin tip 亲证恒等·cap sanction 2184 卷 tip 同指） · 分支 `line/submit-flow-competency-wire` · 工作树 `meetwise-sfc`（`git worktree add ../meetwise-sfc -b line/submit-flow-competency-wire 0ff55592` 本起草席已立·`git worktree list` 恰一本树在册）。
 
 **席位**：meetwise 战役「SUBMIT-FLOW-COMPETENCY-WIRE submit 流向 competency 供给修复刀」诊断+起草席（**G7K 红真正翻面的关键后继刀·QGEN post 席2 关键定性转达立项** · 协调方派单 brief：QGEN-CRITIQUE-RESILIENCE post 席2 定谳「submit 侧图 deps `competencies=[]` 系架构事实·G7K 红在 submit 流向不因 QGEN 单独翻面」→ 本刀承接诊断定稿+修法裁决+起草落卷 · docs-only · ⛔push · ⛔改产品码）。
 
@@ -138,10 +138,12 @@
 
 **STOP=`draft:awaiting_pre_exec_dual`**（本卷第一处·起草席 2026-10-14 终态·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve）——起草席写完即停零码动（本刀恰 1 .md）·⛔push ⛔merge 主线 ⛔force push 未用。
 **[EXEC 2026-10-14 本处终态更替]** `executed:halted:awaiting_coordinator`（§9-EXEC ⑤ 唯一红=ag-f-reroll §F 三臂·救济面在本刀 diff 面外·§8-② 同形停·报协调方）。
+**[wave94 裁决后终态更替]** `executed:awaiting_post_prove_dual`（微扩面授权已执行·ag-f 63/63 绿·§9-补 裁决处置记录·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）。
 
 ## §3 范围外（零触清单）
 
 start 流向全链（`:293-346` 零字节）；图包/域包/seam/consumer 零字节；QGEN 两件领地（模板旁路块/图级 critique 门——qcr 支线在飞·本刀零触零重键）；`competencyExhaustions`/`MAX_COMPETENCY_EXHAUST_SWITCH` 帽值族（AG-F 裁决②a 可调面·零翻）；`0046` 混合 unscored 放松（AG-F STILL OPEN 既有）；planner 输入面恢复（focus/quizQuestions/routeLeaf——Non-claims）；billing/账本/结算面零触；SSOT 四卷+INDEX 零触（行翻面权归协调方·本卷不自建 SSOT 行）。
+**[wave94 协调方微扩面授权 2026-10-14·EXEC 席执行]** `apps/worker/test/ag-f-reroll.proof.ts` §F F3a 三臂移入本刀授权面（恰此一件·仅三臂期望随 §1-合成项 语义升级改写·QGEN 件① 拒收收据三键断言面零弱化保形·fixture 与 :517-521 两臂及全文件其余字节零触）——原「QGEN 测试件在面外」限定就此收窄；§5 pins 十一值照抄零翻未触。
 
 ## §5 pins（十一值照抄零翻·沿 g7fix4/AG-F/QGEN 卷形）
 
@@ -156,6 +158,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **STOP=`draft:awaiting_pre_exec_dual`**（本卷第二处=§2 尾·第三处=本行·起草席终态维持·pre-exec 双审会签+协调方授权后方推进 EXEC·alone≠dual·Ban self-approve·Dual PASS ≠ 开工）。
 **[EXEC 2026-10-14 本处终态更替]** `executed:halted:awaiting_coordinator`（§9-EXEC 卷尾七字段·post-prove 双审未达·协调方裁决后方推进）。
+**[wave94 裁决后终态更替]** `executed:awaiting_post_prove_dual`（§9-补 裁决处置记录·全门矩阵绿·post-prove 双审两独立外席待派）。
 
 ## Non-claims
 
@@ -180,3 +183,15 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **⑥ P2 承载落点**：P2-A=§③ 注释（「唯一」→「族内失败换序消费点（deps.competencies；QGEN 件② 批判门为第二换序形·同序消费·本刀补供同覆盖）」·已验 c4f88f74 :102+:142 双消费点·本刀补供同覆盖两形）；P2-B=§③（实测 +15/−2）+§⑤（门值按届时树实测重钉）；P2-C=§⑤（79a95bb2 态 61/34 先例值采纳·34 恒等亲证·61 因本刀语义红非基线漂·对照实验定谳）。
 
 **⑦ 偏离清单（理想零·实二·皆纪律内整理）**：其一 新臂 lint 零增量整理——worker 帽 954 恰等贴线（§2 lint「恒等」pin）·新臂初稿 `(r: any)` 显式注解×4+`thread_id` 字面键 naming 共 +5 warnings 超 帽→去显式注解（上下文型 `(r)`）+`['thread_id']` 计算键形→worker 954 恒等恢复；其二 tsbuildinfo 副产回滚（f731f02a 先例形）。∥**确切命令行**：`git fetch`+`git merge --no-ff origin/feat/mysql-schema-skeleton`（tip 7e8ada73 亲证）·`pnpm adaptive-life:prove`/`pnpm ag-f-reroll:prove`（+stash 对照跑）/`pnpm interview:prove`/`pnpm adaptive-graph:prove`·`node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw`·`pnpm neg:all`·`pnpm exec turbo typecheck --force`·`pnpm exec turbo lint --force`（+worker/root 直跑）·`pnpm docs:check`·markers 五类运行时组装直扫（i6-239 §2-7 口径）∥est live=0（全 scripted/隔离容器零外呼·零 Key 值接触）·actualSpendCny=null∥**STOP=`executed:halted:awaiting_coordinator`（三处 Status/§2 尾/§8 尾同步更替·协调方裁决后方推进·alone≠dual·Ban self-approve）·⛔push ⛔force push 未用**。
+
+### §9-补 wave94 裁决处置记录（2026-10-14·EXEC 席·协调方微扩面授权执行·append 不洗）
+
+**裁决链**：EXEC 停手报协调方（§9-⑦ 唯一红=ag-f-reroll §F F3a 三臂·stash 对照实验亲证红 100% 系本刀补供语义非基线漂）→ **协调方裁决令（wave94）：授权微扩面**——沿 rev3/D7 窄域先例形，特授权扩面恰 1 测试文件 `apps/worker/test/ag-f-reroll.proof.ts`·定性=**语义升级非弱化**（「planner 序自 checkpoint mind 补供→帽内换序缓存继续→终场仅帽满/全序耗尽」正是 G7K 红翻面语义本身·旧期望「deps planner 序空位→无序可换→单发终场」所描述场景已被补供消灭）。
+
+**三臂改写落点（§F F3a·fixture 与 :517-521 两臂及全文件其余字节零触）**：臂一 `:502`「无序可换单发终场:done 收场」→「帽内换序缓存继续：零分收据保持（score=0 unscored 轨迹）·新题 interrupt（done=false·nextQuestionId 在场）」；臂二 `:506`「question_ready 恰 1」→「同文并发模板零二次发射保留∧换序落点=缓存授权模板（question_ready 恰 2·`[1].competency='缓存'`·`[1].question=tmplAuthorized('缓存')`）」；臂三 `:511`「终场收据诚实可审计（interview_unavailable·failed）」→「终场仅帽满/全序耗尽（interview 仍未终场 created·零终态事件·question_ready 恰 2）」+**新增两保留臂**：拒收收据三键零弱化（origin=unavailable·errorCode=business_invalid·invokeError=question_critique_failed——换序成功路收据被成功臂 `generationProvenance: provenance`(approved_template/model) 覆写·转存 checkpoint 历史·经 `getStateHistory` 历史面断言=Non-claims「仅存 checkpoint 历史」形的可审计兑现）+成功归零断言（`competencyExhaustions===0`·「连续」帽只跨失败链·帽未锁死可再换）。C 端 interview 行无 in_progress 迁移（created→completed/failed/abandoned 三终态）·mid-flight=created（首版误写 in_progress 已当场修正）。
+
+**复跑终值**：ag-f-reroll **63/63 EXIT=0**（61−3 旧臂+3 改写臂+2 保留新臂=63·超集绿·非 61 整值如实登记）·adaptive-life **49/49 EXIT=0** 维持·adaptive-graph **34/34 EXIT=0** 维持·typecheck **8/8 0 cached EXIT=0**·lint **12/12 EXIT=0** 五值恰等贴线（root 5235/web 601/api 1421/worker 954/ai-runtime 628·ag-f 编辑零 warning 增量）·docs:check 2170≤cap 2184 EXIT=0·markers 五类改动集 0 命中。
+
+**触面清单更新**：`ag-f-reroll.proof.ts` 移入本刀授权面（§3 append 注记·恰此一件仅 §F F3a 三臂·收据三键断言面零弱化）；§5 pins 十一值照抄零翻未触。
+
+**STOP=`executed:awaiting_post_prove_dual`**（三处 Status/§2 尾/§8 尾同步更替·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push ⛔force push 未用）。
