@@ -1,6 +1,6 @@
 # AG43-DUAL-HALF REQUEST（AG-43 双半收口小刀 · ①manifest 纳管释放函数 + ②审核人半单行 · 量级微 · 零迁移 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·est live=0·Ban self-approve·alone≠dual·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 2026-10-16 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·码面两件七触点+门矩阵十二门亲跑·est live=0·Ban self-approve·alone≠dual·⛔push·待 post-prove 双审）
 
 **席位**：AG-43 双半收口小刀起草席（QSEC STILL OPEN 两件·半刀清条·协调方派单·北星 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `fe4079a0`（origin tip 亲证·本席 `git fetch --all --prune` 后 `git rev-parse origin/feat/mysql-schema-skeleton`=`fe4079a073d5ea2b5ebcb5afec134ee40b1d1462`·派单下界「tip≥fe4079a0」**等号成立**亲证）。分支 `line/ag43-dual-half`·工作树 `meetwise-ag43`（仓根同级·`git worktree add ../meetwise-ag43 -b line/ag43-dual-half origin/feat/mysql-schema-skeleton` 本起草席亲立·直接落 origin tip 零 reset；`-b` 成功即分支建前不存在的机证）。
@@ -31,6 +31,7 @@
 | `packages/db/src/qbank/qbank-ingest.ts` | `d2fd6af4` | **`:276`** seed auto-approved 臂（`reviewSource(c, sourceId, 'pending', 'approved', 'seed auto-approved (trusted system corpus)')` 4 参形·**生产唯一 reviewSource 调用方**·合法无主体=未命名通道） |
 | `apps/worker/test/ag39-org-qbank-isolation.proof.ts` | `8b214386` | `:322-334` reviewerScope 五调用（org 白名单过/外人拒/平台兜底/平台源两臂）——**全卷零 `reviewed_by` 断言**（rg 亲证·件②零断言触） |
 | `apps/worker/test/qbank-generation.proof.ts` | （随锚·blob 届时亲算） | `:598/:605/:621` takedown 4 参形（未命名通道零触臂） |
+| `apps/worker/test/qbank-ingest.proof.ts` | `a019541c`（届时亲算·P2-A 补 pin） | `:72/:102` 两 4 参 reviewSource 调用方（未命名通道零触臂·件②零行为差随锚） |
 | `ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md` | （随锚·blob 届时亲算） | `:4`/`:31`/`:41`/`:55`/`:151` 「31 函数」**五处计数**·`:55-104` §2 函数移交清单（§2.1 表 generation 组含 mark_failed 行）·`:151` 门禁描述「不在 31 函数清单里的任何函数计数」 |
 | `ai-docs/delivery/ai-capability-review/issues-final.md` | `dac7f58c`（对 QSEC §0.1 恒等） | AG-43 `:522-531`（触发例子「审核调用未带主体 → 审计显示系统账号；retired/failed 代分区无人定期释放」·修法原文「审核人缺失应拒绝**或记明确错误**，不得静默写成 `__system_qbank__`；为 0146 释放函数加受控调度」——调度半 QSEC 已兑现·审核人半=本刀件②） |
 | `ai-docs/delivery/harness/qbank-control-sec-REQUEST.md` | `33dac889` | §1.3-2/§3-2/§5 Ban「AG-43 审核人半（qbank-curation.ts `__system_qbank__` coalesce——单行搭车项·**本刀不收·另登**）」·§9.3-6「manifest 纳管=后继刀面」·§9.4 门矩阵基线（control-sec 26/dbhy1 28/handoff 16/control-role 12） |
@@ -47,7 +48,7 @@
 5. **issues-final 修法字面收窄**：「审核人缺失应拒绝」系审计时点两肢并列（「**或记明确错误**」）——AG39 reviewerScope 命名通道在场后·失真面收窄为「命名通道归因不走信任根值」·§1.3 候选甲否决承。
 6. **docs:check cap 谱系**：主线 fe4079a0 树 cap 2200（`:102` 亲读）·起草树实测 scanned **2200=cap 余 0**（本席 `node scripts/ai-docs/check-docs.mjs` EXIT=0 亲跑）——fe4079a0 卷（context-budget-wire nail）自证「cap 贴边触顶·余量 0·停手条件预置在案」·**本卷 +1 .md 即 2201 越限**（§2-6 红况如实登记·救济载体在途）。
 7. **回炉修订登记（pre-exec 席1 P0 FAIL→回炉·2026-10-16）**：席1 定谳 §1-修法件②(c) 原卷 params 数组尾两元素互换（旧形 `[sourceId, fromStatus, decision, reviewerScope?.reviewer ?? null, reviewNote ?? null]`）——pg 按位绑定下 index 3→`$4`=reviewer 值落 review_note·index 4→`$5`=reviewNote 值落 reviewed_by=**结构性串列**（审计双列失真；未命名 seed 臂同被证伪：reviewerScope undefined→review_note 落 NULL·reviewed_by 落 `'seed auto-approved…'` 备注文本）；且门矩阵对此全盲（ag39 proof 零 `reviewed_by` 断言 rg 亲证 EXIT=1）。**本回炉已修正** §1-修法件②(c) params=`[sourceId, fromStatus, decision, reviewNote ?? null, reviewerScope?.reviewer ?? null]`（SQL `review_note=$4` 原位保持·reviewer 占新增 `$5` 尾位→`coalesce($5,…)` 首臂）——按位绑定逐参推演与 seed 臂等值复验随回炉 commit 卷·**EXEC 期严禁沿回炉前旧文照抄·以本修订后文本为唯一抄写底本**。
-8. **备查登记（P2-3·非漂移非停止条件）**：修后 manifest 首次引用 0146 才存在的函数 `qbank_release_retired_generation_storage(text)`（0146 `CREATE OR REPLACE` 亲读=函数 0146 才出生）——迁移链 <0146 的存量环境 provision 将**新失败**（供给环 `principal.ts` `:401` `procedure.oid=$1::regprocedure` 签名解析不到即抛·fail-closed 形）·现网迁移链 head=**0204**（ls 亲证）标准路径下 0146 先于 provision 迁移到位→该失败面实际不可达（备查在案·非本刀新增风险面）。
+8. **备查登记（P2-3·非漂移非停止条件）**：修后 manifest 首次引用 0146 才存在的函数 `qbank_release_retired_generation_storage(text)`（0146 `CREATE OR REPLACE` 亲读=函数 0146 才出生）——迁移链 <0146 的存量环境 provision 将**新失败**（供给环 `principal.ts` `:403` `procedure.oid=$1::regprocedure` 签名解析不到即抛·fail-closed 形）·现网迁移链 head=**0204**（ls 亲证）标准路径下 0146 先于 provision 迁移到位→该失败面实际不可达（备查在案·非本刀新增风险面）。
 
 ## §1 红事实与修法定稿（两件·量级微·零迁移）
 
@@ -190,7 +191,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款 + 停止条件四类 + 裁决项）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（QSEC STILL OPEN 两件登记+LANDING-INDEX §11:85 刀映射②=立项蓝本·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 对届时 tip 逐条重 pin——含 §0.2 六项漂移登记如实在案）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。**（EXEC 2026-10-16 翻面：前值 `draft:awaiting_pre_exec_dual` 史录·开工三条款行使亲证=回炉双审会签 PASS×2〔席1 `agent_028d5dfb`+席2 `agent_8045e297`〕+协调方授权 EXEC+§1 修法清单与 §5 Ban/pins 零更改·七字段见 §9）起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（QSEC STILL OPEN 两件登记+LANDING-INDEX §11:85 刀映射②=立项蓝本·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 对届时 tip 逐条重 pin——含 §0.2 八项漂移登记如实在案）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
 
 **停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 principal.ts 对 `c31cbac0` 漂移（另席在飞触同文件=按 §0.0 并线序重 pin 非停）·curation.ts 对 `4072d3c5` 漂移·门基线锚漂（control-sec≠26/dbhy1≠28/handoff≠16/control-role≠12/ag39≠50/neg≠692/迁移链≠204·届时实测账）→停·重 pin 回炉。
@@ -206,4 +207,44 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*AG43-DUAL-HALF REQUEST · 2026-10-16 · **draft:awaiting_pre_exec_dual** · base `feat/mysql-schema-skeleton` @`fe4079a0`（origin tip 亲证·派单下界 tip≥fe4079a0 等号成立·起草树 docs:check EXIT=0 scanned 2200=cap 余 0 本席亲跑·+本卷即 2201 越限红如实登记=停手条件命中上报·救济载体 cap-sanction-2208@a75736a0 已 sanction 在途未并）· 分支 `line/ag43-dual-half` · 工作树 `meetwise-ag43`（git worktree add 本起草席立·直接落 origin tip·建前 worktree list 60 树无 ag43+-b 成功机证分支不存在+harness 零同名卷三查过）· 立项三层蓝本=issues-final AG-43 :522-531（两子句+修法两肢）+QSEC 卷 §1.3-2/§3-2/§5 Ban「审核人半搭车项另登」§9.3-6「manifest 纳管=后继刀面」+checklist :2476/:2482 STILL OPEN 两件+LANDING-INDEX §11:85 刀映射② · 红事实两链=（①释放函数 manifest 缺位→provision 不转属主→守卫 1 白名单生产拒→调度半生产恒 pending·0176:16-21 自登记后继刀面·unexpected 门 :2067 禁跳序）（②命名审核通道 reviewed_by 仍走可伪造 GUC/系统账号兜底=审计归因失真·seed 臂系统归因如实）· 修法两件七触面（①principal.ts manifest 条目+两 proof pin 32+规则文档计数同步+sweep 头注刷新 ②curation.ts coalesce 前置 $5+params+两注记）· 零迁移零新码文件零 package.json · 门矩阵九门（QSEC 邻面六 proof+neg 692+migrate 204+typecheck 8/8+lint 12/12 五值+docs:check 届时 cap+markers+diff 恰 7 tracked）· 否决六候选（甲硬闸断 seed 臂/乙跳 manifest 撞门/丙新迁移重复 DDL/丁新列越界/戊 P5 残面非本刀/己 executor 补授=调度半存续要件）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual · **STOP 三处同值（Status 头+§8+卷尾注）***
+*AG43-DUAL-HALF REQUEST · 2026-10-16 · **executed:awaiting_post_prove_dual**（EXEC 2026-10-16 翻面·前值 `draft:awaiting_pre_exec_dual` 史录·§9 七字段） · base `feat/mysql-schema-skeleton` @`fe4079a0`（origin tip 亲证·派单下界 tip≥fe4079a0 等号成立·起草树 docs:check EXIT=0 scanned 2200=cap 余 0 本席亲跑·+本卷即 2201 越限红如实登记=停手条件命中上报·救济载体 cap-sanction-2208@a75736a0 已 sanction 在途未并）· 分支 `line/ag43-dual-half` · 工作树 `meetwise-ag43`（git worktree add 本起草席立·直接落 origin tip·建前 worktree list 60 树无 ag43+-b 成功机证分支不存在+harness 零同名卷三查过）· 立项三层蓝本=issues-final AG-43 :522-531（两子句+修法两肢）+QSEC 卷 §1.3-2/§3-2/§5 Ban「审核人半搭车项另登」§9.3-6「manifest 纳管=后继刀面」+checklist :2476/:2482 STILL OPEN 两件+LANDING-INDEX §11:85 刀映射② · 红事实两链=（①释放函数 manifest 缺位→provision 不转属主→守卫 1 白名单生产拒→调度半生产恒 pending·0176:16-21 自登记后继刀面·unexpected 门 :2067 禁跳序）（②命名审核通道 reviewed_by 仍走可伪造 GUC/系统账号兜底=审计归因失真·seed 臂系统归因如实）· 修法两件七触面（①principal.ts manifest 条目+两 proof pin 32+规则文档计数同步+sweep 头注刷新 ②curation.ts coalesce 前置 $5+params+两注记）· 零迁移零新码文件零 package.json · 门矩阵九门（QSEC 邻面六 proof+neg 692+migrate 204+typecheck 8/8+lint 12/12 五值+docs:check 届时 cap+markers+diff 恰 7 tracked）· 否决六候选（甲硬闸断 seed 臂/乙跳 manifest 撞门/丙新迁移重复 DDL/丁新列越界/戊 P5 残面非本刀/己 executor 补授=调度半存续要件）· est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual · **STOP 三处同值（Status 头+§8+卷尾注）***
+
+## §9 EXEC 记录（2026-10-16·EXEC 席·STOP=`executed:awaiting_post_prove_dual`·⛔push）
+
+**授权链**：起草落卷 `403a880c`→回炉落卷 `b2434f70`（席1 FAIL P0×1=件②(c) params 数组尾两元素互换结构性串列→修订定稿）→pre-exec 双审复审**会签 PASS×2**（席1 `agent_028d5dfb`+席2 `agent_8045e297`）→协调方授权 EXEC（派单令·STOP→`executed:awaiting_post_prove_dual`）→EXEC 本卷。**回炉警戒句重申：EXEC 期严禁沿回炉前旧文照抄·以 §1-修法回炉修订后文本为唯一抄写底本**——本卷七触点对 §1 引文块逐字节 diff 机检恒等（下②）。
+
+**① 并线+§0 全量重 pin**：铁律先并线再落码——`git fetch --all --prune` 后 `origin/feat/mysql-schema-skeleton`=`10799a3e`（派单下界 tip≥10799a3e 等号成立亲证）·cap 2208 已在线（public-text-policy.mjs `:104` `MAX_FILES = 2_208` 亲读·cap-sanction-2208 并线承·§2-6 救济落定）·merge-tree 预演 EXIT=0 零冲突→`git merge --no-ff origin/feat/mysql-schema-skeleton` → **merge `745c25f5`** 零冲突（冲突沿并集解预置未触发·⛔pull --rebase 未用）。**重 pin 账**：blob 锚 19 文件=14 恒等（principal `c31cbac0` 全 hex+curation `4072d3c5`+ingest `d2fd6af4`+0144 `29afdf46`/0146 `c9982ea1`/0176 `38c1ec22`+control-role `df258d90`+handoff `2ee1b196`+control-sec `089d8924`+sweep `b995bcc7`+ag39 `8b214386`+issues-final `dac7f58c`+QSEC `33dac889`+LANDING-INDEX `948fc7c7`）+3 届时亲算新 pin（qbank-generation.proof `929c709d`+sealed-manifest `66445d08`+qbank-ingest.proof `a019541c`=P2-A）+2 漂移如实登记（checklist `8a98fb92`→`376fd5bc`=worker-hang-guard nail 触 checklist 段演进·`:2476`/`:2482` 两 AG-43 锚恒等亲读维持·只读引用面非本刀面；public-text-policy cap 锚 `:102`/2200→`:104`/2208=sanction 并线·§2-6 预期形非漂移违序）·行锚全验=principal :51-103/:59/:398-415/:2030-2067+curation :112/:143-145/:146/:149+ingest :276+0176 :16-21/:47-50/:58-60/:98-99+0144 :674-701/:703-711+proof :55/:61/:82/:86+sweep :13-19+规则文档五处+ag39 :322-334+generation :598/:605/:621 全数对届树成立·regprocedure 供给环锚 `:403` 亲验（P2-B 勘正成立）。
+
+**② 两件落点（回炉定稿唯一抄写底本·七触点逐字节机检恒等）**：
+- **件① manifest 纳管（五触点）**：(a) `packages/db/src/principal.ts` `:59` 后恰 4 行（注释 3+条目 1·`qbank_release_retired_generation_storage(text)` 五元组=requiresSecurityDefiner=true/allowAppRoleExecute=false/allowExecutorExecute=true/requiredSearchPath=`public, pg_temp`·对映 0176:47-50 SECURITY DEFINER+search_path·0176:98-99 executor-only）；(b) `packages/db/test/qbank-control-role.proof.ts` `:55` `=== 31`→`=== 32`+`:61` 行尾 `));` 让位+`:62` some() 新子句（五支先例同构）；(c) `packages/db/test/qbank-handoff-closure.proof.ts` `:82` `=== 31`→`=== 32`；(d) `ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md` 五处「31 函数」→「32 函数」（`:4`/`:31`/`:41`/`:55`/`:151`·全文件恰五命中零他处）+§2.2 表尾追加六列行（组别列自记出身「0146 释放终端（非 §6.1–6.5 原组·非 0086/0087/0089 原 18 锚波次）」）；(e) `apps/worker/src/qbank-release-sweep.ts` `:14-17` honesty pins 首条刷新（comment-only·零行为）。
+- **件② 审核人归因（恰 `packages/db/src/qbank/qbank-curation.ts` 一文件三触点）**：(a) `:112` docblock 末追加审核人归因注记 1 行（原句零改）；(b) `:143-145` SQL 注记块末追加 2 行（named reviewerScope verbatim/GUC-coalesce 只覆盖 unnamed 臂·13 空格缩进对 REQUEST 引文逐字节）；(c) `:146` coalesce 前置 `$5`（`reviewed_by=coalesce($5, nullif(...), '__system_qbank__')`·`review_note=$4` 原位零变）+`:149` params 回炉修正形 `[sourceId, fromStatus, decision, reviewNote ?? null, reviewerScope?.reviewer ?? null]`——按位绑定 `$4`=reviewNote→review_note·`$5`=reviewer→coalesce 首臂（命名通道信任根归因）；未命名通道（ingest `:276` seed 臂 4 参形）`$5`=undefined→NULL→coalesce 跳首臂→原链逐字节零行为差。
+- **逐字节机检**：七触点落码行对 §1-修法引文块 `diff` 七项全 OK（T1-a/T1-b/T1-d/T1-e/T2-a/T2-b/T2-c）——零自由发挥零回炉前旧文。
+
+**③ proof pin 32 证**：`grep -rn "=== 31"` 全仓 .ts **零命中**（web-logic.proof vclock `31_750` 无关形除外）；`=== 32` 恰两 proof 翻转落位（control-role `:55`+handoff `:82`）+规则文档「32 函数」恰 5 处（`:4/:31/:41/:55/:151`）；§0.2-4 随翻面全集账齐。
+
+**④ 门矩阵全表（并线树 `745c25f5` 基·交付 commit 前亲跑·每 prove 恰 1 次到裁决）**：
+
+| # | 门 | 判据 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|---|
+| 0 | 改前基线 run | hash 恒等+docs:check 恰 1 次 | principal=`c31cbac08890c49bf42555b136adf43b1b393e1e` 恒等+curation=`4072d3c5` 前缀恒等（stash 往返亲证）·docs:check **2204**≤2208 EXIT=0 | 0 | 绿 |
+| 1 | `qbank-control-sec:prove` | 26 臂零改门 | **26 PASS/0 FAIL**（A1-A7/B/C 全绿·A4/A5/A7 释放函数 executor 端到端=qbank-release 邻面承） | 0 | 绿 |
+| 2 | `qbank-control-role:prove` | 12 臂+pin 32 行使 | **12 PASS/0 FAIL**（`:55` pin 32+`:62` some() 新子句行使亲证） | 0 | 绿 |
+| 3 | `qbank-handoff-closure:prove` | 16/16+pin 32 | **16 PASS/0 FAIL**（provision 幂等重入臂=32 条 manifest 供给环端到端行使） | 0 | 绿 |
+| 4 | `dbhy1:prove` | 28 臂 | **28 PASS/0 FAIL**（P5-12 failed 可释臂原值绿） | 0 | 绿 |
+| 5 | `prove:ag39-org-qbank` | 50 臂 | 静态 A() 断言点 **50 恒等**（blob `8b214386` 恒等机证）·实跑 PASS 行 53=50 静态+3 动态行使·**0 FAIL**（臂数口径差如实登记非锚漂） | 0 | 绿 |
+| 6 | `prove:qbank-integrity-upgrade` | 基线同红如实登记 | `database_config_invalid:database_target_missing` 模块装载期 fail-loud 零臂执行（mig-runner 时代差分·QSEC §9.4 承·非本刀面） | 1 | 基线红如实登记 |
+| 7 | `neg:all` | 692 | 六段 90+90+91+107+179+135=**692 恰等** | 0 | 绿 |
+| 8 | `migrate:prove`+uniqueness | 204 零新 | 链 **204 文件头 0204**·files=204 violations=0 三历史双号豁免维持 | 0 | 绿 |
+| 9 | `turbo typecheck --force` | 8/8 | 8 successful, 8 total·**0 cached** | 0 | 绿 |
+| 10 | `turbo lint --force` | 12/12 五值恰等 | Tasks **12/12**·0 cached·root **5235**/web **601**/api **1421**/worker **954**/ai-runtime **628** 五值恰等·全域 0 errors 零第三红 | 0 | 绿 |
+| 11 | `docs:check` | ≤cap 2208 | scanned **2204**≤**2208** EXIT=0（`ai-docs check passed: 80 required files verified`·改前基线与终树同值·派单预期 2204≤2208 恰等） | 0 | 绿 |
+| 12 | markers 五类 | 手迹面零命中 | 本刀七文件**手迹新增行五类词 0/0**+行首冲突标记严格形全 0（词表沿 `scripts/i6-239-gates.proof.mjs` §2-7 运行时组装·词面不誊卷防自匹配）；whole-file 口径唯存量命中=curation.ts `:8` 史述引用一处（指向 0013 文末同名标记词的引用串·词面不誊卷防自匹配·HEAD blob `4072d3c5` 恒等机证=基线携入非本刀引入·Ban 借机修承未动·沿 worker-hang-guard EXEC「携入词面命中已裁引用串」先例形如实登记） | 0 | 绿 |
+| 卫生 | frozen-lockfile/.env/tsbuildinfo/est live | 零副产 | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·`.env*` ABSENT 双向记录·tsbuildinfo 副产零残留（git status 净）·零迁移零 DDL 零 package.json·est live=0·`actualSpendCny=null` | 0 | 绿 |
+
+**⑤ P2×3 落点（双审 P2 顺手修随 EXEC 落·三件全落）**：**P2-A**=§0.1 表追加一行 `apps/worker/test/qbank-ingest.proof.ts` blob `a019541c`（届时亲算）+`:72/:102` 两 4 参 reviewSource 调用方 pin（未命名通道零触臂·届树亲验两行形）；**P2-B**=§0.2-8 regprocedure 行锚 `:401`→`:403`（届树 `grep -n regprocedure principal.ts` 亲验 `:403` 成立）；**P2-C**=§8 开工三条款③「六项漂移登记」→「八项」（§0.2 实有八项对齐）。
+
+**⑥ STOP 终态**：`executed:awaiting_post_prove_dual` **三处同值翻面**（Status 头+§8+卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录）——待 post-prove 双审两独立外席·alone≠dual·Ban self-approve·Dual PASS≠nail·nail 与 STILL OPEN 两行翻面权归协调方。
+
+**⑦ commit**：本 §9 落卷与 EXEC commit 同体不可自指·hash 由收尾 commit 承载（`git log` 首行·分支 `line/ag43-dual-half`·⛔push 未行使）。
+
+**偏离清单**：理想零。如实注记三条非偏离=①门 1 首行使 infra bootstrap 失败一次（`isolated_postgres_database_not_ready:boot`·容器未到裁决期自清理·系 node_modules 缺失+容器 boot 环境面非门裁决·`pnpm install --frozen-lockfile` 补齐后重行使·门裁决面恰 1 次绿·Ban retry-to-green 不犯=红非 prove 裁决）；②门 6 首命令笔误一次（`qbank-integrity-upgrade:prove` script 不存在 ERR_PNPM 254·门未行使·以 §2 原样 `prove:qbank-integrity-upgrade` 正名行使恰 1 次到裁决）；③门 5 臂数口径差（静态 A() 点 50 恒等+实跑 PASS 53=50+3 动态·blob 恒等机证非锚漂）。
