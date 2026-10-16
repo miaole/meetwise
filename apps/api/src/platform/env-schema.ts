@@ -37,8 +37,9 @@ const nonEmptyAfterTrim = z.string().trim().min(1);
 
 /**
  * 关键必需 env 的 zod schema（字段级格式面）。只收 T1 面；成员语义：
- *  - AUTH_SECRET：登录令牌 HMAC 密钥（消费点 auth.service.ts:57 / principal.guard.ts:52 /
- *    profile.service.ts:111 / privacy.service.ts:74 回退）。缺失 = 认证全瘫。
+ *  - AUTH_SECRET：登录令牌 HMAC 密钥（消费点 auth-session.ts:40 issueSessionToken 签发单源（auth.service.ts:115
+ *    / profile.service.ts:150 经其间接）/ principal.guard.ts:67 authSecretCandidates 候选钥序（+AUTH_SECRET_PREVIOUS
+ *    kid 窗）/ privacy.service.ts:105 回退）。缺失 = 认证全瘫。
  *  - 数据库目标二选一（与 principal.ts:765-786 同口径）：DATABASE_URL（粗格式
  *    postgres:// 或 postgresql://）**或** PGHOST/PGPORT/PGUSER/PGPASSWORD/PGDATABASE
  *    完整组件集（password 允许空串、不允许未定义）。
