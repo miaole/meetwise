@@ -1,6 +1,6 @@
 # 5C-BEHAVIOR-TRIO REQUEST（5C 行为面三件小刀·issues-master 第5批-C 四件 #1/#8/#12/#19 一卷四件独立可停·5E-CLEANUP-SWEEP §1-簇B 剔除归槽承接卷·docs-only 起草·体量 M）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-16 诊断+起草席落卷·⛔push ⛔merge主线 ⛔force push · alone≠dual · Ban self-approve · Dual PASS ≠ 开工 · est live=0）
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-16 诊断+起草席落卷·⛔push ⛔merge主线 ⛔force push · alone≠dual · Ban self-approve · Dual PASS ≠ 开工 · est live=0 · **rev 落卷 2026-10-16**：仲裁 8 条转录 §9·接线定谳存活·STOP 维持本态·rev 落卷后窄域确认方会签）
 
 **席位**：meetwise 战役 5C 行为面「BEHAVIOR-TRIO 行为面三件小刀」诊断+起草席（5E EXEC 簇B 归槽呈报承接：#1/#8/#12/#19→5C 行为面·北星 loop·起草 only 零码动）。
 **基线**：`feat/mysql-schema-skeleton` @ `3cd159dd`（本席亲跑 `git fetch origin` 后 `origin/feat/mysql-schema-skeleton` tip=`3cd159dd` 同值亲证=tip≥3cd159dd 等号成立；origin/main tip=`112e6d26` 系 `3cd159dd` 祖先 `git merge-base --is-ancestor` 亲证）。分支 `line/5c-behavior-trio`·工作树 `meetwise-b3`（`git worktree add ../meetwise-b3 -b line/5c-behavior-trio` 本席已立·建前 `git worktree list` 实查该路径空闲·建后 tip `3cd159dd` 亲证）。
@@ -18,7 +18,7 @@
 
 | 件 | issues-master 更正版（行号·原文要点·状态） | 现状核（实树亲证锚 @`3cd159dd`·本席逐文件 Read） | 诊断定谳 |
 |---|---|---|---|
-| #1 | `:360` P3·空闲放弃后 interview_question 仍 issued（cancelOpenInterviewQuestion 无生产调用方），列表 current_turn 把它算待答；建议=在 abandonInterviewAndRelease 与空闲回收路径内同事务调用｜**仍存在** | 定义 `packages/db/src/interview/interview-question.ts:139`+导出 `packages/db/src/index.ts:155`；全仓生产调用方**零命中**（唯一调用方=`packages/db/test/rag05-qbank-miss.proof.ts` `:24` 导入+`:375`/`:440` 两处测试夹具调用·幂等 UPDATE 形）；伤害链现 tip 仍真实=`apps/api/src/modules/interview/interview.service.ts:692`/`:728` `max(iq.turn) FILTER (WHERE iq.status='issued') AS current_turn` → `apps/web/lib/interview/progress.ts:20` 渲染「第 N 题待答」；接线点在位=用户放弃臂 `interview.service.ts:631`→`abandonInterviewAndRelease`（`packages/db/src/commerce/commerce.ts:471`·收口 chokepoint=`finishAbandon` `:464-469`）+空闲回收臂 `apps/worker/src/commerce-reconcile.ts:75`（主臂走 abandonInterviewAndRelease·soft-set 兜底臂 `:80-83` 绕过） | **接线（否决删·§1.3-1）**。双 wire 点：⑴ `finishAbandon`（一.href 覆盖用户放弃+对账主臂+already_abandoned 重放幂等）；⑵ `commerce-reconcile.ts:80-83` soft-set 臂后补显式 cancel（该臂绕过收口协议） |
+| #1 | `:360` P3·空闲放弃后 interview_question 仍 issued（cancelOpenInterviewQuestion 无生产调用方），列表 current_turn 把它算待答；建议=在 abandonInterviewAndRelease 与空闲回收路径内同事务调用｜**仍存在** | 定义 `packages/db/src/interview/interview-question.ts:139`+导出 `packages/db/src/index.ts:155`；全仓生产调用方**零命中**（唯一调用方=`packages/db/test/rag05-qbank-miss.proof.ts` `:24` 导入+`:375`/`:440` 两处测试夹具调用·幂等 UPDATE 形）；伤害链现 tip **rev 指令 4 改判=UI 残影链不成立**（`apps/web/lib/interview/progress.ts:14-17` 对 abandoned/failed 于 `:20` 前拦截；`apps/web/test/web-logic.proof.ts:154`/`:158`/`:159` 在岗防御）；**真实伤害=DTO 残留**（`apps/api/src/modules/interview/interview.service.ts:692`/`:728` `max(iq.turn) FILTER (WHERE iq.status='issued') AS current_turn`+`:693`/`:729` processing_turn 同构）+**账面残留**（`finishAbandon` `:464-469` 对 interview_question 零触）+**原语零生产调用方**；接线点在位=用户放弃臂 `interview.service.ts:631`→`abandonInterviewAndRelease`（`packages/db/src/commerce/commerce.ts:471`·收口 chokepoint=`finishAbandon` `:464-469`）+空闲回收臂 `apps/worker/src/commerce-reconcile.ts:75`（主臂走 abandonInterviewAndRelease·soft-set 兜底臂 `:80-83` 绕过） | **接线（否决删·§1.3-1）**。双 wire 点：⑴ `finishAbandon`（一.href 覆盖用户放弃+对账主臂+already_abandoned 重放幂等）；⑵ `commerce-reconcile.ts:80-83` soft-set 臂后补显式 cancel（该臂绕过收口协议） |
 | #8 | `:363` P3·ai_graph_run.status 已有 CHECK，但面试 completed 后 run 仍停 waiting_user，无 completed/succeeded 写入方；建议=在收尾事务内置终态并统一双终态｜**部分修复** | 已修半=`safelyTerminateAiGraphRunsOnAbandon`（`commerce.ts:447-462`·abandon 臂 safe_terminating→safely_terminated 两步 CAS·清 lease·`finishAbandon:467` 挂接）；缺修正主病灶=`completeInterviewAndConfirm`（`commerce.ts:339-392`）**零 ai_graph_run 写**——面试 created→completed CAS 成功后 run 行永停 waiting_user；释放面=`interview-graph-lease.ts:81-87` releaseInterviewGraphFence 恒写 waiting_user（无终态参数）；词表=0149 十一值+0194 终态冻结触发器（`OLD.status='completed' AND NEW≠OLD → RAISE 23514`·'completed'=kernel 纪元遗留零生产写点·**双终态并存保留=Ban 统一**）；done 臂时序=末次 fence 复核 `adaptive-lifecycle.ts:532` 先于收口 `:567`/`:577`·同事务其后零 assertInterviewGraphFence | **CAS 成功臂挂终态写**。值='succeeded'（非 'completed'·§1.3-2/3）·thread-wide 从集与 abandon 先例同形·清 lease+version+1 令 finally 释放天然 no-op（`releaseInterviewGraphFence` WHERE lease_owner/version 双失配→0 行→终态不被覆盖·不触 0194 冻结臂） |
 | #12 | `:364` P3·空闲回收路径的 interview_unavailable 仍无 event_key，且不 cancel issued 题（consumer/lifecycle 已带 key）；建议=补 event_key interview_unavailable:\<id\>:reclaim，并同事务 cancel issued 题｜**部分修复** | 无 key 锚=`commerce-reconcile.ts:84` `appendEvent(c, owner, s.idempotencyKey, 'interview_unavailable', { reason: 'abandoned' })` 五参调用（文件头注 `:43` 自述「idempotencyKey=interviewId」与实现不符=注释先行实现滞后面）；已带 key 先例=`adaptive-lifecycle.ts:69` `assessment_unavailable:${reason}`/`:79` `'interview_unavailable:terminal'`+`interview-consumer.ts:162`/`:163` `interview_unavailable:${reason}`（reason∈job_failed/worker_died/retry_exhausted）；去重机制=`packages/db/src/interview-event.ts:23-38`（event_key 在场=prior 查询+`ON CONFLICT (stream_key,event_key) DO NOTHING` 幂等·**无 key 不去重**=审计病灶面）；cancel 半=件① 兑现（§1 交叉引用） | **补第 6 参** `interview_unavailable:${s.idempotencyKey}:reclaim`（issues-master 建议形逐字）。**值源核**：`<id>`=`s.idempotencyKey`=消费预留幂等键=interviewId=stream_key 本值（`commerce.ts:546` SweptReservation 契约+`:43` 注释+reconcile swept 语义三源互证）；去重域=per-stream（stream_key 已按面试隔离·键内 id 段为 ops 溯源冗余·刻意保留=§1.3-6） |
 | #19 | `:367` P3·report_unavailable 与回收路径 interview_unavailable 仍无 event_key，appendEvent 无 key 时不去重；建议=为两类事件补 event_key｜**部分修复（重复风险低）** | 无 key 锚=`apps/worker/src/report-worker.ts:203` `appendEvent(c, owner, interviewId, 'report_unavailable', { reason: 'max_attempts_exceeded' })` 五参调用（sweepReportsOnce 隔离臂）；审计旧锚 `:68` 现系 #204 成长链 docstring 行（文件生长锚漂移·本卷重 pin=`:203`）；同文件 `:183` report_ready 亦无 key（审计未锚·范围外零触）；隔离 exactly-once 结构面=sweepReports 翻 quarantine 行锁（与 commerce swept 同形）→现有键=纵深防御非唯一防线 | **补第 6 参** `report_unavailable:${interviewId}:quarantine`（与件③ 同族同形=一卷一形 kind:id:phase）。值源=`interviewId`=`res.quarantinedInterviews` 元素=stream_key 本值（循环变量逐字同源） |
@@ -35,13 +35,15 @@
 
 - ⑴ `packages/db/src/commerce/commerce.ts`：import 区（`:22-24` 直引纪律区）追加 `import { cancelOpenInterviewQuestion } from '../interview/interview-question.ts';`（环安全亲证=interview-question.ts 零包内 import·仅 node:crypto+pg 类型）；`finishAbandon`（`:464-469`）内追加 `await cancelOpenInterviewQuestion(c, owner, interviewId);`（挂 `safelyTerminateAiGraphRunsOnAbandon` 同位=收口协议原子面·同 Client 同事务）。
   - **覆盖面亲证**：用户放弃（`interview.service.ts:631`）·对账主臂（`commerce-reconcile.ts:75`）·already_abandoned 重放（`commerce.ts:493`/`:513`·幂等 UPDATE 重放零害）——chokepoint 一 href 四臂。
+  - **覆盖面注记（rev 指令 7·显式豁免登记）**：`ops/recovery/fence-reflow-repair.ts:139-145` 系**第三处 raw-UPDATE abandon 写点**（ops 恢复工具·apply 模式直写 `interview SET status='abandoned'`）——本卷**显式豁免零触**（ops 工具面非产品收口面·§3 范围外登记·不入 finishAbandon chokepoint 口径）。
   - **权限面亲证**：app_role 对 interview_question UPDATE 可达（rag05 proof `:375`/`:440` asPrincipal 实跑先例）。
   - **语义面亲证**：cancel 非删（`:438-440`「不删 interview_question=业务事实独立保全」不违·status 翻转=账本正常迁移）；cancelled 态令 `claimInterviewAnswer` 走既有 stale 臂（`interview-question.ts:94`/`:109` 客户端弃旧 token 契约面原样）。
   - `abandonInterviewAndRelease` docstring（`:432-441`）append 一行注记（#1 接线·open 题 cancelled 同事务）。
 - ⑵ `apps/worker/src/commerce-reconcile.ts`：import 行（`:15` @meetwise/db token·index.ts:155 已导出）续接 `cancelOpenInterviewQuestion`；soft-set 兜底臂 UPDATE（`:80-83`）之后追加 `await cancelOpenInterviewQuestion(c, owner, s.idempotencyKey);`（该臂绕过 abandonInterviewAndRelease·不补则与主臂口径分裂）。
-- ⑶ 伤害闭环：current_turn=`FILTER (WHERE iq.status='issued')`（`interview.service.ts:692`/`:728`）→abandon 后 issued 清零→`progress.ts:20`「第 N 题待答」残影消除（列表面零码改=读侧自然修复）。
-- ⑷ 增臂裁决=**增**：`packages/db` `prove:uc018-abandon`（`test/uc-e2e-018-user-abandon.proof.ts`）新判别臂——abandon 后 open 题（issued/queued）status='cancelled'+current_turn 读数 NULL；**改前必做 run 该臂红**（现码 issued 残留）→改后绿。
+- ⑶ 伤害闭环（rev 指令 3 改写）：current_turn=`FILTER (WHERE iq.status='issued')`（`interview.service.ts:692`/`:728`·processing_turn 同构 `:693`/`:729` FILTER queued）→abandon 后 **DTO current_turn/processing_turn 归 NULL+账面 open 题闭合+迟答收敛 stale 臂（interview-question.ts:93）+显示面翻转见裁决项⑤**（原「progress.ts:20『第 N 题待答』残影消除（读侧自然修复）」表述废止=UI 残影链不成立·§0.1 rev 改判）。
+- ⑷ 增臂裁决=**增（rev 指令 6 扩充）**：`packages/db` `prove:uc018-abandon`（`test/uc-e2e-018-user-abandon.proof.ts`）新判别臂——abandon 后 open 题（issued/queued）status='cancelled'+current_turn 读数 NULL+**processing_turn 读数 NULL pin（`interview.service.ts:693`/`:729` FILTER queued 同构面）+abandon 后 issued_turns/answered_turns 读数 pin（DTO 列源 `:690-691`/`:726-727`·issued_turns 归 0=裁决项⑤ 显示翻转同源机制面·answered_turns 保全）**；**改前必做 run 该臂红**（现码 issued/queued 残留）→改后绿。
 - ⑸ 回归面：`prove:rag05-qbank-miss`（该函数现有唯一调用方）零改仍绿（函数体零触·仅增调用方）。
+- ⑹ **裁决项⑤（仲裁 rev 指令 1 落卷·显示面翻转）**：明文登记——接线后零作答放弃面试显示由「已出 N 题，未作答」翻「尚未出题」（机制=cancel 后 issued/queued 双清→DTO `interview.service.ts:690` issued_turns 归 0+`:692`/`:728` current_turn 与 `:693`/`:729` processing_turn 归 NULL→`progress.ts:16` issued=0 分支「尚未出题」）。a 案=接受翻转（账本口径收敛自洽）·同卷翻面 `apps/web/test/web-logic.proof.ts:158` 断言值与标题（改前红→改后绿语义重钉·`:154`/`:159` 零触）；b 案=读侧终态 NULL 补偿保留旧显示；**任一案显式登记静默穿透=Ban**。仲裁定谳=**落 a 案**（账本口径收敛自洽·G1 增 web 腿防静默·见 §2 G1 rev 补腿）。
 
 ### 件② #8 ai_graph_run 面试完成后终态写（'succeeded' 形）
 
@@ -69,7 +71,7 @@
 
 ## §1.3 否决（候选否决·全部有据·Ban EXEC 复活）
 
-1. **#1 删除候选（派单默认候选）否决**：证据三连=①用户可见伤害现 tip 仍真实（current_turn FILTER issued+progress.ts:20·§0.1 亲证）；②issues-master `:360` 建议明文=「abandonInterviewAndRelease 与空闲回收路径内同事务调用」=接线非删；③删则 abandon/reclaim 两路径 issued 残留病灶**零修**（删函数≠删 bug·死函数系病灶症状非病灶本体）+rag05 夹具反需内联 SQL 重写=净 churn 零收益。删除候选仅在「伤害链已消失」前提下成立——前提亲证为伪。
+1. **#1 删除候选（派单默认候选）否决（rev 指令 5·证据① 改立·否决维持）**：证据三连=①**修正后伤害**现 tip 仍真实=DTO 残留（`interview.service.ts:692`/`:728`）+账面残留（`finishAbandon` `:464-469` 零触）+原语零生产调用方（§0.1 #1 rev 改判行·原「用户可见伤害」UI 残影链不成立面废止）；②issues-master `:360` 建议明文=「abandonInterviewAndRelease 与空闲回收路径内同事务调用」=接线非删；③删则 abandon/reclaim 两路径 issued 残留病灶**零修**（删函数≠删 bug·死函数系病灶症状非病灶本体）+rag05 夹具反需内联 SQL 重写=净 churn 零收益。删除候选仅在「伤害链已消失」前提下成立——**伤害链消失反证已由仲裁席给出并裁决接线存活**（否决改立于②③+修正后伤害）。
 2. **#8 'completed' 终态值否决**（issues-master 建议 `:363` 字面）：0194 冻结触发器使 completed 行**迁出即 23514**+0194 定谳 'completed'=kernel 纪元词表遗留零生产写点；写 completed 后 job 重放续约臂（lease :41-46 无 status 过滤）completed→active 必 23514=生产重试路径恒炸。
 3. **#8 succeeded/completed 双终态统一否决**：0194 明文「双终态并存保留=Ban 业务语义变更」——统一诉求系 #152 已裁决面·本卷不复活。
 4. **#8 存量 waiting_user 行回填否决**：迁移面越 checksum 铁律（§3-2）·存量行无消费方读终态值（adaptive-consumer proof 仅 count）·写点修复后新完成面试即正确。
@@ -81,7 +83,7 @@
 
 | # | 门 | 判据 |
 |---|---|---|
-| G1 | 受影响 prove 判别链（改前红→改后绿） | `pnpm -C packages/db prove:uc018-abandon`（件① 新臂）·`pnpm -C apps/worker prove:commerce-reconcile`（件③ 新臂+既有 exactly-once 零弱化）·`pnpm -C apps/worker prove:uc018-ttl`（件① 回收口径回归）·`pnpm -C apps/worker prove:adaptive-life`（件② 新臂）·`pnpm -C apps/worker prove:report`（件④ 新臂）·`pnpm -C packages/db prove:rag05-qbank-miss`（件① 既有调用方回归）——新臂改前必红（无判别力=空转绿嫌疑即停 §8-2）·改后全绿·PASS 名单对改前 diff=恰 +臂数·其余零弱化 |
+| G1 | 受影响 prove 判别链（改前红→改后绿） | `pnpm -C packages/db prove:uc018-abandon`（件① 新臂）·`pnpm -C apps/worker prove:commerce-reconcile`（件③ 新臂+既有 exactly-once 零弱化）·`pnpm -C apps/worker prove:uc018-ttl`（件① 回收口径回归）·`pnpm -C apps/worker prove:adaptive-life`（件② 新臂）·`pnpm -C apps/worker prove:report`（件④ 新臂）·`pnpm -C packages/db prove:rag05-qbank-miss`（件① 既有调用方回归）·`pnpm -C apps/web prove`（**rev 指令 2 增补 web 腿·件① 裁决项⑤**：a 案落卷=钉翻面后新语义改前红→改后绿·`web-logic.proof.ts:158` 断言值与标题同卷翻面 `:154`/`:159` 零触；b 案若复活则钉旧语义不弱化——仲裁已定谳 a 案）——新臂改前必红（无判别力=空转绿嫌疑即停 §8-2）·改后全绿·PASS 名单对改前 diff=恰 +臂数·其余零弱化 |
 | G2 | neg:all | `pnpm -C apps/api neg:all` EXIT=0·**687/687** 六段（auth 90+commerce 90+resume 91+interview 102+bend 179+input 135·段序沿 apps/api/package.json）——本卷四件触面在 db/worker·api neg 面预期零波动·diff≠∅ 即停如实归因 |
 | G3 | typecheck | 根 `pnpm typecheck`+五包 turbo 面·5D 裁定 8/8 形·届时实跑值重 pin（本卷零类型新增面·import 均既有导出） |
 | G4 | lint | `pnpm lint` 全绿贴边（root max-warnings 5235 基线·基线时值+届时值双登·+1 warning 即红） |
@@ -132,6 +134,25 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **验收红不可修**：§2 任一门红且根因不在本刀交付面（lint 贴边 +1 warning/docs:check 超届时 cap/邻套件新红）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
 **待双审/EXEC 裁决项**：①件① 删除候选否决确认（派单默认候选=删·本卷证据三连否决改接线·§1.3-1——双审席若翻案须给出伤害链消失反证）；②件② 终态值 'succeeded' 裁定（§1.3-2/3 否决 'completed'/统一形后唯一可行值·0194 在卷）；③件③/件④ 键形 kind:id:phase 裁定（§1.3-6 vs kind:reason 形）；④增臂落点裁定（件② 备用面 adaptive-consumer vs adaptive-life·以两 proof 现有夹具可复用性实测定）。
+
+## §9 rev 处置摘要（仲裁转录+八条处置·rev 落卷席 2026-10-16）
+
+**仲裁转录**：pre-exec 双审回执=席1 **FAIL**（F1·P1×1）+席2 **PASS**（P2×2）；**仲裁定谳=席1 胜·接线定谳存活**；八条 rev 指令落卷（只改 REQUEST 卷·draft 态 §8-③ 窗口）。本 §9 落卷系仲裁授权面（rev 落卷席）·对 §0.1/§1/§1.3/§2 之改动逐条对准指令·**EXEC 仍不得改 §1/§1.3/§5**（§8 条款不变）·本席不 pre-claim 任何 post-commit EXIT。
+
+**八条处置（逐条·落点=节锚）**：
+
+1. **指令 1（P1）§1-件① 新增 ⑹=裁决项⑤ 显示面翻转**：明文登记「接线后零作答放弃面试显示由『已出 N 题，未作答』翻『尚未出题』」；a 案=接受翻转（账本口径收敛自洽）同卷翻面 `web-logic.proof.ts:158` 断言值与标题（改前红→改后绿语义重钉·`:154`/`:159` 零触）·b 案=读侧终态 NULL 补偿保留旧显示·任一案显式登记静默穿透=Ban——**落 a 案**（账本口径收敛自洽·G1 增 web 腿防静默）。落点=§1-件①-⑹。
+2. **指令 2（P1）§2 G1 增补 web 腿**：`pnpm -C apps/web prove`（a 案下钉翻面后新语义改前红→改后绿·b 案下钉旧语义不弱化·仲裁已定谳 a 案）。落点=§2 G1 行。
+3. **指令 3（P1）§1-件①-⑶ 伤害闭环改写**：删「progress.ts:20『第 N 题待答』残影消除（读侧自然修复）」→改「DTO current_turn/processing_turn 归 NULL+账面 open 题闭合+迟答收敛 stale 臂（interview-question.ts:93）+显示面翻转见裁决项⑤」。落点=§1-件①-⑶。
+4. **指令 4（P1）§0.1 #1 现状核伤害链改写**：「UI 残影链不成立（progress.ts:14-17 对 abandoned/failed 于 :20 前拦截；web-logic.proof.ts:154/:158/:159 在岗防御）；真实伤害=DTO 残留（:692/:728）+账面残留（finishAbandon :464-469 零触）+原语零生产调用方」。落点=§0.1 #1 行现状核列。
+5. **指令 5（P1）§1.3-1 证据① 改写**：否决删除候选改立于②③+修正后伤害·登记「伤害链消失反证已由仲裁席给出并裁决接线存活」。落点=§1.3-1。
+6. **指令 6（P2）§1-件①-⑷ 新臂扩充**：pin processing_turn IS NULL+abandon 后 issued_turns/answered_turns 读数。落点=§1-件①-⑷。
+7. **指令 7（P2）覆盖面注记**：`ops/recovery/fence-reflow-repair.ts:139-145` 第三处 raw-UPDATE abandon 写点（ops 恢复工具）显式豁免登记。落点=§1-件①-⑴ 覆盖面注记（§3 范围外同口径）。
+8. **指令 8（P2）勘误登记**：席2「伤害链亲证」**记勘误**——链断于 `progress.ts:14`（abandoned/failed 于 :20 前拦截=UI 残影链不成立·§0.1 rev 改判行）；**席2 接线侧事实与 P2-1 保留**（不受勘误影响·接线定谳存活同向）。
+
+**rev 落卷时点自检（本席亲跑）**：markers 五类探针 **0/0**（词面运行时组装·§7 同形制·净增行 27 行对账+全文件对账双零）·docs:check **EXIT=0·2186 managed ≤cap 2200**（余量 14·append 不洗·零新增文件）·diff 面=本卷 .md 一文件纯文本改（零码面·migrations 零触）。
+
+**STOP**：维持 **`draft:awaiting_pre_exec_dual`**（rev 落卷后**窄域确认**方会签·alone≠dual·Dual PASS ≠ 开工）。
 
 ---
 
