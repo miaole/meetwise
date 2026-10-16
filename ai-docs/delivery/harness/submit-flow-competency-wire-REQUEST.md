@@ -1,6 +1,6 @@
 # SUBMIT-FLOW-COMPETENCY-WIRE REQUEST（submit 流向 competency 供给修复刀 · 修法一件=submit 形图 deps 沿 checkpoint mind 序补供 · 恰 1 产品文件 · 零迁移零 DDL 零 SSOT 行零图包触）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-14·docs-only 恰 1 .md·产品码零触·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线） · base = 主线 `feat/mysql-schema-skeleton` @ `0ff55592`（全 hex `0ff55592`·fetch 后 origin tip 亲证恒等·cap sanction 2184 卷 tip 同指） · 分支 `line/submit-flow-competency-wire` · 工作树 `meetwise-sfc`（`git worktree add ../meetwise-sfc -b line/submit-flow-competency-wire 0ff55592` 本起草席已立·`git worktree list` 恰一本树在册）。
+**Status**: **`executed:halted:awaiting_coordinator`**（EXEC 席 2026-10-14 落码+门矩阵行使·修法+6 新臂在树·§9-EXEC 卷尾记录·ag-f-reroll §F 三臂与 §1-合成项 语义冲突依停手纪律报协调方·post-prove 双审未达·⛔push） · 起草席原态=`draft:awaiting_pre_exec_dual`（2026-10-14·docs-only 恰 1 .md·pre-exec 双审会签 PASS 席1 agent_3befd22c+席2 agent_d3b05119 后协调方授权 EXEC） · base = 主线 `feat/mysql-schema-skeleton` @ `0ff55592`（全 hex `0ff55592`·fetch 后 origin tip 亲证恒等·cap sanction 2184 卷 tip 同指） · 分支 `line/submit-flow-competency-wire` · 工作树 `meetwise-sfc`（`git worktree add ../meetwise-sfc -b line/submit-flow-competency-wire 0ff55592` 本起草席已立·`git worktree list` 恰一本树在册）。
 
 **席位**：meetwise 战役「SUBMIT-FLOW-COMPETENCY-WIRE submit 流向 competency 供给修复刀」诊断+起草席（**G7K 红真正翻面的关键后继刀·QGEN post 席2 关键定性转达立项** · 协调方派单 brief：QGEN-CRITIQUE-RESILIENCE post 席2 定谳「submit 侧图 deps `competencies=[]` 系架构事实·G7K 红在 submit 流向不因 QGEN 单独翻面」→ 本刀承接诊断定稿+修法裁决+起草落卷 · docs-only · ⛔push · ⛔改产品码）。
 
@@ -137,6 +137,7 @@
 | diff 面 | `git diff --numstat` 对 base | — | **恰 1 产品文件**（adaptive-lifecycle.ts +10/−1·±6 窗）+测试件 1（adaptive-lifecycle.proof.ts·+80/−0 ±40 窗）+本卷 1 .md+收据目录；零迁移零 package.json 零锁文件零 SSOT 四卷（LEDGER/checklist/issues-master/ai-capability-review）零图包零 seam 零 start 形 |
 
 **STOP=`draft:awaiting_pre_exec_dual`**（本卷第一处·起草席 2026-10-14 终态·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve）——起草席写完即停零码动（本刀恰 1 .md）·⛔push ⛔merge 主线 ⛔force push 未用。
+**[EXEC 2026-10-14 本处终态更替]** `executed:halted:awaiting_coordinator`（§9-EXEC ⑤ 唯一红=ag-f-reroll §F 三臂·救济面在本刀 diff 面外·§8-② 同形停·报协调方）。
 
 ## §3 范围外（零触清单）
 
@@ -154,7 +155,28 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 4. **双审否决**：pre-exec 双审任一席 FAIL → 停·按处方 rev（append-only 勘误·零洗卷）。
 
 **STOP=`draft:awaiting_pre_exec_dual`**（本卷第二处=§2 尾·第三处=本行·起草席终态维持·pre-exec 双审会签+协调方授权后方推进 EXEC·alone≠dual·Ban self-approve·Dual PASS ≠ 开工）。
+**[EXEC 2026-10-14 本处终态更替]** `executed:halted:awaiting_coordinator`（§9-EXEC 卷尾七字段·post-prove 双审未达·协调方裁决后方推进）。
 
 ## Non-claims
 
 本卷 ≠ 施工（docs-only·产品码零触·恰 1 .md）≠ QGEN 两件翻面或复核（qcr 支线在飞·本卷仅转录其 post 席2 定谳与字段⑦-3 登记）≠ mind 序≠start planner 序的**对象级**恒等承诺（仅名序恒等——Competency 附加字段 confidence/depthProbed 为会话内活投影·换序语义只读名）；≠ focus/quiz 押题/planner 输入面恢复承诺（该面禁入 checkpoint·不在本刀域）；≠ submit 流向族外失败（duplicate_question 等）可恢复化（族外终场全保留）；≠ 单发终场废除（帽满/全序耗尽/缺省臂终场全保留）；≠ start 形任何行为变更；≠ G7K 全红翻面（本刀翻 submit 流向一族臂·环境链路死根因归 iso-dotenv 刀域）；≠ g7SuiteGreen 翻转 ≠ trio 翻绿。≠ 换序成功路族失败收据（generationProvenance）终态事件面持续可见之承诺（沿 QGEN rev1 P2-④ 同形：mid-graph 换序成功路收据仅存 checkpoint 历史·终场面才完整入事件 payload·零新增可见性承诺）。alone ≠ dual。
+
+---
+
+## §9 EXEC 记录（2026-10-14·EXEC 席·pre-exec 双审会签 PASS 席1 agent_3befd22c+席2 agent_d3b05119·协调方 EXEC 授权·**终态=halted:awaiting_coordinator**）
+
+**状态=HALTED（停手纪律：「验收红且口径内修不了/需越界才能继续」·§8-② 同形停·报协调方·非 post-prove 双审 STOP）**——修法+新臂已落码、本刀直触面门全绿；唯一红=ag-f-reroll §F 三臂（QGEN 件① F3a 生命周期臂）与本卷 §1-合成项 的预见语义正面冲突，救济面=QGEN 测试件（本卷恰 1 测试件 diff 面之外）→ 依纪律停手。
+
+**① 并线**：`git merge --no-ff origin/feat/mysql-schema-skeleton`·届时 tip=`7e8ada73`=dcw nail 恰等派单下界·ort 零冲突 12 files +1058/−17（QGEN qgen nail `79a95bb2` 已含·`22112950` 两件随并携入）·merge=`0c1703b4`。
+
+**② §0 全量重 pin（届时树实测）**：`adaptive-lifecycle.ts`=`1e6129ed` 零漂 609 行（:293/:305/:307/:344-346/:354/:357/:360/:361/:363-365/:377-389 行锚全恰等·结论不变只承锚）；QGEN 形漂承载——`generate-question.ts` `8a97f9c9`→`c4f88f74`（181→209 行·:21 MAX=2/:24-29 nextCompetencyAfter/**:102+:142 双活消费点**/:202 成功归零）+`adaptive-interview-service.ts` `373c4032`→`3dcc366f`（753→770 行·:31/:43 帽值/:320 planCompetencies/件① 模板旁路块 ~:443-458）；邻面测试 `ag-f` `866b4108`→`b40d0a28`（568 行）+`adaptive-graph` `7d1d140e`→`5dbd3a35`（360 行）；零漂 blob（state `411e700e`/plan `2cc9b649`/graph `6cdcc122`/domain `b4c5fb16`/consumer `27ddbcf1`/测试载体 `81ebcafb` 332 行）按 hash 恒等承锚。
+
+**③ 修法落点（§1-定稿逐字节+P2-A 注释措辞）**：`adaptive-lifecycle.ts` :360-363 现块 4→17 行·numstat **+15/−2**（P2-B 实测重钉·非双审预估 +14/−2·差一名=P2-A 措辞换行排出 7 行注释）·gInitial 建图→:363 既有 getState 读形零位→plannerSequence 保序读回（`typeof c?.name==='string'` 守卫逐项滤除）→非空重建图闭包（graph 纯构造零 IO）/空走 gInitial 缺省臂（既有单发终场字节原形）。start 形 :293-346 零字节·图包/域包/seam/consumer 零触·零新键零迁移零写回（旧 checkpoint 忽略新形仍正确——mind 键既有通道原键读回）。
+
+**④ 新臂账（adaptive-lifecycle.proof.ts +114/−1·43→49 臂·§2 载体窗 +80±40 内）**：a 换序接管（submit 流向 turn≥1 族内失败 schema 违例经 seam MAX_ERROR_REROLL=2 耗尽→帽内换序重出题·首答 identity accepted·下一题=缓存·done=false·零终态事件）/b 缺省臂保形（`LegacyEmptyMindReadSaver` 恰一次读形接缝合成旧 checkpoint·空 mind→不重建→`interview_unavailable:terminal`·reason=`generation_*`·provenance origin=unavailable·failed+released·零第二题）/c 序保真（checkpoint mind 序≡plan 序含 `协作与沟通` behavioral 尾槽·换序落点=mind 序后继恒等）/d plan 不可达负证（换序后 mind.turn=1 不归零·initMind 不重跑）/e1 neg 族外（补供在场仍真终场·ask t1 恰 1 键零 re-roll）/e2 neg 纯重放（alreadyApplied 零重评·answer_evaluated 恒 1·nextQuestion 恒等）。
+
+**⑤ 门矩阵（届时树实测）**：adaptive-life **49/49 EXIT=0**（43 基线+6 新臂）·adaptive-graph **34/34 EXIT=0**（=79a95bb2 已并先例值·P2-C 承载）·interview **57/57 EXIT=0**·resume-grounding **39/39 EXIT=0**·neg:all **687/687 EXIT=0**（90/90/91/102/179/135）·typecheck turbo --force **8/8 0 cached EXIT=0**·lint turbo **12/12 EXIT=0** 五值恰等贴线（root 5235/web 601/api 1421/worker 954/ai-runtime 628）·docs:check **2170≤cap 2184 EXIT=0**·markers 五类改动集 **0 命中**·diff 面=恰 1 产品+1 测试+本卷（tsbuildinfo 副产 checkout 回滚不入面）。**唯一红：ag-f-reroll 58/61 EXIT=1**——§F F3a 三臂（「turn1 同文模板拒收→无序可换单发终场」/「同文模板零二次发射」/「终场收据诚实可审计」）。**根因定谳（对照实验在卷）**：stash 本刀改动后同树对照跑=**61/61 EXIT=0**（基线漂零嫌疑排除）→ 红系本刀语义所致且系本卷 §1-合成项 预见面：该臂注释原文自证其锚=「submit 侧图 deps 系 planner 序空位（既有架构事实…族臂在该流向无序可换）→既有单发终场原形收场」——恰=本刀归因红事实 A-① 与修法所翻之面；落码后该链（unscored 0 分继续→同文模板拒收 business_invalid∈族→帽内换序）在 submit 流向真达缓存新题继续。**救济=改写 QGEN 测试件三臂期望（done=false·换序缓存·零终态收据→帽内换序收据）→ 落在本卷恰 1 测试件 diff 面之外（§2 diff 面 pin+§8-③ 破约束）→ 非本刀可就地修面 → 停手报协调方**（裁决路径：a 授权后继刀/扩面改写 QGEN §F 三臂·或 b 协调方另裁）。
+
+**⑥ P2 承载落点**：P2-A=§③ 注释（「唯一」→「族内失败换序消费点（deps.competencies；QGEN 件② 批判门为第二换序形·同序消费·本刀补供同覆盖）」·已验 c4f88f74 :102+:142 双消费点·本刀补供同覆盖两形）；P2-B=§③（实测 +15/−2）+§⑤（门值按届时树实测重钉）；P2-C=§⑤（79a95bb2 态 61/34 先例值采纳·34 恒等亲证·61 因本刀语义红非基线漂·对照实验定谳）。
+
+**⑦ 偏离清单（理想零·实二·皆纪律内整理）**：其一 新臂 lint 零增量整理——worker 帽 954 恰等贴线（§2 lint「恒等」pin）·新臂初稿 `(r: any)` 显式注解×4+`thread_id` 字面键 naming 共 +5 warnings 超 帽→去显式注解（上下文型 `(r)`）+`['thread_id']` 计算键形→worker 954 恒等恢复；其二 tsbuildinfo 副产回滚（f731f02a 先例形）。∥**确切命令行**：`git fetch`+`git merge --no-ff origin/feat/mysql-schema-skeleton`（tip 7e8ada73 亲证）·`pnpm adaptive-life:prove`/`pnpm ag-f-reroll:prove`（+stash 对照跑）/`pnpm interview:prove`/`pnpm adaptive-graph:prove`·`node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw`·`pnpm neg:all`·`pnpm exec turbo typecheck --force`·`pnpm exec turbo lint --force`（+worker/root 直跑）·`pnpm docs:check`·markers 五类运行时组装直扫（i6-239 §2-7 口径）∥est live=0（全 scripted/隔离容器零外呼·零 Key 值接触）·actualSpendCny=null∥**STOP=`executed:halted:awaiting_coordinator`（三处 Status/§2 尾/§8 尾同步更替·协调方裁决后方推进·alone≠dual·Ban self-approve）·⛔push ⛔force push 未用**。
