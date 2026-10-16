@@ -432,15 +432,32 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (kind === 'grounded' && groundedFacts.length === 0) {
         // 无可用选定事实(未授权/画像无事实/全被选择器过滤)→ 既有固定模板回退,零模型调用;
         // 模板文案与既有逐字一致(:107 无授权版 / :109 授权版),模板本身零改。
-        return withDeficitOut(approvedTemplateGeneration(
-          d.resumeProfileAvailable
-            // Do not repeat a resume fact: the question is checkpointed, sent by
-            // interrupt/SSE, recorded in events and later normalized into an
-            // episode.  The candidate can choose which authorized experience to
-            // discuss without that original fact becoming a second data copy.
-            ? `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`
-            : `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`,
-        ));
+        const groundedTemplate = d.resumeProfileAvailable
+          // Do not repeat a resume fact: the question is checkpointed, sent by
+          // interrupt/SSE, recorded in events and later normalized into an
+          // episode.  The candidate can choose which authorized experience to
+          // discuss without that original fact becoming a second data copy.
+          ? `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`
+          : `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`;
+        // QGEN-CRITIQUE-RESILIENCE(件① 模板旁路闭合):本早退位处 seamCritique(:600/:623)/wasAsked
+        // 判重(:640-676)/`:r{k}` re-roll 环**之前**——模板对同 competency 确定性同文,同文二次到达
+        // (上一题经本臂旁路入面后 unscored 0 分继续(AG-F 修法③)→ decide 复问同能力)必然撞 asked
+        // 判重。出面前过既有确定性批判门(asked 判重+seamCritique 复检=critiqueQuestion 同一纯函数
+        // 调用,duplicate/too_short/leading/off_competency 四 issue 全检·零模型零 IO):命中 → 不返回
+        // 模板,交族内 failure 形(business_invalid ∈ QUESTION_GENERATION_REROLL_FAMILY·provenance
+        // 与 seam critique 耗尽臂 :623-633 同形)→ 图节点既有 AG-F 换 competency 臂(generate-question
+        // :100-112)帽内换序继续,单发终场只留帽满/无序可换。idempotencyKey 取 `:0` 初诊形(本臂零
+        // invoke 零键消费·纯 provenance 审计元数据,沿 :420 attempt_replay 臂同形)。pass 路(首问/
+        // 换序后新能力)模板文本与 provenance 逐字节零变。图级批判门(件②)保留=直接 deps 注入面/
+        // scripted deps 纵深防御,本臂闭合后生产 worker deps 链不再向图供给 critique 必拒题面。
+        if (!critiqueQuestion(groundedTemplate, competency, asked ?? [], d.competencyKeywords ?? {}).ok) {
+          return unavailableGeneration('business_invalid', {
+            operationId: QUESTION_OPERATION_ID,
+            idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+            invokeError: 'question_critique_failed',
+          });
+        }
+        return withDeficitOut(approvedTemplateGeneration(groundedTemplate));
       }
       // TOKSTREAM 阶段1(裁定触发面之一):interviewer.ask 模型调用面包装层回调——题间等待(检索→生成→校验)
       // 发生成进度事件(invoke 关口零改动;attempt≠0 重放与 grounded 无事实模板回退在上方早退,不产生进度事件;
