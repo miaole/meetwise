@@ -523,6 +523,7 @@ async function persistTraceBestEffort(
   pool: DbPool, owner: string, spec: Pick<InvokeSpec<unknown>, 'idempotencyKey' | 'service'>,
   stored: unknown, usage: ModelUsage | undefined, latencyMs: number, requestId: string | null,
 ): Promise<void> {
+  getMetrics().inc(METRIC.aiTracePersistAttempts);   // 丢失率分母:成功失败都过入口计一次(UC-028 分子对)
   await asPrincipal(pool, owner, (c) => persistTrace(c, owner, spec, stored, usage, latencyMs, requestId))
     .catch((error: unknown) => {
       getMetrics().inc(METRIC.aiTracePersistFailures);
