@@ -1,6 +1,6 @@
-# Q2-VALIDATE-SCENE-FIX REQUEST — PR #109 verify step 99 api:validate 唯一红 2 断言场景面修复刀（validate.ts ABND 场景 × Q2 入队背压闸场景自洽 · 单文件测试场景面 · 快速链一体席 · STOP=`draft:awaiting_exec`）
+# Q2-VALIDATE-SCENE-FIX REQUEST — PR #109 verify step 99 api:validate 唯一红 2 断言场景面修复刀（validate.ts ABND 场景 × Q2 入队背压闸场景自洽 · 单文件测试场景面 · 快速链一体席 · STOP=`executed:awaiting_post_prove_dual`）
 
-**Status**: **`draft:awaiting_exec`**（2026-10-16 快速链起草落卷 · 授权链=协调方派单 brief 明示「诊断→起草→自审→EXEC 一体·总时长 50 分钟·协调方授权沿 ssd-egress 先例」·同席连行使自审→EXEC→STOP 翻面 · draft 态保全于本 commit git 史 · post-prove 双审归协调方派席 · est live=0 · ⛔push · STOP 三处锚定=①卷头标题行②本 Status 行③§8 节 · 卷尾不载 STOP 值防多锚漂移）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席同席翻面·前值 `draft:awaiting_exec`=起草态保全于 git 史 `faa3ea2d`·快速链=起草→自审（窄域五项 PASS·P2-1 prose 勘误随 EXEC 落卷）→EXEC→STOP·门矩阵七门全绿·api:validate 红翻绿亲证（§9 字段①）·post-prove 双审归协调方派席 · alone≠dual · est live=0 · `actualSpendCny=null` · ⛔push · STOP 三处锚定=①卷头标题行②本 Status 行③§8 节 · 卷尾不载 STOP 值防多锚漂移）
 
 **席位**：Q2-VALIDATE-SCENE-FIX 诊断+起草+自审+EXEC 一体席（协调方派单 2026-10-16 · PR #109 verify step 99 唯一红口径指派 · 快速链授权链=派单 brief 明示「快速链：诊断→起草→自审→EXEC 一体」· ⛔push）。
 **基线**：`feat/mysql-schema-skeleton` @ **`d5dc0726`**（`git fetch` 后亲证 `origin/feat/mysql-schema-skeleton` tip=`d5dc0726` **恰等**（≥ 以等号成立）· PR #109 head · ai-graphs 环解 nail 波 tip）· worktree **`meetwise-qvf`**（仓根同级 · `git worktree add ../meetwise-qvf -b line/q2-validate-scene-fix` 本席亲立·reset 到 origin tip 亲证）· branch **`line/q2-validate-scene-fix`**。
@@ -60,7 +60,7 @@ ABND begin 为第 4 条入队：`enqueueInterviewJob` 闸体 `:84`-`:91` `count(
 
 ## §1-修法（裁决 a 已随派单定稿 · validate.ts 单文件恰几行 · 场景自洽）
 
-`apps/api/test/validate.ts` `:312` 与 `:313` 之间插**恰 4 行**：闸前清 `userA` queued（=模拟 worker 已消费积压——真实部署 worker 在线时 ABND begin 深度为 0）+ 清零断言（场景自洽可判定化）：
+`apps/api/test/validate.ts` `:312` 与 `:313` 之间插**恰 5 行（3 注释+2 落码 · 起草 prose 原「恰 4 行」系笔误·EXEC 勘正=下方块文本与落码逐字节一致·§9 字段⑥-1）**：闸前清 `userA` queued（=模拟 worker 已消费积压——真实部署 worker 在线时 ABND begin 深度为 0）+ 清零断言（场景自洽可判定化）：
 
 ```ts
 // [Q2-VALIDATE-SCENE-FIX] 场景自洽:本 harness api-only 无 worker,上方 BEG1/RACE begin + R1 turn
@@ -86,13 +86,13 @@ q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE owner_u
 
 | # | 门 | 命令/判据 | 判定 |
 |---|-----|-----------|------|
-| 1 | api:validate | `pnpm api:validate`（隔离 runner） | **改前红→改后绿**：改前 EXIT=1 恰 2 FAIL（§1.1 亲跑落档）· 改后 EXIT=0 零 FAIL（PASS 202→203=+1 清零断言） |
+| 1 | api:validate | `pnpm api:validate`（隔离 runner） | **改前红→改后绿**：改前 EXIT=1 恰 2 FAIL（§1.1 亲跑落档）· 改后 EXIT=0 零 FAIL（§9 字段①） |
 | 2 | neg:all | `pnpm neg:all` | **EXIT=0** 六段全绿恰等基线（auth/commerce/resume/interview/bend/input 零回退） |
 | 3 | typecheck | `pnpm turbo typecheck --force` | **EXIT=0** · 0 cached |
 | 4 | lint | `pnpm turbo lint --force` | **EXIT=0** · 警告计数恰等 pin（web 601/root 5235/api 1421/worker 954/ai-runtime 628 · 零增量） |
 | 5 | docs:check | `node scripts/ai-docs/check-docs.mjs` | **EXIT=0** ≤ 2200（基线 2193 亲跑 · 落卷后 2194 预期·余 6） |
 | 6 | markers | 改动集五类标记词 grep（词族 `i6-239-gates.proof.mjs:151`-`:163` 同形运行时组装 · 词面卷内不复抄防自匹配） | **零命中**（四词词族 0/0/0/0+冲突标记对 0） |
-| 7 | diff 面 | `git diff --numstat`（两 commit 合计） | **恰 2 tracked**=本卷 .md（新增）+`validate.ts`（+4/−0）· 零迁移零 lockfile 零他路径 |
+| 7 | diff 面 | `git diff --numstat`（两 commit 合计） | **恰 2 tracked**=本卷 .md（新增）+`validate.ts`（+5/−0）· 零迁移零 lockfile 零他路径 |
 
 ## §3 范围外（越界即 FAIL）
 
@@ -122,10 +122,44 @@ q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE owner_u
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `draft:awaiting_exec`（本值为卷内三处锚定=①卷头标题行②Status 行③本节 · 卷尾不载 STOP 值 · 沿姊妹卷「自述三处实测四处」预勘误）。** 快速链开工三条款：①协调方派单令+修法裁决 a 随单已定=**已兑现**（派单 brief 明示）；②快速链授权（沿 ssd-egress 先例·起草→自审→EXEC 同席连行使）=**已兑现**（派单 brief 明示「总时长 50 分钟」）；③⛔push（并线/推送归协调方）。EXEC 面落卷后本值翻面 `executed:awaiting_post_prove_dual`（§9 EXEC 记录+§9-B 三处随卷）· post-prove 双审归协调方派席 · alone≠dual。
+**STOP · `executed:awaiting_post_prove_dual`（2026-10-16 EXEC 席翻面·前值 `draft:awaiting_exec` 史录于 commit `faa3ea2d`·本值为卷内三处锚定=①卷头标题行②Status 行③本节 · 卷尾不载 STOP 值 · 沿姊妹卷「自述三处实测四处」预勘误）。** 快速链开工三条款兑现记录：①协调方派单令+修法裁决 a 随单已定=**已兑现**（派单 brief 明示）；②快速链授权（沿 ssd-egress 先例·起草→自审→EXEC 同席连行使）=**已兑现**（派单 brief 明示「总时长 50 分钟」）；③⛔push（并线/推送归协调方）=**兑现**（本刀零 push 零 merge 主线）。EXEC 已落卷（§9 七字段）· post-prove 双审归协调方派席 · alone≠dual · Ban self-approve。
 
 **停止条件（四类 · 命中即停手上报）**：
 1. **现场漂移**：EXEC 面对届时 tip 重 pin——§0.1 锚漂移超 ±3 且结论受影响、或 `:312`-`:321` 场景块被他刀改写 → 停手上报。
 2. **机制不满足**：若改后 api:validate 仍红且归因非本刀场景面（如闸谓词/映射语义与 §0.1 #2/#3 锚不符）→ 停手上报回炉（不得就地改定性、Ban 为绿改产品码）。
 3. **越界需要**：执行中若需触 §3 任何域 → 停手上报。
 4. **验收红不可修**：门矩阵任一门红且无法在本刀范围内归因修复 → 停手上报（Ban 为绿放宽门）。
+
+---
+
+## §9 EXEC 记录（2026-10-16 · 快速链 EXEC 席同席落卷 · 七字段 · STOP 翻面三处随卷）
+
+**授权链**：协调方派单 brief（2026-10-16 · PR #109 step 99 唯一红口径指派 + 修法裁决 a 随单已定）→ 起草 `faa3ea2d`（draft:awaiting_exec）→ 窄域五项自审 PASS（P2-1 prose 勘误随 EXEC 落卷）→ **EXEC 落码+门矩阵行使（本节）**→ post-prove 双审归协调方派席（alone≠dual）。EXEC 未改 §1 归因实质/§3 边界/§5 Ban/pins。
+
+**序1 落码**：`apps/api/test/validate.ts` `:312`/`:313` 之间按 §1-修法块**逐字节落笔**（+5/−0=3 注释+2 落码 · 隔离 DELETE 窄谓词 `owner_user_id='userA' AND status='queued'`+清零断言 · 两条红断言原文零触）· 产品码/worker 面/迁移/依赖零触（`git status --porcelain` 全程仅 validate.ts+本卷 2 tracked）。
+
+**字段① 门矩阵全表（EXEC 时点七门实测）**：
+
+| # | 门 | 结果 | 结论 |
+|---|-----|------|------|
+| 1 | api:validate | **改前红**：@`d5dc0726` `pnpm api:validate` EXIT=1 · PASS 202 / **FAIL 2**（`ABND begin → 202(预留 1.0)`+`预留后额度 -1.0` · `✗ 2 项失败`）；**改后绿**：EXIT=0 · **PASS 205 / FAIL 0**（`✓ 全部通过（真 NestJS+Fastify+类型DI 结构）`）——两红断言转 PASS+新清零断言 `ABND 前 userA queued 已清空(api-only 场景自洽·防 Q2 背压闸 429 遮蔽预留语义)` PASS（202+1=205 分母账目闭合） | **绿（红翻绿亲证）** |
+| 2 | neg:all | `pnpm neg:all` EXIT=0 六段 **90/90/91/107/179/135** 全绿（恰等 queue-enqueue-bp 基线·零回退） | 绿 |
+| 3 | typecheck | `pnpm turbo typecheck --force` EXIT=0「Tasks: 8 successful, 8 total / Cached: 0 cached, 8 total」 | 绿 |
+| 4 | lint | `pnpm turbo lint --force` EXIT=0「Tasks: 12 successful, 12 total」全 0 error·五值**恰等 pin**：web **601**/root **5235**/api **1421**/worker **954**/ai-runtime **628**（零警告增量） | 绿 |
+| 5 | docs:check | `node scripts/ai-docs/check-docs.mjs` EXIT=0「scanned **2194** managed worktree files」≤ cap 2200（基线 2193+本卷 1·余 6·与 §0.0 预期恰等） | 绿 |
+| 6 | markers | 改动集五类标记词（词族运行时组装·`i6-239-gates.proof.mjs:151`-`:163` 同形）**MARKER_HITS=0**（四词词族 0/0/0/0+冲突标记对 0 · 改动集=validate.ts+本卷 .md） | 绿 |
+| 7 | diff 面 | porcelain 恰 2 tracked=本卷 .md（起草 +131/EXEC 增补）+`validate.ts`（**+5/−0**）；`git diff HEAD -- packages/db/migrations pnpm-lock.yaml`=空（零迁移零依赖） | 绿 |
+
+**字段② EXIT 原值**：门1 改前 `RED_EXIT=1`（stdout「✗ 2 项失败」+「ELIFECYCLE Command failed with exit code 1」）→改后 `GREEN_EXIT=0`（末行「✓ 全部通过」）·门2 `NEG_EXIT=0`（六段「条负路径用例全绿」行亲录）·门3 `TC_EXIT=0`·门4 `LINT_EXIT=0`·门5 `DOCS_EXIT=0`·门6 `MARKER_HITS=0`·门7 numstat `5  0  apps/api/test/validate.ts` 亲录。
+
+**字段③ 改前改后 PASS 名单 diff（判别链定稿）**：only-in-pre=FAIL×2（`:315` begin 202+`:317` 预留 -1.0）；only-in-post=PASS×3（上两断言转绿+新清零断言）；其余 202 断言恒等零回退（含 `:318` 空壳 abandon 200 与 `:320` 退还——两态双 PASS=机理 §1.2「设计内语义不红」预判亲证）。改前红=单 attempt 全量落档非 stash 取证（本刀改前树=基线 tip 零修法面·红即基线红·Ban 只留绿 attempt 遵守）。
+
+**字段④ diff numstat（两 commit 合计）**：commit1 `faa3ea2d`=本卷 .md **+131/−0**（docs-only 起草）；commit2（本 commit）=本卷 .md（STOP 翻面三处+§1-修法/§2 勘误+§9 append）+`apps/api/test/validate.ts` **+5/−0**。零他 tracked 路径。
+
+**字段⑤ 重 pin（EXEC 时点）**：基线 tip `d5dc0726`=origin/feat/mysql-schema-skeleton 恰等（EXEC 面零并线需求——起草 EXEC 同席同树·无他波并线介入）；§0.1 #2/#3 闸面锚 blob **恒等零漂**（`c69c03a3`/`cf23ed37` EXEC 落码前后亲算同值=产品码零触机证）；#1 validate.ts 起草锚 `256a754a`（690 行）→落码后 `e54ae969`（695 行·漂移源=本刀自身落码·`:312` 插入点前界行锚不变·`:313`-`:321` ABND 块顺移 +5 至 `:318`-`:326`·断言文本逐字节不变）。
+
+**字段⑥ 偏离清单**：①**P2-1（自审席勘误·随 EXEC 落卷）**：起草 §1-修法 prose「恰 4 行」与其下方 5 行块自相矛盾（3 注释+2 落码=5 行）——落码按**块文本**逐字节行使（块为准），prose 勘正「恰 5 行」+§2 门7 「+4/−0」→「+5/−0」随本卷 EXEC 增补落卷（非修法实质变更·代码与起草块逐字节一致）。②`RL_SHARED_DEGRADED reason=pg_error fallback=fail_open`（neg:all 运行中一行 stderr·共享限流表在隔离容器缺表退化进程内·基线同形既有行为·零断言影响）。③其余零偏离（§3 边界全守住·SSOT 零触·产品码零触·零 retry-to-green——改前红改后绿各恰 1 attempt 全量落档 /tmp 落档随报告）。
+
+### §9-B STOP 翻面
+
+`draft:awaiting_exec` → **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席·三处锚定同步翻面=①卷头标题行②Status 行③§8 节·前值史录 `faa3ea2d`）。post-prove 双审+并线/推送（⛔push 未犯）+批表/SSOT 行翻面权全归协调方。est live=0（全程隔离容器/进程内·零模型外呼·零 secrets 读用）· `actualSpendCny=null`。
