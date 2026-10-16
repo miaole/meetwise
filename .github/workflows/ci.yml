@@ -332,7 +332,7 @@ jobs:
       - name: 流式语音 fake-seam 合同（不是产品流式 ASR / E2E）
         run: pnpm vstream:prove
       - name: 运行内核（db 四原语 + ai-runtime invoke 双校验·重试·幂等 / 状态机 / 租约 / 可恢复 / 幻觉拦截）
-        run: pnpm runtime:prove
+        run: pnpm runtime:isolated:prove
       - name: 真 LangGraph 图（ai-graphs 纯图 + worker PostgresSaver：interrupt + 重启续会话）
         run: pnpm graph:prove
       - name: 请求路径 + SSE（principal 注入 / RLS fail-closed / 幂等 / Last-Event-ID 重放）
