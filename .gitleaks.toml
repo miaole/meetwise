@@ -24,6 +24,33 @@ paths = [
   # 测试桩假 key·非凭据：AG-24 Langfuse model proof 进程内 env 注入（globalThis.fetch :101 全程 mock 拦截·
   # 零 provider 外呼·值仅满足 registry apiKey 在场断言·generic-api-key 启发式误读·沿 626ac3cc/98d4bab7 形制）。
   '''(^|/)packages/ai-runtime/test/ag24-langfuse-model\.proof\.ts$''',
+  # 测试桩假 key·非凭据：TOKSTREAM S4b invoke 观察缝 proof 进程内 env 注入（globalThis.fetch 全程 mock 拦截·
+  # 零 provider 外呼·值仅满足 registry apiKey 在场断言与 g7 面 assertModelApiKeyPresent 前置·generic-api-key 启发式误读·沿 ag24/98d4bab7 形制）。
+  '''(^|/)packages/ai-runtime/test/invoke-model-delta\.proof\.ts$''',
+  # 归档收据内容摘要·非凭据：batch23 归档 c12-typecheck turbo dry 收据 24 处 40-hex 值均为 git blob 对象 ID
+  # （SHA-1 内容摘要·cat-file/rev-list --objects/hash-object 三重复算亲证）·键名文件名词面误触关键字。
+  '''(^|/)receipts/archive/2026-09-batch23/receipts/c12-typecheck/02-turbo-dry\.json$''',
+  # 同内容归档前原路径（batch23 归档挪移前·feat 首亲链 7da52c5b 引入·未来 PR 窗可达）·值面逐字节恒等。
+  '''(^|/)ai-docs/delivery/receipts/c12-typecheck/02-turbo-dry\.json$''',
+  # 归档收据溯源摘要·非凭据：S4a run-manifest scriptSha256 64-hex=收据时点 proof 文件 SHA-256
+  # （对 546b1c48 blob shasum 复算恒等亲证）·键名 token-coalesce 词面误触关键字。
+  '''(^|/)receipts/archive/2026-09-batch23/receipts/tokstream-s4a/2026-10-07/run-manifest\.json$''',
+  # 同内容归档前原路径（feat 首亲链 546b1c48 引入·未来 PR 窗可达）·值面逐字节恒等。
+  '''(^|/)ai-docs/delivery/receipts/tokstream-s4a/2026-10-07/run-manifest\.json$''',
+  # 测试夹具假值·非凭据：N1 NOINHERIT 低权 login 夹具口令（in-file 注记「隔离库」自证·随机角色名配对·
+  # assertIsolatedTestTarget 隔离库内建消·值自描述 proof 口令形）。
+  '''(^|/)apps/api/test/api-harden-shared-state\.proof\.ts$''',
+  # 测试桩假 key·非凭据：dbacl2 pgp_sym_encrypt 隔离库 ACL 快照差分参数（值自描述 dbacl2-enc-key-v1 形制）。
+  '''(^|/)packages/db/test/db-acl2\.proof\.ts$''',
+  # 测试桩假 key·非凭据：dbid1 隔离库加密参数 env 注入（in-file 注记「隔离库·非密钥」自证·值自描述 proof_dbid1 形）。
+  '''(^|/)packages/db/test/db-id-v7\.proof\.ts$''',
+  # 迁移内容摘要台账·非凭据：dbhy1 迁移 SHA-256 溯源对（sha256sum 两行复算恒等亲证·
+  # 键名 trace_tokens/same_key_claim_join 词面误触关键字）。
+  '''(^|/)packages/db/test/dbhy1\.proof\.ts$''',
+  # 测试夹具假值·非凭据：Langfuse 评测合同抽样策略标签（纯进程内函数实参·值自描述 fixture 字样·零网络语义）。
+  '''(^|/)packages/ai-runtime/test/langfuse-evaluation-contract\.proof\.ts$''',
+  # 负对照探针假值·非凭据：退役 ECS 预览验证脚手架 curl 负向注入头（值自描述 must_not_forward 字样·历史件已退役树外）。
+  '''(^|/)ops/ecs/verify-preview-web\.sh$''',
 ]
 # Matched "secrets" are pnpm script suffixes / honesty phrases, not API keys.
 regexes = [
