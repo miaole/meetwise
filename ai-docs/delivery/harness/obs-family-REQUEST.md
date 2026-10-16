@@ -39,6 +39,7 @@
 3. **N5 同族面扩展（登记原文只点名 run-e2e.mjs）**：同形单发在 `run-e2e-ui.mjs:200`+`run-performance-e2e.mjs:103` 亲读在卷（三处逐字同构 `.then((r) => r.ok).catch(() => false)`）——同族缺口同刀收口·裁决项①追认。
 4. **收据重生成面处置**：`manual-boot-sample.log` 现居 `receipts/archive/2026-09-batch23/`（archive 区）——archive append-only 纪律下**原件零字节**；登记收口=件④ obs-logging proof 现行自证收据（`--- log receipt (redacted) ---` 形·本席亲跑在卷）替代中间迭代产物·裁决项②追认。
 5. **api lint 贴边**：`pnpm -C apps/api lint` 本席亲跑 **1421 warnings=预算 1421 贴边零余量 EXIT=0**（OBS-READY 授权 A `f29ceb59` 重钉值）——本刀预期零新增 warning·漂移即停如实登记归因（Ban 借机修）。
+6. **起草序1 并线重 pin（`dd89d290`→`2717e5e7`·2026-10-16）**：起草落卷（`492e912d`）后 fetch 亲证 origin tip 前移至 `2717e5e7`（QUEUE-SHUTDOWN nail 波·8262df89+f4ddbae0·**其 merge 词面自证顺携本席基线 dd89d290 并线=「本地 feat/mysql-schema-skeleton 与 line/obs-family 同 tip」**·`git merge-base --is-ancestor dd89d290 2717e5e7` 亲证）→本席 `git merge --no-ff origin/feat/mysql-schema-skeleton@2717e5e7`=**merge `c386927a`**（merge-tree 预演 EXIT=0 零冲突·本支恰 1 docs commit·禁 pull --rebase 遵守）。**重 pin 核毕**：§0.1 全部 8 码/proof 锚 blob 恒等亲证（纯改号零漂移）+checklist 三 STILL OPEN 锚行号恒等亲读在卷（:2193/:2194/:2196/:2208/:2215/:2617/:2624 全数对中未漂）+§1.4 基线读数结论零变（QUEUE 波零触本刀三面）·docs:check 随波 +1（QUEUE REQUEST 入管面）实读见 §2-7 重 pin 注。
 
 ### 0.3 迁移号登记与协调规则（预期零·实证后定）
 
@@ -96,7 +97,7 @@
 4. **env-schema 邻面门**：`pnpm env-schema:prove` EXIT=0（22/22·`env-schema.ts` 零触承载）。
 5. **typecheck 门**：`pnpm turbo typecheck --force` EXIT=0（`TURBO_DAEMON=false` 沿 L-11 串根事故纪律·8/8 0 cached 口径）。
 6. **lint 门**：`pnpm -C apps/api lint`（**1421 贴边零余量**）+`pnpm lint`（root max 5235）亲跑实测——零新增 warning 为预期·漂移即如实登记归因（**Ban 借机修 lint**）。
-7. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 2180·本卷 +1→**2181 ≤ cap 2192**·余量 11·>2192 红即停上报·cap sanction 权归协调方）。
+7. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 2180·本卷 +1→2181·**起草序1 并线重 pin：QUEUE 波 REQUEST 入管面 +1→并线后实读 2182 ≤ cap 2192·余量 10**（本席并线后亲跑在卷·账目=2180 主线+本卷 1+QUEUE 卷 1）·>2192 红即停上报·cap sanction 权归协调方）。
 8. **markers 门**：改动集（本卷 .md+三 src/script+三 proof）五类标记词零命中+`est live=0` 臂绿（词面见 `i6-239-gates.proof.mjs` 运行时组装·不入卷防自指）——**恰符臂红=协议形承登**（i6-239 历史刀申报面·沿 queue-shutdown §7/OBS-LOGGING 先例·非本刀新增红）。
 9. **diff 面（改动面窄断言）**：EXEC diff（对立项基线）=恰 **7 类**——本卷 .md+`health.service.ts`+`apps/api/src/main.ts`+三 runner scripts+三 proof（+收据目录可选）——`health.controller.ts`/`apps/worker/src`/`packages/`/`migrations/`/共享 SSOT 四卷零文件入 diff（`git diff` 词面机检）。
 10. **零迁移门**：改动集零 SQL 零新表（§0.3 预期零实证）。
