@@ -173,6 +173,55 @@
 - **悬决项（归协调方）**：EXEC 排程 · 判别 run LIVE 授权（两票分立 §8-②）· 新红产品侧归因刀的立项先后（本卷针后判别读数为其前置）。
 - **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数系读数登记（原值记账零冲销）。
 
+## §9-rev rev 修订注记（pre-exec 双审席2 FAIL P1×2 修订清单五条回路 · rev 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§9 零洗** · 本节为 EXEC 期对前文对应句的权威修正与增补）
+
+> **席2 FAIL 定谳（rev 席逐位亲证成立）**：**P1-1 预算声明自相矛盾**——§1 量级核算（`:92`）声明「+9/±3/−0·硬帽 +20/−0」，但面③ N3b 系对 `run-e2e.mjs:187` 现行单行 `tsx.stderr.on('data', (d) => process.stderr.write(d));` 的**改写**（rev 席亲读 @`e09cf11c`）→ EXEC 期 numstat 实测必 **+9/−1**，按卷面 −0 字面即触发 §8-③ 越帽假停。**P1-2 LIVE 判别读法缺 a/b 分辨器且含失准读法**——`sse.ts` `readSseEvents`（rev 席亲读：清单词面 `:73-95` 区·实测签名 `:65` 默认 `timeoutMs=1200`+`:86-88` catch 吞 abort+`:91-93` 返回可空数组）→ worker/api hang 形下每批照常完成（空 kinds）·`interview.ts:312` push 照常·心跳照常续推——原 §1 判读谱「帧无+心跳停→形 b」机制不成立、「任一循环内死亡→心跳帧末枚=死亡批位」失准；**真分辨器=lastSeq/questions 递进 vs 平台**。rev 五条修订如次·STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（§9-rev.7）。
+
+### §9-rev.1 修订①（P1-1）——预算声明修正（§1 量级核算 `:92` + §2 B5 `:126`）
+
+- §1 量级核算「合计 **+9/±3/−0**（±3 浮动帽=行尾注记/断行样式 · EXEC 期 numstat 实测为准 · 硬帽 +20/−0 越帽即停 §8-③）」→「合计 **+9/±3/−1**（**−1=面③ N3b `:187` 改写删除·预授权**）·硬帽 **+20/−1**」。
+- §2 B5「合计 ∈[6,15]∩硬帽 ≤20/−0」→「**合计 ∈[6,15]∩删除 ∈[0,1]∩硬帽 ≤20/−1**」。
+- 卷尾注「合 +9/±3/−0 硬帽 +20/−0」同此修正值——EXEC 期 numstat 实测 +9/−1 为准·**不再触发 §8-③ 假停**（其余两码面纯新增 +1/−0·+3/−0 零变）。
+
+### §9-rev.2 修订②（P1-2）——§1 判读谱（`:95`）重写为机制核证版四行矩阵
+
+EXEC/LIVE 期判读以下列四行矩阵为准（原判读谱句以此节替换读·原文零洗）：
+
+1. **exit 帧 `terminal=''` + 心跳 lastSeq/questions 递进至末帧 → 形 a**（事件流健在·面试不终局/R2 deadline 到期）。
+2. **exit 帧 `terminal=''` + 心跳 batches/elapsedMs 递进而 lastSeq/questions 平台 → 形 b**（SSE 零事件=worker/api 停摆·**末次 lastSeq 递进帧=事件断点位**）。
+3. **帧无 + 心跳平台（turn fetch 无 abort·`interview.ts:261`）→ api 侧 turn 挂死形**。
+4. **tail 帧在场 → client 红/子进程 exit 红直读**。
+
+- **删除「任一循环内死亡→心跳帧末枚=死亡批位」失准表述**（原判读谱句作废·以此矩阵为准）——机制根据=`sse.ts:65/:86-88/:91-93` 亲证（hang 时 readSseEvents 1200ms abort 空数组返回·批照常完成·心跳照常续推空批）。
+- 三形互斥判别器：①末帧 lastSeq/questions 是否递进（形 a vs 形 b）②心跳帧是否仍在产出（形 b vs turn 挂死形）③tail 帧在场与否（client/子进程红直读）。
+
+### §9-rev.3 修订③——§0.2b 判读口径（`:53`）补句
+
+判读口径行补：「**心跳帧末枚≠死亡批位（hang 时心跳续推空批）·死亡点位按末次 lastSeq 递进帧读**」——原「心跳帧按 bootId 分组…尾量帧每 run 红时恰 1-2 帧（两红臂 `:193`-`:196` 互斥·先到先落）」保持·EXEC/判读期以此补句为准。
+
+### §9-rev.4 修订④（P2）——§0 基线锚（`:6`/`:36`）EXEC 期注记
+
+本卷落卷后主线 tip 已步进——rev 席 fetch 实测 origin tip=**`fe4079a0`**（清单词面 `f7caa206` 系其祖先·`merge-base --is-ancestor` EXIT=0 亲证·uuid-id-check/q2-validate-scene-fix/5c-behavior-trio/context-budget-wire 四波已并）·**三码面零漂移亲证**：`e2e/full.e2e.ts`=`fe21414b`/`e2e/helpers/interview.ts`=`1b2a87e8`/`scripts/run-e2e.mjs`=`f55330b1` 三 blob 对 `d5dc0726`=`f7caa206`=`fe4079a0` 恒等（§0.1 锚 1-3 全值保持·零更锚）·届时 EXEC **merge-forward+重 pin** 照 §0 规则不受影响；managed 余量对 f7caa206 口径=**余 5**（2195≤2200·q2-validate-scene-fix nail 序4 亲跑值承之）·**cap sanction 2208 在飞前置**（`line/cap-sanction-2208`@`a75736a0` EXEC 已落码未并主线 rev 席亲证·其 sanction 注记「在飞 G7W-DIAG-NEEDLES/WORKER-HANG-GUARD 两 REQUEST 并入即 2201 超限」rev 席亲读——本卷并线以 sanction 2208 落地为前置）。
+
+### §9-rev.5 修订⑤（P2 四件）——§1.3-4（`:102`）尾量字面+门面口径
+
+1. **P2 尾量 cap 字面精确化**：§1.3-4「32KiB cap 硬」→「**32KiB 滚动+至多 1 管道块保留·转义后单行上界 ~196KiB 有界**」（N3b `while (tsxErrChunks.length > 1 && …) shift()` 保形=滚动窗至多留 1 管道块·转义后单行上界有界非无界）——Ban 尾量无限量语义不变·cap 仍硬。
+2. **P2-1 帧数措辞**：心跳帧数上界修正为「**单到期循环 ≤70-84 帧·四循环硬界 ≤336 帧≈50KB 有界**」（原「≤70 帧/run·四循环 ≤~90 帧」措辞作废·每帧 ~150B→≈50KB 有界结论不变）。
+3. **P2-2 ledger 复算口径**：EXEC 期 26≤32 复算以**运行时 `reviewLedger.length`**（隔离/判别 run 实测）为准·非源码 grep 计数。
+4. **P2-3 Buffer 收集形可选采纳**（EXEC 期裁量·不强修——N3b 收集器行形保持卷面定稿即可）。
+5. **P2-4**：席2 清单词面「**13 滞留分支登记入 §8-①**」如实转录——登记入 §8-① 现场漂移哨位（rev 席核证边界如实披露：本席对基线 `d5dc0726` 滞留支线实测=恰 2 支=本支+`line/worker-hang-guard`（`line/ai-graphs-cycle-break` 已并）·origin 领先本支 20 commit·「13」数值 rev 席未能复现到唯一仓内对象·EXEC 期如遇词面所指现场即停手上报）；**与 WORKER-HANG-GUARD 串行排程注记**：`line/worker-hang-guard`@`a479fdc2`（其 REQUEST 亦已 rev 五条·STOP 同值）在飞未并 rev 席亲证+cap-sanction 注记「两 REQUEST 并入即 2201 超限」→本卷与 WORKER-HANG-GUARD 的 EXEC/并线**串行排程**（不得同时并入 cap 2200 主线·以 sanction 2208 落地或串行为前置·排程权归协调方）。
+
+### §9-rev.6 门矩阵 rev 后口径（rev 席亲跑）
+
+- **A1 docs:check**：EXIT=0 实测值见 commit 回执（文件计数制·本 rev append 零新增文件→计数不变）。
+- **A2 markers**：rev 增量行五类标记词+冲突对直扫零命中（词族运行时组装不誊卷·沿 §7 同形制）。
+- **A3 diff 面**：恰 1 tracked=本卷 .md 纯 append 零删改·零他 tracked（三码面对 `e09cf11c` 零 delta 机检）。
+- B 段七门沿 §2 预 registered 判据·预算判据随 §9-rev.1 修正值（B5 删除 ∈[0,1]·硬帽 ≤20/−1）。
+
+### §9-rev.7 rev 后 STOP 状态
+
+**STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev 落卷后待席2 修订清单五条落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev 后重审·alone ≠ dual）；开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）。
+
 ---
 
 *G7W-DIAG-NEEDLES REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`**（起草席落卷终态 · 三处一致=Status 头/§8/卷尾）· ⛔push ⛔merge 主线 · alone ≠ dual · base `feat/mysql-schema-skeleton` @`d5dc0726`（=fetch 后 origin tip 恰等派单下界「origin tip≥最新」ai-graphs nail 波）· worktree `meetwise-gdn` · branch `line/g7w-diag-needles`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令三针原文+案 A 卷 `62ffaffa` §9-LIVE 新红证据基座+backlog `:108` P1 OPEN+案 A/案 B/7a_diag/consent-capture 先例链+LEDGER `:493`/`:484` · 读码三项=R2 循环零帧/batchWallClock 只差中途落盘/红路 stderr 即弃三缺口（0.2a）+NDJSON 新二缝白名单（0.2b）+est live 口径（0.2c）· 修法=面① full.e2e.ts R2 退出帧 +1/−0（`:519` 前·deadline 到期形钉死）+面② interview.ts 心跳中途落盘 +3/−0（N=5·四循环·防自伤）+面③ run-e2e.mjs 红路 tsx stderr 尾量 +5/−1（32KiB cap·两红臂·withhold 三证）· 合 +9/±3/−0 硬帽 +20/−0 · ledger 26≤32 零变更 · 零 A() 零产品码零迁移零第三码面 · 门矩阵=A 段起草三锚（docs:check 2194≤2200+markers+diff 恰 1）+B 段 EXEC 七门（typecheck:e2e/lint/e2e-helpers:prove/静态门族/码面 diff/通道双查/判别 run LIVE 另授）· 迁移号=零 · est live=0 · `actualSpendCny=null` · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
