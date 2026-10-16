@@ -71,9 +71,8 @@
 
 **定稿（EXEC 逐字节套用·fenced 块为唯一权威形）**——
 
-编辑1·main.ts 新导出块（插入锚=`:101` createApiShutdownChain 收尾 `}` 行后·`:103` 真 NestJS 注释行前·整块含尾随空行）：
+编辑1·main.ts 新导出块（**rev2 拆分重钉**：原围栏首行 `import type { FastifyInstance } from 'fastify'` 行移出围栏——该行并入 main.ts 顶部 import 区（:1 附近·import/order 钉序 builtin→external→internal·public-preview :1 先例·落位=现树 external 组末尾 `@nestjs/platform-fastify` 行后）；导出块本体留 `:102` 后（去 import 行·插入锚=`:101` createApiShutdownChain 收尾 `}` 行后·真 NestJS 注释行前·整块含尾随空行））：
 ```ts
-import type { FastifyInstance } from 'fastify';
 // ── #67-API CSP/安全头门（api 面零豁免·web 面 AUTHZ-HARDEN 5A-2 姊妹面）──────────
 // web 面 CSP 已由 AUTHZ-HARDEN 5A-2 落地（apps/web/middleware.ts nonce 形 enforce·全出口零豁免）。
 // 本刀补 api 面：/docs 是 api 进程唯一 HTML 面（unpkg 外链 script/css + 静态内联引导脚本）——
@@ -278,6 +277,16 @@ await main();
 **rev 验证闭环（本席亲跑 @ re-fence 后工作面·命令与 EXIT 随 §9-EXEC 收据复执）**：①tsc 探针复跑——编辑1 块（含 import 行）在仓 tsconfig（apps/api 继承 strict/noUncheckedIndexedAccess/bundler 解析）下编译零错；席1 TS1005 场景复演=旧签名形实测红（TS1005 复现）→ re-fence 形实测绿（PASS 翻转）；编辑5 去 any 调用面（bare Fastify+installSecurityHeaderGate+addHook/get 推断钩参）对 re-fence 签名联合编译零错；②eslint 面抽查——编辑5 re-fence 全文 no-explicit-any 新增=0（旧形 +7 复演对账·与席1 实测恰等）；③node --check 探针 harness 产物零错（TS 块面以 tsc 为准·node --check 不适 TS 语法）；④docs:check 复跑 EXIT=0 ≤cap 2184；⑤markers 五类+冲突标记对本改动集零命中（i6-239 `§2-7` 运行时组装口径·词面不入卷防自匹配）。
 
 **STOP 不变**：仍 **`draft:awaiting_pre_exec_dual`**——re-fence 后席1 复审确认（覆盖其 P0×1+P1×1 FAIL）方会签；§8 三条款·alone≠dual·Ban self-approve 沿承不翻。
+
+**rev2 处置登记（EXEC 门 9 红停回炉·落卷席亲证·2026-10-14·沿本节 append 形制·§0-§8 除 §1-修法 编辑1 围栏唯一权威形随重钉外原文零字洗）**：
+
+- **R6 触发与根因（门 9 红·第一手复演）**：EXEC 落码面（3 码面在树未提交）门 9 lint 红——api 面 **1422 warnings > 恰等线 1421**（`eslint . --max-warnings 1421` EXIT=1·本席复演亲证）；违例行唯一定谳=`apps/api/src/main.ts:102:1  warning  "fastify" type import should occur before import of "@meetwise/ai-runtime" · import/order`（恰 +1·余 1421 面零漂）。根因=编辑1 rev1 形把 `import type { FastifyInstance } from 'fastify'` 随块首行落 `:102`（居于全部 import 组之后）——import/order（`packages/config/eslint.config.base.mjs:74` 'warn' 级·groups=builtin→external→internal·pathGroups `@meetwise/**`→internal position after）判定 external 组 import 违规后置=+1 warn 越恰等线（`--max-warnings 1421` 零余量即红）。
+- **R7 rev2 处置（协调方裁决出路 (a)·import 顶置）**：§1-修法 编辑1 围栏拆分重钉=import 行移出围栏——该行并入 main.ts 顶部 import 区（**external 组末尾 `@nestjs/platform-fastify` 行后·落位现树 `:8`**·import/order 钉序 builtin→external→internal·`public-preview.ts:1` 顶置先例同法）；导出块本体留插入锚 `:101` 后（去 import 行·块体 `:103` 起）；落码面同形修正（原 `:102` import 行移 `:8`·其余落码面零字节）。落位合规机理=import/order 规则指示语「fastify type import should occur before import of @meetwise/ai-runtime」与顶置落位逐字对表恰合（内联围栏致落位偏离·re-fence 块内重排不救——re-fence 收块内只会把偏离随块钉死）。
+- **R8 教训注记（验证闭环面缺口）**：席1 re-fence 验证闭环（本节 rev1 ①-⑤）以 tsc 编译+eslint 词面抽查为域——**tsc 编译零错≠eslint 排序面零警**：import/order 系 lint 面规则非 type 面·且落位面（import 行在文件内位置）不在「块内语法/any 词面」抽查域内。**验证闭环须覆盖落位面**：围栏首行含 import 时落位随块钉死·块体行号锚（:101 后）不约束词法位——rev2 后围栏本体零 import 行=该类漂移结构关闭。
+- **R9 rev2 验证闭环（本席亲跑 @ rev2 后工作面·命令与 EXIT 随 §9-EXEC 收据复执）**：①门 9 复跑——`pnpm turbo lint --force` EXIT=0 **12/12**·api 恰等双证=`--max-warnings 1421` EXIT=0（✖ 1421 problems 0 errors）+`--max-warnings 1420` EXIT=1 **恰等 1421**·root 恰等双证=`--max-warnings 5235` EXIT=0（✖ 5235 problems 0 errors）+`--max-warnings 5234` EXIT=1 **恰等 5235**（红 1422→绿 1421 恰 −1·五值零增量）；②typecheck `pnpm turbo typecheck --force` EXIT=0 **8/8**；③`pnpm -C apps/api prove:csp-headers` EXIT=0 **PASS=12 FAIL=0 维持**（H1a-H5c 全臂）；④node --check harness 产物零错（`scripts/ai-docs/check-docs.mjs`+`scripts/i6-239-gates.proof.mjs`·TS 块面以 tsc 为准沿 rev1 ③ 口径）；⑤markers 五类+冲突标记对改动集运行时组装词面零命中 EXIT=0（i6-239 `§2-7` 口径·3 码面+本卷 .md 全在改动集扫域）；⑥docs:check EXIT=0 **scanned 2171 ≤ cap 2184**（对起草预期 2167 +4=EXEC 序1 merge `d28b1a2e` 并线卷入受管件·cap 内绿如实登记）；⑦typecheck 副产 `apps/web/tsconfig.tsbuildinfo` checkout 回滚（§2-13③·不入交付面）。
+- **R10 窗沿与落卷形态**：§8-③「EXEC 立项不得改 §1-修法五编辑定稿（改则回炉重审）」——本 rev2 系**回炉窗沿合法修订**（双审已签后 EXEC 红停回炉=rev2 窗·协调方裁决出路 (a) 随卷登记·gpr R1-a amend 先例形沿派单引）；落卷基线=`line/csp-headers` @ `d28b1a2e`（EXEC 序1 merge 后 tip·派单引 `7f08f03d` 在史为其亲·本席 `git merge-base --is-ancestor` 亲证）；分支未 push 亲证（无 upstream·`git branch -r --contains HEAD` 空·`git ls-remote --heads origin line/csp-headers` 零命中）→落卷=**新 commit**（3 码面+本卷 .md 恰 4 tracked·amend 不适用=码面 rev2 前未成 commit·无史可洗）。
+
+**STOP 不变（rev2 后重申）**：仍 **`draft:awaiting_pre_exec_dual`**——rev2 落卷后席1 复审确认（覆盖门 9 红根因 R6）方会签→EXEC 重授权；§8 三条款·alone≠dual·Ban self-approve 沿承不翻。
 
 ---
 
