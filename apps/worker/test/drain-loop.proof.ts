@@ -1,5 +1,8 @@
 /** 优雅排空证明(确定性,无 IO):stop() 等当前 tick 跑完再 resolve;停后不起新 tick。 pnpm drain:prove */
-import { runDrainLoop } from '../src/drain-loop.ts';
+import { readFileSync } from 'node:fs';
+import { join, dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { runDrainLoop, TICK_WATCHDOG_DEFAULT_MS, SERIAL_DRAIN_TICK_WATCHDOG_MS } from '../src/drain-loop.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function waitFor(predicate: () => boolean, timeoutMs = 500): Promise<boolean> {
@@ -73,6 +76,97 @@ async function main() {
   const stoppedAt = Date.now();
   await sleeping.stop();
   A('stop 会中断 fallback sleep，不等待完整扫描间隔', Date.now() - stoppedAt < 200);
+
+  // ── tick 看门狗臂组（挂起中断+自愈·正负双向·注入短值承载·零 env 零 IO） ────────────
+  // 结构化 console.error 捕获（worker_tick_watchdog JSON 行）+ unhandledRejection 计数。
+  const watchdogLogs: Array<{ event: string; hungMs: number; consecutiveFailures: number }> = [];
+  const origConsoleError = console.error;
+  console.error = (...args: unknown[]) => {
+    const line = args.map((a) => (typeof a === 'string' ? a : JSON.stringify(a))).join(' ');
+    try {
+      const parsed = JSON.parse(line) as { event: string; hungMs: number; consecutiveFailures: number };
+      if (parsed?.event === 'worker_tick_watchdog') watchdogLogs.push(parsed);
+    } catch { /* 非结构化行不计 */ }
+    origConsoleError(...args);
+  };
+  let unhandledRejections = 0;
+  const onUnhandledRejection = () => { unhandledRejections++; };
+  process.on('unhandledRejection', onUnhandledRejection);
+
+  // W1 定值 pin：缺省组与串行抽干组双常量落源（EXEC 定值机检）。
+  A('watchdog 定值常量 pin（缺省组 600_000·串行抽干组 1_800_000）', TICK_WATCHDOG_DEFAULT_MS === 600_000 && SERIAL_DRAIN_TICK_WATCHDOG_MS === 1_800_000);
+
+  // W2 正形：挂 tick 到点被具名中断→下一拍续跑（自愈）→计数经结构化日志在案。
+  let hungCalls = 0;
+  const hung = runDrainLoop(async () => { hungCalls++; if (hungCalls === 1) await new Promise<void>(() => {}); }, 5, { tickWatchdogMs: 40 });
+  A('挂 tick 到点被看门狗中断且 loop 自愈（下一拍已续跑）', await waitFor(() => hungCalls >= 2, 1_000));
+  A('挂死中断结构化日志字段在（event/hungMs=注入值/consecutiveFailures≥1）', watchdogLogs.length >= 1 && watchdogLogs[0]!.event === 'worker_tick_watchdog' && watchdogLogs[0]!.hungMs === 40 && watchdogLogs[0]!.consecutiveFailures >= 1);
+  A('中断后自愈拍计数归零（既有成功臂承接·consecutiveFailures 回 0）', await waitFor(() => hung.snapshot().consecutiveFailures === 0, 500));
+  A('自愈后 ready() 翻绿（挂死中断→下一拍成功→恢复就绪）', await waitFor(() => hung.ready(), 500));
+  await hung.stop();
+
+  // W3 正形：连续挂死 3 拍→既有 3 连败臂翻红（watchdog 供中断+计数增强·翻红由既有臂承载）。
+  let redCalls = 0;
+  const redFlow = runDrainLoop(async () => { redCalls++; await new Promise<void>(() => {}); }, 5, { tickWatchdogMs: 30 });
+  A('连续挂死 3 拍 ready() 翻红（3 连败臂承接·watchdog 计数入臂）', await waitFor(() => !redFlow.ready() && redFlow.snapshot().consecutiveFailures >= 3, 1_000) && redCalls >= 3);
+  void redFlow.stop().catch(() => {});   // 挂 tick 体 stop 等在飞——不 await（排水语义与改动前恒等）
+
+  // W4 负形：正常短拍多拍稳态零误触发。
+  let fastCalls = 0;
+  const fastLogsBefore = watchdogLogs.length;
+  const fast = runDrainLoop(async () => { fastCalls++; }, 5, { tickWatchdogMs: 40 });
+  await sleep(200);   // ≈5× 注入 watchdog 窗口全为正常短拍
+  A('正常短拍零误触发（多拍稳态 watchdog 触发计数 0·计时器清理无泄漏）', fastCalls >= 10 && watchdogLogs.length === fastLogsBefore);
+  await fast.stop();
+
+  // W5 负形：stop() 后挂 tick 零触发（排水路径零行为位移·stopped 短路在回调内查）。
+  let stopHangCalls = 0;
+  const stopHang = runDrainLoop(async () => { stopHangCalls++; await new Promise<void>(() => {}); }, 5, { tickWatchdogMs: 30 });
+  await waitFor(() => stopHangCalls === 1);
+  const stopHangLogsBefore = watchdogLogs.length;
+  void stopHang.stop().catch(() => {});  // 不 await:排水等在飞 tick（永不 settle）语义与改动前恒等
+  await sleep(120);                      // ≫ 注入 watchdog 30ms
+  A('stop() 后挂 tick 零 watchdog 触发（排水路径零行为位移）', watchdogLogs.length === stopHangLogsBefore && stopHangCalls === 1);
+
+  // W6 判别臂正形：超值长拍（慢 tick 墙钟>注入 watchdog）确被覆盖=误伤判别正向
+  // +弃 tick 迟 settle（resolve 形）由 race 内建成员 handler 吸收=零 unhandledRejection。
+  let slowCalls = 0;
+  const slowStart = Date.now();
+  const slow = runDrainLoop(async () => { slowCalls++; if (slowCalls === 1) await sleep(150); }, 5, { tickWatchdogMs: 40 });
+  A('超值长拍正判别（慢 tick>watchdog 到点被中断·下一拍先行续跑）', await waitFor(() => slowCalls >= 2, 1_000));
+  await sleep(Math.max(0, 250 - (Date.now() - slowStart)));   // 覆盖弃 tick 迟 resolve 点（≈起点+150ms）
+  A('弃 tick 迟-RESOLVE 吸收形（race 成员内建 handler 吸收·零 unhandledRejection·loop 稳定）', slowCalls >= 2 && unhandledRejections === 0);
+  await slow.stop();
+
+  // W7 泄漏面披露臂：弃 tick 迟-REJECT 形（race 内建成员 handler 吸收=无 unhandledRejection）。
+  let rejCalls = 0;
+  const rejStart = Date.now();
+  const rej = runDrainLoop(async () => { rejCalls++; if (rejCalls === 1) { await sleep(150); throw new Error('late_rejected_abandoned_tick'); } }, 5, { tickWatchdogMs: 40 });
+  A('弃 tick 迟-REJECT 到达窗（watchdog 先中断·下一拍已续跑）', await waitFor(() => rejCalls >= 2, 1_000));
+  await sleep(Math.max(0, 250 - (Date.now() - rejStart)));   // 覆盖迟 reject 点（≈起点+150ms）
+  A('弃 tick 迟-REJECT 吸收形（race 成员内建 handler 吸收·零 unhandledRejection·loop 稳定）', rejCalls >= 2 && unhandledRejections === 0);
+  await rej.stop();
+
+  // W8 堆叠披露臂：连续慢拍→≥2 次具名中断（每触=+1 在飞弃 tick·loop 稳定续拍无崩溃）。
+  let stackCalls = 0;
+  const stackLogsBefore = watchdogLogs.length;
+  const stack = runDrainLoop(async () => { stackCalls++; await sleep(120); }, 5, { tickWatchdogMs: 40 });
+  await sleep(220);   // ≥2 个 watchdog 周期（40ms 中断+5ms 间隔/拍）
+  const stackEvents = watchdogLogs.length - stackLogsBefore;
+  A('重复触发堆叠披露（连续慢拍→≥2 具名中断·在飞弃 tick 随触累加·loop 稳定续拍）', stackEvents >= 2 && stackCalls >= stackEvents + 1);
+  await stack.stop();
+
+  // W9 日志逐事件字段完备（每触必登·非静默）。
+  A('watchdog 结构化日志逐事件字段完备（event 恒名·hungMs 恒=注入定值·consecutiveFailures 恒≥1）', watchdogLogs.length >= 4 && watchdogLogs.every((l) => l.event === 'worker_tick_watchdog' && typeof l.hungMs === 'number' && l.hungMs > 0 && Number.isInteger(l.consecutiveFailures) && l.consecutiveFailures >= 1));
+
+  // W10 B 组传参源级机检：三 runner 体内显式第三参（串行抽干组定值）恰等在源。
+  const workerSrcRoot = join(dirname(fileURLToPath(import.meta.url)), '..', 'src');
+  const runnerSources = ['quiz-consumer.ts', 'diagnosis-consumer.ts', 'report-worker.ts'].map((f) => readFileSync(join(workerSrcRoot, f), 'utf8'));
+  A('B 组三 runner 显式传参源级机检（SERIAL_DRAIN_TICK_WATCHDOG_MS 各恰 2 处=import+调用·tickWatchdogMs 传参形在源）', runnerSources.every((s) => (s.match(/SERIAL_DRAIN_TICK_WATCHDOG_MS/g) ?? []).length === 2 && /tickWatchdogMs:\s*SERIAL_DRAIN_TICK_WATCHDOG_MS/.test(s)));
+
+  console.error = origConsoleError;
+  process.off('unhandledRejection', onUnhandledRejection);
+  A('watchdog 臂组全程零 unhandledRejection（race 成员内建 handler 吸收迟 settle 双形）', unhandledRejections === 0);
 
   console.log(`\n${fail === 0 ? '✓ 优雅排空(滚动部署不丢在飞 job)全部通过' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);

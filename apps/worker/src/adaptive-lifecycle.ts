@@ -12,7 +12,7 @@ import {
 } from '@meetwise/db';
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
-import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
+import type { ModelClient, GraphObserver, ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
@@ -151,6 +151,8 @@ export interface AdaptiveLifecycleDeps {
    * 非持久化通道（跨 claim 唯一通道=图 state checkpoint）;缺省 undefined=既有调用零改。
    */
   trackLocalDeficitRef?: { current: number[] | null };
+  /** AG-20(CTX-02 显式接线):ask 主端点成本政策（组合根同源·缺省 undefined=预算零触现状字节·管道面见 adaptive-interview-service AdaptiveServiceDeps.askCostPolicy 注）。 */
+  askCostPolicy?: ModelCostPolicy;
 }
 
 async function requireCurrentFence(c: Parameters<typeof assertInterviewGraphFence>[0], d: AdaptiveLifecycleDeps): Promise<void> {
@@ -171,6 +173,7 @@ function makeDeps(
     competencies, resumeProfileAvailable, focusWeaknesses, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     targetRole: d.targetRole,
     trackLocalDeficitRef: d.trackLocalDeficitRef,
+    askCostPolicy: d.askCostPolicy,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
