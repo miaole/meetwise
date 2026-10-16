@@ -1,10 +1,12 @@
 /** 生产主线替换证明:自适应 lifecycle(start/submit)驱动自适应图,发 SSE 事件 + 收尾结算 + 报告走舱壁。
  *  脚本模型(CI);MemorySaver。 pnpm adaptive-life:prove (需 db:up) */
 import { fileURLToPath } from 'node:url';
-import { MemorySaver } from '@langchain/langgraph';
+import { MemorySaver, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
 import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+import { buildAdaptiveInterviewGraph } from '@meetwise/ai-graphs';
+import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
 import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
 
 // Test-only HMAC key for createJob/classifyJobRoute (same pattern as rag03/r4 proofs; not production).
@@ -23,6 +25,22 @@ const base = scriptedModelClient({
   'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '滑动窗口' }] } }),
 });
 const model: ModelClient = base;
+
+/** SFC 臂b 合成旧 checkpoint 的读取面接缝:armEmptyMindOnce() 后**恰一次** getTuple 把 mind.competencies
+ *  置空后放行(后续读零触·写零触直通)。旧行为保形臂(缺省臂)的观测口径=submit 的 before 读形。 */
+class LegacyEmptyMindReadSaver extends MemorySaver {
+  private armOnce = false;
+  armEmptyMindOnce(): void { this.armOnce = true; }
+  override async getTuple(config: LangGraphRunnableConfig) {
+    const tuple = await super.getTuple(config);
+    const mind = (tuple?.checkpoint?.channel_values as { mind?: Record<string, unknown> } | undefined)?.mind;
+    if (this.armOnce && mind) {
+      this.armOnce = false;
+      (tuple!.checkpoint.channel_values as { mind: unknown }).mind = { ...mind, competencies: [] };
+    }
+    return tuple;
+  }
+}
 
 async function main() {
   await runMigrations(pool, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
@@ -325,6 +343,101 @@ async function main() {
     && g7fix4Ledger[0]?.status === 'failed' && Number(g7fix4Ledger[0]?.application_attempt) === 1
     && g7fix4Ledger[1]?.status === 'failed' && Number(g7fix4Ledger[1]?.application_attempt) === 2
     && g7fix4Ledger[2]?.status === 'created' && Number(g7fix4Ledger[2]?.application_attempt) === 3);
+
+  console.log('\n──── SUBMIT-FLOW-COMPETENCY-WIRE：submit 流向 competency 补供（帽内换序/缺省臂保形/序保真/plan 不可达/neg）────');
+  // SFC EXEC 新臂（§2 载体钉死=本件·全 scripted 零外呼）：submit 流向 turn≥1 族内失败（schema 违例经
+  // seam MAX_ERROR_REROLL=2 耗尽）→ 图换序臂 nextCompetencyAfter——修复前 deps.competencies=[]→null→
+  // 单发终场；修复后沿 checkpoint mind 序帽内换序重出题。ask 按 system『目标能力:X』逐 competency 脚本
+  // （限流首问放行、其后恒违例/族外）；评估 fixture『meets』→score 50→confidence<0.7→turn1 路由
+  // stayProbe 停在限流（确保失败面触达换序臂）。
+  const sfcOwner = `life-sfc-${Date.now()}`;
+  await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [sfcOwner]);
+  const sfcModel = (mode: 'family' | 'outside'): ModelClient => {
+    let liuAsks = 0;
+    return {
+      async complete(req) {
+        const askVars = String(req.userData ?? '');   // 目标能力行落 buildData→userData（promptedModel）
+        if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: ['限流', '缓存', '网络'] } };
+        if (req.service === 'interviewer.ask') {
+          if (askVars.includes('目标能力:限流')) {
+            liuAsks += 1;
+            if (liuAsks === 1) return { ok: true, raw: { q: '请描述你在线上限流实践中的一次真实取舍，以及你如何验证效果。', refs: [] } };
+            return mode === 'family'
+              ? { ok: true, raw: { q: 42, refs: [] } }                            // schema 违例=族内失败
+              : { ok: false, kind: 'deterministic' };                             // 族外（不 re-roll）
+          }
+          return { ok: true, raw: { q: '请结合你在缓存击穿防护上的实践经验，说明具体的方案取舍与验证指标。', refs: [] } };
+        }
+        if (req.service === 'mock-interview.evaluate') {
+          return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '滑动窗口计数器' }] } };
+        }
+        return { ok: false, kind: 'deterministic' };
+      },
+    };
+  };
+  const sfcSetup = async (suffix: string, cp: MemorySaver | LegacyEmptyMindReadSaver, model: ModelClient) => {
+    const iid = `life-sfc-${suffix}-${Date.now()}`;
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [iid, sfcOwner]);
+    await asPrincipal(pool, sfcOwner, (c) => reserveEntitlement(c, sfcOwner, iid, 'mock_interview', 1.0));
+    const deps: AdaptiveLifecycleDeps = { pool, cp, owner: sfcOwner, interviewId: iid, model,
+      localRetrieve: async () => [{ ref: 'qbank:a', score: 0.9 }], webExplore: async () => [] };
+    const s = await startAdaptiveInterview(deps, '后端工程师', []);
+    return { iid, deps, s };
+  };
+  const sfcAns = '我用滑动窗口计数器限制入口速率，超限快速失败并降级非核心调用。';
+  const sfc1Cp = new MemorySaver();
+  const sfc1 = await sfcSetup('switch', sfc1Cp, sfcModel('family'));
+  const sfcIn = { questionId: sfc1.s.questionId!, stateVersion: sfc1.s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(sfcAns), turn: 0, answer: sfcAns };
+  const sfc1Claim = await asPrincipal(pool, sfcOwner, (c) => claimInterviewAnswer(c, sfcOwner, sfc1.iid, sfcIn));
+  const sfc1Out = await submitAdaptiveAnswer(sfc1.deps, sfcIn);
+  const sfc1Ev = await asPrincipal(pool, sfcOwner, (c) => c.query('SELECT kind, payload FROM interview_event WHERE stream_key=$1 ORDER BY seq', [sfc1.iid]));
+  const sfc1Q2 = [...sfc1Ev.rows].reverse().find((r) => r.kind === 'question_ready');
+  const sfc1Term = sfc1Ev.rows.filter((r) => r.kind === 'interview_unavailable' || r.kind === 'assessment_unavailable');
+  A('SFC 臂a：submit 流向族内失败 → 帽内换序重出题（首答 identity 被接受·下一题=缓存·concluded 未置·零终态事件）',
+    sfc1Claim.status === 'accepted' && !!sfc1Out.nextQuestionId && sfc1Out.done === false
+    && String(sfc1Q2?.payload?.competency ?? '') === '缓存' && sfc1Term.length === 0);
+  const sfcReader = buildAdaptiveInterviewGraph(sfc1Cp, buildAdaptiveDeps({ pool, owner: sfcOwner, threadId: sfc1.iid, model: sfcModel('family'), competencies: [], localRetrieve: async () => [], webExplore: async () => [] }));
+  const sfcSnap = await sfcReader.getState({ configurable: { ['thread_id']: sfc1.iid } });
+  const sfcView = sfcSnap.values as { mind?: { competencies?: Array<{ name?: string }>; turn?: number } } | undefined;
+  const sfcMindSeq = (sfcView?.mind?.competencies ?? []).map((c) => String(c?.name ?? ''));
+  A('SFC 臂c：序保真——checkpoint mind 序 ≡ plan 序（含 behavioral 尾槽）∧ 换序落点=mind 序后继',
+    JSON.stringify(sfcMindSeq) === JSON.stringify(['限流', '缓存', '网络', '协作与沟通'])
+    && sfcMindSeq[1] === '缓存' && String(sfc1Q2?.payload?.competency) === sfcMindSeq[1]);
+  A('SFC 臂d：plan 不可达负证——换序后 mind.turn=1 不归零（initMind 不重跑）', sfcView?.mind?.turn === 1);
+  const sfcEvalCount = async () => Number((await asPrincipal(pool, sfcOwner, (c) => c.query(
+    "SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated'", [sfc1.iid]))).rows[0].n);
+  const sfc1Eval = await sfcEvalCount();
+  const sfc1Replay = await submitAdaptiveAnswer(sfc1.deps, sfcIn);
+  A('SFC 臂e2：alreadyApplied 纯重放零触——同 identity 重放零重评（answer_evaluated 恒 1·nextQuestion 恒等）',
+    sfc1Replay.nextQuestionId === sfc1Out.nextQuestionId && sfc1Eval === 1 && (await sfcEvalCount()) === 1);
+  const sfc2Cp = new LegacyEmptyMindReadSaver();
+  const sfc2 = await sfcSetup('default-arm', sfc2Cp, sfcModel('family'));
+  const sfc2In = { questionId: sfc2.s.questionId!, stateVersion: sfc2.s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(sfcAns), turn: 0, answer: sfcAns };
+  await asPrincipal(pool, sfcOwner, (c) => claimInterviewAnswer(c, sfcOwner, sfc2.iid, sfc2In));
+  sfc2Cp.armEmptyMindOnce();
+  const sfc2Out = await submitAdaptiveAnswer(sfc2.deps, sfc2In);
+  const sfc2Ev = await asPrincipal(pool, sfcOwner, (c) => c.query('SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 ORDER BY seq', [sfc2.iid]));
+  const sfc2Term = sfc2Ev.rows.find((r) => r.kind === 'interview_unavailable');
+  const sfc2Status = (await pool.query('SELECT status FROM interview WHERE id=$1', [sfc2.iid])).rows[0]?.status;
+  const sfc2Cons = await asPrincipal(pool, sfcOwner, (c) => c.query('SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [sfcOwner, sfc2.iid]));
+  A('SFC 臂b：缺省臂保形——空 mind 读形（合成旧 checkpoint）→ 不重建 → 既有单发终场原形（零换序零第二题·failed+released）',
+    sfc2Out.done === true && sfc2Out.degraded === true && sfc2Out.nextQuestionId === undefined
+    && sfc2Term?.event_key === 'interview_unavailable:terminal' && String(sfc2Term?.payload?.reason ?? '').startsWith('generation_')
+    && sfc2Term?.payload?.provenance?.origin === 'unavailable'
+    && sfc2Ev.rows.filter((r) => r.kind === 'question_ready').length === 1
+    && sfc2Status === 'failed' && sfc2Cons.rows[0]?.status === 'released');
+  const sfc3 = await sfcSetup('outside', new MemorySaver(), sfcModel('outside'));
+  const sfc3In = { questionId: sfc3.s.questionId!, stateVersion: sfc3.s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(sfcAns), turn: 0, answer: sfcAns };
+  await asPrincipal(pool, sfcOwner, (c) => claimInterviewAnswer(c, sfcOwner, sfc3.iid, sfc3In));
+  const sfc3Out = await submitAdaptiveAnswer(sfc3.deps, sfc3In);
+  const sfc3Ev = await asPrincipal(pool, sfcOwner, (c) => c.query(
+    "SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 AND kind IN ('interview_unavailable','assessment_unavailable')", [sfc3.iid]));
+  const sfc3Keys = await asPrincipal(pool, sfcOwner, (c) => c.query(
+    'SELECT idempotency_key FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key LIKE $2', [sfcOwner, `${sfc3.iid}:ask:t1:%`]));
+  A('SFC 臂e1：neg 族外——补供在场仍真终场（确定性 not-configured 不入族零 re-roll：ask t1 恰 1 键）',
+    sfc3Out.done === true && sfc3Ev.rows.length === 1 && String(sfc3Ev.rows[0]?.payload?.reason ?? '').startsWith('generation_')
+    && sfc3Ev.rows[0]?.payload?.provenance?.origin === 'unavailable'
+    && sfc3Keys.rows.length === 1 && sfc3Keys.rows[0]?.idempotency_key === `${sfc3.iid}:ask:t1:0`);
 
   console.log(`\n${fail === 0 ? '✓ 生产主线替换:自适应 agent 图驱动真面试生命周期(SSE 事件+结算+舱壁报告)全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);
