@@ -1,7 +1,7 @@
 ---
 id: rule_backend_qbank_control_definer_sealed_manifest
 name: QBank 控制面 SECURITY DEFINER 密封依赖清单（RAG-FUNNEL-01A）
-description: 冻结 QBank 控制面 definer 移交的权威依赖闭包：固定 definer 角色、31 函数 / 15 表 / 2 视图的 owner/ACL/RLS/fixed-search_path 契约、既有 generation 分区/索引 owner 转移、未知 SECURITY DEFINER 的 fail-closed 目录门禁。§6.1–6.5 已纳入源码闭包；云组合根回执与 routed serving 仍未关闭。
+description: 冻结 QBank 控制面 definer 移交的权威依赖闭包：固定 definer 角色、32 函数 / 15 表 / 2 视图的 owner/ACL/RLS/fixed-search_path 契约、既有 generation 分区/索引 owner 转移、未知 SECURITY DEFINER 的 fail-closed 目录门禁。§6.1–6.5 已纳入源码闭包；云组合根回执与 routed serving 仍未关闭。
 type: rule
 scope: backend
 level: must
@@ -28,7 +28,7 @@ related:
 
 ## 0. 结论先行
 
-- **在闭包内（源码已密封）：31 函数 + 15 表 + 2 视图 + 既有 generation 分区/索引。** `QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST` / `TABLE_MANIFEST` / `VIEW_MANIFEST` 与 `0094` + `provisionQbankControlDefiner` 对齐。原 §6.1–6.5（bounded reader、security-definer view、词法 helper、pool/cache/epoch trigger、quarantine/source guard）**已在同一 owner/ACL/RLS/fixed-`search_path` 清单内**，不再是「仍归迁移角色」的缺口。
+- **在闭包内（源码已密封）：32 函数 + 15 表 + 2 视图 + 既有 generation 分区/索引。** `QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST` / `TABLE_MANIFEST` / `VIEW_MANIFEST` 与 `0094` + `provisionQbankControlDefiner` 对齐。原 §6.1–6.5（bounded reader、security-definer view、词法 helper、pool/cache/epoch trigger、quarantine/source guard）**已在同一 owner/ACL/RLS/fixed-`search_path` 清单内**，不再是「仍归迁移角色」的缺口。
 - **本地隔离 proof 存在，不是云发布回执。** `packages/db/test/qbank-handoff-closure.proof.ts`（`pnpm qbank-handoff-closure:prove`）覆盖移交前 42501、移交后 catalog gate、低权 ingest、MetadataReviewReceipt 表写入、lane(b) 撤销、二次 provision 重入，以及本轮补上的 bounded reader 非 42501 与 raw relation/view read=0。`releaseEvidence=false`。本机 Docker daemon 不可用时该组合根不会在当前树上重跑；不得把源码密封写成已部署验证。
 - **仍未关闭（不得过度声明）：** 云/标准部署组合根回执；`MetadataReviewReceipt` 进入 routed serving（01）；generation projection / track-local serving（02+）；生产 Worker 仍固定“技术岗”。`0124_rag_retrieval_acl_fail_closed.sql` 只把 generic RAG resolve/search/evidence 的空 principal 收成 `rag_acl_principal_missing`，不授权 routed 出题。
 
@@ -38,7 +38,7 @@ related:
 
 | 属性 | 要求值 | 为什么 |
 | --- | --- | --- |
-| 角色名 | `qbank_control_definer` | 31 函数 / 15 表 / 2 视图移交后的唯一所有者。 |
+| 角色名 | `qbank_control_definer` | 32 函数 / 15 表 / 2 视图移交后的唯一所有者。 |
 | `rolcanlogin` | `false` | 不能有登录入口，杜绝被直接 `SET ROLE` / 连接进入。 |
 | `rolinherit` | `false` | 不得继承任何授予它的成员关系，防止迁移超级用户经成员链塌缩控制面边界。 |
 | `rolsuper` | `false` | 超级用户绕过 FORCE RLS，会让 SECURITY DEFINER 变成隐式提权。 |
@@ -52,7 +52,7 @@ related:
 
 ---
 
-## 2. 在闭包内：31 函数移交清单（`QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST`）
+## 2. 在闭包内：32 函数移交清单（`QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST`）
 
 > owner 全部 = `qbank_control_definer`；`prosecdef` 标记 SECURITY DEFINER 或 INVOKER；`allowAppRoleExecute` / `allowExecutorExecute` 是精确 EXECUTE 授权契约，多余授权即启动失败。search_path 全部**固定**（非 NULL），杜绝 `search_path` 劫持。
 
@@ -96,6 +96,7 @@ related:
 | `qbank_source_visible_epoch_sync()` | 否（INVOKER） | 否 | 否 | `public, pg_temp` | 6.4 |
 | `qbank_integrity_quarantine_immutable()` | 是 | 否 | 否 | `public, pg_temp` | 6.5 |
 | `qbank_source_guard_update()` | 否（INVOKER） | 否 | 否 | `public, pg_temp` | 6.5 |
+| `qbank_release_retired_generation_storage(text)` | 是 | 否 | 是 | `public, pg_temp` | 0146 释放终端（非 §6.1–6.5 原组·非 0086/0087/0089 原 18 锚波次） |
 
 - SECURITY DEFINER 函数以 `qbank_control_definer` 身份执行，因 FORCE RLS 作用于该非超级用户所有者，RLS 策略才不会被绕过。
 - `qbank_search_terms` 的 search_path **已固定**为 `pg_catalog, public, pg_temp`（不再允许继承会话 search_path）。
@@ -148,7 +149,7 @@ related:
 
 ## 5. 未知 SECURITY DEFINER 目录检测（fail-closed）
 
-- 门禁对 `public` schema 内、owner = `qbank_control_definer`、`prosecdef=true`、且**不在** 31 函数清单里的任何函数计数；非零即 `qbank_control_definer_ownership_invalid`。
+- 门禁对 `public` schema 内、owner = `qbank_control_definer`、`prosecdef=true`、且**不在** 32 函数清单里的任何函数计数；非零即 `qbank_control_definer_ownership_invalid`。
 - 覆盖的威胁：一个 rogue SECURITY DEFINER 被 `ALTER FUNCTION ... OWNER TO qbank_control_definer` 转移后，即使 ACL 仍 PUBLIC EXECUTE，也会被目录门禁拦下。
 
 ---
