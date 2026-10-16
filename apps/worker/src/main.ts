@@ -644,7 +644,7 @@ async function bootstrap() {
       : undefined,
   };
   console.log(`interview dispatch budget: perOwner=${interviewDispatchBudget.perOwnerInflight} globalInflight=${interviewDispatchBudget.globalInflight} (process-local)`);
-  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget }, jobReconcileIntervalMs);
+  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget, askCostPolicy: modelCost.policies.primary }, jobReconcileIntervalMs); // AG-20:ask 主端点政策同源注入（:519 defaultModelClient primary 同一政策对象·observe 模式 undefined=预算零触）
   if (adaptive) console.log('interview: ADAPTIVE agent on (规划→自适应决策→CRAG出题→反思→评估→报告舱壁)');
   // 押题(resume-quiz)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const quizLoop = runQuizConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
