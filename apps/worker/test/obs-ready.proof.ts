@@ -9,8 +9,11 @@
  *  W3. 启动窗端到端：gated drain-loop（首拍挂起未成功）作为 workerReady → 503；
  *      释放首拍成功后 → 200（「ready() 未成功前不就绪」全链）。
  *  W4. ragReady 缺省保持 #92 前语义（本刀只动 workerReady，钉住不漂移）。
+ *  W5. 源级臂（#92 残面 N5）：三 e2e runner 脚本 worker 就绪探测 40×1s 有界重试环在源
+ *      （for 上限 40 字面+sleep(1000)+/readyz/worker 同现）+ 单发形词面零命中。
  */
 import { createServer as createNetServer } from 'node:net';
+import { readFileSync } from 'node:fs';
 import type { Server } from 'node:http';
 import { startMetricsExposition } from '../src/main.ts';
 import { runDrainLoop } from '../src/drain-loop.ts';
@@ -88,6 +91,27 @@ async function main() {
   A('W3b 首拍成功后 → /readyz/worker 200 ready', gated.ready() && w3ready.status === 200 && w3ready.body.trim() === 'ready');
   await stopMetrics();
   await gated.stop();
+
+  // W5. 源级臂（#92 残面 N5）：登记原文点名的三 e2e runner 脚本，worker 就绪探测必须有界
+  //     重试环（40×1s，与 api livez 同形——首拍门生效后启动窗内 /readyz/worker 恒 503，
+  //     单发探测命中启动窗会假红 worker_not_ready）。逐脚本断言：重试环形在源（for 上限 40
+  //     字面 + sleep(1000) + /readyz/worker 同现）+ 单发形词面零命中（.then((r) => r.ok)）。
+  const retryLoopShape = (src: string): boolean =>
+    /for \(let i = 0; i < 40 && !workerReady; i\+\+\)/.test(src)
+    && src.includes('await sleep(1000);')
+    && src.includes('/readyz/worker')
+    && src.includes('i < 40');
+  const noSingleShotShape = (src: string): boolean => !src.includes('.then((r) => r.ok)');
+  const scriptSrc = (rel: string): string => readFileSync(new URL(rel, import.meta.url), 'utf8');
+  const runE2e = scriptSrc('../../../scripts/run-e2e.mjs');
+  const runE2eUi = scriptSrc('../../../scripts/run-e2e-ui.mjs');
+  const runPerfE2e = scriptSrc('../../../scripts/run-performance-e2e.mjs');
+  A('W5a run-e2e.mjs 源级：40×1s 重试环在源（for 上限 40 字面+sleep(1000)+/readyz/worker 同现）且单发形词面零命中',
+    retryLoopShape(runE2e) && noSingleShotShape(runE2e));
+  A('W5b run-e2e-ui.mjs 源级：40×1s 重试环在源（for 上限 40 字面+sleep(1000)+/readyz/worker 同现）且单发形词面零命中',
+    retryLoopShape(runE2eUi) && noSingleShotShape(runE2eUi));
+  A('W5c run-performance-e2e.mjs 源级：40×1s 重试环在源（for 上限 40 字面+sleep(1000)+/readyz/worker 同现）且单发形词面零命中',
+    retryLoopShape(runPerfE2e) && noSingleShotShape(runPerfE2e));
 
   console.log(fail === 0
     ? `\n✓ obs-ready worker prove: ${pass} assertions 全绿 · est live=0 · releaseEvidence=false`

@@ -3,6 +3,7 @@
  *   pnpm web:prove
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { register } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
@@ -73,6 +74,11 @@ import { isVoiceModeEntryVisible } from '../lib/voice-mode-entry.ts';
 // 视图型同名，故别名 ContractInterviewView 防撞）。
 import { InterviewView as ContractInterviewView, TurnDto, TurnResult } from '@meetwise/contracts';
 import type { z } from 'zod';
+
+// register() 只影响其后的模块加载：ensureOk 动态 import 前装桩——'server-only'
+// 恰一项收窄（test/server-only-hooks.mjs,tsx 裸解析面拦截）,next/navigation 保持真形
+// （redirect 抛 NEXT_REDIRECT,NEXT_REDIRECT 恰等断言源零涉）,静态 import 块先于本行加载不受影响。
+register('./server-only-hooks.mjs', import.meta.url);
 
 interface FetchResponse { status: number; json(): Promise<unknown> }
 type FetchLike = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<FetchResponse>;

@@ -178,6 +178,7 @@ export async function invokeEvaluationOnce(pool: DbPool, owner: string, input: E
     threadId: input.threadId,
     privacyInterviewId: input.privacyInterviewId,
     schema: EvalSchema,
+    service: 'mock-interview.evaluate',
     businessValidate: (v) => validateEvaluationEvidence(v, input.answer, criteria),
     storeOutput: (v) => persistedEvaluation(v, input.answer),
     model: evaluationModel(input.model, input.question, input.answer, criteria),
@@ -244,6 +245,7 @@ export function quizGenerator(pool: DbPool, owner: string, resumeFacts: string[]
     const call = async (tokenSink?: TokenSink): Promise<QuizItem[]> => {
       const out = await invoke({
         idempotencyKey, operation: { id: 'interview.quiz-generation.v1', businessRevision: idempotencyKey }, schema: QuizSchema,
+        service: 'resume-quiz.generate',
         businessValidate: (v) => (v.items.length === 0 ? 'empty_quiz' : v.items.some((it) => !it.q.trim()) ? 'blank_question' : null),
         model: promptedModel(model, 'resume-quiz.generate', { facts: resumeFacts, role }),
         // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
@@ -345,6 +347,7 @@ export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: str
     const call = async (tokenSink?: TokenSink): Promise<ReportContent> => {
       const out = await invoke({
         idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
+        service: 'report.generate',
         businessValidate: (v) => {
           try { validateReportContent(s, { overall, sections: v.sections }); return null; }
           catch (error: unknown) { return (asErr(error)?.message ?? 'invalid_report') as string; }
