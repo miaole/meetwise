@@ -193,6 +193,15 @@ async function main() {
   A('每答经评估发 answer_evaluated(≥2)', ev.rows[0].n >= 2);
   A('正常 v64 answer 正向校准 profile hook（画像接缝）至少被调用一次', resumeProfileHydrations >= 1);
   A('收尾 interview=completed(动态决策判定 all_resolved)', done === true);
+  // 收口同事务 run 终态写：completed 面试的 ai_graph_run 不再永停 waiting_user
+  // （consumer fence 先例同 thread 非终态从集一步 CAS→succeeded+清 lease；finally 之
+  //   release 因 lease_owner/version 双失配 0 行 no-op=终态不被覆盖）。
+  const doneRunRows = await asPrincipal(pool, OWNER, (c) => c.query(
+    "SELECT status, lease_owner, lease_expires_at FROM ai_graph_run WHERE owner_user_id=$1 AND thread_id=$2", [OWNER, IID]));
+  A('收口后同 thread AiGraphRun 终态写 succeeded（run 行不再永停 waiting_user）',
+    doneRunRows.rows.length >= 1 && doneRunRows.rows.every((r) => r.status === 'succeeded'));
+  A('终态写清 lease（lease_owner/lease_expires_at 双列 NULL）',
+    doneRunRows.rows.every((r) => r.lease_owner === null && r.lease_expires_at === null));
   A('额度结算(扣 1.0)', (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === before - 1.0);
   A('报告入队走舱壁(queued)', (await asPrincipal(pool, OWNER, (c) => getReport(c, OWNER, IID)))!.status === 'queued');
   A('所有 job done(无卡)', (await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_job WHERE owner_user_id=$1 AND status!='done'", [OWNER]))).rows[0].n === 0);
