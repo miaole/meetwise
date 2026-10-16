@@ -195,3 +195,19 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **触面清单更新**：`ag-f-reroll.proof.ts` 移入本刀授权面（§3 append 注记·恰此一件仅 §F F3a 三臂·收据三键断言面零弱化）；§5 pins 十一值照抄零翻未触。
 
 **STOP=`executed:awaiting_post_prove_dual`**（三处 Status/§2 尾/§8 尾同步更替·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push ⛔force push 未用）。
+
+---
+
+## §10 post P2 勘误随卷（nail 期随卷·2026-10-16·append 勘误注记形·§0-§9-补 上文原文零字节改·⛔触码面⛔push）
+
+**裁前案由**：post-prove 双审会签 **PASS**（席1 agent_a935142b+席2 agent_5082222b·两独立外席·窗内复跑收据面见本节 P2-C）·三 P2 本席（nail）逐项复核第一手证据成立·全部 docs-only 注记落卷·零码面零门语义改。**本节系 append 勘误注记形：§0-§9-补 原文零字节改留档，operative 口径以本节注记值为准**（沿 dbacl2 §11/gitleaks §9-POST 同形制·落卷即停）。
+
+**三项逐项落点**：
+
+1. **P2-A（a）tsbuildinfo 外部再生 dirty 处置注记（checkout 归位）**：nail 序1 并线前 `git status` 实测 `apps/web/tsconfig.tsbuildinfo` modified×1——系窗内 typecheck/prove 门跑外部再生副产（非本刀 hunk·§9-⑦ 偏离二同源·`f731f02a` 先例形）·处置=`git checkout -- apps/web/tsconfig.tsbuildinfo` 归位（归位后 porcelain 0 行亲证方并线）→ `git merge --no-ff origin/feat/mysql-schema-skeleton@5b53dd41`=merge `5cf9b6a5`（ort 零冲突 4 files +153/−0）·该文件系构建副产不入任何交付 diff 面·窗内再现同处置不另登记。
+2. **P2-B（b）§2/§3 起草期预估值与 §9 实测并存存档注记**：§1-量级行（产品 +10/−1 ±6 窗/测试 4-6 臂 +80±40 窗）与 §2 门矩阵（ag-f 两态 47/61·adaptive-graph 两态 27/34 等）系**起草期预估值**——EXEC/wave94 实测（§9-③ +15/−2·§9-④ +114/−1 43→49 臂·§9-⑤ ag-f 58/61 红→§9-补 63/63 绿·§3 wave94 扩面注记）与之**并存存档**：预估值原文零字节改留档（append-only），operative 门值/diff 面口径以 §9/§9-补 实测值为准（量级定性「小刀·恰 1 产品文件」两态恒等零漂）。
+3. **P2-C（c）收据目录勘记（§1 量级行沿 append-only 不动）**：§1 量级行「EXEC 总 diff=2 tracked 码面+本卷 1 .md+**收据目录**」之「收据目录」实测=`.tmp/isolated-proof-receipts/`（`.gitignore:15` `.tmp/` 忽略·**不入树不入 tracked diff 面**）·本刀窗内在册 **11 件**收据 JSON（schema=`local_untrusted_isolated_proof_receipt`：ag-f-reroll ×7（2 failed=§9-⑤ 红窗与改写前对照如实留痕+5 passed）+interview ×2 passed+resume-grounding ×2 passed·终件 ag-f-reroll EXIT=0 `finishedAt=2026-10-16T03:45:35Z`）——**§1 量级行沿 append-only 不动**，本注记为该词唯一通行口径（收据=会话期本地不信任工件·非 tracked 交付物·沿 .tmp 会话隔离纪律）。
+
+**维持面**：§1-修法定稿块+§1.3 否决/Ban+§2 门矩阵语义+§3 边界+§5 pins 十一值+Non-claims——零改零翻转。STOP 三处承 `executed:awaiting_post_prove_dual` 终态·post 双审会签已 PASS·值翻面权归协调方（本 nail 非翻面·沿 gitleaks nail 口径）。
+
+*post P2 勘误随卷 2026-10-16·席1 agent_a935142b+席2 agent_5082222b 双审会签 PASS 授权·本席（nail）随卷笔录·est live=0·actualSpendCny=null·⛔push*
