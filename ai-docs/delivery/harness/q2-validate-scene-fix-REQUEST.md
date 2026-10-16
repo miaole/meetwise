@@ -156,10 +156,17 @@ q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE owner_u
 
 **字段④ diff numstat（两 commit 合计）**：commit1 `faa3ea2d`=本卷 .md **+131/−0**（docs-only 起草）；commit2（本 commit）=本卷 .md（STOP 翻面三处+§1-修法/§2 勘误+§9 append）+`apps/api/test/validate.ts` **+5/−0**。零他 tracked 路径。
 
-**字段⑤ 重 pin（EXEC 时点）**：基线 tip `d5dc0726`=origin/feat/mysql-schema-skeleton 恰等（EXEC 面零并线需求——起草 EXEC 同席同树·无他波并线介入）；§0.1 #2/#3 闸面锚 blob **恒等零漂**（`c69c03a3`/`cf23ed37` EXEC 落码前后亲算同值=产品码零触机证）；#1 validate.ts 起草锚 `256a754a`（690 行）→落码后 `e54ae969`（695 行·漂移源=本刀自身落码·`:312` 插入点前界行锚不变·`:313`-`:321` ABND 块顺移 +5 至 `:318`-`:326`·断言文本逐字节不变）。
+**字段⑤ 重 pin（EXEC 时点）**：基线 tip `d5dc0726`=origin/feat/mysql-schema-skeleton 恰等（EXEC 面零并线需求——起草 EXEC 同席同树·无他波并线介入）；§0.1 #2/#3 闸面锚 blob **恒等零漂**（`c69c03a3`/`cf23ed37` EXEC 落码前后亲算同值=产品码零触机证）；#1 validate.ts 起草锚 `256a754a`（690 行）→落码后 `e54ae969`（695 行·漂移源=本刀自身落码·`:312` 插入点前界行锚不变·`:313`-`:321` ABND 块顺移 +5 至 `:318`-`:326`·断言文本逐字节不变）。【nail 并线注记 2026-10-16 Q2-VALIDATE-SCENE-FIX nail 席（append 注记形·本行原文零字节改）：nail 届树并线 merge --no-ff origin/feat/mysql-schema-skeleton@`f7caa206`（uuid-id-check nail 波 tip）落卷·**merge-base=`f7caa206`**·**三锚文件零触已验**=validate.ts（merge 后对支线 EXEC 头 `cae839cb` diff 空=支线版本恒等保全）+interview-jobs.ts/interview.service.ts（merge 后对 `f7caa206` diff 空=origin 版本恒等保全·incoming uuid-id-check 触面与本刀触面零交叠）·两向独立亲证】
 
 **字段⑥ 偏离清单**：①**P2-1（自审席勘误·随 EXEC 落卷）**：起草 §1-修法 prose「恰 4 行」与其下方 5 行块自相矛盾（3 注释+2 落码=5 行）——落码按**块文本**逐字节行使（块为准），prose 勘正「恰 5 行」+§2 门7 「+4/−0」→「+5/−0」随本卷 EXEC 增补落卷（非修法实质变更·代码与起草块逐字节一致）。②`RL_SHARED_DEGRADED reason=pg_error fallback=fail_open`（neg:all 运行中一行 stderr·共享限流表在隔离容器缺表退化进程内·基线同形既有行为·零断言影响）。③其余零偏离（§3 边界全守住·SSOT 零触·产品码零触·零 retry-to-green——改前红改后绿各恰 1 attempt 全量落档 /tmp 落档随报告）。
 
 ### §9-B STOP 翻面
 
 `draft:awaiting_exec` → **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席·三处锚定同步翻面=①卷头标题行②Status 行③§8 节·前值史录 `faa3ea2d`）。post-prove 双审+并线/推送（⛔push 未犯）+批表/SSOT 行翻面权全归协调方。est live=0（全程隔离容器/进程内·零模型外呼·零 secrets 读用）· `actualSpendCny=null`。
+
+### §9-C nail 席 P2 随卷注记（2026-10-16·append 注记形·§0-§9-B 上文零字洗）
+
+- **并线注记（承 §9 字段⑤ 行尾注记）**：nail 届树并线 merge `cab05635` --no-ff 并 origin/feat/mysql-schema-skeleton@`f7caa206`·merge-base=`f7caa206`·三锚文件 validate.ts/interview-jobs.ts/interview.service.ts 零触已验（两向 diff 空亲证·详上行）。
+- **分母算术勘记**：EXEC 门① 记「202+1 清零断言=205 分母账目闭合」系少计一臂——精确算术=**202（改前 PASS）+2（两条红断言红转绿）+1（新增清零断言）=205（改后 PASS）**·205 终值恒等·分母账目三臂闭合勘正·门① PASS/FAIL 终值 205/0 不变。
+- **「逐字节一致」措辞对齐注记**：§1-修法「下方块文本与落码逐字节一致」与 §9 字段⑥-①「代码与起草块逐字节一致」两处「逐字节一致」精确含义=**去缩进逐字节一致**（块文本誊入 validate.ts 时行首缩进随宿主上下文适配·去缩进后字节恒等·非全文含缩进逐字节）·两处原文零字节改·本注记对齐口径·语义零变。
+
