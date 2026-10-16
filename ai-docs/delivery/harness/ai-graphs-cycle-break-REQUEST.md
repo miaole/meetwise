@@ -101,3 +101,12 @@
 **⑥est live=0 + pins**：EXEC 期全门=本地 tsx/node/tsc/eslint+隔离 PG 容器（interview 隔离形一次性）+静态源读·零模型外呼零 Key 加载零 SMTP 零 secrets 读用零生产操作·`actualSpendCny=null`·零迁移零 DDL 零 env 闸·pins 零翻（四 blob 锚：index `47d381f2`/config `562f23c9` 恒等·两码锚前移=本刀自身落卷②；邻面 34/57/17·门 1 基线「8 warnings/0 errors」·lint ai-graphs cap 47 全命中）。
 
 **⑦STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·STOP 翻面三处同值（本 §8 append 行+LEDGER 刀位图行+checklist 段·append 注记形·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）·批表行与 STILL OPEN 行翻面权归协调方 nail·alone≠dual·EXIT0≠covered·⛔push。
+
+### §9-补 post 双审随卷注记（2026-10-16 post 双审会签 PASS（席1 重派 agent_0607baef+席2 重派 agent_3f4de778）P2 两件随卷·append 注记形·§0-§9 上文零字洗）
+
+- **注记一（markers 数字口径勘记）**：§9 门 6「改动集全部新增行 **111 行**」系 **merge 树口径**（`git diff --numstat a9a8dcd9..43604f3e` 新增行合计=checklist 8+REQUEST 65+LEDGER 1+session-summary 18+state 19=**111**）·落卷后 HEAD 树（`2b9e76b9`）同口径（vs `a9a8dcd9`）=**151 行**（checklist 10+REQUEST 103+LEDGER 1+session-summary 18+state 19·增量 40=§8 append+§9 七字段落卷）·两口径直扫零命中语义不变（行数系扫描面计数非判据本体·判据=新增行标记词零命中）·post 席复扫亲证+nail 席承卷复核同值亲证（`git diff --numstat` 逐文件合计两口径各 111/151）。
+- **注记二（interview 57 隔离形 receipt 承载注记）**：§9 门 2「receipt 为本席隔离形新出」承载落点=`.tmp/isolated-proof-receipts/`（gitignored 本地不可信收据通道·不随卷提交）·本刀 EXEC 期 `interview:prove:raw` 隔离形 receipt 在案（`2026-10-16T16-12-28-386Z-*.json` outcome=passed exitCode=0·另有 15-42 前后两枚=rev 期同形）·收据本体不入卷以本注记承载指针·如协调方要求全 tri-quote 复跑一次即可兑现（隔离形单 attempt 成本有界）。
+
+---
+
+*nail 落卷 2026-10-16·post 双审会签 PASS（席1 重派 agent_0607baef+席2 重派 agent_3f4de778）后协调方派单 nail（本波唯一主线推送席）：序1 fetch+merge --no-ff origin/feat/mysql-schema-skeleton@`93b3db5a`（派单下界「tip≥93b3db5a」=LEDGER 对账支等号成立亲证·merge `a9f99610` 双亲 2b9e76b9+93b3db5a·零冲突自动并·LEDGER/checklist 双沿条目共存亲证·⛔pull --rebase 未用）∥序5 顺携两支线并线（merge `be045fe5` --no-ff 并 line/queue-enqueue-bp@`9821c636`=Q2 EXEC 零冲突·Q2 SSOT 三处未随卷由本席顺携落+批表 #117/#5 行翻面核；merge `abf9875b` --no-ff 并 line/g7w-tail-seg-emit@`d1fe5f84`=G7W案A §9-LIVE 判别 run 记录 append 顺携·g7w REQUEST 双方 append 同位冲突恰 1 文件沿并集解=§9-补+§9-LIVE 双节双保）∥序2 本节 §9-补 post P2 两件 append 随卷∥序4 SSOT 三处随卷（LEDGER 刀位图 AI-GRAPHS-CYCLE-BREAK 环解刀行+配套管线 ai-graphs-cycle-break nail 行+checklist「Line ai-graphs-cycle-break nail」段·支线树内改主仓路径文件随支线推·⛔主仓单独 commit 未犯）∥序3 docs:check 复跑本席亲跑≤cap∥序6 push（REMOTE-IS-ANCESTOR 机检后 `git push origin HEAD:feat/mysql-schema-skeleton` 直推非 force）+诸支线 push origin∥序7 CI 观察 PR #109（step 14 翻面否·step 40 dbacl2 实跑否·15-108 结局·全绿里程碑达成否或新曝红·逐帧如实上报）∥est live=0·actualSpendCny=null·⛔force push 未用·⛔pull --rebase 未用*
