@@ -81,50 +81,76 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000): Drai
 
 // ── HA-2 · worker 排水上限与信号同链(REQUEST §1 W3 · §3 C5)─────────────────────
 
+/** 排水相位:loop 相(等在飞 tick·先行)/deps 相(依赖面收尾·后行)。 */
+export type DrainPhase = 'loop' | 'deps';
+
 /** 具名排水项:name 进 worker_drain_timeout 日志(在飞 loop 可辨);stop 拒绝不拖垮 race。 */
 export interface NamedStop {
   name: string;
   stop: () => Promise<void> | void;
+  /** 排水相位:缺省 'loop'(先行);'deps' 后行——依赖面不在在飞 tick 仍需其服务时被拆。 */
+  phase?: DrainPhase;
 }
 
+/** 两相份额:loop 相(先行)占 70%(向上取整),deps 相(后行)拿余量——两相份额和恒等
+ *  timeoutMs,全程排水上限与单相时代恒等(30s 默认 → loop 21s/deps 9s)。 */
+const LOOP_PHASE_SHARE = 0.7;
+
 /**
- * W3①:排水与 deadline 竞速,胜者先行。全部 stop() 在 timeoutMs 内 settle → 'drained'
- * (在飞 tick 完整收尾);deadline 先到 → 'timeout',onTimeout 收**在飞未完**名单(结构化
- * 日志 worker_drain_timeout in_flight=…),调用方随即强退 exit 0——被弃 job 走租约过期
- * →reaper/sweep 重领(既有 crash-safe 语义,租约互斥保证不双跑)。纯时序件零 IO:proof
- * 注入 fake stop/短超时确定性读数,不真睡 30s(deadline 计时器不 unref——进程生命周期
- * 必须被排水上限钉住,与 runDrainLoop 内部兜底臂的败者纪律相反:一个等败者、一个钉胜者)。
+ * W3①:排水与 deadline 竞速,胜者先行——**两阶段顺序排空**:先 loop 相(等在飞 tick
+ * 完整收尾)后 deps 相(依赖面收尾),deps 相任一 stop 不在 loop 相结束(全 settle 或到点)
+ * 前起跑,依赖面不再被排水窗提前拆台(在飞 retrieval/erasure 路径拒绝、遥测尾迹丢失)。
+ * 每相=单相体原样下沉:per-phase pending Set + allSettled×deadline race + 败者计时器
+ * 纪律。任一相到点 → 'timeout',onTimeout 收**该相**在飞未完名单+相位标签(结构化日志
+ * worker_drain_timeout signal=… phase=… in_flight=…),调用方随即强退 exit 0——被弃 job
+ * 走租约过期→reaper/sweep 重领(既有 crash-safe 语义,租约互斥保证不双跑)。纯时序件零
+ * IO:proof 注入 fake stop/短超时确定性读数,不真睡 30s(deadline 计时器不 unref——进程
+ * 生命周期必须被排水上限钉住,与 runDrainLoop 内部兜底臂的败者纪律相反:一个等败者、
+ * 一个钉胜者)。
  */
 export async function drainWithDeadline(
   stops: NamedStop[],
   timeoutMs: number,
-  onTimeout?: (inFlight: string[]) => void,
+  onTimeout?: (inFlight: string[], phase: DrainPhase) => void,
 ): Promise<'drained' | 'timeout'> {
-  const pending = new Set(stops.map((s) => s.name));
+  const loopStops = stops.filter((s) => s.phase !== 'deps');
+  const depsStops = stops.filter((s) => s.phase === 'deps');
+  const loopShare = Math.ceil(timeoutMs * LOOP_PHASE_SHARE);
+  const depsShare = timeoutMs - loopShare;
   let timedOut = false;
-  let timer: ReturnType<typeof setTimeout> | undefined;
-  const deadline = new Promise<void>((resolve) => {
-    timer = setTimeout(() => {
+
+  // 单相体原样下沉:本相 pending Set + allSettled×deadline race + 败者计时器纪律。
+  const runPhase = async (phase: DrainPhase, phaseStops: NamedStop[], share: number): Promise<void> => {
+    const pending = new Set(phaseStops.map((s) => s.name));
+    let phaseTimedOut = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<void>((resolve) => {
+      timer = setTimeout(() => {
+        phaseTimedOut = true;
+        resolve();
+      }, share);
+    });
+    await Promise.race([
+      Promise.allSettled(phaseStops.map(async (s) => {
+        try {
+          await s.stop();
+        } finally {
+          pending.delete(s.name);   // settle(含 reject)即在飞结束;reject 不外抛(allSettled 语义)
+        }
+      })),
+      deadline,
+    ]);
+    clearTimeout(timer);            // 败者计时器纪律:race 出结果必清,不留悬挂句柄
+    if (phaseTimedOut) {
       timedOut = true;
-      resolve();
-    }, timeoutMs);
-  });
-  await Promise.race([
-    Promise.allSettled(stops.map(async (s) => {
-      try {
-        await s.stop();
-      } finally {
-        pending.delete(s.name);   // settle(含 reject)即在飞结束;reject 不外抛(allSettled 语义)
-      }
-    })),
-    deadline,
-  ]);
-  clearTimeout(timer);            // 败者计时器纪律:race 出结果必清,不留悬挂句柄
-  if (timedOut) {
-    onTimeout?.([...pending]);
-    return 'timeout';
-  }
-  return 'drained';
+      onTimeout?.([...pending], phase);
+    }
+  };
+
+  // 严格两相顺序:loop 相(等在飞 tick)先行→deps 相(依赖面收尾)后行,不并行。
+  await runPhase('loop', loopStops, loopShare);
+  await runPhase('deps', depsStops, depsShare);
+  return timedOut ? 'timeout' : 'drained';
 }
 
 /**
