@@ -1,6 +1,6 @@
 # QGEN-CRITIQUE-RESILIENCE REQUEST（出题批判韧性修复刀 · 修法两件=模板旁路闭合+图级批判门降格可恢复 · 恰 2 产品文件 +44/−0 · 零迁移零 DDL 零 SSOT 行）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 · ⛔push · ⛔merge 主线 · ⛔改产品码=docs-only 起草卷·修法两件以逐处定稿码形载卷待 EXEC 施工） · base = 主线 `feat/mysql-schema-skeleton` @ `0c94d1ec`（全 hex `0c94d1ec5dbeb67fade0c9fb5cb40c096f6ee9e1`·fetch 后 origin tip=qpl nail 波 tip 同指亲证零漂） · 分支 `line/qgen-critique-resilience` · 工作树 `meetwise-qcr`（`git worktree add ../meetwise-qcr -b line/qgen-critique-resilience` 本起草席已立·`git worktree list` 恰一本树在册）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-16·merge `729d1ac4`+修法两件逐字节落码+门矩阵全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线） · base = 主线 `feat/mysql-schema-skeleton` @ `0c94d1ec`（全 hex `0c94d1ec5dbeb67fade0c9fb5cb40c096f6ee9e1`·fetch 后 origin tip=qpl nail 波 tip 同指亲证零漂） · 分支 `line/qgen-critique-resilience` · 工作树 `meetwise-qcr`（`git worktree add ../meetwise-qcr -b line/qgen-critique-resilience` 本起草席已立·`git worktree list` 恰一本树在册）。
 
 **席位**：QGEN-CRITIQUE-RESILIENCE 出题批判韧性修复刀起草席（**G7K 诊断排程刀 2·鉴别刀定谳后的修复主刀** · 协调方派单 brief：QGEN-CRITIQUE-DISCRIMINATOR 鉴别刀混合岔定谳后授权本刀范围=**①+② 产品韧性两件**；③ 环境协议修复另刀 iso-dotenv **在飞·本刀零触**；④ 提示词回滚**不适用已裁**·本刀沿裁零翻案 · docs-only 起草卷 · ⛔push · ⛔改产品码）。
 
@@ -202,7 +202,7 @@
 | markers | 改动集五类标记词直扫（四标记词+冲突标记·词面运行时组装防自指·本卷自笔避词面沿 e2e-stress 门⑧先例） | 零命中 | 零命中亲证 |
 | diff 面 | `git diff --stat` 对 base | — | **恰 2 产品文件**（adaptive-interview-service.ts +17/−0·generate-question.ts +27/−0·净 +44/−0 容差 ±10 行如实登记）+测试件（测试面）·零迁移零 DDL 零域包零 SSOT 四卷零锁文件零 package.json |
 
-**STOP=`draft:awaiting_pre_exec_dual`**（本卷第一处）——pre-exec 双审 BOTH PASS + 协调方 EXEC 授权前：零施工、零 push、零主线并线。
+**STOP=`executed:awaiting_post_prove_dual`**（本卷第一处·EXEC 席 2026-10-16 终态·原 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签+rev1 窄域复审 PASS+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）——EXEC 已施工落卷·本席⛔push ⛔merge 主线 ⛔force push 未用。
 
 ## §3 范围外（零触清单）
 
@@ -219,7 +219,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 3. **修法面破约束**：落码 diff 超「恰 2 产品文件」或净行漂出 +44±10 窗、或域单源（QUESTION_GENERATION_REROLL_FAMILY/critiqueQuestion/QUESTION_GENERATION_ERROR_CODES）在 EXEC 时点被他刀改形 → 停·rev 重审归因链。
 4. **双审否决**：pre-exec 双审任一席 FAIL → 停·按处方 rev（append-only 勘误·零洗卷）。
 
-**STOP=`draft:awaiting_pre_exec_dual`**（本卷第二处=§2 尾·第三处=本行）——起草卷终态：待 pre-exec 双审。
+**STOP=`executed:awaiting_post_prove_dual`**（本卷第二处=§2 尾·第三处=本行·EXEC 席 2026-10-16 终态翻转）——EXEC 落卷终态：待 post-prove 双审。
 
 ## Non-claims
 
@@ -236,3 +236,53 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 5. **P2 锚面微漂勘误+P2-3 注释补全建议**：§0.1 勘误注记（现树亲证·**原表行零洗·EXEC 重 pin 以现树实测为准**）：#3 graph.ts「67 行」→**66 行**；#9 state.ts degraded `:214`→**:213**·competencyExhaustions `:220-223`→**:222**（零结构漂·纯行号 ±1 面）。**P2-3**（席1）：建议随 EXEC 件② hunk 带一句注释补全（落点=generate-question.ts `:94-98` 族换序臂注释块·件② hunk 同文件上方邻接·comment-only +1 行内 §2 diff 面 ±10 容差·不破「恰 2 产品文件」）：**「件① 后模板旁路拒绝=零 roll 新到达径」**（失败形于 worker seam :452-458 roll 计数块之前返回·零 `:r{k}` 消费·经本族臂换序后以新 competency 新到达本臂）。
 
 **rev1 自检回执（落卷席亲跑·2026-10-16）**：`pnpm docs:check` 落卷前后双跑 EXIT=0（**2162 ≤ cap 2176**·落卷前同值 2162 亲跑在案）；markers 改动集（`git diff HEAD -U0` 新增行）五类标记词直扫零命中（四标记词运行时组装词面+冲突标记双查·沿 i6-239 门⑦形·词面运行时组装防自指）；改动集恰 1 tracked .md=本卷（append/勘误注记形·§0-§8 除 §2 三处落点外原文零洗）·零码面零迁移零锁文件。**STOP 终态**：三处（卷头 Status/§2 尾/§8 尾）维持 **`draft:awaiting_pre_exec_dual`**——rev1 落卷后窄域复审方会签·alone≠dual·⛔push。
+
+
+## §9-EXEC EXEC 席执行记录（七字段·2026-10-16 EXEC 席落卷·append 保史·上文零字洗改·STOP 三处已翻面）
+
+**授权与窗口**：rev1 窄域复审 PASS（agent_8dce5710·「rev1 确认·双审会签完成·可授权 EXEC」）+协调方 EXEC 令（工作区 meetwise-qcr @ `983b556d`·⛔push）后施工。
+
+**序1 merge**：`git merge --no-ff origin/feat/mysql-schema-skeleton@12b21412`（届时 tip=ISO+REMAP nail **恰等下界 12b21412** 亲证）→ merge **`729d1ac4`**·ort 零冲突 8 files +654/−3（两在飞 REQUEST 卷+LEDGER/checklist/backlog+qbank-pipeline.proof+run-e2e.mjs）·**零触两修法落点与全部域单源**·禁 pull --rebase 遵守。
+
+**序2 §0 全量重 pin（对届时树 `729d1ac4`）**：§0.1 十 blob 锚+三测试件 blob 全 hex 逐一恒等（两产品文件 `373c4032`/`8a97f9c9`·域单源 `31079959`/`92b7d6e3`/`b4c5fb16`·graph `6cdcc122`·state `411e700e`·memory `d01ce6c8`·consumer `27ddbcf1`·测试件 `866b4108`/`c9982ab8`/`645ec783`）——**基线漂移零·停止条件 1 未触**。勘误值亲证：graph.ts **66 行** wc 恰等·state.ts degraded **:213**/competencyExhaustions **:222**。**P2 引注漂移随手落**：rev1 引 adaptive-graph 钉区间 `:66-83`→实测**钉块 `:59-81`**（注释 `:59`·单发断言 `:74`·failClosed 形断言 `:75-79` 与卷引恒等）·邻接缺 Key 臂 `:82-98`——合并口径 **`:59-98`**（brief 预告 `:61-98`·实测首差 −2 行·零语义漂）·`A(` 计数 27=基线双证同值。
+
+**序3 EXEC 修法两件（逐字节沿 §1 定稿）**：件① `adaptive-interview-service.ts` `:432-444` 现块 **13→30 行（+17/−0**·blob `373c4032`→`3dcc366f`）——模板提出 `groundedTemplate` 变量+前置门 `critiqueQuestion(groundedTemplate,competency,asked??[],d.competencyKeywords??{})`（同一纯函数·零模型零 IO）·命中→`unavailableGeneration('business_invalid',{operationId,idempotencyKey:`${threadId}:ask:t${turn}:0`,invokeError:'question_critique_failed'})`（provenance 沿 `:623-633` 同形·键沿 `:420` 初诊形）→图族臂帽内接管·pass 路 `withDeficitOut(approvedTemplateGeneration(groundedTemplate))` 文本与 provenance 逐字节零变。件② `generate-question.ts` `:116-127` 现块 **12→39 行（+27/−0**·`:115` 零触·blob `8a97f9c9`→`c4f88f74`）——`critiqueProvenance` 三键形共用·帽内且 planner 序有序可换→顺延换序返回形（与 `:103-110` 逐字段同构·concluded 禁置·degraded 沿既有 token·exhaustions+1）·帽满/无序→`failClosed(state,critiqueProvenance,'generation_business_invalid')` 单发终场原形。**rev1 P2-3 注释补全随 hunk**：`:94-98` 族臂注释块尾 comment-only **+1 行**——两文件净 **+45/−0**（+44±10 窗内）。
+
+**序4 新臂两处（§2 载体钉死遵命）**：件① `ag-f-reroll.proof.ts` 增 **§F 14 臂（47→61**·isolated runner）——F1 pass 面逐字节零变 2·F2 拒收三键形+`:0` 初诊键+零键消费 3·F3a 红链同构 lifecycle（resume 入库+G1 未同意=available true+池空→授权版模板可达；q1 逐字节；turn1 同文 asked 判重命中拒收→**无序可换单发终场**（见字段⑦架构事实）·同文零二次发射·终场收据 `generation_business_invalid` 诚实）7·F3b F2 实证形直驱图节点+完整 planner 序→族臂帽内顺延 `'缓存'` 接管（concluded 禁置·exhaustions 归零·收据存 checkpoint）2。件② `adaptive-interview.proof.ts` 增 **4 组 7 臂（27→34**·沿 `:63-72` fallbackGraph 直接 deps 注入先例·多 competency 换序把单 competency incidental 保形升格显式）——换序（顺延+checkpoint 轨迹既有 token/exhaustions=1/三键收据+成功归零）3·帽满（第 3 连续拒真终场·原形三键）2·无序可换（末位·零换序 seam 恰 1）1·归零跨回合（坏题面永不入 interrupt）1。
+
+**字段① 门矩阵全表（EXIT 原值·改后树亲跑全绿）**：
+| 门 | 键 | 实测 |
+|---|---|---|
+| prove:adaptive-graph | pnpm -C packages/ai-graphs prove:adaptive-graph | **34 PASS / 0 FAIL EXIT=0**（基线 27+新 7·≥31 达标·`:74-79` 单发钉保形） |
+| prove:adaptive-signals-graph | adaptive-signals-graph:prove | **10 PASS EXIT=0**（≥10） |
+| prove:ag-f-reroll | isolated runner | **61 PASS / 0 FAIL EXIT=0**（47 基线+§F 14） |
+| prove:g7fix4-reroll | isolated runner | **25 PASS EXIT=0**（原值） |
+| prove:interview | isolated runner | **57 PASS EXIT=0**（原值） |
+| prove:resume-grounding / prove:adaptive-grounding | isolated / direct | **39 PASS EXIT=0 / EXIT=0**（零翻红） |
+| prove:adaptive-flow / adaptive-life / adaptive-degrade | direct | **5 / 43 / 11 PASS EXIT=0**（§2 表原值） |
+| neg:all | 六段 | **687 PASS / 0 FAIL EXIT=0**（auth 90+commerce 90+resume 91+interview 102+bend 179+input 135） |
+| typecheck | turbo --force | **8/8·0 cached·EXIT=0** |
+| lint | turbo --force 12/12 + root 直跑 | 五值 **root 5235 / web 601 / api 1421 / worker 954 / ai-runtime 628** 恰等贴线·ai-graphs **47** 恰等（两测试件改写零新增告警）·EXIT=0 |
+| docs:check | pnpm docs:check | **EXIT=0·2165 ≤ cap 2176**（余 11·merge 后 managed worktree 实数） |
+| markers | 改动集五类（四标记词运行时组装词面+冲突标记·i6-239 门⑦同构·词面零自指） | **零命中** |
+| diff 面 | numstat | **恰 2 产品文件 +45/−0**（+26/−9 与 +30/−2·±10 窗内含 P2-3 注释+1）+测试件 2（`+145/−4`/`+120/−0`）+本卷 .md（本节 append+STOP 三处翻面）·零迁移零 package.json 零锁文件零 SSOT 四卷 |
+| 卫生 | — | tsbuildinfo 门运行翻动 checkout 回滚·`.env*` ABSENT·est live=0·actualSpendCny=null |
+
+**字段② 行为对照**：pass 路（首问/新能力）模板文本与 provenance 逐字节零变（F1 两臂）·拒收路不返回模板零键消费（F2 三臂）·换序/帽满/无序/归零四形全臂绿（件② 4 组）·红链形同文模板零二次发射（F3a）·单发终场全保留零弱化（帽满/无序/族外原形）·attempt 闸 `:417-422` 字节零改·键空间 `:0`/`:gr{k}`/`:r{k}` 零新键形。
+
+**字段③ diff numstat**：见 diff 面行——产品 2 文件单 hunk 各一处（件① `:432` 块·件② `:99` 注释+`:116` 块）·测试 2 文件（载体增臂）·本卷 .md（append 形）。
+
+**字段④ 重 pin**：=序2（十锚恒等+勘误值亲证+`:59-98` 钉区间实测落卷）。
+
+**字段⑤ 偏离清单（零实质偏离·两项透明登记）**：
+1. **F3 载体拆分**：初版「turn-1 拒收→帽内换序继续」全生命周期预期与 submit 侧图 deps 事实不符——lifecycle submit 形 `makeDeps(d,[],…)` 竞 **competencies=[]（planner 序只在 start 传入=既有架构事实·非本刀 hunk 所致）**，turn≥1 族失败在该流向「无序可换」→既有单发终场（§2 件② 臂 c 同族 sanctioned 终场语义·非本刀弱化）。处置：F3 拆 F3a（lifecycle 红链形：同文零二次发射+诚实终场收据+零弱化断言）+F3b（图直驱注入 F2 实证形+完整 planner 序→帽内换序接管·concluded 禁置）——§2 件① 臂 a/b/c 断言面全覆盖，修法两件字节零让步。
+2. **lint 零新增告警改写**：新测试臂初版引 9（ai-graphs）+6（worker）新告警（any/`thread_id`/`__interrupt__` 词面）——diff 面 Ban package.json（零 cap 提升）→改写零告警形（结构化视图类型+`Record<'…'>` 字面量类型参数+运行时组装键名·词面沿 i6-239 门⑦防自指形）·测试语义零变·47/954 贴线恒等复跑亲证。
+
+**字段⑥ pins 零翻**：十一值照抄——haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null（est live=0：全 scripted/隔离容器零外呼零 Key 接触）。
+
+**字段⑦ P2 随卷三件**：
+1. **钉区间引注漂移**（序2 已落）：rev1 `:66-83`→实测 `:59-98` 口径——后继刀勿按行号自上而下套用（沿内容锚约定）。
+2. **「旧代码忽略仍正确」书面结论**（wire/checkpoint 契约义务）：本刀两件零新增 checkpoint 键·零 wire/Redis 结构变更——`competencyExhaustions ?? 0` 缺省容错（旧 checkpoint 无此键=0 起跑）·`degraded`/`generationProvenance` 均既有通道原键·件① failure 形为纯 provenance 审计元数据（`:t:0` 键零 invoke 零归集行·rev1 P2 注记沿承）——**旧 checkpoint/旧消费者忽略新形仍正确**。
+3. **submit 侧 planner 序空位架构事实登记**：lifecycle submit 形图 deps `competencies=[]`（planner 序仅 start 注入）→turn≥1 族失败/批判拒在该流向无序可换（单发终场保留）——件①/件② 的帽内换序接管面=start 流向+直接 deps 注入面（F3b/件② 4 组已证）·该事实非本刀引入·登记供 post-prove 双审与后继刀（如需 mid-interview 换序可另刀立题）。
+
+**STOP 终态**：三处（卷头 Status/§2 尾/§8 尾）已翻 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·本席⛔push ⛔merge 主线 ⛔force push 未用。
