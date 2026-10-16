@@ -30,6 +30,10 @@ jobs:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        # DBACL2-CI-SHALLOW-FIX：全历史=冻结锚 diff 门前置（db-acl2 P4-1 BASE_SHA 95911975
+        # 仅经 origin/line/db-pgp-acl 可达·depth 1 缺对象=git exit 128 机械红·PR #109 step 40）
+        with:
+          fetch-depth: 0          # 全历史，否则只扫到 HEAD
 
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         # 版本读 package.json packageManager(pnpm@10.18.0)：catalog 需 pnpm≥9.5，不能再钉 9
