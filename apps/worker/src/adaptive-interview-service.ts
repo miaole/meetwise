@@ -324,6 +324,7 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
     idempotencyKey: planInvocationKey, operation: { id: 'interview.competency-planning.v1', businessRevision: planInvocationKey }, threadId, privacyInterviewId: threadId,
     // #201 硬闸(具名导出·prove 直行使):条数 3-5 + 单名 ≤100 封顶;businessValidate=相关性闸纯函数委托。
     schema: PlannerPlanSchema,
+    service: 'planner.competencies',
     businessValidate: (v) => plannerPlanBusinessError(v.competencies, relevanceLeaf),
     model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus, job, quizQuestions }),
   }, pool, owner);
@@ -545,6 +546,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           threadId: d.threadId, privacyInterviewId: d.threadId,
           sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
           schema: AskSchema,
+          service: 'interviewer.ask',
           businessValidate: (v) => {
             if (isVerbatimCopy(v.q, docs)) return '照搬原文(版权)';
             if (kind === 'grounded') {

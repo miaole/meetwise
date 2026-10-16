@@ -1,6 +1,6 @@
 # SSE-API-FAMILY 5C 子刀（#139 SSE 掉线唤醒+补偿拉取 · #14/#216 invoke 站点 service 补全 · #172 trace 丢失率分母 · EXEC REQUEST · 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停 · pre-exec 双审两独立外席待开 · alone≠dual · Ban self-approve · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· post/BOTH PASS ≠ push · ⛔push · ⛔merge主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷即停 · post 双审两独立外席待开 · alone≠dual · Ban self-approve · post BOTH PASS ≠ push · ⛔push · ⛔merge主线）
 **席位**：SSE-API-FAMILY 子刀起草席（协调方派单·5C 拆刀排程第三发·授权沿 Q1 先例=LEDGER :87 组标签+checklist 锚定·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `935899f1`（dbacl2-ci-shallow-fix nail·origin tip 亲证=本席 fetch 后 `git worktree add` 直落·docs:check 2183≤cap 2192 本席本树亲跑 EXIT=0）· 分支 `line/sse-api-family`（本席 `git worktree add ../meetwise-sse -b line/sse-api-family` 亲立·建树即 origin tip·零 ff 随动需求）· 工作树 `meetwise-sse`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-16·5C 拆刀排程：SSE-API 靶=#172/#14/#216/#139·#139 在 rkw 波前已列·#172/#14/#216 归属核=本卷 §0.2 逐行亲证归属成立）；②LEDGER `product-campaign-LEDGER.md` :87 组标签（5C 行「#36/#37/#17 ✅ …/#139 多实例（留 5C-SSE-API 子刀）」+「#248/#245/#246/#172/#14/#216 — 🆕 分 4 子刀（OBS/QUEUE/SSE-API/API-HARDEN）」两段本席亲读在卷）；③issues-master（仓外 `~/Documents/Meetwise产品审计-更正版/issues-master.md`）四行原文=**:263**（#139）/`:366`（#14）/`:429`（#216）/`:417`（#172）·四行组列逐行同标签「第5批-C 可靠性/运维/API」=组标签锚定成立；④checklist STILL OPEN 锚=:2624 形（5C 子刀残面在册·QUEUE-SHUTDOWN nail 段「四行全闭还须 Q2+ 各子刀」同语式）。
@@ -121,6 +121,8 @@ UC-028 定谳（`persistTraceBestEffort` JSDoc `:513-520`）：trace=可观测�
 
 **pins（本卷钉值·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null（本刀零外呼零消耗）——**刀专项**：sse-push 既有臂=**48**（亲跑亲证）·neg:all 基线=**auth+90/91/102/179/135（±2 熔断）**·docs 基线 **2183**≤cap **2192**（本卷 +1→2184）·lint root **5235**/api **1421**/worker **954**/ai-runtime **628**·迁移=**0**·五 service 值=prompts 注册表键逐字（`mock-interview.evaluate`/`resume-quiz.generate`/`report.generate`/`planner.competencies`/`interviewer.ask`）·`HEALTHY_FALLBACK_MS=30_000` 零触·`SSE_BACKPRESSURE_MAX_BYTES=1_048_576` 零触·diff=恰 **10** tracked 文件·est live=0（起草 turn）。
 
+**wave111 sanction 触面清单更新（P-2a 窗勘正·随 EXEC 落卷 §9 字段⑥）**：§1-件④/§2-1「既有 48 臂逐字冻结」对 `sse-push-notify.proof.ts` Phase A P-2a 退化臂行使 sanction 例外=**拆双臂形**（首 ping<1000ms 唤醒即取数（唤醒兑现）+ping 间隔全程 ≤2.1s（唤醒驱动且 legacy 2s 封顶·30s 兜底不可能绿））——语义升级非弱化（首 ping 上界由 [1800,3600] 收紧为 <1000·反 30s 判别义全保持）·其余 47 既有臂+ag19/uc028/metrics 全臂逐字冻结零触·Ban 弱化断言主体零改。
+
 ## §6 est live=0（起草 turn）+ EXEC 门预申明
 
 - **起草 turn（本 commit）**：est live=**0**——零模型外呼零 Key 加载零生产操作零消耗（全部基线 run=纯本地 tsx/隔离 PG 容器用后即焚·本席 throwaway 容器已清）。
@@ -132,8 +134,69 @@ UC-028 定谳（`persistTraceBestEffort` JSDoc `:513-520`）：trace=可观测�
 
 ## §8 STOP（开工三条款 + 待双审/EXEC 裁决项）
 
-**STOP · `draft:awaiting_pre_exec_dual`（起草席落卷即停·pre-exec 双审两独立外席待开·alone≠dual·Ban self-approve·Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）·post BOTH PASS ≠ push·push 权归协调方·本 commit 不预 claim 任何 post-commit EXIT。）** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·含 §0.2 漂移复核与 §0.3 迁移号实占复核）。**裁决项（双审/协调方裁）**：⑴「非空断言」源级门形追认（vs 运行时形·§1.3-2 否决理由再核）；⑵#172 OR 分支（指标丢失率）择定追认（甲分支补写队列另刀登记·§1.3-1）；⑶五 service 值=注册表键逐字追认（vs 自造名·AG-19 单源理由再核）；⑷零迁移确认（§0.3）；⑸四行关闭效力归协调方确认（§3-7）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（loseClient/waitFor 被他刀改/五站点被改/`sse-pump.ts` 被触）→停·重 pin 回炉；**机制不满足**=件①-④落位后 P-2d 补偿臂/attempts 臂/源级门臂不绿→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/业务语义/digest/告警域/共享 SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/docs:check>cap/lint 漂移/neg 超 ±2）且根因不在本刀交付面→停·如实登记（Ban 借机修）。
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 落卷即停·post 双审两独立外席待开·alone≠dual·Ban self-approve·post BOTH PASS ≠ push·push 权归协调方·开工三条款已满足（pre-exec 双审 BOTH PASS 落卷+协调方 EXEC 授权+wave111 sanction 随 EXEC 落卷见 §9）·§1-修法定稿契约与 §5 Ban/pins 主体零改。）** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·含 §0.2 漂移复核与 §0.3 迁移号实占复核）。**裁决项（双审/协调方裁）**：⑴「非空断言」源级门形追认（vs 运行时形·§1.3-2 否决理由再核）；⑵#172 OR 分支（指标丢失率）择定追认（甲分支补写队列另刀登记·§1.3-1）；⑶五 service 值=注册表键逐字追认（vs 自造名·AG-19 单源理由再核）；⑷零迁移确认（§0.3）；⑸四行关闭效力归协调方确认（§3-7）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（loseClient/waitFor 被他刀改/五站点被改/`sse-pump.ts` 被触）→停·重 pin 回炉；**机制不满足**=件①-④落位后 P-2d 补偿臂/attempts 臂/源级门臂不绿→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/业务语义/digest/告警域/共享 SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/docs:check>cap/lint 漂移/neg 超 ±2）且根因不在本刀交付面→停·如实登记（Ban 借机修）。
+
+## §9 EXEC 记录（EXEC 席落卷·2026-10-16·授权链=pre-exec 双审会签 PASS（席1 agent_c02db93b+席2 agent_b985f5ca·P2 修订随 EXEC 落）→协调方 EXEC 授权→EXEC 首跑门 1 红停手上报→协调方 **wave111 sanction**（P-2a 窗勘正·语义升级定性·REQUEST 内部矛盾实证引）→复绿落卷·收据=`ai-docs/delivery/receipts/sse-api-family/00-exec.md`·est live=0·actualSpendCny=null·⛔push）
+
+**序 1 并线**：merge `82318721` --no-ff 并 origin/feat/mysql-schema-skeleton@`3cd159dd`（届时 tip=派单下界「tip≥3cd159dd」以等号成立亲证·cap sanction 2192→**2200** 随并落 `public-text-policy.mjs` `:100`→`:102` MAX_FILES=2_200·零冲突·冲突沿并集解预置未触发·禁 pull --rebase 遵守）。
+
+### 字段① 门矩阵十一门全表（EXIT 原值内嵌·终态复跑值）
+
+| 门 | 结论 | 证据（EXIT 原值） |
+|---|---|---|
+| 1 sse-push 主门 | 绿 | `pnpm -w run sse-push:notify:prove` **EXIT=0·57 臂全 PASS**（=47 既有存活+P-2a 拆双臂 2+P-2d N1-N6 新 8·收据 `.tmp/isolated-proof-receipts/2026-10-16T14-16-40-*.json`）·首 ping 55ms<1000（唤醒兑现）+ping 间隔 max 1361ms≤2100（2s 封顶） |
+| 2 sse 邻面 | 绿 | prove:sse-slot EXIT=0（5+1 429+shared bucket）·prove:s4b-delta-arm EXIT=0·prove:last-event-id EXIT=0 |
+| 3 #172 主门 | 绿 | uc028 EXIT=0（CHECKS=45 FAIL=0）·prove:metrics EXIT=0（18 臂双跑） |
+| 4 #14/#216 主门 | 绿 | ag19 EXIT=0（50 臂·源级门「生产 src `await invoke({` 恰 8 站点+逐站点含 `service:`+五值∈注册表」绿） |
+| 5 worker 邻面 | 绿 | interview EXIT=0·adaptive-life EXIT=0（经隔离 wrapper `interview:prove`/`adaptive-life:prove` 行使·直连形 `database_target_missing` 裸 worktree 无隔离 target·沿 ssd 收据行使先例） |
+| 6 neg 门 | 绿 | `neg:all` EXIT=0·六套 90/90/91/102/179/135 **恰等基线**（±2 熔断零行使） |
+| 7 typecheck | 绿 | `pnpm turbo typecheck --force` EXIT=0·8/8·0 cached |
+| 8 lint | 绿 | EXIT=0×4·root **5235**/api **1421**/worker **954**/ai-runtime **628** 四值恰等 pin 零漂 |
+| 9 docs:check | 绿 | EXIT=0·**2186 ≤ cap 2200**（cap=`3cd159dd` sanction `:102`·本卷 .md+收据 1 已纳计数） |
+| 10 markers | 绿 | 五类词面（i6-239 §2-7 组装形）+冲突标记对·改动集（9 码/proof+本卷 .md+收据）grep 零命中·est live=0 面零命中 |
+| 11 diff 面 | 绿 | EXEC 落码面=**恰 9 tracked**（码 5+proof 4·P2-A 五码+四 proof 口径）+本卷 .md+收据 1·`sse-pump.ts`/`sse-registry.ts`/`prompts.ts`/rate-limit/drain-loop/worker main.ts/migrations/**/共享 SSOT 四卷零入 diff 机检亲证·`sse-pump.ts` 零字节 |
+| 卫生 | 绿 | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·`.env*` ABSENT·隔离容器用后即焚·est live=0 |
+
+### 字段② EXIT 原值（异常路径备查）
+
+门 1 首跑 **EXIT=1**（P-2a 冻结臂红·停手上报·wave111 复绿后终态 EXIT=0）·门 1 二跑 EXIT=1（sanction 双臂形首版「次 ping≈2s」对 wake-每失败重连触发机制不成立 608ms 红·机制诚实形改写后 EXIT=0·见字段⑥）·余九门首跑即绿零 retry-to-green（断言红恰 1 attempt/形·基建红除外）。
+
+### 字段③ 改前改后臂名清单 diff（sort|uniq 协议·分母=本树 merge 后改前 run @`82318721`）
+
+- sse-push：pre 48 → post **57**·only-in-pre=47 臂+P-2a 旧窗臂（wave111 拆双臂承替）·only-in-post=**P-2d N1-N6 八臂+P-2a 双臂**·P-1 延迟臂同名（时延插值 15ms→11ms 非臂变更）。
+- ag19：pre 47 → post **50**（+源级门 3 臂）·uc028：pre 40 → post **45**（+attempts 5 臂·序列 F1=1/F2a=1/F2b=1/F3=2/F5 仍=2）·metrics：pre 16 → post **18**（+常量名/零预填 2 臂）·四套既有臂零 diff。
+
+### 字段④ diff numstat（EXEC turn 终态）
+
+11 files：`sse-notify.service.ts` +6−0·`interview-service.ts` +3−0·`adaptive-interview-service.ts` +2−0·`invoke.ts` +1−0·`metrics.ts` +4−0·`sse-push-notify.proof.ts` +129−3（P-2d N1-N6 8 臂+P-2a 双臂改写）·`ag19-prompt-version.proof.ts` +39−1·`uc-e2e-028-nhp-fault.proof.ts` +10−0·`metrics.proof.ts` +6−0·本卷 .md（Status×3+§5 注记+§9）·收据 1 新增。`apps/web/tsconfig.tsbuildinfo`（typecheck 门跑动构建缓存）已还原不入 diff。
+
+### 字段⑤ 重 pin 全表（对届时 tip `3cd159dd`/merge `82318721`·P2-C/P2-4 承载）
+
+| 锚 | pin 值 | 漂 |
+|---|---|---|
+| §0.1 十二文件 blob | 全数恒等亲证（`655746c1`/`21f52b34`/`94eb93d5`/`4c963993`/`757d7f95`/`2320a0f2`/`c5a3d39e`/`899be6f2`/`1a5f5a6f`/`d8dfb822`/`4f082e77`/`a447b9f3`·行数同卷） | 无 |
+| §1.2 八站点清点次锚 | **OCR=`resume-ocr.ts:133`**（卷面 :137 漂）·**route-classify=`job-route-classify.ts:164`**（卷面 :170 漂·service 字面 :170 在场）·诊断=`interview-service.ts:287-288`✓ | **P2-4 有漂·本字段承载** |
+| §1-件② promptedModel 伴锚 | **adaptive `interviewer.ask`=`:561`**（卷面 :559 漂）·`:155/:248/:352/:328` ✓ | **P2-4 有漂·本字段承载** |
+| cap 锚 | `public-text-policy.mjs` `:100`→**`:102`** MAX_FILES 2_192→**2_200**（`3cd159dd` sanction 落值） | sanction 随并·已同步 |
+| §0.0 在飞计数 | worktree **57**（卷面 53）·obs-family 支 **5 commit**（diff 恰 1 `.md` 零交叠）·api-harden 支 **1 commit**（docs-only 零交叠）·sse 词面 worktree 恰 1 | **P2-C 有漂·本字段承载** |
+| 次锚补登 | sse-pump waitMs 实锚 :172-174（卷面 :171-174 首 ±1）·invoke persistTraceBestEffort 实锚 :522-540（卷面 :522-545 尾 −5）·sse-push proof P-2b/G2/P-2c 臂块 ±4 平移（臂名全命中） | 登记不熔断 |
+| P2-1 | `0e4f45a4` commit message 实存 1 处 U+200B（`(=​#216)` 位）·⛔amend 遵守原卷零洗·本注记为勘误承载 | 已承载 |
+
+### 字段⑥ wave111 裁决处置（P-2a 窗勘正·语义升级定性）
+
+1. **首跑红**：P-2a 冻结臂「首 ping ∈[1800,3600]」实测 62ms 红·机制链亲证=degraded 期 notify singleton 退避重试 establish→trigger 仍缺席→`loseClient('trigger_missing')`→件① wake→openSse 泵已注册等待者即醒→fetchMore+ping 提前——旧窗 ≥1800ms 下界编码的正是**修前无唤醒行为**。REQUEST 内部矛盾实证=同 run 件④ 自家新臂 `P-2d N4 trigger_missing 同醒` PASS 与冻结臂 P-2a FAIL 同场景反向（N4 必醒 vs P-2a 不早醒不可同时成立）·pre-exec 双审欠裁此交互。
+2. **wave111 sanction 行使**：P-2a 拆双臂形（恰 `sse-push-notify.proof.ts` 1 文件）——臂一「首 ping<1000ms 唤醒即取数」（断言强度不降：上界由 ≥1800 收紧为 <1000·唤醒兑现）+臂二「退避节奏保持」。
+3. **二跑红→机制诚实形**：sanction 首版「次 ping 间隔≈2s ∈[1800,3600]」实测 608ms 红——**第二处机制发现**=wake 在**每次失败重连**的 loseClient 均触发→退化态早段 ping 间隔=重连退避节奏（<2s·修法目标行为的组成部分·比 legacy 更快非更慢）→backoff 超 2s 后由 legacy 2s 计时器接管。按 sanction 语义目标（退避节奏保持=绝不 30s 兜底沉睡）落机制诚实形=「连续 ≥3 ping 间隔全程 ≤2100ms（唤醒驱动+2s 封顶·30s 兜底不可能绿）+max ≥1000（非热循环）」——反 30s 判别义与封顶纪律全保持·如实登记为对 sanction 臂二字面形的机制性修订（语义目标零偏）。
+4. **复绿**：主门 EXIT=0·57 臂全 PASS（首 ping 55ms/间隔 max 1361ms）。
+
+### 字段⑦ 偏离清单 + P2 承载 + pins 零翻声明
+
+1. 字段⑥-3 sanction 臂二字面形→机制诚实形修订（608ms 实证驱动·语义目标零偏·如实登记非隐瞒）。
+2. 门 5 行使形=隔离 wrapper（直连形裸 worktree 无 target 基建形·臂集同·沿 ssd 收据先例）·登记非偏离。
+3. `tsconfig.tsbuildinfo` 构建缓存还原（门跑动副产物·零源面）·登记非偏离。
+4. **P2 承载落点**：P2-A 五码+四 proof 口径=改动集逐字兑现·P2-B 新臂全「P-2d N1…」全串（既有 P-2d 健康翻转族 ：245/:531-544 零歧义）+收据归组单列·P2-C/ P2-4 =字段⑤·P2-1=字段⑤末行·P2-4 件① N3 措辞=件④-a N3 三臂按「补偿失败→泵 break 收尾→客户端 Last-Event-ID 重连重放（既有语义零改·零丢失）」落卷全绿（sse-pump `:195-196` `catch(() => null)→break` 机制本体亲证）。
+5. **pins 零翻声明**：§5 pins 十一值+刀专项钉值主体零翻（唯一例外=wave111 sanction 明示的 P-2a 臂形·§5 注记承载）·§1-修法定稿契约零改· Ban 列表主体零改·迁移=**0** 实证（`ls packages/db/migrations` 链顶 0204 零增）·est live=0·共享 SSOT 零改·行关闭效力归协调方未宣称。
 
 ---
 
-*SSE-API-FAMILY REQUEST · 2026-10-16 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`935899f1`（origin tip 亲证） · 分支 `line/sse-api-family` · 工作树 `meetwise-sse` · 承接=5C 拆刀排程第三发（QUEUE=Q1 已 EXEC✓@`2717e5e7` 波·OBS 起草中 @`b2a05e8e`·API-HARDEN 另席并行 @`935899f1`=0 commit）· 蓝本=LEDGER :87 组标签两段+issues-master 四行原文（:263/:366/:429/:417·组标签「第5批-C 可靠性/运维/API」同锚）+queue-shutdown-phases-REQUEST 形制（§0-§8 全） · 四件=#139 掉线唤醒+补偿拉取（件① wakeAllWaiters）/ #14 四站点+#216 押题 service 补全（件② 恰 5 行+源级门）/ #172 丢失率分母（件③ attempts_total）/ proof 三件随刀（件④ P-2d+ag19 源级门+uc028 F 臂） · 诊断定稿=量级可控 ≤1 天→一刀四件不拆（沿 obs-family 同形裁决）· 零迁移·零业务行为变更（纯观测面+掉线唤醒）· 基线全绿在卷（§1.4·非复绿刀）· est live=0 · pins 照抄零翻 · markers=0（恰符臂协议形承登） · ⛔push · ⛔merge主线 · Dual PASS ≠ 开工 · alone≠dual · ** STOP=`draft:awaiting_pre_exec_dual`（三处同步：Status/§8/footer）**
+*SSE-API-FAMILY REQUEST · 2026-10-16 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`935899f1`（origin tip 亲证） · 分支 `line/sse-api-family` · 工作树 `meetwise-sse` · 承接=5C 拆刀排程第三发（QUEUE=Q1 已 EXEC✓@`2717e5e7` 波·OBS 起草中 @`b2a05e8e`·API-HARDEN 另席并行 @`935899f1`=0 commit）· 蓝本=LEDGER :87 组标签两段+issues-master 四行原文（:263/:366/:429/:417·组标签「第5批-C 可靠性/运维/API」同锚）+queue-shutdown-phases-REQUEST 形制（§0-§8 全） · 四件=#139 掉线唤醒+补偿拉取（件① wakeAllWaiters）/ #14 四站点+#216 押题 service 补全（件② 恰 5 行+源级门）/ #172 丢失率分母（件③ attempts_total）/ proof 三件随刀（件④ P-2d+ag19 源级门+uc028 F 臂） · 诊断定稿=量级可控 ≤1 天→一刀四件不拆（沿 obs-family 同形裁决）· 零迁移·零业务行为变更（纯观测面+掉线唤醒）· 基线全绿在卷（§1.4·非复绿刀）· est live=0 · pins 照抄零翻 · markers=0（恰符臂协议形承登） · ⛔push · ⛔merge主线 · Dual PASS ≠ 开工 · alone≠dual · ** STOP=`executed:awaiting_post_prove_dual`（三处同步：Status/§8/footer）**
