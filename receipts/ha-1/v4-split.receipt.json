@@ -1,0 +1,45 @@
+{
+  "result": "OK",
+  "v": "V4",
+  "preStop": {
+    "count": 24,
+    "path": "/livez",
+    "failures": 0,
+    "statuses": {
+      "200": 24
+    },
+    "upstreams": {
+      "172.20.0.5:8787": 12,
+      "172.20.0.4:8787": 12
+    },
+    "at": "2026-10-10T15:55:22.908Z"
+  },
+  "upstreamToService": {
+    "172.20.0.5:8787": "api-a",
+    "172.20.0.4:8787": "api-b"
+  },
+  "instanceIds": {
+    "api-a": "api-a",
+    "api-b": "api-b"
+  },
+  "postStop": {
+    "count": 20,
+    "path": "/livez",
+    "failures": 0,
+    "statuses": {
+      "200": 20
+    },
+    "upstreams": {
+      "172.20.0.5:8787, 172.20.0.4:8787": 5,
+      "172.20.0.4:8787": 15
+    },
+    "at": "2026-10-10T15:55:52.821Z"
+  },
+  "postStopFailures": 0,
+  "apiARestarted": true,
+  "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v4",
+  "note": "split proof via LB X-HA-Upstream header + INSTANCE_ID printenv receipts; product code zero-change; local sandbox ≠ production HA",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}

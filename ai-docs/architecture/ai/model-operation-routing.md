@@ -105,7 +105,7 @@ related:
 
 ### 5.4 逻辑节点派发槽（`MODEL-OP-00-NODE-QUOTA-001`，局部实现）
 
-迁移 `0085_ai_model_logical_node_dispatch_slot.sql` 只围住既有 `claimed → dispatching` 更新，**它本身不是完整状态机**。工作树候选迁移 `0088_ai_model_invocation_controlled_state_machine.sql` 随后撤销 `app_role` 对 invocation 的 `INSERT/UPDATE/DELETE`，以固定的 principal-scoped `claim/dispatch/fail-claim/terminalize/reconcile` 过程写入私有一次性 permit，再由 `BEFORE INSERT OR UPDATE` trigger 消费 permit 并复验身份、slot 和 reservation。它同时将 header 的不同 key 冲突改成 deterministic upsert。该候选尚未取得真实低权 PostgreSQL 回执，不能把源码存在写成 P0 已关闭或发布证据；header 与 reservation 的 provider/model/region/price revision 精确绑定仍未实现。
+迁移 `0085_ai_model_logical_node_dispatch_slot.sql` 只围住既有 `claimed → dispatching` 更新，**它本身不是完整状态机**。已入树迁移 `0088_ai_model_invocation_controlled_state_machine.sql`（`packages/db/migrations/`·#11 勘误 2026-10-12：旧文「工作树候选」措辞过期）随后撤销 `app_role` 对 invocation 的 `INSERT/UPDATE/DELETE`（DELETE 从未授予 `app_role` 且无请求路径过程——0088 头注亲证），以固定的 principal-scoped `claim/dispatch/fail-claim/terminalize/reconcile` 过程写入私有一次性 permit，再由 `BEFORE INSERT OR UPDATE` trigger 消费 permit 并复验身份、slot 和 reservation。它同时将 header 的不同 key 冲突改成 deterministic upsert。该迁移已取得本地组合根回执（`releaseEvidence=false`·详见 `current-runtime-truth.md` MODEL-OP 节），不能把源码存在写成 P0 已关闭或发布证据；header 与 reservation 的 provider/model/region/price revision 精确绑定仍未实现。
 
 因此历史 `pnpm model-invocation-reconcile:prove` 的 raw-SQL 回归仍只是一条局部、本地 `releaseEvidence=false` 证据；本机 Docker daemon 可用后，必须重跑新增的 direct ACL、ACL 漂移 permit、terminal、identity、reservation 与并发组合根。`MODEL-OP-00-DB-STATE-001`、`MODEL-OP-00-HEADER-001` 和 `MODEL-OP-00-BINDING-001` 在这些回归与独立复审前均不关闭。
 

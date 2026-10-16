@@ -1,0 +1,73 @@
+
+> meetwise@0.1.0 r2-classify-job-route-prereq:prove /Users/miaole/Desktop/golucky/meetwise-i3
+> pnpm -C apps/worker prove:r2-classify-job-route-prereq
+
+
+> @meetwise/worker@0.0.0 prove:r2-classify-job-route-prereq /Users/miaole/Desktop/golucky/meetwise-i3/apps/worker
+> tsx test/r2-classify-job-route-prereq.proof.ts
+
+PASS  job-route-decision.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/db/src/routing/job-route-decision.ts
+PASS  recruiter.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/db/src/recruiting/recruiter.ts
+PASS  db index present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/db/src/index.ts
+PASS  r2 harness present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/harness/r2-classify-job-route.md
+PASS  r2 status present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/harness/r2-classify-job-route-status.md
+PASS  r2 eval present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/eval/r2-classify-job-route.eval.md
+PASS  gap backlog present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/gap-bug-backlog.md
+PASS  m4 hard gates present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/m4-rag-hard-gates.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  UC rag-funnel-intent-routing present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/requirements/use-cases/rag-funnel-intent-routing.md
+PASS  REQUEST mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-classify-job-route-mw-rag-route.md
+PASS  REQUEST mw-e2e-ha present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-classify-job-route-mw-e2e-ha.md
+PASS  REQUEST P-MODEL mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-model-job-route-classify-mw-model-op.md
+PASS  REQUEST P-MODEL mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-model-job-route-classify-mw-rag-route.md
+PASS  REQUEST P-WORKER mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-worker-route-classify-mw-model-op.md
+PASS  REQUEST P-WORKER mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-worker-route-classify-mw-rag-route.md
+PASS  REQUEST P-API mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-api-route-classify-mw-model-op.md
+PASS  REQUEST P-API mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-api-route-classify-mw-rag-route.md
+PASS  REQUEST P-LOOP mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-loop-route-classify-mw-model-op.md
+PASS  REQUEST P-LOOP mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-loop-route-classify-mw-rag-route.md
+PASS  REQUEST P-START mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-start-route-classify-mw-model-op.md
+PASS  REQUEST P-START mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-start-route-classify-mw-rag-route.md
+PASS  REQUEST P-FAKE mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-fake-route-classify-mw-model-op.md
+PASS  REQUEST P-FAKE mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-fake-route-classify-mw-rag-route.md
+PASS  REQUEST P-LIVE mw-model-op present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-live-route-effective-mw-model-op.md
+PASS  REQUEST P-LIVE mw-rag-route present — /Users/miaole/Desktop/golucky/meetwise-i3/ai-docs/delivery/reviews/REQUEST-r2-p-live-route-effective-mw-rag-route.md
+PASS  route-classify-consumer.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/apps/worker/src/route-classify-consumer.ts
+PASS  recruiter.service.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/apps/api/src/modules/recruiter/recruiter.service.ts
+PASS  worker-job-wakeup.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/db/src/jobs/worker-job-wakeup.ts
+PASS  0133 route_pending wakeup present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/db/migrations/0133_job_route_pending_worker_wakeup.sql
+PASS  worker.env.example present — /Users/miaole/Desktop/golucky/meetwise-i3/docker/env/worker.env.example
+PASS  model-operation-registry.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/ai-runtime/src/model-operation-registry.ts
+PASS  job-route-classify.ts binding present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/ai-runtime/src/job-route-classify.ts
+PASS  sealed-job-route-classify-binding.ts present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/domain/src/sealed-job-route-classify-binding.ts
+PASS  0131 admission migration present — /Users/miaole/Desktop/golucky/meetwise-i3/packages/db/migrations/0131_job_route_classify_admission.sql
+PASS  exports classifyJobRoute
+PASS  exports bindApplicationRoute + snapshotInterviewRoute + getInterviewRouteSnapshot
+PASS  db index re-exports classifyJobRoute + getInterviewRouteSnapshot
+PASS  recruiter createJob/updateJob write createJobSemanticRevision
+PASS  recruiter bindApplicationRoute + snapshotInterviewRoute present
+PASS  recruiter does NOT call classifyJobRoute(
+PASS  startApplicationInterview refuse-start on missing binding (interview_ineligible_route)
+PASS  P-LOOP wire: startApplicationInterview binds before snapshot (lazy re-bind)
+PASS  P-WORKER CLOSED: apps/worker/src has classifyJobRoute( via route-classify-consumer — workerCalls=1
+PASS  P-API CLOSED: apps/api zero classifyJobRoute( + notifyWorkerJobWakeup present — apiClassify=0 apiWake=1
+PASS  harness inventories classify Worker / API / bind / snapshot call sites
+PASS  harness pins product blockers P-MODEL / P-WORKER / P-API
+PASS  harness pins R2 NOT closed + releaseEvidence=false + Not HA
+PASS  harness pins 不假接线 / fail-closed
+PASS  status pins R2 NOT closed + G-R2 gaps + releaseEvidence=false
+PASS  eval pins pass ≠ R2 / ≠ 路由已生效
+PASS  GAP-RAG-02 still open overall; cites classify / P-LOOP / P-START
+PASS  m4 §R2 still pins 无生产接线不得宣称路由生效
+PASS  G4 status still lists R2 PREREQ / G-R4-4 open
+PASS  requirements pin job_route_classify / job.route-classify.v1 MODEL-OP binding
+PASS  P-MODEL CLOSED: registry wires job.route-classify.v1
+PASS  P-MODEL CLOSED: bindJobRouteClassify + sealed provenance present
+PASS  P-MODEL CLOSED: admission seed migration 0131 for job.route-classify.v1
+PASS  P-WORKER + P-API + P-LOOP CLOSED documented; R2 NOT closed overall
+PASS  status pins P-MODEL/P-LOOP closed; R2 NOT closed via dual-review / remainder
+PASS  worker.env.example documents RAG_JOB_ROUTE_INPUT_HASH_KEY + classifyJobRoute
+PASS  REQUEST docs self-pin not a pass / releaseEvidence=false / 禁止自批
+
+OK  r2-classify-job-route-prereq prove (P-MODEL…P-FAKE dual-passed; Worker sole classify; API wakeup; R2 NOT closed overall (P-LIVE pending dual + harness gates); ≠ 路由已生效; releaseEvidence=false)
+r2 EXIT=0

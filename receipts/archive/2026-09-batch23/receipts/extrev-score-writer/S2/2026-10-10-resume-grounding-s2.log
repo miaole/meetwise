@@ -1,0 +1,51 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-51371-1791601118009 on 127.0.0.1:63951
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:resume-grounding /Users/miaole/Desktop/golucky/meetwise-line-scorewr/apps/worker
+> tsx test/resume-grounding.proof.ts
+
+PASS  A1 #189 「教育经历」归 other,教育行不冒充经历事实
+PASS  A2 #190 内容短行「5年后端经验」保住进 facts(不被当标题吞)
+PASS  A3 #189/#191 经历/技能正文照常入 facts
+PASS  A4 #191 无标题头部联系/姓名形态行禁入 facts(姓名/电话/邮箱)
+PASS  A5 注入样本行被 ingest 拦截(blocked,零入 facts)
+PASS  A6 buildResumeFactPool:脱敏/掩码行过滤 + 池帽(≤24 条×≤200 字符)
+PASS  A7 A-1 planner 预算:≤8 条 × ≤120 字符(严于 prompts 20k 兜底)
+PASS  A8 B-1 grounded 预算:2-4 条 × ≤200 字符(确定性选,禁模型选)
+PASS  A9 #193 组合闸:refs 非空 ∧ 逐条 groundedByFacts(空 refs 拒、编造拒、真子串过)
+PASS  A10 码点安全截取:astral 边界截断不留孤代理(boundedTextSlice 语义)
+PASS  B1 G1 未同意:planner buildData 输出与现状(v1 占位串路径)逐字节一致
+PASS  B2 G1 未同意:ask buildData 输出与现状(v6 三键形态)逐字节一致
+PASS  C1 摄取侧:注入样本 blocked(INJECTION 五式零弱化)
+PASS  C2 评分侧:stripScoringManipulation 剥离注入尾巴(先剥离、后截取的原料面)
+PASS  S1-1 G1 未同意:planner user=占位串路径逐字节一致(自动化断言)
+PASS  S1-2 G1 未同意:grounded 走既有固定模板回退(零模型 ask 调用)
+PASS  S2-1 已同意:planner user 含简历事实原文(≥1 条),零占位串
+PASS  S2-2 grounded ask user 含 2-4 条选定事实(有界 <data> 弹药)
+PASS  S2-3 grounded ask system 零事实原文(facts 只进 user 围栏)
+PASS  S2-4 grounded 题被接受:refs=事实原文子串过组合闸,返回题面身份
+PASS  S2-5 prove② 追问 ask user 含上轮题目摘要+作答摘要+证据弱点+不可信标记
+PASS  S2-6 prove② 作答摘要 200 字符帽:超长答案尾部禁入追问 user,前 200 字符在内
+PASS  S2-7 评分请求的作答已先剥离(evaluate user 零注入样本串)
+PASS  S2-8 注入样本零出现在本轮任何捕获提示词(system/userData/rag)
+PASS  S2-9 prove① 多轮面试跑满软预算后收尾(回答轮数=4 done=true ev=answer_evaluated:4|generation_started:4|question_ready:4|session_concluded:1)
+PASS  D2 wire body:user 内容封在同名 <data-nonce> 围栏(nonce 开合一致)
+PASS  D3 system 含数据边界规则,且上轮题目/作答摘要数据本体零进 system(段名说明合法,数据禁)
+PASS  D4 追问三段(题目摘要/作答摘要/证据弱点+不可信标记)全在围栏内
+PASS  T1 编造 refs 题被丢弃:初诊+2 次独立重试(恰 3 次 ask 调用)后回退既有固定模板
+PASS  T2 重试键 :gr1/:gr2 独立可审计,零 :r{k} 键(rows=3 suffixes=0,gr1,gr2 prov=gr2)
+PASS  T3 接受路径:grounded 题 sources 为空集(ok=true err= origin=model srcLen=0)
+PASS  S3-1 G4 撤回:新一轮 planner user 与现状逐字节一致(零 digest/facts)
+PASS  S3-2 G4 撤回:grounded 回退既有固定模板(撤回=停止后续使用)
+PASS  Z0 捕获非空(证明非空跑)
+PASS  Z raw-only 差分:样本(sha=a6942f9771d67f34)零字节出现在全部捕获 system/userData/rag
+PASS  Z raw-only 差分:样本(sha=55370d314c3ba8e6)零字节出现在全部捕获 system/userData/rag
+PASS  Z raw-only 差分:样本(sha=1d841bc0ee98309c)零字节出现在全部捕获 system/userData/rag
+PASS  Z raw-only 差分:样本(sha=eb11665826217658)零字节出现在全部捕获 system/userData/rag
+PASS  Z raw-only 差分:样本(sha=962500f4f49415a4)零字节出现在全部捕获 system/userData/rag
+
+✓ RESUME-GROUNDING prove(①②③④+G1-G4)全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T02-58-44-295Z-51371-ea6e6447-00fa-422e-94d0-70328d8099d4.json release_evidence=false

@@ -1,0 +1,5 @@
+report:prove EXIT=0
+quiz:prove EXIT=0
+reaper:prove EXIT=0
+report-retry:http:prove EXIT=0
+interview-dispatch:unit:prove EXIT=0

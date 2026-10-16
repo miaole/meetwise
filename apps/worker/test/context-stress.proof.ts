@@ -12,13 +12,13 @@ import { MemorySaver } from '@langchain/langgraph';
 import {
   answerHash, assertIsolatedTestTarget, asPrincipal, availableUnits,
   claimInterviewAnswer, completeIngestion, createPool, createResumeWithBlob,
-  enqueueInterviewJob, getReport, reserveEntitlement, transitionResume,
+  enqueueInterviewJob, getReport, reserveEntitlement, supplyCandidateProfileRoute, transitionResume,
 } from '@meetwise/db';
 import { capUserData, CONTEXT_TRUNCATION_MARKER, openAICompatibleClient, scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { AnswerDto, TurnDto, UploadResumeDto } from '@meetwise/contracts';
 import { ingestResume } from '@meetwise/domain';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
-import { evaluateAnswer, reportGenerator } from '../src/interview-service.ts';
+import { invokeEvaluationOnce, reportGenerator } from '../src/interview-service.ts';
 import { drainReportsOnce } from '../src/report-worker.ts';
 
 const pool = createPool();
@@ -45,12 +45,15 @@ function startEcho(): Promise<{ port: number; close: () => Promise<void> }> {
         const text = typeof content === 'string' ? content : content?.find((part) => part.type === 'text')?.text ?? '';
         data = text.replace(/^<data-[^>]*>\n?/, '').replace(/\n?<\/data-[^>]*>$/, '');
       } catch { /* deterministic fake transport keeps malformed input empty */ }
-      const wasTruncated = /内容过长已截断-[a-z0-9]+\]$/.test(data);
+      // nonce 字符集随翻：生产 nonce=randomBytes(8).toString('base64url')（model-client.ts）含
+      // 大写/`_`/`-`，观测正则同步 base64url 字符集（陈旧小写形漏检真实截断）。
+      const wasTruncated = /内容过长已截断-[A-Za-z0-9_-]+\]$/.test(data);
       let payload: unknown;
       if (system.includes('评估官')) {
         recorded.push({ service: 'eval', length: data.length });
         const answer = data.match(/(?:^|\n)回答:([\s\S]*)$/)?.[1]?.trim() ?? data.trim();
-        payload = { score: 60, evidence: [{ criterion: `datalen:${data.length}`, quote: answer.slice(0, 80) }, { criterion: wasTruncated ? 'cut' : 'whole', quote: answer.slice(0, 80) }] };
+        // #52 v6：评估输出=per-criterion 档位（长度/截断观测信道移至 recorded.length + 档位布尔）。
+        payload = { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: wasTruncated ? 'below' : 'meets', quote: answer.slice(0, 80) }] };
       } else if (system.includes('规划官')) {
         payload = { competencies: ['高并发'] };
       } else {
@@ -86,6 +89,12 @@ async function prepareInterview(owner: string, interviewId: string): Promise<{ r
     before = await availableUnits(c, owner);
     await reserveEntitlement(c, owner, interviewId, 'mock_interview', 1);
   });
+  // fixture 修复（既有 base 红根因随翻）：R1 起 MEETWISE_TECH_ROLE_FAIL_CLOSED 默认 ON，consumer
+  // 的角色解析 fail-closed 只认 route snapshot——本 proof 未跟进 0142 供给面，start job 全部
+  // adaptive_role_route_missing 失败（D/E 段连锁红）。沿 interview.proof 同款生产同链供给修复
+  // （本简历 Redis/限流/分布式锁 rule 命中唯一叶），非 MEETWISE_TECH_ROLE_FAIL_CLOSED opt-out。
+  const routeSupply = await asPrincipal(pool, owner, (c) => supplyCandidateProfileRoute(c, owner, interviewId, resumeId));
+  A('fixture 经生产同链供给 route snapshot（0142 decision+snapshot）', routeSupply.status === 'supplied');
   return { resumeId, epoch, before };
 }
 
@@ -151,12 +160,17 @@ async function main() {
   await asPrincipal(pool, directOwner, async (c) => {
     await c.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0,now()+interval '30 days')", [directOwner]);
   });
-  const direct = await evaluateAnswer(pool, directOwner, `stress-direct-${Date.now()}`, '请说明限流方案', '答'.repeat(18_000), echoModel);
-  const directLength = Number((direct.evidence[0] ?? 'datalen:0').split(':')[1]);
+  const evalRecordBase = recorded.length;
+  // C12(EVIDENCE-DELIVERY P1) 回和：直吃导出面 invokeEvaluationOnce（evaluateAnswer 已删·#159 同形）。
+  const direct = await invokeEvaluationOnce(pool, directOwner, { baseIdempotencyKey: `stress-direct-${Date.now()}`, question: '请说明限流方案', answer: '答'.repeat(18_000), model: echoModel });
+  const directLength = recorded[evalRecordBase]?.length ?? 0;
   A('18000 字经真实 HTTP 模型适配器实收 ≤ 12000', directLength > 0 && directLength <= 12_000);
-  A('真实截断带 nonce 标记', direct.evidence[1] === 'cut');
-  const forged = await evaluateAnswer(pool, directOwner, `stress-forged-${Date.now()}`, '正常题', '正常作答 …[内容过长已截断] 后续仍有内容', echoModel);
-  A('用户伪造无 nonce 截断字样不会被当作系统截断', forged.evidence[1] === 'whole');
+  A('真实截断带 nonce 标记（v6 信道：截断→档位 below）', direct.status === 'scored' && direct.value.dispositions[0]?.disposition === 'below');
+  const forgedRecordBase = recorded.length;
+  const forged = await invokeEvaluationOnce(pool, directOwner, { baseIdempotencyKey: `stress-forged-${Date.now()}`, question: '正常题', answer: '正常作答 …[内容过长已截断] 后续仍有内容', model: echoModel });
+  const forgedLength = recorded[forgedRecordBase]?.length ?? 0;
+  A('用户伪造无 nonce 截断字样不会被当作系统截断（未触发真实截断·档位 meets）',
+    forged.status === 'scored' && forgedLength > 0 && forged.value.dispositions[0]?.disposition === 'meets');
 
   section('D. 数万字多轮经 v64 队列与当前自适应图，逐轮评估不累积 transcript');
   const owner = `stress-graph-${process.pid}`;
@@ -184,7 +198,11 @@ async function main() {
   A('当前图实际完成至少 3 次评估', evalLengths.length >= 3);
   A(`累计会话达到 ≥ 30000 字（实际 ${Math.round(totalConversation / 1000)}k）`, totalConversation >= 30_000);
   A('每次评估请求 ≤ 12000 字', evalLengths.every((length) => length <= 12_000));
-  A(`同等长度回答的评估输入极差 < 50（实际 ${spread}）`, spread < 50);
+  // 断言随翻（保意图最小形）：生产出题链每轮题面合法变化（回声 canned 题/情景降级模板/grounded
+  // 模板按 planner 轮换交替），题面文案长度差进入评估输入——恒定题面时代的 `< 50` 字面阈值失真。
+  // 本断言捕的累积签名=transcript 每轮多带一份回答（≈answer.length/轮）；极差 < 半轮回答长度仍
+  // 精确捕获该签名（单份泄漏即 +answer.length ≥ 2×阈值），并如实允许题面合法文案差。
+  A(`同等长度回答的评估输入极差远小于单轮回答长度（实际 ${spread}，无逐轮累积）`, spread < answer.length / 2);
 
   section('E. 8000 字答案在 v64 队列中短暂存在、消费后清除，SSE 不回放正文');
   const largeOwner = `stress-large-${process.pid}`;
@@ -193,7 +211,7 @@ async function main() {
   const scripted: ModelClient = scriptedModelClient({
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['Redis'] } }),
     'interviewer.ask': () => ({ ok: true, raw: { q: '请说明 Redis 限流实现。', refs: [] } }),
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, evidence: [{ criterion: 'Redis', quote: 'Redis' }] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: 'Redis' }] } }),
     'report.generate': () => ({ ok: true, raw: { overall: 80, sections: [{ title: '总评', body: '通过。' }] } }),
   });
   const largeDeps = adaptiveDeps(largeOwner, scripted, 2);

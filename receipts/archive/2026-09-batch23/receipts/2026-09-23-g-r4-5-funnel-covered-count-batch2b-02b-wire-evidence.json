@@ -1,0 +1,37 @@
+{
+  "kind": "FunnelCoveredCountBatch2b02BWireEvidence",
+  "batch2bOnly": true,
+  "funnel02ACovered": true,
+  "funnel02BCovered": true,
+  "coveredIds": [
+    "RAG-FUNNEL-02A",
+    "RAG-FUNNEL-02B"
+  ],
+  "batch2bCoveredCount": 1,
+  "coveredCountInvented": false,
+  "productionConsumerWired": true,
+  "funnel02AAssessor": {
+    "recipeCanonicalFieldsPresent": true,
+    "immutableGenerationBuilderWired": true,
+    "generationProjectionSurfacePresent": true,
+    "mainImmutableGenerationPath": true,
+    "projectionConsumedOnRetrievePath": true,
+    "mainRecipeInQueryIdentity": true
+  },
+  "funnel02BAssessor": {
+    "hmacCacheIdentityPresent": true,
+    "resolveDurableFillPresent": true,
+    "claimFillAndValidatePresent": true,
+    "distinctFromRetrievalCache": true,
+    "dbExportsComputeCache": true,
+    "productionConsumerWired": true
+  },
+  "funnel02ARefuseReason": null,
+  "funnel02BRefuseReason": null,
+  "r4ProductClosed": false,
+  "funnelProductClosed": false,
+  "gR45Closed": false,
+  "ms3EqualsR4Closed": false,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / FUNNEL coveredCount Batch2b 02B wire — true-cover 02B under authorize · honest assessor elevation only when productionConsumerWired · Ban invent · 本刀不翻 r4ProductClosed/funnelProductClosed/gR45Closed · Ban wash Batch2 0a980e6/5593226 · Ban MS3=R4 · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}

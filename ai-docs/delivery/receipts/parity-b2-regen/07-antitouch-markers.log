@@ -1,0 +1,13 @@
+# [7] anti-touch verification
+git diff --stat -- e2e/ apps/ packages/ => EMPTY
+anti-touch pins: e2e/full.e2e.ts=4cb481aa6e8026b5fe2af556bc8eae0cbebd526b, e2e/helpers/interview.ts=4aee4a29f2c41314dcffeee13eb980900191e8df (HEAD blob, byte-identical to REQUEST §0 table)
+
+# markers=0 self-check on changed set (five marker word classes + conflict markers, runtime-assembled per scripts/i6-239-gates.proof.mjs §2-7 shape; word literals not reproduced here to avoid self-reference)
+ai-docs/testing/e2e-parity-allowlist.json marker-hits=0
+ai-docs/testing/e2e-parity-baseline.json marker-hits=0
+ai-docs/testing/e2e-parity-baseline.md marker-hits=0
+scripts/e2e-parity.proof.mjs marker-hits=0
+ai-docs/delivery/harness/parity-b2-regen-REQUEST.md marker-hits=0 (status-line commit set)
+ai-docs/delivery/receipts/parity-b2-regen/01..07 .log marker-hits=0 (after removing the grep word-face line from this file itself)
+ai-docs/delivery/reviews/REQUEST-2026-10-12-parity-b2-regen-mw-e2e-ha.md marker-hits=0 (0-byte stub)
+ai-docs/delivery/reviews/REQUEST-2026-10-12-parity-b2-regen-mw-model-op.md marker-hits=0 (0-byte stub)

@@ -1,0 +1,37 @@
+src/modules/resume/resume.service.ts(164,32): error TS2347: Untyped function calls may not accept type arguments.
+src/modules/resume/resume.service.ts(244,30): error TS2347: Untyped function calls may not accept type arguments.
+test/int-transcript-preview-submit-http.proof.ts(273,56): error TS2558: Expected 0 type arguments, but got 1.
+test/public-preview-write-gate.proof.ts(19,8): error TS7016: Could not find a declaration file for module '../../../scripts/public-preview-write-inventory.mjs'. '/Users/miaole/Desktop/golucky/meetwise-line-obslog/scripts/public-preview-write-inventory.mjs' implicitly has an 'any' type.
+test/scor-00-http-db.proof.ts(136,87): error TS2339: Property 'attemptOutcome' does not exist on type 'ClassifyJobRouteResult'.
+  Property 'attemptOutcome' does not exist on type '{ status: "noop"; reason: "revision_not_found" | "already_decided" | "already_unresolved" | "stale_revision" | "not_pending"; }'.
+test/uc-e2e-001-nhp-adv.proof.ts(308,23): error TS2774: This condition will always return true since this function is always defined. Did you mean to call it instead?
+test/uc-e2e-002-adv-led-crossuser.proof.ts(184,5): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+test/uc-e2e-002-cross-device-http.proof.ts(137,25): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+test/uc-e2e-010-sse-resume.proof.ts(118,25): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+test/uc-e2e-010-sse-resume.proof.ts(182,25): error TS2322: Type '(string | undefined)[]' is not assignable to type 'string[]'.
+  Type 'string | undefined' is not assignable to type 'string'.
+    Type 'undefined' is not assignable to type 'string'.
+test/uc-e2e-011-report-refund-http.proof.ts(246,26): error TS2347: Untyped function calls may not accept type arguments.
+test/uc-e2e-011-report-refund-http.proof.ts(253,40): error TS7006: Parameter 'r' implicitly has an 'any' type.
+test/uc-e2e-011-report-refund-http.proof.ts(256,25): error TS2347: Untyped function calls may not accept type arguments.
+test/uc-e2e-011-report-refund-http.proof.ts(263,38): error TS7006: Parameter 'r' implicitly has an 'any' type.
+test/uc-e2e-019-report-regenerate-http.proof.ts(273,22): error TS2347: Untyped function calls may not accept type arguments.
+test/uc-e2e-019-report-regenerate-http.proof.ts(277,32): error TS7006: Parameter 'r' implicitly has an 'any' type.
+test/uc-e2e-019-report-regenerate-http.proof.ts(278,39): error TS7006: Parameter 'n' implicitly has an 'any' type.
+test/validate.ts(45,24): error TS2556: A spread argument must either have a tuple type or be passed to a rest parameter.
+../../packages/ai-graphs/src/adaptive-interview/graph.ts(57,30): error TS2353: Object literal may only specify known properties, and 'recursionLimit' does not exist in type '{ checkpointer?: boolean | BaseCheckpointSaver<number> | undefined; store?: BaseStore | undefined; cache?: BaseCache<unknown> | undefined; ... 4 more ...; transformers?: [] | undefined; }'.
+../../packages/ai-runtime/src/interview-voice-seams.ts(67,22): error TS7006: Parameter 'audio' implicitly has an 'any' type.
+../../packages/ai-runtime/src/interview-voice-seams.ts(67,29): error TS7006: Parameter 'opts' implicitly has an 'any' type.
+../../packages/ai-runtime/src/interview-voice-seams.ts(77,22): error TS7006: Parameter 'text' implicitly has an 'any' type.
+../../packages/ai-runtime/src/interview-voice-seams.ts(77,28): error TS7006: Parameter 'opts' implicitly has an 'any' type.
+../../packages/domain/src/adaptive-interview.ts(113,31): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+../../packages/domain/src/interview-control-signals.ts(103,29): error TS18047: 'c' is possibly 'null'.
+../../packages/domain/src/privacy-erasure-preview.ts(159,71): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.

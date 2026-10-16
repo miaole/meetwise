@@ -1,0 +1,66 @@
+
+> meetwise@0.1.0 adaptive-resume:prove /Users/miaole/Desktop/golucky/meetwise-aga
+> node scripts/run-e2e-isolated.mjs ag-a-resume:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-54468-1791810750685 on 127.0.0.1:62697
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-aga/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=172 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:adaptive-resume /Users/miaole/Desktop/golucky/meetwise-aga/apps/worker
+> tsx test/adaptive-resume.proof.ts
+
+PASS  对照:全新 thread start → invoke({}) START 起跑出首题（plan 恰 1）
+
+──── 形① 两段驱动:genQuestion 中途 worker 死（模型 seam 注入抛错·执行面续跑）────
+PASS  形① phase1:start → 首题 identity
+PASS  形① phase1:answer identity 被 API/DB ledger 接受
+PASS  形① phase2:注入抛错使 resume invoke 坠于 genQuestion（进程内 worker 死模拟）
+PASS  形① 坠点形态=AG-05 红事实:transcript 已含本题答案·next 非空·无 pending interrupt
+PASS  形① alreadyApplied 续跑:返回下一题 identity 且 score=100（非旧形 done:false+undefined 挂死）
+PASS  形① 续跑推进到下一 interrupt（新快照 pending=下一题·next=[awaitAnswer]）
+PASS  形① question_ready 发射（投影 :394-399 面·事件键 question_ready:<nextQuestionId>）
+PASS  形① evaluate 零重评（评分模型调用计数不变·本题 transcript 恰 1 条不重复投影）
+PASS  形① ask +1（genQuestion 续跑重入属预期·AG-25 披露面）
+PASS  形① 重入零 plan/decide/evalAnswer 重执行（断点续跑非 START 重开）
+PASS  形① 出题链零 failed ask invocation（seam 抛错发生在 dispatch 前·不撞账本）
+
+──── 形② checkpoint 边界注入:下一题 writes 已持久化·checkpoint 未推进即坠（投影面）────
+PASS  形② phase1:start → 首题 identity
+PASS  形② phase1:answer identity 被 API/DB ledger 接受
+PASS  形② phase2:checkpoint 注入坠于下一题 checkpoint 推进前（provider 调用已完成）
+PASS  形② 坠点形态=真 durable 语义:transcript 已含本题答案·genQuestion 任务 writes 已持久化（getState pending=下一题）
+PASS  形② alreadyApplied 且 pending 已在 → 纯投影重放:返回同题 identity 且 score=100
+PASS  形② 既有重放收口语义:done=true → interview completed（零图执行·零模型重调下的既有面）
+PASS  形② question_ready 发射（事件键 question_ready:<nextQuestionId>）
+PASS  形② evaluate 零重评（评分模型调用计数不变）
+PASS  形② 下一题模型零重调（ask 计数零增:writes 已持久化=exactly-once·不重跑 genQuestion）
+PASS  形② 重入零 plan/evalAnswer/genQuestion 重执行（纯投影·断点续跑非 START 重开）
+PASS  形② 出题链零 failed ask invocation
+
+──── AG-26 a 面:start 直驱坠于 genQuestion 执行中 → 重投 invoke(null) 续跑（非 START 重开）────
+PASS  AG-26 a phase1:直驱 seam 注入坠于首题 genQuestion 执行中（writes 未落）
+PASS  AG-26 a 坠点形态:无 pending interrupt·next 非空·transcript 空（genQuestion 待执行）
+PASS  AG-26 a start 重投 → invoke(null) 续跑出首题（非 unavailable 终态·stateVersion 不翻倍）
+PASS  AG-26 a plan 节点零重执行（initMind turn 归零面不复现）
+PASS  AG-26 a question_ready 恰一发射（SSE 首题投影）
+PASS  AG-26 a 出题键不撞旧 failed:全 thread ask 链零 failed invocation（坠点 ask 未 dispatch·续跑全新 claim）
+PASS  AG-26 a 续跑后 checkpoint 到 awaitAnswer interrupt（下一答可入）
+
+──── AG-26 b 面:首题 writes 已持久化·checkpoint 未推进即坠 → 重投纯投影出题────
+PASS  AG-26 b phase1:start 崩溃注入坠于首题 checkpoint 推进前（genQuestion 已完成）
+PASS  AG-26 b 坠点形态=真 durable 语义:首题 pending 已持久化（identity 在案）
+PASS  AG-26 b start 重投 → 纯投影出同题（identity=坠点已持久化首题·非重生成）
+PASS  AG-26 b plan/genQuestion 节点零重执行（不 START 重开·零模型重调）
+PASS  AG-26 b question_ready 恰一发射
+PASS  AG-26 b 出题键零 failed ask invocation
+
+✓ AG-05 alreadyApplied 续跑（形①执行面+形②投影面）+ AG-26 start 续跑（a 执行面+b 投影面）全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T13-12-42-360Z-54468-da15c00e-c644-4120-999e-06a3ef7024c9.json release_evidence=false

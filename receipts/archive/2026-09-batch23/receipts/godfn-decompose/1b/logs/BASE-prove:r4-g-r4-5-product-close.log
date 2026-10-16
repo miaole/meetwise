@@ -1,0 +1,72 @@
+
+> @meetwise/worker@0.0.0 prove:r4-g-r4-5-product-close /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-g-r4-5-product-close.proof.ts
+
+G-R4-5 aggregate product close prove
+EXIT=0 = aggregate product-close evidence · canHonestlyFlip live · gR45Closed flip/nonflip honest · coveredCount=8 · ms3EqualsR4Closed=false · Ban wash prior tips · Ban self-nail dual_pass
+
+──────── P0 anchors ────────
+PASS  P0 emitter wired
+PASS  P0 harness present
+FAIL  P0 harness status awaiting_post_prove_dual + Ban self-nail + flags
+
+──────── P1 live assessor / canHonestlyFlip ────────
+PASS  P1 eg1Live
+PASS  P1 eg2Live
+PASS  P1 eg3Live
+PASS  P1 eg4Live
+PASS  P1 eg5Live
+PASS  P1 eg6Live
+PASS  P1 r4FunnelLive
+PASS  P1 coveredCountEight
+PASS  P1 ms3EqualsR4ClosedFalse
+PASS  P1 authorizedSsotPinsPresent
+PASS  P1 retainedFlagsHonest
+PASS  P1 orthogonalNotForged
+PASS  P1 canHonestlyFlip
+PASS  P1 hasGR45AggregateProductCloseEvidence
+
+──────── P2 emit flip/nonflip ────────
+PASS  P2 emitted=true (honest flip)
+PASS  P2 kind
+PASS  P2 canHonestlyFlip=true
+PASS  P2 gR45Closed=true
+PASS  P2 flipReason
+PASS  P2 eg1ProductClosed=true
+PASS  P2 gR45DualClaimClosed=true
+PASS  P2 eg2ProductClosed=true
+PASS  P2 coveredCount=8
+PASS  P2 coveredCountInvented=false
+PASS  P2 eg3ProductClosed=true
+PASS  P2 domainIsolationClosed=true
+PASS  P2 eg4ProductClosed=true
+PASS  P2 wrongTrackProductClosed=true
+PASS  P2 eg5ProductClosed=true
+PASS  P2 productSsotFlipped=true
+PASS  P2 eg6ProductClosed=true
+PASS  P2 ms3EqualsR4Closed=false
+PASS  P2 r4ProductClosed=true
+PASS  P2 funnelProductClosed=true
+PASS  P2 emptyMetaAloneDoesNotClose=true
+PASS  P2 idleSingleEgAloneDoesNotClose=true
+PASS  P2 priorTipsAloneDoNotClose=true
+PASS  P2 releaseEvidence=false
+PASS  P2 receipt written
+PASS  P2 roundtrip gR45Closed=true
+PASS  P2 roundtrip canHonestlyFlip=true
+PASS  P2 roundtrip coveredCount=8
+PASS  P2 roundtrip coveredCountInvented=false
+PASS  P2 roundtrip ms3EqualsR4Closed=false
+PASS  P2 roundtrip eg1ProductClosed=true
+PASS  P2 roundtrip eg2ProductClosed=true
+PASS  P2 roundtrip eg6ProductClosed=true
+PASS  P2 roundtrip releaseEvidence=false
+
+──────── P3 hard pins ────────
+PASS  P3 ≠ wash prior tips alone into gR45Closed without live gate
+PASS  P3 Ban invent coveredCount · Ban MS3=R4 · Ban empty meta · Ban idle single-EG · Ban self-nail post_prove_dual_pass
+PASS  P3 releaseEvidence=false · ≠HA · ≠suite · G-R4-5 closed ≠ HA/cutover/suite
+PASS  P3 retain coveredCount=8 · ms3EqualsR4Closed=false · eg1–eg6 + r4/funnel
+
+FAIL  r4-g-r4-5-product-close prove (1 failures)
+ ELIFECYCLE  Command failed with exit code 1.

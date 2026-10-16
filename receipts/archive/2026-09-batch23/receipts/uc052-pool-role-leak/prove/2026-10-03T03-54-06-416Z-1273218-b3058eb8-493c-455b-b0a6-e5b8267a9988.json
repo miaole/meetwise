@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc052:pool-role-leak:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 12208,
+  "startedAt": "2026-10-03T03:53:54.208Z",
+  "finishedAt": "2026-10-03T03:54:06.416Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:61cdc6c3d21c7d6d32d1b8216ff35db4c7c418eab7842ede70986289b16c4087",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/uc052-pool-role-leak.proof.ts": "sha256:344a1f959d35462a17fd957646de31f356df724f0e56889192559136c26cfcf4",
+    "apps/worker/src/checkpoint-principal.ts": "sha256:aca5ab15c3c8ab717ede05311654a307113ce4e6885495d5a9b2f5ce495e5593",
+    "apps/worker/src/main.ts": "sha256:7393559effd81133e339271d3f70edc75e36996c124ce8b0fad6571ed1f4f3ea",
+    "packages/db/src/principal.ts": "sha256:63bd6f093a24cbd744ce80cd9abf67023832ece2648354ed5ae4fd8ccb228ab3",
+    "packages/db/src/isolated-test-target.ts": "sha256:e85ed22fc4e6c2f6539305878a205994a8b81c1e21f5aa68684eff33af0522af",
+    "packages/db/migrations/0045_checkpoint_thread_rls.sql": "sha256:0cf6694604860f6abd7201f3d002e30d661a947f8de81aac895f12c4ba929c06",
+    "packages/db/migrations/0047_checkpoint_privacy_fence.sql": "sha256:81577d5899b8d50699b5344afb09c396189e929d89426e84b85257aeb4db4724"
+  },
+  "schemaMigrationManifest": {
+    "count": 134,
+    "latest": "0134_usage_calibration_gateway_owners.sql",
+    "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

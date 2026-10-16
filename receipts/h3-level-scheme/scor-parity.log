@@ -1,0 +1,80 @@
+
+> meetwise@0.1.0 scor-parity:prove /Users/miaole/Desktop/golucky/meetwise-h3
+> node scripts/run-e2e-isolated.mjs scor-parity:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-98185-1791703489955 on 127.0.0.1:57649
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-h3/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=162 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:scor-parity /Users/miaole/Desktop/golucky/meetwise-h3/packages/db
+> tsx test/scor-parity.proof.ts
+
+PASS  §0 0158 守门触发器在位（score_card_insert_guard · BEFORE INSERT · FOR EACH ROW）
+PASS  §0 守门函数四件套同族（OWNER=scoring_definer_owner · EXECUTE 对 app_role/PUBLIC 双 REVOKE）
+PASS  §0 守门触发器单实例（无重复挂载）
+PASS  §A card 枚举值级双向一致（TS 10 态 ↔ DB 逐值·替 scor-01 长度级）
+PASS  §A request 枚举值级双向一致（TS 5 态 ↔ DB 逐值）
+PASS  §B 前置：10 态卡全部就位（合法路径建态，无伪造直插）
+PASS  §B card 全矩阵逐值互推一致（10×10=100 格·每格 TS 判定=live UPDATE 行为·吸收/幂等/生命周期边全覆盖）
+PASS  §B 抽样显值：review_required→unscored 通（SCOR-03 出边·0109 live 版 :184-185）
+PASS  §B 抽样显值：unscored→evidence_valid 拒 23514 · unscored→superseded 通（生命周期边）
+PASS  §C request 全矩阵逐值一致（5×5=25 格·单向门/吸收/幂等/fence 先赢全覆盖）
+PASS  §C TS 枚举次序与 live 单向链交叉一致（pending→claimed→dispatched→scored→fenced 次序钉定）
+PASS  §D.F1 round 边界向量可证类机器断言（num=400 den=5 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F1 write_final(0103 副本) ↔ TS 公式逐值一致（期望 80·SQL=80·TS=80·status=practice_eligible）
+PASS  §D.F2 round 边界向量可证类机器断言（num=350 den=5 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F2 write_final(0103 副本) ↔ TS 公式逐值一致（期望 70·SQL=70·TS=70·status=b_review_eligible）
+PASS  §D.F3 round 边界向量可证类机器断言（num=0 den=5 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F3 write_final(0103 副本) ↔ TS 公式逐值一致（期望 0·SQL=0·TS=0·status=practice_eligible）
+PASS  §D.F4 round 边界向量可证类机器断言（num=150 den=4 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F4 write_final(0103 副本) ↔ TS 公式逐值一致（期望 38·SQL=38·TS=38·status=practice_eligible）
+PASS  §D.F5 round 边界向量可证类机器断言（num=50 den=4 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F5 write_final(0103 副本) ↔ TS 公式逐值一致（期望 13·SQL=13·TS=13·status=practice_eligible）
+PASS  §D.F6 round 边界向量可证类机器断言（num=500 den=8 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F6 write_final(0103 副本) ↔ TS 公式逐值一致（期望 63·SQL=63·TS=63·status=practice_eligible）
+PASS  §D.F7 round 边界向量可证类机器断言（num=250 den=4 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F7 write_final(0103 副本) ↔ TS 公式逐值一致（期望 63·SQL=63·TS=63·status=practice_eligible）
+PASS  §D.F8 round 边界向量可证类机器断言（num=50 den=3 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F8 write_final(0103 副本) ↔ TS 公式逐值一致（期望 17·SQL=17·TS=17·status=practice_eligible）
+PASS  §D.F9 round 边界向量可证类机器断言（num=200 den=3 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F9 write_final(0103 副本) ↔ TS 公式逐值一致（期望 67·SQL=67·TS=67·status=practice_eligible）
+PASS  §D.F10 round 边界向量可证类机器断言（num=700 den=7 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F10 write_final(0103 副本) ↔ TS 公式逐值一致（期望 100·SQL=100·TS=100·status=practice_eligible）
+PASS  §D.F11 round 边界向量可证类机器断言（num=350 den=7 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F11 write_final(0103 副本) ↔ TS 公式逐值一致（期望 50·SQL=50·TS=50·status=practice_eligible）
+PASS  §D.F12 round 边界向量可证类机器断言（num=400 den=6 · 整商|.5 精确命中 den=2 的幂|远界≥1e-6 三类之一）
+PASS  §D.F12 write_final(0103 副本) ↔ TS 公式逐值一致（期望 67·SQL=67·TS=67·status=practice_eligible）
+PASS  §D.adj-F1 adjudicate(0109 副本) ↔ TS ↔ write_final(0103 副本) 三方逐值互拍（SQL0109=80·TS=80·SQL0103=80）
+PASS  §D.adj-F4 adjudicate(0109 副本) ↔ TS ↔ write_final(0103 副本) 三方逐值互拍（SQL0109=38·TS=38·SQL0103=38）
+PASS  §D.adj-F6 adjudicate(0109 副本) ↔ TS ↔ write_final(0103 副本) 三方逐值互拍（SQL0109=63·TS=63·SQL0103=63）
+PASS  §D.adj-F8 adjudicate(0109 副本) ↔ TS ↔ write_final(0103 副本) 三方逐值互拍（SQL0109=17·TS=17·SQL0103=17）
+PASS  §D.adj-review highImpact → review_required（④' 面初始态在白名单·总分同式 80）
+PASS  §D' TS 空集 fail ↔ SQL write_final 空证据拒（算术可达面）
+PASS  §D' TS 重复 criterionId fail ↔ SQL write_final 重复证据拒（算术可达面）
+PASS  §D' TS 非法档位 fail ↔ SQL write_final 非法 disposition 拒（0103:197 白名单·算术可达面）
+PASS  §D' TS 非法权重(≤0) fail ↔ SQL rubric publish CHECK 拒（0100:77 weight>0·算术可达 SQL 面）
+PASS  §E 正测① scoring_record_score_card → pending_evidence 直插全通（INSERT 面①）
+PASS  §E 正测② scoring_supersede_score_card → 新卡 pending_evidence 全通（INSERT 面②·旧卡 superseded）
+PASS  §E 正测③ scoring_write_final_score_card → practice_eligible 直插全通（INSERT 面③·值1/2·§D.F1）
+PASS  §E 正测③' scoring_write_final_score_card → b_review_eligible 直插全通（INSERT 面③·值2/2·§D.F2）
+PASS  §E 正测④ scoring_adjudicate_score_card → practice_eligible 直插全通（INSERT 面④·值1/2·§D.adj-F1）
+PASS  §E 正测④' scoring_adjudicate_score_card → review_required 直插全通（INSERT 面④·值2/2·§D.adj-review）
+PASS  §E 负测：白名单外 evidence_valid 裸 INSERT → 23514 拒（SQLSTATE 精确）
+PASS  §E 负测：白名单外 evidence_invalid 裸 INSERT → 23514 拒（SQLSTATE 精确）
+PASS  §E 负测：白名单外 unscored 裸 INSERT → 23514 拒（SQLSTATE 精确）
+PASS  §E 负测：白名单外 calibration_blocked 裸 INSERT → 23514 拒（SQLSTATE 精确）
+PASS  §E 负测：白名单外 superseded 裸 INSERT → 23514 拒（SQLSTATE 精确）
+PASS  §E 负测：白名单外 fenced 裸 INSERT → 23514 拒（SQLSTATE 精确）
+PASS  §E 负测对照组：白名单内 review_required 同形直插全通（守门恰四值·不误伤）
+PARITY_COUNTS card_matrix=100 request_matrix=25 formula_write_final=12 formula_adjudicate=5 formula_reject=4 enum_face=2 guard_positive=6 guard_negative=6
+
+✓ G1 SCORE-S3 #42 TS↔SQL 对拍 + #43 INSERT 守门证明通过（本地隔离证据）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T07-25-08-317Z-98185-3d17eee8-155a-4ae6-8608-d32565665f0a.json release_evidence=false

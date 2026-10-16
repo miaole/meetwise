@@ -1,0 +1,30 @@
+
+> meetwise@0.1.0 scor-00-honesty:prove /Users/miaole/Desktop/golucky/meetwise-h3
+> pnpm -C packages/domain prove:scoring-honesty
+
+
+> @meetwise/domain@0.0.0 prove:scoring-honesty /Users/miaole/Desktop/golucky/meetwise-h3/packages/domain
+> tsx test/scoring-honesty.proof.ts
+
+PASS  正：canonical identity 交叉字段一致
+PASS  正：ledger identity 不读 score
+PASS  正：practice hint 绑 identity 且 role=practice_hint
+PASS  正：可评分卡聚合 overall=90，不走 event 均分
+PASS  正：deriveAssessment 有卡 → overall=80
+PASS  异：空评估不是 0 分（抛 score_aggregate_empty）
+PASS  异：空 ScoreCard 集 → overall=null（insufficient_evidence）
+PASS  异：insufficient verdict 是 assessment_unavailable + null，trustedBSideScore 恒 null
+PASS  异：career / 消费面拒 null overall，不把缺证据当 junior=0
+PASS  特：缺 identity 的 event 分不是 trusted，也不产 hint
+PASS  特：score 缺 / 非整数 / 越界不是分
+PASS  逃：practice hint / event / progress / report 升格 B 端分必失败
+PASS  并：同 identity 重放 hint 字节等价
+PASS  并：hint 映射到另一题 identity → forged_mapped_score（禁止错题贴分）
+PASS  并：hint 映射到本发题 identity 成功
+PASS  复：非评分态卡不进 overall（review/unscored 不是 0）
+PASS  复：合法 overall 才允许 career 分层，0 是真 0 不是缺证据
+PASS  刁：q-ready / 裸 id 视为伪造 identity
+PASS  刁：canonical id 与 stateVersion/turn 漂移视为伪造映射
+PASS  刁：缺 answerId/hash/competency 不能当评分出处
+PASS  刁：isTrustedScoreIdentity 对伪造/半截 payload 为 false（消费面 fail-closed）
+PASS scoring-honesty proof: 21 scenarios; releaseEvidence=false; forgedScores=domain_gate_only; httpHonesty=not_run

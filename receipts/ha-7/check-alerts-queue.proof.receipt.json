@@ -1,0 +1,183 @@
+{
+  "at": "2026-10-11T10:21:54.292Z",
+  "base": "20186718",
+  "total": 29,
+  "failures": 0,
+  "result": "OK",
+  "assertions": [
+    {
+      "id": "Q1.1",
+      "name": "§4.1 全队列超阈（T+1）→ 三事件各产出且 count=4（四 queue 标签各一命中）",
+      "ok": true,
+      "detail": "exit=1 missing= counts=queue_backlog=4 queue_stuck_running=4 queue_dead_letter=4"
+    },
+    {
+      "id": "Q1.2",
+      "name": "§4.1 severity 逐事件对齐目录（Ticket/Ticket/Page）",
+      "ok": true,
+      "detail": "queue_backlog:Ticket queue_stuck_running:Ticket queue_dead_letter:Page"
+    },
+    {
+      "id": "Q1.3",
+      "name": "§4.1 sample 带 queue/max 阈值对（可下钻）",
+      "ok": true,
+      "detail": "samples carry max=T+1"
+    },
+    {
+      "id": "Q1.4",
+      "name": "§4.1 恰等于阈（=T）→ 零条目（严格大于 > 语义·对齐 alert.rules.yml expr）",
+      "ok": true,
+      "detail": "exit=0 alerts=0"
+    },
+    {
+      "id": "Q1.5",
+      "name": "§4.1 欠阈（T-1）→ 零条目",
+      "ok": true,
+      "detail": "exit=0 alerts=0"
+    },
+    {
+      "id": "Q2.1",
+      "name": "§4.2 超阈样本 --report → 恒 EXIT=0 且清单照出（3 事件·count=4）",
+      "ok": true,
+      "detail": "exit=0 alerts=3"
+    },
+    {
+      "id": "Q2.2",
+      "name": "§4.2 干净样本（全 0）→ EXIT=0",
+      "ok": true,
+      "detail": "exit=0 alerts=0"
+    },
+    {
+      "id": "Q2.3",
+      "name": "§4.2 live 模式 metrics 源失效（连接拒）→ fail-closed EXIT=1 + 收据 metrics 源探测信号（receipt 落 .tmp·不覆写 HA-5 卷收据）",
+      "ok": true,
+      "detail": "exit=1 sources.metrics=worker /metrics fetch failed (http://127.0.0.1:1/metrics): fetch failed"
+    },
+    {
+      "id": "Q2.4",
+      "name": "§4.2 offline 无 --metrics-file → skipped 不误红（EXIT=0）",
+      "ok": true,
+      "detail": "exit=0 sources.metrics=offline injection mode (no --metrics-file given)"
+    },
+    {
+      "id": "Q3.1",
+      "name": "§4.3 同 queue 60+45（sum=105 会误报）→ max=60 不报（max 去重·非 sum）",
+      "ok": true,
+      "detail": "exit=1 backlog.count=1"
+    },
+    {
+      "id": "Q3.2",
+      "name": "§4.3 同 queue 101+3 → sample 报 max=101（非 sum=104）",
+      "ok": true,
+      "detail": "samples=[\"worker_jobs_queued{queue=\\\"interview_job\\\"} max=101 > 100（快照单遍·无 for 去抖·阈值对齐 alert.rules.yml）\"]"
+    },
+    {
+      "id": "Q3.3",
+      "name": "§4.3 其余两指标全 0 → 零条目（只有 backlog 一事件）",
+      "ok": true,
+      "detail": "others="
+    },
+    {
+      "id": "Q4.1",
+      "name": "§4.4 队列事件进白名单（带到期日）→ 清单零该条目、其余照告警",
+      "ok": true,
+      "detail": "exit=1 open=queue_stuck_running,queue_dead_letter suppressed=1"
+    },
+    {
+      "id": "Q4.2",
+      "name": "§4.4 三队列事件全白名单 → 清单零条目 EXIT 翻绿（suppressed=3）",
+      "ok": true,
+      "detail": "exit=0 suppressed=3"
+    },
+    {
+      "id": "Q4.3",
+      "name": "§4.4 过期白名单条目 → 重新告警（防腐化同 HA-5 形制）",
+      "ok": true,
+      "detail": "exit=1 expired=queue_backlog"
+    },
+    {
+      "id": "Q5.1",
+      "name": "§4.5 HA-5 proof 断言零新增红（唯一 FAIL=P5.2 预存红：基 9f6edf8f 被主线 h4 漂移·本刀对三文件零字节·worktree 与 pristine 逐行同形 +10/-3）",
+      "ok": true,
+      "detail": "exit=1 failIds=P5.2 myDelta=0 pristine=+10/-3 worktree=+10"
+    },
+    {
+      "id": "Q5.2",
+      "name": "§4.5 目录既有九条目 git diff 逐字节零动（纯追加·零删改行）",
+      "ok": true,
+      "detail": "removed=0"
+    },
+    {
+      "id": "Q5.3",
+      "name": "§4.5 目录 12 事件（9 既有 + 3 新增）且新事件恰为 queue_* 三条",
+      "ok": true,
+      "detail": "events=12"
+    },
+    {
+      "id": "Q6.1",
+      "name": "§4.6 metrics:prove 全绿（含 HA-7 追加：jobsFailed 常量/四队列 0 预填/inc 渲染/# TYPE counter）",
+      "ok": true,
+      "detail": "exit=0 ✓ 系统指标注册表(Prometheus 曝光)全部通过"
+    },
+    {
+      "id": "Q6.2.interview_job",
+      "name": "§4.6 C2 interview-consumer.ts emit 恰一行且在终态失败臂（seat 后·guard 内·非 requeue 邻域）",
+      "ok": true,
+      "detail": "line=184 seat=182 nearRequeue=false"
+    },
+    {
+      "id": "Q6.2.quiz_job",
+      "name": "§4.6 C2 quiz-consumer.ts emit 恰一行且在终态失败臂（seat 后·guard 内·非 requeue 邻域）",
+      "ok": true,
+      "detail": "line=54 seat=52 nearRequeue=false"
+    },
+    {
+      "id": "Q6.2.diagnosis_job",
+      "name": "§4.6 C2 diagnosis-consumer.ts emit 恰一行且在终态失败臂（seat 后·guard 内·非 requeue 邻域）",
+      "ok": true,
+      "detail": "line=53 seat=51 nearRequeue=false"
+    },
+    {
+      "id": "Q6.2.report",
+      "name": "§4.6 C2 report-worker.ts emit 恰一行且在终态失败臂（seat 后·guard 内·非 requeue 邻域）",
+      "ok": true,
+      "detail": "line=162 seat=161 nearRequeue=false"
+    },
+    {
+      "id": "Q6.3",
+      "name": "§4.6 消费端 diff 仅 ±观测行/import（+行为 inc·注释·import；-行仅旧 type-import）",
+      "ok": true,
+      "detail": "+7/-2"
+    },
+    {
+      "id": "Q6.4",
+      "name": "§4.6 新增码面零触失败判定/重试上限/quarantine 语义（码面关键词机检·注释词面不计）",
+      "ok": true,
+      "detail": "codeAdded=7 lines"
+    },
+    {
+      "id": "Q7.1",
+      "name": "§4.7 alerts-lint 全绿（12 事件·runbook 锚 3.10-3.12 解析·metrics_gauge 白名单机检）",
+      "ok": true,
+      "detail": "alerts-lint OK —— 25 条告警规则全部引用真实指标,prometheus/alertmanager 结构合法;事件目录 12 条 + 白名单 0 条 + runbook 锚解析 12 条（HA-5 §4.9）全部通过。"
+    },
+    {
+      "id": "Q7.2",
+      "name": "§4.7 runbook 三新锚在位 + DLQ 只增不减已知风险登记 + 快照/for 差异声明词面",
+      "ok": true,
+      "detail": "anchors=true dlqRisk=true snapshotDiff=true"
+    },
+    {
+      "id": "Q7.3",
+      "name": "§4.7 阈值逐字对齐 alert.rules.yml（100/5/10 严格同数·不另造第二套数）+ severity 分层映射（warning→Ticket·critical→Page）",
+      "ok": true,
+      "detail": "expr=true critical=true warning=true"
+    },
+    {
+      "id": "Q8.1",
+      "name": "§4.9 静态边界：监控栈四文件+compose.prod.yml+migrations 零出现在改动清单（git diff 20186718 + status）",
+      "ok": true,
+      "detail": "migrations=0"
+    }
+  ]
+}

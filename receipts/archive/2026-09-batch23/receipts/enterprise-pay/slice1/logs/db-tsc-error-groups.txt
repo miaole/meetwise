@@ -1,0 +1,7 @@
+  12 test/rag03c-exactk-observe.proof.ts
+   2 test/uc-e2e-017-nhp-load.proof.ts
+   2 test/qbank-handoff-closure.proof.ts
+   1 test/privacy-erasure-preview.proof.ts
+   1 ../domain/src/privacy-erasure-preview.ts
+   1 ../domain/src/interview-control-signals.ts
+   1 ../domain/src/adaptive-interview.ts

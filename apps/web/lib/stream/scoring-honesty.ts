@@ -5,7 +5,8 @@
  */
 
 export const WEB_QUESTION_ID_RE = /^q-v(\d+)-t(\d+)-c(\d+)$/;
-const WEB_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+// DBID-1 post-dual 席2：版本组字符类放宽 [1-5]→[0-9a-f]（纳 v7 answerId）·变位锁 [89ab] 与闸逻辑不动。
+const WEB_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const WEB_ANSWER_HASH_RE = /^[a-f0-9]{64}$/;
 
 export type WebQuestionIdentity = { questionId: string; stateVersion: number; turn: number };

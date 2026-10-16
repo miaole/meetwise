@@ -19,6 +19,8 @@ export function decideNode(state: AdaptiveInterviewGraphState) {
         competency: state.clarify.competency,
         difficulty: state.mind.difficulty,
         qkind: state.clarify.qkind,
+        // billing P1（BILL1-TOPIC-FIELDS 修法③）：澄清臂携 'clarify'（纯枚举标识符 additive·C14 边界）。
+        mode: 'clarify' as const,
       },
       concludeReason: null,
     };
@@ -30,7 +32,8 @@ export function decideNode(state: AdaptiveInterviewGraphState) {
     route:
       action.kind === 'conclude'
         ? ('conclude' as const)
-        : { competency: action.competency, difficulty: action.difficulty, qkind: action.qkind },
+        // billing P1（BILL1-TOPIC-FIELDS 修法③）：非澄清臂扩携 action.mode（domain :90 'probe'|'pivot'）。
+        : { competency: action.competency, difficulty: action.difficulty, qkind: action.qkind, mode: action.mode },
     concludeReason: action.kind === 'conclude' ? action.provenance : null,
   };
 }

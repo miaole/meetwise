@@ -58,7 +58,10 @@ export type InterviewProvenanceReview = {
 
 export type InterviewLoopResult = {
   terminal: string;
+  /** Safe diagnostic only: terminal event payload (reason/provenance). Never includes secrets. */
+  terminalPayload: unknown;
   questions: number;
+  clarifications: number;
   turns: number;
   evaluated: number;
   lastSeq: number;
@@ -167,13 +170,17 @@ function concludeMarked(event: Pick<SseEvent, 'kind' | 'payload'>): boolean {
  * the reason is a domain enum. Terminal SSE reasons (assessment_unavailable,
  * report_unavailable, …) and progress.route are not conclude reasons.
  */
+/** Type guard narrowing a server-payload string to the domain ConcludeReason enum. */
+const isConcludeReason = (value: string): value is ConcludeReason =>
+  (CONCLUDE_REASONS as readonly string[]).includes(value);
+
 export function attributableConclude(event: Pick<SseEvent, 'kind' | 'payload'>): AttributableConclude | null {
   if (!concludeMarked(event)) return null;
   const reason = event.payload?.concludeReason ?? event.payload?.reason;
   if (typeof reason !== 'string' || reason.length === 0) {
     throw new Error('e2e_conclude_attribution_missing');
   }
-  if (!(CONCLUDE_REASONS as readonly string[]).includes(reason)) {
+  if (!isConcludeReason(reason)) {
     throw new Error('e2e_conclude_attribution_forged');
   }
   return { kind: 'conclude', reason, source: 'server_payload' };
@@ -286,8 +293,10 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
   let lastSeq = 0;
   let turn = 0;
   let questions = 0;
+  let clarifications = 0;
   let evaluated = 0;
   let terminal = '';
+  let terminalPayload: any = null;
   let currentQuestion: QuestionIdentity | null = null;
   let lastSubmitted: QuestionIdentity | null = null;
   const kinds = new Set<string>();
@@ -334,6 +343,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
       } else if (event.kind === 'answer_unscored') {
         unscoredReason(event.payload);
       } else if (event.kind === 'clarification_needed') {
+        clarifications++;
         const staleQuestion = currentQuestion;
         currentQuestion = questionIdentityFromEvent(event);
         if (options.staleReplayLabel && staleQuestion) {
@@ -358,6 +368,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
         turn++;
       } else if ((INTERVIEW_TERMINALS as readonly string[]).includes(event.kind)) {
         terminal = event.kind;
+        terminalPayload = event.payload ?? null;
       }
     }
     if (terminal) break;
@@ -366,7 +377,7 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
 
   const provenance = reviewInterviewProvenance(seen);
   return {
-    terminal, questions, turns: turn, evaluated, lastSeq, kinds,
+    terminal, terminalPayload, questions, clarifications, turns: turn, evaluated, lastSeq, kinds,
     practiceHints: provenance.practiceHints,
     attributions: provenance.attributions,
     provenance,

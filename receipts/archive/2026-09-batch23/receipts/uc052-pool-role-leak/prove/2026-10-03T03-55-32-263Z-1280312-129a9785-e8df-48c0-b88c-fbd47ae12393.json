@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "privacy-authorization:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 11068,
+  "startedAt": "2026-10-03T03:55:21.195Z",
+  "finishedAt": "2026-10-03T03:55:32.263Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:61cdc6c3d21c7d6d32d1b8216ff35db4c7c418eab7842ede70986289b16c4087",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/privacy-authorization.proof.ts": "sha256:1dde607816f5322e7e4ef9e51840a5a4420b6610d59263e4c4d4ed6cf61c7c98",
+    "packages/db/src/privacy-authorization.ts": "sha256:0deef7f737f90b70b2b27d57d1a2d7ae8d1cfd3b92d6a8397c3fd928e784385a",
+    "packages/db/src/principal.ts": "sha256:63bd6f093a24cbd744ce80cd9abf67023832ece2648354ed5ae4fd8ccb228ab3",
+    "packages/db/src/isolated-test-target.ts": "sha256:e85ed22fc4e6c2f6539305878a205994a8b81c1e21f5aa68684eff33af0522af",
+    "packages/domain/src/privacy-authorization.ts": "sha256:e586d751f78a505f44bfc264830de9ced7a8b0af5d3e405e5ab4b3584cad912b",
+    "packages/domain/src/auth.ts": "sha256:193d06793381d976c777cc35922eae14da9fec56ddfdeff516b5db60b2434f91",
+    "packages/db/migrations/0047_checkpoint_privacy_fence.sql": "sha256:81577d5899b8d50699b5344afb09c396189e929d89426e84b85257aeb4db4724",
+    "packages/db/migrations/0048_checkpoint_physical_erasure.sql": "sha256:eb9c9cf28f8424c0233d8c0512f86386bfff44945fe2fc3a4ab524e1e15a5adc",
+    "packages/db/migrations/0075_privacy_erasure_authorization_pause.sql": "sha256:1834a37a3267140312feca7a96fdbc3ded138698adb03a216b28223d5141dfd3",
+    "packages/db/migrations/0076_privacy_erasure_legacy_request_pause.sql": "sha256:d314304600b7fb9525e86178b4a204950dabe29689d6b22853d8f4d02255b5c9",
+    "packages/db/migrations/0077_privacy_worker_dispatch_rls.sql": "sha256:adcb33a293e68cb39daca5e7f58f715ec8d399c1ca555b08e31ead873c97bbeb",
+    "packages/db/migrations/0078_privacy_worker_parent_request_guard.sql": "sha256:a9c6bea9d1446e17063f3a8a136d288fcc4fdc37140dd8503deeab3fc2a24ff7",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a"
+  },
+  "schemaMigrationManifest": {
+    "count": 134,
+    "latest": "0134_usage_calibration_gateway_owners.sql",
+    "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

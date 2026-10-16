@@ -78,8 +78,8 @@ export class ExternalRequestAbortedError extends Error {
 }
 
 export class ExternalHttpStatusError extends Error {
-  constructor(public readonly status: number) {
-    super(`external_http_${status}`);
+  constructor(public readonly status: number, public readonly bodySnippet?: string) {
+    super(bodySnippet ? `external_http_${status}:${bodySnippet.slice(0, 200)}` : `external_http_${status}`);
     this.name = 'ExternalHttpStatusError';
   }
 }
@@ -201,8 +201,14 @@ export async function fetchJsonWithTimeout<T>(
   try {
     const response = await fetch(url, { ...init, signal: combined.signal });
     if (!response.ok) {
-      cancelResponseBody(response);
-      throw new ExternalHttpStatusError(response.status);
+      let bodySnippet: string | undefined;
+      try {
+        const raw = await response.text();
+        bodySnippet = raw.slice(0, 512);
+      } catch {
+        cancelResponseBody(response);
+      }
+      throw new ExternalHttpStatusError(response.status, bodySnippet);
     }
     return await readJsonBodyBounded<T>(response, combined.signal, maxBytes);
   } catch (error) {

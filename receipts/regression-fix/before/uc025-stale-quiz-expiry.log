@@ -1,0 +1,36 @@
+
+> meetwise@0.1.0 uc025:stale-quiz-expiry:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> node scripts/run-e2e-isolated.mjs uc025:stale-quiz-expiry:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-81857-1791712173915 on 127.0.0.1:59888
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc025-stale-quiz-expiry /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node test/uc-e2e-025-stale-quiz-expiry.proof.mjs
+
+UC-E2E-025 stale-quiz-as-interview-input prove (static inventory; NON-UI)
+releaseEvidence=false · Not HA · ≠ covered · matrix stays gap (honest)
+
+FAIL  S1-begin-no-quiz-input: interview.controller begin must take resume-id header only (no quiz header in signature)
+PASS  S2-schema-no-expiry-column
+PASS  S3-no-stale-interview-error-codes
+PASS  S4-begin-no-resume-quiz-join
+GAP  GAP-UC025-STALE-REJECT  TC-E2E-025-stale-quiz: no reject path when opening interview with expired/stale quiz artifact (begin has no quiz input / no freshness guard)
+GAP  GAP-UC025-VERSION-PIN  TC-E2E-025-version-mismatch: no resumeVersion / quiz artifact version pin at interview start
+GAP  GAP-UC025-REGEN-ENTRY  escape/regen: no re-quiz entry wired from stale-input reject (product surface absent)
+GAP  GAP-UC025-ACCEPT-FRESH  accept honesty: no provable accept path (fresh quiz + version pin → allow begin); cannot nail reject/accept asymmetry until product lands
+PASS  G-GAP-product-surface-or-pins
+
+NOTE  honesty GAP pins=4: GAP-UC025-STALE-REJECT, GAP-UC025-VERSION-PIN, GAP-UC025-REGEN-ENTRY, GAP-UC025-ACCEPT-FRESH
+NOTE  EXIT=0 with GAP pins = honest mark-red ≠ product closed ≠ UC-E2E-025 covered
+
+CMD=pnpm uc025:stale-quiz-expiry:prove EXIT=1
+本绿≠全链路 E2E covered；≠ UC-E2E-025 covered；矩阵保持 gap（honest）
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-81857-1791712173915 state_bytes=217 logs_bytes=2375
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T09-49-36-621Z-81857-df85bfeb-6238-4cef-8118-5a22a2d5d1c3.json release_evidence=false
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1

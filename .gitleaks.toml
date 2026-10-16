@@ -1,0 +1,33 @@
+# Meetwise gitleaks config
+# FP allowlist · not real secrets (script names / Key-unset honesty docs).
+# Do NOT use this file to hide real credentials.
+
+title = "Meetwise gitleaks"
+
+[extend]
+useDefault = true
+
+[allowlist]
+description = "FP allowlist · not real secrets (pnpm prove:uc0xx script names; G6 Key-unset honesty docs)"
+# Paths that only document prove script names or Key-unset honesty (no credentials).
+paths = [
+  '''(^|/)ai-docs/delivery/harness/r5-retirement-sole-stack-status\.md$''',
+  '''(^|/)ai-docs/delivery/harness/uc-e2e-015-resume-ingest-failures\.md$''',
+  '''(^|/)ai-docs/delivery/harness/uc-e2e-025-stale-quiz-expiry\.md$''',
+  '''(^|/)apps/api/test/uc-e2e-015-resume-ingest-failures\.proof\.ts$''',
+  # E2E 收据假 token 假阳性：LIVE 复跑 diag 于本机 127.0.0.1 一次性栈 signup 自签 JWT
+  # （uid=运行内随机 UUID·role=candidate·验证实例跑毕 SIGKILL 已销毁·不可登录任何生产/三方服务）。
+  '''(^|/)receipts/live-rerun-2026-10-11/diag-entitlement-flow\.log$''',
+  # 测试断言假值·非凭据：ai-runtime exports map 封闭性断言行（`P6_ALLOWED.size` 标识符文本被
+  # generic-api-key 启发式误读·比对对象仅为 '.'/'./g7-bootstrap' 等包内子路径字面量·零密钥语义）。
+  '''(^|/)packages/ai-runtime/test/test-support-fakes\.proof\.ts$''',
+  # 测试桩假 key·非凭据：AG-24 Langfuse model proof 进程内 env 注入（globalThis.fetch :101 全程 mock 拦截·
+  # 零 provider 外呼·值仅满足 registry apiKey 在场断言·generic-api-key 启发式误读·沿 626ac3cc/98d4bab7 形制）。
+  '''(^|/)packages/ai-runtime/test/ag24-langfuse-model\.proof\.ts$''',
+]
+# Matched "secrets" are pnpm script suffixes / honesty phrases, not API keys.
+regexes = [
+  '''(?i)uc0\d{2}[-a-z0-9]+''',
+  '''(?i)Key-unset\s+e2e''',
+  '''(?i)prove:uc0\d{2}[-a-z0-9]*''',
+]

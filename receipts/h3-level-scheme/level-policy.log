@@ -1,0 +1,30 @@
+PASS  rev2(a) 缺省 profile 全域扫描：纯分数阶梯·零 unavailable·零 capped_by_evidence·L5 强制复核
+PASS  rev2(a) 回归锚零翻自证：0→junior / 60→mid（scoring-honesty.proof.ts:102-105 同断言）
+PASS  rev2(a) deriveCareerPath 缺省通路零 unavailable 化：0→junior / 60→mid
+PASS  active 指针恒 v1（本刀不翻·H1 §4.3）
+PASS  缺省路径 below_l1_reference 仅信息码非下限：S=29 仍得 L1 非 unavailable
+PASS  推论3 低分+充分证据 → L1 非 unavailable（不把答得差伪装成无数据）
+PASS  推论3 S 低+充分证据附 below_l1_reference 且仍得 L1
+PASS  推论1 卡数不足 L1 门 → unavailable·insufficient_cards
+PASS  推论1 覆盖不足 L1 门 → unavailable·insufficient_coverage
+PASS  推论1 卡数/覆盖双不足 → 双理由码并集
+PASS  推论1 穷举面：L1 门恰过（cards=3·coverage=2）即非 unavailable（分数路径零 unavailable）
+PASS  推论3 穷举扫描（卡×覆盖×S 网格）：unavailable ⇔ 卡<3 ∪ 覆盖<2（双向硬断言）
+PASS  推论2 未测 d≥3（n_d=0）→ capped_by_evidence·insufficient_hard_evidence·非 unavailable
+PASS  推论2 测了没过（P_d 低）→ hard_question_underperform 否定证据·降档非 capped 非 unavailable
+PASS  推论2 区分度：同分数同卡数，n_d=0 与 P_d 低走不同理由码（未测≠没过）
+PASS  推论2 高分+缺 d=5 证据 → L5 封顶不判低（principal/staff 硬证据未测→降档 senior capped）
+PASS  推论2 L4 kind=scenario 门未就绪（scenarioPassed=undefined）→ L4 只封顶至 senior·非 unavailable
+PASS  L5 全证据达标（显式 profile）→ review_required·top_tier_manual（强制复核·不自动终判）
+PASS  卡数足 L1 不足 L2（cards=4）→ 降档至 junior·insufficient_cards 记因·非 unavailable
+PASS  覆盖足 L1 不足 L2（coverage=2）→ 降档·insufficient_coverage 记因
+PASS  充分证据+高分 → 按阶梯到顶前的最高可达档（S=70·全证→senior·L4 scenario 门未就绪封顶）
+PASS  非法 overall → insufficient_evidence（:11 通路零触·409 信封承接面）
+PASS  rg 门·career.ts operative 行五档阶梯字面量零命中（数值读镜像禁字面量·注记白名单沿 GAP）
+PASS  rg 门·report page operative 行五档阶梯字面量零命中（标签读 LEVEL_LABELS 单源）
+PASS  rg 门·contracts 定义区为白名单命中面（LEVEL_SCHEME_V2 在卷）
+PASS  rg 门·「占位·待校准」注记行在白名单命中集内（可见性自证·nit5）
+PASS  rg 门·0160 seed 为白名单命中面（16 字段数值在卷）
+PASS  rg 门·LEVEL_SCHEME_ACTIVE_VERSION 恒 v1 不翻（本刀禁翻转）
+
+✓ level-policy 政策纯函数 prove 全部通过（28 断言）

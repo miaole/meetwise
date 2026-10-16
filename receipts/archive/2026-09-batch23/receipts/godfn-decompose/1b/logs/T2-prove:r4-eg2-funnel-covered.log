@@ -1,0 +1,53 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg2-funnel-covered /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg2-funnel-covered-matrix.proof.ts
+
+EG2 FUNNEL-01…08 covered matrix prove (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware)
+EXIT=0 = honest matrix emitted · Ban invent covered · Batch1 03/04 · Batch2/Batch2b 02A/02B · Batch3 05/06 · Batch4 07/08 · Batch4b 08 when affirmed · Ban invent coveredCount=8 · ≠ EG2/R4/题域 closed · releaseEvidence=false
+
+──────── M0 anchors ────────
+PASS  M0 emitter wired
+PASS  M0 harness present
+PASS  M0 harness Ban invent covered + Ban idle 5×meta
+PASS  M0 checklist still has FUNNEL-01…08 open boxes (Ban invent SSOT flip)
+
+──────── M1 emit honest matrix (Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4-aware) ────────
+PASS  M1 kind
+PASS  M1 inventCovered=false
+PASS  M1 coveredCount matches Batch1+Batch2+Batch3+Batch4 assessors — got=8 expect=8
+PASS  M1 releaseEvidence=false
+PASS  M1 isHonestFunnelCoveredMatrix
+PASS  M1 row RAG-FUNNEL-01A present
+PASS  M1 row RAG-FUNNEL-01 present
+PASS  M1 row RAG-FUNNEL-02A present
+PASS  M1 row RAG-FUNNEL-02B present
+PASS  M1 row RAG-FUNNEL-03 present
+PASS  M1 row RAG-FUNNEL-04 present
+PASS  M1 row RAG-FUNNEL-05 present
+PASS  M1 row RAG-FUNNEL-06 present
+PASS  M1 row RAG-FUNNEL-07 present
+PASS  M1 row RAG-FUNNEL-08 present
+PASS  M1 01A status source_sealed
+PASS  M1 01 status product_surfaces_true (≠ invent covered)
+PASS  M1 01 ≠ invent covered
+PASS  M1 02A status matches Batch2 assessor
+PASS  M1 02B status matches Batch2 assessor
+PASS  M1 03 status matches Batch1 assessor
+PASS  M1 04 status matches Batch1 assessor
+PASS  M1 05 status matches Batch3 assessor
+PASS  M1 06 status matches Batch3 assessor
+PASS  M1 07 status matches Batch4 assessor
+PASS  M1 08 status matches Batch4 assessor
+
+──────── M2 write receipts (json + md matrix) ────────
+PASS  M2 json receipt written
+PASS  M2 md matrix written
+PASS  M2 md pins Ban invent covered
+PASS  M2 md has FUNNEL-01…08 rows
+
+──────── M3 hard pins ────────
+PASS  M3 ≠ claim EG2 closed from emit alone
+PASS  M3 ≠ idle 5×meta as close
+PASS  M3 Ban invent covered · Ban R4/题域 closed · Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware honesty
+
+OK  r4-eg2-funnel-covered-matrix prove (honest matrix emitted; coveredCount=8; Ban invent covered; Batch1+Batch2+Batch2b+Batch3+Batch3b+Batch4+Batch4b-aware; ≠ EG2/R4/题域 closed; releaseEvidence=false)

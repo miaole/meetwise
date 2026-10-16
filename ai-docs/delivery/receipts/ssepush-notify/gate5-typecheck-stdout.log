@@ -1,0 +1,55 @@
+• turbo 2.10.0
+
+   • Packages in scope: //, @meetwise/ai-graphs, @meetwise/ai-runtime, @meetwise/api, @meetwise/config, @meetwise/contracts, @meetwise/db, @meetwise/db-mysql, @meetwise/domain, @meetwise/errors, @meetwise/qdrant-store, @meetwise/web, @meetwise/worker
+   • Running typecheck in 13 packages
+   • Remote caching disabled, using shared worktree cache
+
+//:typecheck: cache bypass, force executing 1123602b60e29b0d
+@meetwise/contracts:typecheck: cache bypass, force executing 0ae4164d6cd1d6d8
+@meetwise/domain:typecheck: cache bypass, force executing 45ab0e406085331c
+@meetwise/web:typecheck: cache bypass, force executing d1eaaecb96b6c214
+@meetwise/db:typecheck: cache bypass, force executing 2eff1a4ae3b628eb
+@meetwise/ai-runtime:typecheck: cache bypass, force executing 7b7ff0c59a9d0894
+@meetwise/api:typecheck: cache bypass, force executing 0471d677fbd142af
+@meetwise/worker:typecheck: cache bypass, force executing 1a3624d82605269e
+@meetwise/api:typecheck: 
+@meetwise/api:typecheck: > @meetwise/api@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/apps/api
+@meetwise/api:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/api:typecheck: 
+@meetwise/contracts:typecheck: 
+@meetwise/contracts:typecheck: > @meetwise/contracts@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/packages/contracts
+@meetwise/contracts:typecheck: > tsc --noEmit
+@meetwise/contracts:typecheck: 
+//:typecheck: 
+//:typecheck: > meetwise@0.1.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn
+//:typecheck: > pnpm typecheck:e2e
+//:typecheck: 
+@meetwise/domain:typecheck: 
+@meetwise/domain:typecheck: > @meetwise/domain@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/packages/domain
+@meetwise/domain:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/domain:typecheck: 
+@meetwise/web:typecheck: 
+@meetwise/web:typecheck: > @meetwise/web@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/apps/web
+@meetwise/web:typecheck: > tsc --noEmit
+@meetwise/web:typecheck: 
+@meetwise/db:typecheck: 
+@meetwise/db:typecheck: > @meetwise/db@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/packages/db
+@meetwise/db:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/db:typecheck: 
+@meetwise/worker:typecheck: 
+@meetwise/worker:typecheck: > @meetwise/worker@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/apps/worker
+@meetwise/worker:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/worker:typecheck: 
+@meetwise/ai-runtime:typecheck: 
+@meetwise/ai-runtime:typecheck: > @meetwise/ai-runtime@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-spn/packages/ai-runtime
+@meetwise/ai-runtime:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/ai-runtime:typecheck: 
+//:typecheck: 
+//:typecheck: > meetwise@0.1.0 typecheck:e2e /Users/miaole/Desktop/golucky/meetwise-spn
+//:typecheck: > tsc -p tsconfig.e2e.json
+//:typecheck: 
+
+ Tasks:    8 successful, 8 total
+Cached:    0 cached, 8 total
+  Time:    14.003s 
+

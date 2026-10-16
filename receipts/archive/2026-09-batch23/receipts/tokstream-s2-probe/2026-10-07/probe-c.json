@@ -1,0 +1,14 @@
+{
+  "probe": "C",
+  "attempts": [
+    {
+      "probe": "C",
+      "startedAt": "2026-10-09T01:52:23.197Z",
+      "errorSurface": "http_status_first",
+      "totalMs": 225,
+      "status": 404,
+      "httpBodyRedacted": "{\"error\":{\"message\":\"The model `qwen-nonexistent-probe` does not exist or you do not have access to it.\",\"type\":\"invalid_request_error\",\"param\":null,\"code\":\"model_not_found\"},\"request_id\":\"0e9bd262-3094-9934-8f43-af53f7174b1d\"}"
+    }
+  ],
+  "note": "probe C is never retried (REQUEST pin)"
+}

@@ -1,0 +1,61 @@
+
+> @meetwise/ai-runtime@0.0.0 prove:model-client-stream /Users/miaole/Desktop/golucky/meetwise-line-tokstream-s4a/packages/ai-runtime
+> tsx test/model-client-stream.proof.ts
+
+PASS  静态门：dispatchOnce 本体零字节零改（sha256 pin @HEAD 89c633f7…）
+PASS  静态门：complete 非流式语义原值零字节（sha256 pin @HEAD 3283dfcd…）
+PASS  静态门：completeStream 区域零 g7 面（g7RuntimeInjection 不在场）
+PASS  静态门：completeStream 区域零 g7 面（reserveG7CallOnSharedLedger 不在场）
+PASS  静态门：completeStream 区域零 g7 面（finalizeG7ReservationOnSharedLedger 不在场）
+PASS  静态门：completeStream 区域零 g7 面（releaseG7ReservationOnSharedLedger 不在场）
+PASS  静态门：completeStream 区域零 g7 面（assertModelApiKeyPresent 不在场）
+PASS  静态门：completeStream 区域零 g7 面（assertModelAllowedForTest 不在场）
+PASS  静态门：completeStream 区域零 g7 面（reserveFor( 不在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「stream: true」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「include_usage」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「[DONE]」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「classifyProviderError」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「streamEndedByEofWithoutDone」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「resolveModelStreamDeadlineConfig」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「TextDecoder」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「码点安全」在场）
+PASS  静态门：completeStream 区域 wire 纪律锚（「assertConservation」在场）
+PASS  静态门：index.ts:32 导出面零改
+PASS  静态门：index.ts:33 类型导出面零改
+PASS  C3 纯面：零开/单开 → 未请求未启用；双开未锁 → 请求且启用；三锁面 → 拒绝关闭
+PASS  C3 构造面：ENABLED=1 缺 PREVIEW → 显式 model_text_stream_unconfigured（OCR 式误配不得静默）
+PASS  C3 构造面：双开+production 锁 → 同样显式拒绝
+PASS  C3 构造面：双开未锁（test env）→ 不抛
+PASS  C3 fail-closed：零开 → 恒走非流式（请求体零 stream 字段·与非流式同型·零 delta 回调）
+PASS  C3 fail-closed：单开 ENABLED → 恒走非流式（请求体零 stream 字段·与非流式同型·零 delta 回调）
+PASS  C3 fail-closed：单开 PREVIEW → 恒走非流式（请求体零 stream 字段·与非流式同型·零 delta 回调）
+PASS  C3 fail-closed：双开+production 锁 → 恒走非流式（零外呼·complete 既有 bound-operation fence 原语义拒绝·零 delta 回调）
+PASS  C3 fail-closed：双开+enforce 锁 → 恒走非流式（零外呼·complete 既有 bound-operation fence 原语义拒绝·零 delta 回调）
+PASS  C3 fail-closed：双开+public-preview 锁 → 恒走非流式（请求体零 stream 字段·与非流式同型·零 delta 回调）
+PASS  C2 wire：stream=true + stream_options.include_usage=true
+PASS  C2 wire：redirect=error + POST + 注册表 host/path（https://api.deepseek.com/chat/completions）+ Bearer 文本 Key
+PASS  probe-b 重放：三联终结判定 → ok:true·单飞一次 fetch（禁自动重跑）
+PASS  probe-b 重放：ΣdeltaLen==accLen 守恒 + 拼接全等（=收据 stitchedText 72 字符）
+PASS  probe-b 重放：usage 面解析（空 choices usage chunk → completion_tokens=43/prompt_tokens=32·ModelResult usage 面同型）
+PASS  probe-b 重放：raw=完整原文（prose fixture·json_object 未启重放卷按完整原文兜底零截断）
+PASS  probe-b 重放：onDelta 每片码点完整（零孤立代理项）
+PASS  ④按字节切重放（每 13 字节一切）：码点安全+拼接全等+三联 ok+守恒
+PASS  ④按字节切重放（每 1 字节一切）：码点安全+拼接全等+三联 ok+守恒
+PASS  合成卷①流中 error frame（synthetic）：即刻截断+error 终态+账面到中断点（AB）+单飞
+PASS  合成卷①流中 error frame（synthetic·cut=7）：即刻截断+error 终态+账面到中断点（AB）+单飞
+PASS  合成卷②前置：派生卷确为去 [DONE]（尾帧原为 data: [DONE]）
+PASS  合成卷②EOF 去 [DONE]：三联不齐 → streamEndedByEofWithoutDone 语义 error 终态·零自动重跑
+PASS  合成卷②：stop chunk+usage chunk 已见但 [DONE] 缺失 → 仍判三联不齐（delta 账面完整 72）
+PASS  合成卷④码点中断切点（synthetic）：\ud83d/\udca4 跨帧拆分 → 零孤立代理项+拼接 a💤b（U+1F4A4）+三联 ok
+PASS  合成卷③>10s 停滞（synthetic）：watchdog 截断 → error 终态·单飞禁自动重跑
+PASS  合成卷③：截断发生在 idle watchdog 窗（实测 ≥10s 钉值·时钟粒度容差 1%）
+PASS  ③总闸：总闸期限 < watchdog 时先触发 → error 终态·单飞（双层期限在通道内成立·泵侧 10min 帽=S4c）
+PASS  ③期限面：resolveModelStreamDeadlineConfig 缺省=execution 维度+idle 10s 钉值
+PASS  ③期限面：env 另设流式值生效（MODEL_EXECUTION_TIMEOUT_MS=1000 → 总闸 1000·零新增 env 注入面）
+PASS  ⑧前置：probe-c 收据锚（status=404·http_status_first·零流字节·「probe C is never retried」）
+PASS  ⑧分类面：classifyProviderError(404 body) → capability_unsupported（S2 亲证既有分类）
+PASS  ⑧res.ok 先判：404 前置 → deterministic+known_not_executed·零 delta·4xx 禁重试（恰一次）
+PASS  非流式零回归：complete 语义原值（单飞一次·请求体零 stream 字段·ok:true）
+
+✓ TOKSTREAM S4a 流式通道 fake seam 矩阵全部通过（零模型外呼·actualSpendCny=null）
+watchdog 实测=10004ms 总闸实测=1002ms（EXIT 原值入收据）

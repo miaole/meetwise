@@ -23,33 +23,41 @@ export async function createOrder(headers: Record<string, string>, productId: st
   return { response, body };
 }
 
-export function paidWebhookCanonical(orderId: string, providerTxn: string): string {
-  if (typeof orderId !== 'string' || orderId.length === 0 || typeof providerTxn !== 'string' || providerTxn.length === 0) {
+/** 5A-2 #100 四段式:`${id}:${providerTxn}:${kind}:${ts}`,ts=签名毫秒时刻(服务端 ±300s 防重放窗)。 */
+export function paidWebhookCanonical(orderId: string, providerTxn: string, ts: number): string {
+  if (
+    typeof orderId !== 'string' || orderId.length === 0
+    || typeof providerTxn !== 'string' || providerTxn.length === 0
+    || typeof ts !== 'number' || !Number.isFinite(ts)
+  ) {
     throw new Error('e2e_webhook_canonical_missing');
   }
-  return `${orderId}:${providerTxn}:${PAID_WEBHOOK_EVENT}`;
+  return `${orderId}:${providerTxn}:${PAID_WEBHOOK_EVENT}:${ts}`;
 }
 
-export function paidWebhookSignature(orderId: string, providerTxn: string, secret = PAY_SECRET): string {
-  return createHmac('sha256', secret).update(paidWebhookCanonical(orderId, providerTxn)).digest('hex');
+export function paidWebhookSignature(orderId: string, providerTxn: string, ts: number, secret = PAY_SECRET): string {
+  return createHmac('sha256', secret).update(paidWebhookCanonical(orderId, providerTxn, ts)).digest('hex');
 }
 
 /**
  * POST the unauthenticated webhook with a caller-supplied signature.
  * Used by the fail-closed 403/404 cases. Does not invent a passing signature.
+ * 5A-2 #100:body 携 `{providerTxn, sig, ts}`(ts 由调用方绑定,sig 必须对同一 ts 计算)。
  */
-export async function postPayWebhook(orderId: string, providerTxn: string, sig: string): Promise<CommerceHttpResult> {
+export async function postPayWebhook(orderId: string, providerTxn: string, sig: string, ts: number): Promise<CommerceHttpResult> {
   const response = await fetch(`${BASE}/commerce/webhook/pay/${orderId}`, {
     method: 'POST',
     headers: { 'content-type': 'application/json' },
-    body: JSON.stringify({ providerTxn, sig }),
+    body: JSON.stringify({ providerTxn, sig, ts }),
   });
   return { response, body: await readJson(response) };
 }
 
 export async function payWebhook(orderId: string, providerTxn: string, secret = PAY_SECRET): Promise<PayWebhookResult> {
-  const sig = paidWebhookSignature(orderId, providerTxn, secret);
-  return { ...await postPayWebhook(orderId, providerTxn, sig), sig };
+  // ts 单次绑定:sig 与 body 用同一毫秒时刻,防跨毫秒撕裂(签名与载荷 ts 不一致 → 400)。
+  const ts = Date.now();
+  const sig = paidWebhookSignature(orderId, providerTxn, ts, secret);
+  return { ...await postPayWebhook(orderId, providerTxn, sig, ts), sig };
 }
 
 export async function entitlement(headers: Record<string, string>): Promise<any> {

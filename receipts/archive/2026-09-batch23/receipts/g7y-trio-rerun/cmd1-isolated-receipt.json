@@ -1,0 +1,82 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_e2e_receipt",
+  "target": "e2e:prove",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 101906,
+  "startedAt": "2026-10-08T05:41:50.338Z",
+  "finishedAt": "2026-10-08T05:43:32.244Z",
+  "assertionCount": null,
+  "failureClass": "api",
+  "reviewLedger": [
+    {
+      "class": "capability",
+      "code": "image_ocr_unavailable"
+    },
+    {
+      "class": "capability",
+      "code": "voice_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "report_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "report_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "quiz_unavailable"
+    },
+    {
+      "class": "worker",
+      "code": "diagnosis_ready"
+    },
+    {
+      "class": "worker",
+      "code": "seg_diag_green_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg_step8_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg_step9_green"
+    },
+    {
+      "class": "worker",
+      "code": "seg_expert_enter"
+    },
+    {
+      "class": "worker",
+      "code": "seg_bound_start_enter"
+    }
+  ],
+  "sourceDigests": {
+    "e2e/full.e2e.ts": "sha256:43e838ef3cfe74c2716d9355c8c770da24885739432d22c2fec26dccadc1f18b",
+    "e2e/helpers/assert.ts": "sha256:269e61413061627bec45cf5f225518af1f0c913af008020c1835c393e0314f28",
+    "e2e/helpers/auth.ts": "sha256:6243aa47cf6661c9905c9c3c41e9190565c85011ac3dd25b793b90dfdaa4abde",
+    "e2e/helpers/classify-failure.ts": "sha256:f5277aadb6d781e7aa1eba0a26d600fbfdc3eda3704b1c2d8c6ed171ac585cfb",
+    "e2e/helpers/commerce.ts": "sha256:0b21a938c1d7a87507de7e8ff00fbbd2051549af6dfdc98632e56964e5444d6f",
+    "e2e/helpers/failure-class.mjs": "sha256:9c6a468e9fe46a182cf8e3cdcc4779be9f0fc1298291625fcc939119ba786f87",
+    "e2e/helpers/failure.ts": "sha256:5ddb000a626276de001c726d138681c61ba19e72dfd42ddf82e2c06ed8124cbc",
+    "e2e/helpers/http.ts": "sha256:cb678b6b96954f96cd584826efb6266cc1607f3e1419821fbd6e118865e4e91d",
+    "e2e/helpers/interview.ts": "sha256:51f1ae972c032a2768750bc5e02aab00fc6ba0fb394f64020ceaff27c0e9e881",
+    "e2e/helpers/resume.ts": "sha256:de02295819af4ba7a31c28cb2152a6f2b164da8271999a9a5cef6cfdcadb390d",
+    "e2e/helpers/sse.ts": "sha256:fcb01f2e8bbe22e48acdd5e0807cb10a99b236cf049675c0a541f216e11695af",
+    "e2e/helpers/voice.ts": "sha256:e0e101e35fc358308aa3293126bae0f98781cb79e3a8de7dd4179fd87bda2f2b",
+    "e2e/ocr-fixture.ts": "sha256:8683008efe6ade9c87c04a752b662aad4a142df3099bc9c1e49dfa086ed5e6f8",
+    "scripts/run-e2e.mjs": "sha256:926fdf7dafb3752b639ba3e451934d6be0bf2ba2bc2549daeee0a881a1044f2b",
+    "scripts/run-e2e-isolated.mjs": "sha256:c3e8bdf1f59009319a49e93192f07410df511bb929035da190f2c304ef51ec29"
+  },
+  "schemaMigrationManifest": {
+    "count": 142,
+    "latest": "0142_candidate_profile_route.sql",
+    "digest": "sha256:39b162151706b9c634d9174851b58f3309b85cfd9c44f85d8312a4054e7b58a2"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

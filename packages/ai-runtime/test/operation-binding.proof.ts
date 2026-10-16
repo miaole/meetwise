@@ -86,8 +86,8 @@ async function main() {
     validateOperationBindingProfiles().length === 0);
   A('registry 静态不变量仍成立（resume.ocr.v1 翻 wired 后无破坏）',
     validateModelOperationRegistry().length === 0);
-  A('wired 计数：6 文本 + 1 视觉(OCR) + 2 批量语音 = 9 wired，其余 6 native 仍 fail-closed',
-    MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 9
+  A('wired 计数：7 文本(含 job.route-classify) + 1 视觉(OCR) + 2 批量语音 = 10 wired，其余 6 native 仍 fail-closed',
+    MODEL_OPERATION_REGISTRY.filter((d) => d.wired).length === 10
     && MODEL_OPERATION_REGISTRY.filter((d) => !d.wired).length === 6);
 
   const bound: BoundModelOperation[] = [];

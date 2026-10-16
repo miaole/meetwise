@@ -109,9 +109,9 @@ related:
 | 1 | 首页营销区块 / FAQ / 联系 / 用户协议 / 隐私政策 / SEO(breadcrumb·sitemap·meta) / 反馈按钮 / 实时面试计数 | `marketing-legal-seo.md` |
 | 2 | admin/运营后台：RBAC / 用户 / 订单 / 内容 / 运营位 / RLS 最小权限 / C 端隔离 | `admin-console.md` |
 | 3 | 面试服务细分：服务选择入口 + 简历押题/专项/行为/模拟四类显式区分 + SpecialInterviewConfirm | `interview-modality.md` |
-| 4 | 作答辅助：答案建议/优化 + STAR 引导（不造假·不编经历·保留用户最终决定） | `answer-assist.md` |
-| 5 | 3D 数字人面试官：多模态形象（语音口型/表情）+ 3D→语音→文本降级阶梯，不阻塞面试主路径 | `avatar-3d.md` |
-| 6 | 兑换码/兑换服务：兑换 vs 充值双路径，对齐共享权益池 + FIFO 扣减 | `redemption.md` |
+| 4 | 作答辅助：答案建议/优化 + STAR 引导（不造假·不编经历·保留用户最终决定） | `answer-assist.md`（仅设计·未落代码） |
+| 5 | 3D 数字人面试官：多模态形象（语音口型/表情）+ 3D→语音→文本降级阶梯，不阻塞面试主路径 | `avatar-3d.md`（仅设计·未落代码） |
+| 6 | 兑换码/兑换服务：兑换 vs 充值双路径，对齐共享权益池 + FIFO 扣减 | `redemption.md`（仅设计·未落代码） |
 | 7 | 面试历史：列表 / 详情 / 继续未完成 / 重看报告 | `interview-history.md` |
 
 ## 4. 落代码前置条件

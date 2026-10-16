@@ -1,0 +1,8 @@
+ha4_rotation_ok retained=2 deleted_count=0
+ha4_backup_ok stamp=20261010T191147Z size=1801971 sha256=afe7c6028e2910312cb7220be014571a82de1029a7ae09652c715db525a04b0d toc_tables=175 retained=2
+ha4_rotation_ok retained=3 deleted_count=0
+ha4_backup_ok stamp=20261010T191151Z size=1801971 sha256=9f321d9989edad928861534d219d22f5b007f8700df49f5bd85b7ad94c1373d1 toc_tables=175 retained=3
+ha4_rotation_ok retained=4 deleted_count=0
+ha4_backup_ok stamp=20261010T191155Z size=1801971 sha256=3c732ffd5966505712c18165015a6a9bcb0c36bb1f18755810ed8e70e1edad22 toc_tables=175 retained=4
+ha4_rotation_ok retained=5 deleted_count=0
+ha4_backup_ok stamp=20261010T191159Z size=1801971 sha256=c70808632a8ed964a508c88754655c67cbe4c87da4a8e74154f5d3f082b99949 toc_tables=175 retained=5

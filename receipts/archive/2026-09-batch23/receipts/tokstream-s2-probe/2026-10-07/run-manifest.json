@@ -1,0 +1,93 @@
+{
+  "knife": "tokstream-s2-probe",
+  "requestBlueprint": "REQUEST rev3 @a8f2f67e (ai-docs/delivery/harness/tokstream-s2-probe.md)",
+  "runId": "2026-10-07",
+  "startedAt": "2026-10-09T01:52:20.456Z",
+  "finishedAt": "2026-10-09T01:52:23.424Z",
+  "scriptSha256": "1dceb7c16b4e64c5acdee8b7cb010faa7844f9c20b2e7036dbdc5c1d0a3fd8fe",
+  "nodeVersion": "v22.22.3",
+  "guards": {
+    "endpointProfilePinned": "dashscope-cn-beijing",
+    "legacyUrlOverridesAbsent": true,
+    "preflightFamilyAssertion": "response model must be same family as requested model before A/B credited",
+    "oneShot": "run-id with existing receipts is refused"
+  },
+  "pins": {
+    "endpoint": "https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions",
+    "model": "qwen-plus",
+    "probeCModel": "qwen-nonexistent-probe",
+    "maxTokens": 192,
+    "temperature": 0,
+    "seed": 42,
+    "promptSha256": "bcb3d9f538fce9db524fe2326b595851e5f046101e3550af56a65f2b67ce12f6",
+    "noIncrementalOutputParam": true,
+    "streamOptionsIncludeUsage": true
+  },
+  "keyHandling": "MODEL_API_KEY injected via authorized loader into process env; value never logged/persisted; archives redacted; name-only accounting",
+  "attemptsLedger": {
+    "A": [
+      {
+        "attempt": 1,
+        "outcomeClass": "completed",
+        "transient": false
+      }
+    ],
+    "B": [
+      {
+        "attempt": 1,
+        "outcomeClass": "completed",
+        "transient": false
+      }
+    ],
+    "C": [
+      {
+        "attempt": 1,
+        "note": "never retried"
+      }
+    ]
+  },
+  "verdicts": {
+    "A": "completed",
+    "bVerdict": "B_PASS (operational definition met: chunk≥3 ∧ nonEmptyDelta≥2 ∧ [DONE] ∧ (T0 ∨ (T1∧T2∧T3)))",
+    "cVerdict": "C_ERROR_SURFACE=http_status_first",
+    "threeWayNote": "three-way interpretation authority = coordinator (Ban self-approve)"
+  },
+  "estimatedCostCny": {
+    "probeA": 0.000112,
+    "probeB": 0.000112,
+    "probeC": 0,
+    "probeCNote": "rejected before generation (server-side), zero billed",
+    "perProbeUpperBoundWithoutUsage": 0.000384,
+    "totalKnown": 0.000224,
+    "formula": "(prompt_tokens×0.8 + completion_tokens×2) / 1e6",
+    "priceBookCitation": "console-reported price book via coordinator 2026-09-23 (g7-freetier-reprove-guard.ts G7_CONSOLE_PRICE_BOOK qwen-plus row); NOT independently verified",
+    "actualSpendCny": null
+  },
+  "receipts": [
+    {
+      "file": "probe-a.json",
+      "sha256": "f7c784b8372e150623427dbee853659e2f105d0426f94e9fd722790e9155be3a",
+      "bytes": 1140
+    },
+    {
+      "file": "probe-b.json",
+      "sha256": "cc24734cbda5d0ca05a8ecfdd6fc1f0ff6851775647dee22189c21c5ef9a25dc",
+      "bytes": 6374
+    },
+    {
+      "file": "probe-b-sse-chunks.redacted.txt",
+      "sha256": "5987aa4db7ec3a7a2647f8826b3956c85d19e00502e3bd2f368003896dca80ac",
+      "bytes": 4094
+    },
+    {
+      "file": "probe-c.json",
+      "sha256": "b56e49824c2a921fa41f6eabeb003e87eabcbc5f666fd46f676e0f2feceab328",
+      "bytes": 532
+    },
+    {
+      "file": "stitch-compare.json",
+      "sha256": "fa05f97718d2fb3f8aaa08fca75e9bd843061f3f91d58f399e5a26bf854e3e00",
+      "bytes": 1833
+    }
+  ]
+}

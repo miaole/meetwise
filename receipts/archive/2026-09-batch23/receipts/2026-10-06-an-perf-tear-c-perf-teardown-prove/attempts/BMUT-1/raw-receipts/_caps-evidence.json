@@ -1,0 +1,29 @@
+{
+  "enforced": true,
+  "method": "docker --cpus=2 --memory=4g",
+  "declared": {
+    "cpus": 2,
+    "memoryGiB": 4
+  },
+  "pg": {
+    "container": "meetwise-e2e-1499706-1791299383523",
+    "HostConfig": {
+      "NanoCpus": 2000000000,
+      "Memory": 4294967296
+    },
+    "ok": true
+  },
+  "api": {
+    "container": "meetwise-uc018-perf-api-1500164-1791299388230",
+    "HostConfig": {
+      "NanoCpus": 2000000000,
+      "Memory": 4294967296
+    },
+    "ok": true
+  },
+  "expected": {
+    "NanoCpus": 2000000000,
+    "Memory": 4294967296
+  },
+  "blocker": null
+}

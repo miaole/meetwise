@@ -1,13 +1,14 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { randomUUID } from 'node:crypto';
-import { reserveEntitlement, enqueueQuizJob, releaseConsumption } from '@meetwise/db';
+import { reserveEntitlement, enqueueQuizJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
+import { resumeDisplayName } from '../resume/resume-display.ts';
 
 /**
  * 押题应用服务(拥有 asPrincipal 事务边界 + 业务编排:advisory 锁、幂等、额度预留、入队、状态机、RLS)。
  * 镜像 InterviewService:controller 只解析/校验/映射 HTTP,不碰 SQL/事务/编排(架构铁律 F1)。
  * **AI 图绝不直接碰额度**——预留在此(业务服务),worker 跑完图再 confirm,失败 release(无泄漏)。
+ * PRIV01-C:应用层 tenant 强制第二层(E1 入口显式 owner + E2 必选谓词绑定)——授权根仍为 RLS(应用层 tenant ≠ RLS)。
  */
 @Injectable()
 export class QuizService {
@@ -15,27 +16,35 @@ export class QuizService {
 
   // 新建押题(空壳,created)。begin 才扣额度跑图。
   async create(principal: string) {
-    const id = 'qz_' + randomUUID();
-    await this.db.asPrincipal(principal, (c) =>
-      c.query("INSERT INTO resume_quiz(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, principal])); // RLS WITH CHECK owner=principal
+    const owner = requireOwnerUserId(principal, 'quiz.create');   // PRIV01-C 第二层 E1(fail-closed)
+    const id = newEntityId('qz');
+    await this.db.asPrincipal(owner, (c) =>
+      c.query("INSERT INTO resume_quiz(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner])); // RLS WITH CHECK owner=principal
     return { quizId: id, status: 'created' };
   }
 
   // 开始押题:扣额度 + 入队 generate job(resume-quiz 图在 worker 跑,api 薄)。202 已受理。
-  begin(principal: string, id: string, resumeId: string) {
+  // #230 可选 targetRole:归一化 trim/限长 100/空串→undefined(interview begin/diagnosis 同形制,限长防滥用)。
+  // 仅作 quiz_job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload '{}' 零新键=现状字节。
+  begin(principal: string, id: string, resumeId: string, targetRole?: string) {
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
-    return this.db.asPrincipal(principal, async (c) => {
+    const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
+    const owner = requireOwnerUserId(principal, 'quiz.begin');   // PRIV01-C 第二层 E1
+    const jobFilter = buildRequiredOwnerFilter(owner, 'quiz.begin.existingJob');     // E2 必选谓词
+    const resumeFilter = buildRequiredOwnerFilter(owner, 'quiz.begin.resume');
+    const boundFilter = buildRequiredOwnerFilter(owner, 'quiz.begin.bind');
+    return this.db.asPrincipal(owner, async (c) => {
       // 并发竞态安全:事务级 advisory 锁串行化同押题的并发 begin——否则两并发都过 check-then-act = 双开双扣。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', ['quiz-begin', id]);
-      if ((await c.query('SELECT 1 FROM resume_quiz WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
+      if ((await c.query('SELECT 1 FROM resume_quiz WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // E5:自身 id 意外 0 行 → 404 fail-closed
       // 幂等:已有 generate job(重复 begin/网络重试)→ 不再扣额度、不再入队(否则双扣 + 双跑双花模型)。
-      const existing = await c.query('SELECT id FROM quiz_job WHERE owner_user_id=$1 AND quiz_id=$2', [principal, id]);
+      const existing = await c.query('SELECT id FROM quiz_job WHERE owner_user_id=$1 AND quiz_id=$2', [jobFilter.value, id]);
       if (existing.rowCount! > 0) return { accepted: true, jobId: existing.rows[0].id, alreadyBegun: true };
       // The JSON body is not a trusted reference.  Bind the owned, ingested
       // resume and its current privacy epoch before reserving any entitlement.
       const resume = await c.query(
         "SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested'",
-        [resumeId, principal],
+        [resumeId, resumeFilter.value],
       );
       if (resume.rowCount !== 1) throw new HttpException({ error: 'resume_not_found_or_not_ready' }, HttpStatus.CONFLICT);
       const privacyEpoch = Number(resume.rows[0].privacy_epoch);
@@ -43,18 +52,18 @@ export class QuizService {
         `UPDATE resume_quiz SET resume_id=$3, privacy_epoch=$4, version=version+1
           WHERE id=$1 AND owner_user_id=$2 AND status='created'
             AND resume_id IS NULL AND privacy_epoch IS NULL`,
-        [id, principal, resumeId, privacyEpoch],
+        [id, boundFilter.value, resumeId, privacyEpoch],
       );
       if (bound.rowCount !== 1) throw new HttpException({ error: 'quiz_resume_reference_conflict' }, HttpStatus.CONFLICT);
       // 额度不足时 reserveEntitlement **抛**(回滚),必须 catch 映射成 402,否则被异常过滤当 500。
       let rr;
-      try { rr = await reserveEntitlement(c, principal, id, 'resume_quiz', 1.0); }
-      catch (e: any) {
-        if (e?.code === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
+      try { rr = await reserveEntitlement(c, owner, id, 'resume_quiz', 1.0); }
+      catch (e: unknown) {
+        if (errCode(e) === 'insufficient_entitlement') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
         throw e;
       }
       if (rr.status !== 'reserved') throw new HttpException({ error: 'insufficient_entitlement' }, HttpStatus.PAYMENT_REQUIRED);
-      const jobId = await enqueueQuizJob(c, principal, id, resumeId, privacyEpoch);
+      const jobId = await enqueueQuizJob(c, owner, id, resumeId, privacyEpoch, targetRoleNormalized);
       return { accepted: true, jobId };
     });
   }
@@ -63,23 +72,50 @@ export class QuizService {
   // **状态机守卫(专家审计:abandon×worker 竞态)**:CAS 仅从 created/generating 放弃 → 0 行=已 ready/已结束,拒绝(不倒退已完成已扣费的押题)。
   // 先 CAS 占终态再 release:与 worker 的"confirm→CAS ready 同事务"经 resume_quiz 行锁 + consumption FOR UPDATE 串行,任一交错顺序都安全(worker 先成则此处 409;此处先成则 worker confirm 命中 released→拒绝交付)。
   abandon(principal: string, id: string) {
-    return this.db.asPrincipal(principal, async (c) => {
-      if ((await c.query('SELECT 1 FROM resume_quiz WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
-      const upd = await c.query("UPDATE resume_quiz SET status='failed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','generating')", [id, principal]);
+    const owner = requireOwnerUserId(principal, 'quiz.abandon');   // PRIV01-C 第二层 E1
+    const casFilter = buildRequiredOwnerFilter(owner, 'quiz.abandon.cas');   // E2 必选谓词
+    return this.db.asPrincipal(owner, async (c) => {
+      if ((await c.query('SELECT 1 FROM resume_quiz WHERE id=$1', [id])).rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND); // E5:自身 id 意外 0 行 → 404 fail-closed
+      const upd = await c.query("UPDATE resume_quiz SET status='failed', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','generating')", [id, casFilter.value]);
       if (upd.rowCount === 0) throw new HttpException({ error: 'cannot_abandon', message: '押题已完成或已结束,无法放弃' }, HttpStatus.CONFLICT);
-      const rel = await releaseConsumption(c, principal, id);   // 退还 begin 时预留的额度(idempotencyKey=id;未预留则 no-op)
+      const rel = await releaseConsumption(c, owner, id);   // 退还 begin 时预留的额度(idempotencyKey=id;未预留则 no-op)
       return { abandoned: true, released: rel.status };
     });
   }
 
   // 列出自己的押题(RLS 只见己),可按 status 过滤 + limit 分页。
+  // #232 列表显示面:扩投影 created_at + 双 LEFT JOIN 取简历名派生源四字段(镜像 interview.service list 投影形逐字);
+  // status 过滤/ORDER BY/LIMIT 封顶/asPrincipal(RLS owner 谓词)语义零变,零新推导(名字经 resumeDisplayName 单一出处)。
   async list(principal: string, status?: string, limit?: string) {
     const lim = Math.min(Math.max(Number(limit) || 50, 1), 200);
+    const projection = `
+      SELECT q.id, q.status, q.created_at,
+        q.resume_id,
+        r.created_at AS resume_created_at, r.content_sha AS resume_content_sha,
+        rp.structured #>> '{experience,0,text}' AS resume_experience_hint,
+        rp.structured #>> '{skills,0,text}' AS resume_skill_hint
+      FROM resume_quiz q
+      LEFT JOIN resume r ON r.id=q.resume_id AND r.owner_user_id=q.owner_user_id
+      LEFT JOIN resume_profile rp ON rp.resume_id=r.id AND rp.owner_user_id=r.owner_user_id`;
     const r = await this.db.asPrincipal(principal, (c) =>
       status
-        ? c.query('SELECT id, status FROM resume_quiz WHERE status=$1 ORDER BY created_at DESC LIMIT $2', [status, lim])
-        : c.query('SELECT id, status FROM resume_quiz ORDER BY created_at DESC LIMIT $1', [lim]));
-    return { quizzes: r.rows };
+        ? c.query(`${projection} WHERE q.status=$1 ORDER BY q.created_at DESC LIMIT $2`, [status, lim])
+        : c.query(`${projection} ORDER BY q.created_at DESC LIMIT $1`, [lim]));
+    return {
+      quizzes: r.rows.map((row: any) => ({
+        id: row.id,
+        status: row.status,
+        created_at: row.created_at ? new Date(row.created_at).toISOString() : null,
+        resume_display_name: row.resume_id
+          ? resumeDisplayName({
+              created_at: row.resume_created_at,
+              experience_hint: row.resume_experience_hint,
+              skill_hint: row.resume_skill_hint,
+              content_sha: row.resume_content_sha,
+            })
+          : null,
+      })),
+    };
   }
 
   // 押题详情:题目(含考察点 refs)+ 报告。generating/failed 据 status 渲染(前端按事件刷新,无死胡同)。

@@ -1,0 +1,40 @@
+
+> meetwise@0.1.0 runtime-role:prove /Users/miaole/Desktop/golucky/meetwise-regfix
+> node scripts/run-e2e-isolated.mjs runtime-role:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-88955-1791713152480 on 127.0.0.1:64575
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 runtime-role:prove:raw /Users/miaole/Desktop/golucky/meetwise-regfix
+> pnpm -C packages/db prove:runtime-role
+
+
+> @meetwise/db@0.0.0 prove:runtime-role /Users/miaole/Desktop/golucky/meetwise-regfix/packages/db
+> tsx test/runtime-role.proof.ts
+
+PASS  运行登录无 superuser/bypass/create-role/create-db 且 NOINHERIT，仅为 app/app_gateway 角色成员
+PASS  运行登录不能 CREATE TABLE
+PASS  运行登录不能 CREATE ROLE
+PASS  运行登录不能切回迁移高权角色
+PASS  运行登录不能直接读取跨租户队列
+PASS  运行登录不能直接读取账户或支付表
+PASS  网关只返回 queued owner，低权登录不获得队列正文
+PASS  RLS principal A 只见自己的行
+PASS  RLS principal B 只见自己的行
+PASS  未设置 principal 时 RLS fail-closed 为 0 行
+PASS  账户表强制 RLS：每个 principal 只见自己的账户
+PASS  无会话网关仅可完成固定注册/登录函数，返回契约字段
+PASS  候选人 principal 不能调用招聘方跨账户解析
+PASS  招聘方 principal 仅经固定函数解析活跃候选人
+PASS  非管理员 principal 不能调用运营跨租户查询
+PASS  管理员 principal 可调用固定运营查询且不含 password_hash
+PASS  支付回调网关只返回订单 owner，不暴露订单正文
+PASS  worker 指标网关只返回固定四队列的聚合计数
+PASS  费用指标网关仅返回一个 scope 的限额、已用额和未知数
+PASS  费用指标网关拒绝畸形 scope，而非把它拼进查询
+
+✓ runtime database role proof passed
+runtime-role EXIT=0

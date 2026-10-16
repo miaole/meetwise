@@ -4,13 +4,16 @@
  * Docker Compose runs it only inside the migration service, which owns DDL and
  * operator configuration credentials; the API/worker runtime login has neither.
  */
-import { createPool } from '@meetwise/db';
+import { createPool, warmUpPool } from '@meetwise/db';
 import { configureRagCostGovernance, resolveRagCostGovernance } from './rag-cost-governance.ts';
 import { configureModelCostGovernance, resolveModelCostGovernance } from './model-cost-governance.ts';
 
 async function main(): Promise<void> {
-  const pool = createPool();
+  const pool = createPool({ purpose: 'migrate' });
   try {
+    // W3/R-22: same connect-level warm-up shape as migrate-cli (same compose
+    // job).  Governance configuration operations below stay fail-loud.
+    await warmUpPool(pool);
     const rag = resolveRagCostGovernance();
     const model = resolveModelCostGovernance();
     await configureRagCostGovernance(pool, rag);

@@ -1,0 +1,31 @@
+-- 0151 · DBACL-2 pgp_sym_encrypt(text,text) EXECUTE ACL 补授刀（GRANT-only · 最小授权）
+--
+-- 根因链（REQUEST rev2 @95911975 · 亲核行号）：
+--   * 0121:14 `REVOKE ALL ON FUNCTION pgp_sym_encrypt(text,text) FROM PUBLIC`
+--     + :16 仅 `GRANT ... TO app_role` ⇒ proacl = {owner=X/owner, app_role=X/app_role}。
+--   * 0108 `conversation_event_append`（SECURITY DEFINER · OWNER memory_runtime）:255
+--     `pgp_sym_encrypt(p_body, p_enc_key)` ⇒ SD 上下文以 proowner（memory_runtime）求
+--     EXECUTE ⇒ 42501 `permission denied for function pgp_sym_encrypt`
+--     （DBACL-1 post-dual mw-privacy-int 席 N2 亲证：超用户 SET LOCAL ROLE 直调同炸）。
+--   * 影响面 = conversation_event / conversation_event_artifact 写链（memory 会话事件
+--     持久化）；apps/ 生产调用面 = 0（TS 唯一入口 ctx03-event-source.ts:121 仅导出无
+--     生产调用方），承重全在 prove 面 6 文件（ctx03/ctx04:87/ctx05/ctx06/mem02:120/mem03:99）。
+--
+-- 授权闭集（EXEC 期 catalog 机检推导 · live catalog 双向核 · 非本文件自指）：
+--   全迁移 SECURITY DEFINER 函数体调 `pgp_sym_encrypt|pgp_sym_decrypt`（任意 arity）
+--   → distinct proowner 全集 = 恰 1 角色 memory_runtime（0108:255 唯一调用点 ·
+--   2 参 encrypt(text,text)）；0122 三参面全库零 SD 调用 · decrypt 任意面零 SD 调用。
+--   多一逐行举证 / 少一 FAIL（推导 SQL + 逐行 owner|function call-site 证据入 prove §3）。
+--
+-- 明确剔除（最小授权 · 禁 GRANT ALL · 禁发明角色）：
+--   * pgp_sym_decrypt(bytea,text) —— 零 SD 调用方，不授（app_role 由 0121 原样保留）。
+--   * 三参重载 pgp_sym_encrypt(text,text,text)/pgp_sym_decrypt(bytea,text,text) ——
+--     0122 维持 owner-only（PUBLIC/app_role 均已 REVOKE），本刀零触碰。
+--   * 其他任何角色 —— 推导集之外，禁发明。
+--
+-- Ban 落实：仅此一条 GRANT 语句（prove P3 全文白名单机检 · 基线 = 推导集）·
+--   pgp_sym_encrypt 函数体零字节变化 · conversation_event_append 函数体零字节变化 ·
+--   历史迁移 0001-0143 零字节改 · 幂等（GRANT 天然幂等）· 0144-0150 归 W2 五刀
+--   在飞线（本分支空洞非虚句 · migrate.ts 文件名序 applied=145 先例 DBM3-1）。
+
+GRANT EXECUTE ON FUNCTION public.pgp_sym_encrypt(text,text) TO memory_runtime;

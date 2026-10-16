@@ -1,5 +1,6 @@
 /** 流式语音证明(确定性,无 IO):增量 partial→final · barge-in 打断 TTS · 低延迟边播边出 · modality-agnostic。 pnpm vstream:prove */
-import { fakeStreamingAsr, fakeStreamingTts, streamingVoiceTurn } from '../src/index.ts';
+import { streamingVoiceTurn } from '../src/index.ts';
+import { fakeStreamingAsr, fakeStreamingTts } from './support/fakes.ts';   // #74: fake 族经 test-support 子路径
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 async function* audio(n: number) { for (let i = 0; i < n; i++) yield new Uint8Array([i]); }
 async function* delayedAudio(n: number, ms: number) { await new Promise((r) => setTimeout(r, ms)); yield* audio(n); }

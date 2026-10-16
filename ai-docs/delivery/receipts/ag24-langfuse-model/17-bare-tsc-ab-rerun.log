@@ -1,0 +1,57 @@
+# 17 — AG-24 裸 tsc A/B 复跑补登收据（§9 EXEC 附记勘误 E4 补登·post 勘误席亲跑·2026-10-13）
+#
+# 缘起：post-prove 双审席1 E4（P2）——§9 门表 row 15 称 EXEC 补跑裸 tsc A/B「21=21、1=1 零新增」，
+#       但 ai-runtime/worker 无 typecheck 任务、turbo typecheck 收据（14）不覆盖两包，裸 tsc 无收据件。
+#       本件=post 勘误席 tip 侧复跑原始输出落卷：ai-runtime=21、worker=1，与 §9 A/B 声称计数恒等。
+# 底座：worktree meetwise-ag24 · branch line/ag24-langfuse-model · HEAD 7fb4d4b5a2f6a34e308dcc7f8a8c62f3529e7272（零码差·与收据 01-16 同 tip）
+# 口径：两包 package.json 均无 typecheck 任务（§9 row 15 前提在证）·裸 tsc=「tsc --noEmit（包 tsconfig 原样）」·
+#       EXIT=2 为预期既存红（两包从非裸 tsc 绿面·§9 仅声称 A/B 计数恒等零新增·不声称裸 tsc 绿）。
+#       A 侧（base）计数 21/1 系 EXEC A/B 与 post 席2 独立复算在案；本件补的是此前缺位的 B 侧（tip）原始输出。
+#
+# ── 命令 1：packages/ai-runtime ──
+# $ cd packages/ai-runtime && ../../node_modules/.bin/tsc --noEmit    → EXIT=2（error TS 行计数=21）
+# 输出（原样·未删节）：
+src/interview-voice-seams.ts(67,22): error TS7006: Parameter 'audio' implicitly has an 'any' type.
+src/interview-voice-seams.ts(67,29): error TS7006: Parameter 'opts' implicitly has an 'any' type.
+src/interview-voice-seams.ts(77,22): error TS7006: Parameter 'text' implicitly has an 'any' type.
+src/interview-voice-seams.ts(77,28): error TS7006: Parameter 'opts' implicitly has an 'any' type.
+src/usage-calibration-reconciler.ts(309,88): error TS2339: Property 'totalUnderEstimated' does not exist on type '{ ok: true; groups: ReconcileUsageCalibrationGroupResult[]; watermarkFrom: Date; watermarkTo: null; } | { ok: true; groups: ReconcileUsageCalibrationGroupResult[]; watermarkFrom: Date; watermarkTo: Date; }'.
+  Property 'totalUnderEstimated' does not exist on type '{ ok: true; groups: ReconcileUsageCalibrationGroupResult[]; watermarkFrom: Date; watermarkTo: null; }'.
+test/ag-d-admission.proof.ts(280,89): error TS2339: Property 'leaseToken' does not exist on type 'ModelInvocationClaim'.
+  Property 'leaseToken' does not exist on type '{ action: "cached"; output: unknown; }'.
+test/ag19-prompt-version.proof.ts(330,63): error TS18048: 'rowA' is possibly 'undefined'.
+test/diag-honesty-prompt.proof.ts(14,72): error TS2459: Module '"../src/model-client.ts"' declares 'ModelResult' locally, but it is not exported.
+test/gap-rag05-classifier.proof.ts(27,8): error TS2459: Module '"../src/router/semantic-route.ts"' declares 'JobRouteModelOutput' locally, but it is not exported.
+test/job-route-classify-binding.proof.ts(58,68): error TS2339: Property 'error' does not exist on type 'JobRouteClassifyBindDecision'.
+  Property 'error' does not exist on type '{ ok: true; provenance: SealedJobRouteClassifyProvenance; }'.
+test/job-route-classify-binding.proof.ts(63,40): error TS2339: Property 'error' does not exist on type 'JobRouteClassifyBindDecision'.
+  Property 'error' does not exist on type '{ ok: true; provenance: SealedJobRouteClassifyProvenance; }'.
+test/job-route-classify-binding.proof.ts(64,31): error TS2339: Property 'error' does not exist on type 'JobRouteClassifyBindDecision'.
+  Property 'error' does not exist on type '{ ok: true; provenance: SealedJobRouteClassifyProvenance; }'.
+test/model-slot-bypass.proof.ts(209,10): error TS2367: This comparison appears to be unintentional because the types '"model_concurrency_exhausted"' and '"model_invocation_wait_timeout"' have no overlap.
+test/model-usage-cache-observe.proof.ts(126,114): error TS2339: Property 'usage' does not exist on type 'ModelResult'.
+  Property 'usage' does not exist on type '{ ok: false; kind: "deterministic" | "transient"; externalOutcome?: "unknown" | "known_not_executed" | undefined; }'.
+test/model-usage-cache-observe.proof.ts(126,160): error TS2339: Property 'usage' does not exist on type 'ModelResult'.
+  Property 'usage' does not exist on type '{ ok: false; kind: "deterministic" | "transient"; externalOutcome?: "unknown" | "known_not_executed" | undefined; }'.
+test/resume-ocr-binding.proof.ts(41,61): error TS2339: Property 'error' does not exist on type 'ResumeOcrBindDecision'.
+  Property 'error' does not exist on type '{ ok: true; provenance: SealedOcrProvenance; }'.
+test/resume-ocr-binding.proof.ts(48,33): error TS2339: Property 'error' does not exist on type 'ResumeOcrBindDecision'.
+  Property 'error' does not exist on type '{ ok: true; provenance: SealedOcrProvenance; }'.
+test/resume-ocr-binding.proof.ts(49,24): error TS2339: Property 'error' does not exist on type 'ResumeOcrBindDecision'.
+  Property 'error' does not exist on type '{ ok: true; provenance: SealedOcrProvenance; }'.
+../domain/src/adaptive-interview.ts(113,31): error TS2345: Argument of type 'number | undefined' is not assignable to parameter of type 'number'.
+  Type 'undefined' is not assignable to type 'number'.
+../domain/src/interview-control-signals.ts(107,29): error TS18047: 'c' is possibly 'null'.
+../domain/src/privacy-erasure-preview.ts(159,71): error TS2345: Argument of type 'string | undefined' is not assignable to parameter of type 'string'.
+  Type 'undefined' is not assignable to type 'string'.
+# ── 命令 1 输出毕（error TS 计 21）──
+#
+# ── 命令 2：apps/worker ──
+# $ cd apps/worker && ../../node_modules/.bin/tsc --noEmit            → EXIT=2（error TS 行计数=1）
+# 输出（原样·未删节）：
+src/qbank-release-sweep.ts(79,91): error TS1005: ')' expected.
+# ── 命令 2 输出毕 ──
+#
+# 判读：tip 侧 21/1 与 §9 row 15「21=21、1=1 零新增」计数恒等；worker 单错=qbank-release-sweep.ts:79
+#       与收据 10（worker prove:model-cost-metrics 既存基线红）同源既存面；ai-runtime 21 错分布=src 5+test 13+跨包 ../domain 3，
+#       无本刀新增面（本刀两处施工期新类型错已按 §9 修复：model-client :655 'text' in part 收窄）。

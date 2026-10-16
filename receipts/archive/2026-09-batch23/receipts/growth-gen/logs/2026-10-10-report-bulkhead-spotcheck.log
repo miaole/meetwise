@@ -1,0 +1,77 @@
+
+> meetwise@0.1.0 report:prove /Users/miaole/Desktop/golucky/meetwise-line-grow201
+> node scripts/run-e2e-isolated.mjs report:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-66339-1791602721365 on 127.0.0.1:60315
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-grow201/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=156 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:report /Users/miaole/Desktop/golucky/meetwise-line-grow201/apps/worker
+> tsx test/report-bulkhead.proof.ts
+
+
+──────── enqueue：面试完成只做一次幂等 enqueue（不阻塞、不等报告） ────────
+PASS  首次 enqueue 建 report job（queued）
+PASS  重复 enqueue 幂等（同 reportId,不重排）
+PASS  面试主链路不等报告：此刻报告仍 queued，interview 已 completed
+
+──────── 舱壁：报告失败**不碰 interview**（失败隔离） ────────
+PASS  worker 跑报告失败（模型抖动）
+PASS  报告状态 failed、attempts=1
+PASS  **interview 仍 completed（报告失败没回滚/拖垮面试）**
+PASS  失败时不发 report_ready 事件
+
+──────── 独立恢复：requeue 失败报告 → 重试成功 → ready + report_ready 事件 ────────
+PASS  requeue failed→queued
+PASS  重试跑报告成功
+PASS  报告 ready 且含内容（attempts=2）
+PASS  ready 才发 report_ready 事件（SSE 信号）
+
+──────── 租约：活租约的 running 不被另一 worker 抢（只领到 queued/过期） ────────
+PASS  worker wLive 领到 RG-live
+PASS  活租约的 running 不被抢（第二 claim 落空）
+
+──────── 崩溃恢复：租约过期的 running 可被重领（attempts 增长） ────────
+PASS  租约过期后被重领（崩溃 worker 不致卡死）
+
+──────── stale finalize 防护：被抢租约的旧 worker finalize 落空,且**不发 report_ready**（审计 S1） ────────
+PASS  B 重领 RG-stale
+PASS  旧 worker A finalize 落空（CAS lease_owner 不匹配）
+PASS  A 落空 → 不发 report_ready 事件
+
+──────── poison-pill 兜底：超 MAX_REPORT_ATTEMPTS 的 failed → sweeper 隔离(quarantined),不无限重试 ────────
+
+──────── 退避：失败后 next_attempt_at 置未来 → 退避未到 sweeper 不重排（瞬时故障不毫秒烧光重试） ────────
+PASS  失败后 next_attempt_at 在未来（指数退避）
+PASS  退避未到 → sweep 不重排（仍 failed,不立即重烧）
+PASS  poison-pill 最终被隔离 quarantined（不无限重试）
+PASS  隔离时 attempts 达上限 3
+PASS  全程 interview RG-pill 仍 completed（舱壁:崩溃循环不碰面试）
+PASS  隔离时发 report_unavailable 终态事件（前端优雅降级,不无限转圈——非静默死胡同）
+
+──────── 多租户调度：dispatchTick 枚举活跃 owner 各自 drain（队列在生产真被排干,非只写不调度） ────────
+PASS  dispatchTick 枚举到含待办的多个 owner（≥2）
+PASS  userH 报告被排干到 ready
+PASS  userI 报告被排干到 ready
+
+──────── 依赖故障隔离：摘要读取失败会标 failed，且不阻断同一拍其他租户的报告 ────────
+PASS  摘要读取故障从 running 收束为 failed（不等租约过期）
+PASS  同一调度拍的其他租户仍到 ready（不被坏租户阻断）
+
+──────── 并发不双跑：两 worker 同时 claim,只一个领到 ────────
+PASS  两并发 claim 恰好一个领到（FOR UPDATE SKIP LOCKED + CAS）
+
+──────── RLS：userB 看不到 userA 的报告 ────────
+PASS  userB 视角 userA 报告=0 行
+PASS  userB claim 只会领到自己的（领到的 interview=R9）
+
+✓ 全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T03-25-27-726Z-66339-4a51dec2-c54a-4124-a2fa-78c0bab76199.json release_evidence=false

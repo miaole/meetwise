@@ -1,0 +1,31 @@
+{
+  "knife": "UC-E2E-018-sole-stack-pg-retained",
+  "gap": "GAP-UC018-SOLE",
+  "status": "executed:awaiting_post_prove_dual",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "matrixUc018": "partial",
+  "gapClosedOnly": "GAP-UC018-SOLE",
+  "uc018Covered": false,
+  "sixAloneNotCovered": true,
+  "soleStack": "Postgres+pgvector+PostgresSaver",
+  "adr": "adr-postgres-retained.md",
+  "banMysqlQdrantCutover": true,
+  "exits": {
+    "uc018:sole:prove": 0,
+    "uc018:abandon:prove": 0,
+    "uc018:abandon:http:prove": 0,
+    "uc018:abandon:full-e2e:prove": 0,
+    "uc018:graph:prove": 0,
+    "uc018:ttl:prove": 0,
+    "uc018:ui:prove": 0,
+    "eval-harness-matrix-cite:prove": 0
+  },
+  "preExecDual": {
+    "mw-rag-route": "7e29e28",
+    "mw-e2e-ha": "31e7eff",
+    "requestTip": "e6d10c5"
+  },
+  "datePT": "2026-09-23 ~18:05 PT"
+}

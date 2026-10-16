@@ -1,0 +1,41 @@
+
+> @meetwise/db@0.0.0 tenant-enforcement:prove /Users/miaole/Desktop/golucky/meetwise-line-priv01/packages/db
+> tsx test/tenant-enforcement.proof.ts
+
+PASS  missing owner (undefined) throws tenant_owner_user_id_required
+PASS  missing owner (null) throws tenant_owner_user_id_required
+PASS  blank owner throws tenant_owner_user_id_required
+PASS  non-string owner throws tenant_owner_user_id_required
+PASS  valid owner returns trimmed id
+PASS  predicate mismatch throws tenant_owner_mismatch
+PASS  predicate with blank row owner throws tenant_predicate_invalid
+PASS  predicate match passes (no throw)
+PASS  buildRequiredOwnerFilter binds owner_user_id column + value
+PASS  buildRequiredOwnerFilter rejects missing owner
+PASS  buildRequiredOwnerFilter trims and yields exact required shape (E2)
+PASS  buildRequiredOwnerFilter never yields an empty predicate — all shapes bound (E2)
+PASS  enforceOwnerOnRow null row throws
+PASS  enforceOwnerOnRow cross-owner throws
+PASS  enforceOwnerOnRow match returns required owner
+PASS  tenant module file present
+PASS  tenant source pins 应用层 tenant ≠ RLS
+PASS  tenant source forbids silently replacing auth root
+PASS  tenant source exports requireOwnerUserId + assertTenantPredicate
+PASS  tenant source pins required-predicate (non-optional filter) wording (E2)
+PASS  tenant source exports buildRequiredOwnerFilter + enforceOwnerOnRow
+PASS  principal.ts present
+PASS  principal.ts still exports asPrincipal
+PASS  principal.ts still set_config('app.principal_user')
+PASS  tenant module does not remove set_config from principal
+PASS  principal.ts provisionRuntimeLogin NOINHERIT/NOBYPASSRLS intact (E4)
+PASS  0001_baseline.sql present
+PASS  baseline header pins owner+ENABLE+FORCE RLS incl. app_role non-bypass (0001:7)
+PASS  baseline app_role fail-closed NOLOGIN 无 BYPASSRLS (0001:63-64)
+PASS  baseline p_owner USING/WITH CHECK double-sided principal predicate (0001:69-79)
+PASS  baseline vector_chunk ENABLE+FORCE+p_owner same shape (0001:300-304)
+PASS  wiring face A: zero literal src/tenant references in production src — hits=0 files-scanned=332
+PASS  wiring face B: zero tenant consumption outside pure re-export (wiring=0) — consumption=0 reexportStmts=2
+PASS  R1: barrel re-export present and classified re-export≠consumption (index.ts :25-32) — barrelTenantReexportStatements=2 expected=2
+PASS  optional PG path skipped (no DATABASE_URL / PG* target) — unit prove sufficient
+
+✓ tenant-enforcement proof passed (EXIT=0)

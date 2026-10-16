@@ -1,0 +1,8 @@
+
+> @meetwise/api@0.0.0 prove:voice-cancel-http /Users/miaole/Desktop/golucky/meetwise-consentmin/apps/api
+> tsx test/voice-cancel-http.proof.ts
+
+PASS  完整 POST body 后客户端断开 response socket，Nest/Fastify 仍把取消传到 TTS 服务
+PASS  完整 POST body 后客户端断开 response socket，Nest/Fastify 会经 service seam（服务边界）中止唯一 ASR 供应商连接
+
+✓ 非流式语音真实 HTTP 取消合同全部通过

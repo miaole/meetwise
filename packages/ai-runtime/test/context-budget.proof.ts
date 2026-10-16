@@ -169,7 +169,11 @@ section('4. usage 校准方向正确（版本化因子）');
   const cal = reconcileUsage(obs);
   const c = components({ system: '系统指令', permissionSnapshot: '授权快照', schema: '{"type":"object"}', userData: '用户数据', rag: '检索素材', recentTurns: ['最近一轮'], summary: '' });
   const uncal = planDispatchBudget(c, contextBudgetPolicyFromCostPolicy(costPolicy));
-  const calibrated = planDispatchBudget(c, contextBudgetPolicyFromCostPolicy(costPolicy, { calibration: cal.ok ? cal.calibration ?? undefined : undefined }));
+  const calibrated = planDispatchBudget(c, contextBudgetPolicyFromCostPolicy(costPolicy, {
+    calibration: cal.ok ? cal.calibration ?? undefined : undefined,
+    calibrationBoundModel: 'qwen-plus',
+    dispatchModel: 'qwen-plus',
+  }));
   A('校准接入后 plan.calibrated=true', calibrated.ok && calibrated.plan.calibrated === true);
   A('未校准 plan.calibrated=false', uncal.ok && uncal.plan.calibrated === false);
   A('校准后 renderedInput ≤ 未校准（更紧、不越上界）',

@@ -88,13 +88,13 @@ const checks = {
     assert.equal(result.valid, true, result.errors.join('\n'));
     assert.equal(result.stats.releaseEvidence, false);
     assert.equal(result.stats.fileCount, 7);
-    assert.equal(result.stats.testCount, 37);
-    assert.equal(result.stats.assertionCount, 342);
-    assert.equal(result.stats.floors.testCount, 48);
-    assert.equal(result.stats.floors.assertionCount, 367);
-    assert.equal(result.stats.effectiveFloors.testCount, 37);
-    assert.equal(result.stats.effectiveFloors.assertionCount, 342);
-    assert.equal(result.stats.allowlistCount, 6);
+    assert.equal(result.stats.testCount, 39);
+    assert.equal(result.stats.assertionCount, 428);
+    assert.equal(result.stats.floors.testCount, 53);
+    assert.equal(result.stats.floors.assertionCount, 472);
+    assert.equal(result.stats.effectiveFloors.testCount, 39);
+    assert.equal(result.stats.effectiveFloors.assertionCount, 428);
+    assert.equal(result.stats.allowlistCount, 9);
   },
 
   'TC-e2e-parity-01-E1': () => {

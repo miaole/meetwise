@@ -1,0 +1,33 @@
+== B6 inject v5 (COMMIT fixed) ==
+ pg_terminate_backend 
+----------------------
+ t
+(1 row)
+
+== degraded-line count (session total, expect 3) ==
+3
+ set_config 
+------------
+ userA
+(1 row)
+
+seq4 injected+COMMITTED at +627ms
+seq4 DELIVERED (degraded-window ledger path) at +644ms (poll #1)
+LISTEN re-established (backoff reconnect) at +731ms
+ set_config 
+------------
+ userA
+(1 row)
+
+seq5 DELIVERED post-recovery at +1913ms
+== degrade exactly-once: session total lines (expect 3 = 3 kill windows each 1 line) ==
+3
+== client stream ==
+id: 4
+event: progress
+data: {"q":1,"pct":60}
+
+id: 5
+event: progress
+data: {"q":1,"pct":100}
+

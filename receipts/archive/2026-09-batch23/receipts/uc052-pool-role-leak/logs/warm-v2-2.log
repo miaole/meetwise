@@ -1,0 +1,72 @@
+
+> meetwise@0.1.0 privacy-authorization:prove /workspace/meetwise-lineB
+> node scripts/run-e2e-isolated.mjs privacy-authorization:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1953047-1790226246266 on 127.0.0.1:33061
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-lineB/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=134 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:privacy-authorization /workspace/meetwise-lineB/packages/db
+> tsx test/privacy-authorization.proof.ts
+
+PASS  catalog gate: privacy_issuer/privacy_guard_owner 非登录/非继承/非超管且 membership 封闭(L11)
+PASS  签发器写入的 owner 恒等于已认证 principal(不可自报)
+PASS  签发器可为自己拥有的面试签发
+PASS  跨 owner 签发(principal=owner 签 otherOwner 的面试)拒绝
+PASS  非 00 purpose(resume_data_erasure) fail-closed
+PASS  worker 验签还原 owner/jti/digest(与 DB 账本对齐)
+PASS  消费 issued jti 成功并还原 owner/epoch/digest
+PASS  重放同一 jti 拒绝(replay=0)
+PASS  未知 jti 拒绝
+PASS  过期快照 consume 拒绝
+PASS  20 并发 consume 仅一个 winner
+PASS  happy path: consume 后 claim 目标成功并签发租约
+PASS  claim 前未 consume 拒绝(issued 而非 consumed)
+PASS  伪造 principal(≠ snapshot.owner) claim 拒绝
+PASS  cross-owner claim(snapshot owner ≠ request owner)拒绝
+PASS  epoch 不匹配 claim 拒绝
+PASS  digest 不匹配 claim 拒绝
+PASS  subject 不匹配 claim 拒绝
+PASS  scope 不匹配 claim 拒绝
+PASS  签发后新增 target(live digest 漂移) claim 拒绝
+PASS  worker 为自己的 target 写 receipt 成功
+PASS  跨 owner 写 receipt 拒绝
+PASS  有 retention_pending target 不得伪造 completed
+PASS  有 failed_cleanup receipt 不得伪造 completed
+PASS  全 erased + 无坏 receipt 可 completed
+PASS  app_role 无 issue 权限
+PASS  app_role 无 consume 权限
+PASS  H1 跨层: TS digest 与 SQL string_agg 逐字节相等
+PASS  H2 前置: 验签成功还原 digest
+PASS  H2: 账本 target_set_digest 与验签 JWS 不一致 → 消费后强制拒绝
+PASS  H2: 账本与验签一致 → bound consume 成功
+PASS  H2: owner 错配 → bound consume 拒绝
+PASS  H2: interview 错配 → bound consume 拒绝
+PASS  H2: purpose 错配 → bound consume 拒绝
+PASS  H2: epoch 错配 → bound consume 拒绝
+PASS  H2: expiresAt 错配 → bound consume 拒绝
+PASS  M6(b): 账本 issuer_id 漂移 → consume 拒绝
+PASS  F1: 带 external_pending 收据 purge 落 pending_external、不回滚本地删除
+PASS  F1: 本地 target 已 erased(未因 guard 回滚)
+PASS  F1: resolve external_pending→external_confirmed 并推进 completed
+PASS  M1: consumed→issued 回滚重放被单向 guard 拒绝
+PASS  M2/M3: 直插 status=completed(零 target)被 guard 拒绝
+PASS  AUTH_SECRET 登录令牌不能验成隐私授权 JWS
+PASS  AUTH_SECRET 登录令牌不能当 jti 消费
+PASS  app_role + 伪造 GUC 不能 issue（签发只授 privacy_issuer）
+PASS  app_role 不能把自身加成 privacy_issuer
+PASS  app_role raw INSERT snapshot 拒绝
+PASS  app_role raw INSERT receipt 拒绝
+PASS  lease takeover 前置: 第一 worker 租约成功
+PASS  未过期租约第二 worker 不可抢
+PASS  租约过期后第二 worker 可接管，旧 worker 不再独占
+
+✓ PrivacyAuthorizationIssuer DB 证明通过（本地隔离证据）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-09-24T05-04-19-070Z-1953047-4201ee48-f7d6-40cb-9d28-976cb10aeadb.json release_evidence=false

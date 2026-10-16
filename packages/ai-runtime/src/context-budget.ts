@@ -22,7 +22,11 @@
  *    列出的组件上降级。
  */
 import { isKnownEstimatorVersion, refineEstimate, type CalibratedFactor, type EstimatorVersion } from './usage-reconciliation.ts';
-import { byteEstimate } from './model-client.ts';
+import { byteEstimate, cjkWeightedEstimate } from './model-client.ts';
+import { assertCalibrationModelMatch } from './g7-freetier-reprove-guard.ts';
+// GODFN-1b: G7 test-state sensing arrives via composition-root injection —
+// zero `isG7FreetierReproveEnabled(process.env)` direct reads in production src.
+import { g7RuntimeInjection } from './g7-runtime-injection.ts';
 import type { ModelCostPolicy } from './invoke.ts';
 
 /** 显式 enum：预算结果状态。degraded = 确定性降级后仍可派发（已裁低优先级材料）；rejected = 裁无可裁仍超 → 拒绝。 */
@@ -74,6 +78,13 @@ export interface ContextBudgetPolicy {
   estimator: EstimatorVersion;
   /** 可选校准因子（usage 对账导出）；存在则精化估算，仍是上界。 */
   calibration?: CalibratedFactor;
+  /**
+   * Model the calibration factor was derived from. Required whenever `calibration` is set
+   * (and always under G7): must equal `dispatchModel` or planDispatchBudget fails closed.
+   */
+  calibrationBoundModel?: string;
+  /** Model about to be dispatched; paired with calibrationBoundModel for cross-model refuse. */
+  dispatchModel?: string;
   /** 允许降级的组件，按「先裁谁」排序（第一个最先裁）。未列出的组件不可约，绝不裁剪。 */
   trimOrder: readonly ContextBudgetComponentId[];
   /** false 时超预算直接 rejected，不做降级（用于不可降级服务，如评分/报告）。 */
@@ -122,14 +133,16 @@ export type ContextBudgetDecision =
   | { ok: true; plan: ContextBudgetPlan }
   | { ok: false; error: ContextBudgetError };
 
-/** 保守估算器：版本化 + 可选校准。utf8-bytes-v1 = UTF-8 字节数（恒 ≥ 渲染文本 token），未知版本 fail-closed。 */
+/** 保守估算器：版本化 + 可选校准。utf8-bytes-v1 = UTF-8 字节数（恒 ≥ 渲染文本 token），未知版本 fail-closed。
+ *  AG-12：按版本分派原语——v1→byteEstimate（恒等零漂），cjk-weighted-v1→cjkWeightedEstimate（CJK 逐码点加权）。 */
 export function estimateContextTokens(value: string, estimator: EstimatorVersion, calibration?: CalibratedFactor): number {
   if (!isKnownEstimatorVersion(estimator)) {
     // fail-closed：未知估算器版本的语义无法确定（未来新增版本必须先登记进 KNOWN_ESTIMATOR_VERSIONS），绝不猜测。
     throw new Error('context_estimator_unknown');
   }
   if (value.length === 0) return 0; // 空组件 0 token；refineEstimate 要求 ≥1，空串不套校准因子（0×factor=0）。
-  const raw = byteEstimate(value); // 复用 model-client 的保守估算原语（四原语复用，不重实现字节计数）。
+  // 复用 model-client 的保守估算原语（四原语复用，不重实现字节计数）；按 estimator 版本分派，v1 路径逐字节恒等。
+  const raw = estimator === 'utf8-bytes-v1' ? byteEstimate(value) : cjkWeightedEstimate(value);
   return calibration ? refineEstimate(raw, calibration) : raw; // 复用 usage-reconciliation 的精化（上界不变、更贴真实）。
 }
 
@@ -174,6 +187,8 @@ export function contextBudgetPolicyFromCostPolicy(costPolicy: ModelCostPolicy, o
   trimOrder?: readonly ContextBudgetComponentId[];
   allowDegrade?: boolean;
   calibration?: CalibratedFactor;
+  calibrationBoundModel?: string;
+  dispatchModel?: string;
 } = {}): ContextBudgetPolicy {
   const contextWindowTokens = costPolicy.contextWindowTokens;
   const safetyMarginTokens = costPolicy.contextSafetyMarginTokens;
@@ -194,6 +209,8 @@ export function contextBudgetPolicyFromCostPolicy(costPolicy: ModelCostPolicy, o
     toolReserveTokens: costPolicy.contextToolReserveTokens ?? 0,
     estimator,
     calibration: opts.calibration,
+    calibrationBoundModel: opts.calibrationBoundModel,
+    dispatchModel: opts.dispatchModel,
     trimOrder: opts.trimOrder ?? DEFAULT_TRIM_ORDER,
     allowDegrade: opts.allowDegrade ?? true,
   };
@@ -261,6 +278,21 @@ function buildPlan(
 export function planDispatchBudget(components: ContextBudgetComponents, policy: ContextBudgetPolicy): ContextBudgetDecision {
   const invalid = validatePolicy(policy);
   if (invalid) return { ok: false, error: invalid };
+
+  // Cross-model calibration refuse on the real dispatch-budget path (not helper-only).
+  // Under G7, any calibration requires both bound+dispatch models and an exact match.
+  // Outside G7, assert whenever calibration is present and either model field is provided.
+  if (policy.calibration !== undefined) {
+    const g7 = g7RuntimeInjection().freetierReproveEnabled();
+    if (g7 || policy.calibrationBoundModel !== undefined || policy.dispatchModel !== undefined) {
+      const bound = policy.calibrationBoundModel;
+      const dispatch = policy.dispatchModel;
+      if (!bound || !dispatch) {
+        throw new Error('g7_calibration_models_required_for_plan_dispatch_budget');
+      }
+      assertCalibrationModelMatch(bound, dispatch);
+    }
+  }
 
   const availableInputTokens = policy.contextWindowTokens - policy.maxOutputTokens - policy.toolReserveTokens - policy.safetyMarginTokens;
   // 窗口 < 输出+reserve+余量 → 任何输入都放不下，配置非法（而非「预算不足」，因为这不是输入的问题）。

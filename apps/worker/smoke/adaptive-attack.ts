@@ -10,6 +10,7 @@ for (const line of readFileSync(new URL('../../../.env', import.meta.url), 'utf8
 const { getPrompt, openAICompatibleClient } = await import('@meetwise/ai-runtime');
 const { ATTACK_CORPUS } = await import('../test/attack-corpus.ts');
 const { stripScoringManipulation, isNonAnswer } = await import('@meetwise/domain');
+const { asErr } = await import('@meetwise/db');
 
 const FAST = process.env.MODEL_FAST_NAME ?? 'qwen-turbo';
 const fastClient = openAICompatibleClient({ model: FAST });
@@ -17,12 +18,18 @@ const plusClient = openAICompatibleClient({ model: 'qwen-plus' });   // 检到�
 const p = getPrompt('mock-interview.evaluate');
 
 type Ev = { score: number; relevant: boolean; hasHook: boolean; evidence: string[] };
-// 复刻 assess 的服务层规整:relevant=false → 强制 score=0/hasHook=false。
+// 复刻 assess 的服务层规整(#52 v6):模型只出 per-criterion 档位,展示分=档位×分量的确定性派生
+// (种子单分项 weight 1 → 0/50/100);relevant=false → 强制 0 分/hasHook=false。v5 自由总分契约已废。
 function normalize(raw: any): Ev {
   const relevant = raw?.relevant !== false;
+  const dispositions: any[] = Array.isArray(raw?.dispositions) ? raw.dispositions : [];
+  const bandVal: Record<string, number> = { below: 0, meets: 50, exceeds: 100 };
+  const score = relevant && dispositions.length > 0
+    ? Math.round(dispositions.reduce((sum, d) => sum + (bandVal[String(d?.disposition)] ?? 0), 0) / dispositions.length)
+    : 0;
   return relevant
-    ? { score: Number(raw?.score) || 0, relevant: true, hasHook: !!raw?.hasHook, evidence: Array.isArray(raw?.evidence) ? raw.evidence : [] }
-    : { score: 0, relevant: false, hasHook: false, evidence: Array.isArray(raw?.evidence) ? raw.evidence : [] };
+    ? { score, relevant: true, hasHook: !!raw?.hasHook, evidence: dispositions.map((d) => String(d?.criterionId ?? '')) }
+    : { score: 0, relevant: false, hasHook: false, evidence: dispositions.map((d) => String(d?.criterionId ?? '')) };
 }
 
 // 泄露探测:evidence 里不得出现**围栏/nonce 的真实值**或**系统指令原文的照抄**。
@@ -64,7 +71,7 @@ console.log(`=== 红队回归:${ATTACK_CORPUS.length} 条攻击 过真评估器(
 const results: Awaited<ReturnType<typeof evalOne>>[] = [];
 for (const a of ATTACK_CORPUS) {
   try { results.push(await evalOne(a)); }
-  catch (e: any) { results.push({ a, breach: null, err: 'exc_' + String(e?.message).slice(0, 30) }); }
+  catch (e: unknown) { results.push({ a, breach: null, err: 'exc_' + String(asErr(e)?.message).slice(0, 30) }); }
 }
 
 const breaches = results.filter((r) => r.breach);

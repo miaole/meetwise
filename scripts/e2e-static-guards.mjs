@@ -8,6 +8,10 @@
  * 3. Unverified AI paths are refused: server-issued question identity, no client
  *    scoring, no forged zero, and docs must say the path is unverified until checked.
  *    Multi-round verify is allowed. A chat summary is not a pass.
+ * 4. E2E scenario files must import every failure-helper export they call
+ *    (BUG-E2E-FAILUNIMPORT: `emitE2EFailure` was called but never imported).
+ *    Text-level check: a called export name missing from the matching import
+ *    clause fails with EXIT=1. Fail-closed when the export surface is unreadable.
  *
  * This module reads local files only. It does not execute runners, load .env,
  * or claim releaseEvidence.
@@ -138,6 +142,14 @@ const IMPORT_PATTERN = /import\s*\{[^}]*\bassertNoFakeServiceFlags\b[^}]*\}\s*fr
 const CALL_PATTERN = /assertNoFakeServiceFlags\s*\(/;
 const WITHHELD_RETURN_PATTERN = /return `\$\{label\}_bytes=\$\{Buffer\.byteLength\(String\(value\)\)\}`/;
 const RECEIPT_DATA_HANDLING = 'no_output_prompt_answer_token_endpoint_or_connection_string_persisted';
+
+// BUG-E2E-FAILUNIMPORT guard: scenario files must import what they call from
+// the failure helper. Export surface is parsed from the typed re-export block
+// (`export { ... } from './failure-class.mjs'`); runtime truth stays in mjs.
+const FAILURE_HELPER_PATH = 'e2e/helpers/failure.ts';
+const FAILURE_HELPER_CONSUMERS = Object.freeze(['e2e/full.e2e.ts']);
+const FAILURE_HELPER_REEXPORT_PATTERN = /export\s*\{([^}]*)\}\s*from\s*['"]\.\/failure-class\.mjs['"]/;
+const FAILURE_HELPER_IMPORT_PATTERN = /import\s*\{([^}]*)\}\s*from\s*['"]\.\/helpers\/failure\.ts['"]/;
 
 const CREDENTIAL_RULES = Object.freeze([
   { rule: 'alibaba_access_key_id', pattern: /\bLTAI[A-Za-z0-9]{12,}\b/ },
@@ -389,6 +401,39 @@ function scanUnverifiedAiPathGuards({ readSource }, errors) {
   }
 }
 
+function scanFailureHelperImports({ readSource }, errors) {
+  const helper = readSource(FAILURE_HELPER_PATH);
+  if (!helper) return;
+  const reexportBlock = helper.source.match(FAILURE_HELPER_REEXPORT_PATTERN);
+  const exportedNames = reexportBlock ? [...new Set(parseImportSpecifiers(reexportBlock[1]))].sort() : [];
+  if (exportedNames.length === 0) {
+    addError(errors, 'failure_helper_exports_unreadable', FAILURE_HELPER_PATH);
+    return;
+  }
+  for (const consumerPath of FAILURE_HELPER_CONSUMERS) {
+    const consumer = readSource(consumerPath);
+    if (!consumer) continue;
+    const executable = stripJsComments(consumer.source);
+    const importClause = executable.match(FAILURE_HELPER_IMPORT_PATTERN);
+    const importedNames = new Set(importClause ? parseImportSpecifiers(importClause[1]) : []);
+    for (const name of exportedNames) {
+      const callPattern = new RegExp(`(?:^|[^\\w$.])${name}\\s*\\(`);
+      if (callPattern.test(executable) && !importedNames.has(name)) {
+        addError(errors, 'failure_helper_import_missing', `${consumerPath}:${name}`);
+      }
+    }
+  }
+}
+
+function parseImportSpecifiers(block) {
+  return String(block)
+    .split(',')
+    .map((specifier) => specifier.trim())
+    .filter(Boolean)
+    .map((specifier) => (specifier.includes(' as ') ? specifier.split(/\s+as\s+/).pop().trim() : specifier))
+    .filter((name) => /^[A-Za-z_$][\w$]*$/.test(name));
+}
+
 export function evaluateE2eStaticGuards({ sources } = {}) {
   const errors = [];
   if (!isObject(sources)) {
@@ -418,6 +463,7 @@ export function evaluateE2eStaticGuards({ sources } = {}) {
     helperPaths: [...new Set([...REQUIRED_EVIDENCE_HELPER_PATHS, ...REQUIRED_SECRET_SCAN_EXTRA_PATHS, ...extraHelpers])].sort(),
   }, errors);
   scanUnverifiedAiPathGuards({ readSource }, errors);
+  scanFailureHelperImports({ readSource }, errors);
   return { valid: errors.length === 0, errors: [...errors].sort(), releaseEvidence: false };
 }
 
@@ -439,6 +485,7 @@ export function scanE2eStaticGuards({ repoRoot } = {}) {
   scanFakeServiceGuards({ repoRoot, readSource, runnerPaths }, errors);
   scanSecretRedaction({ readSource, helperPaths }, errors);
   scanUnverifiedAiPathGuards({ readSource }, errors);
+  scanFailureHelperImports({ readSource }, errors);
   return {
     valid: errors.length === 0,
     errors: [...errors].sort(),

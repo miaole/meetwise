@@ -196,8 +196,8 @@ async function main() {
 
   /* ═══════════════════════ E. Unicode / 特殊字符:绝不 5xx(健壮性) ═══════════════════════ */
 
-  // E1 NUL 字节(Postgres text 不容  )→ 期望优雅 4xx;若 5xx=未拦截的落库崩溃(疑似 bug)
-  A('unicode:nul-byte/resume', noCrash((await h.post('/resume', AU, { text: 'valid head ' + ' ' + ' tail padding xxxxx' })).status));
+  // E1 NUL 字节(Postgres text 不容 \x00)→ 期望优雅 4xx;若 5xx=未拦截的落库崩溃(疑似 bug)
+  A('unicode:nul-byte/resume', noCrash((await h.post('/resume', AU, { text: 'valid head ' + '\x00' + ' tail padding xxxxx' })).status));
   // E2 纯空白 / 纯 emoji / RTL override / 组合字:不崩
   A('unicode:whitespace-only/resume', noCrash((await h.post('/resume', AU, { text: ' '.repeat(40) })).status));
   A('unicode:emoji-only/resume', noCrash((await h.post('/resume', AU, { text: '😀'.repeat(30) })).status));
@@ -312,14 +312,16 @@ main().catch((e) => { console.error(e); process.exit(1); });
  *           修法:controller/service 先校验 :id 为 uuid(zod uuid / 正则),非法即 404;
  *                 或 AllExceptionsFilter 把 22P02 映射成 400/404。对照组 reparse 因 `.catch(()=>null)`
  *                 已稳 404(inj:non-uuid-id/resume-reparse-caught-404),证明兜底可行。
- *   [疑似] NUL 字节写简历(unicode:nul-byte/resume):若 Postgres 拒   抛错未拦 → 500。
+ *   [疑似] NUL 字节写简历(unicode:nul-byte/resume):若 Postgres 拒 \x00 抛错未拦 → 500。
  *           本条以 noCrash 断言;若 FAIL 即须在落库前 strip/拒 NUL。
  *   [疑似] 深度嵌套炸弹(proto:deep-nesting-bomb/resume):若 JSON 解析递归栈溢出 → 500(DoS)。
  *
  * ── 其它契约/一致性观察 ──
  *   - /auth/login 故意不套 Credentials(见 controller 注释:限流需看全部尝试 + 兼容历史短密码),
  *     故 login 的短密码/空密码负例归 neg-auth,本文件不打(避免与设计意图冲突)。
- *   - /privacy/consent、/commerce/pay-callback、/roles/match 用裸 @Body(无 pipe):
- *     语法畸形靠 Fastify 解析器兜(已覆盖),但语义字段无 zod 约束(purpose/providerTxn/sig 任意串)——
+ *   - /commerce/pay-callback、/roles/match 用裸 @Body(无 pipe):
+ *     语法畸形靠 Fastify 解析器兜(已覆盖),但语义字段无 zod 约束(providerTxn/sig 任意串)——
  *     非本次「协议/校验健壮性」5xx 范畴,记录供契约方评估是否补 schema。
+ *   - /privacy/consent 已补 purpose 枚举校验(CONSENT-MIN:三入口经 ZodValidationPipe →
+ *     400 {error:'invalid'};POST body strict / GET+DELETE query 非 strict;语法畸形仍靠 Fastify 解析器兜)。
  * ───────────────────────────────────────────────────────────────────────────── */

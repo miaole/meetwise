@@ -1,0 +1,23 @@
+# LINT-DESIGN S2 指针形式裁定证据（specifier 不可解析负证 + 相对路径落法依据）
+# date: 2026-10-10
+
+== 负证：'@meetwise/config/eslint/base' specifier 解析（S1 base 头注消费形式·实树不可达）==
+# cmd: node --input-type=module -e "await import('@meetwise/config/eslint/base')" @ apps/api 与根
+apps/api  => SPECIFIER_RESOLVES=false code=ERR_MODULE_NOT_FOUND
+repo root => ROOT_SPECIFIER_RESOLVES=false code=ERR_MODULE_NOT_FOUND
+
+== 结构证据：零 .npmrc · @meetwise 作用域零公共链接 ==
+# ls .npmrc => 无此文件（exit 1）
+# ls node_modules/@meetwise => No such file or directory（根）
+# apps/api/node_modules/@meetwise => ai-graphs ai-runtime contracts db domain（无 config·pnpm 仅链声明依赖）
+# 全 11 workspace + 根 package.json 中 '@meetwise/config' 声明 = 0（node 逐包亲证·2026-10-10）
+
+== 仓内先例：config 包消费全走相对路径（tsconfig extends）==
+apps/api/tsconfig.json: extends "../../packages/config/tsconfig/nest.json"
+packages/domain/tsconfig.json: extends "../config/tsconfig/base.json"
+packages/db/tsconfig.json: extends "../config/tsconfig/base.json"
+
+== 裁定 ==
+设计 §1.5 S2 行原文「根 eslint.config.mjs + 11 workspace 逐个 extends」不限定 import 形式 → 指针=薄壳相对路径 re-export base（零安装·零 resolver 插件·零 package.json/lockfile 触碰·预算内唯一可执行落法）；
+S1 base 头注 specifier 形式在实树不可解析·维持 S1 产物零字节不改（改注释=S1 已 nail 工件触碰·超范围）·exports './eslint/base' 键保留不动（声明依赖的后续消费者仍可用）；
+停止条件核查：设计 S2 行与实树=可执行（无符）·无需装 resolver 插件（相对路径零依赖·无符）·预算 ≤5 文件/批×3 批 ≤50 行=48 行（无符）→ 不停手。

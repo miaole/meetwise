@@ -1,0 +1,40 @@
+
+> @meetwise/worker@0.0.0 prove:adaptive-consumer /Users/miaole/Desktop/golucky/meetwise-line-ac1/apps/worker
+> tsx test/adaptive-consumer.proof.ts
+
+PASS  消费者使用已 provision 的低权 runtime login（运行时登录）
+PASS  fixture 经生产同链供给 route snapshot(0142 decision+snapshot 幂等供给)
+PASS  双 worker 同一 graph:第二个拿不到 fence(无并发 resume)
+PASS  首 worker 释放后正常完成 fence callback
+PASS  消费 start job → 自适应路径(返回 start)
+PASS  正常 v64 start 只读画像授权门、不解密简历原文
+PASS  start 后发首题 question_ready(经队列→消费者→自适应图)
+FAIL  低置信 RAG 在真实 consumer→graph 路径走有界 deepResearch，未落回浅层 seam
+FAIL  深检索正文以不可信信封进入出题 prompt，系统明确禁止执行来源指令
+PASS  第0题 API identity ledger 接受
+PASS  第1题 API identity ledger 接受
+PASS  第2题 API identity ledger 接受
+PASS  每答经评估发 answer_evaluated(≥2)
+PASS  正常 v64 answer 正向校准 profile hook（画像接缝）至少被调用一次
+PASS  收尾 interview=completed(动态决策判定 all_resolved)
+PASS  额度结算(扣 1.0)
+PASS  报告入队走舱壁(queued)
+PASS  所有 job done(无卡)
+PASS  收尾写入跨会话 episode（题面、来源面试；非用户答案）
+PASS  新 start 的 typed resume_id 与 epoch 只从 parent 派生
+PASS  绕过 helper 的直接 SQL 空来源被 v64 数据库 trigger 拒绝
+PASS  同 owner 另一份 resume 的直接 SQL 错绑被数据库 trigger 拒绝
+PASS  直接 SQL 伪造历史 version 49 被数据库 trigger 拒绝
+PASS  遗留 start claim 只返回元数据，resumeRaw sentinel 不进入 worker
+PASS  遗留 payload-only start 在任何图副作用前失败：模型=0、job failed、终态事件恰一条
+PASS  遗留 payload-only start 走一次既有 paired release，额度精确恢复
+PASS  表面合法的 v49 start 同样零图副作用并失败释放
+PASS  遗留 payload-only NULL start 在解密/检查点/图/模型前失败并只释放一次
+PASS  表面绑定的 NULL start 同样在解密/检查点/图/模型前失败并只释放一次
+PASS  遗留 v49 answer 在画像/检查点/图/模型前失败并只释放一次
+PASS  遗留 NULL answer 同样在画像/检查点/图/模型前失败并只释放一次
+PASS  双提交同题 → 幂等(返同一 job id,不重复入队)
+PASS  库里只一个 answer job(防 worker 二次 resume 错位应用到下一题)
+
+✗ 2 失败
+ ELIFECYCLE  Command failed with exit code 1.

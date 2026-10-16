@@ -1,0 +1,136 @@
+# HA-4 backup SANDBOX overlay — local drill materials only (never production).
+#
+#   est live=0 · zero production operations · throwaway tmpfs seed PG (down =
+#   destroyed) · sandbox dummy credentials follow the compose.ha.sandbox.yml:26-27
+#   precedent (committed dummies, tmpfs-lifetime, never real secrets).
+#   Sandbox-specific host paths live under .tmp/ (gitignored) — never committed.
+#
+#   The refuse-by-default gate is NOT satisfied here: MEETWISE_HA4_BACKUP_AUTHORIZED=1
+#   must be exported in the driver shell (coordinator authorization act), it is
+#   deliberately not defaulted to 1 in this file.
+#
+#   Drivers (both gate-checked):
+#     scripts/backup/sandbox-seed.sh    # seed = real 160-migration schema + sentinels
+#     scripts/backup/restore-drill.sh   # runs inside the throwaway drill container
+#
+#   Network: seed PG publishes on host loopback 127.0.0.1:15433 only; the drill
+#   container publishes nothing (project-internal network). Backup plane has no
+#   ports at all — REQUEST §6-1 zero 0.0.0.0 exposure holds sandbox-side too.
+
+name: meetwise-ha4-backup
+
+x-backup-container-security: &backup-container-security
+  read_only: true
+  cap_drop:
+    - ALL
+  security_opt:
+    - no-new-privileges:true
+  tmpfs:
+    - /tmp:rw,noexec,nosuid,nodev,size=64m
+
+services:
+  # ---- throwaway seed Postgres (pgvector:pg16 — vector extension mandatory,
+  #      compose.ha.sandbox.yml:23-24 precedent) carrying the real migration
+  #      schema: business tables + resume_blob ciphertext artifacts
+  #      (0001_baseline.sql:188) + vector_chunk HNSW (:283-289) + the LangGraph
+  #      PostgresSaver checkpoint face (0043_langgraph_checkpoint_least_privilege.sql). ----
+  backup-seed-pg:
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: meetwise_ha4_sandbox_dummy
+      POSTGRES_DB: meetwise
+      PGDATA: /var/lib/postgresql/data/pg
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    ports:
+      - "127.0.0.1:15433:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 5s
+    expose:
+      - "5432"
+
+  # ---- the real backup service from compose.backup.yml, pointed at the seed
+  #      PG with sandbox materials (overlay merge: only env/paths change — the
+  #      security block, command, image and secret wiring are inherited). ----
+  backup:
+    depends_on:
+      backup-seed-pg:
+        condition: service_healthy
+    environment:
+      BACKUP_DATABASE_URL: postgres://meetwise:meetwise_ha4_sandbox_dummy@backup-seed-pg:5432/meetwise?sslmode=disable
+    volumes:
+      - type: bind
+        source: ./scripts/backup
+        target: /work/backup-scripts
+        read_only: true
+      - type: bind
+        source: ./.tmp/ha4-backup/backups
+        target: /backups
+
+  # ---- throwaway restore-drill materials (REQUEST §2-W3): the drill TARGET is
+  #      a dedicated throwaway Postgres container (tmpfs lifetime, POSTGRES_HOST
+  #      _AUTH_METHOD=trust = sandbox dummy auth, compose-internal network only,
+  #      zero published ports) running as the image's normal postgres user. The
+  #      DRIVER (service `restore-drill`) keeps the exact compose.prod.yml:124-131
+  #      security anchor shape as root — cap_drop ALL means no setuid gosu
+  #      switch is possible there, so the target is a separate container rather
+  #      than an initdb inside the driver. Restore flows over TCP (the real
+  #      incident path: pg_restore -h <new host>).
+  #      ACL disposal stays explicit inside the drill script: it pre-creates
+  #      every source role (NOLOGIN) on the target before restoring the dump
+  #      with ZERO statement filtering (no --no-acl), then asserts table-set /
+  #      row-count / ciphertext-byte equality, then both containers are
+  #      destroyed (compose --profile ha4-drill down -v). ----
+  ha4-drill-pg:
+    profiles: ["ha4-drill"]
+    image: pgvector/pgvector:pg16
+    environment:
+      POSTGRES_USER: drill
+      POSTGRES_DB: ha4_drill
+      POSTGRES_HOST_AUTH_METHOD: trust
+      PGDATA: /var/lib/postgresql/data/pg
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U drill -d ha4_drill"]
+      interval: 5s
+      timeout: 3s
+      retries: 24
+      start_period: 5s
+    expose:
+      - "5432"
+
+  restore-drill:
+    profiles: ["ha4-drill"]
+    <<: *backup-container-security
+    image: pgvector/pgvector:pg16
+    depends_on:
+      backup-seed-pg:
+        condition: service_healthy
+      ha4-drill-pg:
+        condition: service_healthy
+    environment:
+      SOURCE_DATABASE_URL: postgres://meetwise:meetwise_ha4_sandbox_dummy@backup-seed-pg:5432/meetwise?sslmode=disable
+      DRILL_TARGET_URL: postgres://drill@ha4-drill-pg:5432/ha4_drill
+      MEETWISE_HA4_BACKUP_AUTHORIZED: ${MEETWISE_HA4_BACKUP_AUTHORIZED:-}
+    volumes:
+      - type: bind
+        source: ./scripts/backup
+        target: /work/backup-scripts
+        read_only: true
+      - type: bind
+        source: ./.tmp/ha4-backup/backups
+        target: /backups
+        read_only: true
+      - type: bind
+        source: ./.tmp/ha4-backup/evidence
+        target: /evidence
+
+secrets:
+  rds_ca:
+    file: ./.tmp/ha4-backup/dummy-rds-ca.pem

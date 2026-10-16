@@ -33,6 +33,8 @@ const resumeActions = read('apps/web/app/resume/actions.ts');
 const resumeOcrUi = read('apps/web/lib/resume/ocr-preview-ui.ts');
 const resumeOcrPreview = read('apps/web/lib/ocr-preview.ts');
 const settings = read('apps/web/app/settings/page.tsx');
+const resumeDeleteButton = read('apps/web/app/resume/DeleteResumeButton.tsx');
+const deactivateForm = read('apps/web/app/settings/DeactivateForm.tsx');
 const pricing = read('apps/web/app/pricing/page.tsx');
 const legal = read('apps/web/app/legal/page.tsx');
 const legalApi = read('apps/api/src/modules/legal/legal.controller.ts');
@@ -92,10 +94,10 @@ const checks = {
     requireText(homeEn, 'not a calibrated capability assessment', 'English home copy');
     requireText(homeZh, '真实经历 → 自适应面试 → 可复盘成长', 'Chinese home story');
     requireText(homeEn, 'Real experience → adaptive interview → reviewable growth', 'English home story');
-    requireText(pagesHtml, '招聘不在本预览范围', 'Pages hiring out-of-scope');
-    requireText(homeZh, '招聘不在本预览范围', 'Chinese home hiring out-of-scope');
-    requireText(homeEn, 'Hiring is out of scope', 'English home hiring out-of-scope');
-    assert.equal((pagesHtml.match(/招聘不在本预览范围/g) ?? []).length, 1, 'Pages may state hiring is out of scope once');
+    requireText(pagesHtml, '招聘功能面向企业账户开放', 'Pages hiring caliber');
+    requireText(homeZh, '招聘功能面向企业账户开放', 'Chinese home hiring caliber');
+    requireText(homeEn, 'Hiring features are available to enterprise accounts', 'English home hiring caliber');
+    assert.equal((pagesHtml.match(/招聘功能面向企业账户开放/g) ?? []).length, 1, 'Pages may state hiring caliber once');
     forbid(`${homeZh}\n${homeEn}\n${features}\n${pagesHtml}\n${readme}\n${runtimeTruth}\n${frontendBlueprint}\n${localDemo}\n${pagesDirectoryChecklist}`, [
       '双受众定位',
       '招聘侧是后续方向',
@@ -121,20 +123,29 @@ const checks = {
   },
   'TC-PUBLIC-COPY-E1': () => {
     const privacyAction = read('apps/web/app/privacy/actions.ts');
+    const previewForm = read('apps/web/app/privacy/PreviewErasureForm.tsx');
+    // UNSTUB-ERASE rev2 翻转：删除/注销能力与文案同刀落地，旧「尚未开放/暂未开放」文案禁回潮。
     forbid(privacy, ['deleteResumeDataAction', '删除我的简历数据'], 'privacy page');
+    forbid(privacy, ['生产 `DELETE /privacy/*` 仍关闭'], 'privacy page');
     requireText(privacy, '预览版', 'privacy page');
     requireText(privacy, '不替代完整数据权利或跨存储生产删除', 'privacy page');
-    requireText(privacy, '生产 `DELETE /privacy/*` 仍关闭', 'privacy page');
-    forbid(resume, ['deleteResumeAction', 'pendingLabel="删除中…"'], 'resume page');
-    requireText(resume, '删除功能暂未开放', 'resume page');
-    forbid(settings, ['deactivateAction', '删除我的数据', '注销中…'], 'settings page');
-    requireText(settings, '账户注销暂未开放', 'settings page');
+    requireText(privacy, '单份简历删除在简历页、账户注销在设置页受理', 'privacy page');
+    // #242：隐私页不再提供「一份面试」删除预览入口（误围栏触发点从源头移除）。
+    forbid(previewForm, ['一份面试', 'interview_data'], 'privacy preview form');
+    forbid(resume, ['删除功能暂未开放', '完整删除与跨存储回执流程尚未开放'], 'resume page');
+    forbid(resumeDeleteButton, ['删除功能暂未开放', '完整删除与跨存储回执流程尚未开放'], 'resume delete button');
+    requireText(resumeDeleteButton, '删除后立即从你的账号中移除并停止一切处理；后台清除稍后完成', 'resume delete button');
+    forbid(settings, ['账户注销暂未开放', '删除我的数据'], 'settings page');
+    forbid(deactivateForm, ['账户注销暂未开放', '删除我的数据'], 'deactivate form');
+    requireText(deactivateForm, '注销后立即登出且无法再登录；关联数据停止一切处理与访问，后台清除稍后完成；清除完成前同一邮箱无法重新注册', 'deactivate form');
+    requireText(settings, '后台物理清除为异步流程稍后完成', 'settings page');
     assert.equal(existsSync(resolve(repoRoot, 'apps/web/app/privacy/actions.ts')), true, 'preview receipt action must exist');
     forbid(privacyAction, ['deleteResumeDataAction', '/privacy/resume-data', '/privacy/interview-data'], 'privacy preview action');
     requireText(privacyAction, '/privacy/erasure-preview', 'privacy preview action');
     requireText(privacyAction, 'preview_incomplete', 'privacy preview action');
-    requireText(faq, '完整的删除、撤回与跨存储回执流程尚未开放', 'FAQ');
-    requireText(faq, '预览版删除回执', 'FAQ');
+    forbid(faq, ['完整的删除、撤回与跨存储回执流程尚未开放'], 'FAQ');
+    requireText(faq, '删除/注销即时生效（立即停止处理与访问）', 'FAQ');
+    requireText(faq, '跨存储物理清除与回执为后台异步流程', 'FAQ');
   },
   'TC-PUBLIC-COPY-E2': () => {
     forbid(pricing, ["serverGet(", "'/billing'", '购买</Link>', '¥'], 'credits page');
@@ -167,9 +178,29 @@ const checks = {
   },
   'TC-PUBLIC-COPY-E7': () => {
     forbid(legal, ['serverGet(', '到期或经你申请后删除', 'retentionDays'], 'public legal page');
-    requireText(legal, '完整删除、撤回同意、跨存储删除回执', 'public legal page');
+    forbid(legal, ['完整删除、撤回同意、跨存储删除回执、外部处理方回执和留存周期承诺尚未开放'], 'public legal page');
+    requireText(legal, '删除/注销受理即时生效（立即停止处理与访问）', 'public legal page');
+    requireText(legal, '跨存储清除回执异步完成', 'public legal page');
     forbid(legalApi, ['删除权(删除简历/数据)', 'retentionDays: 365'], 'public legal API');
-    requireText(legalApi, '当前未开放', 'public legal API');
+    requireText(legalApi, '删除/注销即时生效（立即停止处理与访问），跨存储清除回执异步完成', 'public legal API');
+  },
+  'TC-PUBLIC-COPY-G3': () => {
+    // G3 BEGIN-GUARD #261 W2④（R3 落槽写死：pricing/faq 文案断言落本管道）。
+    // ① 真读数上屏 → 口径句改如实转述（裁定③：措辞去「实时」——余额=渲染时点读数 ≠ 实时余额保证，§7 Non-claim 对齐。
+    // forbid 面窄化到本刀句式（faq :26 既有「请以页面实时状态为准」属他句，零触碰）。
+    requireText(pricing, '它们来自你的账户余额查询，反映开始练习时的剩余额度', 'pricing credits copy');
+    requireText(faq, '页面中的额度信息来自你的账户余额查询，反映开始练习时的剩余额度', 'FAQ credits copy');
+    forbid(pricing, ['实时'], 'pricing credits copy');
+    forbid(faq, ['额度信息实时', '账户实时查询', '实时余额'], 'FAQ credits copy');
+    // ② 旧假读数短语禁回潮（真读数上屏后旧句失真）。
+    forbid(pricing, ['仅表示界面或开发流程状态'], 'pricing credits copy');
+    forbid(faq, ['仅用于展示'], 'FAQ credits copy');
+    // ③ post-prove 判收硬项：两尾段免责句逐字保留（一字不动）。
+    requireText(pricing, '不构成可购买服务、报价或销售要约', 'pricing disclaimer verbatim');
+    requireText(faq, '不构成销售要约', 'FAQ disclaimer verbatim');
+    // ④ 预览零支付口径两页原样（E2 家族句不因本刀漂移）。
+    requireText(pricing, '预览环境不提供支付、购买或退款', 'pricing no-payment copy');
+    requireText(faq, '当前为预览环境，不对外提供支付、购买或退款服务', 'FAQ no-payment copy');
   },
   'TC-PUBLIC-COPY-E8': () => {
     forbid(billing, ['serverGet(', 'BuyButton', '¥'], 'billing page');
@@ -183,7 +214,7 @@ const checks = {
   'TC-PUBLIC-COPY-E9': () => {
     requireText(poster, '非能力认证 · 不得用于招聘、资格或录用判断', 'downloadable poster');
     requireText(recruiterTalent, '不提供自动筛选、排名、拒绝或录用决定', 'recruiter talent page');
-    requireText(recruiterTalent, '内部预览', 'recruiter talent page');
+    requireText(recruiterTalent, '投递骨架', 'recruiter talent page');
     requireText(recruiterTalent, '不是人才库产品', 'recruiter talent page');
     requireText(recruiterTalent, '也不是招聘方产品', 'recruiter talent page');
     forbid(features, ['CRAG', '自动触发再检索', '自主探索'], 'feature claims');
@@ -224,11 +255,11 @@ const checks = {
     requireText(recruiterJobCandidates, '不会把失败说成「还没有候选人」', 'recruiter job candidates');
     requireText(recruiterTalent, '查看状态', 'recruiter talent page');
     requireText(recruiterJobs, 'ArchitectureHighlights', 'recruiter jobs page');
-    requireText(recruiterJobs, '内部预览', 'recruiter jobs page');
+    requireText(recruiterJobs, '岗位骨架', 'recruiter jobs page');
     requireText(recruiterJobs, '不是招聘方产品', 'recruiter jobs page');
     requireText(candidateJobs, '不是正式招聘', 'candidate jobs page');
     requireText(candidateJobs, '不是招聘方产品', 'candidate jobs page');
-    requireText(loginPage, '内部预览', 'login page');
+    requireText(loginPage, '招聘方功能面向企业招聘流程', 'login page');
     requireText(loginPage, '不是与求职者对等的第二套产品', 'login page');
     forbid(loginPage, ['求职者 C 端 / 招聘方 B 端'], 'login page');
     requireText(candidateJobs, 'applicationScoreVisible', 'candidate applications consume the score gate');
@@ -247,9 +278,20 @@ const checks = {
   'TC-PUBLIC-COPY-E11': () => {
     forbid(`${resume}\n${resumeForms}\n${resumeOcrUi}`, ['求职者', '面试官'], 'resume OCR preview copy');
     forbid(resumeForms, ['OCR 接线中', 'image/*'], 'closed resume file input');
-    requireText(resumeOcrUi, '不是生产视觉质量承诺', 'resume OCR preview copy');
+    // UC003-I18N 修法②随迁（§8 裁决⑥ 双源）：help text / card description / banner 文案迁
+    // messages/{zh,en}.json（resumeUpload namespace）后，两针失锚改指 zh.json 源文；
+    // 「不会编造文字」针仍锚留守 map（upload_timeout 值）原样不动。en 侧=键存在+值
+    // CJK-free（不逐字断言 EXEC 自撰译文）。forbid 面（:279/:280/:292）不随迁（rev3 P2-③：
+    // 扫描目标仍指 read() 源文件；messages 面由 S2 key parity + S4 CJK-free 接管）。
+    requireText(homeZh, '不是生产视觉质量承诺', 'resume OCR preview copy');
     requireText(resumeOcrUi, '不会编造文字', 'resume OCR preview copy');
-    requireText(resumeOcrUi, '图片识别未开放', 'resume OCR closed copy');
+    requireText(homeZh, '图片识别未开放', 'resume OCR closed copy');
+    const resumeUploadEnCatalog = JSON.parse(homeEn).resumeUpload ?? {};
+    const resumeUploadCjkPattern = /[\u4e00-\u9fff]/;
+    for (const key of ['helpPreview', 'helpStandard', 'cardPreview', 'cardStandard', 'banner']) {
+      assert.equal(typeof resumeUploadEnCatalog[key], 'string', `en.json resumeUpload.${key} must exist (UC003-I18N migration)`);
+      assert.equal(resumeUploadCjkPattern.test(resumeUploadEnCatalog[key]), false, `en.json resumeUpload.${key} must be CJK-free`);
+    }
     requireText(resumeOcrPreview, "OCR_ENABLED === '1' && env.OCR_PREVIEW === '1'", 'resume OCR preview flags');
     requireText(resumeOcrPreview, "MEETWISE_PUBLIC_PREVIEW === '1'", 'resume OCR public-preview lock');
     requireText(resume, 'isOcrPreviewEnabled', 'resume page wires the preview gate');
@@ -266,13 +308,13 @@ const checks = {
     requireText(pagesHtml, '不提供支付、购买、退款或自动扣费', 'Pages showcase');
     requireText(pagesHtml, 'https://github.com/miaole/meetwise', 'Pages showcase');
     requireText(runtimeTruth, '仅面试练习', 'Pages runtime truth');
-    requireText(runtimeTruth, '招聘不在本预览范围', 'Pages runtime truth');
+    requireText(runtimeTruth, '招聘功能面向企业账户开放', 'Pages runtime truth');
     requireText(frontendBlueprint, '仅面试练习', 'Pages frontend blueprint');
-    requireText(frontendBlueprint, '招聘不在本预览范围', 'Pages frontend blueprint');
+    requireText(frontendBlueprint, '招聘功能面向企业账户开放', 'Pages frontend blueprint');
     requireText(localDemo, '仅面试练习', 'Pages local-demo preview directory');
-    requireText(localDemo, '招聘不在本预览范围', 'Pages local-demo preview directory');
+    requireText(localDemo, '招聘功能面向企业账户开放', 'Pages local-demo preview directory');
     requireText(pagesDirectoryChecklist, '仅面试练习', 'Pages directory checklist');
-    requireText(pagesDirectoryChecklist, '招聘不在本预览范围', 'Pages directory checklist');
+    requireText(pagesDirectoryChecklist, '招聘功能面向企业账户开放', 'Pages directory checklist');
     requireText(pagesWorkflow, "github.ref == 'refs/heads/main'", 'Pages workflow');
     requireText(pagesWorkflow, 'docs/index.html', 'Pages workflow');
     requireText(pagesWorkflow, "cp docs/index.html docs/styles.css docs/.nojekyll .pages-dist/", 'Pages workflow stages docs/ only');

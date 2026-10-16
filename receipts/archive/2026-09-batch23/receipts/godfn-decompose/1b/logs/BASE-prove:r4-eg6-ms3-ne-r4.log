@@ -1,0 +1,32 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg6-ms3-ne-r4 /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg6-ms3-ne-r4-evidence.proof.ts
+
+EG6 MS3≠R4 pin retention honesty evidence prove
+EXIT=0 = evidence emitted · ≠ EG6/MS3=R4/R4/G-R4-5/题域 product closed · Ban forge · Ban claim R4 closed from MS3 · Ban claim from EG1–EG5 / meta prove alone · releaseEvidence=false
+
+──────── D0 anchors present ────────
+PASS  D0 emitter wired
+PASS  D0 harness present
+PASS  D0 harness pins Ban forge + Ban idle EG1–EG5 + EG6 STILL OPEN + Ban claim R4 from MS3
+
+──────── D1 live assessor (EG1–EG5 present · MS3≠R4 retained · honesty pins) ────────
+FAIL  D1 eg1ThroughEg5EvidencePresent
+PASS  D1 ms3NeR4PinLanguageRetained
+PASS  D1 banClaimR4ClosedFromMs3Retained
+PASS  D1 eg6HarnessPinsStillOpen
+PASS  D1 statusPinsProductNotClosed
+PASS  D1 priorEgEvidenceAloneDoesNotClose
+PASS  D1 metaProveAloneDoesNotClose
+FAIL  D1 hasMs3NeR4PinRetentionEvidence
+
+──────── D2 emit evidence (Ban forge · Ban claim R4 closed from MS3) ────────
+FAIL  D2 emitted=true — reason=eg1_through_eg5_evidence_missing
+
+──────── D3 hard pins ────────
+PASS  D3 ≠ claim EG6 / MS3=R4 / R4 closed from MS3 from emit alone
+PASS  D3 ≠ idle EG1/EG2/EG3/EG4/EG5 / 5×meta as fake EG6 close
+PASS  D3 Ban forge · Ban invent coveredCount · Ban claim R4 closed from MS3 · Ban claim from EG1–EG5 / meta prove alone
+
+FAIL  r4-eg6-ms3-ne-r4-evidence prove (3 failures)
+ ELIFECYCLE  Command failed with exit code 1.

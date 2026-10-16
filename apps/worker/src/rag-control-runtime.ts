@@ -7,7 +7,8 @@ import {
 type RagControlPool = ReturnType<typeof createPool>;
 
 export type RagControlStartupDeps = {
-  createPool: (options: { connectionString: string }) => RagControlPool;
+  /** connectionString + observability purpose label (W2/R-22), never other pool overrides. */
+  createPool: (options: { connectionString: string; purpose?: string }) => RagControlPool;
   assertIdentity: (pool: RagControlPool) => Promise<void>;
   assertDefinerOwnership: (pool: RagControlPool) => Promise<void>;
 };
@@ -32,7 +33,7 @@ export async function initializeRagControlStartup(
   const connectionString = env.RAG_CONTROL_DATABASE_URL?.trim();
   if (!connectionString) return undefined;
 
-  const pool = deps.createPool({ connectionString });
+  const pool = deps.createPool({ connectionString, purpose: 'rag-control' });
   try {
     await deps.assertIdentity(pool);
     await deps.assertDefinerOwnership(pool);

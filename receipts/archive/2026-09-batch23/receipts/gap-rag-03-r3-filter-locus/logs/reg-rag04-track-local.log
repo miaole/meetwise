@@ -1,0 +1,90 @@
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 rag04-track-local:prove /workspace/meetwise-wt-an-rag-r3
+> node scripts/run-e2e-isolated.mjs rag04-track-local:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1325355-1791292488874 on 127.0.0.1:32959
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-wt-an-rag-r3/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=138 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:rag04-track-local /workspace/meetwise-wt-an-rag-r3/packages/db
+> tsx test/rag04-track-local-retrieval.proof.ts
+
+
+──────── 0. 灌入两个 leaf 各一题（nodejs + java），构建并激活 generation ────────
+PASS  灌入 2 题 / 6 chunk 全部成功
+PASS  generation 构建并激活（active generation 存在）
+PASS  岗位 rule 路径 route_decided（0 次模型外发）
+PASS  面试启动落不可变 snapshot（单叶 backend/nodejs）
+
+──────── ① happy path：track-local 检索 wrong_track=0 + 四原语 ────────
+PASS  nodejs leaf 检索 → served，只返回 nodejs_q1（wrong_track=0）
+PASS  served 后 plan 终态 = served
+PASS  outbox 事件 = prepared→dispatched→served（单调 event_seq）
+
+──────── ② forbid-global-Top-K：全局 Top-1 是 java，但 DB scope 过滤在 ORDER BY/LIMIT 之前 ────────
+PASS  全局（无 scope）检索 Top-1 = java chunk（java 全局最相似）
+PASS  同一 java query 走 nodejs scope → 零 java（全局 Top-1 被 DB 层排除，非应用层剔除）
+
+──────── ②b fail-closed：单设一个 GUC → 0 行（半 scope 绝不降级成全库） ────────
+PASS  对照组：两个 GUC 都设 → 检索命中 nodejs 行（排除“查询本身失效”造成的假 0 行）
+PASS  仅设 app.qbank_serving_scope（不设 taxonomy）→ 0 行
+PASS  仅设 app.qbank_taxonomy_version（不设 scope）→ 0 行
+
+──────── ③ 分类未知 / 越界 leaf → 拒绝（planner 校验复用 RAG-03） ────────
+PASS  leaf 不在 snapshot（frontend/web）→ rejected
+
+──────── ④ 旧 checkpoint（陈旧 routeScopeDigest）→ 拒绝 ────────
+PASS  routeScopeDigest 与 snapshot 重派生不一致 → rejected(route_scope_digest_mismatch)
+
+──────── ⑤ generation 竞态（陈旧 generationId）→ recheck_failed，绝不放出 ────────
+PASS  plan.generationId ≠ active generation → recheck_failed(generation_race)
+PASS  generation 竞态后无 question_ready（plan 非 served）
+
+──────── ⑥ 检索缓存回放（被污染的跨 track 命中）→ recheck 拦截，零跨域 ────────
+PASS  cache 回放命中 java ref（跨 track）→ recheck_failed(cross_track_or_revoked)，不放 java 题
+PASS  cache 回放命中不存在的 ref → recheck_failed(cross_track_or_revoked)
+
+──────── ⑥b metadata_hash 伪造（leaf 正确但 cs.metadata_hash 被改）→ recheck_failed(metadata_hash_mismatch) ────────
+PASS  leaf 正确但 cs.metadata_hash 被篡改 → recheck_failed(metadata_hash_mismatch)
+
+──────── ⑦ cache hit 仍被权威投影重验（正路径：命中但 leaf 一致 → served） ────────
+PASS  二次同 query 命中热缓存（不同 plan 轮）→ served 且仍只 nodejs（重验通过）
+
+──────── ⑧ principal 作用域幂等：同 plan 重放 = replayed，绝不二次外发 ────────
+PASS  同 plan（同 plan_key）二次派发 → replayed（sticky served，不重检索）
+
+──────── ⑨ 撤权竞态：chunk visible=false → 该题不再被组装（零陈旧放出） ────────
+PASS  prompt chunk 被撤 → served 但 results 空（缺 prompt 的题不组装，零陈旧题）
+
+──────── ⑩ RLS owner/tenant 隔离（C 端 plan 只属于本人） ────────
+PASS  本人 plan >0，他人读 plan/event = 0 行
+PASS  他人不能为 owner 写 plan（RLS WITH CHECK 拒绝）
+
+──────── ⑪ 事务 outbox + 单调 eventSeq（单 owner 无空洞） ────────
+PASS  event_seq 从 1 连续单调（count == max）
+
+──────── ⑫ 伪造/缺失 metadata 与 legacy_unrouted 在摄取门即拒（零入库 → 零跨域） ────────
+PASS  annotation_source=legacy_unrouted → ingest 拒（legacy_unrouted 永不进入 serving scope）
+PASS  缺失 serving_scope（空 leaf）→ ingest 拒（fail-closed，不落库）
+PASS  serving scope 表内零非 reviewed 注释（legacy_unrouted 从未入库）
+
+──────── ⑬ 多桶岗位按轮配额 = 单 leaf/轮（不混桶） ────────
+PASS  nextWeightedDeficitLeaf 每轮只选单个 leafIndex（不返回多叶）
+
+──────── ⑭ 岗位并发修改：snapshot 不可变，plan 仍钉旧 leaf（零跨域） ────────
+PASS  编辑后重分类 → route_decided（新 decision，0 次模型外发）
+PASS  新 decision 路由到 backend/java（岗位路线确已改变）
+PASS  旧 snapshot 不受并发编辑影响（routeDigest/allocations 仍 nodejs，不可变）
+PASS  编辑后 java leaf plan 打旧 nodejs snapshot → rejected（零跨域出题）
+
+✓ rag04-track-local（真 Postgres）全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T13-15-00-379Z-1325355-4ab302d2-98a9-47be-abd2-d9b12c20a715.json release_evidence=false

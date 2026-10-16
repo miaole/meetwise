@@ -1,0 +1,40 @@
+
+> @meetwise/worker@0.0.0 prove:r4-pr1b-combo-root /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-pr1b-combo-root-flag-on-evidence.proof.ts
+
+PR1-B combo-root / flag-on production evidence prove
+EXIT=0 = evidence emitted · ≠ PR1-B/G-R4-3/R1 product closed · Ban forge · releaseEvidence=false
+
+──────── B0 anchors present ────────
+PASS  B0 emitter wired
+PASS  B0 harness present
+PASS  B0 harness pins Ban forge + Ban idle 3×prove + PR1-B STILL OPEN
+
+──────── B1 live assessor (组合根 + flag-on production path) ────────
+PASS  B1 comboRootMainWired
+PASS  B1 interviewConsumerFlagOnRouteResolveWired
+PASS  B1 flagOnWithRouteAccepted
+PASS  B1 flagOnWithoutRouteFailClosed
+PASS  B1 noSilentTechRoleInjectAtComboRoot
+PASS  B1 hasComboRootFlagOnProductionEvidence
+
+──────── B2 emit evidence (Ban forge) ────────
+PASS  B2 emitted=true
+PASS  B2 kind
+PASS  B2 comboRootFlagOnEvidence=true
+PASS  B2 gR43Closed=false (Ban假关)
+PASS  B2 r1ProductClosed=false
+PASS  B2 pr1BProductClosed=false
+PASS  B2 releaseEvidence=false
+PASS  B2 receipt written
+PASS  B2 receipt roundtrip kind
+PASS  B2 receipt roundtrip comboRootFlagOnEvidence
+
+──────── B3 classifier reflects evidence · product still OPEN ────────
+PASS  B3 classify comboRootFlagOnEvidence=true
+PASS  B3 classify r1Closed=false
+PASS  B3 classify failClosedFlagDefaultOn=true (product-close flip)
+PASS  B3 ≠ claim PR1-B product closed from emit alone
+PASS  B3 ≠ idle 3×prove as close
+
+OK  r4-pr1b-combo-root-flag-on-evidence prove (PR1-B evidence emitted; ≠ PR1-B/G-R4-3/R1 closed; releaseEvidence=false)

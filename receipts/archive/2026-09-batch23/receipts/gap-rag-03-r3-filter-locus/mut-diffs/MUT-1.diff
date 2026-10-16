@@ -1,0 +1,40 @@
+diff --git a/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql b/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
+index 53aaeab..a86ed43 100644
+--- a/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
++++ b/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
+@@ -45,25 +45,24 @@ AS $$
+         ON generation.id=a.generation_id AND generation.state='active'
+      WHERE a.singleton=true AND a.generation_id=p_generation
+   ), ann AS (
+-    SELECT g.ref_id, g.embedding <=> p_embedding AS dist
++    SELECT g.ref_id, g.embedding <=> p_embedding AS dist, g.taxonomy_version, g.serving_scope_id
+       FROM active a
+       JOIN qbank_generation_chunk g ON g.generation_id=a.generation_id AND g.visible
+       JOIN qbank_retrieval_candidate candidate ON candidate.ref_id=g.ref_id
+-     WHERE (
++     ORDER BY g.embedding <=> p_embedding
++     LIMIT (SELECT greatest(k * 8, 40) FROM requested)
++  )
++  SELECT t.ref_id, t.dist::double precision
++    FROM (SELECT a.ref_id, a.dist, a.taxonomy_version, a.serving_scope_id FROM ann a ORDER BY a.dist LIMIT (SELECT k FROM requested)) t
++   WHERE (
+             (NULLIF(current_setting('app.qbank_serving_scope', true), '') IS NULL
+              AND NULLIF(current_setting('app.qbank_taxonomy_version', true), '') IS NULL)
+             OR (
+               NULLIF(current_setting('app.qbank_serving_scope', true), '') IS NOT NULL
+               AND NULLIF(current_setting('app.qbank_taxonomy_version', true), '') IS NOT NULL
+-              AND g.taxonomy_version = NULLIF(current_setting('app.qbank_taxonomy_version', true), '')
+-              AND g.serving_scope_id = NULLIF(current_setting('app.qbank_serving_scope', true), '')
++              AND t.taxonomy_version = NULLIF(current_setting('app.qbank_taxonomy_version', true), '')
++              AND t.serving_scope_id = NULLIF(current_setting('app.qbank_serving_scope', true), '')
+             )
+           )
+-     ORDER BY g.embedding <=> p_embedding
+-     LIMIT (SELECT greatest(k * 8, 40) FROM requested)
+-  )
+-  SELECT a.ref_id, a.dist::double precision
+-    FROM ann a
+-   ORDER BY a.dist
+-   LIMIT (SELECT k FROM requested)
++   ORDER BY t.dist
+ $$;

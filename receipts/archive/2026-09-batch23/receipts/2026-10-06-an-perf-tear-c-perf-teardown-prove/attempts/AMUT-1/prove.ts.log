@@ -1,0 +1,53 @@
+1791299248885 
+1791299248886 > meetwise@0.1.0 uc018:perf-load:prove /workspace/meetwise-wt-an-perf-prove6
+1791299248886 > node scripts/run-e2e-isolated.mjs uc018:perf-load:prove:raw
+1791299248886 
+1791299249007 [R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+1791299249008 E2E_RESOURCE_CAPS target=uc018:perf-load:prove:raw docker_args=--cpus 2 --memory 4g
+1791299252498 E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+1791299252498 E2E isolated PostgreSQL: meetwise-e2e-1493386-1791299249004 on 127.0.0.1:33046
+1791299252498 E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+1791299253420 E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+1791299253579 UC018_CAPS pg container=meetwise-e2e-1493386-1791299249004 NanoCpus=2000000000 Memory=4294967296 ok=true
+1791299258288 UC018_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+1791299260204 UC-E2E-018 PERF/LOAD prove · NHP-018-PERF-01 + NHP-018-LOAD-01
+1791299260205 NOTE: Method freeze nearest-rank · timeout=10s=error · warmup=10 · runs=3 · caps Docker 2cpu/4GiB
+1791299260205 NOTE: local ≠ production capacity ≠ HA · PERF/LOAD partial ≠ UC covered · §1.1 stays partial
+1791299260514 fatal: not a git repository: /workspace/projects/meetwise/.git/worktrees/meetwise-wt-an-perf-prove6
+1791299261101 PERF run1: p50=21.1 p95=70.7 p99=86.0 err=0 timeout=0 passed=true
+1791299261419 LOAD run1: p50=41.0 p95=124.9 p99=140.2 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+1791299261858 PERF run2: p50=18.4 p95=49.7 p99=68.1 err=0 timeout=0 passed=true
+1791299262131 LOAD run2: p50=32.3 p95=84.3 p99=105.3 err=0 timeout=0 dblRel=0 stuck=0 stuckGraph=0 passed=true
+1791299262145 /workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45
+1791299262145     Error.captureStackTrace(err)
+1791299262145           ^
+1791299262145 
+1791299262145 error: terminating connection due to administrator command
+1791299262145     at /workspace/meetwise-wt-an-perf-prove6/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+1791299262145     at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+1791299262145     at async seedAbandonTargets (file:///workspace/meetwise-wt-an-perf-prove6/apps/api/test/uc-e2e-018-perf-load.proof.ts:234:9)
+1791299262145     at async runPerf (file:///workspace/meetwise-wt-an-perf-prove6/apps/api/test/uc-e2e-018-perf-load.proof.ts:250:17)
+1791299262145     at async file:///workspace/meetwise-wt-an-perf-prove6/apps/api/test/uc-e2e-018-perf-load.proof.ts:444:19 {
+1791299262145   length: 116,
+1791299262145   severity: 'FATAL',
+1791299262145   code: '57P01',
+1791299262145   detail: undefined,
+1791299262145   hint: undefined,
+1791299262145   position: undefined,
+1791299262145   internalPosition: undefined,
+1791299262145   internalQuery: undefined,
+1791299262145   where: undefined,
+1791299262145   schema: undefined,
+1791299262145   table: undefined,
+1791299262145   column: undefined,
+1791299262145   dataType: undefined,
+1791299262145   constraint: undefined,
+1791299262145   file: 'postgres.c',
+1791299262145   line: '3286',
+1791299262145   routine: 'ProcessInterrupts'
+1791299262145 }
+1791299262145 
+1791299262145 Node.js v20.20.2
+1791299263725 ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-1493386-1791299249004 state_bytes=219 logs_bytes=2369
+1791299264491 LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T15-07-44-424Z-1493386-4034ef8a-33c8-44c3-93d8-3dd1663eff4d.json release_evidence=false
+1791299264512  ELIFECYCLE  Command failed with exit code 1.

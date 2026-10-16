@@ -1,0 +1,37 @@
+{
+  "knife": "UC-E2E-018-ADV",
+  "gap": "GAP-UC018-ADV",
+  "nhp": "NHP-018-ADV-01",
+  "status": "executed:awaiting_post_prove_dual",
+  "mouth": "POST /api/interview/:id/abandon",
+  "cmd": "pnpm uc018:adv:prove",
+  "exit": 0,
+  "classes": [
+    "Replay",
+    "Tamper body",
+    "Cross-tenant",
+    "Forged auth",
+    "Inject"
+  ],
+  "matrixSection10Adv": "case-only\u2192partial",
+  "matrixSection11": "partial",
+  "advAloneNeqCovered": true,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "gR45Closed": true,
+  "coveredCountRetained": 8,
+  "ms3EqualsR4Closed": false,
+  "parentCoveredLift": "abfbbc0",
+  "codingBase": "8c848fb",
+  "preExecDual": {
+    "mw-e2e-ha": "ca7b18b",
+    "mw-rag-route": "8c848fb",
+    "requestTip": "2d28658"
+  },
+  "banInventCovered": true,
+  "banWashAdvIntoCovered": true,
+  "banClaimPerfLoadClosed": true,
+  "banSelfNail": true,
+  "datePT": "2026-09-23 (~18:57 PT)"
+}

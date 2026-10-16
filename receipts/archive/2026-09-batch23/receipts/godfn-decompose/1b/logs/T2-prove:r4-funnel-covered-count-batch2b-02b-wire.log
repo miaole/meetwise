@@ -1,0 +1,78 @@
+
+> @meetwise/worker@0.0.0 prove:r4-funnel-covered-count-batch2b-02b-wire /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-funnel-covered-count-batch2b-02b-wire.proof.ts
+
+G-R4-5 / FUNNEL coveredCount Batch2b 02B wire prove
+EXIT=0 = honest true-cover emit for 02B under authorize · Ban invent · post_prove_dual_pass · product flags false
+
+──────── B0 anchors ────────
+PASS  B0 emitter wired
+PASS  B0 harness present
+PASS  B0 harness status post_prove_dual_pass + Ban invent flags false
+
+──────── B1 live FUNNEL-02B assessor (Batch2 reuse) ────────
+PASS  B1 hmacCacheIdentityPresent
+PASS  B1 resolveDurableFillPresent
+PASS  B1 claimFillAndValidatePresent
+PASS  B1 distinctFromRetrievalCache
+PASS  B1 dbExportsComputeCache
+PASS  B1 productionConsumerWired is boolean
+PASS  B1 isFunnel02BCovered (honest live)
+PASS  B1 covered matches all-pins including productionConsumerWired
+PASS  B1 productionConsumerWired must be true for 02B covered (Ban invent)
+     → FUNNEL-02B covered=true (productionConsumerWired=true) · 02A retained=true
+
+──────── B2 emit Batch2b evidence ────────
+PASS  B2 kind
+PASS  B2 batch2bOnly=true
+PASS  B2 coveredCountInvented=false
+PASS  B2 r4ProductClosed=false
+PASS  B2 funnelProductClosed=false
+PASS  B2 gR45Closed=false
+PASS  B2 ms3EqualsR4Closed=false
+PASS  B2 releaseEvidence=false
+PASS  B2 productionConsumerWired on receipt
+PASS  B2 funnel02BCovered matches assessor
+PASS  B2 funnel02ACovered retained
+PASS  B2 batch2bCoveredCount == 1 iff 02B covered else 0
+
+──────── B3 matrix emit (Batch2b-aware EG2 · retain 02A/03/04) ────────
+PASS  B3 isHonestFunnelCoveredMatrix
+PASS  B3 inventCovered=false
+PASS  B3 releaseEvidence=false
+FAIL  B3 coveredCount matches live assessors — got=8 expect=4
+PASS  B3 row02A retained covered
+PASS  B3 row02B status honest (covered only if productionConsumerWired)
+PASS  B3 row03 retained covered from Batch1
+PASS  B3 row04 retained covered from Batch1
+FAIL  B3 RAG-FUNNEL-05 still not_covered
+FAIL  B3 RAG-FUNNEL-06 still not_covered
+FAIL  B3 RAG-FUNNEL-07 still not_covered
+FAIL  B3 RAG-FUNNEL-08 still not_covered
+PASS  B3 01 ≠ invent covered
+
+──────── B4 write receipts (json + matrix md + prove md) ────────
+PASS  B4 evidence json written
+PASS  B4 eg2 matrix json updated
+PASS  B4 md matrix written
+PASS  B4 md pins Ban invent covered
+PASS  B4 md coveredCount matches matrix
+PASS  B4 md FUNNEL-02A covered retained
+PASS  B4 md FUNNEL-02B covered
+PASS  B4 md FUNNEL-03 covered retained
+PASS  B4 md FUNNEL-04 covered retained
+PASS  B4 prove md written
+PASS  B4 roundtrip r4ProductClosed=false
+PASS  B4 roundtrip funnelProductClosed=false
+PASS  B4 roundtrip gR45Closed=false
+PASS  B4 roundtrip coveredCountInvented=false
+PASS  B4 roundtrip batch2bOnly=true
+PASS  B4 roundtrip productionConsumerWired
+
+──────── B5 hard pins ────────
+PASS  B5 ≠ invent coveredCount · ≠ flip product flags · ≠ self-nail dual_pass
+PASS  B5 ≠ wash Batch2 0a980e6/5593226 · Batch1 · product-close · EG3 · rem/SSOT/EXPLICIT · R1
+PASS  B5 Ban MS3=R4 · Ban invent · releaseEvidence=false · post_prove_dual_pass
+
+FAIL  r4-funnel-covered-count-batch2b-02b-wire prove (5 failures)
+ ELIFECYCLE  Command failed with exit code 1.

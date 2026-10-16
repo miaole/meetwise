@@ -1,0 +1,407 @@
+{
+  "at": "2026-10-11T10:20:09.305Z",
+  "durationMs": 26462,
+  "result": "OK",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "estLive": "0 (local sandbox dumb credentials; zero production operations, zero real traffic, zero model calls billed)",
+  "carrier": "docker/compose.ha.sandbox.yml 零改复用（ha-pg+ha-redis+migrate+worker-a 沙箱材质·compose run 显式发布 9091·compose 文件本体零触）",
+  "migrateExitCode": 0,
+  "metricsUrl": "http://127.0.0.1:19091/metrics",
+  "judge": {
+    "exit": 0,
+    "receipt": {
+      "at": "2026-10-11T10:20:08.258Z",
+      "durationMs": 270,
+      "mode": {
+        "sandbox": true,
+        "offline": false,
+        "report": false,
+        "since": "1h"
+      },
+      "catalog": {
+        "path": "/Users/miaole/Desktop/golucky/meetwise-ha7/scripts/alerts/event-catalog.json",
+        "events": 12
+      },
+      "whitelist": {
+        "path": "/Users/miaole/Desktop/golucky/meetwise-ha7/scripts/alerts/alert-whitelist.json",
+        "valid": 0,
+        "invalid": [],
+        "expired": []
+      },
+      "sources": {
+        "logs": "lines=122",
+        "ps": "entries=4",
+        "df": "host /",
+        "metrics": "bytes=10049 (live)·HA-7 R-24",
+        "sourceErrors": [],
+        "absentServices": []
+      },
+      "alerts": [],
+      "suppressed": [],
+      "openPageTicketCount": 0,
+      "exit": 0,
+      "semantics": "fail-closed: 未决 Page/Ticket 或源失效=1；干净=0；--report 恒 0；本判定器≠告警闭环全量（常驻评估+通知+值班归 S15）",
+      "steps": [
+        {
+          "step": "source compose logs",
+          "ok": true,
+          "detail": "122 lines since=1h"
+        },
+        {
+          "step": "source compose ps",
+          "ok": true,
+          "detail": "4 entries"
+        },
+        {
+          "step": "source df",
+          "ok": true,
+          "detail": "host /"
+        },
+        {
+          "step": "source worker /metrics",
+          "ok": true,
+          "detail": "live GET ok"
+        }
+      ]
+    }
+  },
+  "steps": [
+    {
+      "step": "env fallback DASHSCOPE_ASR_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_ASR_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_EMBED_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_EMBED_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_RERANK_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_RERANK_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_ASR_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_ASR_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_TTS_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_STREAM_TTS_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_TTS_API_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback DASHSCOPE_TTS_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_BACKUP_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BACKUP_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_FAST_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_CONTEXT_SAFETY_MARGIN_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_CONTEXT_WINDOW_TOKENS",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback MODEL_PRIMARY_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback PAY_PROVIDER_SECRET",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_MODEL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_PROVIDER",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_BILLING_REGION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_PRICE_REVISION",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RAG_EMBED_PRICE_SOURCE_URL",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RESUME_ENC_KEY",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "env fallback RESUME_HASH_SECRET",
+      "ok": true,
+      "detail": "heuristic placeholder"
+    },
+    {
+      "step": "sandbox env-file generated (mirrored form)",
+      "ok": true,
+      "detail": "85 required vars + knob; /Users/miaole/Desktop/golucky/meetwise-ha7/.tmp/ha-sandbox/sandbox.env"
+    },
+    {
+      "step": "compose up -d ha-pg ha-redis",
+      "ok": true,
+      "detail": "started"
+    },
+    {
+      "step": "ha-pg + ha-redis healthy",
+      "ok": true,
+      "detail": "7s"
+    },
+    {
+      "step": "migrate exited",
+      "ok": true,
+      "detail": "ExitCode=0 in 6s"
+    },
+    {
+      "step": "compose run -d --name ha7-worker-metrics -p 19091:9091 worker-a",
+      "ok": true,
+      "detail": "started"
+    },
+    {
+      "step": "worker /metrics reachable from host (live GET)",
+      "ok": true,
+      "detail": "185 lines in 6s"
+    },
+    {
+      "step": "/metrics 全序列（三 gauge 12 序列 + 新 counter worker_jobs_failed_total 4 队列 = 4 指标×4 队列全覆盖）",
+      "ok": true,
+      "detail": "16/16"
+    },
+    {
+      "step": "check-alerts --sandbox live 对真 /metrics：干净栈 EXIT=0 + 零条目 + metrics 源 (live)",
+      "ok": true,
+      "detail": "exit=0 alerts=0 sources.metrics=bytes=10049 (live)·HA-7 R-24 sourceErrors=[]"
+    },
+    {
+      "step": "同一快照经 --metrics-file offline 复评 → 同判 EXIT=0（注入缝 parity）",
+      "ok": true,
+      "detail": "exit=0 alerts=0 sources.metrics=bytes=10049 (injected)·HA-7 R-24"
+    },
+    {
+      "step": "teardown: rm one-shot worker + compose down -v (sandbox fully destroyed)",
+      "ok": true,
+      "detail": "removed"
+    }
+  ]
+}

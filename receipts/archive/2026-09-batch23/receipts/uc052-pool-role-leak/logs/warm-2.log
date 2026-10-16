@@ -1,0 +1,29 @@
+
+> @meetwise/db@0.0.0 prove:privacy-authorization /workspace/meetwise-lineB/packages/db
+> tsx test/privacy-authorization.proof.ts
+
+PASS  catalog gate: privacy_issuer/privacy_guard_owner 非登录/非继承/非超管且 membership 封闭(L11)
+error: duplicate key value violates unique constraint "interview_pkey"
+    at /workspace/meetwise-lineB/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async insertInterview (/workspace/meetwise-lineB/packages/db/test/privacy-authorization.proof.ts:58:3)
+    at async main (/workspace/meetwise-lineB/packages/db/test/privacy-authorization.proof.ts:127:3) {
+  length: 227,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (id)=(00000000-0000-4000-8000-0000000000a1) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'interview',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'interview_pkey',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+ ELIFECYCLE  Command failed with exit code 1.

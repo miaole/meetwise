@@ -79,12 +79,12 @@ related:
 | **【新增】** `@nest-lab/throttler-storage-redis` | **限流的 Redis storage**——默认内存计数多实例失效，AI 前闸必须跨实例 |
 | `@nestjs/schedule` | 定时任务（语料生命周期/对账/清理） |
 | `@nestjs/terminus` | 健康检查（DB/Redis/S3 探针） |
-| `@nestjs/bullmq` / `bullmq` | 队列模块+核心（投递面试/报告/研究/匹配任务） |
+| `@nestjs/bullmq` / `bullmq` | ~~队列模块+核心~~ **未采用**（#28 勘误 2026-10-12：原草稿候选；实落地队列=PG 表+`FOR UPDATE SKIP LOCKED`（`packages/db/src/jobs/*`），BullMQ 全仓零码在库） |
 | `@nestjs/event-emitter` | 应用内领域事件（状态机转移广播、解耦 observability） |
 | `zod` / `nestjs-zod` | 共享 zod4 契约校验：薄 `ZodValidationPipe`（Body/Query）+ Nest 异常/swagger 集成 |
 | `zod-openapi` | 由共享 zod4 schema 生成 OpenAPI（取代 @ts-rest/open-api，见 ADR-0004） |
 | `@prisma/client` | DB 客户端（引用 db 包生成物） |
-| `ioredis` | Redis（缓存/限流/分布式锁/BullMQ 连接/auth state-nonce/幂等存储） |
+| `ioredis` | Redis（缓存/限流/分布式锁/job wakeup 监听/auth state-nonce/幂等存储——**无 BullMQ 连接**，任务队列走 PG 表，#28 勘误 2026-10-12） |
 | `nestjs-i18n` | 后端 i18n（错误/邮件/通知中英） |
 | `nestjs-pino` / `pino` / `pino-http` | 结构化日志（脱敏，绝不打全文简历/PII） |
 | `@opentelemetry/api` / `@opentelemetry/sdk-node` / `@opentelemetry/auto-instrumentations-node` / `@opentelemetry/exporter-trace-otlp-http` | Trace 自动埋点 + OTLP 上报（接 Langfuse/Collector） |
@@ -96,7 +96,7 @@ related:
 | `nanoid` | 短 ID（分享码/短码） |
 | **【新增】** `ulid` | 订单号/幂等键（有序、利于索引局部性）；分享码留 `nanoid` |
 | `reflect-metadata` / `rxjs` | Nest 装饰器元数据 + SSE Observable 底座 |
-| `nodemailer` | 事务邮件（验证码/通知，dev 走 Mailhog） |
+| `nodemailer` | ~~事务邮件（验证码/通知，dev 走 Mailhog）~~ **未采用**（#28 连带勘误 2026-10-12·I4 卷登记面：全仓零 nodemailer 码在库；通知实态=站内 notification 表+读面轮询，无 SMTP/邮件栈） |
 
 > 内部：`@meetwise/contracts`、`@meetwise/db`、`@meetwise/domain`、`@meetwise/config`（`workspace:*`）
 > **【删】** `helmet`（Express 版，与 `@fastify/helmet` 冗余）、`cookie`（裸包，`@fastify/cookie` 已覆盖）、`class-validator`/`class-transformer`（走 nestjs-zod 全链路；仅某三方 Nest 模块强依赖时再按需补）、`dayjs`（统一 `date-fns`）。
@@ -226,7 +226,7 @@ related:
 
 **小计：deps 8（+内部3），devDeps 5 → 区合计 ~13**
 
-> 说明：与 worker 拆分——ai-graphs 是**可测的纯图逻辑**（无 checkpointer/队列/IO），worker 注入 Postgres checkpointer + BullMQ 消费来运行它，便于确定性测试。
+> 说明：与 worker 拆分——ai-graphs 是**可测的纯图逻辑**（无 checkpointer/队列/IO），worker 注入 Postgres checkpointer + 消费 PG 表队列（`FOR UPDATE SKIP LOCKED`）来运行它，便于确定性测试（#28 勘误 2026-10-12：旧文「BullMQ 消费」与实态不符）。
 
 ---
 
@@ -335,7 +335,7 @@ related:
 
 ## 关键选型分叉（最终定论，逐条进 ADR）
 
-1. **队列 → BullMQ + Outbox（不换 pg-boss）**。叙事价值（背压/限速/重试可观测、Bull Board）契合 Agent Architect 展示面。**但 ADR 必须诚实写明：outbox 需要一个 relay/poller，是真实工作量，不是免费的；「outbox 是必交付项」写入验收**。工期紧时 pg-boss 的事务内入队可省掉整个 outbox，为可接受降级。
+1. **队列 → PG 表队列（`FOR UPDATE SKIP LOCKED`）+ Outbox 实落地**。#28 勘误 2026-10-12：本节旧定论「BullMQ + Outbox（不换 pg-boss）」系草稿期选型叙事——实落地改为 PG 表队列（BullMQ 零码在库，见 packages/db/src/jobs/*）；旧叙事的诚实警示仍成立且已兑现：outbox 需要真实 relay/poller（`commerce_outbox` + `settleOutbox` + commerce-reconciler 30s 一拍），不是免费的。pg-boss 事务内入队的旧降级叙事仅作历史记录保留。
 
 2. **测试 → 全仓 Vitest**，保留「api 单独退 Jest」逃生口写进 ADR。**前置必装 `vite-tsconfig-paths`**（已补进 api/worker/ai-graphs devDeps）。
 

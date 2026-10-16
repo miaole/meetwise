@@ -1,0 +1,69 @@
+
+> meetwise@0.1.0 growth:prove /Users/miaole/Desktop/golucky/meetwise-h4
+> node scripts/run-e2e-isolated.mjs growth:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-71787-1791698918481 on 127.0.0.1:62999
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-h4/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=161 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 growth /Users/miaole/Desktop/golucky/meetwise-h4/packages/db
+> tsx test/growth.proof.ts
+
+
+──────── ① 时间序成长点（乱序插入仍左老右新） ────────
+PASS  场次=3
+PASS  points 按时间升序: A1→A2→A3
+PASS  各场 overall 还原正确 [50,65,60]
+
+──────── ② 维度并集 + 各场维度分 ────────
+PASS  dimensions 并集含 系统设计/算法/沟通
+PASS  dimensions 已排序(确定性)
+PASS  A1.dims 系统设计=50 算法=40
+PASS  A3.dims 含沟通=45、不含算法
+
+──────── ③ 汇总:最佳/最新/趋势 ────────
+PASS  bestScore=65
+PASS  latestScore=60
+PASS  trend=down(65→60)
+PASS  answered=2(可评分 ScoreCard 计数透传,非 legacy 事件)
+
+──────── ④ 边界:0 场 / 1 场不臆造方向 ────────
+PASS  空档案: sessions=0 / points=[] 
+PASS  空档案: best/latest=null, trend=none
+PASS  单场: sessions=1, trend=none(不足两场)
+PASS  非 ready(pending) 评估被过滤,不计入
+PASS  单场 best=latest=80
+
+──────── ⑤ RLS 隔离:他人评估永不入本人档案 ────────
+PASS  A 的档案里无任何 B 的面试
+PASS  A 的场次正好是自己的 3 场(无越权多读)
+PASS  B 的档案里无任何 A 的面试
+
+──────── ⑥ 诚实语义:最新一场未评分 / 全未评分 / 平局(修审计 #4·#3·#5) ────────
+PASS  最新场未评分 → latestScore=null(不冒充旧分)
+PASS  最新场未评分 → trend=none(不画无视最新场的趋势)
+PASS  bestScore 仍取历来已评分最高=60
+PASS  未评分场仍计入 sessions=3 与 points
+PASS  全未评分 → best/latest=null, trend=none, 无 -Infinity
+PASS  平局(70→70) → trend=flat
+
+──────── ⑦ deriveGrowth 纯函数确定性(乱序输入→稳定排序) ────────
+PASS  乱序→按时间升序 a,m,z
+PASS  trend=down(90→70)
+PASS  overall 超界被 clamp(>100→100,<0→0)
+PASS  空白维度标签被丢弃(不进 dims/dimensions)
+
+──────── ⑧ 响应零 PII(只 score/维度标签/时间戳) ────────
+PASS  响应只含已知 DTO 结构字段(无 résumé/answer/content 等业务字段泄露)
+PASS  响应文本不含明文邮箱/手机样式
+
+✓ growth:prove 全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T06-08-44-727Z-71787-50160694-1da4-44ac-81ea-4b24f71b73c0.json release_evidence=false

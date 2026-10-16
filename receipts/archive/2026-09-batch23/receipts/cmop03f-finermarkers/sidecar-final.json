@@ -1,0 +1,47 @@
+{
+  "discipline": "sidecar v2 (post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok / per-query / SELECT-only)",
+  "wrapperLog": ".tmp/c03f-run/wrapper.log",
+  "container": "meetwise-e2e-31828-1791451290487",
+  "port": "60471",
+  "anchorSeen": true,
+  "firstOkSeen": true,
+  "pending42P01Ticks": 2,
+  "totalTicks": 41,
+  "fallbackUsed": false,
+  "stoppedReason": "STOP sentinel by orchestrator (wrapper exited)",
+  "finalTick": {
+    "tick": 41,
+    "at": "2026-10-08T09:22:29.710Z",
+    "anchorSeen": true,
+    "container": "meetwise-e2e-31828-1791451290487",
+    "port": "60471",
+    "queries": {
+      "interview_job_status": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-31828-1791451290487\n|spawnSync psql ENOENT"
+      },
+      "interview_job_last_error": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-31828-1791451290487\n|spawnSync psql ENOENT"
+      },
+      "ai_model_invocation_status": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-31828-1791451290487\n|spawnSync psql ENOENT"
+      },
+      "ai_model_invocation_window": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-31828-1791451290487\n|spawnSync psql ENOENT"
+      },
+      "migration_relevance": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-31828-1791451290487\n|spawnSync psql ENOENT"
+      },
+      "migration_max": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-31828-1791451290487\n|spawnSync psql ENOENT"
+      }
+    },
+    "class": "post-anchor-error",
+    "consecutiveFailuresPostOk": 1
+  }
+}

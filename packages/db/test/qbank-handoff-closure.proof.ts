@@ -220,12 +220,12 @@ async function main() {
 
     const rawReadDenied: string[] = [];
     for (const table of QBANK_CONTROL_DEFINER_TABLE_MANIFEST) {
-      if (table.appRolePrivileges.includes('SELECT')) continue;
+      if ((table.appRolePrivileges as readonly string[]).includes('SELECT')) continue;
       const denied = await rejectsCode(() => asServingRuntime(serving, () => serving.query(`SELECT * FROM ${table.name} LIMIT 1`)));
       if (!denied) rawReadDenied.push(table.name);
     }
     for (const view of QBANK_CONTROL_DEFINER_VIEW_MANIFEST) {
-      if (view.appRolePrivileges.includes('SELECT')) continue;
+      if ((view.appRolePrivileges as readonly string[]).includes('SELECT')) continue;
       const denied = await rejectsCode(() => asServingRuntime(serving, () => serving.query(`SELECT * FROM ${view.name} LIMIT 1`)));
       if (!denied) rawReadDenied.push(view.name);
     }

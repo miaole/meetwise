@@ -1,0 +1,17 @@
+
+> meetwise@0.1.0 rag-cost-runtime:prove /Users/miaole/Desktop/golucky/meetwise-ag24
+> pnpm -C apps/worker prove:rag-cost-runtime
+
+
+> @meetwise/worker@0.0.0 prove:rag-cost-runtime /Users/miaole/Desktop/golucky/meetwise-ag24/apps/worker
+> tsx test/rag-cost-runtime.int.ts
+
+Error: migration_ledger_unknown_version:0001_baseline
+    at migrationError (/Users/miaole/Desktop/golucky/meetwise-ag24/packages/db/src/migrate.ts:28:24)
+    at runMigrations (/Users/miaole/Desktop/golucky/meetwise-ag24/packages/db/src/migrate.ts:433:28)
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async main (/Users/miaole/Desktop/golucky/meetwise-ag24/apps/worker/test/rag-cost-runtime.int.ts:17:3) {
+  code: 'migration_ledger_unknown_version:0001_baseline'
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ ELIFECYCLE  Command failed with exit code 1.

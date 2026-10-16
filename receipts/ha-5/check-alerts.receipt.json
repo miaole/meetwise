@@ -1,0 +1,53 @@
+{
+  "at": "2026-10-10T19:07:21.158Z",
+  "durationMs": 2,
+  "mode": {
+    "sandbox": false,
+    "offline": false,
+    "report": false,
+    "since": "24h"
+  },
+  "catalog": {
+    "path": "/Users/miaole/Desktop/golucky/meetwise-ha5/scripts/alerts/event-catalog.json",
+    "events": 9
+  },
+  "whitelist": {
+    "path": "/Users/miaole/Desktop/golucky/meetwise-ha5/scripts/alerts/alert-whitelist.json",
+    "valid": 0,
+    "invalid": [],
+    "expired": []
+  },
+  "sources": {
+    "logs": "compose logs failed: spawnSync docker ENOENT",
+    "ps": "compose ps failed: spawnSync docker ENOENT",
+    "df": "df failed: spawnSync df ENOENT",
+    "sourceErrors": [
+      "compose logs failed: spawnSync docker ENOENT",
+      "compose ps failed: spawnSync docker ENOENT",
+      "df failed: spawnSync df ENOENT"
+    ],
+    "absentServices": []
+  },
+  "alerts": [],
+  "suppressed": [],
+  "openPageTicketCount": 0,
+  "exit": 1,
+  "semantics": "fail-closed: 未决 Page/Ticket 或源失效=1；干净=0；--report 恒 0；本判定器≠告警闭环全量（常驻评估+通知+值班归 S15）",
+  "steps": [
+    {
+      "step": "source compose logs",
+      "ok": false,
+      "detail": "compose logs failed: spawnSync docker ENOENT"
+    },
+    {
+      "step": "source compose ps",
+      "ok": false,
+      "detail": "compose ps failed: spawnSync docker ENOENT"
+    },
+    {
+      "step": "source df",
+      "ok": false,
+      "detail": "df failed: spawnSync df ENOENT"
+    }
+  ]
+}

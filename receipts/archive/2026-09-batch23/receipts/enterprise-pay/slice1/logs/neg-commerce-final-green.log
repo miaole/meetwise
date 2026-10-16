@@ -1,0 +1,232 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-93215-1791610794195 on 127.0.0.1:60903
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:commerce /Users/miaole/Desktop/golucky/meetwise-line-entpay/apps/api
+> node --import @swc-node/register/esm-register test/neg-commerce.proof.ts
+
+{"level":30,"time":1791610798456,"pid":93372,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:60927"}
+{"level":30,"time":1791610798482,"pid":93372,"hostname":"miaole.local","reqId":"04e587f0-8726-4c15-9b9a-cb0f315ef440","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60928},"msg":"incoming request"}
+{"level":30,"time":1791610798485,"pid":93372,"hostname":"miaole.local","reqId":"04e587f0-8726-4c15-9b9a-cb0f315ef440","res":{"statusCode":401},"responseTime":2.7466669999998885,"msg":"request completed"}
+PASS  create/unauth → 401 unauthenticated
+{"level":30,"time":1791610798489,"pid":93372,"hostname":"miaole.local","reqId":"4b187cb7-17c4-4440-91c4-11bc56055676","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798489,"pid":93372,"hostname":"miaole.local","reqId":"4b187cb7-17c4-4440-91c4-11bc56055676","res":{"statusCode":401},"responseTime":0.590167000000065,"msg":"request completed"}
+PASS  create/bad-bearer → 401 invalid_token
+{"level":30,"time":1791610798490,"pid":93372,"hostname":"miaole.local","reqId":"685c9cff-f1a1-4ceb-895c-d66438b98df9","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60928},"msg":"incoming request"}
+{"level":30,"time":1791610798491,"pid":93372,"hostname":"miaole.local","reqId":"685c9cff-f1a1-4ceb-895c-d66438b98df9","res":{"statusCode":401},"responseTime":0.20466700000019955,"msg":"request completed"}
+PASS  create/reserved-principal → 401
+{"level":30,"time":1791610798492,"pid":93372,"hostname":"miaole.local","reqId":"f759cff2-815f-473e-be6d-9317c52f8a18","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798493,"pid":93372,"hostname":"miaole.local","reqId":"f759cff2-815f-473e-be6d-9317c52f8a18","res":{"statusCode":400},"responseTime":0.8277080000000296,"msg":"request completed"}
+PASS  create/missing productId → 400 invalid
+{"level":30,"time":1791610798494,"pid":93372,"hostname":"miaole.local","reqId":"9efb91fb-d644-4def-9b60-99b913b0a284","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60928},"msg":"incoming request"}
+{"level":30,"time":1791610798494,"pid":93372,"hostname":"miaole.local","reqId":"9efb91fb-d644-4def-9b60-99b913b0a284","res":{"statusCode":400},"responseTime":0.31349999999997635,"msg":"request completed"}
+PASS  create/productId wrong type → 400 invalid
+{"level":30,"time":1791610798495,"pid":93372,"hostname":"miaole.local","reqId":"febc5e14-dcd3-4521-88a7-79eddac97c20","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798495,"pid":93372,"hostname":"miaole.local","reqId":"febc5e14-dcd3-4521-88a7-79eddac97c20","res":{"statusCode":400},"responseTime":0.2802910000000338,"msg":"request completed"}
+PASS  create/null body → 400
+{"level":30,"time":1791610798496,"pid":93372,"hostname":"miaole.local","reqId":"e969bf3d-7018-4d25-af6f-d3f5973dc9ce","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60928},"msg":"incoming request"}
+{"level":30,"time":1791610798496,"pid":93372,"hostname":"miaole.local","reqId":"e969bf3d-7018-4d25-af6f-d3f5973dc9ce","res":{"statusCode":400},"responseTime":0.3108749999998963,"msg":"request completed"}
+PASS  create/unknown product → 400 unknown_product
+{"level":30,"time":1791610798497,"pid":93372,"hostname":"miaole.local","reqId":"469530ed-74f2-43c4-8fd7-fe9a1842d0be","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798497,"pid":93372,"hostname":"miaole.local","reqId":"469530ed-74f2-43c4-8fd7-fe9a1842d0be","res":{"statusCode":400},"responseTime":0.20929100000012113,"msg":"request completed"}
+PASS  create/empty productId → 400 unknown_product
+{"level":30,"time":1791610798498,"pid":93372,"hostname":"miaole.local","reqId":"5487806f-f30b-409a-8acf-1c2aa50ce939","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60928},"msg":"incoming request"}
+{"level":30,"time":1791610798500,"pid":93372,"hostname":"miaole.local","reqId":"5487806f-f30b-409a-8acf-1c2aa50ce939","res":{"statusCode":400},"responseTime":1.3130000000001019,"msg":"request completed"}
+PASS  create/malformed json → 4xx
+{"level":30,"time":1791610798502,"pid":93372,"hostname":"miaole.local","reqId":"4dee515f-11f0-4831-8b15-b12257e8d1e0","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798503,"pid":93372,"hostname":"miaole.local","reqId":"4dee515f-11f0-4831-8b15-b12257e8d1e0","res":{"statusCode":400},"responseTime":0.6201670000000377,"msg":"request completed"}
+PASS  create/non-json content-type → 4xx
+{"level":30,"time":1791610798504,"pid":93372,"hostname":"miaole.local","reqId":"09a224a1-f1f0-4365-98ca-b1acd3c13769","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798504,"pid":93372,"hostname":"miaole.local","reqId":"09a224a1-f1f0-4365-98ca-b1acd3c13769","res":{"statusCode":413},"responseTime":0.15620800000010604,"msg":"request completed"}
+PASS  create/oversized body → 413 payload_too_large
+{"level":30,"time":1791610798505,"pid":93372,"hostname":"miaole.local","reqId":"e473d979-cb4f-4d0d-a6be-3a79caec4a84","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798508,"pid":93372,"hostname":"miaole.local","reqId":"e473d979-cb4f-4d0d-a6be-3a79caec4a84","res":{"statusCode":200},"responseTime":2.5969169999998485,"msg":"request completed"}
+PASS  create/tamper amountCents → 服务器价 9900(篡改无效)
+PASS  create/tamper amountCents → 落库金额仍 9900
+{"level":30,"time":1791610798509,"pid":93372,"hostname":"miaole.local","reqId":"b10bdf45-bd1d-4ddd-a2c8-6cd31cae5d82","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798510,"pid":93372,"hostname":"miaole.local","reqId":"b10bdf45-bd1d-4ddd-a2c8-6cd31cae5d82","res":{"statusCode":200},"responseTime":1.7272080000000187,"msg":"request completed"}
+PASS  create/tamper units+amount → 忽略,价 9900
+{"level":30,"time":1791610798511,"pid":93372,"hostname":"miaole.local","reqId":"3fb67703-697a-49a1-b5c8-11992fa9420f","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798514,"pid":93372,"hostname":"miaole.local","reqId":"3fb67703-697a-49a1-b5c8-11992fa9420f","res":{"statusCode":200},"responseTime":3.042750000000069,"msg":"request completed"}
+PASS  create/inject units=0 → pack_30 权威 24900
+{"level":30,"time":1791610798514,"pid":93372,"hostname":"miaole.local","reqId":"c55b8b94-16d7-4e36-bc2c-3469c56c9680","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798516,"pid":93372,"hostname":"miaole.local","reqId":"c55b8b94-16d7-4e36-bc2c-3469c56c9680","res":{"statusCode":200},"responseTime":1.7640839999999116,"msg":"request completed"}
+PASS  create/inject units=-1 → pack_30 权威 24900
+{"level":30,"time":1791610798517,"pid":93372,"hostname":"miaole.local","reqId":"737896b7-9717-44ff-9cae-cc7971b76a76","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798518,"pid":93372,"hostname":"miaole.local","reqId":"737896b7-9717-44ff-9cae-cc7971b76a76","res":{"statusCode":200},"responseTime":1.762416999999914,"msg":"request completed"}
+{"level":30,"time":1791610798519,"pid":93372,"hostname":"miaole.local","reqId":"a597655a-0c85-4366-a312-6e069664546b","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798521,"pid":93372,"hostname":"miaole.local","reqId":"a597655a-0c85-4366-a312-6e069664546b","res":{"statusCode":409},"responseTime":1.8949999999999818,"msg":"request completed"}
+PASS  create/idem 同key不同body → 409 idempotency_key_conflict(不静默吞篡改品)
+PASS  create/idem 同key不同body → 不产生第二条订单(冲突前抛,原单不变)
+{"level":30,"time":1791610798521,"pid":93372,"hostname":"miaole.local","reqId":"c807a734-85d3-4660-85c8-8d83824425fc","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798523,"pid":93372,"hostname":"miaole.local","reqId":"c807a734-85d3-4660-85c8-8d83824425fc","res":{"statusCode":200},"responseTime":1.6875,"msg":"request completed"}
+PASS  create/idem 同key同body → 仍只 1 条订单
+{"level":30,"time":1791610798524,"pid":93372,"hostname":"miaole.local","reqId":"1031bcc3-448b-4e7d-85df-56efe894d7a3","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798524,"pid":93372,"hostname":"miaole.local","reqId":"5b71a2de-1fa1-466f-a11b-f2b799a8a36b","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798525,"pid":93372,"hostname":"miaole.local","reqId":"02e1af42-1538-487e-81a6-84a9492c5aec","req":{"method":"POST","url":"/commerce/orders","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60931},"msg":"incoming request"}
+{"level":30,"time":1791610798528,"pid":93372,"hostname":"miaole.local","reqId":"1031bcc3-448b-4e7d-85df-56efe894d7a3","res":{"statusCode":200},"responseTime":3.681333999999879,"msg":"request completed"}
+{"level":30,"time":1791610798532,"pid":93372,"hostname":"miaole.local","reqId":"5b71a2de-1fa1-466f-a11b-f2b799a8a36b","res":{"statusCode":200},"responseTime":7.73458299999993,"msg":"request completed"}
+{"level":30,"time":1791610798533,"pid":93372,"hostname":"miaole.local","reqId":"02e1af42-1538-487e-81a6-84a9492c5aec","res":{"statusCode":200},"responseTime":7.432375000000093,"msg":"request completed"}
+PASS  create/并发同key → DB 只落 1 条订单(不重复建)
+PASS  create/并发同key → 3 个调用均 200（重放不是冲突）
+PASS  create/并发同key → 3 个响应严格同一 orderId
+{"level":30,"time":1791610798534,"pid":93372,"hostname":"miaole.local","reqId":"c545408e-59da-4044-8f31-e79b48d2857a","req":{"method":"GET","url":"/commerce/orders/ORD_A","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798535,"pid":93372,"hostname":"miaole.local","reqId":"c545408e-59da-4044-8f31-e79b48d2857a","res":{"statusCode":404},"responseTime":1.3609589999998661,"msg":"request completed"}
+PASS  query/越权他人订单 → 404 not_found
+{"level":30,"time":1791610798536,"pid":93372,"hostname":"miaole.local","reqId":"5c66dd8e-8728-4584-a38d-87383ba29d11","req":{"method":"GET","url":"/commerce/orders/ORD_A","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798538,"pid":93372,"hostname":"miaole.local","reqId":"5c66dd8e-8728-4584-a38d-87383ba29d11","res":{"statusCode":404},"responseTime":2.567250000000058,"msg":"request completed"}
+PASS  query/越权(token) → 404
+{"level":30,"time":1791610798539,"pid":93372,"hostname":"miaole.local","reqId":"3965f03c-354e-4a95-b7b8-0f86181a7418","req":{"method":"GET","url":"/commerce/orders/ORD_DOES_NOT_EXIST","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798540,"pid":93372,"hostname":"miaole.local","reqId":"3965f03c-354e-4a95-b7b8-0f86181a7418","res":{"statusCode":404},"responseTime":1.1849159999999301,"msg":"request completed"}
+PASS  query/不存在订单 → 404 not_found
+{"level":30,"time":1791610798540,"pid":93372,"hostname":"miaole.local","reqId":"36c8bf6b-757f-41b0-83f8-686e6115e9e0","req":{"method":"GET","url":"/commerce/orders/ORD_A","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798540,"pid":93372,"hostname":"miaole.local","reqId":"36c8bf6b-757f-41b0-83f8-686e6115e9e0","res":{"statusCode":401},"responseTime":0.11425000000008367,"msg":"request completed"}
+PASS  query/未鉴权订单 → 401
+{"level":30,"time":1791610798540,"pid":93372,"hostname":"miaole.local","reqId":"8f51bf08-18bb-45a7-af3b-5122c9f26ab5","req":{"method":"GET","url":"/commerce/entitlement","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798541,"pid":93372,"hostname":"miaole.local","reqId":"8f51bf08-18bb-45a7-af3b-5122c9f26ab5","res":{"statusCode":401},"responseTime":0.11858299999994415,"msg":"request completed"}
+PASS  query/未鉴权额度 → 401
+{"level":30,"time":1791610798541,"pid":93372,"hostname":"miaole.local","reqId":"51d13de6-3ed1-47ab-a246-28d44f7d75f1","req":{"method":"GET","url":"/commerce/products","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798541,"pid":93372,"hostname":"miaole.local","reqId":"51d13de6-3ed1-47ab-a246-28d44f7d75f1","res":{"statusCode":200},"responseTime":0.12929099999996652,"msg":"request completed"}
+PASS  query/未鉴权 products → 200(公开目录与 OpenAPI 对齐)
+{"level":30,"time":1791610798543,"pid":93372,"hostname":"miaole.local","reqId":"6843b9ac-8495-4363-a849-da13852b3e49","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798543,"pid":93372,"hostname":"miaole.local","reqId":"6843b9ac-8495-4363-a849-da13852b3e49","res":{"statusCode":400},"responseTime":0.19458299999996598,"msg":"request completed"}
+PASS  pay/缺 providerTxn+sig → 400 invalid_callback
+{"level":30,"time":1791610798544,"pid":93372,"hostname":"miaole.local","reqId":"59cfe31a-921a-4573-a6ab-ce9123ca18bf","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798544,"pid":93372,"hostname":"miaole.local","reqId":"59cfe31a-921a-4573-a6ab-ce9123ca18bf","res":{"statusCode":400},"responseTime":0.09912500000018554,"msg":"request completed"}
+PASS  pay/缺 sig → 400 invalid_callback
+{"level":30,"time":1791610798544,"pid":93372,"hostname":"miaole.local","reqId":"383e898d-6dad-4f3f-b21d-c9f3e4fba68d","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798544,"pid":93372,"hostname":"miaole.local","reqId":"383e898d-6dad-4f3f-b21d-c9f3e4fba68d","res":{"statusCode":400},"responseTime":0.09291700000017045,"msg":"request completed"}
+PASS  pay/缺 providerTxn → 400 invalid_callback
+{"level":30,"time":1791610798545,"pid":93372,"hostname":"miaole.local","reqId":"e562680a-02e2-4eb0-a8fc-8be5d349e925","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798545,"pid":93372,"hostname":"miaole.local","reqId":"e562680a-02e2-4eb0-a8fc-8be5d349e925","res":{"statusCode":400},"responseTime":0.08899999999994179,"msg":"request completed"}
+PASS  pay/空 providerTxn → 400 invalid_callback
+{"level":30,"time":1791610798545,"pid":93372,"hostname":"miaole.local","reqId":"e2d33af2-3f09-4ace-a83e-77fe1ef0eb6f","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798545,"pid":93372,"hostname":"miaole.local","reqId":"e2d33af2-3f09-4ace-a83e-77fe1ef0eb6f","res":{"statusCode":403},"responseTime":0.0990830000000642,"msg":"request completed"}
+PASS  pay/伪签(等长)→ 403 bad_signature
+{"level":30,"time":1791610798546,"pid":93372,"hostname":"miaole.local","reqId":"7cef8fb7-ec98-4564-82d8-73749eb75040","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798546,"pid":93372,"hostname":"miaole.local","reqId":"7cef8fb7-ec98-4564-82d8-73749eb75040","res":{"statusCode":403},"responseTime":0.1585419999998976,"msg":"request completed"}
+PASS  pay/短签名 → 403 bad_signature
+{"level":30,"time":1791610798546,"pid":93372,"hostname":"miaole.local","reqId":"94f0d6ed-7a7e-408f-8012-7ffd4aa836ea","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798546,"pid":93372,"hostname":"miaole.local","reqId":"94f0d6ed-7a7e-408f-8012-7ffd4aa836ea","res":{"statusCode":403},"responseTime":0.10629199999993943,"msg":"request completed"}
+PASS  pay/错单签名 → 403 bad_signature
+{"level":30,"time":1791610798547,"pid":93372,"hostname":"miaole.local","reqId":"c5f5188a-d353-48cf-9a93-2119a763be3c","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798547,"pid":93372,"hostname":"miaole.local","reqId":"c5f5188a-d353-48cf-9a93-2119a763be3c","res":{"statusCode":403},"responseTime":0.13770799999997507,"msg":"request completed"}
+PASS  pay/签名流水不符 → 403 bad_signature
+{"level":30,"time":1791610798547,"pid":93372,"hostname":"miaole.local","reqId":"b3f34ee1-3cbc-441f-842b-187fbc332f26","req":{"method":"POST","url":"/commerce/orders/ORD_NOPE/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798550,"pid":93372,"hostname":"miaole.local","reqId":"b3f34ee1-3cbc-441f-842b-187fbc332f26","res":{"statusCode":404},"responseTime":3.108249999999998,"msg":"request completed"}
+PASS  pay/不存在订单(合法签名)→ 404 order_not_found
+{"level":30,"time":1791610798551,"pid":93372,"hostname":"miaole.local","reqId":"be7cb193-ca13-407d-95f4-f98c115635eb","req":{"method":"POST","url":"/commerce/orders/ORD_A/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798554,"pid":93372,"hostname":"miaole.local","reqId":"be7cb193-ca13-407d-95f4-f98c115635eb","res":{"statusCode":404},"responseTime":2.365833000000066,"msg":"request completed"}
+PASS  pay/越权他人订单(合法签名)→ 404 order_not_found
+PASS  pay/越权他人订单 → 不给受害者入账
+{"level":30,"time":1791610798554,"pid":93372,"hostname":"miaole.local","reqId":"14f898a6-1607-4389-8386-e25a7a45af63","req":{"method":"POST","url":"/commerce/orders/ORD_PAID/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798557,"pid":93372,"hostname":"miaole.local","reqId":"14f898a6-1607-4389-8386-e25a7a45af63","res":{"statusCode":409},"responseTime":2.373209000000088,"msg":"request completed"}
+PASS  pay/已paid单再回调(流水不符)→ 409 order_conflict
+PASS  pay/已paid单再回调 → 不重复入账
+{"level":30,"time":1791610798558,"pid":93372,"hostname":"miaole.local","reqId":"345fe2de-a82c-497a-b053-10590a635716","req":{"method":"POST","url":"/commerce/orders/ORD_PCC/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798558,"pid":93372,"hostname":"miaole.local","reqId":"eceda1e5-4862-4981-8334-92fe0bb5182b","req":{"method":"POST","url":"/commerce/orders/ORD_PCC/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798563,"pid":93372,"hostname":"miaole.local","reqId":"345fe2de-a82c-497a-b053-10590a635716","res":{"statusCode":200},"responseTime":4.352957999999944,"msg":"request completed"}
+{"level":30,"time":1791610798564,"pid":93372,"hostname":"miaole.local","reqId":"eceda1e5-4862-4981-8334-92fe0bb5182b","res":{"statusCode":200},"responseTime":5.21979199999987,"msg":"request completed"}
+PASS  pay/并发双回调 → 都 200(无 5xx)
+PASS  pay/并发双回调 → 恰一个 credited(不双结算)
+PASS  pay/并发双回调 → 桶只加 1 次(不超卖)
+PASS  pay/并发双回调 → 入账额恰 10(单份)
+{"level":30,"time":1791610798565,"pid":93372,"hostname":"miaole.local","reqId":"946cb070-c31c-4a72-a618-8030f9445fcb","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798565,"pid":93372,"hostname":"miaole.local","reqId":"946cb070-c31c-4a72-a618-8030f9445fcb","res":{"statusCode":400},"responseTime":0.1981660000001284,"msg":"request completed"}
+PASS  webhook/缺 sig → 400 invalid_callback
+{"level":30,"time":1791610798566,"pid":93372,"hostname":"miaole.local","reqId":"f6e13aed-7768-4933-aa63-9a1a56b064b3","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798566,"pid":93372,"hostname":"miaole.local","reqId":"f6e13aed-7768-4933-aa63-9a1a56b064b3","res":{"statusCode":403},"responseTime":0.111458999999968,"msg":"request completed"}
+PASS  webhook/伪签 → 403 bad_signature
+{"level":30,"time":1791610798566,"pid":93372,"hostname":"miaole.local","reqId":"15af7cfe-e6a9-4746-8909-639fba58f221","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798566,"pid":93372,"hostname":"miaole.local","reqId":"15af7cfe-e6a9-4746-8909-639fba58f221","res":{"statusCode":403},"responseTime":0.09875000000010914,"msg":"request completed"}
+PASS  webhook/短签名 → 403 bad_signature
+{"level":30,"time":1791610798566,"pid":93372,"hostname":"miaole.local","reqId":"cedfec22-9eb1-4f78-8509-6bfb914a1ce0","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_GHOST","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798568,"pid":93372,"hostname":"miaole.local","reqId":"cedfec22-9eb1-4f78-8509-6bfb914a1ce0","res":{"statusCode":404},"responseTime":1.2000840000000608,"msg":"request completed"}
+PASS  webhook/不存在订单 → 404 order_not_found
+{"level":30,"time":1791610798568,"pid":93372,"hostname":"miaole.local","reqId":"af78b18b-704d-4a8b-94b2-a580714fa158","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798568,"pid":93372,"hostname":"miaole.local","reqId":"af78b18b-704d-4a8b-94b2-a580714fa158","res":{"statusCode":400},"responseTime":0.10220800000001873,"msg":"request completed"}
+PASS  webhook/错 content-type → 400 invalid_callback
+{"level":30,"time":1791610798571,"pid":93372,"hostname":"miaole.local","reqId":"48002efe-47f9-4803-abd7-fcdb839947dd","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798571,"pid":93372,"hostname":"miaole.local","reqId":"48002efe-47f9-4803-abd7-fcdb839947dd","res":{"statusCode":413},"responseTime":0.09816699999987577,"msg":"request completed"}
+PASS  webhook/超大 body → 413 payload_too_large
+{"level":30,"time":1791610798572,"pid":93372,"hostname":"miaole.local","reqId":"e3c96dfb-a53d-4fde-939f-62c150b696b4","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_SPOOF","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798576,"pid":93372,"hostname":"miaole.local","reqId":"e3c96dfb-a53d-4fde-939f-62c150b696b4","res":{"statusCode":200},"responseTime":4.158999999999878,"msg":"request completed"}
+PASS  webhook/body 冒充 owner → 200 credited(仅按 DB owner)
+PASS  webhook/body 冒充 owner → 攻击者 0 桶(冒充无效)
+PASS  webhook/body 冒充 owner → 真 owner 入账 1 桶
+{"level":30,"time":1791610798577,"pid":93372,"hostname":"miaole.local","reqId":"1917dfb7-e6ee-47be-a5f2-4198752e140d","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798581,"pid":93372,"hostname":"miaole.local","reqId":"1917dfb7-e6ee-47be-a5f2-4198752e140d","res":{"statusCode":200},"responseTime":3.340583999999808,"msg":"request completed"}
+{"level":30,"time":1791610798581,"pid":93372,"hostname":"miaole.local","reqId":"ec7da112-0fe7-41c3-a37c-e80ef186ac4e","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798585,"pid":93372,"hostname":"miaole.local","reqId":"ec7da112-0fe7-41c3-a37c-e80ef186ac4e","res":{"statusCode":200},"responseTime":3.600750000000062,"msg":"request completed"}
+PASS  webhook/重放 → 首次 credited
+PASS  webhook/重放 → 二次 already(幂等,不双入)
+PASS  webhook/重放 → 桶只 1 个(不重复入账)
+PASS  webhook/重放 → 入账额恰 10(单份)
+{"level":30,"time":1791610798586,"pid":93372,"hostname":"miaole.local","reqId":"36d5abb5-8275-400d-a4d5-d1bd0de73286","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798589,"pid":93372,"hostname":"miaole.local","reqId":"36d5abb5-8275-400d-a4d5-d1bd0de73286","res":{"statusCode":409},"responseTime":3.06962499999986,"msg":"request completed"}
+PASS  webhook/已paid换流水回放 → 409 order_conflict
+PASS  webhook/已paid换流水回放 → 不再入账
+{"level":30,"time":1791610798590,"pid":93372,"hostname":"miaole.local","reqId":"8fb7948f-3c92-48a4-b550-79a8614003aa","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_CC","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798590,"pid":93372,"hostname":"miaole.local","reqId":"e11fbfdf-30eb-4abb-917e-23d8c4dbb508","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_CC","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798594,"pid":93372,"hostname":"miaole.local","reqId":"8fb7948f-3c92-48a4-b550-79a8614003aa","res":{"statusCode":200},"responseTime":3.9617500000001655,"msg":"request completed"}
+{"level":30,"time":1791610798595,"pid":93372,"hostname":"miaole.local","reqId":"e11fbfdf-30eb-4abb-917e-23d8c4dbb508","res":{"statusCode":200},"responseTime":4.905749999999898,"msg":"request completed"}
+PASS  webhook/并发双回调 → 都 200
+PASS  webhook/并发双回调 → 恰一个 credited
+PASS  webhook/并发双回调 → 桶只加 1(不双结算)
+PASS  webhook/并发双回调 → 入账额恰 10
+{"level":30,"time":1791610798596,"pid":93372,"hostname":"miaole.local","reqId":"b9c9d752-e9c7-4c29-9cf9-f9cebaedfd39","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_TX_A","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798596,"pid":93372,"hostname":"miaole.local","reqId":"d76fe922-2669-4747-a766-8240bb09dfad","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_TX_B","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798600,"pid":93372,"hostname":"miaole.local","reqId":"b9c9d752-e9c7-4c29-9cf9-f9cebaedfd39","res":{"statusCode":200},"responseTime":3.5520000000001346,"msg":"request completed"}
+{"level":30,"time":1791610798601,"pid":93372,"hostname":"miaole.local","reqId":"d76fe922-2669-4747-a766-8240bb09dfad","res":{"statusCode":409},"responseTime":4.541791999999987,"msg":"request completed"}
+PASS  webhook/跨订单同 providerTxn → 恰一笔 200 credited
+PASS  webhook/跨订单同 providerTxn → 另一笔 409 order_conflict（非 5xx）
+PASS  webhook/跨订单同 providerTxn → provider_txn 落库仅 1 行
+PASS  webhook/跨订单同 providerTxn → 两个账户合计只发 10 单位
+{"level":30,"time":1791610798603,"pid":93372,"hostname":"miaole.local","reqId":"6fdbac1e-eb6e-4aba-a602-7c74156de92e","req":{"method":"POST","url":"/interview/IV_UBC2/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798610,"pid":93372,"hostname":"miaole.local","reqId":"6fdbac1e-eb6e-4aba-a602-7c74156de92e","res":{"statusCode":402},"responseTime":6.3996669999999085,"msg":"request completed"}
+PASS  consume/无额度 → 402 insufficient_entitlement
+{"level":30,"time":1791610798610,"pid":93372,"hostname":"miaole.local","reqId":"59c23fd6-a53b-407a-9025-823ee9f946ce","req":{"method":"POST","url":"/interview/IV_EXP/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798614,"pid":93372,"hostname":"miaole.local","reqId":"59c23fd6-a53b-407a-9025-823ee9f946ce","res":{"statusCode":402},"responseTime":4.367457999999942,"msg":"request completed"}
+PASS  consume/过期额度 → 402 insufficient_entitlement
+{"level":30,"time":1791610798615,"pid":93372,"hostname":"miaole.local","reqId":"7110a9d7-2799-40fb-9da9-fffef0bf747f","req":{"method":"POST","url":"/interview/IV_OTHER/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798615,"pid":93372,"hostname":"miaole.local","reqId":"7110a9d7-2799-40fb-9da9-fffef0bf747f","res":{"statusCode":400},"responseTime":0.13033400000017537,"msg":"request completed"}
+PASS  consume/缺 resume-id → 400 missing_resume_id
+{"level":30,"time":1791610798615,"pid":93372,"hostname":"miaole.local","reqId":"81743c4d-8154-4f73-9069-a7f8e4b66e77","req":{"method":"POST","url":"/interview/IV_UBC2/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798616,"pid":93372,"hostname":"miaole.local","reqId":"81743c4d-8154-4f73-9069-a7f8e4b66e77","res":{"statusCode":400},"responseTime":0.10479200000008859,"msg":"request completed"}
+PASS  consume/非 UUID resume-id(旧 r1 形态)→ 400 invalid_resume_id
+{"level":30,"time":1791610798616,"pid":93372,"hostname":"miaole.local","reqId":"cc90a1e5-e0e7-444a-9ce7-f2ab09edf296","req":{"method":"POST","url":"/interview/IV_ACT/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798617,"pid":93372,"hostname":"miaole.local","reqId":"cc90a1e5-e0e7-444a-9ce7-f2ab09edf296","res":{"statusCode":404},"responseTime":1.4270410000001448,"msg":"request completed"}
+PASS  consume/越权他人面试 → 404 not_found_or_forbidden
+{"level":30,"time":1791610798618,"pid":93372,"hostname":"miaole.local","reqId":"c807b90d-7f52-456a-b2eb-130c60f96373","req":{"method":"POST","url":"/interview/IV_ACT/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798618,"pid":93372,"hostname":"miaole.local","reqId":"c807b90d-7f52-456a-b2eb-130c60f96373","res":{"statusCode":401},"responseTime":0.12295899999980975,"msg":"request completed"}
+PASS  consume/未鉴权 begin → 401
+{"level":30,"time":1791610798618,"pid":93372,"hostname":"miaole.local","reqId":"d53fa898-afb8-4d8b-84f5-b73f6c0f9968","req":{"method":"POST","url":"/interview/IV_OS1/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798618,"pid":93372,"hostname":"miaole.local","reqId":"57d0eb8c-a697-4b71-af80-7a6623d8bed7","req":{"method":"POST","url":"/interview/IV_OS2/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60931},"msg":"incoming request"}
+{"level":30,"time":1791610798627,"pid":93372,"hostname":"miaole.local","reqId":"d53fa898-afb8-4d8b-84f5-b73f6c0f9968","res":{"statusCode":202},"responseTime":8.280332999999928,"msg":"request completed"}
+{"level":30,"time":1791610798627,"pid":93372,"hostname":"miaole.local","reqId":"57d0eb8c-a697-4b71-af80-7a6623d8bed7","res":{"statusCode":402},"responseTime":8.590458000000126,"msg":"request completed"}
+PASS  consume/并发超卖 → 恰一场被 402 拒(不超卖)
+PASS  consume/并发超卖 → 预留额不超过池上限 1.0
+PASS  consume/并发超卖 → 被拒方返 insufficient_entitlement
+{"level":30,"time":1791610798628,"pid":93372,"hostname":"miaole.local","reqId":"ad09adc5-6f3a-4d52-a0d0-a2596d4465d0","req":{"method":"POST","url":"/interview/IV_DBL/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798628,"pid":93372,"hostname":"miaole.local","reqId":"4d59f341-049c-4b4a-9026-b3fc57e99ffa","req":{"method":"POST","url":"/interview/IV_DBL/begin","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798635,"pid":93372,"hostname":"miaole.local","reqId":"ad09adc5-6f3a-4d52-a0d0-a2596d4465d0","res":{"statusCode":202},"responseTime":6.973625000000084,"msg":"request completed"}
+{"level":30,"time":1791610798636,"pid":93372,"hostname":"miaole.local","reqId":"4d59f341-049c-4b4a-9026-b3fc57e99ffa","res":{"statusCode":202},"responseTime":8.429124999999885,"msg":"request completed"}
+PASS  consume/并发同面试双击 → 无 5xx
+PASS  consume/并发同面试双击 → 只预留一次(不双扣,reserved==1.0)
+PASS  consume/并发同面试双击 → 只 1 条 consumption(幂等)
+{"level":30,"time":1791610798638,"pid":93372,"hostname":"miaole.local","reqId":"d9f65126-5ce3-4c09-a4af-51173cb4efa2","req":{"method":"POST","url":"/commerce/webhook/pay/ORD_AMT","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798638,"pid":93372,"hostname":"miaole.local","reqId":"d9f65126-5ce3-4c09-a4af-51173cb4efa2","res":{"statusCode":400},"responseTime":0.1174580000001697,"msg":"request completed"}
+PASS  webhook/空 body → 400 invalid_callback
+{"level":30,"time":1791610798638,"pid":93372,"hostname":"miaole.local","reqId":"4a389bee-852d-4638-823c-318edaab64a1","req":{"method":"POST","url":"/commerce/orders/ORD_AMT/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798638,"pid":93372,"hostname":"miaole.local","reqId":"4a389bee-852d-4638-823c-318edaab64a1","res":{"statusCode":400},"responseTime":0.1585410000000138,"msg":"request completed"}
+PASS  pay/空 body → 400 invalid_callback
+{"level":30,"time":1791610798639,"pid":93372,"hostname":"miaole.local","reqId":"fae85e84-b631-48a3-81a0-49bd1edfdc33","req":{"method":"GET","url":"/commerce/webhook/pay/ORD_RPL","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60930},"msg":"incoming request"}
+{"level":30,"time":1791610798639,"pid":93372,"hostname":"miaole.local","reqId":"fae85e84-b631-48a3-81a0-49bd1edfdc33","res":{"statusCode":404},"responseTime":0.16816700000003948,"msg":"request completed"}
+PASS  webhook/错方法 GET → 4xx
+{"level":30,"time":1791610798639,"pid":93372,"hostname":"miaole.local","reqId":"e63d4551-e1e6-4f3c-8408-78b7217a87c0","req":{"method":"POST","url":"/commerce/orders/ORD_SPOOF/pay-callback","host":"127.0.0.1:60927","remoteAddress":"127.0.0.1","remotePort":60929},"msg":"incoming request"}
+{"level":30,"time":1791610798641,"pid":93372,"hostname":"miaole.local","reqId":"e63d4551-e1e6-4f3c-8408-78b7217a87c0","res":{"statusCode":404},"responseTime":2.175207999999884,"msg":"request completed"}
+PASS  pay/他人已paid单越权 → 404 order_not_found
+
+✓ neg:commerce: 84 条负路径用例全绿

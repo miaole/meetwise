@@ -1,0 +1,7 @@
+
+> @meetwise/web@0.0.0 prove /Users/miaole/Desktop/golucky/meetwise-line-g7v-fix/apps/web
+> tsx test/web-logic.proof.ts
+
+sh: tsx: command not found
+ ELIFECYCLE  Command failed.
+ WARN   Local package.json exists, but node_modules missing, did you mean to install?

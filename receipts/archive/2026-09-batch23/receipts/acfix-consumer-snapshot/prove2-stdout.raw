@@ -1,0 +1,16 @@
+
+> meetwise@0.1.0 adaptive-consumer:prove /Users/miaole/Desktop/golucky/meetwise-line-ac1
+> node scripts/run-e2e-isolated.mjs adaptive-consumer:prove:raw
+
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-96216-1791523186875 on 127.0.0.1:56271
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-ac1/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+ISOLATED_PROOF_SUMMARY target=adaptive-consumer:prove:raw exit=0 pass_count=33 fail_count=0 failure_class=none
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T05-19-54-443Z-96216-5b2efb9d-7bb4-44f9-9a6d-93a598160448.json release_evidence=false

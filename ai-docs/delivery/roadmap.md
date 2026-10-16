@@ -56,10 +56,10 @@ tags:
 - 🟡 管理后台（admin/recruiter 守卫 + B 端控制台部分建；治理动作面待补）。
 - 🟡 模型成本预算（成本源头数据已落库；预算闸/告警待接）。
 
-## Phase 4：职业路径扩展 ❌（未建）
+## Phase 4：职业路径扩展 🟡（主体已接线·勘误 2026-10-11 #212 I5 口径刀：原五行全 ❌ 与码不符，按实态对表）
 
-- ❌ 成长档案（GrowthProfile / SkillInference 数据模型已定，**记忆模块已建未接线**，聚合未跑）。
-- ❌ 职业路径分析。
-- ❌ 岗位推荐。
-- ❌ 学习计划。
-- ❌ 能力曲线。
+- 🟡 成长档案（评估/学习计划/职业路径三区块已由 report-worker 成长链自动生成——`packages/db/src/growth-generation.ts`·#204 GROWTH-GEN 已落；GrowthProfile 聚合与语义记忆仍未接线）。
+- 🟡 职业路径分析（单节点图已落 `packages/ai-graphs/src/career-path.ts`·0a3c8a8a；API 手动 `POST /interview/:id/career-path` 经图执行，worker 自动链直调 derive——接线分叉如实；多步路径规划原设计未建）。
+- ❌ 岗位推荐（jobs 模块为岗位浏览/投递·职业链内推荐未建）。
+- 🟡 学习计划（learning_plan 已随成长链自动生成 + 手动补口 `POST /interview/:id/learning-plan`）。
+- 🟡 能力曲线（growth 页已渲染已评估面试的曲线/汇总·SkillInference 深度能力推断未建）。

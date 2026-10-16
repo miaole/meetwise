@@ -1,0 +1,253 @@
+
+> @meetwise/web@0.0.0 prove /Users/miaole/Desktop/golucky/meetwise-line-g7v-fix/apps/web
+> tsx test/web-logic.proof.ts
+
+
+──────── 中文业务名称：内部 id 只作 value，不进入可见文案 ────────
+PASS  简历选项显示中文业务名和中文状态
+PASS  未知状态不回显英文状态键
+PASS  可见简历名称不包含内部 UUID
+PASS  岗位上下文避免重复拼接面试字样
+PASS  旧 API 缺字段与确实未绑定保持不同中文语义
+PASS  面试时间按中文时区显示且缺失安全降级
+
+──────── 面试列表进度：以问题账本投影为准，不再把空会话伪装成第 1 题 ────────
+PASS  零轮 abandoned 显示尚未出题
+PASS  active 的 turn=3 显示第 4 题待答
+PASS  queued 的 turn=3 显示处理中
+PASS  completed 显示实际总题数
+PASS  终态已出题但零回答不伪装成尚未出题
+PASS  终态残留 open turn 仍只显示已答题数
+PASS  已放弃不再提供继续作答 CTA
+PASS  未知状态 fail-closed，不提供作答入口
+PASS  未知状态不伪装成进行中或待答
+PASS  有题的 created 派生为进行中展示态
+PASS  总览缺失不把已答题数伪装成 0
+PASS  总览非法 answered 不渲染伪造进度
+PASS  总览真实 0 与正数分别可区分
+
+──────── 渲染背压：同一动画帧内合并为最后一个视图，取消后绝不提交 ────────
+PASS  同一帧的 3 次业务更新只调度 1 次渲染
+PASS  帧回调只提交最新快照（中间状态不触发 React commit）
+PASS  组件卸载取消待渲染帧后，不会向已卸载组件提交状态
+
+──────── 超长会话窗口：1 万轮只挂载 80 轮，翻页不累积 DOM ────────
+PASS  最新窗口精确为第 9,921–10,000 轮（80 条）
+PASS  越界历史页会钳制到最早窗口，不产生空白或超量渲染
+
+──────── 作答身份：question/answer/hash 三元组稳定且服务端可复算 ────────
+PASS  提交体保留服务端发放 questionId/stateVersion/turn 与稳定 answerId
+PASS  answerHash 为原始 UTF-8 文本 SHA-256（不因 UI trim 而漂移）
+
+──────── SSE 解码：多帧 + 分块累积 + CRLF + 心跳/注释帧 ────────
+PASS  切出 2 完整帧,第 3 不完整留 rest
+PASS  rest 拼后续分块解出第 3 帧
+PASS  CRLF 行尾也能解出帧(不再永久转圈)
+PASS  心跳/注释帧被忽略,只产出真事件帧
+
+──────── 帧 → 强类型事件(契约内才认) ────────
+PASS  合法 → 类型化
+PASS  坏 JSON → null
+PASS  payload 不符 → null
+PASS  未知事件 → null
+PASS  NaN id(缺 id) → null,不污染 lastEventId
+
+──────── 视图归约 + 无静默死胡同 ────────
+PASS  answer_evaluated 无可信 identity → phase=answered 但不展示伪造分
+PASS  answer_evaluated 绑 canonical identity + answer claim → practice hint 可展示
+PASS  仅有 question identity、缺 answer claim → 不展示 hint
+PASS  错题 identity 不得把分数贴到当前题（无 fake mapped score）
+PASS  canonical id 与 stateVersion 漂移 → 不展示分数
+PASS  lastEventId=3(断线重连用)
+PASS  question_ready 身份令牌进入视图（提交不再依赖本地 turn）
+PASS  真实图题型 grounded 被消费（不能因枚举漂移卡在 connecting）
+PASS  clarification_needed → 非终态(phase=question)+ 挂引导 + 不新增历史 turn
+PASS  clarification_needed 用新 identity 替换已消费令牌，重答不会 stale
+PASS  clarification → 显式引导文案 + 可作答出口(非死胡同、非转圈)
+PASS  引导态 → 重答评分后引导自动清除(消解,不残留)
+PASS  unresolved(跳过/探尽)→ 题标 skipped 且不展示惩罚分(lastScore 非0)
+PASS  无 identity 的 answered 不回填分数（缺出处 ≠ 80）
+PASS  report_unavailable → degraded 且退出等待(无限转圈防护)
+PASS  assessment_unavailable → 独立终态、额度已释放提示并导向我的投递（不冒充报告不可用）
+PASS  error 事件 → phase=error(终态)
+PASS  interview_unavailable(reaper 终态) → degraded 且 isTerminal(不死等)
+
+──────── 流断/重连：非终态断流→reconnecting(不干等);重连耗尽→degraded 出口 ────────
+PASS  answered 时断流 → connection=reconnecting(自动重连,非卡死)
+PASS  终态(report_ready)断流 → connection=closed(正常结束)
+PASS  重连耗尽 → degraded=true 给出口(不无限重连)
+PASS  从没连上(connecting)重连耗尽 → phase=error
+
+──────── 契约客户端：HTTP 状态分流(business/transport/drift)+ 强制幂等键 ────────
+PASS  2xx 合法 → ok+类型化
+PASS  404 → business 错(可降级,非不透明抛)
+PASS  500 → transport 错(可重试)
+PASS  500 非JSON(HTML) → transport,不崩
+PASS  网络抛错 → transport
+PASS  2xx 但形不符 → drift(告警,不裸用)
+PASS  submitAnswer 带幂等键 → ok+判别联合
+PASS  请求确实带上 idempotency-key 头(后端必需)
+PASS  提交走 /turn 且请求体含服务端 questionId
+PASS  缺幂等键 → 本地拦为 business 错(不发无效请求)
+PASS  非法 question/answer 身份契约 → 本地 invalid_request,不发请求
+
+──────── SSE 驱动：读流→续状态→终态收尾（端到端,无浏览器） ────────
+PASS  驱动跑到 report_ready 终态收尾(connection=closed)
+PASS  重复 SSE id 不会重复归约/重复渲染题目
+
+──────── SSE 驱动：断线自动重连,凭 Last-Event-ID 续(不丢不重) ────────
+PASS  断流后自动重连(open 被调 2 次)
+PASS  重连凭 Last-Event-ID=2 续(seq>2 重放,不丢不重)
+PASS  续上报告 → report_ready
+
+──────── SSE 驱动：重连耗尽 → degraded 出口(不无限重连) ────────
+PASS  重连耗尽(≤maxRetries+1 次)后 degraded 收尾
+PASS  确实有界,不无限重连
+
+──────── SSE 驱动：终态 report_unavailable 不再重连(优雅降级) ────────
+PASS  收到 report_unavailable → 终态收尾,不重连
+
+──────── SSE 驱动：传输错(open 抛)→ 重连耗尽降级(审计:catch 路径) ────────
+PASS  open 每次抛 → 有界重连后 degraded(不崩,不无限)
+
+──────── HC-GAP-014：HTTP 400 invalid_last_event_id 必须停转/degraded，不得用同一游标重试 ────────
+PASS  合法整数才编码 Last-Event-ID；0 不带头
+PASS  Infinity/小数/负数/NaN 本地失败关闭，绝不写成 Last-Event-ID
+PASS  HTTP 400 → 抛 InvalidLastEventIdError；502/401 不抛
+PASS  SSE 代理 400 保持 400 且不伪装成 stream_unavailable
+PASS  SSE 代理 502 仍是不可用断线语义
+PASS  首连 400 → open 恰好 1 次（不得用同一游标重试）
+PASS  首连 400 → degraded + connection=closed + phase=error
+PASS  首连 400 fail-closed 展示：不转圈 + 重试出口
+PASS  重连 400 → 第二次 open 带 lastEventId=2 后立即停，不再第三次用 2 重试
+PASS  中途非法游标 fail-closed：不转圈、不当成仍可作答
+PASS  空结束(502/401 语义)仍按断线重连，不是 400 停转
+
+──────── SSE 驱动：error 终态事件 → phase=error 收尾(不重连) ────────
+PASS  error 事件 → 终态收尾,不重连
+
+──────── SSE 驱动：dribble 绝对上限(每次都有进展也封顶,审计 A 防 DoS) ────────
+PASS  即便每次有进展,触绝对上限后 degraded(有界,防 dribble-DoS)
+
+──────── SSE 驱动：取消(AbortSignal)→ 立即停,不再 onView(审计 C 卸载) ────────
+PASS  已 abort → 立即返回,onView 零调用(不在卸载组件上渲染)
+
+──────── SSE 驱动：mid-frame 断流 → lastEventId 未推进,重连重放完整帧(不丢事件,审计 3) ────────
+PASS  半截帧断流 → lastEventId 未推进(=0),重连仍从 0(未丢未提前确认)
+PASS  重连重放完整帧 → 续到终态(半截事件没丢)
+
+──────── 视图模型:任何状态都不死胡同(UX-HA:不无限转圈、永远有出路) ────────
+PASS  所有 9 个 phase 都不是死胡同(遍历 ALL_PHASES 单一真相,加 phase 自动覆盖)
+PASS  interview_unavailable → degraded + 重试出口 + 不转圈(面试失败终态,不死等)
+PASS  report_unavailable → degraded + 重试操作 + 不转圈(优雅降级,非无限等)
+PASS  断线重连态 → 显式"重连中"+手动重试出口(不冻结)
+PASS  report_ready → 看报告操作 + 含评分
+PASS  每个状态要么有可读内容、要么有可点操作(都给得出路)
+
+──────── 押题视图归约:progress/question_ready 累题 + quiz_ready 终态(report 漂移不击沉终态) ────────
+PASS  quiz_ready → phase=ready + 2 题 + report 接上
+PASS  quiz_ready 即便 report 字段漂移仍到达 ready(终态不被装饰字段击沉)
+PASS  quiz_ready 无 report/无 count 也到达 ready(不卡生成态)
+PASS  quiz_unavailable → degraded + 退出等待(优雅降级,不无限转圈)
+
+──────── 押题流断/重连:非终态→reconnecting;终态→closed;耗尽→degraded 出口 ────────
+PASS  生成中断流 → reconnecting(自动重连,非卡死)
+PASS  终态(ready)断流 → closed(正常结束)
+PASS  重连耗尽 → degraded 出口;从未连上则 error
+
+──────── 押题 SSE 驱动:端到端(happy/重连续传/耗尽/已就绪重放/坏帧) ────────
+PASS  驱动跑到 quiz_ready 终态收尾(closed)
+PASS  断流自动重连凭 Last-Event-ID=1 续 → ready
+PASS  永不出终态 → 有界重连后 degraded(不无限转圈)
+PASS  押题 400 非法游标 → open=1 + degraded/closed，不得同游标重试
+PASS  押题 400 fail-closed 展示不转圈
+PASS  已就绪押题重放 → 一次到 ready,题目齐(无重连)
+
+──────── 押题视图模型:任何状态都不死胡同(P0:无死胡同可确定性 gate) ────────
+PASS  所有 5 个押题 phase 都不是死胡同(遍历 ALL_QUIZ_PHASES,加 phase 自动覆盖)
+PASS  quiz_unavailable → degraded + 重试出口 + 不转圈
+PASS  断线重连态 → 显式"重连中"+手动重试出口(不冻结)
+PASS  每个押题状态要么有可读内容、要么有可点操作(都给得出路)
+
+──────── 诊断视图归约:progress/section_ready 累维度 + rewrite_ready 累改写 + diagnosis_ready 终态(摘要漂移不击沉终态) ────────
+PASS  diagnosis_ready → phase=ready + 2 维度 + 1 改写(逐条流式)+ overall 接上
+PASS  diagnosis_ready 即便摘要字段漂移仍到达 ready(终态不被装饰字段击沉)
+PASS  diagnosis_ready 无 overall/无计数也到达 ready(不卡生成态)
+PASS  diagnosis_unavailable → degraded + 退出等待(优雅降级,不无限转圈)
+
+──────── 诊断流断/重连:非终态→reconnecting;终态→closed;耗尽→degraded 出口 ────────
+PASS  生成中断流 → reconnecting(自动重连,非卡死)
+PASS  终态(ready)断流 → closed(正常结束)
+PASS  重连耗尽 → degraded 出口;从未连上则 error
+
+──────── 诊断 SSE 驱动:端到端(happy/重连续传/耗尽/已就绪重放) ────────
+PASS  驱动跑到 diagnosis_ready 终态收尾(closed)
+PASS  诊断流重复 SSE id 不会重复追加区块
+PASS  断流自动重连凭 Last-Event-ID=1 续 → ready
+PASS  永不出终态 → 有界重连后 degraded(不无限转圈)
+PASS  诊断 400 非法游标 → open=1 + degraded/closed，不得同游标重试
+PASS  诊断 400 fail-closed 展示不转圈
+
+──────── 诊断视图模型:任何状态都不死胡同(P0:无死胡同可确定性 gate) ────────
+PASS  所有 5 个诊断 phase 都不是死胡同(遍历 ALL_DIAGNOSIS_PHASES,加 phase 自动覆盖)
+PASS  diagnosis_unavailable → degraded + 重试出口 + 不转圈
+PASS  断线重连态 → 显式"重连中"+手动重试出口(不冻结)
+PASS  每个诊断状态要么有可读内容、要么有可点操作(都给得出路)
+
+──────── SCOR-00H SSE 练习分：只信 canonical identity，缺出处不是 0 ────────
+PASS  web identity 拒 q-ready / 漂移
+PASS  practice hint 无身份 / 缺 answer claim / 非整数 → undefined（不是 0）
+PASS  practice hint 贴到另一题 identity → undefined
+PASS  report_ready 非 0..100 整数不写入视图 report（不是伪造 0）
+
+──────── UC-RES-081 简历页预览 OCR：双旗精确、生产/公开预览拒绝、失败不编造转写 ────────
+PASS  TC-RES-081-main 仅精确双旗 1+1 才请求预览
+PASS  TC-RES-081-escape 生产 / enforce / 公开预览即使双旗也锁定
+PASS  TC-RES-081-main 预览才接受图片；关闭态 accept 不含 image
+PASS  TC-RES-081-main 预览文案声明非生产视觉承诺；关闭态不假装可识别
+PASS  TC-RES-081-special 图片判定看 mime 或扩展名，不以空 mime 放行
+PASS  TC-RES-081-special 预览 accept 与 POST allowlist 同为 png/jpeg/webp，gif/bmp 关闭态仍当图片拒绝
+PASS  TC-RES-081-escape 扫描型 PDF 空文本不承诺未接线的逐页 OCR
+PASS  TC-RES-081-escape 关闭态本地拒绝图片，不把本地拒绝写成成功
+PASS  TC-RES-081-special 预览态非 png/jpeg/webp 本地拒格式，不编造转写
+PASS  TC-RES-081-adversarial ocr_failed 带 text/transcript 也不当成功、不回显转写
+PASS  TC-RES-081-empty 空信封与缺 error 不伪装成功
+PASS  TC-RES-081-drift API 仍 422 image_ocr_unavailable 时诚实不可用
+PASS  TC-RES-081-timeout 预览图片超时窗口长于文本提取，仍不是无限等
+PASS  TC-RES-081-timeout Abort/Timeout 都映射为失败、不编造成功
+
+──────── PRD-TEST-006 流式 ASR 预览旗：精确双旗、生产锁定、不发明转写入口 ────────
+PASS  仅精确双旗 1+1 才请求流式 ASR 预览
+PASS  生产 / enforce / 公开预览即使双旗也锁定流式 ASR
+
+──────── SIGNAL-SSE：session_concluded 非终态、不发明分、不改 phase ────────
+PASS  session_concluded → 写入理由且 phase 仍 connecting（不是新终态）
+PASS  畸形 score/band/overall 载荷 → 丢弃事件（strict）
+PASS  先理由后报告：理由保留，overall 只由报告事件写入
+PASS  先报告后理由：overall 不被 reason 改写
+PASS  展示含练习控制流、不含等级；report.overall 仍是 74
+PASS  session_concluded 后断流：若尚未终态则重连（不把理由当收尾）
+PASS  已有练习 hint 后再收理由：lastScore 保持 80（不是 0），文案不再承诺下一题
+
+──────── B 端申请状态：只命中自有 app_ 投影，分数恒不可见 ────────
+PASS  合法自有申请命中
+PASS  他岗/未知 id 不命中
+PASS  非 app_ 前缀不命中
+PASS  注入型 applicationId 不命中
+PASS  超长 applicationId 不命中
+PASS  空列表与非法集不命中
+PASS  评分暂不可用不是 0 分文案
+PASS  历史 completed 仍不提供数值评分
+PASS  未知状态 fail-closed 为不提供数值评分
+PASS  申请分数消费门恒关闭
+PASS  状态标签无死胡同
+PASS  架构说明七项 id 固定且不含发布承诺
+PASS  公平卡片标题不宣称已经分开领
+PASS  公平卡片写明不是高峰容量保证
+PASS  公平卡片不再写按账号串行领取
+PASS  公平卡片写明押题诊断报告仍抽干
+PASS  ACL 卡片不把检索权限写成已交付
+PASS  评分卡片写明不用 0 分凑数
+PASS  分开记账卡片不把 0126 写成完整档案
+
+✓ 全部通过

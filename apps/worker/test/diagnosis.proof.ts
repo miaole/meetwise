@@ -18,7 +18,11 @@ let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
 const section = (t: string) => console.log(`\n──────── ${t} ────────`);
 const OWNER = 'diagUser', DID = 'dg-' + Date.now(), DID_FAIL = 'dgf-' + Date.now(), DID_METRIC = 'dgm-' + Date.now();
+// G4 #209 新增夹具:滤后 groundedCount=0 鉴别子(DID_GZERO)+空 facts 前置拦截(DID_NOFACTS)。
+const DID_GZERO = 'dggz-' + Date.now(), DID_NOFACTS = 'dgnf-' + Date.now();
 const RESUME = ['工作经历', '负责订单系统限流改造,用 Redis 计数器扛高并发', '技能', 'Redis、限流、分布式锁'].join('\n');
+// 空 facts 简历:仅文档头部联系/电话形态行(#191)——ingestResume 不冒充经历 → facts=[]。用于 facts 空前置拦截夹具。
+const RESUME_NO_FACTS = '13900139000';
 
 // 成功诊断:5 维度发现,其中 highlight 含一条幻觉 finding(refs=['Go'] 简历里没有)→ factuality 歪曲门过滤掉。改写均接地。
 const okModel = scriptedModelClient({
@@ -57,6 +61,22 @@ const metricFabModel = scriptedModelClient({
     overall: 70, summary: 'x',
     sections: [{ kind: 'highlight', title: '亮点', findings: [{ text: '有限流经验', refs: ['限流'] }] }],
     rewrites: [{ before: '负责订单系统限流改造', after: '将系统峰值 QPS 从 100 提升至 99999', refs: ['限流', 'Redis'] }],   // refs 接地但 99999 虚构
+  } }),
+});
+// G4 #209 滤后 groundedCount=0 鉴别子:sections 非空(生成器闸 'empty_diagnosis' 不触发)、findings 文字全非空
+// ('blank_finding' 不触发)、rewrites 空(无闸可触)——但 findings refs 全幻觉('Go' 不在简历 facts)→ 图 validate
+// 歪曲门逐条滤光(resume-diagnosis.ts)→ finalize groundedCount=0 → runDiagnosis confirm 前 throw。
+// 构造要点:必须用**非空幻觉 refs**——非声明维度(结构/完整性/风险)空 refs 是合法豁免面(groundedByFacts([]) 恒 true),
+// 用空 refs 滤不掉。
+const zeroGroundedModel = scriptedModelClient({
+  'resume-diagnosis.generate': () => ({ ok: true, raw: {
+    overall: 70, summary: '全部发现均为无法锚定简历的幻觉内容',
+    sections: [
+      { kind: 'structure', title: '结构与排版', score: 80, findings: [{ text: '分节清晰,信息密度合理', refs: ['Go'] }] },
+      { kind: 'highlight', title: '亮点', score: 85, findings: [{ text: '具备三年 Go 微服务经验', refs: ['Go'] }] },
+      { kind: 'risk', title: '风险/硬伤', findings: [{ text: '成果缺少量化数据', refs: ['Go'] }] },
+    ],
+    rewrites: [],
   } }),
 });
 
@@ -160,6 +180,54 @@ async function main() {
   const revert = await asPrincipal(pool, OWNER, (c) => c.query("UPDATE resume_diagnosis SET status='failed' WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','generating')", [DID, OWNER]));
   A('对 ready 诊断套用 abandon CAS → 0 行(状态机不倒退,不误退已扣费)', revert.rowCount === 0);
   A('ready 诊断仍 ready(未被倒退)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM resume_diagnosis WHERE id=$1', [DID]))).rows[0].status === 'ready');
+
+  // ── G4 #209 失败路径诚实刀新增(g4-failure-path-REQUEST rev2 §4.3 洞B):滤后路径分支鉴别子 + facts 空前置拦截 ──
+  section('⑧ G4 #209 滤后 groundedCount=0 鉴别子:发现全被歪曲门滤光 → diagnosis_no_grounded_finding(confirm 前 throw·非生成器闸)+失败退额');
+  const beforeGz = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
+  await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("INSERT INTO resume_diagnosis(id,owner_user_id,status,resume_id,privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [DID_GZERO, OWNER, resumeId, epoch]);
+    await reserveEntitlement(c, OWNER, DID_GZERO, 'resume_diagnosis', 1.0);
+    await enqueueDiagnosisJob(c, OWNER, DID_GZERO, resumeId, epoch);
+  });
+  await diagnosisDispatchTick({ pool, model: zeroGroundedModel, leaseOwner: 'dworker-g4a' });
+  A('滤光后 groundedCount=0 → 诊断 failed(不交付白壳 ready)',
+    (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM resume_diagnosis WHERE id=$1', [DID_GZERO]))).rows[0].status === 'failed');
+  A('诊断报告未落库(空结果不交付)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT report FROM resume_diagnosis WHERE id=$1', [DID_GZERO]))).rows[0].report === null);
+  const gzJob = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status, last_error FROM diagnosis_job WHERE diagnosis_id=$1', [DID_GZERO]))).rows[0];
+  A('**分支鉴别子**:job last_error=diagnosis_no_grounded_finding(滤后路径稳定码·sections 非空故生成器闸 empty_diagnosis 不触发)',
+    gzJob.status === 'failed' && gzJob.last_error === 'diagnosis_no_grounded_finding' && !String(gzJob.last_error).includes('empty_diagnosis'));
+  A('diagnosis_unavailable 终态事件在(无静默死胡同)',
+    (await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='diagnosis_unavailable'", [DID_GZERO]))).rows[0].n === 1);
+  A('**等效观测**:units 不变+consumed 账零新增(confirm 未发生 → release 全退·非 partial 白扣)',
+    (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === beforeGz
+    && (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [OWNER, DID_GZERO]))).rows[0].status === 'released');
+
+  section('⑨ G4 #209 facts 空前置拦截:空 facts 简历 dispatch 前 throw diagnosis_empty_facts·模型外呼零发生');
+  A('夹具自证:电话形态行简历 facts=0(#191 头部联系行不冒充经历)', ingestResume(RESUME_NO_FACTS).facts.length === 0);
+  const noFactsResumeId = await asPrincipal(pool, OWNER, async (c) => {
+    const up = await createResumeWithBlob(c, OWNER, RESUME_NO_FACTS);
+    await transitionResume(c, OWNER, up.resumeId, 'uploaded', 'ingesting');
+    await completeIngestion(c, OWNER, up.resumeId, ingestResume(RESUME_NO_FACTS));
+    return up.resumeId;
+  });
+  const noFactsEpoch = await asPrincipal(pool, OWNER, async (c) => Number((await c.query<{ privacy_epoch: number }>(
+    'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [noFactsResumeId, OWNER],
+  )).rows[0]?.privacy_epoch));
+  const beforeNf = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));
+  await asPrincipal(pool, OWNER, async (c) => {
+    await c.query("INSERT INTO resume_diagnosis(id,owner_user_id,status,resume_id,privacy_epoch) VALUES ($1,$2,'created',$3,$4)", [DID_NOFACTS, OWNER, noFactsResumeId, noFactsEpoch]);
+    await reserveEntitlement(c, OWNER, DID_NOFACTS, 'resume_diagnosis', 1.0);
+    await enqueueDiagnosisJob(c, OWNER, DID_NOFACTS, noFactsResumeId, noFactsEpoch);
+  });
+  await diagnosisDispatchTick({ pool, model: okModel, leaseOwner: 'dworker-g4b' });
+  A('空 facts → 诊断 failed(不留孤儿 created:拦截点在 binding 置 generating 之后)',
+    (await asPrincipal(pool, OWNER, (c) => c.query('SELECT status FROM resume_diagnosis WHERE id=$1', [DID_NOFACTS]))).rows[0].status === 'failed');
+  A('job last_error=diagnosis_empty_facts(dispatch 前拦下)', (await asPrincipal(pool, OWNER, (c) => c.query('SELECT last_error FROM diagnosis_job WHERE diagnosis_id=$1', [DID_NOFACTS]))).rows[0].last_error === 'diagnosis_empty_facts');
+  A('**模型 dispatch 零发生**:invoke 关口 trace 0 行(省一次注定空转的外呼·est live 反向收益)',
+    (await asPrincipal(pool, OWNER, (c) => c.query('SELECT count(*)::int n FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2', [OWNER, `${DID_NOFACTS}:diagnosis`]))).rows[0].n === 0);
+  A('diagnosis_unavailable 终态在+额度全退(units 不变)',
+    (await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='diagnosis_unavailable'", [DID_NOFACTS]))).rows[0].n === 1
+    && (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === beforeNf);
 
   console.log(`\n${failures === 0 ? '✓ 简历诊断进程接线(api 入队→worker 消费→runDiagnosis 图)全部通过' : '✗ ' + failures + ' 项失败'}`);
   await pool.end();

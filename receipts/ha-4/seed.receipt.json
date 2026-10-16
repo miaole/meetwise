@@ -1,0 +1,9 @@
+{
+  "kind": "ha4-sandbox-seed",
+  "ok": true,
+  "migrationsApplied": 160,
+  "sentinels": {"resume": 1, "resumeBlobCiphertext": 1, "vectorChunk512dim": 1, "checkpoints": 1, "checkpointBlobs": 1, "checkpointWrites": 1},
+  "counts": "tables=175 resume=1 resume_blob=1 vector_chunk=1 checkpoints=1 checkpoint_blobs=1 checkpoint_writes=1 server_version_num=160015",
+  "encryption": {"plaintextInserted": true, "storedAs": "pgp_sym_encrypt bytes (never decrypted in this drill loop)"},
+  "lifetime": "tmpfs throwaway; compose down destroys"
+}

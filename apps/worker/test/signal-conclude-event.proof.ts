@@ -21,9 +21,9 @@ function fakeAppend() {
     code: 'early_weak', turn: 4, citedCompetencies: ['并发'], score: 0, overall: 12, band: 'junior', answer: '明文',
   });
   A('early_weak → 恰一次 append，kind/eventKey=session_concluded',
-    seq === 1 && calls.length === 1 && calls[0].kind === 'session_concluded' && calls[0].eventKey === 'session_concluded'
-    && calls[0].stream === 'iv1' && calls[0].owner === 'u1');
-  const payload = JSON.stringify(calls[0].payload);
+    seq === 1 && calls.length === 1 && calls[0]!.kind === 'session_concluded' && calls[0]!.eventKey === 'session_concluded'
+    && calls[0]!.stream === 'iv1' && calls[0]!.owner === 'u1');
+  const payload = JSON.stringify(calls[0]!.payload);
   A('写入载荷只有 concludeReason 三字段，无 score/overall/band/answer',
     payload.includes('early_weak') && !payload.includes('score') && !payload.includes('overall')
     && !payload.includes('band') && !payload.includes('明文') && !payload.includes('junior'));

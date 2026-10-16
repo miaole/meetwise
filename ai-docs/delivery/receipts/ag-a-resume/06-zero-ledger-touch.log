@@ -1,0 +1,11 @@
+# §2-⑤ 零账本触面断言（本刀 diff 零触口径·EXEC 亲跑 @ 并线后工作树）
+# 断言三件 blob 相对本刀 diff 零改——invoke.ts 主线漂 68e3c1f4→eda87ce0 系 AG-B/cost1 并线携入（刀 A 零触）
+
+$ git diff HEAD --stat -- packages/ai-runtime/src/invoke.ts packages/db/migrations/0130_model_invocation_same_key_claim_join.sql packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql
+ZERO_TOUCH_DIFF_EMPTY_EXIT=0
+$ git diff HEAD --name-only | grep -E 'invoke.ts|0130|0085' (本刀改动清单交叉核对=零命中)
+NAME_ONLY_GREP_EXIT=1
+$ git ls-tree HEAD(并线 tip) 三件 blob（invoke.ts eda87ce0=主线 AG-B/cost1 后 blob·0130 239a0b19/0085 671c342f 恒定）
+100644 blob eda87ce0044a894c573da3dabfe5062ed6b00a1d	packages/ai-runtime/src/invoke.ts
+100644 blob 671c342fa72073ad909bedfcdc6cbe0ff40b31d2	packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql
+100644 blob 239a0b19aea47d160d4300144d3a7b283d85187a	packages/db/migrations/0130_model_invocation_same_key_claim_join.sql

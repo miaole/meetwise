@@ -1,0 +1,14 @@
+{
+  "kind": "ha4-v6-security",
+  "ok": true,
+  "perms": {"dumpFiles": "0600 (-rw-------, umask 077 + explicit chmod 0600)", "backupDir": "0700 (drwx------, chmod 0700 in backup.sh + driver mkdir)", "receiptFiles": "0600"},
+  "credentialScan": {
+    "scope": "receipts/ha-4/ + volume receipts/ + evidence/ + loop log",
+    "patterns": ["postgres://", "sslmode=disable", "meetwise_ha4_sandbox_dummy"],
+    "hits": 0,
+    "note": "sandbox dummy URL appears ONLY in compose.backup.sandbox.yml (committed dummy per compose.ha.sandbox.yml:26-27 precedent) — never in receipts/logs/artifacts"
+  },
+  "composeSecurityBlock": {"read_only": true, "cap_drop": ["ALL"], "noNewPrivileges": true, "tmpfs": "/tmp:rw,noexec,nosuid,nodev,size=64m", "anchor": "deliberate copy of compose.prod.yml:124-131 (anchors cannot cross files)"},
+  "portExposure": {"ports": 0, "expose": 0, "drillDriver": "no published ports", "drillTarget": "expose 5432 compose-internal only", "seedPg": "127.0.0.1:15433 loopback only"},
+  "bindPathNotInGit": {"check": "git grep 'tmp/ha4-backup' HEAD", "hits": 0, "note": "host bind path is operator-provisioned via BACKUP_DIR_HOST; compose carries only the :? variable"}
+}

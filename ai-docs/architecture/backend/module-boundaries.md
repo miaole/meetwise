@@ -79,3 +79,23 @@ related:
 - **controller 不编排**：只解析请求、调一个应用服务、返回。
 
 这些与 [生产不变量](../../rules/global/production-invariants.md) 配套——边界保证「谁能改什么」，四原语保证「怎么改才安全」。
+
+## 附录：dependency-cruiser 豁免登记（逐条 justification）
+
+> 登记形制：每条独立条目、逐文件亲读定性、无通配（沿 provider-egress 补账登记形）。豁免只松验证 harness / 同包组装 / 退役墓碑三类，**生产面依赖方向规则零放松**。基线 14 error → 0（CI「架构边界」步骤复绿），反向注入验证：临时跨包深链 import 注入即红（`no-deep-repo-import` 触发）、删除复绿——门未 neuter。
+
+| # | 规则 | 豁免面（精确） | 逐条 justification |
+|---|---|---|---|
+| 1 | `packages-not-depend-apps`（from `pathNot \.proof\.ts$`） | `packages/db/test/uc052-internal-erasure.proof.ts` → `apps/api/src/modules/privacy/privacy.service.ts` | 跨层行为级 prove harness：隐私擦除内部态验证需直执 api 侧服务实体；测试面专属，生产 DAG 零参与 |
+| 2 | 同上 | `packages/db/test/uc052-external-sink-retention.proof.ts` → `apps/api/src/modules/privacy/privacy.service.ts` | 同 #1（外部留存保持行为级验证） |
+| 3 | 同上 | `packages/db/test/uc052-external-sink-async-purge.proof.ts` → `apps/api/src/modules/privacy/privacy.service.ts` | 同 #1（异步清纳行为级验证） |
+| 4 | 同上 | `packages/db/test/uc052-checkpoint-physical.proof.ts` → `apps/worker/src/checkpoint-principal.ts` 与 `apps/api/src/modules/privacy/privacy.service.ts` | checkpoint 物理态验证需跨 api/worker 双侧直证；测试面专属 |
+| 5 | 同上 | `packages/db/test/db-id-v7.proof.ts` → `apps/web/lib/stream/scoring-honesty.ts` | id-v7 单调性 vs 前端诚实计分跨端一致性证明；测试面专属 |
+| 6 | `apps-not-cross-import`（from `pathNot \.proof\.ts$`） | `apps/worker/test/bill4-ledger-list.proof.ts` → `apps/api/src/modules/commerce/commerce.service.ts` | 账本列表 prove 经进程内直执对端服务（非运行期互依；生产路径仍走 contracts/HTTP/队列） |
+| 7 | 同上 | `apps/api/test/uc-e2e-001-nhp-fault.proof.ts` → `apps/worker/src/report-worker.ts` | 报告 worker 故障注入 prove 需直执 worker 函数；同 #6 口径 |
+| 8 | 同上 | `apps/api/test/report-retry-http.proof.ts` → `apps/worker/src/report-worker.ts` | 报告重试 prove 同 #7 |
+| 9 | `no-deep-repo-import`（from `$2` 捕获 + to 负向前瞻 `(?!(apps\|packages)/$2(/|$))`） | 同包深链整类：`packages/db/src/index.ts` → 本包 `src/privacy/uc052-internal-erasure.ts` 等 5 处基线误伤 | §4 铁律禁的是 import **他模块**内部；同包 index 组装导出/兄弟 import/自测深链不属边界违规。旧式 `pathNot` 把真实 `internal/` 目录整体放行＝跨包深链误放行洞，本式封洞（注入即红亲证） |
+| 10 | `no-orphans`（pathNot 追加精确锚） | `apps/worker/src/interview-lifecycle.ts` | fail-closed 退役墓碑（文件头明令「不要在此恢复旧实现」·兼容导出恒 throw）：有意无 importer，删除反而拆掉文档化的隐私围栏兼容边界 |
+| 11 | `options.exclude` 追加 `\.next` | `.next/` 构建产物 | 构建产物非源码 DAG（本地构建后 135 条孤儿 warn 噪音源），与 `dist` 同理 |
+
+> 新增豁免必须**先在本表登记 justification 再动 `.dependency-cruiser.cjs`**；无 justification 的豁免一律拒收。

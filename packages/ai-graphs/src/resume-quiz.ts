@@ -4,7 +4,7 @@
  * 测试由确定性 fake 背书）。这样图本身可用 fake 确定性单测，易失技术全在注入边界外。
  */
 import { StateGraph, Annotation, START, END } from '@langchain/langgraph';
-import { ingestResume, groundedByFacts, type ResumeProfile } from '@meetwise/domain';
+import { ingestResume, refsGroundedInFacts, type ResumeProfile } from '@meetwise/domain';
 
 export interface QuizItem { q: string; refs: string[] }
 /** 注入边界：返回的 items 应已过 schema/业务双校验（真实流由 ai-runtime.invoke 保证）。 */
@@ -24,11 +24,18 @@ export function buildResumeQuizGraph(deps: { generate: GenerateQuestions }) {
     .addNode('generate', async (s) => ({ questions: await deps.generate(s.profile!) }))
     .addNode('validate', (s) => {                               // factuality 歪曲门
       const grounded: QuizItem[] = [], rejected: QuizItem[] = [];
-      for (const it of s.questions) (groundedByFacts(it.refs, s.profile!.facts) ? grounded : rejected).push(it);
+      // #193:改用 domain 组合闸 refsGroundedInFacts(非空 ∧ 逐条 groundedByFacts)——
+      // 空 refs 押题不再被 every-空集放行(与 prompts「refs 必须是简历里出现过的关键词原文」对齐)。
+      for (const it of s.questions) (refsGroundedInFacts(it.refs, s.profile!.facts) ? grounded : rejected).push(it);
       return { questions: grounded, rejected };
     })
     .addNode('make_report', (s) => {
-      const score = Math.min(100, 40 + s.questions.length * 20);
+      // #210 质量化 2026-10-12（5E 裁决项④质量分分支）：旧公式 min(100,40+20×题数) 与质量无关
+      // （凑题数即满分）。新分=factuality 存活率（接地题/全部生成题×100，0-100 取整）——与
+      // validate 节点的歪曲过滤同一数据源，分值有质量含义。schema 限题数面落在 contracts
+      // QuizView.questions .max(20)（本图不另设硬顶，生成侧 prompt 定量）。
+      const generated = s.questions.length + s.rejected.length;
+      const score = generated === 0 ? 0 : Math.round((100 * s.questions.length) / generated);
       if (score < 0 || score > 100) throw new Error('score_out_of_range'); // 业务校验
       return { report: { score, grounded: s.questions.length, summary: `接地生成 ${s.questions.length} 题，过滤幻觉 ${s.rejected.length} 题` } };
     })

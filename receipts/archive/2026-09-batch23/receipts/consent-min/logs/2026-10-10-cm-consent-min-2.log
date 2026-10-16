@@ -1,0 +1,69 @@
+
+> meetwise@0.1.0 consent-min:prove /Users/miaole/Desktop/golucky/meetwise-consentmin
+> node scripts/run-e2e-isolated.mjs consent-min:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-72012-1791609740807 on 127.0.0.1:55358
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:consent-min /Users/miaole/Desktop/golucky/meetwise-consentmin/apps/api
+> node --import @swc-node/register/esm-register test/consent-min.proof.ts
+
+{"level":30,"time":1791609744886,"pid":72221,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:55388"}
+{"level":30,"time":1791609744898,"pid":72221,"hostname":"miaole.local","reqId":"8bd64a60-4ca9-4544-aaf3-d56084ee26e8","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744904,"pid":72221,"hostname":"miaole.local","reqId":"8bd64a60-4ca9-4544-aaf3-d56084ee26e8","res":{"statusCode":200},"responseTime":5.968000000000075,"msg":"request completed"}
+PASS  a: POST 合法 purpose=resume_processing → 200 recorded:true
+{"level":30,"time":1791609744908,"pid":72221,"hostname":"miaole.local","reqId":"85bb7662-45f8-4ac7-9453-2fb277cb26b9","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744911,"pid":72221,"hostname":"miaole.local","reqId":"85bb7662-45f8-4ac7-9453-2fb277cb26b9","res":{"statusCode":200},"responseTime":3.0566660000001775,"msg":"request completed"}
+PASS  a: 重复 POST purpose=resume_processing 幂等 → 200 且仍恰 1 行
+{"level":30,"time":1791609744917,"pid":72221,"hostname":"miaole.local","reqId":"fea6d799-24a2-453a-8df5-03c4582cefe2","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744922,"pid":72221,"hostname":"miaole.local","reqId":"fea6d799-24a2-453a-8df5-03c4582cefe2","res":{"statusCode":200},"responseTime":4.672041999999919,"msg":"request completed"}
+PASS  a: POST 合法 purpose=interview_personalization → 200 recorded:true
+{"level":30,"time":1791609744923,"pid":72221,"hostname":"miaole.local","reqId":"b7357c1e-5591-4ff1-8f88-1cddd45c7d28","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744927,"pid":72221,"hostname":"miaole.local","reqId":"b7357c1e-5591-4ff1-8f88-1cddd45c7d28","res":{"statusCode":200},"responseTime":3.6257920000000468,"msg":"request completed"}
+PASS  a: 重复 POST purpose=interview_personalization 幂等 → 200 且仍恰 1 行
+{"level":30,"time":1791609744929,"pid":72221,"hostname":"miaole.local","reqId":"53c6e080-ca24-4fd9-956f-a3039cd89e1d","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744932,"pid":72221,"hostname":"miaole.local","reqId":"53c6e080-ca24-4fd9-956f-a3039cd89e1d","res":{"statusCode":200},"responseTime":3.680541999999832,"msg":"request completed"}
+PASS  a: POST 合法 purpose=voice_capture → 200 recorded:true
+{"level":30,"time":1791609744934,"pid":72221,"hostname":"miaole.local","reqId":"0ac60167-1292-42dc-b6fc-168d563440ce","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744936,"pid":72221,"hostname":"miaole.local","reqId":"0ac60167-1292-42dc-b6fc-168d563440ce","res":{"statusCode":200},"responseTime":2.3625419999998485,"msg":"request completed"}
+PASS  a: 重复 POST purpose=voice_capture 幂等 → 200 且仍恰 1 行
+{"level":30,"time":1791609744938,"pid":72221,"hostname":"miaole.local","reqId":"c2dfc72e-8e7f-478e-89c9-2eb697d6b6fa","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744942,"pid":72221,"hostname":"miaole.local","reqId":"c2dfc72e-8e7f-478e-89c9-2eb697d6b6fa","res":{"statusCode":200},"responseTime":3.657083000000057,"msg":"request completed"}
+PASS  a: POST 空 body {} → 200 recorded:true（strict DTO + optional 下缺省行为保持）
+PASS  a: 空 body 缺省落 resume_processing → 仍 1 行（无新行无错值行）
+{"level":30,"time":1791609744944,"pid":72221,"hostname":"miaole.local","reqId":"2fdcca18-5f75-4695-9c1e-70f46220bdb0","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744945,"pid":72221,"hostname":"miaole.local","reqId":"2fdcca18-5f75-4695-9c1e-70f46220bdb0","res":{"statusCode":400},"responseTime":0.9335419999999885,"msg":"request completed"}
+PASS  b: POST {purpose:"garbage"} → 400 invalid
+{"level":30,"time":1791609744946,"pid":72221,"hostname":"miaole.local","reqId":"3b5e86d8-3fdf-4df7-b206-fd54d93ad232","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744948,"pid":72221,"hostname":"miaole.local","reqId":"3b5e86d8-3fdf-4df7-b206-fd54d93ad232","res":{"statusCode":400},"responseTime":1.1732500000000528,"msg":"request completed"}
+PASS  b: POST {purpose:"interview_prep"}（memory 域值打界）→ 400 invalid
+PASS  c: GET ?purpose=garbage → 400 invalid
+{"level":30,"time":1791609744950,"pid":72221,"hostname":"miaole.local","reqId":"b9bd0ffc-3e0a-45f1-9a2c-fa0cb3689d1a","req":{"method":"GET","url":"/privacy/consent?purpose=garbage","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744950,"pid":72221,"hostname":"miaole.local","reqId":"b9bd0ffc-3e0a-45f1-9a2c-fa0cb3689d1a","res":{"statusCode":400},"responseTime":0.51887499999998,"msg":"request completed"}
+{"level":30,"time":1791609744951,"pid":72221,"hostname":"miaole.local","reqId":"35d00b23-103c-4b5a-9463-919e8b24d177","req":{"method":"DELETE","url":"/privacy/consent?purpose=garbage","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744951,"pid":72221,"hostname":"miaole.local","reqId":"35d00b23-103c-4b5a-9463-919e8b24d177","res":{"statusCode":400},"responseTime":0.20458299999995688,"msg":"request completed"}
+PASS  c: DELETE ?purpose=garbage → 400 invalid
+{"level":30,"time":1791609744951,"pid":72221,"hostname":"miaole.local","reqId":"1328f186-f8a5-4ad4-b5b2-97cdbd758ed2","req":{"method":"GET","url":"/privacy/consent?purpose=voice_capture&extra=1","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744954,"pid":72221,"hostname":"miaole.local","reqId":"1328f186-f8a5-4ad4-b5b2-97cdbd758ed2","res":{"statusCode":200},"responseTime":2.475582999999915,"msg":"request completed"}
+PASS  c: GET 非严格查询（多余键已去除且不拒绝）→ 200 consented:true
+{"level":30,"time":1791609744955,"pid":72221,"hostname":"miaole.local","reqId":"03bfee44-a003-49d4-b2d9-5bbd8a87405f","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744961,"pid":72221,"hostname":"miaole.local","reqId":"03bfee44-a003-49d4-b2d9-5bbd8a87405f","res":{"statusCode":403},"responseTime":5.533124999999927,"msg":"request completed"}
+PASS  d: 无 voice_capture 行 transcribe → 403 consent_required(purpose=voice_capture)
+{"level":30,"time":1791609744961,"pid":72221,"hostname":"miaole.local","reqId":"06ac04c6-895d-45b5-99a2-66ccb75184e0","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744963,"pid":72221,"hostname":"miaole.local","reqId":"06ac04c6-895d-45b5-99a2-66ccb75184e0","res":{"statusCode":200},"responseTime":1.9393340000001444,"msg":"request completed"}
+PASS  e: POST voice_capture → 200 recorded:true
+{"level":30,"time":1791609744964,"pid":72221,"hostname":"miaole.local","reqId":"dec51457-710a-4d6b-9d9f-b8cba920367a","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744966,"pid":72221,"hostname":"miaole.local","reqId":"dec51457-710a-4d6b-9d9f-b8cba920367a","res":{"statusCode":503},"responseTime":1.9882920000000013,"msg":"request completed"}
+PASS  e: 有行 transcribe → 门+fence 过 → 503 asr_unavailable（503 形状≠ASR 已配置）
+{"level":30,"time":1791609744966,"pid":72221,"hostname":"miaole.local","reqId":"b5466e26-75ae-4999-b647-bd1f58bc5287","req":{"method":"DELETE","url":"/privacy/consent?purpose=voice_capture","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55390},"msg":"incoming request"}
+{"level":30,"time":1791609744967,"pid":72221,"hostname":"miaole.local","reqId":"b5466e26-75ae-4999-b647-bd1f58bc5287","res":{"statusCode":200},"responseTime":1.310124999999971,"msg":"request completed"}
+PASS  f: DELETE ?purpose=voice_capture → 200 withdrawn:true
+{"level":30,"time":1791609744968,"pid":72221,"hostname":"miaole.local","reqId":"646699a8-5a21-4d6b-8655-073f06e880ab","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:55388","remoteAddress":"127.0.0.1","remotePort":55389},"msg":"incoming request"}
+{"level":30,"time":1791609744969,"pid":72221,"hostname":"miaole.local","reqId":"646699a8-5a21-4d6b-8655-073f06e880ab","res":{"statusCode":403},"responseTime":1.6445839999998952,"msg":"request completed"}
+PASS  f: 撤回后 transcribe → 门关 → 403 consent_required（诚实出路=回卡,不假前进）
+PASS  f: 撤回=行删除（voice_capture 恰 0 行）
+
+✓ prove:consent-min: 19 条负路径用例全绿

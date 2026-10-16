@@ -1,0 +1,3 @@
+BASE neg:commerce EXIT=1
+BASE neg:resume EXIT=1
+BASE neg:input EXIT=1

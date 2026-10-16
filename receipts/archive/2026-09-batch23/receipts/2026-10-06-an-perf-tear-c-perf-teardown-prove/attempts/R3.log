@@ -1,0 +1,65 @@
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 uc018:receipt-backfill:prove /workspace/meetwise-wt-an-perf-prove6
+> node scripts/uc-e2e-018-receipt-backfill.proof.mjs
+
+PASS  valid machine receipt accepted
+PASS  legacy synthetic receipt readable unsigned (not signed)
+PASS  hand-written emittedBy rejected
+PASS  edited stdoutDigest rejected
+PASS  missing EOR disclosure rejected
+PASS  runner/target mismatch rejected
+PASS  prose JSON rejected (emittedBy-mismatch)
+PASS  stack fact without source rejected (stack-fact-missing-or-unsourced:postgresSaver)
+PASS  missing imageDigest field rejected (imageDigest-field-missing:minio/minio:latest)
+PASS  isBackfillReceiptShape true for good
+PASS  isBackfillReceiptShape false for thin object
+PASS  isPreferableBackfillReceipt true for exit=0
+PASS  isPreferableBackfillReceipt false for exit=1
+PASS  gatherer exports readReceiptPreferBackfill
+PASS  waiting_user = MISSING-EVIDENCE constant
+PASS  D-B exit=1 backfill not preferred (flagged backfill-failed)
+PASS  D-B exit=1 evidenceOfRecord forced false
+PASS  D-B exit=1 no silent legacy fallback
+PASS  D-B evaluator emits BACKFILL-FAILED reason
+PASS  D-B missing proveExit flagged backfill-failed
+PASS  D-B missing exit no silent legacy fallback
+PASS  FX-BACKFILL-NO-README-BLEED: backfill PERF/LOAD not IMPL-ONLY (expected)
+PASS  FX-LEGACY-README-IMPL-ONLY: legacy PERF/LOAD still IMPL-ONLY (expected)
+PASS  (a) unwrapStackValue(static-doc postgresSaver:true) → undefined (STUB-STACK honest)
+PASS  (b) prior-docker-inspect not counted as live per-run observation
+PASS  (b) docker-inspect without containerId no longer live (tightened gate)
+PASS  (b) live-container-inspect with containerId is live
+PASS  FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT: in-window capture → live entry (all checks)
+PASS  FX-IMAGE-DIGEST-LIVE-CONTAINER-INSPECT: unstarted services remain honest not-started
+PASS  FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: forged/missing container Id → honest non-live failure entry, no host value impersonated
+PASS  FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: inspect of non-existent container fails closed at parse
+PASS  FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: gate rejects empty/missing containerId directly
+PASS  FX-IMAGE-DIGEST-CONTAINER-ID-FAILCLOSED: capture record validation accepts only well-formed containerId
+PASS  FX-IMAGE-DIGEST-REEMIT-NOT-LIVE: reemit prior stays prior-docker-inspect non-live (even with fabricated capture passed)
+PASS  FX-IMAGE-DIGEST-HOST-TAG-FALLBACK-NOT-LIVE: host tag inspect is non-live fallback (old mislabel branch not regressed)
+PASS  FX-SOURCE-PINS: mislabeled source=docker-inspect branch removed from facts
+PASS  FX-SOURCE-PINS: live-container-inspect NOT in RUNTIME_STACK_SOURCES (live digest not counted as stack MET)
+PASS  FX-SOURCE-PINS: emitter streams prove output and observes the run banner in-window
+PASS  FX-SOURCE-PINS: host tag inspect retained as fallback path only
+PASS  FX-SOURCE-PINS: banner parser accepts only exact meetwise-e2e-<pid>-<ts> run container name
+PASS  genuine HMAC emit verifies (signed)
+PASS  missing tag fail closed
+PASS  verifier missing tag fail closed (no optional-pass)
+PASS  bad tag fail closed
+PASS  truncated tag fail closed
+PASS  mutated JSON fails HMAC
+PASS  mutated log fails HMAC
+PASS  JSON+log rewritten without key fails
+PASS  missing key fail closed
+PASS  tag under a different key fails
+PASS  legacy ADV.json unsigned historical (not signed)
+PASS  legacy FULL-E2E.json unsigned historical (not signed)
+PASS  legacy GRAPH.json unsigned historical (not signed)
+PASS  legacy PERF-LOAD.json unsigned historical (not signed)
+PASS  legacy SOLE.json unsigned historical (not signed)
+PASS  legacy TTL.json unsigned historical (not signed)
+PASS  legacy UI.json unsigned historical (not signed)
+PASS  no default key and no .env read in emitter/guard
+
+CMD=pnpm uc018:receipt-backfill:prove EXIT=0

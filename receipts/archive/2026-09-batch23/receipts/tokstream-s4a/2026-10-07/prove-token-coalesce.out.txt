@@ -1,0 +1,20 @@
+
+> @meetwise/ai-runtime@0.0.0 prove:token-coalesce /Users/miaole/Desktop/golucky/meetwise-line-tokstream-s4a/packages/ai-runtime
+> tsx test/token-coalesce.proof.ts
+
+PASS  钉值：L1 合帧窗 ~100ms（§D-3）·单帧字节上界 ≤4KB=4096（§C-2 NOTIFY 8KB 安全半幅）
+PASS  切分原语：代理对永不拆（a👍b @3B → a/👍/b·拼接全等）
+PASS  切分原语：单片自身超预算（👍 @1B）保真原样出片·绝不制造残片
+PASS  切分原语：非法预算 fail-closed（0/负数抛 model_stream_frame_byte_budget_invalid）
+PASS  窗语义：窗内两 delta 合一帧（coalesced=true·tMs=首片）；窗外（>100ms）分两帧
+PASS  合成卷④>4KB（synthetic）：全部帧 ≤4096 字节·切点零孤立代理项（帧首尾码点完整）
+PASS  合成卷④守恒：Σ帧文本==原 delta（ΣdeltaLen==accLen）+拼接全等+字节账一致
+PASS  合成卷④跨 delta 触顶：窗内合并遇字节预算先冲帧（帧各自 ≤4096·内容零丢）
+PASS  重放前置：两卷 17 行对应（chunkCount=17·非空 delta=13·逐行 deltaLen cross-check 相等）
+PASS  ⑨合帧率：17 chunk 重放 → 合帧后帧数 < 非空 delta 数（帧率下降·实测入收据）
+PASS  ⑨字节上界：合帧后单帧全部 ≤4096 字节（§C-2）
+PASS  ⑨守恒+全等：Σ帧文本==72·拼接全等==收据 stitchedText·零孤立代理项
+PASS  ⑨合帧标记：窗内合并帧 coalesced=true（帧≠供应商 chunk 边界·§C-2 帧契约）
+重放实测：rawDeltas=13（12.5 fps）→ coalescedFrames=7（6.8 fps）·帧字节=[16,9,33,40,33,12,33]
+
+✓ L1 合帧行为面 prove 全部通过（probe-b 重放+合成卷④·零模型外呼）

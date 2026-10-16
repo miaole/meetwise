@@ -2,6 +2,17 @@
 
 可执行合同：`scripts/e2e-platform/directory-contract.mjs`。入口不要对调：`pnpm e2e-platform:check` 跑目录 + 信任 + 核心边界；`pnpm e2e-platform:prove` 把它当作 5 条命名守卫之一；`pnpm e2e-platform:layout:prove` 种植违规必须非零。叙事 SOP 在本页；可执行布局锁在 [`../../../testing/conventions/e2e-directory-contract.md`](../../../testing/conventions/e2e-directory-contract.md)，不要再写第三套目录故事。
 
+## 评测车道（S2/S3 · 与可执行契约同构）
+
+| 车道 | 要点 |
+|------|------|
+| LIVE（非 UI 主评测） | `e2e:prove` / `performance:e2e`（+ isolated 包装） |
+| UI secondary | `apps/web/e2e-ui` / `e2e:ui*` — 不得升格主评测 |
+| prove-shell | 域 `*:prove` 借 `run-e2e-isolated` ≠ LIVE covered |
+| conn-only | **全部** `mysql-stack:*` / `conn-stack:*` — 永不 LIVE / **连通绿 ≠ covered/HA**（BUG-FAKE-CONN）；bodies ∈ `scripts/conn-stack/` |
+
+白名单：`delivery/e2e-live-targets-whitelist.md` · `scripts/isolated/targets-live-e2e.mjs`（S3）。R5 默认 pgvector = legacy（BUG-FAKE-R5）。`scripts/isolated/` **已落地**（薄入口）；`scripts/conn-stack/` **S4 landed · dual-review CLEARED · ≠ covered/HA**（conn-only 显式区；见 `delivery/reviews/2026-09-10-e2e-directory-s4-CLEARED.md`）。详情以 [`e2e-directory-contract.md`](../../../testing/conventions/e2e-directory-contract.md) 为准。
+
 ## 布局
 
 ```text

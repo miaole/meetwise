@@ -1,4 +1,5 @@
 import { CLOUD_TEST_SERIAL_CASES, cloudTestSerialFailure, type CloudTestSerialCase, type CloudTestSerialReceipt, runCloudTestSerial } from './cloud-test-serial.ts';
+import { AppError } from '@meetwise/db';
 
 const RUN_ID = /^[a-z0-9][a-z0-9-]{5,40}$/;
 const SECRET_FIELDS = [
@@ -30,7 +31,7 @@ export type CloudTestFcDeps = {
 };
 
 function failure(code: string): never {
-  throw new Error(`cloud_test_fc_${code}`);
+  throw new AppError(`cloud_test_fc_${code}`);
 }
 
 function parseEvent(event: unknown): { runId: string; caseId: CloudTestSerialCase } {

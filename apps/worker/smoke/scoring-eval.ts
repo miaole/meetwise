@@ -17,7 +17,7 @@ if (!process.env.MODEL_API_KEY) { console.log('skip scoring:eval —— 未由�
 
 const { assertIsolatedTestTarget, createPool } = await import('@meetwise/db');
 const { icc1, sampleStddev, median, percentile, pairwiseOrderAccuracy, kendallTauB, wilsonLowerBound } = await import('@meetwise/ai-runtime');
-const { fastModelClient, invokeEvaluationOnce } = await import('../src/interview-service.ts');
+const { fastModelClient, invokeEvaluationOnce, evaluateOutcomeFromValue } = await import('../src/interview-service.ts');
 const { stripScoringManipulation, isNonAnswer } = await import('@meetwise/domain');
 const { MONO_GROUPS, PERTURB_GROUPS, OFFTOPIC, MANIPULATION_INVARIANTS, CALIBRATION_STATUS } = await import('../test/scoring-golden.ts');
 
@@ -73,7 +73,9 @@ async function scoreOnce(question: string, answer: string, key: string): Promise
     baseIdempotencyKey: `scoring-eval:v3:${key}`, question, answer: scored, model,
   }).catch(() => ({ status: 'failed' as const, error: 'threw' }));
   if (out.status === 'scored') {
-    return { score: out.value.relevant === false ? 0 : out.value.score, relevant: out.value.relevant, source: 'model' };   // 复刻服务层规整
+    // #52 v6：hint 分=evaluateOutcomeFromValue 的确定性派生（档位×量表权重），模型不出总分。
+    const derived = evaluateOutcomeFromValue(out.value, scored);
+    return { score: out.value.relevant === false ? 0 : derived.score, relevant: out.value.relevant, source: 'model' };   // 复刻服务层规整
   }
   if (out.status === 'quote_repair_exhausted') {
     validationRejected++; quoteRejected++;

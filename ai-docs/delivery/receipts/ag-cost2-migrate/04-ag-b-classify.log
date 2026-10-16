@@ -1,0 +1,62 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-96644-1791812084226 on 127.0.0.1:51556
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-cost2/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=173 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> meetwise@0.1.0 ag-b-classify:prove:raw /Users/miaole/Desktop/golucky/meetwise-cost2
+> pnpm -C apps/worker prove:ag-b-classify
+
+
+> @meetwise/worker@0.0.0 prove:ag-b-classify /Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker
+> tsx test/ag-b-classify.proof.ts
+
+
+──────── A. 客户端级分类（dispatchOnce 返回与 parse 之间的结构缝） ────────
+PASS  坏 JSON+usage → known_executed·deterministic·码 deterministic_output_invalid·usage 带出(101/37)
+PASS  空 content+usage → known_executed·码 deterministic_output_invalid·usage 带出(150/0)
+PASS  截断 finish_reason='length'+usage → known_executed·截断码 deterministic_output_truncated·finishReason 带出
+PASS  usage 缺 prompt_tokens → 按上限补齐(1000=policy max)打标 usage_missing·绝不 0
+PASS  坏 JSON+usage 整体缺失 → 维持既有 transient unknown（零回归·known_executed 以 usage 在手为界）
+PASS  好输出+完整 usage → ok:true·真实 usage 透传·无打标
+
+──────── B. 臂一：坏 JSON+usage → settled-failed 先例形（钱 settled·failed 码·breaker success） ────────
+PASS  invoke 返回确定性失败码 deterministic_output_invalid（非 external_outcome_unknown）
+PASS  invocation=failed·error_code 落码·真实 token(101/37)落库·无 usage_source 打标
+PASS  钱 settled 非 unknown（真实 token 101/37 结算·幽灵预留消除）
+PASS  fee ledger=settled 真实 token（沿先例 :899-905 形）
+PASS  breaker success——格式失败不计熔断（consecutive_failures=0·切断 AG-01 链）
+
+──────── C. 臂二：截断 → 同上+截断码 ────────
+PASS  invoke 返回 deterministic_output_truncated·invocation=failed 截断码·真实 token(202/88)
+PASS  钱 settled(202/88)·breaker 不计熔断
+
+──────── D. 臂三：usage 缺字段 → 上限补齐打标·绝不 0·配对剔除（AG-14） ────────
+PASS  好输出成功返回 value（上限补齐不误伤成功终态）
+PASS  invocation=succeeded·input_tokens=1000(policy max)·usage_source=usage_missing（绝不 0）
+PASS  钱 settled 按上限(1000/55)
+
+──────── E. 对照臂：好输出+真实 usage → 成功+配对在册（真实 usage 行不受剔除影响） ────────
+PASS  invoke 成功·invocation=succeeded·真实 token(303/44)·无打标
+
+──────── F. 归并臂：usage 整体缺失+好输出 → 既有 provider_usage_invalid 臂（不新造语义） ────────
+PASS  invoke 返回 external_outcome_unknown·invocation=unknown·error_code=provider_usage_invalid
+PASS  钱 unknown 待对账（归并既有臂·breaker success 传输健康）
+
+──────── G. 网络层反向臂：5xx → 仍 unknown+breaker failure（状态机 :33 只剩网络层不确定） ────────
+PASS  5xx → invoke external_outcome_unknown·invocation=unknown·钱 unknown（既有臂零回归）
+PASS  breaker failure 计数 +1（网络层不确定仍计熔断）
+
+──────── H. 校准配对剔除（0119 镜像迁移 0174 谓词·listUsageCalibrationPairs TS 消费面） ────────
+PASS  打标行（fieldmissing·上限补齐假 usage）被配对剔除——不污染 AG-12 因子
+PASS  真实 usage 行照常配对：成功(303)+settled-failed 坏 JSON(101)+截断(202)·provider_input_tokens=真实值
+PASS  unknown 行无 usage 不配对（既有行为）
+
+✓ AG-06/AG-14 刀 B：known_executed 分类+settled-failed 接线+usage_missing 打标配对剔除全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T13-34-55-825Z-96644-01e7daf0-076b-41a8-8b56-912d7d5260fe.json release_evidence=false

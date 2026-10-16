@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "unstube-erase:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 10892,
+  "startedAt": "2026-10-10T10:19:57.974Z",
+  "finishedAt": "2026-10-10T10:20:08.866Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/unstube-erase.proof.ts": "sha256:add74c25c7c78ef3c9f3e944ab113153dc6efe352d0600858b1c922cbb016706",
+    "apps/api/src/modules/resume/resume.service.ts": "sha256:9a93fc288c12a6561eb4da62b578e0f9e108fabeb91ffb5254f4f967d56b8ed9",
+    "apps/api/src/modules/privacy/privacy.service.ts": "sha256:a83065335d96049c48f3be734cfadeab68a5560e6deefde4dc5bf435dc4aceb3",
+    "apps/api/src/modules/profile/profile.service.ts": "sha256:3747bc1a83b6ed5d73568f83b025a4fc85920f9fe78831e3ac0fcc1de520aef5",
+    "packages/db/src/resume-privacy.ts": "sha256:946bcbbab4a7f791189fa6fb3fdea09c7244408482eb0fc40498e6c2427cd8ef",
+    "packages/db/src/transcript/int-transcript-projection.ts": "sha256:76c3c865d90d2e2248f1a84d743c6b51ecffa70e4a1f729b9c04732df7ce6282",
+    "packages/db/src/memory/memory-governance.ts": "sha256:1ea2a49b47707028e3d0cc26d23e62ef6ead6d394d0b3136524b63cfed803cc2",
+    "packages/db/src/privacy/privacy-authorization.ts": "sha256:0f37bb1403374eb927840d7901e15f24318c88d6bec2e27dbae141ebe6288071",
+    "packages/db/migrations/0060_resume_erasure_tombstone_foundation.sql": "sha256:86a677d0e0fcf387a828809c88ce6a6acca7f0dac926586287c95f6308c094f3",
+    "packages/db/migrations/0063_resume_active_content_read_gate.sql": "sha256:1a7db0cccbe5c2b9941c98f77c46f1d43d061d833b98cb681315fc7d5f9b1b65",
+    "packages/db/migrations/0093_memory_governance.sql": "sha256:fddff901f92915bd645a2432f903309fe370f17574a8c302c5a95112496c920b",
+    "packages/db/migrations/0096_int_transcript_remaining_sinks.sql": "sha256:94e8adee972f328cfd1ec63bde1bf2216d462b7eac092c133ca1e9246a8646a2",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a",
+    "packages/db/migrations/0152_resume_soft_delete_fence.sql": "sha256:153336f8e2635eb08540ae1f1ba22fd0e3ab44bea4af753005491f2692452a3d",
+    "packages/db/migrations/0153_account_deletion_column.sql": "sha256:b2011066d02a2a8f01e2a95be21cbe15595e2ece13c313be704a746db7dd52d0"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "proofSummary": {
+    "passCount": 46,
+    "failCount": 0,
+    "failureClass": "none"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

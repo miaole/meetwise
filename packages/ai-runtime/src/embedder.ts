@@ -1,6 +1,7 @@
 import { ExternalHttpStatusError, ExternalRequestTimeoutError, ExternalResponseJsonError, fetchJsonWithTimeout } from './timeout.ts';
 import { rejectDashscopeNativeTransportOverride, resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { requireFiniteVector, requireRecord } from './native-response-guard.ts';
+import { assertG7UnguardedPathDisabled } from './g7-freetier-reprove-guard.ts';
 
 /**
  * 向量化 seam（10 年负债隔离：embedding 供应商可换,接口不变）。
@@ -26,6 +27,8 @@ export function dashscopeEmbedder(cfg: { baseUrl?: string; apiKey?: string; mode
   const model = cfg.model ?? process.env.DASHSCOPE_EMBED_MODEL ?? 'text-embedding-v4';
   const dim = cfg.dim ?? Number(process.env.EMBED_DIM ?? 512);   // 生产默认值；维度必须由冻结评测集、成本与延迟门共同决定。
   const embedWithUsage = async (texts: string[]): Promise<{ vectors: number[][]; inputTokens?: number }> => {
+
+      assertG7UnguardedPathDisabled('embed');
       if (!baseUrl || !apiKey) throw new Error('embedder_not_configured');
       const out: number[][] = [];
       let inputTokens = 0;

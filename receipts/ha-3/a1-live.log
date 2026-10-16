@@ -1,0 +1,4 @@
+CMD: HA3_LIVE_PG_URL=postgresql://meetwise:***@127.0.0.1:54340/meetwise pnpm -C packages/db run prove:ha3-pool-resilience
+EXIT=0
+TAIL: A1-live·真实连接 client.connection._keepAlive===true（connection.js:24 存储面）=PASS
+TAIL: A1-live·_keepAliveInitialDelayMillis===10000（connection.js:25 存储面）=PASS

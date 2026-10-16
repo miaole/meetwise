@@ -66,9 +66,24 @@ export function canTransitionScoreCard(from: ScoreCardStatus, to: ScoreCardStatu
   return (SCORE_CARD_TRANSITIONS[from] ?? []).includes(to);
 }
 
-/** 只有这两个态是可参与评分/评审的「有效分」；其余状态一律不可评分。 */
+/** 只有这两个态是可参与评分/评审的「有效分」；其余状态一律不可评分。
+ *  （G5 SCOR-S3 D1 落卷：本谓词是状态机/写路径目标态/用途门（canReportConsume）面的双态单一真相，
+ *   零触；C 端**读面**资格见 isPracticeReadableScoreCard 收窄谓词。） */
 export function isScoreCardScorable(status: ScoreCardStatus): boolean {
   return status === 'practice_eligible' || status === 'b_review_eligible';
+}
+
+/**
+ * C 端只读面资格（G5 SCOR-S3 · ADR-0020 :54 目标态落地）：只有 `practice_eligible` 可用于
+ * C 端本轮练习反馈；`b_review_eligible` 是 B 端评审态（进入条件 = CalibrationRelease + 人工
+ * 复核门，ADR :57 零松动），不入 C 端读面。与迁移 0161 收窄后的
+ * `scoring_list_scorable_score_cards` / `scoring_aggregate_interview_scores`（practice_eligible
+ * 单态）逐值一致（TS 向 SQL 对齐）；`isScoreCardScorable`（双态）仍是状态机/写路径面单一真相，
+ * 本谓词只替换 C 端读面调用点（deriveScoreCardAssessment / deriveScoreCardAssessmentLegacy /
+ * practiceOverallFromScoreCards）。
+ */
+export function isPracticeReadableScoreCard(status: ScoreCardStatus): boolean {
+  return status === 'practice_eligible';
 }
 
 /**

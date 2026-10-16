@@ -9,6 +9,8 @@ import {
 
 let failures = 0;
 const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`); if (!ok) failures++; };
+/** 联合类型窄化：仅 deny 臂（ok:false）携带 error；allow 臂经由这里得到哨兵值，断言恒假。 */
+const admitError = (r: ReturnType<typeof admitInterviewResume>): string => (r.ok ? '<allowed>' : r.error);
 
 const DIGEST = 'a'.repeat(64);
 const sealed = {
@@ -40,11 +42,11 @@ A('文本/PDF 无 OCR binding 仍可授权（不强迫每场面试走 OCR）',
 
 A('TC-MODEL-OCR-01-E4/E5：图片源缺 binding → fail-closed，画像不可用',
   admitInterviewResume({ sourceKind: 'image', facts: ['Go'] }).ok === false
-  && admitInterviewResume({ sourceKind: 'image', facts: ['Go'] }).error === 'ocr_binding_missing'
+  && admitError(admitInterviewResume({ sourceKind: 'image', facts: ['Go'] })) === 'ocr_binding_missing'
   && admitInterviewResume({ sourceKind: 'image', facts: ['Go'] }).resumeProfileAvailable === false);
 
 A('TC-MODEL-OCR-01-特：文本简历挂伪造 OCR provenance → 拒绝',
-  admitInterviewResume({ sourceKind: 'text', facts: ['Go'], ocrBinding: sealed }).error === 'ocr_binding_invalid'
+  admitError(admitInterviewResume({ sourceKind: 'text', facts: ['Go'], ocrBinding: sealed })) === 'ocr_binding_invalid'
   && admitInterviewResume({ sourceKind: 'pdf', facts: ['Go'], ocrBinding: sealed }).resumeProfileAvailable === false);
 
 A('TC-MODEL-OCR-01-刁：provenance 夹带 text/apiKey/url 或换 operation → 拒绝',
@@ -57,7 +59,7 @@ A('TC-MODEL-OCR-01-刁：provenance 夹带 text/apiKey/url 或换 operation → 
   && parseSealedOcrProvenance({ ...sealed, mediaDigest: 'not-hex' }) === null);
 
 A('TC-MODEL-OCR-01-E5：面试路径显式拒绝临时视觉/LLM OCR',
-  refuseInterviewAdHocOcr('vision-ocr').error === 'ocr_ad_hoc_forbidden'
+  admitError(refuseInterviewAdHocOcr('vision-ocr')) === 'ocr_ad_hoc_forbidden'
   && refuseInterviewAdHocOcr('ad-hoc-llm-ocr').resumeProfileAvailable === false
   && refuseInterviewAdHocOcr('raw-image-to-model').ok === false);
 
@@ -66,7 +68,7 @@ A('图片源 binding 合法但无事实 → 授权门通过、画像仍不可用
   emptyImage.ok === true && emptyImage.resumeProfileAvailable === false);
 
 A('非法 source_kind fail-closed',
-  admitInterviewResume({ sourceKind: 'scan', facts: ['Go'], ocrBinding: sealed }).error === 'ocr_source_kind_invalid');
+  admitError(admitInterviewResume({ sourceKind: 'scan', facts: ['Go'], ocrBinding: sealed })) === 'ocr_source_kind_invalid');
 
 console.log(failures === 0
   ? '\n✓ sealed OCR interview admission 全部通过（本地静态证据）'

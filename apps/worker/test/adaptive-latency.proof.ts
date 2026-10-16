@@ -19,14 +19,19 @@ function tagged(tier: 'quality' | 'fast', ms: number): ModelClient {
   const raw: Record<string, () => ModelResult> = {
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
     'interviewer.ask': () => ({ ok: true, raw: { q: '结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性', refs: [] } }),
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 80, relevant: true, evidence: [{ criterion: '讲清了', quote: '滑动窗口' }] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '滑动窗口' }] } }),
   };
   return { async complete(req) { hits.push({ tier, service: req.service }); await sleep(ms); return (raw[req.service] ?? (() => ({ ok: false, kind: 'deterministic' as const })))(); } };
 }
 
 async function main() {
-  await pool.query(readFileSync(fileURLToPath(new URL('../../../packages/db/sql/01_schema.sql', import.meta.url)), 'utf8'));
+  // DBHY-1: sql/01_schema 兼容镜像退役——隔离 runner 预迁移(migrations 单真相),原重放行移除(断言面不变)。
   const OWNER = 'latA', TID = 'lat-' + Date.now();
+  // DBHY-1(迁移真相):0059 投影写护栏要求 ai_graph_run.thread_id 有 owner 属主的 interview 聚合根
+  // (旧 sql/01 镜像无此触发器)。合成线程先种 interview 行(principal-aware)。
+  await pool.query('SELECT set_config($1,$2,false)', ['app.principal_user', OWNER]);
+  await pool.query('INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,$3)', [TID, OWNER, 'created']);
+  await pool.query('SELECT set_config($1,$2,false)', ['app.principal_user', '']);
   const quality = tagged('quality', QUALITY_MS), fast = tagged('fast', FAST_MS);
 
   // 规划走快模型(lifecycle 传 fastModel 进 planCompetencies)

@@ -7,7 +7,7 @@ import { ArchitectureHighlights } from '@/components/recruiter/ArchitectureHighl
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: '架构笔记 · 内部预览 · 知面',
+  title: '架构笔记 · 知面',
   description: '内部架构笔记：岗位练习怎么走、为什么没有数字分。不是招聘方产品，怎么评估只是说明页别名。',
 };
 

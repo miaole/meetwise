@@ -1,0 +1,24 @@
+== B7: terminate all app backends (worker + api NAT-shared source; worker faces under observation) ==
+pre: worker readyz=200
+ pg_terminate_backend 
+----------------------
+ t
+ t
+ t
+ t
+ t
+ t
+ t
+(7 rows)
+
+== worker transitions (3s probe) ==
+t+216ms readyz=000 state=exited
+== worker log faces ==
+db_pool_error lines: 12
+drain tick error lines (this run, since restart): 154
+uncaughtException: 0
+exit code: 0
+== recovery: restart worker container, ready回归 ==
+ Container meetwise-ha-3-proof-worker Started 
+worker readyz 200 at +6380ms (poll #4)
+worker readyz final=200

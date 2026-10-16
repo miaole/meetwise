@@ -1,0 +1,58 @@
+# LINT-S0 C1 — packages/config/package.json before/after snapshot
+anchor @28db833f (blueprint C1: :6-11, no devDependencies key) -> after EXEC add
+
+## BEFORE (git show @28db833f, byte-identical to blueprint 亲读)
+{
+  "name": "@meetwise/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "共享工程配置：tsconfig base/nest preset、eslint、tailwind preset。其余包 extends 它，单一真相。",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nest.json": "./tsconfig/nest.json"
+  }
+}
+
+## AFTER (working tree, post-install)
+{
+  "name": "@meetwise/config",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "共享工程配置：tsconfig base/nest preset、eslint、tailwind preset。其余包 extends 它，单一真相。",
+  "exports": {
+    "./tsconfig/base.json": "./tsconfig/base.json",
+    "./tsconfig/nest.json": "./tsconfig/nest.json"
+  },
+  "devDependencies": {
+    "eslint": "^9.39.5",
+    "eslint-plugin-import": "^2.32.0",
+    "prettier": "^3.9.9",
+    "typescript-eslint": "^8.71.1"
+  }
+}
+
+## git diff (C1 唯一码面改动)
+diff --git a/packages/config/package.json b/packages/config/package.json
+index 82667943..8114a715 100644
+--- a/packages/config/package.json
++++ b/packages/config/package.json
+@@ -7,5 +7,11 @@
+   "exports": {
+     "./tsconfig/base.json": "./tsconfig/base.json",
+     "./tsconfig/nest.json": "./tsconfig/nest.json"
++  },
++  "devDependencies": {
++    "eslint": "^9.39.5",
++    "eslint-plugin-import": "^2.32.0",
++    "prettier": "^3.9.9",
++    "typescript-eslint": "^8.71.1"
+   }
+ }
+
+## audit
+- name/version/description/exports 四键零字节零改: PASS (diff 只在 exports 收尾 } 加逗号 + 新增 devDependencies 块)
+- devDependencies 四键字典序 (eslint < eslint-plugin-import < prettier < typescript-eslint): PASS
+- specifier 与蓝图 §1.2 参考形态逐字一致 (^9.39.5 / ^2.32.0 / ^3.9.9 / ^8.71.1): PASS
+- 清单外第五包: 无 (恰四键): PASS

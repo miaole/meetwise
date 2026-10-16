@@ -6,7 +6,8 @@ import {
 type PrivacyWorkerPool = ReturnType<typeof createPool>;
 
 export type PrivacyWorkerStartupDeps = {
-  createPool: (options: { connectionString: string }) => PrivacyWorkerPool;
+  /** connectionString + observability purpose label (W2/R-22), never other pool overrides. */
+  createPool: (options: { connectionString: string; purpose?: string }) => PrivacyWorkerPool;
   assertIdentity: (pool: PrivacyWorkerPool) => Promise<void>;
 };
 
@@ -28,7 +29,7 @@ export async function initializePrivacyWorkerStartup(
   const connectionString = env.PRIVACY_WORKER_DATABASE_URL?.trim();
   if (!connectionString) return undefined;
 
-  const pool = deps.createPool({ connectionString });
+  const pool = deps.createPool({ connectionString, purpose: 'privacy-worker' });
   try {
     await deps.assertIdentity(pool);
     return pool;

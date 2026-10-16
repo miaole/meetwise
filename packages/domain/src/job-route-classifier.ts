@@ -9,8 +9,9 @@
  *  - 图内 planner 输出是否属于 snapshot 的判定；
  *  - 每轮确定性 weighted-deficit 选择器（多桶 = 按轮配额，不是一次混合检索）。
  *
- * 真实模型外发归 MODEL-OP-01 typed binding；本模块只暴露受控确定性 seam
- * （classifyJobByRule + validateModelRouteOutput）。改校准常量 = 改路由语义，必须升 policy 版本。
+ * 真实模型外发归 MODEL-OP-01 typed binding（`job.route-classify.v1` / UC `job_route_classify`；
+ * `bindJobRouteClassify`）；本模块只暴露受控确定性 seam（classifyJobByRule +
+ * validateModelRouteOutput）。改校准常量 = 改路由语义，必须升 policy 版本。
  */
 import { createHash } from 'node:crypto';
 
@@ -41,7 +42,7 @@ const LEAF_RE = /^[a-z][a-z0-9_]*(?:\/[a-z][a-z0-9_]*){0,3}$/;
 
 export interface JobRouteAllocation { leafTrackId: string; allocationBps: number }
 
-/** 小模型 `job_route_classify` 的严格输出合同（RAG-03 seam；真实外发归 MODEL-OP-01）。 */
+/** 小模型 `job_route_classify`（registry `job.route-classify.v1`）的严格输出合同（RAG-03 seam；真实外发归 MODEL-OP-01 bindJobRouteClassify）。 */
 export interface JobRouteModelOutput {
   allocations: JobRouteAllocation[];
   confidenceBps: number;
@@ -224,4 +225,49 @@ export function planWeightedDeficitRounds(allocations: readonly JobRouteAllocati
     deficit = step.deficit;
   }
   return out;
+}
+
+/**
+ * Per-turn planner (RAG-04 / P-PLANNER): pick the next weighted-deficit leaf and
+ * pair it with turn competency/difficulty into `InterviewPlannerOutput`.
+ *
+ * Fail-closed: empty/illegal allocations → `route_snapshot_missing` (G-R2-5 style);
+ * leaf/competency/difficulty invalid → validatePlannerOutput reason. Never invents
+ * a leaf outside snapshot and never falls back to an unscoped retrieve.
+ */
+export type PlanInterviewTurnResult =
+  | { ok: true; output: InterviewPlannerOutput; deficit: number[]; leafIndex: number }
+  | { ok: false; reason: string };
+
+export function planInterviewTurn(input: {
+  allocations: readonly JobRouteAllocation[];
+  deficit: readonly number[];
+  competencyId: string;
+  difficulty: number;
+}): PlanInterviewTurnResult {
+  if (!input || typeof input !== 'object') return { ok: false, reason: 'invalid_schema' };
+  if (!Array.isArray(input.allocations) || input.allocations.length === 0) {
+    return { ok: false, reason: 'route_snapshot_missing' };
+  }
+  if (!Array.isArray(input.deficit) || input.deficit.length !== input.allocations.length) {
+    return { ok: false, reason: 'deficit_length_mismatch' };
+  }
+  let step: { leafIndex: number; deficit: number[] };
+  try {
+    step = nextWeightedDeficitLeaf(input.allocations, input.deficit);
+  } catch {
+    return { ok: false, reason: 'route_snapshot_missing' };
+  }
+  const leaf = input.allocations[step.leafIndex];
+  if (!leaf || typeof leaf.leafTrackId !== 'string') {
+    return { ok: false, reason: 'route_snapshot_missing' };
+  }
+  const output: InterviewPlannerOutput = {
+    leafTrackId: leaf.leafTrackId,
+    competencyId: input.competencyId,
+    difficulty: input.difficulty,
+  };
+  const validated = validatePlannerOutput(output, input.allocations);
+  if (validated.ok === false) return { ok: false, reason: validated.reason };
+  return { ok: true, output, deficit: step.deficit, leafIndex: step.leafIndex };
 }

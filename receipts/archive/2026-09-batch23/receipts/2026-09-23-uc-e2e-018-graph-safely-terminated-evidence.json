@@ -1,0 +1,35 @@
+{
+  "knife": "UC-E2E-018 AiGraphRun safely_terminated",
+  "gapClosed": "GAP-UC018-GRAPH",
+  "gapsRemainOpen": [
+    "GAP-UC018-TTL",
+    "UI",
+    "sole-stack-R5"
+  ],
+  "matrix": "partial",
+  "uc018Covered": false,
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "gR45Closed": true,
+  "coveredCount": 8,
+  "ms3EqualsR4Closed": false,
+  "status": "executed:awaiting_post_prove_dual",
+  "requestTip": "25d1900",
+  "preExecDual": {
+    "mw-e2e-ha": "dc0e1fd",
+    "mw-rag-route": "d1f1f69"
+  },
+  "cmds": {
+    "uc018:graph:prove": 0,
+    "uc018:abandon:prove": 0,
+    "uc018:abandon:http:prove": 0,
+    "uc018:abandon:full-e2e:prove": 0
+  },
+  "localReceipts": {
+    "graph": ".tmp/isolated-proof-receipts/2026-09-23T23-43-32-710Z-1148868-d7a3c9f0-51bc-4f76-8095-2bc8af21daf4.json",
+    "abandon": ".tmp/isolated-proof-receipts/2026-09-23T23-43-45-726Z-1149554-04b96d89-7dba-4812-936a-ac5f4e433c8e.json",
+    "http": ".tmp/isolated-proof-receipts/2026-09-23T23-43-53-871Z-1150094-d9d148d3-5bba-4cd5-94c9-06559f2405fc.json",
+    "fullE2e": ".tmp/e2e-receipts/2026-09-23T23-44-13-844Z-1150677-faac71f5-83f2-4dc3-be38-caecff20ccb7.json"
+  }
+}

@@ -1,0 +1,19 @@
+{
+  "result": "OK",
+  "v": "V6",
+  "reportId": "01a1268a-cc46-75ec-b2b8-d855a905da9a",
+  "firstClaimer": "worker-a#1",
+  "claimAttribution": "pin-based (worker-b stopped pre-insert; worker-a sole consumer)",
+  "holderDeathSimulation": "row frozen to post-crash shape (status=running/lease_owner=worker-a#1/expiry+10s) — instant-fail jobs (last_error=score_aggregate_empty) leave no capturable live-lease window; takeover+CAS responses are real product machinery (claimReport lease-expiry path); real worker crash+restart covered by V2",
+  "takeoverBy": "worker-b",
+  "takeoverSeconds": 15,
+  "takeoverState": "failed||2",
+  "rx4CasRowCount": 0,
+  "restoredOk": true,
+  "restoreSeconds": 6,
+  "command": "MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/ha/ha-sandbox.mjs v6",
+  "note": "lease-expiry takeover + RX-4 CAS rejection; zero new mutual-exclusion code; local sandbox ≠ production HA",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}

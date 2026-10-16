@@ -7,11 +7,12 @@
 --   * outbox：confirm 落账投 settlement_proposed，对账 sweeper 兜底
 DROP TABLE IF EXISTS entitlement_bucket, entitlement_consumption, commerce_outbox, settlement_ledger CASCADE;
 
--- 共享池的一笔来源桶（gift/trial/paid）。numeric 单位：1 次面试=1.00，降级按比例可落 0.50。
+-- 共享池的一笔来源桶（gift/trial/paid/enterprise）。numeric 单位：1 次面试=1.00，降级按比例可落 0.50。
+-- enterprise=B271 #271 企业桶（迁移 0156 具名换装 ck_bucket_kind 同形·审核通过招聘方为持有人）。
 CREATE TABLE entitlement_bucket (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,
-  kind text NOT NULL CHECK (kind IN ('gift','trial','paid')),
+  kind text NOT NULL CONSTRAINT ck_bucket_kind CHECK (kind IN ('gift','trial','paid','enterprise')),
   units_total numeric(12,2) NOT NULL CHECK (units_total >= 0),
   units_reserved numeric(12,2) NOT NULL DEFAULT 0 CHECK (units_reserved >= 0),
   units_consumed numeric(12,2) NOT NULL DEFAULT 0 CHECK (units_consumed >= 0),
@@ -23,10 +24,16 @@ CREATE TABLE entitlement_bucket (
 );
 CREATE INDEX ix_bucket_fifo ON entitlement_bucket (owner_user_id, expires_at);
 
+-- 注册赠送 trial 桶每用户至多一桶（#228）：partial unique index，DB 层兜底挡任何第二 trial 写入路径
+-- （含未来 admin 发放面）。与迁移 0154 同定义（源=真源·迁移=部署车，0018 先例形·回填重编号 0152→0154）。
+CREATE UNIQUE INDEX IF NOT EXISTS uq_bucket_trial_one_per_owner
+  ON entitlement_bucket (owner_user_id) WHERE kind = 'trial';
+
 -- 一次消费的 saga 记录。幂等键按 (owner, key) 作用域——双击/重发只算一次。
 CREATE TABLE entitlement_consumption (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,
+  payer_user_id text,                                       -- 扣费主体（B271 片2·0157）：NULL=C 端本人·非 NULL=企业单（=job_application.recruiter_user_id 投递时刻固化）
   idempotency_key text NOT NULL,
   service_type text NOT NULL,
   units_requested numeric(12,2) NOT NULL CHECK (units_requested > 0),

@@ -1,5 +1,5 @@
 import { Controller, Get, Post, Param, Body, Headers, Header, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
-import { CreateOrderDto } from '@meetwise/contracts';
+import { CreateOrderDto, InvoiceProfileDto, InvoiceRequestDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
 import { CommerceService } from './commerce.service';
@@ -16,6 +16,13 @@ export class CommerceController {
   @Header('Cache-Control', 'public, max-age=300')   // 公开近静态(性能:前端/CDN 可缓存,审计 F9)
   products() { return this.commerce.products(); }
 
+  // B271 片1(前席发现②):企业商品独立端点——公开目录 C 端域零触,企业面走本端点(approved recruiter 门)。
+  @Get('enterprise-products')
+  @UseGuards(PrincipalGuard)
+  enterpriseProducts(@Req() req: any) {
+    return this.commerce.enterpriseProducts(req.principal);
+  }
+
   @Post('orders')
   @UseGuards(PrincipalGuard)
   @HttpCode(HttpStatus.OK)
@@ -25,10 +32,19 @@ export class CommerceController {
   }
 
   @Post('orders/:id/pay-callback')
-  @UseGuards(PrincipalGuard)
   @HttpCode(HttpStatus.OK)
-  callback(@Param('id') id: string, @Req() req: any, @Body() b: { providerTxn?: string; sig?: string }) {
-    return this.commerce.payCallback(req.principal, id, b);
+  // #100(AUTHZ-HARDEN 5A-2·裁决项⑤纯签名)收权:移除 PrincipalGuard——本端点原「登录可调 + 以登录态
+  // principal 入账」面撤除,与 /commerce/webhook/pay/:id 同管道(纯签名访问·owner 由网关函数解析不信调用方);
+  // 签名含 ts 防重放(verifyCommerceSig 单源)。账务 CAS/exactly-once 零触。
+  callback(@Param('id') id: string, @Body() b: { providerTxn?: string; sig?: string; ts?: number }) {
+    return this.commerce.payWebhook(id, b);
+  }
+
+  // B271 片3 P4：本人订单列表（RLS p_owner 仅本人·开票下拉数据源）。静态段先于参数段，路由不冲突。
+  @Get('orders')
+  @UseGuards(PrincipalGuard)
+  orders(@Req() req: any) {
+    return this.commerce.listMyOrders(req.principal);
   }
 
   @Get('orders/:id')
@@ -37,9 +53,43 @@ export class CommerceController {
     return this.commerce.getOrder(req.principal, id);
   }
 
+  // B271 片3 P2：本人对公订单台账（approved recruiter 门 + 0159 受控 DEFINER 本人行读函数）。
+  @Get('offline-orders')
+  @UseGuards(PrincipalGuard)
+  offlineOrders(@Req() req: any) {
+    return this.commerce.listMyOfflineOrders(req.principal);
+  }
+
   @Get('entitlement')
   @UseGuards(PrincipalGuard)
   balance(@Req() req: any) {
     return this.commerce.entitlement(req.principal);
+  }
+
+  // ── B271 片1 开票面（RLS 仅本人 + 仅-paid 触发器门·薄适配层不碰 SQL 语义）──────────────
+  @Get('invoice-profile')
+  @UseGuards(PrincipalGuard)
+  invoiceProfile(@Req() req: any) {
+    return this.commerce.getInvoiceProfile(req.principal);
+  }
+
+  @Post('invoice-profile')
+  @UseGuards(PrincipalGuard)
+  @HttpCode(HttpStatus.OK)
+  saveInvoiceProfile(@Req() req: any, @Body(new ZodValidationPipe(InvoiceProfileDto)) b: InvoiceProfileDto) {
+    return this.commerce.saveInvoiceProfile(req.principal, b);
+  }
+
+  @Get('invoice-requests')
+  @UseGuards(PrincipalGuard)
+  invoiceRequests(@Req() req: any) {
+    return this.commerce.listInvoiceRequests(req.principal);
+  }
+
+  @Post('invoice-requests')
+  @UseGuards(PrincipalGuard)
+  @HttpCode(HttpStatus.OK)
+  submitInvoiceRequest(@Req() req: any, @Body(new ZodValidationPipe(InvoiceRequestDto)) b: InvoiceRequestDto) {
+    return this.commerce.submitInvoiceRequest(req.principal, b.orderId);
   }
 }

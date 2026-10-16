@@ -1,0 +1,10 @@
+# [6] construction commit b0d7182e (exactly 4 product-face files; author/committer mw-core <mw-core@meetwise.local>; pre-commit check-staged-secrets hook: passed)
+4 files changed, 636 insertions(+), 13 deletions(-)
+
+# post-commit reruns (exactly once each; previousBaseline via HEAD^=0a64400b lineage)
+## e2e-parity:check
+"valid": true
+CHECK2-EXIT=0
+## e2e-parity:prove
+PASS e2e-parity proof: 22 scenarios; releaseEvidence=false
+PROVE2-EXIT=0

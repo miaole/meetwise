@@ -1,0 +1,32 @@
+{
+  "discipline": "sidecar v3 (post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok / per-query guarded / SELECT-only aggregates / migrations 152 + /^0151(_|$/) normalized)",
+  "wrapperLog": ".tmp/g7trio/cmd2-wrapper.log",
+  "container": "meetwise-e2e-95711-1791488196023",
+  "port": "56656",
+  "anchorSeen": true,
+  "firstOkSeen": true,
+  "correlationChecked": true,
+  "correlationMatch": true,
+  "pending42P01Ticks": 0,
+  "fallbackUsed": false,
+  "runStartMs": 1791488190647,
+  "runStartIso": "2026-10-08T19:36:30.647Z",
+  "pollCount": 224,
+  "lastPoll": {
+    "ts": "2026-10-08T19:41:07.145Z",
+    "phase": "poll",
+    "queries": {
+      "ai_model_invocation_status": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-95711-1791488196023\n|spawnSync psql ENOENT"
+      },
+      "interview_job_status": {
+        "ok": false,
+        "err": "Error response from daemon: No such container: meetwise-e2e-95711-1791488196023\n|spawnSync psql ENOENT"
+      }
+    },
+    "class": "post-anchor-error",
+    "consecutiveFailuresPostOk": 5
+  },
+  "stoppedReason": "stop-needle: 5 consecutive failures post-first-ok"
+}

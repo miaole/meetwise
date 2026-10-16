@@ -1,0 +1,45 @@
+
+> @meetwise/worker@0.0.0 prove:r4-p-r1-fail-closed /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-r1-fail-closed.proof.ts
+
+F4 P-R1 fail-closed remaining prove — PR1-A/B/C/D · releaseEvidence=false · ≠HA · ≠R1 closed
+EXIT=0 ≠ R1 closed ≠ R4 closed ≠ 题域已隔离 · no flip default · await post-prove dual
+
+──────── PR0 static anchors present ────────
+PASS  F4 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md
+PASS  F4 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f4-p-r1-fail-closed.eval.md
+PASS  F4 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f4-p-r1-fail-closed.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  R1 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r1-tech-role-fail-closed.md
+PASS  m4-rag-hard-gates present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/m4-rag-hard-gates.md
+PASS  F2 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f2-p-meta-p-r1.md
+PASS  F3 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f3-p-meta-serving.md
+PASS  F4 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-r1-fail-closed-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  adaptive-role-resolve present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/adaptive-role-resolve.ts
+PASS  interview-consumer present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/interview-consumer.ts
+PASS  main.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/main.ts
+PASS  pre-exec e2e-ha review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-16-r4-f4-p-r1-fail-closed-mw-e2e-ha.md
+PASS  pre-exec rag-route review present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/reviews/2026-09-16-r4-f4-p-r1-fail-closed-mw-rag-route.md
+
+──────── PR1-A legacy「技术岗」default-on (flag OFF · no flip) ────────
+FAIL  PR1-A classify: failClosedFlagDefaultOn=false (no flip)
+PASS  PR1-A classify: legacyDefaultLabel=技术岗
+FAIL  PR1-A classify: productionDependsOnLegacyDefault=true
+FAIL  PR1-A unit: empty env → fail-closed OFF
+/Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/adaptive-role-resolve.ts:59
+    throw Object.assign(new Error(ADAPTIVE_ROLE_ROUTE_MISSING), {
+                        ^
+
+Error: adaptive_role_route_missing
+    at resolveAdaptiveInterviewRole (/Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/adaptive-role-resolve.ts:59:25)
+    at <anonymous> (/Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/test/r4-p-r1-fail-closed.proof.ts:130:3)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5) {
+  code: 'adaptive_role_route_missing'
+}
+
+Node.js v22.22.3
+ ELIFECYCLE  Command failed with exit code 1.

@@ -1,0 +1,45 @@
+
+> meetwise@0.1.0 env-schema:prove /Users/miaole/Desktop/golucky/meetwise-ag24
+> node scripts/run-e2e-isolated.mjs env-schema:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-48430-1791882521170 on 127.0.0.1:54672
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:env-schema /Users/miaole/Desktop/golucky/meetwise-ag24/apps/api
+> node --import @swc-node/register/esm-register test/env-schema.proof.ts
+
+PASS  A1 全配置（URL 路径）→ ok
+PASS  A2 全配置（PG 五件套路径·空密码合法）→ ok
+PASS  A3 缺 AUTH_SECRET → missing:AUTH_SECRET
+PASS  A4 AUTH_SECRET 空白视同缺失 + URL 协议错列 invalid
+PASS  A5 缺数据库目标（两路全缺）→ database_target_missing 且列出全部组件名
+PASS  A6 PG 五件套缺一件（无 PGPORT）→ database_target_missing 只列缺件
+PASS  A7 PGPORT 越界 → invalid:PGPORT 且数据库目标仍按缺件列（去重不重复计）
+PASS  A8 空串 DATABASE_URL/PGHOST 视同缺失（与 @meetwise/db nonEmpty 口径一致）
+PASS  A9 assertCriticalEnv 抛 env_schema_invalid 且消息一次性列全缺失项
+PASS  A10 PG 五件套齐全+仅缺 AUTH_SECRET → problems 精确等于 [missing:AUTH_SECRET]（禁含 database_target_missing）
+PASS  B1 缺 AUTH_SECRET spawn → 退出码 1（启动即死）
+PASS  B2 错误信息含 env_schema_invalid + missing:AUTH_SECRET
+PASS  B3 未监听即死（无 api on 横幅）
+PASS  C1 双缺 spawn → 退出码 1 且错误信息一次性列全（AUTH_SECRET 与 database_target_missing 同现）
+PASS  D1 DATABASE_URL 协议错 spawn → 退出码 1 且 invalid:DATABASE_URL 入错误信息（target_missing 不双报）
+ISOLATED_TARGET_ATTESTATION ok loopback+nonce verified
+{"level":30,"time":1791882530439,"pid":48674,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:54786"}
+{"level":30,"time":1791882530446,"pid":48674,"hostname":"miaole.local","reqId":"6d9dc822-7d46-47f6-b58e-8702f583b6ca","req":{"method":"GET","url":"/readyz/api","host":"127.0.0.1:54786","remoteAddress":"127.0.0.1","remotePort":54787},"msg":"incoming request"}
+{"level":30,"time":1791882530465,"pid":48674,"hostname":"miaole.local","reqId":"6d9dc822-7d46-47f6-b58e-8702f583b6ca","res":{"statusCode":200},"responseTime":17.93958400000065,"msg":"request completed"}
+PASS  E1 全配置启动后 /readyz/api → 200 且 status=ok
+PASS  E2 readiness 含配置状态（body.config.envSchema === ok）
+{"level":30,"time":1791882530469,"pid":48674,"hostname":"miaole.local","reqId":"1796d219-f674-4945-bb2e-221dda71f56c","req":{"method":"GET","url":"/health","host":"127.0.0.1:54786","remoteAddress":"127.0.0.1","remotePort":54789},"msg":"incoming request"}
+{"level":30,"time":1791882530471,"pid":48674,"hostname":"miaole.local","reqId":"1796d219-f674-4945-bb2e-221dda71f56c","res":{"statusCode":200},"responseTime":1.5038329999997586,"msg":"request completed"}
+PASS  E3 旧 /health 别名同面（200 + config.envSchema=ok）
+{"level":30,"time":1791882530472,"pid":48674,"hostname":"miaole.local","reqId":"0677c46c-bba7-4138-be3d-5c5e7777f2d7","req":{"method":"GET","url":"/livez","host":"127.0.0.1:54786","remoteAddress":"127.0.0.1","remotePort":54787},"msg":"incoming request"}
+{"level":30,"time":1791882530472,"pid":48674,"hostname":"miaole.local","reqId":"0677c46c-bba7-4138-be3d-5c5e7777f2d7","res":{"statusCode":200},"responseTime":0.1709579999997004,"msg":"request completed"}
+PASS  E4 /livez 不受配置位影响（恒 200 存活语义）
+PASS  F1 配置齐备时 configReady() === true
+PASS  F2 缺 AUTH_SECRET 时 configReady() === false（readiness 配置位 fail-closed）
+PASS  F3 恢复后 configReady() === true（每次现算不缓存）
+
+✓ env-schema prove: 22 assertions 全绿 · est live=0 · releaseEvidence=false

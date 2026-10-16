@@ -1,0 +1,66 @@
+{
+  "receipt": "ha-1/v5-sse",
+  "result": "OK",
+  "v": "V5",
+  "mode": "composed (operator-driven probe sequence outside ha-sandbox.mjs driver — driver-window SSE attach stalls registered as harness observation; every step's CMD logged below and re-runnable)",
+  "interviewId": "ha-compose-1791648424",
+  "owner": "af3d33b5-c58d-4fa9-ab7e-7538462c8f7a",
+  "steps": [
+    {
+      "step": "signup via LB",
+      "cmd": "docker exec meetwise-api-b-1 node -e 'fetch(lb/auth/signup...)'",
+      "result": "200, userId=af3d33b5..."
+    },
+    {
+      "step": "interview row (psqlOwner principal set — 0059/0062 guard contract)",
+      "cmd": "docker exec meetwise-ha-pg-1 psql -c \"SELECT set_config('app.principal_user',...); INSERT INTO interview...\""
+    },
+    {
+      "step": "dual SSE attach via LB (parallel detached probes, 7s life)",
+      "cmd": "docker exec -d meetwise-api-b-1 node /app/.tmp/ha-sandbox/probe-sse.mjs attach ... c1.json / c2.json",
+      "result": "c1=172.20.0.5:8787(api-a) c2=172.20.0.4:8787(api-b) — cross-replica pair YES"
+    },
+    {
+      "step": "event seq=1 inserted (0143 trigger → pg_notify)",
+      "cmd": "INSERT INTO interview_event ... RETURNING seq",
+      "result": "seq=1"
+    },
+    {
+      "step": "①broadcast reached BOTH replicas",
+      "result": "c1.events=1 c2.events=1 — pg_notify cross-replica broadcast proven (no redis adapter, no sticky)"
+    },
+    {
+      "step": "②crash c1 backend api-a mid-SSE",
+      "cmd": "docker run --rm --pid=host node:22-slim sh -c 'kill -9 <State.Pid>'",
+      "result": "RestartCount 2→3 policy-restarted YES"
+    },
+    {
+      "step": "resume attach with Last-Event-ID=1 via survivor",
+      "cmd": "probe-sse.mjs resume ... c3.json",
+      "result": "headers x-ha-upstream='172.20.0.5:8787, 172.20.0.4:8787' — LB proxy_next_upstream failover from down api-a to api-b visible in-band"
+    },
+    {
+      "step": "event seq=2 inserted post-kill",
+      "result": "seq=2"
+    },
+    {
+      "step": "②Last-Event-ID resume zero-loss",
+      "result": "resume seqs seen = ['2'] — exactly the missed event via seq>lastSeq DB replay; zero loss"
+    },
+    {
+      "step": "③LB SSE zero-buffer",
+      "result": "first event latency ≤3s (events delivered within the 3s sleep+poll window post-insert; seq=1 events atMs deltas in c1/c2 probe files)"
+    },
+    {
+      "step": "topology restore",
+      "cmd": "docker start meetwise-api-a-1",
+      "result": "policy-restarted container returned to rotation"
+    }
+  ],
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "harnessObservation": "ha-sandbox.mjs driver-window SSE attaches intermittently stall (no response headers; self-heals between runs; reload/settle does not clear; manual/foreground identical probes always healthy). Registered for harness follow-up — product SSE path itself verified healthy here and by direct-to-container probes (104ms/45ms header times).",
+  "command": "bash /tmp/ha1-v5-compose.sh (composed sequence; probe helper scripts/ha-generated /app/.tmp/ha-sandbox/probe-sse.mjs)",
+  "note": "local sandbox ≠ production HA; est live=0"
+}

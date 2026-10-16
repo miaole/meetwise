@@ -33,8 +33,6 @@ x-cloud-runtime-env: &cloud-runtime-env
   # Worker only: a stale post-dispatch call is frozen as unknown, never retried.
   MODEL_INVOCATION_RECONCILE_AFTER_MS: ${MODEL_INVOCATION_RECONCILE_AFTER_MS:-120000}
   MODEL_INVOCATION_RECONCILE_BATCH: ${MODEL_INVOCATION_RECONCILE_BATCH:-100}
-  MODEL_MAX_CONCURRENT: ${MODEL_MAX_CONCURRENT:-4}
-  MODEL_RPM: ${MODEL_RPM:-0}
   MODEL_COST_ENFORCEMENT: enforce
   MODEL_COST_BUDGET_SCOPE: ${MODEL_COST_BUDGET_SCOPE:?set MODEL_COST_BUDGET_SCOPE}
   MODEL_COST_MONTHLY_BUDGET_MICRO_CNY: ${MODEL_COST_MONTHLY_BUDGET_MICRO_CNY:?set MODEL_COST_MONTHLY_BUDGET_MICRO_CNY}
@@ -254,6 +252,12 @@ services:
     # 单机 4G 预览：崩溃自动拉起（对齐原 systemd Restart=on-failure）+ 内存硬顶。
     # 为什么 mem_limit 而非 deploy.resources：compose 非 swarm 下 deploy.resources 被忽略。
     restart: unless-stopped
+    # HA-2 W4（R-19·C6）：钉值原则=内部上限 < 容器宽限——api 进程内 drain 上限 10s
+    # （API_SHUTDOWN_TIMEOUT_MS 默认 10000），容器宽限 15s，正常路径进程自退恒先于
+    # SIGKILL（exit 0 而非 137 成为可断言事实）。stop_signal 显式钉 SIGTERM（docker
+    # 默认即 SIGTERM，显式化防 base/runtime 漂移改默认）。
+    stop_grace_period: 15s
+    stop_signal: SIGTERM
     mem_limit: 512m
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/readyz/api').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]
@@ -330,6 +334,11 @@ services:
     expose:
       - "9091"
     restart: unless-stopped
+    # HA-2 W4（R-19·C6）：worker 进程内 drain 上限 30s（WORKER_DRAIN_TIMEOUT_MS 默认
+    # 30000），容器宽限 40s（> 30s + 续租心跳 30s 窗余量）——deadline 强退恒先于 SIGKILL。
+    # stop_signal 显式钉 SIGTERM（同 api 块口径）。
+    stop_grace_period: 40s
+    stop_signal: SIGTERM
     mem_limit: 1g
     healthcheck:
       test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:9091/readyz/worker').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))"]

@@ -1,0 +1,23 @@
+== B8(a-v2): stop-window retry, --no-deps, PG restart at +25s, budget 90s ==
+PG stopped (t0)
+PG restarted at +25229ms
+B8a EXIT=0 (expect 0)
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+cost configuration: rag=observe model=observe
+migrate_connect_retry: attempt=1 class=connect backoff_ms=1000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: attempt=2 class=connect backoff_ms=2000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: attempt=3 class=connect backoff_ms=4000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: attempt=4 class=connect backoff_ms=8000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: attempt=5 class=connect backoff_ms=15000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+cost configuration: rag=observe model=observe
+wall: 33549ms
+
+== B8(b-v2): budget-exhausted control, --no-deps, PG stays down, budget 5s ==
+B8b EXIT=1 (expect 1 fail-loud)
+migrate_connect_retry: attempt=1 class=connect backoff_ms=1000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: attempt=2 class=connect backoff_ms=2000 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: attempt=3 class=connect backoff_ms=1978 error_name=Error error_message=connect ECONNREFUSED 192.168.65.254:54340
+migrate_connect_retry: budget_exhausted budget_ms=5000 attempts=4 class=connect error_name=Error
+wall: 6382ms
+PG back up (fresh tmpfs cluster)

@@ -1,0 +1,9 @@
+{
+  "kind": "ha4-rotation",
+  "stamp": "20261010T191147Z",
+  "retainCount": 7,
+  "keptCount": 2,
+  "kept": ["meetwise-20261010T191147Z.dump", "meetwise-20261010T190809Z.dump"],
+  "deleted": [],
+  "reason": "BACKUP_RETAIN_COUNT FIFO: keep newest N dumps (disk budget tracked in exec receipt; never oversell host disk)"
+}

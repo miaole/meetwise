@@ -90,7 +90,7 @@ const requiredFiles = [
 
 const requiredTerms = new Map([
   ["README.md", ["Meetwise", "知面"]],
-  ["docs/index.html", ["真实经历", "自适应面试", "可复盘成长", "合成截图", "不是已经部署的在线服务", "招聘不在本预览范围"]],
+  ["docs/index.html", ["真实经历", "自适应面试", "可复盘成长", "合成截图", "不是已经部署的在线服务", "招聘功能面向企业账户开放"]],
   [".github/workflows/pages.yml", ["docs/index.html", "refs/heads/main", "apps/web/docs/screenshots"]],
   ["AGENTS.md", ["文档先行", "契约先行", "测试先行", "skills/testing/sop.md", "fail-closed-gate.md", "不得默认信任", "多轮门禁", "e2e-parity:check", "parity floors"]],
   ["CLAUDE.md", ["skills/testing/sop.md", "fail-closed-gate.md"]],
@@ -113,7 +113,7 @@ const requiredTerms = new Map([
   ]],
   ["ai-docs/architecture/ai/privacy-deletion-sink-inventory.md", ["memory_vector_chunk", "vector_chunk", "user_memory", "ai_invocation_trace", "fail-closed", "privacy_deletion_target", "erasure-preview", "预览版"]],
   ["ai-docs/requirements/use-cases/privacy-erasure-preview-path.md", ["预览版", "preview_incomplete", "productionSloClaimed", "Idempotency-Key"]],
-  ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml", "仅面试练习", "招聘不在本预览范围"]],
+  ["ai-docs/architecture/devops/local-demo-deployment.md", ["docker compose", "compose.demo.yml", "仅面试练习", "招聘功能面向企业账户开放"]],
   ["ai-docs/testing/strategy/test-strategy.md", ["contract", "E2E", "golden", "e2e:isolated", "Playwright", "主层", "次层", "不得默认信任", "多轮门禁", "e2e-platform", "e2e-static-guards", "unverified AI path", "e2e-parity:check"]],
   ["ai-docs/rules/global/ai-generated-review.md", ["不得默认信任", "审核", "验证", "多轮门禁", "自动化", "fail-closed-gate.md"]],
   ["ai-docs/testing/conventions/test-authoring.md", ["e2e:isolated", "Playwright", "fetch", "skills/testing", "禁止伪验收"]],
@@ -246,7 +246,7 @@ const runtimeTruthAssertions = [
   },
   {
     source: "docs/index.html",
-    sourceTerm: "招聘不在本预览范围",
+    sourceTerm: "招聘功能面向企业账户开放",
     truthTerm: "仅面试练习",
   },
   {

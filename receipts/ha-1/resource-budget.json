@@ -1,0 +1,29 @@
+{
+  "decision": "A_4c8g_host_upgrade",
+  "perReplicaMemLimitMib": {
+    "api-a": 512,
+    "api-b": 512,
+    "worker-a": 1024,
+    "worker-b": 1024,
+    "web-a": 512,
+    "web-b": 512,
+    "lb": 64
+  },
+  "replicas": {
+    "api": 2,
+    "worker": 2,
+    "web": 2,
+    "lb": 1
+  },
+  "totalMib": 4160,
+  "envelope": {
+    "currentPreview2c4g_4GiB": "INSUFFICIENT — 4160MiB > 4096MiB（本刀 est live=0 不落生产·不构成现宿主静默超售）",
+    "haClass4c8g_8GiB": "SUFFICIENT — 4160MiB <= 8192MiB（w2-resource-sizing-receipts.md:32 对照）"
+  },
+  "rationale": "EXEC 裁决选①升 4c8g：选②减半会把 OOM 可用性风险永久烘进生产叠加工件（恰是 HA 要修的面）；per-replica 限额与 compose.prod.yml 现值逐项相同，LB 64m 新增。",
+  "precondition": "任何生产应用/翻转（B4/S15 面）前必须先完成宿主升 4c8g；该前置随本表入簇收口继承面。",
+  "webBHostPortKnob": "MEETWISE_HA_WEB_B_HOST_PORT=13001（默认 3001 契约不变；本机 3001 被无关进程 pid 27713 占用→沙箱旁路）",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}

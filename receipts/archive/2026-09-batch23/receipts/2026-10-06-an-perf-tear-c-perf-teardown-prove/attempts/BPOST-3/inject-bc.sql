@@ -1,0 +1,40 @@
+SET inj.ub = '79';
+DO $gate$
+DECLARE r record; t0 timestamptz := clock_timestamp(); ub int := current_setting('inj.ub')::int; n0 bigint;
+BEGIN
+  SELECT count(*) INTO n0 FROM interview WHERE id LIKE 'IV\_P018\_R3\_%';
+  RAISE NOTICE 'GATE_LOOP_START t0_ms=% iv_rows=% ub=%', floor(extract(epoch FROM t0) * 1000)::bigint, n0, ub;
+  LOOP
+    PERFORM pg_stat_clear_snapshot();
+    WITH iv AS (SELECT count(*) AS n, count(*) FILTER (WHERE status <> 'active') AS na
+                  FROM interview WHERE id LIKE 'IV\_P018\_R3\_%'),
+         idle AS (SELECT count(*) AS n FROM pg_stat_activity
+                   WHERE datname = current_database() AND backend_type = 'client backend'
+                     AND pid <> pg_backend_pid() AND state = 'idle'),
+         sa AS (SELECT count(*) AS n FROM pg_stat_activity
+                 WHERE datname = current_database() AND backend_type = 'client backend' AND pid <> pg_backend_pid()
+                   AND (state = 'idle in transaction' OR query LIKE 'INSERT INTO interview%'
+                        OR query LIKE 'SET LOCAL ROLE%' OR query LIKE '%set_config(''app.principal_user''%'))
+    SELECT iv.n AS iv_rows, iv.na AS iv_nonactive, idle.n AS idle_n, sa.n AS seed_act INTO r FROM iv, idle, sa;
+    IF r.iv_rows BETWEEN 1 AND ub AND r.seed_act >= 1 THEN
+      IF r.idle_n >= 2 THEN
+        RAISE NOTICE 'GATE_BC phase=seed ts_ms=% iv_rows=% iv_nonactive=% idle_n=% seed_act=% ub=%',
+          floor(extract(epoch FROM clock_timestamp()) * 1000)::bigint, r.iv_rows, r.iv_nonactive, r.idle_n, r.seed_act, ub; RETURN;
+      ELSE
+        RAISE NOTICE 'INJECT_PRECOND_NO_IDLE iv_rows=% idle_n=%', r.iv_rows, r.idle_n; RETURN;
+      END IF;
+    ELSIF r.iv_rows > ub AND r.iv_rows <= 109 THEN
+      RAISE NOTICE 'INJECT_GATE_MISSED_MARGIN iv_rows=% ub=%', r.iv_rows, ub; RETURN;
+    ELSIF r.iv_rows = 110 AND r.iv_nonactive = 0 THEN
+      RAISE NOTICE 'INJECT_PHASE_BOUNDARY iv_rows=% iv_nonactive=%', r.iv_rows, r.iv_nonactive; RETURN;
+    ELSIF r.iv_rows = 110 AND r.iv_nonactive BETWEEN 1 AND 9 THEN
+      RAISE NOTICE 'INJECT_PHASE_WARMUP iv_rows=% iv_nonactive=%', r.iv_rows, r.iv_nonactive; RETURN;
+    ELSIF r.iv_rows = 110 THEN
+      RAISE NOTICE 'INJECT_PHASE_MEASURED iv_rows=% iv_nonactive=%', r.iv_rows, r.iv_nonactive; RETURN;
+    END IF;
+    IF clock_timestamp() - t0 > interval '10 seconds' THEN
+      RAISE NOTICE 'INJECT_GATE_TIMEOUT iv_rows=% idle_n=%', r.iv_rows, r.idle_n; RETURN;
+    END IF;
+    PERFORM pg_sleep(0.005);
+  END LOOP;
+END $gate$;

@@ -1,0 +1,30 @@
+• turbo 2.10.0
+
+   • Packages in scope: //, @meetwise/ai-graphs, @meetwise/ai-runtime, @meetwise/api, @meetwise/config, @meetwise/contracts, @meetwise/db, @meetwise/db-mysql, @meetwise/domain, @meetwise/errors, @meetwise/qdrant-store, @meetwise/web, @meetwise/worker
+   • Running typecheck in 13 packages
+   • Remote caching disabled, using shared worktree cache
+
+//:typecheck: cache bypass, force executing f876b8ad54460e7e
+@meetwise/contracts:typecheck: cache bypass, force executing b55f391006e1fe61
+@meetwise/web:typecheck: cache bypass, force executing ac78a9bba7100398
+//:typecheck: 
+//:typecheck: > meetwise@0.1.0 typecheck /Users/miaole/Desktop/golucky/meetwise-aga
+//:typecheck: > pnpm typecheck:e2e
+//:typecheck: 
+@meetwise/contracts:typecheck: 
+@meetwise/contracts:typecheck: > @meetwise/contracts@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-aga/packages/contracts
+@meetwise/contracts:typecheck: > tsc --noEmit
+@meetwise/contracts:typecheck: 
+@meetwise/web:typecheck: 
+@meetwise/web:typecheck: > @meetwise/web@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-aga/apps/web
+@meetwise/web:typecheck: > tsc --noEmit
+@meetwise/web:typecheck: 
+//:typecheck: 
+//:typecheck: > meetwise@0.1.0 typecheck:e2e /Users/miaole/Desktop/golucky/meetwise-aga
+//:typecheck: > tsc -p tsconfig.e2e.json
+//:typecheck: 
+
+ Tasks:    3 successful, 3 total
+Cached:    0 cached, 3 total
+  Time:    6.862s 
+

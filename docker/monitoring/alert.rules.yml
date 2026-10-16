@@ -99,17 +99,6 @@ groups:
           summary: 'worker 抓取目标缺失'
           description: '5 分钟内无任何 meetwise-worker 的 up 序列:worker 未注册或 /metrics 不可达,监控盲区。'
 
-      # ---- 模型熔断打开(数据源:circuit-breaker.ts 相位翻 open 时 emit 的 counter)--------
-      # 跨实例 sum(increase()):各实例熔断是不同真实降级事件,合并计数。任一次打开即代表模型关口在降级(快速失败不打模型)。
-      - alert: ModelCircuitBreakerOpen
-        expr: 'sum(increase(model_circuit_breaker_open_total[15m])) > 0'
-        for: 1m
-        labels:
-          severity: warning
-        annotations:
-          summary: '模型熔断器打开(正在降级)'
-          description: '过去 15 分钟模型关口熔断至少打开过一次:下游模型连败到阈值,出题/评分/报告走降级路径。'
-
       # ---- 队列健康(数据源:worker 周期从 DB 查全局计数 set 的 gauge)-------------------
       # gauge 是全局绝对值,多实例各查同库得同值 → max() 去重实例视角(sum 会翻倍)。
       # queued 积压:消费慢于入队 / worker 领不动。阈值 100 持续 10m 才告(去抖 + 容瞬时突发)。

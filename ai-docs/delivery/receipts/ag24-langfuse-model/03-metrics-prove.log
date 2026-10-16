@@ -1,0 +1,22 @@
+
+> @meetwise/ai-runtime@0.0.0 prove:metrics /Users/miaole/Desktop/golucky/meetwise-ag24/packages/ai-runtime
+> tsx test/metrics.proof.ts
+
+PASS  counter 累加 + label(/health 200 = 2)
+PASS  counter 多 label 系列(/interview 500 = 1)
+PASS  histogram 出 _bucket/_sum/_count
+PASS  histogram le 桶单调(le=50 计入42那条)
+PASS  gauge:队列深度 + 熔断态(运维一眼看)
+PASS  # TYPE 头齐全(Prometheus 合法曝光)
+PASS  METRIC 常量名与告警 expr/白名单一致(单一真源防漂移·AG-24 面进程内熔断残留已删, breaker 键随告警同撤)
+PASS  registerBaselineMetrics 预注册退款 counter 为 0 序列(开机即有序列,告警不空)
+PASS  退款失败 counter 累加(AG-24 面进程内熔断残留已删,model_circuit_breaker_open_total 序列不再存在)
+PASS  队列健康 gauge 三系列 + queue 标签(queued/卡住/DLQ)
+PASS  新指标 # TYPE 头齐全(counter/gauge 合法曝光)
+PASS  RAG 成本与检索指标使用固定低基数标签，预算/未知结果可直接告警
+PASS  模型派发后对账只暴露低基数结果与冻结次数，不暴露主体/幂等键/提示词
+PASS  METRIC.jobsFailed 常量名(worker_jobs_failed_total·counter 以 _total 收尾命名纪律)
+PASS  registerBaselineMetrics 四队列 0 预填 worker_jobs_failed_total(开机即有序列,告警不空)
+PASS  终态失败 counter inc 累加 + queue 低基数标签 + # TYPE counter 头(Prometheus 合法曝光)
+
+✓ 系统指标注册表(Prometheus 曝光)全部通过

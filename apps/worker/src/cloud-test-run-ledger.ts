@@ -8,6 +8,7 @@
  * second time.
  */
 import { createHmac, randomUUID } from 'node:crypto';
+import { AppError } from '@meetwise/db';
 
 export type CloudTestLedgerReceipt = {
   kind: 'cloud_test_serial_receipt';
@@ -43,7 +44,7 @@ const FAILURE_CODE = /^[a-z0-9][a-z0-9_:-]{2,120}$/;
 const LEASE_SECONDS = 300;
 
 function failure(code: string): never {
-  throw new Error(`cloud_test_serial_ledger_${code}`);
+  throw new AppError(`cloud_test_serial_ledger_${code}`);
 }
 
 function stableJson(value: unknown): string {

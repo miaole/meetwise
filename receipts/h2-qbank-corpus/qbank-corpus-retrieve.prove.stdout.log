@@ -1,0 +1,65 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-60579-1791722782146 on 127.0.0.1:64668
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:qbank-corpus-retrieve /Users/miaole/Desktop/golucky/meetwise-h2q/apps/worker
+> tsx test/qbank-corpus-retrieve.proof.ts
+
+
+──────── §5.5a parseCragPlannerQuery:旧形逐字节兼容+新段解析+fail-closed ────────
+PASS  旧双段:competency/difficulty 原值
+PASS  旧双段:可选段缺省(无 targetRole/techStack 键)
+PASS  旧双段第二样本
+PASS  新四段:competency+岗位+栈+难度全解析
+PASS  新三段(仅岗位)
+PASS  新三段(仅栈)
+PASS  fail-closed: 无难度尾段 → null
+PASS  fail-closed: 难度越界 → null
+PASS  fail-closed: 难度非数字 → null
+PASS  fail-closed: 空 competency → null
+PASS  fail-closed: 保留词入栈段 → null
+PASS  fail-closed: 保留词入岗位段 → null
+PASS  fail-closed: 岗位段超长 → null
+PASS  fail-closed: 栈段超长 → null
+PASS  fail-closed: 控制字符 → null
+PASS  fail-closed: 非字符串 → null
+
+──────── §5.5b buildCragPlannerQuery 构造(岗位/技术栈段·与解析同源)+roundtrip ────────
+PASS  四段构造逐字  [缓存与一致性 岗位后端开发工程师 栈负责 Redis 缓存与限流模块设计 Kafka 数据管道 难度3]
+PASS  构造↔解析 roundtrip
+PASS  保留词岗位段构造端清洗缺省(确定性降级旧两段形·非截断)  [并发 难度2]
+PASS  含保留词 fact 被剔除,合法 fact 保留  [并发 栈Redis Kafka 难度2]
+PASS  缺省上下文=旧两段形逐字
+
+──────── §5.3 空池 degraded 语义(scoredRefsFromDispatch) ────────
+PASS  filteredEmpty → 显式 degraded no_eligible_in_scope
+PASS  既有零命中空 serve 语义零改(仍 [],CRAG 走 fallback_web)
+PASS  非空 served 映射零改
+
+──────── §5.6 route_snapshot_missing 逐字(snapshot 缺失面·pool 零触) ────────
+
+──────── §5.6 retrieveViaDispatchTrackLocal(snapshot 缺失 → 逐字 degraded) ────────
+PASS  缺 snapshot → __rag_degraded__:route_snapshot_missing 逐字(G-R2-5 永不 unscoped)
+PASS  缺叶(空 allocations)→ 同逐字 degraded(门语义零弱化·缺行缺叶同拒)
+
+──────── §5.5c scenario 检索接入:无素材显式降级(零模型·零 fail 硬死) ────────
+PASS  scenario 无素材 → approved_template 显式降级
+PASS  降级模板含明示降级语(非伪造素材非静默通用题)
+PASS  零模型调用(零 fail 硬死·零发明)
+
+──────── §5.5c scenario 检索接入:有素材(检索调用+查询带岗位/技术栈+模型出题) ────────
+PASS  scenario 有素材 → 模型出题(检索素材接入)  [{"origin":"model","operationId":"interview.question-generation.v1","idempotencyKey":"h2q-scenario-mat-a6c4291b-4d3f-47e0-b622-41480cabebe7:ask:t0:0"}]
+PASS  查询带岗位段+技术栈段(resume facts 同源·selectGroundedFacts)  [缓存与一致性 岗位后端开发工程师 栈负责 Redis 缓存与限流模块设计 Kafka 数据管道 难度3]
+PASS  查询以难度段收尾(协议完整)
+PASS  构造查询过解析面(生产查询永不触发解析拒绝)
+PASS  模型恰好一次调用
+
+──────── §5.5c fundamental 行为零改+behavioral 不接检索(白名单裁决) ────────
+PASS  fundamental 检索仍接通+模型出题(既有语义零改)  [{"origin":"model","operationId":"interview.question-generation.v1","idempotencyKey":"h2q-fund-1a7a797d-8ea3-4e46-bd65-f7480dfc72f4:ask:t0:0"}]
+PASS  fundamental 查询同样带岗位/技术栈段(#79 查询构造全检索面)
+PASS  behavioral 不接检索不外呼(零检索调用;题面由模型侧自由生成·白名单裁决如实)  [origin=model]
+
+H2 QBANK-CORPUS worker 面 prove 全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T12-46-38-554Z-60579-21236e06-2e5a-43cf-a2c1-dad422576bb8.json release_evidence=false

@@ -1,0 +1,45 @@
+{
+  "receipt": "ha-6/rate-limit-census",
+  "artifact": "R-23 多实例状态处置 · HA-1 R4 13 流稀释表继承核对（REQUEST §0.4 表逐流兑现 · 形制沿 receipts/ha-1/rate-limit-dilution.json current 列）",
+  "driftFraming": "漂移精确口径=「6 流 7 对 5 组」：6 流=漂移涉流数（#5/#6/#8/#11/#12/#13）· 7 对=旧→新行号对数（67→114、69→116、260→262、316→338、377→399、410→432、679→701）· 5 组=漂移分组（recruiter.service.ts 1 组 2 对、interview.controller.ts 1 组 1 对、interview.service.ts voice/turn/report_retry 3 组 4 对）——REQUEST 散文「5 锚漂移」按本口径收口，禁只写「5 锚」（席2 注记 1）",
+  "driftCause": "HA-1 JSON 锚基于 @c5300f73；主线其后并入 LEVEL-SCHEME 等刀，interview/recruiter 文件体量增长行号后移——13 流值逐流亲证全等零漂",
+  "perFlowTable": [
+    { "flow": "signup:email（per-email 防爆破）", "anchor": "apps/api/src/modules/auth/auth.service.ts:28", "drift": "零漂", "current": "3 burst / 0.02 perSec", "effectiveX2": "6 burst / 0.04 perSec", "codePin": "rl.allow(`signup:${b.email}`, 3, 0.02)" },
+    { "flow": "signup:ip（per-IP）", "anchor": "apps/api/src/modules/auth/auth.service.ts:12-13（消费 :28）", "drift": "零漂", "current": "10 burst / 0.05 perSec", "effectiveX2": "20 burst / 0.1 perSec", "codePin": "SIGNUP_IP_CAPACITY…: 10 / SIGNUP_IP_REFILL…: 0.05" },
+    { "flow": "signup:global", "anchor": "apps/api/src/modules/auth/auth.service.ts:28", "drift": "零漂", "current": "60 burst / 1 perSec", "effectiveX2": "120 burst / 2 perSec", "codePin": "rl.allow('signup:global', 60, 1)" },
+    { "flow": "login:email（per-email 短口令也计次）", "anchor": "apps/api/src/modules/auth/auth.service.ts:54", "drift": "零漂", "current": "5 burst / 0.2 perSec", "effectiveX2": "10 burst / 0.4 perSec", "codePin": "rl.allow(`login:${b.email}`, 5, 0.2)" },
+    { "flow": "recruiter invite:principal", "anchor": "apps/api/src/modules/recruiter/recruiter.service.ts:114", "drift": "漂：67→114（组 1/5·recruiter.service.ts）", "current": "12 burst / 0.05 perSec", "effectiveX2": "24 burst / 0.1 perSec", "codePin": "rl.allow(`invite:${principal}`, 12, 0.05)" },
+    { "flow": "recruiter invite:ip", "anchor": "apps/api/src/modules/recruiter/recruiter.service.ts:116", "drift": "漂：69→116（组 1/5·recruiter.service.ts）", "current": "12 burst / 0.05 perSec", "effectiveX2": "24 burst / 0.1 perSec", "codePin": "rl.allow(`invite:ip:${ip ?? 'unknown'}`, 12, 0.05)" },
+    { "flow": "quiz SSE 并发槽（per-principal-key）", "anchor": "apps/api/src/modules/quiz/quiz.controller.ts:56", "drift": "零漂", "current": "5 concurrent", "effectiveX2": "10 concurrent", "codePin": "acquireSlot(slotKey, 5)" },
+    { "flow": "interview SSE 并发槽（per-principal-key）", "anchor": "apps/api/src/modules/interview/interview.controller.ts:262", "drift": "漂：260→262（组 2/5·interview.controller.ts）", "current": "5 concurrent", "effectiveX2": "10 concurrent", "codePin": "acquireSlot(slotKey, 5)" },
+    { "flow": "resume-file:principal", "anchor": "apps/api/src/modules/resume/resume.service.ts:36", "drift": "零漂", "current": "15 burst / 0.1 perSec", "effectiveX2": "30 burst / 0.2 perSec", "codePin": "rl.allow(`resume-file:${principal}`, 15, 0.1)" },
+    { "flow": "resume-parse:global 并发槽", "anchor": "apps/api/src/modules/resume/resume.service.ts:20/:48", "drift": "零漂", "current": "6 concurrent", "effectiveX2": "12 concurrent", "note": "PARSE_MAX :20 默认 6", "codePin": "PARSE_MAX…?? 6 / acquireSlot('resume-parse:global', PARSE_MAX)" },
+    { "flow": "voice:principal", "anchor": "apps/api/src/modules/interview/interview.service.ts:338（:25 常量）", "drift": "漂：316→338（组 3/5·interview.service.ts·常量 :25 零漂）", "current": "40 burst / 0.3 perSec", "effectiveX2": "80 burst / 0.6 perSec", "codePin": "VOICE_RL = { capacity: 40, refillPerSec: 0.3 } / rl.allow(`voice:${principal}`, VOICE_RL.capacity" },
+    { "flow": "turn:principal", "anchor": "apps/api/src/modules/interview/interview.service.ts:399/:432（:27 常量）", "drift": "漂：377/410→399/432（组 4/5·interview.service.ts·2 对·常量 :27 零漂）", "current": "30 burst / 0.2 perSec", "effectiveX2": "60 burst / 0.4 perSec", "codePin": "TURN_RL = { capacity: 30, refillPerSec: 0.2 } / rl.allow(`turn:${principal}`, TURN_RL.capacity ×2 处" },
+    { "flow": "report_retry:per-report", "anchor": "apps/api/src/modules/interview/interview.service.ts:701（:30 常量）", "drift": "漂：679→701（组 5/5·interview.service.ts·常量 :30 零漂）", "current": "3 burst / (3/3600) perSec", "effectiveX2": "6 burst / (6/3600) perSec", "codePin": "REPORT_RETRY_RL = { capacity: 3, refillPerSec: 3 / 3600 } / rl.allow('report_retry:' + id, REPORT_RETRY_RL.capacity" }
+  ],
+  "zeroDriftConstants": {
+    "count": 6,
+    "places": [
+      "interview.service.ts:25（VOICE_RL 40/0.3）",
+      "interview.service.ts:27（TURN_RL 30/0.2）",
+      "interview.service.ts:30（REPORT_RETRY_RL 3/(3/3600)）",
+      "auth.service.ts:12-13（SIGNUP_IP_CAPACITY 10 / SIGNUP_IP_REFILL 0.05）",
+      "resume.service.ts:20（PARSE_MAX ?? 6）",
+      "resume.service.ts:48（acquireSlot('resume-parse:global', PARSE_MAX)）"
+    ],
+    "note": "常量/字面值零漂=13 流值全等的载体；漂移仅行号"
+  },
+  "countClosure": { "flows": 13, "expected": 13, "driftFlows": 6, "driftPairs": 7, "driftGroups": 5 },
+  "adjudication": "预览尺度接受 ×N 稀释（零码·零基建）：处置登记见 ai-docs/delivery/harness/ha-6-companion-disposition.md W2 节；rate-limit.service.ts:4 seam 注释维持原样零改；Redis 共享桶登记不实施归 S15/波2",
+  "processStatesRegistered": [
+    { "state": "principal 状态缓存 60s", "disposition": "零改·登记维持（principal.guard.ts:9-15·:14-15 seam 句）", "multiInstance": "evict 即时→最坏 ≤60s 最终一致+重填 TOCTOU 窗" },
+    { "state": "SSE 泵注册表/连接", "disposition": "零改（HA-1 V5 已证 pg_notify 广播+Last-Event-ID 重放零 redis 零粘性）", "anchor": "apps/api/src/platform/sse-notify.service.ts:11/:150" },
+    { "state": "worker 租约互斥", "disposition": "零改（租约在 PG·FOR UPDATE SKIP LOCKED+CAS·HA-1 V6 已证）", "anchor": "packages/db/src/report/report.ts:26-35" },
+    { "state": "parse 并发槽", "disposition": "×N 稀释 6→12 归本表第 10 行", "anchor": "apps/api/src/modules/resume/resume.service.ts:20/:48" }
+  ],
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "note": "静态码面 census（@8ba93f0b 实树逐锚亲读+proof A3 机检逐流全等）·est live=0·×N 稀释=接受登记，强度变化如实入账，≠限流已多实例安全/已 Redis 化"
+}

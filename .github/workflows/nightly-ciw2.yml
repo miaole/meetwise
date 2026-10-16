@@ -1,0 +1,42 @@
+name: nightly-ciw2
+# CI-WIRING2 归置宿（#155/#226/#176 裁⑨/裁⑩/裁⑫ rev2 B2 统一口径）：新增独立 workflow 文件，
+# 零触既有 nightly.yml（逐字节）。宿面接线=纯新增步，全部为无 key 隔离库机械断言（est live=0 · 零 secrets 引用）。
+# 点名件裁入判据（裁⑩ E5）=单件本地实跑绿 + 时长预算内（实测值入
+# ai-docs/delivery/harness/ci-wiring2-prove-placement.md 对账表）；实测红或超预算者登记不裁入。
+on:
+  schedule:
+    - cron: '30 19 * * *'      # 每日 UTC 19:30(≈北京 03:30·错开 nightly-live-model 的 UTC 18:00)
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+
+jobs:
+  prove-placement:
+    runs-on: ubuntu-latest
+    env:
+      DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+      - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm db:up
+      - name: wait for postgres
+        run: |
+          for i in $(seq 1 30); do
+            docker exec meetwise-postgres-dev pg_isready -U meetwise -d meetwise && exit 0
+            sleep 2
+          done
+          echo "postgres not ready"; exit 1
+      # #226 簇Ⅳ 归置（裁⑨）：recruiter:prove 无 key 隔离实跑绿（本地收据 .tmp/isolated-proof-receipts/）。
+      - name: recruiter:prove (#226 placement · isolated keyless)
+        run: pnpm recruiter:prove
+      # #155 点名件（裁⑩ E5 预算判据内·本地实测绿）：
+      - name: sse-push:notify:prove (#155 named · local 56.8s green)
+        run: pnpm sse-push:notify:prove
+      - name: vector-plane-erasure:prove (#155 named · local 7.6s green)
+        run: pnpm vector-plane-erasure:prove

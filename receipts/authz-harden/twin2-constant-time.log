@@ -1,0 +1,41 @@
+
+> meetwise@0.1.0 authz5a:constant-time:prove /Users/miaole/Desktop/golucky/meetwise
+> node scripts/run-e2e-isolated.mjs authz5a:constant-time:prove
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-40484-1791779044925 on 127.0.0.1:65244
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 authz5a:constant-time /Users/miaole/Desktop/golucky/meetwise/apps/api
+> node --import @swc-node/register/esm-register test/authz5a-constant-time.proof.ts
+
+PASS  恒时序/不存在账户 verify 恰跑 1 次（假哈希补位）
+PASS  恒时序/存在账户错密 verify 恰跑 1 次（真实哈希同参）
+PASS  恒时序/不存在与存在错密 verify 调用次数相等（§2-2 计数证）
+PASS  恒时序/LOGIN_DUMMY_HASH 与 hashPassword 输出同形（scrypt$<32hex>$<64hex>）
+PASS  恒时序/假哈希经 verifyPassword 真跑一次 scrypt（同参可验·恒 false）
+PASS  恒时序/normalizeEmail 归一形（trim+lower 单一 helper）
+PASS  恒时序/auth.service 单点 verifyLogin(u?.password_hash,...)（不存在/停用同路）
+PASS  恒时序/auth.service 无直呼 verifyPassword（计数等价的结构前提）
+PASS  #90/auth.service 服务侧 Credentials.shape.email 接线（格式+≤254·R4 不弱化）
+PASS  R4/auth.service password ≤128 上限在位（不弱化 Credentials 上限）
+PASS  #180/auth.service login 三桶序 per-email→ip→global（|| 短路）
+PASS  R2/RL_LOGIN_IP/RL_LOGIN_GLOBAL env 覆写口在位（RL_SIGNUP_IP 同款双值形）
+{"level":30,"time":1791779050011,"pid":40730,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:65283"}
+{"level":30,"time":1791779050024,"pid":40730,"hostname":"miaole.local","reqId":"9f1c63b9-9141-4cfb-b976-88b1de6ac0a4","req":{"method":"POST","url":"/auth/login","host":"127.0.0.1:65283","remoteAddress":"127.0.0.1","remotePort":65284},"msg":"incoming request"}
+{"level":30,"time":1791779050063,"pid":40730,"hostname":"miaole.local","reqId":"9f1c63b9-9141-4cfb-b976-88b1de6ac0a4","res":{"statusCode":401},"responseTime":38.96595799999977,"msg":"request completed"}
+{"level":30,"time":1791779050068,"pid":40730,"hostname":"miaole.local","reqId":"bfef07e4-68c9-452b-a0db-b27d6efe0e05","req":{"method":"POST","url":"/auth/login","host":"127.0.0.1:65283","remoteAddress":"127.0.0.1","remotePort":65285},"msg":"incoming request"}
+{"level":30,"time":1791779050100,"pid":40730,"hostname":"miaole.local","reqId":"bfef07e4-68c9-452b-a0db-b27d6efe0e05","res":{"statusCode":401},"responseTime":32.21591699999999,"msg":"request completed"}
+PASS  恒时序/HTTP ghost 与错密同码同形 401（响应差异面=零）
+{"level":30,"time":1791779050101,"pid":40730,"hostname":"miaole.local","reqId":"f7b173b6-7946-496e-8501-e6c48a14f640","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:65283","remoteAddress":"127.0.0.1","remotePort":65284},"msg":"incoming request"}
+{"level":30,"time":1791779050138,"pid":40730,"hostname":"miaole.local","reqId":"f7b173b6-7946-496e-8501-e6c48a14f640","res":{"statusCode":200},"responseTime":36.08266700000013,"msg":"request completed"}
+PASS  #111/HTTP signup 大写邮箱 → 200(注册受理)
+PASS  #111/HTTP signup 大写邮箱 → 库内归一落库
+{"level":30,"time":1791779050139,"pid":40730,"hostname":"miaole.local","reqId":"70f55299-083f-43e5-ae39-01abc1ff0443","req":{"method":"POST","url":"/auth/login","host":"127.0.0.1:65283","remoteAddress":"127.0.0.1","remotePort":65284},"msg":"incoming request"}
+{"level":30,"time":1791779050172,"pid":40730,"hostname":"miaole.local","reqId":"70f55299-083f-43e5-ae39-01abc1ff0443","res":{"statusCode":200},"responseTime":32.30799999999999,"msg":"request completed"}
+PASS  #111/HTTP 大写邮箱登录命中同一账户（userId 相等）
+
+✓ authz5a:constant-time: 16 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T04-24-10-522Z-40484-80e70191-ef93-4ef5-bb9a-df3b193f9e48.json release_evidence=false

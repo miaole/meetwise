@@ -42,9 +42,13 @@ CREATE TABLE interview_event (
   kind text NOT NULL,
   event_key text,
   payload jsonb NOT NULL DEFAULT '{}',
-  CONSTRAINT uq_event_seq UNIQUE (stream_key, seq),
-  CONSTRAINT uq_event_key UNIQUE (stream_key, event_key)
+  CONSTRAINT uq_event_seq UNIQUE (stream_key, seq)
 );
+-- 0149 对齐（DBM3-1 D3）：event_key 幂等唯一 = partial index（与迁移路径 0021 同形）。
+-- 原表级 CONSTRAINT uq_event_key 已删——迁移路径 0149 删 0027 同款表级约束后，本 fixture 若保留
+-- 会被 drift:prove 判「sql/ 有、迁移缺」红。NULL 语义等价（partial 不收录 NULL 行 · 约束 NULLS DISTINCT 均允许多 NULL）。
+CREATE UNIQUE INDEX uq_interview_event_key
+  ON interview_event(stream_key, event_key) WHERE event_key IS NOT NULL;
 -- 服务端发放的题目身份：/turn 只接受当前 issued question 的 answer identity，绝不把陈旧 tab 的答案喂给新 interrupt。
 CREATE TABLE interview_question (
   owner_user_id text NOT NULL,

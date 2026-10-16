@@ -1,0 +1,119 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_e2e_receipt",
+  "startedAt": "2026-10-08T19:42:13.092Z",
+  "finishedAt": "2026-10-08T19:48:16.500Z",
+  "outcome": "failed",
+  "failure": "e2e_performance_suite_failed:API negative paths:exit=1",
+  "gitHead": "692e8286ee6a71254a9ff5a1ede5749a058fb080",
+  "suiteScriptSha256": "5e4251b06c28ea8e99ae0d27bb2b45e42cd8c7aeb6c7f95a3b22a07bab61a90b",
+  "outputLog": {
+    "file": "/Users/miaole/Desktop/golucky/meetwise-line-g7trio/.tmp/e2e-receipts/2026-10-08T19-42-13-090Z-1867.log",
+    "sha256": "3385f1abb4e33568995d01233b0e7279c8e14f224bcdd8dc4e32e60c3771c33a",
+    "bytes": 65636
+  },
+  "steps": [
+    {
+      "name": "web production build",
+      "command": [
+        "pnpm",
+        "-C",
+        "apps/web",
+        "build"
+      ],
+      "exitCode": 0,
+      "durationMs": 25969
+    },
+    {
+      "name": "schema migration/deploy evolution",
+      "command": [
+        "pnpm",
+        "exec",
+        "node",
+        "scripts/run-e2e-isolated.mjs",
+        "migrate:prove"
+      ],
+      "exitCode": 0,
+      "durationMs": 5471
+    },
+    {
+      "name": "HTTP full E2E",
+      "command": [
+        "pnpm",
+        "e2e:isolated"
+      ],
+      "exitCode": 0,
+      "durationMs": 72023
+    },
+    {
+      "name": "browser full E2E",
+      "command": [
+        "pnpm",
+        "e2e:ui:isolated"
+      ],
+      "exitCode": 0,
+      "durationMs": 229260
+    },
+    {
+      "name": "browser stream idempotency and render coalescing",
+      "command": [
+        "pnpm",
+        "web:prove"
+      ],
+      "exitCode": 0,
+      "durationMs": 1874
+    },
+    {
+      "name": "resume extraction and format fail-closed contract",
+      "command": [
+        "pnpm",
+        "resume-extract:prove"
+      ],
+      "exitCode": 0,
+      "durationMs": 1154
+    },
+    {
+      "name": "RAG structural chunk and locator contract",
+      "command": [
+        "pnpm",
+        "rag-chunking:prove"
+      ],
+      "exitCode": 0,
+      "durationMs": 584
+    },
+    {
+      "name": "API burst performance E2E",
+      "command": [
+        "pnpm",
+        "performance:e2e:isolated"
+      ],
+      "exitCode": 0,
+      "durationMs": 11907
+    },
+    {
+      "name": "API contract/integration",
+      "command": [
+        "pnpm",
+        "exec",
+        "node",
+        "scripts/run-e2e-isolated.mjs",
+        "api:validate"
+      ],
+      "exitCode": 0,
+      "durationMs": 9087
+    },
+    {
+      "name": "API negative paths",
+      "command": [
+        "pnpm",
+        "exec",
+        "node",
+        "scripts/run-e2e-isolated.mjs",
+        "neg:all"
+      ],
+      "exitCode": 1,
+      "durationMs": 6079
+    }
+  ],
+  "releaseEvidence": false
+}

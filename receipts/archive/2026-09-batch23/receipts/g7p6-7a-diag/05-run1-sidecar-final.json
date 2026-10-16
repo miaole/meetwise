@@ -1,0 +1,32 @@
+{
+  "discipline": "sidecar v3 (post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok / per-query guarded / SELECT-only aggregates / migrations 152 + /^0151(_|$/) normalized)",
+  "wrapperLog": ".tmp/g7p6-run1-wrapper.log",
+  "container": "meetwise-e2e-72755-1791514201169",
+  "port": "50733",
+  "anchorSeen": true,
+  "firstOkSeen": true,
+  "correlationChecked": true,
+  "correlationMatch": true,
+  "pending42P01Ticks": 0,
+  "fallbackUsed": false,
+  "runStartMs": 1791514200726,
+  "runStartIso": "2026-10-09T02:50:00.726Z",
+  "pollCount": 58,
+  "lastPoll": {
+    "ts": "2026-10-09T02:51:23.811Z",
+    "phase": "poll",
+    "queries": {
+      "ai_model_invocation_status": {
+        "ok": false,
+        "err": "Error response from daemon: container ad203ed5dc1290e8226a0d47c3bc56f78f2cf465a59818ff36ffa5a1b98f079f is not running\n|spawnSync psql ENOENT"
+      },
+      "interview_job_status": {
+        "ok": false,
+        "err": "Error response from daemon: container ad203ed5dc1290e8226a0d47c3bc56f78f2cf465a59818ff36ffa5a1b98f079f is not running\n|spawnSync psql ENOENT"
+      }
+    },
+    "class": "post-anchor-error",
+    "consecutiveFailuresPostOk": 1
+  },
+  "stoppedReason": "STOP sentinel by orchestrator (wrapper exited)"
+}

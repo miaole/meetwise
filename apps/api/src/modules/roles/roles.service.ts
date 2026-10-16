@@ -1,11 +1,12 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { DbService } from '../../platform/db.service';
+import { UUID_RE } from '../../platform/uuid.ts';   // #85 单源化(5E 2026-10-12):通用形正则+404 语义表见单源头注
 
 /**
  * 岗位库 + 简历岗位匹配应用服务。当前技能词重叠打分(确定性,可 gate);语义匹配(embedder+pgvector)是升级,seam 已在。
  * 修审计 F1:逻辑从 controller 下沉至此。
  */
-const UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;   // resume_id 是 uuid 列;非 uuid 直查会 22P02→500,提前当 not_found 兜成 404
+// resume_id 是 uuid 列;非 uuid 直查会 22P02→500,提前当 not_found 兜成 404(语义表见 platform/uuid.ts)
 const ROLES = [
   { id: 'backend', title: '后端工程师', skills: ['redis', '限流', '分布式锁', 'mysql', '分布式', '并发', '高并发'] },
   { id: 'sre', title: 'SRE / 运维', skills: ['监控', '高可用', '限流', '容灾', 'k8s', '稳定性'] },

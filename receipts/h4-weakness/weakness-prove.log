@@ -1,0 +1,125 @@
+
+> meetwise@0.1.0 weakness:prove /Users/miaole/Desktop/golucky/meetwise-h4
+> node scripts/run-e2e-isolated.mjs weakness:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-70781-1791698886651 on 127.0.0.1:62875
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-h4/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=161 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:weakness /Users/miaole/Desktop/golucky/meetwise-h4/apps/worker
+> tsx test/weakness.proof.ts
+
+
+──────── S-A R2① controller:focus 头透传（沿 target-role 形制·additive） ─────────
+PASS  S1 controller 声明 focus 头
+PASS  S2 controller 透传 service.begin(…, targetRole, focus)
+
+──────── S-B R2② service:白名单归一+payload additive（缺省零新键=现状字节） ─────────
+PASS  S3 normalizeFocusHeader 纯函数导出在位
+PASS  S4 beginInterviewCore 第 8 形参 focus(additive)
+PASS  S5 begin 方法 8 参链下传
+PASS  S6 payload additive:focus 仅在场写入
+PASS  S7 focus 不入表列(payload 标量传输·Ban 走私面)
+
+──────── S-C R2③ payload→consumer:同门读出+白名单解析 ─────────
+PASS  S8 interview-jobs 读 payload->>focus(同门单查)
+PASS  S9 focus 缺省容忍(undefined·沿 targetRole 同形制)
+PASS  S10 consumer parseFocusPayload 纯函数导出
+PASS  S11 consumer 解析+下传 startAdaptiveInterview
+
+──────── S-D R2④⑤ lifecycle→planner prompt v3（上一轮评估摘要=criterion+弱点标签·fix-roadmap :97） ─────────
+PASS  S12 startAdaptiveInterview 第 4 形参 focus
+PASS  S13 planCompetencies 第 7 实参 focus
+PASS  S14 makeDeps focusWeaknesses(→plan 节点 initMind R3)
+PASS  S15 planCompetencies 第 7 形参+prompt focusWeaknesses
+PASS  S16 prompt 'planner.competencies' 升 v3(注册表纪律:改 prompt=升 version)
+PASS  S17 prompt v3 上一轮弱点标签段(buildData additive·缺省逐字节回退)
+PASS  S18 难度/信心隔离铁律钉死(prompt 明示非难度信号)
+
+──────── S-E 复审处方①:报告页再练入口+action 携 focus(read-file 静态接线·沿 web-logic :1307-1313 先例) ─────────
+PASS  S19 报告页 src 含再练入口(N=本场 gap 数运行时派生)
+PASS  S20 报告页 import startFocusRetrainAction(既有 create+begin 链·零新导航模式)
+PASS  S21 报告页表单携 focus(gap 维度名数组·上限=本 gap 数)
+PASS  S22 action 携 focus 头(begin headers·JSON 数组文本)
+
+──────── S-F 复审处方②:LearningSection 去练入口(静态图标→真入口·携 topic=focus) ─────────
+PASS  S23 学习项「去练」按钮在位(未完成项·topic=focus)
+PASS  S24 done 项不渲染去练(勾选主径=R5 自动回灌)
+
+──────── S-G R8:成长曲线可比标注(标注形·新-#277 实现面锚) ─────────
+PASS  S25 growth 页接 growthDeltaView(维度名交集约束)
+PASS  S26 不可比中性标注在位(delta 不渲染·如实不比)
+PASS  S27 comparable 纯函数单源导出
+
+──────── S-H R5 回灌 hook+Ban 守卫(只写 progress 不重写计划·围栏场不回灌) ─────────
+PASS  S28 generateGrowthChain 评估段成功后紧邻回灌
+PASS  S29 回灌只写 learning_progress(INSERT INTO learning_plan 零命中=Ban 一次性覆盖写)
+PASS  S30 历史计划排除本场+围栏过滤
+PASS  S31 幂等(PK ON CONFLICT DO NOTHING)
+
+──────── S-I R7 形制守卫(禁 embedding/模型·lean MVP 注记照守·分桶降级登记) ─────────
+PASS  S32 weaknessMatches 纯确定性(区域零 await/零 invoke/零模型调用)
+PASS  S33 memory-service lean MVP 注记原样(禁 embedding/语义召回/信念库)
+PASS  S34 分桶降级登记在案(assessment_report 无岗位列·owner 域即桶)
+
+──────── P-A R3 专项面 5-8 题预算(focus 派生·显式 maxTurns 优先·通用 2-3 分界零触) ─────────
+PASS  P1 带值:1→5·2→6·3→7·4→8(线性+帽)
+PASS  P2 越界夹紧:0→5·9→8(带常量 MIN=5/MAX=8)
+PASS  P3 initMind focus 在场→专项软预算(3 通用能力:通用 6→专项 5)
+PASS  P4 initMind focus 多弱项→带内派生(2 弱项→6)
+PASS  P5 显式 maxTurns 优先级不变(隔离 E2E 形·focus 不夺)
+PASS  P6 absoluteMaxTurns 杀开关照旧夹紧(focus 也不越平台顶)
+PASS  P7 focus 缺省=通用面逐字节(零 focus 参与重载路径)
+PASS  P8 难度/信心隔离:difficulty 恒中性 2·confidence 恒 0(focus 不触)
+
+──────── P-B R7 确定性匹配矩阵(同义命中·异名不误挡·精确恒中·禁模型) ─────────
+PASS  P9 精确相等恒命中
+PASS  P10 同义名命中(高并发能力↔高并发·双向)
+PASS  P11 同义名命中(Redis 缓存↔Redis)
+PASS  P12 异名不误挡(项目经验↗技术深度)
+PASS  P13 异名不误挡(系统架构↗系统设计·词元覆盖不足)
+PASS  P14 空名不命中(零误挡)
+PASS  P15 阈值固定导出(0.5·确定性可 gate)
+PASS  P16 大小写/空白归一命中(normalizeQuestion 同源)
+
+──────── P-C R2③ payload focus 解析白名单(容忍不崩·沿 targetRole 同形制) ─────────
+PASS  P17 缺失/空白 → undefined
+PASS  P18 非 JSON/非数组/空数组 → undefined(容忍)
+PASS  P19 合法数组:trim/去空/非串过滤
+PASS  P20 总量帽 8(FOCUS_LABEL_MAX_COUNT)
+PASS  P21 逐名截断 100 字符
+
+──────── D-A R6 衰减窗:达标移出+未达标保留+窗外衰减+冷启动恒等(固定 N=5·不依赖 H1) ─────────
+PASS  D1 窗内(最近 5 场):算法+消息队列+系统设计(窗=war-8..12·dim 字节序)
+PASS  D2 衰减窗常量固定 5(不依赖 H1 校准)
+PASS  D3 达标即移出(Redis 最新一场 war-9 gap=false·更早 war-1/war-8 gap=true 不救)
+PASS  D4 未达标保留(系统设计最新一场 gap=true)
+PASS  D5 窗外时间衰减移出(窗 4:消息队列最新出现 war-8 出窗→移出)
+PASS  D6 窗口参数生效(窗 9 → 消息队列回投影;窗 1 → 只剩算法)
+PASS  D7 冷启动恒等(零历史 owner → 空数组)
+PASS  D8 冷启动偏置恒等(稳定分区原序·非特殊分支)
+
+──────── D-B R5 回灌:历史计划勾选(幂等·本场排除·计划零重写·R7 终形匹配) ─────────
+PASS  D9 回灌勾选:同义名命中(gap「高并发」→计划项「高并发能力」·R7 确定性相似)
+PASS  D10 异名不勾(消息队列 不被 高并发/系统设计 误挡命中)
+PASS  D11 本场计划排除(bw-curr 自身计划项不回灌)
+PASS  D12 计划本体零重写(Ban 一次性覆盖写·items 逐字节)
+PASS  D13 幂等重放:再跑 marked=0·行数不变
+PASS  D14 provenance 观测面(gapDimensions=本场 gap 名)
+
+──────── D-C R7×R6 联动:偏置消费衰减窗投影(同义前移·异名原序·稳定分区) ─────────
+PASS  D15 同义弱项前移(高并发能力↔高并发·R7 命中)
+PASS  D16 非弱项保持原序(稳定分区·绝不注入)
+PASS  D17 W owner 偏置消费衰减后投影(算法综合↔算法 同义命中·消息队列精确命中)
+PASS  D18 hint 非硬过滤:能力清单长度不变(只重排·绝不删能力)
+
+✓ H4 WEAKNESS-LOOP 断言族全部通过(R1-R8·三处方·est live=0)
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-11T06-08-13-742Z-70781-39389e34-aff2-4a10-8da7-e9d620dbc8ab.json release_evidence=false

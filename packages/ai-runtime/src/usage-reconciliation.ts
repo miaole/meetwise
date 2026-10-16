@@ -23,8 +23,10 @@
  */
 import { createHash } from 'node:crypto';
 
-/** 已登记的保守估算器版本。新增估算器必须显式加入,否则 fail-closed(绝不猜测未知估算语义)。 */
-export const KNOWN_ESTIMATOR_VERSIONS = ['utf8-bytes-v1'] as const;
+/** 已登记的保守估算器版本。新增估算器必须显式加入,否则 fail-closed(绝不猜测未知估算语义)。
+ *  AG-12 成本轨③:登记第二版本 `cjk-weighted-v1`(CJK 逐码点加权估算,原语住 model-client
+ *  cjkWeightedEstimate;缺省路径仍 utf8-bytes-v1,端点翻 v2 属运维显式决策)。 */
+export const KNOWN_ESTIMATOR_VERSIONS = ['utf8-bytes-v1', 'cjk-weighted-v1'] as const;
 export type EstimatorVersion = (typeof KNOWN_ESTIMATOR_VERSIONS)[number];
 
 /** 校准算法版本:因子公式/余量语义一旦改变必须递增,防止旧版本因子与新算法混用(版本化承重)。 */

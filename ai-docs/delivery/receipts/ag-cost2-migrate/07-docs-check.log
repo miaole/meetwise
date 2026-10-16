@@ -1,0 +1,5 @@
+
+> meetwise@0.1.0 docs:check /Users/miaole/Desktop/golucky/meetwise-cost2
+> node scripts/ai-docs/check-docs.mjs
+
+ai-docs check passed: 80 required files verified; public text policy scanned 2008 managed worktree files

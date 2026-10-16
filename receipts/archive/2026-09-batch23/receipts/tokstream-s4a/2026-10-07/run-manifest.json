@@ -1,0 +1,93 @@
+{
+  "knife": "tokstream-s4a",
+  "requestBlueprint": "ai-docs/delivery/harness/tokstream-s4a-REQUEST.md @3b84c6e0（预执行双审 BOTH PASS · 协调方 EXEC 授权 · 唯一蓝本=tokstream-s3-design.md §I S4a 行）",
+  "runId": "2026-10-07",
+  "nodeVersion": "v22.22.3",
+  "branch": "line/tokstream-s4a-request",
+  "base": "主线 0aa1d503 · REQUEST @3b84c6e0",
+  "scriptSha256": {
+    "test/model-client-stream.proof.ts": "052b7cb50eed4be2bd0963825b2ca89222af4a544e7879a04bc942acea520101",
+    "test/stitch-validator.proof.ts": "d5d9c32707dcdc1dfe9511466ea95d34ffcef752b25602426d370778af5bf017",
+    "test/token-coalesce.proof.ts": "54b651e5ebfbb6baf10484da0ef392e7e9503dd22a36227e7b0a2ef583a2e3e1"
+  },
+  "guards": {
+    "fakeSeamOnly": "transport 恒经 globalThis.fetch mock（沿 test/model-client-dispatch.proof.ts:55 替换/:77 还原形制）·零真实外呼",
+    "estimatedLiveCalls": 0,
+    "keyTouch": "零 Key 触碰·零 secrets/.env 入库（MODEL_API_KEY 仅测试缝假值 'proof-text-key'·不入库）",
+    "zeroBytePins": {
+      "dispatchOnce(:403-422 原行号·start='const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{' end-excl='const reserveFor = (dispatchModel: string) => {')": "sha256=89c633f7060da644ca3c3c7819c5f482c2be8637492351ee26a51001a0dddebc（1094B·@HEAD 提取·proof 内静态断言 PASS）",
+      "complete(:362 起始·start='async complete(req, _attempt, executionSignal) {' end-excl=首个'\\n    },')": "sha256=3283dfcd2739501876c5cea2bb8e46a74f5963929ac2abae2e93a7f0c6dc2127（8340B·@HEAD 提取·proof 内静态断言 PASS·end marker 与插入面无关）"
+    },
+    "g7ZeroTouch": "completeStream 区域零 g7 标识符（g7RuntimeInjection/reserveG7CallOnSharedLedger/finalizeG7ReservationOnSharedLedger/releaseG7ReservationOnSharedLedger/assertModelApiKeyPresent/assertModelAllowedForTest/reserveFor 全不在场·静态断言 PASS×7）",
+    "exportFaceZeroChange": "index.ts:32/:33 导出面逐字节 pin（静态断言 PASS×2）",
+    "flagGate": "MODEL_TEXT_STREAM_ENABLED=1 ∧ MODEL_TEXT_STREAM_PREVIEW=1 才启用；production/enforce/MEETWISE_PUBLIC_PREVIEW 三锁面 refuse-closed；未双开 completeStream 恒走非流式（沿 voice-stream-preview.ts:20-24/:26-28/:49-57 形制）",
+    "transportDeadline": "流式总闸=resolveModelDeadlineConfig(env).executionTimeoutMs 维度（A14 既有 env 派生·零新增 env 注入面）·idle watchdog=10s（§E-③ 钉值）·A14 既有约束 transport ≤ execution 在测试缝同设"
+  },
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false,
+    "pgRetained": true,
+    "publicDelete503": true,
+    "g7SuiteGreen": false,
+    "r1Closed": false,
+    "actualSpendCny": null
+  },
+  "fixtures": {
+    "s2Receipts": [
+      "probe-b.json attempts[0].curve（E1 勘误：curve 在 attempts[0].curve 非 facts.curve）→ ⑨时间轴重放",
+      "probe-b.json attempts[0].facts（stitchedText 72 字符·usage completion_tokens=43/prompt_tokens=32·usageChunkEmptyChoices=true）→ 三联重放/usage 面断言",
+      "probe-b-sse-chunks.redacted.txt（17 行 t=<ms> data: <raw>·尾三行=stop chunk+空 choices usage chunk+[DONE]）→ ④按字节切重放+②派生截断卷",
+      "stitch-compare.json grading（T0 definition/T1 anchorLen=50/T2 band |Δ|/len ≤ 10%/T3 误报实证）→ ⑦校验器单测",
+      "probe-c.json（status=404·errorSurface=http_status_first·totalMs=225·零流字节·note='probe C is never retried (REQUEST pin)'）→ ⑧res.ok 先判+禁重试"
+    ],
+    "synthetic": [
+      "①流中 error frame 帧卷（手工构造·data:{error…} 即刻截断）",
+      "②EOF 去 [DONE] 截断卷（由 probe-b 卷派生·去尾帧）",
+      "③>10s 停滞卷（手工构造·不 enqueue 不 close）+总闸 1s 缝（既有 MODEL_EXECUTION_TIMEOUT_MS/MODEL_TIMEOUT_MS 下界 1000）",
+      "④>4KB 码点安全切分卷（astral 密集 ≈14KB 单 delta）+JSON \\ud83d/\\udca4 跨帧码点中断切点卷（U+1F4A4）"
+    ]
+  },
+  "attemptsLedger": {
+    "prove:model-client-stream": [
+      { "attempt": 1, "exit": 1, "note": "6 FAIL+1 crash（54 断言面未跑完）。根因全在测试侧：a) runFallback 未清场上例 flag 残留（4 例 C3 FAIL）b) 静态锚 streamEndedByEofWithoutDone 在方法 doc 注释（region 提取界外）c) 合成卷④期望字面量误写 U+1F44D（\\ud83d\\udca4 实为 U+1F4A4）d) 总闸缝未同设 MODEL_TIMEOUT_MS 触发 A14 既有约束 transport≤execution 抛错（crash）。product 面（model-client.ts）attempt 1 已定型，此后零行为变更（仅一处注释补 `streamEndedByEofWithoutDone` 键名）" },
+      { "attempt": 2, "exit": 1, "note": "3 FAIL：a) C3 production/enforce 锁面断言误要求 ok:true——既有 bound-operation fence 零外呼 deterministic+known_not_executed 拒绝才是 complete 原语义（更强 fail-closed）b) mock fetch 忽略 abort 信号致总闸永不可先触发（mock 不忠实真实 transport）→ 改为 abort 即 error 流 c) watchdog 计时变量被内层 const 遮蔽" },
+      { "attempt": 3, "exit": 1, "note": "1 FAIL：总闸卷 wire=head-only 且 limit=全长 → mock close-at-EOF → 1ms EOF-无三联（mock 卷构造错，非通道行为）；detail 打印 {calls:1, result:transient/unknown, gateElapsedMs:1} 定位" },
+      { "attempt": 4, "exit": 0, "note": "54/54 PASS（watchdog 实测=10001ms·总闸实测=1024ms）" },
+      { "attempt": "final", "exit": 0, "note": "终态确认重跑（三卷齐跑留档）：54/54 PASS（watchdog 实测=10004ms·总闸实测=1002ms）——输出=prove-model-client-stream.out.txt" }
+    ],
+    "prove:stitch-validator": [
+      { "attempt": 1, "exit": 1, "note": "1 FAIL/16：T3 静态检查命中 model-client.ts 注释中的误报实证引文（标识符在注释非代码）；修正=沿 model-slot-bypass.static.proof.ts invokeHasNoDirectLeaseAcquire 惯例剥注释查代码面（断言语义更强非放松）" },
+      { "attempt": 2, "exit": 0, "note": "16/16 PASS" },
+      { "attempt": "final", "exit": 0, "note": "终态确认重跑：16/16 PASS——输出=prove-stitch-validator.out.txt" }
+    ],
+    "prove:token-coalesce": [
+      { "attempt": 1, "exit": 1, "note": "crash：[DONE] 终结行误入 JSON.parse（测试解析缺陷）" },
+      { "attempt": 2, "exit": 0, "note": "12/12 断言 PASS（重放实测：rawDeltas=13（12.5 fps）→ coalescedFrames=7（6.8 fps）·帧字节=[16,9,33,40,33,12,33]）" },
+      { "attempt": "final", "exit": 0, "note": "终态确认重跑：13/13 PASS——输出=prove-token-coalesce.out.txt" }
+    ],
+    "retryToGreenDisclosure": "Ban retry-to-green 全账披露：model-client-stream 共 4 attempt（终态 EXIT=0 非一次过），stitch 2 attempt，coalesce 2 attempt；全部红因均在测试侧（mock 保真度/期望字面量/解析缺陷），product 通道面 attempt 1 起零行为变更；每 attempt 根因逐条如上，未放松任何断言（C3 锁面与总闸两处断言修正均为语义更精确化）。"
+  },
+  "verdicts": {
+    "scope": "S4a 七项 ①②③④⑦⑧⑨ 全落地（§1 范围严格）·C1-C12 逐条落实",
+    "streamVerdict": "三联终结判定+①error frame 即刻截断封账+②EofWithoutDone error 终态禁自动重跑+③watchdog 10001ms/总闸 1002ms 双层+④按字节切（cut=13/cut=1）零孤立代理项+⑦守恒+⑧404→deterministic/known_not_executed·恰一次+usage 面 43/32",
+    "stitchVerdict": "T0/T1/T2 收据复现（72/72/0·anchorLen 50·band 0.1）+T3 结构性禁入运行时（代码面零标识符）+误报实证入 fixture 注记",
+    "coalesceVerdict": "17 chunk 重放 13 delta→7 帧（12.5→6.8 fps·帧字节全 ≤4096）·拼接全等 72 字符·合成卷④>4KB astral 切点零孤立代理项+守恒",
+    "gatesVerdict": "tsc 23 行预存零新增（基线逐行一致）·turbo typecheck EXIT=0（3 tasks）·arch 违例集与基线逐行一致（12E+9W 全预存·涉 ai-runtime=0）"
+  },
+  "estimatedCostCny": {
+    "total": 0,
+    "formula": "零外呼（全 fake seam·globalThis.fetch mock）——无计费面",
+    "actualSpendCny": null
+  },
+  "receipts": [
+    { "file": "2026-10-07-exec-receipt.md" },
+    { "file": "prove-model-client-stream.out.txt", "sha256": "00f70058f30a81c28b1e72352c8a39af7ec0f217d1a1e57f8f4735d1c66f5369" },
+    { "file": "prove-stitch-validator.out.txt", "sha256": "3ed87bac115e571a779b8940d641ebf8dc2125ab9f221c51bc7dfa79beeb6b22" },
+    { "file": "prove-token-coalesce.out.txt", "sha256": "bc020a53892b855b1ab7ef0ae7c1755ec925843cd0e43c38e7aac8682cab685f" },
+    { "file": "gates.txt", "sha256": "1f1e7b187935760d039f7aacf9fe076eae0493f05f649f02ed884cfb37f4402a" }
+  ]
+}

@@ -1,0 +1,80 @@
+== CMD: pnpm unstube-erase:prove
+EXIT=0
+  ISOLATED_PROOF_SUMMARY target=unstube-erase:prove:raw exit=0 pass_count=46 fail_count=0 failure_class=none
+  LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T17-36-38-859Z-27764-36768300-eb4f-44cb-8cc9-5b5112264e59.json release_evidence=false
+== CMD: pnpm api:validate
+EXIT=0
+  
+  ✓ 全部通过（真 NestJS+Fastify+类型DI 结构）
+== CMD: pnpm neg:resume
+EXIT=0
+  
+  ✓ neg:resume: 91 条负路径用例全绿
+== CMD: pnpm privacy-erasure:http:prove
+EXIT=0
+  ISOLATED_PROOF_SUMMARY target=privacy-erasure:http:prove:raw exit=0 pass_count=19 fail_count=0 failure_class=none
+  LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T17-37-39-041Z-28808-fba314fe-1005-4757-8330-d6047f5ffee5.json release_evidence=false
+== CMD: pnpm neg:interview (邻接·零改)
+EXIT=0
+  
+  ✓ neg:interview: 97 条负路径用例全绿
+== CMD: pnpm -C apps/web prove:public-copy
+EXIT=0
+  ✓ TC-PUBLIC-COPY-E10
+  static_preflight_valid: selected=13/13; releaseEvidence=false
+== CMD: pnpm privacy-erasure-preview:prove (0129 邻接)
+EXIT=0
+  ✓ privacy-erasure-preview db 证明通过
+  LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T17-37-51-080Z-29652-f83d9bd0-87af-427d-9ab4-cf5ecc693582.json release_evidence=false
+== CMD: pnpm prove:begin-guard-merge (godfn-1c 邻接·apps/api)
+EXIT=0
+  
+  CMD=pnpm prove:begin-guard-merge EXIT=0
+== CMD: pnpm uc052:internal-erasure:prove
+EXIT=1
+== CMD: pnpm uc052:external-sink-retention:prove
+EXIT=1
+== CMD: pnpm uc052:external-sink-async-purge:prove
+EXIT=1
+== CMD: pnpm uc052:checkpoint-physical:prove
+EXIT=1
+== CMD: pnpm vector-plane-erasure:prove
+EXIT=0
+  ✓ GAP-PRIV-04 向量面擦除收尾 DB 证明通过（本地隔离 · releaseEvidence=false · ≠ 云端彻底删除 · HNSW 内部页/WAL/备份不在行级证据面 · interview 503 关闭 · resume/account DELETE=202 软删受理(purge_pending) 同列入账见 privacy-erasure:http:prove）
+== CMD: pnpm rag03-hnsw-completeness:prove
+EXIT=0
+  ✓ rag03-hnsw-completeness（真 Postgres）全部通过 · GAP-RAG-03 :71 OPEN · coveredCount=8 · releaseEvidence=false · NOT_HA
+== CMD: pnpm rag03c-exactk-observe:prove
+EXIT=0
+  ✓ rag03c-exactk-observe（真 Postgres）全部通过 · GAP-RAG-03 :71 OPEN · coveredCount=8 · releaseEvidence=false · NOT_HA
+== CMD: pnpm -C packages/db prove:tenant-wiring-e5
+EXIT=0
+  ✓ tenant-wiring E5 (application-layer half) proof passed (EXIT=0)
+== CMD: pnpm -C packages/domain prove:memory-vector-chunk-deletion
+EXIT=0
+  ✓ memory_vector_chunk 域/文档/公开入口 pin 通过（无库，releaseEvidence=false）
+== CMD: pnpm gap-rag05-classifier:prove
+EXIT=0
+== CMD: pnpm eval-harness-matrix-cite:prove
+EXIT=0
+  PASS  uc-e2e-011-report-refund: pins §1b refund-callback PREREQ / H5
+== CMD: pnpm mysql-stack:skeleton:prove
+EXIT=0
+== CMD: pnpm mysql-stack:m2-tenant:prove
+EXIT=0
+== CMD: pnpm uc052:internal-erasure:prove
+EXIT=0
+  ✓ UC052 internal erasure prove PASS
+== CMD: pnpm uc052:external-sink-retention:prove
+EXIT=0
+  ✓ UC052 external sink retention prove PASS (≠ external purged · ≠ completed · ≠ covered · gap OPEN)
+== CMD: pnpm uc052:external-sink-async-purge:prove
+EXIT=0
+  ✓ UC052 external sink async-purge prove PASS (stub path evidenced · ≠ cloud wipe · ≠ :64 CLOSED · ≠ covered · DELETE=202 软删受理(purge_pending))
+== CMD: pnpm uc052:checkpoint-physical:prove
+EXIT=0
+  ✓ UC052 checkpoint physical prove PASS
+== CMD: resume-erasure:foundation:prove:raw (0060 放行邻接)
+EXIT=0
+  ISOLATED_PROOF_SUMMARY target=resume-erasure:foundation:prove:raw exit=0 pass_count=4 fail_count=0 failure_class=none
+grep-hit-count=0

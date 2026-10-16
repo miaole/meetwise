@@ -1,0 +1,24 @@
+PASS  P1.1 §4.1 九事件全部产出告警条目 — 9/9 present
+PASS  P1.2 §4.1 severity 逐字段对 — Page/Ticket/Trend 逐条对
+PASS  P1.3 §4.1 JSON 形 matcher（compose 前缀容忍） — db_pool_error=1 reaper_takeover=1
+PASS  P1.4 §4.1 文本形 matcher（key=value 兼容） — worker=1 api=1
+PASS  P1.5 §4.1 compose_exit/df_watermark 源 — migrate_failed=1 disk_watermark=1
+PASS  P1.6 §4.1 样本行入条目（可下钻） — sample carries raw line
+PASS  P2.1 §4.2 未决 Page/Ticket → EXIT=1 — exit=1
+PASS  P2.2 §4.2 同样本 --report → 恒 EXIT=0 且清单照出 — exit=0 alerts=9
+PASS  P2.3 §4.2 干净样本 → EXIT=0 — exit=0 alerts=0
+PASS  P3.1 §4.3 白名单（带到期日）→ 白名单事件清单零条目、Page/Ticket 零未决、EXIT 翻绿（Trend 照列不打扰 EXIT） — exit=0 leaked= openPageTicket=0 suppressed=7
+PASS  P3.2 §4.3 过期白名单条目 → 必须重新告警 — exit=1 db_pool_error re-alerted=true expired=db_pool_error
+PASS  P4.1 §4.4 缺 severity → 机检拒绝 — exit=1
+PASS  P4.2 §4.4 缺 matcher → 机检拒绝 — exit=1
+PASS  P4.3 §4.4 白名单缺到期日 → 机检拒绝 — exit=1
+PASS  P4.4 §4.9 runbook 锚悬空 → 机检拒绝 — exit=1
+PASS  P4.5 §4.9 真文件默认 lint 全绿（runbook 存在+九锚解析+S15 节+分层词面） — alerts-lint OK —— 25 条告警规则全部引用真实指标,prometheus/alertmanager 结构合法;事件目录 9 条 + 白名单 0 条 + runbook 锚解析 9 条（HA-5 §4.9）全部通过。
+PASS  P5.1 §4.5 三处 sweep requeue 成功路径含 reaper_takeover（非 catch/失败分支） — interview-jobs.ts:269(afterRequeue=true,catch=false) report.ts:86(afterRequeue=true,catch=false) quiz-jobs.ts:88(afterRequeue=true,catch=false)
+PASS  P5.2 §4.5 diff 9f6edf8f..worktree 仅 ±观测日志行（三处各 +1·零删·sweep 选取/租约/CAS 零改） — +3/-0
+PASS  P6.1 §4.7 监控栈四文件+compose.prod.yml 零出现在改动清单 — diff 5 files + status 8 entries all clean
+PASS  P7.1 fail-closed：live 模式源失效（docker 不可用）→ EXIT=1 — exit=1
+PASS  P7.2 fail-closed：运行时坏目录（缺 severity）→ EXIT=1 — exit=1
+
+check-alerts.proof OK —— 21/21 assertions passed. receipt: /Users/miaole/Desktop/golucky/meetwise-ha5/receipts/ha-5/check-alerts.proof.receipt.json
+CMD=node scripts/alerts/check-alerts.proof.mjs EXIT=0

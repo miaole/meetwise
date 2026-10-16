@@ -1,0 +1,71 @@
+{
+  "knife": "UC-018-UI-FAILURE-BACKFILL-TIP-RERUN",
+  "gap": "GAP-UC018-UI-WEB-NOT-READY",
+  "key": "UI-TIP-RERUN",
+  "emittedBy": "lineE-tip-rerun-record",
+  "notBackfillEmitter": true,
+  "ranAt": "2026-10-03T04:15:03Z",
+  "finishedAt": "2026-10-03T04:16:11Z",
+  "targetSha": "057701c42c5e263aabf95a18a13bfd9a5249a0cd",
+  "wrapperSha": "057701c42c5e263aabf95a18a13bfd9a5249a0cd",
+  "runnerCommitSha": "057701c42c5e263aabf95a18a13bfd9a5249a0cd",
+  "gitSha": "057701c42c5e263aabf95a18a13bfd9a5249a0cd",
+  "wrapperFileLastCommit": "3d0c71e6cf772b538cd607a20674393246486cc4",
+  "cmd": "pnpm uc018:ui:prove",
+  "exit": 0,
+  "cmds": {
+    "uc018:ui:prove": 0
+  },
+  "exits": {
+    "uc018:ui:prove": 0
+  },
+  "cause": "tip re-run passed. runner built apps/web because .next/BUILD_ID was absent, then next start, then Playwright chromium UC018-UI-abandon: 1 passed.",
+  "historical": {
+    "path": "ai-docs/delivery/receipts/uc018-receipt-backfill/UI.json",
+    "targetSha": "e88d386ea946918668d8e073edc7f33521fe33d9",
+    "exit": 1,
+    "class": "frontend",
+    "code": "web_not_ready",
+    "unchanged": true,
+    "note": "Historical exit stays 1. This file is not a rewrite of that JSON."
+  },
+  "tipRerun": true,
+  "silentSubstitution": false,
+  "logPath": "ai-docs/delivery/receipts/uc018-ui-tip-rerun/logs/UI-057701c.log",
+  "stdoutDigest": "e9531df5dd43d992db53b2a9f1ac6cf99c8f512d640f90a0b321b0f99bb48610",
+  "nodeVersion": "v20.19.2",
+  "pnpmVersion": "10.18.0",
+  "imageDigests": {
+    "pgvector/pgvector:pg16": {
+      "imageDigest": "sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a",
+      "started": true,
+      "source": "host-docker-image-inspect-after-run",
+      "liveObservation": false,
+      "cite": {
+        "logLine": 7,
+        "matched": "E2E isolated PostgreSQL: meetwise-e2e-1383942-1791000903674 on 127.0.0.1:32787"
+      }
+    }
+  },
+  "stack": {
+    "postgres": {
+      "value": true,
+      "source": "log-parse",
+      "logFile": "ai-docs/delivery/receipts/uc018-ui-tip-rerun/logs/UI-057701c.log",
+      "line": 7
+    },
+    "note": "PG-retained isolated fixture. Not a MySQL cutover."
+  },
+  "targetEnv": "docker-isolated",
+  "capacityRepresentative": false,
+  "evidenceOfRecord": false,
+  "evidenceScope": "tip-rerun-only",
+  "implementerOnly": true,
+  "disclosure": "TIP RE-RUN at 057701c42c5e263aabf95a18a13bfd9a5249a0cd (2026-10-02 21:15 PT). EXIT 0 is this run only. e88d386 UI.json remains exit=1 E2E_FAILURE class=frontend code=web_not_ready (no .next). Not a rewrite. Not covered. coveredCount stays 8. UI alone \u2260 UC-E2E-018 covered. NOT_HA. releaseEvidence=false. claimProductionHA=false. public DELETE stays 503. PG-retained.",
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false,
+  "coveredCountRetained": 8,
+  "publicDelete": 503,
+  "pgRetained": true
+}

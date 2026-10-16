@@ -1,0 +1,115 @@
+# HA-3 DB-resilience proof carrier (REQUEST §3 C6 · R-22).
+# releaseEvidence=false · Not HA · claimProductionHA=false · est live=0
+# 禁止合入 compose.prod / 生产叙事 · ⛔push · Ban 原地改任何既有 compose。
+#
+# Purpose: isolated-container disconnect-injection prove for R-22 (B1-B9):
+#   B1 pg_terminate_backend 目标化（池原生自愈） · B2/B3 docker stop 全断（500 信封/有界/进程存活）
+#   B4 keepAlive 主证=A1+源码锚（佐证裁撤落卷） · B5 query_timeout 双形态（PG_QUERY_TIMEOUT_MS=3000 钉 api 面=rev2 §4-B5 (a)）
+#   B6 SSE LISTEN 断连降级（零改实证） · B7 worker 长连接面 · B8 migrate 停窗重试（W3 容器实录）· B9 零回归另账。
+#
+# Prereqs (fail-closed):
+#   1) MEETWISE_HA3_PROOF_AUTHORIZED=1 —— 本载体专属闸（沿 ha-1/ha-2 先例形·由协调方/授权链设·缺省禁跑）；
+#      下述全部 docker compose 命令行都必须显式带该变量。
+#   2) image meetwise-backend:ha-dual-local present（复用既有本地 runtime-shell 形制·scripts/ha/build-backend-image.mjs·
+#      零生产 registry；本文件不私造新镜像名）。应用代码+node_modules 由 compose bind-mount（沿 ha-2 形制）。
+#   3) 迁移先行（B8 另行容器实录；常规起法宿主侧）：DATABASE_URL=postgresql://meetwise:meetwise_ha3_pg_dev_password@127.0.0.1:54340/meetwise pnpm -C packages/db migrate
+#
+# Bring-up (单服务起停实录·exec 逐条记账)：
+#   MEETWISE_HA3_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-3-proof.yml up -d ha3-pg
+#   MEETWISE_HA3_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-3-proof.yml up -d api-proof
+#   MEETWISE_HA3_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-3-proof.yml up -d worker-proof
+# Teardown:
+#   MEETWISE_HA3_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-3-proof.yml down -v
+#
+# Local-dev placeholder credentials only (same class as compose.ha-2-proof.yml).
+# Do NOT read/write .env* · Do NOT merge into compose.prod · Do NOT claim HA/DB-HA.
+
+name: meetwise-ha-3-proof
+
+x-ha-3-backend: &ha-3-backend
+  image: ${MEETWISE_HA3_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+  volumes:
+    # Bind repo so Nest + workspace node_modules run without a multi-GB bake (沿 ha-dual 形制)。
+    - type: bind
+      source: ..
+      target: /app
+      read_only: false
+  extra_hosts:
+    # Container DNS to host-published 54340 via host-gateway（ha-2 亲证形制）。
+    - "host.docker.internal:host-gateway"
+  restart: "no"
+  depends_on:
+    ha3-pg:
+      condition: service_healthy
+
+services:
+  # ---- 沙箱一次性 Postgres（tmpfs·down 即灭·pgvector 材质沿 compose.ha.sandbox.yml 先例）----
+  ha3-pg:
+    image: pgvector/pgvector:pg16
+    container_name: meetwise-ha-3-proof-pg
+    environment:
+      POSTGRES_USER: meetwise
+      POSTGRES_PASSWORD: meetwise_ha3_pg_dev_password
+      POSTGRES_DB: meetwise
+      PGDATA: /var/lib/postgresql/data/pg
+    tmpfs:
+      - /var/lib/postgresql/data:rw,noexec,nosuid,size=512m
+    ports:
+      - "127.0.0.1:54340:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U meetwise -d meetwise"]
+      interval: 2s
+      timeout: 3s
+      retries: 60
+      start_period: 3s
+
+  api-proof:
+    <<: *ha-3-backend
+    container_name: meetwise-ha-3-proof-api
+    working_dir: /app/apps/api
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      NODE_ENV: development
+      DATABASE_URL: postgresql://meetwise:meetwise_ha3_pg_dev_password@host.docker.internal:54340/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-3-proof-local-dev-secret-not-prod
+      AUTH_DEV_HEADER: "1"
+      # B5 (a)·rev2 §4-B5：driver 层 query_timeout 调小到 3000ms 令排序确定
+      # （statement_timeout 保持 15000 默认=server 端形态对照面）。
+      PG_QUERY_TIMEOUT_MS: "3000"
+    ports:
+      - "127.0.0.1:28788:8787"
+
+  worker-proof:
+    <<: *ha-3-backend
+    container_name: meetwise-ha-3-proof-worker
+    working_dir: /app/apps/worker
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    environment:
+      NODE_ENV: development
+      WORKER_BOOTSTRAP: "1"
+      DATABASE_URL: postgresql://meetwise:meetwise_ha3_pg_dev_password@host.docker.internal:54340/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-3-proof-local-dev-secret-not-prod
+      WORKER_METRICS_HOST: 0.0.0.0
+      WORKER_METRICS_PORT: "9091"
+    ports:
+      - "127.0.0.1:29091:9091"
+
+  # ---- migrate one-shot job（B8 容器实录形；生产 command 形制零改·仅沙箱 env 落点）----
+  migrate-proof:
+    <<: *ha-3-backend
+    container_name: meetwise-ha-3-proof-migrate
+    working_dir: /app/packages/db
+    # 沿 compose.prod.yml:231 作业形态（migrate-cli → cost-configure 同 job 链）；沙箱 dev observe。
+    command: ["sh", "-c", "node node_modules/tsx/dist/cli.mjs src/migrate-cli.ts && cd /app/apps/worker && node --import @swc-node/register/esm-register src/cost-configure.ts"]
+    environment:
+      NODE_ENV: development
+      DATABASE_URL: postgresql://meetwise:meetwise_ha3_pg_dev_password@host.docker.internal:54340/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-3-proof-local-dev-secret-not-prod
+      # B8 注入缝：连接层退避 base/预算 env 由运行命令行显式给（缺省=码内默认 1000/30000）。
+      MIGRATE_CONNECT_RETRY_BASE_MS: ${MIGRATE_CONNECT_RETRY_BASE_MS:-}
+      MIGRATE_CONNECT_BUDGET_MS: ${MIGRATE_CONNECT_BUDGET_MS:-}

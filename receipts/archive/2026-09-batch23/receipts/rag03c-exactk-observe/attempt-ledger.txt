@@ -1,0 +1,46 @@
+# RAG03-C exact-K fill 观察刀 · attempt 台账（全录 · Ban 删除/覆盖 · 红原值记账）
+# 分支 line/rag03c-exactk-observe · CODE be2da779（C-1..C-4）→ 仪器修复 f113768a（P1-a 红后）
+# 主 CMD: ./scripts/with-docker-session.sh env -u MODEL_API_KEY -u MODEL_BASE_URL pnpm rag03c-exactk-observe:prove
+# P2 臂唯一差异: 前缀 RAG03C_ARM=P2（harness §3 执行序 P2-a 格）
+# 环境: docker Desktop 29.1.3 · image pgvector/pgvector:pg16 · RepoDigest 双名同 sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a
+#       pgvector extversion 0.8.7 · PostgreSQL 16.15 · hnsw.ef_search=default(40) · proconfig 含 hnsw.iterative_scan=strict_order（0139 承卷）
+# 主线漂移核查: fetch 后 origin/feat/mysql-schema-skeleton = 9265e4d8a58eaa064244eb3c5fd02c165e83d8fc（未前进·协调方预期已前进——如实记录·无 rebase 需要·HNSW 相关 migration/proof 零漂移·stop 条件未触发）
+
+## run-0 · bootstrap-P1-a · FAIL（infra-boot · proof 未执行 · 零读数 · 非 attempt 读数格）
+- 时间: 2026-10-08T06:31:31Z→06:33:17Z（dur 105585ms）· runner receipt `.tmp/isolated-proof-receipts/2026-10-08T06-33-17-502Z-41482-20e1a3ff-48ad-4359-8ae5-d047ddb64a34.json`（日志 runner 段在 rag03c-p1a.log 早段）
+- 根因: ①implementer 漏执行 harness §4.1 钉死前置 `pnpm install --frozen-lockfile`（pnpm WARN node_modules missing 在案）②隔离 PG 容器 boot 超时 `isolated_postgres_database_not_ready:boot`（waitForPostgres 90 探全败·冷 daemon）
+- 处置: 补执行钉死前置（`pnpm install --frozen-lockfile` EXIT=0 · 6.9s · /tmp/rag03c-install.log）→ 按预注册执行序重跑；本运行全录不删除
+
+## run-1 · P1-a · EXIT=1 · 红（instrument-defect · 门禁红名 R3C-P1-HNSW-USED · 读数格不作数 · 红原值保留）
+- 时间: 2026-10-08T06:35:39Z→06:35:49Z（dur 9893ms）· 容器 meetwise-e2e-44249-1791441339782 · runner receipt `…06-35-49-677Z-44249…json` · 日志 `logs/rag03c-p1a.log`
+- 五门禁: R3C-FIXTURE-REACHABLE 绿 · R3C-PEXACT-EXACT-K 绿×2 · **R3C-P1-HNSW-USED 红**（HNSW_USED=true 但 index=null）· R3C-SAFETY 绿×2 · R3C-READINGS-RECORDED 绿
+- 判别读数: hnswReturned=5 · hnswExactFillObserved=true（此两读数来自正确代码路径·有效）
+- 仪器缺陷（byte 级根因·commit f113768a 修复）: ①`extractHnswIndexName` guard 笔误 `typeof n === 'object'`（对象一律早退→恒 null）②`planFilterShape` 仅沿 `n['Plans']` 下钻而根为数组+`{Plan}` 包裹→恒 'none'。实测：对 run-1 自身捕获的计划 JSON，修复后函数输出 extract=qgc_hnsw_visible_c48c…·shape=same-table-filter（即 run-1 的 HNSW Index Scan 节点在树中真实存在——AQ 已闭面未被推翻）
+- 处置: 仪器修复（断言名/判据/夹具/期望零变化 · additive 收据字段 planNodeFacts）→ 该 attempt 读数格重跑（P1-a2）；本运行全录不删除
+
+## run-2 · P1-a2 · EXIT=0 · 全绿（P1 主臂第 1 有效格 · 仪器修复后 @f113768a）
+- 时间: 容器 meetwise-e2e-45857-1791441869484 · runner receipt `…06-44-35-945Z-45857…json`（dur 6460ms）· 日志 `logs/rag03c-p1a2.log`
+- 五门禁全绿: REACHABLE · PEXACT-EXACT-K×2 · P1-HNSW-USED（index=qgc_hnsw_visible_a346eb26…）· SAFETY×2 · READINGS-RECORDED
+- 三判别读数: hnswReturned=5 · hnswExactFillObserved=true · planFilterShape sub=live=same-table-filter（additive facts: Filter=generation_id+scope GUC 同表谓词 · joinAbove=false）
+- P-DEFAULT 读数: HNSW_USED=false · returned=5（60 行语料规划器不走 HNSW·如实记录）
+
+## run-3 · P1-b · EXIT=0 · 全绿（P1 主臂第 2 有效格）
+- 时间: 容器 meetwise-e2e-46243-1791441885632 · runner receipt `…06-44-51-714Z-46243…json`（dur 6080ms）· 日志 `logs/rag03c-p1b.log`
+- 读数与 run-2 同形: 5 / true / same-table-filter（index=qgc_hnsw_visible_569a0965…）· P-DEFAULT HNSW_USED=false
+
+## run-4 · P1-c · EXIT=0 · 全绿（P1 主臂第 3 有效格）
+- 时间: 容器 meetwise-e2e-46625-1791441898975 · runner receipt `…06-45-05-187Z-46625…json`（dur 6211ms）· 日志 `logs/rag03c-p1c.log`
+- 读数与 run-2 同形: 5 / true / same-table-filter（index=qgc_hnsw_visible_d6d10659…）· P-DEFAULT HNSW_USED=false
+
+## run-5 · P2-a · EXIT=0 · 全绿（P2 对比臂 · RAG03C_ARM=P2 · 2000 行）
+- 时间: 容器 meetwise-e2e-47013-1791441914142 · runner receipt `…06-45-33-874Z-47013…json`（dur 19720ms）· 日志 `logs/rag03c-p2a.log`
+- 夹具: corpus=2000（1985 随机单位向量未批准批 · p2MinMassDist=0.922152 ≫ 批准 0.06-0.10 · 顺序不变量满足）
+- 五门禁全绿（P1-HNSW-USED 为 P1 专用不适用）· 三判别读数: hnswReturned=5 · hnswExactFillObserved=true · shape sub=live=same-table-filter（index=qgc_hnsw_visible_e4cd2f2e…）
+- P-DEFAULT 读数: HNSW_USED=false（2000 行规划器仍不走 HNSW·如实记录·自然触发面未现——登记非定谳归协调方）
+- 机理证据（live 计划在卷）: HNSW Index Scan 节点 `Rows Removed by Filter: 10`（同表 Filter 弹出 10 行全局最近的越界行后·iterative_scan=strict_order 继续推进至批准行→返回 5）· candidate JOIN 在 Join 节点（AQ 披露面）——同表 Filter 面 vs JOIN 面的结构区分首次完整在卷
+
+## 台账小结
+- 有效 attempt 读数格: P1×3（run-2/3/4）+ P2×1（run-5）= 预注册 4 格全执行 · EXIT 0/0/0/0 · 判别读数四格一致（5/true/same-table-filter）
+- 缺陷运行: run-0（infra-boot）+ run-1（instrument-defect 红）全录保留 · 红原值记账 · 零删除零覆盖零择优
+- 禁 touch 面 machine check: `git diff --stat 9265e4d8..HEAD -- packages/db/src packages/db/migrations apps` = 0 字节 · 0138/0139/0029/principal.ts/既有三 proof 零触碰 · dirty=[] 全程 code 先提交后 prove
+- 零模型调用（env -u 双键剥离）· actualSpendCny=null · releaseEvidence=false · NOT_HA

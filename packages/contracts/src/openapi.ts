@@ -16,12 +16,20 @@ function operation(r: ContractRoute): Record<string, unknown> {
   const op: Record<string, unknown> = { operationId: r.id, summary: r.summary, tags: r.tags };
   if (r.auth) op.security = [{ bearerAuth: [] }];
   // 路径参数(从 {id} 模板抽)
-  const params = [...r.path.matchAll(/\{(\w+)\}/g)].map((m) => ({ name: m[1], in: 'path', required: true, schema: { type: 'string' } }));
+  const params: Record<string, unknown>[] = [...r.path.matchAll(/\{(\w+)\}/g)].map((m) => ({ name: m[1], in: 'path', required: true, schema: { type: 'string' } }));
+  // 自定义 header 参数登记(#30：ContractRoute.headers → OpenAPI in:header parameters)
+  for (const h of r.headers ?? []) {
+    params.unshift({
+      name: h.name, in: 'header', required: h.required ?? false, schema: { type: 'string' },
+      ...(h.description ? { description: h.description } : {}),
+    });
+  }
   if (params.length) op.parameters = params;
   if (r.request) op.requestBody = { required: true, content: { 'application/json': { schema: jsonSchema(r.request) } } };
+  // 成功状态码(#30)：登记了 status(如 begin=202)按登记值出 OpenAPI,未登记维持 200 既有形零漂。
   op.responses = r.response
-    ? { '200': { description: 'ok', content: { 'application/json': { schema: jsonSchema(r.response) } } } }
-    : { '200': { description: 'ok' } };
+    ? { [String(r.status ?? 200)]: { description: 'ok', content: { 'application/json': { schema: jsonSchema(r.response) } } } }
+    : { [String(r.status ?? 200)]: { description: 'ok' } };
   return op;
 }
 

@@ -1,0 +1,78 @@
+# api prove:role-input 修锚前后对照收据(H5-ROLE-INPUT 片1-A2·真实对照跑日志·替换 wrong-cwd ENOENT 空跑)
+# 载体:工作树 meetwise-h5 @line/h5-role-input(修前采集点=0e6a24fd·docs-only 卷+码零动·落码前真跑)
+# 关联:h4 卷 post-prove 勘误②「真实对照跑日志」口径+LEDGER 2026-10-11 事件4(证据件替换债归原席=本刀清偿)
+# §1-A1 次桩申报系协调方修正补入(勘误 @085f941a 已落卷)·非 EXEC 即兴
+# 修前红因三源:B271 片2 beginInterviewCore 抽取(S5/S6/S8 锚窗落空)+企业臂 DB 函数桩单缺(R1/R2/R3/R5
+#   UNEXPECTED_SQL SELECT gateway_entpay_reserve(…))+H4 focus 第 7 参(S3 正则收尾落空)——判据零弱化只换锚。
+
+================ SEGMENT 1 修前(真跑全输出) ================
+CMD=pnpm -C apps/api prove:role-input
+
+> @meetwise/api@0.0.0 prove:role-input /Users/miaole/Desktop/golucky/meetwise-h5/apps/api
+> node --import @swc-node/register/esm-register test/role-input.proof.ts
+
+ROLE-INPUT api begin transport · target-role header → normalized payload scalar (#259)
+haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending) · r1Closed=false
+
+PASS  S1-controller-begin-region-parseable
+PASS  S2-controller-declares-target-role-header
+FAIL  S3-controller-passes-target-role-to-service
+PASS  S4-begin-region-parseable
+FAIL  S5-service-normalizes-trim-slice-empty-undefined(诊断链同形制)
+FAIL  S6-payload-conditional-key(absent → 现状字节 {requestId})
+PASS  S7-target-role-not-a-table-column(payload 标量传输·Ban 走私面)
+FAIL  S8-idempotent-existing-branch-untouched(alreadyBegun 短路在 normalize 之后的既有查询面)
+FAIL  R1-over-100-truncated-to-100(payload.targetRole=slice(0,100))
+FAIL  R2-whitespace-blank-normalizes-undefined(absent key = 现状 payload 字节)
+FAIL  R3-absent-header → byte-identical {requestId} payload
+PASS  R4-alreadyBegun-no-rewrite(existing 分支短路·零新 INSERT·首场 role 生效)
+FAIL  R5-value-trimmed-and-written(payload.targetRole=数据工程师)
+
+GAP  ROLE-INPUT api  8 check(s) failed; begin transport not proven
+
+CMD=pnpm prove:role-input EXIT=1
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1
+================ SEGMENT 2 修后(真跑全输出·8 FAIL→0) ================
+CMD=pnpm -C apps/api prove:role-input
+
+> @meetwise/api@0.0.0 prove:role-input /Users/miaole/Desktop/golucky/meetwise-h5/apps/api
+> node --import @swc-node/register/esm-register test/role-input.proof.ts
+
+ROLE-INPUT api begin transport · target-role header → normalized payload scalar (#259)
+haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending) · r1Closed=false
+
+PASS  S1-controller-begin-region-parseable
+PASS  S2-controller-declares-target-role-header
+PASS  S3-controller-passes-target-role-to-service
+PASS  S4-begin-region-parseable
+PASS  S5-service-normalizes-trim-slice-empty-undefined(诊断链同形制)
+PASS  S6-payload-conditional-key(absent → 现状字节 {requestId})
+PASS  S7-target-role-not-a-table-column(payload 标量传输·Ban 走私面)
+PASS  S8-idempotent-existing-branch-untouched(alreadyBegun 短路在 normalize 之后的既有查询面)
+PASS  R1-over-100-truncated-to-100(payload.targetRole=slice(0,100))
+PASS  R2-whitespace-blank-normalizes-undefined(absent key = 现状 payload 字节)
+PASS  R3-absent-header → byte-identical {requestId} payload
+PASS  R4-alreadyBegun-no-rewrite(existing 分支短路·零新 INSERT·首场 role 生效)
+PASS  R5-value-trimmed-and-written(payload.targetRole=数据工程师)
+PASS  B-S1-quiz-controller-declares-target-role-header
+PASS  B-S2-quiz-controller-passes-target-role-to-service
+PASS  B-S3-quiz-service-normalizes-trim-slice-empty-undefined(interview/diagnosis 同形制)
+PASS  B-S4-quiz-enqueue-passes-normalized-role
+PASS  B-S5-quiz-claim-read-side-additive-payload-scalar(S1-4 同门:仅 RETURNING 增读·查询形状/lease 复核零动)
+PASS  B-S5b-quiz-enqueue-optional-payload-key(present 才写·缺省 {} 现状字节)
+PASS  B-S6-quiz-role-not-a-table-column(payload 标量传输·Ban 走私面·零迁移)
+PASS  B-S7-consumer-passthrough-undefined-tolerant(旧 job 缺键零崩)
+PASS  B-S8-lifecycle-additive-7th-param-and-passthrough
+PASS  B-S9-generator-additive-role-param-into-prompt-vars
+PASS  B-S10-prompt-v2-conditional-role-segment(diagnosis 同形·缺省段不渲染=逐字节回退 v1)
+PASS  Q1-over-100-truncated-to-100(payload.targetRole=slice(0,100))
+PASS  Q2-whitespace-blank-normalizes-undefined(absent key = 现状 payload 字节)
+PASS  Q3-absent → byte-identical {} payload
+PASS  Q4-value-trimmed-and-written(payload.targetRole=数据工程师)
+PASS  Q5-alreadyBegun-no-rewrite(existing 分支短路·零新 INSERT·首场 role 生效)
+
+PASS  ROLE-INPUT api begin transport:target-role 头→归一化(超100截断/空白→undefined/缺省现状字节)→payload 条件键;幂等 alreadyBegun 不改写;B(#230)quiz 链六环透传+归一化三形+幂等同判据
+NOTE  in-process evidence(fake DB client)·零 DB/网络/模型依赖 · ≠ HTTP/PG E2E ≠ covered ≠ nail ≠ HA
+
+CMD=pnpm prove:role-input EXIT=0

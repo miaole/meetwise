@@ -1,0 +1,16 @@
+2026-10-07T13:54:38.667Z INSTANCE start idx=0 container=meetwise-e2e-62092-ecold1-0-1791381278667
+2026-10-07T13:54:38.918Z INSTANCE booted idx=0 port=51566 bootMs=249
+2026-10-07T13:54:49.100Z INSTANCE done idx=0 tcpRefusals=0 sqlRefusals=0 timeouts=0 other=0 firstTcpOkMs=3 firstSqlOkMs=934
+2026-10-07T13:54:49.360Z INSTANCE start idx=1 container=meetwise-e2e-62092-ecold1-1-1791381289360
+2026-10-07T13:54:49.614Z INSTANCE booted idx=1 port=51796 bootMs=254
+2026-10-07T13:54:59.817Z INSTANCE done idx=1 tcpRefusals=0 sqlRefusals=0 timeouts=0 other=0 firstTcpOkMs=0 firstSqlOkMs=1034
+2026-10-07T13:55:00.105Z INSTANCE start idx=2 container=meetwise-e2e-62092-ecold1-2-1791381300105
+2026-10-07T13:55:00.489Z INSTANCE booted idx=2 port=52015 bootMs=384
+2026-10-07T13:55:10.687Z INSTANCE done idx=2 tcpRefusals=0 sqlRefusals=0 timeouts=0 other=0 firstTcpOkMs=1 firstSqlOkMs=926
+2026-10-07T13:55:10.938Z INSTANCE start idx=3 container=meetwise-e2e-62092-ecold1-3-1791381310938
+2026-10-07T13:55:11.201Z INSTANCE booted idx=3 port=52234 bootMs=263
+2026-10-07T13:55:21.391Z INSTANCE done idx=3 tcpRefusals=0 sqlRefusals=0 timeouts=0 other=0 firstTcpOkMs=0 firstSqlOkMs=928
+2026-10-07T13:55:21.629Z INSTANCE start idx=4 container=meetwise-e2e-62092-ecold1-4-1791381321629
+2026-10-07T13:55:21.918Z INSTANCE booted idx=4 port=52472 bootMs=289
+2026-10-07T13:55:32.105Z INSTANCE done idx=4 tcpRefusals=0 sqlRefusals=0 timeouts=0 other=0 firstTcpOkMs=1 firstSqlOkMs=1042
+2026-10-07T13:55:32.354Z SUMMARY {"totalTcpRefusals":0,"totalSqlRefusals":0,"totalProbes":500}

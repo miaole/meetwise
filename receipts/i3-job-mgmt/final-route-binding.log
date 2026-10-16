@@ -1,0 +1,29 @@
+
+> meetwise@0.1.0 job-route-classify-binding:prove /Users/miaole/Desktop/golucky/meetwise-i3
+> pnpm -C packages/domain prove:sealed-job-route-classify-binding && pnpm -C packages/ai-runtime prove:job-route-classify-binding
+
+
+> @meetwise/domain@0.0.0 prove:sealed-job-route-classify-binding /Users/miaole/Desktop/golucky/meetwise-i3/packages/domain
+> tsx test/sealed-job-route-classify-binding.proof.ts
+
+PASS  UC alias job_route_classify maps to registry job.route-classify.v1
+PASS  合法 provenance 解析为冻结快照
+PASS  provenance 夹带 title/prompt/apiKey/url 或换 operation → 拒绝
+
+OK  sealed job.route-classify.v1 provenance (P-MODEL domain; ≠ R2 closed; releaseEvidence=false)
+
+> @meetwise/ai-runtime@0.0.0 prove:job-route-classify-binding /Users/miaole/Desktop/golucky/meetwise-i3/packages/ai-runtime
+> tsx test/job-route-classify-binding.proof.ts
+
+PASS  registry 静态不变量仍成立（含 job.route-classify.v1）
+PASS  十个已接线操作(七文本含 job.route-classify + 一视觉 OCR + 批量 ASR/TTS)与六个未接线 typed contract
+PASS  resolveModelOperation(job.route-classify.v1) ok + registry logicalNodeKey
+PASS  bindJobRouteClassify(合法 semanticDigest) → 密封 provenance（无 Key / 无网络）
+PASS  未登记 / 错 kind operation → binding 缺失 fail-closed
+PASS  非法 semanticDigest 拒绝（非 sha256 hex）
+PASS  未知 operation / 未接线仍 fail-closed（旁证）
+PASS  P-WORKER sole: apps/worker/src classifyJobRoute( via route-classify-consumer (≥1) — workerCalls=1
+PASS  Worker sole preserved: apps/api/src zero classifyJobRoute(（wakeup-only; ≠ R2 closed） — apiCalls=0
+
+OK  job.route-classify.v1 MODEL-OP binding prove (P-MODEL closed; Worker sole≥1; API=0; R2 NOT closed; no Key; releaseEvidence=false)
+binding EXIT=0

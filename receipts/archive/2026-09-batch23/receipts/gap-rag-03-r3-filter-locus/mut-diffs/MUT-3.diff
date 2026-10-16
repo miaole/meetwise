@@ -1,0 +1,20 @@
+diff --git a/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql b/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
+index 53aaeab..3fdb54c 100644
+--- a/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
++++ b/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
+@@ -48,7 +48,6 @@ AS $$
+     SELECT g.ref_id, g.embedding <=> p_embedding AS dist
+       FROM active a
+       JOIN qbank_generation_chunk g ON g.generation_id=a.generation_id AND g.visible
+-      JOIN qbank_retrieval_candidate candidate ON candidate.ref_id=g.ref_id
+      WHERE (
+             (NULLIF(current_setting('app.qbank_serving_scope', true), '') IS NULL
+              AND NULLIF(current_setting('app.qbank_taxonomy_version', true), '') IS NULL)
+@@ -64,6 +63,7 @@ AS $$
+   )
+   SELECT a.ref_id, a.dist::double precision
+     FROM ann a
++    JOIN qbank_retrieval_candidate candidate ON candidate.ref_id=a.ref_id
+    ORDER BY a.dist
+    LIMIT (SELECT k FROM requested)
+ $$;

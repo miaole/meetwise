@@ -1,0 +1,23 @@
+{
+  "kind": "Eg6Ms3NeR4ProductCloseEvidence",
+  "productCloseEvidence": true,
+  "priorEg6EvidenceRetained": true,
+  "authorizedSsotPinsPresent": true,
+  "eg6ProductClosed": true,
+  "ms3EqualsR4Closed": false,
+  "gR45Closed": false,
+  "r4ProductClosed": true,
+  "funnelProductClosed": true,
+  "domainIsolationClosed": true,
+  "eg3ProductClosed": true,
+  "eg4ProductClosed": true,
+  "wrongTrackProductClosed": true,
+  "eg5ProductClosed": true,
+  "productSsotFlipped": true,
+  "eg1ThroughEg2ClosedByThisKnife": false,
+  "coveredCountInvented": false,
+  "emptyMetaAloneDoesNotClose": true,
+  "idleEg6EvidenceAloneDoesNotClose": true,
+  "releaseEvidence": false,
+  "note": "G-R4-5 / EG6 MS3≠R4 product close — eg6ProductClosed under authorize · ms3EqualsR4Closed=false retained · Ban claim R4 closed from MS3 · Ban flip gR45Closed/r4/funnel/eg3/eg4/eg5 · retain EG3+EG4+EG5+r4/funnel · Ban wash 9b1c83e/3e82f14 / 33f457b/7f59b95 / ce09850/0a34933 / 2b38e18/14e9e2c / 7be1a55/5b3c854 · Ban empty meta · Ban invent twin · Ban self-nail post_prove_dual_pass · await post-prove dual"
+}

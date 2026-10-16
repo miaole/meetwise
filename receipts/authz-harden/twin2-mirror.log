@@ -1,0 +1,25 @@
+
+> meetwise@0.1.0 authz5a:mirror:prove /Users/miaole/Desktop/golucky/meetwise
+> pnpm -C packages/db prove:authz5a-mirror
+
+
+> @meetwise/db@0.0.0 prove:authz5a-mirror /Users/miaole/Desktop/golucky/meetwise/packages/db
+> tsx test/authz5a-gateway-mirror.proof.ts
+
+PASS  镜像/gateway_auth_signup 函数块与 23 auth 族区逐字节同文
+PASS  镜像/gateway_auth_login 函数块与 23 auth 族区逐字节同文
+PASS  镜像/gateway_active_candidate 函数块与 23 auth 族区逐字节同文
+PASS  镜像/auth 族 ACL 六行逐字节同文（0168 ↔ 23）
+PASS  并集/0168 signup 体携 0154 trial 同事务发放（ON CONFLICT 谓词逐字）
+PASS  并集/0168 signup 体携 b110 审批分支（recruiter→pending）
+PASS  归一/signup 函数体 lower(btrim) 落库闸
+PASS  归一/login 函数体入参先归一后精确比较（裁决项①）
+PASS  归一/active_candidate email 键归一比较（#131）
+PASS  0167/唯一索引名与表达式 §1 逐字（ux_user_email_lower ON user_account (lower(email))）
+PASS  0167/冲突预检只报告不合并（conflict_report WARNING·无 UPDATE 冲突组）
+PASS  R5/0169 表名 auth_user_session（≠ privacy_authorization_snapshot/memory 谱系）
+PASS  R5/0169 retention_class 值域恒 auth_session（≠ memory 0112 的 session 值）
+PASS  R5/0169 无 DELETE 面授出（仅 SELECT/INSERT/UPDATE）
+PASS  R9/历史迁移 0041/0155 名下零改锚（0168 头注声明换体纪律）
+
+✓ authz5a:mirror:prove: 15 条断言全绿

@@ -1,0 +1,11 @@
+[sidecar 2026-10-08T19:42:08.186Z] sidecar v3 start; wrapperLog=.tmp/g7trio/cmd3-wrapper.log; runStart=1791488528186; discipline: post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok (>=5) / per-query guarded / SELECT-only aggregates / migrations 152 + /^0151(_|$/) (normalized, .sql stripped) / est<=25 dual-count chain 0+0+14 cap200
+[sidecar 2026-10-08T19:42:41.406Z] CONTAINER BIND exact=meetwise-e2e-2494-1791488559240 port=58224
+[sidecar 2026-10-08T19:42:47.433Z] CONTAINER BIND exact=meetwise-e2e-2849-1791488564728 port=58256
+[sidecar 2026-10-08T19:42:49.446Z] ANCHOR post-migrate seen (v3 anchor; Ban container_found anchor) container=meetwise-e2e-2849-1791488564728
+[sidecar 2026-10-08T19:42:49.512Z] CORRELATION migrations=152 max=0151_pgp_sym_encrypt_grant (raw=0151_pgp_sym_encrypt_grant) match=true
+[sidecar 2026-10-08T19:42:49.654Z] first-ok tick (stop-needle ARMED post-first-ok)
+[sidecar 2026-10-08T19:43:59.328Z] CONTAINER BIND exact=meetwise-e2e-4467-1791488636761 port=58544
+[sidecar 2026-10-08T19:44:01.346Z] ANCHOR post-migrate seen (v3 anchor; Ban container_found anchor) container=meetwise-e2e-4467-1791488636761
+[sidecar 2026-10-08T19:44:01.409Z] CORRELATION migrations=152 max=0151_pgp_sym_encrypt_grant (raw=0151_pgp_sym_encrypt_grant) match=true
+[sidecar 2026-10-08T19:44:01.544Z] first-ok tick (stop-needle ARMED post-first-ok)
+[sidecar 2026-10-08T19:47:50.473Z] STOPPED: stop-needle: 5 consecutive failures post-first-ok; pending42P01=0 anchorSeen=true firstOk=true correlationMatch=true

@@ -1,0 +1,12 @@
+# 零字节 diff 门（§2-3·vs merge-base 7500ac73）
+interview-jobs.ts: 0 bytes
+quiz-jobs.ts(镜像零触): 0 bytes
+本刀工作树面(vs HEAD 42b3b036):
+apps/web/tsconfig.tsbuildinfo
+apps/worker/package.json
+apps/worker/src/interview-consumer.ts
+ M apps/web/tsconfig.tsbuildinfo
+ M apps/worker/package.json
+ M apps/worker/src/interview-consumer.ts
+?? ai-docs/delivery/receipts/ttl-wire/
+?? apps/worker/test/reaper-purge-wire.proof.ts

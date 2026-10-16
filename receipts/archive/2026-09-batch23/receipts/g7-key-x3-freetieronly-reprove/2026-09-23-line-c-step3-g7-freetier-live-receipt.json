@@ -1,0 +1,381 @@
+{
+  "schemaVersion": 1,
+  "line": "C",
+  "step": 3,
+  "kind": "g7-freetier-reprove-post-mw-model-op-fail-fix-round-offline",
+  "tipShaShort": "b1d7b22",
+  "tipShaFull": "b1d7b22b8773c9a826ae5e15e000465be3d61720",
+  "keyFingerprint": "d26808ef",
+  "actualSpendCny": null,
+  "consoleSpendReadCny": 0,
+  "consoleSpendReadAt": "2026-09-24T04:28:00Z",
+  "usageRowsVisible": false,
+  "runCostCapCny": 5,
+  "liveWindow": {
+    "ptStart": "2026-09-23 21:11:19 PDT",
+    "ptEnd": "2026-09-23 21:20:34 PDT",
+    "utcStart": "2026-09-24T04:11:19Z",
+    "utcEnd": "2026-09-24T04:20:34Z"
+  },
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false,
+    "pgRetained": true,
+    "r1Closed": false,
+    "techRoleFailClosedOptOutG7Only": true,
+    "freeTierOnlyResidualClosed": true,
+    "trioOpen": true,
+    "ccOpen": true,
+    "g7SuiteGreen": false,
+    "nail": false,
+    "publicDelete": 503
+  },
+  "disclosure1": {
+    "id": "Disclosure-1",
+    "text": "G7 ran with MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (e2e-only pin when G7_FREETIER_REPROVE=1 and unset). This is a non-production role path; it is not evidence of production role behavior and never counts toward R1.",
+    "env": "MEETWISE_TECH_ROLE_FAIL_CLOSED=0",
+    "scope": "G7_FREETIER_REPROVE e2e only",
+    "countsTowardR1": false
+  },
+  "freeTierOnlyResidual": {
+    "status": "CLOSED",
+    "reason": "quota-403 FreeTierOnly root cause removed on the guarded text chat path (live: no FreeTierOnly 403; 25× qwen3.8-flash). Does NOT imply G7 suite green, trio green, C-C green, or FreeTierOnly nail.",
+    "notImplied": [
+      "g7_suite_green",
+      "trio_green",
+      "cc_green",
+      "freetieronly_nail"
+    ]
+  },
+  "trio": [
+    {
+      "cmd": "pnpm e2e:isolated",
+      "exit": 1
+    },
+    {
+      "cmd": "pnpm e2e:ui:isolated",
+      "exit": 1
+    },
+    {
+      "cmd": "pnpm verify:e2e-performance",
+      "exit": 1
+    }
+  ],
+  "ccConfirmed": false,
+  "ccNote": "C-C separated but OPEN: perf dies at steps[3] on the provenance assertion; SLO unconfirmed. Not claimed green.",
+  "offlineProvesAtCodeSha": "b1d7b22b8773c9a826ae5e15e000465be3d61720",
+  "integration": [
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-client",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-paths",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-fix-round2",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:context-budget",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:text-endpoint-config",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C apps/web prove:application-start-error",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C apps/worker prove:nhp-r4-adv-covered",
+      "exit": 1,
+      "status": "PINNED_EXPECTED_FAIL",
+      "reason": "COVERED_PATH_GAP: refuse fake-green with in-memory-only; requires E2E_ISOLATED via run-e2e-isolated (or DATABASE_URL/full PG*). skip≠pass; ≠R4 closed; ≠covered; ≠HA; releaseEvidence=false. Not reduced to \"needs PG\"."
+    }
+  ],
+  "tsc": {
+    "packages/ai-runtime": {
+      "before": 14,
+      "after": 14,
+      "newErrors": 0,
+      "note": "baseline recorded before FR2; ai-runtime new errors = 0"
+    },
+    "apps/web": {
+      "errorCount": 0
+    }
+  },
+  "modelSummary": [
+    {
+      "actualModel": "qwen3.8-flash",
+      "count": 25,
+      "inputTokens": 13579,
+      "outputTokens": 8833,
+      "fallbackReasons": []
+    }
+  ],
+  "liveLogDigests": [
+    {
+      "path": ".tmp/g7-step3/live-e2e-isolated.log",
+      "sha256": "9d0bb17c47b8dd83b6ae7b6f14af7c019b49f6093a18b3d11945320ec1346a13",
+      "bytes": 1212,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/live-e2e-isolated-2.log",
+      "sha256": "bdfcd403c834a9762135a71aedd800376e2350ed982ef22ee4930b8c9ee382f0",
+      "bytes": 1212,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/live-e2e-ui-isolated.log",
+      "sha256": "62014edd17982fd1b4a6a6ea787ac70b6b2aac7e2987aa7af98a37b121b07652",
+      "bytes": 14357,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/live-verify-e2e-performance.log",
+      "sha256": "7e6f769825cd9b8945b64f9fcfdbe096233b9268fcf87e9542014269e19303f5",
+      "bytes": 14563,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/live-window.txt",
+      "sha256": "4a2c30089b66228e46acb2a8e041578ba89942720d61b4d9cf55d1a788a08a26",
+      "bytes": 489,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/prove-guard.log",
+      "sha256": "a607cfaa17348ca76ac64d8952aeb6dc69eab50d58abb62a85204ecb6c1d7758",
+      "bytes": 1414,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/prove-client.log",
+      "sha256": "34b8f8b09affccd8b12742910ef244f96cb13de6a3610c8a5129fec5af830686",
+      "bytes": 877,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/runfull-stdout-debug.txt",
+      "sha256": "6d39b6e8dc9ae09e147f873df3ea374ab8602b4b412bcd58c1f76b14d4fe8215",
+      "bytes": 3169,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/runfull-stderr-debug.txt",
+      "sha256": "97eabe2f3b2a60bdbbbb85e1375781e8626a9fb8dd75c5e20a24d6cfcf5dc7c5",
+      "bytes": 853,
+      "retained": true
+    },
+    {
+      "path": ".tmp/g7-step3/e2e-isolated.log",
+      "sha256": "bf6b56cd0c913c644a5e1dd53e391cc215960a7c1a55ef10d72334a92d59055f",
+      "bytes": 1234,
+      "retained": true
+    }
+  ],
+  "mwModelOpPostProve": {
+    "sha": "d70cb58",
+    "verdict": "FAIL",
+    "status": "fix-round-offline-applied; no nail"
+  },
+  "mwE2eHaPostProve": {
+    "shas": [
+      "add7422",
+      "fee9533"
+    ],
+    "verdict": "PASS-with-conditions",
+    "nail": false
+  },
+  "gaps": [
+    "GAP-G7-E2E-PROVENANCE-CLARIFICATION-IDENTITY-COUNT",
+    "GAP-G7-E2E-UI-APPLICATION-START-409",
+    "GAP-G7-E2E-REPORT-MAX-ATTEMPTS"
+  ],
+  "ui409Subclass": {
+    "wired": true,
+    "file": "apps/web/app/jobs/actions.ts",
+    "helper": "apps/web/lib/jobs/application-start-error.ts",
+    "prove": "pnpm -C apps/web prove:application-start-error",
+    "subclasses": [
+      "resume_not_ready",
+      "application_binding_invalid",
+      "interview_ineligible_route",
+      "application_start_unexpected"
+    ],
+    "gapStillOpen": true,
+    "note": "subclass now in thrown/log message; live 409 root cause not yet closed"
+  },
+  "evidenceLabel": "free-tier model; not production-model evidence; not perf SLO evidence; FreeTierOnly residual CLOSED ≠ G7 green",
+  "ssot": "ai-docs/delivery/receipts/g7-key-x3-freetieronly-reprove/2026-09-23-line-c-step3-g7-freetier-live-receipt.json",
+  "stop": "STOP — offline FR2 only; no live model/paid/e2e:isolated live trio; no nail; FreeTierOnly not CLOSED in SSOT",
+  "fixRound": 2,
+  "parentCodeShaFull": "82981ff1f5798f44a40b564031d532f94c842e4d",
+  "g7HardDisabledTrioSteps": [
+    {
+      "capability": "embed",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "rerank",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "asr",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "tts",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "asr_stream",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    },
+    {
+      "capability": "tts_stream",
+      "status": "not_run",
+      "reason": "g7_hard_disabled"
+    }
+  ],
+  "gapEvidence": {
+    "script": "scripts/g7-freetier/redact-gap-evidence.mjs",
+    "idempotent": true,
+    "proveIdempotentCmd": "node scripts/g7-freetier/redact-gap-evidence.mjs --prove-idempotent",
+    "proveIdempotentExit": 0,
+    "digests": [
+      {
+        "raw": "GAP-G7-E2E-PROVENANCE-CLARIFICATION-IDENTITY-COUNT.raw.txt",
+        "redacted": "GAP-G7-E2E-PROVENANCE-CLARIFICATION-IDENTITY-COUNT.redacted.txt",
+        "rawSha256": "8f7867b00e1946cc611807d46b449b56077e1e43f0bc11bb5daf65a826a503fc",
+        "redactedSha256": "8f7867b00e1946cc611807d46b449b56077e1e43f0bc11bb5daf65a826a503fc",
+        "bytesRaw": 484,
+        "bytesRedacted": 484
+      },
+      {
+        "raw": "GAP-G7-E2E-REPORT-MAX-ATTEMPTS.raw.txt",
+        "redacted": "GAP-G7-E2E-REPORT-MAX-ATTEMPTS.redacted.txt",
+        "rawSha256": "6cf5028c175ca6ceeed80164284a6a0a4e4b77eafda0ddf57f697e58300e01d3",
+        "redactedSha256": "6cf5028c175ca6ceeed80164284a6a0a4e4b77eafda0ddf57f697e58300e01d3",
+        "bytesRaw": 353,
+        "bytesRedacted": 353
+      },
+      {
+        "raw": "GAP-G7-E2E-UI-APPLICATION-START-409.raw.txt",
+        "redacted": "GAP-G7-E2E-UI-APPLICATION-START-409.redacted.txt",
+        "rawSha256": "505c7d12c91951d995e49bd2c5be883754c6cd0fd0b3dcc851b529263276b7fc",
+        "redactedSha256": "505c7d12c91951d995e49bd2c5be883754c6cd0fd0b3dcc851b529263276b7fc",
+        "bytesRaw": 467,
+        "bytesRedacted": 467
+      }
+    ]
+  },
+  "calibrationPath": {
+    "real": "planContextBudget",
+    "file": "packages/ai-runtime/src/model-client.ts",
+    "planContextBudgetLine": 215,
+    "assertCalibrationModelMatchLine": 224,
+    "prepareCallLine": 354,
+    "completeCallLine": 373,
+    "assert": "assertCalibrationModelMatch",
+    "note": "openAICompatibleClient.complete/prepare call planContextBudget — NOT only planDispatchBudget"
+  },
+  "interceptor": {
+    "covers": [
+      "fetch",
+      "WebSocket",
+      "node:http request/get (CJS)",
+      "node:https request/get (CJS)",
+      "ws package when present"
+    ],
+    "installedAt": [
+      "apps/api/src/main.ts via @meetwise/ai-runtime/g7-bootstrap",
+      "apps/worker/src/main.ts via @meetwise/ai-runtime/g7-bootstrap"
+    ],
+    "esmNamedHttpsNote": "voice.ts import { request as httpsRequest } from node:https is load-time snapshot; covered by assertG7UnguardedPathDisabled before use"
+  },
+  "nhpR4AdvCovered": {
+    "cmd": "pnpm -C apps/worker prove:nhp-r4-adv-covered",
+    "exit": 1,
+    "status": "PINNED_EXPECTED_FAIL",
+    "reason": "COVERED_PATH_GAP: real Postgres required for nhp-r4-adv-covered prove (C1 live wired). skip ≠ pass — refusing fake-green with in-memory-only. (not a vague needs-PG; offline Line C records expected fail with this exact reason)",
+    "note": "≠ R4 closed · ≠ covered · ≠ HA · releaseEvidence=false"
+  },
+  "offlineProves": [
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-fix-round2",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-guard",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-client",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:g7-freetier-reprove-paths",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:context-budget",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C packages/ai-runtime prove:text-endpoint-config",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C apps/web prove:application-start-error",
+      "exit": 0
+    },
+    {
+      "cmd": "pnpm -C apps/worker prove:nhp-r4-adv-covered",
+      "exit": 1,
+      "pinned": "PINNED_EXPECTED_FAIL"
+    },
+    {
+      "cmd": "node scripts/g7-freetier/redact-gap-evidence.mjs --prove-idempotent",
+      "exit": 0
+    }
+  ],
+  "callChain": {
+    "calibration": "packages/ai-runtime/src/model-client.ts:215 planContextBudget → :224 assertCalibrationModelMatch; used from :354 prepare / :373 complete",
+    "bootstrap": "packages/ai-runtime/src/g7-bootstrap.ts:7 installG7OutboundInterceptor; apps/api/src/main.ts:2; apps/worker/src/main.ts:9"
+  },
+  "rebaseNote": "6045a4b and 315870e set tipSha and offlineProvesAtCodeSha to 3b7ea46 without a re-run. The runs recorded in those receipt commits were at 05cb79f. 05cb79f vs 3b7ea46 is not the same product tree. git diff 05cb79f 3b7ea46 excluding ai-docs and docs is 7 files, 201 insertions, 26 deletions (apps/worker/src/checkpoint-principal.ts, apps/worker/test/uc052-pool-role-leak.proof.ts, scripts/lib/uc-covered-real-gatherer.mjs, scripts/lib/uc018-receipt-backfill-facts.mjs, scripts/run-e2e-isolated.mjs, scripts/uc-e2e-018-receipt-backfill.proof.mjs, scripts/uc018-receipt-backfill-emit.mjs). FR2 patch-id may match; the trees are not identical. tipSha and offlineProvesAtCodeSha now point at b1d7b22b8773c9a826ae5e15e000465be3d61720, git rev-parse HEAD at the time the offline proves were run, not at the receipt commit.",
+  "g7HardDisabledEmission": {
+    "emitted": false,
+    "runtimeToken": "g7_path_disabled:<capability>",
+    "receiptToken": "g7_hard_disabled",
+    "mapping": "Receipt rows keep reason g7_hard_disabled as the mapped label for not_run embed/rerank/asr/tts/asr_stream/tts_stream. This round did not change assertG7UnguardedPathDisabled; the thrown string is still g7_path_disabled:<capability>. Changing that string would touch the outbound disable contract beyond a label, so it was skipped."
+  },
+  "proveTipHonesty": {
+    "ranAtCodeSha": "b1d7b22b8773c9a826ae5e15e000465be3d61720",
+    "ranAtCodeShaShort": "b1d7b22",
+    "receiptCommitIsNotProveSha": true,
+    "retargetWithoutRerun": "6045a4b and 315870e set tipSha and offlineProvesAtCodeSha to 3b7ea46 without a re-run. The runs recorded in those receipt commits were at 05cb79f.",
+    "productTree": "05cb79f vs 3b7ea46 is not the same product tree. git diff 05cb79f 3b7ea46 excluding ai-docs and docs is 7 files, 201 insertions, 26 deletions (apps/worker/src/checkpoint-principal.ts, apps/worker/test/uc052-pool-role-leak.proof.ts, scripts/lib/uc-covered-real-gatherer.mjs, scripts/lib/uc018-receipt-backfill-facts.mjs, scripts/run-e2e-isolated.mjs, scripts/uc-e2e-018-receipt-backfill.proof.mjs, scripts/uc018-receipt-backfill-emit.mjs). FR2 patch-id may match; the trees are not identical.",
+    "e2eHaOfflineRerun": "mw-e2e-ha re-ran FR2 offline at 3b7ea46 with EXIT 0. That fact is not contradicted. The bug corrected here is the receipt pointer retarget, not that re-run.",
+    "tautology": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts dispatch assertion is res.ok === false with the fail-open || true removed, in code commit b1d7b22, which is the SHA these offline proves were run at.",
+    "nhpR4": "pnpm -C apps/worker prove:nhp-r4-adv-covered EXIT 1 is the pinned expected fail COVERED_PATH_GAP, not needs-PG, and was not rewritten to pass."
+  }
+}

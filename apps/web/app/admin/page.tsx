@@ -1,13 +1,15 @@
-/** 运营管理后台(知面 · admin)—— Next.js App Router **Server Component**(只读,无写操作)。
+/** 运营管理后台(知面 · admin)—— Next.js App Router **Server Component**(只读 + b110 审批写口经 Server Action)。
  *  令牌取自 httpOnly cookie(服务端),数据在服务端拉、HTML 服务端渲染:首屏快、少客户端 JS、可流式。
  *  仅运营管理员可见;后端 admin 接口对非管理员返回 403(serverGet 返回 null)。
  *  设计:逐区独立降级——任一区加载失败只在该区提示,不拖垮其它区;审计日志 append-only/不可篡改。
  *  各区用 async 子组件 + <Suspense> 流式渲染,慢区不阻塞快区首屏。 */
 import { Suspense } from 'react';
 import { redirect } from 'next/navigation';
-import { getServerToken, serverGet } from '../../lib/api/server';
+import { revalidatePath } from 'next/cache';
+import { getServerToken, serverGet, serverFetch } from '../../lib/api/server';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 
 export const metadata = { title: '运营 Admin · 知面' };
 
@@ -16,6 +18,8 @@ type U = { id: string; email: string; status: string; is_admin: boolean; created
 type O = { id: string; owner_user_id: string; product_id: string; amount_cents: number; status: string };
 type Fb = { up: number; down: number; total: number; downRate: number };
 type Au = { actor: string; action: string; target: string; detail?: string };
+type Rm = { order_id: string; owner_user_id: string; product_id: string; amount_cents: number; channel: string; order_status: string; bank_ref: string | null; remit_amount_cents: number | null; remit_status: string | null; entered_by: string | null; entered_at: string | null; confirmed_by: string | null; confirmed_at: string | null; created_at: string };
+type Ap = { id: string; email: string; approval_status: string; status: string; created_at: string };
 
 const th = 'border-b px-3 py-2 text-left font-medium text-muted-foreground';
 const td = 'border-b px-3 py-2';
@@ -145,6 +149,138 @@ async function AuditSection() {
   );
 }
 
+// b110 招聘方审核制:审批裁决 Server Action(服务端带 httpOnly cookie Bearer 调 decision 端点)。
+// 后端 AdminGuard+DB 函数内复核双层;approve/reject 均留痕 admin_audit(audit 卡片可见)。
+async function recruiterDecisionAction(formData: FormData): Promise<void> {
+  'use server';
+  const id = String(formData.get('id') ?? '').trim();
+  const decision = formData.get('decision') === 'reject' ? 'reject' : 'approve';
+  if (!id) return;
+  try {
+    const res = await serverFetch(`/admin/recruiter-approvals/${encodeURIComponent(id)}/decision`, {
+      method: 'POST',
+      body: JSON.stringify({ decision }),
+      signal: AbortSignal.timeout(8_000),
+    });
+    if (!res.ok && res.status !== 404) return;   // 404=目标已不存在/非招聘方:幂等视为已处理,其余失败留待刷新后重试
+  } catch { return; }
+  revalidatePath('/admin');
+}
+
+// B271 片1:对公录入/确认/置败 Server Action(服务端带 httpOnly cookie 调 admin 端点)。
+// 后端 AdminGuard+DB 函数内 require_active_admin 双层;409 具名拒绝(双人分离/金额不符/流水冲突)留待页面提示。
+async function offlineRemitAction(formData: FormData): Promise<void> {
+  'use server';
+  const id = String(formData.get('id') ?? '').trim();
+  const op = String(formData.get('op') ?? '');
+  if (!id || !['entry', 'confirm', 'fail'].includes(op)) return;
+  const body = op === 'entry'
+    ? { bankRef: String(formData.get('bankRef') ?? '').trim(), amountCents: Number(formData.get('amountCents') ?? 0) }
+    : op === 'fail' ? { reason: String(formData.get('reason') ?? '').trim() || undefined } : {};
+  if (op === 'entry' && (!body.bankRef || !Number.isInteger(body.amountCents) || (body.amountCents ?? 0) <= 0)) return;
+  try {
+    await serverFetch(`/admin/offline-remits/${encodeURIComponent(id)}/${op}`, {
+      method: 'POST', body: JSON.stringify(body), signal: AbortSignal.timeout(8_000),
+    });
+  } catch { return; }   // 具名 4xx=语义拒绝,不拖垮整页;刷新后队列状态可见
+  revalidatePath('/admin');
+}
+
+// B271 片1 对公台账卡片:remit 队列+audit 留痕可见(entered 行出 录入/确认/置败 三口·双人分离在后端具名拒绝)。
+async function RemitsSection() {
+  const data = await serverGet<{ remits: Rm[] }>('/admin/offline-remits');
+  const remits = data?.remits ?? null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">对公转账台账 <span className="text-xs font-normal text-muted-foreground">(offline 单队列 · 录入/确认双人分离 · 金额不符拒且不入账 · 均留痕)</span></CardTitle>
+      </CardHeader>
+      <CardContent>
+        {remits ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr><th className={th}>订单</th><th className={th}>企业</th><th className={th}>商品</th><th className={th}>订单金额</th><th className={th}>单态</th><th className={th}>流水号</th><th className={th}>到账金额</th><th className={th}>台账态</th><th className={th}>录入人</th><th className={th}>确认人</th><th className={th}>操作</th></tr></thead>
+              <tbody>{remits.slice(0, 50).map((x) => (
+                <tr key={x.order_id}>
+                  <td className={td}>{x.order_id}</td>
+                  <td className={td}>{x.owner_user_id}</td>
+                  <td className={td}>{x.product_id}</td>
+                  <td className={td}>¥{(x.amount_cents / 100).toFixed(2)}</td>
+                  <td className={td}><Badge variant="secondary">{x.order_status}</Badge></td>
+                  <td className={td}>{x.bank_ref ?? '-'}</td>
+                  <td className={td}>{x.remit_amount_cents != null ? `¥${(x.remit_amount_cents / 100).toFixed(2)}` : '-'}</td>
+                  <td className={td}>{x.remit_status ? <Badge variant={x.remit_status === 'confirmed' ? 'default' : x.remit_status === 'failed' ? 'destructive' : 'secondary'}>{x.remit_status}</Badge> : '-'}</td>
+                  <td className={td}>{x.entered_by ?? '-'}</td>
+                  <td className={td}>{x.confirmed_by ?? '-'}</td>
+                  <td className={td}>
+                    {x.order_status === 'created' && x.remit_status !== 'confirmed' ? (
+                      <form action={offlineRemitAction} className="flex flex-wrap items-center gap-1">
+                        <input type="hidden" name="id" value={x.order_id} />
+                        {x.remit_status == null && (
+                          <>
+                            <input name="bankRef" placeholder="银行流水号" className="h-7 w-28 border px-1 text-xs" required />
+                            <input name="amountCents" type="number" min={1} placeholder="到账(分)" className="h-7 w-20 border px-1 text-xs" required />
+                            <Button type="submit" name="op" value="entry" className="h-7 px-2 text-xs">录入</Button>
+                          </>
+                        )}
+                        {x.remit_status === 'entered' && (
+                          <>
+                            <Button type="submit" name="op" value="confirm" className="h-7 px-2 text-xs">确认入账</Button>
+                            <Button type="submit" name="op" value="fail" variant="outline" className="h-7 px-2 text-xs">置败</Button>
+                          </>
+                        )}
+                      </form>
+                    ) : <span className="text-muted-foreground">-</span>}
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : fail}
+      </CardContent>
+    </Card>
+  );
+}
+
+// b110 审批卡片:沿 users/audit 卡片样式;pending 行出 approve/reject 按钮,裁决后审计留痕可见。
+async function ApprovalsSection() {
+  const data = await serverGet<{ approvals: Ap[] }>('/admin/recruiter-approvals');
+  const approvals = data?.approvals ?? null;
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="text-base">招聘方审批 <span className="text-xs font-normal text-muted-foreground">(审核制:approve 开通企业账户主体 · reject 拒绝;均留痕)</span></CardTitle>
+      </CardHeader>
+      <CardContent>
+        {approvals ? (
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead><tr><th className={th}>邮箱</th><th className={th}>审批态</th><th className={th}>账户</th><th className={th}>注册时间</th><th className={th}>操作</th></tr></thead>
+              <tbody>{approvals.slice(0, 50).map((x) => (
+                <tr key={x.id}>
+                  <td className={td}>{x.email}</td>
+                  <td className={td}><Badge variant={x.approval_status === 'pending' ? 'default' : x.approval_status === 'rejected' ? 'destructive' : 'secondary'}>{x.approval_status}</Badge></td>
+                  <td className={td}><Badge variant="secondary">{x.status}</Badge></td>
+                  <td className={td}>{x.created_at}</td>
+                  <td className={td}>
+                    {x.approval_status === 'pending' ? (
+                      <form action={recruiterDecisionAction} className="flex gap-2">
+                        <input type="hidden" name="id" value={x.id} />
+                        <Button type="submit" name="decision" value="approve" className="h-7 px-2 text-xs">通过</Button>
+                        <Button type="submit" name="decision" value="reject" variant="outline" className="h-7 px-2 text-xs">拒绝</Button>
+                      </form>
+                    ) : <span className="text-muted-foreground">-</span>}
+                  </td>
+                </tr>
+              ))}</tbody>
+            </table>
+          </div>
+        ) : fail}
+      </CardContent>
+    </Card>
+  );
+}
+
 export default async function AdminPage() {
   if (!(await getServerToken())) redirect('/login');
 
@@ -166,6 +302,12 @@ export default async function AdminPage() {
       </Suspense>
       <Suspense fallback={<Card><CardHeader><CardTitle className="text-base">AI 出题质量</CardTitle></CardHeader><CardContent>{loadingBox('反馈')}</CardContent></Card>}>
         <FeedbackSection />
+      </Suspense>
+      <Suspense fallback={<Card><CardHeader><CardTitle className="text-base">招聘方审批</CardTitle></CardHeader><CardContent>{loadingBox('审批')}</CardContent></Card>}>
+        <ApprovalsSection />
+      </Suspense>
+      <Suspense fallback={<Card><CardHeader><CardTitle className="text-base">对公转账台账</CardTitle></CardHeader><CardContent>{loadingBox('对公')}</CardContent></Card>}>
+        <RemitsSection />
       </Suspense>
       <Suspense fallback={<Card><CardHeader><CardTitle className="text-base">审计日志</CardTitle></CardHeader><CardContent>{loadingBox('审计')}</CardContent></Card>}>
         <AuditSection />

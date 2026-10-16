@@ -1,0 +1,47 @@
+
+> meetwise@0.1.0 model-op02:prove /Users/miaole/Desktop/golucky/meetwise-ag24
+> node scripts/run-e2e-isolated.mjs model-op02:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-48048-1791882507588 on 127.0.0.1:54562
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-ag24/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=183 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/ai-runtime@0.0.0 prove:model-op02 /Users/miaole/Desktop/golucky/meetwise-ag24/packages/ai-runtime
+> tsx test/model-op02-shared-provider.proof.ts
+
+PASS  迁移种子：8 个 admission=allowed（含 job.route-classify）+ 8 个 admission=blocked（共享准入仍未放行预览语音）
+PASS  8 个 admission-allowed operation 全部解析出准入分区（无 undefined）
+PASS  未知 operation（无策略行）→ operation_unknown（fail-closed）
+PASS  未接线 native operation（blocked 行）→ operation_blocked（fail-closed）
+PASS  billed scope 有 enabled 预算 → admitted
+PASS  billed scope 无预算策略 → project_missing（fail-closed）
+PASS  billed scope 预算 disabled → project_disabled（fail-closed）
+PASS  unbilled（无 scope）→ 跳过项目检查仍 admitted
+PASS  阈值 2 次 failure → open（显式 enum 非布尔汤）
+PASS  open 未冷却 → breaker_open（确定性拒绝，零外呼）
+PASS  冷却到期 → half_open 单探针 acquired（probe 获取成功）
+PASS  half_open 探针已持久化到 breaker 行
+PASS  half_open 探针被占 → breaker_half_open_busy（单探针，不批量重试）
+PASS  探针 success → closed（failure 复位）
+PASS  探针 failure → 重新 open（不吞掉失败）
+PASS  max_concurrency=2 内两个并发 acquire 均 admitted（槽 0/1）
+PASS  满额第三个 acquire → concurrency_exhausted（fail-closed）
+PASS  release 后槽可复用（第 4 个 acquire admitted）
+PASS  过期槽自愈（lease 过期后可被新 acquire 复用）
+PASS  费用账本 rejected：0 扣费 + 版本化价格策略 + 四字段 partition
+PASS  费用账本幂等：同 owner+key 只落一行（金额/策略不漂移）
+PASS  invoke 成功 → fee ledger settled（真实扣费 500 micro_cny + 双向 token + 版本化策略）
+PASS  invoke replay 幂等：零第二次外呼且 fee ledger 仍只一行
+PASS  breaker_open → invoke 返回 model_circuit_open、零外呼、claim 释放（claimed+token 承袭非空+lease 即刻过期+completed_at/error_code 零写）
+PASS  breaker 复位后同键重 claim=execute（真外呼 1 次+succeeded·终态清 token 为既有语义）[value:retried-ok]
+
+✓ MODEL-OP-02 共享 provider 准入/账本/并发/断路器全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-13T09-08-35-442Z-48048-5a7f4bcf-246c-4eae-9898-d3a3441e0649.json release_evidence=false

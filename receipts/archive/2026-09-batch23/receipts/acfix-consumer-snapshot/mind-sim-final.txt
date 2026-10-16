@@ -1,0 +1,21 @@
+
+=== DENIED-dual-core(current) (gateAllowed=false) ===
+deepCalls= 0 shallowCalls= 0 asks= 3 turns= 3 done= true
+cragActions= deny_external,deny_external
+asksDetail= [{"kind":"fundamental","competency":"并发","ragEnvelope":false},{"kind":"fundamental","competency":"缓存","ragEnvelope":false},{"kind":"behavioral","competency":"协作与沟通","ragEnvelope":false}]
+transcriptKinds= [{"kind":"fundamental","competency":"并发","outcome":"answered"},{"kind":"fundamental","competency":"缓存","outcome":"answered"},{"kind":"behavioral","competency":"协作与沟通","outcome":"answered"}]
+:123 would be FAIL | :124(ask0 envelope) would be FAIL
+
+=== ALLOWED-dual-core(1st-fix-only) (gateAllowed=true) ===
+deepCalls= 2 shallowCalls= 0 asks= 3 turns= 3 done= true
+cragActions= fallback_web,fallback_web
+asksDetail= [{"kind":"fundamental","competency":"并发","ragEnvelope":true},{"kind":"fundamental","competency":"缓存","ragEnvelope":true},{"kind":"behavioral","competency":"协作与沟通","ragEnvelope":false}]
+transcriptKinds= [{"kind":"fundamental","competency":"并发","outcome":"answered"},{"kind":"fundamental","competency":"缓存","outcome":"answered"},{"kind":"behavioral","competency":"协作与沟通","outcome":"answered"}]
+:123 would be FAIL | :124(ask0 envelope) would be PASS
+
+=== ALLOWED-single-core(full-fix) (gateAllowed=true) ===
+deepCalls= 1 shallowCalls= 0 asks= 2 turns= 2 done= true
+cragActions= fallback_web
+asksDetail= [{"kind":"fundamental","competency":"并发","ragEnvelope":true},{"kind":"behavioral","competency":"协作与沟通","ragEnvelope":false}]
+transcriptKinds= [{"kind":"fundamental","competency":"并发","outcome":"answered"},{"kind":"behavioral","competency":"协作与沟通","outcome":"answered"}]
+:123 would be PASS | :124(ask0 envelope) would be PASS

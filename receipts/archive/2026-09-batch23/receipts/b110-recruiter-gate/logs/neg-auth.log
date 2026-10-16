@@ -1,0 +1,92 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-46364-1791568075941 on 127.0.0.1:49779
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:auth /Users/miaole/Desktop/golucky/meetwise-line-b110/apps/api
+> node --import @swc-node/register/esm-register test/neg-auth.proof.ts
+
+PASS  token/无 Authorization 头 → 401 unauthenticated
+PASS  token/非 Bearer 方案(Basic)→ 401 unauthenticated(不落 dev 回退)
+PASS  token/小写 bearer 前缀不被接受 → 401 unauthenticated
+PASS  token/裸 "Bearer"(无空格无令牌)→ 401 unauthenticated
+PASS  token/空令牌(Bearer + 空)→ 401 拒绝
+PASS  token/纯空白令牌 → 401 拒绝
+PASS  token/垃圾串(无 . 分隔)→ 401 invalid_token
+PASS  token/畸形 base64 两段(签名不符)→ 401 invalid_token
+PASS  token/被截断(仅 payload 无签名段)→ 401 invalid_token
+PASS  token/多段(payload.sig.extra.tail)→ 401 invalid_token
+PASS  token/payload 篡改(签名失配)→ 401 invalid_token
+PASS  token/签名段篡改 → 401 invalid_token
+PASS  token/错密钥签名(伪造)→ 401 invalid_token
+PASS  token/近似错密钥 → 401 invalid_token
+PASS  token/已过期(ttl 负)→ 401 invalid_token
+PASS  token/刚过期(exp<now)→ 401 invalid_token
+PASS  token/双 Bearer 前缀 → 401 invalid_token
+PASS  token/指向不存在用户(签名合法)→ 401 account_inactive(epoch=-1 天然拒)
+PASS  token/pwd_epoch 高于账户(伪造代次)→ 401 session_revoked
+PASS  token/pwd_epoch 差 1(不符)→ 401 session_revoked
+PASS  token/uid 撞保留 __system 前缀(伪造系统身份)→ 401 reserved_principal
+PASS  token/任意 __system* 前缀均拒 → 401 reserved_principal
+PASS  devheader/x-user-id 冒充 __system sentinel → 401 reserved_principal
+PASS  devheader/空 x-user-id → 401 unauthenticated
+PASS  devheader/存在的头但账户不存在 → 404 not_found(dev 头绕过验签,已知 dev-only 风险)
+PASS  signup/空 body → 400 invalid
+PASS  signup/缺 email → 400 invalid
+PASS  signup/缺 password → 400 invalid
+PASS  signup/空密码 → 400 invalid
+PASS  signup/弱密码(5<8)→ 400 invalid
+PASS  signup/密码边界 7 位(<8)→ 400 invalid
+PASS  signup/空邮箱 → 400 invalid
+PASS  signup/无 @ 邮箱 → 400 invalid
+PASS  signup/无域名邮箱 a@ → 400 invalid
+PASS  signup/无本地部邮箱 @x.com → 400 invalid
+PASS  signup/含空格邮箱 → 400 invalid
+PASS  signup/双 @ 邮箱 → 400 invalid
+PASS  signup/域名含空格邮箱 → 400 invalid
+PASS  signup/SQL 注入式邮箱 → 400 invalid(格式即拒,且参数化无注入)
+PASS  signup/邮箱含 null 字节 → 400 invalid
+PASS  signup/超长邮箱(400 本地部)→ 拒绝(>=400)
+PASS  signup/超长密码(4096)应被拒(缺 max → DoS 面;若通过=已发现 bug)
+PASS  signup/role 自封 admin(枚举外)→ 400 invalid(不可越权)
+PASS  signup/role 非法值 superadmin → 400 invalid
+PASS  signup/body 夹带 is_admin=true 被忽略(建成账户非 admin,阻止提权)
+PASS  signup/畸形 JSON body → 400
+PASS  signup/空原始 body → 400
+PASS  signup/JSON 数组 body(非对象)→ 400
+PASS  signup/JSON 字符串 body(非对象)→ 400
+PASS  signup/JSON null body → 400
+PASS  signup/重复邮箱 → 409 email_taken
+PASS  signup/同邮箱>3 突发 → 429 too_many_attempts(防注册滥用)
+PASS  login/空 body → 400 invalid_credentials
+PASS  login/缺 password → 400 invalid_credentials
+PASS  login/缺 email → 400 invalid_credentials
+PASS  login/空 email+password → 400 invalid_credentials
+PASS  login/畸形 JSON body → 400
+PASS  login/数组 body → 400 invalid_credentials(email 缺失)
+PASS  login/存在用户密码错 → 401 invalid_credentials
+PASS  login/用户不存在 → 401 invalid_credentials(与密码错同码,抗枚举)
+PASS  login/邮箱大小写不匹配(PW@X.COM≠pw@x.com)→ 401 invalid_credentials(精确匹配,大小写敏感)
+PASS  login/暴力破解前 5 次进校验 → 401
+PASS  login/同邮箱>5 突发 → 429 too_many_attempts(防爆破)
+PASS  login/错误方法 GET → 拒绝(>=400)
+PASS  changepw/未鉴权 → 401
+PASS  changepw/缺 old+new → 400 invalid_password
+PASS  changepw/缺 oldPassword → 400 invalid_password
+PASS  changepw/缺 newPassword → 400 invalid_password
+PASS  changepw/新密码过弱(<8)→ 400 invalid_password(即便旧密码对也先拒)
+PASS  changepw/新密码边界 7 位 → 400 invalid_password
+PASS  changepw/旧密码错 → 401 wrong_password
+PASS  changepw/失败路径不自增 pwd_epoch(仍为 0,无副作用)
+PASS  changepw/成功后 pwd_epoch 自增(0→1,会话代次前进)
+PASS  changepw/新密码只存 scrypt 派生(绝不明文)
+PASS  changepw/改密后旧代次令牌立即失效(重放)→ 401 session_revoked
+PASS  changepw/改密后旧明文密码登录被拒 → 401 invalid_credentials
+PASS  changepw/跨用户隔离:userB 代次/状态未受 pwUser 改密影响
+PASS  deactivate/未鉴权 → 401
+PASS  deactivate/停用后 DB status=disabled
+PASS  deactivate/停用后原令牌应即时失效 → 401 account_inactive(若通过=guard 缓存未随 deactivate 清除,已发现 bug)
+PASS  deactivate/停用后再登录被拒 → 401 invalid_credentials
+
+✓ neg:auth: 81 条负路径用例全绿

@@ -1,0 +1,14 @@
+
+> meetwise@0.1.0 rag-cost-config:prove /Users/miaole/Desktop/golucky/meetwise-ag24
+> pnpm -C apps/worker prove:rag-cost
+
+
+> @meetwise/worker@0.0.0 prove:rag-cost /Users/miaole/Desktop/golucky/meetwise-ag24/apps/worker
+> tsx test/rag-cost-governance.proof.ts
+
+PASS  开发默认 observe，保留本地样例可运行性
+PASS  生产不能以 observe 启动
+PASS  生产缺价格表或月度预算配置即拒绝启动
+PASS  生产只有完整的价格 revision、硬预算、输入上界时才进入 enforce
+
+✓ RAG 费用治理启动门全部通过

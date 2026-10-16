@@ -1,0 +1,12 @@
+== B9: dev PG gates (ci per-push standard) ==
+DB_UP_EXIT=0
+ Container meetwise-postgres-dev Starting 
+ Container meetwise-postgres-dev Started 
+DB_PROVE_EXIT=0
+NOTICE:  PASS  原语3 userB 可见=1 行
+════════ 四原语证明全部通过（任一 FAIL 会以非零退出）════════
+== B9: migrate:prove (versioned runner gate) ==
+MIGRATE_PROVE_EXIT=0
+PASS  DBHY-1(0145):consumption_record 死表已退役(幂等真身=entitlement_consumption 在产)
+
+✓ 迁移运行器 全部通过

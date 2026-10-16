@@ -1,0 +1,75 @@
+
+> @meetwise/worker@0.0.0 prove:r4-p-meta-serving /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-p-meta-serving.proof.ts
+
+F3 P-META serving remaining prove — MS1/MS2/MS3/MS4 · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ 题域已隔离 · await post-prove dual · Ban claiming R4 closed
+
+──────── MS0 static anchors present ────────
+PASS  F3 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f3-p-meta-serving.md
+PASS  F3 eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/r4-f3-p-meta-serving.eval.md
+PASS  F3 slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/r4-f3-p-meta-serving.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  r4 inventory present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation.md
+PASS  F2 harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-f2-p-meta-p-r1.md
+PASS  01A sealed manifest present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md
+PASS  principal.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/principal.ts
+PASS  rag-funnel architecture present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/architecture/ai/rag-funnel-routing.md
+PASS  F3 serving helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-serving-remaining.ts
+PASS  F2 remaining helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-p-meta-p-r1-remaining.ts
+PASS  01A handoff prove present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/test/qbank-handoff-closure.proof.ts
+
+──────── MS1 routed MetadataReviewReceipt serving (still open · ≠ forge) ────────
+PASS  MS1 classify: sourceSealed01A=true
+PASS  MS1 classify: routedServingConsumerWired=true (F6 MS1 product wire)
+PASS  MS1 F2 align: routedServingWired=true
+PASS  MS1 principal lists qbank_metadata_review_receipt (01A table)
+PASS  MS1 01A manifest pins table ≠ routed serving / 01 still open
+PASS  MS1 F6 product wire present
+  leak: /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/r4-eg1-dual-claim-evidence.ts
+FAIL  MS1 only honesty helpers + F6 wire name MetadataReviewReceipt in worker src
+PASS  MS1 helper Ban forging MetadataReviewReceipt serving
+PASS  MS1 inventory / status still list P-META / G-R4-5 open
+
+──────── MS2 full facets served (F7 product-path serve · plan = served) ────────
+PASS  MS2 classify: fullFacetsServed=true (F7)
+PASS  MS2 requiredFacets = architecture secondary set (6)
+PASS  MS2 facetsServedOnRoutedPath = required set (F7 served)
+PASS  MS2 architecture names secondary facets set
+PASS  MS2 harness names MS2 / full facets remaining
+
+──────── MS3 standard deploy handoff (F8 landed · local 01A still 旁证) ────────
+PASS  MS3 classify: standardDeployHandoff=true (F8)
+PASS  MS3 classify: local01AHandoffProveExists=true
+PASS  MS3 local handoff prove file present (旁证 ≠ 01)
+PASS  MS3 01A manifest pins local prove ≠ cloud/standard deploy receipt
+PASS  MS3 harness names MS3 / deploy handoff remaining
+
+──────── MS4 hard pins (01A ≠ 01 · ≠ R4 · sole 恰 5) ────────
+PASS  MS4 isServingFunnel01Closed=true (MS1+MS2+MS3 · Ban dual-claim without dual · ≠ R4)
+PASS  MS4 isServing01ANotEqual01=false (product surfaces complete · still ≠ R4)
+PASS  MS4 servingAlignsWithF2Remaining=true
+PASS  MS4 F2 isRagFunnel01Closed=true · is01ANotEqual01=false
+PASS  MS4 harness freezes CMD r4-p-meta-serving:prove
+PASS  MS4 harness pins ≠ R4 closed · ≠ FUNNEL-01 closed · 01A ≠ 01 · releaseEvidence=false · ≠HA · sole 恰 5
+PASS  MS4 harness omits mw-model-op · excludes P-R1 flip from this knife
+PASS  MS4 F2 harness still post_prove_dual_pass / honesty (prior gate)
+PASS  MS4 eval registers MS1–MS4 / E* serving stubs
+PASS  MS4 slice indexes harness+eval
+FAIL  MS4 status pins 题域隔离 NOT closed + releaseEvidence=false
+PASS  MS4 status F2 post_prove_dual_pass · F3 this knife · G-R4-5
+FAIL  MS4 P-R1 default fail-closed still OFF (no flip this knife)
+FAIL  MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)
+PASS  MS4 prove never assigns MODEL_API_KEY (no invent)
+PASS  MS4 SOLE allowlist 恰 5 · F3 NOT on allowlist
+PASS  MS4 composition: EXIT=0 ≠ FUNNEL-01/R4 closed ≠ HA
+
+── honesty summary (F3 P-META serving remaining; await post-prove dual) ──
+MS1: routedServingConsumerWired=true (F6 product wire) · ≠ forge
+MS2: fullFacetsServed=true · required=[competency,technology,difficulty,seniority,kind,language] · served=required (F7)
+MS3: standardDeployHandoff=true (F8) · local01A prove exists (旁证)
+MS4: 01A ≠ 01 · ≠ R4 closed · ≠ 题域已隔离 · releaseEvidence=false · sole 恰 5 · no P-R1 flip
+EXIT=0 ≠ RAG-FUNNEL-01 closed ≠ R4 closed ≠ HA ≠ suite green.
+
+FAIL  r4-p-meta-serving prove (4 failures)
+ ELIFECYCLE  Command failed with exit code 1.

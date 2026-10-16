@@ -1,0 +1,29 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg3-domain-isolation-product-close /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg3-domain-isolation-product-close.proof.ts
+
+G-R4-5 / EG3 题域 isolation product close prove
+EXIT=0 = product-close evidence · domainIsolationClosed=true · eg3ProductClosed=true under authorize · ≠ R4/FUNNEL/G-R4-5 all · Ban self-nail dual_pass
+
+──────── P0 anchors ────────
+PASS  P0 emitter wired
+PASS  P0 harness present
+FAIL  P0 harness status awaiting_post_prove_dual + Ban self-nail + flags true
+
+──────── P1 live assessor ────────
+PASS  P1 trackLocalPathHonest
+PASS  P1 priorEg3EvidenceRetained
+FAIL  P1 authorizedSsotPinsPresent
+PASS  P1 orthogonalNotClaimedClosed
+FAIL  P1 hasEg3DomainIsolationProductCloseEvidence
+
+──────── P2 emit ────────
+FAIL  P2 emitted=true — reason=authorized_ssot_pins_missing
+
+──────── P3 hard pins ────────
+PASS  P3 ≠ claim R4/FUNNEL/G-R4-5 all closed
+PASS  P3 ≠ wash EG3 62c0e2f/c18e28f or R1 9fec7c7/72233a0 into R4
+PASS  P3 Ban invent coveredCount · Ban MS3=R4 · Ban self-nail post_prove_dual_pass
+
+FAIL  r4-eg3-domain-isolation-product-close prove (4 failures)
+ ELIFECYCLE  Command failed with exit code 1.

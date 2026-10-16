@@ -1,0 +1,100 @@
+E2E: 启 api + worker…
+E2E: 跑全栈用例…
+✓ 注册/登录 → 真 Bearer 令牌
+✓ PIPL 采集同意 → 200 (实际 200)
+✓ 上传简历 → resumeId(ingested)
+✓ 下单 pack_10 → orderId(9900分)
+✓ 支付 webhook 验签入账 → credited
+✓ 额度到账(11 次)
+E2E_REVIEW class=capability code=image_ocr_unavailable
+⊘ 图片简历 OCR 全栈 → skipped (DASHSCOPE_VISION_API_KEY unset; text model key ≠ vision)
+E2E_REVIEW class=capability code=image_ocr_unavailable
+
+── UC-E2E-018 full.e2e abandon inclusion (GAP-UC018-FULL-E2E) ──
+✓ [UC018] abandon 前置额度≥1(11)
+✓ [UC018] 建放弃面试 → interviewId(iv_01a12ad2c7ad7b15bdf75c955c0fd90c)
+✓ [UC018] begin 预留 → 202({"accepted":true,"jobId":"01a12ad2-c7e0-7cf0-b942-88341c3f42)
+✓ [UC018] begin 后额度 -1(10)
+✓ [UC018] POST abandon → abandoned+released({"abandoned":true,"released":"released","alreadyAbandoned":false})
+✓ [UC018] abandon 后额度净变 0(11)
+✓ [UC018] GET interview → status=abandoned(abandoned)
+✓ [UC018] abandon 后 begin → 409 interview_not_active(不可 resume; {"error":"interview_not_active","status":"abandoned"})
+✓ UC-E2E-018 full.e2e abandon inclusion PASS · GAP-UC018-FULL-E2E only · ≠ UC covered · matrix stays partial
+✓ 建面试 → interviewId(iv_01a12ad2c81e7acfb1a40972066c7fb7)
+✓ 拿到 interviewId
+E2E_REVIEW class=capability code=voice_unavailable
+⊘ 真实双向语音闭环 → skipped (DASHSCOPE_TTS/ASR_API_KEY unset; text model key ≠ voice)
+E2E_REVIEW class=capability code=voice_unavailable
+✓ begin → 202 受理({"accepted":true,"jobId":"01a12ad2-c834-7b67-a316-5e1c775d67)
+✓ 第 1 题 canonical /turn → 202
+✓ 已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）
+✓ 第 2 题 canonical /turn → 202
+✓ 已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）
+✓ 澄清后的 canonical /turn → 202
+✓ 第 4 题 canonical /turn → 202
+✓ 第 5 题 canonical /turn → 202
+✓ 第 6 题 canonical /turn → 202
+✓ 第 7 题 canonical /turn → 202
+✓ 已消费 question identity 重放 → 409 stale_question（不双写/不二次扣费）
+✓ 澄清后的 canonical /turn → 202
+✓ 至少出了 1 道题(实际 6 道;事件:question_ready,generation_started,answer_evaluated,clarification_needed,generation_progress,report_unavailable; terminal=report_unavailable; reason=max_attempts_exceeded)
+✓ 至少答了 1 题(8 次)
+✓ 出处审查: 不把 AI 分/progress 当 B 端分（identities=8, forgedScores=none）
+E2E_REVIEW class=worker code=report_unavailable
+✓ 面试跑到终态事件(report_unavailable)——无死胡同 ✅
+E2E_REVIEW class=worker code=report_unavailable
+✓ 报告端点可查 → status=quarantined
+✓ 状态机:报告 status 与终态自洽(终态 report_unavailable → status=quarantined)
+✓ [兜底] 建失败测试面试 → id(iv_01a12ad3698b74e88172d86581075327)
+✓ [兜底] 失败测试面试 begin → 202
+✓ [兜底] canonical /turn → 202
+✓ [兜底] canonical /turn → 202
+✓ [兜底] 澄清 canonical /turn → 202
+✓ [兜底] canonical /turn → 202
+E2E_REVIEW class=worker code=report_unavailable
+✓ [兜底] 报告失败 → report_unavailable + quarantined(无死胡同;终态=report_unavailable, status=quarantined)
+E2E_REVIEW class=worker code=report_unavailable
+✓ 押题:建 → id(qz_01a12ad3d37971529ca0d8116a41bd9d)
+✓ 押题:begin → 202 受理
+E2E_REVIEW class=worker code=quiz_ready
+✓ 押题:跑到终态(quiz_ready)——无死胡同 ✅
+E2E_REVIEW class=worker code=quiz_ready
+✓ 诊断:建 → id(dg_01a12ad3ee287693b0c21d4fbdba645b)
+✓ 诊断:begin → 202 受理
+E2E_REVIEW class=worker code=diagnosis_ready
+✓ 诊断:跑到终态(diagnosis_ready)——无死胡同 ✅
+E2E_REVIEW class=worker code=seg_diag_green_enter
+E2E_REVIEW class=worker code=seg_step8_enter
+E2E_REVIEW class=worker code=diagnosis_ready
+E2E_REVIEW class=worker code=seg_diag_green_enter
+E2E_REVIEW class=worker code=seg_step8_enter
+✓ B端审批活契约:pending 发岗 → 403 分码 recruiter_pending_review
+✓ B端审批活契约:admin approve → decided=true
+✓ B端:招聘方发岗位 → jobId(job_01a12ad446d17d669c745e920182f6cc)
+✓ B端:同 idempotency-key 重试复用同一岗位(不重复创建)
+✓ B端:同 idempotency-key 换载荷 → 409(不静默覆盖/重复创建)
+✓ B端门禁:候选人发岗位 → 403(role=candidate 被 RecruiterGuard 拦)
+✓ B端:招聘方看到自己的岗位
+✓ B端审批活契约:recruiter2 admin approve → decided=true
+✓ B端 RLS:另一招聘方看不到他人岗位(租户隔离 ✅)
+✓ B端 RLS:越权取他人岗位 → 404
+✓ 候选人:浏览开放岗位(公开可读)看到岗位
+✓ 候选人:投递岗位 → applicationId(app_01a12ad447bf75f5aef0f950be33d49c)
+✓ 候选人:看到自己的投递(status=invited,非仅长度)
+✓ 招聘方:看到该候选人本人(多方 RLS,candidate=fdb51e1c)
+E2E_REVIEW class=worker code=seg_step9_green
+E2E_REVIEW class=worker code=seg_step9_green
+E2E_REVIEW class=worker code=seg_expert_enter
+E2E_REVIEW class=worker code=seg_expert_enter
+✓ [异常前置] 无额度用户仍可完成简历处理同意
+✓ [异常前置] 无额度用户持有合法且本人所属的 resumeId
+E2E_FAILURE class=data_or_permission code=assertion
+E2E_FAILURE class=data_or_permission code=assertion
+✗ [异常] 额度不足 begin → 402 insufficient_entitlement（不再被 mask 成 500）
+E2E_FAILURE class=api code=client_exited
+E2E_FAILURE class=api code=client_exited
+E2E_PROCESS_OUTPUT_WITHHELD process=worker:stderr chunks=7 bytes=590
+E2E_PROCESS_OUTPUT_WITHHELD process=worker:stdout chunks=6 bytes=666
+E2E_PROCESS_OUTPUT_WITHHELD process=api:stdout chunks=180 bytes=46136
+E2E_PROCESS_OUTPUT_WITHHELD process=e2e:stdout chunks=69 bytes=4838
+E2E_PROCESS_OUTPUT_WITHHELD process=e2e:stderr chunks=9 bytes=618

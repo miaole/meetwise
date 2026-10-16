@@ -1,0 +1,37 @@
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 qbank-integrity-upgrade:prove /workspace/meetwise-wt-an-rag-r3
+> node scripts/run-e2e-isolated.mjs qbank-integrity-upgrade:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1328821-1791292538762 on 127.0.0.1:32963
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:qbank-integrity-upgrade /workspace/meetwise-wt-an-rag-r3/apps/worker
+> tsx test/qbank-integrity-upgrade.proof.ts
+
+PASS  upgrade fixture has the reviewed 0067 legacy prefix, 0068..0072 low-privilege suffix, and 0086/0087 metadata hardening pair
+PASS  0067 baseline exposes a complete clean artifact before the simulated old vulnerability
+PASS  the historical schema may contain an exact full SHA-256 chain without treating it as corrupt
+PASS  0067 upgrade fixture reproduces body/vector drift before the hardening migration
+PASS  0068 commits the hash-verified read boundary before the later quarantine migration may start
+PASS  versioned runner applies 0069 quarantine and 0070/0071/0072 low-privilege control RLS exactly once, then replays without a second side effect
+PASS  a non-superuser, NOBYPASSRLS migration table owner can apply 0068..0072 and restores FORCE RLS before commit
+PASS  0069 appends one no-body quarantine receipt then terminally rejects the corrupted source
+PASS  source rejection hides every retained-generation row and advances both epochs exactly once per contaminated source
+PASS  0069 classifies all seven historical corruption shapes and rejects each affected source without retaining text in the ledger
+PASS  post-upgrade ANN, lexical, evidence and complete-question paths fail closed for the old poisoned ref
+PASS  quarantine is source-scoped degradation: an exact historical full-digest clean source remains available byte-for-byte
+PASS  a NOSUPERUSER/NOBYPASSRLS control-function owner can build, validate and atomically activate a new generation
+PASS  the isolated low-privilege complete-question reader returns one immutable artifact package after a real rebuild
+PASS  the real low-privilege worker builder catch path marks an embedding-count failure failed and never flips active
+PASS  the same low-privilege control owner rejects an incomplete build without activating it, then records a bounded failed terminal state
+PASS  request runtime cannot read the quarantine ledger, and post-upgrade raw owner mutation stays rejected
+PASS  0086/0087 apply once over a live historical prefix: old artifacts stay legacy_unrouted and no chunk receives a guessed scope
+PASS  after the upgrade, a new low-privilege controlled artifact persists one reviewed leaf on every cut
+PASS  quarantine ledger contains reason-coded metadata only and never stores raw qbank body text
+
+✓ qbank legacy integrity upgrade / quarantine proof passed
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T13-15-47-399Z-1328821-479093fc-1074-4528-b35e-c5f9e5ce3038.json release_evidence=false

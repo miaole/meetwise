@@ -1,0 +1,12 @@
+diff --git a/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql b/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
+index 53aaeab..86d1ce3 100644
+--- a/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
++++ b/packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql
+@@ -55,7 +55,6 @@ AS $$
+             OR (
+               NULLIF(current_setting('app.qbank_serving_scope', true), '') IS NOT NULL
+               AND NULLIF(current_setting('app.qbank_taxonomy_version', true), '') IS NOT NULL
+-              AND g.taxonomy_version = NULLIF(current_setting('app.qbank_taxonomy_version', true), '')
+               AND g.serving_scope_id = NULLIF(current_setting('app.qbank_serving_scope', true), '')
+             )
+           )

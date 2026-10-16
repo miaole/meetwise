@@ -9,9 +9,9 @@ import { fileURLToPath } from 'node:url';
 import { MemorySaver, Command } from '@langchain/langgraph';
 import { createPool, asPrincipal, loadMigrations, runMigrations } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
-import { buildAdaptiveInterviewGraph, buildReportGraph, createEphemeralAnswerVault } from '@meetwise/ai-graphs';
+import { buildAdaptiveInterviewGraph, buildReportGraph, createEphemeralAnswerVault, type Turn } from '@meetwise/ai-graphs';
 import { aggregateScores } from '@meetwise/domain';
-import { evaluateAnswer, reportGenerator } from '../src/interview-service.ts';
+import { invokeEvaluationOnce, reportGenerator } from '../src/interview-service.ts';
 import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
 
 const pool = createPool();
@@ -36,20 +36,34 @@ async function main() {
       return {
         ok: true,
         raw: {
-          score: 84, relevant: true, hasHook: true,
-          evidence: [{ criterion: '提供了具体权衡', quote: answer.slice(0, 24) }],
+          relevant: true, hasHook: true,
+          dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: answer.slice(0, 24) }],
         },
       };
     },
   };
 
   console.log('\n──── ① 可验证证据 + hasHook + answer hash 幂等 ────');
-  const first = await evaluateAnswer(pool, owner, 'turn:0', '请设计限流', '我用 Redis 令牌桶，超限返回 429。', validModel);
-  const replay = await evaluateAnswer(pool, owner, 'turn:0', '请设计限流', '我用 Redis 令牌桶，超限返回 429。', validModel);
-  A('hasHook 通过 schema/invoke 保留', first.status === 'scored' && first.hasHook === true);
-  A('结构化证据仅保留可重验 span+hash，不落候选人 quote 原文', first.status === 'scored' && first.evidenceRecords[0]?.start === 0 && first.evidenceRecords[0]?.end > 0 && first.evidenceRecords[0]?.quoteSha256.length === 64 && !('quote' in first.evidenceRecords[0]!));
+  // C12(EVIDENCE-DELIVERY P1) 回和：直吃导出面 invokeEvaluationOnce（evaluateAnswer 已删·#159 同形）。
+  // 形状事实：invoke 首次成功返回**原始 schema 值**（{criterionId,disposition,quote} 形）；span+hash 记录形
+  // 仅在 storeOutput 落库值与缓存命中重放值——故记录形断言必须落在重放调用上（toEvidenceRecord/isStoredEvidence
+  // 为私有函数不可测试复用）。
+  const evalOnce = (key: string, answer: string) =>
+    invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: key, question: '请设计限流', answer, model: validModel });
+  const first = await evalOnce('turn:0', '我用 Redis 令牌桶，超限返回 429。');
+  A('hasHook 通过 schema/invoke 保留', first.status === 'scored' && first.value.hasHook === true);
+  A('首次成功返回原始 schema 值：dispositions 携带 quote 且无 span/hash 脱敏形',
+    first.status === 'scored' && typeof first.value.dispositions[0]?.quote === 'string' && first.value.dispositions[0]!.quote.length > 0
+    && !('quoteSha256' in first.value.dispositions[0]!) && !('start' in first.value.dispositions[0]!));
+  const replay = await evalOnce('turn:0', '我用 Redis 令牌桶，超限返回 429。');
+  const replayRecord = replay.status === 'scored'
+    ? replay.value.dispositions[0] as unknown as { start?: number; end?: number; quoteSha256?: string; quote?: string }
+    : undefined;
   A('同 answer 重放命中缓存，模型只打 1 次', replay.status === 'scored' && calls === 1);
-  const changed = await evaluateAnswer(pool, owner, 'turn:0', '请设计限流', '我用滑动窗口，超限快速失败。', validModel);
+  A('缓存命中重放值为 span+hash 记录形：quote 原文不出 invoke 边界',
+    replayRecord != null && replayRecord.start === 0 && (replayRecord.end ?? 0) > 0
+    && replayRecord.quoteSha256?.length === 64 && replayRecord.quote === undefined);
+  const changed = await evalOnce('turn:0', '我用滑动窗口，超限快速失败。');
   A('同 turn 换答案必须重新评分（answer SHA-256 参与幂等键）', changed.status === 'scored' && calls === 2);
   const traces = await asPrincipal(pool, owner, (c) => c.query("SELECT count(*)::int AS n FROM ai_invocation_trace WHERE idempotency_key LIKE 'turn:0:answer:%'"));
   A('存储层为两个不同答案留两个幂等实体', traces.rows[0].n === 2);
@@ -62,14 +76,17 @@ async function main() {
   const quoteRepairModel: ModelClient = {
     async complete(req) {
       repairRequests.push({ system: req.system, userData: req.userData });
-      return { ok: true, raw: { score: 73, relevant: true, hasHook: false, evidence: [{ criterion: '给出令牌桶与过载处置', quote: '不存在于本次回答' }] } };
+      return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '不存在于本次回答' }] } };
     },
   };
   const repairAnswer = '我会使用 Redis 令牌桶，超限快速失败，并对热点接口做降级。';
-  const rejected = await evaluateAnswer(pool, owner, 'turn:quote-repair', '如何实现高峰限流？', repairAnswer, quoteRepairModel);
-  A('quote 校验失败只调用一次模型，并以 unscored 拒绝结果收口', rejected.status === 'unscored' && repairRequests.length === 1);
-  const rejectedReplay = await evaluateAnswer(pool, owner, 'turn:quote-repair', '如何实现高峰限流？', repairAnswer, quoteRepairModel);
-  A('quote 拒绝重放读取同一失败状态，不再重打模型', rejectedReplay.status === 'unscored' && repairRequests.length === 1);
+  const rejected = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:quote-repair', question: '如何实现高峰限流？', answer: repairAnswer, model: quoteRepairModel });
+  A('quote 校验失败只调用一次模型，并以 quote_repair_exhausted 拒绝结果收口', rejected.status === 'quote_repair_exhausted' && repairRequests.length === 1);
+  const rejectedReplay = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:quote-repair', question: '如何实现高峰限流？', answer: repairAnswer, model: quoteRepairModel });
+  // 重放形状事实：首次业务拒绝在内存面返回可读 `business:evidence_quote_not_in_answer`（→quote_repair_exhausted）；
+  // 失败重放经 durable claim 返回**落库机器码** `business_validation_failed`（0088 稳定 ASCII 纪律）。
+  A('quote 拒绝重放读取同一失败状态（落库机器码），不再重打模型',
+    rejectedReplay.status === 'failed' && rejectedReplay.error === 'business_validation_failed' && repairRequests.length === 1);
   const repairTrace = await asPrincipal(pool, owner, (c) => c.query("SELECT idempotency_key FROM ai_invocation_trace WHERE idempotency_key LIKE 'turn:quote-repair:answer:%'"));
   A('DB 不持久化未通过逐字校验的 quote 输出', repairTrace.rowCount === 0);
 
@@ -80,10 +97,15 @@ async function main() {
       if (req.service === 'interviewer.ask') return { ok: true, raw: { q: '请说明高峰限流方案？', refs: [] } };
       if (req.service !== 'mock-interview.evaluate') return { ok: false, kind: 'deterministic' };
       graphEvalRequests.push({ system: req.system });
-      return { ok: true, raw: { score: 76, relevant: true, hasHook: false, evidence: [{ criterion: '说明令牌桶和降级', quote: '伪造引文' }] } };
+      return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '伪造引文' }] } };
     },
   };
   const graphThread = `quote-repair-graph-${Date.now()}`;
+  // 生产同链 fixture（0058 隐私围栏随翻）：生产 buildAdaptiveDeps 的 ask/assess seam invoke 携
+  // privacyInterviewId=threadId，invoke 预派发围栏经 interview_privacy_active() 校验 interview 行
+  // 在场（无行=false→privacy_fenced_pre_dispatch→出题 failClosed 整场，transcript 恒空）。合成
+  // thread 补真实 interview 行沿 adaptive-flow.proof / g7fix4-reroll.proof 同款最小形。
+  await asPrincipal(pool, owner, (c) => c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [graphThread, owner]));
   const repairAnswerVault = createEphemeralAnswerVault();
   const repairGraph = buildAdaptiveInterviewGraph(new MemorySaver(), buildAdaptiveDeps({
     pool, owner, threadId: graphThread, model: graphRepairModel, competencies: ['并发'],
@@ -101,11 +123,13 @@ async function main() {
   const exhaustedGraphModel: ModelClient = {
     async complete(req) {
       if (req.service === 'interviewer.ask') return { ok: true, raw: { q: '请说明高峰限流方案？', refs: [] } };
-      if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { score: 91, relevant: true, hasHook: false, evidence: [{ criterion: '伪造', quote: '永远不在回答中的引文' }] } };
+      if (req.service === 'mock-interview.evaluate') return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '永远不在回答中的引文' }] } };
       return { ok: false, kind: 'deterministic' };
     },
   };
   const exhaustedThread = `quote-repair-exhausted-${Date.now()}`;
+  // 同上：生产同链 fixture 供给 interview 行（0058 隐私围栏预派发校验在场性）。
+  await asPrincipal(pool, owner, (c) => c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [exhaustedThread, owner]));
   const exhaustedAnswerVault = createEphemeralAnswerVault();
   const exhaustedGraph = buildAdaptiveInterviewGraph(new MemorySaver(), buildAdaptiveDeps({
     pool, owner, threadId: exhaustedThread, model: exhaustedGraphModel, competencies: ['并发'],
@@ -121,27 +145,46 @@ async function main() {
 
   console.log('\n──── ② 失败只能是 unscored，不得冒充人的分数 ────');
   const foreignEvidence = scriptedModelClient({
-    'mock-interview.evaluate': () => ({ ok: true, raw: { score: 99, relevant: true, hasHook: true, evidence: [{ criterion: '高质量', quote: '不在本次答案的语句' }] } }),
+    'mock-interview.evaluate': () => ({ ok: true, raw: { relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '不在本次答案的语句' }] } }),
   });
-  const invalid = await evaluateAnswer(pool, owner, 'turn:invalid', '题目', '本次答案有效内容', foreignEvidence);
-  A('repair 后引文仍不属于答案 → unscored，不可写入 99 分', invalid.status === 'unscored' && !('score' in invalid));
-  const unavailable = await evaluateAnswer(pool, owner, 'turn:down', '题目', '本次答案有效内容', scriptedModelClient({}));
-  A('供应商不可用 → unscored 带可审计原因，绝不生成 50 分', unavailable.status === 'unscored' && unavailable.reason.length > 0 && !('score' in unavailable));
+  const invalid = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:invalid', question: '题目', answer: '本次答案有效内容', model: foreignEvidence });
+  A('repair 后引文仍不属于答案 → quote_repair_exhausted，不产出任何评分值', invalid.status === 'quote_repair_exhausted' && !('value' in invalid));
+  const unavailable = await invokeEvaluationOnce(pool, owner, { baseIdempotencyKey: 'turn:down', question: '题目', answer: '本次答案有效内容', model: scriptedModelClient({}) });
+  A('供应商不可用 → failed 带可审计原因，绝不生成 50 分', unavailable.status === 'failed' && unavailable.error.length > 0 && !('value' in unavailable));
 
   const unavailableAnswerVault = createEphemeralAnswerVault();
+  let unscoredAskSeq = 0;
+  let unscoredAssessCalls = 0;
   const graph = buildAdaptiveInterviewGraph(new MemorySaver(), {
     competencies: ['并发'],
-    retrieveAndGenerate: async () => ({ question: '你怎么做限流？', sources: [] }),
-    assess: async () => ({ status: 'unscored', reason: 'evaluation_exhausted_retries' }),
+    // scripted 题面随翻（#67 fail-closed 演进）：genQuestion 节点对出题结果过生产 critiqueQuestion
+    // 闸（too_short <8 字即拒→failClosed 整场；asked 判重同拒）；旧 deterministicQuestionFallback
+    // 兜底出题已随「禁发明题面」硬化移除。题面补足 ≥8 字且逐轮唯一过闸。
+    retrieveAndGenerate: async () => ({ question: `你怎么做高并发限流（第 ${++unscoredAskSeq} 题）？`, sources: [] }),
+    assess: async () => { unscoredAssessCalls++; return { status: 'unscored', reason: 'evaluation_exhausted_retries' }; },
     loadAnswer: unavailableAnswerVault.loadAnswer,
   });
   const cfg = { configurable: { thread_id: `unscored-${Date.now()}` } };
+  // AG-F 契约：unscored 不再当场作废整场（concluded 禁置）——图按 0 计继续同轮换题，直到
+  // probe 耗尽自达真终场。有界循环驱动全弧（护栏 8 轮防无界）。
   await graph.invoke({}, cfg);
-  await graph.invoke(new Command({ resume: unavailableAnswerVault.issue('我用令牌桶处理突发流量，超限时快速失败并降级。') }), cfg);
+  for (let guard = 0; guard < 8; guard++) {
+    if ((await graph.getState(cfg)).values.pending == null) break;
+    await graph.invoke(new Command({ resume: unavailableAnswerVault.issue('我用令牌桶处理突发流量，超限时快速失败并降级。') }), cfg);
+  }
   const snapshot: any = await graph.getState(cfg);
-  const unscoredTurn = snapshot.values.transcript.at(-1);
-  A('unscored 使 Agent 明确收敛，不驱动能力画像/追问', snapshot.values.concluded === true && snapshot.values.degraded?.reason === 'evaluation_exhausted_retries' && unscoredTurn?.score === null && unscoredTurn?.outcome === 'unscored');
-  A('unscored turn 不在完成态 checkpoint 复制原始回答', !Object.hasOwn(unscoredTurn, 'a'));
+  const transcript: Turn[] = snapshot.values.transcript ?? [];
+  const unscoredTurn = transcript.at(-1);
+  // 断言随翻（AG-F 修法③/裁决③a 契约·观测语义亲证）：单点评分失败不再作废整场——unscored
+  // 轨迹按 0 计（score 0·reason 原样保留在 turn 上·relevant=false），concluded 禁置、degraded
+  // 不置位（图持续发题不整场终止），评分每题只调一次（不 re-invoke），能力画像零新增证据
+  // （mind 不 ingest·真终场收敛只由 probe 耗尽/safety ceiling 等路径达成）。
+  A('unscored 轨迹按 0 计继续不整场终止、reason 原样保留、不驱动能力画像、评分每题只打一次',
+    transcript.length >= 2 && transcript.every((entry) => entry.outcome === 'unscored' && entry.score === 0 && entry.reason === 'evaluation_exhausted_retries' && entry.relevant === false)
+    && snapshot.values.concluded === false && snapshot.values.pending != null && snapshot.values.degraded == null
+    && unscoredAssessCalls === transcript.length
+    && (snapshot.values.mind?.competencies?.[0]?.evidence?.length ?? 0) === 0);
+  A('unscored turn 不在完成态 checkpoint 复制原始回答', !!unscoredTurn && !Object.hasOwn(unscoredTurn, 'a'));
 
   console.log('\n──── ③ 报告总分、段落去重与模型越权防护 ────');
   const summary = { interviewId: 'report-integrity', questionCount: 2, scores: [70, 80] };

@@ -1,0 +1,5 @@
+{
+  "version": 1,
+  "description": "HA-5 假阳性白名单（W2③ 防腐化形制）。每条目必含 event + reason（窗口理由）+ expires（ISO 日期到期日）：无到期日的条目=结构非法（alerts-lint 拒绝）；到期日后同事件自动重新告警（白名单不是永久豁免）。初始为空=当前无已知持续性假阳性——已知一次性事件（deploy 窗 migrate 单次重试、重启窗 pool_error burst）出现时在此登记并给到期日，而非改码面。",
+  "entries": []
+}

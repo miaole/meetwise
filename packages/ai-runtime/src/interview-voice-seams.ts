@@ -64,8 +64,8 @@ function ttsBindingOk(): boolean {
 
 function failClosedAsr(inner: Asr): Asr {
   return Object.freeze({
-    async transcribe(audio, opts) {
-      const text = await inner.transcribe(audio, opts);
+    async transcribe(...args: Parameters<Asr['transcribe']>) {
+      const text = await inner.transcribe(...args);
       if (typeof text !== 'string') throw new Error('asr_malformed');
       return text;
     },
@@ -74,8 +74,8 @@ function failClosedAsr(inner: Asr): Asr {
 
 function failClosedTts(inner: Tts): Tts {
   return Object.freeze({
-    async synthesize(text, opts) {
-      const audio = await inner.synthesize(text, opts);
+    async synthesize(...args: Parameters<Tts['synthesize']>) {
+      const audio = await inner.synthesize(...args);
       if (!(audio instanceof Uint8Array) || audio.byteLength === 0) throw new Error('tts_malformed');
       return audio;
     },

@@ -1,0 +1,642 @@
+
+> @meetwise/web@0.0.0 build /private/tmp/cm-baseline-wt/apps/web
+> next build
+
+   ▲ Next.js 15.5.27
+
+   Creating an optimized production build ...
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Parsing of /private/tmp/cm-baseline-wt/node_modules/.pnpm/next-intl@4.13.0_next@15.5.27_@opentelemetry+api@1.9.1_@playwright+test@1.61.1_react-do_c8dd58c67208c88fcbe61909e427e465/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.
+<w> Build dependencies behind this expression are ignored and might cause incorrect cache invalidation.
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Parsing of /private/tmp/cm-baseline-wt/node_modules/.pnpm/next-intl@4.13.0_next@15.5.27_@opentelemetry+api@1.9.1_@playwright+test@1.61.1_react-do_c8dd58c67208c88fcbe61909e427e465/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.
+<w> Build dependencies behind this expression are ignored and might cause incorrect cache invalidation.
+<w> [webpack.cache.PackFileCacheStrategy/webpack.FileSystemInfo] Parsing of /private/tmp/cm-baseline-wt/node_modules/.pnpm/next-intl@4.13.0_next@15.5.27_@opentelemetry+api@1.9.1_@playwright+test@1.61.1_react-do_c8dd58c67208c88fcbe61909e427e465/node_modules/next-intl/dist/esm/production/extractor/format/index.js for build dependencies failed at 'import(t)'.
+<w> Build dependencies behind this expression are ignored and might cause incorrect cache invalidation.
+ ✓ Compiled successfully in 10.7s
+   Linting and checking validity of types ...
+
+ ⚠ The Next.js plugin was not detected in your ESLint configuration. See https://nextjs.org/docs/app/api-reference/config/eslint#migrating-existing-config
+
+Failed to compile.
+
+./app/admin/page.tsx
+17:55  Warning: Type Property name `is_admin` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+17:74  Warning: Type Property name `created_at` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:24  Warning: Type Property name `owner_user_id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:47  Warning: Type Property name `product_id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:67  Warning: Type Property name `amount_cents` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:40  Warning: Type Property name `approval_status` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:81  Warning: Type Property name `created_at` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:16  Warning: Function name `StatsSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+58:16  Warning: Function name `UsersSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+82:16  Warning: Function name `OrdersSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+106:16  Warning: Function name `FeedbackSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+127:16  Warning: Function name `AuditSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+170:16  Warning: Function name `ApprovalsSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+208:31  Warning: Function name `AdminPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/applications/[id]/finalize/route.ts
+10:23  Warning: Function name `POST` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+15:66  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:67  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/diagnosis/[id]/events/route.ts
+11:23  Warning: Function name `GET` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:53  Warning: Object Literal Property name `cache-control` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/interview/[id]/abandon/route.ts
+11:23  Warning: Function name `POST` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+17:50  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+23:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/interview/[id]/events/route.ts
+45:23  Warning: Function name `GET` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+54:18  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+54:55  Warning: Object Literal Property name `cache-control` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+64:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+64:53  Warning: Object Literal Property name `cache-control` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/interview/[id]/speak/route.ts
+8:23  Warning: Function name `POST` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/interview/[id]/speak/stream/route.ts
+11:23  Warning: Function name `POST` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+20:52  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+31:18  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+37:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+37:86  Warning: Object Literal Property name `cache-control` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/interview/[id]/transcribe/route.ts
+11:23  Warning: Function name `POST` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/interview/[id]/turn/route.ts
+10:23  Warning: Function name `POST` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+19:50  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+19:86  Warning: Object Literal Property name `idempotency-key` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+23:67  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/privacy/export/route.ts
+7:23  Warning: Function name `GET` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+15:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+15:67  Warning: Object Literal Property name `content-disposition` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/api/quiz/[id]/events/route.ts
+11:23  Warning: Function name `GET` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:53  Warning: Object Literal Property name `cache-control` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/auth-actions.ts
+19:13  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+22:86  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/billing/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/billing/page.tsx
+9:25  Warning: Function name `BillingPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/dashboard/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/dashboard/page.tsx
+7:29  Warning: 'CardDescription' is defined but never used.  @typescript-eslint/no-unused-vars
+7:46  Warning: 'CardHeader' is defined but never used.  @typescript-eslint/no-unused-vars
+7:58  Warning: 'CardTitle' is defined but never used.  @typescript-eslint/no-unused-vars
+14:1  Warning: `@meetwise/contracts` import should occur before import of `@/lib/api/server`  import/order
+21:50  Warning: Object Literal Property name `waiting_user` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+26:10  Warning: Function name `StatusBadge` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+31:66  Warning: Type Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+32:57  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+33:57  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+34:56  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+35:65  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+36:52  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+37:51  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+41:16  Warning: Function name `GrowthHome` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+176:10  Warning: Function name `DashboardSkeleton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+210:31  Warning: Function name `DashboardPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/diagnosis/[id]/page.tsx
+9:31  Warning: Function name `DiagnosisDetailPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/diagnosis/actions.ts
+3:1  Warning: `next/navigation` import should occur before import of `../../lib/api/server`  import/order
+16:45  Warning: Object Literal Property name `resume-id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/diagnosis/page.tsx
+10:1  Warning: `@meetwise/contracts` import should occur before import of `../../lib/api/server`  import/order
+28:31  Warning: Function name `DiagnosisListPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/error.tsx
+5:25  Warning: Function name `Error` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/faq/page.tsx
+43:25  Warning: Function name `FaqPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/features/page.tsx
+31:31  Warning: Function name `FeaturesPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+66:17  Warning: Variable name `Icon` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./app/growth/page.tsx
+27:46  Warning: Type Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:23  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+29:25  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+30:24  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+39:16  Warning: Function name `GrowthArchive` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+172:10  Warning: Function name `GrowthSkeleton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+182:31  Warning: Function name `GrowthPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/interview/[resultId]/page.tsx
+11:31  Warning: Function name `InterviewPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/interviews/actions.ts
+3:1  Warning: `next/navigation` import should occur before import of `../../lib/api/server`  import/order
+18:104  Warning: Object Literal Property name `resume-id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/interviews/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/interviews/page.tsx
+15:1  Warning: `@meetwise/contracts` import should occur before import of `../../lib/api/server`  import/order
+23:50  Warning: Object Literal Property name `waiting_user` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+32:31  Warning: Function name `InterviewsPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/jobs/actions.ts
+39:124  Warning: Object Literal Property name `resume-id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/jobs/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/jobs/page.tsx
+10:1  Warning: `./actions` import should occur before import of `@/lib/api/server`  import/order
+15:1  Warning: `@meetwise/contracts` import should occur before import of `@/lib/api/server`  import/order
+26:3  Warning: Object Literal Property name `in_progress` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:3  Warning: Object Literal Property name `assessment_unavailable` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+33:31  Warning: Function name `JobsPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/layout.tsx
+31:31  Warning: Function name `RootLayout` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/legal/page.tsx
+14:25  Warning: Function name `LegalPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/loading.tsx
+3:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/login/page.tsx
+14:25  Warning: Function name `LoginPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/not-found.tsx
+4:25  Warning: Function name `NotFound` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/notifications/actions.ts
+4:1  Warning: `next/cache` import should occur before import of `../../lib/api/server`  import/order
+
+./app/notifications/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/notifications/page.tsx
+17:73  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+20:3  Warning: Object Literal Property name `report_ready` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:3  Warning: Object Literal Property name `assessment_ready` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+27:31  Warning: Function name `NotificationsPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/page.tsx
+20:3  Warning: Object Literal Property name `@context` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:3  Warning: Object Literal Property name `@graph` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:7  Warning: Object Literal Property name `@type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+23:7  Warning: Object Literal Property name `@type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+24:7  Warning: Object Literal Property name `@type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:31  Warning: Function name `Home` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+44:79  Warning: Object Literal Property name `__html` trimmed as `_html` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+188:10  Warning: Function name `FooterCol` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/pricing/page.tsx
+17:25  Warning: Function name `PricingPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/privacy/PreviewErasureForm.tsx
+10:10  Warning: Function name `ReceiptView` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+43:17  Warning: Function name `PreviewErasureForm` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/privacy/actions.ts
+31:18  Warning: Object Literal Property name `idempotency-key` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/privacy/page.tsx
+10:1  Warning: `./PreviewErasureForm` import should occur before import of `@/lib/api/server`  import/order
+17:31  Warning: Function name `PrivacyPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/quiz/[id]/page.tsx
+9:31  Warning: Function name `QuizDetailPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/quiz/actions.ts
+3:1  Warning: `next/navigation` import should occur before import of `../../lib/api/server`  import/order
+15:94  Warning: Object Literal Property name `resume-id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/quiz/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/quiz/page.tsx
+9:1  Warning: `@meetwise/contracts` import should occur before import of `../../lib/api/server`  import/order
+27:31  Warning: Function name `QuizListPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/how-it-works/loading.tsx
+1:25  Warning: Function name `RecruiterHowItWorksLoading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/how-it-works/page.tsx
+15:31  Warning: Function name `RecruiterHowItWorksPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/JobCreateForm.tsx
+12:17  Warning: Function name `JobCreateForm` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/[id]/applications/[applicationId]/loading.tsx
+1:25  Warning: Function name `RecruiterApplicationStatusLoading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/[id]/applications/[applicationId]/not-found.tsx
+4:25  Warning: Function name `RecruiterApplicationNotFound` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/[id]/applications/[applicationId]/page.tsx
+22:35  Warning: Type Property name `candidate_user_id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:31  Warning: Function name `RecruiterApplicationStatusPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/[id]/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/[id]/page.tsx
+5:1  Warning: `next/link` import should occur before import of `@/lib/api/server`  import/order
+18:35  Warning: Type Property name `candidate_user_id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:31  Warning: Function name `RecruiterJobCandidatesPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/actions.ts
+21:18  Warning: Object Literal Property name `idempotency-key` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/jobs/page.tsx
+8:1  Warning: `./JobCreateForm` import should occur before import of `@/lib/api/server`  import/order
+13:105  Warning: Type Property name `created_at` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+16:31  Warning: Function name `RecruiterJobsPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/recruiter/talent/page.tsx
+18:15  Warning: Type Property name `job_id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:31  Warning: Type Property name `job_title` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:50  Warning: Type Property name `candidate_user_id` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+19:57  Warning: Type Property name `created_at` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+26:31  Warning: Function name `TalentPoolPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/report/[id]/actions.ts
+3:1  Warning: `next/cache` import should occur before import of `../../../lib/api/server`  import/order
+
+./app/report/[id]/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/report/[id]/page.tsx
+6:1  Warning: `./actions` import should occur before import of `@/lib/api/server`  import/order
+17:1  Warning: `@meetwise/contracts` import should occur before import of `@/lib/api/server`  import/order
+32:31  Warning: Function name `ReportPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+198:10  Warning: Function name `SectionHeading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+207:10  Warning: Function name `SectionFallback` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+226:16  Warning: Function name `AssessmentSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+259:16  Warning: Function name `LearningSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+299:16  Warning: Function name `CareerSection` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/report/[id]/share/page.tsx
+35:31  Warning: Function name `SharePosterPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/resume/DeleteResumeButton.tsx
+12:17  Warning: Function name `DeleteResumeButton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/resume/ResumeUploadForms.tsx
+12:10  Warning: Function name `UploadButton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:10  Warning: Function name `UploadForm` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+60:17  Warning: Function name `ResumeUploadForms` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/resume/actions.ts
+2:1  Warning: `../../lib/api/server` import should occur after import of `next/navigation`  import/order
+
+./app/resume/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/resume/page.tsx
+5:1  Warning: `../diagnosis/actions` import should occur before import of `./actions`  import/order
+11:1  Warning: `@meetwise/contracts` import should occur before import of `../../lib/api/server`  import/order
+23:31  Warning: Function name `ResumePage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/roles/page.tsx
+8:1  Warning: `@meetwise/contracts` import should occur before import of `@/lib/api/server`  import/order
+17:31  Warning: Function name `RolesPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/settings/ChangePasswordForm.tsx
+13:17  Warning: Function name `ChangePasswordForm` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/settings/DeactivateForm.tsx
+14:17  Warning: Function name `DeactivateForm` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/settings/actions.ts
+4:1  Warning: `next/cache` import should occur before import of `../../lib/api/server`  import/order
+
+./app/settings/loading.tsx
+4:25  Warning: Function name `Loading` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./app/settings/page.tsx
+12:89  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+14:31  Warning: Function name `SettingsPage` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/AbilityBar.tsx
+5:17  Warning: Function name `AbilityBar` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/AnnotationCard.tsx
+8:17  Warning: Function name `AnnotationCard` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/DiagnosisPanel.tsx
+19:50  Warning: Type Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+20:32  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:33  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:29  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+23:29  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+24:28  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:10  Warning: Function name `ScoreBar` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+38:10  Warning: Function name `SectionCard` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+39:65  Warning: Object Literal Property name `Icon` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+40:11  Warning: Variable name `Icon` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+74:17  Warning: Function name `DiagnosisPanel` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/GrowthChart.tsx
+57:17  Warning: Function name `GrowthChart` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/InterviewPanel.tsx
+42:10  Warning: Function name `Typewriter` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+65:17  Warning: Function name `InterviewPanel` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+104:36  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+145:38  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+153:57  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+200:20  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+200:56  Warning: Object Literal Property name `idempotency-key` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+204:55  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./components/InviteCandidateDialog.tsx
+16:17  Warning: Function name `InviteCandidateDialog` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/LocaleSwitchButton.tsx
+9:10  Warning: Function name `Inner` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:17  Warning: Function name `LocaleSwitchButton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/LocaleSwitcher.tsx
+6:23  Warning: Function name `LocaleSwitcher` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/Markdown.tsx
+21:14  Warning: Variable name `Markdown` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+21:39  Warning: Function name `Markdown` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+34:7  Warning: Variable name `MarkdownImpl` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/MarkdownImpl.tsx
+12:30  Warning: Function name `MarkdownImpl` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/Nav.tsx
+25:23  Warning: Function name `Nav` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/PublicPreviewNav.tsx
+16:17  Warning: Function name `PublicPreviewNav` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/QuizPanel.tsx
+19:10  Warning: Function name `QuizSkeletonCard` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+38:17  Warning: Function name `QuizPanel` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ScoreRing.tsx
+5:17  Warning: Function name `ScoreRing` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/SharePoster.tsx
+24:17  Warning: Function name `SharePoster` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/VoiceCallPanel.tsx
+18:1  Warning: `lucide-react` import should occur before import of `@meetwise/contracts`  import/order
+76:3  Warning: Object Literal Property name `consent_required` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+83:3  Warning: Object Literal Property name `mic_denied` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+84:3  Warning: Object Literal Property name `asr_down` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+85:3  Warning: Object Literal Property name `question_unavailable` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+86:3  Warning: Object Literal Property name `submit_failed` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+97:17  Warning: Function name `VoiceCallPanel` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+178:36  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+273:36  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+333:56  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+398:20  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+398:56  Warning: Object Literal Property name `idempotency-key` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+437:36  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+486:36  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+546:5  Error: Definition for rule 'react-hooks/exhaustive-deps' was not found.  react-hooks/exhaustive-deps
+742:10  Warning: Function name `WaveBars` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+757:10  Warning: Function name `EqualizerBars` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+773:10  Warning: Function name `ShimmerBar` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+783:10  Warning: Function name `ThinkingDots` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/recruiter/ArchitectureHighlights.tsx
+7:17  Warning: Function name `ArchitectureHighlights` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/recruiter/PreviewNote.tsx
+2:17  Warning: Function name `RecruiterPreviewNote` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/Skeleton.tsx
+7:17  Warning: Function name `Skeleton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+12:17  Warning: Function name `SkeletonText` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+23:17  Warning: Function name `SkeletonCard` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/Spinner.tsx
+7:17  Warning: Function name `Spinner` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/SubmitButton.tsx
+20:17  Warning: Function name `SubmitButton` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/Thinking.tsx
+8:17  Warning: Function name `Thinking` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/accordion.tsx
+8:7  Warning: Variable name `Accordion` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+10:7  Warning: Variable name `AccordionItem` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+18:7  Warning: Variable name `AccordionTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+38:7  Warning: Variable name `AccordionContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/alert.tsx
+19:7  Warning: Variable name `Alert` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+27:7  Warning: Variable name `AlertTitle` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+34:7  Warning: Variable name `AlertDescription` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/avatar.tsx
+7:7  Warning: Variable name `Avatar` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+19:7  Warning: Variable name `AvatarImage` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+27:7  Warning: Variable name `AvatarFallback` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/badge.tsx
+23:10  Warning: Function name `Badge` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/button.tsx
+35:7  Warning: Variable name `Button` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+37:11  Warning: Variable name `Comp` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/card.tsx
+4:7  Warning: Variable name `Card` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+11:7  Warning: Variable name `CardHeader` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+16:7  Warning: Variable name `CardTitle` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+21:7  Warning: Variable name `CardDescription` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+26:7  Warning: Variable name `CardContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+31:7  Warning: Variable name `CardFooter` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/dialog.tsx
+8:7  Warning: Variable name `Dialog` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+9:7  Warning: Variable name `DialogTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+10:7  Warning: Variable name `DialogPortal` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+11:7  Warning: Variable name `DialogClose` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+13:7  Warning: Variable name `DialogOverlay` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+28:7  Warning: Variable name `DialogContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+52:10  Warning: Function name `DialogHeader` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+57:10  Warning: Function name `DialogFooter` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+67:7  Warning: Variable name `DialogTitle` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+79:7  Warning: Variable name `DialogDescription` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/dropdown-menu.tsx
+8:7  Warning: Variable name `DropdownMenu` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+9:7  Warning: Variable name `DropdownMenuTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+10:7  Warning: Variable name `DropdownMenuGroup` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+11:7  Warning: Variable name `DropdownMenuPortal` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+12:7  Warning: Variable name `DropdownMenuSub` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+13:7  Warning: Variable name `DropdownMenuRadioGroup` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+15:7  Warning: Variable name `DropdownMenuSubTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+34:7  Warning: Variable name `DropdownMenuSubContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+49:7  Warning: Variable name `DropdownMenuContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+67:7  Warning: Variable name `DropdownMenuItem` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+83:7  Warning: Variable name `DropdownMenuCheckboxItem` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+106:7  Warning: Variable name `DropdownMenuRadioItem` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+128:7  Warning: Variable name `DropdownMenuLabel` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+140:7  Warning: Variable name `DropdownMenuSeparator` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+152:10  Warning: Function name `DropdownMenuShortcut` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/input.tsx
+4:7  Warning: Variable name `Input` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/label.tsx
+6:7  Warning: Variable name `Label` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/progress.tsx
+7:7  Warning: Variable name `Progress` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/scroll-area.tsx
+7:7  Warning: Variable name `ScrollArea` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+21:7  Warning: Variable name `ScrollBar` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/select.tsx
+8:7  Warning: Variable name `Select` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+9:7  Warning: Variable name `SelectGroup` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+10:7  Warning: Variable name `SelectValue` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+12:7  Warning: Variable name `SelectTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+32:7  Warning: Variable name `SelectScrollUpButton` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+46:7  Warning: Variable name `SelectScrollDownButton` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+60:7  Warning: Variable name `SelectContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+92:7  Warning: Variable name `SelectLabel` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+104:7  Warning: Variable name `SelectItem` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+126:7  Warning: Variable name `SelectSeparator` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/separator.tsx
+7:7  Warning: Variable name `Separator` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/sheet.tsx
+9:7  Warning: Variable name `Sheet` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+10:7  Warning: Variable name `SheetTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+11:7  Warning: Variable name `SheetClose` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+12:7  Warning: Variable name `SheetPortal` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+14:7  Warning: Variable name `SheetOverlay` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+50:7  Warning: Variable name `SheetContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+67:10  Warning: Function name `SheetHeader` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+72:10  Warning: Function name `SheetFooter` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+82:7  Warning: Variable name `SheetTitle` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+94:7  Warning: Variable name `SheetDescription` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/sonner.tsx
+9:10  Warning: Function name `Toaster` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+16:11  Warning: Object Literal Property name `--normal-bg` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+17:11  Warning: Object Literal Property name `--normal-text` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+18:11  Warning: Object Literal Property name `--normal-border` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./components/ui/tabs.tsx
+7:7  Warning: Variable name `Tabs` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+9:7  Warning: Variable name `TabsList` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+24:7  Warning: Variable name `TabsTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+39:7  Warning: Variable name `TabsContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/textarea.tsx
+4:7  Warning: Variable name `Textarea` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./components/ui/tooltip.tsx
+7:7  Warning: Variable name `TooltipProvider` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+8:7  Warning: Variable name `Tooltip` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+9:7  Warning: Variable name `TooltipTrigger` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+11:7  Warning: Variable name `TooltipContent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./lib/api/client.ts
+7:1  Warning: `zod` type import should occur before import of `@meetwise/contracts`  import/order
+46:32  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+46:68  Warning: Object Literal Property name `idempotency-key` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/api/speak-proxy.ts
+19:64  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+27:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/api/transcribe-proxy.ts
+18:64  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+26:16  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/interview/progress.ts
+3:3  Warning: Type Property name `issued_turns` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+4:3  Warning: Type Property name `answered_turns` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+5:3  Warning: Type Property name `current_turn` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+6:3  Warning: Type Property name `processing_turn` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/recruiter/surface.ts
+11:3  Warning: Object Literal Property name `in_progress` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+13:3  Warning: Object Literal Property name `assessment_unavailable` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/resume/display.ts
+8:3  Warning: Object Literal Property name `erasure_fenced` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/resume/ocr-preview-ui.ts
+18:3  Warning: Object Literal Property name `image_ocr_unavailable` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+19:3  Warning: Object Literal Property name `ocr_failed` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+20:3  Warning: Object Literal Property name `ocr_no_content` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+21:3  Warning: Object Literal Property name `ocr_duplicate` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+22:3  Warning: Object Literal Property name `ocr_binding_missing` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+23:3  Warning: Object Literal Property name `ocr_binding_invalid` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+24:3  Warning: Object Literal Property name `consent_required` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+25:3  Warning: Object Literal Property name `insufficient_entitlement` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+26:3  Warning: Object Literal Property name `extracted_too_short` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+27:3  Warning: Object Literal Property name `ocr_preview_format` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+28:3  Warning: Object Literal Property name `extracted_too_long` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+29:3  Warning: Object Literal Property name `file_too_large` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+30:3  Warning: Object Literal Property name `empty_file` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+31:3  Warning: Object Literal Property name `unsupported_file_format` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+32:3  Warning: Object Literal Property name `parse_failed` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+33:3  Warning: Object Literal Property name `too_many_requests` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+34:3  Warning: Object Literal Property name `server_busy` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+35:3  Warning: Object Literal Property name `public_preview_read_only` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+36:3  Warning: Object Literal Property name `upload_timeout` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+37:3  Warning: Object Literal Property name `upload_failed` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+./lib/stream/business-events.ts
+14:14  Warning: Variable name `QuestionKind` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+21:14  Warning: Variable name `BusinessEvent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./lib/stream/diagnosis-state.ts
+8:7  Warning: Variable name `Finding` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+9:7  Warning: Variable name `Rewrite` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+12:14  Warning: Variable name `DiagnosisEvent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./lib/stream/interview-state.ts
+8:1  Warning: `../interview/turn-submission` type import should occur before type import of `./business-events`  import/order
+79:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+95:37  Warning: Unexpected any. Specify a different type.  @typescript-eslint/no-explicit-any
+
+./lib/stream/quiz-state.ts
+10:14  Warning: Variable name `QuizEvent` must match one of the following formats: camelCase, UPPER_CASE  @typescript-eslint/naming-convention
+
+./lib/stream/sse-cursor.ts
+65:18  Warning: Object Literal Property name `content-type` must match one of the following formats: camelCase  @typescript-eslint/naming-convention
+
+info  - Need to disable some ESLint rules? Learn more here: https://nextjs.org/docs/app/api-reference/config/eslint#disabling-rules
+ ELIFECYCLE  Command failed with exit code 1.

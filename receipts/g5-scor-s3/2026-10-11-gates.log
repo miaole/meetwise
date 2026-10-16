@@ -1,0 +1,88 @@
+# G5 SCOR-S3 EXEC 门禁实录 · 2026-10-11 · worktree meetwise-g5 · branch line/g5-scor-s3 @ rebase onto 20186718
+# 每段 = 本 EXEC 会话单次实跑捕获（attempts 一次优先·零 retry-to-green·未重跑任何失败门）。
+# 隔离证据回执（LOCAL_ISOLATED_PROOF_RECEIPT json）各门打印于 .tmp/isolated-proof-receipts/（即用即灭容器）。
+
+## rebase
+$ git rebase feat/mysql-schema-skeleton
+Current branch line/g5-scor-s3 is up to date.
+# 主线 tip=20186718 == 分支 merge-base（61464c25 之父）→ 零重定位·漂移=0（G1 @3d61c091 已在主线史实）
+
+## ① TS 基线（四包 · before=git stash 后实跑 / after=改动后实跑 · 逐位置 diff）
+$ for p in packages/db packages/domain apps/api apps/worker; do (cd $p && pnpm exec tsc --noEmit); done
+before set=120 行 / after set=120 行 / diff → IDENTICAL-POSITION-SETS
+touch 面（9 改+1 新）零 TS 错误命中。基线红全为预存（g1 登记同族：privacy-erasure-preview/qbank-handoff/rag03c 等 test 面）。
+
+## ② web typecheck + web:prove
+$ (cd apps/web && pnpm exec tsc --noEmit)          → EXIT=0
+$ (cd apps/web && pnpm prove)                      → EXIT=0（✓ 全部通过 · 含 I2-3f 免责卡两态/I2-3g B 端零计数渲染原值）
+
+## ③ scoring-honesty proof（纯域）
+$ pnpm -C packages/domain prove:scoring-honesty
+PASS  正：C 端 practice overall 只计 practice 卡（b_review 不入·0161 收窄翻转 90→80），不走 event 均分
+PASS  正：practice_eligible 单卡仍入（收窄正测不误伤）
+PASS  复：非评分态卡不进 overall（review/unscored 不是 0）
+PASS  复：合法 overall 才允许 career 分层，0 是真 0 不是缺证据   ← :101-104 junior/mid 面零翻
+PASS scoring-honesty proof: 22 scenarios; releaseEvidence=false; forgedScores=domain_gate_only; httpHonesty=not_run
+EXIT=0   # 21 原值零翻 + 1 新增（汇总行字面量 21→22 随断言同步·已披露）
+
+## ④ scor-02:prove（隔离 PG·真迁移链含 0161）
+$ pnpm scor-02:prove
+PASS  C 端评估消费面：两张可评分卡 → overall 90（…原 F1 夹具 practice+practice 不涉收窄·原值绿）
+PASS  F1c 前置：写卡 aggb-1（target=practice_eligible·total=80·写路径双态零触）
+PASS  F1c 前置：写卡 aggb-2（target=b_review_eligible·total=100·写路径双态零触）
+PASS  F1c 收窄聚合：practice(80)+b_review(100) → eligible=1·overall=80·non_scoring=1（b_review 不入）
+PASS  F1c 收窄读面：list 只返回 1 张 practice 卡（b_review 不入 C 端逐题读面）
+PASS  F1c fence 负测：practice 卡 fenced → eligible=0·overall=null（fenced 不计不聚·无分≠0 分）
+（D3 翻转断言 PASS：C 端评估消费面：practice 卡+b_review 卡 → overall 80）
+✓ 评分确定性聚合（SCOR-02）DB 证明通过（本地隔离证据）
+EXIT=0
+
+## ⑤ scor-01:prove
+✓ 评分测量事实根（SCOR-01）DB 证明通过（本地隔离证据）   EXIT=0   # :236-237 双态 join 断言零翻（本体未动旁证）
+
+## ⑥ scor03-evidence-conflict:prove
+✓ 评分证据冲突与不确定性（SCOR-03）DB 证明通过（本地隔离证据）   EXIT=0
+
+## ⑦ scor-parity:prove（G1 对拍回归旁证·文件零字节零触）
+PASS  §E 负测对照组：白名单内 review_required 同形直插全通（守门恰四值·不误伤）
+PARITY_COUNTS card_matrix=100 request_matrix=25 formula_write_final=12 formula_adjudicate=5 formula_reject=4 enum_face=2 guard_positive=6 guard_negative=6
+✓ G1 SCORE-S3 #42 TS↔SQL 对拍 + #43 INSERT 守门证明通过（本地隔离证据）   EXIT=0   # 0158 四值白名单实测相符
+
+## ⑧ migrate:prove（0161 入链）
+PASS  再部署:全迁移 skip(不重跑任何 DROP)
+PASS  **零数据丢失**:再部署后业务数据仍在
+✓ 迁移运行器 全部通过   EXIT=0   # 0161 fresh apply + 幂等 + 零数据丢失
+
+## ⑨ neg:interview（GET 重闸 HTTP 面）
+✓ neg:interview: 102 条负路径用例全绿   EXIT=0   # 97 原值零翻 + 5 条 G5 新增（A( 计数 before 98 → after 103 佐证）
+新增五条：
+PASS  G5 assessment GET persisted ready + practice 卡在 → 200 原值（重闸正测·资格在原样返回）
+PASS  G5 assessment GET persisted ready 但卡 fenced → 409 no_scorable_cards（fail-closed·不发失配行）
+PASS  G5 assessment GET persisted ready 但仅 b_review 卡（0161 收窄不入 C 端）→ 409 no_scorable_cards
+PASS  G5 career-path GET persisted + practice 卡在 → 200 原值（重闸正测）
+PASS  G5 career-path GET persisted 但卡 fenced → 409 insufficient_evidence（对齐 POST career-path 先例）
+
+## ⑩ interview:prove
+✓ 当前 v64 面试链路全部通过   EXIT=0
+
+## ⑪ growth:prove
+✓ growth:prove 全部通过   EXIT=0
+
+## ⑫ docs:check（预存红如实·不 retry-to-green）
+$ node scripts/ai-docs/check-docs.mjs
+ai-docs check failed:
+- public_text_policy:PTP_FILE_LIMIT:4402
+# G1 nail 登记 cap 2048 vs 4327（当时值）；4327→4402 增量属 G1 之后已落主线 docs（h3/h4 等），非本刀。
+# 托管根=ai-docs/apps/packages/scripts/docker/e2e/.github/.claude/ops/docs（receipts/ 非托管根不入计）；
+# 本刀计入增量 = +1（packages/ 下 0161 迁移）→ 4401（基）→ 4402（落卷后实测）。如实披露·零语义恶化·cap 未动。
+
+## markers（五类标记词+冲突标记正则零命中·词不复抄避免自匹配）
+$ <改动集 9 文件 + 0161 + 收据 2 件 + ADR/REQUEST> xargs grep 五类标记词正则 → 仅 gates.log 本文件两条「记录在案的命令行文本」自匹配（非代码标记）；代码改动集与 0161 全部 exit=1 零命中。
+
+## 零触面核查（git diff --stat 全空）
+0100/0103/0109/0158/0159/0160_b_qualitative_projection/0160_level_policy_version/
+scor-parity.proof.ts/growth-generation.ts/worker main.ts/interview.controller.ts/
+applications.service.ts/web scoring-honesty.ts/recruiter surface.ts → 全零字节
+
+## est live=0
+零模型外呼·零 Key 值接触·零 secrets·隔离 PG 容器即用即灭·零生产操作·零 push。

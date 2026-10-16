@@ -1,0 +1,15 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "timezone": "Asia/Shanghai",
+  "schedule": ["after 1am and before 5am on monday"],
+  "prHourlyLimit": 4,
+  "prConcurrentLimit": 10,
+  "packageRules": [
+    {
+      "description": "package.json 定向升级集中为单一周更 PR（周频限流；advisory 面渐进收·不做全量 update · Ban 顺带升级纪律由 review 面维持）",
+      "groupName": "package.json deps (weekly)",
+      "matchManagers": ["npm"]
+    }
+  ]
+}

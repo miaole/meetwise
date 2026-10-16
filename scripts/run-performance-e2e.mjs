@@ -15,6 +15,11 @@ const env = {
   RESUME_ENC_KEY: process.env.RESUME_ENC_KEY ?? 'e2e-resume-enc-key',
   RESUME_HASH_SECRET: process.env.RESUME_HASH_SECRET ?? 'e2e-resume-hash-secret',
   RAG_JOB_ROUTE_INPUT_HASH_KEY: process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ?? 'e2e-rag03-job-route-input-hmac-key-not-production',
+  // b110 §1.2.6 独立限流段(显式落档,Ban §5.11):本档同 IP 并发 signup 24(perf 写路径)+8(resume 画像)
+  // 必被 prod 钉死值 signup:ip=(10,0.05) 掐死(28>10 突发)。signup 吞吐本身是被测对象,禁种子直插;
+  // 故仅在本 perf/E2E 启动档经 RL_SIGNUP_IP(容量,速率) 放宽突发到 64(≥32,稳态速率不变),
+  // prod 不设该 env 即用钉死值 (10,0.05)。桶检查(每请求真打)零删零静默 special-case。
+  RL_SIGNUP_IP: process.env.RL_SIGNUP_IP ?? '64,0.05',
 };
 if (existsSync(ROOT + '.env')) {
   for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {

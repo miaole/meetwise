@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "mode": "observe-only",
   "releaseEvidence": false,
-  "statement": "静态清单只枚举当前仓库已知的模型供应商直接出站，不证明镜像、云网络、密钥分发或唯一出口。",
+  "statement": "\u9759\u6001\u6e05\u5355\u53ea\u679a\u4e3e\u5f53\u524d\u4ed3\u5e93\u5df2\u77e5\u7684\u6a21\u578b\u4f9b\u5e94\u5546\u76f4\u63a5\u51fa\u7ad9\uff0c\u4e0d\u8bc1\u660e\u955c\u50cf\u3001\u4e91\u7f51\u7edc\u3001\u5bc6\u94a5\u5206\u53d1\u6216\u552f\u4e00\u51fa\u53e3\u3002",
   "requiredOperationIds": [
     "chat",
     "vision-ocr",
@@ -111,6 +111,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
           "class": "local-adapter-test"
         },
@@ -127,7 +135,39 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/context-budget.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/ag-b-classify.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/ag-e-report.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "apps/worker/test/resume-grounding.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/model-op02-endpoint-partition.proof.ts",
           "class": "local-adapter-test"
         }
       ]
@@ -193,6 +233,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "apps/worker/test/qbank-retrieval-eval-pg.proof.ts",
           "class": "local-adapter-test"
         }
@@ -235,13 +283,21 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
           "class": "local-adapter-test"
         }
       ]
     },
-      {
-        "id": "dashscope-http-voice",
+    {
+      "id": "dashscope-http-voice",
       "source": "packages/ai-runtime/src/voice.ts",
       "factory": "dashscopeAsr|dashscopeTts",
       "transports": [
@@ -280,6 +336,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
           "class": "local-adapter-test"
         }
@@ -311,6 +375,14 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/voice-stream-preview.proof.ts",
           "class": "local-adapter-test"
         }
@@ -318,6 +390,7 @@
     }
   ],
   "transportSources": [
+    "packages/ai-runtime/src/model-client.ts",
     "packages/ai-runtime/src/timeout.ts",
     "packages/ai-runtime/src/voice-stream.ts"
   ],
@@ -371,6 +444,26 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/conn-stack/mysql-stack.sole-wiring.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "scripts/g7-freetier/redact-gap-evidence.mjs",
+      "class": "test-isolation"
+    },
+    {
       "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
       "source": "packages/ai-runtime/src/dashscope-native-config.ts",
       "class": "adapter-configuration"
@@ -414,6 +507,11 @@
       "name": "DASHSCOPE_ASR_API_KEY",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
     },
     {
       "name": "DASHSCOPE_ASR_MODEL",
@@ -463,6 +561,11 @@
     {
       "name": "DASHSCOPE_COMPAT_BASE_URL",
       "source": "packages/ai-runtime/test/interview-voice-seams.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
       "class": "test-isolation"
     },
     {
@@ -896,6 +999,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "DASHSCOPE_TTS_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
+    },
+    {
       "name": "DASHSCOPE_TTS_MODEL",
       "source": "packages/ai-runtime/src/voice.ts",
       "class": "adapter"
@@ -984,6 +1092,11 @@
       "name": "DASHSCOPE_VISION_API_KEY",
       "source": "packages/ai-runtime/test/vision-endpoint-config.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
     },
     {
       "name": "DASHSCOPE_VISION_MODEL",
@@ -1167,8 +1280,253 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "scripts/tokstream-s2-probe.mjs",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-010-sse-resume.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-015-resume-ingest-failures.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-018-user-abandon-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/evidence/r4-p-meta-p-r1-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/evidence/r4-p-meta-serving-product-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/evidence/r4-p-meta-serving-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/evidence/r4-p-r1-fail-closed-remaining.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/nhp-r4-adv-covered.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms1-product-wire.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-p-r1.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-serving-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-serving.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-r1-fail-closed.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-wrong-track-prod-surface.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-002-cross-device-lease.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-011-report-refund.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-017-orphan-reservation.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-018-user-abandon.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-019-report-regenerate.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/eval-uc-e2e-001-002-cite.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g6-e2e-iso-blocked.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g7-scor00-sole-fixture.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/uc-e2e-001-live-blocked.proof.mjs",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/godfn-1c-begin-guard-merge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-001-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/web/e2e-ui/voice-duplex.spec.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms2-facets-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/r4-p-meta-ms3-deploy-product.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/uc-e2e-016-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/src/g7-freetier-reprove-guard.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-guard.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-paths.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc-e2e-017-nhp-load.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc052-external-sink-async-purge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/uc052-external-sink-retention.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/g7-freetier/redact-gap-evidence.mjs",
+      "class": "test-isolation"
     },
     {
       "name": "MODEL_BACKUP_API_KEY_FINGERPRINT",
@@ -1351,6 +1709,46 @@
       "class": "deployment-contract"
     },
     {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/godfn-1c-begin-guard-merge.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-001-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
@@ -1374,6 +1772,31 @@
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/src/g7-freetier-reprove-guard.ts",
+      "class": "test-only-guard"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/e2e-live-capability-env.mjs",
+      "class": "live-test-launcher"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/tokstream-s2-probe.mjs",
+      "class": "manual-live-smoke"
     },
     {
       "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
@@ -1411,6 +1834,26 @@
       "class": "test-fixture"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag24-langfuse-model.proof.ts",
+      "class": "test-fixture"
+    },
+    {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-client-output-limit.proof.ts",
       "class": "test-fixture"
@@ -1427,6 +1870,16 @@
     },
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/g7-freetier-fix-round2.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "scripts/e2e-fake-service-flags.mjs",
       "class": "test-only-guard"
     },
@@ -1439,6 +1892,156 @@
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "scripts/e2e-static-guards.proof.mjs",
       "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_VISION_API_KEY",
+      "source": "apps/api/src/platform/env-schema.ts",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/src/platform/env-schema.ts",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/qbank-planner-honesty.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/report-retry-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/role-input.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/db/test/report-retry.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/alerts/check-alerts-metrics-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/alerts/check-alerts-sandbox-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "scripts/ha/ha-sandbox.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/api/src/platform/env-schema.ts",
+      "class": "env-schema-documentation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/alerts/check-alerts-metrics-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/alerts/check-alerts-sandbox-smoke.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "scripts/ha/ha-sandbox.mjs",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BACKUP_API_KEY",
+      "source": "apps/worker/test/estimator-v2-cjk.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/qbank-planner-honesty.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/role-input.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/ag-b-classify.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/ag-e-report.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
+      "class": "test-isolation"
     }
   ],
   "deploymentReferences": [

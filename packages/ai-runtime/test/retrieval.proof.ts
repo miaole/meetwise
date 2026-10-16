@@ -4,9 +4,10 @@
  *   pnpm retrieval:prove
  */
 import {
-  fakeEmbedder, denseRank, buildBm25, rrf, evalRecall, weightedRrf, buildSearchIndex,
+  denseRank, buildBm25, rrf, evalRecall, weightedRrf, buildSearchIndex,
   expandQuery, multiQuerySearch, type QueryExpansionInvoker, type Reranker,
 } from '../src/index.ts';
+import { fakeEmbedder } from './support/fakes.ts';   // #74: fake 族经 test-support 子路径
 import { ADVERSARIAL_CORPUS, ADVERSARIAL_QUERIES } from '../../../apps/worker/smoke/retrieval-adversarial-golden.ts';
 
 let fail = 0;

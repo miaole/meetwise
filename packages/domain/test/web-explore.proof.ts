@@ -41,8 +41,17 @@ const docs2 = await webExplore('x', allow, async () => { throw new Error('网络
 A('抓取失败 → 跳过不拖垮(降级)', docs2.length === 0);
 
 // ── createSafeFetch:手动逐跳重定向 + 每跳复核 + fail-soft ──
+// #119 扩面:RawResponse 增可选字节流面,生产真 Response 恒有 body——fake 助手同刀扩齐(默认单 chunk),
+// 既有臂经流式读路径语义零变;createSafeFetch 对无 body 的 text()-only 形 fail-closed 拒(b2c1-web-egress ⑥ 直证)。
+const byteStream = (bytes: Uint8Array): ReadableStream<Uint8Array> => {
+  let sent = false;
+  return new ReadableStream<Uint8Array>({
+    pull(c) { if (sent || bytes.length === 0) { c.close(); return; } c.enqueue(bytes); sent = true; },
+  });
+};
 const resp = (status: number, opts: { location?: string; body?: string } = {}): RawResponse => ({
   status, headers: { get: (n: string) => (n.toLowerCase() === 'location' ? opts.location ?? null : null) }, text: async () => opts.body ?? '',
+  body: byteStream(new TextEncoder().encode(opts.body ?? '')),
 });
 const rec = (fn: (url: string) => RawResponse) => { const seen: string[] = []; return { seen, raw: async (u: string) => { seen.push(u); return fn(u); } }; };
 
@@ -79,6 +88,24 @@ const rec = (fn: (url: string) => RawResponse) => { const seen: string[] = []; r
 { let calls = 0;
   const slowRedirect = async () => { calls++; await new Promise((resolve) => setTimeout(resolve, 60)); return resp(302, { location: 'https://allow.example/next' }); };
   A('safeFetch:redirect 总超时耗尽后不再发下一跳', (await createSafeFetch(slowRedirect, allow, { timeoutMs: 20, maxRedirects: 3 })('https://allow.example/a')) === null && calls === 1); }
+
+// resolve 相位耗时必须折减 fetch 预算(resolve 返回后重算剩余时长):否则 fetch 信号仍持进跳全量 timeoutMs,
+// 单跳最坏 2× 预算。时标:timeoutMs=200、resolve 占 100ms → fetch 信号仅剩 ~100ms(进入 rawFetch 后 ~100ms 到点);
+// 不折减形信号 ~200ms 才到点。注入 fetch 于进入后 130ms 醒来:折减形信号已 abort(同真 fetch 中景被断,如实抛错
+// → fail-soft null);不折减形此刻未 abort、会交回 200 页 → 臂红。100/130/150/200 四档互留裕度,沿上一臂时标同族。
+{
+  let enteredAt = 0;
+  let abortDelay = -1;
+  const raw = async (_u: string, init: { redirect: 'manual'; signal: AbortSignal }) => {
+    enteredAt = Date.now();
+    init.signal.addEventListener('abort', () => { abortDelay = Date.now() - enteredAt; });
+    await new Promise((r) => setTimeout(r, 130));
+    if (init.signal.aborted) throw new Error('fetch cut by shared deadline');
+    return resp(200, { body: '<p>x</p>' });
+  };
+  const p = await createSafeFetch(raw, allow, { timeoutMs: 200, resolve: async () => { await new Promise((r) => setTimeout(r, 100)); return ['93.184.216.34']; } })('https://allow.example/s?q=x');
+  A('safeFetch:resolve 相位耗时折减 fetch 预算(重算剩余时长·信号 ~100ms 到点而非全量 200ms)', p === null && abortDelay >= 0 && abortDelay < 150);
+}
 
 // 抛错(超时/网络挂)→ fail-soft null
 { A('safeFetch:抛错 → fail-soft(null)', (await createSafeFetch(async () => { throw new Error('timeout'); }, allow)('https://allow.example/s')) === null); }

@@ -1,0 +1,7 @@
+# [4] TC-01-main seven-number sync (unique-anchor guard n!==1 reject): TC-EXIT=0
+TC-e2e-parity-01-main stats synced 37>39 350>428 48>53 377>472 37>39 350>428 7>9
+# baseline.md :18 three anchors (same guard): MD-EXIT=0
+baseline.md:18 numbers synced
+
+# diff shapes:
+allowlist.json: +123/-0 pure tail append (2 entries); baseline.json: +505/-5 (5 replaced lines = floors x2 + full.e2e assertionCount + helpers testCount/assertionCount); baseline.md: 1 line (:18); proof.mjs: 7 lines replaced (:91-97)

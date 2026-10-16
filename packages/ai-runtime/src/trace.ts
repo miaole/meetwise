@@ -14,6 +14,13 @@ export type ModelCallOutcome =
 
 export interface ModelCallSpan {
   service?: string;
+  /** AG-19:prompt 注册表版本标量(观测标签·值域⊆registry 版本集∪缺省——绝不带 prompt 原文,脱敏铁律不破)。 */
+  promptVersion?: string;
+  /**
+   * AG-24:模型归因标量(观测标签·值域⊆受控策略模型名∪G7 供应商回显∪缺省——缺省时
+   * Langfuse 侧降级 safeName(service),绝不带调用方注入自由串,脱敏铁律不破)。
+   */
+  model?: string;
   owner: string;
   idempotencyKey: string;
   threadId?: string;       // 面试 id:Langfuse sessionId/traceId,一场面试归一棵树(跨调用 RCA)
@@ -24,6 +31,16 @@ export interface ModelCallSpan {
   sources?: string[];     // provenance:本次生成用到的检索来源 ref_ids(题目/记忆/知识块)——可审计、可引用,非 PII
   inputTokens?: number;   // 成本观测:prompt token(标量,非内容)——喂 Langfuse 成本/token 看板
   outputTokens?: number;  // 成本观测:completion token(标量,非内容)
+  /**
+   * AG-24:供应商上报缓存命中输入 token(cost1 ModelUsage 面透传·**缺席≠零铁律**:
+   * undefined=字段缺席(Langfuse 侧 input_cached 键不出现),0=显式回报零——两态分开,绝不静默归零)。
+   */
+  cachedInputTokens?: number;
+  /**
+   * AG-24:账本结算权威值(microCny·仅终局 ok 臂携带——结算就绪后发射;缺省=该臂未结算,
+   * Langfuse metadata 落 null 占位,沿 promptVersion 同形)。
+   */
+  settledCostMicroCny?: number;
 }
 export interface Tracer { record(span: ModelCallSpan): void; }
 

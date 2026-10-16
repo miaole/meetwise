@@ -1,0 +1,10 @@
+{"bootId":21584,"step":"signup","status":200}
+{"bootId":21584,"step":"consent","status":200}
+{"bootId":21584,"step":"upload","status":200,"resumeId":"ok"}
+{"bootId":21584,"step":"units-before","v":1}
+{"bootId":21584,"step":"iv3-created","iv3":"iv_01a12b2ff8787921b03fd2792c097a05"}
+{"bootId":21584,"step":"iv3-begin","status":202,"body":{"accepted":true,"jobId":"01a12b2f-f89d-77b1-91b5-ae4ffff69c2d"}}
+{"bootId":21584,"step":"units-after","v":0}
+{"bootId":21584,"step":"iv4-created","iv4":"iv_01a12b2ff8787921b03fd2792c097a05"}
+{"bootId":21584,"step":"iv4-begin","status":202,"body":{"accepted":true,"jobId":"01a12b2f-f89d-77b1-91b5-ae4ffff69c2d","alreadyBegun":true}}
+# 注：原 .tmp/e2e-expert-diag.ndjson 于仪器摘除时删除·本件=会话转录逐字节重建（EXEC 收据 §〇-2 引证）·2026-10-11

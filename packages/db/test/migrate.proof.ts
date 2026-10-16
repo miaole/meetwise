@@ -1,9 +1,11 @@
 /** 迁移运行器证明（真 Postgres）：只跑待应用 · 幂等 · 事务 · 漂移检测 · advisory 锁 · 目录加载。 pnpm migrate:prove */
 import { createHash } from 'node:crypto';
-import { existsSync, readFileSync } from 'node:fs';
-import { resolve } from 'node:path';
-import { assertIsolatedTestTarget, createPool, runMigrations, loadMigrations } from '../src/index.ts';
-import { containsTopLevelTransactionControl } from '../src/migrate.ts';
+import { existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { dirname, join, resolve } from 'node:path';
+import { spawnSync } from 'node:child_process';
+import { assertIsolatedTestTarget, createPool, runMigrations, loadMigrations, type Migration } from '../src/index.ts';
+import { containsTopLevelTransactionControl, migrationVersionByteCompare } from '../src/migrate.ts';
 
 export type MigrateProofOutcome = {
   assertions: number;
@@ -156,13 +158,22 @@ export async function runMigrateProof(
     executionMode: 'concurrent-index' as const,
     sql: 'CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_unique_conflict ON mig_unique_conflict(id);',
   };
+  // R-1 断言改写登记(MIG-RUNNER 簇③-a·#145): 旧断言「并发唯一索引失败留下无效物理索引:
+  // 不记账且重跑失败关闭」四个可观测半边**全数保留零删洗**(首跑拒/重跑 tagged not_valid/
+  // ledger 零推进/物理索引 invalid); 新语义增量=重跑期 runner 对**定义精确匹配**的自身残留
+  // INVALID 索引执行恰一次 DROP CONCURRENTLY+重建重试(裁决项⑤), 再败仍 fail-loud 同码。
+  // 断言力对账: 旧4半边 + 新 cleanup 恰一次事件观测 = 净增强, 无静默删洗。
   let invalidIndexRejected = false;
   try { await runMigrations(pool, [m1, m2, m3, concurrentIndex, invalidConcurrentIndex]); }
   catch { invalidIndexRejected = true; }
+  const invalidCleanupEvents: Array<{ version: string; indexName: string }> = [];
   let invalidIndexRerunRejected = false;
-  try { await runMigrations(pool, [m1, m2, m3, concurrentIndex, invalidConcurrentIndex]); }
+  try { await runMigrations(pool, [m1, m2, m3, concurrentIndex, invalidConcurrentIndex], { onConcurrentIndexCleanup: (event) => invalidCleanupEvents.push(event) }); }
   catch (error) { invalidIndexRerunRejected = (error as { code?: string }).code === 'migration_concurrent_index_not_valid'; }
-  A('并发唯一索引失败留下无效物理索引: 不记账且重跑失败关闭', invalidIndexRejected && invalidIndexRerunRejected
+  A('并发唯一索引失败留下无效物理索引: 不记账、重跑恰一次清理重试后仍失败关闭(#145 恰一次 heal·R-1 改写)', invalidIndexRejected && invalidIndexRerunRejected
+    && invalidCleanupEvents.length === 1
+    && invalidCleanupEvents[0]?.version === '0003c'
+    && invalidCleanupEvents[0]?.indexName === 'ix_mig_unique_conflict'
     && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003c'")).rows[0]?.n === 0
     && (await pool.query("SELECT indisvalid FROM pg_index WHERE indexrelid='public.ix_mig_unique_conflict'::regclass")).rows[0]?.indisvalid === false);
   await pool.query('DROP TABLE mig_unique_conflict');
@@ -220,7 +231,7 @@ export async function runMigrateProof(
   await pool.query('DROP TABLE migration_guarded_business, mig_t2, schema_migrations');
 
   // 目录加载 + baseline(冻结真 schema) + 增量 + 幂等 + **数据保全(零丢失)**
-  await pool.query('DROP TABLE IF EXISTS schema_migrations, app_setting CASCADE');
+  await pool.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
   const loaded = loadMigrations(migrationDirectory);
   A('版本化目录没有普通迁移自带事务控制语句', loaded.every((migration) => migration.executionMode === 'concurrent-index'
     || !containsTopLevelTransactionControl(migration.sql)));
@@ -236,7 +247,8 @@ export async function runMigrateProof(
   const manifestStrictlyIncreasing = loaded.every((migration, index) => {
     if (index === 0) return true;
     const previous = loaded[index - 1];
-    return previous !== undefined && previous.version.localeCompare(migration.version) < 0;
+    // 字节序切换(簇③-b)伴随改写: 与 runner canonicalMigrations 同一比较器(原 localeCompare)。
+    return previous !== undefined && migrationVersionByteCompare(previous.version, migration.version) < 0;
   });
   const laterVersionsAreSuccessors = loaded.slice(resumePgcrypto0121Index + 1).every((migration) => /^([0-9]{4})_/.test(migration.version)
     && Number(migration.version.slice(0, 4)) >= 122);
@@ -304,7 +316,9 @@ export async function runMigrateProof(
     (await pool.query("SELECT has_table_privilege('app_role','qbank_chunk','SELECT') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_function_privilege('app_role','qbank_active_generation_metadata()','EXECUTE') allowed")).rows[0]?.allowed === true);
   A('0021 → interview_question + 事件去重索引已建', (await has('interview_question')) && (await pool.query("SELECT to_regclass('public.uq_interview_event_key') r")).rows[0].r !== null);
-  A('0027 → 事件去重表级唯一约束已建', (await pool.query("SELECT count(*)::int n FROM pg_constraint WHERE conname='uq_interview_event_key_constraint' AND contype='u'")).rows[0].n === 1);
+  A('0027+0149 → 事件去重唯一最终态=仅 0021 partial（DBM3-1 D3 删 0027 表级约束·ON CONFLICT arbiter 不变）',
+    (await pool.query("SELECT count(*)::int n FROM pg_constraint WHERE conname='uq_interview_event_key_constraint'")).rows[0].n === 0
+    && (await pool.query("SELECT to_regclass('public.uq_interview_event_key') r")).rows[0].r !== null);
   A('0028/0046 → application/interview attempt 唯一索引与自动回填 trigger 已建', (await pool.query("SELECT to_regclass('public.uq_interview_application_attempt') r")).rows[0].r !== null
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_finalize_bound_job_application' AND NOT tgisinternal")).rows[0].n === 1);
   A('0029 → qbank 可重建事实、generation 指针、语料 epoch 与分区表已建',
@@ -370,7 +384,9 @@ export async function runMigrateProof(
   A('0046 → 岗位申请可显式评分不可用、历史 attempt 唯一、failed 必须释放',
     (await pool.query("SELECT pg_get_constraintdef(oid) def FROM pg_constraint WHERE conname='job_application_status_check'")).rows[0]?.def.includes('assessment_unavailable')
     && (await pool.query("SELECT to_regclass('public.uq_interview_application_attempt') r")).rows[0]?.r !== null
-    && (await pool.query("SELECT pg_get_functiondef('enforce_interview_consumption_terminal_pair()'::regprocedure) def")).rows[0]?.def.includes("'failed'")
+    // DBTF-1（0144）：terminal-pair 函数体收敛入 tf_ 库（挂接点/签名/语义零变）——断言改为
+    // 薄壳+库成员 def 链拼接后仍含 'failed' 字面量（强度不减 · 位置无关）。
+    && ((await pool.query("SELECT pg_get_functiondef('enforce_interview_consumption_terminal_pair()'::regprocedure) || pg_get_functiondef('public.tf_interview_consumption_terminal_pair(public.interview,public.interview)'::regprocedure) def")).rows[0]?.def.includes("'failed'"))
     && (await pool.query("SELECT pg_get_constraintdef(oid) def FROM pg_constraint WHERE conname='ck_job_application_score_range'")).rows[0]?.def.includes('100')
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_interview_scoring_completion_integrity' AND NOT tgisinternal")).rows[0]?.n === 1
     && (await pool.query("SELECT count(*)::int n FROM pg_trigger WHERE tgname='trg_job_application_lineage' AND NOT tgisinternal")).rows[0]?.n === 1
@@ -392,14 +408,364 @@ export async function runMigrateProof(
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','INSERT') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','UPDATE') allowed")).rows[0]?.allowed === false
     && (await pool.query("SELECT has_table_privilege('app_role','ai_model_invocation','DELETE') allowed")).rows[0]?.allowed === false
-    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true
-    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer)','EXECUTE') allowed")).rows[0]?.allowed === true);
-  A('增量 0003 → app_setting 有 ALTER 加的 updated_at 列(非 DROP 重建)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='app_setting' AND column_name='updated_at'")).rowCount === 1);
-  // 关键:插用户数据 → 再部署(重跑迁移)→ 数据必须还在(运行器 skip,不重跑 baseline 的 drop+recreate)
-  await pool.query("INSERT INTO app_setting(key,value) VALUES ('user_key','user_data')");
+    // AG-12（0184）：claim 函数随 estimator_version/calibration_factor_version 冻结两列落库升 19 参
+    // （17 参旧签名已 DROP·0181/0119 升参先例同形），签名断言随升 19 参——regprocedure 签名串精确
+    // 匹配不吃 DEFAULT（0174 rev2 席1 post-prove 42883 实证先例）。
+    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_claim_invocation_scoped(text,text,text,text,text,text,text,uuid,integer,text,text,text,text,integer,integer,integer,text,text,text)','EXECUTE') allowed")).rows[0]?.allowed === true
+    // rev2(0174)：terminalize 经 0174 DROP+CREATE 镜像升 10 参($10 p_usage_source DEFAULT NULL)，
+    // 签名断言随升 10 参——regprocedure 签名串精确匹配不吃 DEFAULT(席1 post-prove 42883 实证)。
+    && (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer,text)','EXECUTE') allowed")).rows[0]?.allowed === true);
+  // 0174 rev2 臂（AG-06/14 刀B）：$10 DEFAULT 只保调用面不保签名断言面——本臂双面钉：
+  // ①10 参签名 app_role EXECUTE（0174 :104 GRANT 落地·pg_proc 10 参+末参带 DEFAULT 的机械证）；
+  // ②9 参调用形仍解析（生产 markModelInvocationUnknown=model-invocation.ts:161 九实参形零改动即
+  // 依赖此面）——探针 9 参调用进函数体后被 ai_cost_require_request_owner（0035）principal 守卫抛
+  // 42501 insufficient_privilege=「已解析已进体」的确定性观测（42883 才是解析失败），守卫先于一切
+  // 写入零残留。
+  let terminalizeNineArgSqlstate = '';
+  try {
+    await pool.query("SELECT ai_model_terminalize_scoped('rev2_nine_arg_probe','rev2_nine_arg_probe','failed','x',NULL::jsonb,true,NULL::integer,NULL::integer,NULL::integer)");
+  } catch (error) {
+    terminalizeNineArgSqlstate = String((error as { code?: string }).code ?? '');
+  }
+  A('0174 → terminalize 升 10 参后 $10 DEFAULT 保 9 参调用面: 新签名 app_role 可 EXECUTE·pg_proc 10 参带 DEFAULT·9 参调用形解析进体(42501 守卫·非 42883)',
+    (await pool.query("SELECT has_function_privilege('app_role','ai_model_terminalize_scoped(text,text,text,text,jsonb,boolean,integer,integer,integer,text)','EXECUTE') allowed")).rows[0]?.allowed === true
+    && (await pool.query("SELECT pronargs::int n FROM pg_proc WHERE proname='ai_model_terminalize_scoped' AND pronamespace='public'::regnamespace")).rows[0]?.n === 10
+    && (await pool.query("SELECT proargdefaults IS NOT NULL has_default FROM pg_proc WHERE proname='ai_model_terminalize_scoped' AND pronamespace='public'::regnamespace")).rows[0]?.has_default === true
+    && terminalizeNineArgSqlstate === '42501');
+  // DBHY-1(0145):app_setting 死表已退役——示范断言改挂真迁移对象演示同一增量语义(增量 ALTER 出列+数据保全):
+  // 列对象=0135 的 resume_quiz.expires_at(真增量 ALTER·非 DROP 重建);数据对象=resume_quiz 真行(增量重跑不毁既有行)。
+  A('增量 0135 → resume_quiz 有 ALTER 加的 expires_at 列(非 DROP 重建·真迁移对象)', (await pool.query("SELECT 1 FROM information_schema.columns WHERE table_name='resume_quiz' AND column_name='expires_at'")).rowCount === 1);
+  // 关键:插业务数据 → 再部署(重跑迁移)→ 数据必须还在(运行器 skip,不重跑任何 baseline 的 drop+recreate)
+  await pool.query("INSERT INTO resume_quiz(id,owner_user_id) VALUES ('__dbhy1_canary__','dbhy1_canary_owner')");
   const rr2 = await runMigrations(pool, loaded);
-  A('再部署:全迁移 skip(不重跑 baseline 的 DROP)', rr2.applied.length === 0 && rr2.skipped.length === loaded.length);
-  A('**零数据丢失**:再部署后用户数据仍在', (await pool.query("SELECT value FROM app_setting WHERE key='user_key'")).rows[0]?.value === 'user_data');
+  A('再部署:全迁移 skip(不重跑任何 DROP)', rr2.applied.length === 0 && rr2.skipped.length === loaded.length);
+  A('**零数据丢失**:再部署后业务数据仍在', (await pool.query("SELECT owner_user_id FROM resume_quiz WHERE id='__dbhy1_canary__'")).rows[0]?.owner_user_id === 'dbhy1_canary_owner');
+  await pool.query("DELETE FROM resume_quiz WHERE id='__dbhy1_canary__'");
+  A('DBHY-1(0145):app_setting 死表已退役(fresh deploy 不再产死表)', !(await has('app_setting')));
+  A('DBHY-1(0145):consumption_record 死表已退役(幂等真身=entitlement_consumption 在产)', !(await has('consumption_record')) && (await has('entitlement_consumption')));
+
+  // ==================== MIG-RUNNER 批5 首刀扩形（#179 本体+#115/#145/#140 runner 半）====================
+  // 本段断言落槽=REQUEST §2 九条候选的 2/3/4/5/6/7 号；1 号(超预算回滚)同段。
+  // ledger 生命周期约束：本段位于全量 catalog 应用之后（schema 已有真业务表），不可再 drop
+  // ledger（:218-224 uninitialized 守卫会正确拒绝）——全部 fixture 走**累积 manifest**形：
+  // 真树 loaded+fixture 按字节序追加，once-fail fixture 各占一个收尾调用（失败后不再入清单）。
+
+  // ---- §2-5 字节序切换（簇③-b·#140 runner 半·R-3 两序残面）----
+  const treeVersions = loaded.map((migration) => migration.version);
+  const localeOrder = [...treeVersions].sort((a, b) => a.localeCompare(b));
+  const byteOrder = [...treeVersions].sort(migrationVersionByteCompare);
+  A('字节序切换前置: 现树 migrations/ 全量文件名 localeCompare 序==字节序逐对等价(197 文件·0143/0152/0160 双号对内序全等)',
+    JSON.stringify(localeOrder) === JSON.stringify(byteOrder));
+  A('字节序负测: 构造两序分歧样本证明比较器真切换(字节 B<a · locale a<B)',
+    migrationVersionByteCompare('0143_B', '0143_a') === -1 && '0143_B'.localeCompare('0143_a') === 1);
+  await pool.query('DROP TABLE IF EXISTS mig_byte_order_probe');
+  await pool.query('CREATE TABLE mig_byte_order_probe(v text)');
+  await pool.query("INSERT INTO mig_byte_order_probe VALUES ('0143_B'),('0143_a'),('0160_x'),('0160_y')");
+  const collateCProbe = (await pool.query('SELECT v FROM mig_byte_order_probe ORDER BY v COLLATE "C"')).rows.map((row: { v: string }) => row.v);
+  const runnerProbeOrder = ['0143_B', '0143_a', '0160_x', '0160_y'].sort(migrationVersionByteCompare);
+  A('字节序: PG ORDER BY v COLLATE "C" 序==runner 字节序(分歧样本进真排序算子·R-3 消两序残面)',
+    JSON.stringify(collateCProbe) === JSON.stringify(runnerProbeOrder));
+  await pool.query('DROP TABLE mig_byte_order_probe');
+
+  // ---- 累积 manifest 形制（真树 loaded+fixture 追加·三守卫全程可见且必须连续通过）----
+  const msSql = [
+    '-- @migration-mode multi-statement',
+    'CREATE TABLE mig_ms_steps(src int);',
+    'INSERT INTO mig_ms_steps VALUES (1);',
+    'INSERT INTO mig_ms_blocked VALUES (100);',
+    'INSERT INTO mig_ms_steps VALUES (2);',
+  ].join('\n');
+  const msMigration = { version: '0904_ms', sql: msSql, executionMode: 'multi-statement' as const };
+  const msAll = {
+    version: '0905_ms', executionMode: 'multi-statement' as const,
+    sql: '-- @migration-mode multi-statement\nCREATE TABLE mig_ms_all(id int);\nINSERT INTO mig_ms_all VALUES (7);\nUPDATE mig_ms_all SET id = 8 WHERE id = 7;',
+  };
+  const healMigration = {
+    version: '0906', executionMode: 'concurrent-index' as const,
+    sql: 'CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_heal ON mig_heal(id);',
+  };
+  const dualA = { version: '0908_a_probe', sql: 'CREATE TABLE mig_dual(id int)' };
+  const dualB = { version: '0908_b_probe', sql: 'INSERT INTO mig_dual VALUES (1)' };
+  const recordedFixtures: Migration[] = [];
+  // 追加一个已记账 fixture 到累积 manifest 尾部（保持字节序追加·前缀守卫对齐）。
+  const recordFixture = (migration: Migration): void => { recordedFixtures.push(migration); };
+  const manifestWith = (...tail: Migration[]): Migration[] => [...loaded, ...recordedFixtures, ...tail];
+  const recordedVersions = (): string[] => recordedFixtures.map((migration) => migration.version);
+
+  // ---- §2-1 事务臂 timeout（簇①·#179 修法①+#115 runner 半）----
+  const formatPgTimeout = (ms: number): string => (ms >= 1000 && ms % 1000 === 0 ? `${ms / 1000}s` : `${ms}ms`);
+  const expectedRestoredStatement = formatPgTimeout(Number(process.env.PG_STATEMENT_TIMEOUT_MS ?? '15000'));
+  const timeoutEnvBackup = {
+    statement: process.env.MIGRATION_STATEMENT_TIMEOUT_MS,
+    lock: process.env.MIGRATION_LOCK_TIMEOUT_MS,
+  };
+  try {
+    // fixture 超时定值(5s/4s)低于池级 query_timeout 15s → 服务端先取消，客户端计时器不错认(R-3)。
+    process.env.MIGRATION_STATEMENT_TIMEOUT_MS = '5000';
+    process.env.MIGRATION_LOCK_TIMEOUT_MS = '4000';
+    await pool.query('DROP TABLE IF EXISTS mig_timeout_probe CASCADE');
+    // 既有臂改形登记（multi-statement 臂语句级 timeout 落地后的设计性翻红处置·非洗基线）：
+    // 原 0902_ms 依赖 multi-statement 臂不 set_config，在同 client 观测 0901 finally 恢复后的
+    // 原值——簇⓪ 语句级 timeout 落地后该臂同样被 set_config 覆盖。改形机制：0902_ms 语句内
+    // 观测改挂「语句级 timeout 生效」（in_ms=5s/4s）；恢复语义断言保留，但三模式臂现已全部
+    // set_config（语句级覆盖无干净观测臂），观测窗后移至 runMigrations 收尾之外——runner
+    // 以 pool.connect/release 取 client（migrate.ts runMigrations 首尾），proof 顺序执行下
+    // pool 直查按 node-pg LIFO 恰好取回 runner 刚释放的同一条 client，在「runner 之外」
+    // 观测会话 GUC 是否恢复原值（若任一臂 finally 恢复缺失，泄漏值将在此处现形）。
+    const timeoutPair: Migration[] = [
+      { version: '0901', sql: "CREATE TABLE mig_timeout_probe(arm text, guc text); INSERT INTO mig_timeout_probe SELECT 'in_tx', current_setting('statement_timeout') || '/' || current_setting('lock_timeout');" },
+      { version: '0902_ms', executionMode: 'multi-statement', sql: "-- @migration-mode multi-statement\nINSERT INTO mig_timeout_probe SELECT 'in_ms', current_setting('statement_timeout') || '/' || current_setting('lock_timeout');" },
+    ];
+    await runMigrations(pool, manifestWith(...timeoutPair));
+    recordFixture(timeoutPair[0] as Migration);
+    recordFixture(timeoutPair[1] as Migration);
+    const observed = new Map((await pool.query('SELECT arm, guc FROM mig_timeout_probe')).rows.map((row: { arm: string; guc: string }) => [row.arm, row.guc]));
+    A('事务臂 timeout: 迁移事务内 set_config 生效(statement=5s/lock=4s 会话级观测对表)',
+      observed.get('in_tx') === '5s/4s');
+    A('multi-statement 臂语句级 timeout: 步事务内 set_config 生效(5s/4s 同 client 语句内观测)',
+      observed.get('in_ms') === '5s/4s');
+    const afterRun = await pool.query("SELECT current_setting('statement_timeout') || '/' || current_setting('lock_timeout') AS guc");
+    A('臂间 finally 恢复: runMigrations 收尾后同池会话(LIFO 同 client)观测 GUC 恢复原值(恢复语义断言保留·改形非洗基线)',
+      afterRun.rows[0]?.guc === `${expectedRestoredStatement}/0`);
+  } finally {
+    if (timeoutEnvBackup.statement === undefined) delete process.env.MIGRATION_STATEMENT_TIMEOUT_MS;
+    else process.env.MIGRATION_STATEMENT_TIMEOUT_MS = timeoutEnvBackup.statement;
+    if (timeoutEnvBackup.lock === undefined) delete process.env.MIGRATION_LOCK_TIMEOUT_MS;
+    else process.env.MIGRATION_LOCK_TIMEOUT_MS = timeoutEnvBackup.lock;
+  }
+
+  // ---- §2-8 VALIDATE 族重制（#134/#135·重制裁决=multi-statement 拆事务+孤儿门+熔单 ALTER）----
+  // 历史迁移豁免面=恰 0148/0149 两文件（重制）；checksum 变更=重制预期形（fresh 隔离库全量
+  // 重放即本段动态面）。语句步数干跑实数（splitTopLevelStatements 复刻干跑·交付报告承）：
+  // 0148=14 步（1 DO 孤儿门+1 UNIQUE USING INDEX+6 NOT VALID+6 VALIDATE）· 0149=10 步
+  // （1 DO 前置检测+4 熔单 ALTER+1 D3 DROP+4 VALIDATE）——runner 未导出 splitter，步数以
+  // 结构计数断言合成验证（静态）+完成交换/validated 动态面承载。
+  {
+    const mig0148 = loaded.find((migration) => migration.version === '0148_interview_composite_fk_batch1');
+    const mig0149 = loaded.find((migration) => migration.version === '0149_money_status_constraints');
+    const notValidCount = (sql: string): number => (sql.match(/NOT VALID\s*;/g) ?? []).length;
+    const validateCount = (sql: string): number => (sql.match(/VALIDATE CONSTRAINT/g) ?? []).length;
+    const fusedAlterCount = (sql: string): number => (sql.match(/DROP CONSTRAINT IF EXISTS [A-Za-z_]+,\s*ADD CONSTRAINT/g) ?? []).length;
+    const orphanTables0148 = ['ai_report', 'assessment_report', 'question_feedback', 'learning_plan', 'career_path', 'learning_progress'];
+    A('重制 0148(#134): multi-statement 模式 + 首语句 DO 块孤儿检测门（六子表计数非 0 即 RAISE fail-loud·先检测后约束）',
+      mig0148?.executionMode === 'multi-statement'
+      && mig0148.sql.includes('$fk_orphan_check$') && mig0148.sql.includes('RAISE EXCEPTION')
+      && orphanTables0148.every((t) => mig0148.sql.includes(t)));
+    A('重制 0148(#134): 6×ADD FK NOT VALID + 6×VALIDATE 结构计数（两段拆事务·NOT VALID 与 VALIDATE 各自独立语句事务）',
+      mig0148 !== undefined && notValidCount(mig0148.sql) === 6 && validateCount(mig0148.sql) === 6);
+    A('重制 0149(#135): multi-statement 模式 + 熔单 ALTER×4（DROP+ADD NOT VALID 单语句原子·无裸 DROP 窗）+ DO 块前置检测保持 + VALIDATE×4',
+      mig0149?.executionMode === 'multi-statement'
+      && mig0149.sql.includes('$dbm3_detect$')
+      && fusedAlterCount(mig0149.sql) === 4
+      && notValidCount(mig0149.sql) === 4
+      && validateCount(mig0149.sql) === 4);
+    const revalidated = (await pool.query(
+      `SELECT count(*)::int AS n, count(*) FILTER (WHERE convalidated)::int AS v FROM pg_constraint
+        WHERE (conrelid, conname) IN (
+          ('ai_report'::regclass,'fk_ai_report_interview_owner'),
+          ('assessment_report'::regclass,'fk_assessment_report_interview_owner'),
+          ('question_feedback'::regclass,'fk_question_feedback_interview_owner'),
+          ('learning_plan'::regclass,'fk_learning_plan_interview_owner'),
+          ('career_path'::regclass,'fk_career_path_interview_owner'),
+          ('learning_progress'::regclass,'fk_learning_progress_interview_owner'),
+          ('payment_order'::regclass,'ck_payment_order_amount_cents_positive'),
+          ('payment_order'::regclass,'ck_payment_order_units_range'),
+          ('settlement_ledger'::regclass,'ck_settlement_units_settled_nonneg'),
+          ('ai_graph_run'::regclass,'ck_ai_graph_run_status'))`)) as { rows: Array<{ n: number; v: number }> };
+    A('重制 0148/0149: fresh 全量应用后 6 FK + 4 CHECK 全在位且 convalidated=true（VALIDATE 后行生效实据）',
+      revalidated.rows[0]?.n === 10 && revalidated.rows[0]?.v === 10);
+    const msResidue = (await pool.query(
+      "SELECT count(*)::int AS n FROM schema_migrations_steps WHERE version IN ('0148_interview_composite_fk_batch1','0149_money_status_constraints')")) as { rows: Array<{ n: number }> };
+    const msLedger = (await pool.query(
+      "SELECT count(*)::int AS n FROM schema_migrations WHERE version IN ('0148_interview_composite_fk_batch1','0149_money_status_constraints')")) as { rows: Array<{ n: number }> };
+    A('重制 0148/0149: 完成原子交换落地（ledger 恰 2 行·逐步记账旁表零残留=三守卫面）',
+      msResidue.rows[0]?.n === 0 && msLedger.rows[0]?.n === 2);
+  }
+
+  // ---- §2-3 multi-statement 逐步记账（簇②·#179 修法②·R-2 旁表形=三守卫零破）----
+  await pool.query('DROP TABLE IF EXISTS mig_ms_steps, mig_ms_blocked, mig_ms_all CASCADE');
+  await pool.query('CREATE TABLE mig_ms_blocked(id int PRIMARY KEY)');
+  await pool.query('INSERT INTO mig_ms_blocked VALUES (100)');
+  let msFirstThrew = false;
+  let msFirstTagged = false;
+  try { await runMigrations(pool, manifestWith(msMigration)); }
+  catch (error) {
+    msFirstThrew = true;
+    msFirstTagged = (error as { migrationVersion?: string }).migrationVersion === '0904_ms';
+  }
+  A('multi-statement: 第 k 句失败 fail-loud 且失败句零记账(独立短事务·前 k-1 句保留)',
+    msFirstThrew && msFirstTagged
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations_steps WHERE version='0904_ms'")).rows[0]?.n === 2
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0904_ms'")).rows[0]?.n === 0
+    && (await pool.query('SELECT count(*)::int n FROM mig_ms_steps')).rows[0]?.n === 1
+    && (await pool.query('SELECT count(*)::int n FROM mig_ms_blocked')).rows[0]?.n === 1);
+  // R-2 定形证明: 本重跑在旁表持有 2 步行(版本未入 ledger)的前提下通过 :227 计数/
+  // :233-236 checksum 对账/:238-240 连续前缀三守卫并收敛——半完成版本对三守卫不可见。
+  await pool.query('DELETE FROM mig_ms_blocked');
+  const resumeExpectedSkips = loaded.length + recordedFixtures.length;
+  const msResumed = await runMigrations(pool, manifestWith(msMigration));
+  recordFixture(msMigration);
+  A('multi-statement: 断点续跑 skip 已记账 2 句续跑剩余 2 句·完成事务 ledger+旁表原子交换(三守卫全程零破)',
+    JSON.stringify(msResumed.applied) === JSON.stringify(['0904_ms']) && msResumed.skipped.length === resumeExpectedSkips
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0904_ms'")).rows[0]?.n === 1
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations_steps WHERE version='0904_ms'")).rows[0]?.n === 0
+    && (await pool.query('SELECT count(*)::int n FROM mig_ms_steps')).rows[0]?.n === 2
+    && (await pool.query('SELECT count(*)::int n FROM mig_ms_blocked')).rows[0]?.n === 1);
+  const rerunExpectedSkips = loaded.length + recordedFixtures.length;
+  const msRerun = await runMigrations(pool, manifestWith());
+  A('multi-statement: 完成后重跑全 skip(与 transactional 同一幂等语义)',
+    msRerun.applied.length === 0 && msRerun.skipped.length === rerunExpectedSkips);
+  const msAllResult = await runMigrations(pool, manifestWith(msAll));
+  recordFixture(msAll);
+  A('multi-statement: 全成功 N 句形记账 1 行 ledger(checksum=全文件字节)·旁表清空',
+    JSON.stringify(msAllResult.applied) === JSON.stringify(['0905_ms'])
+    && (await pool.query('SELECT count(*)::int n FROM schema_migrations_steps')).rows[0]?.n === 0
+    && (await pool.query('SELECT count(*)::int n FROM mig_ms_all WHERE id=8')).rows[0]?.n === 1);
+
+  // multi-statement 加载面: 注记→模式检测(:312 同族正则)
+  const modeDir = mkdtempSync(join(tmpdir(), 'mig-mode-probe-'));
+  try {
+    writeFileSync(join(modeDir, '0001_ms_probe.sql'), '-- @migration-mode multi-statement\nSELECT 1;\n');
+    writeFileSync(join(modeDir, '0002_ci_probe.sql'), '-- @migration-mode concurrent-index\nCREATE INDEX CONCURRENTLY IF NOT EXISTS ix_probe ON probe_t(x);\n');
+    writeFileSync(join(modeDir, '0003_tx_probe.sql'), 'SELECT 1;\n');
+    const loadedModes = new Map(loadMigrations(modeDir).map((migration) => [migration.version, migration.executionMode]));
+    A('multi-statement: loadMigrations 注记检测三值齐(同族正则·缺省仍 transactional)',
+      loadedModes.get('0001_ms_probe') === 'multi-statement'
+      && loadedModes.get('0002_ci_probe') === 'concurrent-index'
+      && loadedModes.get('0003_tx_probe') === 'transactional');
+  } finally {
+    rmSync(modeDir, { recursive: true, force: true });
+  }
+
+  // ---- §2-4 INVALID 清理重试（簇③-a·#145 全件·裁决项⑤边界）----
+  await pool.query('DROP TABLE IF EXISTS mig_heal CASCADE');
+  await pool.query('CREATE TABLE mig_heal(id int NOT NULL)');
+  await pool.query('INSERT INTO mig_heal VALUES (1),(1)');
+  let healPreplantThrew = false;
+  try { await pool.query('CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_heal ON mig_heal(id)'); }
+  catch { healPreplantThrew = true; }
+  A('#145 前置: 预植失败构建留下 INVALID 索引(旧 runner 需人工 DROP 的卡死态)',
+    healPreplantThrew
+    && (await pool.query("SELECT indisvalid FROM pg_index WHERE indexrelid='public.ix_mig_heal'::regclass")).rows[0]?.indisvalid === false);
+  await pool.query('DELETE FROM mig_heal');
+  await pool.query('INSERT INTO mig_heal VALUES (1)');
+  const healEvents: Array<{ version: string; indexName: string }> = [];
+  const healApplied = await runMigrations(pool, manifestWith(healMigration), { onConcurrentIndexCleanup: (event) => healEvents.push(event) });
+  recordFixture(healMigration);
+  A('#145 heal: 定义精确匹配的自身残留 INVALID → DROP CONCURRENTLY+重建重试恰一次成功(清理事件恰 1·日志面同源)',
+    JSON.stringify(healApplied.applied) === JSON.stringify(['0906'])
+    && healEvents.length === 1
+    && healEvents[0]?.version === '0906' && healEvents[0]?.indexName === 'ix_mig_heal'
+    && (await pool.query("SELECT indisvalid FROM pg_index WHERE indexrelid='public.ix_mig_heal'::regclass")).rows[0]?.indisvalid === true
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0906'")).rows[0]?.n === 1);
+  // mig_heal 表与索引保留: 0906 已记账(concurrent-index), 后续每次调用的 replay 重断言
+  // 需要物理对象存活——这正是 :244-248 既有漂移面语义(不削弱)。
+
+  // ---- §2-6 双号容忍回归（簇③-b 伴随·:199 全文件名重复拦零弱化）----
+  await pool.query('DROP TABLE IF EXISTS mig_dual CASCADE');
+  const dualApplied = await runMigrations(pool, manifestWith(dualB, dualA));   // 乱序传入
+  recordFixture(dualA);
+  recordFixture(dualB);
+  A('双号容忍: 同数值前缀双文件字节序稳定过闸(0160×2 形·字节序下对内序确定)',
+    JSON.stringify(dualApplied.applied) === JSON.stringify(['0908_a_probe', '0908_b_probe'])
+    && (await pool.query('SELECT count(*)::int n FROM mig_dual')).rows[0]?.n === 1);
+  let dualDupRejected = false;
+  // 双号 fixture 已在 recordedFixtures 内; 只追加一个同全名副本→排序后相邻→:199 拒。
+  try { await runMigrations(pool, manifestWith({ version: '0908_b_probe', sql: 'SELECT 1' })); }
+  catch (error) { dualDupRejected = (error as { code?: string }).code === 'migration_manifest_duplicate_version:0908_b_probe'; }
+  A('双号容忍: 全文件名级重复仍拒(:199 migration_manifest_duplicate_version 语义零弱化)', dualDupRejected);
+
+  // 真树 ledger 面: 全量 ledger 的 COLLATE "C" 序与 runner manifest 序前缀全等(R-3 两序残面·真数据面)。
+  const ledgerByteOrder = (await pool.query('SELECT version FROM schema_migrations ORDER BY version COLLATE "C"')).rows.map((row: { version: string }) => row.version);
+  A('字节序: 真树全量 ledger + fixture 追加后 ORDER BY version COLLATE "C" 序==runner manifest 序(前缀=真树全量)',
+    JSON.stringify(ledgerByteOrder) === JSON.stringify([...treeVersions, ...recordedVersions()]));
+
+  // ---- §2-2 长 DDL 超预算（簇①·once-fail 收尾调用·失败后不再入清单）----
+  const overBudget: Migration = { version: '0997_over_budget', sql: 'CREATE TABLE mig_over_budget(id int); SELECT pg_sleep(30);' };
+  process.env.MIGRATION_STATEMENT_TIMEOUT_MS = '1000';
+  try {
+    await pool.query('DROP TABLE IF EXISTS mig_over_budget CASCADE');
+    let overBudgetThrew = false;
+    let overBudgetTagged = false;
+    let overBudgetSqlstate = '';
+    try { await runMigrations(pool, manifestWith(overBudget)); }
+    catch (error) {
+      overBudgetThrew = true;
+      overBudgetTagged = (error as { migrationVersion?: string }).migrationVersion === '0997_over_budget';
+      overBudgetSqlstate = String((error as { code?: string }).code ?? '');
+    }
+    A('事务臂超预算: 长 DDL 触发 statement_timeout → fail-loud(57014+tagged version)',
+      overBudgetThrew && overBudgetTagged && overBudgetSqlstate === '57014');
+    A('事务臂超预算: 整事务回滚零残留表+ledger 零推进(零 retry-to-green)',
+      !(await has('mig_over_budget'))
+      && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0997_over_budget'")).rows[0]?.n === 0);
+  } finally {
+    delete process.env.MIGRATION_STATEMENT_TIMEOUT_MS;
+  }
+
+  // ---- §2-4 边界: 非 runner 产物 INVALID 零触碰（once-fail 收尾调用）----
+  await pool.query('DROP TABLE IF EXISTS mig_foreign CASCADE');
+  await pool.query('CREATE TABLE mig_foreign(a int, b int)');
+  await pool.query('INSERT INTO mig_foreign VALUES (1,1),(2,1)');
+  let foreignPreplantThrew = false;
+  try { await pool.query('CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_foreign ON mig_foreign(b)'); }
+  catch { foreignPreplantThrew = true; }
+  const foreignEvents: Array<{ version: string; indexName: string }> = [];
+  let foreignRejected = false;
+  let foreignCode = '';
+  try { await runMigrations(pool, manifestWith({
+    version: '0999_foreign', executionMode: 'concurrent-index' as const,
+    sql: 'CREATE UNIQUE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_foreign ON mig_foreign(a);',
+  }), { onConcurrentIndexCleanup: (event) => foreignEvents.push(event) }); }
+  catch (error) {
+    foreignRejected = true;
+    foreignCode = String((error as { code?: string }).code ?? '');
+  }
+  A('#145 边界: 定义不匹配的 INVALID 索引=非 runner 产物零触碰 fail-closed(裁决项⑤授权边界)',
+    foreignPreplantThrew && foreignRejected && foreignCode === 'migration_concurrent_index_definition_mismatch'
+    && foreignEvents.length === 0
+    && (await pool.query("SELECT indisvalid FROM pg_index WHERE indexrelid='public.ix_mig_foreign'::regclass")).rows[0]?.indisvalid === false
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0999_foreign'")).rows[0]?.n === 0);
+  await pool.query('DROP TABLE mig_foreign');
+
+  // ---- §2-7 CI 迁移编号唯一性检查（簇③-c·裁决项③ 本刀落码·CI-WIRING 只登记接线）----
+  let uniquenessScript: string | null = null;
+  let scriptProbeDir = resolve(migrationDirectory);
+  for (;;) {
+    const candidate = join(scriptProbeDir, 'scripts', 'check-migration-version-uniqueness.mjs');
+    if (existsSync(candidate)) { uniquenessScript = candidate; break; }
+    const parent = dirname(scriptProbeDir);
+    if (parent === scriptProbeDir) break;
+    scriptProbeDir = parent;
+  }
+  const runUniquenessCheck = (dir?: string): { code: number; stdout: string; stderr: string } => {
+    if (uniquenessScript === null) return { code: 1, stdout: '', stderr: 'uniqueness_script_not_found' };
+    const result = spawnSync(process.execPath, [uniquenessScript, ...(dir !== undefined ? [dir] : [])], { encoding: 'utf8' });
+    return { code: result.status ?? 1, stdout: result.stdout ?? '', stderr: result.stderr ?? '' };
+  };
+  const treeCheck = runUniquenessCheck(migrationDirectory);
+  A('CI 唯一性: 现树全量 migrations/ EXIT=0 且三历史双号(0143/0152/0160)豁免登记面全命中',
+    treeCheck.code === 0
+    && treeCheck.stdout.includes('migration_prefix_duplicate_exempt prefix=0143')
+    && treeCheck.stdout.includes('migration_prefix_duplicate_exempt prefix=0152')
+    && treeCheck.stdout.includes('migration_prefix_duplicate_exempt prefix=0160'));
+  const conflictDir = mkdtempSync(join(tmpdir(), 'mig-uniqueness-conflict-'));
+  const exemptDir = mkdtempSync(join(tmpdir(), 'mig-uniqueness-exempt-'));
+  try {
+    writeFileSync(join(conflictDir, '0300_a_probe.sql'), 'SELECT 1;\n');
+    writeFileSync(join(conflictDir, '0300_b_probe.sql'), 'SELECT 2;\n');
+    const conflictCheck = runUniquenessCheck(conflictDir);
+    writeFileSync(join(exemptDir, '0160_x_probe.sql'), 'SELECT 1;\n');
+    writeFileSync(join(exemptDir, '0160_y_probe.sql'), 'SELECT 2;\n');
+    const exemptCheck = runUniquenessCheck(exemptDir);
+    A('CI 唯一性: 构造数值前缀冲突样本 EXIT≠0(migration_prefix_duplicate)',
+      conflictCheck.code !== 0 && conflictCheck.stderr.includes('migration_prefix_duplicate prefix=0300'));
+    A('CI 唯一性: 豁免登记面前缀(0160×2 形 fixture) EXIT=0 且命中豁免行',
+      exemptCheck.code === 0 && exemptCheck.stdout.includes('migration_prefix_duplicate_exempt prefix=0160'));
+  } finally {
+    rmSync(conflictDir, { recursive: true, force: true });
+    rmSync(exemptDir, { recursive: true, force: true });
+  }
 
   return { assertions, failures };
 }

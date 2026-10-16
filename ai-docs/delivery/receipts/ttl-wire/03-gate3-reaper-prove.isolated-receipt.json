@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "reaper:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8231,
+  "startedAt": "2026-10-12T09:25:45.485Z",
+  "finishedAt": "2026-10-12T09:25:53.716Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d10fef4d9459c8cf0b98c8fefb5e6544126f8efcd868342d586c977abfc562c",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/reaper.proof.ts": "sha256:8f5b1f2bfb5e9b1af7c075f047364de79cf8b7da45d6519a63a0777c9c9cd0ff",
+    "apps/worker/src/interview-consumer.ts": "sha256:337d7603843c00885ce13c9ee8a91356ecabf7e192b820be050eb355b1a58af9",
+    "apps/worker/src/quiz-consumer.ts": "sha256:2f05f6cfddee5b52488df9c2492c78004a297cc9f5d730de4df45d49e22d3e29",
+    "apps/worker/src/job-heartbeat.ts": "sha256:e031b9dd5969887254fa134cb85c1953fffda93e4e10615b28ec77637b043231",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:9e09b9e63119364ae2d3deb865f4f1e4fcdedfa4464349513612706bfde05256",
+    "packages/db/src/jobs/quiz-jobs.ts": "sha256:344111917fd519900d8725a2f80c69cdcd4854351960c32e61e4600188dde51c",
+    "packages/db/src/commerce/commerce.ts": "sha256:797211c3c38a0bb944689bcb3409cc3a0c3348b2c739b3013bbff08fc5c78341",
+    "packages/db/src/resume/resume.ts": "sha256:ba798e7e07e0a21e4c352ba382a72f908f917b404f6a79ae1691706efa567b2f",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af"
+  },
+  "schemaMigrationManifest": {
+    "count": 171,
+    "latest": "0169_auth_user_session.sql",
+    "digest": "sha256:424f64978fe87ff9ecfd678570913c0b6cc0322706b5af3e0f22c040b3cfbbd9"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,84 @@
+# HA-2 graceful-shutdown proof carrier (REQUEST §3 C8 · rev2-② 席2 硬项收编载体).
+# releaseEvidence=false · Not HA · claimProductionHA=false · 禁止合入 compose.prod / 生产叙事
+#
+# Purpose: isolated-container timing prove for R-18/R-19 (B5 api SIGTERM / B6 worker
+# short-tick drain / B7 worker hang-tick deadline). api + worker services ONLY —
+# the Postgres sidecar is NOT defined here: this carrier reuses the existing
+# authorized primitive (compose.ha-dual.pg.yml postgres @ host-published 54339),
+# prepared by scripts/ha/prepare-nest-pg.mjs (MEETWISE_HA_NEST_PG_AUTHORIZED=1 →
+# migrate + provisionRuntimeLogin meetwise_ha_runtime). placeholder DB (127.0.0.1:1
+# 死端口) 已废弃——readyz 恒 503 / SSE 打开即失败与 B5 自身断言物理矛盾(§9-1)。
+#
+# stop_grace_period 钉值与 compose.prod.yml(C6) 同钉同值:api 15s / worker 40s;
+# 内部上限(API_SHUTDOWN_TIMEOUT_MS=10s / WORKER_DRAIN_TIMEOUT_MS=30s) < 容器宽限。
+#
+# Prereqs (fail-closed):
+#   1) MEETWISE_HA2_PROOF_AUTHORIZED=1 (本载体专属闸;prepare 另需其自身闸)
+#   2) image meetwise-backend:ha-dual-local present (本地形制:scripts/ha/build-backend-image.mjs·零生产 registry)
+#   3) pnpm ha:prepare:nest-pg 已跑(postgres @ 54339 ready + meetwise_ha_runtime 已 provisioning)
+#
+# Bring-up (单服务起停实录,exec 逐条记账):
+#   MEETWISE_HA2_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-2-proof.yml up -d api-proof
+#   MEETWISE_HA2_PROOF_AUTHORIZED=1 MEETWISE_HA2_STUB_TICK_MODE=pg-roundtrip \
+#     docker compose -f docker/compose.ha-2-proof.yml up -d worker-proof
+#
+# Local-dev placeholder credentials only (same class as compose.ha-dual.pg.yml).
+# Do NOT read/write .env* · Do NOT merge into compose.prod · Do NOT claim HA.
+
+name: meetwise-ha-2-proof
+
+x-ha-2-backend: &ha-2-backend
+  image: ${MEETWISE_HA_BACKEND_IMAGE:-meetwise-backend:ha-dual-local}
+  volumes:
+    # Bind repo so Nest + workspace node_modules run without a multi-GB bake (沿 ha-dual 形制)。
+    - type: bind
+      source: ..
+      target: /app
+      read_only: false
+  extra_hosts:
+    # Container DNS postgres:5432 may be TCP-blocked (ha-dual.pg overlay 亲证) →
+    # host-published 54339 via host-gateway,同 pg overlay 形制。
+    - "host.docker.internal:host-gateway"
+  restart: "no"
+
+services:
+  api-proof:
+    <<: *ha-2-backend
+    container_name: meetwise-ha-2-proof-api
+    working_dir: /app/apps/api
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    environment:
+      HOST: 0.0.0.0
+      PORT: "8787"
+      NODE_ENV: development
+      # 真 PG(§9-1):prepare-nest-pg provisioned runtime login @ host-published 54339。
+      DATABASE_URL: postgresql://meetwise_ha_runtime:meetwise_ha_runtime_dev_pw@host.docker.internal:54339/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-2-proof-local-dev-secret-not-prod
+      # B5 通行证:x-user-id dev 回退(principal.guard 硬闸 NODE_ENV!=production 才生效)。
+      AUTH_DEV_HEADER: "1"
+      # W1 内部上限(显式钉=compose 默认值,证明 < stop_grace_period 15s)。
+      API_SHUTDOWN_TIMEOUT_MS: "10000"
+    ports:
+      - "127.0.0.1:28787:8787"
+    stop_grace_period: 15s
+    stop_signal: SIGTERM
+
+  worker-proof:
+    <<: *ha-2-backend
+    container_name: meetwise-ha-2-proof-worker
+    working_dir: /app/apps/worker
+    command: ["node", "--import", "@swc-node/register/esm-register", "src/main.ts"]
+    environment:
+      NODE_ENV: development
+      WORKER_BOOTSTRAP: "1"
+      DATABASE_URL: postgresql://meetwise_ha_runtime:meetwise_ha_runtime_dev_pw@host.docker.internal:54339/meetwise
+      DATABASE_SSL_MODE: disable
+      AUTH_SECRET: meetwise-ha-2-proof-local-dev-secret-not-prod
+      # W3 内部上限(显式钉=compose 默认值,证明 < stop_grace_period 40s)。
+      WORKER_DRAIN_TIMEOUT_MS: "30000"
+      # B6/B7 env-gated stub(pg-roundtrip | hang);未设=无 stub(零行为零成本)。
+      MEETWISE_HA2_STUB_TICK_MODE: ${MEETWISE_HA2_STUB_TICK_MODE:-}
+      WORKER_METRICS_HOST: 0.0.0.0
+    stop_grace_period: 40s
+    stop_signal: SIGTERM

@@ -1,0 +1,98 @@
+=== PROVE6 START 2026-10-06T23:06:19,054163696+08:00 SHA=eae9fed1c81edf9231f7b3372c997f5501871c1c ===
+{
+  "L_cli_samples_ms": [
+    21,
+    20,
+    17,
+    18,
+    20
+  ],
+  "L_cli_ms": 21,
+  "k": 2,
+  "t_round_ms": 1.39,
+  "U_min": 6,
+  "formula": "U_B = min(109, 110 - ceil(k*L_cli/t_round))",
+  "U_B": 79,
+  "BC_MARGIN_INFEASIBLE": false,
+  "docker_version": {
+    "Server.Version": "26.1.5+dfsg1",
+    "Client.Version": "26.1.5+dfsg1"
+  },
+  "measured_at": "2026-10-06T23:06:19.302036+08:00",
+  "note": "measured once before first prove (after NB-4 cleanup) \u00b7 Ban re-measure / change k / t_round / U_B \u00b7 C-c docker version recorded for audit only"
+}
+U_B=79 BC_MARGIN_INFEASIBLE=False
+MUT=none 
+{"attempt": "PC-1", "pass": true, "fails": [], "exit": 0, "J2": "OUT", "emitted": null, "frames": [], "dpe": 0, "marker": null, "form": "PASS"}
+{"attempt": "PC-2", "pass": true, "fails": [], "exit": 0, "J2": "OUT", "emitted": null, "frames": [], "dpe": 0, "marker": null, "form": "PASS"}
+{"attempt": "PC-3", "pass": true, "fails": [], "exit": 0, "J2": "OUT", "emitted": null, "frames": [], "dpe": 0, "marker": null, "form": "PASS"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=929  1 file changed, 1 deletion(-)
+{"attempt": "AMUT-1", "pass": false, "fails": ["NO_UNHANDLED"], "exit": 1, "J2": "L1/client-side", "emitted": null, "frames": [], "dpe": 0, "marker": ["INJECT_A phase=seed killed=1 iv_rows=7 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 144, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:07:42.141239+00:00\", \"q\" : \"UPDATE entitlement_consumption SET allocations=$2 WHERE id=$\"}]"], "form": "F2"}
+{"attempt": "AMUT-2", "pass": false, "fails": ["A_FATAL_ON_ACTIVE"], "exit": 1, "J2": "L1/client-side", "emitted": "Client", "frames": ["pg/lib/client.js:417", "pg/lib/client.js:217"], "dpe": 0, "marker": ["INJECT_A phase=seed killed=1 iv_rows=43 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 122, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:08:05.61885+00:00\", \"q\" : \"SELECT set_config('app.principal_user', $1, true)\"}]"], "form": "F2"}
+{"attempt": "AMUT-3", "pass": false, "fails": ["A_FATAL_ON_ACTIVE"], "exit": 1, "J2": "L1/client-side", "emitted": "Client", "frames": ["pg/lib/client.js:417", "pg/lib/client.js:217"], "dpe": 0, "marker": ["INJECT_A phase=seed killed=1 iv_rows=2 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 130, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:08:27.698416+00:00\", \"q\" : \"INSERT INTO entitlement_consumption(owner_user_id, idempoten\"}]"], "form": "F2"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=none 
+{"attempt": "APOST-1", "pass": false, "fails": ["A_FATAL_ON_ACTIVE"], "exit": 1, "J2": "L1/client-side", "emitted": null, "frames": [], "dpe": 1, "marker": ["INJECT_A phase=seed killed=1 iv_rows=15 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 124, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:08:51.235476+00:00\", \"q\" : \"INSERT INTO entitlement_consumption(owner_user_id, idempoten\"}]"], "form": "F2"}
+{"attempt": "APOST-2", "pass": false, "fails": ["A_FATAL_ON_ACTIVE"], "exit": 1, "J2": "L1/client-side", "emitted": null, "frames": [], "dpe": 1, "marker": ["INJECT_A phase=seed killed=1 iv_rows=9 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 139, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:09:13.09728+00:00\", \"q\" : \"BEGIN\"}]"], "form": "F2"}
+{"attempt": "APOST-3", "pass": false, "fails": ["A_FATAL_ON_ACTIVE"], "exit": 1, "J2": "L1/client-side", "emitted": null, "frames": [], "dpe": 1, "marker": ["INJECT_A phase=seed killed=1 iv_rows=12 iv_nonactive=0 idle_n=19 snap=[{\"pid\" : 125, \"state\" : \"idle in transaction\", \"xact_start\" : \"2026-10-06T15:09:34.743436+00:00\", \"q\" : \"SET LOCAL ROLE app_role\"}]"], "form": "F2"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=zero  1 file changed, 2 deletions(-)
+{"attempt": "BMUT-1", "pass": true, "fails": [], "exit": 1, "J2": "B-restart(inject-initiated)", "emitted": "BoundPool", "frames": ["pg-pool/index.js:62", "pg/lib/client.js:417"], "dpe": 0, "marker": ["GATE_BC phase=seed ts_ms=1791299397565 iv_rows=5 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+{"attempt": "BMUT-2", "pass": true, "fails": [], "exit": 1, "J2": "B-restart(inject-initiated)", "emitted": "BoundPool", "frames": ["pg-pool/index.js:62", "pg/lib/client.js:417"], "dpe": 0, "marker": ["GATE_BC phase=seed ts_ms=1791299420498 iv_rows=2 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+{"attempt": "BMUT-3", "pass": true, "fails": [], "exit": 1, "J2": "B-restart(inject-initiated)", "emitted": "BoundPool", "frames": ["pg-pool/index.js:62", "pg/lib/client.js:417"], "dpe": 0, "marker": ["GATE_BC phase=seed ts_ms=1791299442106 iv_rows=14 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=none 
+{"attempt": "BPOST-1", "pass": true, "fails": [], "exit": 1, "J2": "B-restart(inject-initiated)", "emitted": null, "frames": [], "dpe": 7, "marker": ["GATE_BC phase=seed ts_ms=1791299464666 iv_rows=2 iv_nonactive=0 idle_n=19 seed_act=1 ub=79"], "form": "F2"}
+{"attempt": "BPOST-2", "pass": true, "fails": [], "exit": 1, "J2": "B-restart(inject-initiated)", "emitted": null, "frames": [], "dpe": 17, "marker": ["GATE_BC phase=seed ts_ms=1791299488193 iv_rows=5 iv_nonactive=0 idle_n=19 seed_act=1 ub=79"], "form": "F2"}
+{"attempt": "BPOST-3", "pass": true, "fails": [], "exit": 1, "J2": "B-restart(inject-initiated)", "emitted": null, "frames": [], "dpe": 2, "marker": ["GATE_BC phase=seed ts_ms=1791299511642 iv_rows=1 iv_nonactive=0 idle_n=19 seed_act=1 ub=79"], "form": "F2"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=zero  1 file changed, 2 deletions(-)
+{"attempt": "CMUT-1", "pass": true, "fails": [], "exit": 1, "J2": "L3-sim", "emitted": "BoundPool", "frames": ["pg-pool/index.js:62", "pg/lib/client.js:417"], "dpe": 0, "marker": ["GATE_BC phase=seed ts_ms=1791299533617 iv_rows=6 iv_nonactive=0 idle_n=20 seed_act=1 ub=109"], "form": "F2"}
+{"attempt": "CMUT-2", "pass": true, "fails": [], "exit": 1, "J2": "L3-sim", "emitted": "BoundPool", "frames": ["pg-pool/index.js:62", "pg/lib/client.js:417"], "dpe": 0, "marker": ["GATE_BC phase=seed ts_ms=1791299555960 iv_rows=12 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+{"attempt": "CMUT-3", "pass": true, "fails": [], "exit": 1, "J2": "L3-sim", "emitted": "BoundPool", "frames": ["pg-pool/index.js:62", "pg/lib/client.js:417"], "dpe": 0, "marker": ["GATE_BC phase=seed ts_ms=1791299577693 iv_rows=1 iv_nonactive=0 idle_n=20 seed_act=1 ub=109"], "form": "F2"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=none 
+{"attempt": "CPOST-1", "pass": true, "fails": [], "exit": 1, "J2": "L3-sim", "emitted": null, "frames": [], "dpe": 13, "marker": ["GATE_BC phase=seed ts_ms=1791299598486 iv_rows=4 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+{"attempt": "CPOST-2", "pass": true, "fails": [], "exit": 1, "J2": "L3-sim", "emitted": null, "frames": [], "dpe": 9, "marker": ["GATE_BC phase=seed ts_ms=1791299619339 iv_rows=16 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+{"attempt": "CPOST-3", "pass": true, "fails": [], "exit": 1, "J2": "L3-sim", "emitted": null, "frames": [], "dpe": 1, "marker": ["GATE_BC phase=seed ts_ms=1791299640947 iv_rows=1 iv_nonactive=0 idle_n=19 seed_act=1 ub=109"], "form": "F2"}
+RESTORED packages/db/src/principal.ts exit=0
+MUT=none 
+{"attempt": "R1-1", "pass": true, "fails": [], "exit": 0, "J2": "OUT", "emitted": null, "frames": [], "dpe": 0, "marker": null, "form": "PASS"}
+RESTORED packages/db/src/principal.ts exit=0
+R3_EXIT=0
+=== PROVE6 END 2026-10-06T23:14:37,951456926+08:00 ===
+AMUT-1   pass=False fails=['NO_UNHANDLED'] exit=1 j2=L1/client-side unh=0 dpe=0
+AMUT-2   pass=False fails=['A_FATAL_ON_ACTIVE'] exit=1 j2=L1/client-side unh=1 dpe=0
+AMUT-3   pass=False fails=['A_FATAL_ON_ACTIVE'] exit=1 j2=L1/client-side unh=1 dpe=0
+APOST-1  pass=False fails=['A_FATAL_ON_ACTIVE'] exit=1 j2=L1/client-side unh=0 dpe=1
+APOST-2  pass=False fails=['A_FATAL_ON_ACTIVE'] exit=1 j2=L1/client-side unh=0 dpe=1
+APOST-3  pass=False fails=['A_FATAL_ON_ACTIVE'] exit=1 j2=L1/client-side unh=0 dpe=1
+BMUT-1   pass=True fails=[] exit=1 j2=B-restart(inject-initiated) unh=1 dpe=0
+BMUT-2   pass=True fails=[] exit=1 j2=B-restart(inject-initiated) unh=1 dpe=0
+BMUT-3   pass=True fails=[] exit=1 j2=B-restart(inject-initiated) unh=1 dpe=0
+BPOST-1  pass=True fails=[] exit=1 j2=B-restart(inject-initiated) unh=0 dpe=7
+BPOST-2  pass=True fails=[] exit=1 j2=B-restart(inject-initiated) unh=0 dpe=17
+BPOST-3  pass=True fails=[] exit=1 j2=B-restart(inject-initiated) unh=0 dpe=2
+CMUT-1   pass=True fails=[] exit=1 j2=L3-sim unh=1 dpe=0
+CMUT-2   pass=True fails=[] exit=1 j2=L3-sim unh=1 dpe=0
+CMUT-3   pass=True fails=[] exit=1 j2=L3-sim unh=1 dpe=0
+CPOST-1  pass=True fails=[] exit=1 j2=L3-sim unh=0 dpe=13
+CPOST-2  pass=True fails=[] exit=1 j2=L3-sim unh=0 dpe=9
+CPOST-3  pass=True fails=[] exit=1 j2=L3-sim unh=0 dpe=1
+PC-1     pass=True fails=[] exit=0 j2=OUT unh=0 dpe=0
+PC-2     pass=True fails=[] exit=0 j2=OUT unh=0 dpe=0
+PC-3     pass=True fails=[] exit=0 j2=OUT unh=0 dpe=0
+R1-1     pass=True fails=[] exit=0 j2=OUT unh=0 dpe=0
+R2 aux: ps_before rows=0 | run_exit=0 cid_ok=1 name=meetwise-e2e-r2pool-1514373-1791299670173 | port_exit=0 port_ok=1 port=127.0.0.1:33071 | pg_isready_consecutive=3 | R2_EXIT=0 | rm_exit=0 rm_ok=1 | ps_after rows=0 | 
+R2 PASS lines=11
+R3: al (not signed)
+PASS  legacy GRAPH.json unsigned historical (not signed)
+PASS  legacy PERF-LOAD.json unsigned historical (not signed)
+PASS  legacy SOLE.json unsigned historical (not signed)
+PASS  legacy TTL.json unsigned historical (not signed)
+PASS  legacy UI.json unsigned historical (not signed)
+PASS  no default key and no .env read in emitter/guard
+
+CMD=pnpm uc018:receipt-backfill:prove EXIT=0
+

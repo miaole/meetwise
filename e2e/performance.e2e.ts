@@ -20,7 +20,8 @@ type Sample = { status: number; ms: number };
 const percentile = (values: number[], p: number) => {
   const sorted = [...values].sort((a, b) => a - b);
   if (!sorted.length) return NaN;
-  return sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)];
+  // Empty guard above: the min()-clamped index is always in bounds.
+  return sorted[Math.min(sorted.length - 1, Math.ceil(sorted.length * p) - 1)]!;
 };
 
 async function concurrent(total: number, concurrency: number, task: (index: number) => Promise<number>): Promise<{ samples: Sample[]; wallMs: number }> {

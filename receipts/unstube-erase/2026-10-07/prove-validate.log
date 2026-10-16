@@ -1,0 +1,6 @@
+== CMD: pnpm api:validate ==
+✗ 2 项失败
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-6941-1791566292380 state_bytes=217 logs_bytes=762
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=0

@@ -1,0 +1,8 @@
+CMD: MEETWISE_HA3_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-3-proof.yml up -d ha3-pg
+ Network meetwise-ha-3-proof_default Creating 
+ Network meetwise-ha-3-proof_default Created 
+ Container meetwise-ha-3-proof-pg Creating 
+ Container meetwise-ha-3-proof-pg Created 
+ Container meetwise-ha-3-proof-pg Starting 
+ Container meetwise-ha-3-proof-pg Started 
+EXIT=0

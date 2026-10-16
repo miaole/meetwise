@@ -1,0 +1,6 @@
+=== FINAL GATES 2026-10-11T10:21:49Z ===
+alerts:lint EXIT=0
+metrics:prove EXIT=0
+queue.proof EXIT=0
+ha5.proof EXIT=1 (仅 P5.2 预存红·§F1 基线对账)
+FAIL  P5.2 §4.5 diff 9f6edf8f..worktree 仅 ±观测日志行（三处各 +1·零删·sweep 选取/租约/CAS 零改） — +10/-3

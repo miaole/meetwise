@@ -1,0 +1,6 @@
+== B8(a): migrate stop-window retry (budget 90s, PG restart inside window) ==
+PG stopped at t0
+B8a docker compose run EXIT=1
+PG restarted (fresh tmpfs cluster) at +9069ms
+B8(a) total wall: 9078ms
+retry log lines with attempt numbers: see above (migrate_connect_retry attempt=N class=connect)

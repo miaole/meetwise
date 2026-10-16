@@ -12,7 +12,7 @@ export class JobsController {
   constructor(private readonly jobs: JobsService) {}
 
   @Get()
-  browse(@Req() req: any) {
+  browse(@Req() req: any): ReturnType<JobsService['browse']> {
     return this.jobs.browse(req.principal);
   }
 

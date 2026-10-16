@@ -1,0 +1,44 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-85874-1791700808199 on 127.0.0.1:51492
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 i2b:prove /Users/miaole/Desktop/golucky/meetwise-i2/apps/api
+> node --import @swc-node/register/esm-register test/i2b.proof.ts
+
+PASS  I2B-0a 真迁移链全量应用 0001→0160（末位=0160 W2 受控 DEFINER 定性投影函数）
+PASS  I2B-0b 重跑全 skipped（幂等·CREATE OR REPLACE+自包含 REVOKE/GRANT）
+PASS  I2B-0c 0160 函数在位（SECURITY DEFINER·prosecdef）
+PASS  I2B-0d 出参列白名单结构性断言（RETURNS TABLE 恰 7 列·Ban deterministic_total/score/overall/coverage 数字分列）
+PASS  I2B-0e 0160 函数体+ACL 与 23_api_gateway.sql 镜像逐字节同文（0159 RX-3 同款承重墙判据）
+PASS  W1-0a hold 链：completeInterviewAndConfirm → 0082 finalize 自动收口（interview completed）
+PASS  W1-1a held 派生（E3 口径：a.status=assessment_unavailable × i.status=completed → held·0082 finalize 自动收口）
+PASS  W1-1b failed 派生（i.status=failed → failed·markApplicationAssessmentUnavailable updated）
+PASS  W1-1c 进行中 → null（派生口径收窄·非终态不派生）
+PASS  W1-1d 口径收窄：非 assessment_unavailable 状态恒不派生（非两源外形状零产出）
+PASS  W1-1e 招聘方列表行隔离墙如实（三申请可见∧两态信号零携带·interview RLS by-design·列表兜底零改·两态走详情页 0160）
+PASS  W1-2a DB 守卫（C3）：held start → application_held_not_retryable（绑定面试 completed 拒重试）
+PASS  W1-2b API 映射（C4）：held start → 409 application_held_not_retryable（新拒因并列·既有 402 分码面零触）
+PASS  W1-2c failed start → 既有恢复通路 started（新 attempt·G7FIX-4 面零回归）
+PASS  W1-1f attempt+1 恢复中 → null（恢复中不派生·最新绑定口径前半）
+PASS  W1-1g attempt+1 恢复后再 hold → held（最新绑定面试 completed·终态区分跟最新绑定走）
+PASS  W2-1 函数级未同意 → 未披露形状（恰一行 disclosed=false·E6 函数内 fail-closed）
+PASS  W2-1b 未同意态下两态状态信号仍可用（terminal_kind=held·状态分流不进同意门·W3④ 承接）
+PASS  W2-2 endpoint 未同意 → {disclosed:false}（双极性负极·未披露态非空壳假数据）
+PASS  W2-3 函数级同意 → 首行 disclosed 标记行（true·competency NULL·terminal_kind=held）
+PASS  W2-4a 档位聚合逐值（系统设计：exceeds→强 1·meets→中 1·below→弱 0·insufficient 0）
+PASS  W2-4b 档位聚合逐值（算法：below→弱 1·其余 0）
+PASS  W2-5 endpoint 同意 → {disclosed:true,terminalKind}+档位映射（strong/mid/weak·计数不出 API 面·Ban 自造档位）
+PASS  W2-6 非可评分卡（pending_evidence·无分项·0158 守门内初始态）→ 系统设计 insufficient ≥1
+PASS  W2-6b endpoint 系统设计 tiers 增 insufficient（strong/mid 保留·证据不足并列不互斥）
+PASS  W2-7 coverage<1 → 算法增证据不足（既有弱计数保留·两分支并列不互斥·出参白名单不变）
+PASS  W2-8 撤回 → 双极性闭环（函数恰一行 false + endpoint {disclosed:false}）
+PASS  W2-9a 函数级非属主 recruiter → 0 行（错配反例·Ban 无作用域全表读）
+PASS  W2-9b 函数级非终态申请（in_progress）→ 0 行（投影范围=assessment_unavailable 终态）
+PASS  W2-10a endpoint 越权 recruiter（非自有岗位）→ 404 not_found_or_forbidden（getJob 同形恒定壳）
+PASS  W2-10b endpoint 他人 application id → 404 not_found_or_forbidden（申请归属预检零存在性信号）
+PASS  W3-1 purpose=b_qualitative_share 进 #82 枚举面（ConsentPurpose zod·CONSENT_PURPOSES 白名单）
+PASS  W3-2 consent/withdraw 真实 consent_record 行（PrivacyService 同链·幂等·撤回翻态）
+
+✓ i2b:prove: 33 条负路径用例全绿

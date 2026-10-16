@@ -1,0 +1,84 @@
+
+> meetwise@0.1.0 uc016:nhp-fault:prove /Users/miaole/Desktop/golucky/meetwise-line-y2
+> node scripts/run-e2e-isolated.mjs uc016:nhp-fault:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-96621-1791364901759 on 127.0.0.1:61389
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-y2/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=140 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:uc016-nhp-fault /Users/miaole/Desktop/golucky/meetwise-line-y2/apps/worker
+> tsx test/uc-e2e-016-nhp-fault.proof.ts
+
+
+──────── PC · positive control：成功模型 quiz+diagnosis 经真队列到 ready+结算 ────────
+PASS  PC 消费到 owner（对照前置）
+PASS  PC 押题 ready（正对照活 · 幻觉 Go 题被过滤后 2 题）
+PASS  PC 诊断 ready（正对照活）
+PASS  PC job 双 done（无卡 running/queued）
+PASS  PC 终态事件 quiz_ready + diagnosis_ready
+PASS  PC 结算 -2.0（success settles by design）
+
+──────── F1+F2 · resume-quiz.generate / resume-diagnosis.generate 脚本抛错 → failed + 终态事件 + 退预留 ────────
+PASS  F1 quiz_job failed（终态 · 不无限重试）
+PASS  F2 diagnosis_job failed（同族）
+PASS  F1 对象 resume_quiz failed（生成链路未交付）
+PASS  F2 对象 resume_diagnosis failed（同族）
+PASS  F1 恰一条 quiz_unavailable 终态事件（无静默死胡同）
+PASS  F2 恰一条 diagnosis_unavailable 终态事件（同族）
+PASS  F1 attempts=1（单次行使即终态）
+PASS  F2 attempts=1
+PASS  F1+F2 双退款落账（退回到注入前 · N1 非空转：drain release 吞错则本断言必红）
+
+──────── F3 · ok:true + schema 外形非法 JSON → invoke 第一层 schema 拒绝 → 收敛 ────────
+PASS  F3 job failed（终态）
+PASS  F3 对象 resume_quiz failed
+PASS  F3 last_error 含 schema_validation_failed（双校验第一层 schema 拒绝 · 实际行为即证据）
+PASS  F3 恰一条 quiz_unavailable 终态事件（可解释降级 · 非死胡同）
+PASS  F3 退预留净 0
+PASS  F3 二次调度零 requeue 零重跑（attempts 仍=1 · 确定性拒绝不无限重试）
+PASS  F3 attempts 有界上界=产品常量 MAX_QUIZ_JOB_ATTEMPTS
+
+──────── F4 · 失败后重建新实例 → ready（A1/A2 验收语义 · D1 重建映射 · 非字面 failed→pending 口） ────────
+PASS  F4 重建押题 ready（重试后可成功 · D1 映射标记：此为「重建新实例」非字面 failed→pending 状态机口）
+PASS  F4 重建诊断 ready（同上 · D1 映射标记）
+PASS  F4 旧失败对象终态稳定不复活（quiz F1/F3 仍 failed）
+PASS  F4 旧失败对象终态稳定不复活（diagnosis F2 仍 failed）
+PASS  F4 旧失败对象事件数不变（终态稳定 · C-HA-4 不省略）
+PASS  F4 结算 -2.0（成功结算设计内）
+
+──────── ASett · 已结算 ready 对象 + 孤儿化 job 被 reap → 不发假终态/不重复退/不倒退（reaper.proof ⑥ 同构） ────────
+PASS  ASett 双对象经真 drain 到 ready+已结算
+PASS  ASett 孤儿 job 被收割（quiz failed=1 · diag failed=1 · release 返 already_confirmed → 跳过事件+跳过对象翻转）
+PASS  ASett job 已终结 failed（清理面）
+PASS  N3 ASett 已 ready 押题不被倒退（CAS NOT IN ready 自证条款负向行使）
+PASS  N3 ASett 已 ready 诊断不被倒退（同族）
+PASS  N1 ASett 不发假终态（quiz_unavailable 仍=0 · 产品既有语义：已交付对象不发失败事件）
+PASS  N1 ASett 不发假终态（diagnosis_unavailable 仍=0 · 同族）
+PASS  N1 ASett 不重复退款（余额不变）
+
+──────── F5+N2 · 无悬挂消费 · 二次 reap 幂等 · micro-patch 键面逐 job 断言 ────────
+PASS  F5 无 stuck running/queued 残留（全部 done|failed）
+PASS  F5 二次 reap 幂等 0 增量（无重复退款面）
+PASS  N2/F5 micro-patch 键面：failed 且对象非 ready 的注入面 job 恰 3 个（=F1/F2/F3）
+PASS  N2 键面内逐 job 恰一条 *_unavailable 终态事件（任一缺失=死胡同=EXIT1）
+PASS  N2 键面外：alreadySettled（failed+ready）恰 2 个且全部不在断言面
+PASS  键面外负向断言：alreadySettled 对象 0 条假终态事件（N1 兜底 · Ban 藉键面把倒退合法化——N3 已单独断言仍守）
+PASS  N3 全程 ready 对照组零倒退（PC/F4/ASett 六对象全部仍 ready）
+
+──────── N1 · 全 run 额度对账：失败流净 0 · 结算流恰 6×1.0 ────────
+PASS  N1 全 run avail === bucket 9.00 − 结算 6×1.0 = 3.00（失败流全部净 0 · 无双重退款）
+PASS  N1 消费台账：confirmed=6（恰 6）· released=3（恰 3 失败流 · 各恰一次释放）
+
+──────── F6 · 收据落盘 ────────
+RECEIPT_WRITTEN /Users/miaole/Desktop/golucky/meetwise-line-y2/.tmp/uc016-fault-receipts/uc016-nhp-fault-attempt001.json · implementer pre-commit run · not evidence of record
+
+✓ UC-E2E-016/029 NHP-016-FAULT-01 PC+F1–F6+N1–N4 asserts passed · EXIT0 ≠ covered ≠ suite green ≠ 行升格 · coveredCount=8
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-07T09-21-58-322Z-96621-d0ec1025-6eef-4ccf-97c0-e342d858beaa.json release_evidence=false

@@ -1,0 +1,215 @@
+
+> meetwise@0.1.0 nhp-r4-adv-covered:prove /Users/miaole/Desktop/golucky/meetwise-line-godfn1b
+> node scripts/run-e2e-isolated.mjs nhp-r4-adv-covered:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-56527-1791483384575 on 127.0.0.1:55087
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:nhp-r4-adv-covered /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/nhp-r4-adv-covered.proof.ts
+
+COVERED_PATH LIVE_PG target mode=isolated (real Postgres required; skip≠pass)
+NHP-R4-ADV covered path prove — C1–C4 · releaseEvidence=false · ≠HA · ≠R4 closed
+EXIT=0 ≠ matrix covered ≠ R4 closed · await post-prove dual
+
+──────── C0 static anchors present ────────
+PASS  covered harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/nhp-r4-adv-covered-path.md
+PASS  covered eval present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/eval/nhp-r4-adv-covered-path.eval.md
+PASS  covered slice present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/nhp-r4-adv-covered-path.slice.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  NHP matrix present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/non-happy-path-perf-load-case-matrix.md
+PASS  unit ADV proof present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/test/r4-wrong-track-adv.proof.ts
+PASS  LIVE_PG proof present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/test/r4-wrong-track-adv-live-pg.proof.ts
+PASS  retrieveVia helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/qbank-track-local-retrieve.ts
+
+──────── C4 covered-path definition + honesty pins (partial until post-prove dual) ────────
+PASS  C4 harness defines C1–C4 covered cases
+PASS  C4 harness freezes CMD nhp-r4-adv-covered:prove
+PASS  C4 harness pins LIVE_PG dual ≠ covered done
+PASS  C4 harness pins ≠ R4 closed · releaseEvidence=false · ≠HA
+FAIL  C4 harness pins partial ≠ covered until dual+prove+post-prove dual
+PASS  C4 eval registers E1–E8 / C1–C4 mapping
+PASS  C4 slice indexes harness+eval+REQUEST pair
+PASS  C4 matrix NHP-R4-ADV-01 still partial / ≠ covered (elevation awaits post-prove dual)
+FAIL  C4 status §12 / covered path still pins R4 NOT closed + 题域隔离 NOT closed
+PASS  C4 helper still wired retrieveVia + ban P-FAKEPLAN + fail-closed
+PASS  C4 prove never assigns MODEL_API_KEY (no invent)
+PASS  C4 SOLE allowlist not expanded for covered knife
+
+──────── C2/C3 unit ADV 旁证 (honesty surfaces; ≠ covered alone) ────────
+
+── spawn unit ADV (r4-wrong-track-adv): pnpm -C apps/worker prove:r4-wrong-track-adv ──
+
+> @meetwise/worker@0.0.0 prove:r4-wrong-track-adv /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-wrong-track-adv.proof.ts
+
+
+── A1 wired path ──
+PASS  track-local retrieve helper present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/qbank-track-local-retrieve.ts
+PASS  interview-consumer.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/interview-consumer.ts
+PASS  main.ts present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker/src/main.ts
+PASS  db recheck seam present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/qbank-track-local-retrieval.ts
+PASS  domain assert hooks present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/domain/src/qbank-track-local-retrieval.ts
+PASS  ADV harness present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-wrong-track-adv.md
+PASS  r4 status present — /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/ai-docs/delivery/harness/r4-domain-isolation-status.md
+PASS  A1 apps/worker/src CALL_SITES≥1 for dispatchTrackLocalRetrieval( — callSites=1 files=apps/worker/src/qbank-track-local-retrieve.ts
+PASS  A1 helper uses assembleValidatedRetrievalPlan + activeQbankGeneration (no P-FAKEPLAN)
+PASS  A1 consumer/main wire trackLocal → retrieveViaDispatchTrackLocal
+
+── A2 wrong_track=0 assert hooks ──
+PASS  A2 same-leaf annotated hits → wrongTrack=0
+PASS  A2 cross-leaf hit → wrongTrack≥1
+PASS  A2 missing metadata → wrongTrack≥1 (fail-closed)
+PASS  A2 enforceWrongTrackZeroOnServed fail-closed → degraded refs
+PASS  A2 enforceWrongTrackZeroOnServed ok path
+
+── A3 adversarial surfaces (domain + Worker map) ──
+PASS  A3 forged/missing metadata: missing track counted wrong
+PASS  A3 forged/missing metadata: recheck metadata_hash_mismatch → degraded
+PASS  A3 forged/missing metadata: unreviewed_annotation → degraded
+PASS  A3 unknown taxonomy: validateRetrievalPlan taxonomy_not_current
+PASS  A3 unknown taxonomy: assemble refuses non-current via plan validate
+PASS  A3 concurrent job change: leaf outside snapshot → validate reject
+PASS  A3 concurrent job change: assemble stays on snapshot leaf (no cross)
+PASS  A3 stale checkpoint: route_scope_digest_mismatch
+PASS  A3 cache replay: cross_track_or_revoked → Worker degraded (not served)
+PASS  A3 cache replay: serving_scope_mismatch → degraded
+PASS  A3 generation_race / recipe_mismatch → degraded
+PASS  A3 full R4_WRONG_TRACK_RECHECK_REASONS catalog mapped fail-closed
+
+── A4 fail-closed / G-R2-5 / no P-FAKEPLAN ──
+PASS  A4 G-R2-5 decideRouteSnapshotRetrieve null → route_snapshot_missing
+PASS  A4 G-R2-5 degradedRetrieval observable
+PASS  A4 rejected snapshot_missing maps to route_snapshot_missing
+PASS  A4 helper pins fail-closed / no unscoped / question_ready / P-FAKEPLAN
+PASS  A4 consumer pins recheck_failed fail-closed + G-R2-5 + ≠ wrong_track=0
+PASS  A4 parseCragPlannerQuery rejects illegal planner inputs
+PASS  A4 assemble without generation/recipe → fail (P-FAKEPLAN ban)
+
+── static recheck predicates on wired db seam ──
+PASS  db recheckHitsAtLeaf present with ADV predicates
+PASS  db pins no sibling / legacy_unrouted / question_ready on recheck fail
+PASS  domain exports countWrongTrackHits + R4_WRONG_TRACK_RECHECK_REASONS
+PASS  helper exports enforceWrongTrackZeroOnServed + mapRecheckFailedToRefs
+
+── A5–A8 honesty pins ──
+PASS  A5/A6 harness pins wire≠ADV · releaseEvidence=false · ≠R4 closed
+FAIL  A7/A8 status still 题域隔离 NOT closed + releaseEvidence=false
+FAIL  A8 parent harness still 题域隔离 NOT closed
+PASS  LIVE_PG_GAP honesty: prove header documents remaining live Worker+PG gap
+PASS  matrix NHP-R4-ADV-01 must not claim covered (≠ covered / partial/honesty ok)
+PASS  harness must not claim R4 closed / wrong_track=0 production closed
+
+── honesty summary (not covered) ──
+LIVE_PG_GAP: full live Worker+PG ADV (cache poison / job edit / metadata tamper
+  through retrieveViaDispatchTrackLocal) NOT claimed; companion=rag04 seam.
+NHP-R4-ADV-01: partial/honesty-pin allowed; ≠ covered; ≠ R4 closed.
+wire green ≠ ADV closed; ADV prove EXIT=0 ≠ R4 closed.
+
+FAIL  r4-wrong-track-adv prove (2 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+FAIL  unit ADV (r4-wrong-track-adv) EXIT=0 — exit=1
+
+──────── C1–C3 LIVE_PG live wired (wrong_track=0 · A3 · G-R2-5) ────────
+
+── spawn LIVE_PG ADV (r4-wrong-track-adv-live-pg): pnpm -C apps/worker prove:r4-wrong-track-adv-live-pg ──
+
+> @meetwise/worker@0.0.0 prove:r4-wrong-track-adv-live-pg /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-wrong-track-adv-live-pg.proof.ts
+
+LIVE_PG target mode=isolated (real Postgres required; skip≠pass)
+PASS  L1 isolated PG attestation (assertIsolatedTestTarget)
+
+──────── L1 static wire (CALL_SITES + retrieveVia) ────────
+PASS  track-local retrieve helper present
+PASS  LIVE_PG harness present
+PASS  L1 apps/worker/src CALL_SITES≥1 for dispatchTrackLocalRetrieval( — callSites=1
+PASS  L1 helper exports retrieveViaDispatchTrackLocal (production CALL_SITES entry)
+PASS  L1 consumer/main wire trackLocal → retrieveViaDispatchTrackLocal
+PASS  L1 helper bans P-FAKEPLAN + fail-closed + no unscoped
+
+──────── 0. fixture: dual-leaf qbank + active generation + nodejs interview snapshot ────────
+PASS  ingest 2 questions / 6 chunks
+PASS  active generation built
+PASS  activeQbankGeneration returns recipe (retrieveVia prerequisite)
+PASS  job rule-classified route_decided
+PASS  immutable snapshot leaf=backend/nodejs
+
+──────── L2 happy path via retrieveViaDispatchTrackLocal — wrong_track=0 ────────
+PASS  L2 retrieveVia served only nodejs_q1 (no java) — refs=nodejs_q1
+
+──────── L3 cache poison via retrieveVia — fail-closed degraded (no cross-leaf serve) ────────
+PASS  L3 cache poison cross-track → degraded (recheck_failed), zero java served — ref=__rag_degraded__:recheck_failed:cross_track_or_revoked
+
+──────── L3 forged/missing metadata (ghost cache hit) via retrieveVia ────────
+PASS  L3 forged/missing metadata (ghost ref) → degraded fail-closed — ref=__rag_degraded__:recheck_failed:cross_track_or_revoked
+
+──────── L3 metadata tamper (cs.metadata_hash) via retrieveVia ────────
+PASS  L3 metadata_hash tamper → degraded (metadata_hash_mismatch) — ref=__rag_degraded__:recheck_failed:metadata_hash_mismatch
+
+──────── L3 unknown taxonomy via retrieveVia gates (assemble + ingest · live PG) ────────
+PASS  L3 unknown taxonomy: assembleValidatedRetrievalPlan (retrieveVia gate) refuses
+PASS  L3 unknown taxonomy ingest rejected on live PG (never enters serving)
+PASS  L3 retrieveVia source still routes through assembleValidatedRetrievalPlan
+
+──────── L3 stale checkpoint (mutated in-memory routeDigest) via retrieveVia ────────
+PASS  L3 stale routeDigest → degraded (route_scope_digest_mismatch / dispatch reject) — ref=__rag_degraded__:dispatch_rejected:route_scope_digest_mismatch
+
+──────── L3 concurrent job/leaf change — snapshot immutable; retrieveVia stays on nodejs ────────
+PASS  job reclassified after edit
+PASS  old snapshot immutable (still nodejs after job→java)
+PASS  L3 after concurrent job change: retrieveVia still wrong_track=0 (no java served) — refs=nodejs_q1
+
+──────── L4 fail-closed / G-R2-5 / ban P-FAKEPLAN / no legacy_unrouted ────────
+PASS  L4 G-R2-5 null snapshot → route_snapshot_missing via retrieveVia
+PASS  L4 retrieveVia null snapshot → degraded route_snapshot_missing (no unscoped)
+PASS  L4 invalid planner query → degraded (no invented planner inputs / P-FAKEPLAN)
+PASS  L4 illegal CRAG query → degraded planner_query_invalid
+PASS  L4 legacy_unrouted ingest rejected (never enters serving scope)
+PASS  L4 degradedRetrieval observable (fail-closed helper)
+
+──────── L5–L8 honesty pins ────────
+PASS  L5/L6 harness pins ADV≠LIVE_PG · releaseEvidence=false · ≠R4 closed
+PASS  L6 unit ADV proof documents LIVE_PG_GAP (≠ this knife)
+PASS  L7 matrix NHP-R4-ADV-01 ≠ covered
+FAIL  L8 status/parent still 题域隔离 NOT closed + LIVE_PG_GAP honesty
+PASS  L8 this prove must not claim R4 closed / covered / HA
+
+── honesty summary (LIVE_PG prove; not covered) ──
+LIVE_PG path truly hit Postgres: mode=isolated · CALL_SITES=1
+Exercised: retrieveViaDispatchTrackLocal (wired production path) + real PG.
+LIVE_PG_GAP remains OPEN until post-prove dual (mw-rag-route + mw-e2e-ha).
+NHP-R4-ADV-01: partial/honesty-pin; ≠ covered; ≠ R4 closed; ≠ HA.
+unit ADV ≠ this LIVE_PG knife; LIVE_PG EXIT=0 ≠ R4 closed; releaseEvidence=false.
+
+FAIL  r4-wrong-track-adv-live-pg prove (1 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+FAIL  LIVE_PG ADV (r4-wrong-track-adv-live-pg) EXIT=0 — exit=1
+
+──────── C1–C4 composition honesty ────────
+FAIL  C1 live wrong_track path exercised via LIVE_PG prove EXIT=0
+FAIL  C2/C3 unit adversary + fail-closed 旁证 EXIT=0
+PASS  C4 composition: covered prove EXIT=0 ≠ matrix covered ≠ R4 closed
+
+── honesty summary (covered-path prove; await post-prove dual) ──
+PG mode=isolated · unit ADV exit=1 · LIVE_PG exit=1
+C1–C3: composed from LIVE_PG live wired + unit ADV 旁证.
+C4: covered harness/eval/matrix honesty — NHP-R4-ADV-01 stays partial until post-prove dual.
+LIVE_PG ADV post_prove_dual_pass ≠ this covered path done (prior honesty only).
+EXIT=0 ≠ covered ≠ R4 closed ≠ production wrong_track=0 closed ≠ HA.
+releaseEvidence=false · no self-approve · sole allowlist not flipped.
+
+FAIL  nhp-r4-adv-covered prove (6 failures)
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-56527-1791483384575 state_bytes=217 logs_bytes=1665
+LOCAL_ISOLATED_PROOF_RECEIPT_FAILED reason=ENOENT: no such file or directory, open '/Users/miaole/Desktop/golucky/meetwise-line-godfn1b/packages/db/src/qbank/qbank-track-local-retrieval.ts'
+ ELIFECYCLE  Command failed with exit code 1.

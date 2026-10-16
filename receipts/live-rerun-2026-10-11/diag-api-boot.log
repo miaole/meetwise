@@ -1,0 +1,43 @@
+[worker 5754ms] {"level":30,"time":1791719710048,"pid":48973,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:25435"}
+[worker 5756ms] api on 127.0.0.1:25435
+[worker 6053ms] {"level":30,"time":1791719710346,"pid":48973,"hostname":"miaole.local","reqId":"ebf9f3d4-37a6-4516-8d41-4df58badfe66","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 6070ms
+[worker 6071ms] {"level":30,"time":1791719710359,"pid":48973,"hostname":"miaole.local","reqId":"ebf9f3d4-37a6-4516-8d41-4df58badfe66","res":{"statusCode":200},"responseTime":12.445749999999862,"msg":"request completed"}
+[worker 9035ms] {"level":30,"time":1791719713323,"pid":48973,"hostname":"miaole.local","reqId":"2a8ef700-8233-4658-9d03-ec8873e3bc41","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 9038ms
+[worker 9040ms] {"level":30,"time":1791719713327,"pid":48973,"hostname":"miaole.local","reqId":"2a8ef700-8233-4658-9d03-ec8873e3bc41","res":{"statusCode":200},"responseTime":3.4210000000002765,"msg":"request completed"}
+[worker 12026ms] {"level":30,"time":1791719716321,"pid":48973,"hostname":"miaole.local","reqId":"bedc693f-d8af-40fe-87d7-8431844b67fc","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 12028ms
+[worker 12029ms] {"level":30,"time":1791719716323,"pid":48973,"hostname":"miaole.local","reqId":"bedc693f-d8af-40fe-87d7-8431844b67fc","res":{"statusCode":200},"responseTime":1.2512499999993452,"msg":"request completed"}
+[worker 15026ms] {"level":30,"time":1791719719320,"pid":48973,"hostname":"miaole.local","reqId":"82a19096-5ca3-4e70-ae3b-e9f7572c53bb","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 15027ms
+[worker 15027ms] {"level":30,"time":1791719719322,"pid":48973,"hostname":"miaole.local","reqId":"82a19096-5ca3-4e70-ae3b-e9f7572c53bb","res":{"statusCode":200},"responseTime":1.2986669999991136,"msg":"request completed"}
+[worker 18026ms] {"level":30,"time":1791719722322,"pid":48973,"hostname":"miaole.local","reqId":"6ba4c496-ad93-46cb-b82b-1148d28a8f0e","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 18029ms
+[worker 18029ms] {"level":30,"time":1791719722323,"pid":48973,"hostname":"miaole.local","reqId":"6ba4c496-ad93-46cb-b82b-1148d28a8f0e","res":{"statusCode":200},"responseTime":0.8805840000022727,"msg":"request completed"}
+[worker 21027ms] {"level":30,"time":1791719725323,"pid":48973,"hostname":"miaole.local","reqId":"facfbfca-683f-4a3a-9135-1af26f52c9ec","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 21029ms
+[worker 21029ms] {"level":30,"time":1791719725324,"pid":48973,"hostname":"miaole.local","reqId":"facfbfca-683f-4a3a-9135-1af26f52c9ec","res":{"statusCode":200},"responseTime":0.796583000003011,"msg":"request completed"}
+[diag] livez -> 200 {"status":"ok"} at 24030ms
+[worker 24031ms] {"level":30,"time":1791719728324,"pid":48973,"hostname":"miaole.local","reqId":"a33cbaeb-7f3d-4db3-a1fc-9e5057f5e8fb","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+{"level":30,"time":1791719728325,"pid":48973,"hostname":"miaole.local","reqId":"a33cbaeb-7f3d-4db3-a1fc-9e5057f5e8fb","res":{"statusCode":200},"responseTime":0.5574159999996482,"msg":"request completed"}
+[worker 27029ms] {"level":30,"time":1791719731325,"pid":48973,"hostname":"miaole.local","reqId":"16c20b80-4162-41d6-9a2c-9a63584d9c50","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 27031ms
+[worker 27031ms] {"level":30,"time":1791719731326,"pid":48973,"hostname":"miaole.local","reqId":"16c20b80-4162-41d6-9a2c-9a63584d9c50","res":{"statusCode":200},"responseTime":0.6510000000016589,"msg":"request completed"}
+[worker 30033ms] {"level":30,"time":1791719734328,"pid":48973,"hostname":"miaole.local","reqId":"e524807d-7f22-4281-91c5-3ca9bc9b12fa","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 30038ms
+[worker 30038ms] {"level":30,"time":1791719734332,"pid":48973,"hostname":"miaole.local","reqId":"e524807d-7f22-4281-91c5-3ca9bc9b12fa","res":{"statusCode":200},"responseTime":3.0645000000004075,"msg":"request completed"}
+[worker 33034ms] {"level":30,"time":1791719737330,"pid":48973,"hostname":"miaole.local","reqId":"fa456d9b-2694-40cb-9e76-7063f6990b36","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 33037ms
+[worker 33037ms] {"level":30,"time":1791719737332,"pid":48973,"hostname":"miaole.local","reqId":"fa456d9b-2694-40cb-9e76-7063f6990b36","res":{"statusCode":200},"responseTime":1.752291000004334,"msg":"request completed"}
+[worker 36036ms] {"level":30,"time":1791719740331,"pid":48973,"hostname":"miaole.local","reqId":"802446b7-1e9a-4ed7-b984-a8ce8e895cc5","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 36038ms
+[worker 36039ms] {"level":30,"time":1791719740333,"pid":48973,"hostname":"miaole.local","reqId":"802446b7-1e9a-4ed7-b984-a8ce8e895cc5","res":{"statusCode":200},"responseTime":1.1684590000004391,"msg":"request completed"}
+[worker 39037ms] {"level":30,"time":1791719743333,"pid":48973,"hostname":"miaole.local","reqId":"3a81d3c0-3877-48a9-bcf7-434382ff2c62","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 39038ms
+[worker 39039ms] {"level":30,"time":1791719743334,"pid":48973,"hostname":"miaole.local","reqId":"3a81d3c0-3877-48a9-bcf7-434382ff2c62","res":{"statusCode":200},"responseTime":0.868666000002122,"msg":"request completed"}
+[worker 42038ms] {"level":30,"time":1791719746334,"pid":48973,"hostname":"miaole.local","reqId":"c3849152-19d4-4f98-9cd0-6b4646d4c5cb","req":{"method":"GET","url":"/livez","host":"127.0.0.1:25435","remoteAddress":"127.0.0.1","remotePort":64823},"msg":"incoming request"}
+[diag] livez -> 200 {"status":"ok"} at 42039ms
+[worker 42039ms] {"level":30,"time":1791719746334,"pid":48973,"hostname":"miaole.local","reqId":"c3849152-19d4-4f98-9cd0-6b4646d4c5cb","res":{"statusCode":200},"responseTime":0.4144169999999576,"msg":"request completed"}
+[diag] diag window over readySeen=true; killing worker
+[diag] worker exit code=null sig=SIGKILL at 45093ms

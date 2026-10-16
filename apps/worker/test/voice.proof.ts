@@ -4,7 +4,7 @@
  *   pnpm voice:prove   (需 pnpm db:up)
  */
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
-import { fakeAsr, fakeTts } from '@meetwise/ai-runtime';
+import { fakeAsr, fakeTts } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { Command } from '@langchain/langgraph';
 import { createCheckpointer } from '../src/main.ts';
 import { previewVoiceAnswerTurn } from '../src/interview-voice.ts';

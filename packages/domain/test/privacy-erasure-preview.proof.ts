@@ -116,9 +116,9 @@ A('0129 存在且禁止 completed / SLO，并链接 0096/0125',
   && migration.includes('ON CONFLICT (owner_user_id, idempotency_key_hash) DO NOTHING'));
 
 const svc = read('apps/api/src/modules/privacy/privacy.service.ts');
-A('生产 DELETE 仍 503；预览路径已接线',
+A('面试 DELETE 仍 503·简历轨 S1 软删受理·预览路径已接线',
   svc.includes("error: 'interview_erasure_authorization_not_available'")
-  && svc.includes("error: 'resume_erasure_migration_in_progress'")
+  && svc.includes('beginResumeSoftDelete')
   && svc.includes('beginPrivacyPreviewErasure')
   && svc.includes('assertPublicPreviewWritesClosed'));
 

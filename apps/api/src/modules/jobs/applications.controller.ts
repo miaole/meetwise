@@ -14,14 +14,15 @@ export class ApplicationsController {
   constructor(private readonly applications: ApplicationsService) {}
 
   @Get()
-  mine(@Req() req: any) {
+  mine(@Req() req: any): ReturnType<ApplicationsService['mine']> {
     return this.applications.mine(req.principal);
   }
 
   @Post(':id/start')
   @HttpCode(HttpStatus.OK)
   start(@Param('id') id: string, @Req() req: any, @Body(new ZodValidationPipe(StartApplicationDto)) b: StartApplicationDto) {
-    return this.applications.start(req.principal, id, b);
+    // B271 片2 S2-C4：reqId 透传合一事务内的 begin 入队 payload（贯穿 worker 模型 trace，同 begin 端点形）。
+    return this.applications.start(req.principal, id, b, req.reqId);
   }
 
   @Post(':id/decline')

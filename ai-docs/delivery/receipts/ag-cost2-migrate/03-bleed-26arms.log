@@ -1,0 +1,45 @@
+
+> @meetwise/worker@0.0.0 prove:usage-calibration-bleed /Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker
+> tsx test/usage-calibration-bleed.proof.ts
+
+PASS  臂① env 全缺省：ENABLED 缺省 false（关停·裁决项①(b) 推荐执行·可调）
+PASS  臂① env 全缺省：INTERVAL_MS 缺省 86_400_000（重启用即按天·专家意见 (a) 值·绝不回退 60s）
+PASS  臂① 空串视同缺省（boundedInteger/boundedBoolean 既有先例形）
+PASS  臂② INTERVAL_MS=abc（非数值）→ throw usage_calibration_reconcile_interval_invalid
+PASS  臂② INTERVAL_MS=-1（负数）→ throw usage_calibration_reconcile_interval_invalid
+PASS  臂② INTERVAL_MS=0.5（非整数）→ throw usage_calibration_reconcile_interval_invalid
+PASS  臂② INTERVAL_MS=1000（低于下界 60_000）→ throw usage_calibration_reconcile_interval_invalid
+PASS  臂② INTERVAL_MS=999999999（高于上界 604_800_000）→ throw usage_calibration_reconcile_interval_invalid
+PASS  臂② ENABLED=yes（非布尔）→ throw usage_calibration_reconcile_enabled_invalid
+PASS  臂② ENABLED=enabled（非布尔）→ throw usage_calibration_reconcile_enabled_invalid
+PASS  臂② ENABLED=2（非布尔）→ throw usage_calibration_reconcile_enabled_invalid
+PASS  臂③ ENABLED=1 → true（重启用）
+PASS  臂③ ENABLED=true（大小写归一）→ true
+PASS  臂③ ENABLED=0 → false（显式关停合法）
+PASS  臂③ INTERVAL_MS=60000（原 60s 硬编码值·任务书中间下界）合法
+PASS  臂③ INTERVAL_MS=3600000（中间档每小时·任务书登记值）合法
+PASS  臂③ INTERVAL_MS=86400000（每天·专家意见 (a) 值）合法
+PASS  接线 pin：main.ts 调用点改传 resolve 结果（resolveUsageCalibrationReconcileConfig()）
+PASS  接线 pin：ENABLED=false → 不起循环（enabled 条件三目 + : undefined·沿 privacyErasureLoop 可选循环先例）
+PASS  接线 pin：ready 面可选短路（(usageCalibrationReconcileLoop?.ready() ?? true)）
+PASS  接线 pin：drainStops 可选 stop（usageCalibrationReconcileLoop?.stop() ?? Promise.resolve()）
+PASS  接线 pin：drainStops 具名项在位（ha-2-drain A.4 清单 16 项零回归）
+PASS  间隔透传 pin：runUsageCalibrationReconciler(pool, intervalMs) → runDrainLoop(tick, intervalMs)（intervalMs 逐参透传）
+PASS  域级本体 sha256 pin：usage-calibration-reconciler.ts == AG-COST2 施工后 re-pin 值（防顺手触碰·原 cost1 值 3f375925…df1 已随授权触面退役）
+usage calibration reconcile enumerate failed TypeError: pool.connect is not a function
+    at asGateway (/Users/miaole/Desktop/golucky/meetwise-cost2/packages/db/src/principal.ts:2115:24)
+    at gatewayUsageCalibrationWatermarkFloor (/Users/miaole/Desktop/golucky/meetwise-cost2/packages/db/src/jobs/gateway-dispatch.ts:81:24)
+    at usageCalibrationReconcileTick (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/src/usage-calibration-reconcile.ts:88:25)
+    at <anonymous> (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/src/usage-calibration-reconcile.ts:114:43)
+    at <anonymous> (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/src/drain-loop.ts:45:15)
+    at runDrainLoop (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/src/drain-loop.ts:54:3)
+    at runUsageCalibrationReconciler (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/src/usage-calibration-reconcile.ts:114:10)
+    at main (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/test/usage-calibration-bleed.proof.ts:88:16)
+    at <anonymous> (/Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker/test/usage-calibration-bleed.proof.ts:99:6)
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+PASS  活循环 smoke：loop 起 + 首拍完成（enumerate 失败被 tick 自吞·consecutiveFailures=0）
+PASS  活循环 smoke：stop() 排空 resolve（可优雅排空语义原值）
+
+✓ AG-07 止血旋钮三臂证明全部通过

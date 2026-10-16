@@ -1,0 +1,127 @@
+
+> @meetwise/ai-runtime@0.0.0 prove /Users/miaole/Desktop/golucky/meetwise-ag24/packages/ai-runtime
+> tsx test/runtime-kernel.proof.ts && tsx test/claim-join-orphan.proof.ts && tsx test/diag-honesty-prompt.proof.ts && tsx test/ag24-langfuse-model.proof.ts
+
+
+──────── 进程 A：面试官启动一轮 · 全程 principal 上下文(FORCE RLS 生效) ────────
+PASS  A 抢到 thread 租约
+PASS  状态 created→active（CAS）
+PASS  invoke 拿到合法问题
+PASS  单次逻辑调用仅派发一次模型请求
+PASS  事件 seq=1（原子分配）
+PASS  状态 active→waiting_user（持久化等待）
+
+──────── 并发控制：B 持租约时 C 并发 resume 被拒 ────────
+PASS  B 抢到租约
+PASS  C 并发抢租约被拒（防裂脑）
+
+──────── 可中断可恢复：进程 B 纯从 DB 恢复（无内存 session） ────────
+PASS  重启后从 DB 读到 waiting_user
+PASS  从事件账本恢复出第 1 题
+
+──────── 提交答案：幂等（双击/断线重发只评一次） ────────
+PASS  首次提交记账+评估
+PASS  重复提交被幂等忽略
+PASS  answer_evaluated 仅 1 条
+PASS  invoke 幂等：eval 模型仅被真正调用 1 次
+
+──────── 并发同键去重：两并发 invoke 由 durable claim（持久领取）协调，只派发一次 ────────
+PASS  两并发 invoke 模型仅真调 1 次（同键持久领取去重，避免重复派发）
+PASS  两者返回同一值(不发散)
+
+──────── 双校验 & 重试分类 ────────
+PASS  幻觉简历事实被业务校验拦截（schema 通过≠业务合法）
+PASS  确定性拒绝不重试（模型仅调 1 次）
+
+──────── UC-E2E-012：已派发模型 Promise 永不收口 → unknown，绝不无限续租或自动重发 ────────
+PASS  E5：永不 resolve 的已派发调用在硬时限内收口为 unknown（而非无限等待）
+PASS  E1：unknown 同幂等键重放不发第二次供应商请求
+PASS  E6：超时 abort 后的迟到成功响应不能覆盖 unknown、写入工件或成功 trace
+PASS  E3：pre-dispatch prepare 超时会 abort，且不创建可计费调用 claim
+PASS  生产环境拒绝小于 1000ms 的执行时限（毫秒级值仅测试 seam）
+PASS  非法同键等待预算不会变成无限轮询
+PASS  E2：两个并发超时调用最多派发一次，二者均以未知终态收口
+
+──────── 可观测埋点：invoke 关口每次模型调用出 span(脱敏标量,observability-strategy §6) ────────
+PASS  ok span 出且带延迟(latencyMs>=0)
+PASS  cached span 出(命中未真打模型)
+PASS  span 只含标量字段(无 prompt/简历原文,脱敏 by construction·AG-24 翻转:键集增 model/cachedInputTokens/settledCostMicroCny 三标量位)
+PASS  span 带 token usage(input=123,output=45,标量非内容)
+PASS  AG-24(裁决①(a)):ok span.model=G7 供应商回显优先;cachedInputTokens=77 透传(缺席≠零·在手=值);settledCostMicroCny=账本结算值对表(100×1+200×2=500)
+PASS  AG-24:无回显时 span.model=受控策略模型名(=plan.cost?.model·与 claim 同源)
+PASS  AG-24(裁决⑤(b)):cached 臂 plan 在作用域零读取携真名;非结算臂成本/缓存缺省不挂(undefined≠0)
+PASS  AG-24:prepare 拒绝臂 span.model 缺省(→Langfuse 侧降级 safeName(service)·现状零回归臂)
+
+──────── Langfuse v5 观测适配器：外送 ID 伪名化 + 元数据白名单 ────────
+PASS  外送元数据只含数值/枚举/HMAC 伪名，不含原 owner/thread/幂等键/来源
+PASS  AG-19:版本标量外送为 null 缺省占位(此 span 未带 promptVersion)·AG-24 翻转:成本标量随 span 逐字透传(model 真名走 generation 顶层字段·不入 metadata 白名单)
+PASS  同密钥同标识的外送伪名稳定、不同命名空间不可混用
+
+──────── RLS：FORCE + 越权读=0 fail-closed + WITH CHECK 防越权写 ────────
+PASS  未绑 principal 可见=0（fail-closed）
+PASS  userB 越权读 userA 的 R1=0 行
+PASS  userA 能读自己的 R1
+PASS  userB 越权读 R1 事件账本=0 行
+PASS  WITH CHECK：userA 写 owner=userB 被拒（防越权搬数据）
+
+✓ 全部通过
+
+──────── HC-GAP-011-orphan-permit · leftover create-permit, no invocation row ────────
+PASS  HC-GAP-011-orphan-permit: leftover create-permit with no invocation row returns wait, not execute; row=0; permit cleared
+PASS  HC-GAP-011-orphan-permit: invoke() that hits leftover permit still ends with calls=1 and one invocation row
+
+──────── HC-GAP-011-concurrent-no-row · two claimants, no row yet ────────
+PASS  HC-GAP-011-concurrent-no-row: two claim() with no row yet → execute=1 and wait=1
+PASS  HC-GAP-011-concurrent-no-row: two invoke() with no row yet → calls=1 and both return the same value
+
+──────── HC-GAP-011-orphan-concurrent · clearing leftover permit must not open a second execute ────────
+PASS  HC-GAP-011-orphan-concurrent: two invoke() against leftover permit → calls=1 and same value; calls must not become 2 from clearing permit
+
+✓ HC-GAP-011 claim-join named cases passed
+
+──────── §2-3 有 role 照旧:组装 system 与 899cab1a 基线逐字同(注册表缺省+生产路径双拍) ────────
+PASS  注册表缺省(无 vars·审计/落 ai_prompt_versions 面)=基线逐字
+PASS  生产路径(vars.role 给定)捕获 system=基线逐字(五维含 match·kind 枚举五值)
+PASS  有 role 时 buildData 前缀现状字节(目标岗位段)
+
+──────── §2-2 无 role 零 match:role 缺省/空串 → 组装 system 零 match(四维句+kind 枚举四值·其余段逐字同) ────────
+PASS  role=undefined → 全串零 match 子串
+PASS  role=undefined → 四维句(枚举剔除 match)逐字
+PASS  role=undefined → JSON 模板 kind 枚举四值(去 match 选项)
+PASS  role=undefined → 与基线恰两处联动替换,其余逐字同(最小 diff 断言)
+PASS  role=''(空串) 与 undefined 同臂(buildData :59 同源真值门)
+PASS  无 role 时 buildData 前缀现状字节(零目标岗位段)
+
+──────── 不变式:其余 service 字节恒定不破(security-proof 同源)+getPrompt 兼容 ────────
+PASS  mock-interview.evaluate system 两次取字节恒定(既有不变式保持)
+PASS  无 vars 调用返回注册表原对象(审计/版本面零形状漂)
+PASS  promptVersions 仍含 resume-diagnosis.generate v1(版本面零漂)
+
+──────── 枚举本体零触(静态源锚·§1-②):五值枚举/z.enum/kind∈枚举语义保持 ────────
+PASS  DIAGNOSIS_SECTION_KINDS 五值全量保留(resume-diagnosis.ts:20)
+PASS  worker schema kind 仍 z.enum 五值枚举(interview-service.ts:188)
+PASS  图侧 kind 门=枚举成员语义(非全维齐备·无 role 四维响应即合法)
+
+✓ diag-honesty 修法②组装面全部通过(零模型外呼)
+PASS  AG-24① 成本标量两态：在手=逐字透传（4567），缺省=null 占位（缺省≠零·沿 promptVersion 同形）
+PASS  AG-24① 脱敏负证：model/cachedInputTokens 不入 metadata 白名单（真名走 generation 顶层字段·cached 走 usageDetails）
+PASS  AG-24① 源钉：generation model 真名归因=span.model 优先·缺省降级 safeName(service)（现状降级路径零回归）
+PASS  AG-24① 源钉：usageDetails.input_cached 条件挂键（span.cachedInputTokens !== undefined 时挂·undefined=键不出现·显式 0=挂 0）
+PASS  AG-24① 源钉：span 名称分组键零字节（meetwise.model.<safeName(service)> 原样·Langfuse 看板分组稳定）
+PASS  AG-24① 源钉：metadata 白名单形制 additive（settledCostMicroCny: span.settledCostMicroCny ?? null）
+PASS  AG-24① 源钉：invoke span 闭包三透传（model 源优先序 extra?.model ?? spanCostModel·cachedInputTokens·settledCostMicroCny）
+PASS  AG-24① 源钉：InvokeSpanFn 扩可选参（extra?: InvokeSpanExtra）+ 终局 ok 臂携带真名/成本（中间臂缺省不挂）
+PASS  AG-24② 带图数组形：:710 消费的 usage.inputTokens=各段拼接字符量/4（≠数组元素数旧公式·≠64 塌缩负证）
+PASS  AG-24② 无图字符串形：与旧公式恒等（零位移负证臂·.length 语义不变）
+PASS  AG-24② 数组修与字符串修分离：带图估算 > 无图估算（图片段字符量计入·非塌缩同值）
+PASS  AG-24③ 两残留件整删（circuit-breaker.ts/rate-limit-model.ts/breaker.proof.ts 不在树）
+PASS  AG-24③ index.ts 导出撤五留一（breaker/limiter 导出面零命中·failoverModel 生产活导出零字节保留）
+PASS  AG-24③ metrics.ts breaker 键/注释/基线播种零命中
+PASS  AG-24③ registerBaselineMetrics render() 无 model_circuit_breaker_open_total 序列（refund 0 基线在）
+PASS  AG-24③ 门名两处撤 + 新门在（根无 breaker:prove·ai-runtime 无 prove:breaker·prove:ag24-langfuse-model 注册且聚合 prove 首段 runtime-kernel 不变）
+PASS  AG-24③ 死告警与白名单行撤（alert.rules.yml 无该序列/规则名·alerts-lint 白名单无该行）
+PASS  AG-24③ 四处死 env 撤（compose.prod/compose.ha/api.env.example 零命中）
+PASS  AG-24③ worker.env.example 死键撤 + 活键保留负证（WORKER_INTERVIEW_GLOBAL_INFLIGHT 活旋钮勿删在证）
+PASS  AG-24③ 共享权威零触负证（invoke admit 相位/model_circuit 决策码零字节·残留删除只删残留）
+
+✓ AG-24 Langfuse 模型归因+G7 估算修+残留清理全部通过

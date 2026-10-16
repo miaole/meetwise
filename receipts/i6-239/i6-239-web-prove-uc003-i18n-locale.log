@@ -1,0 +1,26 @@
+# gate: npm run prove:uc003-i18n-locale (apps/web)
+# ts: 2026-10-12 14:40:02 +0800
+# head: 7b6d0f38304e7d66ad0d3dc88c29e1ae9d1eea1e
+
+> @meetwise/web@0.0.0 prove:uc003-i18n-locale
+> node test/uc-e2e-003-i18n-locale.proof.mjs
+
+UC-E2E-003 i18n/locale structure prove (static inventory; NON-UI)
+releaseEvidence=false · Not HA · ≠ covered · Playwright secondary
+
+PASS  S1-i18n-plumbing
+PASS  S2-message-key-parity
+PASS  S3-en-json-no-unexpected-cjk
+GAP  GAP-UC003-ERROR-CODE-EN-MAP  ocr-preview-ui ERROR_MESSAGES is zh-only (20/20 codes); no en locale branch — A2 错误码→en 映射未闭环
+PASS  G-GAP-error-code-en-map
+GAP  GAP-UC003-HARDCODED-ZH-UI  hot lib surfaces have 67 string-literal lines with CJK (sample: apps/web/lib/view-model.ts: return '练习因持续偏弱或多次未决提前结束（自适应控制流，不是能力等级或招聘结论）';) — locale=en would still show zh leftovers outside messages/*.json
+PASS  G-GAP-hardcoded-zh-ui
+GAP  GAP-UC003-DOM-E2E-UI  no e2e-ui spec asserts en DOM / error-code en map (specs=golden.spec.ts,online-public.spec.ts,recruiting-bound.spec.ts,screenshots.spec.ts,stream-window.spec.ts,uc018-abandon.spec.ts,voice-duplex.spec.ts); Playwright secondary — not wired this prove
+PASS  G-GAP-dom-e2e-ui
+
+NOTE  honesty GAP pins=3: GAP-UC003-ERROR-CODE-EN-MAP, GAP-UC003-HARDCODED-ZH-UI, GAP-UC003-DOM-E2E-UI
+NOTE  EXIT=0 with GAP pins = honest mark-red ≠ product closed ≠ UC-E2E-003 covered
+
+CMD=pnpm uc003:i18n-locale:prove EXIT=0
+本绿≠全链路 E2E covered；≠ UC-E2E-003 covered；最多矩阵 partial
+EXIT=0

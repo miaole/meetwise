@@ -1,0 +1,4 @@
+--- log receipt (redacted) ---
+access: {"level":30,"reqId":"obs-proof-livez-1","msg":"request completed","res":{"statusCode":200},"responseTime":2.1372920274734497}
+500-err: {"level":50,"reqId":"obs-proof-fixed-reqid-1","msg":"unhandled","method":"POST","url":"/__obs-proof-500","err":{"name":"Error","message":"obs_proof_marker_e41c: synthetic unhandled for #89 receipt","stack":"Error: obs_proof_marker_e41c: synthetic unhandled for #89 receipt\n    at <trimmed>"}}
+✓ obs-logging: 23 assertions passed (audit #89 receipt; live=0, all local)

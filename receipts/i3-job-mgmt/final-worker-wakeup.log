@@ -1,0 +1,21 @@
+
+> meetwise@0.1.0 worker-wakeup:prove /Users/miaole/Desktop/golucky/meetwise-i3
+> pnpm -C apps/worker prove:job-wakeup
+
+
+> @meetwise/worker@0.0.0 prove:job-wakeup /Users/miaole/Desktop/golucky/meetwise-i3/apps/worker
+> tsx test/job-wakeup-listener.proof.ts
+
+PASS  LISTEN 成功后立即请求一次 reconcile
+PASS  错误 channel 或 payload 不唤醒 worker
+PASS  固定、无数据 payload 才唤醒 worker
+PASS  断线后使用新的独占 session 重连并 reconcile
+PASS  断线 client 已释放
+PASS  stop 后的迟到通知不会再唤醒 drain
+PASS  失败连接已开始一次
+PASS  stop 取消 listener 的重连 timer
+PASS  迁移对四个持久队列安装 queued transition trigger
+PASS  迁移只发送固定 wake payload，不携带作业或租户数据
+
+✓ worker listener lifecycle proof passed
+wakeup EXIT=0

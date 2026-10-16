@@ -9,9 +9,22 @@
  * proof starts; it never drops a schema ledger or targets a cloud database.
  */
 import 'reflect-metadata';
-import { createHash } from 'node:crypto';
-import { asPrincipal, beginCheckpointErasure, createPool, provisionRuntimeLogin } from '@meetwise/db';
+import { createHash, randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
+import { asPrincipal, beginCheckpointErasure, classifyJobRoute, createJob, createPool, inviteCandidate, provisionRuntimeLogin, startApplicationInterview } from '@meetwise/db';
 import { generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot } from '@meetwise/domain';
+
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+// F1④ B 端真 start 链 fixture 的 rule-classify HMAC key（test-only,同 commerce-reconcile.proof 先例;非生产）。
+process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'privacy-http-job-route-input-hmac-proof-key-not-production-01';
+/** 静态 lineOf（沿 uc-e2e-001-nhp-bound.proof.ts 先例·N2 并发锁补测用）。 */
+function lineOf(src: string, re: RegExp, from = 0): number {
+  const lines = src.split('\n');
+  for (let i = from; i < lines.length; i++) if (re.test(lines[i]!)) return i + 1;
+  return -1;
+}
 
 const admin = createPool();
 const role = `privacy_http_api_${process.pid}`;
@@ -58,10 +71,16 @@ async function main() {
     A('候选人可通过真实 API 注册并取得 Bearer 令牌', signup.status === 200 && typeof signupBody.token === 'string' && typeof signupBody.userId === 'string');
     if (!signupBody.token || !signupBody.userId) throw new Error('privacy_http_signup_failed');
 
-    const retiredResumeDelete = await fetch(`${base}/privacy/resume-data`, {
+    // UNSTUB-ERASE rev2：resume-data 全量删除 = S1 软删受理（202 软删受理 · mode=logical ·
+    // purge_pending=true）。空集（此处尚无简历）→ resumesFenced:0 同形；不伪报物理擦除。
+    const resumeSoftDelete = await fetch(`${base}/privacy/resume-data`, {
       method: 'DELETE', headers: { authorization: `Bearer ${signupBody.token}` },
     });
-    A('旧的全量同步简历删除入口 fail-closed，绝不伪报已擦除', retiredResumeDelete.status === 503 && (await json(retiredResumeDelete)).error === 'resume_erasure_migration_in_progress');
+    const resumeSoftDeleteBody = await json(resumeSoftDelete);
+    A('全量简历删除入口 S1 软删受理：202+mode=logical+purgePending=true（空集 resumesFenced=0 同形，不伪报已擦除）',
+      resumeSoftDelete.status === 202 && resumeSoftDeleteBody.mode === 'logical'
+      && resumeSoftDeleteBody.purgePending === true && resumeSoftDeleteBody.resumesFenced === 0
+      && resumeSoftDeleteBody.requestId === null);
 
     await admin.query(
       "INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions) VALUES ($1,$2,'active',0,0,'[]'::jsonb)",
@@ -240,9 +259,75 @@ async function main() {
       fencedTurn.status === 410 && (await json(fencedTurn)).error === 'interview_privacy_fenced'
       && Number(fencedJobs.rows[0]?.count) === 0);
 
-    // Public delete stays 503 until composition-root abuse proofs exist.
-    // The dormant 202 harness below must not run: issuer foundation is local
-    // only and must not be mistaken for a reopened destructive HTTP path.
+    // ── FENCE-REFLOW F1「create 三过滤」section（§4-2 P1 落槽。围栏 fixture=上方 preview 202 local_fenced 流）──
+    {
+      // N2 补测（rev3）：create 同用户并发 advisory 锁静态 lineOf 断言（begin 锁由 uc-e2e-001-nhp-bound:74-87 覆盖,原样绿）。
+      const svcSrc = readFileSync(resolve(repoRoot, 'apps/api/src/modules/interview/interview.service.ts'), 'utf8');
+      const createLine = lineOf(svcSrc, /async create\(principal: string\)/);
+      const ivCreateLock = lineOf(svcSrc, /pg_advisory_xact_lock\(hashtext\(\$1\), hashtext\(\$2\)\)'\s*,\s*\[owner, 'iv-create'\]/, Math.max(0, createLine - 1));
+      A('N2 补测：create iv-create 并发 advisory 锁静态在位（lineOf）', createLine > 0 && ivCreateLock > 0);
+
+      const created = await fetch(`${base}/interview`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: '{}',
+      });
+      const createdBody = await json(created);
+      A('F1① 围栏非终态面试存在 → create 不复用（reused=false·新 id≠围栏 id）',
+        created.status === 200 && createdBody.reused === false
+        && typeof createdBody.interviewId === 'string' && createdBody.interviewId !== interviewId);
+      const listAfterCreate = await fetch(`${base}/interview`, { headers: authorization });
+      const listAfterCreateBody = await json(listAfterCreate);
+      A('F1② list 与 create 同过滤面（未结束集合不含围栏 id）',
+        listAfterCreate.status === 200 && Array.isArray(listAfterCreateBody.interviews)
+        && !listAfterCreateBody.interviews.some((row: { id: string }) => row.id === interviewId));
+      const beginFenced = await fetch(`${base}/interview/${interviewId}/begin`, {
+        method: 'POST', headers: { ...authorization, 'resume-id': '00000000-0000-4000-8000-000000000002' },
+      });
+      A('F1③ guard 410 保留（直连围栏 id begin 仍 410 interview_privacy_fenced·guard 路径零回归）',
+        beginFenced.status === 410 && (await json(beginFenced)).error === 'interview_privacy_fenced');
+      // F1④ 新-#274：B 端岗位绑定面试（application_id≠NULL·非终态）不被 C 端 create 捞走。
+      // 隔离口径：落在本 proof 既有第二候选人（otherBody·无围栏）名下——其唯一非终态行=B 端绑定行,
+      // 若 create 复用查询缺 application_id 过滤即会捞走它；围栏面（用户1）与 B 端面（用户2）互不混染。
+      // fixture=真 start 链（createJob→rule-classify→invite→startApplicationInterview,同
+      // commerce-reconcile.proof ⑦ 先例）——resume.id/application 绑定链为 uuid+复合 FK+0051 状态机
+      // 触发器管轄,裸 INSERT 撞约束（EXEC 续做修正,原稿假 id 直插即抛 uncaught）。
+      {
+        const bResumeId = randomUUID();
+        const recruiter = `f1b-recruiter-${process.pid}`;
+        await admin.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [otherBody.userId]);
+        await admin.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [bResumeId, otherBody.userId, `fence-reflow:${bResumeId}`]);
+        const jobRow = await asPrincipal(admin, recruiter, (c) => createJob(c, recruiter, {
+          title: 'F1④ B 端 fixture 岗位', description: 'create 三过滤 application_id 谓词 fixture', competencies: ['nodejs'],
+        }));
+        const rev = Number((await admin.query('SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [jobRow.id])).rows[0].n);
+        await classifyJobRoute(admin, recruiter, jobRow.id, rev, {
+          modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+        });
+        const app = await asPrincipal(admin, recruiter, (c) => inviteCandidate(c, recruiter, jobRow.id, otherBody.userId));
+        const started = await asPrincipal(admin, otherBody.userId, (c) => startApplicationInterview(c, otherBody.userId, app!.applicationId, bResumeId));
+        const bInterviewId = (started.status === 'started' || started.status === 'reused') ? started.interviewId : undefined;
+        if (!bInterviewId) throw Object.assign(new Error('f1b_side_start_missing'), { code: 'f1b_side_start_missing', started });
+        const createdB = await fetch(`${base}/interview`, {
+          method: 'POST', headers: { authorization: `Bearer ${otherBody.token}`, 'content-type': 'application/json' }, body: '{}',
+        });
+        const createdBBody = await json(createdB);
+        A('F1④ B 端绑定面试不被 C 端 create 捞走（application_id IS NULL 谓词·新-#274 落断言）',
+          createdB.status === 200 && createdBBody.reused === false
+          && typeof createdBBody.interviewId === 'string' && createdBBody.interviewId !== bInterviewId);
+      }
+      // 正常未结束 C 端练习面试仍复用（reused=true 不回归）——F1① 新建的会话即复用对照。
+      const createdAgain = await fetch(`${base}/interview`, {
+        method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: '{}',
+      });
+      const createdAgainBody = await json(createdAgain);
+      A('F1 复用不回归：正常未结束练习面试仍 reused=true（同一会话）',
+        createdAgain.status === 200 && createdAgainBody.reused === true && createdAgainBody.interviewId === createdBody.interviewId);
+    }
+
+    // UNSTUB-ERASE rev2 (D6 minimum set): the public interview-data DELETE stays
+    // 503-closed (seat-1 audit ruling); resume/account deletion went live in the
+    // same knife.  The dormant 202 harness below must not run: issuer
+    // composition roots are still absent and a dormant block must never be
+    // mistaken for a reopened destructive HTTP path.
     if (paused.status === 503) return;
 
     const missingKey = await fetch(`${base}/privacy/interview-data/${interviewId}`, {
@@ -287,11 +372,12 @@ async function main() {
     // privacy fence.
     const beforeEscapes = await admin.query(`
       SELECT
-        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        -- DBHY-1(0145):consumption_record 死表退役;改查幂等真身 entitlement_consumption(按 owner 计·真表无 interview_id 列)
+        (SELECT count(*)::int FROM entitlement_consumption WHERE owner_user_id=$2) AS consumption_count,
         (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
         (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
         (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
-    `, [interviewId]);
+    `, [interviewId, signupBody.userId]);
     const [feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript, assessment, getAssessment, createLearningPlan, getLearningPlan, completeLearningItem, createCareerPath, getCareerPath, begin, abandon, interview, sse, list] = await Promise.all([
       fetch(`${base}/interview/${interviewId}/questions/0/feedback`, {
         method: 'POST', headers: { ...authorization, 'content-type': 'application/json' }, body: JSON.stringify({ rating: 'up' }),
@@ -331,11 +417,12 @@ async function main() {
     ]);
     const afterEscapes = await admin.query(`
       SELECT
-        (SELECT count(*)::int FROM consumption_record WHERE interview_id=$1) AS consumption_count,
+        -- DBHY-1(0145):consumption_record 死表退役;改查幂等真身 entitlement_consumption(按 owner 计·真表无 interview_id 列)
+        (SELECT count(*)::int FROM entitlement_consumption WHERE owner_user_id=$2) AS consumption_count,
         (SELECT count(*)::int FROM interview_event WHERE stream_key=$1) AS event_count,
         (SELECT count(*)::int FROM question_feedback WHERE interview_id=$1) AS feedback_count,
         (SELECT count(*)::int FROM ai_report WHERE interview_id=$1) AS report_count
-    `, [interviewId]);
+    `, [interviewId, signupBody.userId]);
     const listBody = await json(list);
     const fencedEndpoints = [
       feedback, speak, speakStream, transcribe, report, retryReport, exportReport, transcript,
@@ -347,21 +434,25 @@ async function main() {
       && Array.isArray(listBody.interviews) && !listBody.interviews.some((row: any) => row.id === interviewId)
       && JSON.stringify(beforeEscapes.rows[0]) === JSON.stringify(afterEscapes.rows[0]));
 
+    // Dormant ledger shape (UNSTUB-ERASE rev2 R1): if the public interview DELETE
+    // is ever reopened it goes through the 0096 projection flow — exactly one
+    // request whose target set is the four-sink projection shape (event /
+    // ai_graph_run / report + the checkpoint_rows fence anchor), never a
+    // physical-completion claim.
     const ledger = await admin.query<{
-      request_count: number; target_count: number; checkpoint_targets: number; queue_targets: number; external_targets: number; raw_key_rows: number;
+      request_count: number; target_count: number; projection_targets: number; fence_anchors: number; raw_key_rows: number;
     }>(`
       SELECT
         (SELECT count(*)::int FROM privacy_erasure_request r WHERE r.id=$1) AS request_count,
         (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1) AS target_count,
-        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='checkpoint_rows' AND t.status='pending') AS checkpoint_targets,
-        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='interview_job_payload' AND t.status='erased') AS queue_targets,
-        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink IN ('oss','redis','langfuse') AND t.status='retention_pending') AS external_targets,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink IN ('event','ai_graph_run','report') AND t.status='pending') AS projection_targets,
+        (SELECT count(*)::int FROM privacy_deletion_target t WHERE t.request_id=$1 AND t.sink='checkpoint_rows' AND t.status='erased') AS fence_anchors,
         (SELECT count(*)::int FROM privacy_erasure_request r WHERE r.id=$1 AND r.idempotency_key_hash=$2) AS raw_key_rows
     `, [acceptedBody.requestId, idempotencyKey]);
     const row = ledger.rows[0];
-    A('一个 request 精确建立五个按数据面拆分的删除 target（含已清空的队列载荷）',
-      row?.request_count === 1 && row?.target_count === 5 && row?.checkpoint_targets === 1
-      && row?.queue_targets === 1 && row?.external_targets === 3);
+    A('一个 request 精确建立四个投影 target（event/ai_graph_run/report 三个 pending + checkpoint_rows fence 锚）',
+      row?.request_count === 1 && row?.target_count === 4 && row?.projection_targets === 3
+      && row?.fence_anchors === 1);
     A('原始 Idempotency-Key 从不写入删除账本', row?.raw_key_rows === 0);
   } finally {
     await app.close();

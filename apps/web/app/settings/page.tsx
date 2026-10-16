@@ -2,6 +2,7 @@ import { redirect } from 'next/navigation';
 import { getServerToken, serverGet } from '../../lib/api/server';
 import { saveSettingsAction } from './actions';
 import { ChangePasswordForm } from './ChangePasswordForm';
+import { DeactivateForm } from './DeactivateForm';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { SubmitButton } from '@/components/ui/SubmitButton';
 import { Label } from '@/components/ui/label';
@@ -31,8 +32,8 @@ export default async function SettingsPage() {
   }
 
   const pref = profile.preferences || {};
-  const lang = typeof pref.lang === 'string' ? pref.lang : 'zh';
-  const notify = pref.notify !== false;
+  // I4 #265:读回 locale(现保存链落库键);legacy pref.lang 仅作 F6 前旧行回落,下次成功保存即被白名单投影自愈。
+  const lang = typeof pref.locale === 'string' ? pref.locale : (typeof pref.lang === 'string' ? pref.lang : 'zh');
 
   return (
     <div className="mx-auto max-w-2xl px-4 py-6 sm:px-6">
@@ -49,10 +50,10 @@ export default async function SettingsPage() {
           <CardContent>
             <form action={saveSettingsAction} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="lang">界面语言</Label>
+                <Label htmlFor="locale">界面语言</Label>
                 <select
-                  id="lang"
-                  name="lang"
+                  id="locale"
+                  name="locale"
                   defaultValue={lang}
                   className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
@@ -60,16 +61,9 @@ export default async function SettingsPage() {
                   <option value="en">English</option>
                 </select>
               </div>
-              <Label htmlFor="notify" className="flex items-center gap-2 font-normal">
-                <input
-                  id="notify"
-                  type="checkbox"
-                  name="notify"
-                  defaultChecked={notify}
-                  className="h-4 w-4 rounded border-input accent-primary"
-                />
-                接收邮件通知
-              </Label>
+              {/* I4 #265:原「邮件通知」开关撤除(宣称-兑现对齐:全仓零 SMTP/mailer 实现,通知只写站内表——
+                  无实现不宣称);同刀修 actions 发送体(lang→locale·移除旧开关键·locale 已在 contracts 白名单,
+                  零后端改动,顺手清保存 400 既有红)。站内通知无用户级开关。 */}
               <SubmitButton pendingLabel="保存中…">保存偏好</SubmitButton>
             </form>
           </CardContent>
@@ -86,13 +80,14 @@ export default async function SettingsPage() {
 
         <Card className="border-destructive/30 bg-muted/40">
           <CardHeader>
-            <CardTitle>账户注销暂未开放</CardTitle>
+            <CardTitle>注销账户并发起数据删除</CardTitle>
             <CardDescription>
-              账户注销与其关联的数据处置需要独立的授权、删除与回执流程。该流程完成验证前，本站不接受或伪装完成注销请求。
+              注销即时生效：立即登出、无法再登录，关联数据（简历、面试、记忆）立即停止一切处理与访问。
+              后台物理清除为异步流程稍后完成；完成前同一邮箱无法重新注册。
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <button type="button" disabled className="rounded-md border px-3 py-2 text-sm text-muted-foreground disabled:cursor-not-allowed">账户注销暂未开放</button>
+            <DeactivateForm />
           </CardContent>
         </Card>
         <p className="text-sm"><a href="/privacy" className="text-muted-foreground hover:text-foreground">数据边界与导出范围 →</a></p>

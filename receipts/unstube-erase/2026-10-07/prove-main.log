@@ -1,0 +1,4 @@
+== CMD: pnpm unstube-erase:prove (主证) ==
+ISOLATED_PROOF_SUMMARY target=unstube-erase:prove:raw exit=0 pass_count=46 fail_count=0 failure_class=none
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-09T17-18-07-850Z-6603-b50f1824-02a7-4123-9499-6dc9427d04cd.json release_evidence=false
+EXIT=0

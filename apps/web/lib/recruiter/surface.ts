@@ -2,6 +2,7 @@
  * 内部招聘骨架：状态文案、申请状态查找、架构说明卡片。
  * 不是已上线的招聘方产品面。评分校准完成前，任何 application.score 都不得变成可见数字。
  */
+import type { ApplicationTerminalKind } from '@meetwise/contracts';
 
 export const RECRUITER_APPLICATION_MAX_LEN = 48;
 export const RECRUITER_APPLICATION_ID = /^app_[A-Za-z0-9-]{1,40}$/;
@@ -14,13 +15,25 @@ export const APPLICATION_STATUS_LABEL: Record<string, { text: string; variant: '
   declined: { text: '已婉拒', variant: 'destructive' },
 };
 
-export function applicationStatusLabel(status: string): { text: string; variant: 'success' | 'outline' | 'destructive' } {
+/**
+ * I2 W1（裁定⑤文案逐字）：assessment_unavailable 终态按 E3 派生口径拆两态——
+ * held=绑定面试 completed 的「已面完 · 待校准」（neutral 徽·不再引导重试·修法④）；
+ * failed=绑定面试 failed 的「面试失败 · 可重试」（预留已释放）。无派生信号（缺绑定/旧响应）
+ * 保持原标签 fail-closed（不臆测终态）。
+ */
+export function applicationStatusLabel(status: string, terminalKind?: ApplicationTerminalKind | null): { text: string; variant: 'success' | 'outline' | 'destructive' } {
+  if (status === 'assessment_unavailable' && terminalKind === 'held') return { text: '已面完 · 待校准', variant: 'outline' };
+  if (status === 'assessment_unavailable' && terminalKind === 'failed') return { text: '面试失败 · 可重试', variant: 'destructive' };
   return APPLICATION_STATUS_LABEL[status] ?? { text: '状态未知', variant: 'outline' };
 }
 
 /** 招聘方评估栏：只解释流程，永不把 score 当数字。 */
-export function recruiterAssessmentLabel(status: string, _score?: number | null): string {
-  if (status === 'assessment_unavailable') return '评分暂不可用';
+export function recruiterAssessmentLabel(status: string, _score?: number | null, terminalKind?: ApplicationTerminalKind | null): string {
+  if (status === 'assessment_unavailable') {
+    if (terminalKind === 'held') return '已面完 · 评分待校准';
+    if (terminalKind === 'failed') return '面试失败 · 可重试';
+    return '评分暂不可用';
+  }
   if (status === 'completed') return '流程已结束 · 不提供数值评分';
   if (status === 'in_progress') return '面试进行中 · 尚无评估结论';
   if (status === 'invited') return '尚未开始岗位面试';

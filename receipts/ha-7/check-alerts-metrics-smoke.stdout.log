@@ -1,0 +1,16 @@
+step: PASS | env fallback RAG_EMBED_PRICE_SOURCE_URL | heuristic placeholder
+step: PASS | env fallback RESUME_ENC_KEY | heuristic placeholder
+step: PASS | env fallback RESUME_HASH_SECRET | heuristic placeholder
+step: PASS | sandbox env-file generated (mirrored form) | 85 required vars + knob; /Users/miaole/Desktop/golucky/meetwise-ha7/.tmp/ha-sandbox/sandbox.env
+step: PASS | compose up -d ha-pg ha-redis | started
+step: PASS | ha-pg + ha-redis healthy | 7s
+step: PASS | migrate exited | ExitCode=0 in 6s
+step: PASS | compose run -d --name ha7-worker-metrics -p 19091:9091 worker-a | started
+step: PASS | worker /metrics reachable from host (live GET) | 185 lines in 6s
+step: PASS | /metrics 全序列（三 gauge 12 序列 + 新 counter worker_jobs_failed_total 4 队列 = 4 指标×4 队列全覆盖） | 16/16
+step: PASS | check-alerts --sandbox live 对真 /metrics：干净栈 EXIT=0 + 零条目 + metrics 源 (live) | exit=0 alerts=0 sources.metrics=bytes=10049 (live)·HA-7 R-24 sourceErrors=[]
+step: PASS | 同一快照经 --metrics-file offline 复评 → 同判 EXIT=0（注入缝 parity） | exit=0 alerts=0 sources.metrics=bytes=10049 (injected)·HA-7 R-24
+step: PASS | teardown: rm one-shot worker + compose down -v (sandbox fully destroyed) | removed
+===== END RECEIPT =====
+CMD=MEETWISE_HA_SANDBOX_AUTHORIZED=1 node scripts/alerts/check-alerts-metrics-smoke.mjs EXIT=0
+SMOKE_EXIT=0

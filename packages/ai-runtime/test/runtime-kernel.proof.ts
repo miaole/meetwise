@@ -8,7 +8,7 @@ import { z } from 'zod';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createPool, asPrincipal, casTransition, appendEvent, acquireLease, releaseLease } from '@meetwise/db';
-import { invoke, recordingTracer, setTracer, langfuseSafeModelMetadata, pseudonymizeLangfuseIdentifier, type Model, type ModelCallSpan } from '../src/index.ts';
+import { invoke, recordingTracer, setTracer, langfuseSafeModelMetadata, pseudonymizeLangfuseIdentifier, type Model, type ModelCallSpan, type ModelCostPolicy } from '../src/index.ts';
 
 const pool = createPool();
 let failures = 0;
@@ -25,27 +25,23 @@ const EvalSchema = z.object({ score: z.number().min(0).max(100), evidence: z.arr
 const HalluSchema = z.object({ score: z.number(), claim: z.string() });
 
 async function main() {
-  const SCHEMA = readFileSync(fileURLToPath(new URL('../../db/sql/01_schema.sql', import.meta.url)), 'utf8');
-  await pool.query(SCHEMA);                                   // 超级用户：建表 + 装 RLS（绕过 RLS）
-  for (const migration of [
-    '0033_ai_cost_governance.sql', '0035_ai_cost_principal_scope.sql', '0036_ai_text_cost_governance.sql',
-    '0037_ai_model_invocation_durable_claim.sql', '0056_model_invocation_reconcile.sql',
-    '0057_model_invocation_cost_scope.sql', '0083_ai_text_cost_price_revision_binding.sql',
-    '0085_ai_model_logical_node_dispatch_slot.sql',
-    '0088_ai_model_invocation_controlled_state_machine.sql',
-    '0119_usage_reconciliation_wiring.sql',
-    '0130_model_invocation_same_key_claim_join.sql',
-  ]) {
-    await pool.query(readFileSync(fileURLToPath(new URL(`../../db/migrations/${migration}`, import.meta.url)), 'utf8'));
-  }
+  // DBHY-1: sql/01_schema 兼容镜像退役——本 proof 由隔离 runner 预迁移(migrations 单真相,含 0033-0130 全链),
+  // 原「01_schema 重放 + 逐迁移补跑」bootstrap 整块移除(断言面不变)。
   // 0037/0085 是增量表，01_schema 的演示基座不会删除它们。显式清理避免上一次
   // proof 的幂等键被误当成当前进程的缓存命中，导致模型调用/观测断言失真。
   // 0085 的 dispatch slot 是「派发后永不放行」的受管账本：不清它，同库重跑时
   // slot 主键(owner,logical_node_key_digest)撞车 → ai_model_transition_dispatched_scoped
   // 的 ON CONFLICT DO NOTHING 空转 → 误报 model_dispatch_preflight_failed。
   await pool.query('TRUNCATE ai_model_dispatch_slot, ai_model_logical_node_header, ai_model_invocation, ai_model_invocation_transition_permit');
-  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('R1','userA','created'),('R9','userB','created')");
+  // DBHY-1(迁移真相):0059 投影写护栏要求写者 principal=owner(旧 sql/01 镜像无此触发器)。
+  // 超级用户种子行按 owner 逐个 set principal(会话级·seed 完清空)。
+  for (const [id, owner] of [['R1', 'userA'], ['R9', 'userB']] as const) {
+    await pool.query("SELECT set_config('app.principal_user',$1,false)", [owner]);
+    await pool.query('INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,$3)', [id, owner, 'created']);
+  }
+  await pool.query("SELECT set_config('app.principal_user','userA',false)");
   await pool.query("INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status) VALUES ('mock-interview','R1','userA','created')");
+  await pool.query("SELECT set_config('app.principal_user','',false)");
 
   section('进程 A：面试官启动一轮 · 全程 principal 上下文(FORCE RLS 生效)');
   await asPrincipal(pool, 'userA', async (c) => {
@@ -75,7 +71,8 @@ async function main() {
   section('提交答案：幂等（双击/断线重发只评一次）');
   async function submitAnswer(key: string): Promise<'ok' | 'dup'> {
     const claimed = await asPrincipal(pool, 'userA', async (c) => {
-      const ins = await c.query("INSERT INTO consumption_record(owner_user_id,idempotency_key,interview_id) VALUES('userA',$1,'R1') ON CONFLICT (owner_user_id,idempotency_key) DO NOTHING", [key]);
+      // DBHY-1(0145):死表 consumption_record 已退役——幂等冒烟改打真身 entitlement_consumption（同形 uq(owner_user_id,idempotency_key)）。
+      const ins = await c.query("INSERT INTO entitlement_consumption(owner_user_id,idempotency_key,service_type,units_requested) VALUES('userA',$1,'interview_eval',1.00) ON CONFLICT (owner_user_id,idempotency_key) DO NOTHING", [key]);
       if (ins.rowCount === 0) return 'dup';
       return 'claimed';
     });
@@ -226,14 +223,67 @@ async function main() {
   await invoke({ idempotencyKey: 'R1:obs', schema: QSchema, businessValidate: () => null, model: okM }, pool, 'userA'); // 第二次命中缓存
   assert('ok span 出且带延迟(latencyMs>=0)', rec.spans.some((s) => s.outcome === 'ok' && s.latencyMs >= 0));
   assert('cached span 出(命中未真打模型)', rec.spans.some((s) => s.outcome === 'cached') && okM.calls === 1);
-  assert('span 只含标量字段(无 prompt/简历原文,脱敏 by construction)',
-    rec.spans.every((s) => Object.keys(s).sort().join(',') === 'attempt,idempotencyKey,inputTokens,latencyMs,outcome,outputTokens,owner,retrieval,service,sources,threadId'));
+  assert('span 只含标量字段(无 prompt/简历原文,脱敏 by construction·AG-24 翻转:键集增 model/cachedInputTokens/settledCostMicroCny 三标量位)',
+    rec.spans.every((s) => Object.keys(s).sort().join(',') === 'attempt,cachedInputTokens,idempotencyKey,inputTokens,latencyMs,model,outcome,outputTokens,owner,promptVersion,retrieval,service,settledCostMicroCny,sources,threadId'));
   // 成本观测:模型返回 usage → span 带 token 数(喂 Langfuse 成本看板)
   const rec2 = recordingTracer(); setTracer(rec2);
   const tokM: Model = { async call() { return { ok: true, raw: { question: '带token题' }, usage: { inputTokens: 123, outputTokens: 45 } }; } };
   await invoke({ idempotencyKey: 'TOK:1', schema: QSchema, businessValidate: () => null, model: tokM, service: 's' }, pool, 'userA');
   const tokSpan = rec2.spans.find((s) => s.outcome === 'ok');
   assert('span 带 token usage(input=123,output=45,标量非内容)', tokSpan?.inputTokens === 123 && tokSpan?.outputTokens === 45);
+
+  // ── AG-24:span.model 真名归因 + cached/cost 携带(带 costPolicy 的 invoke·价格本 seeded 沿 model-cost-governance 先例)──
+  const AG24_SCOPE = 'ag24-langfuse-proof';
+  const ag24Policy: ModelCostPolicy = {
+    scopeId: AG24_SCOPE, provider: 'ag24-provider', model: 'ag24-proof-model', region: 'cn-proof',
+    priceRevision: 'ag24-r1', maxInputTokens: 1000, maxOutputTokens: 500,
+  };
+  await pool.query(`DELETE FROM ai_cost_reservation WHERE scope_id=$1`, [AG24_SCOPE]);
+  await pool.query(`DELETE FROM ai_cost_budget_month WHERE scope_id=$1`, [AG24_SCOPE]);
+  await pool.query(`DELETE FROM ai_cost_budget_policy WHERE scope_id=$1`, [AG24_SCOPE]);
+  await pool.query(`DELETE FROM ai_cost_price_book WHERE provider=$1`, ['ag24-provider']);
+  await pool.query(
+    `INSERT INTO ai_cost_price_book(provider,model,region,revision,input_micro_cny_per_million,output_micro_cny_per_million,source_url,effective_at)
+     VALUES('ag24-provider','ag24-proof-model','cn-proof','ag24-r1',1000000,2000000,'https://example.test/ag24',clock_timestamp())`,
+  );
+  await pool.query(`INSERT INTO ai_cost_budget_policy(scope_id,monthly_limit_micro_cny,enabled) VALUES($1,1000000,true)`, [AG24_SCOPE]);
+  const rec3 = recordingTracer(); setTracer(rec3);
+  const ag24Calls = { n: 0 };
+  const ag24Model: Model = {
+    requestDigest: 'a'.repeat(64),
+    async call() { ag24Calls.n++; return { ok: true, raw: { question: 'AG24题' }, usage: { inputTokens: 100, outputTokens: 200, cachedInputTokens: 77 }, actualModel: 'provider-echo-ag24' }; },
+    prepare() { return { ready: true as const, execute: () => this.call(1), cost: ag24Policy }; },
+  };
+  const ag24r1 = await invoke({ idempotencyKey: 'R1:ag24', schema: QSchema, businessValidate: () => null, model: ag24Model, service: 's' }, pool, 'userA');
+  const ag24OkSpan = rec3.spans.find((s) => s.outcome === 'ok' && s.idempotencyKey === 'R1:ag24');
+  const ag24Ledger = await pool.query(`SELECT settled_micro_cny,price_revision FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key='R1:ag24'`, [AG24_SCOPE]);
+  assert('AG-24(裁决①(a)):ok span.model=G7 供应商回显优先;cachedInputTokens=77 透传(缺席≠零·在手=值);settledCostMicroCny=账本结算值对表(100×1+200×2=500)',
+    'value' in ag24r1 && ag24Calls.n === 1 && ag24OkSpan?.model === 'provider-echo-ag24' && ag24OkSpan?.cachedInputTokens === 77
+      && ag24OkSpan?.settledCostMicroCny === 500 && Number(ag24Ledger.rows[0]?.settled_micro_cny) === 500
+      && ag24Ledger.rows[0]?.price_revision === 'ag24-r1');
+  const ag24PlainModel: Model = {
+    requestDigest: 'b'.repeat(64),
+    async call() { return { ok: true, raw: { question: 'AG24中档' }, usage: { inputTokens: 10, outputTokens: 10 } }; },
+    prepare() { return { ready: true as const, execute: () => this.call(1), cost: ag24Policy }; },
+  };
+  await invoke({ idempotencyKey: 'R1:ag24-plain', schema: QSchema, businessValidate: () => null, model: ag24PlainModel, service: 's' }, pool, 'userA');
+  const ag24PlainSpan = rec3.spans.find((s) => s.outcome === 'ok' && s.idempotencyKey === 'R1:ag24-plain');
+  assert('AG-24:无回显时 span.model=受控策略模型名(=plan.cost?.model·与 claim 同源)', ag24PlainSpan?.model === 'ag24-proof-model');
+  await invoke({ idempotencyKey: 'R1:ag24-plain', schema: QSchema, businessValidate: () => null, model: ag24PlainModel, service: 's' }, pool, 'userA'); // 同键幂等命中
+  const ag24CachedSpan = rec3.spans.find((s) => s.outcome === 'cached');
+  assert('AG-24(裁决⑤(b)):cached 臂 plan 在作用域零读取携真名;非结算臂成本/缓存缺省不挂(undefined≠0)',
+    ag24CachedSpan?.model === 'ag24-proof-model' && ag24CachedSpan?.settledCostMicroCny === undefined && ag24CachedSpan?.cachedInputTokens === undefined);
+  await invoke({
+    idempotencyKey: 'R1:ag24-refuse', schema: QSchema, businessValidate: () => null, service: 's',
+    model: { async prepare() { return { ready: false as const, error: 'ag24_prepare_refusal' }; }, async call() { return { ok: false, kind: 'deterministic' as const }; } },
+  }, pool, 'userA');
+  const ag24RefuseSpan = rec3.spans.find((s) => s.idempotencyKey === 'R1:ag24-refuse' && s.outcome === 'deterministic_refusal');
+  assert('AG-24:prepare 拒绝臂 span.model 缺省(→Langfuse 侧降级 safeName(service)·现状零回归臂)',
+    ag24RefuseSpan?.model === undefined);
+  await pool.query(`DELETE FROM ai_cost_reservation WHERE scope_id=$1`, [AG24_SCOPE]);
+  await pool.query(`DELETE FROM ai_cost_budget_month WHERE scope_id=$1`, [AG24_SCOPE]);
+  await pool.query(`DELETE FROM ai_cost_budget_policy WHERE scope_id=$1`, [AG24_SCOPE]);
+  await pool.query(`DELETE FROM ai_cost_price_book WHERE provider=$1`, ['ag24-provider']);
   setTracer({ record() {} });
 
   section('Langfuse v5 观测适配器：外送 ID 伪名化 + 元数据白名单');
@@ -241,12 +291,15 @@ async function main() {
     owner: 'userA', idempotencyKey: 'LF:answer-sha256:known-value', threadId: 'IV1',
     attempt: 1, outcome: 'ok', latencyMs: 10, service: 'mock-interview.evaluate',
     sources: ['qbank:b3', 'memory:m7'], retrieval: [{ ref: 'qbank:b3', score: 0.82 }], inputTokens: 100, outputTokens: 20,
+    settledCostMicroCny: 4567,
   };
   const metadata = langfuseSafeModelMetadata(telemetrySpan, 'fixture-correlation-secret');
   const external = JSON.stringify(metadata);
   assert('外送元数据只含数值/枚举/HMAC 伪名，不含原 owner/thread/幂等键/来源',
     !external.includes('userA') && !external.includes('IV1') && !external.includes('LF:answer') && !external.includes('qbank:b3')
-      && Object.keys(metadata).sort().join(',') === 'attempt,inputTokens,invocationRef,latencyMs,outcome,outputTokens,ownerRef,retrievalCount,sourceCount,threadRef,topRetrievalScore');
+      && Object.keys(metadata).sort().join(',') === 'attempt,inputTokens,invocationRef,latencyMs,outcome,outputTokens,ownerRef,promptVersion,retrievalCount,settledCostMicroCny,sourceCount,threadRef,topRetrievalScore');
+  assert('AG-19:版本标量外送为 null 缺省占位(此 span 未带 promptVersion)·AG-24 翻转:成本标量随 span 逐字透传(model 真名走 generation 顶层字段·不入 metadata 白名单)',
+    metadata.promptVersion === null && ('promptVersion' in metadata) && metadata.settledCostMicroCny === 4567);
   assert('同密钥同标识的外送伪名稳定、不同命名空间不可混用',
     pseudonymizeLangfuseIdentifier('fixture-correlation-secret', 'owner', 'userA') === metadata.ownerRef
       && pseudonymizeLangfuseIdentifier('fixture-correlation-secret', 'thread', 'userA') !== metadata.ownerRef);

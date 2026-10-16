@@ -1,0 +1,30 @@
+
+> meetwise@0.1.0 privacy-authorization:prove /workspace/mw-rv-69de818
+> node scripts/run-e2e-isolated.mjs privacy-authorization:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; intended sole default=mysql-qdrant-redis) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — NOT sole-stack truth (sole stack = MySQL+Qdrant+Redis). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E isolated PostgreSQL: meetwise-e2e-1839106-1790224369307 on 127.0.0.1:33010
+
+> @meetwise/db@0.0.0 migrate /workspace/mw-rv-69de818/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=134 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+
+> @meetwise/db@0.0.0 prove:privacy-authorization /workspace/mw-rv-69de818/packages/db
+> tsx test/privacy-authorization.proof.ts
+
+Error: connect ECONNREFUSED 127.0.0.1:33010
+    at /workspace/mw-rv-69de818/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async assertIsolatedTestTarget (/workspace/mw-rv-69de818/packages/db/src/isolated-test-target.ts:73:18)
+    at async main (/workspace/mw-rv-69de818/packages/db/test/privacy-authorization.proof.ts:119:3) {
+  errno: -111,
+  code: 'ECONNREFUSED',
+  syscall: 'connect',
+  address: '127.0.0.1',
+  port: 33010
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-1839106-1790224369307 state_bytes=226 logs_bytes=29
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-09-24T04-32-58-224Z-1839106-75345732-12a7-4f2e-bceb-952f8296e873.json release_evidence=false
+ ELIFECYCLE  Command failed with exit code 1.

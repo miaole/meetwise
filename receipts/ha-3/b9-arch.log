@@ -1,0 +1,5 @@
+== B9: arch (module boundary/DAG with new imports) ==
+ARCH_EXIT=13
+x 22 dependency violations (13 errors, 9 warnings). 1017 modules, 2970 dependencies cruised.
+
+ ELIFECYCLE  Command failed with exit code 13.

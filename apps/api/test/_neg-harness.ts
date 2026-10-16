@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { createHmac } from 'node:crypto';
 import { hashPassword, signToken } from '@meetwise/domain';
-import { assertIsolatedTestTarget } from '@meetwise/db';
+import { assertIsolatedTestTarget, type DbPool } from '@meetwise/db';
 import { createApp } from '../src/main';
 import { DbService } from '../src/platform/db.service';
 
@@ -15,12 +15,19 @@ import { DbService } from '../src/platform/db.service';
 export const PAY_SECRET = 'test-pay-secret';
 export const AUTH_SECRET = 'test-secret-key';
 export const paySig = (s: string) => createHmac('sha256', PAY_SECRET).update(s).digest('hex');
+/**
+ * #100(AUTHZ-HARDEN 5A-2)回调体构造器:签名载荷 `${id}:${txn}:${kind}:${ts}`(ts=签名毫秒时刻),
+ * 与 commerce.service verifyCommerceSig 单源同形——5A-2 起回调必须携 ts(±300s 窗,防重放)。
+ */
+export function payCallbackBody(orderId: string, txn: string, kind: 'paid' | 'refunded' = 'paid', ts = Date.now()) {
+  return { providerTxn: txn, ts, sig: paySig(`${orderId}:${txn}:${kind}:${ts}`) };
+}
 export function tokenFor(uid: string, opts: { pwdEpoch?: number; ttlSec?: number; secret?: string } = {}): string {
   return signToken(uid, opts.secret ?? AUTH_SECRET, opts.ttlSec ?? 3600, Math.floor(Date.now() / 1000), opts.pwdEpoch ?? 0);
 }
 
 export interface Harness {
-  base: string; pool: any;
+  base: string; pool: DbPool;
   req: (method: string, path: string, headers?: Record<string, string>) => Promise<{ status: number; body: any; headers: Headers }>;
   send: (method: string, path: string, headers: Record<string, string>, body: any) => Promise<{ status: number; body: any; headers: Headers }>;
   post: (path: string, headers: Record<string, string>, body: any) => Promise<{ status: number; body: any; headers: Headers }>;
@@ -67,14 +74,176 @@ export async function boot(): Promise<Harness> {
   // 负路径需要覆盖当前生产模式中的模型调用持久状态和 OCR 恢复工件，不能只跑旧基础 SQL。
   for (const f of ['0037_ai_model_invocation_durable_claim.sql', '0038_resume_ocr_artifact.sql', '0039_resume_derivative_erasure.sql', '0046_application_assessment_recovery.sql'])
     await db.pool.query(sql(f, 'migrations'));
+  // AG 修复轨刀 E（AG-03/EG-A1）：ai_report.dispatch_seq 单调派发序列——claimReport 生产 SQL 引用该列，
+  // 负测夹具须随迁移链补列（幂等 ADD COLUMN IF NOT EXISTS·sql/04_report 镜像无此列）。
+  await db.pool.query(sql('0178_ag_e_report_dispatch_seq.sql', 'migrations'));
+  // billing 战役 P3（BILL3）：interview 计费三列+ck 约束+topic_charge 明细表+tf_interview_consumption_terminal_pair
+  // 整体改写——abandon/结算生产闭包（settleOrReleaseForTerminal→interviewBillingOf SELECT billing_mode）引用该列，
+  // 负测夹具挑选单须随迁移链（0172 幂等 IF NOT EXISTS/0173 CREATE OR REPLACE·可重复加载）。
+  await db.pool.query(sql('0172_topic_charge.sql', 'migrations'));
+  await db.pool.query(sql('0173_tf_interview_consumption_terminal_pair.sql', 'migrations'));
   await db.pool.query(sql('23_api_gateway.sql'));
+  // AUTHZ-HARDEN 5A-1:负测环境与生产归一/会话面同构——0167(存量归一+lower(email) 唯一索引·幂等,种子全
+  // 小写零冲突=索引恒建)/0168(网关函数换体·与 23 auth 族区逐字节同文,此处重放即活体一致性佐证)/
+  // 0169(kid/jti 会话表·logout 吊销真相源)。真相=迁移链(0037 系同款加载形)。
+  for (const f of ['0167_email_case_normalization.sql', '0168_gateway_auth_email_normalize.sql', '0169_auth_user_session.sql'])
+    await db.pool.query(sql(f, 'migrations'));
+
+  // UNSTUB-ERASE rev2 neg-mirror:0152/0153 在**本负测环境**的最小镜像。sql/ 引导链不
+  // 含隐私账本表与 0152 函数;真相=迁移链(主证 unstube-erase.proof 在真迁移链上跑),
+  // 这里只补负测所需最小面,函数体与 0152 同形(owner 为隔离库引导角色,无 write-guard
+  // 触发器——sql/ 镜像本就未建它,行为面一致:受理即围栏)。
+  await db.pool.query(`CREATE TABLE IF NOT EXISTS privacy_erasure_request (
+    id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+    owner_user_id text NOT NULL,
+    scope text NOT NULL CHECK (scope IN ('resume_data','interview_data','account_data')),
+    subject_id text NOT NULL,
+    idempotency_key_hash text NOT NULL,
+    status text NOT NULL DEFAULT 'requested'
+      CHECK (status IN ('requested','fenced','purging','pending_external','completed','partial_failed')),
+    privacy_epoch bigint NOT NULL DEFAULT 1,
+    version bigint NOT NULL DEFAULT 1 CHECK (version >= 1),
+    created_at timestamptz NOT NULL DEFAULT now(),
+    updated_at timestamptz NOT NULL DEFAULT now(),
+    UNIQUE (owner_user_id, idempotency_key_hash))`);
+  await db.pool.query('ALTER TABLE resume ADD COLUMN IF NOT EXISTS erasure_requested_at timestamptz');
+  await db.pool.query('ALTER TABLE user_account ADD COLUMN IF NOT EXISTS deleted_at timestamptz');
+  // interview_privacy_active 的最小镜像（真相=0058/0076 迁移链;本环境无 privacy_checkpoint_target
+  // 账本 → 省略其存在性检查）。负测路径全部是「未擦除/跨 owner」:owner 不匹配或 principal 空
+  // 时镜像与真函数逐值一致;growth/export/overview 等读面过滤在此环境下行为面一致。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION interview_privacy_active(target_interview text)
+    RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $ivf$
+    DECLARE principal text := current_setting('app.principal_user', true);
+    BEGIN
+      IF principal IS NULL OR length(principal)=0 OR target_interview IS NULL OR length(target_interview)=0 THEN RETURN false; END IF;
+      PERFORM 1 FROM interview i WHERE i.id = target_interview AND i.owner_user_id = principal;
+      IF NOT FOUND THEN RETURN false; END IF;
+      RETURN true;
+    END;
+    $ivf$;`);
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION privacy_begin_resume_soft_delete(p_owner text, p_resume_id uuid)
+    RETURNS TABLE (request_id uuid, resume_id uuid, already_fenced boolean, fenced_at timestamptz)
+    LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public, pg_temp AS $fn$
+    DECLARE
+      principal text := current_setting('app.principal_user', true);
+      v_key text; v_request uuid;
+      v_existing privacy_erasure_request%ROWTYPE;
+      v_fenced_at timestamptz; v_epoch bigint;
+    BEGIN
+      IF principal IS NULL OR length(principal)=0 OR principal <> p_owner OR p_resume_id IS NULL THEN
+        RAISE EXCEPTION 'resume_soft_delete_forbidden' USING ERRCODE='42501';
+      END IF;
+      SELECT encode(digest('resume_soft_delete:' || p_owner || ':' || p_resume_id::text, 'sha256'), 'hex') INTO v_key;
+      SELECT * INTO v_existing FROM privacy_erasure_request r
+       WHERE r.owner_user_id = p_owner AND r.idempotency_key_hash = v_key
+       ORDER BY r.created_at DESC LIMIT 1;
+      IF FOUND THEN
+        IF v_existing.scope <> 'resume_data' OR v_existing.subject_id <> p_resume_id::text THEN
+          RAISE EXCEPTION 'resume_soft_delete_idempotency_conflict' USING ERRCODE='23505';
+        END IF;
+        RETURN QUERY SELECT v_existing.id, p_resume_id, true,
+          (SELECT r.erasure_requested_at FROM resume r WHERE r.id = p_resume_id AND r.owner_user_id = p_owner);
+        RETURN;
+      END IF;
+      UPDATE resume
+         SET status='erasure_fenced', erasure_requested_at=now(), privacy_epoch=privacy_epoch+1
+       WHERE id = p_resume_id AND owner_user_id = p_owner
+         AND status IN ('uploaded','ingesting','ingested','failed')
+       RETURNING erasure_requested_at, privacy_epoch INTO v_fenced_at, v_epoch;
+      IF NOT FOUND THEN
+        SELECT * INTO v_existing FROM privacy_erasure_request r
+         WHERE r.owner_user_id = p_owner AND r.idempotency_key_hash = v_key
+         ORDER BY r.created_at DESC LIMIT 1;
+        IF FOUND THEN
+          RETURN QUERY SELECT v_existing.id, p_resume_id, true,
+            (SELECT r.erasure_requested_at FROM resume r WHERE r.id = p_resume_id AND r.owner_user_id = p_owner);
+          RETURN;
+        END IF;
+        RAISE EXCEPTION 'resume_soft_delete_not_found_or_forbidden' USING ERRCODE='42501';
+      END IF;
+      INSERT INTO privacy_erasure_request(owner_user_id, scope, subject_id, idempotency_key_hash, status, privacy_epoch)
+        VALUES (p_owner, 'resume_data', p_resume_id::text, v_key, 'fenced', v_epoch)
+        ON CONFLICT (owner_user_id, idempotency_key_hash) DO NOTHING
+        RETURNING id INTO v_request;
+      IF v_request IS NULL THEN
+        SELECT r.id INTO v_request FROM privacy_erasure_request r
+         WHERE r.owner_user_id = p_owner AND r.idempotency_key_hash = v_key;
+      END IF;
+      RETURN QUERY SELECT v_request, p_resume_id, false, v_fenced_at;
+    END;
+    $fn$;`);
+
+  // UNSTUB-ERASE neg-mirror 续:deactivate 账户删除闭包在**本负测环境**的最小镜像——
+  // ①interview.created_at/job_title_snapshot（0123 最小列面:ADD COLUMN IF NOT EXISTS+DEFAULT now();
+  //   整 0123 载入需 0028 application 链不在负测挑选单——deactivate 枚举 ORDER BY created_at 与
+  //   /interview 列表面读 job_title_snapshot 只需列存在,真相=0123 迁移链）。
+  await db.pool.query('ALTER TABLE interview ADD COLUMN IF NOT EXISTS created_at timestamptz');
+  await db.pool.query('ALTER TABLE interview ADD COLUMN IF NOT EXISTS job_title_snapshot text');
+  await db.pool.query('ALTER TABLE interview ALTER COLUMN created_at SET DEFAULT now()');
+  // ②assert_interview_privacy_active（0058 真函数体逐字:仅依赖 interview_privacy_active——后者本环境
+  //   已有同形镜像;写侧围栏与读侧同源,行为面一致）。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION assert_interview_privacy_active(target_interview text)
+    RETURNS void
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $$
+    BEGIN
+      IF NOT interview_privacy_active(target_interview) THEN
+        -- Deliberately collapse missing, cross-owner and deleted into one error;
+        -- direct repository callers must not gain an existence oracle.
+        RAISE EXCEPTION 'interview_privacy_fenced' USING ERRCODE='P0001';
+      END IF;
+    END $$;`);
+  // ②memory_begin_account_erasure（0093 契约面）:同头 fail-closed 校验（principal+64hex 键+账户存在）+
+  //   幂等复用 account_data 受理。本环境无 memory_consent/memory_fact（sql/07 镜像仅 user_memory）与
+  //   privacy_deletion_target（0047 链不在挑选单）——撤回/fence/三 target 账面无从落,单行契约回执
+  //   （digest 由同式 HMAC 派生非真账）;真相=0093/0047 迁移链（memory 账面 prove 归 memory/privacy 主证）。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION memory_begin_account_erasure(p_idempotency_key_hash text)
+    RETURNS TABLE (request_id uuid, request_status text, privacy_epoch bigint, target_set_digest text, sink text, resource_hmac text, replayed boolean)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $mfn$
+    DECLARE
+      principal text := current_setting('app.principal_user', true);
+      v_request uuid; v_hmac text; v_digest text;
+    BEGIN
+      IF principal IS NULL OR length(principal)=0
+         OR p_idempotency_key_hash IS NULL OR p_idempotency_key_hash !~ '^[a-f0-9]{64}$' THEN
+        RAISE EXCEPTION 'memory_erasure_invalid' USING ERRCODE='22023';
+      END IF;
+      PERFORM 1 FROM user_account ua WHERE ua.id = principal;
+      IF NOT FOUND THEN
+        RAISE EXCEPTION 'memory_erasure_account_not_found' USING ERRCODE='42501';
+      END IF;
+      SELECT r.id INTO v_request FROM privacy_erasure_request r
+       WHERE r.owner_user_id = principal AND r.idempotency_key_hash = p_idempotency_key_hash
+       ORDER BY r.created_at DESC LIMIT 1;
+      IF v_request IS NULL THEN
+        INSERT INTO privacy_erasure_request(owner_user_id, scope, subject_id, idempotency_key_hash, status, privacy_epoch)
+          VALUES (principal, 'account_data', principal, p_idempotency_key_hash, 'fenced', 1)
+          ON CONFLICT (owner_user_id, idempotency_key_hash) DO NOTHING
+          RETURNING id INTO v_request;
+        IF v_request IS NULL THEN
+          SELECT r.id INTO v_request FROM privacy_erasure_request r
+           WHERE r.owner_user_id = principal AND r.idempotency_key_hash = p_idempotency_key_hash;
+        END IF;
+      END IF;
+      v_hmac := encode(hmac(principal || ':memory_fact:' || v_request::text, p_idempotency_key_hash, 'sha256'), 'hex');
+      v_digest := encode(digest('memory_fact:' || v_hmac, 'sha256'), 'hex');
+      RETURN QUERY SELECT v_request, 'fenced'::text, 1::bigint, v_digest, 'memory_fact'::text, v_hmac, false;
+    END;
+    $mfn$;`);
 
   // ── 种子:各种状态,专供负测(绝不含"正常成功"作为断言目标)──
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES " +
     "('userA','a@x.com','scrypt$x$y',false,'candidate'),('userB','b@x.com','scrypt$b$w',false,'candidate')," +
     "('adminU','admin@x.com','scrypt$a$b',true,'candidate'),('recU','rec@x.com','scrypt$r$r',false,'recruiter')," +
     "('recU2','rec2@x.com','scrypt$r2$r',false,'recruiter'),('victimU','v@x.com','scrypt$v$w',false,'candidate')");
-  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['pwUser', 'pw@x.com', hashPassword('oldpass12')]);
+  await db.pool.query('INSERT INTO user_account(id,email,password_hash) VALUES ($1,$2,$3)', ['pwUser', 'pw@x.com', await hashPassword('oldpass12')]);   // #34:hashPassword async 形
   // 面试:各状态(终态 completed/failed/abandoned、进行中 active/created、他人的)
   await db.pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES " +
     "('IV_ACT','userA','active'),('IV_CREATED','userA','created'),('IV_DONE','userA','completed')," +

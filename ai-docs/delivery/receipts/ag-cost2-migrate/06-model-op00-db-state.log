@@ -1,0 +1,35 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-97465-1791812109286 on 127.0.0.1:51702
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-cost2/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=173 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:model-op00-db-state /Users/miaole/Desktop/golucky/meetwise-cost2/apps/worker
+> tsx test/model-op00-db-state.proof.ts
+
+PASS  20 个同 key 并发正例：恰 1 个 execute、19 个 wait，header/slot/dispatch 恰为 1 且无 permit 残留
+PASS  有 cost scope 但无匹配 reservation 的派发在占槽前被拒绝，状态保持 claimed、slot=0
+PASS  无费用策略的本地调用可正常 claim/dispatch，header binding 全部为 NULL
+PASS  同 scope 同 key 但 provider 漂移的 reservation 被派发围栏拒绝：binding mismatch、状态 claimed、slot=0
+PASS  同 key 重放携带不同 binding：确定性 failed(logical_node_binding_mismatch)，不产生第二个执行租约
+PASS  ACL 漂移 + 伪造 permit/slot 下，reservation 缺失或 binding 不匹配仍被 trigger 第二道防线拒绝，状态保持 claimed
+PASS  错误 lease 或错配 cost scope 的派发请求不越过边界（返回 false，状态不变）
+PASS  direct INSERT dispatching 被 permit 门拒绝，零账本行
+PASS  伪造 (NULL→dispatching) permit 后直插 dispatching 仍被 claim_shape 形状门拒绝，零账本行
+PASS  非法 terminal（claimed → succeeded）被状态机拒绝，状态保持 claimed
+PASS  非法 terminal（claimed → unknown）被状态机拒绝，状态保持 claimed
+PASS  派发后篡改 logical_node_key_digest 被 identity_immutable 拒绝，digest 不变
+PASS  派发后篡改 cost_scope_id / request_digest / service 均被 identity_immutable 拒绝且列值不变
+PASS  dispatching→terminal 三条形状门均拒绝（success_shape/terminal_shape/terminal_output），状态仍 dispatching
+PASS  20 个不同 key 竞争同一 logical node：恰 1 execute、19 个确定性 canonical_invocation_mismatch 拒绝
+PASS  registry operation 派生节点身份：同 revision 重放零额外外呼，durable digest 与服务端推导一致
+PASS  未登记 operation 与 operation+logicalNodeKey 冲突都在 durable claim 前确定性拒绝，零账本行
+
+✓ MODEL-OP-00 DB 状态机补充回归：同 key 并发、冻结 binding 与围栏第二道防线全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-12T13-35-16-619Z-97465-e1ba9a35-91cc-4eec-8b04-78147645f575.json release_evidence=false

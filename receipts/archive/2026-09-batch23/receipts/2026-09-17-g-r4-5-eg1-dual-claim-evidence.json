@@ -1,0 +1,17 @@
+{
+  "kind": "MetadataReviewReceiptRagFunnel01DualClaimEvidence",
+  "gap01AEquals01": true,
+  "sourceSealed01A": true,
+  "ms1ProductConsumerWired": true,
+  "ms2ProductFacetsServed": true,
+  "ms3StandardDeployHandoff": true,
+  "ragFunnel01ProductClosed": true,
+  "productFunnel01Closed": true,
+  "is01ANotEqual01": false,
+  "isProduct01ANotEqual01": false,
+  "gR45DualClaimClosed": false,
+  "r4ProductClosed": false,
+  "domainIsolationClosed": false,
+  "releaseEvidence": false,
+  "note": "EG1 dual-claim evidence — 01A≡01 at product surfaces · ≠ G-R4-5/R4/题域 closed · Ban forge · await post-prove dual"
+}

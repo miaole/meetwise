@@ -1,0 +1,46 @@
+# gate: node scripts/i6-239-gates.proof.mjs
+# ts: 2026-10-12 14:39:53 +0800
+# head: 7b6d0f38304e7d66ad0d3dc88c29e1ae9d1eea1e
+PASS  ① env 闸名在场(MEETWISE_CONTENT_SAFETY_KILL_SWITCH)
+PASS  ① 三态 fail-closed 缺省 off(undefined/0→false·1→true·余者 throw)
+PASS  ① 独立于平台级既有开关(新模块零 import·平台级开关语义字节零触)
+PASS  ① denyContentSafetyKilled 闸定义在场
+PASS  ① begin/turn 双口恰 2 处闸调用 — callSites=2
+PASS  ① 闸触发=503+诚实文案
+PASS  ① begin 首行闸序(denyContentSafetyKilled 先于 denyPublicPreviewWrite)
+PASS  ① turn 首行闸序(同形)
+PASS  ② domain 触发词表在场(CRISIS_TRIGGER_PATTERNS·zh/en)
+PASS  ② domain 纯函数判定(matchesCrisisTrigger)
+PASS  ② 负断言:零状态机(代码面无 pgEnum/z.enum/CREATE TABLE)
+PASS  ② domain barrel 导出接线
+PASS  ② worker pinned 落点:invokeEvaluationOnce 前置确定性扫描(先于模型 invoke)
+PASS  ② worker 拒评沿既有 failed→unscored 释放链(零新联合成员)
+PASS  ② web 对齐模块词表与 domain 同形(合同对齐不引包·先例 scoring-honesty) — patterns=17/17
+PASS  ② 转介信息三要素(热线 12356+紧急 120+急诊)
+PASS  ② 法务复核保留标注形
+PASS  ② 提交口确定性拦截(matchesCrisisTrigger(sent))
+PASS  ② 警示区 role="alert" 固定文案渲染
+PASS  ③ signup 区年龄声明落位(t(ageDeclaration))
+PASS  ③ 声明文案形(非勾选:零 checkbox/零 required 新控件)
+PASS  ③ i18n zh 在场(未满 18 周岁暂不提供服务)
+PASS  ③ i18n en 在场(en 纯英文·S3 禁 CJK 合规)
+PASS  ③ #263 面(:27-28/:38-40 内部预览标注窗)diff 零删改(纯插入) — deletions=0
+PASS  ③ #263 标注句逐字仍在场
+PASS  ④ 流程内披露(第24条·要求人工复核·拒绝仅自动化)
+PASS  ④ 静态受理入口(mailto·零端点零新表)
+PASS  ④ 不虚称工单/复核通道(暂无专用工单通道·如实引用校准 hold)
+PASS  ④ 申请流程内落位(apply 表单上方同卡)
+PASS  ④ applications.service.ts 零触(scoreless 语义零翻)
+PASS  ④ 互洽面零矛盾(how-it-works :36 诚实句仍在)
+PASS  ④ 互洽面零矛盾(surface.ts :95 校准句仍在)
+PASS  ④ 互洽面零矛盾(legal :45 自动招聘决定尚未开放仍在)
+PASS  ④ 披露与既有负断言同向(渲染文案零「工单已开/复核工单」假称)
+PASS  ⑤ 邻面零触(平台级开关/隐私擦除/admin audit/保留枚举/crag/authz interview-jobs)
+PASS  ⑤ 零迁移零新表(改动集零迁移文件)
+PASS  ⑤ SSOT 四卷零触
+PASS  ⑦ markers=0(改动集五类标记词零命中)
+PASS  ⑦ est live=0(本刀新增面零外呼零 SMTP 零 secrets 读用)
+PASS  改动集恰符(实际触面 ⊆ 申报清单·tsbuildinfo 构建副产物不计) — unexpected=
+
+i6-239-gates: ALL PASS
+EXIT=0

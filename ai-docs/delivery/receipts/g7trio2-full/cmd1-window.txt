@@ -1,0 +1,4 @@
+CMD=CMD1 pnpm e2e:isolated
+start_utc=2026-10-09T09:59:36Z
+end_utc=2026-10-09T10:00:59Z
+EXIT=0

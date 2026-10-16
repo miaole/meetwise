@@ -1,0 +1,56 @@
+START 2026-10-06 20:28:34 CST sha=9e2abd04083eca464817e35687595c706cbcd2a9 dirty=0
+with-docker-session: docker.sock permission gap in session; re-exec via sg docker (membership already in /etc/group; no grant/chmod/sudo)
+
+> meetwise@0.1.0 int-transcript-remaining-sinks:prove /workspace/meetwise-wt-an-priv-ext
+> node scripts/run-e2e-isolated.mjs int-transcript-remaining-sinks:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-1237271-1791289714889 on 127.0.0.1:32928
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /workspace/meetwise-wt-an-priv-ext/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=137 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:int-transcript-remaining-sinks /workspace/meetwise-wt-an-priv-ext/packages/db
+> tsx test/int-transcript-remaining-sinks.proof.ts
+
+PASS  fixture 落库（event=2 + ai_graph_run=1 + 6 report 表各 1 = 9 行）
+PASS  begin-erasure 落 fenced + 恰好 4 个 sink target（event+ai_graph_run+report+checkpoint_rows, replayed=false）
+PASS  钉下 epoch + 目标集活 digest（TS canonicalTargetSetDigest 逐字节相等, H1）+ resource 64-hex
+PASS  H2 fence 生效：begin-erasure 后 late append event 被 0059 写 guard 拒
+PASS  复用冻结 consume：jti 单次 CAS（二次消费被拒）
+PASS  digest 不符（另签错误 resource 快照）→ claim 被拒
+PASS  复用冻结 claim：event target 认领成功 + 租约
+PASS  跨 owner claim（伪造 principal）被拒
+PASS  purge event：物理删 2 行 + 请求仍 purging（ai_graph_run/report 未删）
+PASS  purge ai_graph_run：物理删 1 行 + delete→read=0（M1）
+PASS  purge report：物理删 6 行 + 请求 completed
+PASS  删后物理 read=0（event + ai_graph_run + 6 report 表 count 归零）
+PASS  H2 fence 持久：purge 完成后 late append event 仍被 0059 写 guard 拒（不复活）
+PASS  删后跨 owner 读 = 0
+PASS  逐 sink receipt：event target 写 local_erased 成功
+PASS  逐 sink receipt：report target 写 local_erased 成功
+PASS  逐 sink receipt：ai_graph_run target 写 local_erased 成功（M1 逐 sink receipt）
+PASS  逐 sink receipt：跨 owner 写被拒
+PASS  no-forge：target 未全 erased 时 raw UPDATE→completed 被 guard 拒
+PASS  failed_cleanup 未 resolve → purge 后请求 partial_failed（绝不 completed）
+PASS  no-forge：全 erased 但 failed_cleanup 收据在 → raw UPDATE→completed 仍被 guard 拒
+PASS  external_pending 未 resolve → purge 后请求 pending_external（绝不 completed）
+PASS  20 并发 begin-erasure 单 INSERT winner（1 created + 19 replayed）
+PASS  replay 回显同一请求 4 个 target（不重复建 target）
+PASS  20 并发 claim 单 winner（CAS 租约，19 lost）
+PASS  list-claimable 只吐 pending/可重租目标（不含已 erased 的 ivP/ivF/ivX target）
+PASS  fence 锚跨流隔离：checkpoint_rows 锚不被 projection 或 checkpoint dispatch 认领
+PASS  vector/trace 无 interview 作用域 → begin-erasure 只建 event+ai_graph_run+report+checkpoint_rows 四 target（不建 vector/trace）
+PASS  诚实拒删：interview 删除不误删 vector_chunk / ai_invocation_trace
+PASS  answer_hash 随活删除流 begin-erasure 清除为 NULL（H1，低熵 oracle 不残留，不依赖暂停的 checkpoint 路径）
+PASS  0075 暂停保留：app_role 仍不能执行 privacy_begin_checkpoint_erasure（0096 未重新授权）
+
+✓ INT-TRANSCRIPT-01 剩余 sink（event/ai_graph_run/report/checkpoint fence 锚/answer_hash/vector/trace）DB 证明通过（本地隔离证据）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-06T12-28-46-169Z-1237271-9fbcf9f3-2e8c-4b08-a99d-9d7478ccf0b5.json release_evidence=false
+END 2026-10-06 20:28:46 CST EXIT=0

@@ -1,0 +1,142 @@
+=== pnpm install --frozen-lockfile EXIT=0 ===
+Scope: all 12 workspace projects
+Lockfile is up to date, resolution step is skipped
+Progress: resolved 1, reused 0, downloaded 0, added 0
+Packages: +606
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+Progress: resolved 606, reused 606, downloaded 0, added 606, done
+
+devDependencies:
++ @types/node 26.0.1
++ dependency-cruiser 18.0.0
++ esbuild 0.28.1
++ tsx 4.22.4
++ turbo 2.10.0
++ typescript 6.0.3
+
+╭ Warning ─────────────────────────────────────────────────────────────────────╮
+│                                                                              │
+│   Ignored build scripts: @parcel/watcher, @swc/core, esbuild, protobufjs,    │
+│   sharp.                                                                     │
+│   Run "pnpm approve-builds" to pick which dependencies should be allowed     │
+│   to run scripts.                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 1.9s using pnpm v10.18.0
+
+
+
+=== pnpm uc018:sole:prove EXIT=0 ===
+
+> meetwise@0.1.0 uc018:sole:prove /workspace/meetwise-lineA-backfill/23f98d3
+> node scripts/uc-e2e-018-sole-stack-pg-retained.proof.mjs
+
+PASS  parent present
+PASS  knife present
+PASS  slice present
+PASS  adr present
+PASS  matrix present
+PASS  backlog present
+PASS  evalDoc present
+PASS  pkg present
+PASS  r5Status present
+PASS  r5MarkRed present
+PASS  self present
+PASS  present: ai-docs/delivery/harness/uc-e2e-018-user-abandon.md
+PASS  present: ai-docs/delivery/harness/uc-e2e-018-sole-stack-pg-retained.md
+PASS  present: ai-docs/delivery/uc-e2e-018-sole-stack-pg-retained.slice.md
+PASS  present: ai-docs/delivery/adr-postgres-retained.md
+PASS  present: ai-docs/delivery/e2e-requirement-coverage-matrix.md
+PASS  present: ai-docs/delivery/e2e-covered-path-backlog.md
+PASS  present: ai-docs/delivery/eval/uc-e2e-018-user-abandon.eval.md
+PASS  present: package.json
+PASS  present: ai-docs/delivery/harness/r5-retirement-sole-stack-status.md
+PASS  present: ai-docs/delivery/harness/r5-pgvector-fixture-mark-red.md
+PASS  package.json lists uc018:sole:prove
+PASS  package.json lists uc018:abandon:prove
+PASS  package.json lists uc018:abandon:http:prove
+PASS  package.json lists uc018:abandon:full-e2e:prove
+PASS  package.json lists uc018:graph:prove
+PASS  package.json lists uc018:ttl:prove
+PASS  package.json lists uc018:ui:prove
+PASS  uc018:sole:prove → scripts/uc-e2e-018-sole-stack-pg-retained.proof.mjs
+NOTE  historical sole-wiring scripts present (7) — Ban wash as GAP-UC018-SOLE evidence
+PASS  uc018:sole:prove is static PG-retained honesty (not mysql-qdrant sole-wiring)
+PASS  adr-postgres-retained: names Postgres (+pgvector + PostgresSaver)
+PASS  adr-postgres-retained: pins pgvector
+PASS  adr-postgres-retained: pins PostgresSaver
+PASS  adr-postgres-retained: Ban Qdrant-as-required-vector
+PASS  adr-postgres-retained: Ban MySQL business cutover
+PASS  parent-harness: GAP-UC018-SOLE CLOSED
+PASS  parent-harness: cites PG-retained / Postgres+pgvector
+PASS  parent-harness: #6 alone ≠ covered
+PASS  parent-harness: pins partial
+PASS  parent-harness: 本绿≠全链路 E2E covered
+PASS  parent-harness: releaseEvidence=false
+PASS  parent-harness: Not HA
+PASS  parent-harness: lists uc018:sole:prove
+PASS  parent-harness: lists uc018:abandon:prove
+PASS  parent-harness: lists uc018:abandon:http:prove
+PASS  parent-harness: lists full-e2e prove
+PASS  parent-harness: lists graph prove
+PASS  parent-harness: lists ttl prove
+PASS  parent-harness: lists ui prove
+PASS  parent-harness: Ban MySQL/Qdrant as close-condition / wash
+PASS  parent-harness: Ban wash UI/TTL/GRAPH/FULL-E2E alone as #6
+PASS  parent-harness: cites STOPPED R5 harnesses
+PASS  parent-harness: Ban claim UC-E2E-018 covered
+PASS  knife-harness: cites adr-postgres-retained.md
+PASS  knife-harness: Postgres+pgvector+PostgresSaver
+PASS  knife-harness: names GAP-UC018-SOLE
+PASS  knife-harness: status executed:awaiting_post_prove_dual
+PASS  knife-harness: releaseEvidence=false
+PASS  knife-harness: NOT_HA
+PASS  knife-harness: claimProductionHA=false
+PASS  knife-harness: matrix partial
+PASS  knife-harness: #6 alone ≠ covered
+PASS  knife-harness: Ban claim UC covered
+PASS  knife-harness: lists uc018:sole:prove
+PASS  knife-harness: cites STOPPED R5
+PASS  knife-harness: Ban MySQL/Qdrant cutover/wash
+PASS  knife-harness: not self-nailed to post_prove_dual_pass
+PASS  knife-slice: cites adr-postgres-retained.md
+PASS  knife-slice: Postgres+pgvector+PostgresSaver
+PASS  knife-slice: names GAP-UC018-SOLE
+PASS  knife-slice: status executed:awaiting_post_prove_dual
+PASS  knife-slice: releaseEvidence=false
+PASS  knife-slice: NOT_HA
+PASS  knife-slice: claimProductionHA=false
+PASS  knife-slice: matrix partial
+PASS  knife-slice: #6 alone ≠ covered
+PASS  knife-slice: Ban claim UC covered
+PASS  knife-slice: lists uc018:sole:prove
+PASS  knife-slice: cites STOPPED R5
+PASS  knife-slice: Ban MySQL/Qdrant cutover/wash
+PASS  knife-slice: not self-nailed to post_prove_dual_pass
+PASS  matrix: UC-E2E-018 stays **partial**
+PASS  matrix: lists uc018:sole:prove
+PASS  matrix: notes GAP-UC018-SOLE CLOSED
+PASS  matrix: ≠ covered / #6 alone ≠ covered
+PASS  matrix: releaseEvidence=false
+PASS  matrix: UC-E2E-018 not falsely covered
+PASS  matrix: mysql-qdrant sole-wiring not treated as UC018 #6 evidence
+PASS  backlog: 018 mentions sole/PG-retained
+PASS  backlog: 018 still partial≠covered
+PASS  backlog: 018 does not claim 仍缺 UI
+PASS  backlog: 018 sole honesty updated (not stale 仍缺 sole-stack only)
+PASS  eval: lists uc018:sole:prove
+PASS  eval: GAP-UC018-SOLE / #6 CLOSED
+PASS  eval: pins partial
+PASS  eval: #6 alone ≠ covered / ≠ UC covered
+PASS  eval: releaseEvidence=false
+PASS  eval: Not HA
+PASS  eval: cites PG-retained
+PASS  r5-status: STOPPED/superseded
+PASS  r5-status: PG-retained direction
+PASS  r5-mark-red: STOPPED/superseded
+
+CMD=pnpm uc018:sole:prove EXIT=0
+NOTE: GAP-UC018-SOLE CLOSED only · matrix UC-E2E-018 partial · #6 alone ≠ covered · Ban claim UC018 covered · Ban wash mysql-qdrant sole-wiring / UI/TTL/GRAPH/FULL-E2E alone as #6 · releaseEvidence=false · Not HA · claimProductionHA=false · Ban self-nail
+
+

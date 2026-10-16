@@ -1,0 +1,73 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc052:internal-erasure:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 11060,
+  "startedAt": "2026-09-24T03:38:03.741Z",
+  "finishedAt": "2026-09-24T03:38:14.801Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:ba4e9a6816728b4e6f7c1b0c98976baab7578bd593cc4ac996bd7f4269e33c08",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/uc052-internal-erasure.proof.ts": "sha256:9474e2d55890dcad01d11ecd14934377ff245ec60a338e1912f17b9a7a35b423",
+    "packages/db/src/uc052-internal-erasure.ts": "sha256:ef8a8495b55eb6715f3903a4731c125bc97804bfdde1ed89b42d2f0b36b66cf6",
+    "packages/db/src/int-transcript-projection.ts": "sha256:181545a88b69cde763c3ee704b97d013141758696035c1cef69765701d0227e0",
+    "packages/db/src/privacy-authorization.ts": "sha256:0deef7f737f90b70b2b27d57d1a2d7ae8d1cfd3b92d6a8397c3fd928e784385a",
+    "packages/db/src/principal.ts": "sha256:63bd6f093a24cbd744ce80cd9abf67023832ece2648354ed5ae4fd8ccb228ab3",
+    "packages/db/src/isolated-test-target.ts": "sha256:e85ed22fc4e6c2f6539305878a205994a8b81c1e21f5aa68684eff33af0522af",
+    "packages/domain/src/privacy-authorization.ts": "sha256:e586d751f78a505f44bfc264830de9ced7a8b0af5d3e405e5ab4b3584cad912b",
+    "apps/api/src/modules/privacy/privacy.service.ts": "sha256:193fc2636c5f9dac12e47b0882713aebdf11d0871f4f886448d70bbe0b323559",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a",
+    "packages/db/migrations/0096_int_transcript_remaining_sinks.sql": "sha256:94e8adee972f328cfd1ec63bde1bf2216d462b7eac092c133ca1e9246a8646a2"
+  },
+  "schemaMigrationManifest": {
+    "count": 134,
+    "latest": "0134_usage_calibration_gateway_owners.sql",
+    "digest": "sha256:8dce517cceaa13a6bfa02560aac0fd202201fb85b1b6232e46c65aff22dda255"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false,
+  "runnerGitSha": "6d6e11bc123eccf78c968e927b79a7e41f2118d6",
+  "runnerGitShaShort": "6d6e11b",
+  "step0GitSha": "4643c02d4a7ca946ae93695ef791195aa212f0f2",
+  "worktree": "/workspace/meetwise-lineB",
+  "cmd": "pnpm uc052:internal-erasure:prove",
+  "cases": {
+    "NHP-050-FAULT-01": "pass",
+    "NHP-050-FAULT-02": "pass",
+    "NHP-050-FAULT-03": "pass",
+    "NHP-050-FAULT-04": "pass",
+    "NHP-050-FAULT-05": "pass",
+    "NHP-050-NEG-02": "pass",
+    "NHP-050-NEG-03": "pass",
+    "NHP-050-BOUND-01": "pass",
+    "NHP-050-NEG-01": "pass",
+    "HP-050-01": "pass",
+    "C-CASECOUNT": "pass"
+  },
+  "requestStatusObserved": {
+    "NHP-050-FAULT-01": "pending_external",
+    "NHP-050-FAULT-02": "pending_external",
+    "NHP-050-FAULT-03": "pending_external",
+    "NHP-050-FAULT-04": "purging",
+    "NHP-050-FAULT-05": "pending_external",
+    "HP-050-01": "pending_external"
+  },
+  "bound01": {
+    "winners": 1,
+    "a": true,
+    "b": false,
+    "eventTargets": 1,
+    "leaseSemantics": "0091 exclusive unexpired lease; concurrent claim \u2192 single winner"
+  },
+  "stack": "pgvector-legacy via run-e2e-isolated (PG/LEGACY path; Ban cite MySQL+Qdrant banner as sole-stack truth)",
+  "haStatus": "NOT_HA",
+  "pins": {
+    "releaseEvidence": false,
+    "claimProductionHA": false,
+    "gR45Closed": true,
+    "coveredCount": 8,
+    "ms3EqualsR4Closed": false
+  }
+}

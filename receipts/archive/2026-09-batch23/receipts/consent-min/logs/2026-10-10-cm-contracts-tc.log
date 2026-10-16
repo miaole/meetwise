@@ -1,0 +1,4 @@
+
+> @meetwise/contracts@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-consentmin/packages/contracts
+> tsc --noEmit
+

@@ -1,0 +1,78 @@
+=====TARGET report:prove:raw=====
+PASS  userI 报告被排干到 ready
+
+──────── 依赖故障隔离：摘要读取失败会标 failed，且不阻断同一拍其他租户的报告 ────────
+PASS  摘要读取故障从 running 收束为 failed（不等租约过期）
+PASS  同一调度拍的其他租户仍到 ready（不被坏租户阻断）
+
+──────── 并发不双跑：两 worker 同时 claim,只一个领到 ────────
+PASS  两并发 claim 恰好一个领到（FOR UPDATE SKIP LOCKED + CAS）
+
+──────── RLS：userB 看不到 userA 的报告 ────────
+PASS  userB 视角 userA 报告=0 行
+PASS  userB claim 只会领到自己的（领到的 interview=R9）
+
+✓ 全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T19-03-50-832Z-33955-31301d86-fe3c-486f-9fbf-017fe6595c94.json release_evidence=false
+TARGET_EXIT=0
+=====TARGET report-retry:http:prove:raw=====
+{"event":"reaper_takeover","kind":"report","job_ref":"requeued:1","prev_lease_expired":false}
+{"event":"reaper_takeover","kind":"report","job_ref":"requeued:1","prev_lease_expired":false}
+{"level":30,"time":1791659036028,"pid":34387,"hostname":"miaole.local","reqId":"120e2c4d-8731-4691-91d2-7995709944af","req":{"method":"POST","url":"/interview/IV_RR229_h4other_mv2rj3o9/report/retry","host":"127.0.0.1:59711","remoteAddress":"127.0.0.1","remotePort":59712},"msg":"incoming request"}
+{"level":30,"time":1791659036030,"pid":34387,"hostname":"miaole.local","reqId":"120e2c4d-8731-4691-91d2-7995709944af","res":{"statusCode":200},"responseTime":2.1135410000001684,"msg":"request completed"}
+PASS  H4 跨报告互不影响：另一份 quarantined 报告 retry → 200（per-interview key）
+
+──────── honesty pins ────────
+NOTE: 本 prove = §4-②③④+频控 HTTP 腿；§4-①⑥ db 腿 → report-retry:prove（packages/db）
+NOTE: 频控阈值=建议值 3 次/小时/份（S12 待用户追认·常量 REPORT_RETRY_RL 可调·改值不需重开 REQUEST）
+NOTE: 频控=单实例内存（与 signup 同 seam）·Redis 共享桶归 HA 簇 · ≠ 频控多实例完备
+NOTE: EXIT0 ≠ covered · UC-011/019 stays partial（翻转仅钉语义·coveredCount=8 不动）· releaseEvidence=false · Not HA
+PASS  honesty: HTTP prove 绿 ≠ 全链路 covered（钉语义翻转+频控行使 only）
+
+✓ report-retry:http: 38 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T19-03-56-273Z-34239-8e119d8a-816b-480a-9974-ed15b1c150db.json release_evidence=false
+TARGET_EXIT=0
+=====TARGET reaper:prove:raw=====
+PASS  failed start 后 answer 入队被 v64 祖先约束拒绝
+PASS  有 failed 兄弟且无可入队 answer → claim 返回 null(不领已死面试)
+
+──────── ⑥ 已结算面试被 reap → 不发假终态、不重复退款(release 返 already_confirmed) ────────
+PASS  已结算面试的孤儿 job 仍被终结 failed(清理 job)
+PASS  **不发假 interview_unavailable**(面试已交付,报告舱壁自会发 report_*)
+PASS  **不重复退款**:已结算额度不倒退(余额不变)
+
+──────── ⑦ 心跳调度器(startHeartbeat):renew 返 false 自停 / stop() 后不再续 / stop() 幂等 ────────
+PASS  renew 返 false 即自停(续租计数封顶=3,不再调用)
+PASS  stop() 后心跳不再续租(无僵尸续约)
+PASS  stop() 幂等(重复调用不抛)
+
+✓ Reaper(心跳防误收 + 双边界 requeue/终结 + 终态事件 + 退款 + 僵尸守卫 + 已结算不误终态)全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T19-04-03-517Z-34401-33239c8e-5cb2-4460-b210-3db27e4c91b5.json release_evidence=false
+TARGET_EXIT=0
+=====TARGET quiz:prove:raw=====
+──────── ⑦ G4 #209 滤后空题鉴别子:题目非空但 refs 全幻觉 → 歪曲门滤空 → quiz_empty_questions(confirm 前 throw·非生成器闸)+失败退额 ────────
+PASS  滤空后 0 题 → 押题 failed(不交付白卷、不标 ready)
+PASS  **分支鉴别子**:job last_error=quiz_empty_questions(滤后路径稳定码·items 非空故生成器闸 empty_quiz/blank_question 不触发)
+PASS  quiz_unavailable 终态事件在(无静默死胡同)
+PASS  **等效观测**:units 不变+consumed 账零新增(confirm 未发生 → release 全退·非 partial 白扣)
+
+──────── ⑧ G4 #209 facts 空前置拦截:空 facts 简历 dispatch 前 throw quiz_empty_facts·模型外呼零发生 ────────
+PASS  夹具自证:电话形态行简历 facts=0(#191 头部联系行不冒充经历)
+PASS  空 facts → 押题 failed(不留孤儿 created:拦截点在 binding 置 generating 之后)
+PASS  job last_error=quiz_empty_facts(dispatch 前拦下)
+PASS  **模型 dispatch 零发生**:invoke 关口 trace 0 行(省一次注定空转的外呼·est live 反向收益)
+PASS  quiz_unavailable 终态在+额度全退(units 不变)
+
+✓ 押题进程接线(api 入队→worker 消费→runQuiz 图)全部通过
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T19-04-10-775Z-34686-753af32b-887f-4bdb-bffe-0d30af0f265f.json release_evidence=false
+TARGET_EXIT=0
+=====UNIT dispatch=====
+PASS  空 owner 列表不领取
+PASS  进程内 global cap 恰好重叠到 2
+PASS  深队列 owner 不能在另一 owner 前被抽干
+PASS  retry 不踢出 owner 且另一 owner 仍被服务
+PASS  每拍每 owner launch cap 截断 retry 活锁
+PASS  切片拒绝等其他 in-flight 完成后再抛出
+
+✓ interview dispatch fairness unit proof passed
+DISPATCH_EXIT=0

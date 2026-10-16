@@ -1,0 +1,18 @@
+{
+  "kind": "ProductionEquivalentFunnel08Thresholds",
+  "mode": "production-equivalent",
+  "preRegistered": true,
+  "预注册": true,
+  "pre-registered": true,
+  "p95LatencyMsMax": 2500,
+  "P95": 2500,
+  "costUsdMaxPerCase": 0.05,
+  "成本": {
+    "usdMaxPerCase": 0.05,
+    "currency": "USD"
+  },
+  "recallAtKMin": 0.8,
+  "k": 5,
+  "wrongTrackZeroHardAssert": true,
+  "note": "G-R4-5 / FUNNEL-08 thresholds · P95 + 成本 + 预注册 · Ban invent · releaseEvidence=false · ≠HA"
+}

@@ -1,0 +1,6 @@
+CMD: DATABASE_URL=postgresql://meetwise:***@127.0.0.1:54340/meetwise pnpm -C packages/db migrate
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-ha3/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+EXIT=0

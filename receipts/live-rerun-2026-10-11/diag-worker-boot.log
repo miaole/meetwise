@@ -1,0 +1,16 @@
+[worker:err 3350ms] file:///Users/miaole/Desktop/golucky/meetwise/apps/worker/src/model-cost-governance.ts:50
+    if (!value || !pattern.test(value)) throw new Error(`model_cost_invalid_${name.toLowerCase()}`);
+                                              ^
+
+Error: model_cost_invalid_model_backup_billing_model
+    at required (file:///Users/miaole/Desktop/golucky/meetwise/apps/worker/src/model-cost-governance.ts:50:47)
+    at endpoint (file:///Users/miaole/Desktop/golucky/meetwise/apps/worker/src/model-cost-governance.ts:65:19)
+    at resolveModelCostGovernance (file:///Users/miaole/Desktop/golucky/meetwise/apps/worker/src/model-cost-governance.ts:132:24)
+    at bootstrap (file:///Users/miaole/Desktop/golucky/meetwise/apps/worker/src/main.ts:428:23)
+    at file:///Users/miaole/Desktop/golucky/meetwise/apps/worker/src/main.ts:914:43
+    at ModuleJob.run (node:internal/modules/esm/module_job:343:25)
+    at async onImport.tracePromise.__proto__ (node:internal/modules/esm/loader:681:26)
+    at async asyncRunEntryPointWithESMLoader (node:internal/modules/run_main:117:5)
+
+Node.js v22.22.3
+[diag] worker exit code=1 sig=null at 3383ms

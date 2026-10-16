@@ -1,0 +1,61 @@
+
+> @meetwise/worker@0.0.0 prove:r4-funnel-product-close /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-funnel-product-close.proof.ts
+
+G-R4-5 / R4·FUNNEL product-close reassess prove
+EXIT=0 = authorized attempt · honest flip when coveredCount=8 + 02A…08 covered · Ban invent · Ban self-nail dual_pass · gR45Closed stays false
+
+──────── P0 anchors ────────
+PASS  P0 emitter wired
+PASS  P0 reassess harness present
+PASS  P0 ARCHIVE prior harness present
+FAIL  P0 harness status awaiting_post_prove_dual + Ban self-nail + flip flags
+PASS  P0 ARCHIVE prior non-flip retained
+
+──────── P1 flip eligibility (must PASS today · coveredCount=8) ────────
+PASS  P1 coveredCount=8
+PASS  P1 funnelAllCovered
+PASS  P1 funnelGapsRemain=false
+PASS  P1 canHonestlyFlip=true
+PASS  P1 refuseReason=null
+
+──────── P2 honesty pins (expect flipped) ────────
+PASS  P2 eg3FlagsRetained
+PASS  P2 authorizedSsotPinsPresent
+PASS  P2 orthogonalNotClaimedClosed
+PASS  P2 harnessFlagsMatchOutcome
+PASS  P2 matrixHonestyRetained
+PASS  P2 archivePriorNonFlipRetained
+
+──────── P3 attempt closed emission must SUCCEED (honest flip) ────────
+PASS  P3 attempt emitted=true
+PASS  P3 hasR4FunnelProductCloseFlippedEvidence
+PASS  P3 kind
+PASS  P3 productCloseAttemptedUnderAuthorize=true
+PASS  P3 productCloseFlipped=true
+PASS  P3 evidenceInsufficient=false
+PASS  P3 r4ProductClosed=true
+PASS  P3 funnelProductClosed=true
+PASS  P3 gR45Closed=false
+PASS  P3 coveredCount=8
+PASS  P3 coveredCountInvented=false
+PASS  P3 releaseEvidence=false
+PASS  P3 domainIsolationClosed=true retained
+PASS  P3 eg3ProductClosed=true retained
+PASS  P3 ms3EqualsR4Closed=false
+PASS  P3 archivePriorNonFlipRetained=true
+PASS  P3 receipt written
+PASS  P3 roundtrip r4ProductClosed=true
+PASS  P3 roundtrip funnelProductClosed=true
+PASS  P3 roundtrip productCloseFlipped=true
+PASS  P3 roundtrip coveredCount=8
+PASS  P3 roundtrip gR45Closed=false
+PASS  P3 roundtrip releaseEvidence=false
+
+──────── P4 hard pins ────────
+PASS  P4 ≠ invent coveredCount · ≠ auto-flip gR45Closed
+PASS  P4 ≠ wash Batch4b f802f02/0e58386 · ARCHIVE da185d9/139dac9/1c2ed8c retained
+PASS  P4 Ban MS3=R4 · Ban self-nail post_prove_dual_pass · EG1/2/4/5/6 not closed by this knife
+
+FAIL  r4-funnel-product-close prove (1 failures)
+ ELIFECYCLE  Command failed with exit code 1.

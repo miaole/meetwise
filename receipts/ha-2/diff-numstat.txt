@@ -1,0 +1,14 @@
+1	0	apps/api/package.json
+83	2	apps/api/src/main.ts
+10	0	apps/api/src/modules/health/health.controller.ts
+25	5	apps/api/src/platform/sse-pump.ts
+1	0	apps/worker/package.json
+60	0	apps/worker/src/drain-loop.ts
+62	2	apps/worker/src/main.ts
+11	0	docker/compose.prod.yml
+# untracked (new files, not in numstat above):
+# apps/api/src/platform/sse-registry.ts (C1/C7/C8/收据)
+# apps/api/test/ha-2-drain.proof.ts (C1/C7/C8/收据)
+# apps/worker/test/ha-2-drain.proof.ts (C1/C7/C8/收据)
+# docker/compose.ha-2-proof.yml (C1/C7/C8/收据)
+# receipts/ha-2/exec-receipt.md (C1/C7/C8/收据)

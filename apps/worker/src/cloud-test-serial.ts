@@ -9,6 +9,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import pkg from 'pg';
+import { AppError } from '@meetwise/db';
 import {
   assertCloudSmokePrivatePeer,
   cloudSmokeFailure,
@@ -67,7 +68,7 @@ export type CloudTestSerialReceipt = Omit<CloudTestLedgerReceipt, 'caseId'> & {
 };
 
 function failure(code: string): never {
-  throw new Error(`cloud_test_serial_${code}`);
+  throw new AppError(`cloud_test_serial_${code}`);
 }
 
 function required(env: NodeJS.ProcessEnv, name: string): string {

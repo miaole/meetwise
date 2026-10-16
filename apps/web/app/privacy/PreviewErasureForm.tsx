@@ -4,7 +4,6 @@ import { useActionState } from 'react';
 import type { PrivacyPreviewReceipt } from '@meetwise/contracts';
 import { requestPrivacyPreviewAction, type PreviewActionState } from './actions';
 import { SubmitButton } from '@/components/ui/SubmitButton';
-import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 
@@ -53,18 +52,14 @@ export function PreviewErasureForm({ initialReceipt }: { initialReceipt?: Privac
           <select
             id="scope"
             name="scope"
-            defaultValue="interview_data"
+            defaultValue="account_data"
             className="flex h-11 w-full rounded-md border border-input bg-transparent px-3 py-1 text-base shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
           >
-            <option value="interview_data">一份面试（启动投影围栏，不含队列载荷清除）</option>
             <option value="account_data">账户记忆向量块（启动 0125 本地 sweep，不等于账户删完）</option>
             <option value="resume_data">简历（只盘点，不启破坏性 sweep）</option>
           </select>
         </div>
-        <div className="space-y-2">
-          <Label htmlFor="subjectId">面试标识（仅面试范围需要）</Label>
-          <Input id="subjectId" name="subjectId" maxLength={128} autoComplete="off" className="h-11 text-base" />
-        </div>
+        <input type="hidden" name="subjectId" value="" />
         <SubmitButton pendingLabel="正在生成预览回执…">请求预览删除回执</SubmitButton>
         <p role="status" aria-live="polite" className={`text-sm ${state.error ? 'text-destructive' : 'text-muted-foreground'}`}>
           {state.error ?? (state.ok ? '已生成预览版回执，不是生产删除完成。' : '')}

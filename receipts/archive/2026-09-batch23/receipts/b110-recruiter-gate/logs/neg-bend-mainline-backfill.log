@@ -1,0 +1,461 @@
+
+> meetwise@0.1.0 neg:bend /Users/miaole/Desktop/golucky/meetwise
+> node scripts/run-e2e-isolated.mjs neg:bend
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-39187-1791600049512 on 127.0.0.1:55097
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:bend /Users/miaole/Desktop/golucky/meetwise/apps/api
+> node --import @swc-node/register/esm-register test/neg-bend.proof.ts
+
+{"level":30,"time":1791600054359,"pid":39428,"hostname":"localhost","msg":"Server listening at http://127.0.0.1:55139"}
+PASS  0123 回归 fixture 保留 production initially-deferred FK 精确表列形状
+PASS  0123 展示快照回填不被历史 abandoned 绑定行阻断
+PASS  历史死绑定只补展示快照，不改写申请状态/绑定 attempt
+PASS  0123 完成后 lineage 与 application binding trigger 均恢复启用
+PASS  迁移窗口结束后历史死绑定仍由运行时 guard fail-closed 拒绝
+{"level":30,"time":1791600054424,"pid":39428,"hostname":"localhost","reqId":"12fa845c-45f3-458c-a1d8-dab64455e2a3","req":{"method":"GET","url":"/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054426,"pid":39428,"hostname":"localhost","reqId":"12fa845c-45f3-458c-a1d8-dab64455e2a3","res":{"statusCode":401},"responseTime":2.030666999999994,"msg":"request completed"}
+PASS  GET /jobs 无鉴权→401
+{"level":30,"time":1791600054433,"pid":39428,"hostname":"localhost","reqId":"5f5b46af-6076-4794-84b3-4b59a21e39ad","req":{"method":"POST","url":"/jobs/JOB_REC/apply","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054434,"pid":39428,"hostname":"localhost","reqId":"5f5b46af-6076-4794-84b3-4b59a21e39ad","res":{"statusCode":401},"responseTime":0.8527920000001359,"msg":"request completed"}
+PASS  POST /jobs/:id/apply 无鉴权→401
+{"level":30,"time":1791600054435,"pid":39428,"hostname":"localhost","reqId":"36b0f732-ae66-4421-a6c5-f5168a4f325a","req":{"method":"GET","url":"/applications","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054435,"pid":39428,"hostname":"localhost","reqId":"36b0f732-ae66-4421-a6c5-f5168a4f325a","res":{"statusCode":401},"responseTime":0.20379199999979392,"msg":"request completed"}
+PASS  GET /applications 无鉴权→401
+{"level":30,"time":1791600054437,"pid":39428,"hostname":"localhost","reqId":"a51129c0-1b25-4f0c-9327-729f79ebc4c2","req":{"method":"POST","url":"/applications/APP_VICTIM/start","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054437,"pid":39428,"hostname":"localhost","reqId":"a51129c0-1b25-4f0c-9327-729f79ebc4c2","res":{"statusCode":401},"responseTime":0.4103330000002643,"msg":"request completed"}
+PASS  POST /applications/:id/start 无鉴权→401
+{"level":30,"time":1791600054438,"pid":39428,"hostname":"localhost","reqId":"bb527d0b-dfb8-4b86-b7f6-a65199e82ba5","req":{"method":"POST","url":"/applications/APP_VICTIM/decline","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054439,"pid":39428,"hostname":"localhost","reqId":"bb527d0b-dfb8-4b86-b7f6-a65199e82ba5","res":{"statusCode":401},"responseTime":0.4955830000003516,"msg":"request completed"}
+PASS  POST /applications/:id/decline 无鉴权→401
+{"level":30,"time":1791600054440,"pid":39428,"hostname":"localhost","reqId":"f9d4b5ec-a8fc-4064-84bb-8d8c6fcc66cb","req":{"method":"POST","url":"/applications/APP_VICTIM/finalize","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054440,"pid":39428,"hostname":"localhost","reqId":"f9d4b5ec-a8fc-4064-84bb-8d8c6fcc66cb","res":{"statusCode":401},"responseTime":0.2637079999999514,"msg":"request completed"}
+PASS  POST /applications/:id/finalize 无鉴权→401
+{"level":30,"time":1791600054441,"pid":39428,"hostname":"localhost","reqId":"0ab9d45e-da39-449a-8510-d02445e33f16","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054441,"pid":39428,"hostname":"localhost","reqId":"0ab9d45e-da39-449a-8510-d02445e33f16","res":{"statusCode":401},"responseTime":0.16300000000001091,"msg":"request completed"}
+PASS  GET /recruiter/jobs 无鉴权→401
+{"level":30,"time":1791600054442,"pid":39428,"hostname":"localhost","reqId":"50efb85d-adfe-4758-9aa4-02e5bd2c99af","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054442,"pid":39428,"hostname":"localhost","reqId":"50efb85d-adfe-4758-9aa4-02e5bd2c99af","res":{"statusCode":401},"responseTime":0.13933300000007875,"msg":"request completed"}
+PASS  POST /recruiter/jobs 无鉴权→401
+{"level":30,"time":1791600054443,"pid":39428,"hostname":"localhost","reqId":"cc523427-0c0b-4c25-a39e-76d97ab1154b","req":{"method":"GET","url":"/recruiter/talent","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054444,"pid":39428,"hostname":"localhost","reqId":"cc523427-0c0b-4c25-a39e-76d97ab1154b","res":{"statusCode":401},"responseTime":0.9235830000002352,"msg":"request completed"}
+PASS  GET /recruiter/talent 无鉴权→401
+{"level":30,"time":1791600054446,"pid":39428,"hostname":"localhost","reqId":"198b369f-7bc1-4bde-b3fd-cdf61009a765","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054446,"pid":39428,"hostname":"localhost","reqId":"198b369f-7bc1-4bde-b3fd-cdf61009a765","res":{"statusCode":401},"responseTime":0.26537499999994907,"msg":"request completed"}
+PASS  GET /recruiter/jobs/:id 无鉴权→401
+{"level":30,"time":1791600054447,"pid":39428,"hostname":"localhost","reqId":"ee8b0881-b2ea-444b-9f31-230ed37d1344","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC/candidates","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054447,"pid":39428,"hostname":"localhost","reqId":"ee8b0881-b2ea-444b-9f31-230ed37d1344","res":{"statusCode":401},"responseTime":0.10408400000005713,"msg":"request completed"}
+PASS  GET /recruiter/jobs/:id/candidates 无鉴权→401
+{"level":30,"time":1791600054448,"pid":39428,"hostname":"localhost","reqId":"a04666ba-beda-498a-ba66-62b973d72226","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054448,"pid":39428,"hostname":"localhost","reqId":"a04666ba-beda-498a-ba66-62b973d72226","res":{"statusCode":401},"responseTime":0.13570900000013353,"msg":"request completed"}
+PASS  POST /recruiter/jobs/:id/invite 无鉴权→401
+{"level":30,"time":1791600054448,"pid":39428,"hostname":"localhost","reqId":"76f93b94-154a-474e-9d49-41a31307e6d3","req":{"method":"GET","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054448,"pid":39428,"hostname":"localhost","reqId":"76f93b94-154a-474e-9d49-41a31307e6d3","res":{"statusCode":401},"responseTime":0.08070899999984249,"msg":"request completed"}
+PASS  GET /admin/users 无鉴权→401
+{"level":30,"time":1791600054448,"pid":39428,"hostname":"localhost","reqId":"9492e94c-d075-49bb-acb5-3129699a6232","req":{"method":"GET","url":"/admin/orders","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054449,"pid":39428,"hostname":"localhost","reqId":"9492e94c-d075-49bb-acb5-3129699a6232","res":{"statusCode":401},"responseTime":0.12387499999977081,"msg":"request completed"}
+PASS  GET /admin/orders 无鉴权→401
+{"level":30,"time":1791600054449,"pid":39428,"hostname":"localhost","reqId":"2925acd3-a8f9-46c9-a237-a7d43ba100c4","req":{"method":"GET","url":"/admin/audit","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054449,"pid":39428,"hostname":"localhost","reqId":"2925acd3-a8f9-46c9-a237-a7d43ba100c4","res":{"statusCode":401},"responseTime":0.10037499999998545,"msg":"request completed"}
+PASS  GET /admin/audit 无鉴权→401
+{"level":30,"time":1791600054450,"pid":39428,"hostname":"localhost","reqId":"4fdde2ca-0a36-4207-84f9-d80e323de1cf","req":{"method":"POST","url":"/admin/users/userA/disable","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054450,"pid":39428,"hostname":"localhost","reqId":"4fdde2ca-0a36-4207-84f9-d80e323de1cf","res":{"statusCode":401},"responseTime":0.12620800000013332,"msg":"request completed"}
+PASS  POST /admin/users/:id/disable 无鉴权→401
+{"level":30,"time":1791600054450,"pid":39428,"hostname":"localhost","reqId":"107417eb-e253-40e1-9f89-2cc9cfe387d4","req":{"method":"GET","url":"/roles","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054450,"pid":39428,"hostname":"localhost","reqId":"107417eb-e253-40e1-9f89-2cc9cfe387d4","res":{"statusCode":401},"responseTime":0.08829199999991033,"msg":"request completed"}
+PASS  GET /roles 无鉴权→401
+{"level":30,"time":1791600054451,"pid":39428,"hostname":"localhost","reqId":"8fa0d35a-b42a-413e-8fff-b2ad05c5aa5d","req":{"method":"POST","url":"/roles/match","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054451,"pid":39428,"hostname":"localhost","reqId":"8fa0d35a-b42a-413e-8fff-b2ad05c5aa5d","res":{"statusCode":401},"responseTime":0.11404199999969933,"msg":"request completed"}
+PASS  POST /roles/match 无鉴权→401
+{"level":30,"time":1791600054451,"pid":39428,"hostname":"localhost","reqId":"f5f33497-ae65-49ec-8c7f-b9e230b37baa","req":{"method":"GET","url":"/profile","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054451,"pid":39428,"hostname":"localhost","reqId":"f5f33497-ae65-49ec-8c7f-b9e230b37baa","res":{"statusCode":401},"responseTime":0.07462500000019645,"msg":"request completed"}
+PASS  GET /profile 无鉴权→401
+{"level":30,"time":1791600054451,"pid":39428,"hostname":"localhost","reqId":"9d9feaca-37ba-4155-b2c8-b301af6ec77e","req":{"method":"GET","url":"/profile/growth","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054451,"pid":39428,"hostname":"localhost","reqId":"9d9feaca-37ba-4155-b2c8-b301af6ec77e","res":{"statusCode":401},"responseTime":0.07825000000002547,"msg":"request completed"}
+PASS  GET /profile/growth 无鉴权→401
+{"level":30,"time":1791600054452,"pid":39428,"hostname":"localhost","reqId":"91904af8-7642-49f6-99bf-12820fc7d37c","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054452,"pid":39428,"hostname":"localhost","reqId":"91904af8-7642-49f6-99bf-12820fc7d37c","res":{"statusCode":401},"responseTime":0.20979200000010678,"msg":"request completed"}
+PASS  PATCH /profile/settings 无鉴权→401
+{"level":30,"time":1791600054453,"pid":39428,"hostname":"localhost","reqId":"09cfc815-4f60-4e6f-9f2d-1ddbfcbdc9d0","req":{"method":"POST","url":"/profile/change-password","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054453,"pid":39428,"hostname":"localhost","reqId":"09cfc815-4f60-4e6f-9f2d-1ddbfcbdc9d0","res":{"statusCode":401},"responseTime":0.12141599999995378,"msg":"request completed"}
+PASS  POST /profile/change-password 无鉴权→401
+{"level":30,"time":1791600054453,"pid":39428,"hostname":"localhost","reqId":"fa9659ab-de91-4cfb-9d45-3611595a29fc","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054454,"pid":39428,"hostname":"localhost","reqId":"fa9659ab-de91-4cfb-9d45-3611595a29fc","res":{"statusCode":401},"responseTime":0.22733300000027157,"msg":"request completed"}
+PASS  GET /recruiter/jobs 垃圾 Bearer→401
+{"level":30,"time":1791600054454,"pid":39428,"hostname":"localhost","reqId":"e6e370a6-0b74-48f5-8a97-55302dc6c341","req":{"method":"GET","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054454,"pid":39428,"hostname":"localhost","reqId":"e6e370a6-0b74-48f5-8a97-55302dc6c341","res":{"statusCode":401},"responseTime":0.1072079999999005,"msg":"request completed"}
+PASS  GET /admin/users 垃圾 Bearer→401
+{"level":30,"time":1791600054454,"pid":39428,"hostname":"localhost","reqId":"aed6b138-6d30-4358-bffb-ac7918bfb1c0","req":{"method":"GET","url":"/profile","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054455,"pid":39428,"hostname":"localhost","reqId":"aed6b138-6d30-4358-bffb-ac7918bfb1c0","res":{"statusCode":401},"responseTime":0.1075420000001941,"msg":"request completed"}
+PASS  GET /profile 错密钥签名 token→401
+{"level":30,"time":1791600054455,"pid":39428,"hostname":"localhost","reqId":"76f3ac46-7905-4d9e-8b04-a768b87878e2","req":{"method":"GET","url":"/profile","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054457,"pid":39428,"hostname":"localhost","reqId":"76f3ac46-7905-4d9e-8b04-a768b87878e2","res":{"statusCode":401},"responseTime":2.4767079999996895,"msg":"request completed"}
+PASS  GET /profile 幽灵账户(签名合法但账户不存在)→401
+{"level":30,"time":1791600054458,"pid":39428,"hostname":"localhost","reqId":"43ade7d4-77fc-41e8-be73-5098bf5978b4","req":{"method":"GET","url":"/profile","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054458,"pid":39428,"hostname":"localhost","reqId":"43ade7d4-77fc-41e8-be73-5098bf5978b4","res":{"statusCode":401},"responseTime":0.10325000000011642,"msg":"request completed"}
+PASS  GET /profile 保留系统主体 __system* 冒充→401
+{"level":30,"time":1791600054458,"pid":39428,"hostname":"localhost","reqId":"fa5c0a3c-7f05-4809-99a5-77cd3a9361f6","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054459,"pid":39428,"hostname":"localhost","reqId":"fa5c0a3c-7f05-4809-99a5-77cd3a9361f6","res":{"statusCode":401},"responseTime":0.18866700000035053,"msg":"request completed"}
+PASS  POST /recruiter/jobs 保留系统主体→401
+{"level":30,"time":1791600054459,"pid":39428,"hostname":"localhost","reqId":"bcec4995-8649-450c-b1f3-e62e86bab668","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054461,"pid":39428,"hostname":"localhost","reqId":"bcec4995-8649-450c-b1f3-e62e86bab668","res":{"statusCode":403},"responseTime":1.8962920000003578,"msg":"request completed"}
+PASS  candidate POST /recruiter/jobs→403
+{"level":30,"time":1791600054461,"pid":39428,"hostname":"localhost","reqId":"03381d31-3029-4557-accd-432d9ed303e9","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054463,"pid":39428,"hostname":"localhost","reqId":"03381d31-3029-4557-accd-432d9ed303e9","res":{"statusCode":403},"responseTime":1.3740830000001552,"msg":"request completed"}
+PASS  candidate GET /recruiter/jobs→403
+{"level":30,"time":1791600054463,"pid":39428,"hostname":"localhost","reqId":"3f68cfda-e136-47b2-9a60-0015b07ecb50","req":{"method":"GET","url":"/recruiter/talent","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054464,"pid":39428,"hostname":"localhost","reqId":"3f68cfda-e136-47b2-9a60-0015b07ecb50","res":{"statusCode":403},"responseTime":1.4487500000000182,"msg":"request completed"}
+PASS  candidate GET /recruiter/talent(枚举人才库)→403
+{"level":30,"time":1791600054465,"pid":39428,"hostname":"localhost","reqId":"4422daaa-c940-47af-8101-20a8de18fcd8","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054466,"pid":39428,"hostname":"localhost","reqId":"4422daaa-c940-47af-8101-20a8de18fcd8","res":{"statusCode":403},"responseTime":1.571957999999995,"msg":"request completed"}
+PASS  candidate GET /recruiter/jobs/:id→403
+{"level":30,"time":1791600054466,"pid":39428,"hostname":"localhost","reqId":"47361650-cb4c-4cfd-b97e-da343dc27043","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC/candidates","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054468,"pid":39428,"hostname":"localhost","reqId":"47361650-cb4c-4cfd-b97e-da343dc27043","res":{"statusCode":403},"responseTime":1.6148330000000897,"msg":"request completed"}
+PASS  candidate GET /recruiter/jobs/:id/candidates→403
+{"level":30,"time":1791600054468,"pid":39428,"hostname":"localhost","reqId":"0d3f2bbc-f496-4e9b-9899-89198407c978","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054471,"pid":39428,"hostname":"localhost","reqId":"0d3f2bbc-f496-4e9b-9899-89198407c978","res":{"statusCode":403},"responseTime":2.4482920000000377,"msg":"request completed"}
+PASS  candidate POST /recruiter/jobs/:id/invite(借邀请枚举用户)→403
+{"level":30,"time":1791600054471,"pid":39428,"hostname":"localhost","reqId":"8092577f-3e9e-42cb-b31f-e3559c6d76eb","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054473,"pid":39428,"hostname":"localhost","reqId":"8092577f-3e9e-42cb-b31f-e3559c6d76eb","res":{"statusCode":403},"responseTime":1.6939159999997173,"msg":"request completed"}
+PASS  candidate 越权 /recruiter 错误体标 recruiter_required
+{"level":30,"time":1791600054474,"pid":39428,"hostname":"localhost","reqId":"e8f26619-3683-4ec7-aff1-a014102d8c81","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054475,"pid":39428,"hostname":"localhost","reqId":"e8f26619-3683-4ec7-aff1-a014102d8c81","res":{"statusCode":403},"responseTime":1.6329169999999067,"msg":"request completed"}
+PASS  adminU(role=candidate) POST /recruiter/jobs→403
+{"level":30,"time":1791600054476,"pid":39428,"hostname":"localhost","reqId":"b54160fb-079f-4dc5-a444-c00c4fd04f57","req":{"method":"GET","url":"/recruiter/talent","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054477,"pid":39428,"hostname":"localhost","reqId":"b54160fb-079f-4dc5-a444-c00c4fd04f57","res":{"statusCode":403},"responseTime":1.6712499999998727,"msg":"request completed"}
+PASS  adminU GET /recruiter/talent→403
+{"level":30,"time":1791600054478,"pid":39428,"hostname":"localhost","reqId":"d87d4d22-7192-4271-b221-95de2bdb2445","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054479,"pid":39428,"hostname":"localhost","reqId":"d87d4d22-7192-4271-b221-95de2bdb2445","res":{"statusCode":403},"responseTime":1.669499999999971,"msg":"request completed"}
+PASS  victimU(candidate) GET /recruiter/jobs→403
+{"level":30,"time":1791600054480,"pid":39428,"hostname":"localhost","reqId":"f03f85c0-b856-49f4-85d1-510137961d40","req":{"method":"GET","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054481,"pid":39428,"hostname":"localhost","reqId":"f03f85c0-b856-49f4-85d1-510137961d40","res":{"statusCode":403},"responseTime":1.7260000000001128,"msg":"request completed"}
+PASS  candidate GET /admin/users→403
+{"level":30,"time":1791600054482,"pid":39428,"hostname":"localhost","reqId":"5194d0f8-9077-48d4-93ea-fbd37d59df57","req":{"method":"GET","url":"/admin/orders","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054484,"pid":39428,"hostname":"localhost","reqId":"5194d0f8-9077-48d4-93ea-fbd37d59df57","res":{"statusCode":403},"responseTime":1.7160420000000158,"msg":"request completed"}
+PASS  candidate GET /admin/orders→403
+{"level":30,"time":1791600054484,"pid":39428,"hostname":"localhost","reqId":"b5077f51-ea2c-4d93-95ce-2ee99351bc6b","req":{"method":"GET","url":"/admin/stats","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054486,"pid":39428,"hostname":"localhost","reqId":"b5077f51-ea2c-4d93-95ce-2ee99351bc6b","res":{"statusCode":403},"responseTime":2.1162500000000364,"msg":"request completed"}
+PASS  candidate GET /admin/stats→403
+{"level":30,"time":1791600054486,"pid":39428,"hostname":"localhost","reqId":"2b37c1ab-83a9-4a8c-9026-429558c6a32a","req":{"method":"GET","url":"/admin/audit","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054489,"pid":39428,"hostname":"localhost","reqId":"2b37c1ab-83a9-4a8c-9026-429558c6a32a","res":{"statusCode":403},"responseTime":2.35287500000004,"msg":"request completed"}
+PASS  candidate GET /admin/audit→403
+{"level":30,"time":1791600054489,"pid":39428,"hostname":"localhost","reqId":"c335ba5d-afde-400a-9776-05972bdc7507","req":{"method":"GET","url":"/admin/question-feedback","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054492,"pid":39428,"hostname":"localhost","reqId":"c335ba5d-afde-400a-9776-05972bdc7507","res":{"statusCode":403},"responseTime":2.2998750000001564,"msg":"request completed"}
+PASS  candidate GET /admin/question-feedback→403
+{"level":30,"time":1791600054492,"pid":39428,"hostname":"localhost","reqId":"d640835e-393a-4244-bb1b-d1d631958eff","req":{"method":"POST","url":"/admin/users/userB/disable","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054495,"pid":39428,"hostname":"localhost","reqId":"d640835e-393a-4244-bb1b-d1d631958eff","res":{"statusCode":403},"responseTime":2.481249999999818,"msg":"request completed"}
+PASS  candidate POST /admin/users/:id/disable(越权停用他人)→403
+{"level":30,"time":1791600054495,"pid":39428,"hostname":"localhost","reqId":"98e282d0-6c67-4ae7-b624-8b13a4ebbb4d","req":{"method":"GET","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054496,"pid":39428,"hostname":"localhost","reqId":"98e282d0-6c67-4ae7-b624-8b13a4ebbb4d","res":{"statusCode":403},"responseTime":1.46420900000021,"msg":"request completed"}
+PASS  非 admin 越权 /admin 错误体标 admin_required
+{"level":30,"time":1791600054497,"pid":39428,"hostname":"localhost","reqId":"dcd5f14a-e502-4fd0-b63d-e0db1b22dc68","req":{"method":"GET","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054498,"pid":39428,"hostname":"localhost","reqId":"dcd5f14a-e502-4fd0-b63d-e0db1b22dc68","res":{"statusCode":403},"responseTime":1.1669999999999163,"msg":"request completed"}
+PASS  recruiter GET /admin/users→403
+{"level":30,"time":1791600054498,"pid":39428,"hostname":"localhost","reqId":"728a49f6-9cee-4ae0-b353-e4f723b3762f","req":{"method":"POST","url":"/admin/users/userA/disable","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054500,"pid":39428,"hostname":"localhost","reqId":"728a49f6-9cee-4ae0-b353-e4f723b3762f","res":{"statusCode":403},"responseTime":1.7657500000000255,"msg":"request completed"}
+PASS  recruiter POST /admin/users/:id/disable→403
+{"level":30,"time":1791600054501,"pid":39428,"hostname":"localhost","reqId":"38f1bf26-827c-44d3-9c4d-72ffcc2bc210","req":{"method":"POST","url":"/admin/users/ghost_nonexistent/disable","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054505,"pid":39428,"hostname":"localhost","reqId":"38f1bf26-827c-44d3-9c4d-72ffcc2bc210","res":{"statusCode":404},"responseTime":4.490208999999595,"msg":"request completed"}
+PASS  admin disable 不存在用户→404
+{"level":30,"time":1791600054505,"pid":39428,"hostname":"localhost","reqId":"6068e00f-7029-4761-a85d-94407c132e94","req":{"method":"GET","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054509,"pid":39428,"hostname":"localhost","reqId":"6068e00f-7029-4761-a85d-94407c132e94","res":{"statusCode":200},"responseTime":3.8244999999997162,"msg":"request completed"}
+PASS  admin /users 不泄漏 password_hash/pwd_epoch/preferences
+{"level":30,"time":1791600054510,"pid":39428,"hostname":"localhost","reqId":"a2e799ad-7fbf-4e95-abaf-7b9c4a68f02b","req":{"method":"GET","url":"/admin/orders","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054512,"pid":39428,"hostname":"localhost","reqId":"a2e799ad-7fbf-4e95-abaf-7b9c4a68f02b","res":{"statusCode":200},"responseTime":2.5974999999998545,"msg":"request completed"}
+PASS  admin /orders 不泄漏 password/secret/token/hash 字段
+{"level":30,"time":1791600054513,"pid":39428,"hostname":"localhost","reqId":"688b2e24-a8c6-4e01-9efc-ae3cd9514f1f","req":{"method":"POST","url":"/admin/orders","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054513,"pid":39428,"hostname":"localhost","reqId":"688b2e24-a8c6-4e01-9efc-ae3cd9514f1f","res":{"statusCode":404},"responseTime":0.19345799999973678,"msg":"request completed"}
+PASS  admin 无 POST /admin/orders 写口→404
+{"level":30,"time":1791600054513,"pid":39428,"hostname":"localhost","reqId":"d1c5ce80-b334-46bc-b7a8-5b62302518e0","req":{"method":"POST","url":"/admin/users","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054514,"pid":39428,"hostname":"localhost","reqId":"d1c5ce80-b334-46bc-b7a8-5b62302518e0","res":{"statusCode":404},"responseTime":0.08929100000023027,"msg":"request completed"}
+PASS  admin 无 POST /admin/users(建用户)写口→404
+{"level":30,"time":1791600054514,"pid":39428,"hostname":"localhost","reqId":"4ec77c0e-0460-42ab-8c7b-acb2d0f76626","req":{"method":"POST","url":"/admin/users/userA/promote","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054514,"pid":39428,"hostname":"localhost","reqId":"4ec77c0e-0460-42ab-8c7b-acb2d0f76626","res":{"statusCode":404},"responseTime":0.08062500000005457,"msg":"request completed"}
+PASS  admin 无 POST /admin/users/:id/promote(提权)写口→404
+{"level":30,"time":1791600054514,"pid":39428,"hostname":"localhost","reqId":"337e3512-0d5f-41c2-affb-83b79bc7e21e","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054517,"pid":39428,"hostname":"localhost","reqId":"337e3512-0d5f-41c2-affb-83b79bc7e21e","res":{"statusCode":404},"responseTime":2.637959000000137,"msg":"request completed"}
+PASS  recU2 读 recU 的岗位→404 not_found_or_forbidden
+{"level":30,"time":1791600054517,"pid":39428,"hostname":"localhost","reqId":"ccee200c-e9d5-44fb-a4f0-340aca9bf194","req":{"method":"GET","url":"/recruiter/jobs/JOB_CLOSED","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054521,"pid":39428,"hostname":"localhost","reqId":"ccee200c-e9d5-44fb-a4f0-340aca9bf194","res":{"statusCode":404},"responseTime":3.8937089999999444,"msg":"request completed"}
+PASS  recU2 读 recU 的已关岗→404
+{"level":30,"time":1791600054522,"pid":39428,"hostname":"localhost","reqId":"f6f1f360-273c-4a21-9cb2-85777fc75a8b","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC/candidates","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054526,"pid":39428,"hostname":"localhost","reqId":"f6f1f360-273c-4a21-9cb2-85777fc75a8b","res":{"statusCode":200},"responseTime":3.851375000000189,"msg":"request completed"}
+PASS  recU2 查 recU 岗位候选人→空(RLS 隔离,不见 victimU)
+{"level":30,"time":1791600054526,"pid":39428,"hostname":"localhost","reqId":"859e4bee-d9ae-4a17-b8b0-84125bd5d9ed","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054533,"pid":39428,"hostname":"localhost","reqId":"859e4bee-d9ae-4a17-b8b0-84125bd5d9ed","res":{"statusCode":404},"responseTime":6.538708999999926,"msg":"request completed"}
+PASS  recU2 邀请候选人到 recU 岗位→404 job_not_found_or_forbidden
+{"level":30,"time":1791600054534,"pid":39428,"hostname":"localhost","reqId":"492fabb7-fb72-4c07-b619-a8fd55397977","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054539,"pid":39428,"hostname":"localhost","reqId":"492fabb7-fb72-4c07-b619-a8fd55397977","res":{"statusCode":200},"responseTime":5.870417000000089,"msg":"request completed"}
+PASS  recU2 /recruiter/jobs 列表不含 recU 的 JOB_REC
+{"level":30,"time":1791600054540,"pid":39428,"hostname":"localhost","reqId":"95e84d33-73ed-4ae4-89a6-6c6ab9154083","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054545,"pid":39428,"hostname":"localhost","reqId":"95e84d33-73ed-4ae4-89a6-6c6ab9154083","res":{"statusCode":200},"responseTime":4.803625000000011,"msg":"request completed"}
+PASS  recU /recruiter/jobs 列表不含 recU2 的 JOB_REC2
+{"level":30,"time":1791600054546,"pid":39428,"hostname":"localhost","reqId":"60ce81ee-4b90-4dea-b258-8b7bea7bbbe5","req":{"method":"GET","url":"/recruiter/talent","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054556,"pid":39428,"hostname":"localhost","reqId":"60ce81ee-4b90-4dea-b258-8b7bea7bbbe5","res":{"statusCode":200},"responseTime":9.278249999999844,"msg":"request completed"}
+PASS  recU2 人才库不含 victimU(跨租户隔离)
+{"level":30,"time":1791600054556,"pid":39428,"hostname":"localhost","reqId":"0c1ed1d9-918c-4dcc-b5c2-96ad6e4b1fae","req":{"method":"POST","url":"/applications/APP_VICTIM/start","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054559,"pid":39428,"hostname":"localhost","reqId":"0c1ed1d9-918c-4dcc-b5c2-96ad6e4b1fae","res":{"statusCode":200},"responseTime":2.7834160000002157,"msg":"request completed"}
+PASS  userB start victimU 的申请→noop(不推进)
+PASS  userB start 后 APP_VICTIM 仍 invited(DB 未越权修改)
+{"level":30,"time":1791600054561,"pid":39428,"hostname":"localhost","reqId":"ff06eed7-39ba-436d-833a-852ccbf0eecd","req":{"method":"POST","url":"/applications/APP_VICTIM/decline","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054562,"pid":39428,"hostname":"localhost","reqId":"ff06eed7-39ba-436d-833a-852ccbf0eecd","res":{"statusCode":200},"responseTime":1.7851250000003347,"msg":"request completed"}
+PASS  userB decline victimU 的邀请→noop
+PASS  userB decline 后 APP_VICTIM 仍 invited(未越权终结)
+{"level":30,"time":1791600054563,"pid":39428,"hostname":"localhost","reqId":"967886cd-28e4-4224-8e1f-517a6ccdb9f0","req":{"method":"POST","url":"/applications/APP_VICTIM/finalize","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054566,"pid":39428,"hostname":"localhost","reqId":"967886cd-28e4-4224-8e1f-517a6ccdb9f0","res":{"statusCode":409},"responseTime":2.135707999999795,"msg":"request completed"}
+PASS  userB finalize victimU 的申请→409 cannot_finalize
+PASS  userB finalize 后 APP_VICTIM.score 仍为空(未越权回填)
+{"level":30,"time":1791600054566,"pid":39428,"hostname":"localhost","reqId":"2d6ead81-8706-4784-9f76-a913a00f21f4","req":{"method":"GET","url":"/applications","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054568,"pid":39428,"hostname":"localhost","reqId":"2d6ead81-8706-4784-9f76-a913a00f21f4","res":{"statusCode":200},"responseTime":1.7973329999999805,"msg":"request completed"}
+PASS  userB /applications 不含 victimU 的 APP_VICTIM
+{"level":30,"time":1791600054568,"pid":39428,"hostname":"localhost","reqId":"fc338c05-6358-4e06-8388-7e3b517a74f5","req":{"method":"POST","url":"/applications/app_ghost/start","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054571,"pid":39428,"hostname":"localhost","reqId":"fc338c05-6358-4e06-8388-7e3b517a74f5","res":{"statusCode":200},"responseTime":2.9007910000000265,"msg":"request completed"}
+PASS  userA start 不存在申请→noop
+{"level":30,"time":1791600054572,"pid":39428,"hostname":"localhost","reqId":"192fbf15-a68d-46c2-9dcb-07dd8ed12f5c","req":{"method":"POST","url":"/applications/app_ghost/finalize","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054574,"pid":39428,"hostname":"localhost","reqId":"192fbf15-a68d-46c2-9dcb-07dd8ed12f5c","res":{"statusCode":409},"responseTime":2.1688340000000608,"msg":"request completed"}
+PASS  userA finalize 不存在申请→409
+{"level":30,"time":1791600054575,"pid":39428,"hostname":"localhost","reqId":"e9110caf-43c9-454f-a7e2-788404c7281a","req":{"method":"POST","url":"/jobs/ghost_job/apply","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054578,"pid":39428,"hostname":"localhost","reqId":"e9110caf-43c9-454f-a7e2-788404c7281a","res":{"statusCode":404},"responseTime":3.1975830000001224,"msg":"request completed"}
+PASS  apply 不存在岗位→404 job_not_found_or_closed
+{"level":30,"time":1791600054579,"pid":39428,"hostname":"localhost","reqId":"a7a6e6f6-2d0a-4999-904b-de1ff65a3853","req":{"method":"POST","url":"/jobs/JOB_CLOSED/apply","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054583,"pid":39428,"hostname":"localhost","reqId":"a7a6e6f6-2d0a-4999-904b-de1ff65a3853","res":{"statusCode":404},"responseTime":4.0362920000002305,"msg":"request completed"}
+PASS  apply 已关闭岗位→404(闭岗不可投)
+{"level":30,"time":1791600054583,"pid":39428,"hostname":"localhost","reqId":"b4038194-cf6e-4656-910b-37860233ec7e","req":{"method":"POST","url":"/applications/APP_VICTIM/finalize","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054586,"pid":39428,"hostname":"localhost","reqId":"b4038194-cf6e-4656-910b-37860233ec7e","res":{"statusCode":409},"responseTime":2.7258749999996326,"msg":"request completed"}
+PASS  finalize 空对象→409（无绑定不收口）
+{"level":30,"time":1791600054587,"pid":39428,"hostname":"localhost","reqId":"01b6822e-6dc1-42cb-9593-6a4753a53c96","req":{"method":"POST","url":"/applications/APP_VICTIM/finalize","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054588,"pid":39428,"hostname":"localhost","reqId":"01b6822e-6dc1-42cb-9593-6a4753a53c96","res":{"statusCode":400},"responseTime":1.094499999999698,"msg":"request completed"}
+PASS  finalize 注入 interviewId 空串→400
+{"level":30,"time":1791600054589,"pid":39428,"hostname":"localhost","reqId":"dd4ea36c-8fd8-4722-b3f2-505581ce4c86","req":{"method":"POST","url":"/applications/APP_VICTIM/finalize","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054589,"pid":39428,"hostname":"localhost","reqId":"dd4ea36c-8fd8-4722-b3f2-505581ce4c86","res":{"statusCode":400},"responseTime":0.2532499999997526,"msg":"request completed"}
+PASS  finalize 注入 interviewId 非字符串→400
+{"level":30,"time":1791600054590,"pid":39428,"hostname":"localhost","reqId":"3c32efdd-a791-4769-8006-5946958471a0","req":{"method":"POST","url":"/applications/APP_VICTIM/start","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054590,"pid":39428,"hostname":"localhost","reqId":"3c32efdd-a791-4769-8006-5946958471a0","res":{"statusCode":400},"responseTime":0.2550420000002305,"msg":"request completed"}
+PASS  start 缺 resumeId→400
+{"level":30,"time":1791600054592,"pid":39428,"hostname":"localhost","reqId":"66ef9cb7-8cc8-4134-8f73-77aa9f589f6e","req":{"method":"POST","url":"/applications/APP_VICTIM/start","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054592,"pid":39428,"hostname":"localhost","reqId":"66ef9cb7-8cc8-4134-8f73-77aa9f589f6e","res":{"statusCode":400},"responseTime":0.31004200000006676,"msg":"request completed"}
+PASS  start 非 UUID resumeId→400
+{"level":30,"time":1791600054593,"pid":39428,"hostname":"localhost","reqId":"6fa5bf5e-e759-4a92-9058-6b2673fcfceb","req":{"method":"POST","url":"/jobs/JOB_REC2/apply","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054597,"pid":39428,"hostname":"localhost","reqId":"6fa5bf5e-e759-4a92-9058-6b2673fcfceb","res":{"statusCode":200},"responseTime":4.496499999999742,"msg":"request completed"}
+{"level":30,"time":1791600054598,"pid":39428,"hostname":"localhost","reqId":"88332ad4-e6f5-48b3-9cc3-37b69be05b05","req":{"method":"POST","url":"/jobs/JOB_REC2/apply","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054601,"pid":39428,"hostname":"localhost","reqId":"88332ad4-e6f5-48b3-9cc3-37b69be05b05","res":{"statusCode":200},"responseTime":3.1507910000000265,"msg":"request completed"}
+PASS  重复 apply 同岗位:两次返回同一 applicationId(幂等)
+PASS  重复 apply 不产生第二行(dup 约束生效)
+{"level":30,"time":1791600054602,"pid":39428,"hostname":"localhost","reqId":"0684e99f-7c1b-4343-99b6-9ce5d7ed0f65","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054603,"pid":39428,"hostname":"localhost","reqId":"0684e99f-7c1b-4343-99b6-9ce5d7ed0f65","res":{"statusCode":400},"responseTime":1.6539999999999964,"msg":"request completed"}
+PASS  create job title 过短→400
+{"level":30,"time":1791600054604,"pid":39428,"hostname":"localhost","reqId":"e7a0ffe6-7f10-43dd-85c0-954120d4df2d","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054606,"pid":39428,"hostname":"localhost","reqId":"e7a0ffe6-7f10-43dd-85c0-954120d4df2d","res":{"statusCode":400},"responseTime":1.77020900000025,"msg":"request completed"}
+PASS  create job 缺 title→400
+{"level":30,"time":1791600054607,"pid":39428,"hostname":"localhost","reqId":"3f04f279-ddab-4a86-a65c-fa9c7f4baa64","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054609,"pid":39428,"hostname":"localhost","reqId":"3f04f279-ddab-4a86-a65c-fa9c7f4baa64","res":{"statusCode":400},"responseTime":2.026375000000371,"msg":"request completed"}
+PASS  create job competencies 超 30 条→400
+{"level":30,"time":1791600054609,"pid":39428,"hostname":"localhost","reqId":"a254342a-a878-42fd-a416-d146a28aa6d9","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054611,"pid":39428,"hostname":"localhost","reqId":"a254342a-a878-42fd-a416-d146a28aa6d9","res":{"statusCode":400},"responseTime":1.7839169999997466,"msg":"request completed"}
+PASS  invite 既无 id 也无 email→400
+{"level":30,"time":1791600054611,"pid":39428,"hostname":"localhost","reqId":"a62cde93-dec5-4f9f-a395-bda4eabf5a65","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054614,"pid":39428,"hostname":"localhost","reqId":"a62cde93-dec5-4f9f-a395-bda4eabf5a65","res":{"statusCode":400},"responseTime":2.658042000000023,"msg":"request completed"}
+PASS  invite email 非法格式→400
+{"level":30,"time":1791600054614,"pid":39428,"hostname":"localhost","reqId":"bf847622-7f10-433a-a2ac-658c82ba3c55","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054620,"pid":39428,"hostname":"localhost","reqId":"bf847622-7f10-433a-a2ac-658c82ba3c55","res":{"statusCode":200},"responseTime":5.668874999999844,"msg":"request completed"}
+PASS  invite 不存在候选人→恒定壳 200 received(零存在性信号)
+{"level":30,"time":1791600054621,"pid":39428,"hostname":"localhost","reqId":"cd78ec65-ed79-499b-bd7d-2f02913685b1","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054628,"pid":39428,"hostname":"localhost","reqId":"cd78ec65-ed79-499b-bd7d-2f02913685b1","res":{"statusCode":200},"responseTime":6.857958000000053,"msg":"request completed"}
+PASS  invite 招聘方 email→同壳零信号(不暴露 B 端账户)
+{"level":30,"time":1791600054629,"pid":39428,"hostname":"localhost","reqId":"64f8c6c1-9dd7-4198-8267-d5c98b8850ee","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054634,"pid":39428,"hostname":"localhost","reqId":"64f8c6c1-9dd7-4198-8267-d5c98b8850ee","res":{"statusCode":404},"responseTime":4.783582999999908,"msg":"request completed"}
+PASS  recU 邀请到 recU2 岗位→404 job_not_found_or_forbidden
+{"level":30,"time":1791600054634,"pid":39428,"hostname":"localhost","reqId":"386d83d4-5b2d-456a-8e37-d3b4a86ab5b9","req":{"method":"POST","url":"/roles/match","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054635,"pid":39428,"hostname":"localhost","reqId":"386d83d4-5b2d-456a-8e37-d3b4a86ab5b9","res":{"statusCode":400},"responseTime":0.24345900000025722,"msg":"request completed"}
+PASS  roles/match 缺 resumeId→400 missing_resume_id
+{"level":30,"time":1791600054635,"pid":39428,"hostname":"localhost","reqId":"e07c482f-5e6e-4176-8110-d7fac112b420","req":{"method":"POST","url":"/roles/match","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054635,"pid":39428,"hostname":"localhost","reqId":"e07c482f-5e6e-4176-8110-d7fac112b420","res":{"statusCode":404},"responseTime":0.25970799999959127,"msg":"request completed"}
+PASS  roles/match 他人/不存在简历→404 not_found_or_forbidden
+{"level":30,"time":1791600054636,"pid":39428,"hostname":"localhost","reqId":"f2de23e2-294a-4de0-ac4e-3abf7361bff9","req":{"method":"POST","url":"/roles","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054636,"pid":39428,"hostname":"localhost","reqId":"f2de23e2-294a-4de0-ac4e-3abf7361bff9","res":{"statusCode":404},"responseTime":0.11799999999993815,"msg":"request completed"}
+PASS  无 POST /roles(自建角色)写口→404
+{"level":30,"time":1791600054636,"pid":39428,"hostname":"localhost","reqId":"1ad7f586-6bc3-4830-80bb-7f7cfde1540b","req":{"method":"PATCH","url":"/roles","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054637,"pid":39428,"hostname":"localhost","reqId":"1ad7f586-6bc3-4830-80bb-7f7cfde1540b","res":{"statusCode":404},"responseTime":0.38654200000019046,"msg":"request completed"}
+PASS  无 PATCH /roles(自升角色)写口→404
+{"level":30,"time":1791600054638,"pid":39428,"hostname":"localhost","reqId":"843c9c97-b2cc-47da-8642-29a57a7fbff7","req":{"method":"POST","url":"/roles/promote","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054638,"pid":39428,"hostname":"localhost","reqId":"843c9c97-b2cc-47da-8642-29a57a7fbff7","res":{"statusCode":404},"responseTime":0.10183400000005349,"msg":"request completed"}
+PASS  无 POST /roles/promote(提权)写口→404
+{"level":30,"time":1791600054638,"pid":39428,"hostname":"localhost","reqId":"347a4429-e503-4ad3-8e40-9d215435e8da","req":{"method":"GET","url":"/profile/userB","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+PASS  GET /profile/userB(跨用户读)→无该路由 404
+{"level":30,"time":1791600054638,"pid":39428,"hostname":"localhost","reqId":"347a4429-e503-4ad3-8e40-9d215435e8da","res":{"statusCode":404},"responseTime":0.07083300000022064,"msg":"request completed"}
+{"level":30,"time":1791600054638,"pid":39428,"hostname":"localhost","reqId":"d3391fdb-b349-4b16-8f33-d93c0e853f26","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054639,"pid":39428,"hostname":"localhost","reqId":"d3391fdb-b349-4b16-8f33-d93c0e853f26","res":{"statusCode":400},"responseTime":0.3915839999999662,"msg":"request completed"}
+PASS  settings 未知顶层 key→400
+{"level":30,"time":1791600054639,"pid":39428,"hostname":"localhost","reqId":"fe34ff6d-3e8b-4e73-9f56-0af648e930b4","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054639,"pid":39428,"hostname":"localhost","reqId":"fe34ff6d-3e8b-4e73-9f56-0af648e930b4","res":{"statusCode":400},"responseTime":0.20629199999984849,"msg":"request completed"}
+PASS  settings preferences 内未知 key→400
+{"level":30,"time":1791600054641,"pid":39428,"hostname":"localhost","reqId":"1a6afcd3-62e5-492d-9a41-efb17f161aa5","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054641,"pid":39428,"hostname":"localhost","reqId":"1a6afcd3-62e5-492d-9a41-efb17f161aa5","res":{"statusCode":400},"responseTime":0.2954170000002705,"msg":"request completed"}
+PASS  settings notifications 未知子 key→400
+{"level":30,"time":1791600054641,"pid":39428,"hostname":"localhost","reqId":"f597dc2f-5aba-4506-865c-2a97ad0bccd5","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054642,"pid":39428,"hostname":"localhost","reqId":"f597dc2f-5aba-4506-865c-2a97ad0bccd5","res":{"statusCode":400},"responseTime":0.1833329999999478,"msg":"request completed"}
+PASS  settings theme 非法枚举→400
+{"level":30,"time":1791600054642,"pid":39428,"hostname":"localhost","reqId":"648a49f3-3d68-4ef5-9540-00060ac72520","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054642,"pid":39428,"hostname":"localhost","reqId":"648a49f3-3d68-4ef5-9540-00060ac72520","res":{"statusCode":400},"responseTime":0.1529169999998885,"msg":"request completed"}
+PASS  settings locale 非法枚举→400
+{"level":30,"time":1791600054642,"pid":39428,"hostname":"localhost","reqId":"440d31e6-3f10-413b-bfe1-166637b9dc24","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054643,"pid":39428,"hostname":"localhost","reqId":"440d31e6-3f10-413b-bfe1-166637b9dc24","res":{"statusCode":400},"responseTime":0.11883299999999508,"msg":"request completed"}
+PASS  settings preferences 非对象→400
+{"level":30,"time":1791600054643,"pid":39428,"hostname":"localhost","reqId":"30e98aa1-f346-4214-9d14-60179c0b3e5f","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054643,"pid":39428,"hostname":"localhost","reqId":"30e98aa1-f346-4214-9d14-60179c0b3e5f","res":{"statusCode":400},"responseTime":0.23937500000010914,"msg":"request completed"}
+PASS  settings 缺 preferences→400
+{"level":30,"time":1791600054644,"pid":39428,"hostname":"localhost","reqId":"6a9a9859-db20-4518-ae2a-4983d759335a","req":{"method":"PATCH","url":"/profile/settings","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55141},"msg":"incoming request"}
+{"level":30,"time":1791600054644,"pid":39428,"hostname":"localhost","reqId":"6a9a9859-db20-4518-ae2a-4983d759335a","res":{"statusCode":400},"responseTime":0.4618340000001808,"msg":"request completed"}
+PASS  settings 畸形 JSON 体→400
+{"level":30,"time":1791600054646,"pid":39428,"hostname":"localhost","reqId":"db9f3bd0-933a-45cf-bd61-8c95cbd42696","req":{"method":"POST","url":"/profile/change-password","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054646,"pid":39428,"hostname":"localhost","reqId":"db9f3bd0-933a-45cf-bd61-8c95cbd42696","res":{"statusCode":400},"responseTime":0.15791699999999764,"msg":"request completed"}
+PASS  change-password 新密码 <8→400 invalid_password
+{"level":30,"time":1791600054647,"pid":39428,"hostname":"localhost","reqId":"7291e5cd-5c38-4e99-ab2f-6815c12950b5","req":{"method":"POST","url":"/profile/change-password","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054647,"pid":39428,"hostname":"localhost","reqId":"7291e5cd-5c38-4e99-ab2f-6815c12950b5","res":{"statusCode":400},"responseTime":0.12820899999996982,"msg":"request completed"}
+PASS  change-password 缺字段→400
+{"level":30,"time":1791600054647,"pid":39428,"hostname":"localhost","reqId":"9efca20a-b16b-4e5a-91c7-41290b52fb31","req":{"method":"POST","url":"/profile/change-password","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054770,"pid":39428,"hostname":"localhost","reqId":"9efca20a-b16b-4e5a-91c7-41290b52fb31","res":{"statusCode":401},"responseTime":122.8916250000002,"msg":"request completed"}
+PASS  change-password 旧密码错误→401 wrong_password
+{"level":30,"time":1791600054771,"pid":39428,"hostname":"localhost","reqId":"9208715f-2080-4d91-8cf6-858617acd689","req":{"method":"GET","url":"/profile","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054773,"pid":39428,"hostname":"localhost","reqId":"9208715f-2080-4d91-8cf6-858617acd689","res":{"statusCode":200},"responseTime":2.305833999999777,"msg":"request completed"}
+PASS  /profile 响应不含 password_hash/pwd_epoch
+PASS  RLS: recU2 看不到 recU 租户的 APP_VICTIM
+PASS  RLS: userB 看不到 victimU 的 APP_VICTIM
+PASS  RLS: recU2 读不到 recU 的已关闭岗位 JOB_CLOSED
+PASS  RLS: userB 无法冒充 victimU 插入申请(WITH CHECK 拦截)
+PASS  RLS: recU2 无法为 recU 的岗位建邀请申请(EXISTS 归属自校验)
+PASS  DB guard: candidate 不能直接插入 completed/100 的伪造候选结果
+PASS  DB guard: 候选人不能改写岗位标题快照
+PASS  伪造完成行对受害招聘方可见数=0
+PASS  DB guard: 终态前后均不能篡改 job/recruiter 租户归属
+PASS  RLS: candidate userA 改不动招聘方岗位(0 行受影响)
+{"level":30,"time":1791600054793,"pid":39428,"hostname":"localhost","reqId":"ebea0f28-d835-44a2-be1b-9f2e95773d49","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054794,"pid":39428,"hostname":"localhost","reqId":"ebea0f28-d835-44a2-be1b-9f2e95773d49","res":{"statusCode":403},"responseTime":1.6133750000003602,"msg":"request completed"}
+PASS  pending GET /recruiter/jobs→403 recruiter_pending_review
+{"level":30,"time":1791600054795,"pid":39428,"hostname":"localhost","reqId":"33e410de-600b-45dd-bd51-8ee6829ae8dd","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054797,"pid":39428,"hostname":"localhost","reqId":"33e410de-600b-45dd-bd51-8ee6829ae8dd","res":{"statusCode":403},"responseTime":1.6820000000002437,"msg":"request completed"}
+PASS  pending POST /recruiter/jobs→403 recruiter_pending_review
+{"level":30,"time":1791600054797,"pid":39428,"hostname":"localhost","reqId":"4f149260-c765-45c7-96eb-da264cdbc5d2","req":{"method":"GET","url":"/recruiter/talent","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054799,"pid":39428,"hostname":"localhost","reqId":"4f149260-c765-45c7-96eb-da264cdbc5d2","res":{"statusCode":403},"responseTime":1.5941250000000764,"msg":"request completed"}
+PASS  pending GET /recruiter/talent→403 recruiter_pending_review
+{"level":30,"time":1791600054799,"pid":39428,"hostname":"localhost","reqId":"1978e7e5-411a-488b-87f4-39bc54fb4fa8","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054800,"pid":39428,"hostname":"localhost","reqId":"1978e7e5-411a-488b-87f4-39bc54fb4fa8","res":{"statusCode":403},"responseTime":1.5147499999998217,"msg":"request completed"}
+PASS  pending GET /recruiter/jobs/:id→403 recruiter_pending_review
+{"level":30,"time":1791600054801,"pid":39428,"hostname":"localhost","reqId":"5c07c9b3-bf74-4a08-800d-9a2fe66e3ab0","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC/candidates","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054802,"pid":39428,"hostname":"localhost","reqId":"5c07c9b3-bf74-4a08-800d-9a2fe66e3ab0","res":{"statusCode":403},"responseTime":1.4912089999997988,"msg":"request completed"}
+PASS  pending GET /recruiter/jobs/:id/candidates→403 recruiter_pending_review
+{"level":30,"time":1791600054803,"pid":39428,"hostname":"localhost","reqId":"25716185-cdec-45e4-9915-3cccba6d97e2","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054805,"pid":39428,"hostname":"localhost","reqId":"25716185-cdec-45e4-9915-3cccba6d97e2","res":{"statusCode":403},"responseTime":1.9897080000000642,"msg":"request completed"}
+PASS  pending POST invite→403 recruiter_pending_review
+{"level":30,"time":1791600054805,"pid":39428,"hostname":"localhost","reqId":"9c12beae-e16e-4198-952a-934950f413e9","req":{"method":"GET","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054807,"pid":39428,"hostname":"localhost","reqId":"9c12beae-e16e-4198-952a-934950f413e9","res":{"statusCode":403},"responseTime":1.6130419999999503,"msg":"request completed"}
+PASS  rejected GET /recruiter/jobs→403 recruiter_rejected
+{"level":30,"time":1791600054807,"pid":39428,"hostname":"localhost","reqId":"e48942f1-962b-4f98-a1bb-124068abd929","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054809,"pid":39428,"hostname":"localhost","reqId":"e48942f1-962b-4f98-a1bb-124068abd929","res":{"statusCode":403},"responseTime":1.674083999999766,"msg":"request completed"}
+PASS  rejected POST /recruiter/jobs→403 recruiter_rejected
+{"level":30,"time":1791600054809,"pid":39428,"hostname":"localhost","reqId":"58a870c6-1460-454d-a597-c1fd2d417643","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054810,"pid":39428,"hostname":"localhost","reqId":"58a870c6-1460-454d-a597-c1fd2d417643","res":{"statusCode":403},"responseTime":1.472291000000041,"msg":"request completed"}
+PASS  三分码互异:pending_review/rejected/required 实测三码各不相同
+PASS  纵深: DB 直调 gateway_active_candidate 对 pending recruiter 拒(gateway_recruiter_required)
+PASS  纵深: DB 直调对 rejected recruiter 同拒(fail-closed 只增不弱)
+PASS  回归: approved recruiter DB 直调仍解析到活跃候选人(零弱化)
+{"level":30,"time":1791600054815,"pid":39428,"hostname":"localhost","reqId":"f6cc2f91-80be-4bf9-96ca-bcfebd7f87e9","req":{"method":"GET","url":"/admin/recruiter-approvals","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054819,"pid":39428,"hostname":"localhost","reqId":"f6cc2f91-80be-4bf9-96ca-bcfebd7f87e9","res":{"statusCode":200},"responseTime":4.103500000000167,"msg":"request completed"}
+PASS  admin 审批队列→200 且含 pendU(pending 先审)
+{"level":30,"time":1791600054820,"pid":39428,"hostname":"localhost","reqId":"247839ed-7f89-45fa-b8e4-37d608c9943d","req":{"method":"GET","url":"/admin/recruiter-approvals","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054823,"pid":39428,"hostname":"localhost","reqId":"247839ed-7f89-45fa-b8e4-37d608c9943d","res":{"statusCode":403},"responseTime":2.8687920000002123,"msg":"request completed"}
+PASS  非 admin GET 审批队列→403 admin_required
+{"level":30,"time":1791600054823,"pid":39428,"hostname":"localhost","reqId":"c9b62869-36c9-47f9-9ff7-c479b2c5ff32","req":{"method":"POST","url":"/admin/recruiter-approvals/pendU/decision","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054825,"pid":39428,"hostname":"localhost","reqId":"c9b62869-36c9-47f9-9ff7-c479b2c5ff32","res":{"statusCode":403},"responseTime":1.9827909999999065,"msg":"request completed"}
+PASS  非 admin POST decision→403(HTTP AdminGuard 层)
+PASS  非 admin decision DB 双层拒(函数内复核 gateway_admin_required)
+{"level":30,"time":1791600054828,"pid":39428,"hostname":"localhost","reqId":"9e749054-9d9a-47df-b1f4-d2eedafeb1b4","req":{"method":"POST","url":"/admin/recruiter-approvals/pendU/decision","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054829,"pid":39428,"hostname":"localhost","reqId":"9e749054-9d9a-47df-b1f4-d2eedafeb1b4","res":{"statusCode":400},"responseTime":1.8883339999997588,"msg":"request completed"}
+PASS  decision 非法枚举值→400(zod 契约)
+PASS  DB 直调 decision 非法值→invalid_decision(函数自守·绕 HTTP 也拒)
+{"level":30,"time":1791600054833,"pid":39428,"hostname":"localhost","reqId":"cea17c22-27f4-439b-b4ee-22b76faa0d3f","req":{"method":"POST","url":"/admin/recruiter-approvals/pendU/decision","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054839,"pid":39428,"hostname":"localhost","reqId":"cea17c22-27f4-439b-b4ee-22b76faa0d3f","res":{"statusCode":200},"responseTime":5.301750000000084,"msg":"request completed"}
+PASS  admin approve pendU→200 decided
+[b110] admin_audit approve_recruiter row: {"actor":"adminU","action":"approve_recruiter","target":"pendU"}
+PASS  approve_recruiter 留痕:actor/action/target 断言(照 0041:107-120 样板)
+{"level":30,"time":1791600054840,"pid":39428,"hostname":"localhost","reqId":"76facedb-b541-410a-b4cc-4b6db0b171a0","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054845,"pid":39428,"hostname":"localhost","reqId":"76facedb-b541-410a-b4cc-4b6db0b171a0","res":{"statusCode":200},"responseTime":5.796917000000121,"msg":"request completed"}
+PASS  approve 后同账户 create→200(解锁)
+{"level":30,"time":1791600054846,"pid":39428,"hostname":"localhost","reqId":"61124e11-aeaf-44a4-8b30-9803ca2772cd","req":{"method":"POST","url":"/recruiter/jobs/job_01a123af523a774a9416f7184c91eb22/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054853,"pid":39428,"hostname":"localhost","reqId":"61124e11-aeaf-44a4-8b30-9803ca2772cd","res":{"statusCode":200},"responseTime":6.936167000000296,"msg":"request completed"}
+PASS  approve 后同账户 invite→200 恒定壳
+{"level":30,"time":1791600054853,"pid":39428,"hostname":"localhost","reqId":"1d342a68-da5c-4735-8331-a4c49a00ce80","req":{"method":"POST","url":"/admin/recruiter-approvals/pendU/decision","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054857,"pid":39428,"hostname":"localhost","reqId":"1d342a68-da5c-4735-8331-a4c49a00ce80","res":{"statusCode":200},"responseTime":3.6786670000001322,"msg":"request completed"}
+PASS  admin reject pendU→200 decided
+[b110] admin_audit reject_recruiter row: {"actor":"adminU","action":"reject_recruiter","target":"pendU"}
+PASS  reject_recruiter 留痕:actor/action/target 断言
+{"level":30,"time":1791600054858,"pid":39428,"hostname":"localhost","reqId":"b983755a-5f96-4a79-9f44-1f749ca2e5eb","req":{"method":"POST","url":"/recruiter/jobs","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054859,"pid":39428,"hostname":"localhost","reqId":"b983755a-5f96-4a79-9f44-1f749ca2e5eb","res":{"statusCode":403},"responseTime":1.1312080000002425,"msg":"request completed"}
+PASS  reject 后恒 403 recruiter_rejected(分码断言)
+{"level":30,"time":1791600054859,"pid":39428,"hostname":"localhost","reqId":"07bdfc06-c5ba-4d24-9444-0907b16e99bf","req":{"method":"GET","url":"/recruiter/talent","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054860,"pid":39428,"hostname":"localhost","reqId":"07bdfc06-c5ba-4d24-9444-0907b16e99bf","res":{"statusCode":403},"responseTime":1.1472079999998641,"msg":"request completed"}
+PASS  reject 后 GET /recruiter/talent 恒 403 recruiter_rejected
+{"level":30,"time":1791600054861,"pid":39428,"hostname":"localhost","reqId":"b9f52552-b1c0-409f-8e26-68950dd78a27","req":{"method":"POST","url":"/admin/recruiter-approvals/userA/decision","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054863,"pid":39428,"hostname":"localhost","reqId":"b9f52552-b1c0-409f-8e26-68950dd78a27","res":{"statusCode":404},"responseTime":2.1292920000000777,"msg":"request completed"}
+PASS  decision 对 candidate 目标→404(role 过滤)
+{"level":30,"time":1791600054863,"pid":39428,"hostname":"localhost","reqId":"c18491be-1d43-4e53-af17-a1a06e3fa1e0","req":{"method":"POST","url":"/admin/recruiter-approvals/ghost_rec/decision","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054865,"pid":39428,"hostname":"localhost","reqId":"c18491be-1d43-4e53-af17-a1a06e3fa1e0","res":{"statusCode":404},"responseTime":2.3012079999998605,"msg":"request completed"}
+PASS  decision 对幽灵目标→404
+{"level":30,"time":1791600054866,"pid":39428,"hostname":"localhost","reqId":"d47e4a75-381a-4b5e-b646-edb91152a3aa","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054874,"pid":39428,"hostname":"localhost","reqId":"d47e4a75-381a-4b5e-b646-edb91152a3aa","res":{"statusCode":200},"responseTime":7.922167000000172,"msg":"request completed"}
+{"level":30,"time":1791600054874,"pid":39428,"hostname":"localhost","reqId":"70ba740e-a37c-4789-b918-8e6110357acf","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054878,"pid":39428,"hostname":"localhost","reqId":"70ba740e-a37c-4789-b918-8e6110357acf","res":{"statusCode":200},"responseTime":3.2987499999999272,"msg":"request completed"}
+{"level":30,"time":1791600054878,"pid":39428,"hostname":"localhost","reqId":"426c7cc2-1efb-4abd-afff-1aa245f77d75","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054881,"pid":39428,"hostname":"localhost","reqId":"426c7cc2-1efb-4abd-afff-1aa245f77d75","res":{"statusCode":200},"responseTime":3.5171250000003056,"msg":"request completed"}
+PASS  枚举不可区分:三路 invite status+body 逐字节一致
+PASS  恒定壳钉死期望字节 {"received":true} 且 200(非「都 404」弱化形)
+{"level":30,"time":1791600054882,"pid":39428,"hostname":"localhost","reqId":"4556bcd2-15f0-4f80-b16c-a7231b24d4be","req":{"method":"GET","url":"/recruiter/jobs/JOB_REC/candidates","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054888,"pid":39428,"hostname":"localhost","reqId":"4556bcd2-15f0-4f80-b16c-a7231b24d4be","res":{"statusCode":200},"responseTime":6.609125000000404,"msg":"request completed"}
+PASS  命中真实建申请:租户内 candidates 列表可见 freshC(壳外承载)
+{"level":30,"time":1791600054889,"pid":39428,"hostname":"localhost","reqId":"0e95ccb0-00b9-4d20-8f6b-b60ba0b61a60","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054893,"pid":39428,"hostname":"localhost","reqId":"0e95ccb0-00b9-4d20-8f6b-b60ba0b61a60","res":{"statusCode":404},"responseTime":4.210875000000215,"msg":"request completed"}
+{"level":30,"time":1791600054894,"pid":39428,"hostname":"localhost","reqId":"af2d66ff-77cc-4518-a673-1c44fa57bcb0","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054897,"pid":39428,"hostname":"localhost","reqId":"af2d66ff-77cc-4518-a673-1c44fa57bcb0","res":{"statusCode":404},"responseTime":3.4240420000000995,"msg":"request completed"}
+PASS  第四探针:越权岗位×注册候选人=×幽灵 status+body 逐字节一致
+PASS  第四探针:双方恒 404 期望字节 {"error":"job_not_found_or_forbidden"}(字节钉死)
+PASS  全部越权尝试后 APP_VICTIM 仍 invited & score 空(零副作用)
+{"level":30,"time":1791600054898,"pid":39428,"hostname":"localhost","reqId":"7bd64586-f2f8-4c9f-860a-846857e8fbd7","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600054935,"pid":39428,"hostname":"localhost","reqId":"7bd64586-f2f8-4c9f-860a-846857e8fbd7","res":{"statusCode":200},"responseTime":36.4040829999999,"msg":"request completed"}
+{"level":30,"time":1791600054936,"pid":39428,"hostname":"localhost","reqId":"ad93f10a-fb15-4cbb-b267-1e797dd4d2c9","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600054972,"pid":39428,"hostname":"localhost","reqId":"ad93f10a-fb15-4cbb-b267-1e797dd4d2c9","res":{"statusCode":200},"responseTime":36.198875000000044,"msg":"request completed"}
+{"level":30,"time":1791600054973,"pid":39428,"hostname":"localhost","reqId":"4bca03db-6477-43b4-b832-333d57ba3c2d","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055007,"pid":39428,"hostname":"localhost","reqId":"4bca03db-6477-43b4-b832-333d57ba3c2d","res":{"statusCode":200},"responseTime":34.35462499999994,"msg":"request completed"}
+{"level":30,"time":1791600055008,"pid":39428,"hostname":"localhost","reqId":"9fb5d9fb-c121-493d-a1bb-fd65ee99a253","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600055042,"pid":39428,"hostname":"localhost","reqId":"9fb5d9fb-c121-493d-a1bb-fd65ee99a253","res":{"statusCode":200},"responseTime":33.79787499999975,"msg":"request completed"}
+{"level":30,"time":1791600055042,"pid":39428,"hostname":"localhost","reqId":"cddfacf6-05ee-4307-9f2e-4be5b24c0277","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055076,"pid":39428,"hostname":"localhost","reqId":"cddfacf6-05ee-4307-9f2e-4be5b24c0277","res":{"statusCode":200},"responseTime":33.83566599999995,"msg":"request completed"}
+{"level":30,"time":1791600055077,"pid":39428,"hostname":"localhost","reqId":"f2d3cf9a-dcc2-4b0f-84aa-41bc0cbd902b","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600055114,"pid":39428,"hostname":"localhost","reqId":"f2d3cf9a-dcc2-4b0f-84aa-41bc0cbd902b","res":{"statusCode":200},"responseTime":36.9418340000002,"msg":"request completed"}
+{"level":30,"time":1791600055114,"pid":39428,"hostname":"localhost","reqId":"2843ebd9-5090-408b-827f-1b3c32253e27","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055152,"pid":39428,"hostname":"localhost","reqId":"2843ebd9-5090-408b-827f-1b3c32253e27","res":{"statusCode":200},"responseTime":37.16054200000008,"msg":"request completed"}
+{"level":30,"time":1791600055152,"pid":39428,"hostname":"localhost","reqId":"38289182-aaab-46dc-854d-8549d29ba5cf","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600055188,"pid":39428,"hostname":"localhost","reqId":"38289182-aaab-46dc-854d-8549d29ba5cf","res":{"statusCode":200},"responseTime":35.8637090000002,"msg":"request completed"}
+{"level":30,"time":1791600055189,"pid":39428,"hostname":"localhost","reqId":"707eaf42-9a35-4802-a74f-87f69003b884","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055226,"pid":39428,"hostname":"localhost","reqId":"707eaf42-9a35-4802-a74f-87f69003b884","res":{"statusCode":200},"responseTime":37.1631669999997,"msg":"request completed"}
+{"level":30,"time":1791600055227,"pid":39428,"hostname":"localhost","reqId":"7c01c325-9b74-4cab-a0db-40638599c9b7","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600055262,"pid":39428,"hostname":"localhost","reqId":"7c01c325-9b74-4cab-a0db-40638599c9b7","res":{"statusCode":200},"responseTime":34.9838749999999,"msg":"request completed"}
+PASS  signup:ip 桶:同 IP 前 10 次(容量内)全放行
+{"level":30,"time":1791600055263,"pid":39428,"hostname":"localhost","reqId":"91792f0d-7f56-4ca8-ae5a-17eb10000eee","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055263,"pid":39428,"hostname":"localhost","reqId":"91792f0d-7f56-4ca8-ae5a-17eb10000eee","res":{"statusCode":429},"responseTime":0.18699999999989814,"msg":"request completed"}
+PASS  signup:ip 桶:第 11 次(容量+1)→429 too_many_attempts
+{"level":30,"time":1791600055263,"pid":39428,"hostname":"localhost","reqId":"126a8267-b092-47ff-a115-840afba338e5","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600055276,"pid":39428,"hostname":"localhost","reqId":"126a8267-b092-47ff-a115-840afba338e5","res":{"statusCode":200},"responseTime":12.831416999999874,"msg":"request completed"}
+{"level":30,"time":1791600055276,"pid":39428,"hostname":"localhost","reqId":"d4211bb2-b70e-48ec-b3d3-4ddcba087859","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055284,"pid":39428,"hostname":"localhost","reqId":"d4211bb2-b70e-48ec-b3d3-4ddcba087859","res":{"statusCode":200},"responseTime":7.069542000000183,"msg":"request completed"}
+{"level":30,"time":1791600055284,"pid":39428,"hostname":"localhost","reqId":"fb083fa4-dbfc-4cf4-ac93-af20c03097d9","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55146},"msg":"incoming request"}
+{"level":30,"time":1791600055287,"pid":39428,"hostname":"localhost","reqId":"fb083fa4-dbfc-4cf4-ac93-af20c03097d9","res":{"statusCode":429},"responseTime":2.442457999999988,"msg":"request completed"}
+PASS  invite:ip 桶:同 IP 超速→429(recU2 主体桶未满,429 必来自 ip 维度)
+{"level":30,"time":1791600055288,"pid":39428,"hostname":"localhost","reqId":"3f64bbad-6a51-468b-b422-ff5e44aef6be","req":{"method":"POST","url":"/recruiter/jobs/JOB_REC2/invite","host":"127.0.0.1:55139","remoteAddress":"127.0.0.1","remotePort":55140},"msg":"incoming request"}
+{"level":30,"time":1791600055292,"pid":39428,"hostname":"localhost","reqId":"3f64bbad-6a51-468b-b422-ff5e44aef6be","res":{"statusCode":429},"responseTime":3.9180840000003627,"msg":"request completed"}
+PASS  invite 429 后同主体后续恒 429(fail-closed,不静默换道放行)
+
+✓ neg:bend: 157 条负路径用例全绿

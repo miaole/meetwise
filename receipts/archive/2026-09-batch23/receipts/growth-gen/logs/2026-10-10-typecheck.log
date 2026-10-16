@@ -1,0 +1,8 @@
+
+> meetwise@0.1.0 typecheck /Users/miaole/Desktop/golucky/meetwise-line-grow201
+> pnpm typecheck:e2e
+
+
+> meetwise@0.1.0 typecheck:e2e /Users/miaole/Desktop/golucky/meetwise-line-grow201
+> tsc -p tsconfig.e2e.json
+

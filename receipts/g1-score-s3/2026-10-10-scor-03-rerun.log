@@ -1,0 +1,86 @@
+
+> meetwise@0.1.0 scor03-evidence-conflict:prove /Users/miaole/Desktop/golucky/meetwise-g1
+> node scripts/run-e2e-isolated.mjs scor03-evidence-conflict:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=6
+E2E isolated PostgreSQL: meetwise-e2e-90696-1791640304011 on 127.0.0.1:53894
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-g1/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=160 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:scor-03 /Users/miaole/Desktop/golucky/meetwise-g1/packages/db
+> tsx test/scor-03.proof.ts
+
+PASS  复验：正确 digest + 界内 → 全部 reverified=true
+PASS  复验：篡改 spanDigest → 该条 reverified=false + conflictReason=span_digest_mismatch
+PASS  复验：答案版本漂移（用旧答案算 digest、当前答案重算）→ 不一致 → false
+PASS  复验：注入内容按数据处理（span 逐字引用 → digest 匹配 → true，不特殊拦截）
+PASS  复验：复制题干（span 指向不在答案中的题干文本）→ 拒（digest 不匹配）
+PASS  复验：Unicode span（按码点算偏移，非字节）→ 拒
+PASS  复验：非 utf8_byte 坐标系 span → canonicalScoreSpan 抛错
+PASS  8 来源计数 = 8（独立字段，非单布尔）
+PASS  uncertainty 分离守护：合法 8 来源 → 不抛错
+PASS  uncertainty 分离守护：非法 voiceQuality → 抛错
+PASS  uncertainty 分离守护：modelDisagreement 非布尔 → 抛错
+PASS  裁决：干净 + 低影响 → practice_eligible
+PASS  裁决：冲突(conflictCount>0) → review_required
+PASS  裁决：缺 required → review_required
+PASS  裁决：模型分歧 → review_required
+PASS  裁决：低语音质量(low) → review_required；无语音(unavailable) → 不单独触发
+PASS  裁决：来源完整性非 verified → review_required
+PASS  裁决：语言不适用 → review_required
+PASS  裁决：高影响用途 → review_required
+PASS  缺失 required 派生：固定 reason + 列表
+PASS  domain coverage 公式（复用 SCOR-02）：1/2=0.5
+PASS  非评分态不参与评分（unscored/review_required/calibration_blocked/evidence_invalid）
+PASS  domain 转移表：review_required → unscored 合法（SCOR-03 新增）
+PASS  domain 转移表：unscored 终态不可回退到 review_required
+PASS  发布 rubric：required 默认 true（2 分项 required）
+PASS  干净写卡成功（practice_eligible, total=80, coverage=1.0）
+PASS  DB 裁决与 domain 裁决逐值一致（跨侧 pin：practice_eligible）
+PASS  8 来源 uncertainty 独立落库（逐列，非单布尔/JSON 合并）
+PASS  干净卡 missing_required_criteria = []（无缺失）
+PASS  写卡后 request → scored（原语① CAS 单 winner）
+PASS  score_evidence 落库 2 条（无 conflict_reason）
+PASS  写卡同事务原子发出 score_card_written 事件（原语④ 单调 seq）
+PASS  迟到第二次写卡（request 已 scored）→ recorded=false + cardId=null
+PASS  冲突证据写卡 → review_required（非 practice_eligible）
+PASS  DB 冲突裁决与 domain 裁决逐值一致（跨侧 pin：conflictCount=1 → review_required）
+PASS  冲突证据落固定码 conflict_reason=span_digest_mismatch（非自由文字）
+PASS  review_required 卡不进入 C 端逐题读面（listScorableScoreCards=0）
+PASS  review_required 卡聚合：eligible=0 + non_scoring=1（非 0 分不参与均分）
+PASS  发布 3 分项 rubric：required 数 = 2（extra 为 optional）
+PASS  缺 required depth → review_required
+PASS  缺 required 记录 missing_required_criteria=[{depth,missing_required}]
+PASS  缺 required coverage = 1/2 = 0.5（与 domain computeCoverage 一致）
+PASS  optional 分项缺失（2 required 全给出）→ practice_eligible + coverage=1.0（不误触发 review）
+PASS  recordScoreCard → pending_evidence
+PASS  转移：pending_evidence → evidence_valid 合法
+PASS  转移：evidence_valid → review_required 合法
+PASS  转移：review_required → unscored 合法（SCOR-03 新增，DB 触发器放行）
+PASS  非法回退：unscored 终态 → review_required 被拒
+PASS  非法回退：review_required → pending_evidence 被拒
+PASS  unscored 卡聚合：eligible=0 + non_scoring=1
+PASS  E1 陈旧 sourceAnswerId → 拒写
+PASS  E1 错误 answerVersion → 拒写
+PASS  E1 span start>end → 拒写
+PASS  E1 spanDigest 格式非法 → 拒写
+PASS  E1 幻觉 criterionId（不在 rubric）→ 拒写
+PASS  E1 非法 uncertainty enum → 拒写（fail-closed）
+PASS  E1 省略 reverified 字段 → 拒写（fail-closed：未复验证据绝不落卡为可评分态）
+PASS  E1 reverified 为字符串 "yes"（非 JSON 布尔）→ 拒写（fail-closed：不静默强转）
+PASS  E1 负路径全部拒后 request 仍 claimed + card=0（未误写）
+PASS  跨 owner 读 score_evidence = 0 行（原语③ RLS）
+PASS  app_role 无 score_evidence 写权（原始 INSERT 被拒）
+PASS  score_evidence append-only：UPDATE 被拒
+PASS  score_evidence append-only：DELETE 被拒
+PASS  score_card 新 uncertainty 列 append-only：UPDATE 被拒
+
+✓ 评分证据冲突与不确定性（SCOR-03）DB 证明通过（本地隔离证据）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-10T13-52-14-774Z-90696-4cf6c75a-27ba-4e2c-8435-5fea632a4dc8.json release_evidence=false

@@ -66,7 +66,7 @@ test('capture demo screenshots (desktop)', async ({ page }) => {
   if (await ta.waitFor({ state: 'visible', timeout: 10_000 }).then(() => true).catch(() => false)) {
     await ta.fill(RESUME);
     await page.getByRole('button', { name: '上传简历', exact: true }).click();
-    await expect(page.getByText(/状态:ingested/).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/解析完成/).first()).toBeVisible({ timeout: 20_000 });
   }
   await shot(page, '04-resume');
 

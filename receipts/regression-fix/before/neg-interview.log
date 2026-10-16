@@ -1,0 +1,312 @@
+
+> meetwise@0.1.0 neg:interview /Users/miaole/Desktop/golucky/meetwise-regfix
+> node scripts/run-e2e-isolated.mjs neg:interview
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-82629-1791712204023 on 127.0.0.1:60027
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:interview /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node --import @swc-node/register/esm-register test/neg-interview.proof.ts
+
+{"level":30,"time":1791712208459,"pid":82781,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:60045"}
+{"level":30,"time":1791712208496,"pid":82781,"hostname":"miaole.local","reqId":"dc94647c-404f-45ba-b221-f73067db0cc5","req":{"method":"POST","url":"/interview/IV_CREATED/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208502,"pid":82781,"hostname":"miaole.local","reqId":"dc94647c-404f-45ba-b221-f73067db0cc5","res":{"statusCode":400},"responseTime":5.226417000000083,"msg":"request completed"}
+PASS  begin 缺 resume-id 头 → 400 missing_resume_id
+{"level":30,"time":1791712208506,"pid":82781,"hostname":"miaole.local","reqId":"8595944f-5dcd-4614-a92d-df152cfa2eaf","req":{"method":"POST","url":"/interview/IV_NOPE/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208510,"pid":82781,"hostname":"miaole.local","reqId":"8595944f-5dcd-4614-a92d-df152cfa2eaf","res":{"statusCode":404},"responseTime":3.39066600000001,"msg":"request completed"}
+PASS  begin 不存在的面试 → 404 not_found_or_forbidden
+{"level":30,"time":1791712208511,"pid":82781,"hostname":"miaole.local","reqId":"e7e54f6a-21de-4585-b3e3-e591e4f4a5a0","req":{"method":"POST","url":"/interview/IV_ACT/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208514,"pid":82781,"hostname":"miaole.local","reqId":"e7e54f6a-21de-4585-b3e3-e591e4f4a5a0","res":{"statusCode":404},"responseTime":2.7430420000000595,"msg":"request completed"}
+PASS  begin 越权:userB begin userA 的 IV_ACT → 404(RLS 只见己)
+{"level":30,"time":1791712208515,"pid":82781,"hostname":"miaole.local","reqId":"11f5f179-f106-47f5-84a3-31c3d1b21946","req":{"method":"POST","url":"/interview/IV_OTHER/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208518,"pid":82781,"hostname":"miaole.local","reqId":"11f5f179-f106-47f5-84a3-31c3d1b21946","res":{"statusCode":404},"responseTime":2.688417000000072,"msg":"request completed"}
+PASS  begin 越权:userA begin userB 的 IV_OTHER → 404(RLS)
+{"level":30,"time":1791712208520,"pid":82781,"hostname":"miaole.local","reqId":"d2b0eda3-4382-4bdd-858d-028dd8b300f2","req":{"method":"POST","url":"/interview/IV_UBC/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+PASS  begin 无额度:userB begin 自己的 created 面试(IV_UBC)→ 402 insufficient_entitlement
+{"level":30,"time":1791712208528,"pid":82781,"hostname":"miaole.local","reqId":"d2b0eda3-4382-4bdd-858d-028dd8b300f2","res":{"statusCode":402},"responseTime":8.328250000000025,"msg":"request completed"}
+{"level":30,"time":1791712208530,"pid":82781,"hostname":"miaole.local","reqId":"3670be70-32ec-47b7-876d-3669be7658d4","req":{"method":"POST","url":"/interview/IV_CREATED/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208530,"pid":82781,"hostname":"miaole.local","reqId":"3670be70-32ec-47b7-876d-3669be7658d4","res":{"statusCode":401},"responseTime":0.48687500000005457,"msg":"request completed"}
+PASS  begin 未鉴权(无任何主体头)→ 401
+{"level":30,"time":1791712208531,"pid":82781,"hostname":"miaole.local","reqId":"edba9af0-13e4-49f4-9215-4550cbb59454","req":{"method":"POST","url":"/interview/IV_CREATED/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208532,"pid":82781,"hostname":"miaole.local","reqId":"edba9af0-13e4-49f4-9215-4550cbb59454","res":{"statusCode":401},"responseTime":0.4587500000000091,"msg":"request completed"}
+PASS  begin 坏令牌 → 401 invalid_token
+{"level":30,"time":1791712208533,"pid":82781,"hostname":"miaole.local","reqId":"61fb5e25-e25b-452c-bd3e-405aa6018151","req":{"method":"POST","url":"/interview/IV_CREATED/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208535,"pid":82781,"hostname":"miaole.local","reqId":"61fb5e25-e25b-452c-bd3e-405aa6018151","res":{"statusCode":401},"responseTime":2.36974999999984,"msg":"request completed"}
+PASS  begin 幽灵账户令牌(账户不存在)→ 401(fail-closed)
+{"level":30,"time":1791712208537,"pid":82781,"hostname":"miaole.local","reqId":"8b863120-2a75-42c9-a0ee-719bec092182","req":{"method":"POST","url":"/interview/IV_CREATED/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208538,"pid":82781,"hostname":"miaole.local","reqId":"8b863120-2a75-42c9-a0ee-719bec092182","res":{"statusCode":401},"responseTime":1.059208000000126,"msg":"request completed"}
+PASS  begin 逃逸通道:x-user-id=__system_qbank__ 保留主体 → 401 reserved_principal
+{"level":30,"time":1791712208540,"pid":82781,"hostname":"miaole.local","reqId":"48110a29-5853-4a7e-a38a-d568a3a9223a","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+PASS  turn 空 body → 400 invalid(zod:turn/answer 必填)
+PASS  turn 缺 answer → 400 invalid(zod)
+PASS  turn 缺 turn → 400 invalid(zod)
+PASS  turn 负 turn → 400 invalid(zod:int≥0)
+PASS  turn 非整数 turn → 400 invalid(zod)
+{"level":30,"time":1791712208543,"pid":82781,"hostname":"miaole.local","reqId":"48110a29-5853-4a7e-a38a-d568a3a9223a","res":{"statusCode":400},"responseTime":1.331833000000188,"msg":"request completed"}
+{"level":30,"time":1791712208544,"pid":82781,"hostname":"miaole.local","reqId":"28cb8f54-e311-4a6c-a686-e390d7dd9eb9","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208544,"pid":82781,"hostname":"miaole.local","reqId":"28cb8f54-e311-4a6c-a686-e390d7dd9eb9","res":{"statusCode":400},"responseTime":0.3682499999999891,"msg":"request completed"}
+{"level":30,"time":1791712208545,"pid":82781,"hostname":"miaole.local","reqId":"9e42a2bc-28d3-4fba-a2be-2f7b62f23ce4","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208545,"pid":82781,"hostname":"miaole.local","reqId":"9e42a2bc-28d3-4fba-a2be-2f7b62f23ce4","res":{"statusCode":400},"responseTime":0.28304199999979573,"msg":"request completed"}
+{"level":30,"time":1791712208545,"pid":82781,"hostname":"miaole.local","reqId":"5d0c79d6-5ffd-4e8b-bc5a-a097ebb82982","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208546,"pid":82781,"hostname":"miaole.local","reqId":"5d0c79d6-5ffd-4e8b-bc5a-a097ebb82982","res":{"statusCode":400},"responseTime":0.25433300000008785,"msg":"request completed"}
+{"level":30,"time":1791712208546,"pid":82781,"hostname":"miaole.local","reqId":"0453861a-7981-44fb-95e6-3daa88022a1b","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208546,"pid":82781,"hostname":"miaole.local","reqId":"0453861a-7981-44fb-95e6-3daa88022a1b","res":{"statusCode":400},"responseTime":0.2419999999999618,"msg":"request completed"}
+{"level":30,"time":1791712208547,"pid":82781,"hostname":"miaole.local","reqId":"176e0d4d-bd0a-4aef-9c85-e3a6b18e71ea","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208547,"pid":82781,"hostname":"miaole.local","reqId":"176e0d4d-bd0a-4aef-9c85-e3a6b18e71ea","res":{"statusCode":400},"responseTime":0.2567500000000109,"msg":"request completed"}
+PASS  turn 空字符串答案 → 400 invalid(zod:min 1)
+{"level":30,"time":1791712208547,"pid":82781,"hostname":"miaole.local","reqId":"ed7cc131-0b78-4643-8dbe-b8f03fafc52f","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208548,"pid":82781,"hostname":"miaole.local","reqId":"ed7cc131-0b78-4643-8dbe-b8f03fafc52f","res":{"statusCode":400},"responseTime":0.17954199999985576,"msg":"request completed"}
+PASS  turn 超长答案(>8000)→ 400 invalid(zod max 先于 service 413 拦下,纵深第一线)
+{"level":30,"time":1791712208548,"pid":82781,"hostname":"miaole.local","reqId":"176d1522-e992-4e17-8b33-47a2d7e0c1af","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208548,"pid":82781,"hostname":"miaole.local","reqId":"176d1522-e992-4e17-8b33-47a2d7e0c1af","res":{"statusCode":400},"responseTime":0.4077919999999722,"msg":"request completed"}
+PASS  turn 纯空白答案(过 zod min1,service trim 为空)→ 400 invalid_turn
+{"level":30,"time":1791712208549,"pid":82781,"hostname":"miaole.local","reqId":"575430f7-8e6e-4ad7-9185-680e8598535a","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208549,"pid":82781,"hostname":"miaole.local","reqId":"575430f7-8e6e-4ad7-9185-680e8598535a","res":{"statusCode":400},"responseTime":0.42562500000008185,"msg":"request completed"}
+PASS  turn 越界 turn 号(>MAX_TURN 256,刷无限 job)→ 400 invalid_turn
+{"level":30,"time":1791712208550,"pid":82781,"hostname":"miaole.local","reqId":"44db0842-bbc5-46dd-95d4-2685849b3033","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208553,"pid":82781,"hostname":"miaole.local","reqId":"44db0842-bbc5-46dd-95d4-2685849b3033","res":{"statusCode":422},"responseTime":3.63733400000001,"msg":"request completed"}
+PASS  turn answerHash 与 UTF-8 原文不一致 → 422(服务端重算,不信客户端)
+{"level":30,"time":1791712208554,"pid":82781,"hostname":"miaole.local","reqId":"724e0607-f662-4fb9-b3c0-35cc6c2eb4f8","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208557,"pid":82781,"hostname":"miaole.local","reqId":"724e0607-f662-4fb9-b3c0-35cc6c2eb4f8","res":{"statusCode":409},"responseTime":3.133000000000038,"msg":"request completed"}
+PASS  turn stateVersion 不匹配 ledger → 409 stale_question(旧渲染批次不能覆盖当前题)
+{"level":30,"time":1791712208558,"pid":82781,"hostname":"miaole.local","reqId":"2af7378b-6b66-4b18-9cc4-e8b3199b57d6","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208561,"pid":82781,"hostname":"miaole.local","reqId":"2af7378b-6b66-4b18-9cc4-e8b3199b57d6","res":{"statusCode":409},"responseTime":3.101333000000068,"msg":"request completed"}
+PASS  turn 已撤销 questionId → 409 stale_question(旧 tab 不能唤醒新 interrupt)
+{"level":30,"time":1791712208562,"pid":82781,"hostname":"miaole.local","reqId":"d43d538a-2d79-42cc-9da0-eadd011a4324","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208565,"pid":82781,"hostname":"miaole.local","reqId":"d43d538a-2d79-42cc-9da0-eadd011a4324","res":{"statusCode":409},"responseTime":2.5448750000000473,"msg":"request completed"}
+PASS  turn 同题不同 answerId/hash → 409 stale_question(双标签页不覆盖)
+PASS  turn 畸形 JSON 正文 → 400(解析/校验失败,不落库不入队)
+{"level":30,"time":1791712208566,"pid":82781,"hostname":"miaole.local","reqId":"7a1c8878-49ba-47d1-8a62-723923049e1e","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60047},"msg":"incoming request"}
+{"level":30,"time":1791712208566,"pid":82781,"hostname":"miaole.local","reqId":"7a1c8878-49ba-47d1-8a62-723923049e1e","res":{"statusCode":400},"responseTime":0.5887090000001081,"msg":"request completed"}
+{"level":30,"time":1791712208568,"pid":82781,"hostname":"miaole.local","reqId":"c565795f-9c07-4254-ad96-1b73940654e9","req":{"method":"POST","url":"/interview/IV_DONE/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208579,"pid":82781,"hostname":"miaole.local","reqId":"c565795f-9c07-4254-ad96-1b73940654e9","res":{"statusCode":409},"responseTime":11.544292000000041,"msg":"request completed"}
+PASS  turn 终态 completed(IV_DONE)→ 409 interview_not_active
+{"level":30,"time":1791712208581,"pid":82781,"hostname":"miaole.local","reqId":"c80d9f8f-d684-4bf1-aa7d-efed3c861491","req":{"method":"POST","url":"/interview/IV_FAIL/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208583,"pid":82781,"hostname":"miaole.local","reqId":"c80d9f8f-d684-4bf1-aa7d-efed3c861491","res":{"statusCode":409},"responseTime":2.6536670000000413,"msg":"request completed"}
+PASS  turn 终态 failed(IV_FAIL)→ 409 interview_not_active
+{"level":30,"time":1791712208584,"pid":82781,"hostname":"miaole.local","reqId":"d2ba995b-138c-4cf6-82ed-cfd2873ffa2f","req":{"method":"POST","url":"/interview/IV_ABND/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208586,"pid":82781,"hostname":"miaole.local","reqId":"d2ba995b-138c-4cf6-82ed-cfd2873ffa2f","res":{"statusCode":409},"responseTime":2.492083999999977,"msg":"request completed"}
+PASS  turn 终态 abandoned(IV_ABND)→ 409 interview_not_active
+{"level":30,"time":1791712208587,"pid":82781,"hostname":"miaole.local","reqId":"eb0c23bb-6356-442e-903f-4e1ee69bf936","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208589,"pid":82781,"hostname":"miaole.local","reqId":"eb0c23bb-6356-442e-903f-4e1ee69bf936","res":{"statusCode":404},"responseTime":1.8952500000000327,"msg":"request completed"}
+PASS  turn 越权:userB 答 userA 的 IV_ACT → 404(RLS)
+{"level":30,"time":1791712208589,"pid":82781,"hostname":"miaole.local","reqId":"26ea05e7-a722-4967-a753-ae39d2e5985f","req":{"method":"POST","url":"/interview/IV_NOPE/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208591,"pid":82781,"hostname":"miaole.local","reqId":"26ea05e7-a722-4967-a753-ae39d2e5985f","res":{"statusCode":404},"responseTime":1.8529579999999441,"msg":"request completed"}
+PASS  turn 不存在的面试 → 404
+{"level":30,"time":1791712208592,"pid":82781,"hostname":"miaole.local","reqId":"589d2db3-3c23-4377-b738-936ad858832b","req":{"method":"POST","url":"/interview/IV_ACT/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208592,"pid":82781,"hostname":"miaole.local","reqId":"589d2db3-3c23-4377-b738-936ad858832b","res":{"statusCode":401},"responseTime":0.16554200000018682,"msg":"request completed"}
+PASS  turn 未鉴权 → 401
+{"level":30,"time":1791712208594,"pid":82781,"hostname":"miaole.local","reqId":"013bd70f-ee41-4ea7-9654-d8523d558bfc","req":{"method":"POST","url":"/interview/IV_ACT/answer","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208594,"pid":82781,"hostname":"miaole.local","reqId":"013bd70f-ee41-4ea7-9654-d8523d558bfc","res":{"statusCode":410},"responseTime":0.21149999999988722,"msg":"request completed"}
+{"level":30,"time":1791712208594,"pid":82781,"hostname":"miaole.local","reqId":"8594138b-ae0e-49f2-8cfb-1f2fa38649dd","req":{"method":"POST","url":"/interview/IV_DONE/answer","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208594,"pid":82781,"hostname":"miaole.local","reqId":"8594138b-ae0e-49f2-8cfb-1f2fa38649dd","res":{"statusCode":410},"responseTime":0.09533300000020972,"msg":"request completed"}
+{"level":30,"time":1791712208595,"pid":82781,"hostname":"miaole.local","reqId":"cbb9fa87-bc3f-44a5-884c-3a64a515da5a","req":{"method":"POST","url":"/interview/IV_ACT/answer","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60049},"msg":"incoming request"}
+{"level":30,"time":1791712208595,"pid":82781,"hostname":"miaole.local","reqId":"cbb9fa87-bc3f-44a5-884c-3a64a515da5a","res":{"statusCode":410},"responseTime":0.13587500000039654,"msg":"request completed"}
+{"level":30,"time":1791712208595,"pid":82781,"hostname":"miaole.local","reqId":"87c0aa1d-de49-4af3-8793-b952dce6769f","req":{"method":"POST","url":"/interview/IV_NOPE/answer","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60050},"msg":"incoming request"}
+{"level":30,"time":1791712208595,"pid":82781,"hostname":"miaole.local","reqId":"87c0aa1d-de49-4af3-8793-b952dce6769f","res":{"statusCode":410},"responseTime":0.15000000000009095,"msg":"request completed"}
+PASS  legacy answer 对有效/终态/跨主体/不存在 id 均返回统一 410，避免资源探测
+{"level":30,"time":1791712208596,"pid":82781,"hostname":"miaole.local","reqId":"3635c786-2f96-4bc3-855b-3cf2250a3581","req":{"method":"POST","url":"/interview/IV_ACT/answer","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208596,"pid":82781,"hostname":"miaole.local","reqId":"3635c786-2f96-4bc3-855b-3cf2250a3581","res":{"statusCode":401},"responseTime":0.13045800000008967,"msg":"request completed"}
+PASS  legacy answer 未鉴权仍由 guard 拒绝 401
+PASS  legacy answer 绝不写入 answer_evaluated（杜绝 B 端评分污染）
+{"level":30,"time":1791712208625,"pid":82781,"hostname":"miaole.local","reqId":"b8726022-7399-408d-86c7-f76b1a7fd71e","req":{"method":"POST","url":"/interview/IV_ACT/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208634,"pid":82781,"hostname":"miaole.local","reqId":"b8726022-7399-408d-86c7-f76b1a7fd71e","res":{"statusCode":404},"responseTime":9.614125000000058,"msg":"request completed"}
+PASS  abandon 越权:userB 放弃 userA 的 IV_ACT → 404(RLS)
+{"level":30,"time":1791712208636,"pid":82781,"hostname":"miaole.local","reqId":"23d13f55-53fe-4cc3-8d42-3403f6723d7a","req":{"method":"POST","url":"/interview/IV_OTHER/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208639,"pid":82781,"hostname":"miaole.local","reqId":"23d13f55-53fe-4cc3-8d42-3403f6723d7a","res":{"statusCode":404},"responseTime":2.4983330000000024,"msg":"request completed"}
+PASS  abandon 越权:userA 放弃 userB 的 IV_OTHER → 404(RLS)
+{"level":30,"time":1791712208640,"pid":82781,"hostname":"miaole.local","reqId":"34c41bd6-0aed-44f4-bf30-bce291da1de2","req":{"method":"POST","url":"/interview/IV_NOPE/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208642,"pid":82781,"hostname":"miaole.local","reqId":"34c41bd6-0aed-44f4-bf30-bce291da1de2","res":{"statusCode":404},"responseTime":2.205667000000176,"msg":"request completed"}
+PASS  abandon 不存在的面试 → 404
+{"level":30,"time":1791712208643,"pid":82781,"hostname":"miaole.local","reqId":"c8926ce0-8e30-41af-9c94-ea6d1bab3d4a","req":{"method":"POST","url":"/interview/IV_ACT/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208643,"pid":82781,"hostname":"miaole.local","reqId":"c8926ce0-8e30-41af-9c94-ea6d1bab3d4a","res":{"statusCode":401},"responseTime":0.1734160000000884,"msg":"request completed"}
+PASS  abandon 未鉴权 → 401
+{"level":30,"time":1791712208644,"pid":82781,"hostname":"miaole.local","reqId":"95a74236-4c90-4c01-b908-131a89004b9d","req":{"method":"GET","url":"/interview/IV_ACT/report","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208650,"pid":82781,"hostname":"miaole.local","reqId":"95a74236-4c90-4c01-b908-131a89004b9d","res":{"statusCode":404},"responseTime":5.498708000000079,"msg":"request completed"}
+PASS  report GET 进行中(IV_ACT 无报告行/无 interview_unavailable)→ 404 not_found(不 500,不假装"继续答题")
+{"level":30,"time":1791712208650,"pid":82781,"hostname":"miaole.local","reqId":"879d5309-32b7-4d9c-a42c-bc991bfa9917","req":{"method":"GET","url":"/interview/IV_CREATED/report","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208658,"pid":82781,"hostname":"miaole.local","reqId":"879d5309-32b7-4d9c-a42c-bc991bfa9917","res":{"statusCode":404},"responseTime":7.960958000000119,"msg":"request completed"}
+PASS  report GET created(IV_CREATED 无报告)→ 404 not_found
+{"level":30,"time":1791712208659,"pid":82781,"hostname":"miaole.local","reqId":"9ac5dca5-1dee-4a25-8188-293e2c09f68e","req":{"method":"GET","url":"/interview/IV_ASMT/report","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208661,"pid":82781,"hostname":"miaole.local","reqId":"9ac5dca5-1dee-4a25-8188-293e2c09f68e","res":{"statusCode":404},"responseTime":1.7429159999996955,"msg":"request completed"}
+PASS  report GET 越权:userB 读 userA 的 IV_ASMT 报告 → 404(RLS,不泄露他人报告)
+{"level":30,"time":1791712208661,"pid":82781,"hostname":"miaole.local","reqId":"605de16f-633d-4efe-b1d8-81559362e050","req":{"method":"GET","url":"/interview/IV_NOPE/report","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208663,"pid":82781,"hostname":"miaole.local","reqId":"605de16f-633d-4efe-b1d8-81559362e050","res":{"statusCode":404},"responseTime":1.784791000000041,"msg":"request completed"}
+PASS  report GET 不存在 → 404
+{"level":30,"time":1791712208664,"pid":82781,"hostname":"miaole.local","reqId":"261a0c4c-4b08-4892-a80f-c2bd7954e97f","req":{"method":"GET","url":"/interview/IV_ASMT/report","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208664,"pid":82781,"hostname":"miaole.local","reqId":"261a0c4c-4b08-4892-a80f-c2bd7954e97f","res":{"statusCode":401},"responseTime":0.16470799999979135,"msg":"request completed"}
+PASS  report GET 未鉴权 → 401
+{"level":30,"time":1791712208665,"pid":82781,"hostname":"miaole.local","reqId":"13ea5792-f20c-42ad-a130-e02bbc60ac57","req":{"method":"POST","url":"/interview/IV_ASMT/report/retry","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208668,"pid":82781,"hostname":"miaole.local","reqId":"13ea5792-f20c-42ad-a130-e02bbc60ac57","res":{"statusCode":404},"responseTime":3.1292920000000777,"msg":"request completed"}
+PASS  report/retry 报告已 ready(IV_ASMT)不可重试 → 404 no_retriable_report(仅 failed/quarantined 可重试)
+{"level":30,"time":1791712208668,"pid":82781,"hostname":"miaole.local","reqId":"ac211a29-0aac-4081-812c-1c6b7f3061ad","req":{"method":"POST","url":"/interview/IV_ACT/report/retry","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208671,"pid":82781,"hostname":"miaole.local","reqId":"ac211a29-0aac-4081-812c-1c6b7f3061ad","res":{"statusCode":404},"responseTime":2.473500000000058,"msg":"request completed"}
+PASS  report/retry 无任何报告(IV_ACT)→ 404 no_retriable_report
+{"level":30,"time":1791712208672,"pid":82781,"hostname":"miaole.local","reqId":"ee5faf4c-795a-4a81-a2e7-3f9f1102b07b","req":{"method":"POST","url":"/interview/IV_ASMT/report/retry","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208673,"pid":82781,"hostname":"miaole.local","reqId":"ee5faf4c-795a-4a81-a2e7-3f9f1102b07b","res":{"statusCode":404},"responseTime":1.7137499999998909,"msg":"request completed"}
+PASS  report/retry 越权:userB retry IV_ASMT → 404(RLS)
+{"level":30,"time":1791712208674,"pid":82781,"hostname":"miaole.local","reqId":"9d930e52-5e23-431b-a170-7dac109d37ba","req":{"method":"POST","url":"/interview/IV_NOPE/report/retry","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208675,"pid":82781,"hostname":"miaole.local","reqId":"9d930e52-5e23-431b-a170-7dac109d37ba","res":{"statusCode":404},"responseTime":1.6062090000000353,"msg":"request completed"}
+PASS  report/retry 不存在 → 404
+{"level":30,"time":1791712208676,"pid":82781,"hostname":"miaole.local","reqId":"e0020adc-8ec6-4acd-a6ab-f3d2e0cb19ff","req":{"method":"POST","url":"/interview/IV_ASMT/report/retry","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208676,"pid":82781,"hostname":"miaole.local","reqId":"e0020adc-8ec6-4acd-a6ab-f3d2e0cb19ff","res":{"statusCode":401},"responseTime":0.13654200000019046,"msg":"request completed"}
+PASS  report/retry 未鉴权 → 401
+{"level":30,"time":1791712208676,"pid":82781,"hostname":"miaole.local","reqId":"af8a2f24-8f7c-475d-adf9-55e7810d83c5","req":{"method":"GET","url":"/interview/IV_ACT/report/export","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208679,"pid":82781,"hostname":"miaole.local","reqId":"af8a2f24-8f7c-475d-adf9-55e7810d83c5","res":{"statusCode":404},"responseTime":2.812332999999853,"msg":"request completed"}
+PASS  report/export 未就绪(IV_ACT)→ 404 report_not_ready
+{"level":30,"time":1791712208680,"pid":82781,"hostname":"miaole.local","reqId":"d346191a-e068-4c69-9c30-daf19ede7ade","req":{"method":"GET","url":"/interview/IV_ASMT/report/export","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208682,"pid":82781,"hostname":"miaole.local","reqId":"d346191a-e068-4c69-9c30-daf19ede7ade","res":{"statusCode":404},"responseTime":2.0357500000000073,"msg":"request completed"}
+PASS  report/export 越权:userB 导出 IV_ASMT → 404(RLS,拿不到就绪报告)
+{"level":30,"time":1791712208683,"pid":82781,"hostname":"miaole.local","reqId":"f11dd346-f492-41fb-9bb2-935787e93003","req":{"method":"GET","url":"/interview/IV_NOPE/report/export","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208684,"pid":82781,"hostname":"miaole.local","reqId":"f11dd346-f492-41fb-9bb2-935787e93003","res":{"statusCode":404},"responseTime":1.6767079999999623,"msg":"request completed"}
+PASS  report/export 不存在 → 404
+{"level":30,"time":1791712208685,"pid":82781,"hostname":"miaole.local","reqId":"b054fc65-190d-4f44-bcf0-d27b9a32f723","req":{"method":"GET","url":"/interview/IV_ASMT/report/export","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208685,"pid":82781,"hostname":"miaole.local","reqId":"b054fc65-190d-4f44-bcf0-d27b9a32f723","res":{"statusCode":401},"responseTime":0.12800000000015643,"msg":"request completed"}
+PASS  report/export 未鉴权 → 401
+{"level":30,"time":1791712208686,"pid":82781,"hostname":"miaole.local","reqId":"efc23ceb-434a-444a-a697-4d1d011048ce","req":{"method":"POST","url":"/interview/IV_ACT/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208689,"pid":82781,"hostname":"miaole.local","reqId":"efc23ceb-434a-444a-a697-4d1d011048ce","res":{"statusCode":409},"responseTime":3.6102500000001783,"msg":"request completed"}
+PASS  assessment POST 无可评分卡(IV_ACT 仅 question_ready)→ 409 no_scorable_cards(不落 overall=0 假报告)
+{"level":30,"time":1791712208690,"pid":82781,"hostname":"miaole.local","reqId":"8ed24475-36db-4e94-8911-1b7936693bc4","req":{"method":"POST","url":"/interview/IV_CREATED/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208693,"pid":82781,"hostname":"miaole.local","reqId":"8ed24475-36db-4e94-8911-1b7936693bc4","res":{"statusCode":409},"responseTime":2.88025000000016,"msg":"request completed"}
+PASS  assessment POST created(IV_CREATED 无事件)→ 409 no_scorable_cards
+{"level":30,"time":1791712208693,"pid":82781,"hostname":"miaole.local","reqId":"8c47d641-2496-410d-9d38-558d02a349a1","req":{"method":"POST","url":"/interview/IV_DONE/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208696,"pid":82781,"hostname":"miaole.local","reqId":"8c47d641-2496-410d-9d38-558d02a349a1","res":{"statusCode":409},"responseTime":2.9327910000001793,"msg":"request completed"}
+PASS  assessment POST completed 但无可评分卡(IV_DONE)→ 409 no_scorable_cards
+{"level":30,"time":1791712208697,"pid":82781,"hostname":"miaole.local","reqId":"cb430786-0472-4cf0-a373-5d2b2f45ebb0","req":{"method":"POST","url":"/interview/IV_ASMT/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208699,"pid":82781,"hostname":"miaole.local","reqId":"cb430786-0472-4cf0-a373-5d2b2f45ebb0","res":{"statusCode":404},"responseTime":2.0541669999997794,"msg":"request completed"}
+PASS  assessment POST 越权:userB 生成 IV_ASMT 评估 → 404(RLS)
+{"level":30,"time":1791712208700,"pid":82781,"hostname":"miaole.local","reqId":"27556e2b-90cf-441c-a8d1-e980fab30d85","req":{"method":"POST","url":"/interview/IV_NOPE/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208701,"pid":82781,"hostname":"miaole.local","reqId":"27556e2b-90cf-441c-a8d1-e980fab30d85","res":{"statusCode":404},"responseTime":1.6584590000002208,"msg":"request completed"}
+PASS  assessment POST 不存在 → 404
+{"level":30,"time":1791712208702,"pid":82781,"hostname":"miaole.local","reqId":"de323f35-06dd-4abe-9c85-3a7e9f207727","req":{"method":"POST","url":"/interview/IV_ASMT/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208702,"pid":82781,"hostname":"miaole.local","reqId":"de323f35-06dd-4abe-9c85-3a7e9f207727","res":{"statusCode":401},"responseTime":0.13783299999977316,"msg":"request completed"}
+PASS  assessment POST 未鉴权 → 401
+{"level":30,"time":1791712208703,"pid":82781,"hostname":"miaole.local","reqId":"efc9f4eb-b32a-4eca-b338-505e68720f91","req":{"method":"GET","url":"/interview/IV_ASMT/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208705,"pid":82781,"hostname":"miaole.local","reqId":"efc9f4eb-b32a-4eca-b338-505e68720f91","res":{"statusCode":404},"responseTime":2.8636670000000777,"msg":"request completed"}
+PASS  assessment GET 未生成(IV_ASMT 无 assessment_report 行)→ 404 not_found
+{"level":30,"time":1791712208706,"pid":82781,"hostname":"miaole.local","reqId":"b57da675-84bc-42b9-bb07-cb5740854087","req":{"method":"GET","url":"/interview/IV_ASMT/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208707,"pid":82781,"hostname":"miaole.local","reqId":"b57da675-84bc-42b9-bb07-cb5740854087","res":{"statusCode":404},"responseTime":1.4617499999999382,"msg":"request completed"}
+PASS  assessment GET 越权:userB 读 IV_ASMT 评估 → 404(RLS)
+{"level":30,"time":1791712208708,"pid":82781,"hostname":"miaole.local","reqId":"0cf5e3aa-ec48-4bee-968f-beb50c3411e5","req":{"method":"GET","url":"/interview/IV_NOPE/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208709,"pid":82781,"hostname":"miaole.local","reqId":"0cf5e3aa-ec48-4bee-968f-beb50c3411e5","res":{"statusCode":404},"responseTime":1.3460000000000036,"msg":"request completed"}
+PASS  assessment GET 不存在 → 404
+{"level":30,"time":1791712208710,"pid":82781,"hostname":"miaole.local","reqId":"b87cc7dd-8944-43c6-9405-9cff630144b2","req":{"method":"GET","url":"/interview/IV_ASMT/assessment","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208710,"pid":82781,"hostname":"miaole.local","reqId":"b87cc7dd-8944-43c6-9405-9cff630144b2","res":{"statusCode":401},"responseTime":0.12304200000016863,"msg":"request completed"}
+PASS  assessment GET 未鉴权 → 401
+{"level":30,"time":1791712208710,"pid":82781,"hostname":"miaole.local","reqId":"a63665e9-0b80-4e94-8ae2-96a0d9e464d2","req":{"method":"POST","url":"/interview/IV_ASMT/learning-plan","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208714,"pid":82781,"hostname":"miaole.local","reqId":"a63665e9-0b80-4e94-8ae2-96a0d9e464d2","res":{"statusCode":409},"responseTime":3.8023749999997563,"msg":"request completed"}
+PASS  learning-plan POST 无评估前置(IV_ASMT 未生成评估)→ 409 assessment_required
+{"level":30,"time":1791712208715,"pid":82781,"hostname":"miaole.local","reqId":"db1f2c47-785b-438b-b415-1cc5c56565ec","req":{"method":"POST","url":"/interview/IV_ACT/learning-plan","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208718,"pid":82781,"hostname":"miaole.local","reqId":"db1f2c47-785b-438b-b415-1cc5c56565ec","res":{"statusCode":409},"responseTime":2.745249999999942,"msg":"request completed"}
+PASS  learning-plan POST 无评估(IV_ACT)→ 409 assessment_required
+{"level":30,"time":1791712208718,"pid":82781,"hostname":"miaole.local","reqId":"f5e1b4b5-737a-449b-92e6-3f2dbba5c543","req":{"method":"GET","url":"/interview/IV_ASMT/learning-plan","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208721,"pid":82781,"hostname":"miaole.local","reqId":"f5e1b4b5-737a-449b-92e6-3f2dbba5c543","res":{"statusCode":404},"responseTime":3.0239590000001044,"msg":"request completed"}
+PASS  learning-plan GET 未生成 → 404 not_found
+{"level":30,"time":1791712208722,"pid":82781,"hostname":"miaole.local","reqId":"43424577-9aa0-4341-9de9-526b575b4c8c","req":{"method":"GET","url":"/interview/IV_ASMT/learning-plan","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208724,"pid":82781,"hostname":"miaole.local","reqId":"43424577-9aa0-4341-9de9-526b575b4c8c","res":{"statusCode":404},"responseTime":1.80475000000024,"msg":"request completed"}
+PASS  learning-plan GET 越权:userB → 404(RLS)
+{"level":30,"time":1791712208724,"pid":82781,"hostname":"miaole.local","reqId":"86f1320e-2312-40d8-84fa-9e9405b7c2d7","req":{"method":"POST","url":"/interview/IV_ASMT/learning-plan/complete","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208725,"pid":82781,"hostname":"miaole.local","reqId":"86f1320e-2312-40d8-84fa-9e9405b7c2d7","res":{"statusCode":400},"responseTime":0.5760000000000218,"msg":"request completed"}
+PASS  learning-plan/complete 缺 topic → 400(契约 zod 拒:error=invalid)
+{"level":30,"time":1791712208726,"pid":82781,"hostname":"miaole.local","reqId":"19d6b28a-2e0e-44af-86a0-4f240115c520","req":{"method":"POST","url":"/interview/IV_ASMT/learning-plan","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208726,"pid":82781,"hostname":"miaole.local","reqId":"19d6b28a-2e0e-44af-86a0-4f240115c520","res":{"statusCode":401},"responseTime":0.13991699999996854,"msg":"request completed"}
+PASS  learning-plan POST 未鉴权 → 401
+{"level":30,"time":1791712208726,"pid":82781,"hostname":"miaole.local","reqId":"296a3d40-3346-4299-b668-9bbf2e13c79b","req":{"method":"POST","url":"/interview/IV_ASMT/career-path","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208730,"pid":82781,"hostname":"miaole.local","reqId":"296a3d40-3346-4299-b668-9bbf2e13c79b","res":{"statusCode":409},"responseTime":3.522957999999562,"msg":"request completed"}
+PASS  career-path POST 无评估前置 → 409 assessment_required
+{"level":30,"time":1791712208730,"pid":82781,"hostname":"miaole.local","reqId":"a67be443-53d4-4e68-b3cd-7eabd2677e7a","req":{"method":"POST","url":"/interview/IV_ACT/career-path","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208734,"pid":82781,"hostname":"miaole.local","reqId":"a67be443-53d4-4e68-b3cd-7eabd2677e7a","res":{"statusCode":409},"responseTime":3.447374999999738,"msg":"request completed"}
+PASS  career-path POST 无评估(IV_ACT)→ 409 assessment_required
+{"level":30,"time":1791712208735,"pid":82781,"hostname":"miaole.local","reqId":"d013d4c4-8e7d-4cf9-92ec-219b9dc19f72","req":{"method":"GET","url":"/interview/IV_ASMT/career-path","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208739,"pid":82781,"hostname":"miaole.local","reqId":"d013d4c4-8e7d-4cf9-92ec-219b9dc19f72","res":{"statusCode":404},"responseTime":4.064707999999882,"msg":"request completed"}
+PASS  career-path GET 未生成 → 404 not_found
+{"level":30,"time":1791712208740,"pid":82781,"hostname":"miaole.local","reqId":"007754b2-2ef2-410c-900f-92a0273e6630","req":{"method":"GET","url":"/interview/IV_ASMT/career-path","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208742,"pid":82781,"hostname":"miaole.local","reqId":"007754b2-2ef2-410c-900f-92a0273e6630","res":{"statusCode":404},"responseTime":2.0252089999999043,"msg":"request completed"}
+PASS  career-path GET 越权:userB → 404(RLS)
+{"level":30,"time":1791712208742,"pid":82781,"hostname":"miaole.local","reqId":"74a36b3c-8cfd-4722-9d7b-99582c53039b","req":{"method":"POST","url":"/interview/IV_ASMT/career-path","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208742,"pid":82781,"hostname":"miaole.local","reqId":"74a36b3c-8cfd-4722-9d7b-99582c53039b","res":{"statusCode":401},"responseTime":0.160584000000199,"msg":"request completed"}
+PASS  career-path POST 未鉴权 → 401
+{"level":30,"time":1791712208743,"pid":82781,"hostname":"miaole.local","reqId":"204b6bb3-8241-48da-aa30-66f166f6e109","req":{"method":"GET","url":"/interview/IV_ACT/events","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208745,"pid":82781,"hostname":"miaole.local","reqId":"204b6bb3-8241-48da-aa30-66f166f6e109","res":{"statusCode":404},"responseTime":1.9001250000001164,"msg":"request completed"}
+PASS  events 越权:userB 订阅 userA 的 IV_ACT 事件流 → 404 not_found_or_forbidden(不泄露他人事件)
+{"level":30,"time":1791712208745,"pid":82781,"hostname":"miaole.local","reqId":"08dd220c-1e37-47b8-98c0-ca609d45f4a5","req":{"method":"GET","url":"/interview/IV_NOPE/events","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208748,"pid":82781,"hostname":"miaole.local","reqId":"08dd220c-1e37-47b8-98c0-ca609d45f4a5","res":{"statusCode":404},"responseTime":2.7197919999998703,"msg":"request completed"}
+PASS  events 不存在的面试 → 404 not_found_or_forbidden
+{"level":30,"time":1791712208749,"pid":82781,"hostname":"miaole.local","reqId":"66f1a5ea-b056-4b2f-b435-89bcee5afb05","req":{"method":"GET","url":"/interview/IV_ACT/events","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208749,"pid":82781,"hostname":"miaole.local","reqId":"66f1a5ea-b056-4b2f-b435-89bcee5afb05","res":{"statusCode":401},"responseTime":0.1445410000001175,"msg":"request completed"}
+PASS  events 未鉴权 → 401
+{"level":30,"time":1791712208749,"pid":82781,"hostname":"miaole.local","reqId":"4a809af9-468e-4839-8ab7-69e391f6a085","req":{"method":"GET","url":"/interview/IV_ACT/transcript","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208752,"pid":82781,"hostname":"miaole.local","reqId":"4a809af9-468e-4839-8ab7-69e391f6a085","res":{"statusCode":404},"responseTime":2.21612499999992,"msg":"request completed"}
+PASS  transcript 越权:userB 读 IV_ACT 转写 → 404(RLS)
+{"level":30,"time":1791712208752,"pid":82781,"hostname":"miaole.local","reqId":"df1c3007-328b-48be-8f4a-65b37bb213d4","req":{"method":"GET","url":"/interview/IV_NOPE/transcript","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208754,"pid":82781,"hostname":"miaole.local","reqId":"df1c3007-328b-48be-8f4a-65b37bb213d4","res":{"statusCode":404},"responseTime":1.6603749999999309,"msg":"request completed"}
+PASS  transcript 不存在 → 404
+{"level":30,"time":1791712208754,"pid":82781,"hostname":"miaole.local","reqId":"09d6dc33-73f8-4bf5-8ab1-d5e38c28f5b9","req":{"method":"GET","url":"/interview/IV_ACT/transcript","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208754,"pid":82781,"hostname":"miaole.local","reqId":"09d6dc33-73f8-4bf5-8ab1-d5e38c28f5b9","res":{"statusCode":401},"responseTime":0.1095829999999296,"msg":"request completed"}
+PASS  transcript 未鉴权 → 401
+{"level":30,"time":1791712208755,"pid":82781,"hostname":"miaole.local","reqId":"9c9c52c6-ff46-488e-a34c-98c66b6cb718","req":{"method":"POST","url":"/interview/IV_ACT/questions/0/feedback","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208755,"pid":82781,"hostname":"miaole.local","reqId":"9c9c52c6-ff46-488e-a34c-98c66b6cb718","res":{"statusCode":400},"responseTime":0.6540410000002339,"msg":"request completed"}
+PASS  questionFeedback 非法 rating(非 up/down)→ 400(契约 zod enum 拒:error=invalid)
+{"level":30,"time":1791712208756,"pid":82781,"hostname":"miaole.local","reqId":"0c476f57-5e36-40d3-a705-3f81c7941157","req":{"method":"POST","url":"/interview/IV_ACT/questions/-1/feedback","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208756,"pid":82781,"hostname":"miaole.local","reqId":"0c476f57-5e36-40d3-a705-3f81c7941157","res":{"statusCode":400},"responseTime":0.21279199999980847,"msg":"request completed"}
+PASS  questionFeedback 负 index → 400 invalid_index
+{"level":30,"time":1791712208757,"pid":82781,"hostname":"miaole.local","reqId":"5fd2f774-b62c-4c71-b110-25e9ac182824","req":{"method":"POST","url":"/interview/IV_ACT/questions/abc/feedback","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208757,"pid":82781,"hostname":"miaole.local","reqId":"5fd2f774-b62c-4c71-b110-25e9ac182824","res":{"statusCode":400},"responseTime":0.140625,"msg":"request completed"}
+PASS  questionFeedback 非数字 index → 400 invalid_index
+{"level":30,"time":1791712208757,"pid":82781,"hostname":"miaole.local","reqId":"5c25d3cf-b9b5-4653-9998-4b8bf8782a68","req":{"method":"POST","url":"/interview/IV_ACT/speak","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208760,"pid":82781,"hostname":"miaole.local","reqId":"5c25d3cf-b9b5-4653-9998-4b8bf8782a68","res":{"statusCode":400},"responseTime":2.8256670000000668,"msg":"request completed"}
+PASS  speak 空白文本(trim 后空)→ 400 empty_text
+{"level":30,"time":1791712208761,"pid":82781,"hostname":"miaole.local","reqId":"42a4d3c1-0eeb-4168-a09f-45d0a7d6fde5","req":{"method":"POST","url":"/interview/IV_ACT/speak","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208764,"pid":82781,"hostname":"miaole.local","reqId":"42a4d3c1-0eeb-4168-a09f-45d0a7d6fde5","res":{"statusCode":404},"responseTime":3.6177080000002206,"msg":"request completed"}
+PASS  speak 越权:userB 对 IV_ACT 合成 → 404(先校归属再花 TTS)
+{"level":30,"time":1791712208766,"pid":82781,"hostname":"miaole.local","reqId":"d8e9d07e-6186-4c0c-b334-10d369e09f63","req":{"method":"POST","url":"/interview/IV_NOPE/speak","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208768,"pid":82781,"hostname":"miaole.local","reqId":"d8e9d07e-6186-4c0c-b334-10d369e09f63","res":{"statusCode":404},"responseTime":2.2704579999999623,"msg":"request completed"}
+PASS  speak 不存在 → 404
+{"level":30,"time":1791712208768,"pid":82781,"hostname":"miaole.local","reqId":"3a61638a-0673-4e59-910f-f8196ca07562","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208769,"pid":82781,"hostname":"miaole.local","reqId":"3a61638a-0673-4e59-910f-f8196ca07562","res":{"statusCode":400},"responseTime":0.6204580000003261,"msg":"request completed"}
+PASS  transcribe 缺显式同意 → 400 invalid（在 ASR 前 fail-closed）
+{"level":30,"time":1791712208770,"pid":82781,"hostname":"miaole.local","reqId":"b5874a3d-49f9-4070-926a-3e5c120bd629","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208770,"pid":82781,"hostname":"miaole.local","reqId":"b5874a3d-49f9-4070-926a-3e5c120bd629","res":{"statusCode":400},"responseTime":0.37291700000014316,"msg":"request completed"}
+PASS  transcribe 伪称双人电话/远端轨 → 400 invalid（能力未接入不得绕过）
+{"level":30,"time":1791712208770,"pid":82781,"hostname":"miaole.local","reqId":"c894b599-6594-4937-abb5-a036c20665d4","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208771,"pid":82781,"hostname":"miaole.local","reqId":"c894b599-6594-4937-abb5-a036c20665d4","res":{"statusCode":400},"responseTime":0.2477910000002339,"msg":"request completed"}
+PASS  transcribe 畸形 base64 → 400 invalid（模型调用前拒绝）
+{"level":30,"time":1791712208771,"pid":82781,"hostname":"miaole.local","reqId":"2f68b53b-539c-4022-80d0-0c6c22edc948","req":{"method":"POST","url":"/interview/IV_ACT/transcribe","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208773,"pid":82781,"hostname":"miaole.local","reqId":"2f68b53b-539c-4022-80d0-0c6c22edc948","res":{"statusCode":404},"responseTime":2.084208000000217,"msg":"request completed"}
+PASS  transcribe 越权:userB 对 IV_ACT 转写 → 404
+{"level":30,"time":1791712208774,"pid":82781,"hostname":"miaole.local","reqId":"72c51294-1229-47ed-b5a3-9d8411dc2b13","req":{"method":"POST","url":"/interview/IV_NOPE/transcribe","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208775,"pid":82781,"hostname":"miaole.local","reqId":"72c51294-1229-47ed-b5a3-9d8411dc2b13","res":{"statusCode":404},"responseTime":1.795875000000251,"msg":"request completed"}
+PASS  transcribe 不存在 → 404
+{"level":30,"time":1791712208776,"pid":82781,"hostname":"miaole.local","reqId":"77e45b53-3851-4718-ab86-c59b0866faa2","req":{"method":"POST","url":"/interview/IV_DONE/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208780,"pid":82781,"hostname":"miaole.local","reqId":"77e45b53-3851-4718-ab86-c59b0866faa2","res":{"statusCode":409},"responseTime":4.375500000000102,"msg":"request completed"}
+PASS  begin 终态 completed(IV_DONE)→409 interview_not_active（不可复活/不可二次扣额）
+{"level":30,"time":1791712208781,"pid":82781,"hostname":"miaole.local","reqId":"bccff181-18eb-4d71-825d-9e9e8b8890e4","req":{"method":"POST","url":"/interview/IV_FAIL/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208784,"pid":82781,"hostname":"miaole.local","reqId":"bccff181-18eb-4d71-825d-9e9e8b8890e4","res":{"statusCode":409},"responseTime":2.9866669999996702,"msg":"request completed"}
+PASS  begin 终态 failed(IV_FAIL)→409 interview_not_active
+{"level":30,"time":1791712208785,"pid":82781,"hostname":"miaole.local","reqId":"60b4611e-a3a5-4c2f-a180-f05834312cb1","req":{"method":"POST","url":"/interview/IV_ABND/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208787,"pid":82781,"hostname":"miaole.local","reqId":"60b4611e-a3a5-4c2f-a180-f05834312cb1","res":{"statusCode":409},"responseTime":2.6582500000004075,"msg":"request completed"}
+PASS  begin 终态 abandoned(IV_ABND)→409 interview_not_active
+{"level":30,"time":1791712208788,"pid":82781,"hostname":"miaole.local","reqId":"25c34175-2887-4863-979f-5d12f04d9d66","req":{"method":"POST","url":"/interview/IV_ACTB/begin","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208793,"pid":82781,"hostname":"miaole.local","reqId":"25c34175-2887-4863-979f-5d12f04d9d66","res":{"statusCode":202},"responseTime":4.597332999999708,"msg":"request completed"}
+PASS  begin 已 active(IV_ACTB,INSERT 时预绑 resume)→202 alreadyBegun=true（不二次预留/入队）
+{"level":30,"time":1791712208793,"pid":82781,"hostname":"miaole.local","reqId":"1529f92c-ea69-4f29-a3a2-911bdcee372b","req":{"method":"POST","url":"/interview/IV_CREATED/turn","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208796,"pid":82781,"hostname":"miaole.local","reqId":"1529f92c-ea69-4f29-a3a2-911bdcee372b","res":{"statusCode":409},"responseTime":2.7594159999998737,"msg":"request completed"}
+PASS  turn created(IV_CREATED 尚未 begin)→409 interview_not_started（不制造付费 answer job）
+{"level":30,"time":1791712208797,"pid":82781,"hostname":"miaole.local","reqId":"56648db4-7a6a-4e32-bc5e-df38319bd3da","req":{"method":"POST","url":"/interview/IV_CREATED/answer","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+PASS  legacy answer created(IV_CREATED 尚未 begin)也统一 410（端点不再读写面试）
+{"level":30,"time":1791712208797,"pid":82781,"hostname":"miaole.local","reqId":"56648db4-7a6a-4e32-bc5e-df38319bd3da","res":{"statusCode":410},"responseTime":0.1796249999997599,"msg":"request completed"}
+{"level":30,"time":1791712208797,"pid":82781,"hostname":"miaole.local","reqId":"5616a2a5-1d3c-4df0-a9ee-296f222f55fb","req":{"method":"POST","url":"/interview/IV_DONE/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208801,"pid":82781,"hostname":"miaole.local","reqId":"5616a2a5-1d3c-4df0-a9ee-296f222f55fb","res":{"statusCode":409},"responseTime":3.030166999999892,"msg":"request completed"}
+PASS  abandon 终态 completed(IV_DONE)→409 interview_not_active（不可退款覆盖已确认消费）
+{"level":30,"time":1791712208801,"pid":82781,"hostname":"miaole.local","reqId":"b9a93f9d-e00c-4059-ba7b-cc1937af255c","req":{"method":"POST","url":"/interview/IV_FAIL/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60048},"msg":"incoming request"}
+{"level":30,"time":1791712208804,"pid":82781,"hostname":"miaole.local","reqId":"b9a93f9d-e00c-4059-ba7b-cc1937af255c","res":{"statusCode":409},"responseTime":2.806832999999642,"msg":"request completed"}
+PASS  abandon 终态 failed(IV_FAIL)→409 interview_not_active
+{"level":30,"time":1791712208805,"pid":82781,"hostname":"miaole.local","reqId":"efc79775-6dd6-4485-a3ac-03b8bcb9801e","req":{"method":"POST","url":"/interview/IV_ABND/abandon","host":"127.0.0.1:60045","remoteAddress":"127.0.0.1","remotePort":60046},"msg":"incoming request"}
+{"level":30,"time":1791712208811,"pid":82781,"hostname":"miaole.local","reqId":"efc79775-6dd6-4485-a3ac-03b8bcb9801e","res":{"statusCode":200},"responseTime":5.885124999999789,"msg":"request completed"}
+PASS  abandon 重复放弃(IV_ABND)→200 alreadyAbandoned + noop（不二次退款）
+
+✓ neg:interview: 97 条负路径用例全绿
+EXIT=0

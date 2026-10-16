@@ -1,0 +1,4 @@
+e2e:isolated EXIT=1
+e2e:isolated EXIT=1
+e2e:ui:isolated EXIT=1
+verify:e2e-performance EXIT=1

@@ -1,0 +1,641 @@
+/**
+ * G7 Key×3 FreeTierOnly re-prove guards (Line C).
+ *
+ * Pure offline-testable policy for free-first test runs.
+ * Prices: console-reported by user via coordinator 2026-09-23 (NOT independently verified).
+ * releaseEvidence stays false; free-model green ≠ production-model / perf-SLO evidence.
+ */
+import { createHash } from 'node:crypto';
+import { openSync, closeSync, readFileSync, writeFileSync, existsSync, mkdirSync, unlinkSync } from 'node:fs';
+import { dirname } from 'node:path';
+
+export const G7_RUN_COST_CAP_CNY = 5;
+/** Free models are ¥0 — token/call caps still bound a G7 run across processes. */
+export const G7_RUN_TOKEN_CAP_DEFAULT = 2_000_000;
+export const G7_RUN_CALL_CAP_DEFAULT = 200;
+export const G7_DISABLED_PATHS = ['embed', 'rerank', 'asr', 'tts', 'asr_stream', 'tts_stream'] as const;
+export type G7DisabledPath = (typeof G7_DISABLED_PATHS)[number];
+export const G7_PRICE_BOOK_CITATION = 'console-reported by user via coordinator 2026-09-23' as const;
+export const G7_ASR_GAP_ID = 'GAP-MODEL-ASR-QWEN-AUDIO-TURBO-STATUS' as const;
+export const G7_ALLOW_PRO_FLAG = 'ALLOW_DEEPSEEK_V4_PRO_TEST' as const;
+
+export const G7_FREE_MODELS = [
+  'qwen3.8-flash',
+  'qwen3.8-max',
+  'qwen3.8-27b',
+  'qwen3.8-omni-flash',
+  'qwen3.7-flash',
+] as const;
+
+export const G7_PAID_FALLBACK_ALLOWLIST = ['qwen-plus', 'deepseek-v4-flash'] as const;
+export const G7_BANNED_TEST_MODELS = ['deepseek-v4-pro'] as const;
+
+export type G7FreeModel = (typeof G7_FREE_MODELS)[number];
+export type G7PaidFallbackModel = (typeof G7_PAID_FALLBACK_ALLOWLIST)[number];
+export type G7FallbackTriggerClass =
+  | 'FreeTierOnly'
+  | 'quota_exhausted'
+  | 'capability_unsupported';
+
+export type G7PriceRow =
+  | { kind: 'token'; inputCnyPer1M: number; outputCnyPer1M: number; freeQuota?: boolean }
+  | { kind: 'embed'; inputCnyPer1M: number }
+  | { kind: 'audio_sec'; cnyPerSec: number };
+
+export const G7_CONSOLE_PRICE_BOOK: Readonly<Record<string, G7PriceRow>> = Object.freeze({
+  'deepseek-v4-pro': { kind: 'token', inputCnyPer1M: 12, outputCnyPer1M: 24 },
+  'deepseek-v4-flash': { kind: 'token', inputCnyPer1M: 1, outputCnyPer1M: 2 },
+  'qwen-plus': { kind: 'token', inputCnyPer1M: 0.8, outputCnyPer1M: 2 },
+  'qwen-turbo': { kind: 'token', inputCnyPer1M: 0.3, outputCnyPer1M: 0.6 },
+  'qwen-max': { kind: 'token', inputCnyPer1M: 2.4, outputCnyPer1M: 9.6 },
+  'qwen-vl-max': { kind: 'token', inputCnyPer1M: 1.6, outputCnyPer1M: 4 },
+  'qwen3.8-flash': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
+  'qwen3.8-max': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
+  'qwen3.8-27b': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
+  'qwen3.8-omni-flash': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
+  'qwen3.7-flash': { kind: 'token', inputCnyPer1M: 0, outputCnyPer1M: 0, freeQuota: true },
+  // Side-path models (priced even when G7 hard-disables the path):
+  'text-embedding-v4': { kind: 'embed', inputCnyPer1M: 0.5 },
+  'gte-rerank-v2': { kind: 'embed', inputCnyPer1M: 0.5 },
+  'qwen-audio-turbo-latest': { kind: 'audio_sec', cnyPerSec: 0.00024 },
+  'qwen-tts': { kind: 'audio_sec', cnyPerSec: 0.0002 },
+  'paraformer-realtime-v2': { kind: 'audio_sec', cnyPerSec: 0.00024 },
+  'cosyvoice-v1': { kind: 'audio_sec', cnyPerSec: 0.0002 },
+});
+
+export type G7CallRecord = {
+  readonly callId: string;
+  readonly actualModel: string;
+  readonly inputTokens: number;
+  readonly outputTokens: number;
+  readonly audioSeconds?: number;
+  readonly estimatedCostCny: number;
+  readonly startedAt: string;
+  readonly finishedAt: string;
+  readonly fallback?: {
+    readonly triggerErrorClass: G7FallbackTriggerClass;
+    readonly fromModel: string;
+    readonly toModel: string;
+  };
+  readonly evidenceClass: 'free_quota_wiring_only' | 'paid_fallback' | 'skip_prereq';
+};
+
+export type G7RunCostState = {
+  readonly runningCostCny: number;
+  readonly calls: readonly G7CallRecord[];
+  readonly capCny: number;
+};
+
+export type G7TestProfile = {
+  readonly mode: 'g7_freetier_reprove';
+  readonly primaryModel: G7FreeModel;
+  readonly fastModel: G7FreeModel;
+  readonly paidFallbackAllowlist: readonly G7PaidFallbackModel[];
+  readonly paidFallbackEnabled: boolean;
+  readonly endpointProfile: 'dashscope-cn-beijing';
+  readonly evidenceLabel: 'free-tier model; not production-model evidence; not perf SLO evidence';
+};
+
+export function keyFingerprintPrefix(secret: string, hexChars = 8): string {
+  return createHash('sha256').update(secret, 'utf8').digest('hex').slice(0, hexChars);
+}
+
+export function isG7FreetierReproveEnabled(env: NodeJS.ProcessEnv): boolean {
+  return String(env.G7_FREETIER_REPROVE ?? '').trim() === '1';
+}
+
+export function isDeepseekV4ProTestApproved(env: NodeJS.ProcessEnv): boolean {
+  return String(env[G7_ALLOW_PRO_FLAG] ?? '').trim() === '1';
+}
+
+export function resolveG7TestProfile(env: NodeJS.ProcessEnv = process.env): G7TestProfile {
+  const primary = (env.G7_FREE_PRIMARY_MODEL?.trim() || 'qwen3.8-flash') as G7FreeModel;
+  const fast = (env.G7_FREE_FAST_MODEL?.trim() || 'qwen3.8-flash') as G7FreeModel;
+  if (!(G7_FREE_MODELS as readonly string[]).includes(primary)) {
+    throw new Error(`g7_free_primary_model_undeclared:${primary}`);
+  }
+  if (!(G7_FREE_MODELS as readonly string[]).includes(fast)) {
+    throw new Error(`g7_free_fast_model_undeclared:${fast}`);
+  }
+  const paidFallbackEnabled = String(env.G7_PAID_FALLBACK_ENABLED ?? '0').trim() === '1';
+  return Object.freeze({
+    mode: 'g7_freetier_reprove',
+    primaryModel: primary,
+    fastModel: fast,
+    paidFallbackAllowlist: G7_PAID_FALLBACK_ALLOWLIST,
+    paidFallbackEnabled,
+    endpointProfile: 'dashscope-cn-beijing',
+    evidenceLabel: 'free-tier model; not production-model evidence; not perf SLO evidence',
+  });
+}
+
+export function applyG7FreetierReproveEnv(env: NodeJS.ProcessEnv): NodeJS.ProcessEnv {
+  const next: NodeJS.ProcessEnv = { ...env, G7_FREETIER_REPROVE: '1' };
+  const profile = resolveG7TestProfile(next);
+  next.MODEL_ENDPOINT_PROFILE = profile.endpointProfile;
+  next.MODEL_NAME = profile.primaryModel;
+  next.MODEL_FAST_NAME = profile.fastModel;
+  next.MODEL_PRIMARY_BILLING_MODEL = profile.primaryModel;
+  next.MODEL_FAST_BILLING_MODEL = profile.fastModel;
+  next.MODEL_PRIMARY_BILLING_PROVIDER = 'dashscope';
+  next.MODEL_FAST_BILLING_PROVIDER = 'dashscope';
+  next.MODEL_PRIMARY_BILLING_REGION = 'cn-beijing';
+  next.MODEL_FAST_BILLING_REGION = 'cn-beijing';
+  if (!String(next.MODEL_PRIMARY_PRICE_REVISION ?? '').trim()) {
+    next.MODEL_PRIMARY_PRICE_REVISION = 'g7-free-quota-2026-09-23';
+  }
+  if (!String(next.MODEL_FAST_PRICE_REVISION ?? '').trim()) {
+    next.MODEL_FAST_PRICE_REVISION = 'g7-free-quota-2026-09-23';
+  }
+  if (!String(next.MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION ?? '').trim()) {
+    next.MODEL_PRIMARY_INPUT_MICRO_CNY_PER_MILLION = '0';
+  }
+  if (!String(next.MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION ?? '').trim()) {
+    next.MODEL_PRIMARY_OUTPUT_MICRO_CNY_PER_MILLION = '0';
+  }
+  if (!String(next.MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION ?? '').trim()) {
+    next.MODEL_FAST_INPUT_MICRO_CNY_PER_MILLION = '0';
+  }
+  if (!String(next.MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION ?? '').trim()) {
+    next.MODEL_FAST_OUTPUT_MICRO_CNY_PER_MILLION = '0';
+  }
+  return next;
+}
+
+export function assertPriceBookHasModel(model: string): G7PriceRow {
+  const row = G7_CONSOLE_PRICE_BOOK[model];
+  if (!row) throw new Error(`g7_price_book_missing:${model}`);
+  return row;
+}
+
+export function assertModelAllowedForTest(model: string, env: NodeJS.ProcessEnv = process.env): void {
+  if ((G7_BANNED_TEST_MODELS as readonly string[]).includes(model)) {
+    if (!isDeepseekV4ProTestApproved(env)) {
+      throw new Error(`g7_model_banned_without_approval:${model}`);
+    }
+  }
+  const declared =
+    (G7_FREE_MODELS as readonly string[]).includes(model)
+    || (G7_PAID_FALLBACK_ALLOWLIST as readonly string[]).includes(model)
+    || model === 'qwen-turbo'
+    || model === 'qwen-max'
+    || model === 'qwen-vl-max'
+    || model === 'text-embedding-v4'
+    || model === 'gte-rerank-v2'
+    || model === 'qwen-audio-turbo-latest'
+    || model === 'qwen-tts'
+    || model === 'paraformer-realtime-v2'
+    || model === 'cosyvoice-v1'
+    || (isDeepseekV4ProTestApproved(env) && model === 'deepseek-v4-pro');
+  if (!declared) throw new Error(`g7_model_undeclared:${model}`);
+  assertPriceBookHasModel(model);
+}
+
+export function estimateCallCostCny(args: {
+  model: string;
+  inputTokens: number;
+  outputTokens: number;
+  audioSeconds?: number;
+}): number {
+  const row = assertPriceBookHasModel(args.model);
+  if (row.kind === 'audio_sec') {
+    return Math.max(0, args.audioSeconds ?? 0) * row.cnyPerSec;
+  }
+  const inT = Math.max(0, args.inputTokens);
+  const outT = Math.max(0, args.outputTokens);
+  if (row.kind === 'embed') return (inT / 1_000_000) * row.inputCnyPer1M;
+  return (inT / 1_000_000) * row.inputCnyPer1M + (outT / 1_000_000) * row.outputCnyPer1M;
+}
+
+export function createG7RunCostState(capCny = G7_RUN_COST_CAP_CNY): G7RunCostState {
+  return { runningCostCny: 0, calls: [], capCny };
+}
+
+export function recordCallAndAccumulateCost(
+  state: G7RunCostState,
+  call: Omit<G7CallRecord, 'estimatedCostCny'> & { estimatedCostCny?: number },
+  env: NodeJS.ProcessEnv = process.env,
+): G7RunCostState {
+  assertModelAllowedForTest(call.actualModel, env);
+  const estimatedCostCny = call.estimatedCostCny ?? estimateCallCostCny({
+    model: call.actualModel,
+    inputTokens: call.inputTokens,
+    outputTokens: call.outputTokens,
+    audioSeconds: call.audioSeconds,
+  });
+  const nextRunning = state.runningCostCny + estimatedCostCny;
+  if (nextRunning > state.capCny) {
+    throw new Error(`g7_cost_cap_exceeded:COST_CAP:running=${nextRunning}:cap=${state.capCny}`);
+  }
+  const full: G7CallRecord = Object.freeze({ ...call, estimatedCostCny });
+  return {
+    runningCostCny: nextRunning,
+    calls: [...state.calls, full],
+    capCny: state.capCny,
+  };
+}
+
+export function classifyProviderError(message: string): G7FallbackTriggerClass | null {
+  const m = message.toLowerCase();
+  if (m.includes('allocationquota.freetieronly') || m.includes('freetieronly')) return 'FreeTierOnly';
+  if (m.includes('quota') && (m.includes('exhaust') || m.includes('exceed') || m.includes('insufficient'))) {
+    return 'quota_exhausted';
+  }
+  if (
+    m.includes('model_not_found')
+    || m.includes('unsupported')
+    || m.includes('does not exist')
+    || m.includes('invalid_model')
+  ) {
+    return 'capability_unsupported';
+  }
+  return null;
+}
+
+export function selectPaidFallback(args: {
+  fromModel: string;
+  triggerErrorClass: G7FallbackTriggerClass;
+  preferredPaid?: G7PaidFallbackModel;
+  paidFallbackEnabled: boolean;
+}): { toModel: G7PaidFallbackModel; triggerErrorClass: G7FallbackTriggerClass; fromModel: string } {
+  if (!args.paidFallbackEnabled) {
+    throw new Error(`g7_paid_fallback_disabled:${args.triggerErrorClass}:${args.fromModel}`);
+  }
+  const toModel = args.preferredPaid ?? 'qwen-plus';
+  if (!(G7_PAID_FALLBACK_ALLOWLIST as readonly string[]).includes(toModel)) {
+    throw new Error(`g7_paid_fallback_not_allowlisted:${toModel}`);
+  }
+  if ((G7_BANNED_TEST_MODELS as readonly string[]).includes(toModel)) {
+    throw new Error(`g7_paid_fallback_banned:${toModel}`);
+  }
+  return { toModel, triggerErrorClass: args.triggerErrorClass, fromModel: args.fromModel };
+}
+
+export function assertModelApiKeyPresent(env: NodeJS.ProcessEnv = process.env): string {
+  const key = String(env.MODEL_API_KEY ?? '').trim();
+  if (!key) throw new Error('g7_model_api_key_missing');
+  return keyFingerprintPrefix(key, 8);
+}
+
+export function bounded429BackoffMs(
+  attempt: number,
+  opts?: { maxRetries?: number; baseMs?: number; maxMs?: number },
+): number {
+  const maxRetries = opts?.maxRetries ?? 3;
+  const baseMs = opts?.baseMs ?? 200;
+  const maxMs = opts?.maxMs ?? 2000;
+  if (attempt < 0) throw new Error('g7_429_attempt_invalid');
+  if (attempt >= maxRetries) throw new Error(`g7_429_backoff_exhausted:maxRetries=${maxRetries}`);
+  return Math.min(maxMs, baseMs * 2 ** attempt);
+}
+
+export function asrPathStatus(): {
+  status: 'skip_prereq';
+  gapId: typeof G7_ASR_GAP_ID;
+  countedAsPass: false;
+  label: string;
+} {
+  return {
+    status: 'skip_prereq',
+    gapId: G7_ASR_GAP_ID,
+    countedAsPass: false,
+    label: 'ASR path skipped while GAP-MODEL-ASR-QWEN-AUDIO-TURBO-STATUS open; never counted as pass',
+  };
+}
+
+export function assertCalibrationModelMatch(factorModel: string, dispatchModel: string): void {
+  if (factorModel !== dispatchModel) {
+    throw new Error(`g7_calibration_cross_model_forbidden:${factorModel}->${dispatchModel}`);
+  }
+}
+
+export function buildG7ReceiptFields(args: {
+  runnerCommitSha: string;
+  porcelainClean: boolean;
+  keyFingerprint8: string;
+  costState: G7RunCostState;
+  startedAt: string;
+  finishedAt: string;
+  profile: G7TestProfile;
+}): Record<string, unknown> {
+  return {
+    g7FreetierReprove: true,
+    runnerCommitSha: args.runnerCommitSha,
+    porcelainClean: args.porcelainClean,
+    keyFingerprint: args.keyFingerprint8,
+    priceBookCitation: G7_PRICE_BOOK_CITATION,
+    runCostCapCny: args.costState.capCny,
+    estimatedCostCny: args.costState.runningCostCny,
+    actualSpendCny: null,
+    calls: args.costState.calls,
+    startedAt: args.startedAt,
+    finishedAt: args.finishedAt,
+    evidenceLabel: args.profile.evidenceLabel,
+    asr: asrPathStatus(),
+    releaseEvidence: false,
+  };
+}
+
+/** Cross-process ¥5 run cap: api+worker share one NDJSON ledger file (G7_RUN_COST_LEDGER_PATH). */
+export type G7SharedLedgerSnapshot = G7RunCostState;
+
+function sleepMs(ms: number): void {
+  const end = Date.now() + ms;
+  while (Date.now() < end) {
+    /* busy-wait; ledger critical section is tiny */
+  }
+}
+
+export function resolveG7LedgerPath(env: NodeJS.ProcessEnv = process.env): string {
+  const p = String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim();
+  if (!p) throw new Error('g7_cost_ledger_path_missing');
+  return p;
+}
+
+export function readG7SharedLedger(env: NodeJS.ProcessEnv = process.env): G7SharedLedgerSnapshot {
+  const path = resolveG7LedgerPath(env);
+  const capCny = Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY);
+  if (!existsSync(path)) return { runningCostCny: 0, calls: [], capCny };
+  const lines = readFileSync(path, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
+  const calls: G7CallRecord[] = [];
+  let runningCostCny = 0;
+  for (const line of lines) {
+    const parsed = JSON.parse(line) as { row?: string; estimatedCostCny?: number };
+    // Skip reservation/release rows — settled calls only (compat for existing proofs).
+    if (parsed.row === 'reservation' || parsed.row === 'release') continue;
+    if (parsed.row && parsed.row !== 'call') continue;
+    const row = parsed as unknown as G7CallRecord;
+    if (typeof row.estimatedCostCny !== 'number' || typeof (row as { actualModel?: string }).actualModel !== 'string') continue;
+    calls.push(row);
+    runningCostCny += row.estimatedCostCny;
+  }
+  return { runningCostCny, calls, capCny };
+}
+
+export function recordG7CallToSharedLedger(
+  call: Omit<G7CallRecord, 'estimatedCostCny'> & { estimatedCostCny?: number },
+  env: NodeJS.ProcessEnv = process.env,
+): G7SharedLedgerSnapshot {
+  const path = resolveG7LedgerPath(env);
+  mkdirSync(dirname(path), { recursive: true });
+  const lock = `${path}.lock`;
+  const started = Date.now();
+  while (true) {
+    let fd: number | undefined;
+    try {
+      fd = openSync(lock, 'wx');
+      const current = existsSync(path)
+        ? readG7SharedLedger(env)
+        : { runningCostCny: 0, calls: [] as G7CallRecord[], capCny: Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY) };
+      const next = recordCallAndAccumulateCost(current, call, env);
+      const payload = `${next.calls.map((c) => JSON.stringify(c)).join('\n')}${next.calls.length ? '\n' : ''}`;
+      writeFileSync(path, payload, 'utf8');
+      return next;
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err?.code === 'EEXIST') {
+        if (Date.now() - started > 5000) throw new Error('g7_cost_ledger_lock_timeout');
+        sleepMs(5);
+        continue;
+      }
+      throw error;
+    } finally {
+      if (fd !== undefined) {
+        try { closeSync(fd); } catch { /* ignore */ }
+        try { unlinkSync(lock); } catch { /* ignore */ }
+      }
+    }
+  }
+}
+
+
+/** G7 hard-disable for native paths that do not go through openAICompatibleClient. */
+export function assertG7UnguardedPathDisabled(path: G7DisabledPath, env: NodeJS.ProcessEnv = process.env): void {
+  if (!isG7FreetierReproveEnabled(env)) return;
+  throw new Error(`g7_path_disabled:${path}`);
+}
+
+export function resolveG7RunTokenCap(env: NodeJS.ProcessEnv = process.env): number {
+  const n = Number(env.G7_RUN_TOKEN_CAP ?? G7_RUN_TOKEN_CAP_DEFAULT);
+  if (!Number.isFinite(n) || n < 1) throw new Error('g7_run_token_cap_invalid');
+  return n;
+}
+
+export function resolveG7RunCallCap(env: NodeJS.ProcessEnv = process.env): number {
+  const n = Number(env.G7_RUN_CALL_CAP ?? G7_RUN_CALL_CAP_DEFAULT);
+  if (!Number.isFinite(n) || n < 1) throw new Error('g7_run_call_cap_invalid');
+  return n;
+}
+
+export type G7ReservationRecord = {
+  readonly row: 'reservation';
+  readonly reservationId: string;
+  readonly model: string;
+  readonly reservedCostCny: number;
+  readonly reservedInputTokens: number;
+  readonly reservedOutputTokens: number;
+  readonly createdAt: string;
+};
+
+export type G7ReleaseRecord = {
+  readonly row: 'release';
+  readonly reservationId: string;
+  readonly at: string;
+};
+
+export type G7LedgerRow =
+  | (G7CallRecord & { readonly row?: 'call' })
+  | G7ReservationRecord
+  | G7ReleaseRecord;
+
+export type G7SharedLedgerView = G7RunCostState & {
+  readonly reservedCostCny: number;
+  readonly activeReservationCount: number;
+  readonly totalTokens: number;
+  readonly callCount: number;
+  readonly tokenCap: number;
+  readonly callCap: number;
+  readonly activeReservations: readonly G7ReservationRecord[];
+};
+
+function withG7LedgerLock<T>(env: NodeJS.ProcessEnv, fn: (path: string) => T): T {
+  const path = resolveG7LedgerPath(env);
+  mkdirSync(dirname(path), { recursive: true });
+  const lock = `${path}.lock`;
+  const started = Date.now();
+  while (true) {
+    let fd: number | undefined;
+    try {
+      fd = openSync(lock, 'wx');
+      return fn(path);
+    } catch (error) {
+      const err = error as NodeJS.ErrnoException;
+      if (err?.code === 'EEXIST') {
+        if (Date.now() - started > 5000) throw new Error('g7_cost_ledger_lock_timeout');
+        sleepMs(5);
+        continue;
+      }
+      throw error;
+    } finally {
+      if (fd !== undefined) {
+        try { closeSync(fd); } catch { /* ignore */ }
+        try { unlinkSync(lock); } catch { /* ignore */ }
+      }
+    }
+  }
+}
+
+function readG7LedgerRows(path: string): G7LedgerRow[] {
+  if (!existsSync(path)) return [];
+  return readFileSync(path, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean).map((line) => JSON.parse(line) as G7LedgerRow);
+}
+
+function writeG7LedgerRows(path: string, rows: readonly G7LedgerRow[]): void {
+  const payload = `${rows.map((r) => JSON.stringify(r)).join('\n')}${rows.length ? '\n' : ''}`;
+  writeFileSync(path, payload, 'utf8');
+}
+
+export function inspectG7SharedLedger(env: NodeJS.ProcessEnv = process.env): G7SharedLedgerView {
+  const path = resolveG7LedgerPath(env);
+  return inspectG7SharedLedgerUnlocked(path, env);
+}
+
+/** Reserve BEFORE dispatch. Refuses when settled+reserved+estimate would exceed ¥cap, token cap, or call cap. */
+export function reserveG7CallOnSharedLedger(
+  args: {
+    model: string;
+    estimatedInputTokens: number;
+    maxOutputTokens: number;
+    reservationId?: string;
+  },
+  env: NodeJS.ProcessEnv = process.env,
+): G7ReservationRecord {
+  assertModelAllowedForTest(args.model, env);
+  const reservedCostCny = estimateCallCostCny({
+    model: args.model,
+    inputTokens: Math.max(0, args.estimatedInputTokens),
+    outputTokens: Math.max(0, args.maxOutputTokens),
+  });
+  const reservation: G7ReservationRecord = {
+    row: 'reservation',
+    reservationId: args.reservationId ?? `rsv_${Date.now()}_${Math.random().toString(36).slice(2, 10)}`,
+    model: args.model,
+    reservedCostCny,
+    reservedInputTokens: Math.max(0, args.estimatedInputTokens),
+    reservedOutputTokens: Math.max(0, args.maxOutputTokens),
+    createdAt: new Date().toISOString(),
+  };
+  return withG7LedgerLock(env, (path) => {
+    const view = inspectG7SharedLedger(env);
+    if (view.callCount + view.activeReservationCount + 1 > view.callCap) {
+      throw new Error(`g7_call_cap_exceeded:CALL_CAP:count=${view.callCount + view.activeReservationCount}:cap=${view.callCap}`);
+    }
+    const nextTokens = view.totalTokens + reservation.reservedInputTokens + reservation.reservedOutputTokens;
+    if (nextTokens > view.tokenCap) {
+      throw new Error(`g7_token_cap_exceeded:TOKEN_CAP:tokens=${nextTokens}:cap=${view.tokenCap}`);
+    }
+    const nextCost = view.runningCostCny + view.reservedCostCny + reservation.reservedCostCny;
+    if (nextCost > view.capCny) {
+      throw new Error(`g7_cost_cap_exceeded:COST_CAP:running=${nextCost}:cap=${view.capCny}`);
+    }
+    const rows = readG7LedgerRows(path);
+    rows.push(reservation);
+    writeG7LedgerRows(path, rows);
+    return reservation;
+  });
+}
+
+export function releaseG7ReservationOnSharedLedger(
+  reservationId: string,
+  env: NodeJS.ProcessEnv = process.env,
+): void {
+  withG7LedgerLock(env, (path) => {
+    const rows = readG7LedgerRows(path);
+    rows.push({ row: 'release', reservationId, at: new Date().toISOString() });
+    writeG7LedgerRows(path, rows);
+  });
+}
+
+/** After a successful call: release reservation and append settled call (reconcile with actual usage). */
+export function finalizeG7ReservationOnSharedLedger(
+  reservationId: string,
+  call: Omit<G7CallRecord, 'estimatedCostCny'> & { estimatedCostCny?: number },
+  env: NodeJS.ProcessEnv = process.env,
+): G7SharedLedgerView {
+  return withG7LedgerLock(env, (path) => {
+    assertModelAllowedForTest(call.actualModel, env);
+    const estimatedCostCny = call.estimatedCostCny ?? estimateCallCostCny({
+      model: call.actualModel,
+      inputTokens: call.inputTokens,
+      outputTokens: call.outputTokens,
+      audioSeconds: call.audioSeconds,
+    });
+    const rows = readG7LedgerRows(path);
+    rows.push({ row: 'release', reservationId, at: new Date().toISOString() });
+    const full = Object.freeze({ ...call, estimatedCostCny, row: 'call' as const });
+    rows.push(full as G7LedgerRow);
+    // Soft reconcile: refuse only if settled cost alone exceeds cap (reserve already held the bound).
+    let settled = 0;
+    for (const r of rows) {
+      if ((r as { row?: string }).row === 'call' || (!(r as { row?: string }).row && typeof (r as G7CallRecord).estimatedCostCny === 'number' && typeof (r as G7CallRecord).actualModel === 'string')) {
+        if ((r as { row?: string }).row === 'reservation' || (r as { row?: string }).row === 'release') continue;
+        if ((r as { row?: string }).row && (r as { row?: string }).row !== 'call') continue;
+        if (typeof (r as G7CallRecord).estimatedCostCny === 'number' && typeof (r as G7CallRecord).actualModel === 'string') {
+          settled += (r as G7CallRecord).estimatedCostCny;
+        }
+      }
+    }
+    const capCny = Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY);
+    if (settled > capCny) {
+      throw new Error(`g7_cost_cap_exceeded:COST_CAP:running=${settled}:cap=${capCny}`);
+    }
+    writeG7LedgerRows(path, rows);
+    // Build view without re-entering the lock.
+    return inspectG7SharedLedgerUnlocked(path, env);
+  });
+}
+
+function inspectG7SharedLedgerUnlocked(path: string, env: NodeJS.ProcessEnv): G7SharedLedgerView {
+  const capCny = Number(env.G7_RUN_COST_CAP_CNY ?? G7_RUN_COST_CAP_CNY);
+  const tokenCap = resolveG7RunTokenCap(env);
+  const callCap = resolveG7RunCallCap(env);
+  const rows = readG7LedgerRows(path);
+  const calls: G7CallRecord[] = [];
+  const released = new Set<string>();
+  for (const row of rows) {
+    if ((row as G7ReleaseRecord).row === 'release') released.add((row as G7ReleaseRecord).reservationId);
+  }
+  const activeReservations: G7ReservationRecord[] = [];
+  let runningCostCny = 0;
+  let totalTokens = 0;
+  for (const row of rows) {
+    if ((row as G7ReservationRecord).row === 'reservation') {
+      const r = row as G7ReservationRecord;
+      if (!released.has(r.reservationId)) {
+        activeReservations.push(r);
+        totalTokens += r.reservedInputTokens + r.reservedOutputTokens;
+      }
+      continue;
+    }
+    if ((row as G7ReleaseRecord).row === 'release') continue;
+    const call = row as G7CallRecord;
+    if (typeof call.estimatedCostCny !== 'number' || typeof call.actualModel !== 'string') continue;
+    calls.push(call);
+    runningCostCny += call.estimatedCostCny;
+    totalTokens += (call.inputTokens ?? 0) + (call.outputTokens ?? 0);
+  }
+  const reservedCostCny = activeReservations.reduce((s, r) => s + r.reservedCostCny, 0);
+  return {
+    runningCostCny,
+    calls,
+    capCny,
+    reservedCostCny,
+    activeReservationCount: activeReservations.length,
+    totalTokens,
+    callCount: calls.length,
+    tokenCap,
+    callCap,
+    activeReservations,
+  };
+}
+

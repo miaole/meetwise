@@ -2,6 +2,7 @@ import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { createHmac, randomUUID } from 'node:crypto';
 import {
   beginPrivacyPreviewErasure, getPrivacyPreviewReceipt, listPrivacyPreviewReceipts,
+  beginResumeSoftDelete,
 } from '@meetwise/db';
 import type { PrivacyPreviewBeginDto } from '@meetwise/contracts';
 import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
@@ -32,12 +33,25 @@ export class PrivacyService {
     return { consented, purpose, policyVersion: POLICY_VERSION };
   }
 
-  // 数据可携:导出结构化档案,不含加密原文/明文 PII。
+  /**
+   * G4(RESUME-GROUNDING rev3):撤回=停止后续使用——删除该 purpose 的同意行,worker 侧同意门
+   * (consent SELECT 门,resume.service.ts:95 同形先例)随即读到缺行并停止 facts 注入。
+   * 已落 checkpoint/事件**不回溯清除**(Non-claims 既有条文继续覆盖;撤回端点/policy 升版通用化归 #81 W5)。
+   */
+  async withdrawConsent(principal: string, purpose = 'resume_processing') {
+    await this.db.asPrincipal(principal, async (c) => {
+      await c.query('DELETE FROM consent_record WHERE purpose=$1', [purpose]);
+    });
+    return { withdrawn: true, purpose, policyVersion: POLICY_VERSION };
+  }
+
+  // 数据可携:导出结构化档案,不含加密原文/明文 PII。已软删（erasure_fenced/erased）的
+  // 简历与已围栏面试不再进导出（数据可携不含已删数据）;consent_record 照旧——同意史是审计面。
   export(principal: string) {
     return this.db.asPrincipal(principal, async (c) => {
-      const resumes = (await c.query('SELECT id, status FROM resume')).rows;
-      const interviews = (await c.query('SELECT id, status FROM interview')).rows;
-      const assessments = (await c.query('SELECT interview_id, overall FROM assessment_report')).rows;
+      const resumes = (await c.query("SELECT id, status FROM resume WHERE status NOT IN ('erasure_fenced','erased')")).rows;
+      const interviews = (await c.query('SELECT id, status FROM interview WHERE interview_privacy_active(interview.id)')).rows;
+      const assessments = (await c.query('SELECT interview_id, overall FROM assessment_report WHERE interview_privacy_active(assessment_report.interview_id)')).rows;
       const consents = (await c.query('SELECT purpose, policy_version, granted_at FROM consent_record')).rows;
       return { exportedAt: new Date().toISOString(), resumes, interviews, assessments, consents };
     });
@@ -57,14 +71,31 @@ export class PrivacyService {
   }
 
   /**
-   * The former all-resumes synchronous DELETE had no stable C/B references,
-   * request ledger, fences, or external receipts.  It must fail closed until
-   * the per-resume asynchronous state machine is implemented; returning a
-   * successful response here would be a false privacy-deletion claim.
+   * S1 软删受理（UNSTUB-ERASE rev2 · D6 最低集）：遍历 owner 全部 active 态简历，
+   * 逐份走 0152 受审墓碑函数（同一事务，任一失败整体回滚=无部分态），202 +
+   * `mode:'logical'` + `purgePending:true`。OCR 派生痕迹（`ai_invocation_trace`/
+   * `ai_model_invocation` 的 resume.vision 面）**登记不删**（S2 清除）。空集（无
+   * active 简历）→ 202 `resumesFenced:0` 同形。**不撒谎边界**：本地围栏 ≠ 物理清除，
+   * `purgePending:true` 恒真直至 S2 简历轨 claim/purge worker 闭合。
    */
-  deleteResumeData(_principal: string): never {
-    // 同步全量删除会伪称完成。盘点未齐前 fail-closed，见 privacy-deletion-sink-inventory.md。
-    throw new HttpException({ error: 'resume_erasure_migration_in_progress' }, HttpStatus.SERVICE_UNAVAILABLE);
+  async deleteResumeData(principal: string) {
+    return this.db.asPrincipal(principal, async (c) => {
+      const active = await c.query(
+        "SELECT id FROM resume WHERE owner_user_id=$1 AND status IN ('uploaded','ingesting','ingested','failed') ORDER BY created_at, id",
+        [principal],
+      );
+      let firstRequestId: string | null = null;
+      for (const row of active.rows) {
+        const receipt = await beginResumeSoftDelete(c, principal, row.id);
+        if (!firstRequestId) firstRequestId = receipt.requestId;
+      }
+      return {
+        mode: 'logical' as const,
+        purgePending: true as const,
+        resumesFenced: active.rowCount ?? 0,
+        requestId: firstRequestId,
+      };
+    });
   }
 
   private hashPreviewIdempotencyKey(raw: string | undefined): string {

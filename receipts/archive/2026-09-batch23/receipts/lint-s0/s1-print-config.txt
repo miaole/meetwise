@@ -1,0 +1,114 @@
+# LINT-DESIGN S1 首项冒烟 — eslint --print-config（S0 §1.4 移交项）
+# date: 2026-10-10  cwd: packages/config
+# cmd: pnpm exec eslint --config eslint.config.base.mjs --print-config ./__s1_print_config_probe__.ts（合成路径·纯配置解析查询·零文件 lint）
+PRINT-CONFIG-EXIT=0
+--- assertion ---
+enabled-rule-count = 4
+@typescript-eslint/no-explicit-any => severity 1
+@typescript-eslint/naming-convention => severity 1
+@typescript-eslint/no-unused-vars => severity 1
+import/order => severity 1
+non-design rules enabled = []
+parser = typescript-eslint/parser@8.71.1
+plugins = ["@","@typescript-eslint:@typescript-eslint/eslint-plugin@8.71.1","import"]
+FOUR-RULES-WARN-ASSERT-OK = true
+--- raw print-config JSON ---
+{
+  "linterOptions": {
+    "reportUnusedDisableDirectives": 1
+  },
+  "rules": {
+    "@typescript-eslint/no-explicit-any": [
+      1
+    ],
+    "@typescript-eslint/naming-convention": [
+      1,
+      {
+        "selector": "interface",
+        "format": [
+          "PascalCase"
+        ],
+        "custom": {
+          "regex": "^I[A-Z]",
+          "match": false
+        },
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": [
+          "class",
+          "typeAlias"
+        ],
+        "format": [
+          "PascalCase"
+        ],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "variable",
+        "format": [
+          "camelCase",
+          "UPPER_CASE"
+        ],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "function",
+        "format": [
+          "camelCase"
+        ],
+        "leadingUnderscore": "allow"
+      },
+      {
+        "selector": "memberLike",
+        "format": [
+          "camelCase"
+        ],
+        "leadingUnderscore": "allow"
+      }
+    ],
+    "@typescript-eslint/no-unused-vars": [
+      1,
+      {
+        "argsIgnorePattern": "^_"
+      }
+    ],
+    "import/order": [
+      1,
+      {
+        "groups": [
+          "builtin",
+          "external",
+          "internal",
+          "parent",
+          "sibling",
+          "index"
+        ],
+        "pathGroups": [
+          {
+            "pattern": "@meetwise/**",
+            "group": "internal",
+            "position": "after"
+          }
+        ],
+        "pathGroupsExcludedImportTypes": [],
+        "distinctGroup": true,
+        "sortTypesGroup": false,
+        "named": false,
+        "warnOnUnassignedImports": false
+      }
+    ]
+  },
+  "plugins": [
+    "@",
+    "@typescript-eslint:@typescript-eslint/eslint-plugin@8.71.1",
+    "import"
+  ],
+  "language": "@/js",
+  "languageOptions": {
+    "sourceType": "module",
+    "ecmaVersion": 2026,
+    "parser": "typescript-eslint/parser@8.71.1",
+    "parserOptions": {}
+  }
+}

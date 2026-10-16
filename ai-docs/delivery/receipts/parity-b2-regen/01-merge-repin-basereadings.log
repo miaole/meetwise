@@ -1,0 +1,26 @@
+# [1] 并线+重钉 (2026-10-11 EXEC)
+## merge feat/mysql-schema-skeleton @65bdf3f6 (incoming 2 commits docs-only: 65bdf3f6+489c95b7; diffstat: execution-master-checklist.md +13, product-campaign-LEDGER.md 4)
+merge made by 'ort' strategy, 2 files changed, 15 insertions(+), 2 deletions(-), zero conflict; merge commit 0a64400b
+
+## §0 eight blob anchors re-pin (pre-merge @89530dea vs post-merge @0a64400b: all byte-identical)
+100644 blob 660ee8bb4bd0c50eb1ed848642f90694f4abec12	ai-docs/testing/e2e-parity-allowlist.json
+100644 blob bc66c1df90949c5d589e3fb684856ed967245a67	ai-docs/testing/e2e-parity-baseline.json
+100644 blob 7e65a92101a56b0b65f7c5513ed2e172ce5d327e	ai-docs/testing/e2e-parity-baseline.md
+100644 blob 4cb481aa6e8026b5fe2af556bc8eae0cbebd526b	e2e/full.e2e.ts
+100644 blob e748be25b84599ae93eb5d941a56652e4c8521d6	e2e/helpers/e2e-helpers.proof.ts
+100644 blob 4aee4a29f2c41314dcffeee13eb980900191e8df	e2e/helpers/interview.ts
+100644 blob 403949840af47fd690594db1fff9ce58aefbed8b	scripts/e2e-parity-check.mjs
+100644 blob 0e7d613997c53e4ed14a34f1bafdc43452ea57b8	scripts/e2e-parity.proof.mjs
+
+## pre-regen red reading (post-merge tree) node scripts/e2e-parity-check.mjs
+"valid": false
+errors=101 {"fileCount":7,"testCount":39,"assertionCount":428,"floors":{"testCount":48,"assertionCount":377},"effectiveFloors":{"testCount":37,"assertionCount":350},"allowlistCount":7,"releaseEvidence":false}
+EXIT=1 (pre-regen red retained: 101 display lines)
+
+## base sibling gates (post-merge, pre-regen)
+PASS generation-trust: policy encoded; skip-as-pass forbidden; claimDone=false; releaseEvidence=false; unreviewed generation cannot be READY
+generation-trust EXIT=0
+   1 PTP_CODE_HOST_URL
+   2 PTP_EXTERNAL_REFERENCE_LINK
+  67 PTP_LOCAL_PATH
+docs:check EXIT=1

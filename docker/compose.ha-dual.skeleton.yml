@@ -1,0 +1,68 @@
+# SKELETON ONLY — Meetwise local dual-API draft.
+# releaseEvidence=false · Not HA · 非生产拓扑 · 禁止合入生产 HA 叙事
+#
+# 目的：给未来「双实例 + 故障注入」prove 留 compose 形状；
+# 本文件默认不拉镜像、不声称可上线。真跑需另文授权 + 共享 DB/Redis 凭证。
+#
+# 静校：
+#   docker compose -f docker/compose.ha-dual.skeleton.yml config
+# 期望：EXIT=0（有插件时）≠ 实例已起 ≠ HA
+#
+# 未来 fault-inject（文档占位，勿当已绿）：
+#   docker compose -f docker/compose.ha-dual.skeleton.yml stop api-a
+#   # 然后证明 api-b 仍 /livez 且共享态可读 — 收据见 harness/ha-track.skeleton.md
+
+name: meetwise-ha-dual-skeleton
+
+services:
+  # Placeholders — images intentionally unset / commented for fail-closed local use.
+  # Replace with real backend image only under an authorized prove runbook.
+  api-a:
+    profiles: ["ha-dual-future"]
+    image: ${MEETWISE_HA_BACKEND_IMAGE:-meetwise-backend:skeleton-not-for-prod}
+    working_dir: /app/apps/api
+    environment:
+      PORT: "8787"
+      HOST: 0.0.0.0
+      INSTANCE_ID: api-a
+      # Shared store / DB / Redis must be injected by prove runbook — not in git secrets.
+    ports:
+      - "127.0.0.1:18787:8787"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/livez').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
+
+  api-b:
+    profiles: ["ha-dual-future"]
+    image: ${MEETWISE_HA_BACKEND_IMAGE:-meetwise-backend:skeleton-not-for-prod}
+    working_dir: /app/apps/api
+    environment:
+      PORT: "8787"
+      HOST: 0.0.0.0
+      INSTANCE_ID: api-b
+    ports:
+      - "127.0.0.1:18788:8787"
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "node",
+          "-e",
+          "fetch('http://127.0.0.1:8787/livez').then(r=>{if(!r.ok)process.exit(1)}).catch(()=>process.exit(1))",
+        ]
+      interval: 10s
+      timeout: 3s
+      retries: 6
+      start_period: 20s
+
+# No volumes / cloud secrets here. Shared MySQL+Redis+Qdrant belong to
+# compose.mysql-local.yml / authorized staging — not this skeleton.

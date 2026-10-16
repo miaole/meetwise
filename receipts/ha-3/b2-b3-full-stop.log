@@ -1,0 +1,16 @@
+== B2/B3: full PG stop window ==
+pre: readyz/api=200 livez=200
+== B3: in-flight business request during stop window (GET /interview/IV_HA3B6/events) ==
+{"error":"internal_error"}
+HTTP=500 TIME=0.074926
+docker stop done at +259ms
+== window probes ==
+livez=200 (expect 200, api 进程存活)
+readyz/api=503 (expect 503)
+api metrics pool counters: # TYPE meetwise_db_pool_errors_total counter meetwise_db_pool_errors_total{purpose="api"} 3 meetwise_db_pool_errors_total{purpose="sse-listen"} 4 
+worker state: exited exit=0
+== recovery: docker start ==
+pg_isready at +829ms
+readyz/api 200 at +862ms
+readyz/api final=200
+uncaughtException api=0

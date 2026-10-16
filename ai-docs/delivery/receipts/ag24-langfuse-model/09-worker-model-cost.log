@@ -1,0 +1,16 @@
+
+> @meetwise/worker@0.0.0 prove:model-cost /Users/miaole/Desktop/golucky/meetwise-ag24/apps/worker
+> tsx test/model-cost-governance.proof.ts
+
+PASS  生产不能 observation-only 启动
+PASS  生产缺模型价格、预算或上下文上限配置即拒绝启动
+PASS  价格条目必须绑定实际 primary 模型，不能记错模型名
+PASS  模型窗口不足以容纳输入、输出和安全余量时拒绝启动
+PASS  生产配置生成 primary 与 fast 两个受限费用策略
+PASS  启用备用端点（以备用 Key 挂载为准）时，两个备用模型均须有独立费率且被加载
+PASS  仅有 backup profile 没有 backup Key 时不启用备用端点（仅 primary/fast 2 行，不 reject）
+PASS  旧自由 URL（MODEL_BASE_URL/MODEL_BACKUP_BASE_URL）出现即拒绝启动（endpoint 治理 fail-closed）
+PASS  运行时价格校验派生完整的 provider/model/region/revision/rate/source 绑定
+PASS  任一精确价格行缺失时 worker 在启动消费者前 fail-closed
+
+✓ 模型费用生产配置门禁全部通过

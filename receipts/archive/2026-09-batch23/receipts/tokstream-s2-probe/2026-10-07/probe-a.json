@@ -1,0 +1,39 @@
+{
+  "probe": "A",
+  "attempts": [
+    {
+      "probe": "A",
+      "startedAt": "2026-10-09T01:52:20.457Z",
+      "outcome": {
+        "class": "completed",
+        "status": 200,
+        "transient": false
+      },
+      "facts": {
+        "ttfbMs": 1386,
+        "totalMs": 1390,
+        "bytes": 399,
+        "model": "qwen-plus",
+        "familyCredited": true,
+        "shape": {
+          "choicesCount": 1,
+          "contentFace": "choices[0].message.content (single segment)",
+          "finishReason": "stop",
+          "usagePresent": true,
+          "idPresent": true,
+          "createdPresent": true
+        },
+        "usage": {
+          "total_tokens": 75,
+          "completion_tokens": 43,
+          "prompt_tokens": 32,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "content": "SSE 是单向（服务器→客户端）的 HTTP 长连接，基于文本；WebSocket 是双向、全双工的独立协议，支持二进制与文本，需握手建立连接。",
+        "contentSha256": "97ec512b2882ae336bb48b2a3cc56fdceaa3838065b0756f7d361c7f519d9660"
+      }
+    }
+  ]
+}

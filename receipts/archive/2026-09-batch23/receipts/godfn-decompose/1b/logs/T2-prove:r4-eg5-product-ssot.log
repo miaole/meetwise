@@ -1,0 +1,31 @@
+
+> @meetwise/worker@0.0.0 prove:r4-eg5-product-ssot /Users/miaole/Desktop/golucky/meetwise-line-godfn1b/apps/worker
+> tsx test/r4-eg5-product-ssot-evidence.proof.ts
+
+EG5 product SSOT flip authorize honesty evidence prove
+EXIT=0 = evidence emitted · ≠ EG5/product SSOT flipped/G-R4-5/R4/题域 product closed · Ban forge · Ban silent flip · Ban claim from EG1–EG4 / meta prove alone · releaseEvidence=false
+
+──────── D0 anchors present ────────
+PASS  D0 emitter wired
+PASS  D0 harness present
+PASS  D0 harness pins Ban forge + Ban idle EG1–EG4 + EG5 STILL OPEN + Ban silent flip
+
+──────── D1 live assessor (EG1–EG4 present · product SSOT NOT flipped · honesty pins) ────────
+FAIL  D1 eg1ThroughEg4EvidencePresent
+PASS  D1 productSsotSurfacesNotFlipped
+PASS  D1 eg5HarnessPinsStillOpen
+PASS  D1 statusPinsProductNotClosed
+PASS  D1 priorEgEvidenceAloneDoesNotAuthorizeFlip
+PASS  D1 metaProveAloneDoesNotClose
+FAIL  D1 hasProductSsotAuthorizeEvidence
+
+──────── D2 emit evidence (Ban forge · Ban silent flip) ────────
+FAIL  D2 emitted=true — reason=eg1_through_eg4_evidence_missing
+
+──────── D3 hard pins ────────
+PASS  D3 ≠ claim EG5 / product SSOT flipped from emit alone
+PASS  D3 ≠ idle EG1/EG2/EG3/EG4 / 5×meta as fake EG5 close
+PASS  D3 Ban forge · Ban invent coveredCount · Ban silent flip · Ban claim from EG1–EG4 / meta prove alone
+
+FAIL  r4-eg5-product-ssot-evidence prove (3 failures)
+ ELIFECYCLE  Command failed with exit code 1.

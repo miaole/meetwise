@@ -1,0 +1,14 @@
+# LINT-DESIGN S1 commit numstat（staged 全量=commit 终值）
+22	0	ai-docs/delivery/harness/lint-s0-REQUEST.md
+15	0	ai-docs/delivery/receipts/lint-s0/s1-prettier-check.txt
+114	0	ai-docs/delivery/receipts/lint-s0/s1-print-config.txt
+14	0	ai-docs/delivery/receipts/lint-s0/s1-sha256.txt
+31	0	ai-docs/delivery/receipts/lint-s0/s1-stopcond-resolver.txt
+21	0	ai-docs/delivery/receipts/lint-s0/s1-zero-diff.txt
+83	0	packages/config/eslint.config.base.mjs
+2	0	packages/config/package.json
+20	0	packages/config/prettier.config.mjs
+
+零触碰面核查（以下应零输出）：
+（空=零污染）
+（本件自身 = 第 10 文件·行数以 commit numstat 为准）

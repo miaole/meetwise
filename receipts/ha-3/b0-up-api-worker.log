@@ -1,0 +1,6 @@
+CMD: MEETWISE_HA3_PROOF_AUTHORIZED=1 docker compose -f docker/compose.ha-3-proof.yml up -d api-proof worker-proof
+ Container meetwise-ha-3-proof-api Starting 
+ Container meetwise-ha-3-proof-worker Starting 
+ Container meetwise-ha-3-proof-api Started 
+ Container meetwise-ha-3-proof-worker Started 
+EXIT=0

@@ -5,7 +5,7 @@ description: B端招聘 入驻·席位·题库·匹配·隔离·录用 业务用
 type: reference
 scope: shared
 level: spec
-status: active
+status: draft
 owner: product
 related:
   - ./README.md
@@ -15,7 +15,43 @@ related:
 
 # bend-recruiting 用例+测试用例（评审收口·最终版）
 
-> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：招聘方岗位发布（job_posting）、候选人投递/申请（job_application）、人才库、C↔B **多方 RLS 物理隔离**闭环（投递→招聘方看到申请人；e2e proof 覆盖，含 B 端 RLS）。**🟠 部分 / ⬜ 未建**：文内 TenantEnrollment 入驻验证全生命周期、席位配额状态机（seat frozen/reclaimed）、QuestionItem 双签核/发布/隔离题库、批量匹配排名、DSAR 全流程等多为规格；候选人 AI 面试复用同一面试引擎但 B 端专属评分/分数自报仍有缺口。招聘域骨架已建，整套 28 UC 未全部落地。
+> **🔎 实现状态（对齐真实代码 · 2026-07）** — 本文是 TARGET 规格。**✅ 已实现+接线**：招聘方岗位发布（job_posting）、候选人投递/申请（job_application）、人才库、C↔B **多方 RLS 物理隔离**闭环（投递→招聘方看到申请人；e2e proof 覆盖，含 B 端 RLS）。**🟠 部分 / ⬜ 未建**：文内 TenantEnrollment 入驻验证全生命周期、席位配额状态机（seat frozen/reclaimed）、QuestionItem 双签核/发布/隔离题库、批量匹配排名、DSAR 全流程等多为规格；候选人 AI 面试复用同一面试引擎但 B 端专属评分/分数自报仍有缺口。招聘域骨架已建，整套 29 UC 未全部落地。
+
+> **实现态抽查清单（29 UC × 三态 · 2026-10-11 I5 口径刀标注）**——三态口径（**已实现 / 仅设计 / 有意关闭**）沿 `../../delivery/adr-diag-disposition-w9.md`（coordinator-approved 决议 SSOT·此处只引用口径）：**已实现**=代码已落且在现链运行；**仅设计**=规格已收、代码未落；**有意关闭**=经产品评估明确关闭（本域现 0 条）。本清单为逐 UC 颗粒度，域级导语见上（2026-07 对齐块），冲突处以本清单（更新时点）为准。标注层操作：规格 case 结构与七类 TC 矩阵零改写。
+>
+> | UC | 实现态 | 依据（2026-10-11 码面实查） |
+> |---|---|---|
+> | UC-ENT-001 | 仅设计 | TenantEnrollment 状态机/对公资质认证未落（仓库无 tenant_enrollment 表） |
+> | UC-ENT-002 | 仅设计 | 企业注销 offboarding 未落 |
+> | UC-ENT-003 | 仅设计 | 资质周期复核/pending TTL 定时器未落 |
+> | UC-SEAT-001 | 仅设计 | 租户成员/邀请/席位表与 API 未落（recruiter 域现只有岗位/候选人申请/人才库） |
+> | UC-SEAT-002 | 仅设计 | 成员移除守卫未落（无成员体系） |
+> | UC-SEAT-003 | 仅设计 | SCIM 同步未落 |
+> | UC-SEAT-004 | 仅设计 | owner 转移与唯一性未落 |
+> | UC-SEAT-005 | 仅设计 | 席位降配处置未落（无席位账） |
+> | UC-QB-001 | 仅设计 | 题库导入未落（`packages/db/migrations/0001_baseline.sql` B 端共享题库明示为未来扩展） |
+> | UC-QB-002 | 仅设计 | 裸题 AI 富化未落 |
+> | UC-QB-003 | 仅设计 | tech+HR 双签核未落 |
+> | UC-QB-004 | 仅设计 | PII 泛化管道未落 |
+> | UC-QB-005 | 仅设计 | 版本 pin/泄题 kill-switch/快照未落 |
+> | UC-QB-006 | 仅设计 | 已发布题目纠错召回未落 |
+> | UC-MATCH-001 | 仅设计 | 批量匹配排名未落（现=`listJobCandidates` 投影·无排名与证据 span） |
+> | UC-MATCH-003 | 仅设计 | 证据 span 快照绑定未落 |
+> | UC-TALENT-001 | 已实现 | 人才库已接线（`apps/api/src/modules/recruiter/recruiter.service.ts` listTalentPool·跨自有岗位聚合） |
+> | UC-AIIV-001 | 已实现 | 邀请候选人走同一面试引擎（inviteCandidate→岗位 competencies 驱动出题）；B 端专属评分/分数自报缺口如实保留（🟠） |
+> | UC-AIIV-002 | 已实现 | 复用引擎安全护栏（越狱/危机/造假闸在 adaptive 面试链） |
+> | UC-AIIV-003 | 仅设计 | 安全误判申诉回路未落 |
+> | UC-AIIV-004 | 仅设计 | B 端报告/复盘重生成限流未落（C 端 `POST /interview/:id/report/retry` 系 C 端报告面·非本 UC） |
+> | UC-AIIV-005 | 已实现 | 收口链已落（finalize/attempt/事件账本）；0082 score hold 生效期现实=**无分收口** `assessment_unavailable`/`score=NULL`——见 UC-AIIV-005 文内标注（0–100 分形=校准门通过后目标态） |
+> | UC-CONS-001 | 仅设计 | B 端候选人同意流未落（C 端 resume_processing 同意在 privacy 域/cend-identity-account 域承载） |
+> | UC-CONS-002 | 仅设计 | B 端 DSAR 导出/删除未落（C 端隐私预览导出/软删部分实现） |
+> | UC-CONS-003 | 仅设计 | 删除权 vs 法定保存冲突处置未落 |
+> | UC-COMMERCE-001 | 已实现 | 沙箱口径：commerce-webhook/payment-callback 控制器 + outbox 对账已接线；真实 PSP 接入待续（🟡） |
+> | UC-DECISION-001 | 仅设计 | 录用/淘汰决策合规留痕未落 |
+> | UC-ISO-001 | 已实现 | RLS 越权隔离回归已落（`apps/web/e2e-ui/recruiting-bound.spec.ts` + rls proof） |
+> | UC-ISO-003 | 仅设计 | B 端混合并发压测/可观测性隔离未落（`scripts/run-performance-e2e.mjs` 为 C 端 API 并发门） |
+>
+> （计数自洽：已实现 6 · 仅设计 23 · 有意关闭 0 = 29。）
 
 > 收口原则：①七类 case 每条 UC 必标且必有对应 TC（标签≠覆盖，缺 TC 即不合格）；②每条异常/刁钻流落到一个机制——**状态机迁移** 或 **四原语**（CAS / 幂等键 / RLS principal 绑定 / 持久有序事件日志 LOG）；③验收可测（量化阈值/确定性断言）；④测试层修正：fake-model 只验机制管道与状态流转，模型能力（抗越狱/危机识别/抗注入/bias）一律 ai-eval；确定性数据断言归集成/数据层。本版已吸收全部评审意见（①–⑤ + 必补清单）。
 
@@ -606,6 +642,8 @@ IDOR / JWT 跨租 / 向量库（pgvector 命名空间）/ 缓存键 / LangGraph 
 | TC-AIIV-004-EX1 | 集成 | 生成失败→不计费不计次 |
 
 ### UC-AIIV-005 · 岗位面试评分不可用的可恢复收口（新增·真实 E2E 缺陷修复）
+
+> **实现态标注（2026-10-11 · I5 口径刀 · 与 `application-assessment-terminal.md` 二文互洽勘误）**：本 UC 的「`completed` 必有 0–100 服务端分数」形态已被迁移 `0082_b_side_score_calibration_hold.sql` 收口为**当前无分模式**——在 ScoreCard/校准/人工复核门（`SCOR-01/02/07`）通过前，岗位绑定面试只能以 `job_application.status=assessment_unavailable`、`score=NULL` 收口。收口链本体（可恢复终态/attempt 单调/事件账本/并发守卫）**已实现**。现行权威文=`application-assessment-terminal.md`（UC-ASSESSMENT-001）与 `../architecture/adr/0020-scorecard-authority-and-eligibility.md`。下文主流程/后置/验收/TC 中的「0–100 分/服务端推导分数」各句为**校准门通过后的目标态**，现状读法=以无分收口替换分数断言；case 结构与 TC 矩阵零改写（标注层勘误，沿 W9 三态口径）。
 **七类覆盖**：正常✓ 异常✓ 特殊✓ 逃逸✓ 高并发✓ 复杂✓ 刁钻✓
 
 - **角色**：候选人 / 招聘方 / 面试 Worker（后台任务进程）/ 人工复核队列。
@@ -641,6 +679,8 @@ IDOR / JWT 跨租 / 向量库（pgvector 命名空间）/ 缓存键 / LangGraph 
 | TC-AIIV-005-HC1 | 集成 | 20 个完成/重试并发请求→一个 CAS 胜者、每个 attempt 至多一笔 settle/release |
 | TC-AIIV-005-CX1 | E2E | 真实服务先出现评分不可用，再重试新 attempt；旧 attempt 不能写新申请，成功 attempt 可回填 |
 | TC-AIIV-005-TR1 | 集成 | 模拟延迟旧 worker 写入→`WHERE interview_id=current AND attempt=current` 影响行数 0 |
+
+（TC 表注（2026-10-11 · I5 口径刀）：上表各分数类断言在 `0082_b_side_score_calibration_hold.sql` 生效期读作**无分收口**断言——`completed`+分数 → `assessment_unavailable`+`score=NULL`、额度释放恰 1；TC 行本体零改写。现行权威=`application-assessment-terminal.md` UC-ASSESSMENT-001。）
 
 ---
 

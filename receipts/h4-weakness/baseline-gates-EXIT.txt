@@ -1,0 +1,7 @@
+web:prove EXIT=0
+interviews-actions EXIT=0
+web typecheck EXIT=0
+growth:prove EXIT=0
+memory:prove EXIT=0
+interview:prove EXIT=0
+neg:interview EXIT=0

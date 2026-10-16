@@ -1,0 +1,33 @@
+# [5] post-regen pre-commit gates (first attempt each)
+## e2e-parity:check
+"valid": true
+"errors": []
+  "stats": {
+    "fileCount": 7,
+    "testCount": 39,
+    "assertionCount": 428,
+    "floors": {
+      "testCount": 53,
+      "assertionCount": 472
+    },
+    "effectiveFloors": {
+      "testCount": 39,
+      "assertionCount": 428
+    },
+    "allowlistCount": 9,
+CHECK1-EXIT=0
+
+## e2e-parity:prove
+22
+PASS e2e-parity proof: 22 scenarios; releaseEvidence=false
+PROVE1-EXIT=0
+
+## generation-trust:prove
+PASS generation-trust: policy encoded; skip-as-pass forbidden; claimDone=false; releaseEvidence=false; unreviewed generation cannot be READY
+GENTRUST-EXIT=0
+
+## docs:check
+   1 PTP_CODE_HOST_URL
+   2 PTP_EXTERNAL_REFERENCE_LINK
+  67 PTP_LOCAL_PATH
+DOCSCHECK-EXIT=1

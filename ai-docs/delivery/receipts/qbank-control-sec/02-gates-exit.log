@@ -1,0 +1,18 @@
+# qbank-control-sec 断言门 EXIT 全表（2026-10-12 EXEC 亲跑·隔离库真迁移链 173 文件·est live=0）
+qbank-control-sec:prove        EXIT=0  26/26（新 proof·A1-A7/B1-B9/C1-C3）
+dbhy1:prove                    EXIT=0  28/28（P5-6 随锚+P5-11 换臂+P4⑤ 九豁免+P3 三残面登记）
+rag04-track-local:prove        EXIT=0  33 PASS（② 首臂翻面+半边两臂原值）
+rag-generation:prove           EXIT=0  40 PASS（:527-551 报错臂+scoped 边界臂+:8 import 修一行复活本门）
+qbank-handoff-closure:prove    EXIT=0  16/16（零文件改）
+qbank-control-role:prove       EXIT=0  12 PASS
+rag03-route:prove              EXIT=0  43 PASS
+rag03-filter-locus:prove       EXIT=0  12 PASS
+rag03c-exactk-observe:prove    EXIT=0  7 PASS
+rag03-hnsw-completeness:prove  EXIT=0  16/16（plpgsql→SQL 反转后回绿·HNSW_USED=true）
+qbank-retrieval-eval:prove     EXIT=0  9/9（逐 holdout 金标 scope）
+migrate:prove                  EXIT=0  117 PASS（全链含 0176）
+turbo typecheck --force        EXIT=0  3/3 0 cached
+docs:check                     EXIT=0  80 文件
+qbank-integrity-upgrade:prove  EXIT=1  基线同红（stash 对照同错同位·mig-runner 30084d98 schema_migrations_steps × 低权模拟·非本刀面）
+db-trigfam:prove               EXIT=1  0144 时代差分骨架结构性红（StageB 钉「恰只应用 0144」·0145 起必红·本刀触的 P4 ann 臂 PASS）
+迁移纪律                       PASS    历史 0001-0169+0174 零字节（git diff 4fabecc3 恰 0176 新增）·十 blob 锚恒等·sql/ 影子面零 diff·0175 空位亲测

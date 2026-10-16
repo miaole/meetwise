@@ -1,0 +1,5 @@
+{"iso":"2026-10-08T04:30:21.373Z","phase":"sidecar_start","logFile":".tmp/cmop03d-sidecar/run.log"}
+{"iso":"2026-10-08T04:30:23.884Z","phase":"container_found","container":"meetwise-e2e-88424-1791433821695"}
+{"iso":"2026-10-08T04:30:24.010Z","tick":1,"container":"meetwise-e2e-88424-1791433821695","ok":false,"err":"Command failed: docker exec meetwise-e2e-88424-1791433821695 psql -U meetwise -d meetwise -AtqF | -c SELECT status, count(*) FROM interview_job GROUP BY status ORDER BY 1\nERROR:  relation \"interview_j"}
+{"iso":"2026-10-08T04:30:24.439Z","tick":2,"container":"meetwise-e2e-88424-1791433821695","ok":false,"err":"Command failed: docker exec meetwise-e2e-88424-1791433821695 psql -U meetwise -d meetwise -AtqF | -c SELECT status, count(*) FROM interview_job GROUP BY status ORDER BY 1\nERROR:  relation \"interview_j"}
+{"iso":"2026-10-08T04:30:24.796Z","phase":"sidecar_end","ticks":2,"containerRunning":"true"}

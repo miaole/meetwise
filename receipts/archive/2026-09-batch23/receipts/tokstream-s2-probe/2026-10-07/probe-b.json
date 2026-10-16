@@ -1,0 +1,248 @@
+{
+  "probe": "B",
+  "attempts": [
+    {
+      "probe": "B",
+      "startedAt": "2026-10-09T01:52:21.855Z",
+      "outcome": {
+        "class": "completed",
+        "status": 200,
+        "transient": false
+      },
+      "facts": {
+        "ttftMs": 274,
+        "totalMs": 1339,
+        "chunkCount": 17,
+        "nonEmptyDeltas": 13,
+        "doneSeen": true,
+        "finishReason": "stop",
+        "finishStopSeen": true,
+        "usageSeen": true,
+        "usageChunkEmptyChoices": true,
+        "usage": {
+          "total_tokens": 75,
+          "completion_tokens": 43,
+          "prompt_tokens": 32,
+          "prompt_tokens_details": {
+            "cached_tokens": 0
+          }
+        },
+        "model": "qwen-plus",
+        "familyCredited": true,
+        "errorFrameSeen": false,
+        "streamEndedByEofWithoutDone": false,
+        "stitchedText": "SSE 是单向（服务器→客户端）的 HTTP 长连接，基于文本；WebSocket 是双向、全双工的独立协议，支持二进制与文本，需握手建立连接。",
+        "stitchedSha256": "97ec512b2882ae336bb48b2a3cc56fdceaa3838065b0756f7d361c7f519d9660",
+        "bPass": true,
+        "grading": {
+          "normalized": {
+            "lenA": 72,
+            "lenB": 72,
+            "lengthRatio": 0
+          },
+          "prefixAnchor": "SSE 是单向（服务器→客户端）的 HTTP 长连接，基于文本；WebSocket 是双向、全双工的",
+          "suffixAnchor": " 长连接，基于文本；WebSocket 是双向、全双工的独立协议，支持二进制与文本，需握手建立连接。",
+          "T0": {
+            "pass": true,
+            "definition": "normalized equality (trim + whitespace collapse)"
+          },
+          "T1": {
+            "pass": true,
+            "anchorLen": 50,
+            "definition": "prefix+suffix anchor (50 chars)"
+          },
+          "T2": {
+            "pass": true,
+            "band": "|Δ|/len ≤ 10%",
+            "lengthRatio": 0
+          },
+          "T3FilledBy": "per-chunk delta vs accumulated-snapshot qualifier (overlapViolations=0 ∧ resendViolations=0)",
+          "T3": {
+            "pass": false,
+            "overlapViolations": 1,
+            "resendViolations": 1,
+            "definition": "delta-vs-accumulated diagnostic: every non-empty delta is pure new content (no full/overlap resend)"
+          }
+        }
+      },
+      "curve": [
+        {
+          "i": 1,
+          "tMs": 273,
+          "dtMs": 273,
+          "kind": "empty_delta",
+          "finish": null,
+          "emptyChoices": false,
+          "hasUsage": false
+        },
+        {
+          "i": 2,
+          "tMs": 274,
+          "dtMs": 1,
+          "kind": "delta",
+          "deltaLen": 1,
+          "accLenBefore": 0,
+          "accLenAfter": 1,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 3,
+          "tMs": 298,
+          "dtMs": 24,
+          "kind": "delta",
+          "deltaLen": 4,
+          "accLenBefore": 1,
+          "accLenAfter": 5,
+          "overlap": 1,
+          "resendFull": true
+        },
+        {
+          "i": 4,
+          "tMs": 339,
+          "dtMs": 41,
+          "kind": "delta",
+          "deltaLen": 3,
+          "accLenBefore": 5,
+          "accLenAfter": 8,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 5,
+          "tMs": 425,
+          "dtMs": 87,
+          "kind": "delta",
+          "deltaLen": 3,
+          "accLenBefore": 8,
+          "accLenAfter": 11,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 6,
+          "tMs": 536,
+          "dtMs": 111,
+          "kind": "delta",
+          "deltaLen": 11,
+          "accLenBefore": 11,
+          "accLenAfter": 22,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 7,
+          "tMs": 619,
+          "dtMs": 83,
+          "kind": "delta",
+          "deltaLen": 4,
+          "accLenBefore": 22,
+          "accLenAfter": 26,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 8,
+          "tMs": 723,
+          "dtMs": 104,
+          "kind": "delta",
+          "deltaLen": 6,
+          "accLenBefore": 26,
+          "accLenAfter": 32,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 9,
+          "tMs": 816,
+          "dtMs": 93,
+          "kind": "delta",
+          "deltaLen": 14,
+          "accLenBefore": 32,
+          "accLenAfter": 46,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 10,
+          "tMs": 927,
+          "dtMs": 112,
+          "kind": "delta",
+          "deltaLen": 4,
+          "accLenBefore": 46,
+          "accLenAfter": 50,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 11,
+          "tMs": 991,
+          "dtMs": 64,
+          "kind": "delta",
+          "deltaLen": 7,
+          "accLenBefore": 50,
+          "accLenAfter": 57,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 12,
+          "tMs": 1067,
+          "dtMs": 75,
+          "kind": "delta",
+          "deltaLen": 4,
+          "accLenBefore": 57,
+          "accLenAfter": 61,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 13,
+          "tMs": 1220,
+          "dtMs": 153,
+          "kind": "delta",
+          "deltaLen": 6,
+          "accLenBefore": 61,
+          "accLenAfter": 67,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 14,
+          "tMs": 1311,
+          "dtMs": 91,
+          "kind": "delta",
+          "deltaLen": 5,
+          "accLenBefore": 67,
+          "accLenAfter": 72,
+          "overlap": 0,
+          "resendFull": false
+        },
+        {
+          "i": 15,
+          "tMs": 1335,
+          "dtMs": 24,
+          "kind": "finish",
+          "finish": "stop",
+          "emptyChoices": false,
+          "hasUsage": false
+        },
+        {
+          "i": 16,
+          "tMs": 1335,
+          "dtMs": 0,
+          "kind": "usage",
+          "finish": null,
+          "emptyChoices": true,
+          "hasUsage": true
+        },
+        {
+          "i": 17,
+          "tMs": 1335,
+          "dtMs": 0,
+          "kind": "done"
+        }
+      ]
+    }
+  ]
+}

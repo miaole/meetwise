@@ -1,0 +1,130 @@
+{
+  "caseId": "NHP-018-LOAD-01",
+  "gitSha": "unknown",
+  "command": "pnpm uc018:perf-load:prove",
+  "method": {
+    "percentile": "nearest-rank",
+    "clock": "client-hrtime-full-http-roundtrip",
+    "requestTimeoutMs": 10000,
+    "warmup": 10,
+    "repeatRuns": 3
+  },
+  "caps": {
+    "enforced": true,
+    "method": "docker --cpus=2 --memory=4g",
+    "declared": {
+      "cpus": 2,
+      "memoryGiB": 4
+    },
+    "pg": {
+      "container": "meetwise-e2e-1513534-1791299649081",
+      "HostConfig": {
+        "NanoCpus": 2000000000,
+        "Memory": 4294967296
+      },
+      "ok": true
+    },
+    "api": {
+      "container": "meetwise-uc018-perf-api-1513990-1791299653591",
+      "HostConfig": {
+        "NanoCpus": 2000000000,
+        "Memory": 4294967296
+      },
+      "ok": true
+    },
+    "expected": {
+      "NanoCpus": 2000000000,
+      "Memory": 4294967296
+    },
+    "blocker": null
+  },
+  "N": 50,
+  "c": 20,
+  "warmup": 10,
+  "thresholds": {
+    "errMax": 0.01,
+    "noDoubleRelease": true,
+    "noStuckReservations": true
+  },
+  "rawLatenciesMs": [
+    8.201032,
+    9.122573,
+    10.644785,
+    11.438504,
+    13.136884,
+    14.093953,
+    15.355087,
+    16.461205,
+    17.488215,
+    17.876309,
+    17.903638,
+    18.703526,
+    20.914268,
+    21.156857,
+    21.866203,
+    22.231549,
+    22.477046,
+    23.670148,
+    24.243725,
+    24.840807,
+    25.71281,
+    26.74331,
+    28.714473,
+    28.809632,
+    29.360398,
+    30.006174,
+    31.359386,
+    35.133906,
+    36.45877,
+    38.625528,
+    39.02717,
+    39.865555,
+    40.09059,
+    41.524335,
+    43.856033,
+    44.114599,
+    45.180183,
+    45.578619,
+    46.482421,
+    49.445394,
+    51.225401,
+    54.311454,
+    59.00359,
+    64.277481,
+    64.892485,
+    75.941493,
+    82.818271,
+    85.020441,
+    101.955108,
+    104.766818
+  ],
+  "p50": 29.360398,
+  "p95": 85.020441,
+  "p99": 104.766818,
+  "errorCount": 0,
+  "timeoutCount": 0,
+  "errorRate": 0,
+  "doubleReleaseCount": 0,
+  "stuckReservationCount": 0,
+  "stuckGraphCount": 0,
+  "sqlChecks": {
+    "doubleReleaseExcessRows": 0,
+    "stuckReserved": 0,
+    "nonTerminalGraphRuns": 0
+  },
+  "start": "2026-10-06T15:14:22.503Z",
+  "end": "2026-10-06T15:14:22.750Z",
+  "machine": {
+    "cpuModel": "Intel(R) Xeon(R) Processor",
+    "cpuCount": 8,
+    "memTotalBytes": 16791158784,
+    "kernel": "6.12.94+",
+    "platform": "linux",
+    "node": "v20.20.2"
+  },
+  "passed": true,
+  "missReasons": [],
+  "haStatus": "NOT_HA",
+  "releaseEvidence": false,
+  "claimProductionHA": false
+}

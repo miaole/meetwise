@@ -1,0 +1,5 @@
+[sidecar 2026-10-08T18:31:19.881Z] sidecar v2 start; wrapperLog=.tmp/g7fix1-wrapper.log; runStart=1791484279881; discipline: post-migrate anchor / 42P01 pending / stop-needle armed post-first-ok (>=5) / per-query guarded / SELECT-only aggregates / migrations 152+0151 relevance / est<=25 dual-count chain 0+0+14 cap200
+[sidecar 2026-10-08T18:31:22.913Z] CONTAINER BIND exact=meetwise-e2e-71087-1791484280182 port=58930
+[sidecar 2026-10-08T18:31:25.935Z] ANCHOR post-migrate seen (v2 anchor; Ban container_found anchor) container=meetwise-e2e-71087-1791484280182
+[sidecar 2026-10-08T18:31:26.018Z] CORRELATION migrations=152 max=0151_pgp_sym_encrypt_grant match=false (DISCARD+REGISTER per forward discipline)
+[sidecar 2026-10-08T18:31:26.019Z] STOPPED: correlation mismatch => discard (registered); pending42P01=0 anchorSeen=true firstOk=false correlationMatch=false

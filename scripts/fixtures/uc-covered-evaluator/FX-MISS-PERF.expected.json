@@ -1,0 +1,7 @@
+{
+  "canHonestlyFlip": false,
+  "mustIncludeReasons": [
+    "STATUS-NOT-COVERED"
+  ],
+  "failColumn": "PERF"
+}

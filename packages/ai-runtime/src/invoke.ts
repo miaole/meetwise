@@ -13,17 +13,22 @@ import { createHash, randomUUID } from 'node:crypto';
 import type { z } from 'zod';
 import {
   asPrincipal, isInterviewPrivacyActive, claimModelInvocation, completeModelInvocation, failModelInvocationClaim,
+  releaseRefusedModelInvocationClaim,
   markAiCostDispatched, markAiCostUnknown, markAiTextCostRejected, markModelInvocationDispatched,
   markModelInvocationUnknown, reserveAiTextCost, settleAiTextCost, type Client, type DbPool,
 } from '@meetwise/db';
+import { errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出对 db 的耦合
 import { doubleValidate } from './validators/index.ts';
+import { getPrompt } from './prompts.ts';
 import { getTracer, type ModelCallOutcome } from './trace.ts';
 import { getMetrics, METRIC } from './metrics.ts';
 import { withAbortTimeout } from './timeout.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
+import type { CalibratedFactor, EstimatorVersion } from './usage-reconciliation.ts';
 import {
-  admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition,
-  type SharedModelAdmissionLease, type SharedModelFeeRecord,
+  admitSharedModelOperation, recordSharedModelOperation, resolveModelAdmissionPartition, isAdmissionRefusalRetryable,
+  withAdmissionEndpointPartition,
+  type SharedModelAdmissionLease, type SharedModelFeeRecord, type ModelEndpointAdmissionIdentity,
 } from './model-admission.ts';
 
 const REQID_ALS_KEY = Symbol.for('meetwise.ai-runtime.requestIdContext');
@@ -47,6 +52,12 @@ export type ModelUsage = {
   inputTokens: number;
   outputTokens: number;
   /**
+   * AG-14 修法④（EXPERT §四 :37）：usage 存在但字段缺失时，缺失字段按 policy 上限补齐并打标
+   * `usage_missing`——绝不按 0；打标行被校准配对剔除（0119 镜像迁移），不污染 AG-12 因子。
+   * 缺省 = 供应商上报的真实 usage。
+   */
+  usageSource?: 'usage_missing';
+  /**
    * 派发前保守估算的输入 token(utf8-bytes-v1 = UTF-8 字节数)。
    * 字节数是渲染**文本 token** 的上界;对供应商完整 `prompt_tokens`(含消息框架/特殊/schema token,不在被计字符串内)
    * 仅是保守估算,靠 contextSafetyMargin + 结构化输出 reserve + 对账记录误差兜底——provider > estimate 是"保守估算被击穿"
@@ -54,11 +65,36 @@ export type ModelUsage = {
    * 可选:未接预算器的旧 seam 无此值;缺省表示"本请求无对账证据",不参与低估判断。
    */
   estimateInputTokens?: number;
+  /**
+   * 供应商上报的缓存命中输入 token（#48 观测·AG-COST1 §1-②·**只观测不改计费**）。
+   * 三端点字段名兼容读取：OpenAI 兼容 `cached_tokens` ∥ DeepSeek `prompt_cache_hit_tokens` ∥
+   * 百炼 `prompt_tokens_details.cached_tokens`。**缺席≠零铁律**：`undefined`=字段缺席（供应商
+   * 未回报该字段），`0`=供应商显式回报零——两态分开打点，绝不静默归零（防御：供应商改版
+   * 响应结构时以缺席率跳变暴露）。结算读此字段（#48/#49 六参结算贯通·validUsage 校验
+   * cached≤input）：缺席按 0=现行保守语义·parse 层三态铁律不动。
+   */
+  cachedInputTokens?: number;
 };
 /** `known_not_executed` requires an explicit negative response from the endpoint. Omission means unknown. */
 export type ModelResult =
-  | { ok: true; raw: unknown; usage?: ModelUsage }
-  | { ok: false; kind: 'transient' | 'deterministic'; externalOutcome?: 'known_not_executed' | 'unknown' };
+  | { ok: true; raw: unknown; usage?: ModelUsage; actualModel?: string }
+  | { ok: false; kind: 'transient' | 'deterministic'; externalOutcome?: 'known_not_executed' | 'unknown' }
+  | {
+    /**
+     * AG-06 统一结算状态机第三态（EXPERT-REVIEWS §四 :35）：HTTP 200 已执行、但输出确定性不可用
+     * （坏 JSON / finish_reason='length' 截断 / 空 content）——已到手 usage 必须带出（绝不因解析失败丢弃），
+     * invoke 按 settled-failed 先例结算真实 usage + breaker success，绝不落 unknown 熔断计数。
+     */
+    ok: false;
+    kind: 'deterministic';
+    externalOutcome: 'known_executed';
+    /** 稳定 ASCII 机器码（0088 约束 `^[A-Za-z0-9._:-]{1,120}$`）：deterministic_output_invalid / deterministic_output_truncated。 */
+    errorCode: string;
+    /** 已到手供应商 usage（字段缺失时已按 policy 上限补齐并打标 usageSource——绝不按 0）。 */
+    usage?: ModelUsage;
+    /** choices[0].finish_reason 补读（截断判据 'length'）。 */
+    finishReason?: string;
+  };
 
 /** Pricing and budget identity attached to a selected endpoint, never to a user supplied prompt. */
 export interface ModelCostPolicy {
@@ -76,8 +112,8 @@ export interface ModelCostPolicy {
    * the OpenAI-compatible transport rejects a billable policy that omits it.
    */
   contextWindowTokens?: number;
-  /** Conservative input estimator approved for this endpoint configuration. */
-  contextEstimator?: 'utf8-bytes-v1';
+  /** Conservative input estimator approved for this endpoint configuration (AG-12：已注册枚举，缺省仍 utf8-bytes-v1). */
+  contextEstimator?: EstimatorVersion;
   /** Tokens deliberately left unused for provider/template/tokenizer variance. */
   contextSafetyMarginTokens?: number;
   /**
@@ -89,10 +125,35 @@ export interface ModelCostPolicy {
   contextToolReserveTokens?: number;
   /** Required per-image reserve when a billable text/vision request carries images. */
   imageInputTokensPerImage?: number;
+  /**
+   * Optional usage-calibration factor. When set, `planContextBudget` (the real
+   * chat path) refines token estimates and requires `calibrationBoundModel`
+   * to equal `model` (fail-closed under G7 / whenever bound is present).
+   */
+  calibration?: CalibratedFactor;
+  /** Model the calibration factor was derived from; must equal `model`. */
+  calibrationBoundModel?: string;
 }
 
 /** A pre-dispatch admission lease (for example, one rate-limit slot). */
 export interface ModelAdmission { release(): void; }
+
+/**
+ * TOKSTREAM S4b：模型 delta 纯观察回调（S3 §D-2 逐字）。经 `InvokeSpec.onModelDelta` 注入、
+ * 透传至 `plan.execute`；**关口零改动**——claim/幂等/计费/doubleValidate 不因回调存在而分叉；
+ * 回调抛错一律吞为观察失败（见 `swallowObserverThrows`），绝不影响业务结果面。emit 顺序=到达顺序。
+ */
+export type OnModelDelta = (d: { text: string }) => void;
+
+/**
+ * 观察失败吞没（§D-2「回调抛错一律吞为观察失败」本体）：包一层 try/catch 后再交给传输面——
+ * 流式通道内的 ΣdeltaLen==accLen 守恒账面由通道自记，观察回调抛错不破门、不改写 ModelResult。
+ */
+export function swallowObserverThrows(onDelta: OnModelDelta): OnModelDelta {
+  return (d) => {
+    try { onDelta(d); } catch { /* 观察失败吞没：纯观察层异常绝不冒泡进派发/结算面 */ }
+  };
+}
 
 export type ModelCallPlan =
   | {
@@ -102,7 +163,12 @@ export type ModelCallPlan =
      * boundary.  A timeout here is known-not-sent, never `unknown`.
      */
     admit?: (signal?: AbortSignal) => Promise<ModelAdmission>;
-    execute: (signal?: AbortSignal) => Promise<ModelResult>;
+    /**
+     * TOKSTREAM S4b（additive 第 2 参）：可选 delta 观察位——invoke 把 spec.onModelDelta（已包
+     * 吞没）透传至此；流式可路由臂借此接 completeStream，非流式臂忽略该参（语义原值）。
+     * 可选参不破既有签名：既有 prepare 实现（少参声明）照旧 TS 兼容。
+     */
+    execute: (signal?: AbortSignal, onDelta?: OnModelDelta) => Promise<ModelResult>;
     cost?: ModelCostPolicy;
     /**
      * 派发前保守估算的输入 token（utf8-bytes-v1 = UTF-8 字节上界，planContextBudget 算得）。
@@ -110,12 +176,24 @@ export type ModelCallPlan =
      * 不依赖输出校验通过才落（trace 只在 !error 时写，会偏置校准样本）。
      */
     estimateInputTokens?: number;
+    /**
+     * AG-08 成本轨⑤：本 plan 实际所选端点的准入身份（providerAccount|region 两维）。
+     * 只由 model 层（prepare）从冻结 endpoint profile 注册表**服务器派生**——InvokeSpec
+     * 永不携带端点字段（caller 供=禁）。undefined = 无端点身份（vision / legacy / 无
+     * prepare 客户端）→ 共享准入分区维持 registry 派生原值（dashscope-native vision 行
+     * 与 legacy 回退集零漂）。该身份不进 durable claim、不进 requestDigest。
+     */
+    admissionEndpoint?: ModelEndpointAdmissionIdentity;
   }
   | { ready: false; error: string };
 type ReadyModelCallPlan = Extract<ModelCallPlan, { ready: true }>;
 
 export interface Model {
-  call(attempt: number, signal?: AbortSignal): Promise<ModelResult>;
+  /**
+   * TOKSTREAM S4b（additive 第 3 参）：可选 delta 观察位（与 ModelCallPlan.execute 第 2 参同源
+   * 透传；直调面与生产面同刀——modelFor call 臂 flag-aware 路由接 completeStream）。
+   */
+  call(attempt: number, signal?: AbortSignal, onDelta?: OnModelDelta): Promise<ModelResult>;
   /** Optional pre-dispatch routing seam. `prepare` must not make a network request. */
   prepare?(attempt: number, signal?: AbortSignal): Promise<ModelCallPlan> | ModelCallPlan;
   /** SHA-256 of the immutable prompt/model/input snapshot; normal production models provide it. */
@@ -124,6 +202,14 @@ export interface Model {
 
 export interface InvokeSpec<T> {
   idempotencyKey: string;
+  /**
+   * TOKSTREAM S4b（S3 §D-2·additive 可选观察缝）：模型 delta 纯观察回调（如 worker TokenSink）。
+   * 缺省 undefined=零触（flag 缺省 OFF 双保险）；注入时 invoke 透传至 plan.execute 第 2 参
+   * （已包吞没包装）；关口链（claim/幂等/计费/doubleValidate）零分叉、不产生第二账面。
+   * G7 车道：freetier 下恒走非流式（路由臂 refuse-closed）；stream 通道不进 g7 预约/终结面；
+   * 未来 ON 须另刀 g7 车道审批（本刀仅声明）。
+   */
+  onModelDelta?: OnModelDelta;
   /**
    * Canonical, server-computed identity of the business node/revision that is
    * allowed to reach a provider once. It is deliberately separate from the
@@ -145,6 +231,13 @@ export interface InvokeSpec<T> {
   /** Retained for source compatibility. Billable external attempts are never automatically retried. */
   maxRetries?: number;
   service?: string;
+  /**
+   * AG-19 观测标签：prompt 注册表版本。可缺省——invoke 入口按 `spec.service` 经 getPrompt
+   * 单源派生缺省填充（裁决项①(a)·调用方零改·registry 外 service→undefined→落库 NULL）；
+   * 显式传值仅观测语义（落 span/ai_model_invocation.prompt_version），**绝不**进
+   * requestDigest，也**绝不**进 metric 标签（标签值域有界·只取注册表派生版本）。
+   */
+  promptVersion?: string;
   sources?: string[];
   threadId?: string;
   /**
@@ -188,7 +281,7 @@ export type InvokeOutcome<T> = { value: T } | { error: string };
  * path because they may already be billable.
  */
 function isHalfOpenFollower(error: unknown): boolean {
-  return error instanceof Error && error.message === 'model_circuit_half_open';
+  return errCode(error) === 'model_circuit_half_open';
 }
 
 /**
@@ -208,6 +301,58 @@ async function releaseSharedAdmissionBestEffort(
 }
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
+
+/**
+ * #173：claim follower 等待节奏——指数退避（初值 20ms · 倍率 ×2 · 封顶 1000ms）取代恒定 sleep(20)，
+ * 收敛同键风暴下的 follower 轮询事务量（N × 恒定 50 拍/秒 → 退避后拍距指数拉长）。首拍与旧形等延迟
+ * （join 快路径零劣化）；封顶 1000ms 保证 join 尾延迟 ≤ cap、deadline（model_invocation_wait_timeout）
+ * 判定仍在拍界内可达。只改等待节奏：claim 判定序与 join 三不变式（execute=1/wait=1/calls=1）零动。
+ * 导出供 proof 静态断言（claim-join-orphan 退避常量臂）。
+ */
+export const CLAIM_POLL_BACKOFF_INITIAL_MS = 20;
+export const CLAIM_POLL_BACKOFF_FACTOR = 2;
+export const CLAIM_POLL_BACKOFF_CAP_MS = 1000;
+
+/**
+ * AG-19：prompt 注册表版本单源派生（裁决项①(a)）。registry 内 service→注册表 version 常量；
+ * registry 外/缺省 service→undefined（claim 落 NULL·span 不带）。纯观测：派生失败绝不影响调用。
+ */
+function registryPromptVersion(service: string | undefined): string | undefined {
+  if (!service) return undefined;
+  try { return getPrompt(service).version; } catch { return undefined; }
+}
+
+/**
+ * AG-19 metric 版本标签（值域有界 Ban 的唯一执行点）：标签值只取注册表派生版本（service∈registry
+ * ⇒ service 标签逐字=注册表键）∪ 固定占位 `'(unregistered)'/'none'`——**绝不**透传调用方字符串
+ * （含显式 spec.promptVersion）进标签，禁自由字符串扩系列。
+ */
+function promptVersionMetricLabels(service: string | undefined): { service: string; prompt_version: string } {
+  const version = registryPromptVersion(service);
+  return version !== undefined && service !== undefined
+    ? { service, prompt_version: version }
+    : { service: '(unregistered)', prompt_version: 'none' };
+}
+
+/**
+ * AG-D（刀 D·AG-01 准入拒绝去终态化）：准入拒绝落账面分流。瞬时准入拒绝族（熔断开/半开忙/
+ * 并发满/预算尽/本地 admission 超时·known-not-sent 零外呼零费用）→ 释放 claim（案A 可写最小形：
+ * 0179 `ai_model_release_refused_claim_scoped` 白名单前置校验·保留 lease_token 原值仅置 lease
+ * 即刻过期·status 留 claimed·error_code/completed_at 零写）——同键重试走 0130 expired-claimed
+ * 重领=真重试（「过期 claimed+承袭 token=可重领标记」，拒绝码可观测面维持 invoke 返回值）。
+ * 族外确定性拒绝（operation_unknown/blocked/project_missing/disabled、failover cost policy
+ * mismatch、cost_policy/price_missing、privacy fence）维持 ai_model_fail_claim_scoped failed
+ * 终态原样（retry 必败不放大）。返回 false=claim 已被重领/已流转，调用方按现状抛
+ * model_invocation_admission_state（CAS 语义零变）。
+ */
+async function refuseOrReleaseModelInvocationClaim(
+  c: Client, owner: string, idempotencyKey: string, leaseToken: string, refusedCode: string,
+): Promise<boolean> {
+  if (isAdmissionRefusalRetryable(refusedCode)) {
+    return releaseRefusedModelInvocationClaim(c, owner, idempotencyKey, leaseToken, refusedCode);
+  }
+  return failModelInvocationClaim(c, owner, idempotencyKey, leaseToken, refusedCode);
+}
 export interface ModelDeadlineConfig {
   executionTimeoutMs: number;
   transportTimeoutMs: number;
@@ -323,10 +468,19 @@ function resolvedLogicalNodeKey<T>(spec: InvokeSpec<T>): string | undefined {
   return strict ? undefined : `legacy:${spec.idempotencyKey}`;
 }
 function validUsage(usage: ModelUsage | undefined, policy: ModelCostPolicy): ModelUsage | undefined {
-  const fallback = usage ?? { inputTokens: policy.maxInputTokens, outputTokens: policy.maxOutputTokens };
+  // AG-14 口径 1 折叠（修法④·EXPERT §四 :35/:37）：usage 整体缺失不再无声按上限多记——
+  // 直接判无效，归并既有 provider_usage_invalid 臂（invoke 成功相位 :838-855·breaker success+
+  // 钱 unknown）不新造语义。字段缺失的上限补齐+usage_missing 打标在解析层（model-client）完成。
+  if (usage === undefined) return undefined;
+  const fallback = usage;
   if (!Number.isInteger(fallback.inputTokens) || !Number.isInteger(fallback.outputTokens)
     || fallback.inputTokens < 0 || fallback.outputTokens < 0
     || fallback.inputTokens > policy.maxInputTokens || fallback.outputTokens > policy.maxOutputTokens) return undefined;
+  // #48/#49：cached 实量（若有）必须是非负整数且 ≤input——cached>input 的畸形 usage
+  // 不再直通结算，fail-closed 归并既有 provider_usage_invalid 收口臂（零新语义）。
+  if (fallback.cachedInputTokens !== undefined
+    && (!Number.isInteger(fallback.cachedInputTokens) || fallback.cachedInputTokens < 0
+      || fallback.cachedInputTokens > fallback.inputTokens)) return undefined;
   // 保守估算(若有)必须是非负安全整数;损坏的估算会让对账结论失效,故 fail-closed(走 unknown 收口)而非静默丢弃。
   if (fallback.estimateInputTokens !== undefined
     && (!Number.isSafeInteger(fallback.estimateInputTokens) || fallback.estimateInputTokens < 1)) return undefined;
@@ -359,20 +513,210 @@ async function persistTrace(
 }
 
 /**
+ * UC-028 fail-open 旁路（NHP-028-FAULT-01 · spec e2e-scenarios UC-E2E-028 A1）：trace 是可观测
+ * 旁路而非业务真相。persistTrace 在自己的 principal 事务内 best-effort 执行，INSERT 失败不回滚
+ * 已提交的 settle/complete 业务事务，也不改写 invoke 的成功终态；失败必须被结构化观测
+ * （ai_trace_persist_failures_total 计数 + 单行 JSON 日志），绝不静默无痕。失败 trace 的对账
+ * 重写属 A2 recon 域，本旁路不冒充 recon。
+ */
+async function persistTraceBestEffort(
+  pool: DbPool, owner: string, spec: Pick<InvokeSpec<unknown>, 'idempotencyKey' | 'service'>,
+  stored: unknown, usage: ModelUsage | undefined, latencyMs: number, requestId: string | null,
+): Promise<void> {
+  await asPrincipal(pool, owner, (c) => persistTrace(c, owner, spec, stored, usage, latencyMs, requestId))
+    .catch((error: unknown) => {
+      getMetrics().inc(METRIC.aiTracePersistFailures);
+      // 结构化日志只放稳定标量(service/idempotency_key/错误类与 PG code),不放 owner/原文/堆栈
+      // (脱敏纪律同 metrics:label 只放低基数维度,绝不放 PII/原文)。
+      const pgCode = (error as { code?: unknown } | null | undefined)?.code;
+      console.error(JSON.stringify({
+        event: 'ai_trace_persist_failed',
+        service: spec.service ?? null,
+        idempotencyKey: spec.idempotencyKey,
+        errorName: error instanceof Error ? error.name : typeof error,
+        pgCode: typeof pgCode === 'string' ? pgCode : null,
+      }));
+    });
+}
+
+/**
  * Calls the model with a durable pre-dispatch claim.  `pool` (rather than a
  * transaction `Client`) is intentional: every DB interaction is a short,
  * principal-scoped transaction and the remote call holds neither a connection
  * nor an advisory lock.
  */
 export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string): Promise<InvokeOutcome<T>> {
+  // GODFN-1a：主函数只做五相位编排——resolve+prepare → claim → admit → reserve+dispatch →
+  // execute+settle。各相位本体为同文件私有函数，跨相位状态经显式参数对象传递（禁闭包共享可变态）。
+  // 每相位代码逐字搬移自拆解前行界（:404-461/:463-482/:487-570/:572-629/:631-773）：
+  // 错误码/抛序/SQL 事务边界/时序常量（60s lease/deadline）零变，导出面签名零变。
+  // 承替登记：GODFN-1a 自等价声明中「sleep(20) 恒定轮询」一项由 #173 行为修刀承替——claim
+  // follower 改指数退避（20ms×2 封顶 1000ms，CLAIM_POLL_BACKOFF_* 常量），claim 判定序零变。
+  const prepared = await invokeResolveAndPreparePhase(spec, owner);
+  if (prepared.terminal) return prepared.outcome;
+  const claimed = await invokeClaimPhase({
+    spec, pool, owner,
+    logicalNodeKey: prepared.logicalNodeKey,
+    digest: prepared.digest,
+    requestId: prepared.requestId,
+    deadline: prepared.deadline,
+    span: prepared.span,
+    plan: prepared.plan,
+    promptVersion: prepared.promptVersion,
+  });
+  if (claimed.terminal) return claimed.outcome;
+  const admitted = await invokeAdmitPhase({
+    spec, pool, owner,
+    plan: prepared.plan,
+    leaseToken: claimed.leaseToken,
+    admissionPartition: prepared.admissionPartition,
+    executionTimeoutMs: prepared.executionTimeoutMs,
+    span: prepared.span,
+  });
+  if (admitted.terminal) return admitted.outcome;
+  const dispatched = await invokeReserveAndDispatchPhase({
+    spec, pool, owner,
+    plan: admitted.plan,
+    leaseToken: claimed.leaseToken,
+    admission: admitted.admission,
+    sharedLease: admitted.sharedLease,
+    span: prepared.span,
+  });
+  if (dispatched.terminal) return dispatched.outcome;
+  return invokeExecuteAndSettlePhase({
+    spec, pool, owner,
+    plan: admitted.plan,
+    policy: dispatched.policy,
+    admission: admitted.admission,
+    sharedLease: admitted.sharedLease,
+    requestId: prepared.requestId,
+    executionTimeoutMs: prepared.executionTimeoutMs,
+    span: prepared.span,
+  });
+}
+
+/**
+ * GODFN-1a 五相位私有函数（全部拆解自原 `invoke()` :403-774 · 纯机械提取 · 语义等价）。
+ * 相位间公共判别形：`terminal: true` 时 `outcome` 即 invoke 的终态返回；`terminal: false`
+ * 时携带续行状态对象，由主函数经显式参数传给下一相位。`preparePlan` 闭包（原 :429-441）
+ * 外提为模块级 `prepareModelPlan`（spec/executionTimeoutMs 显式传参），供相位 1/3 共用。
+ */
+/**
+ * AG-24:span 携带的可选逐次附加值(标量·脱敏铁律不破)。model=G7 供应商回显(actualModel·仅 ok 臂在手时);
+ * settledCostMicroCny=账本结算权威值(仅终局 ok 臂结算就绪后携带)——两值缺省=该臂不携带,绝不静默补值。
+ */
+interface InvokeSpanExtra {
+  model?: string;
+  settledCostMicroCny?: number;
+}
+type InvokeSpanFn = (attempt: number, outcome: ModelCallOutcome, latencyMs: number, usage?: ModelUsage, extra?: InvokeSpanExtra) => void;
+
+type InvokePhaseStep<T, Next> =
+  | { terminal: true; outcome: InvokeOutcome<T> }
+  | ({ terminal: false } & Next);
+
+/** resolve+prepare 相位产出（原 :404-461 生成 · 跨相位显式状态对象）。 */
+interface InvokePrepared {
+  logicalNodeKey: string;
+  admissionPartition: ReturnType<typeof resolveModelAdmissionPartition>;
+  requestId: string | null;
+  executionTimeoutMs: number;
+  deadline: number;
+  span: InvokeSpanFn;
+  plan: ReadyModelCallPlan;
+  digest: string;
+  /** AG-19：解析后的 prompt 版本观测标签（spec 显式值优先·缺省经注册表单源派生·registry 外=undefined）。 */
+  promptVersion: string | undefined;
+}
+
+/** claim 相位产出（原 :463-482 · durable lease token）。 */
+interface InvokeClaimed { leaseToken: string }
+
+/** admit 相位产出（原 :487-570 · 可能被半开 route-retry 替换的 plan + 双层 admission）。 */
+interface InvokeAdmitted {
+  plan: ReadyModelCallPlan;
+  admission: ModelAdmission | undefined;
+  sharedLease: SharedModelAdmissionLease | undefined;
+}
+
+interface InvokeClaimArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  logicalNodeKey: string;
+  digest: string;
+  requestId: string | null;
+  deadline: number;
+  span: InvokeSpanFn;
+  plan: ReadyModelCallPlan;
+  /** AG-19：随 claim 冻结落 ai_model_invocation.prompt_version（全 outcome·identity-immutable）。 */
+  promptVersion: string | undefined;
+}
+
+interface InvokeAdmitArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  plan: ReadyModelCallPlan;
+  leaseToken: string;
+  admissionPartition: ReturnType<typeof resolveModelAdmissionPartition>;
+  executionTimeoutMs: number;
+  span: InvokeSpanFn;
+}
+
+interface InvokeDispatchArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  plan: ReadyModelCallPlan;
+  leaseToken: string;
+  admission: ModelAdmission | undefined;
+  sharedLease: SharedModelAdmissionLease | undefined;
+  span: InvokeSpanFn;
+}
+
+interface InvokeExecuteArgs<T> {
+  spec: InvokeSpec<T>;
+  pool: DbPool;
+  owner: string;
+  plan: ReadyModelCallPlan;
+  policy: ModelCostPolicy | undefined;
+  admission: ModelAdmission | undefined;
+  sharedLease: SharedModelAdmissionLease | undefined;
+  requestId: string | null;
+  executionTimeoutMs: number;
+  span: InvokeSpanFn;
+}
+
+/** 原 invoke 内 `preparePlan` 闭包（:429-441）的模块级外提：纯 pre-dispatch 路由选择，不发请求。 */
+async function prepareModelPlan<T>(
+  spec: InvokeSpec<T>, executionTimeoutMs: number,
+): Promise<{ plan?: ModelCallPlan; timedOut: boolean }> {
+  let timedOut = false;
+  try {
+    const plan = await withAbortTimeout(
+      (signal) => spec.model.prepare
+        ? Promise.resolve(spec.model.prepare(1, signal))
+        : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal, onDelta?: OnModelDelta) => spec.model.call(1, executeSignal, onDelta), cost: undefined }),
+      executionTimeoutMs,
+      () => { timedOut = true; },
+    );
+    return { plan, timedOut };
+  } catch { return { timedOut }; }
+}
+
+/** GODFN-1a 相位 1/5 · resolve+prepare（原 :404-461 逐字搬移）。 */
+async function invokeResolveAndPreparePhase<T>(
+  spec: InvokeSpec<T>, owner: string,
+): Promise<InvokePhaseStep<T, InvokePrepared>> {
   const logicalNodeKey = resolvedLogicalNodeKey(spec);
   if (!logicalNodeKey) {
     if (spec.operation) {
       const resolved = resolveModelOperation(spec.operation.id, spec.operation.businessRevision);
-      if (!resolved.ok) return { error: resolved.error };
-      return { error: 'model_logical_node_key_conflict' };
+      if (!resolved.ok) return { terminal: true, outcome: { error: resolved.error } };
+      return { terminal: true, outcome: { error: 'model_logical_node_key_conflict' } };
     }
-    return { error: 'model_logical_node_key_required' };
+    return { terminal: true, outcome: { error: 'model_logical_node_key_required' } };
   }
   // MODEL-OP-02 准入分区（服务器派生，绝不 caller 供）。仅 operation-scoped 路径；
   // legacy cost-policy-only 调用返回 undefined（走 MODEL-OP-00 账本，不折入共享分区）。
@@ -384,48 +728,52 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   const waitMs = modelInvocationWaitMs(spec);
   const executionTimeoutMs = modelExecutionTimeoutMs(spec);
   const deadline = Date.now() + waitMs;
+  // AG-19：prompt 版本观测标签——显式 spec.promptVersion 优先，缺省按 service 经注册表单源派生
+  // （registry 外 service→undefined→claim 落 NULL）。随 claim 冻结（全 outcome·identity-immutable），
+  // 附带 span/Langfuse metadata；绝不进 requestDigest（版本非语义输入·幂等/缓存语义零位移）。
+  const promptVersion = spec.promptVersion ?? registryPromptVersion(spec.service);
+  // AG-19 metric 版本标签（每逻辑调用恰一次计数·emit 点=invoke 入口）：标签只取注册表派生值,
+  // 值域有界（registry 版本 ∪ '(unregistered)'/'none' 占位——绝不透传调用方字符串）。
+  getMetrics().inc(METRIC.modelInvocationPromptVersionTotal, promptVersionMetricLabels(spec.service));
   const tracer = getTracer();
-  const span = (attempt: number, outcome: ModelCallOutcome, latencyMs: number, usage?: ModelUsage) =>
-    tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens });
+  // AG-24:span.model 中间档=plan.cost?.model(受控策略模型名)——与 claim 相位(claimModelInvocation 的
+  // model: plan.cost?.model)同源同值;cost 身份在 durable claim 后冻结(failover 换轨 cost 不一致即确定性拒绝),
+  // 故捕获值跨全 invocation 恒真。声明臂在 plan 绑定前发射的 span 无此值(如 prepare 拒绝),走缺省 undefined。
+  let spanCostModel: string | undefined;
+  const span: InvokeSpanFn = (attempt, outcome, latencyMs, usage, extra) =>
+    tracer.record({ owner, idempotencyKey: spec.idempotencyKey, threadId: spec.threadId, attempt, outcome, latencyMs, service: spec.service, promptVersion, model: extra?.model ?? spanCostModel, sources: spec.sources ?? [], retrieval: spec.retrieval, inputTokens: usage?.inputTokens, outputTokens: usage?.outputTokens, cachedInputTokens: usage?.cachedInputTokens, settledCostMicroCny: extra?.settledCostMicroCny });
 
   // Routing/breaker selection is pure pre-dispatch work. It can choose backup
   // only when primary is already unavailable; it must not send a request.
-  const preparePlan = async (): Promise<{ plan?: ModelCallPlan; timedOut: boolean }> => {
-    let timedOut = false;
-    try {
-      const plan = await withAbortTimeout(
-        (signal) => spec.model.prepare
-          ? Promise.resolve(spec.model.prepare(1, signal))
-          : Promise.resolve({ ready: true as const, execute: (executeSignal?: AbortSignal) => spec.model.call(1, executeSignal), cost: undefined }),
-        executionTimeoutMs,
-        () => { timedOut = true; },
-      );
-      return { plan, timedOut };
-    } catch { return { timedOut }; }
-  };
-  const initial = await preparePlan();
+  const initial = await prepareModelPlan(spec, executionTimeoutMs);
   if (!initial.plan) {
     // `prepare` is contractually pre-dispatch, so a deadline here creates no
     // billable ambiguity and must not leave an invocation claim behind.
     span(0, 'exhausted', 0);
-    return { error: initial.timedOut ? 'model_prepare_timeout' : 'model_prepare_failed' };
+    return { terminal: true, outcome: { error: initial.timedOut ? 'model_prepare_timeout' : 'model_prepare_failed' } };
   }
-  if (initial.plan.ready === false) { span(0, 'deterministic_refusal', 0); return { error: initial.plan.error }; }
-  let plan: ReadyModelCallPlan = initial.plan;
+  if (initial.plan.ready === false) { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: initial.plan.error } }; }
+  const plan: ReadyModelCallPlan = initial.plan;
+  spanCostModel = plan.cost?.model;
   // The scope becomes part of the durable claim before any local admission
   // lease is taken.  Reject malformed trusted configuration here so a database
   // encoding/constraint error cannot escape the claim loop or strand a caller.
   const initialCostPolicyError = costPolicyError(plan.cost);
   if (initialCostPolicyError) {
     span(0, 'deterministic_refusal', 0);
-    return { error: initialCostPolicyError };
+    return { terminal: true, outcome: { error: initialCostPolicyError } };
   }
   // Route selection is pure. Bind the actually selected endpoint policy only
   // after it is known, but still before the durable claim is created.
   const digest = invocationDigest(spec, plan.cost);
+  return { terminal: false, logicalNodeKey, admissionPartition, requestId, executionTimeoutMs, deadline, span, plan, digest, promptVersion };
+}
 
+/** GODFN-1a 相位 2/5 · claim（原 :463-482 逐字搬移 · durable claim 轮询 + follower 指数退避真轮询（20ms×2 封顶 1000ms · #173））。 */
+async function invokeClaimPhase<T>(args: InvokeClaimArgs<T>): Promise<InvokePhaseStep<T, InvokeClaimed>> {
+  const { spec, pool, owner, logicalNodeKey, digest, requestId, deadline, span, plan, promptVersion } = args;
   let leaseToken: string | undefined;
-  let sharedLease: SharedModelAdmissionLease | undefined;
+  let pollWaitMs = CLAIM_POLL_BACKOFF_INITIAL_MS;
   for (;;) {
     const token = randomUUID();
     const claim = await asPrincipal(pool, owner, (c) => claimModelInvocation(c, {
@@ -435,30 +783,52 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       priceRevision: plan.cost?.priceRevision, maxInputTokens: plan.cost?.maxInputTokens,
       maxOutputTokens: plan.cost?.maxOutputTokens,
       estimateInputTokens: plan.estimateInputTokens,
+      promptVersion,
+      // AG-12 件②：估算器/因子版本标签随 claim 冻结（全 outcome·identity-immutable·0184）。
+      // 与 :708 maxOutputTokens 同位可选链：无 policy/无 calibration 臂落 NULL（配对侧 COALESCE 归 v1）。
+      estimatorVersion: plan.cost?.contextEstimator ?? null,
+      calibrationFactorVersion: plan.cost?.calibration?.factorVersion ?? null,
     }));
     if (claim.action === 'execute') { leaseToken = claim.leaseToken; break; }
-    if (claim.action === 'cached') { span(0, 'cached', 0); return { value: claim.output as T }; }
-    if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { error: claim.error }; }
-    if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { error: 'model_invocation_wait_timeout' }; }
-    // Followers must join, never execute.  20ms is still a real poll of durable
-    // status (claimed/dispatching → succeeded), not an in-process single-flight.
-    await sleep(20);
+    if (claim.action === 'cached') { span(0, 'cached', 0); return { terminal: true, outcome: { value: claim.output as T } }; }
+    if (claim.action === 'failed' || claim.action === 'unknown') { span(0, 'deterministic_refusal', 0); return { terminal: true, outcome: { error: claim.error } }; }
+    if (Date.now() >= deadline) { span(0, 'exhausted', 0); return { terminal: true, outcome: { error: 'model_invocation_wait_timeout' } }; }
+    // Followers must join, never execute.  Exponential backoff (#173: 20ms ×2 capped at 1000ms)
+    // only paces the wait — each wake is still a real poll of durable status (claimed/dispatching
+    // → succeeded), not an in-process single-flight. Claim decision order and the deadline check
+    // above are untouched; the first wake interval equals the old constant 20ms pacing.
+    await sleep(pollWaitMs);
+    pollWaitMs = Math.min(pollWaitMs * CLAIM_POLL_BACKOFF_FACTOR, CLAIM_POLL_BACKOFF_CAP_MS);
   }
+  return { terminal: false, leaseToken: leaseToken! };
+}
 
+/** GODFN-1a 相位 3/5 · admit（原 :487-570 逐字搬移 · 共享准入 + 本地 admission + 半开 follower 路由重试）。 */
+async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhaseStep<T, InvokeAdmitted>> {
+  const { spec, pool, owner, leaseToken, admissionPartition, executionTimeoutMs, span } = args;
+  let { plan } = args;
   // MODEL-OP-02 共享准入 + 断路器入场 + 并发槽认领（单一权威，取代 per-adapter 限流）。
-  // 在 durable claim 之后、派发边界之前执行：拒绝=known-not-sent，claim 可安全 failed。
+  // 在 durable claim 之后、派发边界之前执行：拒绝=known-not-sent。AG-D（刀 D·AG-01）修法后：
+  // 瞬时准入族（breaker_open/half_open_busy/concurrency_exhausted）释放 claim 可重领（案A），
+  // 仅确定性配置拒绝仍 failed 终态（refuseOrReleaseModelInvocationClaim 分流）。
   // 决策 fail-closed（unknown/blocked/breaker_open/concurrency_exhausted → 确定性拒绝，零外呼）。
+  let sharedLease: SharedModelAdmissionLease | undefined;
   if (admissionPartition) {
+    // AG-08 成本轨⑤（裁决①(a) admit 相位叠加）：准入/熔断/并发分区键随 plan 实际所选端点——
+    // 仅 providerAccount|region 两维由端点身份改写（身份源=prepare 从冻结 profile 注册表服务器
+    // 派生，绝不 caller 供）；无端点身份（vision/legacy/无 prepare 客户端）→ registry 派生分区
+    // 原值零漂。上方 resolve 相位派生原行零字节（model-slot-bypass 静态门正则钉承重面）。
+    const partition = withAdmissionEndpointPartition(admissionPartition, plan.admissionEndpoint);
     const shared = await admitSharedModelOperation(pool, owner, {
-      partition: admissionPartition, scopeId: plan.cost?.scopeId, idempotencyKey: spec.idempotencyKey,
+      partition, scopeId: plan.cost?.scopeId, idempotencyKey: spec.idempotencyKey,
     });
     if (!shared.ok) {
       await asPrincipal(pool, owner, async (c) => {
-        if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, shared.error))
+        if (!await refuseOrReleaseModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, shared.error))
           throw new Error('model_invocation_admission_state');
       });
       span(0, 'deterministic_refusal', 0);
-      return { error: shared.error };
+      return { terminal: true, outcome: { error: shared.error } };
     }
     sharedLease = shared.lease;
   }
@@ -479,7 +849,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       if (plan.admit) {
         admission = await withAbortTimeout(
           async (signal) => {
-            const acquired = await plan!.admit!(signal);
+            const acquired = await plan.admit!(signal);
             // A non-cooperative admission implementation can resolve after the
             // gateway deadline.  It must release itself immediately rather than
             // leak a local slot/probe that no caller can now reach.
@@ -498,7 +868,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     } catch (error) {
       admissionError = error;
       if (!isHalfOpenFollower(error) || routeRetry === 1) break;
-      const replacement = await preparePlan();
+      const replacement = await prepareModelPlan(spec, executionTimeoutMs);
       if (!replacement.plan) { admissionTimedOut = admissionTimedOut || replacement.timedOut; break; }
       if (replacement.plan.ready === false) { admissionError = new Error(replacement.plan.error); break; }
       // Cost scope is an idempotency boundary.  A route may fail over only
@@ -522,7 +892,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       ? 'model_failover_cost_policy_mismatch'
       : (admissionTimedOut ? 'model_admission_timeout' : 'model_admission_failed');
     await asPrincipal(pool, owner, async (c) => {
-      if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, code))
+      if (!await refuseOrReleaseModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, code))
         throw new Error('model_invocation_admission_state');
     });
     // MODEL-OP-02：本地 admission（plan.admit）失败仍必须释放已取得的共享槽/探针。
@@ -530,9 +900,16 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     // 此分支是防御性收口，防止未来有本地+共享双层 admission 的模型在此泄漏共享租约。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'no_signal');
     span(0, admissionTimedOut ? 'exhausted' : 'deterministic_refusal', 0);
-    return { error: code };
+    return { terminal: true, outcome: { error: code } };
   }
+  return { terminal: false, plan, admission, sharedLease };
+}
 
+/** GODFN-1a 相位 4/5 · reserve+dispatch（原 :572-629 逐字搬移 · 隐私围栏 + reserve + 双 dispatched 标记单事务）。 */
+async function invokeReserveAndDispatchPhase<T>(
+  args: InvokeDispatchArgs<T>,
+): Promise<InvokePhaseStep<T, { policy: ModelCostPolicy | undefined }>> {
+  const { spec, pool, owner, plan, leaseToken, admission, sharedLease, span } = args;
   const policy = plan.cost;
   let reservationDecision: string | undefined;
   let dispatch: { ok: true } | { ok: false; error: string };
@@ -544,7 +921,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
         // aborts the transaction and would make the following durable
         // known-not-sent transition impossible.
         if (!await isInterviewPrivacyActive(c, spec.privacyInterviewId)) {
-          if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, 'privacy_fenced_pre_dispatch'))
+          if (!await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, 'privacy_fenced_pre_dispatch'))
             throw new Error('model_invocation_privacy_fence_state');
           return { ok: false as const, error: 'privacy_fenced_pre_dispatch' };
         }
@@ -553,15 +930,23 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
         const reserve = await reserveAiTextCost(c, {
           scopeId: policy.scopeId, requestOwner: owner, idempotencyKey: spec.idempotencyKey,
           provider: policy.provider, model: policy.model, region: policy.region, priceRevision: policy.priceRevision,
-          maxInputTokens: policy.maxInputTokens, maxOutputTokens: policy.maxOutputTokens,
+          // AG-11：预留改 LEAST(上限, 派发前估算)——估多少占多少，静态上限只作上界封顶。
+          // refine(estimate) 载体=plan.estimateInputTokens（prepare 相位已套 calibration refine，
+          // 与 claim 冻结值同源同值）；估算缺失（非预算 seam/scripted）回退上限=现行为零漂。
+          // 下界钳 1：reserve 输入侧域约束（p_input_tokens>=0 且 input+output>=1）防御性兜底，
+          // 现产估算链值域下界 ≥1 不可达。
+          maxInputTokens: Math.max(1, Math.min(policy.maxInputTokens, plan.estimateInputTokens ?? policy.maxInputTokens)),
+          maxOutputTokens: policy.maxOutputTokens,
         });
         reservationDecision = reserve.decision;
         if (reserve.decision !== 'reserved' && reserve.decision !== 'held') {
-          await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, `cost_${reserve.decision}`);
+          // AG-D（刀 D·AG-01）：cost_budget_exhausted=瞬时准入族第三触发→释放 claim 可重领；
+          // cost_policy/price_missing=确定性配置拒绝→failed 终态原样（分流见共享准入臂同 helper）。
+          await refuseOrReleaseModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, `cost_${reserve.decision}`);
           return { ok: false as const, error: `cost_${reserve.decision}` };
         }
       }
-      const marked = await markModelInvocationDispatched(c, owner, spec.idempotencyKey, leaseToken!, policy?.scopeId);
+      const marked = await markModelInvocationDispatched(c, owner, spec.idempotencyKey, leaseToken, policy?.scopeId);
       if (!marked) throw new Error('model_invocation_dispatch_state');
       if (policy) {
         const costMarked = await markAiCostDispatched(c, policy.scopeId, owner, spec.idempotencyKey);
@@ -578,25 +963,32 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     // MODEL-OP-02 共享槽/探针释放（no_signal：相位不变，只还槽/探针；无 provider 外呼）。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'no_signal');
     await asPrincipal(pool, owner, async (c) => {
-      await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken!, 'model_dispatch_preflight_failed');
+      await failModelInvocationClaim(c, owner, spec.idempotencyKey, leaseToken, 'model_dispatch_preflight_failed');
     }).catch(() => undefined);
     span(0, 'exhausted', 0);
-    return { error: 'model_dispatch_preflight_failed' };
+    return { terminal: true, outcome: { error: 'model_dispatch_preflight_failed' } };
   }
   if (!dispatch.ok) {
     admission?.release();
     // MODEL-OP-02 共享槽/探针释放（确定性拒绝：隐私围栏 / cost reserve 拒绝，未派发）。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'no_signal');
     span(0, 'deterministic_refusal', 0);
-    return { error: dispatch.error };
+    return { terminal: true, outcome: { error: dispatch.error } };
   }
   if (policy && reservationDecision) getMetrics().inc(METRIC.modelCostDecisions, { decision: reservationDecision });
+  return { terminal: false, policy };
+}
 
+/** GODFN-1a 相位 5/5 · execute+settle（原 :631-773 逐字搬移 · 执行 + 四路结算 + breaker 释放）。 */
+async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promise<InvokeOutcome<T>> {
+  const { spec, pool, owner, plan, policy, admission, sharedLease, requestId, executionTimeoutMs, span } = args;
   const started = performance.now();
   let result: ModelResult;
   let executionTimedOut = false;
   try {
-    result = await withAbortTimeout((signal) => plan.execute(signal), executionTimeoutMs, () => { executionTimedOut = true; });
+    // TOKSTREAM S4b：spec.onModelDelta 透传至 plan.execute 第 2 参（§D-2 观察缝）——注入前包
+    // 吞没包装（回调抛错=观察失败，绝不影响业务结果面）；缺省 undefined=既有单参调用逐字节原值。
+    result = await withAbortTimeout((signal) => plan.execute(signal, spec.onModelDelta ? swallowObserverThrows(spec.onModelDelta) : undefined), executionTimeoutMs, () => { executionTimedOut = true; });
   }
   catch { result = { ok: false, kind: 'transient', externalOutcome: 'unknown' }; }
   finally { admission?.release(); }
@@ -619,6 +1011,76 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       if (policy) getMetrics().inc(METRIC.modelCostDecisions, { decision: 'rejected' });
       span(1, 'deterministic_refusal', latencyMs);
       return { error: result.kind === 'deterministic' ? 'deterministic_refusal' : 'provider_rejected' };
+    }
+    if (result.externalOutcome === 'known_executed') {
+      // AG-06 修法⑤：HTTP 200 已执行但输出确定性不可用 → 接线既有 settled-failed 先例臂形
+      // （本相位 schema_validation_failed 路径 :879-905）：settle 真实 usage + completeModelInvocation
+      // (error 码) + breaker success（格式失败不计熔断，切断「格式问题×5 → AG-01 全站熔断」链）。
+      // unknown 臂只留网络层不确定（状态机 :33·EXPERT §四 :29-34）。
+      const settledUsage = policy ? validUsage(result.usage, policy) : result.usage;
+      if (policy && !settledUsage) {
+        // usage 缺失/非法 → 归并既有 provider_usage_invalid 臂同形（:838-855）：breaker success（传输
+        // 健康）+ 钱 unknown 待对账，不新造语义（EXPERT §四 :35「usage 缺失归并既有 provider_usage_invalid」）。
+        await asPrincipal(pool, owner, async (c) => {
+          if (!await markAiCostUnknown(c, policy.scopeId, owner, spec.idempotencyKey, 'provider_usage_invalid'))
+            throw new Error('model_cost_unknown_state');
+          if (!await markModelInvocationUnknown(c, owner, spec.idempotencyKey, 'provider_usage_invalid'))
+            throw new Error('model_invocation_unknown_state');
+        });
+        await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'success', {
+          scopeId: policy.scopeId, priceRevision: policy.priceRevision,
+          inputTokens: null, outputTokens: null, settledMicroCny: null, feeStatus: 'unknown', reasonCode: 'provider_usage_invalid',
+        });
+        getMetrics().inc(METRIC.modelCostDecisions, { decision: 'unknown' });
+        span(1, 'exhausted', latencyMs, result.usage);
+        return { error: 'external_outcome_unknown' };
+      }
+      let settledCost = 0;
+      let settledOverage = false;
+      try {
+        await asPrincipal(pool, owner, async (c) => {
+          if (policy) {
+            // AG-11/EG-B2：settle 返回扩 overage 标记（真实消耗超预留的显式打标·结算不拒绝）。
+            const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens, settledUsage!.cachedInputTokens ?? 0);
+            settledCost = settled.microCny;
+            settledOverage = settled.overage;
+          }
+          const completed = await completeModelInvocation(c, {
+            owner, idempotencyKey: spec.idempotencyKey, replayable: !spec.redactOutput,
+            error: result.errorCode, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
+            usageSource: settledUsage?.usageSource,
+          });
+          if (!completed) throw new Error('model_invocation_complete_state');
+        });
+        // breaker success + settled 钱记录（真实 token）——沿先例 :899-905 形。
+        await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'success', policy ? {
+          scopeId: policy.scopeId, priceRevision: policy.priceRevision,
+          inputTokens: settledUsage?.inputTokens ?? null, outputTokens: settledUsage?.outputTokens ?? null,
+          settledMicroCny: settledCost, feeStatus: 'settled',
+        } : undefined);
+        if (policy) {
+          getMetrics().inc(METRIC.modelCostDecisions, { decision: 'settled' });
+          getMetrics().inc(METRIC.modelCostSettledMicroCny, undefined, settledCost);
+          // AG-11/EG-B2 月限只告警：overage 系异常态（政策稳态=0），>0 即告警载体计数。
+          if (settledOverage) getMetrics().inc(METRIC.modelCostSettleOverageTotal);
+        }
+      } catch {
+        // 结算/落账失败 → 既有 settle 失败臂同形（:910-926）：breaker success（传输健康）+钱 unknown 待对账。
+        await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'success', policy ? {
+          scopeId: policy.scopeId, priceRevision: policy.priceRevision,
+          inputTokens: null, outputTokens: null, settledMicroCny: null, feeStatus: 'unknown', reasonCode: 'settlement_or_record_failed',
+        } : undefined);
+        await asPrincipal(pool, owner, async (c) => {
+          if (policy) await markAiCostUnknown(c, policy.scopeId, owner, spec.idempotencyKey, 'settlement_or_record_failed').catch(() => undefined);
+          await markModelInvocationUnknown(c, owner, spec.idempotencyKey, 'settlement_or_record_failed').catch(() => undefined);
+        }).catch(() => undefined);
+        if (policy) getMetrics().inc(METRIC.modelCostDecisions, { decision: 'unknown' });
+        span(1, 'exhausted', latencyMs, settledUsage);
+        return { error: 'external_outcome_unknown' };
+      }
+      // 观测沿既有 settled-failed 先例的 schema_retry 档（确定性输出失败·允许换 revision 重试·不重试同 key）。
+      span(1, 'schema_retry', latencyMs, settledUsage);
+      return { error: result.errorCode };
     }
     const unknownReason = executionTimedOut ? 'model_execution_timeout' : 'external_outcome_unknown';
     await asPrincipal(pool, owner, async (c) => {
@@ -677,6 +1139,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   let stored: unknown;
   let value: T | undefined;
   let settledCost = 0;
+  let settledOverage = false;
   if (validated.ok) {
     value = validated.value;
     stored = spec.storeOutput ? spec.storeOutput(value) : (spec.redactOutput ? { redacted: true } : value);
@@ -684,7 +1147,10 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   try {
     await asPrincipal(pool, owner, async (c) => {
       if (policy) {
-        settledCost = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens);
+        // AG-11/EG-B2：settle 返回扩 overage 标记（真实消耗超预留的显式打标·结算不拒绝）。
+        const settled = await settleAiTextCost(c, policy.scopeId, owner, spec.idempotencyKey, settledUsage!.inputTokens, settledUsage!.outputTokens, settledUsage!.cachedInputTokens ?? 0);
+        settledCost = settled.microCny;
+        settledOverage = settled.overage;
       }
       // A redacted invocation result cannot be replayed. Persist its encrypted
       // domain artifact atomically with the durable success marker, otherwise a
@@ -694,10 +1160,14 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
       const completed = await completeModelInvocation(c, {
         owner, idempotencyKey: spec.idempotencyKey, output: stored, replayable: !spec.redactOutput,
         error: errorCode, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
+        usageSource: settledUsage?.usageSource,
       });
       if (!completed) throw new Error('model_invocation_complete_state');
-      if (!error) await persistTrace(c, owner, spec, stored, settledUsage, latencyMs, requestId);
+      // UC-028 fail-open(A1)：trace 是可观测旁路非业务真相，已拆出本事务（persistTraceBestEffort
+      // 在事务提交后独立执行）。原同事务写入使 trace INSERT 失败连坐 settle/complete →
+      // external_outcome_unknown，违反 spec「trace 写入失败不回滚业务事务」。settle/complete 语义不变。
     });
+    if (!error) await persistTraceBestEffort(pool, owner, spec, stored, settledUsage, latencyMs, requestId);
     // MODEL-OP-02：provider 成功 + 结算成功 → breaker success（复位相位）；计费调用记 settled 钱记录
     // （真实扣费金额 + 版本化价格策略 + 双向 token），与 ai_cost_reservation 的钱账可对账。
     await releaseSharedAdmissionBestEffort(pool, owner, sharedLease, 'success', policy ? {
@@ -708,6 +1178,8 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     if (policy) {
       getMetrics().inc(METRIC.modelCostDecisions, { decision: 'settled' });
       getMetrics().inc(METRIC.modelCostSettledMicroCny, undefined, settledCost);
+      // AG-11/EG-B2 月限只告警：overage 系异常态（政策稳态=0），>0 即告警载体计数。
+      if (settledOverage) getMetrics().inc(METRIC.modelCostSettleOverageTotal);
     }
   } catch {
     // We received a billable response but could not durably settle/record it.
@@ -730,6 +1202,9 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
     span(1, error.startsWith('business:') ? 'business_error' : 'schema_retry', latencyMs, settledUsage);
     return { error };
   }
-  span(1, 'ok', latencyMs, settledUsage);
+  // AG-24:终局 ok 臂携带真名+成本——model 优先序=裁决①(a):G7 供应商回显 actualModel 优先(在手时),
+  // 缺省回闭包 spanCostModel(=plan.cost?.model·claim 同源);settledCostMicroCny=账本结算权威值
+  // (:1047 settleAiTextCost 已赋值),非计费调用(无 policy)不携带。中间 outcome 臂缺省不挂(缺省≠零)。
+  span(1, 'ok', latencyMs, settledUsage, { model: result.actualModel, settledCostMicroCny: policy ? settledCost : undefined });
   return { value: value! };
 }

@@ -27,7 +27,7 @@ export function InviteCandidateDialog({ jobId }: { jobId: string }) {
         <DialogHeader>
           <DialogTitle className="font-serif">邀请候选人面试</DialogTitle>
           <DialogDescription>
-            内部预览邀请。填已注册练习账号的邮箱。你只会看到必要流程状态，<strong>看不到面试内容，也不会得到数值评分</strong>。没有人工审核工单。这不是招聘方产品，不得用于自动筛选、排名、拒绝或录用决定。
+            填已注册练习账号的邮箱。你只会看到必要流程状态，<strong>看不到面试内容，也不会得到数值评分</strong>。没有人工审核工单。这不是招聘方产品，不得用于自动筛选、排名、拒绝或录用决定。
           </DialogDescription>
         </DialogHeader>
         <form ref={formRef} action={formAction} className="space-y-3">

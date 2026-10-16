@@ -1,0 +1,113 @@
+diff --git a/ai-docs/delivery/receipts/acfix-consumer-snapshot/fixture.diff b/ai-docs/delivery/receipts/acfix-consumer-snapshot/fixture.diff
+index 80fec19a..e69de29b 100644
+--- a/ai-docs/delivery/receipts/acfix-consumer-snapshot/fixture.diff
++++ b/ai-docs/delivery/receipts/acfix-consumer-snapshot/fixture.diff
+@@ -1,47 +0,0 @@
+-diff --git a/apps/worker/test/adaptive-consumer.proof.ts b/apps/worker/test/adaptive-consumer.proof.ts
+-index 9fd0cf36..d4c3be75 100644
+---- a/apps/worker/test/adaptive-consumer.proof.ts
+-+++ b/apps/worker/test/adaptive-consumer.proof.ts
+-@@ -4,7 +4,7 @@ process.env.RESUME_ENC_KEY = 'test-resume-enc-key';
+- process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
+- import { MemorySaver } from '@langchain/langgraph';
+- import { randomUUID } from 'node:crypto';
+--import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence } from '@meetwise/db';
+-+import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute } from '@meetwise/db';
+- import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+- import { ingestResume } from '@meetwise/domain';
+- import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
+-@@ -71,6 +71,16 @@ async function main() {
+-   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [IID, OWNER, up.resumeId, resumeEpoch]);
+-   const FENCE_RACE = 'FENCE-RACE';
+-   await admin.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'active',$3,$4)", [FENCE_RACE, OWNER, up.resumeId, resumeEpoch]);
+-+  stage = 'ROUTE_SNAPSHOT_SUPPLY';
+-+  // 0142 生产同源供给面（AC-FIX A 路线，沿 neg-interview 先例 FK 序 decision→snapshot）：
+-+  // 生产 begin 在扣额/入队前同事务内经 supplyCandidateProfileRoute 以候选人本人简历 rule
+-+  // 派生唯一叶，落 candidate_profile_route_decision(route_outcome='route_decided',
+-+  // attempt_outcome='rule_decided') + candidate_profile_route_snapshot——非伪造 0104 job
+-+  // 维度行（0142 Ban masking）、非 MEETWISE_TECH_ROLE_FAIL_CLOSED opt-out。本 fixture 简历
+-+  // （Redis/限流/分布式锁）恰命中 backend/general 唯一叶，角色门在 fail-closed 默认 ON 态
+-+  // 从该 snapshot 取 role（deps 注入在 ON 态结构性不足过门）。
+-+  const routeSupply = await asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, IID, up.resumeId));
+-+  A('fixture 经生产同链供给 route snapshot(0142 decision+snapshot 幂等供给)', routeSupply.status === 'supplied');
+-   stage = 'RESERVATION_SETUP';
+-   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));   // reserve 前(预留即扣 available)
+-   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));
+-@@ -128,6 +138,16 @@ async function main() {
+-   while (!done && guard++ < 8) {
+-     const q = await asPrincipal(pool, OWNER, async (c) => (await c.query(
+-       "SELECT question_id,state_version,turn FROM interview_question WHERE interview_id=$1 AND status='issued' ORDER BY state_version DESC LIMIT 1", [IID])).rows[0]);
+-+    if (!q) {
+-+      // 溃点卫生（AC-FIX ③）：查无 issued 题时诚实 FAIL 带诊断，不再以 TypeError 无码
+-+      // 逃逸（CODE=UNKNOWN）——排空环 claim→evaluate→complete 语义原样，零弱化。
+-+      const diagnostic = await asPrincipal(pool, OWNER, (c) => c.query(
+-+        "SELECT status,last_error FROM interview_job WHERE interview_id=$1 AND kind='start'", [IID],
+-+      ));
+-+      console.error('adaptive-consumer drain diagnostic:', diagnostic.rows[0]);
+-+      A(`排空环第${guard}轮查无 issued 题:start 链未产题(诚实 FAIL 而非 TypeError)`, false);
+-+      break;
+-+    }
+-     const answer = '我用计数器+滑动窗口扛高并发并降级';
+-     const input = { questionId: q.question_id, stateVersion: Number(q.state_version), turn: Number(q.turn), answerId: randomUUID(), answerHash: answerHash(answer), answer };
+-     A(`第${input.turn}题 API identity ledger 接受`, (await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, IID, input))).status === 'accepted');
+diff --git a/apps/worker/test/adaptive-consumer.proof.ts b/apps/worker/test/adaptive-consumer.proof.ts
+index d4c3be75..317601bc 100644
+--- a/apps/worker/test/adaptive-consumer.proof.ts
++++ b/apps/worker/test/adaptive-consumer.proof.ts
+@@ -2,9 +2,12 @@
+  *  注入 fake 检索(生产注 annSearch);脚本模型。 pnpm adaptive-consumer:prove（根脚本使用临时 pgvector cluster） */
+ process.env.RESUME_ENC_KEY = 'test-resume-enc-key';
+ process.env.RESUME_HASH_SECRET = 'test-resume-hash-secret';
++// 测试专用 job-route 输入 HMAC key(同 adaptive-lifecycle.proof 先例;runner 隔离面按设计剥除生产 key,
++// createJob→createJobSemanticRevision 的生产链在夹具内需要同形 key 才能落 0104 语义修订行)。
++process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-consumer-job-route-input-hmac-proof-key-not-production-01';
+ import { MemorySaver } from '@langchain/langgraph';
+ import { randomUUID } from 'node:crypto';
+-import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute } from '@meetwise/db';
++import { createPool, asPrincipal, provisionRuntimeLogin, reserveEntitlement, createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, availableUnits, getReport, answerHash, claimInterviewAnswer, claimNextInterviewJob, requeueInterviewJob, decryptActiveResumeBlob, withInterviewGraphFence, supplyCandidateProfileRoute, createJob, classifyJobRoute, bindApplicationRoute, snapshotInterviewRoute } from '@meetwise/db';
+ import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+ import { ingestResume } from '@meetwise/domain';
+ import { drainInterviewJobOnce, type ConsumerDeps } from '../src/interview-consumer.ts';
+@@ -17,8 +20,8 @@ let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' :
+ let stage = 'BOOT';
+ const OWNER = 'consA', IID = 'cons-' + Date.now();
+ let askSeq = 0;
+-const scripted = scriptedModelClient({
+-  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发', '缓存'] } }),
++  const scripted = scriptedModelClient({
++  'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
+   'interviewer.ask': () => ({
+     ok: true,
+     raw: { q: `结合你的限流经历聊聊高并发下怎么兼顾吞吐与一致，并说明第 ${++askSeq} 轮验证方法`, refs: ['https://allow.example/deep'] },
+@@ -81,6 +84,31 @@ async function main() {
+   // 从该 snapshot 取 role（deps 注入在 ON 态结构性不足过门）。
+   const routeSupply = await asPrincipal(pool, OWNER, (c) => supplyCandidateProfileRoute(c, OWNER, IID, up.resumeId));
+   A('fixture 经生产同链供给 route snapshot(0142 decision+snapshot 幂等供给)', routeSupply.status === 'supplied');
++  // G-R2-5 检索面(0104 招聘流程链,沿 adaptive-lifecycle proof 同款生产写手链):consumer 的
++  // localRetrieve scope 门直读旧表 interview_route_snapshot(candidate 面快照按设计不喂检索面),
++  // 缺行 → localRetrieve 被 degraded('route_snapshot_missing') 包裹 → CRAG deny_external → 零
++  // deepResearch/零信封(:123/:124 断言面)。生产同链补全:createJob → classifyJobRoute(rule 零
++  // 模型) → bindApplicationRoute(apply 面) → snapshotInterviewRoute。
++  stage = 'RECRUITER_ROUTE_CHAIN_SUPPLY';
++  const RECRUITER = OWNER + '-recruiter';
++  const routeJob = await asPrincipal(pool, RECRUITER, (c) => createJob(c, RECRUITER, {
++    title: 'Node.js 服务端工程师',
++    description: '使用 NestJS 构建服务',
++    competencies: ['nestjs', 'express', 'koa'],
++  }));
++  const routeRev = Number((await admin.query(
++    'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [routeJob.id],
++  )).rows[0].n);
++  const routeClassify = await classifyJobRoute(pool, RECRUITER, routeJob.id, routeRev, {
++    modelClassify: async () => { throw new Error('fixture job must rule-decide; model path unexpected'); },
++  });
++  const routeApplicationId = 'consA-app-' + IID;
++  const routeBound = await asPrincipal(pool, OWNER, (c) => bindApplicationRoute(c, {
++    candidateUserId: OWNER, recruiterUserId: RECRUITER, jobId: routeJob.id, applicationId: routeApplicationId, emitConsumptionEvent: true,
++  }));
++  const routeSnapped = await asPrincipal(pool, OWNER, (c) => snapshotInterviewRoute(c, OWNER, IID, routeApplicationId));
++  A('fixture 经生产链补全 0104 招聘流程 route 链(rule_decided+binding+snapshot)',
++    routeClassify.status === 'route_decided' && routeBound.status === 'bound' && routeSnapped.status === 'snapshotted');
+   stage = 'RESERVATION_SETUP';
+   const before = await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER));   // reserve 前(预留即扣 available)
+   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));

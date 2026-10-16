@@ -1,0 +1,41 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-42351-1791659917351 on 127.0.0.1:62320
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 entpay:s2:prove /Users/miaole/Desktop/golucky/meetwise-s3d/apps/api
+> node --import @swc-node/register/esm-register test/entpay-s2.proof.ts
+
+FAIL  S2-0 真迁移链全量应用 0001→0157（末位=0157 扣费路由·S2-C1 落位）
+PASS  S2-0b 0157 函数族在位（SECURITY DEFINER×2）
+PASS  判据1 start 合一事务返回 started+redirectTo（候选人零额度无 402·S2-C4）
+PASS  判据1a 候选人个人桶零变（units_reserved+consumed=0·零扣费结构面）
+PASS  判据1b 企业桶 units_reserved=1.00（企业路由预留落位）
+PASS  判据1c 消费行形状=D-1 形状甲（owner=候选人·payer=招聘方·0157 头注裁决）
+PASS  判据1d begin 幂等短路（alreadyBegun·零重复预留·企业 reserved 仍 1.00）
+PASS  判据1e 完成结算：企业桶 units_consumed=+1 且 reserved 归零·候选人桶仍零变（双断言·worker :435/:441 面）
+PASS  判据2 企业额度 0 ⇒ start 拒（402·application_enterprise_pay_unavailable·候选人分码）
+PASS  判据2a CAS 零触：申请仍 invited·attempt=0·零绑定（不产生 in_progress 空申请·#227 收口）
+PASS  判据2b 企业桶零预留（拒前零悬账）
+PASS  判据2c 控制组：有余额 reused/started 正常（预留 1.00）
+PASS  判据2d reused 复用路零余额同拒（402·同分码·rev2-R8）
+PASS  判据2e reused 拒后零态变（attempt 不变·零二次预留）
+PASS  判据3a 系统失败释放：消费行 released·企业桶回补至失败前基线（预留零泄漏·:456 面）
+PASS  判据3b 重试新 attempt（interview_id≠旧·assessment_unavailable 恢复路）
+PASS  判据3b-iv 长会话租约续约（dispatch owner=候选人语境 rowCount=true·0-c⑥ 生产复验·:224/:233 零改面）
+PASS  判据3c 重试净扣企业恰 1 次（iv4b confirmed 恰 1 行·iv4 released 零计费·consumed 较失败前 +1）
+PASS  判据3d 同 attempt 重放收敛单行（duplicate·零二次扣·uq 0001:122）
+PASS  判据3e 重放零新增预留（reserved 保持重试结算后基线）
+PASS  判据4 候选人/他招聘方 principal 下他者企业桶与扣费行 SELECT=0（FORCE RLS·0-c③ 生产复验）
+PASS  判据5 offline 单 CAS 拒（conflict·订单滞 created·S2-C8 choke 单点）
+PASS  判据5b offline 单持有效签名直调 payWebhook ⇒ 409 拒·订单滞 created·桶零入账
+PASS  判据5c online 单回归零变化（webhook credited·订单 paid·paid 桶入账 10u）
+PASS  判据6 预置：绑企预留在位（reserved 含 iv6 预留 ≥1.00）
+PASS  判据6a abandon 释放路由：interview.service:526 面 ⇒ 企业桶 units_reserved 回补（interview-service 真 abandon·S2-C3 同步改兑现）
+PASS  判据6b 消费行 released ∧ 候选人桶零变 ∧ sweeper 下拍零扫（四断言·R5 全 face）
+PASS  哨兵 C 端个人桶在位（paid 2.00·reserveEntitlement 路径零触由 neg:interview/:262-264 回归背书）
+
+✗ entpay:s2:prove: 1/28 失败
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-42351-1791659917351 state_bytes=217 logs_bytes=1587

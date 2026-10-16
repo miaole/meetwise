@@ -2,12 +2,15 @@
  * 真浏览器 E2E 自启动 runner:起真栈(api + worker + web,production `next start`)→ 等就绪 →
  * 跑 Playwright(headless chromium + Pixel 5 两端)驱动真实 UI → 拆栈。
  * 这是 HTTP 层 e2e(run-e2e.mjs)之外的浏览器证据:cookie 鉴权 / middleware 在真实浏览器里端到端跑通。
- * 用法:pnpm e2e:ui(需 docker DB 在跑;web 需已 `pnpm -C apps/web build` 出 .next——本脚本不重新构建,构建太慢)。
+ * 用法:pnpm e2e:ui(需 docker DB 在跑)。没有 apps/web/.next/BUILD_ID 时先 `next build` 再 `next start`。
+ * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
  */
-import { spawn } from 'node:child_process';
-import { readFileSync, existsSync } from 'node:fs';
+import { spawn, spawnSync } from 'node:child_process';
+import { createHmac } from 'node:crypto';
+import { readFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
+import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
 const env = {
@@ -18,11 +21,15 @@ const env = {
   RESUME_HASH_SECRET: process.env.RESUME_HASH_SECRET ?? 'e2e-resume-hash-secret',
   RAG_JOB_ROUTE_INPUT_HASH_KEY: process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ?? 'e2e-rag03-job-route-input-hmac-key-not-production',
 };
-// 加载 .env(RESUME 加密键 + 模型),不覆盖已设
-if (existsSync(ROOT + '.env')) {
-  for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
-    const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
-    if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+// 加载 .env(RESUME 加密键 + 模型),不覆盖已设。
+// REG-FIX 组8b 测试钩:E2E_SKIP_DOTENV='1' 跳过仓根 .env 回灌(默认零变)——g6-e2e-iso-blocked 行为门用:
+// Key-unset 快速失败(live_provider_key_missing)在任何宿主形态(仓根 .env 存/缺)必达,不被 .env 静默绕过。
+if (process.env.E2E_SKIP_DOTENV !== '1') {
+  if (existsSync(ROOT + '.env')) {
+    for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
+      const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
+      if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');
+    }
   }
 }
 if (env.E2E_ISOLATED === '1') {
@@ -44,6 +51,20 @@ const fakeServiceFlags = ['VOICE_FAKE', 'OCR_FAKE', 'E2E_FAKE_MODEL'].filter((na
 });
 if (fakeServiceFlags.length) throw tagE2EFailure('provider', 'fake_service_mode_forbidden');
 if (!String(env.MODEL_API_KEY ?? '').trim()) throw tagE2EFailure('provider', 'live_provider_key_missing');
+
+// Line C G7 FreeTierOnly re-prove (Step3): free-first + shared ¥5 ledger across api/worker processes.
+if (String(env.G7_FREETIER_REPROVE ?? process.env.G7_FREETIER_REPROVE ?? '').trim() === '1') {
+  env.G7_FREETIER_REPROVE = '1';
+  if (String(env.G7_PAID_FALLBACK_ENABLED ?? process.env.G7_PAID_FALLBACK_ENABLED ?? '').trim() === '1') {
+    env.G7_PAID_FALLBACK_ENABLED = '1';
+  }
+  if (!String(env.G7_RUN_COST_LEDGER_PATH ?? '').trim()) {
+    const ledgerDir = `${ROOT}/.tmp/g7-ledgers`;
+    mkdirSync(ledgerDir, { recursive: true });
+    env.G7_RUN_COST_LEDGER_PATH = `${ledgerDir}/g7-${process.pid}-${Date.now()}.ndjson`;
+  }
+}
+applyLiveE2ECapabilityEnv(env);
 
 // Fixed 8787/19091/3100 lets a parallel UI run attach its browser to another
 // stack.  Each run gets an independent pair/triple and propagates those
@@ -71,6 +92,48 @@ const tailAppend = (name, chunk) => {
 const emitFailureDiagnostics = () => {
   for (const [name, summary] of processDiagnostics) {
     if (summary.bytes > 0) console.error(`E2E_PROCESS_OUTPUT_WITHHELD process=${name} chunks=${summary.chunks} bytes=${summary.bytes}`);
+  }
+};
+// STALE_BUILD_GUARD(件①):HEAD commit time 单次获取;git 不可用/非 git 树/解析失败 → null
+// (检测面 fail-open=按现行为服务既有构建;陈旧判定面 fail-closed=强制重建·假红代价>重建耗时)。
+const headTimeSec = () => {
+  try {
+    const r = spawnSync('git', ['log', '-1', '--format=%ct', 'HEAD'], { cwd: ROOT, encoding: 'utf8' });
+    const t = Number(String(r.stdout ?? '').trim());
+    return Number.isFinite(t) && t > 0 ? t : null;
+  } catch {
+    return null;
+  }
+};
+// 件②:web-build 扣留输出保留缓冲(仅内嵌 next build 挂接·尾上限 ≤400 行且 ≤64KiB 先触为准)
+// ——非零退出时落盘 .tmp/e2e-ui-build-log/<ts>.log(gitignored·0o600·沿 run-e2e-isolated :3050 先例)
+// +stderr 回放同缓冲;构建成功零写盘零行为变化。落盘系本地诊断·非收据非证据面。
+const BUILD_LOG_DIR = `${ROOT}.tmp/e2e-ui-build-log`;
+const BUILD_LOG_TAIL_LINES = 400;
+const BUILD_LOG_TAIL_BYTES = 64 * 1024;
+const buildRetained = [];
+let buildRetainedBytes = 0;
+let buildRetainedDropped = false;
+const buildSink = (stream, chunk) => {
+  const text = String(chunk);
+  buildRetained.push({ stream, text });
+  buildRetainedBytes += Buffer.byteLength(text);
+  while (buildRetained.length > 1 && (buildRetainedBytes > BUILD_LOG_TAIL_BYTES || buildRetained.length > BUILD_LOG_TAIL_LINES)) {
+    buildRetainedBytes -= Buffer.byteLength(buildRetained[0].text);
+    buildRetained.shift();
+    buildRetainedDropped = true;
+  }
+};
+const writeBuildLog = () => {
+  try {
+    mkdirSync(BUILD_LOG_DIR, { recursive: true, mode: 0o700 });
+    const logPath = `${BUILD_LOG_DIR}/${new Date().toISOString().replace(/[:.]/g, '-')}.log`;
+    const body = `${buildRetainedDropped ? '[e2e-ui-build-log: 早期内容已按尾上限截断·仅保留最后 ≤400 行/64KiB]\n' : ''}${buildRetained.map((c) => `[web-build:${c.stream}] ${c.text}`).join('')}`;
+    writeFileSync(logPath, body, { encoding: 'utf8', mode: 0o600 });
+    console.error(`E2E-UI-BUILD-LOG: web-build 非零退出·扣留输出已落盘 ${logPath}(保留尾 ≤400 行·同内容 stderr 回放如下)`);
+    process.stderr.write(body);
+  } catch (e) {
+    console.error(`E2E-UI-BUILD-LOG: 落盘失败(${e?.code ?? e?.message ?? 'unknown'})·扣留输出维持只计数`);
   }
 };
 const spawnProc = (name, cmd, args, cwd = ROOT, extraEnv = {}, forwardOutput = true) => {
@@ -117,19 +180,99 @@ const waitForApiDatabase = async (tries = 60) => {
 const REG = '@swc-node/register/esm-register';
 const NEXT_BIN = ROOT + 'apps/web/node_modules/next/dist/bin/next';
 async function main() {
-  console.log('E2E-UI: 启 api + worker…');
+  // E2E_UI_SKIP_WORKER=1：只启 api+web（不启 worker）。用于 UC018 UI abandon 等「预留下立刻点放弃」
+  // 专用钉——避免 worker 秒级 fail-closed 把会话打成 failed，与 UI 放弃点击竞态。
+  // 默认仍启 worker（全量 e2e:ui 不变）。Skip worker ≠ 假绿；本门仍打真 UI→真 HTTP abandon 合同。
+  const skipWorker = String(env.E2E_UI_SKIP_WORKER ?? '').trim() === '1';
+  console.log(skipWorker ? 'E2E-UI: 启 api（skip worker · UC018 UI abandon 专用）…' : 'E2E-UI: 启 api + worker…');
   const api = spawnProc('api', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/api', { PORT: String(apiPort) });
-  const worker = spawnProc('worker', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', WEB_ALLOWLIST: '', WORKER_METRICS_PORT: String(workerMetricsPort) });
+  const worker = skipWorker
+    ? null
+    : spawnProc('worker', 'node', ['--import', REG, 'src/main.ts'], ROOT + 'apps/worker', { WORKER_BOOTSTRAP: '1', WEB_ALLOWLIST: '', WORKER_METRICS_PORT: String(workerMetricsPort) });
   if (!(await waitFor(`${apiBase}/livez`, 'api', 40))) { cleanup(); process.exit(1); }
   if (!(await waitForApiDatabase())) { emitE2EFailure({ class: 'db', code: 'database_not_ready' }); cleanup(); process.exit(1); }
-  await sleep(3000);   // 给 worker 消费循环就绪
-  if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  if (!skipWorker) {
+    await sleep(3000);   // 给 worker 消费循环就绪
+    if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
+  }
   if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
-  const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
-  if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
+  if (!skipWorker) {
+    const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
+    if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
+  }
+
+  // 0155 审核制:B 端注册落 pending,UI 套件 recruiting-bound 需 admin approve——S3 路径现补 admin 身份播入
+  // +铸令牌+env 交接,镜像 e2e-recruiter-gate C1 形(scripts/run-e2e.mjs seedAdmin 逐字同构):
+  // 隔离库直插 is_admin 身份(注册面无 admin 入口,AdminGuard 只认 is_admin=true 行)+HMAC 铸测试令牌
+  // (铸形同 domain signToken payload=base64url{uid,exp,pe}+HMAC-SHA256;pe=0 对齐 pwd_epoch 列默认;
+  // secret=AUTH_SECRET 测试键单点在握,与 api 子进程同键)。seed/铸任一步失败 fail-closed
+  // (admin_bootstrap_failed),不在 e2e 面静默降级——缺 token 时 spec 侧 adminAuthHeaders 同样 throw。
+  const seedAdmin = async () => {
+    const { createRequire } = await import('node:module');
+    const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
+    const pgc = new Client({ host: env.PGHOST, port: Number(env.PGPORT), user: env.PGUSER, password: env.PGPASSWORD, database: env.PGDATABASE, ssl: false, connectionTimeoutMillis: 2000 });
+    await pgc.connect();
+    try {
+      // status/pwd_epoch/role 取列默认(active/0/candidate)→ PrincipalGuard 账户态复核链全过。
+      await pgc.query("INSERT INTO user_account(id,email,password_hash,is_admin,role) VALUES ('e2e-admin','e2e-admin@x.com','scrypt$e2e$bootstrap',true,'candidate') ON CONFLICT (id) DO NOTHING");
+    } finally {
+      await pgc.end().catch(() => {});
+    }
+    const nowSec = Math.floor(Date.now() / 1000);
+    const payload = Buffer.from(JSON.stringify({ uid: 'e2e-admin', exp: nowSec + 3600, pe: 0 })).toString('base64url');
+    return `${payload}.${createHmac('sha256', env.AUTH_SECRET).update(payload).digest('base64url')}`;
+  };
+  let adminToken;
+  try {
+    adminToken = await seedAdmin();
+  } catch {
+    throw tagE2EFailure('db', 'admin_bootstrap_failed');
+  }
+
+  // Recorded blocker: next start with no production build → web_not_ready.
+  // Build when BUILD_ID is absent — or when STALE_BUILD_GUARD finds the existing
+  // build older than HEAD(陈旧构建假红防线·UC003 门⑥事故:BUILD_ID mtime 早于接线
+  // 仍「在即不重建」→ 服务陈旧构建假红·复跑席再实证扣留输出不可回收)。
+  const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
+  let forceRebuild = false;
+  if (existsSync(nextBuildId)) {
+    const headCommitTimeSec = headTimeSec();
+    if (headCommitTimeSec === null) {
+      console.warn('E2E-UI: STALE_BUILD_GUARD HEAD commit time 不可得(git 不可用/非 git 树)→ 按现行为服务既有构建');
+    } else {
+      try {
+        const buildIdMtimeMs = statSync(nextBuildId).mtimeMs;
+        if (buildIdMtimeMs / 1000 < headCommitTimeSec) {
+          forceRebuild = true;
+          console.warn(`E2E-UI: STALE_BUILD_GUARD .next/BUILD_ID mtime=${new Date(buildIdMtimeMs).toISOString()} 早于 HEAD commit time=${new Date(headCommitTimeSec * 1000).toISOString()} → 强制重建(防陈旧构建假红)`);
+        }
+      } catch {
+        console.warn('E2E-UI: STALE_BUILD_GUARD BUILD_ID mtime 读取失败 → 按现行为服务既有构建');
+      }
+    }
+  }
+  if (!existsSync(nextBuildId) || forceRebuild) {
+    console.log(forceRebuild ? 'E2E-UI: STALE_BUILD_GUARD 判定陈旧构建 → 强制 next build…' : 'E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
+    const build = spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {
+      PORT: String(webPort),
+      API_BASE_INTERNAL: apiBase,
+      NEXT_PUBLIC_API_BASE: apiBase,
+      E2E_UI_STRESS: '1',
+    });
+    build.stdout.on('data', (d) => buildSink('stdout', d));
+    build.stderr.on('data', (d) => buildSink('stderr', d));
+    const buildCode = await new Promise((res) => build.on('exit', res));
+    if (buildCode !== 0 || !existsSync(nextBuildId)) {
+      writeBuildLog();
+      emitFailureDiagnostics();
+      emitE2EFailure({ class: 'frontend', code: 'web_not_ready' });
+      cleanup();
+      process.exit(buildCode && buildCode !== 0 ? buildCode : 1);
+    }
+  }
 
   console.log(`E2E-UI: 启 web(production next start, :${webPort})…`);
-  // 假设 .next 已构建(构建太慢,不在此重建)。next start 直接服务 .next + 静态资源。
+  // 已有 .next/BUILD_ID(或刚由上面的 next build 写出)。next start 直接服务 .next + 静态资源。
   spawnProc('web', 'node', [NEXT_BIN, 'start', '-p', String(webPort)], ROOT + 'apps/web', {
     PORT: String(webPort),
     API_BASE_INTERNAL: apiBase,
@@ -149,6 +292,7 @@ async function main() {
   const pw = spawnProc('playwright', 'corepack', playwrightArgs, ROOT, {
     PLAYWRIGHT_BASE_URL: webBase,
     E2E_API_BASE: apiBase,
+    E2E_ADMIN_TOKEN: adminToken,   // 0155 审核门交接:recruiting-bound 拍2 真 admin API approve 所需(显式并入,非进程默认透传)
   }, false);
   pw.stdout.on('data', (d) => process.stdout.write(d));
   pw.stderr.on('data', (d) => process.stderr.write(d));

@@ -1,0 +1,279 @@
+# receipt: authz-harden 5A-2 rev2 P7 — uc011:refund-callback-adv:prove:raw 实跑留据
+# date_utc=2026-10-12T06:17Z · cmd=pnpm uc011:refund-callback-adv:prove (runner dash-form allow-list entry exercised: run-e2e-isolated.mjs 'uc011:refund-callback-adv:prove:raw')
+# outcome=EXIT=0 · 68 断言全绿（A1–A7 + 新鲜 INV + 跨入口一致性 + Z mouth 回归）· 6/52→n/a（本套件非翻红对象·系 P6 接线修通后首次实跑留据）
+# note=runner 对该目标不落 .tmp/isolated-proof-receipts JSON·以本完整 stdout 为收据 · releaseEvidence=false · EXIT0≠covered
+---
+
+> meetwise@0.1.0 uc011:refund-callback-adv:prove /Users/miaole/Desktop/golucky/meetwise-authz
+> node scripts/run-e2e-isolated.mjs uc011:refund-callback-adv:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-46033-1791785821803 on 127.0.0.1:65304
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc011-refund-callback-adv /Users/miaole/Desktop/golucky/meetwise-authz/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-011-refund-callback-adv.proof.ts
+
+{"level":30,"time":1791785833138,"pid":46301,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:65391"}
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · UC-011 stays partial · ADV stays gap/case-only · GAP-UC011-ADV-01 stays OPEN
+CMD=pnpm uc011:refund-callback-adv:prove
+MOUTH(main): POST /payment/refund-callback（scenarios :253 字面契约 · body 白名单 {orderId,providerTxn,sig,ts}）
+MOUTH(pathA): POST /commerce/webhook/refund/:id（Line Z · 共用同一 refundWebhook 管道 · 不回退）
+EXIT 契约: EXIT 0 ⇔ A1–A7 + 新鲜 INV + 跨入口一致性 + Z mouth 回归 EXIT 0（合取）。EXIT0 ≠ covered ≠ 翻行。
+DISCLOSED: 显式服务端金额复核比较路径今天不存在；当前保障=结构性（body 白名单无金额通道 + 服务器权威 units 红冲）。Ban 改口「已实现金额复核」。
+PASS  [INV] 管道存在: commerce.service.ts 含 refundWebhook（单管道 · 全链路 400/403/404/CAS/409/200 只此一份）
+PASS  [INV] 管道存在: packages/db/src/commerce/payment.ts 含 markOrderRefunded（CAS + 红冲语义在树）
+PASS  [INV] 薄适配: payment-callback.controller.ts 委托 refundWebhook（单管道 · 无第二套守卫）
+PASS  [INV] Ban 复制守卫: controller 无 createHmac/timingSafeEqual/gateway_payment_order_owner/markOrderRefunded
+PASS  [INV] Ban 金额通道: controller 代码面（剥注释后）无 amount 形字段引用（白名单结构性）
+PASS  [INV] 注册形态: 独立文件 payment-callback.controller.ts + app.module.ts 注册 PaymentCallbackController
+{"level":30,"time":1791785833160,"pid":46301,"hostname":"miaole.local","reqId":"6339a8f5-6f2e-40fd-b515-d4ead770f80e","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833166,"pid":46301,"hostname":"miaole.local","reqId":"6339a8f5-6f2e-40fd-b515-d4ead770f80e","res":{"statusCode":403},"responseTime":5.271500000000742,"msg":"request completed"}
+PASS  [INV] 主口已挂载(非 404): 合法单垃圾签 → 403 bad_signature（≠ 口缺失裸 404）
+AUDIT-OBSERVATION: absent class=INV basis=payment-callback.controller.ts + commerce.service.ts:79-93 + commerce-webhook.controller.ts (runtime scan of refund product path: 0 GuardrailHit/audit-log/security-log emit points) — disclosed-not-blocking，非 EXIT 门槛；缺席作具名 residual「审计后置未接线」带进 post-prove dual。
+{"level":30,"time":1791785833175,"pid":46301,"hostname":"miaole.local","reqId":"e1141eb9-963c-42fd-adb0-0d96afcd434f","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833176,"pid":46301,"hostname":"miaole.local","reqId":"e1141eb9-963c-42fd-adb0-0d96afcd434f","res":{"statusCode":403},"responseTime":0.6688749999993888,"msg":"request completed"}
+PASS  [A1] 伪造签名(等长 hex) → 403 bad_signature
+{"level":30,"time":1791785833177,"pid":46301,"hostname":"miaole.local","reqId":"293492ba-e003-474c-8a6f-44ed77dd2f24","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833178,"pid":46301,"hostname":"miaole.local","reqId":"293492ba-e003-474c-8a6f-44ed77dd2f24","res":{"statusCode":403},"responseTime":0.31374999999934516,"msg":"request completed"}
+PASS  [A1] 垃圾短签名 → 403 bad_signature
+{"level":30,"time":1791785833179,"pid":46301,"hostname":"miaole.local","reqId":"4d04a9ca-57af-45fa-a54f-26517a618725","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833179,"pid":46301,"hostname":"miaole.local","reqId":"4d04a9ca-57af-45fa-a54f-26517a618725","res":{"statusCode":403},"responseTime":0.26166600000033213,"msg":"request completed"}
+PASS  [A1] 他单签名打到本单 → 403 bad_signature（HMAC 载荷绑定 orderId）
+{"level":30,"time":1791785833181,"pid":46301,"hostname":"miaole.local","reqId":"f194e459-c028-4c1b-b05b-9bc3a258b975","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833181,"pid":46301,"hostname":"miaole.local","reqId":"f194e459-c028-4c1b-b05b-9bc3a258b975","res":{"statusCode":403},"responseTime":0.35825000000022555,"msg":"request completed"}
+PASS  [A1] pay 标签签名打到 refund 主口 → 403 bad_signature
+PASS  [A1] 具名码=bad_signature（Ban any-non-404-4xx-as-sig-evidence）
+PASS  [A1] 零副作用: status 仍 paid · refund_provider_txn NULL
+PASS  [A1] 零副作用: 桶/可用额度快照不变
+PASS  [A1] 零副作用: refund_provider_txn 全局 0 行
+AUDIT-OBSERVATION: absent class=A1 basis=payment-callback.controller.ts + commerce.service.ts:79-93 + commerce-webhook.controller.ts (runtime scan of refund product path: 0 GuardrailHit/audit-log/security-log emit points) — disclosed-not-blocking，非 EXIT 门槛；缺席作具名 residual「审计后置未接线」带进 post-prove dual。
+{"level":30,"time":1791785833191,"pid":46301,"hostname":"miaole.local","reqId":"e40ece28-098c-4f10-b123-21e5299104fa","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833192,"pid":46301,"hostname":"miaole.local","reqId":"e40ece28-098c-4f10-b123-21e5299104fa","res":{"statusCode":400},"responseTime":0.3458339999997406,"msg":"request completed"}
+PASS  [A2] 空 body → 400 invalid_callback
+{"level":30,"time":1791785833193,"pid":46301,"hostname":"miaole.local","reqId":"49f90ef5-f502-4fce-94be-6bef29739569","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833193,"pid":46301,"hostname":"miaole.local","reqId":"49f90ef5-f502-4fce-94be-6bef29739569","res":{"statusCode":400},"responseTime":0.17612499999995634,"msg":"request completed"}
+PASS  [A2] 缺 orderId（有 txn+sig）→ 400 invalid_callback（非 403 · 400 判定先于 HMAC）
+{"level":30,"time":1791785833194,"pid":46301,"hostname":"miaole.local","reqId":"199bd5b8-165e-4665-95eb-a1d7183d3928","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833194,"pid":46301,"hostname":"miaole.local","reqId":"199bd5b8-165e-4665-95eb-a1d7183d3928","res":{"statusCode":400},"responseTime":0.20250000000032742,"msg":"request completed"}
+PASS  [A2] 缺 providerTxn → 400 invalid_callback
+{"level":30,"time":1791785833196,"pid":46301,"hostname":"miaole.local","reqId":"3958aee1-9679-4452-8348-662cf54fcf46","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833197,"pid":46301,"hostname":"miaole.local","reqId":"3958aee1-9679-4452-8348-662cf54fcf46","res":{"statusCode":400},"responseTime":1.2408749999995052,"msg":"request completed"}
+PASS  [A2] 缺 sig → 400 invalid_callback
+{"level":30,"time":1791785833199,"pid":46301,"hostname":"miaole.local","reqId":"5a55675d-f7dd-4912-a7c2-0acda2285942","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833199,"pid":46301,"hostname":"miaole.local","reqId":"5a55675d-f7dd-4912-a7c2-0acda2285942","res":{"statusCode":400},"responseTime":0.32287499999983993,"msg":"request completed"}
+PASS  [A2] 仅 sig（缺 orderId+providerTxn）→ 400 invalid_callback
+PASS  [A2] 具名码=invalid_callback 逐字段一致（C-V1 body 契约 {orderId,providerTxn,sig}）
+PASS  [A2] 零副作用: status 仍 paid · refund_provider_txn NULL
+PASS  [A2] 零副作用: 桶/可用额度快照不变
+PASS  [A2] 零副作用: refund_provider_txn 全局 0 行
+AUDIT-OBSERVATION: absent class=A2 basis=payment-callback.controller.ts + commerce.service.ts:79-93 + commerce-webhook.controller.ts (runtime scan of refund product path: 0 GuardrailHit/audit-log/security-log emit points) — disclosed-not-blocking，非 EXIT 门槛；缺席作具名 residual「审计后置未接线」带进 post-prove dual。
+DISCLOSED: 依据 payment-callback.controller.ts（body 白名单仅 {orderId,providerTxn,sig,ts}，只传四字段）+
+DISCLOSED: commerce.service.ts refundWebhook（回调体类型仅 {providerTxn,sig,ts}）+ payment.ts:104（红冲=订单权威 units）；主口路径无任何金额读取。
+{"level":30,"time":1791785833208,"pid":46301,"hostname":"miaole.local","reqId":"7a419df5-1d79-41d1-be7c-5ec23f34dd71","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833219,"pid":46301,"hostname":"miaole.local","reqId":"7a419df5-1d79-41d1-be7c-5ec23f34dd71","res":{"statusCode":200},"responseTime":10.77245800000037,"msg":"request completed"}
+PASS  [A3] 夹带 amountCents/units/refundAmount/amount → 字段被忽略, 200 refunded
+PASS  [A3] 红冲单位恒等于服务器权威 units=10（夹带 999999/-500 未入通道）
+PASS  [A3] 订单落库 units/amount_cents 仍权威 10/9900（夹带值未落库）
+PASS  [A3] 终态 refunded + refund_provider_txn 落库
+PASS  [A3] 结构性单退: refund_provider_txn 全局恰 1 行
+PASS  [A3] 桶计数不变（红冲写原桶 units_total，不新建桶）
+AUDIT-OBSERVATION: absent class=A3 basis=payment-callback.controller.ts + commerce.service.ts:79-93 + commerce-webhook.controller.ts (runtime scan of refund product path: 0 GuardrailHit/audit-log/security-log emit points) — disclosed-not-blocking，非 EXIT 门槛；缺席作具名 residual「审计后置未接线」带进 post-prove dual。
+SNAPSHOT A4 before: {"buckets":1,"sum":10,"avail":10,"order":"paid"}
+{"level":30,"time":1791785833230,"pid":46301,"hostname":"miaole.local","reqId":"61c9bc23-1e54-4486-958a-7e0b8092f4d0","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833239,"pid":46301,"hostname":"miaole.local","reqId":"61c9bc23-1e54-4486-958a-7e0b8092f4d0","res":{"statusCode":200},"responseTime":8.857041000000208,"msg":"request completed"}
+SNAPSHOT A4 after-first: {"buckets":1,"sum":0,"avail":0,"order":"refunded"}
+{"level":30,"time":1791785833241,"pid":46301,"hostname":"miaole.local","reqId":"d69a65f0-f7fa-4d30-8875-19b8fd75a94a","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833246,"pid":46301,"hostname":"miaole.local","reqId":"d69a65f0-f7fa-4d30-8875-19b8fd75a94a","res":{"statusCode":200},"responseTime":4.714042000000518,"msg":"request completed"}
+SNAPSHOT A4 after-replay: {"buckets":1,"sum":0,"avail":0,"order":"refunded"}
+PASS  [A4] 首次回调 → 200 {result: refunded}
+PASS  [A4] 同单同 txn 重放 → 200 {result: already}（幂等去重，不双退）
+PASS  [A4] 无双退: 红冲恰一次（before→mid avail −10，mid→after 快照二致）
+PASS  [A4] 无双退: units_total 合计恰 −10 一次
+PASS  [A4] refund_provider_txn 全局恰 1 行（C-V2）
+PASS  [A4] 终态: status=refunded 且 refund_provider_txn=注入 txn
+{"level":30,"time":1791785833252,"pid":46301,"hostname":"miaole.local","reqId":"9cc336c4-0ad4-4160-80d3-afe4945d817b","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833260,"pid":46301,"hostname":"miaole.local","reqId":"9cc336c4-0ad4-4160-80d3-afe4945d817b","res":{"statusCode":200},"responseTime":7.933458999999857,"msg":"request completed"}
+{"level":30,"time":1791785833261,"pid":46301,"hostname":"miaole.local","reqId":"4054dd6b-ed54-4763-88a5-687e48939d97","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833270,"pid":46301,"hostname":"miaole.local","reqId":"4054dd6b-ed54-4763-88a5-687e48939d97","res":{"statusCode":409},"responseTime":8.952000000000226,"msg":"request completed"}
+PASS  [A5] 第一张订单 → 200 {result: refunded}
+PASS  [A5] 跨订单重放 → 409 order_conflict（非 5xx）
+PASS  [A5] refund_provider_txn 全局恰 1 行
+PASS  [A5] 唯一流水归属第一张订单（B 仍 paid + refund_provider_txn NULL）
+PASS  [A5] 两账户合计红冲恰一份: A avail −10 · B 快照不变
+SNAPSHOT A6 before: {"buckets":1,"sum":10,"avail":10,"order":"paid"}
+{"level":30,"time":1791785833275,"pid":46301,"hostname":"miaole.local","reqId":"ada7cd0e-32ea-4161-8eac-c6ac4688789e","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833275,"pid":46301,"hostname":"miaole.local","reqId":"7014c82c-9865-4c87-8efb-553d5b8fcdf8","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833288,"pid":46301,"hostname":"miaole.local","reqId":"ada7cd0e-32ea-4161-8eac-c6ac4688789e","res":{"statusCode":200},"responseTime":12.92304200000035,"msg":"request completed"}
+{"level":30,"time":1791785833292,"pid":46301,"hostname":"miaole.local","reqId":"7014c82c-9865-4c87-8efb-553d5b8fcdf8","res":{"statusCode":200},"responseTime":16.237291999999798,"msg":"request completed"}
+PASS  [A6] 并发双回调 → 无 5xx（都 200）
+PASS  [A6] 恰一个 refunded（CAS 裁决，不双退）
+PASS  [A6] 另一个为 already（幂等收敛）
+SNAPSHOT A6 after: {"buckets":1,"sum":0,"avail":0,"order":"refunded"}
+PASS  [A6] 无 stuck 终态: payment_order.status=refunded
+PASS  [A6] 无 stuck 终态: refund_provider_txn=注入 txn
+PASS  [A6] 无 stuck 终态: 红冲恰一次 avail −10（before→after）
+PASS  [A6] 无 stuck 终态: refund_provider_txn 全局恰 1 行（无双行 · C-V2）
+{"level":30,"time":1791785833295,"pid":46301,"hostname":"miaole.local","reqId":"7efc4cec-4175-49f5-af2f-b76750de127f","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833297,"pid":46301,"hostname":"miaole.local","reqId":"7efc4cec-4175-49f5-af2f-b76750de127f","res":{"statusCode":404},"responseTime":1.6122089999998934,"msg":"request completed"}
+PASS  [A7] 未知订单(合法签名) → 404 order_not_found
+{"level":30,"time":1791785833298,"pid":46301,"hostname":"miaole.local","reqId":"64801785-d036-42da-9437-18a24facdf0c","req":{"method":"POST","url":"/payment/definitely-not-a-mouth","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833298,"pid":46301,"hostname":"miaole.local","reqId":"64801785-d036-42da-9437-18a24facdf0c","res":{"statusCode":404},"responseTime":0.2833330000003116,"msg":"request completed"}
+PASS  [A7] 命名区分(具名 body): 真口未知单 404.body.error=order_not_found · 缺失口 404 无此具名码
+PASS  [A7] 零副作用: 幽灵单不落库
+PASS  [A7] 零副作用: refund_provider_txn 全局 0 行
+PASS  [A7] 零副作用: 幽灵 owner 无桶
+{"level":30,"time":1791785833303,"pid":46301,"hostname":"miaole.local","reqId":"07815272-5e82-4b45-842a-1af11cc0f97a","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833310,"pid":46301,"hostname":"miaole.local","reqId":"07815272-5e82-4b45-842a-1af11cc0f97a","res":{"statusCode":200},"responseTime":6.868750000000546,"msg":"request completed"}
+PASS  [A7] body 夹带 owner 冒充 → 200 refunded（冒充字段被白名单丢弃）
+PASS  [A7] 攻击者 rfadvAttacker 0 桶（owner 不可伪造）
+PASS  [A7] 真 owner 红冲恰一次: avail −10
+PASS  [A7] 终态: 订单 refunded 且归属真 owner（owner_user_id 不变）
+AUDIT-OBSERVATION: absent class=A7 basis=payment-callback.controller.ts + commerce.service.ts:79-93 + commerce-webhook.controller.ts (runtime scan of refund product path: 0 GuardrailHit/audit-log/security-log emit points) — disclosed-not-blocking，非 EXIT 门槛；缺席作具名 residual「审计后置未接线」带进 post-prove dual。
+{"level":30,"time":1791785833313,"pid":46301,"hostname":"miaole.local","reqId":"3911a75b-7992-4e46-a4fb-d9edae1bcbea","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833313,"pid":46301,"hostname":"miaole.local","reqId":"3911a75b-7992-4e46-a4fb-d9edae1bcbea","res":{"statusCode":400},"responseTime":0.19329199999992852,"msg":"request completed"}
+{"level":30,"time":1791785833314,"pid":46301,"hostname":"miaole.local","reqId":"e9d608ba-1b59-4013-bb48-5a1312d3d2c5","req":{"method":"POST","url":"/commerce/webhook/refund/RFADV_INV","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833314,"pid":46301,"hostname":"miaole.local","reqId":"e9d608ba-1b59-4013-bb48-5a1312d3d2c5","res":{"statusCode":400},"responseTime":0.18833300000005693,"msg":"request completed"}
+PASS  [X] 同刺激一致: 空 body → 主口 400 invalid_callback = Path A 400 invalid_callback
+{"level":30,"time":1791785833314,"pid":46301,"hostname":"miaole.local","reqId":"626fbfa5-19a1-44bc-b9ad-98af2f310fff","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833315,"pid":46301,"hostname":"miaole.local","reqId":"626fbfa5-19a1-44bc-b9ad-98af2f310fff","res":{"statusCode":403},"responseTime":0.25749999999970896,"msg":"request completed"}
+{"level":30,"time":1791785833315,"pid":46301,"hostname":"miaole.local","reqId":"a6ca9b21-cdbb-4385-b8aa-85be5f477ec4","req":{"method":"POST","url":"/commerce/webhook/refund/RFADV_A1","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833315,"pid":46301,"hostname":"miaole.local","reqId":"a6ca9b21-cdbb-4385-b8aa-85be5f477ec4","res":{"statusCode":403},"responseTime":0.13741600000048493,"msg":"request completed"}
+PASS  [X] 同刺激一致: 垃圾签 → 主口 403 bad_signature = Path A 403 bad_signature
+{"level":30,"time":1791785833316,"pid":46301,"hostname":"miaole.local","reqId":"148a2c75-5beb-4fe0-8961-6ebac2574a90","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833319,"pid":46301,"hostname":"miaole.local","reqId":"148a2c75-5beb-4fe0-8961-6ebac2574a90","res":{"statusCode":404},"responseTime":2.9717920000002778,"msg":"request completed"}
+{"level":30,"time":1791785833320,"pid":46301,"hostname":"miaole.local","reqId":"308bd237-ec6a-4329-be52-7aa71b522c4c","req":{"method":"POST","url":"/commerce/webhook/refund/RFADV_X1_GHOST_e21a1cec-e62b-429c-89b5-beafd3279921","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833322,"pid":46301,"hostname":"miaole.local","reqId":"308bd237-ec6a-4329-be52-7aa71b522c4c","res":{"statusCode":404},"responseTime":1.9413749999994252,"msg":"request completed"}
+PASS  [X] 同刺激一致: 未知单 → 主口 404 order_not_found = Path A 404 order_not_found
+{"level":30,"time":1791785833322,"pid":46301,"hostname":"miaole.local","reqId":"fda1a3a3-befa-40e6-89e8-e8a63c18d9db","req":{"method":"POST","url":"/commerce/webhook/refund/RFADV_A5B","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833328,"pid":46301,"hostname":"miaole.local","reqId":"fda1a3a3-befa-40e6-89e8-e8a63c18d9db","res":{"statusCode":409},"responseTime":5.803082999999788,"msg":"request completed"}
+PASS  [X] 同刺激一致: 跨单同流水 → 主口 409 order_conflict = Path A 409 order_conflict（同一 CAS 键）
+{"level":30,"time":1791785833330,"pid":46301,"hostname":"miaole.local","reqId":"898c6bc9-baaa-4147-907d-92beb7fb1d51","req":{"method":"POST","url":"/commerce/webhook/refund/RFADV_XA","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833337,"pid":46301,"hostname":"miaole.local","reqId":"898c6bc9-baaa-4147-907d-92beb7fb1d51","res":{"statusCode":200},"responseTime":6.060707999999977,"msg":"request completed"}
+{"level":30,"time":1791785833337,"pid":46301,"hostname":"miaole.local","reqId":"c850b6af-0e6c-4701-98d1-0ad8ddf105ba","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833341,"pid":46301,"hostname":"miaole.local","reqId":"c850b6af-0e6c-4701-98d1-0ad8ddf105ba","res":{"statusCode":200},"responseTime":3.626208000000588,"msg":"request completed"}
+PASS  [X] 跨口重放 dir1: Path A 首退 → 200 refunded
+PASS  [X] 跨口重放 dir1: 主口重放同单同 txn → 200 already（单管道 CAS 收敛）
+PASS  [X] 跨口重放 dir1: 红冲恰一次 avail −10 · txn 全局恰 1 行
+{"level":30,"time":1791785833343,"pid":46301,"hostname":"miaole.local","reqId":"426d64fb-21b8-4467-bb60-9320dbead1aa","req":{"method":"POST","url":"/payment/refund-callback","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65392},"msg":"incoming request"}
+{"level":30,"time":1791785833349,"pid":46301,"hostname":"miaole.local","reqId":"426d64fb-21b8-4467-bb60-9320dbead1aa","res":{"statusCode":200},"responseTime":5.468041999999514,"msg":"request completed"}
+{"level":30,"time":1791785833350,"pid":46301,"hostname":"miaole.local","reqId":"a51384aa-ae01-4a04-84b2-8eca41a612b6","req":{"method":"POST","url":"/commerce/webhook/refund/RFADV_XB","host":"127.0.0.1:65391","remoteAddress":"127.0.0.1","remotePort":65393},"msg":"incoming request"}
+{"level":30,"time":1791785833356,"pid":46301,"hostname":"miaole.local","reqId":"a51384aa-ae01-4a04-84b2-8eca41a612b6","res":{"statusCode":200},"responseTime":5.907625000000735,"msg":"request completed"}
+PASS  [X] 跨口重放 dir2: 主口首退 → 200 refunded
+PASS  [X] 跨口重放 dir2: Path A 重放同单同 txn → 200 already（单管道 CAS 收敛）
+PASS  [X] 跨口重放 dir2: 红冲恰一次 avail −10 · txn 全局恰 1 行
+ZREG: 原样运行 Line Z 冻结 proof（test/uc-e2e-011-refund-callback-mouth.proof.ts · 断言零改动）…
+{"level":30,"time":1791785835750,"pid":46321,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:65406"}
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · DELETE=202 软删受理(purge_pending) · UC-011 stays partial · ADV stays gap/case-only
+CMD=pnpm uc011:refund-callback:prove
+MOUTH: POST /commerce/webhook/refund/:id （等价 webhook · HMAC 标签 refunded）
+EXIT 契约: EXIT 0 ⇔ B-1 pins 全命中；EXIT0 ≠ covered · Ban wash ADV · Ban any-non-404-4xx-as-sig-evidence
+DISCLOSED: 回调体仅 {providerTxn,sig,ts}(5A-2 #100 ts 防重放) · 无金额通道 · Ban 假称已做显式金额复核（对齐 UC014 C3）
+{"level":30,"time":1791785835809,"pid":46321,"hostname":"miaole.local","reqId":"dff340e4-b84a-45a9-87c6-5cae8678acba","req":{"method":"POST","url":"/commerce/webhook/refund/RF_INV","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835814,"pid":46321,"hostname":"miaole.local","reqId":"dff340e4-b84a-45a9-87c6-5cae8678acba","res":{"statusCode":400},"responseTime":4.751125000000229,"msg":"request completed"}
+PASS  [INV] 空 body → 400 invalid_callback
+{"level":30,"time":1791785835826,"pid":46321,"hostname":"miaole.local","reqId":"3d18a93f-3b7d-4f6c-9e22-73544d2b42f7","req":{"method":"POST","url":"/commerce/webhook/refund/RF_INV","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65409},"msg":"incoming request"}
+{"level":30,"time":1791785835828,"pid":46321,"hostname":"miaole.local","reqId":"3d18a93f-3b7d-4f6c-9e22-73544d2b42f7","res":{"statusCode":400},"responseTime":1.4153330000003734,"msg":"request completed"}
+PASS  [INV] 缺 sig → 400 invalid_callback
+{"level":30,"time":1791785835832,"pid":46321,"hostname":"miaole.local","reqId":"143547de-4f5a-42de-9091-be0f514065f5","req":{"method":"POST","url":"/commerce/webhook/refund/RF_INV","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+PASS  [INV] 缺 providerTxn → 400 invalid_callback
+PASS  [INV] 具名码=invalid_callback（Ban any-non-404-4xx-as-sig-evidence）
+{"level":30,"time":1791785835833,"pid":46321,"hostname":"miaole.local","reqId":"143547de-4f5a-42de-9091-be0f514065f5","res":{"statusCode":400},"responseTime":0.33791599999995015,"msg":"request completed"}
+PASS  [INV] 零副作用: status 仍 paid · refund_provider_txn NULL
+PASS  [INV] 零副作用: 桶/可用额度不变
+{"level":30,"time":1791785835865,"pid":46321,"hostname":"miaole.local","reqId":"c5f06028-c987-4e6e-97cd-328c1834d685","req":{"method":"POST","url":"/commerce/webhook/refund/RF_SIG","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835866,"pid":46321,"hostname":"miaole.local","reqId":"c5f06028-c987-4e6e-97cd-328c1834d685","res":{"statusCode":403},"responseTime":0.49554100000023027,"msg":"request completed"}
+PASS  [SIG] 伪造签名(等长 hex) → 403 bad_signature
+{"level":30,"time":1791785835869,"pid":46321,"hostname":"miaole.local","reqId":"7841b705-4f47-4fce-81c9-73b806fc055b","req":{"method":"POST","url":"/commerce/webhook/refund/RF_SIG","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65409},"msg":"incoming request"}
+{"level":30,"time":1791785835871,"pid":46321,"hostname":"miaole.local","reqId":"7841b705-4f47-4fce-81c9-73b806fc055b","res":{"statusCode":403},"responseTime":1.9758339999998498,"msg":"request completed"}
+PASS  [SIG] 垃圾短签名 → 403 bad_signature
+{"level":30,"time":1791785835872,"pid":46321,"hostname":"miaole.local","reqId":"eb208733-11b4-4ad4-ac6f-94d9c9a8491b","req":{"method":"POST","url":"/commerce/webhook/refund/RF_SIG","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835873,"pid":46321,"hostname":"miaole.local","reqId":"eb208733-11b4-4ad4-ac6f-94d9c9a8491b","res":{"statusCode":403},"responseTime":0.3722080000002279,"msg":"request completed"}
+PASS  [SIG] 他单签名打到本单 → 403 bad_signature
+PASS  [SIG] pay 标签签名打到 refund 口 → 403 bad_signature
+PASS  [SIG] 具名码=bad_signature（Ban any-non-404-4xx-as-sig-evidence）
+{"level":30,"time":1791785835874,"pid":46321,"hostname":"miaole.local","reqId":"a5b03733-1e96-41ee-9501-8622e6873286","req":{"method":"POST","url":"/commerce/webhook/refund/RF_SIG","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65409},"msg":"incoming request"}
+{"level":30,"time":1791785835874,"pid":46321,"hostname":"miaole.local","reqId":"a5b03733-1e96-41ee-9501-8622e6873286","res":{"statusCode":403},"responseTime":0.23799999999982901,"msg":"request completed"}
+PASS  [SIG] 零副作用: status 仍 paid · refund_provider_txn NULL
+PASS  [SIG] 零副作用: 桶/可用额度不变
+PASS  [SIG] 零副作用: refund_provider_txn 全局 0 行
+{"level":30,"time":1791785835881,"pid":46321,"hostname":"miaole.local","reqId":"9d6b0e98-6313-4b07-9575-6293625fcd44","req":{"method":"POST","url":"/commerce/webhook/refund/RF_GHOST_614f5b88-7508-45cf-ba24-7a54ba110fbc","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835891,"pid":46321,"hostname":"miaole.local","reqId":"9d6b0e98-6313-4b07-9575-6293625fcd44","res":{"statusCode":404},"responseTime":9.00283300000001,"msg":"request completed"}
+PASS  [NF] 未知订单(合法签名) → 404 order_not_found
+PASS  [NF] 口已挂载: 响应具名 order_not_found（≠ 口缺失裸 404 无体）
+PASS  [NF] 零副作用: 幽灵单不落库
+PASS  [NF] 零副作用: refund_provider_txn 全局 0 行
+{"level":30,"time":1791785835898,"pid":46321,"hostname":"miaole.local","reqId":"f1848e69-f694-4b21-874e-aef1eea3649f","req":{"method":"POST","url":"/commerce/webhook/refund/RF_NF","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835900,"pid":46321,"hostname":"miaole.local","reqId":"f1848e69-f694-4b21-874e-aef1eea3649f","res":{"statusCode":403},"responseTime":2.062083999999686,"msg":"request completed"}
+PASS  [NF] 口已挂载旁证: 合法单错签 → 403（≠ 口缺失 404）
+DISCLOSED: 显式服务端金额复核比较路径今天不存在；当前保障=结构性（无金额通道+服务器权威 units）。
+{"level":30,"time":1791785835906,"pid":46321,"hostname":"miaole.local","reqId":"d93d9563-a89b-463c-bd47-f80e34255c87","req":{"method":"POST","url":"/commerce/webhook/refund/RF_AMT","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835916,"pid":46321,"hostname":"miaole.local","reqId":"d93d9563-a89b-463c-bd47-f80e34255c87","res":{"statusCode":200},"responseTime":9.756916999999703,"msg":"request completed"}
+PASS  [AMT] 夹带 amountCents/units/amount → 字段被忽略, 200 refunded
+PASS  [AMT] 红冲单位恒等于订单权威 units=10（夹带 999999 未入账）
+PASS  [AMT] 订单落库 units/amount 仍权威 10/9900
+PASS  [AMT] 终态 refunded + refund_provider_txn 落库
+{"level":30,"time":1791785835923,"pid":46321,"hostname":"miaole.local","reqId":"685b4576-0acf-425f-90b6-4eb6ef7800c5","req":{"method":"POST","url":"/commerce/webhook/refund/RF_M1","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835932,"pid":46321,"hostname":"miaole.local","reqId":"685b4576-0acf-425f-90b6-4eb6ef7800c5","res":{"statusCode":200},"responseTime":9.263916000000336,"msg":"request completed"}
+PASS  [M1] 合法首次退 → 200 {result: refunded}
+PASS  [M1] DB paid→refunded CAS
+PASS  [M1] refund_provider_txn 落库=注入 txn
+PASS  [M1] 权益红冲一次: available −10
+PASS  [M1] units_total 合计 −10（红冲写桶）
+PASS  [M1] refund_provider_txn 全局恰 1 行
+{"level":30,"time":1791785835940,"pid":46321,"hostname":"miaole.local","reqId":"a7fa600b-eaf1-43ab-a4cf-f3eab65121de","req":{"method":"POST","url":"/commerce/webhook/refund/RF_M2","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835955,"pid":46321,"hostname":"miaole.local","reqId":"a7fa600b-eaf1-43ab-a4cf-f3eab65121de","res":{"statusCode":200},"responseTime":15.505041999999776,"msg":"request completed"}
+{"level":30,"time":1791785835957,"pid":46321,"hostname":"miaole.local","reqId":"6e6890a0-633d-416b-8e51-ee1a263b3588","req":{"method":"POST","url":"/commerce/webhook/refund/RF_M2","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835964,"pid":46321,"hostname":"miaole.local","reqId":"6e6890a0-633d-416b-8e51-ee1a263b3588","res":{"statusCode":200},"responseTime":6.305832999999893,"msg":"request completed"}
+PASS  [M2] 首次 → 200 refunded
+PASS  [M2] 同键重放 → 200 already
+PASS  [M2] 无双退: 重放后 available 不变（仍 −10 一次）
+PASS  [M2] 无双退: units_total 合计不变
+PASS  [M2] 无双退: status 仍 refunded · txn 不变
+PASS  [M2] refund_provider_txn 全局恰 1 行
+{"level":30,"time":1791785835971,"pid":46321,"hostname":"miaole.local","reqId":"11ae43f0-21e5-4416-981b-cf4d93aac76c","req":{"method":"POST","url":"/commerce/webhook/refund/RF_M2A","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65407},"msg":"incoming request"}
+{"level":30,"time":1791785835980,"pid":46321,"hostname":"miaole.local","reqId":"11ae43f0-21e5-4416-981b-cf4d93aac76c","res":{"statusCode":200},"responseTime":9.538334000000305,"msg":"request completed"}
+{"level":30,"time":1791785835981,"pid":46321,"hostname":"miaole.local","reqId":"b9d6494a-e52a-4ddd-8813-7bcabb910317","req":{"method":"POST","url":"/commerce/webhook/refund/RF_M2B","host":"127.0.0.1:65406","remoteAddress":"127.0.0.1","remotePort":65409},"msg":"incoming request"}
+{"level":30,"time":1791785835995,"pid":46321,"hostname":"miaole.local","reqId":"b9d6494a-e52a-4ddd-8813-7bcabb910317","res":{"statusCode":409},"responseTime":13.89629100000002,"msg":"request completed"}
+PASS  [M2x] 第一张 → 200 refunded
+PASS  [M2x] 跨单同流水 → 409 order_conflict
+PASS  [M2x] 恰一单退成: A refunded · B 仍 paid
+PASS  [M2x] refund_provider_txn 全局恰 1 行
+PASS  [M2x] B 无红冲: available 仍 10
+PASS  [M2x] A 红冲一次: available 0
+
+断言合计: 41 条, 失败 0 条
+  SIG: ALL PASS
+  INV: ALL PASS
+  NF: ALL PASS
+  AMT: ALL PASS
+  M1: ALL PASS
+  M2: ALL PASS
+  M2x: ALL PASS
+HONESTY: EXIT0≠covered · ADV not closed · UC-011 stays partial · coveredCount=8 · GAP-UC011-ADV-01 stays OPEN
+HONESTY: Ban wash ADV via this knife · Ban invent covered · Ban self-nail
+
+EXIT=0 — Path A B-1 pins 全命中（41 条）。口=POST /commerce/webhook/refund/:id
+EXIT 0 ≠ UC-011 covered ≠ ADV covered · 独立 covered-lift + dual + 协调方 nail 另刀。
+releaseEvidence=false · NOT_HA · PG-retained · DELETE=202 软删受理(purge_pending)
+PASS  [ZREG] Z mouth 回归（pnpm uc011:refund-callback:prove 内层 proof）EXIT=0（实际 0）
+
+断言合计: 68 条, 失败 0 条
+  INV: ALL PASS
+  A1: ALL PASS
+  A2: ALL PASS
+  A3: ALL PASS
+  A4: ALL PASS
+  A5: ALL PASS
+  A6: ALL PASS
+  A7: ALL PASS
+  X: ALL PASS
+  ZREG: ALL PASS
+HONESTY: EXIT0 ≠ covered ≠ ADV 翻行 ≠ 关 GAP-UC011-ADV-01 ≠ §1.1 covered · coveredCount=8 不动 · UC-011 stays partial
+HONESTY: Ban wash · Ban retry-to-green · attempts 全记录 · Line V honesty-of-red nail（79825b2）与 Line Z nail（244b812）历史保留原样
+
+EXIT=0 — GAP-UC011-ADV-01 主口 ADV 七类（A1–A7）+ 新鲜 INV + 跨入口一致性 + Z mouth 回归 全部成立（68 条断言全绿）。
+主口=POST /payment/refund-callback（scenarios :253 字面）· 与 Path A 共用 refundWebhook 单管道 · EXIT 0 ≠ covered。
+releaseEvidence=false · NOT_HA · PG-retained · DELETE=202 软删受理(purge_pending)

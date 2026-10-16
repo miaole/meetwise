@@ -1,0 +1,55 @@
+
+> meetwise@0.1.0 adaptive-life:prove /Users/miaole/Desktop/golucky/meetwise-line-g7fix4
+> node scripts/run-e2e-isolated.mjs adaptive-life:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-23024-1791531871220 on 127.0.0.1:55451
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-line-g7fix4/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=152 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:adaptive-life /Users/miaole/Desktop/golucky/meetwise-line-g7fix4/apps/worker
+> tsx test/adaptive-lifecycle.proof.ts
+
+PASS  失去 graph fence → 拒绝业务投影(ledger/SSE 都是 0)
+PASS  start → 首题(question_ready + server question identity)
+PASS  API identity ledger 接受当前问题的首答
+PASS  首答 → 评分且得到下一题 identity
+PASS  同 answer identity 重放 → 不重评且 next question 不变
+PASS  重放后 answer_evaluated 仍恰 1 条
+PASS  第1题 identity 被接受
+PASS  第2题 identity 被接受
+PASS  submit 循环到收尾(done)
+PASS  每答经评估(score=88)
+PASS  发了 question_ready 事件(SSE 首题+后续)
+PASS  发了 answer_evaluated 事件(每答)
+PASS  收尾:interview=completed
+PASS  报告入队走舱壁(ai_report 有行,异步隔离)
+PASS  真实作答的 answer_evaluated 均带 outcome 标记
+PASS  计分集只消费 worker identity，旁路事件不计入报告综合分
+
+──── B 端全 unresolved 收口证明 ────
+PASS  B 端岗位 rule-classified route_decided（start 前置）
+PASS  B 端 startApplicationInterview 返回 interviewId
+PASS  B 端 skip 回合 0 的 identity 被接受
+PASS  B 端 skip 回合 1 的 identity 被接受
+PASS  全 skip/unresolved 的 B 端真实 graph 可收尾（不无限澄清）
+PASS  全 unresolved → completed+confirmed，但申请 scoreless 终态、无报告 job、终态事件恰一
+
+──── quote evidence 单次拒绝的 lifecycle/权益投影证明 ────
+PASS  quote 证据拒绝场景的 server question identity 可被 API/DB ledger 接受
+PASS  quote 不可核验仅执行一次评分；lifecycle 返回 clarifying，而非 97 分/终止 unscored
+PASS  clarify 投影不产生 answer_evaluated/answer_unscored，不更新能力画像计分事件
+PASS  clarify 不确认或重复权益：同一面试仅保留一条 reserved consumption
+PASS  出题失败 → 不发明 question_ready / 题面
+PASS  出题失败 → interview_unavailable 含 provenance.origin=unavailable
+PASS  出题失败 → 面试 failed 且预留释放
+
+✓ 生产主线替换:自适应 agent 图驱动真面试生命周期(SSE 事件+结算+舱壁报告)全部通过
+adaptive-life-exit=0

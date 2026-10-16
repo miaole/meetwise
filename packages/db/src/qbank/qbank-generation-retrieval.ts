@@ -1,0 +1,345 @@
+/**
+ * Generation-aware qbank retrieval.
+ *
+ * `vector_chunk` remains the compatibility store for private memory and pre-0029 test fixtures. Once the
+ * generation schema exists, qbank reads must name the immutable recipe that produced the query embedding. A
+ * mismatch is an error, not an invitation to compare unrelated vectors. The worker catches that error and
+ * chooses the existing CRAG safe fallback; it must never silently query the previous vector space.
+ */
+import type { PoolClient as Client } from 'pg';
+
+const vec = (e: number[]) => `[${e.join(',')}]`;
+const RRF_K = 60;
+const MAX_K = 50;
+const MAX_CANDIDATES = 200;
+
+export interface QbankActiveGeneration {
+  generationId: string;
+  recipeId: string;
+}
+
+export interface QbankHybridHit {
+  refId: string;
+  /** Real cosine distance. RRF only chooses order; it is deliberately not misrepresented as confidence. */
+  distance: number;
+  channels: ('dense' | 'lexical')[];
+}
+
+/** Retrieval is a release-controlled policy, not an assumed synonym for “more channels is better”. */
+export type QbankRetrievalMode = 'dense' | 'rrf';
+
+/**
+ * Track-local serving scope (RAG-FUNNEL-04).  `servingScopeId` is the same
+ * string as the planner's `leafTrackId`; `taxonomyVersion` is the frozen v1
+ * taxonomy.  When supplied, the bounded retrieval SQL functions hard-filter on
+ * the generation projection's own `taxonomy_version`/`serving_scope_id` BEFORE
+ * ORDER BY/LIMIT.  Both must be present (fail-closed: a half-scoped request
+ * yields zero rows, never a silent "all tracks" degradation).
+ */
+export interface QbankServingScopeInput {
+  taxonomyVersion: string;
+  servingScopeId: string;
+  /**
+   * AG39 owner layer（题库分层）: 'platform' = 平台公共池（C 端练习·禁企业私有题）;
+   * 'org' = B 端企业岗位面试（该企业私有题优先 + platform 公共补足）。
+   * Additive optional — 缺省臂 = C 端语义 platform（DB helper 对空串/NULL 归一后恒为合法组合）。
+   * 值源纪律: orgId 服务端从面试链路派生（interview→job_application→recruiter 信任根），禁客户端直供。
+   */
+  ownerKind?: 'platform' | 'org';
+  /** Required (non-empty) when ownerKind='org'; must be absent/empty when 'platform'. */
+  orgId?: string;
+}
+
+const SERVING_SCOPE_RE = /^[a-z][a-z0-9_]*(\/[a-z][a-z0-9_]*){0,3}$/;
+const TAXONOMY_VERSION_RE = /^v[1-9][0-9]{0,15}$/;
+const QBANK_OWNER_KINDS = ['platform', 'org'] as const;
+export type QbankOwnerKind = (typeof QBANK_OWNER_KINDS)[number];
+
+function validateServingScope(scope: QbankServingScopeInput): void {
+  if (!scope || typeof scope !== 'object'
+    || typeof scope.taxonomyVersion !== 'string' || !TAXONOMY_VERSION_RE.test(scope.taxonomyVersion)
+    || typeof scope.servingScopeId !== 'string' || !SERVING_SCOPE_RE.test(scope.servingScopeId)) {
+    throw new Error('qbank_retrieval_invalid_serving_scope');
+  }
+  const ownerKind = scope.ownerKind ?? 'platform';
+  if (!(QBANK_OWNER_KINDS as readonly string[]).includes(ownerKind)) {
+    throw new Error('qbank_retrieval_invalid_serving_scope');
+  }
+  if (ownerKind === 'org' && (typeof scope.orgId !== 'string' || scope.orgId.length < 1 || scope.orgId.length > 512)) {
+    throw new Error('qbank_retrieval_invalid_serving_scope');   // org 半缺 org_id = fail-closed，绝不静默降级 platform
+  }
+  if (ownerKind === 'platform' && scope.orgId !== undefined && scope.orgId !== '') {
+    throw new Error('qbank_retrieval_invalid_serving_scope');   // platform + 非空 org_id = 非法组合
+  }
+}
+
+/**
+ * Set the session GUCs that the SECURITY DEFINER retrieval functions read.  The
+ * `true` = SET LOCAL, scoped to the caller's transaction, so it cannot leak
+ * across pooled connections.  Unset (no scope) keeps the fail-closed path:
+ * the DB assertion raises `qbank_retrieval_scope_missing` on missing/half/illegal
+ * owner context (0187) — never a silent platform degradation.
+ *
+ * AG39 owner layer: when a scope is provided, the two owner GUCs are always set —
+ * `ownerKind` defaults to the explicit C-side 'platform' with an empty org id
+ * (normalized to NULL by the helper's NULLIF), so two-field callers keep byte-identical
+ * platform-era behavior while org callers hard-filter to their own private rows.
+ */
+async function setServingScope(c: Client, scope?: QbankServingScopeInput): Promise<void> {
+  if (scope === undefined) return;
+  validateServingScope(scope);
+  await c.query("SELECT set_config('app.qbank_serving_scope', $1, true)", [scope.servingScopeId]);
+  await c.query("SELECT set_config('app.qbank_taxonomy_version', $1, true)", [scope.taxonomyVersion]);
+  const ownerKind = scope.ownerKind ?? 'platform';
+  await c.query("SELECT set_config('app.qbank_owner_kind', $1, true)", [ownerKind]);
+  await c.query("SELECT set_config('app.qbank_org_id', $1, true)", [ownerKind === 'org' ? scope.orgId! : '']);
+}
+
+/**
+ * Normalizes an owner scope to the explicit (ownerKind, orgId) pair used by the
+ * retrieval GUC contract and the source-bank audit values.
+ */
+export function normalizeQbankOwnerScope(
+  scope?: Pick<QbankServingScopeInput, 'ownerKind' | 'orgId'>,
+): { ownerKind: QbankOwnerKind; orgId: string } {
+  const ownerKind = scope?.ownerKind ?? 'platform';
+  if (!(QBANK_OWNER_KINDS as readonly string[]).includes(ownerKind)) throw new Error('qbank_retrieval_invalid_serving_scope');
+  if (ownerKind === 'org') {
+    if (typeof scope?.orgId !== 'string' || scope.orgId.length < 1 || scope.orgId.length > 512) {
+      throw new Error('qbank_retrieval_invalid_serving_scope');
+    }
+    return { ownerKind, orgId: scope.orgId };
+  }
+  if (scope?.orgId !== undefined && scope.orgId !== '') throw new Error('qbank_retrieval_invalid_serving_scope');
+  return { ownerKind, orgId: '' };
+}
+
+export interface QbankEvidenceExcerpt {
+  refId: string;
+  excerpt: string;
+}
+
+export interface QbankQuestionEvidencePart {
+  refId: string;
+  role: 'prompt' | 'rubric' | 'follow_up' | 'example' | 'anti_pattern' | 'source_note';
+  ordinal: number;
+  required: boolean;
+  excerpt: string;
+}
+
+/** A question is a business artifact assembled from multiple immutable RAG chunks, never one title/vector. */
+export interface QbankQuestionEvidence {
+  questionId: string;
+  /** Rank of the first retrieved member chunk. This is ordering evidence, not a semantic confidence score. */
+  hitRank: number;
+  evidence: QbankQuestionEvidencePart[];
+}
+
+/** The only shape that may cross from qbank retrieval into an interview graph. */
+export interface QbankQuestionRetrievalResult {
+  /** Immutable business-artifact identifier, never the matched chunk identifier. */
+  ref: string;
+  /** Cosine-derived ranking signal only; CRAG calibrates policy separately. */
+  score: number;
+  /** Complete, role-labelled evidence package assembled after a second visibility check. */
+  evidence: string;
+}
+
+function validEmbedding(embedding: number[]): void {
+  if (!Array.isArray(embedding) || embedding.length !== 512 || !embedding.every(Number.isFinite)) {
+    throw new Error('qbank_generation_invalid_query_embedding');
+  }
+}
+
+function validK(k: number): void {
+  if (!Number.isInteger(k) || k < 1 || k > MAX_K) throw new Error('qbank_generation_invalid_k');
+}
+
+function retrievalMode(mode: QbankRetrievalMode | undefined): QbankRetrievalMode {
+  if (mode === undefined || mode === 'dense' || mode === 'rrf') return mode ?? 'dense';
+  throw new Error('qbank_generation_invalid_retrieval_mode');
+}
+
+/** Fail-closed：在缺少 generation 元数据函数的 legacy/pre-generation 库上抛 `qbank_active_generation_metadata_missing`，无唯一 active 指针时抛 `qbank_active_generation_missing`，永不返回 `undefined`——legacy `vector_chunk` 入口由 retrieval-store.ts 导出、供 smoke / legacy proof 直接调用，不经本文件。 */
+export async function activeQbankGeneration(c: Client): Promise<QbankActiveGeneration> {
+  const present = (await c.query("SELECT to_regprocedure('qbank_active_generation_metadata()') IS NOT NULL AS ok")).rows[0]?.ok === true;
+  if (!present) throw new Error('qbank_active_generation_metadata_missing');
+  const r = await c.query('SELECT generation_id, recipe_id FROM qbank_active_generation_metadata()');
+  if (r.rowCount !== 1) throw new Error('qbank_active_generation_missing');
+  return { generationId: String(r.rows[0].generation_id), recipeId: String(r.rows[0].recipe_id) };
+}
+
+export async function requireActiveQbankGeneration(c: Client, expectedRecipeId: string): Promise<QbankActiveGeneration> {
+  if (!expectedRecipeId || expectedRecipeId.length > 128) throw new Error('qbank_generation_invalid_recipe');
+  const active = await activeQbankGeneration(c);
+  if (!active) throw new Error('qbank_generation_schema_missing');
+  if (active.recipeId !== expectedRecipeId) {
+    throw new Error(`qbank_generation_recipe_mismatch:active=${active.recipeId}:query=${expectedRecipeId}`);
+  }
+  return active;
+}
+
+/** Fetches only currently visible, approved excerpts for already-selected refs. This is deliberately a second
+ * authorization/visibility check after cache/RRF so a revoke racing prompt construction returns no stale text. */
+export async function qbankEvidenceForRefs(
+  c: Client, expectedRecipeId: string, refs: string[], maxCharsPerRef = 600,
+  scope?: QbankServingScopeInput,
+): Promise<QbankEvidenceExcerpt[]> {
+  if (!Array.isArray(refs) || refs.length > MAX_K || refs.some((ref) => !/^[A-Za-z0-9:_-]{1,160}$/.test(ref))) {
+    throw new Error('qbank_generation_invalid_evidence_refs');
+  }
+  if (!Number.isInteger(maxCharsPerRef) || maxCharsPerRef < 1 || maxCharsPerRef > 1200) {
+    throw new Error('qbank_generation_invalid_evidence_size');
+  }
+  await setServingScope(c, scope);
+  const active = await requireActiveQbankGeneration(c, expectedRecipeId);
+  if (!refs.length) return [];
+  const r = await c.query('SELECT ref_id, excerpt FROM qbank_generation_evidence($1,$2::text[],$3)', [active.generationId, refs, maxCharsPerRef]);
+  return r.rows.map((row) => ({ refId: String(row.ref_id), excerpt: String(row.excerpt) }));
+}
+
+/**
+ * Expands rank-ordered chunk hits into complete published question artifacts.  It deliberately has no legacy
+ * fallback: returning a single old chunk as an interview question would reintroduce the very one-question/one-vector
+ * defect this API prevents. The SECURITY DEFINER SQL function rechecks active-generation/source visibility.
+ */
+export async function qbankQuestionEvidenceForRefs(
+  c: Client, expectedRecipeId: string, refs: string[], maxCharsPerPart = 500,
+  scope?: QbankServingScopeInput,
+): Promise<QbankQuestionEvidence[]> {
+  if (!Array.isArray(refs) || refs.length > MAX_K || refs.some((ref) => !/^[A-Za-z0-9:_-]{1,160}$/.test(ref))) {
+    throw new Error('qbank_generation_invalid_question_evidence_refs');
+  }
+  if (!Number.isInteger(maxCharsPerPart) || maxCharsPerPart < 1 || maxCharsPerPart > 800) {
+    throw new Error('qbank_generation_invalid_question_evidence_size');
+  }
+  await setServingScope(c, scope);
+  const active = await requireActiveQbankGeneration(c, expectedRecipeId);
+  if (!refs.length) return [];
+  const present = (await c.query("SELECT to_regclass('qbank_question') IS NOT NULL AS ok")).rows[0]?.ok === true;
+  if (!present) return [];
+  const r = await c.query(
+    'SELECT question_id, hit_rank, evidence FROM qbank_generation_question_evidence($1,$2::text[],$3)',
+    [active.generationId, refs, maxCharsPerPart],
+  );
+  return r.rows.map((row) => {
+    const evidence = Array.isArray(row.evidence) ? row.evidence : [];
+    return {
+      questionId: String(row.question_id),
+      hitRank: Number(row.hit_rank),
+      evidence: evidence.map((part: Record<string, unknown>) => ({
+        refId: String(part.refId),
+        role: String(part.role) as QbankQuestionEvidencePart['role'],
+        ordinal: Number(part.ordinal),
+        required: part.required === true,
+        excerpt: String(part.excerpt),
+      })),
+    };
+  });
+}
+
+/**
+ * Converts raw generation hits into the graph-safe question-artifact shape.
+ * Keep this next to the second visibility check so worker code and proof code
+ * cannot accidentally disagree about whether a standalone chunk is usable as
+ * a question.  If no complete artifact survives, the safe result is empty.
+ */
+export async function qbankQuestionResultsForHits(
+  c: Client, expectedRecipeId: string, hits: readonly Pick<QbankHybridHit, 'refId' | 'distance'>[], maxCharsPerPart = 420,
+  scope?: QbankServingScopeInput,
+): Promise<QbankQuestionRetrievalResult[]> {
+  if (!Array.isArray(hits) || hits.length > MAX_K || hits.some((hit) =>
+    !hit || !/^[A-Za-z0-9:_-]{1,160}$/.test(hit.refId) || !Number.isFinite(hit.distance))) {
+    throw new Error('qbank_generation_invalid_question_hits');
+  }
+  const questions = await qbankQuestionEvidenceForRefs(c, expectedRecipeId, hits.map((hit) => hit.refId), maxCharsPerPart, scope);
+  return questions.slice(0, 5).map((question) => {
+    const hit = hits[Math.max(0, question.hitRank - 1)];
+    return {
+      ref: question.questionId,
+      score: hit ? Math.max(0, 1 - hit.distance) : 0,
+      evidence: question.evidence.map((part) => `[${part.role}] ${part.excerpt}`).join('\n'),
+    };
+  });
+}
+
+/** Directory-truth probe for the 0201-era retrieval return surface: `true` only when the signature-resolved
+ * function exists AND its `RETURNS TABLE` out-columns carry the trailing `owner_kind` (0201 additive tail
+ * column); `false` = pre-0201 legacy surface — a missing function already fail-closes earlier via
+ * `activeQbankGeneration`, so `false` grants no new exemption.  Re-run per call, never memoized.
+ */
+async function retrievalOwnerSurface(c: Client, signature: string): Promise<boolean> {
+  return (await c.query(
+    "SELECT EXISTS (SELECT 1 FROM pg_proc WHERE oid = to_regprocedure($1) AND 'owner_kind' = ANY(proargnames)) AS ok",
+    [signature],
+  )).rows[0]?.ok === true;
+}
+
+// Surface variants are complete static literals chosen by the probe — never string-assembled.
+const DENSE_SEARCH_WITH_OWNER = 'SELECT ref_id, distance, owner_kind FROM qbank_generation_ann_search($1,$2::vector,$3)';
+const DENSE_SEARCH_LEGACY = 'SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,$3)';
+const LEXICAL_SEARCH_WITH_OWNER = 'SELECT ref_id, lexical_score, owner_kind FROM qbank_generation_lexical_search($1,$2,$3)';
+const LEXICAL_SEARCH_LEGACY = 'SELECT ref_id, lexical_score FROM qbank_generation_lexical_search($1,$2,$3)';
+
+/**
+ * RRF is ranking-only. The returned `distance` remains a cosine distance that downstream CRAG can calibrate;
+ * rank score never becomes a fake semantic confidence. Candidate scores may cross channels, but the user sees
+ * only opaque, approved ref IDs.
+ */
+export async function hybridQbankSearch(
+  c: Client,
+  input: { query: string; embedding: number[]; k: number; expectedRecipeId?: string; candidateK?: number; retrievalMode?: QbankRetrievalMode; scope?: QbankServingScopeInput },
+): Promise<QbankHybridHit[]> {
+  validEmbedding(input.embedding); validK(input.k);
+  const mode = retrievalMode(input.retrievalMode);
+  await setServingScope(c, input.scope);
+  const active = await activeQbankGeneration(c);
+  if (!input.expectedRecipeId || active.recipeId !== input.expectedRecipeId) {
+    throw new Error(`qbank_generation_recipe_mismatch:active=${active.recipeId}:query=${input.expectedRecipeId ?? 'missing'}`);
+  }
+  // Dense needs only `k` rows; RRF keeps its deliberately wider independent candidate pools before fusion.
+  // The default is release-controlled from measured holdouts, not an assumption that extra channels always help.
+  const n = mode === 'rrf' ? Math.min(MAX_CANDIDATES, Math.max(input.k * 8, input.candidateK ?? 40)) : input.k;
+  const denseRows = await c.query(
+    // Legacy (pre-0201) surface: `owner_kind` simply absent → dense arm below stays byte-identical.
+    (await retrievalOwnerSurface(c, 'qbank_generation_ann_search(text, vector, integer)')) ? DENSE_SEARCH_WITH_OWNER : DENSE_SEARCH_LEGACY,
+    [active.generationId, vec(input.embedding), n],
+  );
+  if (mode === 'dense') {
+    return denseRows.rows.map((row) => ({ refId: String(row.ref_id), distance: Number(row.distance), channels: ['dense'] as ('dense' | 'lexical')[] }));
+  }
+  const lexicalRows = await c.query(
+    // Same probe shape, independent per-function call.  Legacy surface: `owner_kind` absent →
+    // ownerRank(undefined)=1 for every candidate (the existing platform-default rank) → the fused
+    // sort degenerates bit-for-bit into the pre-0201 score→refId order.
+    (await retrievalOwnerSurface(c, 'qbank_generation_lexical_search(text, text, integer)')) ? LEXICAL_SEARCH_WITH_OWNER : LEXICAL_SEARCH_LEGACY,
+    [active.generationId, input.query, n],
+  );
+  // AG39 quality follow-up (migration 0201): the fusion output inherits the SQL-side owner rank (org=0 /
+  // platform=1, isomorphic to the 0187 outer ORDER BY CASE) as the leading key of a three-level stable sort
+  // (ownerRank → fused score → refId). This only adds ordering on top of the in-database owner filters and
+  // outer owner rank — it never weakens or replaces them. Dense mode still returns SQL order untouched.
+  const ownerRank = (ownerKind: unknown): number => (String(ownerKind) === 'org' ? 0 : 1);
+  const rank = new Map<string, { score: number; channels: Set<'dense' | 'lexical'>; ownerRank: number }>();
+  const add = (refId: string, position: number, channel: 'dense' | 'lexical', ownerKind: unknown) => {
+    const x = rank.get(refId) ?? { score: 0, channels: new Set<'dense' | 'lexical'>(), ownerRank: ownerRank(ownerKind) };
+    x.score += 1 / (RRF_K + position + 1);
+    x.channels.add(channel); rank.set(refId, x);
+  };
+  denseRows.rows.forEach((r, i) => add(String(r.ref_id), i, 'dense', r.owner_kind));
+  lexicalRows.rows.forEach((r, i) => add(String(r.ref_id), i, 'lexical', r.owner_kind));
+  const fused = [...rank.entries()]
+    .sort((a, b) => a[1].ownerRank - b[1].ownerRank || b[1].score - a[1].score || a[0].localeCompare(b[0]))
+    .slice(0, input.k);
+  if (!fused.length) return [];
+  const ds = await c.query(
+    'SELECT ref_id, distance FROM qbank_generation_distances($1,$2::vector,$3::text[])',
+    [active.generationId, vec(input.embedding), fused.map(([refId]) => refId)],
+  );
+  const distance = new Map(ds.rows.map((r) => [String(r.ref_id), Number(r.distance)]));
+  // A candidate revoked between the two SQL calls is absent from qbank_generation_distances; never resurrect it.
+  return fused.flatMap(([refId, ranking]) => {
+    const d = distance.get(refId);
+    return Number.isFinite(d) ? [{ refId, distance: d!, channels: [...ranking.channels].sort() }] : [];
+  });
+}

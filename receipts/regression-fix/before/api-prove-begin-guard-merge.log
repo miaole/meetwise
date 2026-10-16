@@ -1,0 +1,42 @@
+
+> @meetwise/api@0.0.0 prove:begin-guard-merge /Users/miaole/Desktop/golucky/meetwise-regfix/apps/api
+> node --import @swc-node/register/esm-register test/godfn-1c-begin-guard-merge.proof.ts
+
+GODFN-1c begin() three-guard merge · throw-order equivalence + resume_quiz query count 3→1
+haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · PG-retained · DELETE=202 软删受理(purge_pending) · r1Closed=false
+
+PASS  S0-begin-region-parseable
+FAIL  S1-single-resume-quiz-statement(3→1 static): FROM resume_quiz count=0
+FAIL  S2-merged-query-carries-neg-fault-bound-columns
+FAIL  S3-throw-order-404-before-stale(merged-guard 404)
+FAIL  S4-throw-order-stale-before-missing-expiry
+FAIL  S5-nan-folds-into-missing-expiry
+FAIL  S6-throw-order-missing-expiry-before-bound
+FAIL  S7-single-query-precedes-all-three-throws
+FAIL  S8-throws-before-bind/reserve/enqueue
+FAIL  S9-error-code-orthogonality(三码同区共存)
+FAIL  S10-c1-null-not-stale(narrow retain)
+PASS  R0-resume_quiz-query-count-3→1(quizId present → exactly 1)
+PASS  R1-row-missing → 404 not_found_or_forbidden(first, before all three codes)
+PASS  R1-no-side-effect
+PASS  R2-status-not-ready → 409 stale_quiz(NEG first)
+PASS  R2-no-side-effect
+PASS  R3-past-expiry → 409 stale_quiz(NEG before FAULT/BOUND)
+PASS  R3-no-side-effect
+PASS  R4-NULL-expiry+pin-mismatch → 409 missing_quiz_expiry(FAULT before BOUND · C-1 NULL≠stale)
+PASS  R4-no-side-effect
+PASS  R5-NaN-expiry+pin-mismatch → 409 missing_quiz_expiry(NaN fold before BOUND)
+PASS  R5-no-side-effect
+PASS  R6-resume-changed(pin R_A, begin R_B) → 409 resume_version_mismatch
+PASS  R6-no-side-effect
+PASS  R7-epoch-drift(pin 1, current 2) → 409 resume_version_mismatch
+PASS  R7-no-side-effect
+PASS  R8-legacy-unpinned-quiz(NULL pin) → not false-rejected, reaches bind
+PASS  R9-accept-asymmetry(case-insensitive uuid pin) → reaches bind
+PASS  R10-no-quiz-id → zero resume_quiz reads, reaches bind
+
+GAP  GODFN-1c  10 check(s) failed; merge equivalence not proven
+
+CMD=pnpm prove:begin-guard-merge EXIT=1
+ ELIFECYCLE  Command failed with exit code 1.
+EXIT=1
