@@ -1,4 +1,4 @@
-# WORKER-HANG-GUARD REQUEST — worker 单侧停摆自愈刀（drain-loop tick 级 watchdog 甲案 · G7W 新红诊断席修复建议②产品码独立刀 · 诊断+起草席落卷 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录]）
+# WORKER-HANG-GUARD REQUEST — worker 单侧停摆自愈刀（drain-loop tick 级 watchdog 甲案 · G7W 新红诊断席修复建议②产品码独立刀 · 诊断+起草席落卷 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录]→**STOP=`nail 落卷（10799a3e·post 双审会签 PASS×2）`**[nail 席补翻 2026-10-16·前值 `executed:awaiting_post_prove_dual`=EXEC 史录·append 注记形前值史录保留]）
 
 > 战役 meetwise · 支线 `line/worker-hang-guard` · 工作树 `meetwise-whg` · 起草基线 @origin/feat/mysql-schema-skeleton=`d5dc0726`（派单下界「fetch 后 origin tip≥最新」以等号成立亲证=fetch 后 `origin/feat/mysql-schema-skeleton` tip·`origin/main`=`112e6d26` 为其祖先亲证 `git merge-base --is-ancestor` EXIT=0）· ⛔push ⛔merge 主线（push/翻面权归协调方）。主仓 worktree 建支线：`git worktree add ../meetwise-whg -b line/worker-hang-guard origin/feat/mysql-schema-skeleton`。
 
@@ -88,7 +88,7 @@
 ## §8 est live / 预算 + STOP
 
 - est live=0（watchdog 纯调度面+proof 注入形·EXEC 期全门=本地 tsx/turbo/eslint+静态源读·零模型外呼零 DB 外呼零容器零 Key 加载零 secrets 读用零生产操作）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · 零模型外呼。
-- **STOP=`executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值翻面=本 REQUEST §8+LEDGER 管线「worker-hang-guard 起草」行+execution-master-checklist「Line worker-hang-guard」段·post-prove 双审两独立外席待派·alone≠dual）**。
+- **STOP=`executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值翻面=本 REQUEST §8+LEDGER 管线「worker-hang-guard 起草」行+execution-master-checklist「Line worker-hang-guard」段·post-prove 双审两独立外席待派·alone≠dual）→STOP=`nail 落卷（10799a3e·post 双审会签 PASS×2）`（nail 席补翻 2026-10-16·前值 `executed:awaiting_post_prove_dual`=EXEC 史录·post-prove 双审会签 PASS×2 兑现[席1 `agent_e99d08f0`+席2 `agent_c010ccdd`]·LEDGER 行+checklist 段已随 nail 落卷 `10799a3e` 翻面·本 REQUEST 头部 Status 行+§8 两处由本补翻随卷·append 注记形上文零洗前值史录保留）**。
 - **波序注记[双审席1 R3·EXEC 落]（append 形·上文零洗）**：本刀与 **G7W-DIAG-NEEDLES 串行排程**——`interview-consumer.ts`/`interview-jobs.ts` 系两刀触面交集（本刀 §0.1 零字节 Ban 锚·彼刀诊断针面）·**平行触改必熔断**；并入顺序归协调方裁，后并线刀 §0 对届时 tip 再重 pin（blob 漂移语义不变只更行号·语义变回炉）。
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；若基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1/门 2 基线臂账被他刀改动（→熔断呈报·禁 retry-to-green）③门 3 邻面任一非恰等（→熔断呈报）。
