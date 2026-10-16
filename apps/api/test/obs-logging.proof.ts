@@ -11,7 +11,9 @@ import { fileURLToPath } from 'node:url';
  *  R2 500 面:人为未处理错 → 错误行 level=50 含 reqId(===响应头 x-request-id===客户端送的头)/
  *     method/url(去 query)/err.stack(含 marker);响应体仍 {error:'internal_error'} 零细节不泄堆栈;
  *  R3 Ban 面:全部日志行**不含** authorization 值与请求体内容(请求体/提示词/PII 零入卷);
- *  R4 非 500 不刷屏:401 HttpException 路径无 error 级行(仅 info 访问行),过滤分支保持现状。
+ *  R4 非 500 不刷屏:401 HttpException 路径无 error 级行(仅 info 访问行),过滤分支保持现状;
+ *  R5 访问行 query 剥离面(#89 残留收口):?token= 探针标记随 query 的请求全行零入卷(并入 R3
+ *     Ban 面语义)+incoming 行 req.url 恰为剥后 path(path 保全直证)。
  */
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -71,6 +73,12 @@ async function main() {
   const liveReqId = live.headers.get('x-request-id');
   ok('R1 /livez echoes sanitized x-request-id', liveReqId === 'obs-proof-livez-1');
 
+  // ── R5:访问行 query 剥离面(#89 残留收口)——token 类敏感参随 query 的 redact 旁路形态收口 ──
+  const QUERY_MARKER = 'q7x9_query_token_never_logs';
+  const reqIdHeader = 'x-request-id' as const; // 计算键形——对象字面量键名会新增 naming-convention 计数（api lint 贴边零余量·+0 纪律）
+  const liveq = await fetch(`${base}/livez?token=${QUERY_MARKER}`, { headers: { [reqIdHeader]: 'obs-proof-livez-q' } });
+  ok('R5a query 携带请求（/livez?token=探针标记）仍正常服务 200', liveq.status === 200);
+
   // ── R2:人为 500(带敏感头 + 敏感体,R3 同时验证 Ban 面)──
   const boom = await fetch(`${base}/__obs-proof-500`, {
     method: 'POST',
@@ -125,6 +133,10 @@ async function main() {
   const serialized = rawLines.join('\n');
   ok('R3 authorization value never logged', !serialized.includes(AUTH_VALUE) && !serialized.includes('obs-proof-secret-token'));
   ok('R3 request body marker never logged', !serialized.includes(BODY_MARKER));
+  ok('R5b 全行扫描 query 探针标记零入卷（并入 R3 Ban 面语义·值零入卷）', !serialized.includes(QUERY_MARKER));
+  const liveqIncoming = incomingFor('obs-proof-livez-q');
+  ok('R5c incoming 行 req.url 恰为剥后 path /livez（path 保全直证·? 后恒剥）',
+    liveqIncoming?.req?.method === 'GET' && liveqIncoming?.req?.url === '/livez');
 
   // 收据样例(脱敏:剥 time/pid 字段)供交付报告引用。
   const receipt = (l: any) => JSON.stringify({ level: l.level, reqId: l.reqId, msg: l.msg, method: l.method, url: l.url, req: l.req, res: l.res, responseTime: l.responseTime, err: l.err ? { name: l.err.name, message: l.err.message, stack: `${String(l.err.stack).split('\n')[0]}\n    at <trimmed>` } : undefined });

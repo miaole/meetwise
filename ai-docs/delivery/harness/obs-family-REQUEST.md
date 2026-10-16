@@ -1,6 +1,6 @@
 # OBS-FAMILY 可观测性登记残留收口刀（5C-OBS 拆刀排程 · N1 原因位区分 + N5 探测重试环×3 + 访问行 query 剥离 · 起草 REQUEST · 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停 · pre-exec 双审两外席待开 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停 · pre-exec 双审两外席待开 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· ⛔push）**→ `executed:awaiting_post_prove_dual`（§9 EXEC 记录落卷·2026-10-16·前值史录保留·本行零字洗仅 append 翻面）**
 **席位**：OBS-FAMILY 登记残留收口刀诊断+起草席（协调方派单·5C 拆刀排程 OBS 子刀·授权按 LEDGER :87 组标签+checklist STILL OPEN 三锚锚定·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `dd89d290`（LEDGER 计件递推笔 commit·本席亲 fetch 亲证 origin tip=`039d9baa` 为其祖先 `git merge-base --is-ancestor` 恒等·docs:check 2180≤cap 2192 本席本树亲跑 EXIT=0）· 分支 `line/obs-family`（本席 `git worktree add ../meetwise-obs -b line/obs-family` 亲立·建树即落 `dd89d290`·分支零 commit 零 merge 节点·⛔pull --rebase 未用）· 工作树 `meetwise-obs`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-16·5C-OBS 诊断+起草席·OBS 子刀靶=#248/#245/#246+相关 OBS 件·批表行原文仓外则按 LEDGER 组标签锚定沿 Q1 先例·量级≤1 天即起草）；②LEDGER :87 组标签（5C 可靠性行「/#248/#245/#246/#172/#14/#216 — 🆕 分 4 子刀（OBS/QUEUE/SSE-API/API-HARDEN）」在册未翻·OBS 子刀三行=#248/#245/#246·本席亲读在卷）；③checklist STILL OPEN 三锚（**:2624** OBS-READY nail STILL OPEN「N1 原因位区分+N5 探测重试环（post 注记·登记不修）」+ **:2194/:2215** OBS-LOGGING #89 nail STILL OPEN「访问行 query 剥离微刀·收据重生成」+「#89 ≠ 访问行 query 已剥（残留登记）」·本席亲读在卷）；④issues-master 三行原文（#248/#245/#246）**仓外待补**（协调方持有·全仓 grep 零原文命中亲证·不阻起草沿 Q1 先例·EXEC 立项时如已入卷照 §0 重 pin 协议补锚）。
@@ -134,6 +134,8 @@
 
 ## §8 STOP（开工三条款 + 待双审/EXEC 裁决项）
 
+> **EXEC 期终态注记（2026-10-16·§9 落卷随附·本节原文零字洗）**：开工三条款已满足（①pre-exec 双审 R1/R2/R3 折入定稿=协调方重派 brief 载 BOTH PASS 折入；②协调方明示 EXEC 授权=重派 brief 本身；③立项零改 §1-修法定稿契约与 §5 Ban/pins——四件落码逐条对契约复核在卷）·停止条件四类零触发（lint +1 漂移根因在本刀交付面内已修非「不可修」类）·**本卷 STOP 现值=`executed:awaiting_post_prove_dual`（§9-⑦）**。
+
 **STOP · `draft:awaiting_pre_exec_dual`（pre-exec 双审两外席待开 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。）** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（health.service 被他刀改/三脚本单发形被他刀改/logger 配置被他刀动/链顶异动）→停·重 pin 回炉；**机制不满足**=件①②③④落位后 §2-1/2/3 命中红（既有臂非预期外有 diff/新臂不绿）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何迁移/controller/metrics/worker src/archive/SSOT 改动诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（typecheck/lint 贴边漂移/docs:check>cap）且根因不在本刀交付面→停·如实登记（Ban 借机修）。
 
 **待双审/EXEC 裁决项**：
@@ -143,6 +145,44 @@
 - **④零迁移确认（§0.3）**：预期零；若 EXEC 复判需迁移→§0.3 协调规则。
 - **⑤行关闭效力**：EXEC 命中门矩阵十门全绿+post 双审 BOTH PASS→批表 #248/#245/#246 三行（OBS 子刀·LEDGER :87 组标签）与 checklist :2194/:2215/:2624 STILL OPEN 行对应面的关闭/翻面登记权归协调方 nail（本刀交付读数·不宣称关闭·「5C 六行全闭」还须 QUEUE/SSE-API/API-HARDEN 各子刀——本刀=OBS 一子）。
 
+## §9 EXEC 记录（EXEC 重派席落卷·2026-10-16·授权链=pre-exec 双审 R1/R2/R3 折入定稿+协调方明示重派 EXEC 授权（重派 brief·前席超时由本席接管）·收据落点=本节 inline 自裁最小集（③全表承载各门 EXIT·差异追认见⑤-③））
+
+**①授权链与并线工序**：`git fetch origin feat/mysql-schema-skeleton` tip 亲证 **`3cd159dd`**（=cap sanction 2192→2200 波落点·派单下界「tip≥3cd159dd」以等号成立亲证）→`git merge --no-ff`=**`2751b4d7`**（merge-base `6a6c7843`·ort 零冲突·incoming 恰 5 文件=checklist+5e-cleanup REQUEST+LEDGER+public-text-policy 两件·与本刀 8 码面零重叠亲证·冲突沿并集解预置未触发·禁 pull --rebase 遵守）→前席四件落码残留逐件对 §1-修法定稿契约 byte 级对账（逐条达标·详②）→逐件 proof 验证→门矩阵十门→本 §9 落卷·两 commit（merge `2751b4d7`+落卷）。
+
+**②四件落点（含 R1/R2/R3 落点）**：
+- **件①** `apps/api/src/modules/health/health.service.ts`：具名 helper `isConnectionClassError` 闭合集（`'08'` 前缀+`'57P01'/'57P02'/'57P03'`+六 Node 系统码）·`:77` 附近第二 catch 改分类（连接类→`db_unreachable`·其余含无码 Error→`migration_mismatch` 保 fail-closed）·零新增查询 ≤2 有界（P7c 臂亲证）·`health.controller.ts` 零字节亲证。**R3 落点=helper 上方闭合集注释的 fail-closed 不变量句（「文件系错误（ENOENT/EACCES 等）不入闭合集——迁移目录不可读必须仍落 migration_mismatch（fail-closed），不得被误归 db_unreachable」）+P7b 臂承载。**
+- **件②** `scripts/run-e2e.mjs`（:151 附近）+`scripts/run-e2e-ui.mjs`（:200 附近·`skipWorker` 门内）+`scripts/run-performance-e2e.mjs`（:103 附近）：单发改就地展开 40×1s 有界重试环（`for (let i = 0; i < 40 && !workerReady; i++) { await sleep(1000); try { … fetch(/readyz/worker) … } catch {} }` 先睡后探·与 api livez 同形·不抽共享模块）·`worker.exitCode` 前置检查原序零触·`worker_not_ready` 败臂逐字保持。
+- **件③** `apps/api/src/main.ts` `:162` 附近 logger 增 `serializers.req`：url 剥 query（`(req.url ?? '').split('?')[0]` 形·`?` 及其后恒剥 path 恒在）。**R1 落点=默认 serializer 字段集六字段全列（method/url/version/host/remoteAddress/remotePort·与 fastify 默认一一对应）仅覆写 url——活体日志行亲证（incoming 行含 method/url/host/remoteAddress/remotePort 五键·version 随 accept-version 头在列）**。**R2 落点=「诊断面收窄如实登记：query 诊断维让位敏感面收口，排障走 path+reqId+结构化字段」注记句（serializers 上方注释块内）**。`genReqId`/`redact`/`level`/onRequest 钩子零字节·`obs-logging.runner.ts` 零触。
+- **件④** 三 proof：`apps/api/test/obs-ready.proof.ts` 15 既有臂逐字冻结+P7a/b/c（`:94` 同形 pool.query 注入缝复用·`pool.query = originalQuery7` 还原+restore 失败熔断行）；`apps/worker/test/obs-ready.proof.ts` 6 既有臂逐字冻结+W5a/b/c 源级臂（readFileSync 三脚本源·for 40 字面+sleep(1000)+/readyz/worker 同现+单发形 `.then((r) => r.ok)` 负断言）；`apps/api/test/obs-logging.proof.ts` 23 既有臂逐字冻结+R5a/b/c（`/livez?token=探针标记` 200+全行扫描零入卷+incoming 行 `req.url` 恰 `/livez`）。
+
+**③门矩阵十门全表（实跑实测·2026-10-16 @merge `2751b4d7` 后树·前席四件残留沿用复核）**：
+
+| # | 门 | 命令 | 结果 |
+|---|---|---|---|
+| 1 | api obs-ready | `pnpm obs-ready:prove`（隔离 PG） | **EXIT=0 18/18**（15 既有逐字+P7a/b/c 全绿） |
+| 2 | worker obs-ready | `pnpm -C apps/worker prove:obs-ready` | **EXIT=0 9/9**（6 既有逐字+W5a/b/c 全绿） |
+| 3 | obs-logging | `pnpm -C apps/api prove:obs-logging` | **EXIT=0 26/26**（23 既有逐字+R5a/b/c 全绿·修后复跑同值） |
+| 4 | env-schema 邻面 | `pnpm env-schema:prove` | **EXIT=0 22/22**（env-schema.ts 零触承载） |
+| 5 | typecheck | `TURBO_DAEMON=false pnpm turbo typecheck --force` | **EXIT=0 8/8（0 cached）** |
+| 6 | lint | `TURBO_DAEMON=false pnpm turbo lint --force` | **EXIT=0 12/12（0 cached）·五值恰等：api 1421/1421 贴边+root 5235+web 601+db 1042+ai-runtime 628（worker 954/domain 115/contracts 265/ai-graphs 47/qdrant 27 同恰等）·api +1 漂移已归因修复（⑤-①）** |
+| 7 | docs:check | `node scripts/ai-docs/check-docs.mjs` | **EXIT=0 2186 ≤ cap 2200**（sanction `3cd159dd` 并线生效·余 14） |
+| 8 | markers | `pnpm i6-gates:prove` | **实质臂全 PASS**（⑦五类标记词零命中+est live=0+⑤零迁移+⑤SSOT 四卷零触+⑤邻面零触）·**恰符臂红=协议形承登**（§7/§2-8 预declared·i6-239 历史刀冻结申报面 14 文件 vs 本刀 8 文件全 unexpected·非本刀新增红） |
+| 9 | diff 面 | `git diff --name-only` | **恰 9 tracked 路径=本卷 .md+2 src（health.service.ts/main.ts）+3 runner scripts+3 proof**（§2-9 列名恰类·零多零少）·`apps/web/tsconfig.tsbuildinfo` typecheck 副产物 `git checkout` 回滚（ag04 §9 先例同款）·`health.controller.ts`/`apps/worker/src`/`packages/`/`migrations/`/SSOT 四卷零文件亲证 |
+| 10 | 零迁移 | 改动集机检（markers 门 ⑤ 臂承载） | **EXIT=0 零 SQL 零新表**（§0.3 预期零实证） |
+
+**④proof 臂账（既有臂逐字存活）**：api obs-ready 15→**18**（P0-P6b 全 PASS 行在卷+P7×3·pre/post 清单 diff 恰 P7 新增零既有臂 diff）·worker obs-ready 6→**9**（W1/W1b/W2a/W2b/W3a/W3b 逐字+W5×3）·obs-logging 23→**26**（R1-R4 逐字+R5×3·R1 incoming 形臂按件③后词面如实核=活体日志 url 零 query）。
+
+**⑤偏离任务书清单（非零·逐条归因）**：
+1. **api lint +1 漂移归因与本刀面内修复**：R5a 行对象字面量键 `'x-request-id'` 触 `naming-convention`（+1=1422>1421 贴边红）——归因法=api 四文件还原 HEAD 复测恰 1421 亲证根因在本刀新增行（非既存债·非他刀）→最小修复=computed key 形（`const reqIdHeader = 'x-request-id' as const`+`{ [reqIdHeader]: … }`）·修后 obs-logging 复跑 26/26+api lint 恰 1421 EXIT=0。定性：非 Ban「借机修 lint」（该 Ban 指既存债清偿·本例系本刀自引新增归零）。
+2. **恰符臂协议形红承登**：§7/§2-8 已预declared（i6-239 历史刀申报面冻结·任何后继刀必红该臂）——实质臂五项全 PASS 为本刀门语义。
+3. **收据落点差异追认**：§6④ 预申明 `ai-docs/delivery/receipts/obs-family/` 目录→实落=本 §9 inline 自裁最小集零收据目录（各门 EXIT 回执③全表承载）——沿 queue-shutdown nail 波 P2-β 同款先例（checklist :3208 在卷）·重派 brief 未列收据目录工序·post 双审如判欠即随卷补立。
+4. **tsbuildinfo 回滚**：typecheck 副产物 `apps/web/tsconfig.tsbuildinfo` `git checkout` 回滚（§2-9 预案·diff 面窄断言保持 9 路径）。
+5. **前席残留沿用申报**：本席开工时工作树已含四件落码残留（前席超时未及验证段·重派 brief 明示「前席超时」）——本席未盲签：逐件对 §1-修法定稿契约 byte 级对账（闭合集枚举/环形/字段集/新臂结构逐条达标）+全部 proof 与十门本席亲手复跑·lint +1 漂移系残留中 R5a 行所引·已⑤-①修复。
+
+**⑥est live=0 + pins**：EXEC 期全门=本地 tsx/node+隔离 PG 容器+回环 fetch+静态源读·零模型外呼零 Key 加载零 SMTP 零 secrets 读用零生产操作·`actualSpendCny=null`·pins 十一值零翻（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false 维持·r1Closed=false·脚注 null）·刀专项 pins 全命中（15→18/6→9/23→26·≤2·40×1s·1421 贴边·5235·迁移 0）。
+
+**⑦STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·批表 #248/#245/#246 三行（LEDGER :87 组标签）与 checklist :2194/:2215/:2624 STILL OPEN 行翻面权归协调方 nail（§8-⑤·本刀不宣称关闭）·REQUEST 卷状态行现值如上·alone≠dual·⛔push。
+
 ---
 
-*OBS-FAMILY REQUEST · 2026-10-16 起草 · STOP=`draft:awaiting_pre_exec_dual` · 起草 base=`feat/mysql-schema-skeleton` @`dd89d290`（本席亲 fetch·origin tip=`039d9baa` 祖先亲证·⛔pull --rebase 未用）· 分支 `line/obs-family` · 工作树 `meetwise-obs`（本起草席立·建前 branch/worktree 双查不存在）· 立项出处=协调方派单 brief（5C-OBS 诊断+起草席·靶=#248/#245/#246+相关 OBS 件）+LEDGER :87 组标签+checklist :2194/:2215/:2624 三 STILL OPEN 锚+issues-master 三行仓外待补（沿 Q1 先例）· 缺口三面=N1 `health.service.ts:57-59` catch 无分类恒 `migration_mismatch`（双查询窗原因位失真·fail-closed 恒真仅原因位失真）+N5 三脚本单发 `fetch(/readyz/worker)` 无重试环（首拍门窗假红 `worker_not_ready`）+访问行 query 残留（fastify 默认 req serializer 全 url 入卷·R3 Ban 面旁路形态）· 修法四件=原因位闭合集分类（零新增查询·controller 零字节）+三脚本 40×1s 重试环同形就地展开（败臂语义逐字保持）+logger `serializers.req` 剥 search（path 恒在）+三 proof 维持（15/6/23 逐字冻结）+新臂（P7×3+源级≥3+R5≥3）· 触面=七文件恰类（三 src/script+三 proof+本卷）· 零迁移零新增指标零 archive 触· est live=0（起草 turn）· markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · ⛔merge主线 · STOP*
+*OBS-FAMILY REQUEST · 2026-10-16 起草 · **STOP=`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十门③全表·proof 臂账 18/9/26·前值 `draft:awaiting_pre_exec_dual` 史录保留·post 双审待派·行翻面归协调方 nail）** · 起草 base=`feat/mysql-schema-skeleton` @`dd89d290`（本席亲 fetch·origin tip=`039d9baa` 祖先亲证·⛔pull --rebase 未用）· 分支 `line/obs-family` · 工作树 `meetwise-obs`（本起草席立·建前 branch/worktree 双查不存在）· 立项出处=协调方派单 brief（5C-OBS 诊断+起草席·靶=#248/#245/#246+相关 OBS 件）+LEDGER :87 组标签+checklist :2194/:2215/:2624 三 STILL OPEN 锚+issues-master 三行仓外待补（沿 Q1 先例）· 缺口三面=N1 `health.service.ts:57-59` catch 无分类恒 `migration_mismatch`（双查询窗原因位失真·fail-closed 恒真仅原因位失真）+N5 三脚本单发 `fetch(/readyz/worker)` 无重试环（首拍门窗假红 `worker_not_ready`）+访问行 query 残留（fastify 默认 req serializer 全 url 入卷·R3 Ban 面旁路形态）· 修法四件=原因位闭合集分类（零新增查询·controller 零字节）+三脚本 40×1s 重试环同形就地展开（败臂语义逐字保持）+logger `serializers.req` 剥 search（path 恒在）+三 proof 维持（15/6/23 逐字冻结）+新臂（P7×3+源级≥3+R5≥3）· 触面=七文件恰类（三 src/script+三 proof+本卷）· 零迁移零新增指标零 archive 触· est live=0（起草 turn）· markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · ⛔merge主线 · STOP*
