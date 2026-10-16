@@ -286,3 +286,9 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 3. **submit 侧 planner 序空位架构事实登记**：lifecycle submit 形图 deps `competencies=[]`（planner 序仅 start 注入）→turn≥1 族失败/批判拒在该流向无序可换（单发终场保留）——件①/件② 的帽内换序接管面=start 流向+直接 deps 注入面（F3b/件② 4 组已证）·该事实非本刀引入·登记供 post-prove 双审与后继刀（如需 mid-interview 换序可另刀立题）。
 
 **STOP 终态**：三处（卷头 Status/§2 尾/§8 尾）已翻 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·本席⛔push ⛔merge 主线 ⛔force push 未用。
+
+## §9-POST post 双审会签 P2 勘误随卷（nail 席代落·post 双审会签 PASS 席1 agent_b7ad34e6+席2 agent_9944fea0 授权·2026-10-16·append 注记形不洗上文一字）
+
+- **P3-A（席1·STOP 自指序数 cosmetic 登记）**：§2 尾 STOP 行自指「本卷第一处」与卷内三处口径（**卷头 Status/§2 尾/§8 尾**·§9 rev1 回执与 §9-EXEC 终态行同此口径）不符——按该口径本行（§2 尾）系第二处·卷头 Status（:3）方为第一处；§8 尾行「本卷第二处=§2 尾·第三处=本行」与三处口径自洽。**纯 cosmetic：三处 STOP 值均正确**（`executed:awaiting_post_prove_dual` @ :3/:205/:222 三行实测一致）·序数自指零语义影响·STOP 值零翻·原文零洗（append 保史）。
+- **P3-B（席1·ag-f-reroll +145/−4 非「纯增」如实注记）**：§9-EXEC 字段⑥ numstat `+145/−4` 之 −4 系**载体改写**非断言删洗（nail 席 diff 逐行亲证四行=头注块 §E 尾注释行标点改写+测试 import 行扩名改写（+createResumeWithBlob/transitionResume/completeIngestion）+domain import 行扩名改写（+ingestResume）+尾汇总 console.log 行 §A-§E→§A-§F 改写·四行语义均在 +145 侧以新形在场）——**47 基线臂零删零洗**（§A 族 17+§B 换序 10+§C unscored 7+§D 负证 4+§E 保守 3 原样）·**61=47+14 两次复跑坐实**（EXEC 期字段⑥+nail 期 §F 复跑·数值见 nail 工序）。
+- **P2-C（席2·关键定性转录承登——submit 流向定性）**：submit 侧图 deps `competencies=[]`（`adaptive-lifecycle.ts:361` `makeDeps(d, [], …)` 第二形参即 competencies·签名 `:161` 本席亲证）系**既有架构事实**（planner 序仅 start 流向注入·非本刀 hunk 所致）——**本刀件① 在生产 submit 流向终态与改前逐形相同（单发终场）**·**实际增益=更早 seam 拒收+零键消费+诚实收据**（模板旁路同文二次出题在 seam critique 门即拒·初诊键 `:0` 零消费·failure 收据 provenance 三键形）·**帽内换序接管面实存于 start 流向+直接 deps 注入面**（F3b/件② 4 组已证）·**G7K 红在 submit 流向不因本刀单独翻面**·后继刀=**submit-flow-competency-wire（起草中）**。本条沿 §9-EXEC 字段⑦-3 登记升格为席2 定性承登·两产品文件字节零让步。
