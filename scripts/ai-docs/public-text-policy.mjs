@@ -84,6 +84,8 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：UC184-SLOT-ORDER nail 并线树——
 // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享·沿 +8 先例·计数预算非内容策略·
 // 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2200→2208（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 f7caa206 2194·
+// 在飞 G7W-DIAG-NEEDLES/WORKER-HANG-GUARD 两 REQUEST 并入即 2201 超限）。
 // cap 2192→2200（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 a0f3bd46 2185·
 // 在飞 sse-api/obs/api-harden/ai-graphs 环解四卷各 +1~2 预算必越）
 // cap 2184→2192（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 d1d01853 2178·
@@ -99,7 +101,7 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形：COST-COLUMNS nail 并线树——
 // 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量·
 // 协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_200;
+const MAX_FILES = 2_208;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
