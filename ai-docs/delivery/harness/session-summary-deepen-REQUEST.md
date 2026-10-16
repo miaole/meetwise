@@ -1,6 +1,6 @@
 # SESSION-SUMMARY-DEEPEN REQUEST — #51 会话级结构化会话摘要深化小刀（CONTEXT-DEEP·批2 H6·追问上下文残面·9 路径零迁移·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·pre-exec 双审两外席待派·nail/批表行翻面归协调方·alone≠dual·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·门矩阵十四门全绿·post 双审两外席待派·nail/批表行翻面归协调方·alone≠dual·⛔push）
 
 **席位**：meetwise 战役「SESSION-SUMMARY-DEEPEN 会话摘要深化小刀」诊断+起草席（批表盘点 #51·b 类残面·协调方派单 brief 2026-10-14·工序=普查定稿→方案定谳→起草 REQUEST→自检落卷 commit）。
 **基线**：`feat/mysql-schema-skeleton` @ `0d9ad4ac`（origin tip 亲证·fetch 后三 ref 同值=`origin/feat/mysql-schema-skeleton`=`origin/line/gitleaks-archive-expand`=本地 `line/gitleaks-archive-expand`·gitleaks-archive-expand nail SSOT 落卷 commit 2026-10-16 12:25:09 +0800·本席 `git rev-parse` 双读一致）· 分支 `line/session-summary-deepen`（主仓 `git worktree add ../meetwise-ssd -b line/session-summary-deepen` 本起草席亲立·建时落 `origin/main`@`112e6d26`→**本席 `git reset --hard origin/feat/mysql-schema-skeleton` 重 pin 至战役主线 tip `0d9ad4ac`**·§0.2-1 澄清）· 工作树 `meetwise-ssd`（仓根同级）。
@@ -234,7 +234,7 @@ export function buildSessionSummary(transcript: readonly Turn[]): SessionSummary
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实结论与 §5 Ban/pins 与 §1-修法定稿文本面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·§0.2 口径漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实结论与 §5 Ban/pins 与 §1-修法定稿文本面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·§0.2 口径漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 prompts.ts blob 对 `8db00e90` 漂移（另席在飞触同文件）·ag19 proof blob 对 `00230108` 漂移·§0.0 复核出新非残枝在飞触面·门基线锚漂（interview≠57/neg 总臂≠687/链头≠届时实测账/docs:check cap≠2184 未经 sanction）→停·重 pin 回炉。
 - **机制不满足**：基线树 `buildSessionSummary` 手工模拟与 §1.1 缺口推定不符（如 transcript evidence 回合缺省面不符 state.ts :38-44 契约）·或件⑦ 缺省臂在改后树模拟≠v7 字节→证伪诊断→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1-修法 9 路径面（需触评分 prompt/decide/闭包捕获块/context-budget/迁移/SSOT）→停·另刀或协调方裁决（§1.3 候选乙/丙/丁/戊/己否决沿承）。
@@ -253,6 +253,36 @@ export function buildSessionSummary(transcript: readonly Turn[]): SessionSummary
 
 **rev 自检**：markers 五类零命中 EXIT=0（本卷改动面·词面运行时组装防自匹配口径亲跑）·docs:check EXIT=0 scanned **2173**≤cap 2184（=起草 2172+本卷 1·余量 11·本 rev 零新增文件）·STOP 终态维持 **`draft:awaiting_pre_exec_dual`**（rev 落卷≠开工授权·pre-exec 双审对 rev 后卷窄域复审方会签·alone≠dual·⛔push 未犯）。
 
+## §9 EXEC 记录（EXEC 席落卷·2026-10-16·授权链=rev 落卷 `d2959be7`→rev 后窄域复审 PASS `agent_25935581`（「rev 确认·双审会签完成·可授权 EXEC」）→协调方 EXEC 明示授权（派单·STOP→executed:awaiting_post_prove_dual）·收据=`ai-docs/delivery/receipts/session-summary-deepen/00-exec.md` 七字段·untracked·⛔push）
+
+**工序与 commit 链**：①并主线 `git fetch`+`git merge --no-ff origin/feat/mysql-schema-skeleton@d1d01853`（届时 tip=d1d01853=PR #109 手术 head·派单下界「tip≥d1d01853」以等号成立亲证 `git merge-base --is-ancestor` EXIT=0·merge-base `0d9ad4ac`=本卷起草基线·merge-tree 预演 EXIT=0 零冲突·ort 实并零冲突 10 files +834/−4·对九径 diff 逐路径零交叠实证·冲突沿并集解预置未触发·禁 pull --rebase 遵守）→merge `3e36b1ff`（双亲=`d2959be7`+`d1d01853`）；②§0 全量重 pin 全恒等（§0.1 九锚 blob+行数逐件恰等：prompts.ts `8db00e90`/232·ag19 proof `00230108`/356·service `3dcc366f`/770·state.ts `411e700e`/237·generate-question `c4f88f74`/209·adaptive-interview index `ccf1293e`/11·ai-graphs index `5dec954a`/27·resume-grounding proof `f3af4b61`/360·worker package.json `e69420d4`/180+关键行锚全亲证+门基线锚核（neg 六段序/migrations 204/cap 2184@public-text-policy.mjs:98/root wrapper :531-532/run-e2e-isolated :850/:1374 target 表）+R6 三支线 tip（hmac `46785ad1`/csp `f0e2cd8e`/g7w `f0689acc`）全 `merge-base --is-ancestor` EXIT=0=已随并线入主线+§0.0 在飞复扫（全本地支线九径顶触扫描·晚于基线日顶触唯 `22112950`/`4f289681` 均 HEAD 祖先·唯一非祖先顶触 `a2eb45dc`=2026-10-10 早于基线残枝）→**零在飞触面**）；③件①→⑨ 九件依序落码（件①/④/⑦ fenced 定稿块程序化提取逐字节套用·件⑧ blob 重钉值=件⑦ 终字节后 `git hash-object` 机械重算 `899be6f2a348703250447c30a0f15d83e626a1e5`·与 proof 内 createHash 同法双读恒等亲证·件⑨ 新 proof+package.json 注册）；④门矩阵十四门（下表）；⑤本 §9+STOP 三处翻面（Status/§8/卷尾·原句保全更替）+收据落卷=本 commit。
+
+**门矩阵十四门终值（并线树 `3e36b1ff` 基·全绿）**：
+
+| # | 门 | 实测 | EXIT |
+|---|---|---|---|
+| 0 | 改前基线 run（恰 1 次） | prompts.ts blob 对 `8db00e904cba…` 恒等亲证+`node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2177**≤2184 | 0 |
+| 1 | 新 prove:session-summary | **17 臂 PASS/0 FAIL**（组A 6+组B 7+组C 4·组B B1/B2 缺省臂 v7 形逐字节一致=守卫·免隔离 tsx 直跑） | 0 |
+| 2 | ag19 随翻门 | **47 PASS/0 FAIL**（=先例值恰等）·八对表 interviewer.ask **v8**+blob 重钉值双读恒等+:265/:278 seriesFor v8 复绿+:285/:289 Langfuse fixture 残 2 字面有意留存 PASS（经仓注册隔离 wrapper `pnpm ag19-prompt-version:prove` 行使·行使形登记⑤） | 0 |
+| 3 | S3 护面 resume-grounding | **39 PASS/0 FAIL**（=#44 前置锚恰等·D 区围栏臂+live 多轮臂全绿=「上轮上下文」段字节稳定·v8 只 append 不插队实证）`node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw` | 0 |
+| 4 | 邻面 interview | **57 臂 PASS/0 FAIL**（对锚恒等·≠57 即停未触·隔离 target `interview:prove:raw` 行使形⑤） | 0 |
+| 5 | 图行为双门 | adaptive-flow:prove **5/0**+adaptive-life:prove **49/0**（scripted-deps 第 9 additive 少参兼容零回归） | 0 |
+| 6 | neg:all 六段 | **687**（90+90+91+102+179+135·对锚恒等·总臂差=0） | 0 |
+| 7 | migrate:prove | 全 PASS·链 **204 文件头 0204**（本刀零迁移） | 0 |
+| 8 | drift+uniqueness | drift 零漂移+`files=204 violations=0 exemptions=0143,0152,0160` | 0 |
+| 9 | typecheck | `pnpm turbo typecheck --force` **8 successful, 8 total**·0 cached | 0 |
+| 10 | lint 五值恰等贴边 | 12/12 任务·root **5235**/web **601**/api **1421**/worker **954**/ai-runtime **628** 全 0 errors·五值对锚逐一恰等 | 0 |
+| 11 | docs:check | scanned **2180**≤2184（终树实测·=并线后基线 2177+件①+件⑨ 两新码文件+收据 1·两新码文件亦入 managed 扫描面·§2-11 起草预期 ≈2174 系起草时点算术漏计新码件·如实登记口径漂移） | 0 |
+| 12 | markers 五类 | 本刀改动集（11 tracked+收据）运行时组装词面扫描**零命中**（命令与回执入收据⑦） | 0 |
+| 13 | diff 面机检 | 对 base=merge 第二亲 `d1d01853`：tracked 修改 9 路径+新增 2 路径（件①/件⑨）=**恰 11 tracked**（件①-⑦ 7 码+件⑧ 1 test+件⑨ 1 test 1 package.json+本卷 .md）·多任何 tracked 路径即停未触 | 0 |
+| 14 | 卫生 | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·`.env*` ABSENT（仓根 `no matches found` 亲证）·`actualSpendCny=null`·est live=0·typecheck 副产 `apps/web/tsconfig.tsbuildinfo`（tracked 构建状态件）`git checkout` 回滚基线（negbend-fix/cache-observe §9 先例形） | 0 |
+
+**行使形登记（⑤·如实全序列·零冲销零断言红）**：(a) 门 1 首两启未达臂执行——第 1 启=裸 worktree `tsx: command not found`（环境整备·`pnpm install --frozen-lockfile` 后消·零臂执行）；第 2 启=模块实例化 SyntaxError（件⑨ 署名窗口构造缺陷：误从包根 import 件② 有意不导出的四常量·零臂执行·沿 csp 门 6「零测试执行不计 run」先例形）→修正 import 面（改由组A 夹具内联帽值·窗常量仍经包根双值出包）→第 3 启=臂执行首跑 **17/17 绿**；(b) 门 2 卷面直跑形 `…:prove:raw`（root :251=直连形）在裸 worktree 命中无隔离 DATABASE_URL 模块装载中止（零臂执行=环境整备非基线红）→沿 hmac 卷「卷面直跑形红=环境整备·换仓注册隔离 runner 包裹形行使·非 retry-to-green 同臂集首跑即绿」预授权先例改经 `pnpm ag19-prompt-version:prove`（root :250=run-e2e-isolated 隔离 target）行使 **47/47 绿**；(c) 门 9 首跑 7/8 红=件⑨ noUncheckedIndexedAccess 严格面构造缺陷（TS2322/TS2532·**根因在本刀交付面非邻面**·§8 停止条件以「根因不在本刀交付面」为要件故未触·零语义断言涉入）→署名窗口内类型面修正（局部变量收敛·臂名与断言语义零变·三轮臂输出 diff 逐字节恒等机检在案）→复行使 **8/8 绿**；(d) 门 10 首跑 worker **956**>954 恰 +2=件⑨ 两构造警（unused ModelResult import+`'content-type'` 对象属性命名·resume-grounding :158 同形警在册基线容忍面）→修正（去 unused import+HeadersInit 数组形·**零 disable 注释零守卫拆除**）→复行使 12 任务全绿五值恰等。**Ban retry-to-green 红线辨析**：全序列无一处「语义断言红后改断言冲销」——门 1 十七臂三轮输出逐字节恒等全 PASS；门 9/10 红均为新 proof 文件编译/静态面构造缺陷（非 prove 门非语义判定）且根因在本刀交付面；邻面门（2/3/4/5/6/7/8）全部首臂执行跑即绿零重跑。
+
+**九件落点（11 tracked 核）**：件① 新建 `packages/ai-graphs/src/adaptive-interview/session-summary.ts`（78 行·blob `92f1a2ba`）·件② `packages/ai-graphs/src/adaptive-interview/index.ts`（值块+1 行·type 块+1 行双类型·源 './state.ts' 路由=件④ 尾行必配承）·件③ `packages/ai-graphs/src/index.ts`（adaptive 块后邻区+2 行）·件④ `packages/ai-graphs/src/adaptive-interview/state.ts`（头 import type+第 9 参 fenced 块 :149 后插+尾双类型 re-export·+11/−0）·件⑤ `nodes/generate-question.ts`（import+派生行+第 9 实参+C14 块尾注·+4/−1）·件⑥ `apps/worker/src/adaptive-interview-service.ts`（:10 import 双类型+:395 第 9 参注解+:560 vars 第 10 键+:374-379 闭包注块尾·+4/−3）·件⑦ `packages/ai-runtime/src/prompts.ts`（v7→v8+v8 注释+system 追问句同串追加+ssText fenced 块+return 扩·+13/−3）·件⑧ `packages/ai-runtime/test/ag19-prompt-version.proof.ts`（四触点随翻重钉·+6/−6·:285/:289 零触）·件⑨ `apps/worker/test/session-summary.proof.ts` 新件+`apps/worker/package.json` :17 后注册·本卷 .md（§9 本记录+STOP 三处）=恰 11。守恒断言核：resume-grounding proof `f3af4b61` 零字节零触（blob 门后复证恒等）·scripted-deps 面（flow/life/interview）零字节零触门 4/5 全绿实证·收据 untracked 不入 11。
+
+**STOP 终态**：`executed:awaiting_post_prove_dual`（门矩阵十四门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·nail/批表 #51 行翻面/LEDGER :52 注记均归协调方）·est live=0（门矩阵 proof 面全隔离容器+确定性 stub/纯函数·零模型外呼零 Key 加载）·actualSpendCny=null·⛔push ⛔force push 未用·⛔pull --rebase 未用
+
 ---
 
-*SESSION-SUMMARY-DEEPEN REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`0d9ad4ac`（origin tip 亲证·三 ref 同值·起草时 docs:check EXIT=0 scanned 2172≤cap 2184 本席亲跑）· 分支 `line/session-summary-deepen` · 工作树 `meetwise-ssd`（本起草席立·建后 reset --hard 重 pin 战役主线·§0.2-1）· 立项出处=批表 #51 行（batch-residual-plan :60/:101）+issues-master 更正版 :334+LEDGER :52/:210+TASK-SOP-v2 :63 刀 7 CONTEXT-DEEP · 诊断=#51 三短语→三缺口（单槽闭包仅上一回合/transcript 只喂 q 一列零跨回合聚合/追问段仅一轮约 640 字符）·修法=候选甲 transcript 派生会话摘要（checkpoint 安全字段纯函数聚合·零新增 state 字段零回放分叉）+第 9 additive 参（asked/weightedDeficit 双先例形）+interviewer.ask v7→v8「本场至今」<data> 不可信段（缺省字节恒等守卫）+ag19 四触点随翻重钉+新纯 proof 免隔离·恰 10 码/test 路径（2 新 8 改）零迁移·候选乙（state 字段）丙（闭包累积作答）丁（context-budget 接线归 AG-20）戊（评分喂入）己（clarify 喂入）否决在卷· 门矩阵十四门（新 prove+ag19 随翻+resume-grounding 护面+interview 57+flow/life+neg 687+migrate 链 204+drift+uniqueness+typecheck 8/8+lint 五值贴边+docs:check≤2184+markers+diff 恰 11 tracked+卫生）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+*SESSION-SUMMARY-DEEPEN REQUEST · 2026-10-16 起草 · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十四门全绿·post 双审待派）** · base `feat/mysql-schema-skeleton` @`0d9ad4ac`（origin tip 亲证·三 ref 同值·起草时 docs:check EXIT=0 scanned 2172≤cap 2184 本席亲跑）· 分支 `line/session-summary-deepen` · 工作树 `meetwise-ssd`（本起草席立·建后 reset --hard 重 pin 战役主线·§0.2-1）· 立项出处=批表 #51 行（batch-residual-plan :60/:101）+issues-master 更正版 :334+LEDGER :52/:210+TASK-SOP-v2 :63 刀 7 CONTEXT-DEEP · 诊断=#51 三短语→三缺口（单槽闭包仅上一回合/transcript 只喂 q 一列零跨回合聚合/追问段仅一轮约 640 字符）·修法=候选甲 transcript 派生会话摘要（checkpoint 安全字段纯函数聚合·零新增 state 字段零回放分叉）+第 9 additive 参（asked/weightedDeficit 双先例形）+interviewer.ask v7→v8「本场至今」<data> 不可信段（缺省字节恒等守卫）+ag19 四触点随翻重钉+新纯 proof 免隔离·恰 10 码/test 路径（2 新 8 改）零迁移·候选乙（state 字段）丙（闭包累积作答）丁（context-budget 接线归 AG-20）戊（评分喂入）己（clarify 喂入）否决在卷· 门矩阵十四门（新 prove+ag19 随翻+resume-grounding 护面+interview 57+flow/life+neg 687+migrate 链 204+drift+uniqueness+typecheck 8/8+lint 五值贴边+docs:check≤2184+markers+diff 恰 11 tracked+卫生）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
