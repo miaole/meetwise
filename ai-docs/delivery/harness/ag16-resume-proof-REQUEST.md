@@ -121,6 +121,63 @@ base 树本席亲跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2200
 
 **待双审/EXEC 裁决项**：①件①三面臂的合成旧 checkpoint 手法（推荐=直改 inner cp channel_values 剥字段形·零产品缝 vs CrashCheckpoint 子类拦截形备选）；②件② 住地（推荐=`packages/ai-graphs/test/` 与图包同住地 vs 并入 worker test 减一注册文件）；③件② C6 自环小图行为纪实臂是否入刀（推荐=入——「默认 25 生效」唯一行为级证据）vs 纯静态五臂；④门名（推荐=`prove:adaptive-legacy-checkpoint`/`prove:adaptive-compile-contract` 沿既有形）。
 
+## §9-rev rev 修订注记（pre-exec 双审席1 FAIL R1-R3 P1×3+R4-R8 P2×4+P3×1 修订清单八条回路 · 协调方四裁决随卷 · rev 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§8+卷尾注零洗** · 本节为 EXEC 期对前文对应句的权威修正与增补）
+
+> **席1 FAIL 定谳（rev 席逐位亲证成立）**：**R1（P1）基线/cap 前提整体过期**——rev 席 fetch 实测上游已步进 `f26ab75f`（`line/cap-sanction-2208` nail 波 tip·cap-sanction-2208 已 nail 落主线·cap 2200→2208 **上游已授予**·`merge-base --is-ancestor fe4079a0 f26ab75f` EXIT=0 亲证·本支 merge `37124104` --no-ff 并入·merge-tree 预演 EXIT=0 零冲突·对支线五文件 M3/A1 与本卷 REQUEST 零交叠亲证）——§0.5「sanction≥2204 前 EXEC 红停」/§2-门9 sanction 前置/§8-停止条件①「cap 未 sanction」三处前提失效。**R2（P1）裁决项① 推荐手法机制失效**——装版 @langchain/langgraph-checkpoint **1.1.3**（主仓 .pnpm 实存亲证）`dist/memory.cjs` 亲读：`put`=`copyCheckpoint`+`dumpsTyped` **序列化串存储**（`:207-216`）·`getTuple`=`loadsTyped` **每读新反序列化对象**（`:98-104`）——「直改 inner cp channel_values 剥字段」改内层对象不持久化必返工·**存储缝手术不荐**。**R3（P1）缺省臂清单 5/7**——channel 缺省臂=Annotation `default` 仅在 channel_values **缺键**时生效（state.ts `:234 topicMainQuestionId`/`:256 weightedDeficit`/`:261 concludeReason` 三处 channel 级缺省臂亲读）——面1 剥嵌套字段触不到 channel 级缺省臂。R4-R7（P2）+R8（P3）逐位亲证见 §9-rev.4-§9-rev.7。rev 八条修订+四裁决如次·STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（§9-rev.10）。
+
+### §9-rev.1 修订①（R1·P1）——基线/cap 前提更新+sanction 已上游授予改记
+
+- fetch+并线：rev 席 fetch 后支线 **merge `f26ab75f` --no-ff**（merge `37124104`·双亲 bc7221bf+f26ab75f·merge-tree 预演 EXIT=0 零冲突·⛔pull --rebase 未用）——**EXEC 届时 merge-forward 照 §0 规则以本并线树为基**。
+- §0.4 policy blob 锚更：`scripts/ai-docs/public-text-policy.mjs` blob `841e8666`→**`7bace81c`**（@`f26ab75f` 亲算）·`:104 MAX_FILES = 2_208`（cap 2200→2208 上游已授予·a75736a0 EXEC 落码+7bace81c nail 承卷亲读）。**其余 §0.4 锚零漂移亲证**：graph.ts `6cdcc122`/state.ts `d387ab08`/adaptive-lifecycle.ts `246657b1`/adaptive-resume.proof.ts `f5dfcacf`/adaptive-lifecycle.proof.ts `4a6123fb`/generate-question.ts `5bbc052e`/model-slot-bypass `daf99bdd`+注册四件（worker `f6b6df38`/root `3b04b871`/ai-graphs `6104cb80`/runner `0787a7ff`）+pnpm-workspace `f14e7fc2` 全值对 `fe4079a0`=`f26ab75f` 恒等·零更锚；蓝本 checklist blob `8a98fb92`→**`c7296149`**（cap-sanction nail +9 行落 `:3340` 后 flowchart 段·**`:2609` 偏离⑦行与 `:3340` 行号双双零位移亲证**——sed 亲读两行原文在位）。
+- §0.5/§2-门9/§8-停止条件① **改记（原文零洗·以下列修正句为准读）**：**sanction 已上游授予（`f26ab75f`·cap 2208）**·起草树 PTP 红（2201>2200）系**旧 cap 下如实触发**的历史事实保留不洗·**上游解锁如实登记**——EXEC 期 `public-text-policy.mjs` 零触禁令（Ban 自升）**不解除**·但 sanction 前置红停条件**解除**。**EXEC 届树预期 2205≤2208 余 3**=rev 并线树 2202（rev 席 docs:check 亲跑 EXIT=0 **2202≤2208 余 6**·本 rev append 零新增文件计数不变）+2（件①件② proof）+1（EXEC 收据若落 `ai-docs/delivery/receipts/`）·门9 判据改「**届树实测 ≤2208 即绿·实测值入收据·超 2208 红停上报非自升**」·§8-停止条件① 同步改挂「届树 docs:check>2208 且协调方未裁」。
+- checklist 行锚按新 tip 重算：`:2609`/`:3340` 双锚 @`f26ab75f` 零位移（本席亲证·见上）。
+
+### §9-rev.2 修订②（R2·P1·协调方裁决①）——§1-件① 面1 合成手法定稿改写（读缝拦截形升主选）
+
+- **定稿（协调方裁决·席1 意见采纳）**：面1 合成手法=**读缝拦截形主选**——沿 `apps/worker/test/adaptive-lifecycle.proof.ts:27-40` `LegacyEmptyMindReadSaver` 先例形（rev 席亲读：MemorySaver 子类 `override async getTuple`·**恰一次**把反序列化后 tuple 的 `checkpoint.channel_values` 剥新代 additive 字段后放行·后续读零触·写零触直通）：件① 面1 首句「正常 start 落场后直改 inner cp `channel_values` 剥离新代 additive 字段合成旧形 checkpoint」**以此替换读**——面1=正常 start 落场后经读缝拦截 saver（恰一次 getTuple 改形）剥离新代 additive 字段合成旧形 checkpoint（pending.topicId/askMode/clarifyCause/plannedTurns·transcript 末回合 dispositions/evidence·mind.competencies·deficit）→ 其余断言链原文有效。**存储缝手术不荐**（机制=R2 定谳·序列化串存储面无 inner cp 可改）。
+- §8 待双审/EXEC 裁决项① 以本节为准**已裁**（读缝拦截形主选·CrashCheckpoint 子类拦截形与存储缝手术均不荐）——EXEC 期不再裁量。
+
+### §9-rev.3 修订③（R3·P1）——面2 缺新代通道键集显式钉+EXEC 臂数表三列映射
+
+- 面2「缺新代通道键」**键集显式钉 ⊇ {topicMainQuestionId, weightedDeficit, concludeReason}**（§1 面2 既有措辞已授权·本节补钉键集）——此三键系 channel 级 `default` 缺省臂（state.ts `:234/:256/:261` 亲读）·唯 channel_values **缺键**才触发·嵌套剥字段触不到（R3 定谳）·故面2 须整键缺席合成·不得以面1 嵌套剥法代偿。
+- **EXEC 臂数表须给 臂→手法→断言 三列映射**（门1 收据随附·三面逐臂列·臂数与映射一并入收据）。
+
+### §9-rev.4 修订④（R4/R5·P2）——门4/门5 stale 计数改届时实测口径
+
+- 门4「EXIT=0 43 断言原值（刀A rev2 口径）」→「**EXIT=0·届时实测值与逐臂名入收据**」（rev 席现树亲数 `adaptive-lifecycle.proof.ts` A( 调用位 **46**·「43」系 stale 口径作废）。
+- 门5 resume-grounding「31 静态断言」→**同 R4 处置「届时实测值入收据」**（rev 席现树亲数行位 **33**·「31」stale）——邻面门语义不变=EXIT=0+臂零改·计数字面一律以届时实跑为准。
+
+### §9-rev.5 修订⑤（R6·P2）——面2 一致性比较 ID 纪律
+
+- 面2「与『无该键』对照面投影逐字节一致」收口：**须 pin ID 规范化比较或固定 UUID 入参（二择一·EXEC 落码定·收据披露所用形）**——现 proof 先例入参系 `randomUUID`（adaptive-lifecycle.proof.ts `:5/:70/:87/:123` 等亲读）·identity/answerId 类字段两遍异值即假红·逐字节断言前须先规范化或钉死入参。
+
+### §9-rev.6 修订⑥（R7·P2 四件）——件② 纪律 pin
+
+1. **C2 命中集逐行钉**：恰 {`graph.ts:49`/`graph.ts:62`/`graph.ts:63`+`generate-question.ts:141`} **四行**（rev 席 grep 亲证现树图包 src `recursionLimit` 词面恰此四行——§0.3-1「`:49/:62-64`」区间措辞作废·`:64` 零命中）。
+2. **C4/C5 dist 定位**：必须 `createRequire(import.meta.url).resolve('@langchain/langgraph/package.json')` 动态定位装版 dist·**禁硬编码 `.pnpm` 哈希路径**。
+3. **禁 skip-as-pass 显式声明**：装版缺失/resolve 失败/dist 读失败=**红**（非 skip 非降级·收据如实红）。
+4. **C6 断言双钉**：`instanceof GraphRecursionError` **与** 消息含 **`Recursion limit of 25`** 双条件（装版 dist/pregel/index.js `:1223` 模板串 `Recursion limit of ${config.recursionLimit} reached` 亲读·默认 25 时字面恰此）。
+
+### §9-rev.7 修订⑦（R8·P3 两件）
+
+1. checklist `:3340` 引用措辞（§0.5/卷尾注两处）**改读**：「**沿其先例形**」（`:3340` 系 5E-CLEANUP-SWEEP-2 nail 刀的 cap 贴边触顶登记行·非本卷预置登记本体）·**本卷预置停止条件在 §0.5**——本卷对 `:3340` 系援引先例形·原文零洗以此读为准。
+2. 件③ runner source 清单**补 `state.ts`**（`packages/ai-graphs/src/adaptive-interview/state.ts`）——件① 隔离库投影面直读 state 通道缺省语义·runner source 白名单须含之（四处 additive 注册形不变·沿 `ag-a-resume:prove:raw` 同形）。
+
+### §9-rev.8 四裁决项落卷（协调方·席1 意见采纳·EXEC 期不再裁量）
+
+① 合成手法=**读缝拦截形主选**（§9-rev.2·存储缝手术不荐）；② 件② 住地=**`packages/ai-graphs/test/` 维持**（并入 worker test 备选否决）；③ **C6 行为臂入刀**（「默认 25 生效」唯一行为级证据·纯静态五臂否决）；④ 门名=**`prove:adaptive-legacy-checkpoint`/`prove:adaptive-compile-contract`**（§1-件③ 门名字面即此·零改）。
+
+### §9-rev.9 §8-③ 冻结条款权威修正句（§1 冻结沿 rev 先例形）
+
+§8-③「EXEC 立项不得改 §1-修法清单与 §5 Ban/pins（改则回炉重审）」禁令**不变**——但 §1-修法清单自本节起**以 §9-rev 修正后的定稿文本为冻结本体**（§9-rev.2/.3/.5/.6/.7 修正句并入 §1 读·原文零洗替换读）·本 rev 系 pre-exec 双审回路协调方授权的权威修正·非 EXEC 期改动·EXEC 立项对 rev 后定稿文本仍零触（触则回炉重审）。
+
+### §9-rev.10 门矩阵 rev 后口径+rev 后 STOP 状态（rev 席亲跑）
+
+- **docs:check**：EXIT=0 **2202≤2208 余 6**（并线树 `37124104` 本席亲跑·本 rev append 零新增文件→计数不变）。
+- **markers**：本 rev 改动集（恰 1 .md）五类标记词+行首冲突标记直扫零命中（词族运行时组装不誊卷·沿 §7 同形制·i6-239 §2-7 口径）。
+- **diff 面**：本 rev 恰 1 tracked=本卷 .md 纯 append 零删改·零码面（对 `37124104` 机检）·B 段门 1-12 沿 §2 预 registered 判据·随 §9-rev.1/§9-rev.4 修正值读。
+- **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev 落卷后待席1 修订清单 R1-R8 落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev 后重审·alone≠dual·Ban self-approve）·开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）·est live=0（rev turn 全只读+1 doc append）·actualSpendCny=null。
+
 ---
 
 *AG16-RESUME-PROOF REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`fe4079a0`（origin tip 亲证·派单下界 tip≥fe4079a0 等号成立）· 分支 `line/ag16-resume-proof` · 工作树 `meetwise-ag16`（本起草席立·落 origin tip）· 立项出处=issues-final AG-16 `:28/:224-234`+AG-27 `:345-353`+EXPERT-REVIEWS `:69`+review-log `:136`+ci-wiring2 偏离⑦ `:130/:146/:157`+checklist `:2609/:3340`· 残面=①旧 checkpoint resume 三面（兼容/版本失配/中断点确定性·§0.2 缺口表）②recursionLimit 纪实收口（§0.3 装版三事实亲读）· 修法=两新 proof（件① 隔离库三面臂+件② 静态 C1-C6）+门注册四处·零产品码零迁移· diff 预期恰 7 tracked · est live=0 · pins 十一值照抄 · markers=0 亲跑 · docs:check 基线 2200≤2200 EXIT=0 亲跑·起草树 2201>2200=checklist `:3340` 预置触顶停止条件如实触发·cap sanction 权归协调方（Ban 自升）· ⛔push⛔merge主线 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · **STOP***
