@@ -153,3 +153,16 @@
 - **STOP=**`executed:awaiting_post_prove_dual`**（post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·本 commit 不预 claim CI 运行结果·门 12 推 PR 后观察归 pusher/协调方·⛔push）**。
 
 *EXEC 落卷 2026-10-16·序1 fetch+merge `1fe540e6` --no-ff 并 `0ff55592`（merge-base `59127126` 对 ci.yml 恰 0 commit·零冲突·merge-tree `f36c5078` 预演 EXIT=0 先证·⛔pull --rebase 未用）·序2 §0 全量重 pin（六锚 blob 恒等+steps 基线 102+cap 2184+插入锚 `:192`/`:193` 逐字命中+R4 全量重跑 rkw `:331` 值翻 1 触登记不熔断+§0.0 三对表各恰 1）·序3 件① ci.yml 纯增 4 行逐字节（`:193-:196`·REQUEST `:65-:68` 提取 diff EXIT=0·steps 102→103·新步 yaml 1b 39/UI 40）·序4 门矩阵十二门=11 绿+门 12 移交（db-acl2 **38/38** EXIT=0 墙钟 9.956s+dbhy1 28/28+db-acl 62/62+docs:check 2167≤2184+markers 五类零命中+卫生全绿）·偏离三项登记（R5 括注行号漂/rkw 预clear 触/收据⑥待 CI 回填）·**STOP=`executed:awaiting_post_prove_dual`**（post-prove 双审两独立外席待派·nail/行翻面权归协调方）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*
+
+## §11 post P2 勘误落卷（nail 期随卷·2026-10-16·append 勘误注记形·§0-§10 上文原文零字节改·⛔触码面⛔push）
+
+**裁前案由**：post-prove 双审会签 **PASS**（席1 agent_beea8dba+席2 agent_1dbc9ed9）·两 P2 本席逐项复核第一手证据成立·全部 docs-only 注记落卷·零码面零门语义改。**本节系 append 勘误注记形：§0-§10 原文零字节改留档，operative 口径以本节勘正值为准**（沿本卷 §9 rev2 同形制·落卷即停）。
+
+**两项逐项落点**：
+
+1. **P2-B（席2）卷尾 `:126` 时代冻结文本注记**：`:126` 卷尾斜体（起草 trailer）中「docs:check≤2168」与旧 STOP 口径系**草拟期时代冻结文本**（起草树现势 cap=2_168·起草日 STOP=`draft:awaiting_pre_exec_dual`）——按历史原文口径带过勿误读：cap operative 值已沿 §9-R3 勘正链更新（届时 cap=**2184**·`0ff55592` sanction 落值·EXEC 门 8 实测 2167≤2184 绿）；STOP operative 值已沿 §10 Status 翻面更新（**`executed:awaiting_post_prove_dual`**）；`:126` 原文零字节改留档，本注记为唯一通行口径。
+2. **P2-A（席1）收据 `:18`/`:34` 「§9 append」→「§10」勘记承登**：收据 `ai-docs/delivery/receipts/dbacl2-ci-wire/00-exec.md` 原稿门 10 行与字段④首行两处「§9 append」勘正为「§10」（本卷 §9 已被 rev2 占位·EXEC 记录顺延 §10·EXEC commit `5f5a4154` 卷内自证）·收据落卷时 untracked（沿 ci-wiring3 件④ 先例）·本勘随 nail commit 首次入树无史可洗·勘记随收据尾落。
+
+**维持面**：§1 裁位+件① 逐字节+§2 门矩阵十二门语义+§3 边界+§5 Ban/pins 十一值+§6 est live=0——零改零翻转。**STOP 承 §10 终态=`executed:awaiting_post_prove_dual`→post 双审会签 PASS 后按链交协调方裁 nail/行翻面**（alone≠dual·Ban self-approve·⛔push）。
+
+*post P2 勘误落卷 2026-10-16·席1 agent_beea8dba+席2 agent_1dbc9ed9 双审会签 PASS 授权·本席（nail）随卷笔录·est live=0·actualSpendCny=null·⛔push*
