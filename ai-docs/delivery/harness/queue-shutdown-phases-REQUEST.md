@@ -67,7 +67,7 @@
 ### 1.3 竞速三害机制链（诊断席定谳承引+源级链·证据等级 §0.2-5）
 
 1. **rag-cache 先闭→在飞 retrieval 拒绝→降级**：`:810` `ragCache.close()` 与 `:797-801` 面向 qbank read model 的 loop stop 同拍起跑——close 先 settle 即硬闭 client·在飞 tick 的 retrieval 路径拒绝→降级路径噪声（fail-closed 语义正确但排水窗制造本可避免的拒绝尾迹）。
-2. **pool.end 竞在飞 erasure tick→白跑+噪声**：`:811` `privacyPool.end()` 与 `:807-808` privacy-erasure/vector-plane-erasure stop 同拍——erasure tick 在飞时 pool.end 终结连接→tick 内查询拒绝→`drain-loop.ts:50-53` 兜底 catch 计 consecutiveFailures+console.error 噪声·该 tick 已做工作白跑（幂等护栏保证不双跑·但排水窗白耗）。
+2. **pool.end 竞在飞 erasure tick→白跑+噪声**：`:811` `privacyPool.end()` 与 `:807-808` privacy-erasure/vector-plane-erasure stop 同拍——erasure tick 在飞时 pool.end 收空闲连接+拒后续取连（busy client 不被终结·真实拒绝面=connect()-after-end·pg-pool 3.14.0 :127-143/:189-193/:488-498）→tick 内查询拒绝→`drain-loop.ts:50-53` 兜底 catch 计 consecutiveFailures+console.error 噪声·该 tick 已做工作白跑（幂等护栏保证不双跑·但排水窗白耗）。（R2 措辞降格随 nail 落：原句「pool.end 终结连接」系超定表述·降格实录见 §9 字段⑧ P2-1）
 3. **langfuse 先收→收尾尾迹丢失**：`:814` `langfuse.shutdown()` 与 13 loop stop 同拍——shutdown 先 settle 即收遥测·各 loop 最后一个在飞 tick 的 span/事件不入尾迹（排水收口观感失真）。
 4. **无预算分配**：单一 30s deadline 下依赖相与 loop 相共享同一预算——挂死 loop（如 stub hang 形态）可耗尽全预算·依赖相收尾被饿死；反之依赖相快 settle 又先行拆依赖。两向皆失序。
 
@@ -195,6 +195,11 @@ deadline 胜出→`worker_drain_timeout`（在飞名）→`process.exit(0)`（`:
 **字段⑥ 裁决项行使落字（§8 五条）**：①依赖相计数勘误**追认行使**（deps 5/loop 14 实证·19 具名三方互证恒等）；②空 deps 相退化语义**追认行使**（D 臂 allSettled(空)即 drained 零漂移）；③演进②时序窗行使**追认**（56=`Math.ceil(80×0.7)` 机制推导·其余 39 臂逐字冻结·力不减）；④**零迁移确认**（实证零）；⑤行关闭效力归协调方 nail（本刀不宣称关闭）。§1-修法定稿契约与 §5 Ban/pins **零改**（修法契约逐条落实·pins 全数维持：41/47/19 具名/5+14/70-30/30s/cap（重 pin 随动）/lint 5235·954/迁移 0）。
 
 **字段⑦ 落卷**：本 commit（§9 append+Status/§0 重 pin/§2-8/§8/footer 翻面）·STOP=**`executed:awaiting_post_prove_dual`**——post 双审两外席待开·post BOTH PASS ≠ push·push 权归协调方（⛔push 未犯·工作区交付）。
+
+**字段⑧ post P2 随卷（append 注记形·本节原文零洗史·nail 随卷落笔）**：post 双审会签 **PASS**（席1 `agent_7b34de12`+席2 `agent_09c70a19`）·三件承登：
+- **P2-α B 份额臂判别力登记**：B 份额臂时序窗上界 500 系**哨兵形制**（防真睡跨窗的粗护栏·非份额机制精断言）——份额判别力由 A 分相序臂（deps stop 起跑时点 ≥ loop 相全 settle 时点）+C 逐相在飞名臂+E 源级臂（`LOOP_PHASE_SHARE=0.7` 具名与和恒等式在源）承载·**非本刀弱化**。
+- **P2-β §6④↔门 8 收据落点差异追认一行**：§6④ 预申明收据落点=`ai-docs/delivery/receipts/queue-shutdown-phases/`（00-exec.md+断言清单+各门 EXIT 回执）→EXEC 实落=**§9 inline 自裁最小集·零收据目录新增**（§9 字段④ 门 8 如实记载）——落点形差异追认·各门 EXIT 回执实质零缺。
+- **P2-1 R2 措辞降格（post 双席同源建议·§1.3-2 :70 机制句原位降格）**：「pool.end 终结连接」→「**pool.end 收空闲连接+拒后续取连（busy client 不被终结·真实拒绝面=connect()-after-end·pg-pool 3.14.0 :127-143/:189-193/:488-498）**」——本 nail 席对 `node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js` 三锚亲证（:127-143 `_pulseQueue` ending 仅移 idle·`_clients` 清空才 `ended`；:189-193 `connect()` ending 后拒 `'Cannot use a pool after calling end on the pool'`；:488-498 `end()` 置 ending+`_pulseQueue()`）·白跑定性收窄为「在飞 tick 若 end 后新取连即拒·已持 busy client 不被终结」·§1.3-2 后半兜底链句与修法设计零变（原句超定表述已留痕于该行行尾注记）。
 
 ---
 
