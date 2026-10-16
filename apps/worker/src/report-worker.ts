@@ -200,7 +200,7 @@ export async function sweepReportsOnce(pool: DbPool, owner: string) {
   return asPrincipal(pool, owner, async (c) => {
     const res = await sweepReports(c, owner);
     for (const interviewId of res.quarantinedInterviews) {
-      await appendEvent(c, owner, interviewId, 'report_unavailable', { reason: 'max_attempts_exceeded' });
+      await appendEvent(c, owner, interviewId, 'report_unavailable', { reason: 'max_attempts_exceeded' }, 'report_unavailable:' + interviewId + ':quarantine');
     }
     return res;
   });

@@ -276,6 +276,23 @@ async function main() {
     A('F3 二拍后仍零循环报错（连续失败计数=0）', consecutiveReconcileFailureCount() === 0);
   }
 
+  section('⑨ interview_unavailable 补 event_key（kind:id:phase 幂等去重面）：identity 断言 + 重放拍零重发');
+  {
+    const owner = OWN('evkey'), iid = IID('evkey');
+    await seedOwner(owner);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'waiting_user')", [iid, owner]);
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, iid, 'mock_interview', 1.0));
+    await expireLease(owner, iid);
+    await commerceReconcileTick(pool);
+    const ekRow = await asPrincipal(pool, owner, (c) => c.query(
+      "SELECT event_key FROM interview_event WHERE stream_key=$1 AND kind='interview_unavailable'", [iid]));
+    A('interview_unavailable 恰 1 条且 event_key 恒等 interview_unavailable:<id>:reclaim',
+      ekRow.rows.length === 1 && ekRow.rows[0].event_key === `interview_unavailable:${iid}:reclaim`);
+    await commerceReconcileTick(pool);   // 重放拍（已 released 不再进 swept；键在场则去重兜底）
+    A('重放拍零重发（event_key 去重 ∪ swept exactly-once 结构面·仍恰 1 条）',
+      (await evCount(owner, iid, 'interview_unavailable')) === 1);
+  }
+
   console.log(`\n${fail === 0 ? '✓ C1 对账兜底调度侧:孤儿预留回收+终态事件+结算入账+幂等+并发安全 全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end();
   process.exit(fail ? 1 : 0);
