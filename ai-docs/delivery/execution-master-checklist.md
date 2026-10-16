@@ -3340,3 +3340,12 @@ flowchart TD
 - **STILL OPEN**：**cap 贴边触顶登记=刀4（5E-CLEANUP-SWEEP-2 nail）届树 docs:check 预测 2201>cap 2200·按派单令「若超 2200 红停上报」停止条件预置在案（届时实测为准）**·批表/AG-20 行翻面权归协调方（本刀不宣称关闭）·REQUEST Status 行翻面权归协调方（post 双 PASS·沿先例）.
 - 预算：est live=0（nail 面 docs+merge+本地静态门零模型外呼零 DB 零容器零外呼）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2200**.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line cap-sanction-2208 nail（2026-10-16 SSOT nail · 任务书授权（本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2208 文档帽步进刀（协调方 sanction +8 步进 2200→2208·主线 f7caa206 2194 实测+四刀 nail 串行并入预期 2199+在飞 G7W-DIAG-NEEDLES/WORKER-HANG-GUARD 两 REQUEST 并入即 2201 超限预判·修法=MAX_FILES 2_200→2_208+sanction 注记置顶两行+proof 越限臂六处 2208/2209 全行使·沿 3cd159dd 形制逐字节同构·零门语义变更零产品码零迁移））
+
+- **授权链全链如实载**：协调方 sanction 派单 brief（2201 超限预判）→起草 `15640509`→EXEC `a75736a0`（快速链一体席·门矩阵七门全绿=proof 12/12 EXIT=0+docs:check 2195≤2208 EXIT=0+turbo typecheck --force 8/8 0cached+turbo lint --force 12/12 五值恰等 web601/api1421/worker954/ai-runtime628/root5235+markers hits=0+自审 grep 清零证+diff 恰 3 tracked）→post 双审会签 **PASS×2**（席 ID 归协调方派单 brief·本席承任务书口径承登）→nail（本席·协调方派单）.
+- **nail 工序（本席·协调方派单）**：工序1 fetch+merge origin/feat/mysql-schema-skeleton@`fe4079a0`（context-budget-wire nail 波 tip 等号亲证·merge `b9eda0e6` --no-ff 双亲 a75736a0+fe4079a0·两 script（public-text-policy.mjs/public-text-policy.proof.mjs）origin 侧自 merge-base `f7caa206` 零漂移 blob 恒等 841e8666/8582886c 亲证·merge-tree 预演 EXIT=0 零冲突·⛔pull --rebase 未用）→工序2 SSOT 三处随卷（LEDGER 刀位图 CAP-SANCTION-2208 行+配套管线 cap-sanction-2208 nail 行+本段·支线树内改主仓路径文件随支线推·⛔主仓单独 commit 未犯）→工序3 docs:check 复跑本席亲跑 EXIT=0 **2201**≤cap 2208（余 7·恰等派单预期带 2201·本卷 SSOT append +0 零新增文件）→工序4 markers（本刀自面新增行五类词 0/0+全树行首冲突标记零命中）→工序5 push（REMOTE-IS-ANCESTOR 机检 `git merge-base --is-ancestor origin/feat/mysql-schema-skeleton HEAD` 亲证后 `git push origin HEAD:feat/mysql-schema-skeleton` 直推非 force）→工序6 CI 结构面如实观察.
+- **门矩阵（EXEC 门矩阵七门全绿承卷·post 双审会签 PASS×2·nail 本席亲跑=merge 面机检+docs:check 复跑+markers）**：EXEC 门值承卷（proof 12/12+docs:check 2195≤2208+typecheck 8/8 0cached+lint 12/12 五值恰等+markers hits=0+自审 grep 清零证）/nail 届树亲跑（merge 零冲突+两 script origin 侧零漂移 blob 恒等+docs:check EXIT=0 2201≤2208+本刀自面 markers 0/0）.
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（post 双 PASS·沿先例·本刀不宣称关闭）·在飞 G7W-DIAG-NEEDLES+WORKER-HANG-GUARD 两 REQUEST 并线时序归协调方.
+- 预算：est live=0（nail 面 docs+merge+本地静态门零模型外呼零 DB 零容器零外呼）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2208**.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
