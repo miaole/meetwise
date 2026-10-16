@@ -25,6 +25,7 @@ const pool = createPool();
 const embedder = fakeEmbedder(512);
 const OWNER = 'qbank-pipeline-reader';
 const METADATA = { taxonomyVersion: 'v1', servingScopeId: 'backend/general', annotationSource: 'curator_reviewed' as const };
+const SCOPE = { taxonomyVersion: METADATA.taxonomyVersion, servingScopeId: METADATA.servingScopeId };   // 0176/0187 fail-closed 断言助手随锚：夹具 scope 显式供给（owner 缺省归一 platform·沿 qbank-generation search() 同族形）
 const RAW_HELPER = {
   refId: 'qpipe:auxiliary-limit-note',
   text: '限流辅助说明：令牌桶需要容量和补充速率。这个辅助材料不是一条可直接出题的题目。',
@@ -58,6 +59,7 @@ async function hitsFor(query: string, recipeId: string) {
     k: 12,
     expectedRecipeId: recipeId,
     retrievalMode: 'dense',
+    scope: SCOPE,
   }));
 }
 
@@ -71,7 +73,7 @@ async function main() {
   if (!g0 || g0.status !== 'activated') throw new Error('qbank_pipeline_first_generation_not_activated');
   const rawHits = await hitsFor('令牌桶 限流 容量 补充速率', g0.recipe.id);
   const rawResults = await asPrincipal(pool, OWNER, (client) =>
-    qbankQuestionResultsForHits(client, g0.recipe.id, rawHits));
+    qbankQuestionResultsForHits(client, g0.recipe.id, rawHits, 420, SCOPE));
   check('① 受审核辅助 chunk 可进入 generation，但不能单独提升为完整业务题目工件',
     rawCount === 1 && rawHits.some((hit) => hit.refId === RAW_HELPER.refId) && rawResults.length === 0);
 
@@ -80,7 +82,7 @@ async function main() {
   if (!g1 || g1.status !== 'activated') throw new Error('qbank_pipeline_artifact_generation_not_activated');
   const artifactHits = await hitsFor('令牌桶 限流 原子扣减 过载降级', g1.recipe.id);
   const results = await asPrincipal(pool, OWNER, (client) =>
-    qbankQuestionResultsForHits(client, g1.recipe.id, artifactHits));
+    qbankQuestionResultsForHits(client, g1.recipe.id, artifactHits, 420, SCOPE));
   const result = results.find((item) => item.ref === QUESTION.id);
   check('② 新批准的完整题目工件提升内容 epoch，并重建为新的活动 generation',
     ingested.questionCount === 1 && ingested.chunkCount === QUESTION.chunks.length

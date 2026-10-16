@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process';
-import { CLOUD_IDENTIFIER_RULES, PUBLIC_TEXT_POLICY_CODES, isSyntheticIdentifier } from './ai-docs/public-text-policy.mjs';
+import { CLOUD_IDENTIFIER_RULES, PUBLIC_TEXT_POLICY_CODES, TEXT_EXTENSIONS, isSyntheticIdentifier } from './ai-docs/public-text-policy.mjs';
+import { extname } from 'node:path';
 
 const credentialPatterns = [
   { name: 'Alibaba AccessKey ID', pattern: /\bLTAI[A-Za-z0-9]{12,}\b/ },
@@ -57,6 +58,7 @@ function stagedContent(path) {
 }
 
 const findings = [];
+const nulFindings = [];
 for (const path of stagedFiles()) {
   if (isForbiddenEnvironmentFile(path)) {
     findings.push({ path, rule: 'environment file must stay local' });
@@ -64,7 +66,13 @@ for (const path of stagedFiles()) {
   }
 
   const content = stagedContent(path);
-  if (content === null || content.includes('\0')) continue;
+  if (content === null) continue;
+  if (content.includes('\0')) {
+    // Managed-text extension carrying NUL = the eradicated condition (nul census 19→0) regressing: fail closed.
+    // Binary/unknown extensions keep the legacy whole-file skip (gitleaks CI surface's jurisdiction, not this text gate).
+    if (TEXT_EXTENSIONS.has(extname(path))) nulFindings.push(path);
+    continue;
+  }
   for (const { name, pattern } of credentialPatterns) {
     if (pattern.test(content)) findings.push({ path, rule: name });
   }
@@ -77,6 +85,12 @@ for (const path of stagedFiles()) {
       break;
     }
   }
+}
+
+if (nulFindings.length > 0) {
+  console.error('NUL bytes detected in staged text files — run nul census. NUL in a text file re-opens the rg/grep binary blind spot; escape or remove the bytes (see ai-docs/delivery/harness/nul-escape-visibility-REQUEST.md).');
+  for (const path of nulFindings) console.error(`- ${path}`);
+  process.exit(1);
 }
 
 if (findings.length > 0) {
