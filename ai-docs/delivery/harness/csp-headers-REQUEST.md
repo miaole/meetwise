@@ -1,6 +1,6 @@
 # CSP-HEADERS REQUEST — api 面 CSP/安全头基线小刀（批表 #67 承接·web 面已由 AUTHZ-HARDEN 5A-2 闭环定谳·api /docs HTML 真空面 hash 钉 enforce 修法·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve·est live=0·⛔push ⛔merge 主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 续作收口 2026-10-14·落码面在树 b7626bab+续作并线 b1a97988+三门补行（neg:all 687/687·uc003 恰 1 run 绿·e2e 全量两门红形零漂移）+门 9 维持核（lint 12/12 五值恰等·typecheck 8/8·prove 12/12）全绿·§9-EXEC 续作收口记录七字段+全表落卷·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push） · 起草席原态=`draft:awaiting_pre_exec_dual`（2026-10-14 起草落卷·pre-exec 双审会签后协调方授权 EXEC·门 9 红停回炉 rev2 落卷 `b7626bab`·席1 复审 PASS agent_ae44650f 17 项全 PASS 后协调方授权续作收尾）
 
 **席位**：CSP-HEADERS 起草席（meetwise 战役「CSP-HEADERS 内容安全策略小刀」诊断+起草席·批表 #67 b 类可直接立项承接）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `0ff55592`（本席 fetch 后 REMOTE tip 亲证 `git rev-parse`=0ff55592c16b4d953b8a9197f35524ad41df4139·=派单下界恰等·cap 2184 sanction 卷在 tip）· 分支 `line/csp-headers`（本起草席 `git worktree add ../meetwise-csp -b line/csp-headers` 亲立·HEAD 落 `0ff55592` 亲证·建树净 tracked 零翻动）· 工作树 `meetwise-csp`（仓根同级）。注：主仓本地 HEAD 恒等 `0ff55592`（本波主仓=origin tip 同点）。
@@ -257,7 +257,9 @@ await main();
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本卷不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1-修法五编辑定稿与 §5 Ban/pins 与 §1.3 淘汰结论**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞重扫必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本卷不预 claim 任何 post-commit EXIT。**
+
+**[EXEC 续作收口 2026-10-14 本处终态更替]** `executed:awaiting_post_prove_dual`（§9-EXEC 续作收口记录·起草期 STOP 语义历史承登不洗·post-prove 双审两独立外席待派）。 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1-修法五编辑定稿与 §5 Ban/pins 与 §1.3 淘汰结论**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞重扫必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/位点漂移（尤 `:101/:154/:222` 三插入锚与 `:226` 内联脚本字节）·或 web 面引用锚任一 blob 漂（middleware/next.config/proof）·或 §0.0 在飞重扫命中 main.ts 新增改写→停·重 pin 回炉。
 - **机制不满足**：证明件任一臂 FAIL（零豁免臂不响/路由级让位臂失败/hash 自洽臂不齐/静态断言红）或门 1 改前对照翻非零→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿·Ban 手改 hash 常量凑 H4）。
 - **越界需要**：修法诉求超出 3 码面（需触 web 面/CI 注册面/nginx/版本钉/迁移/既有钩子语义）→停·另刀或协调方裁决（§1.3 否决沿承）。
@@ -278,6 +280,8 @@ await main();
 
 **STOP 不变**：仍 **`draft:awaiting_pre_exec_dual`**——re-fence 后席1 复审确认（覆盖其 P0×1+P1×1 FAIL）方会签；§8 三条款·alone≠dual·Ban self-approve 沿承不翻。
 
+**[EXEC 续作收口 2026-10-14 本处终态更替]** `executed:awaiting_post_prove_dual`（§9-EXEC 续作收口记录·rev1 历史原态承登不洗）。
+
 **rev2 处置登记（EXEC 门 9 红停回炉·落卷席亲证·2026-10-14·沿本节 append 形制·§0-§8 除 §1-修法 编辑1 围栏唯一权威形随重钉外原文零字洗）**：
 
 - **R6 触发与根因（门 9 红·第一手复演）**：EXEC 落码面（3 码面在树未提交）门 9 lint 红——api 面 **1422 warnings > 恰等线 1421**（`eslint . --max-warnings 1421` EXIT=1·本席复演亲证）；违例行唯一定谳=`apps/api/src/main.ts:102:1  warning  "fastify" type import should occur before import of "@meetwise/ai-runtime" · import/order`（恰 +1·余 1421 面零漂）。根因=编辑1 rev1 形把 `import type { FastifyInstance } from 'fastify'` 随块首行落 `:102`（居于全部 import 组之后）——import/order（`packages/config/eslint.config.base.mjs:74` 'warn' 级·groups=builtin→external→internal·pathGroups `@meetwise/**`→internal position after）判定 external 组 import 违规后置=+1 warn 越恰等线（`--max-warnings 1421` 零余量即红）。
@@ -288,6 +292,49 @@ await main();
 
 **STOP 不变（rev2 后重申）**：仍 **`draft:awaiting_pre_exec_dual`**——rev2 落卷后席1 复审确认（覆盖门 9 红根因 R6）方会签→EXEC 重授权；§8 三条款·alone≠dual·Ban self-approve 沿承不翻。
 
+**[EXEC 续作收口 2026-10-14 本处终态更替]** `executed:awaiting_post_prove_dual`（rev2 复审 PASS agent_ae44650f「17 项全 PASS·rev2 确认·可授权 EXEC·实为续作核验收口」·协调方授权续作收尾·三门补行+门 9 维持核全绿·§9-EXEC 续作收口记录七字段+全表落卷·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）。
+
+### §9-EXEC 续作收口记录（2026-10-14·EXEC 续作核验收口席·协调方授权续作·本节纯 append·§0-§8 原文零字洗·STOP 五处同步更替见各处注记）
+
+**① 并线（续作序1）**：`git fetch`+`git merge --no-ff origin/feat/mysql-schema-skeleton`·届时 tip=`281ae14a`（submit-flow-competency-wire nail·≥archive-expand 波下界 `5b53dd41`=gitleaks nail·`merge-base --is-ancestor` 亲证）·merge-tree 预演 EXIT=0 零冲突零 union-解需·merge=**`b1a97988`**（ort 零冲突 8 files +536/−16·merge-base=`d28b1a2e`·对 pnpm-lock.yaml/package.json 零 delta 零重装需·禁 pull --rebase 遵守）。落码面（b7626bab 三码面）对并线 worker 文件零 hunk 交叠·merge 后 `prove:csp-headers` 12/12 即绿（H4 hash 自洽臂=模板零漂亲证）。
+
+**② 门 3 补行**：`pnpm neg:all` **EXIT=0 687/687**（auth 90+commerce 90+resume 91+interview 102+bend 179+input 135·恰等在册基线零漂·±2 熔断未触·隔离容器·FAIL=0）。
+
+**③ 门 6 补行（协调方特授权 LIVE·source secrets 同 shell）**：`pnpm uc003:i18n-locale-ui:prove` **EXIT=0 恰 1 run**（1 passed 2.4s·chromium 单项目·E2E_UI_SKIP_WORKER=1·零 retry）·sbg nail 后绿基线零翻红（门⑥主线三度 1 passed 先例恒等）·模型消耗面=DOM/locale 断言面**零模型外呼实证**（无 G7 cost ledger 行·SKIP_WORKER=1 零图执行）→本门 est live 消耗=0·actualSpendCny=null 维持。偏离登记：首启误形（E2E_UI_GREP/E2E_UI_PROJECT/E2E_UI_SKIP_WORKER 三 env 欠贴=全量 e2e:ui 形）容器 boot 秒级中止·**零测试执行**·自清容器归零·不计 run·不触 Ban retry-to-green（非红重试·系误形中止）。
+
+**④ 门 7 补行（全量两门改前/改后基线重 pin 协议）**：改前=merge 树 `b1a97988` 临时 checkout `d28b1a2e` 三码面（main.ts/package.json checkout+proof 移出·porcelain 3 行预置态）→`e2e:isolated`+`e2e:ui:isolated` 各恰 1 run；改后=码面归位（porcelain 0 行·main.ts 对 HEAD byte-diff 恒等亲证）各恰 1 run。判定=**红形零漂移全兑现**：
+- `e2e:isolated` 改前红→改后红**同形**（收据 `2026-10-16T04-35-59`/`2026-10-16T05-11-47` 双件在 `.tmp/e2e-receipts/`）：failureClass=api·reviewLedger 恰 2 行（image_ocr_unavailable+voice_unavailable）改后零新增·durMs 433857/433726 同形·migration manifest 双侧 204 头 0204 恒等→**基线红承登非本刀翻红**（§2-7 判定式）；
+- `e2e:ui:isolated` 改前红→改后红**同形**：class=frontend client_exited·红点段=`recruiting-bound.spec.ts:222`「C→B」双项目（chromium+mobile·各 6.8m·`:302` toHaveText EARLY_STOP_COPY）·✘ 行 byte-diff EXIT=0 恒等·双侧 2 failed/10 skipped/18 passed 恒等→基线红承登；
+- **g7SuiteGreen=false pin：false→false 零翻**。
+- 偏离登记：改前 `e2e:isolated` 首启 5.8s 前置中止（`live_provider_key_missing` 快速失败·零测试执行·收据 `2026-10-16T04-26-12` 在档）——门 7 系 §2-7/§6 明载 live 面（live 双计归 e2e 面预算·非本卷预估权）·补键后续行·非红重试。
+
+**⑤ 门 9 维持核（rev2 后）**：`pnpm turbo lint --force` **EXIT=0 12/12 维持**·恰等双证三件=api `--max-warnings 1421` EXIT=0（✖ 1421 problems 0 errors）/`1420` EXIT=1·root `5235` EXIT=0（✖ 5235 problems 0 errors）/`5234` EXIT=1·web `601` EXIT=0（✖ 601 problems 0 errors）/`600` EXIT=1·worker 954/ai-runtime 628/contracts 265/domain 115/ai-graphs 47/qdrant-store 27/db 1042 全表恒等（0 errors）·`turbo typecheck --force` **EXIT=0 8/8**·`prove:csp-headers` **PASS=12 FAIL=0 维持**·tsbuildinfo 副产 checkout 回滚（§2-13③）。
+- **P2 注记（.next lint 域污染·纪律内整理·非码面红）**：门 6/7 UI 门 runner「无 .next/BUILD_ID 先 next build」副产 `apps/web/.next`（441MB·gitignored）滞留工作面→首轮 `lint --force` web 2913>601+root 双红（base eslint config 零 .next ignore 面·rev2 树无该副产故 R9 未遇）——副产移除后复跑 12/12 五值恰等全恢复=**构建副产非码面警告·码面零警告增量兑现**；runner 行为面 Ban 触（§3-4）不动·注记供后继 UI 门刀知悉（UI 门后须清 .next 方可核 lint）。
+
+**⑥ P2 i6-239 口径限定注记（沿席1 确认席建议落卷）**：`scripts/i6-239-gates.proof.mjs`「改动集恰符(实际触面⊆申报清单)」臂系 i6-239 该刀历史申报清单（波次绑定静态清单）专属口径——后继刀（含本刀）改动集路径不在清单→该臂红=**协议形非 markers 门实质红**（先例 `8b577e8b`/`dd8f58a6`「申报清单系 i6-239 刀专属静态清单口径外」同形承登）；markers 实质门=「markers=0 五类标记词零命中」·本刀改动集（本卷 .md）运行时组装直扫零命中维持（词面运行时组装·i6-239 §2-7 口径·i6-gates:prove 恰符臂 1 红如实登记=协议形）。本注记沿 rev2 确认席（agent_ae44650f）建议落卷·行翻面权归协调方。
+
+**⑦ 全表+卫生+偏离+STOP**：
+
+| # | 门 | 终值（本树亲证·续作席亲跑） | 判定 |
+|---|---|---|---|
+| 1 | 改前对照（程序化源级） | `git show 0ff55592:apps/api/src/main.ts` 三头 grep=**0**；改后工作树=**4**（≥3）·api/src CSP grep 改前 EXIT=1→改后 3 行 | 绿 |
+| 2 | prove:csp-headers | EXIT=0 **PASS=12 FAIL=0**（H1a-H5c 全臂·merge 后维持） | 绿 |
+| 3 | neg:all | EXIT=0 **687/687**（90/90/91/102/179/135·续作补行） | 绿 |
+| 4 | 邻面 ha2-drain+env-schema | **47/47**+**22/22** 双 EXIT=0（env-schema 经隔离壳 `env-schema:prove:raw`·22 断言含 E 面 boot=/readyz 200） | 绿 |
+| 5 | e2e 静态门五件 | static-guards check/prove+parity check/prove+platform check 五 **EXIT=0** | 绿 |
+| 6 | uc003 UI 活门 | EXIT=0 **恰 1 run 1 passed 2.4s**（LIVE 特授权·零 retry·续作补行） | 绿 |
+| 7 | e2e 全量两门 | 改前/改后各恰 1 run×2 门·**红形零漂移**（api/frontend 双门同形）·g7SuiteGreen=false 零翻（续作补行） | 绿（基线红承登） |
+| 8 | typecheck | turbo --force **8/8** EXIT=0 | 绿 |
+| 9 | lint | turbo --force **12/12** EXIT=0·五值恰等 601/5235/1421/954/628 恰等双证兑现 | 绿 |
+| 10 | docs:check | EXIT=0 **2173≤cap 2184**（2171+并线 2 受管件·余 11） | 绿 |
+| 11 | markers 五类 | 改动集（本卷 .md）运行时组装直扫**零命中**（落卷前复执随本 commit） | 绿 |
+| 12 | diff 面机检+卫生 | 本 commit **恰 1 tracked .md**·.env* ABSENT 双向·零 lockfile 改·actualSpendCny=null | 绿 |
+| 13 | 贴边三注意 | hash 常量未手改（H4 现算臂恒等执法）·--frozen-lockfile 零重装需（merge 零 lockfile delta）·tsbuildinfo 回滚 | 绿 |
+
+est live/卫生：门 6 零模型消耗实证；门 7 四 run（isolated×2+ui×2）真模型链消耗归 e2e 面预算随收据如实计（收据 4 件在 `.tmp/e2e-receipts/`·每 run CNY 未单项计价如实登记·actualSpendCny=null 卷面口径不预 claim）·Key 值零落卷零落日志·隔离容器自清残留 0。diff 面机检：本 commit 恰 1 tracked .md=本卷（§9 append+STOP 五处更替注记·§0-§8 原文零字节）。偏离总账三项（③门 6 首启误形中止/④门 7 改前首启 key-missing 前置中止/⑤.next 域污染整理·皆纪律内零码面越界零史洗）。
+
+**STOP=`executed:awaiting_post_prove_dual`**（五处同步更替：Status/trailer token 翻面+§8/rev1 重申/rev2 重申三处终态更替注记·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push ⛔force push 未用·⛔pull --rebase 未用）。
+
 ---
 
-*CSP-HEADERS REQUEST · 2026-10-14 起草 · **`draft:awaiting_pre_exec_dual`** · base `origin/feat/mysql-schema-skeleton` @`0ff55592`（REMOTE tip 恰等派单下界·cap 2184 sanction 在祖）· 分支 `line/csp-headers` · 工作树 `meetwise-csp`（本起草席立·建前 branch+worktree+harness 卷名三查不存在）· 立项出处=协调方派单 brief（批表 #67 CSP 未落地·api 面 grep 零命中亲证）· **普查三项定谳**：a) 现有安全头面=web 已闭环（middleware nonce+strict-dynamic enforce 全出口零豁免+next.config 五头+93 行证明件·CSP 从静态头刻意移除防双头交集）·api 全裸（三处响应头设置点零 CSP/XFO/nosniff·helmet 零引入）·nginx 仅 X-HA-Upstream 且生产链无 api location；b) web 资源面=RSC flight 请求头形自动补 nonce+JSON-LD x-nonce 显式接线+Tailwind style 面 'unsafe-inline' 已注记·第三方资源域零——「inline 无 nonce 化路径 enforce 必破」反证不成立；c) api 响应头设置点=main.ts `:152` x-request-id/`:220` cache-control/`:56` drain connection 三处·`/docs` 公开路由（`:221-227`·无鉴权门）=unpkg 外链+静态内联脚本三无真空面（生产回环绑定非公网直暴·dev/私网位面暴露·纵深缺口属实·如实定性）· **方案定谳=候选甲（api 面 hash 钉 enforce）**：/docs 完整 CSP（script-src 'self'+unpkg+'sha256-W5ZkT0lIItdqrqlONL7d8umuI3m3Tu/+GD1Sj5JOG9k='·hash 双器亲算·style 面 unpkg+'unsafe-inline' 仅样式面如实登记·frame-ancestors/object-src/base-uri 收口）+全局 onSend 门（nosniff 恒设+CSP frame-ancestors 让位路由级防双头交集·钩子源 503/异常信封零豁免）·候选否决=甲′script 内联放行字面量（无谓放宽）/甲″nonce 化（静态模板非对价）/乙 report-only（零收集端点=死遥测）/乙′nginx（api 不经 nginx 到不了）/丙（前提反证·勘误部分随卷移交）· **修法五编辑**：main.ts 新导出块（DOCS_CONTENT_SECURITY_POLICY+installSecurityHeaderGate）+createApp 接线 1 行+/docs reply 链首两头+package.json `prove:csp-headers` 1 行+证明新件 csp-headers.proof.ts（H1 全局 200/H2 钩子源 503 零豁免/H3 路由级不让位防双头交集/H4 hash 自洽 fail-closed/H5 静态断言含内联放行字面量禁入·词面组装防自匹配）· 恰 3 tracked 码面+本卷 .md·web 面零字节·零迁移（链 204 头 0204）· **门矩阵十三条**（改前对照程序化源级/prove:csp-headers 红绿自证/neg:all 687±2/邻面 ha2-drain+env-schema/e2e 静态门五件/uc003 UI 活门恰 1 run/e2e 全量两门基线重 pin 协议红形零漂移/typecheck 8/8/lint 五值恰等 601-5235-1421-954-628/docs:check 2165→2167≤cap 2184/markers 五类/diff 面机检+卫生）· 漂移登记四项（api/web 面别切分/权衡面移 api/门面具体化/diff 双读数 1+3）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP · pre-exec 双审两独立外席待派 · ⛔push ⛔merge 主线 ⛔force push 未用*
+*CSP-HEADERS REQUEST · 2026-10-14 起草 · **`executed:awaiting_post_prove_dual`**（EXEC 续作收口 2026-10-14 更替·起草原态 `draft:awaiting_pre_exec_dual`·落卷=§9-EXEC 续作收口记录） · base `origin/feat/mysql-schema-skeleton` @`0ff55592`（REMOTE tip 恰等派单下界·cap 2184 sanction 在祖）· 分支 `line/csp-headers` · 工作树 `meetwise-csp`（本起草席立·建前 branch+worktree+harness 卷名三查不存在）· 立项出处=协调方派单 brief（批表 #67 CSP 未落地·api 面 grep 零命中亲证）· **普查三项定谳**：a) 现有安全头面=web 已闭环（middleware nonce+strict-dynamic enforce 全出口零豁免+next.config 五头+93 行证明件·CSP 从静态头刻意移除防双头交集）·api 全裸（三处响应头设置点零 CSP/XFO/nosniff·helmet 零引入）·nginx 仅 X-HA-Upstream 且生产链无 api location；b) web 资源面=RSC flight 请求头形自动补 nonce+JSON-LD x-nonce 显式接线+Tailwind style 面 'unsafe-inline' 已注记·第三方资源域零——「inline 无 nonce 化路径 enforce 必破」反证不成立；c) api 响应头设置点=main.ts `:152` x-request-id/`:220` cache-control/`:56` drain connection 三处·`/docs` 公开路由（`:221-227`·无鉴权门）=unpkg 外链+静态内联脚本三无真空面（生产回环绑定非公网直暴·dev/私网位面暴露·纵深缺口属实·如实定性）· **方案定谳=候选甲（api 面 hash 钉 enforce）**：/docs 完整 CSP（script-src 'self'+unpkg+'sha256-W5ZkT0lIItdqrqlONL7d8umuI3m3Tu/+GD1Sj5JOG9k='·hash 双器亲算·style 面 unpkg+'unsafe-inline' 仅样式面如实登记·frame-ancestors/object-src/base-uri 收口）+全局 onSend 门（nosniff 恒设+CSP frame-ancestors 让位路由级防双头交集·钩子源 503/异常信封零豁免）·候选否决=甲′script 内联放行字面量（无谓放宽）/甲″nonce 化（静态模板非对价）/乙 report-only（零收集端点=死遥测）/乙′nginx（api 不经 nginx 到不了）/丙（前提反证·勘误部分随卷移交）· **修法五编辑**：main.ts 新导出块（DOCS_CONTENT_SECURITY_POLICY+installSecurityHeaderGate）+createApp 接线 1 行+/docs reply 链首两头+package.json `prove:csp-headers` 1 行+证明新件 csp-headers.proof.ts（H1 全局 200/H2 钩子源 503 零豁免/H3 路由级不让位防双头交集/H4 hash 自洽 fail-closed/H5 静态断言含内联放行字面量禁入·词面组装防自匹配）· 恰 3 tracked 码面+本卷 .md·web 面零字节·零迁移（链 204 头 0204）· **门矩阵十三条**（改前对照程序化源级/prove:csp-headers 红绿自证/neg:all 687±2/邻面 ha2-drain+env-schema/e2e 静态门五件/uc003 UI 活门恰 1 run/e2e 全量两门基线重 pin 协议红形零漂移/typecheck 8/8/lint 五值恰等 601-5235-1421-954-628/docs:check 2165→2167≤cap 2184/markers 五类/diff 面机检+卫生）· 漂移登记四项（api/web 面别切分/权衡面移 api/门面具体化/diff 双读数 1+3）· est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP · pre-exec 双审两独立外席待派 · ⛔push ⛔merge 主线 ⛔force push 未用*
