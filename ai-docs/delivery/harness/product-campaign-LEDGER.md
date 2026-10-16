@@ -231,10 +231,10 @@ rev2 回填 commit f6206d18 message 谎报「②R12 锚/③C4 锚已落」而 di
 | R7 | 'server' 臂不可达 | SSE nail @ed56c73b 席2 观② | reconnecting+'server' 臂经驱动不可达（5xx 落缺省臂）·文案真实性微损功能无损 | 5C-SSE 子刀 | 开放 |
 | R8 | 空框回填对称代价 | SSE nail @ed56c73b 席2 观③ | 存草稿时手动清空被 restore effect 立即回填（注记A 固有） | 5C-SSE 子刀 | 开放 |
 | R9 | create 锁 proof 补测 | FENCE-REFLOW REQUEST rev3 N2 处方 | **核验已闭**：N2 补测断言随 @49fa7334 落 privacy-erasure-http.proof.ts:267-268（lineOf·主线实物亲读） | — | 已闭（转出残留） |
-| R10 | ensure-ok server-only 标注 | SSE nail @ed56c73b 席1 nit | lib/jobs/ensure-ok.ts 未标 server-only（无实际渗漏·可选收紧） | 5C-API-HARDEN 顺手 | 开放 |
+| R10 | ensure-ok server-only 标注 | SSE nail @ed56c73b 席1 nit | lib/jobs/ensure-ok.ts 未标 server-only（无实际渗漏·可选收紧）→ **核验已闭**：'server-only' 标注随 5C-API-HARDEN 子刀 EXEC @0de077ad 落 ensure-ok.ts:1（客户端误 import=构建期硬失败·narrow 专桩 test/server-only-hooks.mjs 恰 'server-only'→'export {};' 一项收窄·零包安装·主线实物亲读） | 5C-API-HARDEN 顺手 | ✅ 已闭（翻面权随 nail 行使·协调方派单授权·R10 解除载体=5C-API-HARDEN 子刀） |
 | R11 | p_user_account_self 注释更正 | B271 片1 nail 勘误①/S2-C9 | **核验已闭**：commerce.service.ts:23-27 注释已改「user_account 实无 RLS…应用层自身行显式谓词·fail-closed 同义」（@5ff5f96d·主线实物亲读） | — | 已闭（转出残留） |
 
-→ **净残留 9 条开放**（R1-R8+R10；R9/R11 核验转已闭·逐条转出留痕）。
+→ **净残留 8 条开放**（R1-R8；R9/R10/R11 转已闭·逐条转出留痕·R10 翻面载体=5C-API-HARDEN 子刀 EXEC @0de077ad）。
 
 ### E. 北星门进度快照（2026-10-10）
 
