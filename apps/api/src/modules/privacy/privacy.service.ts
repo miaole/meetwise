@@ -7,6 +7,7 @@ import {
 import type { PrivacyPreviewBeginDto } from '@meetwise/contracts';
 import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
 import { DbService } from '../../platform/db.service';
+import { UUID_RE } from '../../platform/uuid.ts';   // #85 残面归一(UUID-ID-CHECK 2026-10-16):通用形正则单源·语义表见单源头注
 
 const POLICY_VERSION = process.env.PRIVACY_POLICY_VERSION ?? 'v1';
 const IDEMPOTENCY_RE = /^[\x21-\x7e]{8,128}$/;
@@ -144,7 +145,7 @@ export class PrivacyService {
   }
 
   async getPreview(principal: string, requestId: string) {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+    if (!UUID_RE.test(requestId)) {   // #85 残面归一:原 inline 正则与 UUID_RE byte 恒等·400 privacy_preview_invalid 语义零改
       throw new HttpException({ error: 'privacy_preview_invalid' }, HttpStatus.BAD_REQUEST);
     }
     try {
