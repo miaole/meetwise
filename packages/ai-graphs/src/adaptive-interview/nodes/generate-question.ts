@@ -8,6 +8,7 @@ import {
   type QuestionKind,
 } from '@meetwise/domain';
 import type { AdaptiveDeps, AdaptiveInterviewGraphState } from '../state.ts';
+import { buildSessionSummary } from '../session-summary.ts';
 
 function issueQuestionId(stateVersion: number, turn: number, clarifyAttempts: number): string {
   return `q-v${stateVersion}-t${turn}-c${clarifyAttempts}`;
@@ -81,14 +82,16 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       hint = clarifying.hint;
     } else {
       const asked = state.transcript.map((entry) => entry.q);
+      const session = buildSessionSummary(state.transcript); // #51:会话级结构化摘要(checkpoint 派生·第 9 additive 参)
       // C14(RESUME-GROUNDING):graph 侧 facts 形参恒空——选定事实(2-4 条)由 worker deps 闭包
       // (buildAdaptiveDeps)直接渲染进模型请求的 <data-nonce> 围栏,不经本节点参数/state。
       // grounded 题面可引用事实所指经历,但 refs 须为事实原文子串且过 worker 侧组合闸
       // (refsGroundedInFacts,不过则丢弃重试/回退固定模板);fact 子串 refs 仅作闸料,禁入 sources。
       // AG-37(修法③·裁决②a):第 8 additive 参=图 state 位 `weightedDeficit` 持久化值（上一题写下的
       // DRR deficit·旧 checkpoint 缺省 null=worker 闭包全 0 起跑现状字节）——下一题读上一题值,不再归零。
+      // #51:session=transcript 派生会话摘要(纯函数),同不经本节点写入 state,零回放分叉。
       const generated = normalizeQuestionGenerationResult(
-        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null),
+        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null, session),
       );
       if (isQuestionGenerationFailure(generated)) {
         // AG-F(刀F·修法②/裁决②a):族内确定性失败（seam 有界 re-roll 预算已耗尽后才到达本节点）
