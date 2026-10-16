@@ -145,8 +145,9 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // 并发/断路器改由共享权威（迁移 0120 的 ai_model_admission_acquire_scoped）在 invoke() 内裁决。
   resolveModelDeadlineConfig();
   // **可观测性(审计#89)**:pino 由 fastify 内置,这里开 level=info 的访问日志。
-  // 序列化面仅 method/url/status/reqId/耗时/err 堆栈——fastify 默认 req/res serializer 本就不含
-  // body/headers;redact authorization/cookie 作纵深。**Ban 打印请求体/响应体/提示词/PII**。
+  // 序列化面仅 method/url(已剥 query)/status/reqId/耗时/err 堆栈——fastify 默认 req/res
+  // serializer 本就不含 body/headers;redact authorization/cookie 作纵深。
+  // **Ban 打印请求体/响应体/提示词/PII**。
   // NestFactory 层 logger:false 保持(免 Nest 启动噪音双写;异常日志见 all-exceptions.filter 走 pino)。
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -158,6 +159,28 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
       logger: {
         level: 'info',
         redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
+        // 访问行 query 剥离（审计#89 残留收口）：fastify 默认 req serializer 的 url 含 query 串，
+        // ?token=/?ticket= 类敏感参随 url 整体入卷=redact 列表旁路形态。默认 serializer 字段集
+        // 保全（method/url/version/host/remoteAddress/remotePort，与 fastify@5.12.5 默认实现
+        // 一一对应），仅覆写 url=? 及其后剥除、path 恒在。诊断面收窄如实登记：query 诊断维
+        // 让位敏感面收口，排障走 path+reqId+结构化字段。
+        serializers: {
+          req: (req: {
+            method?: string;
+            url?: string;
+            headers?: Record<string, unknown>;
+            host?: string;
+            ip?: string;
+            socket?: { remotePort?: number } | undefined;
+          }) => ({
+            method: req.method,
+            url: (req.url ?? '').split('?')[0] ?? '',
+            version: req.headers?.['accept-version'] as string | undefined,
+            host: req.host,
+            remoteAddress: req.ip,
+            remotePort: req.socket ? req.socket.remotePort : undefined,
+          }),
+        },
       },
       // reqId 单源:与下方 onRequest 钩子同一套净化规则(x-request-id 仅安全字符集+封顶,
       // 非法/空→新 UUID,防响应头 CRLF 注入)。fastify 日志的 reqId === 响应头 x-request-id ===
