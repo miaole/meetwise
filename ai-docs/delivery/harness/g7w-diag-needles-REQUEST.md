@@ -1,6 +1,6 @@
 # G7W-DIAG-NEEDLES REQUEST（G7W 新红诊断席修复建议① · 判别加针刀 · P1 · 零产品码判别面三针 · 协调方派单起草 · 码面 EXEC 期落卷 · 起草落卷即停零码动）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-16 · 起草期零码动零 live · 改动集恰 1 .md · docs:check EXIT=0 2194≤cap 2200 + markers 五类零命中 + diff 面恰 1 新件三收据亲跑 · pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷翻面 2026-10-16 · 前值 `draft:awaiting_pre_exec_dual`=起草+rev+rev2 史录 · 三码面 +10/−1 落码·merge-forward `8c4d60ea`（origin tip `10799a3e` 等号亲证）·门矩阵 A/B 全绿（§9-exec）· post-prove 双审两独立外席待派 · alone ≠ dual · ⛔push · est live=0 · `actualSpendCny=null`）〔前值原文：**`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-16 · 起草期零码动零 live · 改动集恰 1 .md · docs:check EXIT=0 2194≤cap 2200 + markers 五类零命中 + diff 面恰 1 新件三收据亲跑 · pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）〕
 
 **席位**：G7W 新红诊断席修复建议①「判别加针刀」起草席（协调方派单令 · 承 `line/g7w-tail-seg-emit@62ffaffa` §9-LIVE 判别 run 新红 api（class=api 具体 code 不可回读 · 死亡窗 bracket `:249..:575-:589` 段域级）· 本卷=该诊断席三条修复建议之①的独立行使（建议②③如派单令同文三针——① R2 循环退出即 segEmit ② batchWallClock 心跳中途落盘 ③ 红路 tsx stderr 尾量入 .tmp 侧通道——三针同属判别面 harness/runner 域并一卷行使·零产品码））。
 **基线**：`feat/mysql-schema-skeleton` @ **`d5dc0726`**（fetch 后亲证 origin tip `origin/feat/mysql-schema-skeleton` = `d5dc0726` **恰等派单下界「origin tip≥最新」**（ai-graphs 环解 nail 波 tip · 该波顺携 queue-enqueue-bp/g7w-tail-seg-emit §9-LIVE 两并线）· `origin/main`（`112e6d26`）系已消化祖先线形沿姊妹卷 §9-⑥ 承登）· worktree **`meetwise-gdn`**（仓根同级 · `git worktree add ../meetwise-gdn -b line/g7w-diag-needles` 本起草席立 · 起点=origin tip `d5dc0726` 非主仓本地 HEAD）· branch **`line/g7w-diag-needles`**。
@@ -156,7 +156,7 @@
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `draft:awaiting_pre_exec_dual`（起草席 2026-10-16 落卷终态 · 三处实测一致=Status 头/本节/卷尾）· 起草席写完即停零码动条款生效中。** 开工三条款：①本卷 pre-exec 双审 BOTH PASS（双审对象=§0 锚保真+§1 三针逐处定稿（面① `:519` 前/`batches:len`·面② N=5/白名单/四循环·面③ 32KiB cap/两红臂/withhold 三证+量级/ledger 零变更核）+§1.3 八款否决+§2 门矩阵 A/B 两段判据——两独立外席 · alone ≠ dual）；②协调方 EXEC 授权（三码面落卷+判别 run 排程一并由协调方裁 · **LIVE 跑数须协调方另行两票分立授权**——EXEC 授权≠LIVE 授权）；③post-prove 双审+行状态归协调方裁。三者全属后继工序 · 本卷不含 EXEC。
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16 · 前值 `draft:awaiting_pre_exec_dual`=起草+rev+rev2 史录 · 三处同值翻面=Status 头/本节/卷尾注 · post-prove 双审两独立外席待派 · alone ≠ dual）·〔前值原文：`draft:awaiting_pre_exec_dual`（起草席 2026-10-16 落卷终态 · 三处实测一致=Status 头/本节/卷尾）· 起草席写完即停零码动条款（起草期已履行完毕=EXEC 落卷兑现）〕** 开工三条款：①本卷 pre-exec 双审 BOTH PASS（双审对象=§0 锚保真+§1 三针逐处定稿（面① `:519` 前/`batches:len`·面② N=5/白名单/四循环·面③ 32KiB cap/两红臂/withhold 三证+量级/ledger 零变更核）+§1.3 八款否决+§2 门矩阵 A/B 两段判据——两独立外席 · alone ≠ dual）；②协调方 EXEC 授权（三码面落卷+判别 run 排程一并由协调方裁 · **LIVE 跑数须协调方另行两票分立授权**——EXEC 授权≠LIVE 授权）；③post-prove 双审+行状态归协调方裁。三者全属后继工序 · 本卷不含 EXEC。
 
 **停止条件（五类 · 命中即停手上报）**：
 1. **现场漂移**：pre-exec/EXEC 面对届时 tip 重 pin——backlog `:108` 行被翻面/他刀注记、案 A 卷 §9-LIVE 锚段被改写、或 §0 锚漂移超 ±3 且结论受影响 → 停手上报（不得就地改修法实质）。
@@ -250,6 +250,39 @@ EXEC/LIVE 期判读以下列四行矩阵为准（原判读谱句以此节替换�
 - **A3 diff 面**：恰 1 tracked=本卷 .md 纯 append 零删改·零他 tracked（三码面/backlog/checklist/LEDGER 对 `0d41d2cb` 零 delta 机检随 commit 回执）。
 - **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev2 落卷后随 §9-rev.7 同路：待落点确认（或协调方裁定）→重派 pre-exec 双审两独立外席（alone ≠ dual）；开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev2 恰 1 doc 纯 append 零码面）·Ban self-approve。
 
+### §9-exec EXEC 记录（EXEC 席落卷 2026-10-16 · rev2.1 权威修正后定稿恰 +10/−1 · 门矩阵 A/B 全绿 · 双审 P2 承接两件随卷 · STOP→`executed:awaiting_post_prove_dual`）
+
+**授权链**：起草落卷 `e09cf11c`→rev 落卷 `0d41d2cb`（席2 FAIL P1×2 五条修订）→rev2 落卷 `0989c74d`（确认席 REJECTED R1/R2/R3 三条回路·rev2.1 N3a 改形独立新行定稿）→pre-exec 双审**重派会签 PASS×2**（席1 `agent_854946fd`+席2 `agent_052b7d72`）→协调方授权 EXEC（派单令·执行序五步·STOP→executed:awaiting_post_prove_dual）→EXEC 本卷（序1 fetch 亲证 origin/feat/mysql-schema-skeleton=`10799a3e` 恰等派单下界「tip≥10799a3e」→merge `8c4d60ea` --no-ff 双亲 `0989c74d`+`10799a3e`·零冲突预证亲跑=merge-base `d5dc0726`+origin 侧 35 commits 对三码面/REQUEST 零触及+三 blob 双侧恒等 `fe21414b`/`1b2a87e8`/`f55330b1`·ort 策略零冲突 38 files +1985/−43·⛔pull --rebase 未用）。
+
+**① 门矩阵全表（A 段+B 段 · 并线树 `8c4d60ea` 基 · 交付 commit 前亲跑）**：
+
+| # | 门 | 判据 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|---|
+| A1 | docs:check | EXIT=0 ≤cap 2208 | 终树值见 commit 回执（cap `7bace81c:104` MAX_FILES=2_208 sanction 后值亲证） | 0 | 绿 |
+| A2 | markers 五类 | 改动集新增行四标记词+冲突对直扫零命中+全树行首冲突标记零命中 | 改动集 4 文件新增行直扫 hits=0（词族沿 `scripts/i6-239-gates.proof.mjs:154` 区运行时组装·词面不誊防自匹配）；全树行首冲突标记 `git grep` EXIT=1 零命中 | 0/1 | 绿 |
+| A3 | diff 面 | 恰 4 tracked=3 码+本卷 .md · 零新受管文件 | 终树值见 commit 回执（码面 3 tracked +10/−1 先证） | 0 | 绿 |
+| B1 | typecheck:e2e | EXIT=0 | `tsc -p tsconfig.e2e.json` 零输出零错 | 0 | 绿 |
+| B2 | lint | EXIT=0 · --max-warnings 5235 恰等零新 warning | 全树 5235 warnings/0 errors 恰等基线帽；三改动文件单独 lint=65 warnings **逐位对照零新**（full.e2e 58 条无 :519 新行·interview.ts 7 条无 :2/:286/:315 新行·run-e2e.mjs 0 条） | 0 | 绿 |
+| B3 | e2e-helpers:prove | EXIT=0 · 28 scenarios 恰等基线 | `28 scenarios; releaseEvidence=false` 恰等 | 0 | 绿 |
+| B4 | 静态门族五门 | 全 EXIT=0 逐门同基线 | e2e-static-guards:check+e2e-parity:check+e2e-parity:prove+e2e-case-inventory:prove+e2e-platform:check 五门全 EXIT=0 | 0 | 绿 |
+| B5 | diff 面（码面） | 恰 4 tracked=三码面（面① ∈[1,2]·面② ∈[2,5]·面③ ∈[3,8]·合计 ∈[6,15]∩删除 ∈[0,1]∩硬帽 ≤20/−1）+本卷 .md | **+10/−1 恰等 rev2.1 权威修正值**（面① +1/−0·面② +3/−0·面③ +6/−1·10∈[6,15]·−1∈[0,1]·+10≤20） | 0 | 绿 |
+| B6 | 通道/gitignore 双查 | EXIT=0 双命中 | `git check-ignore .tmp/e2e-seg-heartbeat.ndjson .tmp/e2e-tsx-stderr-tail.ndjson` 双命中 EXIT=0 | 0 | 绿 |
+| B7 | 判别 run（LIVE 面） | 恰 1 run·LIVE 授权归协调方两票分立另行 | **本席不行使**（§8-② EXEC 授权≠LIVE 授权·静态门 B1-B6 先行·判读谱沿 §9-rev.2 四行矩阵） | — | 如实登记 |
+
+**② numstat 实测（EXEC 手迹账 · 对并线落点 `8c4d60ea`）**：`e2e/full.e2e.ts` +1/−0（面① N1：`:518`/`:519` 间 seg3_r2_loop_exit 帧·断言面前）·`e2e/helpers/interview.ts` +3/−0（面② N2a `:1` 后独立 import 新行+N2b `:284` 空行后 doc comment 前模块级 flushLoopHeartbeat 恰 1 行+N2c `:312` push 后 length%5===0 条件 flush）·`scripts/run-e2e.mjs` +6/−1（面③ N3a-rev2 `:8` 后独立 import 新行+N3b 收集器行+`:187` 改写（转发逐字节零改+32KiB 滚动·至多 1 管道块保留）+N3c flushTsxStderrTail helper+N3d 恰两红臂 throw 前落盘·绿路 `:197`-`:198` 零触）·**合计 +10/−1 恰等 rev2.1 权威修正值（§9-rev2.1 对表值亲证兑现）·零他 tracked**。
+
+**③ §0 EXEC 重 pin 全表**：三码面 blob 对届树（`8c4d60ea`）**恒等零漂移**（`fe21414b`/`1b2a87e8`/`f55330b1`·位锚逐处亲读零漂=面① `:518`/`:519`/`:520`·面② `:1`/`:284`/`:305`/`:306`/`:312`·面③ `:8`/`:186`/`:187`/`:188`/`:193`-`:196`/`:197`-`:198`）；policy blob **`7bace81c`**（漂移自 `841e8666`·cap-sanction-2208 落地随并·`:104` MAX_FILES=2_208 亲读）；checklist blob `2e744da0`→**`376fd5bc`**（+65 随并·行锚 `:3281` 案 A 段零漂·`:3351` 邻域=context-budget-wire/cap-sanction-2208 两 nail 段亲读）；LEDGER blob `b4bc1838`→**`210e80a1`**（`:484` 案 B 行/`:493` 案 A 行 intact 亲读）；backlog `62c5e620`/案 A 卷 `62ffaffa`/assert `975fbb38`/failure-class `102d0f3a`/static-guards `01127803`/parity `40394984`/proof `e748be25`/isolated `0787a7ff` **九锚恒等**；failure-class `:55` REVIEW_LEDGER_LIMIT=32 零漂（ledger 26≤32 零变更核维持·运行时口径 P2-2 承之）；backlog `:108` GAP-G7W-API-TAIL-DEATH P1 OPEN intact；REQUEST 卷对 `0989c74d` 零漂（EXEC 基线）·blob 漂移三处（policy/checklist/LEDGER）语义无涉亲读=停止条件①不触发。
+
+**④ 双审 P2 承接落卷两件**：
+- **P2-R1（§9-rev2.3 勘正注记·EXEC 哨位复算）**：「真值=2 支」对总体误标如实承登——EXEC 席按 merge-base+branch-side 分口径复算（对届树 `8c4d60ea`·`line/*` 本地名去重）：**触三针文件未并支线实得恰 13 条**（全部 tip=2026-10-08/09：cmop03-driver-assertion-fix/cmop03-post7b-discriminator/cmop03f-finermarkers/g7-7a-diag/g7-boot-intercept/g7-driver-assert/g7-driver-capture/g7-finalize-skew/g7-postm7/g7-route-wait/g7-start-capture/g7fix5-arm-rework/tsc-fix-batches）·逐支行级吸收度复算=**全吸收 9 支（100%）+EVOLVED 形 2 支（g7-postm7 75%·g7fix5-arm-rework 50%）+NOVEL 2 支（g7-boot-intercept 0%=旗控 OFF 形·g7-finalize-skew 16%=另域）**——双审点名 2 NOVEL 恰等亲证·非阻塞结论一致（双审席「8 全吸收+4 EVOLVED+2 NOVEL」三分系其阈值判读如实登记不追改）；吸收无碰撞终证=三码面 blob 双侧恒等+落码位锚零漂。EXEC 哨位复算按分口径读=本条为 §9-rev2.3 勘正注记的 EXEC 期终值。
+- **P2-R3（尾量帧单管道块上界备考）**：§9-rev.5-1「转义后单行上界 ~196KiB」系按 32KiB 单块口径·单管道块绝对最坏可达 64KiB（Node 流块上限）×JSON.stringify 转义最坏 ~6 倍膨胀=**~384KiB 仍有界**——cap 语义不变（滚动+至多 1 管道块保留·仍硬·Ban 无限量语义不变）·备考登记非必改。
+
+**⑤ markers 扫描回执**：改动集（三码面+本卷 .md）对 HEAD 新增行直扫四标记词+行首冲突标记对 hits=0（词族运行时组装不誊卷·沿 §7/§9-rev.6 同形制）；全树行首冲突标记 EXIT=1 零命中（merge `8c4d60ea` 后残留零证）。
+
+**⑥ pins 零翻声明+停止条件判定**：§5 pins 十一值全零翻（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `r1Closed=false` · `actualSpendCny=null`）；停止条件五类逐条判定=①现场漂移**未触发**（blob 漂移三处语义无涉·backlog `:108`/案 A 卷 §9-LIVE intact）②机制不满足**未触发**（failure-class 容量/契约面九锚恒等·segEmit/`:83`-`:89` 先例行零漂）③越界需要**未触发**（改动集恰 4 tracked·零产品码零迁移零 withhold 语义面零第三码面）④验收红不可修**未触发**（A/B 全绿）⑤LIVE 边界**未触发**（判别 run 本席不行使·归协调方两票分立）。
+
+**⑦ 偏离清单**：理想零。登记两条非偏离如实注记=①面② N2b helper 行插位形：定稿行落 `:284` 空行后、doc comment 前且不追加额外空行（纯 +1/−0 兑现面②恰 +3·helper 与 doc comment 间无空行系最小扰动形）②面③ N3d 第二臂落盘形：`:196` 单行 if 前置同条件独立 flush 行（`if (code !== 0) flushTsxStderrTail(code);`）非块形改写——「throw 前落盘·恰两红臂·绿路零触」语义逐字兑现且删除面恰 −1（块形改写必 +1/−1 超删除帽·rev2.1 删除口径预授权恰 1 处=N3b `:187` 改写）。
+
 ---
 
-*G7W-DIAG-NEEDLES REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`**（起草席落卷终态 · 三处一致=Status 头/§8/卷尾）· ⛔push ⛔merge 主线 · alone ≠ dual · base `feat/mysql-schema-skeleton` @`d5dc0726`（=fetch 后 origin tip 恰等派单下界「origin tip≥最新」ai-graphs nail 波）· worktree `meetwise-gdn` · branch `line/g7w-diag-needles`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令三针原文+案 A 卷 `62ffaffa` §9-LIVE 新红证据基座+backlog `:108` P1 OPEN+案 A/案 B/7a_diag/consent-capture 先例链+LEDGER `:493`/`:484` · 读码三项=R2 循环零帧/batchWallClock 只差中途落盘/红路 stderr 即弃三缺口（0.2a）+NDJSON 新二缝白名单（0.2b）+est live 口径（0.2c）· 修法=面① full.e2e.ts R2 退出帧 +1/−0（`:519` 前·deadline 到期形钉死）+面② interview.ts 心跳中途落盘 +3/−0（N=5·四循环·防自伤）+面③ run-e2e.mjs 红路 tsx stderr 尾量 +5/−1（32KiB cap·两红臂·withhold 三证）· 合 +9/±3/−0 硬帽 +20/−0 · ledger 26≤32 零变更 · 零 A() 零产品码零迁移零第三码面 · 门矩阵=A 段起草三锚（docs:check 2194≤2200+markers+diff 恰 1）+B 段 EXEC 七门（typecheck:e2e/lint/e2e-helpers:prove/静态门族/码面 diff/通道双查/判别 run LIVE 另授）· 迁移号=零 · est live=0 · `actualSpendCny=null` · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
+*G7W-DIAG-NEEDLES REQUEST · 2026-10-16 起草 · **`executed:awaiting_post_prove_dual`**（EXEC 席落卷翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev+rev2 史录·三处一致=Status 头/§8/卷尾·EXEC 落卷详情=§9-exec）〔前值原文：**`draft:awaiting_pre_exec_dual`**（起草席落卷终态 · 三处一致=Status 头/§8/卷尾）〕· ⛔push ⛔merge 主线 · alone ≠ dual · base `feat/mysql-schema-skeleton` @`d5dc0726`（=fetch 后 origin tip 恰等派单下界「origin tip≥最新」ai-graphs nail 波）· worktree `meetwise-gdn` · branch `line/g7w-diag-needles`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令三针原文+案 A 卷 `62ffaffa` §9-LIVE 新红证据基座+backlog `:108` P1 OPEN+案 A/案 B/7a_diag/consent-capture 先例链+LEDGER `:493`/`:484` · 读码三项=R2 循环零帧/batchWallClock 只差中途落盘/红路 stderr 即弃三缺口（0.2a）+NDJSON 新二缝白名单（0.2b）+est live 口径（0.2c）· 修法=面① full.e2e.ts R2 退出帧 +1/−0（`:519` 前·deadline 到期形钉死）+面② interview.ts 心跳中途落盘 +3/−0（N=5·四循环·防自伤）+面③ run-e2e.mjs 红路 tsx stderr 尾量 +5/−1（32KiB cap·两红臂·withhold 三证）· 合 +9/±3/−0 硬帽 +20/−0 · ledger 26≤32 零变更 · 零 A() 零产品码零迁移零第三码面 · 门矩阵=A 段起草三锚（docs:check 2194≤2200+markers+diff 恰 1）+B 段 EXEC 七门（typecheck:e2e/lint/e2e-helpers:prove/静态门族/码面 diff/通道双查/判别 run LIVE 另授）· 迁移号=零 · est live=0 · `actualSpendCny=null` · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
