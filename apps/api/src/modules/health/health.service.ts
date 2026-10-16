@@ -23,6 +23,29 @@ function migrationsDir(): string {
     ?? fileURLToPath(new URL('../../../../../packages/db/migrations', import.meta.url));
 }
 
+/**
+ * 连接类错误闭合集（登记残留 N1：账本查询窗内 DB 抖动/断连须与迁移漂移区分，原因位归真）。
+ * 闭合集枚举（集外一律不归连接类）：
+ * - pg SQLSTATE 连接类：'08' 前缀（connection_exception 类）；
+ * - pg '57P01'/'57P02'/'57P03'（admin_shutdown/crash_shutdown/cannot_connect_now）；
+ * - Node 系统码：ECONNREFUSED/ECONNRESET/EPIPE/ENOTFOUND/EAI_AGAIN/ETIMEDOUT。
+ * 显式不变量：文件系错误（ENOENT/EACCES 等）不入闭合集——迁移目录不可读必须仍落
+ * migration_mismatch（fail-closed），不得被误归 db_unreachable。零新增查询：分类只读
+ * 已抛 error 的 code 位，探针查询数有界 ≤2 不变。
+ */
+const CONNECTION_SQLSTATE_PREFIX = '08';
+const CONNECTION_SQLSTATES = new Set(['57P01', '57P02', '57P03']);
+const CONNECTION_NODE_CODES = new Set([
+  'ECONNREFUSED', 'ECONNRESET', 'EPIPE', 'ENOTFOUND', 'EAI_AGAIN', 'ETIMEDOUT',
+]);
+
+function isConnectionClassError(error: unknown): boolean {
+  const code = (error as { code?: unknown } | null | undefined)?.code;
+  if (typeof code !== 'string') return false;
+  if (code.startsWith(CONNECTION_SQLSTATE_PREFIX)) return true;
+  return CONNECTION_SQLSTATES.has(code) || CONNECTION_NODE_CODES.has(code);
+}
+
 @Injectable()
 export class HealthService {
   constructor(private readonly db: DbService) {}
@@ -51,12 +74,15 @@ export class HealthService {
       );
       const ledgerMax = ledger.rows[0]?.v ?? null;             // 空账本/表缺失(COLLATE 不救 to_regclass 之外情形) → null
       const dirMax = latestMigrationVersion(migrationsDir());
-      // 目录不可读 = readdirSync 抛 → 下方 catch → migration_mismatch；undefined 仅空目录
-      // （readdirSync 成功但零 .sql）。两路均 fail-closed：不等或 undefined 即 mismatch，绝不 fail-open。
+      // 目录不可读 = readdirSync 抛文件系错误（ENOENT/EACCES 等·不入连接类闭合集）→ 下方
+      // catch → migration_mismatch；undefined 仅空目录（readdirSync 成功但零 .sql）。
+      // 两路均 fail-closed：不等或 undefined 即 mismatch，绝不 fail-open。
       return dirMax !== undefined && ledgerMax === dirMax ? 'ok' : 'migration_mismatch';
-    } catch {
-      // 账本不可读（schema_migrations 缺失=未迁移目标等）→ 无法证明一致 → fail-closed。
-      return 'migration_mismatch';
+    } catch (error) {
+      // 账本查询窗内连接类错误（SELECT 1 与账本查询之间 DB 抖动/断连）→ db_unreachable
+      // （真态归类，编排方不再误读为迁移漂移）；其余（含无码 Error 与目录不可读的文件系
+      // 错误）→ 无法证明非迁移漂移即按漂移降级 → migration_mismatch 维持 fail-closed。
+      return isConnectionClassError(error) ? 'db_unreachable' : 'migration_mismatch';
     }
   }
 
