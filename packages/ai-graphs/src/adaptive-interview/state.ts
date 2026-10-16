@@ -9,6 +9,7 @@ import {
   type QuestionKind,
   type ScoredCriterionDisposition,
 } from '@meetwise/domain';
+import type { SessionSummary, SessionTurnInput } from './session-summary.ts';
 
 export interface Turn {
   questionId: string;
@@ -42,6 +43,24 @@ export interface Turn {
    */
   evidence?: string[];
 }
+
+/**
+ * AI-GRAPHS-CYCLE-BREAK 环解编译期守卫（satisfies 语义·零运行时副作用·pre-exec 双审 rev 修订落卷）：
+ * session-summary.ts 以局部 SessionTurnInput 结构子集承接（不再 import Turn,拆 session-summary→state
+ * 回边·no-circular 绿）,本守卫钉死 Turn 必须持续结构覆盖该子集——任一侧漂移失覆盖即下方断言行编译红
+ * （TS2322）。守卫只借本文件既有的 state→session-summary 单向边,零新增依赖零回环。
+ * 反向漂移窗（常开观察面·如实登记）：SessionTurnInput 增「可选」死字段不红——可选字段不破坏
+ * `Turn extends` 合法性,此向漂移守卫不设防,靠 review 常开观察面盯防;增必选字段或 Turn 失覆盖才红。
+ */
+export type TurnCoversSessionTurnInput = Turn extends SessionTurnInput ? true : never;
+
+/**
+ * 守卫的真实断言消费者（pre-exec 双审席2 P1 修订·落真守卫优于文档化）：类型注解钉住上方条件类型的
+ * 结果——Turn 失覆盖时该类型坍缩为 never,本行即 TS2322 编译红（漂移模拟活体证=rev 期 /tmp 三场景
+ * 复跑在案）。值恒 true 且永不读取,零运行时副作用。落 `export` 形如实登记=base eslint no-unused-vars
+ * 仅 argsIgnorePattern 非导出形 lint +1 破 ai-graphs cap 47 贴线（rev 期实跑亲证）,导出形豁免且语义等价。
+ */
+export const _turnCoversSessionTurnInput: TurnCoversSessionTurnInput = true;
 
 export interface ClarifyDirective {
   competency: string;
@@ -147,6 +166,15 @@ export interface AdaptiveDeps {
      * worker 闭包按全 0 起跑（现状字节保留为缺省臂）。
      */
     weightedDeficit?: number[] | null,
+    /**
+     * SESSION-SUMMARY-DEEPEN(#51·第 9 additive 参沿 asked 第 7/weightedDeficit 第 8 双先例):
+     * 会话级结构化摘要（checkpoint transcript 派生字段聚合·session-summary.ts 纯函数）——
+     * genQuestion 从 state.transcript 派生传入,worker 闭包渲染进 interviewer.ask v8「本场至今」
+     * <data> 不可信段。additive 可选:既有 scripted deps/直接调用零改（少参实现结构兼容）;
+     * 缺省/旧调用(undefined)=段不渲染=buildData 输出与 v7 逐字节一致。绝不新增图 state 字段
+     * （S3/C13/C15 纪律零破——摘要只从 transcript 已有 checkpoint 字段派生,零冗余零回放分叉）。
+     */
+    session?: SessionSummary | null,
   ) => Promise<QuestionGenerationResult | { question: string; sources: string[] }>;
   /** 评分故障必须 unscored，不能把 provider 不可用写成候选人 50 分；status 缺失兼容既有 scripted deps。 */
   /** identity 是已落库 pending question 的业务身份；评分内部 repair 必须复用它，绝不能另造回合。 */
@@ -235,3 +263,4 @@ export const AdaptiveInterviewState = Annotation.Root({
 });
 
 export type AdaptiveInterviewGraphState = typeof AdaptiveInterviewState.State;
+export type { SessionSummary, SessionTurnDigest } from './session-summary.ts';

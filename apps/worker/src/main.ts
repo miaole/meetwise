@@ -644,7 +644,7 @@ async function bootstrap() {
       : undefined,
   };
   console.log(`interview dispatch budget: perOwner=${interviewDispatchBudget.perOwnerInflight} globalInflight=${interviewDispatchBudget.globalInflight} (process-local)`);
-  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget }, jobReconcileIntervalMs);
+  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget, askCostPolicy: modelCost.policies.primary }, jobReconcileIntervalMs); // AG-20:ask 主端点政策同源注入（:519 defaultModelClient primary 同一政策对象·observe 模式 undefined=预算零触）
   if (adaptive) console.log('interview: ADAPTIVE agent on (规划→自适应决策→CRAG出题→反思→评估→报告舱壁)');
   // 押题(resume-quiz)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const quizLoop = runQuizConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
@@ -783,36 +783,40 @@ async function bootstrap() {
     }
   }
   // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
-  // 竞速 + SIGINT 同链。清单 18 项(R3 勘误:原 allSettled 实数 15,补漏
-  // vectorPlaneErasureLoop?.stop() 后 16;AG-COST2 增 usage-calibration-retention
-  // 16→17;qbank-control-sec 刀增 qbank-release-sweep 17→18):
-  // 13 loop.stop(report/interview/quiz/diagnosis/
-  // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
-  // usageCalibrationRetention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge)
-  // + ragCache.close + 3 pool.end(privacy/
-  // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
-  // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
-  // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
+  // 竞速 + SIGINT 同链。两阶段顺序排空:loop 相(等在飞 tick)先行拿 70% 份额(向上取整),
+  // deps 相(依赖面收尾)后行拿余量——两相份额和恒等 timeoutMs,全程排水上限不变
+  // (30s 默认→loop 21s/deps 9s),依赖面不再被排水窗提前拆台(否则在飞 tick 的
+  // retrieval/erasure 路径拒绝、遥测尾迹丢失)。清单 19 具名(R3 勘误:原 allSettled 实数
+  // 15,补漏 vectorPlaneErasureLoop?.stop() 后 16;AG-COST2 增 usage-calibration-retention
+  // 16→17;qbank-control-sec 刀增 qbank-release-sweep 17→18;两相化勘误:此前混排口径
+  // 记「18 项」,两相归位=loop 相 14(13 静态+stub-tick 条件展开)+deps 相 5):
+  // 14 loop.stop(report/interview/quiz/diagnosis/route-classify/commerce/
+  // modelInvocationReconcile/usageCalibrationReconcile/usageCalibrationRetention/
+  // qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
+  // + ragCache.close + 3 pool.end(privacy/qbankControl/ragControl)+ langfuse.shutdown。
+  // deadline 胜出 → worker_drain_timeout(含相位+该相在飞名)后 exit 0:被弃 job 走租约
+  // 过期→reaper/sweep 重领,不双跑(既有 crash-safe);metricsServer.close() 补 await
+  // (诚实收口,2s 上限 race,非阻断)。
   const drainStops: NamedStop[] = [
-    { name: 'report', stop: () => reportLoop.stop() },
-    { name: 'interview', stop: () => interviewLoop.stop() },
-    { name: 'quiz', stop: () => quizLoop.stop() },
-    { name: 'diagnosis', stop: () => diagnosisLoop.stop() },
-    { name: 'route-classify', stop: () => routeClassifyLoop.stop() },
-    { name: 'commerce', stop: () => commerceLoop.stop() },
-    { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
-    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
-    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve() },
-    { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve() },
-    { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
-    { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
-    { name: 'gauge', stop: () => gaugeLoop.stop() },
-    { name: 'rag-cache', stop: () => ragCache.close() },
-    { name: 'privacy-pool', stop: () => privacyPool?.end() ?? Promise.resolve() },
-    { name: 'qbank-control-pool', stop: () => qbankControlPool?.end() ?? Promise.resolve() },
-    { name: 'rag-control-pool', stop: () => ragControlPool?.end() ?? Promise.resolve() },
-    { name: 'langfuse', stop: () => langfuse?.shutdown() ?? Promise.resolve() },
-    ...(stubLoop ? [{ name: 'stub-tick', stop: () => stubLoop.stop() }] : []),
+    { name: 'report', stop: () => reportLoop.stop(), phase: 'loop' },
+    { name: 'interview', stop: () => interviewLoop.stop(), phase: 'loop' },
+    { name: 'quiz', stop: () => quizLoop.stop(), phase: 'loop' },
+    { name: 'diagnosis', stop: () => diagnosisLoop.stop(), phase: 'loop' },
+    { name: 'route-classify', stop: () => routeClassifyLoop.stop(), phase: 'loop' },
+    { name: 'commerce', stop: () => commerceLoop.stop(), phase: 'loop' },
+    { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop(), phase: 'loop' },
+    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'gauge', stop: () => gaugeLoop.stop(), phase: 'loop' },
+    { name: 'rag-cache', stop: () => ragCache.close(), phase: 'deps' },
+    { name: 'privacy-pool', stop: () => privacyPool?.end() ?? Promise.resolve(), phase: 'deps' },
+    { name: 'qbank-control-pool', stop: () => qbankControlPool?.end() ?? Promise.resolve(), phase: 'deps' },
+    { name: 'rag-control-pool', stop: () => ragControlPool?.end() ?? Promise.resolve(), phase: 'deps' },
+    { name: 'langfuse', stop: () => langfuse?.shutdown() ?? Promise.resolve(), phase: 'deps' },
+    ...(stubLoop ? [{ name: 'stub-tick', stop: () => stubLoop.stop(), phase: 'loop' as const }] : []),
   ];
   let workerShuttingDown = false;
   const shutdownWorker = (signal: string): void => {
@@ -822,8 +826,8 @@ async function bootstrap() {
       await jobWakeupListener.stop().catch(() => {});
       await jobWakeupRedisListener.stop().catch(() => {});
       await jobWakeupRedisClient?.close().catch(() => {});
-      const outcome = await drainWithDeadline(drainStops, boundedIntEnv('WORKER_DRAIN_TIMEOUT_MS', 30_000, 1_000, 300_000), (inFlight) => {
-        console.error(`worker_drain_timeout signal=${signal} in_flight=${inFlight.join(',')}`);
+      const outcome = await drainWithDeadline(drainStops, boundedIntEnv('WORKER_DRAIN_TIMEOUT_MS', 30_000, 1_000, 300_000), (inFlight, phase) => {
+        console.error(`worker_drain_timeout signal=${signal} phase=${phase} in_flight=${inFlight.join(',')}`);
       });
       await Promise.race([                          // 上限 2s:metrics 收口诚实但不悬挂(极简败者纪律)
         new Promise<void>((resolve) => metricsServer.close(() => resolve())),
