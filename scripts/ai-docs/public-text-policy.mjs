@@ -36,7 +36,7 @@ export const PUBLIC_TEXT_POLICY_CODES = Object.freeze({
 const MANAGED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts', 'docker', 'e2e', '.github', '.claude', 'ops', 'docs']);
 const REQUIRED_ROOTS = Object.freeze(['ai-docs', 'apps', 'packages', 'scripts']);
 const ROOT_FILES = new Set(['README.md', 'AGENTS.md', 'CLAUDE.md']);
-const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
+export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.tsx', '.mts', '.cts', '.json', '.yaml', '.yml', '.sql', '.sh', '.toml', '.conf', '.service', '.timer', '.html', '.css', '.txt', '.pem', '.py']);
 // cap 2048→2064（2026-10-13 协调方授权上调：AG-38 qa-tool-layer 等批次刀净增受管文件·计数预算非内容策略；
 // AG-12 成本轨③ EXEC 立项随翻同值——该清欠在飞未及落主线·本刀 +3 文件（2 proof+1 迁移）触顶 2050·
 // 按派单 sanctioned 值最小实现·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·偏离清单随 REQUEST §9 落卷）。
@@ -84,6 +84,8 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：UC184-SLOT-ORDER nail 并线树——
 // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享·沿 +8 先例·计数预算非内容策略·
 // 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2176→2184（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 77ff91fb 2165 余 11·
+// 在飞五卷 rkw/qgen-critique-resilience/dbacl2-ci-wire/gitleaks-placeholder-remedy/g7w-tail-diag 各 +2 预算必越）
 // cap 2168→2176（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 59127126 2159·
 // 在飞四卷 qbank-integrity-chain/e2e-runner-stale-build-guard/qbank-pipeline-scope/dbacl2-ci-wire 各 +2 预算必越）
 // cap 2160→2168（2026-10-15 协调方 sanction·+8 沿 +8 先例形：主线 5a0bf9e4 2156 余 4·
@@ -93,7 +95,7 @@ const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.ts', '.
 // cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形：COST-COLUMNS nail 并线树——
 // 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量·
 // 协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_176;
+const MAX_FILES = 2_184;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
