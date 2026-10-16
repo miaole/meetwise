@@ -93,8 +93,8 @@ async function main() {
   {
     const content = readFileSync(fileURLToPath(new URL('../src/prompts.ts', import.meta.url)), 'utf8');
     const blobSha = createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex');
-    A('prompts.ts 字节恒定面（git blob sha1=899be6f2a348703250447c30a0f15d83e626a1e5·REGISTRY v8 随翻重钉(#51)·blob=插值）',
-      blobSha === '899be6f2a348703250447c30a0f15d83e626a1e5');
+    A('prompts.ts 字节恒定面（git blob sha1=96acf9c3414f8dd19b781d795f8d04e779e04c5c·REGISTRY v8 随翻重钉(#51)·AG-20 单源提取恒等·blob=96acf9c3414f8dd19b781d795f8d04e779e04c5c）',
+      blobSha === '96acf9c3414f8dd19b781d795f8d04e779e04c5c');
   }
 
   // ── 臂 0-b（源级门·#14/#216「非空断言」落位=机检非运行时）：生产 src 全部 `await invoke({` 站点

@@ -5,7 +5,7 @@
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
-import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
+import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
@@ -101,6 +101,8 @@ const requestIdStore: AsyncLocalStorage<string> =
   ((globalThis as unknown as Record<symbol, AsyncLocalStorage<string> | undefined>)[Symbol.for('meetwise.ai-runtime.requestIdContext')] ??= new AsyncLocalStorage<string>());
 export interface ConsumerDeps {
   pool: DbPool; cp: Checkpointer; model: ModelClient; fastModel?: ModelClient; leaseOwner: string;
+  /** AG-20(CTX-02 显式接线):ask 主端点成本政策（main 组合根同源注入·缺省 undefined=预算零触现状字节）。 */
+  askCostPolicy?: ModelCostPolicy;
   /** Process-local interview fairness budget. Missing means the documented defaults. */
   dispatchBudget?: InterviewDispatchBudget;
   /** 仅测试观测：start 不再解密原文。生产路径读画像授权门，不调用此 hook。 */
@@ -454,6 +456,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
           graphFence = fence;
           const life = {
             pool: d.pool, cp: d.cp, owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel,
+            askCostPolicy: d.askCostPolicy, // AG-20:CTX-02 会话段预算降级裁定(缺省 undefined=零触)
             localRetrieve: research.retrieve, webExplore: research.exploreWeb,
             deepResearch: adaptive.deepResearch ? research.deepResearch : undefined,
             researchBoundary: research.researchBoundary,
