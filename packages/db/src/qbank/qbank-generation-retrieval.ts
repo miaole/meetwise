@@ -263,6 +263,24 @@ export async function qbankQuestionResultsForHits(
   });
 }
 
+/** Directory-truth probe for the 0201-era retrieval return surface: `true` only when the signature-resolved
+ * function exists AND its `RETURNS TABLE` out-columns carry the trailing `owner_kind` (0201 additive tail
+ * column); `false` = pre-0201 legacy surface — a missing function already fail-closes earlier via
+ * `activeQbankGeneration`, so `false` grants no new exemption.  Re-run per call, never memoized.
+ */
+async function retrievalOwnerSurface(c: Client, signature: string): Promise<boolean> {
+  return (await c.query(
+    "SELECT EXISTS (SELECT 1 FROM pg_proc WHERE oid = to_regprocedure($1) AND 'owner_kind' = ANY(proargnames)) AS ok",
+    [signature],
+  )).rows[0]?.ok === true;
+}
+
+// Surface variants are complete static literals chosen by the probe — never string-assembled.
+const DENSE_SEARCH_WITH_OWNER = 'SELECT ref_id, distance, owner_kind FROM qbank_generation_ann_search($1,$2::vector,$3)';
+const DENSE_SEARCH_LEGACY = 'SELECT ref_id, distance FROM qbank_generation_ann_search($1,$2::vector,$3)';
+const LEXICAL_SEARCH_WITH_OWNER = 'SELECT ref_id, lexical_score, owner_kind FROM qbank_generation_lexical_search($1,$2,$3)';
+const LEXICAL_SEARCH_LEGACY = 'SELECT ref_id, lexical_score FROM qbank_generation_lexical_search($1,$2,$3)';
+
 /**
  * RRF is ranking-only. The returned `distance` remains a cosine distance that downstream CRAG can calibrate;
  * rank score never becomes a fake semantic confidence. Candidate scores may cross channels, but the user sees
@@ -282,11 +300,21 @@ export async function hybridQbankSearch(
   // Dense needs only `k` rows; RRF keeps its deliberately wider independent candidate pools before fusion.
   // The default is release-controlled from measured holdouts, not an assumption that extra channels always help.
   const n = mode === 'rrf' ? Math.min(MAX_CANDIDATES, Math.max(input.k * 8, input.candidateK ?? 40)) : input.k;
-  const denseRows = await c.query('SELECT ref_id, distance, owner_kind FROM qbank_generation_ann_search($1,$2::vector,$3)', [active.generationId, vec(input.embedding), n]);
+  const denseRows = await c.query(
+    // Legacy (pre-0201) surface: `owner_kind` simply absent → dense arm below stays byte-identical.
+    (await retrievalOwnerSurface(c, 'qbank_generation_ann_search(text, vector, integer)')) ? DENSE_SEARCH_WITH_OWNER : DENSE_SEARCH_LEGACY,
+    [active.generationId, vec(input.embedding), n],
+  );
   if (mode === 'dense') {
     return denseRows.rows.map((row) => ({ refId: String(row.ref_id), distance: Number(row.distance), channels: ['dense'] as ('dense' | 'lexical')[] }));
   }
-  const lexicalRows = await c.query('SELECT ref_id, lexical_score, owner_kind FROM qbank_generation_lexical_search($1,$2,$3)', [active.generationId, input.query, n]);
+  const lexicalRows = await c.query(
+    // Same probe shape, independent per-function call.  Legacy surface: `owner_kind` absent →
+    // ownerRank(undefined)=1 for every candidate (the existing platform-default rank) → the fused
+    // sort degenerates bit-for-bit into the pre-0201 score→refId order.
+    (await retrievalOwnerSurface(c, 'qbank_generation_lexical_search(text, text, integer)')) ? LEXICAL_SEARCH_WITH_OWNER : LEXICAL_SEARCH_LEGACY,
+    [active.generationId, input.query, n],
+  );
   // AG39 quality follow-up (migration 0201): the fusion output inherits the SQL-side owner rank (org=0 /
   // platform=1, isomorphic to the 0187 outer ORDER BY CASE) as the leading key of a three-level stable sort
   // (ownerRank → fused score → refId). This only adds ordering on top of the in-database owner filters and
