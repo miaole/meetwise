@@ -119,6 +119,53 @@ checkpoint 写（invoke 内部 superstep put）是全链唯一**零 fence 消费
 
 **待双审/EXEC 裁决项**：①件② 接线住地（推荐=consumer life 组装一行 additive vs adaptive-lifecycle 等价最小缝——以最小 diff+产品码触面恰两件定）；②件① 校验节奏（推荐=每 put/putWrites 均校验——superstep 约 5 次/invoke 量级开销可忽略·窗口紧闭合 vs 心跳内存旗标形——30s 心跳期窗口残留·不荐）；③件③ 住地/门名（推荐=`apps/worker/test/graph-fence-write.proof.ts`+`prove:graph-fence-write`+root `graph-fence-write:prove` 沿 ag16-legacy 同形）；④件③ 面4 隔离库全链臂是否入刀（推荐=入——「写缝先于投影侧」层级对准唯一行为级证据 vs 纯 saver 单元三臂）。
 
+## §9-rev2 rev2 修订注记（pre-exec 双审席1 PASS 附 P1 cap 账一件+席2 FAIL P1-A/B 写缝判据歧义→rev 回路·两席合并定谳+协调方裁决随卷·文面修订零码面 · rev2 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§8+卷尾注零洗** · 本节为 EXEC 期对前文对应句的最新权威修正与增补·与前文冲突处以本节为准）
+
+> **双审定谳（rev2 席逐位亲证成立）**：席1 **PASS** 附 P1 一件（cap 账：届 tip 树 docs:check 实测 2232=cap 恰等零余量·EXEC 投影必越）；席2 **FAIL** P1-A/B（写缝判据歧义=checkpoint.id 世代判据是否入放行门+fence 缺失臂 fail-open 面）+P2×3+P3×1。两席合并定谳+协调方裁决：P1-A 写缝判据钉死三条款（§9-rev2.1·最高优先）·席1 P1 cap 账改记（§9-rev2.2）·席1 P2 批量四件（§9-rev2.3）·席2 P2 批量三项（§9-rev2.4-2.6）+P3 一件（§9-rev2.7）。rev2 修订如次·STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（§9-rev2.8）。
+
+### §9-rev2.1 修订①（P1-A·席2·协调方裁决·最高优先）——写缝放行判据钉死三条款：三谓词唯判据·checkpoint.id 零入门
+
+- **条款①（门=唯三谓词）**：put/putWrites 写前校验的放行判据=**唯三谓词**（`lease_owner`/`version`/`lease_expires_at`·沿 `assertInterviewGraphFence` interview-graph-lease.ts **`:61-68`** 复用零改——`lease_owner=$4 AND version=$5 AND lease_expires_at >= now()` 三项 rev2 席亲读）——**checkpoint.id 不参与放行判定**（id 仅两用：获 fence 时锚定世代基点=当时头 checkpoint id 记录+proof 断言区分新旧世代落行）；**id 缺失/undefined 时三谓词判定不受影响=零 fail-open 面**。
+- **条款②（putWrites 缝=id 零依·先例形限定）**：putWrites 缝无 checkpoint.id 可依=**三谓词即全部判据**；§1-修法裁量句「checkpoint.id 世代判据沿 AG-16 `b6545c09` §9-rev3.1/rev4 先例形」**限定为 proof 断言形不入门**（放行判定零 id 等值项）——防 id 等值误入写缝门=**每 invoke 必炸**（LangGraph 每 superstep put 落新 id·id 等值判据恒失守=生产写路径全断）。AG-16 rev3.1 世代判据系**读缝**（getTuple 剥字段）先例形，与写缝门判据不同面——只取其「世代可区分供 proof 断言」形。
+- **条款③（fence 缺失=构造期拒 fail-closed）**：FenceCheckpointSaver 构造期 fence 不可缺省/不可空——缺失即**构造期拒**（**禁沿 requireCurrentFence `d.fence &&` 短路形**=现 tip blob `081f09c0` **`:177`** 亲读·fence 未注入静默放行系投影侧可容忍形·写缝门禁用此形）；assert 查询异常（PG 错误等）**原样上抛**（异常≠放行·不吞不改码）。
+- **透传机制钉**：内层 saver 透传=**Object.create 原型委托或全接口显式枚举**（getTuple/getList/deleteThread/setup/end/serde 全量）**二择一 EXEC 落码定稿**（§8 裁决项增补⑤）；**面2 增直通完备臂**（正对照除 put 落库等价外，增 getTuple/getList/deleteThread/end 直通断言=透传完备性行为级证据）。
+- **件① 实现钉（席1 P2 承接）**：FenceCheckpointSaver **extends BaseCheckpointSaver**+serde 委托——graph.ts **`:17` 形参类型位所迫**（`buildAdaptiveInterviewGraph(checkpointer, deps)` 形参位·blob `6cdcc122` 恒等零漂亲证）；getTuple/getList/deleteThread/end 直通（`end` 系 façade 先例形 surface·checkpoint-principal.ts `:128`/`:165` 同族亲读）。
+
+### §9-rev2.2 修订②（P1·席1 cap 账·协调方裁决）——§0.4+门7 改记：届 tip 树恰等零余量→cap sanction=EXEC 硬前置
+
+- **定稿（协调方裁决·原文零洗以此为准）**：§0.4 账+门7 预期改记为——**「届 tip `67cdf153` 树 docs:check 实测 2232=cap 恰等零余量→EXEC 投影 ≈2236 越届 cap→cap sanction 为 EXEC 硬前置（协调方沿先例行使·届值届时 fetch 再证·超届红停上报非自升）」**。
+- rev2 席亲证：fetch 后 `origin/feat/mysql-schema-skeleton`=`67cdf15309427b5acac023737593cef154eb451f`；届 tip 树 docs:check 本席**只读临时 worktree @`67cdf1530` 亲跑 EXIT=0「scanned 2232」=cap `2232`（public-text-policy.mjs blob `05f48933` 恒等零漂·MAX_FILES `:110`）恰等零余量**（run 后即拆·零触他树）；EXEC 投影=2232+REQUEST 1+件① 1+件③ 1+EXEC 收据 1（若落 tracked 面）≈**2236>2232 必越**；先例形=policy 注记 cap 2144→2152「本刀树 2144=cap 恰等零余量·协调方预 sanction」同款（亲读在卷）。**§1.3-5/§5「Ban cap 自升」维持**——sanction 权在协调方，EXEC 届时 fetch 再证届值。
+
+### §9-rev2.3 修订③（P2·席1 批量四件）——锚重 pin+窗口②表述修正+面1 接管前置步+残余窗口披露
+
+- **(a) 锚重 pin（§0.1-6/§0.3 表两行改记·AG-15 并线漂移·rev2 席逐位亲读）**：`apps/worker/src/adaptive-lifecycle.ts` blob `246657b1`→**`081f09c0`**（AG-15 observability 并线落码·+48/−1 numstat 亲证）——requireCurrentFence `:158-161`→**`:176-179`**（`d.fence &&` 短路形 **`:177`**）·投影消费三处 `:255`/`:420`/`:535`→**`:300`/`:467`/`:582`**（出题/answer/收尾）·装配 `:309-311`→**`:354-355`/`:410`/`:424`**（start 链 `buildAdaptiveInterviewGraph` `:355`+`gInitial` `:410`+plannerSequence 分支 `:424`）。`apps/worker/package.json` blob `d83fbde4`→**`ba0c157c`**（AG-15 `prove:graph-run-observability` `:28` 增一行）。**其余 pin blob 对届 tip 恒等零漂亲证**：interview-graph-lease.ts `d30a4048`/interview-consumer.ts `265798df`/main.ts `d5e8ff2b`/checkpoint-principal.ts `fc354f0b`/job-heartbeat.ts `ebca2fe1`/adaptive-interview/graph.ts `6cdcc122`/adaptive-lifecycle.proof.ts `4a6123fb`/adaptive-legacy-checkpoint.proof.ts `571a23c8`/public-text-policy.mjs `05f48933`（行号零位移）。
+- **(b) 窗口②表述修正（§0.2·原文零洗以此为准）**：「新 worker 随即可取得锁+接管 lease」改记——**「随即取得锁；lease 接管仍受 `:40` TTL 门禁 ≤120s 后经 version+1 材料化」**。
+- **(c) 面1 臂钉（件③面1）**：接管前置步=**隔离库确定性 UPDATE `ai_graph_run` 强制旧 lease 过期**（`lease_expires_at` 置过去形·EXEC 落码定稿）——**LEASE_SECONDS 系模块级 const `:11`（120）不可注入**，禁 sleep 真等 120s（确定性臂零时钟依赖零长眠）。
+- **(d) 残余窗口披露段（§6 后增补·沿 honest-boundary 先例）**：写缝门校验=assert 查询（`:61-68`）→内层 saver INSERT 的 **check-then-act 毫秒级残缝**——Ban 面内（零改 packages/db/src·零迁移·零 checkpointer 替换）**不可再收窄**（事务化/锁化修复越 Ban 面）；暴露定量=**每 takeover 至多在飞 ~5 拍**（superstep ≈5 次/invoke 量级·与 §8 裁决项② 同源）暴露窗；如实披露不声称闭合——EXEC 收据须登记本披露。
+
+### §9-rev2.4 修订④（P2-1·席2）——窗口①成因链更正：TTL 过期单独不产生并发 put
+
+- §0.2 窗口① 叙事改记（原文零洗以此为准）：TTL 过期**单独不产生并发 put**——旧 worker 会话存续期间 `pg_try_advisory_lock`（`:22`）仍被旧 worker 持有，新 worker **先被 advisory lock 挡**（接管不发生=零并发 put）；**真实并发 put 窗=窗口②（会话丢/failover）**——会话丢后新 worker 取得锁+（经 `:40` TTL 门禁）接管，旧 worker 进程未死照常推进 in-flight put。**两窗口均覆盖·结论不变·成因链更正**——红面定性（旧世代写覆盖新世代·写缝零校验）与修法（写缝拦截形）零触。
+
+### §9-rev2.5 修订⑤（P2-2·席2·与席1(d) 合并）——TOCTOU 残缝如实声明
+
+- 席2 P2-2 与席1 残余窗口披露**同源合并**（以 §9-rev2.3(d) 为准）：写缝校验 check-then-act 毫秒级残缝如实声明·Ban 面内不可再收窄·每 takeover 至多在飞 ~5 拍暴露·沿 honest-boundary 先例——EXEC 收据披露登记·不声称闭合。
+
+### §9-rev2.6 修订⑥（P2-3·席2）——AG-15 并线三项登记
+
+- ① `adaptive-lifecycle.ts` blob `081f09c0` 重 pin（§9-rev2.3(a)）；② worker `package.json` blob `ba0c157c` 重 pin（`prove:graph-run-observability` `:28` 增行）；③ `apps/worker/test/graph-run-observability.proof.ts`（blob `17218e8f` @届 tip 亲证）**已落届树·本刀零触登记**——AG-15 领地（§1.3-3 否决维持）·本刀件④ 注册 additive 落点与 AG-15 注册行零交叠（EXEC 届时 additive 亲证）。
+
+### §9-rev2.7 修订⑦（P3·席2）——mock-interview.ts:28 同形红面不同域登记
+
+- `packages/ai-graphs/src/mock-interview.ts`（blob `b4ed2228`·base=tip 恒等零漂亲证）**`:28` `.compile({ checkpointer })`**=本红面同形（compile 缝 checkpoint 写零 fence）**不同域**（mock 图域·非 adaptive-interview 生产图）——登记不触·本刀范围外（图包纯拓扑纪律 `7f75dc6d :2` 零触·Ban 动 packages/ai-graphs/src 维持）。
+
+### §9-rev2.8 rev2 后门矩阵口径（rev2 席亲跑）+STOP
+
+- **docs:check**：届 tip 树亲跑 EXIT=0 **2232=cap 2232 恰等零余量**（@`67cdf1530` 只读临时 worktree·run 后即拆·零触他树）；本 rev 树亲跑 EXIT=0 **scanned 2224**（append 零新增文件→计数不变·越 cap 改记以 §9-rev2.2 为准）。
+- **markers**：本 rev 改动集（恰 1 .md）五类标记词+行首冲突标记直扫零命中（词族运行时组装不誊卷·沿 §7 同形制·i6-239 §2-7 口径）。
+- **diff 面**：本 rev 恰 1 tracked=本卷 .md 纯 append 零删改·零码面；门 1-10 沿 §2 判据·cap/锚漂移值随 §9-rev2.2/§9-rev2.3 修正读。
+- **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev2 落卷后待两席修订清单落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev2 后重审·alone≠dual·Ban self-approve·Dual PASS ≠ 开工·开工权归协调方）·est live=0（rev turn 全只读+1 doc append·届树亲跑系只读临时 worktree）·actualSpendCny=null ·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase ⛔改码面（本 rev 恰 1 doc 零码面）。
+
 ---
 
 *GRAPH-FENCE REQUEST · 2026-10-16 起草 · STOP=`draft:awaiting_pre_exec_dual` · base `feat/mysql-schema-skeleton` @`4124c803`（fetch 后 origin tip 亲证）· 分支 `line/graph-fence` · 工作树 `meetwise-gf`（本起草席立）· 立项出处=issues-final 总表 #7 `:545`+review-log LG-11 `:30`/LR-F4 `:46`+批5 盘点 A 区 #7 派单令 · 红面=checkpoint 写零 fence 消费·锁丢窗口旧世代写覆盖新世代（投影侧三处 fence 管不住写缝·advisory lock 会话丢即串行化失效）· 修法=put 缝拦截形 FenceCheckpointSaver façade（写前 fence 世代校验·checkpoint.id 世代判据沿 AG-16 rev3.1/rev4 先例形·失守抛既有 `graph_fence_lost` 白名单码）+隔离库四面臂 proof+注册三件 additive · est live=0 · pins 十一值零翻转 · markers=0 · docs:check 2223≤2232 余 9（起草树亲跑·起草后 2224）· ⛔push⛔merge主线 · Ban self-approve · alone≠dual · pre-exec 双审待派 · **STOP***
