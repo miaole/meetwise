@@ -25,6 +25,16 @@ export const TICK_WATCHDOG_DEFAULT_MS = 600_000;
 /** 串行抽干 loop 组显式定值（30min）：代价=真挂检测时延上限 30min，远优于永久静默。 */
 export const SERIAL_DRAIN_TICK_WATCHDOG_MS = 1_800_000;
 
+/**
+ * #158 ready() in-flight 陈旧豁免窗：拍在跑≠拍挂了——合法深拍墙钟可超 ready() 陈旧窗
+ * （max(intervalMs*3, 5s)），在飞期间陈旧臂豁免，豁免时长以本窗为上界。取两组看门狗
+ * 定值的 max（非独立 magic number）：豁免窗 ≥watchdog 对缺省组与串行抽干组均成立——
+ * watchdog 到点中断→tick settle→标志复位→豁免终，真挂转 3 连败计数翻红（WHG 世界）；
+ * 「no-WHG 世界」则挂死拍由本窗自限（30min）后陈旧臂复效翻红。WHG 调整任一定值时
+ * 本窗自动跟随。
+ */
+export const INFLIGHT_READY_GRACE_MS = Math.max(TICK_WATCHDOG_DEFAULT_MS, SERIAL_DRAIN_TICK_WATCHDOG_MS);
+
 /** runDrainLoop 第三参：tick 看门狗墙钟（缺省 TICK_WATCHDOG_DEFAULT_MS）。 */
 export interface DrainLoopOptions {
   tickWatchdogMs?: number;
@@ -72,6 +82,10 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000, opts?
   let wakePending = true; // initial reconciliation must run before the first notification.
   let settleWait: (() => void) | undefined;
   let stopPromise: Promise<void> | undefined;
+  // #158 in-flight 标志：await tick 前置位·同层 finally 复位（生命周期=迭代生命周期）——
+  // ready() 陈旧臂据此豁免「拍在跑」；禁入 race 内部包 tick 成员（迟 settle 会跨迭代清标志）。
+  let tickInFlight = false;
+  let tickStartedAt = 0;
 
   const waitForWakeOrInterval = () => new Promise<void>((resolve) => {
     let done = false;
@@ -96,6 +110,8 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000, opts?
       // **tick 抛不停循环(可靠性硬化)**:未预期异常只记日志、下一拍重试,绝不让常驻循环静默死亡(=队列永久停滞却进程"健康")。
       // 各 tick 内部已尽量自吞按 owner 隔离;这里是最后一道兜底,契合北极星"快速恢复/优雅降级"。
       try {
+        tickInFlight = true;      // #158：await 前置位（在飞豁免窗起点）
+        tickStartedAt = Date.now();
         await raceWithTickWatchdog(tick, watchdogMs, () => stopped);
         consecutiveFailures = 0;
         lastSuccessAt = Date.now();
@@ -108,6 +124,8 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000, opts?
           console.error(JSON.stringify({ event: 'worker_tick_watchdog', hungMs, consecutiveFailures }));
         }
         console.error('drain tick error', e);
+      } finally {
+        tickInFlight = false;     // #158：同层 finally 复位——settle（成功/中断/抛错）即豁免窗终
       }
       if (!stopped && !wakePending) await waitForWakeOrInterval();
     }
@@ -131,7 +149,12 @@ export function runDrainLoop(tick: () => Promise<void>, intervalMs = 5000, opts?
       // 审计 #92：首拍成功门（everSucceeded）——此前 `lastSuccessAt` 构造时即置 now，
       // 启动初期零次成功也"就绪"（fail-open）。现在必须至少一拍真成功；其后 3 连败或
       // 陈旧窗（成功时刻距今 > max(intervalMs*3, 5s)）照旧判不就绪。
-      return !stopped && everSucceeded && consecutiveFailures < 3 && Date.now() - lastSuccessAt <= Math.max(intervalMs * 3, 5_000);
+      // #158 in-flight 陈旧豁免：陈旧但拍在飞且在飞时长 ≤ INFLIGHT_READY_GRACE_MS →
+      // 视为活动非失联（合法深拍墙钟可超窗）；settle 后照常落窗（闲置失联检测语义未废）。
+      // 其余三臂（!stopped/首拍门/3 连败）零改。
+      const stale = Date.now() - lastSuccessAt > Math.max(intervalMs * 3, 5_000);
+      return !stopped && everSucceeded && consecutiveFailures < 3
+        && (!stale || (tickInFlight && Date.now() - tickStartedAt <= INFLIGHT_READY_GRACE_MS));
     },
     snapshot() { return { consecutiveFailures, lastSuccessAt }; },
   };
