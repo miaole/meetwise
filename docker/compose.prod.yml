@@ -394,7 +394,7 @@ services:
   privacy-watchdog:
     <<: *container-runtime-security
     image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
-    command: ["node", "-e", "const T=(process.env.PRIVACY_PROBE_TARGETS||'').split(',').filter(Boolean); if(!T.length){console.error(JSON.stringify({event:'privacy_watchdog_misconfigured'}));process.exit(1)} const W=Date.now()+90000; async function tick(){ for(const t of T){ try{ const r=await fetch('http://'+t+'/readyz/privacy',{signal:AbortSignal.timeout(10000)}); if(!r.ok)console.error(JSON.stringify({event:'readyz_privacy_degraded',target:t,status:r.status})); }catch(e){ console.error(JSON.stringify({event:'readyz_privacy_degraded',target:t,error:'unreachable'})); } } try{require('fs').writeFileSync('/tmp/privacy-watchdog-heartbeat',String(Date.now()))}catch(e){} } tick(); setInterval(tick,30000);"]
+    command: ["node", "-e", "const T=(process.env.PRIVACY_PROBE_TARGETS||'').split(',').filter(Boolean); if(!T.length){console.error(JSON.stringify({event:'privacy_watchdog_misconfigured'}));process.exit(1)} const W=Date.now()+90000; async function tick(){ for(const t of T){ try{ const r=await fetch('http://'+t+'/readyz/privacy',{signal:AbortSignal.timeout(10000)}); if(!r.ok&&Date.now()>=W)console.error(JSON.stringify({event:'readyz_privacy_degraded',target:t,status:r.status})); }catch(e){ if(Date.now()>=W)console.error(JSON.stringify({event:'readyz_privacy_degraded',target:t,error:'unreachable'})); } } try{require('fs').writeFileSync('/tmp/privacy-watchdog-heartbeat',String(Date.now()))}catch(e){} } tick(); setInterval(tick,30000);"]
     environment:
       PRIVACY_PROBE_TARGETS: "worker:9091"
     restart: unless-stopped
