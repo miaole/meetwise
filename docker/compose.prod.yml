@@ -380,6 +380,34 @@ services:
       retries: 12
       start_period: 20s
 
+  # ---- privacy 域观测探针（#157 消费接线·告警不拉闸形）------------------------------------
+  # WSS 分域 ready 的窗口期收口：/readyz/privacy 域红信号此前零自动消费方（编排/LB 只探
+  # /readyz/worker）。本探针只读分域端点并登结构化红行，由日志面告警轨消费
+  # （scripts/alerts/event-catalog.json readyz_privacy_degraded → check-alerts 正则/json 判定）。
+  # 拉闸形否决：worker healthcheck（:344 /readyz/worker fail-closed）零触——privacy 域红
+  # ≠杀容器≠退流量，只告警（沿 main.ts /readyz/privacy fail-open 分域语义）。
+  # 无密容器：零 DATABASE_URL 零模型 Key，仅 compose 私网 HTTP 只读探测。
+  # 90s 起步静默窗：起步期 worker 未就绪不产假红；部署窗/重启窗瞬时红沿白名单纪律
+  # 登记（scripts/alerts/alert-whitelist.json 到期形），不改码面。
+  # 单引号脚本零 ${ 插值（compose interpolation 免转义）；探针目标为字面量，HA 拓扑由
+  # compose.ha.yml 同名 service 覆写 PRIVACY_PROBE_TARGETS（worker-a/worker-b）。
+  privacy-watchdog:
+    <<: *container-runtime-security
+    image: ${BACKEND_IMAGE:?set BACKEND_IMAGE = <registry>/<namespace>/meetwise-backend@sha256:<digest>}
+    command: ["node", "-e", "const T=(process.env.PRIVACY_PROBE_TARGETS||'').split(',').filter(Boolean); if(!T.length){console.error(JSON.stringify({event:'privacy_watchdog_misconfigured'}));process.exit(1)} const W=Date.now()+90000; async function tick(){ for(const t of T){ try{ const r=await fetch('http://'+t+'/readyz/privacy',{signal:AbortSignal.timeout(10000)}); if(!r.ok&&Date.now()>=W)console.error(JSON.stringify({event:'readyz_privacy_degraded',target:t,status:r.status})); }catch(e){ if(Date.now()>=W)console.error(JSON.stringify({event:'readyz_privacy_degraded',target:t,error:'unreachable'})); } } try{require('fs').writeFileSync('/tmp/privacy-watchdog-heartbeat',String(Date.now()))}catch(e){} } tick(); setInterval(tick,30000);"]
+    environment:
+      PRIVACY_PROBE_TARGETS: "worker:9091"
+    restart: unless-stopped
+    mem_limit: 64m
+    # 探针自身活性二级可见面：心跳文件（tmpfs /tmp）30s 一写；healthcheck 断言 120s 内有拍。
+    # 探针挂死=compose ps unhealthy（运行时可见）——「谁看守门人」面由心跳+restart 兜底。
+    healthcheck:
+      test: ["CMD", "node", "-e", "const s=require('fs').statSync('/tmp/privacy-watchdog-heartbeat');process.exit(Date.now()-s.mtimeMs<120000?0:1)"]
+      interval: 30s
+      timeout: 5s
+      retries: 6
+      start_period: 120s
+
 secrets:
   rds_ca:
     file: ${RDS_CA_HOST_PATH:?set RDS_CA_HOST_PATH to an uncommitted PEM file}
