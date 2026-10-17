@@ -124,6 +124,14 @@
 
 **待裁决项**：①件① 短路窗 TTL 定值（本卷钉 30_000ms 模块常量·双审可裁它值·env 化诉求即越界停）；②件① 幂等重放窗口变形（1.1-b）接受度；③件② 同 leaseOwner 重复 begin 接管语义（1.2 delta）接受度；④0206 函数命名（`interview_privacy_active_read`/`interview_privacy_fenced_targets`）与镜像 append 面宽度（红集 vs 全量 17）。
 
+## §9-rev（协调方裁决 rev 注记·2026-10-16·0206 认领确认+邻刀消歧登记·零码面零状态翻面）
+
+- **裁决**：协调方裁决令（2026-10-16·两新刀迁移号撞号协调）——**本卷 DB-HOTSPOT 保 `0206_interview_privacy_active_read_tier.sql` 认领不变**（先起草先认领·§0.3 认领在案·协调方确认「§0.0 已预登『被占则顺延』条款但 0206 现未被占」=保号行使非例外）。
+- **邻刀消歧登记**：TRACE-RECON（`line/trace-recon`·worktree `meetwise-trc`）原认领 0205 与主线 AG-15 `0205_ai_graph_run_observability_columns.sql` 撞号（AG-15 已 nail——`origin/feat/mysql-schema-skeleton`@`1b01366` 迁移链 **205 文件头 0205**·blob `39011c3` 亲证）——协调方裁决其顺延认领 **`0207_ai_trace_backfill_scoped.sql`**（全 ref 防撞重扫 0207 零占用后认领）。
+- **事实更新（不触本卷 §0.3/§5 原文·以本条为准）**：本卷 §0.3/§5「0205 留白给在飞邻刀（主线链顶 0204）」系起草时态——0205 已被主线 AG-15 占用·在飞邻刀题面号自本 rev 起=**0207**；本刀 0206 认领不受影响·两刀号面 0206/0207 互斥零交叠。
+- **扫描证（rev 席亲跑 2026-10-16）**：`git for-each-ref refs/heads refs/remotes` 逐 ref `git ls-tree` 扫 `packages/db/migrations/` 0205-0209 号段——仅 0205（AG-15·8 ref 命中）·**0206/0207 全 ref 零文件命中**（本卷 0206 系题面认领未落文件·无他占）。
+- **卫生回执**：markers 改动集五类标记词零命中（运行时组装口径沿 `scripts/i6-239-gates.proof.mjs` §2-7·词面不入卷防自匹配·EXIT=0）；docs:check 本树亲跑 EXIT=0（2224≤cap 2232）；本 rev commit 仍恰 1 tracked `.md`=本卷零码面；STOP 三处同值不变 `draft:awaiting_pre_exec_dual`。
+
 ---
 
 *DB-HOTSPOT REQUEST · 2026-10-16 · **STOP=`draft:awaiting_pre_exec_dual`（三处同值：Status 行+本卷尾+§8·待 pre-exec 双审两外席·alone≠dual·Ban self-approve·Dual PASS ≠ 开工·⛔push）** · base origin/feat/mysql-schema-skeleton @`4124c803`（fetch 后 origin tip 等号亲证·origin/main 祖先亲证）· 分支 `line/db-hotspot` · 工作树 `meetwise-dbh2`（主仓 `git worktree add` 本起草席立·防重三查 §0.0 过）· 三件同域=#116 预算全局热点行（0204:92/:133 FOR UPDATE·0033:70 REVOKE=TS 零直读判据·修法=exhausted 决策缓存 30s 短路·零迁移）+#9 会话级 advisory 锁独占连接（interview-graph-lease.ts:18/:22·PgBouncer 事务池冲突·修法=事务级锁+lease 行 CAS 单事务·零迁移）+#248 privacy_active 每调取锁+列表逐行求值（0058:40/:149·11 读面 7 码文件亲证·修法=read twin+fenced set 聚合分层·认领 0206）· 否决六件（分片/外置账本/session lane/弃锁/单函数去锁/GRANT 直读）· 门八（邻 proof+neg+typecheck 8/8+lint 12/12 六值恰等+docs:check 2223≤2232+markers+diff 面）· est live=0 · 审计链=本卷*
