@@ -235,6 +235,61 @@ base 树本席亲跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2200
 - **diff 面**：本 rev 恰 1 tracked=本卷 .md 纯 append 零删改·零码面·B 段门 1-12 沿 §2 预 registered 判据·随 §9-rev.1/§9-rev.4/§9-rev3.3/§9-rev3.5/§9-rev3.6/§9-rev3.7 修正值读。
 - **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev3 落卷后待双审 FAIL 两席修订清单（席1 F1-F2+席2 R-2.1-R-2.8）落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev3 后重审·alone≠dual·Ban self-approve）·开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）·est live=0（rev turn 全只读+1 doc append）·actualSpendCny=null。
 
+## §9-rev4 rev4 修订注记（pre-exec 双审第三次双审双 FAIL→rev4 回路 · R-1/R4-4+R-2/R4-1 两 P1 同源收敛+R-3/R4-3+R4-2+R-4 三 P2+R-5 一 P3 · 文面修订零码面 · 前席 ENOSPC 中断本席重派 · rev4 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§8+§9-rev 全节+§9-rev3 全节+卷尾注零洗** · 本节为 EXEC 期对前文对应句的最新权威修正与增补·与前节冲突处以本节为准）
+
+> **双审 FAIL 定谳（rev4 席逐位亲证成立）**：**R-1/R4-4（P1·同源）**=§9-rev3.1 世代拦截形将四孔径全挂单臂（alreadyApplied=false resume 形）——写卡跳过与 evidence 缺键两孔径在该单臂形下结构性空转，四孔径须**跨两臂对准**（rev4 席亲证：lifecycle submit 读序两分支 `:394-401` !alreadyApplied resume 形 / `:402-404` alreadyApplied invoke(null) 形·`:509-511` 写卡 operative 门与 `:443-447` answer_evaluated 发射面分属不同驱动形）。**R-2/R4-1（P1）**=届树账再漂移——rev4 席 fetch 亲证 origin/feat/mysql-schema-skeleton=**`656fc7be`**（三刀 nail 后）·§9-rev3.3「origin=`10799a3e`·cap 2208」口径作废。R-3/R4-3、R4-2、R-4、R-5 逐位亲证见 §9-rev4.3-§9-rev4.6。rev4 六条修订如次·STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（§9-rev4.7）。
+
+### §9-rev4.1 修订①（R-1/R4-4·P1·同源）——面1 四孔径跨两臂对准升格（fresh 臂+重放臂）
+
+- **升格（双审 FAIL 采纳）**：§9-rev3.1「四孔径全对准」改读**四孔径跨两臂对准**——**fresh 臂**（`:394` !alreadyApplied 分支 resume 形）承载 stale 守卫（**`:396-397`** 亲证=剥字段清单只剥 pending.topicId/askMode/clarifyCause/plannedTurns 四子键·questionId/stateVersion/turn 存活→守卫判据不坠 identity 保持）+出题方向+plannerSequence 空序（**`:374-379`** 亲证=mind.competencies 剥→空序→g=gInitial）三孔径；**重放臂**（alreadyApplied=true invoke(null) 形）承载写卡跳过 operative 门（**`:509-511`** 亲证=`:509` deps+unscored/clarifying/score 条件+`:510` dispositions 读+`:511` 空序判据）+evidence 缺键（**`:443-447`** answer_evaluated payload·`:446` `evidence: last.evidence` 缺省=undefined 不进 JSONB 亲证）两孔径。
+- **重放臂手法定稿**：沿 `apps/worker/test/adaptive-resume.proof.ts:173-203` **形① 两段驱动先例**合成 **eval-done 坠点**（evalAnswer 已评落 checkpoint、genQuestion seam 坠·坠点形态=transcript 已含本题答案+next 非空+无 pending interrupt·先例 `:193-195` 同形亲读）→ **同 identity 重入** submitAdaptiveAnswer（alreadyApplied=true `:381` 亲证）→ **`:402-404` invoke(null) 不重评**（先例 `:207-208` evaluate 零重评+`:210` 重入零 plan/decide/evalAnswer 重执行断言形同源衬底）→ **snap.last=旧世代剥后回合**（`:404` snap 读·transcript 末回合即被剥旧回合）。
+- **重放臂 deps 必配 `scoreWriterLeaseOwner`**：lifecycle deps `scoreWriterLeaseOwner` 系 optional（`:147` 亲证·不配则 `:509` 门首条件短路=跳过断言空转假绿）——重放臂 deps 必配之**且断言 score_card 行数=0**：证跳过=dispositions 空序 `:511` 门 operative 裁定·非 deps 缺失短路·防空转。
+- **§1-件① 面1 首句「正常 start 落场后…transcript 末回合」随两臂拆分改读**（原文零洗·以此为准）：fresh 臂读=「正常 start 落场后经读缝拦截 saver（checkpoint 世代判据·§9-rev3.1 升格形维持）剥字段→同 identity submitAdaptiveAnswer（resume 形）」；重放臂读=「正常 start 落场后沿形① 两段驱动合成 eval-done 坠点→同 identity 重入（invoke(null) 形）」；剥字段清单两臂共用（pending.topicId/askMode/clarifyCause/plannedTurns·transcript 末回合 dispositions/evidence·mind.competencies·§9-rev3.6 deficit 移除维持）。
+
+### §9-rev4.2 修订②（R-2/R4-1·P1）——届树账改记（届 tip=`656fc7be`·cap-2216 已 nail 落主线·届 cap=2216 余 6）
+
+- rev4 席 fetch 亲证 **origin/feat/mysql-schema-skeleton=`656fc7be`**（trace-service-wire nail 波 tip）——**三刀 nail 后**：cap-sanction-2216（**`6c92ef4c`**）+boot-validate（`ab3ab9c9`）+trace-service-wire（`656fc7be`）·§9-rev3.3「origin=`10799a3e`」作废升格（本 rev 零并线·⛔merge 未行使·EXEC 届时 merge-forward 以届 tip 为准照 §0 规则）。
+- **cap-2216 已 nail 落主线**：`6c92ef4c` 对 `656fc7be` `merge-base --is-ancestor` EXIT=0 亲证·policy blob `7bace81c`→**`4509bf68`**（@`656fc7be` 亲算）·**MAX_FILES 行 `:104`→`:106` 值 2208→2_216 亲读**（cap 2208→2216 上游已授予·行移 +2 系 cap-sanction-2216 EXEC 两文件落码所致如实登记·EXEC 期零触禁令维持）。
+- **§9-rev3.3 届树预期升格改记**：「届树 2207≤2208 余 1」作废→**届树 2214≤2216 余 2**（亲算=届 tip 树 **2210**[rev4 席 docs:check 亲跑 EXIT=0 `2210≤2216 余 6`·@`656fc7be` 只读临时 worktree 亲跑·零触他树·run 后即拆]+本卷 REQUEST 1+件①件② proof 2+EXEC 收据 1[若落 tracked 面]）——**EXEC 硬前置（cap sanction）已满足**。
+- **门9 判据升格=「届实跑≤届 cap 即绿」**：cap 随届 tip 上游步进如实跟读（届 tip/cap 值/行锚一律 fetch 亲证为准）·实测值入收据·超届 cap 红停上报非自升（Ban 自升维持）·§8-停止条件① 同步改挂「届树 docs:check>届 cap 且协调方未裁」。
+- checklist 行锚承读：blob `376fd5bc`→**`a175c238`**（@`656fc7be` 亲算）·**`:3351`（5E-CLEANUP cap 行）/:2609（偏离⑦行）双双零位移亲证**·§9-rev.7-1「沿其先例形」读法不变。
+- 本卷 §0.4/§9-rev.1 pin 七 blob @`656fc7be` 复证：六 code/test blob（graph `6cdcc122`/state `d387ab08`/lifecycle `246657b1`/resume.proof `f5dfcacf`/lifecycle.proof `4a6123fb`/generate-question `5bbc052e`）全值恒等零漂亲证·policy 一件随 cap 步进 `4509bf68`（唯一漂移件·上记）。
+
+### §9-rev4.3 修订③（R-3/R4-3·P2）——面3 克隆钉升格：storage+writes 双 map 双层深拷
+
+- §9-rev3.2(a)「双实例各持独立克隆 MemorySaver」升格双钉：克隆必须 **storage+writes 双 map 双层深拷**——证据链四环亲读（装版 langgraph **1.4.7**+langgraph-checkpoint **1.1.3** 主仓 .pnpm 实存）：`dist/pregel/io.js :51-62`（`Command(resume)`→`yield [NULL_TASK_ID, RESUME, cmd.resume]` RESUME write 进 writes 管线）→`dist/pregel/loop.js :379`（`checkpointer.putWrites(config, writesToSave, taskId)`）→checkpoint `dist/memory.cjs :246`（`this.writes[outerKey][innerKeyStr]` 落 writes map）+`:100`（getTuple `pendingWrites=Object.values(this.writes[key])` 读）→`dist/interrupt.cjs :59/:66`（scratchpad.resume 空→GraphInterrupt 再抛）。
+- **漏 writes=RESUME 丢失→interrupt 再抛=落点恒等断言假绿**；浅拷（引用共享）=实例 A resume 落写漏进实例 B=恒等假象（§9-rev3.2(a) 禁共享机制面原句维持·本节补钉双层深拷形）——EXEC 落码克隆器对 storage 与 writes 两 map 各自逐层复制·克隆形入收据披露。
+
+### §9-rev4.4 修订④（R4-2·P2）——面3 驱动面钉死：裸图双 Command(resume) 形
+
+- §9-rev3.2(c) 二择一**钉死（双审 FAIL 采纳）**：face-3 核心驱动面=**裸图双 `Command(resume)` 形**（双克隆实例各自直驱）——submitAdaptiveAnswer 二次驱动**结构性不可行定谳**：第二遍 submit 撞 `:421-424`（第一遍 `:423` markInterviewAnswerApplied 已消费 claim→`:421` verifyInterviewAnswerClaim 零命中→`:422` throw `answer_identity_lost` 亲读）·`:381` alreadyApplied 短路形（直达既有纯重放路径 `:402` elif）非双遍对等驱动。
+- **事件键幂等断言如实披露**：裸图形无 lifecycle 投影衬底→§1-件① 面3「事件键幂等重放」断言**归 submit-replay 臂**（§9-rev4.1 重放臂·answer_evaluated 幂等键 appendEvent 形 `:447` 亲证）承载+EXEC 收据披露所用形·裸图形只断言落点/重放计数恒等（§9-rev3.2(a)/(b) 双钉维持）。
+
+### §9-rev4.5 修订⑤（R-4·P2）——五列映射逐臂预填 ≥4 臂+fresh 臂新世代直通正对照
+
+- §9-rev3.9 五列映射 **EXEC 预填（≥4 臂下限·EXEC 可增臂·增臂同形入表）**（布防位置=世代判据+needle·消费读位=`:366`/`:400`/`:401`/`:510`/`:443` 系）：
+
+| 臂 | 手法 | 断言 | 布防位置 | 消费读位 |
+|---|---|---|---|---|
+| fresh-stale 守卫 | 世代判据剥字段+同 identity submit（resume 形） | stale_question 零抛·identity 保持不 stale | saver getTuple 世代判据（checkpoint.id==resume 前目标 id 剥）+needle（pending 四子键） | `:366` 系（before 快照·`:396-397` 判据） |
+| fresh-出题方向 | 同形（mind.competencies 剥→plannerSequence 空序） | 出题方向确定+**新世代直通正对照**（next payload 含 plannedTurns/askMode=证零过剥） | 世代判据+needle（mind.competencies/plannedTurns/askMode） | `:374-379`/`:400`/`:401` 系 |
+| replay-写卡跳过 | 形① eval-done 坠点+同 identity 重入 invoke(null) | score_card 行数=0（deps.scoreWriterLeaseOwner 必配=operative 门非短路） | 世代判据+needle（transcript 末回合 dispositions） | `:510` 系（`:509`/`:511` 门） |
+| replay-evidence 缺键 | 同 replay 驱动形 | answer_evaluated payload 零 evidence 键（undefined 不进 JSONB） | 世代判据+needle（evidence） | `:443` 系（`:446` 读） |
+
+- **fresh 臂新世代直通正对照断言=「证零过剥」**：resume 落写新世代（checkpoint id 变化）后读零触（§9-rev3.1 世代判据语义）·下一题 persist/emission payload 含 plannedTurns/askMode（`:430`/`:469`/`:496` 亲证）——防拦截形自身过剥新世代的结构性正对照·两臂共用。
+
+### §9-rev4.6 修订⑥（R-5·P3）——§0.4 行锚 `:509-511` 承接+§9-rev.9 冻结句升格读
+
+- §0.4 表 adaptive-lifecycle.ts 行锚「v5 写卡跳过 `:506-508`」改读 **`:509-511`**（rev4 席亲读=`:506-508` 系注释叙事行位·operative 门=`:509` 条件+`:510` dispositions 读+`:511` 空序判据）——§1-件① 面1「(`:506-508` 语义)」与 §9-rev3.1 所引随此承接改读（原文零洗）。
+- **§9-rev.9 冻结句升格读**：「以 §9-rev 修正后的定稿文本为冻结本体」补「**§9-rev4 修正后**」字面=冻结本体=**§9-rev4 修正后定稿文本**（§9-rev.2/.3/.5/.6/.7+§9-rev3.1-.9+§9-rev4.1-.6 修正句全链并入 §1 读·原文零洗替换读）·禁令不变·EXEC 立项对 rev4 后定稿文本仍零触（触则回炉重审）。
+
+### §9-rev4.7 门矩阵 rev4 后口径+rev4 后 STOP 状态（rev4 席亲跑）
+
+- **docs:check**：届树亲跑 EXIT=0 **2210≤2216 余 6**（@`656fc7be` 只读临时 worktree·零触他树·run 后即拆）·本树（HEAD `cb9679bf`）亲跑 EXIT=0 **2202≤2208 余 6**（本 rev append 零新增文件→计数不变）。
+- **markers**：本 rev 改动集（恰 1 .md）五类标记词+行首冲突标记直扫零命中（词族运行时组装不誊卷·沿 §7 同形制·i6-239 §2-7 口径）。
+- **diff 面**：本 rev 恰 1 tracked=本卷 .md 纯 append 零删改·零码面·B 段门 1-12 沿 §2 预 registered 判据·随 §9-rev.1/§9-rev.4/§9-rev3.3/§9-rev4.2/§9-rev4.6 修正值读。
+- **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev4 落卷后待双审 FAIL 修订清单（R-1-R-5+R4-1-R4-4）落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev4 后重审·alone≠dual·Ban self-approve）·开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）·est live=0（rev turn 全只读+1 doc append·届树亲跑系只读临时 worktree）·actualSpendCny=null。
+
 ---
 
 *AG16-RESUME-PROOF REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`** · base `feat/mysql-schema-skeleton` @`fe4079a0`（origin tip 亲证·派单下界 tip≥fe4079a0 等号成立）· 分支 `line/ag16-resume-proof` · 工作树 `meetwise-ag16`（本起草席立·落 origin tip）· 立项出处=issues-final AG-16 `:28/:224-234`+AG-27 `:345-353`+EXPERT-REVIEWS `:69`+review-log `:136`+ci-wiring2 偏离⑦ `:130/:146/:157`+checklist `:2609/:3340`· 残面=①旧 checkpoint resume 三面（兼容/版本失配/中断点确定性·§0.2 缺口表）②recursionLimit 纪实收口（§0.3 装版三事实亲读）· 修法=两新 proof（件① 隔离库三面臂+件② 静态 C1-C6）+门注册四处·零产品码零迁移· diff 预期恰 7 tracked · est live=0 · pins 十一值照抄 · markers=0 亲跑 · docs:check 基线 2200≤2200 EXIT=0 亲跑·起草树 2201>2200=checklist `:3340` 预置触顶停止条件如实触发·cap sanction 权归协调方（Ban 自升）· ⛔push⛔merge主线 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · **STOP***
