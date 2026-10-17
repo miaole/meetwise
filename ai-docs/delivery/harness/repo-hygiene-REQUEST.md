@@ -1,6 +1,6 @@
-# REPO-HYGIENE 仓库卫生小刀（批5 盘点 Top9·#101 部分 untrack 面 + Dockerfile --prod=false 裁量 + #249/#143 注记登记 · 起草 REQUEST · 落卷即停 · **STOP=`draft:awaiting_pre_exec_dual`**）
+# REPO-HYGIENE 仓库卫生小刀（批5 盘点 Top9·#101 部分 untrack 面 + Dockerfile --prod=false 裁量 + #249/#143 注记登记 · 起草 REQUEST · EXEC 落卷 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录]）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停 · pre-exec 双审两外席待派 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC（PASS 只过审·开工须协调方明示授权）· ⛔push · ⛔merge主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录 · post-prove 双审两独立外席待派 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC · ⛔push · ⛔merge主线）
 **席位**：REPO-HYGIENE 仓库卫生小刀起草席（协调方派单·批5 盘点席 Top9+#101 部分「零前置」·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `2c257eb0`（本席 `git fetch --all` 部分成功——origin 更新在先·`ccl` 远端不可达报错如实登记；建树时 `origin/feat/mysql-schema-skeleton`=`2c257eb0`「fix(worker): 生成进度 started 首拍写改为异步链入…」；派单下界「origin tip≥`92086586`」亲证=`git merge-base --is-ancestor 92086586 2c257eb0` EXIT=0 等号以上成立·**起草落卷前 origin 已被并发席行至 `bf453f49`·本卷基线系其祖先·漂移登记见 §0.2-6**）· 分支 `line/repo-hygiene`（本席 `git worktree add ../meetwise-rh -b line/repo-hygiene origin/feat/mysql-schema-skeleton` 亲立·直接锚 origin tip·分支零自造 merge 节点·⛔pull --rebase 未用）· 工作树 `meetwise-rh`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权/立行权归协调方）**：①协调方派单 brief（批5 盘点 Top9+#101 部分·零前置·三面=untrack 面+Dockerfile --prod=false 裁量+#249/#143 注记面）；②`5e-cleanup-sweep-2-REQUEST.md:39/:67` 归槽呈报原文亲读在卷（「残面仍存在=`git ls-files` 亲证 `apps/web/test-results/.last-run.json`+`apps/web/tsconfig.tsbuildinfo` 仍被跟踪（`.gitignore` 零对应条目）+Dockerfile deps `--prod=false`+runtime `COPY . .` 在——剔除·归槽呈报（第5批-C 供应链/仓库卫生域或后继卫生小刀）」——本卷即该「后继卫生小刀」承接席）；③issues-master `#249` 行原文（仓外 `~/Documents/Meetwise产品审计-更正版/issues-master.md:526` 协调方持有·本席亲读摘录见 §1.3）·`#143` 承引 `authz-harden-REQUEST.md:35` + `execution-master-checklist.md:2288/:2357` STILL OPEN 行（亲读在卷）。
@@ -129,7 +129,7 @@
 
 本刀改动集（本卷 .md+`.gitignore`+两删除路径）**五类标记词 grep 零命中**（起草席落卷时对本卷亲跑直证·回执随 EXEC 收据留痕·五类词面见 `i6-239-gates.proof.mjs` 运行时组装·不入卷防自指）。**承登（基线红如实）**：`i6-gates:prove` 恰符臂以 i6-239 历史刀申报清单为期望集·任何后继刀必红该臂=**协议形承登**（沿 obs-family §7/boot-validate §7 先例）；本刀实质臂=改动集五类词面零命中+`est live=0`+CI/码面双零消费（§2-1/2）+零迁移+SSOT 零触·全绿为门。
 
-## §8 STOP · `draft:awaiting_pre_exec_dual`（起草落卷即停·三处同值：标题行+Status 行+本节·卷尾复述同值·pre-exec 双审两外席待派·alone≠dual·Dual PASS ≠ EXEC·PASS 只过审·开工须协调方明示授权）
+## §8 STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值：标题行+Status 行+本节·卷尾复述同值·post-prove 双审两独立外席待派·alone≠dual·Dual PASS ≠ EXEC·PASS 只过审·开工须协调方明示授权）
 
 **开工三条款**：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（两产物跟踪状态被他刀改/.gitignore 被他刀改/Dockerfile 消费链被改/i6 容忍臂被改）→停·重 pin 回炉；**机制不满足**=件①②落位后 §2-4/9 命中红（ls-files 残留/check-ignore 不中/diff 面溢出）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=任何码面/依赖/迁移/SSOT 改动诉求（含 --prod 改造诉求）→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=门矩阵静态红（lint 漂移/docs>2216）且根因不在本刀交付面→停·如实登记（Ban 借机修）。
 
@@ -140,7 +140,7 @@
 - **④#249/#143 注记登记归宿**：本卷 §1.3 注记面（零码）vs 协调方另立 issues-master 行同步——推荐=本卷注记面+协调方择机入册（本卷不代行立行权）。
 - **⑤行关闭效力**：EXEC 命中门矩阵全绿+post 双审 BOTH PASS→批5 盘点 #101 部分 **untrack 半面**（两产物跟踪+.gitignore 缺口）的关闭/翻面登记权归协调方 nail（**镜像 devDeps+整仓 COPY 残面不随翻**·归后继供应链刀·本刀不宣称关闭）。
 
-**在飞知会条目（rev 增补·R2/P2-4·知会即生效非裁决项·详 §9-rev.2）**：各在飞席/协调方 nail 波将本 commit 并线进己树时，若 merge 中止报 `local changes would be overwritten`（涉及 `apps/web/test-results/.last-run.json`/`apps/web/tsconfig.tsbuildinfo` 两产物）——系件① untrack 对**脏副本**的预期拦截·**非事故**：`git checkout -- apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo` 丢弃本地脏副本（可再生簿记·零价值零抢救面）后重并即过·件② ignore 生效后**此后永免**。**nail 注记（P2-4）**：协调方 nail 波遇本支并线中止同款 discard 处置·脏副本一概可弃（rev 席 /tmp clone 双形复演亲证：件净→`delete mode` 物理删除·件脏→中止一次·discard 后重并成功）。
+**在飞知会条目（rev 增补·R2/P2-4·知会即生效非裁决项·详 §9-rev.2）**：各在飞席/协调方 nail 波将本 commit 并线进己树时，若 merge 中止报 `local changes would be overwritten`（涉及 `apps/web/test-results/.last-run.json`/`apps/web/tsconfig.tsbuildinfo` 两产物）——系件① untrack 对**脏副本**的预期拦截·**非事故**：`git checkout -- apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo` 丢弃本地脏副本（可再生簿记·零价值零抢救面）后重并即过·件② ignore 生效后**此后永免**。**nail 注记（P2-4）**：协调方 nail 波遇本支并线中止同款 discard 处置·脏副本一概可弃（rev 席 /tmp clone 双形复演亲证：件净→`delete mode` 物理删除·件脏→中止一次·discard 后重并成功）。**EXEC 生效注记（2026-10-17·EXEC 席落卷起本条目生效）**：件① 已落卷（起草 `c3b9c2d2`）并随 EXEC 并线 `f1abd8ce` 入届树——各在飞席/协调方 nail 波并线本支（`f1abd8ce` 及其并线产物后继）遇两产物 `local changes would be overwritten` 一概 `git checkout -- apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo` 即过·脏副本可弃（可再生簿记零抢救面）·件② ignore 生效后此后永免。
 
 ## §9-rev rev 修订注记（pre-exec 双审席1 PASS+席2 FAIL R1 P1 契约文本失实→rev 回路 · rev 席落卷 2026-10-17 · **append 注记形+六处在位修正（§1-件①/§1.1-③/§0.1/§1.2-4/§1.3-7/§2-7·各带 rev 标）** · 本节为 EXEC 期对前文对应句的权威修正与增补 · 契约文本改动系 §8-③「改则回炉重审」条款行使=rev 落卷后整卷重送双审）
 
@@ -170,6 +170,7 @@
 
 - **P2-1 行锚 `:12`→`:14`（三处在位修正）**：§0.1 apps/web/Dockerfile 行+§1.2-4+§1.3-7——blob `d04dfcb5` 对基线 `2c257eb0` 与届 tip `7d71a64f` **恒等亲证**=纯行锚勘误非漂移：`:14` `RUN pnpm install --frozen-lockfile --prod=false`（`:15` `COPY . .`·rev 席两树逐行亲读）——起草席 `:12` 系行数误记。
 - **P2-3 cap 届 tip 重钉**：cap 已上游 sanction 步进 2216→2224→**2232**（届 tip policy blob **`05f48933:110`** `const MAX_FILES = 2_232;` 亲读·sanction 注记「2224 帽算术漏计 progress-write +1·AG-15（+5）落地 2225>2224 必红·本刀补 +8」（2026-10-17）在卷；本树 policy `4509bf68:106` 尚 2_216 值旧）——席1 钉值（现 tip 树 2224·先并再重钉 2232）如实承登且 **2232 半已由届 tip sanction 落地亲证**；rev 席实测三值：本树 **2213**·届 tip `7d71a64f` 树 **2220**·并线树（`7d71a64f`×`c3b9c2d2` 真合并·/tmp clone 亲跑）**2220**——三值 ≤2232（余 12）亦 ≤2224（余 4）·全绿。§2-7 判据在位改读「届实跑≤届 cap 2232」·EXEC 立项仍照届时 tip 全量重 pin（sanction 再步进如实承认·超红停上报·权归协调方）。
+- **P2「届 tip」混标勘正（EXEC 落卷义务·rev 确认席 P2 承接·2026-10-17）**：上句「届 tip policy blob 05f48933」系混标——05f48933 系 bb321093 之物（`bb321093`=`ci(docs): 文档帽 2224→2232 步进`·rev 期届 tip `7d71a64f` 树 policy blob 实为 `dfab50c4` 亲证·彼树尚无 05f48933）；EXEC 期届 tip 全量重 pin 承接=fetch 亲证 origin tip 恰 `23e80b40`（派单下界等号成立）→并线树 policy blob 恰 `05f48933:110` `const MAX_FILES = 2_232;` 恒等·判据「届实跑≤届 cap 2232」承接成立。
 - **P2-4 nail 注记**：§8 在飞知会条目内补 nail 面 discard 句——协调方 nail 波遇并线中止同款 `git checkout -- <两件>` 处置·脏副本可弃（可再生·§0.2-3 恒脏机制同一根源）——全文见 §8（rev 增补段）。
 
 ### §9-rev.6 门矩阵 rev 后口径（rev 席亲跑）+STOP 状态
@@ -179,6 +180,35 @@
 - **diff 面**：rev commit=恰 1 tracked（本卷 .md）·零码面零他 tracked；EXEC 判据（§2-9 恰 4 tracked 对立项基线 `2c257eb0`）不变。
 - **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（标题行/Status 行/§8/卷尾注零字洗）——rev 落卷后待**席1+席2 复审修订块**（§9-rev.1-6 落点确认或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev 后重审·alone≠dual·Ban self-approve）·Dual PASS ≠ EXEC（PASS 只过审·开工须协调方明示授权）·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面·est live=0·actualSpendCny=null）。
 
+## §9-EXEC EXEC 记录（EXEC 席落卷 2026-10-17·STOP→`executed:awaiting_post_prove_dual`·重派续作形=前席超时中断·树净零半成品 commit 亲证→全序重跑）
+
+**授权链**：起草落卷 `c3b9c2d2`→rev 落卷 `5e77cfee`（席1 PASS+席2 FAIL R1 P1 契约文本失实→rev 回路·§9-rev.1-6 六处修订+§8 在飞知会条目增补）→pre-exec 双审**重派会签有效**（席1 PASS+席2 FAIL R1 契约已由 rev `5e77cfee` 修订+rev 复核 CONFIRMED·席1+席2 会签有效）→协调方明示授权 EXEC（重派令·前席超时中断续作）→EXEC 本席开工三查亲证：`git status` 净+`git log` 无前席 EXEC 半成品 commit（tip 恰 `5e77cfee` rev）→全序重跑。
+
+**序1 并线**：`git fetch` 亲证 `origin/feat/mysql-schema-skeleton` tip 恰 **`23e80b40`**（派单下界「届 tip≥23e80b40」等号成立亲证=`git merge-base --is-ancestor 23e80b40 origin/...` EXIT=0）→`merge-tree --write-tree` 预演 EXIT=0 零冲突→**merge `f1abd8ce`** `--no-ff` 双亲 `5e77cfee`+`23e80b40` 零冲突兑现（入线 29 commits 对本刀四路径[REQUEST/.gitignore/两产物]零交叠机证·SSOT 无冲突面纯并集·⛔pull --rebase 未用·⛔force push 未用）。
+
+**序2 §0 全量重 pin（并线树 HEAD=`f1abd8ce` 亲算·14 锚）**：两产物上游 blob 恒等（`cbcc1fba`/`5bf041bc` @`23e80b40`=跟踪状态未被并线改）·`.gitignore` 上游 `b84e2b41` 恒等（HEAD `b8b82897`=本卷件② 产物·两新条目 :37/:38+注记 :34-36 亲证）·`Dockerfile` `34f84823` 恒等（:16 `--prod=false`/:31 `COPY . .`/:38-39 CMD swc-node 逐行亲证）·`apps/web/Dockerfile` `d04dfcb5` 恒等（:14/:15）·`pnpm-lock.yaml` `af9c3f38` 恒等·`scripts/i6-239-gates.proof.mjs` `339f92f4` 恒等（:197 恰符臂过滤器+:198 断言词「tsbuildinfo 构建副产物不计」逐字在位=**容忍臂语义不变零触**）·`.dockerignore` `e2aac246` 恒等·`0151:31` GRANT 在位·`principal.ts` blob `23e5b770` 与基线恒等=零漂移（§0.1 行锚 `:777-778` 系起草席行记偏移→更锚 **`:780-781`** `production_local_database_host` 拒启·`:824-833` 词表·`:835-837` verify-full 全在位）——**blob 漂移恰两锚·均系并线携入且结论不变**：`docker/compose.prod.yml` `73462150`→`663720c3`（+28 行=readyz-privacy-wire 携入·新增段在 :289 后·运行时消费行锚 **:229/:238/:273 恒等**重 pin·结论「运行时硬依赖 @swc-node/register」不变）·`apps/worker/package.json` `f6b6df38`→`d83fbde4`（+1 行=scripts 段 `prove:adaptive-legacy-checkpoint`·依赖分判不变=dependencies 块零 swc/tsx/typescript·devDeps 全有[json 分判亲证]）·`apps/api/package.json` `266e64b8` 恒等同判。policy `05f48933:110` MAX_FILES=2_232 恒等（勘正见 §9-rev.5 混标勘正行）。**停止条件①现场漂移=未触发**。
+
+**序3 落码核验（件①②③④ 对并线树逐条兑现）**：件① 两产物 untrack 在位=`git ls-files` 对 `test-results|tsbuildinfo` **零命中**+`git check-ignore -v` **双命中件② 新条目**（`.gitignore:37:test-results/`+`.gitignore:38:*.tsbuildinfo`）+两文件**在盘**（45B/243562B=`--cached` 语义兑现）·件② `.gitignore` 恰 2 条目 :37/:38+三行注记 :34-36（起草卷 `c3b9c2d2` 落定·并线零触恒等承接）·件③ Dockerfile 零字节（root+web 双零触·裁量维持 `--prod=false`）·件④ 本卷 REQUEST（本节+勘正一行+§8 生效注记+STOP 翻面随卷）。**效果账活证**：`turbo typecheck --force` 全量跑后 `git status --porcelain` **0 行**=「tracked 即恒脏噪音+刀尾手工回滚税」消亡机制兑现（§1-修法效果账①②）。
+
+**序4 门矩阵（并线树亲跑·交付 commit 前本席手跑全绿）**：
+
+| # | 门 | 判据 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|---|
+| 1 | typecheck | 8/8·0 cached | 8 successful, 8 total·Cached: 0（20.97s） | 0 | 绿 |
+| 2 | lint | 0 errors·届树亲数恰等 | root **5235 problems（0 errors, 5235 warnings）**恰等起草基线 pin | 0 | 绿 |
+| 3 | docs:check | 届实跑≤届 cap 2232 | **2222 managed worktree files**≤2232 余 10·净 0 口径兑现=对届 tip 树文件集差恰 +1/−1（+本卷 REQUEST/−`.last-run.json`·`git diff --name-status 23e80b40 HEAD` 恰 4 行机证） | 0 | 绿 |
+| 4 | markers | 改动集五类词+行首冲突标记零命中 | 改动集四路径（本 REQUEST+`.gitignore`+两在盘产物）词表运行时组装直扫 **0 hits**·全树行首冲突标记严格形 EXIT=1 零命中（词面沿 `i6-239-gates.proof.mjs:154` 区口径·不入卷防自指） | 0 | 绿 |
+| 5 | diff 面 | 恰 4 tracked 对届 tip | `git diff --name-status 23e80b40 HEAD` 恰 4=`.gitignore`(M)+本卷 REQUEST(A)+两产物(D)·Ban 面（Dockerfile 两件/compose 族/lockfile/package.json×2/tsconfig.json/i6 脚本/.dockerignore）零字节入 diff 机证 | 0 | 绿 |
+| 6 | i6 容忍臂 | :197 语义不变零触 | blob `339f92f4` 恒等+:197 过滤器/:198 断言词逐字亲证=过滤集只减不增语义不变 | 0 | 绿 |
+| 7 | CI 面双零 | .github/ 九 workflow+码面零消费 | `git grep -n "test-results\|tsbuildinfo\|last-run" -- .github/` 零命中（九 workflow 恰数亲证）+`*.ts/*.mjs/*.js/*.tsx` 码面零命中（两 grep 均 EXIT=1） | 1 | 绿（1=零命中） |
+| 卫生 | frozen-lockfile+est live | lockfile 零改·零外呼 | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·est live=0（七门全本地静态·零模型外呼零容器零 Key 零 secrets）·actualSpendCny=null·零迁移零 DDL 零 env 闸 | 0 | 绿 |
+
+**序5 P2 落卷义务**：「届 tip」混标勘正一行已落 §9-rev.5（05f48933 系 bb321093 之物·rev 期届 tip `7d71a64f` 树实为 `dfab50c4`·EXEC 期届 tip `23e80b40` 重 pin 恒等承接）。
+
+**偏离清单**：理想零——**零偏离**（§1-修法四件契约逐字兑现·§5 Ban/pins 零翻·§3 边界零越·STOP 翻面仅及本 REQUEST 标题行+Status 行+§8+卷尾四处同值·LEDGER/checklist 翻面权归协调方未触[§3-3 承诺兑现]）。停止条件四类逐条判定=①现场漂移**未触发**（序2 重 pin 14 锚全承接·两 blob 漂移系并线携入结论不变）②机制不满足**未触发**（§2-4/§2-9 全绿）③越界需要**未触发**（触面恰 4 tracked 全在授权清单内）④验收红不可修**未触发**（门矩阵全绿）。
+
+**STOP=`executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值翻面=标题行+Status 行+§8+卷尾复述·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·本刀不宣称关闭·批5 盘点 #101 部分 untrack 半面行翻面登记权归协调方 nail[§8-⑤]·⛔push ⛔merge 主线 ⛔force push）**。
+
 ---
 
-*REPO-HYGIENE REQUEST · 2026-10-17 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（三处同值=标题+Status+§8·卷尾复述·pre-exec 双审两外席待派·alone≠dual·⛔push·⛔merge主线） · 起草 base=`feat/mysql-schema-skeleton` @`2c257eb0`（建树时 origin/feat/mysql-schema-skeleton tip·下界「≥`92086586`」`git merge-base --is-ancestor` EXIT=0 亲证·fetch --all 部分成功 ccl 远端不可达如实登记·**落卷前 origin 已被并发席行至 `bf453f49`=本卷基线祖先·漂移登记 §0.2-6**）· 分支 `line/repo-hygiene` · 工作树 `meetwise-rh`（本起草席 `git worktree add` 亲立·建前 branch/worktree/同名卷三查不存在）· 立项出处=协调方派单 brief（批5 盘点 Top9+#101 部分·零前置）+`5e-cleanup-sweep-2-REQUEST.md:39/:67` 归槽呈报承接+issues-master #249 仓外行亲读+authz-harden 卷 #143 挂账承引 · 修法=件① `git rm --cached` 两产物（`cbcc1fba`+`5bf041bc`·工作树保留）+件② `.gitignore` 补 `test-results/`+`*.tsbuildinfo` 恰 2 条目+件③ Dockerfile 裁量零字节（`--prod=false` 维持·`@swc-node/register`/`@swc/core`/`typescript` 三件 devDeps=运行时 `--import` 硬依赖亲证→**prod 依赖完备性=不完备→登记不改**）+件④本卷 · #249（响亮失败有意设计·顺核锚全在位）/（#143 P4 备忘挂账承登）两注记面零码 · CI/码面消费双零命中亲证（`.github/` 零引用+`*.ts/*.mjs/*.js/*.tsx` 零引用）·i6 门 `:197` 容忍臂零触 · 零迁移零 lockfile 零依赖 · 触面=恰 4 tracked 路径 · 起草基线门亲跑全绿（typecheck 8/8 0 cached+lint 5235 恰等+docs:check 2213≤2216+install --frozen-lockfile）· est live=0 · actualSpendCny=null · markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC · ⛔push · ⛔merge主线 · STOP*
+*REPO-HYGIENE REQUEST · 2026-10-17 起草 · 2026-10-17 EXEC 落卷 · **STOP=`executed:awaiting_post_prove_dual`**（EXEC 席翻面·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值=标题+Status+§8·卷尾复述·post-prove 双审两独立外席待派·alone≠dual·⛔push·⛔merge主线） · 起草 base=`feat/mysql-schema-skeleton` @`2c257eb0`（建树时 origin/feat/mysql-schema-skeleton tip·下界「≥`92086586`」`git merge-base --is-ancestor` EXIT=0 亲证·fetch --all 部分成功 ccl 远端不可达如实登记·**落卷前 origin 已被并发席行至 `bf453f49`=本卷基线祖先·漂移登记 §0.2-6**）· 分支 `line/repo-hygiene` · 工作树 `meetwise-rh`（本起草席 `git worktree add` 亲立·建前 branch/worktree/同名卷三查不存在）· 立项出处=协调方派单 brief（批5 盘点 Top9+#101 部分·零前置）+`5e-cleanup-sweep-2-REQUEST.md:39/:67` 归槽呈报承接+issues-master #249 仓外行亲读+authz-harden 卷 #143 挂账承引 · 修法=件① `git rm --cached` 两产物（`cbcc1fba`+`5bf041bc`·工作树保留）+件② `.gitignore` 补 `test-results/`+`*.tsbuildinfo` 恰 2 条目+件③ Dockerfile 裁量零字节（`--prod=false` 维持·`@swc-node/register`/`@swc/core`/`typescript` 三件 devDeps=运行时 `--import` 硬依赖亲证→**prod 依赖完备性=不完备→登记不改**）+件④本卷 · #249（响亮失败有意设计·顺核锚全在位）/（#143 P4 备忘挂账承登）两注记面零码 · CI/码面消费双零命中亲证（`.github/` 零引用+`*.ts/*.mjs/*.js/*.tsx` 零引用）·i6 门 `:197` 容忍臂零触 · 零迁移零 lockfile 零依赖 · 触面=恰 4 tracked 路径 · 起草基线门亲跑全绿（typecheck 8/8 0 cached+lint 5235 恰等+docs:check 2213≤2216+install --frozen-lockfile）· est live=0 · actualSpendCny=null · markers=0（恰符臂协议形承登）· 停止条件四类全设未触发 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC · ⛔push · ⛔merge主线 · STOP*
