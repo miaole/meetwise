@@ -554,3 +554,17 @@
 | #72 | ASR/TTS 不经过 invoke，没有额度预留和成本记账 | AC-F22（语音子项） | 1 | 成立 | 维持 |
 | #210 | 押题分数是伪分（40+20n） | AC-F22（子项） | 1 | 成立 | 维持 |
 | #196、#44、#50 | 隐私最小化在“已同意用途”内也过度收紧（产品权衡） | PF-F-13 | 1 | 部分成立：持久化最小化本身正确，问题在于把运行时推理输入也一并去掉了；结论已并入 #196/#44/#50 | 不单列 |
+
+## 审计 mw-core 一节产品条目关闭注记（2026-10-17·append-only）
+
+> 外部全量审计（基准 `7d71a64`）归属域 mw-core §一「已修可关闭」表 9 条产品审计条目（#N 条目形）经三席独立复核 VERDICT=CONFIRMED（已修）；本节为仓内台账收口注记面——每条一行 append·沿本卷 :532 AG-43 翻面注记先例形·本节外零字节改动。条目本体与逐条全量证据以外审包卷面（`Meetwise全量审计-7d71a64/dispatch/mw-core.md`）为准。
+
+- 【#6 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:218-223 勘误注在位（0001 旧注「下游结算 STUB」矛盾诚实化锚）+ai-docs/architecture/backend/commerce-saga.md:42 已补实节（settleOutbox 消费者 exactly-once 入账+lease 心跳 vs sweep TOCTOU 已修）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#11 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql:731 `REVOKE INSERT, UPDATE, DELETE ON ai_model_invocation FROM app_role` 在位+卷头注 :9-13（DELETE 无请求路径例程·刻意不恢复表级 DELETE 授权）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#21 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:10 勘误注撤「大余数法」（实现实为尾桶吸收差额形）+实现 :205/:258（前 n-1 桶 r2(a.units*ratio) 比例舍入+末桶 r2(settled-distributed)·Σconsume 严格等于权威 settled）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#22 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:218-223 勘误注收口 0001 同文件两注矛盾（outbox 处「下游 STUB」vs ledger 处「非 relay 占位 stub」·与 #6 同注两面）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#48 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/ai-runtime/src/invoke.ts cachedInputTokens 三端点读取（:76 类型位+:481-483 校验+:745 观测+:1045/:1152 结算入参）+packages/db/migrations/0204_ai_cost_cached_input_price.sql cached 价列+apps/worker/src/model-cost-governance.ts:128 `CACHED_INPUT_MICRO_CNY_PER_MILLION` 价读取·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#62 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/jobs/actions.ts:13/:25 路径内插 jobId/appId 统一 encodeURIComponent 全覆盖（#62 勘误注在码）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#64 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/auth-actions.ts:29-35 邮箱格式/密码长度前置校验+`AbortSignal.timeout(10_000)` fetch 超时+:38-40 AUTH_ERROR_COPY 错误码中文文案映射（429 分支在位）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#125 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/report/[id]/page.tsx:18 `LEVEL_LABELS` 五档 contracts 单源（packages/contracts/src/index.ts:711 五档 labels+:717 单源导出）+:356 未知级别中文兜底「未知级别」·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#231 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/components/QuizPanel.tsx:83-87「备战提示」改述（注释自述 UI 派生准备建议·非模型生成真追问·文案同步）+dashboard/quiz 面「可能追问」零残留（grep EXIT=1 亲证）·审计 mw-core 一节 2026-10-17 复核确认关闭】
