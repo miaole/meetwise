@@ -1,6 +1,6 @@
-# READYZ-PRIVACY-WIRE REQUEST — privacy 健康消费接线刀（WSS post P2-1 跟进·量级微·编排面两件一卷零迁移 · 起草席落卷 · **STOP=`draft:awaiting_rev`**）
+# READYZ-PRIVACY-WIRE REQUEST — privacy 健康消费接线刀（WSS post P2-1 跟进·量级微·编排面两件一卷零迁移 · 起草席落卷 · **STOP=`draft:rework`**——rev 席 2026-10-16 复审 REJECTED 回炉翻面·前值 `draft:awaiting_rev` 史录·见 §10）
 
-> 战役 meetwise · 支线 `line/readyz-privacy-wire` · 工作树 `meetwise-rzp` · 起草基线 @origin/feat/mysql-schema-skeleton=`2c257eb0`（派单下界「fetch 后 origin tip≥92086586」以等号成立亲证=`git merge-base --is-ancestor 92086586 origin/feat/mysql-schema-skeleton` 形等号臂实跑 PASS·92086586 系现 tip 直系祖先）· ⛔push ⛔merge 主线（push/翻面权归协调方）。**STOP=`draft:awaiting_rev`**（三处同值·§8 协议）。主仓 worktree 建支线：`git worktree add ../meetwise-rzp -b line/readyz-privacy-wire origin/feat/mysql-schema-skeleton`。
+> 战役 meetwise · 支线 `line/readyz-privacy-wire` · 工作树 `meetwise-rzp` · 起草基线 @origin/feat/mysql-schema-skeleton=`2c257eb0`（派单下界「fetch 后 origin tip≥92086586」以等号成立亲证=`git merge-base --is-ancestor 92086586 origin/feat/mysql-schema-skeleton` 形等号臂实跑 PASS·92086586 系现 tip 直系祖先）· ⛔push ⛔merge 主线（push/翻面权归协调方）。**STOP=`draft:rework`**（rev 席 2026-10-16 回炉翻面·前值 `draft:awaiting_rev` 史录·三处同值·§8 协议+§10）。主仓 worktree 建支线：`git worktree add ../meetwise-rzp -b line/readyz-privacy-wire origin/feat/mysql-schema-skeleton`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief（2026-10-16·WSS post P2-1 跟进·窗口期问题=privacy 域红信号现无自动消费方）；②WSS 载体刀定谳承引（worker-shutdown-seq-REQUEST §1.1 部署注记+§9.4：「`/readyz/privacy` 新端点**零消费方**（新面·无编排面/LB 规则配置消费该端点=观测面落地先行）……后续消费接线**另案不入本刀**」——本刀即该「另案」）；③端点源码注记亲读（`apps/worker/src/main.ts:269`「零消费方部署先行（编排面/LB 接线另案不入本刀）」）。
 
 ## §0 现状锚（窗口期问题全链双向锚·起草席亲读+blob 亲算 @`2c257eb0`·**rev/EXEC 立项照本节对届时 tip 再重 pin——结论不变则只更行号**）
@@ -73,7 +73,7 @@
 
 ## §8 治理（STOP 协议·起草席权限边界）
 
-- 本卷 **STOP=`draft:awaiting_rev`**（三处同值：本节+标题+§0 头注）——起草席权限止于落卷+门矩阵亲跑；rev 席（独立外席·alone≠dual）对 §0 锚重 pin+§1 修法复核+§1.3 否决裁量复审后翻面 `draft:awaiting_coordinator` 或回炉；EXEC 权/翻面权/SSOT 行翻面权/并线权全归协调方（⛔push ⛔merge 主线）。
+- 本卷 **STOP=`draft:rework`**（rev 席 2026-10-16 复审 REJECTED 行使 §8 回炉臂翻面·前值 `draft:awaiting_rev` 史录·三处同值：本节+标题+§0 头注）——起草席权限止于落卷+门矩阵亲跑；rev 席（独立外席·alone≠dual）对 §0 锚重 pin+§1 修法复核+§1.3 否决裁量复审后翻面 `draft:awaiting_coordinator` 或回炉；EXEC 权/翻面权/SSOT 行翻面权/并线权全归协调方（⛔push ⛔merge 主线）。
 - rev 审点建议（不约束）：①90s 静默窗与 30s 拍值裁量；②Ticket severity 分层裁量（合规面拔 Page 的可能）；③HA 覆写最小面 vs 全块重述取形；④§1.3-⑤ 零 depends_on 裁决追认。
 - 前瞻耦合注记（随卷·处置归后继刀/协调方裁）：S15 买云 Prometheus 常驻化后，metrics 面收编（privacy gauge+规则）可另刀评估，本探针届时可退役或降级双轨；LB/编排面若引入分域路由语义，本探针消费面随之收敛。
 
@@ -82,3 +82,34 @@
 1. 门 3（actionlint）与门 6 邻面（ha6-companion）基线红承登如实登记：clean 树与本卷树红形逐行恒等亲证在卷，非本刀引入、非本刀可修（修=越界扩面）。
 2. `event-catalog.json` 首插以整文件重写试验致全文件重排 diff（97+/13-），即弃改走锚点外科 append（终形恰 8 行+·compact 单行 matcher 风格保持·终 diff 已验）；试验中间形未入任何 commit。
 3. proof 墙钟：本卷零 TS proof 触面（worktree 未装依赖·零产品码改动使 prove 面失义）——门矩阵以静态/渲染/lint 门全替代，rev 席如需 obs-ready 等既有 proof 复归可独立 `pnpm install` 后亲跑（预期与基线恒等·零本刀变量）。
+
+## §10 REV 复审注记（rev 席独立外席 · 2026-10-16 · VERDICT=REJECTED → 回炉）
+
+> 独立重 pin+四维复核在卷。件②（目录+runbook+判定器零改）与门矩阵全数复核通过；件① 探针形制九要素（BACKEND_IMAGE 摘要 pin 同契约第四处复用/node -e 探环/30s 拍/AbortSignal.timeout(10000) 有界/结构化红行/tmpfs 心跳+自身 healthcheck 120s/`*container-runtime-security` 全锚/64m/零 depends_on）经 `docker compose config --format json` rendered 模型逐一亲证成立；HA 覆写与 RX-1 语义成立；拉闸形否决机证成立（worker 三 healthcheck test 行 @`2c257eb0` vs @HEAD 逐字节恒等）——**唯 §1.1 声称的「90s 起步静默窗」未实现：`docker/compose.prod.yml:397` 探环 `const W=Date.now()+90000` 系死变量（全命令恰 1 次出现=声明即终结·tick 体零引用·本席本地直跑行为实证：t≈0（窗内）即发 `readyz_privacy_degraded` unreachable 红行·心跳写正常）**。四文面（compose 注记/runbook §3.13 两处/本卷 §1.1+§1.3-⑤）声称未落地行为=必返工（R1）。
+
+### 10.1 §0 锚届树重 pin（rev 席亲算）
+
+- 起草席 §0.1 八锚 @`2c257eb0` **全数属实**（73462150/42a34908/a5ed797e/ad4a7d12/d5e8ff2b/63f21787/75d6b69a/7ce87b89+monitoring 三件逐一亲算同值）。
+- 届树 @`434313c6`：触面四件新 blob=`b59b5031`(prod)/`b3535ce8`(ha)/`d1cea85c`(catalog)/`ba3bb613`(runbook)；**零字节 Ban 四件组届树恒等**（main.ts `d5e8ff2b`+check-alerts `63f21787`+alerts-lint `75d6b69a`+compose.monitoring `7ce87b89`+monitoring 三件 base=HEAD 同 blob）=Ban 兑现机证。
+
+### 10.2 门矩阵复跑（届树实测·≥4 达成实为六门组）
+
+- 门1 四臂全绿复跑：validate-prod-compose EXIT=0；deploy-check EXIT=0（204 迁移面）；合并渲染 EXIT=0（85+1 stub ha6 同口径）+rev 自建 rendered-JSON 断言（watchdog 在·targets=`worker-a:9091,worker-b:9091` 覆写生效·`depends_on: null`·mem=67108864·read_only/cap_drop ALL/no-new-privileges/tmpfs `/tmp:rw,noexec,nosuid,nodev,size=64m` 全在·profiles 缺省=HA 亦起·RX-1 原 api/worker/web 渲染缺席）+prod 单渲染 targets=`worker:9091` 且 worker 在。
+- 门2 alerts:lint EXIT=0 复跑（24 规则+目录 13+runbook 锚 13）。门3 actionlint 复跑 EXIT=1 恰 28 行=卷载基线红恒等（diff 零 `.github` 触面 grep 机证）。门4 markers 复跑 0/0。门5 docs:check EXIT=0 复跑（scanned 2214≤cap 2216·余 2 属实）。
+- 门6 diff 恰 5 tracked +140/−1 复跑（numstat 84/11/9/28/8）+零产品码零 lockfile 机证；ha6-companion 复跑 EXIT=1 唯一 FAIL=principal.ts:946 且 `packages/db/src/principal.ts` blob base=HEAD=`23e5b770` 恒等=既存基线红承登属实非本刀。
+
+### 10.3 残余清单（回炉修订指令·按优先级）
+
+- **R1（P1·必返工·两自洽修法取一）**：`docker/compose.prod.yml:397` 90s 静默窗死变量。影响面推演：探针零 depends_on 与 migrate/worker 同拍 up→首拍（`tick()` 立即）起每 30s 发 `{"event":"readyz_privacy_degraded",…,error:"unreachable"}`→目录 Ticket→check-alerts fail-closed（`check-alerts.mjs:400-401` openPageTicket 含 Ticket→EXIT=1）24h 日志窗内持续开闸=每次部署/重启必产开告警；且 runbook §3.13「90s 起步静默窗已滤起步期」「worker 宕>90s 的持续红属真信号」与实测行为不符误导响应人。修法 (a)（rev 推荐）：`docker/compose.prod.yml:397` 两处 `console.error` 加 `Date.now()>=W` 谓词（心跳写保持无条件）一行级改=全卷面声称即真；或修法 (b)：如实降级——compose 注记+runbook §3.13 两处+本卷 §1.1/§1.3-⑤ 静默窗声称删改（§1.3-⑤ 零 depends_on 裁量单凭「HA 合并残留依赖键指向被停 service」独立成立不受损）。
+- **R2（P2·登记）**：`privacy_watchdog_misconfigured` 事件（targets 空×exit 1）不在目录=无 matcher 消费，误配置仅 compose ps/重启环可见——补目录或本卷一句话登记裁量均可，勿悬空。
+- **R3（P2·登记）**：node:22 常驻进程（fetch/undici 基线 RSS≈40-55MB）64m 为可行但紧值；OOM-kill 有 restart+心跳 healthcheck 兜底（lb 64m 先例系 nginx 非同负载形）——首 live 观察内存。
+- **R4（P3·勘误）**：runbook §3.13 末尾 §4 前双空行（+11 行含尾部 2 空行形）——回炉顺手收一。
+
+### 10.4 rev 裁决与再送 rev 通道
+
+- STOP 翻面行使 §8「回炉」臂：`draft:awaiting_rev`→**`draft:rework`**（三处同值已翻·前值史录）。**不翻 `draft:awaiting_pre_exec_dual`**。
+- 再送 rev 通道：取 R1 修法 (a) 形（仅 `compose.prod.yml:397` 单行级 diff）则本席已核面零需重审——回炉席补跑门1 compose 渲染臂+门4 markers+门5 docs:check 即可再送 rev，rev 仅复扫 R1 新 diff+复跑同三门；取 (b) 形则文面三处同步改后全门矩阵复跑再送。
+- 复核确认面（零需重审）：判定器零改 blob 恒等+目录驱动消费机制亲证（`collectLogs` 全 service `compose logs` 扫描+`matcherHits` json field/value 比对）；事件目录 +8 行 12→13、`source: docker/compose.prod.yml:394` 行号亲证（=service 键行）；runbook §3.13 锚/计数十二→十三无误；§0.2 全部行号锚逐一亲证属实（ha :170/:196/:261/:325·prod :263/:327-328/:344/:377·ha lb :361 /livez·main.ts:266-274/:780 fail-open `?? true` 与 `privacyReady` 组合根）。
+- rev 形 commit 落卷·⛔push ⛔merge 主线 ⛔产品码零触（本注记仅触本 REQUEST 单文件）。
+
+*—— §10 完 · rev 席 · 2026-10-16*
