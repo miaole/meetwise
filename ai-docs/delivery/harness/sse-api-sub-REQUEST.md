@@ -1,0 +1,87 @@
+# SSE-API 子刀 REQUEST（批5 盘点 Top8 两件一卷·服务端 LISTEN 唤醒+客户端看门狗·零迁移·STOP=`draft:awaiting_pre_exec_dual`）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 QUEUE-CLOSEOUT 先例「自述三处」形制·pre-exec 双审 BOTH PASS 后翻面权归协调方·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。
+
+**席位**：meetwise 战役「SSE-API 子刀」起草席（协调方派单令·批5 盘点席 Top8 两件一卷·同域两件=服务端唤醒+客户端看门狗·量级微·⛔push·⛔merge 主线）。
+
+**立项出处（不自建 SSOT 行——行翻面权沿例归协调方）**：①批5 盘点席 Top8 派单令原文=「#139 健康通道下兜底 30s·LISTEN 掉线不唤醒·NOTIFY 丢失无补发」+「#58 web 客户端无心跳/空闲看门狗·半开 TCP 下 for await 永久挂起——同域两件（服务端唤醒+客户端看门狗）」（本席承令起草）；②issues-master #139/#58 行原文仓外（`issues-master.md` 本机外部件·不入仓·沿 SOP `:3` 基线注记与 QUEUE-CLOSEOUT #117 行同款登记·不阻起草）；③在树承引双锚=`harness/extreview-fix-campaign-SOP.md` `:40`「SSE-RESILIENCE：#53-56 重连/草稿/误降级/状态码分支/**#58 看门狗**/#127/**#139**/#184（与 TOKSTREAM S4d 面交叠——S4d 先行，本刀补 S4d 未覆盖面）」原文（本席亲读）+`harness/product-campaign-LEDGER.md` `:87` 5C 组行「**#139 多实例（留 5C-SSE-API 子刀）**」原文（本席亲读=本刀即被留之刃）；④目标规格=`requirements/use-cases/frontend-ux.md` `:282-305` UC-FE-BGTAB-001「后台标签页节流下的断线看门狗」（hidden 放宽阈值/暂停误判+单调时钟非 wall-clock+visible 不盲目重连·` :299` 刁钻项=时钟漂移/定时器节流致看门狗误判）；⑤机制蓝本=`apps/worker` job-wakeup-listener（`sse-notify.service.ts` `:19` docstring「生命周期蓝本 = apps/worker job-wakeup-listener(只复制不共享:**Ban 碰 worker wakeup 通道本体**)」原文）。
+
+## §0 锚表（blob 级·对 base=origin/feat/mysql-schema-skeleton@`2c257eb0` 树亲 pin）
+
+| # | 文件 | blob（@2c257eb0） | 行数 | 挂点/判读 |
+|---|------|------------------|------|----------|
+| 1 | `apps/api/src/platform/sse-notify.service.ts` | `dfda3b82` | 420L | `:19-26` 蓝本注记+单例纪律（禁每 SSE 一条 LISTEN）；`:127-128` 退避钉值 base=100ms/max=5s；`:150/:162-164` `state`/`health()`（同步读·pump 每循环迭代读一次）；`:322-323` `onClientError`/`onClientEnd`（掉线侦测=**仅 error/end 两事件**）；`:325-332` `loseClient`（degrade+scheduleReconnect+wakeAllWaiters 三连）；`:335-337` `wakeAllWaiters`（掉线即跨流全醒）；`:354-403` `establish`（LISTEN×3 通道+0143 trigger 实证 `:382-390`+healthy 翻面 `:391`）——**establish 成功后零活性探针=件A 修法面**（半开 TCP 下 error/end 皆不触发·state 停留 healthy·NOTIFY 静默全丢零检测） |
+| 2 | `apps/api/src/platform/sse-pump.ts` | `21f52b34` | 208L | `:70` `HEALTHY_FALLBACK_MS = 30_000`（**件A 现值锚**·派单令「健康通道下兜底 30s」现形）；`:71` `DEGRADED_POLL_MS = 2_000`；`:171-174` 每循环同步读 `health()` 选臂；`:177` 兜底 timer；`:195` `fetchMore(lastSeq)`（**NOTIFY 序号补发既有载体**·seq>lastSeq 权威取数）；`:199` `: ping\n\n` 心跳载体（健康 30s/退化 2s cadence·仅唤醒后无事件拍发）——本刀零触本文件 |
+| 3 | `apps/api/test/sse-push-notify.proof.ts` | `c0be2680` | 792L | P-1..P-5+BP-1..4 判别面在树（`:30-38` P-2c LISTEN 断连退避重连 100ms→5s 读数臂·`:16-17` P-3 close 即醒「健康态不滞留 30s」）=件A 门矩阵主邻面+探针臂语义对照面（本刀零触·回归门） |
+| 4 | `apps/web/lib/stream/interview-stream.ts` | `b7556220` | 210L | `:102` `opts.open(lastEventId, signal)`；`:105` `for await (const chunk of stream)`（**件B 挂起面锚**·半开 TCP 下永久 pending）；`:109-112` sawTraffic/traffic 面（任意字节含 `: ping` 即重置失败预算=看门狗逐 chunk 重置的既有缝）；`:87-92` doze（resume 唤醒只作用于退避等待·对 for await 挂死无效）；`:138-177` catch 分类链+`:196-205` 失败预算/退避/Last-Event-ID 重连（**看门狗超时落点=既有传输错路径零新重连语义**） |
+| 5 | `apps/web/lib/stream/sse-cursor.ts` | `b7ffd40d` | 143L | `:114-125` `iterateSseBody`（`:117` `getReader`·`:120` `await reader.read()`=半开 TCP 永久 pending 的底层挂起点）；本刀零触（取消经 fetch signal 传播至 reader） |
+| 6 | `apps/web/lib/stream/backoff.ts` | `6fc223b5` | 49L | `:17-23` `ResumeSignals` 接口（onOnline/onVisible/onRetry·三驱动共用单源）；`:31-35` 生产钉值族（CLEAN_END_RECONNECT_MS=1_000/SSE_BACKOFF_BASE_MS=500/SSE_BACKOFF_CAP_MS=30_000）=**件B 新钉值 `SSE_IDLE_WATCHDOG_MS` 单源落点**+`onHidden` 可选接口扩位 |
+| 7 | `apps/web/lib/hooks/useInterviewStream.ts` | `337a5a16` | 82L | `:31-46` `browserResumeSignals`（visibilitychange 已监听 visible 面·SSR 守卫·「三 hooks 共用(同构面单源)」注记）=件B `onHidden` 浏览器实现落点（hidden 臂同监听器补半·quiz/diagnosis hooks 零触即得） |
+| 8 | `apps/web/lib/stream/quiz-stream.ts` | `ea37ed8f` | 157L | `:87`/`:89` 同形 open/for await 挂起面（**§1.3 扩族否决锚**·登记归后继） |
+| 9 | `apps/web/lib/stream/diagnosis-stream.ts` | `ad4a344d` | 157L | `:87`/`:89` 同形（**§1.3 扩族否决锚**·登记归后继） |
+| 10 | `apps/web/test/web-logic.proof.ts` | `a1548212` | 1990L | web 驱动回归门面（`:1307` iterateInterviewSseBody 消费面在树）——本刀零触（看门狗判别臂落**新 proof 文件**·本文件只作回归门零 hunk 触） |
+| 11 | `apps/worker/src/job-wakeup-listener.ts` | `fc18131d` | 157L | LISTEN 生命周期蓝本（`:28-29` 同款 100ms/5s 退避·`:92-122` establish 形）——本刀零触（**Ban 碰 worker wakeup 通道本体**·`sse-notify.service.ts:19` 原文） |
+| 12 | `ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` | `eae68fe2` | 99L | `:40` SSE-RESILIENCE 行（#58 看门狗/#139 原文承引·翻面行使同拍面·本刀零触） |
+| 13 | `ai-docs/delivery/harness/product-campaign-LEDGER.md` | `ca8ab0d4` | 660L | `:87` 5C 组行「#139 多实例（留 5C-SSE-API 子刀）」（本刀立项在册锚·翻面笔落点·**本刀零触**） |
+| 14 | `ai-docs/requirements/use-cases/frontend-ux.md` | `9a06b7b4` | 1038L | `:282-305` UC-FE-BGTAB-001 看门狗目标规格（`:284-287` 主流程 hidden 放宽/visible 校正续读·`:297` 刁钻=单调时钟非 wall-clock·`:303-305` 验收两臂）=件B 语义对表 |
+| 15 | `apps/api/package.json` | `266e64b8` | 119L | `:72-74` prove:sse-slot/s4b-delta-arm 门脚本在树=件A 新门 `prove:sse-listen-probe` script 行落点 |
+| 16 | `apps/web/package.json` | `30723cd4` | 67L | `:8` `prove` 门脚本在树=件B 新门 `prove:sse-idle-watchdog` script 行落点 |
+
+## §0.0 在飞扫描（2026-10-16 起草时点·base `2c257eb0`）
+
+全本地 `line/*`（240 枝）对 base 触面扫描（`git diff --name-only 2c257eb0...line/<b>` 逐枝跑·锚文件族=sse-notify/sse-pump/sse-push-notify.proof/interview-stream/sse-cursor/backoff/useInterviewStream/quiz-stream/diagnosis-stream/web-logic.proof/job-wakeup-listener）：实触三枝——①`line/errmsg-map`、②`line/model-token-stream` 各触 `apps/web/test/web-logic.proof.ts`（proof 面邻接）——本刀对 web-logic.proof.ts **零 hunk 触**（判别臂落新文件 `apps/web/test/sse-idle-watchdog.proof.ts`）→ 零交叠；③`line/sse-notify-push` 触 sse-notify/sse-pump/sse-push-notify.proof 三锚——该枝 tip `49535514` 系 SSE-PUSH nail 波旧形（早 base 7 日·`git cherry` 判 base 已含等价补丁面·沿 uc184-slot-order EXEC bd107773 交叠重扫先例「纯落后零前瞻」登记）→ 零前瞻交叠。并线序自由先并则重 pin 非停（ag20/sse-api-family/QUEUE-CLOSEOUT 先例同形）。
+
+## §1 修法（两件一卷·量级微·零迁移）
+
+**件A（服务端唤醒·#139·LISTEN 活性探针补半开盲区）**：`sse-notify.service.ts` 单文件加**连接级活性看门狗**——`establish` 成功（`:391` healthy 翻面）后挂周期探针 timer（options 增 `probeIntervalMs` 注入缝·缺省常量 `LISTEN_PROBE_MS = 10_000`；proof 确定性注入小值），到期对 `active` client 发 `SELECT 1`（探针在 service 层 timer·**通知回调内零 SQL 纪律零破**——`:21`/:294 纪律管 notify 回调·探针非回调路径）；探针失败/超时 → 走**既有** `loseClient('listen_down')`（`:325-332`）——degrade 结构化日志+`scheduleReconnect` 退避（`:127-128` 钉值 100ms→5s cap **零改**·「掉线快速重连」现值亲证在树即满足）+`wakeAllWaiters`（`:335-337` 掉线即跨流全醒）三链全复用零新语义；重连成功重挂探针；`stop()`（`:223-238`）清探针 timer。语义定谳（本席亲读三面）：⑴**半开盲区现形**——掉线侦测面=仅 `:322-323` error/end 两事件，半开 TCP（NAT 超时/拔线无 FIN/RST）下两事件皆不触发 → `state` 停留 healthy（`:391` 后无任何翻转路径）→ pump 每循环读 `health()===true`（sse-pump `:172`）恒走 30s 兜底臂 → NOTIFY 静默全丢且**零检测无上界**（LISTEN 连接假健康挂死至进程终）；探针补齐后检测窗 ≤10s+重连 ≤5s → health 翻 false → pump 即回落 2s cadence+补偿拉取高频化。⑵**NOTIFY 序号补发定谳=既有面零新码**——notify 系 lossy hint（`:21-22` docstring「误醒空手 ping、漏醒由兜底收」原文），补发载体=pump `:195` `fetchMore(lastSeq)`（seq>lastSeq 权威取数·Last-Event-ID 重放同形 sse-pump `:24-25`）+掉线即醒立即补偿（`wakeAllWaiters`→被醒泵循环头 fetchMore）——「沿 event seq 补发」**已由既有臂承担**，本刀不改 NOTIFY 载荷/零触 0143 trigger（迁移面 Ban）；探针的净效果=把「seq 补偿 cadence」从半开窗下退化 30s 收敛回 2s。⑶**「健康通道下兜底 30s」现值维持**——30s 系 SSE-PUSH nail 协调方钉值（sse-pump `:60`「fallbackMsHealthy(生产钉 30s)」+sse-push-notify.proof `:25`「healthy fallback = 30s pinned in source」），系 lossy-hint 最终一致窗非缺陷面；半开害处由探针闭合非由下调兜底值（§1.3-4）。**判别臂**（新 proof `apps/api/test/sse-listen-probe.proof.ts`·假 connect/query 缝零库形·沿 job-wakeup-listener.proof 测试缝同构）：臂1 半开假件（LISTEN 后 query 永久 pending）→ 断言 probeIntervalMs 到点后 `health()` 翻 false+降级日志一行（`SSE_NOTIFY_DEGRADED reason=listen_down`）+在册等待者全醒（`waitingCount()→0`）；臂2 健康假件（query 即返）→ 恒 healthy 零误降零降级日志；臂3 探针失败后按退避重连成功 → healthy 复位+探针重挂；臂4 `stop()` 后探针 timer 清零（unref 面）。改前红论证=现码对臂1 恒 healthy 永不翻转（零探针路径）→ 断言 FAIL；改后绿。
+
+**件B（客户端看门狗·#58·空闲超时断开重连）**：`interview-stream.ts` 驱动内加**连接级空闲看门狗**（框架无关·可注入单测）——每连接建 connAc（AbortController·`opts.signal` abort 链入·卸载语义原值 `:96`/`:106`）；`opts.open` 传 `connAc.signal`（`StreamOpener` 签名 `(lastEventId, signal)` **零改**——真 fetch 流 abort 即传播至 `sse-cursor.ts:120` `reader.read()` reject）；迭代面挂逐 chunk 空闲计时（race 形·每 chunk 含 `: ping` 即重置——复用 `:109-112` 既有 traffic 缝语义）；超时（钉值 `SSE_IDLE_WATCHDOG_MS = 45_000` 单源 `backoff.ts`·**> 服务端健康静默上界 30s**（sse-pump `:70`）+一拍 jitter 余量·`opts.idleTimeoutMs` 注入缝）→ connAc.abort()+迭代以 `sse_idle_watchdog` 错抛出 → 落**既有**传输错失败预算路径（`:138` catch→`:196-205` 退避+Last-Event-ID 凭 seq>lastId 重连）——**零新重连语义**（半开挂死从「永久」收敛为「≤45s 一拍重连」）。**后台标签护栏**（UC-FE-BGTAB-001 `:284-287`/`:297` 刁钻面对表）：`ResumeSignals` 增**可选** `onHidden(cb): () => void`（`backoff.ts` 单源·缺省 no-op——quiz/diagnosis 驱动零触零破）；`browserResumeSignals`（useInterviewStream.ts `:31-46`）于既有 visibilitychange 监听器补 hidden 臂（三 hooks 共用面零扩连接）；驱动 hidden 态**暂停看门狗判定**（单调时钟 performance.now 口径非 wall-clock·`:297` 时钟漂移/节流误判防御）、visible 恢复+立即判定一次（`:287`「不盲目重连：先凭 Last-Event-ID 校正/续读」=重连仍走既有路径非额外拨号）。语义定谳（本席亲读两面）：⑴**心跳帧定谳=服务端半已在树**——`: ping` 载体 sse-pump `:199`（健康 30s/退化 2s cadence·客户端 `:111` 收到任意字节已重置失败预算）——缺的是客户端「静默判定+超时断开」看门狗半，本刀只补客户端，服务端心跳零改。⑵**resumeSignals 救不了挂死**——`:87-92` doze 唤醒柄只作用于退避等待（`:205`），for await 挂死中驱动到不了 doze → visible/online 信号空转 → 看门狗是挂死唯一出口（派单令「永久挂起」现形锚）。**判别臂**（新 proof `apps/web/test/sse-idle-watchdog.proof.ts`·假 open 流零网络形）：臂1 半开假流（永不 yield 不 error）+注入 `idleTimeoutMs` 小值 → 断言超时后驱动进入重连（attempts 前进+重连 open 携 lastEventId 续读）；臂2 `onHidden` 假件下超时**不**触发（hidden 暂停·断言 reconnect 调用次数=0=UC-FE-BGTAB-001 `:303` 验收臂）；臂3 正常 chunk 流（含 `: ping` 字节）零误断；臂4 `opts.signal` abort 恒优先（看门狗不抢卸载语义）；臂5 超时后底层 connAc 已 abort（真流取消面·假件记录 abort 调用）。改前红论证=现码对臂1 永久挂死（for await 无出口）→ 断言超时 FAIL；改后绿。
+
+## §1.3 否决（候选在卷）
+
+1. **SSE 全面重构否决**（派单令点名）：EventSource 换轨/自研帧协议/服务端推全量重构超「同域两件微刀」量级——既有 SSE-RESILIENCE 四刀（#53-56 重连/草稿/误降级/状态码分支）+SSE-PUSH nail（LISTEN/NOTIFY 通道健康分级）+TOKSTREAM S4b delta 臂六刀面已落主线且 proof 矩阵成熟（sse-push 35 臂/delta 21 臂/uc010 13 臂在树），重构= wash 六刀既有面零净收益。
+2. **WebSocket 改造否决**（派单令点名）：同上+三重改写面——Next 同源代理（`route.ts` force-dynamic 透传 ReadableStream 形已过审 P0 鉴权修）、Last-Event-ID 游标语义、10min deadline 轮换——WS 升级路径全数重写且丢 HTTP 语义天然穿透代理层；两件缺陷（半开盲区/客户端挂死）均可在现 SSE 形内以微刀闭合。
+3. **扩族否决**：quiz-stream.ts `:89`/diagnosis-stream.ts `:89` 同形挂起面的看门狗补齐登记归后继（本刀只钉 interview 驱动——沿 SSE-RESILIENCE「#243 audit scope = interview stream」同口径·`sse-cursor.ts:130` 注记原文）；服务端件A 因三控制器共用 sse-pump/sse-notify 单例而天然全族覆盖，客户端件B 不随修（每件独立可停·单刀可裁不做）。
+4. **30s 兜底值下调否决**：HEALTHY_FALLBACK_MS=30_000 系 SSE-PUSH nail 协调方生产钉值（sse-push-notify.proof `:25`「30s pinned in source」在卷）——每降一档=全量空闲流 fetchMore SQL 频次线性上涨，且半开害处真根=LISTEN 假健康非兜底值本身（探针闭合后 30s 窗回归「lossy-hint 最终一致窗」设计位）；下调归协调方另裁，本刀零触 sse-pump.ts。
+5. **NOTIFY 载荷改形/0143 trigger 改否决**：沿 event seq 补发已由 pump `:195` fetchMore 既有臂承担（件A 定谳⑵）——改 NOTIFY 载荷携 seq/trigger 本体=迁移面+全族联动，零补发净收益（补发语义=重放取数非重推通知）。
+
+## §2 门矩阵（EXEC 期逐门亲跑·红停）
+
+| 门 | 门名 | 判据 |
+|----|------|------|
+| G1 | prove:sse-push-notify | `pnpm sse-push:notify:prove`（隔离 runner+收据·raw=`run-e2e-isolated.mjs sse-push:notify:prove:raw`）EXIT=0 恰等基线 35 臂（P-1..P-5+BP 族零翻——件A 探针为 additive·健康路径 establish 形零改则零波及） |
+| G2 | prove:sse-listen-probe | `pnpm -C apps/api prove:sse-listen-probe` EXIT=0（本刀新门·§1-件A 判别臂 4 臂全 PASS；改前红取证=stash `sse-notify.service.ts` 单文件跑臂1 FAIL 后恢复复跑绿·沿 QUEUE-CLOSEOUT 判别臂双向先例） |
+| G3 | prove:sse-slot | `pnpm -C apps/api prove:sse-slot` EXIT=0（退化面回归——sse-principal-slot 自建 module 零 provider 形零波及） |
+| G4 | prove:s4b-delta-arm | `pnpm -C apps/api prove:s4b-delta-arm` EXIT=0 恰等基线 21 臂（delta 臂邻面零翻） |
+| G5 | uc010:sse-resume:prove | `pnpm uc010:sse-resume:prove` EXIT=0 恰等基线 13 臂（Last-Event-ID resume 语义零改面亲证） |
+| G6 | prove:sse-idle-watchdog | `pnpm -C apps/web prove:sse-idle-watchdog` EXIT=0（本刀新门·§1-件B 判别臂 5 臂全 PASS；改前红=stash `interview-stream.ts` 跑臂1 挂死/FAIL 取证） |
+| G7 | web prove | `pnpm -C apps/web prove` EXIT=0（web-logic 既有臂零翻——interview-stream 驱动既有语义回归面·`:1307` 消费面在树） |
+| G8 | neg:interview | `pnpm neg:interview` EXIT=0 恰等基线（本刀零控制器触·api 零语义外溢面对届时实跑值亲证） |
+| G9 | typecheck | `pnpm turbo typecheck --force` EXIT=0 8/8 包全绿 |
+| G10 | lint | 五值贴边恰等届时基线零新警告（参考值=uc184 EXEC bd107773 时点 root 5235/web 601/api 1421/worker 954/ai-runtime 628·EXEC 树亲测重 pin） |
+| G11 | docs:check | `node scripts/ai-docs/check-docs.mjs` EXIT=0 且 scanned ≤届 cap 2216（起草时点实测 2213·+本卷 1=2214 预期·余 2；并线携入另计随 cap sanction 谱系重 pin） |
+| G12 | markers | 改动集五类标记词+行首冲突标记零命中 **0/0**（词面运行时组装防自指·`scripts/i6-239-gates.proof.mjs:151-163` 同源） |
+| G13 | diff 面 | 恰 9 tracked：`sse-notify.service.ts`（探针）+`interview-stream.ts`（看门狗）+`backoff.ts`（钉值+onHidden 接口）+`useInterviewStream.ts`（hidden 臂实现）+`apps/api/package.json`+`apps/web/package.json`（各 1 script 行）+两新 proof 文件+本卷 `.md`；零迁移·零 tsbuildinfo 入卷·web-logic.proof.ts/sse-push-notify.proof.ts/sse-pump.ts/sse-cursor.ts 零字节触 |
+
+## §3 边界
+
+触面=§1 两件恰 4 src/4 门装（package.json×2）+2 新 proof+本卷 1 `.md`；sse-pump.ts 零触（件A 只动 service 探针·health() 语义原值·pump/三控制器零改）·0143 trigger 与 migrations 全目录零触·worker 零触（job-wakeup-listener 蓝本只读 Ban 碰本体）·quiz/diagnosis 驱动零触（扩族否决 §1.3-3）·控制器零触·Next 代理 route.ts 零触；消费侧重连语义零新增（件B 超时落既有传输错路径）；每件独立可停（单件法则——件A/件B 机制正交：进程内 LISTEN 池 vs 浏览器驱动循环）。
+
+## §5 pins 十一值（照抄承登·EXEC/post 零翻）
+
+haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · 脚注 actualSpendCny=null。
+
+**Ban**：Ban 碰 worker wakeup 通道本体（`sse-notify.service.ts:19` 原文）·Ban 触 SSOT 行本体（LEDGER/checklist/SOP/issues 零字节改·#139/#58 行翻面权归协调方）·Ban 触 0143 trigger/NOTIFY 载荷（迁移面）·Ban 触 sse-pump.ts/HEALTHY_FALLBACK_MS 钉值 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · Ban 预支裁决（本刀零新裁决项）·Ban 扩族（quiz/diagnosis 驱动）·Ban 迁移面 · ⛔push · ⛔merge 主线 · ⛔force push · ⛔pull --rebase。
+
+## §7 起草自检回执（本席亲跑）
+
+- markers：本卷改动集（本卷 1 `.md`）五类词面运行时组装直扫=0 命中+全树行首冲突标记零命中（回执随 commit 叙词）。
+- docs:check：起草时点本席亲跑 EXIT=0，scanned 2213 ≤cap 2216（余 3）；落卷后预期 2214（+本卷 1·余 2）。
+- 基线：base=origin/feat/mysql-schema-skeleton@`2c257eb0`（fetch 后亲证 origin tip=`2c257eb0`·**tip≥92086586 等号成立**（`92086586` 系该线下游 fixture 承诺·`merge-base --is-ancestor` EXIT=0 亲证））；支线 `line/sse-api-sub`·工作树 `meetwise-sse2`（主仓 `git worktree add ../meetwise-sse2 -b line/sse-api-sub origin/feat/mysql-schema-skeleton` 本席亲立·直接落 origin tip 零 reset·upstream 已 unset 防误推）。
+- est live=0（起草 docs-only·零容器零外呼零模型调用）·actualSpendCny=null。
+
+## §8 停止条件 + STOP
+
+**停止条件四类**：①单件法则=件A（服务端探针）/件B（客户端看门狗）机制独立，单件机制不满足可停单件余件继续（两件同卷不同进程域·互不阻塞）；②卷级门红全卷停（§2 任一门 EXEC 期红且非基线既红）；③现场漂移（锚漂超 ±3 且结论受影响·LEDGER `:87`「留 5C-SSE-API 子刀」登记被他刀先行行使→本刀立项锚作废如实改登）停手上报；④STOP 状态翻面权=pre-exec 双审 BOTH PASS 后归协调方（EXEC 授权随派单令）。
+
+**STOP · `draft:awaiting_pre_exec_dual`**（三处锚定=①卷头标题行+②Status 行+③本节·翻面授权=pre-exec 双审 BOTH PASS 后随协调方 EXEC 派单令·沿 QUEUE-CLOSEOUT 三处锚定制·翻面时 EXEC 卷尾 §9 落门矩阵全表）。开工三条款：①pre-exec 双审 BOTH PASS（两独立外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项·#117 式翻面笔无）。双审前零 EXEC 零落码·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。
