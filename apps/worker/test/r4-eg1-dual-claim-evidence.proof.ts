@@ -97,8 +97,11 @@ if (result.emitted) {
 }
 
 section('E3 hard pins');
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('E3 ≠ claim EG1 closed from emit alone', true);
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('E3 ≠ idle 5×meta as close', true);
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('E3 Ban forge · Ban G-R4-5/R4/题域 closed', true);
 
 console.log(

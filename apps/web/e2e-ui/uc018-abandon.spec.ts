@@ -19,7 +19,8 @@ const PASSWORD = 'strongpw123';
 
 async function tokenOf(context: BrowserContext): Promise<string> {
   const token = (await context.cookies()).find((c) => c.name === 'mw_token')?.value;
-  expect(token, '注册后 browser httpOnly cookie 中应存在 Bearer token').toBeTruthy();
+  expect(typeof token, '注册后 browser httpOnly cookie 中应存在 Bearer token（string 类型钉）').toBe('string');
+  expect(token?.length ?? 0, 'Bearer token 非空串').toBeGreaterThan(0);
   return token!;
 }
 
@@ -63,7 +64,8 @@ async function primaryResumeId(request: APIRequestContext, token: string): Promi
   const body = (await res.json()) as { resumes?: Array<{ id: string; status?: string }> };
   const list = body.resumes ?? [];
   const ready = list.find((r) => r.status === 'ingested') ?? list[0];
-  expect(ready?.id, '至少一份可用简历').toBeTruthy();
+  expect(typeof ready?.id, '至少一份可用简历（id string 类型钉）').toBe('string');
+  expect(ready?.id?.length ?? 0, '简历 id 非空串').toBeGreaterThan(0);
   return ready!.id;
 }
 
@@ -107,7 +109,8 @@ test('UC018-UI-abandon: in-interview 放弃 → abandoned+released · irreversib
   expect(created.status()).toBeLessThan(300);
   const createdBody = (await created.json()) as { interviewId?: string; id?: string };
   const interviewId = createdBody.interviewId ?? createdBody.id;
-  expect(interviewId, 'create → interviewId').toBeTruthy();
+  expect(typeof interviewId, 'create → interviewId（string 类型钉）').toBe('string');
+  expect(interviewId?.length ?? 0, 'interviewId 非空串').toBeGreaterThan(0);
 
   const begin = await request.post(`${API}/interview/${encodeURIComponent(interviewId!)}/begin`, {
     headers: {
