@@ -38,6 +38,7 @@ jobs:
           MODEL_NAME: ${{ secrets.MODEL_NAME }}
         run: |
           if [ -z "$MODEL_API_KEY" ]; then echo "::warning::未配 MODEL_API_KEY → 跳过真模型门(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
+          touch .env # CI checkout 无 .env·脚本顶层 readFileSync 需占位文件(空文件即可·key 仍走 env 注入)
           pnpm model:smoke
       # 视觉 OCR 在 MODEL-OP-01 前由代码全环境 fail-closed；不得在 nightly
       # 读取 Key、简历图片或原始模型输出。恢复前需 typed binding + 合成 fixture
