@@ -264,7 +264,11 @@ async function main() {
   // [0b] harness 库内的可重跑 + 归属核查（0154 裸 SQL 文本在已成形库上重 apply·0018 形制）
   // ══════════════════════════════════════════════════════════════════════════
   await h.pool.query(migSql);   // 已存在 index/函数上再 apply 全文不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申）
-  A('0154/裸 SQL 文本双 apply 不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申可重跑）', true);
+  const reapplyPins = await h.pool.query(
+    `SELECT to_regclass('public.uq_bucket_trial_one_per_owner') IS NOT NULL
+        AND to_regproc('public.gateway_auth_signup') IS NOT NULL AS ok`);
+  A('0154/裸 SQL 文本双 apply 不抛（IF NOT EXISTS + CREATE OR REPLACE + REVOKE/GRANT 重申可重跑）',
+    reapplyPins.rows[0]?.ok === true);
   {
     const own = await h.pool.query(
       `SELECT p.proowner::regrole::text AS fn_owner,
