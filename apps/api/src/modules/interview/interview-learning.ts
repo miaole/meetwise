@@ -54,7 +54,7 @@ export async function completeLearningItemFor(db: DbService, guard: PrivacyGuard
     const ok = await c.query(
       `SELECT 1 FROM assessment_report ar, jsonb_array_elements(ar.dimensions) d
        WHERE ar.interview_id=$1 AND ar.owner_user_id=$2 AND ar.status='ready'
-         AND interview_privacy_active(ar.interview_id)
+         AND interview_privacy_active_read(ar.interview_id)
          AND coalesce(btrim(d->>'dimension'),'')=$3 AND coalesce(d->>'gap','false')='true'
        LIMIT 1`, [id, principal, b.topic]);
     if (ok.rowCount === 0) throw new HttpException({ error: 'invalid_topic' }, HttpStatus.BAD_REQUEST);

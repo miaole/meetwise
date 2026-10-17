@@ -10,7 +10,7 @@ import { randomUUID } from 'node:crypto';
 import { MemorySaver } from '@langchain/langgraph';
 import {
   assertIsolatedTestTarget, asPrincipal, asScoringWorkerPrincipal, availableUnits, claimInterviewAnswer,
-  createPool, createResumeWithBlob, enqueueInterviewJob, enqueueReport, getReport, listScorableScoreCards,
+  createPool, createResumeWithBlob, enqueueInterviewJob, enqueueReport, errCode, getReport, listScorableScoreCards,
   historicalWeakDimensions,
   reserveEntitlement, transitionResume, completeIngestion, answerHash, supplyCandidateProfileRoute,
   submitInterviewAnswer, createScoreRequestForSubmission, publishRubricAndIssueContract,
@@ -543,6 +543,64 @@ async function main() {
     faultReplay.failedCount === 1 && faultReplay.career === 'failed'
     && faultReplay.assessment === 'generated' && faultReplay.learning === 'generated'
     && faultReplay.fencedSkipped === false);
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // ④ enqueue 背压闸（案A 定稿·协调方六裁决件行使：①案A ②per-owner ③N=3 ⑤预查形豁免
+  //  ⑥advisory 收紧；④429 映射在 api neg-interview HTTP 面行使）。
+  //  饱和臂=判别臂：闸缺位（改前）第 4 条新键照常入队 → 本臂红；闸在场 → 具名错绿。
+  // ─────────────────────────────────────────────────────────────────────────
+  section('④ enqueue 背压闸（案A N=3 per-owner·预查形豁免·advisory 收紧）');
+  const BP_A = `${INTERVIEW_ID}-bp-a`;
+  const BP_B = `${INTERVIEW_ID}-bp-b`;
+  for (const iv of [BP_A, BP_B]) {
+    await asPrincipal(pool, OWNER, (c) => c.query(
+      "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'created',$3,$4)",
+      [iv, OWNER, resume, epoch],
+    ));
+  }
+  // 未饱和（过闸时 count=0..2 均 <3）：三条新键跨两面试全部入队成功（start 先行=0064 触发器生产语义；
+  // 跨面试同 owner=per-owner 维度直接证）。
+  const bps1 = await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, BP_A, 'start', { requestId: 'bp-s1' }, 0));
+  const bps3 = await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, BP_B, 'start', { requestId: 'bp-s3' }, 0));
+  const bp1 = await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, BP_A, 'answer', { requestId: 'bp-1' }, 1));
+  A('未饱和三条新键跨两面试全部入队成功', !!bps1 && !!bps3 && !!bp1);
+  // 饱和判别臂：queued=3 时第 4 条新键（同 owner）→ 具名错 interview_queue_saturated。
+  const satCode = await asPrincipal(pool, OWNER, (c) =>
+    enqueueInterviewJob(c, OWNER, BP_A, 'answer', { requestId: 'bp-4' }, 2).then(() => null, (e: unknown) => errCode(e) ?? 'no_code'));
+  A('饱和判别臂：per-owner queued=3 → 第 4 条新键拒 interview_queue_saturated（改前红/改后绿）',
+    satCode === 'interview_queue_saturated');
+  // per-owner 维度臂：同 owner 另一面试新键同拒（闸按 owner 计，不按面试拆散）。
+  const satCode2 = await asPrincipal(pool, OWNER, (c) =>
+    enqueueInterviewJob(c, OWNER, BP_B, 'answer', { requestId: 'bp-5' }, 1).then(() => null, (e: unknown) => errCode(e) ?? 'no_code'));
+  A('per-owner 维度臂：同 owner 另一面试新键同拒', satCode2 === 'interview_queue_saturated');
+  // 预查形豁免臂（queued 行）：饱和态幂等重放既有键 → 返既有 jobId 不误拒（rev P1-1 完备形）。
+  const replayQueued = await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, BP_A, 'answer', { requestId: 'bp-1' }, 1));
+  A('预查形豁免臂：饱和态重放既有键(queued 行)→返既有 jobId 不误拒', replayQueued === bp1);
+  // 预查形豁免臂（done 行）：既有键翻 done 后重放仍豁免（任意行状态皆豁免——count 排除形在此有误拒窗）。
+  await asPrincipal(pool, OWNER, (c) => c.query("UPDATE interview_job SET status='done' WHERE id=$1", [bps3]));
+  const replayDone = await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, BP_B, 'start', { requestId: 'bp-s3' }, 0));
+  A('预查形豁免臂：done 状态既有键重放仍豁免（任意行状态）', replayDone === bps3);
+  // 仅 queued 计数：bps3 翻 done 后 queued=2 → 新键恢复可入队（BP_B answer 的 start 前置=done 态仍满足 0064）。
+  const afterDone = await asPrincipal(pool, OWNER, (c) =>
+    enqueueInterviewJob(c, OWNER, BP_B, 'answer', { requestId: 'bp-6' }, 1).then(() => 'ok', (e: unknown) => errCode(e) ?? 'no_code'));
+  A('仅 queued 计数：一臂翻 done 后 queued=2 → 新键恢复入队', afterDone === 'ok');
+  // 竞态臂（收紧形⑥=硬上限）：清场 queued=0 后同 owner 五并发新键同拍——advisory 收紧串行化下
+  // 每事务过闸前重数深度 → 恰 3 成 2 拒（无收紧=N+1 软超限窗非确定；收紧形采用=硬上限确定性成立）。
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "UPDATE interview_job SET status='done' WHERE owner_user_id=$1 AND status='queued' AND interview_id IN ($2,$3)",
+    [OWNER, BP_A, BP_B],
+  ));
+  const race = await Promise.all([1, 2, 3, 4, 5].map((i) =>
+    asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, BP_B, 'answer', { requestId: `bp-race-${i}` }, 10 + i)
+      .then(() => 'ok' as const, (e: unknown) => (errCode(e) === 'interview_queue_saturated' ? 'saturated' as const : 'other' as const)))));
+  const raceQueued = await asPrincipal(pool, OWNER, async (c) => (await c.query<{ n: number }>(
+    "SELECT count(*)::int AS n FROM interview_job WHERE owner_user_id=$1 AND status='queued'", [OWNER],
+  )).rows[0]!.n);
+  A('竞态臂（收紧形⑥）：五并发新键同拍 → 恰 3 成 2 拒·queued 终值恰 3（硬上限非软超窗）',
+    race.filter((x) => x === 'ok').length === 3
+    && race.filter((x) => x === 'saturated').length === 2
+    && race.every((x) => x !== 'other')
+    && raceQueued === 3);
 
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();

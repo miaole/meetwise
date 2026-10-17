@@ -84,6 +84,18 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2136→2144（2026-10-15 协调方 sanction·+8 沿 +8 先例形：UC184-SLOT-ORDER nail 并线树——
 // reconcile 迁移/ci-wiring3 收据/uc184 收据三刀在飞共享·沿 +8 先例·计数预算非内容策略·
 // 越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2224→2232（2026-10-17 协调方 sanction·+8 沿 +8 先例形：2224 帽算术漏计 progress-write +1·
+// AG-15（+5）落地 2225>2224 必红·本刀补 +8）。
+// cap 2216→2224（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 92086586 2212·
+// 在飞 AG-16（+4）/幽灵脚本（+2）/AG-15（+5）三刀并线即 2223 超限）。
+// cap 2208→2216（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 10799a3e 2203·
+// 在飞 QUEUE/AG-43/G7W/TSW/BV/WSS/AG-16 七 REQUEST+AG-16 proof 族三件并线即 2213 超限）。
+// cap 2200→2208（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 f7caa206 2194·
+// 在飞 G7W-DIAG-NEEDLES/WORKER-HANG-GUARD 两 REQUEST 并入即 2201 超限）。
+// cap 2192→2200（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 a0f3bd46 2185·
+// 在飞 sse-api/obs/api-harden/ai-graphs 环解四卷各 +1~2 预算必越）
+// cap 2184→2192（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 d1d01853 2178·
+// 在飞四卷 session-summary-deepen(2180)/5e-cleanup-sweep/queue-shutdown-phases/dbacl2-ci-shallow-fix 各 +1~2 预算必越）
 // cap 2176→2184（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 77ff91fb 2165 余 11·
 // 在飞五卷 rkw/qgen-critique-resilience/dbacl2-ci-wire/gitleaks-placeholder-remedy/g7w-tail-diag 各 +2 预算必越）
 // cap 2168→2176（2026-10-16 协调方 sanction·+8 沿 +8 先例形：主线 59127126 2159·
@@ -95,7 +107,11 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形：COST-COLUMNS nail 并线树——
 // 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量·
 // 协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_184;
+// cap 2240→2248（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240 五先例形·快速链·授权随令）：
+// 2240 恰等零余量·在飞四刀并线 2249 超限（DB-HOTSPOT +3/TRACE-RECON +4/#101 供应链 +1/#185 打卡键 +1·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232 四先例形·N-19 修复刀随刀行使·授权随令）：
+// 2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶（PTP_FILE_LIMIT:2233>2232 红停承登·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_248;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],

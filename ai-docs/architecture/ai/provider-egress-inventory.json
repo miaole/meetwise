@@ -155,6 +155,10 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "apps/worker/test/session-summary.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
           "class": "local-adapter-test"
         },
@@ -1925,6 +1929,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/session-summary.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
       "class": "test-fixture"
     },
@@ -2010,6 +2019,11 @@
     },
     {
       "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/test/session-summary.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
       "class": "test-isolation"
     },
@@ -2031,6 +2045,11 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "apps/worker/test/resume-grounding.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/session-summary.proof.ts",
       "class": "test-isolation"
     },
     {

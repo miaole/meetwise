@@ -280,7 +280,17 @@ export async function beginInterviewCore(
     if (targetRoleNormalized) startPayload.targetRole = targetRoleNormalized;
     if (focusNormalized) startPayload.focus = focusNormalized;
     if (sourceQuizIdNormalized) startPayload.sourceQuizId = sourceQuizIdNormalized;
-    const jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
+    let jobId: string;
+    try {
+      jobId = await enqueueInterviewJob(c, owner, id, 'start', startPayload, 0);
+    } catch (e: unknown) {
+      // 入队背压闸：per-owner queued 深度满（具名错）→ 429（clients 侧重试友好）。
+      // start 臂同事务回滚=上方扣费预留同滚（零悬账）；applications.start 合一事务共用本核心，
+      // 429 原样透传（其 catch 仅重映射 enterprise_insufficient_balance，其余原抛）。
+      if (errCode(e) === 'interview_queue_saturated')
+        throw new HttpException({ error: 'interview_queue_saturated' }, HttpStatus.TOO_MANY_REQUESTS);
+      throw e;
+    }
     return { accepted: true, jobId };
 }
 
@@ -451,7 +461,16 @@ export class InterviewService {
       if (claim.status === 'not_ready') throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
       if (claim.status === 'stale') throw new HttpException({ error: 'stale_question' }, HttpStatus.CONFLICT);
       if (claim.status === 'conflict') throw new HttpException({ error: 'answer_conflict' }, HttpStatus.CONFLICT);
-      const jobId = await enqueueInterviewJob(c, owner, id, 'answer', { ...body, requestId }, turn + 1);
+      let jobId: string;
+      try {
+        jobId = await enqueueInterviewJob(c, owner, id, 'answer', { ...body, requestId }, turn + 1);
+      } catch (e: unknown) {
+        // 入队背压闸：per-owner queued 深度满（具名错）→ 429（沿 TURN_RL 429 分口）；
+        // claim 同事务回滚=零悬账可安全重试。
+        if (errCode(e) === 'interview_queue_saturated')
+          throw new HttpException({ error: 'interview_queue_saturated' }, HttpStatus.TOO_MANY_REQUESTS);
+        throw e;
+      }
       return { accepted: claim.status === 'accepted', replayed: claim.status === 'replayed', jobId };
     });
   }
@@ -654,8 +673,11 @@ export class InterviewService {
     return this.db.asPrincipal(owner, async (c) => {
       // advisory 事务锁串行化同用户并发"开始面试",防两次点击 check-then-act 竞态各 INSERT 一条。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', [owner, 'iv-create']);
+      // 复用检查切 read twin(读分层):本查询只做"复用决策",不向候选面试写入任何负载;
+      // 真正的 admission 边界(begin/abandon/preview 直锁 + assert 面)仍走原 locking 谓词,
+      // 若围栏在本查询与后续 admission 之间提交,begin 处 fail-closed 拒绝——围栏时间窗不复活。
       const open = await c.query(
-        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') AND interview_privacy_active(id) AND application_id IS NULL ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单);围栏/B 端绑定不复用(F1)
+        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') AND interview_privacy_active_read(id) AND application_id IS NULL ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单);围栏/B 端绑定不复用(F1)
       if (open.rowCount! > 0) return { interviewId: open.rows[0].id, status: open.rows[0].status, reused: true };
       const id = newEntityId('iv');
       await c.query("INSERT INTO interview(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner]); // RLS WITH CHECK owner=principal
@@ -694,10 +716,11 @@ export class InterviewService {
         FROM interview_question iq
         WHERE iq.interview_id = i.id AND iq.owner_user_id = i.owner_user_id
       ) q ON true`;
+    // 列表读面切 read twin(读分层,0206):有界(LIMIT)只读面无锁逐行,不再与围栏删除同键互斥。
     const r = await this.db.asPrincipal(owner, (c) =>
       status
-        ? c.query(`${projection} WHERE i.owner_user_id=$2 AND i.status=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $3`, [status, listScope.value, lim])
-        : c.query(`${projection} WHERE i.owner_user_id=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [listScope.value, lim]));
+        ? c.query(`${projection} WHERE i.owner_user_id=$2 AND i.status=$1 AND interview_privacy_active_read(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $3`, [status, listScope.value, lim])
+        : c.query(`${projection} WHERE i.owner_user_id=$1 AND interview_privacy_active_read(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [listScope.value, lim]));
     return { interviews: r.rows.map(toInterviewView) };
   }
 

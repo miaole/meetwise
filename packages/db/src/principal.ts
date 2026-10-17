@@ -57,6 +57,10 @@ export const QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST = [
   { signature: 'qbank_validate_generation(text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_activate_generation(text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_mark_generation_failed(text,text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
+  // AG-43 release terminal (0146 body, guard 1 rewritten to the definer-whitelist
+  // assertion by 0176).  Registered so provisionQbankControlDefiner transfers its
+  // owner to qbank_control_definer — the successor face logged at 0176:16-21.
+  { signature: 'qbank_release_retired_generation_storage(text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_question_chunk_requires_visible_source()', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: false, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_question_artifact_guard()', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: false, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_question_chunk_artifact_guard()', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: false, requiredSearchPath: 'public, pg_temp' },

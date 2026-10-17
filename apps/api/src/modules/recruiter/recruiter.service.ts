@@ -12,7 +12,9 @@ import { RateLimitService } from '../../platform/rate-limit.service';
 /**
  * 招聘方(B 端)应用服务。多租户:全经 asPrincipal,RLS 按招聘方(principal=owner)隔离——只见自己的岗位/候选人。
  * 企业纵深:邀请候选人用**同一面试引擎**(岗位 competencies 驱动出题),人才库跨自有岗位聚合。
- * who-pays:候选人用自己额度池跑面试(他们的练习);招聘方/AI 图均不直接动 entitlement(邀请只建申请壳)。
+ * who-pays:B 端岗位面试(application_id 非空)扣**企业桶**——reserveEntitlementForApplication
+ * (0157 payer=job_application.recruiter_user_id 单跳派生·候选人桶零读写·扣额路由实锚 interview.service.ts);
+ * C 端本人练习才走候选人自己额度池。招聘方/AI 图均不直接动 entitlement(邀请只建申请壳)。
  *
  * R2 P-API: createJob 后 notifyWorkerJobWakeup → sole Worker route-classify drain。
  * API **不**调用 classifyJobRoute（Worker 唯一调用方）。closing P-API ≠ R2 关 / ≠ 路由已生效。

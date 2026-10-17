@@ -11,10 +11,10 @@
  * 整拍不抛（drain-loop 要求）。释放函数自身的五道守卫（0176 镜像 0146）是唯一裁决者——调度只递申请。
  *
  * Honesty pins（qbank-control-sec REQUEST §5/§6）:
- * - 生产 manifest（QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST）不含释放函数：provision 后属主=迁移登录，
- *   非 definer 白名单成员 → 0176 守卫 1 会显式拒绝（fail-closed 提前于 DETACH）。隔离库/迁移身份属主下
- *   守卫恒过，端到端能力可证；manifest 纳管=后继刀面（assertQbankControlDefinerOwnership 的
- *   unexpected_definer_function_count=0 门禁止本卷直接 ALTER 属主）。
+ * - manifest 纳管（AG-43 双半刀兑现 0176:16-21 后继刀面）：释放函数已入 QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST
+ *   （requiresSecurityDefiner/allowAppRoleExecute=false/allowExecutorExecute=true/search_path 同 0176 函数事实）——
+ *   provision 后属主=qbank_control_definer（0144:674-701 白名单动态解析）→ 守卫 1 生产面恒过；ACL 归一维持
+ *   executor-only（0176:98-99 语义恒等）。隔离库迁移身份属主下守卫恒过不变。
  * - est live=0：本模块零模型外呼、零 secrets；触发验证=隔离库 prove + 本地假拍/静态断言。
  * - releaseEvidence=false · ≠HA。
  */

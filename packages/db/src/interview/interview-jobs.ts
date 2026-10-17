@@ -18,6 +18,11 @@ export const MAX_INTERVIEW_JOB_ATTEMPTS = 5;
 export const INTERVIEW_RETRY_BACKOFF_CAP_SECONDS = 300;
 /** Default per-owner unexpired running cap. Production dispatch always passes this explicitly. */
 export const DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT = 1;
+/** 生产侧入队背压闸：per-owner queued 深度上限 N=3（保守缺省·产品可后调）。enqueueInterviewJob
+ *  INSERT 前同事务 count(status='queued' per-owner)≥N → 拒具名错 interview_queue_saturated
+ *  （api begin/turn catch 映射 429）。仅 queued 计数（running/done/failed 不占深度）；
+ *  幂等重放（任意状态既有键）预查豁免不误拒。 */
+export const MAX_INTERVIEW_PER_OWNER_QUEUED = 3;
 
 export type InterviewClaimBudget = {
   perOwnerInflight: number;
@@ -61,6 +66,29 @@ export async function enqueueInterviewJob(
   const identity = plaintextAnswerIdentity(payload);
   if (identity) {
     await assertInterviewAnswerLegacyPlaintextAllowed(c, interviewId, identity.questionId, identity.stateVersion);
+  }
+  // 入队背压闸（同事务·INSERT 前）：per-owner queued 深度满 → 拒具名错 interview_queue_saturated。
+  // 收紧形：先取 per-owner advisory xact lock 再 count——两并发同拍过闸的 N+1 软超窗被串行化收紧
+  // 为硬上限；键串=新空间 meetwise.interview_enqueue.owner:*，禁复用 claim 专用键
+  // meetwise.interview_dispatch.owner:*（同键=入队与 dispatch 互锁串行）。
+  // 预查形豁免（完备形）：幂等键 (owner,interview,kind,seq) 已存在任意状态行（queued/running/
+  // done/failed）即跳闸——replay-after-done 是设计内流程，队列饱和时重放仍须走下方 ON CONFLICT
+  // 幂等 readback 返既有 jobId，不得被深度闸误拒；miss→过闸→INSERT，无次序死窗。
+  // 维度与阈值：count 走 ix_ijob_claim(owner_user_id,status,…)（0001）前缀，仅 queued 计数；
+  // N=MAX_INTERVIEW_PER_OWNER_QUEUED 保守缺省（产品可后调）。
+  await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`meetwise.interview_enqueue.owner:${owner}`]);
+  const replayKey = await c.query(
+    'SELECT 1 FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND kind=$3 AND seq=$4 LIMIT 1',
+    [owner, interviewId, kind, seq],
+  );
+  if (replayKey.rowCount === 0) {
+    const depth = await c.query<{ n: number }>(
+      'SELECT count(*)::int AS n FROM interview_job WHERE owner_user_id=$1 AND status=$2',
+      [owner, 'queued'],
+    );
+    if (Number(depth.rows[0]?.n ?? 0) >= MAX_INTERVIEW_PER_OWNER_QUEUED) {
+      throw Object.assign(new Error('interview_queue_saturated'), { code: 'interview_queue_saturated' });
+    }
   }
   let r;
   try {
@@ -286,7 +314,7 @@ export async function sweepStuckInterviewJobs(
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts >= $2
      RETURNING interview_id`, [owner, maxAttempts]);
   const rq = await c.query(
-    `UPDATE interview_job SET status='queued', lease_owner=NULL, version=version+1
+    `UPDATE interview_job SET status='queued', lease_owner=NULL, lease_expires_at=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
   if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));

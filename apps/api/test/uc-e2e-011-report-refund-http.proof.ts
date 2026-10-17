@@ -348,6 +348,7 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('  REMAIN-4  独立 covered-lift + dual + 协调方 nail（EXIT0≠covered · coveredCount=8）');
   A('H5 honesty: webhook refund 口已挂载 + billing stub 仍 gap + EXIT≠covered',
     refundWh2.status === 403 && /当前不开放/.test(billingPage));
+  // [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
   A('H5 honesty: EXIT=0 ≠ UC-E2E-011 covered / ≠ ADV covered', true);
 }
 
@@ -360,6 +361,7 @@ console.log('PIN   GAP-UC011-FULL-E2E: 未进 full.e2e.ts 额度回滚业务断�
 console.log('PIN   GAP-UC011-WALLET: GET /wallet 契约名未落（entitlement 口已钉 ≠ wallet）');
 console.log('PIN   GAP-UC011-ADV-01 stays OPEN · Ban wash ADV via this knife');
 console.log('PIN   UC-011 stays partial · coveredCount=8 · EXIT0≠covered');
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('honesty: HTTP prove 绿 ≠ UC-E2E-011 covered（mouth landed ≠ covered-lift）', true);
 
 

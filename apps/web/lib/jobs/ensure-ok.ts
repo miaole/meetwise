@@ -1,3 +1,4 @@
+import 'server-only';
 import { redirect } from 'next/navigation';
 
 /**
@@ -7,8 +8,9 @@ import { redirect } from 'next/navigation';
  * 其余非 ok(且不在容忍集)→ 抛错落根错误边界(可读 + 重试),绝不静默 revalidate 让按钮"点了没反应"。
  * 容忍集 tolerate:幂等/竞态类(如已投递 409)无需打扰用户。
  *
- * 独立纯模块原因：actions.ts 处于 'use server' + server-only 依赖链,prove(tsx)不可导入;
- * 本模块只依赖 next/navigation(探针实证可导入,redirect 抛 NEXT_REDIRECT),使 prove4 可真实断言 401 分支。
+ * server-only 标注：客户端误 import 本模块=构建期硬失败(next 打包面走内建 alias·零包安装);
+ * web prove 经 test/server-only-hooks.mjs 窄桩可导入(tsx 裸解析面拦截),redirect 语义与调用点零改——
+ * redirect 仍来自真 next/navigation(抛 NEXT_REDIRECT),prove 依旧真实断言 401 分支。
  */
 export function ensureOk(res: Response, need: string, tolerate: number[] = []) {
   if (res.status === 401) redirect('/login?expired=1');

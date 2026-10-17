@@ -305,6 +305,7 @@ console.log('PIN   GAP-UC019-REFUND-FIRST-ORDER: 无 confirmed→released；A3 �
 console.log('PIN_RETIRED GAP-UC019-QUARANTINE-REGEN: #229 D2 已决翻转（quarantined retry 200+预算重置）；旧语义见 git blame');
 console.log('PIN   GAP-UC019-FULL-E2E: 未进 full.e2e.ts / e2e:isolated UI regenerate 断言');
 console.log('PIN   GAP-UC019-DEMAND-PATH: 需求名 POST /reports/:id/regenerate 未落（≠ report/retry covered 冒充）');
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('honesty: HTTP prove 绿 ≠ UC-E2E-019 covered（GAP pins 已印）', true);
 
 await done();

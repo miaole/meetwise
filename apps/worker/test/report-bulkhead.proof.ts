@@ -130,6 +130,9 @@ async function main() {
     (await asPrincipal(pool, 'userG', (c) => c.query("SELECT status FROM interview WHERE id='RG-pill'"))).rows[0].status === 'completed');
   A('隔离时发 report_unavailable 终态事件（前端优雅降级,不无限转圈——非静默死胡同）',
     (await asPrincipal(pool, 'userG', (c) => c.query("SELECT count(*)::int n FROM interview_event WHERE stream_key='RG-pill' AND kind='report_unavailable'"))).rows[0].n === 1);
+  A('report_unavailable 行 event_key 恒等 report_unavailable:<id>:quarantine（kind:id:phase 同族幂等去重面）',
+    ((await asPrincipal(pool, 'userG', (c) => c.query("SELECT event_key FROM interview_event WHERE stream_key='RG-pill' AND kind='report_unavailable'"))).rows[0] as Record<string, unknown> | undefined)?.event_key
+      === 'report_unavailable:RG-pill:quarantine');
 
   section('多租户调度：dispatchTick 枚举活跃 owner 各自 drain（队列在生产真被排干,非只写不调度）');
   await asPrincipal(pool, 'userH', (c) => c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('RH','userH','completed')"));

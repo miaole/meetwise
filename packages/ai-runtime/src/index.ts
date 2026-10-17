@@ -67,7 +67,7 @@ export {
   rejectDashscopeNativeTransportOverride,
 } from './dashscope-native-config.ts';
 export type { DashscopeNativeConfig, DashscopeNativeEndpointProfile, DashscopeNativeCapabilityKeys } from './dashscope-native-config.ts';
-export { getPrompt, promptVersions } from './prompts.ts';
+export { getPrompt, promptVersions, renderSessionSummarySection } from './prompts.ts';
 export type { PromptTemplate } from './prompts.ts';
 // usage 对账与保守估算校准因子(纯 seam,非供应商 tokenizer):异步 reconciler 用它对"派发前保守估算 vs 供应商上报 usage"批量导出上界因子(因子尚未应用回派发)。
 export {

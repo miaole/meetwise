@@ -5,6 +5,7 @@ import { resolve } from 'node:path';
 import { PassThrough } from 'node:stream';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, NestFastifyApplication } from '@nestjs/platform-fastify';
+import type { FastifyInstance } from 'fastify';
 import { configureG7RuntimeInjection, getMetrics, isG7FreetierReproveEnabled, resolveModelDeadlineConfig } from '@meetwise/ai-runtime';
 import { buildOpenApiDocument } from '@meetwise/contracts/openapi';
 import { AppModule } from './app.module';
@@ -99,6 +100,37 @@ export function createApiShutdownChain(deps: ApiShutdownChainDeps): (signal: str
     })();
   };
 }
+// ── #67-API CSP/安全头门（api 面零豁免·web 面 AUTHZ-HARDEN 5A-2 姊妹面）──────────
+// web 面 CSP 已由 AUTHZ-HARDEN 5A-2 落地（apps/web/middleware.ts nonce 形 enforce·全出口零豁免）。
+// 本刀补 api 面：/docs 是 api 进程唯一 HTML 面（unpkg 外链 script/css + 静态内联引导脚本）——
+// CSP 用 hash 钉死内联脚本 + unpkg 白名单（script-src 零 'unsafe-inline'：无谓放宽·hash 零成本可得）；
+// 其余 api 响应（JSON/SSE）无渲染执行面，全局仅 frame-ancestors 'none'（禁嵌入）+ nosniff（禁嗅探）。
+// onSend 形=钩子源 503（preview 门/drain 门）与异常信封出口同样携带（公开面零豁免·web 全出口先例同形）；
+// /docs 路由自设完整 CSP 先于 onSend——onSend 见头已设即不覆盖（防双头交集互相击穿·web next.config.mjs 先例同形）。
+export const DOCS_CONTENT_SECURITY_POLICY = [
+  "default-src 'self'",
+  "script-src 'self' https://unpkg.com 'sha256-W5ZkT0lIItdqrqlONL7d8umuI3m3Tu/+GD1Sj5JOG9k='",
+  "style-src 'self' https://unpkg.com 'unsafe-inline'",   // Swagger UI 运行时注入内联样式（仅样式面；脚本面不回退——web 面同款权衡）
+  "img-src 'self' data:",
+  "font-src https://unpkg.com",
+  "connect-src 'self'",
+  "frame-ancestors 'none'",
+  "object-src 'none'",
+  "base-uri 'none'",
+  "form-action 'self'",
+].join('; ');
+
+/** 全局安全头门（onSend 统一出口·nosniff 恒设；CSP 见头已设即让位路由级策略）。 */
+export function installSecurityHeaderGate(fastify: FastifyInstance): void {
+  fastify.addHook('onSend', (_req, reply, _payload, done) => {
+    reply.header('x-content-type-options', 'nosniff');
+    if (reply.getHeader('content-security-policy') === undefined) {
+      reply.header('content-security-policy', "frame-ancestors 'none'");
+    }
+    done();
+  });
+}
+
 
 /** 真 NestJS（Fastify + 类型 DI + SWC 运行）。 run: pnpm -C apps/api serve */
 export async function createApp(): Promise<NestFastifyApplication> {  // 审计 #91 配置集中校验刀:关键必需 env(AUTH_SECRET/数据库目标)启动期 fail-fast,
@@ -113,8 +145,9 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   // 并发/断路器改由共享权威（迁移 0120 的 ai_model_admission_acquire_scoped）在 invoke() 内裁决。
   resolveModelDeadlineConfig();
   // **可观测性(审计#89)**:pino 由 fastify 内置,这里开 level=info 的访问日志。
-  // 序列化面仅 method/url/status/reqId/耗时/err 堆栈——fastify 默认 req/res serializer 本就不含
-  // body/headers;redact authorization/cookie 作纵深。**Ban 打印请求体/响应体/提示词/PII**。
+  // 序列化面仅 method/url(已剥 query)/status/reqId/耗时/err 堆栈——fastify 默认 req/res
+  // serializer 本就不含 body/headers;redact authorization/cookie 作纵深。
+  // **Ban 打印请求体/响应体/提示词/PII**。
   // NestFactory 层 logger:false 保持(免 Nest 启动噪音双写;异常日志见 all-exceptions.filter 走 pino)。
   const app = await NestFactory.create<NestFastifyApplication>(
     AppModule,
@@ -126,6 +159,28 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
       logger: {
         level: 'info',
         redact: { paths: ['req.headers.authorization', 'req.headers.cookie'], censor: '[REDACTED]' },
+        // 访问行 query 剥离（审计#89 残留收口）：fastify 默认 req serializer 的 url 含 query 串，
+        // ?token=/?ticket= 类敏感参随 url 整体入卷=redact 列表旁路形态。默认 serializer 字段集
+        // 保全（method/url/version/host/remoteAddress/remotePort，与 fastify@5.12.5 默认实现
+        // 一一对应），仅覆写 url=? 及其后剥除、path 恒在。诊断面收窄如实登记：query 诊断维
+        // 让位敏感面收口，排障走 path+reqId+结构化字段。
+        serializers: {
+          req: (req: {
+            method?: string;
+            url?: string;
+            headers?: Record<string, unknown>;
+            host?: string;
+            ip?: string;
+            socket?: { remotePort?: number } | undefined;
+          }) => ({
+            method: req.method,
+            url: (req.url ?? '').split('?')[0] ?? '',
+            version: req.headers?.['accept-version'] as string | undefined,
+            host: req.host,
+            remoteAddress: req.ip,
+            remotePort: req.socket ? req.socket.remotePort : undefined,
+          }),
+        },
       },
       // reqId 单源:与下方 onRequest 钩子同一套净化规则(x-request-id 仅安全字符集+封顶,
       // 非法/空→新 UUID,防响应头 CRLF 注入)。fastify 日志的 reqId === 响应头 x-request-id ===
@@ -152,6 +207,7 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
     reply.header('x-request-id', req.reqId);
     done();
   });
+  installSecurityHeaderGate(fastify);   // #67-API：全局安全头门（onSend·钩子源 503/异常信封出口零豁免；/docs 路由级 CSP 先设不让位）
   // **传输层封顶(纵深 + 防 DoS 放大)**:全局 bodyLimit 为容 base64 简历/音频上传开到 12MB,但纯文本端点逻辑只需 KB 级。
   // 在 body 缓冲/JSON.parse **之前**拒掉超大请求:仅 base64 上传路由放行到 12MB,其余封 1MB →
   // `{"answer":"<11MB>"}` 这类在传输边界即 413,不会先缓冲 11MB + 同步 parse 阻塞事件循环(审计中:Zod 在 parse 之后才跑,挡不住缓冲)。
@@ -219,7 +275,7 @@ export async function createApp(): Promise<NestFastifyApplication> {  // 审计 
   const openapiDoc = buildOpenApiDocument({ servers: [process.env.PUBLIC_API_URL ?? '/'] });
   fastify.get('/openapi.json', (_req: any, reply: any) => { reply.header('cache-control', 'public, max-age=300').send(openapiDoc); });
   fastify.get('/docs', (_req: any, reply: any) => {
-    reply.type('text/html').send(`<!doctype html><html><head><meta charset="utf-8"><title>Meetwise API</title>
+    reply.header('content-security-policy', DOCS_CONTENT_SECURITY_POLICY).header('x-frame-options', 'DENY').type('text/html').send(`<!doctype html><html><head><meta charset="utf-8"><title>Meetwise API</title>
 <link rel="stylesheet" href="https://unpkg.com/swagger-ui-dist@5/swagger-ui.css"></head>
 <body><div id="swagger"></div>
 <script src="https://unpkg.com/swagger-ui-dist@5/swagger-ui-bundle.js"></script>

@@ -27,7 +27,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import {
-  asPrincipal, assertIsolatedTestTarget, claimModelInvocation, createPool,
+  __resetAiCostExhaustedCacheForTest, asPrincipal, assertIsolatedTestTarget, claimModelInvocation, createPool,
   markAiCostDispatched, markModelInvocationDispatched, reserveAiTextCost, settleAiTextCost,
 } from '@meetwise/db';
 
@@ -154,6 +154,7 @@ async function main() {
 
   // ── α 等值结算：actual=reserved → overage=false，金额走原 CEIL 路径零变。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `equal:${suffix}`;
     const reserve = await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const monthBefore = await readMonth(scopeA);
@@ -173,6 +174,7 @@ async function main() {
 
   // ── β 预留<actual≤header max：行内扩（仅 actual>reserved 侧单调扩）+overage+月行净增。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `expand:${suffix}`;
     const reserve = await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const monthBefore = await readMonth(scopeA);
@@ -191,6 +193,7 @@ async function main() {
 
   // ── β-0 actual_input=0：input 侧不扩不缩（0033:47 CHECK (input_tokens_reserved>0) 防线锁）。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `zero-input:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 0, 40, 0));
@@ -204,6 +207,7 @@ async function main() {
 
   // ── γ actual>header max：封顶不破，raise 原码且行态/月行零动。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `cap:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 10, 10, 10, 10);
     const monthBefore = await readMonth(scopeA);
@@ -221,6 +225,7 @@ async function main() {
 
   // ── δ 无 invocation/header 匹配：COALESCE 退回预留自值=现严格语义（fail-closed 不扩权）。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `no-header:${suffix}`;
     const reserve = await asPrincipal(pool, owner, async (c) => {
       const r = await reserveAiTextCost(c, {
@@ -246,6 +251,7 @@ async function main() {
 
   // ── ε 月限穿仓：settle 期表级 CHECK 松绑后「钱已花不拒」；reserve 期闸门仍自限。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `crossing:${suffix}`;
     await billedDispatchedReservation(scopeE, key, 100, 40, 40, 40);
     // Fixture-only corruption: pull the month ledger to the exact old-CHECK
@@ -273,6 +279,7 @@ async function main() {
 
   // ── ζ scoped 二次调用幂等回 {同额,同 overage}；同键异信封 reserve → binding_mismatch。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `idempotent:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const first = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 0));
@@ -317,6 +324,7 @@ async function main() {
 
   // ── ι cached=0 逐位恒等：同 input/output 下新公式值==旧公式值对表（0204 行为保持铁律①）。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `cached-zero-identity:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 0));
@@ -330,6 +338,7 @@ async function main() {
 
   // ── κ 有缓存价分账：r2 revision 携 cached 价 400_000→预留行捕获该价+settle 三段 CEIL 精确对表。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `cached-price:${suffix}`;
     const cachedRate = 400_000;
     await pool.query(
@@ -368,6 +377,7 @@ async function main() {
 
   // ── λ NULL 缓存价回退：r1 cached 价 NULL→cached(20) 部分按 input 价计（铁律②·非 cached 计 0 的 80）。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `cached-null-fallback:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const result = await asPrincipal(pool, owner, (c) => settleAiTextCost(c, scopeA, owner, key, 60, 40, 20));
@@ -379,6 +389,7 @@ async function main() {
 
   // ── μ cached>input 拒绝：六参守卫 fail-closed raise 原码·行态零写（savepoint 回滚）。
   {
+    __resetAiCostExhaustedCacheForTest();
     const key = `cached-over-input:${suffix}`;
     await billedDispatchedReservation(scopeA, key, 100, 40, 40, 40);
     const raised = await asPrincipal(pool, owner, async (c) => {
@@ -398,8 +409,175 @@ async function main() {
       raised && row?.status === 'dispatching' && row.settledMicro === null && row.overage === false);
   }
 
+  // ══ 预算排空态决策短窗缓存四臂（零 SQL 短路/TTL 过窗/自愈清键/重放变形钉死）══
+  // 计数客户端：包住 asPrincipal 事务客户端，对 query 计数作「短路零 SQL」判别。
+  const countingClient = (c: Parameters<typeof reserveAiTextCost>[0], counter: { n: number }) => new Proxy(c, {
+    get(target, prop, recv) {
+      if (prop === 'query') {
+        return (...args: Parameters<typeof target.query>) => { counter.n += 1; return target.query(...args); };
+      }
+      return Reflect.get(target, prop, recv);
+    },
+  });
+
+  // ── ν 臂1 排空态第二调用零 SQL：改前（无缓存）第二调用必上锁（计数≥1 红），改后短路零触碰。
+  {
+    __resetAiCostExhaustedCacheForTest();
+    const scopeN = `ag11-cache-n-${suffix}`;
+    await seedBudgetPolicy(scopeN, 1_000);
+    await billedDispatchedReservation(scopeN, `warm-n:${suffix}`, 10, 10, 10, 10);
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=1000 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeN],
+    );
+    const first = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeN, requestOwner: owner, idempotencyKey: `exhausted-first:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    const counter = { n: 0 };
+    const second = await asPrincipal(pool, owner, (c) => reserveAiTextCost(countingClient(c, counter), {
+      scopeId: scopeN, requestOwner: owner, idempotencyKey: `exhausted-second:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    A('ν 排空态第二调用零 SQL 短路：第一调 budget_exhausted(SQL)·第二调同形 {exhausted,0}·query 计数=0（热点行零触碰）',
+      first.decision === 'budget_exhausted' && second.decision === 'budget_exhausted'
+      && second.reservedMicroCny === 0 && second.priceRevision === undefined && counter.n === 0);
+  }
+
+  // ── ξ 臂2 TTL 过窗复查：窗内预算回补仍拒（保守误拒披露面·回补不清键）；复位缝=TTL 过窗后放行。
+  {
+    __resetAiCostExhaustedCacheForTest();
+    const scopeX = `ag11-cache-x-${suffix}`;
+    await seedBudgetPolicy(scopeX, 1_000);
+    await billedDispatchedReservation(scopeX, `warm-x:${suffix}`, 10, 10, 10, 10);
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=1000 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeX],
+    );
+    const pinned = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeX, requestOwner: owner, idempotencyKey: `window-pin:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=0 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeX],
+    );
+    const inWindow = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeX, requestOwner: owner, idempotencyKey: `in-window:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    __resetAiCostExhaustedCacheForTest();
+    const afterWindow = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeX, requestOwner: owner, idempotencyKey: `after-window:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    A('ξ TTL 过窗复查：窗内拒绝入缓存·预算回补后窗内仍拒（≤TTL 保守延迟）·窗外（缝）复查放行 reserved',
+      pinned.decision === 'budget_exhausted' && inWindow.decision === 'budget_exhausted'
+      && afterWindow.decision === 'reserved');
+  }
+
+  // ── ο 臂3 自愈失效：非 exhausted 返回清键 + 绝不缓存授予（同键自愈唯一通道=TTL 过窗/缝）。
+  {
+    __resetAiCostExhaustedCacheForTest();
+    const scopeO = `ag11-cache-o-${suffix}`;
+    await seedBudgetPolicy(scopeO, 1_000);
+    const granted = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeO, requestOwner: owner, idempotencyKey: `grant:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 10, maxOutputTokens: 10,
+    }));
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=1000 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeO],
+    );
+    const exhausted = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeO, requestOwner: owner, idempotencyKey: `exhausted:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=0 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeO],
+    );
+    const pinned = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeO, requestOwner: owner, idempotencyKey: `pinned:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    __resetAiCostExhaustedCacheForTest();
+    const healed = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeO, requestOwner: owner, idempotencyKey: `healed:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 10, maxOutputTokens: 10,
+    }));
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=1000 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeO],
+    );
+    const reExhausted = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeO, requestOwner: owner, idempotencyKey: `re-exhausted:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    A('ο 自愈+绝不缓存授予：授予 reserved 不入缓存·exhausted 入缓存·回补窗内仍拒（settle/回补不清键）·缝后非 exhausted 直达 SQL 并清键·再排空后新拒绝来自 SQL（若授予曾入缓存此处必被错误放行）',
+      granted.decision === 'reserved' && exhausted.decision === 'budget_exhausted'
+      && pinned.decision === 'budget_exhausted' && healed.decision === 'reserved'
+      && reExhausted.decision === 'budget_exhausted');
+  }
+
+  // ── π 臂4 重放变形行为钉死：窗内 held/binding_mismatch 全族被遮蔽为 budget_exhausted；
+  //     窗过期（缝）重放得真值 held（零双重计费）/真值终态 fail（binding_mismatch）。
+  {
+    __resetAiCostExhaustedCacheForTest();
+    const scopeP = `ag11-cache-p-${suffix}`;
+    await seedBudgetPolicy(scopeP, 10_000_000);
+    const keyR = `replay:${suffix}`;
+    // 未派发 reserved 行（0204:113：status='reserved' 重放真值=held；dispatching 重放=unknown）。
+    await asPrincipal(pool, owner, async (c) => {
+      const r = await reserveAiTextCost(c, {
+        scopeId: scopeP, requestOwner: owner, idempotencyKey: keyR,
+        provider, model, region, priceRevision: 'r1', maxInputTokens: 40, maxOutputTokens: 40,
+      });
+      if (r.decision !== 'reserved') throw new Error(`ag11_fixture_reserve_refused:${keyR}:${r.decision}`);
+    });
+    const rowBefore = await readReservation(scopeP, keyR);
+    await pool.query(
+      `UPDATE ai_cost_budget_month SET reserved_micro_cny=10000000 WHERE scope_id=$1 AND period_key=${MONTH_PERIOD_SQL}`,
+      [scopeP],
+    );
+    const seedExhausted = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeP, requestOwner: owner, idempotencyKey: `seed-exhausted:${suffix}`,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 1, maxOutputTokens: 1,
+    }));
+    const counterHeld = { n: 0 };
+    const maskedHeld = await asPrincipal(pool, owner, (c) => reserveAiTextCost(countingClient(c, counterHeld), {
+      scopeId: scopeP, requestOwner: owner, idempotencyKey: keyR,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 40, maxOutputTokens: 40,
+    }));
+    const counterMismatch = { n: 0 };
+    const maskedMismatch = await asPrincipal(pool, owner, (c) => reserveAiTextCost(countingClient(c, counterMismatch), {
+      scopeId: scopeP, requestOwner: owner, idempotencyKey: keyR,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 41, maxOutputTokens: 40,
+    }));
+    __resetAiCostExhaustedCacheForTest();
+    const trueHeld = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeP, requestOwner: owner, idempotencyKey: keyR,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 40, maxOutputTokens: 40,
+    }));
+    const trueMismatch = await asPrincipal(pool, owner, (c) => reserveAiTextCost(c, {
+      scopeId: scopeP, requestOwner: owner, idempotencyKey: keyR,
+      provider, model, region, priceRevision: 'r1', maxInputTokens: 41, maxOutputTokens: 40,
+    }));
+    const rowAfter = await readReservation(scopeP, keyR);
+    A('π 重放变形窗内遮蔽/窗外真值：已 reserved 键窗内重放(同信封/异信封)均被遮蔽为 {exhausted,0} 零 SQL·窗外重放得真值 held·异信封得真值 binding_mismatch 终态 fail·预留行金额/状态零双重计费',
+      seedExhausted.decision === 'budget_exhausted'
+      && maskedHeld.decision === 'budget_exhausted' && maskedHeld.reservedMicroCny === 0 && counterHeld.n === 0
+      && maskedMismatch.decision === 'budget_exhausted' && maskedMismatch.reservedMicroCny === 0 && counterMismatch.n === 0
+      && trueHeld.decision === 'held'
+      && trueMismatch.decision === 'binding_mismatch' && trueMismatch.reservedMicroCny === 0
+      && rowBefore !== undefined && rowAfter !== undefined
+      && rowBefore.status === 'reserved' && rowAfter.status === 'reserved'
+      && rowBefore.reservedMicro === 80 && rowAfter.reservedMicro === 80
+      && rowBefore.inputReserved === 40 && rowAfter.inputReserved === 40);
+  }
+
   console.log(failures === 0
-    ? '\n✓ AG-11 settle 放宽体十二臂行为级补证全部通过（0188 settle/body+scoped TABLE+月限 CHECK 松绑+0204 cached 价列六参结算）'
+    ? '\n✓ AG-11 settle 放宽体十二臂+决策缓存四臂行为级补证全部通过（0188 settle/body+scoped TABLE+月限 CHECK 松绑+0204 cached 价列六参结算+排空态短窗缓存）'
     : `\n✗ ${failures} 臂失败`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);

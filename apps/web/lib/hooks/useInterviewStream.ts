@@ -40,6 +40,12 @@ export function browserResumeSignals(fireRetry: (cb: () => void) => () => void):
       document.addEventListener('visibilitychange', h);
       return () => document.removeEventListener('visibilitychange', h);
     },
+    onHidden: (cb) => {   // #58 看门狗 hidden 臂(同缝补半):hidden→暂停判定/visible→转移拍,消费在驱动(backoff.ts 单源可选接口)
+      if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
+      const h = () => { cb(document.visibilityState !== 'visible'); };
+      document.addEventListener('visibilitychange', h);
+      return () => document.removeEventListener('visibilitychange', h);
+    },
     onRetry: fireRetry,
   };
 }

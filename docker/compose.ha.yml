@@ -422,3 +422,12 @@ services:
       timeout: 3s
       retries: 12
       start_period: 20s
+
+  # ---- privacy 域观测探针·HA 覆写（定义体见 compose.prod.yml privacy-watchdog 块）---------
+  # 仅覆写探针目标：HA 拓扑探 worker-a/worker-b 两副本分域端点（prod 原 worker 已被
+  # profiles:["ha-disabled"] 停用·RX-1——不去重定向则探针恒红=假告警源）。其余键
+  # （image/command/healthcheck/安全锚/mem_limit）按 compose 合并语义自 prod 定义继承，
+  # 零重复定义=零双源漂移面。
+  privacy-watchdog:
+    environment:
+      PRIVACY_PROBE_TARGETS: "worker-a:9091,worker-b:9091"

@@ -1,4 +1,5 @@
 import { createHash, randomUUID } from 'node:crypto';
+import { appendFileSync, mkdirSync } from 'node:fs';
 import { BASE, readJson } from './http.ts';
 import { readSseEvents, rejectForgedProgressScores, type SseEvent } from './sse.ts';
 import type { AssertFn } from './assert.ts';
@@ -69,6 +70,7 @@ export type InterviewLoopResult = {
   practiceHints: PracticeHint[];
   attributions: AttributableDecision[];
   provenance: InterviewProvenanceReview;
+  batchWallClock: Array<{ tMs: number; kinds: string[] }>; // G7W 案A seg3 S1: 批级 wall-clock(逐批 tMs+kinds·零 A() 触)
 };
 
 function isNonNegativeInt(value: unknown): value is number {
@@ -281,6 +283,7 @@ export type InterviewLoopOptions = {
   replayConsumedAfterFirstTurn?: boolean;
 };
 
+const flushLoopHeartbeat = (interviewId: string, batches: number, lastSeq: number, questions: number, elapsedMs: number): void => { try { mkdirSync('.tmp', { recursive: true }); appendFileSync('.tmp/e2e-seg-heartbeat.ndjson', `${JSON.stringify({ bootId: process.pid, step: 'seg3_loop_heartbeat', interviewId, batches, lastSeq, questions, elapsedMs })}\n`); } catch { /* 防自伤: 心跳写盘自身异常不改写驱动语义(:36 segEmit 同形) */ } }; // G7W-DIAG-NEEDLES N2b
 /**
  * Drive one interview from issued questions to a terminal SSE event.
  * Answers bind the server-issued question identity; the client does not score
@@ -302,10 +305,14 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
   const kinds = new Set<string>();
   const seen: SseEvent[] = [];
   const started = Date.now();
+  const batchWallClock: Array<{ tMs: number; kinds: string[] }> = []; // G7W 案A seg3 S2a: 批级时钟收集器
 
   while (Date.now() - started < deadlineMs) {
+    const batchT0 = Date.now(); // G7W 案A seg3 S2b: W1 请求发出位(readSseEvents 批 t0·fetch 发出含括)
     const events = await readSseEvents(`/interview/${options.interviewId}/events`, options.token, lastSeq);
     reviewInterviewProvenance(events);
+    batchWallClock.push({ tMs: Date.now() - batchT0, kinds: events.map((e) => e.kind) }); // G7W 案A seg3 S2c: W3 流式完成位
+    if (batchWallClock.length % 5 === 0) flushLoopHeartbeat(options.interviewId, batchWallClock.length, lastSeq, questions, Date.now() - started); // G7W-DIAG-NEEDLES N2c: 每 N=5 批心跳中途落盘(死亡窗内批级直读)
     for (const event of events) {
       if (event.seq <= lastSeq) continue;
       lastSeq = event.seq;
@@ -381,5 +388,6 @@ export async function driveInterviewToTerminal(options: InterviewLoopOptions): P
     practiceHints: provenance.practiceHints,
     attributions: provenance.attributions,
     provenance,
+    batchWallClock, // G7W 案A seg3 S3: 批级 wall-clock 随结果返回
   };
 }

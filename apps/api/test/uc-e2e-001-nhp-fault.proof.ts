@@ -500,6 +500,7 @@ async function main(): Promise<void> {
         ban_borrow_report_prove: true,
         note: 'This receipt is independent; regressions named separately · Ban relabel',
       });
+      // [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
       A('F3 Ban-borrow disclosure recorded (Y/AB/AG/report:prove ≠ this case)', true);
     }
   } finally {

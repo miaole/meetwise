@@ -462,6 +462,7 @@ async function main(): Promise<void> {
       v3.status === 200 && typeof v3.body?.resumeId === 'string');
     A('V3 no cross-aggregate entitlement/interview side effects',
       afterV3Ledger === beforeV3Ledger);
+    // [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
     A('V3 JD/quiz text ingress = absent (documented; no invent)', true);
 
     // ── V4 · confirmed ledger invariant (seeded completeInterviewAndConfirm) ──

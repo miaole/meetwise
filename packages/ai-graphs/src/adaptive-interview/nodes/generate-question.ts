@@ -8,6 +8,7 @@ import {
   type QuestionKind,
 } from '@meetwise/domain';
 import type { AdaptiveDeps, AdaptiveInterviewGraphState } from '../state.ts';
+import { buildSessionSummary } from '../session-summary.ts';
 
 function issueQuestionId(stateVersion: number, turn: number, clarifyAttempts: number): string {
   return `q-v${stateVersion}-t${turn}-c${clarifyAttempts}`;
@@ -81,14 +82,16 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       hint = clarifying.hint;
     } else {
       const asked = state.transcript.map((entry) => entry.q);
+      const session = buildSessionSummary(state.transcript); // #51:会话级结构化摘要(checkpoint 派生·第 9 additive 参)
       // C14(RESUME-GROUNDING):graph 侧 facts 形参恒空——选定事实(2-4 条)由 worker deps 闭包
       // (buildAdaptiveDeps)直接渲染进模型请求的 <data-nonce> 围栏,不经本节点参数/state。
       // grounded 题面可引用事实所指经历,但 refs 须为事实原文子串且过 worker 侧组合闸
       // (refsGroundedInFacts,不过则丢弃重试/回退固定模板);fact 子串 refs 仅作闸料,禁入 sources。
       // AG-37(修法③·裁决②a):第 8 additive 参=图 state 位 `weightedDeficit` 持久化值（上一题写下的
       // DRR deficit·旧 checkpoint 缺省 null=worker 闭包全 0 起跑现状字节）——下一题读上一题值,不再归零。
+      // #51:session=transcript 派生会话摘要(纯函数),同不经本节点写入 state,零回放分叉。
       const generated = normalizeQuestionGenerationResult(
-        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null),
+        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null, session),
       );
       if (isQuestionGenerationFailure(generated)) {
         // AG-F(刀F·修法②/裁决②a):族内确定性失败（seam 有界 re-roll 预算已耗尽后才到达本节点）
@@ -96,6 +99,7 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
         // generationProvenance 可审计）;concluded 禁置（Ban 列表:只在真终场置位）。连续耗尽帽内
         // 才换序;帽满/族外失败（timeout/not_configured/duplicate_question/attempt_replay 等）/无序
         // 可换 → 既有 failClosed 原样（全序耗尽才真终场,assessment_unavailable 形状字节不变）。
+        // QGEN-CRITIQUE-RESILIENCE(件①)后:模板旁路拒绝=零 roll 新到达径（失败形于 worker seam :452-458 roll 计数块之前返回·零 `:r{k}` 消费·经本族臂换序后以新 competency 新到达本臂）。
         const exhaustedBefore = state.competencyExhaustions ?? 0;
         if (QUESTION_GENERATION_REROLL_FAMILY.includes(generated.error) && exhaustedBefore < MAX_COMPETENCY_EXHAUST_SWITCH) {
           const nextCompetency = nextCompetencyAfter(deps.competencies, route.competency);
@@ -117,13 +121,40 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       // question_ready.  That silently fabricates interview content after a
       // provider or quality failure.  Fail-closed: no pending, no invented stem.
       if (!critique.ok) {
-        return failClosed(state, {
+        // QGEN-CRITIQUE-RESILIENCE(件② 图级批判门降格可恢复):批判门拒绝语义零弱化——坏题面永不入
+        // pending、永不因重试被接受(此处=换 competency 重试**新 attempt**,非接受坏题;反伪造批判门
+        // 零弱化)。provenance 三键形(origin/errorCode/invokeError+operationId/idempotencyKey)原样
+        // 保全,换序与终场两臂共用同一收据(终场形状与既有逐字节同形)。
+        const critiqueProvenance: QuestionGenerationProvenance = {
           origin: 'unavailable',
           errorCode: 'business_invalid',
           invokeError: 'question_critique_failed',
           operationId: generated.provenance.operationId,
           idempotencyKey: generated.provenance.idempotencyKey,
-        }, 'generation_business_invalid');
+        };
+        // 沿 AG-F 换序臂(:100-112 修法②)与 62747d74/b29d861d MAX=2 先例形:帽内(MAX_COMPETENCY_
+        // EXHAUST_SWITCH=2)且 planner 序(deps.competencies 声明序)有序可换 → 顺延下一 competency
+        // 重新出题(concluded 禁置——Ban 列表只在真终场置位;degraded reason 沿既有 token
+        // 'question_competency_exhausted' 零新词面·全仓消费面零扩(§0.1-9 机证),批判面特异性由
+        // generationProvenance.invokeError='question_critique_failed' 承载可审计);帽满/无序可换 →
+        // 既有单发终场 failClosed 原样(全序耗尽才真终场,assessment_unavailable 形状字节不变)。
+        // 回环沿 graph.ts genQuestion 条件边既有 genQuestion 臂,recursionLimit+连续帽双层防放大;
+        // 出题成功 → competencyExhaustions 归零(:173-174 既有面零触,「连续」语义只跨失败链存活)。
+        const exhaustedBefore = state.competencyExhaustions ?? 0;
+        if (exhaustedBefore < MAX_COMPETENCY_EXHAUST_SWITCH) {
+          const nextCompetency = nextCompetencyAfter(deps.competencies, route.competency);
+          if (nextCompetency) {
+            return {
+              stateVersion: state.stateVersion + 1,
+              route: { competency: nextCompetency, difficulty: route.difficulty, qkind: effectiveKind },
+              pending: null,
+              degraded: { reason: 'question_competency_exhausted', turn },
+              generationProvenance: critiqueProvenance,
+              competencyExhaustions: exhaustedBefore + 1,
+            };
+          }
+        }
+        return failClosed(state, critiqueProvenance, 'generation_business_invalid');
       }
       question = generated.question;
       sources = generated.sources;

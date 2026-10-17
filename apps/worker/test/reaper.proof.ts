@@ -39,7 +39,7 @@ const orphanQuiz = (attempts: number) => asPrincipal(pool, OWNER, (c) => c.query
   `UPDATE quiz_job SET status='running', lease_owner='dead-worker#1', lease_expires_at=now()-interval '5 minutes', attempts=$1 WHERE quiz_id=$2`,
   [attempts, QID]));
 const jobRow = (table: string, col: string, id: string) =>
-  asPrincipal(pool, OWNER, (c) => c.query(`SELECT status, lease_owner, attempts FROM ${table} WHERE ${col}=$1`, [id])).then((r) => r.rows[0]);
+  asPrincipal(pool, OWNER, (c) => c.query(`SELECT status, lease_owner, lease_expires_at, attempts FROM ${table} WHERE ${col}=$1`, [id])).then((r) => r.rows[0]);
 const events = (streamKey: string) =>
   asPrincipal(pool, OWNER, (c) => c.query("SELECT kind FROM interview_event WHERE stream_key=$1 ORDER BY seq", [streamKey]))
     .then((r) => r.rows.map((x: any) => x.kind as string));
@@ -93,7 +93,7 @@ async function main() {
   const r1 = await reapStuckInterviewJobs(iDeps, OWNER);
   A('下边界 requeued=1 failed=0(attempts<max 必 requeue,非早夭)', r1.requeued === 1 && r1.failed === 0);
   const after1 = await jobRow('interview_job', 'interview_id', IID);
-  A('job 回 queued 且 lease 释放(NULL)', after1.status === 'queued' && after1.lease_owner === null);
+  A('job 回 queued 且 lease 双列释放(NULL)', after1.status === 'queued' && after1.lease_owner === null && after1.lease_expires_at === null);
   A('attempts 未被双增(仍=MAX-1,留给下次 claim +1)', after1.attempts === MAX_INTERVIEW_JOB_ATTEMPTS - 1);
   A('额度未动(仅 requeue,不退款)', (await avail()) === reservedBalance);
 

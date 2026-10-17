@@ -47,7 +47,7 @@ export async function backfillLearningProgressFromAssessment(pool: DbPool, owner
       `SELECT lp.interview_id, lp.items
          FROM learning_plan lp
         WHERE lp.owner_user_id=$1 AND lp.interview_id <> $2
-          AND interview_privacy_active(lp.interview_id)`, [owner, interviewId]);
+          AND interview_privacy_active_read(lp.interview_id)`, [owner, interviewId]);
     out.plansRead = plans.rowCount ?? 0;
     for (const plan of plans.rows) {
       const items = Array.isArray(plan.items) ? (plan.items as Array<{ topic?: unknown }>) : [];

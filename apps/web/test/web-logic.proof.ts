@@ -3,6 +3,7 @@
  *   pnpm web:prove
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { register } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
@@ -73,6 +74,11 @@ import { isVoiceModeEntryVisible } from '../lib/voice-mode-entry.ts';
 // 视图型同名，故别名 ContractInterviewView 防撞）。
 import { InterviewView as ContractInterviewView, TurnDto, TurnResult } from '@meetwise/contracts';
 import type { z } from 'zod';
+
+// register() 只影响其后的模块加载：ensureOk 动态 import 前装桩——'server-only'
+// 恰一项收窄（test/server-only-hooks.mjs,tsx 裸解析面拦截）,next/navigation 保持真形
+// （redirect 抛 NEXT_REDIRECT,NEXT_REDIRECT 恰等断言源零涉）,静态 import 块先于本行加载不受影响。
+register('./server-only-hooks.mjs', import.meta.url);
 
 interface FetchResponse { status: number; json(): Promise<unknown> }
 type FetchLike = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<FetchResponse>;
@@ -155,7 +161,7 @@ async function main() {
   A('active 的 turn=3 显示第 4 题待答', interviewProgressLabel({ status: 'active', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '第 4 题待答');
   A('queued 的 turn=3 显示处理中', interviewProgressLabel({ status: 'created', issued_turns: 4, answered_turns: 3, processing_turn: 3 }) === '第 4 题处理中');
   A('completed 显示实际总题数', interviewProgressLabel({ status: 'completed', issued_turns: 8, answered_turns: 8 }) === '共 8 题');
-  A('终态已出题但零回答不伪装成尚未出题', interviewProgressLabel({ status: 'abandoned', issued_turns: 1, answered_turns: 0, current_turn: 0 }) === '已出 1 题，未作答');
+  A('零作答放弃收口后账本清账读数（旧「已出 N 题，未作答」口径翻面·issued/queued 双清由 db 侧 prove 钉）', interviewProgressLabel({ status: 'abandoned', issued_turns: 0, answered_turns: 0, current_turn: null }) === '尚未出题');
   A('终态残留 open turn 仍只显示已答题数', interviewProgressLabel({ status: 'abandoned', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '已作答 3 题');
   A('已放弃不再提供继续作答 CTA', interviewActionLabel('abandoned') === '已结束');
   A('未知状态 fail-closed，不提供作答入口', interviewActionLabel('future_terminal') === '状态待同步' && !isInterviewEnterable('future_terminal'));

@@ -30,6 +30,10 @@ jobs:
       DATABASE_URL: postgresql://meetwise:meetwise_dev_password@localhost:54329/meetwise
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
+        # DBACL2-CI-SHALLOW-FIX：全历史=冻结锚 diff 门前置（db-acl2 P4-1 BASE_SHA 95911975
+        # 仅经 origin/line/db-pgp-acl 可达·depth 1 缺对象=git exit 128 机械红·PR #109 step 40）
+        with:
+          fetch-depth: 0          # 全历史，否则只扫到 HEAD
 
       - uses: pnpm/action-setup@f40ffcd9367d9f12939873eb1018b921a783ffaa # v4
         # 版本读 package.json packageManager(pnpm@10.18.0)：catalog 需 pnpm≥9.5，不能再钉 9
@@ -190,6 +194,10 @@ jobs:
         run: pnpm uc033:cross-user-authz:prove
       - name: DBHY-1 卫生刀 prove（死表退役+sql/ 兼容镜像退役残面门+fresh deploy 重建+qbank 分区释放例程）
         run: pnpm dbhy1:prove
+      # DBACL2-CI-WIRE 接线（dbhy1 邻位·isolated-runner 一次性本地 PG·fail-loud 红即阻断）。
+      # pgp_sym_encrypt EXECUTE 补授门（38 断言·本地实测 warm 9.6-11.6s·基线红已由 DB-ACL-RESIDUAL nail 翻绿）
+      - name: DB ACL pgp_sym_encrypt 补授门（两段式迁移重放+42501 负门+过度授权负门·隔离一次性 PG）
+        run: pnpm db-acl2:prove
       - name: 跨供应商 failover（primary 故障秒切 backup·内容拒不换供应商·全挂交降级）
         run: pnpm failover:prove
       - name: commerce saga（共享池 reserve/confirm/release · FIFO · 按比例 · 并发不超卖 · 对账 · 零额度丢失）

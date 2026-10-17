@@ -12,7 +12,7 @@
  * 幂等/多实例安全:sweep 的 `WHERE status='reserved' AND lease<now RETURNING` 行锁 + settle 的 SKIP LOCKED 使并发/重叠拍不重复处理;
  * 已 released 的不会二次进 swept → 终态事件 exactly-once。一个 owner 抛不拖垮整拍;整拍从不抛(否则 drain-loop 会停)。
  */
-import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, markApplicationAssessmentUnavailable, listTopicSettlementMismatches, errCode, type DbPool } from '@meetwise/db';
+import { asPrincipal, gatewayDispatchOwners, reconcile, appendEvent, failInterviewAndRelease, abandonInterviewAndRelease, cancelOpenInterviewQuestion, markApplicationAssessmentUnavailable, listTopicSettlementMismatches, errCode, type DbPool } from '@meetwise/db';
 import { runDrainLoop } from './drain-loop.ts';
 
 /** 枚举有"待回收"的 owner：网关只能返回 owner id；每个 owner 的对账仍在 RLS 事务内。
@@ -81,7 +81,10 @@ export async function reconcileOwner(pool: DbPool, owner: string): Promise<Recon
               "UPDATE interview SET status='abandoned', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status NOT IN ('completed','abandoned','failed')",
               [s.idempotencyKey, owner]);
           }
-          await appendEvent(c, owner, s.idempotencyKey, 'interview_unavailable', { reason: 'abandoned' });
+          // #1 soft-set 兜底臂同口径：本臂绕过 abandonInterviewAndRelease（其 finishAbandon 已 cancel），
+          // 显式补 cancel open 题——主臂重入为幂等 0 行 no-op，两臂终态口径合一。
+          await cancelOpenInterviewQuestion(c, owner, s.idempotencyKey);
+          await appendEvent(c, owner, s.idempotencyKey, 'interview_unavailable', { reason: 'abandoned' }, 'interview_unavailable:' + s.idempotencyKey + ':reclaim');
         }
         abandoned++;
       }

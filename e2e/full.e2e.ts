@@ -33,6 +33,7 @@ async function main() {
 
   // 2. PIPL 采集同意(上传简历前置)
   const fs = await import('node:fs'), bootId = process.pid, capT0 = Date.now(); fs.mkdirSync('.tmp', { recursive: true });
+  const segEmit = (frame: Record<string, unknown>) => { try { fs.appendFileSync('.tmp/e2e-seg-emit.ndjson', `${JSON.stringify({ bootId, ...frame })}\n`); } catch { /* 防自伤: 埋点写盘自身异常不改写红面 class(:248 7a_diag 同形) */ } }; // G7W 案A seg3 H1: 新兄弟通道(.tmp/e2e-seg-emit.ndjson·零改写既有两通道)
   let r: any, consentCap: any;
   try { consentCap = await consentResumeProcessing(H); r = consentCap.response; }
   catch (e: any) { fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'consent', thrown: `${e.name}/${e.code}/${e.cause?.code}` })}\n`); throw e; }
@@ -188,6 +189,7 @@ async function main() {
 
   // 6. 轮询 SSE：每出一道题就答；直到终态。答题只走服务端发放的 question identity。
   const interviewStartedAt = Date.now();
+  reviews.record({ class: 'worker', code: 'seg3_mainloop_enter' }); // G7W 案A seg3 R1: 主旅程进(mainLoop 调用前)
   const mainLoop = await driveInterviewToTerminal({
     interviewId,
     token,
@@ -200,6 +202,9 @@ async function main() {
     replayConsumedAfterFirstTurn: true,
   });
   const { terminal, terminalPayload, questions, clarifications, turns: turn, lastSeq, kinds, provenance } = mainLoop;
+  reviews.record({ class: 'worker', code: 'seg3_mainloop_terminal' }); // G7W 案A seg3 R2: 主旅程出+断言面进
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- elapsed_ms/t_ms 为 NDJSON wire 字段名(§0.2b 白名单/consent-capture 同族),非代码标识符,不可改名(行内豁免·authz34 先例同形)
+  segEmit({ step: 'seg3_mainloop', terminal: mainLoop.terminal, questions: mainLoop.questions, turns: mainLoop.turns, elapsed_ms: Date.now() - interviewStartedAt, batches: mainLoop.batchWallClock }); // G7W 案A seg3 F1: 主旅程 wall-clock 直读(elapsed_ms 基准=interviewStartedAt)
   A(questions >= 1, `至少出了 1 道题(实际 ${questions} 道;事件:${[...kinds].join(',')}; terminal=${terminal}; reason=${(terminalPayload as any)?.reason ?? 'n/a'})`);
   A(turn >= 1, `至少答了 1 题(${turn} 次)`);
   A(provenance.trustedBSideScore === null && provenance.forgedScores === 'none'
@@ -217,10 +222,13 @@ async function main() {
   r = await fetch(`${BASE}/interview/${interviewId}/report`, { headers: H });
   b = await readJson(r);
   A(r.status === 200, `报告端点可查 → status=${b.status}`);
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- elapsed_ms 为 NDJSON wire 字段名(§0.2b 白名单/consent-capture 同族),非代码标识符,不可改名(行内豁免·authz34 先例同形)
+  segEmit({ step: 'seg3_main_report', status: r.status, reportStatus: String(b.status ?? 'unknown'), elapsed_ms: Date.now() - interviewStartedAt }); // G7W 案A seg3 F2: W4 report 段(elapsed_ms 基准=interviewStartedAt 同 F1)
   A(terminal === 'report_ready' ? b.status === 'ready' : b.status !== 'ready', `状态机:报告 status 与终态自洽(终态 ${terminal} → status=${b.status})`);
 
   // 7a. 报告失败隔离: isolated worker 在第二份报告注入故障后必须落到 report_unavailable。
   {
+    reviews.record({ class: 'worker', code: 'seg3_7a_enter' }); // G7W 案A seg3 R3: 7a 段进
     const cr = await readJson(await fetch(`${BASE}/interview`, { method: 'POST', headers: H, body: '{}' }));
     const failIv = cr.interviewId ?? cr.id ?? cr.resultId;
     A(typeof failIv === 'string', `[兜底] 建失败测试面试 → id(${failIv})`);
@@ -237,6 +245,8 @@ async function main() {
     });
     const rep = await readJson(await fetch(`${BASE}/interview/${failIv}/report`, { headers: H }));
     if (failLoop.terminal) reviews.recordTerminal(failLoop.terminal);
+    reviews.record({ class: 'worker', code: 'seg3_7a_loop_terminal' }); // G7W 案A seg3 R4: 7a 循环出(绿红两态皆记)
+    segEmit({ step: 'seg3_7a_loop', terminal: failLoop.terminal, questions: failLoop.questions, turns: failLoop.turns, batches: failLoop.batchWallClock }); // G7W 案A seg3 F3: 7a 循环批级 wall-clock 直读
     if (failLoop.terminal === 'interview_unavailable') { try { // G7P-6 7a 定靶: 红时 exit 前补抓 last_error/reason/invoke_error 一次定谳(G7FIX-1 同 createRequire pg 契约·零产品码)
       const { createRequire } = await import('node:module');
       const { Client } = createRequire(new URL('../packages/db/package.json', import.meta.url))('pg');
@@ -506,6 +516,7 @@ async function main() {
       questionAcceptedLabel: (n) => `[路由R2] 降级叶第 ${n} 题 canonical /turn → 202`,
       clarificationAcceptedLabel: '[路由R2] 降级叶澄清 canonical /turn → 202',
     });
+    segEmit({ step: 'seg3_r2_loop_exit', terminal: r2Loop.terminal, questions: r2Loop.questions, batches: r2Loop.batchWallClock.length }); // G7W-DIAG-NEEDLES N1: R2 循环退出即帧(断言面前·deadline 到期形 terminal='' 亦可回读)
     if (r2Loop.terminal) reviews.recordTerminal(r2Loop.terminal);
     A(r2Loop.questions >= 1, `[路由R2] 降级兜底叶真出题 ≥1(实际 ${r2Loop.questions} 道;事件:${[...r2Loop.kinds].join(',')})`);
     A(r2Loop.terminal !== '' && (INTERVIEW_TERMINALS as readonly string[]).includes(r2Loop.terminal),
@@ -618,14 +629,18 @@ async function main() {
   });
   if (boundLoop.terminal) reviews.recordTerminal(boundLoop.terminal);
   reviews.record({ class: 'worker', code: 'seg_boundloop_terminal' }); // CMOP03-D M7: boundLoop 已返回且 terminal 已记账(子型2 域 · bounded)
+  segEmit({ step: 'seg3_boundloop', terminal: boundLoop.terminal, questions: boundLoop.questions, turns: boundLoop.turns, batches: boundLoop.batchWallClock }); // G7W 案A seg3 F4: boundLoop 批级 wall-clock 直读
   console.log('[g7fix2] post-M7 window armed (5 asserts · twin :388 synced q+c)'); // G7P-4/5 模式: stdout 可能死信,NDJSON 为准
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a1_loop', questions: boundLoop.questions, turns: boundLoop.turns, terminal: boundLoop.terminal })}\n`);
   A(boundLoop.questions >= 1 && boundLoop.turns >= 1 && boundLoop.terminal !== '', `[状态机] 岗位绑定会话经真 worker 到终态(${boundLoop.terminal}; ${boundLoop.questions} 题/${boundLoop.turns} 答)`);
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a2_provenance', trustedBSideScore: boundLoop.provenance.trustedBSideScore, identities: boundLoop.provenance.identities.length, questions: boundLoop.questions, clarifications: boundLoop.clarifications })}\n`);
   A(boundLoop.provenance.trustedBSideScore === null && boundLoop.provenance.identities.length === boundLoop.questions + boundLoop.clarifications,
     '[状态机] 岗位会话出处审查: AI 分/progress 不是 B 端分(identities=q+c 孪生同步 1789e321)');
+  reviews.record({ class: 'worker', code: 'seg3_finalize_pre' }); // G7W 案A seg3 R5: 结算段进
   r = await fetch(`${BASE}/applications/${app1}/finalize`, { method: 'POST', headers: H, body: '{}' });
   const finalized = await readJson(r);
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- t_ms 为 NDJSON wire 字段名(§0.2b 白名单/consent-capture 同族),非代码标识符,不可改名(行内豁免·authz34 先例同形)
+  segEmit({ step: 'seg3_finalize', status: r.status, outcome: finalized.outcome, t_ms: Date.now() - capT0 }); // G7W 案A seg3 F5: W5 结算段(t_ms 基准=capT0 :35 boot 区)
   // 【第5发现·断言随演（协调方裁 A 同型原则延伸·2026-10-11 登记）】report-retry D2（10-10 落主线）
   // 引入报告 attempts/隔离族后,真模型旅程终态族实测扩出 'report_unavailable'（本套 3/3 跑一致·
   // reason=max_attempts_exceeded）——finalize 服务端 outcome 恒为 'assessment_unavailable'（calibration
@@ -635,6 +650,7 @@ async function main() {
   const scorelessBound = boundLoop.terminal === 'assessment_unavailable' || boundLoop.terminal === 'interview_unavailable' || boundLoop.terminal === 'report_unavailable'; // G7FIX-5 并入: 残余 unbound 面触发仍走统一臂(防御性契约钉)·+report_unavailable 族(第5发现随演)
   fs.appendFileSync('.tmp/e2e-consent-capture.ndjson', `${JSON.stringify({ bootId, step: 'postm7_a3_finalize', status: r.status, outcome: finalized.outcome, terminal: boundLoop.terminal, scorelessBound, reason: (boundLoop.terminalPayload as any)?.reason ?? null })}\n`); // G7FIX-3: reason 入账(abandoned sweep vs generation 族归因判别)
   A(r.status === 200 && finalized.applicationId === app1 && finalized.interviewId === boundInterviewId && finalized.replayed === false && finalized.outcome === (scorelessBound ? 'assessment_unavailable' : 'completed'), `[状态机] 岗位终态后 {} finalize 统一面: 200 服务端仅认已绑定 interview+replayed:false(scoreless 族→assessment_unavailable·其余 completed)(term=${boundLoop.terminal}, outcome=${finalized.outcome ?? 'none'}, status=${r.status}, reason=${(boundLoop.terminalPayload as any)?.reason ?? 'n/a'})`); // G7FIX-5 收敛: 三元 409 死支消解+replayed:false 契约钉(G7FIX-4 prove final3:21-22 形状 200+assessment_unavailable+replayed:false)
+  reviews.record({ class: 'worker', code: 'seg3_finalize_assert_post' }); // G7W 案A seg3 R6: 结算段断言面过
   r = await fetch(`${BASE}/recruiter/jobs/${jobId}/candidates`, { headers: HR });
   b = await readJson(r);
   const cand = (b.candidates ?? []).find((x: any) => x.candidate_user_id === user1Id);

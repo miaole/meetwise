@@ -32,6 +32,13 @@ export async function gatewayModelInvocationOwners(pool: DbPool, olderThanMs: nu
   return result.rows.map((row) => String(row.owner_user_id));
 }
 
+/** Only returns principals with a succeeded invocation whose trace row is missing (UC-028 A2 recon backfill diff set); idempotency keys and invocation content never cross the seam — each owner's anti-join re-enters `asPrincipal`. */
+export async function gatewayTraceReconMissingOwners(pool: DbPool, limit: number): Promise<string[]> {
+  const result = await asGateway(pool, (c) =>
+    c.query('SELECT owner_user_id FROM gateway_trace_recon_missing_owners($1)', [limit]));
+  return result.rows.map((row) => String(row.owner_user_id));
+}
+
 export interface GatewayModelInvocationBacklog {
   dispatchingAged: number;
   unknownUnresolved: number;

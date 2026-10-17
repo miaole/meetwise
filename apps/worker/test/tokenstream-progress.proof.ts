@@ -3,7 +3,7 @@
  * fake-seam 标注：本 proof=noteModelFirstToken 未接线 seam 的自调证明面（fake-seam proof·生产链路零证明;
  * 生产调用方零命中=unwired 原样登记，接线归流式真链后继刀）。
 
- * 断言面（harness/token-stream-design.md §3.7 预注册 · 裁定后钉死）：
+ * 断言面（receipts/archive/2026-09-batch23/slices/token-stream-design.slice.md §3.7 预注册 · 裁定后钉死）：
  *   TS-P1 首 token 事件链：generation_started→model_first_token 产生且 firstTokenMs 记录；进度事件经
  *        API 同形 SSE 读路径（interview.service.ts:950 同 SQL）可见时延 ≤ 2s poll + ε（实测值落输出）。
  *   TS-P2 节流正确性：受控长生成（fake 延迟 7s）下 generation_progress 行数 ∈ [2, min(6, ceil(7s/2s)+1)]，
@@ -12,10 +12,14 @@
  *   TS-P4 膨胀上界：generation_progress ≤ GENERATION_PROGRESS_MAX_ROWS(6)；started==1（event_key 幂等）；
  *        重放（同 idempotencyKey 二次经 invoke=cached）不添行；noteModelFirstToken 重放不添行；家族总行 ≤ 8。
  *   TS-P5 载荷红线：进度家族 payload 键 ⊆ 白名单；无顶层 answer；不含生成内容标记（TS-MARKER）。
+ *   TS-P6 started 旁路化（首写不等待·消除头拍 await）：慢写 seam 正形（模型 fn 起跑先于 started 行
+ *        可见+首拍零等待+内容无损+started 恰 1 行+poller 首见对照）+once-fail 写败负形（生成成功+
+ *        结构化失败日志 generation_progress_write_failed+started 恒零行）+seq 序不变式（started.seq <
+ *        调用方终态业务事件 seq·finally 在途等待承重）。
  * 运行：pnpm tokenstream:prove（经 scripts/run-e2e-isolated.mjs 隔离 PG）；本地直接跑需 DATABASE_URL。
  */
 import { fileURLToPath } from 'node:url';
-import { createPool, asPrincipal, loadMigrations, runMigrations } from '@meetwise/db';
+import { createPool, asPrincipal, appendEvent, loadMigrations, runMigrations, type DbPool } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient, type ModelResult } from '@meetwise/ai-runtime';
 import type { ResumeProfile } from '@meetwise/domain';
 import { quizGenerator, reportGenerator } from '../src/interview-service.ts';
@@ -42,7 +46,7 @@ async function familyRows(stream: string): Promise<FamilyRow[]> {
       `SELECT seq, kind, payload, event_key FROM interview_event
         WHERE stream_key=$1 AND kind IN ('generation_started','model_first_token','generation_progress')
         ORDER BY seq`, [stream]);
-    return r.rows.map((row) => ({ seq: Number(row.seq), kind: row.kind, payload: row.payload, event_key: row.event_key }));
+    return r.rows.map((row) => ({ ...row, seq: Number(row.seq) }));
   });
 }
 
@@ -67,6 +71,68 @@ async function startFirstSeenPoller(stream: string): Promise<{ seenAt: (kind: st
     seenAt: (kind) => seen.get(kind),
     stop: async () => { running = false; await loop; },
   };
+}
+
+/** 全流行查询（不过滤 kind：TS-P6 seq 序断言需对照调用方终态业务事件行）。 */
+async function streamRows(stream: string): Promise<FamilyRow[]> {
+  return asPrincipal(pool, OWNER, async (c) => {
+    const r = await c.query(
+      'SELECT seq, kind, payload, event_key FROM interview_event WHERE stream_key=$1 ORDER BY seq', [stream]);
+    return r.rows.map((row) => ({ ...row, seq: Number(row.seq) }));
+  });
+}
+
+/** TS-P6 家族 INSERT 识别（appendEvent 形参序：[owner, stream, kind, payload, eventKey]）。 */
+function isFamilyInsert(sql: unknown, params: unknown, stream: string, kind: string): boolean {
+  return typeof sql === 'string' && sql.includes('INSERT INTO interview_event')
+    && Array.isArray(params) && params[1] === stream && params[2] === kind;
+}
+
+/** TS-P6 慢写 seam（proxy pool·沿 R2 fake pool 先例形）：目标流首笔 generation_started INSERT 拖缓
+ *  delayMs（query 级精准注入——首拍进度写被拖慢而业务路径直通），其余查询零扰直通；顶层 query 转发
+ *  真池（withTokenStream 的 pg_notify 面不受扰）。 */
+function slowStartedWritePool(targetStream: string, delayMs: number): DbPool {
+  let slowed = false;
+  const proxy = {
+    query: (sql: unknown, params?: unknown[]) => pool.query(sql as string, params),
+    connect: async () => {
+      const c = await pool.connect();
+      return {
+        query: async (sql: unknown, params?: unknown[]) => {
+          if (!slowed && isFamilyInsert(sql, params, targetStream, 'generation_started')) {
+            slowed = true;
+            await sleep(delayMs);
+          }
+          return c.query(sql as string, params);
+        },
+        release: () => { c.release(); },
+      };
+    },
+  };
+  return proxy as unknown as DbPool;
+}
+
+/** TS-P6 写败负形 seam（once-failing）：目标流首笔 generation_started INSERT 注入失败恰一次（无重试），
+ *  其余查询直通（业务路径不受扰·沿 R2-d failAll 先例形收窄到单笔）。 */
+function startedWriteFailingPool(targetStream: string): { pool: DbPool; latchFired: () => boolean } {
+  let failed = false;
+  const proxy = {
+    query: (sql: unknown, params?: unknown[]) => pool.query(sql as string, params),
+    connect: async () => {
+      const c = await pool.connect();
+      return {
+        query: async (sql: unknown, params?: unknown[]) => {
+          if (!failed && isFamilyInsert(sql, params, targetStream, 'generation_started')) {
+            failed = true;
+            throw new Error('p6_injected_started_write_failure');
+          }
+          return c.query(sql as string, params);
+        },
+        release: () => { c.release(); },
+      };
+    },
+  };
+  return { pool: proxy as unknown as DbPool, latchFired: () => failed };
 }
 
 /** fake「流式观察」模型 seam：受控延迟 + 首 token 观察回调（阶段1 生产无人调用；prove 专用·沿 voice-stream fake 先例）。 */
@@ -190,6 +256,73 @@ async function main() {
   const reportRows = await familyRows(RID);
   A('TS-P0 report 面 schema 失败按预期抛错(report:...)', reportThrew);
   A('TS-P1 report 面 generation_started 先于业务结果落表(接线成立)', reportRows.some((r) => r.kind === 'generation_started' && r.payload.jobKind === 'report'));
+
+  /* ── 面4：TS-P6 generation_started 旁路化(慢写 seam 正形+once-fail 写败负形+seq 序不变式) ── */
+  const P6ID = `tsp-${Date.now()}`;
+  const P6_SLOW_MS = 1200;
+  let p6ModelCalledAt = 0;
+  let p6StartedRowsAtModelCall = -1;
+  const p6Scripted = scriptedModelClient({
+    'resume-quiz.generate': () => ({ ok: true, raw: { items: [{ q: `${MARKER}旁路化内容哨兵`, refs: [] }] } }),
+  });
+  const p6Model: ModelClient = {
+    async complete(req, attempt, signal) {
+      if (req.service === 'resume-quiz.generate') {
+        p6ModelCalledAt = Date.now();
+        const probe = await asPrincipal(pool, OWNER, (c) => c.query(
+          'SELECT COUNT(*)::int AS n FROM interview_event WHERE stream_key=$1 AND kind=$2', [P6ID, 'generation_started']));
+        p6StartedRowsAtModelCall = Number(probe.rows[0]?.n ?? -1);
+        await sleep(2500);   // 受控生成时长(沿 observingDelayedModel delayMs 形):fn 在途覆盖慢写落表窗
+      }
+      return p6Scripted.complete(req, attempt, signal);
+    },
+  };
+  const p6Poller = await startFirstSeenPoller(P6ID);
+  const p6T0 = Date.now();
+  const p6Items = await quizGenerator(slowStartedWritePool(P6ID, P6_SLOW_MS), OWNER, [], `${P6ID}:quiz`, p6Model, P6ID)(EMPTY_PROFILE);
+  await p6Poller.stop();
+  const p6SeenStartedAt = p6Poller.seenAt('generation_started');
+  console.log(`      INFO TS-P6 模型起跑=+${p6ModelCalledAt - p6T0}ms·started 可见=+${p6SeenStartedAt === undefined ? -1 : p6SeenStartedAt - p6T0}ms(seam 慢写 ${P6_SLOW_MS}ms·起跑时 started 行=${p6StartedRowsAtModelCall})`);
+  A('TS-P6-a 正形·模型 fn 起跑先于 started 行可见(慢写在途时 fn 已跑到模型位·头拍未闸首拍零等待)',
+    p6ModelCalledAt - p6T0 < P6_SLOW_MS && p6StartedRowsAtModelCall === 0);
+  A('TS-P6-b 正形·生成结果照常返回内容无损(旁路化不改写业务语义)',
+    p6Items.length === 1 && !!p6Items[0] && p6Items[0].q.includes(MARKER));
+  A('TS-P6-c 正形·poller 首见对照:模型起跑时刻早于 generation_started 可见时刻',
+    p6SeenStartedAt !== undefined && p6ModelCalledAt < p6SeenStartedAt);
+  A('TS-P6-d 正形·started 恰 1 行(幂等不因旁路化破坏)',
+    (await familyRows(P6ID)).filter((r) => r.kind === 'generation_started').length === 1);
+
+  // seq 序不变式(显式 seq 断言臂):调用方终态业务事件(生产形=withGenerationProgress 返回后同流写
+  // 终态·quiz 消费面 question_ready 形)恒晚于 started 落表——finally 在途等待承重。
+  await asPrincipal(pool, OWNER, (c) => appendEvent(c, OWNER, P6ID, 'question_ready', { count: p6Items.length }));
+  const p6All = await streamRows(P6ID);
+  const p6StartedRow = p6All.find((r) => r.kind === 'generation_started');
+  const p6BizRow = p6All.find((r) => r.kind === 'question_ready');
+  A('TS-P6-e seq 序不变式:started.seq < 终态业务事件 seq(调用方终态写恒晚于 started 落表)',
+    !!p6StartedRow && !!p6BizRow && p6StartedRow.seq < p6BizRow.seq);
+
+  /* 负形:once-failing pool——started 写恰败一笔(结构化失败日志捕获·生成零扰)。 */
+  const P6FID = `tspf-${Date.now()}`;
+  const { pool: p6fPool, latchFired } = startedWriteFailingPool(P6FID);
+  const origConsoleError = console.error;
+  const p6fErrLines: string[] = [];
+  console.error = (line: unknown): void => { p6fErrLines.push(typeof line === 'string' ? line : String(line)); };
+  let p6fOk = false;
+  let p6fContent = '';
+  let p6fThrew = false;
+  try {
+    const p6fItems = await quizGenerator(p6fPool, OWNER, [], `${P6FID}:quiz`, p6Scripted, P6FID)(EMPTY_PROFILE);
+    p6fOk = p6fItems.length === 1 && !!p6fItems[0];
+    if (p6fOk && p6fItems[0]) p6fContent = p6fItems[0].q;
+  } catch { p6fThrew = true; }
+  console.error = origConsoleError;
+  A('TS-P6-f 负形·写败注入生成成功内容无损(best-effort 零抛穿)', !p6fThrew && p6fOk && p6fContent.includes(MARKER));
+  const p6fLogs = p6fErrLines
+    .map((line) => { try { return JSON.parse(line) as Record<string, unknown>; } catch { return null; } })
+    .filter((o): o is Record<string, unknown> => o !== null && o.event === 'generation_progress_write_failed');
+  A('TS-P6-g 负形·结构化失败日志捕获 kind=generation_started(注入恰一笔·streamKey 对流)',
+    latchFired() && p6fLogs.some((o) => o.kind === 'generation_started' && o.streamKey === P6FID));
+  A('TS-P6-h 负形·started 恒零行(once-fail 无重试·幂等不回填)', (await familyRows(P6FID)).length === 0);
 
   /* ── TS-P5 载荷红线(三流全查) ── */
   const ALLOWED = new Set(['jobKind', 'operationId', 'attemptKey', 'segments', 'startedAt', 'stage', 'tokensSoFar', 'elapsedMs', 'firstTokenMs']);

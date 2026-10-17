@@ -64,7 +64,7 @@ export async function historicalWeakDimensions(c: Client, owner: string, windowS
        SELECT ar.id
          FROM assessment_report ar
         WHERE ar.owner_user_id = $1 AND ar.status = 'ready'
-          AND interview_privacy_active(ar.interview_id)
+          AND interview_privacy_active_read(ar.interview_id)
         ORDER BY ar.created_at DESC, ar.id DESC
         LIMIT $2
      )
@@ -73,7 +73,7 @@ export async function historicalWeakDimensions(c: Client, owner: string, windowS
          SELECT ar.created_at, ar.id, btrim(d->>'dimension') AS dim, coalesce(d->>'gap', 'false') AS gap
            FROM assessment_report ar, jsonb_array_elements(ar.dimensions) d
           WHERE ar.owner_user_id = $1 AND ar.status = 'ready'
-            AND interview_privacy_active(ar.interview_id)
+            AND interview_privacy_active_read(ar.interview_id)
             AND coalesce(btrim(d->>'dimension'), '') <> ''
             AND ar.id IN (SELECT id FROM recent)
        ) occ

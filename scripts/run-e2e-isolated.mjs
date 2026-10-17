@@ -257,6 +257,16 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
     'packages/db/migrations/0204_ai_cost_cached_input_price.sql',
   ],
+  // UC-028 A2 trace 对账回补：丢失注入→差集发现→回补→幂等→卫面→水位（隔离 PG·est live=0）。
+  'trace-recon:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/trace-recon.proof.ts',
+    'apps/worker/src/trace-recon.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/jobs/gateway-dispatch.ts',
+    'packages/db/migrations/0001_baseline.sql',
+    'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
+    'packages/db/migrations/0207_ai_trace_backfill_scoped.sql',
+  ],
   // AG 修复轨刀 B（AG-06 known_executed 分类+AG-14 usage_missing 折叠）:本地 http 脚本 provider
   // +隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+改造三源+迁移镜像两件。
   'ag-b-classify:prove:raw': [
@@ -323,6 +333,29 @@ const isolatedReceiptSources = {
     'apps/worker/test/adaptive-resume.proof.ts', 'apps/worker/package.json',
     'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
     'packages/ai-graphs/src/adaptive-interview/graph.ts',
+  ],
+  // AG-16 残面小刀（旧 checkpoint resume 三面确定性 proof:兼容/版本失配/中断点确定性）
+  // :lifecycle 投影层 proof（est live=0·脚本模型+MemorySaver 拦截壳+隔离 PG 投影面）。
+  // 来源清单=proof+改造源+lifecycle 同源 service+写卡步+图装配+state 通道缺省语义。
+  'ag16-legacy:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/adaptive-legacy-checkpoint.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'apps/worker/src/score-writer.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
+  ],
+  // checkpoint 写世代围栏小刀（写缝拦截形四臂 proof:构造期拒/接管拦截/现行放行+直通完备/失守谓词逐项/全链层级）。
+  // :lifecycle 投影层 proof（est live=0·MemorySaver 底座+隔离 PG fence 面+脚本模型）。
+  // 来源清单=proof+围栏 façade+consumer 接线面+lifecycle 同源 service+lease 三谓词+图装配+state。
+  'graph-fence-write:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/graph-fence-write.proof.ts', 'apps/worker/package.json',
+    'apps/worker/src/checkpoint-fence.ts', 'apps/worker/src/interview-consumer.ts',
+    'apps/worker/src/adaptive-lifecycle.ts', 'apps/worker/src/adaptive-interview-service.ts',
+    'packages/db/src/interview/interview-graph-lease.ts',
+    'packages/ai-graphs/src/adaptive-interview/graph.ts',
+    'packages/ai-graphs/src/adaptive-interview/state.ts',
   ],
   // AG 修复轨刀 F(AG-02 残面四类出题失败有界 re-roll+耗尽换 competency+unscored 0 分继续):
   // scripted model+隔离 PG 真迁移链 proof(est live=0)。来源清单=proof+seam/图侧节点/域分类+lifecycle 投影面。
@@ -1242,6 +1275,12 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0059_interview_privacy_projection_fence.sql',
   ],
+  'interview-privacy-read-tier:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/interview-privacy-read-tier.proof.ts',
+    'packages/db/migrations/0206_interview_privacy_active_read_tier.sql',
+    'packages/db/src/model-op/ai-cost-governance.ts', 'packages/db/src/interview/interview-graph-lease.ts',
+  ],
   'uc002:http:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-002-cross-device-http.proof.ts', 'apps/api/test/_neg-harness.ts',
@@ -2121,9 +2160,9 @@ if (![
   'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
   // AUTHZ #34 残面（scrypt 异步化 promisify 形 + chunked 封顶钩子 preParsing 流计数·隔离容器·est live=0）。
   'authz34:scrypt-async:prove', 'authz34:chunked-cap:prove',
-  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
+  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'interview-privacy-read-tier:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
-  'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw',
+  'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
   // #232 G2 刀:押题列表扩投影隔离库证明(fixture 直插 resume+resume_quiz,绝不触碰开发库)。
   'quiz-list:prove',
@@ -2136,6 +2175,7 @@ if (![
   // FENCE-REFLOW C10（§4-4 具名 prove 导入方）:ops/recovery 一次性修复工具的隔离库证明。
   'fence-reflow-repair:prove:raw',
   'model-invocation-reconcile:prove:raw',
+  'trace-recon:prove:raw',
   'ag-b-classify:prove:raw',
   'ag-e-report:prove:raw',
   'ag-f-reroll:prove:raw',
@@ -2289,6 +2329,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:report-retry-http']]
   : target === 'uc002:lease:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:uc002-lease']]
+  : target === 'interview-privacy-read-tier:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:interview-privacy-read-tier']]
   : target === 'uc002:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc002-http']]
   : target === 'uc002:adv:prove:raw'
@@ -2337,6 +2379,11 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-life']]
   : target === 'ag-a-resume:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-resume']]
+  : target === 'ag16-legacy:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-legacy-checkpoint']]
+  // checkpoint 写世代围栏小刀:worker graph-fence-write 接隔离 PG runner·命令沿 worker 原生 script 名。
+  : target === 'graph-fence-write:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:graph-fence-write']]
   : target === 'adaptive-flow:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:adaptive-flow']]
   : target === 'resume-grounding:prove:raw'
@@ -3091,7 +3138,7 @@ async function main() {
       `E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; ` +
       `product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.`,
     );
-    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'obs-ready:prove:raw', 'env-schema:prove:raw', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'fence-reflow-repair:prove:raw', 'model-invocation-reconcile:prove:raw', 'ag-b-classify:prove:raw', 'ag-e-report:prove:raw', 'ag-f-reroll:prove:raw', 'ag-d-admission:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-op02-endpoint-partition:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'quiz-list:prove', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'report-retry:prove:raw', 'uc002:lease:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
+    if (['e2e:prove', 'e2e:ui', 'performance:e2e', 'api:validate', 'obs-ready:prove:raw', 'env-schema:prove:raw', 'recruiter:prove:raw', 'g7fix4:finalize:prove:raw', 'commerce-reconcile:prove:raw', 'fence-reflow-repair:prove:raw', 'model-invocation-reconcile:prove:raw', 'trace-recon:prove:raw', 'ag-b-classify:prove:raw', 'ag-e-report:prove:raw', 'ag-f-reroll:prove:raw', 'ag-d-admission:prove:raw', 'model-op00:prove:raw', 'model-op02:prove:raw', 'model-op02-endpoint-partition:prove:raw', 'model-slot-bypass:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'tokenstream:prove:raw', 'scoring-integrity:prove', 'scoring:eval:raw', 'privacy-erasure:prove:raw', 'privacy-erasure:http:prove:raw', 'privacy-erasure-preview:prove:raw', 'unstube-erase:prove:raw', 'scor-00:http:prove:raw', 'resume-erasure:foundation:prove:raw', 'resume-derivative-reference:prove:raw', 'resume-reference:http:prove:raw', 'reqid:prove:raw', 'interview:prove:raw', 'role-input:prove:raw', 'stress:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'quiz-list:prove', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-degrade:prove:raw', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc011:report-refund:prove:raw', 'uc019:report-regenerate:prove:raw', 'report-retry:prove:raw', 'uc002:lease:prove:raw', 'interview-privacy-read-tier:prove:raw', 'resume:prove:raw', 'rag-generation:prove:raw', 'qbank:prove:raw', 'qbank-pipeline:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-retrieval-eval:prove:raw', 'online-judge-control:prove:raw', 'privacy-authorization:prove:raw', 'tenant-wiring-neg:prove:raw',
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)

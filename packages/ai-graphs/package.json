@@ -10,7 +10,8 @@
     "lint": "eslint . --max-warnings 47",
     "prove:pipeline": "tsx test/resume-quiz.proof.ts",
     "prove:adaptive-graph": "tsx test/adaptive-interview.proof.ts",
-    "prove:adaptive-signals": "tsx test/decide-signals.proof.ts"
+    "prove:adaptive-signals": "tsx test/decide-signals.proof.ts",
+    "prove:adaptive-compile-contract": "tsx test/adaptive-compile-contract.proof.ts"
   },
   "dependencies": {
     "@meetwise/domain": "workspace:*",

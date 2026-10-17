@@ -6,7 +6,7 @@
 import { asPrincipal, gatewayDispatchOwners, claimNextQuizJob, markQuizJobDone, markQuizJobFailed, appendEvent, releaseConsumption, renewQuizJobLease, sweepStuckQuizJobs, RESUME_DERIVATIVE_REFERENCE_VERSION, errCode, asErr, type DbPool } from '@meetwise/db';
 import { getMetrics, METRIC, type ModelClient } from '@meetwise/ai-runtime';
 import { runQuiz } from './quiz-lifecycle.ts';
-import { runDrainLoop } from './drain-loop.ts';
+import { runDrainLoop, SERIAL_DRAIN_TICK_WATCHDOG_MS } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
 import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
 
@@ -105,5 +105,5 @@ export async function quizDispatchTick(d: QuizConsumerDeps): Promise<{ owners: n
 
 /** 常驻消费循环(可优雅排空:stop() 等当前 tick 跑完,滚动部署不丢在飞 job)。 */
 export function runQuizConsumer(d: QuizConsumerDeps, intervalMs = 5000) {
-  return runDrainLoop(async () => { await quizDispatchTick(d); }, intervalMs);
+  return runDrainLoop(async () => { await quizDispatchTick(d); }, intervalMs, { tickWatchdogMs: SERIAL_DRAIN_TICK_WATCHDOG_MS });
 }

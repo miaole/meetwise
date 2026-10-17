@@ -79,7 +79,7 @@ async function transferOwner(owner: string, functions: readonly string[], views:
 async function main() {
   await assertIsolatedTestTarget(admin);
   A('handoff closure manifest covers §6.1-6.5 (13 functions) + §6.2 (2 views) + review receipt table',
-    QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.length === 31
+    QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.length === 32
     && QBANK_CONTROL_DEFINER_VIEW_MANIFEST.length === 2
     && QBANK_CONTROL_DEFINER_TABLE_MANIFEST.length === 15
     && QBANK_CONTROL_DEFINER_TABLE_MANIFEST.some((entry) => entry.name === 'public.qbank_metadata_review_receipt')

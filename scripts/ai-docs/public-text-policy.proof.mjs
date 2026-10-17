@@ -293,21 +293,27 @@ const checks = {
       // SAFEWRITE/QBANK 波后：cap 2152→2160（2026-10-15 协调方 sanction·+8 沿 +8 先例形·
       // 主线 685befed 2151 余 1·cache-observe/qbank-scope-fix/uc003-arm4/g7-env-billing
       // 四刀在飞共享余量）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // N-19 修复刀随刀：cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232
+      // 四先例形·2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶·授权随令）——本臂 fabricated
+      // 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2248 随刀：cap 2240→2248（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240
+      // 五先例形·2240 恰等零余量·在飞四刀并线 2249 超限·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_184; i += 1) {
+      for (let i = 0; i < 2_248; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_184);
-      // 超限错误码形状断言：第 2185 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2185`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2184.md'] });
+      assert.equal(atCap.scannedFiles, 2_248);
+      // 超限错误码形状断言：第 2249 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2249`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2248.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2185`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2249`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

@@ -12,7 +12,7 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  asPrincipal, assertIsolatedTestTarget, claimModelInvocation, createPool,
+  __resetAiCostExhaustedCacheForTest, asPrincipal, assertIsolatedTestTarget, claimModelInvocation, createPool,
   failModelInvocationClaim, markModelInvocationDispatched, reserveAiTextCost,
 } from '@meetwise/db';
 import { invoke } from '@meetwise/ai-runtime';
@@ -50,6 +50,7 @@ async function billedClaim(key: string, nodeKey: string, overrides: Partial<Para
 }
 
 async function main() {
+  __resetAiCostExhaustedCacheForTest();   // 用例间复位决策缓存（本 proof 无 budget_exhausted 面·防跨用例滞留）
   await assertIsolatedTestTarget(pool);
   await seedBudget();
 

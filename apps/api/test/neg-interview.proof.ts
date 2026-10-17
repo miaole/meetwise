@@ -580,6 +580,78 @@ A('abandon 终态 failed(IV_FAIL)→409 interview_not_active',
     r.status === 200 && r.body?.alreadyAbandoned === true && r.body?.released === 'noop');
 }
 
+// ─────────────────────────────────────────────────────────────────────────
+// 10) enqueue 背压闸（案A 定稿·裁决④ 429 映射臂 begin/turn+预查形豁免臂 HTTP 面；
+//     饱和判别臂/per-owner 维度/竞态臂在 worker interview.proof ④ db 层行使）
+// ─────────────────────────────────────────────────────────────────────────
+{
+  // fixture 前置：0126 assert_interview_answer_legacy_plaintext_allowed 窄复刻（shadow schema 无
+  // interview_answer_artifact 面→空集恒放行分支=真实函数同语义；生产 turn payload 恒含 answer 键，
+  // 429 臂须经此函数方能到达 enqueue——既有臂全在 enqueue 前拒故此前从未暴露）。
+  await h.pool.query(`
+CREATE OR REPLACE FUNCTION assert_interview_answer_legacy_plaintext_allowed(
+  p_interview text, p_question_id text, p_state_version bigint
+) RETURNS void LANGUAGE plpgsql AS $fn$
+BEGIN
+  IF p_interview IS NULL OR length(p_interview) = 0 THEN
+    RAISE EXCEPTION 'interview_answer_legacy_plaintext_fenced' USING ERRCODE = 'P0001';
+  END IF;
+  PERFORM pg_advisory_xact_lock(hashtext('meetwise:interview_answer_writer:' || p_interview));
+  RETURN;
+END $fn$;
+GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text, text, bigint) TO app_role;
+`);
+  // fixture:userA 三条 queued 种子跨三面试（直插不触闸·status 默认 queued；v64 列面 harness 顶部已补齐）。
+  await h.pool.query(
+    `INSERT INTO interview_job(id,owner_user_id,interview_id,kind,seq,payload,reference_schema_version,resume_id,resume_privacy_epoch)
+     VALUES ('44444444-4444-4444-8444-444444444441','userA','IV_BPS1','start',0,'{}'::jsonb,64,$1,1),
+            ('44444444-4444-4444-8444-444444444442','userA','IV_BPS2','start',0,'{}'::jsonb,64,$1,1),
+            ('44444444-4444-4444-8444-444444444443','userA','IV_BPS3','start',0,'{}'::jsonb,64,$1,1)`,
+    [R1],
+  );
+  // 429 映射臂(turn)：饱和态合法作答过全部守卫至入队 → 429 interview_queue_saturated
+  // （闸具名错→turn catch 映射·沿 TURN_RL 429 分口）+claim 同事务回滚（题仍 issued·零悬账可安全重试）。
+  // 独立面试 IV_BPT（uq_interview_question_open=同面试仅一开题·IV_ACT 开题被既有臂占用；
+  // INSERT 时预绑 resume——enqueue parent 门要求 v64 引用在位，turn 无 begin 绑定面）。
+  await h.pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ('IV_BPT','userA','active',$1,1)", [R1]);
+  await h.pool.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,status) VALUES ('userA','IV_BPT','q-v1-t9-c0',91,9,'背压闸题面','issued')");
+  const bpAns = '背压闸下的合法作答';
+  const rTurn429 = await h.post('/interview/IV_BPT/turn', A_, {
+    questionId: 'q-v1-t9-c0', stateVersion: 91, answerId: randomUUID(),
+    answerHash: createHash('sha256').update(bpAns).digest('hex'), turn: 9, answer: bpAns,
+  });
+  const qAfter = await h.pool.query("SELECT status FROM interview_question WHERE interview_id='IV_BPT' AND question_id='q-v1-t9-c0'");
+  A('turn 429 映射臂：饱和态合法作答 → 429 interview_queue_saturated（改前无闸=202·改后 429）',
+    is(rTurn429, 429, 'interview_queue_saturated'));
+  A('answer 臂回滚：闸拒后 claim 同事务回滚（题仍 issued·零悬账可安全重试）',
+    qAfter.rows[0]?.status === 'issued');
+  // 预查形豁免臂(HTTP)：饱和态 begin 已 begun 面试 → 幂等键预查存在即跳闸 → 202 alreadyBegun 不误拒。
+  const rExempt = await h.post('/interview/IV_ACTB/begin', { ...A_, ...rid }, {});
+  A('预查形豁免臂：饱和态 begin 既有 start job 面试 → 202 alreadyBegun 不误拒',
+    rExempt.status === 202 && rExempt.body?.alreadyBegun === true);
+  // 429 映射臂(begin)：新面试全守卫链（绑定+路由+扣费）通过后入队 → 429 + 扣费预留同事务回滚零悬账。
+  await h.pool.query("INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ('IV_BPGO','userA','created',$1,1)", [R1]);
+  {
+    const cli = await h.pool.connect();
+    try {
+      await cli.query('BEGIN');
+      await cli.query("SET app.principal_user='userA'");
+      await cli.query(`INSERT INTO candidate_profile_route_decision(id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash)
+        VALUES ('cprd-neg-ivbpgo','IV_BPGO','userA',$1,$2,$2,'v1','policy-neg-1','route_decided','rule_decided','backend',10000,$2) ON CONFLICT (interview_id) DO NOTHING`, [R1, SHA64]);
+      await cli.query(`INSERT INTO candidate_profile_route_snapshot(interview_id,candidate_user_id,decision_id,resume_content_sha,input_digest,taxonomy_version,leaf_track_id,allocation_bps,status)
+        VALUES ('IV_BPGO','userA','cprd-neg-ivbpgo',$1,$1,'v1','backend',10000,'interview_snapshotted') ON CONFLICT (interview_id) DO NOTHING`, [SHA64]);
+      await cli.query('COMMIT');
+    } finally { cli.release(); }
+  }
+  const rsvBefore = await h.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA'");
+  const rBegin429 = await h.post('/interview/IV_BPGO/begin', { ...A_, ...rid }, {});
+  const rsvAfter = await h.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA'");
+  A('begin 429 映射臂：饱和态新面试全守卫链通过 → 429 interview_queue_saturated',
+    is(rBegin429, 429, 'interview_queue_saturated'));
+  A('start 臂回滚：闸拒后扣费预留同事务回滚（预留计数零增·零悬账）',
+    Number(rsvAfter.rows[0].n) === Number(rsvBefore.rows[0].n));
+}
+
 // 用例统计:
 //   §1 begin ........... 9
 //   §2 turn ............ 17
@@ -591,7 +663,10 @@ A('abandon 终态 failed(IV_FAIL)→409 interview_not_active',
 //   §8 events/transcript 6
 //   §9 feedback/voice .. 8
 //   状态机硬不变量 .... 9
-//   ── 合计:102 条纯负路径断言（所有状态守卫均为精确码断言）
+//   §10 enqueue 背压闸 .... 5
+//   ── 合计:107 条负路径断言（所有状态守卫均为精确码断言）
 //   [AUTHZ-HARDEN 5A-1 席1-R1 随刀更注] 原注「合计:97」系 H3 EXEC 时点值,后续刀增臂未更注;
 //   本次 rg 实测静态 A( 断言恰 102,按实测更正(97→102·只更注零臂动)。
+//   [QUEUE-ENQUEUE-BP EXEC 2026-10-16 随刀更注] §10 新增 5 臂(429 映射臂×2+预查形豁免臂+回滚臂×2),
+//   rg 实测静态 A( 断言恰 107,按实测更正(102→107·只更注·臂账见 §10 段注)。
 await done();

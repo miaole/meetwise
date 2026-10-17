@@ -110,6 +110,7 @@ export async function proposeSource(c: Client, x: ProposeInput): Promise<Propose
  * 私有源则 reviewer 须 ∈ qbank_org_curator(orgId) 或平台 curator（内容安全兜底审核/撤回权）;平台公共源须
  * 平台 curator。不传=既有调用形零变（系统 seed 自动审核臂/历史 proof）。RLS 审核策略已被 0176 真空收口,
  * 数据面写授权=executor 通道（0066 executable grant）,本校验是授权之上的信任根断言,非鉴权根。
+ * 审核人归因（AG-43 双半刀）：reviewerScope 传入时 reviewed_by=reviewerScope.reviewer（服务端信任根派生·非 GUC 非系统账号兜底）；未传=既有链零变（系统 seed 自动审核臂 `__system_qbank__` 归因如实保留）。
  */
 export async function reviewSource(
   c: Client, sourceId: string, fromStatus: QbankSourceStatus, decision: ReviewDecision, reviewNote?: string,
@@ -143,10 +144,12 @@ export async function reviewSource(
             -- Operational qbank builds run without a request principal.  This
             -- is audit attribution only; PostgreSQL role grants, not this GUC,
             -- decide who may perform the update.
-            reviewed_by=coalesce(nullif(current_setting('app.principal_user', true), ''), '__system_qbank__'),
+             -- A named reviewerScope reviewer is attributed verbatim; the GUC/coalesce
+             -- chain only covers the unnamed operational arm.
+            reviewed_by=coalesce($5, nullif(current_setting('app.principal_user', true), ''), '__system_qbank__'),
             review_note=$4, reviewed_at=now(), version=version+1
       WHERE id=$1 AND status=$2`,
-    [sourceId, fromStatus, decision, reviewNote ?? null]);
+    [sourceId, fromStatus, decision, reviewNote ?? null, reviewerScope?.reviewer ?? null]);
   return r.rowCount === 1;
 }
 

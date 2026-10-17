@@ -54,6 +54,11 @@ export class AuthService {
     // #34:scrypt KDF 异步形,哈希 hoist 出 query 实参(置 try 前)——等价注记:hoist 后 scrypt 异常不经
     // errCode(e)==='23505' 分支而直抛,该分支本就对非 23505 错 `throw e` 照抛 = 行为等价。
     const hash = await hashPassword(password);
+    // auth_not_configured 前移到首个写点之前（该失败类内注册零半成功中间态：缺钥时 user_account
+    // 不落库，客户端重试不再撞 409 email_taken）。判据与 auth-session.ts issueSessionToken 缺钥
+    // 失败分支逐字同源（process.env.AUTH_SECRET ?? '' 取值 + falsy 即缺）；错误词/状态与
+    // issueSessionTokenOrThrow 逐字同源。boot 期 assertCriticalEnv 仍为第一道，此处写路径自持不变式。
+    if (!(process.env.AUTH_SECRET ?? '')) throw new HttpException({ error: 'auth_not_configured' }, HttpStatus.INTERNAL_SERVER_ERROR);
     try {
       await this.db.asGateway((c) => c.query(
         'SELECT gateway_auth_signup($1,$2,$3,$4)',

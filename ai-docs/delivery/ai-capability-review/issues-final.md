@@ -88,6 +88,7 @@
 - **用户影响**：产品承诺的“失败自动重试、可手动重试”实际不生效：一次失败就意味着报告永远出不来。不过不会重复扣费。
 - **修法**：报告调用的 idempotencyKey 和 businessRevision 都带上 attempt，形如 `:report:a${n}`，并设上限（如 3 次）。“不重复扣费”在 interview 结算维度保证，不依赖模型调用键。unknown 状态先走 #10 的处置流程。
 - **关联审计总表编号**：#229、#20、#10
+- 【审计状态注记 2026-10-16·状态注记席·#229 维持注记（只记录·不关条不翻判词）：两源口径未统一亲证 @origin tip `67cdf153` 树——重排/隔离源 report-worker.ts:197-206（sweepReportsOnce 隔离→report_unavailable 终态事件）与得分权威源 main.ts:180-184（ScoreCard deterministic_total·legacy score 结构性不参与）并存，adaptive-lifecycle.ts:530-534（answer_evaluated .score 仅瞬时 hint·无合法 C 端分数消费者）+:588-604（eligible 严格证据 SQL 0-100 分）两侧口径未统一·#229 维持】
 
 ### AG-04【P1·编排运行时】图运行中的任何异常（DB 超时、checkpoint 写失败、瞬时网络错误）都会被当成终态：面试失败并退款。节点没有 retryPolicy，也不区分瞬时和确定性错误
 
@@ -165,6 +166,7 @@
 - **用户影响**：付了钱拿不到任何产出，而且“重试”按钮是无效承诺。
 - **修法**：eligible=0 时直接生成确定性的“证据不足”报告（不调模型），或者 C 端也退款；report_unavailable 要区分可重试和不可重试。
 - **关联审计总表编号**：#229、#20
+- 【审计状态注记 2026-10-16·状态注记席·AG-10 行号漂更正注记（只记录·不关条）：审计卷引行 adaptive-lifecycle.ts 571-592→**619-643**（`67cdf153` 树亲读：:619 `else if (unscored === 0)` 全跳过臂起·:633-643 AG-10 守卫在位=unbound 且 eligible=0 不再 enqueueReport→writeNoEvidenceReadyReport 确定性模板报告+report_ready 事件）·per_session 全额语义零变维持（:623-625 注释原样在树）·AG-10 维持】
 
 ### AG-11【P2·成本】成本预留按每个端点的静态 MAX_INPUT_TOKENS 预留，而不是用派发前估算；DB 触发器还强制“预留量 = 上限”，结构上改不了
 
@@ -220,6 +222,7 @@
 - **用户影响**：P1 级运行时故障无法被发现，也无法定位。
 - **修法**：ai_graph_run 增加 current_node/last_error_code/last_checkpoint_id；周期扫描 next 非空、没有 interrupt、N 分钟没有 job 的 thread，打指标并自动 invoke(null)。
 - **关联审计总表编号**：#8
+- 【AG-15 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-15 观测刀 ag15-observability nail b1ab2787 落主线·0205 三观测列+卡死检测观测器+proof 21 臂·双审 rev2 后复审 PASS×2+post 双审 PASS×2·AG-15 条目收口】
 
 ### AG-16【P2·编排运行时】上述 P1 运行时故障路径都没有确定性 proof：eval 后崩溃、节点瞬时异常、报告重试是否真的再调模型、准入拒绝后重试、recursionLimit 是否生效、旧 checkpoint resume
 
@@ -231,6 +234,7 @@
 - **用户影响**：回归无法发现，修复后也无法证明已修好。
 - **修法**：为每个 P1 补一个 MemorySaver + 注入抛错的确定性 proof，再补一套 PG 集成 proof。
 - **关联审计总表编号**：#98、#99
+- 【AG-16 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-16 残面 proof 刀 ag16-resume-proof nail bf453f49 落主线·旧 checkpoint resume proof 43 臂+recursionLimit 纪实 18 臂·四层权威修正链 rev2 后第三次双审 PASS×2+post 双审 PASS×2·AG-16 残面收口】
 
 ### AG-17【P3·Prompt】结构化输出只用 response_format=json_object，schema 只写在 prompt 里；schema 失败不重试但照常计费；span 名 schema_retry 暗示有重试，实际没有
 
@@ -374,6 +378,7 @@
 - **用户影响**：个别面试活锁，直到连接被回收。
 - **修法**：unlock 失败时调用 release(err) 销毁连接；requeue 计数并设上限；或者改为事务级锁 + CAS。
 - **关联审计总表编号**：#9、#4
+- 【AG-29 翻面注记 2026-10-16·协调方翻面笔授权随令行使·读码裁量=覆盖·注记前移：requeue 上限半=AG-04 刀C 已闭（interview-jobs.ts :15 MAX_INTERVIEW_JOB_ATTEMPTS=5+claim running 过期臂 attempts<max 谓词 :163+queued 臂退避时闸 :162、requeueInterviewJob :280 指数退避 2^attempts 秒封顶 300 :18、sweepStuckInterviewJobs :313-315 running/:321-324 queued attempts≥MAX 结构闸终态 failed）·锁回池半=DB-HOTSPOT 件② 事务级锁覆盖亲证（interview/interview-graph-lease.ts:25 pg_advisory_xact_lock 于 asPrincipal 单短事务 principal.ts:995-1005 BEGIN/COMMIT 内·锁随事务自动释放连接即归池·原「unlock 失败被 catch 吞掉带锁回池」路径结构性消除=已无 unlock 调用可败；全仓 session 级 pg_advisory_lock 仅剩 migrate.ts:394 迁移串行化+principal.ts:298 qbank provision 两处·均 AG-29 指涉面外）·AG-29 条目收口】
 
 ### AG-30【P3·编排运行时】checkpoint 永不清理：transcript reducer 是 concat，每轮整块写新的 blob 版本；终态面试的 checkpoint 只有隐私擦除才会删除
 
@@ -485,6 +490,7 @@
 - **用户影响**：无法兑现「企业私有题库 / 私有优先」；多企业共用一份公共池，与产品分层决策不一致。
 - **修法**：表加 `owner_kind(platform/org)` 与 `org_id`；检索函数按场景在库内强制过滤并私有优先排序；企业私有题由审核通过的招聘方维护（关联 #110、#271），企业审核 + 平台内容安全兜底，同样版本化。见 README「设计决策：题库分层与私有优先」。
 - **关联审计总表编号**：#110、#271
+- 【审计状态注记 2026-10-16·状态注记席·#218/#271 维持部分修注记（#218/#271 明令勿关·只记录；附A 三条维持记录随审计卷登记·本笔不复述不裁）：已落半 `67cdf153` 树亲证——0156_enterprise_bucket_billing.sql+0157_billing_payer_route.sql（企业桶+扣费路由·interview.service.ts:246-262 reserveEntitlementForApplication·候选人桶零读写）+0160_b_qualitative_projection.sql（B 端定性投影·#218 面）——余面维持部分修】
 
 ### AG-40【P1·产品契合】C 端练习面试用不上题库：begin 只写 candidate_profile_route_snapshot，检索只读 interview_route_snapshot，降级 route_snapshot_missing
 
@@ -529,6 +535,7 @@
 - **用户影响**：审计归因失真；退役代存储依赖人工运维，易遗漏。
 - **修法**：审核人缺失应拒绝或记明确错误，不得静默写成 `__system_qbank__`；为 0146 释放函数加受控调度（仍须先修 AG-41 鉴权），并打点监控未释放代数量。
 - **关联审计总表编号**：—
+- 【AG-43-DUAL-HALF 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-43 双半收口刀 ag43-dual-half nail 520b26e3 落主线·manifest 纳管 32 函数+审核人 $5 归因·回炉双审 PASS×2+post 双审会签 PASS×2·AG-43 条目收口·QSEC STILL OPEN 两件清条】
 
 
 ## 已在审计总表中的问题（只引用编号，不计入新增）
@@ -542,6 +549,8 @@
 | #2 | 用户暂停超过约 30 分钟，预留被对账回收，面试变成 abandoned | LG-07、PF-F-06 | 2 | 成立（触发属推断）：commerce.ts:26 DEFAULT_LEASE_SECONDS=1800；interview-consumer.ts:221-238 只在 job 运行期间续租；commerce-reconcile.ts:25-70 | 建议总表从 P3 升到 P2（PF-F-06 原定 P1 偏高） |
 | #8 | 自适应图的 ai_graph_run 永远写不到终态 | LG-09、LR-F10（部分） | 2 | 成立：interview-graph-lease.ts:81-86 release 无条件写 waiting_user | 维持 |
 | #7 | checkpoint 写不受图版本 fence 保护 | LG-11、LR-F4 | 2 | 成立：fence 只在投影侧，saver 写只靠 advisory lock | 维持 |
+
+- 【#7 翻面注记 2026-10-16·协调方批表翻面笔随令行使（沿 :563 审计状态注记插行先例形）：GRAPH-FENCE checkpoint 写世代围栏刀 graph-fence nail 落主线·码面锚=checkpoint-fence.ts FenceCheckpointSaver 写前三谓词拦截（lease_owner/version/lease_expires_at·失守抛 graph_fence_lost 既有 transient 白名单）+interview-consumer.ts life.cp 组装位 :480 接线（任务书旧锚 :458 系 pre-reserve-renew 树值·行号漂移要录·现树亲证）+graph-fence-write.proof.ts 38 臂隔离库真迁移链·残余窗随注记带=写缝 check-then-act 毫秒级 TOCTOU 残缝（assert 查询→内层 saver INSERT·Ban 面内不可再收窄·每 takeover 至多在飞 ~5 superstep 拍·如实披露不声称闭合）+mock-interview.ts :28 同形红面异域（mock 图域非生产图）登记不触·#7 行翻面收口】
 | #256 | 没有“提前结束并出报告” | PF-F-07 | 1 | 成立 | 维持 |
 | #50、#204 | 报告只喂分数数组；成长链生产无人调用，报告更新后下游不联动 | PF-F-09、LG-06（下游联动部分） | 2 | 成立：interview-service.ts:301 只传分数 | 维持 |
 | #271、#197、#258 | B 端岗位面试扣候选人额度；JD 与能力要求不进 planner | PF-F-11 | 1 | 成立：interview-consumer.ts:355 只取 allocations[0].leafTrackId | 维持 |
@@ -549,7 +558,25 @@
 | #77、#79、#38 | 难度自适应信号粗：题库只有 3/4 两档，检索只拼“难度N”、只服务 fundamental | PF-F-04、AI-05、AC-F10（query 部分） | 3 | 成立（效果弱属推断）：adaptive-interview-service.ts:118-121 | 维持；CRAG 阈值未校准另立 AG-13 |
 | #48、#49 | 输入缓存零收益、cached_tokens 不计量、价格本没有缓存价 | AC-F1、AC-F2、agent-capability 缓存段 | 2 | 部分成立：本次用 Qwen2.5 tokenizer 实测 8 个 system 前缀为 172–670 token，全部低于百炼 1024 门槛（百炼官方文档已核实：显式/隐式缓存最少 1024 token，隐式命中按 20% 计价）；但默认端点是 DeepSeek，其官方文档写的是按“缓存前缀单元”整体匹配并会自动检测公共前缀落盘，没有写 1024 门槛，也没有写 64 token 粒度，所以“DeepSeek 下零收益”无法判定 | 维持 P3；先接 cached_tokens / prompt_cache_hit_tokens 观测再下结论 |
 | #9 | session 级 advisory lock 与 PgBouncer 事务池冲突 | LR-F11（部分） | 1 | 成立（仓库里没有 pgbouncer 配置，属推断） | 维持 |
+
+- 【#9 翻面注记 2026-10-16·协调方批表翻面笔随令行使：DB-HOTSPOT 数据库热点/锁族刀 db-hotspot nail 落主线·件② graph lease session 锁收窄事务级=interview-graph-lease.ts:25 pg_advisory_xact_lock（与旧 session 锁同键·asPrincipal 单短事务内·锁随事务自动释放连接即归池·「unlock 失败被吞带锁回池」路径结构性消除=PgBouncer 事务池冲突面就此消·全仓 session 级 pg_advisory_lock 仅剩 migrate.ts 迁移串行化+qbank provision 两处均本行指涉面外）·#9 行翻面收口】
 | #213 | 诊断全有或全无：一条改写不接地就整份作废 | AC-F17（诊断部分） | 1 | 成立：interview-service.ts:240-255 | 维持 |
 | #72 | ASR/TTS 不经过 invoke，没有额度预留和成本记账 | AC-F22（语音子项） | 1 | 成立 | 维持 |
 | #210 | 押题分数是伪分（40+20n） | AC-F22（子项） | 1 | 成立 | 维持 |
+
+- 【审计状态注记 2026-10-16·状态注记席·#238 维持部分修注记（只记录·不关条）：已落半 `67cdf153` 树亲证——FENCE-REFLOW interview_privacy_fenced→410 GONE（interview.service.ts:71-72）+begin 目标岗位输入面 target-role header（interview.controller.ts:30）——多简历/多身份余面维持部分修】
 | #196、#44、#50 | 隐私最小化在“已同意用途”内也过度收紧（产品权衡） | PF-F-13 | 1 | 部分成立：持久化最小化本身正确，问题在于把运行时推理输入也一并去掉了；结论已并入 #196/#44/#50 | 不单列 |
+
+## 审计 mw-core 一节产品条目关闭注记（2026-10-17·append-only）
+
+> 外部全量审计（基准 `7d71a64`）归属域 mw-core §一「已修可关闭」表实为 17 条=产品 10 条（含 #160）+BF 7 条（BF 7 条收口注记另见 `ai-docs/delivery/billing-redesign/README.md` §15）；产品 10 条中 9 条关闭（#N 条目形·三席独立复核 VERDICT=CONFIRMED（已修））·#160 经复核转部分修不闭（机制面仍真·展示诚实化半边已修·另见 progress-write 刀发射模型更新）；本节为仓内台账收口注记面——每条一行 append·沿本卷 :532 AG-43 翻面注记先例形·本节外零字节改动。条目本体与逐条全量证据以外审包卷面（`Meetwise全量审计-7d71a64/dispatch/mw-core.md`）为准。
+
+- 【#6 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:218-223 勘误注在位（0001 旧注「下游结算 STUB」矛盾诚实化锚）+ai-docs/architecture/backend/commerce-saga.md:42 已补实节（settleOutbox 消费者 exactly-once 入账+lease 心跳 vs sweep TOCTOU 已修）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#11 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql:731 `REVOKE INSERT, UPDATE, DELETE ON ai_model_invocation FROM app_role` 在位+卷头注 :9-13（DELETE 无请求路径例程·刻意不恢复表级 DELETE 授权）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#21 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:10 勘误注撤「大余数法」（实现实为尾桶吸收差额形）+实现 :205/:258（前 n-1 桶 r2(a.units*ratio) 比例舍入+末桶 r2(settled-distributed)·Σconsume 严格等于权威 settled）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#22 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:218-223 勘误注收口 0001 同文件两注矛盾（outbox 处「下游 STUB」vs ledger 处「非 relay 占位 stub」·与 #6 同注两面）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#48 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/ai-runtime/src/invoke.ts cachedInputTokens 三端点读取（:76 类型位+:481-483 校验+:745 观测+:1045/:1152 结算入参）+packages/db/migrations/0204_ai_cost_cached_input_price.sql cached 价列+apps/worker/src/model-cost-governance.ts:128 `CACHED_INPUT_MICRO_CNY_PER_MILLION` 价读取·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#62 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/jobs/actions.ts:13/:25 路径内插 jobId/appId 统一 encodeURIComponent 全覆盖（#62 勘误注在码）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#64 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/auth-actions.ts:29-35 邮箱格式/密码长度前置校验+`AbortSignal.timeout(10_000)` fetch 超时+:38-40 AUTH_ERROR_COPY 错误码中文文案映射（429 分支在位）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#125 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/report/[id]/page.tsx:18 `LEVEL_LABELS` 五档 contracts 单源（packages/contracts/src/index.ts:711 五档 labels+:717 单源导出）+:356 未知级别中文兜底「未知级别」·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【#231 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/components/QuizPanel.tsx:83-87「备战提示」改述（注释自述 UI 派生准备建议·非模型生成真追问·文案同步）+dashboard/quiz 面「可能追问」零残留（grep EXIT=1 亲证）·审计 mw-core 一节 2026-10-17 复核确认关闭】

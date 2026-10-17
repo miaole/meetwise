@@ -217,6 +217,8 @@ const metricValue = (name: string) => {
   A('F1', '模型仅派发一次（无自动重试）', f1Calls.n === 1);
   A('F1', '失败 trace 结构化观测（计数）：ai_trace_persist_failures_total=1（不得静默无痕）',
     metricValue(METRIC.aiTracePersistFailures) === 1);
+  A('F1', '丢失率分母：ai_trace_persist_attempts_total=1（成功失败都过 persistTraceBestEffort 入口·F1 成功路径已计一次）',
+    metricValue(METRIC.aiTracePersistAttempts) === 1);
   const f1LogLine = captured.map((l) => l.trim()).find((l) => l.startsWith('{') && l.includes('ai_trace_persist_failed'));
   let f1Log: Record<string, unknown> | null = null;
   try { f1Log = f1LogLine ? (JSON.parse(f1LogLine) as Record<string, unknown>) : null; } catch { f1Log = null; }
@@ -240,6 +242,8 @@ const metricValue = (name: string) => {
   A('F2', 'F2a 无 trace、无观测误触发（真相失败 ≠ trace 失败）：trace=0 · 计数仍=1',
     (await traceCount(f2aKey)) === 0 && metricValue(METRIC.aiTracePersistFailures) === 1);
   A('F2', 'F2a 无自动重试：模型仅派发一次', f2aCalls.n === 1);
+  A('F2', 'F2a attempts 恒值：ai_trace_persist_attempts_total 仍=1（真相写失败不触 trace 路径·attempts 不动）',
+    metricValue(METRIC.aiTracePersistAttempts) === 1);
 
   const f2bKey = K('f2b');
   const f2bCalls = { n: 0 };
@@ -255,6 +259,8 @@ const metricValue = (name: string) => {
   A('F2', 'F2b 无 trace、无观测误触发：trace=0 · 计数仍=1',
     (await traceCount(f2bKey)) === 0 && metricValue(METRIC.aiTracePersistFailures) === 1);
   A('F2', 'F2b 无自动重试：模型仅派发一次', f2bCalls.n === 1);
+  A('F2', 'F2b attempts 恒值：ai_trace_persist_attempts_total 仍=1（真相写失败不触 trace 路径·attempts 不动）',
+    metricValue(METRIC.aiTracePersistAttempts) === 1);
 
   // ── F3 positive control：无注入同路径全绿 → F1 的失败确由注入引起 ──
   const f3Key = K('f3');
@@ -273,6 +279,8 @@ const metricValue = (name: string) => {
   A('F3', 'positive control：业务 completed（status=succeeded）+ 额度 settled=90',
     f3Inv?.status === 'succeeded' && f3Res?.status === 'settled' && Number(f3Res?.settled_micro_cny) === 90);
   A('F3', 'positive control：预算 settled 累计=180（F1+F3 恰各一次）', (await budgetSettled()) === 180);
+  A('F3', '丢失率分母：ai_trace_persist_attempts_total=2（F1 失败+F3 成功各计一次·丢失率=failures/attempts 可导出）',
+    metricValue(METRIC.aiTracePersistAttempts) === 2);
 
   // ── F4 NEG（边界/幂等）：F1 注入路径下账面复核 —— 无双扣/无重复入账/无替代性扣费 ──
   const f4Replay = await invoke({ idempotencyKey: f1Key, schema: Schema, businessValidate: () => null, model: f1Model, service: 'uc028-fault-probe' }, pool, OWNER);
@@ -291,6 +299,8 @@ const metricValue = (name: string) => {
   // ── F5 边界声明：失败 trace 仅被观测记录 · 不要求已补写 · GAP-UC028-RECON stays gap ──
   A('F5', '失败 trace 未被补写（A2 recon 不在本刀）：f1 键 trace 仍=0', (await traceCount(f1Key)) === 0);
   A('F5', '观测不丢失：ai_trace_persist_failures_total 仍=1（失败被持久观测记录）', metricValue(METRIC.aiTracePersistFailures) === 1);
+  A('F5', '分母恒值：ai_trace_persist_attempts_total 仍=2（F4 replay 命中 claim 缓存不重触 trace 路径·与 failures=1 恒值互证）',
+    metricValue(METRIC.aiTracePersistAttempts) === 2);
   const invokeSrc = readFileSync(resolve(repoRoot, 'packages/ai-runtime/src/invoke.ts'), 'utf8');
   A('F5', 'A2 recon 不冒充：invoke.ts 无 missing-trace rewrite/backfill/recon 队列符号',
     !/\b(trace_rewrite|rewrite_trace|missing_trace|trace_backfill|trace_reconcil|补写.*trace|trace.*补写)\b/i.test(invokeSrc));

@@ -101,7 +101,7 @@ function registryUnit() {
   r.unregister('k1', e1);
   A('unregister 后 count=0（置旗不 end——R1：条目只持旗）', r.count() === 0 && drained1 >= 1);
   r.unregister('k1', e1);
-  A('unregister 幂等（不抛）', true);
+  A('unregister 幂等（不抛·二次移除后 count 仍 0）', r.count() === 0);
   const r2 = createSseRegistry();
   r2.beginDrain();
   A('beginDrain 只翻旗不动条目', r2.isDraining() === true && r2.count() === 0);
@@ -293,7 +293,7 @@ async function healthControllerProof() {
   const controller = new HealthController(fakeHealth);
   const okBody = await controller.apiReady();
   assert.deepEqual(okBody, { status: 'ok', config: { envSchema: 'ok' }, schema: { migration: 'ok' } });
-  A('未排水 readiness ok', true);
+  A('未排水 readiness ok', okBody.status === 'ok');
   getSseRegistry().beginDrain();   // 进程单例置排水态（本段置底：后续断言不再依赖未排水态）
   try {
     await controller.apiReady();

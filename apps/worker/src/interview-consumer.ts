@@ -5,7 +5,7 @@
  */
 import { AsyncLocalStorage } from 'node:async_hooks';
 import { asPrincipal, assertInterviewPrivacyActive, gatewayDispatchOwners, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, requeueInterviewJob, withInterviewGraphFence, renewInterviewGraphFence, appendEvent, decryptActiveResumeBlob, enrollCheckpointThread, failInterviewAndRelease, markApplicationAssessmentUnavailable, renewReservationLease, renewInterviewJobLease, sweepStuckInterviewJobs, purgeStaleInterviewJobPayloads, getInterviewRouteSnapshot, getInterviewRouteSnapshotForAdaptiveRole, getJobPlannerInputForInterview, deriveQbankOwnerScope, DEFAULT_LEASE_SECONDS, INTERVIEW_RESUME_REFERENCE_VERSION, MAX_INTERVIEW_JOB_ATTEMPTS, errCode, asErr, type DbPool, type InterviewGraphFence, type QbankServingScopeInput } from '@meetwise/db';
-import { getMetrics, METRIC, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
+import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import type { PostgresSaver } from '@langchain/langgraph-checkpoint-postgres';
 import { admitInterviewResume, degradedRetrieval, type ScoredRef, type SourceDoc } from '@meetwise/domain';
 import { startAdaptiveInterview, submitAdaptiveAnswer } from './adaptive-lifecycle.ts';
@@ -17,6 +17,7 @@ import { createInterviewResearchSkills } from './interview-research-skills.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
 import { withCheckpointAccess } from './checkpoint-principal.ts';
+import { FenceCheckpointSaver } from './checkpoint-fence.ts';
 import {
   DEFAULT_INTERVIEW_DISPATCH_BUDGET, DEFAULT_INTERVIEW_OWNER_LAUNCH_CAP, fairDrainInterviewOwners,
   type InterviewDispatchBudget,
@@ -56,6 +57,11 @@ export function parseFocusPayload(raw: string | undefined): string[] | undefined
  *  (题面是短问题文本;沿 FOCUS_LABEL 与 PLANNER_FACTS 既有有界纪律)。 */
 export const QUIZ_QUESTIONS_MAX_COUNT = 6;
 export const QUIZ_QUESTION_MAX_CHARS = 300;
+
+/* ───────── 预留租约续约失败处置(claim 臂有限短退避+结构化告警面) ───────── */
+/** 预留续租 claim 臂重试退避表(ms):尽试 delays.length+1 次仍 throw 才弃拍交对账兜底——附加 sleep 总和 ≤750ms,
+ *  尝试自身往返另计(单语句幂等 UPDATE·受池 statement_timeout 15s 界);有限短退避禁无限(瞬时抖动自愈·sustained 由告警面承接)。 */
+export const RESERVATION_RENEW_RETRY_DELAYS_MS = [250, 500];
 /**
  * 解析 resume_quiz.questions(jsonb;quiz-lifecycle 写面=QuizItem[]{q,refs})→ 有界纯 string[](题面文本):
  * 缺失/空/非数组/全空白 → undefined(容忍不崩沿 focus 同形制——planner 走无押题段回退=现状字节);
@@ -101,6 +107,8 @@ const requestIdStore: AsyncLocalStorage<string> =
   ((globalThis as unknown as Record<symbol, AsyncLocalStorage<string> | undefined>)[Symbol.for('meetwise.ai-runtime.requestIdContext')] ??= new AsyncLocalStorage<string>());
 export interface ConsumerDeps {
   pool: DbPool; cp: Checkpointer; model: ModelClient; fastModel?: ModelClient; leaseOwner: string;
+  /** AG-20(CTX-02 显式接线):ask 主端点成本政策（main 组合根同源注入·缺省 undefined=预算零触现状字节）。 */
+  askCostPolicy?: ModelCostPolicy;
   /** Process-local interview fairness budget. Missing means the documented defaults. */
   dispatchBudget?: InterviewDispatchBudget;
   /** 仅测试观测：start 不再解密原文。生产路径读画像授权门，不调用此 hook。 */
@@ -353,9 +361,21 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
     : undefined;
   // **预留租约续约(C1;北极星:活会话不被对账误扫)**:本 worker 正推进此面试的 job → 证明 liveness,把预留租约(key=interviewId,与 begin 预留同键)往后推。
   // 长面试跨多轮、用户思考间隔可 >1800s 预留租约 → 每领一 job 续一次,活会话绝不被 commerce reconcile 当孤儿回收。
-  // 仅对仍 reserved 有效(已 confirmed/released → 0 行 → false,无害);原子 UPDATE 复核 lease → 与 sweep 无 TOCTOU。续约失败不阻断处理(记日志,对账兜底)。
-  await asPrincipal(d.pool, owner, (c) => renewReservationLease(c, owner, job.interviewId, DEFAULT_LEASE_SECONDS))
-    .catch((err) => console.error('reservation lease renew failed', job.interviewId, (err as any)?.code ?? err));
+  // 仅对仍 reserved 有效(已 confirmed/released → 0 行 → false,无害);原子 UPDATE 复核 lease → 与 sweep 无 TOCTOU。续约失败不阻断处理(对账兜底语义零变)。
+  // 有限短退避尽试(每尝试独立短事务·退避 sleep 在事务外)仍 throw → 结构化失败日志(机检告警面)后照旧放行;
+  // false 返回=已终态/重放 benign race(零 throw)→ 绝不当失败处置。
+  for (let attempt = 0; ; attempt++) {
+    try {
+      await asPrincipal(d.pool, owner, (c) => renewReservationLease(c, owner, job.interviewId, DEFAULT_LEASE_SECONDS));
+      break;
+    } catch (err) {
+      if (attempt >= RESERVATION_RENEW_RETRY_DELAYS_MS.length) {   // 尽试 delays.length+1 次仍败 → 弃拍交对账兜底。
+        console.error(JSON.stringify({ event: 'reservation_lease_renew_failed', kind: 'interview', interview_ref: job.interviewId, phase: 'claim', error_code: errCode(err) ?? 'err' }));
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, RESERVATION_RENEW_RETRY_DELAYS_MS[attempt]));
+    }
+  }
   let graphFence: InterviewGraphFence | undefined;
   // 心跳:跑图/模型可能慢(>120s 租约),续租避免被 reaper 误判崩溃而重领(=并发双跑同一面试)。
   // **同拍续预留租约(C1 审计中-1)**:单个 job 若处理 >1800s(慢模型/长 start 图),预留租约会在 job 仍在飞时过期 →
@@ -363,7 +383,9 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
   //   续预留返回值不影响心跳存续(以 job 租约为准:job 租约丢了才停);预留仅 reserved 有效(终态 0 行,无害)。
   const hb = startHeartbeat(() => asPrincipal(d.pool, owner, async (c) => {
     const jobAlive = await renewInterviewJobLease(c, owner, job.id, d.leaseOwner);
-    await renewReservationLease(c, owner, job.interviewId, DEFAULT_LEASE_SECONDS);
+    // 续预留 throw → 结构化失败日志后照旧下行(图 fence 同拍不再被跳过);下一拍 30s=天然重试·闭包内不加 sleep。
+    await renewReservationLease(c, owner, job.interviewId, DEFAULT_LEASE_SECONDS)
+      .catch((err) => console.error(JSON.stringify({ event: 'reservation_lease_renew_failed', kind: 'interview', interview_ref: job.interviewId, phase: 'heartbeat', error_code: errCode(err) ?? 'err' })));
     // graph lease 与 job lease 同拍续；续 graph 失败会令 heartbeat 停止，业务投影处的
     // requireCurrentFence 会拒绝该 worker 的后续写入。
     const graphAlive = !graphFence || await renewInterviewGraphFence(c, graphFence);
@@ -453,7 +475,10 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         }, async () => {
           graphFence = fence;
           const life = {
-            pool: d.pool, cp: d.cp, owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel,
+            // checkpoint 写世代围栏：cp 以写缝拦截 façade 包装（put/putWrites 写前三谓词复核·失守抛
+            // graph_fence_lost=既有 transient 白名单 requeue+退避·读缝/其余方法直通）。
+            pool: d.pool, cp: new FenceCheckpointSaver(d.cp, d.pool, fence), owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel,
+            askCostPolicy: d.askCostPolicy, // AG-20:CTX-02 会话段预算降级裁定(缺省 undefined=零触)
             localRetrieve: research.retrieve, webExplore: research.exploreWeb,
             deepResearch: adaptive.deepResearch ? research.deepResearch : undefined,
             researchBoundary: research.researchBoundary,

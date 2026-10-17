@@ -530,3 +530,17 @@ END $$;
 - 六任务落点：①B 端章改写（§3.8 全节重写·风险 K·§7 B 端/P4 行·步⑧→⑦；企业付费 B271 片2 已落·held 守卫 i2b `d4e51105`·P0 注册赠送已落 b110 `91c686d9` 删除·人日下调）；②迁移草案全文重排 0170–0173（§6 四件·0152–0155 占用已核实）；③五条承重 pin 重锚：begin `interview.service.ts:256-268` / 收尾 `adaptive-lifecycle.ts:442-488` / commerce `:251-257` / recruiting `recruiter.ts:592-607` / #31 `:54-62`（开工 tip 实测·零翻案·`commerce.ts`/`recruiter.ts` 移径 `commerce/`、`recruiting/` 已随锚更正）；④裁决落卷（§3.2/§3.3/§4 待拍板列改已裁·§5/§6.4 比较式统一 `r2(requested×LEAST(Σ,cap)/cap)`·步⑦删除·§11 三态表）；⑤扩张包 §3.10–§3.12 + 全模型调用面覆盖表 §3.14（registry 16 操作逐一给处理·零暗面）；⑥RAG 分账原则+积分明细列表 §3.13（升 P1·双端逐笔·三账本·`GET /billing/ledger`·吸收 v1 F11）。
 - 未动面：§10 复核纠错清单系对 v2 复核前版本的历史审计记录，零触（pins 零翻）；§3.6–§3.7/§8 竞品等快照基线（`2fab7946`）锚点维持原状（其结论经 INDEX 第八节审计维持）；Non-claims 三标注体系（已核实/推断/无法核实）全程维持。
 - 仍开放面：话题定义认可（§11-2）+ 封顶终值（影子期）；两者外全部 15 项待拍板已收口为已裁/已答。
+
+---
+
+## 15. 审计复核关闭注记（2026-10-17·BF 设计决策条目·append-only）
+
+> 外部全量审计（基准 `7d71a64`）§4b「计费文档：§11 待拍板+需先改项」7 条 BF 设计决策条目（BF-F/H/I/J/139/220/422·外审卷面载体=`README.md` §4b 表与 `dispatch/mw-core.md` §一「已修可关闭」）经三席独立复核 VERDICT=CONFIRMED（已修）；本节为计费文档域仓内台账收口注记面——每条一行 append·形沿 `ai-docs/delivery/ai-capability-review/issues-final.md` :532 AG-43 翻面注记先例·本节外零字节改动。
+
+- 【BF-F 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts:96-117 重试族（QUESTION_GENERATION_REROLL_FAMILY 帽内换 competency 顺延·不 failClosed 整场）+failClosed 仅全序耗尽真终场（:117）+apps/worker/src/adaptive-lifecycle.ts failInterviewAndRelease 调用（:75/:648 亲证·释放预留绝不全额扣·本体在 packages/db/src/commerce/commerce.ts（adaptive-lifecycle.ts :6 import·:75/:648 系 adaptive-lifecycle.ts 调用点）；外审卷面指认 :597-599（基线 `7d71a64` 补偿预留块）·现行漂至 :646-648（failInterviewAndRelease 调用 :648·另 :75 臂）·机制结论绝不全额扣维持不变）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【BF-H 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/ai-graphs/src/adaptive-interview/state.ts:78/:121/:198 `clarifyCause?: 'non_answer' | 'quote_unverifiable'` 三处拆分透传（引文核验失败与答非所问不再并为不可分）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【BF-I 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/migrations/0173_tf_interview_consumption_terminal_pair.sql:50-72 触发器对（per_session 分支原逻辑逐字保留+per_topic 分支 partial 允许/zero_usage_requires_release/topic_settled_mismatch）+packages/db/src/commerce/commerce.ts:343-346 应用侧对偶注·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【BF-J 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/migrations/0172_topic_charge.sql:10 场单位口径（「单位恒场单位·方案②零存量换算·裁决②」卷头注）+packages/db/src/commerce/commerce.ts:319 `r2(requested * Math.min(sum, cap) / cap)` 同口径实现·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【BF-139 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:236-269 `confirmConsumptionUnits` 按绝对值结算（幂等 noop 不重扣+:269 `confirmed`/`partial_confirmed` 终态判定）+尾桶吸收差额分账·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【BF-220 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/migrations/0172_topic_charge.sql:36-37 `ck_interview_cap` 双谓词（per_session ⇒ cap NULL ∨ per_topic_capped ⇒ cap>0 且 rule_version 非空·NULL 封顶失效面收口）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+- 【BF-422 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:341-373 `completeInterviewAndConfirm` 新模式接受 `partial_confirmed`（:343-346 billing P3 修法⑤注·partial 拒绝面仅 per_session 分支保留）+:372-373 per_session 分支保留 `interview_settlement_not_fully_confirmed` 抛错·审计 mw-core 一节 2026-10-17 复核确认关闭】

@@ -276,6 +276,49 @@ async function main() {
     A('F3 二拍后仍零循环报错（连续失败计数=0）', consecutiveReconcileFailureCount() === 0);
   }
 
+  section('⑨ interview_unavailable 补 event_key（kind:id:phase 幂等去重面）：identity 断言 + 重放拍零重发');
+  {
+    const owner = OWN('evkey'), iid = IID('evkey');
+    await seedOwner(owner);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'waiting_user')", [iid, owner]);
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, iid, 'mock_interview', 1.0));
+    await expireLease(owner, iid);
+    // reclaim cancel 收口联合判别钉：拍前 seed 一行 open 题（status 缺省 'issued'·0021 CHECK 四值+
+    // uq_interview_question_open 单开题窗内恰一行）——reclaim 拍必须把它收口为 'cancelled'
+    // （主臂 finishAbandon 同事务 cancel ∪ 兜底臂显式 cancel，两臂终态口径合一）。
+    // seed 必须以 owner principal 执行（0058/0059 投影写护栏要求 session principal=owner·DBHY-1），
+    // 裸 superuser 池直插会被围栏断言以 interview_privacy_fenced 拒绝。
+    await asPrincipal(pool, owner, (c) => c.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question) VALUES ($1,$2,'q-reclaim-closeout',1,0,'收口判别题')", [owner, iid]));
+    A('seed 就位：open 题 status=issued（拍前 fixture 自证）',
+      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [owner, iid]))).rows[0]?.status === 'issued');
+    await commerceReconcileTick(pool);
+    A('reclaim 拍收口：seed issued 题 → status=cancelled（对零 cancel 接线的前码恒 issued=红·防回退判别钉）',
+      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [owner, iid]))).rows[0]?.status === 'cancelled');
+    const ekRow = await asPrincipal(pool, owner, (c) => c.query(
+      "SELECT event_key FROM interview_event WHERE stream_key=$1 AND kind='interview_unavailable'", [iid]));
+    A('interview_unavailable 恰 1 条且 event_key 恒等 interview_unavailable:<id>:reclaim',
+      ekRow.rows.length === 1 && ekRow.rows[0].event_key === `interview_unavailable:${iid}:reclaim`);
+    await commerceReconcileTick(pool);   // 重放拍（已 released 不再进 swept；键在场则去重兜底）
+    A('重放拍零重发（event_key 去重 ∪ swept exactly-once 结构面·仍恰 1 条）',
+      (await evCount(owner, iid, 'interview_unavailable')) === 1);
+
+    // 终态-conflict 子臂（兜底臂独走判别）：interview 预置终态 'completed'（INSERT 先于 reserve=
+    // 0020 配对触发器 consumption NULL 放行）→ reclaim 拍主 CAS（commerce.ts :529 WHERE IN
+    // created/waiting_user）0 行 → :539 抛 interview_abandon_conflict → commerce-reconcile.ts
+    // :79 窄滤接住 → soft-set no-op（completed 被排除=状态零翻转）→ :86 兜底臂独走 cancel
+    // （主臂 finishAbandon 不可达=cancel 唯一来源钉死）。
+    const ownerT = OWN('evkey-term'), iidT = IID('evkey-term');
+    await seedOwner(ownerT);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'completed')", [iidT, ownerT]);
+    await asPrincipal(pool, ownerT, (c) => reserveEntitlement(c, ownerT, iidT, 'mock_interview', 1.0));
+    await asPrincipal(pool, ownerT, (c) => c.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question) VALUES ($1,$2,'q-reclaim-term',1,0,'终态收口题')", [ownerT, iidT]));
+    await expireLease(ownerT, iidT);
+    await commerceReconcileTick(pool);
+    A('终态-conflict 兜底臂独走：soft-set no-op（interview 保持 completed 零翻转）', (await ivStatus(ownerT, iidT)) === 'completed');
+    A('终态-conflict 兜底臂独走：open 题仍被收口 cancelled（不经 finishAbandon 主臂·:86 直收）',
+      (await asPrincipal(pool, ownerT, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [ownerT, iidT]))).rows[0]?.status === 'cancelled');
+  }
+
   console.log(`\n${fail === 0 ? '✓ C1 对账兜底调度侧:孤儿预留回收+终态事件+结算入账+幂等+并发安全 全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end();
   process.exit(fail ? 1 : 0);

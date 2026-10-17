@@ -30,7 +30,10 @@ CREATE TABLE ai_graph_run (
   status text NOT NULL,
   version int NOT NULL DEFAULT 0,
   lease_owner text,
-  lease_expires_at timestamptz
+  lease_expires_at timestamptz,
+  current_node text,                                           -- AG-15:最近观测图位置(END/interrupt:<node>/裸节点/NULL=尚无观测)
+  last_error text,                                             -- AG-15:最近观测错误标量(无失败=NULL)
+  checkpoint_id text                                           -- AG-15:最近观测 LangGraph checkpoint id
 );
 CREATE UNIQUE INDEX uq_active_run ON ai_graph_run (graph_name, thread_id)
   WHERE status IN ('created','active','waiting_user','migrating','paused');

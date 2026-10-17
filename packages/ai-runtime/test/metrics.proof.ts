@@ -77,5 +77,11 @@ A('终态失败 counter inc 累加 + queue 低基数标签 + # TYPE counter 头(
   /worker_jobs_failed_total\{queue="interview_job"\} 2/.test(out3) && /worker_jobs_failed_total\{queue="report"\} 1/.test(out3)
   && /worker_jobs_failed_total\{queue="diagnosis_job"\} 0/.test(out3) && out3.includes('# TYPE worker_jobs_failed_total counter'));
 
+// ---- UC-028 丢失率分母:ai_trace_persist_attempts_total(failures 分子配对分母·零预填·_total 纪律)--------
+A('METRIC.aiTracePersistAttempts 常量名(ai_trace_persist_attempts_total·counter _total 收尾命名纪律·与 failures 分子同族)',
+  METRIC.aiTracePersistAttempts === 'ai_trace_persist_attempts_total');
+A('registerBaselineMetrics 零预填 ai_trace_persist_attempts_total(开机即有序列,丢失率分母告警不空·failures 分子邻位同值)',
+  /ai_trace_persist_attempts_total 0/.test(base) && /ai_trace_persist_failures_total 0/.test(base));
+
 console.log(`\n${fail === 0 ? '✓ 系统指标注册表(Prometheus 曝光)全部通过' : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

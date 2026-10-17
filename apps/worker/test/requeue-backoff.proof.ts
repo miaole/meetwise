@@ -123,8 +123,17 @@ async function main() {
   await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, TID, 'start', {}, 0));
   await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, DID, 'start', {}, 0));
   await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, CAPID, 'start', {}, 0));
+  // [REQUEUE-FIXTURE-FIX] #117 并线夹具适配:上三笔后同 owner queued 深度=3 已达背压闸
+  // (MAX_INTERVIEW_PER_OWNER_QUEUED=3·interview-jobs.ts:89-90),第 4/5 笔入队前模拟 worker 消费
+  // 清空 queued(done=markJobDone 消费终态形·窄谓词仅触本 owner queued 行·沿 Q2-VSF 消账先例)。
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "UPDATE interview_job SET status='done', lease_owner=NULL WHERE owner_user_id=$1 AND status='queued'", [OWNER]));
   await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, STRID, 'start', {}, 0));
   await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, GID, 'start', {}, 0));
+  // [REQUEUE-FIXTURE-FIX] 消费还原:三笔恢复 queued 入队原形(attempts 未触恒 0·next_attempt_at=NULL),
+  // 各臂断言域零变(claim 择早序=created_at 未动·③b/⑤ 直 UPDATE 面与 GID 零触面保持)。
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "UPDATE interview_job SET status='queued', lease_owner=NULL, next_attempt_at=NULL WHERE owner_user_id=$1 AND status='done'", [OWNER]));
   // 同 owner claim 择早隔离：CAP/STR/GID 三行预置远期退避（各臂独占可领集；③b/⑤ 面直行使 UPDATE 覆写）。
   await parkDue(CAPID);
   await parkDue(STRID);
