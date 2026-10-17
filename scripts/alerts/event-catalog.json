@@ -93,6 +93,14 @@
       "source": "scripts/alerts/check-alerts.mjs:382",
       "source_note": "HA-7 R-24：对齐 docker/monitoring/alert.rules.yml:136-143 WorkerDeadLetterBacklog（max(worker_jobs_dead)>10 for 10m·critical→Page 同层）；DLQ 终态行只增不减（零 retention）=已知风险登记 runbook §4·处置归 R-51 生命周期后刀",
       "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_dead_letter"
+    },
+    {
+      "event": "readyz_privacy_degraded",
+      "matchers": [{ "type": "json", "field": "event", "value": "readyz_privacy_degraded" }],
+      "severity": "Ticket",
+      "source": "docker/compose.prod.yml:394",
+      "source_note": "#157 消费接线刀：privacy-watchdog 探针（编排面零产品码）只读 /readyz/privacy 分域端点，域红每拍登一行（30s·error=unreachable 表 worker 不可达同事件）；HA 拓扑发射点同构 compose.ha.yml privacy-watchdog 覆写（worker-a/worker-b）。告警不拉闸：探针零触 worker healthcheck，privacy 域红≠杀容器≠退流量（main.ts /readyz/privacy fail-open 分域语义）。",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-readyz_privacy_degraded"
     }
   ],
   "registered_exclusions": [
