@@ -122,6 +122,10 @@ export const METRIC = {
   // 单一真源)∪ '(unregistered)'/'none' 固定占位——绝不透传调用方字符串/自由字符串进标签(emit 点
   // 在 invoke 入口,标签只经注册表派生;新序列首 emit 自建,基线缺失不丢数据只迟画图,沿 AG-COST1 形)。
   modelInvocationPromptVersionTotal: 'model_invocation_prompt_version_total',
+  // AG-15 卡死检测（只观测非修复·issues-final :213）：thread 停在非 interrupt/非 END 形状被重复观测
+  // （同名裸节点跨两次 runGraph 边界观测=跨一个完整 job 投递周期仍停留）计数。零 label（低基数纪律）。
+  // 稳态=0，>0 即有 thread 卡在中间节点——修复面归后继刀，本指标只承载「可见性」（AG-05 盲区消解半）。
+  graphRunStuckObserved: 'graph_run_stuck_observed_total',
 } as const;
 
 /**
@@ -163,6 +167,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
   m.inc(METRIC.aiTracePersistFailures, undefined, 0);
+  m.inc(METRIC.graphRunStuckObserved, undefined, 0);
   m.inc(METRIC.aiTracePersistAttempts, undefined, 0);
   for (const result of ['terminalized', 'enumeration_failed', 'owner_failed', 'backlog_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
