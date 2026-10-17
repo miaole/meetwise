@@ -38,10 +38,11 @@
 2. **简报「AI_TRANSITIONAL 表可写性核」——全仓零 `AI_TRANSITIONAL` 字面（`grep -rn "AI_TRANSITIONAL"` 亲证零命中·ai-docs 零命中）**：按派单语境读作「AI 域过渡/旁路两表（ai_invocation_trace+ai_model_invocation）回补写通路核」——核讫=**通路成立**：INSERT GRANT 在（锚#3 `:62`）·但 FORCE RLS 钉死写路径必须 principal 作用域（asPrincipal 或 scoped SECURITY DEFINER+`ai_cost_require_request_owner` 卫锚#8）·聚合只读面沿 0203 走 app_gateway_role 与行级写面分离（锚#9 `:29-:31`）——**零需新 GRANT/新 role/BYPASSRLS**（§1.2 定稿②）。
 3. **TSW 登记卷定性承继（零漂移·亲证不变）**：#172 定性「trace=可观测旁路+usage 估算对账样本面·业务真相/计费/回放三面不受损」对本基线逐字复核成立（锚#1 `:794` cached 臂读 ai_model_invocation·trace 生产读路径零命中）——本刀即其登记的「后继观测刀」承接位：TSW §0.2-3/§1.3 候选丙登记的回补靶面=本卷 §1.2 定稿对象。
 
-### 0.3 迁移号登记（预期恰 1 迁移·EXEC 期认领）
+### 0.3 迁移号登记（预期恰 1 迁移·EXEC 期认领·**rev 勘误 0205→0207 已登记见 §9-rev**）
 
-- 主线链顶实测：`ls packages/db/migrations | wc -l`=**204**·头 `0204_ai_cost_cached_input_price.sql`。
-- 本刀 EXEC 期预期恰 1 新迁移：`0205_ai_trace_backfill_scoped.sql`（§1.2 定稿①·函数单文件 multi-statement 形沿 0203 头注 `@migration-mode` 纪律）——**EXEC 立项时认领号=对届时主线链顶亲数+在飞分支题面复核后取最小未占号顺延·Ban 抢号**；若届时 0205 已被占→顺延取号·本卷号面作废重登记非停。
+- 起草时基线链顶亲证：`ls packages/db/migrations | wc -l`=**204**·头 `0204_ai_cost_cached_input_price.sql`。
+- 本刀 EXEC 期预期恰 1 新迁移：**`0207_ai_trace_backfill_scoped.sql`**（§1.2 定稿①·函数单文件 multi-statement 形沿 0203 头注 `@migration-mode` 纪律）——**EXEC 立项时认领号=对届时主线链顶亲数+在飞分支题面复核后取最小未占号顺延·Ban 抢号**。
+- **〔rev 勘误 2026-10-16〕原认领号 0205 作废·重登记 0207**：起草时 AG-15 未并主线（基线链 204 文件头 0204 亲证如上）·nail 后撞号暴露——届主线 `origin/feat/mysql-schema-skeleton`@`1b01366` 迁移链 **205 文件·头 `0205_ai_graph_run_observability_columns.sql`**（blob `39011c3` 亲证）。本条即原预登「号面作废重登记非停」条款之行使·协调方裁决=全 ref 防撞重扫零占用后顺延认领 **0207**（扫描证+撞号归因全文在 §9-rev）。
 
 ## §1 红事实（机制链·全部亲证·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
 
@@ -56,7 +57,7 @@
 
 **定稿=真相差集 sweep 回补臂（修正源面）·三件最小闭合面**：
 
-- **①迁移恰 1（`0205` 起号·§0.3）**：`ai_trace_backfill_scoped(p_owner_user_id, p_idempotency_key)` RETURNS boolean——形制沿 0056/0179 scoped 函数模板：`SECURITY DEFINER`+`SET search_path=public,pg_temp`+`PERFORM ai_cost_require_request_owner(p_owner_user_id)`（锚#8 principal 卫·**必带**）+输入校验（owner 非空·key `char_length BETWEEN 1 AND 256` 沿 0056 `:19-:22` 形）+`INSERT INTO ai_invocation_trace(owner_user_id,idempotency_key,output,service,input_tokens,output_tokens,estimate_input_tokens,latency_ms,request_id) SELECT 同列 FROM ai_model_invocation i WHERE i.owner=i AND i.key=key AND i.status='succeeded' AND i.error_code IS NULL ON CONFLICT(owner_user_id,idempotency_key) DO NOTHING`→`RETURN FOUND`（真插 true/已在或源缺 false）。requestId 列有无分支：函数按届时链是否含 0014 列恒真（0014 在基线链恒已应用·单形即可·EXEC 期对链亲证）。
+- **①迁移恰 1（`0207` 起号·§0.3·rev 勘误原 0205）**：`ai_trace_backfill_scoped(p_owner_user_id, p_idempotency_key)` RETURNS boolean——形制沿 0056/0179 scoped 函数模板：`SECURITY DEFINER`+`SET search_path=public,pg_temp`+`PERFORM ai_cost_require_request_owner(p_owner_user_id)`（锚#8 principal 卫·**必带**）+输入校验（owner 非空·key `char_length BETWEEN 1 AND 256` 沿 0056 `:19-:22` 形）+`INSERT INTO ai_invocation_trace(owner_user_id,idempotency_key,output,service,input_tokens,output_tokens,estimate_input_tokens,latency_ms,request_id) SELECT 同列 FROM ai_model_invocation i WHERE i.owner=i AND i.key=key AND i.status='succeeded' AND i.error_code IS NULL ON CONFLICT(owner_user_id,idempotency_key) DO NOTHING`→`RETURN FOUND`（真插 true/已在或源缺 false）。requestId 列有无分支：函数按届时链是否含 0014 列恒真（0014 在基线链恒已应用·单形即可·EXEC 期对链亲证）。
 - **②worker sweep 循环恰 1（新 `apps/worker/src/trace-recon.ts`）**：形制沿锚#13 模板全形——`resolveTraceReconConfig(env)`（intervalMs 缺省 30_000 同 drainLoop 族）+owner 枚举沿 `gatewayModelInvocationOwners`（0056 `:44` 先例面·窗口校验同形）+逐 owner `asPrincipal` 调 backfill_scoped+分类计数 `inc(aiTraceReconBackfilled, undefined, n)`+**差集水位 gauge**（`aiTraceReconMissing`·0203 gauge 形锚#2 `:102-:107` 纪律：稳态 0·>0=回补落后·零 label 低基数·告警侧 max() 去重）+main.ts 接线（锚#14 `:34-:36`/`:820-:821`/`:854` 三位）。
 - **③proof 恰 1（新 `apps/worker/test/trace-recon.proof.ts`）**：fresh PG isolated·零 live 模型——注入链=真 invoke settle 成功+trace INSERT 强制失败（约束/权限注入臂沿 uc028 双 proof 注入形）→证丢失（trace 缺行+failures=1）→跑 sweep tick→证回补（trace 行在·全列恒等真相面）→幂等重放（二次 tick 零重复零值漂）→非 success 行不补（schema 失败/unknown 行差集外）→principal 卫（跨 owner 调用 insufficient_privilege）→水位 gauge 归零。
 - **差集谓词语义镜像（零新语义裁决）**：`status='succeeded' AND error_code IS NULL` 恰=`:1171` `if (!error)` 的落库面镜像（completeModelInvocation 对 validated success 落 `error_code=NULL`·schema/business 失败落 `schema_validation_failed`/`business_validation_failed`）——**回补集=「本应有 trace 行而缺」·失败行本就无 trace 行不属丢失面·零扩面**。
@@ -74,7 +75,7 @@
 ## §1-修法（EXEC 期交付面·本 commit 零码·恰 1 .md=本卷）
 
 - **本 commit（起草落卷）**：恰 1 tracked `.md`=本卷——零产品码零 proof 零迁移。
-- **EXEC 期（立项后）预期交付面（六件·越界即停）**：件① `packages/db/migrations/0205_ai_trace_backfill_scoped.sql`（§1.2①·号面 §0.3）；件② `packages/db/src` wrapper+导出（函数类型+index.ts 出面·沿 `gatewayModelInvocationBacklog` 出面形锚 `packages/db/src/index.ts:48`）；件③ `apps/worker/src/trace-recon.ts`（§1.2②）；件④ `packages/ai-runtime/src/metrics.ts` 追加 `aiTraceReconBackfilled`（counter）+`aiTraceReconMissing`（gauge）+零预填两行；件⑤ `apps/worker/src/main.ts` 接线三位（import/shutdown/横幅）；件⑥ `apps/worker/test/trace-recon.proof.ts`（§1.2③）+root `package.json` `trace-recon:prove` wrapper 双行。**预期 diff 面=7-8 tracked 路径·全部∈上列·多任何 tracked 路径即停（越界需要类）**。EXEC 立项不得改 §1.2 裁量定稿与 §1.3 否决结论与 §5 Ban/pins（改则回炉重审）。
+- **EXEC 期（立项后）预期交付面（六件·越界即停）**：件① `packages/db/migrations/0207_ai_trace_backfill_scoped.sql`（§1.2①·号面 §0.3·rev 勘误 0205→0207）；件② `packages/db/src` wrapper+导出（函数类型+index.ts 出面·沿 `gatewayModelInvocationBacklog` 出面形锚 `packages/db/src/index.ts:48`）；件③ `apps/worker/src/trace-recon.ts`（§1.2②）；件④ `packages/ai-runtime/src/metrics.ts` 追加 `aiTraceReconBackfilled`（counter）+`aiTraceReconMissing`（gauge）+零预填两行；件⑤ `apps/worker/src/main.ts` 接线三位（import/shutdown/横幅）；件⑥ `apps/worker/test/trace-recon.proof.ts`（§1.2③）+root `package.json` `trace-recon:prove` wrapper 双行。**预期 diff 面=7-8 tracked 路径·全部∈上列·多任何 tracked 路径即停（越界需要类）**。EXEC 立项不得改 §1.2 裁量定稿与 §1.3 否决结论与 §5 Ban/pins（改则回炉重审）。
 
 ## §2 验收断言（EXEC 期行使·数字口径以实跑实测为准·题面值熔断另注）
 
@@ -100,7 +101,7 @@
 
 ## §4 依赖
 
-**①上游已满足（基线链亲证在案）**：UC-028 fail-open 旁路（锚#1 `:516-:542`）+attempts 分母（9af6bb99 件③·锚#2）+0037 真相面+0119 estimate 全 outcome 冻结（锚#5）+scoped 函数形制三先例（锚#6/#7/#8）+0203 聚合只读面+gauge 纪律（锚#9）+worker reconciler 形制（锚#13/#14）。**②无同文件并发**：本刀 docs-only·§0.1 锚漂=重 pin 非停（§0.0）；EXEC 期预期触面（metrics.ts/main.ts/package.json/index.ts+新文件）对在飞分支题面复核。**③迁移号**：§0.3 恰 1·0205 起号对届时链顶亲数。**④下游**：#172/GAP-UC028-RECON 收口翻面归协调方；本刀 EXEC 交付后 UC-E2E-028 §1b-3 缺口件三件套之「补写路径+prove」半闭合（故障注入臂=§1.2③注入链承袭·A3 对照 E2E 仍 OPEN 不在本刀域）。
+**①上游已满足（基线链亲证在案）**：UC-028 fail-open 旁路（锚#1 `:516-:542`）+attempts 分母（9af6bb99 件③·锚#2）+0037 真相面+0119 estimate 全 outcome 冻结（锚#5）+scoped 函数形制三先例（锚#6/#7/#8）+0203 聚合只读面+gauge 纪律（锚#9）+worker reconciler 形制（锚#13/#14）。**②无同文件并发**：本刀 docs-only·§0.1 锚漂=重 pin 非停（§0.0）；EXEC 期预期触面（metrics.ts/main.ts/package.json/index.ts+新文件）对在飞分支题面复核。**③迁移号**：§0.3 恰 1·0207 起号（rev 勘误原 0205·§9-rev）对届时链顶亲数。**④下游**：#172/GAP-UC028-RECON 收口翻面归协调方；本刀 EXEC 交付后 UC-E2E-028 §1b-3 缺口件三件套之「补写路径+prove」半闭合（故障注入臂=§1.2③注入链承袭·A3 对照 E2E 仍 OPEN 不在本刀域）。
 
 ## §5 Ban 列表 + pins
 
@@ -124,6 +125,14 @@
 - **越界需要**：修法诉求超出 §1-修法六件面（需触 invoke/真相面状态机/新表新队列/翻 GRANT）→停·另刀或协调方裁决（§1.3 五候选否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻 proof 新红/lint 贴面新增超支/docs:check>2232）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9-rev（协调方裁决 rev 注记·2026-10-16·迁移号 0205→0207 勘误·零码面零状态翻面）
+
+- **裁决**：协调方裁决令（2026-10-16·两新刀迁移号撞号协调）——DB-HOTSPOT 保 `0206`（先起草先认领·其 §0.0 已预登「被占则顺延」条款但 0206 现未被占）；**本卷 TRACE-RECON 顺延认领 `0207_ai_trace_backfill_scoped`**（全 ref 防撞重扫后认领）。
+- **勘误面**：§0.3（重登记）+§1.2①+§1-修法件①+§4③+卷尾号面 0205→0207 照更——结论零变·仅号面与文件名（`0207_ai_trace_backfill_scoped.sql`）。
+- **撞号归因**：起草时 AG-15 `0205_ai_graph_run_observability_columns.sql` 未并主线（起草基线 `4124c803` 链 204 文件头 0204 亲证在卷）·nail 后撞号暴露——本卷原认领 0205 系对起草时链顶的最小未占号·非抢号；本 rev 即 §0.3 原预登「号面作废重登记非停」条款之行使。
+- **0207 防撞扫描证（rev 席亲跑 2026-10-16）**：①主线亲证——`git fetch` 后 `origin/feat/mysql-schema-skeleton`=`1b01366`·`git ls-tree` 迁移链 **205 文件·头 `0205_ai_graph_run_observability_columns.sql`**（blob `39011c3`）；②全 ref 文件面——`git for-each-ref refs/heads refs/remotes` 逐 ref `git ls-tree <ref> packages/db/migrations/` 扫 0205-0209 号段：仅 0205（AG-15·8 ref 命中：line/ag15-observability·line/assert-strengthen·line/dbhy1-reg-fix·line/sse-api-sub 四本地支+对应 origin 远端）·**0206/0207 全 ref 零文件命中**（DB-HOTSPOT 0206 系题面认领未落文件·两号皆净）；③本树文本面——`git grep -E '020[67]_'` EXIT=1 零命中+`git grep -wnE '0206|0207'`（ai-docs/apps/packages/scripts）EXIT=1 零命中。
+- **卫生回执**：markers 改动集五类标记词零命中（运行时组装口径沿 `scripts/i6-239-gates.proof.mjs` §2-7·词面不入卷防自匹配·EXIT=0）；docs:check 本树亲跑 EXIT=0（2224≤cap 2232）；本 rev commit 仍恰 1 tracked `.md`=本卷零码面；STOP 三处同值不变 `draft:awaiting_pre_exec_dual`。
+
 ---
 
-*TRACE-RECON REQUEST · 2026-10-16 起草落卷 · **`draft:awaiting_pre_exec_dual`**（pre-exec 双审两独立外席待派·alone≠dual·EXEC 未开工·翻面权归协调方） · base `feat/mysql-schema-skeleton` @`4124c803`（origin tip 恒等·派单下界成立） · 分支 `line/trace-recon` · 工作树 `meetwise-trc` · 读码定稿=fail-open 旁路现形（persistTraceBestEffort :522-:542·attempts 分母/failures 分子·结构化日志 service+idempotencyKey+pgCode 定位键·日志非持久账面）+回补臂裁量定稿（**真相差集 sweep**：源=ai_model_invocation `status='succeeded' AND error_code IS NULL` 反连接 trace 缺行·恰=`:1171` `if(!error)` 落库面镜像零扩面；形=0205 `ai_trace_backfill_scoped` SECURITY DEFINER+require_owner 卫+ON CONFLICT DO NOTHING 沿 PK arbiter/event_key 先例零新约束；臂=worker trace-recon.ts 沿 model-invocation-reconcile 全形+水位 gauge 沿 0203 纪律；回补=原 INSERT 语义逐字重放零新数据面）+AI_TRANSITIONAL 可写性核讫（字面全仓零·AI 域两表 INSERT GRANT 在·FORCE RLS 钉 principal 写路径·零需新授权）· §1.3 五候选否决（trace 写改同步/持久化队列/失败日志源/对账视图单立/免卫批量回补）· 修法=本 commit 恰 1 .md·EXEC 期六件（1 迁移+db wrapper+worker 循环+metrics 两常量+main 接线+proof）· 门矩阵=trace-recon:prove 主验收+trace 邻面三门（metrics/uc028 双 proof）+runtime 四件+estimate-threading+model-invocation-reconcile 先例面+neg:all 692（题面熔断）+typecheck 8/8+lint 五贴线 601/5235/1421/954/628（题面熔断）+docs:check 2224≤2232（基线 2223 亲跑 EXIT=0）+markers 五类零命中+diff 恰 1 tracked（本卷）+卫生（.env* ABSENT·actualSpendCny=null·est live=0）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭） · ⛔push · ⛔force push · STOP*
+*TRACE-RECON REQUEST · 2026-10-16 起草落卷 · **`draft:awaiting_pre_exec_dual`**（pre-exec 双审两独立外席待派·alone≠dual·EXEC 未开工·翻面权归协调方） · base `feat/mysql-schema-skeleton` @`4124c803`（origin tip 恒等·派单下界成立） · 分支 `line/trace-recon` · 工作树 `meetwise-trc` · 读码定稿=fail-open 旁路现形（persistTraceBestEffort :522-:542·attempts 分母/failures 分子·结构化日志 service+idempotencyKey+pgCode 定位键·日志非持久账面）+回补臂裁量定稿（**真相差集 sweep**：源=ai_model_invocation `status='succeeded' AND error_code IS NULL` 反连接 trace 缺行·恰=`:1171` `if(!error)` 落库面镜像零扩面；形=0207 `ai_trace_backfill_scoped` SECURITY DEFINER+require_owner 卫+ON CONFLICT DO NOTHING 沿 PK arbiter/event_key 先例零新约束；臂=worker trace-recon.ts 沿 model-invocation-reconcile 全形+水位 gauge 沿 0203 纪律；回补=原 INSERT 语义逐字重放零新数据面）+AI_TRANSITIONAL 可写性核讫（字面全仓零·AI 域两表 INSERT GRANT 在·FORCE RLS 钉 principal 写路径·零需新授权）· §1.3 五候选否决（trace 写改同步/持久化队列/失败日志源/对账视图单立/免卫批量回补）· 修法=本 commit 恰 1 .md·EXEC 期六件（1 迁移+db wrapper+worker 循环+metrics 两常量+main 接线+proof）· 门矩阵=trace-recon:prove 主验收+trace 邻面三门（metrics/uc028 双 proof）+runtime 四件+estimate-threading+model-invocation-reconcile 先例面+neg:all 692（题面熔断）+typecheck 8/8+lint 五贴线 601/5235/1421/954/628（题面熔断）+docs:check 2224≤2232（基线 2223 亲跑 EXIT=0）+markers 五类零命中+diff 恰 1 tracked（本卷）+卫生（.env* ABSENT·actualSpendCny=null·est live=0）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭） · **rev §9-rev（2026-10-16）=迁移号 0205→0207 勘误（协调方裁决·撞号归因 AG-15 nail 后暴露·DB-HOTSPOT 保 0206·0207 全 ref 防撞重扫零占用认领·STOP 不变）** · ⛔push · ⛔force push · STOP*
