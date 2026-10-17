@@ -8,11 +8,12 @@ import {
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
   assertInterviewGraphFence, publishRubricAndIssueContract,
   writeTopicShadowMeter,
+  readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
 } from '@meetwise/db';
 import { Command } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
-import type { ModelClient, GraphObserver, ModelCostPolicy } from '@meetwise/ai-runtime';
+import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
@@ -47,6 +48,23 @@ const pendingQuestion = (snap: any): PendingQuestion | undefined => {
   if (snap.values?.concluded === true || generationFailureOf(snap)) return undefined;
   return snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
 };
+
+/** AG-15 卡死检测（§1.2 语义定稿·纯函数零 IO）：done→'END'；pending→'interrupt:<next[0]>'；
+ *  其余（next 非空∧无 interrupt∧非 failure）→裸节点名=卡死形状。failure 臂 lastError 带 generation_* reason。 */
+export function classifyAdaptiveRunPosition(snap: Parameters<typeof pendingQuestion>[0]): { currentNode: string; stuck: boolean; lastError: string | null } {
+  const failure = generationFailureOf(snap);
+  const lastError = failure ? failure.reason : null;
+  if ((snap.next?.length ?? 0) === 0) return { currentNode: 'END', stuck: false, lastError };
+  const pending = pendingQuestion(snap);
+  if (pending) return { currentNode: `interrupt:${String(snap.next[0] ?? 'awaitAnswer')}`, stuck: false, lastError };
+  const node = String(snap.next[0] ?? 'unknown');
+  return { currentNode: node, stuck: true, lastError };
+}
+
+/** AG-15 卡死阈值（§1.2 定稿）：卡死形状被重复观测（前次观测已写同名裸节点）=超阈值。 */
+export function graphRunStuckThresholdCrossed(previous: { currentNode: string | null } | null, position: { currentNode: string; stuck: boolean }): boolean {
+  return position.stuck && previous != null && previous.currentNode === position.currentNode;
+}
 
 async function writeGenerationUnavailable(
   c: Parameters<typeof failInterviewAndRelease>[0],
@@ -249,6 +267,33 @@ function runGraph<T>(d: AdaptiveLifecycleDeps, phase: 'start' | 'answer', action
     : action();
 }
 
+/* ───────── AG-15 图运行时可观测（issues-final :213·只观测非修复）─────────
+ * 挂点=runGraph 边界 snap 终读后（start :328 后/answer :405 块闭后两处·投影事务之外）·fail-soft 兜底
+ * 沿 writeShadowMeterSoft 先例（:93-97·写失败仅 stderr 观测零业务阻断）——如实口径：先例系 void 形
+ * 而本观测器 await 读+写两语句=每边界串行 +2 语句延迟·fail-soft 兜底正确性不变。零触 fence/version/status
+ * （db 模块行谓词面）·零修复（Ban invoke(null)/重排/终态化——§1.3 候选甲否决承）·观测失败零上抛。 */
+async function observeGraphRunPosition(d: AdaptiveLifecycleDeps, snap: unknown): Promise<void> {
+  try {
+    const position = classifyAdaptiveRunPosition(snap);
+    const checkpointId = (snap as { config?: { configurable?: { [key: string]: unknown } } } | null | undefined)
+      ?.config?.configurable?.checkpoint_id;
+    await asPrincipal(d.pool, d.owner, async (c) => {
+      const previous = await readGraphRunObservation(c, 'adaptive-interview', d.interviewId, d.owner);
+      await recordGraphRunObservation(c, {
+        graphName: 'adaptive-interview', threadId: d.interviewId, owner: d.owner,
+        currentNode: position.currentNode, checkpointId: typeof checkpointId === 'string' ? checkpointId : null,
+        lastError: position.lastError,
+      });
+      if (graphRunStuckThresholdCrossed(previous, position) && graphRunPositionIsStuck(position.currentNode)) {
+        getMetrics().inc(METRIC.graphRunStuckObserved);
+        console.error('graph_run_stuck_observed', { interviewId: d.interviewId, node: position.currentNode });
+      }
+    });
+  } catch (error: unknown) {
+    console.warn('graph_run_observability_write_failed', { interviewId: d.interviewId, error: String((error as Error)?.message ?? error) });
+  }
+}
+
 /** pending question 先入 question ledger，再发具有相同 identity 的 SSE 业务事件。 */
 async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuestion): Promise<void> {
   await asPrincipal(d.pool, d.owner, async (c) => {
@@ -326,6 +371,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
       await g.invoke({}, cfg);
     }
     snap = await g.getState(cfg);
+    await observeGraphRunPosition(d, snap);
   }
   const pending = pendingQuestion(snap);
   const failure = generationFailureOf(snap);
@@ -403,6 +449,7 @@ async function submitAdaptiveAnswerImpl(
     await g.invoke(null, cfg);
     snap = await g.getState(cfg);
   }
+  await observeGraphRunPosition(d, snap);
   const transcript = (snap.values?.transcript ?? []) as Array<{
     questionId?: string; stateVersion?: number; score: number | null; outcome?: string; competency?: string; q?: string; hint?: string; reason?: string;
     dispositions?: ScoredCriterionDisposition[];

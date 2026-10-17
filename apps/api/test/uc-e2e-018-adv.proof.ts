@@ -378,7 +378,9 @@ console.log('PIN   NHP-018-ADV-01: Replay/Tamper/Cross-tenant/Forged-auth/Inject
 console.log('PIN   §1.0 ADV case-only→partial（THIS column only）on EXIT=0');
 console.log('PIN   ADV alone ≠ UC-E2E-018 covered · §1.1 stays partial · Ban claim PERF/LOAD closed');
 console.log('PIN   haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · coveredCount=8 · PG-retained');
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('honesty: ADV prove 绿 ≠ UC-E2E-018 covered（§1.1 partial retained · ADV alone ≠ covered）', true);
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1（real-HTTP 由 ADV-Inject is(…,409…) 腿承证）
 A('honesty: Ban invent green · real HTTP hit abandon route', true);
 
 await done();
