@@ -215,6 +215,8 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   'apps/worker/test/bill3-settlement.proof.ts',
   // bill4 按 entpay-s3 形：0185 函数体与 23_api_gateway.sql 镜像逐字节对账承重消费（⓪-b 直载比对·非影子替代）：
   'apps/worker/test/bill4-ledger-list.proof.ts',
+  // AG-15 graph-run 观测 proof 读 schema 镜像·登记销案：01_schema.sql 三列镜像对账承重消费（C5g·按 bill4/entpay-s3 形·非影子替代）：
+  'apps/worker/test/graph-run-observability.proof.ts',
 ]);
 
 /** P4⑤ 对象类豁免：sql/ 侧独有但经亲核判定为夹具辅助/演示对象（非 fresh deploy 承载面）——逐对象登记理由。 */
