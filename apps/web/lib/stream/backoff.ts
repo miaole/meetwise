@@ -20,6 +20,12 @@ export interface ResumeSignals {
   onOnline(cb: () => void): () => void;
   onVisible(cb: () => void): () => void;
   onRetry(cb: () => void): () => void;
+  /**
+   * 可选 hidden 臂（#58 空闲看门狗·UC-FE-BGTAB-001）：可见性转移即回调——cb(true)=进入 hidden
+   * （驱动暂停看门狗判定）;cb(false)=回前台（转移拍:立即判定一次/既有路径重连）。未实现（缺省）
+   * =驱动按 no-op——quiz/diagnosis 驱动零触零破。
+   */
+  onHidden?(cb: (hidden: boolean) => void): () => void;
 }
 
 /** 缺省 no-op 实现：注册即返回空 dispose,回调永不触发。 */
@@ -33,6 +39,13 @@ export const CLEAN_END_NO_PROGRESS_BUDGET = 5;
 /** 生产钉值：full-jitter 指数退避 base/cap 与慢速永续 cap 档。 */
 export const SSE_BACKOFF_BASE_MS = 500;
 export const SSE_BACKOFF_CAP_MS = 30_000;
+/**
+ * 客户端空闲看门狗钉值（#58 半开 TCP 挂死收敛）：> 服务端健康静默上界 30s（sse-pump
+ * HEALTHY_FALLBACK_MS）+一拍 jitter 余量。45s=30s 兜底+driver query_timeout 15s 恰和
+ * （服务端最坏静默窗贴边值）：仅「30s 兜底拍+该拍 fetchMore 拖满 query_timeout」极端尾
+ * 可贴边误拍一次=一拍既有路径重连（Last-Event-ID 续读零业务丢失）。
+ */
+export const SSE_IDLE_WATCHDOG_MS = 45_000;
 
 /** full-jitter 指数退避。rand 缺省 Math.random；注入 rand=()=>0.5 等可得确定性包络。 */
 export function jitteredBackoff(baseMs: number, factor: number, capMs: number, rand: () => number = Math.random): JitteredBackoff {
