@@ -124,6 +124,31 @@ export async function boot(): Promise<Harness> {
       RETURN true;
     END;
     $ivf$;`);
+  // 读分层镜像 stub（真相=0206 迁移链;本环境无 privacy_checkpoint_target 账本 → fenced 集
+  // 恒空,read twin 与上方 active 镜像同形 owner-check-only——负测路径「未擦除/跨 owner」
+  // 下行为面一致;admission 面仍走原 locking 谓词,不受本 stub 影响）。
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION interview_privacy_active_read(target_interview text)
+    RETURNS boolean
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $ivr$
+    DECLARE principal text := current_setting('app.principal_user', true);
+    BEGIN
+      IF principal IS NULL OR length(principal)=0 OR target_interview IS NULL OR length(target_interview)=0 THEN RETURN false; END IF;
+      PERFORM 1 FROM interview i WHERE i.id = target_interview AND i.owner_user_id = principal;
+      IF NOT FOUND THEN RETURN false; END IF;
+      RETURN true;
+    END;
+    $ivr$;`);
+  await db.pool.query(`
+    CREATE OR REPLACE FUNCTION interview_privacy_fenced_targets()
+    RETURNS TABLE(thread_id text)
+    LANGUAGE plpgsql SECURITY DEFINER
+    SET search_path = pg_catalog, public, pg_temp AS $ivt$
+    BEGIN
+      RETURN;
+    END;
+    $ivt$;`);
   await db.pool.query(`
     CREATE OR REPLACE FUNCTION privacy_begin_resume_soft_delete(p_owner text, p_resume_id uuid)
     RETURNS TABLE (request_id uuid, resume_id uuid, already_fenced boolean, fenced_at timestamptz)

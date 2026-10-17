@@ -112,7 +112,7 @@ async function readMyLearningPlans(c: Client, owner: string, interviewId: string
   const plans = await c.query<LearningPlanRow>(
     `SELECT lp.interview_id, lp.status, lp.items
        FROM learning_plan lp
-      WHERE ${where} AND interview_privacy_active(lp.interview_id)
+      WHERE ${where} AND interview_privacy_active_read(lp.interview_id)
       ORDER BY lp.created_at DESC, lp.interview_id DESC`, params);
   const shaped = [];
   for (const p of plans.rows) {
@@ -254,7 +254,7 @@ export async function buildRecruiterQaRegistry(pool: DbPool, recruiterUserId: st
           `SELECT ij.seq, ij.kind, ij.status, ij.payload->>'answer' AS answer, ij.created_at
              FROM interview_job ij
             WHERE ij.owner_user_id=$1 AND ij.interview_id=$2 AND ij.payload ? 'answer'
-              AND interview_privacy_active(ij.interview_id)
+              AND interview_privacy_active_read(ij.interview_id)
             ORDER BY ij.seq
             LIMIT $3 OFFSET $4`,
           [binding.candidateUserId, binding.interviewId, QA_PAGE_SIZE, (page - 1) * QA_PAGE_SIZE]));
