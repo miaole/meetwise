@@ -30,3 +30,9 @@ docker/data/
 # Python 编译产物(含内嵌本机绝对路径),不进开源仓库
 __pycache__/
 *.pyc
+
+# 构建测试副产不进仓库(REPO-HYGIENE 刀·两件已 git rm --cached untrack):
+# test-results/ = Playwright outputDir(默认 ./test-results·含 .last-run.json 簿记与失败产物)
+# *.tsbuildinfo = tsc incremental 增量索引(apps/web/tsconfig.json incremental:true 副产·内嵌 clone 路径指纹)
+test-results/
+*.tsbuildinfo
