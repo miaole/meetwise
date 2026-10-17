@@ -56,6 +56,7 @@
     "prove:adaptive-life": "tsx test/adaptive-lifecycle.proof.ts",
     "prove:adaptive-resume": "tsx test/adaptive-resume.proof.ts",
     "prove:adaptive-legacy-checkpoint": "tsx test/adaptive-legacy-checkpoint.proof.ts",
+    "prove:graph-fence-write": "tsx test/graph-fence-write.proof.ts",
     "prove:signal-sse": "tsx test/signal-conclude-event.proof.ts",
     "prove:adaptive-consumer": "tsx test/adaptive-consumer.proof.ts",
     "prove:voice-adaptive": "tsx test/voice-adaptive.proof.ts",

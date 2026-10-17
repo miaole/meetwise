@@ -17,6 +17,7 @@ import { createInterviewResearchSkills } from './interview-research-skills.ts';
 import { runDrainLoop } from './drain-loop.ts';
 import { startHeartbeat } from './job-heartbeat.ts';
 import { withCheckpointAccess } from './checkpoint-principal.ts';
+import { FenceCheckpointSaver } from './checkpoint-fence.ts';
 import {
   DEFAULT_INTERVIEW_DISPATCH_BUDGET, DEFAULT_INTERVIEW_OWNER_LAUNCH_CAP, fairDrainInterviewOwners,
   type InterviewDispatchBudget,
@@ -455,7 +456,9 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
         }, async () => {
           graphFence = fence;
           const life = {
-            pool: d.pool, cp: d.cp, owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel,
+            // checkpoint 写世代围栏：cp 以写缝拦截 façade 包装（put/putWrites 写前三谓词复核·失守抛
+            // graph_fence_lost=既有 transient 白名单 requeue+退避·读缝/其余方法直通）。
+            pool: d.pool, cp: new FenceCheckpointSaver(d.cp, d.pool, fence), owner, interviewId: job.interviewId, model: d.model, fastModel: d.fastModel,
             askCostPolicy: d.askCostPolicy, // AG-20:CTX-02 会话段预算降级裁定(缺省 undefined=零触)
             localRetrieve: research.retrieve, webExplore: research.exploreWeb,
             deepResearch: adaptive.deepResearch ? research.deepResearch : undefined,
