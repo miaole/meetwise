@@ -266,6 +266,7 @@ console.log('NOTE: 本 prove = §4-②③④+频控 HTTP 腿；§4-①⑥ db 腿
 console.log('NOTE: 频控阈值=建议值 3 次/小时/份（S12 待用户追认·常量 REPORT_RETRY_RL 可调·改值不需重开 REQUEST）');
 console.log('NOTE: 频控=单实例内存（与 signup 同 seam）·Redis 共享桶归 HA 簇 · ≠ 频控多实例完备');
 console.log('NOTE: EXIT0 ≠ covered · UC-011/019 stays partial（翻转仅钉语义·coveredCount=8 不动）· releaseEvidence=false · Not HA');
+// [E2EA-05·assert-strengthen pin] 恒真声明钉：语义=申报入 prove 断言流（非值检查）·删除/弱化=红旗·升格评估见 ai-docs/delivery/harness/assert-strengthen-REQUEST.md §1.1
 A('honesty: HTTP prove 绿 ≠ 全链路 covered（钉语义翻转+频控行使 only）', true);
 
 await done();

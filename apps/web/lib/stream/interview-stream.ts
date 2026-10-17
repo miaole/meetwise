@@ -25,7 +25,7 @@
 import { decodeSSE, toBusinessEvent, type BusinessEvent } from './business-events';
 import { applyEvents, initialView, isTerminal, onStreamClosed, onReconnectExhausted, type InterviewView, type StreamStopReason } from './interview-state';
 import { isInterviewPrivacyFencedError, isInvalidLastEventIdError, isSseOpenStatusError, classifySseOpenStatus } from './sse-cursor';
-import { jitteredBackoff, capJitterBackoff, noopResumeSignals, CLEAN_END_RECONNECT_MS, CLEAN_END_NO_PROGRESS_BUDGET, SSE_BACKOFF_BASE_MS, SSE_BACKOFF_CAP_MS, type ResumeSignals } from './backoff';
+import { jitteredBackoff, capJitterBackoff, noopResumeSignals, CLEAN_END_RECONNECT_MS, CLEAN_END_NO_PROGRESS_BUDGET, SSE_BACKOFF_BASE_MS, SSE_BACKOFF_CAP_MS, SSE_IDLE_WATCHDOG_MS, type ResumeSignals } from './backoff';
 
 /** 打开 SSE 流：真实实现 fetch(url, {headers:{'last-event-id': String(lastEventId)}, signal}) 返回 res.body 的字符串分块异步迭代;
  *  此处注入便于确定性单测。lastEventId>0 时带 Last-Event-ID 头让服务端从 seq>lastEventId 重放;signal 用于卸载取消。 */
@@ -36,7 +36,7 @@ export type StreamOpener = (lastEventId: number, signal?: AbortSignal) => AsyncI
  * 类型、no-op 实现与生产钉值常量单源在 C1 backoff.ts（三驱动共用,杜绝复制粘贴漂移）。
  */
 export type { ResumeSignals } from './backoff';
-export { noopResumeSignals, CLEAN_END_RECONNECT_MS, CLEAN_END_NO_PROGRESS_BUDGET, SSE_BACKOFF_BASE_MS, SSE_BACKOFF_CAP_MS } from './backoff';
+export { noopResumeSignals, CLEAN_END_RECONNECT_MS, CLEAN_END_NO_PROGRESS_BUDGET, SSE_BACKOFF_BASE_MS, SSE_BACKOFF_CAP_MS, SSE_IDLE_WATCHDOG_MS } from './backoff';
 
 /** 干净 end（轮换/收尾）短固定重连间隔与无进展宽限次数（补钉1）：单源在 backoff.ts,此处 re-export。 */
 
@@ -50,9 +50,10 @@ export interface RunStreamOpts {
   sleep?: (ms: number) => Promise<void>;
   backoffMs?: (attempt: number) => number;      // 失败预算退避(默认 C1 full-jitter 500ms→30s)
   capBackoffMs?: (attempt: number) => number;                  // 慢速永续/429 cap 档退避(默认 C1 capJitter 30s)
-  resumeSignals?: ResumeSignals;                // online/visible/手动重试恢复缝(默认 no-op)
+  resumeSignals?: ResumeSignals;                // online/visible/手动重试恢复缝(默认 no-op);可选 onHidden 臂(见 backoff.ts)
   cleanEndReconnectMs?: number;                 // 干净 end 短固定间隔(默认 1s)
   cleanEndNoProgressBudget?: number;            // 无进展 clean end 宽限次数(补钉1,默认 5)
+  idleTimeoutMs?: number;                       // 空闲看门狗阈值(件B #58·默认 SSE_IDLE_WATCHDOG_MS=45s;proof 注入小值)
 }
 
 export async function runInterviewStream(opts: RunStreamOpts): Promise<InterviewView> {
@@ -91,6 +92,21 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
     void Promise.resolve(sleep(ms)).then(finish, finish);
   });
 
+  // ── 件B(#58)空闲看门狗·驱动级状态：hidden 暂停护栏(UC-FE-BGTAB-001)+当前连接看门狗柄。
+  // 单调时钟 performance.now 口径(UC :299 时钟漂移/定时器节流防御,非 wall-clock)。 ──
+  const idleMs = opts.idleTimeoutMs ?? SSE_IDLE_WATCHDOG_MS;
+  const nowMs = () => performance.now();
+  let hiddenNow = false;
+  let activeConn: { clearIdle(): void; restartWindow(): void } | undefined;
+  if (typeof signals.onHidden === 'function') {   // 缺省(未实现)=no-op:quiz/diagnosis 驱动零触零破
+    disposers.push(signals.onHidden((isHidden: boolean) => {
+      hiddenNow = isHidden;
+      if (isHidden) { activeConn?.clearIdle(); return; }   // hidden:摘表停判定(UC :289「放宽阈值或暂停误判」)
+      activeConn?.restartWindow();   // visible+流仍开:隐藏时长宽免·重挂新窗零重连(UC :306「流仍开→不重连」)
+      wake?.();                      // visible+流已关:既有 doze 唤醒→既有路径携 Last-Event-ID 重连恰一次(非额外拨号)
+    }));
+  }
+
   try {
     for (;;) {
       if (opts.signal?.aborted) return view;                             // 取消(卸载)→ 立即停,不再 onView
@@ -98,8 +114,37 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
       let sawTraffic = false;
       const startId = view.lastEventId;                                   // 本次连接前的进度水位
       let cleanEnd = false;                                               // #55 W3:流无错干净结束(for-await 正常完成)
+      // 件B(#58)连接级看门狗：connAc 每连接一建;opts.signal abort 转接链入(卸载语义原值零改);
+      // 时钟锚=**连接尝试起点**(rev2 P1-3:connAc 建立即起表,盖 await opts.open 挂死面——open 永不
+      // resolve 时逐 chunk 计时无从起表)。超时 connAc.abort(reason='sse_idle_watchdog') → open/迭代
+      // 以该错抛出 → 既有传输错失败预算路径(零新重连语义:退避+Last-Event-ID 凭 seq>lastId 重连)。
+      const connAc = new AbortController();
+      const onOuterAbort = () => connAc.abort();
+      if (opts.signal) {
+        if (opts.signal.aborted) connAc.abort();
+        else opts.signal.addEventListener('abort', onOuterAbort, { once: true });
+      }
+      let lastActivityMs = nowMs();                                       // 单调时钟锚(连接尝试起点)
+      let idleTimer: ReturnType<typeof setTimeout> | undefined;
+      const clearIdle = () => { if (idleTimer) { clearTimeout(idleTimer); idleTimer = undefined; } };
+      const armIdle = () => {
+        clearIdle();
+        idleTimer = setTimeout(judgeIdle, Math.max(0, idleMs - (nowMs() - lastActivityMs)));
+        idleTimer.unref?.();
+      };
+      const judgeIdle = () => {
+        if (hiddenNow) return;                                            // hidden 暂停判定(后台标签节流不误拍)
+        if (nowMs() - lastActivityMs >= idleMs) { connAc.abort(new Error('sse_idle_watchdog')); return; }
+        armIdle();                                                        // 未到点(防休眠漂移)重挂剩余窗
+      };
+      const touchIdle = () => { lastActivityMs = nowMs(); armIdle(); };
+      activeConn = {
+        clearIdle: () => clearIdle(),
+        restartWindow: () => { if (!connAc.signal.aborted) { lastActivityMs = nowMs(); armIdle(); } },
+      };
+      armIdle();                                                          // 连接尝试起点起表(挂死唯一出口)
       try {
-        const stream = await opts.open(view.lastEventId, opts.signal);    // 凭 lastEventId 续
+        const stream = await opts.open(view.lastEventId, connAc.signal);    // 凭 lastEventId 续(取消经 connAc 传播至 reader)
         // **续连成功即回 live**(审计高):同时清除上一场连接的 stopReason/轮换旗,防陈旧原因渗进 live 态。
         if (view.connection !== 'live') { view = { ...view, connection: 'live', streamStopReason: undefined, cleanEndReconnect: undefined }; opts.onView(view); }
         for await (const chunk of stream) {
@@ -108,7 +153,8 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
           if (buffer.length > maxBuf) throw new Error('sse_buffer_overflow'); // 防无分隔符流无限增长 → 当失败重连
           const { frames, rest, sawTraffic: traffic } = decodeSSE(buffer);
           // 心跳/任何字节=活跃信号:收到即重置失败预算(修口径「收到心跳即重置」,#55 心跳盲区;redelivery 防护不受影响——重放帧不推进水位,绝对上限照记)
-          if (traffic) { attempts = 0; cleanNoProgress = 0; }
+          // 同缝复用为看门狗逐 chunk 重置(件B #58:每 chunk 含 `: ping` 即重置空闲计时)。
+          if (traffic) { attempts = 0; cleanNoProgress = 0; touchIdle(); }
           sawTraffic = sawTraffic || traffic;
           buffer = rest;
           const events: BusinessEvent[] = [];
@@ -174,6 +220,11 @@ export async function runInterviewStream(opts: RunStreamOpts): Promise<Interview
           lastFailureReason = cls === 'server' ? 'server' : undefined;
         }
         /* 传输错/溢出/5xx:当作断流,走重连(计失败预算) */
+      } finally {
+        // 每连接收尾:看门狗摘表+连接柄清+abort 转接监听移除(rev2 P2-5:每连接挂/每连接卸,防跨连接监听器累积泄漏)。
+        clearIdle();
+        activeConn = undefined;
+        opts.signal?.removeEventListener('abort', onOuterAbort);
       }
 
       if (opts.signal?.aborted) return view;
