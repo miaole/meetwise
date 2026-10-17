@@ -1,4 +1,5 @@
 import type { FastifyInstance } from 'fastify';
+import { resolvePublicPreview } from '@meetwise/contracts/public-preview';
 
 const READ_ONLY_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 
@@ -38,9 +39,11 @@ export class PublicPreviewWriteUnavailableError extends Error {
  * authorization system and it must never be inferred from NODE_ENV or a URL.
  */
 export function resolvePublicPreviewMode(raw: unknown = process.env.MEETWISE_PUBLIC_PREVIEW): boolean {
-  if (raw === undefined || raw === '0') return false;
-  if (raw === '1') return true;
-  throw new Error('invalid_meetwise_public_preview');
+  // Single source: @meetwise/contracts/public-preview. The unknown → string|undefined
+  // direct cast is deliberate — no narrowing in between — so non-string raws
+  // (e.g. the 1/null inputs pinned by the write-gate proof) still reach the
+  // resolver's throw instead of silently degrading to "unset".
+  return resolvePublicPreview(raw as string | undefined);
 }
 
 /**
