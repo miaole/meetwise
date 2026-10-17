@@ -1,6 +1,6 @@
 # SMOKE-ENV-FIX smoke 脚本 .env 同形断链修复刀（E2EA-06 夜硬门臂 ENOENT·幽灵脚本 rev 席 §9-⑨⑤ 同型 9 处处置裁量·快速链一体席·量级微·mini REQUEST · 落卷即停）
 
-**Status**: **`draft:awaiting_exec`**（起草落卷 2026-10-16·§0 锚+§1-修法+§2 门+§8 齐·EXEC 归快速链一体席同席行使·Ban self-approve·⛔push ⛔merge主线 ⛔force push·est live=0）
+**Status**: **`executed:awaiting_post`**（EXEC 落卷 2026-10-16 §9·七门全绿·post 审归协调方派单·Ban self-approve·前值 **`draft:awaiting_exec`**=史录保留·⛔push ⛔merge主线 ⛔force push·est live=0）
 
 **席位**：meetwise 战役「SMOKE-ENV-FIX smoke 脚本 .env 同形断链修复刀」快速链席（E2EA-06·幽灵脚本同形·量级微·诊断+起草+EXEC 一体授权）。
 **基线**：`feat/mysql-schema-skeleton` @ `bb321093`（本席亲跑 `git fetch origin` 后 `origin/feat/mysql-schema-skeleton` tip=`bb321093` 同值亲证=派单下界 tip≥bb321093 等号成立）。分支 `line/smoke-env-fix`·工作树 `meetwise-sef`（`git worktree add ../meetwise-sef -b line/smoke-env-fix origin/feat/mysql-schema-skeleton` 本席已立·建前 `git worktree list` 实查路径空闲·建后 tip `bb321093` 亲证）。
@@ -99,12 +99,33 @@ nightly 硬门臂 `:40-41`：`MODEL_API_KEY` secret 一经配置→`pnpm model:s
 
 ## §8 STOP（开工条款 + 待裁决项）
 
-**STOP · `draft:awaiting_exec`**（起草落卷=本卷·EXEC 归快速链一体席同席行使·开工三条款：①本席自审 §0 锚亲证齐全+修法与派单修向「nightly.yml model-smoke 步前置 touch .env」逐条对表+门矩阵可机检 PASS 落记；②快速链一体授权=派单 brief 明示「工序 3 起草→工序 4 EXEC」一体（§席位）；③EXEC 不得改 §1-修法两件契约与 §5 Ban/pins（改则回炉）。停止条件：**现场漂移**（§0.1 任一锚 blob 漂移）→停重 pin；**门红不可修**（§2 任一门红且根因不在本刀交付面）→停如实登记；**越界需要**（任何 §3 面诉求）→停另裁。
+**STOP · `executed:awaiting_post`**（EXEC 已落卷=§9·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录）。开工三条款兑现：①本席自审 PASS（§0 锚 blob/行锚 @`bb321093` 亲证齐全·修法与派单修向「nightly.yml model-smoke 步前置 touch .env」逐条对表·门矩阵七门全机检）录 §9；②快速链一体授权=派单 brief 明示「工序 3 起草→工序 4 EXEC」一体（§席位）；③EXEC 落位与 §1-修法两件契约+§5 Ban/pins 零偏离（diff 面=3 tracked 恰等 pin·门 G6 先例同形亲证）。停止条件：**现场漂移**（§0.1 任一锚 blob 漂移）→停重 pin；**门红不可修**（§2 任一门红且根因不在本刀交付面）→停如实登记；**越界需要**（任何 §3 面诉求）→停另裁。
 
 **待裁决项**：
 - ①7 处非宿面处置=派单已裁「本地手动跑形·登记一行不改码」——本卷照裁行使（§1-件b）；后继如立宿面（如 nightly 追加 adversarial 臂）须随臂前置 touch .env（后继刀裁量·非本刀面）。
 - ②E2EA-06 行翻面（OPEN→修法落卷指针）归协调方（本刀不宣称关闭·§1.3-5）。
 
+## §9 EXEC 记录（快速链一体席落卷 2026-10-16·STOP→`executed:awaiting_post`）
+
+- **件a 落位**：nightly.yml model-smoke 步 `pnpm model:smoke` 前置 `touch .env` 一行（nrf `2ab86a3d` 先例形逐字节同形含注释）·改后守卫 `:40`/touch `:41`/命令 `:42`·净增 +1 行·`:34-41` 硬门臂其余字节零触（门 G5 diff 亲证）。
+- **件b 落位**：gap-bug-backlog.md 文件尾 append 一行注记（append-only·不动 E2EA 既有行与行统计·E2EA-06 翻面权仍归协调方）·9 处三档分布=宿面修 1（#1 本刀）+已在岗 1（#2 nrf `:54` 零触）+本地手动形 7（#3-#9 不改码·「本地须先 touch .env」登记在注记）。
+- **开工三条款**：自审 PASS（§0 锚 @`bb321093` 全数在位零漂移·`git status` 改动集=本刀三文件零漂移）+一体授权（§席位）+契约零偏离——兑现。
+- **七门亲跑实测**：
+
+| # | 门 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|
+| 1 | workflow-script-existence:prove | `workflows=9 checked=120 missing=0`（=基线恒等） | 0 | 绿 |
+| 2 | actionlint nightly.yml | 恰 1 finding=`:26` SC2034（pre-existing·改前=改后恒等零新增） | 0* | 绿 |
+| 3 | markers 五类词+冲突标记（改动集三文件） | 0 hits | 0 | 绿 |
+| 4 | docs:check 届树 | `80 required files verified`·**2222** managed files（基线 2221+本卷 1 新件=2222 ≤ cap 2232 余 10） | 0 | 绿 |
+| 5 | diff 面 | 恰 3 tracked=nightly.yml(+1 行)+gap-bug-backlog.md(+2 行=空行+注记)+本 REQUEST·零其他 | 0 | 绿 |
+| 6 | 先例同形 | `touch .env` 恰 2 处=`:41`+`:55`·两行逐字节同形（diff 恒等亲证） | 0 | 绿 |
+| 7 | est live=0 | 零模型外呼零 key 消费（占位空文件零键值·真跑归配 key 后 nightly/手动） | — | 声明成立 |
+
+（*actionlint 原生 exit=1 系 findings 存在语义·pre-existing 恰 1=门口径「零新增」绿·沿 nrf §2-2 同口径登记。）
+
+- **结论**：七门全绿·STOP=`executed:awaiting_post`（post 审归协调方派单·Ban self-approve）·并线归协调方 nail 波。
+
 ---
 
-*smoke-env-fix REQUEST · 2026-10-16 起草 · **STOP=`draft:awaiting_exec`（起草落卷·EXEC 归快速链一体席·⛔push）** · 起草 base=`feat/mysql-schema-skeleton` @`bb321093`（本席亲 fetch·origin tip=派单下界等号成立亲证·⛔pull --rebase 未用）· 分支 `line/smoke-env-fix` · 工作树 `meetwise-sef`（本席立）· 缺陷=nightly.yml:34-41 model-smoke 硬门臂配 MODEL_API_KEY 后每夜 ENOENT 硬红（model-live-smoke.ts:11 顶层裸 readFileSync·幽灵 rev 席 §9-⑨⑤ 同型 9 处之硬门面）· 修法两件=硬门臂前置 touch .env（nrf 2ab86a3d 先例形逐字节同形）+9 处处置裁量（宿面修 1+已在岗 1+本地手动形 7 登记不改码）· 零产品码零迁移 · est live=0 · markers=0 · ⛔push · STOP*
+*smoke-env-fix REQUEST · 2026-10-16 起草 · **STOP=`executed:awaiting_post`（EXEC 落卷=§9·post 审归协调方派单·前值 `draft:awaiting_exec`=史录）** · 起草+EXEC base=`feat/mysql-schema-skeleton` @`bb321093`（本席亲 fetch·origin tip=派单下界等号成立亲证·⛔pull --rebase 未用）· 分支 `line/smoke-env-fix` · 工作树 `meetwise-sef`（本席立）· 缺陷=nightly.yml:34-41 model-smoke 硬门臂配 MODEL_API_KEY 后每夜 ENOENT 硬红（model-live-smoke.ts:11 顶层裸 readFileSync·幽灵 rev 席 §9-⑨⑤ 同型 9 处之硬门面）· 修法两件=硬门臂前置 touch .env（nrf 2ab86a3d 先例形逐字节同形）+9 处处置裁量（宿面修 1+已在岗 1+本地手动形 7 登记不改码）· 零产品码零迁移 · est live=0 · markers=0 · ⛔push · STOP*
