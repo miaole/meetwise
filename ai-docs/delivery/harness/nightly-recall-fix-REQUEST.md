@@ -1,6 +1,6 @@
 # NIGHTLY-RECALL-FIX 夜间召回门断链修复刀（e2e skip 猎杀席 P1 新缺陷·快速链诊断+起草+EXEC 一体·量级微·起草 REQUEST · 落卷即停）
 
-**Status**: **`draft:awaiting_exec`**（快速链一体席·自审后代行 EXEC·post 审归协调方派单·⛔push）
+**Status**: **`executed:awaiting_post`**（EXEC 落卷 §9·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录·⛔push）
 **席位**：NIGHTLY-RECALL-FIX 夜间召回门断链修复刀快速链席（诊断+起草+EXEC 一体·量级微·e2e 猎杀席 P1 新缺陷承单·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `656fc7be`（本席亲 fetch 亲证 origin tip=`656fc7be`=trace-service-wire nail 波链顶·派单下界「origin tip≥WSS nail 后 tip」以届时链顶满足·docs:check 2210 本席本树亲跑 EXIT=0）· 分支 `line/nightly-recall-fix`（本席 `git worktree add ../meetwise-nrf -b line/nightly-recall-fix origin/feat/mysql-schema-skeleton` 亲立·零自造 merge 节点·⛔pull --rebase 未用）· 工作树 `meetwise-nrf`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-16·e2e skip 猎杀席 P1 新缺陷·快速链 40 分钟·诊断+起草+EXEC 一体）；②brief 缺陷原文源级亲证成立见 §1（nightly.yml:55 调 `pnpm recall:eval`·root package.json 已无该 script=幽灵脚本·`:49` continue-on-error 洗绿=结构性 skip-as-pass）；③修向承猎杀席建议=改接 `pnpm qbank:retrieval:eval`（smoke/qbank-retrieval-eval.ts fail-closed 真 embed 后继）。
@@ -92,7 +92,7 @@
 
 ## §8 STOP（开工条款 + 待裁决项）
 
-**STOP · `draft:awaiting_exec`**（快速链一体席·自审后代行 EXEC·post 审归协调方派单·本刀不代行）。开工三条款：①本席自审（§0 锚亲证齐全+四件修法与四点派单修向逐条对表+门矩阵可机检）PASS 落记；②快速链一体授权=派单 brief 明示「诊断+起草+EXEC 一体」（§席位）；③EXEC 不得改 §1-修法四件契约与 §5 Ban/pins（改则回炉）。停止条件：**现场漂移**（§0.1 任一锚 blob 漂移）→停重 pin；**门红不可修**（§2 任一门红且根因不在本刀交付面）→停如实登记；**越界需要**（任何 §3 面诉求）→停另裁。
+**STOP · `executed:awaiting_post`**（EXEC 已落卷=§9·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录）。开工三条款：①本席自审（§0 锚亲证齐全+四件修法与四点派单修向逐条对表+门矩阵可机检）PASS 落记；②快速链一体授权=派单 brief 明示「诊断+起草+EXEC 一体」（§席位）；③EXEC 不得改 §1-修法四件契约与 §5 Ban/pins（改则回炉）——三条款兑现录于 §9。停止条件：**现场漂移**（§0.1 任一锚 blob 漂移）→停重 pin；**门红不可修**（§2 任一门红且根因不在本刀交付面）→停如实登记；**越界需要**（任何 §3 面诉求）→停另裁。
 
 **待裁决项**：
 - ①**env 接线改 `DASHSCOPE_EMBED_API_KEY`**（§1-件a）：推荐=改（后继唯一真依赖·不改=新断链形 §1-4）vs 维持旧双 key 名（仅守卫形不变·脚本恒红）。
@@ -101,4 +101,46 @@
 
 ---
 
-*nightly-recall-fix REQUEST · 2026-10-16 起草 · **STOP=`draft:awaiting_exec`** · 起草 base=`feat/mysql-schema-skeleton` @`656fc7be`（本席亲 fetch·origin tip 链顶亲证·⛔pull --rebase 未用）· 分支 `line/nightly-recall-fix` · 工作树 `meetwise-nrf`（本席立·branch/worktree/同名卷三查 §0.2-5）· 缺陷=nightly.yml:55 幽灵 `pnpm recall:eval`（e621235b 摘除未跟改）被 `:49` continue-on-error 洗绿=夜间召回金标门结构性 skip-as-pass+`:54`/`:64` skip 注解缺失+`:33` 段注释失实 · 修法四件=改接 qbank:retrieval:eval（诚实 env 接线 DASHSCOPE_EMBED_API_KEY）+双 `::warning::`+段注释诚实形+新静态门 ≤30 行（改前 missing=1 机检·改后 0）· 零产品码零迁移 · est live=0 · markers=0 · ⛔push · STOP*
+*nightly-recall-fix REQUEST · 2026-10-16 起草 · **STOP=`executed:awaiting_post`（EXEC 落卷=§9·post 审归协调方派单·前值 `draft:awaiting_exec`=史录）** · 起草 base=`feat/mysql-schema-skeleton` @`656fc7be`（本席亲 fetch·origin tip 链顶亲证·⛔pull --rebase 未用）· 分支 `line/nightly-recall-fix` · 工作树 `meetwise-nrf`（本席立·branch/worktree/同名卷三查 §0.2-5）· 缺陷=nightly.yml:55 幽灵 `pnpm recall:eval`（e621235b 摘除未跟改）被 `:49` continue-on-error 洗绿=夜间召回金标门结构性 skip-as-pass+`:54`/`:64` skip 注解缺失+`:33` 段注释失实 · 修法四件=改接 qbank:retrieval:eval（诚实 env 接线 DASHSCOPE_EMBED_API_KEY）+双 `::warning::`+段注释诚实形+新静态门 ≤30 行（改前 missing=1 机检·改后 0）· 零产品码零迁移 · est live=0 · markers=0 · ⛔push · STOP*
+
+## §9 EXEC 记录（EXEC 席落卷 2026-10-16·快速链一体席·STOP→`executed:awaiting_post`）
+
+**授权链**：起草落卷 `5c9e34a7`（STOP=`draft:awaiting_exec` 史录）→ 本席自审 PASS（§0 十锚亲证在卷+四件修法对派单四修向逐条对表恰等+§2 十门全可机检）→ 快速链一体授权=派单 brief「诊断+起草+EXEC 一体」明示 → EXEC 本卷（零 merge·基线即建树 `656fc7be`·⛔merge主线 ⛔pull --rebase 未用）。
+
+**① §0 重 pin**：四诊断锚 blob（`d0be9f09`/`f6e08e42`/`c9d31be3`+absent 双件）落卷复算**全数恒等零漂移**·nightly.yml/package.json 系本刀自改面（改前 blob `ac47e884`/`3b04b871` 在卷）。停止条件①未触发。
+
+**② 基线漂移登记（非违约·并线归协调方）**：EXEC 期主线 origin tip 因并发 worker-shutdown-seq 波推进 `656fc7be`→`79d83617`（8 files=SSOT 三卷+worker 四码面+该卷 REQUEST）——对四触面**零交叠机证**（`git diff --name-only 656fc7be origin/feat/mysql-schema-skeleton` 交集空亲证）；本刀 Ban merge 主线不并线·支线并线归协调方 nail 波（沿本仓 nail 波 merge --no-ff 先例形·零冲突预期）。
+
+**③ 门矩阵十门全表**（终树交付 commit 前亲跑·基线 `656fc7be` 口径）：
+
+| # | 门 | 判据 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|---|
+| 1 | workflow-script-existence:prove（新门·件d） | EXIT=0·missing=0 | `workflows=9 checked=120 missing=0`（改前基线 missing=1=nightly recall:eval §0.2-2） | 0 | 绿 |
+| 2 | actionlint（若在=在） | findings 改前=改后零新增 | nightly.yml 恰 1 finding=`:26` SC2034（pre-existing 非触面·Ban 借机修遵守）；全目录 7 findings 恰等基线（§0.2-3）·yamllint 未安装=登记缺席（actionlint 承 YAML schema 形） | 0* | 绿（*门形=零新增·raw exit=1 系基线预存 finding 承登） |
+| 3 | 夜间三 script 在册 grep 门 | 三词在册+幽灵零命中 | `model:smoke`/`qbank:retrieval:eval`/`scoring:eval` 全命中 package.json·`recall:eval` 全 workflow 零命中 | 0 | 绿 |
+| 4 | typecheck 不触 | EXIT=0+零 .ts/.tsx 触面 | `pnpm typecheck` EXIT=0（tsconfig.e2e 形·diff 面零 TS 亲证） | 0 | 绿 |
+| 5 | markers | 改动集五类词+冲突标记零命中 | 终改动集四文件直扫 **0 hits**（词表运行时组装口径防自指） | 0 | 绿 |
+| 6 | docs:check | EXIT=0·≤cap 2216 | **2212 ≤ 2216 余 4**（基线 2210+本卷 2 新件·恰等 §5 pin 预期） | 0 | 绿 |
+| 7 | lint | 0 errors·零新增 warning | root `pnpm lint` **0 errors·5235 warnings**=基线恰等（新 proof 零 warning） | 0 | 绿 |
+| 8 | diff 面 | 恰 4 tracked 路径 | nightly.yml（M）+package.json（M）+scripts/workflow-script-existence.proof.mjs（新）+本 REQUEST（新·commit 1）·零其他 | 0 | 绿 |
+| 9 | frozen-lockfile | EXIT=0 零 lockfile 改 | `pnpm install --frozen-lockfile` EXIT=0（新树全量装 19m38s·lockfile 零改） | 0 | 绿 |
+| 10 | est live=0 | 零模型外呼零 key 消费 | 全程零外呼（未真跑 eval·run 归配 secret 后 nightly/手动） | — | 绿 |
+
+**④ diff numstat（对基线 `656fc7be`）**：nightly.yml +6/−7（件a/b/c）·package.json +1/−0（件d 注册）·scripts/workflow-script-existence.proof.mjs 新增 27 行（≤30 pin 恰等）·本 REQUEST 新增（commit 1 104 行+本 §9）。**恰 4 tracked 路径**。
+
+**⑤ 修法四件落点对表**：件a=`:48` name 词面改接+`:50-52` env 单 key `DASHSCOPE_EMBED_API_KEY`+`:54` 守卫改判+`:55` `pnpm qbank:retrieval:eval`（continue-on-error 两臂原样维持=§1.3-2 遵守）；件b=`:54`/`:64` 双 `::warning::` 对齐 `:40` 先例形；件c=`:33` 段注释诚实形；件d=新门 27 行+package.json 注册行。
+
+**⑥ pins 零翻声明+停止条件判定**：§5 pins 全值复验恰等（4 tracked/27≤30 行/checked=120·missing 1→0/docs 2210→2212≤2216/lint 5235 恰等/actionlint 零新增/迁移 0/est live=0）。停止条件：①现场漂移未触发（§9-①）②机制不满足未触发（十门全绿）③越界需要未触发（零 §3 面诉求）④验收红不可修未触发（唯一 raw exit=1 系 actionlint 基线预存 finding·门形=零新增口径承登非红）。
+
+**⑦ 偏离清单（理想零·登记两条非越面）**：1. 基线漂移=origin tip EXEC 期被并发波推进（§9-②·零交叠机证·非违约）。2. actionlint 门口径登记：本机 actionlint 对基线原样即 exit=1（`:26` SC2034 pre-existing）——门判据按「findings 集改前=改后零新增」行使（§0.2-3 预登记口径）·若按 raw-exit 口径则基线即红=非本刀交付面（如实承登防误判）。
+
+**⑧ 七字段（SOP trace）**：
+- **任务类型**：快速链一体席（诊断+起草+EXEC·量级微·L1 面工作流接线+静态门·派单 brief 明示一体授权）。
+- **工作区范围**：worktree `meetwise-nrf`（分支 `line/nightly-recall-fix`·恰 4 tracked 路径·零他树触碰）。
+- **来源证据**：派单 brief+§0 十锚亲读（blob+line 双锚）+幽灵唯一性机检（checked=120 missing=1）+§9-③ 十门 EXIT 收据。
+- **已读文档**：`.github/workflows/nightly.yml` 全文·root `package.json` scripts 面·`apps/worker/smoke/qbank-retrieval-eval.ts`+`qbank-retrieval-release.ts`（validate 臂）·`packages/ai-runtime/src/embedder.ts`+`dashscope-native-config.ts`+`secret-fingerprint.ts`+`g7-freetier-reprove-guard.ts`（fail-closed 链）·`apps/worker/smoke/scoring-eval.ts` 头段（self-skip 形）·`scripts/ai-docs/public-text-policy.mjs`（PTP 约束）·`ai-docs/delivery/harness/boot-validate-REQUEST.md`（卷形先例）·`git show e621235b`（断链源考）。
+- **跳过文档及原因**：`ai-docs/rules/*`+产品面 docs（零产品码零规则面·修法面纯 workflow 接线+元门）——快速链量级微·契约由本卷 §1-修法承载。
+- **结论状态**：`executed:awaiting_post`（门矩阵十门全绿·post 审归协调方派单·行翻面权归协调方）。
+- **验证命令**：`pnpm workflow-script-existence:prove`·`actionlint .github/workflows/nightly.yml`（及全目录）·夜间三 script grep 门·`pnpm typecheck`·markers 直扫·`node scripts/ai-docs/check-docs.mjs`·`pnpm lint`·`pnpm install --frozen-lockfile`·`git diff --numstat 656fc7be`——逐条 EXIT 在 §9-③。
+
+**⑨ 后继登记（归协调方·非本刀面）**：①GH secrets 配 `DASHSCOPE_EMBED_API_KEY`（§8-③·不配则 recall 臂每夜=skip+`::warning::` 注解诚实形·配后 nightly/手动即真跑金标）；②recall 臂硬门化（摘 continue-on-error）须以 secret 在配为前提·归后刀；③并线（`line/nightly-recall-fix`→主线）归协调方 nail 波（§9-② 零冲突预期）；④LEDGER/checklist 行翻面权归协调方（本刀不宣称关闭）。
