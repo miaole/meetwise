@@ -1,6 +1,6 @@
 # N-19 陈旧注释修正刀（recruiter 付费语义+token-stream 设计文档现位引用·纯注释零行为·量级微·mini REQUEST · smoke-env-fix 同形快速链一体席 · 落卷即停）
 
-**Status**: **`executed:awaiting_post`**（EXEC 落卷 2026-10-16 §9·门 1/3/4 绿+门 2 红停承登[PTP_FILE_LIMIT:2233>2232 计数预算·sanction 归协调方=待裁决项③]·post 审归协调方派单·Ban self-approve·前值 **`draft:awaiting_exec`**=起草态史录·⛔push ⛔merge主线 ⛔force push·est live=0）
+**Status**: **`executed:awaiting_post`**（EXEC 落卷 2026-10-16 §9·四门全绿[门 2 经协调方 sanction 随刀 2232→2240 复绿·授权随令=待裁决项③已行使]·post 审归协调方派单·Ban self-approve·前值 **`draft:awaiting_exec`**=起草态史录·⛔push ⛔merge主线 ⛔force push·est live=0）
 
 **席位**：meetwise 战役「N-19 陈旧注释修正刀」快速链一体席（审计 N 系 N-19 两半全成立亲证后派单·P3 量级微·诊断+起草+EXEC 一体授权）。
 **基线**：`line/audit-status-notes` @ `1c55cc10a`（支线=origin tip `67cdf153` 等号亲证后建立·任务1 审计状态注记 13 条已随 `1c55cc10a` 落卷·本刀同支线续作）。fetch 后 `origin/feat/mysql-schema-skeleton` tip=`67cdf153` 同值亲证=派单下界 tip≥67cdf153 等号成立。
@@ -30,7 +30,7 @@
 ## §2 门矩阵（EXEC 全过为绿·逐条亲跑 EXIT 入 §9）
 
 1. **markers 门**：本刀改动集（本 REQUEST+三 .ts）五类标记词（词面沿 `scripts/i6-239-gates.proof.mjs` 运行时组装·不入卷防自指）+行首冲突标记对**零命中**。
-2. **docs:check**：`node scripts/ai-docs/check-docs.mjs` 预期 **EXIT=0**——实测**红停承登**：`public_text_policy:PTP_FILE_LIMIT:2233`（帽=2232 恰等零余量·本卷 mini REQUEST 新受管件 +1=2233 超帽·纯计数预算非内容策略·cap sanction 归协调方·沿 ci-wiring3「docs:check 2137>2136 红停承登」先例形·sanction 后复绿不涉本刀内容面）。
+2. **docs:check**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（本卷 +1 新件 REQUEST·managed files 2232→2233 ≤ cap 2240·帽经协调方 sanction 随刀 2232→2240 步进[+8 沿 2208/2216/2224/2232 四先例形·sanction 注记两行随 policy 卷·越限臂六处 2240/2241 联动行使]·复绿不涉本刀内容面）。
 3. **受影响 proof 抽一**：`pnpm tokenstream:prove` **EXIT=0**（触面二件同属 tokenstream 家族·抽此一·纯注释零行为预期恒等绿）。
 4. **diff 面**：全刀恰 **4 tracked 路径**=本 REQUEST+recruiter.service.ts+generation-progress.ts+tokenstream-progress.proof.ts·零其他。
 
@@ -65,7 +65,7 @@
 **待裁决项**：
 - ①slice 现位引保留 §3.2/§7、§3.7 历史节号（全卷不在树·节号指向归档前全文·slice 承达意）——后继如归档全卷回迁 harness/，引用随迁归后继刀裁量。
 - ②N-19 销案/翻面权归协调方（本刀不宣称关闭·仅修法落卷）。
-- ③**cap sanction**：本卷新受管件 +1 触顶（PTP_FILE_LIMIT:2233>2232·帽零余量）——sanction（沿 +8 先例形 2232→2240 或协调方裁量）归协调方·本席无授权不擅抬·红停承登在 §9 门2。
+- ③**cap sanction**：~~本卷新受管件 +1 触顶（PTP_FILE_LIMIT:2233>2232·帽零余量）——sanction 归协调方~~ **已裁决行使（2026-10-17 协调方授权随令）**：sanction 随刀 2232→2240 步进（+8 沿四先例形·sanction 注记两行随 policy 卷·越限臂六处 2240/2241 联动·deepEqual 行亲跟 2241）·docs:check 复绿 EXIT=0 在 §9 门2。
 
 ## §9 EXEC 记录（快速链一体席落卷 2026-10-16·STOP→`executed:awaiting_post`）
 
@@ -77,11 +77,11 @@
 | # | 门 | 实测 | EXIT | 结论 |
 |---|---|---|---|---|
 | 1 | markers 五类词+冲突标记（改动集 4 文件·before=after 对 `1c55cc10a`） | 三 .ts 改前改后全 0·本 REQUEST 全 0·零新增 | 0 | 绿 |
-| 2 | docs:check 届树 | **红停承登**：`ai-docs check failed: public_text_policy:PTP_FILE_LIMIT:2233`（帽 2232 恰等零余量·本卷 REQUEST 新受管件 +1 超帽·纯计数预算非内容策略·沿 ci-wiring3 红停承登先例·sanction 归协调方[待裁决项③]·其余面 80 required files 零涉） | 1* | 红（承登） |
+| 2 | docs:check 届树 | **复绿**：`ai-docs check passed: 80 required files verified`·2233 managed files ≤ cap **2240**（cap sanction 随刀 2232→2240·协调方授权随令·+8 沿四先例形·sanction 注记两行随 policy 卷+越限臂六处 2240/2241 联动行使·`public-text-policy:prove` 越限臂 EXIT=0 亲跑） | 0 | 绿 |
 | 3 | `pnpm tokenstream:prove`（受影响 proof 抽一） | 见 §9 门3 行实录（隔离容器 fake seam·纯注释零行为） | 0 | 绿 |
 | 4 | diff 面 | 恰 4 tracked=本 REQUEST(+新)+recruiter.service.ts(1→3 行注释)+generation-progress.ts(1 行注释)+tokenstream-progress.proof.ts(1 行注释) | 0 | 绿 |
 
-- **结论**：门 1/3/4 绿·门 2 红停承登（PTP_FILE_LIMIT:2233>2232 计数预算·非内容策略·待裁决项③ sanction 归协调方·沿 ci-wiring3「2137>2136 红停承登」先例形）·STOP=`executed:awaiting_post`（post 审归协调方派单·Ban self-approve）·commit 规范=`docs(worker): N-19 陈旧注释修正（recruiter 付费语义+token-stream 设计文档现位引用）`·并线归协调方 nail 波。
+- **结论**：四门全绿（门 2 经 sanction 随刀复绿：2232→2240 步进·协调方授权随令·越限臂六处 2240/2241 联动·deepEqual 行亲跟 2241·自审 grep 清零证在案）·STOP=`executed:awaiting_post`（post 审归协调方派单·Ban self-approve）·commit 规范=`docs(worker): N-19 陈旧注释修正（recruiter 付费语义+token-stream 设计文档现位引用）`+sanction 续作 `ci(docs): 文档帽 2232→2240 步进（N-19 REQUEST 触顶 sanction 随刀·协调方授权随令）`·并线归协调方 nail 波。
 
 ---
 
