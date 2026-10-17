@@ -1,6 +1,6 @@
 # CAP-SANCTION-2248 文档帽步进刀 REQUEST（mini·快速链·沿 a75736a0/e9f99940/51abfe78/89074c5d/b7dde404 五先例形）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（快速链诊断+起草落卷·sanction 直落形·pre-exec 双审由 sanction 形制承载·STOP 三处同值=Status 头+§8+卷尾注·est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵七门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
 
 ## §0 锚（届时树亲算·7c602df0 届时值）
 
@@ -59,9 +59,21 @@
 ## §8 STOP（开工条款 + 翻面形）
 
 - **开工条款（sanction 直落形）**：①协调方派单 brief 即 sanction 授权（`2240→2248` 步进值+修法+门矩阵由 brief 颁定·在飞四刀并线算术=DB-HOTSPOT +3/TRACE-RECON +4/#101 供应链 +1/#185 打卡键 +1=2249 超·+8 先手）；②快速链诊断+起草+EXEC 一体席·沿五先例 sanction 刀单波直落先例·pre-exec 双审由 sanction 形制承载；③EXEC 不得越 §1-修法三件落点与 §1.3 否决面（越则红停回炉）。
-- **STOP = `draft:awaiting_pre_exec_dual` 三处同值**（Status 头+本节+卷尾注·draft commit 时点史录保留零字洗）→ **EXEC commit 翻 `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS≠关闭·批表行/Status 终翻面权归协调方·本刀不宣称关闭）。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录保留零字洗）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS≠关闭·批表行/Status 终翻面权归协调方·本刀不宣称关闭。
 - 卫生：est live=0（全门本地静态/隔离·零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
 ---
 
-*CAP-SANCTION-2248 REQUEST · 2026-10-18 起草 · **`draft:awaiting_pre_exec_dual`** 三处同值（Status 头/§8/卷尾注）· base `feat/mysql-schema-skeleton` @`7c602df0`（reserve-renew-fix nail 波 tip·≥7c602df0 派单下界等号成立亲证）· 分支 `line/cap-sanction-2248` · 工作树 `meetwise-cap48` · 立项出处=协调方派单 brief（CAP-SANCTION-2248 文档帽步进刀·快速链席·2240→2248·+8 沿五先例形）· 修法=MAX_FILES 2_240→2_248+sanction 注记置顶两行（含「2240 恰等零余量·在飞四刀并线 2249 超限」）+proof 越限臂六处 2248/2249 全行使（两 blob f9fcbbf5/0189d91b 零漂移）· est live=0 · ⛔push ⛔merge 主线*
+## §9 EXEC 记录（快速链一体席·2026-10-18·门矩阵七门 EXIT 原值）
+
+1. **授权链**：协调方派单 brief（CAP-SANCTION-2248 文档帽步进刀·sanction 2240→2248 直落刀·在飞四刀并线算术·快速链诊断+起草+EXEC 一体席）→ draft commit `42cf5f12`（本卷 §0-§8+STOP 三处 draft 史录·58db74b1 初稿经 amend 修正见偏离⑤）→ EXEC 本席落码。
+2. **码面落点**（恰 2 文件·沿 §1-修法逐处定稿·零越面）：锚A `scripts/ai-docs/public-text-policy.mjs`=:110-:111 置顶注记两行（cap 2240→2248·2240 恰等零余量·在飞四刀并线 2249 超限·注记栈 append 不洗旧）+:114 `MAX_FILES = 2_248`（:326/:383 消费臂常量引用零字节）·锚B `scripts/ai-docs/public-text-policy.proof.mjs`=:299-:301 随刀注记三行+:303 `< 2_248`+:310 `scannedFiles, 2_248`+:311 第 2249 个+:312 `PTP_FILE_LIMIT:2249`+:313 `f-2248.md`+:316 `deepEqual ...:2249`（六处六行全行使 2248/2249 双值）。
+3. **门矩阵七门全绿**：①policy.proof 全量 `static_preflight_valid: selected=12/12`（TC-quality-04-main+E1..E11·零 --case 跳跑·2248/2249 双值全行使绿）EXIT=0；②docs:check EXIT=0 `scanned 2241 managed worktree files`≤2248 余 7（draft 树红停 2241>2240 承登→EXEC 随刀行使即复绿·N-19 b7dde404 同形·EXEC 树与 draft 树同值 2241 零新增文件）；③`pnpm turbo typecheck --force` 8 successful/8·0 cached EXIT=0（新支线树 `pnpm install --frozen-lockfile` 门前置·pnpm-lock 零字节）；④`pnpm turbo lint --force` 12 successful/12·0 cached EXIT=0·全 0 errors·root 5240 恰等既有基线（任务级 max-warnings 预算门 12/12 全过即各包 warnings≤预算·web/api/worker/ai-runtime 同基线）；⑤markers 五类改动集（2 script+本卷）运行时组装词面扫描 `changed files=3 hits=0` EXIT=0+全树行首冲突标记严格形零命中；⑥自审 grep 清零证=两 script 全量 `2_240|2240|2241|2248|2249`（+下划线形 `2_248|2_249` 补扫）共 14 命中逐处核·**live 码/断言行旧值残留零命中**（`deepEqual` 行 :316 已跟 `:2249`=3cd159dd 教训行承续·a75736a0 已跟 2209/e9f99940 已跟 2217/51abfe78 已跟 2225/89074c5d 已跟 2233/b7dde404 已跟 2241 本刀续跟）·余命中 11 处全注记/新值行（policy.mjs :110 本刀新注记 from 值+:111 谱系叙事+:112 谱系 SSOT+:114 `2_248` 新值·proof.mjs :296 N-19 谱系+:299-:300 本刀新注记+:303/:310/:311/:312/:313/:316 六处全新值 2248/2249）；⑦diff 面恰 3 tracked（锚A+锚B+本卷 .md §9 append+STOP 翻面）·pnpm-lock 零字节·tsbuildinfo 门副产零翻动。
+4. **proof 臂账**：越限臂 fabricated 数 2_248 恰 cap 臂 `valid=true`+`scannedFiles=2_248`·第 2249 注入路径早返回 `valid=false`+`scannedFiles=0`+错误串恰 `PTP_FILE_LIMIT:2249` 三断言全行使绿·cap 数字预算联动语义不变强度不减。
+5. **偏离**：①本卷 §2 门5 起草稿四词字面误入卷（词面自匹配面·markers 门预跑抓获 hits=4）→ draft commit amend 修正恢复「词面不入卷防自匹配」纪律（58db74b1→42cf5f121·文面一处·零码面影响·§9 落卷后终扫 hits=0 亲证）；②新支线树依赖安装门前置（2232 刀同形·非码面偏差）；③draft 树 2241>2240 红停为 sanction 随刀预期面非偏离（§0 已承登）；④origin 远端 fetch 本 turn 访问受限（下界以本地 origin ref=7c602df0 恒等承登·§0 已登记）；⑤其余零（落点/门矩阵/STOP 形全沿 §1/§2/§8 定稿·零越面）。
+6. **卫生**：est live=0（七门全本地静态/隔离 fixture·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL 零 env 闸·pins 不适用（本刀无 pins 面）。
+7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+
+---
+
+*CAP-SANCTION-2248 REQUEST · 2026-10-18 起草 · **`executed:awaiting_post_prove_dual`**（2026-10-18 EXEC 落码·§9·前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录）· base `feat/mysql-schema-skeleton` @`7c602df0`（reserve-renew-fix nail 波 tip·≥7c602df0 派单下界等号成立亲证）· 分支 `line/cap-sanction-2248` · 工作树 `meetwise-cap48` · 立项出处=协调方派单 brief（CAP-SANCTION-2248 文档帽步进刀·快速链席·2240→2248·+8 沿五先例形）· 修法=MAX_FILES 2_240→2_248+sanction 注记置顶两行（含「2240 恰等零余量·在飞四刀并线 2249 超限」）+proof 越限臂六处 2248/2249 全行使（deepEqual 行亲跟 2249）· 门矩阵七门全绿=proof 12/12 EXIT=0+docs:check 2241≤2248 EXIT=0+typecheck 8/8 0cached+lint 12/12 0cached 全 0 errors+markers hits=0+自审 grep 清零证+diff 恰 3 tracked · est live=0 · markers=0 · ⛔push ⛔merge 主线*
