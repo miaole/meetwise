@@ -104,6 +104,20 @@
 - **停止条件四类**：现场漂移（blob/行号/script 注册名漂超注记级）/机制不满足（pg 多语句形状等现场实测推翻 §1.1 定稿形）/越界需要（扩面 apps/** parity·A 契约改形等 §1.3 域）/验收红不可修。
 - 卫生：est live=0（全门本地静态/隔离·零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用。
 
+## §9-rev（pre-exec 快速修订落卷·2026-10-16 rev 席·席1 FAIL P1 门矩阵树口径矛盾定谳+席2 PASS 会签·协调方裁决=席1 P1 成立·本节 append 注记形·与前文冲突处**本节为准**·rev 后待席1 复核确认）
+
+- **rev-0 定谳（P1·门矩阵树口径矛盾）**：原 §2 门 4「8/8」/门 5「12/12」系 tip@`7d71a64f` 树读数·门 6「cap 2216/scanned 2214」系分支@`2c257eb0` 树读数——无单一届树两读同时成立（两树口径混排=门矩阵自相矛盾·席1 亲证·协调方定谳 P1 成立·门计数面按本节校准）。
+- **rev-①（席1-①·门 4/门 5 届树口径）**：门 4/门 5 计数判据改「任务数=届树 `pnpm turbo typecheck --dry-run` / `pnpm turbo lint --dry-run` 亲数·验收=EXIT=0 且 0 cached·任务集以届树 dry-run 输出为准」·席1 审计时点读数（分支@`2c257eb0` typecheck 7/lint 10·tip@`7d71a64f` 并线后 8/12）仅系审时值存档·EXEC 以届树亲数为验收·不引旧数。§8 停止条件随补一条：「**门计数按届树口径核·不跨树比数**」。
+- **rev-②（席1-②·门 6 届树口径）**：门 6 改「`node scripts/ai-docs/check-docs.mjs` EXIT=0 且 scanned ≤ 届树 `MAX_FILES` 现值」·删「cap 2216/scanned 2214」单值硬编码。现值亲证：分支 `scripts/ai-docs/public-text-policy.mjs:106` `MAX_FILES = 2_216`·tip@`7d71a64f` 同文件 `:108` `MAX_FILES = 2_224`。
+- **rev-③（席1-③·§0.3 第五组）**：域外普查补第五组 `packages/db/test` ×4（行号分支届树亲证）：`qbank-control-sec.proof.ts :35`（CS-0 隔离目标实证恒真钉）/`dbhy1.proof.ts :256`（P0 隔离目标实证）/`pool-error-listener.proof.ts :86`（POOL-ERROR-PROCESS-SURVIVES-IDLE-BREAK）/`db-trigfam-unify.proof.ts :350`（StageB 恰只应用 0144）·同「域外异面不计入」口径·§0.3 尾句「out-of-family 三组不计入」随之校准为「**五组不计入**」。
+- **rev-④（席1-④·E2EA-05 登记行树位·落 §0/§8）**：注记「E2EA-05 登记行现不在本线分支树（分支 `ai-docs/delivery/gap-bug-backlog.md` grep 零命中亲证）·在 tip@`7d71a64f` 树该文件 `:931`·**随并线入本线**」。并线前本卷对登记行的引用以登记源（line/e2e-audit-backlog `87b8dc22`）为准·并线后以届树行位为准。
+- **rev-⑤（席1-⑤·锚校准三件）**：(a) **H12 真值臂行号 :303→:298-:299**——`!hasRegenAttempt && names.includes('status')` 系 :298-:299 两行臂·表达式收束于 :299·:303 实系 PIN console 打印行非断言臂·blob `14fa4d82` :308 锚位不变；(b) **walkE2eFiles 行号 :621-:624→:621-:628**——`isParityE2eFile` :621-:623+`walkE2eFiles` 声明 :625·顶层 `e2e/` resolve :627-:628·仅走顶层面结论不变；(c) **A2 定性校准**——H2 恒真行 :296 紧邻上位 :295 `assert.deepEqual(okBody, { status: 'ok', … })` 全形值检已在场：定性由「恒真行不携检查」校准为「**:295 全形钉已承值检·恒真行=断言流申报重申位**」·§1.1-A2 升格处置不变（强度只增不减·升格语义=对 :295 的重申非新增检查面）·`status` 字面校准：controller ok 臂返回体 status 恒 `'ok'`（`draining`/`degraded` 系 throw 臂异常体·不在返回联合）·`okBody.status === 'ok'` 类型安全成立。
+- **rev-⑥（席2-a·pin 注记嵌卷路径）**：§1.1 pin 注记尾词「升格评估见本卷 §1.1」→「升格评估见 `ai-docs/delivery/harness/assert-strengthen-REQUEST.md` §1.1」（码面 comment 内「本卷」无指涉·嵌卷路径逐字落·十二处统一词面随之）。
+- **rev-⑦（席2-b·H12 行号）**：与 rev-⑤(a) 同源并落：席2 口径 :303→:299（收束位）·席1 口径 :303→:298-:299（区间）·两读不分歧·记法=区间 :298-:299·收束位 :299。
+- **rev-⑧（席2-c·walkE2eFiles 区间）**：与 rev-⑤(b) 同源并落：席2 口径 :621-:628（函数族区间）·席1 口径 :625（声明位）·两读不分歧·记法=区间 :621-:628·声明位 :625。
+- **rev-⑨（席2-d·SSOT 后继刀指针）**：SSOT（`ai-docs/delivery/execution-master-checklist.md`）载明后继刀指针：「**`apps/**` digest 扩容刀**——`scripts/e2e-parity-check.mjs` `PARITY_SOURCE_PREFIXES` 增 `apps/` 域·`ai-docs/testing/e2e-parity-baseline.json` files 键/allowlist/proof floors/`MAX_FILES` 全链重算·立项出处=本卷 §0.4 如实披露的 digest 冻结覆盖空隙（§1.3-2/§5-④ 同源三处）」。append 权归协调方——本 rev 注记形不触 SSOT 行（shared SSOT 只读 Ban 在卷·指针载体由此条载明）。
+- **rev-终态**：本节纯注记零码面（tracked 改动=本卷 1 文件）·STOP 保持 `draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/卷尾注）·**rev 后待席1 复核确认**·est live=0·markers=0（五类词面+冲突标记对届树 grep 零命中·词面不入卷防自匹配）。
+
 ---
 
 *ASSERT-STRENGTHEN REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本行·pre-exec 双审待派）· base `feat/mysql-schema-skeleton` @`2c257eb0`（届条件 tip≥92086586 等号成立亲证）· 分支 `line/assert-strengthen` · 工作树 `meetwise-as` · 立项出处=E2EA-05（gap-bug-backlog·猎杀席 ×15 读数+弱断言四处·本卷 §0 回填逐点位清单）· 定稿=恒真 15 处（升格 3：ha-2-drain :104/:296+trial-grant :267·声明钉 pin 注记 12）+弱断言 4 处升格（recruiting-bound :77+uc018-abandon :22/:66/:110）+parity digest 免重算定稿（§0.4·七文件封闭集外零联动）· 量级微=net ≈+30 行 test-only 零产品码 · est live=0 · markers=0 · ⛔push ⛔merge 主线 ⛔force push*
