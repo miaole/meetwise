@@ -45,7 +45,7 @@ export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from '.
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
 export { issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget, recordDeletionReceipt, resolveDeletionReceipt } from './privacy/privacy-authorization.ts';
 export type { IssueAuthorizationSnapshotInput, IssuedAuthorizationSnapshot, ConsumedAuthorizationSnapshot, ClaimedAuthorizationTarget, ResolvedDeletionReceipt } from './privacy/privacy-authorization.ts';
-export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayModelInvocationBacklog, gatewayUsageCalibrationOwners, gatewayUsageCalibrationOwnersSince, gatewayUsageCalibrationWatermarkFloor, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
+export { gatewayDispatchOwners, gatewayModelInvocationOwners, gatewayModelInvocationBacklog, gatewayTraceReconMissingOwners, gatewayUsageCalibrationOwners, gatewayUsageCalibrationOwnersSince, gatewayUsageCalibrationWatermarkFloor, gatewayJobGauges, gatewayCostBudgetSnapshot } from './jobs/gateway-dispatch.ts';
 export type { GatewayDispatchWork, GatewayJobGauge, GatewayCostBudgetSnapshot, GatewayModelInvocationBacklog } from './jobs/gateway-dispatch.ts';
 
 /** 原语②：状态机 CAS——仅当当前态 == from 时迁移到 to 并 version+1，返回是否生效（陈旧落败=0 行）。 */
@@ -227,7 +227,7 @@ export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, s
 export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput, AiCostReservationDecision } from './model-op/ai-cost-governance.ts';
 
 // 模型调用持久 claim：短事务声明意图，网络 I/O 一律在事务外；unknown 禁止自动重发。
-export { claimModelInvocation, markModelInvocationDispatched, failModelInvocationClaim, releaseRefusedModelInvocationClaim, completeModelInvocation, markModelInvocationUnknown, reconcileStaleModelInvocations } from './model-op/model-invocation.ts';
+export { claimModelInvocation, markModelInvocationDispatched, failModelInvocationClaim, releaseRefusedModelInvocationClaim, completeModelInvocation, markModelInvocationUnknown, aiTraceBackfillScoped, reconcileStaleModelInvocations } from './model-op/model-invocation.ts';
 export type { ModelInvocationClaim, ClaimModelInvocationInput, CompleteModelInvocationInput, ReconciledModelInvocation } from './model-op/model-invocation.ts';
 
 // billing 战役 P1（BILL1-TOPIC-FIELDS 修法⑦）：0171 question_usage_ledger 归集写入口（只增不改·PK 冲突忽略）。
