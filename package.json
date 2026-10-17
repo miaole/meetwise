@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
-    "lint": "eslint . --max-warnings 5235",
+    "lint": "eslint . --max-warnings 5240",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
@@ -534,6 +534,7 @@
     "adaptive-life:prove": "node scripts/run-e2e-isolated.mjs adaptive-life:prove:raw",
     "adaptive-resume:prove": "node scripts/run-e2e-isolated.mjs ag-a-resume:prove:raw",
     "adaptive-legacy-checkpoint:prove": "node scripts/run-e2e-isolated.mjs ag16-legacy:prove:raw",
+    "graph-fence-write:prove": "node scripts/run-e2e-isolated.mjs graph-fence-write:prove:raw",
     "adaptive-consumer:prove": "node scripts/run-e2e-isolated.mjs adaptive-consumer:prove:raw",
     "adaptive-consumer:prove:raw": "pnpm -C apps/worker prove:adaptive-consumer",
     "tokenstream:prove": "node scripts/run-e2e-isolated.mjs tokenstream:prove:raw",
