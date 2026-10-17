@@ -668,3 +668,31 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 - **亲证三柱（本席 2026-10-15 @主线 tip `148cf83b`）**：①hash 祖先=`git merge-base --is-ancestor` 对 HEAD 双双 EXIT=0；②验证席定谳=LANDING-INDEX §十一「AG-40 对现 tip 不成立：已被 634eb645 §1⑥（H2 #202·2026-10-11）修复——begin 双轨写+检索 fallback 双层同切+0163 FK 使能·改判『不成立（现状）·历史成立』·F5（AG-40×#202 交叉关联）随本定谳自然闭环」+ag39 卷 :46 同锚亲证；③码面=`apps/worker/src/interview-consumer.ts:387-394`（:387 注释自证「H2 #202(收编)」·routeSnapForRetrieve=getInterviewRouteSnapshotForAdaptiveRole :392-393→decideRouteSnapshotRetrieve :394 双轨读）+`packages/db/src/routing/candidate-route.ts` 在树+`packages/db/migrations/` 0163 在树（链头 0201）。
 - **翻面落值**：批2「其他」行 #202→✅（「余」列摘除·H7 挂账 8→7 件）·C 表批2 行 44→**45/54**·残 10→**残 9**·合计行翻面笔 +1=**191/271（70.5%）**。历史登记行（:299/:303/:438 各时点快照）append-only 零改（沿 SSEPUSH-NOTIFY 翻面登记先例）。
 - pins 十一值零翻（haStatus=NOT_HA/releaseEvidence=false/claimProductionHA=false/gR45Closed=true/coveredCount=8/ms3EqualsR4Closed=false/PG-retained/公开 DELETE=503/g7SuiteGreen=false/r1Closed=false/actualSpendCny=null）·本节纯 docs 零码零迁移·est live=0·0 Key 值。
+
+## 审计状态注记 13 条登记（2026-10-16 · 审计状态注记席 · docs-only · 恰台账+issues-final.md 两文件零码动 · ⛔push · 非 271 计件面 · 零翻面零闭条零新开——全部「维持/只记录」注记 · 批表零动）
+
+> **缘起**：审计二节 13 条+专项五项现状更新注记（协调方派单·#218/#271 明令勿关只记录·全单不闭任何条目）。逐条 origin tip `67cdf153`（本席亲 fetch 后 rev-parse 恰等亲证）树亲读落锚；N 系编号详情在协调方审计卷（仓外只读蓝本·同 issues-master 更正版形）。issues-final.md 侧对应条目（AG-03/AG-10/AG-39/文末总表引用表后 #238 注记）同笔 append 四注记。
+
+| 条目 | 注记 | 复核证据（`67cdf153` 树亲证） |
+|---|---|---|
+| #218 | 维持部分修（勿关只记录·附A 三条维持记录随审计卷） | 0160_b_qualitative_projection.sql 在树（B 端定性投影）·批3 I2 @505180e4 面已落·待校准/失败区分余面维持 |
+| #271 | 维持部分修（勿关只记录·附A 同上） | 0156_enterprise_bucket_billing.sql+0157_billing_payer_route.sql 在树·interview.service.ts:246-262 reserveEntitlementForApplication 企业桶（候选人桶零读写）·充值/开票余面维持 |
+| AG-10 | 行号漂更正（571-592→619-643）·per_session 全额语义零变维持 | adaptive-lifecycle.ts:619-643 亲读（:619 unscored===0 全跳过臂·:633-643 AG-10 守卫在位·:623-625 per_session 注释原样） |
+| #229 | 维持（两源口径未统一亲证） | report-worker.ts:197-206（隔离→report_unavailable 终态）vs main.ts:180-184（ScoreCard 权威·legacy 不参与）+adaptive-lifecycle.ts:530-534（score 仅 hint）/:588-604（eligible 严格 SQL） |
+| #29 | 维持部分修 | 0154_trial_bucket_grant.sql 在树（signup 同事务 trial 桶 once-per-user·头注自证回填重编号 0152→0154）·余面维持 |
+| #152 | 维持部分修 | 0194_money_consistency_graph_run_terminal.sql 在树（金额一致性约束+graph_run 终态触发器）·余面维持 |
+| #215 | 维持部分修 | EVIDENCE-DELIVERY S1/S2 在树（business-events.ts:44+turn-annotations.ts·web-logic.proof.ts:1360）·标题/真逐题余面维持🔒EVID |
+| #226 | 维持部分修 | nightly-ciw2.yml 在树（ciw2 @ad78e0ff 面）·S7 keyed 四件 STILL OPEN 登记在册（execution-master-checklist.md:2614） |
+| #237 | 维持部分修 | transcript 回看已接线（turn-annotations.ts:5 GET /interview/:id/transcript→AnnotationCard·批1 EVID @74895b7c 面）·余面维持 |
+| #238 | 维持部分修 | interview_privacy_fenced→410 GONE（interview.service.ts:71-72）+begin target-role header（interview.controller.ts:30）·多简历/多身份余面维持 |
+| #267 | 维持部分修 | adr-diag-disposition-w9.md coordinator-approved 在树（W9 口径 SSOT）·文案余面维持 |
+| N-06 | 维持部分修 | 仓内零可证锚（N 系编号详情在协调方审计卷·仓外只读蓝本）——按令登记维持·证据行待卷锚补登（偏离清单在卷呈报） |
+| #225 | 状态前移（较审计判词前移·非翻面） | bend-recruiting.md:20 起三态标注已落（29 UC×三态表·I5 口径刀 2026-10-11 标注）·status draft 仍未升（:8 frontmatter 亲读） |
+
+### 专项五项（非 271 计件·只记录·零动作）
+
+1. **#160 发射模型注记**：事件驱动节流写+started fire-and-forget 旁路——generation-progress.ts:104/:138-147 亲读（D-1 案A interview_event 节流持久写 2s 窗·generation_started 首写链入 inflight fire-and-forget·生成首拍零 DB 等待·`2c257eb0` 面在树）·维持。
+2. **SSE 新防护面观察项**：sse-notify.service.ts:119-140 LISTEN 活性探针+客户端空闲看门狗（`30276543`/`38194eb6` 半开 TCP 检测窗收敛+挂死收敛·#139 半开盲区闭合 additive）在树——观察登记·零动作。
+3. **迁移号**：0205 已落（0205_ai_graph_run_observability_columns.sql 在 tip 树·AG-15 刀）·0206-0207 在飞支线认领（DB-HOTSPOT 保 0206+TRACE-RECON 顺延认领 0207·`371f5fff`/`7896aea5` 认领登记在案）·维持。
+4. **0152×2+0160×2 维持**：migrations 亲点——0152_consent_revoke_grant.sql+0152_resume_soft_delete_fence.sql·0160_b_qualitative_projection.sql+0160_level_policy_version.sql 双占号在树（撞号事实维持登记·处置权归协调方）。
+5. **recruiting-bound 仍不在 workflow**：apps/web/e2e-ui/recruiting-bound.spec.ts 在树·.github/workflows/ 九 workflow 零引用（grep=0 亲证）·维持。
