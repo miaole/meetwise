@@ -3,7 +3,7 @@
  * fake-seam 标注：本 proof=noteModelFirstToken 未接线 seam 的自调证明面（fake-seam proof·生产链路零证明;
  * 生产调用方零命中=unwired 原样登记，接线归流式真链后继刀）。
 
- * 断言面（harness/token-stream-design.md §3.7 预注册 · 裁定后钉死）：
+ * 断言面（receipts/archive/2026-09-batch23/slices/token-stream-design.slice.md §3.7 预注册 · 裁定后钉死）：
  *   TS-P1 首 token 事件链：generation_started→model_first_token 产生且 firstTokenMs 记录；进度事件经
  *        API 同形 SSE 读路径（interview.service.ts:950 同 SQL）可见时延 ≤ 2s poll + ε（实测值落输出）。
  *   TS-P2 节流正确性：受控长生成（fake 延迟 7s）下 generation_progress 行数 ∈ [2, min(6, ceil(7s/2s)+1)]，
