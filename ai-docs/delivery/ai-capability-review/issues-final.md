@@ -557,7 +557,7 @@
 
 ## 审计 mw-core 一节产品条目关闭注记（2026-10-17·append-only）
 
-> 外部全量审计（基准 `7d71a64`）归属域 mw-core §一「已修可关闭」表 9 条产品审计条目（#N 条目形）经三席独立复核 VERDICT=CONFIRMED（已修）；本节为仓内台账收口注记面——每条一行 append·沿本卷 :532 AG-43 翻面注记先例形·本节外零字节改动。条目本体与逐条全量证据以外审包卷面（`Meetwise全量审计-7d71a64/dispatch/mw-core.md`）为准。
+> 外部全量审计（基准 `7d71a64`）归属域 mw-core §一「已修可关闭」表实为 17 条=产品 10 条（含 #160）+BF 7 条（BF 7 条收口注记另见 `ai-docs/delivery/billing-redesign/README.md` §15）；产品 10 条中 9 条关闭（#N 条目形·三席独立复核 VERDICT=CONFIRMED（已修））·#160 经复核转部分修不闭（机制面仍真·展示诚实化半边已修·另见 progress-write 刀发射模型更新）；本节为仓内台账收口注记面——每条一行 append·沿本卷 :532 AG-43 翻面注记先例形·本节外零字节改动。条目本体与逐条全量证据以外审包卷面（`Meetwise全量审计-7d71a64/dispatch/mw-core.md`）为准。
 
 - 【#6 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/src/commerce/commerce.ts:218-223 勘误注在位（0001 旧注「下游结算 STUB」矛盾诚实化锚）+ai-docs/architecture/backend/commerce-saga.md:42 已补实节（settleOutbox 消费者 exactly-once 入账+lease 心跳 vs sweep TOCTOU 已修）·审计 mw-core 一节 2026-10-17 复核确认关闭】
 - 【#11 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql:731 `REVOKE INSERT, UPDATE, DELETE ON ai_model_invocation FROM app_role` 在位+卷头注 :9-13（DELETE 无请求路径例程·刻意不恢复表级 DELETE 授权）·审计 mw-core 一节 2026-10-17 复核确认关闭】
