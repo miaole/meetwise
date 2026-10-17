@@ -1,0 +1,110 @@
+# UNSTUBE-ERASE 基线红诊断刀 REQUEST — 0195 append-only 触发器 vs 0096 投影 purge 写（诊断定谳+修法裁量定稿·迁移面 0207 认领）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（诊断+起草席落卷·待 pre-exec 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。本值三处同值：Status 头+§8+卷尾注。
+
+> 战役 meetwise · 支线 `line/unstube-erase-diag` · 工作树 `meetwise-und` · 起草基线 @origin/feat/mysql-schema-skeleton=`c4bd89132`（派单下界「fetch 后 origin tip≥`c4bd89132` 或更新」：届树 origin tip=`c4bd89132` 等号成立亲证；本 turn `git fetch` origin 访问受限零新波·如实登记沿 42cf5f121 先例形；`origin/main 112e6d26f` 为基线祖先 `git merge-base --is-ancestor` EXIT=0 亲证）。主仓建支线：`git worktree add ../meetwise-und -b line/unstube-erase-diag c4bd89132`。
+> 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief「UNSTUBE-ERASE 基线红诊断刀」（DB-HOTSPOT EXEC 席+post 席1/2 三席独立复现 `pnpm unstube-erase:prove` EXIT=1·`failure_class=privacy_contract_failed pass_count=41 fail_count=0`·崩点 `interview_event_immutable`·如实升级在案：`ai-docs/delivery/execution-master-checklist.md:3637` + `ai-docs/delivery/harness/db-hotspot-REQUEST.md:191` §⑥）；②本席=第四席独立复核（链文件亲读+考古+PG16 触发器语义实证）。
+
+## 必读清单（执行/双审开工前精读·显式路径）
+
+1. 本卷 + `ai-docs/delivery/harness/TASK-SOP-v2.md`（闸列）+ `ai-docs/delivery/harness/product-campaign-LEDGER.md`（只读）。
+2. 崩链四本体：`apps/api/test/unstube-erase.proof.ts:355-394`（完成推进 purge 环）· `packages/db/src/transcript/int-transcript-projection.ts:93-105`（purgeInterviewProjectionTarget）· `packages/db/migrations/0096_int_transcript_remaining_sinks.sql:480-594`（privacy_purge_interview_projection_target·event 臂 :528-531）· `packages/db/migrations/0195_interview_event_settlement_append_only.sql`（全 41 行）。
+3. 豁免形先例权威：`packages/db/migrations/0152_resume_soft_delete_fence.sql`（0060 双拦截受审放行：current_user/session_user 三态判别矩阵+SET ROLE 伪造上游防注 :20-38 与 :151-156）+ 0152 头注「0060 law extension：对任何可登录角色授予 privacy definer 成员资格即破判别器·Ban」。
+4. 基线红在案登记：`ai-docs/delivery/harness/batch5b-mig-REQUEST.md:297-310`（P-3 §1 清理句降级两处+§2 硬门 UPDATE-only 缺口自陈）——本卷 §1.1 据此定位第三类漏采点。
+
+## §0 现状锚（起草席亲读+blob 亲算 @`c4bd89132`·`git rev-parse HEAD:<path>` 亲算·**EXEC 立项照本节对届时 tip 重 pin——结论不变只更行号·定性翻案即停**）
+
+### 0.0 防重三对表
+
+| 项 | 值 | 亲证 |
+|---|---|---|
+| 支线名 | `line/unstube-erase-diag` | 主仓 worktree 列表恰 `meetwise-und` 一株本刀·零同名株 |
+| 基线 | `c4bd89132`（=origin/feat/mysql-schema-skeleton tip=origin/line/db-hotspot tip） | `git rev-parse` 恒等·本卷 blob 锚全在该树 |
+| 邻刀撞面 | DB-HOTSPOT 已落基线（0206 read-tier 在链）·TRACE-RECON/供应链/打卡键在飞 | 0207 空号亲证 `ls packages/db/migrations` 恰 206 文件顶 0206 |
+
+### 0.1 blob 锚表（@`c4bd89132`）
+
+| blob | path |
+|---|---|
+| `571234c99cae` | `apps/api/test/unstube-erase.proof.ts` |
+| `8a93d2f6f9ba` | `packages/db/src/transcript/int-transcript-projection.ts` |
+| `16657f5566f1` | `packages/db/migrations/0096_int_transcript_remaining_sinks.sql` |
+| `d323706e2040` | `packages/db/migrations/0195_interview_event_settlement_append_only.sql` |
+| `18e5183436b1` | `scripts/run-e2e-isolated.mjs`（failure_class 分类器 :2830-2837） |
+| `0d523b18e5dd` | `receipts/archive/2026-09-batch23/receipts/g7-enoent-fix/unstube-erase-prove-PASS.json`（2026-10-10T10:19:57Z EXIT=0·schemaMigrationManifest.count=159） |
+| `fae7c2b0db98` | `ai-docs/delivery/harness/batch5b-mig-REQUEST.md`（P-3 :297-310） |
+
+### 0.2 崩链触点事实（file:line 亲证 @`c4bd89132`）
+
+1. `unstube-erase.proof.ts:355-394` 完成推进：`projectionTargets` 按 `ORDER BY sink`（字典序 `ai_graph_run`→`checkpoint_rows`（:379 skip）→`event`→`report`）逐 target claim+purge；:380 `purgeInterviewProjectionTarget(c, t.id, claimed.leaseToken)` **无 try/catch**——proof 按 0096 立法契约预期 purge 成功（合法预期）。
+2. `int-transcript-projection.ts:94`（函数体）/:99（`SELECT * FROM privacy_purge_interview_projection_target($1,$2)`）。
+3. `0096:524-525` purge 事务内置 `app.privacy_target_id`+`app.privacy_lease_token`（set_config transaction-local）；:528-531 `sink='event'` 臂 `DELETE FROM interview_event WHERE owner_user_id=principal AND stream_key=target_row.interview_id`（SECURITY DEFINER owner=`privacy_worker_owner`·EXECUTE 仅 `privacy_worker_executor`·:589-594）。**派单 brief 语义勘误：崩点语句是 DELETE（物理擦除删除），非「写/INSERT/UPDATE」；0195 触发器本体=BEFORE UPDATE OR DELETE（:27-29），brief 所记「BEFORE UPDATE/INSERT」与本件不符·如实勘正。**
+4. `0195:19-25` `assert_interview_event_immutable()` INVOKER 仅 RAISE（:23 `RAISE EXCEPTION 'interview_event_immutable' USING ERRCODE='23514'`）；:27-29 触发器 FOR EACH STATEMENT；:16 REVOKE UPDATE（DELETE 面 0096:255 已 REVOKE app_role·0001:65 本就未授 DELETE）。
+5. `run-e2e-isolated.mjs:2832` 分类器 `/privacy_[a-z0-9_:-]+/i` 命中报错上下文中的 `privacy_purge_interview_projection_target` → `privacy_contract_failed`；进程级中断在 purge 环内（第 42 断言前）→ `pass_count=41 fail_count=0`（三席复现值；全卷断言 46=f9383f767 立卷值·本席静态 A( 位点 44·差异=条件/嵌套位点·如实两记）。
+6. `ai_graph_run` 臂（:532-535）先于 event 执行且**不撞 0195**（0195 仅挂 interview_event+settlement_ledger；0194 ai_graph_run 终态冻结是 UPDATE 侧）→ 前序 41 断言可通过、恰在 event 臂崩——与三席复现指纹逐位吻合。
+
+### 0.3 触发器语义实证（第四席新增证据·PG16 容器亲跑 2026-10-16）
+
+最小复现（同构 0195 触发器形：BEFORE UPDATE OR DELETE·FOR EACH STATEMENT·INVOKER 仅 RAISE）：**零行 DELETE（WHERE 不命中·表空）与有行 DELETE 双双 RAISE**——语句级 BEFORE 触发器与行数无关。推论：崩点为**确定性·数据无关·100% 可复现**（即使目标访谈零 event 行照样崩）·Ban retry-to-green 语义成立；且触发器对全部角色生效（superuser 亦不豁·实证会话即 superuser）——「换角色跑」类幻想修法全数无效。
+
+## §1 诊断定谳+修法裁量定稿（EXEC 立项不得改本节契约与 §5 pins·改则回炉重审）
+
+### 1.1 定谳：三律撞碰·根因=0195 落链硬门第三类漏采点·非 DBH 非 proof 缺陷
+
+- **绿→红边界=`7152cd3c2`（2026-10-14 15:29:49 +0800·BATCH5B-MIG EXEC·迁移 0190-0199）**。证据链：①proof 出生绿 `f9383f767`（2026-10-10 02:05:56·「46 断言 EXIT=0」立卷词）+PASS 收据 0d523b18e5dd（10-10T10:19Z EXIT=0·链 159）先于 0195 四天；②0195 内容自 `7152cd3c2` 逐字节不变（`git diff 7152cd3c2..112e6d26f` 与 `..HEAD` 该文件零差）；③10-14 后零绿run——5b 门矩阵（P-4 表：uniqueness/migrate/db-money3/uc004/db/drift/typecheck/docs/markers）与 DBH 门均不含 unstube-erase:prove·三席在 `c4bd89132` 独立复崩·本席链读+实证第四席同判。**时间序唯一相交=0195 落链。**
+- **根因归属**：0195 头注前置硬门「rg 实测 `UPDATE interview_event`…零合法调用点」口径双重收窄（5b P-3 §2 已自陈：①仅 UPDATE 词面·触发器同拦 DELETE 未扫；②仅生产码目录）——其影响预判面（5b P-3 §1）亦只采到 test/proof 清理句两类调用点（g7fix4:123+recruiter-depth:350）。**第三类漏采点=迁移 SQL 函数体内的调用点（`0096:529`）**——它在 packages/db/migrations/ 而非生产码目录，rg 门与影响预判双双不可见。非 DBH 引入（`c4bd89132` diff 零触崩链四文件亲证·checklist :3637+db-hotspot-REQUEST :191 在案同判）；非 proof 缺陷（proof 断言的恰是 0096 立法契约·见 §1.2 定性）。
+- **邻面 blast radius（量级）**：全链库上对 interview_event 的合法/既有 DELETE 恰两类——①0096:529 purge（生产·撞死=本刀主面）；②测试清理句五文件（g7fix4:123·recruiter-depth:350·均 try/catch 吞（:133/:369）→ EXIT 不红但清理尾死·隔离库夹具残留跨轮累积·5b P-3 §1 已登记本刀不改）。neg 链四 proof（sse-push/uc-e2e-002×2/uc-e2e-010）**零影响**（`_neg-harness` 载 `sql/01_schema.sql` 最小镜像·无 0195·亲证）。
+
+### 1.2 修法裁量定稿：**0207 新迁移·0195 触发器函数谓词放宽·豁免形沿 0152 先例·proof 零改**
+
+- **定性先立**：interview_event 的 erase DELETE 是**受审合法变更**——0096 铁律「删后 read=0=真物理删除+receipt，不是只靠 RLS fence 假绿」（0096 头注 :49）与 0195「事件流不可篡改」（头注 :5-10·立法靶=防原地改写/洗账·`settlement_ledger 更正走冲正行` 同段）**两律撞碰非律废律**：0195 防的是改写历史，0096 强制的是经 0091 issuer/claim/lease 全链授权的擦除·擦除完成后 read=0、行不再存在，无「历史被改」可言。仲裁=给擦除路径开**窄豁免**，防篡改语义对其余一切路径原样保留。
+- **载体=新迁移 `packages/db/migrations/0207_interview_event_erasure_release.sql`（认领 0207·基线顶 0206 空号亲证）**：`CREATE OR REPLACE FUNCTION assert_interview_event_immutable()` 保持 INVOKER/同签名/仅加判别前置——**0152 三态判别矩阵同构移植**：
+  - 释放臂（恰一）：`current_user = 'privacy_worker_owner' AND current_setting('app.privacy_target_id', true) IS NOT NULL AND session_user <> 'privacy_worker_owner'` → `RETURN NULL`（放行）。三键逐条对 0096 purge 实况：current_user=definer（:589 OWNER）·GUC=purge 本体 :524 置（transaction-local·purge 外不存）·session_user=runtime 登录（经 privacy_worker_executor SET ROLE·0096:593-597 防漂移）。
+  - 其余一切（app_role 直写·直连 definer 会话·无 GUC 的 definer 路径）→ `RAISE … 'interview_event_immutable' 23514` 原样。SET ROLE 伪造上游防沿 0152 头注法：EXEC 亲证 `privacy_worker_owner` NOLOGIN/NOINHERIT/零成员授予（0092 族纪律），并对「向可登录角色授 privacy_worker_owner 成员资格」显式 Ban 落注（0060 law extension 同形）。
+  - 触发器对象本体（BEFORE UPDATE OR DELETE·FOR EACH STATEMENT）零动·0195 文件零动（无 checksum churn 无 db 重建·CREATE OR REPLACE 只换函数体·ACL/OWNER 保持）；`settlement_ledger` 孪生触发器**零触**（无隐私擦除路径·豁免零正当性）。
+- **proof 面零改**：unstube-erase.proof 断言的正是 0096 立法契约（purge→completed）；本修恢复 DB 侧履约，proof 红转绿零断言改动。EXEC 增臂仅**深度自证**（NEG）：app_role 直 UPDATE/DELETE interview_event 仍 23514·直连 definer 仍 23514·无 GUC definer 路径仍 23514（触发器豁免不外溢）。
+- **量级裁量依据**：本修一行谓词消除确定性主门红+复活两处清理句尾（g7fix4/recruiter-depth 的 `cleanup failed` 噪声消失=预期形·登记不粉饰）；session_replication_role/DISABLE TRIGGER 形被 §1.3 全否决后，本形是唯一同时满足「0096 契约履约+0195 防篡改保全+fail-closed 宪章+最小迁移面」的载体。
+
+### 1.3 否决（EXEC 期不得翻案·翻案=回炉重审）
+
+1. **`session_replication_role='replica'` 会话级绕触发器**——需 superuser·会话全局关停一切触发器（0059 写 guard/0194 结算/FK 全灭）·fail-open·违密封清单/fail-closed 宪章。Ban。
+2. **`ALTER TABLE … DISABLE TRIGGER`（持久或事务内）**——持久形全局拆防；事务形仅剩测试侧 db-int-fk :78-93 既有先例（回滚内负探针）非生产载体。Ban。
+3. **proof 断言适配洗红（接受 event 臂 purge 失败/降格 completed 断言）**——违 0096 铁律与 GAP-PRIV-02 supersession 立法（gap-bug-backlog :775「不得虚称删除/擦除已完成」）·event sink 永不物理擦除=隐私契约真破损非表述破损。Ban。
+4. **0195 原地重写**——checksum churn+dev 库重建处置面（0148/0149 重制形代价）·本修零需。Ban。
+5. **清理句改 TRUNCATE 载体**（5b P-3 §1 后继建议）——TRUNCATE 绕行 DELETE 触发器属同族 fail-open 面·权限/级联/FK 面未证·本刀对清理句零改（EXIT 不红·非主门）。本刀不行使·留后继裁决。
+6. **跳过/豁免 settlement_ledger 孪生**——零隐私擦除路径·豁免无正当性。Ban。
+
+## §2 门矩阵（十门·起草席基线值在卷·EXEC 期复跑落届值——届值照 sanctioned 口径沿 db-hotspot rev2 P1-b 形）
+
+| 门 | 基线（起草席亲跑/在案） | EXEC 届时目标 |
+|---|---|---|
+| 1 `pnpm unstube-erase:prove` | **红** EXIT=1·privacy_contract_failed·41/0（三席复现+本席四席同判） | **绿** EXIT=0·46/46（唯一翻面主门） |
+| 2 `pnpm migrate:prove` | 链 206（fresh 全量+幂等 skip 基线形） | 链 207 头 0207 fresh 应用零漂移·PASS 只增不减 |
+| 3 `node scripts/check-migration-version-uniqueness.mjs` | files=206 violations=0（5b P-4 口径续） | files=207 violations=0（豁免表 0143/0152/0160 不变） |
+| 4 `pnpm drift:prove` | 零漂移（豁免登记 2 项基线不变） | 零漂移 |
+| 5 邻面 proof | g7fix4:finalize:prove+recruiter-depth:prove EXIT=0（清理尾死·`cleanup failed` 噪声在）；db-int-fk/privacy-erasure-http/settlement 面绿 | 同门 EXIT=0 且清理尾复活（`cleanup failed` 消失=预期形如实登记）；db-int-fk P6-4 须 commit 后树净形跑（0207 已 tracked 非未跟踪态） |
+| 6 `turbo typecheck --force` | 8/8 0 cached（在案 sanctioned 值） | 8/8 0 cached |
+| 7 `turbo lint` | 12/12·web 601/root 5224/api 1421 三值恰等（在案贴线） | 同值恰等·零超支 |
+| 8 `pnpm docs:check` | EXIT=0·scanned 2244 ≤ cap 2248（起草席基线亲跑） | 本卷 draft 后 2245 ≤ 2248 余 3·EXEC 面零新受管件（0207 在 migrations 非受管根·§9 附记为既有卷内行） |
+| 9 markers 五类（四标记词+冲突标记·词面防自指不在本卷拼出） | 本卷改动集零命中（commit 前亲跑） | 零命中 |
+| 10 diff 面 | 本卷 draft=恰 1 tracked（本 REQUEST）；est live=0 | EXEC 面=0207 新迁移+本卷 §9-EXEC 附记（proof 零改）·超出即红停 |
+
+## §5 pins（Ban+预算）
+
+- 崩点数据无关确定性红（§0.3 实证）·Ban retry-to-green·Ban flake 标注。
+- 豁免恰一释放臂三键缺一不可·键集改动=改 §1 契约回炉。
+- settlement_ledger 孪生触发器零触 pin。
+- 0195 文件零字节 pin（含头注——硬门缺口注记留 5b P-3 §2 原文·本刀不洗不补）。
+- privacy_worker_owner 成员资格零授予 pin（0060 law extension·授予即破判别器）。
+- est live=0·本卷 docs-only 恰 1 tracked。
+
+## §8 STOP（开工条款+待裁决项）
+
+- **STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）。
+- 待 pre-exec 双审两外席会签（Ban self-approve·alone≠dual）→ 协调方放行 EXEC。审面建议优先序：§1.2 释放臂三键逐条对 0096 实况复核（双审主战场）→ §1.3 否决六件无翻案 → §2 门1 红值指纹复核（41/0+崩点行号）。
+- 裁决项一（不阻 EXEC）：5b P-3 §1 遗留「清理句 TRUNCATE 载体」后继处置是否另立刀（本刀 §1.3-5 已述不利面）。
+- ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase（push/翻面权归协调方）。
+
+---
+
+卷尾注：本卷=UNSTUBE-ERASE 基线红诊断刀起草落卷（诊断+起草席·2026-10-16）·基线 origin/feat/mysql-schema-skeleton @`c4bd89132`（fetch 访问受限零新波如实登记·下界等号成立）·支线 `line/unstube-erase-diag`（worktree `meetwise-und`）·本卷 draft=ai-docs/delivery/harness/unstube-erase-diag-REQUEST.md 恰 1 tracked·**STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）**·est live=0·⛔push ⛔merge 主线。
