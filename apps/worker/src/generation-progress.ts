@@ -4,7 +4,7 @@
  * 断线语义=重放（幂等覆盖写 + 终态清除，前端归约侧承重）· R-B 思考隐私缺省（不传输思考原文）·
  * D-2=新 generation_* kind · 触发面= interviewer.ask / resume-quiz.generate / report.narrative 三处包装层回调。
  *
- * 铁律（沿设计刀 harness/token-stream-design.md §3.2/§7）：
+ * 铁律（沿设计刀 receipts/archive/2026-09-batch23/slices/token-stream-design.slice.md §3.2/§7）：
  *  ① 进度事件**非权威、非终态**——question_ready/quiz_ready/report_ready/*_unavailable/error 永远是唯一权威终态；
  *  ② 载荷红线：只含计数/时刻/段名/幂等键，**绝不出现生成内容/思考原文/prompt/答案文本**（写侧键白名单守卫 + 0126 围栏双保险）；
  *  ③ 节流：generation_progress 每 2s 至多一行且每次生成 ≤GENERATION_PROGRESS_MAX_ROWS 行（常量断言面 TS-P2/P4）；
