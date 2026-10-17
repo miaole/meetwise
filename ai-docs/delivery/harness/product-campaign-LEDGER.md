@@ -686,7 +686,7 @@ E2E 断言随演刀已 nail 并主线（merge @f92a5035·post-prove 双席 BOTH 
 | #237 | 维持部分修 | transcript 回看已接线（turn-annotations.ts:5 GET /interview/:id/transcript→AnnotationCard·批1 EVID @74895b7c 面）·余面维持 |
 | #238 | 维持部分修 | interview_privacy_fenced→410 GONE（interview.service.ts:71-72）+begin target-role header（interview.controller.ts:30）·多简历/多身份余面维持 |
 | #267 | 维持部分修 | adr-diag-disposition-w9.md coordinator-approved 在树（W9 口径 SSOT）·文案余面维持 |
-| N-06 | 维持部分修 | 仓内零可证锚（N 系编号详情在协调方审计卷·仓外只读蓝本）——按令登记维持·证据行待卷锚补登（偏离清单在卷呈报） |
+| N-06 | 维持部分修 | 企业充值线下链已落亲证——actions.ts:9-34（createOrderAction channel online/offline 下单）+admin.controller.ts:62（offline-remits/:id/confirm 管理员确认入账）·在线支付适配器仍缺（commerce/recruiter 面 grep -E payment_provider\|payAdapter\|online.?pay 零命中亲证）·只缺在线适配器（#100）——维持部分修（源=审计卷 mw-core.md 二节·协调方补锚·偏离登记就此销） |
 | #225 | 状态前移（较审计判词前移·非翻面） | bend-recruiting.md:20 起三态标注已落（29 UC×三态表·I5 口径刀 2026-10-11 标注）·status draft 仍未升（:8 frontmatter 亲读） |
 
 ### 专项五项（非 271 计件·只记录·零动作）
