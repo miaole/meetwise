@@ -2,7 +2,7 @@
 import { readFileSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { runDrainLoop, TICK_WATCHDOG_DEFAULT_MS, SERIAL_DRAIN_TICK_WATCHDOG_MS } from '../src/drain-loop.ts';
+import { runDrainLoop, TICK_WATCHDOG_DEFAULT_MS, SERIAL_DRAIN_TICK_WATCHDOG_MS, INFLIGHT_READY_GRACE_MS } from '../src/drain-loop.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 async function waitFor(predicate: () => boolean, timeoutMs = 500): Promise<boolean> {
@@ -167,6 +167,58 @@ async function main() {
   console.error = origConsoleError;
   process.off('unhandledRejection', onUnhandledRejection);
   A('watchdog 臂组全程零 unhandledRejection（race 成员内建 handler 吸收迟 settle 双形）', unhandledRejections === 0);
+
+  // ── #158 ready() in-flight 陈旧豁免臂组（EXEC 定值·判别臂改前红·零 env 零 IO·墙钟 ~14-15s 登记在卷） ─────
+  // 臂1 长拍豁免：首拍快成功（置 everSucceeded/lastSuccessAt）→第二拍合法长拍（~5.5s>
+  // 陈旧窗 5s 下限·intervalMs=50 注入→窗=max(150, 5_000)=5s 下限）在飞越过陈旧点采样
+  // ready()=true（在飞时长 ≤ INFLIGHT_READY_GRACE_MS=豁免）；改前（无豁免）陈旧臂直判
+  // ready()=false=判别臂改前红。
+  let longTicks = 0;
+  let longTick2StartedAt = 0;
+  const long = runDrainLoop(async () => {
+    longTicks++;
+    if (longTicks === 2) { longTick2StartedAt = Date.now(); await sleep(5_500); }
+  }, 50);
+  A('豁免臂1a 长拍已入飞（首拍成功+第二拍在飞·intervalMs=50→陈旧窗=5s 下限）', await waitFor(() => longTicks === 2, 1_000));
+  await sleep(Math.max(0, longTick2StartedAt + 5_300 - Date.now()));   // 长拍内越过 5s 陈旧点（在飞第 ~5.3s）
+  A('豁免臂1b 合法长拍在飞越过陈旧窗 ready() 恒绿（#158 在飞豁免·在飞时长 ≤ grace·改前陈旧臂直判 false=判别红）',
+    long.ready() === true && long.snapshot().consecutiveFailures === 0);
+  await long.stop();
+
+  // 臂2 复红形（F2 定稿·独立 loop 实例）：首拍快成功 settle 后 tick 挂死（intervalMs=1000→
+  // 窗=5s 下限·opts.tickWatchdogMs=3000 注入）——第 2/3 次看门狗中断间红隙采样：非在飞+
+  // 陈旧（>5s）→ ready()=false 而 3 连败臂未满（cf<3）=闲置失联窗语义未废（豁免不外溢闲拍）。
+  let hangSettleCalls = 0;
+  let firstSettledAt = 0;
+  const hangSettle = runDrainLoop(async () => {
+    hangSettleCalls++;
+    if (hangSettleCalls === 1) { firstSettledAt = Date.now(); return; }
+    await new Promise<void>(() => {});
+  }, 1_000, { tickWatchdogMs: 3_000 });
+  A('豁免臂2a settle 后挂死进入第 2 次中断后红隙（cf≥2·距首拍成功 >5s 窗下限·墙钟 ~8-9s）',
+    await waitFor(() => hangSettle.snapshot().consecutiveFailures >= 2, 15_000)
+    && Date.now() - firstSettledAt > 5_000);
+  A('豁免臂2b 中断间红隙采样：非在飞陈旧 ready()=false 且 cf<3（陈旧窗复效·窗语义未废）',
+    !hangSettle.ready() && hangSettle.snapshot().consecutiveFailures < 3);
+  void hangSettle.stop().catch(() => {});   // 挂 tick 体 stop 等在飞——不 await（排水语义与改动前恒等）
+
+  // 臂3 grace 自限源级形：INFLIGHT_READY_GRACE_MS=Math.max(两组 watchdog 定值)=1_800_000
+  // 在源（豁免窗 ≥watchdog 对缺省/串行两组建档·WHG 调值自动跟随）+ready() 豁免臂引用在
+  // 源——运行时 1_800s 真睡不可行·Date 注入属签名面 Ban·如实披露源级形制。
+  const drainLoopSrc = readFileSync(join(workerSrcRoot, 'drain-loop.ts'), 'utf8');
+  A('豁免臂3 grace 常量源级形（=Math.max(DEFAULT,SERIAL)=1_800_000 在源+ready() 在飞豁免引用在源）',
+    INFLIGHT_READY_GRACE_MS === Math.max(TICK_WATCHDOG_DEFAULT_MS, SERIAL_DRAIN_TICK_WATCHDOG_MS)
+    && INFLIGHT_READY_GRACE_MS === 1_800_000
+    && /INFLIGHT_READY_GRACE_MS\s*=\s*Math\.max\(TICK_WATCHDOG_DEFAULT_MS,\s*SERIAL_DRAIN_TICK_WATCHDOG_MS\)/.test(drainLoopSrc)
+    && /tickInFlight\s*&&\s*Date\.now\(\)\s*-\s*tickStartedAt\s*<=\s*INFLIGHT_READY_GRACE_MS/.test(drainLoopSrc));
+
+  // 臂4 回归锚：三既存臂活体证——!stopped 臂（成功后 stop 即翻红·豁免不越停止臂）此处
+  // 钉死；3 连败翻红/首拍门两臂同卷上方活跑（failing/gated 零改）。
+  const anchor = runDrainLoop(async () => {}, 50);
+  const anchorReady = await waitFor(() => anchor.ready(), 1_000);
+  await anchor.stop();
+  A('豁免臂4 回归锚（首拍成功 ready() 绿→stop 后 ready() 恒红=!stopped 臂活体证·3 连败/首拍门既有臂同卷零改活跑）',
+    anchorReady && !anchor.ready());
 
   console.log(`\n${fail === 0 ? '✓ 优雅排空(滚动部署不丢在飞 job)全部通过' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);

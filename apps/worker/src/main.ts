@@ -239,7 +239,7 @@ export async function refreshJobGauges(pool: ReturnType<typeof createPool>): Pro
  * worker 无 HTTP 业务面,故自挂一个极简 http server 供 Prometheus 抓取;渲染只出已注册指标(counter/gauge,标签仅 dep/queue)——
  * **不含任何 owner/PII/原文**,scrape 安全。`up{job="meetwise-worker"}` 由 Prometheus 抓取合成 = worker 存活数据源。
  */
-export function startMetricsExposition(options: { ragReady?: () => boolean; workerReady?: () => boolean } = {}): Server {
+export function startMetricsExposition(options: { ragReady?: () => boolean; workerReady?: () => boolean; privacyReady?: () => boolean } = {}): Server {
   const port = Number(process.env.WORKER_METRICS_PORT || 9091);
   // Metrics carry queue/cost/dependency posture. Bind loopback by default; a
   // deployment must consciously opt in to a private scrape address.
@@ -263,6 +263,15 @@ export function startMetricsExposition(options: { ragReady?: () => boolean; work
       // 503 unready，绝不能默认可接流量。
       const ready = options.workerReady?.() ?? false;
       res.writeHead(ready ? 200 : 503, { 'content-type': 'text/plain' }); res.end(ready ? 'ready\n' : 'unready\n');
+    } else if (req.method === 'GET' && path === '/readyz/privacy') {
+      // #157 分域就绪：privacy 域后台 sweep（checkpoint/vector-plane 擦除 loop）系 best-effort
+      // 观测面非流量闸——缺省 fail-open 沿 ragReady 形制（`?? true`），与 /readyz/worker
+      // fail-closed 语义分层；域红经本端点观测收口，不再拉闸整 worker 流量闸。
+      // 零消费方部署先行（编排面/LB 接线另案不入本刀）。
+      const ready = options.privacyReady?.() ?? true;
+      // 响应头走 setHeader（'content-type' 对象字面量键属既有告警帧存量债·新增行零 warning 纪律）。
+      res.setHeader('content-type', 'text/plain');
+      res.writeHead(ready ? 200 : 503); res.end(ready ? 'ready\n' : 'degraded\n');
     } else {
       res.writeHead(404); res.end();
     }
@@ -764,7 +773,11 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true),
+    // #157 分域 ready：privacy 域两擦除 loop 摘出 workerReady AND 链（域内 3 拍失败不再
+    // 拉闸整 worker 流量闸），域观测收口 /readyz/privacy；两 loop 停机清单归属零触
+    // （drainStops loop 相原样），ready() 机制本体零改（翻红信号仍在·仅域归属变）。
+    privacyReady: () => (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
