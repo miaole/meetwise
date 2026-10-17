@@ -204,6 +204,20 @@ export async function markModelInvocationUnknown(c: Client, owner: string, idemp
   return r.rows[0]?.ok === true;
 }
 
+/**
+ * UC-028 A2 trace recon backfill (trace 对账回补): re-inserts the missing
+ * `ai_invocation_trace` row from the succeeded truth face (nine columns carried
+ * verbatim, output incl. its redacted marker).  Idempotent on the 0001 PK
+ * arbiter: true only when a row was actually inserted; false means the source
+ * row is absent (non-succeeded) or the trace row already exists.  The SQL
+ * function carries the request-owner guard, so it must run inside the owner's
+ * `asPrincipal` transaction.
+ */
+export async function aiTraceBackfillScoped(c: Client, owner: string, idempotencyKey: string): Promise<boolean> {
+  const r = await c.query('SELECT ai_trace_backfill_scoped($1,$2) AS ok', [owner, idempotencyKey]);
+  return r.rows[0]?.ok === true;
+}
+
 export interface ReconciledModelInvocation { idempotencyKey: string; costScopeId?: string }
 
 /**
