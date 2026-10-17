@@ -36,7 +36,7 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 - **scan-window 边界（诚实限度）**：脚本只扫窗口内日志——窗外日志若被 docker 日志轮转清掉即扫不到；
   EXIT=0 ≠ 「窗口外无告警」，仅 = 「窗口内可证干净」。
 
-## 3. 事件处置手册（目录十二事件 · 每条 severity + 响应动作 + 下钻锚）
+## 3. 事件处置手册（目录十三事件 · 每条 severity + 响应动作 + 下钻锚）
 
 <a id="ev-db_pool_error"></a>
 ### 3.1 db_pool_error —— Ticket
@@ -140,6 +140,16 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 - **含义**：某队列死信深度 >10——报告 quarantined（耗尽重试终态）/ 其余 job failed 终态在累积，系统性失败（依赖挂/校验持续不过），用户拿不到结果。
 - **响应（Page·立即）**：定位积压队列（下钻 SQL 逐队列死信谓词对照）；report 队列=quarantined 转人工，可用手动重排（`packages/db/src/report/report.ts:61` requeueFailedReport·重置 attempts）单点恢复；其余队列=failed 终态需按 last_error 修因。**已知风险**：四队列终态行零 retention（只进不出）→ 死信深度单调累积，`>10` 长期看将常响假噪——登记见 §4，处置归 R-51 生命周期后刀（本手册不修）。
 - **下钻**：`0042_runtime_observability_gateway.sql`（死信谓词逐队列不同：report=`quarantined`·其余=`'failed'`，main.ts:209-212 头注同口径）→ 终态定格码锚：interview=`apps/worker/src/interview-consumer.ts:182`（markJobFailed）/ quiz=`apps/worker/src/quiz-consumer.ts:52` / diagnosis=`apps/worker/src/diagnosis-consumer.ts:51` / report 隔离=`apps/worker/src/report-worker.ts:184`（sweepReportsOnce）。
+
+<a id="ev-readyz_privacy_degraded"></a>
+### 3.13 readyz_privacy_degraded —— Ticket（#157 消费接线刀）
+
+- **matcher**：JSON `{"event":"readyz_privacy_degraded"}`（发射点 `docker/compose.prod.yml` privacy-watchdog 探针·每 30s 一拍只读 `GET /readyz/privacy`；`error:"unreachable"` 表 worker 不可达，同事件同处置。HA 拓扑发射点=`compose.ha.yml` privacy-watchdog 覆写，探 worker-a/worker-b 两副本）。
+- **含义**：privacy 分域后台 sweep（checkpoint/vector-plane 擦除 loop）连续 3 拍失败翻红（`drain-loop.ts` cf≥3），或分域端点不可达。WSS 分域 ready 后该域已**不拉 worker 流量闸**（fail-open 沿 rag 形制），域红只经本事件观测收口——擦除滞后=隐私数据留存超授权窗，合规面工单。
+- **响应（Ticket·工作时间）**：查 privacy 专用池连通（`PRIVACY_WORKER_DATABASE_URL` 装配缺失时 loop 不起=端点恒绿·本事件不触）；单发=网络抖动；持续红=擦除 loop 卡死，按 `checkpoint privacy erasure target failed` / `drain tick error` 日志行下钻两 loop；worker 不可达先核 `up{job="meetwise-worker"}` 面（§2 指标面盲区注记）。
+- **告警不拉闸**：探针零触 worker healthcheck（`compose.prod.yml` worker 块 `/readyz/worker` fail-closed 原样）——privacy 域红≠杀容器≠退流量；本探针自身挂死由其 healthcheck（心跳文件 120s 窗）在 `compose ps` 面暴露，restart 兜底。
+- **白名单注记**：部署窗/重启窗探针红行系瞬时（90s 起步静默窗已滤起步期；worker 宕>90s 的持续红属真信号），按 `scripts/alerts/alert-whitelist.json` 到期形登记，不改码面。
+
 
 ## 4. 与 Prometheus 栈的分工声明 + 已知风险登记
 
