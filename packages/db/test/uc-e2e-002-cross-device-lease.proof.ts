@@ -207,9 +207,12 @@ async function main() {
     });
     await inside;
     const lockKey = `${owner}:${threadId}`;
-    // pg_locks classid/objid 以 32 位位型呈无符号,hashtext() 回有符号 int32——比较落 bit(32) 规一。
+    // pg_locks classid/objid 以 32 位位型呈无符号,hashtext() 回有符号 int32——双 int4 形
+    // pg_advisory_xact_lock(hashtext(a),hashtext(b)) 逐键按 uint32 落 classid/objid（无 int64
+    // 宽化拆分）。比较双侧显式归一无符号域：'adaptive-interview' 哈希为负,其 classid=无符号
+    // 重释值,带符号形比较即失配——判别力不得随哈希符号空真。
     const dangling = Number((await pool.query(
-      "SELECT count(*)::int n FROM pg_locks WHERE locktype='advisory' AND classid::bigint=hashtext($1)::bit(32)::bigint AND objid::bigint=hashtext($2)::bit(32)::bigint",
+      "SELECT count(*)::int n FROM pg_locks WHERE locktype='advisory' AND classid::bigint=(hashtext($1)::bigint & 4294967295) AND objid::bigint=(hashtext($2)::bigint & 4294967295)",
       ['adaptive-interview', lockKey],
     )).rows[0].n);
     A('X3 invoke 运行中同键 advisory 锁零悬挂（连接只在 begin 短事务内占用）', dangling === 0);

@@ -76,9 +76,12 @@ const AUTHORITY_BODY = [
   'END',
 ].join('\n');
 
-// pg_locks.objid 以 32 位位型呈无符号，hashtext() 回有符号 int32——比较须落 bit(32) 规一（否则键匹配随哈希符号 50/50 闪断）。
+// pg_locks.classid/objid 以 32 位位型呈无符号，hashtext() 回有符号 int32——单 int4 形
+// pg_advisory_xact_lock(hashtext(k)) 先隐式宽化 int64 再拆键：负哈希落 classid=4294967295
+// +objid=无符号低 32 位（classid=0 形过滤对负哈希永不相等=计 0，键匹配随哈希符号约 50%
+// 闪断）。过滤双侧归一无符号域（objid 掩低 32 位+classid 按符号重建）。
 const advisoryLockCount = (client: { query: (sql: string, params?: unknown[]) => Promise<{ rows: Array<{ n: number }> }> }, key: string) =>
-  client.query("SELECT count(*)::int n FROM pg_locks WHERE locktype='advisory' AND classid=0 AND objid::bigint=hashtext($1)::bit(32)::bigint", [key])
+  client.query("SELECT count(*)::int n FROM pg_locks WHERE locktype='advisory' AND objid::bigint=(hashtext($1)::bigint & 4294967295) AND classid::bigint=(CASE WHEN hashtext($1)<0 THEN 4294967295 ELSE 0 END)", [key])
     .then((r) => Number(r.rows[0]?.n ?? 0));
 
 async function main() {

@@ -51,8 +51,10 @@ export class PrivacyService {
   export(principal: string) {
     return this.db.asPrincipal(principal, async (c) => {
       // 读分层:导出系无界扫描面——本事务内恰一次 interview_privacy_fenced_targets() 聚合取
-      // 围栏集(同事务单点钉,非独立 autocommit 拼接),两业务查询以反连接消费,不再逐行上锁
-      // 求值;admission 面仍走原 locking 谓词(interview_privacy_active 权威体零触)。
+      // 围栏集(同事务单点钉,非独立 autocommit 拼接),两业务查询以反连接消费。边界如实:
+      // 0059 RLS 十表 policy 仍内嵌 interview_privacy_active 谓词——本切换=显式逐行锁求值
+      // 减半,非消除(assessment_report 面每行仍经 RLS 求值);真去锁限 interview 表面
+      // (interview 表 RLS 不内嵌该谓词);admission 面仍走原 locking 谓词(权威体零触)。
       const fenced = (await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()')).rows.map((r: Record<string, unknown>) => String(r.thread_id));
       const resumes = (await c.query("SELECT id, status FROM resume WHERE status NOT IN ('erasure_fenced','erased')")).rows;
       const interviews = (await c.query('SELECT id, status FROM interview WHERE id != ALL($1::text[])', [fenced])).rows;
