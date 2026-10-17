@@ -1,6 +1,6 @@
-# PROGRESS-WRITE REQUEST — 生成进度写旁路化小刀（批5 盘点 Top6·两件同域零迁移·#164+#182·起草落卷即停）
+# PROGRESS-WRITE REQUEST — 生成进度写旁路化小刀（批5 盘点 Top6·两件同域零迁移·#164+#182·起草落卷即停 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草史录]）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷 2026-10-16·pre-exec 双审两独立外席待派·alone≠dual·est live=0）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-17·post-prove 双审两独立外席待派·alone≠dual·est live=0·前值 `draft:awaiting_pre_exec_dual`=起草史录）
 
 **席位**：progress-write REQUEST 起草席（读码定稿+起草双责·协调方派·批5 盘点席 Top6 靶=`#164` 生成进度写在关键路径上且永久落库（每次生成最多 8 行 interview_event）占业务连接池+`#182` 进度写与业务事件共用流级 advisory lock、generation_started 的 await 无超时可反压生成主路径——同域两件零迁移小刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `656fc7be`（`git fetch` 后 `origin/feat/mysql-schema-skeleton`=`656fc7be` 恒等·派单下界「origin tip≥656fc7be」等号成立亲证=`git merge-base --is-ancestor origin/feat/mysql-schema-skeleton HEAD` EXIT=0 REMOTE-IS-ANCESTOR 机检·worktree `meetwise-pw` 派单前已建·分支 `line/progress-write`·HEAD=`656fc7be` 亲证=origin tip 零前进零 merge·⛔pull --rebase 未用·⛔force push 未用·docs:check 基线 **2210≤cap 2216** 本树亲跑 EXIT=0·迁移链 **204 文件头 0204** 亲数）。
@@ -17,12 +17,12 @@
 
 | # | 文件 | blob（8 hex） | 行数 | 本刀触面 |
 |---|---|---|---|---|
-| 1 | `apps/worker/src/generation-progress.ts` | `fb9490d4` | 164 | **件① 触（唯一产品码改面）**：`:23` MIN_INTERVAL=2000·`:29` MAX_ROWS=6·`:27` 注「家族总行上界=6+2」（**#164 8 行算术源**）·`:35-38` 载荷键白名单·`:56-63` logProgressWriteFailure 结构化失败日志·`:76-82` writeEventRow（asPrincipal 事务+appendEvent）·`:108-164` withGenerationProgress：`:119` inflight 链初始化·`:123-135` writeProgressOnce（progress 帧链入 inflight+catch=**既有 fire-and-forget 纪律**）·**`:137-142` generation_started 头拍 `await writeEventRow(...).catch(...)`（#182 await 无超时位·fn `:157` 在其后）**·`:144-154` heartbeat·`:156-163` finally（`:162` `await Promise.all([inflight,heartbeat])`=「settle 前无在途·终态后又冒进度」防护栏） |
+| 1 | `apps/worker/src/generation-progress.ts` | `fb9490d4` | 164 | **件① 触（唯一产品码改面）**：`:23` MIN_INTERVAL=2000·`:29` MAX_ROWS=6·`:26` 注「家族总行上界=6+2」（**#164 8 行算术源**·[P3 EXEC 照实值·前值 :27 史录]）·`:35-38` 载荷键白名单·`:56-63` logProgressWriteFailure 结构化失败日志·`:76-82` writeEventRow（asPrincipal 事务+appendEvent）·`:108-164` withGenerationProgress：`:119` inflight 链初始化·`:123-135` writeProgressOnce（progress 帧链入 inflight+catch=**既有 fire-and-forget 纪律**）·**`:137-142` generation_started 头拍 `await writeEventRow(...).catch(...)`（#182 await 无超时位·fn `:157` 在其后）**·`:144-154` heartbeat·`:156-163` finally（`:162` `await Promise.all([inflight,heartbeat])`=「settle 前无在途·终态后又冒进度」防护栏） |
 | 2 | `packages/db/src/interview/interview-event.ts` | `880a1dcb` | 43 | **零字节 Ban（advisory lock 共用点亲证锚·#182 半句载体）**：`:16` appendEvent·`:22` `pg_advisory_xact_lock(hashtext($1))` **同 stream 全事件（进度+业务）共用一把流级锁**·`:23-26` event_key 幂等 prior SELECT·`:29-33` `INSERT…SELECT MAX(seq)+1 ON CONFLICT DO NOTHING`（序分配原子性根基） |
 | 3 | `apps/worker/src/interview-service.ts` | `caba758c` | 370 | 零字节 Ban（触发面锚）：`:262-264` quizGenerator withGenerationProgress（progressStream=quizId）·`:366-368` reportGenerator 同形（=interviewId） |
 | 4 | `apps/worker/src/adaptive-interview-service.ts` | `84b3e584` | 798 | 零字节 Ban（触发面锚）：`:492` interviewer.ask 面 withTokenStream 外包裹+withGenerationProgress（segments=[retrieve,generate,validate]） |
 | 5 | `packages/db/src/principal.ts` | `23e5b770` | 2127 | 零字节 Ban（池界锚·否决乙依据）：`:951-952` statement/idle_in_transaction_timeout 缺省 15000·`:953` connectionTimeoutMillis 缺省 5000·`:968` query_timeout 缺省 15000·`:995-1005` asPrincipal（connect→BEGIN→SET ROLE→set_config→fn→COMMIT/ROLLBACK→release=#164「占业务连接池」机制面：每笔进度写独占一池连接一事务） |
-| 6 | `apps/worker/test/tokenstream-progress.proof.ts` | `53e88ffe` | 208 | **件② 触（TS-P6 新增臂组）**：`:43` 家族查询·`:117` TS-P1 started 恰 1 行·`:130` 可见时延≤2500ms·`:154` TS-P4 家族总行≤MAX+2·`:162-166` 重放幂等不添行·`:192` **TS-P1 report 面 started 先于业务结果落表（序不变式承重臂·零改）**·既有 **20 臂**（`grep -c "A('"`=18 源位点·两循环展开=20 运行时臂）零改零删 |
+| 6 | `apps/worker/test/tokenstream-progress.proof.ts` | `53e88ffe` | 208 | **件② 触（TS-P6 新增臂组）**：`:43` 家族查询·`:117` TS-P1 started 恰 1 行·`:125` 可见时延≤2500ms·`:138` TS-P4 家族总行≤MAX+2·`:140-145` 重放幂等不添行·`:192` **TS-P1 report 面 started 先于业务结果落表（序不变式承重臂·零改）**·既有 **20 静态 A( 位点**（18 单引+2 反引 `:127`/`:137`）·零展臂循环）零改零删[P2-1 口径+P3 行号三处 EXEC 落·前值 :130/:154/:162-166 史录·详 §9④] |
 | 7 | `apps/web/lib/stream/interview-state.ts` | `04a9741e` | 245 | 零字节 Ban（前端归约锚·非权威承重亲证）：`:116-118` 进度家族四 kind 不触发进度态清除·`:192-196` generation_started/first_token/progress 仅幂等覆盖写 generationProgress **不改 phase**（迟到帧容忍形） |
 | 8 | `apps/web/lib/stream/quiz-state.ts` | `1aa2af90` | 178 | 零字节 Ban（否决乙核心证据）：`:75-79` `case 'generation_started': next.phase='generating'` **无终态守卫**——迟到 started 会把 ready 翻回 generating=「终态后又冒进度」必须被 worker 侧 finally 护栏挡住的原因亲证 |
 | 9 | `apps/api/src/platform/sse-pump.ts` | `21f52b34` | 208 | 零字节 Ban（重放面锚）：`:130` 全 kind 帧逐行回放·`:132` isTerminal 命中即 `done`（重放停在首终态·终态后行不回放） |
@@ -59,7 +59,7 @@
 - 头拍 `:138-142` `await writeEventRow(...'generation_started'...).catch(log)` 改为**链入既有 inflight**：`inflight = inflight.then(() => writeEventRow(...)).catch((e) => logProgressWriteFailure(...))`——与 progress 帧 `:130-134` 同款纪律同款 catch 同款日志。链入位在 heartbeat 启动前→inflight 链序=started 先于一切 progress 帧（seq 序不变式保持：`interview-event.ts:29-33` MAX+1 分配沿锁获取序）。
 - 效果：生成首拍零 DB 等待（模型 fn/heartbeat/withTokenStream 外包裹三层同时解锁）；进度写占池从「关键路径跨度」降为「写入时长本身」；#182「await 无超时」主定谳以**消除该 await** 收口（不等待半·issues-master 修法列原文）。
 - **序不变式保持（显式声明·EXEC 断言面）**：finally `:162` 仍等 inflight→started 恒 settle（提交或失败）于 withGenerationProgress 返回之前→业务终态事件（调用方随后写）恒晚于 started 落表——「终态后又冒进度」防原样成立，quiz 流 `phase='generating'` 无终态守卫面（§0.2-5）零暴露。既有注 `:104-106`「fn settle 后保证无在途进度写」语义随件①扩及 started（started 亦入 inflight=护栏覆盖面变宽非变窄）。
-- 残面诚实登记：stress 窗 started 写慢时 first_token/progress 帧（独立事务）可先于 started 落表=家族内 seq 倒序窗——非权威家族（铁律①）+前端逐帧独立归约（锚#7 `:192-196`）+终态前护栏不变→可接受；如实登记非缺口。
+- 残面诚实登记[P2-2 EXEC 收窄·前句史录]：家族内 **progress 帧对 started 的 seq 倒序不可能**（progress 帧与 started 同 inflight 链串行化——started 链入位在 heartbeat 启动前→链序=started 先于一切 progress 帧·且同流 advisory 锁下 MAX+1 序分配沿链获取序）；倒序窗仅存于（a）**未接线 first_token**（`noteModelFirstToken` 独立事务不经 inflight 链·生产零调用=unwired seam）与（b）**跨进程**时序——非权威家族（铁律①）+前端逐帧独立归约（锚#7 `:192-196`）+终态前护栏不变→可接受；如实登记非缺口。
 
 ### 1.2 件② TS-P6 臂组（`tokenstream-progress.proof.ts` 新增·预期 ≥5 臂 EXEC 期定值）
 
@@ -126,12 +126,53 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · pre-exec 双审两独立外席待派·本 commit 不预 claim 任何 EXEC 期 EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**（FAIL 项回炉本卷 rev·append 注记形上文零洗）；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1-修法 组合案裁决与 §1.3 候选淘汰结论与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（blob 漂移结论不变只更行号·语义变回炉·§0.0 复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草史录·post-prove 双审两独立外席待派·alone≠dual）。** 开工三条款已履行：①pre-exec 双审两外席 **BOTH PASS 落卷**（席1 agent_2f41d1e6+席2 agent_7c4df9cb·P2-1/P2-2/P2-3+P3 随 EXEC 落）；②**协调方明示 EXEC 授权**（派单令）；③EXEC 立项**未改 §1-修法 组合案裁决与 §1.3 候选淘汰结论与 §5 Ban/pins**（§0 全量重 pin=十二 blob 全等·详 §9④）。**停止条件（四类·原文保留·EXEC 期逐条判定=零触发·详 §9⑥）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚语义漂移（如 finally 护栏被改/started 写形被改/锁面被拆/0096 REVOKE 被翻/quiz 流终态守卫已补=乙案前置件成立需重裁）·门基线漂（typecheck≠8/lint 五值超支/docs:check cap≠2216 未经 sanction/迁移链头≠届时亲数）→停·重 pin 回炉。
 - **机制不满足**：门A 臂组红且根因在件① 修法形（如序不变式破坏=started 晚于业务终态落表实测复现）→登记结论被证伪→停·如实升级协调方回炉（Ban 就地改修法 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1-修法 面（需拆锁/独立 stream/落库形变/TTL 迁移/触 web 归约）→停·另刀或协调方裁决（§1.3 乙丙丁否决沿承·Ban 就地扩面）。
 - **验收红不可修**：EXEC 期任一门红且根因不在本刀交付面（邻 proof 新红/adaptive 链新红/neg 六段新红/lint 贴面新增超支/docs:check>2216）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 落卷记录（EXEC 席落卷 2026-10-17·七字段+双审 P2×3+P3 落点·STOP→`executed:awaiting_post_prove_dual`·**append 注记形·上文 §0-§8 零洗**）
+
+**授权链**：起草落卷 `0e2132a5`→pre-exec 双审会签 **PASS×2**（席1 agent_2f41d1e6+席2 agent_7c4df9cb）→协调方授权 EXEC（派单令·P2-1/P2-2/P2-3+P3 行号四处随 EXEC 落）→EXEC 本卷：`git fetch` 亲证 `origin/feat/mysql-schema-skeleton`=`656fc7be`（届 tip=起草基线恒等·派单下界「届时 tip≥WSS nail 后 tip」等号成立亲证=`git merge-base --is-ancestor 656fc7be origin/feat/mysql-schema-skeleton` EXIT=0）→`git merge --no-ff origin/feat/mysql-schema-skeleton` 返回 **Already up to date EXIT=0**（origin tip 已是 HEAD 祖先=主线自起草落卷零前进·零并线 commit·零冲突面·SSOT 并集解未触发·⛔pull --rebase 未用·⛔push）。
+
+**① 门矩阵全表**（届树=起草树基·交付 commit 前亲跑）：
+
+| 门 | 判据 | 实测 | EXIT | 结论 |
+|---|---|---|---|---|
+| A tokenstream:prove | 既有 20 静态位点零改+TS-P6 新臂（≥5+seq 序断言臂）全绿 | **两跑**：首跑 EXIT=1 红恰 1 臂=TS-P6-c（**proof 夹具缺陷**=模型 seam 缺受控延迟→生成先于慢写可见即完成→poller 停止早于 started 可见窗·既有 20 臂+余 7 新臂首跑即绿）；臂自增强修正（seam 补 2500ms 受控延迟+INFO 实测行）后二跑 **EXIT=0=28 臂全绿**（既有 20 零改+TS-P6 正形 a-d+seq 序断言 e+负形 f-h）·INFO 实测=模型起跑 **+10ms**/started 可见 **+1270ms**/起跑时 started 行=**0**（头拍未闸机制面直证） | 0 | 绿（红跑如实登记·详⑤-1） |
+| B adaptive 四邻门 | flow/life/consumer/latency 全绿 | flow EXIT=0+life EXIT=0+consumer EXIT=0（**37/37**）+latency 两形：direct tsx 首跑红=`ai_model_claim_invocation_scoped does not exist`（**dev 夹具库陈旧**·迁移器 fail-loud `migration_uninitialized_nonempty_database` 零库改动）→沿 `g7-green-gap.md:67` 先例改**隔离 runner 形**二跑 EXIT=0 | 0 | 绿（红跑如实登记·详⑤-2） |
+| C neg:all | 六段全绿·题面 692 | EXIT=0 六段=auth 90+commerce 90+resume 91+interview 107+bend 179+input 135=**692 恰等 pins**（行使两次均绿·首跑尾窗取证不足二跑补全窗回执·非红冲销·详⑤-3） | 0 | 绿 |
+| D web 归约邻面 | `pnpm -C apps/web prove` EXIT=0 | EXIT=0 全通过（TOKSTREAM TS-P3 前端渲染断言=锚#7/#8 零触回归锚） | 0 | 绿 |
+| E typecheck+lint | 8/8+12/12·五值恰等零超支 | typecheck **8 successful/8 total·0 cached** EXIT=0；lint **12 successful/12 total·0 cached** EXIT=0·五值恰等亲证=root **5235**+web **601**+api **1421**+worker **954**+ai-runtime **628** 全 **0 errors**（worker 贴线 954：新臂初稿 +3 warning 超支红→净零归 954·详⑤-4） | 0 | 绿 |
+| F docs:check | EXIT=0 ≤cap 2216 | 终树复跑 `ai-docs check passed: 80 required files verified; public text policy scanned **2211** managed worktree files`≤2216 | 0 | 绿 |
+| G markers | 改动集五类词+全树行首冲突标记零命中 | 运行时逐字符组装口径（四词+冲突标记对·沿 `scripts/i6-239-gates.proof.mjs` §2-7·词面不誊防自匹配）对改动集 3 tracked **零命中 EXIT=0**；全树行首冲突标记 `git grep -nE` 零命中 | 0 | 绿 |
+| H diff 面 | 恰 3 tracked=2 码+1 卷·零新受管 | 工作区恰 `generation-progress.ts`+`tokenstream-progress.proof.ts`+本卷·零新受管文件·零迁移（链 **204 头 0204** 亲数零新增）·§0.1 十锚零字节 Ban 面零触亲证（blob 全等） | 0 | 绿 |
+| 卫生 | frozen-lockfile+tsbuildinfo+est live | `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·`apps/web/tsconfig.tsbuildinfo` 门副产 checkout 回滚·`.env*` ABSENT·零 DDL 零 env 闸·est live=0（isolated 本地 PG+fake seam 零模型外呼）·`actualSpendCny=null` | 0 | 绿 |
+
+**② 机制证（件①②落码账·新臂账）**：件①=`generation-progress.ts` 头拍 `:137-142` `await writeEventRow(...)` **链入既有 inflight**（`inflight = inflight.then(() => writeEventRow(...)).catch(logProgressWriteFailure 同款)`·:123-135 progress 帧同款纪律同款 catch 同款日志·链入位在 heartbeat 启动前→链序=started 先于一切 progress 帧·finally `:162` 原样零改=「终态后又冒进度」护栏覆盖面含 started 变宽非变窄·零新常量零新 timer 零 Promise.race·零应用级等待）+`:104-106` 模块注语义诚实化（旁路化+护栏覆盖面扩及 started·§1.1 声明落实）。件②=`tokenstream-progress.proof.ts` 新增 **TS-P6 臂组 8 臂**（≥5+seq 断言臂授权恰两倍余）：TS-P6-a 慢写正形·模型 fn 起跑先于 started 行可见（起跑时 started 行=0+首拍 <seam 慢写 1200ms）·TS-P6-b 生成结果内容无损·TS-P6-c poller 首见对照（起跑时刻早于 started 可见时刻）·TS-P6-d started 恰 1 行（幂等不因旁路化破坏）·**TS-P6-e seq 序不变式（started.seq<终态业务事件 seq·调用方 withGenerationProgress 返回后同流写 question_ready 生产形·finally 承重名实相符[P2-3 落]）**·TS-P6-f 负形 once-fail 写败生成成功内容无损（零抛穿）·TS-P6-g 负形结构化失败日志捕获（`generation_progress_write_failed`·kind=generation_started·注入恰一笔 latchFired）·TS-P6-h 负形 started 恒零行（once-fail 无重试·幂等不回填）。新 seam 两枚（沿 R2 fake pool 先例形）=`slowStartedWritePool`（query 级精准注入慢写·详⑤-5）+`startedWriteFailingPool`（once-failing 精准注入）+`streamRows` 全流行 helper+`appendEvent`/`type DbPool` import。既有 **20 静态 A( 位点零改零删机证**（git diff 删行含 `A(` 计数=**0**）。TS-P4 重放幂等臂+`:192` report 面序不变式承重臂零改（§1.2 ⑤）。
+
+**③ diff numstat（对基线 `656fc7be`）**：`generation-progress.ts` **+13/−7**（件① 全部）/`tokenstream-progress.proof.ts` **+135/−2**（件② 臂组+seam+familyRows 映射语义恒等重构）/本卷 REQUEST（§0.1 修订+§1.1 收窄+STOP 翻面+本节 append）——恰 **3 tracked** 零新受管零删文件。
+
+**④ 重 pin 全表**：§0.1 十二 blob 对届树全量亲算=**12/12 全等零漂移**（届树=起草树·merge 零前进）；行号四处照实值[P3 落]=锚#1 `:27`→**`:26`**+锚#6 `:130`→**`:125`**/`:154`→**`:138`**/`:162-166`→**`:140-145`**（漂移面=起草席笔误·源码语义零漂=停止条件①不触发）；P2-1 臂账口径落 §0.1 锚#6。
+
+**⑤ 偏离清单（如实登记·理想零）**：
+- **⑤-1 门A 首跑红 1 臂自纠**：TS-P6-c 首跑 FAIL 根因=proof 夹具缺陷（模型 seam 缺受控延迟→quizGenerator 毫秒级完成·finally 在途等待使返回卡在慢写 1.2s 落表近旁·poller 于 started 可见前停止→seenAt=undefined）——**非件① 修法形缺陷**（旁路化机制面由 a/b/d/e/f/g/h 七臂首跑即绿承载·红跑既况=既有 20 臂+7 新臂全 PASS）；修正=seam 补 2500ms 受控延迟（沿 observingDelayedModel delayMs 形）+INFO 实测行·二跑全绿。沿 worker-hang-guard 门5「臂自增强」先例·红跑如实留痕非冲销。
+- **⑤-2 adaptive-latency 首跑红（direct tsx 形）**：根因=本地 dev 夹具库陈旧（缺 `0184_ag12_estimator_claim_freeze` 等近期迁移的 `ai_model_claim_invocation_scoped` 函数·无 schema_migrations 账本→迁移器 fail-loud `migration_uninitialized_nonempty_database` 零库改动）——非本刀交付面新红（环境陈旧·基线树同红）；处置=沿 `g7-green-gap.md:67` 先例改**隔离 runner 形**（`node scripts/run-e2e-isolated.mjs adaptive-latency:prove`·临时容器新迁移·REQUEST 门B「隔离形」本义）二跑 EXIT=0。dev 夹具库零改动（迁移器拒改·容器仅 docker start）。
+- **⑤-3 neg:all 行使两次**：首跑 EXIT=0 但本席仅留尾窗（末段）取证；二跑补全窗六段回执——**两次均绿恒等**（非红冲销·取证动机）。
+- **⑤-4 lint 贴面 +3 warning 超支红自纠**：新臂初稿使 worker 954→957 超支（lint 门红）；净零修复=streamRows/familyRows 改 spread 形映射（−1·familyRows 语义恒等重构）+面4 单 scripted client 复用（−1）抵新位 +1→恰回 **954**。臂账/断言面零削（「臂数并入断言」先例形·非语义冲销）。
+- **⑤-5 慢写 seam 形收窄**：§1.2 原文「首 connect 延迟注入 proxy pool 形」→落码 **query 级精准注入**（proxy pool 包真池·按 appendEvent 形参签名 `params[1]=stream∧params[2]=generation_started` 识别目标）——首 connect 形在 fn 同步首连竞态下无法确定性瞄准 started 写（业务查询可抢走 one-shot latch 使 seam 失准）；proxy pool 形+R2 fake pool query 捕获先例形不变·仅注入位收窄·EXEC 定值按可复现优先。
+
+**⑥ pins 零翻声明+停止条件判定**：§5 pins 全值对届树复验=基线 tip `656fc7be`（无并线前进）·`GENERATION_PROGRESS_MAX_ROWS=6`/`MIN_INTERVAL_MS=2000` 零触·家族总行 ≤8/生成（TS-P4 臂绿）·既有 proof 臂账 **20**（P2-1 口径更名·值不变）·门C 题面 **692** 恰等亲证·typecheck 8/8·lint 五值恰等·docs cap **2216**（实测 2211）·迁移链 **204 头 0204** 亲数·`actualSpendCny=null` 零翻。停止条件四类逐条：①现场漂移——**未触发**（十二 blob 全等·漂移仅行号笔误照实值）；②机制不满足——**未触发**（门A 首跑红根因系 proof 夹具非件① 修法形·序不变式 e 臂+`:192` 承重臂绿）；③越界需要——**未触发**（触面恰 2 码+1 卷·§0.1 十锚零字节 Ban 面零触·零迁移零 env 闸）；④验收红不可修——**未触发**（两处红均根因明确·口径内修复·如实登记⑤-1/⑤-2）。
+
+**⑦ markers 扫描命令与回执**：改动集=`git diff --name-only HEAD`∪`git ls-files --others --exclude-standard` 双查；五类词面**运行时逐字符组装**（沿 `scripts/i6-239-gates.proof.mjs` §2-7 同口径·词面不复抄防自匹配）+行首冲突标记严格形正则对改动集逐文件直扫 **零命中 EXIT=0**；全树行首冲突标记 `git grep -nE` 零命中。docs:check 终树复跑 **2211**≤cap 2216 EXIT=0（§9 本节落卷后）。
+
+**双审 P2×3+P3 落点（随 EXEC 全落）**：
+- **P2-1**（两席同发现·臂账口径）→ §0.1 锚#6 行+本节②：既有臂账改「**20 静态 A( 位点（18 单引+2 反引 :127/:137）·零展臂循环**」（前值「`grep -c "A('"`=18 源位点·两循环展开=20 运行时臂」史录——反引位点 :127/:137 被单引 grep 漏计·展臂循环不存在=20 恰为静态位点数·**值 20 不变**）。
+- **P2-2**（席2·§1.1 残面句收窄）→ §1.1 残面句（progress 帧链入倒序**不可能**[同 inflight 链串行+同流 advisory 锁 MAX+1 沿链序]·倒序窗仅未接线 first_token[独立事务不经 inflight·生产零调用]+跨进程·前句史录）。
+- **P2-3**（席2·显式 seq 序断言臂）→ 件② TS-P6-e 臂（started.seq<终态业务事件 seq·调用方终态写生产形·「序不变式承重」名实相符）。
+- **P3**（行号微漂四处照实值）→ §0.1 锚#1 `:26`+锚#6 `:125`/`:138`/`:140-145`（四处前值史录）。
+
 ---
 
-*PROGRESS-WRITE REQUEST · 2026-10-16 起草落卷 · **`draft:awaiting_pre_exec_dual`**（pre-exec 双审两独立外席待派·alone≠dual·翻面权归协调方） · base `feat/mysql-schema-skeleton` @`656fc7be`（origin tip 恒等·派单下界等号成立亲证·REMOTE-IS-ANCESTOR EXIT=0） · 分支 `line/progress-write` · 工作树 `meetwise-pw` · 读码定稿=进度写现链（三触发面→withTokenStream 外包裹→withGenerationProgress：`:137-142` generation_started 头拍 await 无超时=**触点①**·`:123-135` progress 帧既有 inflight fire-and-forget 纪律·`:162` finally 在途等待=「终态后又冒进度」唯一护栏）+advisory lock 共用点（`interview-event.ts:22` 同 stream 全事件一把流级锁·`:29-33` MAX+1 序分配原子性）+8 行永久落库（MAX_ROWS 6+started/first_token·0096 `:255` REVOKE DELETE app_role 亲证=零清理路径现状）+前端归约两形（interview 迟到容忍/quiz started→generating 无终态守卫）· 修法=件① generation_started 旁路化（头拍 await 改链入 inflight·不等待半·序不变式 finally 承载原样保持）+件② tokenstream-progress.proof TS-P6 臂组（≥5 臂·正负双向·既有 20 臂零改）+件③ 保留窗裁量=保留但轻量化（零迁移纪律+REVOKE 亲证→TTL 留槽后继独立刀·量级算术 ≤8 行/生成随卷）· 最小触面=恰 2 码文件 worker 单包+本卷 · 否决=乙 尾等待 Promise.race cap（quiz 流无终态守卫实害·若后继做须先补 web 终态守卫=跨包前置件）+丙 拆锁/独立 stream（事件账本根基+事件流重构）+丁 不落库形（翻 D-1 裁定+重放语义改）+戊 #138 划外+己 #165/#167 留槽 · 门矩阵=typecheck 8/8（亲跑）+lint 五值恰等 601/5235/1421/954/628（亲跑）+docs:check 2210≤2216（亲跑·落卷预期 2211）+markers 零命中+diff 恰 1 tracked .md+EXEC 期 tokenstream 20+TS-P6/adaptive 邻面四门/neg 692/web 归约邻面 · 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭） · ⛔push · ⛔merge 主线 · ⛔force push · STOP*
+*PROGRESS-WRITE REQUEST · 2026-10-16 起草落卷 · **`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草史录·post-prove 双审两独立外席待派·alone≠dual·翻面权归协调方] · base `feat/mysql-schema-skeleton` @`656fc7be`（origin tip 恒等·派单下界等号成立亲证·REMOTE-IS-ANCESTOR EXIT=0） · 分支 `line/progress-write` · 工作树 `meetwise-pw` · 读码定稿=进度写现链（三触发面→withTokenStream 外包裹→withGenerationProgress：`:137-142` generation_started 头拍 await 无超时=**触点①**·`:123-135` progress 帧既有 inflight fire-and-forget 纪律·`:162` finally 在途等待=「终态后又冒进度」唯一护栏）+advisory lock 共用点（`interview-event.ts:22` 同 stream 全事件一把流级锁·`:29-33` MAX+1 序分配原子性）+8 行永久落库（MAX_ROWS 6+started/first_token·0096 `:255` REVOKE DELETE app_role 亲证=零清理路径现状）+前端归约两形（interview 迟到容忍/quiz started→generating 无终态守卫）· 修法=件① generation_started 旁路化（头拍 await 改链入 inflight·不等待半·序不变式 finally 承载原样保持）+件② tokenstream-progress.proof TS-P6 臂组（≥5 臂·正负双向·既有 20 臂零改）+件③ 保留窗裁量=保留但轻量化（零迁移纪律+REVOKE 亲证→TTL 留槽后继独立刀·量级算术 ≤8 行/生成随卷）· 最小触面=恰 2 码文件 worker 单包+本卷 · 否决=乙 尾等待 Promise.race cap（quiz 流无终态守卫实害·若后继做须先补 web 终态守卫=跨包前置件）+丙 拆锁/独立 stream（事件账本根基+事件流重构）+丁 不落库形（翻 D-1 裁定+重放语义改）+戊 #138 划外+己 #165/#167 留槽 · 门矩阵=typecheck 8/8（亲跑）+lint 五值恰等 601/5235/1421/954/628（亲跑）+docs:check 2210≤2216（亲跑·落卷预期 2211）+markers 零命中+diff 恰 1 tracked .md+EXEC 期 tokenstream 20+TS-P6/adaptive 邻面四门/neg 692/web 归约邻面 · 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭） · **EXEC 落卷 2026-10-17=merge Already up to date 零并线（origin tip=656fc7be 恒等）+门 A-H 全绿（28 臂=20 既有零改+TS-P6 8 新臂·692 题·五值恰等·恰 3 tracked 零迁移）+红跑四处如实登记（§9⑤）+P2×3/P3 随卷全落（§9 落点清单）** · ⛔push · ⛔merge 主线 · ⛔force push · STOP*
