@@ -51,6 +51,7 @@ jobs:
           DASHSCOPE_EMBED_API_KEY: ${{ secrets.DASHSCOPE_EMBED_API_KEY }}
         run: |
           if [ -z "$DASHSCOPE_EMBED_API_KEY" ]; then echo "::warning::未配 DASHSCOPE_EMBED_API_KEY → 跳过 qbank:retrieval:eval(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
+          touch .env # CI checkout 无 .env·脚本顶层 readFileSync 需占位文件(空文件即可·key 仍走 env 注入)
           pnpm qbank:retrieval:eval
       - name: 评分官质量信号(scoring:eval:单调性/一致性ICC/相关性,真模型;度量数学硬门在 per-push ci)
         continue-on-error: true
