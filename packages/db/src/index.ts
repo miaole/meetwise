@@ -148,6 +148,7 @@ export {
 
 export { withInterviewGraphFence, assertInterviewGraphFence, renewInterviewGraphFence, releaseInterviewGraphFence } from './interview/interview-graph-lease.ts';
 export type { InterviewGraphFence } from './interview/interview-graph-lease.ts';
+export { readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck, type GraphRunObservationRecord } from './interview/graph-run-observability.ts';
 
 // server-issued question / answer identity ledger (stale resume 与双标签页的图外 fencing)
 export {
