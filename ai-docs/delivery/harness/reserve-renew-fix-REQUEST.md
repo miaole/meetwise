@@ -116,6 +116,7 @@
 - **⑤P2 四修订落点**：P2-1 件⑤ neg 臂扫描域显式钉 consumer 单文件源读+catalog/runbook 史录注记双面明示排除防假红（§1.1 件⑤+proof ①臂+目录注记+runbook §6 注记四处同载）；P2-2 §1.2 件② 行为位移登记改「renew 处置零变+伴生正向位移一处（graph fence 该拍不再被跳过）」；P2-3 §1 缺陷② 叙事收敛（claim 臂拍内零重试+两臂零观测·孤立抖动靠心跳隐式自愈但不可见·sustained 失败才是真断点）；P2-4 件① ≤750ms 措辞精化（sleep 附加·尝试自身往返另计受 statement_timeout 15s 界）+行号微漂四处照实值（:583-584/:557-565/:931/:951·第四处传值「:10」无法对表照实值落·偏离登记）。
 - **⑥est live/markers/diff**：est live=0（本地 tsx/turbo/eslint/node+静态源读·零模型外呼零 DB 外呼零容器零 Key 零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移零 env 闸 · `pnpm install --frozen-lockfile` 零 lockfile 改。
 - **⑦结论**：五件落位零偏离（件③ source_also=沿 reaper_takeover 先例 additive 载第二发射面·落点细节非修法偏离）·门 3/4/6/7/8 绿+alerts-lint 绿·门 1/2 隔离形如实登记·门 5 双层红（届基线在先+本刀净增契约形）如实登记零洗·STOP=`executed:awaiting_post_prove_dual`（post+prove 双审归协调方派单·Ban self-approve·门 5 帽步进 sanction+并线归协调方）。
+- post 双审双席实测勘误：门 5 基线=worker 954/root 5235 恰等帽绿（stash 亲测 956/5237 系 untracked proof 未随 stash 测量污染）·本刀净 +5=−1 any+4 naming-convention+2 proof·越帽全归本刀·并线刀零带入·帽步进数额不变（root 5240/worker 959 为准）·顺带：件② 心跳拍事务由连坐回滚变失败隔离（第二处正向位移·保守向）·proof 臂数实测 17
 
 ---
 
