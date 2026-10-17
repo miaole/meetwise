@@ -52,13 +52,14 @@ async function asForgedRuntime<T>(pool: ReturnType<typeof createPool>, fn: () =>
 async function main() {
   await assertIsolatedTestTarget(admin);
   A('QBank definer manifest includes taxonomy integrity helpers, §6.1-6.5 closure, and protected relations',
-    QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.length === 31
+    QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.length === 32
     && QBANK_CONTROL_DEFINER_TABLE_MANIFEST.length === 15
     && QBANK_CONTROL_DEFINER_VIEW_MANIFEST.length === 2
     && QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.some((entry) => entry.signature === 'qbank_taxonomy_release_guard()')
     && QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.some((entry) => entry.signature === 'qbank_chunk_serving_scope_guard()')
     && QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.some((entry) => entry.signature === 'qbank_generation_ann_search(text,vector,integer)')
-    && QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.some((entry) => entry.signature === 'qbank_search_terms(text)'));
+    && QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.some((entry) => entry.signature === 'qbank_search_terms(text)')
+    && QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.some((entry) => entry.signature === 'qbank_release_retired_generation_storage(text)'));
   await provisionRuntimeLogin(admin, { roleName: runtimeRole, password });
   await provisionQbankControlLogin(admin, { roleName: controlRole, password });
   const runtime = createPool({ user: runtimeRole, password, max: 2 });
