@@ -222,6 +222,7 @@
 - **用户影响**：P1 级运行时故障无法被发现，也无法定位。
 - **修法**：ai_graph_run 增加 current_node/last_error_code/last_checkpoint_id；周期扫描 next 非空、没有 interrupt、N 分钟没有 job 的 thread，打指标并自动 invoke(null)。
 - **关联审计总表编号**：#8
+- 【AG-15 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-15 观测刀 ag15-observability nail b1ab2787 落主线·0205 三观测列+卡死检测观测器+proof 21 臂·双审 rev2 后复审 PASS×2+post 双审 PASS×2·AG-15 条目收口】
 
 ### AG-16【P2·编排运行时】上述 P1 运行时故障路径都没有确定性 proof：eval 后崩溃、节点瞬时异常、报告重试是否真的再调模型、准入拒绝后重试、recursionLimit 是否生效、旧 checkpoint resume
 
@@ -233,6 +234,7 @@
 - **用户影响**：回归无法发现，修复后也无法证明已修好。
 - **修法**：为每个 P1 补一个 MemorySaver + 注入抛错的确定性 proof，再补一套 PG 集成 proof。
 - **关联审计总表编号**：#98、#99
+- 【AG-16 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-16 残面 proof 刀 ag16-resume-proof nail bf453f49 落主线·旧 checkpoint resume proof 43 臂+recursionLimit 纪实 18 臂·四层权威修正链 rev2 后第三次双审 PASS×2+post 双审 PASS×2·AG-16 残面收口】
 
 ### AG-17【P3·Prompt】结构化输出只用 response_format=json_object，schema 只写在 prompt 里；schema 失败不重试但照常计费；span 名 schema_retry 暗示有重试，实际没有
 
@@ -376,6 +378,7 @@
 - **用户影响**：个别面试活锁，直到连接被回收。
 - **修法**：unlock 失败时调用 release(err) 销毁连接；requeue 计数并设上限；或者改为事务级锁 + CAS。
 - **关联审计总表编号**：#9、#4
+- 【AG-29 翻面注记 2026-10-16·协调方翻面笔授权随令行使·读码裁量=覆盖·注记前移：requeue 上限半=AG-04 刀C 已闭（interview-jobs.ts :15 MAX_INTERVIEW_JOB_ATTEMPTS=5+claim running 过期臂 attempts<max 谓词 :163+queued 臂退避时闸 :162、requeueInterviewJob :280 指数退避 2^attempts 秒封顶 300 :18、sweepStuckInterviewJobs :313-315 running/:321-324 queued attempts≥MAX 结构闸终态 failed）·锁回池半=DB-HOTSPOT 件② 事务级锁覆盖亲证（interview/interview-graph-lease.ts:25 pg_advisory_xact_lock 于 asPrincipal 单短事务 principal.ts:995-1005 BEGIN/COMMIT 内·锁随事务自动释放连接即归池·原「unlock 失败被 catch 吞掉带锁回池」路径结构性消除=已无 unlock 调用可败；全仓 session 级 pg_advisory_lock 仅剩 migrate.ts:394 迁移串行化+principal.ts:298 qbank provision 两处·均 AG-29 指涉面外）·AG-29 条目收口】
 
 ### AG-30【P3·编排运行时】checkpoint 永不清理：transcript reducer 是 concat，每轮整块写新的 blob 版本；终态面试的 checkpoint 只有隐私擦除才会删除
 
