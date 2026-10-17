@@ -113,6 +113,33 @@ async function main() {
   A('W5c run-performance-e2e.mjs 源级：40×1s 重试环在源（for 上限 40 字面+sleep(1000)+/readyz/worker 同现）且单发形词面零命中',
     retryLoopShape(runPerfE2e) && noSingleShotShape(runPerfE2e));
 
+  // ── #157 分域 ready 臂组（P1-P3·判别臂 P2 改前红=新端点改前 404） ────────────
+  // P1 缺省（未注入 privacyReady）→ 200 ready：fail-open 形制沿 ragReady（`?? true`）——
+  // privacy 域后台 sweep 系 best-effort 观测面非流量闸，缺省不拉闸。
+  await startMetrics();
+  const p1 = await getReadyz('/readyz/privacy');
+  A('P1 /readyz/privacy 缺省（未注入 privacyReady）→ 200 ready（fail-open 形制沿 ragReady·域观测面非流量闸）',
+    p1.status === 200 && p1.body.trim() === 'ready');
+  await stopMetrics();
+
+  // P2 分域解耦直证：同注入 privacyReady()=false + workerReady()=true——privacy 503
+  // degraded 而 worker 200 ready（privacy 红不拖 worker 绿）；改前无该端点=404=判别臂改前红。
+  await startMetrics({ privacyReady: () => false, workerReady: () => true });
+  const p2privacy = await getReadyz('/readyz/privacy');
+  const p2worker = await getReadyz('/readyz/worker');
+  A('P2 分域解耦直证：privacyReady()=false → /readyz/privacy 503 degraded 且 workerReady()=true → /readyz/worker 200 ready（privacy 红不拖 worker 绿·改前端点不存在=判别红）',
+    p2privacy.status === 503 && p2privacy.body.trim() === 'degraded' && p2worker.status === 200 && p2worker.body.trim() === 'ready');
+  await stopMetrics();
+
+  // P3 源级防回焊臂：main.ts workerReady 组合零两 privacy loop ready 耦合词面（AND 链
+  // 摘除不回焊）+ privacyReady 组合在源（两 loop 域内收口）。
+  const mainSrc = readFileSync(new URL('../src/main.ts', import.meta.url), 'utf8');
+  const workerReadySpan = mainSrc.slice(mainSrc.indexOf('workerReady: () =>'), mainSrc.indexOf('privacyReady:'));
+  const privacyReadySpan = mainSrc.slice(mainSrc.indexOf('privacyReady:'));
+  A('P3 源级防回焊：main.ts workerReady 组合零 privacy loop ready 耦合词面（AND 链摘除）+privacyReady 组合在源（两 loop 域内收口）',
+    workerReadySpan.length > 0 && !workerReadySpan.includes('privacyErasureLoop') && !workerReadySpan.includes('vectorPlaneErasureLoop')
+    && privacyReadySpan.includes('privacyErasureLoop?.ready()') && privacyReadySpan.includes('vectorPlaneErasureLoop?.ready()'));
+
   console.log(fail === 0
     ? `\n✓ obs-ready worker prove: ${pass} assertions 全绿 · est live=0 · releaseEvidence=false`
     : `\n✗ obs-ready worker prove: ${fail}/${pass} 失败`);
