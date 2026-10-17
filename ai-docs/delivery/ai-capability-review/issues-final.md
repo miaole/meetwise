@@ -549,6 +549,8 @@
 | #2 | 用户暂停超过约 30 分钟，预留被对账回收，面试变成 abandoned | LG-07、PF-F-06 | 2 | 成立（触发属推断）：commerce.ts:26 DEFAULT_LEASE_SECONDS=1800；interview-consumer.ts:221-238 只在 job 运行期间续租；commerce-reconcile.ts:25-70 | 建议总表从 P3 升到 P2（PF-F-06 原定 P1 偏高） |
 | #8 | 自适应图的 ai_graph_run 永远写不到终态 | LG-09、LR-F10（部分） | 2 | 成立：interview-graph-lease.ts:81-86 release 无条件写 waiting_user | 维持 |
 | #7 | checkpoint 写不受图版本 fence 保护 | LG-11、LR-F4 | 2 | 成立：fence 只在投影侧，saver 写只靠 advisory lock | 维持 |
+
+- 【#7 翻面注记 2026-10-16·协调方批表翻面笔随令行使（沿 :563 审计状态注记插行先例形）：GRAPH-FENCE checkpoint 写世代围栏刀 graph-fence nail 落主线·码面锚=checkpoint-fence.ts FenceCheckpointSaver 写前三谓词拦截（lease_owner/version/lease_expires_at·失守抛 graph_fence_lost 既有 transient 白名单）+interview-consumer.ts life.cp 组装位 :480 接线（任务书旧锚 :458 系 pre-reserve-renew 树值·行号漂移要录·现树亲证）+graph-fence-write.proof.ts 38 臂隔离库真迁移链·残余窗随注记带=写缝 check-then-act 毫秒级 TOCTOU 残缝（assert 查询→内层 saver INSERT·Ban 面内不可再收窄·每 takeover 至多在飞 ~5 superstep 拍·如实披露不声称闭合）+mock-interview.ts :28 同形红面异域（mock 图域非生产图）登记不触·#7 行翻面收口】
 | #256 | 没有“提前结束并出报告” | PF-F-07 | 1 | 成立 | 维持 |
 | #50、#204 | 报告只喂分数数组；成长链生产无人调用，报告更新后下游不联动 | PF-F-09、LG-06（下游联动部分） | 2 | 成立：interview-service.ts:301 只传分数 | 维持 |
 | #271、#197、#258 | B 端岗位面试扣候选人额度；JD 与能力要求不进 planner | PF-F-11 | 1 | 成立：interview-consumer.ts:355 只取 allocations[0].leafTrackId | 维持 |
@@ -556,6 +558,8 @@
 | #77、#79、#38 | 难度自适应信号粗：题库只有 3/4 两档，检索只拼“难度N”、只服务 fundamental | PF-F-04、AI-05、AC-F10（query 部分） | 3 | 成立（效果弱属推断）：adaptive-interview-service.ts:118-121 | 维持；CRAG 阈值未校准另立 AG-13 |
 | #48、#49 | 输入缓存零收益、cached_tokens 不计量、价格本没有缓存价 | AC-F1、AC-F2、agent-capability 缓存段 | 2 | 部分成立：本次用 Qwen2.5 tokenizer 实测 8 个 system 前缀为 172–670 token，全部低于百炼 1024 门槛（百炼官方文档已核实：显式/隐式缓存最少 1024 token，隐式命中按 20% 计价）；但默认端点是 DeepSeek，其官方文档写的是按“缓存前缀单元”整体匹配并会自动检测公共前缀落盘，没有写 1024 门槛，也没有写 64 token 粒度，所以“DeepSeek 下零收益”无法判定 | 维持 P3；先接 cached_tokens / prompt_cache_hit_tokens 观测再下结论 |
 | #9 | session 级 advisory lock 与 PgBouncer 事务池冲突 | LR-F11（部分） | 1 | 成立（仓库里没有 pgbouncer 配置，属推断） | 维持 |
+
+- 【#9 翻面注记 2026-10-16·协调方批表翻面笔随令行使：DB-HOTSPOT 数据库热点/锁族刀 db-hotspot nail 落主线·件② graph lease session 锁收窄事务级=interview-graph-lease.ts:25 pg_advisory_xact_lock（与旧 session 锁同键·asPrincipal 单短事务内·锁随事务自动释放连接即归池·「unlock 失败被吞带锁回池」路径结构性消除=PgBouncer 事务池冲突面就此消·全仓 session 级 pg_advisory_lock 仅剩 migrate.ts 迁移串行化+qbank provision 两处均本行指涉面外）·#9 行翻面收口】
 | #213 | 诊断全有或全无：一条改写不接地就整份作废 | AC-F17（诊断部分） | 1 | 成立：interview-service.ts:240-255 | 维持 |
 | #72 | ASR/TTS 不经过 invoke，没有额度预留和成本记账 | AC-F22（语音子项） | 1 | 成立 | 维持 |
 | #210 | 押题分数是伪分（40+20n） | AC-F22（子项） | 1 | 成立 | 维持 |
