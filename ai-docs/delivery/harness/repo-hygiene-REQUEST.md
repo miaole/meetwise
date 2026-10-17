@@ -23,7 +23,7 @@
 | `apps/web/tsconfig.tsbuildinfo` | `5bf041bc`（单行 ~250KB JSON） | **untrack 件②**·`tsc --noEmit` 增量索引副产——`apps/web/tsconfig.json`（`d34eab1e`）`:7` `"incremental": true` 为全仓唯一 incremental 开关（`grep -rn incremental apps/*/tsconfig.json packages/*/tsconfig.json` 亲证仅此一处）→副产仅此一件·自 `9c92826e` 被跟踪 |
 | `.gitignore` | `b84e2b41`（32 行） | **修法件②落点**·现有条目（node_modules/dist/.next/.turbo/coverage/.env 族/.tmp/docker/data/.smoke/.playwright-mcp/.agents/__pycache__ 等）**零 `test-results` 零 `tsbuildinfo` 词面**（亲读+grep 双证） |
 | `Dockerfile` | `34f84823`（39 行） | **裁量件③=零字节目标**·`:16` `RUN pnpm install --frozen-lockfile --prod=false`（deps 阶段）·`:28-30` `COPY --from=deps` node_modules/apps/packages·`:31` `COPY . .`（整仓 COPY 面）·`:38-39` CMD `node --import @swc-node/register/esm-register src/main.ts`（**运行时消费 @swc-node/register 正身**） |
-| `apps/web/Dockerfile` | `d04dfcb5`（39 行） | 旁证分判：`:12` 同 `--prod=false` 但系 **build 阶段**消费（`next build` 需 devDeps）·run 层只带 standalone 产物=devDeps 不进运行层——与 root 镜像运行时消费形**不同质**（§1.2-3） |
+| `apps/web/Dockerfile` | `d04dfcb5`（39 行） | 旁证分判：`:14`（rev 勘正 `:12`→`:14`·§9-rev.5）同 `--prod=false` 但系 **build 阶段**消费（`next build` 需 devDeps）·run 层只带 standalone 产物=devDeps 不进运行层——与 root 镜像运行时消费形**不同质**（§1.2-3） |
 | `docker/compose.prod.yml` | `73462150`（385 行） | 运行时消费链旁证：`:229` migrate+cost-configure（`tsx`/`@swc-node/register`）·`:238`/`:273` api/worker CMD 同形 `node --import @swc-node/register/esm-register` |
 | `apps/api/package.json` | `266e64b8`（119 行） | **devDependencies 块**：`@swc-node/register ^1.11.1`+`@swc/core ^1.15.43`+`typescript catalog:`——dependencies 块零此三件（亲读） |
 | `apps/worker/package.json` | `f6b6df38`（182 行） | 同上：devDeps 含 `@swc-node/register`+`@swc/core`+`tsx`+`typescript`·dependencies 零（亲读）·`tsx` 仅测试脚本消费非 CMD 面 |
@@ -50,14 +50,14 @@
 
 ### 1.1 untrack 面（派单 a 项·亲证在卷）
 
-两件构建/测试副产自 initial commit 起被 git 跟踪、`.gitignore` 零对应条目（§0.1/§0.2-1）。伤害三面：①**恒脏噪音**——typecheck/e2e 每跑必翻动 tracked 树（§0.2-3 活证）·真 diff 被淹没·i6 门 `:197` 被迫设「tsbuildinfo 不计」容忍臂=协议形补丁；②**刀尾回滚税**——每涉 e2e/typecheck 的刀卷尾须手工 `git checkout` 回滚两件（stale-build-guard `:350` 先例形）·漏做即污染下刀 diff 面；③**镜像/上下文夹带**——root Dockerfile `:31` `COPY . .` 将两件运行时零消费件带进构建上下文与镜像层。
+两件构建/测试副产自 initial commit 起被 git 跟踪、`.gitignore` 零对应条目（§0.1/§0.2-1）。伤害三面：①**恒脏噪音**——typecheck/e2e 每跑必翻动 tracked 树（§0.2-3 活证）·真 diff 被淹没·i6 门 `:197` 被迫设「tsbuildinfo 不计」容忍臂=协议形补丁；②**刀尾回滚税**——每涉 e2e/typecheck 的刀卷尾须手工 `git checkout` 回滚两件（stale-build-guard `:350` 先例形）·漏做即污染下刀 diff 面；③**镜像/上下文夹带**（**R3 措辞限定（§9-rev.3）·本面消亡仅 CI 面成立**）——root Dockerfile `:31` `COPY . .` 将两件运行时零消费件带进构建上下文与镜像层；本刀落位后 CI 全新 checkout 上下文自然少两件（checkout 不再落两件），**本地 docker build 面 `COPY . .` 仍夹带在盘两件**（untrack/ignore 不减在盘文件·docker 构建上下文不读 `.gitignore`·`.dockerignore` 未补=§1.3-6 否决维持）——本地镜像面归后继供应链刀整仓 COPY 瘦身收口。
 
 ### 1.2 Dockerfile `--prod=false` 面（派单 b 项·完备性亲证=不完备）
 
 1. **运行时消费链亲证**：root 镜像 CMD（Dockerfile `:38-39`）与 compose.prod.yml 三处命令（`:229`/`:238`/`:273`）均以 `node --import @swc-node/register/esm-register` 直跑 TS 源码——`@swc-node/register` 为**运行时硬依赖**。
 2. **依赖归类亲证**：`@swc-node/register`+`@swc/core`+`typescript` 三件在 apps/api 与 apps/worker 均列 **devDependencies**（两 package.json devDeps 块+lockfile importers 双证）。
 3. **判定**：`:16` 改 `--prod` 将摘除三件→运行时 `--import` 模块解析失败=**容器拒启**。**prod 运行时依赖完备性=不完备（亲证）**→按派单「若不完备则登记不改」→**Dockerfile 零字节·裁量=维持 `--prod=false`**。解法前提（依赖归位 dependencies / 构建期预编译 TS 消 register）=镜像架构裁量·归后继供应链刀（§1.3-1/2）。
-4. **web 镜像分判（防误伤）**：apps/web/Dockerfile `:12` 同款 `--prod=false` 系 build 阶段 `next build` 消费·run 层 standalone 已隔离 devDeps——无完备性问题·亦无本刀面（§1.3-7）。
+4. **web 镜像分判（防误伤）**：apps/web/Dockerfile `:14`（rev 勘正 `:12`→`:14`·§9-rev.5）同款 `--prod=false` 系 build 阶段 `next build` 消费·run 层 standalone 已隔离 devDeps——无完备性问题·亦无本刀面（§1.3-7）。
 
 ### 1.3 #249/#143 注记面（派单 c 项·不改码·登记即义务）
 
@@ -70,7 +70,7 @@
 
 ## §1-修法（两件落码+一件裁量+本卷 docs·零迁移·零码面）
 
-- **件① untrack 两件（索引摘除·工作树保留）**：`git rm --cached apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo`——`--cached` 语义=仅摘索引：本席树与一切既有 clone 工作树文件零翻动·全新 checkout 不再落两件·git 停止跟踪后续变化。
+- **件① untrack 两件（索引摘除·工作树保留=仅及执行该命令之树）**：`git rm --cached apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo`——`--cached` 语义=仅摘索引·**工作树保留效力仅及执行该命令之树（本席树零翻动成立）**；他既有 clone 并线本 commit 时按其两文件状态分判——**件净**（对 HEAD 干净）→随 merge 物理删除（输出 `delete mode`·两件可再生簿记删除无害·件② ignore 后 checkout 不再落回）；**件脏**（本地产物被本地 run 翻动）→**merge 中止一次**（`local changes would be overwritten`）·须末次 `git checkout -- apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo` 后重并（在飞知会=§8 在飞知会条目）——全新 checkout 不再落两件·git 停止跟踪后续变化（**rev 修正**：原「本席树与一切既有 clone 工作树文件零翻动」句经席2 沙盒实证推翻·如实改口径·操作形零变·定谳=§9-rev.1）。
 - **件② `.gitignore` 补全（恰 2 条目）**：文件尾追加注记块+`test-results/`（目录级·覆盖 apps/web 现位与任何未来同名列）+`*.tsbuildinfo`（通配·覆盖增量索引副产族）——两件自此进 ignore 语义·`git status` 恒脏噪音源除名。
 - **件③ Dockerfile 裁量=零字节**：§1.2 完备性亲证=不完备→派单「登记不改」条款行使·`:16` `--prod=false` 维持·残面（devDeps 进镜像+整仓 COPY 瘦身）整体归后继供应链/镜像刀（登记面=§1.2-3/§1.3-6）。
 - **件④ 本卷 REQUEST**（docs 面·恰 1 新增 .md）。
@@ -84,7 +84,7 @@
 4. **否决「`apps/web/tsconfig.json` 改 `incremental:false` 消源」**：为灭一产物改编译行为=倒挂（增量缓存收益丧失·8 包 typecheck 门时长上升）·产物问题以 ignore 解·tsconfig 零字节。
 5. **否决「`ai-docs/delivery/receipts/**/*.log` 等审计链一并 untrack」**：收据 logs 系交付收据受管件（docs:check 计数面·审计链本体）非构建副产——误伤=审计链断裂·Ban。
 6. **否决「`.dockerignore` 顺带补 `test-results/`/`*.tsbuildinfo` 两行」**：镜像运行时零消费（§1.2）·CI 全新 checkout 后上下文本就无两件——保持 diff 恰 4 tracked 最小面·整仓 COPY 瘦身整体归后继供应链刀（#101 残面登记不洗）。
-7. **否决「web Dockerfile `:12` `--prod=false` 同步裁」**：web 系 build 阶段消费（§1.2-4 分判）·无不完备问题·零本刀面。
+7. **否决「web Dockerfile `:14`（rev 勘正 `:12`→`:14`·§9-rev.5）`--prod=false` 同步裁」**：web 系 build 阶段消费（§1.2-4 分判）·无不完备问题·零本刀面。
 8. **否决「untrack 扩面其他 generated 类 tracked 件（如 `apps/web/next-env.d.ts`）」**：`next-env.d.ts` 系 Next 框架约定 tracked 件（`git ls-files` 亲证在跟踪）·派单面零点名——扩面=越面发明·本刀只收派单点名两件。
 
 ## §2 验收断言候选（EXEC 门矩阵·pre-exec 双审核对单基面·全过为绿）
@@ -95,7 +95,7 @@
 4. **untrack 机制核**：改后 `git ls-files | grep -E "test-results|tsbuildinfo"` **零命中**；`git check-ignore -v` 对两路径**双命中**件②新条目；两文件**在盘**（`ls` 亲证=`--cached` 语义兑现）。
 5. **typecheck 门**：`TURBO_DAEMON=false pnpm turbo typecheck --force` EXIT=0（8/8·0 cached 口径·基线亲跑绿在卷）。
 6. **lint 门**：root `pnpm lint` **5235 恰等** EXIT=0（基线亲跑绿·零新增 warning 为预期·漂移即停如实登记·**Ban 借机修 lint**）。
-7. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 **2213**·本卷**净 0**=新 .md +1 与 `.last-run.json` 摘除受管集 −1 相抵——`.json` 系受管扩展+`apps/` 系 MANAGED_ROOT·`*.tsbuildinfo` 非文本扩展本就不在受管集·起草席落卷亲跑复测 **2213 ≤ cap 2216 余 3** 与基线同值·>2216 红即停上报·cap sanction 权归协调方）。
+7. **docs:check 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（基线 **2213**·本卷**净 0**=新 .md +1 与 `.last-run.json` 摘除受管集 −1 相抵——`.json` 系受管扩展+`apps/` 系 MANAGED_ROOT·`*.tsbuildinfo` 非文本扩展本就不在受管集·起草席落卷亲跑复测 **2213 ≤ cap 2216 余 3** 与基线同值·>2216 红即停上报·cap sanction 权归协调方**；**rev 届 tip 重钉（P2-3·§9-rev.5）**：cap 已上游 sanction 步进 2216→2224→**2232**（届 tip policy blob `05f48933:110` `const MAX_FILES = 2_232;` 亲读·本树 policy `4509bf68:106` 尚 2_216 值旧）——EXEC 判据改读「届实跑≤届 cap **2232**」·原「>2216」读数作废·届时 sanction 再步进如实承认·超红停上报权归协调方）。
 8. **markers 门**：改动集（本卷 .md+`.gitignore`+两删除路径在盘文件）五类标记词+行首冲突标记**零命中**（起草席落卷亲跑直证·词表沿 `i6-239-gates.proof.mjs` 运行时组装口径·不入卷防自指）。
 9. **diff 面（改动面窄断言）**：EXEC diff（对立项基线）=恰 **4 tracked 路径**——本卷 REQUEST（A）+`.gitignore`（M）+两产物（D·`--cached` 删除）；Dockerfile/apps/web/Dockerfile/package.json×2/pnpm-lock.yaml/apps/web/tsconfig.json/i6 脚本/.dockerignore/compose 族**零字节入 diff**（`git diff --name-only` 词面机检·typecheck 副产 tsbuildinfo 自件②后不入 status=回滚税消亡的机制兑现）。
 10. **零迁移门**：改动集零 SQL 零新表（§0.3 预期零实证）。
@@ -139,6 +139,45 @@
 - **③Dockerfile 裁量行使追认（件③）**：登记不改=派单「若不完备则登记不改」条款行使（§1.2 亲证完备性=不完备）——推荐=追认零字节；后继供应链刀接手形（依赖归位 or 预编译）裁决归协调方。
 - **④#249/#143 注记登记归宿**：本卷 §1.3 注记面（零码）vs 协调方另立 issues-master 行同步——推荐=本卷注记面+协调方择机入册（本卷不代行立行权）。
 - **⑤行关闭效力**：EXEC 命中门矩阵全绿+post 双审 BOTH PASS→批5 盘点 #101 部分 **untrack 半面**（两产物跟踪+.gitignore 缺口）的关闭/翻面登记权归协调方 nail（**镜像 devDeps+整仓 COPY 残面不随翻**·归后继供应链刀·本刀不宣称关闭）。
+
+**在飞知会条目（rev 增补·R2/P2-4·知会即生效非裁决项·详 §9-rev.2）**：各在飞席/协调方 nail 波将本 commit 并线进己树时，若 merge 中止报 `local changes would be overwritten`（涉及 `apps/web/test-results/.last-run.json`/`apps/web/tsconfig.tsbuildinfo` 两产物）——系件① untrack 对**脏副本**的预期拦截·**非事故**：`git checkout -- apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo` 丢弃本地脏副本（可再生簿记·零价值零抢救面）后重并即过·件② ignore 生效后**此后永免**。**nail 注记（P2-4）**：协调方 nail 波遇本支并线中止同款 discard 处置·脏副本一概可弃（rev 席 /tmp clone 双形复演亲证：件净→`delete mode` 物理删除·件脏→中止一次·discard 后重并成功）。
+
+## §9-rev rev 修订注记（pre-exec 双审席1 PASS+席2 FAIL R1 P1 契约文本失实→rev 回路 · rev 席落卷 2026-10-17 · **append 注记形+六处在位修正（§1-件①/§1.1-③/§0.1/§1.2-4/§1.3-7/§2-7·各带 rev 标）** · 本节为 EXEC 期对前文对应句的权威修正与增补 · 契约文本改动系 §8-③「改则回炉重审」条款行使=rev 落卷后整卷重送双审）
+
+> **席2 FAIL 定谳（rev 席逐位亲证成立+/tmp clone 双形复演）**：R1（P1）——§1-修法件①原句「`--cached` 语义=仅摘索引：**本席树与一切既有 clone 工作树文件零翻动**·全新 checkout 不再落两件」被席2 沙盒实证推翻，rev 席 /tmp 本地 clone 对届 tip `7d71a64f` 并线本 commit（`c3b9c2d2`）复演同判：**件净**（两文件对 HEAD 干净）→merge EXIT=0 输出 `delete mode 100644` 两行·两文件自工作树**物理删除**（可再生簿记·删除无害）；**件脏**（本地翻动 `.last-run.json`）→merge 中止（`error: Your local changes to the following files would be overwritten by merge…Aborting`）·`git checkout -- <两件>` 后重并成功。**落码操作本身无恙**（`git rm --cached` 形正确·索引摘除语义达成·§2-4 断言零变）——**纯契约文本失实**：原句把「执行该命令之树」的工作树保留效力误扩为「一切既有 clone」。席1 同轮 PASS 附 P2 三件（行锚/cap/nail 注记）随本 rev 并流落卷。修订清单六条（R1/R2 P1+R3/R4 P2+席1 P2×3）落点如次。
+
+### §9-rev.1 修订①（R1·P1）——§1-修法件①契约文本改如实口径（在位修正·回炉重审形）
+
+- §1-修法件①「工作树保留」效力限定**仅及执行该命令之树**（本席树零翻动成立）；他 clone 并线效力按其两文件状态分判：件净→随 merge 物理删除（`delete mode`·可再生无害）；件脏→merge 中止一次（`local changes would be overwritten`）须末次 checkout（知会条目=§8 在飞知会条目）——在位修正全文见 §1-修法件①（rev 标）·原「本席树与一切既有 clone 工作树文件零翻动」句**作废**。
+- **修法操作形零变更**：`git rm --cached <两路径>` 逐字不变·§2-4/§2-9 断言零变；§1.3-3「Ban 物理删除」语义不变（其否决语境=本席树主动 `git rm`；他 clone 并线的 `delete mode` 系索引语义自然结果·非否决项行使）。
+- **回炉形**：本条触 §1-修法定稿契约文本=§8-③「改则回炉重审」条款行使——rev 落卷即整卷重送 pre-exec 双审·此前两席审态不作 EXEC 依据。
+
+### §9-rev.2 修订②（R2·P1 随附）——§8 增补在飞知会条目（merge 中止 discard 处置·此后永免）
+
+§8 裁决项⑤后增补「**在飞知会条目**」（知会即生效·非裁决项）：各在飞席/协调方 nail 波并线本 commit 遇 merge 中止报两产物 `local changes would be overwritten` → `git checkout -- apps/web/test-results/.last-run.json apps/web/tsconfig.tsbuildinfo` 即过·件② ignore 生效后此后永免——条目全文见 §8（rev 增补段）；R2 落点择 §8（派单「§8 或 §2」裁量·知会面贴 STOP 节最贴执行者）。
+
+### §9-rev.3 修订③（R3·P2）——「CI 全新 checkout 不再落两件」与 §1.1-③ 措辞 CI 面限定（本地 docker build 仍夹带）
+
+- §1.1-③「镜像/上下文夹带」在位补限定：本刀落位后该伤害面消亡**仅 CI 面成立**（CI 全新 checkout 不再落两件）；**本地 docker build `COPY . .` 仍夹带在盘两件**（untrack/ignore 不减在盘文件·docker 构建上下文不读 `.gitignore`·`.dockerignore` 未补=§1.3-6 否决维持）——本地镜像面归后继供应链刀整仓 COPY 瘦身收口（§1.3-6/§4-④ 不变）。
+- 起草 commit（`c3b9c2d2`）message「CI 全新 checkout 不再落两件」同口径限定：该句**仅 CI 面成立**·已 commit message 不可改（SHA 已入双审引用链）·以本节为权威限定；本 rev commit message 措辞照限定口径书写。
+- §1-修法效果账③「CI 全新 checkout 上下文自然少两件零消费件」本就系 CI 面措辞·零改。
+
+### §9-rev.4 修订④（R4·P2）——`.gitignore:28` 孤儿注释登记（登记不触）
+
+`.gitignore:28`「# ECS 预览运行时状态(含真实云端点/实例标识),不进开源仓库;模板见 .example」系孤儿注释——rev 席全文件 38 行亲读：该注记前后无邻接条目、全文件无 ECS/.example 对应条目（`:34-38` 系本刀件② 注记块+两新条目·非其对应物）。**本刀登记不触**（件②「恰 2 条目」纪律·孤儿注释清理归协调方/后继卫生刀裁量·非本刀面·不入 diff）。
+
+### §9-rev.5 修订⑤（席1 P2-1/P2-3/P2-4）——行锚勘正+cap 届 tip 重钉+nail 注记
+
+- **P2-1 行锚 `:12`→`:14`（三处在位修正）**：§0.1 apps/web/Dockerfile 行+§1.2-4+§1.3-7——blob `d04dfcb5` 对基线 `2c257eb0` 与届 tip `7d71a64f` **恒等亲证**=纯行锚勘误非漂移：`:14` `RUN pnpm install --frozen-lockfile --prod=false`（`:15` `COPY . .`·rev 席两树逐行亲读）——起草席 `:12` 系行数误记。
+- **P2-3 cap 届 tip 重钉**：cap 已上游 sanction 步进 2216→2224→**2232**（届 tip policy blob **`05f48933:110`** `const MAX_FILES = 2_232;` 亲读·sanction 注记「2224 帽算术漏计 progress-write +1·AG-15（+5）落地 2225>2224 必红·本刀补 +8」（2026-10-17）在卷；本树 policy `4509bf68:106` 尚 2_216 值旧）——席1 钉值（现 tip 树 2224·先并再重钉 2232）如实承登且 **2232 半已由届 tip sanction 落地亲证**；rev 席实测三值：本树 **2213**·届 tip `7d71a64f` 树 **2220**·并线树（`7d71a64f`×`c3b9c2d2` 真合并·/tmp clone 亲跑）**2220**——三值 ≤2232（余 12）亦 ≤2224（余 4）·全绿。§2-7 判据在位改读「届实跑≤届 cap 2232」·EXEC 立项仍照届时 tip 全量重 pin（sanction 再步进如实承认·超红停上报·权归协调方）。
+- **P2-4 nail 注记**：§8 在飞知会条目内补 nail 面 discard 句——协调方 nail 波遇并线中止同款 `git checkout -- <两件>` 处置·脏副本可弃（可再生·§0.2-3 恒脏机制同一根源）——全文见 §8（rev 增补段）。
+
+### §9-rev.6 门矩阵 rev 后口径（rev 席亲跑）+STOP 状态
+
+- **markers**：rev 改动集（本卷 .md+`.gitignore`+两删除路径在盘文件·沿 §2-8 口径）五类标记词+行首冲突标记直扫 **0 命中**（词族沿 `scripts/i6-239-gates.proof.mjs` `:154` 区运行时组装·词面不誊卷防自指）。
+- **docs:check**：EXIT=0 **2213 ≤ 2232**（本 rev append 零新增文件→计数与起草落卷同值亲证·cap 2232=届 tip sanction 值·§9-rev.5）。
+- **diff 面**：rev commit=恰 1 tracked（本卷 .md）·零码面零他 tracked；EXEC 判据（§2-9 恰 4 tracked 对立项基线 `2c257eb0`）不变。
+- **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（标题行/Status 行/§8/卷尾注零字洗）——rev 落卷后待**席1+席2 复审修订块**（§9-rev.1-6 落点确认或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev 后重审·alone≠dual·Ban self-approve）·Dual PASS ≠ EXEC（PASS 只过审·开工须协调方明示授权）·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面·est live=0·actualSpendCny=null）。
 
 ---
 
