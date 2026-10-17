@@ -50,9 +50,13 @@ export class PrivacyService {
   // 简历与已围栏面试不再进导出（数据可携不含已删数据）;consent_record 照旧——同意史是审计面。
   export(principal: string) {
     return this.db.asPrincipal(principal, async (c) => {
+      // 读分层:导出系无界扫描面——本事务内恰一次 interview_privacy_fenced_targets() 聚合取
+      // 围栏集(同事务单点钉,非独立 autocommit 拼接),两业务查询以反连接消费,不再逐行上锁
+      // 求值;admission 面仍走原 locking 谓词(interview_privacy_active 权威体零触)。
+      const fenced = (await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()')).rows.map((r: Record<string, unknown>) => String(r.thread_id));
       const resumes = (await c.query("SELECT id, status FROM resume WHERE status NOT IN ('erasure_fenced','erased')")).rows;
-      const interviews = (await c.query('SELECT id, status FROM interview WHERE interview_privacy_active(interview.id)')).rows;
-      const assessments = (await c.query('SELECT interview_id, overall FROM assessment_report WHERE interview_privacy_active(assessment_report.interview_id)')).rows;
+      const interviews = (await c.query('SELECT id, status FROM interview WHERE id != ALL($1::text[])', [fenced])).rows;
+      const assessments = (await c.query('SELECT interview_id, overall FROM assessment_report WHERE interview_id != ALL($1::text[])', [fenced])).rows;
       const consents = (await c.query('SELECT purpose, policy_version, granted_at FROM consent_record')).rows;
       return { exportedAt: new Date().toISOString(), resumes, interviews, assessments, consents };
     });

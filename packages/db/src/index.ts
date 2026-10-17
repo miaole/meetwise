@@ -223,7 +223,7 @@ export { recordServedQbankQuestionRefs, listServedQbankQuestionRefs } from './qb
 export { validateQuestionArtifacts } from './qbank/qbank-ingest.ts';
 
 // 外部 AI 调用费用账本：预留/派发/结算/未知结果冻结均由数据库状态机承重。
-export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, settleAiTextCost, releaseAiCost, markAiCostUnknown, markAiCostsUnknownForModelReconcile, markAiTextCostRejected } from './model-op/ai-cost-governance.ts';
+export { reserveAiCost, reserveAiTextCost, markAiCostDispatched, settleAiCost, settleAiTextCost, releaseAiCost, markAiCostUnknown, markAiCostsUnknownForModelReconcile, markAiTextCostRejected, __resetAiCostExhaustedCacheForTest } from './model-op/ai-cost-governance.ts';
 export type { AiCostDecision, AiCostReservationInput, AiTextCostReservationInput, AiCostReservationDecision } from './model-op/ai-cost-governance.ts';
 
 // 模型调用持久 claim：短事务声明意图，网络 I/O 一律在事务外；unknown 禁止自动重发。

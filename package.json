@@ -168,6 +168,8 @@
     "report-retry:http:prove:raw": "pnpm -C apps/api prove:report-retry-http",
     "uc002:lease:prove": "node scripts/run-e2e-isolated.mjs uc002:lease:prove:raw",
     "uc002:lease:prove:raw": "pnpm -C packages/db prove:uc002-lease",
+    "interview-privacy-read-tier:prove": "node scripts/run-e2e-isolated.mjs interview-privacy-read-tier:prove:raw",
+    "interview-privacy-read-tier:prove:raw": "pnpm -C packages/db prove:interview-privacy-read-tier",
     "uc002:http:prove": "node scripts/run-e2e-isolated.mjs uc002:http:prove:raw",
     "uc002:http:prove:raw": "pnpm -C apps/api prove:uc002-http",
     "uc002:adv:prove": "node scripts/run-e2e-isolated.mjs uc002:adv:prove:raw",

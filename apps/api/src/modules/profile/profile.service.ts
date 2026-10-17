@@ -50,7 +50,11 @@ export class ProfileService {
     const owner = requireOwnerUserId(principal, 'profile.overview');
     const ansFilter = buildRequiredOwnerFilter(owner, 'profile.overview.answered');
     return this.db.asPrincipal(owner, async (c: any) => {
-      const iv = await c.query('SELECT status, count(*)::int n FROM interview i WHERE interview_privacy_active(i.id) GROUP BY status');
+      // 读分层:总览聚合面——本事务内恰一次 interview_privacy_fenced_targets() 取围栏集(同
+      // 事务单点钉,非独立 autocommit 拼接),业务查询改反连接,不再逐行上锁求值;admission
+      // 面仍走原 locking 谓词(interview_privacy_active 权威体零触)。
+      const fenced = (await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()')).rows.map((r: Record<string, unknown>) => String(r.thread_id));
+      const iv = await c.query('SELECT status, count(*)::int n FROM interview i WHERE i.id != ALL($1::text[]) GROUP BY status', [fenced]);
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
       // 全 owner 作用域由 score_card_app_role RLS(FORCE) 兜底,无卡 → avg=null(fail-closed,无数值)。
       const sc = await c.query("SELECT avg(deterministic_total) avg FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
@@ -59,8 +63,8 @@ export class ProfileService {
       // 无卡时仍应反映已作答;issued/queued/cancelled 不计;隐私围栏场次与列表同一谓词排除。
       // 第二层 E2:owner 谓词必选显式绑定(原 GUC 直读改参数绑定,RLS 会话内同值)。
       const ans = await c.query(
-        "SELECT count(*)::int n FROM interview_question iq WHERE iq.status='answered' AND iq.owner_user_id=$1 AND interview_privacy_active(iq.interview_id)",
-        [ansFilter.value],
+        "SELECT count(*)::int n FROM interview_question iq WHERE iq.status='answered' AND iq.owner_user_id=$1 AND iq.interview_id != ALL($2::text[])",
+        [ansFilter.value, fenced],
       );
       return {
         interviewsByStatus: Object.fromEntries(iv.rows.map((r: any) => [r.status, r.n])),
@@ -81,9 +85,11 @@ export class ProfileService {
     const repFilter = buildRequiredOwnerFilter(owner, 'profile.growth.reports');
     return this.db.asPrincipal(owner, async (c: any) => {
       // RLS(FORCE)已限己;再显式带 owner_user_id 作纵深防御(双闸,修审计低危项)——现经 required predicate 绑定。
+      // 读分层:本事务内恰一次围栏集聚合(同事务单点钉),反连接消费,不再逐行上锁求值。
+      const fenced = (await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()')).rows.map((r: Record<string, unknown>) => String(r.thread_id));
       const rep = await c.query(
-        "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=$1 AND status='ready' AND interview_privacy_active(assessment_report.interview_id) ORDER BY created_at ASC, interview_id ASC",
-        [repFilter.value]);
+        "SELECT interview_id, overall, dimensions, created_at FROM assessment_report WHERE owner_user_id=$1 AND status='ready' AND assessment_report.interview_id != ALL($2::text[]) ORDER BY created_at ASC, interview_id ASC",
+        [repFilter.value, fenced]);
       // answered = 可评分 ScoreCard 数(仅 practice_eligible/b_review_eligible),非 legacy answer_evaluated 事件计数;
       // 无卡 → 0(fail-closed)。成长档案训练量仍以 score_card 为权威;C 端总览已答题数改走题目账本(UC-overview-001)。
       const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
