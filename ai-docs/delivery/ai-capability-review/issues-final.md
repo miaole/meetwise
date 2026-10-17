@@ -88,6 +88,7 @@
 - **用户影响**：产品承诺的“失败自动重试、可手动重试”实际不生效：一次失败就意味着报告永远出不来。不过不会重复扣费。
 - **修法**：报告调用的 idempotencyKey 和 businessRevision 都带上 attempt，形如 `:report:a${n}`，并设上限（如 3 次）。“不重复扣费”在 interview 结算维度保证，不依赖模型调用键。unknown 状态先走 #10 的处置流程。
 - **关联审计总表编号**：#229、#20、#10
+- 【审计状态注记 2026-10-16·状态注记席·#229 维持注记（只记录·不关条不翻判词）：两源口径未统一亲证 @origin tip `67cdf153` 树——重排/隔离源 report-worker.ts:197-206（sweepReportsOnce 隔离→report_unavailable 终态事件）与得分权威源 main.ts:180-184（ScoreCard deterministic_total·legacy score 结构性不参与）并存，adaptive-lifecycle.ts:530-534（answer_evaluated .score 仅瞬时 hint·无合法 C 端分数消费者）+:588-604（eligible 严格证据 SQL 0-100 分）两侧口径未统一·#229 维持】
 
 ### AG-04【P1·编排运行时】图运行中的任何异常（DB 超时、checkpoint 写失败、瞬时网络错误）都会被当成终态：面试失败并退款。节点没有 retryPolicy，也不区分瞬时和确定性错误
 
@@ -165,6 +166,7 @@
 - **用户影响**：付了钱拿不到任何产出，而且“重试”按钮是无效承诺。
 - **修法**：eligible=0 时直接生成确定性的“证据不足”报告（不调模型），或者 C 端也退款；report_unavailable 要区分可重试和不可重试。
 - **关联审计总表编号**：#229、#20
+- 【审计状态注记 2026-10-16·状态注记席·AG-10 行号漂更正注记（只记录·不关条）：审计卷引行 adaptive-lifecycle.ts 571-592→**619-643**（`67cdf153` 树亲读：:619 `else if (unscored === 0)` 全跳过臂起·:633-643 AG-10 守卫在位=unbound 且 eligible=0 不再 enqueueReport→writeNoEvidenceReadyReport 确定性模板报告+report_ready 事件）·per_session 全额语义零变维持（:623-625 注释原样在树）·AG-10 维持】
 
 ### AG-11【P2·成本】成本预留按每个端点的静态 MAX_INPUT_TOKENS 预留，而不是用派发前估算；DB 触发器还强制“预留量 = 上限”，结构上改不了
 
@@ -485,6 +487,7 @@
 - **用户影响**：无法兑现「企业私有题库 / 私有优先」；多企业共用一份公共池，与产品分层决策不一致。
 - **修法**：表加 `owner_kind(platform/org)` 与 `org_id`；检索函数按场景在库内强制过滤并私有优先排序；企业私有题由审核通过的招聘方维护（关联 #110、#271），企业审核 + 平台内容安全兜底，同样版本化。见 README「设计决策：题库分层与私有优先」。
 - **关联审计总表编号**：#110、#271
+- 【审计状态注记 2026-10-16·状态注记席·#218/#271 维持部分修注记（#218/#271 明令勿关·只记录；附A 三条维持记录随审计卷登记·本笔不复述不裁）：已落半 `67cdf153` 树亲证——0156_enterprise_bucket_billing.sql+0157_billing_payer_route.sql（企业桶+扣费路由·interview.service.ts:246-262 reserveEntitlementForApplication·候选人桶零读写）+0160_b_qualitative_projection.sql（B 端定性投影·#218 面）——余面维持部分修】
 
 ### AG-40【P1·产品契合】C 端练习面试用不上题库：begin 只写 candidate_profile_route_snapshot，检索只读 interview_route_snapshot，降级 route_snapshot_missing
 
@@ -553,6 +556,8 @@
 | #213 | 诊断全有或全无：一条改写不接地就整份作废 | AC-F17（诊断部分） | 1 | 成立：interview-service.ts:240-255 | 维持 |
 | #72 | ASR/TTS 不经过 invoke，没有额度预留和成本记账 | AC-F22（语音子项） | 1 | 成立 | 维持 |
 | #210 | 押题分数是伪分（40+20n） | AC-F22（子项） | 1 | 成立 | 维持 |
+
+- 【审计状态注记 2026-10-16·状态注记席·#238 维持部分修注记（只记录·不关条）：已落半 `67cdf153` 树亲证——FENCE-REFLOW interview_privacy_fenced→410 GONE（interview.service.ts:71-72）+begin 目标岗位输入面 target-role header（interview.controller.ts:30）——多简历/多身份余面维持部分修】
 | #196、#44、#50 | 隐私最小化在“已同意用途”内也过度收紧（产品权衡） | PF-F-13 | 1 | 部分成立：持久化最小化本身正确，问题在于把运行时推理输入也一并去掉了；结论已并入 #196/#44/#50 | 不单列 |
 
 ## 审计 mw-core 一节产品条目关闭注记（2026-10-17·append-only）
