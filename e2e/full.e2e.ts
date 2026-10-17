@@ -516,6 +516,7 @@ async function main() {
       questionAcceptedLabel: (n) => `[路由R2] 降级叶第 ${n} 题 canonical /turn → 202`,
       clarificationAcceptedLabel: '[路由R2] 降级叶澄清 canonical /turn → 202',
     });
+    segEmit({ step: 'seg3_r2_loop_exit', terminal: r2Loop.terminal, questions: r2Loop.questions, batches: r2Loop.batchWallClock.length }); // G7W-DIAG-NEEDLES N1: R2 循环退出即帧(断言面前·deadline 到期形 terminal='' 亦可回读)
     if (r2Loop.terminal) reviews.recordTerminal(r2Loop.terminal);
     A(r2Loop.questions >= 1, `[路由R2] 降级兜底叶真出题 ≥1(实际 ${r2Loop.questions} 道;事件:${[...r2Loop.kinds].join(',')})`);
     A(r2Loop.terminal !== '' && (INTERVIEW_TERMINALS as readonly string[]).includes(r2Loop.terminal),
