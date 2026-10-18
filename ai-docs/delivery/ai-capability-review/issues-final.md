@@ -580,3 +580,5 @@
 - 【#64 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/auth-actions.ts:29-35 邮箱格式/密码长度前置校验+`AbortSignal.timeout(10_000)` fetch 超时+:38-40 AUTH_ERROR_COPY 错误码中文文案映射（429 分支在位）·审计 mw-core 一节 2026-10-17 复核确认关闭】
 - 【#125 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/report/[id]/page.tsx:18 `LEVEL_LABELS` 五档 contracts 单源（packages/contracts/src/index.ts:711 五档 labels+:717 单源导出）+:356 未知级别中文兜底「未知级别」·审计 mw-core 一节 2026-10-17 复核确认关闭】
 - 【#231 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/components/QuizPanel.tsx:83-87「备战提示」改述（注释自述 UI 派生准备建议·非模型生成真追问·文案同步）+dashboard/quiz 面「可能追问」零残留（grep EXIT=1 亲证）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+
+【#106 pnpm audit 补核 2026-10-17：critical=0·high 18 全有修复版本（direct 仅 @nestjs/platform-fastify ≥11.2.4）·S1 升级刀 post=25 条与复跑完全同值·点名包全部达标·CI 门 deps-audit.yml fail-closed --audit-level=critical 在仓·两面销案·残余=18 high 定向升级建议 8 包清单登记后继·sprintf-js 无修复版挂账观察】
