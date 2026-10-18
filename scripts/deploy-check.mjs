@@ -27,7 +27,10 @@ must(!/command:\s*\[[^\n]*pnpm/.test(compose), '生产 compose 运行命令不�
 must(/COPY --from=deps \/app\/node_modules \.\/node_modules/.test(dockerfile)
   && /COPY --from=deps \/app\/apps \.\/apps/.test(dockerfile)
   && /COPY --from=deps \/app\/packages \.\/packages/.test(dockerfile)
-  && /COPY \. \./.test(dockerfile), 'runtime 必须携带源码与 workspace 依赖链接');
+  && /COPY pnpm-workspace\.yaml package\.json \./.test(dockerfile)
+  && /COPY packages \.\/packages/.test(dockerfile)
+  && /COPY apps\/api \.\/apps\/api/.test(dockerfile)
+  && /COPY apps\/worker \.\/apps\/worker/.test(dockerfile), 'runtime 必须携带源码与 workspace 依赖链接');
 for (const entrypoint of ['apps/api/src/main.ts', 'apps/worker/src/main.ts', 'apps/worker/src/cost-configure.ts', 'packages/db/src/migrate-cli.ts']) {
   must(existsSync(entrypoint), `backend image source entrypoint 缺失:${entrypoint}`);
 }
