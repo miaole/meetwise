@@ -470,6 +470,7 @@ async function validate() {
   // generateLearningPlan 先 guardInterviewPrivacy(不存在→404),再查 assessment_report(0 行→409)。
   // 用 NOPE 会把「无评估」误测成「不存在→404」,盖不住 assessment_required 分支。
   r = await postJson('/interview/R1/learning-plan', { 'x-user-id': 'userA' }, {}); A('无评估先生成学习计划 → 409', r.status === 409);
+  r = await postJson('/interview/R1/learning-plan/complete', { 'x-user-id': 'userA' }, { topic: '任意串' }); A('无计划打卡 → 409 plan_required(#185·探针只读零副作用·不染后序 R1 臂)', r.status === 409 && r.body.error === 'plan_required');
   r = await postJson('/interview/ASMT/learning-plan', { 'x-user-id': 'userA' }, {}); A('据评估差距生成学习计划 → 200 + 含弱项学习项', r.status === 200 && r.body.items.length === 1 && r.body.items[0].priority === 'medium');
   r = await req('GET', '/interview/ASMT/learning-plan', { 'x-user-id': 'userA' }); A('取学习计划 → active', r.status === 200 && r.body.status === 'active');
   r = await req('GET', '/interview/ASMT/learning-plan', { 'x-user-id': 'userB' }); A('userB 越权取学习计划 → 404(RLS)', r.status === 404);
@@ -482,6 +483,7 @@ async function validate() {
   A('反映完成度(该项 done=true,progress.completed=1)', lp2.items.find((x: any) => x.topic === topic0).done === true && lp2.progress.completed === 1);
   r = await postJson('/interview/ASMT/learning-plan/complete', { 'x-user-id': 'userA' }, { topic: topic0 }); A('重复打卡幂等 → 仍 200', r.status === 200);
   r = await postJson('/interview/ASMT/learning-plan/complete', { 'x-user-id': 'userA' }, {}); A('缺 topic → 400', r.status === 400);
+  r = await postJson('/interview/ASMT/learning-plan/complete', { 'x-user-id': 'userA' }, { topic: '计划外维度名' }); A('计划存在而 topic∉维度 → 400 invalid_topic(#185·#121 探针原样)', r.status === 400 && r.body.error === 'invalid_topic');
   // 交易:下单 → 验签幂等入账 → 余额。承重:重复回调不双入。
   r = await req('GET', '/commerce/products', { 'x-user-id': 'userA' }); A('商品列表 → 2 个面试包', r.status === 200 && r.body.products.length === 2);
   const balB = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body.availableUnits;
