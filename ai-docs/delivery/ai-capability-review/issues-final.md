@@ -582,3 +582,5 @@
 - 【#231 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/components/QuizPanel.tsx:83-87「备战提示」改述（注释自述 UI 派生准备建议·非模型生成真追问·文案同步）+dashboard/quiz 面「可能追问」零残留（grep EXIT=1 亲证）·审计 mw-core 一节 2026-10-17 复核确认关闭】
 
 【#106 pnpm audit 补核 2026-10-17：critical=0·high 18 全有修复版本（direct 仅 @nestjs/platform-fastify ≥11.2.4）·S1 升级刀 post=25 条与复跑完全同值·点名包全部达标·CI 门 deps-audit.yml fail-closed --audit-level=critical 在仓·两面销案·残余=18 high 定向升级建议 8 包清单登记后继·sprintf-js 无修复版挂账观察】
+
+【批表三行翻面注记 2026-10-16·协调方批表翻面笔随令行使·支线 line/batch-flip-3rows 基线 2eaf387ed：#101 供应链（EXEC d584bcc50+nail 7f6f7b266+deploy:check 对齐 2eaf387ed 翻绿·本席届树亲跑双校验器 EXIT=0）+#185 打卡键（EXEC da3414b0d+复绿 bb1f7e61e+nail 966cef38a·409 plan_required/400 invalid_topic neg+validate 双面届树亲证）+#106 审计销案（ef5ea585a+3c4af399c 两面闭合·本席届树复跑 pnpm audit --prod --audit-level=critical EXIT=0 同值 25 条·销案注记见上段在卷）三行批表翻面收官（LEDGER :11/:59/:89 行内注记+:210/:213 行头+：216 合计笔同卷）·#101/#185 系 issues-master 271 面项非本卷在册条目·本笔如实注记不新开条目·权威合计 216→218（80.4%）·⛔push】
