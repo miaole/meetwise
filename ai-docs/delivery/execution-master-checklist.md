@@ -3745,3 +3745,12 @@ flowchart TD
 - **STILL OPEN**：**P2 四件随卷注记归后继（post 双审双 PASS 会签附·本 nail 不预支不落码）**=①牙变体洞②续行符边界③deps 三正则无锚[§1 残面披露 :27-:29 原形保持]④门6 计数勘误+deps 层行中裸字匹配残面归后继如需（§1 残面披露原形）+REQUEST Status 行（`executed:awaiting_post_prove_dual`）终翻面权归协调方+本刀验收=CI deploy:check 步转绿判定归本席工序6 承办（若仍红读日志上报）·批表零翻面（非 271 计件面·翻面权归协调方）.
 - 预算：est live=0（nail 面 merge+本地静态门零模型外呼零 DB 零容器）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2264** 现值 **2258** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line ag09-replay-first nail（2026-10-18 · 协调方内联 nail（lean mode·本波唯一主线推送席） · ⛔force push · ⛔pull --rebase · AG-09 回放优先重放刀：claim 函数 0209 同 0184 权威 19 参签名 CREATE OR REPLACE 零 DROP·succeeded∧replayable→cached 臂上提墙一前·敏感半原位保留·零 TS 产品码）
+
+- **授权链全链如实载**：AG 领包席选标起草 `365aadaa1` → pre-exec 双审第一轮**双 FAIL** 互盲收敛 P0（基体错位 0130 16 参→0184 19 参现行）→ rev1 `4d6601624`（P0 重钉+锚表 14 行+门矩阵 13 门）→ 双审第二轮**双 PASS** → EXEC `fed5ca603`（0209+proof 五臂+两负臂重钉+十三门全绿·§9-EXEC-6 裁量收口 base 树既有红 test-only 官方缝·post 四核追认）→ post 双审**双 PASS** 会签（席2 pg16 实弹红→绿+pg_proc 三阶段恰一）→ 协调方授权 nail（本段）.
+- **nail 工序（协调方内联）**：fetch 届 tip=`d5141dfc8` 恰等 → merge `d5141dfc8` --no-ff 零冲突（merge-tree 预演 EXIT=0 tree=`18cd3d407`·merge-base `2eaf387ed`·8 tracked 与上游 SSOT 区零交叠）→ SSOT 两处随本 nail commit → 终验 → push 直推非 force+支线 push.
+- **门矩阵（EXEC §9 十三门+post 双审承+nail 届树亲跑）**：ag09:prove 11 断言+ag12:prove pronargs=19 恰一哨兵+ag19:prove+uniqueness files=209 头 0209+migrate:prove applied=209+typecheck 8/8 0cached+lint 12/12 root 恰 5242+docs:check 2260≤2264+markers 0+deploy:check 绿+REMOTE-IS-ANCESTOR EXIT=0.
+- **STILL OPEN**：AG-09 行翻面权归协调方（issues-final done 计数待翻）+post 席2 P2 两件（ag11 先例计数少记注记/跨 scope 回放零记账裁决登记）归后继笔.
+- 预算：est live=0 · actualSpendCny=null · 零产品码零 lockfile · cap **2264** 现值 **2260** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
