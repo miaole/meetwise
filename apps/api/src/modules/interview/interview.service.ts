@@ -673,8 +673,11 @@ export class InterviewService {
     return this.db.asPrincipal(owner, async (c) => {
       // advisory 事务锁串行化同用户并发"开始面试",防两次点击 check-then-act 竞态各 INSERT 一条。
       await c.query('SELECT pg_advisory_xact_lock(hashtext($1), hashtext($2))', [owner, 'iv-create']);
+      // 复用检查切 read twin(读分层):本查询只做"复用决策",不向候选面试写入任何负载;
+      // 真正的 admission 边界(begin/abandon/preview 直锁 + assert 面)仍走原 locking 谓词,
+      // 若围栏在本查询与后续 admission 之间提交,begin 处 fail-closed 拒绝——围栏时间窗不复活。
       const open = await c.query(
-        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') AND interview_privacy_active(id) AND application_id IS NULL ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单);围栏/B 端绑定不复用(F1)
+        "SELECT id, status FROM interview WHERE status NOT IN ('completed','abandoned','failed') AND interview_privacy_active_read(id) AND application_id IS NULL ORDER BY id DESC LIMIT 1"); // RLS 只见己(集合端点空集=合法,E5 白名单);围栏/B 端绑定不复用(F1)
       if (open.rowCount! > 0) return { interviewId: open.rows[0].id, status: open.rows[0].status, reused: true };
       const id = newEntityId('iv');
       await c.query("INSERT INTO interview(id, owner_user_id, status) VALUES ($1,$2,'created')", [id, owner]); // RLS WITH CHECK owner=principal
@@ -713,10 +716,11 @@ export class InterviewService {
         FROM interview_question iq
         WHERE iq.interview_id = i.id AND iq.owner_user_id = i.owner_user_id
       ) q ON true`;
+    // 列表读面切 read twin(读分层,0206):有界(LIMIT)只读面无锁逐行,不再与围栏删除同键互斥。
     const r = await this.db.asPrincipal(owner, (c) =>
       status
-        ? c.query(`${projection} WHERE i.owner_user_id=$2 AND i.status=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $3`, [status, listScope.value, lim])
-        : c.query(`${projection} WHERE i.owner_user_id=$1 AND interview_privacy_active(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [listScope.value, lim]));
+        ? c.query(`${projection} WHERE i.owner_user_id=$2 AND i.status=$1 AND interview_privacy_active_read(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $3`, [status, listScope.value, lim])
+        : c.query(`${projection} WHERE i.owner_user_id=$1 AND interview_privacy_active_read(i.id) ORDER BY i.created_at DESC NULLS LAST, i.id DESC LIMIT $2`, [listScope.value, lim]));
     return { interviews: r.rows.map(toInterviewView) };
   }
 

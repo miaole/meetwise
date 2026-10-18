@@ -296,21 +296,27 @@ const checks = {
       // N-19 修复刀随刀：cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232
       // 四先例形·2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶·授权随令）——本臂 fabricated
       // 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2256 随刀：cap 2248→2256（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248
+      // 六先例形·2248 恰等零余量·在飞五刀并线 2253 超限·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2248 随刀：cap 2240→2248（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240
+      // 五先例形·2240 恰等零余量·在飞四刀并线 2249 超限·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_240; i += 1) {
+      for (let i = 0; i < 2_256; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_240);
-      // 超限错误码形状断言：第 2241 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2241`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2240.md'] });
+      assert.equal(atCap.scannedFiles, 2_256);
+      // 超限错误码形状断言：第 2257 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2257`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2256.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2241`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2257`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
