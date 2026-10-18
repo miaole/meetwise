@@ -451,6 +451,8 @@ A('learning-plan GET 越权:userB → 404(RLS)',
   is(await h.req('GET', '/interview/IV_ASMT/learning-plan', B_), 404, 'not_found_or_forbidden'));
 A('learning-plan/complete 缺 topic → 400(契约 zod 拒:error=invalid)',
   is(await h.post('/interview/IV_ASMT/learning-plan/complete', A_, {}), 400, 'invalid'));
+A('learning-plan/complete 无计划 → 409 plan_required(#185 CHECKIN-KEY)',
+  is(await h.post('/interview/IV_ASMT/learning-plan/complete', A_, { topic: '分布式锁' }), 409, 'plan_required'));
 A('learning-plan POST 未鉴权 → 401',
   is(await h.post('/interview/IV_ASMT/learning-plan', {}, {}), 401));
 A('career-path POST 无评估前置 → 409 assessment_required',

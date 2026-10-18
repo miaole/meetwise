@@ -1,6 +1,6 @@
 # CHECKIN-KEY REQUEST — #185 打卡键校验小刀（growth/学习域·批2 H7 挂账残件·三探针零迁移·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·pre-exec 双审两独立外席待派·alone≠dual·⛔push）
+**Status**: **`exec:red_stop_gate9_lint`**（EXEC 落码+§2 门矩阵 12/13 绿·门9 lint 第三红承登待协调方裁决·前值 **`draft:awaiting_pre_exec_dual`** 史录保留（pre-exec 双审 PASS×2 在案·cap-2256 已并线解锁）·EXEC 记录见 §9·alone≠dual·⛔push）
 
 **席位**：meetwise 战役「CHECKIN-KEY 打卡键校验小刀」诊断+起草席（批2 残件盘点 #185·H7 挂账归域刀·协调方派单 brief 2026-10-16·工序=fetch 建支线→读码定稿→起草 REQUEST→markers/docs:check→自检落卷 commit）。
 **基线**：`feat/mysql-schema-skeleton` @ `7c602df02`（origin tip 亲证·fetch 后 `git rev-parse origin/feat/mysql-schema-skeleton`=`7c602df02d29c2b8839f9df208f18a6190d6b6ca`·tip commit 2026-10-18 01:56:57 +0800=merge(reserve-renew-fix) nail 波 tip）· 分支 `line/checkin-key`（主仓 `git worktree add ../meetwise-ck -b line/checkin-key origin/feat/mysql-schema-skeleton` 本起草席亲立·**建时即落战役主线 tip 零 reset**·与姊妹卷 session-summary-deepen §0.2-1 先例不同：本席 worktree add 直引 origin ref 无漂移窗口）· 工作树 `meetwise-ck`（仓根同级）。
@@ -172,12 +172,42 @@ b) :478 臂（缺 topic 400）后邻区插入：
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）+**docs cap sanction 随令落码**（2240→2248·§0.0/§2-10· sanction 未落则 ⑩ 门红停态不放行）；③EXEC 立项**不得改 §1 红事实结论与 §5 Ban/pins 与 §1-修法定稿文本面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做——db-hotspot 届时状态首查·§0.2 口径漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `exec:red_stop_gate9_lint`（前值 `draft:awaiting_pre_exec_dual`·EXEC 2026-10-18 落码后 §2 门9 lint 第三红→停止条件第四类命中翻面·史录保留·裁决归协调方） · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）+**docs cap sanction 随令落码**（2240→2248·§0.0/§2-10· sanction 未落则 ⑩ 门红停态不放行）；③EXEC 立项**不得改 §1 红事实结论与 §5 Ban/pins 与 §1-修法定稿文本面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做——db-hotspot 届时状态首查·§0.2 口径漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时件①-③ 路径 blob 对 §0.1 锚漂移（另席在飞触同文件·db-hotspot 并线=read-tier 单行形预期内改锚·**超范围漂移即停**）·§0.0 复核出新非残枝在飞触面·门基线锚漂（neg 六段序/迁移链头/ cap 值未经 sanction/lint 帽值行）→停·重 pin 回炉。
 - **机制不满足**：基线树手工模拟与 §1.1 缺口推定不符（如 learning_plan 行在而探针① 误 409·或 items jsonb 形非 `[{topic}]` 数组致探针③ SQL 不成立）·或件③ 新臂在改前树基线 run 红（=臂写错非修法错）→证伪诊断→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1-修法 4 路径面（需触 contracts/GET/worker/迁移/SSOT/#203 面）→停·另刀或协调方裁决（§1.3 候选乙/丙/丁/戊/己否决沿承）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻面新红/lint 第三红/cap sanction 未落）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9 EXEC 记录（2026-10-18·EXEC 席亲跑·门矩阵 EXIT 原值如实载）
+
+**§9.0 并线双钉（工序 1）**：①首钉 `7cb4bb468`=merge --no-ff origin/feat/mysql-schema-skeleton@`e5ea355ca`（派单 brief tip 等号亲证·merge-tree 预演 EXIT=0 零冲突 tree=`a27b4e174`·merge-base 恰 `7c602df02`=起草基线等号）；②补钉 `2e6491f7a`=merge --no-ff @`349c33e90`（EXEC 期在飞 S30 修复刀 nail 入线：dac4b4d04 weakness.proof.ts 单行正则适配「DB-HOTSPOT 欠账」+weakness-s30-fix-REQUEST 卷+SSOT 登记——cap-2256 卷在飞五刀算术内已 nail 件·**非件路径零触·§0.0 注记级改锚**·merge-base 恰 `e5ea355ca`·merge-tree 预演 EXIT=0 零冲突 tree=`f8c8fd89e`）。⛔pull --rebase 未用·⛔force push 未用。
+
+**§9.1 锚漂复核（对 §0）**：origin tip `7c602df02`→`e5ea355ca`→届 `349c33e90`；cap `MAX_FILES` :112=2240→届 :116=**2256**（sanction 随令落码亲证·2240→2248→2256 两步进刀在线）；interview-learning.ts 漂移恰 1 行 read-tier 改写（`interview_privacy_active`→`interview_privacy_active_read`·DB-HOTSPOT 并线件·§0.0 预期内改锚·blob `109a1985`→`f0b01cff`）；interview.service.ts/`_neg-harness.ts`/weakness-backfill.ts 同波 read-tier 正交区；**件②③ 路径 blob `06f8e249`/`e54ae969` 零漂移恒等**；contracts/domain/growth-generation/controller blob 恒等；迁移链 205 头 0205→**207 头 0207**（0206 read-tier+0207 trace-backfill 两并线件·链值届时如实）；neg 六段序/lint 帽值行（root 5240·worker 959）恒等；在飞交叠复核（EXEC 立项日）：晚于基线非祖先支线对四码径全零触。**结论：全注记级·不触红停。**
+
+**§9.2 落码（§1-修法 4 件·定稿文本逐字节照抄）**：件① interview-learning.ts +19 行（计划在先探针 409 `plan_required`+#121 探针块零字节零触+计划项存在性探针 400 `invalid_topic` btrim 精确+文件头 #185 注 append 不洗旧注）·件② neg-interview.proof.ts +2 行（无计划 complete→409 `plan_required` 臂·IV_ASMT 夹具届树 :276 亲在）·件③ validate.ts +2 行（R1 无计划 409 臂+ASMT 计划在 topic∉维度 400 `invalid_topic` 臂）·件④ 本卷 §9+STOP 三处翻面。机制前提亲证：asPrincipal=BEGIN/COMMIT+catch→ROLLBACK（principal.ts :995-1006）→探针③ 掷出即回滚 INSERT·「失配永不落行」成立；items jsonb `[{topic}]` 形=weakness-backfill `Array<{topic?}>` 侧证。
+
+**§9.3 门矩阵 EXIT 原值（亲跑·Ban retry-to-green 承诺下每门一次·红绿均原值）**：
+
+| # | 门 | EXIT 原值 | 届值登记 |
+|---|---|---|---|
+| 0 | 改前基线 run | docs:check **EXIT=0** | scanned 2250（首钉树·cap 2256） |
+| 1 | api:validate | **EXIT=0** | 「✓ 全部通过」·含新 2 臂（:473/:484 后邻区）·打卡 200/幂等/done 恒等 |
+| 2 | neg:interview | **EXIT=0** | **108 臂全绿**（含新 `plan_required` 臂 PASS 在录·:453 后邻区） |
+| 3 | neg:all | **EXIT=0** | 六段 **693 臂全绿**=auth90+commerce90+resume91+interview108+bend179+input135（对 AG-16 届值 692+本刀 1 恰合） |
+| 4 | prove:weakness | **EXIT=0**（隔离 wrapper 形 `weakness:prove`→内核 `pnpm -C apps/worker prove:weakness` wrapper :2416-2417 亲证同命令） | **73 臂全绿·S29 :110 恒等 PASS+S30 PASS**·史录：补钉前裸跑红 EXIT=1（S30 正则×read-tier 改名失配=基线继承红+database_target_missing 无 env 双层·receipts/checkin-key/prove-weakness.log 留档·补钉后消解） |
+| 5 | prove:interview | **EXIT=0**（隔离 wrapper 形 `interview:prove`→同命令内核 wrapper :2408-2409 亲证） | **64 臂全绿**（「当前 v64 面试链路全部通过」·对卷面预标 57 为旧届值·漂移如实登记） |
+| 6 | migrate:prove | **EXIT=0** | 全 PASS·207 头 0207·唯一性双号豁免登记面全命中 |
+| 7 | drift:prove | **EXIT=0** | 「schema 无漂移」·豁免登记面在案 |
+| 8 | turbo typecheck --force | **EXIT=0** | **8/8 successful·0 cached** |
+| 9 | turbo lint | **EXIT=1 ·红停承登** | api **1423>1421**（:3582 too many warnings）+root 5240 帽同破+worker 959 恰等贴线自面绿（turbo 内连带取消非自红）；web 601/ai-runtime 628/db 1042/contracts 265/domain 115 恒等。归因亲证：**+2 恰=件③ 定稿文本两臂各带 `{ 'x-user-id': 'userA' }` naming-convention warning**（三文件点跑 eslint=215 problems 0 errors·冻结文本 ⛔ 不可改）；**stash 对照亲证基线 api lint EXIT=0（1421 恰等贴线过）**。修法二径均越权：改定稿文本（§8 立项三条款③+Ban 自由发挥·改则回炉重审）或升 api/root lint 帽值（Ban 自升·sanction 权归协调方）→**§8 停止条件第四类「验收红不可修（lint 第三红在列）」命中→停手上报** |
+| 10 | docs:check | **EXIT=0** | scanned **2251≤2256 余 5**（gate0 2250+S30 REQUEST 并线件 +1·本刀零新受管文件） |
+| 11 | markers 五类 | **0 hits** | 改动集 4 tracked 五类标记词 grep 零命中（i6-239-gates.proof.mjs :152-163 运行时组装口径·词面不入卷防自匹配） |
+| 12 | diff 面机检+卫生 | **全绿** | `git diff --numstat 349c33e90` **恰 4 tracked**（本卷 183+0·件① 19+0·件② 2+0·件③ 2+0）；`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；`.env*` ABSENT 双向记录（树内零命中+diff 零命中）；收据 untracked=receipts/checkin-key/；est live=0·actualSpendCny=null |
+
+**§9.4 范围守恒自证**：#203 面/weakness-backfill/getLearningPlanFor/deriveLearningPlan/generateLearningPlanCore/contracts/web/migrations **全零字节**（diff 面机检承）·#121 探针块零字节（件① diff 上下文亲证）·SSOT 四卷零改（LEDGER/checklist 变更全系并线带入非本刀笔）·§1.3 否决面（乙丙丁戊己）零触。
+
+**§9.5 终态**：**STOP 三处翻面 `exec:red_stop_gate9_lint`（前值 `draft:awaiting_pre_exec_dual` 史录保留）**——门9 红承登·post 双审不派·裁决项二择归协调方：（甲）api lint 帽值 1421→1423+root 5240→5242 sanction 随令（沿 lint-cap-step/cap-sanction 刀先例·本刀零码面随令复绿）；（乙）件③ 定稿文本授权修订（去 `{ 'x-user-id' }` 字面量 warning 形·改则回炉重审）。裁决前本卷维持红停承登态·⛔push。
+
 ---
 
-*CHECKIN-KEY REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`（起草落卷即停·pre-exec 双审待派·cap sanction 待协调方随令）** · base `feat/mysql-schema-skeleton` @`7c602df02`（origin tip 亲证·fetch 后 rev-parse 双读一致·2026-10-18 01:56:57 +0800·起草时 docs:check 基线 EXIT=0 scanned 2240=cap 2240 恰等零余量本席亲跑·落卷树 2241 红停承登沿 N-19 先例）· 分支 `line/checkin-key` · 工作树 `meetwise-ck`（本起草席亲立·直落 origin tip 零 reset）· 立项出处=issues-master 更正版 :425（#185 行·P3·键自由文本不校验存在+complete 不要求计划存在）+batch-residual-plan :62/:102（H7 挂账）+LEDGER :59/:210（批2 残 4·H7 挂账 3 件之一）+TASK-SOP-v2 :64 杂项行 · 前置=H4 主体 @`9c4c0f9e` 祖先亲证+#121 弱项半已落 · 诊断=三段写入链（契约任意 1-200 放行面/应用层 #121 只对评估维度/读回 done 原文精确=死行不可见）· 修法=候选甲三探针（计划在先 409 plan_required+#121 原样零字节+topic∈items btrim 精确 400 invalid_topic·沿现形零迁移 fail-closed·两写入径共一校验单源）· 恰 4 tracked（1 新 3 改）零迁移 · #203 邻项定谳=weaknessMatches 留跨场选择器域·写键 btrim 精确（候选丙否决）· 候选乙（FK/item id 迁移）丁（域重构）戊（存量清洗）己（GET 改 btrim）否决在卷 · 门矩阵十三门（growth 正链 api:validate+neg:interview+neg:all 六段+prove:weakness/interview 邻面+migrate 链+drift+typecheck 8/8+lint 五值贴线+docs:check≤届 cap+markers+diff 恰 4+卫生）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push ⛔merge主线 · STOP*
+*CHECKIN-KEY REQUEST · 2026-10-16 起草 · 2026-10-18 EXEC 落码 · **`exec:red_stop_gate9_lint`（§2 门矩阵 12/13 绿·门9 lint 第三红承登·前值 `draft:awaiting_pre_exec_dual` 史录保留·裁决归协调方·⛔push）** · base `feat/mysql-schema-skeleton` @`7c602df02`（origin tip 亲证·fetch 后 rev-parse 双读一致·2026-10-18 01:56:57 +0800·起草时 docs:check 基线 EXIT=0 scanned 2240=cap 2240 恰等零余量本席亲跑·落卷树 2241 红停承登沿 N-19 先例）· 分支 `line/checkin-key` · 工作树 `meetwise-ck`（本起草席亲立·直落 origin tip 零 reset）· 立项出处=issues-master 更正版 :425（#185 行·P3·键自由文本不校验存在+complete 不要求计划存在）+batch-residual-plan :62/:102（H7 挂账）+LEDGER :59/:210（批2 残 4·H7 挂账 3 件之一）+TASK-SOP-v2 :64 杂项行 · 前置=H4 主体 @`9c4c0f9e` 祖先亲证+#121 弱项半已落 · 诊断=三段写入链（契约任意 1-200 放行面/应用层 #121 只对评估维度/读回 done 原文精确=死行不可见）· 修法=候选甲三探针（计划在先 409 plan_required+#121 原样零字节+topic∈items btrim 精确 400 invalid_topic·沿现形零迁移 fail-closed·两写入径共一校验单源）· 恰 4 tracked（1 新 3 改）零迁移 · #203 邻项定谳=weaknessMatches 留跨场选择器域·写键 btrim 精确（候选丙否决）· 候选乙（FK/item id 迁移）丁（域重构）戊（存量清洗）己（GET 改 btrim）否决在卷 · 门矩阵十三门（growth 正链 api:validate+neg:interview+neg:all 六段+prove:weakness/interview 邻面+migrate 链+drift+typecheck 8/8+lint 五值贴线+docs:check≤届 cap+markers+diff 恰 4+卫生）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push ⛔merge主线 · STOP*
