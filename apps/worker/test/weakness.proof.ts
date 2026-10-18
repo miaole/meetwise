@@ -108,7 +108,7 @@ function staticSections() {
   section('S-H R5 回灌 hook+Ban 守卫(只写 progress 不重写计划·围栏场不回灌)');
   A('S28 generateGrowthChain 评估段成功后紧邻回灌', /backfillLearningProgressFromAssessment\(pool, owner, interviewId\)/.test(worker) && /from '\.\/weakness-backfill\.ts'/.test(worker));
   A('S29 回灌只写 learning_progress(INSERT INTO learning_plan 零命中=Ban 一次性覆盖写)', /INSERT INTO learning_progress/.test(backfill) && !/INSERT INTO learning_plan/.test(backfill));
-  A('S30 历史计划排除本场+围栏过滤', /interview_id <> \$2/.test(backfill) && /interview_privacy_active\(lp\.interview_id\)/.test(backfill));
+  A('S30 历史计划排除本场+围栏过滤', /interview_id <> \$2/.test(backfill) && /interview_privacy_active_read\(lp\.interview_id\)/.test(backfill));
   A('S31 幂等(PK ON CONFLICT DO NOTHING)', /ON CONFLICT DO NOTHING/.test(backfill));
 
   section('S-I R7 形制守卫(禁 embedding/模型·lean MVP 注记照守·分桶降级登记)');
