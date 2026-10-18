@@ -1,6 +1,6 @@
 # LINT-CAP-STEP-242 lint 帽步进刀 REQUEST（mini·快速链·sanction 随令直落形·沿 lint-cap-step 先例形·#185 件③冻结文本 +2 归因·root 5240→5242+api 1421→1423）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·门矩阵五门预标定·EXEC 随本席一体行使·sanction 随令直落形 pre-exec 双审由派单 brief 承载 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵五门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·前值 `draft:awaiting_pre_exec_dual` @draft `c1245e330` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
 
 ## §0 锚（届时树亲算·349c33e90 届时值）
 
@@ -57,9 +57,19 @@
 ## §8 STOP（开工条款 + 翻面形）
 
 - **开工条款（sanction 随令直落形）**：①协调方派单 brief 即 sanction 授权（步进值 root 5242/api 1423 各 +2+归因 #185 件③冻结文本+裁决甲=帽步进·乙案=回炉修订定稿文本不行使·沿 RESERVE 净 +5 勘误步进先例形·lint 门协议沿 cap-sanction/lint-cap-step 先例 P1-b 届 tip 重测步进）；②快速链起草+EXEC 一体席·沿 sanction 刀单波直落先例·pre-exec 双审由 sanction 随令形制承载；③EXEC 不得越 §1 两行落点与 §1.3 否决面（越则红停回炉）。
-- **STOP = `draft:awaiting_pre_exec_dual` 三处同值**（Status 头+本节+卷尾注·draft commit 时点史录保留零字洗）→ **EXEC commit 翻 `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS≠关闭·批表行/Status 终翻面权归协调方·本刀不宣称关闭）。
+- **STOP = `draft:awaiting_pre_exec_dual` 三处同值**（Status 头+本节+卷尾注·draft commit `c1245e330` 时点史录保留零字洗）→ **EXEC commit 翻 `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS≠关闭·批表行/Status 终翻面权归协调方·本刀不宣称关闭）。
 - 卫生：est live=0（全门本地静态/隔离·零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
 ---
 
-*LINT-CAP-STEP-242 REQUEST · 2026-10-16 起草 · **`draft:awaiting_pre_exec_dual`**（本卷 §0-§8·EXEC 随本席一体行使）· base `feat/mysql-schema-skeleton` @`349c33e90`（S30 弱点修复刀并线 SSOT 登记 tip·等号成立亲证）· 分支 `line/lint-cap-step-242` · 工作树 `meetwise-lc242` · 立项出处=协调方派单 brief（#185 件③冻结文本 +2 归因·root 5240→5242+api 1421→1423·裁决甲·RESERVE 5240 先例承续）· 修法=root 5240→5242+api 1421→1423 两行（余十包实测恰等零改贴线·errors=0 红线不变）· 门矩阵五门=lint 12/12 新值 EXIT=0+typecheck 8/8+markers 零命中+docs:check 2251≤2256+diff 恰 3 tracked · est live=0 · ⛔push ⛔merge 主线*
+*LINT-CAP-STEP-242 REQUEST · 2026-10-16 起草 · **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 落码·§9·前值 `draft:awaiting_pre_exec_dual` @draft `c1245e330` 史录）· base `feat/mysql-schema-skeleton` @`349c33e90`（S30 弱点修复刀并线 SSOT 登记 tip·等号成立亲证）· 分支 `line/lint-cap-step-242` · 工作树 `meetwise-lc242` · 立项出处=协调方派单 brief（#185 件③冻结文本 +2 归因·root 5240→5242+api 1421→1423·裁决甲·RESERVE 5240 先例承续）· 修法=root 5240→5242+api 1421→1423 两行（余十包实测恰等零改贴线·errors=0 红线不变）· 门矩阵五门=lint 12/12 新值 EXIT=0+typecheck 8/8+markers 零命中+docs:check 2251≤2256+diff 恰 3 tracked · est live=0 · ⛔push ⛔merge 主线*
+
+## §9 EXEC 记录（快速链一体席·2026-10-16·门矩阵五门 EXIT 原值）
+
+1. **授权链**：协调方派单 brief（LINT-CAP-STEP-242 sanction 快速链刀·root 5240→5242+api 1421→1423·#185 件③冻结文本 +2 归因·协调方裁决甲=帽步进·乙案=回炉修订定稿文本不行使·沿 RESERVE 净 +5 勘误步进先例形·sanction 授权随令·⛔push）→ draft commit `c1245e330`（本卷 §0-§8+STOP 三处 draft 史录·恰 1 tracked）→ EXEC 本席落码。
+2. **码面落点**（恰 2 文件·沿 §1 对照表·零越面）：件① 锚A root `package.json:8` `--max-warnings 5240`→`--max-warnings 5242`（blob `779aed33`→EXEC 新值）·件② 锚B `apps/api/package.json:7` `--max-warnings 1421`→`--max-warnings 1423`（blob `9ec7b830`→EXEC 新值）·余十包实测恰等零改贴线（web 601/worker 959/ai-runtime 628/db 1042/contracts 265/domain 115/qdrant 27/ai-graphs 47/config 0/db-mysql 0）。
+3. **门矩阵五门全绿**：①`pnpm turbo lint --force` **12 successful/12·0 cached EXIT=0**（Time 13.341s·root 5240≤5242·api 1421≤1423·余十包恰等贴线·全 0 errors=红线维持）；②`pnpm turbo typecheck --force` **8 successful/8·0 cached EXIT=0**（Time 13.338s·新支线树 `pnpm install --frozen-lockfile` 门前置 EXIT=0 Done in 35m15.6s·pnpm-lock 零字节）；③markers 五类改动集（两 package.json+本卷）运行时组装词面扫描 `CHANGESET-MARKER-HITS=0`（TODO/FIXME/XXX/HACK 字面+恰等组装+弹性组装+冲突标记面全零）+全树行首冲突标记严格形 `TREE-CONFLICT-FILES-HITS=0`+七等号整行 `0`；④`node scripts/ai-docs/check-docs.mjs` EXIT=0 `scanned 2251 managed worktree files` ≤2256 余 5（=届 2250+本卷 REQUEST 1·EXEC 树与 draft 树同值·package.json 改零增受管文件）；⑤diff 面 EXEC commit 恰 3 tracked（两 package.json+本卷 §9 append+STOP 翻面）·零产品码零迁移零 lockfile。
+4. **归因账（本席亲证）**：届实测净树口径 12/12 恰等贴线余 0 全表（root 5240/api 1421 恰等零余量）·#185 件③ `da3414b0d` 冻结文本两臂隔离壳亲证=换装裸跑 apps/api `eslint .` `1423 problems (0 errors, 1423 warnings)`=1421+2 恰等·warning 落点 `473:64`+`486:66` naming-convention 恰两条新增臂·余零漂移·root 面同源 +2（全树口径含 apps/api）·本刀步进 +2/+2 恰等归因增量零宽值·在飞 #185 并线后预期恰等贴线 5242/1423（与 `da3414b0d` 门9 红停承登「api 1423>1421+root 5240 帽破」闭环）。
+5. **偏离**：零（落点/门矩阵/STOP 形全沿 §1/§2/§8 定稿·两行逐字节落定·零越面零程序性偏差·新支线树依赖安装系门前置非码面偏差·SSOT LEDGER/checklist append 面未列入本刀 brief 两 commit 形·归后继并线刀随卷承登）。
+6. **卫生**：est live=0（五门全本地静态·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL 零 env 闸·pins 不适用（本刀无 pins 面）·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭。
