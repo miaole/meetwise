@@ -1,6 +1,6 @@
 # E2EA-05 恒真清单回填 REQUEST（docs-only·恒真 ×15 逐点定性+漏网扫描·零码面·量级微）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:dual_pass_nail`**（nail 2026-10-16 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·pre-exec 双审定谳成立=首轮双 FAIL→rev→re-dual 席1 条形 PASS+席2 全 PASS→rev2 单点修毕→H3 单点抽验 PASS·协调方明示授权 nail+翻面·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null）
 
 ## §0 锚（tree 级 @ `c4bd89132`·现树逐处亲证·2026-10-16）
 
@@ -84,7 +84,7 @@
 ## §8 STOP
 
 - **开工条款**：本卷=起草落卷·EXEC（若派）仅限本卷 1 tracked 文件域+§2 三门·越 §1.3 否决面即红停回炉；pre-exec 双审两独立外席待派（§0.1 现树行号+§0.2 七处漏网定性+§0.3 零新增结论三处必核）·alone≠dual·Ban self-approve。
-- **STOP = `draft:awaiting_pre_exec_dual` 三处同值**（Status 头+本节+卷尾注）·翻面权归协调方·本刀不宣称关闭。
+- **STOP = `executed:dual_pass_nail` 三处同值**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头+本节+卷尾注）·pre-exec 双审定谳成立（首轮双 FAIL→rev→re-dual 席1 条形 PASS+席2 全 PASS→rev2 单点修毕→H3 单点抽验 PASS）·协调方明示授权 nail+翻面·本刀不宣称关闭（E2EA-05 登记行本体翻面/销案权仍归协调方）。
 - 卫生：est live=0（docs-only 零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用。
 - 卫生异常登记（rev 席承登）：双审窗内 worktree `meetwise-eb` 被外部 checkout 一件（HEAD detached @ `6308bc348`）——`line/e2ea05-backfill` ref 完好零损（同指 `6308bc348` rev-parse 亲证·工作树 clean 零丢面）·建议双审窗内独占管护工作树防再发。
 
@@ -107,4 +107,4 @@
 
 ---
 
-*E2EA-05-BACKFILL REQUEST · 2026-10-16 起草 · 2026-10-16 rev 修订（双审双 FAIL 互盲收敛 M7·§9-rev 五条落点·读数 103）· **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本行）· base `feat/mysql-schema-skeleton` @`c4bd89132`（届条件 tip≥`7c602df02` 等号成立亲证）· 分支 `line/e2ea05-backfill` · 工作树 `meetwise-eb` · 立项出处=gap-bug-backlog:931 E2EA-05「逐点清单归猎杀席卷/后继刀回填」残面（先期刀 assert-strengthen 已 nail·清单回填无刀认领）· 定稿=十五处逐点定性锚表（3 升格已落+12 声明钉保留·现树全证）+漏网七处登记（M1–M7·枚举/口径漏计非新增·全域恒真形读数 103=单行 98+折行 5）+治理刀后零新增承登（§0.3）· 量级微=恰 1 tracked docs-only 零码面 · est live=0 · markers=0 · ⛔push ⛔merge 主线 ⛔force push*
+*E2EA-05-BACKFILL REQUEST · 2026-10-16 起草 · 2026-10-16 rev 修订（双审双 FAIL 互盲收敛 M7·§9-rev 五条落点·读数 103）· **`executed:dual_pass_nail`**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头/§8/本行·nail 2026-10-16 协调方授权翻面）· base `feat/mysql-schema-skeleton` @`c4bd89132`（届条件 tip≥`7c602df02` 等号成立亲证）· 分支 `line/e2ea05-backfill` · 工作树 `meetwise-eb` · 立项出处=gap-bug-backlog:931 E2EA-05「逐点清单归猎杀席卷/后继刀回填」残面（先期刀 assert-strengthen 已 nail·清单回填无刀认领）· 定稿=十五处逐点定性锚表（3 升格已落+12 声明钉保留·现树全证）+漏网七处登记（M1–M7·枚举/口径漏计非新增·全域恒真形读数 103=单行 98+折行 5）+治理刀后零新增承登（§0.3）· 量级微=恰 1 tracked docs-only 零码面 · est live=0 · markers=0 · ⛔push ⛔merge 主线 ⛔force push*
