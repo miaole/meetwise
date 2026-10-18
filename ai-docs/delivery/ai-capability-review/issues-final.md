@@ -222,6 +222,7 @@
 - **用户影响**：P1 级运行时故障无法被发现，也无法定位。
 - **修法**：ai_graph_run 增加 current_node/last_error_code/last_checkpoint_id；周期扫描 next 非空、没有 interrupt、N 分钟没有 job 的 thread，打指标并自动 invoke(null)。
 - **关联审计总表编号**：#8
+- 【AG-15 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-15 观测刀 ag15-observability nail b1ab2787 落主线·0205 三观测列+卡死检测观测器+proof 21 臂·双审 rev2 后复审 PASS×2+post 双审 PASS×2·AG-15 条目收口】
 
 ### AG-16【P2·编排运行时】上述 P1 运行时故障路径都没有确定性 proof：eval 后崩溃、节点瞬时异常、报告重试是否真的再调模型、准入拒绝后重试、recursionLimit 是否生效、旧 checkpoint resume
 
@@ -233,6 +234,7 @@
 - **用户影响**：回归无法发现，修复后也无法证明已修好。
 - **修法**：为每个 P1 补一个 MemorySaver + 注入抛错的确定性 proof，再补一套 PG 集成 proof。
 - **关联审计总表编号**：#98、#99
+- 【AG-16 翻面注记 2026-10-16·协调方翻面笔授权随令行使：AG-16 残面 proof 刀 ag16-resume-proof nail bf453f49 落主线·旧 checkpoint resume proof 43 臂+recursionLimit 纪实 18 臂·四层权威修正链 rev2 后第三次双审 PASS×2+post 双审 PASS×2·AG-16 残面收口】
 
 ### AG-17【P3·Prompt】结构化输出只用 response_format=json_object，schema 只写在 prompt 里；schema 失败不重试但照常计费；span 名 schema_retry 暗示有重试，实际没有
 
@@ -376,6 +378,7 @@
 - **用户影响**：个别面试活锁，直到连接被回收。
 - **修法**：unlock 失败时调用 release(err) 销毁连接；requeue 计数并设上限；或者改为事务级锁 + CAS。
 - **关联审计总表编号**：#9、#4
+- 【AG-29 翻面注记 2026-10-16·协调方翻面笔授权随令行使·读码裁量=覆盖·注记前移：requeue 上限半=AG-04 刀C 已闭（interview-jobs.ts :15 MAX_INTERVIEW_JOB_ATTEMPTS=5+claim running 过期臂 attempts<max 谓词 :163+queued 臂退避时闸 :162、requeueInterviewJob :280 指数退避 2^attempts 秒封顶 300 :18、sweepStuckInterviewJobs :313-315 running/:321-324 queued attempts≥MAX 结构闸终态 failed）·锁回池半=DB-HOTSPOT 件② 事务级锁覆盖亲证（interview/interview-graph-lease.ts:25 pg_advisory_xact_lock 于 asPrincipal 单短事务 principal.ts:995-1005 BEGIN/COMMIT 内·锁随事务自动释放连接即归池·原「unlock 失败被 catch 吞掉带锁回池」路径结构性消除=已无 unlock 调用可败；全仓 session 级 pg_advisory_lock 仅剩 migrate.ts:394 迁移串行化+principal.ts:298 qbank provision 两处·均 AG-29 指涉面外）·AG-29 条目收口】
 
 ### AG-30【P3·编排运行时】checkpoint 永不清理：transcript reducer 是 concat，每轮整块写新的 blob 版本；终态面试的 checkpoint 只有隐私擦除才会删除
 
@@ -546,6 +549,8 @@
 | #2 | 用户暂停超过约 30 分钟，预留被对账回收，面试变成 abandoned | LG-07、PF-F-06 | 2 | 成立（触发属推断）：commerce.ts:26 DEFAULT_LEASE_SECONDS=1800；interview-consumer.ts:221-238 只在 job 运行期间续租；commerce-reconcile.ts:25-70 | 建议总表从 P3 升到 P2（PF-F-06 原定 P1 偏高） |
 | #8 | 自适应图的 ai_graph_run 永远写不到终态 | LG-09、LR-F10（部分） | 2 | 成立：interview-graph-lease.ts:81-86 release 无条件写 waiting_user | 维持 |
 | #7 | checkpoint 写不受图版本 fence 保护 | LG-11、LR-F4 | 2 | 成立：fence 只在投影侧，saver 写只靠 advisory lock | 维持 |
+
+- 【#7 翻面注记 2026-10-16·协调方批表翻面笔随令行使（沿 :563 审计状态注记插行先例形）：GRAPH-FENCE checkpoint 写世代围栏刀 graph-fence nail 落主线·码面锚=checkpoint-fence.ts FenceCheckpointSaver 写前三谓词拦截（lease_owner/version/lease_expires_at·失守抛 graph_fence_lost 既有 transient 白名单）+interview-consumer.ts life.cp 组装位 :480 接线（任务书旧锚 :458 系 pre-reserve-renew 树值·行号漂移要录·现树亲证）+graph-fence-write.proof.ts 38 臂隔离库真迁移链·残余窗随注记带=写缝 check-then-act 毫秒级 TOCTOU 残缝（assert 查询→内层 saver INSERT·Ban 面内不可再收窄·每 takeover 至多在飞 ~5 superstep 拍·如实披露不声称闭合）+mock-interview.ts :28 同形红面异域（mock 图域非生产图）登记不触·#7 行翻面收口】
 | #256 | 没有“提前结束并出报告” | PF-F-07 | 1 | 成立 | 维持 |
 | #50、#204 | 报告只喂分数数组；成长链生产无人调用，报告更新后下游不联动 | PF-F-09、LG-06（下游联动部分） | 2 | 成立：interview-service.ts:301 只传分数 | 维持 |
 | #271、#197、#258 | B 端岗位面试扣候选人额度；JD 与能力要求不进 planner | PF-F-11 | 1 | 成立：interview-consumer.ts:355 只取 allocations[0].leafTrackId | 维持 |
@@ -553,6 +558,8 @@
 | #77、#79、#38 | 难度自适应信号粗：题库只有 3/4 两档，检索只拼“难度N”、只服务 fundamental | PF-F-04、AI-05、AC-F10（query 部分） | 3 | 成立（效果弱属推断）：adaptive-interview-service.ts:118-121 | 维持；CRAG 阈值未校准另立 AG-13 |
 | #48、#49 | 输入缓存零收益、cached_tokens 不计量、价格本没有缓存价 | AC-F1、AC-F2、agent-capability 缓存段 | 2 | 部分成立：本次用 Qwen2.5 tokenizer 实测 8 个 system 前缀为 172–670 token，全部低于百炼 1024 门槛（百炼官方文档已核实：显式/隐式缓存最少 1024 token，隐式命中按 20% 计价）；但默认端点是 DeepSeek，其官方文档写的是按“缓存前缀单元”整体匹配并会自动检测公共前缀落盘，没有写 1024 门槛，也没有写 64 token 粒度，所以“DeepSeek 下零收益”无法判定 | 维持 P3；先接 cached_tokens / prompt_cache_hit_tokens 观测再下结论 |
 | #9 | session 级 advisory lock 与 PgBouncer 事务池冲突 | LR-F11（部分） | 1 | 成立（仓库里没有 pgbouncer 配置，属推断） | 维持 |
+
+- 【#9 翻面注记 2026-10-16·协调方批表翻面笔随令行使：DB-HOTSPOT 数据库热点/锁族刀 db-hotspot nail 落主线·件② graph lease session 锁收窄事务级=interview-graph-lease.ts:25 pg_advisory_xact_lock（与旧 session 锁同键·asPrincipal 单短事务内·锁随事务自动释放连接即归池·「unlock 失败被吞带锁回池」路径结构性消除=PgBouncer 事务池冲突面就此消·全仓 session 级 pg_advisory_lock 仅剩 migrate.ts 迁移串行化+qbank provision 两处均本行指涉面外）·#9 行翻面收口】
 | #213 | 诊断全有或全无：一条改写不接地就整份作废 | AC-F17（诊断部分） | 1 | 成立：interview-service.ts:240-255 | 维持 |
 | #72 | ASR/TTS 不经过 invoke，没有额度预留和成本记账 | AC-F22（语音子项） | 1 | 成立 | 维持 |
 | #210 | 押题分数是伪分（40+20n） | AC-F22（子项） | 1 | 成立 | 维持 |
@@ -573,3 +580,5 @@
 - 【#64 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/auth-actions.ts:29-35 邮箱格式/密码长度前置校验+`AbortSignal.timeout(10_000)` fetch 超时+:38-40 AUTH_ERROR_COPY 错误码中文文案映射（429 分支在位）·审计 mw-core 一节 2026-10-17 复核确认关闭】
 - 【#125 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/app/report/[id]/page.tsx:18 `LEVEL_LABELS` 五档 contracts 单源（packages/contracts/src/index.ts:711 五档 labels+:717 单源导出）+:356 未知级别中文兜底「未知级别」·审计 mw-core 一节 2026-10-17 复核确认关闭】
 - 【#231 审计复核关闭注记 2026-10-17·三席独立复核 VERDICT=CONFIRMED（已修）·证据：apps/web/components/QuizPanel.tsx:83-87「备战提示」改述（注释自述 UI 派生准备建议·非模型生成真追问·文案同步）+dashboard/quiz 面「可能追问」零残留（grep EXIT=1 亲证）·审计 mw-core 一节 2026-10-17 复核确认关闭】
+
+【#106 pnpm audit 补核 2026-10-17：critical=0·high 18 全有修复版本（direct 仅 @nestjs/platform-fastify ≥11.2.4）·S1 升级刀 post=25 条与复跑完全同值·点名包全部达标·CI 门 deps-audit.yml fail-closed --audit-level=critical 在仓·两面销案·残余=18 high 定向升级建议 8 包清单登记后继·sprintf-js 无修复版挂账观察】
