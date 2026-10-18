@@ -256,6 +256,8 @@
     "ag19-prompt-version:prove:raw": "pnpm -C packages/ai-runtime prove:ag19-prompt-version",
     "ag12-estimator-freeze:prove": "node scripts/run-e2e-isolated.mjs ag12-estimator-freeze:prove:raw",
     "ag12-estimator-freeze:prove:raw": "pnpm -C packages/ai-runtime prove:ag12-estimator-freeze",
+    "ag09-replay-first:prove": "node scripts/run-e2e-isolated.mjs ag09-replay-first:prove:raw",
+    "ag09-replay-first:prove:raw": "pnpm -C packages/ai-runtime prove:ag09-replay-first",
     "qa-tool-layer:prove": "node scripts/run-e2e-isolated.mjs qa-tool-layer:prove:raw",
     "qa-tool-layer:prove:raw": "pnpm -C packages/ai-runtime prove:qa-tool-layer",
     "model-slot-bypass:prove": "node scripts/run-e2e-isolated.mjs model-slot-bypass:prove:raw",

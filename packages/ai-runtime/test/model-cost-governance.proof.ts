@@ -68,14 +68,23 @@ async function main() {
   A('不存在的指定价格 revision 在派发前拒绝，零外呼、零预留', 'error' in missingPriceResult && missingPriceResult.error === 'cost_price_missing'
     && missingPriceCalls.n === 0 && Number(missingPriceReservation.rows[0]?.n) === 0);
 
+  // AG-09 重钉（0209 后 succeeded∧replayable 行价改漂移=cached 回放·归 ag09-replay-first.proof 臂 E；
+  // 价改 fence 对新派发面=header 等值/expired-claimed 重领臂未触）：断言改走 failed 行——
+  // 先以 business-失败造 failed 终态行（digest=r1 形），再携 proof-r2 漂移重放 → 仅 priceRevision 一轴变 → mismatch 恒然。
+  const bindingFailCalls = { n: 0 };
+  const bindingFailSeed = await invoke({ idempotencyKey: 'cost:binding-failed', schema: Schema, businessValidate: () => 'binding-seed-rejected',
+    model: billable(Promise.resolve({ ok: true as const, raw: { answer: 'seed' }, usage: { inputTokens: 1, outputTokens: 1 } }), bindingFailCalls) }, pool, OWNER);
   const bindingFirst = await invoke({ idempotencyKey: 'cost:binding', schema: Schema, businessValidate: () => null, model: billable(Promise.resolve({ ok: true as const, raw: { answer: 'binding' }, usage: { inputTokens: 1, outputTokens: 1 } }), { n: 0 }) }, pool, OWNER);
   const changedBindingCalls = { n: 0 };
   const changedBinding = billable(Promise.resolve({ ok: true as const, raw: { answer: 'must-not-send' } }), changedBindingCalls);
-  const bindingReplay = await invoke({ idempotencyKey: 'cost:binding', schema: Schema, businessValidate: () => null,
+  const bindingReplay = await invoke({ idempotencyKey: 'cost:binding-failed', schema: Schema, businessValidate: () => null,
     model: { ...changedBinding, prepare() { return { ready: true as const, execute: () => changedBinding.call(1), cost: { ...policy, priceRevision: 'proof-r2' } }; } },
   }, pool, OWNER);
-  A('同一逻辑 key 的价格 revision 改变时 durable claim 拒绝复用，零第二次外呼', 'value' in bindingFirst
-    && 'error' in bindingReplay && bindingReplay.error === 'idempotency_key_payload_mismatch' && changedBindingCalls.n === 0);
+  const bindingFailRow = await pool.query(`SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='cost:binding-failed'`, [OWNER]);
+  A('同一逻辑 key 的价格 revision 改变时 durable claim 拒绝复用，零第二次外呼（AG-09 重钉：failed 终态行面·succeeded 可回放价改漂移=cached 归 AG-09）',
+    'error' in bindingFailSeed && bindingFailSeed.error === 'business:binding-seed-rejected' && 'value' in bindingFirst
+    && 'error' in bindingReplay && bindingReplay.error === 'idempotency_key_payload_mismatch' && changedBindingCalls.n === 0
+    && bindingFailRow.rows[0]?.status === 'failed');
 
   // Supplier may have accepted before the connection fails. The first request is
   // unknown; replay must read that terminal state and make zero second calls.
@@ -142,12 +151,16 @@ async function main() {
   }, pool, OWNER);
   await new Promise((resolve) => setTimeout(resolve, 70));
   const lateAdmissionInvocation = await pool.query(
-    `SELECT status,error_code FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='cost:late-admission'`, [OWNER],
+    `SELECT status,error_code,completed_at::text AS "completedAt" FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key='cost:late-admission'`, [OWNER],
   );
-  A('准入超时后迟到取得的 lease 会自释放，零外呼且 durable claim=failed',
+  // EXEC 期 HEAD 既有红收口（§9-EXEC 登记）：刀 D（0179）后 model_admission_timeout 系准入族六码之一
+  // ——拒绝改走案A 释放形（claimed+lease 即刻过期+error_code/completed_at 零写=可重领），不再 failed
+  // 终态；原断言=刀 D 前 failed 形已陈旧。案A 形与 ag-d-admission.proof releasedClaimShape 同形。
+  A('准入超时后迟到取得的 lease 会自释放，零外呼且账本=案A 释放形（0179 刀 D：族内码释放可重领·非 failed 终态）',
     'error' in lateAdmission && lateAdmission.error === 'model_admission_timeout'
       && lateAdmissionProviderCalls === 0 && lateAdmissionReleases === 1
-      && lateAdmissionInvocation.rows[0]?.status === 'failed' && lateAdmissionInvocation.rows[0]?.error_code === 'model_admission_timeout');
+      && lateAdmissionInvocation.rows[0]?.status === 'claimed' && lateAdmissionInvocation.rows[0]?.error_code === null
+      && lateAdmissionInvocation.rows[0]?.completedAt === null);
 
   // A pre-dispatch database/ledger error must fail fast before any supplier
   // send.  NUL is rejected by PostgreSQL parameter encoding before any supplier

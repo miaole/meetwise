@@ -14,8 +14,9 @@
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import {
-  asPrincipal, assertIsolatedTestTarget, claimModelInvocation, completeModelInvocation, createPool,
-  failModelInvocationClaim, markModelInvocationDispatched, releaseRefusedModelInvocationClaim,
+  __resetAiCostExhaustedCacheForTest, asPrincipal, assertIsolatedTestTarget, claimModelInvocation,
+  completeModelInvocation, createPool, failModelInvocationClaim, markModelInvocationDispatched,
+  releaseRefusedModelInvocationClaim,
   type ModelAdmissionPartition,
 } from '@meetwise/db';
 import {
@@ -212,6 +213,9 @@ async function main() {
     `SELECT count(*)::int n FROM ai_cost_reservation WHERE request_owner_user_id=$1 AND idempotency_key=$2`, [OWNER, budgetKey]);
   A('预算臂：零钱面残留（无 reservation 行=零预留冻结）', Number(frozenReservations.rows[0]?.n) === 0);
   await pool.query(`UPDATE ai_cost_budget_month SET limit_micro_cny=100000000 WHERE scope_id=$1`, [budgetScope]);
+  // EXEC 期 HEAD 既有红收口（§9-EXEC 登记）：b3e5a4890 进程内预算缓存短路（TTL 30s）会绕过上述 DB 窗口
+  // 复位——臂语义=观察权威 SQL 行为，复位缝清缓存（ag11-settle-relax.proof :157/:177/:196 同形先例）。
+  __resetAiCostExhaustedCacheForTest();
   const budgetRetry = await invoke({
     idempotencyKey: budgetKey, operation: { id: 'interview.competency-planning.v1', businessRevision: 'agd:budget' },
     schema: Schema, businessValidate: () => null,
@@ -235,14 +239,24 @@ async function main() {
   }, pool, OWNER);
   A('负臂：succeeded cached 重放原样（0130:171-173·零第二次外呼）',
     'value' in cached && cached.value.answer === 'conc-retry-ok' && replayCalls.n === 0);
+  // AG-09 重钉（0209 后墙一收窄至非 succeeded∧replayable 行·succeeded 可回放漂移=cached 归 AG-09
+  // ag09-replay-first.proof 臂 A）：mismatch 负臂改从 failed 终态行断言——先造 failed 行→漂移重放→mismatch 恒然
+  // （0130:163-169 墙一历史定义·非现行=0184 :368-371 现行体）。
+  const mismatchKey = `agd:mism:${suffix}`;
+  const mismatchSeedToken = randomUUID();
+  await asPrincipal(pool, OWNER, (c) => claimModelInvocation(c, {
+    owner: OWNER, idempotencyKey: mismatchKey, requestDigest: 'd'.repeat(64), leaseToken: mismatchSeedToken, leaseSeconds: 60,
+  }));
+  const mismatchSeedFailed = await asPrincipal(pool, OWNER, (c) =>
+    failModelInvocationClaim(c, OWNER, mismatchKey, mismatchSeedToken, 'ag_d_mismatch_seed_failed'));
   const mismatchCalls = { n: 0 };
   const mismatch = await invoke({
-    idempotencyKey: concKey, operation: { id: 'resume.diagnosis.v1', businessRevision: 'agd:conc' },
+    idempotencyKey: mismatchKey, operation: { id: 'resume.diagnosis.v1', businessRevision: 'agd:conc' },
     schema: Schema, businessValidate: () => null,
-    model: { ...billable(Promise.resolve({ ok: true as const, raw: { answer: 'x' } }), mismatchCalls), requestDigest: 'd'.repeat(64) },
+    model: { ...billable(Promise.resolve({ ok: true as const, raw: { answer: 'x' } }), mismatchCalls), requestDigest: 'e'.repeat(64) },
   }, pool, OWNER);
-  A('负臂：payload digest mismatch 恒 failed 原样（0130:163-169）',
-    'error' in mismatch && mismatch.error === 'idempotency_key_payload_mismatch' && mismatchCalls.n === 0);
+  A('负臂：payload digest mismatch 恒 failed 原样（0209 后墙一收窄至非 succeeded∧replayable 行·failed 行漂移重放仍 mismatch·零第二次外呼）',
+    mismatchSeedFailed === true && 'error' in mismatch && mismatch.error === 'idempotency_key_payload_mismatch' && mismatchCalls.n === 0);
   const lnA = `agd:ln:${suffix}`;
   await asPrincipal(pool, OWNER, (c) => claimModelInvocation(c, {
     owner: OWNER, idempotencyKey: lnA, logicalNodeKey: 'node-a', requestDigest: 'b'.repeat(64), leaseToken: randomUUID(), leaseSeconds: 60,
