@@ -156,6 +156,46 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 **待双审/EXEC 裁决项**：①worker 文件形制（同文件自 fork vs 伴生件·G2 tsx 实证后定）；②pdf 魔数窗（1024 窗 vs 恰 0·EXEC 实定落 receipt）；③resourceLimits 定值；④LEDGER `:85` 🔒 注记更新措辞（nail 时点行使）。
 
+## §9-rev rev 修订注记（pre-exec 双审 FAIL 两席合并修订清单 P1 四件甲/乙/丙/丁+P2 批量七件回路 · rev 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§8+卷尾注零洗** · 本节为 EXEC 期对前文对应句的权威修正与增补）
+
+**rev 缘由**：预执行双审回卷 FAIL 定谳两席合并清单（P1 甲/乙/丙/丁+P2 批量七件）·本席逐位届树亲证成立后按 rev 回路落卷（只改本 REQUEST 卷·纯文面零码动·码面/migrations/LEDGER/他卷/SSOT 零触·落卷形=append 不洗·EXEC 期以下列修正句为准读）。**STOP 维持 `draft:awaiting_pre_exec_dual`**（标题/Status/§8/卷尾注四处同值零翻·rev 后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve）。
+
+### §9-rev.1 修订①（P1-甲）——domain proof 图片 fixture 升级授权（fixture 冲突消解·§1.2-3/G1 落点）
+
+- 现树亲证：`packages/domain/test/resume-extract.proof.ts :39-40` 图片臂 fixture=前 2 字节 `Buffer.from([0x89, 0x50])` 声明 image/png → 断言 `image_needs_ocr`（本席亲数 proof `ok(` 断言恰 **25** 臂）。**冲突机制**：§1.2-1 图片魔数白名单落地后，2 字节截断魔数不中 8 字节全签 → 该臂改抛 `magic_mismatch` → 既有断言红——fixture 冲突定谳成立。
+- **明示授权改写**：proof `:39` fixture 升级为完整 PNG 签名 `\x89PNG\r\n\x1a\n`（8 字节）·**断言语义不变仍 `image_needs_ocr`**（image 分支 OCR seam 未动）；原 2 字节字节面转**新负例臂**「截断魔数 `[0x89, 0x50]` 声明 image/png → `magic_mismatch`」（恰证守卫拒截断魔数）。
+- **G1 判据改**：「既有 25 断言零回归」→「**24 臂零改+1 臂 fixture 升级语义守恒（指名 proof :39-40）**+新负例族（含截断魔数臂+真 PDF 正例臂 §9-rev.5-5）各断言精确码」。
+
+### §9-rev.2 修订②（P1-乙）——worker→host 错误结构化回传（§1.1 落点）
+
+- 机制定谳：worker_threads 跨线程错误面——worker 内抛出的 Error 回传宿主后**自定义属性不保证跨线程存活**（`Object.assign(new Error, {code})` 的 `code` 落空 → `errCode(e)`（packages/errors/src/index.ts `:30`）读 undefined → service else 分支 `parse_failed`）——**encrypted 快拒码静默降级 parse_failed 面**（UC-E2E-015 E1 语义失真·可解释性 fail-open）。
+- §1.1 增：worker→host 错误经**结构化消息 `{code,message}` 回传**（显式交接通道·禁裸 throw 依赖 Error 自定义属性跨线程存活）；host 按 code **重建错误对象**（`Object.assign(new Error(message), {code})` 同形·错误码面零新增）。
+- prove 必含：**encrypted 码跨 worker 保真断言**（worker 侧触发 encrypted → 宿主重建后 `errCode(e)==='encrypted'` 精确码）。
+
+### §9-rev.3 修订③（P1-丙）——G2 双 loader 实证+启动失败负例+线程收尾；G3 补 uc015
+
+- **G2 增双 loader 实证**：①tsx（domain `prove:resume-extract` 现系 `tsx test/resume-extract.proof.ts`·packages/domain/package.json `:26` 亲证）；②**生产 loader** `node --import @swc-node/register/esm-register`（Dockerfile `:42` `CMD` 恰此形亲证）——生产 loader 下 **worker 启动+一次真解析**。
+- **G2 增负例臂**：worker 启动失败 → 宿主 error 监听映射 4xx/`parse_failed`·API 进程存活不裸崩（loader 链断裂/伴生件缺位=宿主侧必可解释面·非 unhandled 裸崩）。
+- **G2 增成功路径收尾判据**：每次成功提取后 worker terminate/自然退出·线程计数不随请求数累积（防线程堆积·与 §2-G2 既有 terminate 退出确认判据合读）。
+- **G3 门清单补 `uc015:ingest-failures`**：`apps/api/test/uc-e2e-015-resume-ingest-failures.proof.ts`（`prove:uc015-ingest-failures` 系生产 loader 形·apps/api/package.json `:34` 亲证）——魔数守卫后**唯一生产 loader 真触 pdf-parse 的 HTTP 臂**亲证：其 malformed-PDF 臂字节头窗恰含 `%PDF-`（`:96`）过魔数门达 pdf-parse；neg-resume badpdf/mism 两臂（`@@@@`/纯文本字节·不中 `%PDF-`）与 uc015 加密臂（`:45` 手构 /Encrypt·`looksLikeEncryptedPdf` 前置快拒不触 pdf-parse）均被前置拦截——G3 增 `pnpm -C apps/api prove:uc015-ingest-failures` EXIT=0。
+
+### §9-rev.4 修订④（P1-丁）——§1.1-4 resourceLimits 帽值推导补容器约束+§0 锚表补行
+
+- §1.1-4 改：resourceLimits 定值（§8 裁决项③ EXEC 行使）推导**含容器约束**：`maxOldGenerationSizeMb×PARSE_MAX+主进程基线 ≤ mem_limit 512m−余量`（PARSE_MAX 默认 6·resume.service.ts `:51` acquireSlot 亲证）——防「worker 各自帽值×并发数」乘法击穿容器硬顶（OOM 顶到容器=全进程连坐·terminate 内存半失效）。
+- §0 锚表补行：`docker/compose.prod.yml` api 服务 `mem_limit: 512m` 本席亲证在 **`:261`**（双审席词面 :257 系席内树锚·结论不变只更行号沿 §0 头注形）。
+
+### §9-rev.5 修订⑤（P2 批量七件）
+
+1. **text 分支 PK 钉全签**（§1.2-1 落点）：text 拒族「PK」→**全签族** `PK\x03\x04`（常规档）+`PK\x05\x06`（空档）+`PK\x07\x08`（跨区档）三签全拒。
+2. **嗅探执行侧=宿主**（§1.2-1 落点）：嗅探在宿主侧分派点执行（§1.1-1 wrapper 内·**Worker spawn 之前**）——垃圾字节零 spawn 即拒（省冷启·嗅探纯字节比对恒轻）。
+3. **图片 kill-family 登记**（§1.2-1 image 条附注）：image 声明面 `image/` 前缀通配（detectResumeFormat）使 heic/avif/svg 声明入 image 分支——守卫后不中白名单 → `magic_mismatch`（改前=image_needs_ocr→OCR 路径面）——**UX 变化如实登记**·fail-closed 语义不变。
+4. **worker 冷启耗时量化行**：mammoth `lib/` = **224K** 恰等亲证（mammoth@1.12.0 du 实测）·pdfjs `build/pdf.mjs` = **784,780 B≈766 KiB**（pdfjs-dist@5.4.296 本席亲测）——**双审席词面 942K 未复现（量基未注·以届树亲测为准如实登记·EXEC 届树重测）**；worker 冷启=每次 spawn 重载该量级模块图·与 PARSE_MAX 并发闸+8s 超时闸成**双闸界**。
+5. **domain proof 增真 PDF 正例臂**：现 proof PDF 提取成功路径零断言（仅 encrypted 负例+looksLikeEncryptedPdf 静态两臂·本席亲证）——增手构最小 PDF（沿 craftDocx 零依赖纪律）→ PDFParse 文本输出断言（补 happy path 零覆盖·归 G1 新增臂族）。
+6. **ELF/Mach-O/UTF-16 残面登记**（§1.2-1 附注）：text 拒族清单未含 ELF `\x7fELF`/Mach-O（FEEDFACE/CEFAEDFE/FEEDFACF/CFFAEDFE/CAFEBABE）/UTF-16 BOM（FF FE/FE FF）——**登记残面不扩清单**（零新依赖纪律下归后继刀裁量·防「全魔数已覆盖」误读）。
+7. **§0.6 contracts 行号漂移补记**：§0.3 词面 contracts `:28-32`/`:139-141` → 双审席亲证 `:28-31`/`:138-140`·本席届树复核 mimeType 闭枚举（VoiceMimeType z.enum 三行）恰 **`:138-140`** 漂移成立；DTO 面 `:28-31`=cap 面 `:28-30`+DTO const `:31`（type 行 `:32` 尾随·±1 词面口径差如实登记）——均**注记级漂移**·§0.6「停止条件未触发」判定不变。
+
+**rev 自检回执**：markers 五类标记词+全树行首冲突标记严格形——本卷改动集直扫 **0/0**（本席亲跑·五类词面运行时组装防自指沿 §5 同形制）；`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（rev 时点本席亲跑·managed 2259≤cap 2264 余 5·append 零新增文件计数不变）；`git diff --numstat` 恰 1 tracked 本卷 .md（纯 append 零删改·零码面）；migrations 全目录字节零触；LEDGER/SSOT 零触；est live=0（rev turn 全只读+1 doc append）；pins 十一值零翻（`actualSpendCny=null` 脚注同源）。
+
 ---
 
 *5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`** · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
