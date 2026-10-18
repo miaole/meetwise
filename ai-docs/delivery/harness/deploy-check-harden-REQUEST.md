@@ -1,4 +1,4 @@
-# DEPLOY-CHECK-HARDEN REQUEST — deploy:check 校验器 P2 加固小刀（注释形假阳封堵+四行行首锚+宽 COPY 禁令牙 · 单文件 `scripts/deploy-check.mjs` 恰 1 码 + 本卷恰 1 doc · 快速链 REQUEST mini 卷+EXEC 一体席 · **STOP=`draft:awaiting_pre_exec_dual`**[起草落卷 2026-10-16·随令直落形]）
+# DEPLOY-CHECK-HARDEN REQUEST — deploy:check 校验器 P2 加固小刀（注释形假阳封堵+四行行首锚+宽 COPY 禁令牙 · 单文件 `scripts/deploy-check.mjs` 恰 1 码 + 本卷恰 1 doc · 快速链 REQUEST mini 卷+EXEC 一体席 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草落卷史录]）
 
 > 战役 meetwise · 支线 `line/deploy-check-harden` · 工作树 `meetwise-dch` · 起草基线 @origin tip=`2eaf387ed`（deploy-check-align nail tip·派单下界「fetch 后 origin tip≥2eaf387ed」以等号成立亲证=fetch 亲跑+`git branch -r --contains 2eaf387ed` 含 origin/feat/mysql-schema-skeleton 与 origin/line/deploy-check-align 双支·本席亲证在卷）· ⛔push ⛔merge 主线（push/翻面权归协调方）。主仓 worktree 建支线：`git worktree add ../meetwise-dch -b line/deploy-check-harden 2eaf387ed`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief（2026-10-16·DEPLOY-CHECK-HARDEN P2 加固小刀·快速链 REQUEST mini 卷+EXEC 一体席·修法三件+门矩阵+commit 新规范由 brief 颁定）；②deploy-check-align nail P2 注记承引（LEDGER `ai-docs/delivery/harness/product-campaign-LEDGER.md:630` P2-2「注释形假阳面加锚建议归后继」+P2-3「宽 COPY 禁令补牙建议归后继」·checklist `ai-docs/delivery/execution-master-checklist.md:3733` 「Line deploy-check-align nail」段 P2 三注记·本席亲读在卷）；③席2 沙箱出证承引（/tmp 实测：真实行注释形 `# COPY packages ./packages` 后 deploy:check EXIT=0 假绿·本席 worktree 内 T1 亲复现同值·§2 门2 承登）。
@@ -39,10 +39,27 @@
 - `Dockerfile` blob `06d40f69` 恒等（零字节 Ban·镜像契约零触）·`docker/compose.prod.yml`/`compose.monitoring.yml`/`docker/monitoring/prometheus.yml` 零触·判词②-⑤ 全部既有断言零改零删。
 - **停止条件（三类）**：**锚漂**=届时 tip 对 §0 两锚 blob 漂移超注记级→停重 pin 回炉；**门红**=门1-8 任一红→停如实升级（Ban 就地改因 Ban 扩面修）；**越面**=任何 Dockerfile/判词语义/dev 回退/四行外正则改形诉求→停另刀。Ban self-approve · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
-## §8 STOP · `draft:awaiting_pre_exec_dual`（三处同值：Status 头/本节/卷尾注 · 快速链起草+EXEC 一体席·随令直落形先例 cap-2264/lc242）
+## §8 STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草落卷史录保留 · 三处同值：Status 头/本节/卷尾注 · 快速链起草+EXEC 一体席·随令直落形先例 cap-2264/lc242）
 
 - EXEC 本席随派单令直落·两 commit 落卷=①本卷 draft+②码面 fix（`fix(ci): 部署校验器加固——注释行剔除+行首锚+宽 COPY 禁令`·战役黑话不进标题）·STOP 翻面随 ② 三处同值翻 `executed:awaiting_post_prove_dual`（前值本值史录保留）。
 - LEDGER 管线行+checklist 段 append/翻面权归协调方（本刀 diff 恰 2 不触 SSOT 两文件·nail 波随卷）。本 commit 不预 claim EXEC 门值（§2 基线值=证据在卷非 EXEC 承诺）。
 
 ---
-*DEPLOY-CHECK-HARDEN REQUEST · 2026-10-16 起草 · STOP=`draft:awaiting_pre_exec_dual`[三处同值：Status 头/§8/卷尾注] · 基线 origin tip=`2eaf387ed` · 分支 `line/deploy-check-harden` · 工作树 `meetwise-dch` · est live=0 · actualSpendCny=null · 零迁移零 env 闸零 lockfile · 停止条件三类全设 · Ban self-approve · alone≠dual · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase*
+*DEPLOY-CHECK-HARDEN REQUEST · 2026-10-16 起草 · STOP=`executed:awaiting_post_prove_dual`[EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头/§8/卷尾注] · 基线 origin tip=`2eaf387ed` · 分支 `line/deploy-check-harden` · 工作树 `meetwise-dch` · est live=0 · actualSpendCny=null · 零迁移零 env 闸零 lockfile · 停止条件三类全设未触发 · Ban self-approve · alone≠dual · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase*
+
+## §9 EXEC 记录（EXEC 席落卷 2026-10-16·八门全绿+修法三件落码·STOP→`executed:awaiting_post_prove_dual`）
+
+- **授权链**：起草落卷 `082d95007`（`draft:awaiting_pre_exec_dual`·基线 origin tip=`2eaf387ed` 派单下界等号亲证）→协调方派单 brief 随令直落形（快速链 REQUEST mini 卷+EXEC 一体席·cap-2264/lc242 先例）→EXEC 本卷。EXEC 届 fetch 复证 origin tip 恒等 `2eaf387ed`（锚漂未触发亲证）。
+- **门矩阵全表（八门全绿·本席亲跑）**：
+  1. 门1 deploy:check 净树 **EXIT=0**（208 迁移面零扰）。
+  2. 门2 假阳封堵牙测双向：改前 T1=真实行注释形 `# COPY packages ./packages`→旧码 **EXIT=0 假绿**（基线 T0 净树 EXIT=0 对照·席2 /tmp 同值出证承引）；改后同 mutation→**EXIT=1** 错文恰判词① `runtime 必须携带源码与 workspace 依赖链接`（假阳封堵成立）；宽 COPY 注入 mutation→**EXIT=1** 错文恰新牙 `禁止宽 COPY 回归——镜像 context 必须走精确清单`（且判词① 未误红=精确行仍在·牙独立判别）；restore 后 `git status` Dockerfile 零残留树净+净树复跑 EXIT=0。
+  3. 门3 validate-prod-compose **EXIT=0**。
+  4. 门4 `pnpm turbo typecheck --force` **8/8·0 cached·EXIT=0**（17.3s）。
+  5. 门5 `pnpm turbo lint --force` **12/12·0 cached·EXIT=0**（18.2s·全 0 errors·cap 不放宽不上调）+单文件 `eslint scripts/deploy-check.mjs --max-warnings 0` **EXIT=0**。
+  6. 门6 markers：对基线全改动集 **59 新增行**五类标记词+冲突标记对直扫 **0 命中**（运行时组装词表·词面不入卷防自匹配）+全树行首冲突标记严格 grep **EXIT=1 零命中**。
+  7. 门7 docs:check（卫生附加门·派单矩阵外如实加测）**EXIT=0·2258≤cap 2264 余 6**（谱系=deploy-check-align nail 后 2257+本卷 REQUEST +1）。
+  8. 门8 diff 面：对基线 `2eaf387ed` 全支线 **恰 2 tracked**=本卷 REQUEST（+65/−0 净=draft +48+§9 EXEC 记录 +17）+`scripts/deploy-check.mjs`（+11/−7）·零 lockfile（`pnpm install --frozen-lockfile` EXIT=0 后 lockfile 零改亲证）·Ban 面四文件（Dockerfile+compose.prod.yml+compose.monitoring.yml+prometheus.yml）零触亲证。
+- **修法落点（落码后行号）**：件① `dockerfileWithoutComments` 常量 `:15`（仿 `:12` prometheusWithoutComments 先例·剔注释后判词① 七正则文本全换用 `:29-:35`）；件② 四行正则 `^[ \t]*` 行首锚+m 标志 `:32-:35`（匹配体零改）；件③ 宽 COPY 禁令牙一行 must `:37`（`!/^COPY \. \.[ \t]*$/m`·错文自述）。§0 锚A blob `c8a63303` 系起草现状锚（@`2eaf387ed` 恒等）·落码后新值随本 commit 定锚·注记级行号漂移如实注记。
+- **pins 复验+停止条件判定**：§5 全值恰等（est live=0·actualSpendCny=null·零迁移零 DDL 零 env 闸零 lockfile·Dockerfile blob `06d40f69` 恒等·判词②-⑤ 零触）；停止条件三类逐条=锚漂**未触发**（origin tip 届值恒等 `2eaf387ed`·§0 两锚亲证在位）/门红**未触发**（八门全绿）/越面**未触发**（触面恰 2 tracked 全在授权清单·Dockerfile 零字节）。
+- **偏离清单**：理想零。如实注记两条（非偏离）：①门7 系派单矩阵外卫生附加门（只加不减）；②牙测三 mutation 形（T1 注释形/宽 COPY 注入/restore）全临时形测毕 restore 树净·未入 commit。
+- **STOP=`executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual` 史录·三处同值翻面：Status 头/§8/卷尾注）**·LEDGER 管线行+checklist 段 append/翻面权归协调方（本刀 diff 恰 2 不触 SSOT 两文件·nail 波随卷）·post 双审两独立外席待派·alone≠dual·⛔push。
