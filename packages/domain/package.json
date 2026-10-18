@@ -41,11 +41,11 @@
   },
   "dependencies": {
     "mammoth": "^1.12.0",
-    "pdf-parse": "^2.4.5"
+    "pdf-parse": "^2.4.5",
+    "@meetwise/contracts": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "typescript": "catalog:",
-    "@meetwise/contracts": "workspace:*"
+    "typescript": "catalog:"
   }
 }
