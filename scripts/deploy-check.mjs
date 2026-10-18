@@ -34,9 +34,9 @@ must(/COPY --from=deps \/app\/node_modules \.\/node_modules/.test(dockerfile)
 for (const entrypoint of ['apps/api/src/main.ts', 'apps/worker/src/main.ts', 'apps/worker/src/cost-configure.ts', 'packages/db/src/migrate-cli.ts']) {
   must(existsSync(entrypoint), `backend image source entrypoint 缺失:${entrypoint}`);
 }
-must(Boolean(apiPkg.devDependencies?.['@swc-node/register'])
-  && Boolean(workerPkg.devDependencies?.['@swc-node/register'])
-  && Boolean(dbPkg.devDependencies?.tsx), 'workspace-local direct entrypoint 依赖未在 package manifest 声明');
+must(Boolean(apiPkg.dependencies?.['@swc-node/register'])
+  && Boolean(workerPkg.dependencies?.['@swc-node/register'])
+  && Boolean(dbPkg.dependencies?.tsx), 'workspace-local direct entrypoint 依赖未在 package manifest 声明');
 const runtimeDockerfile = dockerfile.slice(dockerfile.indexOf(' AS runtime'));
 must(!/RUN corepack enable/.test(runtimeDockerfile), 'runtime stage 不得启用 Corepack');
 must(/WORKDIR \/app\/apps\/api[\s\S]*CMD \["node","--import","@swc-node\/register\/esm-register","src\/main\.ts"\]/.test(runtimeDockerfile), 'Dockerfile 默认 API 必须直接 Node + swc entrypoint');
