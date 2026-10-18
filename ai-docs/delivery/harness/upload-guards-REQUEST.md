@@ -196,6 +196,36 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 **rev 自检回执**：markers 五类标记词+全树行首冲突标记严格形——本卷改动集直扫 **0/0**（本席亲跑·五类词面运行时组装防自指沿 §5 同形制）；`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（rev 时点本席亲跑·managed 2259≤cap 2264 余 5·append 零新增文件计数不变）；`git diff --numstat` 恰 1 tracked 本卷 .md（纯 append 零删改·零码面）；migrations 全目录字节零触；LEDGER/SSOT 零触；est live=0（rev turn 全只读+1 doc append）；pins 十一值零翻（`actualSpendCny=null` 脚注同源）。
 
+## §9-rev2 rev2 修订注记（pre-exec 双审**第二轮双 FAIL** 两席合并修订清单 P1 两件（R1 fixture 半径扩+P1 帽值定帽公式废除）+P2 批量七件回路 · rev2 席落卷 2026-10-16 · **append 注记形 · 上文 §0-§8+§9-rev 全节+卷尾注零洗** · EXEC 期与 §9-rev 词面冲突处**以本节为准读**）
+
+**rev2 缘由**：rev 后重派 pre-exec 双审第二轮回卷**两席双 FAIL**·合并清单 P1 两件+P2 批量七件·本席逐位届树亲证成立后按 rev 回路落卷（只改本 REQUEST 卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触·落卷形=append 不洗）。**STOP 维持 `draft:awaiting_pre_exec_dual`**（标题/Status/§8/卷尾注四处同值零翻·rev2 落卷后重派 pre-exec 双审两独立外席**第三轮**·窄域=两 P1 件（§9-rev2.1/§9-rev2.2）复验·alone≠dual·Ban self-approve）。
+
+### §9-rev2.1 修订 R1（P1-席1）——fixture 升级授权半径由一处扩三处（§9-rev.1/§1.2-4/G3 落点）
+
+- **半径扩定谳**：§9-rev.1 授权半径「仅 proof :39-40」**扩为三处 fixture 升级真 PNG 签名·断言语义守恒**——②`apps/api/test/neg-resume.proof.ts :35` `IMG_B64`（`fake-png-bytes-not-really-an-image`·字节面零 PNG 魔数·本席亲证）→ 消费臂 `:46`（`/resume/file`·image/png 声明）→ 既有精确断言 `:51-52`（422+`image_ocr_unavailable`）——魔数守卫落地后该臂改抛 `magic_mismatch` 断言红·冲突机制与 §9-rev.1 同构；③`apps/api/test/validate.ts :392` `pngB64`（`fake-png-bytes-for-ocr-e2e-001`·亲证）→ 消费 `:398` → 精确断言 `:404`（`image_ocr_unavailable`）同构红。三处均授权升级真 PNG 签名（`\x89PNG\r\n\x1a\n`）·**断言语义守恒**（①proof `:40` 仍 `image_needs_ocr`·②`:51-52`/③`:404` 仍 422 `image_ocr_unavailable`——OCR 能力门先答语义未动·OCR seam 未动）。旁支消费面经升级语义零变如实登记：neg-resume `:166-172`（DTO 400 臂·DTO 层先答不触字节面）+`:331`（OCR 条件臂·422 路径守恒）。
+- **§1.2-4 改写**：撤回「neg-resume 既有臂零回归亲证」中 image 面全称量词——改「**badpdf/mism 容差臂（:184/:188 inRange(400,499) 形·本席届树亲证恰 :184/:188）零改即绿**+**image 臂（:35 fixture·消费 :46→:51-52）经 fixture 升级断言守恒**」——容差臂零改与 image 臂升级两面分立·不再以「既有臂零改」全称覆盖 image 面。
+- **G3 判据补注**：neg:resume EXIT=0 收口**以本三处 fixture 升级为前提**（fixture 升级系本节授权改动面·非既有臂非法改写·G3 门面记「fixture 升级守恒」非「零改」·G1「24 臂零改」判据限 domain proof 面不变）。
+
+### §9-rev2.2 修订 P1（席2）——帽值定帽公式废除·改实测探针下界（§1.1-4/§9-rev.4 改写落点）
+
+- **废除**：§9-rev.4「`maxOldGenerationSizeMb×PARSE_MAX+基线 ≤ mem_limit 512m−余量`」定帽公式**废除**——席2 同版实测证伪：8MB 合法 PDF 单次真解析 heapUsed **58-74MB** > 公式解 ≈**43MB**（(512m−基线余量)/PARSE_MAX=6 形）=**系统性误杀**（公式帽下合法文档解析必 OOM）；且单 worker 实测 RSS **329MB** 不受 old-gen 帽约束——**ArrayBuffer/external 内存不入 old-gen 计账**（V8 堆外面）·公式恒低估·定帽无效（量基系席2 实测登记·EXEC 届树复测为准）。
+- **改探针定帽**：帽值下界=**最大合法 8MB fixture 于帽值下真解析成功实测探针**（G2 增断言：EXEC 以 8MB 合法 PDF 于所定帽值实跑解析成功=帽值下界验收·上限侧取安全余量 EXEC 实定落 receipt·§8 裁决项③随之改探针形行使）。
+- **乘法击穿面如实登记残面**：PARSE_MAX=6 × 8MB 并发合法解析 RSS 需求可超 mem_limit 512m——系**现状等价面**（worker 化前同并发同文档同需求·非本刀恶化）·且**非本帽可控**（old-gen 帽不辖 RSS/external）——登记残面归容量裁量·禁冒充本帽保证面。
+- **码注释禁写形/许写形**：worker `resourceLimits` 码注释**禁写**「该帽保证容器不 OOM」——只许写「**isolate 级 OOM 隔离（ERR_WORKER_OUT_OF_MEMORY 实证）+heap 卫生**」（单 worker 炸弹 OOM 炸 worker 不连坐 API 进程·其可解释面由 §9-rev2.3-4 映射表 extract_timeout 级兜住）。
+- **推导式补外部内存项注记**（席1 R2）：EXEC 若保留任何帽值推导式·必须显式列**外部内存项注记**（8MB buffer 结构化克隆进 worker 即 ArrayBuffer/external 面·不入 old-gen 计账）——防再犯 old-gen 单项定帽。
+
+### §9-rev2.3 修订 P2 批量七件（rev2 二轮增量）
+
+1. **G1 判据补点名 PK 三变体断言臂**：新负例族必含且逐臂点名——`PK\x05\x06`（空档）声明 docx→拒；`PK\x07\x08`（跨区）声明 docx 或 text→拒；`PK\x03\x04`+`\x05\x06`+`\x07\x08` 三签声明 text→拒——均断言 `magic_mismatch` 精确码（§9-rev.5-1 全签族落地即配断言臂·防「钉词面在、断言力不在」）。
+2. **G2 生产 loader 臂钉 cwd=apps/api**：`node --import @swc-node/register/esm-register` 臂**必须在 apps/api 目录下运行**——`@swc-node/register` 依赖仅 apps/api（package.json `:113`）/apps/worker（`:178`）两 importer 声明（root/packages 零声明·本席全树 grep 亲证）·domain/root cwd 下解析必败——cwd 错置 FAIL 不算生产 loader 臂证据·receipt 记 cwd。
+3. **AbortSignal seam 语义钉**（§1.1-3 落点）：abort → terminate+reject **`extract_timeout` 级**（错误码面零新增）；terminate 与超时**双终止幂等+settle-once**（双触发零二次效应·reject/resolve 恰一次）；**登记本刀零调用方**（controller/service 均不传 signal·纯 seam 后继刀预留·prove 以 domain 层直注 signal 断言）。
+4. **worker 事件→宿主映射表三行**（§1.1 落点·prove 断言力）：①worker 结构化 `message{code}` → 宿主按 code 重建（§9-rev.2 形·原码保真）；②worker `error` 事件（`ERR_WORKER_OUT_OF_MEMORY`）**或 exit 无结果回传** → reject `extract_timeout` 级；③**启动失败**（spawn 即 error/exit 零消息）→ 4xx `parse_failed`（§9-rev.3 负例臂同源）。**error 监听必须随 spawn 同步挂载**——worker 'error' 无监听=宿主 uncaughtException 裸崩（Node 事件语义·席2 实证）·禁事后挂载。
+5. **嗅探执行序钉**：§1.2-1 嗅探执行序**先于 `looksLikeEncryptedPdf`**（现 resume-extract.ts `:75` 调用·`:48` 定义·本席亲证）——魔数不中零加密扫描零解析分派·fail-closed 恒最前置。
+6. **冷启参照值登记**：席2 同版实测 worker 冷启参照 **tsx ≈110ms / swc-node ≈265ms**（与 §9-rev.5-4 模块量级行并读）——**参照值非验收值**·与 EXEC 届树重测条款并读（本席届树 node_modules 缺位未复现实测·如实登记·以届树亲测为准）。
+7. **uc015 加密臂锚词更正+启动失败臂注入缝指引**：§9-rev.3 词面「uc015 加密臂 `:45`」→**`:42-55`**（`encryptedPdfFixture` 函数体·`/Encrypt` 字典 `:49-:50` 本席亲证：`:49` obj4 /Filter /Standard 加密字典声明+`:50` trailer /Encrypt 4 0 R 引用）——结论不变只更锚词沿 §0 头注形；G2 启动失败臂注入缝指引：坏 worker 路径注入建议=EXEC 经构造参/env 覆盖 worker 入口路径指向不存在文件触发启动 error·**禁 mock worker_threads 本体**（保事件映射真路径）。
+
+**rev2 自检回执**：markers 五类标记词+全树行首冲突标记严格形——本卷改动集直扫 **0/0**（本席亲跑·五类词面运行时组装防自指沿 §5/§9-rev 同形制）；`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（rev2 时点届树亲跑·managed 2259≤cap 2264 余 5·append 零新增文件计数不变）；`git diff --numstat` 恰 1 tracked 本卷 .md 纯 append 零删改零码面；migrations 全目录字节零触；LEDGER/SSOT 零触；est live=0（rev2 turn 全只读+1 doc append·届树 node_modules 缺位零 prove 跑·登记如实）；pins 十一值零翻（`actualSpendCny=null` 脚注同源）。
+
 ---
 
 *5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`** · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
