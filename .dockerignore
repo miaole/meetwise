@@ -15,3 +15,9 @@
 
 # CI-WIRING #169: r4-* 31 件证据/分类器已迁 apps/worker/evidence（生产零 import）——镜像上下文排除·生产镜像不含。
 apps/worker/evidence
+
+# REPO-HYGIENE 承登(§9-rev.3「本地镜像面归后继供应链刀」·#101 供应链刀件③收口):本地
+# docker build 在盘两产物(playwright test-results/ 与 tsc *.tsbuildinfo·CI 全新 checkout
+# 本就无两件)不进镜像;两镜像(root Dockerfile / apps/web/Dockerfile)context 均为仓库根,本清单即共同权威。
+**/test-results
+**/*.tsbuildinfo

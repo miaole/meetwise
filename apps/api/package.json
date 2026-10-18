@@ -109,12 +109,12 @@
   "zod": "catalog:",
   "@meetwise/domain": "workspace:*",
   "@meetwise/ai-runtime": "workspace:*",
-  "@meetwise/ai-graphs": "workspace:*"
- },
- "devDependencies": {
+  "@meetwise/ai-graphs": "workspace:*",
   "@swc-node/register": "^1.11.1",
   "@swc/core": "^1.15.43",
-  "@types/node": "catalog:",
   "typescript": "catalog:"
+ },
+ "devDependencies": {
+  "@types/node": "catalog:"
  }
 }
