@@ -126,6 +126,13 @@ export const METRIC = {
   // （同名裸节点跨两次 runGraph 边界观测=跨一个完整 job 投递周期仍停留）计数。零 label（低基数纪律）。
   // 稳态=0，>0 即有 thread 卡在中间节点——修复面归后继刀，本指标只承载「可见性」（AG-05 盲区消解半）。
   graphRunStuckObserved: 'graph_run_stuck_observed_total',
+  // UC-028 A2 对账回补（trace 写 fail-open 丢失面的 recon 承接）：backfilled=实际回补插入的
+  // trace 行数（counter·零 label）；missing=回补落后水位（gauge·语义=差集 owner 计数，与
+  // owner-only 枚举缝对齐）。missing 稳态 0，>0=回补落后；零 label（低基数纪律），读点在
+  // recon tick（30s 一拍）·owner loop 后（0203 同位）；沿 jobsQueued 族「gauge 是全局绝对值：
+  // 多 worker 各自查同一 DB 得同值，告警侧 max() 去重」语义。
+  aiTraceReconBackfilled: 'ai_trace_recon_backfilled_total',
+  aiTraceReconMissing: 'ai_trace_recon_missing',
 } as const;
 
 /**
@@ -169,6 +176,8 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.inc(METRIC.aiTracePersistFailures, undefined, 0);
   m.inc(METRIC.graphRunStuckObserved, undefined, 0);
   m.inc(METRIC.aiTracePersistAttempts, undefined, 0);
+  m.inc(METRIC.aiTraceReconBackfilled, undefined, 0);
+  m.setGauge(METRIC.aiTraceReconMissing, 0);
   for (const result of ['terminalized', 'enumeration_failed', 'owner_failed', 'backlog_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);

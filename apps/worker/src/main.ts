@@ -33,6 +33,7 @@ import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
+import { runTraceReconReconciler, resolveTraceReconConfig } from './trace-recon.ts';
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
 import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
 import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
@@ -722,6 +723,9 @@ async function bootstrap() {
   // reservation, making the ambiguity observable and preventing a second
   // billable send under the same idempotency key.
   const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
+  // UC-028 A2 trace 对账回补：fail-open 旁路丢失的 trace 行从 succeeded 真相差集回补
+  // （owner-only 枚举缝 + 每 owner asPrincipal 内反连接；幂等 arbiter=0001 PK，稳态零插零漂）。
+  const traceReconLoop = runTraceReconReconciler(pool, resolveTraceReconConfig());
   // MODEL-OP-wire：usage 校准因子周期 reconciler（读 estimate↔usage 配对 → 版本化因子落库）。
   // Dual reconciler 同列 · ≠ MODEL-OP fake green / ≠ SLO / ≠ Redis cutover / PG LISTEN retained.
   // AG-07 止血（AG-COST1 §1-①）：env 旋钮取代 60s 硬编码默认。缺省 ENABLED=false（裁决项①推荐 (b)·
@@ -773,7 +777,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && traceReconLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true),
     // #157 分域 ready：privacy 域两擦除 loop 摘出 workerReady AND 链（域内 3 拍失败不再
     // 拉闸整 worker 流量闸），域观测收口 /readyz/privacy；两 loop 停机清单归属零触
     // （drainStops loop 相原样），ready() 机制本体零改（翻红信号仍在·仅域归属变）。
@@ -818,6 +822,7 @@ async function bootstrap() {
     { name: 'route-classify', stop: () => routeClassifyLoop.stop(), phase: 'loop' },
     { name: 'commerce', stop: () => commerceLoop.stop(), phase: 'loop' },
     { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop(), phase: 'loop' },
+    { name: 'trace-recon', stop: () => traceReconLoop.stop(), phase: 'loop' },
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
@@ -851,7 +856,7 @@ async function bootstrap() {
     })();
   };
   wireSignalShutdown(['SIGTERM', 'SIGINT'], () => shutdownWorker('SIGTERM'));   // 优雅排空在飞 job 再退;两信号同一 handler
-  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + qbank release sweep(${qbankReleaseSweepLoop ? 'enabled' : 'off'}) + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + trace recon reconciler + usage calibration reconciler + qbank release sweep(${qbankReleaseSweepLoop ? 'enabled' : 'off'}) + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();
