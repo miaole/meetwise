@@ -1,6 +1,6 @@
-# SUPPLY-CHAIN 供应链残面刀（#101 部分·仓库卫生刀残面登记承接·镜像 devDeps 完备性正解 + .dockerignore 补行 + 整仓 COPY 瘦身裁量 + #249/#143 注记承登 · 起草 REQUEST · **STOP=`draft:awaiting_pre_exec_dual`**）
+# SUPPLY-CHAIN 供应链残面刀（#101 部分·仓库卫生刀残面登记承接·镜像 devDeps 完备性正解 + .dockerignore 补行 + 整仓 COPY 瘦身裁量 + #249/#143 注记承登 · EXEC 落码 · **STOP=`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷 2026-10-16 · pre-exec 双审两独立外席待派 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC · ⛔push · ⛔merge主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码+门矩阵全绿 2026-10-18 · 前值 `draft:awaiting_pre_exec_dual` @起草 史录保留 · post-prove 双审两独立外席待派 · alone≠dual · Ban self-approve · ⛔push · ⛔merge主线）
 **席位**：SUPPLY-CHAIN 供应链残面刀起草席（协调方派单·#101 部分 残面承接·批5 自主可推件·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `7c602df0`（本席 `git fetch origin` 亲证 `origin/feat/mysql-schema-skeleton` tip=`7c602df0`「merge(reserve-renew-fix): nail 波序并线」·派单「fetch 后 origin tip≥最新」等号成立亲证·本席 `git worktree add ../meetwise-sc -b line/supply-chain` 亲立锚该 tip·分支零自造 merge 节点·⛔pull --rebase 未用）· 分支 `line/supply-chain` · 工作树 `meetwise-sc`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权/立行权归协调方）**：①协调方派单 brief（#101 部分·四读码面=devDeps 完备性正解+dockerignore 补行+COPY 瘦身裁量+#249/#143 注记）；②`execution-master-checklist.md:3565` STILL OPEN 承接原文亲读在卷（「#101 部分残面（镜像 devDeps+整仓 COPY 瘦身+.dockerignore 补行）归后继供应链刀」——本卷即该后继承接席）；③`product-campaign-LEDGER.md:611` repo-hygiene nail 管线行同款登记（「依赖归位/预编译归后继供应链刀·本地镜像面归后继供应链刀整仓 COPY 瘦身」）；④`repo-hygiene-REQUEST.md` §1.2-3/§1.3-6/§9-rev.3 三处残面登记原文亲读在卷（本卷逐面承接·登记不洗）。
@@ -139,7 +139,7 @@
 
 本刀改动集（本卷 .md+Dockerfile+.dockerignore+四 package.json+pnpm-lock.yaml）**五类标记词 grep 零命中**（起草席落卷时对本卷亲跑直证·回执随 EXEC 收据留痕·五类词面见 `i6-239-gates.proof.mjs` 运行时组装·不入卷防自指）。**承登（基线红如实）**：`i6-gates:prove` 恰符臂以 i6-239 历史刀申报清单为期望集·任何后继刀必红该臂=**协议形承登**（repo-hygiene §7/obs-family §7 先例）；本刀实质臂=改动集五类词面零命中+`est live=0`+探针三臂直证（§2-1）+零迁移+SSOT 零触·全绿为门。
 
-## §8 STOP · `draft:awaiting_pre_exec_dual`（起草落卷 2026-10-16·三处同值：标题行+Status 行+本节·卷尾复述同值·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS ≠ EXEC·PASS 只过审·开工须协调方明示授权）
+## §8 STOP · `executed:awaiting_post_prove_dual`（EXEC 落码 2026-10-18·三处同值：标题行+Status 行+本节·卷尾复述同值·前值 `draft:awaiting_pre_exec_dual` @起草 史录保留零字洗·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·翻面权归协调方）
 
 **开工三条款**：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（含 §8 裁决行使落字·committed SHA 重钉）；③EXEC 立项**不得改 §1-修法定稿契约与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）。**停止条件（四类）**：**现场漂移**=届时 tip 对 §0.1 任一锚 blob/机制漂移（Dockerfile 消费链被改/.dockerignore 被他刀改/四 package.json 依赖面被他刀改/compose 命令形被改/cap sanction 被他人行使落地）→停·重 pin 回炉；**机制不满足**=件①-⑤落位后 §2-1/§2-7 命中红（探针 ERR_MODULE_NOT_FOUND/diff 面溢出）→停·如实升级协调方（Ban 就地改因 Ban 扩面修）；**越界需要**=compose 命令形/web 镜像/预编译彻底解/cap 自改等诉求→停·另刀或 §8 裁决行使（Ban 就地修）；**验收红不可修**=cap sanction 未行使/docs 基线再漂超帽而 sanction 未随/lint 漂移根因不在本刀交付面→停·如实登记（Ban 借机修）。
 
@@ -152,4 +152,14 @@
 
 ---
 
-*SUPPLY-CHAIN REQUEST · 2026-10-16 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`**（三处同值=标题+Status+§8·卷尾复述·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push·⛔merge主线） · 起草 base=`feat/mysql-schema-skeleton` @`7c602df0`（fetch 后 origin tip 等号亲证·worktree `meetwise-sc`/branch `line/supply-chain` 本席亲立·防重三查不存在）· 立项出处=协调方派单 brief（#101 部分·四读码面）+`execution-master-checklist.md:3565`+`product-campaign-LEDGER.md:611` 残面登记承接+repo-hygiene 卷 §1.2-3/§1.3-6/§9-rev.3 三处登记原文 · 修法五件=件① 九条目依赖归位（api 三+worker 三+db 三+domain 一·五 package.json·specifier 零变）+件② Dockerfile `:16` `--prod` 单 token 翻转+件③ `.dockerignore` 补 `**/test-results`+`**/*.tsbuildinfo` 恰 2 行（node_modules 已排除亲证 `:5`）+件④ `:31` `COPY . .`→精确清单恰 4 行+件⑤本卷 · 彻底解（预编译运行形）=超量级分批登记归后继预编译运行刀 · migrate tsx 面=前刀三件组残缺补全如实承登 · #249/#143 两注记承登零码 · diff 面=恰 8 tracked · docker 三探针臂+CI 面+typecheck 8/8+lint 5240 恰等+docs 基线 2240=cap 恰等（本卷 +1 已知红 FILE_LIMIT 承登·sanction 2248 归协调方 §8-①）+markers=0+零迁移 · est live=0 · actualSpendCny=null · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC · ⛔push · ⛔merge主线 · STOP*
+## §9 EXEC 记录（2026-10-18·前席落码+协调方门矩阵代行使·门值亲跑原值）
+
+1. **授权链**：协调方派单 brief（pre-exec 双审 PASS×2 承记在案）→ EXEC 席并线 merge `955b51f93`（cap-2256 届 tip 等号·锚漂 15/17 注记级）→ 前席落码件①②③后 600s 不活跃中断（docker build 探针悬挂归因·uncommitted）→ 恢复席二试复中断 → 协调方内联核验落码忠实性后代行使门矩阵并收口。
+2. **码面落点**：件① 五 package.json 九条目依赖归位（specifier 零变·lockfile 60 行变更全 hunk 落 importers 段 30 对移行·解析面零触亲证）+件② Dockerfile `--prod=false`→`--prod`+`:31` `COPY . .`→精确 4 行+件③ `.dockerignore` 补 `**/test-results`+`**/*.tsbuildinfo` 恰 2 行+承登注记三行+件⑤本卷。
+3. **门矩阵全绿（EXIT 原值）**：门1 docker build root EXIT=0（BuildKit·unpack 25.5s）+web 镜像同参建 EXIT=0（779MB·防误伤面核）+**臂①** register 探针 EXIT=1=`env_schema_invalid` fail-closed 拒启·`ERR_MODULE_NOT_FOUND`/`Cannot find package` 计数=0（依赖树完备性直证）+**臂②** tsx 探针 EXIT=0（node v22.23.2）+**臂③** dev-only 缺席 EXIT=0+镜像体积 root **2.17GB**/web **779MB**（修前本地镜像未建如实登记·CI 基线为准不造数）；门2 CI 面 `.github/` 零触+`test-results|tsbuildinfo` 词面零命中；门3 typecheck --force 8/8·0 cached EXIT=0；门4 lint root **5240 恰等** 0 errors EXIT=0；门5 docs:check EXIT=0 **2250≤2256** 余 6（cap 2256 已随 `955b51f93` 落树·已知红承登随 sanction 复绿）；门6 markers 改动集零命中；门7 触面 8 tracked（本刀 7 工作树 files+本卷 REQUEST@draft commit·上游 39 files 经 merge 带入交叠恰两 package.json 已承登 `955b51f93`）；门8 零迁移（changeset 零 SQL）；门10 `pnpm install --frozen-lockfile` EXIT=0。
+4. **偏离**：①EXEC 前席落码+协调方代收口（两席 600s 不活跃×2·build 探针悬挂归因·非门红）②门1「体积修前修后双值」修前值未建（本刀 build 探针系修后首次本地行使·如实登记）③其余零（落点/门值/STOP 形全沿定稿）。
+5. **STOP 终态**：三处+卷尾注同值 `executed:awaiting_post_prove_dual`·post-prove 双审两独立外席待派·est live=0（门1 探针 `--rm` 进程级离线·零生产集群零 secrets 零业务外呼）·⛔push ⛔merge 主线。
+
+---
+
+*SUPPLY-CHAIN REQUEST · 2026-10-16 起草落卷 · 2026-10-18 EXEC 落码 · **STOP=`executed:awaiting_post_prove_dual`**（三处同值=标题+Status+§8·卷尾复述·前值 draft 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push·⛔merge主线） · 起草 base=`feat/mysql-schema-skeleton` @`7c602df0`（fetch 后 origin tip 等号亲证·worktree `meetwise-sc`/branch `line/supply-chain` 本席亲立·防重三查不存在）· 立项出处=协调方派单 brief（#101 部分·四读码面）+`execution-master-checklist.md:3565`+`product-campaign-LEDGER.md:611` 残面登记承接+repo-hygiene 卷 §1.2-3/§1.3-6/§9-rev.3 三处登记原文 · 修法五件=件① 九条目依赖归位（api 三+worker 三+db 三+domain 一·五 package.json·specifier 零变）+件② Dockerfile `:16` `--prod` 单 token 翻转+件③ `.dockerignore` 补 `**/test-results`+`**/*.tsbuildinfo` 恰 2 行（node_modules 已排除亲证 `:5`）+件④ `:31` `COPY . .`→精确清单恰 4 行+件⑤本卷 · 彻底解（预编译运行形）=超量级分批登记归后继预编译运行刀 · migrate tsx 面=前刀三件组残缺补全如实承登 · #249/#143 两注记承登零码 · diff 面=恰 8 tracked · docker 三探针臂+CI 面+typecheck 8/8+lint 5240 恰等+docs 基线 2240=cap 恰等（本卷 +1 已知红 FILE_LIMIT 承登·sanction 2248 归协调方 §8-①）+markers=0+零迁移 · est live=0 · actualSpendCny=null · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ EXEC · ⛔push · ⛔merge主线 · STOP*

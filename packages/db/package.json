@@ -100,15 +100,15 @@
   "dependencies": {
     "pg": "catalog:",
     "@meetwise/errors": "workspace:*",
-    "@meetwise/qdrant-store": "workspace:*"
+    "@meetwise/qdrant-store": "workspace:*",
+    "@meetwise/domain": "workspace:*",
+    "@meetwise/contracts": "workspace:*",
+    "tsx": "^4.22.4"
   },
   "devDependencies": {
     "@types/pg": "catalog:",
     "typescript": "catalog:",
-    "tsx": "^4.22.4",
     "@types/node": "catalog:",
-    "@meetwise/domain": "workspace:*",
-    "@meetwise/contracts": "workspace:*",
     "@langchain/langgraph-checkpoint-postgres": "catalog:langchain",
     "@langchain/langgraph-checkpoint": "1.1.3"
   }

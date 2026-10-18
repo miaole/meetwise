@@ -13,7 +13,7 @@ COPY packages/contracts/package.json packages/contracts/
 COPY packages/config/package.json packages/config/
 COPY apps/api/package.json apps/api/
 COPY apps/worker/package.json apps/worker/
-RUN pnpm install --frozen-lockfile --prod=false
+RUN pnpm install --frozen-lockfile --prod
 
 FROM node:22-slim@sha256:d649c27dae7ba0137b3cef5dd75baa422c08dc3d9e3fc0c23dfb172dc3cc6436 AS runtime
 ARG VCS_REF=unknown
@@ -28,7 +28,10 @@ ENV APP_REVISION=$VCS_REF
 COPY --from=deps /app/node_modules ./node_modules
 COPY --from=deps /app/apps ./apps
 COPY --from=deps /app/packages ./packages
-COPY . .
+COPY pnpm-workspace.yaml package.json ./
+COPY packages ./packages
+COPY apps/api ./apps/api
+COPY apps/worker ./apps/worker
 # 非 root 运行
 RUN useradd -m app && chown -R app /app
 USER app
