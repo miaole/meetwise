@@ -149,6 +149,7 @@
   - **门10 diff 面（commit 时核）**：0208 新迁移+本卷（§9-EXEC 附记+STOP 三处翻面）——恰本刀面零越面。
 - **EXEC 面基础设施红全账（attempt-ledger 纪律·非断言红·恢复手段如实记·同门复跑取终值）**：门2/unstube boot 红×3——①run1 `meetwise-postgres-dev` **OOMKilled=true ExitCode=137**（Docker VM TotalMemory≈2.35GB 帽·隔离实例并起内存挤压·宿主 16GB 不入帽）；②run2/3 确定性 boot 红=**本 worktree 零 node_modules**（`probeHostSql` host 面解析不到 `pg` 逐 attempt 必抛→streak 永不成立·容器本体健康 logs_bytes=2375 两跑恒等·手动同形 `docker run` probe 8s ready EXIT=0 证伪镜像/资源面）→ `pnpm install --frozen-lockfile` EXIT=0（1m0.3s）后门1/门2 一轮全绿；dev 库运行窗暂停/复起如实记（门4 需容器在跑·零触 dev 主库只建/弃临时双库）。
 - **STOP 翻面**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**（三处同值：Status 头+§8+卷尾注）。post-prove 双审审面优先序见 §8。
+- **§9-EXEC 附记（commit 后树净形回执·2026-10-18·fix commit=`2af599899`）**：①`uc052:internal-erasure:prove` 树净形复跑 **EXIT=0**（`✓ UC052 internal erasure prove PASS`·11 cases 全 pass·receipt gitSha=`2af599899a0d175deef6e284d1ad941160c42669` 在卷）——**归因定谳：commit 前红=C-UNCOMMITTED 洁净门卫红非断言红·DBID-1 旧红未现**（perSink `event` expect-0 达成=purge 经释放臂物理删除功能性实证·`interview_event_immutable` 零出现）；②`db-intfk:prove` 树净形复跑 **EXIT=0**（`P6-4 历史迁移零改动 PASS`·0208 已 tracked 零出现=newFiles 白名单 0190-0199 未跟踪态条款如约成立）。门5 六件全数落定：g7fix4 EXIT=0·recruiter EXIT=0（噪声原地）·sinks EXIT=0（翻绿）·db-acl EXIT=0 P3-6 转绿·uc052 EXIT=0（门卫红消解·归因非 DBID-1）·db-int-fk EXIT=0 P6-4 PASS。
 
 ---
 
