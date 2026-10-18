@@ -1,6 +1,6 @@
 # UNSTUBE-ERASE 基线红诊断刀 REQUEST — 0195 append-only 触发器 vs 0096 投影 purge 写（诊断定谳+修法裁量定稿·迁移面 0208 认领〔rev 勘误原 0207·§9-rev+§9-rev3 双审定谳修订〕）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（诊断+起草席落卷·待 pre-exec 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。本值三处同值：Status 头+§8+卷尾注。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落码+门矩阵亲跑落卷·pre-exec 双审第三轮双 PASS 会签+协调方授权 EXEC 在案 §9-EXEC·待 post-prove 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。本值三处同值：Status 头+§8+卷尾注。
 
 > 战役 meetwise · 支线 `line/unstube-erase-diag` · 工作树 `meetwise-und` · 起草基线 @origin/feat/mysql-schema-skeleton=`c4bd89132`（派单下界「fetch 后 origin tip≥`c4bd89132` 或更新」：届树 origin tip=`c4bd89132` 等号成立亲证；本 turn `git fetch` origin 访问受限零新波·如实登记沿 42cf5f121 先例形；`origin/main 112e6d26f` 为基线祖先 `git merge-base --is-ancestor` EXIT=0 亲证）。主仓建支线：`git worktree add ../meetwise-und -b line/unstube-erase-diag c4bd89132`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief「UNSTUBE-ERASE 基线红诊断刀」（DB-HOTSPOT EXEC 席+post 席1/2 三席独立复现 `pnpm unstube-erase:prove` EXIT=1·`failure_class=privacy_contract_failed pass_count=41 fail_count=0`·崩点 `interview_event_immutable`·如实升级在案：`ai-docs/delivery/execution-master-checklist.md:3637` + `ai-docs/delivery/harness/db-hotspot-REQUEST.md:191` §⑥）；②本席=第四席独立复核（链文件亲读+考古+PG16 触发器语义实证）。
@@ -103,8 +103,8 @@
 
 ## §8 STOP（开工条款+待裁决项）
 
-- **STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）。
-- 待 pre-exec 双审两外席会签（Ban self-approve·alone≠dual）→ 协调方放行 EXEC。审面建议优先序：§1.2 释放臂三键+TG_OP='DELETE' 收窄逐条对 0096 实况复核（双审主战场·rev3 更）→ §1.3 否决七件无翻案〔rev3 增第 7 件〕→ §2 门1 红值指纹复核（41/0+崩点行号）。
+- **STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）。〔pre-exec 双审第三轮双 PASS 会签→协调方授权 EXEC 已行使·EXEC 面 §9-EXEC 落卷·2026-10-18〕
+- post-prove 双审两外席审面建议优先序：§1.2 释放臂四元谓词逐字对 0208 文本与 0096 实况复核（双审主战场）→ §1.3 否决七件无翻案 → §2 门1 翻绿指纹（46/46·failure_class=none·`applied=207 skipped=0`）+门5 邻面回执（`cleanup failed` 噪声原地/sinks 翻绿/db-acl P3-6 转绿/uc052·db-int-fk 附记回执）。
 - 裁决项一（不阻 EXEC）：5b P-3 §1 遗留「清理句 TRUNCATE 载体」后继处置是否另立刀（本刀 §1.3-5 已述不利面）。
 - ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase（push/翻面权归协调方）。
 
@@ -132,6 +132,24 @@
 - **rev 席亲证回执（2026-10-16 本树亲跑）**：①`apps/api/test/g7fix4-finalize-contract.proof.ts:123`/`packages/db/test/recruiter-depth.proof.ts:350` 均为 `pool.query('DELETE FROM interview_event …')` invoker 直连·`:133`/`:369` try/catch 吞亲读；②`scripts/run-e2e-isolated.mjs:3113` `-e POSTGRES_USER=meetwise` 亲读；③int-transcript-remaining-sinks purge 行号 :231/:295/:320 亲读（:237/:242 graph/report 臂不撞 0195）+`packages/db/src/privacy/uc052-internal-erasure.ts:228` 逐 target purge 亲读；④遥测：fetch EXIT=0·origin/feat/mysql-schema-skeleton=`57f5fab76`·`d278dccce` ancestor EXIT=0·全 ref 1163·0207 恰 5 ref 命中·**0208 全 ref 1163 零命中重扫维持**（P2-③ 显式化条款之现值基座）·tip 迁移链顶=`0207_ai_trace_backfill_scoped.sql`；⑤0195 blob @本树 HEAD=`d323706e2040`（§0.1 锚恒等·P2-⑥ 回滚形状行基座）。
 - **卫生回执**：markers 五类标记词+全树行首冲突标记零命中（commit 前亲跑）；docs:check 亲跑 EXIT=0（数值见 commit 词）；本 rev3 仍恰 1 tracked `.md`=本卷·零码面；**STOP 三处同值不变 `draft:awaiting_pre_exec_dual`**——rev3 落卷后重派 pre-exec 双审第三轮（审面以本节收敛清单为底稿）。
 
+## §9-EXEC（EXEC 席落码+门矩阵亲跑落卷·2026-10-18·pre-exec 双审第三轮双 PASS 会签→协调方授权 EXEC·工作树 clean 起跑 @`f5dafe86a`）
+
+- **落码面**：新建 `packages/db/migrations/0208_unstube_event_immutable_relax.sql` 恰一文件（§1.2-rev3 终形逐字）：`CREATE OR REPLACE FUNCTION assert_interview_event_immutable() RETURNS trigger LANGUAGE plpgsql`（INVOKER·SECURITY 未写=保持）——释放臂四元谓词 `TG_OP = 'DELETE' AND current_user = 'privacy_worker_owner' AND current_setting('app.privacy_target_id', true) IS NOT NULL AND session_user <> 'privacy_worker_owner'` → `RETURN NULL`·其余 `RAISE EXCEPTION 'interview_event_immutable' USING ERRCODE = '23514'` 原样（0195 原体 blob `d323706e2040` 为基·只加判别前置）。触发器对象本体/settlement_ledger 孪生/0195 文件零字节零触；头注含 0152 形 SET ROLE 上游防注（privacy_worker_owner NOLOGIN NOINHERIT 0048:16·成员资格授予 Ban）+superuser 通路注记+回滚形状行（blob `d323706e2040` CREATE OR REPLACE 复原）。迁移面零触其他文件·全链 `assert_interview_event_immutable` 改形面亲证仅 0195+0208 两处。
+- **立项三证（rev3 P2-③ 显式化条款行使·2026-10-18 `git fetch` EXIT=0 后现值·届值照现值勿按旧值校对承命）**：全 ref 遥测漂移如实两记——rev3 词 1163→本 turn 现值 **1166**（扫描窗内 1165→1166 恰一新 ref 落·两采样恒等后号段扫以 1166 终集重跑）；①文件名全史 `git log --all --diff-filter=A -- '*0208*'` **零命中**（对照 `'*0207*'` 恰 1=`d278dccce` 占用面不变）；②号段扫（全 1166 ref 逐 ref `ls-tree`）：0206=18 ref·0207=12 ref·**0208=0·0209=0**（rev3 词 9/5→现值漂移如实两记·在飞并线所致）；③词面全 ref（`packages/db/migrations`+`docs` 两树）`git grep -I "0208"` 零命中。链顶亲证：origin/feat/mysql-schema-skeleton tip=`349c33e90`（=rev3 词 `57f5fab76` 直后裔·is-ancestor EXIT=0）链顶仍 `0207_ai_trace_backfill_scoped.sql`·origin/main 祖先 EXIT=0·本支线链顶 0206+工作树 0208。**认领维持零撞。**
+- **门矩阵（EXIT 原值亲跑·界值照现值）**：
+  - **门1 `pnpm unstube-erase:prove` EXIT=0**·`ISOLATED_PROOF_SUMMARY target=unstube-erase:prove:raw exit=0 pass_count=46 fail_count=0 failure_class=none`（基线红 41/0 privacy_contract_failed→绿 46/46·唯一翻面主门兑现）·同 run migrate `migrations: applied=207 skipped=0`=**0208 fresh 链头应用正面实证**。
+  - **门2 `pnpm migrate:prove` EXIT=0**（123 PASS/0 FAIL·fresh 全链+幂等全 skip+multi-statement 三守卫+CI 唯一性豁免三历史双号面全 PASS）。
+  - **门3 `node scripts/check-migration-version-uniqueness.mjs` EXIT=0**·files=207 violations=0·豁免 0143/0152/0160 不变。
+  - **门4 `pnpm drift:prove` EXIT=0**（零漂移·豁免登记 2 项不变·临时双库 `_drift_mig` 全链含 0208 fresh 建=又一独立应用实证）。
+  - **门5 邻面（四件实跑+两件洁净门卫留位）**：`g7fix4:finalize:prove` **EXIT=0** 且 `cleanup failed` 噪声原地保留；`recruiter:prove` **EXIT=0** 且 `cleanup failed: error: interview_event_immutable` 原地（invoker 直连 pool.query 不满足释放臂键1→23514 必然仍在·try/catch 吞如旧·**rev3 勘误预期形逐位吻合·清理尾不复活**）；`int-transcript-remaining-sinks:prove` **EXIT=0**（基线 EXIT=1→绿·rev3 预登兑现·INT-TRANSCRIPT-01 全 PASS）；`db-acl:prove` **EXIT=0** 且 `P3-6 purge（privacy_worker_owner · 物理删除 + target erased + 请求转 purging）绿 PASS`（**现状红→0208 后转绿如实记·双审 P2-R1 第三件兑现**）；`uc052:internal-erasure:prove` 现跑 **EXIT=1=C-UNCOMMITTED 洁净门卫红非断言红**（`?? 0208` untracked 本体先拒·0195 断言面未达·沿 attempt-ledger dev 先例 commit 后树净形复跑归因分辨 DBID-1 旧红）；`db-intfk:prove` P6-4 依 §2 门5 条款 commit 后树净形跑（P6-4 newFiles 白名单=0190-0199 未跟踪态·0208 tracked 后零出现即绿）——两件回执 **§9-EXEC 附记**（commit 后同 turn 落卷）。
+  - **门6 `turbo typecheck --force` EXIT=0**·8/8 successful·0 cached。
+  - **门7 `turbo lint` EXIT=0**·12/12·web 601/root 5240/api 1421 三值恰等旧帽口径·全包 0 errors（零 1423 形·#185 刀未涉本树）。
+  - **门8 `pnpm docs:check` EXIT=0**·scanned 2246（=2245 基数+0208 .sql 恰 +1·帽内）。
+  - **门9 markers 五类+冲突标记**：改动集零命中（§9 落卷后 commit 前终扫复跑·运行时组装口径沿 `scripts/i6-239-gates.proof.mjs` §2-7·词面不入卷防自指）。
+  - **门10 diff 面（commit 时核）**：0208 新迁移+本卷（§9-EXEC 附记+STOP 三处翻面）——恰本刀面零越面。
+- **EXEC 面基础设施红全账（attempt-ledger 纪律·非断言红·恢复手段如实记·同门复跑取终值）**：门2/unstube boot 红×3——①run1 `meetwise-postgres-dev` **OOMKilled=true ExitCode=137**（Docker VM TotalMemory≈2.35GB 帽·隔离实例并起内存挤压·宿主 16GB 不入帽）；②run2/3 确定性 boot 红=**本 worktree 零 node_modules**（`probeHostSql` host 面解析不到 `pg` 逐 attempt 必抛→streak 永不成立·容器本体健康 logs_bytes=2375 两跑恒等·手动同形 `docker run` probe 8s ready EXIT=0 证伪镜像/资源面）→ `pnpm install --frozen-lockfile` EXIT=0（1m0.3s）后门1/门2 一轮全绿；dev 库运行窗暂停/复起如实记（门4 需容器在跑·零触 dev 主库只建/弃临时双库）。
+- **STOP 翻面**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**（三处同值：Status 头+§8+卷尾注）。post-prove 双审审面优先序见 §8。
+
 ---
 
-卷尾注：本卷=UNSTUBE-ERASE 基线红诊断刀起草落卷（诊断+起草席·2026-10-16）·基线 origin/feat/mysql-schema-skeleton @`c4bd89132`（fetch 访问受限零新波如实登记·下界等号成立）·支线 `line/unstube-erase-diag`（worktree `meetwise-und`）·本卷 draft=ai-docs/delivery/harness/unstube-erase-diag-REQUEST.md 恰 1 tracked·**STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）**·est live=0·**rev §9-rev（2026-10-16）=迁移号 0207→0208 勘误**（协调方裁决·撞号归因=起草时 0207 间隙未察·TRACE-RECON 同日落主线暴露·载体照更 `0208_unstube_event_immutable_relax`·全 ref 防撞扫描零占用认领·0152 三态判别先例同构承立·STOP 承维不变）·**rev3 §9-rev3（2026-10-16）=pre-exec 双审定谳修订落卷**（P1-甲门5 假预期勘误「清理尾不复活」+P1-乙第三类 purge 调用方 proof 普查补采+P2 七件全行使含 TG_OP='DELETE' 释放臂收窄·落点逐一 §9-rev3·STOP 承维 `draft:awaiting_pre_exec_dual`·rev3 后重派双审第三轮）·⛔push ⛔merge 主线。
+卷尾注：本卷=UNSTUBE-ERASE 基线红诊断刀起草落卷（诊断+起草席·2026-10-16）·基线 origin/feat/mysql-schema-skeleton @`c4bd89132`（fetch 访问受限零新波如实登记·下界等号成立）·支线 `line/unstube-erase-diag`（worktree `meetwise-und`）·本卷 draft=ai-docs/delivery/harness/unstube-erase-diag-REQUEST.md 恰 1 tracked·**STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）**·est live=0·**rev §9-rev（2026-10-16）=迁移号 0207→0208 勘误**（协调方裁决·撞号归因=起草时 0207 间隙未察·TRACE-RECON 同日落主线暴露·载体照更 `0208_unstube_event_immutable_relax`·全 ref 防撞扫描零占用认领·0152 三态判别先例同构承立·STOP 承维不变）·**rev3 §9-rev3（2026-10-16）=pre-exec 双审定谳修订落卷**（P1-甲门5 假预期勘误「清理尾不复活」+P1-乙第三类 purge 调用方 proof 普查补采+P2 七件全行使含 TG_OP='DELETE' 释放臂收窄·落点逐一 §9-rev3·STOP 承维 `draft:awaiting_pre_exec_dual`·rev3 后重派双审第三轮）·**exec §9-EXEC（2026-10-18）=落码+门矩阵亲跑落卷**（pre-exec 双审第三轮双 PASS 会签→协调方授权 EXEC·0208 落码 §1.2-rev3 终形逐字·立项三证 fetch 后现值 1166 ref 零撞·门1 翻绿 46/46+`applied=207 skipped=0`·门2/3/4/6/7/8/9 全 PASS·门5 四件实跑 g7fix4/recruiter EXIT=0 噪声原地+sinks 翻绿+db-acl P3-6 转绿·uc052/db-int-fk 洁净门卫面 commit 后树净形附记回执·基础设施红全账 §9-EXEC·STOP 翻面 `executed:awaiting_post_prove_dual` 待 post-prove 双审两外席）·⛔push ⛔merge 主线。
