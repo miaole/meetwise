@@ -14,7 +14,7 @@
 |---|------|--------|--------|---------------------|----------|----------|
 | H1 | apps/api/test/ha-2-drain.proof.ts | :104 | :104 | `A('unregister 幂等（不抛·二次移除后 count 仍 0）', r.count() === 0);` | 可达性钉→已升格（幂等效果入验） | **升格已落**·true 面已离 |
 | H2 | apps/api/test/ha-2-drain.proof.ts | :296 | :296 | `A('未排水 readiness ok', okBody.status === 'ok');`（:295 `assert.deepEqual` 全形钉在位） | 可达性钉→已升格（重申形·rev-⑤(c) 口径） | **升格已落**·true 面已离 |
-| H3 | apps/api/test/trial-grant.proof.ts | :267 | :267-268 | `A('0154/裸 SQL 文本双 apply 不抛（…重申可重跑）', reapplyPins.rows[0]?.ok === true);`（:267-270 `to_regclass`/`to_regproc` 存活臂在位） | 可达性钉→已升格（artifact 存活入验） | **升格已落**·true 面已离 |
+| H3 | apps/api/test/trial-grant.proof.ts | :267 | :270-271 | `A('0154/裸 SQL 文本双 apply 不抛（…重申可重跑）', reapplyPins.rows[0]?.ok === true);`（:267-269 `to_regclass`/`to_regproc` 存活臂在位·A 在 :270-271） | 可达性钉→已升格（artifact 存活入验） | **升格已落**·true 面已离 |
 | H4 | apps/api/test/report-retry-http.proof.ts | :269 | :270 | `A('honesty: HTTP prove 绿 ≠ 全链路 covered（钉语义翻转+频控行使 only）', true);` | 声明钉（honesty 申报·防 EXIT=0→covered wash） | pin 注记在位·保留 |
 | H5 | apps/api/test/uc-e2e-001-nhp-adv.proof.ts | :465 | :466 | `A('V3 JD/quiz text ingress = absent (documented; no invent)', true);` | 声明钉（documented-absence 申报·无值可检） | pin 注记在位·保留 |
 | H6 | apps/api/test/uc-e2e-001-nhp-fault.proof.ts | :503 | :504 | `A('F3 Ban-borrow disclosure recorded (Y/AB/AG/report:prove ≠ this case)', true);` | 声明钉（:499-:502 `E('F3-BAN',…)` 收据打印的断言流登记形） | pin 注记在位·保留 |
@@ -92,8 +92,18 @@
 
 - **定谳**：M7=packages/db/test/tenant-enforcement.proof.ts:321-322 折行三参形（`A('optional PG path unavailable (unit prove still green)', true,`+detail 折行）·逃逸单行 grep（无闭括号）与「引号\n true」多行两口径·全域实为 **103 非 102**·定性=声明钉族（catch 臂 skip 申报·真值腿 try 臂 :314-315 `bound === 'tenant-proof-user'`·与 M1 同函数同族）。
 - **五条落点**：①§0.2 ×6→×7 增 M7 行（行号/原文/定性=声明钉族 catch 臂 skip 申报·真值腿·处置=pin 注记评估与 M1 同族）②§0.4 全域读数 102→103+packages/db 6→7=组⑤ 4+漏计 M1/M2/M7+补口径「三参形 ×2（M6/M7）」③卷尾注「六处」→「七处」读数 103 随改（commit message rev 形同改）④§1.2「全口径扫毕」增补折行三参形已行使口径⑤§8 卫生段登记双审中 worktree 被外部 checkout 异常一件（ref 完好零损·建议双审窗内独占管护）。
-- **届树重扫亲证**（@ `6308bc348`·rev 席亲跑）：单行形 98（api 9/web 2/worker 81/db 6）+折行形 5（M3–M7·三参形 ×2）=**103**·`e2e/`+`scripts/` 零命中·双引号形零命中·M1–M6 锚零漂（§0.2 五处原文逐字复核）。
+- **届树重扫亲证**（@ `6308bc348`·rev 席亲跑）：单行形 98（api 9/web 2/worker 81/db 6）+折行形 5（M3–M7·三参形 ×2）=**103**·`e2e/`+`scripts/` 零命中·双引号形零命中·M1–M6 锚零漂（§0.2 六处原文逐字复核）。
 - **STOP 保持 = `draft:awaiting_pre_exec_dual` 三处同值**·rev 仅文面（恰 1 tracked 同文件）·零码面·翻面权归协调方。
+
+### §9-rev2 修订注记（re-dual 单点修订席·席1 FAIL 残 P1×1 收敛+席2 PASS·文面恰 3 处零码面·2026-10-16）
+
+- **re-dual 双席结论引用**：pre-exec 双审重开两独立外席——席1 **FAIL 残 P1×1**（即落点①·余零新 FAIL）·席2 **PASS**（携两观察·落点③承登）·**五条旧 FAIL 全核销**（§9-rev 五条落点逐条复核已落卷）·**103 独立重算双席零差值**（单行 98+折行 5 两席各自独立重算一致）。
+- **三条落点**：
+  1. **P1**：§0.1 H3 行「现树行」`:267-268`→`:270-271`+同行括注「（:267-270 `to_regclass`/`to_regproc` 存活臂在位）」→「（:267-269 存活臂在位·A 在 :270-271）」——实位亲证 `apps/api/test/trial-grant.proof.ts:270-271`=`A('0154/裸 SQL 文本双 apply…')` 两参折行形·:267-269 为 `const reapplyPins` SQL 臂（存活检）·该文件自 `a0b013053` 起至 HEAD 零 diff 亲证·**非窗内漂移系起草错登**。
+  2. **P2**：§9-rev 届树重扫行「§0.2 五处原文逐字复核」→「六处」（M1–M6 计六处·计数笔误）。
+  3. **P2 观察**（席2 两观察承登·不改 §0.1）：（a）H6 定性栏承证范围指针建议后继刀校 :499-:502；（b）M7 后继 pin 注记评估刀应附 `catch(e)` 宽捕无类型甄别语义观察（try 臂内非连接类错误亦归 skip 申报·:320 注释自承设计意图·pin 落码时评估类型甄别）。
+- **届树实测**（rev2 席亲跑）：markers 改动集新增行字面探针零命中+全树行首冲突标记对零命中 EXIT=0·docs:check EXIT=0 scanned **2245**≤**2248** 余 3·diff 恰 1 tracked（本卷同文件）零码面。
+- **STOP 保持 = `draft:awaiting_pre_exec_dual` 三处同值**·rev2 仅文面（恰 1 tracked 同文件）·零码面·翻面权归协调方。
 
 ---
 
