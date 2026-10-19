@@ -2,12 +2,15 @@ import { Annotation } from '@langchain/langgraph';
 import {
   initMind,
   type CompetencySpec,
+  type CragVerdict,
   type DecisionProvenance,
   type InterviewMind,
   type QuestionGenerationProvenance,
   type QuestionGenerationResult,
   type QuestionKind,
   type ScoredCriterionDisposition,
+  type ScoredRef,
+  type SourceDoc,
 } from '@meetwise/domain';
 import type { SessionSummary, SessionTurnInput } from './session-summary.ts';
 
@@ -80,6 +83,22 @@ export interface ClarifyDirective {
 
 /** billing P1（BILL1-TOPIC-FIELDS 修法③）：出题方式三值枚举（C14 边界=纯标识符·非 facts 非原文）。 */
 export type QuestionAskMode = 'pivot' | 'probe' | 'clarify';
+
+/**
+ * 一次出题检索的覆盖通道。只含本次本地结果、外部结果、检索结论，
+ * 以及检查点身份（轮次、胜任力、难度、有效种类）。不含简历事实。
+ */
+export interface QuestionRetrievalPacket {
+  local: ScoredRef[];
+  external: SourceDoc[];
+  verdict: CragVerdict | null;
+  identity: {
+    turn: number;
+    competency: string;
+    difficulty: number;
+    kind: QuestionKind;
+  };
+}
 
 /**
  * A durable graph state may identify an answer but must never contain it.
@@ -175,7 +194,32 @@ export interface AdaptiveDeps {
      * （S3/C13/C15 纪律零破——摘要只从 transcript 已有 checkpoint 字段派生,零冗余零回放分叉）。
      */
     session?: SessionSummary | null,
+    /**
+     * 身份已命中的检索包。传入后再生成，不再做本地检索、网页或深研。
+     * 未传则保持一次检索加生成。脚本接缝可忽略该参。
+     */
+    replayPacket?: QuestionRetrievalPacket,
   ) => Promise<QuestionGenerationResult | { question: string; sources: string[] }>;
+  /**
+   * 生产接缝显式为真时，非澄清出题才拆成检索段与生成段。
+   * 未声明的脚本接缝保持一次调用，避免把模型打两次。
+   */
+  retrievalReplay?: true;
+  /**
+   * 检索段：只检索并返回包，或返回原生失败。不调用模型，不写出题幂等键的序号。
+   * 仅在 retrievalReplay 为真时由生产接缝提供。
+   */
+  retrieveReplayPacket?: (
+    competency: string,
+    difficulty: number,
+    attempt: number,
+    turn: number,
+    facts: string[],
+    kind: QuestionKind,
+    asked?: string[],
+    weightedDeficit?: number[] | null,
+    session?: SessionSummary | null,
+  ) => Promise<QuestionGenerationResult | QuestionRetrievalPacket>;
   /** 评分故障必须 unscored，不能把 provider 不可用写成候选人 50 分；status 缺失兼容既有 scripted deps。 */
   /** identity 是已落库 pending question 的业务身份；评分内部 repair 必须复用它，绝不能另造回合。 */
   assess: (
@@ -258,6 +302,11 @@ export const AdaptiveInterviewState = Annotation.Root({
    * （qbank-track-local-retrieve/retrieval 双面）降化重置,非新行为。
    */
   weightedDeficit: Annotation<number[] | null>({ reducer: (_, b) => b, default: () => null }),
+  /**
+   * 出题续跑检索包。覆盖通道：归约 `(_, b) => b`，旧检查点缺省 null，不回填。
+   * 键不在返回值里时原值保留。不含简历事实，不进 transcript。
+   */
+  retrievalPacket: Annotation<QuestionRetrievalPacket | null>({ reducer: (_, b) => b, default: () => null }),
   /** 收尾出处;缺省兼容旧 checkpoint。不含答案原文或证据全文。worker/SSE/report 不读。 */
   concludeReason: Annotation<DecisionProvenance | null>({ reducer: (_, b) => b, default: () => null }),
 });

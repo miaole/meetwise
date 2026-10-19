@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 出题续跑先记住检索包再调用模型
 
@@ -169,8 +169,22 @@ draft:awaiting_pre_exec_dual
 
 ## §8 状态
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本说明只记录改法。产品代码、证明和迁移都不在这次提交里改。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+行号是本次工作树上亲读的，不是说明开头那次提交的行号。
+
+- `packages/ai-graphs/src/adaptive-interview/state.ts`：检索包类型 91–101；`replayPacket` 197–201；`retrievalReplay` 203–207；`retrieveReplayPacket` 208–222；覆盖通道 `retrievalPacket` 305–309，归约 `(_, b) => b`，缺省 `null`。
+- `packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts`：身份四项全同 33–41；包判定 43–47。未声明两段时仍一次调用 129–132。没有同身份包时只返回 `{ retrievalPacket }` 119–123，不写待问、不改路线、不加状态版本、不结束、不写降级。身份命中后把包交回生成 125–128。失败仍走原出口 134 起。
+- `apps/worker/src/adaptive-interview-service.ts`：生产对象 `retrievalReplay: true` 在 436。检索段 `retrieveReplayPacket` 437–454，不进进度包装，不调用模型，不推进 `rollSeq`。原生失败收据仍用既有 `:0`（416–419），不调用模型。生成段先种子再带回同一进程缺口 461–468。幂等键选择仍在生成段 535–541，形状仍是 `:0`、`:r` 加序号、`:gr` 加序号。已有包时不再调用 `loadRetrieval` 556–562。未传入包的直接调用仍一次检索加生成。
+- `apps/worker/test/adaptive-resume.proof.ts`：209 行仍是 `askBefore1 + 1`，没有改成 0。新增断言在 363–368：包已在状态且身份相同，本地分数 0.1 使第一段走过深研；续跑后这两路新增次数都是 0。
+
+门：
+
+- `pnpm -C apps/worker prove:adaptive-resume` → `gate-replay-exec-prove.log`，EXIT=1。加载 `createPool()` 时失败，断言没有跑到，runner 未改。原文：`Error: database_config_invalid:database_target_missing`（`packages/db/src/principal.ts:753` `invalidDatabaseConfig`，`:788` `resolveDatabaseConnectionString`，`:946` `createPool`，`apps/worker/test/adaptive-resume.proof.ts:27`）。
+- `node scripts/ai-docs/check-docs.mjs` → `gate-replay-exec-docs.log`，EXIT=0，扫描 2289（≤2296）。
