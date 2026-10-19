@@ -171,13 +171,13 @@ function forbiddenInterviewDispatchHost(host: string | undefined): boolean {
 
 ## §8
 
-`draft:awaiting_pre_exec_dual`
+`executed:awaiting_post_prove_dual`
 
-本步只新增说明，不改代码。
+代码已按后补的主机范围写完。公平调度文件没有改。
 
-`draft:awaiting_pre_exec_dual`
+`executed:awaiting_post_prove_dual`
 
-`draft:awaiting_pre_exec_dual`
+`executed:awaiting_post_prove_dual`
 
 ## §9-rev
 
@@ -207,3 +207,8 @@ function forbiddenInterviewDispatchHost(host: string | undefined): boolean {
 证明在 `E2E_CLOUD_ISOLATED=1` 且不靠 `E2E_ISOLATED` 或 `E2E_TEST_CONTAINER` 时，至少再点名：`0:0:0:0:0:0:0:1`、`::ffff:127.0.0.1`、`0.0.0.0`、`169.254.1.1`、`fe80::1`。这些主机仍进入同一失败分支，错误串仍是 `quiz_diagnosis_dual_claim_prove_forbids_local_docker_db`。既有断言保留。`10.0.0.8` 在 `E2E_CLOUD_ISOLATED` 为 `1` 时仍通过。
 
 不新增受管文件。不改迁移。不新增环境变量。
+
+## §9-EXEC
+
+`pnpm quiz-dual-claim:unit:prove` 退出码 0。
+`node scripts/ai-docs/check-docs.mjs` 退出码 0。
