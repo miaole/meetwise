@@ -3817,3 +3817,12 @@ flowchart TD
 - **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞新卷（AG-18 修订卷/批表 #4 卷/批表 #24 半成卷）并线后帽余量以届时实测为准·批表零翻面.
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 并线后现值 **2271** 余 9.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line worker-drain-inventory nail（2026-10-19 · 停机清单断言计入轨迹对账循环 · 批表不翻 · #157/#158 仍开放）
+
+- **改动**：只改 `apps/worker/test/ha-2-drain.proof.ts`。`main.ts` 相对 `98d5b0b3` 零字节。`trace-recon` 本来就在停机名单和就绪链上。断言改为具名 19 项加条件展开的 stub，名字计数 20，循环相位 15，依赖相位 5。
+- **并入**：fetch 后 origin tip 仍是 `98d5b0b3`。merge-tree 预演 EXIT=0，tree `88c10bf3`。`git merge --no-ff` 得到 `498d959d`，双亲 `98d5b0b3` 与 `1f7e289c`。没有冲突，没有强推。
+- **门**：`prove:ha2-drain` PASS=59 FAIL=0；`prove:drain` 全部通过；`prove:obs-ready` 12 条全绿；docs:check EXIT=0，scanned 2271≤2280。零新增受管文件。
+- **未收口**：#157 与 #158 不因这次断言对齐而翻面。先前重型门失败是计数漂移，静态行为复看已通过，件数仍待两侧都通过之后再计。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 现值 **2271** 余 9.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
