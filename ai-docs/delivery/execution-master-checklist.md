@@ -4051,3 +4051,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2303** 余 1.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line answer-empty-mind-read nail（2026-10-20 · 缺省能力序让过版本核对读取）
+
+- **改动**：提交答案前会先读检查点元数据核对图版本。合成旧检查点的空能力序改在下一次读取生效。终态失败后仍删除该线程的检查点。
+- **并入**：直接改在当前分支，提交 `197aa96b`。没有冲突，没有强推。
+- **门**：隔离生命周期证明退出码 0。worker 警告 958，上限仍是 959。类型检查退出码 0。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2303** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
