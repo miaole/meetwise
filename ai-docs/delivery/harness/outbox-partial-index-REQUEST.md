@@ -121,3 +121,7 @@
 worker 停机项 name 字符串是 `commerce-outbox-retention`，phase 是 `loop`。`apps/worker/src/main.ts` 里 `const drainStops` 到 `let workerShuttingDown` 这一段，`{ name: '` 个数是 21，`phase: 'loop'` 个数是 16。两数都含条件展开的 `stub-tick` 那一行。全文件 `phase: 'loop'` 也是 16，`phase: 'deps'` 是 5。`apps/worker/test/ha-2-drain.proof.ts` 没有改；它把这一段 `{ name: '` 个数断言成 20，把全文件 `phase: 'loop'` 断言成 15。加上这一项之后分别是 21 和 16，对不上。
 
 `packages/db/test/dbhy1.proof.ts` 的对象豁免补了一条 `indexes:ix_outbox_pending`。0212 丢掉旧索引后，sql 夹具里仍有同名索引，不登记就会被现有对象对账判成未登记缺口。
+
+## §9-drain-realign
+
+证明计数已改到与源码一致。数到的四个数：静态具名 20，drain 块里名称出现 21 次（含条件 stub-tick），全文件 loop 相位贴标 16，全文件 deps 相位贴标 5。

@@ -820,6 +820,7 @@ async function bootstrap() {
   // deadline 胜出 → worker_drain_timeout(含相位+该相在飞名)后 exit 0:被弃 job 走租约
   // 过期→reaper/sweep 重领,不双跑(既有 crash-safe);metricsServer.close() 补 await
   // (诚实收口,2s 上限 race,非阻断)。
+  // 当前事实：静态具名 20，名称出现 21 次（含条件 stub-tick），loop 相位贴标全文件 16 处，deps 仍为 5。
   const drainStops: NamedStop[] = [
     { name: 'report', stop: () => reportLoop.stop(), phase: 'loop' },
     { name: 'interview', stop: () => interviewLoop.stop(), phase: 'loop' },
