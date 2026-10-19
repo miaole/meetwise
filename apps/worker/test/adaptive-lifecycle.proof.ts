@@ -29,13 +29,21 @@ const base = scriptedModelClient({
 });
 const model: ModelClient = base;
 
-/** SFC 臂b 合成旧 checkpoint 的读取面接缝:armEmptyMindOnce() 后**恰一次** getTuple 把 mind.competencies
- *  置空后放行(后续读零触·写零触直通)。旧行为保形臂(缺省臂)的观测口径=submit 的 before 读形。 */
+/** SFC 臂b 合成旧 checkpoint 的读取面接缝。armEmptyMindOnce() 之后，图运行前的版本核对会先读一次元数据，
+ *  这次不改 mind。下一次 getTuple 才把 mind.competencies 置空，作为 submit 的 before 读形。再往后的读取零触。 */
 class LegacyEmptyMindReadSaver extends MemorySaver {
   private armOnce = false;
-  armEmptyMindOnce(): void { this.armOnce = true; }
+  private skipVersionRead = false;
+  armEmptyMindOnce(): void {
+    this.armOnce = true;
+    this.skipVersionRead = true;
+  }
   override async getTuple(config: LangGraphRunnableConfig) {
     const tuple = await super.getTuple(config);
+    if (this.skipVersionRead) {
+      this.skipVersionRead = false;
+      return tuple;
+    }
     const mind = (tuple?.checkpoint?.channel_values as { mind?: Record<string, unknown> } | undefined)?.mind;
     if (this.armOnce && mind) {
       this.armOnce = false;
