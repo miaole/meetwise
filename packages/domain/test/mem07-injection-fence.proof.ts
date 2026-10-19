@@ -1,5 +1,5 @@
 /**
- * MEM-07 注入防护（不可信数据围栏）证明（纯域，确定性，零 IO、零模型、零 db）。 `pnpm mem07-injection:prove`
+ * MEM-07 注入防护（不可信数据围栏）证明（确定性，零模型、零 db）。 `pnpm mem07-injection:prove`
  *
  * 钉死「原文、摘要、召回片段三类材料统一作为不可信数据包裹，绝不 splice system」的渲染层不变量。
  * 七类对抗矩阵（①正常 ②异常 ③特殊 ④逃逸通道 ⑤确定性/纯度 ⑥复杂 ⑦刁钻）：
@@ -14,17 +14,41 @@
  *   ⑥ 复杂：摘要 + 召回片段两种派生物混合注入，仍各归其段、不进 system。
  *   ⑦ 刁钻：空/全空白/畸形 nonce/非字符串材料 fail-closed；fence 结构首尾精确。
  *
- * 断言计数（亲数）= 40 条（40 对抗 + 0 恒真占位；⑤ 已由恒真占位换成确定性/纯度真断言）。
+ * 断言计数（亲数）= 41 条（41 对抗 + 0 恒真占位；⑤ 已由恒真占位换成确定性/纯度真断言）。
  *
  * seam-before-wiring 诚实披露：本证明只验证**渲染结构正确且不可逃逸**；运行时 `model-client.ts` 尚未
  * 消费本原语（仍走私有 `renderPrompt`，未含摘要第三类），故不宣称「已构成注入闭环」（接线归 MODEL-OP）。
  */
+import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { dirname, resolve } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   UNTRUSTED_MATERIAL_KINDS, UNTRUSTED_FENCE_RENDER_VERSION,
   UNTRUSTED_FENCE_DEFAULT_MAX_MATERIAL_LENGTH, UNTRUSTED_DATA_BOUNDARY_RULE,
   UNTRUSTED_FENCE_SECTION_MARKERS, renderUntrustedDataFence,
   deriveUntrustedFenceRenderDigest,
 } from '../src/index.ts';
+
+const BASELINE_PARENT = '0cebd82b625cbf1b514eb161e34a18cbb3447a53';
+const MODEL_CLIENT_PATH = 'packages/ai-runtime/src/model-client.ts';
+const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), '../../..');
+const sameBytes = (left: string, right: string) => Buffer.from(left, 'utf8').equals(Buffer.from(right, 'utf8'));
+
+function extractDataBoundaryRule(source: string): string {
+  const matched = source.match(/^const DATA_BOUNDARY_RULE = '([^']*)';$/m);
+  if (!matched || matched[1] === undefined) {
+    throw new Error('DATA_BOUNDARY_RULE literal missing');
+  }
+  return matched[1];
+}
+
+const productionRule = extractDataBoundaryRule(readFileSync(resolve(repoRoot, MODEL_CLIENT_PATH), 'utf8'));
+const baselineRule = extractDataBoundaryRule(execFileSync(
+  'git',
+  ['show', `${BASELINE_PARENT}:${MODEL_CLIENT_PATH}`],
+  { cwd: repoRoot, encoding: 'utf8' },
+));
 
 let fail = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
@@ -74,7 +98,10 @@ async function main() {
       && r.segments[1]!.text === '摘要：用户关注缓存击穿与热点 key'
       && r.segments[2]!.text === '召回片段A：缓存击穿定义'
       && r.segments[3]!.text === '召回片段B：热点 key 解决');
-    A('① systemSuffix 恒等于边界规则常量（不含材料正文）', r.systemSuffix === UNTRUSTED_DATA_BOUNDARY_RULE);
+    A('① 未接线规则、systemSuffix 与生产短句逐字节相同',
+      sameBytes(r.systemSuffix, UNTRUSTED_DATA_BOUNDARY_RULE)
+      && sameBytes(UNTRUSTED_DATA_BOUNDARY_RULE, productionRule));
+    A('① 生产短句相对基线父提交一个字节没变', sameBytes(productionRule, baselineRule));
     A('① systemSuffix 结构性零材料泄漏（三种正文均不出现）',
       !r.systemSuffix.includes('缓存击穿怎么排查')
       && !r.systemSuffix.includes('用户关注缓存击穿')
