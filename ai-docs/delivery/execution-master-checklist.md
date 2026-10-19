@@ -3853,3 +3853,12 @@ flowchart TD
 - **收口**：批表由 227/271 改为 228/271（84.1%）。能力项完成数仍是 32，半成 2、未收 15。#157/#158 仍开放。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 +2（0211、0212）· cap **2280** 现值 **2280** 余 0.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line managed-file-ceiling nail（2026-10-19 · 受管文件数上限从 2280 调到 2288）
+
+- **改动**：受管文件数上限从 2280 调到 2288。恰好达到上限仍然通过，多一个文件仍被拒绝。旧的 2280 注记保留。新增说明文件，证明里的越限断言改为 2288 与 2289。
+- **并入**：fetch 后 origin tip 仍是 `53441bff`。merge-tree 预演 EXIT=0，tree `4a01410a`。`git merge --no-ff` 得到 `c93c1192`，双亲 `53441bff` 与 `90a1785f`。没有冲突，没有强推。
+- **门**：策略证明 12/12；docs:check scanned 2281≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：批表仍是 228/271（84.1%）。能力项完成数仍是 32，半成 2、未收 15。上限 2280 改为 2288，扫描 2281，余 7。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2281** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
