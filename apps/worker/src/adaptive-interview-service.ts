@@ -816,7 +816,8 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         threadId: d.threadId,
         privacyInterviewId: d.threadId,
         question,
-        answer: scored,
+        answer,
+        promptAnswer: clean,
         model: detected ? d.model : (d.fastModel ?? d.model),
       });
       // 引文无法逐字核验而答案仍是正常作答时，不能写 unscored/能力画像；图会走 clarify，
@@ -842,7 +843,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (out.status === 'failed') return { status: 'unscored' as const, reason: `evaluation_${out.error}` };
       // #52 v6：score=evaluate 侧确定性派生（档位×量表权重，非模型输出）；dispositions=0103
       // 契约证据随 assess 返回（evaluate-answer 节点透传进 transcript → 投影后供 score-writer）。
-      const derived = evaluateOutcomeFromValue(out.value, clean);
+      const derived = evaluateOutcomeFromValue(out.value, answer);
       // S3/C13/C15(RESUME-GROUNDING):真实评分过的回合 → 捕获追问上下文(仅本闭包,禁入图 state):
       // 题目摘要=本轮题目(有界截取);作答摘要=stripScoringManipulation 后的 clean(**先剥离**)再确定性截取
       // ≤200 字符(**后截取**,顺序钉死禁倒置);证据弱点=评分 criteria(mind evidence 同源材料,slice(-6) 语义
