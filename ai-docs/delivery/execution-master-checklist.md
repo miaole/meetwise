@@ -3907,3 +3907,12 @@ flowchart TD
 - **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2286** 余 2.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line managed-file-ceiling-2296 nail（2026-10-19 · 受管文件数上限从 2288 调到 2296）
+
+- **改动**：受管文件数上限从 2288 调到 2296。恰好达到上限仍然通过，再多一个文件仍被拒绝。比较仍走同一个常量。旧的上限注记保持原样。
+- **并入**：投递流记录之后再预演，merge-tree EXIT=0，tree `f5bb69c5`。`git merge --no-ff` 得到 `e8c7f420`，双亲 `5e2c605f` 与 `e73e793a`。没有冲突，没有强推。
+- **门**：策略证明 12/12。docs:check scanned 2287≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2287** 余 9.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
