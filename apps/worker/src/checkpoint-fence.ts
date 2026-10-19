@@ -76,7 +76,9 @@ export class FenceCheckpointSaver extends BaseCheckpointSaver<number> {
 
   override async put(config: LangGraphRunnableConfig, checkpoint: Checkpoint, metadata: CheckpointMetadata, newVersions: NewVersions): PutResult {
     await this.assertWriteFence();
-    return this.inner.put(config, checkpoint, metadata, newVersions);
+    // 围栏通过后才盖当前图版本。调用方字段保留；只交给这一次新写入，不回写旧行。
+    const stamped = Object.assign({}, metadata, { ['graph_version']: 'adaptive-interview/v1' }) as CheckpointMetadata;
+    return this.inner.put(config, checkpoint, stamped, newVersions);
   }
 
   override async putWrites(config: LangGraphRunnableConfig, writes: Writes, taskId: string): Promise<void> {
