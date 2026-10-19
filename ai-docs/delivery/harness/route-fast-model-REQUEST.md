@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 路由分类改用快模型，并在启动时拒绝供应商与模型名不一致
 
@@ -128,11 +128,11 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。产品代码本步不改。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## 补充
 
@@ -161,3 +161,40 @@ qwen 档维持上文「以小写 `qwen` 开头」，不要改成必须带连字�
 3. `pnpm scoring:eval`（根 `package.json:518`，转到 `:519` 的 `scoring:eval:raw`）。`apps/worker/smoke/scoring-eval.ts:39` 调用 `fastModelClient()`。快模型名是 `apps/worker/src/interview-service.ts:235` 的 `process.env.MODEL_FAST_NAME ?? 'qwen-turbo'`。该脚本不设置档；`scripts/run-e2e-isolated.mjs` 跑这条时也不钉档。档留空就是缺省 `deepseek-cn-public`，构造期会被拒绝。在 `:39` 之前补上 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`。不要改 `:235` 的缺省模型名。
 
 除此以外，没有别的未点名文件会在缝关闭时用 qwen 前缀模型名配上缺省 deepseek 档去构造文本客户端。
+
+## §9-EXEC
+
+三处状态已是 `executed:awaiting_post_prove_dual`。上文未删。
+
+改过的文件：
+
+- `apps/worker/src/main.ts`：只有路由分类那一处改为 `{ pool, model: fastModel }`。押题、诊断、报告、面试循环的模型实参未动。
+- `packages/ai-runtime/src/model-client.ts`：有效模型名取定之后、派发之前，按档拒绝不匹配的模型名。错误码只有 `text_endpoint_profile_model_mismatch`。`deepseek-cn-public` 只接受小写字节前缀 `deepseek-`。`dashscope-cn-beijing` 只接受小写前缀 `qwen`。视觉构造不套这条。整段跳过仅当 `NODE_ENV===test` 且 `MODEL_TEST_TRANSPORT_OVERRIDES===1`。此文件没有新写 `MODEL_ENDPOINT_PROFILE`、`MODEL_NAME`、`MODEL_FAST_NAME`。温度表未改。
+- `docker/env/worker.env.example`：只把已有 `MODEL_ENDPOINT_PROFILE` 改成 `dashscope-cn-beijing`。`MODEL_NAME=qwen-plus` 与 `MODEL_FAST_NAME=qwen-turbo` 未动。compose 与 `scripts/deploy-check.mjs` 未改。
+- 已有证明：`model-client-dispatch.proof.ts`、`model-client-stream.proof.ts`、`model-client-output-limit.proof.ts`、`model-usage-cache-observe.proof.ts`、`ag24-langfuse-model.proof.ts`、`g7-freetier-reprove-client.proof.ts`、`model-op02-endpoint-partition.proof.ts`、`invoke-model-delta.proof.ts`、`session-summary.proof.ts`、`resume-grounding.proof.ts`、`apps/worker/smoke/scoring-eval.ts`。没有新建证明文件。
+- `ai-docs/architecture/ai/provider-egress-inventory.json`：只补了两条已有环境名的来源登记。`scoring-eval.ts` 的 class 是 `manual-live-smoke`，`invoke-model-delta.proof.ts` 的 class 是 `test-fixture`。适配器 5、操作 10、登记对 54 没变，所以没有改 `scripts/provider-egress-inventory.proof.mjs`，也没有改架构说明里的计数句子。环境引用数由 333 变为 335。不登记这两处的话，出站清点会因未登记引用而失败。
+
+行号漂移（相对本说明里的基线行号）：
+
+- `main.ts` 路由分类仍在 665，行号未漂，只换了实参。
+- `model-client.ts` 有效模型名仍在 674，运输缝仍在 676。拒绝块在 679–684。`model_cost_policy_model_mismatch` 从 694–695 漂到 702–703（+8）。`job.route-classify.v1` 仍在 193，温度仍是 0。
+- `worker.env.example` 档赋值仍在 45，模型名仍在 47 与 48。
+- `scoring-eval.ts`：档赋值在 39，`fastModelClient()` 从 39 漂到 40。
+- `session-summary.proof.ts` 159 改为赋值 `dashscope-cn-beijing`，不再删除该变量。
+- `resume-grounding.proof.ts` 153 同样改为赋值。
+- `model-client-dispatch.proof.ts`：52–54 是缺省档且 `MODEL_NAME=qwen-plus` 时构造抛 `text_endpoint_profile_model_mismatch`。58 的模型名是 `deepseek-v4-flash`。77 的 URL 断言仍是 `https://api.deepseek.com/chat/completions`。
+- `model-client-stream.proof.ts`：242 为 `deepseek-v4-flash`。280 的 URL 断言未动。415–416 的模型名改为 `deepseek-` 前缀。
+- `model-client-output-limit.proof.ts`：74、228、237 只给模型名加上 `deepseek-` 前缀，行号未漂。
+- `g7-freetier-reprove-client.proof.ts`：72–73 为 `deepseek-cn-public` 配 `deepseek-v4-pro`。83–84 为 `dashscope-cn-beijing` 配 `qwen-proof-undeclared`。
+- `model-op02-endpoint-partition.proof.ts`：160–161 在三处构造前设置 `MODEL_NAME=deepseek-v4-flash` 与 `MODEL_BACKUP_NAME=qwen-plus`。没有删除档变量。
+- `invoke-model-delta.proof.ts`：105–106。`model-usage-cache-observe.proof.ts`：89。`ag24-langfuse-model.proof.ts`：87。
+
+日志目录 `.../implementer`，名前缀 `gate-route-exec-`。退出码：
+
+- `pnpm provider-egress:inventory` → `gate-route-exec-inventory.log`：0。`adapters=5; operations=10; registered_consumer_source_pairs=54; environment_references=335`。
+- `pnpm provider-egress:prove` → `gate-route-exec-egress.log`：0。`selected=7/7`。
+- `pnpm turbo typecheck --force` → `gate-route-exec-typecheck.log`：0。范围内 13 个包，实际 typecheck 任务 8/8，缓存旁路，路径是本工作树。
+- `pnpm turbo lint` → `gate-route-exec-lint.log`：0。0 errors。警告数：root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601，均未超过上限。worker、ai-runtime、root 在本工作树重新执行；其余包命中缓存。
+- 说明 §2 里改过的证明：dispatch、stream、usage-cache、ag24、g7 client、text-endpoint、g7 round2、op02、s4b、session-summary、resume-grounding、deploy-worker-env、output-limit 的日志均为通过。`scoring:eval` 因没有注入供应商密钥而跳过，进程退出码 0。`ag18-sampling-temperature:prove:raw` 因缺少数据库目标而失败；隔离父命令 `ag18-sampling-temperature:prove` 退出码 0。四条 r2 证明因本树缺少既有说明文件而失败，符号检查里路由分类接线仍在；没有为它们新增文件。
+- `node scripts/ai-docs/check-docs.mjs` → `gate-route-exec-docs.log`：0。扫描 2286 个受管文件，未超过 2296。
+

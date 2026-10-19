@@ -150,7 +150,7 @@ async function sectionD(followUpReq: CompletionRequest | undefined) {
     process.env.NODE_ENV = 'test';
     delete process.env.MODEL_TEST_TRANSPORT_OVERRIDES;
     delete process.env.MODEL_COST_ENFORCEMENT;
-    delete process.env.MODEL_ENDPOINT_PROFILE;
+    process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
     process.env.MODEL_API_KEY = 'proof-key-not-live';
     process.env.MODEL_NAME = 'qwen-plus';
     globalThis.fetch = (async (_input: string | URL | Request, init?: RequestInit) => {

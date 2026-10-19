@@ -84,6 +84,7 @@ async function main() {
     for (const name of MUTATED) if (!['MODEL_API_KEY', 'MODEL_NAME'].includes(name)) delete process.env[name];
     process.env.MODEL_API_KEY = 'ag24-proof-key';
     process.env.MODEL_NAME = 'qwen-plus';
+    process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
 
     type WireBody = { messages: { role: string; content: string | Array<{ type: string; text?: string; image_url?: { url: string } }> }[] };
     const bodies: WireBody[] = [];

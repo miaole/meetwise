@@ -157,6 +157,8 @@ async function main() {
       && smuggledFee.rows[0]?.provider_account === 'dashscope-main' && smuggledFee.rows[0]?.region === 'cn-beijing');
 
   // ── §2-2④ vision 负臂（factory 级·零外呼）：cfg.vision===true 的 plan 不携带端点身份。 ──
+  process.env.MODEL_NAME = 'deepseek-v4-flash';
+  process.env.MODEL_BACKUP_NAME = 'qwen-plus';
   const primaryPlan = await Promise.resolve(openAICompatibleClient({ env: {} }).prepare!({ service: 'ep-proof', system: 's', userData: 'u' }, 1));
   const backupPlan = await Promise.resolve(openAICompatibleClient({ backup: true, env: {} }).prepare!({ service: 'ep-proof', system: 's', userData: 'u' }, 1));
   const visionPlan = await Promise.resolve(openAICompatibleClient({ vision: true, env: {} }).prepare!({ service: 'ep-proof', system: 's', userData: 'u' }, 1));

@@ -86,6 +86,7 @@ async function main() {
   for (const name of MUTATED) if (!['MODEL_API_KEY', 'MODEL_NAME'].includes(name)) delete process.env[name];
   process.env.MODEL_API_KEY = 'proof-text-key';
   process.env.MODEL_NAME = 'qwen-plus';
+  process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
   setMetrics(createMetrics());   // 独立 registry：本证明计数从零起
 
   try {
