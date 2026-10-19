@@ -3871,3 +3871,12 @@ flowchart TD
 - **收口**：合计仍是 228/271。能力项完成数由 32 改为 33，半成 2、未收 14。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2282** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line graph-invoke-depth nail（2026-10-19 · 图调用传入递归上限）
+
+- **改动**：两处调用配置写成 `{ configurable: { thread_id }, recursionLimit: 64 }`。四处 `g.invoke` 的第二参仍是这份配置。续跑仍用空输入。编译仍是 `{ checkpointer }`。
+- **并入**：fetch 后 origin tip 仍是 `26d0b35c`。merge-tree 预演 EXIT=0，tree `ff4f1dbc`。`git merge --no-ff` 得到 `e284e95d`，双亲 `26d0b35c` 与 `08d9952a`。没有冲突，没有强推。
+- **门**：图运行观测证明全部通过。延迟证明用隔离库入口重跑退出码 0。docs:check scanned 2284≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2284** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
