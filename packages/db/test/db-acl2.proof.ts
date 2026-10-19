@@ -28,6 +28,16 @@
  * 恰序表）+ 链尾 catchup 参数化 + P4/P5 静态门语义移交机械权威（ledger checksum +
  * 0108 静态体锚）·负门/正门/白名单/闭集推导全数原样保留。
  *
+ * 0210 重 pin 登记（会话事件加密密钥移出函数签名·密钥改事务级 GUC 注入）：conversation_event_append
+ * 签名 13→12 参（0210 先 DROP 旧 13 参再 CREATE 12 参·密钥 p_enc_key 出签名改经事务级 GUC
+ * app.conversation_event_enc_key 注入）。窗口语义分野（重 pin 的结构根据）：Stage A/B（≤0143/≤0151）
+ * 窗内 0210 未应用、库中实存函数即 0108 十三参旧形——故 P0-4 负门复现与 P2 全链绿仍以 13 参旧形
+ * 直调（对窗口内真实在位函数作证·P1-8/P4-3 十三参锚同理）；十二参新契约专臂=P6（P5 链尾 catchup
+ * 落 0210 后·全链唯一 12 参世界）四义务臂：①直连正门=同事务先 set_config（绑定参数·is_local=true）
+ * 再 12 参直调；②显式负门「GUC 缺失→22023」（P0 式 fail-closed 对 12 参新版重演）；③12 参
+ * regprocedure 锚+库内函数体 == 0210 文件静态体逐字节全等（跨 rerun stage 对新版重演）；④13 参
+ * 旧签名消亡+恰单版本 12 参锚（DROP 顺序承重·无重载并存）。
+ *
  * EXIT=0 才过；attempts 全账（每轮运行无论红绿都记收据 · Ban retry-to-green）。
  */
 import { createHash } from 'node:crypto';
@@ -167,7 +177,12 @@ async function snapshotPgpAcls(): Promise<Map<string, string>> {
   return new Map(r.rows.map((row) => [row.fn, row.acl]));
 }
 
-/* ── P2 全链调用参数（conversation_event_append 13 参 · 0108 签名）────────── */
+/* ── P2 全链调用参数 ─────────────────────────────────────────────────────────
+ * 旧 13 参形（0108 签名·第 9 位=p_enc_key）：仅用于 Stage A/B 窗口臂（P0-4 负门复现/P2 全链绿
+ * /P1-8·P4-3 十三参锚）——两窗口内 0210 未应用，库中实存函数即 0108 十三参形（见头注 0210 重
+ * pin 登记）。新 12 参形（0210 签名·密钥出签名）：P6 新契约专臂（链尾 catchup 后）——同事务先
+ * set_config 注入 app.conversation_event_enc_key（绑定参数·is_local=true 事务尾自清）再直调；
+ * 无 GUC 即 22023（callAppendV2NoGuc 负门专用·两形隔离防泄漏）。 */
 const THREAD = 'th-dbacl2';
 const ENC_KEY = 'dbacl2-enc-key-v1';
 const appendArgs = (owner: string, body: string, eventKey: string | null) => [
@@ -177,6 +192,20 @@ const appendArgs = (owner: string, body: string, eventKey: string | null) => [
 const callAppend = (owner: string, body: string, eventKey: string | null) => (c: PoolClient) =>
   c.query('SELECT * FROM conversation_event_append($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)',
     appendArgs(owner, body, eventKey));
+/** 0210 十二参新契约直连臂：同事务先 set_config（绑定参数·is_local=true）再 12 参直调。 */
+const appendArgsV2 = (owner: string, body: string, eventKey: string | null) => [
+  THREAD, 'user_message', 'user', eventKey, body, sha256(`${owner}:${body}`),
+  1, 1, 'session', 'free_conversation', 1, 1,
+];
+const callAppendV2 = (owner: string, body: string, eventKey: string | null) => async (c: PoolClient) => {
+  await c.query(`SELECT set_config('app.conversation_event_enc_key', $1, true)`, [ENC_KEY]);
+  return c.query('SELECT * FROM conversation_event_append($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+    appendArgsV2(owner, body, eventKey));
+};
+/** P6 负门专用：不执行 set_config 直调 12 参（GUC 缺失 → 22023 fail-closed）。 */
+const callAppendV2NoGuc = (owner: string, body: string, eventKey: string | null) => (c: PoolClient) =>
+  c.query('SELECT * FROM conversation_event_append($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)',
+    appendArgsV2(owner, body, eventKey));
 
 async function main() {
   await assertIsolatedTestTarget(pool);
@@ -265,6 +294,8 @@ async function main() {
 
   /* ── Stage A 快照（函数体 + 全 pgp_sym_* ACL 面）────────────────────────── */
   const aclA = await snapshotPgpAcls();
+  // 13 参 regprocedure 锚（窗口语义·见头注 0210 重 pin 登记）：本锚与 P1-8 Stage B 侧锚均处
+  // ≤0151 窗内，库中实存函数即 0108 十三参形；12 参新契约锚在 P6（链尾 catchup 后）。
   const appendDefA = await pool.query<{ def: string }>(
     `SELECT pg_get_functiondef(p.oid) AS def FROM pg_proc p WHERE p.oid='public.conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,text,bigint,bigint)'::regprocedure`);
   const encDefA = await pool.query<{ def: string }>(
@@ -426,6 +457,8 @@ async function main() {
       `SELECT pg_get_functiondef('public.conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,text,bigint,bigint)'::regprocedure) AS def`);
     // conversation_event_append 创建于 0108_ctx03_immutable_session_event_source（0151 为
     // GRANT-only 零函数体）——静态对照锚=0108 文件（name 锚=conversation_event_append）。
+    // 本门先于 P5 链尾 catchup 执行（0210 尚未应用·窗内函数体即 0108 形）故锚成立；0210 落地
+    // 后的 12 参体静态锚见 P6-2（对 0210 文件重演）。
     const sql0108Text = readFileSync(`${MIG_DIR}/0108_ctx03_immutable_session_event_source.sql`, 'utf8');
     const body0108 = (sql0108Text.match(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?conversation_event_append\([\s\S]*?AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2] ?? '').trim();
     const bodyDb = (fnAppend.rows[0]?.def ?? '').match(/AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2]?.trim() ?? '';
@@ -453,6 +486,57 @@ async function main() {
     A('P5-3 重跑全 skip（幂等 · checksum 零漂移 · 禁改历史迁移门复验）',
       rerun.applied.length === 0 && rerun.skipped.length === all.length,
       `applied=${rerun.applied.length} skipped=${rerun.skipped.length}`);
+  }
+
+  /* ── P6 0210 新契约：密钥出签名·事务级 GUC 注入（12 参形·链尾 catchup 落 0210 后生效）── */
+  {
+    // 签名锚（12 参形）：13 参旧签名不复解析（0210 已 DROP·to_regprocedure NULL 不抛错）+
+    // proname 恰单版本且 pronargs=12（DROP→CREATE 顺序承重·杜绝双版本并存漂移）。
+    const sig = await pool.query<{ oldGone: boolean; versions: number; nargs: number }>(
+      `SELECT to_regprocedure('public.conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,text,bigint,bigint)') IS NULL AS "oldGone",
+              (SELECT count(*)::int FROM pg_proc WHERE proname='conversation_event_append' AND pronamespace='public'::regnamespace) AS "versions",
+              (SELECT pronargs::int FROM pg_proc WHERE proname='conversation_event_append' AND pronamespace='public'::regnamespace) AS "nargs"`);
+    A('P6-1 0210 签名锚：13 参旧签名不复解析（旧版已 DROP）·conversation_event_append 恰 1 版本且 12 参（无重载并存）',
+      sig.rows[0]?.oldGone === true && sig.rows[0]?.versions === 1 && sig.rows[0]?.nargs === 12,
+      JSON.stringify(sig.rows[0]));
+
+    // 函数体锚（12 参 regprocedure·跨 rerun stage 逐字节全等对 0210 新版重演=P1-8/P4-3 镜像）：
+    // catchup 后库内体 == 0210 文件静态体 == 再跑一遍迁移（全 skip）后库内体。
+    const defOfV2 = () => pool.query<{ def: string }>(
+      `SELECT pg_get_functiondef(p.oid) AS def FROM pg_proc p WHERE p.oid='public.conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,bigint,bigint)'::regprocedure`);
+    const sql0210Text = readFileSync(`${MIG_DIR}/0210_conversation_event_enc_key_guc.sql`, 'utf8');
+    const body0210 = (sql0210Text.match(/CREATE\s+(?:OR\s+REPLACE\s+)?FUNCTION\s+(?:public\.)?conversation_event_append\([\s\S]*?AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2] ?? '').trim();
+    const defC = await defOfV2();
+    const rerunV2 = await runMigrations(pool, all);
+    const defD = await defOfV2();
+    const bodyDbC = (defC.rows[0]?.def ?? '').match(/AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2]?.trim() ?? '';
+    const bodyDbD = (defD.rows[0]?.def ?? '').match(/AS\s+(\$[A-Za-z_]*\$)([\s\S]*?)\1/i)?.[2]?.trim() ?? '';
+    A('P6-2 conversation_event_append（12 参）函数体跨 stage 逐字节全等对新版重演：catchup 后 == 0210 文件静态体 == rerun 后（防 OR REPLACE 篡改·P1-8/P4-3 新版镜像）',
+      body0210.length > 0 && bodyDbC.length > 0 && bodyDbC === body0210 && bodyDbD === bodyDbC
+        && rerunV2.applied.length === 0,
+      `db_len=${bodyDbC.length} file_len=${body0210.length} again_len=${bodyDbD.length} applied=${rerunV2.applied.length}`);
+
+    // 正门（新契约直连臂·set_config 同事务步骤）：同事务先 set_config 再 12 参直调 → 全链绿。
+    const ownerC = `dbacl2-c-${process.pid}`;
+    const bodyC = `dbacl2-p6-body-${process.pid}`;
+    const okV2 = await asRole('app_role', ownerC, callAppendV2(ownerC, bodyC, 'ek-p6'), true);
+    const rowV2 = okV2.rows[0] ?? {};
+    A('P6-3 新契约正门：同事务 set_config + 12 参直调全链绿（event_id/sequence=1/digest/artifact_id/replayed=false·密钥不经 SQL 函数签名）',
+      okV2.ok && okV2.rows.length === 1 && Boolean(rowV2.event_id) && Number(rowV2.sequence) === 1
+        && /^[a-f0-9]{64}$/.test(String(rowV2.event_digest)) && Boolean(rowV2.artifact_id) && rowV2.replayed === false,
+      show(okV2));
+    const roundtripV2 = await pool.query<{ body: string }>(
+      `SELECT pgp_sym_decrypt(ciphertext, $2) AS body FROM conversation_event_artifact WHERE id=$1`,
+      [rowV2.artifact_id, ENC_KEY]);
+    A('P6-4 新契约加密回环：GUC 注入密钥加密正文超用户解密逐字节还原（密钥全程不入函数签名/数据语句参数表）',
+      roundtripV2.rows[0]?.body === bodyC, `body=${roundtripV2.rows[0]?.body}`);
+
+    // 显式负门（GUC 缺失→22023·P0 式 fail-closed 对 12 参新版重演）：不执行 set_config 直调 append。
+    const ownerD = `dbacl2-d-${process.pid}`;
+    const noGuc = await asRole('app_role', ownerD, callAppendV2NoGuc(ownerD, `dbacl2-p6-noguc-${process.pid}`, 'ek-p6n'));
+    A('P6-5 新契约负门「GUC 缺失→22023」：无 set_config 直调 12 参恰 22023（conversation_event_append_invalid·静默降级不可能）',
+      !noGuc.ok && noGuc.code === '22023' && noGuc.msg.includes('conversation_event_append_invalid'),
+      show(noGuc));
   }
 
   console.log(`RESULT dbacl2-db-acl failures=${failures} at=${new Date().toISOString()}`);
