@@ -270,6 +270,17 @@ export async function markJobFailed(c: Client, owner: string, jobId: string, lea
   return r.rowCount === 1;
 }
 
+/** 放弃时只把仍 queued 的作业写成 failed。running、done、已经 failed 的行不改。没有 queued 时为零行。 */
+export async function failQueuedInterviewJobsOnAbandon(c: Client, owner: string, interviewId: string): Promise<void> {
+  await c.query(
+    `UPDATE interview_job
+        SET status='failed', last_error='abandoned', lease_owner=NULL, lease_expires_at=NULL,
+            payload=payload-'answer', version=version+1
+      WHERE owner_user_id=$1 AND interview_id=$2 AND status='queued'`,
+    [owner, interviewId],
+  );
+}
+
 /** 未取得 graph fence 时归还 job；仅当前 lease owner 可操作，不能把别的 worker 的 job 偷回 queued。
  *  AG-04 刀C（#4·修法②）：requeue 同拍写指数退避 next_attempt_at=now()+2^attempts 秒封顶 300
  *  （report.ts:53 范本逐字形·attempts 取本 UPDATE 前现值=claim 自增后现值,与范本同语义）；

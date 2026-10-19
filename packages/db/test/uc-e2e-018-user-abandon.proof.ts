@@ -14,10 +14,11 @@
  *
  * Cite: e2e-scenarios.md UC-E2E-018 A1/A2/A3 · matrix row UC-E2E-018
  */
+import { randomUUID } from 'node:crypto';
 import {
   assertIsolatedTestTarget, createPool, asPrincipal,
   reserveEntitlement, abandonInterviewAndRelease, availableUnits,
-  completeInterviewAndConfirm,
+  completeInterviewAndConfirm, claimNextInterviewJob,
 } from '../src/index.ts';
 
 const pool = createPool();
@@ -289,6 +290,76 @@ async function main() {
     A('A-open-q 部分/作答面 issued 题 cancelled', (await qStatus(ownerM, idM, `${idM}:q1`)) === 'cancelled');
     A('A-open-q answered_turns 保全=1', projM?.answered_turns === 1);
     A('A-open-q 作答面 current_turn 仍 NULL（无 issued 残留）', projM?.current_turn === null);
+  }
+
+  section('A-queued-job · 放弃时仍排队的作业改为 failed，且不能再被领取');
+  {
+    const owner = OWN('qj');
+    const id = IID('qj');
+    const idKept = IID('qj-kept');
+    await seed(owner, 5.0);
+    const resumeId = randomUUID();
+    const resumeKept = randomUUID();
+    await pool.query(
+      "INSERT INTO resume(id,owner_user_id,status,content_sha,privacy_epoch) VALUES ($1,$2,'ingested',$3,1),($4,$2,'ingested',$5,1)",
+      [resumeId, owner, `abandon-job:${id}`, resumeKept, `abandon-job:${idKept}`],
+    );
+    await pool.query(
+      "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'waiting_user',$3,1),($4,$2,'waiting_user',$5,1)",
+      [id, owner, resumeId, idKept, resumeKept],
+    );
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, id, 'mock_interview', 1.0));
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, idKept, 'mock_interview', 1.0));
+    const insertJob = (interviewId: string, boundResume: string, seq: number, status: string, payload: Record<string, unknown>, version: number, leaseOwner: string | null, lastError: string | null) =>
+      asPrincipal(pool, owner, (c) => c.query(
+        `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version,last_error)
+           VALUES ($1,$2,'start',$3,$4::jsonb,$5,1,64,$6,$7,CASE WHEN $7::text IS NULL THEN NULL ELSE now()+interval '10 minutes' END,$8,$9)`,
+        [owner, interviewId, seq, JSON.stringify(payload), boundResume, status, leaseOwner, version, lastError],
+      ));
+    await insertJob(id, resumeId, 0, 'queued', { answer: 'secret-answer', turn: 1 }, 4, 'stale-worker', null);
+    await insertJob(id, resumeId, 1, 'running', { answer: 'keep-running', turn: 2 }, 2, 'live-worker', null);
+    await insertJob(id, resumeId, 2, 'done', { answer: 'keep-done', turn: 3 }, 3, null, null);
+    await insertJob(idKept, resumeKept, 0, 'failed', { answer: 'keep-prior', turn: 9 }, 5, 'old-worker', 'prior');
+    const ab = await asPrincipal(pool, owner, (c) => abandonInterviewAndRelease(c, owner, id));
+    A('A-queued-job abandon → abandoned', ab.status === 'abandoned');
+    await asPrincipal(pool, owner, (c) => abandonInterviewAndRelease(c, owner, idKept));
+    const rows = await asPrincipal(pool, owner, (c) => c.query(
+      `SELECT seq, status, last_error, lease_owner, lease_expires_at, version, payload, attempts
+         FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 ORDER BY seq`,
+      [owner, id],
+    ));
+    const queued = rows.rows.find((r) => Number(r.seq) === 0);
+    const running = rows.rows.find((r) => Number(r.seq) === 1);
+    const done = rows.rows.find((r) => Number(r.seq) === 2);
+    const kept = (await asPrincipal(pool, owner, (c) => c.query(
+      `SELECT status, last_error, lease_owner, version, payload FROM interview_job
+        WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0`,
+      [owner, idKept],
+    ))).rows[0];
+    A('A-queued-job 当时 queued 变为 failed', queued?.status === 'failed' && queued?.last_error === 'abandoned');
+    A('A-queued-job 租约已清且 version 加一、answer 已去掉',
+      queued?.lease_owner == null && queued?.lease_expires_at == null && Number(queued?.version) === 5
+      && queued?.payload?.answer === undefined && queued?.payload?.turn === 1 && Number(queued?.attempts) === 0);
+    A('A-queued-job running 行不改',
+      running?.status === 'running' && running?.lease_owner === 'live-worker' && Number(running?.version) === 2
+      && running?.payload?.answer === 'keep-running');
+    A('A-queued-job done 行不改',
+      done?.status === 'done' && Number(done?.version) === 3 && done?.payload?.answer === 'keep-done' && done?.last_error == null);
+    A('A-queued-job 已经 failed 的行不改',
+      kept?.status === 'failed' && kept?.last_error === 'prior' && kept?.lease_owner === 'old-worker'
+      && Number(kept?.version) === 5 && kept?.payload?.answer === 'keep-prior');
+    await asPrincipal(pool, owner, (c) => c.query(
+      `UPDATE interview_job SET lease_expires_at=now()-interval '1 minute'
+        WHERE owner_user_id=$1 AND interview_id=$2 AND status='running'`,
+      [owner, id],
+    ));
+    const claimed = await asPrincipal(pool, owner, (c) => claimNextInterviewJob(c, owner, 'proof-claimer'));
+    A('A-queued-job 放弃后不能再被领取', claimed === null);
+    const afterClaim = (await asPrincipal(pool, owner, (c) => c.query(
+      'SELECT status, attempts FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0',
+      [owner, id],
+    ))).rows[0];
+    A('A-queued-job 领取尝试后仍是 failed', afterClaim?.status === 'failed' && Number(afterClaim?.attempts) === 0);
   }
 
   console.log(`\n${fail === 0

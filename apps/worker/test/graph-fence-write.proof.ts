@@ -315,6 +315,47 @@ async function main() {
   A('收口:unhandledRejection 记录面全部为 graph_fence_lost（装版 detached-tracked promise 预期面·非预期面即红）',
     unhandled.every((r) => codeOf(r) === 'graph_fence_lost'), `count=${unhandled.length}`);
 
+  // 终态行 lease 已空时，迟到作业不得把它写回 active，也不得另插一行。
+  console.log('\n──── 终态不被写回 active：更新不到即未取得，不另插 active ────');
+  const readRun = async (iid: string) => asPrincipal(pool, OWNER, (c) => c.query(
+    'SELECT status, version FROM ai_graph_run WHERE graph_name=$1 AND thread_id=$2 AND owner_user_id=$3 ORDER BY version',
+    [GRAPH_NAME, iid, OWNER],
+  ));
+  const plantRun = async (iid: string, status: string) => {
+    await seedInterview(iid);
+    await asPrincipal(pool, OWNER, (c) => c.query(
+      `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
+         VALUES ($1,$2,$3,$4,4,NULL,NULL)`,
+      [GRAPH_NAME, iid, OWNER, status],
+    ));
+  };
+  for (const status of ['failed', 'succeeded', 'safely_terminated', 'safe_terminating', 'completed'] as const) {
+    const iid = `gf-term-${status}`;
+    await plantRun(iid, status);
+    let acquired: boolean | 'threw' = 'threw';
+    try {
+      const got = await withInterviewGraphFence(pool, OWNER, iid, 'gf-term-late', async () => 'should-not-run');
+      acquired = got.acquired;
+    } catch (e) {
+      acquired = 'threw';
+      console.error('终态 fence 抛错', status, e instanceof Error ? e.message : e);
+    }
+    const after = await readRun(iid);
+    A(`终态 ${status} 迟到作业未取得且未抛错`, acquired === false);
+    A(`终态 ${status} 仍一行且 status 与 version 保持原值`,
+      after.rowCount === 1 && after.rows[0]?.status === status && Number(after.rows[0]?.version) === 4);
+  }
+  for (const status of ['created', 'active', 'waiting_user', 'migrating', 'paused', 'quarantined'] as const) {
+    const iid = `gf-live-${status}`;
+    await plantRun(iid, status);
+    const got = await withInterviewGraphFence(pool, OWNER, iid, 'gf-live-late', async () => {
+      const row = await readRun(iid);
+      return { status: String(row.rows[0]?.status), version: Number(row.rows[0]?.version), n: row.rowCount ?? 0 };
+    });
+    A(`活状态 ${status} 仍可取得并写成 active，且不另插一行`,
+      got.acquired === true && got.value.status === 'active' && got.value.version === 5 && got.value.n === 1);
+  }
+
   console.log(`\n${fail === 0 ? '✓ GRAPH-FENCE 写世代围栏:构造期拒+四面臂全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);
 }

@@ -9,6 +9,7 @@ import {
   createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
   renewReservationLease, DEFAULT_LEASE_SECONDS, assertIsolatedTestTarget,
   inviteCandidate, startApplicationInterview, createJob, classifyJobRoute,
+  claimNextInterviewJob,
 } from '@meetwise/db';
 
 // Test-only HMAC key for createJob/classifyJobRoute (same pattern as adaptive-life/rag03/r4; not production).
@@ -309,14 +310,49 @@ async function main() {
     // （主臂 finishAbandon 不可达=cancel 唯一来源钉死）。
     const ownerT = OWN('evkey-term'), iidT = IID('evkey-term');
     await seedOwner(ownerT);
-    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'completed')", [iidT, ownerT]);
+    const resumeT = randomUUID();
+    await pool.query(
+      "INSERT INTO resume(id,owner_user_id,status,content_sha,privacy_epoch) VALUES ($1,$2,'ingested',$3,1)",
+      [resumeT, ownerT, `recon-term:${iidT}`],
+    );
+    await pool.query(
+      "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'completed',$3,1)",
+      [iidT, ownerT, resumeT],
+    );
     await asPrincipal(pool, ownerT, (c) => reserveEntitlement(c, ownerT, iidT, 'mock_interview', 1.0));
     await asPrincipal(pool, ownerT, (c) => c.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question) VALUES ($1,$2,'q-reclaim-term',1,0,'终态收口题')", [ownerT, iidT]));
+    await asPrincipal(pool, ownerT, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version)
+         VALUES ($1,$2,'start',0,$3::jsonb,$4,1,64,'queued','stale-worker',now()+interval '10 minutes',4)`,
+      [ownerT, iidT, JSON.stringify({ answer: 'secret-answer', turn: 1 }), resumeT],
+    ));
+    await asPrincipal(pool, ownerT, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,version,last_error)
+         VALUES ($1,$2,'start',2,'{"answer":"keep-done","turn":3}'::jsonb,$3,1,64,'done',3,NULL)`,
+      [ownerT, iidT, resumeT],
+    ));
     await expireLease(ownerT, iidT);
     await commerceReconcileTick(pool);
     A('终态-conflict 兜底臂独走：soft-set no-op（interview 保持 completed 零翻转）', (await ivStatus(ownerT, iidT)) === 'completed');
     A('终态-conflict 兜底臂独走：open 题仍被收口 cancelled（不经 finishAbandon 主臂·:86 直收）',
       (await asPrincipal(pool, ownerT, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [ownerT, iidT]))).rows[0]?.status === 'cancelled');
+    const queuedJob = (await asPrincipal(pool, ownerT, (c) => c.query(
+      `SELECT status, last_error, lease_owner, lease_expires_at, version, payload, attempts
+         FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0`,
+      [ownerT, iidT],
+    ))).rows[0];
+    const doneJob = (await asPrincipal(pool, ownerT, (c) => c.query(
+      'SELECT status, version, payload, last_error FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=2',
+      [ownerT, iidT],
+    ))).rows[0];
+    A('终态-conflict 兜底臂：当时 queued 的作业变为 failed',
+      queuedJob?.status === 'failed' && queuedJob?.last_error === 'abandoned'
+      && queuedJob?.lease_owner == null && queuedJob?.lease_expires_at == null
+      && Number(queuedJob?.version) === 5 && queuedJob?.payload?.answer === undefined && queuedJob?.payload?.turn === 1);
+    A('终态-conflict 兜底臂：done 作业不改',
+      doneJob?.status === 'done' && Number(doneJob?.version) === 3 && doneJob?.payload?.answer === 'keep-done' && doneJob?.last_error == null);
+    const claimed = await asPrincipal(pool, ownerT, (c) => claimNextInterviewJob(c, ownerT, 'proof-claimer'));
+    A('终态-conflict 兜底臂：放弃后的排队作业不能再被领取', claimed === null && Number(queuedJob?.attempts) === 0);
   }
 
   console.log(`\n${fail === 0 ? '✓ C1 对账兜底调度侧:孤儿预留回收+终态事件+结算入账+幂等+并发安全 全部通过' : '✗ ' + fail + ' 失败'}`);
