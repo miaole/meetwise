@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 终态图运行不被迟到作业重新激活
 
@@ -79,6 +79,18 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+获取租约时，把状态写成 active 的更新只命中 created、active、waiting_user、migrating、paused、quarantined。不在这六值里的行更新不到，仍当作未取得，不另插一行。该行的 status 与 version 保持原值。
+
+放弃收口，以及绕过收口的对账冲突路径，把该面试仍为 queued 的作业写成 failed。last_error 为 abandoned，lease_owner 与 lease_expires_at 清空，version 加一，并去掉 payload 的 answer。running、done、已经是 failed 的行不改。没有 queued 行时为零行，再次进入仍安全。
+
+没有新迁移，也没有改已经应用的迁移字节。
+
+图运行证明里，原夹具写入的事件种类不在检查约束中，面试状态 active 也不再能被放弃语句接住。夹具改为 question_ready，面试改为 waiting_user。图运行仍从 active 收到 safely_terminated。
+
+点名的证明脚本退出码都是 0。文档扫描数仍是 2282。
