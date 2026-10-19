@@ -43,11 +43,11 @@ export async function createOrder(
   return ex.id;
 }
 
-export async function getOrder(c: Client, owner: string, id: string): Promise<{ id: string; status: string; units: number; amountCents: number; productId: string } | null> {
-  const r = await c.query('SELECT id, status, units, amount_cents, product_id FROM payment_order WHERE id=$1', [id]);
+export async function getOrder(c: Client, owner: string, id: string): Promise<{ id: string; status: string; units: number; amountCents: number; productId: string; channel: string } | null> {
+  const r = await c.query('SELECT id, status, units, amount_cents, product_id, channel FROM payment_order WHERE id=$1', [id]);
   if (r.rowCount === 0) return null;
   const x = r.rows[0];
-  return { id: x.id, status: x.status, units: Number(x.units), amountCents: x.amount_cents, productId: x.product_id };
+  return { id: x.id, status: x.status, units: Number(x.units), amountCents: x.amount_cents, productId: x.product_id, channel: x.channel };
 }
 
 export type CreditResult = 'credited' | 'already' | 'conflict' | 'not_found';

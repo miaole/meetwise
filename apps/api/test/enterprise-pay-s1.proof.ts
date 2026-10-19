@@ -191,6 +191,36 @@ async function proveMigrationRunner(): Promise<boolean> {
     confirmAudit.detail?.bank_ref === 'BR-ENT-001' && confirmAudit.detail?.amount === 149900);
   A('S1-2p fail audit（reason+actor）', !!failAudit && failAudit.actor === ADMIN2 && typeof failAudit.detail?.reason === 'string');
 
+  // 对公幂等重放：仍 created 时维持 created/offline；置败后再重放必须报库内 failed/offline。
+  // 计算键：字面量头名会计入 naming-convention，api lint 上限无余量。
+  const idempotencyKeyHeader = 'idempotency-key' as const;
+  const offReplayKey = 'entpay-s1-off-status-replay';
+  const offReplayHdr = { ...recAuth, [idempotencyKeyHeader]: offReplayKey };
+  r = await h.post('/commerce/orders', offReplayHdr, { productId: 'ent_pack_50', channel: 'offline' });
+  const offReplay = r.body?.orderId as string;
+  const offReplayAgain = await h.post('/commerce/orders', offReplayHdr, { productId: 'ent_pack_50', channel: 'offline' });
+  const offReplayN = (await pool.query(`SELECT count(*)::int AS n FROM payment_order WHERE owner_user_id='recU' AND idempotency_key=$1`, [offReplayKey])).rows[0]?.n;
+  const offReplayRow = (await pool.query(`SELECT status, channel FROM payment_order WHERE id=$1`, [offReplay])).rows[0];
+  A('S1-2q 同键连下两次仍 created/offline·金额 39900·库内一行',
+    r.status === 200 && offReplayAgain.status === 200 &&
+    offReplayAgain.body?.orderId === offReplay && typeof offReplay === 'string' &&
+    r.body?.status === 'created' && r.body?.channel === 'offline' && r.body?.amountCents === 39900 &&
+    offReplayAgain.body?.status === 'created' && offReplayAgain.body?.channel === 'offline' && offReplayAgain.body?.amountCents === 39900 &&
+    offReplayN === 1 && offReplayRow?.status === 'created' && offReplayRow?.channel === 'offline');
+  r = await h.post(`/admin/offline-remits/${offReplay}/fail`, admin2Auth, { reason: '逾期未到账' });
+  A('S1-2r 置败口把仍 created 的对公单改成 failed（不走确认）',
+    r.status === 200 && r.body?.failed === true &&
+    (await pool.query(`SELECT status, channel FROM payment_order WHERE id=$1`, [offReplay])).rows[0]?.status === 'failed' &&
+    (await pool.query(`SELECT channel FROM payment_order WHERE id=$1`, [offReplay])).rows[0]?.channel === 'offline');
+  r = await h.post('/commerce/orders', offReplayHdr, { productId: 'ent_pack_50', channel: 'offline' });
+  const offReplayFailed = (await pool.query(`SELECT status, channel FROM payment_order WHERE id=$1`, [offReplay])).rows[0];
+  A('S1-2s 置败后同键重放返回 failed/offline·同一单·金额 39900·不得 created',
+    r.status === 200 && r.body?.orderId === offReplay &&
+    r.body?.status === 'failed' && r.body?.channel === 'offline' && r.body?.amountCents === 39900 &&
+    r.body?.status !== 'created' &&
+    offReplayFailed?.status === 'failed' && offReplayFailed?.channel === 'offline' &&
+    (await pool.query(`SELECT count(*)::int AS n FROM payment_order WHERE owner_user_id='recU' AND idempotency_key=$1`, [offReplayKey])).rows[0]?.n === 1);
+
   // ── [3] 红冲过滤（§4.1.3）────────────────────────────────────────────────────
   const paidBefore = Number((await pool.query(`SELECT units_total FROM entitlement_bucket WHERE owner_user_id='recU' AND kind='paid'`)).rows[0]?.units_total);
   const entBefore = Number((await pool.query(`SELECT coalesce(sum(units_total),0) AS s FROM entitlement_bucket WHERE owner_user_id='recU' AND kind='enterprise'`)).rows[0]?.s);
@@ -260,6 +290,25 @@ async function proveMigrationRunner(): Promise<boolean> {
   r = await h.post(`/commerce/webhook/refund/${caOrder}`, {}, payBody(caOrder, caRefundTxn, 'refunded'));
   const uaPaidAfter = Number((await pool.query(`SELECT coalesce(sum(units_total),0) AS s FROM entitlement_bucket WHERE owner_user_id='userA' AND kind='paid'`)).rows[0]?.s);
   A('S1-5f C 端红冲语义回归（paid 桶 -10·无过滤路径零弱化）', r.status === 200 && r.body?.result === 'refunded' && Math.abs(uaPaidAfter - (uaPaidBefore - 10)) < 1e-9);
+
+  // 已付线上单改以 offline 重放：更新碰不到 created 行，必须回读 paid/online，不得改写成 created/offline。
+  const paidReplayKey = 'entpay-s1-paid-online-replay';
+  const paidReplayHdr = { ...recAuth, [idempotencyKeyHeader]: paidReplayKey };
+  r = await h.post('/commerce/orders', paidReplayHdr, { productId: 'ent_pack_50', channel: 'online' });
+  const paidReplayId = r.body?.orderId as string;
+  const paidReplayTxn = `entpay-s1-paid-${paidReplayId}`;
+  const paidWh = await h.post(`/commerce/webhook/pay/${paidReplayId}`, {}, payBody(paidReplayId, paidReplayTxn));
+  const paidRow = (await pool.query(`SELECT status, channel FROM payment_order WHERE id=$1`, [paidReplayId])).rows[0];
+  A('S1-5g 线上单回调后库内 paid 且 channel online',
+    r.status === 200 && paidWh.status === 200 && paidWh.body?.result === 'credited' &&
+    paidRow?.status === 'paid' && paidRow?.channel === 'online');
+  r = await h.post('/commerce/orders', paidReplayHdr, { productId: 'ent_pack_50', channel: 'offline' });
+  const paidStill = (await pool.query(`SELECT status, channel FROM payment_order WHERE id=$1`, [paidReplayId])).rows[0];
+  A('S1-5h 已付线上单改以 offline 重放仍是 paid/online·同一单·不得 created/offline',
+    r.status === 200 && r.body?.orderId === paidReplayId &&
+    r.body?.status === 'paid' && r.body?.channel === 'online' && r.body?.amountCents === 39900 &&
+    r.body?.status !== 'created' && r.body?.channel !== 'offline' &&
+    paidStill?.status === 'paid' && paidStill?.channel === 'online');
 
   await done();
 })()

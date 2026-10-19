@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 对公下单没改到行时不能报已创建
 
@@ -130,8 +130,24 @@ lint 必须 0 errors。各包已经写着的 `--max-warnings` 不许改大：roo
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。本步只新增这一份说明，不改产品代码。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+改动文件：
+
+- `apps/api/src/modules/commerce/commerce.service.ts`：对公分支保留 `UPDATE payment_order SET channel='offline' WHERE id=$1 AND status='created'`。`rowCount===1` 仍返回 `created` / `offline`；`rowCount!==1` 在同一次 `asPrincipal` 里调用已有 `getOrder`，用行上的真实 `status` 与 `channel`，读不到行则 `404 not_found`。金额仍用产品 `amountCents`。线上路径仍返回 `created` / `online`，不执行这句更新。
+- `packages/db/src/commerce/payment.ts`：`getOrder` 的 SELECT 与返回类型补上 `channel`。WHERE 仍是 `id=$1`。未改 `createOrder` 的插入与幂等冲突。
+- `apps/api/test/enterprise-pay-s1.proof.ts`：S1-2p 之后补同键对公重放、置败后再重放；S1-5f 之后补已付线上单改以 offline 重放。
+
+命令与退出码：
+
+- `pnpm entpay:s1:prove` EXIT=0
+- `pnpm neg:commerce` EXIT=0
+- `node scripts/ai-docs/check-docs.mjs` EXIT=0
+- `pnpm turbo typecheck --force` EXIT=0
+- `pnpm turbo lint` EXIT=0（0 errors。警告数：root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant-store 27、ai-graphs 47、contracts 265、db-mysql 0、config 0。未改大上限。）
