@@ -4186,3 +4186,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2306** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line resume-id-case nail（2026-10-20 · 重复开始按同一简历标识认）
+
+- **改动**：同一份简历的大小写不同时仍视为同一次开始。空标识仍先短路。另一份简历标识仍拒绝。
+- **并入**：merge `93ccafa1`，双亲 `0412ebdf` 与 `0fc02a5a`。预演 tree `6a3a5a22`。没有冲突，没有强推。其后 `f3ea7d98` 去掉证明里多余的状态比较。
+- **门**：隔离证明退出码 0，含大写重放仍是同一次，另一份标识仍拒绝。docs:check scanned 2307≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2307** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
