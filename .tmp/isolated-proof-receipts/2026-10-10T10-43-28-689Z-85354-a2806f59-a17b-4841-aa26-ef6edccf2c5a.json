@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc001:nhp-fault:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 120039,
+  "startedAt": "2026-10-10T10:41:28.650Z",
+  "finishedAt": "2026-10-10T10:43:28.689Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-001-nhp-fault.proof.ts": "sha256:513be3723aa403b060a8a38781666204afb0d58af32cc9ef72ff025a8111d220",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:e8a394c97af2b96963c30b4b163aa03a022ad48debb486db772e06246ad1bdb1",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:0c1543f3a007011c72d2334f6bc1acc218f3a1605ad031d3b690b1348cad1e3a",
+    "apps/worker/src/report-worker.ts": "sha256:2ecf2d3fdf9323f3c8b6ede219b053c0ab44dcc51c2d6bd2e74b7606d784fa0a",
+    "packages/db/src/report/report.ts": "sha256:e321553010b7d3605563529aa1e46e678b5202105b2720c7eabbb4894b78ffe0",
+    "packages/db/src/commerce/commerce.ts": "sha256:c57539bd885e5e0e7bd0df875e838b071f1c4fa0762e5d3888aae3f2982f4b2a",
+    "packages/db/src/interview/interview-question.ts": "sha256:230d9495d89383835e0b5de71e3ae4d5a835843228eec70d7956a8e229c3cb48",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

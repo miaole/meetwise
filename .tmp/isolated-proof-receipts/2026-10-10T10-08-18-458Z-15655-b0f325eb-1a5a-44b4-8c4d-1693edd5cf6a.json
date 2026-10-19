@@ -1,0 +1,36 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "resume-derivative-reference:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9824,
+  "startedAt": "2026-10-10T10:08:08.634Z",
+  "finishedAt": "2026-10-10T10:08:18.458Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/resume-derivative-reference.proof.ts": "sha256:a47cf3e97d5f4d552cfc958c1837a4b8657860be9b947d28878603bfced3181a",
+    "apps/worker/src/quiz-consumer.ts": "sha256:31cb0307d200b781ae1cbc4efef66f219aafdf710dd533159873f37280f63300",
+    "apps/worker/src/diagnosis-consumer.ts": "sha256:4d4b78d1b553a9be6bd2ec79aea86f3c12f97a6c2b07824c304dfd1f3cc96b42",
+    "apps/worker/src/quiz-lifecycle.ts": "sha256:9d63f8ac73394d23bd095f3295d22507b91871626148f2dfc15b1d0f6a8f7e5e",
+    "apps/worker/src/diagnosis-lifecycle.ts": "sha256:6a52470426213da5aff57780987800a3bafdd0f5cba9c797e5b97a521937351c",
+    "packages/db/src/jobs/quiz-jobs.ts": "sha256:5ba6324b8c481db8971328bf16fb4e96408246ce07128e0e94721e59610b05cd",
+    "packages/db/src/jobs/diagnosis-jobs.ts": "sha256:33c6f29fb5d177c0887c8f4a3281a65febfc236fbdfc22a4ed9bdc2388c699dc",
+    "packages/db/src/resume/resume.ts": "sha256:cfa3b25d01588e8ebc83cbf07c306e8a5574972ff6eed9e4e59dc2a3c380f5ce",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693",
+    "packages/db/migrations/0062_interview_privacy_event_stream_scope.sql": "sha256:45468f9c8a22d836c4ea8a4262fd84d5e16567fa5b1480cbb82991102ea39a5c"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "proofSummary": {
+    "passCount": 3,
+    "failCount": 0,
+    "failureClass": "none"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

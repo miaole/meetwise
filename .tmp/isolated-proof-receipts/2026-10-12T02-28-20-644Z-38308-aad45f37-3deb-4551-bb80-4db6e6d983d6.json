@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "qbank-corpus-retrieve:prove",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 6452,
+  "startedAt": "2026-10-12T02:28:14.192Z",
+  "finishedAt": "2026-10-12T02:28:20.644Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:dd4dec7b5603e45dc05d41ff100a888bc99df2bc0c1c4023bfed1bf122eaa814",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/qbank-corpus-retrieve.proof.ts": "sha256:548a4232a966fee32728f0035ffb42c024940844fbbe3378261bbf014e495302",
+    "apps/worker/src/qbank-track-local-retrieve.ts": "sha256:68a74e5b576629abc5974770aa038cda4d51a54b131c052f92d925a971bb04f2",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:9b0e22511a9fe219970ce08658eef6588ad018fa0eacc700d08b6c5afe6ba2e6",
+    "apps/worker/src/interview-consumer.ts": "sha256:489ec1983b6db374189d2d03279cc8b8da7e886ea6a5210e8daeed8470a37637",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:6c5622780a7392cacca6cc6415b31d67cbbd3ace01f3f76097ca563efa285bc7",
+    "packages/db/src/routing/candidate-route.ts": "sha256:b63a57b1c7d7da4881328a46a60d444ad89af3c0aa0cf60191aaa1b9e900df95"
+  },
+  "schemaMigrationManifest": {
+    "count": 168,
+    "latest": "0166_recruiter_contact_share_projection.sql",
+    "digest": "sha256:f264f589768ea0792d644e10864dc422acbea7dfa0cea2b0230d957ff7e5c720"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

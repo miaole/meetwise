@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc015:ingest-failures:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8046,
+  "startedAt": "2026-10-10T10:12:31.383Z",
+  "finishedAt": "2026-10-10T10:12:39.429Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-015-resume-ingest-failures.proof.ts": "sha256:1cf4bc6110cad1b0f5d29c229eca655544cbeb8f1f05e7f20ae8817b2e28cdc3",
+    "apps/api/test/_neg-harness.ts": "sha256:bdae4a46daac12f67fd073d432008f62d71b5ae73e0c6442b42554135471a8c2",
+    "apps/api/src/modules/resume/resume.service.ts": "sha256:9a93fc288c12a6561eb4da62b578e0f9e108fabeb91ffb5254f4f967d56b8ed9",
+    "packages/domain/src/resume-extract.ts": "sha256:26e4c2f07424ccf7529bd87cf796bbcc09baa4d7d595857a45e6fe64a650a403",
+    "packages/contracts/src/index.ts": "sha256:25735d5a9670f8268cdda54a7aaab244c9c7417f18f4c228d70828c48b8103d6"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

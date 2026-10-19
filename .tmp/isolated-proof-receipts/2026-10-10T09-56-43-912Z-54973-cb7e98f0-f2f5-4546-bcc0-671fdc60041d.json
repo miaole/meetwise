@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "checkpoint-role:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7004,
+  "startedAt": "2026-10-10T09:56:36.908Z",
+  "finishedAt": "2026-10-10T09:56:43.912Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/checkpointer-runtime-role.proof.ts": "sha256:5841e16663e3265eae78161798e43aea445d471dbe57e00c79aded937c1702cf",
+    "apps/worker/src/checkpoint-principal.ts": "sha256:aca5ab15c3c8ab717ede05311654a307113ce4e6885495d5a9b2f5ce495e5593",
+    "packages/db/src/checkpoint/checkpoint-privacy.ts": "sha256:15d74b9454665e9a3c95084f4ad601934101c4172d9911b274244507c8bc10b5",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/migrations/0045_checkpoint_thread_rls.sql": "sha256:0cf6694604860f6abd7201f3d002e30d661a947f8de81aac895f12c4ba929c06",
+    "packages/db/migrations/0047_checkpoint_privacy_fence.sql": "sha256:81577d5899b8d50699b5344afb09c396189e929d89426e84b85257aeb4db4724",
+    "packages/db/migrations/0048_checkpoint_physical_erasure.sql": "sha256:eb9c9cf28f8424c0233d8c0512f86386bfff44945fe2fc3a4ab524e1e15a5adc",
+    "packages/db/migrations/0075_privacy_erasure_authorization_pause.sql": "sha256:1834a37a3267140312feca7a96fdbc3ded138698adb03a216b28223d5141dfd3",
+    "packages/db/migrations/0076_privacy_erasure_legacy_request_pause.sql": "sha256:d314304600b7fb9525e86178b4a204950dabe29689d6b22853d8f4d02255b5c9",
+    "packages/db/migrations/0077_privacy_worker_dispatch_rls.sql": "sha256:adcb33a293e68cb39daca5e7f58f715ec8d399c1ca555b08e31ead873c97bbeb",
+    "packages/db/migrations/0078_privacy_worker_parent_request_guard.sql": "sha256:a9c6bea9d1446e17063f3a8a136d288fcc4fdc37140dd8503deeab3fc2a24ff7"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

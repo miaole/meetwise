@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "qa-tool-layer:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 6500,
+  "startedAt": "2026-10-14T05:09:01.264Z",
+  "finishedAt": "2026-10-14T05:09:07.764Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:327e1e51ccf57b61cb5eff95503daaa2f76a46a39442953c1bad0a0bd44d87f2",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/ai-runtime/test/qa-tool-layer.proof.ts": "sha256:e7e92719cbd8d011725602ac48065ae4a650a6dd97642f91311bac0a471bf6a3",
+    "packages/ai-runtime/package.json": "sha256:ab58ac08094eeb3939eeec33786a5fff726ba20d8539dc56540f022605baac46",
+    "packages/ai-runtime/src/index.ts": "sha256:20a8abd5095aec08ae7be85afdb013ccde747a9529f3805a6c5eb17315d779ac",
+    "packages/ai-runtime/src/qa-tool-layer.ts": "sha256:d087500488142c4180adcead225783603819f059206457f600591c0630acc3ad",
+    "packages/ai-runtime/src/tools.ts": "sha256:c1cc65139cf0780eb2fb421b9c418066a260634f837eb3485218bf00ee9c9745",
+    "packages/ai-runtime/src/invoke.ts": "sha256:afbe914e252a526f48acbc11b93f6ba09c7a88aadab8957ce40e902da2ce70ae",
+    "packages/ai-runtime/src/context-budget.ts": "sha256:cee7aeb609434147dc8a16a088e2dd9612304c68d53d8360bc4d1d7119ef543a",
+    "packages/ai-runtime/src/model-client.ts": "sha256:dff7166b1d896a1515318f9f6fc71feefcaf552fc016858d5e61eb3a72317dfe",
+    "packages/ai-runtime/src/prompts.ts": "sha256:7592fea6d2c0da9619d85bacc8497b0fe1b6f198ff20ffebdacdb5b586bb36cb",
+    "packages/ai-runtime/src/metrics.ts": "sha256:06c513d24366c91f8521645d34a81871044a2e94f49ea3142a66c9e81259dada",
+    "packages/ai-runtime/src/trace.ts": "sha256:04ea4cf3ec32e05b32da8f724cd1069130020333891e0885b1d504c1192d8ee0",
+    "packages/db/src/index.ts": "sha256:9390da544521e4c2c5b07d677f017fea022c016a5415659d055c8a749dd7fa07",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/memory/memory-store.ts": "sha256:1998a2b1f19cf881394120f2e25aa3a3dad74cecb6e34cdded20446ddea7b6a0",
+    "packages/db/src/growth-generation.ts": "sha256:46afcc1265380564c76788ffac7ecffd315e0475b71e4e94f3a60b1dd0de672e",
+    "packages/db/migrations/0160_b_qualitative_projection.sql": "sha256:0fabcc98ce85efb08fb07efd652703c3798130f9688feb4f4348877e0164da2b"
+  },
+  "schemaMigrationManifest": {
+    "count": 185,
+    "latest": "0185_gateway_billing_ledger_payer.sql",
+    "digest": "sha256:7744d4095722d3ca920ce4fb89b94eb5b6075d1372cf1cd5f1cc7ff807acbbf8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

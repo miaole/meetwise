@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc028:trace-fail-open:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 4383,
+  "startedAt": "2026-10-10T10:14:40.732Z",
+  "finishedAt": "2026-10-10T10:14:45.115Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-028-trace-ledger-fail-open.proof.mjs": "sha256:4180ae64742c335902c2fa835652fdd488ac51741a5137c4d60a6aa8b6386bb6",
+    "packages/ai-runtime/src/invoke.ts": "sha256:0f21696ef267da2aa6bc667e6afb71e191fc5711e1dcc6b7fe2fa39a0c8f797e",
+    "packages/ai-runtime/src/trace.ts": "sha256:72813f5aebe891dc2139960e3f5fd08f7d5d28ff8bee00a3d40f5bb3cbba0c08",
+    "ai-docs/requirements/use-cases/e2e-scenarios.md": "sha256:afe9dd8d373b76bdb553a8aa5ee6306fa7c18ab3b2e2ca639c2f8bf4d7402026",
+    "ai-docs/requirements/use-cases/ai-safety-system.md": "sha256:086bbf18df268023d1999049dc1b780af7bf04d235c5186d1387e046ca82e467",
+    "apps/worker/test/report-bulkhead.proof.ts": "sha256:8bd07aeab0cf8a55ad73915d027f8aa8852b9d808a5c886f9e9881ec67ff64e0"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

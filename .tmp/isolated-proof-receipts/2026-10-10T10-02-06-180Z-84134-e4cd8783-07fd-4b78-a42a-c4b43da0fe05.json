@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "memory-vector-chunk-erasure:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7241,
+  "startedAt": "2026-10-10T10:01:58.939Z",
+  "finishedAt": "2026-10-10T10:02:06.180Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/memory-vector-chunk-erasure.proof.ts": "sha256:073f1f30a8def222bde97894092e1ad14999325cb961ff8a6b017759acea1dfc",
+    "packages/db/src/memory/memory-vector-chunk-erasure.ts": "sha256:f078d9303dee0195975144c80e79b70bbb4e972a80569cc4fded65e166df756e",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/memory/memory-governance.ts": "sha256:1ea2a49b47707028e3d0cc26d23e62ef6ead6d394d0b3136524b63cfed803cc2",
+    "packages/db/src/privacy/privacy-authorization.ts": "sha256:0f37bb1403374eb927840d7901e15f24318c88d6bec2e27dbae141ebe6288071",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "packages/domain/src/memory-vector-chunk-deletion.ts": "sha256:edb13b24f196ee6451aaf4becd7650a2fdf60645e6f2b341c390aa3f1dfdf3c0",
+    "packages/domain/src/privacy-authorization.ts": "sha256:e586d751f78a505f44bfc264830de9ced7a8b0af5d3e405e5ab4b3584cad912b",
+    "packages/domain/src/index.ts": "sha256:db3f7f3d85b03ce1f2f960f0020470bf465637a55c34a486b4e675bb3ea9b932",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9",
+    "packages/db/migrations/0047_checkpoint_privacy_fence.sql": "sha256:81577d5899b8d50699b5344afb09c396189e929d89426e84b85257aeb4db4724",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a",
+    "packages/db/migrations/0093_memory_governance.sql": "sha256:fddff901f92915bd645a2432f903309fe370f17574a8c302c5a95112496c920b",
+    "packages/db/migrations/0118_ctx06_deletion_closure.sql": "sha256:45bd07e7e749a6a0a2a314e2a1cf8c66e2251c2d3d888e9b91a0f8b5cc876fab",
+    "packages/db/migrations/0125_memory_vector_chunk_erasure.sql": "sha256:e6794563677ce85bdd677545adb9b3f6915ff738e62af03d1f12cc1ef29e87d9"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

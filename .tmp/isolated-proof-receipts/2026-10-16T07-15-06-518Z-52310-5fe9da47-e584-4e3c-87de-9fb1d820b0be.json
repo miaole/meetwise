@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag-f-reroll:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 14558,
+  "startedAt": "2026-10-16T07:14:51.960Z",
+  "finishedAt": "2026-10-16T07:15:06.518Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:996b68553f1ed99d1eefb7eb8fda38e8a4e265ce6fce2dac8e8d35e36f63789e",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/ag-f-reroll.proof.ts": "sha256:d6b37d5ca8f92a8b37c41968d682fcbd1a56172a5305c21745eef0454c7bb921",
+    "apps/worker/package.json": "sha256:f61cd3f35189efed1c8df40c9cd07a58d850febc21b933c343c1085fd4995d8e",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:816db53ea86c5970b3470768cdebfd908f73ef0c0ad1eab72e23db662939f60c",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:f330e9ca1aebf5815e845af5c1652b439805959f168616249a9d12407a717163",
+    "packages/ai-graphs/src/adaptive-interview/state.ts": "sha256:7d913fbcc660df09076861beaa866f6ce955bf62f20af776bd72af739be810f0",
+    "packages/ai-graphs/src/adaptive-interview/graph.ts": "sha256:49cf5e2f66e7b24c67d89cee4c465da140a294becd47637c6ea2f26434db388a",
+    "packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts": "sha256:6b88c249afeee9e44bf7f101657387a2f5f5ec76e592f103006f5ab2fa2e3e39",
+    "packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts": "sha256:cc438c730ece7aeddea120dd96cce0685e795f39cc825431e5d0877841070efa",
+    "packages/domain/src/question-generation.ts": "sha256:d66527f3d86b7ac94e43d2c97588df83b66551ba550561dea3958a2bc1c5f099",
+    "packages/ai-runtime/src/invoke.ts": "sha256:ab4d9fe00554365a20800f0f4424cfcc3a685b846165761f5d1846baab18bebe",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7",
+    "packages/db/migrations/0130_model_invocation_same_key_claim_join.sql": "sha256:273363a857a7b41770486a7cd398505290ead74266f004c7deae6b7630b6e4bc"
+  },
+  "schemaMigrationManifest": {
+    "count": 204,
+    "latest": "0204_ai_cost_cached_input_price.sql",
+    "digest": "sha256:f540f2434246362f06e280083659216f4426493bc7fdb45e3b2602a25e8b6127"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

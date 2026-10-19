@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "privacy-erasure-preview:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 11859,
+  "startedAt": "2026-10-10T10:04:21.477Z",
+  "finishedAt": "2026-10-10T10:04:33.336Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/privacy-erasure-preview.proof.ts": "sha256:4ce6f816ae69140ddfe2b33c69375cd10bae50f55be51b8389cdd7cc211fe776",
+    "packages/db/src/privacy/privacy-erasure-preview.ts": "sha256:44b422b2ce39fbd73c69acad89bc50b3d1e49ecf94faf0d20535ef0fbafd0b66",
+    "packages/domain/src/privacy-erasure-preview.ts": "sha256:3a229661d0ceb09d568abfbc9d39ea2d9361795e091771d755a0cebdd3f5b258",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/migrations/0129_privacy_erasure_preview_path.sql": "sha256:0274484b2b9fbb37a73f6427a666fcfe5bf42e9dbaf58284075bdd6d31853ebb"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

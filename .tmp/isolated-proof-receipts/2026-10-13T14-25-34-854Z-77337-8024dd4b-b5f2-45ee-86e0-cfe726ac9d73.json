@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "bill4-ledger-list:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7410,
+  "startedAt": "2026-10-13T14:25:27.444Z",
+  "finishedAt": "2026-10-13T14:25:34.854Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:b48563f0188623e7d2c39df92f8738c6c4103a6326f0e2d904fcf2e0e758f924",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/bill4-ledger-list.proof.ts": "sha256:220e77ada7cfb095fee1b5e1dd85b26f3e31b1577b26e4ca99dd6366debc9ade",
+    "packages/db/src/commerce/ledger.ts": "sha256:207828f5d481b024a9090e150a89a0cdc99fdd502d5778d251988defb135b256",
+    "packages/db/src/commerce/commerce.ts": "sha256:ad20e1127cc57e38a1d4aa0377c14f19034a1e564c3aa3435aeff780f5c44246",
+    "packages/db/src/index.ts": "sha256:9390da544521e4c2c5b07d677f017fea022c016a5415659d055c8a749dd7fa07",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0171_question_usage_ledger.sql": "sha256:0e5bf287f0aeb2a7a5e5c3eb6c5b9e9d75ad51292b9443454a46c2b3ed6cbaf1",
+    "packages/db/migrations/0172_topic_charge.sql": "sha256:2e40d27ce97537db674f00ebd2445770eeea34bd8b75fdd7ff256781b631a257",
+    "packages/db/migrations/0185_gateway_billing_ledger_payer.sql": "sha256:12abf492f9ea9e99a95bd7ec44c7b3a6ba7f9ecceaa05f3238c2cdcda0236ffb",
+    "packages/db/sql/23_api_gateway.sql": "sha256:867f03bfd0dfdc58744eba9f0ad33b14fa0607d3ff5db20b7592bd7988741c35",
+    "packages/contracts/src/index.ts": "sha256:89d4f0445b364e9dcd1cee581d4d82e264e6c1e99976e175fadb28c948cebccf",
+    "apps/api/src/modules/commerce/commerce.service.ts": "sha256:698523d4cc72b8694028078dcb70adf367b28c55d99999b5ccbc330f23b672df",
+    "apps/api/src/modules/commerce/billing-ledger.controller.ts": "sha256:845081eaf817eb2af4efba9d16d2c46a7d25d9c92b44a2fb21703eaa573b6c6b"
+  },
+  "schemaMigrationManifest": {
+    "count": 185,
+    "latest": "0185_gateway_billing_ledger_payer.sql",
+    "digest": "sha256:7744d4095722d3ca920ce4fb89b94eb5b6075d1372cf1cd5f1cc7ff807acbbf8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ctx04-compression-snapshot:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 6533,
+  "startedAt": "2026-10-10T09:57:14.013Z",
+  "finishedAt": "2026-10-10T09:57:20.546Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/ctx04-compression-snapshot.proof.ts": "sha256:5bcc72a7bc901481ed77ef507148f92f98c5af1aa88e601785a9717df37ef084",
+    "packages/db/src/context/context-compression-snapshot.ts": "sha256:9a1bd72c8bee80d1a8806758db7add52ac85da6de5fd031e3566c7cc7f83ca38",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/context/ctx03-event-source.ts": "sha256:f4ffaf60756d54a2a39ddd285b1371ee95b8da3994978e822b7876ba7e5e24e8",
+    "packages/db/src/memory/memory-summary.ts": "sha256:f132f8015a5dcbc097604b382203d3437fe73538ca8ef588d79c315d3e03fb06",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "packages/domain/src/ctx04-compression-snapshot.ts": "sha256:940208b725028e906667476efe6ad85aef239bbe67e78c8e2843835096593104",
+    "packages/domain/src/memory-summary.ts": "sha256:1bd3fde775fa09c0ab02e63602a265579731a827145618ab39a976766e54efdc",
+    "packages/domain/src/ctx03-event-source.ts": "sha256:010a013eff7a885c9540107bcaaeb611a7fb0eb229390a3ed636140a3986efe6",
+    "packages/domain/src/index.ts": "sha256:db3f7f3d85b03ce1f2f960f0020470bf465637a55c34a486b4e675bb3ea9b932",
+    "packages/db/migrations/0093_memory_governance.sql": "sha256:fddff901f92915bd645a2432f903309fe370f17574a8c302c5a95112496c920b",
+    "packages/db/migrations/0108_ctx03_immutable_session_event_source.sql": "sha256:5e0ecadfe3f0a0ffa2157e966a29f3a90abce59582e80a9010784676d6613021",
+    "packages/db/migrations/0112_memory_summary.sql": "sha256:e0979ce9cfaf1a487214be3c95cf6d65f2060e5967fdf2b820ad7d9d741a5ab0",
+    "packages/db/migrations/0115_ctx04_verifiable_compression_snapshot.sql": "sha256:dd4cfa981c8473bf40458d8510b03f627bdda6a94dad89000acf966966f4f043"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc003:i18n-locale:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 2914,
+  "startedAt": "2026-10-10T09:57:41.930Z",
+  "finishedAt": "2026-10-10T09:57:44.844Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/web/test/uc-e2e-003-i18n-locale.proof.mjs": "sha256:1a72905f778e567edf50f14eeab9a909dd5a2d5ecdf357d4da3bc73948bf6618",
+    "apps/web/i18n/request.ts": "sha256:c0f93c4af46803095bca5d636af2e0255e92376ad91fb3f8b45068a981bbae3a",
+    "apps/web/messages/en.json": "sha256:398a9b9f0e495c22d8a3e9b1f9897827182806a83761790a401109fe42470e88",
+    "apps/web/messages/zh.json": "sha256:5b5418e8003c9454bda880d43f43011cc0fbde5855b8b40a8459be9673e75fe9",
+    "apps/web/lib/resume/ocr-preview-ui.ts": "sha256:2ac8ad65d8376d458dd524297149d0bf7b2b18be3bab2bbd0f1977671fee0453",
+    "apps/web/app/locale-actions.ts": "sha256:03ecbce6eb1ee20d6fd46b1ef73a4c773f1f21065fbab0d7bc5125643ec1882f"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

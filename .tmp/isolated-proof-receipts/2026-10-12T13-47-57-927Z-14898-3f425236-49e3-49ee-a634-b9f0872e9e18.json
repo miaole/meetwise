@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag-e-report:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9245,
+  "startedAt": "2026-10-12T13:47:48.682Z",
+  "finishedAt": "2026-10-12T13:47:57.927Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:24e0e5bee0d0b29b38c6ead62cc32dce96adb019eadd990d1166b870d89ec396",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/ag-e-report.proof.ts": "sha256:9b070e3abf06d84a63dea44822f95d29b793c34b48e4f125cccd1dc1bd887f6a",
+    "apps/worker/package.json": "sha256:33f897809d5c3194cac4b0a982ad30d546dd5dfa970c087828bff4823259fea7",
+    "apps/worker/src/main.ts": "sha256:e6086618d55b57121ccbbf18353f41b0f1e6ddfa361d13a0755ba319337047c8",
+    "apps/worker/src/report-worker.ts": "sha256:9597c1f9b49176a7eb860867b24a0aa3db83b71760079a59473bd2440fa98c35",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:b0295c331b0dabb3400e326cdbed8b7309f41dead8930cc3ff12d2e97e3e4292",
+    "apps/worker/src/interview-service.ts": "sha256:40b89d3f10f73b80f607ef0cfc6b7208311720c133199482a11ebf56a350c9a0",
+    "packages/db/src/report/report.ts": "sha256:65304d24fb0340a9384be51e1225700a5f46ffde18e589656ca7b5288e821e08",
+    "packages/db/src/index.ts": "sha256:984a7bc6ecc0a98aee07862f4c998e63061d7df4c84ad4fb9818a3e81d7a8df6",
+    "packages/ai-graphs/src/report.ts": "sha256:04f33b21a24167c8e51b56bbd9af34110063d7b7679a2f91a047c98c8a260083",
+    "packages/ai-runtime/src/invoke.ts": "sha256:2c495c276ddcdafb0a5535226f89ca3af0bdc269a5b04c907113bc5c8af51ddb",
+    "packages/ai-runtime/src/model-client.ts": "sha256:4787cd70e63f752ecb3e3650f6d251054209348b72f40c2f553643e76dd0c740",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9",
+    "packages/db/migrations/0130_model_invocation_same_key_claim_join.sql": "sha256:273363a857a7b41770486a7cd398505290ead74266f004c7deae6b7630b6e4bc",
+    "packages/db/migrations/0178_ag_e_report_dispatch_seq.sql": "sha256:5855f62b91bb06d0cad8905cfc963462bd97d5a8114b8bd4163e5cb99aee0cc5"
+  },
+  "schemaMigrationManifest": {
+    "count": 174,
+    "latest": "0178_ag_e_report_dispatch_seq.sql",
+    "digest": "sha256:e51d3945dc79f4c58f6da3fc73a8af1827225906e42bc688f8ccc5326f30b6a5"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

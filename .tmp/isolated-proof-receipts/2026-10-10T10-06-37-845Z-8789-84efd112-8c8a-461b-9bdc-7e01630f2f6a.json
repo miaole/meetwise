@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "rag-control-upgrade:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 4638,
+  "startedAt": "2026-10-10T10:06:33.207Z",
+  "finishedAt": "2026-10-10T10:06:37.845Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/rag-control-upgrade.proof.ts": "sha256:23691b6fe7843e7b3d335edc00ca630b05490a372547f678b5d4662196c066ad",
+    "packages/db/src/retrieval/rag-corpus-versioning.ts": "sha256:d5a07b404657443508d5c96c79484429853048227943ab4bd46a7ef4c22ffda8",
+    "packages/db/migrations/0032_rag_corpus_version_control.sql": "sha256:c5010cb09e2138aedeca2c7b3dc13099bef83d11d05a9755e0a241b06798dcda",
+    "packages/db/migrations/0073_rag_control_plane_identity_isolation.sql": "sha256:fa128b30e29177b35404cfd70ea7cf08142a500a7947ff06db2d45e13b31103f",
+    "packages/db/migrations/0074_rag_rebuild_request_fence.sql": "sha256:167af219d2cf148bde963de4cf75c276d519a910df64ed3d4996ea944f23a45e",
+    "packages/db/migrations/0079_rag_control_acl_allowlist.sql": "sha256:e87629de0814b325abe6a7cb3e31cb26f1a967c3341323061f2b0ed34fc2bae8",
+    "packages/db/migrations/0080_rag_control_executor_membership_allowlist.sql": "sha256:ba29d71fa0537ff9e8f78525756217d00ff2efedca6a95b133aa7241ef16e683",
+    "packages/db/migrations/0081_rag_control_dispatch_concurrent_replay.sql": "sha256:2837a9578934d9cf572c01846b12fa6cd11b58c6efb308958d5198a7464d5a36"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

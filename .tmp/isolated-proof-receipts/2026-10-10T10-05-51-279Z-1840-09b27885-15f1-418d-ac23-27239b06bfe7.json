@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "quiz:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9908,
+  "startedAt": "2026-10-10T10:05:41.371Z",
+  "finishedAt": "2026-10-10T10:05:51.279Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/quiz.proof.ts": "sha256:e03d79b3313ebc2a2ac3d7665809801227af71d5be73d289dc1b99ff82634fe7",
+    "apps/worker/src/quiz-consumer.ts": "sha256:31cb0307d200b781ae1cbc4efef66f219aafdf710dd533159873f37280f63300",
+    "apps/worker/src/quiz-lifecycle.ts": "sha256:9d63f8ac73394d23bd095f3295d22507b91871626148f2dfc15b1d0f6a8f7e5e",
+    "packages/db/src/jobs/quiz-jobs.ts": "sha256:5ba6324b8c481db8971328bf16fb4e96408246ce07128e0e94721e59610b05cd",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

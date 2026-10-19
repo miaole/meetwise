@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "memory-governance:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8953,
+  "startedAt": "2026-10-10T10:01:33.334Z",
+  "finishedAt": "2026-10-10T10:01:42.287Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/memory-governance.proof.ts": "sha256:65cebe5ddef2f55adaf089d4989878be2775299e55078f3e1c321a6db102e5cc",
+    "packages/db/src/memory/memory-governance.ts": "sha256:1ea2a49b47707028e3d0cc26d23e62ef6ead6d394d0b3136524b63cfed803cc2",
+    "packages/db/src/memory/memory-store.ts": "sha256:857aca3120d7144d5a8430d7112e0705d6cdc8239aa734e3c598d02acf039608",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/privacy/privacy-authorization.ts": "sha256:0f37bb1403374eb927840d7901e15f24318c88d6bec2e27dbae141ebe6288071",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/domain/src/memory-governance.ts": "sha256:043eddd2d1780ae5b262c44d5dc9b88d4a112ed9dfc5f99eef29e18eb3e6e496",
+    "packages/domain/src/privacy-authorization.ts": "sha256:e586d751f78a505f44bfc264830de9ced7a8b0af5d3e405e5ab4b3584cad912b",
+    "packages/domain/src/index.ts": "sha256:db3f7f3d85b03ce1f2f960f0020470bf465637a55c34a486b4e675bb3ea9b932",
+    "packages/contracts/src/index.ts": "sha256:25735d5a9670f8268cdda54a7aaab244c9c7417f18f4c228d70828c48b8103d6",
+    "packages/db/migrations/0047_checkpoint_privacy_fence.sql": "sha256:81577d5899b8d50699b5344afb09c396189e929d89426e84b85257aeb4db4724",
+    "packages/db/migrations/0048_checkpoint_physical_erasure.sql": "sha256:eb9c9cf28f8424c0233d8c0512f86386bfff44945fe2fc3a4ab524e1e15a5adc",
+    "packages/db/migrations/0077_privacy_worker_dispatch_rls.sql": "sha256:adcb33a293e68cb39daca5e7f58f715ec8d399c1ca555b08e31ead873c97bbeb",
+    "packages/db/migrations/0078_privacy_worker_parent_request_guard.sql": "sha256:a9c6bea9d1446e17063f3a8a136d288fcc4fdc37140dd8503deeab3fc2a24ff7",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a",
+    "packages/db/migrations/0092_int_transcript_answer_fact_root.sql": "sha256:7edb392a56d108931accf02ad2adce2456e4025306cd4da3ce5bda80c9f4d3c1",
+    "packages/db/migrations/0093_memory_governance.sql": "sha256:fddff901f92915bd645a2432f903309fe370f17574a8c302c5a95112496c920b"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

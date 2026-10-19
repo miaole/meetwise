@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc031-032:injection-jailbreak:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 2908,
+  "startedAt": "2026-10-10T09:59:24.216Z",
+  "finishedAt": "2026-10-10T09:59:27.124Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-031-032-injection-jailbreak.proof.mjs": "sha256:53521e791b36dcf90d91a4b7f8ad83b20e57e3a5e7153a3f21d9911d85da43f6",
+    "ai-docs/requirements/use-cases/e2e-scenarios.md": "sha256:afe9dd8d373b76bdb553a8aa5ee6306fa7c18ab3b2e2ca639c2f8bf4d7402026",
+    "ai-docs/rules/ai/safety-defense-in-depth.md": "sha256:16f7fe6b06bd30a47053af13722ed0bb8c51623bfd33f6a82639b6e89eadcc1b",
+    "ai-docs/testing/golden-tasks/README.md": "sha256:46cc965eeee54a865ceabdc62705955143609003543710f0858f456231a491ac",
+    "ai-docs/testing/golden-tasks/registry.json": "sha256:ce95d9a2d7038837e74dd94db5806212cee0af51148d36b2f1825208ac7c1cd9",
+    "scripts/e2e-fake-service-flags.mjs": "sha256:a6da983fef92fab4137e60d922bc5a6f3360e035420762bb234b00df92980ad5",
+    "e2e/full.e2e.ts": "sha256:cd68b6d90a6da976dddd5c7c011748e2b7f36d0fa7e20e6d4ef99f2d945ec7e9"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "resume-grounding:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7701,
+  "startedAt": "2026-10-12T02:26:05.466Z",
+  "finishedAt": "2026-10-12T02:26:13.167Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:dd4dec7b5603e45dc05d41ff100a888bc99df2bc0c1c4023bfed1bf122eaa814",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/resume-grounding.proof.ts": "sha256:a3e3d5a7ea7d180f03eb166cc7ed4851936a011da2b0ed50d3b97e621ebd1c07",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:6c5622780a7392cacca6cc6415b31d67cbbd3ace01f3f76097ca563efa285bc7",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:9b0e22511a9fe219970ce08658eef6588ad018fa0eacc700d08b6c5afe6ba2e6",
+    "apps/worker/src/memory-service.ts": "sha256:b971d430ce05a5ffbba66e59e3d4f906394c8a0823deb9f8123ee66f407f4ea2",
+    "packages/ai-runtime/src/model-client.ts": "sha256:b22291c303d225ceda04b82db4d3b194a950663795d168bf8a204c877842a82f",
+    "packages/ai-runtime/src/prompts.ts": "sha256:7592fea6d2c0da9619d85bacc8497b0fe1b6f198ff20ffebdacdb5b586bb36cb",
+    "packages/domain/src/index.ts": "sha256:41e9f8696a1567c42489d3b9f2b4b1b3aac2c1140809392e8c8fed15de4adc48",
+    "packages/domain/src/sealed-ocr-binding.ts": "sha256:4359f74f66f4c1ab565cc5c9c797139e8c78bade1d307239236bb45223efc988",
+    "packages/ai-graphs/src/adaptive-interview/state.ts": "sha256:19d894d3ece98764a75c72fcbd5bd13c895e3235d85274c7b5357228fd9bc45e",
+    "packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts": "sha256:34f41dcfaf1ceacb7da3a3a929a285e1dda9ab0568d18196b9dd1e0d05e041c9",
+    "packages/db/src/resume/resume.ts": "sha256:cfa3b25d01588e8ebc83cbf07c306e8a5574972ff6eed9e4e59dc2a3c380f5ce",
+    "packages/db/migrations/0063_resume_active_content_read_gate.sql": "sha256:1a7db0cccbe5c2b9941c98f77c46f1d43d061d833b98cb681315fc7d5f9b1b65",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af",
+    "packages/db/migrations/0152_consent_revoke_grant.sql": "sha256:de6bc2f0eb93e72edc7a705e63ea57c85a8edd088cae193b0464fc4c2c945491"
+  },
+  "schemaMigrationManifest": {
+    "count": 168,
+    "latest": "0166_recruiter_contact_share_projection.sql",
+    "digest": "sha256:f264f589768ea0792d644e10864dc422acbea7dfa0cea2b0230d957ff7e5c720"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ocr:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 11641,
+  "startedAt": "2026-10-10T10:03:53.357Z",
+  "finishedAt": "2026-10-10T10:04:04.998Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/ocr.proof.ts": "sha256:7fb5ee17ecbe900292f8a4c682661c4064d66f6816f68a02ef044d9626dd96df",
+    "packages/ai-runtime/src/resume-ocr.ts": "sha256:f899927faa0c1f739f11950cd39444e9edab20421cc070e98564a795523b27de",
+    "packages/ai-runtime/src/invoke.ts": "sha256:0f21696ef267da2aa6bc667e6afb71e191fc5711e1dcc6b7fe2fa39a0c8f797e",
+    "packages/db/src/resume/resume.ts": "sha256:cfa3b25d01588e8ebc83cbf07c306e8a5574972ff6eed9e4e59dc2a3c380f5ce",
+    "packages/db/src/commerce/commerce.ts": "sha256:c57539bd885e5e0e7bd0df875e838b071f1c4fa0762e5d3888aae3f2982f4b2a",
+    "packages/db/migrations/0038_resume_ocr_artifact.sql": "sha256:dacf4b7540b52754a281a9b5acf71ad16bea8199d4fc3fe4959b7022551fcd9b",
+    "packages/db/migrations/0057_model_invocation_cost_scope.sql": "sha256:59e741cef2d093d67c9b1c33bb906c997c6a1e8027d357964da0f1b901450ef3"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

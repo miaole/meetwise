@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc027:manual-review-appeal:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 4251,
+  "startedAt": "2026-10-10T09:58:13.940Z",
+  "finishedAt": "2026-10-10T09:58:18.191Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-027-manual-review-appeal.proof.mjs": "sha256:2ec2c3df95fd7951e90fdda6a44c23232c862cde8d5583b99b7d3b380d0f5262",
+    "ai-docs/requirements/use-cases/e2e-scenarios.md": "sha256:afe9dd8d373b76bdb553a8aa5ee6306fa7c18ab3b2e2ca639c2f8bf4d7402026",
+    "ai-docs/rules/global/status-machine.md": "sha256:75724ff541b07c783ad432224ed4dddc58bad00549ec08aa4b16ca5a807cbd30",
+    "ai-docs/architecture/ai/human-review-design.md": "sha256:a9bb43bb66454080a27f32d413ebe8e28f02457c3ca7f53c37e8b6ebab173d91",
+    "packages/db/src/qbank/qbank-curation.ts": "sha256:e82d3322be57499048a806b6498cc69fd2b5286fce21fac3e9d4cdcbaf9c60b4",
+    "packages/domain/src/scoring-operation-routing.ts": "sha256:464f72d46d7dda50271b7e1dd3132f56f57af2a5ee548e6261901add153c1aab",
+    "packages/db/src/resume/resume.ts": "sha256:cfa3b25d01588e8ebc83cbf07c306e8a5574972ff6eed9e4e59dc2a3c380f5ce",
+    "e2e/full.e2e.ts": "sha256:cd68b6d90a6da976dddd5c7c011748e2b7f36d0fa7e20e6d4ef99f2d945ec7e9"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

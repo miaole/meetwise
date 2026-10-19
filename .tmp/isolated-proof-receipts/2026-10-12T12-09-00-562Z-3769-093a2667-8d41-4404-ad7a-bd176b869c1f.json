@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag-b-classify:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9553,
+  "startedAt": "2026-10-12T12:08:51.009Z",
+  "finishedAt": "2026-10-12T12:09:00.562Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:d53a16c6ef5216566cfccff38d67bfe2b78c19c21628470276ec5abfcde2c4d4",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/ag-b-classify.proof.ts": "sha256:1e6d94741c13e9de02b8356f96dc17b5e7ea2bfa5c37383be6414e6f850ad577",
+    "apps/worker/package.json": "sha256:4aff9d617e1756f4477a09fcddf92fa2bd2adf9182f7aa43f3dedd3b0a2ddc95",
+    "packages/ai-runtime/src/invoke.ts": "sha256:2c495c276ddcdafb0a5535226f89ca3af0bdc269a5b04c907113bc5c8af51ddb",
+    "packages/ai-runtime/src/model-client.ts": "sha256:4787cd70e63f752ecb3e3650f6d251054209348b72f40c2f553643e76dd0c740",
+    "packages/db/src/model-op/model-invocation.ts": "sha256:a855d8c104dd2f84ba30dd96c4da4535fbc6bd1bd8c25194f1e6f795420c078f",
+    "packages/db/src/model-op/usage-calibration.ts": "sha256:aa187c9be97371647fbbd2d20ac03d0e0e91fe75901531890653f4a6465c7a96",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7",
+    "packages/db/migrations/0119_usage_reconciliation_wiring.sql": "sha256:45e795a9f161f667f10620a2b098ef5c509bff051f4c7bfb1bb75a44876a76ad",
+    "packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql": "sha256:0a4b2da4b199d69269bc28775206ce8f992c3de1376c992160212640e2948710",
+    "packages/db/migrations/0174_ag06_settled_failed_usage_source.sql": "sha256:147e0a380b97432fa466152492c28bb1cb3bc7a13538257780e6f858b42b3b44"
+  },
+  "schemaMigrationManifest": {
+    "count": 172,
+    "latest": "0174_ag06_settled_failed_usage_source.sql",
+    "digest": "sha256:84faee930ff62ed9c8d390012b4b432b3166495f41de1cbb04b5c874bf119aa1"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

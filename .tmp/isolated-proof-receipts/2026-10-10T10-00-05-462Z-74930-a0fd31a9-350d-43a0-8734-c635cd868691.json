@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "int-answer-dual-write-fence:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 12141,
+  "startedAt": "2026-10-10T09:59:53.321Z",
+  "finishedAt": "2026-10-10T10:00:05.462Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/int-answer-dual-write-fence.proof.ts": "sha256:ab19b6b11bdbbb6832a1d31c7b87af519080633ca66ea021a0bd3966bb779bd7",
+    "packages/db/src/interview/interview-answer-dual-write.ts": "sha256:97f16b4a15edfe2ec8da4bc3e3ab717414a4a234da69799885382c2932a5d667",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:88692dc01d2161634448b62664c23c0b34834becaa3d5b844a25b949cf6c38b6",
+    "packages/db/src/transcript/int-transcript.ts": "sha256:98bc78a5cafffc60b058291b1cb29a5e7f121077e4bed41ec6500c32e571e874",
+    "packages/db/src/interview/interview-event.ts": "sha256:ca40439a423098f886326978fcae00d90adf465dadfed84ffb27804164b30367",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/migrations/0092_int_transcript_answer_fact_root.sql": "sha256:7edb392a56d108931accf02ad2adce2456e4025306cd4da3ce5bda80c9f4d3c1",
+    "packages/db/migrations/0126_interview_answer_dual_write_fence.sql": "sha256:85ac21fa853e6dc4353681ec96d41d7d925349d50ea6c430d518c4b4fe639e01"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

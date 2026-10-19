@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "authz5a:constant-time:prove",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 6632,
+  "startedAt": "2026-10-12T04:12:07.741Z",
+  "finishedAt": "2026-10-12T04:12:14.373Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:89db8b4de28c6518eeb89dff9555b9a9e8aa92f515dc6836354f20ffefdc80a6",
+    "apps/api/test/authz5a-constant-time.proof.ts": "sha256:d1a5df88067e5cda70ed7c177a1ca2fdd5180873d52a732f47a0d3f7329ebdb0",
+    "apps/api/test/_neg-harness.ts": "sha256:768613acb8f0a9240060d58b55c59c4228e99966bfd3a7c6450628025d0a603d",
+    "apps/api/src/modules/auth/auth.service.ts": "sha256:1aeb3d0fe38d4e82ffb9a3118854bb8acd249cca70e3df3c79d31fe7c4dee3a1",
+    "apps/api/src/modules/auth/auth.controller.ts": "sha256:36d4092c3c02d2f25c822065139f3b0ac7689d57203c220016b377a5d0a7d80e",
+    "packages/domain/src/auth.ts": "sha256:4bb917a3661086dbe8519ef924b8b3db46e759417f9c246b8bc684cf43d51eb2",
+    "packages/domain/src/index.ts": "sha256:53b13dc9fb7adb636f6951821aa018d067064f3940584dd13102dd1f56c29739",
+    "packages/contracts/src/index.ts": "sha256:78c4e5d0c9ce98c385358bc96db41b6050f6f66e3e79f997dcdbefd4e63eaa33"
+  },
+  "schemaMigrationManifest": {
+    "count": 171,
+    "latest": "0169_auth_user_session.sql",
+    "digest": "sha256:424f64978fe87ff9ecfd678570913c0b6cc0322706b5af3e0f22c040b3cfbbd9"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

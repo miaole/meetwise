@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "bill2-shadow-meter:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 16113,
+  "startedAt": "2026-10-12T17:32:28.933Z",
+  "finishedAt": "2026-10-12T17:32:45.046Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:e7e74cd03f4b889df0250b9b869258bb6bc022c246ed74d3b455a6bb63c695d0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/bill2-shadow-meter.proof.ts": "sha256:823bd86c003b6efadd32f4a28919d066422b286f432f60410b555ade4b7cb4a6",
+    "apps/worker/src/interview-consumer.ts": "sha256:16735da777f8fc7a52576c9f6a0c1df5f21a43698ab3d58e20e16c821a784358",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:ac83522110b7176c6014cbdcf6b10d745efbdbe538a8868c22e60cb7b10e78bf",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:32d407d0312deecd8c6d12367c9340f2106f860de5936e48d6ba0b99a514d575",
+    "packages/ai-graphs/src/adaptive-interview/nodes/decide.ts": "sha256:43e6948147eb3421df0cdfeb03e7fa0299be1d026c12e10a3f85be3474dc5f0c",
+    "packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts": "sha256:025be0c39d4bd89714f6ab2849f4d4118b72d5009d1b302b73669b8d57f01f6f",
+    "packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts": "sha256:cc438c730ece7aeddea120dd96cce0685e795f39cc825431e5d0877841070efa",
+    "packages/ai-graphs/src/adaptive-interview/state.ts": "sha256:f708436df0b89d69202e77c4770e84434dc944ad113c902f590a55f268dcf065",
+    "packages/db/src/interview/interview-question.ts": "sha256:2e43af1c27ff2bdd68f6ebfd561239835d8134d79197d572f1b020dc07754a0e",
+    "packages/db/src/model-op/question-usage-ledger.ts": "sha256:d25fe9face40364a9e8b866adf448e3e731ebafb2497c6ff36910f8eb5e3cb2b",
+    "packages/db/src/model-op/topic-shadow-meter.ts": "sha256:c68f0b7f8d1d64e5ea279c669b53441ef4fbce862395d393e3e2bc80bb7aab30",
+    "packages/db/src/index.ts": "sha256:a4d5331d939e81b897b05e3e987beced1cf495407d2222b55c874633651ed4a5",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0170_interview_question_topic_fields.sql": "sha256:1a97d6ff3831e4ffb20969662240b3e9bf94ec3dd76555e3801b726b52a47c79",
+    "packages/db/migrations/0171_question_usage_ledger.sql": "sha256:0e5bf287f0aeb2a7a5e5c3eb6c5b9e9d75ad51292b9443454a46c2b3ed6cbaf1",
+    "packages/db/migrations/0180_topic_shadow_meter.sql": "sha256:02252d142d2699aa53f9d05afd40cb0cd19b51f1eee995eb92d27728178c656e"
+  },
+  "schemaMigrationManifest": {
+    "count": 180,
+    "latest": "0180_topic_shadow_meter.sql",
+    "digest": "sha256:4b369f6ce85446795f58963dc9e9cc447aa2339f40f6fe5d84cf5d6994d53b16"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

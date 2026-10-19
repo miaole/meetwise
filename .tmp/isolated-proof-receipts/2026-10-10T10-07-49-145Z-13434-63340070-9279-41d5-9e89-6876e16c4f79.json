@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "recruiter:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 11356,
+  "startedAt": "2026-10-10T10:07:37.789Z",
+  "finishedAt": "2026-10-10T10:07:49.145Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/recruiter-depth.proof.ts": "sha256:9fd3c3ab8e77d6bb84299b966a490d157a48dadb8424c55e2d1a418ff743d13d",
+    "packages/db/src/recruiting/recruiter.ts": "sha256:1f0c62ad6a290950f85fc32e43a5d2ed943761bc954f8c14bf92114cf282a3e0",
+    "packages/db/src/commerce/commerce.ts": "sha256:c57539bd885e5e0e7bd0df875e838b071f1c4fa0762e5d3888aae3f2982f4b2a",
+    "packages/db/migrations/0046_application_assessment_recovery.sql": "sha256:04e15b22969b232ad5de93707a494fdb8eb3ee6471e94cef9145dbdad4602f81",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af",
+    "packages/db/migrations/0082_b_side_score_calibration_hold.sql": "sha256:22035b8ecc0e00c78d83355d003d91f00299ed210aab4ba4aa08d9f4e65a4bc9"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

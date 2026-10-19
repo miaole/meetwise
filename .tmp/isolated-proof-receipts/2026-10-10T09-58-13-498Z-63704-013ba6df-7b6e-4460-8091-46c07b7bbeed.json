@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "diagnosis:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8614,
+  "startedAt": "2026-10-10T09:58:04.884Z",
+  "finishedAt": "2026-10-10T09:58:13.498Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/diagnosis.proof.ts": "sha256:8d49a422bd070b71dfb428fd26bdbfe43c76e9433f6c245f094b77126872b16e",
+    "apps/worker/src/diagnosis-consumer.ts": "sha256:4d4b78d1b553a9be6bd2ec79aea86f3c12f97a6c2b07824c304dfd1f3cc96b42",
+    "apps/worker/src/diagnosis-lifecycle.ts": "sha256:6a52470426213da5aff57780987800a3bafdd0f5cba9c797e5b97a521937351c",
+    "packages/db/src/jobs/diagnosis-jobs.ts": "sha256:33c6f29fb5d177c0887c8f4a3281a65febfc236fbdfc22a4ed9bdc2388c699dc",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

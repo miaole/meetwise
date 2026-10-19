@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "db-id-v7:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 17156,
+  "startedAt": "2026-10-10T10:24:37.718Z",
+  "finishedAt": "2026-10-10T10:24:54.874Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/db-id-v7.proof.ts": "sha256:3a8fd59c91da328014aa623e355656a072b88499fb94d761ad647dc1afd41926",
+    "packages/db/scripts/dbid1-api-guard-smoke.ts": "sha256:1f70d8e2103f9286b2d99faf19ef89a5bd9e91164b60c3c79aeea63df9e58f8b",
+    "packages/db/src/ids.ts": "sha256:e688f89d988737c49c0cc86c23137ae0d7fed23ff3e3a6331dd59211d3f27ab9",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/transcript/int-transcript.ts": "sha256:98bc78a5cafffc60b058291b1cb29a5e7f121077e4bed41ec6500c32e571e874",
+    "packages/db/src/recruiting/recruiter.ts": "sha256:1f0c62ad6a290950f85fc32e43a5d2ed943761bc954f8c14bf92114cf282a3e0",
+    "packages/db/src/routing/job-route-decision.ts": "sha256:8010b06f1c348607a3ac5f2f57a0e9687f9363197c8f13c1468b3f379815ba39",
+    "packages/db/src/routing/candidate-route.ts": "sha256:70568a737575de4bcbe217f960dfd1e5d4ea4fd2f45498855c8b586d38a862c9",
+    "packages/db/src/qbank/qbank-route-scope-cache.ts": "sha256:12d6829682a99f9b1644f86c81a63b228212ddcd223d6a4908f6fd862d8076b5",
+    "packages/db/src/qbank/qbank-miss.ts": "sha256:512e54a20d388124b33d64e66826e86279a98049c5836ab701a77cc9227d216e",
+    "packages/db/src/routing/free-text-route-decision.ts": "sha256:2acfc3ca42aa2afdbeed11f8d309d912f3c7b30c1205500fc861a06003ff3377",
+    "packages/domain/src/scoring-honesty.ts": "sha256:adc3128be3164fa777f415096064a5167513607ef1b8001c3a23e57998cee0fb",
+    "apps/web/lib/stream/scoring-honesty.ts": "sha256:6ecc6a5177a478fb3ec52d1c48c7257f1b4df076d073b08d4c7a3c6e6eaa15e2",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "packages/db/migrations/0143_db_id_v7_unify.sql": "sha256:ea85ab3629087c5f4b3f93a023a63b401829a1f47468bb3a6bac4e7e44e1f068",
+    "apps/api/src/modules/commerce/commerce.service.ts": "sha256:0666dd006090907e5b43d5b7ff067104fb676bd7943c192eff59165cd29afc3f",
+    "apps/api/src/modules/quiz/quiz.service.ts": "sha256:2f55981d9f352036595628ed116fa7888a10342c25d2ad548a7fc5baa50900f3",
+    "apps/api/src/modules/diagnosis/diagnosis.service.ts": "sha256:b5b799d9ca0a7b3185d6c4eaedaa11d1b1465b7a4b39aa8eba0400deb163cec0",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:e8a394c97af2b96963c30b4b163aa03a022ad48debb486db772e06246ad1bdb1"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

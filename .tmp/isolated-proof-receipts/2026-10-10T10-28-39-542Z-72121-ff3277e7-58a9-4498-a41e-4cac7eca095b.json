@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "memory:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 10022,
+  "startedAt": "2026-10-10T10:28:29.520Z",
+  "finishedAt": "2026-10-10T10:28:39.542Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/memory.proof.ts": "sha256:67b92c707309dbef04e1be3a2e2be478dd4051b833107e98a59868df25e4509a",
+    "apps/worker/src/memory-service.ts": "sha256:50e068250873010b0ff10ad7942af5c8637fbcf6c0e9c6c09da3ca62ca0a6763",
+    "packages/db/src/memory/memory-store.ts": "sha256:857aca3120d7144d5a8430d7112e0705d6cdc8239aa734e3c598d02acf039608",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

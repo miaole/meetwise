@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "bill3-settlement:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 11534,
+  "startedAt": "2026-10-13T05:19:27.405Z",
+  "finishedAt": "2026-10-13T05:19:38.939Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:b9f5076ebabdbd156b68d4197bfcc9378afee1e72893161ac86d03a9616047ed",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/bill3-settlement.proof.ts": "sha256:fae5ebb6ba2ed179e96ecb6dcd7bb236cc45c39fa81a37a283cd84e094aad673",
+    "apps/worker/src/interview-consumer.ts": "sha256:c84823dfe365536c87dc9e34e670bb6e4f3f104a0bf34cb2634a2b6e5b54e8aa",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:4e54f602323918db8cc689737073dab7fe4833929d9f61faf32d996e1430e2e1",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:d397dca47b5e812beeefd761e15eae063469832523ff4cfb61287a83dfceb20d",
+    "apps/worker/src/commerce-reconcile.ts": "sha256:37482263f54b3bc73e2dbba84da392dbf548981cc6993dd0369626c48246463c",
+    "packages/db/src/commerce/commerce.ts": "sha256:ad20e1127cc57e38a1d4aa0377c14f19034a1e564c3aa3435aeff780f5c44246",
+    "packages/db/src/commerce/topic-charge.ts": "sha256:bb494ca031e3fdbb6d7e5c8571d32e29b69c64edd6c0f7f8541060487093433c",
+    "packages/db/src/index.ts": "sha256:398396d0da68a6374d05152c1c93499832c79809b9beefbebe4ad5be78252647",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0172_topic_charge.sql": "sha256:2e40d27ce97537db674f00ebd2445770eeea34bd8b75fdd7ff256781b631a257",
+    "packages/db/migrations/0173_tf_interview_consumption_terminal_pair.sql": "sha256:cd4e5a57675cee6bef56f00b45323b3c1821fff36fbcdcca22e3e424f851d44c"
+  },
+  "schemaMigrationManifest": {
+    "count": 183,
+    "latest": "0181_ag19_prompt_version_column.sql",
+    "digest": "sha256:8e832734932257171d170dc74f83f684ee591cc4f53fbe92029b84faa11b161c"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc025:stale-quiz-expiry:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 3138,
+  "startedAt": "2026-10-10T09:58:10.272Z",
+  "finishedAt": "2026-10-10T09:58:13.410Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-025-stale-quiz-expiry.proof.mjs": "sha256:d4afbcf952040ef4c315bc36698f153248a251666a8a9833fa0616e3580042fe",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:0c1543f3a007011c72d2334f6bc1acc218f3a1605ad031d3b690b1348cad1e3a",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:e8a394c97af2b96963c30b4b163aa03a022ad48debb486db772e06246ad1bdb1",
+    "packages/db/migrations/0007_resume_quiz.sql": "sha256:064d7ab95fde5404758684d486c132ab18e5b44c07347dc35b9d8da05d3d872e",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

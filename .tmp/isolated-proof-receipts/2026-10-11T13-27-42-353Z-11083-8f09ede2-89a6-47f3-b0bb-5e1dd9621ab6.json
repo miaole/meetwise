@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "rag03-route:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9207,
+  "startedAt": "2026-10-11T13:27:33.146Z",
+  "finishedAt": "2026-10-11T13:27:42.353Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:14d3aa5bccc6c8c0171c7cb934d86495005d2c65376bbb71336381d7811298ce",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/job-route-decision.proof.ts": "sha256:8674c7b3e22cc943cb86e70e684171008349d72dcbd1a5cf8711a73ed7fe2280",
+    "packages/db/src/routing/job-route-decision.ts": "sha256:8010b06f1c348607a3ac5f2f57a0e9687f9363197c8f13c1468b3f379815ba39",
+    "packages/db/src/recruiting/recruiter.ts": "sha256:9550061d0c31280289ee5a979cd3e8e8f5eca8762fd92061b5df3057b419378d",
+    "packages/db/src/index.ts": "sha256:2f0b6d135e4c8fd801854019c2165fe91638f7989e15c9459029ef78e874633b",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/domain/src/job-route-classifier.ts": "sha256:f58db2ef8b693f56230183ba08a8568f06047c948fcba80f3c17dd0c051c4aca",
+    "packages/domain/src/index.ts": "sha256:98c1de8271206b4f9e842d9d94ae8ff7e88138d1fb8e9d9a5511459bef246e4f",
+    "packages/contracts/src/index.ts": "sha256:0b9ae823c80f54cc8b8404d05f1eb9d3d23d19e9faa76d303838a01d473d2172",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9",
+    "packages/db/migrations/0004_recruiter.sql": "sha256:d4a5f624db5a40f4e0cbb4dd269d52406f6ba4c4e2886c0beaf3a26838ece076",
+    "packages/db/migrations/0005_job_application.sql": "sha256:399fc1fd2e123ee9424da0cfbaae1d0e888af8606d370838ebcb15cb88a249b5",
+    "packages/db/migrations/0009_interview_invitation.sql": "sha256:88f8c82c9155cc5be6d4a9676b581ab59b4849e78166644c4de13493433aa17b",
+    "packages/db/migrations/0028_application_bound_interview.sql": "sha256:44e7d96963a56fad575d608623c930d8866a419c369ff4690a64689bc72ef211",
+    "packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql": "sha256:e126f22a58dd924f1e19fe72529df8e9ad220062080c149734a20ae4639046b5",
+    "packages/db/migrations/0104_job_route_decision.sql": "sha256:a74b73f8bff9bef80364b3560b417c240b6322ede0c2069778775563a8f311f7"
+  },
+  "schemaMigrationManifest": {
+    "count": 166,
+    "latest": "0163_qbank_plan_snapshot_interview_fk.sql",
+    "digest": "sha256:5c9632c1d2f38a567725c1f6916dbba430bad5fbe6c0c5c005f35f0ca936a952"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

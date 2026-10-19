@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc040-043:batch-qbank-seat:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 5331,
+  "startedAt": "2026-10-10T10:14:56.521Z",
+  "finishedAt": "2026-10-10T10:15:01.852Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-040-043-batch-qbank-seat.proof.mjs": "sha256:782a189e5ec15535f0cf0a888074a4618b590a001b9b90ae99171175d1996a16",
+    "apps/api/src/modules/recruiter/recruiter.controller.ts": "sha256:e5551d04055cf81324a0965239e66ad9e15ba036091de4e8740184c1b316bbe4",
+    "apps/api/src/modules/recruiter/recruiter.service.ts": "sha256:d418c79fc70afa42d2e39057bb6c3a98cb193fb45463ef7f8d7ec5babc6658ef",
+    "e2e/full.e2e.ts": "sha256:cd68b6d90a6da976dddd5c7c011748e2b7f36d0fa7e20e6d4ef99f2d945ec7e9",
+    "apps/web/e2e-ui/recruiting-bound.spec.ts": "sha256:425ddde6cee4d872f8b02e1305fe17c4319897e546293ec6d4739461b13a15f5",
+    "ai-docs/requirements/use-cases/e2e-scenarios.md": "sha256:afe9dd8d373b76bdb553a8aa5ee6306fa7c18ab3b2e2ca639c2f8bf4d7402026",
+    "ai-docs/rules/global/status-machine.md": "sha256:75724ff541b07c783ad432224ed4dddc58bad00549ec08aa4b16ca5a807cbd30"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "memory-fact-adjudication:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 10881,
+  "startedAt": "2026-10-10T10:01:20.834Z",
+  "finishedAt": "2026-10-10T10:01:31.715Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/memory-fact-adjudication.proof.ts": "sha256:6ac900ad348ada2fbc4577f441b5a31fde0772d8b2b3aa9301b09ee4207c4d2e",
+    "packages/db/src/memory/memory-fact-adjudication.ts": "sha256:8364e79ea07e13446621305db25d9faac7510f2319fc6a7f4d420f8f5848c797",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/memory/memory-admission.ts": "sha256:d20ac435838c050cf7568a98bea7e6ed481504cd0505e337b8467d036d4b100b",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/domain/src/memory-fact-adjudication.ts": "sha256:479e8fec36c1d77443f9e836e63d800eb8c5d109131efacade047cdc8c5479eb",
+    "packages/domain/src/memory-admission.ts": "sha256:c6eee537fd97b79e5db4d7e8d7913dc8def1f51293a3f8145453bf9c7661dc8d",
+    "packages/domain/src/memory-governance.ts": "sha256:043eddd2d1780ae5b262c44d5dc9b88d4a112ed9dfc5f99eef29e18eb3e6e496",
+    "packages/domain/src/index.ts": "sha256:db3f7f3d85b03ce1f2f960f0020470bf465637a55c34a486b4e675bb3ea9b932",
+    "packages/contracts/src/index.ts": "sha256:25735d5a9670f8268cdda54a7aaab244c9c7417f18f4c228d70828c48b8103d6",
+    "packages/db/migrations/0093_memory_governance.sql": "sha256:fddff901f92915bd645a2432f903309fe370f17574a8c302c5a95112496c920b",
+    "packages/db/migrations/0095_memory_admission_metadata_gate.sql": "sha256:8a046a00a17c095dcfb62aab91d2c364eb6eb6ea480f1bd5a947304953bc332b",
+    "packages/db/migrations/0099_memory_fact_adjudication.sql": "sha256:43a000c69f280a665ecfbe4118cfafd8ac21daf12f3dd2cb162f87f0c2a397dc"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

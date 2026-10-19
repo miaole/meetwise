@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "db-money3:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 7623,
+  "startedAt": "2026-10-10T09:57:47.243Z",
+  "finishedAt": "2026-10-10T09:57:54.866Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/db-money3.proof.ts": "sha256:0bd7a0e76795ee943d4e2c940bc6ec8c6e8cd70c66af5d8ec241b47051ef6411",
+    "packages/db/test/migrate.proof.ts": "sha256:5063e5f691be3646f5fdcb14e42c25c0e4750df00e77fa4b37d03ab47aac53ca",
+    "packages/db/migrations/0149_money_status_constraints.sql": "sha256:8086eb377941e550c993ac1e8a4d39f2b76361efd68ceb2e456863440dfdedcd",
+    "packages/db/sql/01_schema.sql": "sha256:13c3677dccbfe607439fd5deeb7e0f5692fa76d944c43a3a3bdbc3bf520192aa",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/commerce/payment.ts": "sha256:a1f798f0234daf191f66289cff0a65b6900328d93c3918e7da784822321910b2",
+    "packages/db/src/commerce/commerce.ts": "sha256:c57539bd885e5e0e7bd0df875e838b071f1c4fa0762e5d3888aae3f2982f4b2a",
+    "packages/db/src/interview/interview-event.ts": "sha256:ca40439a423098f886326978fcae00d90adf465dadfed84ffb27804164b30367",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

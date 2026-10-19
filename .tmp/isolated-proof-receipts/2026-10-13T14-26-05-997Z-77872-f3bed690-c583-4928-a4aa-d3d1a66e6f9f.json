@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "bill3-settlement:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 10700,
+  "startedAt": "2026-10-13T14:25:55.297Z",
+  "finishedAt": "2026-10-13T14:26:05.997Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:b48563f0188623e7d2c39df92f8738c6c4103a6326f0e2d904fcf2e0e758f924",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/bill3-settlement.proof.ts": "sha256:ce4ac1ad60f21f9466a1f94e2e72dfcebcfec86191719b578220e3cabdbd1e4b",
+    "apps/worker/src/interview-consumer.ts": "sha256:c84823dfe365536c87dc9e34e670bb6e4f3f104a0bf34cb2634a2b6e5b54e8aa",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:4e54f602323918db8cc689737073dab7fe4833929d9f61faf32d996e1430e2e1",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:d397dca47b5e812beeefd761e15eae063469832523ff4cfb61287a83dfceb20d",
+    "apps/worker/src/commerce-reconcile.ts": "sha256:37482263f54b3bc73e2dbba84da392dbf548981cc6993dd0369626c48246463c",
+    "packages/db/src/commerce/commerce.ts": "sha256:ad20e1127cc57e38a1d4aa0377c14f19034a1e564c3aa3435aeff780f5c44246",
+    "packages/db/src/commerce/topic-charge.ts": "sha256:bb494ca031e3fdbb6d7e5c8571d32e29b69c64edd6c0f7f8541060487093433c",
+    "packages/db/src/index.ts": "sha256:9390da544521e4c2c5b07d677f017fea022c016a5415659d055c8a749dd7fa07",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0172_topic_charge.sql": "sha256:2e40d27ce97537db674f00ebd2445770eeea34bd8b75fdd7ff256781b631a257",
+    "packages/db/migrations/0173_tf_interview_consumption_terminal_pair.sql": "sha256:cd4e5a57675cee6bef56f00b45323b3c1821fff36fbcdcca22e3e424f851d44c"
+  },
+  "schemaMigrationManifest": {
+    "count": 185,
+    "latest": "0185_gateway_billing_ledger_payer.sql",
+    "digest": "sha256:7744d4095722d3ca920ce4fb89b94eb5b6075d1372cf1cd5f1cc7ff807acbbf8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

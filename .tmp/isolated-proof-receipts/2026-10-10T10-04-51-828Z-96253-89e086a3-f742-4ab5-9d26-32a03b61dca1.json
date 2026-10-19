@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "privacy-erasure:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9093,
+  "startedAt": "2026-10-10T10:04:42.735Z",
+  "finishedAt": "2026-10-10T10:04:51.828Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/checkpoint-privacy-erasure.proof.ts": "sha256:9c5984d6c271b2272c4e1f5a4aab14fb508bd925abb9b16d4cd461abe9063bd7",
+    "packages/db/src/checkpoint/checkpoint-privacy.ts": "sha256:15d74b9454665e9a3c95084f4ad601934101c4172d9911b274244507c8bc10b5",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:88692dc01d2161634448b62664c23c0b34834becaa3d5b844a25b949cf6c38b6",
+    "packages/db/src/model-op/model-invocation.ts": "sha256:a34dc4101e3fa7d16cdd7fd3028669bebcd3141627edc0614d63230b7eac0cdf",
+    "apps/worker/src/report-worker.ts": "sha256:2ecf2d3fdf9323f3c8b6ede219b053c0ab44dcc51c2d6bd2e74b7606d784fa0a",
+    "packages/db/migrations/0058_interview_privacy_queue_fence.sql": "sha256:f5f4931a4b02342abdc56a59abe66a0b317ca9e3e1f00bb99bdcdf8eb9e87ef8",
+    "packages/db/migrations/0059_interview_privacy_projection_fence.sql": "sha256:8dc20dce4777acd8dfe9970cff47d299a936b648a1eaffa901456c481bdcd8fc",
+    "packages/db/migrations/0062_interview_privacy_event_stream_scope.sql": "sha256:45468f9c8a22d836c4ea8a4262fd84d5e16567fa5b1480cbb82991102ea39a5c",
+    "packages/db/migrations/0075_privacy_erasure_authorization_pause.sql": "sha256:1834a37a3267140312feca7a96fdbc3ded138698adb03a216b28223d5141dfd3",
+    "packages/db/migrations/0076_privacy_erasure_legacy_request_pause.sql": "sha256:d314304600b7fb9525e86178b4a204950dabe29689d6b22853d8f4d02255b5c9",
+    "packages/db/migrations/0077_privacy_worker_dispatch_rls.sql": "sha256:adcb33a293e68cb39daca5e7f58f715ec8d399c1ca555b08e31ead873c97bbeb",
+    "packages/db/migrations/0078_privacy_worker_parent_request_guard.sql": "sha256:a9c6bea9d1446e17063f3a8a136d288fcc4fdc37140dd8503deeab3fc2a24ff7",
+    "packages/ai-runtime/src/invoke.ts": "sha256:0f21696ef267da2aa6bc667e6afb71e191fc5711e1dcc6b7fe2fa39a0c8f797e"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "proofSummary": {
+    "passCount": 2,
+    "failCount": 0,
+    "failureClass": "none"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

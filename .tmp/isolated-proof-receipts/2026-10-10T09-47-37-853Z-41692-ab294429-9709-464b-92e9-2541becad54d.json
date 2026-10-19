@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "report:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7019,
+  "startedAt": "2026-10-10T09:47:30.834Z",
+  "finishedAt": "2026-10-10T09:47:37.853Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/report-bulkhead.proof.ts": "sha256:8bd07aeab0cf8a55ad73915d027f8aa8852b9d808a5c886f9e9881ec67ff64e0",
+    "apps/worker/src/report-worker.ts": "sha256:2ecf2d3fdf9323f3c8b6ede219b053c0ab44dcc51c2d6bd2e74b7606d784fa0a",
+    "packages/db/src/report/report.ts": "sha256:e321553010b7d3605563529aa1e46e678b5202105b2720c7eabbb4894b78ffe0",
+    "packages/db/migrations/0059_interview_privacy_projection_fence.sql": "sha256:8dc20dce4777acd8dfe9970cff47d299a936b648a1eaffa901456c481bdcd8fc"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

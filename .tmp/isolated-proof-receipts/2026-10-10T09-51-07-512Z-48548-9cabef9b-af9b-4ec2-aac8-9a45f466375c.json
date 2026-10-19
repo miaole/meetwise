@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "tenant-wiring-neg:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 6635,
+  "startedAt": "2026-10-10T09:51:00.877Z",
+  "finishedAt": "2026-10-10T09:51:07.512Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/tenant-wiring-neg.proof.ts": "sha256:34b1dfd603dda44a6a10a25ef97f75a3ccdfc620d7d9c4c8076b8640dea64b5d",
+    "packages/db/test/tenant-wiring.manifest.ts": "sha256:4d82cdf9e324155a863f0fa7a6cff5f96f13e982b06fe62881c63f5909e85af2",
+    "packages/db/test/tenant-wiring-e5.proof.ts": "sha256:792936efb5428b8263c37a08bb1d82eff6a09a03fdc4b4dcab555c7ee4c1377c",
+    "packages/db/test/tenant-enforcement.proof.ts": "sha256:c49ad8ca3f4c69b1c93a7706ea2b498fadf34f313c703f883f546302cfcfa786",
+    "packages/db/src/tenant/index.ts": "sha256:148fc6f0d449ca2024d9cf65a4d4453eb82f4824e80edae449b0222ee2fb4847",
+    "packages/db/src/notification/notification.ts": "sha256:e169f659e865fa50178eb1995c88cf50f76e05efcadc96af582f06bd06036459",
+    "packages/db/src/recruiting/recruiter.ts": "sha256:1f0c62ad6a290950f85fc32e43a5d2ed943761bc954f8c14bf92114cf282a3e0",
+    "packages/db/src/routing/candidate-route.ts": "sha256:70568a737575de4bcbe217f960dfd1e5d4ea4fd2f45498855c8b586d38a862c9",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

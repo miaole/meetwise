@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag-f-reroll:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8267,
+  "startedAt": "2026-10-12T14:07:28.564Z",
+  "finishedAt": "2026-10-12T14:07:36.831Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:280ab9fb0d4872600b6508aa62297f0b4ecb3b0a426f3589af116f856e8df8fc",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/ag-f-reroll.proof.ts": "sha256:ad081c4cf494844c0f9ebd1b640b3ab458f39bd7f395fb06e347b09616d0a8ee",
+    "apps/worker/package.json": "sha256:b51ddd9700d7aeb0a9f5a06c4f3881251ddbe749630460572d1f83ab94d8a64f",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:31f291d180d16e2863a74da6d1a9a4a20819e9428f6cf987706d81e097f56d37",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:b15e1579e9636abb93ebc5609ef66507b0ee45944c4238e8d7e160f66e37bf00",
+    "packages/ai-graphs/src/adaptive-interview/state.ts": "sha256:e4dba1f6abdd00ef9d991870e35738468f9a84798946159912355d90fe9f9df7",
+    "packages/ai-graphs/src/adaptive-interview/graph.ts": "sha256:67ee0f52f4c2cd610a7489fc2bfbfef1a93f4cb972592c47bbda3a34cda22379",
+    "packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts": "sha256:53862ab9f1920aaab86eb7150eb60397e4460222ce753132f3cbace540515c01",
+    "packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts": "sha256:c9db46563810b0f99ef16e26c6be22d99269a142ce281bc9743a6b16739fa14e",
+    "packages/domain/src/question-generation.ts": "sha256:8a5be43449ccc00280befa99ee19ddc95c653dd0f275941ccc77fd580ec9dfd5",
+    "packages/ai-runtime/src/invoke.ts": "sha256:2c495c276ddcdafb0a5535226f89ca3af0bdc269a5b04c907113bc5c8af51ddb",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7",
+    "packages/db/migrations/0130_model_invocation_same_key_claim_join.sql": "sha256:273363a857a7b41770486a7cd398505290ead74266f004c7deae6b7630b6e4bc"
+  },
+  "schemaMigrationManifest": {
+    "count": 174,
+    "latest": "0178_ag_e_report_dispatch_seq.sql",
+    "digest": "sha256:e51d3945dc79f4c58f6da3fc73a8af1827225906e42bc688f8ccc5326f30b6a5"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

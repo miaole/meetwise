@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "model-cost:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 21647,
+  "startedAt": "2026-10-10T10:25:45.855Z",
+  "finishedAt": "2026-10-10T10:26:07.502Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/ai-runtime/test/model-cost-governance.proof.ts": "sha256:3bc90aa4c9136dfcdc6c0091fcf077d481f76df3f38ca1cfdba692507cc443c3",
+    "packages/ai-runtime/src/invoke.ts": "sha256:0f21696ef267da2aa6bc667e6afb71e191fc5711e1dcc6b7fe2fa39a0c8f797e",
+    "packages/db/src/model-op/ai-cost-governance.ts": "sha256:144eb641f8138a8bb58d9618b45dd8c4416ca55330e1e8eaab117d593776c549",
+    "packages/db/migrations/0033_ai_cost_governance.sql": "sha256:78e3e0c63102e50c46243a208cd08bd496347d60060cdaaab21c325ffcc7753f",
+    "packages/db/migrations/0035_ai_cost_principal_scope.sql": "sha256:accfe6574ad46faa051175a6ae45231b943400b0ed18e7ec411e0d0fa9a93a6c",
+    "packages/db/migrations/0036_ai_text_cost_governance.sql": "sha256:e2e7c187d4c0764562ee8a687462068893cc4d0d70ddd85ca08bb1904607aa8c",
+    "packages/db/migrations/0037_ai_model_invocation_durable_claim.sql": "sha256:b08a3c48a10f9cbcc82a0ba4e13612c692a29ea637f798e8ecb2b2a58aedf7d1",
+    "packages/db/migrations/0056_model_invocation_reconcile.sql": "sha256:34be3619874db8d4292913686c5d28a59201cc37ff768b60f263ae15dabdbf9a",
+    "packages/db/migrations/0057_model_invocation_cost_scope.sql": "sha256:59e741cef2d093d67c9b1c33bb906c997c6a1e8027d357964da0f1b901450ef3",
+    "packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql": "sha256:fc89c9b134dddd17c317ab095d009111c42c925bf60fa87554ac9a54b729a3ce",
+    "packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql": "sha256:19dd8c0926ddbf3d5fd6a6af6baef94948ce22fa9cfc865baffabf147bb52a39",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7",
+    "packages/db/migrations/0130_model_invocation_same_key_claim_join.sql": "sha256:273363a857a7b41770486a7cd398505290ead74266f004c7deae6b7630b6e4bc"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

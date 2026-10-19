@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag37-deficit-persist:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7668,
+  "startedAt": "2026-10-13T04:43:13.950Z",
+  "finishedAt": "2026-10-13T04:43:21.618Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:8ac93d90c68b3a05065db81e526280e14b7a74676dd201697b26ef77473c4874",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/ag37-deficit-persist.proof.ts": "sha256:7e188e8143e666d01437f60c02c475902e9194ff827b60640020c0b6b7cd016d",
+    "apps/worker/package.json": "sha256:9719f94822061ea37f656e87531814b51c46c550704af04ef3fc67555687472b",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:d397dca47b5e812beeefd761e15eae063469832523ff4cfb61287a83dfceb20d",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:f262afd34ee7c5af39fbf2c2a0c6f37ee9e80f719aa0290591dfd1b165fb0db5",
+    "apps/worker/src/interview-consumer.ts": "sha256:c84823dfe365536c87dc9e34e670bb6e4f3f104a0bf34cb2634a2b6e5b54e8aa",
+    "apps/worker/src/qbank-track-local-retrieve.ts": "sha256:68a74e5b576629abc5974770aa038cda4d51a54b131c052f92d925a971bb04f2",
+    "packages/ai-graphs/src/adaptive-interview/state.ts": "sha256:7d913fbcc660df09076861beaa866f6ce955bf62f20af776bd72af739be810f0",
+    "packages/ai-graphs/src/adaptive-interview/graph.ts": "sha256:67ee0f52f4c2cd610a7489fc2bfbfef1a93f4cb972592c47bbda3a34cda22379",
+    "packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts": "sha256:ca4ddf50ad6d6b6e1a7ef9a0aa54cdc4fb26d3ead3918656374e994779c3d658",
+    "packages/domain/src/question-generation.ts": "sha256:d66527f3d86b7ac94e43d2c97588df83b66551ba550561dea3958a2bc1c5f099",
+    "packages/domain/src/job-route-classifier.ts": "sha256:f58db2ef8b693f56230183ba08a8568f06047c948fcba80f3c17dd0c051c4aca",
+    "packages/domain/src/qbank-track-local-retrieval.ts": "sha256:eaaeb5f078b150d49014a60dfdaaa1ab846899406c3d43671b935df99d070efa"
+  },
+  "schemaMigrationManifest": {
+    "count": 181,
+    "latest": "0181_ag19_prompt_version_column.sql",
+    "digest": "sha256:af4a89475efad39d5679820dce3597e6775cd7f319884afda98d01e15fe18472"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

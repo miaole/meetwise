@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "stress:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 10346,
+  "startedAt": "2026-10-10T10:09:44.759Z",
+  "finishedAt": "2026-10-10T10:09:55.105Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/context-stress.proof.ts": "sha256:75c9108652238aa08fc81dc3891552157533faa0e103c57396ec72b5e24c958e",
+    "apps/worker/src/interview-consumer.ts": "sha256:1585a83effb117a6d657e4fb31f5d79f8014e0372b659ae22159bec5a64b9fe4",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:7257fa6325c7a8507a68e26af056f514a5079e80d4bed4771018ee38aa341b99",
+    "apps/worker/src/interview-service.ts": "sha256:b8aab8926d20461d337f3326b6346b36411bc8b08b1cd3c7d11bb2605b88a673",
+    "apps/worker/src/report-worker.ts": "sha256:2ecf2d3fdf9323f3c8b6ede219b053c0ab44dcc51c2d6bd2e74b7606d784fa0a",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:88692dc01d2161634448b62664c23c0b34834becaa3d5b844a25b949cf6c38b6",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

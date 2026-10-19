@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "authz5a:normalize:prove",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7252,
+  "startedAt": "2026-10-12T04:23:54.601Z",
+  "finishedAt": "2026-10-12T04:24:01.853Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:89db8b4de28c6518eeb89dff9555b9a9e8aa92f515dc6836354f20ffefdc80a6",
+    "packages/db/test/authz5a-email-normalization.proof.ts": "sha256:4bbcd6ce3a47b10c6507c897035852685138f053690ee7af634989ae34f9b38e",
+    "packages/db/src/index.ts": "sha256:cdda82f9beff03a89f6dc84eb8b4dcf07eb4d2701eea2278b312dae4e270522e",
+    "packages/db/src/migrate.ts": "sha256:20fc9b12643e9c47afe90f9f323d6a905053998c0aca56a4422d9e33966608fb",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/package.json": "sha256:13b38fbefd09676b88b151f2cdca7725862a618228acc9063668ea75edb45185",
+    "packages/db/migrations/0167_email_case_normalization.sql": "sha256:f896c08834c7e86830ec814730ab7ea0a97b3af618184877f7509d1612cd749a",
+    "packages/db/migrations/0168_gateway_auth_email_normalize.sql": "sha256:878eb328540055f82f194752bb785721f3cdcf8caf037b05fbd5fdd2a566a494",
+    "packages/db/migrations/0169_auth_user_session.sql": "sha256:810b5f5d07c4fe861d681d9e62aa8128d220c49091bb83d94aea1c93df506169",
+    "packages/db/sql/23_api_gateway.sql": "sha256:b697925b0db0b7f6a04294c976871c0cd38dd4fa582dcaf439201921bab4f95f"
+  },
+  "schemaMigrationManifest": {
+    "count": 171,
+    "latest": "0169_auth_user_session.sql",
+    "digest": "sha256:424f64978fe87ff9ecfd678570913c0b6cc0322706b5af3e0f22c040b3cfbbd9"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

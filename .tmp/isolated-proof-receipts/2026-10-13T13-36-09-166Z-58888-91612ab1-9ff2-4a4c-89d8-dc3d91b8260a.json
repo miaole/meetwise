@@ -1,0 +1,40 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag12-estimator-freeze:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7041,
+  "startedAt": "2026-10-13T13:36:02.125Z",
+  "finishedAt": "2026-10-13T13:36:09.166Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:e0b2209388609437404e919473165d6d1b70418da41d3da5cd1a31ed41ff4ea8",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/ai-runtime/test/ag12-estimator-freeze.proof.ts": "sha256:63363b5cf0fe1adb6cc4e15545be51908e1659f21ea9c2980032ff739061b354",
+    "packages/ai-runtime/package.json": "sha256:6a256385116ff2174ebafd529edcdeece7b48cc756c3a6df563e6a2e99ed951d",
+    "packages/ai-runtime/src/index.ts": "sha256:51acc1d9ebdf917ec89bc72ae3be19fe5118e52a9b3ae12dadd317b5bf2a15a8",
+    "packages/ai-runtime/src/invoke.ts": "sha256:afbe914e252a526f48acbc11b93f6ba09c7a88aadab8957ce40e902da2ce70ae",
+    "packages/ai-runtime/src/usage-calibration-reconciler.ts": "sha256:b78466413f336d7cc8a79c1a814182a56666a0eb143ec01168544e2bc9f15dbf",
+    "packages/ai-runtime/src/usage-reconciliation.ts": "sha256:c97c02f6b1ee4dde830af9c9c6b85f01cf769e75aeaddf55ac981827f939342d",
+    "packages/ai-runtime/src/model-client.ts": "sha256:dff7166b1d896a1515318f9f6fc71feefcaf552fc016858d5e61eb3a72317dfe",
+    "packages/db/src/model-op/model-invocation.ts": "sha256:13ef21831697f0c3f7bdca6f26cf82c2eaa06c393659462ede37b19846337ef0",
+    "packages/db/src/model-op/usage-calibration.ts": "sha256:e18903636ae2ae1ec2ed7658b381c86b1e05d44b45f018726a9fb5707d40e94f",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0037_ai_model_invocation_durable_claim.sql": "sha256:b08a3c48a10f9cbcc82a0ba4e13612c692a29ea637f798e8ecb2b2a58aedf7d1",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7",
+    "packages/db/migrations/0119_usage_reconciliation_wiring.sql": "sha256:45e795a9f161f667f10620a2b098ef5c509bff051f4c7bfb1bb75a44876a76ad",
+    "packages/db/migrations/0130_model_invocation_same_key_claim_join.sql": "sha256:273363a857a7b41770486a7cd398505290ead74266f004c7deae6b7630b6e4bc",
+    "packages/db/migrations/0174_ag06_settled_failed_usage_source.sql": "sha256:147e0a380b97432fa466152492c28bb1cb3bc7a13538257780e6f858b42b3b44",
+    "packages/db/migrations/0177_usage_calibration_ag07_windowing.sql": "sha256:805d20e78507dc98f39ca465081a409ddcaf04df4c008f69ca532f3efc9ca7c0",
+    "packages/db/migrations/0181_ag19_prompt_version_column.sql": "sha256:fca1dec844ae466531c9bb7687cb8a3bd53e419b0225c9dc00ac45f287277fe7",
+    "packages/db/migrations/0184_ag12_estimator_claim_freeze.sql": "sha256:cfbb398a46631480163f601cec9327929c67aa790ec17d36427e3b2a04d60ace"
+  },
+  "schemaMigrationManifest": {
+    "count": 184,
+    "latest": "0184_ag12_estimator_claim_freeze.sql",
+    "digest": "sha256:3eb1385be13927b20edf1588908b9e9126146a0f8eb0135fb547f9b35ad3f735"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

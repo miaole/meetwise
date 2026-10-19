@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "db-acl2:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 13574,
+  "startedAt": "2026-10-10T10:24:23.604Z",
+  "finishedAt": "2026-10-10T10:24:37.178Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/db-acl2.proof.ts": "sha256:400642f9648f46ee43efda3ef31819cccc800c3b65efaa2a47dbb9fba270e99a",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/migrate.ts": "sha256:3ea74c4fc4275f3d4441c0b07adaa90769c283153b72c2b8cabd4dd2f4d69351",
+    "packages/db/test/migrate.proof.ts": "sha256:5063e5f691be3646f5fdcb14e42c25c0e4750df00e77fa4b37d03ab47aac53ca",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "package.json": "sha256:f1e2a3bca9784a3a5a62daf01b746ccd1adacdfe4a868e53cf0a378c6d0f2d99",
+    "packages/db/migrations/0108_ctx03_immutable_session_event_source.sql": "sha256:5e0ecadfe3f0a0ffa2157e966a29f3a90abce59582e80a9010784676d6613021",
+    "packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql": "sha256:228f14105feb546c66aff68296ace5e389f16af32c52a84fd4a42679e9166ec8",
+    "packages/db/migrations/0122_resume_pgcrypto_optional_acl.sql": "sha256:ae2e345aa6685ed3b0c7f35e399d4dbfbf267766f8e8326c9f7b81f2bb9c3847",
+    "packages/db/migrations/0151_pgp_sym_encrypt_grant.sql": "sha256:3e93a500ac651059d224e55005699e1011027dd0363923f497996d5a118dafb5"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

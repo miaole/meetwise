@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "db-acl:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 11992,
+  "startedAt": "2026-10-10T10:24:35.345Z",
+  "finishedAt": "2026-10-10T10:24:47.337Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/db-acl.proof.ts": "sha256:06832fdd590e3f5ef42ee33ec16f73fe47c669f0202749ab6a86d161b9e3efc8",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/report/report.ts": "sha256:e321553010b7d3605563529aa1e46e678b5202105b2720c7eabbb4894b78ffe0",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "package.json": "sha256:f1e2a3bca9784a3a5a62daf01b746ccd1adacdfe4a868e53cf0a378c6d0f2d99",
+    "packages/db/migrations/0143_db_id_v7_unify.sql": "sha256:ea85ab3629087c5f4b3f93a023a63b401829a1f47468bb3a6bac4e7e44e1f068",
+    "packages/db/migrations/0150_uuidv7_grant_acl.sql": "sha256:ae33180feed515b7cfaff4230e757b708c46f6b259948f68f3acaffc205b8b0f"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

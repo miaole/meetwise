@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "commerce:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7067,
+  "startedAt": "2026-10-13T14:26:42.656Z",
+  "finishedAt": "2026-10-13T14:26:49.723Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:b48563f0188623e7d2c39df92f8738c6c4103a6326f0e2d904fcf2e0e758f924",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/commerce-saga.proof.ts": "sha256:9d94284602b2100231b76499fdd88525bf1fc6e873f6656106c5f8fa4f6e21cb",
+    "packages/db/src/commerce/commerce.ts": "sha256:ad20e1127cc57e38a1d4aa0377c14f19034a1e564c3aa3435aeff780f5c44246",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9",
+    "packages/db/migrations/0046_application_assessment_recovery.sql": "sha256:04e15b22969b232ad5de93707a494fdb8eb3ee6471e94cef9145dbdad4602f81"
+  },
+  "schemaMigrationManifest": {
+    "count": 185,
+    "latest": "0185_gateway_billing_ledger_payer.sql",
+    "digest": "sha256:7744d4095722d3ca920ce4fb89b94eb5b6075d1372cf1cd5f1cc7ff807acbbf8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

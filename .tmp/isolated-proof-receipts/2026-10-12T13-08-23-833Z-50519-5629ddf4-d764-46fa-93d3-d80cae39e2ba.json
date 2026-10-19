@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "reaper:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7663,
+  "startedAt": "2026-10-12T13:08:16.170Z",
+  "finishedAt": "2026-10-12T13:08:23.833Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:5051a0e63ed57fcf338e37b42221909841aceb286e9ee42368266ee5702350ed",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/reaper.proof.ts": "sha256:8f5b1f2bfb5e9b1af7c075f047364de79cf8b7da45d6519a63a0777c9c9cd0ff",
+    "apps/worker/src/interview-consumer.ts": "sha256:d0685ab2448e5ed8ff36c7dbffe4a93adfed6abc6e57bf620c2c4271d02feb16",
+    "apps/worker/src/quiz-consumer.ts": "sha256:2f05f6cfddee5b52488df9c2492c78004a297cc9f5d730de4df45d49e22d3e29",
+    "apps/worker/src/job-heartbeat.ts": "sha256:e031b9dd5969887254fa134cb85c1953fffda93e4e10615b28ec77637b043231",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:1a92f14eb43c0e03551cb69480d6560e2737ba816e01623ab0fe25703f0b6db7",
+    "packages/db/src/jobs/quiz-jobs.ts": "sha256:344111917fd519900d8725a2f80c69cdcd4854351960c32e61e4600188dde51c",
+    "packages/db/src/commerce/commerce.ts": "sha256:797211c3c38a0bb944689bcb3409cc3a0c3348b2c739b3013bbff08fc5c78341",
+    "packages/db/src/resume/resume.ts": "sha256:ba798e7e07e0a21e4c352ba382a72f908f917b404f6a79ae1691706efa567b2f",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af"
+  },
+  "schemaMigrationManifest": {
+    "count": 173,
+    "latest": "0175_interview_job_next_attempt_at.sql",
+    "digest": "sha256:58526db39bad5ccf43e9e65f0f50c1058b301627fa3e2ed332dbb707cd8ddd61"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

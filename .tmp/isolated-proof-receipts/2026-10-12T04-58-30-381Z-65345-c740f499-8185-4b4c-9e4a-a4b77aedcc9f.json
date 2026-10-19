@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc033:cross-user-authz:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 5032,
+  "startedAt": "2026-10-12T04:58:25.349Z",
+  "finishedAt": "2026-10-12T04:58:30.381Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:89db8b4de28c6518eeb89dff9555b9a9e8aa92f515dc6836354f20ffefdc80a6",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-033-cross-user-authz.proof.ts": "sha256:420cf126625d57903284febd284fb0992a561086a7a6a5e1fc68e5e8128c0d1e",
+    "apps/api/test/_neg-harness.ts": "sha256:768613acb8f0a9240060d58b55c59c4228e99966bfd3a7c6450628025d0a603d",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:98541cf5638b1217e2078a25b5ed5f8b166b3c2291c71981a6933c0c8431ae27",
+    "apps/api/src/modules/resume/resume.service.ts": "sha256:9a93fc288c12a6561eb4da62b578e0f9e108fabeb91ffb5254f4f967d56b8ed9",
+    "apps/api/src/modules/quiz/quiz.service.ts": "sha256:0d5ee41b86ff061a04ee608c56a4c4da94a577dcce68d65652e9b35a7421bb44",
+    "apps/api/src/modules/privacy/privacy.service.ts": "sha256:a83065335d96049c48f3be734cfadeab68a5560e6deefde4dc5bf435dc4aceb3"
+  },
+  "schemaMigrationManifest": {
+    "count": 171,
+    "latest": "0169_auth_user_session.sql",
+    "digest": "sha256:424f64978fe87ff9ecfd678570913c0b6cc0322706b5af3e0f22c040b3cfbbd9"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

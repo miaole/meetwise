@@ -1,0 +1,29 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc025:nhp-fault-isolated:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 120013,
+  "startedAt": "2026-10-10T10:47:32.907Z",
+  "finishedAt": "2026-10-10T10:49:32.920Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-025-nhp-fault-isolated.proof.ts": "sha256:0c6374c71d274abbc5ab5f4afa67e5fc8617b34d1c6266f4b0bd069ee077e1d2",
+    "apps/api/test/_neg-harness.ts": "sha256:bdae4a46daac12f67fd073d432008f62d71b5ae73e0c6442b42554135471a8c2",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:e8a394c97af2b96963c30b4b163aa03a022ad48debb486db772e06246ad1bdb1",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:0c1543f3a007011c72d2334f6bc1acc218f3a1605ad031d3b690b1348cad1e3a",
+    "apps/api/src/platform/principal.guard.ts": "sha256:90853f211482441d8f7640963878582f69c743984e9fc689de03d560052433d8",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/sql/20_resume_quiz.sql": "sha256:5f541e711af732ed9e056c6f13305db3f923ca7dbf421b919e5e1d7da768d313",
+    "packages/db/migrations/0135_resume_quiz_freshness_anchor.sql": "sha256:776220a4325c09c78aaba10ce032da4b3aaefc399cf4f8cf1010f00d61014d1f"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

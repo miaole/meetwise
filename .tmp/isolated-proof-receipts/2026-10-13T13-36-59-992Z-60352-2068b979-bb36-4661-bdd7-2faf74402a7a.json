@@ -1,0 +1,37 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ucal-windowing:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 7427,
+  "startedAt": "2026-10-13T13:36:52.565Z",
+  "finishedAt": "2026-10-13T13:36:59.992Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:e0b2209388609437404e919473165d6d1b70418da41d3da5cd1a31ed41ff4ea8",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/usage-calibration-windowing.proof.ts": "sha256:d01390c1e5ba403622a0c0760b4755fef8a2af904564f20b0926cc3330e90cdc",
+    "apps/worker/package.json": "sha256:96298197a192008cc498e620d6dfb798be76b5b373d0dc0601313eca76b5c4b5",
+    "packages/ai-runtime/src/usage-calibration-reconciler.ts": "sha256:b78466413f336d7cc8a79c1a814182a56666a0eb143ec01168544e2bc9f15dbf",
+    "packages/ai-runtime/src/usage-reconciliation.ts": "sha256:c97c02f6b1ee4dde830af9c9c6b85f01cf769e75aeaddf55ac981827f939342d",
+    "packages/ai-runtime/src/invoke.ts": "sha256:afbe914e252a526f48acbc11b93f6ba09c7a88aadab8957ce40e902da2ce70ae",
+    "packages/ai-runtime/src/index.ts": "sha256:51acc1d9ebdf917ec89bc72ae3be19fe5118e52a9b3ae12dadd317b5bf2a15a8",
+    "packages/db/src/model-op/usage-calibration.ts": "sha256:e18903636ae2ae1ec2ed7658b381c86b1e05d44b45f018726a9fb5707d40e94f",
+    "packages/db/src/jobs/gateway-dispatch.ts": "sha256:4415bc6dc92091da700309cfc58a2a64f027e82d8575dbb352c3032f6a2dbc86",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/src/migrate.ts": "sha256:20fc9b12643e9c47afe90f9f323d6a905053998c0aca56a4422d9e33966608fb",
+    "packages/db/migrations/0119_usage_reconciliation_wiring.sql": "sha256:45e795a9f161f667f10620a2b098ef5c509bff051f4c7bfb1bb75a44876a76ad",
+    "packages/db/migrations/0134_usage_calibration_gateway_owners.sql": "sha256:9fc2f574dd30f2af1dd204ccf99964dc4662ed9dc70aea9322e67131296259eb",
+    "packages/db/migrations/0174_ag06_settled_failed_usage_source.sql": "sha256:147e0a380b97432fa466152492c28bb1cb3bc7a13538257780e6f858b42b3b44",
+    "packages/db/migrations/0177_usage_calibration_ag07_windowing.sql": "sha256:805d20e78507dc98f39ca465081a409ddcaf04df4c008f69ca532f3efc9ca7c0",
+    "packages/db/migrations/0184_ag12_estimator_claim_freeze.sql": "sha256:cfbb398a46631480163f601cec9327929c67aa790ec17d36427e3b2a04d60ace"
+  },
+  "schemaMigrationManifest": {
+    "count": 184,
+    "latest": "0184_ag12_estimator_claim_freeze.sql",
+    "digest": "sha256:3eb1385be13927b20edf1588908b9e9126146a0f8eb0135fb547f9b35ad3f735"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

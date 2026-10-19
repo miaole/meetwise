@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "growth:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 9607,
+  "startedAt": "2026-10-10T09:59:41.645Z",
+  "finishedAt": "2026-10-10T09:59:51.252Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/growth.proof.ts": "sha256:fbede84873457f2a659b7aae8e69377de3851daeacd9dfb3e4dff9dc9148938e",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/scoring/scoring-aggregation.ts": "sha256:a868f9daf373e14c9585d5ad266887677dd4ad512c793fd62c41e5e95ebb0bfe",
+    "packages/db/src/scoring/scoring-fact-root.ts": "sha256:161e77a300598c74631388f79e6c786c03e8456cc6b289e3b241c36dbd393f75",
+    "packages/db/src/transcript/int-transcript.ts": "sha256:98bc78a5cafffc60b058291b1cb29a5e7f121077e4bed41ec6500c32e571e874",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/domain/src/growth.ts": "sha256:783599829244a7e12ff841686856c870dfacf22fbc939092b985d9c12ec67b29",
+    "packages/domain/src/scoring-aggregation.ts": "sha256:259604b39d3fee61377b096a611847f30c314c8b2b874d6bb4d34815cf83bd3d",
+    "packages/domain/src/scoring-fact-root.ts": "sha256:deaac4a7ce447cf312cc4823e4850210f7ee521882cae0c3fbbf518eb87464da",
+    "packages/domain/src/index.ts": "sha256:db3f7f3d85b03ce1f2f960f0020470bf465637a55c34a486b4e675bb3ea9b932",
+    "apps/api/src/modules/profile/profile.service.ts": "sha256:3747bc1a83b6ed5d73568f83b025a4fc85920f9fe78831e3ac0fcc1de520aef5",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9",
+    "packages/db/migrations/0058_interview_privacy_queue_fence.sql": "sha256:f5f4931a4b02342abdc56a59abe66a0b317ca9e3e1f00bb99bdcdf8eb9e87ef8",
+    "packages/db/migrations/0091_privacy_authorization_issuer.sql": "sha256:4a5f80269101b871e37f0cc27019ca590e91f243bcf6a51e4bb0bf6c866e5a4a",
+    "packages/db/migrations/0092_int_transcript_answer_fact_root.sql": "sha256:7edb392a56d108931accf02ad2adce2456e4025306cd4da3ce5bda80c9f4d3c1",
+    "packages/db/migrations/0100_scoring_fact_root.sql": "sha256:75c7f64a6a7ea46bc23c694813fe8c42e1aa67bff47390f2d7c249335eda7d46",
+    "packages/db/migrations/0103_scoring_deterministic_aggregation.sql": "sha256:5393bceafbf4a842c3ceb5201a92f1009b0bc9e20067bf5b6313bc6c94ff584c"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

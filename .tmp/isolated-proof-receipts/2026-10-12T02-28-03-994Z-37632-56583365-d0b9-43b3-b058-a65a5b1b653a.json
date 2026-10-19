@@ -1,0 +1,28 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "qbank-corpus:prove",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8581,
+  "startedAt": "2026-10-12T02:27:55.413Z",
+  "finishedAt": "2026-10-12T02:28:03.994Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:dd4dec7b5603e45dc05d41ff100a888bc99df2bc0c1c4023bfed1bf122eaa814",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/qbank-corpus.proof.ts": "sha256:d28eddf212c017364f34a742b9ddacfab23e254d4853adc230ffa28c3ca91df6",
+    "packages/db/src/qbank/qbank-corpus.ts": "sha256:2fb17a40ae1efdc1009a1592108c4ae8717a87f987dd12dbfe91bd3b5e9974d8",
+    "packages/db/src/qbank/qbank-served-refs.ts": "sha256:5d5168fa3b4c7dd8db96f5cef01e8b700ec3893260b5f77039ef1c0ecb47a4a0",
+    "packages/db/src/qbank/qbank-track-local-retrieval.ts": "sha256:6ae55691359f1add84c044d08ac0a636cf3c4b1edb4e89df52656e2d0cfc7cb8",
+    "packages/db/src/qbank/qbank-ingest.ts": "sha256:094a50a0d906808713d1c3c7b036999e2566b574830afa64abf6395f5c9bdf20",
+    "packages/db/migrations/0162_qbank_served_question_ref.sql": "sha256:45dbb3ca88a4361dd4159764bbcf992aa24cf9beeff22eb2426ab20a63c3de45",
+    "packages/db/migrations/0163_qbank_plan_snapshot_interview_fk.sql": "sha256:3977fd72189ebced358683e22c29ac1a58605f8249c0f88c70b18953b05b5d82"
+  },
+  "schemaMigrationManifest": {
+    "count": 168,
+    "latest": "0166_recruiter_contact_share_projection.sql",
+    "digest": "sha256:f264f589768ea0792d644e10864dc422acbea7dfa0cea2b0230d957ff7e5c720"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc011:adv:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 120017,
+  "startedAt": "2026-10-10T10:45:29.832Z",
+  "finishedAt": "2026-10-10T10:47:29.849Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0d157d9993c3e5a583aebe02320cd787703248e9f5ffa0aceef9e2be94dd81c0",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts": "sha256:5aebeb80bf94a2be1cc92b3015c2cbfae9744d34b402f5ac7158b6ad7ea16912",
+    "apps/api/test/_neg-harness.ts": "sha256:bdae4a46daac12f67fd073d432008f62d71b5ae73e0c6442b42554135471a8c2",
+    "apps/api/src/modules/commerce/commerce.controller.ts": "sha256:d73ead7d0ad7c037844133e7ecd63a3f94bc02b4702882b241667e9806fceb05",
+    "apps/api/src/modules/commerce/commerce.service.ts": "sha256:0666dd006090907e5b43d5b7ff067104fb676bd7943c192eff59165cd29afc3f",
+    "apps/api/src/modules/commerce/commerce-webhook.controller.ts": "sha256:6003bdc0b87746aac5acf41c044467d391e355627e4f1e69f7704ad1c8bae3a1",
+    "packages/db/src/commerce/payment.ts": "sha256:a1f798f0234daf191f66289cff0a65b6900328d93c3918e7da784822321910b2"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

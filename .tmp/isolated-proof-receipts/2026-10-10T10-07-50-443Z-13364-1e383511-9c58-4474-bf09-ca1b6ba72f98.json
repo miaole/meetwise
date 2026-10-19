@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "reaper:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 13864,
+  "startedAt": "2026-10-10T10:07:36.579Z",
+  "finishedAt": "2026-10-10T10:07:50.443Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/reaper.proof.ts": "sha256:8f5b1f2bfb5e9b1af7c075f047364de79cf8b7da45d6519a63a0777c9c9cd0ff",
+    "apps/worker/src/interview-consumer.ts": "sha256:1585a83effb117a6d657e4fb31f5d79f8014e0372b659ae22159bec5a64b9fe4",
+    "apps/worker/src/quiz-consumer.ts": "sha256:31cb0307d200b781ae1cbc4efef66f219aafdf710dd533159873f37280f63300",
+    "apps/worker/src/job-heartbeat.ts": "sha256:e031b9dd5969887254fa134cb85c1953fffda93e4e10615b28ec77637b043231",
+    "packages/db/src/interview/interview-jobs.ts": "sha256:88692dc01d2161634448b62664c23c0b34834becaa3d5b844a25b949cf6c38b6",
+    "packages/db/src/jobs/quiz-jobs.ts": "sha256:5ba6324b8c481db8971328bf16fb4e96408246ce07128e0e94721e59610b05cd",
+    "packages/db/src/commerce/commerce.ts": "sha256:c57539bd885e5e0e7bd0df875e838b071f1c4fa0762e5d3888aae3f2982f4b2a",
+    "packages/db/src/resume/resume.ts": "sha256:cfa3b25d01588e8ebc83cbf07c306e8a5574972ff6eed9e4e59dc2a3c380f5ce",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "tenant-wiring-neg:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8451,
+  "startedAt": "2026-10-12T05:21:27.274Z",
+  "finishedAt": "2026-10-12T05:21:35.725Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:89db8b4de28c6518eeb89dff9555b9a9e8aa92f515dc6836354f20ffefdc80a6",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/tenant-wiring-neg.proof.ts": "sha256:34b1dfd603dda44a6a10a25ef97f75a3ccdfc620d7d9c4c8076b8640dea64b5d",
+    "packages/db/test/tenant-wiring.manifest.ts": "sha256:55b3cfcb71edbe2ce34ff4b4513d81ab257adf5a6bdc18336c98e3fd348b4fe1",
+    "packages/db/test/tenant-wiring-e5.proof.ts": "sha256:7443950e1fb60e9a9a8a004d32748bbb85d43dcae6f06f5d6b2b315ca276a4f6",
+    "packages/db/test/tenant-enforcement.proof.ts": "sha256:c49ad8ca3f4c69b1c93a7706ea2b498fadf34f313c703f883f546302cfcfa786",
+    "packages/db/src/tenant/index.ts": "sha256:148fc6f0d449ca2024d9cf65a4d4453eb82f4824e80edae449b0222ee2fb4847",
+    "packages/db/src/notification/notification.ts": "sha256:e169f659e865fa50178eb1995c88cf50f76e05efcadc96af582f06bd06036459",
+    "packages/db/src/recruiting/recruiter.ts": "sha256:2ce2beec6e90b2b9441eede18fc742df710664c9f7072627d6a8ec34f74c5aad",
+    "packages/db/src/routing/candidate-route.ts": "sha256:b63a57b1c7d7da4881328a46a60d444ad89af3c0aa0cf60191aaa1b9e900df95",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9"
+  },
+  "schemaMigrationManifest": {
+    "count": 171,
+    "latest": "0169_auth_user_session.sql",
+    "digest": "sha256:424f64978fe87ff9ecfd678570913c0b6cc0322706b5af3e0f22c040b3cfbbd9"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag-a-resume:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7562,
+  "startedAt": "2026-10-12T14:00:27.286Z",
+  "finishedAt": "2026-10-12T14:00:34.848Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0cb672565ed350beb69acec4e4a967116f9903965c0d9d07c7d9c549d45e537e",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/adaptive-resume.proof.ts": "sha256:c41548f79f348e7077d738d4ba4838dbcd55f69855da33ace83ccc36fcfe9ca7",
+    "apps/worker/package.json": "sha256:4e6c55b071d664d3f6effa983f2d5edfbc28783c9dac329fb3683eaf3338d493",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:ceba51fbeb24972a7ac4363fd416f85d59e5b7b42e2d75c7363c63703c7e0e7b",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:9b0e22511a9fe219970ce08658eef6588ad018fa0eacc700d08b6c5afe6ba2e6",
+    "packages/ai-graphs/src/adaptive-interview/graph.ts": "sha256:29c7807041c69860106fcb0b62938083bf8441fc4562f794a853c337afaef0c3"
+  },
+  "schemaMigrationManifest": {
+    "count": 174,
+    "latest": "0178_ag_e_report_dispatch_seq.sql",
+    "digest": "sha256:e51d3945dc79f4c58f6da3fc73a8af1827225906e42bc688f8ccc5326f30b6a5"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

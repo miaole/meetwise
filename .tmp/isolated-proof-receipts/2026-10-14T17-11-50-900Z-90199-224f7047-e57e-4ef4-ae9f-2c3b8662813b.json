@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "sse-push:notify:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 56300,
+  "startedAt": "2026-10-14T17:10:54.600Z",
+  "finishedAt": "2026-10-14T17:11:50.900Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:f473ea2cf33d50d7ccd37b63294ebb084ea3d96def9fd93204d2062d34dabe9f",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/sse-push-notify.proof.ts": "sha256:04e676f99fcf138be9845fb074d285a04a5cd9cff58431087e815fb2fd723fc2",
+    "apps/api/test/_neg-harness.ts": "sha256:976acabe9b58c545fd736b931167b6d670ff374993c6d02a2a2bc0c1ceab2b1c",
+    "apps/api/src/platform/sse-notify.service.ts": "sha256:c4325ec20638c77568c924edd6069e03cbeb6fa9e2c0f0ecdab8f41a975c4f75",
+    "apps/api/src/platform/sse-pump.ts": "sha256:1b24017541dc670d9a3fa0dade94690ebe85f0a26c62b8927689956998a01751",
+    "apps/api/src/platform/rate-limit.service.ts": "sha256:e409dd5d38f43c0041710c3556631ee3b434287e36d7e577bf850b8755d8d73a",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:f24421deb86a6898af73d9799dc2830d5eccac2bd8e50e933d90b3324a184510",
+    "apps/api/src/modules/quiz/quiz.controller.ts": "sha256:e317e09b064a3afe55dd5f3b25cc8a33fe48b4c846c445a74d903fb25a6064dd",
+    "apps/api/src/modules/diagnosis/diagnosis.controller.ts": "sha256:1ea68e6c486cf4d2507ed5012f37cee527fc50b43280ad2848d01111f51fce57",
+    "packages/db/migrations/0143_sse_push_notify.sql": "sha256:87c472134193d67100f77b6fc34cb1665595586a80924a70803754809ebd4000"
+  },
+  "schemaMigrationManifest": {
+    "count": 189,
+    "latest": "0189_api_harden_shared_state.sql",
+    "digest": "sha256:ec71cf970f6ed2961b57e093a8b9d0be14dbcafeb8ce57de4e091f8c49997e3a"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

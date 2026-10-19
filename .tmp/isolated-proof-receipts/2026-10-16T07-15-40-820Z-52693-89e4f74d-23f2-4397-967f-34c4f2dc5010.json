@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "db-acl2:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 17621,
+  "startedAt": "2026-10-16T07:15:23.199Z",
+  "finishedAt": "2026-10-16T07:15:40.820Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:996b68553f1ed99d1eefb7eb8fda38e8a4e265ce6fce2dac8e8d35e36f63789e",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/db-acl2.proof.ts": "sha256:bcbde7c4f198e621790b1d7323ec9190a2ac193dad1947bbb0374beb59f4c2b3",
+    "packages/db/src/index.ts": "sha256:653ba8ada66508411c83f5a683731ba0905325abbd97011ae67e6e7e075d5b36",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/migrate.ts": "sha256:2d085a31fd8bafeecb9f6f96101fb6100b4d14250ede4f263513a5c9554bfb87",
+    "packages/db/test/migrate.proof.ts": "sha256:4f1d94c517e7acde8b1c9ea4e8d757fbc670bba219a92f50b8fea8a0812f0958",
+    "packages/db/package.json": "sha256:b5e093505b005f0d161af3610529c0f5d588a0ff7a708f2023917a4df7b4e034",
+    "package.json": "sha256:201faa4fb69d3abeb7a3562e634d5007188c3b8d7c81ffce07b86ba63ccfa09e",
+    "packages/db/migrations/0108_ctx03_immutable_session_event_source.sql": "sha256:5e0ecadfe3f0a0ffa2157e966a29f3a90abce59582e80a9010784676d6613021",
+    "packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql": "sha256:228f14105feb546c66aff68296ace5e389f16af32c52a84fd4a42679e9166ec8",
+    "packages/db/migrations/0122_resume_pgcrypto_optional_acl.sql": "sha256:ae2e345aa6685ed3b0c7f35e399d4dbfbf267766f8e8326c9f7b81f2bb9c3847",
+    "packages/db/migrations/0151_pgp_sym_encrypt_grant.sql": "sha256:3e93a500ac651059d224e55005699e1011027dd0363923f497996d5a118dafb5"
+  },
+  "schemaMigrationManifest": {
+    "count": 204,
+    "latest": "0204_ai_cost_cached_input_price.sql",
+    "digest": "sha256:f540f2434246362f06e280083659216f4426493bc7fdb45e3b2602a25e8b6127"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

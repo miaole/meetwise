@@ -1,0 +1,34 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "embed-cache:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7103,
+  "startedAt": "2026-10-10T09:58:29.164Z",
+  "finishedAt": "2026-10-10T09:58:36.267Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/qbank-embedding-compute-cache.proof.ts": "sha256:0119b2130986e5838a9db0d57a886cbd3a927e549ab4eb31b38820431d831a09",
+    "packages/db/src/qbank/qbank-embedding-compute-cache.ts": "sha256:1ba543ce59855d4541f8e9a7b143d24bfc82a297f02b605c445e631095babc94",
+    "packages/db/src/qbank/qbank-retrieval-cache.ts": "sha256:d8a9a86a53f15bb4d5a2a68bdb2a0665a6ea2c33a7b83677019df078f144a844",
+    "packages/db/src/qbank/qbank-ingest.ts": "sha256:fd8bed6351d7743a17691de2f8870928ba79b939eae9554bcd71d4cf2d4a3be2",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "packages/db/migrations/0044_qbank_redis_cache_fill_intent.sql": "sha256:e7e0bd987236a921c392dc14a99cc91b8f57915d1cbc007038c0b5ef5f3c89db",
+    "packages/db/migrations/0066_qbank_control_executor.sql": "sha256:9ca83f33ed72f1a7ddcaaf940cb863421ca2d7a660885e6f72344ed38b009cf6",
+    "packages/db/migrations/0094_qbank_control_definer_handoff_closure.sql": "sha256:b9e8b98d4150e4c0a40ad4a5146f83e0de59b2279d528f0d51c47154c30037f9",
+    "packages/db/migrations/0097_qbank_generation_serving_scope_projection.sql": "sha256:bb8010e8b8055886bcb93ecf35f385d241d407f6b945be2413cd5be7eb563fdd",
+    "packages/db/migrations/0098_qbank_active_source_id_executor_grant.sql": "sha256:485c2d0b8c2d1e2ac9c002f528de3f231adc3c17f9da04d269e6aec43704bf92",
+    "packages/db/migrations/0101_embedding_compute_cache.sql": "sha256:db7cb1df94173689f420ee4ddc8f0bb3fcacf6fcc055ce3d9ff40cd590b65771"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

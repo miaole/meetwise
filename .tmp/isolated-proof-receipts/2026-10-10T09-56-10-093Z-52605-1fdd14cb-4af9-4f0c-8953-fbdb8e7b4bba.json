@@ -1,0 +1,26 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "adaptive-degrade:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 11698,
+  "startedAt": "2026-10-10T09:55:58.395Z",
+  "finishedAt": "2026-10-10T09:56:10.093Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/adaptive-degrade.proof.ts": "sha256:847751d1938f788e7177b90e98e57d5939e16c90378c35141e2170e38f3c6714",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:f927e9e256c359c248ef82e5bdd0c52a1055d23c587c970abe4d6414c4214b85",
+    "packages/ai-runtime/src/invoke.ts": "sha256:0f21696ef267da2aa6bc667e6afb71e191fc5711e1dcc6b7fe2fa39a0c8f797e",
+    "packages/db/src/model-op/model-invocation.ts": "sha256:a34dc4101e3fa7d16cdd7fd3028669bebcd3141627edc0614d63230b7eac0cdf",
+    "packages/db/migrations/0057_model_invocation_cost_scope.sql": "sha256:59e741cef2d093d67c9b1c33bb906c997c6a1e8027d357964da0f1b901450ef3"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

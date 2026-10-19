@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "db-trigfam:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 57871,
+  "startedAt": "2026-10-10T09:57:49.766Z",
+  "finishedAt": "2026-10-10T09:58:47.637Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/db-trigfam-unify.proof.ts": "sha256:37c712d817f9998e78ade996e19adcb1c39496a28ca484c5960fafd95f89e310",
+    "packages/db/src/index.ts": "sha256:0d711efbab01b59a9121d8b193427b5201b855feaae07840590c42975e137f4d",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/migrate.ts": "sha256:3ea74c4fc4275f3d4441c0b07adaa90769c283153b72c2b8cabd4dd2f4d69351",
+    "packages/db/src/model-op/ai-cost-governance.ts": "sha256:144eb641f8138a8bb58d9618b45dd8c4416ca55330e1e8eaab117d593776c549",
+    "package.json": "sha256:f1e2a3bca9784a3a5a62daf01b746ccd1adacdfe4a868e53cf0a378c6d0f2d99",
+    "packages/db/package.json": "sha256:0c1a762ccb155a56a22f5b8a46a25cec551bcc0570359b2707a1f7ff23b24bda",
+    "packages/db/migrations/0028_application_bound_interview.sql": "sha256:44e7d96963a56fad575d608623c930d8866a419c369ff4690a64689bc72ef211",
+    "packages/db/migrations/0046_application_assessment_recovery.sql": "sha256:04e15b22969b232ad5de93707a494fdb8eb3ee6471e94cef9145dbdad4602f81",
+    "packages/db/migrations/0051_application_no_eligible_score_terminal.sql": "sha256:cc4fbb64968411407afd1d3b80ea56e75b252383ab646499289cef199cb67fa4",
+    "packages/db/migrations/0054_resume_reference_write_gate.sql": "sha256:8e5719964161bf92b6e531a0f9742e1934959f616184883f9ca72c60ed4c0ae5",
+    "packages/db/migrations/0064_interview_resume_epoch_reference.sql": "sha256:fb64bfc1a3d80a94685c1b3e3c9a172fa117f1ec825149b36cf2070bd66686af",
+    "packages/db/migrations/0082_b_side_score_calibration_hold.sql": "sha256:22035b8ecc0e00c78d83355d003d91f00299ed210aab4ba4aa08d9f4e65a4bc9",
+    "packages/db/migrations/0083_ai_text_cost_price_revision_binding.sql": "sha256:fc89c9b134dddd17c317ab095d009111c42c925bf60fa87554ac9a54b729a3ce",
+    "packages/db/migrations/0089_qbank_taxonomy_definer_manifest.sql": "sha256:0790cf1b40e5bba863287b7d18708cec1fb26fa58807266bed8899f25a66ea20",
+    "packages/db/migrations/0096_int_transcript_remaining_sinks.sql": "sha256:94e8adee972f328cfd1ec63bde1bf2216d462b7eac092c133ca1e9246a8646a2",
+    "packages/db/migrations/0132_job_route_classify_worker_dispatch.sql": "sha256:18686c3fb8c0d2bde9ebd65f76c405a77af3ff89b43809a1ef728327fee2ffaf",
+    "packages/db/migrations/0138_qbank_ann_candidate_before_limit.sql": "sha256:947ea64b3d9b67e35f70c18b80db11b9512d5ee3d3aaf445b088d19f130ec439",
+    "packages/db/migrations/0139_qbank_ann_hnsw_iterative_scan.sql": "sha256:cc32f9a49ccae436839ecb4348ebfa508c101ac03d0078e51e67fc99eba83464",
+    "packages/db/migrations/0144_db_trigfam_unify.sql": "sha256:1a7d6f9c3c0eeeb0167e803abf64503ea1689e4854644dc107025ce66eb8e861"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

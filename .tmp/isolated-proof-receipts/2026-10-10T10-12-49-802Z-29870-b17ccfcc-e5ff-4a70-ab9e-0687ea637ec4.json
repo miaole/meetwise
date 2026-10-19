@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc016:nhp-fault:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 16261,
+  "startedAt": "2026-10-10T10:12:33.541Z",
+  "finishedAt": "2026-10-10T10:12:49.802Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/uc-e2e-016-nhp-fault.proof.ts": "sha256:e17e3980c8bab4260074308e8c83871579c9efa3d82fe4ade12ba431d21e413c",
+    "apps/worker/src/quiz-consumer.ts": "sha256:31cb0307d200b781ae1cbc4efef66f219aafdf710dd533159873f37280f63300",
+    "apps/worker/src/diagnosis-consumer.ts": "sha256:4d4b78d1b553a9be6bd2ec79aea86f3c12f97a6c2b07824c304dfd1f3cc96b42",
+    "apps/worker/src/quiz-lifecycle.ts": "sha256:9d63f8ac73394d23bd095f3295d22507b91871626148f2dfc15b1d0f6a8f7e5e",
+    "apps/worker/src/diagnosis-lifecycle.ts": "sha256:6a52470426213da5aff57780987800a3bafdd0f5cba9c797e5b97a521937351c",
+    "apps/worker/src/interview-service.ts": "sha256:b8aab8926d20461d337f3326b6346b36411bc8b08b1cd3c7d11bb2605b88a673",
+    "packages/ai-runtime/src/model-client.ts": "sha256:ac0dd1195e5ce002fc071d4bd06c10da8f85f11b80c2f6bdf7889420681fc615",
+    "packages/ai-runtime/src/invoke.ts": "sha256:0f21696ef267da2aa6bc667e6afb71e191fc5711e1dcc6b7fe2fa39a0c8f797e",
+    "packages/ai-runtime/src/validators/index.ts": "sha256:b0ea264815690113b0e1af004b821a845e357a5634890c4499b2b1bd24d1d1cd",
+    "packages/db/src/jobs/quiz-jobs.ts": "sha256:5ba6324b8c481db8971328bf16fb4e96408246ce07128e0e94721e59610b05cd",
+    "packages/db/src/jobs/diagnosis-jobs.ts": "sha256:33c6f29fb5d177c0887c8f4a3281a65febfc236fbdfc22a4ed9bdc2388c699dc",
+    "packages/db/src/commerce/commerce.ts": "sha256:c57539bd885e5e0e7bd0df875e838b071f1c4fa0762e5d3888aae3f2982f4b2a",
+    "packages/db/src/principal.ts": "sha256:8a34269094fc597f764fac1b23a615aaa75160230101de959d7bf8256a9c79e1",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/migrations/0001_baseline.sql": "sha256:a467e51954d935a40909d86d322c8f83b5da51f69c80085906ae0869cef2a8b9",
+    "packages/db/migrations/0007_resume_quiz.sql": "sha256:064d7ab95fde5404758684d486c132ab18e5b44c07347dc35b9d8da05d3d872e",
+    "packages/db/migrations/0008_resume_diagnosis.sql": "sha256:9e1e5f5c4944c1789e55936b90b91a8ab2cc94ded328f5ada9548a823fed9763",
+    "packages/db/migrations/0061_resume_derivative_reference_guard.sql": "sha256:cc3d2870e268c8b5d0c3a12e798e715f0c99caac0f69b70d86344b853a3e4693"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

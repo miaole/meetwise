@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "qbank-control-sec:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7594,
+  "startedAt": "2026-10-12T15:45:09.148Z",
+  "finishedAt": "2026-10-12T15:45:16.742Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:d7a90838d45a712f481911f568e7f66d0a121bc09c73856d58c5abdb559eb268",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/db/test/qbank-control-sec.proof.ts": "sha256:4a87775939bdd74a939b0d5fd698a023b86c3387c21154792bd0b4c96e0ed0be",
+    "packages/db/package.json": "sha256:2d7eae306619167f58bfd2f0174b7466065c6c5e57f365cd457e433a3b733d6c",
+    "packages/db/src/index.ts": "sha256:0b13dab1753189ebce7aed8ca8638e2e987fc913dd7df10b3115830461c13486",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/migrations/0146_qbank_partition_lifecycle.sql": "sha256:28c4aab59bd3b4c0b724210acd0251300d21164a99d13921593ecbaf168a5201",
+    "packages/db/migrations/0176_qbank_control_plane_authz_closeout.sql": "sha256:ad0db41863eb5bb785e05a5afdf6b4d7a17a1ee010386d04a28965153ea3adf6"
+  },
+  "schemaMigrationManifest": {
+    "count": 178,
+    "latest": "0178_ag_e_report_dispatch_seq.sql",
+    "digest": "sha256:a0397247784a348665e4cec2b11066114b8388b264c176e18b27efb405199e51"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

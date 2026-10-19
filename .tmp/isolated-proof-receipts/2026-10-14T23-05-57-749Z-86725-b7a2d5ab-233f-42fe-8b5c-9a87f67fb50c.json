@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "tokenstream:prove:raw",
+  "outcome": "failed",
+  "exitCode": 1,
+  "durationMs": 14239,
+  "startedAt": "2026-10-14T23:05:43.510Z",
+  "finishedAt": "2026-10-14T23:05:57.749Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:49334326305b97b43ec5501d0f36519f42774a672addaf97c8510f54a1361d30",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/tokenstream-progress.proof.ts": "sha256:ec669a628dd1fe3f2522903c546cd46566eb3a2d70079ad2570576fe9c7c9b2d",
+    "apps/worker/src/generation-progress.ts": "sha256:13e08b1695180f92741578ca5380cf1434fc84ed2b3be8bd5d86573d224f7b22",
+    "apps/worker/src/interview-service.ts": "sha256:d1b1a9245be436928ab7e4227afc94eb27f1146d9e70366e31102fe6bf2b833f",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:07b056cb2a5dca6bedd038f7b50a6e869b971a49960937b19b89c2cb57162608",
+    "packages/ai-runtime/src/invoke.ts": "sha256:9866c1532ebb416089a6c577ac9e9e5ad5fb5c10bee930df82790a7d46516bc4",
+    "packages/ai-runtime/src/model-client.ts": "sha256:5ccf4fd70c5070afc65e21bef80f4a8faf252e162420c41daa710e4318a2f28a",
+    "packages/db/src/interview/interview-event.ts": "sha256:ca40439a423098f886326978fcae00d90adf465dadfed84ffb27804164b30367",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d"
+  },
+  "schemaMigrationManifest": {
+    "count": 201,
+    "latest": "0201_qbank_fusion_owner_rank_org_dedup.sql",
+    "digest": "sha256:aa0d05099cfa4d52401baed2fc8a8f6e8fe714bc1a518a3c846e1db2745f02e8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

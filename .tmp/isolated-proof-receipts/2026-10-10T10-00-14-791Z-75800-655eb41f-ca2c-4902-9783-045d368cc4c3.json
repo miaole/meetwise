@@ -1,0 +1,27 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "int-transcript-preview-submit:http:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8841,
+  "startedAt": "2026-10-10T10:00:05.950Z",
+  "finishedAt": "2026-10-10T10:00:14.791Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:22da72bbeaf05b0498d70f87f3932ab81b44d2adb94cf3fc4cbb7e6edcf7ce9b",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/int-transcript-preview-submit-http.proof.ts": "sha256:8f3560c38391173fd8872d1b5981f36a2d2a6cd48ad91060afd4e85cf6841466",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:0c1543f3a007011c72d2334f6bc1acc218f3a1605ad031d3b690b1348cad1e3a",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:e8a394c97af2b96963c30b4b163aa03a022ad48debb486db772e06246ad1bdb1",
+    "apps/api/src/platform/public-preview.ts": "sha256:dca40825890d6a0b363771b4aad54cab67bb1b9ef19bec735946cef6b16fe8b4",
+    "packages/db/src/transcript/int-transcript.ts": "sha256:98bc78a5cafffc60b058291b1cb29a5e7f121077e4bed41ec6500c32e571e874",
+    "packages/db/migrations/0092_int_transcript_answer_fact_root.sql": "sha256:7edb392a56d108931accf02ad2adce2456e4025306cd4da3ce5bda80c9f4d3c1"
+  },
+  "schemaMigrationManifest": {
+    "count": 159,
+    "latest": "0157_billing_payer_route.sql",
+    "digest": "sha256:b35f528d489ad0983f70bfec170c06a302ef5ff5a81e5400da2bf265ee1e5ff3"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

@@ -1,0 +1,38 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "ag19-prompt-version:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 7213,
+  "startedAt": "2026-10-13T14:27:07.406Z",
+  "finishedAt": "2026-10-13T14:27:14.619Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:b48563f0188623e7d2c39df92f8738c6c4103a6326f0e2d904fcf2e0e758f924",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "packages/ai-runtime/test/ag19-prompt-version.proof.ts": "sha256:7beacc1c4913e1cea269476588c76e9a5a2b86a0d1e47a4983bf373ea7a0638e",
+    "packages/ai-runtime/package.json": "sha256:6a256385116ff2174ebafd529edcdeece7b48cc756c3a6df563e6a2e99ed951d",
+    "packages/ai-runtime/src/index.ts": "sha256:51acc1d9ebdf917ec89bc72ae3be19fe5118e52a9b3ae12dadd317b5bf2a15a8",
+    "packages/ai-runtime/src/invoke.ts": "sha256:afbe914e252a526f48acbc11b93f6ba09c7a88aadab8957ce40e902da2ce70ae",
+    "packages/ai-runtime/src/prompts.ts": "sha256:7592fea6d2c0da9619d85bacc8497b0fe1b6f198ff20ffebdacdb5b586bb36cb",
+    "packages/ai-runtime/src/trace.ts": "sha256:04ea4cf3ec32e05b32da8f724cd1069130020333891e0885b1d504c1192d8ee0",
+    "packages/ai-runtime/src/langfuse-v5.ts": "sha256:a53d64e7c588f61f90474c1a02308f365e5f97e33d5d590bc62104a87d1cacfd",
+    "packages/ai-runtime/src/metrics.ts": "sha256:06c513d24366c91f8521645d34a81871044a2e94f49ea3142a66c9e81259dada",
+    "packages/ai-runtime/src/model-client.ts": "sha256:dff7166b1d896a1515318f9f6fc71feefcaf552fc016858d5e61eb3a72317dfe",
+    "packages/db/src/model-op/model-invocation.ts": "sha256:13ef21831697f0c3f7bdca6f26cf82c2eaa06c393659462ede37b19846337ef0",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/src/principal.ts": "sha256:dd0b80e19e0c09b62d59991503ef6a1cb7422f929113c84c7f621d55e45d91f4",
+    "packages/db/migrations/0037_ai_model_invocation_durable_claim.sql": "sha256:b08a3c48a10f9cbcc82a0ba4e13612c692a29ea637f798e8ecb2b2a58aedf7d1",
+    "packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql": "sha256:9b99a0c7cd9a59a57aeedb47508c3e1dada00691041b4e8deb80989af6b697e7",
+    "packages/db/migrations/0119_usage_reconciliation_wiring.sql": "sha256:45e795a9f161f667f10620a2b098ef5c509bff051f4c7bfb1bb75a44876a76ad",
+    "packages/db/migrations/0130_model_invocation_same_key_claim_join.sql": "sha256:273363a857a7b41770486a7cd398505290ead74266f004c7deae6b7630b6e4bc",
+    "packages/db/migrations/0181_ag19_prompt_version_column.sql": "sha256:fca1dec844ae466531c9bb7687cb8a3bd53e419b0225c9dc00ac45f287277fe7"
+  },
+  "schemaMigrationManifest": {
+    "count": 185,
+    "latest": "0185_gateway_billing_ledger_payer.sql",
+    "digest": "sha256:7744d4095722d3ca920ce4fb89b94eb5b6075d1372cf1cd5f1cc7ff807acbbf8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}

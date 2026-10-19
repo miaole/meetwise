@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "bill1-topic-fields:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 10366,
+  "startedAt": "2026-10-13T14:26:13.144Z",
+  "finishedAt": "2026-10-13T14:26:23.510Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:b48563f0188623e7d2c39df92f8738c6c4103a6326f0e2d904fcf2e0e758f924",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/worker/test/bill1-topic-fields.proof.ts": "sha256:641ddb06f87461c17cf3de43aaf35f4acab64c0c031963ddf537095054bff8b9",
+    "apps/worker/src/interview-consumer.ts": "sha256:c84823dfe365536c87dc9e34e670bb6e4f3f104a0bf34cb2634a2b6e5b54e8aa",
+    "apps/worker/src/adaptive-lifecycle.ts": "sha256:4e54f602323918db8cc689737073dab7fe4833929d9f61faf32d996e1430e2e1",
+    "apps/worker/src/adaptive-interview-service.ts": "sha256:d397dca47b5e812beeefd761e15eae063469832523ff4cfb61287a83dfceb20d",
+    "packages/ai-graphs/src/adaptive-interview/nodes/decide.ts": "sha256:43e6948147eb3421df0cdfeb03e7fa0299be1d026c12e10a3f85be3474dc5f0c",
+    "packages/ai-graphs/src/adaptive-interview/nodes/generate-question.ts": "sha256:ca4ddf50ad6d6b6e1a7ef9a0aa54cdc4fb26d3ead3918656374e994779c3d658",
+    "packages/ai-graphs/src/adaptive-interview/nodes/evaluate-answer.ts": "sha256:cc438c730ece7aeddea120dd96cce0685e795f39cc825431e5d0877841070efa",
+    "packages/ai-graphs/src/adaptive-interview/state.ts": "sha256:7d913fbcc660df09076861beaa866f6ce955bf62f20af776bd72af739be810f0",
+    "packages/db/src/interview/interview-question.ts": "sha256:2e43af1c27ff2bdd68f6ebfd561239835d8134d79197d572f1b020dc07754a0e",
+    "packages/db/src/model-op/question-usage-ledger.ts": "sha256:d25fe9face40364a9e8b866adf448e3e731ebafb2497c6ff36910f8eb5e3cb2b",
+    "packages/db/migrations/0170_interview_question_topic_fields.sql": "sha256:1a97d6ff3831e4ffb20969662240b3e9bf94ec3dd76555e3801b726b52a47c79",
+    "packages/db/migrations/0171_question_usage_ledger.sql": "sha256:0e5bf287f0aeb2a7a5e5c3eb6c5b9e9d75ad51292b9443454a46c2b3ed6cbaf1"
+  },
+  "schemaMigrationManifest": {
+    "count": 185,
+    "latest": "0185_gateway_billing_ledger_payer.sql",
+    "digest": "sha256:7744d4095722d3ca920ce4fb89b94eb5b6075d1372cf1cd5f1cc7ff807acbbf8"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}
