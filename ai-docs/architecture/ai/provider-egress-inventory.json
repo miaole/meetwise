@@ -1782,6 +1782,11 @@
     },
     {
       "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/smoke/scoring-eval.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
     },
@@ -1798,6 +1803,11 @@
     {
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
       "class": "test-fixture"
     },
     {
