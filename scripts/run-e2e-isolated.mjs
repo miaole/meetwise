@@ -927,6 +927,25 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0181_ag19_prompt_version_column.sql',
     'packages/db/migrations/0184_ag12_estimator_claim_freeze.sql',
   ],
+  // AG-17（观测诚实化:结构化输出校验失败档名旧值['schema','retry' 拆写]换 schema_invalid·纯观测标签换名）:
+  // 本地 http 脚本 provider+隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+双源+收据面。
+  'ag17-schema-span:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/ai-runtime/test/ag17-schema-span.proof.ts',
+    'packages/ai-runtime/package.json', 'packages/ai-runtime/src/index.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/trace.ts',
+    'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/validators/index.ts',
+    'packages/ai-runtime/src/langfuse-v5.ts',
+    'packages/db/src/model-op/model-invocation.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/src/principal.ts',
+    'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
+    'packages/db/migrations/0130_model_invocation_same_key_claim_join.sql',
+    'packages/db/migrations/0174_ag06_settled_failed_usage_source.sql',
+    'packages/db/migrations/0181_ag19_prompt_version_column.sql',
+  ],
   // 问答侧只读受限工具层:五只读工具(C3+B2)+runToolLoop 宿主接线(有界/围栏/既有账本零旁路/E6 同意门)
   // ·零迁移零新存储面(读面=既有表 RLS 形只读查询)·隔离库证明。
   'qa-tool-layer:prove:raw': [
@@ -2274,6 +2293,8 @@ if (![
   'ag39-quality:prove:raw',
   // AG-11 settle 放宽体行为级补证（隔离库真迁移链·沿 model-op00:prove:raw 同形注册）。
   'ag11-settle:prove:raw',
+  // AG-17 观测半收口:结构化输出校验失败档名改名 proof·隔离 PG 全链（沿 ag09-replay-first 同形注册）。
+  'ag17-schema-span:prove:raw',
 ].includes(target)) {
   throw new Error(`unsupported_e2e_target:${target}`);
 }
@@ -2512,6 +2533,9 @@ const isolatedCommand = target === 'api-harden:prove'
   // AG-12(成本轨③):ag12-estimator-freeze 接隔离 PG runner·命令沿 ai-runtime 原生 script 名。
   : target === 'ag12-estimator-freeze:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:ag12-estimator-freeze']]
+  // AG-17(观测半):ag17-schema-span 接隔离 PG runner·命令沿 ai-runtime 原生 script 名。
+  : target === 'ag17-schema-span:prove:raw'
+    ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:ag17-schema-span']]
   // 问答只读受限工具层:接隔离 PG runner·命令沿 ai-runtime 原生 script 名。
   : target === 'qa-tool-layer:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:qa-tool-layer']]
@@ -3160,7 +3184,7 @@ async function main() {
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw'].includes(target)) {
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });
