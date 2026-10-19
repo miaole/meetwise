@@ -71,11 +71,11 @@ async function scoreOnce(question: string, answer: string, key: string): Promise
   evaluationRequests++;
   const out = await invokeEvaluationOnce(pool, OWNER, {
     // 每样本唯一 → 必 cache miss → 真打模型 → 方差不被吞；helper 负责 answer hash。
-    baseIdempotencyKey: `scoring-eval:v3:${key}`, question, answer: scored, model,
+    baseIdempotencyKey: `scoring-eval:v3:${key}`, question, answer, promptAnswer: clean, model,
   }).catch(() => ({ status: 'failed' as const, error: 'threw' }));
   if (out.status === 'scored') {
     // #52 v6：hint 分=evaluateOutcomeFromValue 的确定性派生（档位×量表权重），模型不出总分。
-    const derived = evaluateOutcomeFromValue(out.value, scored);
+    const derived = evaluateOutcomeFromValue(out.value, answer);
     return { score: out.value.relevant === false ? 0 : derived.score, relevant: out.value.relevant, source: 'model' };   // 复刻服务层规整
   }
   if (out.status === 'quote_repair_exhausted') {

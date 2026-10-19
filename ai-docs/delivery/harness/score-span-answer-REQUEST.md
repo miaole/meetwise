@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 评分位置按候选人原文计算，模型只看剥离后的文本
 
@@ -159,8 +159,24 @@ lint 警告上限恰为 root 5242、api 1423、domain 115、ai-runtime 628、wor
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。产品代码本步不改。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+改了这些文件：
+- apps/worker/src/interview-service.ts
+- apps/worker/src/adaptive-interview-service.ts
+- apps/worker/smoke/scoring-eval.ts
+- apps/worker/test/scoring-report-integrity.proof.ts
+- apps/worker/test/context-stress.proof.ts
+- ai-docs/delivery/harness/score-span-answer-REQUEST.md
+
+退出码：
+- pnpm scoring-integrity:prove = 0
+- pnpm i6-gates:prove = 1
+- pnpm -C packages/domain prove:adaptive = 0
+- node scripts/ai-docs/check-docs.mjs = 0
