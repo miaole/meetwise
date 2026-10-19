@@ -3916,3 +3916,48 @@ flowchart TD
 - **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2287** 余 9.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line drop-cascade-guard nail（2026-10-19 · 新迁移里的级联删除改为检查拒绝）
+
+- **改动**：新迁移里同一句先出现独立词 DROP、其后出现独立词 CASCADE，就拒绝。注释、引号和美元引号里的字样不算。外键上的级联删除不算。已经落地的那一份旧迁移仍按登记的两句原文放行。
+- **并入**：受管文件上限记录之后再预演，merge-tree EXIT=0，tree `e417a3e0`。`git merge --no-ff` 得到 `55db4d7b`，双亲 `f46d9e1c` 与 `24747cc4`。没有冲突，没有强推。
+- **门**：迁移检查 files=213 violations=0，级联 violations=0。docs:check scanned 2288≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。这一项不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2288** 余 8.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line tenant-owner-trim nail（2026-10-19 · 含首尾空白的租户标识改为拒绝）
+
+- **改动**：含首尾空白的租户标识改为拒绝。成功路径返回原值。行侧比较仍去掉空白。
+- **并入**：级联删除检查之后再预演，merge-tree EXIT=0，tree `784d0e24`。`git merge --no-ff` 得到 `93d574dc`，双亲 `a3516e9c` 与 `635ddf50`。没有冲突，没有强推。
+- **门**：tenant-enforcement:prove EXIT=0。docs:check scanned 2289≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计 228→229/271。能力项完成 33、半成 2、未收 14 维持。此前分组勾选所引证据没有这项代码改动。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2289** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line config-reject-local nail（2026-10-19 · 点名生产环境拒绝裸本机地址）
+
+- **改动**：点名生产环境拒绝裸 localhost、裸 ::1，以及方括号形式的 [::1]。既有回环地址断言仍拒绝。新增三例改为逐项写入环境，警告数仍是 1042。
+- **并入**：租户标识记录之后再预演，merge-tree EXIT=0，tree `2f08166d`。`git merge --no-ff` 得到 `8bc9c4a2`，双亲 `93d574dc` 与 `65247fd7`。没有冲突，没有强推。
+- **门**：prove:principal-config EXIT=0。docs:check scanned 2290≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2290** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line rag-embed-missing-usage nail（2026-10-19 · 嵌入结果缺少用量时按文本分段估算）
+
+- **改动**：嵌入结果缺少用量时按文本分段估算，并在范围检查前截到上限。已经带回的用量不截断。空值、小数和负数不按文本估算入账。
+- **并入**：生产本机地址记录之后再预演，merge-tree EXIT=0，tree `765afe22`。`git merge --no-ff` 得到 `1e6ca4e5`，双亲 `8bc9c4a2` 与 `3d58c532`。没有冲突，没有强推。
+- **门**：prove:rag-cost EXIT=0。docs:check scanned 2291≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2291** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line interview-event-statement-notify nail（2026-10-19 · 同一条插入里的重复流键只通知一次）
+
+- **改动**：同一条插入里每个不同的流键只通知一次。零行不通知。不新发授权。通道和裸流键载荷不变。
+- **并入**：嵌入缺用量记录之后再预演，merge-tree EXIT=0，tree `5f4b2e1d`。`git merge --no-ff` 得到 `f206325f`，双亲 `21e19832` 与 `13e18285`。没有冲突，没有强推。
+- **门**：隔离证明 66 条全绿。迁移检查 files=214 violations=0，级联 violations=0。docs:check scanned 2293≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 1 · cap **2296** 现值 **2293** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.

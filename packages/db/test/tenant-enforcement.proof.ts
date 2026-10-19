@@ -79,8 +79,17 @@ A('blank owner throws tenant_owner_user_id_required',
 A('non-string owner throws tenant_owner_user_id_required',
   caughtCode(() => requireOwnerUserId(42)) === 'tenant_owner_user_id_required');
 
-A('valid owner returns trimmed id',
-  requireOwnerUserId('  user-a  ') === 'user-a');
+{
+  let paddedOwner: unknown;
+  const paddedOwnerCode = caughtCode(() => {
+    paddedOwner = requireOwnerUserId('  user-a  ');
+  });
+  A('owner with surrounding whitespace throws tenant_owner_user_id_required',
+    paddedOwnerCode === 'tenant_owner_user_id_required' && paddedOwner !== 'user-a');
+  const plainOwner = 'user-a';
+  A('owner without surrounding whitespace returns the original string',
+    requireOwnerUserId(plainOwner) === plainOwner);
+}
 
 // --- unit: assertTenantPredicate ---
 A('predicate mismatch throws tenant_owner_mismatch',
@@ -101,16 +110,26 @@ A('predicate match passes (no throw)',
     caughtCode(() => buildRequiredOwnerFilter('')) === 'tenant_owner_user_id_required');
   // E2: required predicate, not an optional filter hint — every success form
   // carries the full {column,value} shape; no empty/absent predicate exists.
-  const g = buildRequiredOwnerFilter('  owner-w  ');
-  A('buildRequiredOwnerFilter trims and yields exact required shape (E2)',
-    g.column === 'owner_user_id' && g.value === 'owner-w'
-    && Object.keys(g).length === 2);
-  const shapes = ['owner-1', 'x'.repeat(64), ' owner-2 '].map(
-    (o) => buildRequiredOwnerFilter(o),
-  );
-  A('buildRequiredOwnerFilter never yields an empty predicate — all shapes bound (E2)',
-    shapes.every((s) => s.column === 'owner_user_id'
-      && typeof s.value === 'string' && s.value.trim().length > 0));
+  let paddedFilter: { column?: string; value?: string } | undefined;
+  const paddedFilterCode = caughtCode(() => {
+    paddedFilter = buildRequiredOwnerFilter('  owner-w  ');
+  });
+  A('buildRequiredOwnerFilter rejects surrounding whitespace (E2)',
+    paddedFilterCode === 'tenant_owner_user_id_required' && paddedFilter?.value !== 'owner-w');
+  const owner1 = 'owner-1';
+  const ownerLong = 'x'.repeat(64);
+  const shapes = [owner1, ownerLong].map((o) => buildRequiredOwnerFilter(o));
+  const shape1 = shapes[0];
+  const shape2 = shapes[1];
+  A('buildRequiredOwnerFilter never yields an empty predicate — clean shapes bound (E2)',
+    shapes.length === 2
+    && shape1 !== undefined && shape2 !== undefined
+    && shape1.column === 'owner_user_id' && shape1.value === owner1
+    && Object.keys(shape1).length === 2
+    && shape2.column === 'owner_user_id' && shape2.value === ownerLong
+    && Object.keys(shape2).length === 2);
+  A('buildRequiredOwnerFilter rejects owner-2 with surrounding whitespace',
+    caughtCode(() => buildRequiredOwnerFilter(' owner-2 ')) === 'tenant_owner_user_id_required');
 }
 
 // --- unit: enforceOwnerOnRow ---
