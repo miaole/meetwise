@@ -87,22 +87,24 @@ async function main() {
       && Number((await admin.query('SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1', [interviewId])).rows[0]?.count) === 1);
 
     const upperResumeId = resumeId.toUpperCase();
-    const caseReplay = await fetch(`${base}/interview/${interviewId}/begin`, {
-      method: 'POST', headers: { authorization: `Bearer ${account.token}`, 'resume-id': upperResumeId },
-    });
-    const caseBody = await caseReplay.json() as any;
+    const caseHeaders = new Headers();
+    caseHeaders.set('authorization', `Bearer ${account.token}`);
+    caseHeaders.set('resume-id', upperResumeId);
+    const caseReplay = await fetch(`${base}/interview/${interviewId}/begin`, { method: 'POST', headers: caseHeaders });
+    const caseBody = await caseReplay.json() as { alreadyBegun?: boolean; jobId?: string; error?: string };
     const startJobCount = () => admin.query("SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1 AND kind='start'", [interviewId])
       .then((result) => Number(result.rows[0]?.count));
     A('同一枚标识十六进制改成大写再开始仍是同一次', upperResumeId !== resumeId
       && caseReplay.status === 202 && caseBody.alreadyBegun === true && caseBody.jobId === body.jobId
-      && caseReplay.status !== 409 && caseBody.error !== 'interview_resume_binding_conflict'
+      && caseBody.error !== 'interview_resume_binding_conflict'
       && await startJobCount() === 1);
 
     const otherResumeId = randomUUID();
-    const conflict = await fetch(`${base}/interview/${interviewId}/begin`, {
-      method: 'POST', headers: { authorization: `Bearer ${account.token}`, 'resume-id': otherResumeId },
-    });
-    const conflictBody = await conflict.json() as any;
+    const conflictHeaders = new Headers();
+    conflictHeaders.set('authorization', `Bearer ${account.token}`);
+    conflictHeaders.set('resume-id', otherResumeId);
+    const conflict = await fetch(`${base}/interview/${interviewId}/begin`, { method: 'POST', headers: conflictHeaders });
+    const conflictBody = await conflict.json() as { alreadyBegun?: boolean; jobId?: string; error?: string };
     A('另一枚不同简历标识仍拒绝且不另开任务', otherResumeId.toLowerCase() !== resumeId.toLowerCase()
       && conflict.status === 409 && conflictBody.error === 'interview_resume_binding_conflict'
       && conflictBody.alreadyBegun !== true
