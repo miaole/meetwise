@@ -1,6 +1,6 @@
 # 图调用时传入递归上限
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §0 现状
 
@@ -85,8 +85,33 @@ draft:awaiting_pre_exec_dual
 
 ## §8 状态
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本文只记录改法。产品代码、证明与迁移都不在这次提交里改。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+两处 `cfg` 已写成 `const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };`。四处 `g.invoke` 仍把这份 `cfg` 当第二参。`invoke(null)` 续跑仍在。起始守卫仍是只有全新线程才 `invoke({})`。编译调用仍是 `.compile({ checkpointer })`。
+
+`apps/worker/test/graph-run-observability.proof.ts` 组 D 增加两则断言：该配置字面与 `recursionLimit: 64` 各恰 2，且 `g.invoke` 恰 4 处、第二参都以 `, cfg);` 结束。原有 `invoke(null)` 计数未改。
+
+需要数据库的证明由仓库既有隔离入口拉起，入口执行的是 worker 包里的同名脚本。退出码：
+
+- `prove:adaptive-flow` 0
+- `prove:adaptive-life` 0
+- `prove:adaptive-resume` 0
+- `prove:adaptive-legacy-checkpoint` 0
+- `prove:adaptive-consumer` 0
+- `prove:voice-adaptive` 0
+- `prove:adaptive-degrade` 0
+- `prove:adaptive-grounding` 0
+- `prove:adaptive-offtopic` 0
+- `prove:adaptive-chaos` 0
+- `prove:adaptive-latency` 0
+- `prove:graph-run-observability` 0
+- `node scripts/ai-docs/check-docs.mjs` 0，scanned 2282
+- worker `lint` 0，警告 959
+
+开头状态行、§8 与文末状态行三处同为 `executed:awaiting_post_prove_dual`。
