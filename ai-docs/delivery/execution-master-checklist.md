@@ -3889,3 +3889,12 @@ flowchart TD
 - **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2284** 余 4.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line graph-lease-terminal nail（2026-10-19 · 终态图运行不再被迟到作业重新激活）
+
+- **改动**：获取租约时，终态保持终态，迟到作业不能把已结束的运行写回进行中。放弃时，仍排队的作业改为失败；正在跑、已完成、已失败的作业不动。不新增迁移。
+- **并入**：检查点配置合并之后再预演，merge-tree EXIT=0，tree `146828df`。`git merge --no-ff` 得到 `9a5b8e3d`，双亲 `ceba39b6` 与 `887e4251`。没有冲突，没有强推。
+- **门**：图租约写入证明通过；放弃作业证明通过。docs:check scanned 2285≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2285** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
