@@ -17,8 +17,8 @@
  *      （Ban 业务语义变更自证）· 正边界（amount_cents=1 · units=0.5 半次）放行。
  *   P5 联动静态门（L1/L2）：sql/01 fixture 无表级 uq_event_key、含 0021 同形 partial ·
  *      migrate.proof 契约更新文本在卷（drift:prove / migrate:prove 另跑于 EXEC 收据）。
- *   P6 0149 文本静态门（dollar-quote 感知）：语句白名单 = 1×DO 检测 + 5×DROP CONSTRAINT IF EXISTS +
- *      4×ADD CONSTRAINT CHECK，零 UPDATE/DELETE/INSERT/ALTER TYPE/CREATE INDEX/TRIGGER/RLS/GRANT。
+ *   P6 0149 文本静态门（dollar-quote 感知）：语句白名单 = 1×DO $dbm3_detect$ + 4×同一 ALTER 先 DROP CONSTRAINT IF EXISTS 再 ADD CONSTRAINT … CHECK (…) NOT VALID +
+ *      1×单独 DROP CONSTRAINT IF EXISTS + 4×VALIDATE CONSTRAINT，零 UPDATE/DELETE/INSERT/ALTER TYPE/CREATE INDEX/TRIGGER/RLS/GRANT。
  *   P7 对表勾销块：postgres skill 第 4 项（status CHECK/金额单位）本刀落地 ✅ + NEXT-NODE C4。
  *
  * EXIT=0 才过；attempts 全账纪律见收据（Ban retry-to-green）。
@@ -245,7 +245,7 @@ async function main() {
     A('P3-1 payment_order 全链：createOrder → markOrderPaidAndCredit=credited → 重放=already（回调幂等零退化）',
       pay.id === orderId && pay.first === 'credited' && pay.replay === 'already');
     A('P3-2 回调发桶：owner 名下 units_total=10 的 paid 桶恰 1（22003 落点链在案B 下行为不变）',
-      bucket.rows[0]!.n === '1' && bucket.rows[0]!.total === '10');
+      bucket.rows[0]!.n === '1' && bucket.rows[0]!.total === '10.00');
 
     // 表② entitlement_bucket：FIFO saga reserve→confirm（落账≥0）· reserve→release（全退）。
     const saga = await asPrincipal(pool, owner, async (c) => {
@@ -255,12 +255,12 @@ async function main() {
       const rel = await releaseConsumption(c, owner, `dbm3-resv2-${process.pid}`);
       return { res, conf, res2, rel };
     });
-    const settled = await pool.query<{ n: string }>(
-      `SELECT count(*)::text AS n FROM settlement_ledger WHERE owner_user_id=$1 AND units_settled >= 0`, [owner]);
+    const proposed = await pool.query<{ n: string }>(
+      `SELECT count(*)::text AS n FROM commerce_outbox WHERE owner_user_id=$1 AND kind='settlement_proposed'`, [owner]);
     A('P3-3 entitlement saga：reserve(1.5)=reserved → confirm(1)=confirmed（ck_bucket_capacity 不变量零退化）',
       saga.res.status === 'reserved' && saga.conf.status === 'confirmed');
-    A('P3-4 reserve→release 全退（=released）· confirm 落账 settlement_ledger ≥0 行在卷（D4 同族兜底闭环）',
-      saga.res2.status === 'reserved' && saga.rel.status === 'released' && settled.rows[0]!.n !== '0');
+    A('P3-4 reserve→release 全退（=released）· confirm 后待结算投递行不是 0（D4 同族兜底闭环）',
+      saga.res2.status === 'reserved' && saga.rel.status === 'released' && proposed.rows[0]!.n !== '0');
 
     // 表③ interview_event：appendEvent 幂等去重（arbiter=0021 partial · 0027 删除后零影响）。
     const stream = `dbm3-stream-${process.pid}`;
@@ -330,8 +330,9 @@ async function main() {
   /* ── P5 · 联动静态门（L1 fixture 对齐 · L2 migrate.proof 契约更新） ────────── */
   {
     const fixture = readFileSync(fileURLToPath(new URL('../sql/01_schema.sql', import.meta.url)), 'utf8');
+    const fixtureSql = fixture.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
     A('P5-1 L1：sql/01 fixture 无表级 uq_event_key 约束（drift:prove 方向=sql/ 有迁移缺即红 → 已对齐）',
-      !/CONSTRAINT\s+uq_event_key\b/.test(fixture));
+      !/CONSTRAINT\s+uq_event_key\b/.test(fixtureSql));
     A('P5-2 L1：sql/01 fixture 含 0021 同形 partial index（fixture 幂等语义保留）',
       fixture.includes('CREATE UNIQUE INDEX uq_interview_event_key')
       && fixture.includes('WHERE event_key IS NOT NULL'));
@@ -344,23 +345,60 @@ async function main() {
   {
     const noComments = migRaw.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
     const stmts = splitSql(noComments);
+    const normWs = (s: string) => s.trim().replace(/\s+/g, ' ');
     const doBlocks = stmts.filter((s) => /^DO \$dbm3_detect\$$/.test(s.split('\n')[0] ?? '')).length;
-    const dropC = stmts.filter((s) => /^ALTER TABLE (public\.)?[a-z_]+ DROP CONSTRAINT IF EXISTS [a-z_]+$/.test(s)).length;
-    const addC = stmts.filter((s) => /^ALTER TABLE (public\.)?[a-z_]+ ADD CONSTRAINT [a-z_]+ CHECK \(/.test(s)).length;
-    const whitelisted = stmts.filter((s) =>
-      s.startsWith('DO $dbm3_detect$')
-      || /^ALTER TABLE (public\.)?[a-z_]+ DROP CONSTRAINT IF EXISTS [a-z_]+$/.test(s)
-      || /^ALTER TABLE (public\.)?[a-z_]+ ADD CONSTRAINT [a-z_]+ CHECK \(/.test(s)).length;
-    const other = stmts.length - whitelisted;
-    const banned = /\b(UPDATE|DELETE|INSERT|DROP COLUMN|DROP TABLE|DROP POLICY|DROP ROLE|ALTER COLUMN|CREATE INDEX|CREATE TABLE|CREATE OR REPLACE|TRIGGER|GRANT|REVOKE|POLICY|NOT VALID|VALIDATE CONSTRAINT|REPLICA IDENTITY|OWNER TO|SECURITY LABEL)\b/i;
+    const fuseRe = /^ALTER TABLE ([a-z_]+) DROP CONSTRAINT IF EXISTS ([a-z_]+), ADD CONSTRAINT ([a-z_]+) CHECK \((.+)\) NOT VALID$/;
+    const isFuse = (s: string) => {
+      const n = normWs(s);
+      const m = fuseRe.exec(n);
+      if (!m || m[2] !== m[3]) return false;
+      const nv = n.match(/NOT VALID/gi);
+      return !!nv && nv.length === 1 && !/VALIDATE CONSTRAINT/i.test(n);
+    };
+    const fuseHits = stmts.filter(isFuse);
+    const fusePairs = fuseHits.map((s) => {
+      const m = fuseRe.exec(normWs(s));
+      return [m?.[1] ?? '', m?.[2] ?? ''] as const;
+    });
+    const dropRe = /^ALTER TABLE (public\.)?([a-z_]+) DROP CONSTRAINT IF EXISTS ([a-z_]+)$/;
+    const dropHits = stmts.filter((s) => dropRe.test(s));
+    const dropMeta = dropHits.map((s) => {
+      const m = dropRe.exec(s);
+      return { s, table: m?.[2] ?? '', name: m?.[3] ?? '' };
+    });
+    const validateRe = /^ALTER TABLE (public\.)?([a-z_]+) VALIDATE CONSTRAINT ([a-z_]+)$/;
+    const validateHits = stmts.filter((s) => validateRe.test(s));
+    const validatePairs = validateHits.map((s) => {
+      const m = validateRe.exec(s);
+      return [m?.[2] ?? '', m?.[3] ?? ''] as const;
+    });
+    const expectedPairs = [
+      ['payment_order', 'ck_payment_order_amount_cents_positive'],
+      ['payment_order', 'ck_payment_order_units_range'],
+      ['settlement_ledger', 'ck_settlement_units_settled_nonneg'],
+      ['ai_graph_run', 'ck_ai_graph_run_status'],
+    ] as const;
+    const pairsMatch = (got: ReadonlyArray<readonly [string, string]>) =>
+      got.length === expectedPairs.length && got.every((g, i) => g[0] === expectedPairs[i]?.[0] && g[1] === expectedPairs[i]?.[1]);
+    const other = stmts.length - (doBlocks + fuseHits.length + dropHits.length + validateHits.length);
+    const loneDrop = dropMeta.length === 1 ? dropMeta[0] : undefined;
+    const loneDropOk = !!loneDrop
+      && loneDrop.table === 'interview_event'
+      && loneDrop.name === 'uq_interview_event_key_constraint'
+      && !/NOT VALID/i.test(loneDrop.s)
+      && !/VALIDATE CONSTRAINT/i.test(loneDrop.s);
+    const banned = /\b(UPDATE|DELETE|INSERT|DROP COLUMN|DROP TABLE|DROP POLICY|DROP ROLE|ALTER COLUMN|CREATE INDEX|CREATE TABLE|CREATE OR REPLACE|TRIGGER|GRANT|REVOKE|POLICY|REPLICA IDENTITY|OWNER TO|SECURITY LABEL)\b/i;
     const bannedHits = stmts.filter((s) => banned.test(s)); // 全语句含 DO 体逐一扫描（无豁免）
-    A('P6-1 语句白名单：1×DO 检测 + 5×DROP CONSTRAINT IF EXISTS（4 幂等守卫+1 D3 删 0027）+ 4×ADD CONSTRAINT CHECK，无其他语句',
-      doBlocks === 1 && dropC === 5 && addC === 4 && other === 0);
+    // NOT VALID 只允许四条熔断 ALTER；VALIDATE CONSTRAINT 只允许四条 VALIDATE。二者不在全局禁词表。
+    const notValidOutside = stmts.filter((s) => /NOT VALID/i.test(normWs(s)) && !fuseHits.includes(s));
+    const validateOutside = stmts.filter((s) => /VALIDATE CONSTRAINT/i.test(normWs(s)) && !validateHits.includes(s));
+    A('P6-1 语句白名单：1×DO $dbm3_detect$ + 4×熔断 ALTER（同一 ALTER 先 DROP CONSTRAINT IF EXISTS 再 ADD CONSTRAINT CHECK (…) NOT VALID）+ 1×单独 DROP CONSTRAINT IF EXISTS + 4×VALIDATE CONSTRAINT，语句总数 10，无其他语句',
+      doBlocks === 1 && fuseHits.length === 4 && pairsMatch(fusePairs) && loneDropOk && validateHits.length === 4 && pairsMatch(validatePairs) && validateHits.every((s) => !/NOT VALID/i.test(s)) && other === 0 && stmts.length === 10);
     A('P6-2 零 UPDATE/DELETE/INSERT/ALTER TYPE/CREATE INDEX/TRIGGER/RLS/GRANT（含 DO 体 · 零数据触碰硬保证）',
-      bannedHits.length === 0);
+      bannedHits.length === 0 && notValidOutside.length === 0 && validateOutside.length === 0);
     const bannedNames = ['ck_payment_order_amount_cents_positive', 'ck_payment_order_units_range',
       'ck_settlement_units_settled_nonneg', 'ck_ai_graph_run_status'];
-    A('P6-3 零 ALTER TYPE 字样（D1 裁案B · 全文亲证）', !/ALTER\s+COLUMN|TYPE\s+numeric/i.test(migRaw));
+    A('P6-3 零 ALTER TYPE 字样（D1 裁案B · 去注释文本亲证）', !/ALTER\s+COLUMN|TYPE\s+numeric/i.test(noComments));
     A('P6-4 四约束名逐名在卷（catalog 断言 P1-1..4 与文本一致）',
       bannedNames.every((n) => migRaw.includes(n)));
   }

@@ -105,13 +105,13 @@
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本步只新增本说明，不改证明，不改迁移。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -128,3 +128,33 @@ P6-3 改为扫描去掉行注释之后的文本，不要扫描含注释的原文
 其余修法仍只改这份既有证明的头注、P6 白名单，外加 P6-3 的扫描范围。
 
 门不变。不把批次清单或能力项记成新增完成。
+
+## §9-EXEC
+
+证明已按 §1 与 §9-rev 改完。头注改为 1 个 DO $dbm3_detect$、4 条同一 ALTER 里先 DROP CONSTRAINT IF EXISTS 再 ADD CONSTRAINT … CHECK (…) NOT VALID、1 条单独 DROP CONSTRAINT IF EXISTS、4 条 VALIDATE CONSTRAINT。P6 白名单按这组计数，不再断言 5 条单独 DROP 与 4 条单独 ADD。全局禁词表拿掉 NOT VALID 与 VALIDATE CONSTRAINT；这两个词分别只允许出现在四条熔断 ALTER 与四条 VALIDATE 上。P6-3 改为扫描同段已去掉行注释的文本。P6-4、P0–P5、P7 没有改。
+
+迁移 packages/db/migrations/0149_money_status_constraints.sql 字节没有改。sha256 为 e7b916d05f4b7072eb5a1d6ca9c788e2fd2d6dbec0086aa3b9911807325947d8，长度 6022 字节。
+
+活库证明启动前，没有别的 tsx 证明进程，也没有 adaptive 证明进程。随后用 DATABASE_URL 指向 127.0.0.1:54329 的 meetwise 库跑了一次 pnpm -C packages/db prove:db-money3，没有设置 NODE_ENV=production。退出码 1。失败发生在任何断言和任何 SQL 之前，错误文本是 destructive_proof_requires_e2e_isolated。这不是白名单断言失败，也不是连接被占或库被锁。没有改迁移，没有放宽隔离检查，没有重试，没有结束别人的数据库连接。活库证明不记为通过，也不记为因占用推迟。
+
+## §10
+
+未提交把 §8 那三处状态改成 `executed:awaiting_post_prove_dual` 不算通过。隔离证明仍红：P6-1 到 P6-4 已通过，P3-2、P3-4、P5-1 在已提交证明和当前工作区都会失败。未提交 diff 只动了本说明和 P6。这三处已改回 `draft:awaiting_pre_exec_dual`，三处同值。这是撤回未提交的状态翻转，不是洗掉 §0 到 §9-EXEC 的既有段落。
+
+下一席只改 `packages/db/test/db-money3.proof.ts` 的下面三处。本步不落这三处的证明码。除此三处，该证明文件不动。
+
+P5-1：先按行去掉 `--` 注释（`--` 及其后直到行尾），再对去掉注释后的文本套原来的正则 `/CONSTRAINT\s+uq_event_key\b/`。命中的是 `packages/db/sql/01_schema.sql` 第 51 行注释 `-- 原表级 CONSTRAINT uq_event_key 已删`，没有可执行约束。不改 `sql/01`。
+
+P3-2：期望文本从 `'10'` 改为 `'10.00'`。查询里 `units_total=10` 保留。`entitlement_bucket.units_total` 是 `numeric(12,2)`，`coalesce(sum(units_total),0)::text` 的合计文本是 `10.00`。不改列类型。
+
+P3-4：保留 release 断言（第二次 reserve 为 reserved，`releaseConsumption` 为 released）。`settleOutbox` 的签名是 `export async function settleOutbox(c: Client, owner: string): Promise<{ settled: number }>`。它只收客户端和 owner，不收 `confirmConsumption` 的返回值。`confirmConsumption` 返回的 `ConfirmResult` 只有 `status` 与 `unitsSettled`（或 noop 的 `finalStatus`、error 的 `reason`），没有 consumption id，也没有 outbox id。owner 是调用 confirm 时已经持有的参数，不是 confirm 返回的标识。签名对不上，因此不授权在 confirm 之后调用 `settleOutbox`。只改为断言 `commerce_outbox` 出现 `settlement_proposed`。调用 `settleOutbox` 与这条 outbox 断言不得并列为可选。`confirmConsumption` 写入的是 `commerce_outbox`（`settlement_proposed`）；confirm 本身不写 `settlement_ledger`。`settlement_ledger` 的 INSERT 在 `settleOutbox`。不要新写 INSERT，不要直接插账本。
+
+不改：迁移字节（`packages/db/migrations/0149_money_status_constraints.sql` 的 sha256 必须仍是 `e7b916d05f4b7072eb5a1d6ca9c788e2fd2d6dbec0086aa3b9911807325947d8`，6022 字节）、P6-4、P0、P1、P2、P3-1、P3-3、P3-5、P3-6、P4、P5-2、P5-3、P7。P6 里已写上的白名单和去注释扫描保持不动。不改迁移文件。不提交。
+
+§8 中间那句已恢复为已提交原文。证明尚未按本节改完，该句不改成已完成。
+
+## §11
+
+P3-2、P3-4、P5-1 这三处已经按 §10 落在证明里。隔离证明 `node scripts/run-e2e-isolated.mjs db-money3:prove:raw` 退出码 0。迁移 `packages/db/migrations/0149_money_status_constraints.sql` 字节未改，sha256 仍是 `e7b916d05f4b7072eb5a1d6ca9c788e2fd2d6dbec0086aa3b9911807325947d8`，长度 6022。
+
+§8 中间那句「本步只新增本说明，不改证明，不改迁移。」是先前记录，保持原文。现以 §11 为准。
