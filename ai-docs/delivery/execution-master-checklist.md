@@ -3826,3 +3826,12 @@ flowchart TD
 - **未收口**：#157 与 #158 不因这次断言对齐而翻面。先前重型门失败是计数漂移，静态行为复看已通过，件数仍待两侧都通过之后再计。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 现值 **2271** 余 9.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line interview-job-autovacuum nail（2026-10-19 · 面试作业表按更紧的死元组比例触发自动清理）
+
+- **改动**：新增 `packages/db/migrations/0213_interview_job_autovacuum_reloptions.sql`。`interview_job` 的清理比例 0.02、清理阈值 200、分析比例 0.02。只改存储参数，不重写行。0001–0210 没有改动。
+- **并入**：fetch 后 origin tip 仍是 `a833c38f`。merge-tree 预演 EXIT=0，tree `a8082c75`。`git merge --no-ff` 得到 `ea652797`，双亲 `a833c38f` 与 `be62de22`。没有冲突，没有强推。
+- **门**：迁移唯一性 files=211 violations=0；去注释后 DROP/DELETE/UPDATE 为 0；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601；docs:check scanned 2273≤2280。
+- **收口**：退避半此前已落。这一半补上之后，合计由 226/271 改为 227/271（83.8%）。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 +1（0213）· cap **2280** 现值 **2273** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
