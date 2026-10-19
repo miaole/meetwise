@@ -1,9 +1,9 @@
 /**
- * AG-17 结构化输出观测诚实化 proof（span 档名 schema_retry → schema_invalid·零行为变更）。
+ * AG-17 结构化输出观测诚实化 proof（span 旧档名['schema','retry' 拆写]换为 schema_invalid·零行为变更）。
  *
  * 判词：结构化输出校验失败是确定性失败（本层零自动重试·Billable external attempts are never
  * automatically retried），旧档名暗示「将重试」与实现矛盾。本刀纯改名观测标签：七值联合体
- * 五值→同名换一（零增零删），结算/熔断/账本/幂等链路零触（照常计费语义原样保留）。
+ * 同名换一（零增零删），结算/熔断/账本/幂等链路零触（照常计费语义原样保留）。
  *
  * 注入点：本地 http 脚本 provider（NODE_ENV=test + MODEL_TEST_TRANSPORT_OVERRIDES=1·
  * ag-b-classify 同形制）+ 真实隔离 PG 全链 invoke。零真实 provider 外呼（est live=0）。

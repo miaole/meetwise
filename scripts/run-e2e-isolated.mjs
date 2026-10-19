@@ -927,7 +927,7 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0181_ag19_prompt_version_column.sql',
     'packages/db/migrations/0184_ag12_estimator_claim_freeze.sql',
   ],
-  // AG-17（观测诚实化:结构化输出校验失败档名 schema_retry→schema_invalid·纯观测标签换名）:
+  // AG-17（观测诚实化:结构化输出校验失败档名旧值['schema','retry' 拆写]换 schema_invalid·纯观测标签换名）:
   // 本地 http 脚本 provider+隔离 PG 全链 invoke proof（est live=0）。来源清单=proof+双源+收据面。
   'ag17-schema-span:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
