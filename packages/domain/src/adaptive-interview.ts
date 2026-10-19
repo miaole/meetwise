@@ -144,16 +144,30 @@ export function boundedInterviewTurns(value: number | undefined, absoluteMax = D
   return boundedSoftBudget(value, absoluteMax, 1);
 }
 
-const CONF_ENOUGH = 0.7;            // 该能力够强 → 不再纠缠
-const CONF_WEAK = 0.4;              // 弱于此时离开该能力算无产出换题
+export const CONF_ENOUGH = 0.7;            // 该能力够强 → 不再纠缠 —— #38 校准待定：现值=回放评测集钉值（domain proof :30/ai-graphs proof :344 亲引）·H1 决议 §1.2 不并入（nail 141da56f）·数值改值归校准刀（生产分布数据到位后按 H1 §7 协议）
+export const CONF_WEAK = 0.4;              // 弱于此时离开该能力算无产出换题 —— #38 校准待定：现值=回放评测集钉值（domain proof :30/ai-graphs proof :344 亲引）·H1 决议 §1.2 不并入（nail 141da56f）·数值改值归校准刀（生产分布数据到位后按 H1 §7 协议）
 const PROBE_CAP_CORE = 3;           // 核心能力追问上限(硬问题多挖一轮)
 const PROBE_CAP_NONCORE = 2;        // 非核心能力追问上限(弱也别死磕,换题)
 export const MAX_PROBE = PROBE_CAP_NONCORE;   // 兼容旧 import;= 非核心上限
-const LOW_SCORE = 40;               // 低分阈(<40):与难度下调阈一致
+export const LOW_SCORE = 40;               // 低分阈(<40):与难度下调阈一致 —— #38 校准待定：现值=回放评测集钉值（domain proof :30/ai-graphs proof :344 亲引）·H1 决议 §1.2 不并入（nail 141da56f）·数值改值归校准刀（生产分布数据到位后按 H1 §7 协议）
 const OFFRAMP_LOW = 2;              // 连续 2 次低分 → 强制下车(pivot + 降难度一档),绝不把候选人逼到墙角
-const HOOK_CAP = 0.6;              // hasHook=true 时本轮 confidence 贡献封顶(< CONF_ENOUGH):高分也不算"够强",逼既有 probe 路径继续深挖同一能力
+export const HOOK_CAP = 0.6;              // hasHook=true 时本轮 confidence 贡献封顶(< CONF_ENOUGH):高分也不算"够强",逼既有 probe 路径继续深挖同一能力 —— #38 校准待定：现值=回放评测集钉值（domain proof :30/ai-graphs proof :344 亲引）·H1 决议 §1.2 不并入（nail 141da56f）·数值改值归校准刀（生产分布数据到位后按 H1 §7 协议）
 export const MAX_CLARIFY = 1;     // **每题至多澄清 1 次**:原题 + 1 次引导重答;再非作答=探尽未决换题,绝不更多
 const UNRESOLVED_MARKER = '未正面作答/跳过(探尽未决,标弱不再追)';
+/** #38 自适应面试四阈值注入缝：调用方（组合根）可整簇注入覆盖；env/config 读取永入组合根（apps/api·apps/worker），域内零 env 零 IO（纯度契约）。
+ *  缺省 = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS 直引上方四常量本体（单一出处·零第二套字面值）→ 现形调用方零改、默认零行为变更；数值校准（生产分布数据到位后）经本缝注入，不改常量本体。 */
+export interface AdaptiveInterviewPolicy {
+  confEnough: number;
+  confWeak: number;
+  lowScore: number;
+  hookCap: number;
+}
+export const ADAPTIVE_INTERVIEW_POLICY_DEFAULTS: AdaptiveInterviewPolicy = {
+  confEnough: CONF_ENOUGH,
+  confWeak: CONF_WEAK,
+  lowScore: LOW_SCORE,
+  hookCap: HOOK_CAP,
+};
 const clampDiff = (d: number) => Math.max(1, Math.min(5, d));
 /** 该能力的追问上限(核心 3 / 非核心 2)。markUnresolved/off-ramp 把 depthProbed 顶到这里 → decideNext 必 pivot。 */
 const probeCap = (c: Competency) => (c.core ? PROBE_CAP_CORE : PROBE_CAP_NONCORE);
@@ -212,7 +226,8 @@ export function absoluteMaxOf(mind: InterviewMind): number {
  *  hasHook=true:这答案有可挖的"钩子"(具体可深问一轮)→ 本轮 confidence 贡献封顶(< CONF_ENOUGH),
  *  即便高分也不算"够强",让 decideNext 既有 probe 路径**继续追问同一能力**(硬问题多回合讨论),全程零新分支。
  *  off-ramp:连续 2 次低分 → 不再死磕(探尽该能力 + 降难度一档),反车轮战。 */
-export function ingestAssessment(mind: InterviewMind, competency: string, score: number, evidence: string[], hasHook = false): InterviewMind {
+export function ingestAssessment(mind: InterviewMind, competency: string, score: number, evidence: string[], hasHook = false, policy: AdaptiveInterviewPolicy = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS): InterviewMind {
+  const { confEnough: CONF_ENOUGH, confWeak: CONF_WEAK, lowScore: LOW_SCORE, hookCap: HOOK_CAP } = policy;
   const s = Math.max(0, Math.min(100, score)) / 100;
   const consec = score < LOW_SCORE ? mind.consecutiveLow + 1 : 0;
   const offRamp = consec >= OFFRAMP_LOW;                       // 连续低分 → 下车
@@ -229,7 +244,7 @@ export function ingestAssessment(mind: InterviewMind, competency: string, score:
     };
   });
   // 难度自适应:答得好(本次>0.7)升,答得差(<0.4)降;off-ramp 额外再降一档(别把弱候选人逼到墙角)
-  const base = mind.difficulty + (s > 0.7 ? 1 : s < 0.4 ? -1 : 0);
+  const base = mind.difficulty + (s > CONF_ENOUGH ? 1 : s < CONF_WEAK ? -1 : 0);
   const difficulty = clampDiff(offRamp ? base - 1 : base);
   const session = sessionOf(mind);
   const recentScores = [...(mind.recentScores ?? []), Math.max(0, Math.min(100, score))].slice(-SIGNAL_TRAIL_CAP);
@@ -359,11 +374,13 @@ function scoredEvidenceCount(c: Competency): number {
   return c.evidence.filter((e) => e !== UNRESOLVED_MARKER).length;
 }
 
-function isResolved(c: Competency): boolean {
+function isResolved(c: Competency, policy: AdaptiveInterviewPolicy = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS): boolean {
+  const { confEnough: CONF_ENOUGH } = policy;
   return c.confidence >= CONF_ENOUGH || c.depthProbed >= probeCap(c);
 }
 
-export function interviewCoverage(mind: InterviewMind): CoverageSnapshot {
+export function interviewCoverage(mind: InterviewMind, policy: AdaptiveInterviewPolicy = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS): CoverageSnapshot {
+  const { confEnough: CONF_ENOUGH } = policy;
   const comps = mind.competencies;
   const cores = comps.filter((c) => c.core);
   return {
@@ -371,13 +388,13 @@ export function interviewCoverage(mind: InterviewMind): CoverageSnapshot {
     probed: comps.filter((c) => c.depthProbed > 0).length,
     resolvedStrong: comps.filter((c) => c.confidence >= CONF_ENOUGH).length,
     coresTotal: cores.length,
-    coresResolved: cores.filter(isResolved).length,
-    coresWithEvidence: cores.filter((c) => isResolved(c) && scoredEvidenceCount(c) > 0).length,
+    coresResolved: cores.filter((c) => isResolved(c, policy)).length,
+    coresWithEvidence: cores.filter((c) => isResolved(c, policy) && scoredEvidenceCount(c) > 0).length,
     evidenceItems: comps.reduce((n, c) => n + scoredEvidenceCount(c), 0),
   };
 }
 
-function provenanceOf(mind: InterviewMind, code: ConcludeReason | AskReason, cited: string[]): DecisionProvenance {
+function provenanceOf(mind: InterviewMind, code: ConcludeReason | AskReason, cited: string[], policy: AdaptiveInterviewPolicy = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS): DecisionProvenance {
   const session = sessionOf(mind);
   const absolute = absoluteMaxOf(mind);
   return {
@@ -388,7 +405,7 @@ function provenanceOf(mind: InterviewMind, code: ConcludeReason | AskReason, cit
     absoluteMaxTurns: absolute,
     safetyCeiling: absolute,
     budgetRaises: Number.isInteger(mind.budgetRaises) ? mind.budgetRaises! : 0,
-    coverage: interviewCoverage(mind),
+    coverage: interviewCoverage(mind, policy),
     citedCompetencies: cited,
     signals: { ...session, consecutiveLow: mind.consecutiveLow },
   };
@@ -406,13 +423,14 @@ export function rememberDecision(mind: InterviewMind, action: NextAction): Inter
 }
 
 /** 策略:覆盖/证据/会话信号决定继续、加深或收尾。确定性、可解释;模型不得写停续。软预算可上调,只有绝对杀开关是硬墙。 */
-export function decideNext(mind: InterviewMind): NextAction {
+export function decideNext(mind: InterviewMind, policy: AdaptiveInterviewPolicy = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS): NextAction {
+  const { confEnough: CONF_ENOUGH, confWeak: CONF_WEAK } = policy;
   const session = sessionOf(mind);
-  const coverage = interviewCoverage(mind);
+  const coverage = interviewCoverage(mind, policy);
   const absolute = absoluteMaxOf(mind);
   const weakCited = mind.competencies.filter((c) => c.depthProbed > 0 && c.confidence < CONF_ENOUGH).map((c) => c.name);
   const conclude = (reason: ConcludeReason, cited: string[]): NextAction =>
-    ({ kind: 'conclude', reason, provenance: provenanceOf(mind, reason, cited) });
+    ({ kind: 'conclude', reason, provenance: provenanceOf(mind, reason, cited, policy) });
   const ask = (c: Competency, mode: 'probe' | 'pivot', reason: AskReason): NextAction => {
     let nextReason = reason;
     let softBudget: number | undefined;
@@ -425,7 +443,7 @@ export function decideNext(mind: InterviewMind): NextAction {
     }
     return {
       kind: 'ask', competency: c.name, difficulty: mind.difficulty, mode, qkind: pickKind(c),
-      reason: nextReason, provenance: provenanceOf(view, nextReason, [c.name]), softBudget,
+      reason: nextReason, provenance: provenanceOf(view, nextReason, [c.name], policy), softBudget,
     };
   };
 
@@ -467,7 +485,8 @@ export function decideNext(mind: InterviewMind): NextAction {
 }
 
 /** 行动后:记下当前在探的能力(供下一轮 probe 判断)。换能力时清零 consecutiveLow(off-ramp 计数只对一段连续同能力有效)。 */
-export function withCurrent(mind: InterviewMind, competency: string): InterviewMind {
+export function withCurrent(mind: InterviewMind, competency: string, policy: AdaptiveInterviewPolicy = ADAPTIVE_INTERVIEW_POLICY_DEFAULTS): InterviewMind {
+  const { confWeak: CONF_WEAK } = policy;
   const switched = competency !== mind.current;
   const leftExisting = mind.current != null && competency !== mind.current;
   const leaving = mind.current ? mind.competencies.find((c) => c.name === mind.current) : undefined;
