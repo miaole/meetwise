@@ -3790,3 +3790,12 @@ flowchart TD
 - **STILL OPEN**：issues-final.md/.csv 判词原文含旧档名（:18/:29/:239/:244）系静态复核清单·禁触蓝本零触不翻改·AG 台账计数以本管线行为翻面载体（done 31/half 2/open 15）·run-e2e-isolated.mjs 门依赖指纹清单未纳 0210 类同注记归后继·AG-02 重试策略（卷关联）归后继·REQUEST Status 终翻面权归协调方.
 - 预算：est live=0（proof=本地 http 脚本 provider+隔离 PG·零模型外呼）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2268** 余 4.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line pgp-key-param nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波主线推送席#5·⛔force push·⛔pull --rebase） · PGP-KEY-PARAM 会话事件加密密钥移出 SQL 参数面（#143 P4·set_config 事务级注入·0210 迁移 13→12 参·批表 +1：#143 翻面 225→226/271））
+
+- **授权链全链如实载**：起草 `c7f30447`（draft:awaiting_rev）→ rev 席 `8ac17e2b`（六项全成立·翻面臂→awaiting_pre_exec_dual）→ 第一轮双审 席1 FAIL（P1 字面扫描完备性被证伪）/席2 PASS → rev2 `dd282cfa`（三步收窄+豁免清单·「:40-42」提案驳回）→ 第二轮双审 PASS×2 → EXEC `6759f849`（4 tracked·门全绿·偏离三件如实）→ post 双审 PASS×2（席1 agent_93eeb9ad·席2 agent_d7388332）→ 会签 → nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`fcddf840` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`e8eb5f10`）→ merge --no-ff merge commit `f3edf911`（新增 pgp-key-param-REQUEST.md+0210_conversation_event_enc_key_guc.sql）→ 门亲跑（typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12+迁移唯一性 files=210 violations=0+docs:check EXIT=0 scanned 2270≤2272 余 2）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷+post 双审承+nail 复跑）**：db-acl2:prove:raw 43 PASS（P6-1 旧签名消亡+pronargs=12 恰单版本/P6-2 函数体==0210 静态体/P6-3 同事务 set_config 直调正门/P6-4 GUC 回环/P6-5 GUC 缺失→22023 负门）+migrate:prove 123 PASS+ctx03-event-source:prove:raw 63 PASS+字面扫描双 grep EXIT=1（apps/packages 非 test 面）+nail 四门+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：残面=set_config 语句自身绑定参数在 log_statement=all 下仍可达（慢日志面全消除）→ 清零互补 role pin `log_parameter_max_length=0` 归运维轨/CTX 链启用刀前置义务·B 组 resume/answer 链同族残余（密钥仍居数据语句绑定参数表·resume 链生产在位）不在 #143 锚内归协调方后继裁决·migrate.proof.ts:457 史前文本「197 文件」刷新归维护刀·卷尾坐标系注记（pre-EXEC :194·现 :218）append 补注归后继·runner 指纹清单未纳 0210 注记级·**帽余量 2（2270/2272）：下一波任一新卷落卷前须先派帽步进刀 2272→2280**·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0（全门本地/隔离库·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 迁移 +1（0210·fresh 回放序 0108 建 13 参→0210 DROP+CREATE 12 参）· cap **2272** 并线后现值 **2270** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
