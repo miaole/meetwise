@@ -98,4 +98,15 @@
 - **est live=0**（全门隔离 PG+本地静态·零模型外呼零 DNS零 Key 值·`actualSpendCny=null`）·env 三旋钮缺省关·零新增必填 env。
 - **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb1`·指定蓝本 ag18 缺席改沿 ag17 同构已登记·**runner 事务行为亲证=三通道在案（transactional 全包裹/multi-statement 逐语句 BEGIN-COMMIT/concurrent-index 裸会话+账本独立事务）·concurrent 通道谓词 allowlist IS NULL-only·等值字面量必拒**·修法形=窄扩解析器（0199 案b「双审明示」入口·本卷即载体）+0211 部分索引 CONCURRENTLY 建（0190 `#115` 纪律）+0212 旧索引普通 DROP（0199 案a 先例）+SECURITY DEFINER 归档函数（0177 全同构·app_role 无 DELETE 纪律零破坏）+worker retention 接线（usage-calibration-retention 全同构·缺省关）·est live=0·actualSpendCny=null·⛔push·翻面权归协调方·alone≠dual·Ban self-approve。
+## §9-rev
+
+与 §0.0「零交集」冲突时以本节为准。
+
+- 零交集只指触面文件（迁移运行器、归档函数、worker 清扫），不是迁移序号。
+- 本卷暂用 0211 与 0212。面试作业表清理参数那份方案也暂用 0211。
+- 两卷都还没落地 sql。落地时以当时仓库最大序号的下一个为准，后落地的一份重编号。不预设谁先。
+- 工作树数量「6 棵」是落笔时点。现只剩主仓、本树、采样温度树、面试作业表清理树，共 4 棵。这不改变修法。
+
+亲证：本卷件②拟号 0211、件③拟号 0212；面试作业表清理参数方案拟号 0211，并写明撞号则后到者重编号。主仓、本树、面试作业表清理树三处 `packages/db/migrations` 最大序号都是 0210，磁盘上没有 0211 或 0212 的 sql 文件。
+
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb1`·指定蓝本 ag18 缺席改沿 ag17 同构已登记·**runner 事务行为亲证=三通道在案（transactional 全包裹/multi-statement 逐语句 BEGIN-COMMIT/concurrent-index 裸会话+账本独立事务）·concurrent 通道谓词 allowlist IS NULL-only·等值字面量必拒**·修法形=窄扩解析器（0199 案b「双审明示」入口·本卷即载体）+0211 部分索引 CONCURRENTLY 建（0190 `#115` 纪律）+0212 旧索引普通 DROP（0199 案a 先例）+SECURITY DEFINER 归档函数（0177 全同构·app_role 无 DELETE 纪律零破坏）+worker retention 接线（usage-calibration-retention 全同构·缺省关）·est live=0·actualSpendCny=null·⛔push·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已补迁移序号治理
