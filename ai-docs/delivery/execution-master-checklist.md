@@ -3799,3 +3799,21 @@ flowchart TD
 - **STILL OPEN**：残面=set_config 语句自身绑定参数在 log_statement=all 下仍可达（慢日志面全消除）→ 清零互补 role pin `log_parameter_max_length=0` 归运维轨/CTX 链启用刀前置义务·B 组 resume/answer 链同族残余（密钥仍居数据语句绑定参数表·resume 链生产在位）不在 #143 锚内归协调方后继裁决·migrate.proof.ts:457 史前文本「197 文件」刷新归维护刀·卷尾坐标系注记（pre-EXEC :194·现 :218）append 补注归后继·runner 指纹清单未纳 0210 注记级·**帽余量 2（2270/2272）：下一波任一新卷落卷前须先派帽步进刀 2272→2280**·REQUEST Status 终翻面权归协调方.
 - 预算：est live=0（全门本地/隔离库·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 迁移 +1（0210·fresh 回放序 0108 建 13 参→0210 DROP+CREATE 12 参）· cap **2272** 并线后现值 **2270** 余 2.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line ci-egress-registry-hotfix nail（2026-10-19 SSOT nail · 协调方授权（热修形·CI 红修复快链·主线推送席#6·⛔force push） · 出站静态清单登记缺失修复（ag17 新 proof 两面未登记致 `ci` 工作流红·批表零翻面））
+
+- **授权链全链如实载**：CI 红定谳（run 39224090315/39224460164 `verify` job「模型供应商出站静态清单」步 EXIT=1：adapter_consumer_unregistered+environment_reference_unregistered 两条）→ 热修席 commit `62712996`（2 tracked：provider-egress-inventory.json 两条登记+proof 硬计数 52→53·五门绿）→ nail（协调方内联·热修形无 REQUEST 卷·偏离如实承登）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`7a4288fb` 恰等 → merge-tree 预演 EXIT=0（tree=`3f9d2de0`）→ merge --no-ff `6538a8e3` → 门亲跑（provider-egress:inventory EXIT=0 pairs=53+provider-egress:prove 7/7 EXIT=0+docs:check 2270）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **教训（后继刀门矩阵义务）**：`provider-egress:inventory` 只在 CI `.github/workflows/ci.yml:83-86` 跑，turbo 零任务，本地 `run-post-change-regression.mjs` 仅挂 `:prove`（同验证器·引入 39ffb654 后未跑）→ 凡新增/改动含模型适配器调用或供应商 env 引用的证明文件，门矩阵必须显式列 `pnpm provider-egress:inventory` 与 `provider-egress:prove`（AG-18 卷 §2 已落实）；或升为 turbo 任务由 `turbo lint` 覆盖（归后继基建刀裁量）。
+- **STILL OPEN**：ag17 卷 §2 九门未列出站两门的卷面缺口归 AG-17 行注记（不翻改史录）·是否升 turbo 任务归基建刀.
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap 2272 现值 2270（本刀零新增文件）.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line cap-sanction-2280 nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·主线推送席#7·⛔force push·⛔pull --rebase） · CAP-SANCTION-2280 受管文件上限步进（sanction +8 步进 2272→2280·沿九先例形·算术=2270+在飞新卷 3=2273>2272 先手））
+
+- **授权链全链如实载**：协调方派单 brief（快速链一体席）→ 一体席起草+EXEC 单 commit `723255b9`（七门全绿承卷 §9）→ post-prove 双审会签 PASS×2（席1 agent_4b53090e 零 P2·席2 agent_1f09ff05 2×P2 注记级）→ nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`6538a8e3` 恰等 → merge-tree 预演 EXIT=0（tree=`c3bd18e2`）→ merge --no-ff `232102b6` → 门亲跑（policy.proof 12/12 EXIT=0+docs:check EXIT=0 scanned 2271≤2280 余 9+typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵**：proof 12/12（2280/2281 双值全行使·deepEqual 行亲跟 2281）+docs:check 2271≤2280+typecheck 8/8+lint 12/12+markers 0+自审 grep 清零+diff 恰 3 tracked+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞新卷（AG-18 修订卷/批表 #4 卷/批表 #24 半成卷）并线后帽余量以届时实测为准·批表零翻面.
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 并线后现值 **2271** 余 9.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
