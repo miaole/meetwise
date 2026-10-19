@@ -1,6 +1,6 @@
-# PGP-KEY-PARAM REQUEST — pgp_sym_encrypt 密钥移出 SQL 参数面起草刀（AUTHZ-HARDEN 残子刀·0108 SD 面最小改·两件一卷·起草席落卷 · **STOP=`draft:awaiting_rev`**）
+# PGP-KEY-PARAM REQUEST — pgp_sym_encrypt 密钥移出 SQL 参数面起草刀（AUTHZ-HARDEN 残子刀·0108 SD 面最小改·两件一卷·rev 席复核通过 · **STOP=`draft:awaiting_pre_exec_dual`**·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 翻面）
 
-> 战役 meetwise · 支线 `line/pgp-key-param-draft` · 工作树 `meetwise-pgp` · 起草基线 @origin/feat/mysql-schema-skeleton=`4c2ea4c9f`（派单下界「fetch 后 origin tip≥4c2ea4c9f」以等号成立亲证：`git merge-base --is-ancestor 4c2ea4c9f origin/feat/mysql-schema-skeleton` PASS+`git log -1 origin/feat/mysql-schema-skeleton` 恰该 SHA·2026-10-19 实测）· ⛔push ⛔merge 主线（push/翻面/EXEC/SSOT 行权全归协调方）。**STOP=`draft:awaiting_rev`**（起草席落卷待 rev 席独立外席·三处同值：本头注+标题+§8）。
+> 战役 meetwise · 支线 `line/pgp-key-param-draft` · 工作树 `meetwise-pgp` · 起草基线 @origin/feat/mysql-schema-skeleton=`4c2ea4c9f`（派单下界「fetch 后 origin tip≥4c2ea4c9f」以等号成立亲证：`git merge-base --is-ancestor 4c2ea4c9f origin/feat/mysql-schema-skeleton` PASS+`git log -1 origin/feat/mysql-schema-skeleton` 恰该 SHA·2026-10-19 实测）· ⛔push ⛔merge 主线（push/翻面/EXEC/SSOT 行权全归协调方）。**STOP=`draft:awaiting_pre_exec_dual`**（rev 席独立外席 2026-10-19 复核通过翻面·前值 `draft:awaiting_rev` 史录保留·三处同值：本头注+标题+§8）。
 > 主仓 worktree 建支线：`git worktree add ../meetwise-pgp -b line/pgp-key-param-draft origin/feat/mysql-schema-skeleton`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief（2026-10-19·#143 P4：pgp_sym_encrypt 密钥作 SQL 参数可入日志·AUTHZ-HARDEN 残子刀·生产链路未启用·修法方向=密钥改会话级 set_config 注入**或**绑定参数形择一最小面）；②挂账主链 AUTHZ-HARDEN 5A 段：`ai-docs/delivery/harness/authz-harden-REQUEST.md:35`（#143 行·引文 `pgp_sym_encrypt(p_body,p_enc_key)`——D6 决策原文「链路生产未启用…P3→P4 备忘，启用前处理」）+`:111`（「#143：随卷登记备忘（P4·启用前改应用侧加密·零码动）」）；③承登链 `ai-docs/delivery/harness/repo-hygiene-REQUEST.md:65`（「#143（P4 备忘态·承登）…挂账主权仍在 AUTHZ-HARDEN 5A 段/协调方」）+`ai-docs/delivery/harness/supply-chain-REQUEST.md:46`（#249/#143 注记面·「#143…挂账主权不变·承登零触」）；④要求面 `ai-docs/requirements/use-cases/interview-question-bank-reliability-security.md:281`（「密钥不作为通用 SQL/日志参数暴露」）。
 
@@ -95,7 +95,7 @@
 
 ## §8 治理（STOP 协议·起草席权限边界）
 
-- 本卷 **STOP=`draft:awaiting_rev`**（三处同值：标题+头注+本节）——rev 席独立外席重 pin §0+四维复核后行使 §8 翻面臂（`awaiting_rev`→`awaiting_pre_exec_dual` 或 `rework`）；EXEC/翻面/SSOT 行/并线/push 权全归协调方（⛔push ⛔merge 主线·本起草卷 docs-only 恰 1 文件）。
+- 本卷 **STOP=`draft:awaiting_pre_exec_dual`**（三处同值：标题+头注+本节·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 席独立外席六项复核通过翻面·见 §9-rev）——rev 席已行使翻面臂（`awaiting_rev`→`awaiting_pre_exec_dual`）；**rev 落卷后派 pre-exec 双审两独立外席·alone≠dual·Ban self-approve**；EXEC/翻面/SSOT 行/并线/push 权全归协调方（⛔push ⛔merge 主线·本起草卷 docs-only 恰 1 文件）。
 - rev 审点建议（不约束）：①§1.3-② 处方刷新（D6「改应用侧加密」→set_config 注入）裁决追认；②GUC 名 `app.conversation_event_enc_key` 两段形与 is_local=true 语义；③0210 DROP→CREATE 顺序与授予同形重申面；④§9 残余披露充分性（set_config 语句自身参数在 log_statement=all 下可达·是否上升为独立刀）。
 - 前瞻耦合注记（处置归协调方/后继刀）：B 组三链密钥仍居数据语句绑定参数表（resume 链生产在位=同族残余最重处）；`log_parameter_max_length=0` role pin 为一次性低成本互补候选（§1.3-④）；CTX 链真实启用前本卷修法+门 5 EXEC 义务为**前置门槛**（D6「启用前处理」兑现路径）。
 
@@ -106,4 +106,52 @@
 3. **draft 期证明面失义**：门 5 如实登记（worktree 零依赖+draft docs-only）——非跳门·EXEC 期义务在案可追溯。
 4. PostgreSQL 机理断言（`log_parameter_max_length` 默认 -1 全量/`log_parameter_max_length_on_error` 默认 0/`pg_stat_statements` 不存参数值/CREATE OR REPLACE 异签名=重载）系通用版本行为，rev 席如需实库复证可在隔离库 arm 内亲跑（EXEC 门 5 顺带覆盖）·本席本地零 DB 未实测=如实登记。
 
-*PGP-KEY-PARAM REQUEST · 2026-10-19 · 起草席落卷 · draft:awaiting_rev · 基线 `4c2ea4c9f` · ⛔push*
+## §9-rev rev 席复核注记（2026-10-19）
+
+> rev 席=独立外席·工作树 `meetwise-pgp`@`line/pgp-key-param-draft`（届 tip `c7f30447`·父提交恰基线 `4c2ea4c9f`）·fetch 后亲证 `origin/feat/mysql-schema-skeleton`=`4c2ea4c9f54ec…` 恰等下界（主线未前进·零重 pin 诉求）。六项逐条亲证如下，**零停止条件命中**。
+
+**一、§0.1 blob 锚表 15 行逐一亲算（`git rev-parse --short=8 4c2ea4c9f:<path>` rev 席亲跑）——15/15 恒等零漂移**：
+
+| 锚 | 卷值 | rev 亲算 | 结论 |
+|---|---|---|---|
+| 0108 | `351aeb45` | `351aeb45` | 恒等 |
+| 0151 | `e6e76af1` | `e6e76af1` | 恒等 |
+| ctx03-event-source.ts | `0a27f2cf` | `0a27f2cf` | 恒等 |
+| db-acl2.proof.ts | `31ce9fb5` | `31ce9fb5` | 恒等 |
+| principal.ts | `23e5b770` | `23e5b770` | 恒等 |
+| resume.ts | `f55d772b` | `f55d772b` | 恒等 |
+| int-transcript.ts | `7151c7fc` | `7151c7fc` | 恒等 |
+| resume.service.ts | `1769589e` | `1769589e` | 恒等 |
+| interview.service.ts | `7c139c1d` | `7c139c1d` | 恒等 |
+| compose.prod.yml | `663720c3` | `663720c3` | 恒等 |
+| index.ts | `7cdad52e` | `7cdad52e` | 恒等 |
+| authz-harden-REQUEST.md | `4180d446` | `4180d446` | 恒等 |
+| repo-hygiene-REQUEST.md | `0316c1eb` | `0316c1eb` | 恒等 |
+| 要求面 md | `c5d17053` | `c5d17053` | 恒等 |
+| 0210 空闲锚 | 0209=max·0210 空闲 | `git ls-tree` 亲跑：209 files·max=0209_ag09_replay_first_claim.sql·`^021` 前缀 grep EXIT=1 | 恒等 |
+
+**二、四读复核——四读全数维持·无一翻转**：
+
+- **读一成立**：A 组 `0108:177-190` 13 参签名（`p_enc_key` 恰第 9 位 `:186`）、`:214` `OR p_enc_key IS NULL OR length(p_enc_key)=0`、`:255` `pgp_sym_encrypt(p_body, p_enc_key)` 逐行亲读亲中；应用调用点 `ctx03:121-127` 句文本 `SELECT * FROM conversation_event_append($1,…,$13)` 全占位符·绑定参数表恰 13 元（`:123-125` 逐位亲数：$9=encKey·`encKey` 定义 `:115`）。B 组 `resume.ts:78` `pgp_sym_encrypt($3,$4)`/$4=RESUME_ENC_KEY()、`:151`/`:183` decrypt $3=keyForVersion、`:200` encrypt、`:213` decrypt；`int-transcript.ts:158` `pgp_sym_encrypt($6,$7)`/$7=encKey——全绑定形亲读亲中。`pgp_sym_encrypt('` 字面形全树仅 test 三处（`int-answer-dual-write-fence.proof.ts:273` `pgp_sym_encrypt('x','k')`、`int-transcript-answer-fact-root.proof.ts:196/:228`）·插值形 `pgp_sym_encrypt(${` 全树 grep EXIT=1 零命中——非测试面零字面零插值成立。C 组 `db-acl2:170/:178/:269/:320/:323`+`migrate.proof.ts:356-361` 逐行亲中。rev 加验：全树 `pgp_sym_encrypt` 命中文件逐一人读（0001/0092/03_resume 系注释·0121:14/:16+0122 系 ACL·0151:31 系 GRANT·ci.yml/sidecar-v3.mjs/run-e2e-isolated.mjs 系 step 名/归档注记/迁移清单）——**零漏报调用点·A/B/C 三分完备**。
+- **读二成立**：`ctx03:26-31` requireSecret（`:28` `if (IS_PROD) throw` fail-closed+dev 缺省仅非 prod）·`:33` `CONVERSATION_EVENT_ENC_KEY`·`:35` HMAC 分离·`:41-44` V{n} 轮转全亲中；`docker/` 全目录 `CONVERSATION_EVENT` grep **EXIT=1 零命中**；`compose.prod.yml:20` `RESUME_ENC_KEY: ${RESUME_ENC_KEY:?set …}` 强制见证亲中。
+- **读三成立**：`log_statement|log_min_duration_statement|log_parameter_max_length|shared_preload` 全仓控制面（yml/conf/sql/ts/mjs/sh/toml/json）grep **EXIT=1 零命中**；auto_explain 全树仅两 test 证明面会话级 LOAD（`rag03-hnsw-completeness.proof.ts:237-242`·`rag03c-exactk-observe.proof.ts:304-309`）非常驻配置亲证；应用日志纵深 `ai-docs/observability/observability-strategy.md:69` 禁词机检+gitleaks 亲中（两轨异面判词成立）。
+- **读四成立**：`appendConversationEvent` 全树命中=定义本体（`ctx03:108`）+导出（`index.ts:514`）+**packages/db/test 六个证明面**（ctx03/ctx04/ctx05/ctx06/mem02/mem03 proof）——**apps/+e2e 零调用者亲证成立·生产链路未启用判词维持**；对照组 resume 链生产在位亲证（`resume.service.ts:126/:211/:252`+worker `quiz-lifecycle.ts:26`/`diagnosis-lifecycle.ts:31`/`interview-consumer.ts:115` decryptActiveResumeBlob）·answer 链 preview 门（`interview.service.ts:483`/`:526`）·`0121:16` app_role 补授·`0151:4-8` 序言 42501 动因自证全亲中——A 组唯一指向判词三证互洽成立。注记级补正：读四括注「仅 index.ts:514 导出+定义本体」未列 test 面六调用者，判词不受影响（proof 面非生产接线）。
+
+**三、§1 修法复核——成立**：
+
+- 件① 顺序承重正确：PostgreSQL `CREATE OR REPLACE FUNCTION` 对异签名系新建重载而非替换——先 `DROP` 13 参再 `CREATE` 12 参为必要序；仓内先例同形（0184 DROP 17 参→CREATE 19 参）。授予随签名走（旧函数 DROP 即 ACL 消亡）→授予面同形重申（对 0108:273-276 `OWNER TO memory_runtime`/`REVOKE … FROM PUBLIC`/`GRANT … TO app_role` 逐行亲读同形）必要且正确；`0151:31` 零触判词正确（补授对象系 `pgp_sym_encrypt(text,text)` 本体·SD 体仍执行故仍承重）。
+- 件② 两语句序+fail-closed 等价成立：`set_config('app.conversation_event_enc_key',$1,true)` is_local=true 事务局尾自清（principal.ts:1000 母形 `SELECT set_config('app.principal_user',$1,true)` 逐字亲读·现役形）；非事务误用→语句即终即蒸发→`current_setting(…,true)` 返 NULL→空判即 `22023` 与 `0108:214-219` 同码同语义·静默降级不可能。GUC 两段形 `app.*` 系仓内全域现役形（principal.ts:1000/retrieval-store.ts:76/scoring-fact-root.ts:30/qbank-generation-retrieval.ts:91-95）·审点②成立。
+- 五否决逐一成立：①绑定形=零修复力（三链已绑定形·读一亲证）；②应用侧重写=面放大（authz-harden `:111` 原文「启用前改应用侧加密·零码动」亲读在卷·替代保留同一目标）；③硬编码违 requireSecret 谱系；④日志配置归运维轨（互补候补登记）；⑤KMS 域外（0108:42 亲读「真实 KMS 归 MODEL-OP / 密钥运维」）。
+- **rev 审点①建议（只建议·终裁归协调方）：追认成立**。处方刷新与派单 brief「set_config 注入或绑定参数形择一最小面」同向（协调方派单已授权该方向）·D6 原文系备忘级处方（P4·启用前处理·登记不实施）·目标同一（要求面 :281「密钥不作为通用 SQL/日志参数暴露」）。rev 自查未发现刷新面外更大残余：§9-1 单语句日志残余、§9-2 B 组同族残余、§8 前瞻耦合均已登记。显著登记一项：刷新系「收窄」而非「清零」日志面（严格读 :281 的「日志参数」字面）——清零路径（role pin 互补面/应用侧重写/MODEL-OP KMS）仍开放且已如实登记·追认时请协调方如悉此界。
+
+**四、§2 门矩阵——成立**：门1 方法源 `scripts/qbank-corpus-gates.prove.mjs:87-98` 亲读（五类运行时组装词）·rev 对本卷改动集（恰 1 文件）亲扫 **0 hits**+行首冲突标记 `git grep -lE '^<{5}|^>{5}'` EXIT=1；**门2 rev 亲跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned 2262 恰等卷面落卷后申明值**（基线 2261=2262-1 自洽）；**门3 rev 亲跑 `node scripts/check-migration-version-uniqueness.mjs` EXIT=0·209 files·violations=0·豁免恰 0143/0152/0160**；门4 亲证（`git diff --name-status 4c2ea4c9f..HEAD` 恰 1 A·docs-only）；门5 EXEC 义务充分覆盖件①②（db-acl2 三锚重 pin 面=:170-179 调用臂+:269/:320 regprocedure+:323 全等臂·恰=§0.1 件③ 行；隔离库全量 prove 机械兜底 ctx03/ctx04/ctx05/ctx06/mem02/mem03 wrapper 证明面+migrate ACL 臂零扰+P0 负门臂 12 参重演）。rev 强化注记（非阻塞）：db-acl2 `:173-179` 直连 SQL 调用臂重 pin 时须补 set_config 步骤（直连调用无 GUC 即 22023·此即新契约），并建议 EXEC 期增补「GUC 缺失→22023」显式负门臂——若漏，门5 全量复跑机械兜红·不致漏网。
+
+**五、§9 披露——如实充分**：§9-1 set_config 语句自身参数在 `log_statement=all`+默认全量参数回显下可达·慢日志面恒速消除·append 正文残余如实——三段披露与机理一致·rev 无增补面。注记级：`log_min_duration_statement=0`（全量记）极端位与本残余同类（操作者全量开日志一类）·已被「log_statement=all 单语句可达」口径覆盖。**rev 审点④建议（只建议）：暂不上升独立刀**。理由：链路未启用（读四）·残余已收窄至单类单语句·互补面（role pin）一次性低成本已登记 §1.3-④/§8 前瞻——建议将 role pin（或等价）作为 CTX 链真实启用刀的前置义务随启用一并裁决·现立独立刀与「择一最小面」约束不成比例。§9-2/§9-3/§9-4 诚实登记（本席本地零 DB·机理断言未实测=如实·EXEC 门5 隔离库可复证）成立。
+
+**六、STOP 卫生——成立**：`draft:awaiting_rev` 三处同值亲证（标题 :1/头注 :3/§8 :98）+卷尾注 :109 同值第四处·零矛盾零他值。
+
+**注记级勘误（结论不变·不行驶 rework）**：① `compose.prod.yml:9-11` 实际 DATABASE_URL=:12/SSL_CA=:14·Cloud-only 头注 :1-3（漂 1-3 行）；② 读二「compose 九件」实际 docker/ 现存 compose*.yml **16 件**（env 四 example 恰等）——零命中结论对全部 16 件亲跑成立·计数注记失真；③ 读四括注省略 test 面六调用者（见二）。三条均系注记级·靶面结论零扰。
+
+**翻面臂行使**：零停止条件命中（锚零漂移·四读零翻转·门亲跑全绿）→ STOP 三处（标题/头注/§8）`draft:awaiting_rev`→**`draft:awaiting_pre_exec_dual`**（前值史录保留于本节+三处内注）。**rev 落卷后派 pre-exec 双审两独立外席·alone≠dual·Ban self-approve**·EXEC/翻面/SSOT 行/并线/push 权仍全归协调方（⛔push 未行使）。
+
+*PGP-KEY-PARAM REQUEST · 2026-10-19 · 起草席落卷 · 2026-10-19 rev 席独立外席复核通过（§9-rev） · `draft:awaiting_pre_exec_dual`（前值 `draft:awaiting_rev`·2026-10-19 rev 翻面·史录保留） · 基线 `4c2ea4c9f` · ⛔push*
