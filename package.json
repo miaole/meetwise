@@ -657,7 +657,7 @@
     "r4-pr1-product-close:prove": "pnpm -C apps/worker prove:r4-pr1-product-close",
     "r4-p-r1-fail-closed:prove": "pnpm -C apps/worker prove:r4-p-r1-fail-closed",
     "r2-classify-job-route-prereq:prove": "pnpm -C apps/worker prove:r2-classify-job-route-prereq",
-    "r2-p-worker-route-classify:prove": "pnpm -C apps/worker prove:r2-p-worker-route-classify",
+    "r2-p-worker-route-classify:prove": "node scripts/run-e2e-isolated.mjs r2-p-worker-route-classify:prove:raw",
     "r2-p-api-route-classify:prove": "pnpm -C apps/api prove:r2-p-api-route-classify",
     "r2-p-loop-route-classify:prove": "pnpm -C apps/worker prove:r2-p-loop-route-classify",
     "r2-p-start-route-classify:prove": "pnpm -C apps/worker prove:r2-p-start-route-classify",
