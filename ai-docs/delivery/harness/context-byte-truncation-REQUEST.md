@@ -1,6 +1,6 @@
 # 上下文截断改按 UTF-8 字节计算
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本文只记录改法。不改产品代码，不新增代码文件。父提交 `c93c119228ed9b2248c1c4d7a967ace054c2156a`，分支 `line/context-byte-cap-draft`。
 
@@ -87,6 +87,20 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`capUserData` 与 `capRagMaterial` 的超限比较和标记扣除改为 `byteEstimate`（UTF-8 字节）。数字上限未改：默认 20000，评估 12000，`interviewer.ask` 16000，报告 8000，检索素材 8000。切开处仍是完整码点，不留孤立高代理。预算拒绝条件未改。
+
+两份证明与文档检查都已运行，退出码都是 0：
+
+- `pnpm window:prove`（`pnpm -C apps/worker prove:window`，正文 `tsx test/context-window.proof.ts`）
+- `node scripts/run-e2e-isolated.mjs stress:prove:raw`（转到 `pnpm -C apps/worker prove:stress`，正文 `tsx test/context-stress.proof.ts`）
+- `node scripts/ai-docs/check-docs.mjs`，扫描 2282 个受管文件
+
+现有封顶断言改为 UTF-8 字节。上限数字仍是 12000、16000、20000 和服务上限。短文本不被改写的断言保持原意。所改三份 TypeScript 的 eslint 警告仍是 47 条，与改前相同。ai-runtime 的警告上限仍是 628。
+
+三处状态同为 `executed:awaiting_post_prove_dual`。
