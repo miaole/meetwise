@@ -115,3 +115,56 @@
 ---
 
 *嵌入缺用量结算改法 · `draft:awaiting_pre_exec_dual`*
+
+## §9-rev
+
+§1 的产品行为不改。本节只改 `apps/worker/test/rag-cost-runtime.int.ts` 里六条新断言的预算安排。开头状态、§8、文末状态行三处都仍是 `draft:awaiting_pre_exec_dual`。不因此改产品代码。
+
+§1 列出的六条预期保留。「在同一夹具里按该列表顺序追加」不再照做。测试安排以本节为准。
+
+### 原作用域按原顺序放不下
+
+`:19-:22` 把 `RAG_EMBED_MAX_INPUT_TOKENS` 设为 `1000`，`RAG_EMBED_INPUT_MICRO_CNY_PER_MILLION` 设为 `1000000`（1 micro/token），`RAG_EMBED_MONTHLY_BUDGET_MICRO_CNY` 设为 `3000`。enforce 每次按上限预留 1000。结算成功后，月账把这 1000 从 reserved 换成实结。进入 unknown 后，这 1000 留在 reserved，不释放。月账闸门是 `reserved_micro_cny + settled_micro_cny + reserve_cost > limit`；超过才拒绝。`budget_exhausted` 从 `reserveAiTextCost` 返回，`budgetedQbankEmbedding` 在调用嵌入器之前抛 `rag_cost_budget_exhausted`，到不了用量范围检查。
+
+现有用例跑完后，同一 `scope`、同一 UTC 月：`unknown-${suffix}` 冻结 1000，`ok-${suffix}` 与 `ident-${suffix}` 各实结 200。已用 1400，剩余 1600。换 revision 的绑定不一致、缺价行都不占预算。observe 不落账。
+
+若仍在这个作用域上按 §1 的顺序追加，两条小额（4 与 2）之后再实结「1001 个中」的 1000，已用变为 2406，剩余 594。下一条无论是 `inputTokens: 0` 还是 `inputTokens: 1001`，都要再预留 1000。594 < 1000，预留直接 `budget_exhausted`。`inputTokens: 1001` 不会调用嵌入器，也不会进入 `provider_usage_out_of_reserved_range`。这一臂若先通过并冻住 1000，再加上那笔 1000 实结、两条小额和原有 1400，已用至少 3406，超过 3000。后面的「只有 embed」还要再预留 1000，同样进不去。
+
+换到新作用域、月预算仍是 3000 时，§1 的原顺序仍不够：小额 4+2 之后实结 1000，已用 1006；`inputTokens: 0` 预留后再释放，已用仍是 1006；超上限冻结 1000 后已用 2006；最后的「只有 embed」要 2006+1000=3006，超过 3000。所以只换作用域、不改顺序，被挡住的会变成「只有 embed」那一臂。超上限那一臂必须放在该作用域的最后一次 enforce 调用。
+
+### 新作用域与顺序
+
+六条仍只写在 `rag-cost-runtime.int.ts`。不新增文件。原有 `inputTokens: 200` 得到 `settled_micro_cny === 200` 的断言留在原作用域，不搬。`:19-:22` 的上限 1000、单价 `1000000`、月预算 `3000` 三个数都不改。
+
+六条用新的预算作用域，月账从 0 起算。沿用已经解析的 `cfg`，只把 `scopeId` 换成 `rag-cost-runtime-usage-${suffix}`，再调用一次 `configureRagCostGovernance`。六条的 `budgetedQbankEmbedding` 必须传入这个新配置，不能沿用原 `cfg`。每条使用各自的 `invocationId`，避免命中已有行而在预留阶段直接返回、不再调用嵌入器。省略用量时，返回对象不带 `inputTokens`（值是 `undefined`，不是 `null`）。
+
+顺序如下。第 6 条之后，这个作用域上不再发 enforce 调用。
+
+1. 省略 `inputTokens`，文本 `['中文测试']`：`status` 为 `settled`，`settled_micro_cny` 为 4。不是 1000，也不是 16000。这条证明缺用量记的是估算，不是记满上限。
+2. 同样省略，文本 `['a','a']`：`settled`，结算量为 2。不是先拼接得到的 1，也不是 1000。
+3. `inputTokens: 0`，文本仍为 `['中文测试']`：`settled`，结算量为 0，不是 4。合法实量含 0，照旧，不改走估算。断言要看 `status === 'settled'` 且实结为 0。unknown 行的 `settled_micro_cny` 是空值，`Number` 转换也会得到 0，不能只用这个转换来判断。
+4. 只有 `embed`、没有 `embedWithUsage`，文本 `['中文测试']`：`settled`，结算量为 4。
+5. 省略 `inputTokens`，文本为一段 1001 个「中」：估算 1001，与上限取较小值后结算量 1000，`status` 为 `settled`，不是 unknown。
+6. `inputTokens: 1001`，文本 `['中文测试']`：嵌入器被调用恰好一次；拒绝码是 `external_outcome_unknown`，不是 `rag_cost_budget_exhausted`；行状态为 `unknown`；`settled_micro_cny` 为空，不是 1000，也不是 4。范围错误是 `new Error('provider_usage_out_of_reserved_range')`，没有 `.code`。现有捕获只在 `.code` 落在允许字符集内时保留原因，否则写成 `external_outcome_unknown`。不要为了让行上的原因码变成 `provider_usage_out_of_reserved_range` 而去改这处抛错。
+
+新作用域上的占用量（每次预留 1000；成功结算只留下实结；第 3 条实结 0，预留额退回；第 6 条冻结 1000）：
+
+- 第 1 条：预留前已用 0，0+1000≤3000，落账后 4。
+- 第 2 条：预留前 4，落账后 6。
+- 第 3 条：预留前 6，实结 0，落账后仍是 6。
+- 第 4 条：预留前 6，落账后 10。
+- 第 5 条：预留前 10，10+1000≤3000，落账后 1010。
+- 第 6 条：预留前 1010，1010+1000=2010≤3000，预留成功，然后才因实量大于上限进入 unknown。落账后已用 2010。剩余 990，不够再预留一次 1000，所以它必须是最后一条。
+
+### 1001 个「中」不能单独当证明
+
+第 5 条的实结是 1000，和改前「缺用量记满上限」的金额相同。只有这一条时，旧的 `result.inputTokens ?? cfg.maxInputTokens` 也会实结 1000，分不出两条路径。缺用量记估算，要靠第 1 条的 4 和第 2 条的 2，两者都严格小于夹具上限 1000。第 5 条只证明估算超过上限时先截断再结算，不会变成 unknown。第 1、2 条和第 5 条合在一起，才同时盖住「不是记满上限」和「超上限的估算仍然结算」。
+
+第 6 条的实量在场且大于上限。不把供应商实量截成 1000，也不改记成文本估算 4。它和缺用量不是同一条路径。
+
+### 不改的行为
+
+- 合法 `inputTokens`（含 0）照旧用实量结算。
+- 缺失只在 `inputTokens === undefined` 时，按段调用已导出的 `cjkWeightedEstimate`，再与 `cfg.maxInputTokens` 取较小值。`null`、非整数、负数、大于上限仍走现有范围检查后进入 unknown，不改记估算。只有估算值在范围检查之前截断。
+- 不把 16000 提高，不把夹具上限从 1000 抬高，不新增代码文件或证明文件，不改 `packages/ai-runtime/src/invoke.ts`，不改预留额度，不改 `observe`。`rag-cost-governance.proof.ts` 不改。
+- §2 的三条命令不增不减。
