@@ -12,8 +12,8 @@ import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } fro
 import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
 import { wasAsked, pastWeakDimensions } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
-import { withGenerationProgress } from './generation-progress.ts';
-import { withTokenStream } from './token-stream.ts';
+import { withGenerationProgress, type GenerationProgressRun } from './generation-progress.ts';
+import { withTokenStream, type TokenSink } from './token-stream.ts';
 
 /** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
 function nativeRetrievalFailureToken(reason: string): string | null {
@@ -544,12 +544,28 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // TOKSTREAM S4b（R3 三触发面之三）：withTokenStream 外包裹（token_delta 传输态·pg_notify 不落表），
       // 阶段1 generation_* 持久粗进度面零字节零回归；attemptKey=initialKey（re-roll `:r{k}` 换 invoke 键
       // 时 sink 帧内 attemptKey 恒为包装层注册键·seq 在该键内连续——web 按 attemptKey 键控缓冲不互毒）。
-      return withDeficitOut(await withTokenStream(d.pool, d.owner, d.threadId, {
-        attemptKey: initialKey, jobKind: 'next_question',
-      }, (tokenSink) => withGenerationProgress(d.pool, d.owner, d.threadId, {
-        jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
-        attemptKey: initialKey, segments: ['retrieve', 'generate', 'validate'],
-      }, async (run) => {
+      // 检索包再入不包这两层：generation_started 键虽幂等，新进程心跳计数仍会从 0 再写。
+      // 未带包的直接调用仍包原层。模型调用、幂等键和 wasAsked 判重留在下面的原路径。
+      const runWithoutProgress = <T>(
+        body: (sink: TokenSink, progress: GenerationProgressRun) => Promise<T>,
+      ): Promise<T> => {
+        if (!replayPacket) {
+          return withTokenStream(d.pool, d.owner, d.threadId, {
+            attemptKey: initialKey, jobKind: 'next_question',
+          }, (tokenSink) => withGenerationProgress(d.pool, d.owner, d.threadId, {
+            jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
+            attemptKey: initialKey, segments: ['retrieve', 'generate', 'validate'],
+          }, (progress) => body(tokenSink, progress)));
+        }
+        const sink: TokenSink = {
+          pushDelta(_text: string) {},
+          endUsage(_usage) {},
+          abortReason(_reason: string) {},
+        };
+        const progress: GenerationProgressRun = { stage(_name: string) {} };
+        return body(sink, progress);
+      };
+      return withDeficitOut(await runWithoutProgress(async (tokenSink, run) => {
       // 题型决定接地(H2 #79 扩面):fundamental/scenario 用 CRAG 检索真题素材;grounded 走简历选定
       // 事实(上方早退),behavioral 考行为面经、与技术题库语料错配——检索白名单 EXEC 裁决=fundamental
       // +scenario,behavioral 纳入与否留后刀如实登记(非「漏接」)。
@@ -775,7 +791,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       return modelGeneration(out.value.q, cited.sources, {
         operationId: QUESTION_OPERATION_ID, idempotencyKey, ...(familyRolls + rerolls > 0 ? { reroll: familyRolls + rerolls } : {}),
       });
-      })));
+      }));
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。
