@@ -1079,8 +1079,8 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         span(1, 'exhausted', latencyMs, settledUsage);
         return { error: 'external_outcome_unknown' };
       }
-      // 观测沿既有 settled-failed 先例的 schema_retry 档（确定性输出失败·允许换 revision 重试·不重试同 key）。
-      span(1, 'schema_retry', latencyMs, settledUsage);
+      // 观测沿既有 settled-failed 先例的 schema_invalid 档（确定性输出失败·允许换 revision 重试·不重试同 key）。
+      span(1, 'schema_invalid', latencyMs, settledUsage);
       return { error: result.errorCode };
     }
     const unknownReason = executionTimedOut ? 'model_execution_timeout' : 'external_outcome_unknown';
@@ -1200,7 +1200,7 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     return { error: 'external_outcome_unknown' };
   }
   if (error) {
-    span(1, error.startsWith('business:') ? 'business_error' : 'schema_retry', latencyMs, settledUsage);
+    span(1, error.startsWith('business:') ? 'business_error' : 'schema_invalid', latencyMs, settledUsage);
     return { error };
   }
   // AG-24:终局 ok 臂携带真名+成本——model 优先序=裁决①(a):G7 供应商回显 actualModel 优先(在手时),
