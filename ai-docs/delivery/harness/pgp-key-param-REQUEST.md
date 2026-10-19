@@ -1,6 +1,6 @@
-# PGP-KEY-PARAM REQUEST — pgp_sym_encrypt 密钥移出 SQL 参数面起草刀（AUTHZ-HARDEN 残子刀·0108 SD 面最小改·两件一卷·rev 席复核通过 · **STOP=`draft:awaiting_pre_exec_dual`**·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 翻面）
+# PGP-KEY-PARAM REQUEST — pgp_sym_encrypt 密钥移出 SQL 参数面起草刀（AUTHZ-HARDEN 残子刀·0108 SD 面最小改·两件一卷·rev 席复核通过 · **STOP=`executed:awaiting_post_prove_dual`**·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 翻面→`draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS→2026-10-19 EXEC 落码翻面·见 §9-EXEC）
 
-> 战役 meetwise · 支线 `line/pgp-key-param-draft` · 工作树 `meetwise-pgp` · 起草基线 @origin/feat/mysql-schema-skeleton=`4c2ea4c9f`（派单下界「fetch 后 origin tip≥4c2ea4c9f」以等号成立亲证：`git merge-base --is-ancestor 4c2ea4c9f origin/feat/mysql-schema-skeleton` PASS+`git log -1 origin/feat/mysql-schema-skeleton` 恰该 SHA·2026-10-19 实测）· ⛔push ⛔merge 主线（push/翻面/EXEC/SSOT 行权全归协调方）。**STOP=`draft:awaiting_pre_exec_dual`**（rev 席独立外席 2026-10-19 复核通过翻面·前值 `draft:awaiting_rev` 史录保留·三处同值：本头注+标题+§8）。
+> 战役 meetwise · 支线 `line/pgp-key-param-draft` · 工作树 `meetwise-pgp` · 起草基线 @origin/feat/mysql-schema-skeleton=`4c2ea4c9f`（派单下界「fetch 后 origin tip≥4c2ea4c9f」以等号成立亲证：`git merge-base --is-ancestor 4c2ea4c9f origin/feat/mysql-schema-skeleton` PASS+`git log -1 origin/feat/mysql-schema-skeleton` 恰该 SHA·2026-10-19 实测）· ⛔push ⛔merge 主线（push/翻面/EXEC/SSOT 行权全归协调方）。**STOP=`executed:awaiting_post_prove_dual`**（2026-10-19 EXEC 席落码翻面·前值 `draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS 史录保留·三处同值：本头注+标题+§8·EXEC 记录见 §9-EXEC）。
 > 主仓 worktree 建支线：`git worktree add ../meetwise-pgp -b line/pgp-key-param-draft origin/feat/mysql-schema-skeleton`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief（2026-10-19·#143 P4：pgp_sym_encrypt 密钥作 SQL 参数可入日志·AUTHZ-HARDEN 残子刀·生产链路未启用·修法方向=密钥改会话级 set_config 注入**或**绑定参数形择一最小面）；②挂账主链 AUTHZ-HARDEN 5A 段：`ai-docs/delivery/harness/authz-harden-REQUEST.md:35`（#143 行·引文 `pgp_sym_encrypt(p_body,p_enc_key)`——D6 决策原文「链路生产未启用…P3→P4 备忘，启用前处理」）+`:111`（「#143：随卷登记备忘（P4·启用前改应用侧加密·零码动）」）；③承登链 `ai-docs/delivery/harness/repo-hygiene-REQUEST.md:65`（「#143（P4 备忘态·承登）…挂账主权仍在 AUTHZ-HARDEN 5A 段/协调方」）+`ai-docs/delivery/harness/supply-chain-REQUEST.md:46`（#249/#143 注记面·「#143…挂账主权不变·承登零触」）；④要求面 `ai-docs/requirements/use-cases/interview-question-bank-reliability-security.md:281`（「密钥不作为通用 SQL/日志参数暴露」）。
 
@@ -95,7 +95,7 @@
 
 ## §8 治理（STOP 协议·起草席权限边界）
 
-- 本卷 **STOP=`draft:awaiting_pre_exec_dual`**（三处同值：标题+头注+本节·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 席独立外席六项复核通过翻面·见 §9-rev）——rev 席已行使翻面臂（`awaiting_rev`→`awaiting_pre_exec_dual`）；**rev 落卷后派 pre-exec 双审两独立外席·alone≠dual·Ban self-approve**；EXEC/翻面/SSOT 行/并线/push 权全归协调方（⛔push ⛔merge 主线·本起草卷 docs-only 恰 1 文件）。
+- 本卷 **STOP=`executed:awaiting_post_prove_dual`**（三处同值：标题+头注+本节·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 席独立外席六项复核通过翻面·见 §9-rev→`draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS→2026-10-19 EXEC 席落码翻面·见 §9-EXEC）——rev 席已行使翻面臂（`awaiting_rev`→`awaiting_pre_exec_dual`）；EXEC 席已按协调方授权落码（前值 `draft:awaiting_pre_exec_dual` 系 pre-exec 双审第二轮双 PASS 后协调方放行）；翻面/SSOT 行/并线/push 权仍归协调方（⛔push ⛔merge 主线未行使）。
 - rev 审点建议（不约束）：①§1.3-② 处方刷新（D6「改应用侧加密」→set_config 注入）裁决追认；②GUC 名 `app.conversation_event_enc_key` 两段形与 is_local=true 语义；③0210 DROP→CREATE 顺序与授予同形重申面；④§9 残余披露充分性（set_config 语句自身参数在 log_statement=all 下可达·是否上升为独立刀）。
 - 前瞻耦合注记（处置归协调方/后继刀）：B 组三链密钥仍居数据语句绑定参数表（resume 链生产在位=同族残余最重处）；`log_parameter_max_length=0` role pin 为一次性低成本互补候选（§1.3-④）；CTX 链真实启用前本卷修法+门 5 EXEC 义务为**前置门槛**（D6「启用前处理」兑现路径）。
 
@@ -191,4 +191,28 @@
 - 五条清单处置：P1-甲 落·P2-乙 落（含消歧行距亲证修正）·P2-丙 采纳落·P2-丁 升格落·P2-戊 半落（:109）半跳（:41-44 提案）。本节为卷唯一改动面。
 - **STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值**（标题 :1/头注 :3/§8 :98·rev2 零触零翻面权）。**rev2 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验（含两条跳过/修正登记的复核）·alone≠dual·Ban self-approve**；第二轮双审通过前不得进 EXEC。EXEC/翻面/SSOT 行/并线/push 权仍全归协调方（⛔push 未行使）。
 
-*PGP-KEY-PARAM REQUEST · 2026-10-19 · 起草席落卷 · 2026-10-19 rev 席独立外席复核通过（§9-rev） · 2026-10-19 rev2 修订席第一轮双审清单落卷（§9-rev2·第二轮） · `draft:awaiting_pre_exec_dual`（前值 `draft:awaiting_rev`·2026-10-19 rev 翻面·史录保留） · 基线 `4c2ea4c9f` · ⛔push*
+## §9-EXEC 记录（2026-10-19·EXEC 席按卷落码·pre-exec 双审第二轮双 PASS 后协调方授权开工）
+
+> EXEC 席工作树 `meetwise-pgp`@`line/pgp-key-param-draft`@`dd282cfa`（rev2 落卷提交）。落码前 §0 重 pin：0.1 表 14 锚 blob 逐一 `git rev-parse --short=8 HEAD:<path>` 亲算**全数恒等零漂移**；0210 空闲亲证（`packages/db/migrations/` 209 files·max=0209_ag09_replay_first_claim.sql·`^021` 前缀 grep EXIT=1）。**零停止条件命中·三件按卷落码**。改动面恰 4 tracked=件① 新迁移+件② ctx03+件③ db-acl2+本卷 §9-EXEC/STOP 翻面；零 env 零 lockfile（门4 亲证）。
+
+**件① 落点**：`packages/db/migrations/0210_conversation_event_enc_key_guc.sql`——`DROP FUNCTION IF EXISTS conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,text,bigint,bigint)`（13 参全型 IF EXISTS 形·0184:218 仓内先例形·rev2 裁量行使）→ `CREATE OR REPLACE` 12 参版（0108:178-190 恰去 :186 `p_enc_key text`·类型随原形）→ 授予同形重申三句（12 参签名 `OWNER TO memory_runtime`/`REVOKE ALL … FROM PUBLIC`/`GRANT EXECUTE … TO app_role`·0108:273-276 同形）；0151/0121 零触。**「恰三处文字变」机验亲跑**（函数体抽取 diff）：①DECLARE 增 `v_enc_key text;`；②校验段增 `v_enc_key := current_setting('app.conversation_event_enc_key', true);` 赋值+同位条件 `p_enc_key`→`v_enc_key`（同一 `RAISE … ERRCODE='22023'` 承接·与 0108:214-219 同码同语义 fail-closed）；③加密行 `pgp_sym_encrypt(p_body, v_enc_key)`；其余（advisory 锁/幂等重放/digest 重算/MAX+1/审计双 INSERT）逐字节承袭。
+
+**件② 落点**：`packages/db/src/context/ctx03-event-source.ts` appendConversationEvent——同 client 先 `SELECT set_config('app.conversation_event_enc_key', $1, true)`（绑定参数·is_local=true）再 12 参 `SELECT * FROM conversation_event_append($1…$12)`；事务局部性语义写死注释（预期 asPrincipal 事务内·误用非事务上下文→GUC 蒸发→22023 fail-closed）。`encKeyForVersion`/env/HMAC 面零触。
+
+**件③ 落点**：`packages/db/test/db-acl2.proof.ts` 重 pin。**布局偏离如实登记（语义零偏离·结构强制）**：指令坐标「:170-179 直连臂补 set_config/:269/:320 regprocedure 12 参形/:323 全等臂对新版重演」若按原坐标就地换 12 参形，则 Stage A（≤0143）与 Stage B（≤0151）窗内 0210 未应用、库中实存函数即 0108 十三参旧形——就地换形即 42883 结构性翻红（regprocedure 锚解析失败即整证明崩·P0-4 42501 复现判词被洗）。故实落=**窗口臂保形+新契约专臂新设**：窗口臂（P0-4 负门复现/P1-8 :269+:320 十三参跨 stage 全等/P2 全链绿/P4-3 0108 静态锚）保持 13 参旧形并加注窗口语义（对窗内真实在位函数作证·头注登记）；**四项升格义务全数落新设 P6 段**（P5 链尾 catchup 落 0210 后·全链唯一 12 参世界）：P6-1 签名锚（13 参旧签名 to_regprocedure 不复解析+恰单版本 pronargs=12·DROP 顺序承重无重载并存）；P6-2 函数体跨 stage 逐字节全等对 0210 新版重演（12 参 regprocedure 锚·catchup 后==0210 文件静态体==rerun 后）；P6-3 新契约直连正门（**同事务先 set_config 步骤**+12 参直调全链绿）；P6-4 GUC 密钥加密回环；P6-5 **显式负门「GUC 缺失→22023」**（不执行 set_config 直调·恰 22023+conversation_event_append_invalid）。门5 升格两臂（rev2-丁①②）均行使且绿。
+
+**逐门 EXIT 原值（如实·含一次门红转绿）**：
+
+- 门1 markers：改动集新增行（4 tracked 全含·五类词面运行时组装不复抄+行首冲突标记）**0 命中**；全树行首冲突标记 `git grep -rlE` **EXIT=1 零命中**。（如实注记：本节首版门1 行曾复抄四类作业标记词字面遭自扫命中·按 §2 既有「词面运行时组装不复抄」形改写后 0 命中。）
+- 门2 docs:check：`node scripts/ai-docs/check-docs.mjs` **EXIT=0·scanned=2263**（届树 cap 2264·余 1 如实录——本 EXEC 零新增 managed 文件·§9-EXEC 落本卷内）。
+- 门3 迁移编号唯一性：**EXIT=0·files=210·violations=0**·豁免恰 0143/0152/0160（0210 落卷后复跑）。
+- 门4 diff 面：恰 4 tracked（A `0210_conversation_event_enc_key_guc.sql`+M `ctx03-event-source.ts`+M `db-acl2.proof.ts`+M 本卷）·零 env 零 lockfile 零 Ban 面字节。
+- 门5 隔离库（docker daemon 在位·`node scripts/run-e2e-isolated.mjs`·门名清单亲证后选）：`db-acl2:prove:raw` **EXIT=0**（43 PASS/0 FAIL·含 P0-4 旧窗 42501 复现/P1-7 ACL 差恰一处/P1-8/P2 五臂/P4-3/P5 链尾/P6 五臂全绿=migrate.proof.ts pgp ACL 臂零扰回归随 P5-4 官方 migrate:prove 子进程臂在证）；`migrate:prove` **EXIT=0**（全链含 0210 部署·0121 pgp ACL 臂零扰）；增证 `ctx03-event-source:prove:raw` **EXIT=0**（63 PASS/0 FAIL·件② wrapper 经全链直证）。
+- 门6 typecheck `pnpm turbo typecheck --force` **EXIT=0 8/8 0 cached**；lint `pnpm turbo lint` **最终 EXIT=0 12/12·0 errors**·各包帽原值（root 5242/api 1423/domain 115/db 1042）。**门红如实录**：首轮 lint **EXIT=1**——db 包 `--max-warnings 1042` 硬帽被 P6-1 初版 snake_case 别名 `old_gone` 顶破（1043=+1 命名规约 warning）；修正=SQL 别名改 camel 引用形 `AS "oldGone"` 后复跑 EXIT=0·帽回原值（零 cap 上调·零规则放宽）。
+- 门7 字面扫描自证：`git grep "pgp_sym_encrypt('" -- apps packages ':(exclude)packages/db/test'` **EXIT=1 零命中**；插值形 `pgp_sym_encrypt(${` 同 **EXIT=1**（主断言口径=apps/packages 非 test 面·rev2-甲修正③行使）；全树口径两处豁免清单（sandbox-seed.sh:89+归档收据 exec.md:27）零新增零扰动。
+
+**偏离与注记清单（如实）**：①件③ P6 布局偏离（上文·语义零偏离·四升格义务全绿）；②lint 首轮门红转绿（上文·修正面仅 P6-1 别名形）；③`scripts/run-e2e-isolated.mjs` 各门依赖指纹清单未纳入 0210（runner 在 4 tracked 预算外零触·运行时零影响=proof 自目录加载迁移；后续改动 0210 时两门缓存指纹不失效属注记级·处置归协调方）；④db-acl2 头注「既有臂改形登记」后追加 0210 重 pin 登记（face 内自证文档）。
+
+**STOP 翻面**：零门红残留（lint 红已修正复绿）·零停止条件命中→STOP 三处（标题/头注/§8）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**（前值史录保留于三处内注+本节）。post-prove 双审两独立外席派驻权/翻面/SSOT 行/并线/push 权全归协调方（⛔push 未行使）。
+
+*PGP-KEY-PARAM REQUEST · 2026-10-19 · 起草席落卷 · 2026-10-19 rev 席独立外席复核通过（§9-rev） · 2026-10-19 rev2 修订席第一轮双审清单落卷（§9-rev2） · 2026-10-19 pre-exec 双审第二轮双 PASS · 2026-10-19 EXEC 席落码（§9-EXEC） · `executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual`→`draft:awaiting_rev`·史录保留） · 基线 `4c2ea4c9f` · ⛔push*
