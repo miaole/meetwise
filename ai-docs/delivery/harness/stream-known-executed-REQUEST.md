@@ -116,10 +116,14 @@ lint 上限恰为 root 5242、api 1423、domain 115、ai-runtime 628、worker 95
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-产品代码本步不改
+产品代码已按上文修法写完。空文本和长度截断在流式完成且已有用量时改为已执行。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`completeStream` 在没有中途错误帧、没有空闲看门狗、没有取消或传输中断、用量已按原有空 choices 块解析、结束标记是 stop 或 length、并且 `data: [DONE]` 已出现时，空累计文本改为 `known_executed`，`errorCode` 为 `deterministic_output_invalid`。结束标记是 length 时 `finishReason` 为 length；只是 stop 时不设 `finishReason`。累计文本非空且结束标记是 length 时改为 `known_executed`，`errorCode` 为 `deterministic_output_truncated`，`finishReason` 为 length，不再返回成功。结束标记是 stop 且累计文本非空时仍返回成功。用量只用原有组装，有用量时缓存观测仍打一次。`length` 不写入 `stopSeen`。没有用量、没有结束标记、没有结束帧、错误帧、看门狗、取消或传输中断仍是瞬时未知。非流式分支未改。证明补上这些断言。
