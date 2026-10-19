@@ -4258,3 +4258,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2314** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line offline-order-status nail（2026-10-20 · 对公下单没改到行时返回库里的真实状态）
+
+- **改动**：对公下单没改到行时返回库里的真实状态。更新不到订单行就不再报刚创建。金额仍用产品上的金额。
+- **并入**：merge `091bb9ce`，双亲 `3a3e7838` 与 `89947022`。预演 tree `e7134d1c`。没有冲突，没有强推。
+- **门**：对公证明 53 条退出码 0。负路径 90 条退出码 0。docs:check scanned 2315≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2315** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
