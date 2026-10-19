@@ -389,7 +389,8 @@ async function validate() {
 
   // OCR 在 MODEL-OP-01 typed binding 前必须在入口前 fail-closed；这里绝不
   // 注入本地假模型、创建工件、预留额度或派发视觉请求。
-  const pngB64 = Buffer.from('fake-png-bytes-for-ocr-e2e-001').toString('base64');
+  // #109 fixture 升级:头部真 PNG 魔数过嗅探门·断言面(422 image_ocr_unavailable+计费零增量)守恒。
+  const pngB64 = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from('fake-png-bytes-for-ocr-e2e-001')]).toString('base64');
   const ocrBefore = {
     consumption: Number((await db.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr'")).rows[0]?.n ?? 0),
     artifact: Number((await db.pool.query("SELECT count(*)::int n FROM resume_ocr_artifact WHERE owner_user_id='userA'")).rows[0]?.n ?? 0),
