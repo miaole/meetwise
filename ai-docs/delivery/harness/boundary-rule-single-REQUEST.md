@@ -75,7 +75,7 @@ lint 上限恰为 root 5242、api 1423、domain 115、ai-runtime 628、worker 95
 
 executed:awaiting_post_prove_dual
 
-产品代码本步不改
+未接线的长文案已改成与生产短句逐字节相同。生产短句没有改。
 
 executed:awaiting_post_prove_dual
 
