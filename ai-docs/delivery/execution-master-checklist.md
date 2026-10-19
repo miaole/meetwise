@@ -3763,3 +3763,12 @@ flowchart TD
 - **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞支线（upload-guards/ag17/threshold/pgp）并线后帽余量以届时实测为准如实登记·批表零翻面（非 271 计件面）.
 - 预算：est live=0（nail 面全本地静态门·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2262** 余 10.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line upload-guards nail（2026-10-19 SSOT nail · 协调方授权（post 双审会签[席1 FAIL 经内联回路+席2 PASS·handover 颁定形]·本波主线推送席#2·⛔force push·⛔pull --rebase） · 5A UPLOAD-GUARDS 一卷两题（#108 解析超时真终止+#109 魔数嗅探 fail-closed·批表 +2：#108/#109 翻面 223→225/271））
+
+- **授权链全链如实载**：起草 `119a5e7a`→rev `26a416fb`（第一轮双审 FAIL）→rev2 `c43abefb`（第二轮双 FAIL）→EXEC `d050c5ef`（协调方内联·7 tracked·门矩阵全绿）→补码 `df150781`（post 席1 两 P1 内联回路：text 分支全魔数族+探针常驻门）→post 席2 PASS（agent_9b1becb5·实弹复验）→会签→nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`f54d0a8c` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`e355a886`）→ merge --no-ff merge commit `c4d237a7`（新增 resume-extract-worker.ts+resume-cap-probe.ts 两文件）→ 门亲跑（typecheck --force EXIT=0+lint --force EXIT=0+docs:check EXIT=0 scanned 2265≤2272 余 7）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷+post 席2 实弹复验+nail 复跑）**：domain proof 35/35（含五负例臂）+探针 256MB 阶梯/量基带交叉校验/terminate 臂 hostAlive 全绿+neg:resume 91+neg:input 135+authz34 7+uc015 12+nail 三门（typecheck/lint/docs）+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方·容量残面（并发 RSS 击穿面 rev2.2 登记）归容量裁量·PDF_MAGIC_WINDOW=1024 收窄余地面·B 组 heic/avif/svg 分支语义注记·批表 +2 已行使（#108/#109）.
+- 预算：est live=0（nail 面全本地静态门）· 0 Key 值 · `actualSpendCny=null` · 零迁移（修法全应用层） · cap **2272** 并线后现值 **2265** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
