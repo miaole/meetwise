@@ -1,19 +1,20 @@
 /**
- * 记忆服务（生产,worker 侧）· **lean MVP(经 2 位专家审计砍瘦定稿)**:只做两件确定性、零非确定性的事,
+ * 记忆服务（生产,worker 侧）· **lean MVP(经 2 位专家审计砍瘦定稿)**:只做确定性、零非确定性的事,
  * **不用 embedding/语义召回/信念库**(那套曾被审计判为"既过度工程又防御不足":L2 双增长源 + confirmation-bias 回路 + 毁引擎确定性)。
  *   ① 跨会话精确判重(episode):wasAsked/recordAskedQuestions —— 归一化题面 exact match,防重复出题。
  *   ② 历史弱项只读投影:pastWeakDimensions —— 从 assessment_report 读 gap=true 维度名,给能力选择做软偏置(不动分数/难度/成长曲线)。
+ *   ③ 近期已问题面只读列表:recentAskedStems —— 最近窗口内 episode 归一化题面,给出题不可信数据,不做语义相似。
  * 隐私:episode 只存**我方生成的归一化题面**(非答案/非 PII);弱项只借"维度名"标签。
  */
 import { randomUUID } from 'node:crypto';
-import { asPrincipal, insertMemory, episodeSeen, historicalWeakDimensions, normalizeQuestion, type DbPool } from '@meetwise/db';
+import { asPrincipal, insertMemory, episodeSeen, historicalWeakDimensions, normalizeQuestion, recentAskedStems as loadRecentAskedStems, type DbPool } from '@meetwise/db';
 
 /** 情景记忆:这道题该候选人是否问过(防重复出题)。**精确归一化匹配,无向量/语义**(见 memory-store.episodeSeen)。 */
 export async function wasAsked(pool: DbPool, owner: string, question: string): Promise<boolean> {
   return asPrincipal(pool, owner, (c) => episodeSeen(c, owner, question));
 }
 
-/* ───────── 记忆 lean MVP(经 2 位专家审计砍瘦):两件事、都零非确定性,不用 embedding/语义/信念库 ───────── */
+/* ───────── 记忆 lean MVP(经 2 位专家审计砍瘦):都零非确定性,不用 embedding/语义/信念库 ───────── */
 
 /** 跨会话精确判重的**写入源**:conclude 后把本场问过的题落 episode(content=归一化题面 = **我方生成的题**,非答案/PII;
  *  source_id=interviewId 作 provenance)。同批按归一化去重避免重复行。**绝不写答案/分数/PII**(隐私铁律)。 */
@@ -32,4 +33,9 @@ export async function recordAskedQuestions(pool: DbPool, owner: string, question
  *  H4 R7(#203):消费侧匹配升级为确定性相似度(adaptive-interview-service.weaknessMatches·禁 embedding·lean MVP 注记照守)。 */
 export async function pastWeakDimensions(pool: DbPool, owner: string): Promise<string[]> {
   return asPrincipal(pool, owner, (c) => historicalWeakDimensions(c, owner));
+}
+
+/** 近期已问题面。经 asPrincipal 读该候选人自己的 episode;精确判重仍是 wasAsked。 */
+export async function recentAskedStems(pool: DbPool, owner: string): Promise<string[]> {
+  return asPrincipal(pool, owner, (c) => loadRecentAskedStems(c, owner));
 }
