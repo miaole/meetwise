@@ -85,3 +85,19 @@ draft:awaiting_pre_exec_dual
 ## 文末
 
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+执行时以本节更正后的行为为准。
+
+`apps/api/src/platform/sse-pump.ts` 第 170 行是 `if (!draining) emit(o.initial.rows);`。这一行是已有行写出，不是背压帧边界。带 `!bpTripped` 的 `while` 在第 171 行。未落盘超阈值后置自有旗，仍在第 106–119 行；第 171 行的 `while` 读到该旗就不再进入下一轮。不改背压。
+
+短轮询 `: DEGRADED_POLL_MS` 在第 174 行，就在第 172–174 行这段间隔选择里。第 175 行不是短轮询。第 70–71 行两个常量维持不变。
+
+第 126–127 行只是 `lastSeq` 和 `done` 的初始化。登记等待者在第 169 行和第 189 行。已有行写出在第 170 行。
+
+对端断开不会继续取数。第 136 行把 `closed` 置上并叫醒，第 188 行在 `fetchMore` 之前就 `break`。计时器唤醒只有增量环为空时才取数。环里有帧且不是通知唤醒时，第 190–194 行跳过 `fetchMore`。
+
+修法不变。`fetchMore` 抛错不能再被 `.catch(() => null)` 收成正常结束。成功的空结果仍心跳。主动返回的 `null` 仍正常结束。不改鉴权，不改背压，不新增文件或迁移。
+
+draft:awaiting_pre_exec_dual
