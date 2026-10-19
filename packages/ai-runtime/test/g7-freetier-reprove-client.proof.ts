@@ -69,6 +69,7 @@ async function main() {
 
     A('G7 flag enabled', isG7FreetierReproveEnabled(process.env));
 
+    process.env.MODEL_ENDPOINT_PROFILE = 'deepseek-cn-public';
     process.env.MODEL_NAME = 'deepseek-v4-pro';
     {
       const client = openAICompatibleClient();
@@ -79,7 +80,8 @@ async function main() {
       A('pro refused through openAICompatibleClient', msg.includes('g7_model_banned_without_approval'), msg);
     }
 
-    process.env.MODEL_NAME = 'gpt-4o-mini';
+    process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
+    process.env.MODEL_NAME = 'qwen-proof-undeclared';
     {
       const client = openAICompatibleClient();
       const msg = await errorOf(() => client.complete(

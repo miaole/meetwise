@@ -662,7 +662,7 @@ async function bootstrap() {
   // 简历诊断(resume-diagnosis)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // R2 P-WORKER: sole route_pending → classifyJobRoute via MODEL-OP binding (≠ R2 closed; P-API may remain).
-  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model }, jobReconcileIntervalMs);
+  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model: fastModel }, jobReconcileIntervalMs);
   // RAG-FUNNEL-07: free-text allowlisted scope funnel production consumer (request-path).
   // Callers supply goal once; typed decision only suggests allowlisted track — no read/tool/retrieval grant.
   // Real import of runFreeTextAllowlistedScopeFunnel ( Ban docs-only fake cover ).
