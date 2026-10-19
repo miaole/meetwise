@@ -185,7 +185,7 @@ export async function beginInterviewCore(
     const existingResumeEpoch = cur.rows[0].resume_privacy_epoch == null
       ? null
       : Number(cur.rows[0].resume_privacy_epoch);
-    if (existingResumeId && existingResumeId !== resumeId)
+    if (existingResumeId && existingResumeId.toLowerCase() !== resumeId.toLowerCase())
       throw new HttpException({ error: 'interview_resume_binding_conflict' }, HttpStatus.CONFLICT);
     // A pre-v64 parent has no immutable authorization snapshot.  Do not
     // infer one from the current resume row: its existing unique start-job

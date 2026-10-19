@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 重复开始按同一简历标识认
 
@@ -93,8 +93,23 @@ draft:awaiting_pre_exec_dual
 
 本步只新增本说明。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## 同值
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+开头、§8、同值三处状态改为 `executed:awaiting_post_prove_dual`。前文未改。
+
+改动：
+
+- `apps/api/src/modules/interview/interview.service.ts`：已绑定简历标识与本次标识的比较改为两边 `toLowerCase()`。标识为空时仍先短路，不调用 `toLowerCase`。抛错仍是 `interview_resume_binding_conflict` 与 `HttpStatus.CONFLICT`。正则、import、扣额、`alreadyBegun`、控制器、`SET resume_id=r.id` 未改。
+- `apps/api/test/resume-reference-http.proof.ts`：同一大小写重放的原断言保留。追加大写十六进制再开始：标识必须与原字符串不相等，响应 202，`alreadyBegun === true`，同一个 jobId，start job 仍是 1 条，且不是 409、错误不是 `interview_resume_binding_conflict`。另一枚不同简历标识：409，错误仍是 `interview_resume_binding_conflict`，不得 `alreadyBegun`，start job 仍是 1 条。没有新证明文件，没有新 npm script。
+- 同一份夹具补了一行可解密原文，并把这份简历的 `content_sha` 写成 64 位十六进制。不补的话，第一次开始会在路由供给处停下（无原文是 `candidate_route_undecided`，指纹不合检查是 23514），重复开始到不了标识比较。扣额桶和开始语句未改。
+
+退出码：
+
+- `pnpm resume-reference:http:prove` 写入 `exec-resume-id.log`：0。11 条断言通过。隔离包装未拒绝新引用，未改 `scripts/run-e2e-isolated.mjs`。
+- `node scripts/ai-docs/check-docs.mjs` 写入 `exec-resume-id-docs.log`：0。

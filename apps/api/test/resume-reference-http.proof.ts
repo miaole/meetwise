@@ -42,7 +42,14 @@ async function main() {
     if (!account.userId || !account.token) throw new Error('resume_reference_signup_failed');
     await admin.query(
       "INSERT INTO resume(id,owner_user_id,status,content_sha,source_kind) VALUES ($1,$2,'ingested',$3,'text')",
-      [resumeId, account.userId, `resume-reference-content-${process.pid}`],
+      [resumeId, account.userId, process.pid.toString(16).padStart(64, '0')],
+    );
+    const resumeKey = process.env.RESUME_ENC_KEY && process.env.RESUME_ENC_KEY.length >= 16
+      ? process.env.RESUME_ENC_KEY
+      : 'dev_resume_key_change_in_prod__x';
+    await admin.query(
+      'INSERT INTO resume_blob(resume_id,owner_user_id,ciphertext,key_version) VALUES ($1,$2,pgp_sym_encrypt($3,$4),1)',
+      [resumeId, account.userId, `resume-reference-plain-${process.pid}`, resumeKey],
     );
     await admin.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',1.0,now()+interval '7 days')", [account.userId]);
     await admin.query("INSERT INTO interview(id,owner_user_id,status,questions) VALUES ($1,$2,'created','[]'::jsonb)", [interviewId, account.userId]);
@@ -78,6 +85,28 @@ async function main() {
     const replayBody = await replay.json() as any;
     A('重复 begin 不重复预留或创建任务', replay.status === 202 && replayBody.alreadyBegun === true && replayBody.jobId === body.jobId
       && Number((await admin.query('SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1', [interviewId])).rows[0]?.count) === 1);
+
+    const upperResumeId = resumeId.toUpperCase();
+    const caseReplay = await fetch(`${base}/interview/${interviewId}/begin`, {
+      method: 'POST', headers: { authorization: `Bearer ${account.token}`, 'resume-id': upperResumeId },
+    });
+    const caseBody = await caseReplay.json() as any;
+    const startJobCount = () => admin.query("SELECT count(*)::int AS count FROM interview_job WHERE interview_id=$1 AND kind='start'", [interviewId])
+      .then((result) => Number(result.rows[0]?.count));
+    A('同一枚标识十六进制改成大写再开始仍是同一次', upperResumeId !== resumeId
+      && caseReplay.status === 202 && caseBody.alreadyBegun === true && caseBody.jobId === body.jobId
+      && caseReplay.status !== 409 && caseBody.error !== 'interview_resume_binding_conflict'
+      && await startJobCount() === 1);
+
+    const otherResumeId = randomUUID();
+    const conflict = await fetch(`${base}/interview/${interviewId}/begin`, {
+      method: 'POST', headers: { authorization: `Bearer ${account.token}`, 'resume-id': otherResumeId },
+    });
+    const conflictBody = await conflict.json() as any;
+    A('另一枚不同简历标识仍拒绝且不另开任务', otherResumeId.toLowerCase() !== resumeId.toLowerCase()
+      && conflict.status === 409 && conflictBody.error === 'interview_resume_binding_conflict'
+      && conflictBody.alreadyBegun !== true
+      && await startJobCount() === 1);
 
     // The HTTP path already exercised the real provisioned runtime login.  Now
     // use a separate connection authenticated as that same login to prove the
