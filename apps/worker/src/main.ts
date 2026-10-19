@@ -37,6 +37,7 @@ import { runTraceReconReconciler, resolveTraceReconConfig } from './trace-recon.
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
 import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
 import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
+import { runCommerceOutboxRetention, resolveCommerceOutboxRetentionConfig } from './commerce-outbox-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -742,6 +743,11 @@ async function bootstrap() {
   const usageCalibrationRetentionLoop = usageCalibrationRetentionControl.enabled
     ? runUsageCalibrationRetention(pool, usageCalibrationRetentionControl)
     : undefined;
+  // 已投递 outbox 行按保留期分批删除。缺省 ENABLED=false 不起循环；非法 env 在解析时抛出。
+  const commerceOutboxRetentionControl = resolveCommerceOutboxRetentionConfig();
+  const commerceOutboxRetentionLoop = commerceOutboxRetentionControl.enabled
+    ? runCommerceOutboxRetention(pool, commerceOutboxRetentionControl)
+    : undefined;
   // AG-43 调度半（qbank-control-sec 刀）：0146:9「Ban 自动清理调度」由协调方派单明示解除（裁决项③落值·
   // 0146 原文零改）后的受控调度。缺省 ENABLED=false（0146 设计内 Ban 的保守延续·显式 opt-in 才起循环，
   // 沿 usageCalibration ENABLED 旋钮先例）；非法 env=启动失败非静默回退（resolveQbankReleaseSweepConfig·AG-18）。
@@ -777,7 +783,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && traceReconLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && traceReconLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (commerceOutboxRetentionLoop?.ready() ?? true),
     // #157 分域 ready：privacy 域两擦除 loop 摘出 workerReady AND 链（域内 3 拍失败不再
     // 拉闸整 worker 流量闸），域观测收口 /readyz/privacy；两 loop 停机清单归属零触
     // （drainStops loop 相原样），ready() 机制本体零改（翻红信号仍在·仅域归属变）。
@@ -809,7 +815,7 @@ async function bootstrap() {
   // 记「18 项」,两相归位=loop 相 14(13 静态+stub-tick 条件展开)+deps 相 5):
   // 14 loop.stop(report/interview/quiz/diagnosis/route-classify/commerce/
   // modelInvocationReconcile/usageCalibrationReconcile/usageCalibrationRetention/
-  // qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
+  // commerce-outbox-retention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
   // + ragCache.close + 3 pool.end(privacy/qbankControl/ragControl)+ langfuse.shutdown。
   // deadline 胜出 → worker_drain_timeout(含相位+该相在飞名)后 exit 0:被弃 job 走租约
   // 过期→reaper/sweep 重领,不双跑(既有 crash-safe);metricsServer.close() 补 await
@@ -825,6 +831,7 @@ async function bootstrap() {
     { name: 'trace-recon', stop: () => traceReconLoop.stop(), phase: 'loop' },
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'commerce-outbox-retention', stop: () => commerceOutboxRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },

@@ -198,9 +198,11 @@ type ConcurrentIndexStatement = {
   unique: boolean;
   usingBtree: true;
   predicateColumn?: string;
+  /** Declared WHERE text. Compared with pg_get_expr after predicate normalization. */
+  predicate?: string;
 };
 
-function concurrentIndexStatement(sql: string): ConcurrentIndexStatement {
+export function concurrentIndexStatement(sql: string): ConcurrentIndexStatement {
   const statement = sql
     .replace(/^\s*--\s*@migration-mode\s+concurrent-index\s*$/gmi, '')
     .replace(/--[^\n]*$/gm, '')
@@ -209,16 +211,24 @@ function concurrentIndexStatement(sql: string): ConcurrentIndexStatement {
   // Do not widen this without a separately reviewed execution mode.  In
   // particular, the pattern accepts exactly one CREATE INDEX CONCURRENTLY
   // statement and therefore cannot hide DDL/DML after a semicolon.
-  const safe = /^CREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+IF\s+NOT\s+EXISTS\s+([A-Za-z_][A-Za-z0-9_]*)\s+ON\s+(?:public\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(([^;]+)\)(?:\s+WHERE\s+([A-Za-z_][A-Za-z0-9_]*)\s+IS\s+NULL)?;\s*$/is;
+  // The optional predicate is only `<col> IS NULL` or one `<col> = '<lit>'`.
+  // The literal excludes quotes, semicolons, backslashes, whitespace, and
+  // comment introducers. AND/OR/IN are not accepted.
+  const safe = /^CREATE\s+(UNIQUE\s+)?INDEX\s+CONCURRENTLY\s+IF\s+NOT\s+EXISTS\s+([A-Za-z_][A-Za-z0-9_]*)\s+ON\s+(?:public\.)?([A-Za-z_][A-Za-z0-9_]*)\s*\(([^;]+)\)(?:\s+WHERE\s+([A-Za-z_][A-Za-z0-9_]*)\s+IS\s+NULL|\s+WHERE\s+([A-Za-z_][A-Za-z0-9_]*)\s*=\s*'((?:(?!--|\/\*|\*\/)[^'\\;\s])+)')?;\s*$/is;
   const matched = statement.match(safe);
   if (!matched?.[2] || !matched[3] || !matched[4]) throw migrationError('migration_concurrent_index_sql_invalid');
   const keyColumns = matched[4].split(',').map((column) => column.trim());
   if (keyColumns.length === 0 || keyColumns.some((column) => !/^[A-Za-z_][A-Za-z0-9_]*(?:\s+(?:ASC|DESC))?$/i.test(column)))
     throw migrationError('migration_concurrent_index_sql_invalid');
+  const isNullColumn = matched[5];
+  const equalityColumn = matched[6];
+  const equalityLiteral = matched[7];
+  if (isNullColumn && equalityColumn) throw migrationError('migration_concurrent_index_sql_invalid');
   return {
     statement, indexName: matched[2], tableName: matched[3], keyColumns,
     unique: Boolean(matched[1]), usingBtree: true,
-    ...(matched[5] ? { predicateColumn: matched[5] } : {}),
+    ...(isNullColumn ? { predicateColumn: isNullColumn, predicate: `${isNullColumn} IS NULL` } : {}),
+    ...(equalityColumn && equalityLiteral ? { predicate: `${equalityColumn} = '${equalityLiteral}'` } : {}),
   };
 }
 
@@ -270,6 +280,11 @@ function normalizeIndexFragment(fragment: string): string {
   return fragment.replace(/[\s()"']/g, '').toLowerCase();
 }
 
+/** Drop cast suffixes pg_get_expr emits (`::text` and the same family) before comparing. */
+function normalizeIndexPredicate(fragment: string): string {
+  return normalizeIndexFragment(fragment.replace(/::(?:pg_catalog\.)?(?:character varying|varchar|bpchar|cstring|name|text)\b/gi, ''));
+}
+
 type ConcurrentIndexState = {
   valid: boolean; ready: boolean; live: boolean; unique: boolean; access_method: string; index_rel_kind: string; table_name: string; table_schema: string;
   key_columns: string[]; predicate: string | null;
@@ -297,8 +312,12 @@ async function fetchConcurrentIndexState(client: PoolClient, indexName: string):
 function concurrentIndexStateMatchesDefinition(state: ConcurrentIndexState | null, concurrent: ConcurrentIndexStatement): boolean {
   const expectedKeys = concurrent.keyColumns.map(normalizeIndexFragment);
   const actualKeys = state?.key_columns?.map(normalizeIndexFragment) ?? [];
-  const expectedPredicate = concurrent.predicateColumn ? `${concurrent.predicateColumn}ISNULL`.toLowerCase() : null;
-  const actualPredicate = state?.predicate ? normalizeIndexFragment(state.predicate) : null;
+  const expectedPredicate = concurrent.predicate !== undefined
+    ? normalizeIndexPredicate(concurrent.predicate)
+    : concurrent.predicateColumn
+      ? `${concurrent.predicateColumn}ISNULL`.toLowerCase()
+      : null;
+  const actualPredicate = state?.predicate ? normalizeIndexPredicate(state.predicate) : null;
   return state !== null
     && state.table_schema === 'public'
     && state.table_name === concurrent.tableName

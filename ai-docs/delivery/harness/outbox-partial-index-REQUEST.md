@@ -1,6 +1,6 @@
 # OUTBOX-PARTIAL-INDEX REQUEST（P2 批表 #24·P2·5B 刀——commerce_outbox relayed 行零清理持续膨胀+ix_outbox_pending 非部分索引·修复方案卷·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码=届时 § 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码=届时 § 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
 
 **席位**：P2 批表下一刀起草席（协调方派单·标的 **#24=P2·5B**·侦察卡五点全数届树亲证见 §0）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `7a4288fb1`（`git fetch` 后亲证主仓工作树同值恰等·fetch 无漂）。分支 `line/outbox-partial-index-draft`·工作树 `meetwise-iss24`（仓根同级·本席亲立·`-B` 于派单基线即分支建位机证）。
@@ -94,9 +94,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.0 三查零撞·§0.2-5 选标有效·蓝本缺席系制式替代已登记非现场漂移）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（全门隔离 PG+本地静态·零模型外呼零 DNS零 Key 值·`actualSpendCny=null`）·env 三旋钮缺省关·零新增必填 env。
-- **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
 
 ## §9-rev
 
@@ -109,4 +109,15 @@
 
 亲证：本卷件②拟号 0211、件③拟号 0212；面试作业表清理参数方案拟号 0211，并写明撞号则后到者重编号。主仓、本树、面试作业表清理树三处 `packages/db/migrations` 最大序号都是 0210，磁盘上没有 0211 或 0212 的 sql 文件。
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb1`·指定蓝本 ag18 缺席改沿 ag17 同构已登记·**runner 事务行为亲证=三通道在案（transactional 全包裹/multi-statement 逐语句 BEGIN-COMMIT/concurrent-index 裸会话+账本独立事务）·concurrent 通道谓词 allowlist IS NULL-only·等值字面量必拒**·修法形=窄扩解析器（0199 案b「双审明示」入口·本卷即载体）+0211 部分索引 CONCURRENTLY 建（0190 `#115` 纪律）+0212 旧索引普通 DROP（0199 案a 先例）+SECURITY DEFINER 归档函数（0177 全同构·app_role 无 DELETE 纪律零破坏）+worker retention 接线（usage-calibration-retention 全同构·缺省关）·est live=0·actualSpendCny=null·⛔push·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已补迁移序号治理
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb1`·指定蓝本 ag18 缺席改沿 ag17 同构已登记·**runner 事务行为亲证=三通道在案（transactional 全包裹/multi-statement 逐语句 BEGIN-COMMIT/concurrent-index 裸会话+账本独立事务）·concurrent 通道谓词 allowlist IS NULL-only·等值字面量必拒**·修法形=窄扩解析器（0199 案b「双审明示」入口·本卷即载体）+0211 部分索引 CONCURRENTLY 建（0190 `#115` 纪律）+0212 旧索引普通 DROP（0199 案a 先例）+SECURITY DEFINER 归档函数（0177 全同构·app_role 无 DELETE 纪律零破坏）+worker retention 接线（usage-calibration-retention 全同构·缺省关）·est live=0·actualSpendCny=null·⛔push·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已补迁移序号治理。§9-EXEC 已落码
+
+## §9-EXEC
+
+合并后 `packages/db/migrations` 最大词干仍是 `0210_conversation_event_enc_key_guc.sql`，磁盘上没有更晚的 sql。本改动使用 0211 与 0212，没有改号。
+
+- 0211 `packages/db/migrations/0211_outbox_unsettled_partial.sql`：并发索引通道，恰 1 句。索引 `ix_outbox_unsettled`，键 `owner_user_id`，谓词 `status = 'pending'`。
+- 0212 `packages/db/migrations/0212_outbox_relayed_retention.sql`：默认事务，恰 4 句，无顶层事务控制词。先 `DROP INDEX IF EXISTS ix_outbox_pending`，再 `commerce_outbox_relayed_retention_purge(integer, integer)`，然后 `REVOKE ALL` 与 `GRANT EXECUTE` 给 `app_role`。天数 7..365，批大小 1..10000，越界抛 `commerce_outbox_retention_invalid_input`。删除条件只含 `status = 'relayed'` 且 `created_at` 早于保留期，并用 `id IN (SELECT id … LIMIT p_batch_cap)` 限批。
+
+worker 停机项 name 字符串是 `commerce-outbox-retention`，phase 是 `loop`。`apps/worker/src/main.ts` 里 `const drainStops` 到 `let workerShuttingDown` 这一段，`{ name: '` 个数是 21，`phase: 'loop'` 个数是 16。两数都含条件展开的 `stub-tick` 那一行。全文件 `phase: 'loop'` 也是 16，`phase: 'deps'` 是 5。`apps/worker/test/ha-2-drain.proof.ts` 没有改；它把这一段 `{ name: '` 个数断言成 20，把全文件 `phase: 'loop'` 断言成 15。加上这一项之后分别是 21 和 16，对不上。
+
+`packages/db/test/dbhy1.proof.ts` 的对象豁免补了一条 `indexes:ix_outbox_pending`。0212 丢掉旧索引后，sql 夹具里仍有同名索引，不登记就会被现有对象对账判成未登记缺口。
