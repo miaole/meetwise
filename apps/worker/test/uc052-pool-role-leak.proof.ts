@@ -4,6 +4,9 @@
  * C-CASECOUNT exact ==. Ban SET LOCAL-only wash. Ban hand-made pg.Client pool.
  */
 import { execFileSync } from 'node:child_process';
+import { readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import {
   assertIsolatedTestTarget, asPrincipal, createPool, enrollCheckpointThread,
   provisionRuntimeLogin,
@@ -21,6 +24,7 @@ const REQUIRED_CASES = [
   'NHP-POOL-FAULT-ABORT',
   'NHP-POOL-FAULT-RESET-DESTROY',
   'HP-POOL-01',
+  'NHP-POOL-SOURCE-SHAPE',
   'C-CASECOUNT',
 ] as const;
 
@@ -81,6 +85,245 @@ async function awaitRelease(client: { releaseAsync?: () => Promise<void>; releas
   else client.release();
 }
 
+const EXPECTED_GUC_KEYS = ['app.principal_user', 'app.checkpoint_thread_id', 'app.checkpoint_epoch'] as const;
+const checkpointPrincipalPath = join(dirname(fileURLToPath(import.meta.url)), '../src/checkpoint-principal.ts');
+
+function extractBraced(src: string, needle: string): string {
+  const start = src.indexOf(needle);
+  if (start < 0) return '';
+  let paren = 0;
+  let quote: string | null = null;
+  let seenParen = false;
+  let bodyAt = -1;
+  for (let i = start; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === undefined) return '';
+    if (quote) {
+      if (ch === '\\') {
+        i += 1;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '(') {
+      paren += 1;
+      seenParen = true;
+      continue;
+    }
+    if (ch === ')') {
+      paren -= 1;
+      continue;
+    }
+    if (ch === '{' && seenParen && paren === 0) {
+      bodyAt = i;
+      break;
+    }
+  }
+  if (bodyAt < 0) return '';
+  let depth = 0;
+  quote = null;
+  for (let i = bodyAt; i < src.length; i++) {
+    const ch = src[i];
+    if (ch === undefined) return '';
+    if (quote) {
+      if (ch === '\\') {
+        i += 1;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return src.slice(bodyAt, i + 1);
+    }
+  }
+  return '';
+}
+
+function queryArgLists(body: string): string[] {
+  const lists: string[] = [];
+  const needle = 'client.query(';
+  let from = 0;
+  while (from < body.length) {
+    const at = body.indexOf(needle, from);
+    if (at < 0) break;
+    const open = at + needle.length - 1;
+    let depth = 0;
+    let quote: string | null = null;
+    let closed = -1;
+    for (let i = open; i < body.length; i++) {
+      const ch = body[i];
+      if (ch === undefined) break;
+      if (quote) {
+        if (ch === '\\') {
+          i += 1;
+          continue;
+        }
+        if (ch === quote) quote = null;
+        continue;
+      }
+      if (ch === "'" || ch === '"' || ch === '`') {
+        quote = ch;
+        continue;
+      }
+      if (ch === '(') depth += 1;
+      else if (ch === ')') {
+        depth -= 1;
+        if (depth === 0) {
+          closed = i;
+          break;
+        }
+      }
+    }
+    if (closed < 0) break;
+    lists.push(body.slice(open + 1, closed));
+    from = closed + 1;
+  }
+  return lists;
+}
+
+function splitTopLevel(argList: string): string[] {
+  const parts: string[] = [];
+  let depth = 0;
+  let quote: string | null = null;
+  let start = 0;
+  for (let i = 0; i < argList.length; i++) {
+    const ch = argList[i];
+    if (ch === undefined) break;
+    if (quote) {
+      if (ch === '\\') {
+        i += 1;
+        continue;
+      }
+      if (ch === quote) quote = null;
+      continue;
+    }
+    if (ch === "'" || ch === '"' || ch === '`') {
+      quote = ch;
+      continue;
+    }
+    if (ch === '(' || ch === '[' || ch === '{') depth += 1;
+    else if (ch === ')' || ch === ']' || ch === '}') depth -= 1;
+    else if (ch === ',' && depth === 0) {
+      parts.push(argList.slice(start, i).trim());
+      start = i + 1;
+    }
+  }
+  const last = argList.slice(start).trim();
+  if (last) parts.push(last);
+  return parts;
+}
+
+function parseGucKeys(src: string): string[] | null {
+  const matched = src.match(/const GUC_KEYS = \[([\s\S]*?)\] as const;/);
+  if (!matched) return null;
+  const body = matched[1];
+  if (body === undefined) return null;
+  const keys: string[] = [];
+  const re = /'([^']+)'/g;
+  let found: RegExpExecArray | null;
+  while ((found = re.exec(body))) {
+    const name = found[1];
+    if (name === undefined) return null;
+    keys.push(name);
+  }
+  return keys;
+}
+
+function decodeSql(expr: string, keys: readonly string[]): string | null {
+  const trimmed = expr.trim();
+  const quote = trimmed[0];
+  if ((quote !== "'" && quote !== '"' && quote !== '`') || trimmed[trimmed.length - 1] !== quote) return null;
+  let inner = trimmed.slice(1, -1);
+  if (quote === '`') {
+    let bad = false;
+    inner = inner.replace(/\$\{GUC_KEYS\[(\d+)\]\}/g, (_all, index: string) => {
+      const key = keys[Number(index)];
+      if (key === undefined) {
+        bad = true;
+        return '';
+      }
+      return key;
+    });
+    if (bad) return null;
+  }
+  return inner;
+}
+
+function threeSessionConfigs(sql: string): boolean {
+  if (sql.includes(';')) return false;
+  const re = /set_config\(\s*'([^']+)'\s*,\s*\$(\d+)\s*,\s*(true|false)\s*\)/g;
+  const found: Array<{ name: string; index: string; local: string }> = [];
+  let match: RegExpExecArray | null;
+  while ((match = re.exec(sql))) {
+    const name = match[1];
+    const index = match[2];
+    const local = match[3];
+    if (name === undefined || index === undefined || local === undefined) return false;
+    found.push({ name, index, local });
+  }
+  if (found.length !== 3 || sql.split('set_config').length - 1 !== 3) return false;
+  for (let i = 0; i < EXPECTED_GUC_KEYS.length; i++) {
+    const row = found[i];
+    const expect = EXPECTED_GUC_KEYS[i];
+    if (!row || expect === undefined) return false;
+    if (row.name !== expect || row.local !== 'false' || row.index !== String(i + 1)) return false;
+  }
+  const rest = sql.replace(/set_config\(\s*'[^']+'\s*,\s*\$\d+\s*,\s*(?:true|false)\s*\)/g, ' ');
+  return rest.replace(/\s+/g, ' ').trim() === 'SELECT , ,';
+}
+
+function literalCount(hay: string, needle: string): number {
+  return hay.split(needle).length - 1;
+}
+
+function checkpointSourceShape(src: string): string {
+  const keys = parseGucKeys(src);
+  if (!keys || keys.length !== EXPECTED_GUC_KEYS.length || keys.some((key, i) => key !== EXPECTED_GUC_KEYS[i])) return 'guc-keys';
+  if (src.includes('for (const key of GUC_KEYS)') || src.includes('set_config($1, $2, false)')) return 'per-key-query';
+  const connect = extractBraced(src, 'async connect(');
+  const cleanup = extractBraced(src, 'async function cleanupCheckpointPrincipalSession');
+  const queryBody = extractBraced(src, 'async query(');
+  if (!connect || !cleanup || !queryBody) return 'missing-fn';
+  if (/\bfor\s*\(/.test(connect) || /\bfor\s*\(/.test(cleanup)) return 'loop';
+  if (queryBody.includes('set_config')) return 'query-body';
+  const connectCalls = queryArgLists(connect);
+  const cleanupCalls = queryArgLists(cleanup);
+  if (connectCalls.length !== 2 || cleanupCalls.length !== 2) return `call-count c=${connectCalls.length} k=${cleanupCalls.length}`;
+  const connectRole = splitTopLevel(connectCalls[0] ?? '');
+  const connectSet = splitTopLevel(connectCalls[1] ?? '');
+  const cleanupRole = splitTopLevel(cleanupCalls[0] ?? '');
+  const cleanupClear = splitTopLevel(cleanupCalls[1] ?? '');
+  if (connectRole.length !== 1 || cleanupRole.length !== 1) return 'role-args';
+  const roleOn = decodeSql(connectRole[0] ?? '', keys);
+  const roleOff = decodeSql(cleanupRole[0] ?? '', keys);
+  if (roleOn !== 'SET ROLE app_role' || roleOff !== 'SET ROLE NONE') return 'role-sql';
+  if (connectSet.length !== 2 || cleanupClear.length !== 2) return 'config-args';
+  const setExpr = connectSet[0] ?? '';
+  const clearExpr = cleanupClear[0] ?? '';
+  if (literalCount(clearExpr, '${GUC_KEYS[0]}') !== 1
+    || literalCount(clearExpr, '${GUC_KEYS[1]}') !== 1
+    || literalCount(clearExpr, '${GUC_KEYS[2]}') !== 1) return 'clear-key-source';
+  const setSql = decodeSql(setExpr, keys);
+  const clearSql = decodeSql(clearExpr, keys);
+  if (!setSql || !threeSessionConfigs(setSql)) return 'set-sql';
+  if (!clearSql || !threeSessionConfigs(clearSql)) return 'clear-sql';
+  if ((connectSet[1] ?? '').replace(/\s+/g, ' ').trim() !== '[access.owner, access.threadId, String(access.fenceEpoch)]') return 'set-params';
+  if ((cleanupClear[1] ?? '').replace(/\s+/g, ' ').trim() !== "['', '', '']") return 'clear-params';
+  return '';
+}
+
 async function main() {
   await assertIsolatedTestTarget(admin);
   const porcelain = execFileSync('git', ['status', '--porcelain'], { encoding: 'utf8' }).trim();
@@ -128,6 +371,13 @@ async function main() {
       accessB = { owner: ownerB, threadId: enB.threadId, fenceEpoch: enB.fenceEpoch };
     } finally {
       await runtime.end();
+    }
+
+    /* ── NHP-POOL-SOURCE-SHAPE: one SELECT sets the three GUCs; one SELECT clears them ── */
+    {
+      const id = 'NHP-POOL-SOURCE-SHAPE';
+      const problem = checkpointSourceShape(readFileSync(checkpointPrincipalPath, 'utf8'));
+      A(id, problem === '', problem === '' ? 'one set query, one clear query' : problem);
     }
 
     /* ── NHP-POOL-NEG-01: same pid reuse · GUCs+role cleared after release ── */
