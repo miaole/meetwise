@@ -102,6 +102,18 @@ async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: Inte
   await asPrincipal(d.pool, d.owner, (c) => writeGenerationUnavailable(c, d, failure));
 }
 
+/** 终态事务已经提交之后，按这场面试的 thread 删光检查点。删除失败只记日志，不把已提交的终态抛回去。 */
+async function deleteCommittedTerminalCheckpoints(d: AdaptiveLifecycleDeps): Promise<void> {
+  try {
+    await d.cp.deleteThread(d.interviewId);
+  } catch (error: unknown) {
+    console.error('checkpoint_thread_delete_failed', {
+      interviewId: d.interviewId,
+      error: String((error as Error)?.message ?? error),
+    });
+  }
+}
+
 /* ───────── billing P2（BILL2-SHADOW-METER 修法②·REQUEST §8 裁决项②按推荐行使）：收尾影子计量钩子 ─────────
  * 挂点=收尾事务**外围**（done 臂三分支与出题失败 writeGenerationUnavailable 均已提交后·事务内部零触）
  * 影子行按已提交终态照实聚合（interview.status + interview_question/ledger 聚合=0179 topic_shadow_meter）。
@@ -381,6 +393,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
       provenance: { origin: 'unavailable' as const, errorCode: 'generation_unavailable' as const },
     };
     await emitGenerationUnavailable(d, unavailable);
+    await deleteCommittedTerminalCheckpoints(d);
     return { unavailable };
   }
   await persistAndEmitQuestion(d, pending);
@@ -570,6 +583,7 @@ async function submitAdaptiveAnswerImpl(
   if (generationFailed) {
     // billing P2 修法②：出题失败终态影子计量（事务外围·waived+reason 照实·fail-soft 零业务阻断）。
     writeShadowMeterSoft(d.pool, d.owner, d.interviewId, generationFailed.reason);
+    await deleteCommittedTerminalCheckpoints(d);
     return {
       score: typeof last.score === 'number' ? last.score : undefined,
       nextQuestion: undefined, nextQuestionId: undefined,
@@ -651,6 +665,7 @@ async function submitAdaptiveAnswerImpl(
           await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', { reason: 'evaluation_unscored' }, 'assessment_unavailable:evaluation_unscored');
       }
     });
+    await deleteCommittedTerminalCheckpoints(d);
     const asked = transcript.map((t) => t.q).filter((q): q is string => !!q);
     await recordAskedQuestions(d.pool, d.owner, asked, d.interviewId)
       .catch((e) => console.warn('memory: 跨会话判重 episode 写入跳过(非致命)', (e as any)?.code ?? e));

@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 终态面试后只保留最后一份检查点
 
@@ -263,9 +263,9 @@ CREATE POLICY checkpoints_owner ON checkpoints FOR ALL TO app_role
 
 ## §8 状态
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -392,3 +392,23 @@ CREATE POLICY checkpoints_owner ON checkpoints FOR ALL TO app_role
 证明只扩展已有 `apps/worker/test/adaptive-lifecycle.proof.ts`。命令仍是 `apps/worker/package.json` 第 59 行已有的 `prove:adaptive-life`。不新建证明文件，不新建第二个受管文件。本说明仍是唯一新增受管文件。
 
 上文「需要用户决定」的句子保留。以本节为准。
+
+## §9-EXEC
+
+产品改动只在 `apps/worker/src/adaptive-lifecycle.ts`。终态事务提交成功之后，用调用方已经注入的检查点器对该面试的 `interviewId` 调用已有的 `deleteThread`。生产调用方在 `interview-consumer.ts` 的 `withCheckpointAccess` 回调里把围栏检查点器放进依赖，所以上面三次调用仍发生在这个回调返回之前，且不在还会回滚的事务里。
+
+三处：
+
+- 开始路径出题失败：`emitGenerationUnavailable` 返回之后。
+- 回答路径出题失败：投影事务提交之后、该失败返回之前。
+- 回答路径收尾：包住完成或失败终态的 `asPrincipal` 返回之后。
+
+未终态不删。还有下一题、仍在澄清、或终态事务抛错回滚时，不调用 `deleteThread`。删除失败被捕获并且不向外抛，已经提交的 `completed` 或 `failed` 保持原样。
+
+没有新造保留天数、小时数或条数。没有新授 DELETE。没有新迁移。没有调用 `privacy_purge_checkpoint_target`。没有调用 `privacy_begin_checkpoint_erasure`。没有设置隐私租约。证明只扩展 `apps/worker/test/adaptive-lifecycle.proof.ts`。
+
+`pnpm -C apps/worker prove:adaptive-life` EXIT=0。终态前三张表计数为 checkpoints=6、blobs=21、writes=17；该线程终态提交成功后三张表行数都是 0。
+
+类型检查本步没跑。lint 本步没跑。
+
+`node scripts/ai-docs/check-docs.mjs` EXIT=0。
