@@ -7,7 +7,7 @@ export type ModelCallOutcome =
   | 'cached'                 // 幂等命中,未真打模型
   | 'ok'                     // 双校验通过
   | 'transient_retry'        // 瞬时失败,将重试
-  | 'schema_retry'           // schema 不过,将重试
+  | 'schema_invalid'         // schema 不过,确定性失败（本层零自动重试·同键不重试·换 revision 重掷归 worker 族循环 AG-02）
   | 'business_error'         // 业务校验失败(确定性错,不重试)
   | 'deterministic_refusal'  // 模型确定性拒绝(不重试)
   | 'exhausted';             // 重试封顶仍失败
