@@ -89,6 +89,9 @@ export function assertMagicMatchesDeclaration(buffer: Buffer, format: ResumeFile
       break;
     case 'text':
       if (isZipLocalHeader(buffer)) throw mismatch();
+      if (buffer.subarray(0, Math.min(buffer.length, PDF_MAGIC_WINDOW)).toString('latin1').includes('%PDF-')) throw mismatch();
+      if (buffer.length >= 4 && buffer[0] === 0xd0 && buffer[1] === 0xcf && buffer[2] === 0x11 && buffer[3] === 0xe0) throw mismatch();   // OLE2(.doc 族)
+      if (hasKnownImageMagic(buffer)) throw mismatch();
       break;
     default:
       break;   // unsupported 在 detect 处已先行拒绝,不至此
