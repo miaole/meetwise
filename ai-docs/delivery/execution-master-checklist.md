@@ -4240,3 +4240,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2312** 余 8.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line contact-header-line nail（2026-10-20 · 未见标题的联系行按原文过滤）
+
+- **改动**：未见标题的联系行按原文过滤。电话和邮箱在脱敏前就排除，不再进入经历事实。
+- **并入**：merge `b245a163`，双亲 `2af55cce` 与 `38ce6e39`。预演 tree `7fae15b9`。没有冲突，没有强推。
+- **门**：简历落地证明退出码 0。docs:check scanned 2314≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2314** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
