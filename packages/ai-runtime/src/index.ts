@@ -228,7 +228,7 @@ export {
 export { disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
-export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
+export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, recordRagRetrievalAction, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
 export { buildCandidateQaRegistry, buildRecruiterQaRegistry, runQaToolLoop, QA_TOOL_LOOP_MAX_STEPS, QA_SERVICE_GROWTH_ADVISOR, QA_SERVICE_RECRUITER_FOLLOWUP, type QaToolLoopConfig, type QaToolLoopOutcome } from './qa-tool-layer.ts';
