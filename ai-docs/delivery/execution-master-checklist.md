@@ -4105,3 +4105,39 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line quiz-begin-contract nail（2026-10-20 · 押题和诊断开始登记为已受理）
+
+- **改动**：开始接口登记为已受理，并要求简历头。可选岗位头仍可选。面试开始那条不变。服务端行为不改。
+- **并入**：merge `7b2a47f5`，双亲 `ca506eb0` 与 `cd54743f`。预演 tree `ab2fd87e`。没有冲突，没有强推。
+- **门**：契约证明 102 条退出码 0，合并后再次退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line route-stale-drain nail（2026-10-20 · 过期岗位修订不再占住待分类队列）
+
+- **改动**：内容已变的待分类修订改为未决，并记下已有原因。不写决策行。较新的待分类修订仍可领取。
+- **并入**：merge `3c64fa1e`，双亲 `7b2a47f5` 与 `60b73118`。预演 tree `6380a60f`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，端口 49822，不是 54329。合并后四个文件 blob 与 `60b73118` 相同。typecheck 8/8。lint 0 errors，worker 警告 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line asked-stem-list nail（2026-10-20 · 避重清单按近五场并带上本场题面）
+
+- **改动**：数据库只取最近五个场次的已问题面。本场题面来自已经传入的题目列表。截断留在调用侧。
+- **并入**：merge `87c16808`，双亲 `3c64fa1e` 与 `e8eb9c70`。预演 tree `2d04f4ed`。没有冲突，没有强推。
+- **门**：隔离记忆证明退出码 0，端口 50384，不是 54329。会话摘要证明退出码 0。合并后记忆存储与记忆服务 blob 与 `e8eb9c70` 相同。typecheck 8/8。lint 0 errors，worker 警告 958。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line retrieval-action-metric nail（2026-10-20 · 检索裁决动作写入闭合计数）
+
+- **改动**：只统计既有的五种裁决。阈值、查询协议和难度过滤都不改。近场题面函数仍在。
+- **并入**：merge `8f7a431d`，双亲 `87c16808` 与 `31ac53c7`。预演 tree `5777c412`。没有冲突，没有强推。
+- **门**：指标证明退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
