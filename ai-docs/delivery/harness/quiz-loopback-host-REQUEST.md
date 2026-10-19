@@ -178,3 +178,32 @@ function forbiddenInterviewDispatchHost(host: string | undefined): boolean {
 `draft:awaiting_pre_exec_dual`
 
 `draft:awaiting_pre_exec_dual`
+
+## §9-rev
+
+本节补上主机范围，并以此节为准。上文 §1 的主机名单保留不改；执行时主机范围按本节，不按 §1 的较短名单。
+
+仍只改 `apps/worker/src/quiz-diagnosis-dual-claim.ts` 和已有证明 `apps/worker/test/quiz-diagnosis-dual-claim.proof.ts`。不改 `apps/worker/src/interview-dispatch-fairness.ts`，不改它的导出，不从它 import。判断写在测验文件内部。
+
+规范化仍与公平调度第 29 行相同：`PGHOST` 先 `trim`，再去掉首尾方括号、去掉一个尾点、再转小写，也就是 `replace(/^\[|\]$/g, '').replace(/\.$/, '').toLowerCase()`。不压缩 IPv6。`0:0:0:0:0:0:0:1` 保持展开形式，不折成 `::1`。
+
+规范化之后，拒绝集合与 `forbiddenInterviewDispatchHost` 第 30–39 行相同：
+
+- 与 `localhost` 全等
+- 与 `postgres` 全等
+- 与 `::1` 全等
+- 与 `0:0:0:0:0:0:0:1` 全等
+- 与 `0.0.0.0` 全等
+- 以 `meetwise-postgres` 开头
+- 匹配 `/^127(?:\.\d{1,3}){3}$/`
+- 匹配 `/^::ffff:127(?:\.\d{1,3}){3}$/`
+- 匹配 `/^169\.254(?:\.\d{1,3}){2}$/`
+- 匹配 `/^fe[89ab][0-9a-f]*:/i`
+
+`[::1]` 这种带方括号的形式靠上述规范化覆盖，不要另写第二套。错误串仍是 `quiz_diagnosis_dual_claim_prove_forbids_local_docker_db`。
+
+`E2E_ISOLATED`、`E2E_TEST_CONTAINER`、`E2E_CLOUD_ISOLATED` 三条现有分支不放宽。`E2E_ISOLATED === '1'` 或 `E2E_TEST_CONTAINER` 去空白后非空时，仍走同一失败分支。`E2E_CLOUD_ISOLATED !== '1'` 时仍抛 `quiz_diagnosis_dual_claim_prove_requires_remote_postgres`。空 `PGHOST` 在已要求远程时的行为不改，不因主机为空而新增失败。
+
+证明在 `E2E_CLOUD_ISOLATED=1` 且不靠 `E2E_ISOLATED` 或 `E2E_TEST_CONTAINER` 时，至少再点名：`0:0:0:0:0:0:0:1`、`::ffff:127.0.0.1`、`0.0.0.0`、`169.254.1.1`、`fe80::1`。这些主机仍进入同一失败分支，错误串仍是 `quiz_diagnosis_dual_claim_prove_forbids_local_docker_db`。既有断言保留。`10.0.0.8` 在 `E2E_CLOUD_ISOLATED` 为 `1` 时仍通过。
+
+不新增受管文件。不改迁移。不新增环境变量。
