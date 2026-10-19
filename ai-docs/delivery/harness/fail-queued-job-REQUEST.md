@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 绑定申请失败时仍排队的作业一并失败
 
@@ -221,5 +221,17 @@ await failQueuedInterviewJobsOnAbandon(c, owner, interviewId);
 不跑出站清单。不写迁移唯一性门。本说明是这一步唯一新增的文件。
 
 ## §8
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`packages/db/src/commerce/commerce.ts` 的 `failInterviewAndRelease`：面试行更新成功（`rowCount===1`）之后、返回之前，调用同文件已导入的 `failQueuedInterviewJobsOnAbandon`。`already_failed` 返回前不调用。抛错前不调用。没有排队作业时这次更新是零行。放弃臂和 `finishAbandon` 里原有的那次调用未改。围栏跳过仍是零写入。`claimNextInterviewJob` 的 SQL 未改。未改 `commerce-reconcile.ts`、`adaptive-lifecycle.ts`、`interview-consumer.ts`。未新迁移，未新状态，未新建文件。
+
+`apps/worker/test/commerce-reconcile.proof.ts`：第 ① 节到第 ⑨ 节已有断言原文未改，第 ⑦ 节没有插入作业。第 ⑧ 节在 B 端围栏拍之前，给已绑定且随后围栏的面试插入一行 `queued` 作业。拍后这行仍是 `queued`，`version`、payload、`last_error` 不变，面试不是 `failed`。围栏之后 `app_role` 读不到这行，所以拍后用建 fixture 的同一池读出；插入仍走 `asPrincipal`。新段落用新的 owner，走绑定申请：`createJob`、`classifyJobRoute`、`inviteCandidate`、`startApplicationInterview`，`application_id` 非空。对账拍前插入 `seq=0` 的 `queued` 与 `seq=2` 的 `done`。拍后面试是 `failed` 不是 `abandoned`，申请是 `assessment_unavailable`，`assessment_unavailable` 事件恰 1 条。当时排队的行变为 `failed`，`last_error` 是 `abandoned`，租约清空，`version` 为 5，`answer` 去掉，`turn` 还在，`attempts` 仍是 0。`done` 行的状态、`version`、payload、`last_error` 不变。`claimNextInterviewJob` 返回 `null`。
+
+`pnpm commerce-reconcile:prove` 退出码 0。
+
+另外三道退出码都是 0：`node scripts/ai-docs/check-docs.mjs`（扫描 2311 个受管文件）、`pnpm turbo typecheck --force`、`pnpm turbo lint`。lint 为 0 errors。警告没有超过既有上限：root 5241（上限 5242）、api 1423、domain 115、ai-runtime 628、worker 958（上限 959）、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。没有改 `--max-warnings`。
+
+三处状态同为 `executed:awaiting_post_prove_dual`。
