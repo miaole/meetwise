@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 无标题联系行要按归一化原文过滤
 
@@ -86,8 +86,16 @@ draft:awaiting_pre_exec_dual
 lint 必须 0 errors。警告上限是 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。对应根 `package.json` 第 8 行、`apps/api/package.json` 第 7 行、`packages/domain/package.json` 第 10 行、`packages/ai-runtime/package.json` 第 14 行、`apps/worker/package.json` 第 7 行、`packages/db/package.json` 第 11 行、`apps/web/package.json` 第 7 行的 `--max-warnings`。低于上限可以通过。不许改这些上限。
 
 ## §8
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处相同。本步只留下这一份说明。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+实际改动的文件：
+
+- `packages/domain/src/index.ts`
+- `apps/worker/test/resume-grounding.proof.ts`
+- `ai-docs/delivery/harness/contact-header-line-REQUEST.md`
