@@ -4060,3 +4060,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2303** 余 1.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line money-status-proof nail（2026-10-20 · 金额状态证明按语句白名单和刻度文本断言）
+
+- **改动**：证明按去掉行注释后的语句计数。额度合计文本按两位小数断言。结算提议只核对投递表，不调用结算函数。迁移字节不变。
+- **并入**：merge `6342cd22`，双亲 `1c622c2b` 与 `5bbac19b`。预演 tree `307401b3`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，failures=0。docs:check scanned 2304≤2304。迁移 sha256 与长度 6022 不变。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2304** 余 0.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
