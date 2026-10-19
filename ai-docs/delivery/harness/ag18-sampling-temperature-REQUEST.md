@@ -91,6 +91,57 @@
 - **est live=0**（proof=本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
 - **STOP=draft:awaiting_pre_exec_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
 
+## §9-rev rev 修订注记（pre-exec 双审第一轮双 FAIL 两席合并清单 P1 两件甲/乙+P2 六件①-⑥回路 · rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
+
+**rev 缘由**：pre-exec 双审第一轮两席双 FAIL 合并清单（P1 两件+P2 六件）·本席逐位届树亲证（证据随条）后按 rev 回路落卷（只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触·落卷形=append 不洗·EXEC 期以下列修正句为准读）。**八件全部届树成立落修正·零跳过**；两处届树实测与清单词面之差随条如实登记（§9-rev.2 计数联动行清单未单列·§9-rev.8 改写笔数清单记五次届树实测 3 笔）。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+### §9-rev.1 修订①（P1-甲·两席同发现）——`MODEL_EVAL_TEMPERATURE=''` 空串输入类行为 delta 申明补全
+
+- **届树亲证**：`model-client.ts:156` 现行原文 `Number(process.env.MODEL_EVAL_TEMPERATURE ?? 0.2)`（`??` 仅 nullish 触发·空串非 nullish）——node 实测 `('' ?? 0.2)===''`·`Number('')===0`＝现状空串→温度 0 入 body+digest；新 resolver 保留 `''→0.2` 缺省→该输入类 body/digest 双变＝**真实行为变更**坐实。同族先例亲证：`usage-calibration-reconcile.ts:51`（boundedInteger）与 `:58`（boundedBoolean）均 `if (raw === undefined || raw === '') return fallback;`＝**`''` 即缺省**先例在树。
+- **修正句一（件① 行为面申明增第⑥条）**：⑥`MODEL_EVAL_TEMPERATURE=''`（空串）输入类：现状 `??` 不触发→`Number('')=0`（温度 0 入 body+digest）·新 resolver 沿 `usage-calibration-reconcile.ts:51` 同族 `''` 即缺省先例保留 `''→0.2`→该输入类 body temperature `0→0.2`+digest 随变＝**真实行为变更点**（非零行为刀诚实边界如实申明·理由＝空串与未设置语义归一·杜绝静默温度 0·与 boundedInteger `''` 即缺省先例同律）。
+- **修正句二（件② B 臂标注）**：B 臂「`undefined`/`''`→0.2」中 `''` 臂标注为「**行为变更点**（现状 `Number('')=0`·新语义 0.2）」非「原值」；`undefined` 臂方为原值语义·A 臂 env 缺省断言（undefined 路径 `===0.2` 原值）不变。
+
+### §9-rev.2 修订②（P1-乙·席2）——门④出站清单基线红承登+本刀新 proof 出站登记触面纳入
+
+- **届树亲证**：①基线该门现红——本席亲跑 `node scripts/provider-egress-inventory.proof.mjs` **EXIT=1**（`scripts/provider-egress-inventory.proof.mjs:31` 硬编码断言 `registeredConsumerSourcePairCount` 现值 52·`ai-docs/architecture/ai/provider-egress-inventory.json` 零 `ag17-schema-span.proof.ts` 条目·grep 亲证）；②热修 `62712996` 在 `line/ci-egress-registry-hotfix`（`git branch --contains` 亲证唯该线·本树未含）＝协调方并线中·其形＝ag17 proof 两出站面补登记（consumer `openai-compatible-chat` class=local-adapter-test+env `MODEL_TEST_TRANSPORT_OVERRIDES` class=test-fixture）+计数 52→53；③本刀件②新 proof 沿 ag17 形（本地 http 脚本 provider·ag17 proof `:27` `process.env.MODEL_TEST_TRANSPORT_OVERRIDES='1'` 同源亲证）→落地必然新增同类两条出站面坐实。
+- **修正句一（§2 门④）**：门④→「**届值复跑 `pnpm provider-egress:inventory` EXIT=0+`pnpm provider-egress:prove` EXIT=0（基线红归热修线承登）**（本刀触 model-client.ts=模型调用面+新 proof 出站登记面=第 7 tracked·两门必含·基线树亲跑 EXIT=1 系 ag17 proof 两出站面未登记·归 `62712996` 热修线承登·EXEC 以并线后届值为基复跑）」。
+- **修正句二（§1.2 触面矩阵+件③ 编辑位）**：触面矩阵增**第 7 tracked=`ai-docs/architecture/ai/provider-egress-inventory.json`**（本刀新 proof 的两条出站面登记：consumer `openai-compatible-chat` class=local-adapter-test 一条+env `MODEL_TEST_TRANSPORT_OVERRIDES` class=test-fixture 一条·沿 `62712996` 同形）；件③ 注册 additive 增第三编辑位＝出站清单登记（additive append·沿 `62712996` 两文件一体形）。
+- **登记句（诚实边界·合并清单未单列）**：`62712996` 同形编辑本体含 `scripts/provider-egress-inventory.proof.mjs` 计数断言联动行（届树亲证 `:31` 硬编码 52·热修并线后基 53·本刀 consumer 登记 +1→**EXEC 须同步 54** 方保门④ EXIT=0）——该行为第 7 tracked 登记面的断言同步随行·门⑨ 届值复验按本条口径读（`git diff --stat` 届值如实录·非漂移非越面）。
+- **修正句三（§2 门⑨）**：恰 6 tracked→恰 **7 tracked**（第 7 项=上条出站清单登记面·沿 `62712996` 两文件一体形）。
+- **修正句四（§0.0 交叠结论更新）**：在飞交叠——`line/ci-egress-registry-hotfix` 与本刀触面由「零交集」改为「**`provider-egress-inventory.json` 一面相交**」（本刀第 7 tracked 与热修线同文件·append 并行·登记条目互异零冲突·EXEC 以并线后届值为基）；`line/cap-sanction-2280` 零交集维持（§9-rev.3）。
+
+### §9-rev.3 修订③（P2-①）——§0.0 cap-sanction-2280 越基笔数勘误
+
+- **届树亲证**：`git log 7a4288fb..line/cap-sanction-2280 --oneline` **恰 1 笔** `723255b9 docs(policy): 受管文件数上限步进 2272→2280 联动越限断言`；`git show --name-only` 触面恰三文件（`ai-docs/delivery/harness/cap-sanction-2280-REQUEST.md`+`scripts/ai-docs/public-text-policy.mjs`+`scripts/ai-docs/public-text-policy.proof.mjs`）与本刀触面零交集。
+- **修正句**：§0.0「`line/cap-sanction-2280` 越基 0 笔」→「越基**恰 1 笔（`723255b9`·docs(policy) 帽步进）**」——触面零交集结论不变·纯计数勘误。
+
+### §9-rev.4 修订④（P2-②）——行号锚校准三处
+
+- **届树亲证**：①`usage-calibration-reconcile.ts` AG-18 注释实测在 **`:65`**（原文全录与卷引逐字恰等）；②`boundedInteger` function 行 **`:50`**+`boundedBoolean` **`:57`**·双函数体收括 `:63`＝双函数区间实为**约 `:50-63`**（卷面 `:47-59` 误）；③run-e2e-isolated.mjs ag17 收据清单臂键行 `:932` 起·`'packages/ai-runtime/src/model-client.ts'` 实测在 **`:937`**（卷面 `:939` 误）。
+- **修正句**：①立项出处②「`usage-calibration-reconcile.ts:47-61`（`:61` 注释原文…）」→「约 `:50-65`（**:65** 注释原文…）」；②§0.1 usage-calibration 行「`:47-59` boundedInteger/boundedBoolean」→「**约 `:50-63`**」·「`:61` 注释明指 AG-18 纪律」→「**:65**」；③§2 门②「收据清单 `:939` 亲证」→「**:937** 亲证」。行号锚校准·语义零变。
+
+### §9-rev.5 修订⑤（P2-③）——`MODEL_EVAL_TEMPERATURE` 计数口径收窄
+
+- **届树亲证**：代码面（ts/mjs/js/json 全仓扫）恰 **2 处**＝`model-client.ts:153` 注释+`:156` 消费·零他消费零测试钉；docs 面 **4 处史录**＝`ag-cost1-bleed-observe-REQUEST.md` 1+`issues-final.md` 2+`issues-final.csv` 1（本卷自述另行）——卷面「全仓恰 2 处」过宽。
+- **修正句**：§0.2-2「全仓 `MODEL_EVAL_TEMPERATURE` 恰 2 处（`:153` 注释+`:156`·grep 亲证）零他消费零测试钉」→「**代码面恰 2 处**（`:153` 注释+`:156`·grep 亲证·零他消费零测试钉·**docs 另 4 处史录**·本卷自述另行）」——消费面唯一性结论不变·口径收窄。
+
+### §9-rev.6 修订⑥（P2-④）——§3-2 案乙 [0,1] 与件② B 臂联动标注
+
+- **届树亲证**：§3-2 案乙域 [0,1] 对照件② B 臂「`'0'`/`'0.1'`/`'2'`→值原样」——`'2'` 在案乙域外（2>1）必 throw·协裁案乙即失配坐实（两节文面对照亲证）。
+- **修正句**：§3-2 案乙括注 append 联动——「协裁收紧则**案乙 [0,1]**（低温带硬钉·合法 0.2 缺省仍在域内零影响·**件② B 臂 `'2'` 期望随裁同步：由「值原样」改「throw `model_eval_temperature_invalid`」·`'0'`/`'0.1'` 两臂域内不变**）」——防裁臂失配。
+
+### §9-rev.7 修订⑦（P2-⑤）——件② C 臂行级锚改内容 marker 切块形（防行号下移自指）
+
+- **届树亲证**：件① 编辑位在 map 字面量上方（resolver 定义新增+map 增两键）→`:742`/`:941`/`:1139-1140` 四位行号届树**下移**·C 臂行级原样锚自指必红；内容 marker 亲证：spread 臂原文 `...(SERVICE_TEMPERATURE[req.service] !== undefined ? { temperature: SERVICE_TEMPERATURE[req.service] } : {}),` 全文件恰 **2 处**（`:742` 非流式+`:941` 流式）·digest 臂 `temperature: SERVICE_TEMPERATURE[req.service] ?? null,` 恰 **1 处**（`:1140`）＝内容锚唯一性成立。
+- **修正句**：件② C 臂「`:742`/`:941` spread 位与 `:1139-1140` digest 位行级原样锚」→「**内容 marker 切块原样锚（行号免钉·防下移自指）**：spread 臂全文件恰 2 处+digest `?? null` 臂恰 1 处·逐块原文零字节断言」——「零字节改」语义不变·锚形由行级改内容制；§5 Ban 面四位申明指内容零改不指行号·零影响。
+
+### §9-rev.8 修订⑧（P2-⑥）——邻面陈旧钉登记（非本刀面·防后刀撞面）
+
+- **届树亲证**：`packages/ai-runtime/test/qa-tool-layer.proof.ts:169-172` blob 钉实测（`:171` `mcSha === 'bef16cbdc2a1244935de837b26b3eb45d951631e'`）对照 `git rev-parse HEAD:packages/ai-runtime/src/model-client.ts`=`61471ed4156873b8a1154161e138b8a317c40384`（恰等 §0.1 锚）＝**基线失配坐实**；末次重钉=`20e2f442`（2026-10-14·钉 bef16cbd）·其后 model-client.ts 合法改写**届树实测 3 笔**（`5632f6ad`→blob `18a67929`/`baf31a4e`→`1a066b33`/`8676777c`→`61471ed4`·`git log 20e2f442..HEAD -- model-client.ts` 恰 3·逐笔 blob 亲证）——**合并清单记「五次」·以届树实测 3 笔为准登记**（计数差如实录·失配结论两读恒同）。
+- **登记句（append·非修正）**：上钉失配系既存邻面陈旧钉·**非本刀引入非本刀面**（本刀零触该 proof·本刀改写 model-client.ts 后该钉照红同态）；**后刀若触 `model-client.ts` 须先勘此钉**（`qa-tool-layer:prove` 必红）·沿 §0 头注「漂移如实改锚」先例形重钉或改内容锚·登记在案防撞。
+
+**rev 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·本卷系既有文件 append 零新增文件·scanned 2271 ≤ cap 2272）；改动面行首冲突标记直扫 0 命中（本席亲跑·门⑧词面预登记不受本节影响——本节零引 map 键承重词面·零新增标记词落卷）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·`actualSpendCny=null` 同源）；**STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。
