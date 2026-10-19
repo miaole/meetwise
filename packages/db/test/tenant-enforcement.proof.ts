@@ -119,12 +119,15 @@ A('predicate match passes (no throw)',
   const owner1 = 'owner-1';
   const ownerLong = 'x'.repeat(64);
   const shapes = [owner1, ownerLong].map((o) => buildRequiredOwnerFilter(o));
+  const shape1 = shapes[0];
+  const shape2 = shapes[1];
   A('buildRequiredOwnerFilter never yields an empty predicate — clean shapes bound (E2)',
     shapes.length === 2
-    && shapes[0].column === 'owner_user_id' && shapes[0].value === owner1
-    && Object.keys(shapes[0]).length === 2
-    && shapes[1].column === 'owner_user_id' && shapes[1].value === ownerLong
-    && Object.keys(shapes[1]).length === 2);
+    && shape1 !== undefined && shape2 !== undefined
+    && shape1.column === 'owner_user_id' && shape1.value === owner1
+    && Object.keys(shape1).length === 2
+    && shape2.column === 'owner_user_id' && shape2.value === ownerLong
+    && Object.keys(shape2).length === 2);
   A('buildRequiredOwnerFilter rejects owner-2 with surrounding whitespace',
     caughtCode(() => buildRequiredOwnerFilter(' owner-2 ')) === 'tenant_owner_user_id_required');
 }
