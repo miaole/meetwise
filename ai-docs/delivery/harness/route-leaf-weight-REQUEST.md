@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 规划相关性按最高权重叶子选取
 
@@ -122,6 +122,17 @@ const routeLeafTrackId = routeLeafAllocations.length > 0
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+三处状态已是 `executed:awaiting_post_prove_dual`。上文未删。
+
+改过的文件：
+
+- `apps/worker/src/interview-consumer.ts`：只改赋给 `routeLeafTrackId` 的那一处。用已经读到的 `routeSnapForRetrieve` 的 `allocations`，按 `allocationBps` 的 `>` reduce 取叶子；权重相同留更早的一片；没有叶子时仍是 `undefined`。变量名仍是 `routeLeafTrackId`。后面的 `routeLeaf: routeLeafTrackId` 未动。同文件角色门那段 reduce 未动。两次数据库读仍各在原处。快照顺序未改。
+- `apps/worker/test/qbank-planner-honesty.proof.ts`：保留 `routeLeaf: routeLeafTrackId` 断言，并追加一条：消费者源码用 `allocationBps` 的 `>` reduce 选取 `routeLeafTrackId`，且不再把 `allocations?.[0]?.leafTrackId` 赋给它。没有新开证明文件，也没有新开 npm script。
+
+`pnpm -C apps/worker prove:qbank-planner-honesty` 退出码 0（60 项通过）。`node scripts/ai-docs/check-docs.mjs` 退出码 0。
