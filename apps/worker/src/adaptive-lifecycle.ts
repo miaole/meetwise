@@ -353,7 +353,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus, job, d.quizQuestions, d.routeLeaf);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
-  const cfg = { configurable: { thread_id: d.interviewId } };
+  const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
   // 先读 pending，存在则只补业务投影，绝不触碰图执行。
@@ -408,7 +408,7 @@ async function submitAdaptiveAnswerImpl(
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
   const grounding = await loadInterviewResumeGrounding(d);
   const gInitial = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
-  const cfg = { configurable: { thread_id: d.interviewId } };
+  const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
   const before = await gInitial.getState(cfg);
   // SFC(SUBMIT-FLOW-COMPETENCY-WIRE):submit 流向 competency 补供——start 形 planCompetencies 序经
   // initMind 保序映射落 checkpoint mind.competencies(domain initMind :188 保序+decideNext 拷贝排序
