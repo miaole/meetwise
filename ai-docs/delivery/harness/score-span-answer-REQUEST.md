@@ -180,3 +180,15 @@ executed:awaiting_post_prove_dual
 - pnpm i6-gates:prove = 1
 - pnpm -C packages/domain prove:adaptive = 0
 - node scripts/ai-docs/check-docs.mjs = 0
+
+## §9-rev
+
+产品代码已按 §9-EXEC 改过。§8 里「产品代码本步不改」保留不删，不以本节改写上文。
+
+这门的改动集恰符只比对冻结的历史申报清单。干净工作区比的是上一笔提交碰到的文件，不是整段历史。`apps/worker/src/interview-service.ts` 在那份清单里，所以不出现在 unexpected 里。本次授权改到的其余五份文件不在那份清单里，所以退出码 1 是清单比对的结果，不是危机顺序回归。
+
+在提交 `1f08a58e4cc83175ffe7b7440dcbe941907b04a5` 的干净工作区重跑 `pnpm i6-gates:prove`，退出码是 1。失败项是「改动集恰符」。`matchesCrisisTrigger(input.answer)` 仍在模型调用之前：日志中「invokeEvaluationOnce 前置确定性扫描(先于模型 invoke)」为通过。`unexpected=` 后面的完整文件列表是：
+
+`ai-docs/delivery/harness/score-span-answer-REQUEST.md,apps/worker/smoke/scoring-eval.ts,apps/worker/src/adaptive-interview-service.ts,apps/worker/test/context-stress.proof.ts,apps/worker/test/scoring-report-integrity.proof.ts`
+
+事后复验必须重跑同一命令。核对本节时，须仍在上述那一笔提交的干净工作区重跑：危机断言必须通过，unexpected 必须恰是这五份，多一份或少一份都是失败。禁止改 `scripts/i6-239-gates.proof.mjs`。
