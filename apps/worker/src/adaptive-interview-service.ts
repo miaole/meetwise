@@ -5,7 +5,7 @@
  */
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
-import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
+import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, recordRagRetrievalAction, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
@@ -406,6 +406,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       techStackFacts: selectGroundedFacts(d.resumeFacts ?? [], competency),
     });
     const found = await cragRetrieve(cragQuery, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary });
+    recordRagRetrievalAction(found.verdict.action);
     return { useRetrieval, local: found.local, web: found.web, verdict: found.verdict };
   };
   const nativeRetrievalFailure = (verdict: CragVerdict | undefined, turn: number) => {
