@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 题库控制权解锁失败时丢掉这条连接
 
@@ -112,9 +112,9 @@ finally 改成下面这样：
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -150,3 +150,20 @@ draft:awaiting_pre_exec_dual
    - 或者客户端已经结束。这要另读 `node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js`：第 734–735 行 `end` 一进入就把 `_ending` 设为真，这只说明调用已进入，还不是已结束；第 198–203 行要等连接发出 `end`，`_ended` 才变为真。选这条时必须等到该客户端的 `end` 事件，或看到 `_ended` 为真。`release` 返回的同一拍上 `_ended` 仍可能为假，这一拍不许拿 `_ended` 判失败。
 
 不改锁键，不改 `hashtext` 的参数，不改角色语句，不改 `principal.ts` 里其它 `release`，不改 `packages/db/src/migrate.ts` 第 598 行的 `client.release()`，不新增文件。
+
+## §9-EXEC
+
+改动文件：
+
+- `packages/db/src/principal.ts`
+- `packages/db/test/qbank-handoff-closure.proof.ts`
+- `ai-docs/delivery/harness/provision-lock-release-REQUEST.md`
+
+命令与退出码：
+
+- `node scripts/ai-docs/check-docs.mjs`：EXIT=0
+- `pnpm turbo typecheck --force`：EXIT=0
+- `pnpm turbo lint`：EXIT=0（0 errors）
+- `pnpm qbank-handoff-closure:prove`：EXIT=0
+- `pnpm qbank-control-role:prove`：EXIT=0
+
