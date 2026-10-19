@@ -1,8 +1,8 @@
-# 生产检索向量在扣费前复用进程内缓存（`draft:awaiting_pre_exec_dual`）
+# 生产检索向量在扣费前复用进程内缓存（`executed:awaiting_post_prove_dual`）
 
 ## 状态
 
-**状态**: `draft:awaiting_pre_exec_dual`
+**状态**: `executed:awaiting_post_prove_dual`
 
 本文只说明修法。不改产品源码，不改测试，不新增代码文件。
 
@@ -74,4 +74,21 @@ Redis 结果缓存挡在嵌入之前。命中时 `packages/db/src/qbank/qbank-re
 
 本文自身不是那次改动的一部分。
 
-`draft:awaiting_pre_exec_dual`
+`executed:awaiting_post_prove_dual`
+
+## §9-EXEC
+
+`budgetedQbankEmbedding` 在原有参数后接受可选的进程内存储。只有 `enforce` 且传入了存储时，才在预留前按模型 id、维度和文本 sha256 查询。键使用传入嵌入器的 id，不使用包装后的 id。存储里只放向量。
+
+全部命中按输入顺序返回向量，不预留、不外呼、不派发、不结算、不释放、不标 unknown、不写账本。有未命中时仍走原来的预留和派发，只把未命中文本交给嵌入；向量个数必须与未命中条数一致，再写回存储并按原下标拼回。带回的用量只结算这次未命中调用。用量缺失仍只在 `inputTokens === undefined` 时按段 `cjkWeightedEstimate`，并在范围检查前截到上限；已经带回的用量不截断。空值、小数、负数和超过上限的实量仍拒绝。未传存储时，`enforce` 仍先预留再嵌入。`observe` 仍直接 `embedder.embed`，不读这份存储。
+
+`main.ts` 在进程启动处只调用一次 `inMemoryEmbeddingStore()`。同一个绑定交给 `cachingEmbedder`，也传给检索两处 `budgetedQbankEmbedding`。`enforce` 的嵌入器参数仍是 `rawEmbedder`，`observe` 仍是包装后的 `embedder`。生产嵌入工厂的直接调用仍留在 `main.ts`。Redis 结果缓存、键版本、默认 120 秒、价格修订和路由分类没有改。
+
+退出码：
+
+- `pnpm -C apps/worker prove:rag-cost` 0
+- `node scripts/ai-docs/check-docs.mjs` 0，scanned 2294
+- `pnpm provider-egress:inventory` 0，adapters=5，operations=10，registered_consumer_source_pairs=54
+- `pnpm provider-egress:prove` 0
+
+开头、状态行和文末三处都是 `executed:awaiting_post_prove_dual`。

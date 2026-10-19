@@ -537,7 +537,8 @@ async function bootstrap() {
   // （principal/模型/query HMAC/k/语料 epoch；不落 query/简历/答案）+ PostgreSQL 权威 epoch/ANN/RLS/账本。
   // 检索 miss 可走 CRAG Web + LLM 出题；native embed/rerank miss → generation_unavailable，不发明 stem。
   const rawEmbedder = dashscopeEmbedder();
-  const embedder = cachingEmbedder(rawEmbedder, inMemoryEmbeddingStore());
+  const embeddingStore = inMemoryEmbeddingStore();
+  const embedder = cachingEmbedder(rawEmbedder, embeddingStore);
   if (ragCost.mode === 'enforce' && rawEmbedder.id !== ragCost.model) {
     throw new Error(`rag_cost_billing_model_mismatch:${rawEmbedder.id}`);
   }
@@ -567,7 +568,7 @@ async function bootstrap() {
       embedderVersion: `${embedder.id}:dim=${embedder.dim}:recipe=${qbankRecipe.id}:retrieval=${retrievalMode}:v1`,
       k: 12,
       cache: ragCache,
-      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost, embeddingStore),
     }),
     localRetrieve: async (owner: string, q: string, scope?: QbankServingScopeInput) => {
       const started = performance.now();
@@ -591,7 +592,7 @@ async function bootstrap() {
           cache: ragCache,
           // Strict mode intentionally uses the unwrapped provider adapter: the durable result cache already removes
           // repeated query calls, and a local cache hit must not reserve a second external-cost ledger entry.
-          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost, embeddingStore),
           ttlSeconds: boundedIntEnv('RAG_QBANK_CACHE_TTL_SECONDS', 120, 5, 3600),
           waitMs: boundedIntEnv('RAG_QBANK_CACHE_WAIT_MS', 5000, 100, 30000),
           leaseSeconds: boundedIntEnv('RAG_QBANK_CACHE_LEASE_SECONDS', 20, 5, 60),
