@@ -75,13 +75,10 @@ function drainChecklistSourceAssertions() {
   console.log('--- A.4 C5 源级清单断言（main.ts） ---');
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const src = readFileSync(join(root, 'src/main.ts'), 'utf8');
-  // R3 勘误清点（rev3 重钉·协调方 wave70 授权·预存漂移非本刀引入）：16 项既有（64522c62 钉时真值=17 臂绿）
-  // + usage-calibration-retention（0dcc73f0 ag-cost2 接线·drainStops 16→17）+ qbank-release-sweep（b20ee350
-  // qbank-control-sec 接线·drainStops 17 项）= 18 具名项——两姊妹支线各增一笔均未回钉本清单（0dcc73f0 非本线
-  // b20ee350 祖先·本线 first-parent 组装点 d31be795 起真值 19 vs 钉 17）；stub-tick 为 env-gated 附加项。
+  // drainStops 具名 19 项（含 trace-recon），另加 env-gated stub-tick。
   const required = [
     'report', 'interview', 'quiz', 'diagnosis', 'route-classify', 'commerce',
-    'model-invocation-reconcile', 'usage-calibration-reconcile', 'usage-calibration-retention',
+    'model-invocation-reconcile', 'trace-recon', 'usage-calibration-reconcile', 'usage-calibration-retention',
     'qbank-release-sweep', 'privacy-erasure',
     'vector-plane-erasure', 'gauge', 'rag-cache', 'privacy-pool', 'qbank-control-pool',
     'rag-control-pool', 'langfuse',
@@ -90,7 +87,7 @@ function drainChecklistSourceAssertions() {
     A(`清单项在位：${name}`, new RegExp(`\\{ name: '${name}', stop:`).test(src));
   }
   const drainBlock = src.slice(src.indexOf('const drainStops'), src.indexOf('let workerShuttingDown'));
-  A(`清单实数=18 具名项 + env-gated stub-tick（条件展开·实数 ${((drainBlock.match(/\{ name: '/g) ?? []).length)}）`, (drainBlock.match(/\{ name: '/g) ?? []).length === 19 && /\.\.\.\(stubLoop \? \[\{ name: 'stub-tick'/.test(drainBlock));
+  A(`清单实数=19 具名项 + env-gated stub-tick（条件展开·实数 ${((drainBlock.match(/\{ name: '/g) ?? []).length)}）`, (drainBlock.match(/\{ name: '/g) ?? []).length === 20 && /\.\.\.\(stubLoop \? \[\{ name: 'stub-tick'/.test(drainBlock));
   A('补漏件 vectorPlaneErasureLoop.stop 实接线（非仅字符串）', /vectorPlaneErasureLoop\?\.stop\(\) \?\? Promise\.resolve\(\)/.test(src));
   A('SIGTERM/SIGINT 同链接线（wireSignalShutdown 双信号）', /wireSignalShutdown\(\['SIGTERM', 'SIGINT'\]/.test(src));
   A('重复信号幂等闸在位（workerShuttingDown）', /if \(workerShuttingDown\) return/.test(src));
@@ -173,7 +170,7 @@ function phaseSourceAssertions() {
   const depsLabels = (src.match(/phase: 'deps'/g) ?? []).length;
   const loopLabels = (src.match(/phase: 'loop'/g) ?? []).length;
   A(`main.ts 相位贴标 deps 相恰 5 处（实得 ${depsLabels}）`, depsLabels === 5);
-  A(`main.ts 相位贴标 loop 相恰 14 处（实得 ${loopLabels}）`, loopLabels === 14);
+  A(`main.ts 相位贴标 loop 相恰 15 处（实得 ${loopLabels}）`, loopLabels === 15);
   A('drain-loop.ts 份额常量 0.7 具名落源（机检可锚）', /LOOP_PHASE_SHARE = 0\.7/.test(loopSrc));
   A('drain-loop.ts 两相份额和恒等式在源（depsShare = timeoutMs - loopShare）', /depsShare = timeoutMs - loopShare/.test(loopSrc));
   A('main.ts 超时日志行含 phase= 相位要素', /worker_drain_timeout signal=\$\{signal\} phase=\$\{phase\}/.test(src));
