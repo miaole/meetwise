@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 生产环境拒绝本机数据库地址
 
@@ -68,6 +68,22 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`packages/db/test/principal-config.proof.ts` 在原有三则之后追加三则。生产环境下都抛 `database_config_invalid:production_local_database_host`：
+
+- 第 64–66 行：`DATABASE_URL` 为 `postgresql://app:pw@localhost:5432/meetwise`，主机是裸 `localhost`。
+- 第 68–70 行：`PGHOST` 为裸 `::1`，其余 PG 组件与第 52 行同形。
+- 第 72–74 行：`DATABASE_URL` 为 `postgresql://app:pw@[::1]:5432/meetwise`。本工作树的 `node` 读到该 URL 的 hostname 是 `[::1]`（带方括号）。
+
+第 52–54、56–58、60–62 行未改。`packages/db/src/principal.ts` 未改。
+
+- `pnpm --filter @meetwise/db prove:principal-config` EXIT=0
+- `pnpm --filter @meetwise/db exec tsc -p tsconfig.json --noEmit` EXIT=0
+- `node scripts/ai-docs/check-docs.mjs` EXIT=0，扫描 2289
+
+三处状态同为 `executed:awaiting_post_prove_dual`。
