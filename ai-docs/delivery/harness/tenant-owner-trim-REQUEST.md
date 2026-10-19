@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 含首尾空白的租户标识改为拒绝
 
@@ -83,10 +83,23 @@ draft:awaiting_pre_exec_dual
 
 ## §8 状态
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本文件只记录上述改法。这次只增加本说明，不改产品代码，不改证明，不新增迁移。
 
 ## 文末
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+实际改动的文件：
+
+- `packages/db/src/tenant/index.ts`：只改 `requireOwnerUserId`。去掉首尾空白后长度为 0，或 `trim` 结果与入参不同，都抛 `tenant_owner_user_id_required`。成功路径返回入参原值，不返回裁剪后的另一个字符串。函数仍在第 46–63 行；判定在第 55 行，返回在第 62 行。第 1–20 行头注、第 39–45 行函数说明未改。行侧比较仍在第 78 行和第 85 行使用 `trim`。`buildRequiredOwnerFilter` 第 107 行、`enforceOwnerOnRow` 第 120 行函数体未改。
+- `packages/db/test/tenant-enforcement.proof.ts`：三处含首尾空白的成功断言改为同一错误码的负例。`'  user-a  '` 在第 82–88 行抛错且不得等于 `'user-a'`；不含空白的 `'user-a'` 在第 89–91 行断言返回值就是这一原串。`'  owner-w  '` 在第 113–118 行抛错，不得得到 `value === 'owner-w'`。`' owner-2 '` 在第 128–129 行单独抛错。`'owner-1'` 与 64 个 `'x'` 在第 119–127 行仍成功，值就是入参原串，谓词恰好 `column` 与 `value` 两项。全空白 `'   '` 仍在第 76–77 行。不含空白的 `'owner-z'` 仍在第 106–108 行。可选数据库路径现从第 309 行起；上文写的第 293 行是改证明之前的位置。没有 `DATABASE_URL` 时跳过该路径，本次证明日志即此情况。
+- 本说明：三处状态改为同一个 `executed:awaiting_post_prove_dual`，并追加本节。未改上文。
+
+两道门退出码都是 0：
+
+- `pnpm --filter @meetwise/db tenant-enforcement:prove` 退出码 0。
+- `node scripts/ai-docs/check-docs.mjs` 退出码 0。公共文本扫描 2288 个受管文件，不超过 2296。未新增受管文件。
