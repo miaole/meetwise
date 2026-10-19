@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 禁止新迁移再写级联删除
 
@@ -147,6 +147,13 @@ draft:awaiting_pre_exec_dual
 
 ## §8 状态
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`node scripts/check-migration-version-uniqueness.mjs` 对真实迁移目录 EXIT=0。
+临时目录多一份含 `DROP TABLE ... CASCADE` 的迁移，同一命令 EXIT=1。
+真实目录已有 `ON DELETE CASCADE` 外键，上面的 EXIT=0 说明这句外键不使检查失败。
+`node scripts/ai-docs/check-docs.mjs` EXIT=0。
