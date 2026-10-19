@@ -170,8 +170,10 @@ export {
   // H4 WEAKNESS-LOOP R3（#252 专项面 5-8 题软预算派生·纯函数 additive）:
   derivedFocusSoftBudget, FOCUS_SOFT_BUDGET_MIN, FOCUS_SOFT_BUDGET_MAX,
   toCompetencySpecs, BEHAVIORAL_COMPETENCY,
+  // #38 自适应面试四阈值注入缝（additive 导出）：四阈值常量单一出处 + 缺省策略（缺省=现值·零行为变更）
+  CONF_ENOUGH, CONF_WEAK, LOW_SCORE, HOOK_CAP, ADAPTIVE_INTERVIEW_POLICY_DEFAULTS,
   type InterviewMind, type Competency, type CompetencySpec, type NextAction, type QuestionKind, type TurnSignal, type TurnVerdict,
-  type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance,
+  type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance, type AdaptiveInterviewPolicy,
 } from './adaptive-interview.ts';
 
 export {
