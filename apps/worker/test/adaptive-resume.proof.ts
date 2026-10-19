@@ -300,6 +300,73 @@ async function main() {
   A('AG-26 b question_ready 恰一发射', await eventCount(iid4, 'question_ready', `question_ready:${s4.questionId}`) === 1);
   A('AG-26 b 出题键零 failed ask invocation', await failedAskInvocationCount(iid4) === 0);
 
+  // 检索包已写入检查点且身份命中时，续跑只生成，不再调用本地检索或深研。
+  console.log('\n──── 检索包续跑:低分已深研且身份命中后，不得再调用本地检索或深研 ────');
+  const iidR = 'life-resume-replay-' + Date.now();
+  await seedInterview(iidR);
+  const cpR = new MemorySaver();
+  let localCalls = 0;
+  let deepCalls = 0;
+  const depsR = buildAdaptiveDeps({
+    pool, owner: OWNER, threadId: iidR, model,
+    competencies: ['并发', '缓存', '事务边界'],
+    resumeProfileAvailable: false,
+    localRetrieve: async () => {
+      localCalls += 1;
+      return [{ ref: 'qbank:low', score: 0.1 }];
+    },
+    webExplore: async () => [],
+    deepResearch: async () => {
+      deepCalls += 1;
+      return [{ url: 'https://example.com/deep', text: 'z9' }];
+    },
+    loadAnswer: async () => { throw new Error('answer_artifact_unavailable'); },
+  });
+  const origGenerate = depsR.retrieveAndGenerate.bind(depsR);
+  let generateEntries = 0;
+  depsR.retrieveAndGenerate = async (competency, difficulty, attempt, turn, facts, kind, asked, weightedDeficit, session, replayPacket) => {
+    generateEntries += 1;
+    if (generateEntries === 1) throw new Error(CRASH_MSG);
+    return origGenerate(competency, difficulty, attempt, turn, facts, kind, asked, weightedDeficit, session, replayPacket);
+  };
+  const gR = buildAdaptiveInterviewGraph(cpR, depsR);
+  const cfgR = { configurable: { thread_id: iidR }, recursionLimit: 64 };
+  unhandledCrash = null;
+  let crashedR: any = null;
+  try { await gR.invoke({}, cfgR); } catch (e: any) { crashedR = e; }
+  const snapR: any = await inspect(cpR, iidR);
+  const routeR = snapR.values?.route;
+  const packetR = snapR.values?.retrievalPacket;
+  const turnR = snapR.values?.mind?.turn;
+  const effectiveKindR = routeR && routeR !== 'conclude' && routeR.qkind === 'grounded' ? 'fundamental' : routeR?.qkind;
+  const identityHit = !!packetR
+    && packetR.identity?.turn === turnR
+    && packetR.identity?.competency === routeR?.competency
+    && packetR.identity?.difficulty === routeR?.difficulty
+    && packetR.identity?.kind === effectiveKindR;
+  console.log('DIAG replay', JSON.stringify({
+    crashed: crashedR?.message ?? unhandledCrash?.message ?? null,
+    localCalls, deepCalls, turn: turnR, effectiveKind: effectiveKindR, identity: packetR?.identity ?? null, next: snapR.next,
+  }));
+  const localBefore = localCalls;
+  const deepBefore = deepCalls;
+  const askBeforeR = modelCounts['interviewer.ask'] ?? 0;
+  let resumeErr: any = null;
+  try { await gR.invoke(null, cfgR); } catch (e: any) { resumeErr = e; }
+  const askDelta = (modelCounts['interviewer.ask'] ?? 0) - askBeforeR;
+  console.log('DIAG replay resume', JSON.stringify({
+    resumeErr: resumeErr?.message ?? null,
+    localDelta: localCalls - localBefore,
+    deepDelta: deepCalls - deepBefore,
+    askDelta,
+  }));
+  A('检索包已在状态且身份相同时，续跑不再调用本地检索或深研',
+    (crashedR?.message === CRASH_MSG || unhandledCrash?.message === CRASH_MSG)
+    && identityHit
+    && localBefore === 1 && deepBefore === 1
+    && localCalls - localBefore === 0 && deepCalls - deepBefore === 0
+    && resumeErr == null && askDelta >= 1);
+
   console.log(`\n${fail === 0 ? '✓ AG-05 alreadyApplied 续跑（形①执行面+形②投影面）+ AG-26 start 续跑（a 执行面+b 投影面）全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);
 }
