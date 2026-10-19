@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 没总分时不标口径不同
 
@@ -79,8 +79,16 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本步只新增这一份说明，不改页面，不改纯函数。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+只改了 `apps/web/app/growth/page.tsx` 第 162 行谓词，现为 `!view.comparable && prevScored && p.overall != null`。第 163 行文案未改。
+
+`node scripts/ai-docs/check-docs.mjs` 退出码 0。
+
+`pnpm turbo typecheck`、`pnpm turbo lint` 和浏览器核对留到事后复验，这一步没有跑。

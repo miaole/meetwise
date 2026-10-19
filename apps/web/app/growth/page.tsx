@@ -159,7 +159,7 @@ async function GrowthArchive({ limit }: { limit?: string }) {
                     </span>
                   )}
                   {/* H4 R8(#269):不可比标注——两场均有分但维度名交集为空 → 中性标注替代 delta(如实不比)。 */}
-                  {!view.comparable && prevScored ? (
+                  {!view.comparable && prevScored && p.overall != null ? (
                     <span className="text-xs text-muted-foreground" data-testid="delta-not-comparable">维度口径不同 · 不可比</span>
                   ) : null}
                   <span className="flex-1" />
