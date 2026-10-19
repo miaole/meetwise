@@ -3772,3 +3772,12 @@ flowchart TD
 - **STILL OPEN**：REQUEST Status 行终翻面权归协调方·容量残面（并发 RSS 击穿面 rev2.2 登记）归容量裁量·PDF_MAGIC_WINDOW=1024 收窄余地面·B 组 heic/avif/svg 分支语义注记·批表 +2 已行使（#108/#109）.
 - 预算：est live=0（nail 面全本地静态门）· 0 Key 值 · `actualSpendCny=null` · 零迁移（修法全应用层） · cap **2272** 并线后现值 **2265** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line threshold-calibration nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波主线推送席#3·⛔force push·⛔pull --rebase） · THRESHOLD-CALIBRATION 四阈值参数化（默认值=现值零行为变更·批表零翻面·#38 校准半件挂起登记））
+
+- **授权链全链如实载**：起草 `67f905a2` → rev `c6ed33ec`（第一轮双审双 FAIL·两 P1 均门3 字面互斥·壬条经亲证驳回）→ 第二轮双审 PASS×2 → EXEC `234b4e07`（码面恰 3 tracked·九门全绿）→ post 双审 PASS×2（席1 agent_ba8ddfd1 4×P2·席2 agent_4b6701f2 2×P2）→ 会签 → nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`eb944c7b` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`7ab06652`）→ merge --no-ff merge commit `087a3997` → 门亲跑（typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12+docs:check EXIT=0 scanned 2266≤2272 余 6）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷九门+post 双审承+nail 复跑）**：八件 adaptive prove（domain 五+ai-graphs 三）全 EXIT=0+门3 机证（四定义行除前缀/append 外字节恒等+:247 零阈值字面量+剔注释计数 1/1/1/1）+nail 三门+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：注入变体臂无机证（P2·归校准刀义务：接线时必须同落 ≥1 条非默认 policy 机证臂）·锚B 信号层对偶值与 policy 联动/分叉裁决归校准刀触面清单·组合根 env→policy 接线挂起·#38 数值校准待生产分布数据（批表 #38 行不翻面）·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0（nail 面全本地静态门）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2266** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
