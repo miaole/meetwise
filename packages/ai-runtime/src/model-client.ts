@@ -106,34 +106,55 @@ export type RenderedContextBudgetDecision =
  */
 export const CONTEXT_TRUNCATION_MARKER = '…[内容过长已截断]';
 const DEFAULT_USERDATA_CAP = 20_000;
-/** 分服务上限(字符)。未列出的服务用 DEFAULT。值是"防滥用兜底",正常用量远在其下(不会误伤真实作答)。 */
+/** 分服务上限(UTF-8 字节,与 byteEstimate / planContextBudget 的 utf8-bytes-v1 同一口径)。未列出的服务用 DEFAULT。值是"防滥用兜底",正常用量远在其下(不会误伤真实作答)。 */
 const SERVICE_USERDATA_CAP: Record<string, number> = {
   'mock-interview.evaluate': 12_000,   // 一题一答:题目(有界)+ 单条答案(边缘已封 8000)≈ <9k,12k 给足余量
   'interviewer.ask': 16_000,           // 能力/难度 + 简历 facts(有界选定,经 <data> 围栏) + 上轮追问上下文 + 检索素材(素材已 slice 2000)
   'report.generate': 8_000,            // 只吃分数数组,极小;8k 绰绰有余
 };
-/** 按**码点**安全截断:末位若是高代理(astral 字符如 emoji/扩展汉字的前半)则回退一位,绝不留孤代理项(防 JSON 序列化出 \uD800 级残片)。 */
-function codepointSafeSlice(s: string, n: number): string {
-  if (n <= 0) return '';
-  let end = Math.min(n, s.length);
-  const code = s.charCodeAt(end - 1);
-  if (code >= 0xd800 && code <= 0xdbff) end -= 1;   // 高代理在末位 → 其低代理被切走 → 一并回退,不留半个字符
+/**
+ * 按 UTF-8 字节预算截到完整码点。代理对整对计入；预算装不下下一码点就停。
+ * 末位若仍是高代理则回退一位，不留孤立高代理，也不拆开一个码点的字节序列。
+ */
+function codepointSafeSlice(s: string, maxBytes: number): string {
+  if (maxBytes <= 0) return '';
+  let end = 0;
+  let used = 0;
+  while (end < s.length) {
+    const code = s.charCodeAt(end);
+    let size = 1;
+    if (code >= 0xd800 && code <= 0xdbff && end + 1 < s.length) {
+      const low = s.charCodeAt(end + 1);
+      if (low >= 0xdc00 && low <= 0xdfff) size = 2;
+    }
+    const next = used + Buffer.byteLength(s.slice(end, end + size), 'utf8');
+    if (next > maxBytes) break;
+    used = next;
+    end += size;
+  }
+  if (end > 0) {
+    const last = s.charCodeAt(end - 1);
+    if (last >= 0xd800 && last <= 0xdbff) end -= 1;
+  }
   return s.slice(0, end);
 }
 /**
- * 返回封顶后的 userData;超限则码点安全地切到 (cap - marker) 并追加截断标记。纯函数,可被压测直接断言。
+ * 返回封顶后的 userData。比较和扣除标记都用 byteEstimate(UTF-8 字节)；超限则切到该字节预算内并追加截断标记。
+ * 正文加标记之后的字节数不超过同一个数字上限。纯函数,可被压测直接断言。
  * marker 可由调用方传入**带 nonce 的不可伪造版本**(见 openAICompatibleClient)——防用户在答案里粘固定明文标记反转其语义。
  */
 export function capUserData(userData: string, service?: string, marker: string = CONTEXT_TRUNCATION_MARKER): string {
   const cap = (service && SERVICE_USERDATA_CAP[service]) || DEFAULT_USERDATA_CAP;
-  if (userData.length <= cap) return userData;
-  return codepointSafeSlice(userData, cap - marker.length) + marker;
+  if (byteEstimate(userData) <= cap) return userData;
+  const capped = codepointSafeSlice(userData, cap - byteEstimate(marker)) + marker;
+  return byteEstimate(capped) <= cap ? capped : codepointSafeSlice(capped, cap);
 }
 /** RAG 检索素材独立封顶(纵深防御)。调用方(interviewer.ask)已把素材 slice 到 ~2k;此处 8k 是兜底,防未来调用方忘 slice 时塞爆 <data>,又不误伤正常素材。 */
 const RAG_MATERIAL_CAP = 8_000;
 function capRagMaterial(rag: string, marker: string): string {
-  if (rag.length <= RAG_MATERIAL_CAP) return rag;
-  return codepointSafeSlice(rag, RAG_MATERIAL_CAP - marker.length) + marker;
+  if (byteEstimate(rag) <= RAG_MATERIAL_CAP) return rag;
+  const capped = codepointSafeSlice(rag, RAG_MATERIAL_CAP - byteEstimate(marker)) + marker;
+  return byteEstimate(capped) <= RAG_MATERIAL_CAP ? capped : codepointSafeSlice(capped, RAG_MATERIAL_CAP);
 }
 
 /** 脚本模型(CI/测试,确定性):按 service 返回固定 raw;可脚本化未知结果/确定性拒绝以验派发边界分类。 */
