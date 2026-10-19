@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 失败的面试不再新建图运行
 
@@ -110,8 +110,23 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。本步只新增这一份说明，不改产品代码。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+改动文件：
+
+- `packages/db/src/interview/interview-graph-lease.ts`：`withInterviewGraphFence` 的零行分支在插入 `ai_graph_run` 之前，于同一短事务读取 `SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2`。读到的状态恰好是 `failed` 时不插入并返回空。读不到行，或状态不是 `failed`，仍插入 `status='active'`、`version` 为 1。
+- `apps/worker/test/graph-fence-write.proof.ts`：终态图行那一臂之后、活状态那一臂之前追加一臂。面试行按已有三列插法直接写成 `failed`，调用前不插图行。断言未取得，且该面试的 `ai_graph_run` 仍是 0 行。终态行与活状态两臂未改口径。
+- `ai-docs/delivery/harness/graph-lease-failed-interview-REQUEST.md`：文件首行、§8、文末三处状态改为 `executed:awaiting_post_prove_dual`。
+
+命令与退出码：
+
+1. `pnpm graph-fence-write:prove` EXIT=0
+2. `node scripts/ai-docs/check-docs.mjs` EXIT=0
+3. `pnpm turbo typecheck --force` EXIT=0
+4. `pnpm turbo lint` EXIT=0（0 errors；根警告 5242，未放宽上限）

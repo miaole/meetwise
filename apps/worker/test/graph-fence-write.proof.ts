@@ -376,6 +376,23 @@ async function main() {
     A(`终态 ${status} 仍一行且 status 与 version 保持原值`,
       after.rowCount === 1 && after.rows[0]?.status === status && Number(after.rows[0]?.version) === 4);
   }
+  // 面试行直接写成 failed，调用前不插图行。
+  console.log('\n──── 面试已是 failed 且还没有图行：不插入 active ────');
+  const iidInterviewFailed = 'gf-iv-status-failed';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'failed')", [iidInterviewFailed, OWNER]);
+  const beforeInterviewFailed = await readRun(iidInterviewFailed);
+  A('失败面试调用前没有图行', beforeInterviewFailed.rowCount === 0);
+  let interviewFailedAcquired: boolean | 'threw' = 'threw';
+  try {
+    const got = await withInterviewGraphFence(pool, OWNER, iidInterviewFailed, 'gf-iv-failed-late', async () => 'should-not-run');
+    interviewFailedAcquired = got.acquired;
+  } catch (e) {
+    interviewFailedAcquired = 'threw';
+    console.error('失败面试零图行 fence 抛错', e instanceof Error ? e.message : e);
+  }
+  const afterInterviewFailed = await readRun(iidInterviewFailed);
+  A('失败面试还没有图行时未取得且未抛错', interviewFailedAcquired === false);
+  A('失败面试还没有图行时 ai_graph_run 仍是 0 行', afterInterviewFailed.rowCount === 0);
   for (const status of ['created', 'active', 'waiting_user', 'migrating', 'paused', 'quarantined'] as const) {
     const iid = `gf-live-${status}`;
     await plantRun(iid, status);

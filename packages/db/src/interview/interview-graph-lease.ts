@@ -29,6 +29,12 @@ export async function withInterviewGraphFence<T>(
       [GRAPH_NAME, interviewId, owner],
     );
     if (current.rowCount === 0) {
+      // 零行且面试恰好是 failed：不插入，与更新不到一行一样返回空。其他状态仍插入 active。
+      const interview = await c.query(
+        'SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2',
+        [interviewId, owner],
+      );
+      if (interview.rowCount === 1 && interview.rows[0].status === 'failed') return null;
       const ins = await c.query(
         `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
            VALUES ($1,$2,$3,'active',1,$4,now()+($5||' seconds')::interval) RETURNING version`,
