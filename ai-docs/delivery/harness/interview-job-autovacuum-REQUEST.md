@@ -90,5 +90,14 @@ ALTER TABLE interview_job SET (
 - **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审待两独立外席·Dual PASS≠开工·开工授权权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（零模型外呼零 DNS 零 Key·零 env 闸零新增）·⛔push。
 
+## §9-rev
+
+与 §2②、§1 计数句冲突时以本节为准。
+
+1. **门②**：执行时先去掉整行 `--` 注释，再对剩下的语句文本找 `DROP`、`DELETE`、`UPDATE`。语句里必须是 0。草图头注里的锁级别英文词是 SHARE UPDATE EXCLUSIVE，其中含 UPDATE 这三连字母；对草图整段做该检索命中 1，且只在该头注。去掉整行 `--` 注释后，剩下的语句只有 `ALTER TABLE interview_job SET` 三个存储参数，命中 0，可以在默认事务迁移里跑。头注可以保留锁级别的英文词。不要把锁级别写进语句本身。
+2. **`DELETE FROM interview_job`**：产品代码 0 处。`*.ts` 里是测试里的 3 处（`apps/worker/test/adaptive-consumer.proof.ts`、`apps/api/test/validate.ts`、`apps/api/test/entpay-s2.proof.ts`）。另有一份 harness 文档 `ai-docs/delivery/harness/q2-validate-scene-fix-REQUEST.md` 引用了同一条测试 SQL（与 `validate.ts` 同句），所以全仓库不是「恰 3 处且全是测试」。单调增长的结论不变。
+3. **小元数据**：是 start 入队那一段（`apps/api/src/modules/interview/interview.service.ts` `:279-282` 组装 requestId/targetRole?/focus?/sourceQuizId?，`:285` 以 kind `start` 入队），不是 turn 把整段回答写进 payload 的那一段（同文件 `turn` `:432`，`:466` 以 `{ ...body, requestId }` 入队 kind `answer`，body 含整段 `answer`）。
+4. **历史提交**：提到 autovacuum 的不止起草时写的笔数（§0 写 `git log --all --oneline --grep=autovacuum` 恰 2 笔 `0a4d6901`/`b7dcce89`）。同一条检索现为 3 笔。多出来的 `9aa51852` 是文档里提到锁（`ai-docs/delivery/harness/batch5b-mig-REQUEST.md`：VALIDATE 期 SHARE UPDATE EXCLUSIVE 锁阻塞 autovacuum 时窗），不是给这张表设过存储参数。拒认领那句的原文起词是 autovacuum，不是别的字母（`queue-closeout-REQUEST.md` blob `dd0639f851e948467bffeb09c5b2f8b279086762` §1.3-1 原文起句为「autovacuum 系 DB 运维参数调优面」，§1 引文从该词末字母截成「n 系…」）。结论不变。
+
 ---
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草落卷即停·est live=0·⛔push ⛔merge 主线 ⛔force push 未用·翻面权归协调方·alone≠dual·Ban self-approve。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草落卷即停·est live=0·⛔push ⛔merge 主线 ⛔force push 未用·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已改结构检查口径
