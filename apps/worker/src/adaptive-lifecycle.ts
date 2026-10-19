@@ -11,7 +11,7 @@ import {
   readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
 } from '@meetwise/db';
-import { Command } from '@langchain/langgraph';
+import { Command, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
@@ -346,7 +346,7 @@ const ADAPTIVE_GRAPH_RELEASE = 'adaptive-interview/v1';
 
 /** 没有检查点、没有版本、或版本不是非空字符串：放行。与当前版本逐字相同：放行。
  *  别的非空字符串：在 getState / invoke 之前拒绝，不写、不删、不改旧行。 */
-async function rejectMismatchedGraphRelease(d: AdaptiveLifecycleDeps, cfg: { configurable: { thread_id: string } }): Promise<void> {
+async function rejectMismatchedGraphRelease(d: AdaptiveLifecycleDeps, cfg: LangGraphRunnableConfig): Promise<void> {
   const tuple = await d.cp.getTuple(cfg);
   const version = tuple?.metadata?.graph_version;
   if (typeof version !== 'string' || version.length === 0) return;

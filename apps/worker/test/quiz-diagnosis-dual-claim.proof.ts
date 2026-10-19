@@ -59,7 +59,7 @@ function main() {
     A(
       `E2E_CLOUD_ISOLATED=1 拒绝 ${host}`,
       threw(
-        { E2E_CLOUD_ISOLATED: '1', PGHOST: host },
+        { ['E2E_CLOUD_ISOLATED']: '1', ['PGHOST']: host },
         'quiz_diagnosis_dual_claim_prove_forbids_local_docker_db',
       ),
     );
