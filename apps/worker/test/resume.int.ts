@@ -9,6 +9,7 @@ import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { createCheckpointer } from '../src/main.ts';
 
 const QUESTIONS = ['如何设计一个高并发限流器？', '滑动窗口和固定窗口的区别？'];
+const RAW_ANSWERS = ['用 Redis 计数器，每请求 +1 超阈拒绝', '滑动窗口更平滑，固定窗口有临界突刺'];
 
 let failures = 0;
 const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) failures++; };
@@ -30,16 +31,24 @@ async function main() {
 
   console.log('──────── 模拟进程重启：新图实例从 Postgres 恢复 ────────');
   g = build(checkpointer); // 全新实例，无内存延续
-  await g.invoke(new Command({ resume: '用 Redis 计数器，每请求 +1 超阈拒绝' }), cfg);
+  await g.invoke(new Command({ resume: RAW_ANSWERS[0] }), cfg);
   snap = await g.getState(cfg);
   A('新实例凭 thread_id 从 checkpointer 续上，问第 2 题', pendingQuestion(snap) === QUESTIONS[1]);
-  A('第 1 题答案已持久（questions/answers 各 1）', snap.values.questions.length === 1 && snap.values.answers.length === 1);
+  A('第 1 轮后题目顺序与条数仍在，作答是 answer_omitted',
+    JSON.stringify(snap.values.questions) === JSON.stringify([QUESTIONS[0]])
+    && snap.values.answers.length === 1
+    && snap.values.answers.every((item: string) => item === 'answer_omitted')
+    && !JSON.stringify(snap.values).includes(RAW_ANSWERS[0]!));
 
   console.log('──────── 第 2 轮答完：会话完成 ────────');
   g = build(checkpointer);
-  await g.invoke(new Command({ resume: '滑动窗口更平滑，固定窗口有临界突刺' }), cfg);
+  await g.invoke(new Command({ resume: RAW_ANSWERS[1] }), cfg);
   snap = await g.getState(cfg);
-  A('两轮答完，持久状态含 2 问 2 答', snap.values.questions.length === 2 && snap.values.answers.length === 2);
+  A('两轮答完，题目顺序与 2 条作答标记仍在',
+    JSON.stringify(snap.values.questions) === JSON.stringify(QUESTIONS)
+    && snap.values.answers.length === 2
+    && snap.values.answers.every((item: string) => item === 'answer_omitted')
+    && RAW_ANSWERS.every((raw) => !JSON.stringify(snap.values).includes(raw)));
   A('无残留 interrupt（会话完成）', snap.next.length === 0);
 
   console.log('──────── 多会话隔离 ────────');
