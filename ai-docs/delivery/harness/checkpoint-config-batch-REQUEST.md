@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 检查点连接把三次配置合成一次往返
 
@@ -77,8 +77,18 @@ SELECT set_config('app.principal_user', $1, false),
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本文件只记录上述改法。这次只增加本说明，不改产品代码，不新增代码或迁移文件。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`connect()` 的三次独立配置查询已收成一条 `SELECT`。主体、线程和纪元仍全部设置，第三参仍是 `false`。`SET ROLE app_role` 仍先于这条语句单独执行。
+
+清理不再按名字逐次查询。三个名字仍取自 `GUC_KEYS`，三个值仍是空串，第三参仍是 `false`，收成一条 `SELECT`。`SET ROLE NONE` 仍先于这条语句单独执行。
+
+`query()` 函数体未改。证明保留原有读回，并核对上述源码形状。事务中止路径里那次自行写入的配置仍留在证明中，不计入产品设置。
+
+文档检查 `node scripts/ai-docs/check-docs.mjs` 扫描 2282 个受管文件。
