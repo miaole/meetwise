@@ -94,15 +94,21 @@ async function main() {
   const omitCjkVectors = await budgetedQbankEmbedding(pool, owner, omitEmbedder, usageCfg)(['中文测试'], { cacheKey: 'usage-omit-cjk', invocationId: omitCjkId, mode: 'claimed' });
   const omitCjk = await usageReservation(omitCjkId);
   const omitCjkSettled = Number(omitCjk?.settled_micro_cny);
+  const omitCjkIsEstimate = omitCjkSettled === 4;
+  const omitCjkNotCap = omitCjkSettled !== 1000;
+  const omitCjkNotDefault = omitCjkSettled !== 16000;
   check('缺用量按段估算结算，中文测试实结 4，不是上限也不是 16000', omitCjkVectors.length === 1
-    && omitCjk?.status === 'settled' && omitCjkSettled === 4 && omitCjkSettled !== 1000 && omitCjkSettled !== 16000);
+    && omitCjk?.status === 'settled' && omitCjkIsEstimate && omitCjkNotCap && omitCjkNotDefault);
 
   const omitAsciiId = `usage-omit-ascii-${suffix}`;
   const omitAsciiVectors = await budgetedQbankEmbedding(pool, owner, omitEmbedder, usageCfg)(['a', 'a'], { cacheKey: 'usage-omit-ascii', invocationId: omitAsciiId, mode: 'claimed' });
   const omitAscii = await usageReservation(omitAsciiId);
   const omitAsciiSettled = Number(omitAscii?.settled_micro_cny);
+  const omitAsciiIsSum = omitAsciiSettled === 2;
+  const omitAsciiNotJoined = omitAsciiSettled !== 1;
+  const omitAsciiNotCap = omitAsciiSettled !== 1000;
   check('缺用量逐段相加，两段 a 实结 2，不是拼接后的 1 也不是上限', omitAsciiVectors.length === 2
-    && omitAscii?.status === 'settled' && omitAsciiSettled === 2 && omitAsciiSettled !== 1 && omitAsciiSettled !== 1000);
+    && omitAscii?.status === 'settled' && omitAsciiIsSum && omitAsciiNotJoined && omitAsciiNotCap);
 
   let zeroCalls = 0;
   const zeroEmbedder: Embedder = {
@@ -146,8 +152,10 @@ async function main() {
     .catch((error: { code?: string }) => error?.code ?? '');
   const overRow = await usageReservation(overId);
   const overSettled = overRow?.settled_micro_cny;
+  const overIsUnknown = overCode === 'external_outcome_unknown';
+  const overNotExhausted = overCode !== 'rag_cost_budget_exhausted';
   check('大于上限的实量仍拒绝：嵌入一次、原因 external_outcome_unknown、行 unknown、实结为空', overCalls === 1
-    && overCode === 'external_outcome_unknown' && overCode !== 'rag_cost_budget_exhausted'
+    && overIsUnknown && overNotExhausted
     && overRow?.status === 'unknown' && overRow?.reason_code === 'external_outcome_unknown'
     && (overSettled === null || overSettled === undefined) && overSettled !== 1000 && overSettled !== 4
     && Number(overSettled) !== 1000 && Number(overSettled) !== 4);
@@ -178,8 +186,10 @@ async function main() {
     ).then(() => '').catch((error: { code?: string }) => error?.code ?? '');
     const reportedRow = await rejectReservation(invocationId);
     const reportedSettled = reportedRow?.settled_micro_cny;
+    const reportedIsUnknown = reportedCode === 'external_outcome_unknown';
+    const reportedNotExhausted = reportedCode !== 'rag_cost_budget_exhausted';
     check(name, reportedCalls === 1
-      && reportedCode === 'external_outcome_unknown' && reportedCode !== 'rag_cost_budget_exhausted'
+      && reportedIsUnknown && reportedNotExhausted
       && reportedRow?.status === 'unknown' && reportedRow?.reason_code === 'external_outcome_unknown'
       && (reportedSettled === null || reportedSettled === undefined)
       && reportedSettled !== 4 && reportedSettled !== 1000
