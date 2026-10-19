@@ -4069,3 +4069,21 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2304** 余 0.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line replay-progress nail（2026-10-20 · 同一题续跑不再重开进度心跳）
+
+- **改动**：检索包回放时不再包一层进度心跳。判重查询仍执行。
+- **并入**：merge `f49982ae`，双亲 `e0c865a9` 与 `e1f7a7c7`。预演 tree `bf2f87f1`。没有冲突，没有强推。
+- **门**：隔离续跑证明在原提交上退出码 0，端口不是 54329。合并后证明文件与服务文件 blob 与该提交相同。typecheck 8/8。lint 0 errors，worker 警告 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · 不新增受管文件。
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line managed-ceiling-2312 nail（2026-10-20 · 受管文本扫描上限从 2304 调整到 2312）
+
+- **改动**：恰好达到 2312 仍通过，第 2313 个文件仍拒绝。证明里的计数和错误码一起改。
+- **并入**：merge `43724ca9`，双亲 `f49982ae` 与 `c8d66d32`。预演 tree `7dc35935`。没有冲突，没有强推。
+- **门**：策略证明 12/12 退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
