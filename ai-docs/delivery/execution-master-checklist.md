@@ -4222,3 +4222,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2310** 余 2.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line score-span-answer nail（2026-10-20 · 评分位置按候选人原文计算）
+
+- **改动**：模型看到去掉操纵句后的文本。幂等键、危机判断和位置复验仍用候选人原文。冒烟仍把同一段文本交给模型。
+- **并入**：merge `b1667403`，双亲 `8ece8ea0` 与 `87c84af3`。预演 tree `ae77a56f`。没有冲突，没有强推。其后 `bf1bffcb` 去掉图状态上的任意类型。
+- **门**：评分完整性退出码 0，含图路径对原文复验通过、对 clean 失败。自适应证明退出码 0。清单比对退出码 1，唯一失败项是改动集超出既有申报，危机扫描仍在模型调用之前。docs:check scanned 2311≤2312。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2311** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
