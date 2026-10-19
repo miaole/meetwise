@@ -231,6 +231,88 @@ async function main() {
     fail(`single erase failed: ${(e as Error).message}`);
   }
 
+  // Caller spellings Qdrant accepts; retrieveIds readback is lowercase 8-4-4-4-12.
+  const nonCanonicalForms: Array<{ name: string; toId: (canonical: string) => string }> = [
+    { name: 'uppercase', toId: (canonical) => canonical.toUpperCase() },
+    { name: 'no-hyphen', toId: (canonical) => canonical.replaceAll('-', '') },
+    { name: 'braces', toId: (canonical) => `{${canonical}}` },
+    { name: 'urn', toId: (canonical) => `urn:uuid:${canonical}` },
+  ];
+  for (const [formIndex, form] of nonCanonicalForms.entries()) {
+    const canonicalId = randomUUID();
+    const spelled = form.toId(canonicalId);
+    try {
+      await store.upsert([{ id: canonicalId, vector: unit(10 + formIndex), payload: { k: form.name } }]);
+      const receipt = await store.erasePoints([spelled]);
+      assertErasureReceiptShape(receipt);
+      if (receipt.deleted_count !== 1) {
+        fail(`${form.name} deleted_count expected 1, got ${receipt.deleted_count}`);
+      } else {
+        pass(`${form.name} deleted_count=1`);
+      }
+      if (receipt.id !== spelled) {
+        fail(`${form.name} receipt.id expected caller spelling, got ${receipt.id}`);
+      } else {
+        pass(`${form.name} receipt.id stays caller spelling`);
+      }
+      const left = await store.client.retrieveIds([canonicalId]);
+      if (left.length !== 0) fail(`${form.name} still present after erase: ${left.join(',')}`);
+      else pass(`${form.name} retrieveIds confirms removal`);
+    } catch (e) {
+      fail(`${form.name} erase failed: ${(e as Error).message}`);
+    }
+  }
+
+  try {
+    const absentId = randomUUID();
+    const absentReceipt = await store.erasePoints([absentId]);
+    assertErasureReceiptShape(absentReceipt);
+    if (absentReceipt.deleted_count !== 0) {
+      fail(`absent id deleted_count expected 0, got ${absentReceipt.deleted_count}`);
+    } else {
+      pass('absent id deleted_count=0');
+    }
+  } catch (e) {
+    fail(`absent erase failed: ${(e as Error).message}`);
+  }
+
+  const mixedId = randomUUID();
+  const mixedAbsent = randomUUID();
+  const mixedOriginal = [
+    mixedId.toUpperCase(),
+    mixedId.replaceAll('-', ''),
+    `{${mixedId}}`,
+    `urn:uuid:${mixedId}`,
+    mixedAbsent,
+  ];
+  const mixedCanonical = [mixedId, mixedAbsent];
+  const originalDigest = batchDigestForIds(mixedOriginal);
+  const canonicalDigest = batchDigestForIds(mixedCanonical);
+  try {
+    await store.upsert([{ id: mixedId, vector: unit(20), payload: { k: 'mixed' } }]);
+    const mixedReceipt = await store.erasePoints(mixedOriginal);
+    assertErasureReceiptShape(mixedReceipt);
+    if (mixedReceipt.deleted_count !== 1) {
+      fail(`mixed spellings deleted_count expected 1, got ${mixedReceipt.deleted_count}`);
+    } else {
+      pass('mixed spellings of one point deleted_count=1');
+    }
+    if (originalDigest === canonicalDigest) {
+      fail('mixed fixture original digest collided with canonical-form digest');
+    } else if (mixedReceipt.batch_digest !== originalDigest || mixedReceipt.batch_digest === canonicalDigest) {
+      fail(
+        `batch_digest got ${mixedReceipt.batch_digest ?? 'missing'}, original ${originalDigest}, canonical ${canonicalDigest}`,
+      );
+    } else {
+      pass('batch_digest equals batchDigestForIds(caller originals), not canonical form');
+    }
+    const left = await store.client.retrieveIds([mixedId]);
+    if (left.length !== 0) fail(`mixed point still present: ${left.join(',')}`);
+    else pass('mixed-spelling erase retrieveIds confirms removal');
+  } catch (e) {
+    fail(`mixed spelling erase failed: ${(e as Error).message}`);
+  }
+
   lines.push('NOTE  releaseEvidence=false; Not HA; 本绿≠已迁; count-honesty mitigated only; still ≠ 0091 ledger; 不切向量真相 / pgvector intact');
   finish();
 }
