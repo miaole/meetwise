@@ -137,3 +137,5 @@ executed:awaiting_post_prove_dual
 - `pnpm adaptive-graph:prove` 退出码 0
 - `pnpm adaptive-compile-contract:prove` 退出码 0
 - `node scripts/ai-docs/check-docs.mjs` 退出码 0
+
+命名警告来自字段名写法，不是另一套键。存进检查点元数据的字段字符串仍是 graph_version。类型字面量和对象字面量改为计算属性后，`pnpm -C apps/worker lint` 退出码 0。

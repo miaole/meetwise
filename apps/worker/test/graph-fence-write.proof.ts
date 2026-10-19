@@ -218,7 +218,7 @@ async function main() {
     const saver = new FenceCheckpointSaver(inner2, pool, fence);
     const ckpt = mkCheckpoint('face2-gen');
     const putCfg = await saver.put(cfgOf(iid2), ckpt, meta, { tag: 1 });
-    const storedMeta = (await inner2.getTuple(cfgOf(iid2)))?.metadata as { graph_version?: unknown; source?: unknown; step?: unknown; writes?: unknown; parents?: unknown } | undefined;
+    const storedMeta = (await inner2.getTuple(cfgOf(iid2)))?.metadata as { ['graph_version']?: unknown; source?: unknown; step?: unknown; writes?: unknown; parents?: unknown } | undefined;
     A('面2 put 透传落库:与裸 MemorySaver 行为等价（头 id+行数）',
       (await headId(inner2, iid2)) === ckpt.id && innerCount(inner2, iid2) === 1
       && String(putCfg.configurable?.['thread_id']) === iid2);
@@ -235,7 +235,7 @@ async function main() {
     const writeKeys = Object.keys((inner2 as unknown as SaverStore).writes).filter((k) => k.includes(iid2));
     A('面2 putWrites 透传落库:内层 writes 形可见（写缝门零读 checkpoint_id·仅 MemorySaver 自身寻址需之）',
       writeKeys.length >= 1 && writeKeys.some((k) => k.includes(ckpt.id)));
-    const metaAfterWrites = (await inner2.getTuple(cfgOf(iid2)))?.metadata as { graph_version?: unknown; source?: unknown } | undefined;
+    const metaAfterWrites = (await inner2.getTuple(cfgOf(iid2)))?.metadata as { ['graph_version']?: unknown; source?: unknown } | undefined;
     A('面2 putWrites 不另造元数据:头检查点仍是 put 写入的图版本',
       metaAfterWrites?.graph_version === 'adaptive-interview/v1' && metaAfterWrites?.source === 'loop' && innerCount(inner2, iid2) === 1);
     const tuple = await saver.getTuple(cfgOf(iid2));
@@ -396,7 +396,7 @@ async function main() {
     const deps = lifecycleDeps(innerOld, iidOld, scriptedModel(), fence);
     const first = await startAdaptiveInterview(deps, '后端工程师', ['限流改造']);
     const head = await innerOld.getTuple(cfgOf(iidOld));
-    const version = (head?.metadata as { graph_version?: unknown } | undefined)?.graph_version;
+    const version = (head?.metadata as { ['graph_version']?: unknown } | undefined)?.graph_version;
     const rows = innerCount(innerOld, iidOld);
     const headBefore = head?.checkpoint.id;
     const second = await startAdaptiveInterview(deps, '后端工程师', ['限流改造']);
@@ -425,10 +425,10 @@ async function main() {
   const iidMis = `gf-release-mis-${Date.now()}`;
   await seedInterview(iidMis);
   const probe = new ReleaseProbeSaver();
-  const foreignMeta = { source: 'loop', step: 1, writes: null, parents: {}, graph_version: 'other-graph/v9' } as unknown as CheckpointMetadata;
+  const foreignMeta = { source: 'loop', step: 1, writes: null, parents: {}, ['graph_version']: 'other-graph/v9' } as unknown as CheckpointMetadata;
   await probe.put(cfgOf(iidMis), mkCheckpoint('foreign-release'), foreignMeta);
   const planted = await probe.getTuple(cfgOf(iidMis));
-  const plantedVersion = (planted?.metadata as { graph_version?: unknown } | undefined)?.graph_version;
+  const plantedVersion = (planted?.metadata as { ['graph_version']?: unknown } | undefined)?.graph_version;
   const rowsBeforeMis = innerCount(probe, iidMis);
   A('版本拒绝前置:别的非空版本已在检查点元数据', plantedVersion === 'other-graph/v9' && rowsBeforeMis === 1, String(plantedVersion));
   probe.armed = true;
