@@ -63,6 +63,10 @@ export class ResumeService {
       if (errCode(e) === 'encrypted') {
         throw new HttpException({ error: 'encrypted', hint: '文件已加密，无法解析；请解除密码保护后重传或粘贴文本' }, HttpStatus.UNPROCESSABLE_ENTITY);
       }
+      // #109：声明格式与实际字节不符（magic bytes 嗅探 fail-closed）→ 可解释 422，不喂解析器。
+      if (errCode(e) === 'magic_mismatch') {
+        throw new HttpException({ error: 'magic_mismatch', hint: '文件内容与声明的格式不符，请确认文件类型后重传' }, HttpStatus.UNPROCESSABLE_ENTITY);
+      }
       // 图片简历 → OCR 路径(qwen-vl 转写 → 回灌文本链路);转写文本随后与文本简历同一道门(注入清洗/stripPii/结构化)。
       // OCR 分支置标、finally 释放解析槽后再转向——禁跨带 await 的 finally 直接 `return 未决 promise`:
       // 其拒绝若落在 finally 的 await 窗口内即成 unhandledRejection(进程致命);先释槽后转向,时序与原形一致。
