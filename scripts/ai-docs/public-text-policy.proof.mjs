@@ -296,6 +296,9 @@ const checks = {
       // N-19 修复刀随刀：cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232
       // 四先例形·2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶·授权随令）——本臂 fabricated
       // 数随 cap 再联动同步（语义不变·强度不减）。
+      // MANAGED-FILE-CEILING-2296 随刀：cap 2288→2296（2026-10-19 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288
+      // 十一先例形·开工前已扫 2285 余量 3·加上本记录后扫描变成 2286·步进只许 +8）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
       // MANAGED-FILE-CEILING-2288 随刀：cap 2280→2288（2026-10-19 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280
       // 十先例形·主线已扫 2280 余量 0·本卷使扫描变成 2281·授权随令）——本臂 fabricated 数随 cap
       // 再联动同步（语义不变·强度不减）。
@@ -315,20 +318,20 @@ const checks = {
       // 五先例形·2240 恰等零余量·在飞四刀并线 2249 超限·授权随令）——本臂 fabricated 数随 cap
       // 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_288; i += 1) {
+      for (let i = 0; i < 2_296; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_288);
-      // 超限错误码形状断言：第 2289 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2289`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2288.md'] });
+      assert.equal(atCap.scannedFiles, 2_296);
+      // 超限错误码形状断言：第 2297 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2297`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2296.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2289`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2297`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
