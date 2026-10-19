@@ -78,6 +78,8 @@ export const METRIC = {
   ragRetrievalTotal: 'rag_retrieval_total',
   ragRetrievalLatencyMs: 'rag_retrieval_latency_ms',
   ragRetrievalCandidates: 'rag_retrieval_candidates',
+  // 检索裁决动作。label 只有 action，值只来自下面五个字面量。
+  ragRetrievalActionTotal: 'rag_retrieval_action_total',
   ragCacheTotal: 'rag_cache_total',
   ragRedisCommandLatencyMs: 'rag_redis_command_latency_ms',
   ragCacheDependencyFailures: 'rag_cache_dependency_failures_total',
@@ -135,6 +137,15 @@ export const METRIC = {
   aiTraceReconMissing: 'ai_trace_recon_missing',
 } as const;
 
+// 闭合裁决。命中才计数，且标签取自字面量本身，不采用调用方原文（reason 不得入标签）。
+const RAG_RETRIEVAL_ACTIONS = ['use_local', 'augment_web', 'fallback_web', 'refuse', 'deny_external'] as const;
+
+export function recordRagRetrievalAction(action: string, metrics: Metrics = getMetrics()): void {
+  const closed = RAG_RETRIEVAL_ACTIONS.find((candidate) => candidate === action);
+  if (!closed) return;
+  metrics.inc(METRIC.ragRetrievalActionTotal, { action: closed });
+}
+
 /**
  * 预注册基线序列为 0:让 Prometheus 一开机即有序列(0 值也可评估/画图),避免"从未 emit=无序列=告警无数据"。
  * counter inc(…, 0) 只建序列不改值。worker 组合根启动时调一次。
@@ -154,6 +165,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   ]) {
     m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'track_local' }, 0);
   }
+  for (const action of RAG_RETRIEVAL_ACTIONS) m.inc(METRIC.ragRetrievalActionTotal, { action }, 0);
   for (const cacheStatus of ['hit', 'miss', 'none', 'unavailable', 'invalid']) m.inc(METRIC.ragCacheTotal, { status: cacheStatus }, 0);
   for (const operation of ['get', 'lock', 'renew', 'publish', 'release']) {
     m.observe(METRIC.ragRedisCommandLatencyMs, 0, { operation });
