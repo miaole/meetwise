@@ -77,9 +77,12 @@ async function cleanupCheckpointPrincipalSession(
   //   SET ROLE NONE  → current_user = session_user, role GUC = none  ← required
   // Ban DISCARD ALL / RESET ROLE as the sole cleanup for this façade.
   await client.query('SET ROLE NONE');
-  for (const key of GUC_KEYS) {
-    await client.query('SELECT set_config($1, $2, false)', [key, '']);
-  }
+  await client.query(
+    `SELECT set_config('${GUC_KEYS[0]}', $1, false),
+            set_config('${GUC_KEYS[1]}', $2, false),
+            set_config('${GUC_KEYS[2]}', $3, false)`,
+    ['', '', ''],
+  );
 }
 
 type ReleaseArg = Error | boolean | undefined;
@@ -139,9 +142,12 @@ export class PrincipalBoundCheckpointPool {
       const access = requireAccess();
       // Session-scoped (not LOCAL): required for PostgresSaver autocommit reads.
       await client.query('SET ROLE app_role');
-      await client.query("SELECT set_config('app.principal_user', $1, false)", [access.owner]);
-      await client.query("SELECT set_config('app.checkpoint_thread_id', $1, false)", [access.threadId]);
-      await client.query("SELECT set_config('app.checkpoint_epoch', $1, false)", [String(access.fenceEpoch)]);
+      await client.query(
+        `SELECT set_config('app.principal_user', $1, false),
+                set_config('app.checkpoint_thread_id', $2, false),
+                set_config('app.checkpoint_epoch', $3, false)`,
+        [access.owner, access.threadId, String(access.fenceEpoch)],
+      );
       const { releaseAsync } = installReleaseCleanup(client);
       (client as { releaseAsync?: () => Promise<void> }).releaseAsync = releaseAsync;
       return client;
