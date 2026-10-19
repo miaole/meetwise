@@ -58,10 +58,31 @@
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 产品代码本步不改。本步只新增本说明，不改模拟图，不改两份测试，不改租约函数，不改内核证明，不改迁移，也不改 worker 入口。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+实际改动的已有文件：
+
+- `packages/ai-graphs/src/mock-interview.ts`：仍导出 `buildMockInterviewGraph`。`interrupt({ question })`、`START` 到 `ask`、按 `idx` 与题目条数决定继续或结束的条件边未改。`answers` 每一项改为字面常量 `answer_omitted`。不再经 `String(answer)` 保存原文、长度、子串或哈希。`questions` 仍只追加当前题目，`idx` 仍加一。
+- `packages/db/src/index.ts`：`acquireLease` 与 `releaseLease` 仍是 async，三个参数的个数、顺序、类型未改。两函数在任何 `c.query` 之前抛出 `AppError`，`code` 与默认 `message` 都是 `thread_only_lease_refused`。参数不进入 SQL。文件头与函数注释里的「过期可抢占」「空或已过期才能抢」已改为说明调用即拒绝，不查询也不更新。未改 `withInterviewGraphFence` 及其他租约函数。
+- `apps/worker/test/voice.proof.ts`：文件保留。语音适配器自己的转写返回值断言保留。图状态改为断言 `getState` 的 `values`：题目顺序仍是该文件的 `QUESTIONS`，`answers` 条数与已答轮数一致，且每一项都是 `answer_omitted`。该文件里的作答原文字节不得出现在 `values`。不再断言 `answers` 与原始转写逐字相同。两条路径最终图状态一致，且都没有残留 interrupt。
+- `apps/worker/test/resume.int.ts`：文件保留。仍用新图实例和原来的 `thread_id` 续跑，仍断言下一题，结束后没有残留 interrupt。喂给 `resume` 的原文只作为 interrupt 入参。断言题目顺序、条数，以及每一项都是 `answer_omitted`，原文字节不出现在 `values`。
+- `packages/ai-runtime/test/runtime-kernel.proof.ts`：对 `acquireLease` 与 `releaseLease` 的断言改为抛出的 `errCode` 是 `thread_only_lease_refused`。同一条预先插入的 `ai_graph_run` 行，调用前后 `lease_owner`、`lease_expires_at`、`version` 都不变。不再断言抢占成功。CAS、事件和 invoke 断言保留。同脚本后面的另外三份证明文件未改。
+
+证明断言变成：拒绝码 `thread_only_lease_refused`；租约行三列不变；图状态作答固定为 `answer_omitted`，原文不进入 `values`。
+
+退出码：
+
+1. `pnpm -C apps/worker prove:voice` EXIT=0
+2. `pnpm -C apps/worker prove:resume` EXIT=0
+3. `pnpm -C packages/ai-runtime prove` EXIT=0
+4. `pnpm turbo typecheck --force` EXIT=0
+5. `pnpm turbo lint` EXIT=0
+6. `node scripts/ai-docs/check-docs.mjs` EXIT=0

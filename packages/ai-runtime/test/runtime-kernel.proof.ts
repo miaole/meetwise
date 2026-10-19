@@ -7,13 +7,27 @@
 import { z } from 'zod';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
-import { createPool, asPrincipal, casTransition, appendEvent, acquireLease, releaseLease } from '@meetwise/db';
+import { createPool, asPrincipal, casTransition, appendEvent, acquireLease, releaseLease, errCode } from '@meetwise/db';
 import { invoke, recordingTracer, setTracer, langfuseSafeModelMetadata, pseudonymizeLangfuseIdentifier, type Model, type ModelCallSpan, type ModelCostPolicy } from '../src/index.ts';
 
 const pool = createPool();
 let failures = 0;
 function assert(name: string, cond: boolean) { console.log(`${cond ? 'PASS' : 'FAIL'}  ${name}`); if (!cond) failures++; }
 function section(t: string) { console.log(`\n──────── ${t} ────────`); }
+async function leaseRefused(run: () => Promise<unknown>): Promise<boolean> {
+  try {
+    await run();
+    return false;
+  } catch (e) {
+    return errCode(e) === 'thread_only_lease_refused';
+  }
+}
+function leaseSame(a: Record<string, unknown>, b: Record<string, unknown>): boolean {
+  const stamp = (v: unknown) => (v instanceof Date ? v.toISOString() : v ?? null);
+  return a['lease_owner'] === b['lease_owner']
+    && stamp(a['lease_expires_at']) === stamp(b['lease_expires_at'])
+    && a['version'] === b['version'];
+}
 
 const RESUME_FACTS = ['参与了订单系统', '熟悉 Redis'];
 const qModel: Model & { calls: number } = { calls: 0, async call() { this.calls++; return { ok: true, raw: { question: '如何设计一个高并发限流器？' } }; } };
@@ -43,9 +57,15 @@ async function main() {
   await pool.query("INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status) VALUES ('mock-interview','R1','userA','created')");
   await pool.query("SELECT set_config('app.principal_user','',false)");
 
+  const readLease = () => pool.query(
+    "SELECT lease_owner, lease_expires_at, version FROM ai_graph_run WHERE thread_id='R1' AND graph_name='mock-interview'",
+  );
   section('进程 A：面试官启动一轮 · 全程 principal 上下文(FORCE RLS 生效)');
+  const leaseBefore = (await readLease()).rows[0];
+  assert('预先插入的 ai_graph_run 行可读', Boolean(leaseBefore));
+  assert('acquireLease 抛出 thread_only_lease_refused', await leaseRefused(() => asPrincipal(pool, 'userA', (c) => acquireLease(c, 'R1', 'procA'))));
+  assert('acquireLease 后 lease_owner、lease_expires_at、version 不变', leaseSame(leaseBefore, (await readLease()).rows[0]));
   await asPrincipal(pool, 'userA', async (c) => {
-    assert('A 抢到 thread 租约', await acquireLease(c, 'R1', 'procA'));
     assert('状态 created→active（CAS）', await casTransition(c, 'R1', 'created', 'active'));
   });
   const q = await invoke({ idempotencyKey: 'R1:q:1', schema: QSchema, businessValidate: () => null, model: qModel }, pool, 'userA');
@@ -56,11 +76,15 @@ async function main() {
     assert('事件 seq=1（原子分配）', s === 1);
     assert('状态 active→waiting_user（持久化等待）', await casTransition(c, 'R1', 'active', 'waiting_user'));
   });
-  await asPrincipal(pool, 'userA', (c) => releaseLease(c, 'R1', 'procA'));
+  assert('releaseLease 抛出 thread_only_lease_refused', await leaseRefused(() => asPrincipal(pool, 'userA', (c) => releaseLease(c, 'R1', 'procA'))));
+  assert('releaseLease 后 lease_owner、lease_expires_at、version 不变', leaseSame(leaseBefore, (await readLease()).rows[0]));
 
-  section('并发控制：B 持租约时 C 并发 resume 被拒');
-  assert('B 抢到租约', await asPrincipal(pool, 'userA', (c) => acquireLease(c, 'R1', 'procB')));
-  assert('C 并发抢租约被拒（防裂脑）', !(await asPrincipal(pool, 'userA', (c) => acquireLease(c, 'R1', 'procC'))));
+  section('只按线程的租约入口直接拒绝');
+  assert('再次 acquireLease 抛出 thread_only_lease_refused', await leaseRefused(() => asPrincipal(pool, 'userA', (c) => acquireLease(c, 'R1', 'procB'))));
+  assert('并发 acquireLease 抛出 thread_only_lease_refused', await leaseRefused(() => asPrincipal(pool, 'userA', (c) => acquireLease(c, 'R1', 'procC'))));
+  const leaseAfter = (await readLease()).rows;
+  assert('四次拒绝后同一行的 lease_owner、lease_expires_at、version 仍与调用前相同',
+    leaseAfter.length === 1 && leaseSame(leaseBefore, leaseAfter[0]));
 
   section('可中断可恢复：进程 B 纯从 DB 恢复（无内存 session）');
   const st = await asPrincipal(pool, 'userA', (c) => c.query("SELECT status FROM interview WHERE id='R1'"));
