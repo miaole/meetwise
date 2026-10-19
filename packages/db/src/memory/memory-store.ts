@@ -2,6 +2,7 @@
  * @meetwise/db · 长期记忆存储 ops。content=派生摘要(非 PII)。向量化在 memory-service(注入 embedder),这里只管行存取。
  */
 import type { PoolClient as Client } from 'pg';
+import { SESSION_QUESTION_MAX_CHARS } from '../../../ai-graphs/src/adaptive-interview/session-summary.ts';
 
 export type MemoryKind = 'skill' | 'weakness' | 'topic' | 'preference' | 'episode';
 export interface MemoryRow { id: string; kind: MemoryKind; content: string; salience: number; sourceId: string | null }
@@ -45,6 +46,39 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
   return r.rowCount! > 0;
 }
 
+export const WEAKNESS_DECAY_WINDOW_SESSIONS = 5;
+
+/** 题面截断沿用既有会话单条字数上限,避免把代理对切成半个字符。 */
+function clipAskedStem(stem: string): string {
+  const max = SESSION_QUESTION_MAX_CHARS;
+  if (stem.length <= max) return stem;
+  let end = max;
+  const code = stem.charCodeAt(end - 1);
+  if (code >= 0xd800 && code <= 0xdbff) end -= 1;
+  return stem.slice(0, end);
+}
+
+/** 该候选人最近的情景题面。只读 kind=episode,显式按 owner 过滤;条数上限沿用既有场次窗口。
+ *  返回前归一化、丢掉空串、按既有题面字数截断,同一归一化题面只留一次。不做向量或语义相似。 */
+export async function recentAskedStems(c: Client, owner: string): Promise<string[]> {
+  const r = await c.query(
+    `SELECT content FROM user_memory
+      WHERE kind = 'episode' AND owner_user_id = $1
+      ORDER BY created_at DESC, id DESC
+      LIMIT $2`,
+    [owner, WEAKNESS_DECAY_WINDOW_SESSIONS]);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const row of r.rows) {
+    const normalized = normalizeQuestion(String(row.content ?? ''));
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    const stem = clipAskedStem(normalized);
+    if (stem) out.push(stem);
+  }
+  return out;
+}
+
 /** 弱项读取投影(**只读,不新建信念表**):历史 assessment_report 里 gap=true 的能力维度名(去重)。
  *  仅取 status='ready' 的已生成报告;显式按 owner 过滤(RLS 之上再加一道,防越权/防误串户)。
  *  R4 读面过滤(UNSTUB-ERASE rev2):已围栏面试的评估不再给出题软偏置——与列表/导出/成长档案
@@ -54,7 +88,6 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
  *  ready 报告;固定初值,不依赖 H1 校准)。窗口内每维度取**最新一场** gap 定去留:最新一场达标(gap=false)→ 移出;
  *  最新一场未达标(gap=true)→ 保留;窗口内不再出现(最新出现早于窗口)=时间衰减移出。冷启动(零历史)→ 空数组 →
  *  上层稳定分区恒等(非特殊分支)。historicalWeakDimensions 形参 additive 可选(默认窗口值),旧调用方逐字节兼容。 */
-export const WEAKNESS_DECAY_WINDOW_SESSIONS = 5;
 export async function historicalWeakDimensions(c: Client, owner: string, windowSessions: number = WEAKNESS_DECAY_WINDOW_SESSIONS): Promise<string[]> {
   const window = Number.isInteger(windowSessions) && windowSessions > 0 ? windowSessions : WEAKNESS_DECAY_WINDOW_SESSIONS;
   // 窗口 = 最近 N 份 ready+privacy-active 报告(created_at DESC,id DESC 同拍 tiebreak 确定性);

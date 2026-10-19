@@ -10,7 +10,7 @@ import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMateria
 import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
-import { wasAsked, pastWeakDimensions } from './memory-service.ts';
+import { wasAsked, pastWeakDimensions, recentAskedStems } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
 import { withGenerationProgress, type GenerationProgressRun } from './generation-progress.ts';
 import { withTokenStream, type TokenSink } from './token-stream.ts';
@@ -605,7 +605,9 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // 槽位最先裁,施为=sessionOut 置 undefined=段不渲染(#51 v8 缺省臂既有字节路径,零新形状)。
       // session 缺省(#51 null 臂)/askCostPolicy 缺省(scripted deps/legacy/observe)→ 预算零触=现状字节
       // (additive 缺省臂)。整请求拒绝臂仍归 transport planContextBudget 权威面(零重复拒绝,模块注)。
-      const askVars = { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined };
+      // 近期题面只进不可信数据。读失败当空列表,数据段保持原字节;精确判重仍在下方 wasAsked。
+      const recentAsked = await recentAskedStems(d.pool, d.owner).catch(() => [] as string[]);
+      const askVars = { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined, recentAsked };
       const askPrompt = getPrompt('interviewer.ask', askVars);
       const summaryText = renderSessionSummarySection(session ?? undefined);
       const sessionOut = summaryText === ''
