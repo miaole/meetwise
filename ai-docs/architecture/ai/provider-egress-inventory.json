@@ -173,6 +173,10 @@
         {
           "source": "packages/ai-runtime/test/model-op02-endpoint-partition.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/ag17-schema-span.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     },
@@ -2061,6 +2065,11 @@
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag17-schema-span.proof.ts",
+      "class": "test-fixture"
     }
   ],
   "deploymentReferences": [
