@@ -52,5 +52,31 @@
 - 本卷=起草落卷（起草席）·pre-exec 双审两独立外席待派·Dual PASS≠开工·EXEC 授权权+翻面权归协调方。
 - LEDGER 管线行+checklist 段+SSOT 零触（append/翻面权归协调方）·本 commit 不预 claim EXEC 门值（§2 门7 外均预标）。
 
+## §9-rev rev 修订注记（pre-exec 双审第一轮双 FAIL 两席合并修订清单：P1 两件（甲·两席同发现/乙·席2）+P2 复核七件（丙/丁/戊/己/庚/辛/壬）· rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文词面冲突处以本节为准读）
+
+**rev 缘由**：本卷 pre-exec 双审第一轮回卷两席双 FAIL·两席合并清单=P1 两件+P2 七件·本席逐位届树亲证（成立九件·不成立一件=壬·证据随条附）后按 rev 回路落卷（只改本卷一个文件·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触·落卷形=append 不洗）。**STOP 维持 `draft:awaiting_pre_exec_dual`**（Status 头/§8/卷尾注三处同值零翻·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=两 P1 件复验+P2 批量回路·alone≠dual·Ban self-approve**）。
+
+### §9-rev.1 修订①（P1-甲·两席同发现）——门3 恒等判据与件① provenance 注记 append 互斥消解（§2 门3 落点）
+
+- **互斥机制定谳（届树亲证成立）**：§1 件①（本卷 `:21`）词面「四行注释各 append『#38 校准待定：现值=回放评测集钉值…』形态注记」↔ §2 门3（本卷 `:37`）词面「四定义行（`:147/:148/:152/:154`）除 `export ` 前缀外数值与注记字节恒等」——四定义行现树均带行尾注释（`packages/domain/src/adaptive-interview.ts:147` `const CONF_ENOUGH = 0.7;`+行尾注「该能力够强 → 不再纠缠」·`:148/:152/:154` 同构行尾注亲证）→按件① append 落码则注释字节必变·门3 恒等判据必红·互斥成立。
+- **修正句**：门3 判据改读「四定义行（`:147/:148/:152/:154`）除 `export ` 前缀**与件① provenance 注记 append 外**，数值与原注记字节恒等（**原注记零删改**）」。
+
+### §9-rev.2 修订②（P1-乙·席2）——门3「`:232` 零数字字面量」不可满足·改「零阈值字面量」口径（§2 门3 落点）
+
+- **不可满足机制定谳（届树亲证成立）**：件②（本卷 `:22`）目标形 `s > CONF_ENOUGH ? 1 : s < CONF_WEAK ? -1 : 0`——折入具名常量后该行仍含 `1`/`-1`/`0` 三个数字字面量（难度升降步进语义·非阈值·件② 不折入）→门3（本卷 `:37`）「`:232` 改后该行零数字字面量」恒不可满足。码面现形亲证：`adaptive-interview.ts:232` `const base = mind.difficulty + (s > 0.7 ? 1 : s < 0.4 ? -1 : 0);`。
+- **修正句**：门3 该句改「`:232` 改后该行零**阈值**字面量（`0.7`/`0.4` 该行零命中；`1`/`-1`/`0` 步进字面量不在禁列）」。
+
+### §9-rev.3 修订③（P2 复核七件回路：丙/丁/戊/己/庚/辛 成立落卷+壬 不成立登记）
+
+1. **丙（成立）·§0 值族普查 worker proof 路径补全**：「worker `test/ag37-deficit-persist.proof.ts:92`」→「worker `apps/worker/test/ag37-deficit-persist.proof.ts:92`」。亲证：届树实存 `apps/worker/test/ag37-deficit-persist.proof.ts`·其 `:92` 词面「// 'meets'=50 分确定性分量:非低分(≥40 不计 consecutiveLow)且 <CONF_ENOUGH(0.7)→ keep probing。」。
+2. **丁（成立）·立项出处② 归属精确化**：出处② 改读「`:62`=**批2 散件族行**、`:102`=**H7 挂账行**（批2 残余段）·两行均含 #38」。亲证：`batch-residual-plan.md:62` 词面 `| #38/#73/#80/#119/#171/#173/#185/#200/#213/#49/#160/#163/#48/#201/#202 | 散件族：校准联动/ASR 来源/外呼/未接线/…`（批2 节 `:47` 起·批3 节 `:64` 止）·`:102` 词面 `| H7 | 挂账（不立刀） | #38/#73/#80/… | LEDGER「各归域刀或 5E」…`（「### 批2 残余 → 6 组 + 1 挂账」`:93` 起）——原词面「:62/:102 H7 挂账行」并称不确·两行分属两段。
+3. **戊（成立）·门7 计数时点口径补注**：门7「2261 managed ≤cap 2264（起草届树亲跑）」补注时点口径=「**2261=REQUEST 落卷前实测**（起草席跑门时本卷未入树）」；rev 席届树（**含本卷**）亲跑 `node scripts/ai-docs/check-docs.mjs` **EXIT=0**·回执词面「ai-docs check passed: 80 required files verified; public text policy scanned **2262** managed worktree files」=含本卷恰 +1·与门7「EXEC 期预期 2262」自洽；rev 纯 append 零新增文件·EXEC 期预期维持 2262≤2264（EXEC 亲跑落值为准）。
+4. **己（成立）·件② GAP 先例行号更引**：「`packages/domain/src/assessment.ts:16`」→「`packages/domain/src/assessment.ts:14-18`」。亲证：`:14` 词面「达标线单源（EXTREV-1 SCORE-WRITER rev2 D5(i)）：60 一处定义，全仓复用禁字面量散布。」（先例语句本行）·`:16` 词面「S1 的 v5→disposition 过渡桥已随 #52 提示词 v6 上线废除…」（落注记块内·原引不确）·`:18` `export const GAP = 60;`（声明行）。
+5. **庚（成立·含一处逐行校正）·值族普查口径收窄+test 钉值面补列**：§0「四值**全仓**实体恰=锚A 四定义+`:232` 内联+锚B 两对偶」收窄为「四值 **src** 实体恰=锚A 四定义+`:232` 内联+锚B 两对偶」（普查 face=原列四 face·rev 席复跑 grep **EXIT=1 零命中**亲证）；test 钉值面原列三行（domain proof `:30`/ai-graphs proof `:344`/worker ag37 `:92`·本席逐行复证在）之外**补列**：`apps/worker/test/adaptive-lifecycle.proof.ts:351`「…score 50→confidence<0.7→turn1 路由」·`apps/worker/test/adaptive-offtopic.proof.ts:75`「…confidence >= 0.7」·`packages/ai-graphs/test/adaptive-interview.proof.ts:77`「…confidence >= 0.7」·`packages/domain/test/adaptive-redesign.proof.ts:21`「…confidence 被封顶 <0.7(算"还可深挖")」/`:29`「…confidence≥0.7(够强)」——清单 6 引中 5 引四值钉值成立。**逐行校正如实登记**：清单所列 `adaptive-offtopic.proof.ts:63` 词面「…depthProbed=非核心cap 2,confidence≤0.2 → 不会再追问」钉值=`0.2`（unresolved 封顶邻接值·对应锚A `:333` `Math.min(c.confidence, 0.2)`）·**非四值族**→`:63` 不入四值钉值面·`:75` 照列；另本席补录叙注级 0.7 钉注两行防「钉值面已穷」误读：ai-graphs proof `:328`「…封顶 <0.7 → 继续 probe 同一能力」·redesign proof `:17`「…confidence 被封顶(<0.7)→ decideNext 继续 probe 同一能力」；worker offtopic `:113`/`:116` 的 `40` 系循环守卫（`guard++ < 40`）非阈值钉值不入面。
+6. **辛（成立）·卷头建支命令史录注**：卷头（本卷 `:3`）「主仓建支：`git worktree add ../meetwise-thcal -b line/threshold-calibration-draft origin/feat/mysql-schema-skeleton`」注明=**起草史录**（起草时点行使·支 `line/threshold-calibration-draft` 已建并推 origin·rev 席 worktree 即由 origin 该支建出亲证）；**EXEC 接续形**=`git worktree add ../meetwise-thcal line/threshold-calibration-draft`（**无 `-b`**）。
+7. **壬（不成立·如实登记跳过）**：席2 提「check-docs.mjs 源词配对块行号微校为 `:328-332`」**不成立**——届树亲证：`scripts/ai-docs/check-docs.mjs:328` `source: "packages/domain/src/adaptive-interview.ts",`·`:329` `sourceTerm: "DEFAULT_ABSOLUTE_MAX_TURNS = 120",`·`:330` `truthTerm: "绝对杀开关默认 120",`——**现引 `:328-330` 恰=配对三行精确命中**；条目整块含花括号=`:327-331`·`:332`=**次条目**（scoring-honesty）开括号——「`:328-332`」跨入次条目较现引更不确。**维持现引零改**。
+
+**rev 自检回执**：markers 五类标记词+行首冲突标记直扫本卷改动集 **0 命中**（词面运行时组装防自指·本席亲跑）；`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（rev 时点届树亲跑·2262 managed ≤cap 2264·append 零新增文件）；`git diff --numstat` 恰 1 tracked=本卷 .md（新增节纯插入+卷尾注行尾 append·原字符零删改·零码面）；migrations 全目录零触；LEDGER/SSOT 零触；est live=0（rev turn 全只读+1 doc append）；pins 零翻（`actualSpendCny=null` 同源）。
+
 ---
-*THRESHOLD-CALIBRATION REQUEST · 2026-10-19 起草 · STOP=`draft:awaiting_pre_exec_dual`（三处同值：Status 头/§8/卷尾注） · 基线 `origin/feat/mysql-schema-skeleton` @`4c2ea4c9f`（派单下界等号亲证） · 分支 `line/threshold-calibration-draft` · 工作树 `meetwise-thcal` · 四常量现值 0.7/0.4/40/0.6=注入默认值=回放评测集钉值 · H1 阈值决议对该族零交付（§1.2:53 明文不并入·nail `141da56f`）· 数值校准面挂起待生产分布数据（H1 §6.2 亲证不存在） · est live=0 · actualSpendCny=null · 零迁移零 lockfile 域内零 env · 停止条件三类全设未触发 · Ban self-approve · alone≠dual · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase*
+*THRESHOLD-CALIBRATION REQUEST · 2026-10-19 起草 · STOP=`draft:awaiting_pre_exec_dual`（三处同值：Status 头/§8/卷尾注） · 基线 `origin/feat/mysql-schema-skeleton` @`4c2ea4c9f`（派单下界等号亲证） · 分支 `line/threshold-calibration-draft` · 工作树 `meetwise-thcal` · 四常量现值 0.7/0.4/40/0.6=注入默认值=回放评测集钉值 · H1 阈值决议对该族零交付（§1.2:53 明文不并入·nail `141da56f`）· 数值校准面挂起待生产分布数据（H1 §6.2 亲证不存在） · est live=0 · actualSpendCny=null · 零迁移零 lockfile 域内零 env · 停止条件三类全设未触发 · Ban self-approve · alone≠dual · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase · §9-rev rev 修订注记落卷 2026-10-19（pre-exec 双审第一轮双 FAIL 两席合并清单·P1 两件互斥/口径消解+P2 七件回路·壬不成立登记）· rev 后重派 pre-exec 双审两独立外席第二轮（窄域=两 P1 件复验+P2 批量回路）· STOP 维持三处同值零翻*
