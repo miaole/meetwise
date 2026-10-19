@@ -45,6 +45,54 @@ function scriptedAskModel(question: string): { model: ModelClient; calls: () => 
   return { model, calls: () => calls };
 }
 
+// retrieval-query-exact:begin
+// query 值必须恰为 cragRetrievalText(parsed)。其后只能是逗号、右圆括号，或对象字面量的右花括号（当前调用在 `}` 后才是参数逗号）。
+function dispatchRetrievalQueryIsExactText(src) {
+  const exact = 'cragRetrievalText(parsed)';
+  const marker = 'dispatchTrackLocalRetrieval(';
+  function sliceBalancedParen(text, openIndex) {
+    let depth = 0;
+    for (let i = openIndex; i < text.length; i += 1) {
+      const ch = text.charAt(i);
+      if (ch === '(') depth += 1;
+      else if (ch === ')') {
+        depth -= 1;
+        if (depth === 0) return text.slice(openIndex + 1, i);
+      }
+    }
+    return null;
+  }
+  function queryPropertyValue(region) {
+    const match = /(?:^|[,{(]\s*)query\s*:/.exec(region);
+    if (!match) return null;
+    return region.slice(match.index + match[0].length);
+  }
+  function valueIsExact(value) {
+    const trimmed = String(value).replace(/^\s+/, '');
+    if (!trimmed.startsWith(exact)) return false;
+    return /^\s*[,)}]/.test(trimmed.slice(exact.length));
+  }
+  let from = 0;
+  let chosen = null;
+  while (from < src.length) {
+    const at = src.indexOf(marker, from);
+    if (at < 0) break;
+    const prev = at > 0 ? src.charAt(at - 1) : '';
+    if (prev !== '`') {
+      const args = sliceBalancedParen(src, at + marker.length - 1);
+      if (args != null && queryPropertyValue(args) != null) {
+        chosen = args;
+        break;
+      }
+    }
+    from = at + marker.length;
+  }
+  const value = chosen != null ? queryPropertyValue(chosen) : queryPropertyValue(src);
+  if (value == null) return false;
+  return valueIsExact(value);
+}
+// retrieval-query-exact:end
+
 function main() {
   /* ── §5.5 parseCragPlannerQuery 协议扩展·向后兼容 ── */
   section('§5.5a parseCragPlannerQuery:旧形逐字节兼容+新段解析+fail-closed');
@@ -88,7 +136,24 @@ function main() {
   A('检索文本不含难度标记', !retrievalFour.includes('难度') && retrievalOld === '高并发', `${retrievalFour} | ${retrievalOld}`);
   A('带岗位和栈时只保留这两段', retrievalFour === '缓存与一致性 岗位后端开发工程师 栈负责 Redis 缓存与限流模块设计 Kafka 数据管道', retrievalFour);
   const retrieveSrc = readFileSync(fileURLToPath(new URL('../src/qbank-track-local-retrieve.ts', import.meta.url)), 'utf8');
-  A('向量检索实参是检索文本、协议串不再直接送入', /query: cragRetrievalText\(parsed\)/.test(retrieveSrc) && !/query:\s*input\.query/.test(retrieveSrc));
+  const retrievalQuerySamples = [
+    [retrieveSrc, true],
+    ['query: cragRetrievalText(parsed) && input.query', false],
+    ['query: cragRetrievalText(parsed) + ` 难度${parsed.difficulty}`', false],
+    ['query: input.query', false],
+    ['query: cragRetrievalText(parsed) + 任何后缀', false],
+    ['input.query,', false],
+    [
+      'applyRouteScopeNegativeCacheRead(pool, owner, plan, input.query, ver);\ndispatchTrackLocalRetrieval(pool, owner, plan, { ...input.deps, query: cragRetrievalText(parsed) }, scope)',
+      true,
+    ],
+  ];
+  const retrievalQueryMismatch = retrievalQuerySamples.find(([sample, expected]) => dispatchRetrievalQueryIsExactText(sample) !== expected);
+  A(
+    '向量检索实参是检索文本、协议串不再直接送入',
+    retrievalQueryMismatch == null,
+    retrievalQueryMismatch ? `expected=${retrievalQueryMismatch[1]} sample=${String(retrievalQueryMismatch[0]).slice(0, 120)}` : '',
+  );
   A('负面缓存读取仍用完整协议查询', /applyRouteScopeNegativeCacheRead\(/.test(retrieveSrc) && /input\.query,/.test(retrieveSrc));
 
   /* ── §5.3 filteredEmpty → degraded 映射(空池→degraded 非发明) ── */
