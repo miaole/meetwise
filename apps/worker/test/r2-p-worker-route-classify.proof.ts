@@ -12,7 +12,12 @@ import { fileURLToPath } from 'node:url';
 import { createHash } from 'node:crypto';
 import {
   bindJobRouteClassify, JOB_ROUTE_CLASSIFY_OPERATION_ID, JOB_ROUTE_CLASSIFY_PROMPT_SERVICE,
+  scriptedModelClient,
 } from '@meetwise/ai-runtime';
+import {
+  assertIsolatedTestTarget, asPrincipal, classifyJobRoute, createJob, createPool, updateJob,
+} from '@meetwise/db';
+import { drainOwnerRouteClassify } from '../src/route-classify-consumer.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -31,12 +36,12 @@ const promptPath = join(repoRoot, 'packages/ai-runtime/src/prompts.ts');
 const routePath = join(repoRoot, 'packages/db/src/routing/job-route-decision.ts');
 const gatewayPath = join(repoRoot, 'packages/db/src/jobs/gateway-dispatch.ts');
 const migratePath = join(repoRoot, 'packages/db/migrations/0132_job_route_classify_worker_dispatch.sql');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r2-classify-job-route.md');
-const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r2-classify-job-route-status.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route.md');
+const statusPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route-status.md');
 const backlogPath = join(repoRoot, 'ai-docs/delivery/gap-bug-backlog.md');
 const m4Path = join(repoRoot, 'ai-docs/delivery/m4-rag-hard-gates.md');
-const requestModelOp = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-r2-p-worker-route-classify-mw-model-op.md');
-const requestRag = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-r2-p-worker-route-classify-mw-rag-route.md');
+const requestModelOp = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-r2-p-worker-route-classify-mw-model-op.md');
+const requestRag = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-r2-p-worker-route-classify-mw-rag-route.md');
 
 function read(p: string) {
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
@@ -183,7 +188,132 @@ A('REQUEST docs self-pin not a pass / releaseEvidence=false / 禁止自批',
   && /releaseEvidence=false/.test(read(requestRag))
   && /禁止自批|不是.*pass|REQUEST/.test(read(requestRag)));
 
-console.log(failures === 0
-  ? '\nOK  r2-p-worker-route-classify prove (P-WORKER closed via sole route-classify consumer + MODEL-OP modelClassify; R2 NOT closed; ≠ 路由已生效; releaseEvidence=false; Not HA)'
-  : `\nFAIL  r2-p-worker-route-classify prove (${failures} failures)`);
-process.exit(failures === 0 ? 0 : 1);
+function errorCode(err: unknown): string {
+  if (typeof err !== 'object' || err === null || !('code' in err)) return '';
+  const code = (err as { code: unknown }).code;
+  return typeof code === 'string' ? code : '';
+}
+
+/** 过期修订必须离开 route_pending，同一次抽干才能领到较新的待分类修订。hmac 不匹配仍抛错。 */
+async function proveStaleRevisionDoesNotBlockDrain(): Promise<void> {
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-stale-drain-hmac-proof-key-not-production-01';
+  const port = process.env.PGPORT ?? '';
+  A('隔离库端口不是 54329', port !== '' && port !== '54329', `PGPORT=${port}`);
+  if (port === '' || port === '54329') return;
+
+  const pool = createPool();
+  try {
+    await assertIsolatedTestTarget(pool);
+    const owner = `stale_${createHash('sha256').update(String(Date.now())).digest('hex').slice(0, 12)}`;
+    const hmacOwner = `hmac_${owner}`;
+    const fresh = {
+      title: 'Node.js 服务端工程师',
+      description: '使用 NestJS 构建服务',
+      competencies: ['nestjs', 'express', 'koa'],
+    };
+    const created = await asPrincipal(pool, owner, (c) => createJob(c, owner, {
+      title: '过期修订占位岗',
+      description: '旧描述',
+      competencies: ['旧能力'],
+    }));
+    const updated = await asPrincipal(pool, owner, (c) => updateJob(c, owner, created.id, fresh));
+    const before = await pool.query(
+      'SELECT revision::int AS revision, status FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision',
+      [created.id],
+    );
+    const beforeRows = before.rows as Array<{ revision: number; status: string }>;
+    A('抽干前两修订都在 route_pending',
+      updated !== null
+      && beforeRows.length === 2
+      && Number(beforeRows[0]?.revision) === 1 && beforeRows[0]?.status === 'route_pending'
+      && Number(beforeRows[1]?.revision) === 2 && beforeRows[1]?.status === 'route_pending');
+
+    const model = scriptedModelClient({});
+    let drainError = '';
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    try {
+      await Promise.race([
+        drainOwnerRouteClassify({ pool, model }, owner),
+        new Promise<never>((_resolve, reject) => {
+          timer = setTimeout(() => reject(new Error('drain_did_not_idle')), 20_000);
+        }),
+      ]);
+    } catch (err) {
+      drainError = err instanceof Error ? err.message : 'drain_threw';
+    } finally {
+      if (timer !== undefined) clearTimeout(timer);
+    }
+    A('同一次抽干能结束', drainError === '', drainError);
+
+    const after = await pool.query(
+      'SELECT revision::int AS revision, status FROM job_semantic_revision WHERE job_id=$1 ORDER BY revision',
+      [created.id],
+    );
+    const afterRows = after.rows as Array<{ revision: number; status: string }>;
+    const rev1 = afterRows.find((row) => Number(row.revision) === 1);
+    const rev2 = afterRows.find((row) => Number(row.revision) === 2);
+    A('过期修订不再停留在 route_pending', rev1?.status === 'route_unresolved', rev1?.status ?? 'missing');
+    A('同一次抽干仍领到较新的待分类修订', rev2?.status === 'route_decided', rev2?.status ?? 'missing');
+
+    const decisions = await pool.query(
+      'SELECT revision::int AS revision FROM job_route_decision WHERE job_id=$1 ORDER BY revision',
+      [created.id],
+    );
+    const decisionRevs = (decisions.rows as Array<{ revision: number }>).map((row) => Number(row.revision));
+    A('过期修订不插入 job_route_decision', !decisionRevs.includes(1) && decisionRevs.includes(2), decisionRevs.join(','));
+
+    const events = await pool.query(
+      `SELECT reason, decision_id AS "decisionId"
+         FROM job_route_event WHERE job_id=$1 AND revision=1 AND to_status='route_unresolved'`,
+      [created.id],
+    );
+    const event = events.rows[0] as { reason: string | null; decisionId: string | null } | undefined;
+    A('过期修订事件原因恰为 stale_revision',
+      (events.rowCount ?? 0) === 1 && event?.reason === 'stale_revision' && event.decisionId === null,
+      event?.reason ?? 'none');
+
+    const hmacJob = await asPrincipal(pool, hmacOwner, (c) => createJob(c, hmacOwner, fresh));
+    const flipped = 'ab'.repeat(32);
+    const tamper = await asPrincipal(pool, hmacOwner, (c) => c.query(
+      `UPDATE job_semantic_revision SET input_hmac=$2
+        WHERE job_id=$1 AND revision=1 AND status='route_pending' AND input_hmac <> $2`,
+      [hmacJob.id, flipped],
+    ));
+    let hmacCode = '';
+    try {
+      await classifyJobRoute(pool, hmacOwner, hmacJob.id, 1, {
+        modelClassify: async () => {
+          throw Object.assign(new Error('hmac_path_called_model'), { code: 'hmac_path_called_model' });
+        },
+      });
+    } catch (err) {
+      hmacCode = errorCode(err);
+    }
+    const hmacStatus = await pool.query(
+      'SELECT status FROM job_semantic_revision WHERE job_id=$1 AND revision=1',
+      [hmacJob.id],
+    );
+    const hmacDecisions = await pool.query(
+      'SELECT count(*)::int AS n FROM job_route_decision WHERE job_id=$1',
+      [hmacJob.id],
+    );
+    A('hmac 不匹配仍抛错且不改成终态',
+      (tamper.rowCount ?? 0) === 1
+      && hmacCode === 'job_route_input_hmac_mismatch'
+      && hmacStatus.rows[0]?.status === 'route_pending'
+      && Number(hmacDecisions.rows[0]?.n) === 0,
+      `code=${hmacCode} status=${String(hmacStatus.rows[0]?.status ?? '')}`);
+  } finally {
+    await pool.end();
+  }
+}
+
+proveStaleRevisionDoesNotBlockDrain().then(() => {
+  console.log(failures === 0
+    ? '\nOK  r2-p-worker-route-classify prove (P-WORKER closed via sole route-classify consumer + MODEL-OP modelClassify; R2 NOT closed; ≠ 路由已生效; releaseEvidence=false; Not HA)'
+    : `\nFAIL  r2-p-worker-route-classify prove (${failures} failures)`);
+  process.exit(failures === 0 ? 0 : 1);
+}).catch((err: unknown) => {
+  console.error(err);
+  process.exit(1);
+});
