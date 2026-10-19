@@ -104,6 +104,9 @@ async function main() {
   A('契约: 非法 kind 被 schema 拒绝', !MemoryFactWrite.safeParse({ ...w1, kind: 'bogus' }).success);
   A('双校验②: PII 内容被 assertMemoryFactContentSafe 拒绝(fail-closed)',
     throwsSync(() => assertMemoryFactContentSafe('联系手机 13800138000')));
+  A('双校验②: 连续两次同号手机均拒绝(不从上次 lastIndex 续扫)',
+    throwsSync(() => assertMemoryFactContentSafe('联系手机 13800138000'))
+      && throwsSync(() => assertMemoryFactContentSafe('联系手机 13800138000')));
   A('双校验②: 合法派生摘要通过护栏', throwsSync(() => assertMemoryFactContentSafe(w1.content)) === false);
   A('无同意不采集: 未 grant 的 purpose 拒绝', await rejects(() => record(owner, w1)));
 
