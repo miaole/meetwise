@@ -36,7 +36,7 @@ function scriptedPool(): { pool: DbPool; settleTokens: unknown[] } {
       }
       if (text === 'BEGIN' || text === 'COMMIT' || text === 'ROLLBACK' || text.startsWith('SET LOCAL ROLE ') || text.includes('set_config')) return empty;
       if (text.includes('ai_cost_reserve_text_scoped')) {
-        return { rows: [{ decision: 'reserved', reserved_micro_cny: 1000, price_revision: 'r-proof' }], rowCount: 1 };
+        return { rows: [{ decision: 'reserved', ['reserved_micro_cny']: 1000, ['price_revision']: 'r-proof' }], rowCount: 1 };
       }
       if (text.includes('ai_cost_mark_dispatched_scoped') || text.includes('ai_cost_mark_unknown_scoped') || text.includes('ai_cost_release_scoped')) {
         return { rows: [{ ok: true }], rowCount: 1 };
@@ -65,13 +65,19 @@ async function rejectReported(name: string, inputTokens: number | null): Promise
       return { vectors: texts.map(() => [1, 0]), inputTokens: inputTokens as unknown as number };
     },
   };
-  const outcome = await budgetedQbankEmbedding(script.pool, 'rag-proof-owner', embedder, rejectCfg)(
-    ['中文测试'], { cacheKey: name, invocationId: name, mode: 'claimed' },
-  ).then((vectors) => ({ rejected: false, vectors })).catch((error: unknown) => ({ rejected: true, error }));
-  const error = outcome.rejected ? outcome.error : undefined;
+  let rejected = false;
+  let error: unknown = undefined;
+  try {
+    await budgetedQbankEmbedding(script.pool, 'rag-proof-owner', embedder, rejectCfg)(
+      ['中文测试'], { cacheKey: name, invocationId: name, mode: 'claimed' },
+    );
+  } catch (caught: unknown) {
+    rejected = true;
+    error = caught;
+  }
   const message = error instanceof Error ? error.message : '';
   const code = error instanceof RagCostError ? error.code : '';
-  const ok = outcome.rejected && calls === 1 && script.settleTokens.length === 0
+  const ok = rejected && calls === 1 && script.settleTokens.length === 0
     && message === 'external_outcome_unknown' && code === 'external_outcome_unknown';
   check(name, ok);
   if (!ok) console.log(`  detail calls=${calls} settles=${script.settleTokens.join(',')} message=${message} code=${code}`);

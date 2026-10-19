@@ -203,3 +203,20 @@
 `pnpm -C apps/worker prove:rag-cost-runtime` 亲跑 EXIT=1，不是通过。失败发生在加载 `apps/worker/test/rag-cost-runtime.int.ts:7` 的 `createPool()`，错误原文是 `database_config_invalid:database_target_missing`（`packages/db/src/principal.ts:753`，调用点 `:788` 与 `:946`）。文件里新加的三支没有执行。没有为了缺数据库去改产品码，也没有改 `scripts/run-e2e-isolated.mjs`。
 
 这三支写在 `rag-cost-runtime.int.ts` 里，跟已有用量断言放在一起，但用新作用域 `rag-cost-runtime-reject-${suffix}`。原用量作用域在实量 1001 之后只剩 990，再预留 1000 会先 `budget_exhausted`，到不了范围检查。新作用域沿用已解析配置，只换 `scopeId`，月预算仍是 3000。顺序是空值、`1.5`、负数。每次预留 1000，拒绝后冻结，三次合计 3000，没有超过上限。断言与已有实量 1001 相同：嵌入一次，调用方 `external_outcome_unknown`，行状态 `unknown`，实结为空，不是 4，也不是 1000。
+
+## §9-EXEC-rev
+
+测试类型收窄。产品行为未改：缺用量仍按各段估算，再与上限取较小值；实量仍照旧使用；空值、小数、负数仍在结算前拒绝，不按文本估算入账；大于上限的实量仍拒绝。
+
+`apps/worker/test/rag-cost-governance.proof.ts` 的拒绝结果先落到独立的 `error: unknown`，再读消息和 code。断言仍是拒绝、嵌入调用 1 次、没有结算、消息与 code 都是 `external_outcome_unknown`。假预留行仍带 `reserved_micro_cny` 与 `price_revision`，只改成计算属性，运行时键不变。
+
+`apps/worker/test/rag-cost-runtime.int.ts` 的实结和原因码拆成单独的布尔再相与。实结必须等于期望值，并且不等于上限、不等于 16000、不等于另一种原因码。没有在同一条比较链上先相等再不等。
+
+退出码：
+
+1. `pnpm -C apps/worker prove:rag-cost` EXIT=0。空值、小数、负数三条拒绝用例都是 PASS。
+2. `pnpm -C apps/worker prove:rag-cost-runtime` EXIT=1。加载 `apps/worker/test/rag-cost-runtime.int.ts` 的 `createPool()` 即失败，原文 `database_config_invalid:database_target_missing`。不是这次测试改动引入的语法或断言错误。没有改产品，没有改 runner，没有为它配数据库。
+3. `pnpm turbo typecheck --force --filter=@meetwise/worker` EXIT=0。
+4. 对 `apps/worker/src/rag-cost-governance.ts`、`apps/worker/test/rag-cost-governance.proof.ts`、`apps/worker/test/rag-cost-runtime.int.ts` 跑 eslint，0 errors。`pnpm turbo lint --force --filter=@meetwise/worker` EXIT=0，0 errors，959 warnings。
+
+开头状态、§8、文末状态行仍是 `executed:awaiting_post_prove_dual`。
