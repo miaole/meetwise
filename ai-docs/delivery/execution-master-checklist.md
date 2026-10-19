@@ -3898,3 +3898,12 @@ flowchart TD
 - **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2285** 余 3.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line sse-fetch-failure nail（2026-10-19 · 投递流拉取失败改为中断并抛出）
+
+- **改动**：拉取下一批失败时先做原有清理，再销毁连接并抛出同一个错误。空结果仍写心跳。主动返回的空值仍正常结束。
+- **并入**：终态图运行记录之后再预演，merge-tree EXIT=0，tree `131ed9a8`。`git merge --no-ff` 得到 `cd361df7`，双亲 `1a3fb08b` 与 `cbacd8b9`。没有冲突，没有强推。
+- **门**：投递流通知证明通过；排空证明 PASS=47 FAIL=0。docs:check scanned 2286≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2286** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
