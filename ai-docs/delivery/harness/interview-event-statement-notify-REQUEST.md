@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 面试事件通知改为按语句发送
 
@@ -150,6 +150,14 @@ FROM (SELECT DISTINCT stream_key FROM inserted) AS changed;
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+已落语句级通知。同名函数改为对过渡表里不同的流键各通知一次，不再读取行变量。零行不发。不新发授权。同名触发器先去掉，再按语句级重建，过渡表名、通道和裸流键载荷保持原样。
+
+原逐行迁移文件的字节未改。已有证明在执行那份原文之后，再读取并执行这份新迁移的字节。新增的区分断言看已执行函数体：对过渡表里不同的流键各通知一次，且不再读取行变量。同一通道同一载荷在同一事务里的送达去重不算这条区分。另两条断言：一条插入写入两个不同流键时收到两条裸流键通知；实际插入零行时不收到通知。
+
+收据源列表补了这份新迁移的路径。派发命令未改。
