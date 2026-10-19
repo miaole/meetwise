@@ -103,10 +103,37 @@
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 本步只新增这份说明。产品代码、证明和迁移都不改。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+改动文件：
+
+- `apps/worker/src/checkpoint-fence.ts`
+- `apps/worker/src/adaptive-lifecycle.ts`
+- `apps/worker/test/graph-fence-write.proof.ts`
+- `ai-docs/delivery/harness/graph-release-marker-REQUEST.md`
+
+`put` 在围栏判定通过之后保留调用方已经传入的元数据字段，并带上 `graph_version`，值是 `adaptive-interview/v1`，再交给内层。`getTuple` 仍直通。`putWrites` 不另造元数据。已经落库的旧行不回写。
+
+开始路径和作答路径都在已有 `cfg` 之后、`getState` 之前，用手头检查点器的 `getTuple` 读元数据。没有检查点、没有版本，或版本不是非空字符串：放行。版本与 `adaptive-interview/v1` 逐字相同：放行。版本是别的非空字符串：抛 `graph_release_mismatch`，不调用 `invoke`，不 `put`，不 `deleteThread`，不改旧行。这个错误码没有放进瞬时错误码集合。
+
+类型检查和静态检查本步没有跑，留给后面的核对。
+
+`pnpm adaptive-life:prove` 没有跑。另一处正在改终态删除，也会跑同一份自适应生命周期证明。本步避开它，避免抢数据库。这项没有退出码，不要记成 0。
+
+已跑命令与退出码：
+
+- `pnpm graph-fence-write:prove` 退出码 0
+- `pnpm adaptive-resume:prove` 退出码 0
+- `pnpm adaptive-legacy-checkpoint:prove` 退出码 0
+- `pnpm adaptive-flow:prove` 退出码 0
+- `pnpm adaptive-graph:prove` 退出码 0
+- `pnpm adaptive-compile-contract:prove` 退出码 0
+- `node scripts/ai-docs/check-docs.mjs` 退出码 0
