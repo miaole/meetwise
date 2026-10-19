@@ -1,6 +1,6 @@
 export { buildAdaptiveInterviewGraph } from './graph.ts';
 export { createEphemeralAnswerVault } from './ephemeral-answer-vault.ts';
-export { buildSessionSummary, SESSION_SUMMARY_MAX_TURNS } from './session-summary.ts';
+export { buildSessionSummary, SESSION_SUMMARY_MAX_TURNS, SESSION_QUESTION_MAX_CHARS } from './session-summary.ts';
 export type {
   AdaptiveDeps,
   AdaptiveInterviewGraphState,

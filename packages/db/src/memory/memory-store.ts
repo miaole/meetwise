@@ -45,6 +45,44 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
   return r.rowCount! > 0;
 }
 
+export const WEAKNESS_DECAY_WINDOW_SESSIONS = 5;
+
+/** 该候选人最近若干场的情景题面。一行一道题,source_id 才是场次。
+ *  只取该 owner、kind=episode、source_id 非空的最近若干个不同 source_id,
+ *  场次按 max(created_at)、max(id) 倒序,个数用既有窗口常量。
+ *  再返回这些场里的题面,行序为 created_at、id 倒序。
+ *  显式按 owner 过滤。返回归一化题面,不截断,同一题面只留一次。
+ *  不做语义相似。source_id 为空的行不计入场次,也不返回。 */
+export async function recentAskedStems(c: Client, owner: string): Promise<string[]> {
+  const r = await c.query(
+    `WITH recent_sessions AS (
+       SELECT source_id
+         FROM user_memory
+        WHERE kind = 'episode'
+          AND owner_user_id = $1
+          AND coalesce(btrim(source_id), '') <> ''
+        GROUP BY source_id
+        ORDER BY max(created_at) DESC, max(id) DESC
+        LIMIT $2
+     )
+     SELECT content
+       FROM user_memory
+      WHERE kind = 'episode'
+        AND owner_user_id = $1
+        AND source_id IN (SELECT source_id FROM recent_sessions)
+      ORDER BY created_at DESC, id DESC`,
+    [owner, WEAKNESS_DECAY_WINDOW_SESSIONS]);
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const row of r.rows) {
+    const normalized = normalizeQuestion(String(row.content ?? ''));
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    out.push(normalized);
+  }
+  return out;
+}
+
 /** 弱项读取投影(**只读,不新建信念表**):历史 assessment_report 里 gap=true 的能力维度名(去重)。
  *  仅取 status='ready' 的已生成报告;显式按 owner 过滤(RLS 之上再加一道,防越权/防误串户)。
  *  R4 读面过滤(UNSTUB-ERASE rev2):已围栏面试的评估不再给出题软偏置——与列表/导出/成长档案
@@ -54,7 +92,6 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
  *  ready 报告;固定初值,不依赖 H1 校准)。窗口内每维度取**最新一场** gap 定去留:最新一场达标(gap=false)→ 移出;
  *  最新一场未达标(gap=true)→ 保留;窗口内不再出现(最新出现早于窗口)=时间衰减移出。冷启动(零历史)→ 空数组 →
  *  上层稳定分区恒等(非特殊分支)。historicalWeakDimensions 形参 additive 可选(默认窗口值),旧调用方逐字节兼容。 */
-export const WEAKNESS_DECAY_WINDOW_SESSIONS = 5;
 export async function historicalWeakDimensions(c: Client, owner: string, windowSessions: number = WEAKNESS_DECAY_WINDOW_SESSIONS): Promise<string[]> {
   const window = Number.isInteger(windowSessions) && windowSessions > 0 ? windowSessions : WEAKNESS_DECAY_WINDOW_SESSIONS;
   // 窗口 = 最近 N 份 ready+privacy-active 报告(created_at DESC,id DESC 同拍 tiebreak 确定性);
