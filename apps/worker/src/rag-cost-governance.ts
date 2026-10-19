@@ -8,7 +8,7 @@ import {
   asPrincipal, markAiCostDispatched, markAiCostUnknown, releaseAiCost, reserveAiTextCost, settleAiCost,
   type DbPool, type QbankEmbeddingCallContext,
 } from '@meetwise/db';
-import { getMetrics, METRIC, type Embedder } from '@meetwise/ai-runtime';
+import { cjkWeightedEstimate, getMetrics, METRIC, type Embedder } from '@meetwise/ai-runtime';
 
 export interface RagCostGovernanceConfig {
   mode: 'observe' | 'enforce';
@@ -132,7 +132,11 @@ export function budgetedQbankEmbedding(
       const result = embedder.embedWithUsage
         ? await embedder.embedWithUsage(texts)
         : { vectors: await embedder.embed(texts) };
-      const actualTokens = result.inputTokens ?? cfg.maxInputTokens;
+      // 只有缺失（=== undefined）按段估算，并在范围检查前截到上限。在场实量不截断。
+      const reportedTokens = result.inputTokens;
+      const actualTokens = reportedTokens === undefined
+        ? Math.min(texts.reduce((sum, text) => sum + cjkWeightedEstimate(text), 0), cfg.maxInputTokens)
+        : reportedTokens;
       if (!Number.isInteger(actualTokens) || actualTokens < 0 || actualTokens > cfg.maxInputTokens) {
         throw new Error('provider_usage_out_of_reserved_range');
       }
