@@ -133,3 +133,31 @@ draft:awaiting_pre_exec_dual
 以上三处状态相同。产品代码本步不改。
 
 draft:awaiting_pre_exec_dual
+
+## 补充
+
+行号是在基线 `1a3fb08b4676cdea22698be56169c193ecb76eb1` 上打开文件看到的。这一节只补三件事。路由分类仍只改 `apps/worker/src/main.ts` 里把 `fastModel` 传入 `runRouteClassifyConsumer` 的那一处。押题、诊断、报告、面试循环的模型实参不动。温度表不动。错误码仍只有 `text_endpoint_profile_model_mismatch`。
+
+### 1. deepseek 档必须带连字符
+
+§1.2 写的是 `deepseek-cn-public` 只接受以小写前缀 `deepseek` 开头。这里改为：必须以小写字节 `deepseek-` 开头（带连字符）。比较按字节，不折叠大小写。空模型名仍拒绝。不匹配仍抛 `text_endpoint_profile_model_mismatch`，不要另起一个码。
+
+`deepseek-v4-flash` 与 `deepseek-v4-pro` 仍算匹配。`packages/ai-runtime/src/g7-freetier-reprove-guard.ts:30` 是 `deepseek-v4-flash`，`:47` 价格表是同一个名字；`:31` 是 `deepseek-v4-pro`，`:46` 价格表是同一个名字。样例 `docker/env/worker.env.example:51-53` 也写着这两个名字。单纯以小写 `deepseek` 开头、但下一字节不是连字符的名字要拒绝。
+
+qwen 档维持上文「以小写 `qwen` 开头」，不要改成必须带连字符。同文件 `:23` 的 `qwen3.8-flash` 没有 `qwen-` 前缀；`:24` `qwen3.8-max`、`:25` `qwen3.8-27b`、`:26` `qwen3.8-omni-flash`、`:27` `qwen3.7-flash` 也没有。这些名字仍须被 `dashscope-cn-beijing` 接受。`qwen-plus` 与 `qwen-turbo` 已经以 `qwen` 开头，继续匹配。
+
+### 2. 不新建环境文件，不新建 compose 文件
+
+不新建环境文件，不新建 compose 文件。只改已有 `docker/env/worker.env.example:45` 那一行已有赋值，把 `MODEL_ENDPOINT_PROFILE=deepseek-cn-public` 改成 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`。`:47` 的 `MODEL_NAME=qwen-plus` 与 `:48` 的 `MODEL_FAST_NAME=qwen-turbo` 不动。不要在 `docker/env/` 再增加样例文件。已有 `docker/compose.ha.yml:211`、`:275` 与 `docker/compose.prod.yml:279` 的 `${MODEL_ENDPOINT_PROFILE:-deepseek-cn-public}` 不要改，也不要另写一份 compose 把这行搬过去。`scripts/deploy-check.mjs:105` 仍钉着这条 compose 缺省。
+
+### 3. 还会在构造期被拒绝的现有证明
+
+上文 §2 已经点名的证明不重复改口径。下面这些上文没有点名。运输缝关着，模型名是 qwen 前缀，档是缺省 `deepseek-cn-public`（`packages/ai-runtime/src/text-endpoint-config.ts:77`）。修法与上文第 3 条相同：只补 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`，其余断言不动。不要打开运输缝，不要新建证明文件。
+
+1. `pnpm -C apps/worker prove:session-summary`（`apps/worker/package.json:18`）。`apps/worker/test/session-summary.proof.ts`：`:156` `NODE_ENV=test`，`:157` 删掉 `MODEL_TEST_TRANSPORT_OVERRIDES`，`:159` 删掉 `MODEL_ENDPOINT_PROFILE`，`:161` `MODEL_NAME=qwen-plus`，`:166` `openAICompatibleClient()`。模型名保持 `qwen-plus`。
+
+2. `pnpm -C apps/worker prove:resume-grounding`（`apps/worker/package.json:78`）。`apps/worker/test/resume-grounding.proof.ts`：`:150` `NODE_ENV=test`，`:151` 删掉 `MODEL_TEST_TRANSPORT_OVERRIDES`，`:153` 删掉 `MODEL_ENDPOINT_PROFILE`，`:155` `MODEL_NAME=qwen-plus`，`:160` `openAICompatibleClient()`。模型名保持 `qwen-plus`。
+
+3. `pnpm scoring:eval`（根 `package.json:518`，转到 `:519` 的 `scoring:eval:raw`）。`apps/worker/smoke/scoring-eval.ts:39` 调用 `fastModelClient()`。快模型名是 `apps/worker/src/interview-service.ts:235` 的 `process.env.MODEL_FAST_NAME ?? 'qwen-turbo'`。该脚本不设置档；`scripts/run-e2e-isolated.mjs` 跑这条时也不钉档。档留空就是缺省 `deepseek-cn-public`，构造期会被拒绝。在 `:39` 之前补上 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`。不要改 `:235` 的缺省模型名。
+
+除此以外，没有别的未点名文件会在缝关闭时用 qwen 前缀模型名配上缺省 deepseek 档去构造文本客户端。
