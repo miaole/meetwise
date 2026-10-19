@@ -1,6 +1,6 @@
 # AG18-SAMPLING-TEMPERATURE REQUEST（AG-18 采样温度钉低温刀——route-classify/resume.vision 入 SERVICE_TEMPERATURE+MODEL_EVAL_TEMPERATURE 非法值启动失败·采样确定性最小收口·零迁移·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
 
 **席位**：AG 能力复核台账下一刀起草席（**自数 done 31/half 2/open 15**·台账管线行亲证：`:632` ag09 行「done 29→30」+`:636` ag17 行「**done 30→31**[AG-17 翻面·协调方翻面笔随令行使·**half 2/open 15**]」·half 2 维持登记。选标序 P1>P2>P3 同级别小编号：P1 open 唯余 AG-40——台账 `:695` 验证席定谳「**AG-40 对现 tip 不成立：已被 634eb645 §1⑥ 修复——改判『不成立（现状）·历史成立』**」=停止条件「标的已修复」**跳过**；P2 open 唯余 AG-13——issues-final `:193` CRAG 阈值校准需线上分布数据·沿上刀挂起纪律**跳过**；依赖未修前置项同跳（AG-32 语音契约/AG-36 vendor 迁移各待前置）。顺延 **P3 最小号 AG-18**=Prompt 轨·台账 AG-18 **零命中**（grep 亲证）=零在飞零收编·协调方派单·北星 loop）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `7a4288fb137bbd162e176e3020f16b085f046bb2`（派单令给定·`git rev-parse` 亲证恰等）。分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`（仓根同级·`git worktree add -B line/ag-next2-draft ../meetwise-agN2 origin/feat/mysql-schema-skeleton` 本席亲立·`-B` 成功即分支新建机证）。
@@ -87,9 +87,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.2-4 漂移注记级亲证·§0.0 防重三查零撞·在飞两线零交集亲证）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（proof=本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=draft:awaiting_pre_exec_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
 
 ## §9-rev rev 修订注记（pre-exec 双审第一轮双 FAIL 两席合并清单 P1 两件甲/乙+P2 六件①-⑥回路 · rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
 
@@ -153,4 +153,41 @@
 
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。§9-rev2 已补触面文件数
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。§9-rev2 已补触面文件数。§9-EXEC 已落码
+
+## §9-EXEC
+
+实际改动 8 个 tracked 文件：
+
+1. `packages/ai-runtime/src/model-client.ts`
+2. `packages/ai-runtime/test/ag18-sampling-temperature.proof.ts`
+3. `packages/ai-runtime/package.json`
+4. `package.json`
+5. `scripts/run-e2e-isolated.mjs`
+6. `ai-docs/delivery/harness/ag18-sampling-temperature-REQUEST.md`
+7. `ai-docs/architecture/ai/provider-egress-inventory.json`
+8. `scripts/provider-egress-inventory.proof.mjs`
+
+消费者配对计数为 54。环境引用按数组长度另计，不计入 pair。出站清单校验打印 `registered_consumer_source_pairs=54`。
+
+亲跑命令与退出码：
+
+- `pnpm ag18-sampling-temperature:prove` EXIT=0。四臂全绿（隔离库 applied=210）。日志 `gate-ag18-prove.log`。
+- `pnpm ag17-schema-span:prove` EXIT=0。日志 `gate-ag18-ag17.log`。
+- `pnpm ag09-replay-first:prove` EXIT=0。日志 `gate-ag18-ag09.log`。
+- `pnpm provider-egress:inventory` EXIT=0。日志 `gate-ag18-egress-inventory.log`。
+- `pnpm provider-egress:prove` EXIT=0，7/7，pair 断言 54。日志 `gate-ag18-egress-prove.log`。
+- `pnpm turbo typecheck --force` EXIT=0，8/8 successful。日志 `gate-ag18-typecheck.log`。
+- `pnpm turbo lint --force` EXIT=0，0 errors。警告数恰等 root 5242 / api 1423 / domain 115 / ai-runtime 628 / worker 959 / db 1042 / web 601。日志 `gate-ag18-lint.log`。
+- `node scripts/ai-docs/check-docs.mjs` EXIT=0，scanned 2273 ≤ 2280。日志 `gate-ag18-docs.log`。本节追加后复跑 EXIT=0，scanned 仍是 2273。日志 `gate-ag18-docs-rerun.log`。
+- 五类标记词与行首冲突标记对本次 diff 与新证明直扫 HITS=0。日志 `gate-ag18-markers.log`。本节追加后复跑 HITS=0，ADDED_LINES=245。日志 `gate-ag18-markers-rerun.log`。终扫含本段补句，HITS=0。日志 `gate-ag18-markers-final.log`。产品服务键既有引用未计为标记词。
+- `git diff --stat origin/feat/mysql-schema-skeleton` 在证明文件入库后恰 8 个 tracked 文件。
+- 远端 tip 在首次对齐 `98d5b0b3` 之后前进到 `a833c38f`。`git merge-tree --write-tree` EXIT=0。`git merge --no-ff --no-commit` EXIT=0。`git commit -F` EXIT=0，提交 `faa7c33b`。接上停机清单断言与交付记录三文件。相对该 tip，差异面仍是本次 8 个文件。
+
+行号相对起草锚的漂移（合并后、改本文件之前，`model-client.ts` 不在接入差异里，起草锚仍在）：
+
+- 温度表起草锚 `:155-159`。落码后 const 在 `:167-175`。补句在 `:154`。`resolveEvalTemperatureOverride` 在 `:157-165`。表前净增 12 行，表内再增两键与两行注释，其后全文下移 16 行。
+- 非流式展开起草锚 `:742`，现 `:758`。流式展开起草锚 `:941`，现 `:957`。摘要温度行起草锚 `:1140`，现 `:1156`。这三处内容字节未改。
+- 隔离运行器起草锚：清单臂约 `:932`，门名单 `:2297`，派发 `:2536`，迁移白名单 `:3187`。清单块插在既有块之后，新键在 `:950`。门名单新行在 `:2316`。派发新行在 `:2559`。迁移白名单长行在 `:3209`。下移来自清单块插入，不是锚语义变化。
+
+工作流侧：`.github/workflows/ci.yml` 会跑的 `model-output-limit:prove` 不钉温度表。全文哈希比较不在工作流里，且比较值在主线上已经对不上，本次未改那份证明。
