@@ -70,16 +70,16 @@ function signalWiring() {
   A('触发任一信号等价（同一 handler 被调）', calls === 2);
 }
 
-// ── 4) A.4 清单逐项断言（main.ts drainStops 16 项·防再漏 vectorPlaneErasureLoop） ─
+// ── 4) A.4 清单逐项断言（main.ts drainStops 静态具名 20 + env-gated stub-tick·drain 块名称 21·防再漏 vectorPlaneErasureLoop） ─
 function drainChecklistSourceAssertions() {
   console.log('--- A.4 C5 源级清单断言（main.ts） ---');
   const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
   const src = readFileSync(join(root, 'src/main.ts'), 'utf8');
-  // drainStops 具名 19 项（含 trace-recon），另加 env-gated stub-tick。
+  // drainStops 静态具名 20 项（含 trace-recon 与 commerce-outbox-retention），另加 env-gated stub-tick。
   const required = [
     'report', 'interview', 'quiz', 'diagnosis', 'route-classify', 'commerce',
     'model-invocation-reconcile', 'trace-recon', 'usage-calibration-reconcile', 'usage-calibration-retention',
-    'qbank-release-sweep', 'privacy-erasure',
+    'commerce-outbox-retention', 'qbank-release-sweep', 'privacy-erasure',
     'vector-plane-erasure', 'gauge', 'rag-cache', 'privacy-pool', 'qbank-control-pool',
     'rag-control-pool', 'langfuse',
   ] as const;
@@ -87,7 +87,7 @@ function drainChecklistSourceAssertions() {
     A(`清单项在位：${name}`, new RegExp(`\\{ name: '${name}', stop:`).test(src));
   }
   const drainBlock = src.slice(src.indexOf('const drainStops'), src.indexOf('let workerShuttingDown'));
-  A(`清单实数=19 具名项 + env-gated stub-tick（条件展开·实数 ${((drainBlock.match(/\{ name: '/g) ?? []).length)}）`, (drainBlock.match(/\{ name: '/g) ?? []).length === 20 && /\.\.\.\(stubLoop \? \[\{ name: 'stub-tick'/.test(drainBlock));
+  A(`清单实数=20 静态具名项 + env-gated stub-tick（条件展开·drain 块 { name: ' 为 21·实数 ${((drainBlock.match(/\{ name: '/g) ?? []).length)}）`, (drainBlock.match(/\{ name: '/g) ?? []).length === 21 && /\.\.\.\(stubLoop \? \[\{ name: 'stub-tick'/.test(drainBlock));
   A('补漏件 vectorPlaneErasureLoop.stop 实接线（非仅字符串）', /vectorPlaneErasureLoop\?\.stop\(\) \?\? Promise\.resolve\(\)/.test(src));
   A('SIGTERM/SIGINT 同链接线（wireSignalShutdown 双信号）', /wireSignalShutdown\(\['SIGTERM', 'SIGINT'\]/.test(src));
   A('重复信号幂等闸在位（workerShuttingDown）', /if \(workerShuttingDown\) return/.test(src));
@@ -170,7 +170,7 @@ function phaseSourceAssertions() {
   const depsLabels = (src.match(/phase: 'deps'/g) ?? []).length;
   const loopLabels = (src.match(/phase: 'loop'/g) ?? []).length;
   A(`main.ts 相位贴标 deps 相恰 5 处（实得 ${depsLabels}）`, depsLabels === 5);
-  A(`main.ts 相位贴标 loop 相恰 15 处（实得 ${loopLabels}）`, loopLabels === 15);
+  A(`main.ts 相位贴标 loop 相恰 16 处（实得 ${loopLabels}）`, loopLabels === 16);
   A('drain-loop.ts 份额常量 0.7 具名落源（机检可锚）', /LOOP_PHASE_SHARE = 0\.7/.test(loopSrc));
   A('drain-loop.ts 两相份额和恒等式在源（depsShare = timeoutMs - loopShare）', /depsShare = timeoutMs - loopShare/.test(loopSrc));
   A('main.ts 超时日志行含 phase= 相位要素', /worker_drain_timeout signal=\$\{signal\} phase=\$\{phase\}/.test(src));
