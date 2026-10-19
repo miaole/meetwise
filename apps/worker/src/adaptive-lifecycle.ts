@@ -330,6 +330,18 @@ export type StartAdaptiveInterviewResult = {
   unavailable?: InterviewGenerationUnavailable;
 };
 
+const ADAPTIVE_GRAPH_RELEASE = 'adaptive-interview/v1';
+
+/** 没有检查点、没有版本、或版本不是非空字符串：放行。与当前版本逐字相同：放行。
+ *  别的非空字符串：在 getState / invoke 之前拒绝，不写、不删、不改旧行。 */
+async function rejectMismatchedGraphRelease(d: AdaptiveLifecycleDeps, cfg: { configurable: { thread_id: string } }): Promise<void> {
+  const tuple = await d.cp.getTuple(cfg);
+  const version = tuple?.metadata?.graph_version;
+  if (typeof version !== 'string' || version.length === 0) return;
+  if (version === ADAPTIVE_GRAPH_RELEASE) return;
+  throw Object.assign(new Error('graph_release_mismatch'), { code: 'graph_release_mismatch' });
+}
+
 /** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。
  *  H4 R2③/R3(#252):第 4 形参 focus=本场报告 gap 维度名(专项面·additive 可选)——沿 targetRole 第 6 参先例的
  *  payload 透传面:①进 planCompetencies 第 7 参(planner prompt 'planner.competencies' v3 上一轮评估摘要段);
@@ -354,6 +366,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
   const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
+  await rejectMismatchedGraphRelease(d, cfg);
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
   // 先读 pending，存在则只补业务投影，绝不触碰图执行。
@@ -409,6 +422,7 @@ async function submitAdaptiveAnswerImpl(
   const grounding = await loadInterviewResumeGrounding(d);
   const gInitial = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
   const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
+  await rejectMismatchedGraphRelease(d, cfg);
   const before = await gInitial.getState(cfg);
   // SFC(SUBMIT-FLOW-COMPETENCY-WIRE):submit 流向 competency 补供——start 形 planCompetencies 序经
   // initMind 保序映射落 checkpoint mind.competencies(domain initMind :188 保序+decideNext 拷贝排序
