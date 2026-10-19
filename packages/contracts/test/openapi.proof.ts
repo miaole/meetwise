@@ -121,5 +121,7 @@ ok(diagnosisBegin.parameters.some((p: { name?: string; in?: string; required?: b
 ok(!!interviewBegin.responses?.['202'] && !interviewBegin.responses?.['200'], 'beginInterview 成功响应仍是 202 而不是 200');
 ok(['resume-id', 'quiz-id', 'target-role', 'focus'].every((name) => headerNamed(interviewBegin, name)),
   'beginInterview 仍有 header resume-id、quiz-id、target-role、focus');
+const interviewTurn = doc.paths['/interview/{id}/turn'].post;
+ok(!!interviewTurn.responses?.['202'] && !interviewTurn.responses?.['200'], '/interview/{id}/turn post 成功响应键是 202 而不是 200');
 
 console.log(`✓ openapi:prove 全部通过(${n} 断言)`);
