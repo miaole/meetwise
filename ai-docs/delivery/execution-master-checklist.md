@@ -3961,3 +3961,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 1 · cap **2296** 现值 **2293** 余 3.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line managed-file-count nail（2026-10-19 · 受管文件计数上限增加八个）
+
+- **改动**：受管文件计数上限从 2296 调到 2304。恰达上限仍通过，多一个文件仍拒绝。证明里的越限样例改为 2305。
+- **并入**：上限记录预演 merge-tree EXIT=0，tree `e379fa52`。`git merge --no-ff` 得到 `897d3abd`，双亲 `fd60938b` 与 `2801eabf`。没有冲突，没有强推。
+- **门**：public-text-policy.proof 12/12 EXIT=0。docs:check scanned 2294≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2294** 余 10.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
