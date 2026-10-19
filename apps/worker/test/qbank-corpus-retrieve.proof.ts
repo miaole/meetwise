@@ -14,6 +14,7 @@
  * pnpm qbank-corpus-retrieve:prove (node scripts/run-e2e-isolated.mjs qbank-corpus-retrieve:prove)
  */
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import {
   assertIsolatedTestTarget, asPrincipal, createPool, loadMigrations, runMigrations,
@@ -21,7 +22,7 @@ import {
 import { degradedRetrieval, normalizeQuestionGenerationResult, type ScoredRef } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildCragPlannerQuery } from '../src/adaptive-interview-service.ts';
 import {
-  parseCragPlannerQuery, scoredRefsFromDispatch, retrieveViaDispatchTrackLocal,
+  parseCragPlannerQuery, cragRetrievalText, scoredRefsFromDispatch, retrieveViaDispatchTrackLocal,
   CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS,
 } from '../src/qbank-track-local-retrieve.ts';
 import type { ModelClient } from '@meetwise/ai-runtime';
@@ -82,6 +83,13 @@ function main() {
   const qMixed = buildCragPlannerQuery('并发', 2, { techStackFacts: ['含栈字词', 'Redis', 'Kafka'] });
   A('含保留词 fact 被剔除,合法 fact 保留', qMixed === '并发 栈Redis Kafka 难度2', qMixed);
   A('缺省上下文=旧两段形逐字', buildCragPlannerQuery('高并发', 4) === '高并发 难度4');
+  const retrievalFour = cragRetrievalText(parseCragPlannerQuery(q4)!);
+  const retrievalOld = cragRetrievalText(parseCragPlannerQuery('高并发 难度4')!);
+  A('检索文本不含难度标记', !retrievalFour.includes('难度') && retrievalOld === '高并发', `${retrievalFour} | ${retrievalOld}`);
+  A('带岗位和栈时只保留这两段', retrievalFour === '缓存与一致性 岗位后端开发工程师 栈负责 Redis 缓存与限流模块设计 Kafka 数据管道', retrievalFour);
+  const retrieveSrc = readFileSync(fileURLToPath(new URL('../src/qbank-track-local-retrieve.ts', import.meta.url)), 'utf8');
+  A('向量检索实参是检索文本、协议串不再直接送入', /query: cragRetrievalText\(parsed\)/.test(retrieveSrc) && !/query:\s*input\.query/.test(retrieveSrc));
+  A('负面缓存读取仍用完整协议查询', /applyRouteScopeNegativeCacheRead\(/.test(retrieveSrc) && /input\.query,/.test(retrieveSrc));
 
   /* ── §5.3 filteredEmpty → degraded 映射(空池→degraded 非发明) ── */
   section('§5.3 空池 degraded 语义(scoredRefsFromDispatch)');
