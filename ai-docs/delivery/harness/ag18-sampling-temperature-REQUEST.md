@@ -142,6 +142,15 @@
 
 **rev 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·本卷系既有文件 append 零新增文件·scanned 2271 ≤ cap 2272）；改动面行首冲突标记直扫 0 命中（本席亲跑·门⑧词面预登记不受本节影响——本节零引 map 键承重词面·零新增标记词落卷）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·`actualSpendCny=null` 同源）；**STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve。
 
+## §9-rev2 触面文件数、摘要比较行号与计数基线（与 §9-rev.2 冲突时以本节为准）
+
+**与 §9-rev.2 冲突时以本节为准。**
+
+- **亲证**：①§1.2 写明恰 6 个 tracked 文件（model-client.ts、新 proof、两 package.json、run-e2e-isolated.mjs、本文件）。§9-rev.2 把门⑨写成恰 7，第 7 个只点名 `ai-docs/architecture/ai/provider-egress-inventory.json`，同时又要求把 `scripts/provider-egress-inventory.proof.mjs` 的 `registeredConsumerSourcePairCount` 同步到 54。计数脚本是另一个 git 路径。6+清单 json+计数脚本＝8。②工作树该证明第 31 行硬计数为 52。主线 `98d5b0b390881d0286dfdcef09f30a406a2adaf1` 同文件第 31 行为 53。③`scripts/provider-egress-inventory.mjs` 的 `registeredConsumerSourcePairCount` 只把各 adapter 的 `consumers.length` 相加；`environmentReferenceCount` 另计，环境引用不加进 pair。④`packages/ai-runtime/test/qa-tool-layer.proof.ts` 第 171 行是臂标签，第 172 行才是 `mcSha === 'bef16cbdc2a1244935de837b26b3eb45d951631e'`。⑤提交 `62712996` 已通过 merge `6538a8e3` 进入上述主线；本分支仍不含该提交。
+- **修正一（触面与门⑨）**：触面与门⑨按 **8** 个 tracked 文件计。第 7 个是 `ai-docs/architecture/ai/provider-egress-inventory.json`。第 8 个是 `scripts/provider-egress-inventory.proof.mjs`（硬计数改到 54）。pair 目标仍是 54。
+- **修正二（问答工具层证明）**：问答工具层证明的摘要比较在第 **172** 行，不是第 171 行。第 171 行是臂标签。失配和其后 3 笔维持。
+- **修正三（执行基线）**：主线已含出站清单补登记。执行基线 pair 是 53，本改动再登记一条 consumer 之后是 54，不是 55。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。§9-rev2 已补触面文件数
