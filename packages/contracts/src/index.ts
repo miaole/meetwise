@@ -1467,12 +1467,22 @@ export const apiContract: ContractRoute[] = [
   { id: 'listQuiz', method: 'get', path: '/quiz', summary: '押题列表', tags: ['quiz'], auth: true, response: QuizList },
   { id: 'createQuiz', method: 'post', path: '/quiz', summary: '新建押题(空壳,begin 才跑图扣额度)', tags: ['quiz'], auth: true, response: QuizCreated },
   { id: 'getQuiz', method: 'get', path: '/quiz/{id}', summary: '押题详情(题目+考察点+报告)', tags: ['quiz'], auth: true, response: QuizView },
-  { id: 'beginQuiz', method: 'post', path: '/quiz/{id}/begin', summary: '开始押题(扣额度+入队 resume-quiz 图)', tags: ['quiz'], auth: true, response: QuizBeginResult },
+  { id: 'beginQuiz', method: 'post', path: '/quiz/{id}/begin', summary: '开始押题(扣额度+入队 resume-quiz 图)', tags: ['quiz'], auth: true, status: 202,
+    headers: [
+      { name: 'resume-id', required: true },
+      { name: 'target-role' },
+    ],
+    response: QuizBeginResult },
   // SSE 事件流 /quiz/{id}/events(progress/question_ready/quiz_ready/quiz_unavailable)非 JSON 响应,不入 apiContract(对齐 interview events)。
   { id: 'listDiagnosis', method: 'get', path: '/diagnosis', summary: '简历诊断列表', tags: ['diagnosis'], auth: true, response: DiagnosisList },
   { id: 'createDiagnosis', method: 'post', path: '/diagnosis', summary: '新建简历诊断(空壳,begin 才跑图扣额度)', tags: ['diagnosis'], auth: true, response: DiagnosisCreated },
   { id: 'getDiagnosis', method: 'get', path: '/diagnosis/{id}', summary: '诊断详情(结构/亮点/风险/匹配度+改写建议)', tags: ['diagnosis'], auth: true, response: DiagnosisView },
-  { id: 'beginDiagnosis', method: 'post', path: '/diagnosis/{id}/begin', summary: '开始诊断(扣额度+入队 resume-diagnosis 图)', tags: ['diagnosis'], auth: true, response: DiagnosisBeginResult },
+  { id: 'beginDiagnosis', method: 'post', path: '/diagnosis/{id}/begin', summary: '开始诊断(扣额度+入队 resume-diagnosis 图)', tags: ['diagnosis'], auth: true, status: 202,
+    headers: [
+      { name: 'resume-id', required: true },
+      { name: 'target-role' },
+    ],
+    response: DiagnosisBeginResult },
   // SSE 事件流 /diagnosis/{id}/events(progress/section_ready/diagnosis_ready/diagnosis_unavailable)非 JSON 响应,不入 apiContract(对齐 quiz events)。
   { id: 'listProducts', method: 'get', path: '/commerce/products', summary: '面试包列表', tags: ['commerce'], response: Products },
   { id: 'getEntitlement', method: 'get', path: '/commerce/entitlement', summary: '剩余额度', tags: ['commerce'], auth: true, response: Entitlement },
