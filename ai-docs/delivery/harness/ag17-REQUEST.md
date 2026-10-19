@@ -173,4 +173,11 @@
 三处同值翻 **`executed:awaiting_post_prove_dual`**（Status 头+§8 两行+卷尾注）·前值 `draft:awaiting_pre_exec_dual` 史录保留·**post-prove 双审待重派**·est live=0（全轮本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS 零 Key·`actualSpendCny=null`）·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 全程未用·翻面权归协调方·alone≠dual·Ban self-approve。
 
 ---
+## §9-EXEC 补记（post-prove 席2 F1 内联回路 · 2026-10-19）
+
+1. **偏离⑦（席2 F1→补码行使）**：proof.ts `:2` 与 run-e2e-isolated.mjs `:930` 两处本刀新增说明注释含旧档名字面——已改拆写形清零；§9-EXEC 件①「packages/apps/scripts 全码面 0 命中」收窄口径为「引号 token/发射位面·本刀新增说明注释字面两处随本补记拆写清零」；件②「不落 proof 词面」指断言针（`:43` 运行时组装）非文件头注，如实澄清。
+2. **偏离⑧（席2 F2 簿记）**：门⑧净增行 259→实测 258（numstat 40+2+1+3+1+186+25）。
+3. **push 归因声明（席1 P2-2 销案）**：origin/line/ag17-draft 两笔 push（`e12a6343` rev·`39ffb654` EXEC）系协调方验收后行使，非 EXEC 席违令，reflog 时间戳与之相符。
+4. **补码后门**：proof 14 断言 EXIT=0+lint 真实 EXIT=0（ai-runtime 628 帧原值）+码面旧档名 grep 零命中+markers 净增行 0 命中+docs:check EXIT=0（2026-10-19 补码后亲跑原值：proof 四臂 14/14 PASS·隔离库真迁移链收据在 `.tmp/isolated-proof-receipts/`；lint 12 任务全成 0 errors·ai-runtime 628 warnings；`git grep schema_retry -- packages apps scripts` EXIT=1 零命中；markers 净增行五类词面+行首冲突标记 0/0；docs:check 80 required files verified·public text policy scanned 2263 managed worktree files）。
+
 卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·EXEC 届树 `e12a6343`·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码（§9-EXEC 逐条落录·门矩阵九门定稿树复跑·偏离 D1-D5 如实登记）·post-prove 双审待重派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮回卷·P1 一件+P2 六件·其中 P2-丁 行号半不成立只登记）。
