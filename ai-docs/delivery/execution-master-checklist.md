@@ -3862,3 +3862,12 @@ flowchart TD
 - **收口**：批表仍是 228/271（84.1%）。能力项完成数仍是 32，半成 2、未收 15。上限 2280 改为 2288，扫描 2281，余 7。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2281** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line context-byte-truncation nail（2026-10-19 · 上下文截断改为按 UTF-8 字节计算）
+
+- **改动**：`capUserData` 与 `capRagMaterial` 的超限比较和标记扣除改为 UTF-8 字节，与预算拒绝使用同一套口径。数字上限不变：默认 20000、评估 12000、面试提问 16000、报告 8000、检索素材 8000。现有窗口证明和压力证明改为按字节断言。
+- **并入**：fetch 后 origin tip 仍是 `bd113e40`。merge-tree 预演 EXIT=0，tree `29c684bf`。`git merge --no-ff` 得到 `71992984`，双亲 `bd113e40` 与 `1edbbe2f`。没有冲突，没有强推。
+- **门**：窗口证明全部通过；压力证明全部通过；docs:check scanned 2282≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成数由 32 改为 33，半成 2、未收 14。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2282** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
