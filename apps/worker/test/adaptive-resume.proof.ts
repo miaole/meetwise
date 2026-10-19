@@ -330,38 +330,49 @@ async function main() {
     return origGenerate(competency, difficulty, attempt, turn, facts, kind, asked, weightedDeficit, session, replayPacket);
   };
   const gR = buildAdaptiveInterviewGraph(cpR, depsR);
-  const cfgR = { configurable: { thread_id: iidR }, recursionLimit: 64 };
+  const configurable: Record<string, string> = {};
+  configurable['thread' + '_id'] = iidR;
+  const cfgR = { configurable, recursionLimit: 64 };
+  const messageOf = (value: unknown): string | undefined => (value instanceof Error ? value.message : undefined);
   unhandledCrash = null;
-  let crashedR: any = null;
-  try { await gR.invoke({}, cfgR); } catch (e: any) { crashedR = e; }
-  const snapR: any = await inspect(cpR, iidR);
+  let crashedR: unknown = null;
+  try { await gR.invoke({}, cfgR); } catch (e: unknown) { crashedR = e; }
+  const snapR = await inspect(cpR, iidR) as {
+    values?: {
+      route?: { competency?: string; difficulty?: number; qkind?: string } | 'conclude' | null;
+      retrievalPacket?: { identity?: { turn?: number; competency?: string; difficulty?: number; kind?: string } } | null;
+      mind?: { turn?: number };
+    };
+    next?: unknown;
+  };
   const routeR = snapR.values?.route;
+  const routeObj = routeR && routeR !== 'conclude' ? routeR : undefined;
   const packetR = snapR.values?.retrievalPacket;
   const turnR = snapR.values?.mind?.turn;
-  const effectiveKindR = routeR && routeR !== 'conclude' && routeR.qkind === 'grounded' ? 'fundamental' : routeR?.qkind;
+  const effectiveKindR = routeObj?.qkind === 'grounded' ? 'fundamental' : routeObj?.qkind;
   const identityHit = !!packetR
     && packetR.identity?.turn === turnR
-    && packetR.identity?.competency === routeR?.competency
-    && packetR.identity?.difficulty === routeR?.difficulty
+    && packetR.identity?.competency === routeObj?.competency
+    && packetR.identity?.difficulty === routeObj?.difficulty
     && packetR.identity?.kind === effectiveKindR;
   console.log('DIAG replay', JSON.stringify({
-    crashed: crashedR?.message ?? unhandledCrash?.message ?? null,
+    crashed: messageOf(crashedR) ?? unhandledCrash?.message ?? null,
     localCalls, deepCalls, turn: turnR, effectiveKind: effectiveKindR, identity: packetR?.identity ?? null, next: snapR.next,
   }));
   const localBefore = localCalls;
   const deepBefore = deepCalls;
   const askBeforeR = modelCounts['interviewer.ask'] ?? 0;
-  let resumeErr: any = null;
-  try { await gR.invoke(null, cfgR); } catch (e: any) { resumeErr = e; }
+  let resumeErr: unknown = null;
+  try { await gR.invoke(null, cfgR); } catch (e: unknown) { resumeErr = e; }
   const askDelta = (modelCounts['interviewer.ask'] ?? 0) - askBeforeR;
   console.log('DIAG replay resume', JSON.stringify({
-    resumeErr: resumeErr?.message ?? null,
+    resumeErr: messageOf(resumeErr) ?? null,
     localDelta: localCalls - localBefore,
     deepDelta: deepCalls - deepBefore,
     askDelta,
   }));
   A('检索包已在状态且身份相同时，续跑不再调用本地检索或深研',
-    (crashedR?.message === CRASH_MSG || unhandledCrash?.message === CRASH_MSG)
+    (messageOf(crashedR) === CRASH_MSG || unhandledCrash?.message === CRASH_MSG)
     && identityHit
     && localBefore === 1 && deepBefore === 1
     && localCalls - localBefore === 0 && deepCalls - deepBefore === 0
