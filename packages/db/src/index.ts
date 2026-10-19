@@ -73,7 +73,7 @@ export async function releaseLease(c: Client, threadId: string, leaseOwner: stri
 export {
   reserveEntitlement, confirmConsumption, confirmConsumptionUnits, releaseConsumption, availableUnits,
   completeInterviewAndConfirm, failInterviewAndRelease, abandonInterviewAndRelease,
-  renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile,
+  renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile, purgeExpiredRelayedOutbox,
   reserveEntitlementForApplication,
   MIN_UNIT, DEFAULT_LEASE_SECONDS,
 } from './commerce/commerce.ts';
