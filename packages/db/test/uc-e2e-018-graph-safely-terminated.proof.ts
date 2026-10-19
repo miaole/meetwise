@@ -13,9 +13,11 @@
  *
  * Cite: harness/uc-e2e-018-graph-safely-terminated.md · parent §1b #2 · status-machine AiGraphRun
  */
+import { randomUUID } from 'node:crypto';
 import {
   assertIsolatedTestTarget, createPool, asPrincipal,
   reserveEntitlement, abandonInterviewAndRelease, availableUnits,
+  claimNextInterviewJob,
 } from '../src/index.ts';
 
 const pool = createPool();
@@ -53,7 +55,7 @@ async function insertBusinessFacts(owner: string, id: string) {
   await asPrincipal(pool, owner, async (c) => {
     await c.query(
       `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload)
-         VALUES ($1,$2,1,'question_issued','{"q":"Q1"}'::jsonb)`,
+         VALUES ($1,$2,1,'question_ready','{"q":"Q1"}'::jsonb)`,
       [owner, id],
     );
     await c.query(
@@ -102,7 +104,7 @@ async function main() {
   {
     const owner = OWN('g1'), id = IID('g1');
     await seed(owner, 5.0);
-    await insertInterview(owner, id, 'active');
+    await insertInterview(owner, id, 'waiting_user');
     await insertGraphRun(owner, id, 'active');
     await insertBusinessFacts(owner, id);
     await asPrincipal(pool, owner, (c) =>
@@ -152,7 +154,7 @@ async function main() {
   {
     const owner = OWN('g4'), id = IID('g4');
     await seed(owner, 4.0);
-    await insertInterview(owner, id, 'active');
+    await insertInterview(owner, id, 'waiting_user');
     await insertGraphRun(owner, id, 'active');
     await asPrincipal(pool, owner, (c) =>
       reserveEntitlement(c, owner, id, 'mock_interview', 1.0));
@@ -169,7 +171,7 @@ async function main() {
   {
     const owner = OWN('g5'), id = IID('g5');
     await seed(owner, 3.0);
-    await insertInterview(owner, id, 'active');
+    await insertInterview(owner, id, 'waiting_user');
     await asPrincipal(pool, owner, (c) => c.query(
       `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version)
          VALUES ($1,$2,$3,'safe_terminating',1)`,
@@ -180,6 +182,58 @@ async function main() {
     await asPrincipal(pool, owner, (c) =>
       abandonInterviewAndRelease(c, owner, id));
     A('G5 → safely_terminated', (await graphStatus(owner, id))?.status === 'safely_terminated');
+  }
+
+  section('G6 · 放弃时仍排队的作业改为 failed，且不能再被领取');
+  {
+    const owner = OWN('g6'), id = IID('g6');
+    await seed(owner, 5.0);
+    const resumeId = randomUUID();
+    await pool.query(
+      "INSERT INTO resume(id,owner_user_id,status,content_sha,privacy_epoch) VALUES ($1,$2,'ingested',$3,1)",
+      [resumeId, owner, `graph-job:${id}`],
+    );
+    await pool.query(
+      "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'waiting_user',$3,1)",
+      [id, owner, resumeId],
+    );
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, id, 'mock_interview', 1.0));
+    await asPrincipal(pool, owner, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version)
+         VALUES ($1,$2,'start',0,$3::jsonb,$4,1,64,'queued','stale-worker',now()+interval '10 minutes',4)`,
+      [owner, id, JSON.stringify({ answer: 'secret-answer', turn: 1 }), resumeId],
+    ));
+    await asPrincipal(pool, owner, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version)
+         VALUES ($1,$2,'start',1,$3::jsonb,$4,1,64,'running','live-worker',now()+interval '10 minutes',2)`,
+      [owner, id, JSON.stringify({ answer: 'keep-running', turn: 2 }), resumeId],
+    ));
+    const ab = await asPrincipal(pool, owner, (c) => abandonInterviewAndRelease(c, owner, id));
+    A('G6 abandon → abandoned', ab.status === 'abandoned');
+    const rows = await asPrincipal(pool, owner, (c) => c.query(
+      `SELECT seq, status, last_error, lease_owner, lease_expires_at, version, payload, attempts
+         FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 ORDER BY seq`,
+      [owner, id],
+    ));
+    const queued = rows.rows.find((r) => Number(r.seq) === 0);
+    const running = rows.rows.find((r) => Number(r.seq) === 1);
+    A('G6 当时 queued 变为 failed', queued?.status === 'failed' && queued?.last_error === 'abandoned');
+    A('G6 租约已清且 version 加一、answer 已去掉',
+      queued?.lease_owner == null && queued?.lease_expires_at == null && Number(queued?.version) === 5
+      && queued?.payload?.answer === undefined && queued?.payload?.turn === 1);
+    A('G6 running 行不改', running?.status === 'running' && Number(running?.version) === 2 && running?.payload?.answer === 'keep-running');
+    await asPrincipal(pool, owner, (c) => c.query(
+      `UPDATE interview_job SET lease_expires_at=now()-interval '1 minute'
+        WHERE owner_user_id=$1 AND interview_id=$2 AND status='running'`,
+      [owner, id],
+    ));
+    const claimed = await asPrincipal(pool, owner, (c) => claimNextInterviewJob(c, owner, 'proof-claimer'));
+    A('G6 放弃后不能再被领取', claimed === null);
+    const afterClaim = (await asPrincipal(pool, owner, (c) => c.query(
+      'SELECT status FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0',
+      [owner, id],
+    ))).rows[0];
+    A('G6 领取尝试后仍是 failed', afterClaim?.status === 'failed');
   }
 
   console.log(`\n${fail === 0

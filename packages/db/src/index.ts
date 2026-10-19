@@ -132,7 +132,7 @@ export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP
 
 // 面试 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割孤儿 running
 export {
-  enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, enumerateOwnersWithJobs,
+  enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, failQueuedInterviewJobsOnAbandon, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
   DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT, purgeStaleInterviewJobPayloads, INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
 } from './interview/interview-jobs.ts';
