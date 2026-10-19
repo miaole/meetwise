@@ -105,3 +105,67 @@ draft:awaiting_pre_exec_dual
 以上说明的产品代码本步不改。
 
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+§1 只改 `sweepStuckInterviewJobs` 里「running、租约已过期、次数未达上限」那一条（`:327-330`）。作业已经是 `queued` 且次数未达上限时不在这行里。`claimNextInterviewJob`（`:153-179`）不读 `interview.status`，失败面试上仍排队的作业还会被领走；没有图运行行时插入 active 图行再出题，不在本说明里改。`requeueInterviewJob`（`:288-296`）今天的语句（`:289-293`）也不读面试状态，面试已经是 `failed` 之后仍把 `running` 写回 `queued`。写回之后下一次清扫的 `:327-330` 要求 `status='running'`，看不见它。
+
+执行范围以本段为准，三件都要做。§1 已经写明的那一条保留，不删，也不把三件并成一条 WHERE。
+
+### 1. 过期的 running，面试恰好是 failed
+
+保留 §1。`sweepStuckInterviewJobs`（`:320-343`）里 `:327-330` 的 WHERE 不变：`owner_user_id=$1`、`status='running'`、`lease_expires_at < now()`、`attempts < $2`。没有面试行的作业仍在这个行集里，不用内连接滤掉。
+
+同一条语句里读到的面试 `status` 恰好是 `failed` 时，作业改为 `failed`，`last_error` 用本文件 `:277` 已有字面量 `abandoned`，不新造。面试不是 `failed`（读不到面试行，或 `status` 不是 `failed`，含 `created`、`active`、`abandoned`、`completed`）时，仍改回 `queued`，`last_error` 保持原值。SET 仍把 `lease_owner` 与 `lease_expires_at` 写成 NULL，`version` 加 1。不改 `payload`，不写 `next_attempt_at`，不改 `attempts`。
+
+不改达上限的两条，即使面试已经是 `failed` 也不改成 `abandoned`：
+
+- `:323-326`：`last_error` 仍是 `reaped:worker_died`。
+- `:332-335`：`last_error` 仍是 `reaped:retry_exhausted`。
+
+`:331` 与 `:337-342` 不改。`requeued` 仍只是 `:327-330` 的 `rowCount`。这一条里因面试已是 `failed` 而写成 `failed` 的行仍算在这个 `rowCount` 里，不进入 `failed` 或 `failedInterviews`。
+
+### 2. 已经是 queued、次数未达上限、面试已经是 failed
+
+同一函数里另加一条 UPDATE。不要等 `claimNextInterviewJob` 把这行领走，也不要把 `queued` 并进 `:327-330` 的 WHERE。`:327-330` 的行集仍只有 running 且租约过期且未达上限。
+
+新语句的 WHERE：`owner_user_id=$1`、`status='queued'`、`attempts < $2`，并且相关子查询读到的面试 `status` 恰好是 `failed`。子查询与 §1 相同：`interview.id = interview_job.interview_id` 且 `interview.owner_user_id = interview_job.owner_user_id`。参数仍是 `[owner, maxAttempts]`，不改 `:320-322` 的函数签名。读不到面试行，或面试不是 `failed`，不匹配本条。
+
+SET：`status='failed'`，`last_error='abandoned'`（仍是 `:277` 的字面量），`lease_owner` 与 `lease_expires_at` 写成 NULL，`version` 加 1。不改 `payload`，不写 `next_attempt_at`，不改 `attempts`。
+
+面试不是 `failed` 的 queued 作业保持今天的行为：次数未达上限时本条不匹配，作业不动；次数已达上限仍只走 `:332-335`，`last_error` 仍是 `reaped:retry_exhausted`。不要把「未达上限且面试是 `failed`」并进 `:332-335`。新语句放在 `:332-335` 之前或之后都可以，但不得改那一条的 WHERE 或 SET。
+
+这条新语句的 `rowCount` 不进入 `requeued`、`failed`、`failedInterviews`，不改 `:337-342`，不新增日志，也不改 `:331`。因此 `apps/worker/src/interview-consumer.ts` 的 `reapStuckInterviewJobs`（`:631-653`）不会为这些行再调用 `terminalizeUnsettledInterview`，不会再发终态事件，也不会再退预留。
+
+### 3. requeueInterviewJob
+
+`requeueInterviewJob`（`:288-296`）。WHERE 保持 `id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`，仍只动当前租约持有者的 running 行。函数签名不改，返回值仍是 `rowCount === 1`。不改调用点 `requeueOrTerminalizeExhausted`（`apps/worker/src/interview-consumer.ts:285-304`，其中 `:302` 仍调用本函数）。未达上限时它仍返回 `'retry'`；面试已经是 `failed` 时，作业在本函数里变成 `failed`，下一次领取选不中它。
+
+同一条语句里用与 §1 相同的相关子查询读面试状态：
+
+- 读到的 `status` 恰好是 `failed`：不得写成 `queued`。作业 `status='failed'`，`last_error='abandoned'`（`:277`）。`lease_owner` 与 `lease_expires_at` 仍写成 NULL，`version` 仍加 1。不改 `payload`，不改 `attempts`。这一支不写 `next_attempt_at`。退避只属于写回 `queued` 的那一支，写成 `failed` 之后不再预约重领。
+- 读不到面试行，或 `status` 不是 `failed`：保持今天的写回。SET 与今天 `:289-291` 相同，`status='queued'`，租约两列 NULL，`version` 加 1，并写 `next_attempt_at=now()+make_interval(secs=>least(power(2,attempts)::int,$4))`。第四个参数仍是 `INTERVIEW_RETRY_BACKOFF_CAP_SECONDS`（`:18`）。`last_error` 保持原值。
+
+### 明确不改
+
+- `claimNextInterviewJob` 的 SQL（`:153-179`），包括它不读 `interview.status`。`:162-163` 仍是 queued 臂或 running 且租约过期且 `attempts < $4`。`:167` 仍只排除同一面试已有 `interview_job.status='failed'` 的兄弟行。失败面试要在被领走之前由第 2 条与第 3 条写成 `failed`，不靠改领取条件。
+- `failQueuedInterviewJobsOnAbandon`（`:274-281`）的 WHERE（`:279`）仍然只含 `status='queued'`。不把清 `payload` 的动作搬进上面两条失败语句。
+- 图运行插入。没有图运行行时插入 active 图行再出题，不在本说明里，那是另一份说明。
+- 押题收割 `sweepStuckQuizJobs`（`packages/db/src/jobs/quiz-jobs.ts:84`，改回排队的 `:91-94`）。诊断收割 `sweepStuckDiagnosisJobs`（`packages/db/src/jobs/diagnosis-jobs.ts:75`）也不改。
+- `packages/db/src/commerce/commerce.ts` 的 `failInterviewAndRelease`（`:406-435`）。本工作树里它写成 `failed` 时没有取消 `interview_job`。主线上在写成 `failed` 的当时取消排队作业的那段，本基线还没有。本说明不改这个函数，也不把主仓文件抄过来。
+- 不新增迁移，不新增测试文件，不新开 npm script。不改 `packages/db/src/index.ts:141` 已有的导出。不发明天数或锁池大小。`MAX_INTERVIEW_JOB_ATTEMPTS`（`:15`）仍是 5。`DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT`（`:20`）不改。`MAX_INTERVIEW_PER_OWNER_QUEUED`（`:25`）仍是 3，不许改大。
+
+### 证明
+
+证明仍只扩 `apps/worker/test/reaper.proof.ts`。直接调用生产函数，不在测试里重写 `sweepStuckInterviewJobs` 或 `requeueInterviewJob` 的 SQL。`requeueInterviewJob` 已从 `packages/db/src/index.ts:141` 导出；证明只在现有 `@meetwise/db` 导入（`:13-18`）里加上它。夹具可以沿用本文件已有的插入和 `orphanInterview`（`:35-37`）。不改 `packages/db/test/authz5a2-stale-payload-ttl.proof.ts`。
+
+§2 已有的一臂保持：过期 running 且面试 `failed` → 作业 `failed`、`last_error` 是 `abandoned`；`created` 那场仍回到 `queued`。在这一臂之外再加下面两臂。三臂都放在 `:158` 的心跳节之后、`:160` 的汇总日志之前，不要插进①到⑦中间，也不要另开测试文件。前面①到⑦的断言不改。已有 `active` 或 `created` 面试的旧断言保持原样：`reaper.proof.ts` 里两场 `created`（`:61`）以及 `:86-104` 的续租、回到 queued、达上限收成 failed；`authz5a2-stale-payload-ttl.proof.ts` 里面试是 `active`，`:100-102` 的 `requeued === 2` 与 `failed === 0` 仍然成立。
+
+两臂的面试插法与 §2 相同：插入时 `status` 就是 `failed`，且没有消费行，都不调用 `reserveEntitlement`。不新写天数。沿用本证明已摄取的简历与 `resumeEpoch`。§2 那两场仍按 §2 先一起入队再写成 running。这两臂各自在下一场 `enqueueInterviewJob` 之前先扫完或写回，避免同 owner 的 queued 条数撞上已有上限 3。
+
+- 排队臂：`enqueueInterviewJob` 一条 start 之后作业仍是 `queued`。次数是入队现值，即 `interview_job.attempts` 的列默认值 0（`packages/db/migrations/0001_baseline.sql:261`），小于 `MAX_INTERVIEW_JOB_ATTEMPTS`。不要先写成 running。`asPrincipal` 调用 `sweepStuckInterviewJobs(c, OWNER)`，使用默认次数上限。扫完后这行 `status` 是 `failed`，`last_error` 是 `abandoned`，次数仍是 0（没有先被领走自增）。随后调用生产函数 `claimNextInterviewJob(c, OWNER, 'reaper-1')`，领不到这场：返回值是 `null`，或者 `interviewId` 不是这场。同库里 §2 那一场 `created` 的作业若仍是 `queued`，领取可以领到那场。不要把 `requeued === 0` 或 `failed === 1` 写成这一臂的断言。
+- 写回臂：另一场已经 `failed` 的面试上，作业仍是 `running`。可沿用 `orphanInterview`（租约所有者 `dead-worker#1`，过期间隔只使用该助手里已有的写法），次数小于 `MAX_INTERVIEW_JOB_ATTEMPTS`。这一臂直接调用 `requeueInterviewJob(c, OWNER, jobId, 'dead-worker#1')`，中间不调用 `sweepStuckInterviewJobs`。调用之后作业 `status` 是 `failed`，`last_error` 是 `abandoned`，不是 `queued`。
+
+`created` 或 `active` 面试上：过期 running 仍回到 `queued`；未达上限的 queued 仍不动；`requeueInterviewJob` 仍写回 `queued`。这些旧断言不改预期。
+
+必跑仍是 §2 已列的四条，不另加命令。
