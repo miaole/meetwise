@@ -154,4 +154,41 @@
 
 **翻面臂行使**：零停止条件命中（锚零漂移·四读零翻转·门亲跑全绿）→ STOP 三处（标题/头注/§8）`draft:awaiting_rev`→**`draft:awaiting_pre_exec_dual`**（前值史录保留于本节+三处内注）。**rev 落卷后派 pre-exec 双审两独立外席·alone≠dual·Ban self-approve**·EXEC/翻面/SSOT 行/并线/push 权仍全归协调方（⛔push 未行使）。
 
-*PGP-KEY-PARAM REQUEST · 2026-10-19 · 起草席落卷 · 2026-10-19 rev 席独立外席复核通过（§9-rev） · `draft:awaiting_pre_exec_dual`（前值 `draft:awaiting_rev`·2026-10-19 rev 翻面·史录保留） · 基线 `4c2ea4c9f` · ⛔push*
+## §9-rev2 rev2 修订注记（pre-exec 双审第一轮 FAIL+PASS 两席合并清单逐条落卷·2026-10-19）
+
+> pre-exec 双审第一轮回卷：席1 FAIL（P1×1+P2×2）+席2 PASS（P2×5）合并清单五条。rev2 修订席逐位届树亲证后落卷（工作树 `meetwise-pgp`@`line/pgp-key-param-draft`@`8ac17e2b`·锚面 blob 对基线 `4c2ea4c9f` 恒等亲证）：**四条半成立落卷·半条亲证不成立如实跳过（见五）**。上文 §0-§8+§9-rev 零字洗（本节 append+尾注行内 append 为本卷唯一改动面）；EXEC 期文面冲突处以本节为准读。STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值（标题 :1/头注 :3/§8 :98·零触）；**rev2 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+**一、P1-甲（两席同发现·「零命中/零漏报」判词被证伪→口径收窄+已知命中登记）——成立·落三步**：
+
+- 亲证（`git grep -n "pgp_sym_encrypt('"` @`8ac17e2b`）：非测试面实存两处额外命中——①`scripts/backup/sandbox-seed.sh:89`：`pgp_sym_encrypt('ha4-sentinel-cleartext-sandbox-only', 'ha4-sandbox-dummy-enc-key')` 字面哑钥直插 `resume_blob.ciphertext`（:88-90 INSERT 亲读）；文件自述 sandbox-only（:2-15「throwaway…dummy, never the production RESUME_ENC_KEY). Never points at production」:12-13）+gate 默认拒跑（:15/:21-24 `MEETWISE_HA4_BACKUP_AUTHORIZED` 非 1 即 exit 3）·接线于 `docker/compose.backup.sandbox.yml:13`（Drivers 注记亲读·运维演练面）；②`receipts/archive/2026-09-batch23/receipts/dbacl2-pgp-grant/exec.md:27`：`SET LOCAL ROLE memory_runtime; SELECT pgp_sym_encrypt('probe-body','probe-key');`——2026-09 batch23 DBACL-2 EXEC 收据 P0 手工复现探针存照（归档历史记录面）。→原 :40「`pgp_sym_encrypt('` 全树非测试面零命中」与 :135「零漏报调用点·A/B/C 三分完备」两判词被证伪成立（另 grep 命中本卷自引三处系卷面文字非代码命中·一并声明）。
+- 修正①（读一口径收窄）：B 组「零字面拼接」判词收窄为「**apps/packages 三链调用面（生产面·`packages/db/test/` 夹具面除外）零字面零插值**」——收窄口径届树亲证成立：apps+packages 去 test 面 `pgp_sym_encrypt('` 与 `pgp_sym_encrypt(${` 双 grep **EXIT=1 零命中**（rev2 亲跑）。
+- 修正②（C 组增量登记已知命中）：上述两处登记为全树口径下已知命中——`sandbox-seed.sh:89` 系 **B 组同族残余（密钥居字面·运维脚本面·哑钥非生产钥·gate 默认拒跑）**·是否另立处置挂账归协调方裁（本卷不扩面·该脚本零字节不触）；归档收据 `exec.md:27` 系历史收据探针存照·非现役代码·不改（改史录即毁证）。
+- 修正③（§1.3-① EXEC 期断言同步）：「静态字面扫描沿用零命中口径」的 EXEC 期断言同步收窄为 apps/packages 非 test 面零字面零插值；如采全树口径则附两处豁免清单（恰 `scripts/backup/sandbox-seed.sh:89`+`receipts/archive/2026-09-batch23/receipts/dbacl2-pgp-grant/exec.md:27` 两 file:line·扫描报告命中超此清单即停）。
+
+**二、P2-乙（两席同发现·件①「仅两处变」实为三处+12 参签名消歧）——成立·落**：
+
+- 亲证：0108 DECLARE 段 :197-204 现有变量（principal/v_seq/v_digest/v_event_id/v_artifact_id/v_existing/v_body_hmac）**无 `v_enc_key`**→新增赋值须伴声明行；:255 原文 `pgp_sym_encrypt(p_body, p_enc_key)` 逐字亲读；件① :64 签名形「（p_thread_id,p_category,…,p_privacy_epoch）」确仅列参数名未带类型。
+- 修正：「函数体对 0108 逐字节承袭仅两处变」修为「**三处文字变**」——①DECLARE 段增 `v_enc_key text;` 声明行；②校验段 `v_enc_key := current_setting('app.conversation_event_enc_key', true)` 赋值+NULL/空即 `RAISE … ERRCODE='22023'`（替 0108:214 `p_enc_key IS NULL OR length(p_enc_key)=0`·同码同语义）；③:255 加密行改 `pgp_sym_encrypt(p_body, v_enc_key)`。其余逐字节不动判词维持。
+- 签名消歧句：12 参 CREATE 签名坐标系=**0108:178-190 共 13 参行恰去 :186（`p_enc_key text`）→12 参·类型随 0108 原形逐参补全**（:178-:190 逐行亲读；清单所拟「178-189」经亲证系漏计 :190 `p_privacy_epoch bigint` 第 13 参行·落卷以亲证 :178-190 为准）。
+
+**三、P2-丙（席2·DROP 形制未指明）——先例亲证成立·裁量采纳 IF EXISTS 形**：
+
+- 亲证：0184:218 `DROP FUNCTION IF EXISTS ai_model_claim_invocation_scoped(text,…,text)` 全型带 IF EXISTS 先例形（另 :442/:490 同形）·紧随 :219 CREATE OR REPLACE——「DROP IF EXISTS→CREATE」系仓内既立形。
+- 裁量：**采纳**。fresh 回放序 plain DROP 亦正确（0108 恰先建 13 参版·两形正确性等价）；采纳 IF EXISTS 系无害强化+仓内先例形对齐。EXEC 期件① DROP 以 `DROP FUNCTION IF EXISTS conversation_event_append(text,text,text,text,text,text,integer,integer,text,text,text,bigint,bigint)`（13 参全型·型列随 §1.1 原形=0108:178-190 逐参序）为准；§1.1 plain-DROP 文面史录保留。
+
+**四、P2-丁（席2·直连臂 set_config+负门臂升格）——成立·升格落**：
+
+- 亲证：`db-acl2.proof.ts:173-179` 直连 SQL 调用臂（`appendArgs` 恰 13 元·第 9 位=ENC_KEY·`callAppend` 直发 13 参句）亲读；§2 门5 :86 原文无此两臂；§9-rev 四 :147 该两项现居「强化注记（非阻塞）·建议」位阶。
+- 升格句：下列两项**由建议位阶升格并入 §2 门5 EXEC 期正文义务**（EXEC 期漏任一即门5 红·非事后机械兜底）：①db-acl2 直连臂重 pin 时须先同事务补 `SELECT set_config('app.conversation_event_enc_key', $1, true)` 步骤（直连调用无 GUC 即 22023·此即新契约）；②EXEC 期增补「GUC 缺失→22023」显式负门臂（不执行 set_config 直调 append·断言 22023 拒绝）。
+
+**五、P2-戊（两席·轮转行号+尾注坐标系）——半成立·半落半跳**：
+
+- **落（:109 勘误·成立）**：§9-rev 六「卷尾注 :109 同值第四处」系**翻面前旧坐标系**——`c7f30447`（rev 翻面前）版尾注恰居 :109（`git show` 亲证）；rev 落 §9-rev 附录后尾注现居 :157（亲证）·:109 现指 §9-rev 节标题行。§9-rev 六其余三坐标（标题 :1/头注 :3/§8 :98）对现卷逐一亲证仍准确·零扰。读法：§9-rev 六「:109」一律按「翻面前坐标系·现 :157」读。
+- **跳（轮转行号「:41-44 实为 :40-42」提案·亲证不成立）**：ctx03 blob `0a27f2cf` 对 `4c2ea4c9f` 与 `8ac17e2b` 恒等亲算；:41=`CONVERSATION_EVENT_KEY_VERSION` 导出行·:42-:44=`encKeyForVersion` 函数（头 :42/体 :43/闭 :44）——「:41-44」恰覆盖轮转面·原文准确；「:40-42」反含注释收括号 :40 且漏 :43 `CONVERSATION_EVENT_ENC_KEY_V${v}` 实参引用。原卷 :41-44 维持·零修正·如实登记跳过（席1 F-3/席2 P2-5 同源·两席共享同一误计坐标系·第二轮外席可对此跳过登记再证）。
+
+**六、rev2 处置总账与第二轮双审重派**：
+
+- 五条清单处置：P1-甲 落·P2-乙 落（含消歧行距亲证修正）·P2-丙 采纳落·P2-丁 升格落·P2-戊 半落（:109）半跳（:41-44 提案）。本节为卷唯一改动面。
+- **STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值**（标题 :1/头注 :3/§8 :98·rev2 零触零翻面权）。**rev2 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验（含两条跳过/修正登记的复核）·alone≠dual·Ban self-approve**；第二轮双审通过前不得进 EXEC。EXEC/翻面/SSOT 行/并线/push 权仍全归协调方（⛔push 未行使）。
+
+*PGP-KEY-PARAM REQUEST · 2026-10-19 · 起草席落卷 · 2026-10-19 rev 席独立外席复核通过（§9-rev） · 2026-10-19 rev2 修订席第一轮双审清单落卷（§9-rev2·第二轮） · `draft:awaiting_pre_exec_dual`（前值 `draft:awaiting_rev`·2026-10-19 rev 翻面·史录保留） · 基线 `4c2ea4c9f` · ⛔push*
