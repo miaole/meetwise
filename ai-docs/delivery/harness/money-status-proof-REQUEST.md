@@ -112,3 +112,19 @@ draft:awaiting_pre_exec_dual
 draft:awaiting_pre_exec_dual
 
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+本节更正 P6-3 的扫描范围，并以此节为准。上文「不改 P6-3」那句保留；扫描范围改按本节，不按那句。
+
+`packages/db/test/db-money3.proof.ts` 第 363 行是 `!/ALTER\s+COLUMN|TYPE\s+numeric/i.test(migRaw)`。`migRaw` 是整份迁移原文，含行注释。`packages/db/migrations/0149_money_status_constraints.sql` 第 7 行是行注释，其中含有 `ALTER COLUMN`。只改白名单、仍扫描这份含注释的原文时，`pnpm -C packages/db prove:db-money3` 仍会失败。
+
+P6-3 改为扫描去掉行注释之后的文本，不要扫描含注释的原文。按行去掉 `--` 及其后内容，与同段已有的去注释文本同一范围。正则仍是 `ALTER\s+COLUMN|TYPE\s+numeric`（大小写不敏感）。注释里的 `ALTER COLUMN` 不得失败。
+
+可执行语句里的 `ALTER COLUMN` 或 `TYPE numeric` 仍然失败。不要放宽到可执行语句。
+
+不改迁移的任何字节。不新增迁移。不改 P6-4 的约束名断言。
+
+其余修法仍只改这份既有证明的头注、P6 白名单，外加 P6-3 的扫描范围。
+
+门不变。不把批次清单或能力项记成新增完成。
