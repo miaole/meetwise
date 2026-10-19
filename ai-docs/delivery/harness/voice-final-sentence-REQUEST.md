@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 多句最终识别要接在一起
 
@@ -81,10 +81,19 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。产品代码本步不改。
 
 ## 状态复述
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`packages/ai-runtime/src/voice-stream.ts` 的 `streamingVoiceTurn` 增加「是否已收下 final」标记，初值为否。第一句 final 仍写 `transcript = ev.text`，然后标为已收下。之后每一句写 `transcript = transcript + '\n' + ev.text`，中间恰好一个 U+000A。不 trim、不去重、不改标点。partial 分支仍只计数并回调。百炼 `result-generated` 解析、`fakeStreamingAsr` 与打断逻辑未改。
+
+`packages/ai-runtime/test/voice-stream.proof.ts` 就地增加只给这条断言用的 ASR，按序产出「还没说完」partial、「前一句已经结束」final、「后一句的前缀」partial、「后一句也结束了」final。断言 transcript 与「前一句已经结束」加一个换行再加「后一句也结束了」逐字相等。两段 partial 都不在 transcript 里。`partials` 为 2。问题与 TTS 用现成假 TTS。三处 `=== ANS` 未改。
+
+- `pnpm vstream:prove` 退出码 0
+- `node scripts/ai-docs/check-docs.mjs` 退出码 0
