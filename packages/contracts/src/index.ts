@@ -1458,7 +1458,7 @@ export const apiContract: ContractRoute[] = [
       { name: 'focus', description: '再练弱项标签 JSON 数组文本(可选·H5 R2① #252)' },
     ],
     response: BeginResult },
-  { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, request: TurnDto, response: TurnResult },
+  { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, status: 202, request: TurnDto, response: TurnResult },
   { id: 'questionFeedback', method: 'post', path: '/interview/{id}/questions/{idx}/feedback', summary: '题目反馈(赞/踩 + 可选评语)', tags: ['interview'], auth: true, request: FeedbackDto },
   { id: 'completeLearningItem', method: 'post', path: '/interview/{id}/learning-plan/complete', summary: '标记学习项完成', tags: ['interview'], auth: true, request: LearningCompleteDto },
   { id: 'transcribeInterview', method: 'post', path: '/interview/{id}/transcribe', summary: '语音作答转写(qwen-audio ASR→文本)', tags: ['interview'], auth: true, request: TranscribeDto, response: TranscribeResult },
