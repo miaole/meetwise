@@ -192,3 +192,22 @@ executed:awaiting_post_prove_dual
 `ai-docs/delivery/harness/score-span-answer-REQUEST.md,apps/worker/smoke/scoring-eval.ts,apps/worker/src/adaptive-interview-service.ts,apps/worker/test/context-stress.proof.ts,apps/worker/test/scoring-report-integrity.proof.ts`
 
 事后复验必须重跑同一命令。核对本节时，须仍在上述那一笔提交的干净工作区重跑：危机断言必须通过，unexpected 必须恰是这五份，多一份或少一份都是失败。禁止改 `scripts/i6-239-gates.proof.mjs`。
+
+## §9-rev2
+
+在当前尖端重跑 `pnpm i6-gates:prove` 时，清单比对只看到最近这一笔说明，不再列出代码文件。这不是代码退回。本次在干净尖端 `a6bc4a42fabc27b59fbdc52e75ce6af711f1f955` 重跑，退出码是 1。失败项是「改动集恰符」。`unexpected=` 后面只有 `ai-docs/delivery/harness/score-span-answer-REQUEST.md`。
+
+代码文件不在最近这一笔里。代码文件名单以这条 diff 为准：
+
+`git diff --name-only 1f08a58e4cc83175ffe7b7440dcbe941907b04a5^ 1f08a58e4cc83175ffe7b7440dcbe941907b04a5`
+
+它包含且仅包含：
+
+- apps/worker/src/interview-service.ts
+- apps/worker/src/adaptive-interview-service.ts
+- apps/worker/smoke/scoring-eval.ts
+- apps/worker/test/scoring-report-integrity.proof.ts
+- apps/worker/test/context-stress.proof.ts
+- ai-docs/delivery/harness/score-span-answer-REQUEST.md
+
+危机断言必须通过。本次重跑日志中「invokeEvaluationOnce 前置确定性扫描(先于模型 invoke)」为通过。禁止改 `scripts/i6-239-gates.proof.mjs`。
