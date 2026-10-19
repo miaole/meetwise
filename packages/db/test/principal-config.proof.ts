@@ -14,6 +14,12 @@ function reset(values: Partial<Record<(typeof KEYS)[number], string>> = {}): voi
   }
 }
 
+function resetPairs(pairs: ReadonlyArray<readonly [(typeof KEYS)[number], string]>): void {
+  const values: Partial<Record<(typeof KEYS)[number], string>> = {};
+  for (const pair of pairs) values[pair[0]] = pair[1];
+  reset(values);
+}
+
 function errorCode(fn: () => unknown): string | undefined {
   try { fn(); return undefined; }
   catch (error) { return String((error as Error).message); }
@@ -61,15 +67,28 @@ try {
   A('生产环境拒绝带尾点的 localhost（本地回环别名）',
     errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
 
-  reset({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://app:pw@localhost:5432/meetwise' });
+  resetPairs([
+    ['NODE_ENV', 'production'],
+    ['DATABASE_URL', 'postgresql://app:pw@localhost:5432/meetwise'],
+  ]);
   A('生产环境拒绝裸 localhost',
     errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
 
-  reset({ NODE_ENV: 'production', PGHOST: '::1', PGPORT: '5432', PGUSER: 'app', PGPASSWORD: 'pw', PGDATABASE: 'meetwise' });
+  resetPairs([
+    ['NODE_ENV', 'production'],
+    ['PGHOST', '::1'],
+    ['PGPORT', '5432'],
+    ['PGUSER', 'app'],
+    ['PGPASSWORD', 'pw'],
+    ['PGDATABASE', 'meetwise'],
+  ]);
   A('生产环境拒绝裸 ::1',
     errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
 
-  reset({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://app:pw@[::1]:5432/meetwise' });
+  resetPairs([
+    ['NODE_ENV', 'production'],
+    ['DATABASE_URL', 'postgresql://app:pw@[::1]:5432/meetwise'],
+  ]);
   A('生产环境拒绝方括号主机名 [::1]',
     errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
 
