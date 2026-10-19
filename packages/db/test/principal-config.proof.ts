@@ -61,6 +61,18 @@ try {
   A('生产环境拒绝带尾点的 localhost（本地回环别名）',
     errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
 
+  reset({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://app:pw@localhost:5432/meetwise' });
+  A('生产环境拒绝裸 localhost',
+    errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
+
+  reset({ NODE_ENV: 'production', PGHOST: '::1', PGPORT: '5432', PGUSER: 'app', PGPASSWORD: 'pw', PGDATABASE: 'meetwise' });
+  A('生产环境拒绝裸 ::1',
+    errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
+
+  reset({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://app:pw@[::1]:5432/meetwise' });
+  A('生产环境拒绝方括号主机名 [::1]',
+    errorCode(() => resolveDatabaseConnectionString()) === 'database_config_invalid:production_local_database_host');
+
   reset({ NODE_ENV: 'production', DATABASE_URL: 'postgresql://app:pw@db.internal:5432/meetwise', DATABASE_SSL_MODE: 'disable' });
   A('生产环境要求 verify-full TLS（完整证书与主机名验证）',
     errorCode(() => createPool()) === 'database_config_invalid:production_tls_verify_full_required');
