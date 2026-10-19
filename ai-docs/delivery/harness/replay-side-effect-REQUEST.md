@@ -2,7 +2,7 @@ executed:awaiting_post_prove_dual
 
 # 出题续跑先记住检索包再调用模型
 
-本说明只记录改法。这次不改产品源码，不改证明，不新增迁移，不新增代码文件。
+本说明记录改法。这次提交改了出题续跑的检索包通道和对应证明，不新增迁移，不新增代码文件。
 
 行号在 `a3516e9c943b3fc891e13a76e21df3bf0a6f5669` 上亲读。下面引用的是该提交里的原文。
 
@@ -171,7 +171,7 @@ executed:awaiting_post_prove_dual
 
 executed:awaiting_post_prove_dual
 
-本说明只记录改法。产品代码、证明和迁移都不在这次提交里改。
+这次提交改了检索包通道和续跑证明，不新增迁移，不新增代码文件。具体文件见 §9-EXEC。
 
 executed:awaiting_post_prove_dual
 
