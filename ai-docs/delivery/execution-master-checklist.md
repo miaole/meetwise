@@ -4087,3 +4087,21 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line retrieval-query-text nail（2026-10-20 · 向量检索文本不再带上难度标记）
+
+- **改动**：难度仍从查询协议解析，并继续按题面难度过滤。写入向量检索的文本只保留能力、岗位和栈。断言会拒绝把难度再拼回查询。
+- **并入**：merge `372ed0c8`，双亲 `68d71afb` 与 `ccce88de`。预演 tree `f806252c`。其后 `87d76f64` 给断言参数补上明确类型。没有冲突，没有强推。
+- **门**：语料证明退出码 0，隔离端口不是 54329。合并后检索源码与证明 blob 与 `ccce88de` 相同，类型补丁在其后。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、worker 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line memory-content-guard nail（2026-10-20 · 记忆内容护栏每次检测都从头匹配）
+
+- **改动**：全局正则命中后不再从上次下标继续，避免漏掉前面的手机、邮箱或证件号。判定文本没有放宽。
+- **并入**：merge `ce10eab0`，双亲 `372ed0c8` 与 `de2de324`。预演 tree `4661075d`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，端口 63747，不是 54329。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
