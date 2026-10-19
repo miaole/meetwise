@@ -674,6 +674,14 @@ export function openAICompatibleClient(cfg: {
   const model = cfg.model ?? resolved.model;
   // 测试 override 缝是否放行（本地 http loopback echo）。生产/开发恒 false。
   const textOverrideAllowed = process.env.NODE_ENV === 'test' && process.env.MODEL_TEST_TRANSPORT_OVERRIDES === '1';
+  // 文本档与有效模型名（含传入的 cfg.model）前缀不一致则在派发前拒绝。视觉端点不套这条。
+  // 只在 test 且运输覆盖同为开时整段跳过。deepseek 档必须小写字节前缀 deepseek-；百炼档小写前缀 qwen 即可。不折叠大小写。
+  if (!textOverrideAllowed && cfg.vision !== true) {
+    if ((resolved.profile === 'deepseek-cn-public' && !model.startsWith('deepseek-'))
+      || (resolved.profile === 'dashscope-cn-beijing' && !model.startsWith('qwen'))) {
+      throw new Error('text_endpoint_profile_model_mismatch');
+    }
+  }
   // The policy is created from startup-validated configuration.  When one is
   // present, it must become a provider-enforced limit rather than merely a
   // local reservation estimate.  Do not invent a default here: legacy/test

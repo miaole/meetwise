@@ -71,7 +71,7 @@ async function main() {
     process.env.MODEL_COST_ENFORCEMENT = 'enforce';
     // BAILIAN-04: 生产态不得注入 cfg.baseUrl/apiKey（会被 rejectTextTransportOverride 拒绝）。
     // 这里故意不带 endpoint/key，只验证「生产/强制计费下未绑定策略的直发客户端在派发前被拒」。
-    const unboundProductionClient = openAICompatibleClient({ model: 'unbound-production-proof' });
+    const unboundProductionClient = openAICompatibleClient({ model: 'deepseek-unbound-production-proof' });
     const unboundPlan = await unboundProductionClient.prepare?.({ service: 'proof.unbound-production', system: 'trusted', userData: 'safe fixture' }, 1);
     const unboundResult = await unboundProductionClient.complete({ service: 'proof.unbound-production', system: 'trusted', userData: 'safe fixture' }, 1);
     A('production/enforce rejects an unbound direct client before transport', unboundPlan?.ready === false
@@ -225,7 +225,7 @@ async function main() {
     process.env.NODE_ENV = 'production';
     delete process.env.MODEL_COST_ENFORCEMENT;
     try {
-      const productionOmit = openAICompatibleClient({ model: 'production-omit' });
+      const productionOmit = openAICompatibleClient({ model: 'deepseek-production-omit' });
       const productionOmitPlan = await productionOmit.prepare?.({ service: 'proof.production-omit', system: 'trusted', userData: 'safe fixture' }, 1);
       const productionOmitResult = await productionOmit.complete({ service: 'proof.production-omit', system: 'trusted', userData: 'safe fixture' }, 1);
       A('omitting cfg.env still honors process.env NODE_ENV=production',
@@ -234,7 +234,7 @@ async function main() {
         && requestBodies.length === 3);
 
       const observeOnly = openAICompatibleClient({
-        model: 'observe-only-overlay',
+        model: 'deepseek-observe-only-overlay',
         env: { MODEL_COST_ENFORCEMENT: 'observe' },
       });
       const observeOnlyPlan = await observeOnly.prepare?.({ service: 'proof.observe-only', system: 'trusted', userData: 'safe fixture' }, 1);

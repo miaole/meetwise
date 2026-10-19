@@ -239,7 +239,7 @@ async function main() {
     delete process.env.MODEL_ENDPOINT_PROFILE;
     delete process.env.MODEL_BACKUP_API_KEY;
     process.env.MODEL_API_KEY = 'proof-text-key';
-    process.env.MODEL_NAME = 'qwen-plus';
+    process.env.MODEL_NAME = 'deepseek-v4-flash';
     delete process.env.MODEL_TEXT_STREAM_ENABLED;
     delete process.env.MODEL_TEXT_STREAM_PREVIEW;
 
@@ -412,8 +412,8 @@ async function main() {
     // 上限补齐+usageSource='usage_missing'（绝不按 0）；usage 整体缺失 → undefined（流式三联钉值含
     // usage chunk——整体缺失走②静默断流 error 面，usage 面恒缺席·与非流式 ok-undefined 分臂不新造语义）。
     {
-      const s4bPolicy = { scopeId: 'scope-s4b', provider: 'p-s4b', model: 'm-s4b-fill', region: 'cn-proof', priceRevision: 's4b-r1', maxInputTokens: 1000, maxOutputTokens: 500, contextWindowTokens: 4_096, contextEstimator: 'utf8-bytes-v1' as const, contextSafetyMarginTokens: 128 };
-      const s4bPolicyClient = () => openAICompatibleClient({ model: 'm-s4b-fill', costPolicy: { ...s4bPolicy } });
+      const s4bPolicy = { scopeId: 'scope-s4b', provider: 'p-s4b', model: 'deepseek-m-s4b-fill', region: 'cn-proof', priceRevision: 's4b-r1', maxInputTokens: 1000, maxOutputTokens: 500, contextWindowTokens: 4_096, contextEstimator: 'utf8-bytes-v1' as const, contextSafetyMarginTokens: 128 };
+      const s4bPolicyClient = () => openAICompatibleClient({ model: 'deepseek-m-s4b-fill', costPolicy: { ...s4bPolicy } });
       const sseWire = (lines: string[]) => lines.map((l) => `${l}\n\n`).join('');
       globalThis.fetch = (async () => wireResponse(sseWire([
         'data: {"choices":[{"delta":{"content":"{\\"ok\\":1}"},"finish_reason":"stop"}]}',
