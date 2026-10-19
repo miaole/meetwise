@@ -1,6 +1,6 @@
 # INTERVIEW-JOB-AUTOVACUUM REQUEST（面试作业表表级自动清理参数调优刀——5C 批表残半「调优半」承接·单迁移 expand-only·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-19 落卷·est live=0·Ban self-approve·alone≠dual·⛔push·pre-exec 双审待两独立外席·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·est live=0·Ban self-approve·alone≠dual·⛔push·pre-exec 双审待两独立外席·翻面权归协调方）
 
 **席位**：战役批表下一刀起草席（协调方派单·标的=5C 组半闭注记之「autovacuum 调优半」残面）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `7a4288fb`（`git fetch` 后 `git rev-parse` 亲证=`7a4288fb137bbd162e176e3020f16b085f046bb2`）。分支 `line/autovacuum-tuning-draft`·工作树 `meetwise-iss4`（`git worktree add -B … ../meetwise-iss4 origin/feat/mysql-schema-skeleton` 本席亲立·直接落 origin tip 零 reset）。
@@ -87,7 +87,7 @@ ALTER TABLE interview_job SET (
 ## §8 停止条件与 STOP
 
 - 停止四类（现场漂移超注记级/机制不满足/越界需要/验收红不可修）：起草期均未触发（§0 亲证·侦察卡两处勘误系锚级如实登记非结论漂移）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审待两独立外席·Dual PASS≠开工·开工授权权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审待两独立外席·Dual PASS≠开工·开工授权权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（零模型外呼零 DNS 零 Key·零 env 闸零新增）·⛔push。
 
 ## §9-rev
@@ -100,4 +100,23 @@ ALTER TABLE interview_job SET (
 4. **历史提交**：提到 autovacuum 的不止起草时写的笔数（§0 写 `git log --all --oneline --grep=autovacuum` 恰 2 笔 `0a4d6901`/`b7dcce89`）。同一条检索现为 3 笔。多出来的 `9aa51852` 是文档里提到锁（`ai-docs/delivery/harness/batch5b-mig-REQUEST.md`：VALIDATE 期 SHARE UPDATE EXCLUSIVE 锁阻塞 autovacuum 时窗），不是给这张表设过存储参数。拒认领那句的原文起词是 autovacuum，不是别的字母（`queue-closeout-REQUEST.md` blob `dd0639f851e948467bffeb09c5b2f8b279086762` §1.3-1 原文起句为「autovacuum 系 DB 运维参数调优面」，§1 引文从该词末字母截成「n 系…」）。结论不变。
 
 ---
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草落卷即停·est live=0·⛔push ⛔merge 主线 ⛔force push 未用·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已改结构检查口径
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草落卷即停·est live=0·⛔push ⛔merge 主线 ⛔force push 未用·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已改结构检查口径。§9-EXEC 已落码
+
+## §9-EXEC
+
+实际迁移号是 0213。合并后 `packages/db/migrations/` 已有前缀停在 0210，0211、0212、0213 都还没有文件，所以没有顺延。文件是 `packages/db/migrations/0213_interview_job_autovacuum_reloptions.sql`。
+
+三参数原值：这张表此前没有表级存储参数，沿用 PostgreSQL 16 服务器默认。`autovacuum_vacuum_scale_factor` 原值 0.2，`autovacuum_vacuum_threshold` 原值 50，`autovacuum_analyze_scale_factor` 原值 0.1。本文件把三者设为 0.02、200、0.02。只改存储参数，不重写行。
+
+去注释后的检索：先删掉整行以 `--` 开头的注释，再在剩下的语句里找 `DROP`、`DELETE`、`UPDATE`。命中 0，该命令退出码 0。剩下的语句只有 `ALTER TABLE interview_job SET` 和这三个存储参数。
+
+各门退出码：
+
+1. `node scripts/check-migration-version-uniqueness.mjs` 退出码 0。files=211，violations=0。
+2. 去注释检索命中 0，退出码 0。相对 `origin/feat/mysql-schema-skeleton` 的文件名列表不含 0001 到 0210 的历史迁移。
+3. `pnpm turbo typecheck --force` 退出码 0。8 successful，0 cached。
+4. `pnpm turbo lint --force` 退出码 0。0 errors。警告数恰为 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。这些上限没有放宽。
+5. `node scripts/ai-docs/check-docs.mjs` 退出码 0。扫描 2273，上限 2280，没有超过。新增受管文件只有这一份 sql。
+6. 本次 diff 的五类标记词和行首冲突标记命中 0。
+7. 没有跑出站清单。本改动没有模型调用。
+8. `git diff --stat origin/feat/mysql-schema-skeleton` 恰 2 个 tracked 文件：这份 sql，和本文件。
