@@ -3835,3 +3835,12 @@ flowchart TD
 - **收口**：退避半此前已落。这一半补上之后，合计由 226/271 改为 227/271（83.8%）。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 +1（0213）· cap **2280** 现值 **2273** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line sampling-temperature nail（2026-10-19 · 路由分类和图像识别固定低采样温度）
+
+- **改动**：路由分类 `job.route-classify.v1` 和图像识别 `resume.vision` 的采样温度固定为 0。评测温度未设置或空串时为 0.2；不是有限数、小于 0 或大于 2 时在加载时拒绝。规划胜任力仍是 0.2，简历诊断仍是 0.3。出站登记增加这一证明的本地适配与测试夹具两条，硬计数 53→54。
+- **并入**：fetch 后 origin tip 仍是 `8d197be6`，其 `ci` 39251003534 已成功。merge-tree 预演 EXIT=0，tree `6d908afc`。`git merge --no-ff` 得到 `6c9ab12c`，双亲 `8d197be6` 与 `ffeafa7c`。没有冲突，没有强推。
+- **门**：采样温度四臂全部通过（隔离库 applied=211）；回放优先五臂通过；结构化输出四臂通过；出站清单 pairs=54、environment_references=333；出站证明 7/7；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601；docs:check scanned 2275≤2280。
+- **收口**：能力项完成数由 31 改为 32，半成 2、未收 15 维持。批表仍是 227/271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 现值 **2275** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
