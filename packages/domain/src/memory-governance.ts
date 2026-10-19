@@ -88,5 +88,9 @@ const MEMORY_PII_RES = [
 export function assertMemoryFactContentSafe(content: string): void {
   if (typeof content !== 'string' || content.length === 0) fail('memory_content_empty');
   if (content.length > 8000) fail('memory_content_too_long');
-  for (const re of MEMORY_PII_RES) if (re.test(content)) fail('memory_content_pii');
+  for (const re of MEMORY_PII_RES) {
+    // /g 的 test 命中后 lastIndex 停在匹配末尾；不复位则下次从该下标续扫，前面的手机/邮箱/证件会被放行。
+    re.lastIndex = 0;
+    if (re.test(content)) fail('memory_content_pii');
+  }
 }
