@@ -1,6 +1,6 @@
-# Harness — **5A UPLOAD-GUARDS**（#108 简历提取硬超时=Promise 竞速不真终止 + #109 上传只信后缀/MIME 无魔数嗅探 · 一卷两题 · REQUEST · **`draft:awaiting_pre_exec_dual`**）
+# Harness — **5A UPLOAD-GUARDS**（#108 简历提取硬超时=Promise 竞速不真终止 + #109 上传只信后缀/MIME 无魔数嗅探 · 一卷两题 · REQUEST · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（docs-only · 零码面零迁移 · Ban self-approve · alone ≠ dual）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码+门矩阵全绿 2026-10-19 · 前值 `draft:awaiting_pre_exec_dual` @draft/rev/rev2 史录保留 · post-prove 双审两独立外席待派 · alone ≠ dual · Ban self-approve）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE /privacy/interview-data/:id = 503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false
 **Date**: 2026-10-16
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`d5141dfc8`**（本席 `git fetch origin` 亲证 tip 恰等派单下界 ≥d5141dfc8 · 本 worktree `line/upload-guards-draft` 同源）
@@ -152,7 +152,7 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 ## §8 STOP
 
-状态 **`draft:awaiting_pre_exec_dual`**：预执行双审两独立外席 BOTH `Verdict: PASS` 落卷 + **协调方明示授权**后方可进 EXEC（落码面=§1 修法清单·不得改 §1 与 §4 Ban/pins·改则回炉重审）；实现不自批；nail 归 meetwise。**STOP**
+状态 **`executed:awaiting_post_prove_dual`**（EXEC 已行使 2026-10-19·门矩阵全绿见 §9-EXEC·post-prove 双审两独立外席待派·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）。EXEC 面=§1 修法清单（不得改 §1 与 §4 Ban/pins·改则回炉重审）；实现不自批；nail 归协调方。**STOP**
 
 **待双审/EXEC 裁决项**：①worker 文件形制（同文件自 fork vs 伴生件·G2 tsx 实证后定）；②pdf 魔数窗（1024 窗 vs 恰 0·EXEC 实定落 receipt）；③resourceLimits 定值；④LEDGER `:85` 🔒 注记更新措辞（nail 时点行使）。
 
@@ -228,4 +228,14 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 ---
 
-*5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`** · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+## §9-EXEC 记录（2026-10-19 · 协调方内联 EXEC（子 agent 配额枯竭·三席零产出后转内联）· 门矩阵全绿 EXIT 原值）
+
+1. **码面落点**（恰 7 tracked=5 改+2 新）：`packages/domain/src/resume-extract.ts` 重构（#109 嗅探 `assertMagicMatchesDeclaration` 分派最前置[先于 :75 加密扫描]+#108 worker 化[pdf/docx 入 isolate·terminate 真终止·事件映射三行{code} 重建/OOM→extract_timeout 级/启动失败→parse_failed·error 监听随 spawn 同步挂载·AbortSignal seam settle-once]+帽常量探针定值）+`resume-extract-worker.ts` 新建（结构化 {code,message} 回传·encrypted 码跨线程保真·heapUsed 回带）+`resume.service.ts` catch 增 magic_mismatch 422 分支+`resume-extract.proof.ts`（:39-40 fixture 升全签守恒+截断魔数/PK 三变体四负例臂+craftMinimalPdf 真 PDF 正例臂·30 断言）+`neg-resume.proof.ts` :35/`validate.ts` :392 fixture 升级守恒+`resume-cap-probe.ts` 探针脚本。
+2. **帽值定值（探针形）**：8MB 文本充实合法 PDF（手构 xref 零依赖）阶梯探针 64/96/192 OOM·**256 成功（heapUsed 232.6MB）**→`RESUME_WORKER_HEAP_CAP_MB=256`；与双审量基带 58-74MB 交叉校验通过（非低定）·terminate 臂（1024 帽+500ms）=extract_timeout 且宿主存活。
+3. **门矩阵全绿（EXIT 原值）**：typecheck --force 8/8 0cached EXIT=0（20.1s）｜lint --force 12/12 0cached EXIT=0（domain **115 恰等**·api 1423 恰等·EXEC 自修 5 条新增面[探针函数命名+4 臂 catch 类型化]·既有臂零触）｜domain proof **30/30**（25+5 新臂·真 PDF 正例经 worker 全链）｜neg:resume **91 条全绿**（隔离 wrapper）｜neg:input **135 条全绿**｜authz34:chunked-cap **7 条全绿**｜uc015:ingest-failures **12 条全绿**（生产 loader 形·兼任 G2 生产 loader worker 真解析实证）｜api:validate 全部通过｜docs:check **2261≤2264**｜markers 0｜探针 receipt 如 §9-EXEC-2。
+4. **偏离登记**：①EXEC 由协调方内联（三 EXEC 席连续 600s 零产出·配额枯竭·非门红非环境误判）②触面 7 tracked 超卷面预估 5-6（+worker 伴生件为 §1.1-1 既有授权面·+cap 探针脚本为双审三席2 P2-A/B/C EXEC 义务载体·均授权域内）③G2 双 loader 实证=domain proof（tsx 形·真 PDF 正例臂）+uc015（生产 loader 形）双证兑现④启动失败负例臂以注入缝指引落 §9（坏路径 env 覆盖·未单列臂——映射表三行由 message/OOM/exit 分支覆盖+worker 伴生件在仓为启动面常真·如实登记）。
+5. **卫生**：est live=0（全门本地/隔离库·零外呼零 secrets）·actualSpendCny=null · ⛔push ⛔merge 主线。
+
+---
+
+*5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-19 EXEC 落码·前值 draft 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve） · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*

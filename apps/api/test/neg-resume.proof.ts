@@ -31,8 +31,8 @@ const resumeExists = async (id: string) =>
   Number((await h.pool.query('SELECT count(*)::int AS n FROM resume WHERE id=$1', [id])).rows[0].n) === 1;
 
 const VALID = '工作经历\n负责后端订单系统三年，熟悉分布式限流与高并发架构设计与落地';   // 合法长度(>20),供门禁/畸形对照
-// 一张最小合法 base64(内容无所谓,image/* mime 即走 image_needs_ocr → OCR 链路)
-const IMG_B64 = Buffer.from('fake-png-bytes-not-really-an-image').toString('base64');
+// 一张最小合法 base64(头部真 PNG 魔数过 #109 嗅探门,image/* mime 即走 image_needs_ocr → OCR 链路·断言面守恒)
+const IMG_B64 = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from('fake-png-bytes-not-really-an-image')]).toString('base64');
 
 // ══════════════════════════════════════════════════════════════════════════
 // 1) 同意门(PIPL 硬门槛):未同意绝不偷偷处理简历 PII
