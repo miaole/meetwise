@@ -269,8 +269,9 @@ async function main() {
   const spanCfg = { configurable: { thread_id: spanThread } };
   await spanGraph.invoke({}, spanCfg);
   await spanGraph.invoke(new Command({ resume: spanAnswerVault.issue(graphOriginal) }), spanCfg);
-  const spanState: any = await spanGraph.getState(spanCfg);
-  const spanTurn = spanState.values.transcript.at(-1);
+  const spanState = await spanGraph.getState(spanCfg);
+  const spanTranscript = spanState.values.transcript as Turn[];
+  const spanTurn = spanTranscript.at(-1);
   const spanDisp = spanTurn?.dispositions?.[0];
   A('图路径模型回答等于 clean', graphSeen === graphClean && graphSeen !== graphOriginal);
   A('answered 的 dispositions 对原文复验通过、对 clean 失败',
