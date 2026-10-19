@@ -2,7 +2,6 @@
  * @meetwise/db · 长期记忆存储 ops。content=派生摘要(非 PII)。向量化在 memory-service(注入 embedder),这里只管行存取。
  */
 import type { PoolClient as Client } from 'pg';
-import { SESSION_QUESTION_MAX_CHARS } from '../../../ai-graphs/src/adaptive-interview/session-summary.ts';
 
 export type MemoryKind = 'skill' | 'weakness' | 'topic' | 'preference' | 'episode';
 export interface MemoryRow { id: string; kind: MemoryKind; content: string; salience: number; sourceId: string | null }
@@ -48,24 +47,30 @@ export async function episodeSeen(c: Client, owner: string, content: string): Pr
 
 export const WEAKNESS_DECAY_WINDOW_SESSIONS = 5;
 
-/** 题面截断沿用既有会话单条字数上限,避免把代理对切成半个字符。 */
-function clipAskedStem(stem: string): string {
-  const max = SESSION_QUESTION_MAX_CHARS;
-  if (stem.length <= max) return stem;
-  let end = max;
-  const code = stem.charCodeAt(end - 1);
-  if (code >= 0xd800 && code <= 0xdbff) end -= 1;
-  return stem.slice(0, end);
-}
-
-/** 该候选人最近的情景题面。只读 kind=episode,显式按 owner 过滤;条数上限沿用既有场次窗口。
- *  返回前归一化、丢掉空串、按既有题面字数截断,同一归一化题面只留一次。不做向量或语义相似。 */
+/** 该候选人最近若干场的情景题面。一行一道题,source_id 才是场次。
+ *  只取该 owner、kind=episode、source_id 非空的最近若干个不同 source_id,
+ *  场次按 max(created_at)、max(id) 倒序,个数用既有窗口常量。
+ *  再返回这些场里的题面,行序为 created_at、id 倒序。
+ *  显式按 owner 过滤。返回归一化题面,不截断,同一题面只留一次。
+ *  不做语义相似。source_id 为空的行不计入场次,也不返回。 */
 export async function recentAskedStems(c: Client, owner: string): Promise<string[]> {
   const r = await c.query(
-    `SELECT content FROM user_memory
-      WHERE kind = 'episode' AND owner_user_id = $1
-      ORDER BY created_at DESC, id DESC
-      LIMIT $2`,
+    `WITH recent_sessions AS (
+       SELECT source_id
+         FROM user_memory
+        WHERE kind = 'episode'
+          AND owner_user_id = $1
+          AND coalesce(btrim(source_id), '') <> ''
+        GROUP BY source_id
+        ORDER BY max(created_at) DESC, max(id) DESC
+        LIMIT $2
+     )
+     SELECT content
+       FROM user_memory
+      WHERE kind = 'episode'
+        AND owner_user_id = $1
+        AND source_id IN (SELECT source_id FROM recent_sessions)
+      ORDER BY created_at DESC, id DESC`,
     [owner, WEAKNESS_DECAY_WINDOW_SESSIONS]);
   const seen = new Set<string>();
   const out: string[] = [];
@@ -73,8 +78,7 @@ export async function recentAskedStems(c: Client, owner: string): Promise<string
     const normalized = normalizeQuestion(String(row.content ?? ''));
     if (!normalized || seen.has(normalized)) continue;
     seen.add(normalized);
-    const stem = clipAskedStem(normalized);
-    if (stem) out.push(stem);
+    out.push(normalized);
   }
   return out;
 }
