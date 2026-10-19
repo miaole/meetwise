@@ -2,7 +2,7 @@
  *  组A=classifyAdaptiveRunPosition 纯分类(done/'END'·pending tasks 形 'interrupt:awaitAnswer'·裸节点卡死形·degraded conclude lastError·确定性);
  *  组B=graphRunStuckThresholdCrossed 阈值谓词(首观测 false/同名裸节点 true/异名 false/前次 interrupt: 形 false/stuck=false false);
  *  组C=db 哑读写模块 stub 客户端(record SQL 三列 SET 零 version/status= 赋值+六值活行 WHERE·read 返回形·列侧谓词五值域·stub 拒绝诚实上抛);
- *  组D=静态锚 C5(observeGraphRunPosition try/catch+console.warn·两挂点恰 2·零新增 invoke(null·metrics 尾槽·index 导出·0205 三列·01_schema 镜像)。
+ *  组D=静态锚 C5(observeGraphRunPosition try/catch+console.warn·两挂点恰 2·零新增 invoke(null·两处 cfg 含 recursionLimit: 64·四处 g.invoke 第二参仍是 cfg·metrics 尾槽·index 导出·0205 三列·01_schema 镜像)。
  *  断言失败只记命中名,零业务数据 dump。est live=0(纯函数+stub·零 Key·零 fetch·零 env 触)。 */
 import { readFileSync } from 'node:fs';
 import { classifyAdaptiveRunPosition, graphRunStuckThresholdCrossed } from '../src/adaptive-lifecycle.ts';
@@ -113,6 +113,12 @@ function sectionD() {
     lifecycle.split('await observeGraphRunPosition(d, snap);').length - 1 === 2);
   A('C5c 零新增 invoke(null:代码形 await g.invoke(null 恒 2(AG-05/AG-26 既有修复臂·卡死臂零修复静态证)∧字面总数恒 5(4 基线+1 Ban 注释)',
     lifecycle.split('await g.invoke(null').length - 1 === 2 && lifecycle.split('invoke(null').length - 1 === 5);
+  const cfgWithLimit = 'const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };';
+  A('C5h 两处 cfg 含 recursionLimit: 64 且该字面恰两处',
+    lifecycle.split(cfgWithLimit).length - 1 === 2 && lifecycle.split('recursionLimit: 64').length - 1 === 2);
+  const invokeLines = lifecycle.split('\n').filter((line) => line.includes('g.invoke('));
+  A('C5i 四处 g.invoke 第二参仍是 cfg',
+    invokeLines.length === 4 && invokeLines.every((line) => line.trimEnd().endsWith(', cfg);')));
   A('C5d metrics 尾槽:graphRunStuckObserved: \'graph_run_stuck_observed_total\' + 基线 0 行在案',
     metrics.includes("graphRunStuckObserved: 'graph_run_stuck_observed_total'")
     && metrics.includes('m.inc(METRIC.graphRunStuckObserved, undefined, 0);'));
