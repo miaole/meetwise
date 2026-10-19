@@ -230,10 +230,13 @@ export async function streamingVoiceTurn(
   })();
   let transcript = '', partials = 0;
   let sawUserSpeech = false;
+  let acceptedFinal = false; // 第一句可以是空字符串，不能靠 transcript 是否为空
   for await (const ev of deps.asr.transcribeStream(userAudio)) {
     if (!sawUserSpeech && ev.text.trim()) { sawUserSpeech = true; interruptTts(); }
-    if (ev.final) transcript = ev.text;
-    else { partials++; hooks.onPartial?.(ev.text); }
+    if (ev.final) {
+      if (!acceptedFinal) { transcript = ev.text; acceptedFinal = true; }
+      else transcript = transcript + '\n' + ev.text;
+    } else { partials++; hooks.onPartial?.(ev.text); }
   }
   await speak;
   return { transcript, ttsInterrupted: ttsAbort.signal.aborted, partials };
