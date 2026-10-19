@@ -115,3 +115,38 @@ finally 改成下面这样：
 draft:awaiting_pre_exec_dual
 
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+本节只追加。上面各节原文不动。§1 写的源码形状断言全部保留，仍写在已有的 `packages/db/test/qbank-handoff-closure.proof.ts` 里，仍用 `node:fs` 按相对路径读取 `packages/db/src/principal.ts`。继续核对这四条：解锁查询不再链式 `.catch(() => undefined)`；解锁兑现之后是无参 `c.release()`；解锁拒绝且接住的值是 `Error` 时，把同一个对象交给 `c.release`，值不是 `Error` 时传入 `true`，这条分支里没有无参 `c.release()`；加锁与解锁的键字符串仍都是 `meetwise:qbank_control_definer_provision`。第 152、345、348 行的两次真实调用和重入断言保持原样。不改 `packages/db/test/qbank-control-role.proof.ts`。
+
+§1 末句只说明：不改函数签名，就无法单让 `provisionQbankControlDefiner` 这次解锁查询失败，所以不为这条查询做夹具。那句话继续有效。它不够。只读源码形状，证明不了这条连接离开了池。同一份已有证明再增加一条运行时断言。不新开文件。
+
+运行时断言不调用 `provisionQbankControlDefiner`，也不去制造解锁失败。它另开一个短生命周期的池，`connect` 借出一条真实连接，然后调用 pg 装在这个客户端上的 `release`，参数是一个 `Error` 实例。不是 `true`，不是字符串。不得把 `release` 换成桩、空函数，或先赋成别的函数再调用。第 342 行赋上的那个函数必须原样被调用，调用时传入的对象要能 `instanceof Error`。
+
+短池使用这份证明自己的测试库连接串，也就是第 21 行 `const admin = createPool()` 已经连上的那一条。证明没有把连接串存进变量。`createPool()` 零覆盖时走 `resolveDatabaseConnectionString`（`packages/db/src/principal.ts` 第 761–784 行与第 793 行）：有显式 `connectionString` 用它，否则用 `DATABASE_URL`，否则用 `PGHOST`、`PGPORT`、`PGUSER`、`PGPASSWORD`、`PGDATABASE` 拼出的那条。短池再调用一次不带 `connectionString`、`user`、`password`、`host`、`database` 覆盖的 `createPool()`。不要换库，不要换登录，不要新写一条连接串。这个短池只 `connect` 一次，池里只有这一条连接，断言才对得上「这一条」。
+
+用完只对短池调用 `end`。不要调用 `admin.end()`。不要调用第 91–92 行 `serving`、`control` 的 `end`。这三只池在第 349 行之后的清理里还要用，`admin` 要到第 354 行才结束。这条断言放在它们仍打开的时候。连不上测试库就让这条断言失败，不要跳过。结果仍用现有的 `A` 记下；失败时这份证明仍以非 0 退出。
+
+观察依据是亲读的 `node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js`，其 `package.json` 的 `version` 为 `3.14.0`。`_idle` 与 `_clients` 不在公开类型上。证明可以局部读这两个数组来断言，不要改类型声明，也不要为了好断言去换掉 `release`。
+
+- 第 102–103 行：构造时 `_clients = []`、`_idle = []`。`_idle` 才是空闲列表。第 12–17 行的 `IdleItem` 把客户端放在 `item.client`。
+- 第 107 行：`this.ending = false`。第 242 行：新客户端 `this._clients.push(client)`。借出期间它在 `_clients` 里，不在 `_idle` 里。
+- 第 342 行：`client.release = this._releaseOnce(client, idleListener)`。运行时调用的就是这个 `release`。
+- 第 369–379 行：该函数把传入的 `err` 交给 `_release`。同一条连接再释放一次会抛错。
+- 第 382–384 行：注释写明，带上 error 就会把客户端从池里移除。
+- 第 392 行：`if (err || this.ending || !client._queryable || client._ending || client._poolUseCount >= this.options.maxUses)`。本断言传入的是 `Error`，`err` 为真。调用前短池还没有 `end`，所以 `this.ending` 仍为假；刚 `connect` 成功的客户端 `_queryable` 为真、`_ending` 为假；`maxUses` 未设置时最后一项也不成立。进入这个分支只因为这个 `Error`。
+- 第 397 行：`return this._remove(client, this._pulseQueue.bind(this))`。这里返回，不会执行到第 427 行。
+- 第 427 行才是 `this._idle.push(new IdleItem(client, idleListener, tid))`。无参 `release()` 才会把连接放回空闲列表。本断言不得走到这里。
+- 第 408–415 行是空闲超时之后才 `_remove`。断言要在 `release` 返回之后立刻做，不能把连接留在空闲列表里等超时。
+- 第 172–181 行 `_remove`：第 173 行按 `item.client === client` 从 `_idle` 摘掉；第 179 行 `this._clients = this._clients.filter((c) => c !== client)`；第 181 行调用 `client.end(...)`。`release` 是同步返回的，返回时这三步都已经执行。`client.end` 的回调还没跑完，不影响这三步已经发生。
+- 第 505–514 行：`idleCount` 只是 `_idle.length`，`totalCount` 只是 `_clients.length`。数量不能代替「是不是这一条客户端」。
+
+`release(error)` 返回之后、短池自己 `end` 之前，断言两件。不要先 `end` 短池再看，否则会和第 133–138 行、第 494 行池结束时的清扫混在一起。
+
+1. 这条连接不再回到空闲列表：短池 `_idle` 里没有任何一项的 `client` 是刚才借出的那个。第 397 行已经返回，第 427 行的放回不会发生；第 173 行也会把已经躺在空闲列表里的同一客户端摘掉。
+2. `client.end` 已经发生。下面两种观察取一种即可。
+   - 短池的 `_clients` 里找不到这个客户端。第 179 行先滤掉，紧接着第 181 行才调用 `client.end`，中间没有返回。`release` 返回时，找不到它就说明第 181 行已经调用过。
+   - 或者客户端已经结束。这要另读 `node_modules/.pnpm/pg@8.22.0/node_modules/pg/lib/client.js`：第 734–735 行 `end` 一进入就把 `_ending` 设为真，这只说明调用已进入，还不是已结束；第 198–203 行要等连接发出 `end`，`_ended` 才变为真。选这条时必须等到该客户端的 `end` 事件，或看到 `_ended` 为真。`release` 返回的同一拍上 `_ended` 仍可能为假，这一拍不许拿 `_ended` 判失败。
+
+不改锁键，不改 `hashtext` 的参数，不改角色语句，不改 `principal.ts` 里其它 `release`，不改 `packages/db/src/migrate.ts` 第 598 行的 `client.release()`，不新增文件。
