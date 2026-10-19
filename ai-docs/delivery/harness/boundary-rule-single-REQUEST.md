@@ -73,10 +73,16 @@ lint 上限恰为 root 5242、api 1423、domain 115、ai-runtime 628、worker 95
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 产品代码本步不改
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+未接线的长文案已改为与生产短句逐字节相同。生产短句没有改，拼进 system 的方式也没有改。导出还在。证明改为断言两句相同，并且短句相对父提交 0cebd82b625cbf1b514eb161e34a18cbb3447a53 没有变化。渲染函数没有接到发送路径。
+
+证明退出码都是 0：mem07-injection:prove、model-output-limit:prove、prove:model-client-dispatch、prove:model-client-stream、turbo typecheck --force、turbo lint、check-docs。lint 为 0 errors。文档扫描 2298。
