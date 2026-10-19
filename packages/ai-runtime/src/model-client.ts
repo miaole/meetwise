@@ -1020,7 +1020,9 @@ export function openAICompatibleClient(cfg: {
       };
 
       // 三联终结判定账面（§D-1）：finish_reason=stop chunk + 空 choices usage chunk + data:[DONE]。
+      // length 另记，不并入 stopSeen，避免和 stop 的成功路径混在一起。
       let stopSeen = false;
+      let lengthSeen = false;
       let usageSeen = false;
       let doneSeen = false;
       let usageRecord: ProviderUsagePayload | undefined;
@@ -1047,6 +1049,7 @@ export function openAICompatibleClient(cfg: {
           const deltaContent = choice?.delta?.content;
           if (typeof deltaContent === 'string' && deltaContent) pushDeltaText(deltaContent);
           if (choice?.finish_reason === 'stop') stopSeen = true;   // 三联①
+          else if (choice?.finish_reason === 'length') lengthSeen = true;
           // 三联②：空 choices usage chunk（probe-b i=16 usageChunkEmptyChoices 亲证形态）→ usage 面解析。
           const usagePayload = chunk?.usage;
           if (Array.isArray(chunk?.choices) && chunk?.choices?.length === 0 && usagePayload) {
@@ -1132,12 +1135,8 @@ export function openAICompatibleClient(cfg: {
       if (midStreamErrorFrame || idleWatchdogFired) {
         return { ok: false, kind: 'transient', externalOutcome: 'unknown' };   // ①③即刻截断 → error 终态
       }
-      if (!(stopSeen && usageSeen && doneSeen)) {
+      if (!((stopSeen || lengthSeen) && usageSeen && usageRecord !== undefined && doneSeen)) {
         // ②EOF 无三联=静默断流（§E-②·`streamEndedByEofWithoutDone` 语义，probe-b 既有键）→ error 终态·禁自动重跑。
-        return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
-      }
-      if (!acc) {
-        // 与非流式 :446 空 content 语义同型（三联齐但零 delta=异常空输出）。
         return { ok: false, kind: 'transient', externalOutcome: 'unknown' };
       }
       // R1b④（F3·翻转前置修复）：AG-14 口径对齐非流式 complete 基准形（:745-761 逐字同构）——usage
@@ -1162,8 +1161,18 @@ export function openAICompatibleClient(cfg: {
           }
         : undefined;
       if (usage !== undefined) emitUsageCacheObservation(req.service, usage.cachedInputTokens);   // 载荷整体缺席是既有退化路径·不打点(#48 面是载荷内字段在场性)
+      // 空文本优先于截断码，形状与非流式 known_executed 相同。只在 stop 且累计文本非空时走成功返回。
+      const finishReason: 'length' | undefined = lengthSeen ? 'length' : undefined;
+      const outputInvalidCode = !acc
+        ? 'deterministic_output_invalid'
+        : finishReason === 'length'
+          ? 'deterministic_output_truncated'
+          : undefined;
+      if (outputInvalidCode !== undefined && usage !== undefined) {
+        return { ok: false, kind: 'deterministic', externalOutcome: 'known_executed', errorCode: outputInvalidCode, usage, finishReason };
+      }
       // raw=完整 JSON 解析（与非流式同型）；非 JSON 载荷（重放卷未启 json_object·如 S2 probe-b prose
-      // fixture）按完整原文兜底零截断——§E-② 对照面：三联齐=成功终态，不因载荷非 JSON 降级。
+      // fixture）按完整原文兜底零截断——stop 且累计文本非空才是成功终态，不因载荷非 JSON 降级。
       let raw: unknown;
       try { raw = JSON.parse(acc); } catch { raw = acc; }
       return { ok: true, raw, usage };
