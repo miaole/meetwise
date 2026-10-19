@@ -4195,3 +4195,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2307** 余 5.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line growth-null-overall nail（2026-10-20 · 没总分时不标口径不同）
+
+- **改动**：这一场没有总分时，不再显示维度口径不同。两场都有分但维度名没有交集时，这句仍显示。
+- **并入**：merge `f7ad16d2`，双亲 `51e20021` 与 `63206a28`。预演 tree `42d8b8bc`。没有冲突，没有强推。
+- **门**：页面证明退出码 0。docs:check scanned 2308≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2308** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
