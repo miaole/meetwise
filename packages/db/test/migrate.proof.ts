@@ -151,6 +151,87 @@ export async function runMigrateProof(
   A('并发索引迁移: 同名 UNIQUE 属性错配时不写账本', uniqueRejected
     && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003f'")).rows[0]?.n === 0);
   await pool.query('DROP TABLE mig_index_unique');
+
+  await pool.query('CREATE TABLE mig_eq_pred(owner_user_id int, status text)');
+  const equalityIndex = {
+    version: '0003g',
+    executionMode: 'concurrent-index' as const,
+    sql: "CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_eq_pred ON mig_eq_pred(owner_user_id) WHERE status = 'pending';",
+  };
+  r = await runMigrations(pool, [m1, m2, m3, concurrentIndex, equalityIndex]);
+  const equalityPred = await pool.query(
+    `SELECT i.indisvalid AS valid, pg_get_expr(i.indpred, i.indrelid) AS pred
+       FROM pg_index i WHERE i.indexrelid = 'public.ix_mig_eq_pred'::regclass`,
+  );
+  const equalityRendered = String(equalityPred.rows[0]?.pred ?? '')
+    .replace(/::(?:pg_catalog\.)?(?:character varying|varchar|bpchar|cstring|name|text)\b/gi, '')
+    .replace(/[\s()"']/g, '')
+    .toLowerCase();
+  A('并发索引迁移: 等值单列字面量谓词接受且与目录谓词一致', JSON.stringify(r.applied) === JSON.stringify(['0003g'])
+    && equalityPred.rows[0]?.valid === true
+    && equalityRendered === 'status=pending');
+  let equalityTrailRejected = false;
+  try {
+    await runMigrations(pool, [m1, m2, m3, concurrentIndex, equalityIndex, {
+      version: '0003i', executionMode: 'concurrent-index' as const,
+      sql: "CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_eq_trail ON mig_eq_pred(owner_user_id) WHERE status = 'pending'; DROP TABLE mig_eq_pred;",
+    }]);
+  } catch (error) { equalityTrailRejected = (error as { code?: string }).code === 'migration_concurrent_index_sql_invalid'; }
+  A('并发索引迁移: 等值谓词后的尾随语句在 DDL 前拒绝且不记账', equalityTrailRejected
+    && (await has('mig_eq_pred'))
+    && (await pool.query("SELECT to_regclass('public.ix_mig_eq_trail') r")).rows[0]?.r === null
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003i'")).rows[0]?.n === 0);
+  await pool.query('CREATE TABLE mig_eq_drift(owner_user_id int, status text)');
+  await pool.query("CREATE INDEX ix_mig_eq_drift ON mig_eq_drift(owner_user_id) WHERE status = 'relayed'");
+  let equalityDriftRejected = false;
+  try {
+    await runMigrations(pool, [m1, m2, m3, concurrentIndex, equalityIndex, {
+      version: '0003j', executionMode: 'concurrent-index' as const,
+      sql: "CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_eq_drift ON mig_eq_drift(owner_user_id) WHERE status = 'pending';",
+    }]);
+  } catch (error) { equalityDriftRejected = (error as { code?: string }).code === 'migration_concurrent_index_definition_mismatch'; }
+  A('并发索引迁移: 等值谓词与已有同名索引不一致时不写账本', equalityDriftRejected
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003j'")).rows[0]?.n === 0);
+  await pool.query('DROP TABLE mig_eq_drift');
+  await pool.query('CREATE TABLE mig_isnull_pred(a int, b int)');
+  const isNullIndex = {
+    version: '0003k',
+    executionMode: 'concurrent-index' as const,
+    sql: 'CREATE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_isnull_pred ON mig_isnull_pred(a) WHERE b IS NULL;',
+  };
+  r = await runMigrations(pool, [m1, m2, m3, concurrentIndex, equalityIndex, isNullIndex]);
+  const isNullPred = await pool.query(
+    `SELECT i.indisvalid AS valid, pg_get_expr(i.indpred, i.indrelid) AS pred
+       FROM pg_index i WHERE i.indexrelid = 'public.ix_mig_isnull_pred'::regclass`,
+  );
+  const isNullRendered = String(isNullPred.rows[0]?.pred ?? '')
+    .replace(/::(?:pg_catalog\.)?(?:character varying|varchar|bpchar|cstring|name|text)\b/gi, '')
+    .replace(/[\s()"']/g, '')
+    .toLowerCase();
+  A('并发索引迁移: IS NULL 谓词原样接受且目录谓词一致', JSON.stringify(r.applied) === JSON.stringify(['0003k'])
+    && isNullPred.rows[0]?.valid === true
+    && /is\s+null/i.test(String(isNullPred.rows[0]?.pred ?? ''))
+    && isNullRendered === 'bisnull');
+  let multiConcurrentRejected = false;
+  let multiConcurrentCode = '';
+  let multiConcurrentMessage = '';
+  try {
+    await runMigrations(pool, [m1, m2, m3, concurrentIndex, equalityIndex, isNullIndex, {
+      version: '0003m', executionMode: 'multi-statement' as const,
+      sql: '-- @migration-mode multi-statement\nCREATE INDEX CONCURRENTLY IF NOT EXISTS ix_mig_ms_conc ON mig_t3(id);',
+    }]);
+  } catch (error) {
+    multiConcurrentRejected = true;
+    multiConcurrentCode = String((error as { code?: string }).code ?? '');
+    multiConcurrentMessage = error instanceof Error ? error.message : String(error);
+  }
+  A('multi-statement 通道仍拒绝事务块内的 CONCURRENTLY', multiConcurrentRejected
+    && (multiConcurrentCode === '25001' || /transaction block/i.test(multiConcurrentMessage))
+    && (await pool.query("SELECT to_regclass('public.ix_mig_ms_conc') r")).rows[0]?.r === null
+    && (await pool.query("SELECT count(*)::int n FROM schema_migrations WHERE version='0003m'")).rows[0]?.n === 0);
+  await pool.query('DROP TABLE IF EXISTS mig_eq_pred, mig_isnull_pred CASCADE');
+  await pool.query("DELETE FROM schema_migrations WHERE version IN ('0003g', '0003k')");
+
   await pool.query('CREATE TABLE mig_unique_conflict(id int NOT NULL)');
   await pool.query('INSERT INTO mig_unique_conflict(id) VALUES (1),(1)');
   const invalidConcurrentIndex = {

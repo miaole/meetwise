@@ -662,3 +662,24 @@ export async function reconcile(c: Client, owner: string): Promise<{ staleReleas
   const out = await settleOutbox(c, owner);
   return { staleReleased: swept.released, settled: out.settled, swept: swept.swept };
 }
+
+const OUTBOX_RETENTION_MIN_DAYS = 7;
+const OUTBOX_RETENTION_MAX_DAYS = 365;
+const OUTBOX_RETENTION_MIN_BATCH = 1;
+const OUTBOX_RETENTION_MAX_BATCH = 10000;
+
+/**
+ * 已投递 outbox 行按保留期分批删除。只经 SECURITY DEFINER 函数到达，
+ * app_role 对 commerce_outbox 仍无 DELETE。天数 7..365，批大小 1..10000，越界即抛。
+ */
+export async function purgeExpiredRelayedOutbox(c: Client, keepDays: number, batchCap: number): Promise<number> {
+  if (!Number.isSafeInteger(keepDays) || keepDays < OUTBOX_RETENTION_MIN_DAYS || keepDays > OUTBOX_RETENTION_MAX_DAYS
+    || !Number.isSafeInteger(batchCap) || batchCap < OUTBOX_RETENTION_MIN_BATCH || batchCap > OUTBOX_RETENTION_MAX_BATCH) {
+    throw Object.assign(new Error('commerce_outbox_retention_invalid'), { code: 'commerce_outbox_retention_invalid' });
+  }
+  const r = await c.query(
+    `SELECT commerce_outbox_relayed_retention_purge($1, $2) AS purged`,
+    [keepDays, batchCap],
+  );
+  return Number(r.rows[0]?.purged ?? 0);
+}
