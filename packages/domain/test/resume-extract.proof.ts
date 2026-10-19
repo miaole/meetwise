@@ -41,6 +41,7 @@ ok(threw === 'image_needs_ocr', '图片 → 抛 image_needs_ocr(seam 留给 qwen
 
 // 4b. #109 魔数守卫:声明 vs 字节不符 → magic_mismatch(fail-closed·嗅探先于加密扫描与解析)
 const codeOf = (e: unknown): string => (e as { code?: string })?.code ?? '';
+const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
 let trunc = '';
 try { await extractResumeText(Buffer.from([0x89, 0x50]), 'image/png', 'trunc.png'); } catch (e) { trunc = codeOf(e); }
 ok(trunc === 'magic_mismatch', '#109: 截断 PNG 魔数(2/8 字节) → magic_mismatch');
@@ -53,6 +54,21 @@ ok(spanHdr === 'magic_mismatch', '#109: span 标记头(PK\\x07\\x08) 声明 docx
 let zipAsText = '';
 try { await extractResumeText(Buffer.from('PK\x03\x04zipbytes'), 'text/plain', 'r.txt'); } catch (e) { zipAsText = codeOf(e); }
 ok(zipAsText === 'magic_mismatch', '#109: zip 头声明纯文本 → magic_mismatch(text 分支拒 PK 三签)');
+let pdfAsText = '';
+try { await extractResumeText(Buffer.from('%PDF-1.4 trailing'), 'text/plain', 'r.txt'); } catch (e) { pdfAsText = codeOf(e); }
+ok(pdfAsText === 'magic_mismatch', '#109: PDF 字节声明纯文本 → magic_mismatch');
+let oleAsText = '';
+try { await extractResumeText(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]), 'text/plain', 'r.txt'); } catch (e) { oleAsText = codeOf(e); }
+ok(oleAsText === 'magic_mismatch', '#109: OLE2 头声明纯文本 → magic_mismatch(.doc 族残面收口)');
+let pngAsText = '';
+try { await extractResumeText(PNG_SIG, 'text/plain', 'r.txt'); } catch (e) { pngAsText = codeOf(e); }
+ok(pngAsText === 'magic_mismatch', '#109: 图像字节声明纯文本 → magic_mismatch');
+let pk56Text = '';
+try { await extractResumeText(Buffer.from('PK\x05\x06' + '\0'.repeat(18)), 'text/plain', 'r.txt'); } catch (e) { pk56Text = codeOf(e); }
+ok(pk56Text === 'magic_mismatch', '#109: 空 zip 头声明纯文本 → magic_mismatch');
+let pk78Text = '';
+try { await extractResumeText(Buffer.from('PK\x07\x08abcdefgh'), 'text/plain', 'r.txt'); } catch (e) { pk78Text = codeOf(e); }
+ok(pk78Text === 'magic_mismatch', '#109: span 头声明纯文本 → magic_mismatch');
 
 let unsupported = '';
 try { await extractResumeText(Buffer.from('PK\\x03\\x04'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'budget.xlsx'); } catch (e: any) { unsupported = e?.code; }

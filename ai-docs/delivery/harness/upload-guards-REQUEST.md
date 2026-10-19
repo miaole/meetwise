@@ -238,4 +238,14 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 ---
 
+## §9-EXEC 补记（post-prove 席1 FAIL 两 P1 内联回路 · 2026-10-19）
+
+1. **偏离⑤（席1 F1→补码行使）**：text 分支判定面由「仅拒 PK 三签」补全为 §1.2-1 原口径——`%PDF-`/OLE2(D0CF11E0)/图像族字节声明纯文本一律 magic_mismatch 拒绝（原实现会把此类文件当乱码文本摄取=fail-open 半张）；proof 补五臂（PDF/OLE2/图像字节声明 text+空 zip/span 头声明 text·35 断言全绿）。
+2. **偏离⑥（席1 F2→门入仓）**：帽值探针由 /tmp 一次性收据升格为仓内常驻可重跑门——`@meetwise/domain` package.json 增 `prove:resume-cap-probe`（阶梯+量基带交叉校验+terminate 臂·约 10s）；「threads 计数回落」判据由 terminate-on-settle 结构保证+hostAlive 断言承代，如实登记。
+3. **裁决项② receipt**：pdf 魔数窗=头 1024 字节窗（`PDF_MAGIC_WINDOW`）。
+4. **帽值余量 receipt（席1 F5）**：探针成功 heapUsed 232.6-241.5MB≈帽 91-94%，上限侧余量偏薄；更重合法件 OOM→extract_timeout 422 可解释降级（宿主无恙）·并发 RSS 击穿面已登记容量残面（rev2.2）。
+5. **nail 时登记项（席2 R1）**：pre-exec 第三轮未派——由 post-prove 双审实质覆盖（席2 对两 P1 件届树+实弹复验在卷）；席2 R2-R8 观察级随卷归后继。
+
+---
+
 *5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-19 EXEC 落码·前值 draft 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve） · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
