@@ -4213,3 +4213,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2309** 余 3.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line route-leaf-weight nail（2026-10-20 · 规划相关性按最高权重叶子）
+
+- **改动**：有多条分配时取权重更高的叶子。权重相同则留下先出现的那条。快照顺序不变。
+- **并入**：merge `1c78e0fb`，双亲 `eacbc479` 与 `7abba383`。预演 tree `e8374b0f`。没有冲突，没有强推。
+- **门**：规划诚实证明退出码 0，60 条含按权重选取。docs:check scanned 2310≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2310** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
