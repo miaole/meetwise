@@ -3970,3 +3970,30 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2294** 余 10.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line route-fast-model nail（2026-10-20 · 路由分类改用快模型）
+
+- **改动**：路由分类改传已经构造好的快模型，并在启动时拒绝档与模型名不一致。deepseek 档只接受带连字符的前缀，百炼档仍接受 qwen 前缀。样例档改成百炼，模型名不动。
+- **并入**：上限记录之后再预演，merge-tree EXIT=0，tree `67ceb1ba`。`git merge --no-ff` 得到 `7053f7ce`，双亲 `45ba14f0` 与 `41b11a40`。没有冲突，没有强推。
+- **门**：出站清单 pairs=54、environment_references=335；出站证明 7/7。docs:check scanned 2297≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line replay-retrieval-packet nail（2026-10-20 · 出题续跑先记住检索包）
+
+- **改动**：出题续跑先把检索包写入检查点，再调用模型。没有同身份检索包时只检索并写入检查点。身份相同则把包交回生成，不再调用本地检索或深研。未声明两段的调用仍是一次检索加一次生成。
+- **并入**：快模型路由之后再预演，merge-tree EXIT=0，tree `aaad728a`。`git merge --no-ff` 得到 `6f29338c`，双亲 `7053f7ce` 与 `e312eac5`。没有冲突，没有强推。
+- **门**：隔离续跑证明全部通过，含检索包身份命中后不再调用本地检索或深研。证明里的检查点线程键改为计算写入，worker 警告 958，上限仍是 959。docs:check scanned 2297≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line rag-query-cache nail（2026-10-20 · 生产检索在扣费前复用进程内向量缓存）
+
+- **改动**：生产检索在扣费前复用进程内向量缓存。全部命中不预留、不外呼、不记账。有未命中时仍只把未命中文本交给嵌入。用量缺失时的分段估算保持不变。
+- **并入**：检索包续跑之后再预演，merge-tree EXIT=0，tree `44fb38d4`。`git merge --no-ff` 得到 `93712516`，双亲 `6f29338c` 与 `142ed24e`。没有冲突，没有强推。`main.ts` 同时保留快模型和进程内缓存。
+- **门**：`prove:rag-cost` EXIT=0。docs:check scanned 2297≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
