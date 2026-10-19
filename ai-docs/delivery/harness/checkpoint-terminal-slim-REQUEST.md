@@ -266,3 +266,129 @@ CREATE POLICY checkpoints_owner ON checkpoints FOR ALL TO app_role
 draft:awaiting_pre_exec_dual
 
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+上文文首与 §1 写明这一条做不到，需要用户决定。那两处句子保留，不改。本节更正该结论：路走得通。面试终态的事务提交成功之后，用现有围栏检查点器对该 thread 调用已有的 `deleteThread`，删掉该线程全部检查点行。不新造保留天数、小时数或条数。不新授 DELETE。不新迁移。不调用隐私擦除函数。不要求隐私租约。未终态的线程不删。删除失败不回滚已经完成的终态。
+
+### 9.1 生产检查点器已经是应用角色，并带上线程与世代
+
+`apps/worker/src/main.ts` 第 484 行，生产检查点器是：
+
+```
+  const cp = createCheckpointer(undefined, true);
+```
+
+同文件第 125–139 行：`useRuntimeRole` 为真时，连接参数加上 `-c role=app_role`，返回的池是 `PrincipalBoundCheckpointPool`。
+
+`apps/worker/src/checkpoint-principal.ts` 第 144 行在取出的连接上执行 `SET ROLE app_role`。第 146–148 行写入 `app.principal_user`、`app.checkpoint_thread_id`、`app.checkpoint_epoch`。不写隐私目标，不写隐私租约：
+
+```
+      await client.query('SET ROLE app_role');
+      await client.query(
+        `SELECT set_config('app.principal_user', $1, false),
+                set_config('app.checkpoint_thread_id', $2, false),
+                set_config('app.checkpoint_epoch', $3, false)`,
+```
+
+第 13–16 行与第 142 行：没有这份访问上下文就拒绝取连接。
+
+### 9.2 表级 DELETE 已授给应用角色，之后没有收回
+
+`packages/db/migrations/0043_langgraph_checkpoint_least_privilege.sql` 第 24 行：
+
+```
+GRANT SELECT, INSERT, UPDATE, DELETE ON checkpoint_migrations, checkpoints, checkpoint_blobs, checkpoint_writes TO app_role;
+```
+
+`packages/db/migrations/0045_checkpoint_thread_rls.sql` 第 72 行只收回迁移记账表：
+
+```
+REVOKE ALL ON checkpoint_migrations FROM app_role;
+```
+
+此后的迁移没有收回 `checkpoints`、`checkpoint_blobs`、`checkpoint_writes` 上 `app_role` 的 DELETE。`packages/db/migrations/0048_checkpoint_physical_erasure.sql` 第 74 行是另授给 `privacy_worker_owner`，不是收回应用角色。沿用第 24 行，不是新授权。
+
+`packages/db/migrations/0045_checkpoint_thread_rls.sql` 第 21–26 行对这三张表打开并强制行级安全。`packages/db/migrations/0047_checkpoint_privacy_fence.sql` 第 154 行的策略是 `FOR ALL`，包含 DELETE。第 155–160 行在登记仍为 `active`、线程参数等于该行 `thread_id`、世代参数等于 `fence_epoch` 时放行：
+
+```
+CREATE POLICY checkpoints_owner ON checkpoints FOR ALL TO app_role
+  USING (EXISTS (SELECT 1 FROM checkpoint_thread_enrollment e
+    WHERE e.thread_id=checkpoints.thread_id
+      AND e.owner_user_id=current_setting('app.principal_user', true)
+      AND e.access_state='active'
+      AND current_setting('app.checkpoint_thread_id', true)=checkpoints.thread_id
+      AND current_setting('app.checkpoint_epoch', true)=e.fence_epoch::text))
+```
+
+同文件第 169 行是 `checkpoint_blobs`，第 184 行是 `checkpoint_writes`，谓词相同。此后没有再替换这三条给 `app_role` 的策略。
+
+`packages/db/migrations/0048_checkpoint_physical_erasure.sql` 第 257 行起替换触发器函数，此后没有再替换。第 264–282 行只在 `app.privacy_target_id` 与 `app.privacy_lease_token` 都有值时走隐私租约。应用角色这条池子不设置这两个参数，于是落到第 283–289 行：仍要求登记为 `active` 且世代匹配。第 294 行：
+
+```
+  IF TG_OP='DELETE' THEN RETURN OLD; END IF;
+```
+
+该条件下删除继续。这条不看隐私租约。第 298 行撤销的是函数执行权，不取消这三张表上已有的删除触发器。
+
+### 9.3 围栏把 deleteThread 原样交给内层，内层按线程删光
+
+`apps/worker/src/checkpoint-fence.ts` 第 77–84 行只在 `put` 与 `putWrites` 前复核图租约。第 87–88 行的 `deleteThread` 不走那次复核，原样交给内层：
+
+```
+  override async deleteThread(threadId: string): Promise<void> {
+    return this.inner.deleteThread(threadId);
+```
+
+内层是 `@langchain/langgraph-checkpoint-postgres` 1.0.4，版本在 `pnpm-workspace.yaml` 第 17 行。`apps/worker/node_modules/@langchain/langgraph-checkpoint-postgres/dist/index.js` 第 376–383 行另起事务，按传入的 `threadId` 删除三张表，然后提交。失败只回滚这三句：
+
+```
+	async deleteThread(threadId) {
+		const client = await this.pool.connect();
+		try {
+			await client.query("BEGIN");
+			await client.query(this.SQL_STATEMENTS.DELETE_CHECKPOINT_BLOBS_SQL, [threadId]);
+			await client.query(this.SQL_STATEMENTS.DELETE_CHECKPOINTS_SQL, [threadId]);
+			await client.query(this.SQL_STATEMENTS.DELETE_CHECKPOINT_WRITES_SQL, [threadId]);
+			await client.query("COMMIT");
+```
+
+同包 `dist/sql.js` 第 73–75 行，三句都是 `WHERE thread_id = $1`：
+
+```
+		DELETE_CHECKPOINTS_SQL: `DELETE FROM ${SCHEMA_TABLES.checkpoints} WHERE thread_id = $1`,
+		DELETE_CHECKPOINT_BLOBS_SQL: `DELETE FROM ${SCHEMA_TABLES.checkpoint_blobs} WHERE thread_id = $1`,
+		DELETE_CHECKPOINT_WRITES_SQL: `DELETE FROM ${SCHEMA_TABLES.checkpoint_writes} WHERE thread_id = $1`
+```
+
+删掉的是该线程在 `checkpoint_blobs`、`checkpoints`、`checkpoint_writes` 上的全部行，不是只留最后一份。
+
+### 9.4 终态只改面试状态，不撤回登记
+
+`packages/db/src/commerce/commerce.ts` 第 379 行把面试标成 `completed`。第 422 行把失败臂标成 `failed`。两句都不写 `checkpoint_thread_enrollment`。第 475–482 行在完成臂把 `ai_graph_run` 标成 `succeeded` 并清掉图租约，仍不改登记。
+
+登记写在 `packages/db/src/checkpoint/checkpoint-thread.ts` 第 13–18 行。已有登记在第 31–33 行：仍为 `active` 才交回原来的 `fence_epoch`。终态事务不调用撤回。因此终态提交之后，同一登记仍是 `active`，世代不变。第 9.2 节的策略与第 294 行继续放行删除。图租约被清掉也不挡住这次删除，因为 `deleteThread` 不调用 `assertWriteFence`。
+
+`packages/db/src/principal.ts` 第 1002 行在 `asPrincipal` 的回调成功返回后 `COMMIT`。第 1004 行只在回调抛错时 `ROLLBACK`。删除放在这次提交之后，就不在这句回滚的范围内。
+
+### 9.5 接下来的产品修法
+
+只此范围。产品代码以后再改。本说明现在只记录修法。
+
+面试进入终态，并且包住该终态的 `asPrincipal` 已经提交成功之后，用这次作业里已经造好的围栏检查点器，对该 thread 调用已有的 `deleteThread`。检查点器是 `apps/worker/src/interview-consumer.ts` 第 480 行的 `FenceCheckpointSaver`。调用必须留在第 473 行 `withCheckpointAccess` 的回调内。`startAdaptiveInterview` 与 `submitAdaptiveAnswer` 在第 581 行和第 583 行，仍在该回调内。线程标识用这场面试已有的 thread，也就是 `interviewId`。
+
+三处都在终态事务返回之后再删，不放进该事务内部：
+
+- 开始路径出题失败：`apps/worker/src/adaptive-lifecycle.ts` 第 383 行 `emitGenerationUnavailable` 返回之后。其第 102 行的 `asPrincipal` 提交后，面试已是 `failed`。
+- 回答路径出题失败：第 466–545 行的投影事务在第 501 行写入失败终态，并在该回调返回时提交。第 569 行返回之前删除。
+- 回答路径收尾：第 581–653 行的 `asPrincipal` 返回之后。完成臂是第 617 行与第 627 行的 `completeInterviewAndConfirm`。失败臂是第 648 行的 `failInterviewAndRelease`。
+
+效果是删掉该线程全部检查点行。不留最后一份。不新造保留天数、小时数或条数。不新授 DELETE。不新迁移。不调用 `privacy_purge_checkpoint_target`。不调用 `privacy_begin_checkpoint_erasure`。不设置隐私租约。
+
+未终态不删。还有下一题、仍在澄清、或终态事务抛错并回滚时，不调用 `deleteThread`。
+
+删除失败不得回滚已经完成的面试终态。三句删除在检查点器自己的事务里（`dist/index.js` 第 379 行与第 383–386 行）。调用放在终态 `COMMIT` 之后，捕获错误并且不向外抛。这样不会进入 `apps/worker/src/interview-consumer.ts` 第 233 行的作业失败收口，也不会把已提交的 `completed` 或 `failed` 改回去。
+
+证明只扩展已有 `apps/worker/test/adaptive-lifecycle.proof.ts`。命令仍是 `apps/worker/package.json` 第 59 行已有的 `prove:adaptive-life`。不新建证明文件，不新建第二个受管文件。本说明仍是唯一新增受管文件。
+
+上文「需要用户决定」的句子保留。以本节为准。
