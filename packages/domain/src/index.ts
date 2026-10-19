@@ -71,7 +71,7 @@ export function ingestResume(raw: string): ResumeProfile {
     const clean = stripPii(t);
     if (section === 'experience') {
       // #191:仅缺省小节(未见任何标题前的文档头部)过滤联系/姓名形态行;已进正经小节的行不过滤。
-      if (!sawHeader && looksLikeContactHeaderLine(clean)) return;
+      if (!sawHeader && looksLikeContactHeaderLine(nt)) return;
       p.experience.push({ text: clean, line: ln }); p.facts.push(clean);
     } else if (section === 'skills') {
       clean.split(/[、,，/]/).map((s) => s.trim()).filter(Boolean).forEach((s) => { p.skills.push({ text: s, line: ln }); p.facts.push(s); });
