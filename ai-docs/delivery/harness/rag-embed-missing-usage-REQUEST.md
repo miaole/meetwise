@@ -181,3 +181,25 @@
 1. `pnpm -C apps/worker prove:rag-cost` EXIT=0
 2. `pnpm -C apps/worker prove:rag-cost-runtime` EXIT=0
 3. `node scripts/ai-docs/check-docs.mjs` EXIT=0，受管文件扫描数 2282，不超过 2288
+
+## 附录
+
+本附录只追加亲读和亲跑的事实。上文不改。开头状态、§8、文末状态行仍是 `executed:awaiting_post_prove_dual`。
+
+### 拒绝发生在查库之后
+
+当前 `apps/worker/src/rag-cost-governance.ts` 的 enforce 路径先 `reserveAiTextCost`，再 `markAiCostDispatched`，然后才调用嵌入器。`inputTokens === undefined` 才按段 `cjkWeightedEstimate`，并在范围检查前与 `cfg.maxInputTokens` 取较小值。`null`、非整数、负数、大于上限仍在结算前抛 `new Error('provider_usage_out_of_reserved_range')`（当前文件约 `:141`）。这个错误没有 `.code`。同一 `try` 的捕获不把原文交给调用方，调用方得到 `external_outcome_unknown`，随后记 unknown 时原因码也是 `external_outcome_unknown`。产品文件这次没有改。
+
+一被查询就抛错的假连接观察不到这三支。预留使用的 `asPrincipal` 第一条语句就是 `BEGIN`，查询在嵌入器之前失败，`===` 换成 `??` 也会得到同一个查询错误。那不是这三支的证明。不把范围检查挪到预留之前：用量要等嵌入器返回才有，提前拒绝会改掉「先预留、派发后失败进 unknown」的结算顺序。
+
+### 不依赖数据库的三支
+
+`apps/worker/test/rag-cost-governance.proof.ts` 调用 `budgetedQbankEmbedding`，没有另写结算。假连接默认拒绝查询。只有到达范围检查所必需的预留、派发、unknown 和事务语句返回固定行。`ai_cost_settle` 一出现就记下 token 并抛 `proof_settle_queried`。三支都用文本 `['中文测试']`：`null`、`1.5`、`-1`。断言是嵌入器被调用一次、结算 token 列表为空、调用方为 `RagCostError` 且 `message` 与 `code` 都是 `external_outcome_unknown`。不把调用方错误断言成 `provider_usage_out_of_reserved_range`，因为现有捕获丢掉了原文；改成那样这三支会红，也会逼着去改已经固定的抛错。
+
+`pnpm -C apps/worker prove:rag-cost` 亲跑 EXIT=0。日志三行都是 PASS：空值拒绝且不按文本估算入账、小数拒绝且不按文本估算入账、负数拒绝且不按文本估算入账。`null` 若被改成按文本估算，结算语句会带上估算值，这一支会失败。
+
+### 运行时门没有跑绿
+
+`pnpm -C apps/worker prove:rag-cost-runtime` 亲跑 EXIT=1，不是通过。失败发生在加载 `apps/worker/test/rag-cost-runtime.int.ts:7` 的 `createPool()`，错误原文是 `database_config_invalid:database_target_missing`（`packages/db/src/principal.ts:753`，调用点 `:788` 与 `:946`）。文件里新加的三支没有执行。没有为了缺数据库去改产品码，也没有改 `scripts/run-e2e-isolated.mjs`。
+
+这三支写在 `rag-cost-runtime.int.ts` 里，跟已有用量断言放在一起，但用新作用域 `rag-cost-runtime-reject-${suffix}`。原用量作用域在实量 1001 之后只剩 990，再预留 1000 会先 `budget_exhausted`，到不了范围检查。新作用域沿用已解析配置，只换 `scopeId`，月预算仍是 3000。顺序是空值、`1.5`、负数。每次预留 1000，拒绝后冻结，三次合计 3000，没有超过上限。断言与已有实量 1001 相同：嵌入一次，调用方 `external_outcome_unknown`，行状态 `unknown`，实结为空，不是 4，也不是 1000。

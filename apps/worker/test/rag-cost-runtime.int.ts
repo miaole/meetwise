@@ -152,6 +152,43 @@ async function main() {
     && (overSettled === null || overSettled === undefined) && overSettled !== 1000 && overSettled !== 4
     && Number(overSettled) !== 1000 && Number(overSettled) !== 4);
 
+  // 上一作用域在实量 1001 之后只剩 990，再预留 1000 会先耗尽预算，到不了范围检查。
+  const rejectScope = `rag-cost-runtime-reject-${suffix}`;
+  const rejectCfg = { ...usageCfg, scopeId: rejectScope };
+  await configureRagCostGovernance(pool, rejectCfg);
+  const rejectReservation = async (invocationId: string) => {
+    const found = await pool.query(
+      'SELECT status,settled_micro_cny,reason_code FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2',
+      [rejectScope, invocationId],
+    );
+    return found.rows[0];
+  };
+  const rejectReported = async (name: string, inputTokens: number | null, invocationId: string) => {
+    let reportedCalls = 0;
+    const reportedEmbedder: Embedder = {
+      dim: 512, id: model,
+      async embed(texts) { reportedCalls++; return vectorsOf(texts); },
+      async embedWithUsage(texts) {
+        reportedCalls++;
+        return { vectors: vectorsOf(texts), inputTokens: inputTokens as unknown as number };
+      },
+    };
+    const reportedCode = await budgetedQbankEmbedding(pool, owner, reportedEmbedder, rejectCfg)(
+      ['中文测试'], { cacheKey: invocationId, invocationId, mode: 'claimed' },
+    ).then(() => '').catch((error: { code?: string }) => error?.code ?? '');
+    const reportedRow = await rejectReservation(invocationId);
+    const reportedSettled = reportedRow?.settled_micro_cny;
+    check(name, reportedCalls === 1
+      && reportedCode === 'external_outcome_unknown' && reportedCode !== 'rag_cost_budget_exhausted'
+      && reportedRow?.status === 'unknown' && reportedRow?.reason_code === 'external_outcome_unknown'
+      && (reportedSettled === null || reportedSettled === undefined)
+      && reportedSettled !== 4 && reportedSettled !== 1000
+      && Number(reportedSettled) !== 4 && Number(reportedSettled) !== 1000);
+  };
+  await rejectReported('空值不按文本估算入账：嵌入一次、unknown、实结为空、不是 4', null, `usage-null-${suffix}`);
+  await rejectReported('小数不按文本估算入账：嵌入一次、unknown、实结为空、不是 4', 1.5, `usage-fraction-${suffix}`);
+  await rejectReported('负数不按文本估算入账：嵌入一次、unknown、实结为空、不是 4', -1, `usage-negative-${suffix}`);
+
   console.log(`\n${failures === 0 ? '✓ RAG 费用运行时集成全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);
