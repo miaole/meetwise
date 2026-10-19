@@ -47,10 +47,10 @@ function scriptedAskModel(question: string): { model: ModelClient; calls: () => 
 
 // retrieval-query-exact:begin
 // query 值必须恰为 cragRetrievalText(parsed)。其后只能是逗号、右圆括号，或对象字面量的右花括号（当前调用在 `}` 后才是参数逗号）。
-function dispatchRetrievalQueryIsExactText(src) {
+function dispatchRetrievalQueryIsExactText(src: string) {
   const exact = 'cragRetrievalText(parsed)';
   const marker = 'dispatchTrackLocalRetrieval(';
-  function sliceBalancedParen(text, openIndex) {
+  function sliceBalancedParen(text: string, openIndex: number) {
     let depth = 0;
     for (let i = openIndex; i < text.length; i += 1) {
       const ch = text.charAt(i);
@@ -62,12 +62,12 @@ function dispatchRetrievalQueryIsExactText(src) {
     }
     return null;
   }
-  function queryPropertyValue(region) {
+  function queryPropertyValue(region: string) {
     const match = /(?:^|[,{(]\s*)query\s*:/.exec(region);
     if (!match) return null;
     return region.slice(match.index + match[0].length);
   }
-  function valueIsExact(value) {
+  function valueIsExact(value: string) {
     const trimmed = String(value).replace(/^\s+/, '');
     if (!trimmed.startsWith(exact)) return false;
     return /^\s*[,)}]/.test(trimmed.slice(exact.length));
@@ -136,7 +136,7 @@ function main() {
   A('检索文本不含难度标记', !retrievalFour.includes('难度') && retrievalOld === '高并发', `${retrievalFour} | ${retrievalOld}`);
   A('带岗位和栈时只保留这两段', retrievalFour === '缓存与一致性 岗位后端开发工程师 栈负责 Redis 缓存与限流模块设计 Kafka 数据管道', retrievalFour);
   const retrieveSrc = readFileSync(fileURLToPath(new URL('../src/qbank-track-local-retrieve.ts', import.meta.url)), 'utf8');
-  const retrievalQuerySamples = [
+  const retrievalQuerySamples: ReadonlyArray<readonly [string, boolean]> = [
     [retrieveSrc, true],
     ['query: cragRetrievalText(parsed) && input.query', false],
     ['query: cragRetrievalText(parsed) + ` 难度${parsed.difficulty}`', false],
