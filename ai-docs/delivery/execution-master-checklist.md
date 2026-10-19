@@ -4006,3 +4006,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2298** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line boundary-rule-single nail（2026-10-20 · 未接线的数据边界长文案与生产短句逐字节相同）
+
+- **改动**：未接线的数据边界长文案改为与生产短句逐字节相同。生产短句未改。导出保留。证明断言两句相等，并防止基线回退。
+- **并入**：预演 merge-tree EXIT=0，tree `d6dbd0b5`。`git merge --no-ff` 得到 `a5446e35`，双亲 `77ae05ac` 与 `398374d3`。没有冲突，没有强推。
+- **门**：注入围栏证明退出码 0。docs:check scanned 2299≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2299** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
