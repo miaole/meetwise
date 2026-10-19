@@ -58,6 +58,7 @@
     "prove:ag19-prompt-version": "tsx test/ag19-prompt-version.proof.ts",
     "prove:ag12-estimator-freeze": "tsx test/ag12-estimator-freeze.proof.ts",
     "prove:ag09-replay-first": "tsx test/ag09-replay-first.proof.ts",
+    "prove:ag17-schema-span": "tsx test/ag17-schema-span.proof.ts",
     "prove:model-slot-bypass": "tsx test/model-slot-bypass.proof.ts",
     "prove:model-slot-bypass-static": "tsx test/model-slot-bypass.static.proof.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",

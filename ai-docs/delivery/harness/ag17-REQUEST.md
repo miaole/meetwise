@@ -1,6 +1,6 @@
 # AG17-SCHEMA-SPAN REQUEST（AG-17 结构化输出观测诚实化刀——span 档名 schema_retry→schema_invalid·「暗示有重试实际没有」最小收口·零行为变更·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码=§9-EXEC 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·post-prove 双审待重派·翻面权归协调方·前值 `draft:awaiting_pre_exec_dual` 史录保留）
 
 **席位**：AG 能力复核台账下一刀起草席（done 30/half 2/open 16·AG-13 需线上分布数据挂起·顺延选标 **AG-17**=P3 Prompt 轨·协调方派单·北星 loop）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `4c2ea4c9f`（`git fetch` 后亲证：`origin/line/ag-next-draft`=`4c2ea4c9f` 恰等·`git rev-list --count 4c2ea4c9f..origin/main`=0 即 origin/main 为其祖先·派单下界「origin tip≥4c2ea4c9f」**成立**）。分支 `line/ag17-draft`·工作树 `meetwise-ag17`（仓根同级·`git worktree add ../meetwise-ag17 -b line/ag17-draft 4c2ea4c9f` 本席亲立·`-b` 成功即分支建前不存在的机证）。
@@ -89,9 +89,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.2-5 漂移注记级亲证·§0.0 防重三查零撞）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派·Dual PASS≠开工·开工授权权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·pre-exec 双审第二轮 Dual PASS·协调方授权 EXEC 落码（§9-EXEC）·post-prove 双审待重派·翻面权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（proof=本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=draft:awaiting_pre_exec_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处·前值 `draft:awaiting_pre_exec_dual` 史录保留）·EXEC 落码落卷即停·⛔push。
 
 ## §9-rev rev 修订注记（pre-exec 双审第一轮 FAIL 两席合并修订清单 P1 一件甲+P2 六件乙/丙/丁/戊/己/庚回路 · rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
 
@@ -136,5 +136,41 @@
 
 **rev 自检回执**：markers 五类标记词（四标记词词面运行时组装不落卷面+行首冲突标记严格形）本卷改动文件直扫 **0 命中**（本席亲跑·防自指沿 upload-guards §9-rev 同形制）；`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（rev 时点亲跑·本卷系既有文件 append 零新增文件·计数不变）；`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·`actualSpendCny=null` 同源）；STOP 三处同值零翻。
 
+## §9-EXEC EXEC 记录（pre-exec 双审第二轮 Dual PASS·协调方授权开工·2026-10-19 落码即录·落点/门值/偏离如实登记·诚实第一零粉饰）
+
+### 落点（届树 `e12a6343` 重 pin·§0 头注行使·零漂移零停手）
+
+- **重 pin 结论**：开工时届树 tip=`e12a6343`·`git rev-parse HEAD:packages/ai-runtime/src/trace.ts`=`debd3cfcd5d5a3c4b41d53e23db3c8556f9d593f`+`…/invoke.ts`=`44340f3988ce5cbf1ce5013e24e5810d529b2350` 双 blob 恰等 §0.1 锚；四发射位（trace.ts `:10`+invoke.ts `:1082`/`:1083`/`:1203`）与 §0.1+§9-rev 行号逐字恰中·七值联合（`:6-13`）恰中·`:231`/`:613`/`:1016-1083`/`:1134`/`:1138-1139` 恰中·model-client `:164-168` 恰中 §9-rev.3 修正锚·全仓 ts/mjs 旧档名恰 4 处恰中 §9-rev.7 前提——**漂移未超注记级·停止条件零触发**。§0.0 三查按 §9-rev.6 届时重跑：`git worktree list`/`git branch -a | grep ag17` 本届实测（时移注记级）·`git log --all --grep="AG-17"` 0 在飞。
+- **件①**：四发射位全改零残留——trace.ts `:10` 联合体成员+注释按 §1 修法句全量替换（七值→七值换名）；invoke.ts `:1082` 注释换 schema_invalid 档（「允许换 revision 重试·不重试同 key」原语义句逐字保留）+`:1083`/`:1203` 两字面量。改后双文件旧档名 0 命中、packages/apps/scripts 全码面 0 命中亲证；结算/熔断/账本/幂等链路字节零改（改动仅三行标签位）·其余六档 outcome 零触·langfuse-v5 纯透传面零触。
+- **件②**：新 proof `packages/ai-runtime/test/ag17-schema-span.proof.ts`（沿 ag-b-classify 形·本地 http 脚本 provider+隔离 PG 全链 invoke·est live=0）四臂 14 断言：A 承重 4（schema_validation_failed+恰记 schema_invalid+fee ledger settled 结算额>0 真实 token 101/37+invocation failed 投影）；B 2（business_error 原值+reason 分离面原值）；C 机械钉 7（**§9-rev.7 双文件断言**：trace.ts 旧档名 0 命中+schema_invalid 恰 1+七值联合逐行原样；invoke.ts 旧档名 0 命中+`:1082`/`:1083`/`:1203` 三落点行级断言+计数恰 3）；D 1（ok 原值正向回归）。旧档名词面运行时组装不落 proof 词面。
+- **件③**：ai-runtime package.json +`prove:ag17-schema-span`；root package.json +`ag17-schema-span:prove`/`:prove:raw`；run-e2e-isolated.mjs 收据清单臂新键（ag19 同形）+gate 白名单 append+派发臂新臂同形+**migrate 白名单 append（偏离 D1）**。
+- **零触面核验**：migrations 0001-0209 零字节·零新迁移；prompts.ts/model-client.ts/validators 零触（甲否决面）；SSOT/issues-final/他卷零触；§1.3 五面否决全数未行使。
+
+### 门矩阵（届树亲跑·EXIT 原值·zsh 下 PIPESTATUS 捕获失效改文件重定向原值捕获·下表为**定稿树全九门复跑终值**）
+
+| 门 | 命令 | EXIT | 届值 |
+|---|---|---|---|
+| ① | 隔离 runner `ag17-schema-span:prove:raw`（派发臂子命令恰=`pnpm -C packages/ai-runtime prove:ag17-schema-span`） | **0** | 四臂 **14 断言全 PASS**（过程首两跑 EXIT=1 如实录偏离 D1/D4·终跑=届码定稿树） |
+| ② | `ag-b-classify:prove`（隔离全链回归） | **0** | 原值全绿（known_executed 分类+settled-failed 接线全臂） |
+| ③ | `ag09-replay-first:prove`（隔离第二回归） | **0** | 原值全绿五臂 |
+| ④ | `pnpm -C packages/ai-runtime prove:langfuse-eval` | **0** | 原值全绿（透传面零字面依赖实证） |
+| ⑤ | `turbo typecheck --force` | **0** | **8/8 successful·0 cached**（恰等预申明） |
+| ⑥ | `turbo lint --force` | **0** | **12/12·0 cached·计数恰等 cap**：root 5242/api 1423/domain 115/ai-runtime 628/worker 959/db 1042/web 601·全 0 errors（首跑 ai-runtime 640 超帽 12 自修归零=偏离 D2·帽值零改） |
+| ⑦ | `node scripts/ai-docs/check-docs.mjs` | **0** | scanned **2263** ≤ cap 2264·余 1（届树 `public-text-policy.mjs:118` MAX_FILES=2_264 亲证·**未并主线 cap 步进支线**·如实录=偏离 D3） |
+| ⑧ | markers 改动集五类标记词+行首冲突标记（词面运行时组装·亲跑） | **0/0** | 净增行 **259**（tracked 改动+新 proof 全文·卷面定稿后终扫）0 命中（五类+行首冲突标记严格形·proof 内 priorOutcome 命名亦避五类词素落词） |
+| ⑨ | `git diff --stat`（HEAD→届码+新文件+本卷） | — | **恰 7 tracked**（改 5：trace.ts/invoke.ts/两 package.json/run-e2e-isolated.mjs+新增 1：proof+本卷 1）·零迁移故 uniqueness/migrate 门无 |
+
+### 偏离清单（五件·如实登记）
+
+- **D1 件③ 编辑点 3→4**：§9-rev.4 收敛「三处编辑」届树实测**四处**——runner 存第二功能白名单（migrate 清单单行）·目标不在单内则隔离库**不跑全量迁移**（门①首跑即红 `relation "ai_cost_price_book" does not exist` 实证）·ag19/ag12 先例均在单内注册·故同形 additive append 第四触点。触面矩阵 run-e2e 计 1 文件不变·7 tracked 不变·纯注册面零产品语义。
+- **D2 门⑥首跑红自修**：新增 proof 12 条 naming-convention 警告（ai-runtime 640>628·恰超 12）·按「新增代码超帽自修」处置：`answerSchema` camelCase 改名+SQL 列 camelCase 别名（ag09 同形）+供应商线格式 snake_case 键改原始 JSON 串承载+`setHeader` 替代 header 对象字面量——自修后 ai-runtime **628 恰等 cap**·帽值零改·零 disable 注释。
+- **D3 门⑦ 计数 2263**：起草预估 2262·届值 **2263**（新 proof 文件计入 managed 扫描±1 注记级）·cap 2264·余 1·EXIT=0。
+- **D4 门① 过程两跑 EXIT=1 如实录**：第一跑=D1 迁移缺席；第二跑=proof C 臂 `:10` 行断言 `startsWith` 未 trim 行首缩进（断言自身失配非码面错）·修断言后 EXIT=0（14/14）·最终以**定稿树全九门复跑**取记录值。zsh `PIPESTATUS` 捕获写法失效（首跑误显 EXIT=0）·改文件重定向原值捕获并全门统一。
+- **D5 gate 白名单 append 位形调整**：初按 §9-rev.4 行锚 `:2178` 行中 append·门⑧扫描 1 命中——该行 pre-existing 含他刀门名（`ag16-` 后接五类标记词之首·词面拆写防自指）随净增行整行计入·非本刀词·改按「清单尾 append」本义挪**数组尾独立行**（ag11-settle 同形·语义恒等同一白名单数组）·门⑧复扫 0/0。
+
+### STOP 翻面
+
+三处同值翻 **`executed:awaiting_post_prove_dual`**（Status 头+§8 两行+卷尾注）·前值 `draft:awaiting_pre_exec_dual` 史录保留·**post-prove 双审待重派**·est live=0（全轮本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS 零 Key·`actualSpendCny=null`）·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 全程未用·翻面权归协调方·alone≠dual·Ban self-approve。
+
 ---
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·pre-exec 双审待派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮回卷·P1 一件+P2 六件·其中 P2-丁 行号半不成立只登记）·窄域=§9-rev 落点复验·第二轮两独立外席待派。
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·EXEC 届树 `e12a6343`·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码（§9-EXEC 逐条落录·门矩阵九门定稿树复跑·偏离 D1-D5 如实登记）·post-prove 双审待重派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮回卷·P1 一件+P2 六件·其中 P2-丁 行号半不成立只登记）。
