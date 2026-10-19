@@ -130,6 +130,14 @@ export function parseCragPlannerQuery(query: string): CragPlannerQuery | null {
   };
 }
 
+/** 向量检索文本：已解析的能力、可选岗位、可选栈。不含难度标记（难度只用于题面过滤）。 */
+export function cragRetrievalText(parsed: Pick<CragPlannerQuery, 'competencyId' | 'targetRole' | 'techStack'>): string {
+  let text = parsed.competencyId;
+  if (parsed.targetRole) text += ` 岗位${parsed.targetRole}`;
+  if (parsed.techStack) text += ` 栈${parsed.techStack}`;
+  return text;
+}
+
 /**
  * Production wrong_track=0 enforcement when hits carry declared leaf/scope metadata.
  * Missing metadata counts as wrong (fail-closed). On failure → degraded; never sibling/unscoped.
@@ -539,11 +547,12 @@ export async function retrieveViaDispatchTrackLocal(input: {
   }
 
   // W4 — sole production call site for dispatchTrackLocalRetrieval in Worker retrieve.
+  // 检索文本不含难度标记。上面的负面缓存读取仍绑定完整 input.query，避免不同难度共用一条负面缓存。
   const dispatched = await dispatchTrackLocalRetrieval(
     input.pool,
     input.owner,
     assembled.plan,
-    { ...input.deps, query: input.query },
+    { ...input.deps, query: cragRetrievalText(parsed) },
     input.qbankOwnerScope,
   );
 
