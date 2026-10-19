@@ -422,7 +422,11 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
     `UPDATE interview SET status='failed', version=version+1
       WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','waiting_user','migrating','paused')
       RETURNING status`, [interviewId, owner]);
-  if (updated.rowCount === 1) return { status: 'failed', released: terminalReleasedOf(release) };
+  if (updated.rowCount === 1) {
+    // 只在本事务把面试写成 failed 之后取消仍排队的作业。already_failed 与冲突抛错不走这里。
+    await failQueuedInterviewJobsOnAbandon(c, owner, interviewId);
+    return { status: 'failed', released: terminalReleasedOf(release) };
+  }
 
   const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
   if (current.rowCount === 1 && current.rows[0].status === 'failed' && (release.status === 'noop' || (release.status === 'error' && release.reason === 'not_found')))
