@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 同文再传不认已隔离简历
 
@@ -130,6 +130,18 @@ SELECT id, status FROM resume
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+改了这些文件：
+
+- `packages/db/src/resume/resume.ts`：`createResumeWithBlob` 的回读加上与部分唯一索引相同的状态谓词；过滤后没有行则抛 `resume_active_dedup_row_missing`，不再返回已隔离行的 id。
+- `packages/db/test/resume-ingest.proof.ts`：原有断言未改；在汇总输出前为另一个 owner、另一段原文增加隔离后再传场景。
+- `ai-docs/delivery/harness/resume-reread-status-REQUEST.md`：三处状态同为 `executed:awaiting_post_prove_dual`，并追加本节。
+
+`pnpm resume:prove` 退出码 0。
+`node scripts/ai-docs/check-docs.mjs` 退出码 0。
+`pnpm turbo typecheck` 与 `pnpm turbo lint` 未跑，留到事后复验。
