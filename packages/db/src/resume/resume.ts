@@ -66,12 +66,19 @@ export async function createResumeWithBlob(
        WHERE content_sha IS NOT NULL AND status IN ('uploaded','ingesting','ingested','failed')
        DO NOTHING RETURNING id`, [owner, digest, sourceKind]);
   if (ins.rowCount === 0) {
-    const ex = await c.query('SELECT id, status FROM resume WHERE owner_user_id=$1 AND content_sha=$2', [owner, digest]);
-    if (ex.rows[0].status === 'failed') {                                  // 上次失败 → re-upload 视为重试,re-arm failed→uploaded（审计 N2：否则永久卡死、改字节才能重传）
-      await c.query("UPDATE resume SET status='uploaded', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='failed'", [ex.rows[0].id, owner]);
-      return { resumeId: ex.rows[0].id, dedup: false };
+    // 谓词与部分唯一索引相同：已隔离行仍留指纹，但不得被回读成去重结果。
+    const ex = await c.query(
+      `SELECT id, status FROM resume
+        WHERE owner_user_id=$1 AND content_sha=$2
+          AND status IN ('uploaded','ingesting','ingested','failed')`,
+      [owner, digest]);
+    const active = ex.rows[0];
+    if (!active) throw new Error('resume_active_dedup_row_missing');
+    if (active.status === 'failed') {                                  // 上次失败 → re-upload 视为重试,re-arm failed→uploaded（审计 N2：否则永久卡死、改字节才能重传）
+      await c.query("UPDATE resume SET status='uploaded', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='failed'", [active.id, owner]);
+      return { resumeId: active.id, dedup: false };
     }
-    return { resumeId: ex.rows[0].id, dedup: true };                       // 同人同原文且未失败：不重复存,不二次摄取
+    return { resumeId: active.id, dedup: true };                       // 同人同原文且未失败：不重复存,不二次摄取
   }
   const resumeId = ins.rows[0].id;
   await c.query(
