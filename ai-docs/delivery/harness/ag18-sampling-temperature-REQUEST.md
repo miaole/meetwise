@@ -183,6 +183,7 @@
 - 五类标记词与行首冲突标记对本次 diff 与新证明直扫 HITS=0。日志 `gate-ag18-markers.log`。本节追加后复跑 HITS=0，ADDED_LINES=245。日志 `gate-ag18-markers-rerun.log`。终扫含本段补句，HITS=0。日志 `gate-ag18-markers-final.log`。产品服务键既有引用未计为标记词。
 - `git diff --stat origin/feat/mysql-schema-skeleton` 在证明文件入库后恰 8 个 tracked 文件。
 - 远端 tip 在首次对齐 `98d5b0b3` 之后前进到 `a833c38f`。`git merge-tree --write-tree` EXIT=0。`git merge --no-ff --no-commit` EXIT=0。`git commit -F` EXIT=0，提交 `faa7c33b`。接上停机清单断言与交付记录三文件。相对该 tip，差异面仍是本次 8 个文件。
+- 停机清单测试在全仓警告数复跑之后才到工作树。`pnpm turbo lint --force --filter=@meetwise/worker` EXIT=0，0 errors，警告数仍是 959。日志 `gate-ag18-lint-worker-after-merge.log`。本句写入后标记终扫 HITS=0。日志 `gate-ag18-markers-postlint.log`。
 
 行号相对起草锚的漂移（合并后、改本文件之前，`model-client.ts` 不在接入差异里，起草锚仍在）：
 
