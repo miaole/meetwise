@@ -673,6 +673,51 @@ function startPump(sink: Sink, o: {
   }
 }
 
+// 取数抛错与空结果(泵驱动旁):抛错中断并抛出;空 rows 仍心跳。返回 null 的臂不在此处。
+{
+  console.log('\n──────── 取数抛错 / 空结果 ────────');
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    const registry = createSseRegistry();
+    const boom = new Error('fetch_more_rejected');
+    const raw = (sink.reply as { raw: { destroy?: (err?: unknown) => void } }).raw;
+    let destroyCount = 0;
+    let destroyed: unknown;
+    raw.destroy = (err) => { destroyCount += 1; destroyed = err; };
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_FETCH_ERR', notify, registry, fallbackMsHealthy: 50,
+      fetchMore: async () => { throw boom; },
+    });
+    let caught: unknown;
+    const rejected = await Promise.race([
+      finished.then(() => false, (err) => { caught = err; return true; }),
+      sleep(3000).then(() => false),
+    ]);
+    A('取数抛错:pumpSseEvents 以同一个错误拒绝', rejected && caught === boom);
+    A('取数抛错:登记计数回到 0', registry.count() === 0);
+    A('取数抛错:end 次数为 0', sink.getEndCount() === 0);
+    A('取数抛错:destroy 被调用', destroyCount === 1 && destroyed === boom);
+    await notify.stop();
+  }
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    let rejected = false;
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_FETCH_EMPTY', notify, fallbackMsHealthy: 50,
+      fetchMore: async () => ({ rows: [] }),
+    }).then(() => undefined, () => { rejected = true; });
+    const sawPing = await until(() => sink.writes.some((w) => w.includes(': ping')), 2000);
+    sink.reqRaw.emit('close');
+    await Promise.race([finished, sleep(1500)]);
+    A('空结果:泵不因空结果拒绝,写出仍有 : ping', sawPing && !rejected && sink.writes.some((w) => w.includes(': ping')));
+    await notify.stop();
+  }
+}
+
 // ═══ #132 背压四臂(件②):阈值内计数 / 超阈值断开 / drain 复位 / 源级静态 ═════════════════
 // 钉值语义(sse-pump.ts):累计未落盘字节阈值 1 MiB·阈值内 safeWrite 恒 true 仅计数·超阈值自有旗
 // bpTripped 拒写(镜像 draining 分支形)·drain 复位归零(背压 drain(socket)≠HA-2 排水)·end 单点不抑制。

@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 投递流拉取失败不再当成没有新消息
 
@@ -80,11 +80,11 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## 文末
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -100,4 +100,12 @@ draft:awaiting_pre_exec_dual
 
 修法不变。`fetchMore` 抛错不能再被 `.catch(() => null)` 收成正常结束。成功的空结果仍心跳。主动返回的 `null` 仍正常结束。不改鉴权，不改背压，不新增文件或迁移。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`apps/api/src/platform/sse-pump.ts`：去掉 `fetchMore` 的 `.catch(() => null)`。抛错时先走原有清理：`wait.dispose()`、增量订阅若存在则 `dispose`、`registry.unregister`。不调用 `reply.raw.end()`。改为 `reply.raw.destroy?.(err)`，再把原来的错误抛出。`rows` 为空仍写 `: ping`，泵不因此拒绝。调用方主动返回的 `null` 仍正常 `end()`。类型注释与 `null` 分支注释只描述这种主动返回。`reply.raw.end()` 仍恰一处。`while` 条件那一行的文字未改；为保存抛错，在它前面增加了两个局部量，条件现位于其后。
+
+`apps/api/test/sse-push-notify.proof.ts`：在已有泵驱动旁加两臂。抛错臂：`fetchMore` 拒绝，`pumpSseEvents` 以同一个错误拒绝，登记计数回到 0，`end` 次数为 0，`destroy` 被调用。空结果臂：`fetchMore` 返回 `{ rows: [] }`，泵不因空结果拒绝，写出里仍有 `: ping`。同文件返回 `null` 的那一臂未改。
+
+三条门退出码：`pnpm sse-push:notify:prove` 为 0；`pnpm -C apps/api prove:ha2-drain` 为 0；`node scripts/ai-docs/check-docs.mjs` 为 0，扫描 2282，不超过 2288。

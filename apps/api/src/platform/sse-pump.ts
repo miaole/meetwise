@@ -49,7 +49,7 @@ export interface SsePumpOptions {
   streamKey: string;
   /** 控制器前置取数结果(404 判空后传入):catch-up 行 + 游标。 */
   initial: { lastId: number; rows: SseEventRow[] };
-  /** tail 取数(服务层既有 events 方法原样注入);null=取数失败→收尾重连。 */
+  /** tail 取数(服务层既有 events 方法原样注入);null=调用方主动返回→正常收尾。 */
   fetchMore: (lastSeq: number) => Promise<{ rows: SseEventRow[] } | null>;
   /** 终态集合(控制器原值注入,三处不同,零合并)。 */
   isTerminal: (kind: string) => boolean;
@@ -168,6 +168,8 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   };
   let wait = notify.waitFor(o.streamKey);           // D5:先注册 waiter 再重放 catch-up
   if (!draining) emit(o.initial.rows);              // 1. 重放 catch-up(语义原值);排水已开 → 不写,凭账本重连重放
+  let fetchErr: unknown;
+  let fetchRejected = false;
   while (!done && !closed && !draining && !bpTripped && Date.now() < deadline) {
     const waitMs = notify.health().healthy
       ? (o.fallbackMsHealthy ?? HEALTHY_FALLBACK_MS)
@@ -192,8 +194,15 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
       if (!emitDeltaFrames(frames)) break;          // 写失败即知断开(safeWrite 同旗)
       continue;
     }
-    const more = await o.fetchMore(lastSeq).catch(() => null);
-    if (more === null) break;                       // 取数失败 → 收尾(客户端会重连)
+    let more: { rows: SseEventRow[] } | null;
+    try {
+      more = await o.fetchMore(lastSeq);
+    } catch (err) {
+      fetchErr = err;
+      fetchRejected = true;
+      break;
+    }
+    if (more === null) break;                       // 调用方主动返回 null → 正常收尾
     if (draining) break;                            // HA-2:drain 落在取数窗 → 帧边界退出(禁 emit,R1 防写后关)
     if (more.rows.length) emit(more.rows);          // 2. notify/兜底唤醒后 tail 新事件
     else if (!safeWrite(': ping\n\n')) break;       // 心跳保活 + 写失败即知断开
@@ -202,6 +211,12 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
   if (deltaSub) deltaSub.dispose();                 // TOKSTREAM S4b:delta 订阅随泵全退出路径注销(泄漏断言 tokenSubscriberCount()===0)
   // HA-2 C1 注销:断开/终态/取数失败/deadline/drain/背压超阈值(bpTripped)全退出路径共用本单点(泄漏断言 count()===0)。
   registry.unregister(o.streamKey, registryEntry);
+  // 取数抛错不走 end:上面的注销之后 destroy,再把原错误抛出。
+  if (fetchRejected) {
+    const err = fetchErr;
+    reply.raw.destroy?.(err as Error);
+    throw err;
+  }
   // raw.end() 泵内单点(R1):全路径恰一次;排水路径与背压超阈值路径同样走这里(自有旗非 closed·
   // end 不被抑制→客户端见干净 end,SSE-RESILIENCE 不计失败→凭 Last-Event-ID 重连续推,由存活实例从账本重放)。
   if (!closed) { try { reply.raw.end(); } catch { /* 已断开 */ } }
