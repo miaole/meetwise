@@ -377,6 +377,11 @@ async function main() {
     && localBefore === 1 && deepBefore === 1
     && localCalls - localBefore === 0 && deepCalls - deepBefore === 0
     && resumeErr == null && askDelta >= 1);
+  const generationStarted = await eventCount(iidR, 'generation_started');
+  const generationProgressRows = await eventCount(iidR, 'generation_progress');
+  console.log('DIAG replay progress', JSON.stringify({ generationStarted, generationProgressRows }));
+  A('同一身份的 replayPacket 再入时，进度包装函数不被调用',
+    identityHit && resumeErr == null && askDelta >= 1 && generationStarted === 0 && generationProgressRows === 0);
 
   console.log(`\n${fail === 0 ? '✓ AG-05 alreadyApplied 续跑（形①执行面+形②投影面）+ AG-26 start 续跑（a 执行面+b 投影面）全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);
