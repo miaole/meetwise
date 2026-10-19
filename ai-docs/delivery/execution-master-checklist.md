@@ -3754,3 +3754,12 @@ flowchart TD
 - **STILL OPEN**：AG-09 行翻面权归协调方（issues-final done 计数待翻）+post 席2 P2 两件（ag11 先例计数少记注记/跨 scope 回放零记账裁决登记）归后继笔.
 - 预算：est live=0 · actualSpendCny=null · 零产品码零 lockfile · cap **2264** 现值 **2260** 余 4.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line cap-sanction-2272 nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2272 文档受管文件上限步进（sanction +8 步进 2264→2272·沿八先例形·算术=主线 2261+在飞 4 卷=2265>2264 先手·新机首发·commit 消息零黑话））
+
+- **授权链全链如实载**：协调方派单 brief（sanction 直落形·快速链一体席）→一体席起草+EXEC 单 commit `442244acc`（七门全绿承卷 §9）→post-prove 双审会签 PASS×2（席1 agent_54ed8d5f 3×P2·席2 agent_b408c1ab 1×P2·全注记级·两独立外席门值亲跑恰等卷载）→nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`4c2ea4c9f` 恰等 → merge-tree --write-tree 预演 EXIT=0（tree=`fccb434c`）→ merge --no-ff merge commit `3abbbc52`（双亲 4c2ea4c9f+442244ac）→ SSOT 两处随本后继 commit → 终验亲跑 → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷七门+post 双审承+nail 复跑）**：proof 12/12 EXIT=0（2272/2273 双值全行使·deepEqual 行亲跟 2273）+docs:check EXIT=0 scanned 2262≤2272 余 10（nail 后终验复跑同值）+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞支线（upload-guards/ag17/threshold/pgp）并线后帽余量以届时实测为准如实登记·批表零翻面（非 271 计件面）.
+- 预算：est live=0（nail 面全本地静态门·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2262** 余 10.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
