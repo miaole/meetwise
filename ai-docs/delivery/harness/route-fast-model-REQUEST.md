@@ -1,0 +1,135 @@
+draft:awaiting_pre_exec_dual
+
+# 路由分类改用快模型，并在启动时拒绝供应商与模型名不一致
+
+基线 `1a3fb08b4676cdea22698be56169c193ecb76eb1`。本步只新增这一份说明，不改产品代码。
+
+## §0 锚
+
+基线 `1a3fb08b4676cdea22698be56169c193ecb76eb1`。行号是在这棵树上打开文件看到的。
+
+### 0.1 路由分类仍传入主力模型
+
+`apps/worker/src/main.ts` 的 `bootstrap`（:437）里，快模型已经构造好，路由分类却仍传主力模型：
+
+- :530 `const model = defaultModelClient({ primary: modelCost.policies.primary, backup: modelCost.policies.backup })`
+- :531 `const fastModel = fastModelClient({ primary: modelCost.policies.fastPrimary, backup: modelCost.policies.fastBackup })`
+- :535 报告 `reportWorkerDeps(pool, model)`，用主力 `model`
+- :658 面试 `runInterviewConsumer({ pool, cp, model, fastModel, ... })`，主力与快模型都传了，这行不要改
+- :661 押题 `runQuizConsumer({ pool, model, leaseOwner })`，用主力 `model`
+- :663 诊断 `runDiagnosisConsumer({ pool, model, leaseOwner })`，用主力 `model`
+- :665 `runRouteClassifyConsumer({ pool, model }, jobReconcileIntervalMs)`，只传主力 `model`，没有用 :531 的 `fastModel`
+
+`apps/worker/src/route-classify-consumer.ts:22-25` 的依赖字段名就是 `model`。`:37` 把 `d.model` 交给 `createJobRouteModelClassify`。要改的是 :665 传入的值，不是这个字段名。
+
+`apps/worker/src/interview-service.ts:232-235`：`defaultModelClient` 不另传模型名；`fastModelClient` 把 `process.env.MODEL_FAST_NAME ?? 'qwen-turbo'` 当作主端模型名，备用名是 `process.env.MODEL_FAST_BACKUP_NAME ?? process.env.MODEL_BACKUP_NAME`。
+
+### 0.2 路由分类温度已经是 0
+
+`packages/ai-runtime/src/model-client.ts:188-196` 是 `SERVICE_TEMPERATURE`。`:193` 为 `'job.route-classify.v1': 0`。这张表不要改。
+
+### 0.3 缺省档与缺省模型名
+
+`packages/ai-runtime/src/text-endpoint-config.ts`：
+
+- :22 文本档只有 `deepseek-cn-public` 与 `dashscope-cn-beijing`
+- :37-40 注册表只有两行：`deepseek-cn-public` 的 host 是 `api.deepseek.com`、basePath 为空；`dashscope-cn-beijing` 的 host 是 `dashscope.aliyuncs.com`、basePath 是 `/compatible-mode/v1`
+- :67 主配置缺省模型名是 `env.MODEL_NAME?.trim() || 'qwen-plus'`
+- :77 主档缺省是 `env.MODEL_ENDPOINT_PROFILE?.trim() || 'deepseek-cn-public'`
+- :92 备用档缺省是 `dashscope-cn-beijing`
+- :99 备用模型名缺省回退到 `qwen-plus`
+- :118-121 `rejectTextTransportOverride` 只在 `NODE_ENV==='test'` 且 `MODEL_TEST_TRANSPORT_OVERRIDES==='1'` 时放行运输覆盖
+
+样例 `docker/env/worker.env.example:45-48` 把主档写成 `deepseek-cn-public`，同时 `MODEL_NAME=qwen-plus`、`MODEL_FAST_NAME=qwen-turbo`。备用 `:173-177` 已是 `dashscope-cn-beijing` 配 `qwen-plus` / `qwen-turbo`。
+
+### 0.4 构造客户端时没有档与模型名的启动拒绝
+
+`packages/ai-runtime/src/model-client.ts` 的 `openAICompatibleClient`（:630）在 :662-664 解析端点，:674 取 `const model = cfg.model ?? resolved.model`，:676 计算测试运输缝是否打开。:694-695 仅在费用策略模型名与这个 `model` 不一致、且不在 G7 注入路径时抛 `model_cost_policy_model_mismatch`。:674 到 :695 之间没有「profile 与模型名是否匹配」的抛错。这个文件里也没有这类错误码。
+
+## §1 修法
+
+只做两件事。
+
+### 1.1 路由分类改用已经构造好的 fastModel
+
+把 `apps/worker/src/main.ts:665` 改成把 :531 的 `fastModel` 传进 `runRouteClassifyConsumer` 的 `model` 字段：`{ pool, model: fastModel }`。押题 :661、诊断 :663、报告 :535 继续用主力 `model`。面试 :658 不动。不改消费者的字段名，也不改这三处的模型实参。
+
+### 1.2 启动时拒绝档与模型名不匹配
+
+在 `openAICompatibleClient` 里，:674 的有效模型名取定之后、任何派发之前，用刚解析到的 `resolved.profile` 做拒绝。规则从 :37-40 的注册表读出后写死，闭集只有两档：
+
+- `deepseek-cn-public`（DeepSeek，host `api.deepseek.com`）只接受以小写前缀 `deepseek` 开头的模型名。
+- `dashscope-cn-beijing`（百炼，host `dashscope.aliyuncs.com`）只接受以小写前缀 `qwen` 开头的模型名。
+
+前缀按字节比较，不折叠大小写。空模型名同样拒绝。不匹配抛稳定错误码 `text_endpoint_profile_model_mismatch`。不要另起一个码，也不要只打日志。
+
+`resolved.profile` 不属于这两档时（视觉端点）不要套这条，以免误伤视觉模型。
+
+判定只用已经在手上的 `resolved.profile` 和 :674 的有效 `model`。不要在 `model-client.ts` 里新写出 `MODEL_ENDPOINT_PROFILE`、`MODEL_NAME` 或 `MODEL_FAST_NAME`。快模型的有效名来自 `interview-service.ts:235` 传入的 `cfg.model`（缺省 `qwen-turbo`），不能只拿解析结果里的主模型名去做比较。主文本与备用文本两条构造都走同一条拒绝。
+
+测试运输缝打开时整段跳过。条件与 :676 相同：`process.env.NODE_ENV === 'test'` 且 `process.env.MODEL_TEST_TRANSPORT_OVERRIDES === '1'`。只满足其中一个不要跳过。缝开着是为了已经在用本地回环的证明不被误伤，那些证明里的模型名可以不是 `deepseek` 或 `qwen` 前缀。不要放宽成所有 `NODE_ENV=test` 都跳过。
+
+不要改 :67 和 :77 的缺省字符串。缺省档 `deepseek-cn-public` 配缺省模型名 `qwen-plus`，构造客户端时必须失败。温度表 :188-196 不动，`:193` 保持 0。
+
+样例会跟着改，否则照抄样例会在启动时被自己拒绝。只改 `docker/env/worker.env.example:45` 的赋值为 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`。`:47` 的 `MODEL_NAME=qwen-plus` 与 `:48` 的 `MODEL_FAST_NAME=qwen-turbo` 保持不动，使主模型与快模型都落在百炼档。`:173-177` 备用已经匹配，不要改。不要把 `MODEL_NAME` 改成 `deepseek-v4-pro`（样例 :51-53 写明不要把缺省模型名写成它）。compose 里未设变量时仍缺省 `deepseek-cn-public`，这行不要改：未设档配上 qwen 名，构造时就该失败。`scripts/deploy-check.mjs` 钉着这条 compose 缺省。
+
+## §1.3 否决
+
+- 不改押题、诊断、报告的模型实参。
+- 不改温度表。路由分类已经是 0。
+- 不新建证明文件。需要改的断言写回已有证明。
+- 不改迁移。
+- 不新增第二个受管文件。
+- 不放宽成只打日志。不匹配必须抛 `text_endpoint_profile_model_mismatch`。
+
+## §2 门
+
+执行时要跑下面这些已有命令。脚本名对过根 `package.json`、`packages/ai-runtime/package.json` 和 `apps/worker/package.json`。
+
+会改到的既有证明，就地改，不新建文件：
+
+1. `pnpm -C packages/ai-runtime prove:model-client-dispatch`。证明在缝关闭时删掉 `MODEL_ENDPOINT_PROFILE`、把 `MODEL_NAME` 设为 `qwen-plus`，并钉死派发 URL 为 `https://api.deepseek.com/chat/completions`（该证明 :72-73）。快乐路径把模型名改成 `deepseek-v4-flash`，档保持缺省，URL 钉留下。另加一条：缝关闭、缺省档、`MODEL_NAME=qwen-plus` 时，构造抛 `text_endpoint_profile_model_mismatch`。不要用 `deepseek-v4-pro`。
+
+2. `pnpm -C packages/ai-runtime prove:model-client-stream`。同样是缝关闭且 `MODEL_NAME=qwen-plus`，并钉死同一条 deepseek URL（该证明 :278-280）。快乐路径同样改成 `deepseek-v4-flash`，不要改成百炼档，否则 URL 钉会断。
+
+3. `pnpm -C packages/ai-runtime prove:model-usage-cache-observe`。缝关闭，`MODEL_NAME=qwen-plus`（该证明 :86-88），不钉 deepseek URL。就地设置 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`，模型名保持 `qwen-plus`。
+
+4. `pnpm -C packages/ai-runtime prove:ag24-langfuse-model`。缝关闭，`MODEL_NAME=qwen-plus`（该证明 :83-86），响应体也写着 `qwen-plus`。设置百炼档，模型名不动。
+
+5. `pnpm -C packages/ai-runtime prove:g7-freetier-reprove-client`。缝关闭，档已是 `dashscope-cn-beijing`。`deepseek-v4-pro` 与 `gpt-4o-mini` 会在构造期被拦住，不能再期待 `complete()` 里的 G7 错误码。`deepseek-v4-pro` 那条把档改成 `deepseek-cn-public`（名字与 DeepSeek 档匹配），`complete()` 仍应抛 `g7_model_banned_without_approval`。`gpt-4o-mini` 那条改成百炼档接受、但不在 G7 声明名单里的 `qwen` 前缀名 `qwen-proof-undeclared`，`complete()` 仍应抛 `g7_model_undeclared`。`qwen3.8-flash` 与 `qwen-plus` 两条已经匹配，行为不要改。
+
+6. `pnpm model-op02-endpoint-partition:prove`。根 `package.json` 有这条。证明 :160-162 用 `openAICompatibleClient({ env: {} })`，文本档仍读进程环境。构造前设置 `MODEL_NAME=deepseek-v4-flash`（主档保持缺省 deepseek），并设置 `MODEL_BACKUP_NAME=qwen-plus`（备用档保持缺省百炼）。不要只改主模型名：备用名会回退到主模型名，百炼档会拒绝 `deepseek` 前缀。视觉构造不套这条拒绝。主档与备用档仍须不相等。
+
+7. `pnpm s4b-invoke-delta:prove`。根 `package.json` 有这条。`packages/ai-runtime/test/invoke-model-delta.proof.ts` 没有打开运输缝，且 :226 传入 `model: 'qwen-turbo'`。构造前设置 `MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing`，`MODEL_NAME` 用 `qwen-plus` 或 `qwen-turbo`。不要为了过关去打开运输缝。
+
+只复跑、预期不改文件：
+
+- `pnpm r2-p-worker-route-classify:prove`
+- `pnpm r2-p-loop-route-classify:prove`
+- `pnpm r2-p-start-route-classify:prove`
+- `pnpm r2-p-fake-route-classify:prove`。这四条只钉 `runRouteClassifyConsumer` 与 `routeClassifyLoop` 符号，不钉 `model` 实参。实参换成 `fastModel` 后符号仍在。
+- `pnpm -C packages/ai-runtime prove:text-endpoint-config`。缺省档与缺省模型名字符串不改，解析证明应仍通过。
+- `pnpm -C packages/ai-runtime prove:g7-freetier-fix-round2`。已是百炼档配 `qwen3.8-flash`，缝关闭，应仍通过。
+- `pnpm model-output-limit:prove`。根脚本。该证明自己打开运输缝，回环用的模型名不得被这条拒绝误伤。
+- `pnpm ag18-sampling-temperature:prove:raw`。温度表不改，该证明运输缝开着，应仍通过。
+- `pnpm -C apps/worker prove:deploy-worker-env`。不构造文本客户端。compose 缺省不改，应仍通过。
+
+另外必跑：
+
+- `node scripts/ai-docs/check-docs.mjs`
+- `pnpm turbo typecheck --force`
+- `pnpm turbo lint`
+- `pnpm provider-egress:inventory`
+- `pnpm provider-egress:prove`
+
+出站清单方面，`scripts/provider-egress-inventory.proof.mjs` 把适配器钉死为 5、操作钉死为 10、适配器与来源文件的登记对钉死为 54。环境引用数等于清单数组长度，证明里没有另一份写死的环境引用数。本修法不新增环境变量名，不在 `model-client.ts` 新出现上面三个模型变量标识符，不新增适配器来源文件，样例只改已有键的值。硬计数预期不变。计数没变时，不要改清单，也不要改证明，也不要改 `ai-docs/architecture/ai/provider-egress-inventory.md` 里的计数句子。
+
+若执行时硬计数变了，清单 JSON、证明里写死的 5、10、54，以及那份架构说明里的计数句子，必须在同一次变更里一起改。不要只改一边。
+
+## §8
+
+draft:awaiting_pre_exec_dual
+
+以上三处状态相同。产品代码本步不改。
+
+draft:awaiting_pre_exec_dual
