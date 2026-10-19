@@ -1,6 +1,6 @@
 # 嵌入结果缺少用量时按文本估算结算
 
-**Status**: `draft:awaiting_pre_exec_dual`
+**Status**: `executed:awaiting_post_prove_dual`
 
 ## §0 锚
 
@@ -108,13 +108,13 @@
 
 ## §8
 
-`draft:awaiting_pre_exec_dual`
+`executed:awaiting_post_prove_dual`
 
 与文首状态行、文末状态相同。本文件只说明改法。不改产品代码，不新增代码文件。
 
 ---
 
-*嵌入缺用量结算改法 · `draft:awaiting_pre_exec_dual`*
+*嵌入缺用量结算改法 · `executed:awaiting_post_prove_dual`*
 
 ## §9-rev
 
@@ -168,3 +168,16 @@
 - 缺失只在 `inputTokens === undefined` 时，按段调用已导出的 `cjkWeightedEstimate`，再与 `cfg.maxInputTokens` 取较小值。`null`、非整数、负数、大于上限仍走现有范围检查后进入 unknown，不改记估算。只有估算值在范围检查之前截断。
 - 不把 16000 提高，不把夹具上限从 1000 抬高，不新增代码文件或证明文件，不改 `packages/ai-runtime/src/invoke.ts`，不改预留额度，不改 `observe`。`rag-cost-governance.proof.ts` 不改。
 - §2 的三条命令不增不减。
+
+## §9-EXEC
+
+实际改动：
+
+- `apps/worker/src/rag-cost-governance.ts` 从 `@meetwise/ai-runtime` 补导入已导出的 `cjkWeightedEstimate`。`inputTokens === undefined` 时，结算量是各段 `cjkWeightedEstimate` 之和再与 `cfg.maxInputTokens` 取较小值；空列表为 0。实量 `0` 仍记 0，不改成文本估算。`null`、非整数、负数、大于上限仍抛 `provider_usage_out_of_reserved_range`，随后走 unknown，不改记估算，也不把大于上限的实量截成上限。只有估算值在范围检查之前截断。缺省上限 16000、预留额度和 `observe` 未改。
+- `apps/worker/test/rag-cost-runtime.int.ts` 保留原作用域里 `inputTokens: 200` 得到 `settled_micro_cny === 200` 的断言。六条新断言使用作用域 `rag-cost-runtime-usage-${suffix}`，沿用已解析的配置只换 `scopeId`，再 `configureRagCostGovernance` 一次，并把该配置传入 `budgetedQbankEmbedding`。每条各自的 `invocationId`。顺序按 §9-rev：省略中文测试实结 4、省略两段 `a` 实结 2、实量 0 实结 0、只有 `embed` 实结 4、1001 个「中」截断后实结 1000、实量 1001 进入 unknown。第 6 条是该作用域最后一次 enforce。
+
+三条门退出码：
+
+1. `pnpm -C apps/worker prove:rag-cost` EXIT=0
+2. `pnpm -C apps/worker prove:rag-cost-runtime` EXIT=0
+3. `node scripts/ai-docs/check-docs.mjs` EXIT=0，受管文件扫描数 2282，不超过 2288

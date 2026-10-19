@@ -73,6 +73,85 @@ async function main() {
   const observeRows = await pool.query('SELECT count(*)::int n FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2', [scope, `observe-${suffix}`]);
   check('AG-24：observe 模式零账本触（零预留行·直连 embedder·零位移动臂）', observeVectors.length === 1 && Number(observeRows.rows[0]?.n) === 0);
 
+  const usageScope = `rag-cost-runtime-usage-${suffix}`;
+  const usageCfg = { ...cfg, scopeId: usageScope };
+  await configureRagCostGovernance(pool, usageCfg);
+  const usageReservation = async (invocationId: string) => {
+    const found = await pool.query(
+      'SELECT status,settled_micro_cny,reason_code FROM ai_cost_reservation WHERE scope_id=$1 AND idempotency_key=$2',
+      [usageScope, invocationId],
+    );
+    return found.rows[0];
+  };
+  const vectorsOf = (texts: string[]) => texts.map(() => [1, 0]);
+
+  const omitEmbedder: Embedder = {
+    dim: 512, id: model,
+    async embed(texts) { return vectorsOf(texts); },
+    async embedWithUsage(texts) { return { vectors: vectorsOf(texts) }; },
+  };
+  const omitCjkId = `usage-omit-cjk-${suffix}`;
+  const omitCjkVectors = await budgetedQbankEmbedding(pool, owner, omitEmbedder, usageCfg)(['中文测试'], { cacheKey: 'usage-omit-cjk', invocationId: omitCjkId, mode: 'claimed' });
+  const omitCjk = await usageReservation(omitCjkId);
+  const omitCjkSettled = Number(omitCjk?.settled_micro_cny);
+  check('缺用量按段估算结算，中文测试实结 4，不是上限也不是 16000', omitCjkVectors.length === 1
+    && omitCjk?.status === 'settled' && omitCjkSettled === 4 && omitCjkSettled !== 1000 && omitCjkSettled !== 16000);
+
+  const omitAsciiId = `usage-omit-ascii-${suffix}`;
+  const omitAsciiVectors = await budgetedQbankEmbedding(pool, owner, omitEmbedder, usageCfg)(['a', 'a'], { cacheKey: 'usage-omit-ascii', invocationId: omitAsciiId, mode: 'claimed' });
+  const omitAscii = await usageReservation(omitAsciiId);
+  const omitAsciiSettled = Number(omitAscii?.settled_micro_cny);
+  check('缺用量逐段相加，两段 a 实结 2，不是拼接后的 1 也不是上限', omitAsciiVectors.length === 2
+    && omitAscii?.status === 'settled' && omitAsciiSettled === 2 && omitAsciiSettled !== 1 && omitAsciiSettled !== 1000);
+
+  let zeroCalls = 0;
+  const zeroEmbedder: Embedder = {
+    dim: 512, id: model,
+    async embed(texts) { zeroCalls++; return vectorsOf(texts); },
+    async embedWithUsage(texts) { zeroCalls++; return { vectors: vectorsOf(texts), inputTokens: 0 }; },
+  };
+  const zeroId = `usage-zero-${suffix}`;
+  const zeroVectors = await budgetedQbankEmbedding(pool, owner, zeroEmbedder, usageCfg)(['中文测试'], { cacheKey: 'usage-zero', invocationId: zeroId, mode: 'claimed' });
+  const zeroRow = await usageReservation(zeroId);
+  const zeroSettled = zeroRow?.settled_micro_cny;
+  check('实量 0 照旧记 0 且状态为 settled，不改走文本估算 4', zeroCalls === 1 && zeroVectors.length === 1
+    && zeroRow?.status === 'settled' && zeroSettled !== null && zeroSettled !== undefined && Number(zeroSettled) === 0 && Number(zeroSettled) !== 4);
+
+  let embedOnlyCalls = 0;
+  const embedOnly: Embedder = {
+    dim: 512, id: model,
+    async embed(texts) { embedOnlyCalls++; return vectorsOf(texts); },
+  };
+  const embedOnlyId = `usage-embed-only-${suffix}`;
+  const embedOnlyVectors = await budgetedQbankEmbedding(pool, owner, embedOnly, usageCfg)(['中文测试'], { cacheKey: 'usage-embed-only', invocationId: embedOnlyId, mode: 'claimed' });
+  const embedOnlyRow = await usageReservation(embedOnlyId);
+  check('只有 embed 时按缺用量估算，中文测试实结 4', embedOnlyCalls === 1 && embedOnlyVectors.length === 1
+    && embedOnlyRow?.status === 'settled' && Number(embedOnlyRow?.settled_micro_cny) === 4);
+
+  const clampedId = `usage-clamp-${suffix}`;
+  const clampedVectors = await budgetedQbankEmbedding(pool, owner, omitEmbedder, usageCfg)(['中'.repeat(1001)], { cacheKey: 'usage-clamp', invocationId: clampedId, mode: 'claimed' });
+  const clamped = await usageReservation(clampedId);
+  check('缺用量估算超过上限时先截断再结算，实结 1000 且不是 unknown', clampedVectors.length === 1
+    && clamped?.status === 'settled' && clamped?.status !== 'unknown' && Number(clamped?.settled_micro_cny) === 1000);
+
+  let overCalls = 0;
+  const overEmbedder: Embedder = {
+    dim: 512, id: model,
+    async embed(texts) { overCalls++; return vectorsOf(texts); },
+    async embedWithUsage(texts) { overCalls++; return { vectors: vectorsOf(texts), inputTokens: 1001 }; },
+  };
+  const overId = `usage-over-${suffix}`;
+  const overCode = await budgetedQbankEmbedding(pool, owner, overEmbedder, usageCfg)(['中文测试'], { cacheKey: 'usage-over', invocationId: overId, mode: 'claimed' })
+    .then(() => '')
+    .catch((error: { code?: string }) => error?.code ?? '');
+  const overRow = await usageReservation(overId);
+  const overSettled = overRow?.settled_micro_cny;
+  check('大于上限的实量仍拒绝：嵌入一次、原因 external_outcome_unknown、行 unknown、实结为空', overCalls === 1
+    && overCode === 'external_outcome_unknown' && overCode !== 'rag_cost_budget_exhausted'
+    && overRow?.status === 'unknown' && overRow?.reason_code === 'external_outcome_unknown'
+    && (overSettled === null || overSettled === undefined) && overSettled !== 1000 && overSettled !== 4
+    && Number(overSettled) !== 1000 && Number(overSettled) !== 4);
+
   console.log(`\n${failures === 0 ? '✓ RAG 费用运行时集成全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);
