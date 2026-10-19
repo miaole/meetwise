@@ -4015,3 +4015,21 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2299** 余 5.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line stream-known-executed nail（2026-10-20 · 流式完成且已有用量时按已执行结算）
+
+- **改动**：流式完成且已有用量时，空文本和长度截断按已执行结算。空文本优先于截断。有文本的正常结束仍成功。没有用量、没有结束标记、传输失败、取消、错误帧和看门狗仍按未知或瞬时处理。没有新环境变量，也没有新迁移。
+- **并入**：预演 merge-tree EXIT=0，tree `056df0e3`。`git merge --no-ff` 得到 `5f83726d`，双亲 `b940e712` 与 `7957286c`。没有冲突，没有强推。
+- **门**：流式证明退出码 0。出站清单 pairs=54、environment_references=335。出站证明退出码 0。合树 docs:check scanned 2301≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2301** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line checkpoint-terminal-slim nail（2026-10-20 · 终态后按已有授权删除该线程检查点）
+
+- **改动**：终态面试提交成功后按已有授权删掉该线程的检查点。未终态不删。删除失败不回滚已经完成的终态。不新造保留期限，也不新授删除权。
+- **并入**：预演 merge-tree EXIT=0，tree `3dcfd881`。`git merge --no-ff` 得到 `da1c662b`，双亲 `5f83726d` 与 `4307d444`。没有冲突，没有强推。
+- **门**：隔离生命周期证明退出码 0，不打到本机 54329。合树 docs:check scanned 2301≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2301** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
