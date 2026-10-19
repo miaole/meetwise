@@ -211,3 +211,7 @@ executed:awaiting_post_prove_dual
 - ai-docs/delivery/harness/score-span-answer-REQUEST.md
 
 危机断言必须通过。本次重跑日志中「invokeEvaluationOnce 前置确定性扫描(先于模型 invoke)」为通过。禁止改 `scripts/i6-239-gates.proof.mjs`。
+
+## §9-rev3
+
+冒烟脚本必须继续把 scored 同时当作保存文本和模型所见文本；上一笔把保存文本改成了原始 answer、把模型所见改成了 clean。
