@@ -3997,3 +3997,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line omitted-mock-answer nail（2026-10-20 · 模拟面试不再保存原始作答）
+
+- **改动**：模拟面试的作答状态改为固定标记，不再写入原文。两个只按线程的租约函数在查询前拒绝。图仍保留中断。没有新迁移。
+- **并入**：预演 merge-tree EXIT=0，tree `af9af818`。`git merge --no-ff` 得到 `05cb02d5`，双亲 `0cebd82b` 与 `3309e91d`。没有冲突，没有强推。
+- **门**：语音证明、续跑证明、内核证明退出码都是 0。docs:check scanned 2298≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2298** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
