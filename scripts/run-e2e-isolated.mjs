@@ -1384,6 +1384,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/quiz/quiz.controller.ts',
     'apps/api/src/modules/diagnosis/diagnosis.controller.ts',
     'packages/db/migrations/0143_sse_push_notify.sql',
+    'packages/db/migrations/0214_interview_event_statement_notify.sql',
   ],
   'uc033:cross-user-authz:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
