@@ -3844,3 +3844,12 @@ flowchart TD
 - **收口**：能力项完成数由 31 改为 32，半成 2、未收 15 维持。批表仍是 227/271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 现值 **2275** 余 5.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line commerce-outbox-retention nail（2026-10-19 · 未结算投递走部分索引，已投递行按保留期分批归档）
+
+- **改动**：新增 `packages/db/migrations/0211_outbox_unsettled_partial.sql`。未结算行的部分索引 `ix_outbox_unsettled` 建在 `owner_user_id` 上，谓词是 `status = 'pending'`。新增 `0212_outbox_relayed_retention.sql`，去掉旧索引 `ix_outbox_pending`，并增加 `commerce_outbox_relayed_retention_purge`：只删已投递且超过保留期的行，天数 7 到 365，每批 1 到 10000，越界拒绝。应用角色可以执行这个函数，不能直接删表。停机清单计入 `commerce-outbox-retention`。
+- **并入**：fetch 后 origin tip 仍是 `0322276e`。merge-tree 预演 EXIT=0，tree `34c1166e`。`git merge --no-ff` 得到 `84352ca`，双亲 `0322276e` 与 `8936e276`。没有冲突，没有强推。
+- **门**：迁移唯一性 files=213 violations=0；保留期归档 7 项通过（隔离库 applied=213）；迁移运行器全部通过；commerce 全部通过；对账兜底全部通过；db-acl failures=0；db-acl2 failures=0；dbhy1 28 断言全绿；停机清单 PASS=60 FAIL=0；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601；docs:check scanned 2280≤2280。
+- **收口**：批表由 227/271 改为 228/271（84.1%）。能力项完成数仍是 32，半成 2、未收 15。#157/#158 仍开放。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 +2（0211、0212）· cap **2280** 现值 **2280** 余 0.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
