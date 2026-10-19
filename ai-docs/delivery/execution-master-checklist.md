@@ -3781,3 +3781,12 @@ flowchart TD
 - **STILL OPEN**：注入变体臂无机证（P2·归校准刀义务：接线时必须同落 ≥1 条非默认 policy 机证臂）·锚B 信号层对偶值与 policy 联动/分叉裁决归校准刀触面清单·组合根 env→policy 接线挂起·#38 数值校准待生产分布数据（批表 #38 行不翻面）·REQUEST Status 终翻面权归协调方.
 - 预算：est live=0（nail 面全本地静态门）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2266** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line ag17-schema-span nail（2026-10-19 SSOT nail · 协调方授权（post 双审会签[席1 PASS+席2 FAIL 经内联补码+复验席 PASS]·本波主线推送席#4·⛔force push·⛔pull --rebase） · AG-17 结构化输出观测诚实化（span 档名换名 schema_invalid·零行为变更·AG 台账 done 30→31·批表零翻面））
+
+- **授权链全链如实载**：起草 `1cf4c404` → 第一轮双审 席1 PASS/席2 FAIL（P1 七值计数互斥）→ rev `e12a6343` → 第二轮双审 PASS×2 → EXEC `39ffb654`（7 tracked·九门全绿·D1-D5 偏离如实）→ post 席1 PASS（agent_fb869989）/席2 FAIL（agent_fb8c379e·P1 两处新增注释旧档名字面）→ 协调方内联补码 `ac4ac94e`（拆写形+卷补记偏离⑦⑧+push 归因声明）→ 补码复验席 PASS（agent_10558a63）→ 会签 → nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`e5b312a0` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`fc6e5066`）→ merge --no-ff merge commit `84e3adbe`（新增 ag17-REQUEST.md+ag17-schema-span.proof.ts 两文件）→ 门亲跑（typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12+docs:check EXIT=0 scanned 2268≤2272 余 4）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷九门+post 双审承+补码五门+nail 复跑）**：ag17-schema-span:prove:raw 14/14（隔离库 applied=209）+三件回归 prove EXIT=0+lint 帽恰等（root 5242/api 1423/domain 115/ai-runtime 628/worker 959/db 1042/web 601）+码面旧档名 grep EXIT=1+nail 三门+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：issues-final.md/.csv 判词原文含旧档名（:18/:29/:239/:244）系静态复核清单·禁触蓝本零触不翻改·AG 台账计数以本管线行为翻面载体（done 31/half 2/open 15）·run-e2e-isolated.mjs 门依赖指纹清单未纳 0210 类同注记归后继·AG-02 重试策略（卷关联）归后继·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0（proof=本地 http 脚本 provider+隔离 PG·零模型外呼）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2268** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
