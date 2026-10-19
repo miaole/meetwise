@@ -6,7 +6,7 @@
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
 import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
-import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type QuestionGenerationResult, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
 import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
 import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
@@ -392,6 +392,38 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
   // 跨 turn 复位（per-turn 语义,与 MAX_DUPLICATE_REROLL/MAX_ERROR_REROLL 帽口径一致）。
   let rollTurn = -1;
   let rollSeq = 0;
+  // 同一进程里检索段更新过的缺口。生成段先按种子写入，再在身份相符时带回该现值。进程重启后此值为空，不再为了重算缺口去检索。
+  let deficitAfterRetrieve: { key: string; value: number[] | null } | null = null;
+  const replayIdentityKey = (identity: { turn: number; competency: string; difficulty: number; kind: string }) =>
+    `${identity.turn}\u0000${identity.competency}\u0000${identity.difficulty}\u0000${identity.kind}`;
+  const loadRetrieval = async (competency: string, difficulty: number, kind: QuestionKind) => {
+    const useRetrieval = kind === 'fundamental' || kind === 'scenario';
+    if (!useRetrieval) {
+      return { useRetrieval, local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined as CragVerdict | undefined };
+    }
+    const cragQuery = buildCragPlannerQuery(competency, difficulty, {
+      targetRole: d.targetRole,
+      techStackFacts: selectGroundedFacts(d.resumeFacts ?? [], competency),
+    });
+    const found = await cragRetrieve(cragQuery, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary });
+    return { useRetrieval, local: found.local, web: found.web, verdict: found.verdict };
+  };
+  const nativeRetrievalFailure = (verdict: CragVerdict | undefined, turn: number) => {
+    if (!verdict) return null;
+    const nativeError = nativeRetrievalFailureToken(verdict.reason);
+    if (!nativeError) return null;
+    // 收据沿用既有原生失败的 `:0`。这里不推进 rollSeq，也不调用模型。
+    return unavailableGeneration(classifyQuestionGenerationError(nativeError), {
+      operationId: QUESTION_OPERATION_ID,
+      idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+      invokeError: nativeError,
+    });
+  };
+  const rememberDeficit = (identity: { turn: number; competency: string; difficulty: number; kind: string }) => {
+    if (!d.trackLocalDeficitRef) return;
+    const current = d.trackLocalDeficitRef.current;
+    deficitAfterRetrieve = { key: replayIdentityKey(identity), value: current == null ? null : [...current] };
+  };
   return {
     competencies: d.competencies,
     resumeProfileAvailable: d.resumeProfileAvailable,
@@ -401,13 +433,38 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
     absoluteMaxTurns: d.absoluteMaxTurns,
     graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
-    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit, session?: SessionSummary | null) {
+    retrievalReplay: true,
+    async retrieveReplayPacket(competency, difficulty, attempt, turn, _legacyFacts, kind, _asked, weightedDeficit, _session) {
+      if (d.trackLocalDeficitRef && weightedDeficit !== undefined) {
+        d.trackLocalDeficitRef.current = weightedDeficit;
+      }
+      if (attempt !== 0) {
+        return unavailableGeneration('attempt_replay_forbidden', {
+          operationId: QUESTION_OPERATION_ID,
+          idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+        });
+      }
+      const loaded = await loadRetrieval(competency, difficulty, kind);
+      if (loaded.useRetrieval) {
+        const failure = nativeRetrievalFailure(loaded.verdict, turn);
+        if (failure) return failure;
+      }
+      const identity = { turn, competency, difficulty, kind };
+      rememberDeficit(identity);
+      return { local: loaded.local, external: loaded.web, verdict: loaded.verdict ?? null, identity };
+    },
+    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit, session?: SessionSummary | null, replayPacket?) {
       // AG-37(检索 weighted-deficit 归零·修法③·裁决②a 第 8 additive 参):seed——genQuestion 读图
       // state 位 `weightedDeficit`（上一题写下的持久化值·旧 checkpoint/首题=null）经第 8 参传入,
       // 经 holder 写入 worker 检索闭包起跑值（interview-consumer 闭包读 ref·缺省臂全 0=现状字节）。
       // undefined（既有 7 参调用/scripted deps）=不 seed·holder 原样零触。
       if (d.trackLocalDeficitRef && weightedDeficit !== undefined) {
         d.trackLocalDeficitRef.current = weightedDeficit;
+      }
+      // 同一进程的检索段已经更新过 holder 时，种子写入之后把该现值带回。重启后续跑没有这份现值，保持种子，不再检索。
+      if (replayPacket && d.trackLocalDeficitRef && deficitAfterRetrieve?.key === replayIdentityKey(replayPacket.identity)) {
+        const value = deficitAfterRetrieve.value;
+        d.trackLocalDeficitRef.current = value == null ? null : [...value];
       }
       // AG-37(修法③·出参回流):success 形结果 attach holder 现值（null=非检索路径/缺省臂·值=本题
       // rag.retrieve 更新后 deficit）→ normalize passthrough → genQuestion 写图 state 位。失败形与
@@ -496,23 +553,13 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // 题型决定接地(H2 #79 扩面):fundamental/scenario 用 CRAG 检索真题素材;grounded 走简历选定
       // 事实(上方早退),behavioral 考行为面经、与技术题库语料错配——检索白名单 EXEC 裁决=fundamental
       // +scenario,behavioral 纳入与否留后刀如实登记(非「漏接」)。
-      const useRetrieval = kind === 'fundamental' || kind === 'scenario';
-      const cragQuery = buildCragPlannerQuery(competency, difficulty, {
-        targetRole: d.targetRole,
-        techStackFacts: selectGroundedFacts(d.resumeFacts ?? [], competency),
-      });
-      const { local, web, verdict } = useRetrieval
-        ? await cragRetrieve(cragQuery, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
-        : { local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined };
-      if (useRetrieval && verdict) {
-        const nativeError = nativeRetrievalFailureToken(verdict.reason);
-        if (nativeError) {
-          return unavailableGeneration(classifyQuestionGenerationError(nativeError), {
-            operationId: QUESTION_OPERATION_ID,
-            idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
-            invokeError: nativeError,
-          });
-        }
+      const loaded = replayPacket
+        ? { useRetrieval: false, local: replayPacket.local, web: replayPacket.external, verdict: replayPacket.verdict ?? undefined }
+        : await loadRetrieval(competency, difficulty, kind);
+      const { local, web, verdict } = loaded;
+      if (!replayPacket && loaded.useRetrieval && verdict) {
+        const failure = nativeRetrievalFailure(verdict, turn);
+        if (failure) return failure;
       }
       // H2 #79:scenario 检索无素材(题库零命中且 web 零结果)→ 显式降级模板(沿 :247-257 grounded
       // 无事实回退先例形),零 fail 硬死、绝不静默拿空素材喂模型发明情景题。fundamental 既有语义零改。

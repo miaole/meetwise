@@ -5,9 +5,10 @@ import {
   QUESTION_GENERATION_REROLL_FAMILY,
   type CompetencySpec,
   type QuestionGenerationProvenance,
+  type QuestionGenerationResult,
   type QuestionKind,
 } from '@meetwise/domain';
-import type { AdaptiveDeps, AdaptiveInterviewGraphState } from '../state.ts';
+import type { AdaptiveDeps, AdaptiveInterviewGraphState, QuestionRetrievalPacket } from '../state.ts';
 import { buildSessionSummary } from '../session-summary.ts';
 
 function issueQuestionId(stateVersion: number, turn: number, clarifyAttempts: number): string {
@@ -27,6 +28,22 @@ function nextCompetencyAfter(sequence: readonly (string | CompetencySpec)[], cur
   const idx = names.indexOf(current);
   if (idx < 0 || idx + 1 >= names.length) return null;
   return names[idx + 1] ?? null;
+}
+
+function sameRetrievalIdentity(
+  packet: QuestionRetrievalPacket,
+  identity: QuestionRetrievalPacket['identity'],
+): boolean {
+  return packet.identity.turn === identity.turn
+    && packet.identity.competency === identity.competency
+    && packet.identity.difficulty === identity.difficulty
+    && packet.identity.kind === identity.kind;
+}
+
+function isQuestionRetrievalPacket(
+  value: QuestionGenerationResult | QuestionRetrievalPacket,
+): value is QuestionRetrievalPacket {
+  return !('ok' in value) && Array.isArray(value.local) && Array.isArray(value.external) && value.identity != null;
 }
 
 function failClosed(
@@ -90,9 +107,30 @@ export function createGenerateQuestionNode(deps: AdaptiveDeps) {
       // AG-37(修法③·裁决②a):第 8 additive 参=图 state 位 `weightedDeficit` 持久化值（上一题写下的
       // DRR deficit·旧 checkpoint 缺省 null=worker 闭包全 0 起跑现状字节）——下一题读上一题值,不再归零。
       // #51:session=transcript 派生会话摘要(纯函数),同不经本节点写入 state,零回放分叉。
-      const generated = normalizeQuestionGenerationResult(
-        await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null, session),
-      );
+      // 身份取检查点里的轮次、胜任力、难度和有效种类。未声明两段的脚本接缝仍一次调用。
+      const replayIdentity: QuestionRetrievalPacket['identity'] = {
+        turn, competency: route.competency, difficulty: route.difficulty, kind: effectiveKind,
+      };
+      const storedPacket = state.retrievalPacket;
+      const replayHit = deps.retrievalReplay === true
+        && storedPacket != null
+        && sameRetrievalIdentity(storedPacket, replayIdentity);
+      let generated: QuestionGenerationResult;
+      if (deps.retrievalReplay === true && deps.retrieveReplayPacket && !replayHit) {
+        const retrieved = await deps.retrieveReplayPacket(
+          route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null, session,
+        );
+        if (isQuestionRetrievalPacket(retrieved)) return { retrievalPacket: retrieved };
+        generated = normalizeQuestionGenerationResult(retrieved);
+      } else if (replayHit && storedPacket) {
+        generated = normalizeQuestionGenerationResult(
+          await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null, session, storedPacket),
+        );
+      } else {
+        generated = normalizeQuestionGenerationResult(
+          await deps.retrieveAndGenerate(route.competency, route.difficulty, 0, turn, [], effectiveKind, asked, state.weightedDeficit ?? null, session),
+        );
+      }
       if (isQuestionGenerationFailure(generated)) {
         // AG-F(刀F·修法②/裁决②a):族内确定性失败（seam 有界 re-roll 预算已耗尽后才到达本节点）
         // → 不 failClosed 整场——顺延 planner 序下一 competency 重新出题（换序轨迹落 degraded/
