@@ -60,7 +60,7 @@
 
 executed:awaiting_post_prove_dual
 
-产品代码本步不改。本步只新增本说明，不改模拟图，不改两份测试，不改租约函数，不改内核证明，不改迁移，也不改 worker 入口。
+产品代码已按上文修法写完。模拟图的作答状态改为固定标记。两个只按线程的租约函数在查询前拒绝。三份既有证明改为断言这些结果。没有新迁移，也没有改 worker 入口。
 
 executed:awaiting_post_prove_dual
 
