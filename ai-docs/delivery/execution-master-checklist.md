@@ -4141,3 +4141,39 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line qdrant-erase-count nail（2026-10-20 · 删除计数按规范点号比对回读结果）
+
+- **改动**：调用方传入的大小写、无连字符或带花括号的点号，删除后仍按实际消失的点数计。摘要仍按调用方原始点号计算。
+- **并入**：merge `d0b7edb3`，双亲 `033b1de4` 与 `59c5c6d4`。预演 tree `cc2be7b9`。没有冲突，没有强推。
+- **门**：删除证明退出码 0，Qdrant 127.0.0.1:6333。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line turn-accepted-contract nail（2026-10-20 · 面试作答接口登记为已受理）
+
+- **改动**：文档与现有的已受理响应一致。服务端行为不改。押题、诊断和面试开始仍是已受理。
+- **并入**：merge `56861f34`，双亲 `d0b7edb3` 与 `1ef053b1`。预演 tree `74274980`。没有冲突，没有强推。
+- **门**：契约证明 103 条退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数同上。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line g7-free-model-guard nail（2026-10-20 · 免费档复跑拒绝未登记的模型名）
+
+- **改动**：主模型与快模型都必须落在已登记的五个免费名字里。未开启复跑时不改调用方原来的模型名。没有新增环境变量。
+- **并入**：merge `b3da3e02`，双亲 `56861f34` 与 `391d58e3`。预演 tree `6162c387`。没有冲突，没有强推。
+- **门**：脚本退出码 0。出站清单 pairs=54、environment_references=335。出站证明 7/7。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line unscored-turn nail（2026-10-20 · 评分失败后面试轮次继续向前）
+
+- **改动**：这一题记为未评分且不写入能力证据。轮次加一，澄清次数清零，整场不因此结束。读答案失败仍结束且轮次不加。
+- **并入**：merge `7883a324`，双亲 `b3da3e02` 与 `70490296`。预演 tree `5230d2e9`。没有冲突，没有强推。
+- **门**：自适应图证明退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，ai-graphs 警告 47，上限仍是 47。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
