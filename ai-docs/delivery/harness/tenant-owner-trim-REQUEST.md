@@ -103,3 +103,7 @@ executed:awaiting_post_prove_dual
 
 - `pnpm --filter @meetwise/db tenant-enforcement:prove` 退出码 0。
 - `node scripts/ai-docs/check-docs.mjs` 退出码 0。公共文本扫描 2288 个受管文件，不超过 2296。未新增受管文件。
+
+## §9-EXEC-rev
+
+类型检查认为按下标读取的成功形状可能为空。先把两项取出来，判空后再读列和值。含首尾空白仍拒绝。没有首尾空白时仍返回原值。断言没有变弱。
