@@ -227,6 +227,50 @@ async function main() {
     A('X3 属主 hold 正常完成', hold.acquired === true);
   }
 
+  section('T · 终态行不被迟到作业写回 active');
+  {
+    const owner = OWN('term');
+    const readRun = (threadId: string) => asPrincipal(pool, owner, (c) => c.query(
+      `SELECT status, version FROM ai_graph_run
+        WHERE graph_name='adaptive-interview' AND thread_id=$1 AND owner_user_id=$2 ORDER BY version`,
+      [threadId, owner],
+    ));
+    const plant = async (key: string, status: string) => {
+      const threadId = TID(key);
+      await seedInterview(owner, threadId);
+      await asPrincipal(pool, owner, (c) => c.query(
+        `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
+           VALUES ('adaptive-interview',$1,$2,$3,4,NULL,NULL)`,
+        [threadId, owner, status],
+      ));
+      return threadId;
+    };
+    for (const status of ['failed', 'succeeded', 'safely_terminated', 'safe_terminating', 'completed'] as const) {
+      const threadId = await plant(`dead-${status}`, status);
+      let acquired: boolean | 'threw' = 'threw';
+      try {
+        const got = await withInterviewGraphFence(pool, owner, threadId, 'late-job', async () => 'should-not-run');
+        acquired = got.acquired;
+      } catch (e) {
+        acquired = 'threw';
+        console.error('终态 fence 抛错', status, e instanceof Error ? e.message : e);
+      }
+      const after = await readRun(threadId);
+      A(`T ${status} 未取得且未抛错`, acquired === false);
+      A(`T ${status} 仍一行且 status 与 version 保持原值`,
+        after.rowCount === 1 && after.rows[0]?.status === status && Number(after.rows[0]?.version) === 4);
+    }
+    for (const status of ['created', 'active', 'waiting_user', 'migrating', 'paused', 'quarantined'] as const) {
+      const threadId = await plant(`live-${status}`, status);
+      const got = await withInterviewGraphFence(pool, owner, threadId, 'late-live', async () => {
+        const row = await readRun(threadId);
+        return { status: String(row.rows[0]?.status), version: Number(row.rows[0]?.version), n: row.rowCount ?? 0 };
+      });
+      A(`T 活状态 ${status} 仍可取得并写成 active，且不另插一行`,
+        got.acquired === true && got.value.status === 'active' && got.value.version === 5 && got.value.n === 1);
+    }
+  }
+
   console.log(`\n${fail === 0
     ? '✓ UC-E2E-002 L1–L3+X1–X3 lease CAS integration passed (partial ladder only; ≠ covered; ≠ HTTP dual-session)'
     : `✗ ${fail} UC-E2E-002 lease asserts failed`}`);

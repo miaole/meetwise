@@ -21,6 +21,7 @@
  */
 import type { PoolClient as Client } from 'pg';   // 直接取 pg 类型,不从 ./index 桶引（否则 index↔commerce 成环）
 import { cancelOpenInterviewQuestion } from '../interview/interview-question.ts';   // #1 接线：abandon 收口同事务 cancel open 题（该文件零包内 import=无环）
+import { failQueuedInterviewJobsOnAbandon } from '../interview/interview-jobs.ts';   // abandon 收口同事务把仍 queued 的作业写成 failed（interview-jobs 不引 commerce）
 import type { CreditBucketKind } from './payment.ts';   // B271 片3 P3 形 A：kind 可选形参类型（类型面单源=./payment.ts）
 import { interviewBillingOf, topicCountedUnits } from './topic-charge.ts';   // billing P3 修法⑥：模式闸+Σ 面（topic-charge 单向依赖·零环）
 
@@ -470,7 +471,7 @@ async function safelyTerminateAiGraphRunsOnAbandon(c: Client, owner: string, int
 /** #8：面试完成（completeInterviewAndConfirm CAS 成功臂）同事务把该面试 thread 上非终态 AiGraphRun
  * 一步 CAS 置 'succeeded'（清 lease；thread-wide 从集与 abandon 先例同构）。完成后 withInterviewGraphFence
  * finally 之 releaseInterviewGraphFence 因 lease_owner/version 双失配 0 行 no-op=终态不被覆盖；
- * 'succeeded'→active 续约臂 0194 明文允许=job 重放/重试零 23514 新险。无 run 则 noop。 */
+ * 获取租约的更新只命中六值活状态，succeeded 不会被写回 active。无 run 则 noop。 */
 async function succeedAiGraphRunsOnInterviewComplete(c: Client, owner: string, interviewId: string): Promise<void> {
   await c.query(
     `UPDATE ai_graph_run
@@ -488,6 +489,7 @@ async function finishAbandon(
   // #1 接线：open 题（issued/queued）同事务翻 cancelled（行不删=业务事实独立保全）——
   // DTO current/processing_turn 归 NULL、issued_turns 归 0；迟答收敛 claimInterviewAnswer 既有 stale 臂。
   await cancelOpenInterviewQuestion(c, owner, interviewId);
+  await failQueuedInterviewJobsOnAbandon(c, owner, interviewId);
   return result;
 }
 

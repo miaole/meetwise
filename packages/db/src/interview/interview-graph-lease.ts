@@ -38,9 +38,12 @@ export async function withInterviewGraphFence<T>(
     }
     const row = current.rows[0];
     if (row.lease_owner && row.lease_owner !== leaseOwner && new Date(row.lease_expires_at).getTime() >= Date.now()) return null;
+    // 六值活状态之外更新不到一行即未取得，不改走上面的 INSERT。
     const upd = await c.query(
       `UPDATE ai_graph_run SET status='active',lease_owner=$4,lease_expires_at=now()+($5||' seconds')::interval,version=version+1
-        WHERE run_id=$1 AND owner_user_id=$2 AND version=$3 RETURNING version`,
+        WHERE run_id=$1 AND owner_user_id=$2 AND version=$3
+          AND status IN ('created','active','waiting_user','migrating','paused','quarantined')
+        RETURNING version`,
       [row.run_id, owner, row.version, leaseOwner, String(LEASE_SECONDS)],
     );
     return upd.rowCount === 1 ? { owner, interviewId, leaseOwner, version: Number(upd.rows[0].version) } : null;
