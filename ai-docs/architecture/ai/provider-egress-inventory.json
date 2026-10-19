@@ -177,6 +177,10 @@
         {
           "source": "packages/ai-runtime/test/ag17-schema-span.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/ag18-sampling-temperature.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     },
@@ -2069,6 +2073,11 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/ag17-schema-span.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag18-sampling-temperature.proof.ts",
       "class": "test-fixture"
     }
   ],
