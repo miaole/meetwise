@@ -93,5 +93,48 @@
 - **est live=0**（proof=本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
 - **STOP=draft:awaiting_pre_exec_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
 
+## §9-rev rev 修订注记（pre-exec 双审第一轮 FAIL 两席合并修订清单 P1 一件甲+P2 六件乙/丙/丁/戊/己/庚回路 · rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
+
+**rev 缘由**：pre-exec 双审第一轮回卷 FAIL 定谳两席合并清单（P1 一件+P2 六件）·本席逐位届树亲证后按 rev 回路落卷（只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触·落卷形=append 不洗·EXEC 期以下列修正句为准读）。其中 P2-丁 行号半经届树复核**不成立**（证据随条登记·不落修正只登记）；余六件半/件均成立落修正。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+### §9-rev.1 修订①（P1-甲）——ModelCallOutcome 七值联合计数统一（四处词面一并勘误）
+
+- **届树亲证**：`packages/ai-runtime/src/trace.ts:6-13`（blob `debd3cfcd5d5a3c4b41d53e23db3c8556f9d593f` 恰等 §0.1 锚）——`:6` `export type ModelCallOutcome =`+七成员逐行：`:7` `| 'cached'`/`:8` `| 'ok'`/`:9` `| 'transient_retry'`/`:10` `| 'schema_retry'`/`:11` `| 'business_error'`/`:12` `| 'deterministic_refusal'`/`:13` `| 'exhausted';`——**恰七值**。卷件② C 臂六值枚举（transient_retry/business_error/deterministic_refusal/exhausted/cached/ok）逐值与树吻合=「其余六档」枚举本身正确，仅其括注计数词面误。
+- **修正句（统一为「七值联合·schema_retry 外其余六档」）**：§0.1 trace.ts 行「`ModelCallOutcome` 五值联合」→「`ModelCallOutcome` **七值联合**」；件① 零语义变更声明「五值→五值换名」→「**七值→七值换名**」；件② C 臂「（五值联合零增零删）」→「（**七值联合**零增零删·六值枚举原样不变）」；§5 Ban 面「其余五档 outcome 值零触」→「**其余六档** outcome 值零触」。四处计数口径（五值联合/五值→五值/其余四值/其余五档）互斥就此归一；结论面（改名零增零删·其余档零触）不变·纯计数勘误。
+
+### §9-rev.2 修订②（P2-乙）——trace.ts `transient_retry` 行锚 :8→:9
+
+- **届树亲证**：`trace.ts:8`=`| 'ok'                     // 双校验通过`·`:9`=`| 'transient_retry'        // 瞬时失败,将重试`——卷 §0.1 trace.ts 行「`:8` `transient_retry`（同族措辞但非本判词面·Ban 触）」与件①「`:8` `transient_retry` 等其余四值字节零触」两处行锚**误**。
+- **修正句**：两处 `:8` `transient_retry` →「**`:9`** `transient_retry`」；件① 处「其余四值」随 §9-rev.1 改「**其余六值**」。
+
+### §9-rev.3 修订③（P2-丙）——model-client.ts `RESPONSE_FORMAT_RESERVE_TOKENS` 行锚（席2 口径成立）
+
+- **届树亲证**：`packages/ai-runtime/src/model-client.ts`（blob `61471ed4156873b8a1154161e138b8a317c40384` 恰等 §0.1 锚）——注释块恰 **`:164-167`**（`:164` ``// `response_format` is provider-side structured-output machinery rather than a``→`:167` `// gives every operation its exact schema budget.`）+const 恰 **`:168`**（`const RESPONSE_FORMAT_RESERVE_TOKENS = 64;`·grep -n 亲证）——**席2 词面（注释 :164-167+const :168）届树成立**；席1 词面 :163-167 不确（`:163` 系 `RAG_SECTION_MARKER` const 行）；卷面 `:162-166` 误。
+- **修正句**：§0.1 model-client.ts 行「`:162-166` `RESPONSE_FORMAT_RESERVE_TOKENS=64` 注释（自述 provider-side structured-output machinery）」→「**`:164-167` 注释（自述 provider-side structured-output machinery）+`:168` `RESPONSE_FORMAT_RESERVE_TOKENS=64` const 行**」。
+
+### §9-rev.4 修订④（P2-丁）——件③ 四触点收敛三处编辑（行号半不成立·只登记不修正）
+
+- **收敛半·成立**：「gate 清单 append」与「清单尾 append」同物异名届树坐实——run-e2e-isolated.mjs 的 gate 清单系 `:2178` 单行清单（ag19 词面 `'ag19-prompt-version:prove:raw'` 在 `:2178` 行内亲证）·对该清单的 append 即该行尾加项；「清单尾 append」若读作文件清单对象尾新键位次·亦属文件清单臂新键编辑之内——两读均非独立第四编辑。
+- **修正句（收敛三处）**：§0.1 run-e2e 行「（ag19-prompt-version 同形三触点+清单尾 append=件③四处）」→「（ag19-prompt-version 同形**三处编辑**=件③全触点）」；件③「四触点（`:896-898` 文件清单臂同形+`:2178` gate 清单 append+`:2510-2511` 派发臂同形+清单尾 append）」→「**三处编辑**（`:896-898` 文件清单臂新键同形+`:2178` gate 清单尾 append+派发臂新臂同形）」；§1.2 触面矩阵 run-e2e 计数 1 不变。
+- **行号半·不成立（跳过修正·如实登记）**：届树 `:2509`=`// AG-19(刀 AG-19):ag19-prompt-version 接隔离 PG runner·命令沿 ai-runtime 原生 script 名。`、`:2510`=`: target === 'ag19-prompt-version:prove:raw'`、`:2511`=`? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:ag19-prompt-version']]`——卷面 `:2510-2511` **恰中 target+command 臂体对·非误**；席词「实为 :2509-2510」系「注释+target」窗（blob `c633bb81a6ae2504889d9af559a4080aaf2a78dc` 恰等 §0.1 锚·全臂含引导注释恰 `:2509-2511`）。**全臂窗 `:2509-2511` 如实登记供 EXEC 参照·卷面 `:2510-2511` 锚维持**。
+
+### §9-rev.5 修订⑤（P2-戊）——§1.3-丁 历史卷零触枚举补列 ag24 旧档名 prose 引用
+
+- **届树亲证**：`ai-docs/delivery/harness/ag24-langfuse-model-REQUEST.md:89` 含「`…:976/:980 span exhausted/schema_retry 非 ok 臂…`」——历史卷旧档名行文引用坐实（与 §1.3-丁 `expert-interview-coach-evaluation.md:991` 同口径）。
+- **修正句**：§1.3-丁 零触枚举补列 **`ai-docs/delivery/harness/ag24-langfuse-model-REQUEST.md:89`（旧档名 prose 引用·历史卷零触同口径）**。
+
+### §9-rev.6 修订⑥（P2-己）——§0.0 时点机证时移注记（append）
+
+- **届树亲证（rev 时点亲测）**：`git worktree list` 恰 **5 树**（主仓 `4c2ea4c9`/5ag `df150781` detached/本卷 ag17 `1cf4c404`/thcal `67f905a2`/cap72 `442244ac`）——卷记 6 树（errc/pgp 已撤·cap72 新入）；`git branch -a | grep ag17` 现为本地 `line/ag17-draft`+`remotes/origin/line/ag17-draft` 两条（起草时点仅本地一条）——**§0.0 时点机证已时移坐实**。
+- **修正句（append 注记）**：§0.0 三查数值系起草时点机证·**EXEC 立项按届时机证重跑三查·勿引陈旧树数**（工作树数/分支现场以 EXEC 届时 `git worktree list`/`git branch -a` 实测为准·漂移照 §0 头注形如实录）。
+
+### §9-rev.7 修订⑦（P2-庚·rev 席裁量**纳为 EXEC 义务**）——件② C 臂扩 trace.ts+invoke.ts 双文件零命中断言
+
+- **技术前提届树亲证**：全仓 ts/mjs（packages/apps/scripts·滤 node_modules）`schema_retry` 恰 **4 处**（`invoke.ts:1082` 注释/`:1083` span/`:1203` 三元臂+`trace.ts:10` 联合体行·本席 grep 亲证恰等 §0.2-3 词面）——件① 改名后 **trace.ts+invoke.ts 双文件 `schema_retry` 零命中**断言可行且近零成本（C 臂已静态读 trace.ts·加读 invoke.ts 同形）。
+- **裁量理由**：`:1203` else 臂（schema_retry 支）无运行时臂覆盖（A 臂承 `:1083` 臂/B 臂承 business_error 支/D 臂承 ok 路径）——静态双文件零命中断言补真覆盖面·非冗余，故纳为 EXEC 义务而非观察级。
+- **修正句（门矩阵随注同步）**：件② C 臂静态读值域由「`trace.ts` 源」扩为「**`trace.ts`+`invoke.ts` 双文件源**——`schema_retry` 双文件零命中+`schema_invalid` 于 trace.ts 恰一命中+六值原样+invoke.ts 三落点（`:1082` 注释/`:1083`/`:1203`）改名后零旧值」；§2 门①「四臂全绿」**臂数不变**（增量在 C 臂内·门① 词面以本节为准读）。
+
+**rev 自检回执**：markers 五类标记词（四标记词词面运行时组装不落卷面+行首冲突标记严格形）本卷改动文件直扫 **0 命中**（本席亲跑·防自指沿 upload-guards §9-rev 同形制）；`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（rev 时点亲跑·本卷系既有文件 append 零新增文件·计数不变）；`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·`actualSpendCny=null` 同源）；STOP 三处同值零翻。
+
 ---
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·pre-exec 双审待派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·pre-exec 双审待派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮回卷·P1 一件+P2 六件·其中 P2-丁 行号半不成立只登记）·窄域=§9-rev 落点复验·第二轮两独立外席待派。
