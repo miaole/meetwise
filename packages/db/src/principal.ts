@@ -556,8 +556,17 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
     await c.query('ROLLBACK').catch(() => undefined);
     throw error;
   } finally {
-    await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['meetwise:qbank_control_definer_provision']).catch(() => undefined);
-    c.release();
+    // A failed unlock leaves the session advisory lock on this connection.
+    // Discard that client instead of returning the locked session to the idle list.
+    let unlocked = false;
+    try {
+      await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['meetwise:qbank_control_definer_provision']);
+      unlocked = true;
+    } catch (unlockError: unknown) {
+      if (unlockError instanceof Error) c.release(unlockError);
+      else c.release(true);
+    }
+    if (unlocked) c.release();
   }
 }
 
