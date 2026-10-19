@@ -3880,3 +3880,12 @@ flowchart TD
 - **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2284** 余 4.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line checkpoint-config-batch nail（2026-10-19 · 检查点连接把三次配置合成一次往返）
+
+- **改动**：取得连接后仍先 `SET ROLE app_role`，再一条 `SELECT` 里三次 `set_config`。归还前仍先 `SET ROLE NONE`，再一条 `SELECT` 把三个值清空。第三参仍是 false。
+- **并入**：图调用合并之后再预演，merge-tree EXIT=0，tree `53cd46d9`。`git merge --no-ff` 得到 `474ad1b2`，双亲 `e284e95d` 与 `256f0d20`。没有冲突，没有强推。
+- **门**：连接角色泄漏证明六项通过，gitSha=`474ad1b2`。docs:check scanned 2284≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2284** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
