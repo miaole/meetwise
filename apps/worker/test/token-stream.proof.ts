@@ -210,6 +210,7 @@ async function main() {
   {
     const RID = `s4br-${Date.now()}`;
     const reportKey = `${RID}:report`;
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [RID, OWNER]);
     const raw = '{"sections":[{"title":"S","body":"b"}]}';
     const report = await reportGenerator(pool, OWNER, reportKey, streamingModel({ 'report.generate': raw }), RID)({
       interviewId: RID, questionCount: 1, scores: [80], owner: OWNER,

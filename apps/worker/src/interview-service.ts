@@ -349,6 +349,7 @@ export function reportGenerator(pool: DbPool, owner: string, idempotencyKey: str
     const call = async (tokenSink?: TokenSink): Promise<ReportContent> => {
       const out = await invoke({
         idempotencyKey, operation: { id: 'report.narrative.v1', businessRevision: idempotencyKey }, schema: ReportSchema,
+        privacyInterviewId: s.interviewId,
         service: 'report.generate',
         businessValidate: (v) => {
           try { validateReportContent(s, { overall, sections: v.sections }); return null; }
