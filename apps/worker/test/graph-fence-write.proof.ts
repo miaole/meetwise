@@ -435,6 +435,110 @@ async function main() {
     A(`活状态 ${status} 仍可取得并写成 active，且不另插一行`,
       got.acquired === true && got.value.status === 'active' && got.value.version === 5 && got.value.n === 1);
   }
+  // 面试行直接写成 completed，调用前不插图行。
+  console.log('\n──── 面试已是 completed 且还没有图行：不插入 active ────');
+  const iidInterviewCompleted = 'gf-iv-status-completed';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'completed')", [iidInterviewCompleted, OWNER]);
+  const beforeInterviewCompleted = await readRun(iidInterviewCompleted);
+  A('完成面试调用前没有图行', beforeInterviewCompleted.rowCount === 0);
+  let interviewCompletedAcquired: boolean | 'threw' = 'threw';
+  try {
+    const got = await withInterviewGraphFence(pool, OWNER, iidInterviewCompleted, 'gf-iv-completed-late', async () => 'should-not-run');
+    interviewCompletedAcquired = got.acquired;
+  } catch (e) {
+    interviewCompletedAcquired = 'threw';
+    console.error('完成面试零图行 fence 抛错', e instanceof Error ? e.message : e);
+  }
+  const afterInterviewCompleted = await readRun(iidInterviewCompleted);
+  A('完成面试还没有图行时未取得且未抛错', interviewCompletedAcquired === false);
+  A('完成面试还没有图行时 ai_graph_run 仍是 0 行', afterInterviewCompleted.rowCount === 0);
+  // 面试行直接写成 abandoned，调用前不插图行。
+  console.log('\n──── 面试已是 abandoned 且还没有图行：不插入 active ────');
+  const iidInterviewAbandoned = 'gf-iv-status-abandoned';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'abandoned')", [iidInterviewAbandoned, OWNER]);
+  const beforeInterviewAbandoned = await readRun(iidInterviewAbandoned);
+  A('放弃面试调用前没有图行', beforeInterviewAbandoned.rowCount === 0);
+  let interviewAbandonedAcquired: boolean | 'threw' = 'threw';
+  try {
+    const got = await withInterviewGraphFence(pool, OWNER, iidInterviewAbandoned, 'gf-iv-abandoned-late', async () => 'should-not-run');
+    interviewAbandonedAcquired = got.acquired;
+  } catch (e) {
+    interviewAbandonedAcquired = 'threw';
+    console.error('放弃面试零图行 fence 抛错', e instanceof Error ? e.message : e);
+  }
+  const afterInterviewAbandoned = await readRun(iidInterviewAbandoned);
+  A('放弃面试还没有图行时未取得且未抛错', interviewAbandonedAcquired === false);
+  A('放弃面试还没有图行时 ai_graph_run 仍是 0 行', afterInterviewAbandoned.rowCount === 0);
+  // 面试直接写成 completed，另插一条租约为空的 paused 图行。不调用 seedInterview，不预留额度。
+  console.log('\n──── 面试已是 completed 且已有 paused 图行：不更新，回调不跑 ────');
+  const iidCompletedPaused = 'gf-iv-completed-paused';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'completed')", [iidCompletedPaused, OWNER]);
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
+       VALUES ($1,$2,$3,'paused',4,NULL,NULL)`,
+    [GRAPH_NAME, iidCompletedPaused, OWNER],
+  ));
+  const beforeCompletedPaused = await readRun(iidCompletedPaused);
+  const beforeCompletedStatus = String(beforeCompletedPaused.rows[0]?.status);
+  const beforeCompletedVersion = Number(beforeCompletedPaused.rows[0]?.version);
+  let completedPausedRan = false;
+  let completedPausedAcquired: boolean | 'threw' = 'threw';
+  try {
+    const got = await withInterviewGraphFence(pool, OWNER, iidCompletedPaused, 'gf-iv-completed-paused-late', async () => {
+      completedPausedRan = true;
+      return 'should-not-run';
+    });
+    completedPausedAcquired = got.acquired;
+  } catch (e) {
+    completedPausedAcquired = 'threw';
+    console.error('完成面试已有图行 fence 抛错', e instanceof Error ? e.message : e);
+  }
+  const afterCompletedPaused = await readRun(iidCompletedPaused);
+  A('完成面试已有 paused 图行时未取得、未抛错且回调未执行', completedPausedAcquired === false && completedPausedRan === false);
+  A('完成面试已有 paused 图行时仍一行且 status 与 version 保持调用前，仍是 paused 与 4',
+    afterCompletedPaused.rowCount === 1
+    && String(afterCompletedPaused.rows[0]?.status) === beforeCompletedStatus
+    && Number(afterCompletedPaused.rows[0]?.version) === beforeCompletedVersion
+    && afterCompletedPaused.rows[0]?.status === 'paused'
+    && Number(afterCompletedPaused.rows[0]?.version) === 4);
+  // 面试直接写成 abandoned，另插一条租约为空的 paused 图行。不调用 seedInterview，不预留额度。
+  console.log('\n──── 面试已是 abandoned 且已有 paused 图行：不更新，回调不跑 ────');
+  const iidAbandonedPaused = 'gf-iv-abandoned-paused';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'abandoned')", [iidAbandonedPaused, OWNER]);
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
+       VALUES ($1,$2,$3,'paused',4,NULL,NULL)`,
+    [GRAPH_NAME, iidAbandonedPaused, OWNER],
+  ));
+  const beforeAbandonedPaused = await readRun(iidAbandonedPaused);
+  const beforeAbandonedStatus = String(beforeAbandonedPaused.rows[0]?.status);
+  const beforeAbandonedVersion = Number(beforeAbandonedPaused.rows[0]?.version);
+  let abandonedPausedRan = false;
+  let abandonedPausedAcquired: boolean | 'threw' = 'threw';
+  try {
+    const got = await withInterviewGraphFence(pool, OWNER, iidAbandonedPaused, 'gf-iv-abandoned-paused-late', async () => {
+      abandonedPausedRan = true;
+      return 'should-not-run';
+    });
+    abandonedPausedAcquired = got.acquired;
+  } catch (e) {
+    abandonedPausedAcquired = 'threw';
+    console.error('放弃面试已有图行 fence 抛错', e instanceof Error ? e.message : e);
+  }
+  const afterAbandonedPaused = await readRun(iidAbandonedPaused);
+  A('放弃面试已有 paused 图行时未取得、未抛错且回调未执行', abandonedPausedAcquired === false && abandonedPausedRan === false);
+  A('放弃面试已有 paused 图行时仍一行且 status 与 version 保持调用前，仍是 paused 与 4',
+    afterAbandonedPaused.rowCount === 1
+    && String(afterAbandonedPaused.rows[0]?.status) === beforeAbandonedStatus
+    && Number(afterAbandonedPaused.rows[0]?.version) === beforeAbandonedVersion
+    && afterAbandonedPaused.rows[0]?.status === 'paused'
+    && Number(afterAbandonedPaused.rows[0]?.version) === 4);
+  // 面试直接写成 created。不是 failed、completed、abandoned。调用前不插图行。
+  console.log('\n──── 面试已是 created 且还没有图行：仍取得 ────');
+  const iidInterviewCreated = 'gf-iv-status-created';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [iidInterviewCreated, OWNER]);
+  const createdRun = await withInterviewGraphFence(pool, OWNER, iidInterviewCreated, 'gf-iv-created-late', async () => 'ran');
+  A('创建面试还没有图行时取得', createdRun.acquired === true);
 
   // ══════════ 图版本：缺版本旧检查点放行；别的非空版本在图运行前拒绝且旧行不改 ══════════
   console.log('\n──── 图版本：没有版本的旧检查点仍进入开始路径 ────');

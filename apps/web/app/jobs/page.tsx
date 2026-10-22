@@ -155,8 +155,18 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
             // 无派生信号（缺绑定/旧响应）不提供重试=fail-closed。额度处理以结算事件为准：
             // evaluation_unscored=预留已释放，no_eligible_scored_answer=已扣费结算（不释放）。
             // 重试必须显式由用户发起，服务端会创建新的 attempt，不会复活或覆盖旧会话。
-            const startable = app.status === 'invited' || app.status === 'in_progress'
-              || (app.status === 'assessment_unavailable' && app.terminalKind === 'failed');
+            const jobOpen = app.job_status === 'open';
+            // in_progress 时 terminalKind 恒为 NULL，关岗后只有 created/active 仍回到原面试。缺键与 null 都不是 open，也不当成可复用。
+            const boundLive = app.bound_interview_status === 'created' || app.bound_interview_status === 'active';
+            const startable = jobOpen
+              ? (app.status === 'invited' || app.status === 'in_progress'
+                  || (app.status === 'assessment_unavailable' && app.terminalKind === 'failed'))
+              : (app.status === 'in_progress' && boundLive);
+            const closedNoStart = !jobOpen && (
+              app.status === 'invited'
+              || (app.status === 'assessment_unavailable' && app.terminalKind === 'failed')
+              || (app.status === 'in_progress' && !boundLive)
+            );
             const isHeld = app.status === 'assessment_unavailable' && app.terminalKind === 'held';
             // 申请 score 即使历史非空也不得渲染：校准 hold 下它不是可比较评分。
             const showScore = applicationScoreVisible(app.score);
@@ -171,6 +181,9 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                   <Badge variant={st.variant}>{st.text}</Badge>
                   {/* I2 W3①：held 中性注记——非时间承诺（§7 Non-claims·held 语义=校准完成后与结果一起提供）。 */}
                   {isHeld && <p className="w-full text-xs text-muted-foreground">本场面试已完成；评分校准完成后与结果一起提供，不提供重试。</p>}
+                  {invited && <form action={declineApplicationAction.bind(null, app.id)}>
+                    <SubmitButton size="sm" variant="outline" pendingLabel="处理中…">婉拒</SubmitButton>
+                  </form>}
                   {/* 岗位面试必须显式选择一份已摄取简历；服务端会把 resume/job/application 原子绑定到唯一会话。 */}
                   {startable && (
                     <>
@@ -184,14 +197,12 @@ export default async function JobsPage({ searchParams }: { searchParams: Promise
                       ) : (
                         <Link href="/resume" className="text-xs text-primary underline underline-offset-2">先上传并完成解析简历</Link>
                       )}
-                      {invited && <form action={declineApplicationAction.bind(null, app.id)}>
-                        <SubmitButton size="sm" variant="outline" pendingLabel="处理中…">婉拒</SubmitButton>
-                      </form>}
                       {/* B271 片3 P1-a 修法⑥（文案逐字=b271 REQUEST:44/§4.3-3）：企业支付静态知情行——非状态位零查询。
                           I2 W3②：held 行 startable=false 时本块不渲染——知情行随 startable 块自然收敛（零语义改动核对项）。 */}
                       <p className="w-full text-xs text-muted-foreground">本场由企业支付，不消耗你的额度</p>
                     </>
                   )}
+                  {closedNoStart && <p className="w-full text-xs text-muted-foreground">该职位已关闭，不能再开始面试。</p>}
                   {/* I2 W3③（裁定④）：候选人同意触面——招聘方定性投影可见性门（0160 函数内 fail-closed 承重·Ban 旁路）。
                       与 W1 两态徽同区（held 行现场语境）：候选人由此知道「招聘方将看到什么」。 */}
                   {isHeld && (

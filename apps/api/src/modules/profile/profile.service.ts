@@ -59,7 +59,7 @@ export class ProfileService {
       const iv = await c.query('SELECT status, count(*)::int n FROM interview i WHERE i.id != ALL($1::text[]) GROUP BY status', [fenced]);
       // 得分权威 = ScoreCard(确定性总分,仅 practice_eligible/b_review_eligible),legacy answer_evaluated.score 结构性不参与。
       // 全 owner 作用域由 score_card_app_role RLS(FORCE) 兜底,无卡 → avg=null(fail-closed,无数值)。
-      const sc = await c.query("SELECT avg(deterministic_total) avg FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
+      const sc = await c.query("SELECT avg(deterministic_total) avg FROM score_card WHERE status IN ('practice_eligible','b_review_eligible') AND interview_id != ALL($1::text[])", [fenced]);
       const rp = await c.query("SELECT count(*)::int n FROM ai_report WHERE status='ready'");
       // C 端「已答题数」= 题目账本已答行(与 GET /interview.answered_turns 同一 FILTER),不是 ScoreCard 张数。
       // 无卡时仍应反映已作答;issued/queued/cancelled 不计;隐私围栏场次与列表同一谓词排除。
@@ -97,7 +97,7 @@ export class ProfileService {
         [repFilter.value, fenced]);
       // answered = 可评分 ScoreCard 数(仅 practice_eligible/b_review_eligible),非 legacy answer_evaluated 事件计数;
       // 无卡 → 0(fail-closed)。成长档案训练量仍以 score_card 为权威;C 端总览已答题数改走题目账本(UC-overview-001)。
-      const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible')");
+      const ans = await c.query("SELECT count(*)::int n FROM score_card WHERE status IN ('practice_eligible','b_review_eligible') AND interview_id != ALL($1::text[])", [fenced]);
       return deriveGrowth(rep.rows.map(toGrowthRow), ans.rows[0].n);   // 映射单一真相 toGrowthRow(service 与 proof 同源)
     });
   }

@@ -1153,13 +1153,22 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         settledCost = settled.microCny;
         settledOverage = settled.overage;
       }
+      // 落账前再核对围栏。撤权后成功行只留空对象，且不能当缓存交回。
+      // 布尔查询不抛错：抛错会中止本事务，已结清的费用会被收成 unknown。
+      let replayable = !spec.redactOutput;
+      if (validated.ok && spec.privacyInterviewId && !spec.storeOutput && !spec.redactOutput) {
+        if (!await isInterviewPrivacyActive(c, spec.privacyInterviewId)) {
+          stored = {};
+          replayable = false;
+        }
+      }
       // A redacted invocation result cannot be replayed. Persist its encrypted
       // domain artifact atomically with the durable success marker, otherwise a
       // crash in the tiny “model returned → domain save” window would make a
       // paid OCR result unrecoverable and tempt a duplicate provider request.
       if (validated.ok && spec.persistValidatedOutput) await spec.persistValidatedOutput(c, value!);
       const completed = await completeModelInvocation(c, {
-        owner, idempotencyKey: spec.idempotencyKey, output: stored, replayable: !spec.redactOutput,
+        owner, idempotencyKey: spec.idempotencyKey, output: stored, replayable,
         error: errorCode, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
         usageSource: settledUsage?.usageSource,
       });
