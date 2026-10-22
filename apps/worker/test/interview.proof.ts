@@ -602,6 +602,76 @@ async function main() {
     && race.every((x) => x !== 'other')
     && raceQueued === 3);
 
+  section('失败或放弃的面试不再新写可练习卡');
+  const prepareLedgerTurn = async (interviewId: string, turn: number, answer: string) => {
+    const q = turn === 0 ? 'q-v1-t0-c0' : 'q-v1-t1-c0';
+    const stateVersion = turn + 1;
+    await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+      interviewId, questionId: q, stateVersion, turn,
+      question: `请说明第 ${turn + 1} 个限流取舍？`, competency: '高并发', difficulty: 3, kind: 'fundamental',
+    }));
+    const { request } = await asPrincipal(pool, OWNER, async (c) => {
+      const submitted = await submitInterviewAnswer(c, {
+        interviewId, questionId: q, stateVersion,
+        clientSubmissionKey: `terminal-${interviewId}-${q}`, answer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+      });
+      const created = await createScoreRequestForSubmission(c, {
+        interviewId, questionId: q, stateVersion,
+        submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+        canonicalBodyHmac: submitted.canonicalBodyHmac, privacyEpoch: submitted.privacyEpoch,
+      });
+      return { request: created };
+    });
+    return { q, stateVersion, request };
+  };
+  const cardSnap = (interviewId: string) => asPrincipal(pool, OWNER, async (c) => {
+    const cards = await c.query<{ id: string; status: string; total: number }>(
+      `SELECT id::text AS id, status, deterministic_total::int AS total
+         FROM score_card WHERE interview_id=$1 ORDER BY id`, [interviewId]);
+    return cards.rows.map((row) => ({ id: row.id, status: row.status, total: Number(row.total) }));
+  });
+  for (const status of ['failed', 'abandoned'] as const) {
+    const iv = `${INTERVIEW_ID}-${status}-score`;
+    await asPrincipal(pool, OWNER, (c) => c.query(
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [iv, OWNER],
+    ));
+    const keptAnswer = `已有卡作答：Redis 令牌桶（${status}）。`;
+    const kept = await prepareLedgerTurn(iv, 0, keptAnswer);
+    const keptRequest = kept.request;
+    A(`${status} 事先评分请求已建立`, keptRequest.created === true && keptRequest.replayed === false);
+    const keptWrite = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `terminal-score-${process.pid}` },
+      { interviewId: iv, questionId: kept.q, stateVersion: kept.stateVersion, answerText: keptAnswer, dispositions: fullSpanDisposition(keptAnswer, 'meets') },
+    );
+    A(`${status} 场在 created 时生产写卡仍写入`, keptWrite.kind === 'written');
+    const flipped = await pool.query<{ status: string }>(
+      'UPDATE interview SET status=$2 WHERE id=$1 RETURNING status', [iv, status],
+    );
+    A(`${status} 状态已落库`, flipped.rows[0]?.status === status);
+    const before = await cardSnap(iv);
+    const nextAnswer = `终态后不得再写的作答：滑动窗口（${status}）。`;
+    const next = await prepareLedgerTurn(iv, 1, nextAnswer);
+    const nextRequest = next.request;
+    A(`${status} 事后仍有在途评分请求`, nextRequest.created === true && nextRequest.replayed === false);
+    const blocked = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `terminal-score-${process.pid}` },
+      { interviewId: iv, questionId: next.q, stateVersion: next.stateVersion, answerText: nextAnswer, dispositions: fullSpanDisposition(nextAnswer, 'exceeds') },
+    );
+    const after = await cardSnap(iv);
+    const pending = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string }>(
+      `SELECT sr.status FROM score_request sr
+         JOIN issued_question_contract c ON c.id = sr.issued_contract_id
+        WHERE sr.interview_id=$1 AND c.question_id=$2 AND c.state_version=$3`,
+      [iv, next.q, next.stateVersion],
+    ));
+    A(`${status} 调用生产写卡不得新写，已有 practice_eligible 卡的状态和行数不变`,
+      blocked.kind === 'skipped' && blocked.reason === 'terminal_interview'
+      && before.length === 1 && before[0]?.status === 'practice_eligible'
+      && after.length === before.length
+      && after[0]?.id === before[0]?.id && after[0]?.status === 'practice_eligible' && after[0]?.total === before[0]?.total
+      && pending.rows.length === 1 && pending.rows[0]?.status === 'pending');
+  }
+
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);

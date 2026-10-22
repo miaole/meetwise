@@ -38,6 +38,23 @@ async function requireCurrentScorableCards(c: Client, id: string, code: 'no_scor
   if (agg.eligibleCardCount === 0) throw new HttpException({ error: code }, HttpStatus.CONFLICT);
 }
 
+/** failed/abandoned 仍返回报告行，但拿掉数字 overall 和维度上的数字 score。不改成 404，也不走 no_scorable_cards。 */
+function assessmentWithoutPracticeNumbers(row: { status?: unknown; dimensions?: unknown; overall?: unknown }) {
+  const dimensions = Array.isArray(row.dimensions)
+    ? row.dimensions.map((item: unknown) => {
+        if (!item || typeof item !== 'object' || typeof (item as { score?: unknown }).score !== 'number') return item;
+        const next = { ...(item as Record<string, unknown>) };
+        delete next.score;
+        return next;
+      })
+    : row.dimensions;
+  return {
+    status: row.status,
+    dimensions,
+    overall: typeof row.overall === 'number' ? null : row.overall,
+  };
+}
+
 // 生成能力评估:面试各题 ScoreCard(确定性总分)→ 维度+差距,落库(ready),返回。
 // SCOR-02 消费迁移:得分只读 ScoreCard C 端可读态(practice_eligible 单态·0161/ADR-0020 :54 收窄),
 // legacy answer_evaluated.score 结构性不参与。
@@ -63,6 +80,10 @@ export async function getAssessmentFor(db: DbService, guard: PrivacyGuard, princ
     await guard(c, id);
     const persisted = await c.query('SELECT status, dimensions, overall FROM assessment_report WHERE interview_id=$1', [id]);
     if (persisted.rowCount === 0) return persisted;    // 无行 → 下方 404 语义原值（D2 读后校验落点）
+    const iv = await c.query('SELECT status FROM interview WHERE id=$1', [id]);
+    if (iv.rows[0]?.status === 'failed' || iv.rows[0]?.status === 'abandoned') {
+      return { rowCount: persisted.rowCount, rows: [assessmentWithoutPracticeNumbers(persisted.rows[0])] };
+    }
     await requireCurrentScorableCards(c, id, 'no_scorable_cards');   // G5 GET 重闸 fail-closed
     return persisted;
   });
