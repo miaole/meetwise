@@ -132,6 +132,13 @@ executed:awaiting_post_prove_dual
 - packages/db/src/interview/interview-graph-lease.ts
 - apps/worker/test/graph-fence-write.proof.ts
 
-三处状态都已是 executed:awaiting_post_prove_dual。四条命令的退出码待跑完再补。
+三处状态都已是 executed:awaiting_post_prove_dual。
 
-开头工作树原写了本机用户目录，文档检查会拒绝。已改成目录名 meetwise-termgraph。§0 到 §8 的锚点没有改。
+命令退出：
+
+- pnpm graph-fence-write:prove EXIT:0
+- pnpm docs:check 第一次 EXIT:1，因为开头写了本机用户目录。改成目录名 meetwise-termgraph 之后再次 EXIT:0，扫描 2323。
+- pnpm turbo typecheck --force EXIT:0
+- pnpm turbo lint EXIT:0。0 errors。根警告 5242。
+
+§0 到 §8 的锚点没有改。
