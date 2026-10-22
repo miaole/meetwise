@@ -4330,3 +4330,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2322** 余 6.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line invocation-output-after-fence nail（2026-10-22 · 撤权后账本不再保存题干和报告正文）
+
+- **改动**：模型返回之后若这场已经撤权，两列输出写成空对象且不能当成功结果交回。报告调用带上这场面试的标识。
+- **并入**：merge `508d35b1`，双亲 `7cbc4209` 与 `471d325b`。预演 tree `21f0e1e8`。没有冲突，没有强推。
+- **门**：评分证明退出码 0。s4b、tokenstream、interview、stress 退出码 0。docs:check scanned 2323≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2323** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
