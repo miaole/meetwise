@@ -546,22 +546,32 @@ async function validate() {
   A('生成评估 → 200 + overall=60(80/40 均值)', r.status === 200 && r.body.overall === 60);
   A('低分维度标记 gap(分布式锁 40<60)', r.body.dimensions.some((d: any) => d.gap === true) && r.body.weaknesses.length === 1);
   r = await req('GET', '/interview/ASMT/assessment', { 'x-user-id': 'userA' }); A('取评估 → ready', r.status === 200 && r.body.status === 'ready' && r.body.overall === 60);
-  r = await req('GET', '/interview/ASMT/transcript', { 'x-user-id': 'userA' });
+  const asmtReadHeaders: Record<string, string> = {};
+  asmtReadHeaders['x-user-id'] = 'userA';
+  const heldScoreHeaders: Record<string, string> = {};
+  heldScoreHeaders['x-user-id'] = 'failscoreUser';
+  const readScore = (row: unknown): unknown => (
+    row && typeof row === 'object' ? (row as { score?: unknown }).score : undefined
+  );
+  r = await req('GET', '/interview/ASMT/transcript', asmtReadHeaders);
   A('ASMT 转写两回合仍是 80 和 40', r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 2 && r.body.turns[0].score === 80 && r.body.turns[1].score === 40);
   const noNumericDimension = (dims: unknown) => !Array.isArray(dims) || dims.every((d) => !d || typeof d !== 'object' || typeof (d as { score?: unknown }).score !== 'number');
   for (const spec of [
     { id: 'FAILSCORE', cardTotal: 88, eventScore: 77, overall: 91 },
     { id: 'ABNDSCORE', cardTotal: 73, eventScore: 55, overall: 66 },
   ]) {
-    r = await req('GET', `/interview/${spec.id}/transcript`, { 'x-user-id': 'failscoreUser' });
+    r = await req('GET', `/interview/${spec.id}/transcript`, heldScoreHeaders);
     const transcriptRaw = JSON.stringify(r.body);
     A(`${spec.id} 转写回合分是 null，不是 0，也不是卡上总分或事件分`,
       r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 1
-      && r.body.turns.every((t: any) => t.score === null && t.score !== 0 && t.score !== spec.cardTotal && t.score !== spec.eventScore)
+      && r.body.turns.every((turn: unknown) => {
+        const score = readScore(turn);
+        return score === null && score !== 0 && score !== spec.cardTotal && score !== spec.eventScore;
+      })
       && r.body.turns[0].question === '请说明限流取舍' && r.body.turns[0].outcome === 'answered'
       && Array.isArray(r.body.turns[0].evidence) && r.body.turns[0].evidence[0] === 'answer_quality'
       && !('deterministicTotal' in r.body) && !transcriptRaw.includes(String(spec.cardTotal)) && !transcriptRaw.includes(String(spec.eventScore)));
-    r = await req('GET', `/interview/${spec.id}/assessment`, { 'x-user-id': 'failscoreUser' });
+    r = await req('GET', `/interview/${spec.id}/assessment`, heldScoreHeaders);
     const assessmentRaw = JSON.stringify(r.body);
     A(`${spec.id} 评估成功但没有数字 overall，也没有带数字 score 的维度`,
       r.status === 200 && r.body.status === 'ready' && r.body.error !== 'no_scorable_cards'
@@ -573,11 +583,11 @@ async function validate() {
     A(`${spec.id} 卡行还在且仍是 practice_eligible`,
       heldCards.rows.length === 1 && heldCards.rows[0].status === 'practice_eligible' && heldCards.rows[0].n === 1);
   }
-  r = await req('GET', '/interview/WAITSCORE/transcript', { 'x-user-id': 'failscoreUser' });
+  r = await req('GET', '/interview/WAITSCORE/transcript', heldScoreHeaders);
   A('waiting_user 转写仍返回卡上的数字', r.status === 200 && r.body.turns?.length === 1 && r.body.turns[0].score === 64 && r.body.turns[0].score !== 12);
-  r = await req('GET', '/interview/WAITSCORE/assessment', { 'x-user-id': 'failscoreUser' });
+  r = await req('GET', '/interview/WAITSCORE/assessment', heldScoreHeaders);
   A('waiting_user 评估仍返回数字 overall 和维度分',
-    r.status === 200 && r.body.overall === 64 && Array.isArray(r.body.dimensions) && r.body.dimensions.some((d: any) => d.score === 64));
+    r.status === 200 && r.body.overall === 64 && Array.isArray(r.body.dimensions) && r.body.dimensions.some((d: unknown) => readScore(d) === 64));
   r = await req('GET', '/interview/ASMT/assessment', { 'x-user-id': 'userB' }); A('userB 越权取评估 → 404(RLS)', r.status === 404);
 
   // 学习计划:评估差距 → 学习项
