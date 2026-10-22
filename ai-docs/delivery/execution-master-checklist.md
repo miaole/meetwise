@@ -4267,3 +4267,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2315** 余 5.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line graph-lease-failed-interview nail（2026-10-22 · 失败的面试不再新建图运行）
+
+- **改动**：失败的面试不再新建图运行。还没有图行时直接返回，不再插入一条进行中的运行。已有图行的更新路径不改。
+- **并入**：merge `26c31243`，双亲 `d29777ca` 与 `c53364f9`。预演 tree `9c4e57a9`。没有冲突，没有强推。
+- **门**：图运行证明退出码 0。docs:check scanned 2316≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2316** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
