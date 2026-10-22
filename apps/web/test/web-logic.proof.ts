@@ -1687,6 +1687,25 @@ async function main() {
       jobsSrcI2.includes('同意后招聘方仅可见能力维度与强/中/弱/证据不足档位，不含数字评分、答题内容与证据摘录原文；可随时撤回，撤回后立即停止展示。'));
     A('I2-2e 修法⑥ 知情行仍随 startable 块收敛（W3② 渲染条件核对·零语义改动）',
       jobsSrcI2.includes('本场由企业支付，不消耗你的额度'));
+    A('关闭后 in_progress 只有绑定面试 created 或 active 才渲染继续（读生产页，不另写一套判断）',
+      jobsSrcI2.includes("const jobOpen = app.job_status === 'open'")
+      && jobsSrcI2.includes("const boundLive = app.bound_interview_status === 'created' || app.bound_interview_status === 'active'")
+      && jobsSrcI2.includes("? (app.status === 'invited' || app.status === 'in_progress'")
+      && jobsSrcI2.includes("|| (app.status === 'assessment_unavailable' && app.terminalKind === 'failed'))")
+      && jobsSrcI2.includes(": (app.status === 'in_progress' && boundLive)")
+      && jobsSrcI2.includes("|| (app.status === 'in_progress' && !boundLive)")
+      && jobsSrcI2.includes('该职位已关闭，不能再开始面试。')
+      && jobsSrcI2.includes("invited ? '开始面试' : '继续岗位面试'")
+      && /serverGet<\{ jobs: Job\[\] \}>\('\/jobs'\)/.test(jobsSrcI2)
+      && jobsSrcI2.indexOf('declineApplicationAction.bind(null, app.id)') < jobsSrcI2.indexOf('{startable &&')
+      && jobsSrcI2.indexOf('{startable &&') < jobsSrcI2.indexOf('startApplicationAction')
+      && jobsSrcI2.indexOf('startApplicationAction') < jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度')
+      && jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度') < jobsSrcI2.indexOf('该职位已关闭，不能再开始面试。')
+      && /\{invited && <form action=\{declineApplicationAction\.bind\(null, app\.id\)\}>/.test(jobsSrcI2)
+      && !jobsSrcI2.includes('job_status == null')
+      && !jobsSrcI2.includes('job_status === null')
+      && !jobsSrcI2.includes('bound_interview_status == null')
+      && !jobsSrcI2.includes('bound_interview_status === null'));
     // actions：同意/撤回走 #82 既有三入口（POST body + DELETE query·purpose=b_qualitative_share）。
     const jobsActionsSrc = readSrc('app/jobs/actions.ts');
     A('I2-2f 同意触面 API 形（POST /privacy/consent {purpose} + DELETE /privacy/consent?purpose·零新协议）',
