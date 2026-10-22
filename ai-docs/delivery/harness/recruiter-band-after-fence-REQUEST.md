@@ -142,3 +142,25 @@ draft:awaiting_pre_exec_dual
 draft:awaiting_pre_exec_dual
 
 这一步只新增这份说明，不改产品代码。文件第一行与上面连续两行是同一句。
+
+## §9-rev
+
+本节逐条取代下面两处。与这两处冲突时以本节为准。没有点名的句子仍然有效。
+
+1. 取代 §2 第 1 步这一句：「`I2B-0a`（:152-153）仍要求最后一份迁移是 `0160_b_qualitative_projection`。目录末份已经是 `0214_interview_event_statement_notify.sql`，这条现在就不会过。不要改它的期望来换一个 0 退出码。日志里新断言必须通过。整份命令若因这条旧断言退出码为 1，那不是撤权断言失败。」这一句作废。
+
+   执行时改 `apps/api/test/i2b.proof.ts` 的 `I2B-0a`（:152-153）。`applied.applied[applied.applied.length - 1]` 的期望从 `0160_b_qualitative_projection` 改成 `0215_gateway_b_qualitative_fence`，不带 `.sql`，与原来的写法相同。断言名字里的末位一并改成这份，不再写 `0160`。新迁移落盘后，这条旧断言通过。撤权相关的新断言也通过。两者一起通过。
+
+   命令仍是 `node scripts/run-e2e-isolated.mjs i2b:prove`。整份退出码必须为 0。不要改跑另一条命令，也不要另选一条会失败的命令来回避。退出码为 1 不可以接受。
+
+   同一节里 `I2B-0e` 把比较源改成 `0215` 那个新文件、仍是整段函数体加授权逐字节相等，那句不在作废之列。
+
+2. 取代 §1.2 第 2 到第 4 步只按直线还原的读法。那三步现在是：`set_config('app.principal_user', v_owner, true)`，调用 `interview_privacy_fenced_targets()`，再 `set_config('app.principal_user', COALESCE(记下的值, ''), true)`。直线上仍照这三步做。还原仍必须发生在后面的 `RETURN` 和维度查询之前。这三步没有异常路径，这个缺口作废。
+
+   调用一旦出错，先 `set_config('app.principal_user', COALESCE(记下的值, ''), true)`，把 principal 设回原来的招聘方，然后再把同一个错误抛出去。记下的值是换身份之前的招聘方，不要在出错之后再读 `current_setting('app.principal_user', true)` 来充当招聘方。还原之前不能跑别的会按 principal 读数据的语句。换上候选人之后，只许调用 `interview_privacy_fenced_targets()` 来看 `v_interview_id` 是否在返回的 `thread_id` 里。异常路径里，还原的 `set_config` 是第一句，然后重新抛出。不要因为事务会回滚就省略这条异常路径。不要吞掉错误，也不要改成 0 行或 404。
+
+   空名单时结果仍与现在一致。另一场没有撤权时，它的 `interview_id` 不在名单里，维度行仍在。这两句不改。
+
+   源码里没有不看 owner 就能判断这场已围栏的现成函数。`interview_privacy_active`（`packages/db/migrations/0076_privacy_erasure_legacy_request_pause.sql` :99-102）和 `interview_privacy_active_read`（`packages/db/migrations/0206_interview_privacy_active_read_tier.sql` :22-25）都先要求 `interview.owner_user_id` 等于当前 principal，对不上就返回 false。`interview_privacy_fenced_targets`（同文件 :55）只返回 `pt.owner_user_id` 等于当前 principal 的 `thread_id`。`assert_interview_privacy_active` 转调 `interview_privacy_active`。`interview_event_stream_privacy_active` 先要求 principal 等于传入的 owner。`assert_checkpoint_privacy_fence` 在 `pt.owner_user_id` 等于当前 principal 时才认目标。`assert_checkpoint_enrollment_not_privacy_fenced`（`0076` :74）比较 `pt.owner_user_id` 与 `NEW.owner_user_id`，而且 :83 没有把执行权交给 `app_role`。因此不要改成不换 principal。仍临时换成 `v_owner`，并补上上面的异常还原。
+
+仍然保持：不改 `0160_b_qualitative_projection.sql` 的任何字节。新迁移号仍是 `0215`，文件是 `packages/db/migrations/0215_gateway_b_qualitative_fence.sql`。镜像 `packages/db/sql/23_api_gateway.sql` 里从 `CREATE OR REPLACE FUNCTION gateway_b_qualitative_projection` 到 `GRANT EXECUTE ON FUNCTION gateway_b_qualitative_projection(text, text) TO app_role;` 与新迁移逐字节相同。不改 `packages/db/src/recruiting/recruiter.ts` 的 `listMyApplications` 与 `startApplicationInterview`。不改 `apps/web/app/jobs/page.tsx`。不改 `apps/api/src/modules/profile/profile.service.ts`。不改价格。不改上限 `2_328`。合计仍是 229/271。能力项 33/2/14 维持。
