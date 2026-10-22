@@ -561,6 +561,70 @@ async function validate() {
   r = await req('GET', '/profile/overview', { 'x-user-id': 'ledgerUser' });
   A('无 ScoreCard 时总览已答题数仍为账本 3,不伪装成 0;均分保持 null', r.status === 200 && r.body.answered === 3 && r.body.avgScore === null && r.body.answered === ledgerListAnswered);
   r = await req('GET', '/profile/overview', { 'x-user-id': 'userNoData' }); A('无数据用户总览:avgScore=null 且已答题数=0', r.status === 200 && r.body.avgScore === null && r.body.answered === 0);
+  // 撤权后近期平均与成长答题次数排除本事务已经取到的围栏名单。空名单不改查询。
+  {
+    const userAHeaders: Record<string, string> = {};
+    userAHeaders['x-user-id'] = 'userA';
+    const previewHeaders: Record<string, string> = {};
+    previewHeaders['x-user-id'] = 'userA';
+    previewHeaders['idempotency-key'] = 'favg-preview-1';
+    const fencedIds = async () => asPrincipal(db.pool, 'userA', async (c) => {
+      const listed = await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()');
+      return listed.rows.map((row) => String(row.thread_id));
+    });
+    const fencedEmpty = await fencedIds();
+    const ovEmpty = await req('GET', '/profile/overview', userAHeaders);
+    const grEmpty = await req('GET', '/profile/growth', userAHeaders);
+    const emptyBaseline = fencedEmpty.length === 0 && ovEmpty.status === 200 && ovEmpty.body.avgScore === 60 && grEmpty.status === 200 && grEmpty.body.totals?.answered === 2;
+    A('空围栏名单时总览均分 60、成长答题次数 2', emptyBaseline);
+    if (!emptyBaseline) {
+      console.log(`NOTE  fence-avg baseline fenced=${JSON.stringify(fencedEmpty)} ov=${ovEmpty.status}/${ovEmpty.body.avgScore} gr=${grEmpty.status}/${grEmpty.body.totals?.answered}`);
+      throw new Error('fence_avg_baseline_not_60_and_2');
+    }
+    const favgRubric = 'cccccccc-cccc-4ccc-8ccc-ccccccccccc1';
+    const favgSub = 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1';
+    const favgArtifact = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1';
+    const favgContract = 'ffffffff-ffff-4fff-8fff-fffffffffff1';
+    const favgReq = '12121212-1212-4121-8121-121212121211';
+    const favgCard = '13131313-1313-4131-8131-131313131311';
+    const favgHash = '0000000000000000000000000000000000000000000000000000000000000003';
+    const favgQuestion = 'q-favg-t0-c0';
+    const seedClient = await db.pool.connect();
+    try {
+      await seedClient.query('BEGIN');
+      await seedClient.query("SELECT set_config('app.principal_user', 'userA', true)");
+      await seedClient.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('FAVG','userA','created')");
+      await seedClient.query(`INSERT INTO question_rubric(id,question_id,question_version,rubric_version,competency,difficulty,language_scope,question_content_hash,status)
+        VALUES ($1,$2,1,1,'围栏',3,'["zh","en"]',$3,'published')`, [favgRubric, favgQuestion, favgHash]);
+      await seedClient.query(`INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+        VALUES ($1,'userA','FAVG',$2,1,'favg-sub-1',$3,1)`, [favgSub, favgQuestion, favgHash]);
+      await seedClient.query(`INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
+        VALUES ($1,'userA','FAVG',$2,1,$3,decode('00','hex'),$4,1,1,1)`, [favgArtifact, favgQuestion, favgSub, favgHash]);
+      await seedClient.query(`INSERT INTO issued_question_contract(id,owner_user_id,interview_id,question_id,state_version,turn,question_content_hash,rubric_id,difficulty,form,language,route,prompt_policy_version,measurement_version,privacy_epoch,status)
+        VALUES ($1,'userA','FAVG',$2,1,0,$3,$4,3,'mock','zh','adaptive','prompt-v1','measure-v1',1,'issued')`, [favgContract, favgQuestion, favgHash, favgRubric]);
+      await seedClient.query(`INSERT INTO score_request(id,owner_user_id,interview_id,issued_contract_id,submission_id,artifact_id,answer_version,answer_body_hmac,privacy_epoch,operation_policy_version,idempotency_key,status)
+        VALUES ($1,'userA','FAVG',$2,$3,$4,1,$5,1,'op-v1','favg-req-1','scored')`, [favgReq, favgContract, favgSub, favgArtifact, favgHash]);
+      await seedClient.query(`INSERT INTO score_card(id,owner_user_id,interview_id,question_id,answer_id,submission_id,score_request_id,issued_contract_id,rubric_id,rubric_version,measurement_version,deterministic_total,coverage,status)
+        VALUES ($1,'userA','FAVG',$2,$3,$4,$5,$6,$7,1,'measure-v1',0,1.0,'practice_eligible')`,
+        [favgCard, favgQuestion, favgArtifact, favgSub, favgReq, favgContract, favgRubric]);
+      await seedClient.query('COMMIT');
+    } catch (err) {
+      await seedClient.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally {
+      seedClient.release();
+    }
+    const ovWith = await req('GET', '/profile/overview', userAHeaders);
+    const grWith = await req('GET', '/profile/growth', userAHeaders);
+    A('围栏前新卡计入:总览均分 40、成长答题次数 3,题目账本已答仍为 3', ovWith.status === 200 && ovWith.body.avgScore === 40 && ovWith.body.answered === 3 && grWith.status === 200 && grWith.body.totals?.answered === 3);
+    const preview = await postJson('/privacy/erasure-preview', previewHeaders, { scope: 'interview_data', subjectId: 'FAVG' });
+    A('预览撤权把新面试放进围栏 → 202', preview.status === 202 && preview.body.status === 'local_fenced' && preview.body.subjectId === 'FAVG');
+    const cardStatus = await db.pool.query('SELECT status FROM score_card WHERE id=$1', [favgCard]);
+    const fencedAfter = await fencedIds();
+    const ovAfter = await req('GET', '/profile/overview', userAHeaders);
+    const grAfter = await req('GET', '/profile/growth', userAHeaders);
+    A('围栏后新卡仍 practice_eligible,均分回到 60、答题次数回到 2', cardStatus.rows[0]?.status === 'practice_eligible' && fencedAfter.includes('FAVG') && ovAfter.status === 200 && ovAfter.body.avgScore === 60 && ovAfter.body.answered === 3 && grAfter.status === 200 && grAfter.body.totals?.answered === 2);
+  }
   // F6 回归:模拟旧无校验代码残留的**超大脏 preferences 行**(>4KB),证明白名单投影既不锁死也自愈清洗(审计高危项)。
   await db.pool.query("UPDATE user_account SET preferences=$2::jsonb WHERE id=$1", ['cpUser', JSON.stringify({ junkKey: 'x'.repeat(6000), theme: 'light' })]);
   r = await patchJson('/profile/settings', { 'x-user-id': 'cpUser' }, { preferences: { locale: 'zh' } });
