@@ -35,10 +35,19 @@ export async function drainDiagnosisJobOnce(d: DiagnosisConsumerDeps, owner: str
     return 'generate';
   } catch (e: unknown) {
     const err = asErr(e);
+    let readyDone = false;
     await asPrincipal(d.pool, owner, async (c) => {
       // **租约守卫**:markFailed 的 CAS 含 lease_owner=本机;若已被重领(0 行 → false),本 worker 已不持租约 → 静默退出,
       // 不发终态事件、不退额度(否则会退掉现租约持有者正要 confirm 的预留 = 漏扣)。
       const isLegacyReference = errCode(err) === 'legacy_resume_reference_unresolved';
+      if (!isLegacyReference) {
+        const parent = await c.query('SELECT status FROM resume_diagnosis WHERE id=$1 AND owner_user_id=$2', [job.diagnosisId, owner]);
+        if (parent.rows[0]?.status === 'ready') {
+          // 已交付：租约 CAS 只补记完成。不先标失败，不发不可用，不释放，不计失败。
+          if (await markDiagnosisJobDone(c, owner, job.id, d.leaseOwner)) readyDone = true;
+          return;
+        }
+      }
       // Never deserialize a historical payload.  Its terminal transition
       // atomically redacts it so future maintenance code cannot recover it.
       const stillMine = isLegacyReference
@@ -58,6 +67,7 @@ export async function drainDiagnosisJobOnce(d: DiagnosisConsumerDeps, owner: str
       // **失败退款(无泄漏)**:诊断终态失败 → 预留的 1.0 永不会被 confirm,必须释放(幂等,key=diagnosisId)。
       await releaseConsumption(c, owner, job.diagnosisId).catch(() => {});
     });
+    if (readyDone) return 'generate';
     return 'failed';
   } finally {
     await hb.stop();   // 停心跳(等在飞续租跑完)
