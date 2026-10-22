@@ -5,7 +5,6 @@
  * 边缘 I/O(ASR/TTS)在 invoke 关口之外,api service 内同步请求-响应一次外呼(与 resume extractResumeText 同性质)。
  */
 import { HttpException, HttpStatus } from '@nestjs/common';
-import type { PoolClient } from 'pg';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
 import { asErr, rememberIssuedQuestionTranscript } from '@meetwise/db';
 import { VOICE_MAX_AUDIO_BYTES, type TranscribeDto } from '@meetwise/contracts';
@@ -132,7 +131,7 @@ export async function transcribeForIssuedQuestion(
     const questionId = issuedQuestionId;
     await db.asPrincipal(owner, async (c) => {
       await guard(c, interviewId);
-      await rememberIssuedQuestionTranscript(c as unknown as PoolClient, owner, interviewId, questionId, result.text);
+      await rememberIssuedQuestionTranscript(c as never, owner, interviewId, questionId, result.text);
     });
   }
   return result;
