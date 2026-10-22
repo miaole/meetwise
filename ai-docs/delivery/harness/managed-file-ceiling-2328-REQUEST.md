@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 受管文件上限再增加八份
 
@@ -63,6 +63,21 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+`scripts/ai-docs/public-text-policy.mjs` 的 `MAX_FILES` 从 `2_320` 改为 `2_328`。常量上一行写明上限从 2320 加 8 到 2328，恰达上限仍通过，多一个仍拒绝。两处比较仍是 `paths.length > MAX_FILES` 与 `listed.paths.length > MAX_FILES`。
+
+`scripts/ai-docs/public-text-policy.proof.mjs` 恰好达到改为 `2_328`，再多一个改为 `2329`，注入路径改为 `ai-docs/f-2328.md`。恰好达到仍通过，再多一个仍拒绝，拒绝时扫描数仍是 0。
+
+开头、§8 与文末三处状态同为 `executed:awaiting_post_prove_dual`。
+
+退出码：
+
+1. `pnpm public-text-policy:prove` EXIT=0，12/12。
+2. `node scripts/ai-docs/check-docs.mjs` EXIT=0，扫描 2318，不超过 2328。
+3. `pnpm turbo typecheck --force` EXIT=0，8/8。
+4. `pnpm turbo lint` EXIT=0，0 errors。警告为根 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265、config 0、db-mysql 0，均未超过既有上限。
