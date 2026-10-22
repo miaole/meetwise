@@ -5,6 +5,7 @@
  * 不共享缓存；模型故障不伪造 50 分；报告总分不可由模型篡改；重复段落不可入库。
  * pnpm scoring-integrity:prove
  */
+import { createHash } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { MemorySaver, Command } from '@langchain/langgraph';
 import { createPool, asPrincipal, loadMigrations, runMigrations } from '@meetwise/db';
@@ -324,6 +325,7 @@ async function main() {
 
   console.log('\n──── ③ 报告总分、段落去重与模型越权防护 ────');
   const summary = { interviewId: 'report-integrity', questionCount: 2, scores: [70, 80] };
+  await asPrincipal(pool, owner, (c) => c.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [summary.interviewId, owner]));
   const reportModel = scriptedModelClient({
     // overall=1 故意错误：返回中即使带它也必须被服务端忽略。
     'report.generate': () => ({ ok: true, raw: { overall: 1, sections: [{ title: '总结', body: '候选人能给出清晰的权衡。' }] } }),
@@ -335,6 +337,135 @@ async function main() {
   const repeated = '令牌桶限流具备突发平滑能力。';
   A('报告图拒绝不同 section 重复同一段落', await expectThrow(async () => buildReportGraph({ generate: () => ({ overall: 75, sections: [{ title: '优势', body: repeated }, { title: '风险', body: repeated }] }) }).invoke({ summary })));
   A('空 score 集合不是 0 分，必须走 unavailable/unscored', (() => { try { aggregateScores([]); return false; } catch { return true; } })());
+
+  console.log('\n──── ④ 撤权后题干和报告正文不进两列输出 ────');
+  const stem = '请说明高峰限流方案？';
+  const body = '候选人能说明限流取舍。';
+  const revokedAskId = `invfence-ask-${Date.now()}`;
+  const revokedReportId = `invfence-report-${Date.now()}`;
+  const aliveId = `invfence-alive-${Date.now()}`;
+  const revokedAskKey = `${revokedAskId}:ask:t0:0`;
+  const aliveAskKey = `${aliveId}:ask:t0:0`;
+  const revokedReportKey = `${revokedReportId}:report`;
+  const aliveReportKey = `${aliveId}:report`;
+  await asPrincipal(pool, owner, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active'),($3,$2,'active'),($4,$2,'active')",
+    [revokedAskId, owner, revokedReportId, aliveId]));
+  // 三张表夹具沿 commerce-reconcile 围栏行。模型 complete 的最后一步先提交，再返回正文。
+  const fenceInterview = async (interviewId: string) => {
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      try {
+        const req = await client.query(
+          "INSERT INTO privacy_erasure_request(owner_user_id,scope,subject_id,idempotency_key_hash,status) VALUES ($1,'interview_data',$2,$3,'fenced') RETURNING id",
+          [owner, interviewId, `fence-reflow-proof:${owner}:${interviewId}`]);
+        const requestId = req.rows[0].id as string;
+        const tgt = await client.query(
+          "INSERT INTO privacy_deletion_target(request_id,sink,resource_hmac) VALUES ($1,'checkpoint_rows',$2) RETURNING id",
+          [requestId, createHash('sha256').update(`fence-reflow-proof-hmac:${interviewId}`).digest('hex')]);
+        await client.query(
+          'INSERT INTO privacy_checkpoint_target(target_id,request_id,owner_user_id,thread_id,fence_epoch) VALUES ($1,$2,$3,$4,2)',
+          [tgt.rows[0].id, requestId, owner, interviewId]);
+        await client.query('COMMIT');
+      } catch (error) {
+        await client.query('ROLLBACK');
+        throw error;
+      }
+    } finally {
+      client.release();
+    }
+  };
+  let revokedCalls = 0;
+  const revokedModel: ModelClient = {
+    async complete(req) {
+      revokedCalls += 1;
+      if (req.service === 'interviewer.ask') {
+        await fenceInterview(revokedAskId);
+        return { ok: true, raw: { q: stem, refs: [] } };
+      }
+      if (req.service === 'report.generate') {
+        await fenceInterview(revokedReportId);
+        return { ok: true, raw: { sections: [{ title: '总结', body }] } };
+      }
+      return { ok: false, kind: 'deterministic' };
+    },
+  };
+  let aliveCalls = 0;
+  const aliveModel: ModelClient = {
+    async complete(req) {
+      aliveCalls += 1;
+      if (req.service === 'interviewer.ask') return { ok: true, raw: { q: stem, refs: [] } };
+      if (req.service === 'report.generate') return { ok: true, raw: { sections: [{ title: '总结', body }] } };
+      return { ok: false, kind: 'deterministic' };
+    },
+  };
+  const askDeps = (threadId: string, model: ModelClient) => buildAdaptiveDeps({
+    pool, owner, threadId, model, competencies: ['并发'],
+    localRetrieve: async () => [], webExplore: async () => [],
+  });
+  const ledger = async (key: string) => {
+    const model = await asPrincipal(pool, owner, (c) => c.query(
+      'SELECT status, error_code AS "errorCode", replayable, output FROM ai_model_invocation WHERE idempotency_key=$1', [key]));
+    const trace = await asPrincipal(pool, owner, (c) => c.query(
+      'SELECT output FROM ai_invocation_trace WHERE idempotency_key=$1', [key]));
+    const row = model.rows[0] as { status?: string; errorCode?: string | null; replayable?: boolean; output?: unknown } | undefined;
+    return {
+      status: row?.status ?? null,
+      errorCode: row?.errorCode ?? null,
+      replayable: row?.replayable ?? null,
+      modelOutput: row?.output,
+      traceOutput: (trace.rows[0] as { output?: unknown } | undefined)?.output,
+      modelRows: model.rows.length,
+      traceRows: trace.rows.length,
+    };
+  };
+  const dumped = (value: unknown) => JSON.stringify(value);
+  const blank = (value: unknown) => dumped(value) === '{}';
+  const askedStem = (result: { ok: true; question: string } | { ok: false } | { question: string }): string | null =>
+    ('ok' in result && result.ok === true ? result.question : null);
+  const revokedDeps = askDeps(revokedAskId, revokedModel);
+  const revokedAsk = await revokedDeps.retrieveAndGenerate('并发', 2, 0, 0, [], 'fundamental');
+  const revokedReportSummary = { interviewId: revokedReportId, questionCount: 2, scores: [70, 80] };
+  const revokedReport = await reportGenerator(pool, owner, revokedReportKey, revokedModel)(revokedReportSummary);
+  const revokedAskLedger = await ledger(revokedAskKey);
+  const revokedReportLedger = await ledger(revokedReportKey);
+  A('撤权臂内存返回值仍带题干和报告正文',
+    askedStem(revokedAsk) === stem
+    && revokedReport.sections.some((section) => section.body === body));
+  A('撤权臂两列输出都是空对象，没有题干也没有报告正文',
+    revokedAskLedger.modelRows === 1 && revokedAskLedger.traceRows === 1
+    && revokedReportLedger.modelRows === 1 && revokedReportLedger.traceRows === 1
+    && blank(revokedAskLedger.modelOutput) && blank(revokedAskLedger.traceOutput)
+    && blank(revokedReportLedger.modelOutput) && blank(revokedReportLedger.traceOutput)
+    && !dumped(revokedAskLedger.modelOutput).includes(stem) && !dumped(revokedAskLedger.traceOutput).includes(stem)
+    && !dumped(revokedReportLedger.modelOutput).includes(body) && !dumped(revokedReportLedger.traceOutput).includes(body)
+    && !dumped(revokedAskLedger.modelOutput).includes(body) && !dumped(revokedReportLedger.modelOutput).includes(stem));
+  A('撤权臂两笔调用都是 succeeded、error_code 为空、replayable 为 false',
+    revokedAskLedger.status === 'succeeded' && revokedAskLedger.errorCode == null && revokedAskLedger.replayable === false
+    && revokedReportLedger.status === 'succeeded' && revokedReportLedger.errorCode == null && revokedReportLedger.replayable === false);
+  A('撤权臂出题和报告各只打一次模型', revokedCalls === 2);
+  await revokedDeps.retrieveAndGenerate('并发', 2, 0, 0, [], 'fundamental');
+  let revokedReportReplayThrew = false;
+  try { await reportGenerator(pool, owner, revokedReportKey, revokedModel)(revokedReportSummary); }
+  catch { revokedReportReplayThrew = true; }
+  A('撤权臂同一 turn 再出题、同一报告键再生成都不再打模型', revokedCalls === 2 && revokedReportReplayThrew);
+  const aliveDeps = askDeps(aliveId, aliveModel);
+  const aliveAsk = await aliveDeps.retrieveAndGenerate('并发', 2, 0, 0, [], 'fundamental');
+  const aliveReportSummary = { interviewId: aliveId, questionCount: 2, scores: [70, 80] };
+  const aliveReport = await reportGenerator(pool, owner, aliveReportKey, aliveModel)(aliveReportSummary);
+  const aliveAskLedger = await ledger(aliveAskKey);
+  const aliveReportLedger = await ledger(aliveReportKey);
+  A('未撤权臂内存与两列仍有题干，报告两列仍有正文，replayable 为 true 且 succeeded',
+    askedStem(aliveAsk) === stem
+    && aliveReport.sections.some((section) => section.body === body)
+    && aliveCalls === 2
+    && aliveAskLedger.modelRows === 1 && aliveAskLedger.traceRows === 1
+    && aliveReportLedger.modelRows === 1 && aliveReportLedger.traceRows === 1
+    && dumped(aliveAskLedger.modelOutput).includes(stem) && dumped(aliveAskLedger.traceOutput).includes(stem)
+    && dumped(aliveReportLedger.modelOutput).includes(body) && dumped(aliveReportLedger.traceOutput).includes(body)
+    && aliveAskLedger.replayable === true && aliveReportLedger.replayable === true
+    && aliveAskLedger.status === 'succeeded' && aliveReportLedger.status === 'succeeded');
 
   console.log(`\n${failures === 0 ? '✓ 评分/报告 P0 完整性全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
