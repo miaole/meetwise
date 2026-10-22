@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 失败面试上过期的运行作业不再回到排队
 
@@ -100,11 +100,11 @@ SET 仍把 `lease_owner` 与 `lease_expires_at` 写成 NULL，`version` 加 1。
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上说明的产品代码本步不改。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -169,3 +169,18 @@ SET：`status='failed'`，`last_error='abandoned'`（仍是 `:277` 的字面量�
 `created` 或 `active` 面试上：过期 running 仍回到 `queued`；未达上限的 queued 仍不动；`requeueInterviewJob` 仍写回 `queued`。这些旧断言不改预期。
 
 必跑仍是 §2 已列的四条，不另加命令。
+
+## §9-EXEC
+
+改动文件：
+
+- `packages/db/src/interview/interview-jobs.ts`
+- `apps/worker/test/reaper.proof.ts`
+- `ai-docs/delivery/harness/sweep-failed-interview-REQUEST.md`
+
+命令与退出码：
+
+- `pnpm reaper:prove` — EXIT=0
+- `node scripts/ai-docs/check-docs.mjs` — EXIT=0
+- `pnpm turbo typecheck --force` — EXIT=0
+- `pnpm turbo lint` — EXIT=0
