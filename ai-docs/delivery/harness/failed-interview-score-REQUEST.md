@@ -129,19 +129,10 @@ executed:awaiting_post_prove_dual
 - apps/worker/src/score-writer.ts
 - apps/worker/test/interview.proof.ts
 
-三处状态都已是 executed:awaiting_post_prove_dual。五条命令的退出码待跑完再补。
+三处状态都已是 executed:awaiting_post_prove_dual。断言里的读取头改成赋值，回合分和维度分不再使用显式任意类型。产品行为与上面一致。五条命令的退出码如下。
 
-## §9-EXEC
-
-产品改动已在 `13ea7c4ac2ec5c97176b5e2bd79d518d06461414`。失败或放弃时，转写和评估成功不再带上数字，报告页没有有限数字就不画维度条和回合分。这两种状态也不再新写可练习卡。已有的卡不改写、不删除。上面 §0 到 §8 除三处状态外没有改写。
-
-改过的文件：
-
-- apps/api/src/modules/interview/interview-assessment.ts
-- apps/api/src/modules/interview/interview-report.ts
-- apps/api/test/validate.ts
-- apps/web/app/report/[id]/page.tsx
-- apps/worker/src/score-writer.ts
-- apps/worker/test/interview.proof.ts
-
-三处状态都已是 executed:awaiting_post_prove_dual。五条命令的退出码待跑完再补。
+- `pnpm api:validate` EXIT:0。失败和放弃的转写分是 null，评估没有数字，原有卡仍是 practice_eligible。waiting_user 仍返回 64。空围栏时总览均分 60，围栏后回到 60。
+- `pnpm interview:prove` EXIT:0。失败和放弃不再新写卡，已有卡的状态和行数不变。
+- `pnpm docs:check` EXIT:0。扫描 2326，上限 2328。
+- `pnpm turbo typecheck --force` EXIT:0。8 个任务成功，没有命中缓存。
+- `pnpm turbo lint` EXIT:0。0 errors。根 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265、config 0、db-mysql 0。
