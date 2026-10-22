@@ -4321,3 +4321,40 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2321** 余 7.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line fenced-score-average nail（2026-10-22 · 撤权后近期平均不再计入围栏场次）
+
+- **改动**：仪表盘近期平均和成长答题次数排除已经取到的围栏名单。
+- **并入**：merge `0b89e273`，双亲 `5ec6a101` 与 `f2b43825`。预演 tree `4407c8cf`。没有冲突，没有强推。
+- **门**：总览证明退出码 0。docs:check scanned 2322≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2322** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line invocation-output-after-fence nail（2026-10-22 · 撤权后账本不再保存题干和报告正文）
+
+- **改动**：模型返回之后若这场已经撤权，两列输出写成空对象且不能当成功结果交回。报告调用带上这场面试的标识。
+- **并入**：merge `508d35b1`，双亲 `7cbc4209` 与 `471d325b`。预演 tree `21f0e1e8`。没有冲突，没有强推。
+- **门**：评分证明退出码 0。s4b、tokenstream、interview、stress 退出码 0。docs:check scanned 2323≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2323** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line closed-job-start nail（2026-10-22 · 职位关闭后失败的申请不再提交开始）
+
+- **改动**：职位关闭后，绑定面试不是刚创建或进行中时，页面不再提交开始。列表上的两个状态字段可以缺省。
+- **并入**：merge `91866722`，双亲 `66502fea` 与 `023798f1`。预演 tree `bb2598af`。没有冲突，没有强推。
+- **门**：招聘证明退出码 0。页面证明退出码 0。docs:check scanned 2324≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2324** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line terminal-interview-graph nail（2026-10-22 · 终态面试不再开图）
+
+- **改动**：已完成或已放弃时不插入图行，已有活图也不再取得。
+- **并入**：merge `4e3eec90`，双亲 `968ad301` 与 `ac05b650`。预演 tree `631e0664`。没有冲突，没有强推。
+- **门**：图运行证明退出码 0。docs:check scanned 2325≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2325** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
