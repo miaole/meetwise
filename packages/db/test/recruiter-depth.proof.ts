@@ -30,6 +30,9 @@ const jobA = `job_${TAG}_A`, jobB = `job_${TAG}_B`, historicIv = `iv_hist_${TAG}
 // I3 JOB-MGMT：createJob 自生成 id（newEntityId('job')）——夹具句柄用返回值（jobC/jobD 常量不存在对应行）。
 let jobCId = '', jobDId = '';
 const resumeCand = randomUUID(), resumeCand2 = randomUUID(), resumeCand3 = randomUUID(), resumeCand4 = randomUUID(), resumeCand5 = randomUUID(), resumeCand6 = randomUUID();
+let closedStartJobId = '';
+const candClose1 = `${TAG}_cs1`, candClose2 = `${TAG}_cs2`, candClose3 = `${TAG}_cs3`, candClose4 = `${TAG}_cs4`, candClose5 = `${TAG}_cs5`, candClose6 = `${TAG}_cs6`;
+const resumeClose1 = randomUUID(), resumeClose2 = randomUUID(), resumeClose3 = randomUUID(), resumeClose4 = randomUUID(), resumeClose5 = randomUUID();
 const createdInterviewIds = new Set<string>([historicIv]);
 
 async function setup() {
@@ -343,12 +346,95 @@ async function main() {
   const shareX = await asPrincipal(pool, recB, (c) => c.query('SELECT application_id, email FROM gateway_recruiter_contact_share($1,$2)', [recB, shareIds]));
   A('识别投影 owner 谓词 fail-closed:跨租户 recruiter 恒零出参', shareX.rows.length === 0);
 
+  section('关闭后失败的申请不再另开一场');
+  const createdClosed = await asPrincipal(pool, recA, (c) => createJob(c, recA, { title: '关闭后不再另开', description: '已有申请', competencies: ['高并发'] }));
+  closedStartJobId = createdClosed.id;
+  await asPrincipal(pool, recA, async (c) => {
+    const next = await c.query('SELECT COALESCE(MAX(revision),0)+1 AS n FROM job_semantic_revision WHERE job_id=$1', [closedStartJobId]);
+    const revision = Number(next.rows[0].n);
+    const digest = (randomUUID() + randomUUID()).replace(/-/g, '').slice(0, 64);
+    const hmac = (randomUUID() + randomUUID()).replace(/-/g, '').slice(0, 64);
+    await c.query(
+      "INSERT INTO job_semantic_revision(job_id,owner_user_id,revision,semantic_digest,input_hmac,status) VALUES ($1,$2,$3,$4,$5,'route_decided')",
+      [closedStartJobId, recA, revision, digest, hmac],
+    );
+    await c.query(
+      `INSERT INTO job_route_decision(id,job_id,owner_user_id,revision,route_outcome,attempt_outcome,taxonomy_version,policy_version,allocations,confidence_bps,margin_bps,reason_codes,decision_hash)
+       VALUES ($1,$2,$3,$4,'route_decided','result_validated','v1','calibration-2026-08-frozen:v1',$5::jsonb,10000,1000,'{}',$6)`,
+      [`rd_${closedStartJobId}`, closedStartJobId, recA, revision, JSON.stringify([{ leafTrackId: 'backend/nodejs', allocationBps: 10000 }]), 'ab'.repeat(32)],
+    );
+  });
+  for (const [id, owner] of [[resumeClose1, candClose1], [resumeClose2, candClose2], [resumeClose3, candClose3], [resumeClose4, candClose4], [resumeClose5, candClose5]] as const) {
+    await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [id, owner, `${TAG}:cs:${owner}`]);
+  }
+  const invClose1 = await asPrincipal(pool, recA, (c) => inviteCandidate(c, recA, closedStartJobId, candClose1));
+  const invClose2 = await asPrincipal(pool, recA, (c) => inviteCandidate(c, recA, closedStartJobId, candClose2));
+  const invClose3 = await asPrincipal(pool, recA, (c) => inviteCandidate(c, recA, closedStartJobId, candClose3));
+  const invClose4 = await asPrincipal(pool, recA, (c) => inviteCandidate(c, recA, closedStartJobId, candClose4));
+  const invClose5 = await asPrincipal(pool, recA, (c) => inviteCandidate(c, recA, closedStartJobId, candClose5));
+  A('关闭前五名候选人均已邀请', !!invClose1?.applicationId && !!invClose2?.applicationId && !!invClose3?.applicationId && !!invClose4?.applicationId && !!invClose5?.applicationId);
+  const beforeClose = (await asPrincipal(pool, candClose1, (c) => listMyApplications(c, candClose1))).find((x) => x.id === invClose1!.applicationId);
+  A('关闭前候选人列表 job_status 是 open', beforeClose?.job_status === 'open');
+  const startedClose1 = await asPrincipal(pool, candClose1, (c) => startApplicationInterview(c, candClose1, invClose1!.applicationId, resumeClose1));
+  const ivClose1 = startedClose1.status === 'started' || startedClose1.status === 'reused' ? startedClose1.interviewId : '';
+  if (ivClose1) createdInterviewIds.add(ivClose1);
+  const appClose1 = (await pool.query('SELECT status FROM job_application WHERE id=$1', [invClose1!.applicationId])).rows[0];
+  const nClose1 = (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [invClose1!.applicationId])).rows[0].n;
+  A('关闭前 invited 首启返回 started，恰 1 场面试，申请变为 in_progress', startedClose1.status === 'started' && ivClose1 !== '' && appClose1?.status === 'in_progress' && nClose1 === 1);
+  const startedClose3 = await asPrincipal(pool, candClose3, (c) => startApplicationInterview(c, candClose3, invClose3!.applicationId, resumeClose3));
+  const ivClose3 = startedClose3.status === 'started' || startedClose3.status === 'reused' ? startedClose3.interviewId : '';
+  if (ivClose3) createdInterviewIds.add(ivClose3);
+  await asPrincipal(pool, candClose3, (c) => failInterviewAndRelease(c, candClose3, ivClose3));
+  const startedClose4 = await asPrincipal(pool, candClose4, (c) => startApplicationInterview(c, candClose4, invClose4!.applicationId, resumeClose4));
+  const ivClose4 = startedClose4.status === 'started' || startedClose4.status === 'reused' ? startedClose4.interviewId : '';
+  if (ivClose4) createdInterviewIds.add(ivClose4);
+  const markedClose4 = await asPrincipal(pool, candClose4, async (c) => {
+    await failInterviewAndRelease(c, candClose4, ivClose4);
+    return markApplicationAssessmentUnavailable(c, candClose4, ivClose4);
+  });
+  A('开放时失败后标记 assessment_unavailable', markedClose4 === 'updated');
+  A('closeJob 为真', await asPrincipal(pool, recA, (c) => closeJob(c, recA, closedStartJobId)) === true);
+  A('属主 getJob status 是 closed', (await asPrincipal(pool, recA, (c) => getJob(c, recA, closedStartJobId)))?.status === 'closed');
+  A('关闭后首名申请仍是 in_progress', (await pool.query('SELECT status FROM job_application WHERE id=$1', [invClose1!.applicationId])).rows[0]?.status === 'in_progress');
+  const afterClose1 = (await asPrincipal(pool, candClose1, (c) => listMyApplications(c, candClose1))).find((x) => x.id === invClose1!.applicationId);
+  A('关闭后候选人列表 job_status 是 null 不是 closed', afterClose1?.job_status === null);
+  A('关闭后复用行 bound_interview_status 是 created 且 terminalKind 仍是 null', afterClose1?.bound_interview_status === 'created' && afterClose1?.terminalKind === null);
+  const reusedClose1 = await asPrincipal(pool, candClose1, (c) => startApplicationInterview(c, candClose1, invClose1!.applicationId, resumeClose1));
+  A('关闭后 created 面试复用原来的 interviewId 且仍是 1 场', reusedClose1.status === 'reused' && reusedClose1.interviewId === ivClose1
+    && (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [invClose1!.applicationId])).rows[0].n === 1);
+  const startedClose2 = await asPrincipal(pool, candClose2, (c) => startApplicationInterview(c, candClose2, invClose2!.applicationId, resumeClose2));
+  A('关闭后 invited 首启返回 closed，申请仍是 invited，面试 0 场', startedClose2.status === 'closed'
+    && (await pool.query('SELECT status FROM job_application WHERE id=$1', [invClose2!.applicationId])).rows[0]?.status === 'invited'
+    && (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [invClose2!.applicationId])).rows[0].n === 0);
+  const afterClose3 = (await asPrincipal(pool, candClose3, (c) => listMyApplications(c, candClose3))).find((x) => x.id === invClose3!.applicationId);
+  A('关闭后失败进行中列表 bound_interview_status 是 failed 且 terminalKind 仍是 null', afterClose3?.bound_interview_status === 'failed' && afterClose3?.terminalKind === null);
+  const retriedClose3 = await asPrincipal(pool, candClose3, (c) => startApplicationInterview(c, candClose3, invClose3!.applicationId, resumeClose3));
+  const appClose3 = (await pool.query('SELECT status FROM job_application WHERE id=$1', [invClose3!.applicationId])).rows[0];
+  A('关闭后失败进行中再开始返回 closed，申请仍是 in_progress，面试仍 1 场', retriedClose3.status === 'closed' && appClose3?.status === 'in_progress' && appClose3?.status !== 'assessment_unavailable'
+    && (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [invClose3!.applicationId])).rows[0].n === 1);
+  const retriedClose4 = await asPrincipal(pool, candClose4, (c) => startApplicationInterview(c, candClose4, invClose4!.applicationId, resumeClose4));
+  A('关闭后 assessment_unavailable 再开始返回 closed，申请仍是该状态，面试仍 1 场', retriedClose4.status === 'closed'
+    && (await pool.query('SELECT status FROM job_application WHERE id=$1', [invClose4!.applicationId])).rows[0]?.status === 'assessment_unavailable'
+    && (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [invClose4!.applicationId])).rows[0].n === 1);
+  const declinedClose5 = await asPrincipal(pool, candClose5, (c) => declineInvitation(c, candClose5, invClose5!.applicationId));
+  const startedClose5 = await asPrincipal(pool, candClose5, (c) => startApplicationInterview(c, candClose5, invClose5!.applicationId, resumeClose5));
+  A('婉拒后职位已关闭再开始仍是 noop，不插入面试', declinedClose5 === true && startedClose5.status === 'noop'
+    && (await pool.query('SELECT count(*)::int n FROM interview WHERE application_id=$1', [invClose5!.applicationId])).rows[0].n === 0);
+  A('关闭后 applyToJob 仍返回 null', await asPrincipal(pool, candClose6, (c) => applyToJob(c, candClose6, closedStartJobId)) === null);
+
   console.log(`\n${failures === 0 ? '✓ recruiter:prove 全部通过' : '✗ ' + failures + ' 失败'}（application-bound interview + RLS + 自动回填）`);
 }
 
 async function cleanup() {
   await pool.query('DELETE FROM interview_event WHERE stream_key = ANY($1::text[])', [[...createdInterviewIds]]);
   await pool.query('DELETE FROM interview WHERE id = ANY($1::text[])', [[...createdInterviewIds]]);
+  try { await pool.query('DELETE FROM interview_route_snapshot WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup snapshot failed:', cleanupError); }
+  try { await pool.query('DELETE FROM application_route_binding WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup binding failed:', cleanupError); }
+  try { await pool.query('DELETE FROM job_route_event WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup route event failed:', cleanupError); }
+  try { await pool.query('DELETE FROM job_route_decision WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup route decision failed:', cleanupError); }
+  try { await pool.query('DELETE FROM job_semantic_revision WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup revision failed:', cleanupError); }
+  try { await pool.query('DELETE FROM job_application WHERE job_id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup application failed:', cleanupError); }
+  try { await pool.query('DELETE FROM job_posting WHERE id=$1', [closedStartJobId]); } catch (cleanupError) { console.error('closed-start cleanup job failed:', cleanupError); }
   await pool.query('DELETE FROM job_application WHERE job_id IN ($1,$2)', [jobA, jobB]);
   // I3 JOB-MGMT：路由面夹具清理（revision 无 job_posting FK·显式删；决策/事件随 (job_id) 域删）。
   if (jobCId && jobDId) {
@@ -363,6 +449,11 @@ async function cleanup() {
   await pool.query('DELETE FROM entitlement_consumption WHERE owner_user_id IN ($1,$2,$3)', [cand4, cand5, cand6]);
   await pool.query('DELETE FROM entitlement_bucket WHERE owner_user_id IN ($1,$2,$3)', [cand4, cand5, cand6]);
   await pool.query('DELETE FROM resume WHERE id = ANY($1::uuid[])', [[resumeCand, resumeCand2, resumeCand3, resumeCand4, resumeCand5, resumeCand6]]);
+  try {
+    await pool.query('DELETE FROM resume WHERE id = ANY($1::uuid[])', [[resumeClose1, resumeClose2, resumeClose3, resumeClose4, resumeClose5]]);
+  } catch (cleanupError) {
+    console.error('closed-start cleanup resume failed:', cleanupError);
+  }
 }
 
 main().catch((e) => { console.error(e); failures++; }).finally(async () => {
