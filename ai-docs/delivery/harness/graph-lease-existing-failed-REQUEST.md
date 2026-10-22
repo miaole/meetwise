@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 失败面试已有图行时不再续租
 
@@ -112,11 +112,11 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。本步只新增这一份说明，不改产品代码。前提不在基线上就停止，不在这里改作业写回。
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -133,3 +133,18 @@ draft:awaiting_pre_exec_dual
 执行前提保持 §1.2。执行所依据的基线里，若 `requeueInterviewJob` 在面试已经是 `failed` 时仍把作业写回排队，就停止。不要在这一步改那个函数，也不要改图租约。
 
 本节不把本步写成已经执行。不改产品代码。文首与 §8 里的三处状态保持原文，且彼此相同。
+
+## §9-EXEC
+
+改动文件：
+
+- `packages/db/src/interview/interview-graph-lease.ts`：`withInterviewGraphFence` 的已有图行路径，在别人持有且未过期的租约检查之后、`UPDATE` 之前，再执行 `SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2`。参数是本函数已有的 `interviewId` 与 `owner`。恰好一行且 `status` 是 `failed` 时不更新，返回未取得，回调不跑。读不到行，或状态不是 `failed`，仍执行原来的 `UPDATE`。零行分支未改。
+- `apps/worker/test/graph-fence-write.proof.ts`：失败且无图行那一臂之后、活状态那一臂之前追加一臂。面试用三列直接插成 `failed`，不调用 `seedInterview`，不调用 `reserveEntitlement`。再插入已有图行，`version` 为 4，租约两列为空，图行 `status` 为 `paused`。回调标志保持未执行。断言未取得、未抛错，之后仍是一行且仍是 `paused`、`version` 4。前后原有断言未改口径。
+- `ai-docs/delivery/harness/graph-lease-existing-failed-REQUEST.md`：文件首行、§8 内、§8 之后三处状态改为 `executed:awaiting_post_prove_dual`。
+
+命令与退出码：
+
+1. `pnpm graph-fence-write:prove` EXIT=0
+2. `node scripts/ai-docs/check-docs.mjs` EXIT=0（扫描 2318，未超过 2320）
+3. `pnpm turbo typecheck --force` EXIT=0
+4. `pnpm turbo lint` EXIT=0（0 errors；根 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265、config 0、db-mysql 0，未放宽上限）

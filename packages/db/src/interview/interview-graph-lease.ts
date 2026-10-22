@@ -44,6 +44,12 @@ export async function withInterviewGraphFence<T>(
     }
     const row = current.rows[0];
     if (row.lease_owner && row.lease_owner !== leaseOwner && new Date(row.lease_expires_at).getTime() >= Date.now()) return null;
+    // 租约可拿时再读面试。恰好一行且 status 是 failed：不更新，回调不跑。没有行或其它状态仍更新。
+    const heldInterview = await c.query(
+      'SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2',
+      [interviewId, owner],
+    );
+    if (heldInterview.rowCount === 1 && heldInterview.rows[0].status === 'failed') return null;
     // 六值活状态之外更新不到一行即未取得，不改走上面的 INSERT。
     const upd = await c.query(
       `UPDATE ai_graph_run SET status='active',lease_owner=$4,lease_expires_at=now()+($5||' seconds')::interval,version=version+1

@@ -393,6 +393,38 @@ async function main() {
   const afterInterviewFailed = await readRun(iidInterviewFailed);
   A('失败面试还没有图行时未取得且未抛错', interviewFailedAcquired === false);
   A('失败面试还没有图行时 ai_graph_run 仍是 0 行', afterInterviewFailed.rowCount === 0);
+  // 面试直接写成 failed，另插一条租约为空的 paused 图行。不调用 seedInterview，不预留额度。
+  console.log('\n──── 面试已是 failed 且已有 paused 图行：不更新，回调不跑 ────');
+  const iidExistingFailed = 'gf-iv-failed-paused';
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'failed')", [iidExistingFailed, OWNER]);
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
+       VALUES ($1,$2,$3,'paused',4,NULL,NULL)`,
+    [GRAPH_NAME, iidExistingFailed, OWNER],
+  ));
+  const beforeExistingFailed = await readRun(iidExistingFailed);
+  const beforeExistingStatus = String(beforeExistingFailed.rows[0]?.status);
+  const beforeExistingVersion = Number(beforeExistingFailed.rows[0]?.version);
+  let existingFailedRan = false;
+  let existingFailedAcquired: boolean | 'threw' = 'threw';
+  try {
+    const got = await withInterviewGraphFence(pool, OWNER, iidExistingFailed, 'gf-iv-failed-paused-late', async () => {
+      existingFailedRan = true;
+      return 'should-not-run';
+    });
+    existingFailedAcquired = got.acquired;
+  } catch (e) {
+    existingFailedAcquired = 'threw';
+    console.error('失败面试已有图行 fence 抛错', e instanceof Error ? e.message : e);
+  }
+  const afterExistingFailed = await readRun(iidExistingFailed);
+  A('失败面试已有 paused 图行时未取得、未抛错且回调未执行', existingFailedAcquired === false && existingFailedRan === false);
+  A('失败面试已有 paused 图行时仍一行且 status 与 version 保持调用前，仍是 paused 与 4',
+    afterExistingFailed.rowCount === 1
+    && String(afterExistingFailed.rows[0]?.status) === beforeExistingStatus
+    && Number(afterExistingFailed.rows[0]?.version) === beforeExistingVersion
+    && afterExistingFailed.rows[0]?.status === 'paused'
+    && Number(afterExistingFailed.rows[0]?.version) === 4);
   for (const status of ['created', 'active', 'waiting_user', 'migrating', 'paused', 'quarantined'] as const) {
     const iid = `gf-live-${status}`;
     await plantRun(iid, status);
