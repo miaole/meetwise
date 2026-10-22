@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 撤权后近期平均和成长答题次数仍计入围栏场次
 
@@ -109,7 +109,14 @@ draft:awaiting_pre_exec_dual
 est live=0。`actualSpendCny=null`。
 
 ## §8
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
 
 以上三处相同。本步只新增这一份说明，不改产品代码。
+
+## §9-EXEC
+
+- 总览近期平均：`apps/api/src/modules/profile/profile.service.ts` 的 `overview` 在既有 `status IN ('practice_eligible','b_review_eligible')` 上增加 `AND interview_id != ALL($1::text[])`。参数是该函数已经取到的 `fenced`，没有再查围栏函数。
+- 成长答题次数：同一文件的 `growth` 在同样的状态条件上增加 `AND interview_id != ALL($1::text[])`。参数是该函数已经取到的 `fenced`。空名单仍走这两句。
+- 证明臂在 `apps/api/test/validate.ts`，打生产 `GET /profile/overview` 与 `GET /profile/growth`。空名单时均分 60、答题次数 2。新面试只属于 userA，一张 `deterministic_total` 为 0 的 `practice_eligible` 卡，未插入已答题目。围栏前均分 40、答题次数 3。`POST /privacy/erasure-preview`（`scope=interview_data`）之后，卡状态仍是 `practice_eligible`，均分回到 60，答题次数回到 2。
+- 四条门退出码：`pnpm api:validate` 0；`pnpm docs:check` 0；`pnpm turbo typecheck --force` 0（Cached 0）；`pnpm turbo lint` 0。lint 0 errors，警告数 api 1423、根 5242，其余包未超过既有上限。
