@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 职位关闭后已有申请仍能开始
 
@@ -164,8 +164,8 @@ SELECT status FROM job_posting WHERE id=$1
 不跑出站清单。不写迁移唯一性门。不调用模型。本说明是这一步唯一新增的文件。
 
 ## §8
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
 
 ## §9-rev
 
@@ -229,3 +229,23 @@ MyApplications.parse({ applications: [{ id: 'a', job_id: 'j', interview_id: null
 `route_consumption_event`（`0104` 第 179–191 行）没有外键。开始会写它，但它挡不住上面任何一步。不要把它插进这个顺序，本段也不要求另删它。
 
 新简历仍在面试和申请都删掉之后删，沿用第 365 行的位置。
+
+## §9-EXEC
+
+改过的文件：
+
+- apps/web/app/jobs/page.tsx
+- apps/web/test/web-logic.proof.ts
+- packages/contracts/src/index.ts
+- packages/db/src/recruiting/recruiter.ts
+- packages/db/test/recruiter-depth.proof.ts
+
+命令退出：
+
+- pnpm recruiter:prove EXIT:0
+- pnpm web:prove EXIT:0
+- pnpm docs:check EXIT:0
+- pnpm turbo typecheck --force EXIT:0
+- pnpm turbo lint EXIT:0
+
+三处状态都已是 executed:awaiting_post_prove_dual。
