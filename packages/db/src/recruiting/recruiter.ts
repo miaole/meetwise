@@ -270,8 +270,18 @@ export async function applyToJob(c: Client, candidate: string, jobId: string): P
 /** I2 W1（裁定①形 a·E3 派生口径收窄）：绑定面试 status 派生 held/failed 终态区分（零迁移·纯读侧）。 */
 export type ApplicationTerminalKindRow = 'held' | 'failed' | null;
 
-/** 候选人查自己的申请(RLS p_party_read:候选人侧)。带 source 让候选人 UI 区分"受邀/主动投递"并给出动作出口。 */
-export async function listMyApplications(c: Client, candidate: string): Promise<Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string; terminalKind: ApplicationTerminalKindRow }>> {
+type MyApplicationListRow = Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & {
+  job_title: string;
+  terminalKind: ApplicationTerminalKindRow;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  job_status: string | null;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
+  bound_interview_status: string | null;
+};
+
+/** 候选人查自己的申请(RLS p_party_read:候选人侧)。带 source 让候选人 UI 区分"受邀/主动投递"并给出动作出口。
+ * job_status / bound_interview_status 在这次候选人会话里读：关岗被 p_read 藏成 null；候选人是面试主人，created/active 不会被读成缺失。 */
+export async function listMyApplications(c: Client, candidate: string): Promise<MyApplicationListRow[]> {
   const owner = requireOwnerUserId(candidate, 'recruiter.listMyApplications');   // PRIV01-C 第二层 E1
   await assertPrincipal(c, owner);
   const r = await c.query(`
@@ -279,12 +289,15 @@ export async function listMyApplications(c: Client, candidate: string): Promise<
       a.interview_id, a.resume_id, a.status, a.score, a.source,
       CASE WHEN a.status='assessment_unavailable' AND i.status='completed' THEN 'held'
            WHEN a.status='assessment_unavailable' AND i.status='failed' THEN 'failed'
-           ELSE NULL END AS "terminalKind"
+           ELSE NULL END AS "terminalKind",
+      j.status AS job_status,
+      i.status AS bound_interview_status
     FROM job_application a
     LEFT JOIN interview i ON i.id = a.interview_id
+    LEFT JOIN job_posting j ON j.id = a.job_id
     WHERE a.candidate_user_id=$1
     ORDER BY a.created_at DESC`, [owner]);
-  return r.rows as Array<Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & { job_title: string; terminalKind: ApplicationTerminalKindRow }>;
+  return r.rows as Array<MyApplicationListRow & { job_title: string }>;
 }
 
 /**
@@ -486,7 +499,7 @@ export async function inviteCandidate(c: Client, recruiter: string, jobId: strin
 
 export type StartApplicationResult =
   | { status: 'started' | 'reused'; interviewId: string; resumeId: string }
-  | { status: 'noop' | 'resume_not_ready' | 'binding_invalid' | 'interview_ineligible_route' }
+  | { status: 'noop' | 'resume_not_ready' | 'binding_invalid' | 'interview_ineligible_route' | 'closed' }
   // I2 W1 修法④服务侧守卫（裁定⑥）：held（绑定面试 completed 的 hold 终态）不再可重试——
   // UI 收窄之外 API 亦拒，防止拦 UI 不拦 API 穿。409 映射在 applications.service（同区既有分码形）。
   | { status: 'application_held_not_retryable' };
@@ -536,6 +549,9 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
       [row.interview_id, owner, row.id, row.interview_attempt, row.job_id, row.resume_id],
     );
     if (failedBound.rowCount !== 1) return { status: 'binding_invalid' };
+    const closedWhileFailed = await c.query('SELECT status FROM job_posting WHERE id=$1', [row.job_id]);
+    if (closedWhileFailed.rowCount === 0) return { status: 'closed' };
+    if (String((closedWhileFailed.rows[0] as { status: string }).status) !== 'open') return { status: 'closed' };
     // 同事务先 mark：in_progress→assessment_unavailable 合法迁移（0144 状态机规则表 +
     // 终端体守卫全链已验），随后落回下方既有恢复通路原样行进——下方 UPDATE 守卫
     // `status IN ('invited','assessment_unavailable')` 字节零改即命中，触发器走
@@ -564,6 +580,10 @@ export async function startApplicationInterview(c: Client, candidate: string, ap
     );
     if (heldBound.rowCount === 1) return { status: 'application_held_not_retryable' };
   }
+
+  const closedBeforeStart = await c.query('SELECT status FROM job_posting WHERE id=$1', [row.job_id]);
+  if (closedBeforeStart.rowCount === 0) return { status: 'closed' };
+  if (String((closedBeforeStart.rows[0] as { status: string }).status) !== 'open') return { status: 'closed' };
 
   const resume = await c.query(
     "SELECT id,privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2 AND status='ingested' FOR KEY SHARE",
