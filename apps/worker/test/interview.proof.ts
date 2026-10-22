@@ -714,12 +714,13 @@ async function main() {
         ...(voiceCase.asrOutcome === undefined ? {} : { asrOutcome: voiceCase.asrOutcome }),
       },
     );
-    const column = await asPrincipal(pool, OWNER, (c) => c.query<{ uncertainty_voice_quality: string }>(
+    const column = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string>>(
       'SELECT uncertainty_voice_quality FROM score_card WHERE interview_id=$1 AND question_id=$2',
       [IID_VOICE, q],
     ));
+    const voiceQuality = column.rows[0]?.['uncertainty_voice_quality'];
     A(`${voiceCase.name} → uncertainty_voice_quality=${voiceCase.expect}`,
-      written.kind === 'written' && column.rows.length === 1 && column.rows[0]?.uncertainty_voice_quality === voiceCase.expect);
+      written.kind === 'written' && column.rows.length === 1 && voiceQuality === voiceCase.expect);
   }
 
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
