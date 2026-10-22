@@ -166,3 +166,66 @@ SELECT status FROM job_posting WHERE id=$1
 ## §8
 draft:awaiting_pre_exec_dual
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+本段只追加在文末，取代下面点名的句子。§0、§1、§1.3、§2、§8 的原文不动。文首和 §8 已有的三处标记不动，本段不再写那句标记。不改 `closeJob`、`applyToJob`、`applications.service.ts`、价格、迁移、`p_read`。上限仍是 2328。`ai-docs/delivery/harness/product-campaign-LEDGER.md` 第 694 行仍是合计 229/271，能力项完成 33、半成 2、未收 14。
+
+### 9.1 关闭后，绑定面试已失败的进行中申请不再提交开始
+
+取代 §1.2 这一句：「职位不是开放，但申请是 `in_progress`：开始条件仍为真，按钮仍是「继续岗位面试」。这样还能回到那场 `created` 或 `active` 的面试。不要用上面那句换掉这个按钮。」
+
+同时取代 §2 页面证明这一句：「`job_status` 不是 `open` 时，`invited` 与失败重试不再使开始表单渲染，`in_progress` 仍渲染「继续岗位面试」。」
+
+§1.2「不要改 `terminalKind` 的 CASE，不要改 `WHERE`」仍然有效。`listMyApplications` 第 277–286 行已经 `LEFT JOIN interview i`。第 280–282 行的 CASE 只有申请已是 `assessment_unavailable` 才不是 NULL：绑定面试 `completed` 得到 `held`，`failed` 得到 `failed`。申请仍是 `in_progress`、绑定面试已经 `failed` 时，`terminalKind` 与仍可复用的 `created`/`active` 一样是 NULL。页面因此分不开这两种。第 158–159 行的 `in_progress` 一律 `startable`，第 178 行的表单仍会提交开始。
+
+同一条 SELECT 再选出已经连接上的 `i.status AS bound_interview_status`。不要新增连接，不要改 CASE 的原文，不要改 `WHERE`。`listMyApplications` 的返回类型加上 `job_status: string | null` 与 `bound_interview_status: string | null`。`terminalKind` 的类型不改。`applications.service.ts` 第 24–26 行的 `mine` 原样返回这个查询，不要为了加列去改它。
+
+页面只改「职位不是开放」时的 `in_progress`。缺失和 `null` 都不是 `open`。
+
+- `bound_interview_status` 是 `created` 或 `active`：开始条件仍为真，按钮仍是「继续岗位面试」。不要用关闭句换掉这个按钮。生产函数第 510–523 行的复用返回仍在读职位状态之前，关闭后继续返回原来的 `interviewId`。
+- `bound_interview_status` 是 `failed`，或是任何不是 `created`/`active` 的值（含缺失和 `null`）：不要渲染开始表单，不要提交开始，显示「该职位已关闭，不能再开始面试。」不要只判断 `=== null` 而让缺键掉回旧的 `in_progress` 开始条件。
+
+职位仍是 `open` 时，第 158–159 行的三个条件保持原样。这时 `in_progress` 且绑定面试已 `failed` 仍提交开始，不显示关闭句。`invited` 的关闭句、`assessment_unavailable` 且 `terminalKind === 'failed'` 的关闭句、held 那句，都按 §1.2 原样。「婉拒」仍只在 `invited` 时出现。`declined` 仍是 `noop`（第 508 行），不是 `closed`。held 仍返回 `application_held_not_retryable`（第 565 行），不改成 `closed`。
+
+`apps/api/src/modules/jobs/applications.service.ts` 第 85–86 行在状态不是 `started` 或 `reused` 时抛 `application_start_unexpected`。`{ status: 'closed' }` 走这里。不要改这个服务，不要新造错误名。上面这一支由页面不提交来避开。
+
+招聘证明已有断言的原文不改，只追加两则：关闭后复用的那一行，`bound_interview_status` 是 `created`（第 595 行插入的状态），`terminalKind` 仍是 `null`。第三名候选人（绑定面试已 `failed`、申请仍是 `in_progress`、职位已关闭）的列表行，`bound_interview_status` 是 `failed`，`terminalKind` 仍是 `null`。服务侧仍返回 `{ status: 'closed' }`，申请仍不是 `assessment_unavailable`。
+
+页面证明改为读文件：`job_status === 'open'` 时开始条件仍覆盖 `invited`、`in_progress` 和 `terminalKind === 'failed'`。`job_status` 不是 `open` 时，`in_progress` 只有 `bound_interview_status` 为 `created` 或 `active` 才渲染「继续岗位面试」；`failed` 以及其他值不渲染开始表单。文件仍含「该职位已关闭，不能再开始面试。」，仍含 `invited ? '开始面试' : '继续岗位面试'`。
+
+### 9.2 `job_status` 和 `bound_interview_status` 都可缺省
+
+取代 §1.2 这一句：「`MyApplications` 第 517–522 行加上可空的 `job_status`，让第 55–57 行的解析留住这一列。」
+
+`packages/contracts` 里只写 `.nullable()` 时，键仍是必填。值可以是 `null`，缺键不能通过。`apps/api/test/resume-display.proof.ts` 第 26 行解析的对象没有这两个键：
+
+```
+MyApplications.parse({ applications: [{ id: 'a', job_id: 'j', interview_id: null, resume_id: null, status: 'invited', score: null }] })
+```
+
+不要改那份简历证明。这一行必须继续通过，`job_title` 仍是「岗位信息同步中」。
+
+两个字段都放进第 518–522 行那个申请对象，与第 520 行 `terminalKind` 一样写成 `z.string().nullable().optional()`。缺失或 `null` 都通过。不要只写 `.nullable()`。不要加 `.default(...)`，避免缺键被填成 `open` 或 `created`。查询真返回 `null`（职位已关闭被策略藏掉，或没有绑定面试）也必须通过。
+
+### 9.3 清理按外键先删快照和绑定，再删路由行
+
+取代 §2 这一句中的「新职位的申请、路由行和职位行要在删职位前删掉」。被取代的整句是：「清理只追加新行的删除。第 352 行仍然只删 `jobA` 和 `jobB` 的申请。新职位的申请、路由行和职位行要在删职位前删掉，新简历也要删。新面试 id 放进已有的 `createdInterviewIds`。」
+
+同句里这三截仍然有效：第 352 行仍然只删 `jobA` 和 `jobB` 的申请；新简历也要删；新面试 id 放进已有的 `createdInterviewIds`。不要复用已经关闭的 `jobCId`（第 31 行声明，第 259–263 行已经关闭）。新职位只用 `createJob` 返回的新 id。不要把它写进 `jobCId` 或 `jobDId`，不要放进第 354–357 行的 `if (jobCId && jobDId)`，也不要加进第 359 行那个 `job_posting` 数组。那一条数组语句只要有一行外键失败就整句不删，`jobA` 和 `jobB` 会和新职位一起留下。
+
+`inviteCandidate` 第 483 行调用 `bindApplicationRoute`，插入 `application_route_binding`（`packages/db/src/routing/job-route-decision.ts` 第 316 行）。`startApplicationInterview` 第 579 行也会插入绑定，第 608 行的 `snapshotInterviewRoute` 再插入 `interview_route_snapshot`（同文件第 349 行）。这两张表的外键都没有级联：`packages/db/migrations/0104_job_route_decision.sql` 里没有 `ON DELETE`。现有 `cleanup` 不删它们。若先删路由行，绑定的外键会让那条删除失败。`cleanup` 是顺序 `await`，任一条抛错函数就返回；第 369 行只记下异常，后面的删除不再执行，新职位就留下。
+
+下面五步放在第 351 行之后、第 365 行删简历之前，用与第 350 行相同的 `pool.query`。不要用 `asPrincipal`。`0104` 第 208–209 行对绑定和快照只 `GRANT SELECT, INSERT`，没有 `DELETE`。五步都按这个新职位的 `job_id` 删除。每步单独捕获错误并继续，不把异常抛出 `cleanup`。不要包进同一个会在第一条失败时回滚的事务。删快照失败也必须执行到最后一步，不能把新职位留下来。
+
+新面试 id 必须已经在 `createdInterviewIds` 里，让第 350–351 行先删掉面试。否则 `packages/db/migrations/0028_application_bound_interview.sql` 第 23–24 行 `fk_interview_application_binding`（`interview.application_id` → `job_application(id)`，`DEFERRABLE INITIALLY DEFERRED`，无级联）和第 27–28 行 `fk_interview_job_binding`（`interview.job_id` → `job_posting(id)`，同样无级联）会让删申请或删职位失败，职位同样留下。`0163_qbank_plan_snapshot_interview_fk.sql` 已把 `qbank_retrieval_plan` 与 `question_plan` 的 `snapshot_id` 改挂到 `interview(id)`，这两张表不再挡住删快照。
+
+1. 先删 `interview_route_snapshot`。外键是 `0104` 第 172 行：`FOREIGN KEY (application_id) REFERENCES application_route_binding(application_id)`。
+2. 再删 `application_route_binding`。外键是 `0104` 第 152–153 行：`(job_id, revision)` → `job_semantic_revision(job_id, revision)`，以及 `decision_id` → `job_route_decision(id)`。绑定没有指向 `job_application` 的外键，删申请不会把它带走。只被邀请、还没有快照的申请也有绑定，同样要删。
+3. 再删这次新插入的路由行。内部顺序与第 355–357 行相同：先 `job_route_event`（`0104` 第 123–134 行没有外键；`createJob` 经 `createJobSemanticRevision` 会插入），再 `job_route_decision`（`0104` 第 81 行 `(job_id, revision)` → `job_semantic_revision`），最后 `job_semantic_revision`。按第 46–56 行插入的 `route_decided` 也在这三张表里一起删。不删 `jobCId` 或 `jobDId` 的行。
+4. 再删这个新职位的 `job_application`。不改第 352 行。外键是 `packages/db/migrations/0046_application_assessment_recovery.sql` 第 53–56 行 `fk_job_application_job_recruiter`：`(job_id, recruiter_user_id)` → `job_posting(id, owner_user_id)`，`DEFERRABLE INITIALLY IMMEDIATE`，无级联。
+5. 最后才用单独一条语句删这个新职位的 `job_posting`。
+
+`route_consumption_event`（`0104` 第 179–191 行）没有外键。开始会写它，但它挡不住上面任何一步。不要把它插进这个顺序，本段也不要求另删它。
+
+新简历仍在面试和申请都删掉之后删，沿用第 365 行的位置。
