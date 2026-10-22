@@ -262,11 +262,11 @@ export async function markJobDone(c: Client, owner: string, jobId: string, lease
   // An answer is needed only until graph evaluation and business projection
   // have both committed.  A completed durable job keeps its identity/trace but
   // never keeps the plaintext answer for later queue inspection or replay.
-  const r = await c.query("UPDATE interview_job SET status='done', lease_owner=NULL, payload=payload-'answer', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner]);
+  const r = await c.query("UPDATE interview_job SET status='done', lease_owner=NULL, payload=payload-'answer'-'asrOutcome', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner]);
   return r.rowCount === 1;
 }
 export async function markJobFailed(c: Client, owner: string, jobId: string, leaseOwner: string, error: string): Promise<boolean> {
-  const r = await c.query("UPDATE interview_job SET status='failed', last_error=$4, lease_owner=NULL, payload=payload-'answer', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner, error.slice(0, 500)]);
+  const r = await c.query("UPDATE interview_job SET status='failed', last_error=$4, lease_owner=NULL, payload=payload-'answer'-'asrOutcome', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner, error.slice(0, 500)]);
   return r.rowCount === 1;
 }
 
@@ -275,7 +275,7 @@ export async function failQueuedInterviewJobsOnAbandon(c: Client, owner: string,
   await c.query(
     `UPDATE interview_job
         SET status='failed', last_error='abandoned', lease_owner=NULL, lease_expires_at=NULL,
-            payload=payload-'answer', version=version+1
+            payload=payload-'answer'-'asrOutcome', version=version+1
       WHERE owner_user_id=$1 AND interview_id=$2 AND status='queued'`,
     [owner, interviewId],
   );
@@ -371,7 +371,7 @@ export const INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS = 86_400;
  * 本函数独立于收割路径(新旁路)。
  * 目标域=「重队列终态不可达」行:sweep 只处理 running(翻 queued/failed),**queued 行收割永不触达**——
  * worker 停机期 queued 滞留(及 lease 过期超 TTL 仍 running 的兜底臂)明文 answer 无限期滞留即本函数清理面。
- * 纪律:只清 `payload-'answer'`(D6 同款:身份/追踪保留·明文不留);活跃 running(租约未过期或仅刚过期
+ * 纪律:清 `payload-'answer'-'asrOutcome'`(D6 同款:身份/追踪保留·明文不留);活跃 running(租约未过期或仅刚过期
  * 未超 TTL)零触;非超龄 queued 零触;状态/额度语义零改(清后若再被 claim,消费侧按缺 payload 走既有
  * markJobFailed → interview_unavailable 终态=无静默死胡同)。
  * 假时钟可证:created_at/lease_expires_at 直接回拨(沿 reaper prove 先例),无需等待真实 TTL。
@@ -380,8 +380,8 @@ export async function purgeStaleInterviewJobPayloads(
   c: Client, owner: string, ttlSeconds = INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
 ): Promise<{ purged: number }> {
   const r = await c.query(
-    `UPDATE interview_job SET payload=payload-'answer', version=version+1
-       WHERE owner_user_id=$1 AND payload ? 'answer'
+    `UPDATE interview_job SET payload=payload-'answer'-'asrOutcome', version=version+1
+       WHERE owner_user_id=$1 AND (payload ? 'answer' OR payload ? 'asrOutcome')
          AND (
            (status='queued' AND created_at < now() - ($2||' seconds')::interval)
            OR (status='running' AND lease_expires_at < now() - ($2||' seconds')::interval)

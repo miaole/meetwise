@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementForApplication, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementForApplication, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload } from '@meetwise/db';
 import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
@@ -456,6 +456,8 @@ export class InterviewService {
       // fenced turn leaves neither an answer hash nor a job behind.
       await this.guardInterviewPrivacy(c, id);
       await this.assertAnswerable(c, id, iv.rows[0].status);   // 终态拒 / 未 begin 拒(见下方共用守卫)
+      // 题仍是 issued 时取走转写原文。占用之后状态变为 queued，重放不会改已入队载荷。
+      const payload = await loadTranscribedAnswerJobPayload(c, owner, id, body, requestId);
       const claim = await claimInterviewAnswer(c, owner, id, body);
       if (claim.status === 'hash_mismatch') throw new HttpException({ error: 'answer_hash_mismatch' }, HttpStatus.UNPROCESSABLE_ENTITY);
       if (claim.status === 'not_ready') throw new HttpException({ error: 'question_not_ready' }, HttpStatus.CONFLICT);
@@ -463,7 +465,7 @@ export class InterviewService {
       if (claim.status === 'conflict') throw new HttpException({ error: 'answer_conflict' }, HttpStatus.CONFLICT);
       let jobId: string;
       try {
-        jobId = await enqueueInterviewJob(c, owner, id, 'answer', { ...body, requestId }, turn + 1);
+        jobId = await enqueueInterviewJob(c, owner, id, 'answer', payload, turn + 1);
       } catch (e: unknown) {
         // 入队背压闸：per-owner queued 深度满（具名错）→ 429（沿 TURN_RL 429 分口）；
         // claim 同事务回滚=零悬账可安全重试。
@@ -571,14 +573,36 @@ export class InterviewService {
     // Check the same durable fence before any audio leaves the process.  This
     // closes delete-wins; dispatch-wins provider retention receipts remain a
     // separate release blocker until voice uses the durable egress outbox.
+    let issuedQuestionId: string | undefined;
     await this.db.asPrincipal(owner, async (c) => {
       await this.guardInterviewPrivacy(c, id);
       // CONSENT-MIN(#69):语音片段送 ASR 前须有 voice_capture 同意记录(复用 consent_record 表;
       // byte 同形 resume.service.ts:95 同意门先例)。序钉:隐私围栏(410)先判,同意门(403)只在其后。
-      const consent = await c.query("SELECT 1 FROM consent_record WHERE purpose='voice_capture' LIMIT 1");
+      // 同一条读取带出当前 issued 题，避免转写期间换题后把原文写到另一题。失败路径仍是这一条 SELECT，不写库。
+      const consent = await c.query<Record<string, string | null>>(
+        `SELECT (
+           SELECT q.question_id FROM interview_question q
+            WHERE q.interview_id=$1 AND q.status='issued'
+            LIMIT 1
+         ) AS question_id
+           FROM consent_record
+          WHERE purpose='voice_capture'
+          LIMIT 1`,
+        [id],
+      );
       if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'voice_capture' }, HttpStatus.FORBIDDEN);
+      const questionId = consent.rows[0]?.['question_id'];
+      if (typeof questionId === 'string' && questionId.length > 0) issuedQuestionId = questionId;
     });
-    return transcribeAnswer(this.asr, dto, options);
+    const result = await transcribeAnswer(this.asr, dto, options);
+    if (issuedQuestionId) {
+      const questionId = issuedQuestionId;
+      await this.db.asPrincipal(owner, async (c) => {
+        await this.guardInterviewPrivacy(c, id);
+        await rememberIssuedQuestionTranscript(c, owner, id, questionId, result.text);
+      });
+    }
+    return result;
   }
 
   /** TTS:把 AI 题/追问合成语音(qwen-tts),供单人语音模式播报。未配置/失败 → 降级(前端回落文字读题)。 */

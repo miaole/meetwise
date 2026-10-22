@@ -159,6 +159,7 @@ export { readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsS
 export {
   answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim,
   markInterviewAnswerApplied, cancelOpenInterviewQuestion,
+  asrOutcomeForStoredTranscript, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload,
 } from './interview/interview-question.ts';
 export type { PersistedInterviewQuestion, AcceptedInterviewAnswer, ClaimAnswerResult } from './interview/interview-question.ts';
 

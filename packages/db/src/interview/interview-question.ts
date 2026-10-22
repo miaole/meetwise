@@ -145,3 +145,70 @@ export async function cancelOpenInterviewQuestion(c: Client, owner: string, inte
     [owner, interviewId],
   );
 }
+
+/** 与作答长度上限一致。更长的转写文本无法原样成为这次作答，不暂存。 */
+const ISSUED_TRANSCRIPT_MAX_CHARS = 8000;
+
+/**
+ * 已暂存的转写原文能否作为这次作答的转写结果。
+ * 只接受原文本身，或客户端把首尾空白去掉后放进作答框的那一种。
+ * 其余作答（打字、或改过的文本）不返回，避免把一切答案都当成转写成功。
+ */
+export function asrOutcomeForStoredTranscript(stored: string | null | undefined, answer: string): string | undefined {
+  if (typeof stored !== 'string') return undefined;
+  if (stored.length === 0 || stored.length > ISSUED_TRANSCRIPT_MAX_CHARS) return undefined;
+  const trimmed = stored.trim();
+  if (trimmed === '') return undefined;
+  if (answer === stored) return stored;
+  if (trimmed !== stored && answer === trimmed) return stored;
+  return undefined;
+}
+
+/** 转写成功后，把原文写到仍处于 issued 的那道题。题已换发或已占用则不写。 */
+export async function rememberIssuedQuestionTranscript(
+  c: Client, owner: string, interviewId: string, questionId: string, text: string,
+): Promise<void> {
+  if (typeof questionId !== 'string' || questionId.length === 0) return;
+  if (typeof text !== 'string' || text.length === 0 || text.length > ISSUED_TRANSCRIPT_MAX_CHARS) return;
+  if (text.trim() === '') return;
+  await c.query(
+    `UPDATE interview_question SET asr_transcript=$4
+      WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND status='issued'`,
+    [owner, interviewId, questionId, text],
+  );
+}
+
+/**
+ * 作答入队前取走本题暂存的转写原文。状态仍须是 issued；重放时题已 queued，读不到，也不覆盖已入队的载荷。
+ * 返回的 asrOutcome 是原文（含客户端去掉的首尾空白），不是作答框里的文本。
+ */
+export async function loadTranscribedAnswerJobPayload(
+  c: Client, owner: string, interviewId: string, body: AcceptedInterviewAnswer, requestId?: string,
+): Promise<AcceptedInterviewAnswer & { requestId?: string }> {
+  const locked = await c.query<Record<string, string | null>>(
+    `SELECT asr_transcript FROM interview_question
+      WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND status='issued'
+      FOR UPDATE`,
+    [owner, interviewId, body.questionId],
+  );
+  const stored = locked.rows[0]?.['asr_transcript'];
+  if (typeof stored === 'string') {
+    await c.query(
+      `UPDATE interview_question SET asr_transcript=NULL
+        WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND status='issued'`,
+      [owner, interviewId, body.questionId],
+    );
+  }
+  const asrOutcome = asrOutcomeForStoredTranscript(stored, body.answer);
+  const payload: AcceptedInterviewAnswer & { requestId?: string } = {
+    questionId: body.questionId,
+    stateVersion: body.stateVersion,
+    answerId: body.answerId,
+    answerHash: body.answerHash,
+    turn: body.turn,
+    answer: body.answer,
+  };
+  if (requestId !== undefined) payload.requestId = requestId;
+  if (asrOutcome !== undefined) payload.asrOutcome = asrOutcome;
+  return payload;
+}
