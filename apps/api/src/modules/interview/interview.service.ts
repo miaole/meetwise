@@ -1,6 +1,6 @@
 import { Injectable, Inject, HttpException, HttpStatus, Logger } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementForApplication, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload } from '@meetwise/db';
+import { assertInterviewPrivacyActive, reserveEntitlement, reserveEntitlementForApplication, enqueueInterviewJob, abandonInterviewAndRelease, claimInterviewAnswer, submitInterviewAnswer, readbackInterviewAnswerSubmission, viewInterviewAnswerSnapshot, supplyCandidateProfileRoute, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, asErr, errCode, createScoreRequestForSubmission, SCORING_ISSUE_PRIVACY_EPOCH, loadTranscribedAnswerJobPayload } from '@meetwise/db';
 import { deriveCareerPath, requireTrustedPracticeOverall, resolveOverlongAnswerPolicy } from '@meetwise/domain';
 import { runCareerPathGraph, selectCareerPathDerive, CAREER_PATH_GRAPH_NAME } from '@meetwise/ai-graphs';
 import type { InterviewAnswerPreviewSubmitDto, InterviewAnswerSubmitResult, TranscribeDto, TurnDto } from '@meetwise/contracts';
@@ -20,7 +20,7 @@ import {
   ContentSafetyKillSwitchActiveError,
 } from '../../platform/content-safety';
 import { toInterviewView } from './interview-view.ts';
-import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeAnswer } from './interview-voice.ts';
+import { synthesizeSpokenAudio, prepareSpeakStreamText, transcribeForIssuedQuestion } from './interview-voice.ts';
 import { reportView, retryReportById, exportReportMd, transcriptView } from './interview-report.ts';
 import { generateAssessmentFor, getAssessmentFor, getCareerPathFor } from './interview-assessment.ts';
 import { generateLearningPlanFor, getLearningPlanFor, completeLearningItemFor } from './interview-learning.ts';
@@ -573,36 +573,17 @@ export class InterviewService {
     // Check the same durable fence before any audio leaves the process.  This
     // closes delete-wins; dispatch-wins provider retention receipts remain a
     // separate release blocker until voice uses the durable egress outbox.
-    let issuedQuestionId: string | undefined;
-    await this.db.asPrincipal(owner, async (c) => {
-      await this.guardInterviewPrivacy(c, id);
-      // CONSENT-MIN(#69):语音片段送 ASR 前须有 voice_capture 同意记录(复用 consent_record 表;
-      // byte 同形 resume.service.ts:95 同意门先例)。序钉:隐私围栏(410)先判,同意门(403)只在其后。
-      // 同一条读取带出当前 issued 题，避免转写期间换题后把原文写到另一题。失败路径仍是这一条 SELECT，不写库。
-      const consent = await c.query<Record<string, string | null>>(
-        `SELECT (
-           SELECT q.question_id FROM interview_question q
-            WHERE q.interview_id=$1 AND q.status='issued'
-            LIMIT 1
-         ) AS question_id
-           FROM consent_record
-          WHERE purpose='voice_capture'
-          LIMIT 1`,
-        [id],
-      );
-      if (consent.rowCount === 0) throw new HttpException({ error: 'consent_required', purpose: 'voice_capture' }, HttpStatus.FORBIDDEN);
-      const questionId = consent.rows[0]?.['question_id'];
-      if (typeof questionId === 'string' && questionId.length > 0) issuedQuestionId = questionId;
-    });
-    const result = await transcribeAnswer(this.asr, dto, options);
-    if (issuedQuestionId) {
-      const questionId = issuedQuestionId;
-      await this.db.asPrincipal(owner, async (c) => {
-        await this.guardInterviewPrivacy(c, id);
-        await rememberIssuedQuestionTranscript(c, owner, id, questionId, result.text);
-      });
-    }
-    return result;
+    // CONSENT-MIN(#69):语音片段送 ASR 前须有 voice_capture 同意记录。序钉:隐私围栏(410)先判,同意门(403)只在其后。
+    // 失败路径仍只读，不写库。成功且当时仍有发出的题时，原文记到那道题上。
+    return transcribeForIssuedQuestion(
+      this.db,
+      this.asr,
+      owner,
+      id,
+      dto,
+      options,
+      (c, interviewId) => this.guardInterviewPrivacy(c, interviewId),
+    );
   }
 
   /** TTS:把 AI 题/追问合成语音(qwen-tts),供单人语音模式播报。未配置/失败 → 降级(前端回落文字读题)。 */

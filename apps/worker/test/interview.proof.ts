@@ -15,7 +15,7 @@ import {
   reserveEntitlement, transitionResume, completeIngestion, answerHash, supplyCandidateProfileRoute,
   submitInterviewAnswer, createScoreRequestForSubmission, publishRubricAndIssueContract,
   claimScoreRequest, SCORING_ISSUE_PRIVACY_EPOCH, persistInterviewQuestion,
-  rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload,
+  loadTranscribedAnswerJobPayload, assertInterviewPrivacyActive,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
@@ -25,7 +25,7 @@ import { biasByPastWeakness } from '../src/adaptive-interview-service.ts';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { reportGenerator } from '../src/interview-service.ts';
 import { writeScoreCardAfterProjection } from '../src/score-writer.ts';
-import { transcribeAnswer } from '../../api/src/modules/interview/interview-voice.ts';
+import { transcribeForIssuedQuestion } from '../../api/src/modules/interview/interview-voice.ts';
 
 const pool = createPool();
 let failures = 0;
@@ -93,6 +93,15 @@ function connectWithScoreSqlSpy(calls: ScoreSqlCall[]) {
     }) as typeof client.release;
     return client;
   };
+}
+
+async function guardProofInterview(
+  c: { query: (sql: string, params?: unknown[]) => Promise<{ rowCount?: number | null }> },
+  id: string,
+) {
+  const owned = await c.query('SELECT 1 FROM interview WHERE id=$1', [id]);
+  if ((owned.rowCount ?? 0) === 0) throw new Error('not_found_or_forbidden');
+  await assertInterviewPrivacyActive(c as never, id);
 }
 
 async function writeWithScoreSql(query: Parameters<typeof writeScoreCardAfterProjection>[1]) {
@@ -785,15 +794,29 @@ async function main() {
   }));
   const audio = Buffer.from([1, 2, 3]).toString('base64');
   const capture = { mode: 'single_local_microphone' as const, consent: true as const, policyVersion: VOICE_CAPTURE_POLICY_VERSION };
-  const result = await transcribeAnswer({ transcribe: async () => transcript }, {
-    audioBase64: audio, mimeType: 'audio/webm', capture,
-  });
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ($1,$2,'voice_capture','v1')",
+    [randomUUID(), OWNER],
+  ));
+  const result = await transcribeForIssuedQuestion(
+    { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn) },
+    { transcribe: async () => transcript },
+    OWNER,
+    txInterview,
+    { audioBase64: audio, mimeType: 'audio/webm', capture },
+    undefined,
+    guardProofInterview,
+  );
   A('转写成功只返回文本和采集声明',
     result.text === transcript
     && Object.keys(result).sort().join(',') === 'capture,text'
     && result.capture.speakerAttribution === 'not_diarized'
     && result.capture.wordTimestamps === 'not_available');
-  await asPrincipal(pool, OWNER, (c) => rememberIssuedQuestionTranscript(c, OWNER, txInterview, txQuestion, result.text));
+  const storedByTranscribe = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string | null>>(
+    'SELECT asr_transcript FROM interview_question WHERE interview_id=$1 AND question_id=$2',
+    [txInterview, txQuestion],
+  ));
+  A('已上线转写把原文记在发出的题上', storedByTranscribe.rows[0]?.['asr_transcript'] === transcript);
   const submitted = transcript.trim();
   const txPayload = await asPrincipal(pool, OWNER, (c) => loadTranscribedAnswerJobPayload(c, OWNER, txInterview, {
     questionId: txQuestion, stateVersion: 1, answerId: 'ans-tx-ok', answerHash: answerHash(submitted), turn: 0, answer: submitted,
@@ -883,9 +906,15 @@ async function main() {
   }));
   let thrown: unknown;
   try {
-    await transcribeAnswer({ transcribe: async () => { throw new Error('asr_timeout'); } }, {
-      audioBase64: audio, mimeType: 'audio/webm', capture,
-    });
+    await transcribeForIssuedQuestion(
+      { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn) },
+      { transcribe: async () => { throw new Error('asr_timeout'); } },
+      OWNER,
+      throwInterview,
+      { audioBase64: audio, mimeType: 'audio/webm', capture },
+      undefined,
+      guardProofInterview,
+    );
   } catch (error) {
     thrown = error;
   }

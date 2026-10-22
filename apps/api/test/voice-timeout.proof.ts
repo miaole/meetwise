@@ -134,6 +134,37 @@ async function main() {
   await forwardingService.speak('candidate-a', 'interview-a', { text: '停止' }, { signal: serviceAbort.signal });
   assert('应用服务不吞掉取消信号，会把它传给 TTS 适配器', serviceSignal === serviceAbort.signal);
 
+  const transcript = '  我会用 Redis 计数器做限流  ';
+  const writes: Array<{ sql: string; params: unknown[] }> = [];
+  const storingService = new InterviewService(
+    { asPrincipal: async (_principal: string, fn: (c: { query: (sql: string, params?: unknown[]) => Promise<unknown> }) => unknown) => fn({
+      query: async (sql: string, params?: unknown[]) => {
+        writes.push({ sql, params: params ?? [] });
+        if (sql.includes('consent_record')) {
+          const issued: Record<string, string> = {};
+          issued['question_id'] = 'q-issued';
+          return { rowCount: 1, rows: [issued] };
+        }
+        return { rowCount: 1, rows: [] };
+      },
+    }) } as never,
+    { allow: () => true } as never,
+    { transcribe: async () => transcript },
+    { synthesize: async () => new Uint8Array() },
+    { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
+  );
+  const stored = await storingService.transcribe('candidate-a', 'interview-a', {
+    audioBase64: Buffer.from([1, 2, 3]).toString('base64'),
+    mimeType: 'audio/webm',
+    capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' },
+  });
+  const remember = writes.find((call) => call.sql.includes('SET asr_transcript=$4'));
+  assert('只返回文本时，转写服务把原文记到当时发出的题上',
+    stored.text === transcript
+    && Object.keys(stored).sort().join(',') === 'capture,text'
+    && remember?.params[2] === 'q-issued'
+    && remember?.params[3] === transcript);
+
   console.log(`\n${failures === 0 ? '✓ 语音超时 HTTP 合同全部通过' : `✗ ${failures} 个失败`}`);
   process.exit(failures === 0 ? 0 : 1);
 }
