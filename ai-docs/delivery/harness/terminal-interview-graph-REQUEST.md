@@ -2,7 +2,7 @@ executed:awaiting_post_prove_dual
 
 # 终态面试仍会开图
 
-基线 `7cbc4209fe8e972c91456a29f89c59fdb1700862`。分支 `line/terminal-interview-graph-draft`。工作树 `/Users/miaole/.zcode/workspace/default/meetwise-termgraph`。这一步只新增这份说明，不改产品代码。行号是在这棵树上打开文件看到的。
+基线 `7cbc4209fe8e972c91456a29f89c59fdb1700862`。分支 `line/terminal-interview-graph-draft`。工作树 meetwise-termgraph。这一步只新增这份说明，不改产品代码。行号是在这棵树上打开文件看到的。
 
 ## §0 锚
 
@@ -133,3 +133,5 @@ executed:awaiting_post_prove_dual
 - apps/worker/test/graph-fence-write.proof.ts
 
 三处状态都已是 executed:awaiting_post_prove_dual。四条命令的退出码待跑完再补。
+
+开头工作树原写了本机用户目录，文档检查会拒绝。已改成目录名 meetwise-termgraph。§0 到 §8 的锚点没有改。
