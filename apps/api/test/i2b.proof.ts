@@ -376,11 +376,11 @@ async function main() {
 
   // 撤权后这场不再返回维度。两场都是新申请，避免改动前面的计数。同意在证明末尾已撤回，这里重新记下。
   await privacy.consent(CAND, 'b_qualitative_share');
-  // 同一候选人前面三次开始仍留着排队行，深度已经到上限。再开始会被拒绝。只把该候选人的排队行标成已完成。
-  await pool!.query(
+  // 同一候选人前面三次开始仍留着排队行，深度已经到上限。再开始会被拒绝。以该候选人身份把这些排队行标成已完成。
+  await asOwner(CAND, (c) => c.query(
     "UPDATE interview_job SET status='done', lease_owner=NULL WHERE owner_user_id=$1 AND status='queued'",
     [CAND],
-  );
+  ));
   const appFenced = await seedApplication(REC);
   const appKept = await seedApplication(REC);
   const ivFenced = (await applications.start(CAND, appFenced, { resumeId: RESUME } as any) as { interviewId: string }).interviewId;
