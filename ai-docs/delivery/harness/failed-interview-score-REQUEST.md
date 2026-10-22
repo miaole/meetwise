@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 失败或放弃的面试仍返回可练习分数
 
@@ -111,7 +111,37 @@ lint 警告上限保持：根 5242、api 1423、domain 115、ai-runtime 628、wo
 
 ## §8
 
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
 
 这一步只新增这份说明，不改产品代码。
+
+## §9-EXEC
+
+产品改动已在 `13ea7c4ac2ec5c97176b5e2bd79d518d06461414`。失败或放弃时，转写和评估成功不再带上数字，报告页没有有限数字就不画维度条和回合分。这两种状态也不再新写可练习卡。已有的卡不改写、不删除。上面 §0 到 §8 除三处状态外没有改写。
+
+改过的文件：
+
+- apps/api/src/modules/interview/interview-assessment.ts
+- apps/api/src/modules/interview/interview-report.ts
+- apps/api/test/validate.ts
+- apps/web/app/report/[id]/page.tsx
+- apps/worker/src/score-writer.ts
+- apps/worker/test/interview.proof.ts
+
+三处状态都已是 executed:awaiting_post_prove_dual。五条命令的退出码待跑完再补。
+
+## §9-EXEC
+
+产品改动已在 `13ea7c4ac2ec5c97176b5e2bd79d518d06461414`。失败或放弃时，转写和评估成功不再带上数字，报告页没有有限数字就不画维度条和回合分。这两种状态也不再新写可练习卡。已有的卡不改写、不删除。上面 §0 到 §8 除三处状态外没有改写。
+
+改过的文件：
+
+- apps/api/src/modules/interview/interview-assessment.ts
+- apps/api/src/modules/interview/interview-report.ts
+- apps/api/test/validate.ts
+- apps/web/app/report/[id]/page.tsx
+- apps/worker/src/score-writer.ts
+- apps/worker/test/interview.proof.ts
+
+三处状态都已是 executed:awaiting_post_prove_dual。五条命令的退出码待跑完再补。
