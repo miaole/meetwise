@@ -393,6 +393,7 @@ async function main() {
   await asOwner(CAND, (c) => completeInterviewAndConfirm(c, CAND, ivFenced));
   await asOwner(CAND, (c) => completeInterviewAndConfirm(c, CAND, ivKept));
 
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- 列名与函数返回表一致，不是新的代码标识符
   const dimKey = (rows: Array<{ competency: string | null; strong_count: unknown; mid_count: unknown; weak_count: unknown; insufficient_count: unknown }>) =>
     JSON.stringify(rows.filter((r) => r.competency != null).map((r) => ({
       competency: r.competency,
