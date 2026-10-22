@@ -191,6 +191,88 @@ async function validate() {
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin) VALUES ('userA','ua@x.com','scrypt$x$y',false),('adminU','admin@x.com','scrypt$a$b',true),('victimU','v@x.com','scrypt$v$w',false)");
   await db.pool.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('o1','userB','pack_10',9900,10,'paid')");
   await db.pool.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('n1','userA','report_ready','{\"overall\":76}'),('n2','userA','report_ready','{}')");
+  // failed / abandoned / waiting_user：各自独立 id 与卡。不改 ASMT、EVDEL 的行，也不动 80/40/60。
+  const seedHeldScore = async (spec: {
+    id: string; status: 'failed' | 'abandoned' | 'waiting_user';
+    cardTotal: number; eventScore: number; overall: number; dimensionScore: number;
+    sub: string; art: string; contract: string; req: string; card: string; answerId: string;
+  }) => {
+    const owner = 'failscoreUser';
+    const answerHash = createHash('sha256').update(`${spec.id}:answer`).digest('hex');
+    const hmac = createHash('sha256').update(`${spec.id}:hmac`).digest('hex');
+    const client = await db.pool.connect();
+    try {
+      await client.query("SELECT set_config('app.principal_user', $1, false)", [owner]);
+      await client.query(
+        `INSERT INTO interview(id,owner_user_id,status,questions) VALUES ($1,$2,$3,$4::jsonb)`,
+        [spec.id, owner, spec.status, JSON.stringify(['请说明限流取舍'])],
+      );
+      await client.query(
+        `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,status,answer_id,answer_hash)
+         VALUES ($1,$2,'q-v1-t0-c0',1,0,'请说明限流取舍','限流','answered',$3,$4)`,
+        [owner, spec.id, spec.answerId, answerHash],
+      );
+      await client.query(
+        `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ($1,$2,1,'answer_evaluated',$3::jsonb)`,
+        [owner, spec.id, JSON.stringify({
+          questionId: 'q-v1-t0-c0', stateVersion: 1, answerId: spec.answerId, answerHash,
+          turn: 0, competency: '限流', score: spec.eventScore, outcome: 'answered',
+          question: '请说明限流取舍', evidence: ['answer_quality'],
+        })],
+      );
+      await client.query(
+        `INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',1,$4,$5,1)`,
+        [spec.sub, owner, spec.id, `${spec.id}-sub`, hmac],
+      );
+      await client.query(
+        `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',1,$4,decode('00','hex'),$5,1,1,1)`,
+        [spec.art, owner, spec.id, spec.sub, hmac],
+      );
+      await client.query(
+        `INSERT INTO issued_question_contract(id,owner_user_id,interview_id,question_id,state_version,turn,question_content_hash,rubric_id,difficulty,form,language,route,prompt_policy_version,measurement_version,privacy_epoch,status)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',1,0,$4,$5,3,'mock','zh','adaptive','prompt-v1','measure-v1',1,'issued')`,
+        [spec.contract, owner, spec.id, hmac, asmtRubric1],
+      );
+      await client.query(
+        `INSERT INTO score_request(id,owner_user_id,interview_id,issued_contract_id,submission_id,artifact_id,answer_version,answer_body_hmac,privacy_epoch,operation_policy_version,idempotency_key,status)
+         VALUES ($1,$2,$3,$4,$5,$6,1,$7,1,'op-v1',$8,'scored')`,
+        [spec.req, owner, spec.id, spec.contract, spec.sub, spec.art, hmac, `${spec.id}-req`],
+      );
+      await client.query(
+        `INSERT INTO score_card(id,owner_user_id,interview_id,question_id,answer_id,submission_id,score_request_id,issued_contract_id,rubric_id,rubric_version,measurement_version,deterministic_total,coverage,status)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',$4,$5,$6,$7,$8,1,'measure-v1',$9,1.0,'practice_eligible')`,
+        [spec.card, owner, spec.id, spec.art, spec.sub, spec.req, spec.contract, asmtRubric1, spec.cardTotal],
+      );
+      await client.query(
+        `INSERT INTO assessment_report(id,owner_user_id,interview_id,status,dimensions,overall)
+         VALUES ($1,$2,$3,'ready',$4::jsonb,$5)`,
+        [`ar-${spec.id}`, owner, spec.id, JSON.stringify([{ dimension: '限流', score: spec.dimensionScore, gap: spec.dimensionScore < 60, evidence: ['answer_quality'] }]), spec.overall],
+      );
+    } finally {
+      await client.query("SELECT set_config('app.principal_user', '', false)").catch(() => undefined);
+      client.release();
+    }
+  };
+  await seedHeldScore({
+    id: 'FAILSCORE', status: 'failed', cardTotal: 88, eventScore: 77, overall: 91, dimensionScore: 88,
+    sub: '12121212-1212-4121-8121-121212121211', art: '12121212-1212-4121-8121-121212121212',
+    contract: '12121212-1212-4121-8121-121212121213', req: '12121212-1212-4121-8121-121212121214',
+    card: '12121212-1212-4121-8121-121212121215', answerId: '12121212-1212-4121-8121-121212121216',
+  });
+  await seedHeldScore({
+    id: 'ABNDSCORE', status: 'abandoned', cardTotal: 73, eventScore: 55, overall: 66, dimensionScore: 73,
+    sub: '13131313-1313-4131-8131-131313131311', art: '13131313-1313-4131-8131-131313131312',
+    contract: '13131313-1313-4131-8131-131313131313', req: '13131313-1313-4131-8131-131313131314',
+    card: '13131313-1313-4131-8131-131313131315', answerId: '13131313-1313-4131-8131-131313131316',
+  });
+  await seedHeldScore({
+    id: 'WAITSCORE', status: 'waiting_user', cardTotal: 64, eventScore: 12, overall: 64, dimensionScore: 64,
+    sub: '14141414-1414-4141-8141-141414141411', art: '14141414-1414-4141-8141-141414141412',
+    contract: '14141414-1414-4141-8141-141414141413', req: '14141414-1414-4141-8141-141414141414',
+    card: '14141414-1414-4141-8141-141414141415', answerId: '14141414-1414-4141-8141-141414141416',
+  });
 
   await app.listen(0, '127.0.0.1');
   const base = (await app.getUrl()).replace('[::1]', '127.0.0.1');
@@ -464,6 +546,48 @@ async function validate() {
   A('生成评估 → 200 + overall=60(80/40 均值)', r.status === 200 && r.body.overall === 60);
   A('低分维度标记 gap(分布式锁 40<60)', r.body.dimensions.some((d: any) => d.gap === true) && r.body.weaknesses.length === 1);
   r = await req('GET', '/interview/ASMT/assessment', { 'x-user-id': 'userA' }); A('取评估 → ready', r.status === 200 && r.body.status === 'ready' && r.body.overall === 60);
+  const asmtReadHeaders: Record<string, string> = {};
+  asmtReadHeaders['x-user-id'] = 'userA';
+  const heldScoreHeaders: Record<string, string> = {};
+  heldScoreHeaders['x-user-id'] = 'failscoreUser';
+  const readScore = (row: unknown): unknown => (
+    row && typeof row === 'object' ? (row as { score?: unknown }).score : undefined
+  );
+  r = await req('GET', '/interview/ASMT/transcript', asmtReadHeaders);
+  A('ASMT 转写两回合仍是 80 和 40', r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 2 && r.body.turns[0].score === 80 && r.body.turns[1].score === 40);
+  const noNumericDimension = (dims: unknown) => !Array.isArray(dims) || dims.every((d) => !d || typeof d !== 'object' || typeof (d as { score?: unknown }).score !== 'number');
+  for (const spec of [
+    { id: 'FAILSCORE', cardTotal: 88, eventScore: 77, overall: 91 },
+    { id: 'ABNDSCORE', cardTotal: 73, eventScore: 55, overall: 66 },
+  ]) {
+    r = await req('GET', `/interview/${spec.id}/transcript`, heldScoreHeaders);
+    const transcriptRaw = JSON.stringify(r.body);
+    A(`${spec.id} 转写回合分是 null，不是 0，也不是卡上总分或事件分`,
+      r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 1
+      && r.body.turns.every((turn: unknown) => {
+        const score = readScore(turn);
+        return score === null && score !== 0 && score !== spec.cardTotal && score !== spec.eventScore;
+      })
+      && r.body.turns[0].question === '请说明限流取舍' && r.body.turns[0].outcome === 'answered'
+      && Array.isArray(r.body.turns[0].evidence) && r.body.turns[0].evidence[0] === 'answer_quality'
+      && !('deterministicTotal' in r.body) && !transcriptRaw.includes(String(spec.cardTotal)) && !transcriptRaw.includes(String(spec.eventScore)));
+    r = await req('GET', `/interview/${spec.id}/assessment`, heldScoreHeaders);
+    const assessmentRaw = JSON.stringify(r.body);
+    A(`${spec.id} 评估成功但没有数字 overall，也没有带数字 score 的维度`,
+      r.status === 200 && r.body.status === 'ready' && r.body.error !== 'no_scorable_cards'
+      && typeof r.body.overall !== 'number' && r.body.overall !== spec.overall && r.body.overall !== 0
+      && noNumericDimension(r.body.dimensions)
+      && !assessmentRaw.includes(String(spec.overall)) && !assessmentRaw.includes(String(spec.cardTotal)));
+    const heldCards = await db.pool.query(
+      "SELECT status, count(*)::int AS n FROM score_card WHERE interview_id=$1 GROUP BY status", [spec.id]);
+    A(`${spec.id} 卡行还在且仍是 practice_eligible`,
+      heldCards.rows.length === 1 && heldCards.rows[0].status === 'practice_eligible' && heldCards.rows[0].n === 1);
+  }
+  r = await req('GET', '/interview/WAITSCORE/transcript', heldScoreHeaders);
+  A('waiting_user 转写仍返回卡上的数字', r.status === 200 && r.body.turns?.length === 1 && r.body.turns[0].score === 64 && r.body.turns[0].score !== 12);
+  r = await req('GET', '/interview/WAITSCORE/assessment', heldScoreHeaders);
+  A('waiting_user 评估仍返回数字 overall 和维度分',
+    r.status === 200 && r.body.overall === 64 && Array.isArray(r.body.dimensions) && r.body.dimensions.some((d: unknown) => readScore(d) === 64));
   r = await req('GET', '/interview/ASMT/assessment', { 'x-user-id': 'userB' }); A('userB 越权取评估 → 404(RLS)', r.status === 404);
 
   // 学习计划:评估差距 → 学习项
