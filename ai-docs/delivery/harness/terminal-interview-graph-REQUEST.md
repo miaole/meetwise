@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 终态面试仍会开图
 
@@ -118,7 +118,18 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
 
 这一步只新增这份说明，不改产品代码。
+
+## §9-EXEC
+
+产品改动已在 `254796b12a375cb9c7c49628fb746bd93026ab5c`。已完成或已放弃时不插入图行，已有活图也不再取得。上面 §0 到 §8 除三处状态外没有改写。
+
+改过的文件：
+
+- packages/db/src/interview/interview-graph-lease.ts
+- apps/worker/test/graph-fence-write.proof.ts
+
+三处状态都已是 executed:awaiting_post_prove_dual。四条命令的退出码待跑完再补。
