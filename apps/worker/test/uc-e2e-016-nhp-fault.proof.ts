@@ -45,10 +45,10 @@ import {
   MAX_QUIZ_JOB_ATTEMPTS, MAX_DIAGNOSIS_JOB_ATTEMPTS,
   createResumeWithBlob, transitionResume, completeIngestion,
 } from '@meetwise/db';
-import { scriptedModelClient } from '@meetwise/ai-runtime';
+import { getMetrics, scriptedModelClient } from '@meetwise/ai-runtime';
 import { ingestResume } from '@meetwise/domain';
-import { quizDispatchTick, type QuizConsumerDeps } from '../src/quiz-consumer.ts';
-import { diagnosisDispatchTick, type DiagnosisConsumerDeps } from '../src/diagnosis-consumer.ts';
+import { quizDispatchTick, drainQuizJobOnce, type QuizConsumerDeps } from '../src/quiz-consumer.ts';
+import { diagnosisDispatchTick, drainDiagnosisJobOnce, type DiagnosisConsumerDeps } from '../src/diagnosis-consumer.ts';
 
 // ── frozen params（harness 登记 · 冻结入 receipt）────────────────────────────────
 const BUCKET_TTL_DAYS = 300;
@@ -276,6 +276,94 @@ async function main() {
   const settledCount = Number((await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id=$1 AND status='confirmed'", [OWNER]))).rows[0].n);
   const releasedCount = Number((await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id=$1 AND status='released'", [OWNER]))).rows[0].n);
   A(`N1 消费台账：confirmed=${settledCount}（恰 6）· released=${releasedCount}（恰 3 失败流 · 各恰一次释放）`, settledCount === 6 && releasedCount === 3);
+
+  // ══ PC ready 再领取：未达上限的过期 running 经生产清扫后再领，不报不可用 ══
+  section('PC ready 再领取：父行已 ready 且消耗已确认 → 清扫后再领，不发不可用、不退确认、作业完成');
+  const failedTotal = (queue: string) => {
+    const matched = getMetrics().render().match(new RegExp(`worker_jobs_failed_total\\{queue="${queue}"\\} (\\d+(?:\\.\\d+)?)`));
+    return matched ? Number(matched[1]) : 0;
+  };
+  const consumptionStatus = (key: string) => asPrincipal(pool, OWNER, (c) => c.query(
+    'SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, key],
+  )).then((r) => r.rows[0]?.status as string | undefined);
+  const sameJson = (a: unknown, b: unknown) => JSON.stringify(a) === JSON.stringify(b);
+  const throwingComplete = () => {
+    let calls = 0;
+    return {
+      calls: () => calls,
+      model: {
+        async complete(): Promise<never> {
+          calls += 1;
+          throw new Error('ready_reclaim_complete_forbidden');
+        },
+      },
+    };
+  };
+
+  const quizFailedBefore = failedTotal('quiz_job');
+  const quizAvailBefore = await avail();
+  const quizConsBefore = await consumptionStatus(QID('PC'));
+  const quizUnavailBefore = await evCount(QID('PC'), 'quiz_unavailable');
+  const quizSnapshot = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT questions, report FROM resume_quiz WHERE id=$1', [QID('PC')]))).rows[0];
+  const quizAttemptsBefore = Number((await quizJob(QID('PC'))).attempts);
+  A('PC ready 再领前：父行 ready、消耗 confirmed、不可用 0、attempts 小于 5、失败计数序列已有',
+    (await quizObj(QID('PC'))) === 'ready' && quizConsBefore === 'confirmed' && quizUnavailBefore === 0
+    && quizAttemptsBefore >= 1 && quizAttemptsBefore < 5 && quizFailedBefore >= 1
+    && Array.isArray(quizSnapshot?.questions) && quizSnapshot.questions.length === 2);
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `UPDATE quiz_job SET status='running', lease_owner=$2, lease_expires_at=now()-interval '5 minutes' WHERE quiz_id=$1 AND owner_user_id=$3`,
+    [QID('PC'), 'expired-not-nhp16-ready-quiz', OWNER],
+  ));
+  A('PC ready 再领：只改作业行，attempts 仍小于 5', Number((await quizJob(QID('PC'))).attempts) === quizAttemptsBefore);
+  const quizSweep = await asPrincipal(pool, OWNER, (c) => sweepStuckQuizJobs(c, OWNER));
+  A('PC ready 再领：sweepStuckQuizJobs requeued=1 failed=0', quizSweep.requeued === 1 && quizSweep.failed === 0);
+  A('PC ready 再领：清扫后仍无 quiz_unavailable', (await evCount(QID('PC'), 'quiz_unavailable')) === 0);
+  const quizModel = throwingComplete();
+  const quizDrain = await drainQuizJobOnce({ pool, model: quizModel.model, leaseOwner: 'nhp16-ready-quiz' }, OWNER);
+  const quizSnapshotAfter = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT questions, report FROM resume_quiz WHERE id=$1', [QID('PC')]))).rows[0];
+  A('PC ready 再领：drainQuizJobOnce 返回 generate', quizDrain === 'generate');
+  A('PC ready 再领：quiz_unavailable 仍为 0', (await evCount(QID('PC'), 'quiz_unavailable')) === 0);
+  A('PC ready 再领：父行仍 ready，题目与报告不变',
+    (await quizObj(QID('PC'))) === 'ready'
+    && sameJson(quizSnapshotAfter?.questions, quizSnapshot?.questions)
+    && sameJson(quizSnapshotAfter?.report, quizSnapshot?.report));
+  A('PC ready 再领：消耗仍 confirmed，可用额度不变',
+    (await consumptionStatus(QID('PC'))) === 'confirmed' && eq(await avail(), quizAvailBefore));
+  A('PC ready 再领：quiz_job 失败计数不增加', failedTotal('quiz_job') === quizFailedBefore);
+  A('PC ready 再领：作业 done 而非 failed', (await quizJob(QID('PC'))).status === 'done');
+  A('PC ready 再领：模型 complete 未被调用', quizModel.calls() === 0);
+
+  const diagFailedBefore = failedTotal('diagnosis_job');
+  const diagAvailBefore = await avail();
+  const diagConsBefore = await consumptionStatus(DID('PC'));
+  const diagUnavailBefore = await evCount(DID('PC'), 'diagnosis_unavailable');
+  const diagSnapshot = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT report FROM resume_diagnosis WHERE id=$1', [DID('PC')]))).rows[0];
+  const diagAttemptsBefore = Number((await diagJob(DID('PC'))).attempts);
+  A('PC ready 再领前：诊断父行 ready、消耗 confirmed、不可用 0、attempts 小于 5、失败计数序列已有',
+    (await diagObj(DID('PC'))) === 'ready' && diagConsBefore === 'confirmed' && diagUnavailBefore === 0
+    && diagAttemptsBefore >= 1 && diagAttemptsBefore < 5 && diagFailedBefore >= 1
+    && diagSnapshot?.report != null);
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `UPDATE diagnosis_job SET status='running', lease_owner=$2, lease_expires_at=now()-interval '5 minutes' WHERE diagnosis_id=$1 AND owner_user_id=$3`,
+    [DID('PC'), 'expired-not-nhp16-ready-diag', OWNER],
+  ));
+  A('PC ready 再领：诊断只改作业行，attempts 仍小于 5', Number((await diagJob(DID('PC'))).attempts) === diagAttemptsBefore);
+  const diagSweep = await asPrincipal(pool, OWNER, (c) => sweepStuckDiagnosisJobs(c, OWNER));
+  A('PC ready 再领：sweepStuckDiagnosisJobs requeued=1 failed=0', diagSweep.requeued === 1 && diagSweep.failed === 0);
+  A('PC ready 再领：清扫后仍无 diagnosis_unavailable', (await evCount(DID('PC'), 'diagnosis_unavailable')) === 0);
+  const diagModel = throwingComplete();
+  const diagDrain = await drainDiagnosisJobOnce({ pool, model: diagModel.model, leaseOwner: 'nhp16-ready-diag' }, OWNER);
+  const diagSnapshotAfter = (await asPrincipal(pool, OWNER, (c) => c.query('SELECT report FROM resume_diagnosis WHERE id=$1', [DID('PC')]))).rows[0];
+  A('PC ready 再领：drainDiagnosisJobOnce 返回 generate', diagDrain === 'generate');
+  A('PC ready 再领：diagnosis_unavailable 仍为 0', (await evCount(DID('PC'), 'diagnosis_unavailable')) === 0);
+  A('PC ready 再领：诊断父行仍 ready，报告不变',
+    (await diagObj(DID('PC'))) === 'ready' && sameJson(diagSnapshotAfter?.report, diagSnapshot?.report));
+  A('PC ready 再领：诊断消耗仍 confirmed，可用额度不变',
+    (await consumptionStatus(DID('PC'))) === 'confirmed' && eq(await avail(), diagAvailBefore));
+  A('PC ready 再领：diagnosis_job 失败计数不增加', failedTotal('diagnosis_job') === diagFailedBefore);
+  A('PC ready 再领：诊断作业 done 而非 failed', (await diagJob(DID('PC'))).status === 'done');
+  A('PC ready 再领：诊断模型 complete 未被调用', diagModel.calls() === 0);
 
   // ══ F6 · 收据（.tmp · implementer pre-commit runs · not evidence of record）═══
   section('F6 · 收据落盘');

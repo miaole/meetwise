@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 已就绪的押题和诊断不再报不可用
 
@@ -110,6 +110,19 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+## §9-EXEC
+
+三处状态改为 `executed:awaiting_post_prove_dual`。
+
+`drainQuizJobOnce` 与 `drainDiagnosisJobOnce`：不是遗留简历引用时，先读父行。父行恰好是 `ready` 时调用 `markQuizJobDone` 或 `markDiagnosisJobDone`，不先标记失败。返回 true 时外层返回 `generate`。返回 false 时不发事件、不释放、不增加失败计数、不改父行，外层返回 `failed`。遗留引用仍清 payload、发事件并释放。父行不是 `ready` 时失败路径不变，父行更新仍带 `NOT IN ('ready')`。
+
+证明加在 `apps/worker/test/uc-e2e-016-nhp-fault.proof.ts` 台账断言之后、收据之前。PC 押题和诊断已由生产调度到 `ready` 且消耗已确认，再放回过期 `running`，然后调用 `sweepStuckQuizJobs`、`sweepStuckDiagnosisJobs`、`drainQuizJobOnce`、`drainDiagnosisJobOnce`。断言没有不可用事件，父行仍是 `ready`，消耗仍是确认，失败计数不增加，作业变成完成，模型 `complete` 未被调用。
+
+1. `pnpm uc016:nhp-fault:prove` 退出码 0。
+2. `node scripts/ai-docs/check-docs.mjs` 退出码 0，扫描 2317，不超过 2320。
+3. `pnpm turbo typecheck --force` 退出码 0，8 个任务成功。
+4. `pnpm turbo lint` 退出码 0，0 errors。警告为根 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265、config 0、db-mysql 0。未提高上限。
