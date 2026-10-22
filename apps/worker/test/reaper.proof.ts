@@ -7,12 +7,13 @@
  *   ⑤ 僵尸兄弟守卫:面试已有 failed job → 其后续 seq job 不被 claim(不乱序跑已死面试)；
  *   ⑥ 已结算面试被 reap → **不发假终态、不重复退款**(release 返 already_confirmed → 跳过事件,已扣费不倒退)；
  *   ⑦ 心跳调度器(startHeartbeat):renew 返 false 自停、stop() 后不再续租、stop() 幂等。
+ *   心跳节之后：面试已经 failed 时，过期 running、已排队、以及写回都改成 failed 且 last_error=abandoned。
  * 终态事件 → degraded 视图归约由 apps/web web:prove 覆盖(arch 禁 apps 互 import)。测的全是生产件。
  *   pnpm reaper:prove   (需 pnpm db:up;跑前 pkill -f 'esm-register.*main.ts')
  */
 import {
   assertIsolatedTestTarget, createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
-  claimNextInterviewJob, renewInterviewJobLease, sweepStuckInterviewJobs, MAX_INTERVIEW_JOB_ATTEMPTS,
+  claimNextInterviewJob, renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS,
   sweepStuckQuizJobs, MAX_QUIZ_JOB_ATTEMPTS,
   createResumeWithBlob, completeIngestion, transitionResume, enqueueInterviewJob, enqueueQuizJob,
 } from '@meetwise/db';
@@ -156,6 +157,77 @@ async function main() {
   let threw = false;
   try { await hb.stop(); } catch { threw = true; }
   A('stop() 幂等(重复调用不抛)', threw === false);
+
+  const stamp = Date.now();
+  const failedRunningId = `rff-${stamp}`;
+  const createdRunningId = `rfc-${stamp}`;
+  const queuedFailedId = `rfq-${stamp}`;
+  const requeueFailedId = `rfr-${stamp}`;
+  const interviewJob = (interviewId: string) =>
+    asPrincipal(pool, OWNER, (c) => c.query<{
+      status: string; lastError: string | null; attempts: number;
+      leaseOwner: string | null; leaseExpiresAt: Date | null;
+    }>(
+      `SELECT status, last_error AS "lastError", attempts, lease_owner AS "leaseOwner", lease_expires_at AS "leaseExpiresAt"
+         FROM interview_job WHERE interview_id=$1`,
+      [interviewId],
+    )).then((r) => {
+      const row = r.rows[0];
+      if (!row) throw new Error(`missing interview job ${interviewId}`);
+      return row;
+    });
+
+  section('过期 running：面试 failed 写成 abandoned，created 回到 queued');
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch)
+     VALUES ($1,$2,'failed',$3,$4),($5,$2,'created',$3,$4)`,
+    [failedRunningId, OWNER, resumeId, resumeEpoch, createdRunningId],
+  ));
+  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, failedRunningId, 'start', {}, 0));
+  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, createdRunningId, 'start', {}, 0));
+  await orphanInterview(failedRunningId, MAX_INTERVIEW_JOB_ATTEMPTS - 1);
+  await orphanInterview(createdRunningId, MAX_INTERVIEW_JOB_ATTEMPTS - 1);
+  await asPrincipal(pool, OWNER, (c) => sweepStuckInterviewJobs(c, OWNER));
+  const failedRunningJob = await interviewJob(failedRunningId);
+  A('过期 running 且面试 failed → 作业 failed、last_error=abandoned，不是 queued',
+    failedRunningJob.status === 'failed' && failedRunningJob.lastError === 'abandoned');
+  const createdRunningJob = await interviewJob(createdRunningId);
+  A('过期 running 且面试 created → 回到 queued，租约释放，次数不增，last_error 不是 abandoned',
+    createdRunningJob.status === 'queued' && createdRunningJob.leaseOwner === null && createdRunningJob.leaseExpiresAt === null
+    && createdRunningJob.attempts === MAX_INTERVIEW_JOB_ATTEMPTS - 1 && createdRunningJob.lastError !== 'abandoned');
+  const claimedCreated = await asPrincipal(pool, OWNER, (c) => claimNextInterviewJob(c, OWNER, 'reaper-1'));
+  A('领取到 created 那场，领不到 failed 那场',
+    claimedCreated?.interviewId === createdRunningId && claimedCreated.interviewId !== failedRunningId);
+
+  section('排队且面试 failed：扫完写成 abandoned，次数仍是 0，领不到这场');
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch)
+     VALUES ($1,$2,'failed',$3,$4)`,
+    [queuedFailedId, OWNER, resumeId, resumeEpoch],
+  ));
+  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, queuedFailedId, 'start', {}, 0));
+  const queuedBefore = await interviewJob(queuedFailedId);
+  A('入队后仍是 queued，次数仍是 0', queuedBefore.status === 'queued' && queuedBefore.attempts === 0);
+  await asPrincipal(pool, OWNER, (c) => sweepStuckInterviewJobs(c, OWNER));
+  const queuedAfter = await interviewJob(queuedFailedId);
+  A('排队且面试 failed → 扫完 failed、last_error=abandoned，次数仍是 0',
+    queuedAfter.status === 'failed' && queuedAfter.lastError === 'abandoned' && queuedAfter.attempts === 0);
+  const claimedQueued = await asPrincipal(pool, OWNER, (c) => claimNextInterviewJob(c, OWNER, 'reaper-1'));
+  A('领不到这场已失败面试上的排队作业', claimedQueued === null || claimedQueued.interviewId !== queuedFailedId);
+
+  section('写回：面试 failed 时作业改为 failed，不是 queued');
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    `INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch)
+     VALUES ($1,$2,'failed',$3,$4)`,
+    [requeueFailedId, OWNER, resumeId, resumeEpoch],
+  ));
+  await asPrincipal(pool, OWNER, (c) => enqueueInterviewJob(c, OWNER, requeueFailedId, 'start', {}, 0));
+  await orphanInterview(requeueFailedId, MAX_INTERVIEW_JOB_ATTEMPTS - 1);
+  const requeueJobId = await jobId('interview_job', 'interview_id', requeueFailedId);
+  await asPrincipal(pool, OWNER, (c) => requeueInterviewJob(c, OWNER, requeueJobId, 'dead-worker#1'));
+  const requeueAfter = await interviewJob(requeueFailedId);
+  A('写回时面试已 failed → 作业 failed、last_error=abandoned，不是 queued',
+    requeueAfter.status === 'failed' && requeueAfter.lastError === 'abandoned');
 
   console.log(`\n${failures === 0 ? '✓ Reaper(心跳防误收 + 双边界 requeue/终结 + 终态事件 + 退款 + 僵尸守卫 + 已结算不误终态)全部通过' : '✗ ' + failures + ' 项失败'}`);
   await pool.end();
