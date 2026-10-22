@@ -117,3 +117,19 @@ draft:awaiting_pre_exec_dual
 以上三处状态相同。本步只新增这一份说明，不改产品代码。前提不在基线上就停止，不在这里改作业写回。
 
 draft:awaiting_pre_exec_dual
+
+## §9-rev
+
+本节补上已有图行且面试恰好失败时的行为，不回改上文。要修的就是下面这一段今天仍会发生的事。
+
+已有图行，并且 :46 判定租约可拿时，面试 `status` 恰好是 `failed`，`packages/db/src/interview/interview-graph-lease.ts` :45-55 的更新仍会命中并返回围栏。:57-59 仍会跑回调。`apps/worker/src/interview-consumer.ts` :476 传入的回调里，:584 的 `startAdaptiveInterview` 与 :586 的 `submitAdaptiveAnswer` 因此仍会跑。
+
+对照零行分支 :31-37：面试恰好是 `failed` 时返回空，回调不跑。已有图行这条没有同样停住。这就是要修的行为。
+
+修法保持 §1.1，不另起一套。仍在别人持有租约的检查之后、更新之前，再读一次面试状态。读取仍是单独再执行 `SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2`，参数仍是本函数已有的 `interviewId` 与 `owner`。读到恰好一行且 `status` 恰好是 `failed`：不更新，不跑回调，图行的 `status` 与 `version` 保持调用前的值。其它状态，或没有面试行，仍走今天的更新。
+
+零行分支不改。`releaseInterviewGraphFence`、`renewInterviewGraphFence`、`assertInterviewGraphFence` 不改。消费者不改。`claimNextInterviewJob`、`sweepStuckInterviewJobs`、`requeueInterviewJob`、`markJobDone` 不改。
+
+执行前提保持 §1.2。执行所依据的基线里，若 `requeueInterviewJob` 在面试已经是 `failed` 时仍把作业写回排队，就停止。不要在这一步改那个函数，也不要改图租约。
+
+本节不把本步写成已经执行。不改产品代码。文首与 §8 里的三处状态保持原文，且彼此相同。
