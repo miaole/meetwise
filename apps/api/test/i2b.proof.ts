@@ -383,8 +383,8 @@ async function main() {
   ));
   const appFenced = await seedApplication(REC);
   const appKept = await seedApplication(REC);
-  const ivFenced = (await applications.start(CAND, appFenced, { resumeId: RESUME } as any) as { interviewId: string }).interviewId;
-  const ivKept = (await applications.start(CAND, appKept, { resumeId: RESUME } as any) as { interviewId: string }).interviewId;
+  const ivFenced = (await applications.start(CAND, appFenced, { resumeId: RESUME }) as { interviewId: string }).interviewId;
+  const ivKept = (await applications.start(CAND, appKept, { resumeId: RESUME }) as { interviewId: string }).interviewId;
   const rubricFenced = (await asOwner(CAND, (c) => publishQuestionRubric(c, {
     questionId: 'i2b-q-fence', questionVersion: 1, rubricVersion: 1, competency: '围栏场',
     difficulty: 3, languageScope: ['zh', 'en'], questionContentHash: nextHash(), criteria: RUBRIC_B_CRITERIA,
