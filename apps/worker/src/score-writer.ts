@@ -17,9 +17,8 @@
  * 的确定性派生（非模型自由输出）。
  *
  * 证据 span：v6 逐 criterion 引文 span（模型 quote→code-unit span→本域派生 byte span/digest）；
- * quote 只在 evaluate 期存活于内存，绝不入图 state/checkpoint。冲突/多来源裁决
- * （adjudicateScoreCard·SCOR-03）在 seed 单分项下结构性不触发（每卡恰一条证据），冲突面接线
- * 随 EXTREV-4 QBANK-CORPUS 扩项落地。
+ * quote 只在 evaluate 期存活于内存，绝不入图 state/checkpoint。只有文本、没有词级时间戳的
+ * 转写不把语音质量写成 ok，写卡时走既有裁决函数，列值为 unavailable。
  */
 import { randomUUID } from 'node:crypto';
 import {

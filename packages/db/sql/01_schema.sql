@@ -65,7 +65,6 @@ CREATE TABLE interview_question (
   status text NOT NULL DEFAULT 'issued' CHECK (status IN ('issued','queued','answered','cancelled')),
   answer_id text,
   answer_hash text,
-  asr_transcript text,
   created_at timestamptz NOT NULL DEFAULT now(),
   answered_at timestamptz,
   PRIMARY KEY (owner_user_id, interview_id, question_id),
@@ -74,26 +73,6 @@ CREATE TABLE interview_question (
 CREATE UNIQUE INDEX uq_interview_question_open
   ON interview_question(owner_user_id, interview_id)
   WHERE status IN ('issued','queued');
--- 0217：成功转写原文只在当前 issued 题上暂存。取消，或答案哈希从有值变为空时清空。
-CREATE OR REPLACE FUNCTION clear_interview_question_asr_transcript()
-RETURNS trigger
-LANGUAGE plpgsql
-SET search_path = pg_catalog, public, pg_temp
-AS $$
-BEGIN
-  NEW.asr_transcript := NULL;
-  RETURN NEW;
-END $$;
-REVOKE ALL ON FUNCTION clear_interview_question_asr_transcript() FROM PUBLIC;
-DROP TRIGGER IF EXISTS interview_question_asr_transcript_clear ON interview_question;
-CREATE TRIGGER interview_question_asr_transcript_clear
-  BEFORE UPDATE ON interview_question
-  FOR EACH ROW
-  WHEN (
-    (NEW.status = 'cancelled' AND OLD.status IS DISTINCT FROM 'cancelled')
-    OR (NEW.answer_hash IS NULL AND OLD.answer_hash IS NOT NULL)
-  )
-  EXECUTE FUNCTION clear_interview_question_asr_transcript();
 CREATE TABLE consumption_record (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   owner_user_id text NOT NULL,

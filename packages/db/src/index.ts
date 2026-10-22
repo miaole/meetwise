@@ -160,6 +160,7 @@ export {
   answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim,
   markInterviewAnswerApplied, cancelOpenInterviewQuestion,
   asrOutcomeForStoredTranscript, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload,
+  issuedAsrTraceKey, TEXT_ONLY_ASR_OUTCOME,
 } from './interview/interview-question.ts';
 export type { PersistedInterviewQuestion, AcceptedInterviewAnswer, ClaimAnswerResult } from './interview/interview-question.ts';
 

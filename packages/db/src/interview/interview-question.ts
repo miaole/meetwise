@@ -149,6 +149,13 @@ export async function cancelOpenInterviewQuestion(c: Client, owner: string, inte
 /** 与作答长度上限一致。更长的转写文本无法原样成为这次作答，不暂存。 */
 const ISSUED_TRANSCRIPT_MAX_CHARS = 8000;
 
+/** 只有文本、没有词级时间戳。写卡看到这个值时不把语音质量写成 ok。 */
+export const TEXT_ONLY_ASR_OUTCOME = 'word_timestamps_not_available';
+
+export function issuedAsrTraceKey(interviewId: string, questionId: string): string {
+  return `issued-asr|${interviewId}|${questionId}`;
+}
+
 /**
  * 已暂存的转写原文能否作为这次作答的转写结果。
  * 只接受原文本身，或客户端把首尾空白去掉后放进作答框的那一种。
@@ -164,42 +171,64 @@ export function asrOutcomeForStoredTranscript(stored: string | null | undefined,
   return undefined;
 }
 
-/** 转写成功后，把原文写到仍处于 issued 的那道题。题已换发或已占用则不写。 */
+/**
+ * 转写成功后只记下原文摘要，以及词级时间戳不可用。
+ * 不保存原文，也不把语音质量写成 ok。题已换发时仍可被随后的作答按摘要对上。
+ */
 export async function rememberIssuedQuestionTranscript(
   c: Client, owner: string, interviewId: string, questionId: string, text: string,
 ): Promise<void> {
   if (typeof questionId !== 'string' || questionId.length === 0) return;
   if (typeof text !== 'string' || text.length === 0 || text.length > ISSUED_TRANSCRIPT_MAX_CHARS) return;
   if (text.trim() === '') return;
+  const key = issuedAsrTraceKey(interviewId, questionId);
+  const output = {
+    transcriptSha256: answerHash(text),
+    trimmedSha256: answerHash(text.trim()),
+    wordTimestamps: 'not_available',
+  };
   await c.query(
-    `UPDATE interview_question SET asr_transcript=$4
-      WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND status='issued'`,
-    [owner, interviewId, questionId, text],
+    'DELETE FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [owner, key],
+  );
+  await c.query(
+    `INSERT INTO ai_invocation_trace(owner_user_id, idempotency_key, output)
+     VALUES ($1,$2,$3::jsonb)`,
+    [owner, key, JSON.stringify(output)],
   );
 }
 
 /**
- * 作答入队前取走本题暂存的转写原文。状态仍须是 issued；重放时题已 queued，读不到，也不覆盖已入队的载荷。
- * 返回的 asrOutcome 是原文（含客户端去掉的首尾空白），不是作答框里的文本。
+ * 作答入队前取走本题暂存的转写摘要。对得上原文或去掉首尾空白的作答，才标成只有文本。
+ * 对不上的作答不标，避免把打字答案当成转写成功。取走后删除暂存。
  */
 export async function loadTranscribedAnswerJobPayload(
   c: Client, owner: string, interviewId: string, body: AcceptedInterviewAnswer, requestId?: string,
 ): Promise<AcceptedInterviewAnswer & { requestId?: string }> {
-  const locked = await c.query<Record<string, string | null>>(
-    `SELECT asr_transcript FROM interview_question
-      WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND status='issued'
+  const key = issuedAsrTraceKey(interviewId, body.questionId);
+  const locked = await c.query<Record<string, unknown>>(
+    `SELECT output FROM ai_invocation_trace
+      WHERE owner_user_id=$1 AND idempotency_key=$2
       FOR UPDATE`,
-    [owner, interviewId, body.questionId],
+    [owner, key],
   );
-  const stored = locked.rows[0]?.['asr_transcript'];
-  if (typeof stored === 'string') {
+  const raw = locked.rows[0]?.['output'];
+  const stored = typeof raw === 'string' ? JSON.parse(raw) as Record<string, unknown> : raw;
+  if (stored && typeof stored === 'object') {
     await c.query(
-      `UPDATE interview_question SET asr_transcript=NULL
-        WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3 AND status='issued'`,
-      [owner, interviewId, body.questionId],
+      'DELETE FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, key],
     );
   }
-  const asrOutcome = asrOutcomeForStoredTranscript(stored, body.answer);
+  const record = stored && typeof stored === 'object' ? stored as Record<string, unknown> : undefined;
+  const stamps = record?.['wordTimestamps'];
+  const transcriptSha = record?.['transcriptSha256'];
+  const trimmedSha = record?.['trimmedSha256'];
+  const answerSha = answerHash(body.answer);
+  const asrOutcome = stamps === 'not_available'
+    && (answerSha === transcriptSha || answerSha === trimmedSha)
+    ? TEXT_ONLY_ASR_OUTCOME
+    : undefined;
   const payload: AcceptedInterviewAnswer & { requestId?: string } = {
     questionId: body.questionId,
     stateVersion: body.stateVersion,

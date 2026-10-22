@@ -16,6 +16,7 @@ import {
   submitInterviewAnswer, createScoreRequestForSubmission, publishRubricAndIssueContract,
   claimScoreRequest, SCORING_ISSUE_PRIVACY_EPOCH, persistInterviewQuestion,
   loadTranscribedAnswerJobPayload, assertInterviewPrivacyActive,
+  issuedAsrTraceKey, TEXT_ONLY_ASR_OUTCOME,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
@@ -84,7 +85,7 @@ function connectWithScoreSqlSpy(calls: ScoreSqlCall[]) {
         ? first
         : (first && typeof first === 'object' && 'text' in first ? String((first as { text?: unknown }).text ?? '') : '');
       const params = Array.isArray(args[1]) ? args[1] : [];
-      if (sql.includes('scoring_write_final_score_card')) calls.push({ sql, params });
+      if (sql.includes('scoring_write_final_score_card') || sql.includes('scoring_adjudicate_score_card')) calls.push({ sql, params });
       return (originalQuery as (...inner: unknown[]) => unknown)(...args);
     }) as typeof client.query;
     client.release = ((err?: Error | boolean) => {
@@ -737,7 +738,7 @@ async function main() {
   ));
   const voiceCases: Array<{ name: string; asrOutcome?: string; expect: 'ok' | 'unavailable' }> = [
     { name: '不传转写结果', expect: 'ok' },
-    { name: '成功转写文本', asrOutcome: '我会用 Redis 计数器做限流', expect: 'ok' },
+    { name: '成功转写文本', asrOutcome: '我会用 Redis 计数器做限流', expect: 'unavailable' },
     { name: 'asr_timeout', asrOutcome: 'asr_timeout', expect: 'unavailable' },
     { name: 'asr_aborted', asrOutcome: 'asr_aborted', expect: 'unavailable' },
     { name: 'asr_malformed', asrOutcome: 'asr_malformed', expect: 'unavailable' },
@@ -781,7 +782,7 @@ async function main() {
       written.kind === 'written' && column.rows.length === 1 && voiceQuality === voiceCase.expect);
   }
 
-  section('成功转写经生产衔接显式走五参数');
+  section('只返回文本且没有词级时间戳时不把语音质量写成 ok');
   const transcript = '  我会用 Redis 计数器做限流  ';
   const txInterview = `${INTERVIEW_ID}-tx-ok`;
   const txQuestion = 'q-tx-ok';
@@ -812,22 +813,33 @@ async function main() {
     && Object.keys(result).sort().join(',') === 'capture,text'
     && result.capture.speakerAttribution === 'not_diarized'
     && result.capture.wordTimestamps === 'not_available');
+  const traceKey = issuedAsrTraceKey(txInterview, txQuestion);
   const storedByTranscribe = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string | null>>(
-    'SELECT asr_transcript FROM interview_question WHERE interview_id=$1 AND question_id=$2',
-    [txInterview, txQuestion],
+    'SELECT output::text AS output FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, traceKey],
   ));
-  A('已上线转写把原文记在发出的题上', storedByTranscribe.rows[0]?.['asr_transcript'] === transcript);
+  const storedOutput = storedByTranscribe.rows[0]?.['output'] ?? '';
+  A('已上线转写只记下摘要和无词级时间戳，不保存原文，也不写成 ok',
+    storedByTranscribe.rows.length === 1
+    && storedOutput.includes('not_available')
+    && storedOutput.includes(answerHash(transcript))
+    && !storedOutput.includes(transcript)
+    && !storedOutput.includes('"ok"'));
   const submitted = transcript.trim();
   const txPayload = await asPrincipal(pool, OWNER, (c) => loadTranscribedAnswerJobPayload(c, OWNER, txInterview, {
     questionId: txQuestion, stateVersion: 1, answerId: 'ans-tx-ok', answerHash: answerHash(submitted), turn: 0, answer: submitted,
   }, 'req-tx-ok'));
-  const storedAfter = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string | null>>(
-    'SELECT asr_transcript FROM interview_question WHERE interview_id=$1 AND question_id=$2',
-    [txInterview, txQuestion],
+  const storedAfter = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
+    'SELECT count(*)::int AS n FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, traceKey],
   ));
-  A('入队载荷的转写结果是原文而不是作答框文本，题上暂存已取走',
-    txPayload.asrOutcome === transcript && txPayload.answer === submitted
-    && storedAfter.rows[0]?.['asr_transcript'] == null);
+  const loadedOutcome: string | undefined = txPayload.asrOutcome;
+  const loadedIsSentinel = loadedOutcome === TEXT_ONLY_ASR_OUTCOME;
+  const loadedIsTranscript = loadedOutcome === transcript;
+  A('入队载荷标成只有文本，不是原文，也不是 ok，暂存已取走',
+    loadedIsSentinel && !loadedIsTranscript
+    && txPayload.answer === submitted
+    && Number(storedAfter.rows[0]?.n ?? -1) === 0);
   await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
     interviewId: txInterview, questionId: txQuestion, stateVersion: 1, turn: 0,
     question: '请说明限流取舍', competency: '高并发', difficulty: 3, kind: 'fundamental',
@@ -850,13 +862,26 @@ async function main() {
     asrOutcome: txPayload.asrOutcome,
   });
   const txCall = txWrite.calls[0];
-  const fifth = txCall?.params[4];
-  const fifthIsOk = fifth === 'ok';
-  const fifthIsTranscript = fifth === transcript;
-  A('成功转写写卡走五参数且第五参是 ok 而不是列默认',
+  const uncertaintyRaw = txCall?.params[3];
+  const uncertainty = typeof uncertaintyRaw === 'string'
+    ? JSON.parse(uncertaintyRaw) as { voiceQuality?: string }
+    : undefined;
+  const voice = uncertainty?.voiceQuality;
+  const voiceIsUnavailable = voice === 'unavailable';
+  const voiceIsOk = voice === 'ok';
+  const txColumn = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string>>(
+    'SELECT uncertainty_voice_quality FROM score_card WHERE interview_id=$1 AND question_id=$2',
+    [txInterview, txQuestion],
+  ));
+  const txVoice: string | undefined = txColumn.rows[0]?.['uncertainty_voice_quality'];
+  const columnIsUnavailable = txVoice === 'unavailable';
+  const columnIsOk = txVoice === 'ok';
+  A('只返回文本且没有词级时间戳时，写卡不把语音质量记成 ok',
     txWrite.written.kind === 'written' && txWrite.calls.length === 1 && !!txCall
-    && txCall.sql.includes('scoring_write_final_score_card($1,$2,$3,$4,$5)')
-    && txCall.params.length === 5 && fifthIsOk && !fifthIsTranscript);
+    && txCall.sql.includes('scoring_adjudicate_score_card($1,$2,$3,$4,$5)')
+    && !txCall.sql.includes('scoring_write_final_score_card')
+    && voiceIsUnavailable && !voiceIsOk
+    && columnIsUnavailable && !columnIsOk);
 
   const typedInterview = `${INTERVIEW_ID}-tx-typed`;
   const typedQuestion = 'q-tx-typed';
@@ -922,17 +947,17 @@ async function main() {
     thrown = error;
   }
   const http = thrownHttp(thrown);
-  const throwStored = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string | null>>(
-    'SELECT asr_transcript FROM interview_question WHERE interview_id=$1 AND question_id=$2',
-    [throwInterview, throwQuestion],
+  const throwStored = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
+    'SELECT count(*)::int AS n FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, issuedAsrTraceKey(throwInterview, throwQuestion)],
   ));
   const throwCards = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
     'SELECT count(*)::int AS n FROM score_card WHERE interview_id=$1 AND question_id=$2',
     [throwInterview, throwQuestion],
   ));
-  A('转写抛错仍是 504 asr_timeout，不暂存原文也不写评分卡',
+  A('转写抛错仍是 504 asr_timeout，不暂存也不写评分卡',
     http.status === 504 && http.error === 'asr_timeout'
-    && throwStored.rows[0]?.['asr_transcript'] == null
+    && Number(throwStored.rows[0]?.n ?? -1) === 0
     && Number(throwCards.rows[0]?.n ?? -1) === 0);
 
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);

@@ -61,15 +61,12 @@ export type UncertaintyVoiceQuality = (typeof UNCERTAINTY_VOICE_QUALITY_VALUES)[
 
 /**
  * 已有转写结果映射到语音质量。缺省、空串、纯空白不返回值，调用方不传新列。
- * 四个失败码精确匹配为 unavailable，其余非空文本为 ok。不映射成 low。
- * unavailable 表示无语音，不单独触发 review；只有 low 才会触发 review。
+ * 四个失败码，以及其余非空文本（只有文本、没有词级时间戳），都是 unavailable。
+ * 不返回 ok，也不映射成 low。unavailable 不单独触发 review；只有 low 才会。
  */
-export function voiceQualityFromAsrOutcome(asrOutcome?: string): 'ok' | 'unavailable' | undefined {
+export function voiceQualityFromAsrOutcome(asrOutcome?: string): 'unavailable' | undefined {
   if (typeof asrOutcome !== 'string' || asrOutcome.trim() === '') return undefined;
-  if (asrOutcome === 'asr_timeout' || asrOutcome === 'asr_aborted' || asrOutcome === 'asr_malformed' || asrOutcome === 'asr_not_configured') {
-    return 'unavailable';
-  }
-  return 'ok';
+  return 'unavailable';
 }
 export type UncertaintyRubricDifficulty = (typeof UNCERTAINTY_RUBRIC_DIFFICULTY_VALUES)[number];
 export type UncertaintyHumanReview = (typeof UNCERTAINTY_HUMAN_REVIEW_VALUES)[number];

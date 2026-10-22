@@ -158,12 +158,16 @@ async function main() {
     mimeType: 'audio/webm',
     capture: { mode: 'single_local_microphone', consent: true, policyVersion: 'voice_ephemeral_v1' },
   });
-  const remember = writes.find((call) => call.sql.includes('SET asr_transcript=$4'));
-  assert('只返回文本时，转写服务把原文记到当时发出的题上',
+  const remember = writes.find((call) => call.sql.includes('INSERT INTO ai_invocation_trace'));
+  const remembered = JSON.stringify(remember?.params ?? []);
+  assert('只返回文本且没有词级时间戳时，转写不把原文或语音质量 ok 记下来',
     stored.text === transcript
+    && stored.capture.wordTimestamps === 'not_available'
     && Object.keys(stored).sort().join(',') === 'capture,text'
-    && remember?.params[2] === 'q-issued'
-    && remember?.params[3] === transcript);
+    && remembered.includes('not_available')
+    && remembered.includes('q-issued')
+    && !remembered.includes(transcript)
+    && !remembered.includes('"ok"'));
 
   console.log(`\n${failures === 0 ? '✓ 语音超时 HTTP 合同全部通过' : `✗ ${failures} 个失败`}`);
   process.exit(failures === 0 ? 0 : 1);
