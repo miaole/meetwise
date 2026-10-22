@@ -4358,3 +4358,12 @@ flowchart TD
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2325** 余 3.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
 
+### Line failed-interview-score nail（2026-10-22 · 失败或放弃的面试不再返回可练习分数）
+
+- **改动**：失败或放弃时，转写和评估成功不再带上数字，报告页没有有限数字就不画。这两种状态也不再新写可练习卡。已有卡不改写、不删除。
+- **并入**：merge `4e523a1d`，双亲 `480d5cc6` 与 `3852155b`。预演 tree `5f6c7ab3`。没有冲突，没有强推。
+- **门**：校验退出码 0。面试证明退出码 0。docs:check scanned 2326≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2326** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
