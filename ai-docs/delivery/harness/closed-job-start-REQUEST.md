@@ -1,0 +1,168 @@
+draft:awaiting_pre_exec_dual
+
+# 职位关闭后已有申请仍能开始
+
+基线 `c2da2eae0a0c775526296a83b475c616fe44cc8a`，分支 `line/closed-job-start-draft`。本说明只记录改法。本步不改产品代码。行号是在这棵树上打开文件看到的。
+
+## §0 锚
+
+### 0.1 关闭职位只改职位行
+
+`packages/db/src/recruiting/recruiter.ts` 的 `closeJob`（第 193–196 行）：
+
+```
+export async function closeJob(c: Client, owner: string, id: string): Promise<boolean> {
+  await assertPrincipal(c, owner);
+  const r = await c.query("UPDATE job_posting SET status='closed', version=version+1 WHERE id=$1 AND status='open'", [id]);
+  return (r.rowCount ?? 0) > 0;
+}
+```
+
+SET 只有 `job_posting.status` 和 `version`。条件是这个 id 而且当前是 `open`。语句里没有 `job_application`。已有申请的状态、绑定面试、简历都不改。不要改这个函数。
+
+`job_posting.status` 的检查只允许 `open` 和 `closed`，在 `packages/db/migrations/0004_recruiter.sql` 第 9 行。
+
+### 0.2 新申请已经拒绝非 open，这不是要修的点
+
+同一文件 `applyToJob` 第 249–253 行：
+
+```
+export async function applyToJob(c: Client, candidate: string, jobId: string): Promise<{ applicationId: string } | null> {
+  const owner = requireOwnerUserId(candidate, 'recruiter.applyToJob');   // PRIV01-C 第二层 E1
+  await assertPrincipal(c, owner);
+  const job = await c.query("SELECT owner_user_id, title FROM job_posting WHERE id=$1 AND status='open'", [jobId]);  // 公开读
+  if (job.rowCount === 0) return null;
+```
+
+职位不是 `open` 时这一读是 0 行，函数返回 `null`，不会插入新申请。`packages/db/test/recruiter-depth.proof.ts` 第 262–263 行已经断言关闭后再投递得到 `null`。不要改 `applyToJob`，也不要改这则断言。
+
+### 0.3 开始面试在插入前不读职位状态
+
+同一文件 `startApplicationInterview` 从第 498 行开始。插入新面试在第 594–598 行。从第 501 行读到的是 `job_application`，没有 `job_posting.status`。
+
+第 506 行：申请行不存在就 `{ status: 'noop' }`。第 508 行：`declined` 和 `completed` 也是 `{ status: 'noop' }`。这两处都不插入。
+
+第 510–523 行：申请是 `in_progress` 而且绑定面试仍是 `created` 或 `active` 时，第 523 行返回 `{ status: 'reused', interviewId, resumeId }`。这一返回不读职位状态。
+
+第 525–546 行：绑定面试是 `failed` 时，第 545 行调用 `markApplicationAssessmentUnavailable`，然后落到下面的插入。第 579–585 行会先 `bindApplicationRoute`。第 590 行没有绑定时返回 `interview_ineligible_route`，也不插入。
+
+第 558–565 行：`assessment_unavailable` 且绑定面试是 `completed` 时返回 `application_held_not_retryable`，不插入。绑定面试是 `failed` 的 `assessment_unavailable` 不走这里，会落到第 594 行插入。
+
+这些在职位仍是 `open` 时保持原样。不要改第 506、508、523、565 行的返回，也不要改第 594–606 行的插入和回写语句。
+
+### 0.4 我的投递不读职位状态，广场只显示 open
+
+同一文件 `listMyApplications` 第 277–286 行。选择的是申请列，加上按绑定面试派生的 `terminalKind`。`FROM job_application a LEFT JOIN interview i`。没有 `job_posting`，没有职位状态。
+
+`apps/web/app/jobs/page.tsx` 第 55–57 行用 `MyApplications.safeParse` 收下 `/applications`。第 141 行是「我的投递」。第 158–159 行：
+
+```
+            const startable = app.status === 'invited' || app.status === 'in_progress'
+              || (app.status === 'assessment_unavailable' && app.terminalKind === 'failed');
+```
+
+申请仍是 `invited` 时 `startable` 为真。第 175–182 行的选择简历表单和「开始面试」按钮仍渲染。第 182 行：`invited` 时按钮文案是「开始面试」，否则是「继续岗位面试」。第 187–189 行的「婉拒」写在这个 `startable` 块里面。
+
+广场不是这条。第 47 行仍向 `/jobs` 取列表。`listOpenJobs` 第 243–245 行是 `WHERE status='open'`。关闭后的职位不会出现在广场。不要改 `listOpenJobs`，也不要改广场这张卡片。
+
+候选人读 `job_posting` 时，`packages/db/migrations/0005_job_application.sql` 第 11–12 行的 `p_read` 只放行 `status = 'open'` 或本人是属主。申请行仍指向该职位：`packages/db/migrations/0046_application_assessment_recovery.sql` 第 52–56 行的外键是 `(job_id, recruiter_user_id)` → `job_posting(id, owner_user_id)`。候选人不是属主时，已关闭的职位读出来是 0 行，不是字符串 `closed`。不要为了看见这个字符串去改策略，也不要新迁移。
+
+`packages/contracts/src/index.ts` 第 517–522 行的 `MyApplications` 没有职位状态。对象默认会丢掉未声明的字段。第 55–57 行的解析因此看不到查询里多出来的列。这是「我的投递」要带上已有状态时必须一起改的契约，不是新接口。
+
+## §1 修法
+
+只许两处。
+
+### 1.1 `startApplicationInterview`
+
+在会插入新面试的路径上，于任何为了新面试而做的写入之前读职位。读取是：
+
+```
+SELECT status FROM job_posting WHERE id=$1
+```
+
+参数是这一申请的 `job_id`。
+
+- 读到一行且 `status` 是 `open`：后面的原有路径一字不改。
+- 读到一行且 `status` 不是 `open`：不要标记申请，不要绑定路由，不要插入面试。返回 `{ status: 这一行的 status }`。检查约束下这个值只可能是 `closed`。
+- 0 行：候选人看不见该职位。按上面的 `p_read`，这就是「不是 open，且调用者不是属主」。申请外键仍要求职位行在。不要插入。返回 `{ status: 'closed' }`。
+
+`closed` 是 `job_posting.status` 已有的值。把它加进第 487–492 行已有的 `StartApplicationResult`。不要新造 `job_closed`、`not_open` 之类的名字。不要返回 `noop`。不要抛 `application_start_conflict`，也不要抛别的笼统错误。
+
+读取的位置：
+
+- 第 523 行的复用返回保持在这次读取之前。`created` 或 `active` 的进行中面试，职位已经关闭也要返回原来的 `interviewId`。不要把人关在外面。
+- 第 525–538 行里，简历不符或失败绑定对不上而返回 `binding_invalid` 的，保持原样。对得上、下一行就要在第 545 行标记申请时：先做上面的读取。不是 `open` 就返回 `{ status: 'closed' }`，不要调用 `markApplicationAssessmentUnavailable`。
+- 申请本来就不是 `in_progress`、会落到第 594 行插入的路径：第 565 行的 `application_held_not_retryable` 保持在前面。held 不改成 `closed`。过了 held 之后、第 579 行 `bindApplicationRoute` 之前再读一次。不是 `open` 就返回 `{ status: 'closed' }`。这样从 `invited` 首启，以及 `assessment_unavailable` 且绑定面试为 `failed` 的另开一场，都不会插入，也不会先发出消费事件。
+
+职位仍是 `open` 时：`declined` 与 `completed` 仍是 `noop`；进行中且绑定面试仍是 `created` 或 `active` 仍复用；绑定面试是 `failed` 时仍可按现在的标记再插入新的一场。
+
+不要改 `apps/api/src/modules/jobs/applications.service.ts`。第 85–86 行对没有单独分支的状态仍会抛 `application_start_unexpected`。不要为了换掉这句去改服务层，也不要为此再造一个错误名。页面不再对已关闭职位提交首启或失败后的新开一场。
+
+### 1.2 我的投递
+
+让 `listMyApplications` 第 277–286 行的现有查询带上已经存在的 `job_posting.status`。左连接 `job_posting`，选出 `j.status AS job_status`。不要改 `terminalKind` 的 CASE，不要改 `WHERE`。不要新增表，不要新增迁移，不要改 `p_read`。
+
+候选人会话里，职位仍 `open` 时 `job_status` 是 `open`。职位已 `closed` 时连接被策略藏掉，`job_status` 是 `null`，不是字符串 `closed`。页面把 `job_status === 'open'` 当成仍开放，其余（含 `null`）当成已关闭。
+
+`MyApplications` 第 517–522 行加上可空的 `job_status`，让第 55–57 行的解析留住这一列。不要新路由。`applications.service.ts` 的 `mine` 已经原样返回这个查询，不要为了加列去改它。
+
+`apps/web/app/jobs/page.tsx` 的「我的投递」：
+
+- 职位仍开放时，第 158–159 行的三个条件保持原样。第 182 行的两个按钮文案不改。
+- 职位不是开放，且申请是 `invited`：不要渲染开始表单，也不要渲染「开始面试」。另起一句：`该职位已关闭，不能再开始面试。`
+- 职位不是开放，且申请是 `assessment_unavailable` 并且 `terminalKind === 'failed'`：同样不要渲染重试表单，并写同一句。
+- 职位不是开放，但申请是 `in_progress`：开始条件仍为真，按钮仍是「继续岗位面试」。这样还能回到那场 `created` 或 `active` 的面试。不要用上面那句换掉这个按钮。
+- 「婉拒」仍只在 `invited` 时出现。不要因为开始条件变假就把它拿掉。第 190–192 行「本场由企业支付，不消耗你的额度」仍留在开始块里，不单拆出去。
+- held 那句「本场面试已完成；评分校准完成后与结果一起提供，不提供重试。」不改。
+
+广场列表继续只来自 `/jobs`，也就是只含 `open`。不要改第 244 行。
+
+## §1.3 否决
+
+- 不改 `closeJob`。不在关闭时改写已有申请。
+- 不改 `applyToJob`。不把「拒绝新申请」当成这次的修法。
+- 不改 `listOpenJobs`，不把已关闭职位放进广场。
+- 不改第 506、508、523、565 行已有的返回。职位仍 `open` 时，失败后另开新一场的原路径不改。
+- 不把复用 `created` 或 `active` 的进行中面试挡在关闭职位之外。
+- held 仍返回 `application_held_not_retryable`，不改成 `closed`。
+- 不改 `applications.service.ts`，不改 `apps/web/lib/jobs/application-start-error.ts`。
+- 不新增表，不新增迁移，不改 `p_read`，不新增受控函数。
+- 不新建证明文件，不新增脚本名。
+- 不改价格，不改额度。
+- 不改 `ai-docs/delivery/harness/product-campaign-LEDGER.md`。第 694 行已是合计 229/271，能力项完成 33、半成 2、未收 14。这三个数维持，这项不记成新的完成。
+- 不改 `scripts/ai-docs/public-text-policy.mjs` 第 133 行。上限已是 `2_328`。本说明只新增这一份，不得再改上限。
+
+## §2 门
+
+证明只扩展这两份已经存在的文件。
+
+招聘证明：`packages/db/test/recruiter-depth.proof.ts`。命令是根 `package.json` 第 222 行的 `pnpm recruiter:prove`。它走 `node scripts/run-e2e-isolated.mjs recruiter:prove:raw`，第 223 行才到 `pnpm -C packages/db recruiter`，`packages/db/package.json` 第 22 行是 `tsx test/recruiter-depth.proof.ts`。文件第 39 行调用 `assertIsolatedTestTarget`。`packages/db/src/isolated-test-target.ts` 第 70–71 行：`E2E_ISOLATED !== '1'` 时抛 `destructive_proof_requires_e2e_isolated`，设置了 `DATABASE_URL` 时抛 `destructive_proof_database_url_forbidden`。禁止把证明指向 `127.0.0.1:54329`，禁止设置 `DATABASE_URL` 后直接跑 `tsx`。那种跑法不算通过。
+
+新段落放在第 346 行汇总输出之前。用新的职位、新的候选人和新的简历，不要关闭 `jobA`，不要复用第 258–263 行已经关闭的 `jobCId`。路由行按第 46–56 行的插法写成 `route_decided`，不要调用模型。已有断言的原文都不改。
+
+清理只追加新行的删除。第 352 行仍然只删 `jobA` 和 `jobB` 的申请。新职位的申请、路由行和职位行要在删职位前删掉，新简历也要删。新面试 id 放进已有的 `createdInterviewIds`。
+
+新段落必须调用生产函数 `createJob`、`inviteCandidate`、`startApplicationInterview`、`closeJob`、`listMyApplications`、`failInterviewAndRelease`、`markApplicationAssessmentUnavailable`、`getJob`。断言：
+
+- 关闭前，候选人的 `listMyApplications` 上这一行 `job_status` 是 `open`。`invited` 首启返回 `started`，该申请恰有 1 场面试，申请变为 `in_progress`。
+- `closeJob` 为真。属主 `getJob` 的 `status` 是 `closed`。申请状态仍是 `in_progress`。候选人列表上的 `job_status` 是 `null`，不是字符串 `closed`。再调用 `startApplicationInterview` 返回 `reused`，还是原来的 `interviewId`，面试仍是 1 场。
+- 另一名候选人在职位仍 `open` 时被邀请，关闭后再首启。返回 `{ status: 'closed' }`。申请仍是 `invited`。该申请的面试是 0 场。
+- 第三名候选人首启后，只用 `failInterviewAndRelease` 把绑定面试写成 `failed`，不要先标记申请。关闭后再调用开始。返回 `{ status: 'closed' }`。面试仍是 1 场。申请仍是 `in_progress`，不是 `assessment_unavailable`。
+- 第四名候选人在职位仍 `open` 时首启，`failInterviewAndRelease` 之后调用 `markApplicationAssessmentUnavailable`，再关闭，再开始。返回 `{ status: 'closed' }`。面试仍是 1 场。申请仍是 `assessment_unavailable`。
+- 把一名已邀请的申请婉拒后，职位已关闭时再开始，仍返回 `noop`，不返回 `closed`，也不插入面试。
+- 关闭后的职位上 `applyToJob` 仍返回 `null`。这只是钉住第 0.2 节，不是新修法。
+
+页面证明：`apps/web/test/web-logic.proof.ts`。命令是根 `package.json` 第 274 行的 `pnpm web:prove`，`apps/web/package.json` 第 8 行是 `tsx test/web-logic.proof.ts`。第 1678–1680 行已有的 `I2-2a` 以及其后的 `I2-2b` 到 `I2-2g` 原文都不改。在 `I2-2e` 之后追加对 `app/jobs/page.tsx` 的读文件断言：文件含有 `该职位已关闭，不能再开始面试。`；仍含有 `invited ? '开始面试' : '继续岗位面试'`；仍含有向 `/jobs` 取广场列表；「婉拒」不依赖开始条件。开始条件在 `job_status === 'open'` 时仍覆盖 `invited`、`in_progress` 和 `terminalKind === 'failed'` 的重试；`job_status` 不是 `open` 时，`invited` 与失败重试不再使开始表单渲染，`in_progress` 仍渲染「继续岗位面试」。
+
+另外三道：
+
+- `pnpm docs:check`（根 `package.json` 第 9 行，即 `node scripts/ai-docs/check-docs.mjs`）。扫描必须通过，不得超过 2328，也不要改这个上限。
+- `pnpm turbo typecheck --force`。
+- `pnpm turbo lint`。0 errors。警告上限不得提高：根 `package.json` 第 8 行 5242，`apps/api/package.json` 第 7 行 1423，`packages/domain/package.json` 第 10 行 115，`packages/ai-runtime/package.json` 第 14 行 628，`apps/worker/package.json` 第 7 行 959，`packages/db/package.json` 第 11 行 1042，`apps/web/package.json` 第 7 行 601，`packages/qdrant-store/package.json` 第 11 行 27，`packages/ai-graphs/package.json` 第 10 行 47，`packages/contracts/package.json` 第 12 行 265，`packages/config/package.json` 第 8 行 0，`packages/db-mysql/package.json` 第 8 行 0。低于上限可以通过。未点名的包维持各自现有 lint 脚本，不得放宽。
+
+不跑出站清单。不写迁移唯一性门。不调用模型。本说明是这一步唯一新增的文件。
+
+## §8
+draft:awaiting_pre_exec_dual
+draft:awaiting_pre_exec_dual
