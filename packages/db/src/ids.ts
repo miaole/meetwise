@@ -3,7 +3,7 @@
  *
  * 规范（ai-docs/architecture/backend/id-convention.md · C 级冻结）：
  *   - 业务可读键（text 主键）：`<prefix>_<32hex>`——尾巴为 UUIDv7（RFC 9562）去连字符，
- *     时间有序（同 ms 进程内计数器单调 → 字典序 = 生成序）。
+ *     时间有序（TS 进程内计数器单调；PG 侧 uuidv7()（0143）同 ms 不保序·两生成路径口径分立如实）。
  *   - uuid 代理键列的显式 id：newUuidV7()（连字符形态，与现行格式完全一致）。
  *   - 前缀注册表制（fail-closed）：未登记前缀 throw；新前缀须先登记（域前缀注册表）。
  *
@@ -40,7 +40,7 @@ export type EntityPrefix = keyof typeof ENTITY_PREFIXES;
 let lastMs = 0;
 let lastRandA = 0;
 
-/** UUIDv7 去连字符 32hex（unix_ms(48)|7|rand_a(12)|var10|rand_b(62)）。字典序 = 生成序。 */
+/** UUIDv7 去连字符 32hex（unix_ms(48)|7|rand_a(12)|var10|rand_b(62)）。TS 进程内计数器单调；PG 侧 uuidv7()（0143）同 ms 不保序·两生成路径口径分立如实。 */
 function uuidV7Hex(): string {
   let ms = Date.now();
   if (ms < lastMs) ms = lastMs; // 回拨钳制：单调优先于绝对准确（漂移以 ms 计，可忽略）
