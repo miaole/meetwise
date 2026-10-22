@@ -247,6 +247,7 @@ async function main() {
   /* ── 面3：reportGenerator(接线面证明:schema 失败路径也先落 generation_started) ── */
   const RID = `tsr-${Date.now()}`;
   const reportKey = `${RID}:report`;
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'active')", [RID, OWNER]);
   let reportThrew = false;
   try {
     await reportGenerator(pool, OWNER, reportKey, scriptedModelClient({

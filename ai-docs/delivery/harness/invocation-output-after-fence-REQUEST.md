@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 撤权后题干和报告正文仍写入调用账本
 
@@ -147,7 +147,30 @@ lint 警告上限保持：根 5242（根 `package.json:8`）、api 1423、domain
 
 ## §8
 
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
 
 以上三处状态相同。产品代码本步不改。
+
+## §9-EXEC
+
+改过的文件：
+
+- packages/ai-runtime/src/invoke.ts
+- apps/worker/src/interview-service.ts
+- apps/worker/test/scoring-report-integrity.proof.ts
+- apps/worker/test/token-stream.proof.ts
+- apps/worker/test/tokenstream-progress.proof.ts
+
+命令退出：
+
+- pnpm scoring-integrity:prove EXIT:0
+- pnpm s4b-token-stream:prove EXIT:0
+- pnpm tokenstream:prove EXIT:0
+- pnpm interview:prove EXIT:0
+- pnpm stress:prove EXIT:0
+- pnpm docs:check EXIT:0
+- pnpm turbo typecheck --force EXIT:0
+- pnpm turbo lint EXIT:0
+
+三处状态都已是 executed:awaiting_post_prove_dual。
