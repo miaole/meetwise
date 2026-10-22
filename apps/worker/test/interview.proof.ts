@@ -799,7 +799,7 @@ async function main() {
     [randomUUID(), OWNER],
   ));
   const result = await transcribeForIssuedQuestion(
-    { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn) },
+    { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn as never) },
     { transcribe: async () => transcript },
     OWNER,
     txInterview,
@@ -850,10 +850,13 @@ async function main() {
     asrOutcome: txPayload.asrOutcome,
   });
   const txCall = txWrite.calls[0];
+  const fifth = txCall?.params[4];
+  const fifthIsOk = fifth === 'ok';
+  const fifthIsTranscript = fifth === transcript;
   A('成功转写写卡走五参数且第五参是 ok 而不是列默认',
     txWrite.written.kind === 'written' && txWrite.calls.length === 1 && !!txCall
     && txCall.sql.includes('scoring_write_final_score_card($1,$2,$3,$4,$5)')
-    && txCall.params.length === 5 && txCall.params[4] === 'ok' && txCall.params[4] !== transcript);
+    && txCall.params.length === 5 && fifthIsOk && !fifthIsTranscript);
 
   const typedInterview = `${INTERVIEW_ID}-tx-typed`;
   const typedQuestion = 'q-tx-typed';
@@ -907,7 +910,7 @@ async function main() {
   let thrown: unknown;
   try {
     await transcribeForIssuedQuestion(
-      { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn) },
+      { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn as never) },
       { transcribe: async () => { throw new Error('asr_timeout'); } },
       OWNER,
       throwInterview,
