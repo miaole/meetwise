@@ -273,7 +273,9 @@ export type ApplicationTerminalKindRow = 'held' | 'failed' | null;
 type MyApplicationListRow = Pick<JobApplication, 'id' | 'job_id' | 'interview_id' | 'resume_id' | 'status' | 'score' | 'source'> & {
   job_title: string;
   terminalKind: ApplicationTerminalKindRow;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   job_status: string | null;
+  // eslint-disable-next-line @typescript-eslint/naming-convention
   bound_interview_status: string | null;
 };
 
@@ -295,7 +297,7 @@ export async function listMyApplications(c: Client, candidate: string): Promise<
     LEFT JOIN job_posting j ON j.id = a.job_id
     WHERE a.candidate_user_id=$1
     ORDER BY a.created_at DESC`, [owner]);
-  return r.rows as MyApplicationListRow[];
+  return r.rows as Array<MyApplicationListRow & { job_title: string }>;
 }
 
 /**

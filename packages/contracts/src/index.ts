@@ -518,7 +518,9 @@ export const MyApplications = z.object({
   applications: z.array(z.object({
     id: z.string(), job_id: z.string(), job_title: z.string().min(1).optional().default('岗位信息同步中'), interview_id: z.string().nullable(), resume_id: z.string().uuid().nullable(), status: z.string(), score: z.number().int().nullable(),
     terminalKind: ApplicationTerminalKind.nullable().optional(),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     job_status: z.string().nullable().optional(),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
     bound_interview_status: z.string().nullable().optional(),
     source: z.string().optional(),
   })),
