@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # 撤权之后招聘方仍能看到这场的能力档
 
@@ -138,8 +138,8 @@ draft:awaiting_pre_exec_dual
 
 ## §8
 
-draft:awaiting_pre_exec_dual
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual
 
 这一步只新增这份说明，不改产品代码。文件第一行与上面连续两行是同一句。
 
@@ -164,3 +164,20 @@ draft:awaiting_pre_exec_dual
    源码里没有不看 owner 就能判断这场已围栏的现成函数。`interview_privacy_active`（`packages/db/migrations/0076_privacy_erasure_legacy_request_pause.sql` :99-102）和 `interview_privacy_active_read`（`packages/db/migrations/0206_interview_privacy_active_read_tier.sql` :22-25）都先要求 `interview.owner_user_id` 等于当前 principal，对不上就返回 false。`interview_privacy_fenced_targets`（同文件 :55）只返回 `pt.owner_user_id` 等于当前 principal 的 `thread_id`。`assert_interview_privacy_active` 转调 `interview_privacy_active`。`interview_event_stream_privacy_active` 先要求 principal 等于传入的 owner。`assert_checkpoint_privacy_fence` 在 `pt.owner_user_id` 等于当前 principal 时才认目标。`assert_checkpoint_enrollment_not_privacy_fenced`（`0076` :74）比较 `pt.owner_user_id` 与 `NEW.owner_user_id`，而且 :83 没有把执行权交给 `app_role`。因此不要改成不换 principal。仍临时换成 `v_owner`，并补上上面的异常还原。
 
 仍然保持：不改 `0160_b_qualitative_projection.sql` 的任何字节。新迁移号仍是 `0215`，文件是 `packages/db/migrations/0215_gateway_b_qualitative_fence.sql`。镜像 `packages/db/sql/23_api_gateway.sql` 里从 `CREATE OR REPLACE FUNCTION gateway_b_qualitative_projection` 到 `GRANT EXECUTE ON FUNCTION gateway_b_qualitative_projection(text, text) TO app_role;` 与新迁移逐字节相同。不改 `packages/db/src/recruiting/recruiter.ts` 的 `listMyApplications` 与 `startApplicationInterview`。不改 `apps/web/app/jobs/page.tsx`。不改 `apps/api/src/modules/profile/profile.service.ts`。不改价格。不改上限 `2_328`。合计仍是 229/271。能力项 33/2/14 维持。
+
+## §9-EXEC
+
+产品改动已在 `2ca7b6850bcad20276306d9ea575bd624a9da7b3`。撤权后这场仍留下标记行，不再返回维度。换过身份之后出错，先把身份还原再抛出。另一场没有撤权时，维度计数不变。同一张卡仍是 `b_review_eligible`。合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。上面 §0 到 §8 除三处状态外没有改写。
+
+改过的文件：
+
+- packages/db/migrations/0215_gateway_b_qualitative_fence.sql
+- packages/db/sql/23_api_gateway.sql
+- apps/api/test/i2b.proof.ts
+
+三处状态都已是 executed:awaiting_post_prove_dual。
+
+- `node scripts/run-e2e-isolated.mjs i2b:prove` EXIT:0。提交 `2ca7b685`，40 条全绿。撤权后只留标记行，服务维度长度是 0 且不是 404，未撤权那场计数不变，卡状态不变。
+- `pnpm docs:check` EXIT:0。扫描 2328，上限 2328。
+- `pnpm turbo typecheck --force` EXIT:0。8 个任务成功，没有命中缓存。
+- `pnpm turbo lint` EXIT:0。0 errors。根 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265、config 0、db-mysql 0。
