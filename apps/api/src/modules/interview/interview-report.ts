@@ -59,7 +59,7 @@ export async function exportReportMd(db: DbService, guard: PrivacyGuard, princip
 export async function transcriptView(db: DbService, guard: PrivacyGuard, principal: string, id: string) {
   return db.asPrincipal(principal, async (c) => {
     await guard(c, id);
-    const iv = await c.query('SELECT questions FROM interview WHERE id=$1', [id]);
+    const iv = await c.query('SELECT questions, status FROM interview WHERE id=$1', [id]);
     if (iv.rowCount === 0) throw new HttpException({ error: 'not_found_or_forbidden' }, HttpStatus.NOT_FOUND);
     const ev = await c.query(
       `SELECT e.payload
@@ -79,7 +79,9 @@ export async function transcriptView(db: DbService, guard: PrivacyGuard, princip
           )
         ORDER BY e.seq`, [id]);
     // 得分权威 = ScoreCard(确定性总分),非事件 .score;逐题按 questionId 对齐,fail-closed 无卡=null(无数值)。
-    const cards = await listScorableScoreCards(c, id);
+    // failed/abandoned 不把这张卡的 deterministicTotal 放进回合分；题面、判据、outcome 仍走下方投影。
+    const hideCardScore = iv.rows[0].status === 'failed' || iv.rows[0].status === 'abandoned';
+    const cards = hideCardScore ? [] : await listScorableScoreCards(c, id);
     const totalByQuestion = new Map(cards.map((card) => [card.questionId, card.deterministicTotal]));
     // **E2 修:纯从 answer_evaluated 构建题面/outcome/competency**(每条自带 question/outcome/competency,天然对齐,不再靠 question_ready 序号 vs turn 两套计数 join)。
     //  自适应主线:题面在 answer_evaluated.question(worker 落库)。遗留固定题单:回退 questions[turn] 列。

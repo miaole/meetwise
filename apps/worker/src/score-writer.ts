@@ -54,7 +54,7 @@ export interface ScoreWriteQuery {
 export type ScoreWriteResult =
   | { kind: 'written'; requestId: string; cardId: string; deterministicTotal: number }
   | { kind: 'already_scored'; requestId: string }
-  | { kind: 'skipped'; reason: 'no_request' | 'privacy_fenced' | 'unclaimable' };
+  | { kind: 'skipped'; reason: 'no_request' | 'privacy_fenced' | 'unclaimable' | 'terminal_interview' };
 
 /**
  * D4 写卡步本体。调用点：submitAdaptiveAnswer 投影事务提交之后（同一 answer-job drain、
@@ -68,10 +68,18 @@ export async function writeScoreCardAfterProjection(d: ScoreWriterDeps, q: Score
 
   // fence 序（D3）：删除/撤权先赢。写卡前显式复核；已 fence → worker 侧补 fenceScoreRequest
   // （请求出途）+ 跳过（迟到结果不得写回）。writeFinal 内部还有同事务重验（纵深）。
-  const privacyActive = await asPrincipal(d.pool, d.owner, (c) => isInterviewPrivacyActive(c, q.interviewId));
-  if (!privacyActive) {
+  const ownerGate = await asPrincipal(d.pool, d.owner, async (c) => {
+    const privacyActive = await isInterviewPrivacyActive(c, q.interviewId);
+    const iv = await c.query<{ status: string }>('SELECT status FROM interview WHERE id=$1', [q.interviewId]);
+    return { privacyActive, status: iv.rows[0]?.status };
+  });
+  if (!ownerGate.privacyActive) {
     await asScoringWorkerPrincipal(d.pool, d.owner, (c) => fenceScoreRequest(c, active.requestId));
     return { kind: 'skipped', reason: 'privacy_fenced' };
+  }
+  // 已经是 failed/abandoned：不领取、不写 scoring_write_final_score_card、不插入新卡。已有卡不动。
+  if (ownerGate.status === 'failed' || ownerGate.status === 'abandoned') {
+    return { kind: 'skipped', reason: 'terminal_interview' };
   }
 
   // 独立 asScoringWorkerPrincipal 事务：claim（单次 CAS）→（复用既有 token）→ writeFinal。
