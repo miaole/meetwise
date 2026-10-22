@@ -602,6 +602,8 @@ DECLARE
   v_owner text;
   v_interview_id text;
   v_kind text;
+  v_prev text;
+  v_fenced boolean := false;
 BEGIN
   -- ① owner 谓词 fail-closed：申请必须存在、属于该招聘方、处于 assessment_unavailable 终态
   --    且绑定面试为两源终态（completed/failed）。不命中 → 0 行返回（与不存在/越权不可区分·
@@ -638,6 +640,25 @@ BEGIN
   competency := NULL; strong_count := NULL; mid_count := NULL; weak_count := NULL; insufficient_count := NULL;
   RETURN NEXT;
   IF NOT disclosed THEN
+    RETURN;
+  END IF;
+  -- 未披露返回之后：记下招聘方，临时换成卡 owner，只读围栏名单，立刻还原。
+  -- 出错时先还原成换身份之前的招聘方，再抛出同一个错误。命中则跳过维度查询，标记行已返回。
+  v_prev := current_setting('app.principal_user', true);
+  BEGIN
+    PERFORM set_config('app.principal_user', v_owner, true);
+    v_fenced := EXISTS (
+      SELECT 1 FROM public.interview_privacy_fenced_targets() AS t
+       WHERE t.thread_id = v_interview_id
+    );
+    PERFORM set_config('app.principal_user', COALESCE(v_prev, ''), true);
+  EXCEPTION
+    WHEN OTHERS THEN
+      PERFORM set_config('app.principal_user', COALESCE(v_prev, ''), true);
+      RAISE;
+  END;
+  PERFORM set_config('app.principal_user', COALESCE(v_prev, ''), true);
+  IF v_fenced THEN
     RETURN;
   END IF;
   RETURN QUERY
