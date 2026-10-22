@@ -1687,6 +1687,14 @@ async function main() {
       jobsSrcI2.includes('同意后招聘方仅可见能力维度与强/中/弱/证据不足档位，不含数字评分、答题内容与证据摘录原文；可随时撤回，撤回后立即停止展示。'));
     A('I2-2e 修法⑥ 知情行仍随 startable 块收敛（W3② 渲染条件核对·零语义改动）',
       jobsSrcI2.includes('本场由企业支付，不消耗你的额度'));
+    // 文件顶部 import 先出现 startApplicationAction，顺序必须从开始条件之后算。
+    const startableAt = jobsSrcI2.indexOf('{startable &&');
+    const submitAt = startableAt < 0
+      ? -1
+      : jobsSrcI2.indexOf('startApplicationAction', startableAt + '{startable &&'.length);
+    const payNoteAt = submitAt < 0
+      ? -1
+      : jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度', submitAt + 'startApplicationAction'.length);
     A('关闭后 in_progress 只有绑定面试 created 或 active 才渲染继续（读生产页，不另写一套判断）',
       jobsSrcI2.includes("const jobOpen = app.job_status === 'open'")
       && jobsSrcI2.includes("const boundLive = app.bound_interview_status === 'created' || app.bound_interview_status === 'active'")
@@ -1698,8 +1706,9 @@ async function main() {
       && jobsSrcI2.includes("invited ? '开始面试' : '继续岗位面试'")
       && /serverGet<\{ jobs: Job\[\] \}>\('\/jobs'\)/.test(jobsSrcI2)
       && jobsSrcI2.indexOf('declineApplicationAction.bind(null, app.id)') < jobsSrcI2.indexOf('{startable &&')
-      && jobsSrcI2.indexOf('{startable &&') < jobsSrcI2.indexOf('startApplicationAction')
-      && jobsSrcI2.indexOf('startApplicationAction') < jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度')
+      && startableAt >= 0
+      && submitAt > startableAt
+      && payNoteAt > submitAt
       && jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度') < jobsSrcI2.indexOf('该职位已关闭，不能再开始面试。')
       && /\{invited && <form action=\{declineApplicationAction\.bind\(null, app\.id\)\}>/.test(jobsSrcI2)
       && !jobsSrcI2.includes('job_status == null')
