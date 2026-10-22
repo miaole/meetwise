@@ -4367,3 +4367,12 @@ flowchart TD
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2326** 余 2.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
 
+### Line recruiter-band-after-fence nail（2026-10-22 · 撤权后能力档不再返回该场维度）
+
+- **改动**：撤权后这场仍留下标记行，不再返回维度。换过身份之后出错先还原再抛出。未撤权的那场维度计数不变。卡状态不改。
+- **并入**：merge `a4351af1`，双亲 `71be6922` 与 `650d1428`。其后 `99de8380`。tree `219cbf99`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，40 条。docs:check scanned 2328≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份，另有迁移 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · cap **2328** 现值 **2328** 余 0.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
