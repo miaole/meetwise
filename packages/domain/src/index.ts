@@ -296,7 +296,7 @@ export {
   UNCERTAINTY_EVIDENCE_COVERAGE_VALUES, UNCERTAINTY_SOURCE_INTEGRITY_VALUES,
   UNCERTAINTY_VOICE_QUALITY_VALUES, UNCERTAINTY_RUBRIC_DIFFICULTY_VALUES, UNCERTAINTY_HUMAN_REVIEW_VALUES,
   reverifyScoreEvidenceSet, defaultScoreUncertainty, assertScoreUncertaintySeparation,
-  resolveScoreCardAdjudication, deriveMissingRequiredCriteria,
+  resolveScoreCardAdjudication, deriveMissingRequiredCriteria, voiceQualityFromAsrOutcome,
 } from './scoring-evidence-conflict.ts';
 export type {
   ScoreEvidenceReverifyInput, ScoreEvidenceReverifyResult, ScoreUncertainty,

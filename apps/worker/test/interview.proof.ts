@@ -672,6 +672,56 @@ async function main() {
       && pending.rows.length === 1 && pending.rows[0]?.status === 'pending');
   }
 
+  section('转写结果写入评分语音质量');
+  const IID_VOICE = `${INTERVIEW_ID}-voice`;
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID_VOICE, OWNER],
+  ));
+  const voiceCases: Array<{ name: string; asrOutcome?: string; expect: 'ok' | 'unavailable' }> = [
+    { name: '不传转写结果', expect: 'ok' },
+    { name: '成功转写文本', asrOutcome: '我会用 Redis 计数器做限流', expect: 'ok' },
+    { name: 'asr_timeout', asrOutcome: 'asr_timeout', expect: 'unavailable' },
+    { name: 'asr_aborted', asrOutcome: 'asr_aborted', expect: 'unavailable' },
+    { name: 'asr_malformed', asrOutcome: 'asr_malformed', expect: 'unavailable' },
+    { name: 'asr_not_configured', asrOutcome: 'asr_not_configured', expect: 'unavailable' },
+  ];
+  for (const [index, voiceCase] of voiceCases.entries()) {
+    const q = `q-voice-${index}`;
+    const stateVersion = index + 1;
+    const answer = `语音质量第 ${index + 1} 题作答：Redis 令牌桶与滑动窗口限流。`;
+    await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+      interviewId: IID_VOICE, questionId: q, stateVersion, turn: index,
+      question: `请说明第 ${index + 1} 个限流取舍？`, competency: '高并发', difficulty: 3, kind: 'fundamental',
+    }));
+    const { request } = await asPrincipal(pool, OWNER, async (c) => {
+      const submitted = await submitInterviewAnswer(c, {
+        interviewId: IID_VOICE, questionId: q, stateVersion,
+        clientSubmissionKey: `voice-${q}`, answer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+      });
+      const created = await createScoreRequestForSubmission(c, {
+        interviewId: IID_VOICE, questionId: q, stateVersion,
+        submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+        canonicalBodyHmac: submitted.canonicalBodyHmac, privacyEpoch: submitted.privacyEpoch,
+      });
+      return { request: created };
+    });
+    A(`${voiceCase.name} 评分请求已建立`, request.created === true && request.replayed === false);
+    const written = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `voice-quality-${process.pid}` },
+      {
+        interviewId: IID_VOICE, questionId: q, stateVersion, answerText: answer,
+        dispositions: fullSpanDisposition(answer, 'meets'),
+        ...(voiceCase.asrOutcome === undefined ? {} : { asrOutcome: voiceCase.asrOutcome }),
+      },
+    );
+    const column = await asPrincipal(pool, OWNER, (c) => c.query<{ uncertainty_voice_quality: string }>(
+      'SELECT uncertainty_voice_quality FROM score_card WHERE interview_id=$1 AND question_id=$2',
+      [IID_VOICE, q],
+    ));
+    A(`${voiceCase.name} → uncertainty_voice_quality=${voiceCase.expect}`,
+      written.kind === 'written' && column.rows.length === 1 && column.rows[0]?.uncertainty_voice_quality === voiceCase.expect);
+  }
+
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();
   process.exit(failures === 0 ? 0 : 1);

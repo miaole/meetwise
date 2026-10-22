@@ -30,6 +30,8 @@ export interface WriteFinalScoreCardInput {
   /** 模型只输出 criterionId + span + digest + disposition；总分服务端算，不进本输入。 */
   evidence: ScoreEvidenceInput[];
   targetStatus: 'practice_eligible' | 'b_review_eligible';
+  /** 传入才走五参数。未传保持四参数调用，列沿用现有默认值。 */
+  voiceQuality?: 'ok' | 'low' | 'unavailable';
 }
 
 export interface WriteFinalScoreCardResult {
@@ -61,13 +63,16 @@ export interface ScorableScoreCardRow {
 
 /** 专用终态 writer。调用方须已 asScoringWorkerPrincipal（scoring_worker_executor）。 */
 export async function writeFinalScoreCard(c: Client, input: WriteFinalScoreCardInput): Promise<WriteFinalScoreCardResult> {
+  const params: unknown[] = [input.requestId, input.leaseToken, JSON.stringify(input.evidence), input.targetStatus];
+  let sql = 'SELECT * FROM scoring_write_final_score_card($1,$2,$3,$4)';
+  if (input.voiceQuality !== undefined) {
+    sql = 'SELECT * FROM scoring_write_final_score_card($1,$2,$3,$4,$5)';
+    params.push(input.voiceQuality);
+  }
   const r = await c.query<{
     card_id: string | null; status: string | null; deterministic_total: string | null;
     coverage: string | null; uncertainty: unknown; recorded: boolean;
-  }>(
-    'SELECT * FROM scoring_write_final_score_card($1,$2,$3,$4)',
-    [input.requestId, input.leaseToken, JSON.stringify(input.evidence), input.targetStatus],
-  );
+  }>(sql, params);
   const row = r.rows[0];
   if (!row) fail('scoring_final_card_unavailable');
   return {

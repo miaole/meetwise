@@ -33,6 +33,8 @@ export interface AcceptedInterviewAnswer {
   answerHash: string;
   turn: number;
   answer: string;
+  /** 已有转写结果。缺省表示调用方没有给出转写结果。 */
+  asrOutcome?: string;
 }
 
 export type ClaimAnswerResult =

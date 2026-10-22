@@ -58,6 +58,19 @@ export const UNCERTAINTY_HUMAN_REVIEW_VALUES = ['none', 'pending', 'resolved'] a
 export type UncertaintyEvidenceCoverage = (typeof UNCERTAINTY_EVIDENCE_COVERAGE_VALUES)[number];
 export type UncertaintySourceIntegrity = (typeof UNCERTAINTY_SOURCE_INTEGRITY_VALUES)[number];
 export type UncertaintyVoiceQuality = (typeof UNCERTAINTY_VOICE_QUALITY_VALUES)[number];
+
+/**
+ * 已有转写结果映射到语音质量。缺省、空串、纯空白不返回值，调用方不传新列。
+ * 四个失败码精确匹配为 unavailable，其余非空文本为 ok。不映射成 low。
+ * unavailable 表示无语音，不单独触发 review；只有 low 才会触发 review。
+ */
+export function voiceQualityFromAsrOutcome(asrOutcome?: string): 'ok' | 'unavailable' | undefined {
+  if (typeof asrOutcome !== 'string' || asrOutcome.trim() === '') return undefined;
+  if (asrOutcome === 'asr_timeout' || asrOutcome === 'asr_aborted' || asrOutcome === 'asr_malformed' || asrOutcome === 'asr_not_configured') {
+    return 'unavailable';
+  }
+  return 'ok';
+}
 export type UncertaintyRubricDifficulty = (typeof UNCERTAINTY_RUBRIC_DIFFICULTY_VALUES)[number];
 export type UncertaintyHumanReview = (typeof UNCERTAINTY_HUMAN_REVIEW_VALUES)[number];
 

@@ -587,7 +587,7 @@ async function submitAdaptiveAnswerImpl(
         { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
         {
           interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
-          answerText: input.answer, dispositions: turnDispositions,
+          answerText: input.answer, dispositions: turnDispositions, asrOutcome: input.asrOutcome,
         },
       );
     }

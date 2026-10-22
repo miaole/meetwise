@@ -27,7 +27,7 @@ import {
   isInterviewPrivacyActive, findActiveScoreRequest,
   type DbPool,
 } from '@meetwise/db';
-import { reverifyScoreEvidenceSpan, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { reverifyScoreEvidenceSpan, voiceQualityFromAsrOutcome, type ScoredCriterionDisposition } from '@meetwise/domain';
 
 /** 删除/撤权先赢（D3 fence 序）：这类 code 下不抛错、改走 fenceScoreRequest + 跳过。 */
 function isPrivacyFenceCode(code: string | undefined): boolean {
@@ -49,6 +49,8 @@ export interface ScoreWriteQuery {
   answerText: string;
   /** v6 模型档位证据（evaluate 侧派生·0103 契约形状；非 v5 hint 分——过渡桥已废除）。 */
   dispositions: readonly ScoredCriterionDisposition[];
+  /** 已有转写结果。缺省表示这次没有带转写结果。 */
+  asrOutcome?: string;
 }
 
 export type ScoreWriteResult =
@@ -107,11 +109,13 @@ export async function writeScoreCardAfterProjection(d: ScoreWriterDeps, q: Score
         disposition: d.disposition,
       };
     });
+    const voiceQuality = voiceQualityFromAsrOutcome(q.asrOutcome);
     const written = await writeFinalScoreCard(c, {
       requestId: active.requestId,
       leaseToken,
       evidence,
       targetStatus: 'practice_eligible',
+      ...(voiceQuality !== undefined ? { voiceQuality } : {}),
     });
     if (!written.recorded || !written.cardId) {
       // CAS 落败 = 已有 winner（迟到重放）；status='scored' 即幂等成功，其余状态如实返回。
