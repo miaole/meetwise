@@ -4285,3 +4285,12 @@ flowchart TD
 - **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2317** 余 3.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line provision-lock-release nail（2026-10-22 · 解锁失败时把这条连接从池里丢掉）
+
+- **改动**：解锁失败时把这条连接从池里丢掉。解锁查询失败就不再把连接放回空闲列表。
+- **并入**：merge `9cca3916`，双亲 `c0e923dc` 与 `7ffbb6be`。预演 tree `f2ff97f1`。没有冲突，没有强推。
+- **门**：交接证明退出码 0。控制角色证明退出码 0。docs:check scanned 2318≤2320。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2318** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
