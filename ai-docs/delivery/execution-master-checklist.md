@@ -4392,3 +4392,57 @@ flowchart TD
 - **批表 #156/#157/#158/#181 四行翻面（230→234/271 86.3%）**：worker-shutdown-seq 四件 EXEC（0283d804 逐字节在 main）·双席验证（移植席 worker 三组证明复跑全绿 drain 36/ha2-drain 60/obs-ready 12·静态席 agent_9b2a77a3 四件亲证零蚀）·卷内 main 谱系 post PASS×2+nail 已随卷·Q2 已闭。
 - **AG-34 勘误登记**：触发机制已随邻刀 f6c3a735 顺带移除（台账锚系旧树快照）·余面两件转在飞卷。
 - Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
+### Line ag34-lock-hold nail（2026-10-22 SSOT nail · PR #115 merge fae1c099 · 面试作业锁残面收口·批表零翻·AG-34 翻面见翻面笔段）
+
+- **授权链**：起草 d364d8b3（诚实发现：触发机制已随邻刀 f6c3a735 移除·余面两件）→ pre-exec 双审 PASS×2 → EXEC 41247781（恰 5 tracked·八门绿·lint 超帽自修 959·门③远程云 PG fail-closed 阻塞如实登记待排程）→ post 双审 PASS×2 → nail（PR #115）。
+- **STILL OPEN**：远程云 PG 证明门排程归协调方/运维.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line config-reject-guidance nail（2026-10-22 SSOT nail · PR #116 merge 5123019e · 生产库配置拒绝附排查指引·批表 #249 翻面见翻面笔段）
+
+- **授权链**：起草 361b408f → 第一轮 席1 PASS/席2 FAIL（P1=门②基线红未登记）→ rev ef28a428（红同形协议）→ 第二轮 PASS×2 → EXEC 4303b923（恰 5 tracked·18 断言绿·pre/post 逐字节同形协议行使）→ post 双审 PASS×2 → nail（PR #116）。
+- **STILL OPEN**：无（fail-loud 语义保持·纯指引增量）.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line graph-legacy-api-erratum nail（2026-10-22 SSOT nail · PR #117 merge d5b03ee6 · 图编排遗留接口面收口核定登记·零码面·AG-35 翻面见翻面笔段）
+
+- **授权链**：起草 ae39408b → 第一轮 席1 FAIL（收口笔登记失实）→ rev a3927ac5（更正为主线重植笔 e9a1a035·三笔祖先性亲跑）→ 第二轮 PASS×2 → nail（PR #117）。
+- **STILL OPEN**：§0.2-④ 残留指认一行 supersession 归下次触卷顺手.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line asr-quality-metrics nail（2026-10-22 SSOT nail · PR #118 merge 508450c1 · 语音转写质量指标结构化·批表 #73 翻面见翻面笔段）
+
+- **授权链**：起草 e7f3497a → 第一轮双 FAIL → rev 19a83b00 → 第二轮 席1 FAIL（清点漏一处）→ rev2 6aef7645 → 第三轮双审 PASS×2（两席独立穷尽清点）→ EXEC 四笔（十二门全绿·首跑三红自修）→ post 双审 PASS×2 → nail（PR #118·落线笔重放形：首并缺卷文件·协调方落线分支补齐卷笔并更名）。
+- **STILL OPEN**：真实质量申报上线路径（qwen3-asr WebSocket·卷内预留方向）归后继刀·本刀以诚实申报 unavailable 收口.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line lease-attempts-cap nail（2026-10-22 SSOT nail · PR #119 merge 4ec27f55 · 面试作业认领领取上限第三道防线·AG-29 翻面见翻面笔段）
+
+- **授权链**：起草 63006040（诚实发现：上限全链已由 AG-04 刀C 收口·残面收窄为 queued 臂谓词）→ pre-exec 双审 PASS×2 → EXEC 92d5df4f（恰 3 tracked·八门绿·改前必红红验存档）→ post 双审 PASS×2（红验收据实证）→ nail（PR #119）。
+- **STILL OPEN**：无.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line ag25-replay-residual-erratum nail（2026-10-22 SSOT nail · PR #120 merge dcbd24ab · 出题重放非模型副作用残面核定登记·零码面·AG-25 翻面见翻面笔段）
+
+- **授权链**：起草 26da51b1（九项副作用逐项核定零残面·两处承载笔登记更正）→ pre-exec 双审 PASS×2（两席独立扫三类写面确认零漏项）→ nail（PR #120）。
+- **STILL OPEN**：两处幂等锚补登（ai_invocation_trace/writeShadowMeterSoft）归 EXEC/后继触卷顺手.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line cap-sanction-2346 nail（2026-10-22 SSOT nail · PR #121 · 受管文件数上限步进 2338→2346 · 热修优先修绿主线）
+
+- **授权链**：协调方派单 brief → 一体席单 commit 1ace8a9c（七门全绿）→ post 双审会签 PASS×2（双席零 P2）→ nail（PR #121）。
+- **教训登记（累计记账）**：受管文件上限记账必须核**累计并集面**——连续五笔（ag34/#249/ag35/#73/AG-29）各自对当时基线合规、累计并入越限一笔致主线文档门红；协调方累计账失察，本刀即为此设。后继规则：协调方每次并线卷后按「main 现 scanned + 在飞卷数」重算余量，余量 < 在飞+1 即先手步进。
+- **门矩阵**：proof 12/12（2346/2347 双值·deepEqual 亲跟 2347）+ docs:check 2340≤2346（基线红随刀复绿）+ typecheck 8/8 + lint 12/12 + markers 0 + 自审 grep 清零 + diff 恰 3 tracked.
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移 · cap **2346** 现值 **2341** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### 翻面笔登记（2026-10-22 第二批 · 协调方翻面权行使 · post 会签证据在案）
+
+- **AG 四项翻面（done 40→44 · open 7→3）**：AG-34（ag34-lock-hold 残面两件收口）/AG-35（勘误卷核定三项全收口）/AG-29（attempts 第三道防线）/AG-25（勘误卷核定零残面）。**open 3 全为门控/前置**：AG-13（需线上分布数据·外部阻塞）/AG-32（前置未修）/AG-36（前置未修）。half 2 维持（AG-14/AG-20）。
+- **批表两行翻面（234→236/271 · 87.1%）**：#249（生产库配置拒绝指引·5123019e）/#73（语音质量指标结构化·508450c1）。
+- **批表/能力项剩余全景**：能力项 open 3 全为门控/前置；half 2（AG-14/AG-20）待流式面与 CTX-02 余原语；批表 open 35 中用户门控 7（#97/#98/#240/#26/#32/#2/#199）+ 外部阻塞 1（#38）+ 其余为登记时滞面（详见侦察席 2026-10-22 报告）。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+MDEOF
+echo written
