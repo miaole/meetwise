@@ -29,7 +29,7 @@ tags:
 
 | 资源 | 标识（公开元数据） | 状态 |
 | --- | --- | --- |
-| RDS PostgreSQL（测试） | 实例 `pgm-bp1fces5g99237o6`；公网地址主机名 `pgm-bp1fces5g99237o6to.pg.rds.aliyuncs.com:5432` | **已开通公网**；白名单未使用 `0.0.0.0/0` |
+| RDS PostgreSQL（测试） | 实例标识与公网主机名不写入仓库 | **已开通公网**；白名单未使用 `0.0.0.0/0` |
 | Tair（测试缓存） | `meetwise-rag-cache-test` | **已过期，无法开通公网** |
 | 另一 RDS（eval） | （控制台侧） | **已暂停** |
 
