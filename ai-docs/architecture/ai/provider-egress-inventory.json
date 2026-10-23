@@ -358,6 +358,10 @@
         {
           "source": "packages/ai-runtime/test/native-fail-closed.proof.ts",
           "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+          "class": "local-adapter-test"
         }
       ]
     },
@@ -2088,6 +2092,51 @@
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/ag18-sampling-temperature.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_API_KEY_FINGERPRINT",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ASR_MODEL",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_REVOKED_KEY_FINGERPRINTS",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "DASHSCOPE_WORKSPACE_ID",
+      "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
       "class": "test-fixture"
     }
   ],

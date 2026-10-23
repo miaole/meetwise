@@ -152,6 +152,12 @@ const ISSUED_TRANSCRIPT_MAX_CHARS = 8000;
 /** 只有文本、没有词级时间戳。写卡看到这个值时不把语音质量写成 ok。 */
 export const TEXT_ONLY_ASR_OUTCOME = 'word_timestamps_not_available';
 
+/**
+ * ASR 质量申报字面量（能力声明而非模型猜测）。当前唯一申报形 unavailable——
+ * 真置信适配器接线前不存在其他值，绝不伪造数值，绝不把 unavailable 升格 ok。
+ */
+export type IssuedAsrQualityDeclaration = 'unavailable';
+
 export function issuedAsrTraceKey(interviewId: string, questionId: string): string {
   return `issued-asr|${interviewId}|${questionId}`;
 }
@@ -172,11 +178,12 @@ export function asrOutcomeForStoredTranscript(stored: string | null | undefined,
 }
 
 /**
- * 转写成功后只记下原文摘要，以及词级时间戳不可用。
+ * 转写成功后只记下原文摘要、词级时间戳不可用与转写时的质量申报。
  * 不保存原文，也不把语音质量写成 ok。题已换发时仍可被随后的作答按摘要对上。
  */
 export async function rememberIssuedQuestionTranscript(
   c: Client, owner: string, interviewId: string, questionId: string, text: string,
+  asrQuality: IssuedAsrQualityDeclaration,
 ): Promise<void> {
   if (typeof questionId !== 'string' || questionId.length === 0) return;
   if (typeof text !== 'string' || text.length === 0 || text.length > ISSUED_TRANSCRIPT_MAX_CHARS) return;
@@ -186,6 +193,7 @@ export async function rememberIssuedQuestionTranscript(
     transcriptSha256: answerHash(text),
     trimmedSha256: answerHash(text.trim()),
     wordTimestamps: 'not_available',
+    asrQuality,
   };
   await c.query(
     'DELETE FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
