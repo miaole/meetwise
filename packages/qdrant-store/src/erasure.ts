@@ -5,7 +5,8 @@
  *   delete points → subsequent search recall=0 for those ids
  *   receipt core shape: { id, collection, deleted_count, at }
  *   deleted_count = verified removals (pre/post retrieve), NOT ids.length
- *   multi-id: batch_digest = sha256(sorted unique ids joined by "\n")
+ *   UUID ids compare as lowercase 8-4-4-4-12; other ids (including plain numbers) stay exact
+ *   multi-id: batch_digest = sha256(sorted unique caller ids joined by "\n")
  *
  * Does NOT wire into production privacy ledger yet.
  * This prototype ≠ 0091 privacy_deletion_receipt / ledger aligned.
@@ -88,10 +89,42 @@ export function assertErasureReceiptShape(receipt: unknown): asserts receipt is 
   }
 }
 
+/** Optional `urn:uuid:` prefix. Qdrant rejects any other prefix casing. */
+const UUID_URN_PREFIX = 'urn:uuid:';
+/** 32 hex digits; hyphens may be absent or sit only on the 8-4-4-4-12 boundaries. */
+const UUID_HEX_WITH_OPTIONAL_HYPHENS =
+  /^[0-9a-fA-F]{8}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{4}-?[0-9a-fA-F]{12}$/;
+
+/**
+ * Existence key. Recognized UUIDs fold to lowercase 8-4-4-4-12 so readback
+ * (always that form) matches caller spellings. Other ids stay exact.
+ */
+function pointExistenceKey(id: string): string {
+  let body = id;
+  if (body.startsWith(UUID_URN_PREFIX)) body = body.slice(UUID_URN_PREFIX.length);
+  if (body.startsWith('{') && body.endsWith('}') && body.length > 2) body = body.slice(1, -1);
+  if (!UUID_HEX_WITH_OPTIONAL_HYPHENS.test(body)) return id;
+  const hex = body.replaceAll('-', '').toLowerCase();
+  return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+}
+
+/** Distinct recognized points among requested ids that retrieve still returns. */
+function countPresentByKey(requested: string[], retrieved: string[]): number {
+  const present = new Set(retrieved.map((id) => pointExistenceKey(id)));
+  const matched = new Set<string>();
+  for (const id of requested) {
+    const key = pointExistenceKey(id);
+    if (present.has(key)) matched.add(key);
+  }
+  return matched.size;
+}
+
 /**
  * Delete points and return a contract receipt with honest deleted_count.
  *
  * Honesty: count points present before delete vs after (retrieve), not ids.length.
+ * UUID spellings are compared on pointExistenceKey; duplicate spellings count once.
+ * deletePoints and batch_digest keep the caller ids (not the folded form).
  * Batch: when >1 distinct id, set batch_digest over all targets and id=`batch:<digest16>`
  * so ids beyond [0] are not dropped from the receipt surface.
  */
@@ -104,14 +137,12 @@ export async function erasePoints(
   if (unique.length === 0) throw new Error('qdrant_erase_ids_required');
 
   const before = await client.retrieveIds(unique);
-  const beforeSet = new Set(before);
-  const presentBefore = unique.filter((id) => beforeSet.has(id)).length;
+  const presentBefore = countPresentByKey(unique, before);
 
   await client.deletePoints(unique);
 
   const after = await client.retrieveIds(unique);
-  const afterSet = new Set(after);
-  const presentAfter = unique.filter((id) => afterSet.has(id)).length;
+  const presentAfter = countPresentByKey(unique, after);
   const deleted_count = presentBefore - presentAfter;
   if (deleted_count < 0) throw new Error('qdrant_erase_deleted_count_negative');
 

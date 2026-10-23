@@ -102,4 +102,26 @@ ok(doc.paths['/recruiter/jobs'].get.responses?.['200']?.content?.['application/j
   && recruiterListParsed.success && recruiterListParsed.data.routes === undefined,
   'I3 listJobs 响应含可选 routes 旁车（additive·缺省不发明键·C 端 JobList 零触）');
 
+// 押题/诊断 begin 与现有已受理响应对齐：成功码 202，简历头必填，目标岗位可选。面试 begin 四头保持不动。
+const quizBegin = doc.paths['/quiz/{id}/begin'].post;
+const diagnosisBegin = doc.paths['/diagnosis/{id}/begin'].post;
+const interviewBegin = doc.paths['/interview/{id}/begin'].post;
+const headerNamed = (op: { parameters?: Array<{ name?: string; in?: string; required?: boolean }> }, name: string) =>
+  Array.isArray(op?.parameters) && op.parameters.some((p) => p.name === name && p.in === 'header');
+ok(!!quizBegin.responses?.['202'] && !quizBegin.responses?.['200'], 'beginQuiz 成功响应键是 202 而不是 200');
+ok(headerNamed(quizBegin, 'resume-id') && quizBegin.parameters.some((p: { name?: string; in?: string; required?: boolean }) => p.name === 'resume-id' && p.in === 'header' && p.required === true),
+  'beginQuiz parameters 含 header resume-id 且 required 为 true');
+ok(quizBegin.parameters.some((p: { name?: string; in?: string; required?: boolean }) => p.name === 'target-role' && p.in === 'header' && p.required !== true),
+  'beginQuiz parameters 含 header target-role 且 required 不是 true');
+ok(!!diagnosisBegin.responses?.['202'] && !diagnosisBegin.responses?.['200'], 'beginDiagnosis 成功响应键是 202 而不是 200');
+ok(headerNamed(diagnosisBegin, 'resume-id') && diagnosisBegin.parameters.some((p: { name?: string; in?: string; required?: boolean }) => p.name === 'resume-id' && p.in === 'header' && p.required === true),
+  'beginDiagnosis parameters 含 header resume-id 且 required 为 true');
+ok(diagnosisBegin.parameters.some((p: { name?: string; in?: string; required?: boolean }) => p.name === 'target-role' && p.in === 'header' && p.required !== true),
+  'beginDiagnosis parameters 含 header target-role 且 required 不是 true');
+ok(!!interviewBegin.responses?.['202'] && !interviewBegin.responses?.['200'], 'beginInterview 成功响应仍是 202 而不是 200');
+ok(['resume-id', 'quiz-id', 'target-role', 'focus'].every((name) => headerNamed(interviewBegin, name)),
+  'beginInterview 仍有 header resume-id、quiz-id、target-role、focus');
+const interviewTurn = doc.paths['/interview/{id}/turn'].post;
+ok(!!interviewTurn.responses?.['202'] && !interviewTurn.responses?.['200'], '/interview/{id}/turn post 成功响应键是 202 而不是 200');
+
 console.log(`✓ openapi:prove 全部通过(${n} 断言)`);

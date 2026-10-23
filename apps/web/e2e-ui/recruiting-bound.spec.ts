@@ -74,7 +74,8 @@ async function loginViaUi(page: Page, email: string, role: 'candidate' | 'recrui
 
 async function tokenOf(context: BrowserContext): Promise<string> {
   const token = (await context.cookies()).find((c) => c.name === 'mw_token')?.value;
-  expect(token, '注册后 browser httpOnly cookie 中应存在 Bearer token').toBeTruthy();
+  expect(typeof token, '注册后 browser httpOnly cookie 中应存在 Bearer token（string 类型钉）').toBe('string');
+  expect(token?.length ?? 0, 'Bearer token 非空串').toBeGreaterThan(0);
   return token!;
 }
 

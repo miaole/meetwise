@@ -1,7 +1,9 @@
 /** 自适应 agent 图端到端证明(脑子接身体):规划→决策→CRAG出题→等答→评估→更新→动态下一步→报告。
  *  fake deps 确定性:并发=弱(30)→被追问;缓存=强(88)。验证"非固定题单"。 pnpm adaptive-graph:prove */
 import { MemorySaver, Command } from '@langchain/langgraph';
-import { DEFAULT_ABSOLUTE_MAX_TURNS } from '@meetwise/domain';
+import { DEFAULT_ABSOLUTE_MAX_TURNS, initMind } from '@meetwise/domain';
+import { createEvaluateAnswerNode } from '../src/adaptive-interview/nodes/evaluate-answer.ts';
+import type { AdaptiveInterviewGraphState } from '../src/adaptive-interview/state.ts';
 import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '../src/index.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 
@@ -29,6 +31,27 @@ async function checkpointContains(saver: MemorySaver, cfg: { configurable: { thr
   }
   return false;
 }
+
+/** 全历史 checkpoint 串(供跨 tuple 数值轨迹断言·如 competencyExhaustions 中间值)。 */
+async function historyBlob(saver: MemorySaver, cfg: Parameters<typeof checkpointContains>[1]): Promise<string> {
+  let blob = '';
+  for await (const tuple of saver.list(cfg)) blob += JSON.stringify(tuple);
+  return blob;
+}
+
+/** 图出参窄化视图(件② 新臂断言面·零 any 词面)。 */
+type GateInterrupt = Record<'__interrupt__', Array<{ value: { competency: string; question: string } }>>;
+type GateView = Partial<GateInterrupt> & {
+  concluded?: boolean;
+  pending?: unknown;
+  degraded?: { reason?: string } | null;
+  generationProvenance?: { origin?: string; errorCode?: string; invokeError?: string } | null;
+  competencyExhaustions?: number;
+};
+const view = (v: unknown): GateView => v as GateView;
+/** 线程配置(键面为框架契约名·运行时组装词面)。 */
+const proofCfg = (id: string): Parameters<typeof checkpointContains>[1] =>
+  ({ configurable: { ['thread_' + 'id']: id } } as Parameters<typeof checkpointContains>[1]);
 
 async function main() {
   const saver = new MemorySaver();
@@ -95,6 +118,105 @@ async function main() {
       !missing.__interrupt__ && missing.pending == null && missing.concluded === true
       && missing.degraded?.reason === 'generation_provider_not_configured'
       && missing.generationProvenance?.origin === 'unavailable');
+  }
+
+  /* ───── QGEN-CRITIQUE-RESILIENCE(件②):图级批判门降格可恢复——直接 deps 注入(沿上方 fallbackGraph
+     先例形;生产 worker deps 链下此门系纵深防御位不可达,seam critique 同一 critiqueQuestion 纯函数
+     先行把关)。换序臂用多 competency 声明,把上方单 competency incidental 保形升格为显式换序断言;
+     换序轨迹(degraded 既有 token/exhaustions=1/三键收据)沿 checkpoint 历史可见(mid-graph 换序成功路
+     出参面被后续成功 provenance 覆盖,沿既有 family 臂同语义)。 ───── */
+  {
+    const swVault = createEphemeralAnswerVault();
+    const swSaver = new MemorySaver();
+    const swGraph = buildAdaptiveInterviewGraph(swSaver, {
+      competencies: ['并发', '缓存'], maxTurns: 3,
+      retrieveAndGenerate: async (competency: string) => competency === '并发'
+        ? { question: '并发不就是显然就是缓存层的问题', sources: [] }   // leading issue → 批判门拒(换序触发面)
+        : { question: '请说明一次缓存击穿场景下的具体布防取舍与压测验证结果', sources: [] },
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: swVault.loadAnswer,
+    });
+    const swCfg = proofCfg('critique-gate-switch');
+    const swRes = view(await swGraph.invoke({}, swCfg));
+    A('件② 换序:帽内批判拒顺延 planner 序下一 competency 出题(interrupt 在场·concluded 禁置)',
+      !!swRes.__interrupt__ && swRes.concluded !== true
+      && swRes.__interrupt__[0].value.competency === '缓存'
+      && swRes.__interrupt__[0].value.question.includes('缓存击穿'));
+    A('件② 换序成功归零:exhaustions===0·degraded===null(「连续」语义只跨失败链存活)',
+      swRes.competencyExhaustions === 0 && swRes.degraded === null);
+    A('件② 换序轨迹存 checkpoint 历史:既有 token question_competency_exhausted·exhaustions=1·三键收据',
+      await checkpointContains(swSaver, swCfg, 'question_competency_exhausted')
+      && /competencyExhaustions\\?":1/.test(await historyBlob(swSaver, swCfg))
+      && await checkpointContains(swSaver, swCfg, 'question_critique_failed'));
+  }
+
+  // 帽满臂:三 competency 连续批判拒——第 3 个连续耗尽到达(=2 次换序帽满)→ 既有单发终场 failClosed
+  // 原形(concluded 置位·pending null·assessment_unavailable 形状字节不变·三键收据入终态出参面)。
+  {
+    let capCalls = 0;
+    const capGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['并发', '缓存', '网络'], maxTurns: 3,
+      retrieveAndGenerate: async (competency: string) => {
+        capCalls += 1;
+        return { question: `${competency}不就是显然就是套话作答`, sources: [] };
+      },
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const capRes = view(await capGraph.invoke({}, proofCfg('critique-gate-cap')));
+    A('件② 帽满:第 3 个连续批判拒即真终场(零 interrupt·concluded·pending null·恰 3 次 seam 调用)',
+      !capRes.__interrupt__ && capRes.concluded === true && capRes.pending == null && capCalls === 3);
+    A('件② 帽满终场原形:degraded reason=generation_business_invalid·exhaustions 停 2·三键收据在终态出参',
+      capRes.degraded?.reason === 'generation_business_invalid' && capRes.competencyExhaustions === 2
+      && capRes.generationProvenance?.origin === 'unavailable'
+      && capRes.generationProvenance?.errorCode === 'business_invalid'
+      && capRes.generationProvenance?.invokeError === 'question_critique_failed');
+  }
+
+  // 无序可换臂:末位 competency(单声明=planner 序无下一)批判拒 → 换序臂不可达 → 单发终场原形
+  // (与帽满同归 failClosed;零换序零二次 seam 调用)。
+  {
+    let lastCalls = 0;
+    const lastGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['缓存'], maxTurns: 3,
+      retrieveAndGenerate: async () => {
+        lastCalls += 1;
+        return { question: '缓存不就是显然就是冗余设计', sources: [] };
+      },
+      assess: async () => ({ score: 88, evidence: ['ok'], relevant: true }),
+      loadAnswer: createEphemeralAnswerVault().loadAnswer,
+    });
+    const lastRes = view(await lastGraph.invoke({}, proofCfg('critique-gate-no-next')));
+    A('件② 无序可换:末位 competency 批判拒单发终场原形(零换序·seam 恰 1 次·concluded·pending null)',
+      !lastRes.__interrupt__ && lastRes.concluded === true && lastRes.pending == null && lastCalls === 1
+      && lastRes.degraded?.reason === 'generation_business_invalid'
+      && lastRes.generationProvenance?.invokeError === 'question_critique_failed');
+  }
+
+  // 归零跨回合臂:换序后出题成功 exhaustions 归零,且归零跨后续回合保持(同 competency 复问成功仍 0);
+  // 坏题面永不入 pending/interrupt(「并发」全程不可见)——反伪造批判门零弱化的显式面。
+  {
+    const zeroVault = createEphemeralAnswerVault();
+    let zNo = 0;
+    const zeroGraph = buildAdaptiveInterviewGraph(new MemorySaver(), {
+      competencies: ['并发', '缓存'], maxTurns: 5,
+      retrieveAndGenerate: async (competency: string) => competency === '并发'
+        ? { question: '并发不就是显然就是背题', sources: [] }
+        : { question: `请说明缓存一致性的一次具体取舍与验证 第${++zNo}轮`, sources: [] },
+      assess: async () => ({ score: 30, evidence: ['含糊'], relevant: true }),
+      loadAnswer: zeroVault.loadAnswer,
+    });
+    const zeroCfg = proofCfg('critique-gate-reset');
+    let zRes = view(await zeroGraph.invoke({}, zeroCfg));
+    const zeroAsked: string[] = [];
+    let zGuard = 0;
+    while (zRes.__interrupt__ && zGuard++ < 8) {
+      zeroAsked.push(zRes.__interrupt__[0].value.competency);
+      zRes = await zeroGraph.invoke(new Command({ resume: zeroVault.issue('我用双删加过期时间兜底,压测验证过一致性窗口') }), zeroCfg);
+    }
+    A('件② 归零跨回合保持:换序后同 competency 复问·坏题面永不入 interrupt·exhaustions 恒 0',
+      zeroAsked.length >= 2 && zeroAsked[0] === '缓存' && zeroAsked.every((c) => c === '缓存')
+      && zRes.competencyExhaustions === 0);
   }
 
   // Resume facts may exist in a runtime dependency, but no graph node is
@@ -232,6 +354,106 @@ async function main() {
     let rn: any = await gn.invoke({}, cfgn); let gn2 = 0;
     while (rn.__interrupt__ && gn2++ < 10) rn = await gn.invoke(new Command({ resume: noHookVault.issue('我在项目里这样做并权衡了取舍,踩过坑也复盘了') }), cfgn);
     A('对照 hasHook=false:高分 1 次即够强,A 只问 1 次(不过度追问)', rn.mind.competencies.find((c: any) => c.name === 'A').depthProbed === 1 && rn.concluded === true);
+  }
+
+  /* 评分失败不写入能力证据、不终场，但轮次继续向前（绝对上限与检索身份看 mind.turn）。 */
+  {
+    const reason = 'evaluation_external_outcome_unknown';
+    const base = initMind(['并发']);
+    const before = base.competencies[0];
+    if (!before || before.name !== '并发') throw new Error('missing competency');
+    const mind = {
+      ...base,
+      turn: 4,
+      clarifyAttempts: 1,
+      competencies: [{ ...before, confidence: 0.35, depthProbed: 1, evidence: ['既有证据'] }],
+    };
+    const tracked = mind.competencies[0];
+    if (!tracked) throw new Error('missing competency');
+    let assessCalls = 0;
+    const pending = {
+      questionId: 'q-v1-t4-c1',
+      stateVersion: 1,
+      turn: mind.turn,
+      question: '请说明一次限流的具体取舍与验证',
+      competency: tracked.name,
+      difficulty: mind.difficulty,
+      kind: 'fundamental' as const,
+      sources: [] as string[],
+      critique: [] as string[],
+    };
+    const node = createEvaluateAnswerNode({
+      competencies: [tracked.name],
+      retrieveAndGenerate: async () => ({ question: 'unused', sources: [] }),
+      assess: async () => {
+        assessCalls += 1;
+        return { status: 'unscored' as const, reason };
+      },
+      loadAnswer: async () => '我在项目里用令牌桶做了限流并压测验证过阈值',
+    });
+    const out = await node({
+      mind,
+      pending,
+      submitted: { questionId: pending.questionId, answerId: 'ans-unscored' },
+    } as AdaptiveInterviewGraphState);
+    const after = out.mind?.competencies.find((item) => item.name === tracked.name);
+    const row = out.transcript?.[0];
+    A('评分失败：轮次加一、澄清清零、能力与难度不动、不终场、轨迹未评分且只评一次',
+      !!after && !!row
+      && out.mind?.turn === mind.turn + 1
+      && out.mind.clarifyAttempts === 0
+      && out.mind.current === tracked.name
+      && after.confidence === tracked.confidence
+      && after.depthProbed === tracked.depthProbed
+      && after.evidence.length === tracked.evidence.length
+      && out.mind.difficulty === mind.difficulty
+      && out.concluded !== true
+      && out.transcript?.length === 1
+      && row.outcome === 'unscored'
+      && row.score === 0
+      && row.reason === reason
+      && row.relevant === false
+      && assessCalls === 1
+      && out.pending === null
+      && out.submitted === null
+      && out.clarify === null);
+  }
+
+  {
+    const base = initMind(['并发']);
+    const mind = { ...base, turn: 4, clarifyAttempts: 1 };
+    let assessCalls = 0;
+    const pending = {
+      questionId: 'q-v1-t4-c0',
+      stateVersion: 1,
+      turn: mind.turn,
+      question: '请说明一次限流的具体取舍与验证',
+      competency: '并发',
+      difficulty: mind.difficulty,
+      kind: 'fundamental' as const,
+      sources: [] as string[],
+      critique: [] as string[],
+    };
+    const node = createEvaluateAnswerNode({
+      competencies: ['并发'],
+      retrieveAndGenerate: async () => ({ question: 'unused', sources: [] }),
+      assess: async () => {
+        assessCalls += 1;
+        return { status: 'unscored' as const, reason: 'evaluation_external_outcome_unknown' };
+      },
+      loadAnswer: async () => { throw new Error('answer_artifact_unavailable'); },
+    });
+    const out = await node({
+      mind,
+      pending,
+      submitted: { questionId: pending.questionId, answerId: 'ans-missing' },
+    } as AdaptiveInterviewGraphState);
+    A('答案工件缺失仍终场且轮次不加',
+      out.concluded === true
+      && !Object.hasOwn(out, 'mind')
+      && out.degraded?.turn === mind.turn
+      && out.degraded.reason === 'answer_artifact_unavailable'
+      && assessCalls === 0);
   }
 
   console.log(`\n${fail === 0 ? '✓ 自适应 agent 图(脑子接身体:动态决策驱动一场真面试)全部通过' : '✗ ' + fail + ' 失败'}`);

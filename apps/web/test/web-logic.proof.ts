@@ -3,6 +3,7 @@
  *   pnpm web:prove
  */
 import { existsSync, readFileSync } from 'node:fs';
+import { register } from 'node:module';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { decodeSSE, toBusinessEvent } from '../lib/stream/business-events.ts';
@@ -73,6 +74,11 @@ import { isVoiceModeEntryVisible } from '../lib/voice-mode-entry.ts';
 // 视图型同名，故别名 ContractInterviewView 防撞）。
 import { InterviewView as ContractInterviewView, TurnDto, TurnResult } from '@meetwise/contracts';
 import type { z } from 'zod';
+
+// register() 只影响其后的模块加载：ensureOk 动态 import 前装桩——'server-only'
+// 恰一项收窄（test/server-only-hooks.mjs,tsx 裸解析面拦截）,next/navigation 保持真形
+// （redirect 抛 NEXT_REDIRECT,NEXT_REDIRECT 恰等断言源零涉）,静态 import 块先于本行加载不受影响。
+register('./server-only-hooks.mjs', import.meta.url);
 
 interface FetchResponse { status: number; json(): Promise<unknown> }
 type FetchLike = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<FetchResponse>;
@@ -155,7 +161,7 @@ async function main() {
   A('active 的 turn=3 显示第 4 题待答', interviewProgressLabel({ status: 'active', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '第 4 题待答');
   A('queued 的 turn=3 显示处理中', interviewProgressLabel({ status: 'created', issued_turns: 4, answered_turns: 3, processing_turn: 3 }) === '第 4 题处理中');
   A('completed 显示实际总题数', interviewProgressLabel({ status: 'completed', issued_turns: 8, answered_turns: 8 }) === '共 8 题');
-  A('终态已出题但零回答不伪装成尚未出题', interviewProgressLabel({ status: 'abandoned', issued_turns: 1, answered_turns: 0, current_turn: 0 }) === '已出 1 题，未作答');
+  A('零作答放弃收口后账本清账读数（旧「已出 N 题，未作答」口径翻面·issued/queued 双清由 db 侧 prove 钉）', interviewProgressLabel({ status: 'abandoned', issued_turns: 0, answered_turns: 0, current_turn: null }) === '尚未出题');
   A('终态残留 open turn 仍只显示已答题数', interviewProgressLabel({ status: 'abandoned', issued_turns: 4, answered_turns: 3, current_turn: 3 }) === '已作答 3 题');
   A('已放弃不再提供继续作答 CTA', interviewActionLabel('abandoned') === '已结束');
   A('未知状态 fail-closed，不提供作答入口', interviewActionLabel('future_terminal') === '状态待同步' && !isInterviewEnterable('future_terminal'));
@@ -1681,6 +1687,34 @@ async function main() {
       jobsSrcI2.includes('同意后招聘方仅可见能力维度与强/中/弱/证据不足档位，不含数字评分、答题内容与证据摘录原文；可随时撤回，撤回后立即停止展示。'));
     A('I2-2e 修法⑥ 知情行仍随 startable 块收敛（W3② 渲染条件核对·零语义改动）',
       jobsSrcI2.includes('本场由企业支付，不消耗你的额度'));
+    // 文件顶部 import 先出现 startApplicationAction，顺序必须从开始条件之后算。
+    const startableAt = jobsSrcI2.indexOf('{startable &&');
+    const submitAt = startableAt < 0
+      ? -1
+      : jobsSrcI2.indexOf('startApplicationAction', startableAt + '{startable &&'.length);
+    const payNoteAt = submitAt < 0
+      ? -1
+      : jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度', submitAt + 'startApplicationAction'.length);
+    A('关闭后 in_progress 只有绑定面试 created 或 active 才渲染继续（读生产页，不另写一套判断）',
+      jobsSrcI2.includes("const jobOpen = app.job_status === 'open'")
+      && jobsSrcI2.includes("const boundLive = app.bound_interview_status === 'created' || app.bound_interview_status === 'active'")
+      && jobsSrcI2.includes("? (app.status === 'invited' || app.status === 'in_progress'")
+      && jobsSrcI2.includes("|| (app.status === 'assessment_unavailable' && app.terminalKind === 'failed'))")
+      && jobsSrcI2.includes(": (app.status === 'in_progress' && boundLive)")
+      && jobsSrcI2.includes("|| (app.status === 'in_progress' && !boundLive)")
+      && jobsSrcI2.includes('该职位已关闭，不能再开始面试。')
+      && jobsSrcI2.includes("invited ? '开始面试' : '继续岗位面试'")
+      && /serverGet<\{ jobs: Job\[\] \}>\('\/jobs'\)/.test(jobsSrcI2)
+      && jobsSrcI2.indexOf('declineApplicationAction.bind(null, app.id)') < jobsSrcI2.indexOf('{startable &&')
+      && startableAt >= 0
+      && submitAt > startableAt
+      && payNoteAt > submitAt
+      && jobsSrcI2.indexOf('本场由企业支付，不消耗你的额度') < jobsSrcI2.indexOf('该职位已关闭，不能再开始面试。')
+      && /\{invited && <form action=\{declineApplicationAction\.bind\(null, app\.id\)\}>/.test(jobsSrcI2)
+      && !jobsSrcI2.includes('job_status == null')
+      && !jobsSrcI2.includes('job_status === null')
+      && !jobsSrcI2.includes('bound_interview_status == null')
+      && !jobsSrcI2.includes('bound_interview_status === null'));
     // actions：同意/撤回走 #82 既有三入口（POST body + DELETE query·purpose=b_qualitative_share）。
     const jobsActionsSrc = readSrc('app/jobs/actions.ts');
     A('I2-2f 同意触面 API 形（POST /privacy/consent {purpose} + DELETE /privacy/consent?purpose·零新协议）',

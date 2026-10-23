@@ -23,7 +23,7 @@ export const metadata = { title: '面试报告 · 知面' };
 
 type ReportStatus = 'queued' | 'running' | 'ready' | 'failed' | 'quarantined' | 'interview_failed' | 'assessment_unavailable';
 type Report = { status: ReportStatus; content: { overall: number; sections: Array<{ title: string; body: string }> } | null; attempts?: number };
-type Dimension = { dimension: string; score: number; gap: boolean; evidence?: string };
+type Dimension = { dimension: string; score?: number | null; gap: boolean; evidence?: string };
 type Assessment = { status?: string; dimensions?: Dimension[]; overall?: number };
 type LearningPlan = { items: Array<{ topic: string; priority: string; action: string; done: boolean }>; progress: { completed: number; total: number } };
 type Milestone = { stage: string; goal: string };
@@ -271,7 +271,9 @@ async function AssessmentSection({ id, resumeId }: { id: string; resumeId: strin
         <Card>
           <CardContent className="space-y-3 p-6">
             {dims.map((d, i) => (
-              <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
+              typeof d.score === 'number' && Number.isFinite(d.score)
+                ? <AbilityBar key={i} label={d.dimension} value={d.score} em={!!d.gap} />
+                : null
             ))}
             {gapCount > 0 && resumeId ? (
               <form action={startFocusRetrainAction} className="flex flex-col gap-2 border-t border-border pt-4 sm:flex-row sm:items-center sm:justify-between">
@@ -290,7 +292,7 @@ async function AssessmentSection({ id, resumeId }: { id: string; resumeId: strin
         <div className="mt-5 grid gap-4">
           <div className="text-xs font-medium uppercase tracking-wide text-primary">逐题点评</div>
           {annotations.map((a, i) => (
-            <AnnotationCard key={i} question={a.question} note={a.note} score={a.score} />
+            <AnnotationCard key={i} question={a.question} note={a.note} score={typeof a.score === 'number' && Number.isFinite(a.score) ? a.score : undefined} />
           ))}
         </div>
       ) : null}

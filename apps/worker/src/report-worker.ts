@@ -9,7 +9,7 @@ import {
 } from '@meetwise/db';
 import { buildReportGraph, type GenerateReport, type InterviewSummary } from '@meetwise/ai-graphs';
 import { getMetrics, METRIC } from '@meetwise/ai-runtime';
-import { runDrainLoop } from './drain-loop.ts';
+import { runDrainLoop, SERIAL_DRAIN_TICK_WATCHDOG_MS } from './drain-loop.ts';
 import { drainOwnersInListedOrder } from './owner-queue-drain.ts';
 import { backfillLearningProgressFromAssessment } from './weakness-backfill.ts';
 
@@ -200,7 +200,7 @@ export async function sweepReportsOnce(pool: DbPool, owner: string) {
   return asPrincipal(pool, owner, async (c) => {
     const res = await sweepReports(c, owner);
     for (const interviewId of res.quarantinedInterviews) {
-      await appendEvent(c, owner, interviewId, 'report_unavailable', { reason: 'max_attempts_exceeded' });
+      await appendEvent(c, owner, interviewId, 'report_unavailable', { reason: 'max_attempts_exceeded' }, 'report_unavailable:' + interviewId + ':quarantine');
     }
     return res;
   });
@@ -240,5 +240,5 @@ export async function dispatchTick(pool: DbPool, leaseOwner: string, deps: Repor
 export function runReportDispatcher(pool: DbPool, leaseOwner: string, deps: ReportWorkerDeps, intervalMs = 5000) {
   // Share the bounded failure/staleness signal with every other consumer. A
   // process that keeps swallowing database failures is alive but not ready.
-  return runDrainLoop(async () => { await dispatchTick(pool, leaseOwner, deps); }, intervalMs);
+  return runDrainLoop(async () => { await dispatchTick(pool, leaseOwner, deps); }, intervalMs, { tickWatchdogMs: SERIAL_DRAIN_TICK_WATCHDOG_MS });
 }

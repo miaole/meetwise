@@ -116,6 +116,10 @@ export interface SseNotifyOptions {
   reconnectBaseMs?: number;
   reconnectMaxMs?: number;
   random?: () => number;
+  /** LISTEN 活性探针周期（缺省 LISTEN_PROBE_MS=10s；proof 确定性注入小值）。 */
+  probeIntervalMs?: number;
+  /** 探针超时上界（缺省 LISTEN_PROBE_TIMEOUT_MS=5s）。配对不变式：恒 < probeIntervalMs（注入同遵守）。 */
+  probeTimeoutMs?: number;
 }
 
 export interface SseNotifyWait {
@@ -126,6 +130,20 @@ export interface SseNotifyWait {
 
 const DEFAULT_BASE_MS = 100;
 const DEFAULT_MAX_MS = 5_000;
+
+/**
+ * LISTEN 活性探针钉值（#139 半开盲区闭合·additive）：establish 成功后挂周期探针，到期对 active
+ * client 发 `SELECT 1`。成功判据=query resolve 即健康（**不校验 rowCount**——防假件 catch-all 返
+ * 0 行误降级）；失败/超时**单击即 loseClient**（零 K-连击缓冲，半开窗最小化）走既有三链：
+ * degrade 结构化日志+scheduleReconnect 退避（钉值零改）+wakeAllWaiters 跨流全醒。
+ * 探针系 service 层 timer 路径，非通知回调——「回调内零 SQL」纪律（docstring/:294）零破。
+ * 检测窗 ≤probeIntervalMs+probeTimeoutMs（进程自持确定性窗）；池级 driver query_timeout 15s
+ * （packages/db/src/principal.ts:968）为更外层兜底，探针窗恒紧于其内；R-22 TCP keepalive 内核
+ * 上界（分钟级·平台依赖·principal.ts:955-960 honest boundary）不依赖内核调优即被本探针收敛。
+ */
+export const LISTEN_PROBE_MS = 10_000;
+/** 探针超时上界（缺省 5s·在 driver query_timeout 15s 兜底之内）。**配对不变式：恒 < LISTEN_PROBE_MS**（注入缝同遵守）——超时窗必须内含于探测周期，否则同拍双探针叠发。 */
+export const LISTEN_PROBE_TIMEOUT_MS = 5_000;
 
 @Injectable()
 export class SseNotifyService {
@@ -138,10 +156,13 @@ export class SseNotifyService {
   private readonly reconnectBaseMs: number;
   private readonly reconnectMaxMs: number;
   private readonly random: () => number;
+  private readonly probeIntervalMs: number;
+  private readonly probeTimeoutMs: number;
 
   private pool: DbPool | undefined;
   private active: ListenClient | undefined;
   private retryTimer: ReturnType<typeof setTimeout> | undefined;
+  private probeTimer: ReturnType<typeof setTimeout> | undefined;
   private stopPromise: Promise<void> | undefined;
   private stopped = false;
   private establishing = false;
@@ -156,6 +177,8 @@ export class SseNotifyService {
     this.reconnectBaseMs = options.reconnectBaseMs ?? DEFAULT_BASE_MS;
     this.reconnectMaxMs = options.reconnectMaxMs ?? DEFAULT_MAX_MS;
     this.random = options.random ?? Math.random;
+    this.probeIntervalMs = options.probeIntervalMs ?? LISTEN_PROBE_MS;
+    this.probeTimeoutMs = options.probeTimeoutMs ?? LISTEN_PROBE_TIMEOUT_MS;
   }
 
   /** 同步读当前通道健康(pump 每循环迭代读一次:降级可即时回落)。 */
@@ -225,6 +248,7 @@ export class SseNotifyService {
       this.stopped = true;
       if (this.retryTimer) clearTimeout(this.retryTimer);
       this.retryTimer = undefined;
+      this.unmountProbeTimer();   // 探针 timer 三挂点之三:stop() 清
       const client = this.active;
       this.active = undefined;
       this.state = { healthy: false, reason: 'listen_down' };   // 计划内关停≠降级,不打降级日志
@@ -325,9 +349,70 @@ export class SseNotifyService {
   private loseClient(reason: SseNotifyReason) {
     const client = this.active;
     this.active = undefined;
+    this.unmountProbeTimer();   // 探针 timer 三挂点之一:loseClient 即解挂(outage 窗零探针;tick 侧 no-op 兜底在 probeOnce)
     if (client) { this.detach(client); try { client.release(new Error('sse_notify_listen_lost')); } catch { /* already released */ } }
     this.degrade(reason);
     this.scheduleReconnect();
+    this.wakeAllWaiters();
+  }
+
+  /** 掉线即唤醒全部在册等待者(跨流全醒):被醒泵循环头即读 health()=false 回落 legacy 2s cadence+fetchMore(lastSeq) 立即补偿拉取。快照遍历防变异(entry=self-removing resolve,同 onNotification P-4 形;回调内零 SQL)。 */
+  private wakeAllWaiters() {
+    for (const set of [...this.router.values()]) for (const entry of [...set]) entry();
+  }
+
+  // ── LISTEN 活性探针（#139 半开盲区闭合·additive）：既有掉线侦测=error/end 两事件,半开 TCP
+  // （NAT 超时/拔线无 FIN/RST）下皆不触发 → state 停留 healthy → pump 恒走 30s 兜底臂。本探针把
+  // 检测窗收敛为进程自持确定性窗（≤interval+timeout）,不改 health() 语义/零触 sse-pump。 ──
+
+  /** 挂周期探针 timer（探针三挂点之二:重连 establish 成功重挂;幂等防双挂;unref 不驻进程）。 */
+  private mountProbeTimer() {
+    if (this.stopped || this.probeTimer) return;
+    this.probeTimer = setTimeout(() => { this.probeTimer = undefined; void this.probeOnce(); }, this.probeIntervalMs);
+    this.probeTimer.unref?.();
+  }
+
+  /** 解挂探针 timer（loseClient 即解挂/stop() 清——三挂点之一/之三）。 */
+  private unmountProbeTimer() {
+    if (this.probeTimer) { clearTimeout(this.probeTimer); this.probeTimer = undefined; }
+  }
+
+  /**
+   * 探针 tick：outage 窗（loseClient 置 active=undefined 至重连 establish 前）一律 no-op 零空引;
+   * 失败/**超时单击即 loseClient('listen_down')**（零 K-连击缓冲,半开窗最小化——degrade+退避重连+
+   * wakeAllWaiters 三链全复用零新语义）。陈旧探针（连接已被顶替/已停）静默吞绝不外溢。
+   */
+  private async probeOnce(): Promise<void> {
+    const client = this.active;
+    if (!client || this.stopped) return;
+    try {
+      await this.probeWithTimeout(client);
+    } catch {
+      if (this.active === client && !this.stopped) this.loseClient('listen_down');
+      return;   // 失败拍:loseClient 已解挂,周期链断;重连 establish 成功重挂
+    }
+    this.mountProbeTimer();   // 成功拍续挂下一周期(timer 单发,周期链靠成功拍自续)
+  }
+
+  /**
+   * `SELECT 1` 探测 race probeTimeoutMs 上界。胜者唯一:先到者 settle,败者（超时后迟到的
+   * resolve/reject）吞没——release 后迟到 rejection 不外溢成 unhandledRejection。
+   * 成功判据=query resolve 即健康,不校验 rowCount（P2-4:防假件 catch-all 返 0 行误降级）。
+   */
+  private probeWithTimeout(client: ListenClient): Promise<unknown> {
+    return new Promise((resolve, reject) => {
+      let settled = false;
+      const timer = setTimeout(() => {
+        if (settled) return;
+        settled = true;
+        reject(new Error('sse_listen_probe_timeout'));
+      }, this.probeTimeoutMs);
+      timer.unref?.();
+      void client.query('SELECT 1').then(
+        (v) => { if (!settled) { settled = true; clearTimeout(timer); resolve(v); } },
+        () => { if (!settled) { settled = true; clearTimeout(timer); reject(new Error('sse_listen_probe_failed')); } },
+      );
+    });
   }
 
   private degrade(reason: SseNotifyReason) {
@@ -386,6 +471,7 @@ export class SseNotifyService {
       this.consecutiveFailures = 0;
       this.lastLoggedReason = undefined;
       for (const r of this.healthyResolvers.splice(0)) r(this.state);
+      this.mountProbeTimer();   // 探针三挂点之二:establish 成功(healthy 翻面)即挂/重挂周期探针
     } catch {
       if (client && this.active === client) this.loseClient('listen_down');
       else if (client) { try { client.release(); } catch { /* already released */ } }

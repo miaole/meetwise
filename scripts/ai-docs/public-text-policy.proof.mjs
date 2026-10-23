@@ -293,21 +293,48 @@ const checks = {
       // SAFEWRITE/QBANK 波后：cap 2152→2160（2026-10-15 协调方 sanction·+8 沿 +8 先例形·
       // 主线 685befed 2151 余 1·cache-observe/qbank-scope-fix/uc003-arm4/g7-env-billing
       // 四刀在飞共享余量）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // N-19 修复刀随刀：cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232
+      // 四先例形·2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶·授权随令）——本臂 fabricated
+      // 数随 cap 再联动同步（语义不变·强度不减）。
+      // MANAGED-FILE-CEILING-2320 随刀：cap 2312→2320（2026-10-20·+8·开工前已扫 2310 余量 2·加上本记录后扫描变成 2311·步进只许 +8·恰达上限仍通过·多一个仍拒绝）——本臂 fabricated 数随 cap 再联动同步（这次数字跟着上限走·语义不变·强度不减）。
+      // MANAGED-FILE-CEILING-2312 随刀：cap 2304→2312（2026-10-20·+8·开工前已扫 2303 余量 1·加上本记录后扫描变成 2304·步进只许 +8·恰达上限仍通过·多一个仍拒绝）——本臂 fabricated 数随 cap 再联动同步（这次数字跟着上限走·语义不变·强度不减）。
+      // MANAGED-FILE-CEILING-2304 随刀：cap 2296→2304（2026-10-19·+8·开工前已扫 2293 余量 3·加上本记录后扫描变成 2294·步进只许 +8·恰达上限仍通过·多一个仍拒绝）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // MANAGED-FILE-CEILING-2296 随刀：cap 2288→2296（2026-10-19 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288
+      // 十一先例形·开工前已扫 2285 余量 3·加上本记录后扫描变成 2286·步进只许 +8）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // MANAGED-FILE-CEILING-2288 随刀：cap 2280→2288（2026-10-19 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280
+      // 十先例形·主线已扫 2280 余量 0·本卷使扫描变成 2281·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2280 随刀：cap 2272→2280（2026-10-19 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256/2264/2272
+      // 九先例形·主线 2270·在飞新卷 3 并线=2273 必超·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2272 随刀：cap 2264→2272（2026-10-19 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256/2264
+      // 八先例形·主线 2261·在飞四支线并线 2265 必超·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2264 随刀：cap 2256→2264（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248/2256
+      // 七先例形·2256 恰等零余量·在飞 deploy:check 修复刀并线必越·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2256 随刀：cap 2248→2256（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240/2248
+      // 六先例形·2248 恰等零余量·在飞五刀并线 2253 超限·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2248 随刀：cap 2240→2248（2026-10-18 协调方 sanction·+8 沿 2208/2216/2224/2232/2240
+      // 五先例形·2240 恰等零余量·在飞四刀并线 2249 超限·授权随令）——本臂 fabricated 数随 cap
+      // 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_184; i += 1) {
+      for (let i = 0; i < 2_328; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_184);
-      // 超限错误码形状断言：第 2185 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2185`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2184.md'] });
+      assert.equal(atCap.scannedFiles, 2_328);
+      // 超限错误码形状断言：第 2329 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2329`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2328.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2185`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2329`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

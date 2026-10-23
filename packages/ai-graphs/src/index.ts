@@ -25,3 +25,5 @@ export {
   type PendingQuestion,
   type SubmittedAnswerRef,
 } from './adaptive-interview/index.ts';
+export { buildSessionSummary, SESSION_SUMMARY_MAX_TURNS, SESSION_QUESTION_MAX_CHARS } from './adaptive-interview/session-summary.ts';
+export type { SessionSummary, SessionTurnDigest } from './adaptive-interview/session-summary.ts';

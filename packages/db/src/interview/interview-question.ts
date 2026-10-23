@@ -33,6 +33,8 @@ export interface AcceptedInterviewAnswer {
   answerHash: string;
   turn: number;
   answer: string;
+  /** 已有转写结果。缺省表示调用方没有给出转写结果。 */
+  asrOutcome?: string;
 }
 
 export type ClaimAnswerResult =
@@ -142,4 +144,100 @@ export async function cancelOpenInterviewQuestion(c: Client, owner: string, inte
       WHERE owner_user_id=$1 AND interview_id=$2 AND status IN ('issued','queued')`,
     [owner, interviewId],
   );
+}
+
+/** 与作答长度上限一致。更长的转写文本无法原样成为这次作答，不暂存。 */
+const ISSUED_TRANSCRIPT_MAX_CHARS = 8000;
+
+/** 只有文本、没有词级时间戳。写卡看到这个值时不把语音质量写成 ok。 */
+export const TEXT_ONLY_ASR_OUTCOME = 'word_timestamps_not_available';
+
+export function issuedAsrTraceKey(interviewId: string, questionId: string): string {
+  return `issued-asr|${interviewId}|${questionId}`;
+}
+
+/**
+ * 已暂存的转写原文能否作为这次作答的转写结果。
+ * 只接受原文本身，或客户端把首尾空白去掉后放进作答框的那一种。
+ * 其余作答（打字、或改过的文本）不返回，避免把一切答案都当成转写成功。
+ */
+export function asrOutcomeForStoredTranscript(stored: string | null | undefined, answer: string): string | undefined {
+  if (typeof stored !== 'string') return undefined;
+  if (stored.length === 0 || stored.length > ISSUED_TRANSCRIPT_MAX_CHARS) return undefined;
+  const trimmed = stored.trim();
+  if (trimmed === '') return undefined;
+  if (answer === stored) return stored;
+  if (trimmed !== stored && answer === trimmed) return stored;
+  return undefined;
+}
+
+/**
+ * 转写成功后只记下原文摘要，以及词级时间戳不可用。
+ * 不保存原文，也不把语音质量写成 ok。题已换发时仍可被随后的作答按摘要对上。
+ */
+export async function rememberIssuedQuestionTranscript(
+  c: Client, owner: string, interviewId: string, questionId: string, text: string,
+): Promise<void> {
+  if (typeof questionId !== 'string' || questionId.length === 0) return;
+  if (typeof text !== 'string' || text.length === 0 || text.length > ISSUED_TRANSCRIPT_MAX_CHARS) return;
+  if (text.trim() === '') return;
+  const key = issuedAsrTraceKey(interviewId, questionId);
+  const output = {
+    transcriptSha256: answerHash(text),
+    trimmedSha256: answerHash(text.trim()),
+    wordTimestamps: 'not_available',
+  };
+  await c.query(
+    'DELETE FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [owner, key],
+  );
+  await c.query(
+    `INSERT INTO ai_invocation_trace(owner_user_id, idempotency_key, output)
+     VALUES ($1,$2,$3::jsonb)`,
+    [owner, key, JSON.stringify(output)],
+  );
+}
+
+/**
+ * 作答入队前取走本题暂存的转写摘要。对得上原文或去掉首尾空白的作答，才标成只有文本。
+ * 对不上的作答不标，避免把打字答案当成转写成功。取走后删除暂存。
+ */
+export async function loadTranscribedAnswerJobPayload(
+  c: Client, owner: string, interviewId: string, body: AcceptedInterviewAnswer, requestId?: string,
+): Promise<AcceptedInterviewAnswer & { requestId?: string }> {
+  const key = issuedAsrTraceKey(interviewId, body.questionId);
+  const locked = await c.query<Record<string, unknown>>(
+    `SELECT output FROM ai_invocation_trace
+      WHERE owner_user_id=$1 AND idempotency_key=$2
+      FOR UPDATE`,
+    [owner, key],
+  );
+  const raw = locked.rows[0]?.['output'];
+  const stored = typeof raw === 'string' ? JSON.parse(raw) as Record<string, unknown> : raw;
+  if (stored && typeof stored === 'object') {
+    await c.query(
+      'DELETE FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, key],
+    );
+  }
+  const record = stored && typeof stored === 'object' ? stored as Record<string, unknown> : undefined;
+  const stamps = record?.['wordTimestamps'];
+  const transcriptSha = record?.['transcriptSha256'];
+  const trimmedSha = record?.['trimmedSha256'];
+  const answerSha = answerHash(body.answer);
+  const asrOutcome = stamps === 'not_available'
+    && (answerSha === transcriptSha || answerSha === trimmedSha)
+    ? TEXT_ONLY_ASR_OUTCOME
+    : undefined;
+  const payload: AcceptedInterviewAnswer & { requestId?: string } = {
+    questionId: body.questionId,
+    stateVersion: body.stateVersion,
+    answerId: body.answerId,
+    answerHash: body.answerHash,
+    turn: body.turn,
+    answer: body.answer,
+  };
+  if (requestId !== undefined) payload.requestId = requestId;
+  if (asrOutcome !== undefined) payload.asrOutcome = asrOutcome;
+  return payload;
 }

@@ -93,12 +93,29 @@
       "source": "scripts/alerts/check-alerts.mjs:382",
       "source_note": "HA-7 R-24：对齐 docker/monitoring/alert.rules.yml:136-143 WorkerDeadLetterBacklog（max(worker_jobs_dead)>10 for 10m·critical→Page 同层）；DLQ 终态行只增不减（零 retention）=已知风险登记 runbook §4·处置归 R-51 生命周期后刀",
       "runbook": "ai-docs/observability/alerting-runbook.md#ev-queue_dead_letter"
+    },
+    {
+      "event": "readyz_privacy_degraded",
+      "matchers": [{ "type": "json", "field": "event", "value": "readyz_privacy_degraded" }],
+      "severity": "Ticket",
+      "source": "docker/compose.prod.yml:394",
+      "source_note": "#157 消费接线刀：privacy-watchdog 探针（编排面零产品码）只读 /readyz/privacy 分域端点，域红每拍登一行（30s·error=unreachable 表 worker 不可达同事件）；HA 拓扑发射点同构 compose.ha.yml privacy-watchdog 覆写（worker-a/worker-b）。告警不拉闸：探针零触 worker healthcheck，privacy 域红≠杀容器≠退流量（main.ts /readyz/privacy fail-open 分域语义）。",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-readyz_privacy_degraded"
+    },
+    {
+      "event": "reservation_lease_renew_failed",
+      "matchers": [{ "type": "json", "field": "event", "value": "reservation_lease_renew_failed" }],
+      "severity": "Ticket",
+      "source": "apps/worker/src/interview-consumer.ts:372",
+      "source_also": ["apps/worker/src/interview-consumer.ts:387"],
+      "source_note": "两发射面=claim 臂(:372·有限短退避尽试仍 throw)∪heartbeat 闭包(:387·30s 天然跨拍重试后仍败)；只挂 throw 臂——false 返回=已终态/重放 benign race 零发射；severity=Ticket 依 REQUEST 裁决：降级在发生(保护退化到对账兜底)但未丢数据(sweep 按 topic 结算或全退+业务收口无静默)。",
+      "runbook": "ai-docs/observability/alerting-runbook.md#ev-reservation_lease_renew_failed"
     }
   ],
   "registered_exclusions": [
     {
       "ref": "apps/worker/src/interview-consumer.ts:225",
-      "note": "reservation lease renew failed（文本形失败日志·性质同 :439 reap failed）= 首批外：零改兼容口径，不列首批 matcher 断言面（HA-5 REQUEST rev2 §1 W1① 登记·排除亦登记不沉默缺席）"
+      "note": "reservation lease renew failed（文本形失败日志·性质同 :439 reap failed）= 首批外：零改兼容口径，不列首批 matcher 断言面（HA-5 REQUEST rev2 §1 W1① 登记·排除亦登记不沉默缺席）【已由 RESERVE-RENEW-FIX 升格为正式事件 reservation_lease_renew_failed（promoted·史录零洗）——史录注记含旧文本原串系升格刻意保留：neg 判别静态 proof 扫描域显式钉 apps/worker/src/interview-consumer.ts 单文件源读，本目录不在其扫描域内（防假红）】"
     },
     {
       "ref": "apps/worker/smoke/cloud-readiness.ts:15",

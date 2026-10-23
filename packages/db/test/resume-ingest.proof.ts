@@ -7,6 +7,7 @@
 import {
   assertIsolatedTestTarget, createPool, asPrincipal,
   createResumeWithBlob, transitionResume, completeIngestion, failIngestion, decryptResumeBlob,
+  beginResumeSoftDelete,
 } from '../src/index.ts';
 import { ingestResume } from '@meetwise/domain';
 
@@ -122,6 +123,21 @@ async function main() {
       await transitionResume(c, 'userF', f1.resumeId, 'uploaded', 'ingesting');
       return completeIngestion(c, 'userF', f1.resumeId, ingestResume(FAIL_RAW));
     }));
+
+  section('同文再传不认已隔离简历');
+  const FENCE_RAW = '隔离后再传应命中仍在使用的那一行，而不是已经隔离的那一行';
+  const fenceOwner = 'userG';
+  const fencedUp = await asPrincipal(pool, fenceOwner, (c) => createResumeWithBlob(c, fenceOwner, FENCE_RAW, 'text'));
+  const idA = fencedUp.resumeId;
+  A('上传得到新行且未去重', !fencedUp.dedup && !!idA);
+  await asPrincipal(pool, fenceOwner, (c) => beginResumeSoftDelete(c, fenceOwner, idA));
+  const fencedRow = await asPrincipal(pool, fenceOwner, (c) => c.query('SELECT content_sha, status FROM resume WHERE id=$1', [idA]));
+  A('隔离后指纹仍不是 NULL 且状态为 erasure_fenced', fencedRow.rows[0]?.content_sha !== null && fencedRow.rows[0]?.content_sha !== undefined && fencedRow.rows[0]?.status === 'erasure_fenced');
+  const again = await asPrincipal(pool, fenceOwner, (c) => createResumeWithBlob(c, fenceOwner, FENCE_RAW, 'text'));
+  const idB = again.resumeId;
+  A('同文再上传得到另一行且未去重', !again.dedup && !!idB && idB !== idA);
+  const third = await asPrincipal(pool, fenceOwner, (c) => createResumeWithBlob(c, fenceOwner, FENCE_RAW, 'text'));
+  A('第三次同文上传去重命中仍在使用的行', third.dedup === true && third.resumeId === idB && third.resumeId !== idA);
 
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   await pool.end();

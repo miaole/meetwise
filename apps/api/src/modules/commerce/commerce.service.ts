@@ -74,25 +74,34 @@ export class CommerceService {
     const offline = p.domain === 'enterprise' && dto?.channel === 'offline';
     const id = newEntityId('ord');
     let orderId: string;
+    let status: string;
+    let channel: string;
     try {
-      orderId = await this.db.asPrincipal(principal, async (c) => {        // 幂等:同 key 同参重试返回原单
+      const placed = await this.db.asPrincipal(principal, async (c) => {        // 幂等:同 key 同参重试返回原单
         // B271 片1:企业商品下单人须 approved recruiter(0155 同谓词·RLS 自身行·403);C 端商品零触。
         if (p.domain === 'enterprise') {
           const gate = await c.query(CommerceService.APPROVED_RECRUITER_SQL);
           if (gate.rowCount !== 1) throw new HttpException({ error: 'recruiter_required' }, HttpStatus.FORBIDDEN);
         }
         const oid = await createOrder(c, principal, { id, productId: p.id, amountCents: p.amountCents, units: p.units, idempotencyKey });
-        // 对公单停 created(channel='offline'·审计①「对公转账订单停 created」):不经 webhook 推进,
-        // 由 admin 录入银行流水+人工确认入账。幂等重放(同 key)重复置 offline 收敛同值。
-        if (offline) await c.query("UPDATE payment_order SET channel='offline' WHERE id=$1 AND status='created'", [oid]);
-        return oid;
+        // 对公单停 created(channel='offline'):不经 webhook 推进,由 admin 确认入账。
+        // 只在仍是 created 时改 channel;没改到行则回读真实 status/channel,不改报 created。
+        if (!offline) return { orderId: oid, status: 'created', channel: 'online' };
+        const upd = await c.query("UPDATE payment_order SET channel='offline' WHERE id=$1 AND status='created'", [oid]);
+        if (upd.rowCount === 1) return { orderId: oid, status: 'created', channel: 'offline' };
+        const row = await getOrder(c, principal, oid);
+        if (!row) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
+        return { orderId: oid, status: row.status, channel: row.channel };
       });
+      orderId = placed.orderId;
+      status = placed.status;
+      channel = placed.channel;
     } catch (e: unknown) {
       if (e instanceof HttpException) throw e;
       if (errCode(e) === 'idempotency_key_conflict') throw new HttpException({ error: 'idempotency_key_conflict' }, HttpStatus.CONFLICT);   // 同 key 换商品 → 409(不静默吞)
       throw e;
     }
-    return { orderId, amountCents: p.amountCents, status: 'created', channel: offline ? 'offline' : 'online' };
+    return { orderId, amountCents: p.amountCents, status, channel };
   }
 
   /**

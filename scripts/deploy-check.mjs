@@ -11,6 +11,8 @@ const monitoringCompose = readFileSync('docker/compose.monitoring.yml', 'utf8');
 const prometheus = readFileSync('docker/monitoring/prometheus.yml', 'utf8');
 const prometheusWithoutComments = prometheus.replace(/^\s*#.*$/gm, '');
 const dockerfile = readFileSync('Dockerfile', 'utf8');
+// COPY 判词先剔注释行（仿 :12 prometheusWithoutComments 先例）：防注释形假绿。
+const dockerfileWithoutComments = dockerfile.replace(/^\s*#.*$/gm, '');
 const apiPkg = JSON.parse(readFileSync('apps/api/package.json', 'utf8'));
 const workerPkg = JSON.parse(readFileSync('apps/worker/package.json', 'utf8'));
 const dbPkg = JSON.parse(readFileSync('packages/db/package.json', 'utf8'));
@@ -24,16 +26,21 @@ must(/working_dir:\s*\/app\/apps\/api\s+command:\s*\["node",\s*"--import",\s*"@s
 must(/working_dir:\s*\/app\/apps\/worker\s+command:\s*\["node",\s*"--import",\s*"@swc-node\/register\/esm-register",\s*"src\/main\.ts"\]/s.test(compose), 'compose worker 必须直接 Node + app-local swc entrypoint');
 must(/working_dir:\s*\/app\/packages\/db\s+command:\s*\["sh",\s*"-c",\s*"node node_modules\/tsx\/dist\/cli\.mjs src\/migrate-cli\.ts && cd \/app\/apps\/worker && node --import @swc-node\/register\/esm-register src\/cost-configure\.ts"\]/s.test(compose), 'compose migrate 必须直接 tsx CLI + worker cost entrypoint');
 must(!/command:\s*\[[^\n]*pnpm/.test(compose), '生产 compose 运行命令不得调用 pnpm/Corepack');
-must(/COPY --from=deps \/app\/node_modules \.\/node_modules/.test(dockerfile)
-  && /COPY --from=deps \/app\/apps \.\/apps/.test(dockerfile)
-  && /COPY --from=deps \/app\/packages \.\/packages/.test(dockerfile)
-  && /COPY \. \./.test(dockerfile), 'runtime 必须携带源码与 workspace 依赖链接');
+must(/COPY --from=deps \/app\/node_modules \.\/node_modules/.test(dockerfileWithoutComments)
+  && /COPY --from=deps \/app\/apps \.\/apps/.test(dockerfileWithoutComments)
+  && /COPY --from=deps \/app\/packages \.\/packages/.test(dockerfileWithoutComments)
+  && /^[ \t]*COPY pnpm-workspace\.yaml package\.json \./m.test(dockerfileWithoutComments)
+  && /^[ \t]*COPY packages \.\/packages/m.test(dockerfileWithoutComments)
+  && /^[ \t]*COPY apps\/api \.\/apps\/api/m.test(dockerfileWithoutComments)
+  && /^[ \t]*COPY apps\/worker \.\/apps\/worker/m.test(dockerfileWithoutComments), 'runtime 必须携带源码与 workspace 依赖链接');
+// 宽 COPY 禁令牙：禁 `COPY . .` 回归，镜像 context 必须走精确清单。
+must(!/^COPY \. \.[ \t]*$/m.test(dockerfile), '禁止宽 COPY 回归——镜像 context 必须走精确清单');
 for (const entrypoint of ['apps/api/src/main.ts', 'apps/worker/src/main.ts', 'apps/worker/src/cost-configure.ts', 'packages/db/src/migrate-cli.ts']) {
   must(existsSync(entrypoint), `backend image source entrypoint 缺失:${entrypoint}`);
 }
-must(Boolean(apiPkg.devDependencies?.['@swc-node/register'])
-  && Boolean(workerPkg.devDependencies?.['@swc-node/register'])
-  && Boolean(dbPkg.devDependencies?.tsx), 'workspace-local direct entrypoint 依赖未在 package manifest 声明');
+must(Boolean(apiPkg.dependencies?.['@swc-node/register'])
+  && Boolean(workerPkg.dependencies?.['@swc-node/register'])
+  && Boolean(dbPkg.dependencies?.tsx), 'workspace-local direct entrypoint 依赖未在 package manifest 声明');
 const runtimeDockerfile = dockerfile.slice(dockerfile.indexOf(' AS runtime'));
 must(!/RUN corepack enable/.test(runtimeDockerfile), 'runtime stage 不得启用 Corepack');
 must(/WORKDIR \/app\/apps\/api[\s\S]*CMD \["node","--import","@swc-node\/register\/esm-register","src\/main\.ts"\]/.test(runtimeDockerfile), 'Dockerfile 默认 API 必须直接 Node + swc entrypoint');

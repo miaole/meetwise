@@ -78,6 +78,8 @@ export const METRIC = {
   ragRetrievalTotal: 'rag_retrieval_total',
   ragRetrievalLatencyMs: 'rag_retrieval_latency_ms',
   ragRetrievalCandidates: 'rag_retrieval_candidates',
+  // 检索裁决动作。label 只有 action，值只来自下面五个字面量。
+  ragRetrievalActionTotal: 'rag_retrieval_action_total',
   ragCacheTotal: 'rag_cache_total',
   ragRedisCommandLatencyMs: 'rag_redis_command_latency_ms',
   ragCacheDependencyFailures: 'rag_cache_dependency_failures_total',
@@ -107,6 +109,9 @@ export const METRIC = {
   modelInvocationUnknownBacklog: 'model_invocation_unknown_backlog',
   // UC-028 fail-open(NHP-028-FAULT-01):ai_invocation_trace 写失败(fail-open 旁路)的结构化观测计数。
   aiTracePersistFailures: 'ai_trace_persist_failures_total',
+  // UC-028 丢失率分母:trace 持久化尝试总数(成功+失败都过 persistTraceBestEffort 入口计一次);
+  // 与上行分子配对后丢失率=failures/attempts(PromQL 侧除法,零新 gauge)。
+  aiTracePersistAttempts: 'ai_trace_persist_attempts_total',
   langfuseTracingState: 'langfuse_tracing_state',
   langfuseExportFailures: 'langfuse_export_failures_total',
   // AG-COST1 #48 观测(只观测不改计费):cached prompt token 计数 + 缓存字段三态在场性。
@@ -119,7 +124,27 @@ export const METRIC = {
   // 单一真源)∪ '(unregistered)'/'none' 固定占位——绝不透传调用方字符串/自由字符串进标签(emit 点
   // 在 invoke 入口,标签只经注册表派生;新序列首 emit 自建,基线缺失不丢数据只迟画图,沿 AG-COST1 形)。
   modelInvocationPromptVersionTotal: 'model_invocation_prompt_version_total',
+  // AG-15 卡死检测（只观测非修复·issues-final :213）：thread 停在非 interrupt/非 END 形状被重复观测
+  // （同名裸节点跨两次 runGraph 边界观测=跨一个完整 job 投递周期仍停留）计数。零 label（低基数纪律）。
+  // 稳态=0，>0 即有 thread 卡在中间节点——修复面归后继刀，本指标只承载「可见性」（AG-05 盲区消解半）。
+  graphRunStuckObserved: 'graph_run_stuck_observed_total',
+  // UC-028 A2 对账回补（trace 写 fail-open 丢失面的 recon 承接）：backfilled=实际回补插入的
+  // trace 行数（counter·零 label）；missing=回补落后水位（gauge·语义=差集 owner 计数，与
+  // owner-only 枚举缝对齐）。missing 稳态 0，>0=回补落后；零 label（低基数纪律），读点在
+  // recon tick（30s 一拍）·owner loop 后（0203 同位）；沿 jobsQueued 族「gauge 是全局绝对值：
+  // 多 worker 各自查同一 DB 得同值，告警侧 max() 去重」语义。
+  aiTraceReconBackfilled: 'ai_trace_recon_backfilled_total',
+  aiTraceReconMissing: 'ai_trace_recon_missing',
 } as const;
+
+// 闭合裁决。命中才计数，且标签取自字面量本身，不采用调用方原文（reason 不得入标签）。
+const RAG_RETRIEVAL_ACTIONS = ['use_local', 'augment_web', 'fallback_web', 'refuse', 'deny_external'] as const;
+
+export function recordRagRetrievalAction(action: string, metrics: Metrics = getMetrics()): void {
+  const closed = RAG_RETRIEVAL_ACTIONS.find((candidate) => candidate === action);
+  if (!closed) return;
+  metrics.inc(METRIC.ragRetrievalActionTotal, { action: closed });
+}
 
 /**
  * 预注册基线序列为 0:让 Prometheus 一开机即有序列(0 值也可评估/画图),避免"从未 emit=无序列=告警无数据"。
@@ -140,6 +165,7 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   ]) {
     m.inc(METRIC.ragRetrievalTotal, { outcome, mode: 'track_local' }, 0);
   }
+  for (const action of RAG_RETRIEVAL_ACTIONS) m.inc(METRIC.ragRetrievalActionTotal, { action }, 0);
   for (const cacheStatus of ['hit', 'miss', 'none', 'unavailable', 'invalid']) m.inc(METRIC.ragCacheTotal, { status: cacheStatus }, 0);
   for (const operation of ['get', 'lock', 'renew', 'publish', 'release']) {
     m.observe(METRIC.ragRedisCommandLatencyMs, 0, { operation });
@@ -160,6 +186,10 @@ export function registerBaselineMetrics(m: Metrics = getMetrics()): void {
   m.setGauge(METRIC.modelCostBudgetRemainingRatio, 0);
   m.setGauge(METRIC.modelCostUnknownReservations, 0);
   m.inc(METRIC.aiTracePersistFailures, undefined, 0);
+  m.inc(METRIC.graphRunStuckObserved, undefined, 0);
+  m.inc(METRIC.aiTracePersistAttempts, undefined, 0);
+  m.inc(METRIC.aiTraceReconBackfilled, undefined, 0);
+  m.setGauge(METRIC.aiTraceReconMissing, 0);
   for (const result of ['terminalized', 'enumeration_failed', 'owner_failed', 'backlog_failed'])
     m.inc(METRIC.modelInvocationReconcileInvocations, { result }, 0);
   m.inc(METRIC.modelInvocationReconcileFrozenCosts, undefined, 0);

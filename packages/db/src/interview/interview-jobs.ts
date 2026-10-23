@@ -18,6 +18,11 @@ export const MAX_INTERVIEW_JOB_ATTEMPTS = 5;
 export const INTERVIEW_RETRY_BACKOFF_CAP_SECONDS = 300;
 /** Default per-owner unexpired running cap. Production dispatch always passes this explicitly. */
 export const DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT = 1;
+/** 生产侧入队背压闸：per-owner queued 深度上限 N=3（保守缺省·产品可后调）。enqueueInterviewJob
+ *  INSERT 前同事务 count(status='queued' per-owner)≥N → 拒具名错 interview_queue_saturated
+ *  （api begin/turn catch 映射 429）。仅 queued 计数（running/done/failed 不占深度）；
+ *  幂等重放（任意状态既有键）预查豁免不误拒。 */
+export const MAX_INTERVIEW_PER_OWNER_QUEUED = 3;
 
 export type InterviewClaimBudget = {
   perOwnerInflight: number;
@@ -61,6 +66,29 @@ export async function enqueueInterviewJob(
   const identity = plaintextAnswerIdentity(payload);
   if (identity) {
     await assertInterviewAnswerLegacyPlaintextAllowed(c, interviewId, identity.questionId, identity.stateVersion);
+  }
+  // 入队背压闸（同事务·INSERT 前）：per-owner queued 深度满 → 拒具名错 interview_queue_saturated。
+  // 收紧形：先取 per-owner advisory xact lock 再 count——两并发同拍过闸的 N+1 软超窗被串行化收紧
+  // 为硬上限；键串=新空间 meetwise.interview_enqueue.owner:*，禁复用 claim 专用键
+  // meetwise.interview_dispatch.owner:*（同键=入队与 dispatch 互锁串行）。
+  // 预查形豁免（完备形）：幂等键 (owner,interview,kind,seq) 已存在任意状态行（queued/running/
+  // done/failed）即跳闸——replay-after-done 是设计内流程，队列饱和时重放仍须走下方 ON CONFLICT
+  // 幂等 readback 返既有 jobId，不得被深度闸误拒；miss→过闸→INSERT，无次序死窗。
+  // 维度与阈值：count 走 ix_ijob_claim(owner_user_id,status,…)（0001）前缀，仅 queued 计数；
+  // N=MAX_INTERVIEW_PER_OWNER_QUEUED 保守缺省（产品可后调）。
+  await c.query('SELECT pg_advisory_xact_lock(hashtextextended($1, 0))', [`meetwise.interview_enqueue.owner:${owner}`]);
+  const replayKey = await c.query(
+    'SELECT 1 FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND kind=$3 AND seq=$4 LIMIT 1',
+    [owner, interviewId, kind, seq],
+  );
+  if (replayKey.rowCount === 0) {
+    const depth = await c.query<{ n: number }>(
+      'SELECT count(*)::int AS n FROM interview_job WHERE owner_user_id=$1 AND status=$2',
+      [owner, 'queued'],
+    );
+    if (Number(depth.rows[0]?.n ?? 0) >= MAX_INTERVIEW_PER_OWNER_QUEUED) {
+      throw Object.assign(new Error('interview_queue_saturated'), { code: 'interview_queue_saturated' });
+    }
   }
   let r;
   try {
@@ -234,23 +262,40 @@ export async function markJobDone(c: Client, owner: string, jobId: string, lease
   // An answer is needed only until graph evaluation and business projection
   // have both committed.  A completed durable job keeps its identity/trace but
   // never keeps the plaintext answer for later queue inspection or replay.
-  const r = await c.query("UPDATE interview_job SET status='done', lease_owner=NULL, payload=payload-'answer', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner]);
+  const r = await c.query("UPDATE interview_job SET status='done', lease_owner=NULL, payload=payload-'answer'-'asrOutcome', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner]);
   return r.rowCount === 1;
 }
 export async function markJobFailed(c: Client, owner: string, jobId: string, leaseOwner: string, error: string): Promise<boolean> {
-  const r = await c.query("UPDATE interview_job SET status='failed', last_error=$4, lease_owner=NULL, payload=payload-'answer', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner, error.slice(0, 500)]);
+  const r = await c.query("UPDATE interview_job SET status='failed', last_error=$4, lease_owner=NULL, payload=payload-'answer'-'asrOutcome', version=version+1 WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3", [jobId, owner, leaseOwner, error.slice(0, 500)]);
   return r.rowCount === 1;
+}
+
+/** 放弃时只把仍 queued 的作业写成 failed。running、done、已经 failed 的行不改。没有 queued 时为零行。 */
+export async function failQueuedInterviewJobsOnAbandon(c: Client, owner: string, interviewId: string): Promise<void> {
+  await c.query(
+    `UPDATE interview_job
+        SET status='failed', last_error='abandoned', lease_owner=NULL, lease_expires_at=NULL,
+            payload=payload-'answer'-'asrOutcome', version=version+1
+      WHERE owner_user_id=$1 AND interview_id=$2 AND status='queued'`,
+    [owner, interviewId],
+  );
 }
 
 /** 未取得 graph fence 时归还 job；仅当前 lease owner 可操作，不能把别的 worker 的 job 偷回 queued。
  *  AG-04 刀C（#4·修法②）：requeue 同拍写指数退避 next_attempt_at=now()+2^attempts 秒封顶 300
  *  （report.ts:53 范本逐字形·attempts 取本 UPDATE 前现值=claim 自增后现值,与范本同语义）；
- *  时闸在 claim queued 臂（本函数即时归还,重领闸必须落 claim 谓词——REQUEST §1-修法②）。 */
+ *  时闸在 claim queued 臂（本函数即时归还,重领闸必须落 claim 谓词——REQUEST §1-修法②）。
+ *  面试 status 恰好是 failed 时改为 failed、last_error=abandoned，不写 next_attempt_at；
+ *  读不到面试或 status 不是 failed 时仍回 queued，并写退避，last_error 保持原值。 */
 export async function requeueInterviewJob(c: Client, owner: string, jobId: string, leaseOwner: string): Promise<boolean> {
   const r = await c.query(
-    `UPDATE interview_job SET status='queued', lease_owner=NULL, lease_expires_at=NULL, version=version+1,
-            next_attempt_at=now()+make_interval(secs=>least(power(2,attempts)::int,$4))
-       WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
+    `UPDATE interview_job
+        SET status=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'failed' ELSE 'queued' END,
+            last_error=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'abandoned' ELSE last_error END,
+            lease_owner=NULL, lease_expires_at=NULL, version=version+1,
+            next_attempt_at=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN next_attempt_at
+                                 ELSE now()+make_interval(secs=>least(power(2,attempts)::int,$4)) END
+      WHERE id=$1 AND owner_user_id=$2 AND status='running' AND lease_owner=$3`,
     [jobId, owner, leaseOwner, INTERVIEW_RETRY_BACKOFF_CAP_SECONDS],
   );
   return r.rowCount === 1;
@@ -271,7 +316,10 @@ export async function renewInterviewJobLease(
 
 /**
  * Reaper/对账（周期后台跑,北极星:无静默死胡同 + 无额度泄漏）。worker 崩在跑 → job 卡 running 且租约过期：
- *  - 未超上限 → requeue 回 queued(lease NULL,可被重领;attempts 由下次 claim 再自增,故此处不增,杜绝双增早夭);
+ *  - 未超上限且面试 status 恰好 failed → 作业 failed、last_error=abandoned（不回 queued）；
+ *    读不到面试或 status 不是 failed → 回 queued(lease NULL,可被重领;attempts 不在此处增,杜绝双增早夭)。
+ *    两种都计入 requeued，不进入 failed / failedInterviews。
+ *  - 未达上限的 queued 且面试 status 恰好 failed → 另条 UPDATE 写成 failed、abandoned，不进返回计数、不记日志。
  *  - 已达上限(poison-pill/反复崩) → 终结为 failed,返回其 interviewId 让调用方发 interview_unavailable 终态事件 + 退预留额度。
  *  - AG-04 刀C（EG-A2 结构闸·裁决项④②形）：queued 且 attempts≥MAX 的滞留行（存量/legacy——修法③调用点
  *    判限已堵新入面,本扫=唯一终态化面;claim 谓词单选形无终态路径,rev2 E2 披露）→ 终态 failed+返回
@@ -285,9 +333,13 @@ export async function sweepStuckInterviewJobs(
     `UPDATE interview_job SET status='failed', last_error='reaped:worker_died', lease_owner=NULL, version=version+1
        WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts >= $2
      RETURNING interview_id`, [owner, maxAttempts]);
+  // 面试行缺失时子查询为 NULL，仍回到 queued；不用内连接把这种行滤掉。
   const rq = await c.query(
-    `UPDATE interview_job SET status='queued', lease_owner=NULL, version=version+1
-       WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
+    `UPDATE interview_job
+        SET status=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'failed' ELSE 'queued' END,
+            last_error=CASE WHEN (SELECT i.status FROM interview i WHERE i.id=interview_job.interview_id AND i.owner_user_id=interview_job.owner_user_id)='failed' THEN 'abandoned' ELSE last_error END,
+            lease_owner=NULL, lease_expires_at=NULL, version=version+1
+      WHERE owner_user_id=$1 AND status='running' AND lease_expires_at < now() AND attempts < $2`,
     [owner, maxAttempts]);
   if (rq.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `requeued:${rq.rowCount}`, prev_lease_expired: true }));
   const ex = await c.query(
@@ -295,6 +347,14 @@ export async function sweepStuckInterviewJobs(
        WHERE owner_user_id=$1 AND status='queued' AND attempts >= $2
      RETURNING interview_id`, [owner, maxAttempts]);
   if (ex.rowCount) console.warn(JSON.stringify({ event: 'reaper_takeover', kind: 'interview', job_ref: `retry_exhausted:${ex.rowCount}`, prev_lease_expired: false }));
+  await c.query(
+    `UPDATE interview_job
+        SET status='failed', last_error='abandoned', lease_owner=NULL, lease_expires_at=NULL, version=version+1
+      WHERE owner_user_id=$1 AND status='queued' AND attempts < $2
+        AND (SELECT i.status FROM interview i
+              WHERE i.id=interview_job.interview_id
+                AND i.owner_user_id=interview_job.owner_user_id)='failed'`,
+    [owner, maxAttempts]);
   return {
     requeued: rq.rowCount ?? 0,
     failed: dead.rowCount ?? 0,
@@ -311,7 +371,7 @@ export const INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS = 86_400;
  * 本函数独立于收割路径(新旁路)。
  * 目标域=「重队列终态不可达」行:sweep 只处理 running(翻 queued/failed),**queued 行收割永不触达**——
  * worker 停机期 queued 滞留(及 lease 过期超 TTL 仍 running 的兜底臂)明文 answer 无限期滞留即本函数清理面。
- * 纪律:只清 `payload-'answer'`(D6 同款:身份/追踪保留·明文不留);活跃 running(租约未过期或仅刚过期
+ * 纪律:清 `payload-'answer'-'asrOutcome'`(D6 同款:身份/追踪保留·明文不留);活跃 running(租约未过期或仅刚过期
  * 未超 TTL)零触;非超龄 queued 零触;状态/额度语义零改(清后若再被 claim,消费侧按缺 payload 走既有
  * markJobFailed → interview_unavailable 终态=无静默死胡同)。
  * 假时钟可证:created_at/lease_expires_at 直接回拨(沿 reaper prove 先例),无需等待真实 TTL。
@@ -320,8 +380,8 @@ export async function purgeStaleInterviewJobPayloads(
   c: Client, owner: string, ttlSeconds = INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
 ): Promise<{ purged: number }> {
   const r = await c.query(
-    `UPDATE interview_job SET payload=payload-'answer', version=version+1
-       WHERE owner_user_id=$1 AND payload ? 'answer'
+    `UPDATE interview_job SET payload=payload-'answer'-'asrOutcome', version=version+1
+       WHERE owner_user_id=$1 AND (payload ? 'answer' OR payload ? 'asrOutcome')
          AND (
            (status='queued' AND created_at < now() - ($2||' seconds')::interval)
            OR (status='running' AND lease_expires_at < now() - ($2||' seconds')::interval)

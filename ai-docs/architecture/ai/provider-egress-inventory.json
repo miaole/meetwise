@@ -155,6 +155,10 @@
           "class": "local-adapter-test"
         },
         {
+          "source": "apps/worker/test/session-summary.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
           "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
           "class": "local-adapter-test"
         },
@@ -168,6 +172,14 @@
         },
         {
           "source": "packages/ai-runtime/test/model-op02-endpoint-partition.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/ag17-schema-span.proof.ts",
+          "class": "local-adapter-test"
+        },
+        {
+          "source": "packages/ai-runtime/test/ag18-sampling-temperature.proof.ts",
           "class": "local-adapter-test"
         }
       ]
@@ -1770,6 +1782,11 @@
     },
     {
       "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/smoke/scoring-eval.ts",
+      "class": "manual-live-smoke"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-dispatch.proof.ts",
       "class": "test-fixture"
     },
@@ -1786,6 +1803,11 @@
     {
       "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/g7-freetier-reprove-client.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "packages/ai-runtime/test/invoke-model-delta.proof.ts",
       "class": "test-fixture"
     },
     {
@@ -1925,6 +1947,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/session-summary.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
       "class": "test-fixture"
     },
@@ -2010,6 +2037,11 @@
     },
     {
       "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "apps/worker/test/session-summary.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_ENDPOINT_PROFILE",
       "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
       "class": "test-isolation"
     },
@@ -2035,6 +2067,11 @@
     },
     {
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "apps/worker/test/session-summary.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-client-stream.proof.ts",
       "class": "test-isolation"
     },
@@ -2042,6 +2079,16 @@
       "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
       "source": "packages/ai-runtime/test/model-usage-cache-observe.proof.ts",
       "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag17-schema-span.proof.ts",
+      "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_TEST_TRANSPORT_OVERRIDES",
+      "source": "packages/ai-runtime/test/ag18-sampling-temperature.proof.ts",
+      "class": "test-fixture"
     }
   ],
   "deploymentReferences": [

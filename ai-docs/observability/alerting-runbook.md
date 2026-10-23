@@ -36,7 +36,7 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 - **scan-window 边界（诚实限度）**：脚本只扫窗口内日志——窗外日志若被 docker 日志轮转清掉即扫不到；
   EXIT=0 ≠ 「窗口外无告警」，仅 = 「窗口内可证干净」。
 
-## 3. 事件处置手册（目录十二事件 · 每条 severity + 响应动作 + 下钻锚）
+## 3. 事件处置手册（目录十四事件 · 每条 severity + 响应动作 + 下钻锚）
 
 <a id="ev-db_pool_error"></a>
 ### 3.1 db_pool_error —— Ticket
@@ -141,6 +141,24 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 - **响应（Page·立即）**：定位积压队列（下钻 SQL 逐队列死信谓词对照）；report 队列=quarantined 转人工，可用手动重排（`packages/db/src/report/report.ts:61` requeueFailedReport·重置 attempts）单点恢复；其余队列=failed 终态需按 last_error 修因。**已知风险**：四队列终态行零 retention（只进不出）→ 死信深度单调累积，`>10` 长期看将常响假噪——登记见 §4，处置归 R-51 生命周期后刀（本手册不修）。
 - **下钻**：`0042_runtime_observability_gateway.sql`（死信谓词逐队列不同：report=`quarantined`·其余=`'failed'`，main.ts:209-212 头注同口径）→ 终态定格码锚：interview=`apps/worker/src/interview-consumer.ts:182`（markJobFailed）/ quiz=`apps/worker/src/quiz-consumer.ts:52` / diagnosis=`apps/worker/src/diagnosis-consumer.ts:51` / report 隔离=`apps/worker/src/report-worker.ts:184`（sweepReportsOnce）。
 
+<a id="ev-readyz_privacy_degraded"></a>
+### 3.13 readyz_privacy_degraded —— Ticket（#157 消费接线刀）
+
+- **matcher**：JSON `{"event":"readyz_privacy_degraded"}`（发射点 `docker/compose.prod.yml` privacy-watchdog 探针·每 30s 一拍只读 `GET /readyz/privacy`；`error:"unreachable"` 表 worker 不可达，同事件同处置。HA 拓扑发射点=`compose.ha.yml` privacy-watchdog 覆写，探 worker-a/worker-b 两副本）。
+- **含义**：privacy 分域后台 sweep（checkpoint/vector-plane 擦除 loop）连续 3 拍失败翻红（`drain-loop.ts` cf≥3），或分域端点不可达。WSS 分域 ready 后该域已**不拉 worker 流量闸**（fail-open 沿 rag 形制），域红只经本事件观测收口——擦除滞后=隐私数据留存超授权窗，合规面工单。
+- **响应（Ticket·工作时间）**：查 privacy 专用池连通（`PRIVACY_WORKER_DATABASE_URL` 装配缺失时 loop 不起=端点恒绿·本事件不触）；单发=网络抖动；持续红=擦除 loop 卡死，按 `checkpoint privacy erasure target failed` / `drain tick error` 日志行下钻两 loop；worker 不可达先核 `up{job="meetwise-worker"}` 面（§2 指标面盲区注记）。
+- **告警不拉闸**：探针零触 worker healthcheck（`compose.prod.yml` worker 块 `/readyz/worker` fail-closed 原样）——privacy 域红≠杀容器≠退流量；本探针自身挂死由其 healthcheck（心跳文件 120s 窗）在 `compose ps` 面暴露，restart 兜底。
+- **白名单注记**：部署窗/重启窗探针红行系瞬时（90s 起步静默窗已滤起步期；worker 宕>90s 的持续红属真信号），按 `scripts/alerts/alert-whitelist.json` 到期形登记，不改码面。
+
+<a id="ev-reservation_lease_renew_failed"></a>
+### 3.14 reservation_lease_renew_failed —— Ticket（RESERVE-RENEW-FIX 升格刀）
+
+- **matcher**：JSON `{"event":"reservation_lease_renew_failed"}`（发射点 `apps/worker/src/interview-consumer.ts:372` claim 臂 ∪ `:387` heartbeat 闭包，两相同名同事件；只挂 throw 臂——`false` 返回=已 confirmed/released/重放 benign race 零发射，重放噪音面天然排除）。
+- **含义**：预留租约续约有限短退避尽试仍失败——活会话「不被对账误扫」保护退化到 commerce reconcile 兜底（sweep 谓词仅 `lease_expires_at < now()`，无最近续租/心跳存活性复核）。单发=瞬时抖动（claim 臂已 [250,500]ms 尽试+heartbeat 30s 天然跨拍重试）；**sustained（失败持续 ≥1800s 预留租约窗）= 误扫前兆**：活会话预留将被 sweep 回收，收尾 confirm 撞 `already_released` 大声失败（绝不静默丢，但用户面交付失败）。
+- **响应（Ticket·工作时间）**：先查 `phase` 分布——`claim` 独发=领取路径 PG/网络抖动（该 job 拍内弃拍，对账兜底语义零变）；`heartbeat` 持续=会话进行中长时失败更危险（若 job 租约面同拍失败，心跳自停后 reaper 接管，本事件是唯一可见面）；对照 PG 连接族 `db_pool_error`（§3.1）时间线+容器重启记录（`docker ps`/compose 事件）区分连接池枯竭/网络分区/实例重启；疑似误扫已发生时沿 sweep 谓词（`commerce.ts` :583-584 非面试臂直置 released·:601-630 mock_interview 臂结算或释放）与 `interview_unavailable` 收口事件链核查。
+- **下钻**：`apps/worker/src/interview-consumer.ts:372`/`:387`（两发射面·`error_code` 带 PG SQLSTATE/标签形码）→ `packages/db/src/commerce/commerce.ts:557-565`（`renewReservationLease` 单语句幂等 UPDATE·预留租约 `DEFAULT_LEASE_SECONDS`=1800s）→ `apps/worker/src/commerce-reconcile.ts:46-87`（swept→`abandonInterviewAndRelease`+补发 `interview_unavailable`·无静默死胡同）。
+
+
 ## 4. 与 Prometheus 栈的分工声明 + 已知风险登记
 
 - **分工**：指标面（`docker/monitoring/alert.rules.yml` 25 条 + `prometheus.yml` 抓 api:8787/worker:9091）待 S15 常驻化后启用；
@@ -165,5 +183,6 @@ node scripts/alerts/check-alerts.mjs --report        # 评估降级输出·恒 E
 ## 6. 首批外登记（排除亦登记·不沉默缺席）
 
 - `apps/worker/src/interview-consumer.ts:225`（`reservation lease renew failed`·文本形失败日志，性质同 :439 `interview reap failed`）= **首批外**：零改兼容口径，不列首批 matcher 断言面（REQUEST rev2 §1 W1①）。
+  【升格注记（RESERVE-RENEW-FIX·升格后本行史录保留）】上行文本形发射点已替换为正式事件 `reservation_lease_renew_failed`（§3.14·目录十四事件·promoted·史录零洗）——claim/heartbeat 两相结构化 JSON+claim 臂有限短退避尽试；本节与目录史录注记含旧文本原串系刻意保留：neg 判别静态 proof 扫描域显式钉 `apps/worker/src/interview-consumer.ts` 单文件源读，本手册不在其扫描域内（防假红）。
 - `apps/worker/smoke/cloud-readiness.ts:15`（`cloud_connectivity_receipt`·同族 `apps/worker/smoke/cloud-test-serial.ts:12` `cloud_test_serial_receipt`）= **非事件**（烟测工具收据形）——不入目录不入事件普查（REQUEST rev2 §1 W1①）。
 - 【HA-7 登记】四队列 DLQ 终态行零 retention（`worker_jobs_dead` 只增不减）= **已知风险首批外**——不实现清理，登记见 §4 / §3.12；处置归 R-51 生命周期后刀（HA-7 REQUEST §2.4 明确越界即废）。

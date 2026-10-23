@@ -33,9 +33,11 @@ import { runInterviewConsumer } from './interview-consumer.ts';
 import { readInterviewDispatchBudget } from './interview-dispatch-fairness.ts';
 import { runCommerceReconciler } from './commerce-reconcile.ts';
 import { runModelInvocationReconciler, resolveModelInvocationReconcileConfig } from './model-invocation-reconcile.ts';
+import { runTraceReconReconciler, resolveTraceReconConfig } from './trace-recon.ts';
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
 import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
 import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
+import { runCommerceOutboxRetention, resolveCommerceOutboxRetentionConfig } from './commerce-outbox-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -239,7 +241,7 @@ export async function refreshJobGauges(pool: ReturnType<typeof createPool>): Pro
  * worker 无 HTTP 业务面,故自挂一个极简 http server 供 Prometheus 抓取;渲染只出已注册指标(counter/gauge,标签仅 dep/queue)——
  * **不含任何 owner/PII/原文**,scrape 安全。`up{job="meetwise-worker"}` 由 Prometheus 抓取合成 = worker 存活数据源。
  */
-export function startMetricsExposition(options: { ragReady?: () => boolean; workerReady?: () => boolean } = {}): Server {
+export function startMetricsExposition(options: { ragReady?: () => boolean; workerReady?: () => boolean; privacyReady?: () => boolean } = {}): Server {
   const port = Number(process.env.WORKER_METRICS_PORT || 9091);
   // Metrics carry queue/cost/dependency posture. Bind loopback by default; a
   // deployment must consciously opt in to a private scrape address.
@@ -263,6 +265,15 @@ export function startMetricsExposition(options: { ragReady?: () => boolean; work
       // 503 unready，绝不能默认可接流量。
       const ready = options.workerReady?.() ?? false;
       res.writeHead(ready ? 200 : 503, { 'content-type': 'text/plain' }); res.end(ready ? 'ready\n' : 'unready\n');
+    } else if (req.method === 'GET' && path === '/readyz/privacy') {
+      // #157 分域就绪：privacy 域后台 sweep（checkpoint/vector-plane 擦除 loop）系 best-effort
+      // 观测面非流量闸——缺省 fail-open 沿 ragReady 形制（`?? true`），与 /readyz/worker
+      // fail-closed 语义分层；域红经本端点观测收口，不再拉闸整 worker 流量闸。
+      // 零消费方部署先行（编排面/LB 接线另案不入本刀）。
+      const ready = options.privacyReady?.() ?? true;
+      // 响应头走 setHeader（'content-type' 对象字面量键属既有告警帧存量债·新增行零 warning 纪律）。
+      res.setHeader('content-type', 'text/plain');
+      res.writeHead(ready ? 200 : 503); res.end(ready ? 'ready\n' : 'degraded\n');
     } else {
       res.writeHead(404); res.end();
     }
@@ -526,7 +537,8 @@ async function bootstrap() {
   // （principal/模型/query HMAC/k/语料 epoch；不落 query/简历/答案）+ PostgreSQL 权威 epoch/ANN/RLS/账本。
   // 检索 miss 可走 CRAG Web + LLM 出题；native embed/rerank miss → generation_unavailable，不发明 stem。
   const rawEmbedder = dashscopeEmbedder();
-  const embedder = cachingEmbedder(rawEmbedder, inMemoryEmbeddingStore());
+  const embeddingStore = inMemoryEmbeddingStore();
+  const embedder = cachingEmbedder(rawEmbedder, embeddingStore);
   if (ragCost.mode === 'enforce' && rawEmbedder.id !== ragCost.model) {
     throw new Error(`rag_cost_billing_model_mismatch:${rawEmbedder.id}`);
   }
@@ -556,7 +568,7 @@ async function bootstrap() {
       embedderVersion: `${embedder.id}:dim=${embedder.dim}:recipe=${qbankRecipe.id}:retrieval=${retrievalMode}:v1`,
       k: 12,
       cache: ragCache,
-      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost, embeddingStore),
     }),
     localRetrieve: async (owner: string, q: string, scope?: QbankServingScopeInput) => {
       const started = performance.now();
@@ -580,7 +592,7 @@ async function bootstrap() {
           cache: ragCache,
           // Strict mode intentionally uses the unwrapped provider adapter: the durable result cache already removes
           // repeated query calls, and a local cache hit must not reserve a second external-cost ledger entry.
-          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost, embeddingStore),
           ttlSeconds: boundedIntEnv('RAG_QBANK_CACHE_TTL_SECONDS', 120, 5, 3600),
           waitMs: boundedIntEnv('RAG_QBANK_CACHE_WAIT_MS', 5000, 100, 30000),
           leaseSeconds: boundedIntEnv('RAG_QBANK_CACHE_LEASE_SECONDS', 20, 5, 60),
@@ -644,14 +656,14 @@ async function bootstrap() {
       : undefined,
   };
   console.log(`interview dispatch budget: perOwner=${interviewDispatchBudget.perOwnerInflight} globalInflight=${interviewDispatchBudget.globalInflight} (process-local)`);
-  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget }, jobReconcileIntervalMs);
+  const interviewLoop = runInterviewConsumer({ pool, cp, model, fastModel, leaseOwner, adaptive, dispatchBudget: interviewDispatchBudget, askCostPolicy: modelCost.policies.primary }, jobReconcileIntervalMs); // AG-20:ask 主端点政策同源注入（:519 defaultModelClient primary 同一政策对象·observe 模式 undefined=预算零触）
   if (adaptive) console.log('interview: ADAPTIVE agent on (规划→自适应决策→CRAG出题→反思→评估→报告舱壁)');
   // 押题(resume-quiz)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const quizLoop = runQuizConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // 简历诊断(resume-diagnosis)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // R2 P-WORKER: sole route_pending → classifyJobRoute via MODEL-OP binding (≠ R2 closed; P-API may remain).
-  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model }, jobReconcileIntervalMs);
+  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model: fastModel }, jobReconcileIntervalMs);
   // RAG-FUNNEL-07: free-text allowlisted scope funnel production consumer (request-path).
   // Callers supply goal once; typed decision only suggests allowlisted track — no read/tool/retrieval grant.
   // Real import of runFreeTextAllowlistedScopeFunnel ( Ban docs-only fake cover ).
@@ -713,6 +725,9 @@ async function bootstrap() {
   // reservation, making the ambiguity observable and preventing a second
   // billable send under the same idempotency key.
   const modelInvocationReconcileLoop = runModelInvocationReconciler(pool, resolveModelInvocationReconcileConfig());
+  // UC-028 A2 trace 对账回补：fail-open 旁路丢失的 trace 行从 succeeded 真相差集回补
+  // （owner-only 枚举缝 + 每 owner asPrincipal 内反连接；幂等 arbiter=0001 PK，稳态零插零漂）。
+  const traceReconLoop = runTraceReconReconciler(pool, resolveTraceReconConfig());
   // MODEL-OP-wire：usage 校准因子周期 reconciler（读 estimate↔usage 配对 → 版本化因子落库）。
   // Dual reconciler 同列 · ≠ MODEL-OP fake green / ≠ SLO / ≠ Redis cutover / PG LISTEN retained.
   // AG-07 止血（AG-COST1 §1-①）：env 旋钮取代 60s 硬编码默认。缺省 ENABLED=false（裁决项①推荐 (b)·
@@ -728,6 +743,11 @@ async function bootstrap() {
   const usageCalibrationRetentionControl = resolveUsageCalibrationRetentionConfig();
   const usageCalibrationRetentionLoop = usageCalibrationRetentionControl.enabled
     ? runUsageCalibrationRetention(pool, usageCalibrationRetentionControl)
+    : undefined;
+  // 已投递 outbox 行按保留期分批删除。缺省 ENABLED=false 不起循环；非法 env 在解析时抛出。
+  const commerceOutboxRetentionControl = resolveCommerceOutboxRetentionConfig();
+  const commerceOutboxRetentionLoop = commerceOutboxRetentionControl.enabled
+    ? runCommerceOutboxRetention(pool, commerceOutboxRetentionControl)
     : undefined;
   // AG-43 调度半（qbank-control-sec 刀）：0146:9「Ban 自动清理调度」由协调方派单明示解除（裁决项③落值·
   // 0146 原文零改）后的受控调度。缺省 ENABLED=false（0146 设计内 Ban 的保守延续·显式 opt-in 才起循环，
@@ -764,7 +784,11 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && traceReconLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (commerceOutboxRetentionLoop?.ready() ?? true),
+    // #157 分域 ready：privacy 域两擦除 loop 摘出 workerReady AND 链（域内 3 拍失败不再
+    // 拉闸整 worker 流量闸），域观测收口 /readyz/privacy；两 loop 停机清单归属零触
+    // （drainStops loop 相原样），ready() 机制本体零改（翻红信号仍在·仅域归属变）。
+    privacyReady: () => (privacyErasureLoop?.ready() ?? true) && (vectorPlaneErasureLoop?.ready() ?? true),
   });
   // Start consumers before the optional external embedding build. A failure can only disable local evidence, never
   // turn an infrastructure dependency into an interview/payment availability outage.
@@ -783,36 +807,43 @@ async function bootstrap() {
     }
   }
   // HA-2 W3(REQUEST §3 C5):优雅排空 + WORKER_DRAIN_TIMEOUT_MS(默认 30s)deadline
-  // 竞速 + SIGINT 同链。清单 18 项(R3 勘误:原 allSettled 实数 15,补漏
-  // vectorPlaneErasureLoop?.stop() 后 16;AG-COST2 增 usage-calibration-retention
-  // 16→17;qbank-control-sec 刀增 qbank-release-sweep 17→18):
-  // 13 loop.stop(report/interview/quiz/diagnosis/
-  // route-classify/commerce/modelInvocationReconcile/usageCalibrationReconcile/
-  // usageCalibrationRetention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge)
-  // + ragCache.close + 3 pool.end(privacy/
-  // qbankControl/ragControl)+ langfuse.shutdown。deadline 胜出 → worker_drain_timeout
-  // (含在飞名)后 exit 0:被弃 job 走租约过期→reaper/sweep 重领,不双跑(既有 crash-safe);
-  // metricsServer.close() 补 await(诚实收口,2s 上限 race,非阻断)。
+  // 竞速 + SIGINT 同链。两阶段顺序排空:loop 相(等在飞 tick)先行拿 70% 份额(向上取整),
+  // deps 相(依赖面收尾)后行拿余量——两相份额和恒等 timeoutMs,全程排水上限不变
+  // (30s 默认→loop 21s/deps 9s),依赖面不再被排水窗提前拆台(否则在飞 tick 的
+  // retrieval/erasure 路径拒绝、遥测尾迹丢失)。清单 19 具名(R3 勘误:原 allSettled 实数
+  // 15,补漏 vectorPlaneErasureLoop?.stop() 后 16;AG-COST2 增 usage-calibration-retention
+  // 16→17;qbank-control-sec 刀增 qbank-release-sweep 17→18;两相化勘误:此前混排口径
+  // 记「18 项」,两相归位=loop 相 14(13 静态+stub-tick 条件展开)+deps 相 5):
+  // 14 loop.stop(report/interview/quiz/diagnosis/route-classify/commerce/
+  // modelInvocationReconcile/usageCalibrationReconcile/usageCalibrationRetention/
+  // commerce-outbox-retention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
+  // + ragCache.close + 3 pool.end(privacy/qbankControl/ragControl)+ langfuse.shutdown。
+  // deadline 胜出 → worker_drain_timeout(含相位+该相在飞名)后 exit 0:被弃 job 走租约
+  // 过期→reaper/sweep 重领,不双跑(既有 crash-safe);metricsServer.close() 补 await
+  // (诚实收口,2s 上限 race,非阻断)。
+  // 当前事实：静态具名 20，名称出现 21 次（含条件 stub-tick），loop 相位贴标全文件 16 处，deps 仍为 5。
   const drainStops: NamedStop[] = [
-    { name: 'report', stop: () => reportLoop.stop() },
-    { name: 'interview', stop: () => interviewLoop.stop() },
-    { name: 'quiz', stop: () => quizLoop.stop() },
-    { name: 'diagnosis', stop: () => diagnosisLoop.stop() },
-    { name: 'route-classify', stop: () => routeClassifyLoop.stop() },
-    { name: 'commerce', stop: () => commerceLoop.stop() },
-    { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop() },
-    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve() },
-    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve() },
-    { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve() },
-    { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve() },
-    { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve() },
-    { name: 'gauge', stop: () => gaugeLoop.stop() },
-    { name: 'rag-cache', stop: () => ragCache.close() },
-    { name: 'privacy-pool', stop: () => privacyPool?.end() ?? Promise.resolve() },
-    { name: 'qbank-control-pool', stop: () => qbankControlPool?.end() ?? Promise.resolve() },
-    { name: 'rag-control-pool', stop: () => ragControlPool?.end() ?? Promise.resolve() },
-    { name: 'langfuse', stop: () => langfuse?.shutdown() ?? Promise.resolve() },
-    ...(stubLoop ? [{ name: 'stub-tick', stop: () => stubLoop.stop() }] : []),
+    { name: 'report', stop: () => reportLoop.stop(), phase: 'loop' },
+    { name: 'interview', stop: () => interviewLoop.stop(), phase: 'loop' },
+    { name: 'quiz', stop: () => quizLoop.stop(), phase: 'loop' },
+    { name: 'diagnosis', stop: () => diagnosisLoop.stop(), phase: 'loop' },
+    { name: 'route-classify', stop: () => routeClassifyLoop.stop(), phase: 'loop' },
+    { name: 'commerce', stop: () => commerceLoop.stop(), phase: 'loop' },
+    { name: 'model-invocation-reconcile', stop: () => modelInvocationReconcileLoop.stop(), phase: 'loop' },
+    { name: 'trace-recon', stop: () => traceReconLoop.stop(), phase: 'loop' },
+    { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'commerce-outbox-retention', stop: () => commerceOutboxRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'gauge', stop: () => gaugeLoop.stop(), phase: 'loop' },
+    { name: 'rag-cache', stop: () => ragCache.close(), phase: 'deps' },
+    { name: 'privacy-pool', stop: () => privacyPool?.end() ?? Promise.resolve(), phase: 'deps' },
+    { name: 'qbank-control-pool', stop: () => qbankControlPool?.end() ?? Promise.resolve(), phase: 'deps' },
+    { name: 'rag-control-pool', stop: () => ragControlPool?.end() ?? Promise.resolve(), phase: 'deps' },
+    { name: 'langfuse', stop: () => langfuse?.shutdown() ?? Promise.resolve(), phase: 'deps' },
+    ...(stubLoop ? [{ name: 'stub-tick', stop: () => stubLoop.stop(), phase: 'loop' as const }] : []),
   ];
   let workerShuttingDown = false;
   const shutdownWorker = (signal: string): void => {
@@ -822,8 +853,8 @@ async function bootstrap() {
       await jobWakeupListener.stop().catch(() => {});
       await jobWakeupRedisListener.stop().catch(() => {});
       await jobWakeupRedisClient?.close().catch(() => {});
-      const outcome = await drainWithDeadline(drainStops, boundedIntEnv('WORKER_DRAIN_TIMEOUT_MS', 30_000, 1_000, 300_000), (inFlight) => {
-        console.error(`worker_drain_timeout signal=${signal} in_flight=${inFlight.join(',')}`);
+      const outcome = await drainWithDeadline(drainStops, boundedIntEnv('WORKER_DRAIN_TIMEOUT_MS', 30_000, 1_000, 300_000), (inFlight, phase) => {
+        console.error(`worker_drain_timeout signal=${signal} phase=${phase} in_flight=${inFlight.join(',')}`);
       });
       await Promise.race([                          // 上限 2s:metrics 收口诚实但不悬挂(极简败者纪律)
         new Promise<void>((resolve) => metricsServer.close(() => resolve())),
@@ -834,7 +865,7 @@ async function bootstrap() {
     })();
   };
   wireSignalShutdown(['SIGTERM', 'SIGINT'], () => shutdownWorker('SIGTERM'));   // 优雅排空在飞 job 再退;两信号同一 handler
-  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + usage calibration reconciler + qbank release sweep(${qbankReleaseSweepLoop ? 'enabled' : 'off'}) + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
+  console.log(`worker ${ragCache.available ? 'ready' : 'degraded'}: event wakeup + ${jobReconcileIntervalMs}ms bounded reconciliation for report/interview/quiz/diagnosis/route-classify + commerce reconciler + model invocation reconciler + trace recon reconciler + usage calibration reconciler + qbank release sweep(${qbankReleaseSweepLoop ? 'enabled' : 'off'}) + privacy eraser(${privacyErasureLoop ? 'enabled' : 'pending dedicated login'}) + gauge refresh started as`, leaseOwner);
 }
 
 if (process.env.WORKER_BOOTSTRAP === '1') bootstrap();

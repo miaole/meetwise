@@ -8,11 +8,12 @@ import {
   persistInterviewQuestion, verifyInterviewAnswerClaim, markInterviewAnswerApplied, enrollCheckpointThread,
   assertInterviewGraphFence, publishRubricAndIssueContract,
   writeTopicShadowMeter,
+  readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
 } from '@meetwise/db';
-import { Command } from '@langchain/langgraph';
+import { Command, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
-import type { ModelClient, GraphObserver } from '@meetwise/ai-runtime';
+import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { buildAdaptiveDeps, buildResumeFactPool, planCompetencies, selectPlannerFacts } from './adaptive-interview-service.ts';
 import { writeScoreCardAfterProjectionFenceTolerant } from './score-writer.ts';
@@ -48,6 +49,23 @@ const pendingQuestion = (snap: any): PendingQuestion | undefined => {
   return snap.values?.pending ?? snap.tasks?.[0]?.interrupts?.[0]?.value;
 };
 
+/** AG-15 卡死检测（§1.2 语义定稿·纯函数零 IO）：done→'END'；pending→'interrupt:<next[0]>'；
+ *  其余（next 非空∧无 interrupt∧非 failure）→裸节点名=卡死形状。failure 臂 lastError 带 generation_* reason。 */
+export function classifyAdaptiveRunPosition(snap: Parameters<typeof pendingQuestion>[0]): { currentNode: string; stuck: boolean; lastError: string | null } {
+  const failure = generationFailureOf(snap);
+  const lastError = failure ? failure.reason : null;
+  if ((snap.next?.length ?? 0) === 0) return { currentNode: 'END', stuck: false, lastError };
+  const pending = pendingQuestion(snap);
+  if (pending) return { currentNode: `interrupt:${String(snap.next[0] ?? 'awaitAnswer')}`, stuck: false, lastError };
+  const node = String(snap.next[0] ?? 'unknown');
+  return { currentNode: node, stuck: true, lastError };
+}
+
+/** AG-15 卡死阈值（§1.2 定稿）：卡死形状被重复观测（前次观测已写同名裸节点）=超阈值。 */
+export function graphRunStuckThresholdCrossed(previous: { currentNode: string | null } | null, position: { currentNode: string; stuck: boolean }): boolean {
+  return position.stuck && previous != null && previous.currentNode === position.currentNode;
+}
+
 async function writeGenerationUnavailable(
   c: Parameters<typeof failInterviewAndRelease>[0],
   d: AdaptiveLifecycleDeps,
@@ -82,6 +100,18 @@ async function writeGenerationUnavailable(
 
 async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
   await asPrincipal(d.pool, d.owner, (c) => writeGenerationUnavailable(c, d, failure));
+}
+
+/** 终态事务已经提交之后，按这场面试的 thread 删光检查点。删除失败只记日志，不把已提交的终态抛回去。 */
+async function deleteCommittedTerminalCheckpoints(d: AdaptiveLifecycleDeps): Promise<void> {
+  try {
+    await d.cp.deleteThread(d.interviewId);
+  } catch (error: unknown) {
+    console.error('checkpoint_thread_delete_failed', {
+      interviewId: d.interviewId,
+      error: String((error as Error)?.message ?? error),
+    });
+  }
 }
 
 /* ───────── billing P2（BILL2-SHADOW-METER 修法②·REQUEST §8 裁决项②按推荐行使）：收尾影子计量钩子 ─────────
@@ -151,6 +181,8 @@ export interface AdaptiveLifecycleDeps {
    * 非持久化通道（跨 claim 唯一通道=图 state checkpoint）;缺省 undefined=既有调用零改。
    */
   trackLocalDeficitRef?: { current: number[] | null };
+  /** AG-20(CTX-02 显式接线):ask 主端点成本政策（组合根同源·缺省 undefined=预算零触现状字节·管道面见 adaptive-interview-service AdaptiveServiceDeps.askCostPolicy 注）。 */
+  askCostPolicy?: ModelCostPolicy;
 }
 
 async function requireCurrentFence(c: Parameters<typeof assertInterviewGraphFence>[0], d: AdaptiveLifecycleDeps): Promise<void> {
@@ -171,6 +203,7 @@ function makeDeps(
     competencies, resumeProfileAvailable, focusWeaknesses, resumeFacts: [...resumeFactPool], localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary, competencyKeywords: d.competencyKeywords, maxTurns: d.maxTurns, absoluteMaxTurns: d.absoluteMaxTurns, graphObserver: d.graphObserver,
     targetRole: d.targetRole,
     trackLocalDeficitRef: d.trackLocalDeficitRef,
+    askCostPolicy: d.askCostPolicy,
     loadAnswer: async (reference) => {
       if (!answer || reference.answerId !== answer.answerId)
         throw Object.assign(new Error('answer_artifact_unavailable'), { code: 'answer_artifact_unavailable' });
@@ -246,6 +279,33 @@ function runGraph<T>(d: AdaptiveLifecycleDeps, phase: 'start' | 'answer', action
     : action();
 }
 
+/* ───────── AG-15 图运行时可观测（issues-final :213·只观测非修复）─────────
+ * 挂点=runGraph 边界 snap 终读后（start :328 后/answer :405 块闭后两处·投影事务之外）·fail-soft 兜底
+ * 沿 writeShadowMeterSoft 先例（:93-97·写失败仅 stderr 观测零业务阻断）——如实口径：先例系 void 形
+ * 而本观测器 await 读+写两语句=每边界串行 +2 语句延迟·fail-soft 兜底正确性不变。零触 fence/version/status
+ * （db 模块行谓词面）·零修复（Ban invoke(null)/重排/终态化——§1.3 候选甲否决承）·观测失败零上抛。 */
+async function observeGraphRunPosition(d: AdaptiveLifecycleDeps, snap: unknown): Promise<void> {
+  try {
+    const position = classifyAdaptiveRunPosition(snap);
+    const checkpointId = (snap as { config?: { configurable?: { [key: string]: unknown } } } | null | undefined)
+      ?.config?.configurable?.checkpoint_id;
+    await asPrincipal(d.pool, d.owner, async (c) => {
+      const previous = await readGraphRunObservation(c, 'adaptive-interview', d.interviewId, d.owner);
+      await recordGraphRunObservation(c, {
+        graphName: 'adaptive-interview', threadId: d.interviewId, owner: d.owner,
+        currentNode: position.currentNode, checkpointId: typeof checkpointId === 'string' ? checkpointId : null,
+        lastError: position.lastError,
+      });
+      if (graphRunStuckThresholdCrossed(previous, position) && graphRunPositionIsStuck(position.currentNode)) {
+        getMetrics().inc(METRIC.graphRunStuckObserved);
+        console.error('graph_run_stuck_observed', { interviewId: d.interviewId, node: position.currentNode });
+      }
+    });
+  } catch (error: unknown) {
+    console.warn('graph_run_observability_write_failed', { interviewId: d.interviewId, error: String((error as Error)?.message ?? error) });
+  }
+}
+
 /** pending question 先入 question ledger，再发具有相同 identity 的 SSE 业务事件。 */
 async function persistAndEmitQuestion(d: AdaptiveLifecycleDeps, p: PendingQuestion): Promise<void> {
   await asPrincipal(d.pool, d.owner, async (c) => {
@@ -282,6 +342,18 @@ export type StartAdaptiveInterviewResult = {
   unavailable?: InterviewGenerationUnavailable;
 };
 
+const ADAPTIVE_GRAPH_RELEASE = 'adaptive-interview/v1';
+
+/** 没有检查点、没有版本、或版本不是非空字符串：放行。与当前版本逐字相同：放行。
+ *  别的非空字符串：在 getState / invoke 之前拒绝，不写、不删、不改旧行。 */
+async function rejectMismatchedGraphRelease(d: AdaptiveLifecycleDeps, cfg: LangGraphRunnableConfig): Promise<void> {
+  const tuple = await d.cp.getTuple(cfg);
+  const version = tuple?.metadata?.graph_version;
+  if (typeof version !== 'string' || version.length === 0) return;
+  if (version === ADAPTIVE_GRAPH_RELEASE) return;
+  throw Object.assign(new Error('graph_release_mismatch'), { code: 'graph_release_mismatch' });
+}
+
 /** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。
  *  H4 R2③/R3(#252):第 4 形参 focus=本场报告 gap 维度名(专项面·additive 可选)——沿 targetRole 第 6 参先例的
  *  payload 透传面:①进 planCompetencies 第 7 参(planner prompt 'planner.competencies' v3 上一轮评估摘要段);
@@ -305,7 +377,8 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus, job, d.quizQuestions, d.routeLeaf);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
-  const cfg = { configurable: { thread_id: d.interviewId } };
+  const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
+  await rejectMismatchedGraphRelease(d, cfg);
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
   // 先读 pending，存在则只补业务投影，绝不触碰图执行。
@@ -323,6 +396,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
       await g.invoke({}, cfg);
     }
     snap = await g.getState(cfg);
+    await observeGraphRunPosition(d, snap);
   }
   const pending = pendingQuestion(snap);
   const failure = generationFailureOf(snap);
@@ -332,6 +406,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
       provenance: { origin: 'unavailable' as const, errorCode: 'generation_unavailable' as const },
     };
     await emitGenerationUnavailable(d, unavailable);
+    await deleteCommittedTerminalCheckpoints(d);
     return { unavailable };
   }
   await persistAndEmitQuestion(d, pending);
@@ -358,9 +433,23 @@ async function submitAdaptiveAnswerImpl(
   // C2/G2(RESUME-GROUNDING):answer 链进入点同源注入——一次 RLS 读出授权位+consent 门控 facts 池
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
   const grounding = await loadInterviewResumeGrounding(d);
-  const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
-  const cfg = { configurable: { thread_id: d.interviewId } };
-  const before = await g.getState(cfg);
+  const gInitial = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
+  const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
+  await rejectMismatchedGraphRelease(d, cfg);
+  const before = await gInitial.getState(cfg);
+  // SFC(SUBMIT-FLOW-COMPETENCY-WIRE):submit 流向 competency 补供——start 形 planCompetencies 序经
+  // initMind 保序映射落 checkpoint mind.competencies(domain initMind :188 保序+decideNext 拷贝排序
+  // 不重排=序全程稳定),此处读回即 start 时 planner 终序(含弱项偏置)。genQuestion 换序臂
+  // (nextCompetencyAfter)是 answer 相族内失败换序消费点(deps.competencies;QGEN 件② 批判门为
+  // 第二换序形·同序消费·本刀补供同覆盖);plan 节点在本流向不可达(submit 必过 pending identity
+  // 门,图恒已过 START)。缺省臂:空/缺 mind(旧 checkpoint)→不重建→空序→既有单发终场逐字节原样。
+  // 重建=纯构造零 IO(graph.ts buildAdaptiveInterviewGraph 无外呼)。
+  const plannerSequence = ((before.values?.mind?.competencies ?? []) as Array<{ name?: string }>)
+    .map((c) => (typeof c?.name === 'string' && c.name.length > 0 ? c.name : ''))
+    .filter((name) => name.length > 0);
+  const g = plannerSequence.length > 0
+    ? buildAdaptiveInterviewGraph(d.cp, makeDeps(d, plannerSequence, grounding.available, input, grounding.pool))
+    : gInitial;
   const beforeTranscript = (before.values?.transcript ?? []) as { questionId?: string }[];
   const alreadyApplied = beforeTranscript[beforeTranscript.length - 1]?.questionId === input.questionId;
   // AG-05（EXPERT-REVIEWS §五 边界①②③）：evalAnswer superstep 已写 checkpoint、genQuestion 等模型
@@ -387,6 +476,7 @@ async function submitAdaptiveAnswerImpl(
     await g.invoke(null, cfg);
     snap = await g.getState(cfg);
   }
+  await observeGraphRunPosition(d, snap);
   const transcript = (snap.values?.transcript ?? []) as Array<{
     questionId?: string; stateVersion?: number; score: number | null; outcome?: string; competency?: string; q?: string; hint?: string; reason?: string;
     dispositions?: ScoredCriterionDisposition[];
@@ -497,7 +587,7 @@ async function submitAdaptiveAnswerImpl(
         { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
         {
           interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
-          answerText: input.answer, dispositions: turnDispositions,
+          answerText: input.answer, dispositions: turnDispositions, asrOutcome: input.asrOutcome,
         },
       );
     }
@@ -507,6 +597,7 @@ async function submitAdaptiveAnswerImpl(
   if (generationFailed) {
     // billing P2 修法②：出题失败终态影子计量（事务外围·waived+reason 照实·fail-soft 零业务阻断）。
     writeShadowMeterSoft(d.pool, d.owner, d.interviewId, generationFailed.reason);
+    await deleteCommittedTerminalCheckpoints(d);
     return {
       score: typeof last.score === 'number' ? last.score : undefined,
       nextQuestion: undefined, nextQuestionId: undefined,
@@ -588,6 +679,7 @@ async function submitAdaptiveAnswerImpl(
           await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', { reason: 'evaluation_unscored' }, 'assessment_unavailable:evaluation_unscored');
       }
     });
+    await deleteCommittedTerminalCheckpoints(d);
     const asked = transcript.map((t) => t.q).filter((q): q is string => !!q);
     await recordAskedQuestions(d.pool, d.owner, asked, d.interviewId)
       .catch((e) => console.warn('memory: 跨会话判重 episode 写入跳过(非致命)', (e as any)?.code ?? e));

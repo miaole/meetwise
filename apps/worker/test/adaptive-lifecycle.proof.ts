@@ -1,11 +1,16 @@
 /** 生产主线替换证明:自适应 lifecycle(start/submit)驱动自适应图,发 SSE 事件 + 收尾结算 + 报告走舱壁。
  *  脚本模型(CI);MemorySaver。 pnpm adaptive-life:prove (需 db:up) */
 import { fileURLToPath } from 'node:url';
-import { MemorySaver } from '@langchain/langgraph';
+import { MemorySaver, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { randomUUID } from 'node:crypto';
-import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease } from '@meetwise/db';
+import { createPool, asPrincipal, reserveEntitlement, appendEvent, answerHash, claimInterviewAnswer, loadMigrations, runMigrations, inviteCandidate, startApplicationInterview, createJob, classifyJobRoute, finalizeApplication, failInterviewAndRelease, enrollCheckpointThread, withInterviewGraphFence } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+import { buildAdaptiveInterviewGraph } from '@meetwise/ai-graphs';
+import { buildAdaptiveDeps } from '../src/adaptive-interview-service.ts';
 import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
+import { FenceCheckpointSaver } from '../src/checkpoint-fence.ts';
+import { withCheckpointAccess } from '../src/checkpoint-principal.ts';
+import { createCheckpointer } from '../src/main.ts';
 
 // Test-only HMAC key for createJob/classifyJobRoute (same pattern as rag03/r4 proofs; not production).
 process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'adaptive-life-job-route-input-hmac-proof-key-not-production-01';
@@ -24,13 +29,93 @@ const base = scriptedModelClient({
 });
 const model: ModelClient = base;
 
+/** SFC 臂b 合成旧 checkpoint 的读取面接缝。armEmptyMindOnce() 之后，图运行前的版本核对会先读一次元数据，
+ *  这次不改 mind。下一次 getTuple 才把 mind.competencies 置空，作为 submit 的 before 读形。再往后的读取零触。 */
+class LegacyEmptyMindReadSaver extends MemorySaver {
+  private armOnce = false;
+  private skipVersionRead = false;
+  armEmptyMindOnce(): void {
+    this.armOnce = true;
+    this.skipVersionRead = true;
+  }
+  override async getTuple(config: LangGraphRunnableConfig) {
+    const tuple = await super.getTuple(config);
+    if (this.skipVersionRead) {
+      this.skipVersionRead = false;
+      return tuple;
+    }
+    const mind = (tuple?.checkpoint?.channel_values as { mind?: Record<string, unknown> } | undefined)?.mind;
+    if (this.armOnce && mind) {
+      this.armOnce = false;
+      (tuple!.checkpoint.channel_values as { mind: unknown }).mind = { ...mind, competencies: [] };
+    }
+    return tuple;
+  }
+}
+
+class ObservingSaver extends MemorySaver {
+  readonly deleted: string[] = [];
+  failDelete = false;
+  override async deleteThread(threadId: string): Promise<void> {
+    this.deleted.push(threadId);
+    if (this.failDelete) throw new Error('checkpoint_delete_failed');
+    await super.deleteThread(threadId);
+  }
+}
+
+class ObservingLegacySaver extends LegacyEmptyMindReadSaver {
+  readonly deleted: string[] = [];
+  override async deleteThread(threadId: string): Promise<void> {
+    this.deleted.push(threadId);
+    await super.deleteThread(threadId);
+  }
+}
+
+function checkpointEntryCount(cp: MemorySaver, threadId: string): number {
+  const namespaces = cp.storage[threadId];
+  if (!namespaces) return 0;
+  let total = 0;
+  for (const bucket of Object.values(namespaces)) total += Object.keys(bucket).length;
+  return total;
+}
+
+function checkpointWriteCount(cp: MemorySaver, threadId: string): number {
+  let total = 0;
+  for (const key of Object.keys(cp.writes)) {
+    const parsed: unknown = JSON.parse(key);
+    if (!Array.isArray(parsed) || parsed[0] !== threadId) continue;
+    total += Object.keys(cp.writes[key] ?? {}).length;
+  }
+  return total;
+}
+
+function deletedOnce(deleted: readonly string[], threadId: string): boolean {
+  return deleted.filter((id) => id === threadId).length === 1;
+}
+
+async function checkpointTableCounts(threadId: string): Promise<{ checkpoints: number; blobs: number; writes: number }> {
+  const row = (await pool.query(
+    `SELECT
+       (SELECT count(*)::int FROM checkpoints WHERE thread_id=$1) AS checkpoints,
+       (SELECT count(*)::int FROM checkpoint_blobs WHERE thread_id=$1) AS blobs,
+       (SELECT count(*)::int FROM checkpoint_writes WHERE thread_id=$1) AS writes`,
+    [threadId],
+  )).rows[0];
+  return {
+    checkpoints: Number(row?.checkpoints ?? -1),
+    blobs: Number(row?.blobs ?? -1),
+    writes: Number(row?.writes ?? -1),
+  };
+}
+
 async function main() {
   await runMigrations(pool, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
   await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID, OWNER]);
   await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [OWNER]);
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, IID, 'mock_interview', 1.0));   // begin 预留
 
-  const d: AdaptiveLifecycleDeps = { pool, cp: new MemorySaver(), owner: OWNER, interviewId: IID, model,
+  const mainCp = new ObservingSaver();
+  const d: AdaptiveLifecycleDeps = { pool, cp: mainCp, owner: OWNER, interviewId: IID, model,
     localRetrieve: async () => [{ ref: 'qbank:a', score: 0.9 }], webExplore: async () => [] };
 
   // 旧 worker 若已失去 durable graph fence，允许模型/checkpoint 的旧计算存在，但禁止其
@@ -43,9 +128,11 @@ async function main() {
     "SELECT (SELECT count(*) FROM interview_question WHERE interview_id=$1)::int AS questions, (SELECT count(*) FROM interview_event WHERE stream_key=$1)::int AS events", [IID],
   )).rows[0]);
   A('失去 graph fence → 拒绝业务投影(ledger/SSE 都是 0)', fenceLost && staleWrites.questions === 0 && staleWrites.events === 0);
+  A('失去 graph fence 的事务回滚后不删检查点', fenceLost && mainCp.deleted.length === 0 && checkpointEntryCount(mainCp, IID) > 0);
 
   const s = await startAdaptiveInterview(d, '后端工程师', ['限流改造', 'Redis 计数器']);
   A('start → 首题(question_ready + server question identity)', !!s.question && s.question.length > 0 && !!s.questionId && s.stateVersion === 1);
+  A('首题未终态时不删检查点', !!s.questionId && mainCp.deleted.length === 0 && checkpointEntryCount(mainCp, IID) > 0);
 
   const answer = '我用 Redis 计数器+滑动窗口扛高并发';
   let guard = 0, lastScore = 0, done = false, questionId = s.questionId!;
@@ -54,6 +141,7 @@ async function main() {
   const first = await submitAdaptiveAnswer(d, firstInput);
   // #52 v6：score=档位确定性派生（fixture exceeds→100），非 v5 自由 hint 分。
   A('首答 → 评分且得到下一题 identity', first.score === 100 && !!first.nextQuestionId && first.done === false);
+  A('还有下一题时不删检查点', first.done === false && !!first.nextQuestionId && !mainCp.deleted.includes(IID) && checkpointEntryCount(mainCp, IID) > 0);
   // crash after checkpoint before event projection/requeue 的等价重放：同 answer identity 只重放投影，不会再次 resume 或二次事件。
   const replay = await submitAdaptiveAnswer(d, firstInput);
   A('同 answer identity 重放 → 不重评且 next question 不变', replay.score === first.score && replay.nextQuestionId === first.nextQuestionId);
@@ -80,6 +168,7 @@ async function main() {
   A('发了 answer_evaluated 事件(每答)', (kinds['answer_evaluated'] ?? 0) >= 2);
   const st = await asPrincipal(pool, OWNER, (c) => c.query("SELECT status FROM interview WHERE id=$1", [IID]));
   A('收尾:interview=completed', st.rows[0].status === 'completed');
+  A('收尾提交成功后该线程检查点删光', st.rows[0].status === 'completed' && checkpointEntryCount(mainCp, IID) === 0 && checkpointWriteCount(mainCp, IID) === 0 && deletedOnce(mainCp.deleted, IID));
   const rep = await asPrincipal(pool, OWNER, (c) => c.query("SELECT count(*)::int n FROM ai_report WHERE interview_id=$1", [IID]));
   A('报告入队走舱壁(ai_report 有行,异步隔离)', rep.rows[0].n === 1);
 
@@ -123,7 +212,8 @@ async function main() {
   A('B 端 startApplicationInterview 返回 interviewId', typeof noScoreInterviewId === 'string' && noScoreInterviewId.length > 0);
   if (!noScoreInterviewId) throw Object.assign(new Error('b_side_start_missing_interview_id'), { code: 'b_side_start_missing_interview_id', start: noScoreStart });
   await asPrincipal(pool, OWNER, (c) => reserveEntitlement(c, OWNER, noScoreInterviewId, 'mock_interview', 1.0));
-  const noScoreDeps: AdaptiveLifecycleDeps = { ...d, cp: new MemorySaver(), interviewId: noScoreInterviewId };
+  const noScoreCp = new ObservingSaver();
+  const noScoreDeps: AdaptiveLifecycleDeps = { ...d, cp: noScoreCp, interviewId: noScoreInterviewId };
   const noScoreFirst = await startAdaptiveInterview(noScoreDeps, '后端工程师', ['限流改造']);
   let noScoreQuestionId = noScoreFirst.questionId!;
   let noScoreDone = false;
@@ -156,6 +246,7 @@ async function main() {
   A('全 unresolved → completed+confirmed，但申请 scoreless 终态、无报告 job、终态事件恰一', noScoreState?.interview_status === 'completed'
     && noScoreState?.consumption_status === 'confirmed' && noScoreState?.application_status === 'assessment_unavailable'
     && noScoreState?.score === null && Number(noScoreState?.report_count) === 0 && Number(noScoreState?.terminal_events) === 1);
+  A('零有效分收尾后检查点删光', noScoreState?.interview_status === 'completed' && checkpointEntryCount(noScoreCp, noScoreInterviewId) === 0 && deletedOnce(noScoreCp.deleted, noScoreInterviewId));
 
   console.log('\n──── quote evidence 单次拒绝的 lifecycle/权益投影证明 ────');
   const repairIid = `life-quote-repair-${Date.now()}`;
@@ -174,7 +265,8 @@ async function main() {
       return { ok: false, kind: 'deterministic' };
     },
   };
-  const repairDeps: AdaptiveLifecycleDeps = { pool, cp: new MemorySaver(), owner: OWNER, interviewId: repairIid, model: repairModel,
+  const repairCp = new ObservingSaver();
+  const repairDeps: AdaptiveLifecycleDeps = { pool, cp: repairCp, owner: OWNER, interviewId: repairIid, model: repairModel,
     localRetrieve: async () => [], webExplore: async () => [] };
   const repairStart = await startAdaptiveInterview(repairDeps, '后端工程师', []);
   const repairAnswer = '我会用 Redis 令牌桶限制入口流量，超限时快速失败并给下游降级。';
@@ -187,6 +279,7 @@ async function main() {
   A('quote 不可核验仅执行一次评分；lifecycle 返回 clarifying，而非 97 分/终止 unscored', repairCalls.length === 1 && repairResult.clarifying === true && repairResult.score === 0 && repairResult.degraded === false);
   A('clarify 投影不产生 answer_evaluated/answer_unscored，不更新能力画像计分事件', (repairKinds['clarification_needed'] ?? 0) === 1 && (repairKinds['answer_evaluated'] ?? 0) === 0 && (repairKinds['answer_unscored'] ?? 0) === 0);
   A('clarify 不确认或重复权益：同一面试仅保留一条 reserved consumption', repairConsumption.rowCount === 1 && repairConsumption.rows[0]?.status === 'reserved' && repairConsumption.rows[0]?.n === 1);
+  A('仍在澄清时不删检查点', repairResult.clarifying === true && repairResult.done === false && repairCp.deleted.length === 0 && checkpointEntryCount(repairCp, repairIid) > 0);
 
   // TC-MODEL-ROUTE-04-E4: 出题 invoke 失败不得发明 question_ready。
   const failIid = 'life-fail-' + Date.now();
@@ -195,8 +288,9 @@ async function main() {
   const failingAsk = scriptedModelClient({
     'planner.competencies': () => ({ ok: true, raw: { competencies: ['并发'] } }),
   });
+  const failCp = new ObservingSaver();
   const failStart = await startAdaptiveInterview({
-    pool, cp: new MemorySaver(), owner: OWNER, interviewId: failIid, model: failingAsk,
+    pool, cp: failCp, owner: OWNER, interviewId: failIid, model: failingAsk,
     localRetrieve: async () => [], webExplore: async () => [],
   }, '后端工程师', []);
   const failEv = await asPrincipal(pool, OWNER, (c) => c.query(
@@ -214,6 +308,7 @@ async function main() {
     && typeof unavail.payload.provenance?.errorCode === 'string');
   A('出题失败 → 面试 failed 且预留释放',
     failStatus.rows[0]?.status === 'failed' && failCons.rows[0]?.status === 'released');
+  A('开始路径出题失败提交后删光检查点', failStatus.rows[0]?.status === 'failed' && checkpointEntryCount(failCp, failIid) === 0 && checkpointWriteCount(failCp, failIid) === 0 && deletedOnce(failCp.deleted, failIid));
 
   console.log('\n──── G7FIX-4：generation 族 bound 面对称标记 + finalize 200 面 + mark-then-recover ────');
   // 与上方 C 端 unbound 面（failIid→interview_unavailable）同族对照。REQUEST rev3 @ea3e38a7：
@@ -325,6 +420,270 @@ async function main() {
     && g7fix4Ledger[0]?.status === 'failed' && Number(g7fix4Ledger[0]?.application_attempt) === 1
     && g7fix4Ledger[1]?.status === 'failed' && Number(g7fix4Ledger[1]?.application_attempt) === 2
     && g7fix4Ledger[2]?.status === 'created' && Number(g7fix4Ledger[2]?.application_attempt) === 3);
+
+  console.log('\n──── SUBMIT-FLOW-COMPETENCY-WIRE：submit 流向 competency 补供（帽内换序/缺省臂保形/序保真/plan 不可达/neg）────');
+  // SFC EXEC 新臂（§2 载体钉死=本件·全 scripted 零外呼）：submit 流向 turn≥1 族内失败（schema 违例经
+  // seam MAX_ERROR_REROLL=2 耗尽）→ 图换序臂 nextCompetencyAfter——修复前 deps.competencies=[]→null→
+  // 单发终场；修复后沿 checkpoint mind 序帽内换序重出题。ask 按 system『目标能力:X』逐 competency 脚本
+  // （限流首问放行、其后恒违例/族外）；评估 fixture『meets』→score 50→confidence<0.7→turn1 路由
+  // stayProbe 停在限流（确保失败面触达换序臂）。
+  const sfcOwner = `life-sfc-${Date.now()}`;
+  await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [sfcOwner]);
+  const sfcModel = (mode: 'family' | 'outside'): ModelClient => {
+    let liuAsks = 0;
+    return {
+      async complete(req) {
+        const askVars = String(req.userData ?? '');   // 目标能力行落 buildData→userData（promptedModel）
+        if (req.service === 'planner.competencies') return { ok: true, raw: { competencies: ['限流', '缓存', '网络'] } };
+        if (req.service === 'interviewer.ask') {
+          if (askVars.includes('目标能力:限流')) {
+            liuAsks += 1;
+            if (liuAsks === 1) return { ok: true, raw: { q: '请描述你在线上限流实践中的一次真实取舍，以及你如何验证效果。', refs: [] } };
+            return mode === 'family'
+              ? { ok: true, raw: { q: 42, refs: [] } }                            // schema 违例=族内失败
+              : { ok: false, kind: 'deterministic' };                             // 族外（不 re-roll）
+          }
+          return { ok: true, raw: { q: '请结合你在缓存击穿防护上的实践经验，说明具体的方案取舍与验证指标。', refs: [] } };
+        }
+        if (req.service === 'mock-interview.evaluate') {
+          return { ok: true, raw: { relevant: true, hasHook: false, dispositions: [{ criterionId: 'answer_quality', disposition: 'meets', quote: '滑动窗口计数器' }] } };
+        }
+        return { ok: false, kind: 'deterministic' };
+      },
+    };
+  };
+  const sfcSetup = async (suffix: string, cp: MemorySaver | LegacyEmptyMindReadSaver, model: ModelClient) => {
+    const iid = `life-sfc-${suffix}-${Date.now()}`;
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [iid, sfcOwner]);
+    await asPrincipal(pool, sfcOwner, (c) => reserveEntitlement(c, sfcOwner, iid, 'mock_interview', 1.0));
+    const deps: AdaptiveLifecycleDeps = { pool, cp, owner: sfcOwner, interviewId: iid, model,
+      localRetrieve: async () => [{ ref: 'qbank:a', score: 0.9 }], webExplore: async () => [] };
+    const s = await startAdaptiveInterview(deps, '后端工程师', []);
+    return { iid, deps, s };
+  };
+  const sfcAns = '我用滑动窗口计数器限制入口速率，超限快速失败并降级非核心调用。';
+  const sfc1Cp = new ObservingSaver();
+  const sfc1 = await sfcSetup('switch', sfc1Cp, sfcModel('family'));
+  const sfcIn = { questionId: sfc1.s.questionId!, stateVersion: sfc1.s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(sfcAns), turn: 0, answer: sfcAns };
+  const sfc1Claim = await asPrincipal(pool, sfcOwner, (c) => claimInterviewAnswer(c, sfcOwner, sfc1.iid, sfcIn));
+  const sfc1Out = await submitAdaptiveAnswer(sfc1.deps, sfcIn);
+  const sfc1Ev = await asPrincipal(pool, sfcOwner, (c) => c.query('SELECT kind, payload FROM interview_event WHERE stream_key=$1 ORDER BY seq', [sfc1.iid]));
+  const sfc1Q2 = [...sfc1Ev.rows].reverse().find((r) => r.kind === 'question_ready');
+  const sfc1Term = sfc1Ev.rows.filter((r) => r.kind === 'interview_unavailable' || r.kind === 'assessment_unavailable');
+  A('SFC 臂a：submit 流向族内失败 → 帽内换序重出题（首答 identity 被接受·下一题=缓存·concluded 未置·零终态事件）',
+    sfc1Claim.status === 'accepted' && !!sfc1Out.nextQuestionId && sfc1Out.done === false
+    && String(sfc1Q2?.payload?.competency ?? '') === '缓存' && sfc1Term.length === 0);
+  A('换序后仍有下一题时不删检查点', sfc1Out.done === false && sfc1Cp.deleted.length === 0 && checkpointEntryCount(sfc1Cp, sfc1.iid) > 0);
+  const sfcReader = buildAdaptiveInterviewGraph(sfc1Cp, buildAdaptiveDeps({ pool, owner: sfcOwner, threadId: sfc1.iid, model: sfcModel('family'), competencies: [], localRetrieve: async () => [], webExplore: async () => [] }));
+  const sfcSnap = await sfcReader.getState({ configurable: { ['thread_id']: sfc1.iid } });
+  const sfcView = sfcSnap.values as { mind?: { competencies?: Array<{ name?: string }>; turn?: number } } | undefined;
+  const sfcMindSeq = (sfcView?.mind?.competencies ?? []).map((c) => String(c?.name ?? ''));
+  A('SFC 臂c：序保真——checkpoint mind 序 ≡ plan 序（含 behavioral 尾槽）∧ 换序落点=mind 序后继',
+    JSON.stringify(sfcMindSeq) === JSON.stringify(['限流', '缓存', '网络', '协作与沟通'])
+    && sfcMindSeq[1] === '缓存' && String(sfc1Q2?.payload?.competency) === sfcMindSeq[1]);
+  A('SFC 臂d：plan 不可达负证——换序后 mind.turn=1 不归零（initMind 不重跑）', sfcView?.mind?.turn === 1);
+  const sfcEvalCount = async () => Number((await asPrincipal(pool, sfcOwner, (c) => c.query(
+    "SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated'", [sfc1.iid]))).rows[0].n);
+  const sfc1Eval = await sfcEvalCount();
+  const sfc1Replay = await submitAdaptiveAnswer(sfc1.deps, sfcIn);
+  A('SFC 臂e2：alreadyApplied 纯重放零触——同 identity 重放零重评（answer_evaluated 恒 1·nextQuestion 恒等）',
+    sfc1Replay.nextQuestionId === sfc1Out.nextQuestionId && sfc1Eval === 1 && (await sfcEvalCount()) === 1);
+  const sfc2Cp = new ObservingLegacySaver();
+  const sfc2 = await sfcSetup('default-arm', sfc2Cp, sfcModel('family'));
+  const sfc2In = { questionId: sfc2.s.questionId!, stateVersion: sfc2.s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(sfcAns), turn: 0, answer: sfcAns };
+  await asPrincipal(pool, sfcOwner, (c) => claimInterviewAnswer(c, sfcOwner, sfc2.iid, sfc2In));
+  A('回答路径出题失败前检查点还在', sfc2Cp.deleted.length === 0 && checkpointEntryCount(sfc2Cp, sfc2.iid) > 0);
+  sfc2Cp.armEmptyMindOnce();
+  const sfc2Out = await submitAdaptiveAnswer(sfc2.deps, sfc2In);
+  const sfc2Ev = await asPrincipal(pool, sfcOwner, (c) => c.query('SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 ORDER BY seq', [sfc2.iid]));
+  const sfc2Term = sfc2Ev.rows.find((r) => r.kind === 'interview_unavailable');
+  const sfc2Status = (await pool.query('SELECT status FROM interview WHERE id=$1', [sfc2.iid])).rows[0]?.status;
+  const sfc2Cons = await asPrincipal(pool, sfcOwner, (c) => c.query('SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2', [sfcOwner, sfc2.iid]));
+  A('SFC 臂b：缺省臂保形——空 mind 读形（合成旧 checkpoint）→ 不重建 → 既有单发终场原形（零换序零第二题·failed+released）',
+    sfc2Out.done === true && sfc2Out.degraded === true && sfc2Out.nextQuestionId === undefined
+    && sfc2Term?.event_key === 'interview_unavailable:terminal' && String(sfc2Term?.payload?.reason ?? '').startsWith('generation_')
+    && sfc2Term?.payload?.provenance?.origin === 'unavailable'
+    && sfc2Ev.rows.filter((r) => r.kind === 'question_ready').length === 1
+    && sfc2Status === 'failed' && sfc2Cons.rows[0]?.status === 'released');
+  A('回答路径出题失败提交后删光检查点', sfc2Status === 'failed' && checkpointEntryCount(sfc2Cp, sfc2.iid) === 0 && checkpointWriteCount(sfc2Cp, sfc2.iid) === 0 && deletedOnce(sfc2Cp.deleted, sfc2.iid));
+  const sfc3Cp = new ObservingSaver();
+  const sfc3 = await sfcSetup('outside', sfc3Cp, sfcModel('outside'));
+  const sfc3In = { questionId: sfc3.s.questionId!, stateVersion: sfc3.s.stateVersion!, answerId: randomUUID(), answerHash: answerHash(sfcAns), turn: 0, answer: sfcAns };
+  await asPrincipal(pool, sfcOwner, (c) => claimInterviewAnswer(c, sfcOwner, sfc3.iid, sfc3In));
+  const sfc3Out = await submitAdaptiveAnswer(sfc3.deps, sfc3In);
+  const sfc3Ev = await asPrincipal(pool, sfcOwner, (c) => c.query(
+    "SELECT kind, event_key, payload FROM interview_event WHERE stream_key=$1 AND kind IN ('interview_unavailable','assessment_unavailable')", [sfc3.iid]));
+  const sfc3Keys = await asPrincipal(pool, sfcOwner, (c) => c.query(
+    'SELECT idempotency_key FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key LIKE $2', [sfcOwner, `${sfc3.iid}:ask:t1:%`]));
+  A('SFC 臂e1：neg 族外——补供在场仍真终场（确定性 not-configured 不入族零 re-roll：ask t1 恰 1 键）',
+    sfc3Out.done === true && sfc3Ev.rows.length === 1 && String(sfc3Ev.rows[0]?.payload?.reason ?? '').startsWith('generation_')
+    && sfc3Ev.rows[0]?.payload?.provenance?.origin === 'unavailable'
+    && sfc3Keys.rows.length === 1 && sfc3Keys.rows[0]?.idempotency_key === `${sfc3.iid}:ask:t1:0`);
+  A('回答路径族外失败提交后删光检查点', sfc3Out.done === true && checkpointEntryCount(sfc3Cp, sfc3.iid) === 0 && deletedOnce(sfc3Cp.deleted, sfc3.iid));
+
+  console.log('\n──── 删除失败不回滚终态，终态事务回滚不删 ────');
+  const ckptOwner = `life-ckpt-${Date.now()}`;
+  await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [ckptOwner]);
+  const answerText = '我用 Redis 计数器加滑动窗口扛高并发';
+  const boomCp = new ObservingSaver();
+  boomCp.failDelete = true;
+  const boomIid = `life-boom-${randomUUID()}`;
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [boomIid, ckptOwner]);
+  await asPrincipal(pool, ckptOwner, (c) => reserveEntitlement(c, ckptOwner, boomIid, 'mock_interview', 1.0));
+  const boomDeps: AdaptiveLifecycleDeps = {
+    pool, cp: boomCp, owner: ckptOwner, interviewId: boomIid, model,
+    localRetrieve: async () => [{ ref: 'qbank:a', score: 0.9 }], webExplore: async () => [],
+    absoluteMaxTurns: 1,
+  };
+  const boomStart = await startAdaptiveInterview(boomDeps, '后端工程师', ['限流改造']);
+  const boomRow = await asPrincipal(pool, ckptOwner, async (c) => (await c.query(
+    'SELECT state_version, turn FROM interview_question WHERE interview_id=$1 AND question_id=$2',
+    [boomIid, boomStart.questionId],
+  )).rows[0]);
+  const boomInput = {
+    questionId: boomStart.questionId!, stateVersion: Number(boomRow.state_version), turn: Number(boomRow.turn),
+    answerId: randomUUID(), answerHash: answerHash(answerText), answer: answerText,
+  };
+  A('删除失败臂的首题 identity 被接受', (await asPrincipal(pool, ckptOwner, (c) => claimInterviewAnswer(c, ckptOwner, boomIid, boomInput))).status === 'accepted');
+  A('删除失败臂在收尾前不删检查点', boomCp.deleted.length === 0 && checkpointEntryCount(boomCp, boomIid) > 0);
+  let boomThrew = false;
+  let boomResult: Awaited<ReturnType<typeof submitAdaptiveAnswer>> | undefined;
+  try {
+    boomResult = await submitAdaptiveAnswer(boomDeps, boomInput);
+  } catch {
+    boomThrew = true;
+  }
+  const boomStatus = (await pool.query('SELECT status FROM interview WHERE id=$1', [boomIid])).rows[0]?.status;
+  const boomCons = (await asPrincipal(pool, ckptOwner, (c) => c.query(
+    'SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [ckptOwner, boomIid],
+  ))).rows[0]?.status;
+  const boomReports = Number((await asPrincipal(pool, ckptOwner, (c) => c.query(
+    'SELECT count(*)::int AS n FROM ai_report WHERE interview_id=$1', [boomIid],
+  ))).rows[0]?.n);
+  A('删除失败不回滚已经完成的面试', !boomThrew && boomResult?.done === true && boomStatus === 'completed' && boomCons === 'confirmed' && boomReports === 1 && deletedOnce(boomCp.deleted, boomIid) && checkpointEntryCount(boomCp, boomIid) > 0);
+
+  const boomFailCp = new ObservingSaver();
+  boomFailCp.failDelete = true;
+  const boomFailIid = `life-boom-fail-${randomUUID()}`;
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [boomFailIid, ckptOwner]);
+  await asPrincipal(pool, ckptOwner, (c) => reserveEntitlement(c, ckptOwner, boomFailIid, 'mock_interview', 1.0));
+  let boomFailThrew = false;
+  let boomFailResult: Awaited<ReturnType<typeof startAdaptiveInterview>> | undefined;
+  try {
+    boomFailResult = await startAdaptiveInterview({
+      pool, cp: boomFailCp, owner: ckptOwner, interviewId: boomFailIid, model: failingAsk,
+      localRetrieve: async () => [], webExplore: async () => [],
+    }, '后端工程师', []);
+  } catch {
+    boomFailThrew = true;
+  }
+  const boomFailStatus = (await pool.query('SELECT status FROM interview WHERE id=$1', [boomFailIid])).rows[0]?.status;
+  const boomFailCons = (await asPrincipal(pool, ckptOwner, (c) => c.query(
+    'SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [ckptOwner, boomFailIid],
+  ))).rows[0]?.status;
+  A('删除失败不回滚已经失败的面试', !boomFailThrew && !!boomFailResult?.unavailable && boomFailStatus === 'failed' && boomFailCons === 'released' && deletedOnce(boomFailCp.deleted, boomFailIid) && checkpointEntryCount(boomFailCp, boomFailIid) > 0);
+
+  const rollCp = new ObservingSaver();
+  const rollIid = `life-roll-${randomUUID()}`;
+  await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [rollIid, ckptOwner]);
+  await asPrincipal(pool, ckptOwner, (c) => reserveEntitlement(c, ckptOwner, rollIid, 'mock_interview', 1.0));
+  const rollDeps: AdaptiveLifecycleDeps = {
+    pool, cp: rollCp, owner: ckptOwner, interviewId: rollIid, model,
+    localRetrieve: async () => [{ ref: 'qbank:a', score: 0.9 }], webExplore: async () => [],
+    absoluteMaxTurns: 1,
+  };
+  const rollStart = await startAdaptiveInterview(rollDeps, '后端工程师', ['限流改造']);
+  const rollRow = await asPrincipal(pool, ckptOwner, async (c) => (await c.query(
+    'SELECT state_version, turn FROM interview_question WHERE interview_id=$1 AND question_id=$2',
+    [rollIid, rollStart.questionId],
+  )).rows[0]);
+  const rollInput = {
+    questionId: rollStart.questionId!, stateVersion: Number(rollRow.state_version), turn: Number(rollRow.turn),
+    answerId: randomUUID(), answerHash: answerHash(answerText), answer: answerText,
+  };
+  A('回滚臂的首题 identity 被接受', (await asPrincipal(pool, ckptOwner, (c) => claimInterviewAnswer(c, ckptOwner, rollIid, rollInput))).status === 'accepted');
+  let rollCode = 'none';
+  let versionReads = 0;
+  try {
+    await withInterviewGraphFence(pool, ckptOwner, rollIid, 'life-roll-lease', async (fence) => {
+      const flipping = new Proxy(fence, {
+        get(target, prop, receiver) {
+          if (prop === 'version') {
+            versionReads += 1;
+            if (versionReads > 1) return Number(target.version) + 999;
+          }
+          return Reflect.get(target, prop, receiver);
+        },
+      });
+      return submitAdaptiveAnswer({ ...rollDeps, fence: flipping }, rollInput);
+    });
+  } catch (error: unknown) {
+    rollCode = String((error as { code?: string } | undefined)?.code ?? (error as Error)?.message ?? error);
+  }
+  const rollStatus = (await pool.query('SELECT status FROM interview WHERE id=$1', [rollIid])).rows[0]?.status;
+  const rollCons = (await asPrincipal(pool, ckptOwner, (c) => c.query(
+    'SELECT status FROM entitlement_consumption WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [ckptOwner, rollIid],
+  ))).rows[0]?.status;
+  const rollEvals = Number((await asPrincipal(pool, ckptOwner, (c) => c.query(
+    "SELECT count(*)::int AS n FROM interview_event WHERE stream_key=$1 AND kind='answer_evaluated'",
+    [rollIid],
+  ))).rows[0]?.n);
+  A('终态事务回滚后不删检查点且面试未完成', rollCode === 'graph_fence_lost' && versionReads > 1 && rollCp.deleted.length === 0 && checkpointEntryCount(rollCp, rollIid) > 0 && rollStatus === 'created' && rollCons === 'reserved' && rollEvals >= 1);
+
+  console.log('\n──── 围栏检查点器按线程删光三张表 ────');
+  const sqlOwner = `life-sql-${Date.now()}`;
+  const sqlIid = `life-sql-${randomUUID()}`;
+  let sqlError = '';
+  let sqlMid = { checkpoints: -1, blobs: -1, writes: -1 };
+  let sqlAfter = { checkpoints: -1, blobs: -1, writes: -1 };
+  let sqlStatus = '';
+  let sqlDone = false;
+  let sqlClaimed = '';
+  let sqlInner: ReturnType<typeof createCheckpointer> | undefined;
+  try {
+    await pool.query("INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at) VALUES ($1,'paid',5.0, now()+interval '300 days')", [sqlOwner]);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [sqlIid, sqlOwner]);
+    await asPrincipal(pool, sqlOwner, (c) => reserveEntitlement(c, sqlOwner, sqlIid, 'mock_interview', 1.0));
+    const enrollment = await asPrincipal(pool, sqlOwner, (c) => enrollCheckpointThread(c, sqlOwner, sqlIid));
+    const access = { owner: sqlOwner, threadId: enrollment.threadId, fenceEpoch: enrollment.fenceEpoch };
+    sqlInner = createCheckpointer(undefined, true);
+    const held = await withInterviewGraphFence(pool, sqlOwner, sqlIid, 'life-sql-lease', async (fence) => {
+      const cp = new FenceCheckpointSaver(sqlInner!, pool, fence);
+      const deps: AdaptiveLifecycleDeps = {
+        pool, cp, owner: sqlOwner, interviewId: sqlIid, model,
+        localRetrieve: async () => [{ ref: 'qbank:a', score: 0.9 }], webExplore: async () => [],
+        absoluteMaxTurns: 1, fence,
+      };
+      const started = await withCheckpointAccess(access, () => startAdaptiveInterview(deps, '后端工程师', ['限流改造']));
+      sqlMid = await checkpointTableCounts(sqlIid);
+      const row = await asPrincipal(pool, sqlOwner, async (c) => (await c.query(
+        'SELECT state_version, turn FROM interview_question WHERE interview_id=$1 AND question_id=$2',
+        [sqlIid, started.questionId],
+      )).rows[0]);
+      const input = {
+        questionId: started.questionId!, stateVersion: Number(row?.state_version), turn: Number(row?.turn),
+        answerId: randomUUID(), answerHash: answerHash(answerText), answer: answerText,
+      };
+      const claimed = await asPrincipal(pool, sqlOwner, (c) => claimInterviewAnswer(c, sqlOwner, sqlIid, input));
+      const submitted = await withCheckpointAccess(access, () => submitAdaptiveAnswer(deps, input));
+      return { claimed: claimed.status, done: submitted.done };
+    });
+    if (!held.acquired) throw Object.assign(new Error('sql_fence_not_acquired'), { code: 'sql_fence_not_acquired' });
+    sqlClaimed = held.value.claimed;
+    sqlDone = held.value.done;
+    sqlAfter = await checkpointTableCounts(sqlIid);
+    sqlStatus = String((await pool.query('SELECT status FROM interview WHERE id=$1', [sqlIid])).rows[0]?.status ?? '');
+  } catch (error: unknown) {
+    sqlError = String((error as { code?: string } | undefined)?.code ?? (error as Error)?.message ?? error);
+  } finally {
+    if (sqlInner) await sqlInner.end().catch(() => undefined);
+  }
+  console.log('checkpoint table counts', JSON.stringify({ mid: sqlMid, after: sqlAfter, status: sqlStatus, error: sqlError }));
+  A('未终态时三张检查点表仍有该线程的行', sqlError === '' && sqlMid.checkpoints >= 1);
+  A('终态提交成功后三张检查点表该线程行数为零', sqlError === '' && sqlClaimed === 'accepted' && sqlDone === true && sqlStatus === 'completed' && sqlAfter.checkpoints === 0 && sqlAfter.blobs === 0 && sqlAfter.writes === 0);
 
   console.log(`\n${fail === 0 ? '✓ 生产主线替换:自适应 agent 图驱动真面试生命周期(SSE 事件+结算+舱壁报告)全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);

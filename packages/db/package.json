@@ -93,21 +93,22 @@
     "prove:privacy-erasure-preview": "tsx test/privacy-erasure-preview.proof.ts",
     "migrate": "tsx src/migrate-cli.ts",
     "prove:uc002-lease": "tsx test/uc-e2e-002-cross-device-lease.proof.ts",
+    "prove:interview-privacy-read-tier": "tsx test/interview-privacy-read-tier.proof.ts",
     "prove:retrieval-backend-qdrant": "tsx test/retrieval-backend-qdrant.proof.ts",
     "prove:uc018-graph": "tsx test/uc-e2e-018-graph-safely-terminated.proof.ts"
   },
   "dependencies": {
     "pg": "catalog:",
     "@meetwise/errors": "workspace:*",
-    "@meetwise/qdrant-store": "workspace:*"
+    "@meetwise/qdrant-store": "workspace:*",
+    "@meetwise/domain": "workspace:*",
+    "@meetwise/contracts": "workspace:*",
+    "tsx": "^4.22.4"
   },
   "devDependencies": {
     "@types/pg": "catalog:",
     "typescript": "catalog:",
-    "tsx": "^4.22.4",
     "@types/node": "catalog:",
-    "@meetwise/domain": "workspace:*",
-    "@meetwise/contracts": "workspace:*",
     "@langchain/langgraph-checkpoint-postgres": "catalog:langchain",
     "@langchain/langgraph-checkpoint": "1.1.3"
   }

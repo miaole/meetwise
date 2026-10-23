@@ -20,6 +20,8 @@
  * 故 B 端行必须路由。C 端行（payer NULL）路径逐字节零改。
  */
 import type { PoolClient as Client } from 'pg';   // 直接取 pg 类型,不从 ./index 桶引（否则 index↔commerce 成环）
+import { cancelOpenInterviewQuestion } from '../interview/interview-question.ts';   // #1 接线：abandon 收口同事务 cancel open 题（该文件零包内 import=无环）
+import { failQueuedInterviewJobsOnAbandon } from '../interview/interview-jobs.ts';   // abandon 收口同事务把仍 queued 的作业写成 failed（interview-jobs 不引 commerce）
 import type { CreditBucketKind } from './payment.ts';   // B271 片3 P3 形 A：kind 可选形参类型（类型面单源=./payment.ts）
 import { interviewBillingOf, topicCountedUnits } from './topic-charge.ts';   // billing P3 修法⑥：模式闸+Σ 面（topic-charge 单向依赖·零环）
 
@@ -333,6 +335,7 @@ function terminalReleasedOf(r: TerminalSettlementResult): 'released' | 'noop' | 
  * `confirmConsumption`/`releaseConsumption` 自己能把额度账本串行化，却不能阻止调用方随后用无条件
  * `UPDATE interview` 覆盖另一方的终态。这个函数把「确认额度 → completed」放在同一事务，且状态更新必须
  * 从进行中态 CAS 成功；若用户已 abandon，抛错让刚才的 confirm 一并回滚，绝不留下 `(abandoned,confirmed)`。
+ * #8：CAS 成功臂同事务把同 thread 非终态 AiGraphRun 置 'succeeded'（run 行不再永停 waiting_user）。
  */
 export type CompleteInterviewResult = { status: 'completed' | 'already_completed'; unitsSettled?: number };
 
@@ -377,6 +380,8 @@ export async function completeInterviewAndConfirm(c: Client, owner: string, inte
       WHERE id=$1 AND owner_user_id=$2 AND status IN ('created')
       RETURNING status`, [interviewId, owner]);
   if (updated.rowCount === 1) {
+    // #8：run 终态写与面试 completed 同事务不可分（「唯一收口协议」语义自洽）。
+    await succeedAiGraphRunsOnInterviewComplete(c, owner, interviewId);
     return { status: 'completed', unitsSettled: settlement.status === 'confirmed' ? settlement.unitsSettled : cappedUnitsSettled };
   }
 
@@ -417,7 +422,11 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
     `UPDATE interview SET status='failed', version=version+1
       WHERE id=$1 AND owner_user_id=$2 AND status IN ('created','waiting_user','migrating','paused')
       RETURNING status`, [interviewId, owner]);
-  if (updated.rowCount === 1) return { status: 'failed', released: terminalReleasedOf(release) };
+  if (updated.rowCount === 1) {
+    // 只在本事务把面试写成 failed 之后取消仍排队的作业。already_failed 与冲突抛错不走这里。
+    await failQueuedInterviewJobsOnAbandon(c, owner, interviewId);
+    return { status: 'failed', released: terminalReleasedOf(release) };
+  }
 
   const current = await c.query('SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2', [interviewId, owner]);
   if (current.rowCount === 1 && current.rows[0].status === 'failed' && (release.status === 'noop' || (release.status === 'error' && release.reason === 'not_found')))
@@ -438,6 +447,8 @@ export async function failInterviewAndRelease(c: Client, owner: string, intervie
  * 成功放弃（含 already_abandoned 幂等）时同步将同 thread 的 AiGraphRun
  * `safe_terminating`→`safely_terminated`（状态机两步；清 lease）；不删 interview_event /
  * interview_question / interview 行（业务事实独立保全 · GAP-UC018-GRAPH）。
+ * #1 接线：`finishAbandon` 同事务 `cancelOpenInterviewQuestion`——open 题（issued/queued）status 翻
+ * cancelled（行不删·账本正常迁移），零作答放弃的列表显示由「已出 N 题，未作答」翻「尚未出题」。
  */
 export type AbandonInterviewResult = { status: 'abandoned' | 'already_abandoned'; released: 'released' | 'noop' | 'settled' };
 
@@ -461,10 +472,28 @@ async function safelyTerminateAiGraphRunsOnAbandon(c: Client, owner: string, int
   );
 }
 
+/** #8：面试完成（completeInterviewAndConfirm CAS 成功臂）同事务把该面试 thread 上非终态 AiGraphRun
+ * 一步 CAS 置 'succeeded'（清 lease；thread-wide 从集与 abandon 先例同构）。完成后 withInterviewGraphFence
+ * finally 之 releaseInterviewGraphFence 因 lease_owner/version 双失配 0 行 no-op=终态不被覆盖；
+ * 获取租约的更新只命中六值活状态，succeeded 不会被写回 active。无 run 则 noop。 */
+async function succeedAiGraphRunsOnInterviewComplete(c: Client, owner: string, interviewId: string): Promise<void> {
+  await c.query(
+    `UPDATE ai_graph_run
+        SET status='succeeded', lease_owner=NULL, lease_expires_at=NULL, version=version+1
+      WHERE owner_user_id=$1 AND thread_id=$2
+        AND status IN ('created','active','waiting_user','migrating','paused','quarantined')`,
+    [owner, interviewId],
+  );
+}
+
 async function finishAbandon(
   c: Client, owner: string, interviewId: string, result: AbandonInterviewResult,
 ): Promise<AbandonInterviewResult> {
   await safelyTerminateAiGraphRunsOnAbandon(c, owner, interviewId);
+  // #1 接线：open 题（issued/queued）同事务翻 cancelled（行不删=业务事实独立保全）——
+  // DTO current/processing_turn 归 NULL、issued_turns 归 0；迟答收敛 claimInterviewAnswer 既有 stale 臂。
+  await cancelOpenInterviewQuestion(c, owner, interviewId);
+  await failQueuedInterviewJobsOnAbandon(c, owner, interviewId);
   return result;
 }
 
@@ -638,4 +667,25 @@ export async function reconcile(c: Client, owner: string): Promise<{ staleReleas
   const swept = await sweepExpiredReservations(c, owner);
   const out = await settleOutbox(c, owner);
   return { staleReleased: swept.released, settled: out.settled, swept: swept.swept };
+}
+
+const OUTBOX_RETENTION_MIN_DAYS = 7;
+const OUTBOX_RETENTION_MAX_DAYS = 365;
+const OUTBOX_RETENTION_MIN_BATCH = 1;
+const OUTBOX_RETENTION_MAX_BATCH = 10000;
+
+/**
+ * 已投递 outbox 行按保留期分批删除。只经 SECURITY DEFINER 函数到达，
+ * app_role 对 commerce_outbox 仍无 DELETE。天数 7..365，批大小 1..10000，越界即抛。
+ */
+export async function purgeExpiredRelayedOutbox(c: Client, keepDays: number, batchCap: number): Promise<number> {
+  if (!Number.isSafeInteger(keepDays) || keepDays < OUTBOX_RETENTION_MIN_DAYS || keepDays > OUTBOX_RETENTION_MAX_DAYS
+    || !Number.isSafeInteger(batchCap) || batchCap < OUTBOX_RETENTION_MIN_BATCH || batchCap > OUTBOX_RETENTION_MAX_BATCH) {
+    throw Object.assign(new Error('commerce_outbox_retention_invalid'), { code: 'commerce_outbox_retention_invalid' });
+  }
+  const r = await c.query(
+    `SELECT commerce_outbox_relayed_retention_purge($1, $2) AS purged`,
+    [keepDays, batchCap],
+  );
+  return Number(r.rows[0]?.purged ?? 0);
 }

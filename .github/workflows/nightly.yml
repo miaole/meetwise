@@ -30,7 +30,7 @@ jobs:
           done
           echo "postgres not ready"; exit 1
 
-      # ── 硬门(配 key 即真跑,红=真模型出题/评分/报告质量或关口出问题,阻断) ──
+      # ── 门位如实:冒烟=硬门阻断(红=真模型出题/评分/报告质量或关口出问题)·recall/scoring=信号臂(continue-on-error,红=信号不阻断) ──
       - name: 真模型冒烟(文本 qwen:出题/评分/报告经 invoke 关口双校验真跑)
         env:
           MODEL_ENDPOINT_PROFILE: deepseek-cn-public
@@ -38,6 +38,7 @@ jobs:
           MODEL_NAME: ${{ secrets.MODEL_NAME }}
         run: |
           if [ -z "$MODEL_API_KEY" ]; then echo "::warning::未配 MODEL_API_KEY → 跳过真模型门(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
+          touch .env # CI checkout 无 .env·脚本顶层 readFileSync 需占位文件(空文件即可·key 仍走 env 注入)
           pnpm model:smoke
       # 视觉 OCR 在 MODEL-OP-01 前由代码全环境 fail-closed；不得在 nightly
       # 读取 Key、简历图片或原始模型输出。恢复前需 typed binding + 合成 fixture
@@ -45,14 +46,14 @@ jobs:
       # Voice/OCR live smoke is intentionally absent. MODEL-OP-01 must first
       # establish typed operation binding, media budgets, deletion receipts,
       # redacted synthetic fixtures and non-unknown attempt handling.
-      - name: 检索召回金标(recall:eval:真 embedding 召回率达标)
+      - name: 检索召回金标(qbank:retrieval:eval:真 embedding 召回率达标)
         continue-on-error: true
         env:
-          MODEL_API_KEY: ${{ secrets.MODEL_API_KEY }}
-          EMBED_API_KEY: ${{ secrets.EMBED_API_KEY }}
+          DASHSCOPE_EMBED_API_KEY: ${{ secrets.DASHSCOPE_EMBED_API_KEY }}
         run: |
-          if [ -z "$MODEL_API_KEY" ] && [ -z "$EMBED_API_KEY" ]; then echo "skip recall:eval(无 key)"; exit 0; fi
-          pnpm recall:eval
+          if [ -z "$DASHSCOPE_EMBED_API_KEY" ]; then echo "::warning::未配 DASHSCOPE_EMBED_API_KEY → 跳过 qbank:retrieval:eval(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
+          touch .env # CI checkout 无 .env·脚本顶层 readFileSync 需占位文件(空文件即可·key 仍走 env 注入)
+          pnpm qbank:retrieval:eval
       - name: 评分官质量信号(scoring:eval:单调性/一致性ICC/相关性,真模型;度量数学硬门在 per-push ci)
         continue-on-error: true
         env:
@@ -61,5 +62,5 @@ jobs:
           MODEL_NAME: ${{ secrets.MODEL_NAME }}
           MODEL_FAST_NAME: ${{ secrets.MODEL_FAST_NAME }}
         run: |
-          if [ -z "$MODEL_API_KEY" ]; then echo "skip scoring:eval(无 key)"; exit 0; fi
+          if [ -z "$MODEL_API_KEY" ]; then echo "::warning::未配 MODEL_API_KEY → 跳过 scoring:eval(配 secrets 后 nightly/手动才真跑)"; exit 0; fi
           pnpm scoring:eval

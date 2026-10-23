@@ -1,5 +1,5 @@
 /** 系统指标注册表证明(纯):counter/gauge/histogram → Prometheus 文本曝光。 pnpm metrics:prove */
-import { createMetrics, registerBaselineMetrics, METRIC } from '../src/index.ts';
+import { createMetrics, registerBaselineMetrics, recordRagRetrievalAction, METRIC } from '../src/index.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 const m = createMetrics();
 m.inc('http_requests_total', { route: '/health', status: '200' });
@@ -76,6 +76,29 @@ const out3 = m3.render();
 A('终态失败 counter inc 累加 + queue 低基数标签 + # TYPE counter 头(Prometheus 合法曝光)',
   /worker_jobs_failed_total\{queue="interview_job"\} 2/.test(out3) && /worker_jobs_failed_total\{queue="report"\} 1/.test(out3)
   && /worker_jobs_failed_total\{queue="diagnosis_job"\} 0/.test(out3) && out3.includes('# TYPE worker_jobs_failed_total counter'));
+
+// ---- UC-028 丢失率分母:ai_trace_persist_attempts_total(failures 分子配对分母·零预填·_total 纪律)--------
+A('METRIC.aiTracePersistAttempts 常量名(ai_trace_persist_attempts_total·counter _total 收尾命名纪律·与 failures 分子同族)',
+  METRIC.aiTracePersistAttempts === 'ai_trace_persist_attempts_total');
+A('registerBaselineMetrics 零预填 ai_trace_persist_attempts_total(开机即有序列,丢失率分母告警不空·failures 分子邻位同值)',
+  /ai_trace_persist_attempts_total 0/.test(base) && /ai_trace_persist_failures_total 0/.test(base));
+
+const closedActions = ['use_local', 'augment_web', 'fallback_web', 'refuse', 'deny_external'] as const;
+const baselineActionLines = base.split('\n').filter((line) => line.startsWith('rag_retrieval_action_total{'));
+A('检索裁决计数只预注册五种动作，标签仅为 action',
+  METRIC.ragRetrievalActionTotal === 'rag_retrieval_action_total'
+  && closedActions.every((action) => baselineActionLines.includes(`rag_retrieval_action_total{action="${action}"} 0`))
+  && baselineActionLines.length === 5);
+const actionMetrics = createMetrics();
+for (const action of closedActions) recordRagRetrievalAction(action, actionMetrics);
+recordRagRetrievalAction('not_a_closed_action', actionMetrics);
+recordRagRetrievalAction('no_results → 回退 web 探索', actionMetrics);
+recordRagRetrievalAction('use_local_extra', actionMetrics);
+const actionLines = actionMetrics.render().split('\n').filter((line) => line.startsWith('rag_retrieval_action_total{'));
+A('五种裁决各加一，未知动作与自由文本不加、不入标签',
+  closedActions.every((action) => actionLines.includes(`rag_retrieval_action_total{action="${action}"} 1`))
+  && actionLines.length === 5
+  && actionLines.every((line) => /^rag_retrieval_action_total\{action="[^"]+"\} 1$/.test(line)));
 
 console.log(`\n${fail === 0 ? '✓ 系统指标注册表(Prometheus 曝光)全部通过' : '✗ ' + fail + ' 失败'}`);
 process.exit(fail === 0 ? 0 : 1);

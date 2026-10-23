@@ -191,6 +191,88 @@ async function validate() {
   await db.pool.query("INSERT INTO user_account(id,email,password_hash,is_admin) VALUES ('userA','ua@x.com','scrypt$x$y',false),('adminU','admin@x.com','scrypt$a$b',true),('victimU','v@x.com','scrypt$v$w',false)");
   await db.pool.query("INSERT INTO payment_order(id,owner_user_id,product_id,amount_cents,units,status) VALUES ('o1','userB','pack_10',9900,10,'paid')");
   await db.pool.query("INSERT INTO notification(id,owner_user_id,kind,payload) VALUES ('n1','userA','report_ready','{\"overall\":76}'),('n2','userA','report_ready','{}')");
+  // failed / abandoned / waiting_user：各自独立 id 与卡。不改 ASMT、EVDEL 的行，也不动 80/40/60。
+  const seedHeldScore = async (spec: {
+    id: string; status: 'failed' | 'abandoned' | 'waiting_user';
+    cardTotal: number; eventScore: number; overall: number; dimensionScore: number;
+    sub: string; art: string; contract: string; req: string; card: string; answerId: string;
+  }) => {
+    const owner = 'failscoreUser';
+    const answerHash = createHash('sha256').update(`${spec.id}:answer`).digest('hex');
+    const hmac = createHash('sha256').update(`${spec.id}:hmac`).digest('hex');
+    const client = await db.pool.connect();
+    try {
+      await client.query("SELECT set_config('app.principal_user', $1, false)", [owner]);
+      await client.query(
+        `INSERT INTO interview(id,owner_user_id,status,questions) VALUES ($1,$2,$3,$4::jsonb)`,
+        [spec.id, owner, spec.status, JSON.stringify(['请说明限流取舍'])],
+      );
+      await client.query(
+        `INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question,competency,status,answer_id,answer_hash)
+         VALUES ($1,$2,'q-v1-t0-c0',1,0,'请说明限流取舍','限流','answered',$3,$4)`,
+        [owner, spec.id, spec.answerId, answerHash],
+      );
+      await client.query(
+        `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES ($1,$2,1,'answer_evaluated',$3::jsonb)`,
+        [owner, spec.id, JSON.stringify({
+          questionId: 'q-v1-t0-c0', stateVersion: 1, answerId: spec.answerId, answerHash,
+          turn: 0, competency: '限流', score: spec.eventScore, outcome: 'answered',
+          question: '请说明限流取舍', evidence: ['answer_quality'],
+        })],
+      );
+      await client.query(
+        `INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',1,$4,$5,1)`,
+        [spec.sub, owner, spec.id, `${spec.id}-sub`, hmac],
+      );
+      await client.query(
+        `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',1,$4,decode('00','hex'),$5,1,1,1)`,
+        [spec.art, owner, spec.id, spec.sub, hmac],
+      );
+      await client.query(
+        `INSERT INTO issued_question_contract(id,owner_user_id,interview_id,question_id,state_version,turn,question_content_hash,rubric_id,difficulty,form,language,route,prompt_policy_version,measurement_version,privacy_epoch,status)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',1,0,$4,$5,3,'mock','zh','adaptive','prompt-v1','measure-v1',1,'issued')`,
+        [spec.contract, owner, spec.id, hmac, asmtRubric1],
+      );
+      await client.query(
+        `INSERT INTO score_request(id,owner_user_id,interview_id,issued_contract_id,submission_id,artifact_id,answer_version,answer_body_hmac,privacy_epoch,operation_policy_version,idempotency_key,status)
+         VALUES ($1,$2,$3,$4,$5,$6,1,$7,1,'op-v1',$8,'scored')`,
+        [spec.req, owner, spec.id, spec.contract, spec.sub, spec.art, hmac, `${spec.id}-req`],
+      );
+      await client.query(
+        `INSERT INTO score_card(id,owner_user_id,interview_id,question_id,answer_id,submission_id,score_request_id,issued_contract_id,rubric_id,rubric_version,measurement_version,deterministic_total,coverage,status)
+         VALUES ($1,$2,$3,'q-v1-t0-c0',$4,$5,$6,$7,$8,1,'measure-v1',$9,1.0,'practice_eligible')`,
+        [spec.card, owner, spec.id, spec.art, spec.sub, spec.req, spec.contract, asmtRubric1, spec.cardTotal],
+      );
+      await client.query(
+        `INSERT INTO assessment_report(id,owner_user_id,interview_id,status,dimensions,overall)
+         VALUES ($1,$2,$3,'ready',$4::jsonb,$5)`,
+        [`ar-${spec.id}`, owner, spec.id, JSON.stringify([{ dimension: '限流', score: spec.dimensionScore, gap: spec.dimensionScore < 60, evidence: ['answer_quality'] }]), spec.overall],
+      );
+    } finally {
+      await client.query("SELECT set_config('app.principal_user', '', false)").catch(() => undefined);
+      client.release();
+    }
+  };
+  await seedHeldScore({
+    id: 'FAILSCORE', status: 'failed', cardTotal: 88, eventScore: 77, overall: 91, dimensionScore: 88,
+    sub: '12121212-1212-4121-8121-121212121211', art: '12121212-1212-4121-8121-121212121212',
+    contract: '12121212-1212-4121-8121-121212121213', req: '12121212-1212-4121-8121-121212121214',
+    card: '12121212-1212-4121-8121-121212121215', answerId: '12121212-1212-4121-8121-121212121216',
+  });
+  await seedHeldScore({
+    id: 'ABNDSCORE', status: 'abandoned', cardTotal: 73, eventScore: 55, overall: 66, dimensionScore: 73,
+    sub: '13131313-1313-4131-8131-131313131311', art: '13131313-1313-4131-8131-131313131312',
+    contract: '13131313-1313-4131-8131-131313131313', req: '13131313-1313-4131-8131-131313131314',
+    card: '13131313-1313-4131-8131-131313131315', answerId: '13131313-1313-4131-8131-131313131316',
+  });
+  await seedHeldScore({
+    id: 'WAITSCORE', status: 'waiting_user', cardTotal: 64, eventScore: 12, overall: 64, dimensionScore: 64,
+    sub: '14141414-1414-4141-8141-141414141411', art: '14141414-1414-4141-8141-141414141412',
+    contract: '14141414-1414-4141-8141-141414141413', req: '14141414-1414-4141-8141-141414141414',
+    card: '14141414-1414-4141-8141-141414141415', answerId: '14141414-1414-4141-8141-141414141416',
+  });
 
   await app.listen(0, '127.0.0.1');
   const base = (await app.getUrl()).replace('[::1]', '127.0.0.1');
@@ -310,6 +392,11 @@ async function validate() {
     A('[F5] release 后腾出一槽 → 可再 acquire(长连接断开释放,不永久占用)', (await rl.acquireSlot('sse-test', 2)) === true);
   }
   q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE interview_id='R1' AND kind='answer'"); A('answer job 已落队列', q.rows[0].n === 1);
+  // [Q2-VALIDATE-SCENE-FIX] 场景自洽:本 harness api-only 无 worker,上方 BEG1/RACE begin + R1 turn
+  // 断言恰累积 userA queued job 3 条,ABND begin(第 4 条)将撞 Q2 入队背压闸 429,遮蔽本块受测的
+  // 额度预留/退还语义。闸前清 queued=模拟 worker 已消费积压(仅 queued 受闸·窄谓词不触他行他主)。
+  await db.pool.query("DELETE FROM interview_job WHERE owner_user_id='userA' AND status='queued'");
+  q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE owner_user_id='userA' AND status='queued'"); A('ABND 前 userA queued 已清空(api-only 场景自洽·防 Q2 背压闸 429 遮蔽预留语义)', q.rows[0].n === 0);
   // 放弃面试:退还预留额度(不漏扣)
   const balBefore = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body?.availableUnits ?? (await (async()=>{const r2=await fetch(base+'/commerce/entitlement',{headers:{'x-user-id':'userA'}});return ((await r2.json()) as { availableUnits: number }).availableUnits;})());
   r = await req('POST', '/interview/ABND/begin', { 'x-user-id': 'userA', 'resume-id': abandonResumeId }); A('ABND begin → 202(预留 1.0)', r.status === 202);
@@ -384,7 +471,8 @@ async function validate() {
 
   // OCR 在 MODEL-OP-01 typed binding 前必须在入口前 fail-closed；这里绝不
   // 注入本地假模型、创建工件、预留额度或派发视觉请求。
-  const pngB64 = Buffer.from('fake-png-bytes-for-ocr-e2e-001').toString('base64');
+  // #109 fixture 升级:头部真 PNG 魔数过嗅探门·断言面(422 image_ocr_unavailable+计费零增量)守恒。
+  const pngB64 = Buffer.concat([Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), Buffer.from('fake-png-bytes-for-ocr-e2e-001')]).toString('base64');
   const ocrBefore = {
     consumption: Number((await db.pool.query("SELECT count(*)::int n FROM entitlement_consumption WHERE owner_user_id='userA' AND service_type='ocr'")).rows[0]?.n ?? 0),
     artifact: Number((await db.pool.query("SELECT count(*)::int n FROM resume_ocr_artifact WHERE owner_user_id='userA'")).rows[0]?.n ?? 0),
@@ -458,6 +546,48 @@ async function validate() {
   A('生成评估 → 200 + overall=60(80/40 均值)', r.status === 200 && r.body.overall === 60);
   A('低分维度标记 gap(分布式锁 40<60)', r.body.dimensions.some((d: any) => d.gap === true) && r.body.weaknesses.length === 1);
   r = await req('GET', '/interview/ASMT/assessment', { 'x-user-id': 'userA' }); A('取评估 → ready', r.status === 200 && r.body.status === 'ready' && r.body.overall === 60);
+  const asmtReadHeaders: Record<string, string> = {};
+  asmtReadHeaders['x-user-id'] = 'userA';
+  const heldScoreHeaders: Record<string, string> = {};
+  heldScoreHeaders['x-user-id'] = 'failscoreUser';
+  const readScore = (row: unknown): unknown => (
+    row && typeof row === 'object' ? (row as { score?: unknown }).score : undefined
+  );
+  r = await req('GET', '/interview/ASMT/transcript', asmtReadHeaders);
+  A('ASMT 转写两回合仍是 80 和 40', r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 2 && r.body.turns[0].score === 80 && r.body.turns[1].score === 40);
+  const noNumericDimension = (dims: unknown) => !Array.isArray(dims) || dims.every((d) => !d || typeof d !== 'object' || typeof (d as { score?: unknown }).score !== 'number');
+  for (const spec of [
+    { id: 'FAILSCORE', cardTotal: 88, eventScore: 77, overall: 91 },
+    { id: 'ABNDSCORE', cardTotal: 73, eventScore: 55, overall: 66 },
+  ]) {
+    r = await req('GET', `/interview/${spec.id}/transcript`, heldScoreHeaders);
+    const transcriptRaw = JSON.stringify(r.body);
+    A(`${spec.id} 转写回合分是 null，不是 0，也不是卡上总分或事件分`,
+      r.status === 200 && Array.isArray(r.body.turns) && r.body.turns.length === 1
+      && r.body.turns.every((turn: unknown) => {
+        const score = readScore(turn);
+        return score === null && score !== 0 && score !== spec.cardTotal && score !== spec.eventScore;
+      })
+      && r.body.turns[0].question === '请说明限流取舍' && r.body.turns[0].outcome === 'answered'
+      && Array.isArray(r.body.turns[0].evidence) && r.body.turns[0].evidence[0] === 'answer_quality'
+      && !('deterministicTotal' in r.body) && !transcriptRaw.includes(String(spec.cardTotal)) && !transcriptRaw.includes(String(spec.eventScore)));
+    r = await req('GET', `/interview/${spec.id}/assessment`, heldScoreHeaders);
+    const assessmentRaw = JSON.stringify(r.body);
+    A(`${spec.id} 评估成功但没有数字 overall，也没有带数字 score 的维度`,
+      r.status === 200 && r.body.status === 'ready' && r.body.error !== 'no_scorable_cards'
+      && typeof r.body.overall !== 'number' && r.body.overall !== spec.overall && r.body.overall !== 0
+      && noNumericDimension(r.body.dimensions)
+      && !assessmentRaw.includes(String(spec.overall)) && !assessmentRaw.includes(String(spec.cardTotal)));
+    const heldCards = await db.pool.query(
+      "SELECT status, count(*)::int AS n FROM score_card WHERE interview_id=$1 GROUP BY status", [spec.id]);
+    A(`${spec.id} 卡行还在且仍是 practice_eligible`,
+      heldCards.rows.length === 1 && heldCards.rows[0].status === 'practice_eligible' && heldCards.rows[0].n === 1);
+  }
+  r = await req('GET', '/interview/WAITSCORE/transcript', heldScoreHeaders);
+  A('waiting_user 转写仍返回卡上的数字', r.status === 200 && r.body.turns?.length === 1 && r.body.turns[0].score === 64 && r.body.turns[0].score !== 12);
+  r = await req('GET', '/interview/WAITSCORE/assessment', heldScoreHeaders);
+  A('waiting_user 评估仍返回数字 overall 和维度分',
+    r.status === 200 && r.body.overall === 64 && Array.isArray(r.body.dimensions) && r.body.dimensions.some((d: unknown) => readScore(d) === 64));
   r = await req('GET', '/interview/ASMT/assessment', { 'x-user-id': 'userB' }); A('userB 越权取评估 → 404(RLS)', r.status === 404);
 
   // 学习计划:评估差距 → 学习项
@@ -465,6 +595,7 @@ async function validate() {
   // generateLearningPlan 先 guardInterviewPrivacy(不存在→404),再查 assessment_report(0 行→409)。
   // 用 NOPE 会把「无评估」误测成「不存在→404」,盖不住 assessment_required 分支。
   r = await postJson('/interview/R1/learning-plan', { 'x-user-id': 'userA' }, {}); A('无评估先生成学习计划 → 409', r.status === 409);
+  r = await postJson('/interview/R1/learning-plan/complete', { 'x-user-id': 'userA' }, { topic: '任意串' }); A('无计划打卡 → 409 plan_required(#185·探针只读零副作用·不染后序 R1 臂)', r.status === 409 && r.body.error === 'plan_required');
   r = await postJson('/interview/ASMT/learning-plan', { 'x-user-id': 'userA' }, {}); A('据评估差距生成学习计划 → 200 + 含弱项学习项', r.status === 200 && r.body.items.length === 1 && r.body.items[0].priority === 'medium');
   r = await req('GET', '/interview/ASMT/learning-plan', { 'x-user-id': 'userA' }); A('取学习计划 → active', r.status === 200 && r.body.status === 'active');
   r = await req('GET', '/interview/ASMT/learning-plan', { 'x-user-id': 'userB' }); A('userB 越权取学习计划 → 404(RLS)', r.status === 404);
@@ -477,6 +608,7 @@ async function validate() {
   A('反映完成度(该项 done=true,progress.completed=1)', lp2.items.find((x: any) => x.topic === topic0).done === true && lp2.progress.completed === 1);
   r = await postJson('/interview/ASMT/learning-plan/complete', { 'x-user-id': 'userA' }, { topic: topic0 }); A('重复打卡幂等 → 仍 200', r.status === 200);
   r = await postJson('/interview/ASMT/learning-plan/complete', { 'x-user-id': 'userA' }, {}); A('缺 topic → 400', r.status === 400);
+  r = await postJson('/interview/ASMT/learning-plan/complete', { 'x-user-id': 'userA' }, { topic: '计划外维度名' }); A('计划存在而 topic∉维度 → 400 invalid_topic(#185·#121 探针原样)', r.status === 400 && r.body.error === 'invalid_topic');
   // 交易:下单 → 验签幂等入账 → 余额。承重:重复回调不双入。
   r = await req('GET', '/commerce/products', { 'x-user-id': 'userA' }); A('商品列表 → 2 个面试包', r.status === 200 && r.body.products.length === 2);
   const balB = (await req('GET', '/commerce/entitlement', { 'x-user-id': 'userA' })).body.availableUnits;
@@ -553,6 +685,70 @@ async function validate() {
   r = await req('GET', '/profile/overview', { 'x-user-id': 'ledgerUser' });
   A('无 ScoreCard 时总览已答题数仍为账本 3,不伪装成 0;均分保持 null', r.status === 200 && r.body.answered === 3 && r.body.avgScore === null && r.body.answered === ledgerListAnswered);
   r = await req('GET', '/profile/overview', { 'x-user-id': 'userNoData' }); A('无数据用户总览:avgScore=null 且已答题数=0', r.status === 200 && r.body.avgScore === null && r.body.answered === 0);
+  // 撤权后近期平均与成长答题次数排除本事务已经取到的围栏名单。空名单不改查询。
+  {
+    const userAHeaders: Record<string, string> = {};
+    userAHeaders['x-user-id'] = 'userA';
+    const previewHeaders: Record<string, string> = {};
+    previewHeaders['x-user-id'] = 'userA';
+    previewHeaders['idempotency-key'] = 'favg-preview-1';
+    const fencedIds = async () => asPrincipal(db.pool, 'userA', async (c) => {
+      const listed = await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()');
+      return listed.rows.map((row) => String(row.thread_id));
+    });
+    const fencedEmpty = await fencedIds();
+    const ovEmpty = await req('GET', '/profile/overview', userAHeaders);
+    const grEmpty = await req('GET', '/profile/growth', userAHeaders);
+    const emptyBaseline = fencedEmpty.length === 0 && ovEmpty.status === 200 && ovEmpty.body.avgScore === 60 && grEmpty.status === 200 && grEmpty.body.totals?.answered === 2;
+    A('空围栏名单时总览均分 60、成长答题次数 2', emptyBaseline);
+    if (!emptyBaseline) {
+      console.log(`NOTE  fence-avg baseline fenced=${JSON.stringify(fencedEmpty)} ov=${ovEmpty.status}/${ovEmpty.body.avgScore} gr=${grEmpty.status}/${grEmpty.body.totals?.answered}`);
+      throw new Error('fence_avg_baseline_not_60_and_2');
+    }
+    const favgRubric = 'cccccccc-cccc-4ccc-8ccc-ccccccccccc1';
+    const favgSub = 'dddddddd-dddd-4ddd-8ddd-ddddddddddd1';
+    const favgArtifact = 'eeeeeeee-eeee-4eee-8eee-eeeeeeeeeee1';
+    const favgContract = 'ffffffff-ffff-4fff-8fff-fffffffffff1';
+    const favgReq = '12121212-1212-4121-8121-121212121211';
+    const favgCard = '13131313-1313-4131-8131-131313131311';
+    const favgHash = '0000000000000000000000000000000000000000000000000000000000000003';
+    const favgQuestion = 'q-favg-t0-c0';
+    const seedClient = await db.pool.connect();
+    try {
+      await seedClient.query('BEGIN');
+      await seedClient.query("SELECT set_config('app.principal_user', 'userA', true)");
+      await seedClient.query("INSERT INTO interview(id,owner_user_id,status) VALUES ('FAVG','userA','created')");
+      await seedClient.query(`INSERT INTO question_rubric(id,question_id,question_version,rubric_version,competency,difficulty,language_scope,question_content_hash,status)
+        VALUES ($1,$2,1,1,'围栏',3,'["zh","en"]',$3,'published')`, [favgRubric, favgQuestion, favgHash]);
+      await seedClient.query(`INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+        VALUES ($1,'userA','FAVG',$2,1,'favg-sub-1',$3,1)`, [favgSub, favgQuestion, favgHash]);
+      await seedClient.query(`INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
+        VALUES ($1,'userA','FAVG',$2,1,$3,decode('00','hex'),$4,1,1,1)`, [favgArtifact, favgQuestion, favgSub, favgHash]);
+      await seedClient.query(`INSERT INTO issued_question_contract(id,owner_user_id,interview_id,question_id,state_version,turn,question_content_hash,rubric_id,difficulty,form,language,route,prompt_policy_version,measurement_version,privacy_epoch,status)
+        VALUES ($1,'userA','FAVG',$2,1,0,$3,$4,3,'mock','zh','adaptive','prompt-v1','measure-v1',1,'issued')`, [favgContract, favgQuestion, favgHash, favgRubric]);
+      await seedClient.query(`INSERT INTO score_request(id,owner_user_id,interview_id,issued_contract_id,submission_id,artifact_id,answer_version,answer_body_hmac,privacy_epoch,operation_policy_version,idempotency_key,status)
+        VALUES ($1,'userA','FAVG',$2,$3,$4,1,$5,1,'op-v1','favg-req-1','scored')`, [favgReq, favgContract, favgSub, favgArtifact, favgHash]);
+      await seedClient.query(`INSERT INTO score_card(id,owner_user_id,interview_id,question_id,answer_id,submission_id,score_request_id,issued_contract_id,rubric_id,rubric_version,measurement_version,deterministic_total,coverage,status)
+        VALUES ($1,'userA','FAVG',$2,$3,$4,$5,$6,$7,1,'measure-v1',0,1.0,'practice_eligible')`,
+        [favgCard, favgQuestion, favgArtifact, favgSub, favgReq, favgContract, favgRubric]);
+      await seedClient.query('COMMIT');
+    } catch (err) {
+      await seedClient.query('ROLLBACK').catch(() => {});
+      throw err;
+    } finally {
+      seedClient.release();
+    }
+    const ovWith = await req('GET', '/profile/overview', userAHeaders);
+    const grWith = await req('GET', '/profile/growth', userAHeaders);
+    A('围栏前新卡计入:总览均分 40、成长答题次数 3,题目账本已答仍为 3', ovWith.status === 200 && ovWith.body.avgScore === 40 && ovWith.body.answered === 3 && grWith.status === 200 && grWith.body.totals?.answered === 3);
+    const preview = await postJson('/privacy/erasure-preview', previewHeaders, { scope: 'interview_data', subjectId: 'FAVG' });
+    A('预览撤权把新面试放进围栏 → 202', preview.status === 202 && preview.body.status === 'local_fenced' && preview.body.subjectId === 'FAVG');
+    const cardStatus = await db.pool.query('SELECT status FROM score_card WHERE id=$1', [favgCard]);
+    const fencedAfter = await fencedIds();
+    const ovAfter = await req('GET', '/profile/overview', userAHeaders);
+    const grAfter = await req('GET', '/profile/growth', userAHeaders);
+    A('围栏后新卡仍 practice_eligible,均分回到 60、答题次数回到 2', cardStatus.rows[0]?.status === 'practice_eligible' && fencedAfter.includes('FAVG') && ovAfter.status === 200 && ovAfter.body.avgScore === 60 && ovAfter.body.answered === 3 && grAfter.status === 200 && grAfter.body.totals?.answered === 2);
+  }
   // F6 回归:模拟旧无校验代码残留的**超大脏 preferences 行**(>4KB),证明白名单投影既不锁死也自愈清洗(审计高危项)。
   await db.pool.query("UPDATE user_account SET preferences=$2::jsonb WHERE id=$1", ['cpUser', JSON.stringify({ junkKey: 'x'.repeat(6000), theme: 'light' })]);
   r = await patchJson('/profile/settings', { 'x-user-id': 'cpUser' }, { preferences: { locale: 'zh' } });

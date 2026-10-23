@@ -42,6 +42,22 @@ async function main() {
   A('barge-in:TTS 被打断(没播完)', r2.ttsInterrupted === true);
   A('打断后仍正常识别用户答(对话不断)', r2.transcript === ANS);
 
+  // ④ 多句 final：第一句整段赋值，之后恰好一个换行接上；partial 不入稿
+  const sentenceAsr = {
+    id: 'sentence-final-asr',
+    async *transcribeStream() {
+      yield { text: '还没说完', final: false };
+      yield { text: '前一句已经结束', final: true };
+      yield { text: '后一句的前缀', final: false };
+      yield { text: '后一句也结束了', final: true };
+    },
+  };
+  const rSentences = await streamingVoiceTurn({ asr: sentenceAsr, tts: fakeStreamingTts(4) }, '请接上后一句最终结果', audio(1));
+  const joined = '前一句已经结束' + '\n' + '后一句也结束了';
+  A('两句 final 用恰好一个换行接在一起', rSentences.transcript === joined);
+  A('两段 partial 都不进入 transcript', !rSentences.transcript.includes('还没说完') && !rSentences.transcript.includes('后一句的前缀'));
+  A('两段 partial 各计一次', rSentences.partials === 2);
+
   console.log(`\n${fail === 0 ? '✓ streamingVoiceTurn fake-seam contract passed (not product stream ASR / E2E)' : '✗ ' + fail + ' 失败'}`);
   process.exit(fail === 0 ? 0 : 1);
 }

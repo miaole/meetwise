@@ -239,7 +239,7 @@ async function main() {
     delete process.env.MODEL_ENDPOINT_PROFILE;
     delete process.env.MODEL_BACKUP_API_KEY;
     process.env.MODEL_API_KEY = 'proof-text-key';
-    process.env.MODEL_NAME = 'qwen-plus';
+    process.env.MODEL_NAME = 'deepseek-v4-flash';
     delete process.env.MODEL_TEXT_STREAM_ENABLED;
     delete process.env.MODEL_TEXT_STREAM_PREVIEW;
 
@@ -412,8 +412,8 @@ async function main() {
     // 上限补齐+usageSource='usage_missing'（绝不按 0）；usage 整体缺失 → undefined（流式三联钉值含
     // usage chunk——整体缺失走②静默断流 error 面，usage 面恒缺席·与非流式 ok-undefined 分臂不新造语义）。
     {
-      const s4bPolicy = { scopeId: 'scope-s4b', provider: 'p-s4b', model: 'm-s4b-fill', region: 'cn-proof', priceRevision: 's4b-r1', maxInputTokens: 1000, maxOutputTokens: 500, contextWindowTokens: 4_096, contextEstimator: 'utf8-bytes-v1' as const, contextSafetyMarginTokens: 128 };
-      const s4bPolicyClient = () => openAICompatibleClient({ model: 'm-s4b-fill', costPolicy: { ...s4bPolicy } });
+      const s4bPolicy = { scopeId: 'scope-s4b', provider: 'p-s4b', model: 'deepseek-m-s4b-fill', region: 'cn-proof', priceRevision: 's4b-r1', maxInputTokens: 1000, maxOutputTokens: 500, contextWindowTokens: 4_096, contextEstimator: 'utf8-bytes-v1' as const, contextSafetyMarginTokens: 128 };
+      const s4bPolicyClient = () => openAICompatibleClient({ model: 'deepseek-m-s4b-fill', costPolicy: { ...s4bPolicy } });
       const sseWire = (lines: string[]) => lines.map((l) => `${l}\n\n`).join('');
       globalThis.fetch = (async () => wireResponse(sseWire([
         'data: {"choices":[{"delta":{"content":"{\\"ok\\":1}"},"finish_reason":"stop"}]}',
@@ -438,6 +438,125 @@ async function main() {
       );
       A('R1b④：usage 整体缺失 → undefined（三联不齐=②静默断流 error 面·usage 面恒缺席不伪造零值）',
         noUsage.ok === false && !('usage' in noUsage));
+    }
+
+    // ===== 流式空输出 / 长度截断：完成且已有用量时按已执行结算（非流式分支不改）=====
+    {
+      const knownExecuted = (result: ModelResult) => (
+        result.ok === false && result.externalOutcome === 'known_executed' ? result : undefined
+      );
+      const transientUnknown = (result: ModelResult) => (
+        result.ok === false && result.kind === 'transient' && result.externalOutcome === 'unknown'
+      );
+      const usageLine = 'data: {"choices":[],"usage":{"prompt_tokens":11,"completion_tokens":7}}';
+      const doneLine = 'data: [DONE]';
+      const pull = async (lines: string[]): Promise<ModelResult> => {
+        globalThis.fetch = (async () => wireResponse(lines.map((line) => `${line}\n\n`).join(''))) as typeof fetch;
+        return openAICompatibleClient().completeStream(
+          { service: 'smoke', system: 'trusted system only', userData: 'ping' },
+          { onDelta: () => undefined },
+        );
+      };
+      const emptyStop = knownExecuted(await pull([
+        'data: {"choices":[{"delta":{"content":""},"finish_reason":"stop"}]}',
+        usageLine,
+        doneLine,
+      ]));
+      A('空累计文本+stop+usage+[DONE]：known_executed·deterministic_output_invalid·带 usage·不设 finishReason',
+        emptyStop !== undefined && emptyStop.kind === 'deterministic'
+        && emptyStop.errorCode === 'deterministic_output_invalid'
+        && emptyStop.usage?.inputTokens === 11 && emptyStop.usage?.outputTokens === 7
+        && emptyStop.finishReason === undefined,
+        emptyStop);
+      const truncated = knownExecuted(await pull([
+        'data: {"choices":[{"delta":{"content":"hello"},"finish_reason":"length"}]}',
+        usageLine,
+        doneLine,
+      ]));
+      A('累计文本非空+length+usage+[DONE]：known_executed·deterministic_output_truncated·finishReason=length·不得 ok:true',
+        truncated !== undefined && truncated.errorCode === 'deterministic_output_truncated'
+        && truncated.finishReason === 'length' && truncated.usage?.outputTokens === 7,
+        truncated);
+      const emptyLength = knownExecuted(await pull([
+        'data: {"choices":[{"delta":{"content":""},"finish_reason":"length"}]}',
+        usageLine,
+        doneLine,
+      ]));
+      A('空累计文本+length+usage+[DONE]：仍是 deterministic_output_invalid·finishReason=length',
+        emptyLength !== undefined && emptyLength.errorCode === 'deterministic_output_invalid'
+        && emptyLength.finishReason === 'length' && emptyLength.usage?.inputTokens === 11,
+        emptyLength);
+      const stopText = await pull([
+        'data: {"choices":[{"delta":{"content":"hello"},"finish_reason":"stop"}]}',
+        usageLine,
+        doneLine,
+      ]);
+      A('stop+有文本+usage+[DONE]：仍是成功',
+        stopText.ok === true && stopText.raw === 'hello'
+        && stopText.usage?.inputTokens === 11 && stopText.usage?.outputTokens === 7,
+        stopText);
+      A('length 已见但没有 usage：仍是 transient/unknown',
+        transientUnknown(await pull([
+          'data: {"choices":[{"delta":{"content":"hello"},"finish_reason":"length"}]}',
+          doneLine,
+        ])));
+      A('空文本已见但没有 usage：仍是 transient/unknown',
+        transientUnknown(await pull([
+          'data: {"choices":[{"delta":{"content":""},"finish_reason":"stop"}]}',
+          doneLine,
+        ])));
+      A('length+usage 但 EOF 没有 [DONE]：仍是 transient/unknown',
+        transientUnknown(await pull([
+          'data: {"choices":[{"delta":{"content":"hello"},"finish_reason":"length"}]}',
+          usageLine,
+        ])));
+      A('空文本+usage 但 EOF 没有 [DONE]：仍是 transient/unknown',
+        transientUnknown(await pull([
+          'data: {"choices":[{"delta":{"content":""},"finish_reason":"length"}]}',
+          usageLine,
+        ])));
+      A('结束标记不是 stop 也不是 length：仍是 transient/unknown',
+        transientUnknown(await pull([
+          'data: {"choices":[{"delta":{"content":"hello"},"finish_reason":"content_filter"}]}',
+          usageLine,
+          doneLine,
+        ])));
+      globalThis.fetch = (async () => { throw new Error('transport_interrupted'); }) as typeof fetch;
+      const broken = await openAICompatibleClient().completeStream(
+        { service: 'smoke', system: 'trusted system only', userData: 'ping' },
+        { onDelta: () => undefined },
+      );
+      A('传输中断：仍是 transient/unknown', transientUnknown(broken), broken);
+      const ac = new AbortController();
+      const cancelStarted = Date.now();
+      globalThis.fetch = (async (_input: string | URL | Request, init?: RequestInit) => {
+        setTimeout(() => ac.abort(), 30);
+        return wireResponse(
+          'data: {"choices":[{"delta":{"content":"Z"},"finish_reason":"length"}]}\n\n'
+          + 'data: {"choices":[],"usage":{"prompt_tokens":11,"completion_tokens":7}}\n\n'
+          + 'data: [DONE]\n\n',
+          { stallAfterBytes: 0, signal: init?.signal ?? undefined },
+        );
+      }) as typeof fetch;
+      const cancelled = await openAICompatibleClient().completeStream(
+        { service: 'smoke', system: 'trusted system only', userData: 'ping' },
+        { signal: ac.signal, onDelta: () => undefined },
+      );
+      const cancelMs = Date.now() - cancelStarted;
+      A('调用方取消：仍是 transient/unknown（早于空闲看门狗）',
+        transientUnknown(cancelled) && cancelMs < MODEL_STREAM_IDLE_WATCHDOG_MS,
+        { cancelMs, result: cancelled });
+      A('静态：length 不写成 stopSeen=true·streamEndedByEofWithoutDone 仍在 completeStream',
+        streamRegion.includes("else if (choice?.finish_reason === 'length') lengthSeen = true")
+        && !streamRegion.includes("finish_reason === 'length') stopSeen = true")
+        && streamRegion.includes('streamEndedByEofWithoutDone'));
+      const midAgain = await runStream([
+        'data: {"choices":[{"delta":{"content":"A"},"index":0,"finish_reason":null}]}\n\n',
+        'data: {"error":{"message":"midstream boom","code":"internal_error"}}\n\n',
+        'data: [DONE]\n\n',
+      ].join(''));
+      A('中途错误帧：仍是 transient/unknown', transientUnknown(midAgain.result), midAgain.result);
+      A('空闲看门狗：仍是 transient/unknown', transientUnknown(vol3.result), vol3.result);
     }
   } finally {
     globalThis.fetch = originalFetch;

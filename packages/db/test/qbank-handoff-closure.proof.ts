@@ -11,6 +11,8 @@
  * provision the same login must observe no 42501.  A missing before/after
  * would leave the definer FORCE-RLS fix unproven (a superuser owner masks it).
  */
+import { readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import {
   assertIsolatedTestTarget, asQbankControlExecutor, assertQbankControlDefinerOwnership, createPool,
   provisionQbankControlDefiner, provisionQbankControlLogin, provisionRuntimeLogin,
@@ -76,10 +78,79 @@ async function transferOwner(owner: string, functions: readonly string[], views:
   for (const view of views) await admin.query(`ALTER VIEW ${view} OWNER TO ${owner}`);
 }
 
+const PROVISION_LOCK_KEY = 'meetwise:qbank_control_definer_provision';
+
+function blockAfter(text: string, keyword: string): string {
+  const at = text.indexOf(keyword);
+  if (at < 0) return '';
+  const open = text.indexOf('{', at);
+  if (open < 0) return '';
+  let depth = 0;
+  for (let i = open; i < text.length; i += 1) {
+    const ch = text[i];
+    if (ch === '{') depth += 1;
+    else if (ch === '}') {
+      depth -= 1;
+      if (depth === 0) return text.slice(open, i + 1);
+    }
+  }
+  return '';
+}
+
+function advisoryKeys(fn: string, kind: 'lock' | 'unlock'): string[] {
+  const pattern = kind === 'lock'
+    ? /pg_advisory_lock\(hashtext\(\$1\)\)', \['([^']*)'\]/g
+    : /pg_advisory_unlock\(hashtext\(\$1\)\)', \['([^']*)'\]/g;
+  const keys: string[] = [];
+  for (const match of fn.matchAll(pattern)) {
+    const key = match[1];
+    if (key !== undefined) keys.push(key);
+  }
+  return keys;
+}
+
+/** Source shape of provisionQbankControlDefiner's outer unlock finally. */
+function assertProvisionUnlockReleaseShape(): void {
+  const source = readFileSync(fileURLToPath(new URL('../src/principal.ts', import.meta.url)), 'utf8');
+  const start = source.indexOf('export async function provisionQbankControlDefiner');
+  const end = source.indexOf('export async function provisionRuntimeLogin');
+  const fn = start >= 0 && end > start ? source.slice(start, end) : '';
+  const unlockAt = fn.indexOf('SELECT pg_advisory_unlock(hashtext($1))');
+  const finallyAt = unlockAt < 0 ? -1 : fn.lastIndexOf('finally', unlockAt);
+  const finallyText = finallyAt < 0 ? '' : blockAfter(fn.slice(finallyAt), 'finally');
+  const tried = blockAfter(finallyText, 'try');
+  const caught = blockAfter(finallyText, 'catch (unlockError: unknown)');
+  const unlockQuery = `await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['${PROVISION_LOCK_KEY}']);`;
+  const bareRelease = 'if (unlocked) c.release();';
+  const lockKeys = advisoryKeys(fn, 'lock');
+  const unlockKeys = advisoryKeys(fn, 'unlock');
+  A('provision unlock query is not chained to .catch(() => undefined)',
+    finallyText.includes(unlockQuery)
+    && !finallyText.includes('.catch(() => undefined)')
+    && !fn.includes(`pg_advisory_unlock(hashtext($1))', ['${PROVISION_LOCK_KEY}']).catch`));
+  A('provision unlock fulfillment releases with no argument',
+    new RegExp(`await c\\.query\\('SELECT pg_advisory_unlock\\(hashtext\\(\\$1\\)\\)', \\['${PROVISION_LOCK_KEY}'\\]\\);\\s*unlocked = true;`).test(tried)
+    && !/c\.release\s*\(/.test(tried)
+    && caught.length > 0
+    && !caught.includes(bareRelease)
+    && finallyText.includes(bareRelease));
+  A('provision unlock rejection releases the same Error or true, never with no argument',
+    finallyText.includes('catch (unlockError: unknown)')
+    && /if \(unlockError instanceof Error\) c\.release\(unlockError\);/.test(caught)
+    && /else c\.release\(true\);/.test(caught)
+    && !/c\.release\(\s*\)/.test(caught)
+    && !/new Error\(/.test(caught));
+  A('provision advisory lock and unlock keep the same key',
+    lockKeys.length === 1 && unlockKeys.length === 1
+    && lockKeys[0] === PROVISION_LOCK_KEY && unlockKeys[0] === PROVISION_LOCK_KEY
+    && fn.includes(`await c.query('SELECT pg_advisory_lock(hashtext($1))', ['${PROVISION_LOCK_KEY}']);`));
+}
+
 async function main() {
+  assertProvisionUnlockReleaseShape();
   await assertIsolatedTestTarget(admin);
   A('handoff closure manifest covers §6.1-6.5 (13 functions) + §6.2 (2 views) + review receipt table',
-    QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.length === 31
+    QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST.length === 32
     && QBANK_CONTROL_DEFINER_VIEW_MANIFEST.length === 2
     && QBANK_CONTROL_DEFINER_TABLE_MANIFEST.length === 15
     && QBANK_CONTROL_DEFINER_TABLE_MANIFEST.some((entry) => entry.name === 'public.qbank_metadata_review_receipt')
@@ -346,6 +417,28 @@ async function main() {
     const afterReprovisionAccepted = reprovisioned
       && await assertQbankControlDefinerOwnership(control).then(() => true, () => false);
     A('provisionQbankControlDefiner is idempotent/re-entrant across a second call', afterReprovisionAccepted);
+
+    // A separate short pool: release(Error) must drop that client before end.
+    // This does not call provisionQbankControlDefiner and does not fail an unlock.
+    let discardedOnError = false;
+    let shortPool: ReturnType<typeof createPool> | undefined;
+    try {
+      shortPool = createPool();
+      const client = await shortPool.connect();
+      const discardError = new Error('qbank_provision_unlock_discard');
+      client.release(discardError);
+      const state = shortPool as unknown as {
+        _idle: readonly { client: unknown }[];
+        _clients: readonly unknown[];
+      };
+      discardedOnError = discardError instanceof Error
+        && state._idle.every((item) => item.client !== client)
+        && !state._clients.includes(client);
+    } catch {
+      discardedOnError = false;
+    }
+    A('release(Error) removes the borrowed client from the short pool idle list and client list before that pool ends', discardedOnError);
+    if (shortPool !== undefined) await shortPool.end();
   } finally {
     await Promise.all([serving.end(), control.end()]);
     await admin.query(`DROP ROLE IF EXISTS ${preHandoffOwner}`).catch(() => undefined);

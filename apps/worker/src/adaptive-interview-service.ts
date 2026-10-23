@@ -5,14 +5,15 @@
  */
 import { z } from 'zod';
 import { asPrincipal, normalizeQuestion, recordUsage, SHADOW_METER_VERSION, type DbPool, type QuestionUsageLedgerEntry } from '@meetwise/db';
-import { invoke, promptedModel, isAdmissionRefusalRetryable, type ModelClient, type GraphObserver } from '@meetwise/ai-runtime';
-import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type QuestionGenerationResult, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
-import type { AdaptiveDeps } from '@meetwise/ai-graphs';
+import { invoke, promptedModel, getPrompt, renderSessionSummarySection, isAdmissionRefusalRetryable, recordRagRetrievalAction, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
+import { CRISIS_DISPOSITION_REASON, cragRetrieve, formatUntrustedResearchMaterial, isVerbatimCopy, refsGroundedInFacts, toCompetencySpecs, isNonAnswer, stripScoringManipulation, approvedTemplateGeneration, classifyQuestionGenerationError, critiqueQuestion, modelGeneration, unavailableGeneration, resolveCitedSources, QUESTION_GENERATION_REROLL_FAMILY, CANDIDATE_PROFILE_SIGNALS, type CragVerdict, type QuestionGenerationResult, type QuestionKind, type ResearchBoundaryDecision, type ScoredRef, type SourceDoc, type CompetencySpec } from '@meetwise/domain';
+import type { AdaptiveDeps, SessionSummary } from '@meetwise/ai-graphs';
 import { CRAG_QUERY_TARGET_ROLE_MAX_CHARS, CRAG_QUERY_TECH_STACK_MAX_CHARS } from './qbank-track-local-retrieve.ts';
-import { wasAsked, pastWeakDimensions } from './memory-service.ts';
+import { sessionSurvivesAskBudget } from './ask-context-budget.ts';
+import { wasAsked, pastWeakDimensions, recentAskedStems, recentAskedForPrompt } from './memory-service.ts';
 import { invokeEvaluationOnce, evaluateOutcomeFromValue } from './interview-service.ts';
-import { withGenerationProgress } from './generation-progress.ts';
-import { withTokenStream } from './token-stream.ts';
+import { withGenerationProgress, type GenerationProgressRun } from './generation-progress.ts';
+import { withTokenStream, type TokenSink } from './token-stream.ts';
 
 /** Native embed/rerank miss is not “empty qbank”; do not invent a stem from the competency name. */
 function nativeRetrievalFailureToken(reason: string): string | null {
@@ -212,6 +213,12 @@ export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
   /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
   fastModel?: ModelClient;
+  /**
+   * AG-20(CTX-02 显式接线):interviewer.ask 主端点成本策略——组合根(main.ts resolveModelCostGovernance()
+   * .policies.primary)与 defaultModelClient primary 同源同值注入（failoverModel 不透出静态 costPolicy
+   * =modelFor requestDigest 消费面禁触）。缺省 undefined=会话段预算零触（scripted deps/测试现状字节）。
+   */
+  askCostPolicy?: ModelCostPolicy;
   competencies: (string | CompetencySpec)[];
   /**
    * Only an authorization bit may reach graph deps; resume text remains in the profile artifact.
@@ -324,6 +331,7 @@ export async function planCompetencies(pool: DbPool, owner: string, threadId: st
     idempotencyKey: planInvocationKey, operation: { id: 'interview.competency-planning.v1', businessRevision: planInvocationKey }, threadId, privacyInterviewId: threadId,
     // #201 硬闸(具名导出·prove 直行使):条数 3-5 + 单名 ≤100 封顶;businessValidate=相关性闸纯函数委托。
     schema: PlannerPlanSchema,
+    service: 'planner.competencies',
     businessValidate: (v) => plannerPlanBusinessError(v.competencies, relevanceLeaf),
     model: promptedModel(model, 'planner.competencies', { role, facts, focusWeaknesses: focus, job, quizQuestions }),
   }, pool, owner);
@@ -376,6 +384,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
   // genQuestion 后读(retrieveAndGenerate 渲染进 interviewer.ask v7 的 <data> 不可信段)。
   // 作答摘要派生顺序钉死:stripScoringManipulation **先**、确定性截取 ≤200 字符**后**(禁倒置);
   // 证据弱点 criteria-only(quote 在评分消费面已弃,禁改传 quotes);原始作答仍禁入 state/checkpoint。
+  // #51:会话级摘要(session 参)=transcript checkpoint 派生,与本闭包单槽作答摘要互补,双段同在 <data> 围栏内。
   let lastFollowUp: FollowUpAskContext | null = null;
   // AG-F(刀F):统一 per-turn 掷序计数器——`:r{k}` 键单调递增零复用（键空间纪律:同键重掷=缓存回放
   // 同错 invoke.ts cached 臂;键复用撞 0088 canonical mismatch）。判重 re-roll/四类族 re-roll/换
@@ -383,6 +392,39 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
   // 跨 turn 复位（per-turn 语义,与 MAX_DUPLICATE_REROLL/MAX_ERROR_REROLL 帽口径一致）。
   let rollTurn = -1;
   let rollSeq = 0;
+  // 同一进程里检索段更新过的缺口。生成段先按种子写入，再在身份相符时带回该现值。进程重启后此值为空，不再为了重算缺口去检索。
+  let deficitAfterRetrieve: { key: string; value: number[] | null } | null = null;
+  const replayIdentityKey = (identity: { turn: number; competency: string; difficulty: number; kind: string }) =>
+    `${identity.turn}\u0000${identity.competency}\u0000${identity.difficulty}\u0000${identity.kind}`;
+  const loadRetrieval = async (competency: string, difficulty: number, kind: QuestionKind) => {
+    const useRetrieval = kind === 'fundamental' || kind === 'scenario';
+    if (!useRetrieval) {
+      return { useRetrieval, local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined as CragVerdict | undefined };
+    }
+    const cragQuery = buildCragPlannerQuery(competency, difficulty, {
+      targetRole: d.targetRole,
+      techStackFacts: selectGroundedFacts(d.resumeFacts ?? [], competency),
+    });
+    const found = await cragRetrieve(cragQuery, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary });
+    recordRagRetrievalAction(found.verdict.action);
+    return { useRetrieval, local: found.local, web: found.web, verdict: found.verdict };
+  };
+  const nativeRetrievalFailure = (verdict: CragVerdict | undefined, turn: number) => {
+    if (!verdict) return null;
+    const nativeError = nativeRetrievalFailureToken(verdict.reason);
+    if (!nativeError) return null;
+    // 收据沿用既有原生失败的 `:0`。这里不推进 rollSeq，也不调用模型。
+    return unavailableGeneration(classifyQuestionGenerationError(nativeError), {
+      operationId: QUESTION_OPERATION_ID,
+      idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+      invokeError: nativeError,
+    });
+  };
+  const rememberDeficit = (identity: { turn: number; competency: string; difficulty: number; kind: string }) => {
+    if (!d.trackLocalDeficitRef) return;
+    const current = d.trackLocalDeficitRef.current;
+    deficitAfterRetrieve = { key: replayIdentityKey(identity), value: current == null ? null : [...current] };
+  };
   return {
     competencies: d.competencies,
     resumeProfileAvailable: d.resumeProfileAvailable,
@@ -392,13 +434,38 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
     absoluteMaxTurns: d.absoluteMaxTurns,
     graphObserver: d.graphObserver,
     competencyKeywords: d.competencyKeywords,
-    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit) {
+    retrievalReplay: true,
+    async retrieveReplayPacket(competency, difficulty, attempt, turn, _legacyFacts, kind, _asked, weightedDeficit, _session) {
+      if (d.trackLocalDeficitRef && weightedDeficit !== undefined) {
+        d.trackLocalDeficitRef.current = weightedDeficit;
+      }
+      if (attempt !== 0) {
+        return unavailableGeneration('attempt_replay_forbidden', {
+          operationId: QUESTION_OPERATION_ID,
+          idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+        });
+      }
+      const loaded = await loadRetrieval(competency, difficulty, kind);
+      if (loaded.useRetrieval) {
+        const failure = nativeRetrievalFailure(loaded.verdict, turn);
+        if (failure) return failure;
+      }
+      const identity = { turn, competency, difficulty, kind };
+      rememberDeficit(identity);
+      return { local: loaded.local, external: loaded.web, verdict: loaded.verdict ?? null, identity };
+    },
+    async retrieveAndGenerate(competency, difficulty, attempt, turn, _legacyFacts, kind, asked, weightedDeficit, session?: SessionSummary | null, replayPacket?) {
       // AG-37(检索 weighted-deficit 归零·修法③·裁决②a 第 8 additive 参):seed——genQuestion 读图
       // state 位 `weightedDeficit`（上一题写下的持久化值·旧 checkpoint/首题=null）经第 8 参传入,
       // 经 holder 写入 worker 检索闭包起跑值（interview-consumer 闭包读 ref·缺省臂全 0=现状字节）。
       // undefined（既有 7 参调用/scripted deps）=不 seed·holder 原样零触。
       if (d.trackLocalDeficitRef && weightedDeficit !== undefined) {
         d.trackLocalDeficitRef.current = weightedDeficit;
+      }
+      // 同一进程的检索段已经更新过 holder 时，种子写入之后把该现值带回。重启后续跑没有这份现值，保持种子，不再检索。
+      if (replayPacket && d.trackLocalDeficitRef && deficitAfterRetrieve?.key === replayIdentityKey(replayPacket.identity)) {
+        const value = deficitAfterRetrieve.value;
+        d.trackLocalDeficitRef.current = value == null ? null : [...value];
       }
       // AG-37(修法③·出参回流):success 形结果 attach holder 现值（null=非检索路径/缺省臂·值=本题
       // rag.retrieve 更新后 deficit）→ normalize passthrough → genQuestion 写图 state 位。失败形与
@@ -432,15 +499,32 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (kind === 'grounded' && groundedFacts.length === 0) {
         // 无可用选定事实(未授权/画像无事实/全被选择器过滤)→ 既有固定模板回退,零模型调用;
         // 模板文案与既有逐字一致(:107 无授权版 / :109 授权版),模板本身零改。
-        return withDeficitOut(approvedTemplateGeneration(
-          d.resumeProfileAvailable
-            // Do not repeat a resume fact: the question is checkpointed, sent by
-            // interrupt/SSE, recorded in events and later normalized into an
-            // episode.  The candidate can choose which authorized experience to
-            // discuss without that original fact becoming a second data copy.
-            ? `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`
-            : `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`,
-        ));
+        const groundedTemplate = d.resumeProfileAvailable
+          // Do not repeat a resume fact: the question is checkpointed, sent by
+          // interrupt/SSE, recorded in events and later normalized into an
+          // episode.  The candidate can choose which authorized experience to
+          // discuss without that original fact becoming a second data copy.
+          ? `请结合你简历中一段与「${competency}」相关的真实经历，说明你的做法、关键取舍和验证结果。`
+          : `请结合你的实际经验，说明在「${competency}」方面你会如何做关键取舍，并如何验证结果。`;
+        // QGEN-CRITIQUE-RESILIENCE(件① 模板旁路闭合):本早退位处 seamCritique(:600/:623)/wasAsked
+        // 判重(:640-676)/`:r{k}` re-roll 环**之前**——模板对同 competency 确定性同文,同文二次到达
+        // (上一题经本臂旁路入面后 unscored 0 分继续(AG-F 修法③)→ decide 复问同能力)必然撞 asked
+        // 判重。出面前过既有确定性批判门(asked 判重+seamCritique 复检=critiqueQuestion 同一纯函数
+        // 调用,duplicate/too_short/leading/off_competency 四 issue 全检·零模型零 IO):命中 → 不返回
+        // 模板,交族内 failure 形(business_invalid ∈ QUESTION_GENERATION_REROLL_FAMILY·provenance
+        // 与 seam critique 耗尽臂 :623-633 同形)→ 图节点既有 AG-F 换 competency 臂(generate-question
+        // :100-112)帽内换序继续,单发终场只留帽满/无序可换。idempotencyKey 取 `:0` 初诊形(本臂零
+        // invoke 零键消费·纯 provenance 审计元数据,沿 :420 attempt_replay 臂同形)。pass 路(首问/
+        // 换序后新能力)模板文本与 provenance 逐字节零变。图级批判门(件②)保留=直接 deps 注入面/
+        // scripted deps 纵深防御,本臂闭合后生产 worker deps 链不再向图供给 critique 必拒题面。
+        if (!critiqueQuestion(groundedTemplate, competency, asked ?? [], d.competencyKeywords ?? {}).ok) {
+          return unavailableGeneration('business_invalid', {
+            operationId: QUESTION_OPERATION_ID,
+            idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
+            invokeError: 'question_critique_failed',
+          });
+        }
+        return withDeficitOut(approvedTemplateGeneration(groundedTemplate));
       }
       // TOKSTREAM 阶段1(裁定触发面之一):interviewer.ask 模型调用面包装层回调——题间等待(检索→生成→校验)
       // 发生成进度事件(invoke 关口零改动;attempt≠0 重放与 grounded 无事实模板回退在上方早退,不产生进度事件;
@@ -461,32 +545,38 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       // TOKSTREAM S4b（R3 三触发面之三）：withTokenStream 外包裹（token_delta 传输态·pg_notify 不落表），
       // 阶段1 generation_* 持久粗进度面零字节零回归；attemptKey=initialKey（re-roll `:r{k}` 换 invoke 键
       // 时 sink 帧内 attemptKey 恒为包装层注册键·seq 在该键内连续——web 按 attemptKey 键控缓冲不互毒）。
-      return withDeficitOut(await withTokenStream(d.pool, d.owner, d.threadId, {
-        attemptKey: initialKey, jobKind: 'next_question',
-      }, (tokenSink) => withGenerationProgress(d.pool, d.owner, d.threadId, {
-        jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
-        attemptKey: initialKey, segments: ['retrieve', 'generate', 'validate'],
-      }, async (run) => {
+      // 检索包再入不包这两层：generation_started 键虽幂等，新进程心跳计数仍会从 0 再写。
+      // 未带包的直接调用仍包原层。模型调用、幂等键和 wasAsked 判重留在下面的原路径。
+      const runWithoutProgress = <T>(
+        body: (sink: TokenSink, progress: GenerationProgressRun) => Promise<T>,
+      ): Promise<T> => {
+        if (!replayPacket) {
+          return withTokenStream(d.pool, d.owner, d.threadId, {
+            attemptKey: initialKey, jobKind: 'next_question',
+          }, (tokenSink) => withGenerationProgress(d.pool, d.owner, d.threadId, {
+            jobKind: 'next_question', operationId: QUESTION_OPERATION_ID,
+            attemptKey: initialKey, segments: ['retrieve', 'generate', 'validate'],
+          }, (progress) => body(tokenSink, progress)));
+        }
+        const sink: TokenSink = {
+          pushDelta(_text: string) {},
+          endUsage(_usage) {},
+          abortReason(_reason: string) {},
+        };
+        const progress: GenerationProgressRun = { stage(_name: string) {} };
+        return body(sink, progress);
+      };
+      return withDeficitOut(await runWithoutProgress(async (tokenSink, run) => {
       // 题型决定接地(H2 #79 扩面):fundamental/scenario 用 CRAG 检索真题素材;grounded 走简历选定
       // 事实(上方早退),behavioral 考行为面经、与技术题库语料错配——检索白名单 EXEC 裁决=fundamental
       // +scenario,behavioral 纳入与否留后刀如实登记(非「漏接」)。
-      const useRetrieval = kind === 'fundamental' || kind === 'scenario';
-      const cragQuery = buildCragPlannerQuery(competency, difficulty, {
-        targetRole: d.targetRole,
-        techStackFacts: selectGroundedFacts(d.resumeFacts ?? [], competency),
-      });
-      const { local, web, verdict } = useRetrieval
-        ? await cragRetrieve(cragQuery, { localRetrieve: d.localRetrieve, webExplore: d.webExplore, deepResearch: d.deepResearch, researchBoundary: d.researchBoundary })
-        : { local: [] as ScoredRef[], web: [] as SourceDoc[], verdict: undefined };
-      if (useRetrieval && verdict) {
-        const nativeError = nativeRetrievalFailureToken(verdict.reason);
-        if (nativeError) {
-          return unavailableGeneration(classifyQuestionGenerationError(nativeError), {
-            operationId: QUESTION_OPERATION_ID,
-            idempotencyKey: `${d.threadId}:ask:t${turn}:0`,
-            invokeError: nativeError,
-          });
-        }
+      const loaded = replayPacket
+        ? { useRetrieval: false, local: replayPacket.local, web: replayPacket.external, verdict: replayPacket.verdict ?? undefined }
+        : await loadRetrieval(competency, difficulty, kind);
+      const { local, web, verdict } = loaded;
+      if (!replayPacket && loaded.useRetrieval && verdict) {
+        const failure = nativeRetrievalFailure(verdict, turn);
+        if (failure) return failure;
       }
       // H2 #79:scenario 检索无素材(题库零命中且 web 零结果)→ 显式降级模板(沿 :247-257 grounded
       // 无事实回退先例形),零 fail 硬死、绝不静默拿空素材喂模型发明情景题。fundamental 既有语义零改。
@@ -511,6 +601,27 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         localMaterial,
         formatUntrustedResearchMaterial(web, 1_600),
       ].filter(Boolean).join('\n');
+      // AG-20(CTX-02 显式接线·issues-master :334「经 context-budget 裁剪」半·#51 残面):会话段派发前
+      // 经 planDispatchBudget 组件级预算降级裁定（ask-context-budget.ts 纯原语）——预算不足 summary
+      // 槽位最先裁,施为=sessionOut 置 undefined=段不渲染(#51 v8 缺省臂既有字节路径,零新形状)。
+      // session 缺省(#51 null 臂)/askCostPolicy 缺省(scripted deps/legacy/observe)→ 预算零触=现状字节
+      // (additive 缺省臂)。整请求拒绝臂仍归 transport planContextBudget 权威面(零重复拒绝,模块注)。
+      // 近期题面只进不可信数据。读失败当空列表,本场已传入的题目仍进入清单;两边都空时数据段保持原字节。精确判重仍在下方 wasAsked。
+      const storedAsked = await recentAskedStems(d.pool, d.owner).catch(() => [] as string[]);
+      const recentAsked = recentAskedForPrompt(storedAsked, asked);
+      const askVars = { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined, recentAsked };
+      const askPrompt = getPrompt('interviewer.ask', askVars);
+      const summaryText = renderSessionSummarySection(session ?? undefined);
+      const sessionOut = summaryText === ''
+        ? undefined
+        : sessionSurvivesAskBudget({
+            system: askPrompt.system,
+            userData: askPrompt.buildData(askVars),
+            rag: material,
+            summary: summaryText,
+          }, d.askCostPolicy)
+          ? (session ?? undefined)
+          : undefined;
       // One logical question node has exactly one provider attempt.  Duplicate
       // detection is post-response and deterministic; since G7FIX-4R a hit no
       // longer dies on first contact — it re-rolls under a NEW revision (a new
@@ -527,6 +638,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           threadId: d.threadId, privacyInterviewId: d.threadId,
           sources: local.map((l) => l.ref), retrieval: local,                          // provenance + topScore 信号
           schema: AskSchema,
+          service: 'interviewer.ask',
           businessValidate: (v) => {
             if (isVerbatimCopy(v.q, docs)) return '照搬原文(版权)';
             if (kind === 'grounded') {
@@ -540,7 +652,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
           },
           // 检索素材(material)走 rag 字段独立分账(仍在 <data> 围栏内、受 DATA_BOUNDARY_RULE 保护),不进 buildData 的 userData。
           // C6/S3:grounded 传选定事实(2-4 条);followUp=上轮上下文(闭包派生,不可信,buildData 封段标记)。
-          model: promptedModel(d.model, 'interviewer.ask', { competency, difficulty, kind, resumeFacts: groundedFacts, followUp: lastFollowUp ?? undefined }, undefined, material),
+          model: promptedModel(d.model, 'interviewer.ask', { ...askVars, session: sessionOut }, undefined, material),
           // TOKSTREAM S4b（R1b③·spec 面显式绑定非闭包隐式）：flag 缺省 OFF 时回调零触（路由臂不进流式）。
           onModelDelta: (delta: { text: string }) => tokenSink.pushDelta(delta.text),
         }, d.pool, d.owner);
@@ -683,7 +795,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       return modelGeneration(out.value.q, cited.sources, {
         operationId: QUESTION_OPERATION_ID, idempotencyKey, ...(familyRolls + rerolls > 0 ? { reroll: familyRolls + rerolls } : {}),
       });
-      })));
+      }));
     },
     async assess(question, answer, _competency, turn, identity) {
       // **结构化防评分操纵(红队实测:靠 prompt 让 turbo 自己抵抗不可靠)**:评分前确定性剥离评分元指令/伪造截断标记。
@@ -704,7 +816,8 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
         threadId: d.threadId,
         privacyInterviewId: d.threadId,
         question,
-        answer: scored,
+        answer,
+        promptAnswer: clean,
         model: detected ? d.model : (d.fastModel ?? d.model),
       });
       // 引文无法逐字核验而答案仍是正常作答时，不能写 unscored/能力画像；图会走 clarify，
@@ -730,7 +843,7 @@ export function buildAdaptiveDeps(d: AdaptiveServiceDeps): AdaptiveDeps {
       if (out.status === 'failed') return { status: 'unscored' as const, reason: `evaluation_${out.error}` };
       // #52 v6：score=evaluate 侧确定性派生（档位×量表权重，非模型输出）；dispositions=0103
       // 契约证据随 assess 返回（evaluate-answer 节点透传进 transcript → 投影后供 score-writer）。
-      const derived = evaluateOutcomeFromValue(out.value, clean);
+      const derived = evaluateOutcomeFromValue(out.value, answer);
       // S3/C13/C15(RESUME-GROUNDING):真实评分过的回合 → 捕获追问上下文(仅本闭包,禁入图 state):
       // 题目摘要=本轮题目(有界截取);作答摘要=stripScoringManipulation 后的 clean(**先剥离**)再确定性截取
       // ≤200 字符(**后截取**,顺序钉死禁倒置);证据弱点=评分 criteria(mind evidence 同源材料,slice(-6) 语义

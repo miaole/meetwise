@@ -4,7 +4,7 @@
  * 断线语义=重放（幂等覆盖写 + 终态清除，前端归约侧承重）· R-B 思考隐私缺省（不传输思考原文）·
  * D-2=新 generation_* kind · 触发面= interviewer.ask / resume-quiz.generate / report.narrative 三处包装层回调。
  *
- * 铁律（沿设计刀 harness/token-stream-design.md §3.2/§7）：
+ * 铁律（沿设计刀 receipts/archive/2026-09-batch23/slices/token-stream-design.slice.md §3.2/§7）：
  *  ① 进度事件**非权威、非终态**——question_ready/quiz_ready/report_ready/*_unavailable/error 永远是唯一权威终态；
  *  ② 载荷红线：只含计数/时刻/段名/幂等键，**绝不出现生成内容/思考原文/prompt/答案文本**（写侧键白名单守卫 + 0126 围栏双保险）；
  *  ③ 节流：generation_progress 每 2s 至多一行且每次生成 ≤GENERATION_PROGRESS_MAX_ROWS 行（常量断言面 TS-P2/P4）；
@@ -101,9 +101,10 @@ export interface GenerationProgressRun {
 }
 
 /**
- * 包装层回调核心：emit generation_started（幂等）→ fn 执行期间每 2s 至多一行 generation_progress
- * （≤MAX_ROWS 行硬上界）→ fn settle 后保证无在途进度写（不会晚于业务终态事件提交，防「终态后又冒进度」）。
- * 进度写全部 best-effort：失败只结构化日志，绝不改写 fn 的返回/抛错语义。
+ * 包装层回调核心：generation_started 首写旁路化（链入 inflight fire-and-forget·生成首拍零 DB 等待）→
+ * fn 执行期间每 2s 至多一行 generation_progress（≤MAX_ROWS 行硬上界）→ fn settle 后保证无在途进度写
+ * （started 亦入 inflight：护栏覆盖面=started+progress·恒不晚于业务终态事件提交，防「终态后又冒进度」）。
+ * 进度写全部 best-effort：失败只结构化日志，绝不改写 fn 的返回/抛错语义、绝不在关键路径等待。
  */
 export async function withGenerationProgress<T>(
   pool: DbPool, owner: string, stream: string, meta: GenerationProgressMeta,
@@ -134,12 +135,17 @@ export async function withGenerationProgress<T>(
     });
   };
 
-  // generation_started（幂等 event_key；重放/重跑不添行）。首写 best-effort。
-  await writeEventRow(pool, owner, stream, 'generation_started', {
+  // generation_started（幂等 event_key；重放/重跑不添行）。首写 best-effort=旁路化：链入既有 inflight
+  // fire-and-forget（与 progress 帧同款纪律同款 catch）——生成首拍零 DB 等待（消除头拍 await·不等待半），
+  // 进度写占池从「关键路径跨度」降为「写入时长本身」。链入位在 heartbeat 启动前 → inflight 链序=
+  // started 先于一切 progress 帧；finally 仍等 inflight → started 恒 settle 于本函数返回之前，调用方
+  // 随后写的业务终态事件恒晚于 started 落表（「终态后又冒进度」护栏覆盖面含 started·变宽非变窄）。
+  inflight = inflight.then(() => writeEventRow(pool, owner, stream, 'generation_started', {
     jobKind: meta.jobKind, operationId: meta.operationId, attemptKey: meta.attemptKey,
     segments: [...meta.segments], startedAt: new Date(startedAtMs).toISOString(),
-  }, `generation:${meta.attemptKey}:started`)
-    .catch((error: unknown) => { logProgressWriteFailure({ stream, kind: 'generation_started' }, error); });
+  }, `generation:${meta.attemptKey}:started`)).catch((error: unknown) => {
+    logProgressWriteFailure({ stream, kind: 'generation_started' }, error);
+  });
 
   const heartbeat = (async () => {
     while (!done) {

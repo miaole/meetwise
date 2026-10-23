@@ -38,6 +38,7 @@ const MUTATED = [
   'NODE_ENV', 'MODEL_TEXT_STREAM_ENABLED', 'MODEL_TEXT_STREAM_PREVIEW',
   'MODEL_COST_ENFORCEMENT', 'MEETWISE_PUBLIC_PREVIEW', 'MODEL_EXECUTION_TIMEOUT_MS', 'MODEL_API_KEY',
   'G7_RUN_COST_LEDGER_PATH', 'G7_RUN_COST_CAP_CNY',
+  'MODEL_ENDPOINT_PROFILE', 'MODEL_NAME',
 ] as const;
 
 const WIRE_LINES = [
@@ -101,6 +102,8 @@ async function main() {
   // （registry 解析 baseUrl/apiKey 需 Key 在场；值=proof 本地假 Key·零外呼，fetch 全程被 mock 拦截）。
   process.env.NODE_ENV = 'test';
   process.env.MODEL_API_KEY = 's4b-delta-proof-key';
+  process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
+  process.env.MODEL_NAME = 'qwen-plus';
   const OWNER = `s4b-delta-${Date.now().toString(36)}${Math.random().toString(36).slice(2, 8)}`;
   try {
     // ===== 静态断言（R1b① 五处三层 · 随 proof 登记产出物）=====

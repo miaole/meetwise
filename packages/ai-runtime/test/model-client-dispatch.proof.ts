@@ -48,9 +48,14 @@ async function main() {
     A('override 缝关时（test 且无 flag）构造传 baseUrl 仍被拒',
       errorOf(() => openAICompatibleClient({ baseUrl: 'https://evil.invalid' })) === 'text_transport_override_forbidden');
 
+    // 缝关闭、缺省档、qwen 名：构造期拒绝，不派发。
+    process.env.MODEL_NAME = 'qwen-plus';
+    A('缝关闭且缺省档配 MODEL_NAME=qwen-plus 时构造抛 text_endpoint_profile_model_mismatch',
+      errorOf(() => openAICompatibleClient()) === 'text_endpoint_profile_model_mismatch');
+
     // ③ 正常派发：受控注册表端点 + redirect=error + Bearer 文本 Key + POST JSON。
     process.env.MODEL_API_KEY = 'proof-text-key';
-    process.env.MODEL_NAME = 'qwen-plus';
+    process.env.MODEL_NAME = 'deepseek-v4-flash';
     const calls: Array<{ url: string; method?: string; redirect?: string; authorization?: string; contentType?: string | null }> = [];
     globalThis.fetch = (async (input: string | URL | Request, init?: RequestInit) => {
       calls.push({

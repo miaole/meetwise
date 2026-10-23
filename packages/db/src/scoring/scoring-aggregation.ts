@@ -12,6 +12,7 @@
  *     （asPrincipal），C 端只读，owner 作用域 RLS 生效。
  */
 import type { Client } from '../principal.ts';
+import { adjudicateScoreCard } from './scoring-evidence-conflict.ts';
 
 function fail(code: string): never { throw Object.assign(new Error(code), { code }); }
 
@@ -30,6 +31,11 @@ export interface WriteFinalScoreCardInput {
   /** 模型只输出 criterionId + span + digest + disposition；总分服务端算，不进本输入。 */
   evidence: ScoreEvidenceInput[];
   targetStatus: 'practice_eligible' | 'b_review_eligible';
+  /**
+   * low 或 unavailable 走既有裁决函数，插入时写上该值。
+   * ok 与缺省仍走四参数，不把只有文本的转写写成 ok。
+   */
+  voiceQuality?: 'ok' | 'low' | 'unavailable';
 }
 
 export interface WriteFinalScoreCardResult {
@@ -61,13 +67,29 @@ export interface ScorableScoreCardRow {
 
 /** 专用终态 writer。调用方须已 asScoringWorkerPrincipal（scoring_worker_executor）。 */
 export async function writeFinalScoreCard(c: Client, input: WriteFinalScoreCardInput): Promise<WriteFinalScoreCardResult> {
+  if (input.voiceQuality === 'low' || input.voiceQuality === 'unavailable') {
+    const adjudicated = await adjudicateScoreCard(c, {
+      requestId: input.requestId,
+      leaseToken: input.leaseToken,
+      evidence: input.evidence.map((item) => ({ ...item, reverified: true })),
+      uncertainty: { voiceQuality: input.voiceQuality },
+      highImpact: false,
+    });
+    return {
+      cardId: adjudicated.cardId,
+      status: adjudicated.status,
+      deterministicTotal: adjudicated.deterministicTotal,
+      coverage: adjudicated.coverage,
+      uncertainty: adjudicated.uncertainty,
+      recorded: adjudicated.recorded,
+    };
+  }
+  const params: unknown[] = [input.requestId, input.leaseToken, JSON.stringify(input.evidence), input.targetStatus];
+  const sql = 'SELECT * FROM scoring_write_final_score_card($1,$2,$3,$4)';
   const r = await c.query<{
     card_id: string | null; status: string | null; deterministic_total: string | null;
     coverage: string | null; uncertainty: unknown; recorded: boolean;
-  }>(
-    'SELECT * FROM scoring_write_final_score_card($1,$2,$3,$4)',
-    [input.requestId, input.leaseToken, JSON.stringify(input.evidence), input.targetStatus],
-  );
+  }>(sql, params);
   const row = r.rows[0];
   if (!row) fail('scoring_final_card_unavailable');
   return {

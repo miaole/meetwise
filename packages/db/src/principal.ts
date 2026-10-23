@@ -57,6 +57,10 @@ export const QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST = [
   { signature: 'qbank_validate_generation(text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_activate_generation(text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_mark_generation_failed(text,text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
+  // AG-43 release terminal (0146 body, guard 1 rewritten to the definer-whitelist
+  // assertion by 0176).  Registered so provisionQbankControlDefiner transfers its
+  // owner to qbank_control_definer — the successor face logged at 0176:16-21.
+  { signature: 'qbank_release_retired_generation_storage(text)', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: true, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_question_chunk_requires_visible_source()', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: false, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_question_artifact_guard()', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: false, requiredSearchPath: 'public, pg_temp' },
   { signature: 'qbank_question_chunk_artifact_guard()', requiresSecurityDefiner: true, allowAppRoleExecute: false, allowExecutorExecute: false, requiredSearchPath: 'public, pg_temp' },
@@ -552,8 +556,17 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
     await c.query('ROLLBACK').catch(() => undefined);
     throw error;
   } finally {
-    await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['meetwise:qbank_control_definer_provision']).catch(() => undefined);
-    c.release();
+    // A failed unlock leaves the session advisory lock on this connection.
+    // Discard that client instead of returning the locked session to the idle list.
+    let unlocked = false;
+    try {
+      await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['meetwise:qbank_control_definer_provision']);
+      unlocked = true;
+    } catch (unlockError: unknown) {
+      if (unlockError instanceof Error) c.release(unlockError);
+      else c.release(true);
+    }
+    if (unlocked) c.release();
   }
 }
 

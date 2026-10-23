@@ -1,5 +1,6 @@
 import { spawn } from 'node:child_process';
 import { randomUUID } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertIsolatedTestTarget, createPool } from '@meetwise/db';
@@ -99,6 +100,52 @@ A('A10 PG 五件套齐全+仅缺 AUTH_SECRET → problems 精确等于 [missing:
     const r = parseCriticalEnv({ PGHOST: 'h', PGPORT: '5432', PGUSER: 'u', PGPASSWORD: 'p', PGDATABASE: 'd' } as NodeJS.ProcessEnv);
     return !r.ok && JSON.stringify(r.problems) === JSON.stringify(['missing:AUTH_SECRET']);
   })());
+
+// ────────────────────────── P. PREVIEW 严格三态 + RESUME 双键启动聚合（纯 parse 面） ──────────────────────────
+const PREVIEW_PROBLEM = 'invalid:MEETWISE_PUBLIC_PREVIEW:strict_three_state';
+// eslint-disable-next-line @typescript-eslint/naming-convention -- env 名为外部 wire 字面值,非代码标识符,不可改名(行内豁免·authz34 先例形)
+const fullLegalEnv = { AUTH_SECRET: 's', DATABASE_URL: 'postgresql://u:p@h:5432/d' } as NodeJS.ProcessEnv;
+/** fullLegalEnv 基础上以成员赋值注入变量（不引入新对象字面量键）。 */
+const envWith = (patch: (e: NodeJS.ProcessEnv) => void): NodeJS.ProcessEnv => {
+  const e = { ...fullLegalEnv };
+  patch(e);
+  return e;
+};
+
+A('P1 PREVIEW 合法三态（剔除/\'0\'/\'1\'）→ ok',
+  parseCriticalEnv(fullLegalEnv).ok === true
+  && parseCriticalEnv(envWith((e) => { e.MEETWISE_PUBLIC_PREVIEW = '0'; })).ok === true
+  && parseCriticalEnv(envWith((e) => { e.MEETWISE_PUBLIC_PREVIEW = '1'; })).ok === true);
+A('P2 PREVIEW 非常值（空串/\'true\'/带空白/\'2\'）→ strict_three_state 单列（空串不视同缺失）',
+  (['', 'true', ' 1', '2'] as const).every((v) =>
+    JSON.stringify(parseCriticalEnv(envWith((e) => { e.MEETWISE_PUBLIC_PREVIEW = v; })))
+      === JSON.stringify({ ok: false, problems: [PREVIEW_PROBLEM] })));
+A('P3 RESUME_ENC_KEY 15 字符 → invalid:min_length_16',
+  JSON.stringify(parseCriticalEnv(envWith((e) => { e.RESUME_ENC_KEY = 'a'.repeat(15); })))
+    === JSON.stringify({ ok: false, problems: ['invalid:RESUME_ENC_KEY:min_length_16'] }));
+A('P4 RESUME_ENC_KEY 恰 16 字符 → ok（下界含等号）',
+  parseCriticalEnv(envWith((e) => { e.RESUME_ENC_KEY = 'a'.repeat(16); })).ok === true);
+A('P5 生产缺 RESUME_HASH_SECRET → missing:prod_required（非 prod 同态 → ok=dev 默认支）',
+  JSON.stringify(parseCriticalEnv(envWith((e) => { e.NODE_ENV = 'production'; e.RESUME_ENC_KEY = 'a'.repeat(16); })))
+    === JSON.stringify({ ok: false, problems: ['missing:RESUME_HASH_SECRET:prod_required'] })
+  && parseCriticalEnv(envWith((e) => { e.NODE_ENV = 'test'; })).ok === true);
+A('P6 双键同坏 + PREVIEW 非法同现 → problems 一次列全三问题（聚合不短路）',
+  JSON.stringify(parseCriticalEnv(envWith((e) => {
+    e.MEETWISE_PUBLIC_PREVIEW = 'true';
+    e.RESUME_ENC_KEY = 'a'.repeat(15);
+    e.RESUME_HASH_SECRET = 'b'.repeat(15);
+  })))
+    === JSON.stringify({ ok: false, problems: [PREVIEW_PROBLEM, 'invalid:RESUME_ENC_KEY:min_length_16', 'invalid:RESUME_HASH_SECRET:min_length_16'] }));
+
+// ────────────────────────── P-SRC. signup 前置校验源级臂（零新脚本零 DB 面） ──────────────────────────
+const authServiceSrc = readFileSync(resolve(here, '../src/modules/auth/auth.service.ts'), 'utf8');
+const authPrecheckAt = authServiceSrc.indexOf("process.env.AUTH_SECRET ?? ''");
+const signupWriteAt = authServiceSrc.indexOf('SELECT gateway_auth_signup(');
+A('P-SRC1 AUTH_SECRET 前置校验行位于 signup 网关写点之前（写点前移零半成功）',
+  authPrecheckAt !== -1 && signupWriteAt !== -1 && authPrecheckAt < signupWriteAt);
+A('P-SRC2 auth_not_configured 错误词在 auth.service 源内 + 网关写点恰 1 处',
+  authServiceSrc.includes('auth_not_configured')
+  && authServiceSrc.split('SELECT gateway_auth_signup(').length - 1 === 1);
 
 // ────────────────────────── B/C/D. spawn 死亡面 ──────────────────────────
 const dead1 = await spawnServe({ DATABASE_URL: 'postgresql://u:p@h:5432/d' });   // 只缺 AUTH_SECRET

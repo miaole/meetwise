@@ -53,6 +53,8 @@ import {
 } from '@meetwise/domain';
 import {
   retrieveViaDispatchTrackLocal,
+  parseCragPlannerQuery,
+  cragRetrievalText,
   type TrackLocalRetrieveDeps,
 } from '../src/qbank-track-local-retrieve.ts';
 import { decideRouteSnapshotRetrieve } from '../src/qbank-retrieve-scope.ts';
@@ -439,9 +441,11 @@ async function main() {
 
   section('L3 cache poison via retrieveVia — fail-closed degraded (no cross-leaf serve)');
   const poisonQuery = 'concurrency-poison 难度4';
+  const poisonRetrieval = cragRetrievalText(parseCragPlannerQuery(poisonQuery)!);
+  A('L3 协议串仍带难度、检索文本不带', /难度4$/.test(poisonQuery) && poisonRetrieval === 'concurrency-poison' && !poisonRetrieval.includes('难度'));
   const poisonCache = new MemoryQbankCache();
   poisonCache.prime(
-    cacheAddressFor(cand, recipeId, NODEJS_LEAF, poisonQuery, 5, epoch),
+    cacheAddressFor(cand, recipeId, NODEJS_LEAF, poisonRetrieval, 5, epoch),
     [{ refId: 'java_prompt', distance: 0.001 }],
   );
   const poisoned = await retrieveViaDispatchTrackLocal({
@@ -457,7 +461,7 @@ async function main() {
   const ghostQuery = 'concurrency-ghost 难度4';
   const ghostCache = new MemoryQbankCache();
   ghostCache.prime(
-    cacheAddressFor(cand, recipeId, NODEJS_LEAF, ghostQuery, 5, epoch),
+    cacheAddressFor(cand, recipeId, NODEJS_LEAF, cragRetrievalText(parseCragPlannerQuery(ghostQuery)!), 5, epoch),
     [{ refId: 'ghost_nonexistent_ref', distance: 0.001 }],
   );
   const ghosted = await retrieveViaDispatchTrackLocal({
@@ -487,7 +491,7 @@ async function main() {
     const metaQuery = 'concurrency-metahash 难度4';
     const metaCache = new MemoryQbankCache();
     metaCache.prime(
-      cacheAddressFor(cand, recipeId, NODEJS_LEAF, metaQuery, 5, epoch),
+      cacheAddressFor(cand, recipeId, NODEJS_LEAF, cragRetrievalText(parseCragPlannerQuery(metaQuery)!), 5, epoch),
       [{ refId: tamperRef, distance: 0.001 }],
     );
     const meta = await retrieveViaDispatchTrackLocal({

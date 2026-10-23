@@ -67,7 +67,7 @@ export {
   rejectDashscopeNativeTransportOverride,
 } from './dashscope-native-config.ts';
 export type { DashscopeNativeConfig, DashscopeNativeEndpointProfile, DashscopeNativeCapabilityKeys } from './dashscope-native-config.ts';
-export { getPrompt, promptVersions } from './prompts.ts';
+export { getPrompt, promptVersions, renderSessionSummarySection } from './prompts.ts';
 export type { PromptTemplate } from './prompts.ts';
 // usage 对账与保守估算校准因子(纯 seam,非供应商 tokenizer):异步 reconciler 用它对"派发前保守估算 vs 供应商上报 usage"批量导出上界因子(因子尚未应用回派发)。
 export {
@@ -228,7 +228,7 @@ export {
 export { disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
-export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
+export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, recordRagRetrievalAction, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
 export { buildCandidateQaRegistry, buildRecruiterQaRegistry, runQaToolLoop, QA_TOOL_LOOP_MAX_STEPS, QA_SERVICE_GROWTH_ADVISOR, QA_SERVICE_RECRUITER_FOLLOWUP, type QaToolLoopConfig, type QaToolLoopOutcome } from './qa-tool-layer.ts';

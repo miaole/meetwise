@@ -523,6 +523,7 @@ async function persistTraceBestEffort(
   pool: DbPool, owner: string, spec: Pick<InvokeSpec<unknown>, 'idempotencyKey' | 'service'>,
   stored: unknown, usage: ModelUsage | undefined, latencyMs: number, requestId: string | null,
 ): Promise<void> {
+  getMetrics().inc(METRIC.aiTracePersistAttempts);   // 丢失率分母:成功失败都过入口计一次(UC-028 分子对)
   await asPrincipal(pool, owner, (c) => persistTrace(c, owner, spec, stored, usage, latencyMs, requestId))
     .catch((error: unknown) => {
       getMetrics().inc(METRIC.aiTracePersistFailures);
@@ -1078,8 +1079,8 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         span(1, 'exhausted', latencyMs, settledUsage);
         return { error: 'external_outcome_unknown' };
       }
-      // 观测沿既有 settled-failed 先例的 schema_retry 档（确定性输出失败·允许换 revision 重试·不重试同 key）。
-      span(1, 'schema_retry', latencyMs, settledUsage);
+      // 观测沿既有 settled-failed 先例的 schema_invalid 档（确定性输出失败·允许换 revision 重试·不重试同 key）。
+      span(1, 'schema_invalid', latencyMs, settledUsage);
       return { error: result.errorCode };
     }
     const unknownReason = executionTimedOut ? 'model_execution_timeout' : 'external_outcome_unknown';
@@ -1152,13 +1153,22 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
         settledCost = settled.microCny;
         settledOverage = settled.overage;
       }
+      // 落账前再核对围栏。撤权后成功行只留空对象，且不能当缓存交回。
+      // 布尔查询不抛错：抛错会中止本事务，已结清的费用会被收成 unknown。
+      let replayable = !spec.redactOutput;
+      if (validated.ok && spec.privacyInterviewId && !spec.storeOutput && !spec.redactOutput) {
+        if (!await isInterviewPrivacyActive(c, spec.privacyInterviewId)) {
+          stored = {};
+          replayable = false;
+        }
+      }
       // A redacted invocation result cannot be replayed. Persist its encrypted
       // domain artifact atomically with the durable success marker, otherwise a
       // crash in the tiny “model returned → domain save” window would make a
       // paid OCR result unrecoverable and tempt a duplicate provider request.
       if (validated.ok && spec.persistValidatedOutput) await spec.persistValidatedOutput(c, value!);
       const completed = await completeModelInvocation(c, {
-        owner, idempotencyKey: spec.idempotencyKey, output: stored, replayable: !spec.redactOutput,
+        owner, idempotencyKey: spec.idempotencyKey, output: stored, replayable,
         error: errorCode, inputTokens: settledUsage?.inputTokens, outputTokens: settledUsage?.outputTokens, latencyMs,
         usageSource: settledUsage?.usageSource,
       });
@@ -1199,7 +1209,7 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     return { error: 'external_outcome_unknown' };
   }
   if (error) {
-    span(1, error.startsWith('business:') ? 'business_error' : 'schema_retry', latencyMs, settledUsage);
+    span(1, error.startsWith('business:') ? 'business_error' : 'schema_invalid', latencyMs, settledUsage);
     return { error };
   }
   // AG-24:终局 ok 臂携带真名+成本——model 优先序=裁决①(a):G7 供应商回显 actualModel 优先(在手时),

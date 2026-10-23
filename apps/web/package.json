@@ -16,6 +16,7 @@
     "prove:application-start-error": "tsx test/application-start-error.proof.ts",
     "prove:interviews-actions": "tsx test/interviews-actions.proof.ts",
     "prove:token-delta": "tsx test/token-delta.proof.ts",
+    "prove:sse-idle-watchdog": "tsx test/sse-idle-watchdog.proof.ts",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",

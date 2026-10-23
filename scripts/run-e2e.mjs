@@ -6,6 +6,7 @@
 import { spawn } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 import { readFileSync, existsSync, mkdirSync } from 'node:fs';
+import { appendFileSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
 import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
@@ -145,7 +146,13 @@ async function main() {
   // the suite wait 90 seconds for an event that could never arrive.
   if (worker.exitCode !== null) throw tagE2EFailure('worker', 'worker_exited_before_test');
   if (api.exitCode !== null) throw tagE2EFailure('api', 'api_exited_before_test');
-  const workerReady = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`).then((r) => r.ok).catch(() => false);
+  // worker 首拍门生效后启动窗内 /readyz/worker 恒 503，单发探测命中启动窗会假红 worker_not_ready——
+  // 与同函数 api livez 同形的有界重试环（40×1s，先睡后探），环尽不就绪才落既有败臂。
+  let workerReady = false;
+  for (let i = 0; i < 40 && !workerReady; i++) {
+    await sleep(1000);
+    try { const r = await fetch(`http://127.0.0.1:${workerMetricsPort}/readyz/worker`); workerReady = r.ok; } catch {}
+  }
   if (!workerReady) throw tagE2EFailure('worker', 'worker_not_ready');
 
   // B110 处方2: 隔离库播 admin 身份 + 铸测试令牌(注册面无 admin 入口,AdminGuard 只认 is_admin=true 行)。
@@ -177,16 +184,20 @@ async function main() {
   const tsx = run('e2e', [ROOT + 'node_modules/tsx/dist/cli.mjs', 'e2e/full.e2e.ts'], ROOT, {
     E2E_TAG: 'ci' + Math.floor(process.hrtime()[1] / 1000), E2E_BASE: apiBase, E2E_ADMIN_TOKEN: adminToken,
   }, false);
+  const tsxErrChunks = []; // G7W-DIAG-NEEDLES N3b: 红路回读面——tsx stderr 有界尾量收集(32KiB 滚动·至多 1 管道块保留)
   tsx.stdout.on('data', (d) => process.stdout.write(d));
-  tsx.stderr.on('data', (d) => process.stderr.write(d));
+  tsx.stderr.on('data', (d) => { tsxErrChunks.push(String(d)); while (tsxErrChunks.length > 1 && Buffer.byteLength(tsxErrChunks.join('')) > 32_768) tsxErrChunks.shift(); process.stderr.write(d); }); // G7W-DIAG-NEEDLES N3b: 转发逐字节零改+前置收集
+  const flushTsxStderrTail = (exit) => { try { mkdirSync(`${ROOT}.tmp`, { recursive: true }); appendFileSync(`${ROOT}.tmp/e2e-tsx-stderr-tail.ndjson`, `${JSON.stringify({ bootId: process.pid, step: 'tsx_stderr_tail', exit, tailBytes: Buffer.byteLength(tsxErrChunks.join('')), tail: tsxErrChunks.join('') })}\n`); } catch { /* 防自伤: 尾量落盘自身异常不改写红路 class(:258 7a_diag diag_failed 同形) */ } }; // G7W-DIAG-NEEDLES N3c
   const code = await Promise.race([
     new Promise((res) => tsx.on('exit', res)),
     new Promise((res) => worker.on('exit', (workerCode) => res(`worker_exit:${workerCode ?? 'signal'}`))),
     new Promise((res) => api.on('exit', (apiCode) => res(`api_exit:${apiCode ?? 'signal'}`))),
   ]);
   if (typeof code === 'string') {
+    flushTsxStderrTail(code); // G7W-DIAG-NEEDLES N3d: worker/api_exited 红臂 throw 前落盘(绿路零触)
     throw tagE2EFailure(code.startsWith('worker_exit') ? 'worker' : 'api', code.startsWith('worker_exit') ? 'worker_exited_during_test' : 'api_exited_during_test');
   }
+  if (code !== 0) flushTsxStderrTail(code); // G7W-DIAG-NEEDLES N3d: client_exited 红臂 throw 前落盘(绿路零触·同条件守卫)
   if (code !== 0) throw tagE2EFailure('api', 'client_exited');
   cleanup();
   process.exit(0);

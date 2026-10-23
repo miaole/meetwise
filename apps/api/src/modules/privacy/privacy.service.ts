@@ -7,6 +7,7 @@ import {
 import type { PrivacyPreviewBeginDto } from '@meetwise/contracts';
 import { assertPublicPreviewWritesClosed, PublicPreviewReadOnlyError } from '../../platform/public-preview';
 import { DbService } from '../../platform/db.service';
+import { UUID_RE } from '../../platform/uuid.ts';   // #85 残面归一(UUID-ID-CHECK 2026-10-16):通用形正则单源·语义表见单源头注
 
 const POLICY_VERSION = process.env.PRIVACY_POLICY_VERSION ?? 'v1';
 const IDEMPOTENCY_RE = /^[\x21-\x7e]{8,128}$/;
@@ -49,9 +50,15 @@ export class PrivacyService {
   // 简历与已围栏面试不再进导出（数据可携不含已删数据）;consent_record 照旧——同意史是审计面。
   export(principal: string) {
     return this.db.asPrincipal(principal, async (c) => {
+      // 读分层:导出系无界扫描面——本事务内恰一次 interview_privacy_fenced_targets() 聚合取
+      // 围栏集(同事务单点钉,非独立 autocommit 拼接),两业务查询以反连接消费。边界如实:
+      // 0059 RLS 十表 policy 仍内嵌 interview_privacy_active 谓词——本切换=显式逐行锁求值
+      // 减半,非消除(assessment_report 面每行仍经 RLS 求值);真去锁限 interview 表面
+      // (interview 表 RLS 不内嵌该谓词);admission 面仍走原 locking 谓词(权威体零触)。
+      const fenced = (await c.query('SELECT thread_id FROM interview_privacy_fenced_targets()')).rows.map((r: Record<string, unknown>) => String(r.thread_id));
       const resumes = (await c.query("SELECT id, status FROM resume WHERE status NOT IN ('erasure_fenced','erased')")).rows;
-      const interviews = (await c.query('SELECT id, status FROM interview WHERE interview_privacy_active(interview.id)')).rows;
-      const assessments = (await c.query('SELECT interview_id, overall FROM assessment_report WHERE interview_privacy_active(assessment_report.interview_id)')).rows;
+      const interviews = (await c.query('SELECT id, status FROM interview WHERE id != ALL($1::text[])', [fenced])).rows;
+      const assessments = (await c.query('SELECT interview_id, overall FROM assessment_report WHERE interview_id != ALL($1::text[])', [fenced])).rows;
       const consents = (await c.query('SELECT purpose, policy_version, granted_at FROM consent_record')).rows;
       return { exportedAt: new Date().toISOString(), resumes, interviews, assessments, consents };
     });
@@ -144,7 +151,7 @@ export class PrivacyService {
   }
 
   async getPreview(principal: string, requestId: string) {
-    if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(requestId)) {
+    if (!UUID_RE.test(requestId)) {   // #85 残面归一:原 inline 正则与 UUID_RE byte 恒等·400 privacy_preview_invalid 语义零改
       throw new HttpException({ error: 'privacy_preview_invalid' }, HttpStatus.BAD_REQUEST);
     }
     try {

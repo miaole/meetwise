@@ -215,6 +215,8 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   'apps/worker/test/bill3-settlement.proof.ts',
   // bill4 按 entpay-s3 形：0185 函数体与 23_api_gateway.sql 镜像逐字节对账承重消费（⓪-b 直载比对·非影子替代）：
   'apps/worker/test/bill4-ledger-list.proof.ts',
+  // AG-15 graph-run 观测 proof 读 schema 镜像·登记销案：01_schema.sql 三列镜像对账承重消费（C5g·按 bill4/entpay-s3 形·非影子替代）：
+  'apps/worker/test/graph-run-observability.proof.ts',
 ]);
 
 /** P4⑤ 对象类豁免：sql/ 侧独有但经亲核判定为夹具辅助/演示对象（非 fresh deploy 承载面）——逐对象登记理由。 */
@@ -227,6 +229,7 @@ const P4_OBJECT_EXEMPTIONS: ReadonlyMap<string, string> = new Map([
   // b5m #122 半2 0199 冗余索引 DROP（7152cd3c 2026-10-14 落链·PR#108 dbhy1 P4⑤ 首曝两缺口·b5m REQUEST :248 呈报→本登记面漏更补账）：
   ['indexes:ix_user_email', '0199 故意 DROP（#122 半2 冗余索引退役·email UNIQUE 约束背衬索引同列双 btree）·sql/ 夹具滞后旧索引'],
   ['indexes:ix_qfb_rating', '0199 故意 DROP（#122 半2 冗余索引退役·全仓 rg 零查询引用）·sql/ 夹具滞后旧索引'],
+  ['indexes:ix_outbox_pending', '0212 故意 DROP（非部分索引退役，ix_outbox_unsettled 接替）·sql/ 夹具滞后旧索引'],
   // qbank-control-sec 刀 0176 P5 清理（裁决项④按卷推荐形）：九支遗留 GUC 策略 DROP（0013:63/:70/:75+
   // 0029:45/:48+0031:21/:23/:40/:42·真空收口——RLS+FORCE 维持+executor 控制策略在位，re-GRANT 撞默认拒绝）。
   ['policies:public.qbank_source:p_src_read', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],
