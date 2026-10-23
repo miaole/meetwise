@@ -471,7 +471,7 @@ export async function drainInterviewJobOnce(d: ConsumerDeps, owner: string): Pro
           enabled: adaptive.deepResearch ? ['rag.retrieve', 'deep.research'] : ['rag.retrieve', 'web.explore'],
           maxCallsPerSkill: { 'rag.retrieve': 1, 'web.explore': 1, 'deep.research': 1 },
         });
-        // P0: advisory lock 覆盖 invoke 全程，ai_graph_run lease/version 是可审计 fence；第二 worker 不得并发 Command(resume)。
+        // 勘误：事务级 advisory xact lock 仅覆盖 begin 竞态窗（COMMIT 即释放·interview-graph-lease.ts:21-25）；invoke 全程互斥由 ai_graph_run durable lease（lease_owner/version/lease_expires_at·TTL 120s）+interview_job lease 承接；第二 worker 不得并发 Command(resume) 的保证源=lease CAS 与 claim 谓词·非会话锁。
         const checkpointEnrollment = await asPrincipal(d.pool, owner, (c) => enrollCheckpointThread(c, owner, job.interviewId));
         const fenced = await withInterviewGraphFence(d.pool, owner, job.interviewId, `${d.leaseOwner}:${job.id}`, async (fence) => withCheckpointAccess({
           owner, threadId: checkpointEnrollment.threadId, fenceEpoch: checkpointEnrollment.fenceEpoch,

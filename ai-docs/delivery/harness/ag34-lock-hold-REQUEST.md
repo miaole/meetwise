@@ -1,6 +1,6 @@
 # AG34-LOCK-HOLD REQUEST（AG-34 在飞 job 锁连接占用余面收口刀——围栏注释纠偏+派发预算对池上限结构闸·锁 pin 机制半已由 db-hotspot 件② 落地移除·本卷只收真余面·零迁移零模型调用·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-22 落卷即停·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC·est live=0·Ban self-approve·alone≠dual·⛔push ⛔merge 主线·翻面权归协调方）。
+**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·EXEC 落码+九门亲跑毕 2026-10-22 见 §9·pre-exec 双审已 Dual PASS→协调方授权 EXEC 已行使·est live=0·Ban self-approve·alone≠dual·⛔push ⛔merge 主线·翻面权归协调方）。
 
 **席位**：AG 能力复核台账下一刀起草席（派单自数 done 33/half 2/open 14·P1 无可派（AG-40 已修复移出）·P2 唯 AG-13 挂起（需线上数据）·P3 已落待翻 7 项（AG-22/23/27/28/30/31/33）走翻面笔非新刀·AG-32/36 前置未修·AG-25/29 为残面另刀 → 选标 **AG-34**=P3 编排运行时最小真未动号；上列计数系协调方派单 brief 自数·本席未独立全量复数 43 项·AG-34 余面码面亲证见 §0.2）。
 **基线**：`origin/main` @ `65a9c40f`（分支 `line/ag34-lock-hold-draft`·工作树 `meetwise-ag34` 本席亲立·`git status` 干树亲证）。
@@ -88,8 +88,36 @@ migrations 0001-0218 零字节·零新迁移（0219 不占用）；interview-gra
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.2-1 机制半移除系邻刀已落事实·余面两件真实在位=选标有效·§0.0 防重三查零撞）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派·Dual PASS→协调方授权 EXEC 落码·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席已 Dual PASS·协调方已授权 EXEC 落码并已行使（§9）·alone≠dual·Ban self-approve。
 - **est live=0**（proof 纯静态+纯函数·零模型外呼零 DNS 零 PG 零 Key·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·与 Status 头/§8 同值第三处）·EXEC 落码毕待 post-prove 双审·⛔push。
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `65a9c40f`·est live=0·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头/§8/本注）·起草 2026-10-22 落卷·EXEC 2026-10-22 行使见 §9·基线 `65a9c40f`·est live=0·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+
+## §9-EXEC 记录（EXEC 落码席·2026-10-22·届树 `d364d8b3` 亲跑·EXIT 原值如实）
+
+**落码**：四件全落·触面恰 5 tracked——件① `apps/worker/src/interview-consumer.ts:474` 单行注释替换（卷 §1 文本照录·零行为零语义）；件② `apps/worker/src/interview-dispatch-fairness.ts` `readInterviewDispatchBudget` additive 池上限闸：`PGPOOL_MAX` 沿 `readBoundedInt` 既有形制（同名同缺省 20=principal.ts:959·`/^[1-9]\d*$/` 整形违例 `PGPOOL_MAX_invalid`·上限取 `Number.MAX_SAFE_INTEGER`=不发明新约束）·`globalInflight > poolMax` 具名拒 `interview_dispatch_budget_exceeds_pool_max`·落位既有互检之后=既有拒面优先级零变；件③ 新 proof `apps/worker/test/ag34-lock-hold.proof.ts` 四臂 11 断言（A 八断言含双审 P2③「未设/空串→缺省 20」语义钉与小数臂·B 锁 pin uc-e2e-002 同形·C 注释钉·D 原值）；件④ worker package.json additive 一行 `prove:ag34-lock-hold`（:167·纯 proof 沿 prove:interview-dispatch 先例）。零迁移零 env 新增零 db 面零模型调用。
+
+**§0 届树重 pin**：八锚 blob 与 §0.1 表全部恒等（`git rev-parse HEAD:<path>` 亲算）；行锚逐条原位（consumer :474/:476/:384-391/:594/:313/:675·fairness :10-13/:18-25/:21/:22/:23/:69/:99·lease :4-6/:21-25/:66-73/:87-95·jobs :79/:152/:307-315/:379-393·principal :959/:1004-1013·heartbeat :9-22/:14·main :531-534/:659·policy :135）；漂移仅注记级，承双审 P2② 两处：worker package.json lint 帽实为 **`:7`**（卷记 :6·off-by-one）·台账旧树 finally :55-56 届树为 interview-graph-lease.ts **`:66-73`**。
+
+**§0.0 防重三查+在飞交叠届树重跑**（承双审 P2④）：9 树同前；`git branch -a | grep ag34` 恰本支一条；harness 目录 ag34/lock-hold 恰本卷；`git log --all --grep AG-34` 0 笔；iss249 越基恰 1 笔 `361b408f` 纯 docs 卷（config-reject-guidance-REQUEST.md·`git diff --name-only` 亲证）与本刀触面零交集·iss73=基零越基·wssport=基祖先·land-102-cap（12 文件）/land-106（9 文件）触面 grep 与本刀五触面零交集。
+
+**门矩阵届值（九门·EXIT 原值如实·失败自修如实录）**：
+①`prove:ag34-lock-hold` **EXIT=0**（11/11 PASS·首跑臂 B 相对路径错位（test 上跳两级=apps）EXIT=1·自修上跳三层重跑绿）
+②`prove:interview-dispatch` **EXIT=0**（13/13 PASS·原值零弱化）
+③`prove:interview-dispatch-pg` **EXIT=1 原值 `interview_dispatch_prove_requires_remote_postgres`**——本环境无远程云 PG 配置（无 E2E_CLOUD_ISOLATED/PGHOST 等 env·门设计禁本地 Docker/loopback·fail-closed 按设计触发）·**阻塞如实登记不粉饰**；树内零历史 pass receipt（`.tmp/interview-dispatch-receipts` 不存在·`receipts/archive` 零 dispatch 条目）
+④`prove:drain` **EXIT=0**（输出中 watchdog 报错系豁免臂既定活体证据·尾四臂 PASS 全绿原值）
+⑤`turbo typecheck --force` **EXIT=0**（8 successful 8 total·0 cached·proof 自修后复跑同值）
+⑥`turbo lint --force` **EXIT=0**（12/12·0 cached）·worker **959=帽精确**（apps/worker/package.json:7 `--max-warnings 959`）——首跑 969 超帽红：新 proof 对象字面量 SCREAMING 键命名规约告警恰 10 条·义务自修（帽值零改·沿 ag17 D2 先例）：proof 改元数组+方括号赋值构造 env（`envOf`）·复跑 959 恰等绿=新 proof 零新增告警义务达成；全树计数 contracts 265/qdrant-store 27/ai-graphs 47/domain 115/ai-runtime 628/web 601/api 1423/worker 959/db 1042=5242
+⑦`node scripts/ai-docs/check-docs.mjs` **EXIT=0**·scannedFiles **2333 ≤ cap 2338**（=基 2331+proof 1+卷已有·承双审 P2① 以亲跑为准如实录·余 5）
+⑧markers 五类标记词+行首冲突标记·净增行 **0 命中**+改动集全文件对账改前改后计数恒等（词面运行时组装防自指·沿 i6-239 门⑦形）
+⑨`git diff` 恰 **5 tracked**（consumer 1+fairness 1+新 proof 1+worker package.json 1+本卷 1）·零迁移故无 uniqueness/migrate 门
+
+**est live=0**（proof 纯静态+纯函数·零模型外呼零 DNS 零生产操作·`actualSpendCny=null`）。
+
+**偏离清单（三项如实）**：
+1. 协调方 brief 件② 落点写 `packages/db/src/interview/interview-dispatch-fairness.ts`——该径届树不存在（packages/db/src/interview/ 目录亲列无此文件）·卷 §0.1/§1 件② 真身为 `apps/worker/src/interview-dispatch-fairness.ts`（blob `34f0144f` 与 §0.1 恒等亲证）·落码以卷为准·brief 径系笔误。
+2. 门⑥ 首跑 969 超帽（新 proof 10 告警）→ 义务自修帽值零改 → 959 恰等绿（过程随 ⑥ 如实录）。
+3. 门③ 远程云 PG 配置不可得·原值 EXIT=1 fail-closed 如实录·不粉饰不替代（协调方预案内：「如实记录阻塞并跑其余门」）。
+
+**双审 P2 吸收对账**：①docs:check 届值 2333 按亲跑实录（非卷预申明 2332）✓；②行锚 off-by-one（package.json 帽 :7·lease finally 届树 :66-73）届树重 pin ✓；③件② 申明扩准=proof A 增「PGPOOL_MAX 未设/空串→缺省 20」语义钉+小数 12.0 臂 ✓；④§0.0 交叠三查届树重跑（iss249 越基 1 笔 docs 零交集）✓。
