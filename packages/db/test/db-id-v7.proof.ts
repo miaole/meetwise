@@ -246,9 +246,13 @@ async function main() {
     const bucketMs = v7UnixMs(b.rows[0]!.id);
     A('P5-1 entitlement_bucket 新行 id 为 v7 且前 48bit ∈ [now-60s, now+5s]',
       isV7Shape(b.rows[0]!.id) && inWindow(bucketMs, Date.now()));
+    const cons = await pool.query<{ id: string }>(
+      `INSERT INTO entitlement_consumption(owner_user_id, idempotency_key, service_type, units_requested)
+       VALUES ($1, $2, 'interview', 1) RETURNING id::text`,
+      [owner, `dbid1-outbox-${process.pid}`]);
     const o = await pool.query<{ id: string }>(
       `INSERT INTO commerce_outbox(owner_user_id, kind, consumption_id, payload)
-       VALUES ($1, 'settlement_proposed', $2::uuid, '{}') RETURNING id::text`, [owner, b.rows[0]!.id]);
+       VALUES ($1, 'settlement_proposed', $2::uuid, '{}') RETURNING id::text`, [owner, cons.rows[0]!.id]);
     A('P5-2 commerce_outbox 新行 id 为 v7 且时间窗口正确（依赖 DEFAULT，无显式 id）',
       isV7Shape(o.rows[0]!.id) && inWindow(v7UnixMs(o.rows[0]!.id), Date.now()));
     const after = await pool.query<{ n: string }>('SELECT count(*)::text AS n FROM entitlement_bucket');
