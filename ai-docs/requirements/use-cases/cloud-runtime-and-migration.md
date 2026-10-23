@@ -23,7 +23,17 @@ tags:
 
 # 云端唯一依赖运行与迁移用例
 
-> 本文是**目标规范**，不是已实现证明。2026-08-09 已完成一个阿里云 RDS（关系型数据库服务）PostgreSQL 17 基础版单节点**测试实例**的控制面配置：创建了 1 个空的 `meetwise_cloud_test` 数据库、1 个独立迁移账户及其数据库所有者权限，并对内网地址启用了 TLS（传输层安全协议）。该实例未开放公网，尚无同 VPC（虚拟私有云）计算运行器、受控 CA（证书颁发机构）文件、TargetGrant（目标授权）或真实数据面回执；磁盘加密未启用且基础版不提供生产高可用能力。它只能作为后续非破坏性连通性验证的候选目标，不能以此宣称“真实云端 E2E（端到端）通过”或“生产高可用”。
+> 本文是**目标规范**，不是已实现证明。2026-08-09 已完成一个阿里云 RDS（关系型数据库服务）PostgreSQL 17 基础版单节点**测试实例**的控制面配置：创建了 1 个空的 `meetwise_cloud_test` 数据库、1 个独立迁移账户及其数据库所有者权限，并对内网地址启用了 TLS（传输层安全协议）。该实例最初按内网 TLS 配置；**2026-09-09 项目负责人确认：非生产测试用 RDS/Tair 允许开通公网访问以便开发机探测**（仍须 TLS，不得关闭加密）。开通公网≠生产就绪。当时尚无同 VPC 计算运行器、受控 CA 文件、TargetGrant 或真实数据面回执；磁盘加密未启用且基础版不提供生产高可用能力。它只能作为非破坏性连通性验证候选，不能以此宣称“真实云端 E2E 通过”或“生产高可用”。
+
+### 2026-09-09 控制台事实（无密钥）
+
+| 资源 | 标识（公开元数据） | 状态 |
+| --- | --- | --- |
+| RDS PostgreSQL（测试） | 实例 `pgm-bp1fces5g99237o6`；公网地址主机名 `pgm-bp1fces5g99237o6to.pg.rds.aliyuncs.com:5432` | **已开通公网**；白名单未使用 `0.0.0.0/0` |
+| Tair（测试缓存） | `meetwise-rag-cache-test` | **已过期，无法开通公网** |
+| 另一 RDS（eval） | （控制台侧） | **已暂停** |
+
+以上仅为网络/生命周期事实，不是连通 prove、不是 `cloud:smoke` 通过、不是发布证据。Tair 过期期间不得宣称 Redis/Tair 数据面可达。
 
 ## 0. 范围、术语与不可突破边界
 
@@ -32,16 +42,18 @@ tags:
 | 环境 | 可用目标 | 传输与可用性要求 | 当前事实 |
 | --- | --- | --- | --- |
 | `test` | 每次运行新建的独占数据库、独占 OSS run 前缀和独占 Tair 前缀 | 仅测试身份可达；破坏性操作必须有 TargetGrant（目标授权） | 已有 1 个固定空 PostgreSQL 测试库和 TLS；它不是每 run 独占目标，且没有同 VPC 运行器、CA 文件或数据面 E2E 回执。 |
-| `staging` | 受控预发布资源 | 私网、最小网络路径、无公网数据面 | 当前新购 PostgreSQL 基础版只允许作为测试候选；无多可用区、恢复能力证据或 TargetGrant，真实验证仍被运行器与控制面阻断。 |
+| `staging` / 非生产测试 | 受控预发布或测试资源 | 默认私网；**经负责人确认后，测试 RDS/Tair 可开公网**（须 TLS、最小白名单，禁止生产库） | 当前新购 PostgreSQL 基础版只允许作为测试候选；无多可用区、恢复能力证据或 TargetGrant；真实验证仍可能被运行器阻断。 |
 | `production` | 经批准的生产资源 | TLS `verify-full`（完整证书与主机名验证）、多可用区、签署的 RPO（恢复点目标）/RTO（恢复时间目标）、恢复演练 | 当前无合格数据库，禁止发布。 |
 
-以下内容不在本次迁移内：真实业务数据迁移、购买或创建收费计算资源、开放 RDS/Tair 公网、放宽到 `0.0.0.0/0`、关闭 TLS、删除现有本地卷。全格式 RAG（检索增强生成）原件在 OSS adapter（适配器）、隔离提取、引用回跳与删除传播全部实装前，不得宣称已上线。
+以下内容不在本次迁移内：真实业务数据迁移、购买或创建收费计算资源、**生产** RDS/Tair 公网放开、对生产放宽到 `0.0.0.0/0`、关闭 TLS、删除现有本地卷。非生产测试实例的公网开通已由负责人确认允许（须 TLS + 最小来源白名单）。全格式 RAG（检索增强生成）原件在 OSS adapter（适配器）、隔离提取、引用回跳与删除传播全部实装前，不得宣称已上线。
 
 ### 0.2 只读云连通性 smoke（冒烟测试）
 
 `pnpm cloud:smoke --run <run-id>` 是为同 VPC（虚拟私有云）测试运行器准备的**只读**前置门，不是 `cloud:verify`（真实云验证）替代品。它只接受 `CLOUD_TEST_*` 专用变量，拒绝 `DATABASE_URL`、`RUNTIME_DATABASE_URL`、`MIGRATION_DATABASE_URL` 与运行时 `RAG_REDIS_URL`；PostgreSQL（关系型数据库）与 Tair（托管 Redis）均要求 TLS（传输层加密）。默认校验证书链；仅既有私网、固定只读测试目标可由函数私有配置显式选择 `vpc-test-only-no-verify`，此时回执会标明该模式，且永远不构成发布证据。运行成功只产生脱敏 HMAC（带密钥哈希）回执，并且数据库、Tair、OSS（对象存储服务）写入数均为 0。
 
-该门有两个**互不等价**的 target profile（目标配置档）：默认 `run-scoped` 要求数据库名精确为 `meetwise_e2e_<run-id>`，只适用于未来独占目标；`fixed-readonly` 只允许精确的 `meetwise_cloud_test`，且必须设置不可默认获得的确认值 `CLOUD_TEST_FIXED_READONLY_ACK=I_UNDERSTAND_FIXED_TARGET_IS_READ_ONLY`。固定档强制 URL（统一资源定位符）中的 RDS（关系型数据库服务）账号为 `meetwise_cloud_smoke_reader`、Tair 用户为 `mw_cloud_smoke`，并强制 PostgreSQL（关系型数据库）`BEGIN READ ONLY`（只读事务）。当前 RDS PostgreSQL 的托管授权接口只能把普通账号授予该测试数据库的 `DBOwner`；所以它是**仅限 `meetwise_cloud_test` 的项目测试账号，不是生产低权账号**，零写入由函数事务和固定目标共同保证。连接前 DNS（域名解析）验证后，数据库/Tair socket（网络连接）会**固定到已验证私网 IP（互联网协议地址）**，同时保留原 hostname（主机名）用于 TLS（传输层加密）SNI（服务器名称指示）/证书校验；数据库连接后还复核 peer（对端地址）。Tair 固定 RESP2（Redis 序列化协议第二版）、`database=0` 和关闭 client-info（客户端信息），因此函数的命令面精确为认证握手加 `PING`。阿里云 Tair 的托管账户模型只提供只读/读写两档，不能把这条代码级命令约束误写成服务端 `PING` ACL：云端必须是单用途 `RoleReadOnly` 账号，且该既有项目测试实例不得放入业务缓存数据。`PG*`/`REDIS_*` ambient（环境继承）变量、明文、回环和公网重绑定一律在首个 SQL（结构化查询语言）前拒绝。该 profile 不能写数据库、缓存或 OSS（对象存储服务），也不能作为 `TC-CLOUD-*` 的通过证据、迁移入口或发布证明；它的用途只是以最低成本验证已购买 RDS/Tair 的私网 TLS（传输层加密）连通性。
+该门有两个**互不等价**的 target profile（目标配置档）：默认 `run-scoped` 要求数据库名精确为 `meetwise_e2e_<run-id>`，只适用于未来独占目标；`fixed-readonly` 只允许精确的 `meetwise_cloud_test`，且必须设置不可默认获得的确认值 `CLOUD_TEST_FIXED_READONLY_ACK=I_UNDERSTAND_FIXED_TARGET_IS_READ_ONLY`。固定档强制 URL（统一资源定位符）中的 RDS（关系型数据库服务）账号为 `meetwise_cloud_smoke_reader`、Tair 用户为 `mw_cloud_smoke`，并强制 PostgreSQL（关系型数据库）`BEGIN READ ONLY`（只读事务）。当前 RDS PostgreSQL 的托管授权接口只能把普通账号授予该测试数据库的 `DBOwner`；所以它是**仅限 `meetwise_cloud_test` 的项目测试账号，不是生产低权账号**，零写入由函数事务和固定目标共同保证。连接前 DNS（域名解析）验证后，数据库/Tair socket（网络连接）会**固定到已验证私网 IP（互联网协议地址）**，同时保留原 hostname（主机名）用于 TLS（传输层加密）SNI（服务器名称指示）/证书校验；数据库连接后还复核 peer（对端地址）。Tair 固定 RESP2（Redis 序列化协议第二版）、`database=0` 和关闭 client-info（客户端信息），因此函数的命令面精确为认证握手加 `PING`。阿里云 Tair 的托管账户模型只提供只读/读写两档，不能把这条代码级命令约束误写成服务端 `PING` ACL：云端必须是单用途 `RoleReadOnly` 账号，且该既有项目测试实例不得放入业务缓存数据。`PG*`/`REDIS_*` ambient（环境继承）变量、明文、回环和公网重绑定一律在首个 SQL（结构化查询语言）前拒绝。该 profile 不能写数据库、缓存或 OSS（对象存储服务），也不能作为 `TC-CLOUD-*` 的通过证据、迁移入口或发布证明；它的用途只是以最低成本验证已购买 RDS/Tair 的连通性（历史上按私网 TLS 设计）。
+
+> **实现限制（诚实）**：截至本修订，`apps/worker/src/cloud-readiness.ts` 的 `assertCloudSmokeHostsPrivate` / `CLOUD_TEST_PRIVATE_CIDRS` **仍强制 DNS 解析落在 RFC1918**，并拒绝公网重绑定。因此即便控制台已为测试 RDS/Tair 开通公网，**现行 `pnpm cloud:smoke` 仍不会接受公网 URL**，除非另行改校验并补 prove。开发机可用其它客户端（`psql` / Redis CLI）做公网 TLS 连通探测；那不构成 `cloud:smoke` 通过，也不构成发布证据。
 
 ### UC-cloud-smoke-001 · 云测试资源的零写入连通性预检
 
