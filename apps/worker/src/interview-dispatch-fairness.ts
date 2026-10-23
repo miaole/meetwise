@@ -21,6 +21,12 @@ export function readInterviewDispatchBudget(
   const perOwnerInflight = readBoundedInt(env, 'WORKER_INTERVIEW_PER_OWNER_INFLIGHT', 1, 1, 32);
   const globalInflight = readBoundedInt(env, 'WORKER_INTERVIEW_GLOBAL_INFLIGHT', 4, 1, 64);
   if (perOwnerInflight > globalInflight) throw new Error('interview_dispatch_budget_invalid');
+  // Fail closed at startup: the process-local global inflight cap must not exceed the
+  // shared pool ceiling, or overlapping slices, checkpoint writes, projections and
+  // heartbeats starve each other on the pool. PGPOOL_MAX is read with the same name
+  // and the same default (20) as the pool construction in principal.ts.
+  const poolMax = readBoundedInt(env, 'PGPOOL_MAX', 20, 1, Number.MAX_SAFE_INTEGER);
+  if (globalInflight > poolMax) throw new Error('interview_dispatch_budget_exceeds_pool_max');
   return { perOwnerInflight, globalInflight };
 }
 
