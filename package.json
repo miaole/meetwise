@@ -42,6 +42,7 @@
     "mysql-stack:m2-tenant:prove": "node scripts/mysql-stack.m2-tenant.skeleton.proof.mjs",
     "mysql-stack:m3-queue:prove": "node scripts/mysql-stack.m3-queue.skeleton.proof.mjs",
     "mysql-stack:m4-rag:prove": "node scripts/mysql-stack.m4-rag.skeleton.proof.mjs",
+    "mysql-stack:m5-fixtures:prove": "node scripts/mysql-stack.m5-fixtures.skeleton.proof.mjs",
     "db:prove": "pnpm -C packages/db prove",
     "runtime:prove": "pnpm -C packages/ai-runtime prove",
     "runtime:isolated:prove": "node scripts/run-e2e-isolated.mjs runtime:prove:raw",
