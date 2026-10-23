@@ -62,7 +62,8 @@ export async function transcribeAnswer(asr: Asr, dto: TranscribeDto, options?: {
   if (audio.length > MAX_AUDIO_BYTES) throw new HttpException({ error: 'audio_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
   const format = dto.format?.trim() || formatFromMime(dto.mimeType);
   try {
-    const text = await asr.transcribe(new Uint8Array(audio), { format, signal: options?.signal });
+    const transcribed = await asr.transcribe(new Uint8Array(audio), { format, signal: options?.signal });
+    const text = transcribed.text;
     if (typeof text !== 'string')
       throw new HttpException({ error: 'asr_failed', message: '语音转写失败，请重试或改用文字作答' }, HttpStatus.BAD_GATEWAY);
     return {
@@ -71,6 +72,7 @@ export async function transcribeAnswer(asr: Asr, dto: TranscribeDto, options?: {
         mode: dto.capture.mode,
         speakerAttribution: 'not_diarized' as const,
         wordTimestamps: 'not_available' as const,
+        asrQuality: 'unavailable' as const,
       },
     };
   } catch (e: unknown) {
@@ -131,7 +133,7 @@ export async function transcribeForIssuedQuestion(
     const questionId = issuedQuestionId;
     await db.asPrincipal(owner, async (c) => {
       await guard(c, interviewId);
-      await rememberIssuedQuestionTranscript(c as never, owner, interviewId, questionId, result.text);
+      await rememberIssuedQuestionTranscript(c as never, owner, interviewId, questionId, result.text, result.capture.asrQuality);
     });
   }
   return result;

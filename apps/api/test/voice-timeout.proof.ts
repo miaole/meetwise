@@ -1,7 +1,7 @@
 /** TC-VOICE-01-E3：ASR 超时必须是可恢复的 504，不能被误报成泛化 502。 */
 import { HttpException } from '@nestjs/common';
 import { EventEmitter } from 'node:events';
-import { AsrAbortedError, AsrTimeoutError } from '@meetwise/ai-runtime';
+import { AsrAbortedError, AsrTimeoutError, type Asr } from '@meetwise/ai-runtime';
 import { InterviewController } from '../src/modules/interview/interview.controller.ts';
 import { InterviewService } from '../src/modules/interview/interview.service.ts';
 
@@ -12,6 +12,10 @@ const assert = (name: string, ok: boolean) => {
 };
 
 async function main() {
+  // 结构化 Asr 返回的确定性 fake（text+质量申报恒 unavailable）。
+  const structuredAsr = (text: string): Asr => ({
+    transcribe: async () => ({ text, quality: { confidence: 'unavailable', duration: 'unavailable', language: 'unavailable' } }),
+  });
   let queries = 0;
   const statements: string[] = [];
   const service = new InterviewService(
@@ -82,7 +86,7 @@ async function main() {
   const busyService = new InterviewService(
     { asPrincipal: async (_principal: string, fn: (c: { query: () => Promise<unknown> }) => unknown) => fn({ query: async () => ({ rowCount: 1, rows: [] }) }) } as any,
     { allow: () => true } as any,
-    { transcribe: async () => '' },
+    structuredAsr(''),
     { synthesize: async () => { throw new Error('tts_download_capacity_exceeded'); } },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
   );
@@ -126,7 +130,7 @@ async function main() {
   const forwardingService = new InterviewService(
     { asPrincipal: async (_principal: string, fn: (c: { query: () => Promise<unknown> }) => unknown) => fn({ query: async () => ({ rowCount: 1, rows: [] }) }) } as any,
     { allow: () => true } as any,
-    { transcribe: async () => '' },
+    structuredAsr(''),
     { synthesize: async (_text: string, options?: { signal?: AbortSignal }) => { serviceSignal = options?.signal; return new Uint8Array([1]); } },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
   );
@@ -149,7 +153,7 @@ async function main() {
       },
     }) } as never,
     { allow: () => true } as never,
-    { transcribe: async () => transcript },
+    structuredAsr(transcript),
     { synthesize: async () => new Uint8Array() },
     { id: 'test-streaming-tts', synthesizeStream: async function* () { /* not reached */ } },
   );
@@ -163,6 +167,7 @@ async function main() {
   assert('只返回文本且没有词级时间戳时，转写不把原文或语音质量 ok 记下来',
     stored.text === transcript
     && stored.capture.wordTimestamps === 'not_available'
+    && stored.capture.asrQuality === 'unavailable'
     && Object.keys(stored).sort().join(',') === 'capture,text'
     && remembered.includes('not_available')
     && remembered.includes('q-issued')

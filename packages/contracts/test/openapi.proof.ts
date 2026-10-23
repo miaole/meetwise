@@ -65,8 +65,12 @@ ok(!TranscribeDto.safeParse({ ...validSingleTrack, audioBase64: 'not base64!' })
 ok(!TranscribeDto.safeParse({ ...validSingleTrack, mimeType: 'audio/x-untrusted' }).success, '未知音频 MIME 在模型调用前被拒');
 ok(TranscribeResult.safeParse({
   text: '仅有一段本机麦克风转写',
+  capture: { mode: 'single_local_microphone', speakerAttribution: 'not_diarized', wordTimestamps: 'not_available', asrQuality: 'unavailable' },
+}).success, '转写响应明确标注无说话人分离/逐词时间戳/质量申报 unavailable，避免消费端作出错误归因');
+ok(!TranscribeResult.safeParse({
+  text: '仅有一段本机麦克风转写',
   capture: { mode: 'single_local_microphone', speakerAttribution: 'not_diarized', wordTimestamps: 'not_available' },
-}).success, '转写响应明确标注无说话人分离/逐词时间戳，避免消费端作出错误归因');
+}).success, 'asrQuality 质量申报是 required 能力声明：缺申报的转写响应被契约拒绝（不靠缺省语义猜值）');
 
 // 5. /turn 路径参数从 {id} 模板抽出，且前端只能复用该正式契约。
 ok(Array.isArray(doc.paths['/interview/{id}/turn'].post.parameters)

@@ -157,8 +157,10 @@ export const TranscribeDto = z.object({
 }).strict();
 export type TranscribeDto = z.infer<typeof TranscribeDto>;
 /**
- * 转写结果：speakerAttribution/wordTimestamps 是能力声明而非模型猜测。
- * 单本机轨只能安全返回 not_diarized / not_available，消费端不得把它当双人通话纪要。
+ * 转写结果：speakerAttribution/wordTimestamps/asrQuality 是能力声明而非模型猜测。
+ * 单本机轨只能安全返回 not_diarized / not_available；asrQuality 当前唯一申报值
+ * unavailable（置信/时长/语种不可得即如实申报，零模型自报数值字段）。消费端不得把
+ * 它们当双人通话纪要或当成真实质量分数。
  */
 export const TranscribeResult = z.object({
   text: z.string(),
@@ -166,6 +168,7 @@ export const TranscribeResult = z.object({
     mode: z.literal('single_local_microphone'),
     speakerAttribution: z.literal('not_diarized'),
     wordTimestamps: z.literal('not_available'),
+    asrQuality: z.literal('unavailable'),
   }).strict(),
 }).strict();
 export type TranscribeResult = z.infer<typeof TranscribeResult>;

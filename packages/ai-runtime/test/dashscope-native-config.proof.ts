@@ -138,7 +138,9 @@ async function main() {
 
     const transcript = await dashscopeAsr({ timeoutMs: 500 }).transcribe(new Uint8Array([1, 2, 3]), { format: 'wav' });
     check('ASR uses the registry compatible endpoint and its own asr credential',
-      transcript === '转写文本' && calls[2]?.url === 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
+      transcript.text === '转写文本' && transcript.quality.confidence === 'unavailable'
+      && transcript.quality.duration === 'unavailable' && transcript.quality.language === 'unavailable'
+      && calls[2]?.url === 'https://dashscope.aliyuncs.com/compatible-mode/v1/chat/completions'
       && calls[2]?.authorization === 'Bearer dashscope-asr-key' && calls[2]?.redirect === 'error');
 
     check('TTS and streaming adapters take protocol endpoints from the same snapshot',

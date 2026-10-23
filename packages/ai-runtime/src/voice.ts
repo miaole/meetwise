@@ -14,7 +14,28 @@ import { errCode } from '@meetwise/errors';   // #174: 错误类叶子包,解出
  * 易变技术(ASR/TTS/实时模型)藏在本 seam 后(10 年):换 paraformer→qwen3-asr、cosyvoice→别的,业务不动。
  * 隐私:转写文本落 interview_event(已建),**原始录音默认不存**(需单独同意)——见 rules 隐私铁律。
  */
-export interface Asr { transcribe(audio: Uint8Array, opts?: { lang?: string; format?: string; signal?: AbortSignal }): Promise<string>; }
+/**
+ * ASR 质量申报（能力声明而非模型猜测）：置信/时长/语种三字段只收显式字面量申报。
+ * 当前 qwen-audio 兼容端点响应面不含这三元，唯一申报形是 'unavailable'；真置信信号
+ * 接入时在此扩可区分 union 臂——绝不伪造数值，绝不把 unavailable 升格 ok。
+ */
+export interface AsrQualityDeclaration {
+  confidence: 'unavailable';
+  duration: 'unavailable';
+  language: 'unavailable';
+}
+
+/** 当前唯一的诚实申报形：三元不可得即如实申报 unavailable。 */
+export const ASR_QUALITY_UNAVAILABLE: AsrQualityDeclaration = Object.freeze({
+  confidence: 'unavailable',
+  duration: 'unavailable',
+  language: 'unavailable',
+});
+
+/** 结构化转写结果：转写文本 + 质量申报（判词载体从纯文本扩为显式申报）。 */
+export interface AsrTranscription { text: string; quality: AsrQualityDeclaration; }
+
+export interface Asr { transcribe(audio: Uint8Array, opts?: { lang?: string; format?: string; signal?: AbortSignal }): Promise<AsrTranscription>; }
 export interface Tts { synthesize(text: string, opts?: { voice?: string; signal?: AbortSignal }): Promise<Uint8Array>; }
 
 /**
@@ -383,8 +404,14 @@ export async function downloadDashscopeTtsAudio(rawUrl: string, expiresAt: unkno
   }
 }
 
-/** 测试/CI 用:确定性 fake,不联网。 */
-export function fakeAsr(transcript: string): Asr { return { async transcribe() { return transcript; } }; }
+/** 测试/CI 用:确定性 fake,不联网。质量申报恒 unavailable（fake 不伪造置信信号）。 */
+export function fakeAsr(transcript: string): Asr {
+  return {
+    async transcribe() {
+      return { text: transcript, quality: { ...ASR_QUALITY_UNAVAILABLE } };
+    },
+  };
+}
 export function fakeTts(): Tts { return { async synthesize(t) { return new TextEncoder().encode('AUDIO:' + t); } }; }
 
 /**
@@ -443,7 +470,10 @@ export function dashscopeAsr(cfg: { baseUrl?: string; apiKey?: string; model?: s
         }, { timeoutMs, maxBytes: 256 * 1024 });
         const content = j.choices?.[0]?.message?.content;
         // Empty/non-string content is malformation, not a silent empty room.
-        return requireNonEmptyText(content, 'asr_malformed');
+        const text = requireNonEmptyText(content, 'asr_malformed');
+        // 兼容端点响应面只有 content 一字段：置信/时长/语种不可得，质量恒诚实申报
+        // unavailable（能力声明非模型猜测）；请求体零新增字段零 prompt 改动。
+        return { text, quality: { ...ASR_QUALITY_UNAVAILABLE } };
       } catch (error: unknown) {
         // A caller disconnect must remain distinct from a provider deadline:
         // both stop transport work, but only the latter is a 504/retryable

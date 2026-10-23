@@ -20,7 +20,7 @@ import { resolveDashscopeNativeConfig } from './dashscope-native-config.ts';
 import { resolveModelOperation } from './model-operation-registry.ts';
 import { resolveModelOperationBinding } from './operation-binding.ts';
 import {
-  dashscopeAsr, dashscopeTts, disabledAsr, disabledTts, type Asr, type Tts,
+  dashscopeAsr, dashscopeTts, disabledAsr, disabledTts, type Asr, type AsrQualityDeclaration, type Tts,
 } from './voice.ts';
 import { disabledStreamingAsr, disabledStreamingTts, type StreamingAsr, type StreamingTts } from './voice-stream.ts';
 
@@ -62,12 +62,23 @@ function ttsBindingOk(): boolean {
   return bound.ok === true && bound.binding.wired === true;
 }
 
-function failClosedAsr(inner: Asr): Asr {
+/** 结构化返回 fail-closed 形校验：text 是串 + quality 三字段为显式申报字面量（当前唯一申报形 unavailable）。 */
+function asrTranscriptionDeclared(value: unknown): value is { text: string; quality: AsrQualityDeclaration } {
+  if (value === null || typeof value !== 'object') return false;
+  const candidate = value as { text?: unknown; quality?: unknown };
+  if (typeof candidate.text !== 'string') return false;
+  const quality = candidate.quality as AsrQualityDeclaration | undefined;
+  return quality !== undefined && typeof quality === 'object'
+    && quality.confidence === 'unavailable' && quality.duration === 'unavailable' && quality.language === 'unavailable';
+}
+
+/** fail-closed ASR：非结构化返回/缺申报一律 asr_malformed，不猜值不补默认。 */
+export function failClosedAsr(inner: Asr): Asr {
   return Object.freeze({
     async transcribe(...args: Parameters<Asr['transcribe']>) {
-      const text = await inner.transcribe(...args);
-      if (typeof text !== 'string') throw new Error('asr_malformed');
-      return text;
+      const result: unknown = await inner.transcribe(...args);
+      if (!asrTranscriptionDeclared(result)) throw new Error('asr_malformed');
+      return result;
     },
   });
 }
