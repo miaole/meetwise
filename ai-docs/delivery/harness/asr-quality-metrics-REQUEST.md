@@ -157,6 +157,40 @@ pin 入卷：**required**（`z.literal('unavailable')` 申报常量·与 `Transc
 
 **rev 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·本卷系既有文件 append 零新增文件）；改动面行首冲突标记直扫 0 命中；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·`actualSpendCny=null` 同源）。
 
+## §9-rev2 rev2 修订注记（双审第二轮席1 合并清单 P1 一件甲+P2 三件乙/丙/丁回路·席2 尚未回卷如另有 P 件由协调方并单再补 rev3 · rev2 落卷 2026-10-22 · **append 注记形 · 上文 §0-§8+§9-rev 零字洗** · EXEC 期与上文冲突处以本节为准读）
+
+**rev2 缘由**：pre-exec 双审第二轮席1 FAIL（P1 一件+P2 三件）合并四条；席2 尚未回卷——本节先按席1 合并清单落卷，席2 回卷后如另有 P 件由协调方并单再补 rev3。本席逐位届树亲证（届树=`19a83b00`·本刀卷两笔纯文面·产品码面与 base `65a9c40f` 零 diff）后落卷（只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触）。**四条全部届树成立落修正·零跳过**；STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻（Status 头/§8/卷尾注）·**rev2 落卷后重派 pre-exec 双审两独立外席第三轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+### rev2-1（P1-甲·席1）rev-2 证明面清点穷尽补第 4 处：dashscope-native-config 成功路径断言串比
+
+**修正句**：rev-2 触面清点漏第 4 处既有证明面 `packages/ai-runtime/test/dashscope-native-config.proof.ts`——矩阵补列该面（18→**19 tracked**）并预申明「**件①②同步修该 proof 成功路径断言（`transcribe` 返回值改结构化 `.text`/quality 读法）后绿**」，吸收进门⑧预申明。席面词「成功路径 fake」届树如实注：该面非 rev-2 三处 `transcribe` 串 fake 同形，系真适配器+mocked in-memory transport（文件头注释自述·届树 Read 亲证）下成功路径**返回值断言串比**——修法=断言读法结构化·transport fixture 零涉。
+
+**届树亲证（漏列必补理据）**：`:139` `const transcript = await dashscopeAsr({ timeoutMs: 500 }).transcribe(new Uint8Array([1, 2, 3]), { format: 'wav' });` 成功路径+`:141` 断言 `transcript === '转写文本'` 串比（`:140-142` check 体·届树 Read 亲证）。件①②落码后 `transcribe` 返回结构化 `AsrTranscription`·左值为对象——双路必红：**(a) 编译面**：对象与串字面量无重叠比较=TS2367 编译错，ai-runtime `tsconfig.json` include 恰 `["src","test"]`+`typecheck: tsc -p tsconfig.json --noEmit`（两处届树亲证）→门⑧必红；**(b) 运行时**：tsx 免检直跑下对象 `===` 串恒假→check 败→`prove:dashscope-native-config`（`packages/ai-runtime/package.json:45` 在册亲证）红。同文件 `:196` `asr_not_configured` 错误臂系构造期抛出（`:432`）与返回形零涉·零触——受影响面恰成功路径 `:139-141` 一处。且该面不在 rev-2 三面清单、本卷 grep `dashscope-native-config` 零命中亲证=矩阵零列·无「同步修后绿」预申明——与门⑫「恰 18」自相矛盾（同 rev-2 缘由再现）。
+
+### rev2-2（P2-乙·席1）门⑫ 18 计数口径注记=矩阵触面·score-writer 零强制 diff
+
+**修正句**：门⑫「恰 18 tracked」口径注明为**矩阵触面**（计划触面数·非强制 diff 实算数）——rev 合算 18 计含 `score-writer.ts`（§1.2 八产品面之一），而件④「透传形零改」+rev-5 串内化 pin 下该文件**零强制 diff**（若剔除届时实为 17）；本节 rev2-1 补第 4 证明面→矩阵触面 **19**=实算强制 diff 19−1（score-writer 零强制 diff）=**18**。EXEC 届时以 `git diff --stat` 届树亲证为准如实录：若届树亲证 score-writer 出现实质 diff 行则按矩阵触面 19 口径如实录——两口径并陈·不凭空并数。
+
+**届树亲证（零强制 diff 理据）**：`score-writer.ts` 输入 `asrOutcome?: string` 单串（`:52` 附近类型体亲证）+`:111` `const voiceQuality = voiceQualityFromAsrOutcome(q.asrOutcome);` 单串读法+`:117` 条件展开——rev-5 串内化 pin 下映射 token 编码于 asrOutcome 单串内·该文件现读法零改即成立（与 rev-5 第三 Bullet 同源）；件③ 映射内聚 domain·件④ 对 score-writer 本只申明「透传形零改」。
+
+### rev2-3（P2-丙·席1）件① 补列：voice.ts:387 产品内 fakeAsr 同需结构化改（无计数影响）
+
+**修正句**：件① 消费位清单一并预申明：`voice.ts:387` `export function fakeAsr(transcript: string): Asr { return { async transcribe() { return transcript; } }; }` 产品内确定性 fake 随件① 接口结构化**同需结构化改**（`transcribe` 返 `AsrTranscription` 形·text+quality 常量申报·入参串签名不变）——voice.ts 本在触面矩阵内（同文件 typecheck 强制）·**无计数影响·矩阵不增**。
+
+**届树亲证（消费方零触·无计数影响理据）**：全仓 fakeAsr 触面 grep 恰 5 文件（定义 `voice.ts:387`+消费 `apps/worker/test/voice.proof.ts`+re-export `packages/ai-runtime/test/support/fakes.ts`+名面 proof `test/test-support-fakes.proof.ts`+导出注释 `src/index.ts:152` 亲证）——消费三处全零触：`voice.proof.ts:25`/:28 经 `fakeAsr(ANSWERS[n])` 串入参注入·件① `voice-turn.ts:15` `.text` 读法下转写在 voice-turn 消费点解包仍串·`:14` 返形 `transcript: string` 不变→`t1.transcript === ANSWERS[0]`（`:26`）串比断言零触；`fakes.ts:12` 纯 re-export `export { fakeAsr, fakeTts } from '../../src/voice.ts'` 零触；`test-support-fakes.proof.ts:28` FAKE_NAMES 只查 src/index.ts 名面与返回形零涉·零触。
+
+### rev2-4（P2-丁·席1）rev-1 词面校正：`:402`/:410 系构造器报文定义点非抛出点
+
+**修正句**：rev-1 词「四失败码·`voice.ts:402`/:410/:446/:30 抛出点亲证」词面校正读——`:402` `super('asr_timeout')`/`:410` `super('asr_aborted')` 系 `AsrTimeoutError`/`AsrAbortedError` **构造器报文定义点**（类体内 super 报文·非抛出点）；真抛出点=`:451` `throw new AsrAbortedError()`/`:452` `throw new AsrTimeoutError(timeoutMs)`（届树 grep 亲证）。`:446` `requireNonEmptyText(content, 'asr_malformed')` 与 `:30` `throw new Error('asr_not_configured')` 两锚词面照旧。锚行不漂·四失败码与 domain docstring 同源承登·rev-1 结论零变——纯词面校正。
+
+### rev2 门面与 STOP 补注
+
+- 门⑧ 预申明随 rev2-1 改「件①②同步修 dashscope-native-config.proof 成功路径断言后绿」（与 rev-2 三 fake 面、门⑤ interview.proof 同性质并列第四处）。
+- 门⑫ 恰 **18 tracked** 维持·口径=矩阵触面 **19**（rev 合算 18+rev2-1 第 4 证明面）−score-writer 零强制 diff 1=**实算 18**（rev2-2）·届时以 `git diff --stat` 届树亲证为准如实录。
+- **STOP=`draft:awaiting_pre_exec_dual` 维持三处同值零翻**（Status 头/§8/卷尾注）·**rev2 落卷后重派 pre-exec 双审两独立外席第三轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+**rev2 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8+§9-rev 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev2 时点亲跑·本卷系既有文件 append 零新增文件）；改动面行首冲突标记直扫 0 命中；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev2 turn 全只读+1 doc append·`actualSpendCny=null` 同源）。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main`@`65a9c40f`·分支 `line/asr-quality-draft`·工作树 `meetwise-iss73`·批表原文 iCloud 不可读已承登（仓内定性链=LEDGER `:59`+batch-residual-plan `:62`/:102+`730d03b0` 部分收敛亲证）·正身='low' 生产者缺位致 review 触发结构性不可达·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-22 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件甲-己全成立落修正·零跳过·三处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main`@`65a9c40f`·分支 `line/asr-quality-draft`·工作树 `meetwise-iss73`·批表原文 iCloud 不可读已承登（仓内定性链=LEDGER `:59`+batch-residual-plan `:62`/:102+`730d03b0` 部分收敛亲证）·正身='low' 生产者缺位致 review 触发结构性不可达·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-22 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件甲-己全成立落修正·零跳过·三处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）·rev2 修订注记 §9-rev2 2026-10-22 落卷（双审第二轮席1 合并清单回卷·P1 一件甲+P2 三件乙/丙/丁全成立落修正·零跳过·席2 尚未回卷如另有 P 件由协调方并单再补 rev3·矩阵触面 19=实算 18 口径注记·§0-§8+§9-rev 零字洗·STOP 三处同值零翻·第三轮双审待重派）。
