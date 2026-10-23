@@ -150,8 +150,8 @@ async function main() {
   const rerun = await runMigrations(pool, manifest);
 
   // ══ I2B-0 部署车（§4-8 形）══
-  A('I2B-0a 真迁移链全量应用 0001→0215（末位=0215_gateway_b_qualitative_fence W2 受控 DEFINER 定性投影函数）',
-    applied.applied[applied.applied.length - 1] === '0215_gateway_b_qualitative_fence');
+  A('I2B-0a 真迁移链全量应用 0001→0218（末位=0218_remit_invoice_id_v7）',
+    applied.applied[applied.applied.length - 1] === '0218_remit_invoice_id_v7');
   A('I2B-0b 重跑全 skipped（幂等·CREATE OR REPLACE+自包含 REVOKE/GRANT）',
     rerun.applied.length === 0 && rerun.skipped.length === manifest.length);
   A('I2B-0c 0160 函数在位（SECURITY DEFINER·prosecdef）',

@@ -425,6 +425,9 @@ export class InterviewService {
     this.denyContentSafetyKilled();
     this.denyPublicPreviewWrite();
     const owner = requireOwnerUserId(principal, 'interview.begin');
+    // 非法简历编号在打开数据库会话前拒绝。核心函数里仍保留同一检查，供申请开场直接调用。
+    if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
+    if (!UUID_RE.test(resumeId)) throw new HttpException({ error: 'invalid_resume_id' }, HttpStatus.BAD_REQUEST);
     return this.db.asPrincipal(owner, (c) => beginInterviewCore(c, owner, id, resumeId, requestId, sourceQuizId, targetRole, focus));
   }
 
