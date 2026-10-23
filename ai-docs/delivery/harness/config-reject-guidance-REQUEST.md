@@ -1,6 +1,6 @@
 # CONFIG-REJECT-GUIDANCE REQUEST（生产数据库配置拒绝修复指引刀——`production_local_database_host` 启动错误附人读修复指引 + 精简 CD 部署文档写明云库前提 · 拒绝语义零改 · 零迁移 · 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-22 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·est live=0·Ban self-approve·alone≠dual·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`·史录保留·2026-10-22 落卷·pre-exec 双审第二轮窄域双 PASS→协调方授权 EXEC 落码已行使·EXEC 落码毕见 §9-EXEC·est live=0·Ban self-approve·alone≠dual·⛔push）
 
 **席位**：批表下一刀起草席（#249 · P4·运维/文档）。
 **基线**：`origin/main` @ `65a9c40f407eb6a7e5f04bc627254cb20fc1faf6`（`git rev-parse` 亲证恰等）。分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`（派单给定·届树亲证在位）。
@@ -85,9 +85,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类（现场漂移超注记级/机制不满足/越界需要/验收红不可修）——**起草期均未触发**（§0.2 勘正均注记级·前刀互补零撞·在飞零交叠·批表不可读已如实登记并以仓内承登链定性）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头＋本节＋卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头＋本节＋卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·pre-exec 双审第二轮窄域双 PASS→协调方授权 EXEC 落码已行使（§9-EXEC）·翻面权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（EXEC 面＝1 函数签名＋2 调用位文案＋6 锚断言＋1 文档段·纯本地静态门·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·落卷即停·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（与 Status 头/§8 同值第三处·前值史录保留）·EXEC 落码毕·post prove 双审待派·⛔push。
 
 ## §9-rev rev 修订注记（pre-exec 双审 FAIL+PASS 两席合并清单·席1 PASS（2×P2）＋席2 FAIL（P1×1＋P2×3）·四条届树亲证成立全落卷·零跳过）
 
@@ -124,4 +124,42 @@
 
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·2026-10-22 落卷·基线 `origin/main` `65a9c40f`·分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`·批表原文不可读（iCloud 逐出·读取挂起止读）以仓内承登链三处定性·前刀 config-reject-local 互补承证·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。**rev 2026-10-22**：pre-exec 双审两席合并清单四条修订入 §9-rev（门② ha6:prove 基线即红三 FAIL 臂承登协议勘误＋`invalidDatabaseConfig` 计数 17→15 含定义 16＋rag-control createPool 行锚 :38→:36＋门④ 大帽计数器注记·四条全届树亲证零跳过）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=§9-rev 落点复验·alone≠dual·Ban self-approve·STOP 三处同值维持不变。
+卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual` 史录保留）三处同值（Status 头/§8/本注）·2026-10-22 落卷·基线 `origin/main` `65a9c40f`·分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`·批表原文不可读（iCloud 逐出·读取挂起止读）以仓内承登链三处定性·前刀 config-reject-local 互补承证·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。**rev 2026-10-22**：pre-exec 双审两席合并清单四条修订入 §9-rev（门② ha6:prove 基线即红三 FAIL 臂承登协议勘误＋`invalidDatabaseConfig` 计数 17→15 含定义 16＋rag-control createPool 行锚 :38→:36＋门④ 大帽计数器注记·四条全届树亲证零跳过）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=§9-rev 落点复验·alone≠dual·Ban self-approve·STOP 三处同值维持不变。**EXEC 2026-10-22**：协调方授权开工·EXEC 落码毕五 tracked 一体 commit（落点/门值/偏离见 §9-EXEC）·STOP 三处翻 `executed:awaiting_post_prove_dual`（前值史录保留）·post prove 双审待派。
+
+## §9-EXEC 记录（EXEC 落码席·2026-10-22·协调方授权开工后届树行使·本节由 EXEC 席 append·上文零字洗）
+
+### EXEC-0 环境与届树重 pin（落码前）
+
+- 工作树 `meetwise-iss249`·tip `ef28a428`·分支 `line/config-reject-guidance-draft`（`git log`/`git branch` 亲证）；`pnpm install --frozen-lockfile` **EXIT=0**（lockfile 零改）。
+- §0/§9-rev 行号届树重 pin **零漂移**：principal.ts 定义 `:761-763`·两 hint 调用位 `:790`/`:801`·`invalidDatabaseConfig` 恰 16 行（定义 1＋调用位 15）＝rev-2 精确复现；proof 六锚 `:60/:64/:68/:75/:86/:93`＋其余三锚 `:31/:39/:97`；lean-cd Secrets `:58`/运维 `:61-68`；rag-control `:33`（读取）/`:36`（createPool）＝rev-3；`MAX_FILES=2_338`@`scripts/ai-docs/public-text-policy.mjs:135`；`prove:principal-config`@`packages/db/package.json:41`·db 帽 `1042`@`:11`；全仓 `--max-warnings` 恰 12 处＝rev-4。「漂移超注记级停手上报」停止条件未触发。
+
+### EXEC-1 落点（五 tracked 一体）
+
+- 件① `packages/db/src/principal.ts`：`:761` 签名加可选 `hint` 参（无 hint 抛串逐字节不变；有 hint 抛 `database_config_invalid:<code>（<hint>）`·机读前缀零变）；`:790`/`:801` 恰两调用位传指引文案（案甲字面：`生产环境数据库主机不得为本机/回环/链路本地地址，请将数据库地址指向云数据库后重启`）；其余 13 调用位零字节；`isLocalDatabaseHost` 词表/拒绝条件/`:844-846` verify-full 面/一切警告面零字节。三处全为单行原位改＝全文件行数与既有行号零漂移（门② 自由锚 `:959` 行号不变亲证）。
+- 件① 连带 `packages/db/test/principal-config.proof.ts`：恰 6 锚由全等改 `startsWith('database_config_invalid:production_local_database_host')` 前缀断言＋各加一则「错误信息附修复指引」断言（断言指引文案字面在位）；其余 3 锚零字节；`pool-error-listener.proof.ts` 零触（`git status` 亲证）。
+- 件② `ai-docs/delivery/lean-cd-deployment.md`：Secrets 节 `:58-59` 句后 append 数据库地址前提段（`RUNTIME_DATABASE_URL`/`MIGRATION_DATABASE_URL` 经 compose 两 env 块注入·主机必须指向云数据库·不得 `localhost`/`127.0.0.1`/`::1`/`postgres`/链路本地地址·worker 控制面 `QBANK_CONTROL_DATABASE_URL`/`RAG_CONTROL_DATABASE_URL` 同规则·`NODE_ENV=production` 违反即启动失败＝有意的响亮失败·错误码 `database_config_invalid:production_local_database_host`·verify-full＋CA 前提引用 compose 不重抄）；运维节 append 启动报错排错一行（报错码→查 `.env` 库地址→改云库地址并核对 verify-full＋CA→重跑部署）。既有行零字改。
+- 本卷：STOP 三处翻面＋本节 append。
+- 门② 存档：`receipts/config-reject-guidance/01-ha6-prepost-raw.log`（新建·pre/post 全输出·见 EXEC-3 改写申报）。
+- 零迁移零 SQL·零 env 键新增改名·compose/Dockerfile/.github/CI 零触·SSOT 四卷与 `current-runtime-truth.md` 零触·migrations 零字节。
+
+### EXEC-2 门值（EXIT 原值如实·行号届树）
+
+- 门① `pnpm --filter @meetwise/db prove:principal-config`：**pre（落码前基线）EXIT=0**（12 断言旧文案全绿）→ **post EXIT=0**（18 断言＝原 12＋新指引 6·六锚新前缀断言与指引断言全绿·其余三锚原值回归绿）。
+- 门② `node scripts/ha/ha6-companion.proof.mjs`（§9-rev 同形红 diff 协议行使）：**pre EXIT=1**·三 FAIL 臂原文在档：`principal.ts:946 pool max single-source expression drifted`／`negative violated: pgbouncer hits: packages/db/src/interview/interview-graph-lease.ts`／`package.json registered scripts ledger violated: … digest got=5adb6bae… want=106e4579…`；本刀可影响臂 pre 绿：`single-source pool max expression exactly one line (:959)`＋`HA-3 pool-param face pinned (keepAlive: true ×1 + query_timeout ×1)`＋`rolling registry full-file rows blob-identical (scripts/ha/probe.multi.mjs@b91917e8)`。落码后 **post EXIT=1·pre/post 全输出 diff 0 字节**（FAIL 臂集合与全部 PASS 臂逐字节同形＝零新漂移承证·可影响臂仍绿）。EXIT=1 系协议预期（三 FAIL 臂非本刀面·归 ha6-repin 后继刀），非门失败。
+- 门④ `pnpm turbo lint`：**EXIT=0**·`Tasks: 12 successful, 12 total`·全 0 errors·七帽精确：root 5242/api 1423/domain 115/ai-runtime 628/db 1042/worker 959/web 601（与门④/rev-4 所列全等）；其余五包 config 0·db-mysql 0·contracts 265·qdrant-store 27·ai-graphs 47（零触）。
+- 门⑤ `node scripts/ai-docs/check-docs.mjs`：**EXIT=0**·`scanned 2332` ≤ cap `2338`（余 6）。
+- typecheck `pnpm turbo typecheck --force`：**EXIT=0**·`Tasks: 8 successful, 8 total`·`Cached: 0 cached, 8 total`。
+- markers 门⑥：改动集（基线 diff＋未跟踪）**净增行五类标记词＋行首冲突标记 0 命中**·改动集全文件标记计数改前改后恒等（词面运行时组装不入卷防自指·沿 5c/qbank 先例形；五类＝本地绝对路径标记字面/code-host URL/attribution 词面/§2 门⑥ 预登记第四类词面（字面避书防自指）/密钥形）。
+- 门⑧ diff 面：恰 **5 tracked**＝件① 两文件＋件② 一文件＋本卷＋门② 存档一文件（`git status`/`git diff --stat` 亲证）。较 §1.2 四 tracked 多一门② 存档件＝§9-rev 承登协议新增面·dispatch 触面矩阵本数·非修法偏离。
+- 门⑦ 出站两门豁免申明：本刀零模型调用零新出站面（proof 面纯 env 解析·零 PG 零 DNS 零 provider 零新 proof 注册）——`provider-egress:inventory`/`provider-egress:prove` 两门豁免·est live=0·`actualSpendCny=null`。
+- 零迁移故无 uniqueness/migrate 新门。
+
+### EXEC-3 偏离与注记（如实）
+
+- **存档 CMD 行路径改写（注记级·每段恰 1 行）**：ha6 proof 末行自打印 `CMD=node <SELF> EXIT=<code>`（`scripts/ha/ha6-companion.proof.mjs:423`·SELF 为脚本绝对路径）——门⑥ 预登记「零本地绝对路径标记字面」与「输出原样存档」相抵。处置＝存档件中仅该行绝对路径前缀改波浪线相对形（`~/meetwise-iss249/…`），其余字节原样，特此申报；字节同形承证不受影响（原始全输出 pre/post diff 0 字节·改写仅及该行）。
+- 门② 基线三 FAIL 臂＝§9-rev 承登在案（行钉漂移/digest 漂/pgbouncer 负检），本刀零修零宣称，归后继 ha6-repin 刀。
+- 其余零偏离：届树行号零漂移·触面恰 5 tracked·Ban 面逐条零触·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未犯。
+
+### EXEC-4 后继
+
+- STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留于翻面处）——待 post prove 双审两独立外席·翻面权归协调方·alone≠dual·Ban self-approve·⛔push。

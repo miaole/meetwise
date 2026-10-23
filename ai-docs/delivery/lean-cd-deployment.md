@@ -58,6 +58,13 @@ push main → CI(ci.yml 全绿) → deploy.yml:
 机器上的 `/srv/meetwise-compose/.env` 持有 DB/模型等全部运行时密钥（一次性 provision），
 部署过程只改写其中 `BACKEND_IMAGE` / `WEB_IMAGE` 两行。
 
+数据库地址前提：`.env` 的 `RUNTIME_DATABASE_URL` / `MIGRATION_DATABASE_URL`（经 compose
+`x-cloud-runtime-env` / `x-migration-env` 注入）主机必须指向云数据库，不得为 `localhost` /
+`127.0.0.1` / `::1` / `postgres` / 链路本地地址；worker 控制面 `QBANK_CONTROL_DATABASE_URL` /
+`RAG_CONTROL_DATABASE_URL` 同规则。`NODE_ENV=production` 下违反即启动失败（有意的响亮失败，
+非静默），错误码 `database_config_invalid:production_local_database_host`；verify-full + CA
+前提 compose 两 env 块已钉，此处引用不重抄。
+
 ## 运维
 
 - 手动部署 / 重试：`gh workflow run deploy.yml`。
@@ -66,3 +73,6 @@ push main → CI(ci.yml 全绿) → deploy.yml:
 - 健康：api `/readyz/api`、worker `/readyz/worker`、web `/login`（compose 内建 healthcheck）。
 - 调部署期运行时参数：改 `compose.prod.override.yml`（非治理，无需 governance 仪式）；
   改容器契约本身才动受治理的 `compose.prod.yml`。
+- 启动报错排错：api / worker / migrate 启动日志报
+  `database_config_invalid:production_local_database_host` → 查 `.env` 中库地址是否误填
+  本机 / 容器内地址 → 改为云数据库地址并核对 verify-full + CA → 重跑部署。
