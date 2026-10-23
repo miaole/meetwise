@@ -78,4 +78,18 @@
 - **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权后始有 EXEC（本卷 EXEC 仅重 pin+零落码）·翻面权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（起草全轮只读+1 doc·零模型外呼零 DNS 零 Key·`actualSpendCny=null`）·⛔push。
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main` @ `98033ca8`·AG-35 三项台账面逐项定谳全已被邻刀顺带收口（#170 码半=5c449d46·写 state 半+租约拒抛半=d4d29ee8·证据 §0.2 逐项）·本卷勘误登记零码面·恰 1 新增 .md·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面权归协调方·alone≠dual·Ban self-approve。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main` @ `98033ca8`·AG-35 三项台账面逐项定谳全已被邻刀顺带收口（#170 码半=5c449d46·写 state 半+租约拒抛半=d4d29ee8·证据 §0.2 逐项）·本卷勘误登记零码面·恰 1 新增 .md·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面权归协调方·alone≠dual·Ban self-approve。（rev 2026-10-22 增记：项②收口笔勘误修订见 §9-rev——收口登记更正为主线重植笔 `e9a1a035`·`5c449d46` 系 5e-cleanup-sweep 线原始笔·对 origin/main 非祖先 EXIT=1。）
+
+## §9-rev rev 修订注记（pre-exec 双审席1 P1 一件·项②收口笔勘误·2026-10-22 回炉）
+
+- **FAIL 事实**：pre-exec 双审席1 FAIL P1 一件——项② 收口 commit 登记「`5c449d46`·`--is-ancestor` EXIT=0 亲证」不实：`5c449d46` 对 `origin/main` **非祖先**；main 系真收口笔=重植 commit **`e9a1a035`**。落卷笔 `ae39408b` 之 §0.0「两收口 commit 祖先性均亲证 EXIT=0」系不实声明——本节更正·**上文零字洗·以下列落点为准**。
+- **三笔祖先性届树亲证（`git merge-base --is-ancestor <c> origin/main` 三笔各跑一遍·届树 `origin/main` 亲证=`98033ca8`·EXIT 原值入卷）**：`d4d29ee8` → **EXIT=0**；`e9a1a035` → **EXIT=0**；`5c449d46` → **EXIT=1（非 main 祖先）**。
+- **重植笔等价亲证（届树重跑）**：`e9a1a035` 与 `5c449d46` 同作者（miaole）同秒（2026-10-12T16:17:05+08:00）同主旨去 issue 号（原始笔 subject 带 #170/#39/#210/#60/#65/#74·重植笔去号）；双方父版 `apps/worker/src/main.ts` 均恰 `:146 await cp.setup();` 一行（grep 各恰一命中亲证）；对 `apps/worker/src/main.ts` 的删改两笔 patch-id 相同（`c70eeff7d496aba933d3b1512c9f751376e913e8`·diff-of-diffs IDENTICAL）=内容等价；`5c449d46` 系 5e-cleanup-sweep 线原始笔（`git branch -a --contains` 亲证 `origin/line/5e-cleanup-sweep` 含之·`e9a1a035` 为 origin/main 所含）。
+- **四处同步修正落点**：
+  - **§0.0**（基线亲证行）：祖先性声明更正为如实——`d4d29ee8` EXIT=0·`e9a1a035` EXIT=0·`5c449d46` EXIT=1 非 main 祖先；「两收口 commit 祖先性均亲证 EXIT=0」作废。
+  - **§0.2-②**：项② 收口 commit 改登记 **`e9a1a035`**（main 系重植笔·等价证据见本节）；原「`5c449d46`·EXIT=0 亲证」句作废（实为 EXIT=1）；「被删原体 `git show 5c449d46^` 恰 `await cp.setup();` 一行」的载体事实不变（双方父版同此·重植笔父版同此）。
+  - **§1 翻面底稿**：「#170 码半=5c449d46」更正为「#170 码半=e9a1a035（main 系重植笔·5e-cleanup-sweep 线原始笔 5c449d46 内容等价）」。
+  - **卷尾注**：「#170 码半=5c449d46」同口径更正为 e9a1a035（该行已行内 append rev 2026-10-22 增记指向本节）。
+- **落卷 commit message 同误知悉**：落卷笔 `ae39408b` message 携带同一错误 hash（`5c449d46`）系落卷后不可改——本节知悉即可·不另动作。
+- **门①③ 数值不变**：本节系纯 append 文面·改动集仍恰本卷 1 个 .md（零码面触）——rev 树复跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned **2332** ≤ cap 2338 不变；markers 五类标记词+行首冲突标记对本卷改动集 **0 命中** 不变；`git diff --stat` 恰 1 tracked 不变。
+- **STOP 与复审**：本卷 STOP 维持 **`draft:awaiting_pre_exec_dual`** 三处同值（Status 头/§8/卷尾注）不变；**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
