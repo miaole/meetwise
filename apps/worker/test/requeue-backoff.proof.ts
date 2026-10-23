@@ -224,6 +224,13 @@ async function main() {
   const strandedBefore = await jobRow(STRID);
   A('滞留行 fixture 就位（queued+attempts=MAX+无退避=legacy 形态）',
     strandedBefore.status === 'queued' && strandedBefore.attempts === MAX_INTERVIEW_JOB_ATTEMPTS);
+  // claim queued 臂 attempts 结构闸判别断言（additive·与 running 过期臂同参同形 $4=maxAttempts）：
+  // legacy≥MAX 滞留行退避 NULL（=立即可领形）仍被拒领——改前必被领（红·翻 running 且 attempts 自增）·
+  // 改后 null=绿；行保持 queued 且 attempts 恒 MAX（拒领≠终态·单选形设计维持·终态化面唯收割拍）。
+  A('claim 拒领超限滞留行（queued 臂同闸 running 过期臂续领上限·NULL 退避立即可领形仍拒）',
+    (await asPrincipal(pool, OWNER, (c) => claimNextInterviewJob(c, OWNER, 'probe-2'))) === null
+    && (await jobRow(STRID)).status === 'queued'
+    && (await jobRow(STRID)).attempts === MAX_INTERVIEW_JOB_ATTEMPTS);
   const tick = await interviewDispatchTick(deps);
   A('一拍调度收割 owner 队列（tick 面·收割先于 drain 的生产拍序）', tick.owners >= 1);
   const strandedAfter = await jobRow(STRID);

@@ -1,6 +1,6 @@
 # LEASE-ATTEMPTS-CAP REQUEST（AG 台账下一刀起草席——interview_job 重排队 attempts 上限残面最小收口·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-22 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`=2026-10-22 起草落卷·史录保留·pre-exec 双审两独立外席 Dual PASS（两席各 P2 注记级·随 EXEC 吸收见 §9）→协调方授权 EXEC·2026-10-23 EXEC 落码三件全落八门全绿·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方·post-prove 双审待派）
 
 **席位**：AG 台账下一刀起草席（协调方派单·标的=issues-final AG-29 残半「queued job 被反复 requeue 时没有 attempts 上限」·前半「解锁失败带锁回池」已由 provision-lock-release 刀收口勿重做）。
 **基线**：`origin/main` @ `98033ca8`（`git fetch` 后亲证·`git rev-parse origin/main`=`98033ca86b63cad532f346d2bb7d4e138400e7b8`）。分支 `line/lease-attempts-cap-draft`·工作树 `meetwise-ag29`（起步落后 2 commit·`git reset --hard origin/main` 对齐=fast-forward 等价·零 merge commit）。
@@ -74,10 +74,21 @@ migrations 0001-0218 零字节·零新迁移（0216/0217 空缺维持·不补 02
 ## §8 停止条件与 STOP
 
 - 停止四类（现场漂移超注记级/机制不满足/越界需要/验收红不可修）：**「标的已修复」半触发**（§0.2-2 运行面已闭）→ 按裁决项 1 并陈收窄落卷·处置权归协调方——非弃卷·漂移均注记级（§0.2-2/3 亲证）。
-- **本卷 STOP=`draft:awaiting_pre_exec_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`=2026-10-22 起草·史录保留·三处同值：Status 头+本节+卷尾注·2026-10-23 EXEC 翻面）·pre-exec 双审两独立外席 Dual PASS→协调方授权 EXEC 已行使（§9）·翻面权归协调方·alone≠dual·Ban self-approve。
 - **est live=0**（proof=隔离 PG+错误注入·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`·史录保留·与 Status 头/§8 同值第三处·2026-10-23 EXEC 翻面）·EXEC 落码即停·⛔push。
+
+## §9 EXEC 附记（2026-10-23·§0-§8 原文零改·本节 append-only+STOP 三处翻面前值史录保留）
+
+- **开工凭据**：pre-exec 双审两独立外席 BOTH PASS（各 P2 注记级·零 P1/P0）→协调方授权 EXEC·本席=EXEC 落码席·工作树 meetwise-ag29 分支 `line/lease-attempts-cap-draft` @`63006040` 届证（起步 working tree clean）。裁决项 1 按双审确认行使微刀（件①+件②·不取纯翻面案）·裁决项 2 按推荐并入 requeue-backoff.proof.ts additive（零新文件·触面 3 tracked 维持）。
+- **P2 三项随 EXEC 吸收（届树亲测）**：①§0.0 防重 grep 改写「唯一命中=本卷自身」——`ls ai-docs/delivery/harness/ | grep -i "ag29\|lease-attempts"` 届树唯一命中=`lease-attempts-cap-REQUEST.md`=本卷自身；`git branch -a` 同 grep 唯一命中=`line/lease-attempts-cap-draft`=本卷自身分支（本地+远端同名）；零第二同名刀卷结论不变；`git log --all --oneline --grep="AG-29"` 仍恰 1 笔=`fce5aa22`。②§0.2-3 锁足迹措辞：migrate.ts `:413`（lock）/`:597`（unlock）·principal.ts `:298`（lock）/`:563`（unlock）系 lock+unlock 成对面·产品码 session 级 `pg_advisory_lock` lock 点恰 2 处（qbank-handoff-closure.proof.ts :102/:146 为源文本断言非锁点）——「面试租约路径已无 unlock 调用可败」结论不变。③树数届测=**11**（§0.0 记 10·环境注记级漂移·恰本卷一棵 ag29 树结论不变）。停止条件未触发。
+- **§0 届树重 pin（EXEC 亲测）**：§0.1 七文件 blob 全数逐字相同（`git rev-parse HEAD:<path>` ×7 亲算）→文件内全部 file:line 锚零漂移原值成立；`issues-final` AG-29 `:41`+`:371-383`·`public-text-policy.mjs :135` MAX_FILES=2_338·帽 worker 959（apps/worker/package.json:7）/db 1042（packages/db/package.json:11）·迁移 0216/0217 空缺+max=0218 均届证。
+- **落码三件**：件① claim queued 臂补 `AND j.attempts < $4`（原 `:162`·与 running 过期臂原 `:163` 同参同形·复用既有 $4=maxAttempts 绑定·注记块补两行「queued 臂同闸…legacy≥MAX 行拒领待收割终态化」）；件② 判别断言插 proof 原 `:226`/`:227` 之间（fixture=queued+attempts=MAX+next_attempt_at NULL·直接 `claimNextInterviewJob` 返 null+行保持 queued+attempts 恒 MAX 三连断言）；件③ 本卷 §9 append+STOP 三处翻面。
+- **改前红验（判别面亲证）**：仅件② 先落（谓词未落）跑 requeue-backoff:prove → **EXIT=1**·新断言 FAIL 为唯一红根（滞留行改前确被领走翻 running+attempts 自增）·臂⑤ 下游 5 断言级联红（收割扫不触 running/退款缺位/幂等基线缺）·余 28 PASS——红根恰=件① 谓词缺位·改前必红成立。件① 落后复跑全绿。
+- **八门 EXIT 原值（终态代码亲跑·门①②③经根隔离包装 `requeue-backoff:prove`/`reaper:prove`/`adaptive-consumer:prove`=runner 内核即 §2 原命令 `pnpm -C apps/worker prove:*`）**：①requeue-backoff **34 PASS/0 FAIL EXIT=0**（新断言 PASS·隔离库 migrations applied=216）②reaper **35 PASS EXIT=0**（原值）③adaptive-consumer **37 PASS/0 FAIL EXIT=0**（原值）④`pnpm turbo typecheck --force` **8/8 EXIT=0**（0 cached）⑤`pnpm turbo lint --force` **12/12 EXIT=0**（0 errors 0 cached·worker 959/db 1042 恰等帽）⑥`node scripts/ai-docs/check-docs.mjs` **EXIT=0·scanned=2332≤2338**（届值=起草实测 2331+本卷 1）⑦markers 改动集新增行五类标记词+行首冲突标记 **0 命中**（五路 grep 各 EXIT=1·配方沿 ttl-wire receipts/05 形制·词族不复抄避免自匹配）⑧`git diff --stat` 恰 **3 tracked**。**出站两门豁免申明**：本刀零模型调用零 provider 外呼零 DNS 零 Key（proof=隔离 PG+错误注入·est live=0·actualSpendCny=null）→provider-egress 两门不适用，如实申明。
+- **触面复核**：恰 3 tracked（interview-jobs.ts+requeue-backoff.proof.ts+本卷）·零迁移（0216/0217 空缺维持·无 0219）·零 worker 产品码触（consumer 三调用点+`:288` 闸+TRANSIENT 白名单零字节）·零 env 闸零新依赖·sweep 四臂/0175 列/quiz/diagnosis 队列/SSOT 四卷+issues-final 零触·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`·史录保留）·EXEC 落码即停·post-prove 双审两独立外席待派·claimDone=false·⛔push·Ban self-approve·alone≠dual。
 
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `98033ca8`·派单前提「attempts 上限半未动」届树勘误已录（§0.2-2·AG-04 刀C 三层闸已落·judged 运行面已闭）·本卷收窄为 claim queued 臂结构披露面最小一刀（件① 谓词+件② 判别断言）+零码翻面案并陈（裁决项 1）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve。
+卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual`=起草终态·史录保留·2026-10-23 EXEC 翻面）三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `98033ca8`·派单前提「attempts 上限半未动」届树勘误已录（§0.2-2·AG-04 刀C 三层闸已落·judged 运行面已闭）·本卷收窄为 claim queued 臂结构披露面最小一刀（件① 谓词+件② 判别断言）+零码翻面案并陈（裁决项 1·EXEC 按双审确认行使微刀见 §9）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve。

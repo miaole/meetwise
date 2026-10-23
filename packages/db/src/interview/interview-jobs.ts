@@ -159,7 +159,9 @@ export async function claimNextInterviewJob(
             -- AG-04 刀C（#4 时闸·修法②）：queued 臂加退避时闸（report.ts:85 形）——requeue 写入的
             -- next_attempt_at 未到不领；NULL=无退避=立即可领（存量/新入队行零行为变化）。
             -- running 过期臂零触（租约过期重领不经退避——崩溃重领语义零变）。
-            AND ((j.status='queued' AND (j.next_attempt_at IS NULL OR j.next_attempt_at <= now()))
+            -- queued 臂同闸（与 running 过期臂同参同形 $4=maxAttempts）——claim 侧两臂统一续领上限·
+            -- legacy≥MAX 行拒领待收割终态化（拒领≠终态·终态化面唯 sweep）。
+            AND ((j.status='queued' AND (j.next_attempt_at IS NULL OR j.next_attempt_at <= now()) AND j.attempts < $4)
                  OR (j.status='running' AND j.lease_expires_at < now() AND j.attempts < $4))
             AND NOT EXISTS (SELECT 1 FROM interview_job r WHERE r.interview_id=j.interview_id AND r.status='running' AND r.lease_expires_at >= now())
             -- 僵尸兄弟守卫(专家审计 F3):同面试任一 job 已终态 failed → 面试已死(已发 interview_unavailable+退款),
