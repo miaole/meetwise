@@ -89,6 +89,39 @@
 - **est live=0**（EXEC 面＝1 函数签名＋2 调用位文案＋6 锚断言＋1 文档段·纯本地静态门·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
 - **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·落卷即停·⛔push。
 
+## §9-rev rev 修订注记（pre-exec 双审 FAIL+PASS 两席合并清单·席1 PASS（2×P2）＋席2 FAIL（P1×1＋P2×3）·四条届树亲证成立全落卷·零跳过）
+
+本节系 rev 席按两独立外席合并修订清单**逐条届树亲证后**的落卷注记：**上文 §0-§8 零字洗**（原文一字未改），EXEC 期凡上文与本节冲突处**以本节为准读**。**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve。**STOP=`draft:awaiting_pre_exec_dual` 三处同值维持不动（Status 头＋§8＋卷尾注）。
+
+### rev-1（P1-甲·席2·亲证成立）门② `pnpm ha6:prove` 预申明 EXIT=0 失实——基线即红三 FAIL 臂，改同形红 diff 承登协议
+
+- **亲跑承证（rev 席届树亲跑 `pnpm ha6:prove`）**：基线 **EXIT=1**，席2 所报三 FAIL 臂逐一复现：
+  ①principal.ts `:946` 行钉臂漂移——`FAIL principal.ts:946 pool max single-source expression drifted`（proof `scripts/ha/ha6-companion.proof.mjs:116-119` 以 `lineAt(principal, 946)` 钉行；该单源表达式届树实位 **:959**——同跑自由锚臂 PASS 文面 `exactly one line (:959)` 亲证）；
+  ②根 package.json scripts-set digest 变——`FAIL package.json registered scripts ledger violated: digest got=5adb6bae51efd6e892fddcb56efbbcc3f55ef614 want=106e457929a535e9b87d303b94d7487adbbca054`（实测 **5adb6bae≠登记 106e4579**）；
+  ③pgbouncer 大小写不敏感负检命中注释——`FAIL negative violated: pgbouncer hits: packages/db/src/interview/interview-graph-lease.ts`（届树 sed 亲读 `interview-graph-lease.ts:5` 注释「PgBouncer 事务池」在位）。
+- **修正句（门② 改读）**：`pnpm ha6:prove` **基线即红，EXIT=0 预申明作废**；改「**三 FAIL 臂 pre/post 同形红 diff 协议承登**」——EXEC 前后各亲跑一次，两轮 FAIL 臂集合与 FAIL 文面逐字节同形＝本刀零新漂移承证（不要求 EXIT=0）；并**本刀可影响臂零触亲证**：`scripts/ha/ha6-companion.proof.mjs:354-368` 三行号自由内容锚（PGPOOL_MAX/query_timeout/keepAlive 各恰 1——基线 PASS `exactly one line (:959)`＋`HA-3 pool-param face pinned` 亲证现绿）、probe.multi.mjs blob 登记行（基线 PASS `rolling registry full-file rows blob-identical (scripts/ha/probe.multi.mjs@b91917e8)` 亲证现绿）。
+- **邻面陈旧钉登记补列（append 形·归后继 ha6-repin 刀·非本刀面·本刀零修零宣称·防后刀误判）**：上 §2 邻面登记之外补三臂——principal.ts `:946` 行钉漂移（现 `:959`）；根 package.json scripts-set digest 漂（`5adb6bae`≠`106e4579`）；pgbouncer 负检命中 `interview-graph-lease.ts:5` 注释。
+
+### rev-2（P2-乙·两席同·亲证成立）`invalidDatabaseConfig` 调用位计数勘误 17→15
+
+- **届树亲证**：`grep -n invalidDatabaseConfig packages/db/src/principal.ts` 恰 **16 行**＝`:761` 定义 1 处＋调用位 **15** 处（`:783/:786/:787/:788/:790/:792/:797/:799/:801/:844/:846/:849/:852/:854/:951` 逐一在列）。
+- **修正句**：§0.1 blob 表 principal.ts 行与 §0.2-3「恰 17 个调用位」改读「**调用位恰 15（含定义共 16 处）**」（首 `:783` 末 `:951` 区间锚不变）；§1 件①「其余 15 个调用位零字节改」与 §5「其余 15 调用位零字节」改读「**其余 13 调用位零字节改**」（15−`:790`/`:801` 两 hint 调用位）。
+
+### rev-3（P2-丙·两席同·亲证成立）rag-control-runtime.ts createPool 行锚 :38→:36
+
+- **届树亲证**：`grep -n createPool apps/worker/src/rag-control-runtime.ts`——`deps.createPool({ connectionString, purpose: 'rag-control' })` 实位 **:36**；`:33` 为 `RAG_CONTROL_DATABASE_URL` 读取行（原锚不变）；`:38` 现为 `await deps.assertIdentity(pool)` 非锚行。
+- **修正句**：§0.2-4「`apps/worker/src/rag-control-runtime.ts:33,38` createPool」改读「**`:33,36`**」。
+
+### rev-4（P2-丁·席2·亲证成立）门④ 大帽计数器性质注记
+
+- **届树亲证**：`--max-warnings` 全仓（零 node_modules）恰 **12 处 package.json**；门④ 所列七值逐一比对全等（root 5242/api 1423/domain 115/ai-runtime 628/db 1042/worker 959/web 601）；其余五包＝packages/config 0、packages/contracts 265、packages/db-mysql 0、packages/qdrant-store 27、packages/ai-graphs 47。
+- **修正句（门④ append 注）**：「所列七值为 `--max-warnings` **大帽计数器**（帽值·非逐包计数断言），全仓 `--max-warnings` 恰 **12 处**，其余五包（config/contracts/db-mysql/qdrant-store/ai-graphs）本刀零触」。
+
+### rev-0 覆盖申明
+
+- 合并清单四条**全部届树亲证成立、全落卷，零跳过条目**（「不成立即如实登记跳过」之规则本番零适用）。
+- **rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节（§9-rev）落点复验·alone≠dual·Ban self-approve**；STOP=`draft:awaiting_pre_exec_dual` 三处同值维持不变。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·2026-10-22 落卷·基线 `origin/main` `65a9c40f`·分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`·批表原文不可读（iCloud 逐出·读取挂起止读）以仓内承登链三处定性·前刀 config-reject-local 互补承证·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·2026-10-22 落卷·基线 `origin/main` `65a9c40f`·分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`·批表原文不可读（iCloud 逐出·读取挂起止读）以仓内承登链三处定性·前刀 config-reject-local 互补承证·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。**rev 2026-10-22**：pre-exec 双审两席合并清单四条修订入 §9-rev（门② ha6:prove 基线即红三 FAIL 臂承登协议勘误＋`invalidDatabaseConfig` 计数 17→15 含定义 16＋rag-control createPool 行锚 :38→:36＋门④ 大帽计数器注记·四条全届树亲证零跳过）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=§9-rev 落点复验·alone≠dual·Ban self-approve·STOP 三处同值维持不变。
