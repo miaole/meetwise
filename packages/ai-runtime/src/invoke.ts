@@ -30,6 +30,8 @@ import {
   withAdmissionEndpointPartition,
   type SharedModelAdmissionLease, type SharedModelFeeRecord, type ModelEndpointAdmissionIdentity,
 } from './model-admission.ts';
+import { resolveLatestCalibratedFactor } from './usage-calibration-reconciler.ts';
+import { refineEstimate, isKnownEstimatorVersion } from './usage-reconciliation.ts';
 
 const REQID_ALS_KEY = Symbol.for('meetwise.ai-runtime.requestIdContext');
 const COST_SCOPE_ID = /^[A-Za-z0-9._:-]{1,160}$/;
@@ -546,6 +548,26 @@ async function persistTraceBestEffort(
  * principal-scoped transaction and the remote call holds neither a connection
  * nor an advisory lock.
  */
+
+/**
+ * MODEL-OP-00 P3：因子回派发 — 预算门，不改 claim 落库的未精化 estimate。
+ * 有因子且精化后会击穿 maxInputTokens → fail-closed 拒绝派发；缺因子 → 放行未精化预算。
+ * 绝不 invent factor=1.0；estimate_input_tokens 仍存 utf8-bytes-v1 原估算（对账证据不被反馈回路污染）。
+ */
+async function enforceCalibratedDispatchBudget(
+  pool: DbPool, owner: string, service: string | undefined, plan: ReadyModelCallPlan,
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  if (plan.estimateInputTokens === undefined || !plan.cost?.model || !service) return { ok: true };
+  const estimatorRaw = plan.cost.contextEstimator ?? 'utf8-bytes-v1';
+  if (!isKnownEstimatorVersion(estimatorRaw)) return { ok: true };
+  const factor = await asPrincipal(pool, owner, (c) =>
+    resolveLatestCalibratedFactor(c, owner, service, plan.cost!.model, estimatorRaw));
+  if (!factor) return { ok: true }; // fail-closed 退回未精化：无因子不挡派发
+  const refined = refineEstimate(plan.estimateInputTokens, factor);
+  if (refined > plan.cost.maxInputTokens) return { ok: false, error: 'model_context_budget_exceeded' };
+  return { ok: true };
+}
+
 export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string): Promise<InvokeOutcome<T>> {
   // GODFN-1a：主函数只做五相位编排——resolve+prepare → claim → admit → reserve+dispatch →
   // execute+settle。各相位本体为同文件私有函数，跨相位状态经显式参数对象传递（禁闭包共享可变态）。
@@ -553,7 +575,7 @@ export async function invoke<T>(spec: InvokeSpec<T>, pool: DbPool, owner: string
   // 错误码/抛序/SQL 事务边界/时序常量（60s lease/deadline）零变，导出面签名零变。
   // 承替登记：GODFN-1a 自等价声明中「sleep(20) 恒定轮询」一项由 #173 行为修刀承替——claim
   // follower 改指数退避（20ms×2 封顶 1000ms，CLAIM_POLL_BACKOFF_* 常量），claim 判定序零变。
-  const prepared = await invokeResolveAndPreparePhase(spec, owner);
+  const prepared = await invokeResolveAndPreparePhase(spec, pool, owner);
   if (prepared.terminal) return prepared.outcome;
   const claimed = await invokeClaimPhase({
     spec, pool, owner,
@@ -708,7 +730,7 @@ async function prepareModelPlan<T>(
 
 /** GODFN-1a 相位 1/5 · resolve+prepare（原 :404-461 逐字搬移）。 */
 async function invokeResolveAndPreparePhase<T>(
-  spec: InvokeSpec<T>, owner: string,
+  spec: InvokeSpec<T>, pool: DbPool, owner: string,
 ): Promise<InvokePhaseStep<T, InvokePrepared>> {
   const logicalNodeKey = resolvedLogicalNodeKey(spec);
   if (!logicalNodeKey) {
@@ -763,6 +785,12 @@ async function invokeResolveAndPreparePhase<T>(
   if (initialCostPolicyError) {
     span(0, 'deterministic_refusal', 0);
     return { terminal: true, outcome: { error: initialCostPolicyError } };
+  }
+  // MODEL-OP-00 P3：因子回派发预算门。缺因子 fail-closed 未精化；有因子且精化击穿 maxInput → 拒派发。claim estimate 保持未精化。
+  const calibratedBudget = await enforceCalibratedDispatchBudget(pool, owner, spec.service, plan);
+  if (!calibratedBudget.ok) {
+    span(0, 'deterministic_refusal', 0);
+    return { terminal: true, outcome: { error: calibratedBudget.error } };
   }
   // Route selection is pure. Bind the actually selected endpoint policy only
   // after it is known, but still before the durable claim is created.
@@ -883,6 +911,8 @@ async function invokeAdmitPhase<T>(args: InvokeAdmitArgs<T>): Promise<InvokePhas
         break;
       }
       plan = replacement.plan;
+      const recal = await enforceCalibratedDispatchBudget(pool, owner, spec.service, plan);
+      if (!recal.ok) { admissionError = new Error(recal.error); break; }
     }
   }
   if (admissionError) {
