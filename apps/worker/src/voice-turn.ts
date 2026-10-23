@@ -12,7 +12,7 @@ const pendingQuestion = (snap: any) => snap.tasks?.[0]?.interrupts?.[0]?.value?.
 
 /** 跑一个语音轮次:转写当前答案 → 推进图 → 返回转写 + 下一题文本/音频(无下一题则 done)。 */
 export async function voiceAnswerTurn(deps: VoiceTurnDeps, audioIn: Uint8Array): Promise<{ transcript: string; nextQuestion?: string; questionAudio?: Uint8Array; done: boolean }> {
-  const transcript = await deps.asr.transcribe(audioIn);                       // 语音 → 文本
+  const transcript = (await deps.asr.transcribe(audioIn)).text;                // 语音 → 文本（图仍只收纯文本）
   await deps.graph.invoke(new Command({ resume: transcript }), deps.cfg);      // 同一图、同一 resume 入口(文本路径也是它)
   const snap = await deps.graph.getState(deps.cfg);
   const nextQuestion = pendingQuestion(snap);

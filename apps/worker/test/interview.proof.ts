@@ -801,7 +801,7 @@ async function main() {
   ));
   const result = await transcribeForIssuedQuestion(
     { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn as never) },
-    { transcribe: async () => transcript },
+    { transcribe: async () => ({ text: transcript, quality: { confidence: 'unavailable', duration: 'unavailable', language: 'unavailable' } }) },
     OWNER,
     txInterview,
     { audioBase64: audio, mimeType: 'audio/webm', capture },
@@ -812,16 +812,18 @@ async function main() {
     result.text === transcript
     && Object.keys(result).sort().join(',') === 'capture,text'
     && result.capture.speakerAttribution === 'not_diarized'
-    && result.capture.wordTimestamps === 'not_available');
+    && result.capture.wordTimestamps === 'not_available'
+    && result.capture.asrQuality === 'unavailable');
   const traceKey = issuedAsrTraceKey(txInterview, txQuestion);
   const storedByTranscribe = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string | null>>(
     'SELECT output::text AS output FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
     [OWNER, traceKey],
   ));
   const storedOutput = storedByTranscribe.rows[0]?.['output'] ?? '';
-  A('已上线转写只记下摘要和无词级时间戳，不保存原文，也不写成 ok',
+  A('已上线转写只记下摘要、无词级时间戳与 unavailable 申报，不保存原文，也不写成 ok',
     storedByTranscribe.rows.length === 1
     && storedOutput.includes('not_available')
+    && storedOutput.includes('unavailable')
     && storedOutput.includes(answerHash(transcript))
     && !storedOutput.includes(transcript)
     && !storedOutput.includes('"ok"'));
