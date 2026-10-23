@@ -4376,3 +4376,19 @@ flowchart TD
 - 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · cap **2328** 现值 **2328** 余 0.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
 
+
+### Line cap-sanction-2338 nail（2026-10-22 SSOT nail · 协调方授权（post 双审双 PASS 会签·PR 并线形） · 受管文件数上限步进 2330→2338）
+
+- **授权链全链如实载**：协调方派单 brief → 一体席起草+EXEC 单 commit `848d7a84`（七门全绿·偏离五件如实）→ post-prove 双审会签 PASS×2（席1 agent_a34bda6b 零 P2·席2 agent_7829d130 1×P2 注记）→ nail（PR #113·checks verify/audit/secrets-scan 全绿·merge `65a9c40f`）。
+- **门矩阵（EXEC 承卷七门+post 双审承+nail 复跑）**：proof 12/12（2338/2339 双值·deepEqual 亲跟 2339）+docs:check 2331≤2338+typecheck 8/8+lint 12/12 0 errors+markers 0+自审 grep 清零+diff 恰 3 tracked。
+- **STILL OPEN**：随刀注记先例枚举换行截断补全归后继触面·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移 · cap **2338** 现值 **2331** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### 翻面笔登记（2026-10-22 · 协调方翻面权行使 · 侦察席+post 席2 会签证据在案）
+
+- **AG 七项已落待翻翻面（done 33→40·open 14→7）**：AG-22=route-fast-model（7053f7ce）/AG-23=rag-query-cache（93712516）/AG-27=graph-invoke-depth（e284e95d）/AG-28=graph-lease-terminal（9a5b8e3d）/AG-30=checkpoint-terminal-slim（da1c662b）/AG-31=graph-release-marker（8ee7ba2e）/AG-33=checkpoint-config-batch（474ad1b2）。open 7=AG-13（数据挂起）/AG-25 残面/AG-29 attempts 半/AG-32（前置）/AG-34 残面（在飞 ag34-lock-hold）/AG-35 残面/AG-36（前置）。half 2 维持（AG-14/AG-20）。
+- **批表 #138 翻面（229→230）**：interview-event-statement-notify 0214 正身（0143 逐行 pg_notify→STATEMENT+DISTINCT stream_key）。
+- **批表 #156/#157/#158/#181 四行翻面（230→234/271 86.3%）**：worker-shutdown-seq 四件 EXEC（0283d804 逐字节在 main）·双席验证（移植席 worker 三组证明复跑全绿 drain 36/ha2-drain 60/obs-ready 12·静态席 agent_9b2a77a3 四件亲证零蚀）·卷内 main 谱系 post PASS×2+nail 已随卷·Q2 已闭。
+- **AG-34 勘误登记**：触发机制已随邻刀 f6c3a735 顺带移除（台账锚系旧树快照）·余面两件转在飞卷。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
