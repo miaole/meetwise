@@ -95,6 +95,68 @@
 - **est live=0**（新 prove=本地脚本 provider+纯函数·质量载荷在真适配器为 unavailable 申报·请求体零新增零 prompt 改=零新模型外呼路径·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
 - **STOP=`draft:awaiting_pre_exec_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
 
+## §9-rev rev 修订注记（pre-exec 双审双 FAIL 两席合并清单 P1 两件甲/乙+P2 六件甲-己回路 · rev 落卷 2026-10-22 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
+
+**rev 缘由**：pre-exec 双审第一轮两独立外席双 FAIL（席1：P1-A/P1-B+P2×3·席2：P1-1/P1-2+P2×5）同源合并八条；本席逐位届树亲证（届树=`e7f3497a`·本刀卷笔纯文面新增·产品码面与 base `65a9c40f` 零 diff）后按 rev 回路落卷（只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触）。**八条全部届树成立落修正·零跳过**；三处届树实测与清单词面之差随条如实登记（rev-2 键集行号 `:807`→`:813` 校正·rev-2/rev-3 合算 17→18·rev-7「触面八包」词面校注）。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+### rev-1（P1-甲·两席同源）件③ 保守兜底保持+质量申报 token 词表显式 pin
+
+**修正句**：件③ 末句「映射不到/非法输入 fail-closed `undefined`（调用方不写列·沿 `:67` 现契约）」作废，改读——映射三分：①缺省/非串/纯空白→`undefined`（现契约 `scoring-evidence-conflict.ts:67-70` 保持·调用方不写列=文字作答照旧）；②词表命中按下表映射；③**非空而映射不到（自由转写文本/未收编 token）→保持 `'unavailable'` 保守兜底·绝不落缺省**。
+
+**届树亲证（原句必改理据）**：原句把「映射不到」亦归 `undefined`→调用方不写列→列落 `DEFAULT 'ok'`（`0109:126` `uncertainty_voice_quality text NOT NULL DEFAULT 'ok'` 亲证）+裁决缺省 `COALESCE(p_uncertainty->>'voiceQuality','ok')`（`0109:263` 亲证）=未映射非空 token 被写成 ok——**自触 §1.3-Ban-乙「伪造 ok/把 unavailable 升格 ok」**；现行契约即「非空一律 unavailable」（`:68` 仅 `typeof asrOutcome !== 'string' || asrOutcome.trim() === ''` 返 undefined·其余恒 `'unavailable'`+docstring「其余非空文本…都是 unavailable·不返回 ok」）——原句系保守兜底反转。证面必红：`apps/worker/test/interview.proof.ts:741-745` 五个非空 voiceCases 恰等断言列值=`'unavailable'`，纯 token 表无兜底时自由转写文本（`:741` 非固定 token）映射不到→落列 ok→断言红。
+
+**token 词表 pin（现卷未 pin=EXEC 须自行发明 token 名的缺口·本节补齐）**：
+- `'unavailable'` 组（既有 token 显式收编+兜底）：`word_timestamps_not_available`（`TEXT_ONLY_ASR_OUTCOME`·`interview-question.ts:153`）·`asr_timeout`/`asr_aborted`/`asr_malformed`/`asr_not_configured`（四失败码·`voice.ts:402`/:410/:446/:30 抛出点亲证·与 domain docstring「四个失败码」同源）·**其余一切非空串兜底 `'unavailable'`**（自由转写文本经 `asrOutcomeForStoredTranscript` `interview-question.ts:164-172` 原文直通入同字段）。
+- `'low'` 组（新增臂·token 名 pin）：**`asr_quality_low`**（沿 `asr_*` 失败码命名族；真置信适配器接线前零生产者·结构就位·残面仍归 §3-3；contracts `'voice_low_quality'`（`contracts/src/index.ts:689`）系下游 review 理由码·非 asrOutcome token·两名异位不混用）。
+- `'undefined'` 组：缺省/非串/纯空白（现契约保持）。
+
+**门② 断言面随修正**：`prove:asr-quality-mapping` 覆盖四臂——undefined 缺省/空白臂+词表 unavailable 组+`asr_quality_low`→low 臂+非空未收编→unavailable 兜底臂。
+
+### rev-2（P1-乙·两席同源）触面矩阵补 3 既有证明面·fake/fixture 更新形预申明
+
+§1.2 计 14 tracked 漏 3 个既有 test/proof 面——件①（Asr 接口改结构化返回）落码后三处串 fake/fixture 必失配，「恰 14 tracked」与门④⑥⑧绿预申明自相矛盾。届树亲证三面全成立：
+- `apps/api/test/voice-timeout.proof.ts`：`:85`/`:129`/`:152` 三处 `{ transcribe: async () => '' }`/`async () => transcript` **串 fake**；`:163-166` 键集恰等断言 `Object.keys(stored).sort().join(',') === 'capture,text'`（恰等行 `:166`）。
+- `apps/worker/test/interview.proof.ts`：`:804` `{ transcribe: async () => transcript }` 串 fake；`:811-815` 键集恰等断言 `'capture,text'`（恰等行 `:813`——席面记 `:807`·届树实测校正）；`:939` 等抛错 fake 不触。
+- `packages/contracts/test/openapi.proof.ts:66-69`：`TranscribeResult.safeParse` fixture 无新增申报字段。
+
+**预申明更新形**：三处串 fake 改结构化 `AsrTranscription` 形（text+quality 常量申报）；两处键集恰等以「件⑤ 新字段**内嵌 capture**·顶层仍恰 `capture,text`」保持绿（顶层不另立键·预申明）；openapi fixture 随 rev-4 required pin 补申报字段（补后绿）。矩阵 14→17（与 rev-3 合算=18）。
+
+### rev-3（P2-甲·席2）门⑫/§1.2 package.json 计数正算
+
+件⑥ 注册面实为 **3 个 package.json**（ai-runtime prove 键+domain prove 键+根 package.json 两行）——§1.2「两 package.json 2」漏计根 package.json。照件⑥ 正确面重算：8 产品面+新 prove 2+package.json **3**+run-e2e 1+本卷 1+rev-2 证明面 3=**恰 18 tracked**（门⑫「恰 14 tracked」与 §1.2 计数同改 18；席面「14→17」未计本条正算·合算口径以 18 为准）。
+
+### rev-4（P2-乙·席2）件⑤ capture 新增申报字段二择 pin=required
+
+pin 入卷：**required**（`z.literal('unavailable')` 申报常量·与 `TranscribeResult.capture` 既有三字面量字段 `contracts/src/index.ts:163-171` 同形同必填性）。依据：①既有 capture 三字段全 required 字面量·形一致；②§3-2 案乙否决理由「absent 即不可得——缺省语义弱·消费端易误读『有值即真』」对 optional 同样成立·optional 重引入 absent 歧义；③唯一 C 端生产者 `interview-voice.ts:59-75` 在触面矩阵内必随件①写入。openapi.proof fixture 条件性必红面由 rev-2 预申明更新形吸收。
+
+### rev-5（P2-丙·席2）件④「token 扩形携带申报」载体写死=asrOutcome 串内编码·合一读法
+
+件④ `loadTranscribedAnswerJobPayload` token 扩形携带申报的载体写死：**申报以映射 token 形编码于 asrOutcome 单串内·`voiceQualityFromAsrOutcome` 单点解码（合一读法）·不另立 payload 独立键**——封「另立键 vs 串内」歧义。届树亲证连带面（两处不在触面矩阵的依据随本 pin 成立）：
+- `interview-jobs.ts:265`/:269/:278/:383-384 剥离键纪律恒 `payload-'answer'-'asrOutcome'`——另立 payload 键则剥离清单漏剥=暂存明文纪律缺口；串内化后剥离纪律零触。
+- `adaptive-lifecycle.ts:590` `asrOutcome: input.asrOutcome` 单串透传——另立键则透传丢申报且该文件不在矩阵；串内化后透传零触。
+- `score-writer.ts:52`/:111 现读法即单串（`q.asrOutcome`）→件④「透传形零改」申明在串内化下成立。
+
+### rev-6（P2-丁·席2）run-e2e 四锚届值重 pin
+
+件⑥ 四处注册锚按届树（`scripts/run-e2e-isolated.mjs` @`e7f3497a`）重 pin——清单臂 `:962-964`；隔离白名单 **`:2330`**（原卷「`:2297` 位」陈旧·届树 `:2297`=`'mem02-summary:prove:raw'` 亲证·ag18 条目现 `:2330`）；派发臂 `:2574-2575`；migrate 白名单 `:3228`。EXEC 立项仍照届时 tip 全量重 pin（§0 总则不变）。
+
+### rev-7（P2-戊·两席）门⑨ 帽清单口径修正
+
+门⑨ 警告帽断言改口径：**八帽恰等+全门 EXIT=0**——root 5242/api 1423/domain 115/ai-runtime 628/db 1042/worker 959/web 601/contracts 265（八值届树亲读无误·各 `package.json --max-warnings`）+`turbo lint --force` 全门 EXIT=0 覆盖**全仓 12 帽**（另四帽 ai-graphs 47/config 0/db-mysql 0/qdrant-store 27 同闸亲证；`packages/errors` 无 lint 帽亲证=全仓恰 12）。席面「触面八包」词面如实注：八值中 web 非本刀触面包·帽值恰等断言照旧（lint 帽不因本刀改）·本刀触面产品包实为 7（root/api/ai-runtime/domain/db/worker/contracts）——以帽值事实为准落断言。
+
+### rev-8（P2-己·席1）§0.0 两处届树漂移改口径
+
+- 树计数：§0.0「**8 树**实测」改「**树数届时亲跑·不写死值**」——届树实测已漂至 **11 树**（`git worktree list` 亲证：新增 meetwise-ag29/meetwise-ag35·主仓 tip 移至 `45f7ec4f`·临时 land 树更替）·写死值必再漂。
+- 修复笔：§0.0「修复笔恰 `730d03b0`」改「**修复笔四笔（`cb32889e`/`c9db9b34`/`6d7cc1d6`/`730d03b0`）均已入 main**」——届树 `git log --all --oneline --grep='语音质量'` 四笔亲证+`git merge-base --is-ancestor` 对 `origin/main` 四笔全真亲证。
+
+### rev 门面与 STOP 补注
+
+- 门② 断言面随 rev-1 四臂；门④⑥⑧ 预申明改「**件①同步修 fake 后绿**」（rev-2 三面）；门⑤ 同性质联动补登：`worker prove:interview` 以 interview.proof.ts:804 fake 同修为绿前提（届树亲证同性质·席面清单未单列·随条补）。
+- 门⑫ 恰 **18 tracked**（rev-2+rev-3 合算）。
+- **STOP=`draft:awaiting_pre_exec_dual` 维持三处同值零翻**（Status 头/§8/卷尾注）·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+**rev 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·本卷系既有文件 append 零新增文件）；改动面行首冲突标记直扫 0 命中；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·`actualSpendCny=null` 同源）。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main`@`65a9c40f`·分支 `line/asr-quality-draft`·工作树 `meetwise-iss73`·批表原文 iCloud 不可读已承登（仓内定性链=LEDGER `:59`+batch-residual-plan `:62`/:102+`730d03b0` 部分收敛亲证）·正身='low' 生产者缺位致 review 触发结构性不可达·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main`@`65a9c40f`·分支 `line/asr-quality-draft`·工作树 `meetwise-iss73`·批表原文 iCloud 不可读已承登（仓内定性链=LEDGER `:59`+batch-residual-plan `:62`/:102+`730d03b0` 部分收敛亲证）·正身='low' 生产者缺位致 review 触发结构性不可达·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-22 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件甲-己全成立落修正·零跳过·三处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。
