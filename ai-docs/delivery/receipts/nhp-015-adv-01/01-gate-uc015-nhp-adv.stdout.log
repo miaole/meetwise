@@ -1,0 +1,139 @@
+
+> meetwise@0.1.0 uc015:nhp-adv:prove /Users/miaole/Desktop/golucky/meetwise-nhp-c
+> node scripts/run-e2e-isolated.mjs uc015:nhp-adv:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-30670-1793049475818 on 127.0.0.1:32911
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-nhp-c/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc015-nhp-adv /Users/miaole/Desktop/golucky/meetwise-nhp-c/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-adv.proof.ts
+
+UC-E2E-015 NHP-015-ADV-01 isolated PG/HTTP ADV evidence (对抗注入/伪造声明面)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained
+F1–F5(uc-e2e-015-resume-ingest-failures·0d0fc91e) = 既有旁证零改动 · reason 级可分 · Ban 互借
+EXIT0=case≠covered · 行 ADV blind→case-only 措辞 · est live=0
+ATTEMPT_START  iso=2026-10-26T21:18:00.211Z · Ban retry-to-green · Ban fake-green
+
+PASS  [ISO] model-key-unset-in-process(self-deleted pre-boot · shell strip list lacks MODEL_API_KEY)
+{"level":30,"time":1793049481228,"pid":30960,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:57592"}
+PASS  [ISO] model-key-still-unset-after-boot(no re-import regression)
+PASS  [ISO] gateway_slot_lease_acquire/gateway_rl_bucket_take 在场(0189 真迁移链重放)
+PIN   NHP-015-ADV-ISO-0189-REPLAY: harness 面迁移链重放(≠ 0189 全迁移 prove·真相=迁移链 api-harden:prove)
+PIN   NHP-015-ADV-ISO-0121-REPLAY: harness 面迁移链重放(pgp ACL·真相=迁移链 migrate 全链)
+PASS  [PIN] RESUME_PARSE_MAX=1 process window(self-declared pre-import · product default 6 untouched)
+{"level":30,"time":1793049481239,"pid":30960,"hostname":"miaole.local","reqId":"0c38f6b5-90ac-4bc9-b945-4835586bde34","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481245,"pid":30960,"hostname":"miaole.local","reqId":"0c38f6b5-90ac-4bc9-b945-4835586bde34","res":{"statusCode":200},"responseTime":5.448292000000038,"msg":"request completed"}
+{"level":30,"time":1793049481248,"pid":30960,"hostname":"miaole.local","reqId":"1047e994-d0cf-4149-bda8-9a10abc7a7b9","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481251,"pid":30960,"hostname":"miaole.local","reqId":"1047e994-d0cf-4149-bda8-9a10abc7a7b9","res":{"statusCode":200},"responseTime":2.6946250000000873,"msg":"request completed"}
+{"level":30,"time":1793049481252,"pid":30960,"hostname":"miaole.local","reqId":"47849669-7961-4113-ae09-fc9f5b76e13b","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481254,"pid":30960,"hostname":"miaole.local","reqId":"47849669-7961-4113-ae09-fc9f5b76e13b","res":{"statusCode":200},"responseTime":2.3542919999999867,"msg":"request completed"}
+{"level":30,"time":1793049481255,"pid":30960,"hostname":"miaole.local","reqId":"1a41540e-fd52-4f2d-af11-ed7823d40c59","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481257,"pid":30960,"hostname":"miaole.local","reqId":"1a41540e-fd52-4f2d-af11-ed7823d40c59","res":{"statusCode":200},"responseTime":2.0509170000000267,"msg":"request completed"}
+{"level":30,"time":1793049481258,"pid":30960,"hostname":"miaole.local","reqId":"4fa1d0f2-48e2-45ba-84f3-b13c31c83129","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481261,"pid":30960,"hostname":"miaole.local","reqId":"4fa1d0f2-48e2-45ba-84f3-b13c31c83129","res":{"statusCode":200},"responseTime":2.2448340000000826,"msg":"request completed"}
+{"level":30,"time":1793049481262,"pid":30960,"hostname":"miaole.local","reqId":"1ead85cf-f7b6-4c9e-acc1-5e4f6c5bb8af","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481264,"pid":30960,"hostname":"miaole.local","reqId":"1ead85cf-f7b6-4c9e-acc1-5e4f6c5bb8af","res":{"statusCode":200},"responseTime":2.072499999999991,"msg":"request completed"}
+{"level":30,"time":1793049481264,"pid":30960,"hostname":"miaole.local","reqId":"740f3ed0-72f8-4699-a974-248a6f8800c6","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481266,"pid":30960,"hostname":"miaole.local","reqId":"740f3ed0-72f8-4699-a974-248a6f8800c6","res":{"statusCode":200},"responseTime":1.8884590000000117,"msg":"request completed"}
+{"level":30,"time":1793049481267,"pid":30960,"hostname":"miaole.local","reqId":"39416f88-1903-43cf-ac8f-de84dd8ad736","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481279,"pid":30960,"hostname":"miaole.local","reqId":"39416f88-1903-43cf-ac8f-de84dd8ad736","res":{"statusCode":200},"responseTime":11.911000000000058,"msg":"request completed"}
+PC_HTTP  status=200 body={"resumeId":"2b071749-a4b4-4f58-a725-5ed2dad90694","status":"ingested","format":"text","chars":98}
+PASS  [PC] legal text upload → 200 status=ingested
+PASS  [PC] PC 零扣费面(upload 链路零 entitlement 触点)
+{"level":30,"time":1793049481281,"pid":30960,"hostname":"miaole.local","reqId":"a224aca4-9229-4c3b-af54-b5039d375350","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481285,"pid":30960,"hostname":"miaole.local","reqId":"a224aca4-9229-4c3b-af54-b5039d375350","res":{"statusCode":422},"responseTime":4.03779099999997,"msg":"request completed"}
+A1_HTTP  status=422 body={"error":"magic_mismatch","hint":"文件内容与声明的格式不符，请确认文件类型后重传"}
+PASS  [A1] declared pdf + zip bytes → 422 magic_mismatch(非 encrypted/parse_failed/unsupported·reason 级可分)
+PASS  [A1] A1 零落库(拒面零半写·resume 行 0)
+{"level":30,"time":1793049481287,"pid":30960,"hostname":"miaole.local","reqId":"d3ee3582-64ef-49ea-9baf-6b0645bdb091","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481290,"pid":30960,"hostname":"miaole.local","reqId":"d3ee3582-64ef-49ea-9baf-6b0645bdb091","res":{"statusCode":422},"responseTime":3.0145420000001195,"msg":"request completed"}
+A2_HTTP  status=422 body={"error":"magic_mismatch","hint":"文件内容与声明的格式不符，请确认文件类型后重传"}
+PASS  [A2] declared text + zip ARC signature → 422 magic_mismatch(伪称纯文本偷渡压缩体被拒)
+PASS  [A2] A2 零落库
+{"level":30,"time":1793049481291,"pid":30960,"hostname":"miaole.local","reqId":"e616a19e-7f82-4e4a-9fec-5a87ba2799ad","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481294,"pid":30960,"hostname":"miaole.local","reqId":"e616a19e-7f82-4e4a-9fec-5a87ba2799ad","res":{"statusCode":422},"responseTime":2.8913330000000315,"msg":"request completed"}
+PASS  [A3] declared text + %PDF- header → 422 magic_mismatch
+{"level":30,"time":1793049481295,"pid":30960,"hostname":"miaole.local","reqId":"8fb40756-6468-457d-8a14-782a6bc699a9","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481298,"pid":30960,"hostname":"miaole.local","reqId":"8fb40756-6468-457d-8a14-782a6bc699a9","res":{"statusCode":422},"responseTime":2.8580830000000788,"msg":"request completed"}
+PASS  [A3] declared text + OLE2 header(D0CF11E0) → 422 magic_mismatch
+PASS  [A3] A3 零落库
+{"level":30,"time":1793049481298,"pid":30960,"hostname":"miaole.local","reqId":"fa7689ad-8fb4-401d-97de-9d5ff1d27385","req":{"method":"POST","url":"/resume","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481304,"pid":30960,"hostname":"miaole.local","reqId":"fa7689ad-8fb4-401d-97de-9d5ff1d27385","res":{"statusCode":200},"responseTime":5.65970799999991,"msg":"request completed"}
+A4_HTTP  status=200 body={"resumeId":"e44304ce-a89f-4441-951f-d291d871303d","status":"ingested"}
+PASS  [A4] text with NUL bytes → 200 ingested(不 500·NUL 非法字节被剥除)
+PASS  [A4] 落库 blob 解密面零 NUL(注入字节未透传存储)
+PASS  [A4] 解密文本内容完整(剥除非截断·marker 在场)
+{"level":30,"time":1793049481305,"pid":30960,"hostname":"miaole.local","reqId":"71ea8b00-a3bb-4bf3-bce8-d327aabf71d8","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481312,"pid":30960,"hostname":"miaole.local","reqId":"71ea8b00-a3bb-4bf3-bce8-d327aabf71d8","res":{"statusCode":200},"responseTime":6.742750000000115,"msg":"request completed"}
+{"level":30,"time":1793049481312,"pid":30960,"hostname":"miaole.local","reqId":"068d858a-754b-4a27-99ef-89e042960f75","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481319,"pid":30960,"hostname":"miaole.local","reqId":"068d858a-754b-4a27-99ef-89e042960f75","res":{"statusCode":200},"responseTime":6.958708000000115,"msg":"request completed"}
+{"level":30,"time":1793049481320,"pid":30960,"hostname":"miaole.local","reqId":"ab05ffbf-66ad-4dd4-8af8-562e944d6dd9","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481326,"pid":30960,"hostname":"miaole.local","reqId":"ab05ffbf-66ad-4dd4-8af8-562e944d6dd9","res":{"statusCode":200},"responseTime":6.635875000000169,"msg":"request completed"}
+{"level":30,"time":1793049481327,"pid":30960,"hostname":"miaole.local","reqId":"319f943b-4f73-4e15-ac3c-d80a15337308","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481334,"pid":30960,"hostname":"miaole.local","reqId":"319f943b-4f73-4e15-ac3c-d80a15337308","res":{"statusCode":200},"responseTime":6.8533330000000205,"msg":"request completed"}
+{"level":30,"time":1793049481334,"pid":30960,"hostname":"miaole.local","reqId":"dee2a231-2b03-4f8a-96d8-3e6f05ff7e78","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481341,"pid":30960,"hostname":"miaole.local","reqId":"dee2a231-2b03-4f8a-96d8-3e6f05ff7e78","res":{"statusCode":200},"responseTime":6.848958000000039,"msg":"request completed"}
+{"level":30,"time":1793049481341,"pid":30960,"hostname":"miaole.local","reqId":"8db487aa-3159-4793-b01a-949265afa098","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481348,"pid":30960,"hostname":"miaole.local","reqId":"8db487aa-3159-4793-b01a-949265afa098","res":{"statusCode":200},"responseTime":6.323167000000012,"msg":"request completed"}
+{"level":30,"time":1793049481348,"pid":30960,"hostname":"miaole.local","reqId":"8f5dd62a-4602-41a2-b1b9-e55c3c07e38d","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481354,"pid":30960,"hostname":"miaole.local","reqId":"8f5dd62a-4602-41a2-b1b9-e55c3c07e38d","res":{"statusCode":200},"responseTime":6.460375000000113,"msg":"request completed"}
+{"level":30,"time":1793049481355,"pid":30960,"hostname":"miaole.local","reqId":"7f8fe58f-f3d2-464b-a9fa-989f2e1b23ad","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481361,"pid":30960,"hostname":"miaole.local","reqId":"7f8fe58f-f3d2-464b-a9fa-989f2e1b23ad","res":{"statusCode":200},"responseTime":6.419875000000047,"msg":"request completed"}
+{"level":30,"time":1793049481362,"pid":30960,"hostname":"miaole.local","reqId":"55bb3203-c06d-4441-b108-7e7b155883a9","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481368,"pid":30960,"hostname":"miaole.local","reqId":"55bb3203-c06d-4441-b108-7e7b155883a9","res":{"statusCode":200},"responseTime":6.169040999999879,"msg":"request completed"}
+{"level":30,"time":1793049481368,"pid":30960,"hostname":"miaole.local","reqId":"849fe57b-c3e4-4e7a-a026-47ef340b23a6","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481375,"pid":30960,"hostname":"miaole.local","reqId":"849fe57b-c3e4-4e7a-a026-47ef340b23a6","res":{"statusCode":200},"responseTime":6.664083000000119,"msg":"request completed"}
+{"level":30,"time":1793049481375,"pid":30960,"hostname":"miaole.local","reqId":"c02d1a07-ecc4-4eb6-8746-3106d948bd26","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481382,"pid":30960,"hostname":"miaole.local","reqId":"c02d1a07-ecc4-4eb6-8746-3106d948bd26","res":{"statusCode":200},"responseTime":6.675040999999965,"msg":"request completed"}
+{"level":30,"time":1793049481382,"pid":30960,"hostname":"miaole.local","reqId":"2f0e9f43-2a06-4f0e-99e5-3fe205118f0b","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481389,"pid":30960,"hostname":"miaole.local","reqId":"2f0e9f43-2a06-4f0e-99e5-3fe205118f0b","res":{"statusCode":200},"responseTime":6.785708000000113,"msg":"request completed"}
+{"level":30,"time":1793049481389,"pid":30960,"hostname":"miaole.local","reqId":"483fbdf4-79d0-4748-a843-ae8978c544c5","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481396,"pid":30960,"hostname":"miaole.local","reqId":"483fbdf4-79d0-4748-a843-ae8978c544c5","res":{"statusCode":200},"responseTime":6.684582999999975,"msg":"request completed"}
+{"level":30,"time":1793049481396,"pid":30960,"hostname":"miaole.local","reqId":"6deb60f2-ef57-4ae3-9e07-149ff69cc3b8","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481403,"pid":30960,"hostname":"miaole.local","reqId":"6deb60f2-ef57-4ae3-9e07-149ff69cc3b8","res":{"statusCode":200},"responseTime":6.458457999999837,"msg":"request completed"}
+{"level":30,"time":1793049481403,"pid":30960,"hostname":"miaole.local","reqId":"10ce8b61-4cea-4f0e-9148-e10c16099cda","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481410,"pid":30960,"hostname":"miaole.local","reqId":"10ce8b61-4cea-4f0e-9148-e10c16099cda","res":{"statusCode":200},"responseTime":6.275041999999985,"msg":"request completed"}
+{"level":30,"time":1793049481410,"pid":30960,"hostname":"miaole.local","reqId":"e0738838-879e-4dd3-83c1-56cfa9581bc1","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481410,"pid":30960,"hostname":"miaole.local","reqId":"e0738838-879e-4dd3-83c1-56cfa9581bc1","res":{"statusCode":429},"responseTime":0.1753329999999096,"msg":"request completed"}
+A5_HTTP  statuses=[200,200,200,200,200,200,200,200,200,200,200,200,200,200,200,429]
+PASS  [A5] first 15 within burst capacity → 200
+PASS  [A5] 16th request → 429 too_many_requests(突发桶耗尽真行使)
+PASS  [A5] A5 拒面零消费(entitlement consumption 行 0)
+PASS  [A5] A5 拒面零半写(恰 15 行 resume·第 16 次零行)
+{"level":30,"time":1793049481412,"pid":30960,"hostname":"miaole.local","reqId":"c5ae4d69-2b19-4ecc-aabe-b5b5ba57bda8","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57593},"msg":"incoming request"}
+{"level":30,"time":1793049481412,"pid":30960,"hostname":"miaole.local","reqId":"b0aa40bb-0c2c-4df3-85bc-eda4219ed4d6","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57594},"msg":"incoming request"}
+{"level":30,"time":1793049481413,"pid":30960,"hostname":"miaole.local","reqId":"b25cd6ce-9e02-423e-bb05-a110bf5bf547","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:57592","remoteAddress":"127.0.0.1","remotePort":57595},"msg":"incoming request"}
+{"level":30,"time":1793049481419,"pid":30960,"hostname":"miaole.local","reqId":"b0aa40bb-0c2c-4df3-85bc-eda4219ed4d6","res":{"statusCode":503},"responseTime":7.217666000000008,"msg":"request completed"}
+{"level":30,"time":1793049481420,"pid":30960,"hostname":"miaole.local","reqId":"b25cd6ce-9e02-423e-bb05-a110bf5bf547","res":{"statusCode":503},"responseTime":7.0549170000001595,"msg":"request completed"}
+{"level":30,"time":1793049483501,"pid":30960,"hostname":"miaole.local","reqId":"c5ae4d69-2b19-4ecc-aabe-b5b5ba57bda8","res":{"statusCode":200},"responseTime":2088.7027500000004,"msg":"request completed"}
+V1_HTTP  statuses=[{"s":200,"e":"ingested"},{"s":503,"e":"server_busy"},{"s":503,"e":"server_busy"}] (window RESUME_PARSE_MAX=1)
+PASS  [V1] N=3 concurrent real-PDF uploads → 败者 ≥1 收 503 server_busy(全局解析槽 capacity=1)
+PASS  [V1] 胜者(首请求)不受损 — 每个非 503 响应均 200 ingested 完整体(零半写零损伤)
+PASS  [V1] V1 拒面零消费
+PASS  [V1] V1 落库恰=胜者数(503 败者零行)
+PASS  [N] 全程净账审计 A1(零 consumption 行·upload 链路零 entitlement 触点)
+PASS  [N] 全程净账审计 A2(零 consumption 行·upload 链路零 entitlement 触点)
+PASS  [N] 全程净账审计 A3(零 consumption 行·upload 链路零 entitlement 触点)
+PASS  [N] 全程净账审计 A4(零 consumption 行·upload 链路零 entitlement 触点)
+PASS  [N] 全程净账审计 A5(零 consumption 行·upload 链路零 entitlement 触点)
+PASS  [N] 全程净账审计 V1(零 consumption 行·upload 链路零 entitlement 触点)
+
+ATTEMPT_END  iso=2026-10-26T21:18:03.504Z EXIT=0 total=30 fail=0
+PASS  NHP-015-ADV-01  isolated PG+HTTP ADV evidence (PC+A1–A5+V1+N)
+HTTP_ERROR_PIN  422 magic_mismatch · 429 too_many_requests · 503 server_busy · 200 ingested(合法对照/NUL 剥除)
+EVIDENCE_SHAPE  isolated three-layer shell + real HTTP + real PG · 0189 真迁移链重放(共享槽 lease) · 与 F1–F5 reason 级可分互不替代
+ROW_STILL_GAP  UC-E2E-015 ADV 列 blind→case-only 措辞. NEG/FAULT/BOUND partial. coveredCount=8.
+NOTE  EXIT0≠covered≠nail≠HA · 窗值披露 D2: RESUME_PARSE_MAX 仅测试进程窗(产品缺省 6 不改) · post dual e2e+privacy still required · actualSpendCny=null
+
+CMD=pnpm uc015:nhp-adv:prove EXIT=0
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T21-18-03-649Z-30670-fa9cbcd4-62cb-46e0-9523-cb383144858b.json release_evidence=false
+uc015-R1-EXIT=0
