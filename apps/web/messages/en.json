@@ -232,6 +232,18 @@
     "notAccepted": "Delete request not accepted (status {status}); not treated as deleted.",
     "invalidShape": "The delete response shape is invalid; not treated as deleted."
   },
+  "privacyPreview": {
+    "scopeRequired": "Select a scope; erasure preview for an interview requires an interview ID.",
+    "networkError": "Network error. Please try again later.",
+    "sessionExpired": "Your session has expired. Please sign in again.",
+    "notFound": "This interview was not found, or you are not allowed to preview its erasure receipt.",
+    "conflict": "This preview request conflicts with an existing target; choose a different scope or interview.",
+    "readOnlyDeployment": "The public preview deployment is read-only and cannot accept erasure previews.",
+    "previewUnavailable": "Erasure preview is temporarily unavailable; it was not disguised as completed.",
+    "notAccepted": "Preview request not accepted (status {status}); not treated as deleted.",
+    "invalidShape": "The receipt shape is invalid; not treated as deleted.",
+    "productionClaimRejected": "The receipt claimed a production-complete state; display was refused."
+  },
   "meta": {
     "titleDefault": "Meetwise · Preview",
     "titleTemplate": "%s · Meetwise",
