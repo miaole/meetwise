@@ -5,19 +5,19 @@
 **席位**：SSE-ADV 起草席（诊断+起草双责·协调方派·认领覆盖矩阵 `:116` UC-E2E-010 ADV 格**批 B nail 后残余面**·与批 B CLOSED 面/批 C 在飞面/UC-011 已落 `:117` 面行级互斥零重叠）。
 **基线**：`origin/main` @ **`0246361dd`**（full `0246361dd75ac84beb70c6bed99be387da989499` · 2026-10-27 05:15 +0800 · PR #148 micro-batch 并线 tip · `git fetch origin` 本 turn 成功·worktree 建于该 tip 亲证 HEAD 落位）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2382 ≤ cap 2386**（`public-text-policy.mjs:149` `MAX_FILES = 2_386` 亲证·§2-1）· 分支 `line/sse-adv-draft`（建前 `git branch --list "line/sse-adv*"` 零命中·`git worktree add ../meetwise-sse-adv -b line/sse-adv-draft origin/main` 亲立）· 工作树 `meetwise-sse-adv`（仓根同级）。
 **必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/delivery/e2e-requirement-coverage-matrix.md`（§0.5 强制列 / §1.0.1 `:116` / §1.0.2 `:147` / §1.0.3 `:164` 双表同步令）→ `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md`（`:46-:48` NHP-010 三行）→ `ai-docs/requirements/use-cases/e2e-scenarios.md`（UC-E2E-010 `:223-:235`·E-越权恢复 `:90`·E-重放去重 `:91`）→ `ai-docs/delivery/harness/nhp-batch-b-REQUEST.md`（§9-EXEC.2 NHP-010-ADV-01 A1–A6 承登+§9-rev.4 两分防误停·**本卷分界基面**）→ `ai-docs/delivery/harness/uc-e2e-010-sse-resume.md`（§1b+G-GAP 六 pin）→ 涉事机制源 `apps/api/src/modules/interview/interview.service.ts` / `interview.controller.ts` / `apps/api/src/platform/last-event-id.ts` / `sse-pump.ts` / `packages/db/migrations/0062_interview_privacy_event_stream_scope.sql` / `0143_sse_push_notify.sql` → 既有证据面 `apps/api/test/uc-e2e-010-sse-resume.proof.ts` / `uc-e2e-010-nhp-adv.proof.ts` / `uc-e2e-002-adv-led-crossuser.proof.ts` / `privacy-erasure-http.proof.ts` / `sse-principal-slot.proof.ts`。
-**立项出处（不自建 SSOT 行——翻面权归协调方）**：①协调方派单令（「认领矩阵 UC-E2E-010 行 ADV cell 残余·与 NHP-B 面分界清晰化·侦察发现覆盖殆尽则零残余不入卷」原文随令）；②`e2e-requirement-coverage-matrix.md` §1.0.1 **`:116`** ADV 格现值「**blind** / `case-only`（NHP-010-ADV-01 真证据已落（2026-10-26 批 B nail）…本列状态不动：blind 保持+case-only 措辞登记）」亲读——批 B 已落格后**残余对抗面未盘点**·本卷即该残余盘点+认领卷；③结构范本=`harness/nhp-batch-c-REQUEST.md`（§0-§8 形制·在飞 `line/nhp-c-draft`）与 `harness/nhp-batch-b-REQUEST.md` §0-§8（批 B CLOSED 全形）。
+**立项出处（不自建 SSOT 行——翻面权归协调方）**：①协调方派单令（「认领矩阵 UC-E2E-010 行 ADV cell 残余·与 NHP-B 面分界清晰化·侦察发现覆盖殆尽则零残余不入卷」原文随令）；②`e2e-requirement-coverage-matrix.md` §1.0.1 **`:116`** ADV 格现值「**blind** / `case-only`（NHP-010-ADV-01 真证据已落（2026-10-26 批 B nail）…本列状态不动：blind 保持+case-only 措辞登记）」亲读——批 B 已落格后**残余对抗面未盘点**·本卷即该残余盘点+认领卷；③结构范本=`harness/nhp-batch-c-REQUEST.md`（§0-§8 形制·起草时在 `line/nhp-c-draft`（#149 已并线·EXEC 期在树））与 `harness/nhp-batch-b-REQUEST.md` §0-§8（批 B CLOSED 全形）。
 
 ---
 
 ## 残余盘点（三候选面逐一码面亲证·覆盖殆尽则零残余不入卷·本席裁定=**残余非空·恰一族入卷**）
 
-派单令列三候选面：**①重连游标越权面 ②多流交叉 ③seq 回放越权**。本席对既有证据面全族亲读（`uc-e2e-010-nhp-adv.proof.ts` 60b9da01 196 行 A1–A6 · `uc-e2e-010-sse-resume.proof.ts` 680fbd66 320 行 R1–R4/R-mid/R-authz · `uc-e2e-002-adv-led-crossuser.proof.ts` a26d145d 420 行 V1–V6 · `privacy-erasure-http.proof.ts` d810d165 467 行 410 sweep · `sse-principal-slot.proof.ts` 692c4d01 204 行 · `neg-interview.proof.ts` afd63185 `:509-:513` · `uc-e2e-033-cross-user-authz.proof.ts` `:132/:181/:298`）逐一裁定：
+派单令列三候选面：**①重连游标越权面 ②多流交叉 ③seq 回放越权**。本席对既有证据面全族亲读（`uc-e2e-010-nhp-adv.proof.ts` 60b9da01 196 行 A1–A6 · `uc-e2e-010-sse-resume.proof.ts` 680fbd66 320 行 R1–R4/R-mid/R-authz · `uc-e2e-002-adv-led-crossuser.proof.ts` a26d145d 420 行 V1–V6 · `privacy-erasure-http.proof.ts` d810d165 467 行 410 sweep · `sse-principal-slot.proof.ts` 692c4d01 204 行 · `neg-interview.proof.ts` afd63185 `:509-:513` · `uc-e2e-033-cross-user-authz.proof.ts` `:132/:181/:298` · 相邻单元层臂 `sse-push-notify.proof.ts` 3056a929 934 行 P-4/F2/N2 · `sse-delta-arm.proof.ts` 8a6ff458 319 行 `:189-:199`）逐一裁定：
 
 | 候选面 | 裁定 | 依据（file:line 亲证·详 §1.1 覆盖图） |
 |---|---|---|
 | ①重连游标越权面 | **覆盖殆尽·零残余** | 游标×主体全矩阵已证：跨主体×合法/伪造高/无游标三形恒 404 零泄出（批 B A5 `:171-:180`）+ malformed×越权/未知流 400 无泄露差（A3 `:151-:159`）+ 伪造高游标 200 空 catch-up=R4 设计内语义（A4 `:161-:169`+R4 `:218-:229`+§9-rev.4 两分）+ 越权删除/围栏流 404/410 fail-closed（`privacy-erasure-http.proof.ts:415` events 入 410 sweep `:427-:432`·`neg-interview.proof.ts:509-:511` 未知流 404）+ 伪造认证 401（uc002 V6）——**游标×授权态全组合无未测格** |
 | ③seq 回放越权面 | **覆盖殆尽·零残余** | 回放授权=主体维度已闭（A5/V4/V5/uc033/neg-interview 五面 404 零泄出）+ 回放确定性已证（uc002 V3 重复重放恒定 seq 窗逐 seq 一致）+ 本流 seq 边界已证（R2 `:196-:210` LED=3→[4,5] · R3 `:212-:216` LED=2→[3,4,5]）——**seq 粒度越权除「跨流」维度外无未测格**；其跨流维度即② |
-| ②多流交叉面 | **真残余·本卷认领** | 全树**无任何既有 proof 持双流断言帧隔离**：A5 全部臂在他人 principal 的 404 拒绝路径（单流对端）；R 族/R-mid 全单流；uc002 V 族单流；`sse-principal-slot` 只断言槽计数 429 面非数据隔离面——**同主体双流×对抗游标交换×双持实时注入的「零跨流帧交付」断言零存在**（rg 亲证：`apps/api/test/` 全 proof 无第二 stream_key 交叉臂） |
+| ②多流交叉面 | **真残余·本卷认领** | 全树**无任何既有 HTTP 级 proof 持双流帧交付隔离断言**：A5 全部臂在他人 principal 的 404 拒绝路径（单流对端）；R 族/R-mid 全单流；uc002 V 族单流；`sse-principal-slot` 只断言槽计数 429 面非数据隔离面——**同主体双流×对抗游标交换×双持实时注入的「零跨流帧交付」断言零存在**（rg 亲证：`apps/api/test/` 全 proof **无 HTTP 级双流帧交付隔离断言**；相邻单元层臂已登记 §1.1） |
 
 **结论**：残余非空——认领面收窄为恰「**同主体多流交叉**」一族（`NHP-010-ADV-02`）；两候选面①③覆盖殆尽如实登记不入臂（**Ban 重复批 B 断言**·派单令「不重复该断言」条款兑现）。
 
@@ -28,9 +28,12 @@
 - `git worktree list` 建后 **32 树**实测——`line/sse-adv-draft` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | grep sse-adv` 建前零命中→落卷后唯一同名卷=本卷。
 - **已落面互斥亲证**：批 B（#146 `b894cad88` 并线）ADV-01 A1–A6=**CLOSED**（`nhp-batch-b-REQUEST.md` Status=`closed` 三处钉·§9-post 双 PASS 会签）；UC-011 `:117` ADV=uc011 线已落（`GAP-UC011-ADV-01` CLOSED wired+2026-10-26 tip 收据注记·refund 域与 SSE 域零重叠）；UC-002 `:113` ADV=Line R V1–V6 已落。本卷认领面=`:116` 格内批 B 未触的**同主体多流交叉**——**格级共存不冲突**（EXEC 期对 `:116` 格作 additive append 注记·批 B 既有措辞一字不洗）。
 - **在飞线逐树亲读**（`git log -1` + `git diff --name-only origin/main...<branch>` + ancestor 亲证）：
-  - `line/nhp-c-draft` @`caf1bef08`（2026-10-27 06:00 +0800·**非 main 祖先·在飞**）——触面=**双矩阵文件**（矩阵 `:112/:120/:121/:146/:150` 邻区+case-matrix `:40-:42/:86-:89` 邻区+§1.3 表）+cap 脚本+runner+两 package.json——与本卷触面（矩阵 `:116` 格 additive append+case-matrix `:46-:48` 邻区新行）**同文件行级互斥**；其 case-matrix §1.3 增行将使本卷 `:48` 以下行号漂移（如实改锚规则预登）。
+  - **基线现值（本修订 turn `git fetch origin` 亲证）**：`origin/main` tip=**`39cf555c4`**（#150 micro-batch2 并线）·cap 届值=**`MAX_FILES = 2_394`**（origin/main `public-text-policy.mjs:151` 亲证·本树 `:149` 仍 2_386）。
+  - `line/nhp-c-draft` **已落**（#149 `69e603255` 并线·origin/main 祖先亲证）——其双矩阵邻区/cap 脚本/runner/两 package.json 触面随并线在树·其 case-matrix 增行使本卷 `:48` 以下行号漂移已兑现（EXEC 期照 §0 协议对届时 tip 重 pin·如实改锚）。
+  - `line/killsw-draft` @`249331328`（已落文·触仅自有 `killsw-REQUEST.md`）·`line/pay-neg-draft` @`40926d7af`（已落文·触仅自有 `pay-neg-REQUEST.md`）——两线与本卷触面**零交叠亲证**。
+  - `line/reassess-draft` @`9c4784bc5`（EXEC 落卷·本修订 turn 亲证其上更增 `582d4cf08` 配额放宽 chore）——触 runner（`run-e2e-isolated.mjs`）+root package.json+cap 脚本（`public-text-policy.mjs`）+egress inventory 四点→**EXEC 复核必交涉项**（与本卷 EXEC 注册行/egress 登记面共享·届时逐件交涉·Ban 静默并改）。
   - `line/ag18-draft` @`4c2ea4c9f`（非 main 祖先）——触 `apps/api/src/modules/interview/interview.service.ts`+`apps/api/src/platform/sse-notify.service.ts`（**本卷机制缝同文件**）——EXEC 期 `git log -1 -- <缝文件>` 逐树复核。
-  - `line/cap-2272` @`52846f9d8`（非 main 祖先·旧 cap 线）——触 `sse-notify.service.ts`；`line/reassess-draft` @`a8443d101`——触自有 REQUEST 面与本卷零重叠；`line/uc31-draft` @`112ac8af0`——认领 `:129` 面与本卷零重叠；`line/killsw-draft`/`line/pay-neg-draft` @`0246361dd`（与本卷同 tip 零自有 commit）。
+  - `line/cap-2272` @`52846f9d8`（非 main 祖先·旧 cap 线）——触 `sse-notify.service.ts`；`line/uc31-draft` @`112ac8af0`——认领 `:129` 面与本卷零重叠。
 - **在飞交叠复核规则（EXEC 立项日必做）**：本卷起草 turn 产品触面=0（docs-only 恰 1 新 .md）；EXEC 期触面=隔离 prove 新文件（`apps/api/test/uc-e2e-010-nhp-crossstream.proof.ts`）+双表行内改（矩阵 `:116` 格 additive append+case-matrix `:48` 后新行）+注册行（root/apps-api package.json+runner 注册位·沿批 B 五位形·boot() 形先例不入迁移族表）。届时对各在飞分支执行 `git log -1 -- <触面文件>` 逐树逐件复核，任一分支顶对任一触面存在 `0246361dd` 之后新增提交→触停止条件「现场漂移」停手上报。
 
 ### 0.1 blob 锚表（`git hash-object` 亲算 @`0246361dd`）
@@ -56,7 +59,9 @@
 | `apps/api/src/platform/last-event-id.ts` | `40b12d01`（18） | `:8-:18` 双门 fail-closed（`:10-:11` regex 门 · `:14-:16` 安全整数门 · 均 400 `invalid_last_event_id`）——批 B A1/A2 已证·本卷零臂 |
 | `packages/db/migrations/0062_interview_privacy_event_stream_scope.sql` | `9e5dec05`（87） | `:8-:41` `interview_event_stream_privacy_active`（principal=owner 硬门 `:13-:16` · interview 墓碑防绕先于 quiz/diagnosis 查找 `:24-:28`）·`:59-:62` `p_owner` policy（USING+WITH CHECK 同谓词） |
 | `packages/db/migrations/0143_sse_push_notify.sql` | `4d4bf7c4`（37） | `:12-:19` AFTER INSERT→`pg_notify('interview_event_ch', NEW.stream_key)`——**payload 恰裸 stream_key 零 owner 零事件数据·lossy hint 唤醒后重取必经 `events()` guard** |
-| `packages/db/migrations/0195_interview_event_settlement_append_only.sql` | `d323706e`（41） | append-only（BEFORE UPDATE OR DELETE 恒 RAISE 23514）——账本零写副作用断言的静态旁证 |
+| `packages/db/migrations/0214_interview_event_statement_notify.sql` | `d1f36f17`（27） | **`:22-:27` `DROP TRIGGER IF EXISTS interview_event_sse_notify`+`FOR EACH STATEMENT`+`REFERENCING NEW TABLE AS inserted`（语句级触发器·`:16-:17` 按语句过渡表 DISTINCT stream_key notify·通道/载荷仍裸 stream_key）——已取代 0143 逐行活机制（0143 文件字节不改仅历史）** |
+| `packages/db/migrations/0208_unstube_event_immutable_relax.sql`+`0219_interview_event_retention_purge.sql` | `6f6b90e5`（59）+`6bccd18b`（149） | **immutable 豁免臂**——0208 `:51-:56` DELETE 面四元豁免（TG_OP+privacy_worker_owner+purge GUC+session_user 合取）·0219 `:94-:110` 0208 体逐字节保留+恰一 additive DELETE 臂（retention worker·序末回 0195 恒拦基线）·UPDATE 面零豁免 |
+| `packages/db/migrations/0195_interview_event_settlement_append_only.sql` | `d323706e`（41） | append-only（BEFORE UPDATE OR DELETE·**UPDATE 面恒拦·DELETE 面仅 0208/0219 四元豁免臂（harness 不可达）**·23514）——账本零写副作用断言的静态旁证 |
 
 **既有证据面（覆盖图载体·零触只读）**
 
@@ -79,7 +84,7 @@
 
 ## §1 红事实（机制链·全部亲证 @`0246361dd`·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
 
-### 1.1 覆盖图（已落证据七族·本卷零臂零重复·Ban 借证 wash）
+### 1.1 覆盖图（已落证据九族·本卷零臂零重复·Ban 借证 wash）
 
 1. **游标伪造两门**：malformed 七臂+2^53 非安全整数恒 400 具名码（批 B A1/A2+`last-event-id:unit:prove` 直行使面+uc002 V1）。
 2. **伪造高游标语义**：well-formed 越前游标→200 空 catch-up+hold=R4 重放游标设计内语义非机制红（批 B A4+R4+批 B §9-rev.4 两分）。
@@ -88,12 +93,14 @@
 5. **围栏/删除态**：围栏后 events→410 `interview_privacy_fenced`（privacy-erasure `:415/:427-:432`）·未知流/越权流 404 同信封不泄露存在性（`e2e-scenarios.md:90` 原文机制）。
 6. **回放确定性**：本流 seq 边界（R2/R3）+重复重放恒定窗（uc002 V3）+R-mid live-tail→LED 续传。
 7. **槽位面**：per-principal 5+1→429 `too_many_streams`（sse-slot `:197`）——计数面已证。
+8. **相邻单元层臂·notify 路由层（层=notify 路由非 HTTP 帧交付）**：`sse-push-notify.proof.ts`（`3056a929` 934 行）——P-4 `:312-:334` waiter 层异流不误醒 · F2 `:415-:424` 双键通知 · N2 `:682-:687` 双流全醒。
+9. **相邻单元层臂·token 分派层（非 HTTP 帧交付）**：`sse-delta-arm.proof.ts`（`8a6ff458` 319 行）`:189-:199` token 分派层跨流不误投——**B1–B4 与其零重复**（本刀四族臂全在 HTTP 帧交付面·两行臂在单元层路由/分派面·层异面正交）；B3 token_delta 子句仅单元层同构·HTTP 级空白注记（rg 亲证·残余盘点②行/§1.2 同源）。
 
 ### 1.2 残余缝四读码面（同主体多流交叉·注入缝逐条 file:line）
 
 - **游标无流绑定缝**：`Last-Event-ID` 头=裸十进制数字（`last-event-id.ts:10` regex 无流域）——游标与流的绑定关系**只存在于服务端查询谓词** `WHERE stream_key=$1 AND seq>$2`（`interview.service.ts:914`）；客户端携 A 流游标订 B 流不构成任何门（非 malformed 非 404 路径）→ 唯一隔离防线=该单谓词+`p_owner` RLS（0062 `:59-:62`）双层。**跨流混淆行为语义（skip-not-error）零既有断言**。
 - **seq 命名空间 per-stream**：`UNIQUE(stream_key,seq)`（0001/0027 族）——seq 非全局单调，跨流游标值语义不互译；B 流高游标施于 A 流=`seq>$2` 空集（R4 同构跨流变体）；A 流游标施于 B 流=恰重放 B 流 `seq>cursor` 段——**「跨流游标交换后各连接帧集恒不出本流」零既有断言**（A5 三形全在他人 principal 404 拒绝路径·本面全在 200 路径内断言帧隔离·两臂面正交）。
-- **实时尾跨流隔离缝**：hold 尾等待臂=per-streamKey waiter（`sse-pump.ts:169/:191`）+0143 notify payload 恰裸 stream_key（`0143:12-:19`）+唤醒后重取必经 `events()` 重过 guard（controller `:273`→service `:913-:914`）+delta 臂 per-streamKey 环「禁互偷帧」（`sse-pump.ts:64/:73`）——构造上隔离，但**「S1 hold 中向 S2 注入→S1 连接零 S2 帧（含 token_delta 帧零出现）」零既有 HTTP 级断言**（R-mid 单流注入 uc010 `:232-:258`）。
+- **实时尾跨流隔离缝**：hold 尾等待臂=per-streamKey waiter（`sse-pump.ts:169/:191`）+0143 notify payload 恰裸 stream_key（`0143:12-:19`）+唤醒后重取必经 `events()` 重过 guard（controller `:273`→service `:913-:914`）+delta 臂 per-streamKey 环「禁互偷帧」（`sse-pump.ts:64/:73`）——构造上隔离，但**「S1 hold 中向 S2 注入→S1 连接零 S2 帧（含 token_delta 帧零出现）」零既有 HTTP 级断言**（rg 亲证：`apps/api/test/` 全 proof **无 HTTP 级双流帧交付隔离断言**；相邻单元层臂已登记 §1.1·既有注入臂单流 R-mid uc010 `:232-:258`）。
 - **账本零写副作用**：events 面=纯 SELECT（`interview.service.ts:914` 唯一语句）+0195 append-only——跨流对抗全程账本字节恒等零既有跨流对照臂。
 
 ### 1.3 否决面（三否决·本席起草适用·EXEC 期同纹·命中即停）
@@ -104,7 +111,7 @@
 
 ### 1.4 修法裁决：**恰 1 子刀 `NHP-010-ADV-02`（同主体多流交叉隔离 prove·docs+test-only·零产品码触）**
 
-- **新 proof**=`apps/api/test/uc-e2e-010-nhp-crossstream.proof.ts`（`_neg-harness` boot() 形·沿 uc010-nhp-adv 同壳·隔离壳 run-e2e-isolated 注册沿批 B 五位形·boot() 形先例三件不入迁移族表）。Fixture：同主体 userA 持双流 S1（seq 1..3）+S2（seq 1..5）·userB 零权限对照。
+- **新 proof**=`apps/api/test/uc-e2e-010-nhp-crossstream.proof.ts`（`_neg-harness` boot() 形·沿 uc010-nhp-adv 同壳·隔离壳 run-e2e-isolated 注册沿批 B 五位形·boot() 形先例三件不入迁移族表）。Fixture：同主体 userA 持双流 S1（seq 1..3）+S2（seq 1..5）·userB 零权限对照·**S1/S2 分语句种子（0214 语句级触发器单条多行 INSERT 触双键 notify）+各一张 userA interview 行（沿批 B 壳）**。
 - **臂（四族·期望值逐条对码）**：
   - **B1 跨流高游标（skip-not-error 跨流变体）**：userA 携 S2 游标 5 订 S1 → 200+空 catch-up+hold ping 非 4xx/5xx（`914` 谓词 `3>5`=空集·A4/R4 语义同构）+零帧零 `id:` 行。
   - **B2 跨流低游标（核心隔离断言）**：userA 携 S1 游标 1 订 S2 → 200+恰 S2 `seq=[2,3,4,5]`（kinds/payload 逐字节=S2 种子）+**零 S1 seq/kind/payload 帧字节出现**（`914` `stream_key=$1` 单谓词真隔离·`e2e-scenarios.md:231` 不重不漏跨流变体）。
@@ -115,7 +122,7 @@
 
 ## §2 验收断言（pre-exec 双审核对单基面·起草门 4 门本 commit 适用+EXEC 预基面届时重 pin·**数字口径以实跑实测为准·熔断阈值即停止条件「验收红不可修」触发面**）
 
-1. **docs:check（红停条款）+ cap 预算核**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·本树起草前亲跑 **EXIT=0 · scanned 2382**·cap=**2386**（`public-text-policy.mjs:149` `MAX_FILES = 2_386` 亲证）·本卷 +1 → 预期 **2383 ≤ 2386 = 不越限·无需步进·无越限臂联动**；若 EXEC 期在飞并线使届时 scanned+1 > 2386 → 触「验收红不可修」停手上报（cap 上抬权归协调方·Ban 就地改 cap）。
+1. **docs:check（红停条款）+ cap 预算核**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·起草亲跑 **EXIT=0 · scanned 2382**（本卷落卷前基）·本修订 turn 本树亲跑 **EXIT=0 · scanned 2383**（本卷 .md 在树）·cap 届值=**2_394**（origin/main `39cf555c4` `public-text-policy.mjs:151` `MAX_FILES = 2_394` 亲证·本树 `:149` 2_386）→ **2383 ≤ 2_394 = 不越限·无需步进·无越限臂联动**；若 EXEC 期在飞并线使届时 scanned > 2_394 → 触「验收红不可修」停手上报（cap 上抬权归协调方·Ban 就地改 cap）。
 2. **markers 五类零命中**：本刀改动集新增行五类标记词 grep 零命中（词族沿 `scripts/i6-239-gates.proof.mjs:154-:163` 门口径·词面运行时组装·不复抄卷内防自指·命令与回执入 EXEC 收据·起草 turn 本席已亲跑 0 命中）。
 3. **diff 面机检**：起草 commit `git diff --numstat <base>` **恰 1 tracked 路径**=本卷 .md（多任何 tracked 路径即停）；EXEC 期 diff 面=本卷+双表行内改（矩阵 `:116` 格+case-matrix `:48` 后）+新 proof 文件+注册行（root/apps-api package.json+runner 五位）+egress 登记按 §1.4 二择一——届时逐件登记。
 4. **est live=0**：零实跑零模型外呼零 Key 加载（§6）。
@@ -158,4 +165,4 @@
 
 ---
 
-*SSE-ADV REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§8+本行）· UC-010 SSE 越权重连批 B nail 后残余 ADV 面 · 认领=同主体多流交叉一族（`NHP-010-ADV-02`·B1 跨流高游标 skip-not-error/B2 跨流低游标零跨流帧/B3 双持实时跨流注入零互偷/B4 账本零变+确定性）· 两候选面（重连游标越权/seq 回放越权）经码面侦察覆盖殆尽如实登记零臂不入卷 · 与批 B（CLOSED·跨主体+游标伪造面）分界=A5 全臂在他者 principal 404 路径·本刀全臂在 200 路径内断言帧隔离 · 修法=恰 1 子刀 docs+test-only 零产品码触 · egress 预置=臂文避词面零登记或同 commit 双登记二择一 · base=origin/main `0246361dd` · 分支 `line/sse-adv-draft` · 工作树 `meetwise-sse-adv` · 在飞登记 nhp-c/ag18/cap-2272/uc31/reassess 五线 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · §1.0.2 `:147` blind 保持 · ⛔push*
+*SSE-ADV REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§8+本行）· UC-010 SSE 越权重连批 B nail 后残余 ADV 面 · 认领=同主体多流交叉一族（`NHP-010-ADV-02`·B1 跨流高游标 skip-not-error/B2 跨流低游标零跨流帧/B3 双持实时跨流注入零互偷/B4 账本零变+确定性）· 两候选面（重连游标越权/seq 回放越权）经码面侦察覆盖殆尽如实登记零臂不入卷 · 与批 B（CLOSED·跨主体+游标伪造面）分界=A5 全臂在他者 principal 404 路径·本刀全臂在 200 路径内断言帧隔离 · 修法=恰 1 子刀 docs+test-only 零产品码触 · egress 预置=臂文避词面零登记或同 commit 双登记二择一 · base=origin/main `0246361dd` · 分支 `line/sse-adv-draft` · 工作树 `meetwise-sse-adv` · 在飞登记 killsw `249331328`/pay-neg `40926d7af`/reassess `9c4784bc5`（四点交涉）/ag18/cap-2272/uc31（nhp-c 已落 #149·基线现值 origin tip `39cf555c4`·cap 届值 2_394@`:151`） · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · §1.0.2 `:147` blind 保持 · ⛔push*
