@@ -209,6 +209,19 @@ const isolatedReceiptSources = {
     'packages/db/sql/20_resume_quiz.sql',
     'packages/db/migrations/0135_resume_quiz_freshness_anchor.sql',
   ],
+  // UC-E2E-025 BOUND 隔离 PG/HTTP 收据（GAP-UC025-BOUND-ISOLATED-01 · 件①）：additive 注册镜像
+  // fault-isolated 同形（同周 uc004/uc028/ttl 三先例=package.json 注册行+壳三条目同 commit）。
+  // 来源清单=proof+harness+三守卫服务/控制器+隔离靶+0061 typed pin 迁移（BOUND 判据 schema 面）。
+  'uc025:nhp-bound-isolated:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-025-nhp-bound-isolated.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
+  ],
   'uc025:nhp-adv:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-025-nhp-adv.proof.ts',
@@ -530,6 +543,17 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0191_outbox_consumption_fk.sql',
     'packages/db/migrations/0211_outbox_unsettled_partial.sql',
     'packages/db/migrations/0212_outbox_relayed_retention.sql',
+  ],
+  // EVENT-TTL（interview_event 保留期清扫·隔离容器真迁移链 ≥11 臂·est live=0）。
+  'interview-event-retention:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/interview-event-retention.proof.ts', 'packages/db/package.json',
+    'packages/db/src/interview/interview-event-retention.ts', 'packages/db/src/index.ts',
+    'packages/db/src/migrate.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'apps/worker/src/interview-event-retention.ts', 'apps/worker/src/main.ts',
+    'packages/db/migrations/0195_interview_event_settlement_append_only.sql',
+    'packages/db/migrations/0208_unstube_event_immutable_relax.sql',
+    'packages/db/migrations/0219_interview_event_retention_purge.sql',
   ],
   'model-op02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -1190,11 +1214,19 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql',
     'packages/db/migrations/0087_qbank_control_definer_corpus_dependency.sql',
     'packages/db/migrations/0089_qbank_taxonomy_definer_manifest.sql',
-    'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
+      'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
       'packages/db/migrations/0079_rag_control_acl_allowlist.sql',
       'packages/db/migrations/0080_rag_control_executor_membership_allowlist.sql',
       'packages/db/migrations/0081_rag_control_dispatch_concurrent_replay.sql',
+  ],
+  // AG-36: checkpoint 基座版本自检 prove(常量↔vendor 绑定 + 匹配/失配双臂 + 身份可达 42501 负例)。
+  'checkpoint-schema:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/checkpoint-schema.proof.ts', 'packages/db/src/checkpoint-schema.ts',
+    'packages/db/src/migrate-cli.ts', 'packages/db/src/migrate.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0043_langgraph_checkpoint_least_privilege.sql',
+    'packages/db/migrations/0045_checkpoint_thread_rls.sql',
   ],
   'rag-corpus-version:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -2245,7 +2277,7 @@ if (![
   'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
   // AUTHZ #34 残面（scrypt 异步化 promisify 形 + chunked 封顶钩子 preParsing 流计数·隔离容器·est live=0）。
   'authz34:scrypt-async:prove', 'authz34:chunked-cap:prove',
-  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc019:nhp-adv:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'interview-privacy-read-tier:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
+  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc019:nhp-adv:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'interview-privacy-read-tier:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc025:nhp-bound-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
@@ -2255,9 +2287,13 @@ if (![
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
+  // AG-36: checkpoint 基座版本自检 prove 接隔离 PG runner(装库形=proof 内 loadMigrations+runMigrations 全量真实迁移集·非预迁移名单)。
+  'checkpoint-schema:prove:raw',
   'recruiter:prove:raw',
   'commerce-reconcile:prove:raw',
   'commerce-outbox-retention:prove:raw',
+  // EVENT-TTL（interview_event 保留期清扫证明·隔离容器真迁移链 ≥11 臂·additive 注册沿 commerce-outbox-retention 同形）。
+  'interview-event-retention:prove:raw',
   // FENCE-REFLOW C10（§4-4 具名 prove 导入方）:ops/recovery 一次性修复工具的隔离库证明。
   'fence-reflow-repair:prove:raw',
   'model-invocation-reconcile:prove:raw',
@@ -2438,6 +2474,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-webhook-adv']]
   : target === 'uc025:nhp-fault-isolated:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-fault-isolated']]
+  : target === 'uc025:nhp-bound-isolated:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-bound-isolated']]
   : target === 'uc025:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-adv']]
   : target === 'uc010:sse-resume:prove:raw'
@@ -2557,6 +2595,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag-control-upgrade']]
   : target === 'migrate-cli:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:migrate-cli']]
+  : target === 'checkpoint-schema:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:checkpoint-schema-selfcheck']]
   : target === 'scoring-integrity:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:scoring-integrity']]
   : target === 'scoring:eval:raw'
@@ -2619,6 +2659,9 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:usage-calibration-windowing']]
   : target === 'commerce-outbox-retention:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:commerce-outbox-retention']]
+  // EVENT-TTL（interview_event 保留期清扫证明·隔离容器·沿 authz5a2-stale-payload-ttl 的 packages/db spawn 形）。
+  : target === 'interview-event-retention:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:interview-event-retention']]
   : target === 'model-op02:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:model-op02']]
   // AG-08 成本轨⑤:端点分域相位+对表 proof·命令沿 ai-runtime 原生 script 名。
