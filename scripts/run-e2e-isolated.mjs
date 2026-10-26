@@ -544,6 +544,17 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0211_outbox_unsettled_partial.sql',
     'packages/db/migrations/0212_outbox_relayed_retention.sql',
   ],
+  // EVENT-TTL（interview_event 保留期清扫·隔离容器真迁移链 ≥11 臂·est live=0）。
+  'interview-event-retention:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/interview-event-retention.proof.ts', 'packages/db/package.json',
+    'packages/db/src/interview/interview-event-retention.ts', 'packages/db/src/index.ts',
+    'packages/db/src/migrate.ts', 'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+    'apps/worker/src/interview-event-retention.ts', 'apps/worker/src/main.ts',
+    'packages/db/migrations/0195_interview_event_settlement_append_only.sql',
+    'packages/db/migrations/0208_unstube_event_immutable_relax.sql',
+    'packages/db/migrations/0219_interview_event_retention_purge.sql',
+  ],
   'model-op02:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/model-op02-shared-provider.proof.ts',
@@ -1203,11 +1214,19 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql',
     'packages/db/migrations/0087_qbank_control_definer_corpus_dependency.sql',
     'packages/db/migrations/0089_qbank_taxonomy_definer_manifest.sql',
-    'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
+      'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
       'packages/db/migrations/0079_rag_control_acl_allowlist.sql',
       'packages/db/migrations/0080_rag_control_executor_membership_allowlist.sql',
       'packages/db/migrations/0081_rag_control_dispatch_concurrent_replay.sql',
+  ],
+  // AG-36: checkpoint 基座版本自检 prove(常量↔vendor 绑定 + 匹配/失配双臂 + 身份可达 42501 负例)。
+  'checkpoint-schema:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/checkpoint-schema.proof.ts', 'packages/db/src/checkpoint-schema.ts',
+    'packages/db/src/migrate-cli.ts', 'packages/db/src/migrate.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0043_langgraph_checkpoint_least_privilege.sql',
+    'packages/db/migrations/0045_checkpoint_thread_rls.sql',
   ],
   'rag-corpus-version:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -2257,9 +2276,13 @@ if (![
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
+  // AG-36: checkpoint 基座版本自检 prove 接隔离 PG runner(装库形=proof 内 loadMigrations+runMigrations 全量真实迁移集·非预迁移名单)。
+  'checkpoint-schema:prove:raw',
   'recruiter:prove:raw',
   'commerce-reconcile:prove:raw',
   'commerce-outbox-retention:prove:raw',
+  // EVENT-TTL（interview_event 保留期清扫证明·隔离容器真迁移链 ≥11 臂·additive 注册沿 commerce-outbox-retention 同形）。
+  'interview-event-retention:prove:raw',
   // FENCE-REFLOW C10（§4-4 具名 prove 导入方）:ops/recovery 一次性修复工具的隔离库证明。
   'fence-reflow-repair:prove:raw',
   'model-invocation-reconcile:prove:raw',
@@ -2559,6 +2582,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag-control-upgrade']]
   : target === 'migrate-cli:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:migrate-cli']]
+  : target === 'checkpoint-schema:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:checkpoint-schema-selfcheck']]
   : target === 'scoring-integrity:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:scoring-integrity']]
   : target === 'scoring:eval:raw'
@@ -2621,6 +2646,9 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:usage-calibration-windowing']]
   : target === 'commerce-outbox-retention:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:commerce-outbox-retention']]
+  // EVENT-TTL（interview_event 保留期清扫证明·隔离容器·沿 authz5a2-stale-payload-ttl 的 packages/db spawn 形）。
+  : target === 'interview-event-retention:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:interview-event-retention']]
   : target === 'model-op02:prove:raw'
     ? ['pnpm', ['-C', 'packages/ai-runtime', 'prove:model-op02']]
   // AG-08 成本轨⑤:端点分域相位+对表 proof·命令沿 ai-runtime 原生 script 名。
