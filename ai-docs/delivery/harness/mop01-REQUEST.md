@@ -30,7 +30,7 @@
 | `apps/worker/test/job-wakeup-listener.proof.ts` | `bd1f4223`（83 行） | **`:47` LISTEN 成功后立即请求一次 reconcile·`:51` 错 channel/payload 不唤醒·`:56` 断线重连并 reconcile·`:62` stop 后迟到通知不唤醒·`:76-78` 对 0084 四触发器+固定 payload 静态钉（`worker-wakeup:prove` 旧 CMD 的主体·「与 prove 断言一致」≠「触发器行为已证」）** |
 | `apps/worker/test/worker-job-wakeup-redis.proof.ts` | `2d85181c`（68 行） | **`:26-28` flag 默认关/`0`关/`1`开·`:30` 缺省 `redis://127.0.0.1:63809`（本地夹具·零凭据）·`:35-48` 本地发/收一条 wake·`:63`「PG LISTEN path not exercised/disabled」** |
 | `scripts/mysql-stack.redis-wakeup.proof.mjs` | `d05f44db`（10 行） | **conn-stack forwarder 头注「NEVER LIVE · NEVER prove-shell · NEVER covered · releaseEvidence=false · 连通绿 ≠ E2E」** |
-| `scripts/conn-stack/mysql-stack.redis-wakeup.proof.mjs` | `ed736bd4`（201 行） | **`:18` CANONICAL_CMD=`pnpm worker-wakeup-redis:prove`·`:19` REDIS_PORT=63809·静态钉 harness/module/listener/main/常量/liveProof/两 package.json 路径存在面** |
+| `scripts/conn-stack/mysql-stack.redis-wakeup.proof.mjs` | `ed736bd4`（201 行） | **`:27` CANONICAL_CMD=`pnpm worker-wakeup-redis:prove`·`:28` REDIS_PORT=63809（`:18-25` 系路径常量行）·静态钉 harness/module/listener/main/常量/liveProof/两 package.json 路径存在面** |
 | `packages/db/migrations/0084_worker_job_wakeup_notifications.sql` | `9eb6fe38`（48 行） | **`:2-4` 头注「NOTIFY is deliberately not a durable queue: listener reconnect/reconciliation remains mandatory」·`:14` pg_notify 固定 wake·`:23/:30/:37/:44` interview_job/quiz_job/diagnosis_job/ai_report 四 queued 触发器** |
 | `packages/db/migrations/0133_job_route_pending_worker_wakeup.sql` | `9380e6f9`（33 行） | **`:12-20` route_pending 触发函数+pg_notify 固定 wake·`:28-33` job_semantic_revision 触发器** |
 | `ai-docs/delivery/gap-bug-backlog.md` | `7ede9fb7`（936 行） | **`:74` GAP-MOP-01 行（P0·OPEN）·`:84` MOP01 立卷登记注（OPEN 保持+Ban 两头漂移+Ban Redis cutover+Ban MODEL-OP closed）·`:101` BUG-NOTIFY-REC 行（P0·OPEN）·`:20` INFLIGHT:redis-wakeup-wip 行**（本卷零改·翻面权归协调方） |
@@ -42,7 +42,7 @@
 
 ### 0.2 派单 brief 核实登记（结论零变·如实精化）
 
-1. brief「先验未闭」——**核实成立**：`:74`/`:101` 两行 OPEN 原文逐字在卷（§0.1 行 13 锚）；矩阵 `:214` REDIS-WAKEUP=`partial` 无翻面；`:84` 立卷注明文「保持 OPEN——立卷≠关闭」→ 本卷按侦察起草继续·非翻面候选。
+1. brief「先验未闭」——**核实成立**：`:74`/`:101` 两行 OPEN 原文逐字在卷（§0.1 行 14 锚）；矩阵 `:214` REDIS-WAKEUP=`partial` 无翻面；`:84` 立卷注明文「保持 OPEN——立卷≠关闭」→ 本卷按侦察起草继续·非翻面候选。
 2. brief「两缺口语义（model-op 通知记录面）」——**核实成立且同域**：两行 owner 列均=model-op；语义链同一（§1）——生产通知面=PG LISTEN/NOTIFY lossy hint（`worker-job-wakeup.ts:1-12` 自证）·Streams 侧=flag 关 additive 原型（`worker-job-wakeup-redis.ts:1-12` HARD 门自证）·兜底面=周期 reconcile 实存但 sole stack 证明缺（`gap-mop-01-wakeup-notify-rec.md` §2a 口径沿承）。
 3. brief「一行一 case」——**落实为 §1-修法件①②**：每行恰一具名 case（行 evidence-cell 原文为据·零新增注册行·零新造 CMD）。
 4. brief「零 live key」——**核实可达**：两具名 case 全部 conn-only/确定性/本地夹具（`:63809` 本地 compose·零凭据·worker-job-wakeup-redis.proof `:30` 缺省 URL 即本地）；本卷 est live=0·零 `.env*`·零 Key 值入树入据。
@@ -64,7 +64,7 @@
 
 - **周期兜底**：drain-loop interval 臂（`drain-loop.ts:97-99`/`:130`）——零通知也按 `WORKER_JOB_RECONCILE_INTERVAL_MS`（默认 5s·界 1s..60s·`main.ts:505-509`）周期 tick 认领；listener 断连窗口由同周期覆盖（`job-wakeup-listener.ts:1-7` 头注自证）；双 reconciler 另有 30s/60s 周期臂（`model-invocation-reconcile.ts:142`·`usage-calibration-reconcile.ts:113-114`）；readiness 挂钩 `main.ts:787`（listener 连败翻假·不假健康）。
 - **确定性旁证在卷**：`pnpm drain:prove`（`package.json:486`·drain-loop 周期/看门狗/合流确定性 prove）——**旁证≠sole stack 证明**：`:101` 缺的是「强制 periodic reconcile 在 sole stack（迁栈后栈面）的证明路径」，in-repo PG 侧确定性 prove 不能代答（未证明 ≠ 不存在·两头都 Ban·`:84` 原文）。
-- **Streams 旁路**：flag 关 additive 原型全套在树（§0.1 行 3/4/9/10/15 锚）·`pnpm worker-wakeup-redis:prove` conn-only EXIT=0 形在 harness CMD 表（`c521a103`）·矩阵 `:214`=`partial`。
+- **Streams 旁路**：flag 关 additive 原型全套在树（§0.1 行 3/4/9/10/15 锚）·`pnpm worker-wakeup-redis:prove` conn-only EXIT=0 形在 harness CMD 表（`c521a103`）·矩阵 `:214`=`partial`。——**判据边界注（§9-rev R2）**：`publishWorkerJobWakeup` 全仓零生产调用方（`worker-job-wakeup-redis.ts:70` 导出·唯一调用方=redis proof `:38`）·生产 Streams 面仅消费侧接线（`main.ts:690-719`）·发布面属切流包未来交付物 · prove 用 `:prove` 后缀流/组非生产拓扑（proof `:31-32`）· 无断连窗持久性断言——防未来切流 REQUEST 读窄「唯一主判据」（§1-修法件① 同注）。
 - **双 reconciler prove**：Q4 `pnpm model-invocation-reconcile:prove` + Q5 `pnpm model-op00-usage-reconciler:prove` 同 SHA EXIT 0/0 口径已由 Line AN-MOP-Q45 nail（矩阵 `:488`）建立——但该 nail 明文 GAP-MOP-03 stays OPEN·Ban Redis cutover；**「双 reconciler prove EXIT 0/0」≠「`:101` 已闭」**。
 
 ### 1.3 缺口语义分解与否决（本节=否决裁决·五臂全否·唯存活面=本卷 docs 起草）
@@ -78,9 +78,9 @@
 
 ## §1-修法（缺口收口最小面·一行一 case·docs-only 零行为变更）
 
-- **件①（GAP-MOP-01 `:74` → 恰一 case）**：wakeup 切流 case = **`pnpm worker-wakeup-redis:prove`**（harness `redis-streams-wakeup.prototype.md` CMD 表同名行·conn-stack forwarder 承载·静态钉+本地 `:63809` 发/收一条 wake·零凭据）——未来授权切流 REQUEST 的 wakeup 侧唯一主判据 case。随包义务（沿立卷 §2b 逐字沿承·本卷不执行）：flag `MEETWISE_WAKEUP_REDIS_STREAMS` 审后开 · 保留 reconcile · 旧 `worker-wakeup:prove` 标红或换夹具 · 「本绿 ≠ 已迁」随包输出。
-- **件②（BUG-NOTIFY-REC `:101` → 恰一 case）**：双 reconciler prove case = **Q4 `pnpm model-invocation-reconcile:prove` + Q5 `pnpm model-op00-usage-reconciler:prove` 同 SHA EXIT 0/0**（一行一 case·双半同门·沿矩阵 `:488` nail 口径）——该行 evidence-cell 具名 case。随包义务：**强制** periodic reconcile 在 sole stack 的证明路径（立卷 §2b-2 沿承·实现属 GAP-MOP-03 域·本卷零实现）。现状旁证（非关闭依据）：`pnpm drain:prove` 周期臂确定性 prove+`main.ts:505-509` bounded scan+listener proof `:110-114`——漏唤醒=有界延迟窗实存·「未证明 ≠ 不存在」两侧均 Ban（`:84` Ban 两头漂移逐字沿承）。
-- **件③（本卷自身=侦察交付）**：两行语义合并登记（§1）+ 20 件码面/doc 锚 blob 重钉（§0.1）+ 行号漂移登记（§0.3）+ 否决清单（§1.3）。
+- **件①（GAP-MOP-01 `:74` → 恰一 case）**：wakeup 切流 case = **`pnpm worker-wakeup-redis:prove`**（harness `redis-streams-wakeup.prototype.md` CMD 表同名行·conn-stack forwarder 承载·静态钉+本地 `:63809` 发/收一条 wake·零凭据）——未来授权切流 REQUEST 的 evidence-cell 具名 wakeup 侧主判据**候选** case（conn-only 形）。**行使前置（§9-rev R3）**：须 `docker compose -f docker/compose.mysql-local.yml up -d redis`——`:63809` 为 **Redis**（勘误派单 brief「`:63809` PG」误标·compose `:30` `63809:6379` 亲证）·EXEC 期容器依赖预登。随包义务（沿承 §2b-1/-2/-4/-5 四件·本卷不执行）：flag `MEETWISE_WAKEUP_REDIS_STREAMS` 审后开 · 保留 reconcile · 旧 `worker-wakeup:prove` 标红或换夹具 · 「本绿 ≠ 已迁」随包输出 · **第五件（§2b-3·补于 §9-rev R1）**：切流 wakeup prove 仍属未来授权 REQUEST 自带（立卷 §5「不命名·不授权」沿承）——本件=行→case 映射钉定，非其替代、非排他。**判据边界注（§9-rev R2）**：`publishWorkerJobWakeup` 全仓零生产调用方·生产 Streams 面仅消费侧接线 `main.ts:690-719`·发布面属切流包未来交付物·prove 用 `:prove` 后缀流/组非生产拓扑·无断连窗持久性断言（§1.2 同注详）——防未来切流 REQUEST 读窄「唯一主判据」。
+- **件②（BUG-NOTIFY-REC `:101` → 恰一 case）**：双 reconciler prove case = **Q4 `pnpm model-invocation-reconcile:prove` + Q5 `pnpm model-op00-usage-reconciler:prove` 同 SHA EXIT 0/0**（一行一 case·双半同门·沿矩阵 `:488` nail 口径）——该行 evidence-cell 具名 case。**行使前置（§9-rev R4）**：须隔离 PG runner（`assertIsolatedTestTarget` 容器 nonce·零模型 Key）。随包义务：**强制** periodic reconcile 在 sole stack 的证明路径（立卷 §2b-2 沿承·实现属 GAP-MOP-03 域·本卷零实现）。现状旁证（非关闭依据）：`pnpm drain:prove` 周期臂确定性 prove+`main.ts:505-509` bounded scan+listener proof `:110-114`——漏唤醒=有界延迟窗实存·「未证明 ≠ 不存在」两侧均 Ban（`:84` Ban 两头漂移逐字沿承）。
+- **件③（本卷自身=侦察交付）**：两行语义合并登记（§1）+ 19 件码面/doc 锚 blob 重钉（§0.1）+ 行号漂移登记（§0.3）+ 否决清单（§1.3）。
 - **零 invent covered**：两行 OPEN 不动·REDIS-WAKEUP=`partial` 不动·coveredCount 口径零触·任何 case 映射都**不**写成 covered/已闭——映射只回答「届时拿哪条 CMD 验哪行」·不回答「已验」。
 - **零 live key**：全卷零 `.env*`·零凭据·零生产外呼·est live=0（§6）。
 
@@ -128,3 +128,12 @@
 - **机制不满足**：两行语义与本卷 §1 分解不符（如发现 flag 已默认开·或 PG listener 已非无条件启动）→诊断被证伪→停·如实升级协调方。
 - **越界需要**：诉求超出 docs-only 恰 1 件落件（需动码/动注册行/动 SSOT/动 flag/动旧 prove）→停·另刀或协调方裁决（§1.3 五否决沿承）。
 - **验收红不可修**：§2 任一门红且根因不在本卷交付面（docs:check>cap/markers 命中/外来 tracked 路径）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
+
+## §9-rev rev1 修订登记（pre-exec 双审第一轮两席收敛=席1 FAIL P1×1+席2 PASS P2×4·纯文面·逐条落点·append-only·落卷即停·STOP 维持 `draft:awaiting_pre_exec_dual`·回炉重派双审第二轮）
+
+- **R1（P1·席1·件① 非替代声明）**：①「wakeup 侧唯一主判据 case」→「evidence-cell 具名 wakeup 侧主判据**候选** case（conn-only 形）」（落点：件① 判据句）；②随包义务补第五件「§2b-3 切流 wakeup prove 仍属未来授权 REQUEST 自带（立卷 §5『不命名·不授权』沿承）——本件=行→case 映射钉定，非其替代、非排他」（落点：件① 随包义务清单末·立卷 §2b-3「不命名不授权」+§5 计划表「不命名 · 不授权」两处原文亲证）；③「沿立卷 §2b 逐字沿承」→「沿承 §2b-1/-2/-4/-5 四件」（落点：件① 随包义务括注·原四清单项恰对应 §2b-1 flag 审后开/§2b-2 保留 reconcile/§2b-4 旧 prove 处置/§2b-5 本绿≠已迁）。修订实质：防未来切流 REQUEST 将本卷行→case 映射误读为对 §2b-3 prove 义务的替代或排他命名——prove 义务归属不因本卷映射而移转。
+- **R2（P2-1·席2·判据边界注）**：补注 `publishWorkerJobWakeup` 全仓零生产调用方（`worker-job-wakeup-redis.ts:70` 导出·全仓唯一调用方=redis proof `:38`·rg 亲证）·生产 Streams 面仅消费侧接线 `main.ts:690-719` · 发布面属切流包未来交付物 · prove 用 `:prove` 后缀流/组非生产拓扑（proof `:31-32` 亲证）· 无断连窗持久性断言——防未来切流 REQUEST 读窄「唯一主判据」（落点：§1.2 Streams 旁路 bullet 末+件① 尾注·两处同文）。
+- **R3（P2-2·席2·件① 行使前置）**：件① 加行使前置一行「须 `docker compose -f docker/compose.mysql-local.yml up -d redis`」——`:63809` 为 **Redis**（勘误派单 brief「`:63809` PG」误标·`docker/compose.mysql-local.yml:30` `63809:6379`+`:25-26` redis service 亲证）·EXEC 期容器依赖预登（落点：件① 行使前置句）。
+- **R4（P2-3·席2·件② 行使前置）**：件② 加行使前置一行「须隔离 PG runner（`assertIsolatedTestTarget` 容器 nonce·零模型 Key）」（Q4 `model-invocation-reconcile.proof.ts:108`+Q5 `usage-calibration-reconciler.proof.ts:97` assertIsolatedTestTarget 亲证·隔离 runner 容器 nonce 形 `run-e2e-isolated.mjs:2766` 亲证）（落点：件② 行使前置句）。
+- **R5（P2-4·席2·锚勘误三处）**：①§0.1 conn-stack 行锚 `:18`/`:19`→**`:27`/`:28`**（CANONICAL_CMD/REDIS_PORT 实位亲证·`:18-25` 系路径常量行）；②件③「20 件」→**19 件**（§0.1 表实数 19 行亲点）；③§0.2-1「行 13」→**行 14**（`gap-bug-backlog.md` 在 §0.1 表第 14 行）。
+- **门复跑（rev 落卷 turn·本席亲跑）**：markers 五类标记词零命中（词面运行时组装防自指·沿 i6-239 门口径·命令与回执随双审留痕）·docs:check EXIT=0 scanned **2344**≤cap **2354**（§2-4 口径·零新增受管文件）·diff 面恰 1 tracked=本卷 .md·est live=0·STOP 维持 `draft:awaiting_pre_exec_dual`·rev 后回炉重派 pre-exec 双审第二轮·翻面权归协调方。
