@@ -55,7 +55,7 @@
 | NHP-011-NEG-01 | 011 | NEG | api | quarantine 后误退 | confirmed 不退；可解释 | **partial** | uc011 http/prove |
 | NHP-011-FAULT-01 | 011 | FAULT | api/worker | 面试失败→released+额度净 0 | HTTP 额度口径 | **partial** | 同上 |
 | NHP-011-BOUND-01 | 011 | BOUND | api | 幂等误 release | already_confirmed | **partial** | 同上 |
-| NHP-011-ADV-01 | 011 | ADV | api | refund-callback 错签/重放 | 拒；无双退 | **gap**→**case-only** | 产品口缺失 = 仍 gap 执行面 |
+| NHP-011-ADV-01 | 011 | ADV | api | refund-callback 错签/重放 | 拒；无双退 | **gap**→**case-only** | 产品双口已落（主口 `POST /payment/refund-callback` + Path A · 2026-10-06 Line V/Z nail · 原「产品口缺失」句停用）；ADV 收据=case registration only：2026-10-26 EXEC tip 隔离 68/68+41/41 EXIT=0（`ai-docs/delivery/receipts/uc011-adv/`）· 执行面仍 case-only 非闭合（EXIT0≠covered） |
 | NHP-011-LOAD-w-01 | 011 | LOAD | worker | 并发失败退款风暴 | 无双退；账本一致收据 | **blind**→**case-only** | — |
 | NHP-014-ADV-01 | 014/026 | ADV | api | webhook 重放/篡改七类 | 幂等+拒 | **gap**→**case-only** | 错签 403 partial 仅子集 |
 | NHP-017-FAULT-01 | 017 | FAULT | api/db | begin-fail 孤儿 reserved | sweeper→released | **partial** | uc017:orphan:prove |
