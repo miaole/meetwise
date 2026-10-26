@@ -471,6 +471,11 @@
     },
     {
       "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-recon-truth-inject.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
       "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
       "class": "test-isolation"
     },
@@ -1197,6 +1202,11 @@
     {
       "name": "MODEL_API_KEY",
       "source": "apps/api/test/uc-e2e-025-nhp-bound-isolated.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-recon-truth-inject.proof.ts",
       "class": "test-isolation"
     },
     {
