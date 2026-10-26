@@ -23,6 +23,7 @@
     "growth": "tsx test/growth.proof.ts",
     "prove:vectorstore": "tsx test/vectorstore.proof.ts",
     "prove:migrate": "tsx test/migrate.proof.ts",
+    "prove:checkpoint-schema-selfcheck": "tsx test/checkpoint-schema.proof.ts",
     "prove:authz5a-email-normalization": "tsx test/authz5a-email-normalization.proof.ts",
     "prove:authz5a-mirror": "tsx test/authz5a-gateway-mirror.proof.ts",
     "prove:authz5a2-stale-payload-ttl": "tsx test/authz5a2-stale-payload-ttl.proof.ts",
@@ -61,6 +62,7 @@
     "prove:int-transcript-answer-fact-root": "tsx test/int-transcript-answer-fact-root.proof.ts",
     "prove:int-transcript-remaining-sinks": "tsx test/int-transcript-remaining-sinks.proof.ts",
     "prove:int-answer-dual-write-fence": "tsx test/int-answer-dual-write-fence.proof.ts",
+    "prove:interview-event-retention": "tsx test/interview-event-retention.proof.ts",
     "prove:db-id-v7": "tsx test/db-id-v7.proof.ts",
     "prove:db-trigfam": "tsx test/db-trigfam-unify.proof.ts",
     "prove:dbhy1": "tsx test/dbhy1.proof.ts",
@@ -110,6 +112,6 @@
     "typescript": "catalog:",
     "@types/node": "catalog:",
     "@langchain/langgraph-checkpoint-postgres": "catalog:langchain",
-    "@langchain/langgraph-checkpoint": "1.1.3"
+    "@langchain/langgraph-checkpoint": "catalog:langchain"
   }
 }

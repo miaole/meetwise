@@ -66,7 +66,7 @@ export default async function InterviewsPage({ searchParams }: { searchParams: P
           <p role="alert" className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
             {actionError.text}
             {actionError.href && (
-              <Link href={actionError.href} className="ml-1 font-medium underline underline-offset-4">额度说明</Link>
+              <Link href={actionError.href} className="ml-1 font-medium underline underline-offset-4">{actionError.hrefLabel ?? '额度说明'}</Link>
             )}
             {actionError.note && <span className="mt-1 block text-xs opacity-80">{actionError.note}</span>}
           </p>
