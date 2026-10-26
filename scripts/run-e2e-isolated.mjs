@@ -1201,11 +1201,19 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0086_qbank_routed_metadata_taxonomy.sql',
     'packages/db/migrations/0087_qbank_control_definer_corpus_dependency.sql',
     'packages/db/migrations/0089_qbank_taxonomy_definer_manifest.sql',
-    'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
+      'packages/db/migrations/0073_rag_control_plane_identity_isolation.sql',
       'packages/db/migrations/0074_rag_rebuild_request_fence.sql',
       'packages/db/migrations/0079_rag_control_acl_allowlist.sql',
       'packages/db/migrations/0080_rag_control_executor_membership_allowlist.sql',
       'packages/db/migrations/0081_rag_control_dispatch_concurrent_replay.sql',
+  ],
+  // AG-36: checkpoint 基座版本自检 prove(常量↔vendor 绑定 + 匹配/失配双臂 + 身份可达 42501 负例)。
+  'checkpoint-schema:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'packages/db/test/checkpoint-schema.proof.ts', 'packages/db/src/checkpoint-schema.ts',
+    'packages/db/src/migrate-cli.ts', 'packages/db/src/migrate.ts', 'packages/db/src/principal.ts',
+    'packages/db/migrations/0043_langgraph_checkpoint_least_privilege.sql',
+    'packages/db/migrations/0045_checkpoint_thread_rls.sql',
   ],
   'rag-corpus-version:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -2255,6 +2263,8 @@ if (![
   'scor-00:http:prove:raw',
   'online-judge-control:prove:raw', 'qbank-control-role:prove:raw', 'qbank-handoff-closure:prove:raw', 'embed-cache:prove:raw', 'qbank-integrity-upgrade:prove:raw', 'qbank-retrieval-eval:prove:raw',
   'rag-control-role:prove:raw', 'rag-control-upgrade:prove:raw', 'rag-control-dispatch:prove:raw', 'migrate-cli:prove:raw',
+  // AG-36: checkpoint 基座版本自检 prove 接隔离 PG runner(装库形=proof 内 loadMigrations+runMigrations 全量真实迁移集·非预迁移名单)。
+  'checkpoint-schema:prove:raw',
   'recruiter:prove:raw',
   'commerce-reconcile:prove:raw',
   'commerce-outbox-retention:prove:raw',
@@ -2557,6 +2567,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'packages/db', 'prove:rag-control-upgrade']]
   : target === 'migrate-cli:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'prove:migrate-cli']]
+  : target === 'checkpoint-schema:prove:raw'
+    ? ['pnpm', ['-C', 'packages/db', 'prove:checkpoint-schema-selfcheck']]
   : target === 'scoring-integrity:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:scoring-integrity']]
   : target === 'scoring:eval:raw'

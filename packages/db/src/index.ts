@@ -41,6 +41,7 @@ export {
 export type { TenantEnforcementCode } from './tenant/index.ts';
 export { enrollCheckpointThread } from './checkpoint/checkpoint-thread.ts';
 export type { CheckpointThreadEnrollment } from './checkpoint/checkpoint-thread.ts';
+export { EXPECTED_CHECKPOINT_MIGRATIONS, assertCheckpointMigrationsCurrent, CHECKPOINT_MIGRATIONS_VERSION_MISMATCH } from './checkpoint-schema.ts';
 export { revokeCheckpointThread, assertInterviewPrivacyActive, isInterviewPrivacyActive, beginCheckpointErasure, listClaimableCheckpointErasureTargets, claimCheckpointErasureTarget, purgeCheckpointErasureTarget } from './checkpoint/checkpoint-privacy.ts';
 export type { CheckpointErasureRequest, ClaimedCheckpointErasureTarget } from './checkpoint/checkpoint-privacy.ts';
 // 隐私删除授权签发器（INT-TRANSCRIPT-00 账本：单次 jti CAS 消费 + 受约束 claim + 逐 sink receipt）
