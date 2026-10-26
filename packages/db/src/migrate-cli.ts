@@ -1,6 +1,6 @@
 /** Dedicated production migration entrypoint. It is intentionally separate from API/worker startup. */
 import { fileURLToPath } from 'node:url';
-import { assertDistinctProvisionedLoginNames, assertQbankControlDefinerOwnership, assertQbankControlExecutorIdentity, assertRagControlDefinerOwnership, assertRagControlExecutorIdentity, createPool, loadMigrations, provisionPrivacyWorkerLogin, provisionQbankControlDefiner, provisionQbankControlLogin, provisionRagControlLogin, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString, runMigrations, warmUpPool } from './index.ts';
+import { assertCheckpointMigrationsCurrent, assertDistinctProvisionedLoginNames, assertQbankControlDefinerOwnership, assertQbankControlExecutorIdentity, assertRagControlDefinerOwnership, assertRagControlExecutorIdentity, createPool, loadMigrations, provisionPrivacyWorkerLogin, provisionQbankControlDefiner, provisionQbankControlLogin, provisionRagControlLogin, provisionRuntimeLogin, rebindDatabaseLogin, resolveDatabaseConnectionString, runMigrations, warmUpPool } from './index.ts';
 
 async function main(): Promise<void> {
   const pool = createPool({ purpose: 'migrate' });
@@ -13,6 +13,13 @@ async function main(): Promise<void> {
     const migrationDir = fileURLToPath(new URL('../migrations', import.meta.url));
     const migrations = loadMigrations(migrationDir);
     const result = await runMigrations(pool, migrations);
+    // AG-36: checkpoint schema version self-check.  0043 hand-mirrors the
+    // vendor migrations and 0045 keeps migration bookkeeping with the
+    // migration login (app_role is revoked), so this read only ever succeeds
+    // here — post-flight on the migrate connection.  A vendor/0043 drift
+    // throws checkpoint_migrations_version_mismatch and exits 1, failing the
+    // deployment window instead of surfacing as runtime SQL errors.
+    await assertCheckpointMigrationsCurrent(pool);
     const runtimeUser = process.env.APP_RUNTIME_DB_USER;
     const runtimePassword = process.env.APP_RUNTIME_DB_PASSWORD;
     const qbankControlUser = process.env.QBANK_CONTROL_DB_USER;
