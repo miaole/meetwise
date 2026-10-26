@@ -141,6 +141,53 @@
 
 **rev 门复跑**：markers 五类零命中（本 rev 改动集 grep 亲跑·§7 同口径）+ docs:check 2343≤2354 EXIT=0 亲跑。**STOP 终态不变**：`draft:awaiting_pre_exec_dual`（三处钉维持）·rev 落卷≠双审 PASS·双审重审权归两外席·开工三条款照 §8。
 
+## §9-EXEC（EXEC 落码落卷 · EXEC 席 2026-10-26 · 协调方授权 EXEC 在案·隔离门红停承登 · 纯 additive 落卷 · 零 SSOT 翻面）
+
+协调方授权随令：pre-exec 双审双 PASS + **争用面串行条款先行授权在案**（§0.0 注册面写入顺序裁决=本卷 EXEC 先行落·余者并线时 replay）。**本机 docker 缺失如实预登（EXEC 期容器依赖·沿 UC-004/UC-028 红停先例）**——本节为落码防丢 + 静态门承登 + 红停如实承登；§1.4 修法面/§5 Ban/pins/§1.3 六否决零翻。
+
+### 9E.0 EXEC 立项重 pin（双审席 2 F1 清单五件·全数本席亲证落卷）
+
+1. **§0.1 三 blob 重锚**（届时 tip=origin/main `38f6e7d78`·`git rev-parse --short=8 origin/main:<path>` 亲算）：
+   - matrix `0cf6ae18`→**`788423b1`**（519 行不变）——行号锚逐处亲证零漂：§1.0.1 UC-019 行 `:124`（六列 cell 逐字复核：`| UC-E2E-019 | **partial** | **partial** | **partial**（retry 幂等） | **blind** | regenerateAttempt GAP |` 未动）· §1.0.2 `:148` · §1.2 详情行 `:182` · §3 P1-5 `:271` · §0.5 强制列 `:47-49`/列值词汇 `:68`/covered 禁填 `:80` · §1.0.3 `:164`；blob 漂移唯一成因=主线勘误 `58593dcc5` 对 `:182` 行内 append（见本节 3）
+   - harness `8e7991e5`→**`fd080ee2`**（130 行不变）——§0 立场 `:21` · §1b 表 `:66-73`（#1 `:68`/`#3` `:70`/`#5` `:72`）零漂；blob 漂移成因=勘误五处 append（`:7`/`:33`/`:48`/`:56`/`:102`）
+   - case-matrix `bbbe217d`→**`e6c669ba`**（189 行不变）——§1.2 题 `:51` ✓ · **表头 `:52-53`→`:53-54`（+1 行号校正：起草卷载 `:52-53` 实测 `:52` 为空行·表头+分隔行实落 `:53-54`·逐行 awk 亲证）** · 019 case `:70`/`:71`/`:72` ✓ · §1.3 起 `:74` ✓；blob 漂移成因=勘误 `:72` 行内 append
+2. **§0.2-3① 陈旧句现势改登**：五陈旧句（`:33`/`:37`/`:48`/`:56`/`:70`）中 **`:37`（H3 行）/`:70`（§1b #3 行）两处仍陈旧**（勘误未触·本卷零触零洗·V5 对照臂现势复验即活对照）；**余三处（`:33` G3 行/`:48` 搜码行/`:56` 不测行）+头部关联（`:7`）+旁证行（`:99` 区·勘误 commit 自载 `:102`）已由主线勘误 `58593dcc5` append 注记（留痕不洗）**。
+3. **§0.2-3② 矩阵 `:182` 详情行**：**已被主线勘误 `58593dcc5` 同形 append（行旗 partial/≠covered/coveredCount=8 零动）·翻面权已行使**（协调方侧）——本卷对 `:182` 零触零改写。
+4. **§1.4 harness-append 落点改钉**：EXEC 期**不再**对 harness 五处/卷尾行使第二次注记（**Ban 二次注记五处**）——落点改为**引用既有勘误行**（`58593dcc5` 已逐处 append·勘误行即现势注记面·留痕不洗）；原 §1.4「harness 注记形一节」行使面就此闭合·本卷全部改动对 harness 文件零触。
+5. **§0.0 刷新**：`git worktree list` 本 turn 实测 **30** 树（rev 26 后新增 flip4/rag02/ttl/qfix 等线·交叠复核见 9E.3）· uc028 tip `8f86d50a5`→**`ab03b610e`**（其上 +1「正则兼容换行」修正·触面=其 REQUEST+其 proof·注册面零新增触）· uc004 tip `9e17c3713` 维持；**origin/main 重 pin 基线 `38f6e7d78`**（`git fetch` 本 turn 亲证 tip 同指；`ab282ba81..origin/main` 恰 **13** commit·其中触三 doc 者恰勘误 `58593dcc5` 一件；机制源六 blob——controller `d10db4ae`/service `a8ae0d15`/interview-report `ae928db6`/report.ts `c6ccd01c`/uc019 双 proof `921703c1`+`970e755b`——对 base/本卷 HEAD/main 三点亲证零漂，「结论不变只更行号」成立面）。
+
+### 9E.1 落码面（WIP 落卷核验·本席 git status/diff 亲证）
+
+- 新 prove：`apps/api/test/uc-e2e-019-nhp-adv.proof.ts`——**V1-V6 对抗臂落码形**：V1 未鉴权 401+零副作用 · V2 跨 owner **410 GONE `interview_privacy_fenced`**（stub 形·`guardInterviewPrivacyTx :64-73` 先于状态 SELECT 亲证）· V3 伪造状态 `ready`/`running` 双臂 404 `no_retriable_report`+零副作用 · V4 五连发**真序列 200/404/404/429/429**（`report_retry_limited`·RL 令牌逐发消耗·恰单行·零重复入队·额度不变·429≠幂等键钉）· V5 quarantined **对照臂** 200 `requeued:true`+`attempts=0`+额度不变+confirmed（H3 同构·PIN_RETIRED）· V6 information_schema **双查**（零 regenerate* 列/表）+**伪造 `regenerateAttempt` 字段双发半臂**（body 一发+query 一发·行为与无字段同 200→404·键零物化）+GAP_PIN 族再钉。`mkAssert('uc019:nhp-adv')`+`_neg-harness` boot·per-arm 独立 fixture（RL 桶 `report_retry:<id>` 按报告分键臂间零共桶·遗留 queued 逐臂 parked 出 claim FIFO）·零 invent covered·零 live key（harness `delete MODEL_API_KEY` 承接·零模型外呼）·头注+卷尾 honesty 钉「EXIT0=case≠covered」。
+- 注册三触点：根 `package.json` 两行（`uc019:nhp-adv:prove`/`uc019:nhp-adv:prove:raw`）+ `apps/api/package.json` 一行（`prove:uc019-nhp-adv`）+ `scripts/run-e2e-isolated.mjs` **三处 additive**（①收据来源清单 `uc019:nhp-adv:prove:raw` 条目·邻 uc019:http 族·含 controller/service/interview-report/rate-limit.service 四机制面；②允许表 `'uc019:nhp-adv:prove:raw'` 邻位 append 于 `'uc019:report-regenerate:http:prove:raw'` 后；③分派 ternary → `['pnpm', ['-C', 'apps/api', 'prove:uc019-nhp-adv']]`）——registerForm 链路闭合（根→壳允许表✓分派✓→apps/api→proof 文件）+`node --check scripts/run-e2e-isolated.mjs` 语法过，本席亲证。
+- **未行使面如实登记**：§1.4 双表同步令（矩阵 `:124` ADV cell `blind→case-only` 措辞+读法列 append·case-matrix `:72` 后补 `NHP-019-ADV-01` 行）**本 commit 未行使**——case-only 翻措辞与运行门真实绿 EXIT 绑定·红停期零宣称（沿 uc004 EXEC 红停先例：其 EXEC commit 同样零触矩阵/case-matrix）；待容器恢复行使门 1 得真实 EXIT=0 后随收据同 turn 行使。
+
+### 9E.2 静态门（EXIT 原值·本席届树复跑亲测·attempts 台账含红次如实）
+
+- **typecheck**：`pnpm turbo typecheck --force` → **8 successful, 8 total（0 cached）·EXIT=0**（attempts：首跑 EXIT=2 红一次——本 proof V5 release 断言括位 TS1005 本席改码·复跑绿；红次留痕不冲销）
+- **lint**：`pnpm turbo lint --force` → **12 successful, 12 total·EXIT=0·0 errors**；根 **5242/5242** 恰等、api **1423/1423** 恰等（attempts：首跑 EXIT=1 红一次——本 proof 新增 5 warning 致 api 1428>1423：`A_`/`B_`/`parked_by`/`column_name`/`table_name` 五处 naming-convention·本席改码 `HDR_A`/`HDR_B`/`parkedBy`/SQL alias camelCase 后复跑恰等·**帽值零动**）·domain 115/ai-graphs 47/contracts 265/web 601/ai-runtime 628/db 1042/worker 959/qdrant-store 27 各恰其帽
+- **docs:check**：`node scripts/ai-docs/check-docs.mjs` → **EXIT=0·扫描 2344 ≤ cap 2354**（rev 2343+本卷新 proof 1·余 10·`MAX_FILES=2_354` 零触）
+- **markers**：改动集五类标记词+冲突标记对 grep **零命中·EXIT=0**（词面运行时组装·沿 `scripts/i6-239-gates.proof.mjs :154-163` 门口径·改动集=本节 REQUEST 行+新 proof+注册三文件）
+- **diff 面机检（§2-3 EXEC 口径）**：恰 5 tracked 路径=本卷 .md（§9-EXEC append）+新 prove+注册三文件；矩阵/case-matrix/harness/既有双 proof/产品源 **零触**
+
+### 9E.3 在飞交叠复核（30 树逐线 post-base unique 触面扫描·本席亲跑）
+
+- **注册面（争用面）**：uc004 `9e17c3713`（3 unique commit·恰其 EXEC 一件触注册面）+ uc028 `ab03b610e`（4 unique·恰 `8f86d50a5` 一件触）——两线各带**自家** EXEC 注册行·未并线；本卷三处 additive 与两线行位错行（各邻自家条目）·**串行条款先行授权在案**·并线顺序=协调方裁决（先落者定·余者 replay 注册行·Ban 就地 merge/rebase 他线）
+- ag18 `4c2ea4c9f`/cap72 `52846f9d8`/state `fb74ae6a4` 三线含非主线 `package.json` 触史（`7f0b33520` lint 帽步进等·2026-10-18 日期早于本卷 base 2026-10-26·feat 并线平行 commit·非本卷 base 后新漂移）——**登记不阻断**
+- 本卷触面（矩阵 `:124`/case-matrix 019 区/harness `uc-e2e-019`/uc019 双 proof/`uc-e2e-019-nhp-adv.proof.ts` 全仓零既有）逐线 `git log` 扫描零命中·批 A/B 行级互斥维持；主线 13 commit 对触面恰勘误一件（9E.0-5）
+
+### 9E.4 隔离门红停承登（不宣称收口）
+
+- **本机 docker 缺失亲证**：`command -v docker` EXIT=1（command not found）·`podman` 同缺·`/Applications/Docker.app` 不存在——隔离壳容器 runtime 无法 boot
+- **门 1（`pnpm uc019:nhp-adv:prove` V1-V6）实测**：壳层 `BoundedCommandError: bounded_command_spawn_failed` → **EXIT=1**——红停于容器 spawn·非用例红（V1-V6 断言面未得行使）；既有 uc019 db 29 臂+http 35 臂回归复跑同经隔离壳**未行使**（零触零改写面维持）
+- 待容器环境恢复后由协调方行使门 1+回归门·凭真实 EXIT 值另行落卷·**Ban 以静态四门绿顶替运行门绿**
+
+### 9E.5 STOP 处置（沿 UC-004/UC-028 红停先例）
+
+隔离门未行使、运行绿未得——**§8 状态维持 `draft:awaiting_pre_exec_dual` 不翻**（三处钉维持）：零 covered 宣称·矩阵/checklist/backlog/双表零触·`coveredCount=8` 零动·pins 十一值零翻·releaseEvidence=false · Not HA · est live=0 · actualSpendCny=null；本 commit=落码防丢+注册三触点+静态门承登+隔离门红停承登。
+
+draft:awaiting_pre_exec_dual（§9-EXEC 卷尾钉 · 与卷首行/§8/§9-rev 同值 · STOP 维持 · 红停承登 · 隔离门未行使不宣称收口）
+
 ---
 
 *UC019-E2E REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（本卷唯一 STOP 终态·三处钉：Status 行+§8+本行）· 剩余队列 Phase2 #12 one-knife-one-row 单行卷 · 覆盖矩阵 §1.0.1 UC-E2E-019 `:124`（NHP 批 A/B 未认领剩余行·两卷表内明钉留后）· 缺列=ADV blind（case-matrix `NHP-019-ADV-01` 行缺席实证）· 修法=一行一 case 缺列隔离收据（恰一独立新 prove `NHP-019-ADV-01` V1-V6·零产品码触·零 invent covered·零 live key）· regenerateAttempt 幂等键/A3/demand-path/full.e2e 缺口如实再钉（产品实现=另刀）· 历史卷 line/report-retry D2 五件已落主线 @`f93984a9a`（quarantine 出口面已闭·互补不重叠·分支 tip 未并线）· §1.3 六否决 · 双表同步令沿 §1.0.3 `:164` · base=origin/main `ab282ba81` · 分支 `line/uc019-draft` · 工作树 `meetwise-uc019` · 与批 A（`:114`/`:118`/`:128`）批 B（`:115-117`）行级互斥零重叠 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push*
