@@ -4,30 +4,45 @@
 
 ## 一、当前状态（2026-10-26 快照）
 
-- 主线 `main` @ `ab282ba81`（PR #123 cap-2354 已并；本次 fetch 前值 47dd6be56）
-- 修复进度：批表 238/271（87.8%，权威计件源=本分支 `.tmp/external/issues-master.md`）；翻面笔-3（`line/bookkeeping-flip-3` @ `88762a65c`）已落卷待 PR 并线
-- AI 能力台账：done 45 / half 1（AG-20）/ open 3（全门控）
-- 文档数量帽：`scripts/ai-docs/public-text-policy.mjs` MAX_FILES=2354，届树实测 2342（余 12，docs:check EXIT=0 本席亲跑）
+- 主线 `main` @ `15d4c1e3c`（PR #130 queue-stale-fix 已并；本次 fetch 前值 ab282ba81）
+- 修复进度：批表 238/271（87.8%，权威计件源=本分支 `.tmp/external/issues-master.md`；翻面笔-3 已随 PR #127 波并线、翻面笔-4（PR #129）随卷行使收口）
+- AI 能力台账：done 47 / half 0（half 清零·AG-20 残面登记卷 PR #124 已并+翻面笔-4 收口）/ open 3（AG-13 线上数据 / AG-32 UNSTUB-VOICE 部署 / AG-36 EXEC 待容器）
+- 文档数量帽：`scripts/ai-docs/public-text-policy.mjs` MAX_FILES=2354，届树实测 2343（余 11，docs:check EXIT=0 本席亲跑）
 - lint 帽恰等：root 5242 / api 1423 / domain 115（0 errors 红线不可放宽）
-- 本状态支线已补并主线新届：merge --no-ff origin/main@ab282ba81（merge-tree 预演 34 文件冲突·逐 blob 取证=支线侧全为陈旧祖先态·其内容已由主线 PR 波以更新形态收编·冲突解全取主线侧·blob 恒等机证零工作丢失）
+- 本状态支线已补并主线新届：merge --no-ff origin/main@15d4c1e3c（merge 预演零冲突·merge commit `bbc1ec49b`）
 
-## 二、在飞清单（2026-10-26·各卷 STOP 状态见各自 REQUEST）
+## 二、在飞清单（2026-10-26 刷新·各卷 STOP 状态见各自 REQUEST）
 
-六条 E2E 缺口卷 + AG-20 卷 + cap-2354（已并）+ 翻面笔-3（待 PR）：
+七条 EXEC 待容器刀 + 三条双 PASS EXEC 待容器刀 + 两条过会待流卷 + 三条新领包卷（全部卡同一环境前提=容器，见「环境阻塞」节）：
 
-| 分支 | 内容 | STOP/状态 | 下一步 |
+| 卷 | 内容 | STOP/状态 | 下一步 |
 |---|---|---|---|
-| `line/uc004-draft` @ `1c5a02600` | UC-004 career-path 全链路 e2e REQUEST（docs-only） | `draft:awaiting_pre_exec_dual`（席1 PASS+席2 FAIL 合并修订清单已 §9-rev 落卷） | 重派 pre-exec 双审第二轮 |
-| `line/uc025-draft` @ `6da9821c8` | UC-025 E2E 残面 REQUEST（BOUND 隔离收据+重押题入口+covered 评估器） | `draft:awaiting_pre_exec_dual`（席1 FAIL P1×3+P2×6 修订已 §9-rev 落卷） | 重派双审第二轮 |
-| `line/uc011-draft` @ `a23385730` | UC-E2E-011 E2E 覆盖 REQUEST（ADV 面隔离收据+矩阵六列补齐+covered-lift 评估） | `draft:awaiting_pre_exec_dual`（起草落卷 2026-10-26·双审首轮待派） | 派 pre-exec 双审首轮 |
-| `line/uc028-draft` @ `96f2dd241` | UC-E2E-028 E2E 补验 REQUEST（注入面/recon 对账断言/真相阻塞对照） | `draft:awaiting_pre_exec_dual`（双审 BOTH PASS 已折入落卷） | 待协调方明示 EXEC 授权 |
-| `line/nhp-batch-a-draft` @ `fbfdcc0c8` | NHP 批 A·§1.0 盲区三行缺列隔离收据 REQUEST | `draft:awaiting_pre_exec_dual`（起草落卷·双审首轮待派） | 派 pre-exec 双审首轮 |
-| `line/nhp-batch-b-draft` @ `c77057d6f` | NHP 批 B 残面 REQUEST | `draft:awaiting_pre_exec_dual`（席1 FAIL P1×3 撞行面修订已 §9-rev 落卷） | 重派双审第二轮 |
-| `line/ag20-residual-draft` @ `c2d0aeebd` | AG-20 残面复核登记卷（CTX-02 已接线·余 MEM/CTX 原语零调用维持登记） | 双 PASS·EXEC 中 | EXEC 落卷→post 双审 |
-| cap-2354 | 文档帽 2346→2354 步进 | 已并（PR #123 @ `ab282ba81`） | 已收口 |
-| `line/bookkeeping-flip-3` @ `88762a65c` | 批表时滞翻面补登记（docs-only） | 落卷完工 | 走 PR 并线（见「环境变更」） |
+| UC-004（`line/uc004-draft` @ `1c5a02600`） | career-path 全链路 e2e REQUEST（docs-only） | EXEC 待容器·落卷红停 | 容器恢复后 EXEC |
+| UC-028（`line/uc028-draft` @ `96f2dd241`） | UC-E2E-028 E2E 补验 REQUEST（注入面/recon 对账断言/真相阻塞对照） | EXEC 待容器·落卷红停（双审 BOTH PASS 已折入落卷） | 容器恢复后 EXEC |
+| UC-019（`harness/uc-e2e-019-report-regenerate.md`） | report-regenerate e2e 卷 | EXEC 待容器·落卷红停 | 容器恢复后 EXEC |
+| UC-025（`line/uc025-draft` @ `6da9821c8`） | UC-025 E2E 残面 REQUEST（BOUND 隔离收据+重押题入口+covered 评估器） | EXEC 待容器·放行未落码 | 容器恢复后落码 EXEC |
+| UC-011（`line/uc011-draft` @ `a23385730`） | UC-E2E-011 E2E 覆盖 REQUEST（ADV 面隔离收据+矩阵六列补齐+covered-lift 评估） | EXEC 待容器·放行未落码 | 容器恢复后落码 EXEC |
+| NHP-A（`line/nhp-batch-a-draft` @ `fbfdcc0c8`） | NHP 批 A·§1.0 盲区三行缺列隔离收据 REQUEST | EXEC 待容器·放行未落码 | 容器恢复后落码 EXEC |
+| NHP-B（`line/nhp-batch-b-draft` @ `c77057d6f`） | NHP 批 B 残面 REQUEST | EXEC 待容器·放行未落码 | 容器恢复后落码 EXEC |
+| AG-36 | langgraph-checkpoint 依赖钉版/版本自检刀 | 双 PASS | EXEC 待容器 |
+| GAP-MOP-01（`harness/gap-mop-01-wakeup-notify-rec.md`） | 唤醒通知 rec 刀 | 双 PASS | EXEC 待容器 |
+| 事件TTL（`harness/ttl-wire-REQUEST.md`） | 事件 payload TTL 清扫接线刀 | 双 PASS | EXEC 待容器 |
+| B端支付 | B 端支付卷 | 双 PASS·待席2 汇流确认 | 汇流后 EXEC 待容器 |
+| UC-017（`harness/gap-uc017-load-sweep-nhp.md`） | UC-017 LOAD sweep NHP 卷 rev2 | rev2 双 PASS | EXEC 待容器 |
+| UC-031 / UC-032 / UC-017 领包 | 三条新领包卷 | 领包 | 等各自 STOP |
 
-**帽量注意**：届树 2342 ≤ 帽 2354 余 12；在飞各卷并线前各自核 docs:check，贴边即先派帽步进（模板=仓内 `cap-sanction-*-REQUEST.md` 先例）。
+**帽量注意**：届树 2343 ≤ 帽 2354 余 11；在飞各卷并线前各自核 docs:check，贴边即先派帽步进（模板=仓内 `cap-sanction-*-REQUEST.md` 先例）。
+
+已收口归档（勿再派）：cap-2354（PR #123）、翻面笔-3（PR #127 波并线）、AG-20 残面登记卷（PR #124 + 翻面笔-4=PR #129·half 清零）。
+
+## 环境阻塞（2026-10-26）
+
+- **本机 Docker Desktop 已卸载** → `scripts/run-e2e-isolated.mjs` 的 220 隔离门（隔离容器 e2e/prove 全家）在本机停摆；「二」节七刀+三刀 EXEC 全部以此为前提。静态门（typecheck/lint/docs:check）不受影响。
+- 恢复方案对比（**待用户拍板，不要自行安装**）：
+  1. **colima（推荐）**：免费开源、CLI 轻量、`docker` CLI 兼容（`colima start` 后 docker context 直连）；缺点=无 GUI、k8s 需另配。对本战役「只需 docker run 隔离容器」的用法最贴合。
+  2. **Docker Desktop 装回**：与既有工作流零差异（此前 220 门先例全在其下跑）；缺点=占资源大、许可/_raw 膨胀老问题（「四」节 Docker.raw>20G prune 条款即其产物）。
+  3. **OrbStack**：macOS 上轻快、Docker+K8s 一体、`docker` CLI 兼容好；缺点=非全开源（个人免费商用付费）、生态较新。
+- 拍板前：所有 EXEC 形派单一律先停（红停如实登记，勿转伪造静态替代证据）。
 
 ## 环境变更（2026-10-26）
 
