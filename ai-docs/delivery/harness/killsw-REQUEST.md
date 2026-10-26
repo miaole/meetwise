@@ -1,0 +1,173 @@
+# KILLSW REQUEST — UC-E2E-050/051 kill-switch/无 PII 面起草卷·覆盖矩阵 §1.0.1 聚合行 `:132` 050/051 残余列 + §1.0.2 分面行缺席 + case-matrix §1.4 kill/no-pii 缺行处置（docs-only REQUEST 卷·起草落卷即停）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-10-26 · alone≠dual · pre-exec 双审两独立外席待派 · EXEC 须协调方明示授权）· **STOP 三处钉：本 Status 行 + §8 + 卷尾注**。
+
+**席位**：UC-050/051 kill-switch/无 PII 起草席（诊断+起草双责·协调方派·认领矩阵 `:132` 聚合行的 **050/051 部分**（UC-052 deletion/export 面零触·出域）+ case-matrix §1.4 kill/no-pii 缺行面·与批 A/B/C 及各 UC 专属线互斥不重叠）。
+**基线**：`origin/main` @ **`0246361dd`**（full `0246361dd75ac84beb70c6bed99be387da989499` · `git fetch origin` 本 turn 成功 · #148 micro-batch 并线点 · 分支 `line/killsw-draft` 建 worktree `git worktree add ../meetwise-killsw -b line/killsw-draft origin/main` 亲立 · HEAD 落 tip 亲证）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2382 ≤ cap 2386**（`public-text-policy.mjs:149` `MAX_FILES = 2_386` 亲证 · §2-1 预算核）· 工作树 `meetwise-killsw`（仓根同级）。
+**必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/delivery/REMAINING-NORTH-STAR-QUEUE.md`（Phase2 #12 行 `:28` · Phase 3 privacy `:31`）→ `ai-docs/delivery/e2e-requirement-coverage-matrix.md`（§0.5 强制列 / §1.0.1 `:132` 聚合行 / §1.0.2 分面区 `:142-157` / §1.0.3 `:164` 双表同步令 / §1.1 `:191`）→ `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md`（§1.4 `:96` 头 + `:105-114` NHP-050-\* 行——全归 UC-052 擦除域·本刀只读）→ `ai-docs/requirements/use-cases/e2e-scenarios.md`（UC-050 `:568-575` · UC-051 `:577-583` · 七类矩阵 050/051 行 `:633-634`）→ 涉事机制源 `apps/api/src/platform/content-safety.ts` / `apps/api/src/modules/interview/interview.service.ts` / `apps/api/src/modules/jobs/applications.service.ts` / `apps/api/src/platform/all-exceptions.filter.ts` / `packages/ai-runtime/src/langfuse-v5.ts` / `packages/ai-runtime/src/invoke.ts` → 先例 `apps/api/test/obs-logging.proof.ts`（子进程 pino 抓取+哨兵扫描形）· `apps/api/test/privacy-erasure-http.proof.ts`（DELETE=503 pin·只读旁证）· `packages/db/test/uc-e2e-018-graph-safely-terminated.proof.ts`（图安全终态先例·零触只读）。
+**立项出处（不自建 SSOT 行——翻面权归协调方）**：①`REMAINING-NORTH-STAR-QUEUE.md` Phase2 **#12「remaining NHP rows one-knife-one-row · highly parallel」**（`:28` 亲证·批 A/B/C 同源）+ Phase 3 privacy 域纪律（`:31` DELETE=503 freeze——本刀零触删除/导出面·freeze 维持）；②`e2e-requirement-coverage-matrix.md` §0.5 强制列令 + §1.0.3 `:164`「后续 knife 改行时必须同步改本表 + `non-happy-path-perf-load-case-matrix.md`；缺列视为未完成 G2/G6」；③协调方派单（UC-050/051 kill-switch/无 PII 面起草·docs-only 授权）；④结构范本=`harness/nhp-batch-c-REQUEST.md`（§0-§8 形制·在飞 `line/nhp-c-draft` @`caf1bef08`）。
+
+---
+
+## 残余盘点（认领核对·`:132` 聚合行四列逐 cell 定标可测面·050/051 残余亲读逐字）
+
+**已认领排除面**：批 A=`:114/:118/:128`；批 B=`:115-117`+§1.0.2 `:147-149`+case-matrix `:40-48` 邻区（executed·已并线 #146）；批 C=`:120/:121/:146`+case-matrix `:40/:88-89`（在飞 `line/nhp-c-draft` @`caf1bef08`）；UC-052 deletion/checkpoint/pool-role 面=`:132` 聚合行 UC-052 部分+case-matrix `:105-114` NHP-050-\* 全族（**归 UC-052 擦除域·本刀零触**）；UC-018 图 abandon 面=`:123`+`49a33634`（safely_terminated 先例·零触只读）；NHP-CLOUD-KILL-FAULT-01=`:137`（云 kill/跨 AZ·无授权 blocked·**出域**≠本刀应用层 kill-switch）。
+
+| 认领 cell（`:132` 行·050/051 部分） | 现列值（亲读逐字） | 可测面定标 |
+|---|---|---|
+| UC-050 · NEG | 「050/051 still **partial**/honesty-pin」 | honesty-pin=DELETE 503 pin（UC-052 面·非 050）；kill-switch 三态 fail-closed 非法值面（`invalid_meetwise_content_safety_kill_switch`→500 非 550 静默 off）**零 case** → 本刀 NEG 臂 |
+| UC-050 · FAULT | 「050/051 still **gap**」 | kill-switch 触发面（env=1 → begin/turn 双口 503+零入队零扣·两口闸序）**零 case 零 prove**（`content_safety_kill_switch` 词面全树 rg 仅 content-safety.ts+interview.service.ts 两产品文件·零 test 命中亲证）→ **本刀主缝** |
+| UC-050 · BOUND | 「050/051 still **blind**」 | off 态现状字节面（env=0/unset → begin 照常 202 对照）+ 双闸优先序面（kill 码先于 preview 码）零 case → 本刀 BOUND 臂 |
+| UC-050 · ADV | **blind**（全行） | applications.start 同核绕行面（`applications.service.ts:47-58`）=**如实登记 NOT claimed 残余**（D6 #239-① 最小集「begin/turn 双口」边界·本刀零臂零断言零修复·Ban 借旁证 wash） |
+| UC-051 · NEG | 「050/051 still **partial**/honesty-pin」 | partial 面源=PRIVACY-HTTP `:134` honesty-pin+`obs-logging` R3/R5 infra Ban 面——**业务黄金路径（简历全文/答案真值过 api 口）日志扫描零 case**（obs-logging runner 不触 DB·BODY_MARKER 系合成探针非业务真值）→ 本刀 NEG 主臂 |
+| UC-051 · FAULT | 「050/051 still **gap**」 | trace 脱敏面（langfuse `:118` mask+`invoke.ts:1176` redactOutput→`{redacted:true}`+`:1080/:1188` replayable=false·两产品行使点 `resume-ocr.ts:141`/`job-route-classify.ts:171`）零专案 case → 本刀 FAULT 臂（scripted 零外呼直行使形） |
+| UC-051 · BOUND | 「050/051 still **blind**」 | 错误堆栈面：响应体 opaque `internal_error`（`all-exceptions.filter.ts:39`）obs-logging R2 已证=partial 旁证；**堆栈内容面（err.message/stack 是否携带用户原文）+500 路径哨兵零 case** → 本刀 BOUND 臂 |
+| UC-051 · ADV | **blind**（全行） | 与 NEG/FAULT 同缝（PII 边角=哨兵形对抗：密钥形/令牌形/query 形哨兵）·随 Case 2 臂面覆盖·不单列 |
+| §1.0.2 分面 | **050/051 行缺席**（`:146-157` 逐行亲证） | EXEC 补登记行（PERF_api/PERF_web/LOAD_worker 三值 blind 如实·只登记不填绿·沿批 B UC-004 分面行先例形） |
+| case-matrix §1.4 | `:96` 头 + `:105-114` 无 kill/no-pii 行 | EXEC 补两新行 `NHP-050-KILL-01`/`NHP-051-NOPII-01`（**语义命名避让**：`NHP-050-FAULT-01..05` 已被 UC-052 擦除域占名·沿 `NHP-CLOUD-KILL-FAULT-01` 语义中缀先例） |
+
+**结论**：050/051 面**有缝可测**（kill-switch env 闸与无 PII 日志/trace 剥除机制全在树·零 case 零 prove=gap/blind 实证）→ 本刀恰 **2 case**；UC-052 deletion/export/DELETE 面出域零触（`:191`「Ban elevate UC-050/051/export」维持·coveredCount=8 不动）；停止条件「码面无可测注入缝」**未触发**。
+
+---
+
+## §0 现状锚（起草席亲读·file:line+blob 逐条 Read/git rev-parse/rg 亲算 @`0246361dd`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+### 0.0 防重双对表 + 在飞交叠登记
+
+- `git worktree list` 本 turn **32 树**实测——`line/killsw-draft` 恰 1 命中=本席；`ls ai-docs/delivery/harness/ | grep killsw` 落卷前**零命中** → 落卷后唯一同名卷=本卷。
+- **在飞线逐树亲读**（`git log -1` + `git diff --name-only origin/main...<branch>`）：
+  - `line/nhp-c-draft` @`caf1bef08`（executed 已 §9-post closed·未并线）——触面=矩阵 `:120/:121/:146` 行内改+case-matrix+egress-inventory+3 proof+收据；与本刀触面（矩阵 `:132/:191`+§1.0.2 **新登记行**+case-matrix §1.4 `:105-114` 邻区**新二行**）**零字面重叠**；但批 C 并线将使 case-matrix 增行→本刀 case-matrix 行号锚 EXEC 日重 pin。
+  - `line/micro-batch2-draft` @`0f71e1d9c`（closed 未并线）——触面=`micro-batch2-REQUEST.md`+`scripts/ha/ha6-companion.proof.mjs`·与本刀零重叠。
+  - `line/sse-adv-draft` 与 `line/pay-neg-draft` 双双 @`0246361dd` **零 commit**（认领面未落文·推断 SSE-ADV/支付 NEG 面·与本刀 050/051 面无字面交叠）——EXEC 立项日逐树 `git log -1 -- <触面文件>` 复核。
+- **在飞交叠复核规则（EXEC 立项日必做）**：本卷起草 turn 产品触面=0（docs-only 恰 1 新 .md）；EXEC 期触面=两 proof 新文件+注册行（root/apps/api package.json）+runner 注册位+本卷 .md+双表行内改（矩阵 `:132` 050/051 措辞注+§1.0.2 新登记行+case-matrix §1.4 两新行）。届时对各在飞分支执行 `git log -1 -- <触面文件>` 逐树逐件复核，任一分支顶对任一触面存在 `0246361dd` 之后新增提交→触停止条件「现场漂移」停手上报。
+
+### 0.1 blob 锚表（`git rev-parse <tip>:<path>` 亲算·8 hex·行数亲点）
+
+| 文件 | blob（行数） | 关键行锚 |
+|---|---|---|
+| `ai-docs/delivery/e2e-requirement-coverage-matrix.md` | `6fc92dd0`（520） | **§1.0.1 `:132`（UC-E2E-050–052 聚合行·050/051 残余列亲读逐字入盘点表）**·§1.0.2 `:142-157`（**050/051 行缺席亲证**）·§1.1 `:191`（「Ban elevate UC-050/051/export」亲读）·PRIVACY-HTTP `:134` · NHP-CLOUD-KILL-FAULT-01 `:137` · §0.5 `:47-84`（covered 禁填 `:80`）· §1.0.3 `:164` 双表同步令 |
+| `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md` | `cbf9d97f`（199） | **§1.4 头 `:96` · `:105-114` NHP-050-\* 全族（UC-052 擦除域·本刀只读·零 kill/no-pii 行亲证）**·读法 `:165/:168` |
+| `ai-docs/requirements/use-cases/e2e-scenarios.md` | `9976f9c3`（648） | **UC-050 `:568-575`（TC-E2E-050-kill `:575`）· UC-051 `:577-583`（TC-E2E-051-no-pii `:583`）**·七类矩阵 050/051 行 `:633-634` |
+| `ai-docs/delivery/REMAINING-NORTH-STAR-QUEUE.md` | `a7d8959a`（54） | Phase 2 #12 `:28` · Phase 3 privacy `:31`（DELETE=503 freeze） |
+| `scripts/ai-docs/public-text-policy.mjs` | `e33818a6`（447） | `:149` `MAX_FILES = 2_386`（cap 亲证 · §2-1 预算核） |
+| `apps/api/src/platform/content-safety.ts` | `50f8c9c3`（43） | `:1` 码常量 · **`:15-21` 三态 fail-closed resolve（unset/`0`=off · `1`=engaged · else throw `invalid_meetwise_content_safety_kill_switch`）**· `:27-33` 专名错误类 · `:39-43` assert 闸 · default-param 逐请求读 `process.env`（`:16/:40`·请求时闸语义） |
+| `apps/api/src/modules/interview/interview.service.ts` | `a8ae0d15`（918） | `:17-21` 闸 import · **`:335-348` `denyContentSafetyKilled`（`:341` 503 `content_safety_kill_switch_active`+诚实文案）**· **`:425` begin 口 / `:436` turn 口**——两口闸均先于 `:426`/`:437` `denyPublicPreviewWrite`（双闸优先序面）· 闸在 `requireOwnerUserId`/`beginInterviewCore` 之前=503 前置零扣零入队时序面 |
+| `apps/api/src/modules/jobs/applications.service.ts` | `e1bf8ff0`（121） | **`:47-58` `start()` 只过 preview 写门（`:48`）直调 `beginInterviewCore`（`:57`）——同核未过 kill 闸=绕行残余面（D6 #239-① 最小集边界·NOT claimed 登记）** |
+| `apps/api/src/platform/all-exceptions.filter.ts` | `5a5532d6`（41） | `:32` url 去 query · `:34` 堆栈只进日志（pino）· `:39` 未知错响应体 opaque `{error:'internal_error'}` |
+| `packages/ai-runtime/src/langfuse-v5.ts` | `63d5466c`（199） | `:114` shouldExportSpan 白名单 `meetwise.*` · **`:118` mask 字符串→`[redacted]`**· `:129-131` owner/thread/graphRun 伪名化 |
+| `packages/ai-runtime/src/invoke.ts` | `f6102433`（1250） | `:252` redactOutput 位 · **`:1176` redactOutput→stored `{redacted:true}`**· `:1080`/`:1188-1190` replayable=false 双门 · `:533` metrics label 低基数纪律 |
+| `packages/ai-runtime/src/resume-ocr.ts` + `job-route-classify.ts` | `b2c51425`（148）+`3b1e7081`（208） | `:141` / `:171` `redactOutput: true` 两产品行使点 |
+| `packages/ai-runtime/src/model-client.ts` | `f9fd3105`（1233） | `:146` `capUserData`（评分侧纵深兜底·旁证只读） |
+| `apps/api/test/obs-logging.proof.ts` | `94d6691d`（159） | `:22-23` 哨兵常量形 · `:76-80` R5 query 剥离 · **`:132-135` R3 Ban 面（authorization/body 哨兵零入卷）**——子进程 pino 抓取先例（infra 面·零业务黄金路径=本刀新证据层边界） |
+| `packages/db/test/uc-e2e-018-graph-safely-terminated.proof.ts` | `49a33634`（250） | abandon→safe_terminating→safely_terminated 图终态先例（零触只读·本刀 Ban 二次实现·NOTE-CKPT-UNSEALED-CLAIM-NEG「Line F REQUEST 不得码成第二实现」教训承形） |
+| `apps/api/test/privacy-erasure-http.proof.ts` | `d810d165`（467） | DELETE=503 pin 承载（UC-052/PRIVACY-HTTP 面·只读旁证·本刀零触） |
+
+### 0.2 机制补充锚（rg 亲证）
+
+- `MEETWISE_CONTENT_SAFETY_KILL_SWITCH` **不在 env-schema 注册**（`env-schema.ts` rg 零命中）——设计内：env 直读闸三态自校（`content-safety.ts:11-13` 注释「三态 fail-closed 沿 resolvePublicPreviewMode 先例形」），非法值 throw 不静默回退。
+- `content_safety_kill_switch` / `MEETWISE_CONTENT_SAFETY_KILL_SWITCH` 词面全树 rg：产品文件恰 2（content-safety.ts / interview.service.ts）·test/harness **零命中**=kill-switch 面 gap 实证。
+- `redactOutput`/`[redacted]` 词面 test 面 rg：仅 `uc-e2e-018-perf-load.proof.ts:119-122` 收据脱敏形（非产品脱敏断言）=no-PII 面 trace 侧零专案实证。
+
+### 0.3 认领登记（逐 cell 定标汇总）
+
+认领=矩阵 `:132` 聚合行 **050/051 部分**的 NEG/FAULT/BOUND 可测面（两 case 收据）+ §1.0.2 050/051 分面登记行（EXEC 补·三值 blind 如实）+ case-matrix §1.4 两新行（EXEC 补）；**不认领**：UC-052 deletion/export/DELETE 面（`:191` freeze 维持）、UC-050 ADV 的 applications.start 绕行修复（NOT claimed 残余·只登记）、UC-018 图 abandon 面（先例只读）。
+
+---
+
+## §1 红事实（机制链·全部亲证 @`0246361dd`·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
+
+### 1.1 UC-050 kill-switch 四读码面
+
+- **闸体读**：`content-safety.ts:15-21` 三态 fail-closed——unset/`0`=off（现状字节）·`1`=engaged·**其余值 throw `invalid_meetwise_content_safety_kill_switch` 不静默回退**；`:39-43` assert 闸抛专名错误类（`:27-33`）。
+- **接线读**：`interview.service.ts:335-348` `denyContentSafetyKilled()` 将专名错误映射 **503 `{error:'content_safety_kill_switch_active', message:'内容安全开关已开启：面试出题与作答提交暂停'}`**；`:425` begin 口 / `:436` turn 口双口接线亲证；两口内闸序=kill 先于 preview 写门（`:426`/`:437`）→ **双闸同设时 503 kill 码先行**（可测优先序）；闸在 `requireOwnerUserId` 与 `beginInterviewCore`（扣额/入队）之前 → **503 前置=额度零扣+job 行净 0**（期望值逐条对码）。
+- **边界读（残余·NOT claimed）**：`applications.service.ts:47-58` `start()` 直调 `beginInterviewCore`（`:57`）未经 kill 闸——同核双生产者中一者未接线，D6 #239-① 注释自钉「at the api begin/turn entries」最小集边界。本刀如实登记为绕行残余面：**零臂零断言零修复**（修复=产品码触·出域归产品刀·Ban 借本卷 wash 或宣称「全入口已闸」）。
+- **图面读（adjacency 只读）**：`safe_terminating→safely_terminated` 状态机经 abandon 路径已在树并有专案 prove（`49a33634` + worker ttl-sweeper T2 `safely_terminated` 臂）——本刀 Ban 二次实现（沿 NOTE-CKPT-UNSEALED-CLAIM-NEG 教训形）；kill-switch env 闸（触发面）与图安全终态（收敛面）两语义互不替代·收据互不借用。
+- **FAULT 读**：kill-switch 触发/三态/优先序/零副作用四面全树**零 case 零 prove**（0.2 rg 实证）→ **gap 实证**；NEG（非法值 fail-closed）与 BOUND（off 现状字节+闸序）零 case → 本刀补。
+
+### 1.2 UC-051 no-PII 三读码面
+
+- **日志面（A1）**：`obs-logging.proof.ts:132-135` R3 Ban 面+`:76-80` R5 query 剥离已证 **infra 层**（authorization 值/请求体合成哨兵/query 敏感参零入卷）——但其 runner 不触 DB、零业务黄金路径（BODY_MARKER 系探针非简历/答案真值）→ **业务黄金路径（含简历全文/答案真值的请求过 api 口）日志扫描零 case=NEG 残余可测**；哨兵法沿其 `:22-23` 形。
+- **trace 面（A2）**：`langfuse-v5.ts:114` 导出白名单 `meetwise.*`+`:118` mask 字符串一律 `[redacted]`+`:129-131` 三标识伪名化；`invoke.ts:1176` `redactOutput→{redacted:true}`+`:1080`/`:1188-1190` replayable=false 双门；两产品行使点 `resume-ocr.ts:141`/`job-route-classify.ts:171`。零专案 case（ag24/langfuse-evaluation-contract 系 contract 面非脱敏断言面）→ **FAULT 残余可测**（scripted 零外呼直行使形）。
+- **堆栈面（A3）**：`all-exceptions.filter.ts:39` 未知错响应体 opaque `internal_error`（R2 已证=partial 旁证）·`:34` 堆栈只进日志·`:32` query 剥离——**堆栈/错误消息内容面（是否携带用户原文）零 case=BOUND 残余可测**；`capUserData`（`model-client.ts:146`）评分侧纵深兜底=旁证只读。
+- **导出面零涉**：简历/报告导出属 UC-052 可携带导出面（`:191` blocked·freeze）——本刀零触（`exportReportMd` 等零锚零臂）。
+
+### 1.3 否决面（本席起草适用·EXEC 期同纹·命中即停）
+
+1. **Ban invent covered**：case 收据 EXIT=0 仅=case 证据；`:132` 050/051 措辞只允许 gap/blind→`case-only`（partial 列保留 partial）诚实登记·**禁止升 covered/partial**·`coveredCount=8` 零翻转·`:191`「Ban elevate UC-050/051/export」逐字维持·covered 翻面权归协调方。
+2. **Ban live key**：零 `MODEL_API_KEY` 加载/伪造·零 live 外呼·两 case 全离线隔离（`env -u` 三键具名：`MODEL_API_KEY`/`DASHSCOPE_API_KEY`/`DASHSCOPE_COMPAT_BASE_URL`）·est live=0（§6）。
+3. **Ban retry-to-green**：任一门红即停如实登记·attempts 台账逐次留痕·禁红后重跑冲销·禁改既有断言凑绿。
+4. **Ban 触 UC-052/删除导出域**：case-matrix `:105-114` NHP-050-\* 全族、`privacy-erasure-http.proof.ts`、DELETE=503 面、export 面——零触只读（`隐私域=出域`·批 C §1.3 同 veto 承形；本刀认领面系协调方明示派单的 050/051 触发/脱敏面·非擦除域）。
+5. **Ban 触 applications.start 绕行面产品修复**：绕行残余=登记面（HONESTY 注记+矩阵注记）·Ban 就地补线·Ban 借旁证宣称「kill-switch 全入口覆盖」。
+6. **Ban 二次实现图安全终态**：`safely_terminated` 面归 UC-018 先例（`49a33634`）·零触只读·收据互不借用。
+
+### 1.4 修法裁决：**恰 2 case（一行一 case·docs+test-only·零产品码触·沿 `nhp-*-prove` 族先例）**
+
+**修法形状**（沿批 B/C 先例）：每 case 一个具名 NHP case = 新 proof 文件 + `apps/api/package.json` 注册行 + root `package.json` 双行（`:prove`/`:prove:raw`）+ runner 注册位（`scripts/run-e2e-isolated.mjs` 五位全登记——批 C 第五注册位教训承登）· **prove-only · `apps/*/src`/`packages/*/src` 零 diff 意向**；isolated 真 PG · 零 live 模型 · 零外呼；收据 `.tmp/<case>-receipts/` + tracked `ai-docs/delivery/receipts/<case>/`（implementer pre-commit runs · **not evidence of record**）。行状态/列状态一字不动：EXIT0=case≠covered，coveredCount=8 不变。
+
+**Case 1 · `NHP-050-KILL-01`**（UC-050 · `apps/api/test/uc-e2e-050-nhp-kill.proof.ts`）
+
+- **需求源**：`e2e-scenarios.md:575` TC-E2E-050-kill（「触发 kill-switch 断言 safely_terminated + 业务一致」——本 case 行使**触发面**（env 闸 503+业务一致零副作用）；图终态面归 `49a33634` 先例互不替代）。
+- **证据层**：isolated 真 PG + 真 HTTP（三层壳先例 `07077d30` 形）+ 子进程 env 变体（kill 进程 env=1 / off 进程 unset·沿 obs-logging spawn 形）。
+- **臂**：K1 = env=1 begin → **503 `content_safety_kill_switch_active`**+诚实文案逐字+job 行净 0+额度净账 0（`:425` 闸前置时序）；K2 = env=1 turn → 同 503 码+答案零入队（`:436`）；K3 = off 进程 begin → 202 现状字节对照（off=现状保真·BOUND）；K4 = 非法值（`'2'`）→ **500 `internal_error` fail-closed**+日志含 `invalid_meetwise_content_safety_kill_switch`（三态 fail-closed 真行使·NEG·非静默 off）；K5 = 双闸同设（kill+preview 写门同 env）→ **503 kill 码先行**（`:425` 先于 `:426` 闸序·BOUND）；K6 = 全臂隔离 PG 断言面净账审计（job/entitlement/interview 三表零漂移·业务事实独立保全=A2 验收映射）。
+- **HONESTY 头注（卷内同钉）**：applications.start 绕行残余面 NOT claimed（§1.1 边界读）·图面归 UC-018 先例·本 case=触发面 only。
+- **非替代申明**：`privacy-erasure-http`（DELETE 503 pin·UC-052 面）· `uc018` 图 prove（安全终态）· `public-preview-write-gate`（preview 闸）=旁证互不替代·Ban 互借关列。
+
+**Case 2 · `NHP-051-NOPII-01`**（UC-051 · `apps/api/test/uc-e2e-051-nopii.proof.ts`）
+
+- **需求源**：`e2e-scenarios.md:583` TC-E2E-051-no-pii（「跑黄金路径后扫日志断言无 PII/密钥/全文 prompt」）——A1 日志扫描（P1/P2）+A2 trace 脱敏摘要（P3）+A3 堆栈不带原文（P4）。
+- **证据层**：子进程 boot 真 HTTP+pino stdout 全量抓取（`obs-logging` 先例形 `94d6691d`）+ isolated 真 PG 业务黄金路径（consent 种子先例形+产品路径 `POST /resume` 文本摄取→begin→turn 真答案·哨兵埋值）+ scripted trace 直行使（零外呼）。
+- **臂**：P1 = 简历全文/答案埋唯一哨兵→跑黄金路径（resume→begin→turn）→**全日志行零哨兵**（业务真值 Ban 面·A1 真行使——区别于 obs-logging 合成探针层）；P2 = 密钥/令牌面零入卷（boot env 诸 secret 值+`Bearer` 形零入卷·`env -u` 三键进程窗+词面零加载）；P3 = trace 脱敏面（scripted 直行使：`redactOutput` 路径 stored=`{redacted:true}`+replayable=false（`:1176`/`:1080`）+langfuse mask 字符串→`[redacted]`+`meetwise.*` 白名单（`:118`/`:114`）——A2 脱敏摘要断言·零 provider 词面零外呼）；P4 = 未知错路径响应体 opaque+全日志行错误消息/堆栈零业务哨兵（A3·`:39`/`:34` 面）；P5 = query 剥离承 R5 同纹复证（`:32`·旁证复证非替代）。
+- **非替代申明**：`obs-logging`（infra 面·零业务真值）=先例旁证·本 case=业务黄金路径新证据层·reason 级可分（业务哨兵≠合成探针）·Ban 借本 case 收据宣 obs-logging 加强·Ban 借 R3/R5 宣本 case 已 covered。
+
+**双表同步令**：两 case 各改行必须同 turn 改矩阵 `:132`（050/051 措辞注·gap/blind→case-only）+ §1.0.2 新登记行 + case-matrix §1.4 两新行（§1.0.3 `:164` 强制）·缺列视为未完成 G2/G6。
+
+**egress 预置条款（EXEC 期）**：两新 proof 臂文**避开 `MODEL_API_KEY`/`MODEL_BASE_URL` 词面**（沿 obs-logging 零词面先例·`env -u` 三键运行时剥除）→ `provider-egress-inventory.json` 零新登记；若 EXEC 臂文确需词面→按 uc025 `7bb462445`/uc028 `10b920521` 先例双登记（class=test-isolation）二择一·否则 CI `environment_reference_unregistered` 红停；§1.3-② Ban live key 口径不变（本门只管词面登记形·非放行加载）。
+
+---
+
+## §2 验收门矩阵（pre-exec 双审核对单基面·起草门 4 门本 commit 适用+EXEC 预基面届时重 pin·**数字口径以实跑实测为准·熔断阈值即停止条件「验收红不可修」触发面**）
+
+1. **docs:check（红停条款）+ cap 预算核（亲算）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·本树起草前亲跑 **EXIT=0 · scanned 2382**（stdout「public text policy scanned 2382 managed worktree files」亲读）· cap=**2386**（`public-text-policy.mjs:149` 亲证）· 本卷新文件 +1 → 预期 **2383 ≤ 2386 = 不越限·无需步进·无越限臂联动**。在飞批 C 并线后 cap 步进至 2394（其分支 sanction 已落）→ EXEC 日按届时 sanctioned 值重 pin·cap 上抬权归协调方·越限即「验收红不可修」停手上报（Ban 就地改 cap）。
+2. **markers 五类零命中 + est live=0**：本刀改动集五类标记词 grep 零命中（词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:152-163`·不复抄卷内防自指·回执入 EXEC 收据）· est live=0（§6）。
+3. **diff 面机检**：起草 commit `git diff --numstat <base>` **恰 1 tracked 路径**=本卷 .md（多任何 tracked 路径即停）；EXEC 期 diff 面=本卷+双表行内改（矩阵 `:132` 措辞注+§1.0.2 新登记行+case-matrix §1.4 两新行）+两 proof 新文件+注册行（root/apps/api package.json）+runner 注册位+egress 预置条款行使面（零登记或双登记二择一）+收据 tracked 面——届时逐件登记·多任何未登记 tracked 路径即停。
+4. **EXEC 预基面（届时重 pin）**：两 case 隔离 prove EXIT=0 **双 fresh**（实现方恰一次+独立复验恰一次·attempts 台账含红次如实）· 邻面不回退（`obs-logging`/`privacy-erasure-http`/`neg:all` 按届时 SSOT 口径恒等）· K4 fail-closed 臂与 P1 业务哨兵臂缺任一=门红· 双表同步 diff 逐件登记（§1.0.3 `:164` 令）· pre-exec 双审宜含 privacy 域席（`mw-privacy-int` 惯例·派单权归协调方）· 任一门红 → §8 停止条件。
+5. **行/列冻结**：EXIT0=case≠covered · 矩阵 `:132` 050/051 措辞仅允许 gap/blind→`case-only`（partial 保留）· `:191`「Ban elevate UC-050/051/export」逐字维持 · DELETE=503 零动 · coveredCount=8 零翻转 · Ban 借两收据互 wash（KILL≠NOPII 互不替代互不借用·亦不 wash UC-052 deletion 面）。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **产品码面零触**：`apps/`、`packages/` 产品源零 diff（EXEC 期仅新增 test prove 文件+注册行+runner 注册位·沿 uc001/uc025 nhp 族 prove-only 先例）——**含 applications.start 绕行面修复（产品码·出域）与 env-schema 注册补录（产品码·出域）**。
+2. **UC-052 擦除/导出域零触**：case-matrix `:105-114` NHP-050-\* 全族、`privacy-erasure-http.proof.ts`、DELETE=503、export 面（Phase 3 freeze `queue:31`）——只读。
+3. **UC-018 图面零触**：`:123`+`49a33634`+worker ttl-sweeper prove——只读旁证。
+4. **其余 §1.0 行零触**：盘点表排除面全部只读（批 A/B/C 与各 UC 专属线触面清单见残余盘点·批 C 并线后行号 EXEC 日重 pin）。
+5. **共享 SSOT 零改**：REMAINING-NORTH-STAR-QUEUE / product-campaign-LEDGER / execution-master-checklist / gap-bug-backlog 只读引用——翻面权归协调方（绕行残余的 backlog 登记权亦归协调方·本卷仅卷内登记）。
+6. **covered/queue 翻面零预支** · **零迁移零配置**：Ban 新迁移 Ban 触告警/CI 配置；`MEETWISE_CONTENT_SAFETY_KILL_SWITCH` 仅测试进程 env 窗（spawn env 变体）·零配置文件改·零 `.env*` 落树落据。
+
+## §4 依赖
+
+**①上游已满足**：kill 闸与脱敏机制全在树（§0.1 blob 亲算 16 件）+ 三层隔离壳先例（`07077d30`）+ 子进程日志抓取先例（`94d6691d`）+ consent 种子先例形（`uc-e2e-001-nhp-adv.proof.ts:264` 形）。**②同文件并发**：起草 turn 恰 1 新 .md 零交涉面；EXEC 期触矩阵 `:132`/§1.0.2 新行与 case-matrix §1.4 `:105-114` 邻区——§0.0 在飞交叠复核必做（批 C 在飞·行号届时重 pin）。**③下游**：050/051 收据供 covered-lift 评估族引用（评估权归后继刀·本刀 Ban 代评）；绕行残余面供产品刀接线裁量（登记不修）。
+
+## §5 Ban 列表 + pins
+
+**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban retry-to-green（§1.3-③）；Ban invent covered（§1.3-①·含升格 partial/借旁证 wash/借 R3/R5 宣 covered）；Ban live key（§1.3-②·含伪造 Key 面/硬跑 blocked 面）；Ban 触 UC-052 擦除导出域与 UC-018 图面与其余 §1.0 行（§3-2/§3-3/§3-4）；Ban 触产品码面/迁移/CI 告警配置（§3-1·含绕行面就地补线与 env-schema 补录）；Ban 改共享 SSOT（§3-5）；Ban 触既有 proof 文件（零触只读引用·含 obs-logging/privacy-erasure-http/uc018 三先例）；Ban 裸 INSERT 绕产品路径（豁免=隔离夹具种子逐项具名入收据·枚举外即违·新增豁免须先回炉修订本卷）；Ban 就地归因门矩阵外新红（若现新红→如实登记升级·Ban 借机修）；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）；Ban 造 `.env*`/写 Key 值入树入据；Ban 顺带升级依赖包；Ban 借本卷收据宣称「kill-switch 全入口覆盖」或「PII 全域零泄」（两 case 收据=具名面具名证据·非全域宣称）。
+
+**pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
+
+## §6 est live=0（起草 turn·EXEC 期同）
+
+起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（EXEC 期两 case 全离线隔离 PG·scripted 面零外呼·`env -u` 三键·§2-4 承）。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（本卷 1 .md·起草 turn）**五类标记词+行首冲突标记 grep 零命中**（起草席亲跑·回执随 EXEC 收据留痕·词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:152-163`·不复抄卷内防自匹配——沿批 B/C §7 同形制）。
+
+## §8 STOP（开工三条款 + 停止条件四类）
+
+**STOP · `draft:awaiting_pre_exec_dual`（三处钉：本 Status 行+本节+卷尾注 · 2026-10-26 起草落卷）· alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· EXEC commit 不预 claim post-prove-dual EXIT。** 开工三条款：①pre-exec 双审两独立外席 **BOTH PASS 落卷**（宜含 privacy 域席·派单权归协调方）；②**协调方明示 EXEC 授权**；③EXEC 立项**不得改 §1.4 修法面与 §5 Ban/pins 与 §1.3 否决面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+- **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且结论受疑（`:132` 行 050/051 列值被他刀改写 · kill 闸缝消失或语义变（三态 fail-closed 改静默回退等）· obs-logging/三层壳先例语义变 · 批 C 等在飞卷并线与本刀对同表冲突改行）→ 停·重 pin 回炉。
+- **机制不满足**：EXEC 期新臂收据与 §1 红事实推定形不符（如 env=1 begin 未得 503 具名码=产品机制红 · 非法 env 值静默 off 非 fail-closed · 503 前置仍扣额/入队 · 业务哨兵入卷）→ 根因诊断被证伪 → 停·**产品缺陷=EXIT1 诚实保留+backlog 登记上报（翻面权归协调方）**·Ban retry-to-green·Ban 就地改诊断。
+- **越界需要**：修法诉求超出 §1.4 恰 2 case 面（需触产品码=绕行面接线/擦除域/UC-018 图面/covered 翻面/共享 SSOT/迁移/告警配置）→ 停·另刀或协调方裁决（Ban 就地扩面）。
+- **验收红不可修**：§2 任一门红且根因不在本刀交付面（docs:check 越届时 cap / 邻套件新红 / typecheck/lint 超）→ 停·stash 对照亲证基线·如实登记（Ban 借机修）。
+
+---
+
+*KILLSW REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§8+本行·史录不洗）· UC-E2E-050/051 kill-switch/无 PII 面 · 覆盖矩阵 §1.0.1 `:132` 聚合行 050/051 残余列 + §1.0.2 分面行缺席 + case-matrix §1.4 缺行 · 认领=050/051 NEG/FAULT/BOUND 可测面（kill 触发面 gap+no-pii 黄金路径/trace/堆栈面 gap·blind）· NOT claimed 登记=UC-050 ADV applications.start 绕行残余面（`applications.service.ts:47-58`·只登记零臂）+ UC-052 deletion/export/DELETE 面（出域 freeze 维持）· 修法=恰 2 case（`NHP-050-KILL-01` 触发面 503/三态 fail-closed/双闸优先序/零副作用 + `NHP-051-NOPII-01` 业务哨兵日志扫描/trace 脱敏直行使/堆栈原文面）· 一行一 case·docs+test-only·零产品码触 · §1.3 三否决+三域 Ban（UC-052 域/绕行面修复/图面二次实现）· egress 预置=臂文避词面零登记或双登记二择一 · 双表同步令沿 §1.0.3 `:164` · base=origin/main `0246361dd` · 分支 `line/killsw-draft` · 工作树 `meetwise-killsw` · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push ⛔force-push · pre-exec 双审两独立外席待派（宜含 privacy 域席）*
