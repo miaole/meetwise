@@ -4444,5 +4444,14 @@ flowchart TD
 - **批表两行翻面（234→236/271 · 87.1%）**：#249（生产库配置拒绝指引·5123019e）/#73（语音质量指标结构化·508450c1）。
 - **批表/能力项剩余全景**：能力项 open 3 全为门控/前置；half 2（AG-14/AG-20）待流式面与 CTX-02 余原语；批表 open 35 中用户门控 7（#97/#98/#240/#26/#32/#2/#199）+ 外部阻塞 1（#38）+ 其余为登记时滞面（详见侦察席 2026-10-22 报告）。
 - Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
+### Line cap-2354 nail（2026-10-26 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2354 文档数量上限步进 2346→2354（sanction +8·沿十八先例形·算术=届树亲跑 2341 余 5+在飞六卷并线必越 2347>2346+本卷 1=2348≤2354 余 6·「2328 恰等零余量」勘误如实[2328 系 LEDGER 历史行值非届树现值]·commit 消息零黑话承规））
+
+- **授权链全链如实载**：协调方派单 brief（sanction 直落形·快速链一体席·两 commit 颁定）→起草 `65d2b62c4`+EXEC `1fe6dffc4`（七门全绿承卷 §9=proof 12/12[2354/2355 双值]+docs 2342≤2354+typecheck 8/8+lint 12/12+markers+自审 grep 清零[deepEqual 亲跟 2355]+diff 恰 3 tracked·STOP=executed:awaiting_post_prove_dual 三处）→post-prove 双审会签 PASS×2（两独立外席·协调方并线授权载）→nail（本席·本波唯一主线推送席）。
+- **nail 工序（本席）**：fetch 亲证届 origin/main=`47dd6be56` 恰等（派单基线恒等零漂移）→ merge `47dd6be56` --no-ff（Already up to date·EXIT=0）→ SSOT 两处随 nail commit --amend（LEDGER 本管线行+本段·沿 2272 先例 SSOT 随 amend·码面三文件字节恒等·append 注记形不洗史）→ 终验亲跑 → push 直推被 protected branch 拒（GH006 须 PR 形·偏离如实）→ 沿 2346 同型先例转 PR 形（支线 push+PR→main·CI required checks 全绿后 merge）。
+- **门矩阵（EXEC 承卷七门+post 双审承+nail 复跑）**：proof 12/12 EXIT=0（2354/2355 双值全行使·deepEqual 行亲跟 2355）+docs:check EXIT=0 scanned 2342≤2354 余 12（amend 后 HEAD 复跑同值）+markers SSOT 新增行颁定文本谱系命中沿先例豁免如实登记+全树行首冲突标记严格形零命中+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞六条 E2E 缺口领包卷并线后帽余量以届时实测为准如实登记·批表零翻面（非 271 计件面）.
+- 预算：est live=0（nail 面全本地静态门·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2354** 并线后现值 **2342** 余 12.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
 MDEOF
 echo written
