@@ -1,0 +1,25 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc003:nhp-adv:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 2275,
+  "startedAt": "2026-10-26T17:41:46.349Z",
+  "finishedAt": "2026-10-26T17:41:48.624Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:e25b075c4177d89a31c9f9a2656b17fe3deeaf5a7ac3410eba999a02c2f4ba0a",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/web/test/uc-e2e-003-nhp-adv.proof.ts": "sha256:5939adebd53b44b13a17da6c5a2ffb1792727a08371236feb5d7b9e52b1e256f",
+    "apps/web/lib/resume/ocr-preview-ui.ts": "sha256:5abf87b4dd2da300355ff3f91b70b10b493ab7f770134d4d0d43db500cff7cd5",
+    "apps/web/i18n/request.ts": "sha256:c0f93c4af46803095bca5d636af2e0255e92376ad91fb3f8b45068a981bbae3a",
+    "apps/web/messages/zh.json": "sha256:8bedbcdba7a183d0e823bd3b0d621fd6043ee7289e55bd781e66f9aa435fea44"
+  },
+  "schemaMigrationManifest": {
+    "count": 217,
+    "latest": "0219_interview_event_retention_purge.sql",
+    "digest": "sha256:867edcf30bed5e1029f07ed21e3481e839862e27485d030cc316a21b3e657bcc"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}
