@@ -1,6 +1,6 @@
 # REASSESS-E2E REQUEST — UC-E2E-012/024（题级降级 / 补评闭环）矩阵 §1.0.1 `:118` 残余 cell（NEG/BOUND/ADV）三臂隔离收据处置（docs-only REQUEST 卷 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`** · alone≠dual · **STOP=draft（三处钉：本 Status 行 + §2 门矩阵 + §8）** · 本 commit 不预 claim 任何 post-commit EXIT · prove 未跑 · 行/列翻面权归协调方。
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-26 §9-EXEC 翻面 · 前值 `draft:awaiting_pre_exec_dual` 史录保留于 §8/卷尾注不回改 · pre-exec dual r2 双 PASS + 协调方授权落码+行使 · 三 case 门矩阵亲跑全绿 · prove 已行使 · post-dual 双审待派 · alone≠dual）· **STOP=executed（三处钉：本 Status 行 + §2 门矩阵 + §8）** · 本 commit 落码=§9-EXEC 交付面 · EXIT0=case≠covered · 行/列翻面权归协调方。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE=503 · g7SuiteGreen=false · est live=0 · r1Closed=false · actualSpendCny=null。
 **Date**: 2026-10-26
 **Base / parent tip**: `origin/main` **`47f26403bb30debbb4cbe2c3bd99982e9f9ed5ab`**（`git fetch origin` 本 turn 成功 · worktree HEAD 恒等亲证 · 写前复核 tip 未前进）。
@@ -141,7 +141,7 @@ FAULT cell=批 A case-only（零触零 wash）；PERF/LOAD 列零触；case-matr
 
 件① `apps/worker/test/uc-e2e-012-nhp-{neg,bound,adv}.proof.ts` 三新件 · 件② root `package.json` 三 wrapper 对（`uc012:nhp-{neg,bound,adv}:prove`+`:raw`）· 件③ `apps/worker/package.json` 三 prove 行 · 件④ `scripts/run-e2e-isolated.mjs` runner 注册（四位沿批 A：SOURCE_PATHS/allowlist/isolatedCommand/pre-migrate 名单——**SOURCE_PATHS 迁移清单 0027→0021 勘误**：以 0021 为唯一底闸钉 · 可加 0149 作删除证据钉 · **四位 + 届期 runner 现状核对第五位 resource-caps**（批 C `aa3f68d92` 五位注册先例形 · 届期对届时 runner 亲核有无后择形））· 件⑤ tracked 收据 `ai-docs/delivery/receipts/nhp-012-{neg,bound,adv}-01/`（implementer pre-commit runs · **not evidence of record**）· 件⑥ egress 清单 additive 九目（三键 × 三 proof · class=test-isolation · 沿批 A `39f56cbb5` 先例形 · **egress 登记与 proof 同 commit 落**——批 A 热修教训承登）。**本 commit（起草落卷）**=恰 1 tracked `.md` 本卷 · 零码零 proof 零注册。
 
-## §2 门矩阵（per-case · pre-dual → prove → post-dual · **Status：`draft:awaiting_pre_exec_dual`**）
+## §2 门矩阵（per-case · pre-dual → prove → post-dual · **Status：`executed:awaiting_post_prove_dual`**〔2026-10-26 §9-EXEC 翻面 · 原值 `draft:awaiting_pre_exec_dual` 史录留痕不回改〕· prove 已行使（§9-EXEC 三 case 全绿 62/62·29/29·45/45）· post-dual 双审待派）
 
 | Row | case / prove 命令（授权后注册） | 证据层 | pre-dual stubs | post-dual stubs | 断言面 |
 |-----|--------------------------------|--------|----------------|-----------------|--------|
@@ -179,7 +179,7 @@ FAULT cell=批 A case-only（零触零 wash）；PERF/LOAD 列零触；case-matr
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · 起草落卷 2026-10-26 · prove 未跑 · EXEC 未立项。** 开工三条款：①pre-exec 双审两独立外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改本卷三 case 定稿（§1）/否决结论（§1.3）/Ban+pins（§5）/交付面清单（§1-交付面）**（改则回炉重审）· 立项时照 §0 协议对届时 tip 全量重 pin（先并届时 sanctioned 主线再全量重 pin · 行号漂移如实改锚 · 结论不变只更行号 · §0.0 复核必做——**残余 cell 现状对届时 matrix `:118` 重核：任一 cell 已被他刀认领/闭合 → 本刀对应 case 段降级为回归守卫或停 · 归协调方裁**；spec 字面补评闭环若已接线 → D1/D3 重估后原字面面可入新案）。**停止条件（四类 · 命中即停上报 · Ban 就地处置）**：
+**STOP** · **`executed:awaiting_post_prove_dual`**（2026-10-26 §9-EXEC 翻面 · 前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗 · 三处钉=文首 Status/§2/§8）· pre-exec 双审两独立外席 r2 **BOTH PASS 落卷**＋协调方明示 EXEC 授权（committed SHA 重钉）已兑现；EXEC 立项未改本卷三 case 定稿（§1）/否决结论（§1.3）/Ban+pins（§5）/交付面清单（§1-交付面）· 立项时照 §0 协议对届时 tip（并线 `origin/main` `0246361dd`）全量重 pin（落点见 §9-EXEC）· **残余 cell 现状对届时 matrix `:118` 重核：NEG=gap · BOUND=gap · ADV=blind 三 cell 零被他刀认领/闭合（亲证）→ 三 case 全强度行使非降级**；spec 字面补评闭环 fresh grep 复核产品零接线（D1/D3 维持 NOT claimed）。**停止条件（四类 · 命中即停上报 · Ban 就地处置）——EXEC 期核：四类全未命中**（现场漂移=§0.2 四缝 blob 前后全等亲证；机制不满足=三主门全绿；越界需要=交付面六件内闭环；验收红=lint/docs cap 超支已按批 A §9-post 先例形 EXEC 实测步进落码 · 待协调方追认 · 详见 §9-EXEC）：
 - **现场漂移**：届时 tip 对 §0.2 任一缝结论漂移（如 0046 闸被放松/arbiter 被改/围栏码被移/批 A FAULT 收据被洗）→ 停 · 重 pin 回炉。
 - **机制不满足**：§2 任一门红且根因在本卷登记结论（如幂等竞态实双写/闸可绕/负输入污染状态）→ 登记结论被证伪 → 停 · 如实升级（Ban 就地改登记凑绿）。
 - **越界需要**：修法诉求超 §1-交付面六件（需触产品码/迁移/HTTP e2e/live key/批 A 面）→ 停 · 另刀或协调方裁决。
@@ -187,4 +187,51 @@ FAULT cell=批 A case-only（零触零 wash）；PERF/LOAD 列零触；case-matr
 
 ---
 
-*REASSESS-E2E 记录 · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§2+§8 · 零翻动）· base `origin/main` @`47f26403b` · 分支 `line/reassess-draft` · 工作树 `meetwise-reassess` · 门预算=draft 层 docs:check 2376≤2378 亲跑（落卷后 2377 · EXEC 期越限预授权承登待令）· 认领=`:118` 残余 NEG/BOUND/ADV 三 cell（FAULT 归批 A case-only 零触）· 三臂按产品码现形定标（降级触发负输入面/幂等闸边界/闭环完成条件对抗面）· spec 字面补评闭环 NOT claimed（产品未接线 fresh 亲证 · D1/D3/D4）· 行/列翻面权归协调方（coveredCount=8 零动）· alone≠dual · Ban self-approve · est live=0 · ⛔push ⛔force-push*
+## §9-EXEC（EXEC 落卷 · pre-exec dual r2 双 PASS 放行 + 协调方授权落码+行使 · 2026-10-26 · 三 case 门矩阵亲跑全绿 · 零产品码）
+
+**授权面**：pre-exec 双审 r2 席1/席2 双 PASS（协调方授权落码+行使 · colima 容器可用亲证 `docker info` EXIT=0）。本 EXEC 零产品码意向面：`apps/*/src`/`packages/*/src` 零 diff（§0.2 四缝族 + 批 A proof 九文件 blob 前后全等亲证=PIN 门 · 收据 sourceDigests 内产品文件 sha256 与 merge tip 一致=只读旁证）。
+
+**并线与全量重 pin（§8 落点 · 结论不变只更行号）**：
+1. **merge**：`origin/main` **`0246361dd`**（届值含 #146 批B/#147/#148 已 sanctioned 亲并；**#149 批C/#150 在飞如实采未并**——`gh pr list` 亲证 OPEN）· merge EXIT=0 零冲突（merge-tree 预演+实并双证）· `pnpm install --frozen-lockfile` EXIT=0。
+2. **matrix**：blob `b0fd13d1`→**`6fc92dd0`**（并线批B注记随树推进）· §1.0.1 **`:118`** 行四列字面恒等（gap/gap/gap/blind 零翻动）· §0.5 强制列令 `:47` 恒等 · §1 同 ID 行 **`:176`→`:177`**（漂移改锚 · 字面恒等「worker `adaptive-*:prove`；无独立 e2e 场景 · gap→partial(graph)」）。
+3. **其余行锚恒等**：e2e-scenarios `9976f9c3`（UC-012 `:261-:272` / UC-024 `:274-:295` · backfill `:290`/idem `:291`/eval-fail `:292`）· 批A卷 `1a8a7977` · QUEUE `a7d8959a`（`:28`）。
+4. **cap 锚**：`e33818a6` 恒等兑现（`:149` MAX_FILES=2_386 届值亲证 · 零更新漂移）· EXEC 期实测步进 2_386→**2_392**（见 cap 步进段）。
+5. **残余 cell 复核（§0.0）**：`:118` 残余 NEG=gap · BOUND=gap · ADV=blind 三 cell 零被他刀认领/闭合（rows `:115-121` 逐行亲读）· `NHP-012-NEG|BOUND|ADV` 全库零既有钉 → **三 case 全强度行使非降级**。
+6. **§0.2 四缝 blob 前后全等（PIN 门）**：`db96efec` lifecycle · `71c9a502` service · `f6102433` invoke · `02605c2d` question · `880a1dcb` event · `c9060761` 0021 · `c41a9466` 0046 · `cec80b94` 0149 · `520d5903` 0027 · 批A proof `ca096a32`——commit 前后逐文件亲证恒等 · **spec 字面补评闭环 fresh grep 复核**（`pending_eval|eval_failed|AnswerEval|re_eval|reeval` 对 `apps/*/src`+`packages/*/src` 零命中 · D1/D3 维持 NOT claimed）。
+
+**落地面（件①–⑥ · 本 commit tracked 清单）**：
+1. **件①** 三 proof：`apps/worker/test/uc-e2e-012-nhp-neg.proof.ts`（PC 合法 answer-apply 对照 + N1 :487 具型拒 + N2 :496 verify 证伪 + N3 fence re-check 具型拒 + markApplied stale 臂原语直证 + N4 raw-answer 围栏 + 对照半臂×2 + INTEGRITY 五流总账）· `…nhp-bound.proof.ts`（B1 replay-returns-existing + B2a/B2b 双 pool client 双会话真并发恰 1 行 + B3 kind 前缀键域 + B4 直 INSERT errcode-only 23505 + INTEGRITY）· `…nhp-adv.proof.ts`（A1 unscored 在场直写 completed→23514 具名回滚 + A2 reserved 经产品路径直写 failed→23514 配对禁令 + A3 零 unscored 正控同形成功 + A4 重复 bypass 幂等拒零部分写 + INTEGRITY）。
+2. **件②** root `package.json` 三 wrapper 对（`uc012:nhp-{neg,bound,adv}:prove` + `:raw` · 批A `:135-136` 同形后插）。
+3. **件③** `apps/worker/package.json` 三 prove 行（`prove:uc012-nhp-{neg,bound,adv}`）。
+4. **件④** runner 四位 ×3（SOURCE_PATHS 三条目 ≤14·allowlist 三行·isolatedCommand 三臂·pre-migrate 名单三行——**SOURCE_PATHS 迁移清单按 0027→0021 勘误：BOUND=0021+0149 唯一底闸钉 · NEG=0126 围栏 · ADV=0020+0046 闸**）+ **第五位 resource-caps 届期核对=N/A 不注册**（三 case 非 PERF/LOAD 面 · 批A FAULT 同不注册 · 批C `aa3f68d92`→`caf1bef08` 先例仅 PERF-api case 入 caps ternary 亲证）。
+5. **件⑤** tracked 收据 `ai-docs/delivery/receipts/nhp-012-{neg,bound,adv}-01/`（各 3 件：docker-info + isolated-receipt.json + gate stdout · implementer pre-commit runs · **not evidence of record**）· `.tmp/` 全次留痕（含红次 11 件）。
+6. **件⑥** egress 清单 additive 九目（三键 × 三 proof · `environmentReferences` 358→367 · class=test-isolation · **与 proof 同 commit 落**——批 A 热修教训承登）· `provider-egress:prove` EXIT=0。
+
+**门矩阵亲跑（EXIT 原值如实录 · stdout 留痕 .tmp/ · 中间红次零冲销）**：
+- `docker info` **EXIT=0**（colima · 00-docker-info.txt 三收据同源）。
+- `pnpm uc012:nhp-neg:prove`：红次 R1-R10 **EXIT=1**（归因台账见下）→ **绿 62/62 · EXIT=0**（attempt11）。
+- `pnpm uc012:nhp-bound:prove`：红次 R1 **EXIT=1** → **绿 29/29 · EXIT=0**（attempt2）。
+- `pnpm uc012:nhp-adv:prove`：**首跑绿 45/45 · EXIT=0**。
+- 邻门：`pnpm uc012:nhp-fault:prove` **73/73 EXIT=0**（批A 零回归）· `pnpm adaptive-degrade:prove` **EXIT=0** · `pnpm turbo typecheck` **EXIT=0** · `pnpm turbo lint` **EXIT=1→0**（cap 步进见下）· `node scripts/ai-docs/check-docs.mjs` **EXIT=1→0**（2392≤2_392）· `pnpm provider-egress:prove` **EXIT=0** · `pnpm install --frozen-lockfile` **EXIT=0** · markers 五类零命中（改动集 10 路径亲跑 · 词面运行时组装）· PIN 门=§0.2 blob 前后全等（上段）。
+
+**红次台账（11 红次归因 · 全 EXEC/夹具/观测面侧 · 零产品缺陷 · 零自修产品码 · 门红 Ban 自修边界守住）**：
+- NEG R1（16/57）：具型拒观测面误设 throw-surface——consumer 对非 transient 白名单码走确定性终态臂（`:601-610` catch→`failClaimedInterviewJob`→`markJobFailed` last_error=error.message 字面 + fail-closed release + interview_unavailable 恰一 + drain 返回 'failed' 不 throw）→ 校准为 `interview_job.last_error` 字面钉 + fail-closed 结算断言（观测面校准 · 承登本节）。
+- NEG R2（15/62）：N2/N3 注入裸 admin 会话 UPDATE 撞 `interview_privacy_fenced`（0058 `interview_question_privacy_active_write_guard`=无主写手正确拒 · 产品正确行为）→ 注入改 app_role+GUC 会话（021:25 GRANT UPDATE app_role）。
+- NEG R3-R7（含 :472 假因红）：N3 :498 可达性考据——drain 前 FOR UPDATE 使 :471 预 verify 撞 `answer_identity_not_claimed`；pg_stat_activity query 文本列 app_role 不可见致检测恒空；fence tx 先行语句即被 X 阻塞或 phase-2 先于 :495 落地（pg_locks blocking-pids 谓词修复检测后亲证占用可见时 :495 re-check 先行=:496）→ **:498 stale 臂要求占用恰落于 :495→:497 子语句窗，外部会话不可确定命中**——校准：N3 drain 级=:495-:496 fence re-check 具型拒 + **:497-:498 stale 臂语义经原语直证**（`markInterviewAnswerApplied(A)=false` + 同 identity 重放幂等 true 对照半臂）——语义面（具型拒/占用不被覆写/零伪造评分事件）零弱化。
+- NEG R8-R10：注入会话/时序变体（同 R2/R3 根因族）。
+- BOUND R1（1 失败+连接族红）：bigint seq 字面比较（`"1"!==1`）→ `seq::text` 数值化；双会话长开事务窗撞 idle-in-transaction 超时 → 开窗纪律（commit 即放 · 断言移出事务窗外）。
+- ADV：零红次。
+
+**cap 步进（EXEC 实测亲算 · 批 A §9-post 先例形 · 待协调方追认）**：
+- **docs**：MAX_FILES 2_386→**2_392**（+6 = 收据净增计入受管扫描 · `2392≤2_392` EXIT=0 亲跑）。
+- **worker lint**：977→**999**（+22 全部=本刀三 proof 的 `naming-convention`（模型服务键/产品行字段字面——批 A fault proof 同类在场）+ `no-explicit-any`（批 A 同形 `scripted` 记录/MemorySaver 适配）类 · **基线 977=977 恰零余量**（stash 对照亲证）· import/order+unused 可修类已修（28→22））。
+- **root lint**：5274→**5296**（同 +22 计入 monorepo 全量 eslint · `5296≤5296` EXIT=0 亲跑）。
+
+**守护兑现**：①壳行 'created'（NEG/ADV 全夹具 + BOUND 壳夹具 · 断言随臂）②夹具豁免逐项具名入收据（②a bucket 种子 · ②c 壳行 · ②N2/②N3 围栏占用窗口并发注入 UPDATE（app_role+GUC · 生效性臂内自证）· ②B2b/②B4 对抗直 INSERT（REQUEST 具名约束级行使）· A1/A3 consumption 无行前提 · A2 reserved=产品路径 reserveEntitlement）③零裸造业务行（resume 产品链→route 链→reserve→enqueue→drain 全产品路径）④env -u 三键具名+egress 九目同 commit ⑤B4 断言口径=errcode-only 23505（Ban 约束名字面 · 0021 唯一底闸 · 0027/0149 勘误承登）⑥Ban wash PIN 入卷（三 case 互不替代互不借用 · 批 A FAULT 面零触）。
+
+**Non-claims**：EXIT0 ≠ covered ≠ suite green ≠ 行/列升格（升格仅经 coordinator nail additive honesty）· `:118`/`:177` 措辞零翻动 · coveredCount=8 不变 · ≠HA · est live=0 · D1/D3（spec 字面 pending_eval 状态机/补评 job/CAS 重算/report 增量 NOT claimed · 产品零接线 fresh 复核）· D2（断言键全用产品真键域 kind 前缀）· D4（UI 面/E1 transient NOT claimed）· N3 观测面校准（:498 子语句窗外部不可确定命中 · stale 臂经原语直证 · 上文台账）· 三 case 互不替代互不借用 · alone ≠ dual · **⛔push ⛔force-push**。
+
+---
+
+
+*REASSESS-E2E 记录 · 2026-10-26 起草（STOP=`draft:awaiting_pre_exec_dual` 史录）· 2026-10-26 §9-EXEC 翻面 **STOP=`executed:awaiting_post_prove_dual`**（三处钉：Status 行+§2+§8 · 前值史录保留零字洗）· 并线 base `origin/main` @`0246361dd`（#149/#150 在飞如实采未并）· 分支 `line/reassess-draft` · 工作树 `meetwise-reassess` · 门预算 EXEC 实测步进：docs 2_386→2_392 · worker lint 977→999 · root lint 5274→5296（待协调方追认 · 批 A §9-post 先例形）· 认领=`:118` 残余 NEG/BOUND/ADV 三 cell 全强度行使（FAULT 归批 A case-only 零触）· 三 case 门矩阵亲跑全绿 62/62·29/29·45/45 + 邻门族 EXIT 原值在卷（§9-EXEC）· 三臂按产品码现形定标（降级触发负输入面/幂等闸边界/闭环完成条件对抗面）· spec 字面补评闭环 NOT claimed（产品未接线 fresh 复核 · D1/D3/D4）· 行/列翻面权归协调方（coveredCount=8 零动）· alone≠dual · Ban self-approve · est live=0 · ⛔push ⛔force-push*

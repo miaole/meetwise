@@ -1,0 +1,75 @@
+
+> meetwise@0.1.0 uc012:nhp-bound:prove /Users/miaole/Desktop/golucky/meetwise-reassess
+> node scripts/run-e2e-isolated.mjs uc012:nhp-bound:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-50140-1793055801434 on 127.0.0.1:32931
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-reassess/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:uc012-nhp-bound /Users/miaole/Desktop/golucky/meetwise-reassess/apps/worker
+> tsx test/uc-e2e-012-nhp-bound.proof.ts
+
+NHP-012-BOUND-01 UC-E2E-012/024 BOUND prove (B1-B4 · 缝 C 原语/约束/并发 · Ban live)
+Pins: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :118 措辞零翻动 · EXIT0≠covered
+PASS  L0 零模型: 三键（MODEL_API_KEY/DASHSCOPE_API_KEY/DASHSCOPE_COMPAT_BASE_URL）入场均不在场
+
+──────── B1 · 同 event_key 二次 append → 同 seq 返回 · 行数零增（:23-:26 先查 / :37-:40 复读） ────────
+PASS  [b1] 守护① 壳行插入态='created'
+PASS  B1 首次 append 恰一行（seq 分配）
+PASS  B1 replay 返回既有 seq（seq2===seq1 · 零新事件）
+PASS  B1 payload 不被覆写（首写载荷原样 · 零 upsert 语义）
+EVIDENCE B1-ROWS [{"seq":1,"kind":"answer_unscored","payload":{"turn":1,"questionId":"q-b1"},"event_key":"answer_unscored:q-b1"}]
+PASS  B1 replay 不区分载荷全等（arbiter 仅键域仲裁 · :23-:26 先查）
+
+──────── B2a · 双会话同键真并发 → advisory 锁串行 + 复读收敛同 seq（:22/:23-:26） ────────
+PASS  [b2a] 守护① 壳行插入态='created'
+PASS  B2a 双会话收敛同 seq（replay-returns-existing 跨会话成立）
+PASS  B2a 恰 1 行（双会话双 INSERT 意图 → 单行落地）
+PASS  B2a 无会话异常（B 零 23505 零 throw · 收敛走先查臂）
+EVIDENCE B2a-ROWS [{"seq":1,"kind":"answer_unscored","payload":{"w":"A","questionId":"q-b2a"},"event_key":"answer_unscored:q-b2a"}]
+
+──────── B2b · 无锁直写会话 × 仓储会话交错 → ON CONFLICT(:32)+复读(:37-:40) 收敛恰 1 行 ────────
+PASS  [b2b] 守护① 壳行插入态='created'
+PASS  B2b 收敛同 seq（复读返回直写行 seq · :37-:40）
+PASS  B2b 恰 1 行（真竞态双写意图 → 单行 · :32 ON CONFLICT 底闸）
+EVIDENCE B2b-ROW {"seq":1,"kind":"answer_unscored","payload":{"w":"direct","questionId":"q-b2b"},"event_key":"answer_unscored:q-b2b"}
+
+──────── B3 · answer_unscored:Q 与 answer_evaluated:Q 同流共存零碰撞（:84-:86 键域注记同构） ────────
+PASS  [b3] 守护① 壳行插入态='created'
+PASS  B3 两前缀键共存: 各自分配 seq（零碰撞 · 零互吞）
+PASS  B3 恰 2 行（kind 前缀=键域边界 · spec 幂等键去前缀即碰撞的产品闸语义 · D2）
+PASS  B3 同前缀 replay 归位自身 seq（不吞异前缀行）
+EVIDENCE B3-ROWS [{"seq":1,"kind":"answer_unscored","payload":{"side":"unscored","questionId":"q-b3"},"event_key":"answer_unscored:q-b3"},{"seq":2,"kind":"answer_evaluated","payload":{"side":"evaluated","questionId":"q-b3"},"event_key":"answer_evaluated:q-b3"}]
+
+──────── B4 · 绕仓储直 INSERT 同键 → 23505（0021:3 partial unique 底闸 · errcode-only 口径） ────────
+PASS  [b4] 守护① 壳行插入态='created'
+PASS  B4 产品原语先写恰一行
+PASS  B4 底闸拒绝（抛错在场）
+PASS  B4 errcode-only: SQLSTATE=23505（unique_violation · 不锚约束名）
+PASS  B4 直写零落地（语句级原子 · 仍恰 1 行 · 零部分写）
+PASS  B4 非其他错误类（非 42501 权限假因 · 非 23514 触发器类）
+EVIDENCE B4-ERRCODE {"code":"23505"}
+
+──────── INTEGRITY · 全案流账本总账（各行数恰为臂内意图 · 零越臂写入） ────────
+PASS  INTEGRITY b1: 行数=1
+PASS  INTEGRITY b2a: 行数=1
+PASS  INTEGRITY b2b: 行数=1
+PASS  INTEGRITY b3: 行数=2
+PASS  INTEGRITY b4: 行数=1
+PASS  INTEGRITY 零模型调用面（本 case 纯原语级 · 无 ai_model_invocation 残留）
+
+✓ NHP-012-BOUND-01 全臂绿（29/29）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: BOUND cell gap→case-only · EXIT0≠covered · §1.0.1 :118 措辞零翻动 · coveredCount=8
+PIN: B4 断言口径=errcode-only 23505（Ban 约束名字面 · 0021 唯一底闸 · 0027/0149 勘误承登）
+PIN: B2=双 pool client 双会话真并发（Ban 同事务自串行冒充）· B3=kind 前缀键域（D2 披露）
+PIN: haStatus=NOT_HA · releaseEvidence=false · alone≠dual · ⛔push
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T23-03-26-363Z-50140-ce446b22-b74d-4538-8af9-69211c721cd1.json release_evidence=false
+BOUND_ATTEMPT2_EXIT=0
