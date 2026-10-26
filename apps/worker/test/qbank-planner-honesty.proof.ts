@@ -85,6 +85,11 @@ function staticSections() {
   A('S13 读面 best-effort:任何读取异常 → undefined(不阻断开面·押题生成链零触)', /\.catch\(\(\) => undefined\)/.test(consumer) && /loadQuizQuestionsForPlanner\(d\.pool, owner, requestContext\.sourceQuizId\)/.test(consumer));
   A('S14 answer job 零读(start 才读·现状字节)', /const quizQuestions = job\.kind === 'start'/.test(consumer));
   A('S15 life deps 携 quizQuestions/routeLeaf(consumer life 对象+lifecycle 接口·缺省 undefined=无押题段/闸不适用)', /quizQuestions,\n/.test(consumer) && /routeLeaf: routeLeafTrackId,/.test(consumer) && /quizQuestions\?: string\[\];/.test(lifecycle) && /routeLeaf\?: string;/.test(lifecycle));
+  A('S15b routeLeafTrackId 由 allocationBps 的 > reduce 选取(不再把 allocations?.[0]?.leafTrackId 赋给它)', (() => {
+    const picked = /const routeLeafAllocations = routeSnapForRetrieve\?\.allocations \?\? \[\];\s*const routeLeafTrackId = routeLeafAllocations\.length > 0\s*\? routeLeafAllocations\.reduce\(\(best, a\) => \(a\.allocationBps > best\.allocationBps \? a : best\)\)\.leafTrackId\s*: undefined;/.test(consumer);
+    const oldAssign = /const routeLeafTrackId = [^\n]*allocations\?\.\[0\]\?\.leafTrackId/.test(consumer);
+    return picked && !oldAssign;
+  })());
 
   section('S-D §2-3 #200-A ⑷/#201 planner 输入组装(v4 data 段+逐字节回退+闸接线)');
   A('S16 prompt 升 v4(注册表纪律:改 prompt=升 version)', /service: 'planner\.competencies', version: 'v4',/.test(prompts));

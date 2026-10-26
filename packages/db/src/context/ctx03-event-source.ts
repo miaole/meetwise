@@ -103,7 +103,8 @@ function fail(code: string): never { throw Object.assign(new Error(code), { code
 /**
  * 追加会话事件（首包落 active）。同一事务内：advisory 锁串行分配 sequence → 幂等键重放 →
  * 插加密工件 + 关系行 → 复用 memory_append_audit。event_digest 由 SQL 侧确定性派生（不信任
- * 调用方自报指纹）。
+ * 调用方自报指纹）。加密密钥经事务级 GUC（app.conversation_event_enc_key）同事务注入（0210
+ * 契约·见下 set_config 注释），不经 SQL 函数签名。
  */
 export async function appendConversationEvent(c: Client, input: AppendConversationEventInput): Promise<ConversationEventAppendReceipt> {
   if (!input.threadId || input.threadId.length === 0) fail('conversation_event_thread_invalid');
@@ -114,14 +115,22 @@ export async function appendConversationEvent(c: Client, input: AppendConversati
   const bodyHmac = conversationEventBodyHmac(input.body);
   const encKey = encKeyForVersion(CONVERSATION_EVENT_KEY_VERSION);
 
+  // 密钥注入（0210 契约）：密钥不在 conversation_event_append 签名内（12 参形），改经事务级
+  // 自定义 GUC 同事务注入——set_config 用绑定参数（密钥不进语句文本、不与正文同流进数据语句
+  // 参数表），is_local=true 事务尾自清、密钥零残留。
+  // 事务局部性语义（写死）：本函数预期在 asPrincipal 事务内调用（BEGIN + SET LOCAL ROLE +
+  // set_config 同事务·现役唯一 DB 会话封装）；若误用于非事务上下文，本 set_config(true) 语句
+  // 即终即蒸发 → append 端 current_setting 缺失 → 22023 fail-closed（静默降级不可能）。
+  await c.query(`SELECT set_config('app.conversation_event_enc_key', $1, true)`, [encKey]);
+
   const r = await c.query<{
     event_id: string; sequence: string | number; event_digest: string; body_hmac: string;
     artifact_id: string; replayed: boolean;
   }>(
-    `SELECT * FROM conversation_event_append($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13)`,
+    `SELECT * FROM conversation_event_append($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)`,
     [
       input.threadId, input.category, input.source, input.eventKey ?? null, input.body, bodyHmac,
-      CONVERSATION_EVENT_KEY_VERSION, CONVERSATION_EVENT_KEY_VERSION, encKey,
+      CONVERSATION_EVENT_KEY_VERSION, CONVERSATION_EVENT_KEY_VERSION,
       input.retentionClass, input.consentPurpose, input.consentRevision, input.privacyEpoch,
     ],
   );

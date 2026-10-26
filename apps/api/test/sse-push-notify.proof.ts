@@ -357,6 +357,103 @@ async function until(cond: () => boolean, timeoutMs: number, stepMs = 25): Promi
   }
 }
 
+// ═══ Phase F2 · 0143 原文已执行之后，再装语句级迁移文件字节 ════════════════
+// 同一通道同一载荷在同一事务里会被数据库收成一次送达，监听条数不能证明
+// 重复 stream_key 只调用了一次。能区分的是已执行函数体：对 inserted 里不同的
+// stream_key 各 pg_notify 一次，且不再读 NEW。
+{
+  console.log('\n──────── Phase F2 · statement notify once per distinct stream_key ────────');
+  const migrationStatementNotify = readFileSync(
+    fileURLToPath(new URL('../../../packages/db/migrations/0214_interview_event_statement_notify.sql', import.meta.url)),
+    'utf8',
+  );
+  await h.pool.query(migrationStatementNotify);
+  const trig = await h.pool.query(
+    `SELECT pg_get_triggerdef(t.oid) AS def
+       FROM pg_trigger t
+      WHERE t.tgname = $1
+        AND t.tgrelid = $2::regclass
+        AND NOT t.tgisinternal`,
+    [SSE_NOTIFY_TRIGGER_NAME, 'interview_event'],
+  );
+  const trigDef = String(trig.rows[0]?.def ?? '');
+  const fn = await h.pool.query(
+    `SELECT count(*)::int AS n
+       FROM pg_trigger t
+       JOIN pg_proc p ON p.oid = t.tgfoid
+      WHERE t.tgrelid = 'interview_event'::regclass
+        AND NOT t.tgisinternal
+        AND p.proname = 'sse_event_notify_after_insert'`,
+  );
+  const fnDef = String((await h.pool.query(
+    `SELECT pg_get_functiondef('public.sse_event_notify_after_insert()'::regprocedure) AS def`,
+  )).rows[0]?.def ?? '');
+  A('语句级目录：同名触发器仍只挂在 interview_event，定义为 FOR EACH STATEMENT 且 REFERENCING NEW TABLE，不再是 FOR EACH ROW',
+    trig.rowCount === 1
+    && Number(fn.rows[0]?.n) === 1
+    && trigDef.includes('FOR EACH STATEMENT')
+    && trigDef.includes('REFERENCING NEW TABLE')
+    && !trigDef.includes('FOR EACH ROW')
+    && trigDef.includes(SSE_NOTIFY_TRIGGER_NAME)
+    && trigDef.includes('interview_event'));
+  A('同一语句里重复 stream_key 只通知一次：函数对 inserted 中不同的 stream_key 各 pg_notify 一次，且不再读取 NEW',
+    /SELECT\s+DISTINCT\s+stream_key\s+FROM\s+inserted/i.test(fnDef)
+    && /pg_notify\(\s*'interview_event_ch'\s*,\s*stream_key\s*\)/i.test(fnDef)
+    && !/\bNEW\b/.test(fnDef));
+
+  const keyRepeated = 'IV_SSEPUSH_STMT_A';
+  const keyOther = 'IV_SSEPUSH_STMT_B';
+  await seedStream(keyRepeated, []);
+  await seedStream(keyOther, []);
+  const client = await h.pool.connect();
+  try {
+    const received: Array<{ channel: string; payload?: string }> = [];
+    const onNotification = (m: { channel: string; payload?: string }) => received.push(m);
+    client.on('notification', onNotification);
+    await client.query(`LISTEN ${SSE_NOTIFY_CHANNEL}`);
+    await h.pool.query(
+      `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload) VALUES
+         ('userA',$1,1,'progress','{}'::jsonb),
+         ('userA',$1,2,'progress','{}'::jsonb),
+         ('userA',$2,1,'progress','{}'::jsonb)`,
+      [keyRepeated, keyOther],
+    );
+    await until(() => received.length >= 2, 3000);
+    client.off('notification', onNotification);
+    const payloads = new Set(received.map((m) => m.payload));
+    A('一条插入写入两个不同 stream_key 时 LISTEN 收到两条，通道为 interview_event_ch，载荷为这两个裸流键',
+      received.length === 2
+      && received.every((m) => m.channel === SSE_NOTIFY_CHANNEL)
+      && payloads.size === 2
+      && payloads.has(keyRepeated)
+      && payloads.has(keyOther));
+    await client.query('UNLISTEN *');
+  } finally {
+    try { client.release(); } catch { /* already released */ }
+  }
+
+  const zeroKey = 'IV_SSEPUSH_STMT_ZERO';
+  const quiet = await h.pool.connect();
+  try {
+    const received: Array<{ channel: string; payload?: string }> = [];
+    const onNotification = (m: { channel: string; payload?: string }) => received.push(m);
+    quiet.on('notification', onNotification);
+    await quiet.query(`LISTEN ${SSE_NOTIFY_CHANNEL}`);
+    await h.pool.query(
+      `INSERT INTO interview_event(owner_user_id,stream_key,seq,kind,payload)
+       SELECT 'userA',$1,1,'progress','{}'::jsonb
+       WHERE false`,
+      [zeroKey],
+    );
+    await sleep(800);
+    quiet.off('notification', onNotification);
+    A('一条插入实际写入零行时不收到通知', received.length === 0);
+    await quiet.query('UNLISTEN *');
+  } finally {
+    try { quiet.release(); } catch { /* already released */ }
+  }
+}
+
 // ═══ Phase G · P-2 单元面(fake client 缝)══════════════════════════════════
 type FakeClient = EventEmitter & {
   query: (sql: string, params?: unknown[]) => Promise<{ rowCount: number; rows: unknown[] }>;
@@ -669,6 +766,51 @@ function startPump(sink: Sink, o: {
     } catch { reRegisterOk = false; }
     A('P-2d N6 卫生臂:醒后 entry 全自除(waitingCount=0)+dispose 幂等零抛+醒后可再注册',
       notify.waitingCount() === 0 && reRegisterOk);
+    await notify.stop();
+  }
+}
+
+// 取数抛错与空结果(泵驱动旁):抛错中断并抛出;空 rows 仍心跳。返回 null 的臂不在此处。
+{
+  console.log('\n──────── 取数抛错 / 空结果 ────────');
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    const registry = createSseRegistry();
+    const boom = new Error('fetch_more_rejected');
+    const raw = (sink.reply as { raw: { destroy?: (err?: unknown) => void } }).raw;
+    let destroyCount = 0;
+    let destroyed: unknown;
+    raw.destroy = (err) => { destroyCount += 1; destroyed = err; };
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_FETCH_ERR', notify, registry, fallbackMsHealthy: 50,
+      fetchMore: async () => { throw boom; },
+    });
+    let caught: unknown;
+    const rejected = await Promise.race([
+      finished.then(() => false, (err) => { caught = err; return true; }),
+      sleep(3000).then(() => false),
+    ]);
+    A('取数抛错:pumpSseEvents 以同一个错误拒绝', rejected && caught === boom);
+    A('取数抛错:登记计数回到 0', registry.count() === 0);
+    A('取数抛错:end 次数为 0', sink.getEndCount() === 0);
+    A('取数抛错:destroy 被调用', destroyCount === 1 && destroyed === boom);
+    await notify.stop();
+  }
+  {
+    const notify = new SseNotifyService({ connect: async () => fakePgClient(), log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    let rejected = false;
+    await Promise.race([notify.whenHealthy(), sleep(2000)]);
+    const finished = startPump(sink, {
+      streamKey: 'UNIT_FETCH_EMPTY', notify, fallbackMsHealthy: 50,
+      fetchMore: async () => ({ rows: [] }),
+    }).then(() => undefined, () => { rejected = true; });
+    const sawPing = await until(() => sink.writes.some((w) => w.includes(': ping')), 2000);
+    sink.reqRaw.emit('close');
+    await Promise.race([finished, sleep(1500)]);
+    A('空结果:泵不因空结果拒绝,写出仍有 : ping', sawPing && !rejected && sink.writes.some((w) => w.includes(': ping')));
     await notify.stop();
   }
 }

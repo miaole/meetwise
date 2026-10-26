@@ -58,6 +58,39 @@ export const UNCERTAINTY_HUMAN_REVIEW_VALUES = ['none', 'pending', 'resolved'] a
 export type UncertaintyEvidenceCoverage = (typeof UNCERTAINTY_EVIDENCE_COVERAGE_VALUES)[number];
 export type UncertaintySourceIntegrity = (typeof UNCERTAINTY_SOURCE_INTEGRITY_VALUES)[number];
 export type UncertaintyVoiceQuality = (typeof UNCERTAINTY_VOICE_QUALITY_VALUES)[number];
+
+/**
+ * asrOutcome 裁决映射词表（'low' 组 token 名）。沿 asr_* 失败码命名族；真置信适配器
+ * 接线前零生产者（结构就位）。注意 contracts 的 'voice_low_quality' 是下游 review 理由码，
+ * 不是 asrOutcome token——两名异位不混用。
+ */
+export const ASR_QUALITY_LOW_ASR_OUTCOME = 'asr_quality_low';
+
+/**
+ * asrOutcome token → 语音质量映射表。'unavailable' 组 = word_timestamps_not_available
+ * （TEXT_ONLY_ASR_OUTCOME）+ 四个失败码（asr_timeout/asr_aborted/asr_malformed/
+ * asr_not_configured）；'low' 组 = asr_quality_low。
+ */
+const ASR_OUTCOME_VOICE_QUALITY_MAP: ReadonlyMap<string, 'unavailable' | 'low'> = new Map([
+  ['word_timestamps_not_available', 'unavailable'],
+  ['asr_timeout', 'unavailable'],
+  ['asr_aborted', 'unavailable'],
+  ['asr_malformed', 'unavailable'],
+  ['asr_not_configured', 'unavailable'],
+  [ASR_QUALITY_LOW_ASR_OUTCOME, 'low'],
+]);
+
+/**
+ * 已有转写结果映射到语音质量，三分：
+ *   ① 缺省、非串、纯空白 → undefined（调用方不传新列=文字作答照旧）；
+ *   ② 词表命中 → 按表（unavailable 组/low 组）；
+ *   ③ 非空而映射不到（自由转写文本/未收编 token）→ 保守兜底 'unavailable'，绝不落缺省 ok。
+ * 不返回 ok。unavailable 不单独触发 review；只有 low 才会。
+ */
+export function voiceQualityFromAsrOutcome(asrOutcome?: string): 'unavailable' | 'low' | undefined {
+  if (typeof asrOutcome !== 'string' || asrOutcome.trim() === '') return undefined;
+  return ASR_OUTCOME_VOICE_QUALITY_MAP.get(asrOutcome) ?? 'unavailable';
+}
 export type UncertaintyRubricDifficulty = (typeof UNCERTAINTY_RUBRIC_DIFFICULTY_VALUES)[number];
 export type UncertaintyHumanReview = (typeof UNCERTAINTY_HUMAN_REVIEW_VALUES)[number];
 

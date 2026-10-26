@@ -43,6 +43,27 @@ function main() {
       'quiz_diagnosis_dual_claim_prove_forbids_local_docker_db',
     ),
   );
+  const cloudIsolatedForbiddenHosts = [
+    '::1',
+    '[::1]',
+    '127.0.0.2',
+    'postgres',
+    'meetwise-postgres-1',
+    '0:0:0:0:0:0:0:1',
+    '::ffff:127.0.0.1',
+    '0.0.0.0',
+    '169.254.1.1',
+    'fe80::1',
+  ];
+  for (const host of cloudIsolatedForbiddenHosts) {
+    A(
+      `E2E_CLOUD_ISOLATED=1 拒绝 ${host}`,
+      threw(
+        { ['E2E_CLOUD_ISOLATED']: '1', ['PGHOST']: host },
+        'quiz_diagnosis_dual_claim_prove_forbids_local_docker_db',
+      ),
+    );
+  }
   A(
     '缺远程隔离配置失败关闭，不得改起本地库',
     threw({}, 'quiz_diagnosis_dual_claim_prove_requires_remote_postgres'),

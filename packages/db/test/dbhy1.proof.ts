@@ -229,6 +229,7 @@ const P4_OBJECT_EXEMPTIONS: ReadonlyMap<string, string> = new Map([
   // b5m #122 半2 0199 冗余索引 DROP（7152cd3c 2026-10-14 落链·PR#108 dbhy1 P4⑤ 首曝两缺口·b5m REQUEST :248 呈报→本登记面漏更补账）：
   ['indexes:ix_user_email', '0199 故意 DROP（#122 半2 冗余索引退役·email UNIQUE 约束背衬索引同列双 btree）·sql/ 夹具滞后旧索引'],
   ['indexes:ix_qfb_rating', '0199 故意 DROP（#122 半2 冗余索引退役·全仓 rg 零查询引用）·sql/ 夹具滞后旧索引'],
+  ['indexes:ix_outbox_pending', '0212 故意 DROP（非部分索引退役，ix_outbox_unsettled 接替）·sql/ 夹具滞后旧索引'],
   // qbank-control-sec 刀 0176 P5 清理（裁决项④按卷推荐形）：九支遗留 GUC 策略 DROP（0013:63/:70/:75+
   // 0029:45/:48+0031:21/:23/:40/:42·真空收口——RLS+FORCE 维持+executor 控制策略在位，re-GRANT 撞默认拒绝）。
   ['policies:public.qbank_source:p_src_read', '0176 P5 清理 DROP（遗留 GUC 策略·真空收口）·sql/ 夹具仍载'],

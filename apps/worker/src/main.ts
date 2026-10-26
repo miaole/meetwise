@@ -37,6 +37,7 @@ import { runTraceReconReconciler, resolveTraceReconConfig } from './trace-recon.
 import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig } from './usage-calibration-reconcile.ts';
 import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
 import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
+import { runCommerceOutboxRetention, resolveCommerceOutboxRetentionConfig } from './commerce-outbox-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -536,7 +537,8 @@ async function bootstrap() {
   // （principal/模型/query HMAC/k/语料 epoch；不落 query/简历/答案）+ PostgreSQL 权威 epoch/ANN/RLS/账本。
   // 检索 miss 可走 CRAG Web + LLM 出题；native embed/rerank miss → generation_unavailable，不发明 stem。
   const rawEmbedder = dashscopeEmbedder();
-  const embedder = cachingEmbedder(rawEmbedder, inMemoryEmbeddingStore());
+  const embeddingStore = inMemoryEmbeddingStore();
+  const embedder = cachingEmbedder(rawEmbedder, embeddingStore);
   if (ragCost.mode === 'enforce' && rawEmbedder.id !== ragCost.model) {
     throw new Error(`rag_cost_billing_model_mismatch:${rawEmbedder.id}`);
   }
@@ -566,7 +568,7 @@ async function bootstrap() {
       embedderVersion: `${embedder.id}:dim=${embedder.dim}:recipe=${qbankRecipe.id}:retrieval=${retrievalMode}:v1`,
       k: 12,
       cache: ragCache,
-      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+      embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost, embeddingStore),
     }),
     localRetrieve: async (owner: string, q: string, scope?: QbankServingScopeInput) => {
       const started = performance.now();
@@ -590,7 +592,7 @@ async function bootstrap() {
           cache: ragCache,
           // Strict mode intentionally uses the unwrapped provider adapter: the durable result cache already removes
           // repeated query calls, and a local cache hit must not reserve a second external-cost ledger entry.
-          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost),
+          embed: budgetedQbankEmbedding(pool, owner, ragCost.mode === 'enforce' ? rawEmbedder : embedder, ragCost, embeddingStore),
           ttlSeconds: boundedIntEnv('RAG_QBANK_CACHE_TTL_SECONDS', 120, 5, 3600),
           waitMs: boundedIntEnv('RAG_QBANK_CACHE_WAIT_MS', 5000, 100, 30000),
           leaseSeconds: boundedIntEnv('RAG_QBANK_CACHE_LEASE_SECONDS', 20, 5, 60),
@@ -661,7 +663,7 @@ async function bootstrap() {
   // 简历诊断(resume-diagnosis)消费循环:api 入队 generate job → 本消费者跑图/模型 → 业务事件经 SSE 回前端。
   const diagnosisLoop = runDiagnosisConsumer({ pool, model, leaseOwner }, jobReconcileIntervalMs);
   // R2 P-WORKER: sole route_pending → classifyJobRoute via MODEL-OP binding (≠ R2 closed; P-API may remain).
-  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model }, jobReconcileIntervalMs);
+  const routeClassifyLoop = runRouteClassifyConsumer({ pool, model: fastModel }, jobReconcileIntervalMs);
   // RAG-FUNNEL-07: free-text allowlisted scope funnel production consumer (request-path).
   // Callers supply goal once; typed decision only suggests allowlisted track — no read/tool/retrieval grant.
   // Real import of runFreeTextAllowlistedScopeFunnel ( Ban docs-only fake cover ).
@@ -742,6 +744,11 @@ async function bootstrap() {
   const usageCalibrationRetentionLoop = usageCalibrationRetentionControl.enabled
     ? runUsageCalibrationRetention(pool, usageCalibrationRetentionControl)
     : undefined;
+  // 已投递 outbox 行按保留期分批删除。缺省 ENABLED=false 不起循环；非法 env 在解析时抛出。
+  const commerceOutboxRetentionControl = resolveCommerceOutboxRetentionConfig();
+  const commerceOutboxRetentionLoop = commerceOutboxRetentionControl.enabled
+    ? runCommerceOutboxRetention(pool, commerceOutboxRetentionControl)
+    : undefined;
   // AG-43 调度半（qbank-control-sec 刀）：0146:9「Ban 自动清理调度」由协调方派单明示解除（裁决项③落值·
   // 0146 原文零改）后的受控调度。缺省 ENABLED=false（0146 设计内 Ban 的保守延续·显式 opt-in 才起循环，
   // 沿 usageCalibration ENABLED 旋钮先例）；非法 env=启动失败非静默回退（resolveQbankReleaseSweepConfig·AG-18）。
@@ -777,7 +784,7 @@ async function bootstrap() {
     ragReady: () => ragCache.available && qbankReadModel.ready,
     workerReady: () => reportLoop.ready() && interviewLoop.ready() && quizLoop.ready() && diagnosisLoop.ready()
       && routeClassifyLoop.ready()
-      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && traceReconLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true),
+      && jobWakeupListener.ready() && commerceLoop.ready() && modelInvocationReconcileLoop.ready() && traceReconLoop.ready() && (usageCalibrationReconcileLoop?.ready() ?? true) && (usageCalibrationRetentionLoop?.ready() ?? true) && (commerceOutboxRetentionLoop?.ready() ?? true),
     // #157 分域 ready：privacy 域两擦除 loop 摘出 workerReady AND 链（域内 3 拍失败不再
     // 拉闸整 worker 流量闸），域观测收口 /readyz/privacy；两 loop 停机清单归属零触
     // （drainStops loop 相原样），ready() 机制本体零改（翻红信号仍在·仅域归属变）。
@@ -809,11 +816,12 @@ async function bootstrap() {
   // 记「18 项」,两相归位=loop 相 14(13 静态+stub-tick 条件展开)+deps 相 5):
   // 14 loop.stop(report/interview/quiz/diagnosis/route-classify/commerce/
   // modelInvocationReconcile/usageCalibrationReconcile/usageCalibrationRetention/
-  // qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
+  // commerce-outbox-retention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
   // + ragCache.close + 3 pool.end(privacy/qbankControl/ragControl)+ langfuse.shutdown。
   // deadline 胜出 → worker_drain_timeout(含相位+该相在飞名)后 exit 0:被弃 job 走租约
   // 过期→reaper/sweep 重领,不双跑(既有 crash-safe);metricsServer.close() 补 await
   // (诚实收口,2s 上限 race,非阻断)。
+  // 当前事实：静态具名 20，名称出现 21 次（含条件 stub-tick），loop 相位贴标全文件 16 处，deps 仍为 5。
   const drainStops: NamedStop[] = [
     { name: 'report', stop: () => reportLoop.stop(), phase: 'loop' },
     { name: 'interview', stop: () => interviewLoop.stop(), phase: 'loop' },
@@ -825,6 +833,7 @@ async function bootstrap() {
     { name: 'trace-recon', stop: () => traceReconLoop.stop(), phase: 'loop' },
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'commerce-outbox-retention', stop: () => commerceOutboxRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },

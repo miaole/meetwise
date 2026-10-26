@@ -36,10 +36,19 @@ export async function drainQuizJobOnce(d: QuizConsumerDeps, owner: string): Prom
     return 'generate';
   } catch (e: unknown) {
     const err = asErr(e);
+    let readyDone = false;
     await asPrincipal(d.pool, owner, async (c) => {
       // **租约守卫(专家审计:丢租约的 worker 不得碰业务态)**:markFailed 的 CAS 含 lease_owner=本机;
       // 若已被重领(0 行 → false),本 worker 已不持租约 → 静默退出,不发终态事件、不退额度(否则会退掉现租约持有者正要 confirm 的预留 = 漏扣)。
       const isLegacyReference = errCode(err) === 'legacy_resume_reference_unresolved';
+      if (!isLegacyReference) {
+        const parent = await c.query('SELECT status FROM resume_quiz WHERE id=$1 AND owner_user_id=$2', [job.quizId, owner]);
+        if (parent.rows[0]?.status === 'ready') {
+          // 已交付：租约 CAS 只补记完成。不先标失败，不发不可用，不释放，不计失败。
+          if (await markQuizJobDone(c, owner, job.id, d.leaseOwner)) readyDone = true;
+          return;
+        }
+      }
       // The job was claimed without selecting payload.  Once classified as
       // legacy, erase its opaque historical JSON in the same terminal CAS so
       // it cannot wait in a failed row for a future accidental reader.
@@ -60,6 +69,7 @@ export async function drainQuizJobOnce(d: QuizConsumerDeps, owner: string): Prom
       // **失败退款(无泄漏)**:押题终态失败 → 预留的 1.0 永不会被 confirm,必须释放(幂等,key=quizId)。
       await releaseConsumption(c, owner, job.quizId).catch(() => {});
     });
+    if (readyDone) return 'generate';
     return 'failed';
   } finally {
     await hb.stop();   // 停心跳(等在飞续租跑完)

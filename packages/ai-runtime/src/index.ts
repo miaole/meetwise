@@ -81,7 +81,7 @@ export type {
 // CTX-02 派发前预算器（纯、确定性）：8 组件逐项分账 + availableInput 公式 + 确定性降级/拒绝 + 版本化保守估算 + usage 校准。
 export {
   CONTEXT_BUDGET_STATUSES, CONTEXT_BUDGET_COMPONENT_IDS, DEFAULT_TRIM_ORDER,
-  estimateContextTokens, contextBudgetPolicyFromCostPolicy, planDispatchBudget,
+  estimateContextTokens, contextBudgetPolicyFromCostPolicy, planDispatchBudget, planDispatchBudgetFromCostPolicy,
 } from './context-budget.ts';
 export type {
   ContextBudgetStatus, ContextBudgetComponentId, ContextBudgetComponents,
@@ -99,6 +99,7 @@ export type {
   ReconcileUsageCalibrationInput, ReconcileUsageCalibrationGroupResult, ReconcileUsageCalibrationResult,
   ReconcileUsageCalibrationWindowedResult,
 } from './usage-calibration-reconciler.ts';
+export { planDispatchBudgetWithLatestCalibration } from './calibration-dispatch-budget.ts';
 export {
   visionOcr, bindResumeOcr, bindResumeOcrOperation, resumeOcrMediaDigest,
   MIN_OCR_CHARS, RESUME_OCR_OPERATION_ID,
@@ -228,7 +229,7 @@ export {
 export { disabledStreamingAsr, disabledStreamingTts, dashscopeStreamingAsr, dashscopeStreamingTts, streamingVoiceTurn } from './voice-stream.ts';
 export type { AsrEvent, StreamingAsr, StreamingTts, StreamTurnHooks } from './voice-stream.ts';
 
-export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, METRIC, type Metrics } from './metrics.ts';
+export { createMetrics, setMetrics, getMetrics, registerBaselineMetrics, recordRagRetrievalAction, METRIC, type Metrics } from './metrics.ts';
 
 export { toolRegistry, runToolLoop, type Tool, type ToolRegistry, type ToolStep, type ToolDecision } from './tools.ts';
 export { buildCandidateQaRegistry, buildRecruiterQaRegistry, runQaToolLoop, QA_TOOL_LOOP_MAX_STEPS, QA_SERVICE_GROWTH_ADVISOR, QA_SERVICE_RECRUITER_FOLLOWUP, type QaToolLoopConfig, type QaToolLoopOutcome } from './qa-tool-layer.ts';

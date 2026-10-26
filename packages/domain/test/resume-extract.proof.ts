@@ -34,10 +34,41 @@ ok(cleaned.startsWith('Java') && cleaned.endsWith('经历'), '清洗:首尾 trim
 const r1 = await extractResumeText(Buffer.from('后端\r\n\r\n\r\n三年经验'), 'text/plain', 'r.txt');
 ok(r1.format === 'text' && r1.text === '后端\n\n三年经验', '文本直通 + 清洗');
 
-// 4. 图片 → 抛 image_needs_ocr(上层路由到 vision)
+// 4. 图片 → 抛 image_needs_ocr(上层路由到 vision)——#109 fixture 升级:完整 PNG 签名过嗅探门(断言语义守恒)
 let threw = '';
-try { await extractResumeText(Buffer.from([0x89, 0x50]), 'image/png', 'x.png'); } catch (e: any) { threw = e?.code; }
+try { await extractResumeText(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]), 'image/png', 'x.png'); } catch (e: any) { threw = e?.code; }
 ok(threw === 'image_needs_ocr', '图片 → 抛 image_needs_ocr(seam 留给 qwen-vl OCR)');
+
+// 4b. #109 魔数守卫:声明 vs 字节不符 → magic_mismatch(fail-closed·嗅探先于加密扫描与解析)
+const codeOf = (e: unknown): string => (e as { code?: string })?.code ?? '';
+const PNG_SIG = Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]);
+let trunc = '';
+try { await extractResumeText(Buffer.from([0x89, 0x50]), 'image/png', 'trunc.png'); } catch (e) { trunc = codeOf(e); }
+ok(trunc === 'magic_mismatch', '#109: 截断 PNG 魔数(2/8 字节) → magic_mismatch');
+let emptyZip = '';
+try { await extractResumeText(Buffer.from('PK\x05\x06' + '\0'.repeat(18)), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'a.docx'); } catch (e) { emptyZip = codeOf(e); }
+ok(emptyZip === 'magic_mismatch', '#109: 空 zip 头(PK\\x05\\x06) 声明 docx → magic_mismatch');
+let spanHdr = '';
+try { await extractResumeText(Buffer.from('PK\x07\x08abcdefgh'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'a.docx'); } catch (e) { spanHdr = codeOf(e); }
+ok(spanHdr === 'magic_mismatch', '#109: span 标记头(PK\\x07\\x08) 声明 docx → magic_mismatch');
+let zipAsText = '';
+try { await extractResumeText(Buffer.from('PK\x03\x04zipbytes'), 'text/plain', 'r.txt'); } catch (e) { zipAsText = codeOf(e); }
+ok(zipAsText === 'magic_mismatch', '#109: zip 头声明纯文本 → magic_mismatch(text 分支拒 PK 三签)');
+let pdfAsText = '';
+try { await extractResumeText(Buffer.from('%PDF-1.4 trailing'), 'text/plain', 'r.txt'); } catch (e) { pdfAsText = codeOf(e); }
+ok(pdfAsText === 'magic_mismatch', '#109: PDF 字节声明纯文本 → magic_mismatch');
+let oleAsText = '';
+try { await extractResumeText(Buffer.from([0xd0, 0xcf, 0x11, 0xe0, 0xa1, 0xb1, 0x1a, 0xe1]), 'text/plain', 'r.txt'); } catch (e) { oleAsText = codeOf(e); }
+ok(oleAsText === 'magic_mismatch', '#109: OLE2 头声明纯文本 → magic_mismatch(.doc 族残面收口)');
+let pngAsText = '';
+try { await extractResumeText(PNG_SIG, 'text/plain', 'r.txt'); } catch (e) { pngAsText = codeOf(e); }
+ok(pngAsText === 'magic_mismatch', '#109: 图像字节声明纯文本 → magic_mismatch');
+let pk56Text = '';
+try { await extractResumeText(Buffer.from('PK\x05\x06' + '\0'.repeat(18)), 'text/plain', 'r.txt'); } catch (e) { pk56Text = codeOf(e); }
+ok(pk56Text === 'magic_mismatch', '#109: 空 zip 头声明纯文本 → magic_mismatch');
+let pk78Text = '';
+try { await extractResumeText(Buffer.from('PK\x07\x08abcdefgh'), 'text/plain', 'r.txt'); } catch (e) { pk78Text = codeOf(e); }
+ok(pk78Text === 'magic_mismatch', '#109: span 头声明纯文本 → magic_mismatch');
 
 let unsupported = '';
 try { await extractResumeText(Buffer.from('PK\\x03\\x04'), 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'budget.xlsx'); } catch (e: any) { unsupported = e?.code; }
@@ -111,5 +142,22 @@ const realDocx = craftDocx([
 const rDocx = await extractResumeText(realDocx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-real.docx');
 ok(rDocx.format === 'docx', 'A1: 真实 docx → format=docx');
 ok(rDocx.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', 'A1: 真实 docx 端到端提取输出断言(mammoth+xmldom0.8.15)');
+
+// 7. #108/#109 伴生:真实 PDF 提取正例——手构合法 xref(禁依赖 pdf.js recovery 模式)·pdf-parse 端到端
+//    经 worker isolate(#108)全链提取并断言非空文本输出(补 worker+pdf-parse happy path 零覆盖面)。
+function craftMinimalPdf(text: string): Buffer {
+  const esc = text.replace(/([\\()])/g, '\\$1');
+  const content = `BT /F1 14 Tf 72 720 Td (${esc}) Tj ET`;
+  const objs: string[] = ['', '<< /Type /Catalog /Pages 2 0 R >>', '<< /Type /Pages /Kids [3 0 R] /Count 1 >>', '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 792] /Contents 4 0 R /Resources << /Font << /F1 5 0 R >> >> >>', `<< /Length ${content.length} >>\nstream\n${content}\nendstream`, '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>'];
+  let out = '%PDF-1.4\n';
+  const off: number[] = [0];
+  for (let i = 1; i <= 5; i++) { off[i] = out.length; out += `${i} 0 obj\n${objs[i]}\nendobj\n`; }
+  const xref = out.length;
+  out += 'xref\n0 6\n0000000000 65535 f \n' + off.slice(1).map((o) => `${String(o).padStart(10, '0')} 00000 n \n`).join('');
+  out += `trailer\n<< /Size 6 /Root 1 0 R >>\nstartxref\n${xref}\n%%EOF`;
+  return Buffer.from(out, 'latin1');
+}
+const rPdf = await extractResumeText(craftMinimalPdf('Three Years Backend Engineer Order Systems'), 'application/pdf', 'probe-min.pdf');
+ok(rPdf.format === 'pdf' && rPdf.text.trim().length > 0 && rPdf.text.includes('Backend'), '真 PDF 正例:合法 xref 手构 → worker 端到端提取非空文本(#108 worker+pdf-parse happy path)');
 
 console.log(`✓ resume-extract:prove 全部通过(${n} 断言)`);

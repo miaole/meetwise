@@ -556,8 +556,17 @@ export async function provisionQbankControlDefiner(pool: DbPool): Promise<void> 
     await c.query('ROLLBACK').catch(() => undefined);
     throw error;
   } finally {
-    await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['meetwise:qbank_control_definer_provision']).catch(() => undefined);
-    c.release();
+    // A failed unlock leaves the session advisory lock on this connection.
+    // Discard that client instead of returning the locked session to the idle list.
+    let unlocked = false;
+    try {
+      await c.query('SELECT pg_advisory_unlock(hashtext($1))', ['meetwise:qbank_control_definer_provision']);
+      unlocked = true;
+    } catch (unlockError: unknown) {
+      if (unlockError instanceof Error) c.release(unlockError);
+      else c.release(true);
+    }
+    if (unlocked) c.release();
   }
 }
 
@@ -749,8 +758,8 @@ function nonEmpty(value: string | undefined): string | undefined {
   return trimmed ? trimmed : undefined;
 }
 
-function invalidDatabaseConfig(code: string): never {
-  throw new Error(`database_config_invalid:${code}`);
+function invalidDatabaseConfig(code: string, hint?: string): never {
+  throw new Error(hint === undefined ? `database_config_invalid:${code}` : `database_config_invalid:${code}（${hint}）`);
 }
 
 /**
@@ -778,7 +787,7 @@ export function resolveDatabaseConnectionString(o: PoolOverrides = {}): string {
     if (parsed.protocol !== 'postgres:' && parsed.protocol !== 'postgresql:') invalidDatabaseConfig('database_url_protocol');
     if (!parsed.hostname) invalidDatabaseConfig('database_url_host_missing');
     if ((process.env.NODE_ENV ?? '').toLowerCase() === 'production' && isLocalDatabaseHost(parsed.hostname))
-      invalidDatabaseConfig('production_local_database_host');
+      invalidDatabaseConfig('production_local_database_host', '生产环境数据库主机不得为本机/回环/链路本地地址，请将数据库地址指向云数据库后重启');
     // TLS policy is expressed through DATABASE_SSL_MODE, never a hidden URL query parameter.
     if (parsed.searchParams.has('sslmode')) invalidDatabaseConfig('database_url_sslmode_not_allowed');
     return parsed.toString();
@@ -789,7 +798,7 @@ export function resolveDatabaseConnectionString(o: PoolOverrides = {}): string {
   if (!Number.isInteger(components.port) || components.port < 1 || components.port > 65535)
     invalidDatabaseConfig('database_port_invalid');
   if ((process.env.NODE_ENV ?? '').toLowerCase() === 'production' && isLocalDatabaseHost(components.host))
-    invalidDatabaseConfig('production_local_database_host');
+    invalidDatabaseConfig('production_local_database_host', '生产环境数据库主机不得为本机/回环/链路本地地址，请将数据库地址指向云数据库后重启');
   return `postgresql://${encodeURIComponent(components.user)}:${encodeURIComponent(components.password)}@${components.host}:${components.port}/${encodeURIComponent(components.database)}`;
 }
 

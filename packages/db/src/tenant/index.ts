@@ -52,14 +52,14 @@ export function requireOwnerUserId(ownerUserId: unknown, context?: string): stri
     );
   }
   const trimmed = ownerUserId.trim();
-  if (trimmed.length === 0) {
+  if (trimmed.length === 0 || trimmed !== ownerUserId) {
     throw new TenantEnforcementError(
       'tenant_owner_user_id_required',
       'owner_user_id must be a non-empty string (app-level tenant ≠ RLS; auth root must not silently degrade)',
       context,
     );
   }
-  return trimmed;
+  return ownerUserId;
 }
 
 /**

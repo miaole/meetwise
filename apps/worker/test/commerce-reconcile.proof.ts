@@ -9,6 +9,7 @@ import {
   createPool, asPrincipal, reserveEntitlement, confirmConsumption, availableUnits,
   renewReservationLease, DEFAULT_LEASE_SECONDS, assertIsolatedTestTarget,
   inviteCandidate, startApplicationInterview, createJob, classifyJobRoute,
+  claimNextInterviewJob,
 } from '@meetwise/db';
 
 // Test-only HMAC key for createJob/classifyJobRoute (same pattern as adaptive-life/rag03/r4; not production).
@@ -259,6 +260,12 @@ async function main() {
     A('F3 B 端围栏 fixture：interview 绑定 application_id（≠NULL）', typeof bBound === 'string' && bBound === app!.applicationId);
     const appBefore = (await pool.query('SELECT status,interview_attempt,score FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
     const ivBStatusBefore = await ivStatus(owner, bInterviewId);
+    // 作业写护栏拒绝已围栏面试上的插入，所以在围栏落库前种下仍排队的行。随后的拍才走围栏跳过。
+    await asPrincipal(pool, owner, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version)
+         VALUES ($1,$2,'start',0,$3::jsonb,$4,1,64,'queued','stale-worker',now()+interval '10 minutes',4)`,
+      [owner, bInterviewId, JSON.stringify({ answer: 'fence-queued-answer', turn: 2 }), resumeId],
+    ));
     await fenceInterview(owner, bInterviewId);
     await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, bInterviewId, 'mock_interview', 1.0));
     await expireLease(owner, bInterviewId);
@@ -274,6 +281,160 @@ async function main() {
     // r2 拍仅新 sweep 的 B 端围栏行 → 本拍 ≥1、两拍合计 ≥2（r.fencedSkipped≥1 + r2.fencedSkipped≥1）。
     A('F3 fencedSkipped 含 B 端行（本拍 ≥1·两拍合计 ≥2）', r2.fencedSkipped >= 1 && (r.fencedSkipped + r2.fencedSkipped) >= 2);
     A('F3 二拍后仍零循环报错（连续失败计数=0）', consecutiveReconcileFailureCount() === 0);
+    // 0059：围栏后 app_role 的 interview_job 策略要求 interview_privacy_active，principal 读不到这行。
+    // 行是否仍为 queued 只能经建 fixture 的同一池读出；插入仍走 asPrincipal。
+    const fenceQueued = (await pool.query(
+      'SELECT status, version, payload, last_error FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0',
+      [owner, bInterviewId],
+    )).rows[0];
+    A('F3 B 端围栏跳过不改仍排队的作业（仍 queued，version、payload、last_error 不变，面试不是 failed）',
+      fenceQueued?.status === 'queued' && Number(fenceQueued?.version) === 4
+      && fenceQueued?.payload?.answer === 'fence-queued-answer' && fenceQueued?.payload?.turn === 2
+      && fenceQueued?.last_error == null
+      && (await ivStatus(owner, bInterviewId)) !== 'failed');
+  }
+
+  section('⑨ interview_unavailable 补 event_key（kind:id:phase 幂等去重面）：identity 断言 + 重放拍零重发');
+  {
+    const owner = OWN('evkey'), iid = IID('evkey');
+    await seedOwner(owner);
+    await pool.query("INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'waiting_user')", [iid, owner]);
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, iid, 'mock_interview', 1.0));
+    await expireLease(owner, iid);
+    // reclaim cancel 收口联合判别钉：拍前 seed 一行 open 题（status 缺省 'issued'·0021 CHECK 四值+
+    // uq_interview_question_open 单开题窗内恰一行）——reclaim 拍必须把它收口为 'cancelled'
+    // （主臂 finishAbandon 同事务 cancel ∪ 兜底臂显式 cancel，两臂终态口径合一）。
+    // seed 必须以 owner principal 执行（0058/0059 投影写护栏要求 session principal=owner·DBHY-1），
+    // 裸 superuser 池直插会被围栏断言以 interview_privacy_fenced 拒绝。
+    await asPrincipal(pool, owner, (c) => c.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question) VALUES ($1,$2,'q-reclaim-closeout',1,0,'收口判别题')", [owner, iid]));
+    A('seed 就位：open 题 status=issued（拍前 fixture 自证）',
+      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [owner, iid]))).rows[0]?.status === 'issued');
+    await commerceReconcileTick(pool);
+    A('reclaim 拍收口：seed issued 题 → status=cancelled（对零 cancel 接线的前码恒 issued=红·防回退判别钉）',
+      (await asPrincipal(pool, owner, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [owner, iid]))).rows[0]?.status === 'cancelled');
+    const ekRow = await asPrincipal(pool, owner, (c) => c.query(
+      "SELECT event_key FROM interview_event WHERE stream_key=$1 AND kind='interview_unavailable'", [iid]));
+    A('interview_unavailable 恰 1 条且 event_key 恒等 interview_unavailable:<id>:reclaim',
+      ekRow.rows.length === 1 && ekRow.rows[0].event_key === `interview_unavailable:${iid}:reclaim`);
+    await commerceReconcileTick(pool);   // 重放拍（已 released 不再进 swept；键在场则去重兜底）
+    A('重放拍零重发（event_key 去重 ∪ swept exactly-once 结构面·仍恰 1 条）',
+      (await evCount(owner, iid, 'interview_unavailable')) === 1);
+
+    // 终态-conflict 子臂（兜底臂独走判别）：interview 预置终态 'completed'（INSERT 先于 reserve=
+    // 0020 配对触发器 consumption NULL 放行）→ reclaim 拍主 CAS（commerce.ts :529 WHERE IN
+    // created/waiting_user）0 行 → :539 抛 interview_abandon_conflict → commerce-reconcile.ts
+    // :79 窄滤接住 → soft-set no-op（completed 被排除=状态零翻转）→ :86 兜底臂独走 cancel
+    // （主臂 finishAbandon 不可达=cancel 唯一来源钉死）。
+    const ownerT = OWN('evkey-term'), iidT = IID('evkey-term');
+    await seedOwner(ownerT);
+    const resumeT = randomUUID();
+    await pool.query(
+      "INSERT INTO resume(id,owner_user_id,status,content_sha,privacy_epoch) VALUES ($1,$2,'ingested',$3,1)",
+      [resumeT, ownerT, `recon-term:${iidT}`],
+    );
+    await pool.query(
+      "INSERT INTO interview(id,owner_user_id,status,resume_id,resume_privacy_epoch) VALUES ($1,$2,'completed',$3,1)",
+      [iidT, ownerT, resumeT],
+    );
+    await asPrincipal(pool, ownerT, (c) => reserveEntitlement(c, ownerT, iidT, 'mock_interview', 1.0));
+    await asPrincipal(pool, ownerT, (c) => c.query("INSERT INTO interview_question(owner_user_id,interview_id,question_id,state_version,turn,question) VALUES ($1,$2,'q-reclaim-term',1,0,'终态收口题')", [ownerT, iidT]));
+    await asPrincipal(pool, ownerT, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version)
+         VALUES ($1,$2,'start',0,$3::jsonb,$4,1,64,'queued','stale-worker',now()+interval '10 minutes',4)`,
+      [ownerT, iidT, JSON.stringify({ answer: 'secret-answer', turn: 1 }), resumeT],
+    ));
+    await asPrincipal(pool, ownerT, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,version,last_error)
+         VALUES ($1,$2,'start',2,'{"answer":"keep-done","turn":3}'::jsonb,$3,1,64,'done',3,NULL)`,
+      [ownerT, iidT, resumeT],
+    ));
+    await expireLease(ownerT, iidT);
+    await commerceReconcileTick(pool);
+    A('终态-conflict 兜底臂独走：soft-set no-op（interview 保持 completed 零翻转）', (await ivStatus(ownerT, iidT)) === 'completed');
+    A('终态-conflict 兜底臂独走：open 题仍被收口 cancelled（不经 finishAbandon 主臂·:86 直收）',
+      (await asPrincipal(pool, ownerT, (c) => c.query('SELECT status FROM interview_question WHERE owner_user_id=$1 AND interview_id=$2', [ownerT, iidT]))).rows[0]?.status === 'cancelled');
+    const queuedJob = (await asPrincipal(pool, ownerT, (c) => c.query(
+      `SELECT status, last_error, lease_owner, lease_expires_at, version, payload, attempts
+         FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0`,
+      [ownerT, iidT],
+    ))).rows[0];
+    const doneJob = (await asPrincipal(pool, ownerT, (c) => c.query(
+      'SELECT status, version, payload, last_error FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=2',
+      [ownerT, iidT],
+    ))).rows[0];
+    A('终态-conflict 兜底臂：当时 queued 的作业变为 failed',
+      queuedJob?.status === 'failed' && queuedJob?.last_error === 'abandoned'
+      && queuedJob?.lease_owner == null && queuedJob?.lease_expires_at == null
+      && Number(queuedJob?.version) === 5 && queuedJob?.payload?.answer === undefined && queuedJob?.payload?.turn === 1);
+    A('终态-conflict 兜底臂：done 作业不改',
+      doneJob?.status === 'done' && Number(doneJob?.version) === 3 && doneJob?.payload?.answer === 'keep-done' && doneJob?.last_error == null);
+    const claimed = await asPrincipal(pool, ownerT, (c) => claimNextInterviewJob(c, ownerT, 'proof-claimer'));
+    A('终态-conflict 兜底臂：放弃后的排队作业不能再被领取', claimed === null && Number(queuedJob?.attempts) === 0);
+  }
+
+  section('⑩ 绑定申请写成失败时，仍排队的作业一并失败且不能再被领取');
+  {
+    const owner = OWN('failq'), recruiter = OWN('failq-rec');
+    const resumeId = randomUUID();
+    await seedOwner(owner, 2.0);
+    const jobRow = await asPrincipal(pool, recruiter, (c) => createJob(c, recruiter, {
+      title: 'Node.js 服务端工程师',
+      description: '使用 NestJS 构建服务',
+      competencies: ['nestjs', 'express', 'koa'],
+    }));
+    const jobId = jobRow.id;
+    const rev = Number((await pool.query(
+      'SELECT COALESCE(MAX(revision),0)::int AS n FROM job_semantic_revision WHERE job_id=$1', [jobId],
+    )).rows[0].n);
+    const classify = await classifyJobRoute(pool, recruiter, jobId, rev, {
+      modelClassify: async () => { throw new Error('B-side seed must rule-decide; model path unexpected'); },
+    });
+    A('绑定申请排队作业：岗位 rule-classified', classify.status === 'route_decided' && classify.attemptOutcome === 'rule_decided');
+    await pool.query("INSERT INTO resume(id,owner_user_id,status,content_sha) VALUES ($1,$2,'ingested',$3)", [resumeId, owner, `reconcile-failq:${owner}`]);
+    const app = await asPrincipal(pool, recruiter, (c) => inviteCandidate(c, recruiter, jobId, owner));
+    const first = await asPrincipal(pool, owner, (c) => startApplicationInterview(c, owner, app!.applicationId, resumeId));
+    const interviewId = (first.status === 'started' || first.status === 'reused') ? first.interviewId : undefined;
+    if (!interviewId) throw Object.assign(new Error('failq_start_missing_interview_id'), { code: 'failq_start_missing_interview_id', start: first });
+    const bound = (await pool.query('SELECT application_id FROM interview WHERE id=$1', [interviewId])).rows[0]?.application_id;
+    A('绑定申请排队作业：application_id 非空', typeof bound === 'string' && bound === app!.applicationId);
+    await asPrincipal(pool, owner, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,lease_owner,lease_expires_at,version)
+         VALUES ($1,$2,'start',0,$3::jsonb,$4,1,64,'queued','stale-worker',now()+interval '10 minutes',4)`,
+      [owner, interviewId, JSON.stringify({ answer: 'secret-answer', turn: 1 }), resumeId],
+    ));
+    await asPrincipal(pool, owner, (c) => c.query(
+      `INSERT INTO interview_job(owner_user_id,interview_id,kind,seq,payload,resume_id,resume_privacy_epoch,reference_schema_version,status,version,last_error)
+         VALUES ($1,$2,'start',2,'{"answer":"keep-done","turn":3}'::jsonb,$3,1,64,'done',3,NULL)`,
+      [owner, interviewId, resumeId],
+    ));
+    await asPrincipal(pool, owner, (c) => reserveEntitlement(c, owner, interviewId, 'mock_interview', 1.0));
+    await expireLease(owner, interviewId);
+    await commerceReconcileTick(pool);
+    const state = (await pool.query('SELECT status FROM job_application WHERE id=$1', [app!.applicationId])).rows[0];
+    A('绑定申请过期预留走失败臂：interview=failed 且不是 abandoned，申请 assessment_unavailable，事件恰 1 条',
+      (await ivStatus(owner, interviewId)) === 'failed'
+      && state?.status === 'assessment_unavailable'
+      && (await evCount(owner, interviewId, 'assessment_unavailable')) === 1);
+    const queuedJob = (await asPrincipal(pool, owner, (c) => c.query(
+      `SELECT status, last_error, lease_owner, lease_expires_at, version, payload, attempts
+         FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=0`,
+      [owner, interviewId],
+    ))).rows[0];
+    const doneJob = (await asPrincipal(pool, owner, (c) => c.query(
+      'SELECT status, version, payload, last_error FROM interview_job WHERE owner_user_id=$1 AND interview_id=$2 AND seq=2',
+      [owner, interviewId],
+    ))).rows[0];
+    A('绑定申请失败：当时 queued 的作业变为 failed，answer 去掉，turn 仍在，attempts 仍是 0',
+      queuedJob?.status === 'failed' && queuedJob?.last_error === 'abandoned'
+      && queuedJob?.lease_owner == null && queuedJob?.lease_expires_at == null
+      && Number(queuedJob?.version) === 5 && queuedJob?.payload?.answer === undefined && queuedJob?.payload?.turn === 1
+      && Number(queuedJob?.attempts) === 0);
+    A('绑定申请失败：done 作业的状态、version、payload、last_error 不变',
+      doneJob?.status === 'done' && Number(doneJob?.version) === 3
+      && doneJob?.payload?.answer === 'keep-done' && doneJob?.payload?.turn === 3
+      && doneJob?.last_error == null);
+    const claimed = await asPrincipal(pool, owner, (c) => claimNextInterviewJob(c, owner, 'proof-claimer'));
+    A('绑定申请失败后仍排队过的作业不能再被领取', claimed === null);
   }
 
   section('⑨ interview_unavailable 补 event_key（kind:id:phase 幂等去重面）：identity 断言 + 重放拍零重发');

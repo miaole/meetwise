@@ -84,7 +84,7 @@ related:
 
 | 子项 | 已发现 | 已实现 | 已验证 | 已关闭 | 交付与验收 |
 | --- | :---: | :---: | :---: | :---: | --- |
-| MEM-00 删除与授权前置 | ☑ | ☐ | ☐ | ☐ | 先闭合不可伪造的删除授权、逐 sink target 和回执；原文工件、摘要、事实、向量、缓存、snapshot、trace 均受同一 privacy epoch 围栏。删除提交后新 recall=0。 |
+| MEM-00 删除与授权前置 | ☑ | ◐ | ☐ | ☐ | **已发现/部分已实现/未验证**：`0093` memory-governance + 复用 0091 issuer 账户删除链与 `pnpm memory-governance:prove` 入口在源码；可移植域 pin（含 `memory_vector_chunk`）可跑。隔离 PostgreSQL 证明须 Docker/`run-e2e-isolated`；本环境 Docker 缺失记 blocked，不得 skip-as-pass。先闭合不可伪造删除授权、逐 sink target/回执与删后 recall=0 之前，**不得**勾已关闭或开启长期写入。`pnpm mem00-int00:prove-path`（`releaseEvidence=false`）。 |
 | MEM-01 全量事件事实源 | ☑ | ☐ | ☐ | ☐ | 建 owner RLS、追加写、按 `(thread, sequence)` 有序的 `conversation_event`；正文为加密工件引用，关系库保存类别、hash、来源、retention、consent/purpose 和 privacy epoch。checkpoint 只保存引用。 |
 | MEM-02 单轮与区间摘要 | ☑ | ☐ | ☐ | ☐ | 对连续完整 turn 生成不可变 summary version，保存 source range、原文 digest、prompt/model/tokenizer/policy 版本、摘要 hash 与 claim→source span；摘要校验不通过不得成为上下文。 |
 | MEM-03 多层会话摘要 | ☑ | ☐ | ☐ | ☐ | 形成 `turn → segment → session episode` 的摘要树，父节点只引用已验证子节点或事件范围；仅追加新版本，可 supersede/invalidated，禁止原地覆盖。验证能从任一摘要回溯到完整来源。 |
@@ -94,7 +94,7 @@ related:
 | MEM-07 注入、冲突与并发 | ☑ | ☐ | ☐ | ☐ | 原文、摘要和召回片段统一作为不可信数据包裹；压缩按 `(owner,thread,range,version)` lease/CAS，重叠范围或过期写入拒绝。验证 provider unknown 不自动重发。 |
 | MEM-08 质量与隐私验收 | ☑ | ☐ | ☐ | ☐ | 用人工标注集测 fact precision/recall、错误召回影响、冲突处理和上下文任务成功率；验证跨 owner=0、过期/撤回/删除后 recall=0、每层派生物物理清理有回执。 |
 | MEM-09 生命周期触发策略 | ☑ | ☐ | ☐ | ☐ | 将事件落库、候选摘要、强制压缩、长期事实写入、embedding 和 recall 分为独立触发器；强制压缩只在派发前总预算超限时运行，长期事实只由用户确认或受信业务事实激活。验证半 turn、未知工具、撤回后、预算不足和 provider unknown 均不产生错误派生物或重发。 |
-| MEM-10 管理控制面 | ☑ | ☐ | ☐ | ☐ | 定义用户查看/确认/纠正/暂停采集/单条遗忘/会话删除/导出，以及运营策略发布、受控原文访问、批量 reindex、过期与删除任务的命令、角色、状态机和审计。不提供通用管理员直读或直改入口。 |
+| MEM-10 管理控制面 | ☑ | ◐ | ☐ | ☐ | **已发现/部分已实现/未验证**：迁移 `0107` + `pnpm memory-control-surface:prove` 在源码；本环境 Docker 缺失 blocked。命令/角色/审计与删后 recall=0 的隔离组合根未在本机重跑前不得勾已验证/已关闭。 |
 | MEM-11 索引 generation 与缓存治理 | ☑ | ☐ | ☐ | ☐ | embedding/reindex 从冻结且仍授权的 source manifest 构建独立 generation，经验证后 CAS 切换；撤回/删除使相关 generation、检索缓存、来源水合缓存与 snapshot 同步失效。验证旧索引和缓存不能恢复已撤回内容。 |
 | MEM-12 准入、来源与范围元标签门 | ☑ | ☐ | ☐ | ☐ | 在任何跨会话写入前，服务端验证 `dataSubject/controllerScope/accessPrincipalContext/thread-project boundary`、purpose、consent revision、privacy epoch、保留期、来源不可变版本/digest/span、数据分类和 producer/recipe；当前 `user_memory` 不具这些字段，不能扩写后直接上线。验证伪造 owner/purpose/project/sourceId/factKey、C/B 混用、Unicode span/digest 不符均零写入。 |
 | MEM-13 冲突、时效与长期事实判定 | ☑ | ☐ | ☐ | ☐ | 为长期事实定义稳定 `factKey`、分类、单/多值规则、`contradicts/supersedes`、有效期和状态机；将 `sourceTrust`、抽取置信、人工确认、freshness、salience 与 retrieval score 保持独立。模型只能写 candidate；过期、冲突或未确认内容不得 active。验证 100 并发确认/纠正/撤回后至多一个单值 active。 |

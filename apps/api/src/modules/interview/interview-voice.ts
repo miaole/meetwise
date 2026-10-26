@@ -6,7 +6,7 @@
  */
 import { HttpException, HttpStatus } from '@nestjs/common';
 import { VOICE_EGRESS_DISABLED_ID, type Asr, type StreamingTts, type Tts } from '@meetwise/ai-runtime';
-import { asErr } from '@meetwise/db';
+import { asErr, rememberIssuedQuestionTranscript } from '@meetwise/db';
 import { VOICE_MAX_AUDIO_BYTES, type TranscribeDto } from '@meetwise/contracts';
 
 // #70 单源化（5E 2026-10-12）：上限值改引 contracts VOICE_MAX_AUDIO_BYTES（10MB 语义单源·契约 base64
@@ -62,7 +62,8 @@ export async function transcribeAnswer(asr: Asr, dto: TranscribeDto, options?: {
   if (audio.length > MAX_AUDIO_BYTES) throw new HttpException({ error: 'audio_too_large' }, HttpStatus.PAYLOAD_TOO_LARGE);
   const format = dto.format?.trim() || formatFromMime(dto.mimeType);
   try {
-    const text = await asr.transcribe(new Uint8Array(audio), { format, signal: options?.signal });
+    const transcribed = await asr.transcribe(new Uint8Array(audio), { format, signal: options?.signal });
+    const text = transcribed.text;
     if (typeof text !== 'string')
       throw new HttpException({ error: 'asr_failed', message: '语音转写失败，请重试或改用文字作答' }, HttpStatus.BAD_GATEWAY);
     return {
@@ -71,6 +72,7 @@ export async function transcribeAnswer(asr: Asr, dto: TranscribeDto, options?: {
         mode: dto.capture.mode,
         speakerAttribution: 'not_diarized' as const,
         wordTimestamps: 'not_available' as const,
+        asrQuality: 'unavailable' as const,
       },
     };
   } catch (e: unknown) {
@@ -89,4 +91,50 @@ export async function transcribeAnswer(asr: Asr, dto: TranscribeDto, options?: {
       throw new HttpException({ error: 'asr_cancelled' }, 499);
     throw new HttpException({ error: 'asr_failed', message: '语音转写失败，请重试或改用文字作答' }, HttpStatus.BAD_GATEWAY);
   }
+}
+
+type IssuedTranscriptClient = {
+  query: (sql: string, params?: unknown[]) => Promise<{ rowCount?: number | null; rows: Array<Record<string, string | null>> }>;
+};
+
+/**
+ * 同意门通过后才把音频送去转写。成功且当时仍有发出的题时，把原文记到那道题上。
+ * 转写抛错时不记。调用方先做限流和归属校验，并传入同一道隐私围栏。
+ */
+export async function transcribeForIssuedQuestion(
+  db: { asPrincipal: (owner: string, fn: (c: IssuedTranscriptClient) => Promise<void>) => Promise<void> },
+  asr: Asr,
+  owner: string,
+  interviewId: string,
+  dto: TranscribeDto,
+  options: { signal?: AbortSignal } | undefined,
+  guard: (c: IssuedTranscriptClient, interviewId: string) => Promise<void>,
+) {
+  let issuedQuestionId: string | undefined;
+  await db.asPrincipal(owner, async (c) => {
+    await guard(c, interviewId);
+    const consent = await c.query(
+      `SELECT (
+         SELECT q.question_id FROM interview_question q
+          WHERE q.interview_id=$1 AND q.status='issued'
+          LIMIT 1
+       ) AS question_id
+         FROM consent_record
+        WHERE purpose='voice_capture'
+        LIMIT 1`,
+      [interviewId],
+    );
+    if ((consent.rowCount ?? 0) === 0) throw new HttpException({ error: 'consent_required', purpose: 'voice_capture' }, HttpStatus.FORBIDDEN);
+    const questionId = consent.rows[0]?.['question_id'];
+    if (typeof questionId === 'string' && questionId.length > 0) issuedQuestionId = questionId;
+  });
+  const result = await transcribeAnswer(asr, dto, options);
+  if (issuedQuestionId) {
+    const questionId = issuedQuestionId;
+    await db.asPrincipal(owner, async (c) => {
+      await guard(c, interviewId);
+      await rememberIssuedQuestionTranscript(c as never, owner, interviewId, questionId, result.text, result.capture.asrQuality);
+    });
+  }
+  return result;
 }

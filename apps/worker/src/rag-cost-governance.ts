@@ -1,14 +1,16 @@
 /**
  * 运行时 RAG 费用护栏。
  *
- * `enforce` 的调用顺序是：短事务预留 → 短事务标记已派发 → 外部 embedding → 短事务结算。
+ * `enforce` 传入存储且全部命中：按输入顺序返回已有向量，不预留、不外呼、不写账本。
+ * 其余 enforce：短事务预留 → 标记已派发 → 嵌入（有存储时只嵌未命中）→ 有存储则回填 → 短事务结算。
  * 一旦派发后的结果丢失，账本进入 unknown 并向上返回确定性降级码；不能把同一请求再发一次。
  */
+import { createHash } from 'node:crypto';
 import {
   asPrincipal, markAiCostDispatched, markAiCostUnknown, releaseAiCost, reserveAiTextCost, settleAiCost,
   type DbPool, type QbankEmbeddingCallContext,
 } from '@meetwise/db';
-import { getMetrics, METRIC, type Embedder } from '@meetwise/ai-runtime';
+import { cjkWeightedEstimate, getMetrics, METRIC, type Embedder, type EmbeddingStore } from '@meetwise/ai-runtime';
 
 export interface RagCostGovernanceConfig {
   mode: 'observe' | 'enforce';
@@ -100,13 +102,24 @@ function metricDecision(decision: string, microCny = 0): void {
 
 /** Returns an `embed` callback compatible with the qbank claim protocol. It never stores raw query text. */
 export function budgetedQbankEmbedding(
-  pool: DbPool, owner: string, embedder: Embedder, cfg: RagCostGovernanceConfig,
+  pool: DbPool, owner: string, embedder: Embedder, cfg: RagCostGovernanceConfig, store?: EmbeddingStore,
 ): (texts: string[], context: QbankEmbeddingCallContext) => Promise<number[][]> {
   return async (texts, context) => {
     if (cfg.mode === 'observe') {
       metricDecision('observe');
       return embedder.embed(texts);
     }
+    // 键与进程内缓存相同：模型 id、维度、文本 sha256。id 用调用方传入的嵌入器，不使用包装器的 +cache。
+    let pending: { keys: string[]; cached: (number[] | null)[]; misses: { i: number; text: string }[] } | undefined;
+    if (store) {
+      const keys = texts.map((text) => `${embedder.id}:${embedder.dim}:${createHash('sha256').update(text).digest('hex')}`);
+      const cached = await store.getMany(keys);
+      const misses: { i: number; text: string }[] = [];
+      texts.forEach((text, i) => { if (!cached[i]) misses.push({ i, text }); });
+      if (misses.length === 0) return cached as number[][];
+      pending = { keys, cached, misses };
+    }
+    const missTexts = pending ? pending.misses.map((item) => item.text) : texts;
     // 预留走 0083 九参 text 口(语义:Caller-selected immutable price row;the database must never choose
     // latest)——绑定 cfg.priceRevision,封死「新预留按时点 latest 隐式选价与配置 revision 脱钩」双轨
     // (EG-B4·红事实 B)。embedding 无输出:maxOutputTokens=0(0083 input+output≥1 校验容忍 output=0)。
@@ -130,15 +143,31 @@ export function budgetedQbankEmbedding(
     }
     try {
       const result = embedder.embedWithUsage
-        ? await embedder.embedWithUsage(texts)
-        : { vectors: await embedder.embed(texts) };
-      const actualTokens = result.inputTokens ?? cfg.maxInputTokens;
+        ? await embedder.embedWithUsage(missTexts)
+        : { vectors: await embedder.embed(missTexts) };
+      // 只有缺失（=== undefined）按这次实际嵌入的各段估算，并在范围检查前截到上限。在场实量不截断。
+      const reportedTokens = result.inputTokens;
+      const actualTokens = reportedTokens === undefined
+        ? Math.min(missTexts.reduce((sum, text) => sum + cjkWeightedEstimate(text), 0), cfg.maxInputTokens)
+        : reportedTokens;
       if (!Number.isInteger(actualTokens) || actualTokens < 0 || actualTokens > cfg.maxInputTokens) {
         throw new Error('provider_usage_out_of_reserved_range');
       }
+      const ready = pending;
+      if (ready && store) {
+        if (result.vectors.length !== ready.misses.length) throw new Error('provider_usage_out_of_reserved_range');
+        const written = ready.misses.map((item, j) => {
+          const vec = result.vectors[j];
+          const key = ready.keys[item.i];
+          if (!vec || key === undefined) throw new Error('provider_usage_out_of_reserved_range');
+          return { key, vec };
+        });
+        await store.putMany(written);
+        ready.misses.forEach((item, j) => { ready.cached[item.i] = written[j]!.vec; });
+      }
       const settled = await asPrincipal(pool, owner, (c) => settleAiCost(c, cfg.scopeId!, owner, context.invocationId, actualTokens));
       metricDecision('settled', settled);
-      return result.vectors;
+      return ready ? ready.cached as number[][] : result.vectors;
     } catch (error) {
       // The request had already been declared dispatched.  A timeout, malformed provider response or failed settlement
       // cannot prove that no billable work happened, so retain the reservation and block replay.

@@ -190,8 +190,24 @@ export async function classifyJobRoute(pool: DbPool, owner: string, jobId: strin
     const competencies: string[] = Array.isArray(j.competencies) ? (j.competencies as unknown[]).map(String) : [];
     const input = { jobId, revision, title: j.title, description: j.description ?? '', competencies };
     const digest = canonicalJobSemanticDigest(input);
-    // 岗位内容与 revision 不一致 = 岗位已被编辑成新 revision，本 revision 已过期，fail-closed。
-    if (digest !== r.semantic_digest) return { status: 'noop', reason: 'stale_revision' } as const;
+    // 摘要不一致且仍是 route_pending：改为 route_unresolved 并记 stale_revision，避免占住待分类队列。不写 decision。
+    if (digest !== r.semantic_digest) {
+      if (r.status === 'route_pending') {
+        const updated = await c.query(
+          `UPDATE job_semantic_revision SET status='route_unresolved', updated_at=clock_timestamp()
+            WHERE job_id=$1 AND revision=$2 AND status='route_pending'`,
+          [jobId, revision],
+        );
+        if ((updated.rowCount ?? 0) > 0) {
+          await appendRouteEvent(c, {
+            jobId, owner, revision,
+            fromStatus: 'route_pending', toStatus: 'route_unresolved',
+            reason: 'stale_revision', decisionId: null,
+          });
+        }
+      }
+      return { status: 'noop', reason: 'stale_revision' } as const;
+    }
     if (computeJobInputHmac(digest) !== r.input_hmac) throw codeError('job_route_input_hmac_mismatch');
 
     // ── rules 路径：唯一 leaf → route_decided，0 次模型外发 ──

@@ -17,9 +17,8 @@
  * 的确定性派生（非模型自由输出）。
  *
  * 证据 span：v6 逐 criterion 引文 span（模型 quote→code-unit span→本域派生 byte span/digest）；
- * quote 只在 evaluate 期存活于内存，绝不入图 state/checkpoint。冲突/多来源裁决
- * （adjudicateScoreCard·SCOR-03）在 seed 单分项下结构性不触发（每卡恰一条证据），冲突面接线
- * 随 EXTREV-4 QBANK-CORPUS 扩项落地。
+ * quote 只在 evaluate 期存活于内存，绝不入图 state/checkpoint。只有文本、没有词级时间戳的
+ * 转写不把语音质量写成 ok，写卡时走既有裁决函数，列值为 unavailable。
  */
 import { randomUUID } from 'node:crypto';
 import {
@@ -27,7 +26,7 @@ import {
   isInterviewPrivacyActive, findActiveScoreRequest,
   type DbPool,
 } from '@meetwise/db';
-import { reverifyScoreEvidenceSpan, type ScoredCriterionDisposition } from '@meetwise/domain';
+import { reverifyScoreEvidenceSpan, voiceQualityFromAsrOutcome, type ScoredCriterionDisposition } from '@meetwise/domain';
 
 /** 删除/撤权先赢（D3 fence 序）：这类 code 下不抛错、改走 fenceScoreRequest + 跳过。 */
 function isPrivacyFenceCode(code: string | undefined): boolean {
@@ -49,12 +48,14 @@ export interface ScoreWriteQuery {
   answerText: string;
   /** v6 模型档位证据（evaluate 侧派生·0103 契约形状；非 v5 hint 分——过渡桥已废除）。 */
   dispositions: readonly ScoredCriterionDisposition[];
+  /** 已有转写结果。缺省表示这次没有带转写结果。 */
+  asrOutcome?: string;
 }
 
 export type ScoreWriteResult =
   | { kind: 'written'; requestId: string; cardId: string; deterministicTotal: number }
   | { kind: 'already_scored'; requestId: string }
-  | { kind: 'skipped'; reason: 'no_request' | 'privacy_fenced' | 'unclaimable' };
+  | { kind: 'skipped'; reason: 'no_request' | 'privacy_fenced' | 'unclaimable' | 'terminal_interview' };
 
 /**
  * D4 写卡步本体。调用点：submitAdaptiveAnswer 投影事务提交之后（同一 answer-job drain、
@@ -68,10 +69,18 @@ export async function writeScoreCardAfterProjection(d: ScoreWriterDeps, q: Score
 
   // fence 序（D3）：删除/撤权先赢。写卡前显式复核；已 fence → worker 侧补 fenceScoreRequest
   // （请求出途）+ 跳过（迟到结果不得写回）。writeFinal 内部还有同事务重验（纵深）。
-  const privacyActive = await asPrincipal(d.pool, d.owner, (c) => isInterviewPrivacyActive(c, q.interviewId));
-  if (!privacyActive) {
+  const ownerGate = await asPrincipal(d.pool, d.owner, async (c) => {
+    const privacyActive = await isInterviewPrivacyActive(c, q.interviewId);
+    const iv = await c.query<{ status: string }>('SELECT status FROM interview WHERE id=$1', [q.interviewId]);
+    return { privacyActive, status: iv.rows[0]?.status };
+  });
+  if (!ownerGate.privacyActive) {
     await asScoringWorkerPrincipal(d.pool, d.owner, (c) => fenceScoreRequest(c, active.requestId));
     return { kind: 'skipped', reason: 'privacy_fenced' };
+  }
+  // 已经是 failed/abandoned：不领取、不写 scoring_write_final_score_card、不插入新卡。已有卡不动。
+  if (ownerGate.status === 'failed' || ownerGate.status === 'abandoned') {
+    return { kind: 'skipped', reason: 'terminal_interview' };
   }
 
   // 独立 asScoringWorkerPrincipal 事务：claim（单次 CAS）→（复用既有 token）→ writeFinal。
@@ -99,11 +108,13 @@ export async function writeScoreCardAfterProjection(d: ScoreWriterDeps, q: Score
         disposition: d.disposition,
       };
     });
+    const voiceQuality = voiceQualityFromAsrOutcome(q.asrOutcome);
     const written = await writeFinalScoreCard(c, {
       requestId: active.requestId,
       leaseToken,
       evidence,
       targetStatus: 'practice_eligible',
+      ...(voiceQuality !== undefined ? { voiceQuality } : {}),
     });
     if (!written.recorded || !written.cardId) {
       // CAS 落败 = 已有 winner（迟到重放）；status='scored' 即幂等成功，其余状态如实返回。

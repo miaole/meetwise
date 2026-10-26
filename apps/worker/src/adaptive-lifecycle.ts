@@ -11,7 +11,7 @@ import {
   readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsStuck,
   type AcceptedInterviewAnswer, type DbPool, type InterviewGraphFence,
 } from '@meetwise/db';
-import { Command } from '@langchain/langgraph';
+import { Command, type LangGraphRunnableConfig } from '@langchain/langgraph';
 import { buildAdaptiveInterviewGraph, type PendingQuestion } from '@meetwise/ai-graphs';
 import { getMetrics, METRIC, type ModelClient, type GraphObserver, type ModelCostPolicy } from '@meetwise/ai-runtime';
 import { admitInterviewResume, type QuestionGenerationProvenance, type ScoredRef, type SourceDoc, type CompetencySpec, type ResearchBoundaryDecision, type ScoredCriterionDisposition } from '@meetwise/domain';
@@ -100,6 +100,18 @@ async function writeGenerationUnavailable(
 
 async function emitGenerationUnavailable(d: AdaptiveLifecycleDeps, failure: InterviewGenerationUnavailable): Promise<void> {
   await asPrincipal(d.pool, d.owner, (c) => writeGenerationUnavailable(c, d, failure));
+}
+
+/** 终态事务已经提交之后，按这场面试的 thread 删光检查点。删除失败只记日志，不把已提交的终态抛回去。 */
+async function deleteCommittedTerminalCheckpoints(d: AdaptiveLifecycleDeps): Promise<void> {
+  try {
+    await d.cp.deleteThread(d.interviewId);
+  } catch (error: unknown) {
+    console.error('checkpoint_thread_delete_failed', {
+      interviewId: d.interviewId,
+      error: String((error as Error)?.message ?? error),
+    });
+  }
 }
 
 /* ───────── billing P2（BILL2-SHADOW-METER 修法②·REQUEST §8 裁决项②按推荐行使）：收尾影子计量钩子 ─────────
@@ -330,6 +342,18 @@ export type StartAdaptiveInterviewResult = {
   unavailable?: InterviewGenerationUnavailable;
 };
 
+const ADAPTIVE_GRAPH_RELEASE = 'adaptive-interview/v1';
+
+/** 没有检查点、没有版本、或版本不是非空字符串：放行。与当前版本逐字相同：放行。
+ *  别的非空字符串：在 getState / invoke 之前拒绝，不写、不删、不改旧行。 */
+async function rejectMismatchedGraphRelease(d: AdaptiveLifecycleDeps, cfg: LangGraphRunnableConfig): Promise<void> {
+  const tuple = await d.cp.getTuple(cfg);
+  const version = tuple?.metadata?.graph_version;
+  if (typeof version !== 'string' || version.length === 0) return;
+  if (version === ADAPTIVE_GRAPH_RELEASE) return;
+  throw Object.assign(new Error('graph_release_mismatch'), { code: 'graph_release_mismatch' });
+}
+
 /** 开始到第一个纯 awaitAnswer interrupt。重试只会投影同一 question/event，不会重生模型题。
  *  H4 R2③/R3(#252):第 4 形参 focus=本场报告 gap 维度名(专项面·additive 可选)——沿 targetRole 第 6 参先例的
  *  payload 透传面:①进 planCompetencies 第 7 参(planner prompt 'planner.competencies' v3 上一轮评估摘要段);
@@ -353,7 +377,8 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
   const competencies = await planCompetencies(d.pool, d.owner, d.interviewId, d.fastModel ?? d.model, role, plannerFacts, focus, job, d.quizQuestions, d.routeLeaf);
   await asPrincipal(d.pool, d.owner, (c) => enrollCheckpointThread(c, d.owner, d.interviewId));
   const g = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, competencies, resumeProfileAvailable, undefined, grounding.pool, focus));
-  const cfg = { configurable: { thread_id: d.interviewId } };
+  const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
+  await rejectMismatchedGraphRelease(d, cfg);
   // start job 在 checkpoint 已到 awaitAnswer、但 ledger/SSE 投影尚未来得及提交时会被重投。
   // 对 interrupt 中的图再 invoke({}) 会重新从 START 走到 genQuestion（从而浪费模型调用并换题）；
   // 先读 pending，存在则只补业务投影，绝不触碰图执行。
@@ -381,6 +406,7 @@ async function startAdaptiveInterviewImpl(d: AdaptiveLifecycleDeps, role: string
       provenance: { origin: 'unavailable' as const, errorCode: 'generation_unavailable' as const },
     };
     await emitGenerationUnavailable(d, unavailable);
+    await deleteCommittedTerminalCheckpoints(d);
     return { unavailable };
   }
   await persistAndEmitQuestion(d, pending);
@@ -408,7 +434,8 @@ async function submitAdaptiveAnswerImpl(
   // (S2 grounded 真出题与 S3 追问上下文共用的弹药面;撤回后新一轮面试 buildData 零 digest/facts,G4)。
   const grounding = await loadInterviewResumeGrounding(d);
   const gInitial = buildAdaptiveInterviewGraph(d.cp, makeDeps(d, [], grounding.available, input, grounding.pool));
-  const cfg = { configurable: { thread_id: d.interviewId } };
+  const cfg = { configurable: { thread_id: d.interviewId }, recursionLimit: 64 };
+  await rejectMismatchedGraphRelease(d, cfg);
   const before = await gInitial.getState(cfg);
   // SFC(SUBMIT-FLOW-COMPETENCY-WIRE):submit 流向 competency 补供——start 形 planCompetencies 序经
   // initMind 保序映射落 checkpoint mind.competencies(domain initMind :188 保序+decideNext 拷贝排序
@@ -560,7 +587,7 @@ async function submitAdaptiveAnswerImpl(
         { pool: d.pool, owner: d.owner, leaseOwner: d.scoreWriterLeaseOwner },
         {
           interviewId: d.interviewId, questionId: input.questionId, stateVersion: input.stateVersion,
-          answerText: input.answer, dispositions: turnDispositions,
+          answerText: input.answer, dispositions: turnDispositions, asrOutcome: input.asrOutcome,
         },
       );
     }
@@ -570,6 +597,7 @@ async function submitAdaptiveAnswerImpl(
   if (generationFailed) {
     // billing P2 修法②：出题失败终态影子计量（事务外围·waived+reason 照实·fail-soft 零业务阻断）。
     writeShadowMeterSoft(d.pool, d.owner, d.interviewId, generationFailed.reason);
+    await deleteCommittedTerminalCheckpoints(d);
     return {
       score: typeof last.score === 'number' ? last.score : undefined,
       nextQuestion: undefined, nextQuestionId: undefined,
@@ -651,6 +679,7 @@ async function submitAdaptiveAnswerImpl(
           await appendEvent(c, d.owner, d.interviewId, 'assessment_unavailable', { reason: 'evaluation_unscored' }, 'assessment_unavailable:evaluation_unscored');
       }
     });
+    await deleteCommittedTerminalCheckpoints(d);
     const asked = transcript.map((t) => t.q).filter((q): q is string => !!q);
     await recordAskedQuestions(d.pool, d.owner, asked, d.interviewId)
       .catch((e) => console.warn('memory: 跨会话判重 episode 写入跳过(非致命)', (e as any)?.code ?? e));

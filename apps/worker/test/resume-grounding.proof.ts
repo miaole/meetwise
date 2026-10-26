@@ -37,6 +37,7 @@ const RESUME_RAW = [
   '张三',                                   // #191 姓名形态行(<6 有意义字符)→ 禁入 facts
   '电话:13800138000',                        // #191 长数字串行 + raw-only PII 差分行
   '邮箱:zhangsan@example.com',               // #191 @ 行 + raw-only PII 差分行
+  '联系电话：13800138000',                   // 较长联系标签：未见标题时按原文过滤，禁入 facts
   FACT_SHORT_EXP,                           // #190 内容短行(含「经验」)→ 必须保住进 facts(不被当标题吞)
   '教育经历',                                // #189 教育标题 → 其后行禁冒充经历事实
   '2016-2020 本科 计算机科学与技术',           // #189 教育行(raw 有、facts 禁)
@@ -99,6 +100,8 @@ function sectionA() {
     p.facts.some((f) => f.includes(FACT_GATEWAY)) && p.facts.includes('Kafka'));
   A('A4 #191 无标题头部联系/姓名形态行禁入 facts(姓名/电话/邮箱)',
     !p.facts.some((f) => f.includes('张三') || f.includes('13800138000') || f.includes('@')));
+  A('较长联系标签不进 facts',
+    !p.facts.some((f) => f.includes('联系电话')));
   A('A5 注入样本行被 ingest 拦截(blocked,零入 facts)',
     p.blocked.length >= 1 && !p.facts.some((f) => f.includes(INJECTION_SAMPLE)));
   const pool = buildResumeFactPool(p as unknown as { experience?: unknown; skills?: unknown });
@@ -150,7 +153,7 @@ async function sectionD(followUpReq: CompletionRequest | undefined) {
     process.env.NODE_ENV = 'test';
     delete process.env.MODEL_TEST_TRANSPORT_OVERRIDES;
     delete process.env.MODEL_COST_ENFORCEMENT;
-    delete process.env.MODEL_ENDPOINT_PROFILE;
+    process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
     process.env.MODEL_API_KEY = 'proof-key-not-live';
     process.env.MODEL_NAME = 'qwen-plus';
     globalThis.fetch = (async (_input: string | URL | Request, init?: RequestInit) => {

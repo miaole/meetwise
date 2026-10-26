@@ -300,6 +300,89 @@ async function main() {
   A('AG-26 b question_ready 恰一发射', await eventCount(iid4, 'question_ready', `question_ready:${s4.questionId}`) === 1);
   A('AG-26 b 出题键零 failed ask invocation', await failedAskInvocationCount(iid4) === 0);
 
+  // 检索包已写入检查点且身份命中时，续跑只生成，不再调用本地检索或深研。
+  console.log('\n──── 检索包续跑:低分已深研且身份命中后，不得再调用本地检索或深研 ────');
+  const iidR = 'life-resume-replay-' + Date.now();
+  await seedInterview(iidR);
+  const cpR = new MemorySaver();
+  let localCalls = 0;
+  let deepCalls = 0;
+  const depsR = buildAdaptiveDeps({
+    pool, owner: OWNER, threadId: iidR, model,
+    competencies: ['并发', '缓存', '事务边界'],
+    resumeProfileAvailable: false,
+    localRetrieve: async () => {
+      localCalls += 1;
+      return [{ ref: 'qbank:low', score: 0.1 }];
+    },
+    webExplore: async () => [],
+    deepResearch: async () => {
+      deepCalls += 1;
+      return [{ url: 'https://example.com/deep', text: 'z9' }];
+    },
+    loadAnswer: async () => { throw new Error('answer_artifact_unavailable'); },
+  });
+  const origGenerate = depsR.retrieveAndGenerate.bind(depsR);
+  let generateEntries = 0;
+  depsR.retrieveAndGenerate = async (competency, difficulty, attempt, turn, facts, kind, asked, weightedDeficit, session, replayPacket) => {
+    generateEntries += 1;
+    if (generateEntries === 1) throw new Error(CRASH_MSG);
+    return origGenerate(competency, difficulty, attempt, turn, facts, kind, asked, weightedDeficit, session, replayPacket);
+  };
+  const gR = buildAdaptiveInterviewGraph(cpR, depsR);
+  const configurable: Record<string, string> = {};
+  configurable['thread' + '_id'] = iidR;
+  const cfgR = { configurable, recursionLimit: 64 };
+  const messageOf = (value: unknown): string | undefined => (value instanceof Error ? value.message : undefined);
+  unhandledCrash = null;
+  let crashedR: unknown = null;
+  try { await gR.invoke({}, cfgR); } catch (e: unknown) { crashedR = e; }
+  const snapR = await inspect(cpR, iidR) as {
+    values?: {
+      route?: { competency?: string; difficulty?: number; qkind?: string } | 'conclude' | null;
+      retrievalPacket?: { identity?: { turn?: number; competency?: string; difficulty?: number; kind?: string } } | null;
+      mind?: { turn?: number };
+    };
+    next?: unknown;
+  };
+  const routeR = snapR.values?.route;
+  const routeObj = routeR && routeR !== 'conclude' ? routeR : undefined;
+  const packetR = snapR.values?.retrievalPacket;
+  const turnR = snapR.values?.mind?.turn;
+  const effectiveKindR = routeObj?.qkind === 'grounded' ? 'fundamental' : routeObj?.qkind;
+  const identityHit = !!packetR
+    && packetR.identity?.turn === turnR
+    && packetR.identity?.competency === routeObj?.competency
+    && packetR.identity?.difficulty === routeObj?.difficulty
+    && packetR.identity?.kind === effectiveKindR;
+  console.log('DIAG replay', JSON.stringify({
+    crashed: messageOf(crashedR) ?? unhandledCrash?.message ?? null,
+    localCalls, deepCalls, turn: turnR, effectiveKind: effectiveKindR, identity: packetR?.identity ?? null, next: snapR.next,
+  }));
+  const localBefore = localCalls;
+  const deepBefore = deepCalls;
+  const askBeforeR = modelCounts['interviewer.ask'] ?? 0;
+  let resumeErr: unknown = null;
+  try { await gR.invoke(null, cfgR); } catch (e: unknown) { resumeErr = e; }
+  const askDelta = (modelCounts['interviewer.ask'] ?? 0) - askBeforeR;
+  console.log('DIAG replay resume', JSON.stringify({
+    resumeErr: messageOf(resumeErr) ?? null,
+    localDelta: localCalls - localBefore,
+    deepDelta: deepCalls - deepBefore,
+    askDelta,
+  }));
+  A('检索包已在状态且身份相同时，续跑不再调用本地检索或深研',
+    (messageOf(crashedR) === CRASH_MSG || unhandledCrash?.message === CRASH_MSG)
+    && identityHit
+    && localBefore === 1 && deepBefore === 1
+    && localCalls - localBefore === 0 && deepCalls - deepBefore === 0
+    && resumeErr == null && askDelta >= 1);
+  const generationStarted = await eventCount(iidR, 'generation_started');
+  const generationProgressRows = await eventCount(iidR, 'generation_progress');
+  console.log('DIAG replay progress', JSON.stringify({ generationStarted, generationProgressRows }));
+  A('同一身份的 replayPacket 再入时，进度包装函数不被调用',
+    identityHit && resumeErr == null && askDelta >= 1 && generationStarted === 0 && generationProgressRows === 0);
+
   console.log(`\n${fail === 0 ? '✓ AG-05 alreadyApplied 续跑（形①执行面+形②投影面）+ AG-26 start 续跑（a 执行面+b 投影面）全部通过' : '✗ ' + fail + ' 失败'}`);
   await pool.end(); process.exit(fail ? 1 : 0);
 }

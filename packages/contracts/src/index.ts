@@ -157,8 +157,10 @@ export const TranscribeDto = z.object({
 }).strict();
 export type TranscribeDto = z.infer<typeof TranscribeDto>;
 /**
- * 转写结果：speakerAttribution/wordTimestamps 是能力声明而非模型猜测。
- * 单本机轨只能安全返回 not_diarized / not_available，消费端不得把它当双人通话纪要。
+ * 转写结果：speakerAttribution/wordTimestamps/asrQuality 是能力声明而非模型猜测。
+ * 单本机轨只能安全返回 not_diarized / not_available；asrQuality 当前唯一申报值
+ * unavailable（置信/时长/语种不可得即如实申报，零模型自报数值字段）。消费端不得把
+ * 它们当双人通话纪要或当成真实质量分数。
  */
 export const TranscribeResult = z.object({
   text: z.string(),
@@ -166,6 +168,7 @@ export const TranscribeResult = z.object({
     mode: z.literal('single_local_microphone'),
     speakerAttribution: z.literal('not_diarized'),
     wordTimestamps: z.literal('not_available'),
+    asrQuality: z.literal('unavailable'),
   }).strict(),
 }).strict();
 export type TranscribeResult = z.infer<typeof TranscribeResult>;
@@ -518,6 +521,10 @@ export const MyApplications = z.object({
   applications: z.array(z.object({
     id: z.string(), job_id: z.string(), job_title: z.string().min(1).optional().default('岗位信息同步中'), interview_id: z.string().nullable(), resume_id: z.string().uuid().nullable(), status: z.string(), score: z.number().int().nullable(),
     terminalKind: ApplicationTerminalKind.nullable().optional(),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    job_status: z.string().nullable().optional(),
+    // eslint-disable-next-line @typescript-eslint/naming-convention
+    bound_interview_status: z.string().nullable().optional(),
     source: z.string().optional(),
   })),
 });
@@ -1458,7 +1465,7 @@ export const apiContract: ContractRoute[] = [
       { name: 'focus', description: '再练弱项标签 JSON 数组文本(可选·H5 R2① #252)' },
     ],
     response: BeginResult },
-  { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, request: TurnDto, response: TurnResult },
+  { id: 'turnInterview', method: 'post', path: '/interview/{id}/turn', summary: '提交一题答案(绑定服务端问题身份后入队)', tags: ['interview'], auth: true, status: 202, request: TurnDto, response: TurnResult },
   { id: 'questionFeedback', method: 'post', path: '/interview/{id}/questions/{idx}/feedback', summary: '题目反馈(赞/踩 + 可选评语)', tags: ['interview'], auth: true, request: FeedbackDto },
   { id: 'completeLearningItem', method: 'post', path: '/interview/{id}/learning-plan/complete', summary: '标记学习项完成', tags: ['interview'], auth: true, request: LearningCompleteDto },
   { id: 'transcribeInterview', method: 'post', path: '/interview/{id}/transcribe', summary: '语音作答转写(qwen-audio ASR→文本)', tags: ['interview'], auth: true, request: TranscribeDto, response: TranscribeResult },
@@ -1467,12 +1474,22 @@ export const apiContract: ContractRoute[] = [
   { id: 'listQuiz', method: 'get', path: '/quiz', summary: '押题列表', tags: ['quiz'], auth: true, response: QuizList },
   { id: 'createQuiz', method: 'post', path: '/quiz', summary: '新建押题(空壳,begin 才跑图扣额度)', tags: ['quiz'], auth: true, response: QuizCreated },
   { id: 'getQuiz', method: 'get', path: '/quiz/{id}', summary: '押题详情(题目+考察点+报告)', tags: ['quiz'], auth: true, response: QuizView },
-  { id: 'beginQuiz', method: 'post', path: '/quiz/{id}/begin', summary: '开始押题(扣额度+入队 resume-quiz 图)', tags: ['quiz'], auth: true, response: QuizBeginResult },
+  { id: 'beginQuiz', method: 'post', path: '/quiz/{id}/begin', summary: '开始押题(扣额度+入队 resume-quiz 图)', tags: ['quiz'], auth: true, status: 202,
+    headers: [
+      { name: 'resume-id', required: true },
+      { name: 'target-role' },
+    ],
+    response: QuizBeginResult },
   // SSE 事件流 /quiz/{id}/events(progress/question_ready/quiz_ready/quiz_unavailable)非 JSON 响应,不入 apiContract(对齐 interview events)。
   { id: 'listDiagnosis', method: 'get', path: '/diagnosis', summary: '简历诊断列表', tags: ['diagnosis'], auth: true, response: DiagnosisList },
   { id: 'createDiagnosis', method: 'post', path: '/diagnosis', summary: '新建简历诊断(空壳,begin 才跑图扣额度)', tags: ['diagnosis'], auth: true, response: DiagnosisCreated },
   { id: 'getDiagnosis', method: 'get', path: '/diagnosis/{id}', summary: '诊断详情(结构/亮点/风险/匹配度+改写建议)', tags: ['diagnosis'], auth: true, response: DiagnosisView },
-  { id: 'beginDiagnosis', method: 'post', path: '/diagnosis/{id}/begin', summary: '开始诊断(扣额度+入队 resume-diagnosis 图)', tags: ['diagnosis'], auth: true, response: DiagnosisBeginResult },
+  { id: 'beginDiagnosis', method: 'post', path: '/diagnosis/{id}/begin', summary: '开始诊断(扣额度+入队 resume-diagnosis 图)', tags: ['diagnosis'], auth: true, status: 202,
+    headers: [
+      { name: 'resume-id', required: true },
+      { name: 'target-role' },
+    ],
+    response: DiagnosisBeginResult },
   // SSE 事件流 /diagnosis/{id}/events(progress/section_ready/diagnosis_ready/diagnosis_unavailable)非 JSON 响应,不入 apiContract(对齐 quiz events)。
   { id: 'listProducts', method: 'get', path: '/commerce/products', summary: '面试包列表', tags: ['commerce'], response: Products },
   { id: 'getEntitlement', method: 'get', path: '/commerce/entitlement', summary: '剩余额度', tags: ['commerce'], auth: true, response: Entitlement },

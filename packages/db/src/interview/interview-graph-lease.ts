@@ -29,6 +29,13 @@ export async function withInterviewGraphFence<T>(
       [GRAPH_NAME, interviewId, owner],
     );
     if (current.rowCount === 0) {
+      // 零行时 failed、completed、abandoned 这三种都会拒绝：不插入，与更新不到一行一样返回空。其他状态仍插入 active。
+      const interview = await c.query(
+        'SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2',
+        [interviewId, owner],
+      );
+      const interviewStatus = interview.rowCount === 1 ? interview.rows[0].status : undefined;
+      if (interviewStatus === 'failed' || interviewStatus === 'completed' || interviewStatus === 'abandoned') return null;
       const ins = await c.query(
         `INSERT INTO ai_graph_run(graph_name,thread_id,owner_user_id,status,version,lease_owner,lease_expires_at)
            VALUES ($1,$2,$3,'active',1,$4,now()+($5||' seconds')::interval) RETURNING version`,
@@ -38,9 +45,19 @@ export async function withInterviewGraphFence<T>(
     }
     const row = current.rows[0];
     if (row.lease_owner && row.lease_owner !== leaseOwner && new Date(row.lease_expires_at).getTime() >= Date.now()) return null;
+    // 租约可拿后再读面试。failed、completed、abandoned 这三种都会拒绝：不更新，回调不跑。没有行或其它状态仍更新。
+    const heldInterview = await c.query(
+      'SELECT status FROM interview WHERE id=$1 AND owner_user_id=$2',
+      [interviewId, owner],
+    );
+    const heldInterviewStatus = heldInterview.rowCount === 1 ? heldInterview.rows[0].status : undefined;
+    if (heldInterviewStatus === 'failed' || heldInterviewStatus === 'completed' || heldInterviewStatus === 'abandoned') return null;
+    // 六值活状态之外更新不到一行即未取得，不改走上面的 INSERT。
     const upd = await c.query(
       `UPDATE ai_graph_run SET status='active',lease_owner=$4,lease_expires_at=now()+($5||' seconds')::interval,version=version+1
-        WHERE run_id=$1 AND owner_user_id=$2 AND version=$3 RETURNING version`,
+        WHERE run_id=$1 AND owner_user_id=$2 AND version=$3
+          AND status IN ('created','active','waiting_user','migrating','paused','quarantined')
+        RETURNING version`,
       [row.run_id, owner, row.version, leaseOwner, String(LEASE_SECONDS)],
     );
     return upd.rowCount === 1 ? { owner, interviewId, leaseOwner, version: Number(upd.rows[0].version) } : null;

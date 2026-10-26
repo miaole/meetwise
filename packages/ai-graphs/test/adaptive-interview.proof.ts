@@ -1,7 +1,9 @@
 /** 自适应 agent 图端到端证明(脑子接身体):规划→决策→CRAG出题→等答→评估→更新→动态下一步→报告。
  *  fake deps 确定性:并发=弱(30)→被追问;缓存=强(88)。验证"非固定题单"。 pnpm adaptive-graph:prove */
 import { MemorySaver, Command } from '@langchain/langgraph';
-import { DEFAULT_ABSOLUTE_MAX_TURNS } from '@meetwise/domain';
+import { DEFAULT_ABSOLUTE_MAX_TURNS, initMind } from '@meetwise/domain';
+import { createEvaluateAnswerNode } from '../src/adaptive-interview/nodes/evaluate-answer.ts';
+import type { AdaptiveInterviewGraphState } from '../src/adaptive-interview/state.ts';
 import { buildAdaptiveInterviewGraph, createEphemeralAnswerVault } from '../src/index.ts';
 let fail = 0; const A = (n: string, c: boolean) => { console.log(`${c ? 'PASS' : 'FAIL'}  ${n}`); if (!c) fail++; };
 
@@ -352,6 +354,106 @@ async function main() {
     let rn: any = await gn.invoke({}, cfgn); let gn2 = 0;
     while (rn.__interrupt__ && gn2++ < 10) rn = await gn.invoke(new Command({ resume: noHookVault.issue('我在项目里这样做并权衡了取舍,踩过坑也复盘了') }), cfgn);
     A('对照 hasHook=false:高分 1 次即够强,A 只问 1 次(不过度追问)', rn.mind.competencies.find((c: any) => c.name === 'A').depthProbed === 1 && rn.concluded === true);
+  }
+
+  /* 评分失败不写入能力证据、不终场，但轮次继续向前（绝对上限与检索身份看 mind.turn）。 */
+  {
+    const reason = 'evaluation_external_outcome_unknown';
+    const base = initMind(['并发']);
+    const before = base.competencies[0];
+    if (!before || before.name !== '并发') throw new Error('missing competency');
+    const mind = {
+      ...base,
+      turn: 4,
+      clarifyAttempts: 1,
+      competencies: [{ ...before, confidence: 0.35, depthProbed: 1, evidence: ['既有证据'] }],
+    };
+    const tracked = mind.competencies[0];
+    if (!tracked) throw new Error('missing competency');
+    let assessCalls = 0;
+    const pending = {
+      questionId: 'q-v1-t4-c1',
+      stateVersion: 1,
+      turn: mind.turn,
+      question: '请说明一次限流的具体取舍与验证',
+      competency: tracked.name,
+      difficulty: mind.difficulty,
+      kind: 'fundamental' as const,
+      sources: [] as string[],
+      critique: [] as string[],
+    };
+    const node = createEvaluateAnswerNode({
+      competencies: [tracked.name],
+      retrieveAndGenerate: async () => ({ question: 'unused', sources: [] }),
+      assess: async () => {
+        assessCalls += 1;
+        return { status: 'unscored' as const, reason };
+      },
+      loadAnswer: async () => '我在项目里用令牌桶做了限流并压测验证过阈值',
+    });
+    const out = await node({
+      mind,
+      pending,
+      submitted: { questionId: pending.questionId, answerId: 'ans-unscored' },
+    } as AdaptiveInterviewGraphState);
+    const after = out.mind?.competencies.find((item) => item.name === tracked.name);
+    const row = out.transcript?.[0];
+    A('评分失败：轮次加一、澄清清零、能力与难度不动、不终场、轨迹未评分且只评一次',
+      !!after && !!row
+      && out.mind?.turn === mind.turn + 1
+      && out.mind.clarifyAttempts === 0
+      && out.mind.current === tracked.name
+      && after.confidence === tracked.confidence
+      && after.depthProbed === tracked.depthProbed
+      && after.evidence.length === tracked.evidence.length
+      && out.mind.difficulty === mind.difficulty
+      && out.concluded !== true
+      && out.transcript?.length === 1
+      && row.outcome === 'unscored'
+      && row.score === 0
+      && row.reason === reason
+      && row.relevant === false
+      && assessCalls === 1
+      && out.pending === null
+      && out.submitted === null
+      && out.clarify === null);
+  }
+
+  {
+    const base = initMind(['并发']);
+    const mind = { ...base, turn: 4, clarifyAttempts: 1 };
+    let assessCalls = 0;
+    const pending = {
+      questionId: 'q-v1-t4-c0',
+      stateVersion: 1,
+      turn: mind.turn,
+      question: '请说明一次限流的具体取舍与验证',
+      competency: '并发',
+      difficulty: mind.difficulty,
+      kind: 'fundamental' as const,
+      sources: [] as string[],
+      critique: [] as string[],
+    };
+    const node = createEvaluateAnswerNode({
+      competencies: ['并发'],
+      retrieveAndGenerate: async () => ({ question: 'unused', sources: [] }),
+      assess: async () => {
+        assessCalls += 1;
+        return { status: 'unscored' as const, reason: 'evaluation_external_outcome_unknown' };
+      },
+      loadAnswer: async () => { throw new Error('answer_artifact_unavailable'); },
+    });
+    const out = await node({
+      mind,
+      pending,
+      submitted: { questionId: pending.questionId, answerId: 'ans-missing' },
+    } as AdaptiveInterviewGraphState);
+    A('答案工件缺失仍终场且轮次不加',
+      out.concluded === true
+      && !Object.hasOwn(out, 'mind')
+      && out.degraded?.turn === mind.turn
+      && out.degraded.reason === 'answer_artifact_unavailable'
+      && assessCalls === 0);
   }
 
   console.log(`\n${fail === 0 ? '✓ 自适应 agent 图(脑子接身体:动态决策驱动一场真面试)全部通过' : '✗ ' + fail + ' 失败'}`);

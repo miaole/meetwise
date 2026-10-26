@@ -7,6 +7,7 @@ import {
   createScoreRequest, claimScoreRequest, writeFinalScoreCard, answerBodyHmac,
   completeInterviewAndConfirm, failInterviewAndRelease, markApplicationAssessmentUnavailable,
   createJob, inviteCandidate, classifyJobRoute, startApplicationInterview, listMyApplications,
+  beginInterviewProjectionErasure,
   type DbPool, type Client,
 } from '@meetwise/db';
 import { scoreSpanDigest } from '@meetwise/domain';
@@ -149,8 +150,8 @@ async function main() {
   const rerun = await runMigrations(pool, manifest);
 
   // ══ I2B-0 部署车（§4-8 形）══
-  A('I2B-0a 真迁移链全量应用 0001→0160（末位=0160 W2 受控 DEFINER 定性投影函数）',
-    applied.applied[applied.applied.length - 1] === '0160_b_qualitative_projection');
+  A('I2B-0a 真迁移链全量应用 0001→0218（末位=0218_remit_invoice_id_v7）',
+    applied.applied[applied.applied.length - 1] === '0218_remit_invoice_id_v7');
   A('I2B-0b 重跑全 skipped（幂等·CREATE OR REPLACE+自包含 REVOKE/GRANT）',
     rerun.applied.length === 0 && rerun.skipped.length === manifest.length);
   A('I2B-0c 0160 函数在位（SECURITY DEFINER·prosecdef）',
@@ -165,14 +166,14 @@ async function main() {
   A('I2B-0d 出参列白名单结构性断言（RETURNS TABLE 恰 7 列·Ban deterministic_total/score/overall/coverage 数字分列）',
     JSON.stringify(fnParams) === JSON.stringify(['disclosed', 'terminal_kind', 'competency', 'strong_count', 'mid_count', 'weak_count', 'insufficient_count'])
       && banCols.length === 0);
-  const migSrc = readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0160_b_qualitative_projection.sql', import.meta.url)), 'utf8');
+  const migSrc = readFileSync(fileURLToPath(new URL('../../../packages/db/migrations/0215_gateway_b_qualitative_fence.sql', import.meta.url)), 'utf8');
   const mirrorSrc = readFileSync(fileURLToPath(new URL('../../../packages/db/sql/23_api_gateway.sql', import.meta.url)), 'utf8');
   const blockOf = (src: string) => {
     const m = src.match(/^CREATE OR REPLACE FUNCTION gateway_b_qualitative_projection[\s\S]*?^GRANT EXECUTE ON FUNCTION gateway_b_qualitative_projection\(text, text\) TO app_role;$/m);
     if (!m) throw new Error('i2b_block_not_found');
     return m[0];
   };
-  A('I2B-0e 0160 函数体+ACL 与 23_api_gateway.sql 镜像逐字节同文（0159 RX-3 同款承重墙判据）',
+  A('I2B-0e 0215 函数体+ACL 与 23_api_gateway.sql 镜像逐字节同文（0159 RX-3 同款承重墙判据）',
     blockOf(migSrc) === blockOf(mirrorSrc));
 
   // ══ 播种（entpay-s2 同形：user_account/resume/企业桶）══
@@ -372,6 +373,85 @@ async function main() {
   const status2 = await privacy.consentStatus(CAND, 'b_qualitative_share');
   A('W3-2 consent/withdraw 真实 consent_record 行（PrivacyService 同链·幂等·撤回翻态）',
     status1.consented === true && again.recorded === true && status2.consented === false);
+
+  // 撤权后这场不再返回维度。两场都是新申请，避免改动前面的计数。同意在证明末尾已撤回，这里重新记下。
+  await privacy.consent(CAND, 'b_qualitative_share');
+  // 同一候选人前面三次开始仍留着排队行，深度已经到上限。再开始会被拒绝。以该候选人身份把这些排队行标成已完成。
+  await asOwner(CAND, (c) => c.query(
+    "UPDATE interview_job SET status='done', lease_owner=NULL WHERE owner_user_id=$1 AND status='queued'",
+    [CAND],
+  ));
+  const appFenced = await seedApplication(REC);
+  const appKept = await seedApplication(REC);
+  const ivFenced = (await applications.start(CAND, appFenced, { resumeId: RESUME }) as { interviewId: string }).interviewId;
+  const ivKept = (await applications.start(CAND, appKept, { resumeId: RESUME }) as { interviewId: string }).interviewId;
+  const rubricFenced = (await asOwner(CAND, (c) => publishQuestionRubric(c, {
+    questionId: 'i2b-q-fence', questionVersion: 1, rubricVersion: 1, competency: '围栏场',
+    difficulty: 3, languageScope: ['zh', 'en'], questionContentHash: nextHash(), criteria: RUBRIC_B_CRITERIA,
+  }))).rubricId;
+  const rubricKept = (await asOwner(CAND, (c) => publishQuestionRubric(c, {
+    questionId: 'i2b-q-kept', questionVersion: 1, rubricVersion: 1, competency: '对照场',
+    difficulty: 3, languageScope: ['zh', 'en'], questionContentHash: nextHash(), criteria: RUBRIC_B_CRITERIA,
+  }))).rubricId;
+  await seedScorableCard(CAND, ivFenced, 'i2b-q-fence', rubricFenced, RUBRIC_B_CRITERIA, ['meets']);
+  await seedScorableCard(CAND, ivKept, 'i2b-q-kept', rubricKept, RUBRIC_B_CRITERIA, ['exceeds']);
+  await asOwner(CAND, (c) => completeInterviewAndConfirm(c, CAND, ivFenced));
+  await asOwner(CAND, (c) => completeInterviewAndConfirm(c, CAND, ivKept));
+
+  // eslint-disable-next-line @typescript-eslint/naming-convention -- 列名与函数返回表一致，不是新的代码标识符
+  const dimKey = (rows: Array<{ competency: string | null; strong_count: unknown; mid_count: unknown; weak_count: unknown; insufficient_count: unknown }>) =>
+    JSON.stringify(rows.filter((r) => r.competency != null).map((r) => ({
+      competency: r.competency,
+      strong: Number(r.strong_count),
+      mid: Number(r.mid_count),
+      weak: Number(r.weak_count),
+      insufficient: Number(r.insufficient_count),
+    })));
+  const cardStatusOf = async (interviewId: string, questionId: string) => {
+    const found = await pool!.query(
+      'SELECT status FROM score_card WHERE owner_user_id=$1 AND interview_id=$2 AND question_id=$3',
+      [CAND, interviewId, questionId],
+    );
+    return (found.rows as Array<{ status: string }>).map((r) => r.status);
+  };
+
+  const fencedBefore = await qualFn(REC, appFenced);
+  const keptBefore = await qualFn(REC, appKept);
+  const fencedViewBefore = await recruiter.qualitative(REC, await jobIdOf(appFenced), appFenced);
+  const keptViewBefore = await recruiter.qualitative(REC, await jobIdOf(appKept), appKept);
+  const fencedCardBefore = await cardStatusOf(ivFenced, 'i2b-q-fence');
+  A('W2-11a 撤权前两场生产函数都读到维度行',
+    fencedBefore.some((r: { competency: string | null }) => r.competency != null)
+      && keptBefore.some((r: { competency: string | null }) => r.competency != null));
+  A('W2-11b 撤权前两场生产服务 dimensions 长度大于 0',
+    fencedViewBefore.dimensions.length > 0 && keptViewBefore.dimensions.length > 0);
+  A('W2-11c 撤权前这场卡状态是 b_review_eligible',
+    fencedCardBefore.length === 1 && fencedCardBefore[0] === 'b_review_eligible');
+
+  const erasure = await asOwner(CAND, (c) => beginInterviewProjectionErasure(c, ivFenced, nextHash(), 5));
+  const fencedAfter = await qualFn(REC, appFenced);
+  const keptAfter = await qualFn(REC, appKept);
+  let fencedStatus: number | undefined;
+  const fencedViewAfter = await recruiter.qualitative(REC, await jobIdOf(appFenced), appFenced).catch((e: unknown) => {
+    fencedStatus = errOf(e).status;
+    return undefined;
+  });
+  const keptViewAfter = await recruiter.qualitative(REC, await jobIdOf(appKept), appKept);
+  const fencedCardAfter = await cardStatusOf(ivFenced, 'i2b-q-fence');
+  A('W2-12a 撤权后这场生产函数只留标记行（disclosed 按同意，terminal_kind 仍在，没有维度行）',
+    erasure.status === 'fenced'
+      && fencedAfter.length === 1
+      && fencedAfter[0].disclosed === true
+      && fencedAfter[0].competency === null
+      && fencedAfter[0].terminal_kind === 'held');
+  A('W2-12b 撤权后这场生产服务 dimensions 长度为 0，不是 404',
+    fencedStatus === undefined && !!fencedViewAfter && fencedViewAfter.disclosed === true && fencedViewAfter.dimensions.length === 0);
+  A('W2-12c 未撤权那场维度计数与撤权前相同',
+    dimKey(keptBefore) === dimKey(keptAfter) && keptBefore.some((r: { competency: string | null }) => r.competency != null)
+      && keptViewAfter.dimensions.length > 0);
+  A('W2-12d 撤权不改卡状态（同一张卡仍是 b_review_eligible）',
+    fencedCardBefore.length === 1 && fencedCardAfter.length === 1
+      && fencedCardBefore[0] === 'b_review_eligible' && fencedCardAfter[0] === 'b_review_eligible');
 
   await done();
 }

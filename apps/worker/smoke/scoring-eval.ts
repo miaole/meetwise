@@ -36,6 +36,7 @@ const manipulationInvariants = MANIPULATION_INVARIANTS.filter((g: any) => includ
 const pool = createPool();
 await assertIsolatedTestTarget(pool);
 const OWNER = 'scoring-eval-owner';
+process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
 const rawModel = fastModelClient();   // 生产正常评分走快模型(qwen-turbo);检到操纵才升 plus——金标无操纵,故测的就是生产正常路径
 let transientSkipped = 0, validationRejected = 0, evaluationRequests = 0, physicalModelCalls = 0, quoteRejected = 0, deterministicShortCircuits = 0;
 // 真模型 nightly 不可再手抄 invoke：这里包一层只为量化实际供应商调用，评分语义仍完全复用生产 helper。
@@ -70,7 +71,7 @@ async function scoreOnce(question: string, answer: string, key: string): Promise
   evaluationRequests++;
   const out = await invokeEvaluationOnce(pool, OWNER, {
     // 每样本唯一 → 必 cache miss → 真打模型 → 方差不被吞；helper 负责 answer hash。
-    baseIdempotencyKey: `scoring-eval:v3:${key}`, question, answer: scored, model,
+    baseIdempotencyKey: `scoring-eval:v3:${key}`, question, answer: scored, promptAnswer: scored, model,
   }).catch(() => ({ status: 'failed' as const, error: 'threw' }));
   if (out.status === 'scored') {
     // #52 v6：hint 分=evaluateOutcomeFromValue 的确定性派生（档位×量表权重），模型不出总分。

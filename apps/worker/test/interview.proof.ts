@@ -14,15 +14,19 @@ import {
   historicalWeakDimensions,
   reserveEntitlement, transitionResume, completeIngestion, answerHash, supplyCandidateProfileRoute,
   submitInterviewAnswer, createScoreRequestForSubmission, publishRubricAndIssueContract,
-  claimScoreRequest, SCORING_ISSUE_PRIVACY_EPOCH,
+  claimScoreRequest, SCORING_ISSUE_PRIVACY_EPOCH, persistInterviewQuestion,
+  loadTranscribedAnswerJobPayload, assertInterviewPrivacyActive,
+  issuedAsrTraceKey, TEXT_ONLY_ASR_OUTCOME,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
+import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
 import { deriveGrowth, ingestResume, toGrowthRow, scoreSpanDigest, SCORE_SPAN_OFFSET_KIND, utf8ByteLength, type ScoredCriterionDisposition } from '@meetwise/domain';
 import { drainReportsOnce, generateGrowthChain } from '../src/report-worker.ts';
 import { biasByPastWeakness } from '../src/adaptive-interview-service.ts';
 import { interviewDispatchTick, type ConsumerDeps } from '../src/interview-consumer.ts';
 import { reportGenerator } from '../src/interview-service.ts';
 import { writeScoreCardAfterProjection } from '../src/score-writer.ts';
+import { transcribeForIssuedQuestion } from '../../api/src/modules/interview/interview-voice.ts';
 
 const pool = createPool();
 let failures = 0;
@@ -53,6 +57,61 @@ const model: ModelClient = scriptedModelClient({
 function fullSpanDisposition(answerText: string, disposition: 'below' | 'meets' | 'exceeds'): ScoredCriterionDisposition[] {
   const span = { offsetKind: SCORE_SPAN_OFFSET_KIND, start: 0, end: utf8ByteLength(answerText) } as const;
   return [{ criterionId: 'answer_quality', disposition, span, spanDigest: scoreSpanDigest(answerText, span) }];
+}
+
+type ScoreSqlCall = { sql: string; params: unknown[] };
+
+function thrownHttp(error: unknown): { status?: number; error?: string } {
+  if (!error || typeof error !== 'object') return {};
+  const maybe = error as { getStatus?: () => number; getResponse?: () => unknown };
+  const status = typeof maybe.getStatus === 'function' ? maybe.getStatus() : undefined;
+  const body = typeof maybe.getResponse === 'function' ? maybe.getResponse() : undefined;
+  const code = body && typeof body === 'object' && 'error' in body ? String((body as { error?: unknown }).error) : undefined;
+  return { status, error: code };
+}
+
+function connectWithScoreSqlSpy(calls: ScoreSqlCall[]) {
+  return async () => {
+    const client = await pool.connect();
+    const originalQuery = client.query.bind(client);
+    const originalRelease = client.release.bind(client);
+    const restore = () => {
+      client.query = originalQuery;
+      client.release = originalRelease;
+    };
+    client.query = ((...args: unknown[]) => {
+      const first = args[0];
+      const sql = typeof first === 'string'
+        ? first
+        : (first && typeof first === 'object' && 'text' in first ? String((first as { text?: unknown }).text ?? '') : '');
+      const params = Array.isArray(args[1]) ? args[1] : [];
+      if (sql.includes('scoring_write_final_score_card') || sql.includes('scoring_adjudicate_score_card')) calls.push({ sql, params });
+      return (originalQuery as (...inner: unknown[]) => unknown)(...args);
+    }) as typeof client.query;
+    client.release = ((err?: Error | boolean) => {
+      restore();
+      return originalRelease(err);
+    }) as typeof client.release;
+    return client;
+  };
+}
+
+async function guardProofInterview(
+  c: { query: (sql: string, params?: unknown[]) => Promise<{ rowCount?: number | null }> },
+  id: string,
+) {
+  const owned = await c.query('SELECT 1 FROM interview WHERE id=$1', [id]);
+  if ((owned.rowCount ?? 0) === 0) throw new Error('not_found_or_forbidden');
+  await assertInterviewPrivacyActive(c as never, id);
+}
+
+async function writeWithScoreSql(query: Parameters<typeof writeScoreCardAfterProjection>[1]) {
+  const calls: ScoreSqlCall[] = [];
+  const written = await writeScoreCardAfterProjection(
+    { pool: { connect: connectWithScoreSqlSpy(calls) } as never, owner: OWNER, leaseOwner: `tx-voice-${process.pid}` },
+    query,
+  );
+  return { written, calls };
 }
 
 async function main() {
@@ -601,6 +660,307 @@ async function main() {
     && race.filter((x) => x === 'saturated').length === 2
     && race.every((x) => x !== 'other')
     && raceQueued === 3);
+
+  section('失败或放弃的面试不再新写可练习卡');
+  const prepareLedgerTurn = async (interviewId: string, turn: number, answer: string) => {
+    const q = turn === 0 ? 'q-v1-t0-c0' : 'q-v1-t1-c0';
+    const stateVersion = turn + 1;
+    await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+      interviewId, questionId: q, stateVersion, turn,
+      question: `请说明第 ${turn + 1} 个限流取舍？`, competency: '高并发', difficulty: 3, kind: 'fundamental',
+    }));
+    const { request } = await asPrincipal(pool, OWNER, async (c) => {
+      const submitted = await submitInterviewAnswer(c, {
+        interviewId, questionId: q, stateVersion,
+        clientSubmissionKey: `terminal-${interviewId}-${q}`, answer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+      });
+      const created = await createScoreRequestForSubmission(c, {
+        interviewId, questionId: q, stateVersion,
+        submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+        canonicalBodyHmac: submitted.canonicalBodyHmac, privacyEpoch: submitted.privacyEpoch,
+      });
+      return { request: created };
+    });
+    return { q, stateVersion, request };
+  };
+  const cardSnap = (interviewId: string) => asPrincipal(pool, OWNER, async (c) => {
+    const cards = await c.query<{ id: string; status: string; total: number }>(
+      `SELECT id::text AS id, status, deterministic_total::int AS total
+         FROM score_card WHERE interview_id=$1 ORDER BY id`, [interviewId]);
+    return cards.rows.map((row) => ({ id: row.id, status: row.status, total: Number(row.total) }));
+  });
+  for (const status of ['failed', 'abandoned'] as const) {
+    const iv = `${INTERVIEW_ID}-${status}-score`;
+    await asPrincipal(pool, OWNER, (c) => c.query(
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [iv, OWNER],
+    ));
+    const keptAnswer = `已有卡作答：Redis 令牌桶（${status}）。`;
+    const kept = await prepareLedgerTurn(iv, 0, keptAnswer);
+    const keptRequest = kept.request;
+    A(`${status} 事先评分请求已建立`, keptRequest.created === true && keptRequest.replayed === false);
+    const keptWrite = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `terminal-score-${process.pid}` },
+      { interviewId: iv, questionId: kept.q, stateVersion: kept.stateVersion, answerText: keptAnswer, dispositions: fullSpanDisposition(keptAnswer, 'meets') },
+    );
+    A(`${status} 场在 created 时生产写卡仍写入`, keptWrite.kind === 'written');
+    const flipped = await pool.query<{ status: string }>(
+      'UPDATE interview SET status=$2 WHERE id=$1 RETURNING status', [iv, status],
+    );
+    A(`${status} 状态已落库`, flipped.rows[0]?.status === status);
+    const before = await cardSnap(iv);
+    const nextAnswer = `终态后不得再写的作答：滑动窗口（${status}）。`;
+    const next = await prepareLedgerTurn(iv, 1, nextAnswer);
+    const nextRequest = next.request;
+    A(`${status} 事后仍有在途评分请求`, nextRequest.created === true && nextRequest.replayed === false);
+    const blocked = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `terminal-score-${process.pid}` },
+      { interviewId: iv, questionId: next.q, stateVersion: next.stateVersion, answerText: nextAnswer, dispositions: fullSpanDisposition(nextAnswer, 'exceeds') },
+    );
+    const after = await cardSnap(iv);
+    const pending = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string }>(
+      `SELECT sr.status FROM score_request sr
+         JOIN issued_question_contract c ON c.id = sr.issued_contract_id
+        WHERE sr.interview_id=$1 AND c.question_id=$2 AND c.state_version=$3`,
+      [iv, next.q, next.stateVersion],
+    ));
+    A(`${status} 调用生产写卡不得新写，已有 practice_eligible 卡的状态和行数不变`,
+      blocked.kind === 'skipped' && blocked.reason === 'terminal_interview'
+      && before.length === 1 && before[0]?.status === 'practice_eligible'
+      && after.length === before.length
+      && after[0]?.id === before[0]?.id && after[0]?.status === 'practice_eligible' && after[0]?.total === before[0]?.total
+      && pending.rows.length === 1 && pending.rows[0]?.status === 'pending');
+  }
+
+  section('转写结果写入评分语音质量');
+  const IID_VOICE = `${INTERVIEW_ID}-voice`;
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [IID_VOICE, OWNER],
+  ));
+  const voiceCases: Array<{ name: string; asrOutcome?: string; expect: 'ok' | 'unavailable' }> = [
+    { name: '不传转写结果', expect: 'ok' },
+    { name: '成功转写文本', asrOutcome: '我会用 Redis 计数器做限流', expect: 'unavailable' },
+    { name: 'asr_timeout', asrOutcome: 'asr_timeout', expect: 'unavailable' },
+    { name: 'asr_aborted', asrOutcome: 'asr_aborted', expect: 'unavailable' },
+    { name: 'asr_malformed', asrOutcome: 'asr_malformed', expect: 'unavailable' },
+    { name: 'asr_not_configured', asrOutcome: 'asr_not_configured', expect: 'unavailable' },
+  ];
+  for (const [index, voiceCase] of voiceCases.entries()) {
+    const q = `q-voice-${index}`;
+    const stateVersion = index + 1;
+    const answer = `语音质量第 ${index + 1} 题作答：Redis 令牌桶与滑动窗口限流。`;
+    await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+      interviewId: IID_VOICE, questionId: q, stateVersion, turn: index,
+      question: `请说明第 ${index + 1} 个限流取舍？`, competency: '高并发', difficulty: 3, kind: 'fundamental',
+    }));
+    const { request } = await asPrincipal(pool, OWNER, async (c) => {
+      const submitted = await submitInterviewAnswer(c, {
+        interviewId: IID_VOICE, questionId: q, stateVersion,
+        clientSubmissionKey: `voice-${q}`, answer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+      });
+      const created = await createScoreRequestForSubmission(c, {
+        interviewId: IID_VOICE, questionId: q, stateVersion,
+        submissionId: submitted.submissionId, artifactId: submitted.artifactId,
+        canonicalBodyHmac: submitted.canonicalBodyHmac, privacyEpoch: submitted.privacyEpoch,
+      });
+      return { request: created };
+    });
+    A(`${voiceCase.name} 评分请求已建立`, request.created === true && request.replayed === false);
+    const written = await writeScoreCardAfterProjection(
+      { pool, owner: OWNER, leaseOwner: `voice-quality-${process.pid}` },
+      {
+        interviewId: IID_VOICE, questionId: q, stateVersion, answerText: answer,
+        dispositions: fullSpanDisposition(answer, 'meets'),
+        ...(voiceCase.asrOutcome === undefined ? {} : { asrOutcome: voiceCase.asrOutcome }),
+      },
+    );
+    const column = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string>>(
+      'SELECT uncertainty_voice_quality FROM score_card WHERE interview_id=$1 AND question_id=$2',
+      [IID_VOICE, q],
+    ));
+    const voiceQuality = column.rows[0]?.['uncertainty_voice_quality'];
+    A(`${voiceCase.name} → uncertainty_voice_quality=${voiceCase.expect}`,
+      written.kind === 'written' && column.rows.length === 1 && voiceQuality === voiceCase.expect);
+  }
+
+  section('只返回文本且没有词级时间戳时不把语音质量写成 ok');
+  const transcript = '  我会用 Redis 计数器做限流  ';
+  const txInterview = `${INTERVIEW_ID}-tx-ok`;
+  const txQuestion = 'q-tx-ok';
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [txInterview, OWNER],
+  ));
+  await asPrincipal(pool, OWNER, (c) => persistInterviewQuestion(c, OWNER, txInterview, {
+    questionId: txQuestion, stateVersion: 1, turn: 0,
+    question: '请说明限流取舍', competency: '高并发', qkind: 'fundamental',
+  }));
+  const audio = Buffer.from([1, 2, 3]).toString('base64');
+  const capture = { mode: 'single_local_microphone' as const, consent: true as const, policyVersion: VOICE_CAPTURE_POLICY_VERSION };
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO consent_record(id,owner_user_id,purpose,policy_version) VALUES ($1,$2,'voice_capture','v1')",
+    [randomUUID(), OWNER],
+  ));
+  const result = await transcribeForIssuedQuestion(
+    { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn as never) },
+    { transcribe: async () => ({ text: transcript, quality: { confidence: 'unavailable', duration: 'unavailable', language: 'unavailable' } }) },
+    OWNER,
+    txInterview,
+    { audioBase64: audio, mimeType: 'audio/webm', capture },
+    undefined,
+    guardProofInterview,
+  );
+  A('转写成功只返回文本和采集声明',
+    result.text === transcript
+    && Object.keys(result).sort().join(',') === 'capture,text'
+    && result.capture.speakerAttribution === 'not_diarized'
+    && result.capture.wordTimestamps === 'not_available'
+    && result.capture.asrQuality === 'unavailable');
+  const traceKey = issuedAsrTraceKey(txInterview, txQuestion);
+  const storedByTranscribe = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string | null>>(
+    'SELECT output::text AS output FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, traceKey],
+  ));
+  const storedOutput = storedByTranscribe.rows[0]?.['output'] ?? '';
+  A('已上线转写只记下摘要、无词级时间戳与 unavailable 申报，不保存原文，也不写成 ok',
+    storedByTranscribe.rows.length === 1
+    && storedOutput.includes('not_available')
+    && storedOutput.includes('unavailable')
+    && storedOutput.includes(answerHash(transcript))
+    && !storedOutput.includes(transcript)
+    && !storedOutput.includes('"ok"'));
+  const submitted = transcript.trim();
+  const txPayload = await asPrincipal(pool, OWNER, (c) => loadTranscribedAnswerJobPayload(c, OWNER, txInterview, {
+    questionId: txQuestion, stateVersion: 1, answerId: 'ans-tx-ok', answerHash: answerHash(submitted), turn: 0, answer: submitted,
+  }, 'req-tx-ok'));
+  const storedAfter = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
+    'SELECT count(*)::int AS n FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, traceKey],
+  ));
+  const loadedOutcome: string | undefined = txPayload.asrOutcome;
+  const loadedIsSentinel = loadedOutcome === TEXT_ONLY_ASR_OUTCOME;
+  const loadedIsTranscript = loadedOutcome === transcript;
+  A('入队载荷标成只有文本，不是原文，也不是 ok，暂存已取走',
+    loadedIsSentinel && !loadedIsTranscript
+    && txPayload.answer === submitted
+    && Number(storedAfter.rows[0]?.n ?? -1) === 0);
+  await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+    interviewId: txInterview, questionId: txQuestion, stateVersion: 1, turn: 0,
+    question: '请说明限流取舍', competency: '高并发', difficulty: 3, kind: 'fundamental',
+  }));
+  const txRequest = await asPrincipal(pool, OWNER, async (c) => {
+    const accepted = await submitInterviewAnswer(c, {
+      interviewId: txInterview, questionId: txQuestion, stateVersion: 1,
+      clientSubmissionKey: 'tx-ok', answer: submitted, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+    });
+    return createScoreRequestForSubmission(c, {
+      interviewId: txInterview, questionId: txQuestion, stateVersion: 1,
+      submissionId: accepted.submissionId, artifactId: accepted.artifactId,
+      canonicalBodyHmac: accepted.canonicalBodyHmac, privacyEpoch: accepted.privacyEpoch,
+    });
+  });
+  A('成功转写的评分请求已建立', txRequest.created === true && txRequest.replayed === false);
+  const txWrite = await writeWithScoreSql({
+    interviewId: txInterview, questionId: txQuestion, stateVersion: 1, answerText: submitted,
+    dispositions: fullSpanDisposition(submitted, 'meets'),
+    asrOutcome: txPayload.asrOutcome,
+  });
+  const txCall = txWrite.calls[0];
+  const uncertaintyRaw = txCall?.params[3];
+  const uncertainty = typeof uncertaintyRaw === 'string'
+    ? JSON.parse(uncertaintyRaw) as { voiceQuality?: string }
+    : undefined;
+  const voice = uncertainty?.voiceQuality;
+  const voiceIsUnavailable = voice === 'unavailable';
+  const voiceIsOk = voice === 'ok';
+  const txColumn = await asPrincipal(pool, OWNER, (c) => c.query<Record<string, string>>(
+    'SELECT uncertainty_voice_quality FROM score_card WHERE interview_id=$1 AND question_id=$2',
+    [txInterview, txQuestion],
+  ));
+  const txVoice: string | undefined = txColumn.rows[0]?.['uncertainty_voice_quality'];
+  const columnIsUnavailable = txVoice === 'unavailable';
+  const columnIsOk = txVoice === 'ok';
+  A('只返回文本且没有词级时间戳时，写卡不把语音质量记成 ok',
+    txWrite.written.kind === 'written' && txWrite.calls.length === 1 && !!txCall
+    && txCall.sql.includes('scoring_adjudicate_score_card($1,$2,$3,$4,$5)')
+    && !txCall.sql.includes('scoring_write_final_score_card')
+    && voiceIsUnavailable && !voiceIsOk
+    && columnIsUnavailable && !columnIsOk);
+
+  const typedInterview = `${INTERVIEW_ID}-tx-typed`;
+  const typedQuestion = 'q-tx-typed';
+  const typedAnswer = '这是打字作答，没有经过转写。Redis 令牌桶。';
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [typedInterview, OWNER],
+  ));
+  await asPrincipal(pool, OWNER, (c) => persistInterviewQuestion(c, OWNER, typedInterview, {
+    questionId: typedQuestion, stateVersion: 1, turn: 0,
+    question: '请说明限流取舍', competency: '高并发', qkind: 'fundamental',
+  }));
+  const typedPayload = await asPrincipal(pool, OWNER, (c) => loadTranscribedAnswerJobPayload(c, OWNER, typedInterview, {
+    questionId: typedQuestion, stateVersion: 1, answerId: 'ans-tx-typed', answerHash: answerHash(typedAnswer), turn: 0, answer: typedAnswer,
+  }));
+  A('从未转写的作答载荷不带转写结果', typedPayload.asrOutcome === undefined && !('asrOutcome' in typedPayload));
+  await asPrincipal(pool, OWNER, (c) => publishRubricAndIssueContract(c, {
+    interviewId: typedInterview, questionId: typedQuestion, stateVersion: 1, turn: 0,
+    question: '请说明限流取舍', competency: '高并发', difficulty: 3, kind: 'fundamental',
+  }));
+  const typedRequest = await asPrincipal(pool, OWNER, async (c) => {
+    const accepted = await submitInterviewAnswer(c, {
+      interviewId: typedInterview, questionId: typedQuestion, stateVersion: 1,
+      clientSubmissionKey: 'tx-typed', answer: typedAnswer, privacyEpoch: SCORING_ISSUE_PRIVACY_EPOCH,
+    });
+    return createScoreRequestForSubmission(c, {
+      interviewId: typedInterview, questionId: typedQuestion, stateVersion: 1,
+      submissionId: accepted.submissionId, artifactId: accepted.artifactId,
+      canonicalBodyHmac: accepted.canonicalBodyHmac, privacyEpoch: accepted.privacyEpoch,
+    });
+  });
+  A('打字作答的评分请求已建立', typedRequest.created === true && typedRequest.replayed === false);
+  const typedWrite = await writeWithScoreSql({
+    interviewId: typedInterview, questionId: typedQuestion, stateVersion: 1, answerText: typedAnswer,
+    dispositions: fullSpanDisposition(typedAnswer, 'meets'),
+  });
+  const typedCall = typedWrite.calls[0];
+  A('打字作答仍走四参数',
+    typedWrite.written.kind === 'written' && typedWrite.calls.length === 1 && !!typedCall
+    && typedCall.sql.includes('scoring_write_final_score_card($1,$2,$3,$4)')
+    && !typedCall.sql.includes('$5') && typedCall.params.length === 4);
+
+  const throwInterview = `${INTERVIEW_ID}-tx-throw`;
+  const throwQuestion = 'q-tx-throw';
+  await asPrincipal(pool, OWNER, (c) => c.query(
+    "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,$2,'created')", [throwInterview, OWNER],
+  ));
+  await asPrincipal(pool, OWNER, (c) => persistInterviewQuestion(c, OWNER, throwInterview, {
+    questionId: throwQuestion, stateVersion: 1, turn: 0,
+    question: '请说明限流取舍', competency: '高并发', qkind: 'fundamental',
+  }));
+  let thrown: unknown;
+  try {
+    await transcribeForIssuedQuestion(
+      { asPrincipal: (principal: string, fn: (client: never) => Promise<void>) => asPrincipal(pool, principal, fn as never) },
+      { transcribe: async () => { throw new Error('asr_timeout'); } },
+      OWNER,
+      throwInterview,
+      { audioBase64: audio, mimeType: 'audio/webm', capture },
+      undefined,
+      guardProofInterview,
+    );
+  } catch (error) {
+    thrown = error;
+  }
+  const http = thrownHttp(thrown);
+  const throwStored = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
+    'SELECT count(*)::int AS n FROM ai_invocation_trace WHERE owner_user_id=$1 AND idempotency_key=$2',
+    [OWNER, issuedAsrTraceKey(throwInterview, throwQuestion)],
+  ));
+  const throwCards = await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>(
+    'SELECT count(*)::int AS n FROM score_card WHERE interview_id=$1 AND question_id=$2',
+    [throwInterview, throwQuestion],
+  ));
+  A('转写抛错仍是 504 asr_timeout，不暂存也不写评分卡',
+    http.status === 504 && http.error === 'asr_timeout'
+    && Number(throwStored.rows[0]?.n ?? -1) === 0
+    && Number(throwCards.rows[0]?.n ?? -1) === 0);
 
   console.log(`\n${failures === 0 ? '✓ 当前 v64 面试链路全部通过' : `✗ ${failures} 项失败`}`);
   await pool.end();

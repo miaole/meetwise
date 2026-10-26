@@ -1,0 +1,172 @@
+# ha6-companion.proof pre/post 全输出存档（config-reject-guidance EXEC·2026-10-22）
+# 门② §9-rev 同形红 diff 协议行使：pre/post 原始全输出 diff 0 字节（三 FAIL 臂与全部
+# PASS 臂逐字节同形）；pre EXIT=1 / post EXIT=1（协议不要求 EXIT=0）。
+# 唯一改写申报：两段末行 CMD=… 的脚本绝对路径前缀按门⑥ 预登记改波浪线相对形（各 1 行，
+# 非 FAIL 臂），其余字节原样。
+===== pre（落码前·基线 ef28a428）=====
+PASS  compose.ha.yml x-ha-cloud-runtime-env anchor defined at line 51 (got 51)
+PASS  anchor block contains exactly one PGPOOL_MAX key
+PASS  PGPOOL_MAX parses as integer (got   PGPOOL_MAX: "12")
+PASS  P=12 within dual-review window [10,15]
+FAIL  principal.ts:946 pool max single-source expression drifted
+PASS  explicit max:1 production pool sites exactly two: apps/api/src/platform/sse-notify.service.ts:279 + apps/worker/src/main.ts:683
+PASS  sse-notify.service.ts sse-listen max:1 content pin exactly one line (:279)
+PASS  worker main.ts job-wakeup max:1 content pin exactly one line (:683)
+PASS  budget arithmetic: 6P+4 = 76 at P=12 (expected 76 at P=12)
+PASS  post-cap steady 76 <= PG app cap 97
+PASS  headroom = 97 - 76 = 21 (expected 21)
+PASS  window lower endpoint P=10: 6P+4=64 <= 97
+PASS  window upper endpoint P=15: 6P+4=94 <= 97
+PASS  P=16 out-of-window: 6P+4=100 > 97 (越界即超售，漂移门自洽)
+PASS  current-frame steady (no cap, P=20) = 124 (expected 124)
+PASS  single-replica current account api 21 + worker 41 = 62
+PASS  co-location worst-case (post-cap frame) = 76 + 72 = 148 (expected 148)
+PASS  docker compose -f compose.prod.yml -f compose.ha.yml config EXIT=0 with 85 enumerated :? stubs + 1 explicit knob = 86 stub entries (ha-2 B8 口径 · dispatch 86 stub 闭合)
+PASS  rendered config services parsed: api-a, api-b, lb, migrate, privacy-watchdog, web-a, web-b, worker-a, worker-b
+PASS  service api-a environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  service api-b environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  service worker-a environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  service worker-b environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  original service api absent from rendered config (profiles ha-disabled · RX-1 面)
+PASS  original service worker absent from rendered config (profiles ha-disabled · RX-1 面)
+PASS  original service web absent from rendered config (profiles ha-disabled · RX-1 面)
+PASS  docker/compose.ha.yml structural gate: PGPOOL_MAX: "12" exactly one line (:56) + AG24 dead env keys (MODEL_MAX_CONCURRENT|MODEL_RPM) zero residue
+PASS  x-ha-cloud-runtime-env consumed by exactly 4 service environment blocks (:156 :183 :210 :274)
+PASS  ha-1 dilution receipt has 13 flow rows
+PASS  ha-6 census receipt has 13 flow rows
+PASS  census countClosure = 13 flows / 6 drift flows / 7 pairs / 5 groups
+PASS  census carries exact drift framing 「6 流 7 对 5 组」 (禁只写「5 锚」)
+PASS  flow #1 value all-equal vs ha-1 current column: "3 burst / 0.02 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #1 anchor hits 1/1 (hit-lines :46)
+PASS  flow #2 value all-equal vs ha-1 current column: "10 burst / 0.05 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #2 anchor hits 1/1 (hit-lines :13)
+PASS  apps/api/src/modules/auth/auth.service.ts flow #2 anchor hits 1/1 (hit-lines :14)
+PASS  apps/api/src/modules/auth/auth.service.ts flow #2 anchor hits 1/1 (hit-lines :15)
+PASS  flow #3 value all-equal vs ha-1 current column: "60 burst / 1 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #3 anchor hits 1/1 (hit-lines :46)
+PASS  flow #4 value all-equal vs ha-1 current column: "5 burst / 0.2 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #4 anchor hits 1/1 (hit-lines :90)
+PASS  flow #5 value all-equal vs ha-1 current column: "12 burst / 0.05 perSec"
+PASS  apps/api/src/modules/recruiter/recruiter.service.ts flow #5 anchor hits 1/1 (hit-lines :163)
+PASS  flow #6 value all-equal vs ha-1 current column: "12 burst / 0.05 perSec"
+PASS  apps/api/src/modules/recruiter/recruiter.service.ts flow #6 anchor hits 1/1 (hit-lines :165)
+PASS  flow #7 value all-equal vs ha-1 current column: "5 concurrent"
+PASS  apps/api/src/modules/quiz/quiz.controller.ts flow #7 anchor hits 1/1 (hit-lines :57)
+PASS  flow #8 value all-equal vs ha-1 current column: "5 concurrent"
+PASS  apps/api/src/modules/interview/interview.controller.ts flow #8 anchor hits 1/1 (hit-lines :262)
+PASS  flow #9 value all-equal vs ha-1 current column: "15 burst / 0.1 perSec"
+PASS  apps/api/src/modules/resume/resume.service.ts flow #9 anchor hits 1/1 (hit-lines :39)
+PASS  flow #10 value all-equal vs ha-1 current column: "6 concurrent"
+PASS  apps/api/src/modules/resume/resume.service.ts flow #10 anchor hits 1/1 (hit-lines :22)
+PASS  apps/api/src/modules/resume/resume.service.ts flow #10 anchor hits 1/1 (hit-lines :51)
+PASS  flow #11 value all-equal vs ha-1 current column: "40 burst / 0.3 perSec"
+PASS  apps/api/src/modules/interview/interview.service.ts flow #11 anchor hits 1/1 (hit-lines :31)
+PASS  apps/api/src/modules/interview/interview.service.ts flow #11 anchor hits 1/1 (hit-lines :383)
+PASS  flow #12 value all-equal vs ha-1 current column: "30 burst / 0.2 perSec"
+PASS  apps/api/src/modules/interview/interview.service.ts flow #12 anchor hits 1/1 (hit-lines :33)
+PASS  apps/api/src/modules/interview/interview.service.ts flow #12 anchor hits 2/2 (hit-lines :449 :493)
+PASS  flow #13 value all-equal vs ha-1 current column: "3 burst / (3/3600) perSec"
+PASS  apps/api/src/modules/interview/interview.service.ts flow #13 anchor hits 1/1 (hit-lines :36)
+PASS  apps/api/src/modules/interview/interview.service.ts flow #13 anchor hits 1/1 (hit-lines :778)
+PASS  census zero-drift constant places count = 6
+FAIL  negative violated: pgbouncer hits: packages/db/src/interview/interview-graph-lease.ts
+PASS  negative: "max_connections" zero hits across docker/ (all compose+monitoring yml)
+PASS  negative: apps/api/package.json zero "redis" (dependency face)
+PASS  principal.ts single-source pool max expression exactly one line (:959) (池参数单源 · R-22 面零重做)
+PASS  principal.ts HA-3 pool-param face pinned (keepAlive: true ×1 + query_timeout ×1)
+PASS  rolling registry full-file rows blob-identical (scripts/ha/probe.multi.mjs@b91917e8) (fail-closed 面零改零弱化)
+PASS  既有治理 compose 存在性全真（15 files）+ AG24 死 env 两键零残留
+FAIL  package.json registered scripts ledger violated: missing=[] resurrected=[] digest got=5adb6bae51efd6e892fddcb56efbbcc3f55ef614 want=106e457929a535e9b87d303b94d7487adbbca054 — 值漂=非 additive 演进→REQUEST 补审 append
+PASS  root package.json registers ha6:prove -> node scripts/ha/ha6-companion.proof.mjs (additive)
+PASS  receipts/ha-6/ artifacts present (resource-budget + rate-limit-census)
+haStatus: NOT_HA
+releaseEvidence: false
+claimProductionHA: false
+note: B1 sandbox live probe CUT by coordinator ruling (see header); static assertions close all three risk faces; est live=0
+note: P=12 steady=76 headroom=21 worstCaseCoLocated=148 pgAppCap=97
+note: ha6-repin rolling registry active (baseline 8ba93f0b retired 2026-10-14)
+CMD=node ~/meetwise-iss249/scripts/ha/ha6-companion.proof.mjs EXIT=1
+
+===== post（落码后）=====
+PASS  compose.ha.yml x-ha-cloud-runtime-env anchor defined at line 51 (got 51)
+PASS  anchor block contains exactly one PGPOOL_MAX key
+PASS  PGPOOL_MAX parses as integer (got   PGPOOL_MAX: "12")
+PASS  P=12 within dual-review window [10,15]
+FAIL  principal.ts:946 pool max single-source expression drifted
+PASS  explicit max:1 production pool sites exactly two: apps/api/src/platform/sse-notify.service.ts:279 + apps/worker/src/main.ts:683
+PASS  sse-notify.service.ts sse-listen max:1 content pin exactly one line (:279)
+PASS  worker main.ts job-wakeup max:1 content pin exactly one line (:683)
+PASS  budget arithmetic: 6P+4 = 76 at P=12 (expected 76 at P=12)
+PASS  post-cap steady 76 <= PG app cap 97
+PASS  headroom = 97 - 76 = 21 (expected 21)
+PASS  window lower endpoint P=10: 6P+4=64 <= 97
+PASS  window upper endpoint P=15: 6P+4=94 <= 97
+PASS  P=16 out-of-window: 6P+4=100 > 97 (越界即超售，漂移门自洽)
+PASS  current-frame steady (no cap, P=20) = 124 (expected 124)
+PASS  single-replica current account api 21 + worker 41 = 62
+PASS  co-location worst-case (post-cap frame) = 76 + 72 = 148 (expected 148)
+PASS  docker compose -f compose.prod.yml -f compose.ha.yml config EXIT=0 with 85 enumerated :? stubs + 1 explicit knob = 86 stub entries (ha-2 B8 口径 · dispatch 86 stub 闭合)
+PASS  rendered config services parsed: api-a, api-b, lb, migrate, privacy-watchdog, web-a, web-b, worker-a, worker-b
+PASS  service api-a environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  service api-b environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  service worker-a environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  service worker-b environment inherits PGPOOL_MAX="12" via anchor merge
+PASS  original service api absent from rendered config (profiles ha-disabled · RX-1 面)
+PASS  original service worker absent from rendered config (profiles ha-disabled · RX-1 面)
+PASS  original service web absent from rendered config (profiles ha-disabled · RX-1 面)
+PASS  docker/compose.ha.yml structural gate: PGPOOL_MAX: "12" exactly one line (:56) + AG24 dead env keys (MODEL_MAX_CONCURRENT|MODEL_RPM) zero residue
+PASS  x-ha-cloud-runtime-env consumed by exactly 4 service environment blocks (:156 :183 :210 :274)
+PASS  ha-1 dilution receipt has 13 flow rows
+PASS  ha-6 census receipt has 13 flow rows
+PASS  census countClosure = 13 flows / 6 drift flows / 7 pairs / 5 groups
+PASS  census carries exact drift framing 「6 流 7 对 5 组」 (禁只写「5 锚」)
+PASS  flow #1 value all-equal vs ha-1 current column: "3 burst / 0.02 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #1 anchor hits 1/1 (hit-lines :46)
+PASS  flow #2 value all-equal vs ha-1 current column: "10 burst / 0.05 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #2 anchor hits 1/1 (hit-lines :13)
+PASS  apps/api/src/modules/auth/auth.service.ts flow #2 anchor hits 1/1 (hit-lines :14)
+PASS  apps/api/src/modules/auth/auth.service.ts flow #2 anchor hits 1/1 (hit-lines :15)
+PASS  flow #3 value all-equal vs ha-1 current column: "60 burst / 1 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #3 anchor hits 1/1 (hit-lines :46)
+PASS  flow #4 value all-equal vs ha-1 current column: "5 burst / 0.2 perSec"
+PASS  apps/api/src/modules/auth/auth.service.ts flow #4 anchor hits 1/1 (hit-lines :90)
+PASS  flow #5 value all-equal vs ha-1 current column: "12 burst / 0.05 perSec"
+PASS  apps/api/src/modules/recruiter/recruiter.service.ts flow #5 anchor hits 1/1 (hit-lines :163)
+PASS  flow #6 value all-equal vs ha-1 current column: "12 burst / 0.05 perSec"
+PASS  apps/api/src/modules/recruiter/recruiter.service.ts flow #6 anchor hits 1/1 (hit-lines :165)
+PASS  flow #7 value all-equal vs ha-1 current column: "5 concurrent"
+PASS  apps/api/src/modules/quiz/quiz.controller.ts flow #7 anchor hits 1/1 (hit-lines :57)
+PASS  flow #8 value all-equal vs ha-1 current column: "5 concurrent"
+PASS  apps/api/src/modules/interview/interview.controller.ts flow #8 anchor hits 1/1 (hit-lines :262)
+PASS  flow #9 value all-equal vs ha-1 current column: "15 burst / 0.1 perSec"
+PASS  apps/api/src/modules/resume/resume.service.ts flow #9 anchor hits 1/1 (hit-lines :39)
+PASS  flow #10 value all-equal vs ha-1 current column: "6 concurrent"
+PASS  apps/api/src/modules/resume/resume.service.ts flow #10 anchor hits 1/1 (hit-lines :22)
+PASS  apps/api/src/modules/resume/resume.service.ts flow #10 anchor hits 1/1 (hit-lines :51)
+PASS  flow #11 value all-equal vs ha-1 current column: "40 burst / 0.3 perSec"
+PASS  apps/api/src/modules/interview/interview.service.ts flow #11 anchor hits 1/1 (hit-lines :31)
+PASS  apps/api/src/modules/interview/interview.service.ts flow #11 anchor hits 1/1 (hit-lines :383)
+PASS  flow #12 value all-equal vs ha-1 current column: "30 burst / 0.2 perSec"
+PASS  apps/api/src/modules/interview/interview.service.ts flow #12 anchor hits 1/1 (hit-lines :33)
+PASS  apps/api/src/modules/interview/interview.service.ts flow #12 anchor hits 2/2 (hit-lines :449 :493)
+PASS  flow #13 value all-equal vs ha-1 current column: "3 burst / (3/3600) perSec"
+PASS  apps/api/src/modules/interview/interview.service.ts flow #13 anchor hits 1/1 (hit-lines :36)
+PASS  apps/api/src/modules/interview/interview.service.ts flow #13 anchor hits 1/1 (hit-lines :778)
+PASS  census zero-drift constant places count = 6
+FAIL  negative violated: pgbouncer hits: packages/db/src/interview/interview-graph-lease.ts
+PASS  negative: "max_connections" zero hits across docker/ (all compose+monitoring yml)
+PASS  negative: apps/api/package.json zero "redis" (dependency face)
+PASS  principal.ts single-source pool max expression exactly one line (:959) (池参数单源 · R-22 面零重做)
+PASS  principal.ts HA-3 pool-param face pinned (keepAlive: true ×1 + query_timeout ×1)
+PASS  rolling registry full-file rows blob-identical (scripts/ha/probe.multi.mjs@b91917e8) (fail-closed 面零改零弱化)
+PASS  既有治理 compose 存在性全真（15 files）+ AG24 死 env 两键零残留
+FAIL  package.json registered scripts ledger violated: missing=[] resurrected=[] digest got=5adb6bae51efd6e892fddcb56efbbcc3f55ef614 want=106e457929a535e9b87d303b94d7487adbbca054 — 值漂=非 additive 演进→REQUEST 补审 append
+PASS  root package.json registers ha6:prove -> node scripts/ha/ha6-companion.proof.mjs (additive)
+PASS  receipts/ha-6/ artifacts present (resource-budget + rate-limit-census)
+haStatus: NOT_HA
+releaseEvidence: false
+claimProductionHA: false
+note: B1 sandbox live probe CUT by coordinator ruling (see header); static assertions close all three risk faces; est live=0
+note: P=12 steady=76 headroom=21 worstCaseCoLocated=148 pgAppCap=97
+note: ha6-repin rolling registry active (baseline 8ba93f0b retired 2026-10-14)
+CMD=node ~/meetwise-iss249/scripts/ha/ha6-companion.proof.mjs EXIT=1

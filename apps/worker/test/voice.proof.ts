@@ -1,6 +1,6 @@
 /**
  * 语音面试证明（对真 Postgres checkpointer）：证明**同一面试图经语音(ASR/TTS)推进,与纯文本路径行为完全一致**(modality-agnostic)。
- * 语音只是边缘适配器:转写当答案、下一题合成音频,checkpointer/续会话/状态机一行不动。CI 用 fake ASR/TTS(不联网)。
+ * 语音只是边缘适配器:转写留在适配器返回值,图状态作答固定为 answer_omitted;下一题合成音频,checkpointer/续会话/状态机一行不动。CI 用 fake ASR/TTS(不联网)。
  *   pnpm voice:prove   (需 pnpm db:up)
  */
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
@@ -18,7 +18,7 @@ async function main() {
   const cp = createCheckpointer(); await cp.setup();
   const run = String(Date.now());
 
-  console.log('\n──────── 语音路径:ASR 转写当答案、TTS 合成下一题,同一图推进 ────────');
+  console.log('\n──────── 语音路径:ASR 转写留在适配器,TTS 合成下一题,同一图推进 ────────');
   const gV = buildMockInterviewGraph(cp, QUESTIONS);
   const cfgV = { configurable: { thread_id: `voice-${run}` } };
   await gV.invoke({}, cfgV);                                          // → interrupt 第1题
@@ -36,9 +36,21 @@ async function main() {
   for (const a of ANSWERS) await gT.invoke(new Command({ resume: a }), cfgT);
   const snapT = await gT.getState(cfgT);
 
+  const answersOmitted = (answers: string[], n: number) =>
+    answers.length === n && answers.every((item) => item === 'answer_omitted');
+  const rawAbsent = (values: { questions: string[]; answers: string[] }) => {
+    const blob = JSON.stringify(values);
+    return ANSWERS.every((raw) => !blob.includes(raw));
+  };
   console.log('──────── 对比:语音路径 ≡ 文本路径(modality-agnostic) ────────');
-  A('语音路径持久 2 问 2 答', snapV.values.questions.length === 2 && snapV.values.answers.length === 2);
-  A('语音转写即答案,与文本路径逐字相同', JSON.stringify(snapV.values.answers) === JSON.stringify(ANSWERS) && JSON.stringify(snapV.values.answers) === JSON.stringify(snapT.values.answers));
+  A('语音路径题目顺序仍是 QUESTIONS，作答条数与轮数一致且每项为 answer_omitted',
+    JSON.stringify(snapV.values.questions) === JSON.stringify(QUESTIONS)
+    && answersOmitted(snapV.values.answers, ANSWERS.length)
+    && rawAbsent(snapV.values));
+  A('文本路径题目顺序与作答标记相同，原文不进 values',
+    JSON.stringify(snapT.values.questions) === JSON.stringify(QUESTIONS)
+    && answersOmitted(snapT.values.answers, ANSWERS.length)
+    && rawAbsent(snapT.values));
   A('两条路径最终图状态完全一致(agent 内核不区分语音/文本)', JSON.stringify(snapV.values) === JSON.stringify(snapT.values));
   A('两路径均无残留 interrupt(都正常完成)', snapV.next.length === 0 && snapT.next.length === 0);
 

@@ -4,12 +4,13 @@
  * 原语①  asPrincipal      RLS principal 绑定：非 owner app_role + set_config 绑定参数（FORCE RLS 生效，无 GUC 注入）
  * 原语②  casTransition    状态机 CAS：条件更新 + version 自增（陈旧落败=0 行）
  * 原语③  appendEvent      durable ordered event log：advisory 事务锁串行 + INSERT…SELECT MAX+1 RETURNING seq（原子分配）
- * 原语④  acquire/releaseLease  租约：防裂脑并发（过期可抢占）
+ * 原语④  acquire/releaseLease  只按线程的租约入口已关闭：调用即拒绝，不执行更新
  * idempotency 由 SQL 层 UNIQUE(owner_user_id, idempotency_key) + ON CONFLICT DO NOTHING 表达（见 sql/01_schema.sql）。
  *
  * 这些原语此前散在 kernel/demo.ts 与 apps/api/db.service.ts 两份手抄实现里——现收敛为单一真相。
  */
 import type { Client } from './principal.ts';
+import { AppError, asErr, errCode } from './errors.ts';
 
 export {
   createPool, resolveDatabaseConnectionString, rebindDatabaseLogin, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertPrivacyWorkerExecutorIdentity, assertPrivacyAuthorizationIssuerIdentity,
@@ -25,7 +26,7 @@ export { readPoolErrorTotal, readRegisteredPoolPurposes, renderPoolErrorsTotalLi
 export { classifyConnectError, withConnectRetry, warmUpPool } from './migrate-connect-retry.ts';
 export type { ConnectErrorClass, ConnectRetryDeps } from './migrate-connect-retry.ts';
 export { assertIsolatedTestEnvironment, assertIsolatedTestTarget } from './isolated-test-target.ts';
-export { AppError, asErr, errCode } from './errors.ts';
+export { AppError, asErr, errCode };
 export type { ErrLike } from './errors.ts';
 
 // App-level tenant enforcement prototype (additive MySQL path).
@@ -57,23 +58,27 @@ export async function casTransition(c: Client, id: string, from: string, to: str
 /** 原语③ appendEvent：独立成 packages/db/src/interview-event.ts，此处 re-export 防 index→qbank-miss→index 循环。 */
 export { appendEvent } from './interview/interview-event.ts';
 
-/** 原语④：抢租约——空或已过期才能抢（防裂脑并发推进）。 */
+/** 原语④：只按线程抢租约直接拒绝。调用即抛 thread_only_lease_refused，不查询也不更新。 */
 export async function acquireLease(c: Client, threadId: string, leaseOwner: string): Promise<boolean> {
-  const r = await c.query(
-    `UPDATE ai_graph_run SET lease_owner=$2, lease_expires_at=now()+interval '30 seconds', version=version+1
-       WHERE thread_id=$1 AND (lease_owner IS NULL OR lease_expires_at < now())`, [threadId, leaseOwner]);
-  return r.rowCount === 1;
+  void c;
+  void threadId;
+  void leaseOwner;
+  throw new AppError('thread_only_lease_refused');
 }
 
+/** 原语④：只按线程释放租约直接拒绝。调用即抛 thread_only_lease_refused，不查询也不更新。 */
 export async function releaseLease(c: Client, threadId: string, leaseOwner: string): Promise<void> {
-  await c.query('UPDATE ai_graph_run SET lease_owner=NULL WHERE thread_id=$1 AND lease_owner=$2', [threadId, leaseOwner]);
+  void c;
+  void threadId;
+  void leaseOwner;
+  throw new AppError('thread_only_lease_refused');
 }
 
 // commerce saga（共享权益池 reserve/confirm/release + 租约心跳 + 结算消费者 + 对账）
 export {
   reserveEntitlement, confirmConsumption, confirmConsumptionUnits, releaseConsumption, availableUnits,
   completeInterviewAndConfirm, failInterviewAndRelease, abandonInterviewAndRelease,
-  renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile,
+  renewReservationLease, sweepExpiredReservations, settleOutbox, reconcile, purgeExpiredRelayedOutbox,
   reserveEntitlementForApplication,
   MIN_UNIT, DEFAULT_LEASE_SECONDS,
 } from './commerce/commerce.ts';
@@ -132,7 +137,7 @@ export { WORKER_JOB_WAKEUP_CHANNEL, WORKER_JOB_WAKEUP_PAYLOAD, WORKER_JOB_WAKEUP
 
 // 面试 job 队列（api 入队 / worker 消费）+ 心跳续租 + reaper 收割孤儿 running
 export {
-  enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, enumerateOwnersWithJobs,
+  enqueueInterviewJob, claimNextInterviewJob, loadClaimedInterviewJobRequestId, loadClaimedInterviewAnswerPayload, markJobDone, markJobFailed, failQueuedInterviewJobsOnAbandon, enumerateOwnersWithJobs,
   renewInterviewJobLease, sweepStuckInterviewJobs, requeueInterviewJob, MAX_INTERVIEW_JOB_ATTEMPTS, INTERVIEW_RESUME_REFERENCE_VERSION,
   DEFAULT_INTERVIEW_PER_OWNER_INFLIGHT, purgeStaleInterviewJobPayloads, INTERVIEW_STUCK_PAYLOAD_TTL_SECONDS,
 } from './interview/interview-jobs.ts';
@@ -154,6 +159,8 @@ export { readGraphRunObservation, recordGraphRunObservation, graphRunPositionIsS
 export {
   answerHash, persistInterviewQuestion, claimInterviewAnswer, verifyInterviewAnswerClaim,
   markInterviewAnswerApplied, cancelOpenInterviewQuestion,
+  asrOutcomeForStoredTranscript, rememberIssuedQuestionTranscript, loadTranscribedAnswerJobPayload,
+  issuedAsrTraceKey, TEXT_ONLY_ASR_OUTCOME,
 } from './interview/interview-question.ts';
 export type { PersistedInterviewQuestion, AcceptedInterviewAnswer, ClaimAnswerResult } from './interview/interview-question.ts';
 
@@ -284,7 +291,7 @@ export type {
 } from './retrieval/rag-corpus-versioning.ts';
 
 // 长期记忆存储 + 跨会话精确判重(normalizeQuestion/episodeSeen) + 历史弱项只读投影(historicalWeakDimensions)
-export { insertMemory, getMemoriesByRefIds, episodeSeen, normalizeQuestion, historicalWeakDimensions, WEAKNESS_DECAY_WINDOW_SESSIONS } from './memory/memory-store.ts';   // H4 R6: 衰减窗常量 additive(prove 断言用)
+export { insertMemory, getMemoriesByRefIds, episodeSeen, recentAskedStems, normalizeQuestion, historicalWeakDimensions, WEAKNESS_DECAY_WINDOW_SESSIONS } from './memory/memory-store.ts';   // H4 R6: 衰减窗常量 additive(prove 断言用)
 export type { MemoryKind, MemoryRow } from './memory/memory-store.ts';
 
 // 记忆治理(MEM-00)：事实/同意/召回/生成/快照状态机 + 账户级删除(复用冻结 issuer，仅包 MEM claim/purge)

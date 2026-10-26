@@ -170,7 +170,7 @@ flowchart TD
 
 执行清单：
 
-- [◐] `INT-TRANSCRIPT-00`：独立 `PrivacyAuthorizationIssuer`（ECDSA P-256 / ES256，`iss=meetwise-privacy-authz-v1`）与 0091 `privacy_authorization_snapshot` / `privacy_deletion_receipt`、受约束 claim、no-forge-completed guard 已在源码落地；signer/verifier 与 `AUTH_SECRET`、runtime SQL、worker/deleter、GUC 身份根分离。`0091` issue 按调用方字段落账，本身不做 JWS 验签；privacy worker 仍走 `0077`，HTTP 未接线。submission/receipt 合同已冻结且不进 OpenAPI。公开 `DELETE /privacy/interview-data/:id` 仍 503。**UC-052 内部授权擦除第一刀**（`pnpm uc052:internal-erasure:prove` tip `3c4847a` · EOR dual `08d54f8`/`3e39c1e` · status `post_prove_dual_pass`）→ 矩阵 **UC-052 deletion=partial** · **≠ covered** · **≠** INT-TRANSCRIPT-01 / controlPlaneClosed · externals 仍 `retention_pending` · checkpoint physical purge nailed（`GAP-PRIV-CHECKPOINT-FENCE-ONLY` CLOSED · prove `69de818` · dual `118e28f`/`2e743b2` · **≠ covered**）。 pool-role-leak nailed（`GAP-UC052-POOL-ROLE-LEAK` **CLOSED** · `post_prove_dual_pass` · product path `SET ROLE NONE` on pool release + clear the 3 GUCs + destroy the connection if reset throws · not `RESET ROLE` · not `DISCARD ALL` · prove `9b39a20` range-diff-equal code `ab96a02` · receipts `522590d` · dual `49ef158`/`7cb7010` · **≠ covered**）。 `NOTE-CKPT-UNSEALED-CLAIM-NEG` **CLOSED** by this knife inside `uc052:checkpoint-physical:prove`（NULL epoch, NULL digest, both, plus sealed control · SQLSTATE 42501 · do not double-count · Line F REQUEST `a1a06ab` must not be coded as a second implementation）。 `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN** · mitigated/cause-unknown（cold#5 ECONNREFUSED 127.0.0.1:33047 state_bytes=29 · warm#2 SQLSTATE 23505 `interview_pkey` not ECONNREFUSED · review `49ef158` agrees with `warm-2.log` / `cold-5.log` · v2 @`3d0c71e` cold_v2 10/10 EXIT 0 · warm_v2 10/10 EXIT 0）。 Pins retained: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount **8** · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。`0129` 预览版 `POST /privacy/erasure-preview` 可盘点 sink 并链接 0096/0125 begin，回执固定未完成、`releaseEvidence=false`，不是 issuer 生产删除。树上已有 0092 rehearsal 表/函数与 0096 event/report/`ai_graph_run` rehearsal resolver。预览版可将 HTTP `POST /interview/:id/answers` 接到 `submitInterviewAnswer`（`INT-TRANSCRIPT-PREVIEW-SUBMIT`）；非预览该路径 404，OpenAPI 不登记。这**不**授权 `INT-TRANSCRIPT-01` 生产 cutover，也不把 rehearsal purge 或预览删除回执称为公开删除已闭环。七类 TC 仍 planned/unmapped；账本 HTTP 证明须远程 Postgres 环境变量，禁止 `pnpm db:up`，无回执时 `releaseEvidence=false`。无 receipt、无组合根滥用证明前不得声称删除完成，也不得勾“已关闭”。现有 legacy `/turn` 仍写 plaintext job payload，必须如实保留为 `INT-P0-RAW-QUEUE`，不可被文字误称为已停用。`PUBLIC-PREVIEW-WRITE-GATE-01` 在预览下仍拒绝 `/turn`，并允许上述受控账本写；`MEETWISE_PUBLIC_PREVIEW=1` 下 `POST /privacy/erasure-preview` 仍 503。
+- [◐] `INT-TRANSCRIPT-00`：独立 `PrivacyAuthorizationIssuer`（ECDSA P-256 / ES256，`iss=meetwise-privacy-authz-v1`）与 0091 `privacy_authorization_snapshot` / `privacy_deletion_receipt`、受约束 claim、no-forge-completed guard 已在源码落地；signer/verifier 与 `AUTH_SECRET`、runtime SQL、worker/deleter、GUC 身份根分离。`0091` issue 按调用方字段落账，本身不做 JWS 验签；privacy worker 仍走 `0077`，HTTP 未接线。submission/receipt 合同已冻结且不进 OpenAPI。公开 `DELETE /privacy/interview-data/:id` 仍 503。**UC-052 内部授权擦除第一刀**（`pnpm uc052:internal-erasure:prove` tip `3c4847a` · EOR dual `08d54f8`/`3e39c1e` · status `post_prove_dual_pass`）→ 矩阵 **UC-052 deletion=partial** · **≠ covered** · **≠** INT-TRANSCRIPT-01 / controlPlaneClosed · externals 仍 `retention_pending` · checkpoint physical purge nailed（`GAP-PRIV-CHECKPOINT-FENCE-ONLY` CLOSED · prove `69de818` · dual `118e28f`/`2e743b2` · **≠ covered**）。 pool-role-leak nailed（`GAP-UC052-POOL-ROLE-LEAK` **CLOSED** · `post_prove_dual_pass` · product path `SET ROLE NONE` on pool release + clear the 3 GUCs + destroy the connection if reset throws · not `RESET ROLE` · not `DISCARD ALL` · prove `9b39a20` range-diff-equal code `ab96a02` · receipts `522590d` · dual `49ef158`/`7cb7010` · **≠ covered**）。 `NOTE-CKPT-UNSEALED-CLAIM-NEG` **CLOSED** by this knife inside `uc052:checkpoint-physical:prove`（NULL epoch, NULL digest, both, plus sealed control · SQLSTATE 42501 · do not double-count · Line F REQUEST `a1a06ab` must not be coded as a second implementation）。 `GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN** · mitigated/cause-unknown（cold#5 ECONNREFUSED 127.0.0.1:33047 state_bytes=29 · warm#2 SQLSTATE 23505 `interview_pkey` not ECONNREFUSED · review `49ef158` agrees with `warm-2.log` / `cold-5.log` · v2 @`3d0c71e` cold_v2 10/10 EXIT 0 · warm_v2 10/10 EXIT 0）。 Pins retained: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount **8** · ms3EqualsR4Closed=false · PG-retained · public DELETE=503。`0129` 预览版 `POST /privacy/erasure-preview` 可盘点 sink 并链接 0096/0125 begin，回执固定未完成、`releaseEvidence=false`，不是 issuer 生产删除。树上已有 0092 rehearsal 表/函数与 0096 event/report/`ai_graph_run` rehearsal resolver。预览版可将 HTTP `POST /interview/:id/answers` 接到 `submitInterviewAnswer`（`INT-TRANSCRIPT-PREVIEW-SUBMIT`）；非预览该路径 404，OpenAPI 不登记。这**不**授权 `INT-TRANSCRIPT-01` 生产 cutover，也不把 rehearsal purge 或预览删除回执称为公开删除已闭环。七类 TC 仍 planned/unmapped；账本 HTTP 证明须远程 Postgres 环境变量，禁止 `pnpm db:up`，无回执时 `releaseEvidence=false`。`pnpm mem00-int00:prove-path` 编排可移植 pin + 隔离入口；本环境 Docker 缺失时隔离项记 blocked，**不**伪称控制面已关。无 receipt、无组合根滥用证明前不得声称删除完成，也不得勾“已关闭”。现有 legacy `/turn` 仍写 plaintext job payload，必须如实保留为 `INT-P0-RAW-QUEUE`，不可被文字误称为已停用。`PUBLIC-PREVIEW-WRITE-GATE-01` 在预览下仍拒绝 `/turn`，并允许上述受控账本写；`MEETWISE_PUBLIC_PREVIEW=1` 下 `POST /privacy/erasure-preview` 仍 503。
 - [◐] `INT-ANSWER-DUAL-WRITE-FENCE`（不是 01）：迁移 `0126` 已在 main。答题双写互斥 + 事件禁原文。`/turn` 在无 ledger 时仍写明文 `interview_job.payload`；预览 `/answers` 走 ledger 侧并受该围栏约束，仍不是生产 01 HTTP。`INT-TRANSCRIPT-01` 保持 blocked。`0127`/`0128`/`0129`/`0130` 已在 main；本围栏不改号、不占用 0131。盘点与后续切换顺序见 `architecture/backend/interview-answer-dual-write-cutover.md`；用例 `UC-INT-ANSWER-DUAL-WRITE-FENCE`；证明 `pnpm int-answer-dual-write-fence:prove`（远程 Postgres，禁止 `db:up`，`releaseEvidence=false`）。
 - [◐] `INT-TRANSCRIPT-PREVIEW-SUBMIT`：预览路径把 `POST /interview/:id/answers` 接到既有 `submitInterviewAnswer`（0092 rehearsal 账本）。仅 `MEETWISE_PUBLIC_PREVIEW=1` 可写；非预览 404。不入 `apiContract`，不写 plaintext `/turn` job，不宣称 01 生产 cutover。受已落地的 `0126` 互斥约束。`0127` OCR binding / `0128` dispatch fairness 已在 main；公开预览下 OCR 组合根仍关。`0129` 预览删除是另一条账本，公开预览下仍 503。`0130` / `INT-LEVEL-SIGNAL-01` 已在 main，不改本写面。`#79` 预览批量语音（`/transcribe` `/speak`）仍走入站 503，不进本受控写 allowlist。`#83` Web `/resume` 预览图片入口是另一条 OCR 预览面，不改本写面。`#67` Bailian/native fail-closed 不发明题面，不改本写面。本项不新增迁移、不占用 0131。本地 inject/清单门已接线；账本 HTTP 证明须远程 Postgres 环境变量，禁止 `pnpm db:up`，无回执时 `releaseEvidence=false`。
 - [ ] `INT-TRANSCRIPT-01`：真实用户 canonical 写入有两个不可拆分的 release gate：先由 00 验证授权/删除合同；再由**同一部署迁移**安装 artifact/draft/submission/item/ref-only-job/view 的 target resolver、deletion ledger、逐 sink receipt 与删后 read=0，并以真实 HTTP/SSE/RLS 组合根证明。两个 gate 任一缺失时仅允许非用户数据的 test-only rehearsal，所有真实 **01 canonical** raw-answer write route 保持 disabled。现有 legacy `/turn` 不是 01 的实现或回退路径；`0126` 已提供对向互斥围栏（见上条），启用 01 前仍须按切换图切断明文 payload，避免两条路径写同一答题事实。冻结 `InterviewAnswerArtifact`、`InterviewAnswerDraft`、`InterviewAnswerSubmission`、`InterviewTranscriptItem` 与 `InterviewViewSnapshot`。接受事务只写加密 canonical artifact、submission receipt、item、ref-only job 和 `visibleSeq`；同 key/同体回放、同 key/异体冲突、同题双 tab 一 winner。禁止把原始 answer、内部 prompt、模型 chain-of-thought、tool payload 或 token 流写入 checkpoint/job JSON/SSE/log/trace；首包模型、RAG/Web、评分、报告、memory 和 B 端投影均为 0。
@@ -3754,3 +3754,704 @@ flowchart TD
 - **STILL OPEN**：AG-09 行翻面权归协调方（issues-final done 计数待翻）+post 席2 P2 两件（ag11 先例计数少记注记/跨 scope 回放零记账裁决登记）归后继笔.
 - 预算：est live=0 · actualSpendCny=null · 零产品码零 lockfile · cap **2264** 现值 **2260** 余 4.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line cap-sanction-2272 nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2272 文档受管文件上限步进（sanction +8 步进 2264→2272·沿八先例形·算术=主线 2261+在飞 4 卷=2265>2264 先手·新机首发·commit 消息零黑话））
+
+- **授权链全链如实载**：协调方派单 brief（sanction 直落形·快速链一体席）→一体席起草+EXEC 单 commit `442244acc`（七门全绿承卷 §9）→post-prove 双审会签 PASS×2（席1 agent_54ed8d5f 3×P2·席2 agent_b408c1ab 1×P2·全注记级·两独立外席门值亲跑恰等卷载）→nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`4c2ea4c9f` 恰等 → merge-tree --write-tree 预演 EXIT=0（tree=`fccb434c`）→ merge --no-ff merge commit `3abbbc52`（双亲 4c2ea4c9f+442244ac）→ SSOT 两处随本后继 commit → 终验亲跑 → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷七门+post 双审承+nail 复跑）**：proof 12/12 EXIT=0（2272/2273 双值全行使·deepEqual 行亲跟 2273）+docs:check EXIT=0 scanned 2262≤2272 余 10（nail 后终验复跑同值）+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞支线（upload-guards/ag17/threshold/pgp）并线后帽余量以届时实测为准如实登记·批表零翻面（非 271 计件面）.
+- 预算：est live=0（nail 面全本地静态门·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2262** 余 10.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line upload-guards nail（2026-10-19 SSOT nail · 协调方授权（post 双审会签[席1 FAIL 经内联回路+席2 PASS·handover 颁定形]·本波主线推送席#2·⛔force push·⛔pull --rebase） · 5A UPLOAD-GUARDS 一卷两题（#108 解析超时真终止+#109 魔数嗅探 fail-closed·批表 +2：#108/#109 翻面 223→225/271））
+
+- **授权链全链如实载**：起草 `119a5e7a`→rev `26a416fb`（第一轮双审 FAIL）→rev2 `c43abefb`（第二轮双 FAIL）→EXEC `d050c5ef`（协调方内联·7 tracked·门矩阵全绿）→补码 `df150781`（post 席1 两 P1 内联回路：text 分支全魔数族+探针常驻门）→post 席2 PASS（agent_9b1becb5·实弹复验）→会签→nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`f54d0a8c` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`e355a886`）→ merge --no-ff merge commit `c4d237a7`（新增 resume-extract-worker.ts+resume-cap-probe.ts 两文件）→ 门亲跑（typecheck --force EXIT=0+lint --force EXIT=0+docs:check EXIT=0 scanned 2265≤2272 余 7）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷+post 席2 实弹复验+nail 复跑）**：domain proof 35/35（含五负例臂）+探针 256MB 阶梯/量基带交叉校验/terminate 臂 hostAlive 全绿+neg:resume 91+neg:input 135+authz34 7+uc015 12+nail 三门（typecheck/lint/docs）+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方·容量残面（并发 RSS 击穿面 rev2.2 登记）归容量裁量·PDF_MAGIC_WINDOW=1024 收窄余地面·B 组 heic/avif/svg 分支语义注记·批表 +2 已行使（#108/#109）.
+- 预算：est live=0（nail 面全本地静态门）· 0 Key 值 · `actualSpendCny=null` · 零迁移（修法全应用层） · cap **2272** 并线后现值 **2265** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line threshold-calibration nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波主线推送席#3·⛔force push·⛔pull --rebase） · THRESHOLD-CALIBRATION 四阈值参数化（默认值=现值零行为变更·批表零翻面·#38 校准半件挂起登记））
+
+- **授权链全链如实载**：起草 `67f905a2` → rev `c6ed33ec`（第一轮双审双 FAIL·两 P1 均门3 字面互斥·壬条经亲证驳回）→ 第二轮双审 PASS×2 → EXEC `234b4e07`（码面恰 3 tracked·九门全绿）→ post 双审 PASS×2（席1 agent_ba8ddfd1 4×P2·席2 agent_4b6701f2 2×P2）→ 会签 → nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`eb944c7b` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`7ab06652`）→ merge --no-ff merge commit `087a3997` → 门亲跑（typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12+docs:check EXIT=0 scanned 2266≤2272 余 6）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷九门+post 双审承+nail 复跑）**：八件 adaptive prove（domain 五+ai-graphs 三）全 EXIT=0+门3 机证（四定义行除前缀/append 外字节恒等+:247 零阈值字面量+剔注释计数 1/1/1/1）+nail 三门+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：注入变体臂无机证（P2·归校准刀义务：接线时必须同落 ≥1 条非默认 policy 机证臂）·锚B 信号层对偶值与 policy 联动/分叉裁决归校准刀触面清单·组合根 env→policy 接线挂起·#38 数值校准待生产分布数据（批表 #38 行不翻面）·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0（nail 面全本地静态门）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2266** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line ag17-schema-span nail（2026-10-19 SSOT nail · 协调方授权（post 双审会签[席1 PASS+席2 FAIL 经内联补码+复验席 PASS]·本波主线推送席#4·⛔force push·⛔pull --rebase） · AG-17 结构化输出观测诚实化（span 档名换名 schema_invalid·零行为变更·AG 台账 done 30→31·批表零翻面））
+
+- **授权链全链如实载**：起草 `1cf4c404` → 第一轮双审 席1 PASS/席2 FAIL（P1 七值计数互斥）→ rev `e12a6343` → 第二轮双审 PASS×2 → EXEC `39ffb654`（7 tracked·九门全绿·D1-D5 偏离如实）→ post 席1 PASS（agent_fb869989）/席2 FAIL（agent_fb8c379e·P1 两处新增注释旧档名字面）→ 协调方内联补码 `ac4ac94e`（拆写形+卷补记偏离⑦⑧+push 归因声明）→ 补码复验席 PASS（agent_10558a63）→ 会签 → nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`e5b312a0` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`fc6e5066`）→ merge --no-ff merge commit `84e3adbe`（新增 ag17-REQUEST.md+ag17-schema-span.proof.ts 两文件）→ 门亲跑（typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12+docs:check EXIT=0 scanned 2268≤2272 余 4）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷九门+post 双审承+补码五门+nail 复跑）**：ag17-schema-span:prove:raw 14/14（隔离库 applied=209）+三件回归 prove EXIT=0+lint 帽恰等（root 5242/api 1423/domain 115/ai-runtime 628/worker 959/db 1042/web 601）+码面旧档名 grep EXIT=1+nail 三门+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：issues-final.md/.csv 判词原文含旧档名（:18/:29/:239/:244）系静态复核清单·禁触蓝本零触不翻改·AG 台账计数以本管线行为翻面载体（done 31/half 2/open 15）·run-e2e-isolated.mjs 门依赖指纹清单未纳 0210 类同注记归后继·AG-02 重试策略（卷关联）归后继·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0（proof=本地 http 脚本 provider+隔离 PG·零模型外呼）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2272** 并线后现值 **2268** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line pgp-key-param nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波主线推送席#5·⛔force push·⛔pull --rebase） · PGP-KEY-PARAM 会话事件加密密钥移出 SQL 参数面（#143 P4·set_config 事务级注入·0210 迁移 13→12 参·批表 +1：#143 翻面 225→226/271））
+
+- **授权链全链如实载**：起草 `c7f30447`（draft:awaiting_rev）→ rev 席 `8ac17e2b`（六项全成立·翻面臂→awaiting_pre_exec_dual）→ 第一轮双审 席1 FAIL（P1 字面扫描完备性被证伪）/席2 PASS → rev2 `dd282cfa`（三步收窄+豁免清单·「:40-42」提案驳回）→ 第二轮双审 PASS×2 → EXEC `6759f849`（4 tracked·门全绿·偏离三件如实）→ post 双审 PASS×2（席1 agent_93eeb9ad·席2 agent_d7388332）→ 会签 → nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`fcddf840` 恰等亲证 → merge-tree --write-tree 预演 EXIT=0（tree=`e8eb5f10`）→ merge --no-ff merge commit `f3edf911`（新增 pgp-key-param-REQUEST.md+0210_conversation_event_enc_key_guc.sql）→ 门亲跑（typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12+迁移唯一性 files=210 violations=0+docs:check EXIT=0 scanned 2270≤2272 余 2）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵（EXEC 承卷+post 双审承+nail 复跑）**：db-acl2:prove:raw 43 PASS（P6-1 旧签名消亡+pronargs=12 恰单版本/P6-2 函数体==0210 静态体/P6-3 同事务 set_config 直调正门/P6-4 GUC 回环/P6-5 GUC 缺失→22023 负门）+migrate:prove 123 PASS+ctx03-event-source:prove:raw 63 PASS+字面扫描双 grep EXIT=1（apps/packages 非 test 面）+nail 四门+markers 0+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：残面=set_config 语句自身绑定参数在 log_statement=all 下仍可达（慢日志面全消除）→ 清零互补 role pin `log_parameter_max_length=0` 归运维轨/CTX 链启用刀前置义务·B 组 resume/answer 链同族残余（密钥仍居数据语句绑定参数表·resume 链生产在位）不在 #143 锚内归协调方后继裁决·migrate.proof.ts:457 史前文本「197 文件」刷新归维护刀·卷尾坐标系注记（pre-EXEC :194·现 :218）append 补注归后继·runner 指纹清单未纳 0210 注记级·**帽余量 2（2270/2272）：下一波任一新卷落卷前须先派帽步进刀 2272→2280**·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0（全门本地/隔离库·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 迁移 +1（0210·fresh 回放序 0108 建 13 参→0210 DROP+CREATE 12 参）· cap **2272** 并线后现值 **2270** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line ci-egress-registry-hotfix nail（2026-10-19 SSOT nail · 协调方授权（热修形·CI 红修复快链·主线推送席#6·⛔force push） · 出站静态清单登记缺失修复（ag17 新 proof 两面未登记致 `ci` 工作流红·批表零翻面））
+
+- **授权链全链如实载**：CI 红定谳（run 39224090315/39224460164 `verify` job「模型供应商出站静态清单」步 EXIT=1：adapter_consumer_unregistered+environment_reference_unregistered 两条）→ 热修席 commit `62712996`（2 tracked：provider-egress-inventory.json 两条登记+proof 硬计数 52→53·五门绿）→ nail（协调方内联·热修形无 REQUEST 卷·偏离如实承登）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`7a4288fb` 恰等 → merge-tree 预演 EXIT=0（tree=`3f9d2de0`）→ merge --no-ff `6538a8e3` → 门亲跑（provider-egress:inventory EXIT=0 pairs=53+provider-egress:prove 7/7 EXIT=0+docs:check 2270）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **教训（后继刀门矩阵义务）**：`provider-egress:inventory` 只在 CI `.github/workflows/ci.yml:83-86` 跑，turbo 零任务，本地 `run-post-change-regression.mjs` 仅挂 `:prove`（同验证器·引入 39ffb654 后未跑）→ 凡新增/改动含模型适配器调用或供应商 env 引用的证明文件，门矩阵必须显式列 `pnpm provider-egress:inventory` 与 `provider-egress:prove`（AG-18 卷 §2 已落实）；或升为 turbo 任务由 `turbo lint` 覆盖（归后继基建刀裁量）。
+- **STILL OPEN**：ag17 卷 §2 九门未列出站两门的卷面缺口归 AG-17 行注记（不翻改史录）·是否升 turbo 任务归基建刀.
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap 2272 现值 2270（本刀零新增文件）.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line cap-sanction-2280 nail（2026-10-19 SSOT nail · 协调方授权（post 双审双 PASS 会签·主线推送席#7·⛔force push·⛔pull --rebase） · CAP-SANCTION-2280 受管文件上限步进（sanction +8 步进 2272→2280·沿九先例形·算术=2270+在飞新卷 3=2273>2272 先手））
+
+- **授权链全链如实载**：协调方派单 brief（快速链一体席）→ 一体席起草+EXEC 单 commit `723255b9`（七门全绿承卷 §9）→ post-prove 双审会签 PASS×2（席1 agent_4b53090e 零 P2·席2 agent_1f09ff05 2×P2 注记级）→ nail（协调方内联）。
+- **nail 工序（协调方内联）**：fetch 届 tip=`6538a8e3` 恰等 → merge-tree 预演 EXIT=0（tree=`c3bd18e2`）→ merge --no-ff `232102b6` → 门亲跑（policy.proof 12/12 EXIT=0+docs:check EXIT=0 scanned 2271≤2280 余 9+typecheck --force 8/8 EXIT=0+lint TRUE-EXIT=0 12/12）→ SSOT 两处随本后继 commit → push 直推非 force+支线 push。
+- **门矩阵**：proof 12/12（2280/2281 双值全行使·deepEqual 行亲跟 2281）+docs:check 2271≤2280+typecheck 8/8+lint 12/12+markers 0+自审 grep 清零+diff 恰 3 tracked+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞新卷（AG-18 修订卷/批表 #4 卷/批表 #24 半成卷）并线后帽余量以届时实测为准·批表零翻面.
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 并线后现值 **2271** 余 9.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line worker-drain-inventory nail（2026-10-19 · 停机清单断言计入轨迹对账循环 · 批表不翻 · #157/#158 仍开放）
+
+- **改动**：只改 `apps/worker/test/ha-2-drain.proof.ts`。`main.ts` 相对 `98d5b0b3` 零字节。`trace-recon` 本来就在停机名单和就绪链上。断言改为具名 19 项加条件展开的 stub，名字计数 20，循环相位 15，依赖相位 5。
+- **并入**：fetch 后 origin tip 仍是 `98d5b0b3`。merge-tree 预演 EXIT=0，tree `88c10bf3`。`git merge --no-ff` 得到 `498d959d`，双亲 `98d5b0b3` 与 `1f7e289c`。没有冲突，没有强推。
+- **门**：`prove:ha2-drain` PASS=59 FAIL=0；`prove:drain` 全部通过；`prove:obs-ready` 12 条全绿；docs:check EXIT=0，scanned 2271≤2280。零新增受管文件。
+- **未收口**：#157 与 #158 不因这次断言对齐而翻面。先前重型门失败是计数漂移，静态行为复看已通过，件数仍待两侧都通过之后再计。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 现值 **2271** 余 9.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line interview-job-autovacuum nail（2026-10-19 · 面试作业表按更紧的死元组比例触发自动清理）
+
+- **改动**：新增 `packages/db/migrations/0213_interview_job_autovacuum_reloptions.sql`。`interview_job` 的清理比例 0.02、清理阈值 200、分析比例 0.02。只改存储参数，不重写行。0001–0210 没有改动。
+- **并入**：fetch 后 origin tip 仍是 `a833c38f`。merge-tree 预演 EXIT=0，tree `a8082c75`。`git merge --no-ff` 得到 `ea652797`，双亲 `a833c38f` 与 `be62de22`。没有冲突，没有强推。
+- **门**：迁移唯一性 files=211 violations=0；去注释后 DROP/DELETE/UPDATE 为 0；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601；docs:check scanned 2273≤2280。
+- **收口**：退避半此前已落。这一半补上之后，合计由 226/271 改为 227/271（83.8%）。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 +1（0213）· cap **2280** 现值 **2273** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line sampling-temperature nail（2026-10-19 · 路由分类和图像识别固定低采样温度）
+
+- **改动**：路由分类 `job.route-classify.v1` 和图像识别 `resume.vision` 的采样温度固定为 0。评测温度未设置或空串时为 0.2；不是有限数、小于 0 或大于 2 时在加载时拒绝。规划胜任力仍是 0.2，简历诊断仍是 0.3。出站登记增加这一证明的本地适配与测试夹具两条，硬计数 53→54。
+- **并入**：fetch 后 origin tip 仍是 `8d197be6`，其 `ci` 39251003534 已成功。merge-tree 预演 EXIT=0，tree `6d908afc`。`git merge --no-ff` 得到 `6c9ab12c`，双亲 `8d197be6` 与 `ffeafa7c`。没有冲突，没有强推。
+- **门**：采样温度四臂全部通过（隔离库 applied=211）；回放优先五臂通过；结构化输出四臂通过；出站清单 pairs=54、environment_references=333；出站证明 7/7；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601；docs:check scanned 2275≤2280。
+- **收口**：能力项完成数由 31 改为 32，半成 2、未收 15 维持。批表仍是 227/271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2280** 现值 **2275** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line commerce-outbox-retention nail（2026-10-19 · 未结算投递走部分索引，已投递行按保留期分批归档）
+
+- **改动**：新增 `packages/db/migrations/0211_outbox_unsettled_partial.sql`。未结算行的部分索引 `ix_outbox_unsettled` 建在 `owner_user_id` 上，谓词是 `status = 'pending'`。新增 `0212_outbox_relayed_retention.sql`，去掉旧索引 `ix_outbox_pending`，并增加 `commerce_outbox_relayed_retention_purge`：只删已投递且超过保留期的行，天数 7 到 365，每批 1 到 10000，越界拒绝。应用角色可以执行这个函数，不能直接删表。停机清单计入 `commerce-outbox-retention`。
+- **并入**：fetch 后 origin tip 仍是 `0322276e`。merge-tree 预演 EXIT=0，tree `34c1166e`。`git merge --no-ff` 得到 `84352ca`，双亲 `0322276e` 与 `8936e276`。没有冲突，没有强推。
+- **门**：迁移唯一性 files=213 violations=0；保留期归档 7 项通过（隔离库 applied=213）；迁移运行器全部通过；commerce 全部通过；对账兜底全部通过；db-acl failures=0；db-acl2 failures=0；dbhy1 28 断言全绿；停机清单 PASS=60 FAIL=0；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601；docs:check scanned 2280≤2280。
+- **收口**：批表由 227/271 改为 228/271（84.1%）。能力项完成数仍是 32，半成 2、未收 15。#157/#158 仍开放。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 +2（0211、0212）· cap **2280** 现值 **2280** 余 0.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line managed-file-ceiling nail（2026-10-19 · 受管文件数上限从 2280 调到 2288）
+
+- **改动**：受管文件数上限从 2280 调到 2288。恰好达到上限仍然通过，多一个文件仍被拒绝。旧的 2280 注记保留。新增说明文件，证明里的越限断言改为 2288 与 2289。
+- **并入**：fetch 后 origin tip 仍是 `53441bff`。merge-tree 预演 EXIT=0，tree `4a01410a`。`git merge --no-ff` 得到 `c93c1192`，双亲 `53441bff` 与 `90a1785f`。没有冲突，没有强推。
+- **门**：策略证明 12/12；docs:check scanned 2281≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：批表仍是 228/271（84.1%）。能力项完成数仍是 32，半成 2、未收 15。上限 2280 改为 2288，扫描 2281，余 7。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2281** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line context-byte-truncation nail（2026-10-19 · 上下文截断改为按 UTF-8 字节计算）
+
+- **改动**：`capUserData` 与 `capRagMaterial` 的超限比较和标记扣除改为 UTF-8 字节，与预算拒绝使用同一套口径。数字上限不变：默认 20000、评估 12000、面试提问 16000、报告 8000、检索素材 8000。现有窗口证明和压力证明改为按字节断言。
+- **并入**：fetch 后 origin tip 仍是 `bd113e40`。merge-tree 预演 EXIT=0，tree `29c684bf`。`git merge --no-ff` 得到 `71992984`，双亲 `bd113e40` 与 `1edbbe2f`。没有冲突，没有强推。
+- **门**：窗口证明全部通过；压力证明全部通过；docs:check scanned 2282≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成数由 32 改为 33，半成 2、未收 14。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2282** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line graph-invoke-depth nail（2026-10-19 · 图调用传入递归上限）
+
+- **改动**：两处调用配置写成 `{ configurable: { thread_id }, recursionLimit: 64 }`。四处 `g.invoke` 的第二参仍是这份配置。续跑仍用空输入。编译仍是 `{ checkpointer }`。
+- **并入**：fetch 后 origin tip 仍是 `26d0b35c`。merge-tree 预演 EXIT=0，tree `ff4f1dbc`。`git merge --no-ff` 得到 `e284e95d`，双亲 `26d0b35c` 与 `08d9952a`。没有冲突，没有强推。
+- **门**：图运行观测证明全部通过。延迟证明用隔离库入口重跑退出码 0。docs:check scanned 2284≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2284** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line checkpoint-config-batch nail（2026-10-19 · 检查点连接把三次配置合成一次往返）
+
+- **改动**：取得连接后仍先 `SET ROLE app_role`，再一条 `SELECT` 里三次 `set_config`。归还前仍先 `SET ROLE NONE`，再一条 `SELECT` 把三个值清空。第三参仍是 false。
+- **并入**：图调用合并之后再预演，merge-tree EXIT=0，tree `53cd46d9`。`git merge --no-ff` 得到 `474ad1b2`，双亲 `e284e95d` 与 `256f0d20`。没有冲突，没有强推。
+- **门**：连接角色泄漏证明六项通过，gitSha=`474ad1b2`。docs:check scanned 2284≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2284** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line graph-lease-terminal nail（2026-10-19 · 终态图运行不再被迟到作业重新激活）
+
+- **改动**：获取租约时，终态保持终态，迟到作业不能把已结束的运行写回进行中。放弃时，仍排队的作业改为失败；正在跑、已完成、已失败的作业不动。不新增迁移。
+- **并入**：检查点配置合并之后再预演，merge-tree EXIT=0，tree `146828df`。`git merge --no-ff` 得到 `9a5b8e3d`，双亲 `ceba39b6` 与 `887e4251`。没有冲突，没有强推。
+- **门**：图租约写入证明通过；放弃作业证明通过。docs:check scanned 2285≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2285** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line sse-fetch-failure nail（2026-10-19 · 投递流拉取失败改为中断并抛出）
+
+- **改动**：拉取下一批失败时先做原有清理，再销毁连接并抛出同一个错误。空结果仍写心跳。主动返回的空值仍正常结束。
+- **并入**：终态图运行记录之后再预演，merge-tree EXIT=0，tree `131ed9a8`。`git merge --no-ff` 得到 `cd361df7`，双亲 `1a3fb08b` 与 `cbacd8b9`。没有冲突，没有强推。
+- **门**：投递流通知证明通过；排空证明 PASS=47 FAIL=0。docs:check scanned 2286≤2288；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2288** 现值 **2286** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line managed-file-ceiling-2296 nail（2026-10-19 · 受管文件数上限从 2288 调到 2296）
+
+- **改动**：受管文件数上限从 2288 调到 2296。恰好达到上限仍然通过，再多一个文件仍被拒绝。比较仍走同一个常量。旧的上限注记保持原样。
+- **并入**：投递流记录之后再预演，merge-tree EXIT=0，tree `f5bb69c5`。`git merge --no-ff` 得到 `e8c7f420`，双亲 `5e2c605f` 与 `e73e793a`。没有冲突，没有强推。
+- **门**：策略证明 12/12。docs:check scanned 2287≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2287** 余 9.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line drop-cascade-guard nail（2026-10-19 · 新迁移里的级联删除改为检查拒绝）
+
+- **改动**：新迁移里同一句先出现独立词 DROP、其后出现独立词 CASCADE，就拒绝。注释、引号和美元引号里的字样不算。外键上的级联删除不算。已经落地的那一份旧迁移仍按登记的两句原文放行。
+- **并入**：受管文件上限记录之后再预演，merge-tree EXIT=0，tree `e417a3e0`。`git merge --no-ff` 得到 `55db4d7b`，双亲 `f46d9e1c` 与 `24747cc4`。没有冲突，没有强推。
+- **门**：迁移检查 files=213 violations=0，级联 violations=0。docs:check scanned 2288≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 228/271。能力项完成 33、半成 2、未收 14 维持。这一项不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2288** 余 8.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line tenant-owner-trim nail（2026-10-19 · 含首尾空白的租户标识改为拒绝）
+
+- **改动**：含首尾空白的租户标识改为拒绝。成功路径返回原值。行侧比较仍去掉空白。
+- **并入**：级联删除检查之后再预演，merge-tree EXIT=0，tree `784d0e24`。`git merge --no-ff` 得到 `93d574dc`，双亲 `a3516e9c` 与 `635ddf50`。没有冲突，没有强推。
+- **门**：tenant-enforcement:prove EXIT=0。docs:check scanned 2289≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计 228→229/271。能力项完成 33、半成 2、未收 14 维持。此前分组勾选所引证据没有这项代码改动。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2289** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line config-reject-local nail（2026-10-19 · 点名生产环境拒绝裸本机地址）
+
+- **改动**：点名生产环境拒绝裸 localhost、裸 ::1，以及方括号形式的 [::1]。既有回环地址断言仍拒绝。新增三例改为逐项写入环境，警告数仍是 1042。
+- **并入**：租户标识记录之后再预演，merge-tree EXIT=0，tree `2f08166d`。`git merge --no-ff` 得到 `8bc9c4a2`，双亲 `93d574dc` 与 `65247fd7`。没有冲突，没有强推。
+- **门**：prove:principal-config EXIT=0。docs:check scanned 2290≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2290** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line rag-embed-missing-usage nail（2026-10-19 · 嵌入结果缺少用量时按文本分段估算）
+
+- **改动**：嵌入结果缺少用量时按文本分段估算，并在范围检查前截到上限。已经带回的用量不截断。空值、小数和负数不按文本估算入账。
+- **并入**：生产本机地址记录之后再预演，merge-tree EXIT=0，tree `765afe22`。`git merge --no-ff` 得到 `1e6ca4e5`，双亲 `8bc9c4a2` 与 `3d58c532`。没有冲突，没有强推。
+- **门**：prove:rag-cost EXIT=0。docs:check scanned 2291≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2296** 现值 **2291** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line interview-event-statement-notify nail（2026-10-19 · 同一条插入里的重复流键只通知一次）
+
+- **改动**：同一条插入里每个不同的流键只通知一次。零行不通知。不新发授权。通道和裸流键载荷不变。
+- **并入**：嵌入缺用量记录之后再预演，merge-tree EXIT=0，tree `5f4b2e1d`。`git merge --no-ff` 得到 `f206325f`，双亲 `21e19832` 与 `13e18285`。没有冲突，没有强推。
+- **门**：隔离证明 66 条全绿。迁移检查 files=214 violations=0，级联 violations=0。docs:check scanned 2293≤2296；typecheck 8/8；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 迁移 1 · cap **2296** 现值 **2293** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line managed-file-count nail（2026-10-19 · 受管文件计数上限增加八个）
+
+- **改动**：受管文件计数上限从 2296 调到 2304。恰达上限仍通过，多一个文件仍拒绝。证明里的越限样例改为 2305。
+- **并入**：上限记录预演 merge-tree EXIT=0，tree `e379fa52`。`git merge --no-ff` 得到 `897d3abd`，双亲 `fd60938b` 与 `2801eabf`。没有冲突，没有强推。
+- **门**：public-text-policy.proof 12/12 EXIT=0。docs:check scanned 2294≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2294** 余 10.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line route-fast-model nail（2026-10-20 · 路由分类改用快模型）
+
+- **改动**：路由分类改传已经构造好的快模型，并在启动时拒绝档与模型名不一致。deepseek 档只接受带连字符的前缀，百炼档仍接受 qwen 前缀。样例档改成百炼，模型名不动。
+- **并入**：上限记录之后再预演，merge-tree EXIT=0，tree `67ceb1ba`。`git merge --no-ff` 得到 `7053f7ce`，双亲 `45ba14f0` 与 `41b11a40`。没有冲突，没有强推。
+- **门**：出站清单 pairs=54、environment_references=335；出站证明 7/7。docs:check scanned 2297≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line replay-retrieval-packet nail（2026-10-20 · 出题续跑先记住检索包）
+
+- **改动**：出题续跑先把检索包写入检查点，再调用模型。没有同身份检索包时只检索并写入检查点。身份相同则把包交回生成，不再调用本地检索或深研。未声明两段的调用仍是一次检索加一次生成。
+- **并入**：快模型路由之后再预演，merge-tree EXIT=0，tree `aaad728a`。`git merge --no-ff` 得到 `6f29338c`，双亲 `7053f7ce` 与 `e312eac5`。没有冲突，没有强推。
+- **门**：隔离续跑证明全部通过，含检索包身份命中后不再调用本地检索或深研。证明里的检查点线程键改为计算写入，worker 警告 958，上限仍是 959。docs:check scanned 2297≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line rag-query-cache nail（2026-10-20 · 生产检索在扣费前复用进程内向量缓存）
+
+- **改动**：生产检索在扣费前复用进程内向量缓存。全部命中不预留、不外呼、不记账。有未命中时仍只把未命中文本交给嵌入。用量缺失时的分段估算保持不变。
+- **并入**：检索包续跑之后再预演，merge-tree EXIT=0，tree `44fb38d4`。`git merge --no-ff` 得到 `93712516`，双亲 `6f29338c` 与 `142ed24e`。没有冲突，没有强推。`main.ts` 同时保留快模型和进程内缓存。
+- **门**：`prove:rag-cost` EXIT=0。docs:check scanned 2297≤2304；typecheck 8/8 0 cached；lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2297** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### Line omitted-mock-answer nail（2026-10-20 · 模拟面试不再保存原始作答）
+
+- **改动**：模拟面试的作答状态改为固定标记，不再写入原文。两个只按线程的租约函数在查询前拒绝。图仍保留中断。没有新迁移。
+- **并入**：预演 merge-tree EXIT=0，tree `af9af818`。`git merge --no-ff` 得到 `05cb02d5`，双亲 `0cebd82b` 与 `3309e91d`。没有冲突，没有强推。
+- **门**：语音证明、续跑证明、内核证明退出码都是 0。docs:check scanned 2298≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2298** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line boundary-rule-single nail（2026-10-20 · 未接线的数据边界长文案与生产短句逐字节相同）
+
+- **改动**：未接线的数据边界长文案改为与生产短句逐字节相同。生产短句未改。导出保留。证明断言两句相等，并防止基线回退。
+- **并入**：预演 merge-tree EXIT=0，tree `d6dbd0b5`。`git merge --no-ff` 得到 `a5446e35`，双亲 `77ae05ac` 与 `398374d3`。没有冲突，没有强推。
+- **门**：注入围栏证明退出码 0。docs:check scanned 2299≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2299** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line stream-known-executed nail（2026-10-20 · 流式完成且已有用量时按已执行结算）
+
+- **改动**：流式完成且已有用量时，空文本和长度截断按已执行结算。空文本优先于截断。有文本的正常结束仍成功。没有用量、没有结束标记、传输失败、取消、错误帧和看门狗仍按未知或瞬时处理。没有新环境变量，也没有新迁移。
+- **并入**：预演 merge-tree EXIT=0，tree `056df0e3`。`git merge --no-ff` 得到 `5f83726d`，双亲 `b940e712` 与 `7957286c`。没有冲突，没有强推。
+- **门**：流式证明退出码 0。出站清单 pairs=54、environment_references=335。出站证明退出码 0。合树 docs:check scanned 2301≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2301** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line checkpoint-terminal-slim nail（2026-10-20 · 终态后按已有授权删除该线程检查点）
+
+- **改动**：终态面试提交成功后按已有授权删掉该线程的检查点。未终态不删。删除失败不回滚已经完成的终态。不新造保留期限，也不新授删除权。
+- **并入**：预演 merge-tree EXIT=0，tree `3dcfd881`。`git merge --no-ff` 得到 `da1c662b`，双亲 `5f83726d` 与 `4307d444`。没有冲突，没有强推。
+- **门**：隔离生命周期证明退出码 0，不打到本机 54329。合树 docs:check scanned 2301≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2301** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line graph-release-marker nail（2026-10-20 · 续跑前核对检查点里的图版本）
+
+- **改动**：续跑前核对检查点元数据里的图版本。没有版本或空版本仍放行。与当前版本逐字相同仍放行。别的非空字符串在调用前拒绝，不写、不删、不改旧行。写入时保留调用方字段并带上当前图版本。核对参数改为运行配置类型，避免新增命名警告。
+- **并入**：`git merge --no-ff` 得到 `8ee7ba2e`，双亲 `3dbc700a` 与 `6483a2b3`。其后 `a086449b` 去掉参数类型上的命名警告。没有冲突，没有强推。
+- **门**：隔离写围栏证明退出码 0，端口 51119，不是 54329。docs:check scanned 2303≤2304；typecheck 8/8 0 cached；lint --force 0 cached，0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2303** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line quiz-loopback-host nail（2026-10-20 · 测验双连接证明拒绝其余本机地址）
+
+- **改动**：测验双连接证明在规范化后还拒绝展开的全零地址、映射的本机网段、全零地址和链路本地地址。公平调度文件不改。样例环境键改为计算属性，拒绝行为不变。
+- **并入**：`git merge --no-ff` 得到 `6fdca6b3`，双亲 `8ee7ba2e` 与 `de0901b3`。没有冲突，没有强推。
+- **门**：单元证明退出码 0。合树文档、类型检查和静态检查与上一节相同。worker 警告 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2303** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line answer-empty-mind-read nail（2026-10-20 · 缺省能力序让过版本核对读取）
+
+- **改动**：提交答案前会先读检查点元数据核对图版本。合成旧检查点的空能力序改在下一次读取生效。终态失败后仍删除该线程的检查点。
+- **并入**：直接改在当前分支，提交 `197aa96b`。没有冲突，没有强推。
+- **门**：隔离生命周期证明退出码 0。worker 警告 958，上限仍是 959。类型检查退出码 0。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2303** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line money-status-proof nail（2026-10-20 · 金额状态证明按语句白名单和刻度文本断言）
+
+- **改动**：证明按去掉行注释后的语句计数。额度合计文本按两位小数断言。结算提议只核对投递表，不调用结算函数。迁移字节不变。
+- **并入**：merge `6342cd22`，双亲 `1c622c2b` 与 `5bbac19b`。预演 tree `307401b3`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，failures=0。docs:check scanned 2304≤2304。迁移 sha256 与长度 6022 不变。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2304** 现值 **2304** 余 0.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line replay-progress nail（2026-10-20 · 同一题续跑不再重开进度心跳）
+
+- **改动**：检索包回放时不再包一层进度心跳。判重查询仍执行。
+- **并入**：merge `f49982ae`，双亲 `e0c865a9` 与 `e1f7a7c7`。预演 tree `bf2f87f1`。没有冲突，没有强推。
+- **门**：隔离续跑证明在原提交上退出码 0，端口不是 54329。合并后证明文件与服务文件 blob 与该提交相同。typecheck 8/8。lint 0 errors，worker 警告 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · 不新增受管文件。
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line managed-ceiling-2312 nail（2026-10-20 · 受管文本扫描上限从 2304 调整到 2312）
+
+- **改动**：恰好达到 2312 仍通过，第 2313 个文件仍拒绝。证明里的计数和错误码一起改。
+- **并入**：merge `43724ca9`，双亲 `f49982ae` 与 `c8d66d32`。预演 tree `7dc35935`。没有冲突，没有强推。
+- **门**：策略证明 12/12 退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line retrieval-query-text nail（2026-10-20 · 向量检索文本不再带上难度标记）
+
+- **改动**：难度仍从查询协议解析，并继续按题面难度过滤。写入向量检索的文本只保留能力、岗位和栈。断言会拒绝把难度再拼回查询。
+- **并入**：merge `372ed0c8`，双亲 `68d71afb` 与 `ccce88de`。预演 tree `f806252c`。其后 `87d76f64` 给断言参数补上明确类型。没有冲突，没有强推。
+- **门**：语料证明退出码 0，隔离端口不是 54329。合并后检索源码与证明 blob 与 `ccce88de` 相同，类型补丁在其后。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、worker 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line memory-content-guard nail（2026-10-20 · 记忆内容护栏每次检测都从头匹配）
+
+- **改动**：全局正则命中后不再从上次下标继续，避免漏掉前面的手机、邮箱或证件号。判定文本没有放宽。
+- **并入**：merge `ce10eab0`，双亲 `372ed0c8` 与 `de2de324`。预演 tree `4661075d`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，端口 63747，不是 54329。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line quiz-begin-contract nail（2026-10-20 · 押题和诊断开始登记为已受理）
+
+- **改动**：开始接口登记为已受理，并要求简历头。可选岗位头仍可选。面试开始那条不变。服务端行为不改。
+- **并入**：merge `7b2a47f5`，双亲 `ca506eb0` 与 `cd54743f`。预演 tree `ab2fd87e`。没有冲突，没有强推。
+- **门**：契约证明 102 条退出码 0，合并后再次退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line route-stale-drain nail（2026-10-20 · 过期岗位修订不再占住待分类队列）
+
+- **改动**：内容已变的待分类修订改为未决，并记下已有原因。不写决策行。较新的待分类修订仍可领取。
+- **并入**：merge `3c64fa1e`，双亲 `7b2a47f5` 与 `60b73118`。预演 tree `6380a60f`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，端口 49822，不是 54329。合并后四个文件 blob 与 `60b73118` 相同。typecheck 8/8。lint 0 errors，worker 警告 958，上限仍是 959。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line asked-stem-list nail（2026-10-20 · 避重清单按近五场并带上本场题面）
+
+- **改动**：数据库只取最近五个场次的已问题面。本场题面来自已经传入的题目列表。截断留在调用侧。
+- **并入**：merge `87c16808`，双亲 `3c64fa1e` 与 `e8eb9c70`。预演 tree `2d04f4ed`。没有冲突，没有强推。
+- **门**：隔离记忆证明退出码 0，端口 50384，不是 54329。会话摘要证明退出码 0。合并后记忆存储与记忆服务 blob 与 `e8eb9c70` 相同。typecheck 8/8。lint 0 errors，worker 警告 958。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line retrieval-action-metric nail（2026-10-20 · 检索裁决动作写入闭合计数）
+
+- **改动**：只统计既有的五种裁决。阈值、查询协议和难度过滤都不改。近场题面函数仍在。
+- **并入**：merge `8f7a431d`，双亲 `87c16808` 与 `31ac53c7`。预演 tree `5777c412`。没有冲突，没有强推。
+- **门**：指标证明退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line qdrant-erase-count nail（2026-10-20 · 删除计数按规范点号比对回读结果）
+
+- **改动**：调用方传入的大小写、无连字符或带花括号的点号，删除后仍按实际消失的点数计。摘要仍按调用方原始点号计算。
+- **并入**：merge `d0b7edb3`，双亲 `033b1de4` 与 `59c5c6d4`。预演 tree `cc2be7b9`。没有冲突，没有强推。
+- **门**：删除证明退出码 0，Qdrant 127.0.0.1:6333。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line turn-accepted-contract nail（2026-10-20 · 面试作答接口登记为已受理）
+
+- **改动**：文档与现有的已受理响应一致。服务端行为不改。押题、诊断和面试开始仍是已受理。
+- **并入**：merge `56861f34`，双亲 `d0b7edb3` 与 `1ef053b1`。预演 tree `74274980`。没有冲突，没有强推。
+- **门**：契约证明 103 条退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，警告数同上。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line g7-free-model-guard nail（2026-10-20 · 免费档复跑拒绝未登记的模型名）
+
+- **改动**：主模型与快模型都必须落在已登记的五个免费名字里。未开启复跑时不改调用方原来的模型名。没有新增环境变量。
+- **并入**：merge `b3da3e02`，双亲 `56861f34` 与 `391d58e3`。预演 tree `6162c387`。没有冲突，没有强推。
+- **门**：脚本退出码 0。出站清单 pairs=54、environment_references=335。出站证明 7/7。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line unscored-turn nail（2026-10-20 · 评分失败后面试轮次继续向前）
+
+- **改动**：这一题记为未评分且不写入能力证据。轮次加一，澄清次数清零，整场不因此结束。读答案失败仍结束且轮次不加。
+- **并入**：merge `7883a324`，双亲 `b3da3e02` 与 `70490296`。预演 tree `5230d2e9`。没有冲突，没有强推。
+- **门**：自适应图证明退出码 0。docs:check scanned 2305≤2312。typecheck 8/8。lint 0 errors，ai-graphs 警告 47，上限仍是 47。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2305** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line voice-final-sentence nail（2026-10-20 · 多句最终识别接在一起）
+
+- **改动**：后一句最终识别接在前一句后面，中间恰好一个换行。第一句仍整段赋值。未结束的片段不进入正文。
+- **并入**：merge `6774cc88`，双亲 `e722550d` 与 `084d1692`。预演 tree `acbbb848`。没有冲突，没有强推。
+- **门**：语音流证明退出码 0，含两句接在一起。docs:check scanned 2306≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2306** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line resume-id-case nail（2026-10-20 · 重复开始按同一简历标识认）
+
+- **改动**：同一份简历的大小写不同时仍视为同一次开始。空标识仍先短路。另一份简历标识仍拒绝。
+- **并入**：merge `93ccafa1`，双亲 `0412ebdf` 与 `0fc02a5a`。预演 tree `6a3a5a22`。没有冲突，没有强推。其后 `f3ea7d98` 去掉证明里多余的状态比较。
+- **门**：隔离证明退出码 0，含大写重放仍是同一次，另一份标识仍拒绝。docs:check scanned 2307≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2307** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line growth-null-overall nail（2026-10-20 · 没总分时不标口径不同）
+
+- **改动**：这一场没有总分时，不再显示维度口径不同。两场都有分但维度名没有交集时，这句仍显示。
+- **并入**：merge `f7ad16d2`，双亲 `51e20021` 与 `63206a28`。预演 tree `42d8b8bc`。没有冲突，没有强推。
+- **门**：页面证明退出码 0。docs:check scanned 2308≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2308** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line resume-reread-status nail（2026-10-20 · 同文再传不认已隔离简历）
+
+- **改动**：第三次上传返回仍在使用的那一行，不返回已经隔离的标识。隔离后指纹仍在。
+- **并入**：merge `cee4b88f`，双亲 `e0172c9e` 与 `cca52808`。预演 tree `52feae22`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，含第三次上传命中仍在使用的行。docs:check scanned 2309≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2309** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line route-leaf-weight nail（2026-10-20 · 规划相关性按最高权重叶子）
+
+- **改动**：有多条分配时取权重更高的叶子。权重相同则留下先出现的那条。快照顺序不变。
+- **并入**：merge `1c78e0fb`，双亲 `eacbc479` 与 `7abba383`。预演 tree `e8374b0f`。没有冲突，没有强推。
+- **门**：规划诚实证明退出码 0，60 条含按权重选取。docs:check scanned 2310≤2312。typecheck 8/8。lint 0 errors，警告数 root 5241、api 1423、domain 115、ai-runtime 628、worker 958、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2310** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line score-span-answer nail（2026-10-20 · 评分位置按候选人原文计算）
+
+- **改动**：模型看到去掉操纵句后的文本。幂等键、危机判断和位置复验仍用候选人原文。冒烟仍把同一段文本交给模型。
+- **并入**：merge `b1667403`，双亲 `8ece8ea0` 与 `87c84af3`。预演 tree `ae77a56f`。没有冲突，没有强推。其后 `bf1bffcb` 去掉图状态上的任意类型。
+- **门**：评分完整性退出码 0，含图路径对原文复验通过、对 clean 失败。自适应证明退出码 0。清单比对退出码 1，唯一失败项是改动集超出既有申报，危机扫描仍在模型调用之前。docs:check scanned 2311≤2312。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2312** 现值 **2311** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line managed-file-ceiling-2320 nail（2026-10-20 · 受管文件上限调到 2320）
+
+- **改动**：受管文件上限从 2312 调到 2320。恰好 2320 份仍通过，多一份仍拒绝。
+- **并入**：merge `12ef573c`，双亲 `d89bf5a4` 与 `f3c6b39e`。预演 tree `566176fc`。没有冲突，没有强推。
+- **门**：上限证明退出码 0，12/12。docs:check scanned 2312≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2312** 余 8.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line contact-header-line nail（2026-10-20 · 未见标题的联系行按原文过滤）
+
+- **改动**：未见标题的联系行按原文过滤。电话和邮箱在脱敏前就排除，不再进入经历事实。
+- **并入**：merge `b245a163`，双亲 `2af55cce` 与 `38ce6e39`。预演 tree `7fae15b9`。没有冲突，没有强推。
+- **门**：简历落地证明退出码 0。docs:check scanned 2314≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2314** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line fail-queued-job nail（2026-10-20 · 面试写成失败时取消仍排队的作业）
+
+- **改动**：面试写成失败时，尚未领取的排队作业改为失败，下一拍不再领走。已经完成的作业不改。
+- **并入**：merge `f0e49489`，双亲 `b245a163` 与 `0aea099a`。预演 tree `0d71e720`。没有冲突，没有强推。
+- **门**：对账证明退出码 0。docs:check scanned 2314≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2314** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line offline-order-status nail（2026-10-20 · 对公下单没改到行时返回库里的真实状态）
+
+- **改动**：对公下单没改到行时返回库里的真实状态。更新不到订单行就不再报刚创建。金额仍用产品上的金额。
+- **并入**：merge `091bb9ce`，双亲 `3a3e7838` 与 `89947022`。预演 tree `e7134d1c`。没有冲突，没有强推。
+- **门**：对公证明 53 条退出码 0。负路径 90 条退出码 0。docs:check scanned 2315≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2315** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line graph-lease-failed-interview nail（2026-10-22 · 失败的面试不再新建图运行）
+
+- **改动**：失败的面试不再新建图运行。还没有图行时直接返回，不再插入一条进行中的运行。已有图行的更新路径不改。
+- **并入**：merge `26c31243`，双亲 `d29777ca` 与 `c53364f9`。预演 tree `9c4e57a9`。没有冲突，没有强推。
+- **门**：图运行证明退出码 0。docs:check scanned 2316≤2320。typecheck 8/8。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2316** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line sweep-failed-interview nail（2026-10-22 · 失败的面试不再把作业写回排队）
+
+- **改动**：过期的运行、已经排队、以及写回时，面试已经失败就改成失败。次数上限上的收割原因不改。
+- **并入**：merge `7390384f`，双亲 `a19fa63d` 与 `90731d25`。预演 tree `07c026c2`。没有冲突，没有强推。
+- **门**：收割证明退出码 0，隔离端口 55906。docs:check scanned 2317≤2320。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2317** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line provision-lock-release nail（2026-10-22 · 解锁失败时把这条连接从池里丢掉）
+
+- **改动**：解锁失败时把这条连接从池里丢掉。解锁查询失败就不再把连接放回空闲列表。
+- **并入**：merge `9cca3916`，双亲 `c0e923dc` 与 `7ffbb6be`。预演 tree `f2ff97f1`。没有冲突，没有强推。
+- **门**：交接证明退出码 0。控制角色证明退出码 0。docs:check scanned 2318≤2320。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2318** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line graph-lease-existing-failed nail（2026-10-22 · 失败的面试已有图行时不再续租）
+
+- **改动**：租约还能拿时先看面试状态，恰好失败就不更新图行，也不跑回调。
+- **并入**：merge `8bd1aa99`，双亲 `71d63d1a` 与 `343f8810`。预演 tree `ed3cbec9`。没有冲突，没有强推。
+- **门**：图运行证明退出码 0。docs:check scanned 2319≤2320。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2320** 现值 **2319** 余 1.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line managed-file-ceiling-2328 nail（2026-10-22 · 受管文件上限再增加八份）
+
+- **改动**：受管文件上限从 2320 调到 2328。恰好 2328 份仍通过，多一份仍拒绝。
+- **并入**：merge `28d7dce6`，双亲 `dabd35f7` 与 `6b1398e4`。预演 tree `cac7eab5`。没有冲突，没有强推。
+- **门**：证明 12/12 退出码 0。docs:check scanned 2320≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2320** 余 8.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line ready-derivative-unavailable nail（2026-10-22 · 已就绪的押题和诊断不再报不可用）
+
+- **改动**：父行已经就绪时改为标记作业完成，不再发出不可用，也不退回已确认的消耗。
+- **并入**：merge `0bc0a711`，双亲 `c2da2eae` 与 `226a7e51`。预演 tree `bcaccf1c`。没有冲突，没有强推。
+- **门**：押题故障证明退出码 0。docs:check scanned 2321≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2321** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line fenced-score-average nail（2026-10-22 · 撤权后近期平均不再计入围栏场次）
+
+- **改动**：仪表盘近期平均和成长答题次数排除已经取到的围栏名单。
+- **并入**：merge `0b89e273`，双亲 `5ec6a101` 与 `f2b43825`。预演 tree `4407c8cf`。没有冲突，没有强推。
+- **门**：总览证明退出码 0。docs:check scanned 2322≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2322** 余 6.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line invocation-output-after-fence nail（2026-10-22 · 撤权后账本不再保存题干和报告正文）
+
+- **改动**：模型返回之后若这场已经撤权，两列输出写成空对象且不能当成功结果交回。报告调用带上这场面试的标识。
+- **并入**：merge `508d35b1`，双亲 `7cbc4209` 与 `471d325b`。预演 tree `21f0e1e8`。没有冲突，没有强推。
+- **门**：评分证明退出码 0。s4b、tokenstream、interview、stress 退出码 0。docs:check scanned 2323≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2323** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line closed-job-start nail（2026-10-22 · 职位关闭后失败的申请不再提交开始）
+
+- **改动**：职位关闭后，绑定面试不是刚创建或进行中时，页面不再提交开始。列表上的两个状态字段可以缺省。
+- **并入**：merge `91866722`，双亲 `66502fea` 与 `023798f1`。预演 tree `bb2598af`。没有冲突，没有强推。
+- **门**：招聘证明退出码 0。页面证明退出码 0。docs:check scanned 2324≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2324** 余 4.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line terminal-interview-graph nail（2026-10-22 · 终态面试不再开图）
+
+- **改动**：已完成或已放弃时不插入图行，已有活图也不再取得。
+- **并入**：merge `4e3eec90`，双亲 `968ad301` 与 `ac05b650`。预演 tree `631e0664`。没有冲突，没有强推。
+- **门**：图运行证明退出码 0。docs:check scanned 2325≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2325** 余 3.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line failed-interview-score nail（2026-10-22 · 失败或放弃的面试不再返回可练习分数）
+
+- **改动**：失败或放弃时，转写和评估成功不再带上数字，报告页没有有限数字就不画。这两种状态也不再新写可练习卡。已有卡不改写、不删除。
+- **并入**：merge `4e523a1d`，双亲 `480d5cc6` 与 `3852155b`。预演 tree `5f6c7ab3`。没有冲突，没有强推。
+- **门**：校验退出码 0。面试证明退出码 0。docs:check scanned 2326≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2328** 现值 **2326** 余 2.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+### Line recruiter-band-after-fence nail（2026-10-22 · 撤权后能力档不再返回该场维度）
+
+- **改动**：撤权后这场仍留下标记行，不再返回维度。换过身份之后出错先还原再抛出。未撤权的那场维度计数不变。卡状态不改。
+- **并入**：merge `a4351af1`，双亲 `71be6922` 与 `650d1428`。其后 `99de8380`。tree `219cbf99`。没有冲突，没有强推。
+- **门**：隔离证明退出码 0，40 条。docs:check scanned 2328≤2328。typecheck 8/8，Cached 0。lint 0 errors，警告数 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601、qdrant 27、ai-graphs 47、contracts 265。
+- **收口**：合计仍是 229/271。能力项完成 33、半成 2、未收 14 维持。这一项不新计能力项，也不计入 271。新增说明 1 份，另有迁移 1 份。
+- 预算：est live=0 · 0 Key 值 · `actualSpendCny=null` · cap **2328** 现值 **2328** 余 0.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve。
+
+
+### Line cap-sanction-2338 nail（2026-10-22 SSOT nail · 协调方授权（post 双审双 PASS 会签·PR 并线形） · 受管文件数上限步进 2330→2338）
+
+- **授权链全链如实载**：协调方派单 brief → 一体席起草+EXEC 单 commit `848d7a84`（七门全绿·偏离五件如实）→ post-prove 双审会签 PASS×2（席1 agent_a34bda6b 零 P2·席2 agent_7829d130 1×P2 注记）→ nail（PR #113·checks verify/audit/secrets-scan 全绿·merge `65a9c40f`）。
+- **门矩阵（EXEC 承卷七门+post 双审承+nail 复跑）**：proof 12/12（2338/2339 双值·deepEqual 亲跟 2339）+docs:check 2331≤2338+typecheck 8/8+lint 12/12 0 errors+markers 0+自审 grep 清零+diff 恰 3 tracked。
+- **STILL OPEN**：随刀注记先例枚举换行截断补全归后继触面·REQUEST Status 终翻面权归协调方.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移 · cap **2338** 现值 **2331** 余 7.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### 翻面笔登记（2026-10-22 · 协调方翻面权行使 · 侦察席+post 席2 会签证据在案）
+
+- **AG 七项已落待翻翻面（done 33→40·open 14→7）**：AG-22=route-fast-model（7053f7ce）/AG-23=rag-query-cache（93712516）/AG-27=graph-invoke-depth（e284e95d）/AG-28=graph-lease-terminal（9a5b8e3d）/AG-30=checkpoint-terminal-slim（da1c662b）/AG-31=graph-release-marker（8ee7ba2e）/AG-33=checkpoint-config-batch（474ad1b2）。open 7=AG-13（数据挂起）/AG-25 残面/AG-29 attempts 半/AG-32（前置）/AG-34 残面（在飞 ag34-lock-hold）/AG-35 残面/AG-36（前置）。half 2 维持（AG-14/AG-20）。
+- **批表 #138 翻面（229→230）**：interview-event-statement-notify 0214 正身（0143 逐行 pg_notify→STATEMENT+DISTINCT stream_key）。
+- **批表 #156/#157/#158/#181 四行翻面（230→234/271 86.3%）**：worker-shutdown-seq 四件 EXEC（0283d804 逐字节在 main）·双席验证（移植席 worker 三组证明复跑全绿 drain 36/ha2-drain 60/obs-ready 12·静态席 agent_9b2a77a3 四件亲证零蚀）·卷内 main 谱系 post PASS×2+nail 已随卷·Q2 已闭。
+- **AG-34 勘误登记**：触发机制已随邻刀 f6c3a735 顺带移除（台账锚系旧树快照）·余面两件转在飞卷。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
+### Line ag34-lock-hold nail（2026-10-22 SSOT nail · PR #115 merge fae1c099 · 面试作业锁残面收口·批表零翻·AG-34 翻面见翻面笔段）
+
+- **授权链**：起草 d364d8b3（诚实发现：触发机制已随邻刀 f6c3a735 移除·余面两件）→ pre-exec 双审 PASS×2 → EXEC 41247781（恰 5 tracked·八门绿·lint 超帽自修 959·门③远程云 PG fail-closed 阻塞如实登记待排程）→ post 双审 PASS×2 → nail（PR #115）。
+- **STILL OPEN**：远程云 PG 证明门排程归协调方/运维.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line config-reject-guidance nail（2026-10-22 SSOT nail · PR #116 merge 5123019e · 生产库配置拒绝附排查指引·批表 #249 翻面见翻面笔段）
+
+- **授权链**：起草 361b408f → 第一轮 席1 PASS/席2 FAIL（P1=门②基线红未登记）→ rev ef28a428（红同形协议）→ 第二轮 PASS×2 → EXEC 4303b923（恰 5 tracked·18 断言绿·pre/post 逐字节同形协议行使）→ post 双审 PASS×2 → nail（PR #116）。
+- **STILL OPEN**：无（fail-loud 语义保持·纯指引增量）.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line graph-legacy-api-erratum nail（2026-10-22 SSOT nail · PR #117 merge d5b03ee6 · 图编排遗留接口面收口核定登记·零码面·AG-35 翻面见翻面笔段）
+
+- **授权链**：起草 ae39408b → 第一轮 席1 FAIL（收口笔登记失实）→ rev a3927ac5（更正为主线重植笔 e9a1a035·三笔祖先性亲跑）→ 第二轮 PASS×2 → nail（PR #117）。
+- **STILL OPEN**：§0.2-④ 残留指认一行 supersession 归下次触卷顺手.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line asr-quality-metrics nail（2026-10-22 SSOT nail · PR #118 merge 508450c1 · 语音转写质量指标结构化·批表 #73 翻面见翻面笔段）
+
+- **授权链**：起草 e7f3497a → 第一轮双 FAIL → rev 19a83b00 → 第二轮 席1 FAIL（清点漏一处）→ rev2 6aef7645 → 第三轮双审 PASS×2（两席独立穷尽清点）→ EXEC 四笔（十二门全绿·首跑三红自修）→ post 双审 PASS×2 → nail（PR #118·落线笔重放形：首并缺卷文件·协调方落线分支补齐卷笔并更名）。
+- **STILL OPEN**：真实质量申报上线路径（qwen3-asr WebSocket·卷内预留方向）归后继刀·本刀以诚实申报 unavailable 收口.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line lease-attempts-cap nail（2026-10-22 SSOT nail · PR #119 merge 4ec27f55 · 面试作业认领领取上限第三道防线·AG-29 翻面见翻面笔段）
+
+- **授权链**：起草 63006040（诚实发现：上限全链已由 AG-04 刀C 收口·残面收窄为 queued 臂谓词）→ pre-exec 双审 PASS×2 → EXEC 92d5df4f（恰 3 tracked·八门绿·改前必红红验存档）→ post 双审 PASS×2（红验收据实证）→ nail（PR #119）。
+- **STILL OPEN**：无.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line ag25-replay-residual-erratum nail（2026-10-22 SSOT nail · PR #120 merge dcbd24ab · 出题重放非模型副作用残面核定登记·零码面·AG-25 翻面见翻面笔段）
+
+- **授权链**：起草 26da51b1（九项副作用逐项核定零残面·两处承载笔登记更正）→ pre-exec 双审 PASS×2（两席独立扫三类写面确认零漏项）→ nail（PR #120）。
+- **STILL OPEN**：两处幂等锚补登（ai_invocation_trace/writeShadowMeterSoft）归 EXEC/后继触卷顺手.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移.
+
+### Line cap-sanction-2346 nail（2026-10-22 SSOT nail · PR #121 · 受管文件数上限步进 2338→2346 · 热修优先修绿主线）
+
+- **授权链**：协调方派单 brief → 一体席单 commit 1ace8a9c（七门全绿）→ post 双审会签 PASS×2（双席零 P2）→ nail（PR #121）。
+- **教训登记（累计记账）**：受管文件上限记账必须核**累计并集面**——连续五笔（ag34/#249/ag35/#73/AG-29）各自对当时基线合规、累计并入越限一笔致主线文档门红；协调方累计账失察，本刀即为此设。后继规则：协调方每次并线卷后按「main 现 scanned + 在飞卷数」重算余量，余量 < 在飞+1 即先手步进。
+- **门矩阵**：proof 12/12（2346/2347 双值·deepEqual 亲跟 2347）+ docs:check 2340≤2346（基线红随刀复绿）+ typecheck 8/8 + lint 12/12 + markers 0 + 自审 grep 清零 + diff 恰 3 tracked.
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方.
+- 预算：est live=0 · `actualSpendCny=null` · 零迁移 · cap **2346** 现值 **2341** 余 5.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+
+### 翻面笔登记（2026-10-22 第二批 · 协调方翻面权行使 · post 会签证据在案）
+
+- **AG 四项翻面（done 40→44 · open 7→3）**：AG-34（ag34-lock-hold 残面两件收口）/AG-35（勘误卷核定三项全收口）/AG-29（attempts 第三道防线）/AG-25（勘误卷核定零残面）。**open 3 全为门控/前置**：AG-13（需线上分布数据·外部阻塞）/AG-32（前置未修）/AG-36（前置未修）。half 2 维持（AG-14/AG-20）。
+- **批表两行翻面（234→236/271 · 87.1%）**：#249（生产库配置拒绝指引·5123019e）/#73（语音质量指标结构化·508450c1）。
+- **批表/能力项剩余全景**：能力项 open 3 全为门控/前置；half 2（AG-14/AG-20）待流式面与 CTX-02 余原语；批表 open 35 中用户门控 7（#97/#98/#240/#26/#32/#2/#199）+ 外部阻塞 1（#38）+ 其余为登记时滞面（详见侦察席 2026-10-22 报告）。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
+### Line cap-2354 nail（2026-10-26 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2354 文档数量上限步进 2346→2354（sanction +8·沿十八先例形·算术=届树亲跑 2341 余 5+在飞六卷并线必越 2347>2346+本卷 1=2348≤2354 余 6·「2328 恰等零余量」勘误如实[2328 系 LEDGER 历史行值非届树现值]·commit 消息零黑话承规））
+
+- **授权链全链如实载**：协调方派单 brief（sanction 直落形·快速链一体席·两 commit 颁定）→起草 `65d2b62c4`+EXEC `1fe6dffc4`（七门全绿承卷 §9=proof 12/12[2354/2355 双值]+docs 2342≤2354+typecheck 8/8+lint 12/12+markers+自审 grep 清零[deepEqual 亲跟 2355]+diff 恰 3 tracked·STOP=executed:awaiting_post_prove_dual 三处）→post-prove 双审会签 PASS×2（两独立外席·协调方并线授权载）→nail（本席·本波唯一主线推送席）。
+- **nail 工序（本席）**：fetch 亲证届 origin/main=`47dd6be56` 恰等（派单基线恒等零漂移）→ merge `47dd6be56` --no-ff（Already up to date·EXIT=0）→ SSOT 两处随 nail commit --amend（LEDGER 本管线行+本段·沿 2272 先例 SSOT 随 amend·码面三文件字节恒等·append 注记形不洗史）→ 终验亲跑 → push 直推被 protected branch 拒（GH006 须 PR 形·偏离如实）→ 沿 2346 同型先例转 PR 形（支线 push+PR→main·CI required checks 全绿后 merge）。
+- **门矩阵（EXEC 承卷七门+post 双审承+nail 复跑）**：proof 12/12 EXIT=0（2354/2355 双值全行使·deepEqual 行亲跟 2355）+docs:check EXIT=0 scanned 2342≤2354 余 12（amend 后 HEAD 复跑同值）+markers SSOT 新增行颁定文本谱系命中沿先例豁免如实登记+全树行首冲突标记严格形零命中+REMOTE-IS-ANCESTOR EXIT=0。
+- **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞六条 E2E 缺口领包卷并线后帽余量以届时实测为准如实登记·批表零翻面（非 271 计件面）.
+- 预算：est live=0（nail 面全本地静态门·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2354** 并线后现值 **2342** 余 12.
+- Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
+MDEOF
+echo written

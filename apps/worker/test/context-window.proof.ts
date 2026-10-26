@@ -22,15 +22,18 @@ const SERVICES: Record<string, number> = {
 const WINDOWS = { '200K': 200_000, '128K': 128_000, '32K': 32_000 };
 const HUGE = '分布式锁与限流的工程取舍与线上踩坑'.repeat(20_000);   // ~36 万字,远超任何真实输入
 
+const utf8Bytes = (value: string) => Buffer.byteLength(value, 'utf8');
+
 console.log('=== capUserData:超大输入 → 单次调用 data 块恒被摁在 per-service 上限内 ===');
 for (const [svc, cap] of Object.entries(SERVICES)) {
   const out = capUserData(HUGE, svc);
-  A(`${svc}:36万字输入 → data ≤ ${cap}(实际 ${out.length})`, out.length <= cap);
+  const bytes = utf8Bytes(out);
+  A(`${svc}:36万字输入 → data ≤ ${cap} 字节(实际 ${bytes})`, bytes <= cap);
 }
 
-console.log('\n=== 与总上下文规模解耦:50K/100K/200K 字输入 → 同一服务输出长度恒定 ===');
+console.log('\n=== 与总上下文规模解耦:50K/100K/200K 字输入 → 同一服务输出字节长度恒定 ===');
 for (const svc of Object.keys(SERVICES)) {
-  const sizes = [50_000, 100_000, 200_000].map((n) => capUserData('字'.repeat(n), svc).length);
+  const sizes = [50_000, 100_000, 200_000].map((n) => utf8Bytes(capUserData('字'.repeat(n), svc)));
   A(`${svc}:输出与输入规模无关(${sizes.join('/')} 应全相等)`, new Set(sizes).size === 1);
 }
 
@@ -49,6 +52,6 @@ for (const [svc, cap] of Object.entries(SERVICES)) {
 }
 
 console.log(failures === 0
-  ? '\n✓ context-window:字符截断上限在 200K/128K/32K 近似预算内成立,单次调用与总上下文规模解耦；这不是语义压缩或真实 tokenizer 证明'
+  ? '\n✓ context-window:字节截断上限在 200K/128K/32K 近似预算内成立,单次调用与总上下文规模解耦；这不是语义压缩或真实 tokenizer 证明'
   : `\n✗ ${failures} 条失败`);
 process.exit(failures === 0 ? 0 : 1);

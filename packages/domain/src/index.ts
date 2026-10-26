@@ -71,7 +71,7 @@ export function ingestResume(raw: string): ResumeProfile {
     const clean = stripPii(t);
     if (section === 'experience') {
       // #191:仅缺省小节(未见任何标题前的文档头部)过滤联系/姓名形态行;已进正经小节的行不过滤。
-      if (!sawHeader && looksLikeContactHeaderLine(clean)) return;
+      if (!sawHeader && looksLikeContactHeaderLine(nt)) return;
       p.experience.push({ text: clean, line: ln }); p.facts.push(clean);
     } else if (section === 'skills') {
       clean.split(/[、,，/]/).map((s) => s.trim()).filter(Boolean).forEach((s) => { p.skills.push({ text: s, line: ln }); p.facts.push(s); });
@@ -170,8 +170,10 @@ export {
   // H4 WEAKNESS-LOOP R3（#252 专项面 5-8 题软预算派生·纯函数 additive）:
   derivedFocusSoftBudget, FOCUS_SOFT_BUDGET_MIN, FOCUS_SOFT_BUDGET_MAX,
   toCompetencySpecs, BEHAVIORAL_COMPETENCY,
+  // #38 自适应面试四阈值注入缝（additive 导出）：四阈值常量单一出处 + 缺省策略（缺省=现值·零行为变更）
+  CONF_ENOUGH, CONF_WEAK, LOW_SCORE, HOOK_CAP, ADAPTIVE_INTERVIEW_POLICY_DEFAULTS,
   type InterviewMind, type Competency, type CompetencySpec, type NextAction, type QuestionKind, type TurnSignal, type TurnVerdict,
-  type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance,
+  type InterviewSessionSignals, type CoverageSnapshot, type ConcludeReason, type AskReason, type DecisionProvenance, type AdaptiveInterviewPolicy,
 } from './adaptive-interview.ts';
 
 export {
@@ -294,7 +296,7 @@ export {
   UNCERTAINTY_EVIDENCE_COVERAGE_VALUES, UNCERTAINTY_SOURCE_INTEGRITY_VALUES,
   UNCERTAINTY_VOICE_QUALITY_VALUES, UNCERTAINTY_RUBRIC_DIFFICULTY_VALUES, UNCERTAINTY_HUMAN_REVIEW_VALUES,
   reverifyScoreEvidenceSet, defaultScoreUncertainty, assertScoreUncertaintySeparation,
-  resolveScoreCardAdjudication, deriveMissingRequiredCriteria,
+  resolveScoreCardAdjudication, deriveMissingRequiredCriteria, voiceQualityFromAsrOutcome,
 } from './scoring-evidence-conflict.ts';
 export type {
   ScoreEvidenceReverifyInput, ScoreEvidenceReverifyResult, ScoreUncertainty,
