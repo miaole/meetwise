@@ -133,6 +133,61 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **④断言模块宿主**：(a) packages/db `src/checkpoint-schema.ts`（**推荐**·与 0043 同宿主·db/worker 两消费形都可用）(b) 并入 migrate.ts（既有文件膨胀·导出面混载）。
 - **⑤新 proof 门名**：(a) `prove:checkpoint-schema-selfcheck`@packages/db（**推荐**·§2 门⑤）(b) 并入 prove:dbhy1 扩臂（注册面零增·混载既有 hash 台账门）。
 
+## §9-rev rev 修订注记（pre-exec 双审第一轮席1 FAIL 清单 P0×1+P1×2+P2×6 回路 · rev 席落卷 2026-10-26 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
+
+**rev 缘由**：pre-exec 双审第一轮席1 FAIL 清单（P0 一件+P1 两件+联动一件+P2 五件承六发现点 F-4/F-5/F-6/门④增肢/F-8 新登记）·本席逐位届树亲证（证据随条）后按 rev 回路落卷（只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触·落卷形=append 不洗·EXEC 期以下列修正句为准读）。**九件全部届树成立落修正·零跳过**；P2 清单词面「五件」承六发现点（A.3 定性与暴露面改锚 F-4 合条落 §9-rev.5 两修正句）·计数口径差如实登记随条。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+### §9-rev.1 修订①（P0·闸位重写）——自检闸位由 worker bootstrap 迁至 migrate 服务 post-flight
+
+- **届树亲证（推翻原环二权限申明的实证链三段）**：①`packages/db/migrations/0045_checkpoint_thread_rls.sql` blob HEAD 重 pin=`23ba67d304eec310281c4308d7281b6d1d98f7bc`（`git rev-parse HEAD:` 亲证·文件恰 72 行）**:70-71 注释立场「Runtime never calls PostgresSaver.setup(); migration bookkeeping is not a data-plane capability and stays with the migration login.」+:72 `REVOKE ALL ON checkpoint_migrations FROM app_role;`**——0043 :24 GRANT 的 checkpoint_migrations 读权已被后迁移 0045 **全量收回**·原环二句「app_role 读权已由 0043 :24 GRANT 在位·零权限面新增」失真；②运行时执行身份=provisionRuntimeLogin（`packages/db/src/principal.ts:579-594`·CREATE/ALTER ROLE `… LOGIN NOINHERIT … NOBYPASSRLS` :584/:590 亲证）——两执行身份（migration bookkeeping 归 migration login 立场+app_role NOINHERIT 低权）对 checkpoint_migrations 裸读**全堵**·worker bootstrap 闸位（原环二 :484 前插·asPrincipal 通道）实跑 `SELECT … FROM checkpoint_migrations` 必 SQLSTATE **42501**（insufficient_privilege）=结构性不可达；③蓝本先例自证：verifyModelCostGovernance（`apps/worker/src/model-cost-governance.ts:65`·:58-64 注释原文「It can only ask a fixed SECURITY DEFINER predicate whether every configured immutable binding is still present and enabled.」）经 `ai_cost_text_price_binding_matches_scoped` **SECURITY DEFINER 谓词**读·非裸表读——启动闸族既有先例的立场恰是「运行时不裸读受控表」·原环二裸读闸与先例相悖。
+- **修正句一（§1 修法② 环二整段重写）**：环二→「**migrate 服务 post-flight 接线（packages/db/src/migrate-cli.ts）**：main() 于 `runMigrations(pool, migrations)` 返回后（既有 post-flight assert 族 assertQbankControlExecutorIdentity/assertRagControlExecutorIdentity 同形先例在位）插 `await assertCheckpointMigrationsCurrent(pool)`——以 migrate 连接（migration login·持权身份）实跑 MAX(v)=常量校验·mismatch 抛 `checkpoint_migrations_version_mismatch`→main catch EXIT 1·**部署迁移期 fail-closed 拒绝**（错在部署闸时点立场原样·且与 migrate-cli.ts :1 头注「intentionally separate from API/worker startup」自洽·触面归 §2 门⑥ prove:migrate 回归覆盖）」。原句「app_role 读权已由 0043 :24 GRANT 在位·零权限面新增」**删**（实证链=上述①②③·零权限面新增申明反向成立：运行时面本就零读权·闸位不得设在无权身份通道）。
+- **修正句二（蓝本修法语义收窄登记）**：蓝本修法 issues-final :457「**启动时校验** checkpoint_migrations 的最大版本」语义收窄为「**部署迁移期校验**」（migrate 服务 post-flight 通道）——语义收窄非翻案：闸仍在部署路径 fail-closed（mismatch=migrate job EXIT 1·部署被拒）·判词红面捕捉时点不变（升级失守拦在部署闸·不在途运行期）·EXEC 期「启动时」一律读作「部署迁移期」。
+- **修正句三（裁决③ 连带重述·单点语义）**：裁决③→「(a) **migrate 服务 post-flight 单点（推荐·修订后）**——部署迁移期校验·migration login 为唯一持读权身份·『生产 checkpoint 消费方唯一=worker』事实面不变但 worker 不再是闸位 (b) worker bootstrap :484 前位**改列 Ban**（双重理由：越面+0045 :72 REVOKE 后 app_role 读 checkpoint_migrations 必 42501=结构性不可达）(c) db createPool 通用路径 Ban 维持（§5 同步见 §9-rev.4）」。裁决①②④⑤ 零翻。
+- **联动随条**：§0.1 锚表 4 号 worker main.ts 行「修法② 插位点即 :482 前」注记失效（闸位迁出·main.ts 全零触）；§0.3-2 交叠触面清单「worker main.ts 一行」→「packages/db/src/migrate-cli.ts post-flight 一处」。
+
+### §9-rev.2 修订②（P1·§0/§0.3）——0045 锚行增补+权限史结构约束第四条+LANDING-INDEX 失真引删
+
+- **届树亲证**：①0045 blob 重 pin 与 :70-72 行锚逐行 sed 亲证（见 §9-rev.1①）；②LANDING-INDEX 失真引：`ai-docs/delivery/ai-capability-review/LANDING-INDEX.md` 全文件 grep「LG-23」**EXIT=1 零行**·:42 实为「六、落地形式调整账」节表格行与 LG-23 无涉——卷头蓝本②「LANDING-INDEX :42 LG-23 行（映射 AG-36·成立）」系失真引。
+- **修正句一（§0.1 blob 锚表增第 13 行）**：`| 13 | packages/db/migrations/0045_checkpoint_thread_rls.sql | 23ba67d304eec310281c4308d7281b6d1d98f7bc | :70-71 注释立场「migration bookkeeping … stays with the migration login」+:72 REVOKE ALL ON checkpoint_migrations FROM app_role——本刀闸位迁 migrate 侧的权限面实证锚 |`。
+- **修正句二（§0.3 增第 4 条·结构约束）**：4. **checkpoint_migrations 权限史（结构约束第四条）**：0043 :24 `GRANT SELECT, INSERT, UPDATE, DELETE ON checkpoint_migrations, checkpoints, checkpoint_blobs, checkpoint_writes TO app_role` → 0045 :72 `REVOKE ALL ON checkpoint_migrations FROM app_role`——净态=**运行时（app_role）对 checkpoint_migrations 零读权**（与 vendor 不导出迁移清单并列·自检闸位选择的第二硬约束：闸只能落在持读权身份=migration login 的唯一通道=migrate post-flight）。
+- **修正句三（失真引删）**：卷头蓝本② LANDING-INDEX :42 引**删**（LG-23 行届树不存在·grep EXIT=1 亲证）·蓝本面收窄为四件=issues-final AG-36 :48/:449-458+execution-master-checklist :4443+product-campaign-LEDGER :712+extrev-deps-audit :197；卷尾注行内附注同步（见卷尾 rev 附注）。
+
+### §9-rev.3 修订③（P1·§2 门⑤）——身份可达性负例臂（42501 机器断言）
+
+- **届树亲证**：migrate 通道生产身份=migrate-cli.ts :5 `createPool({ purpose: 'migrate' })`（migration login·checkpoint_migrations 唯一持读权身份）；运行时身份=app_role（0045 :72 REVOKE 后零读权·§9-rev.2 结构约束第四条）——两身份可达性差=闸位正确性承重面·现门⑤ 断言集（环三三断言）未锁·文面申明无机器闸。
+- **修正句（§2 门⑤ 增第④臂·身份负例）**：门⑤→「新 proof `prove:checkpoint-schema-selfcheck` EXIT=0（环三断言：常量=vendor 条数/匹配臂绿/失配双臂 fail-closed·隔离 PG；**增第④臂身份可达性机器断言**：正例臂——按选定生产身份（migrate purpose 通道·migration login）实跑 `assertCheckpointMigrationsCurrent` 断言**可达**（seeds (0)-(4) 臂通过·失配臂抛 mismatch 照环三）；负例臂——`SET ROLE app_role` 形实跑同函数断言预期 **SQLSTATE 42501**（insufficient_privilege）——0045 :72 运行时零读权由机器断言锁定·未来迁移若回授读权此臂即红·强制复审闸位）」。
+
+### §9-rev.4 修订④（联动）——§1.3 丙确认句+§5 Ban 同步+「零迁移」全套口径核
+
+- **修正句一（§1.3 丙 确认句 append）**：丙 尾 append「**闸位在 migrate 侧零迁移成立确认**：自检件=post-flight SELECT 读校验（非迁移件·零 DDL·零迁移文件新增）·0043 零字节=dbhy1 :77 hash 不变量照旧·Ban 新迁移/改 0043 原样成立」。
+- **修正句二（§5 Ban 同步）**：「Ban 把自检闸放 createPool 通用路径（闸只接 worker bootstrap 单点·零 checkpoint 用途的 pool 不被检）」→「Ban 把自检闸放 createPool 通用路径或 worker bootstrap 运行时路径（**闸只接 migrate 服务 post-flight 单点**·零 checkpoint 用途的 pool 不被检·worker bootstrap 位经 0045 :72 REVOKE 后结构性不可达=42501）」。
+- **修正句三（「零迁移」全套口径核）**：§1 修法③/§1.2/§3-2/§4/卷尾注 各「零迁移」位逐一届树复核**全线成立**——migrate-cli.ts=migrate 服务代码非迁移件·校验=SELECT 非 DDL·闸位迁移零增迁移面；§1 修法③「八处全 additive·零迁移零 0043 字节改零产品行为变」结论原样·编辑点计数随 §9-rev.7 重述（5 tracked 改+2 新增=7 路径·八处编辑点）。
+
+### §9-rev.5 修订⑤（P2-①·F-4）——红事实 A.3 定性改「devDependencies 内直钉」+暴露面改锚 worker dependencies+peerDeps
+
+- **届树亲证**：①`packages/db/package.json` `"devDependencies"` 始 **:108**·:112 checkpoint-postgres=`catalog:langchain`+:113 基座=`"1.1.3"` 两键均在 devDependencies 块内（:108-114 亲证）——原 A.3「测试依赖误置生产 dependencies 形」定性失真；②暴露面实链：`apps/worker/package.json` **:169 `"dependencies"` 块 :170-171** 双 `catalog:langchain`（langgraph+checkpoint-postgres·生产运行时消费面）+lockfile :931-938 checkpoint-postgres@1.0.4 **peerDependencies** 基座 `^1.0.0`（:935-937 亲证）——分叉进入路径=worker 运行时 catalog 消费+peer 范围拉新基座。
+- **修正句一（红事实 A.3）**：「直钉的存在本身即测试依赖误置生产 dependencies 形」→「直钉的存在本身即 **devDependencies 内直钉**绕 catalog 形（:108 块内 :113 字面）」——绕 catalog 红面/消费方唯一（产品 src 零 import·唯 uc052 proof :11）/收编 catalog 不改语义零风险 三结论均不变·仅定性面修正。
+- **修正句二（红事实 A.2 暴露面改锚）**：暴露面锚由「:113 直钉不随动」扩正为「**worker dependencies :169-171**（:170/:171 双 catalog:langchain 消费）+vendor **peerDeps**（lockfile :931-938·checkpoint-postgres@1.0.4 peerDependencies 基座 `^1.0.0` :935-937）拉新基座——db devDeps :113 直钉不随动=分叉固着点」——版本双源分叉无机器闸结论不变·进入路径锚修正（F-4）。
+
+### §9-rev.6 修订⑥（P2-②·F-5）——红事实 B.3 命中清点改「一 proof 两处」
+
+- **届树亲证**：全仓 .ts `checkpoint_migrations` 命中=packages/db/test 恰 **一 proof 两处**（`uc052-checkpoint-physical.proof.ts` :870 `SELECT count(*)… FROM checkpoint_migrations`+:914 RLS 排除注记 `checkpoint_migrations: 'excluded (not per-thread)'`·grep 亲证；`migrate.proof.ts` **零命中** EXIT=1 亲证）。
+- **修正句**：卷头前置定谳③「全仓 .ts 命中仅 packages/db/test 两 proof」→「仅 packages/db/test **一 proof 两处**（uc052-checkpoint-physical :870/:914·F-5）」；红事实 B.3 证据面同口径收窄——「产品源运行时引用零命中·启动期无任何闸」结论不变·仅命中清点修正。
+
+### §9-rev.7 修订⑦（P2-③·F-6）——§1.2 触面计数重计（闸位迁 migrate 侧联动）
+
+- **修正句（§1.2 整段重述）**：→「**5 tracked 改**（pnpm-workspace.yaml/packages/db/package.json/pnpm-lock.yaml/packages/db/src/index.ts/packages/db/src/migrate-cli.ts）**+2 新增**（src/checkpoint-schema.ts/test/checkpoint-schema.proof.ts）**=7 路径·八处编辑点**（①workspace +1 行 ②db pkg :113 改值 ③db pkg scripts +1 门名行 ④lockfile regen ⑤index.ts +1 导出行 ⑥migrate-cli.ts post-flight 接线一处 ⑦checkpoint-schema.ts 落盘 ⑧proof 落盘）；**worker main.ts 移出触面**（worker 全零触·§0.3-2 联动见 §9-rev.1）·零历史迁移触·零 SSOT 触·零 env 闸·web/api 零触 原样」（F-6）；§1 修法③ 接线清单同步（main.ts 行→migrate-cli.ts 行·余七处同形）。
+
+### §9-rev.8 修订⑧（P2-④）——门④ 附 lockfile 断言（specifier=收编形+resolved 字节不变）
+
+- **修正句（门④ append）**：门④→「`pnpm install --frozen-lockfile` EXIT=0（CI 同形）+**lockfile 断言**：importers 面 `packages/db` 的 `@langchain/langgraph-checkpoint` specifier=`catalog:langchain`（收编后形态）+lockfile `@langchain/langgraph-checkpoint@1.1.3` resolved 条目（:938 integrity `sha512-wgzdQNeE…` 起首）与基线**逐字节不变**——收编只改 specifier 来源不改锁实值·版本零变（§1.3 甲）由字节不变断言机守」。
+
+### §9-rev.9 修订⑨（P2-⑤·F-8 登记）——未来升级刀纪律（新迁移+常量提版同 commit 同部署单元）
+
+- **登记句（append·非修正）**：checkpoint 基座/postgres 族版本移动届时=**新迁移+常量提版同 commit 同部署单元**——`EXPECTED_CHECKPOINT_MIGRATIONS` 提版与 00xx 新迁移（0043 头注 :3-4「Package upgrades that alter this schema require a new reviewed migration before deployment」纪律的机守化）必须同 commit 落·同部署单元过 migrate post-flight 闸（闸以常量为期望·拆步=部署窗 MAX(v)≠常量→EXIT 1 fail-closed 拒部署）·本刀零涉（§1.3 甲/§3-1 Ban 版本移动原样）·登记在案防未来刀拆步（F-8）。
+
+**rev 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·既有文件 append 零新增文件·scanned 2343 ≤ cap 2354）；markers 五类标记词（运行时组装·沿 `scripts/i6-239-gates.proof.mjs:151-163` 同源制）+行首冲突标记对改动面直扫 **0 命中**（本席亲跑·本节零引承重词面·零新增标记词落卷）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·pins 脚注 `actualSpendCny=null` 同源）；**STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-26 落卷·基线 `origin/main` @ `ab282ba81`·分支 `line/ag36-draft`·工作树 `../meetwise-ag36`·蓝本=issues-final AG-36 :48/:449-458 + LANDING-INDEX :42 + execution-master-checklist :4443 + LEDGER :712 + extrev-deps-audit :197 · 前置定谳=catalog 化机制半在位·点名直钉面与版本自检面均未修·**非翻面候选** · 修法=catalog 收编（版本零变）+0043 版本自检三环链（常量/启动一行/vendor 绑定 proof）·八处接线全 additive·零迁移零 0043 字节改 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push ⛔merge 主线 ⛔force push · 翻面权归协调方 · alone≠dual · Ban self-approve。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-26 落卷·基线 `origin/main` @ `ab282ba81`·分支 `line/ag36-draft`·工作树 `../meetwise-ag36`·蓝本=issues-final AG-36 :48/:449-458 + LANDING-INDEX :42 + execution-master-checklist :4443 + LEDGER :712 + extrev-deps-audit :197 · 前置定谳=catalog 化机制半在位·点名直钉面与版本自检面均未修·**非翻面候选** · 修法=catalog 收编（版本零变）+0043 版本自检三环链（常量/启动一行/vendor 绑定 proof）·八处接线全 additive·零迁移零 0043 字节改 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push ⛔merge 主线 ⛔force push · 翻面权归协调方 · alone≠dual · Ban self-approve·rev 修订注记 §9-rev 2026-10-26 落卷（pre-exec 双审第一轮席1 FAIL P0×1+P1×2+联动×1+P2 五件六发现点全成立落修正·零跳过·**闸位迁 migrate 服务 post-flight**·蓝本 LANDING-INDEX :42 失真引经 §9-rev.2 勘误删·蓝本面以 §9-rev.2 收窄四件清单为准·上文 §0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。
