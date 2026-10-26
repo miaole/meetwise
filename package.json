@@ -226,6 +226,7 @@
     "commerce-reconcile:prove": "node scripts/run-e2e-isolated.mjs commerce-reconcile:prove:raw",
     "commerce-reconcile:prove:raw": "pnpm -C apps/worker prove:commerce-reconcile",
     "commerce-outbox-retention:prove:raw": "node scripts/run-e2e-isolated.mjs commerce-outbox-retention:prove:raw",
+    "interview-event-retention:prove:raw": "node scripts/run-e2e-isolated.mjs interview-event-retention:prove:raw",
     "fence-reflow-repair:prove": "node scripts/run-e2e-isolated.mjs fence-reflow-repair:prove:raw",
     "fence-reflow-repair:prove:raw": "pnpm -C apps/worker prove:fence-reflow-repair",
     "model-invocation-reconcile:prove": "node scripts/run-e2e-isolated.mjs model-invocation-reconcile:prove:raw",
