@@ -2158,6 +2158,16 @@
       "name": "DASHSCOPE_WORKSPACE_ID",
       "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-017-orphan-http-sse.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-017-orphan-http-sse.proof.ts",
+      "class": "test-isolation"
     }
   ],
   "deploymentReferences": [
