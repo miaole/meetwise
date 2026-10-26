@@ -28,7 +28,7 @@
 | `apps/api/test/_neg-harness.ts` | `9768b323`（330 行） | **`:50-57` `boot()` env 形（`AUTH_DEV_HEADER` 等）·`:60-62` `delete process.env.MODEL_API_KEY`/`MODEL_BASE_URL`（**零 live key 承载体**）·`:63-66` `createApp()`+`assertIsolatedTestTarget`·`:283-284` `app.listen(0,'127.0.0.1')` 真 HTTP·`:324-329` 返回 `base`/`pool`/`req`/`post`/`U` 五件套** |
 | `apps/api/test/uc-e2e-018-user-abandon-http.proof.ts` | `720f383d`（267 行） | **`:2` 头注「real POST /interview/:id/abandon」·`:108-130` H1 臂形（DB 侧 seed reserve→HTTP abandon→200+released+额度净零）·`:170-172` HTTP begin 409 臂·`:246-255` 404/401/409 守卫臂群（同形范本）** |
 | `apps/api/src/platform/sse-pump.ts` | `b93121dc`（223 行） | `:83` `export async function pumpSseEvents`（SSE 泵单源·断连/终态/心跳语义承载） |
-| `scripts/run-e2e-isolated.mjs` | `f89fb27c`（3348 行） | **`:2766` `const container = meetwise-e2e-${pid}-${Date.now()}`（**一次性 PG 容器=EXEC 期容器依赖本体**·只删自建 `meetwise-e2e-*` 族）·`:53` `writeLocalIsolatedReceipt`（隔离收据落盘口）·头注 `:14-16` 「在独立、临时的 PostgreSQL cluster 上运行…绝不触碰开发数据库或开发容器」** |
+| `scripts/run-e2e-isolated.mjs` | `f89fb27c`（3348 行） | **`:2766` `const container = meetwise-e2e-${pid}-${Date.now()}`（**一次性 PG 容器=EXEC 期容器依赖本体**·只删自建 `meetwise-e2e-*` 族）·`:53` `writeLocalIsolatedReceipt`（隔离收据落盘口）·头注 `:21`/`:25` 「在独立、临时的 PostgreSQL cluster 上运行…绝不触碰开发数据库或开发容器」（rev P2-2 行锚修正·引文不变）** |
 | `package.json`（根） | `5bdf3111`（692 行） | **`:127-130` uc017 族注册现形：`uc017:orphan:prove`/`:raw`→`pnpm -C packages/db prove:uc017-orphan`+`uc017:nhp-load:prove`/`:raw`（件② 同族同形落点）·`:135-136` `uc018:abandon:http:prove`/`:raw`→`pnpm -C apps/api prove:uc018-abandon-http`（**HTTP prove 注册同构范本**）** |
 | `apps/api/package.json` | 见 §0.1 附注 | `:36` `prove:uc002-http` / `:39` `prove:uc018-abandon-http`（`node --import @swc-node/register/esm-register test/*.proof.ts` 形=件② api 侧行同构范本） |
 | `ai-docs/delivery/e2e-requirement-coverage-matrix.md` | `788423b1`（519 行） | **`:122` 六列行 `UC-E2E-017｜partial｜partial｜partial（sweeper）｜blind｜HTTP/SSE 注入未进 isolated`（翻面靶·翻面权归协调方）·`:148` `UC-E2E-011 / 017 / 019（钱/对账）` PERF/LOAD 行（**批 B 行 6·本刀零触**）·`:180` §1 行（`eval/uc-e2e-017-orphan-reservation.eval.md` 引用为卷内叙述名·仓库无独立 eval 目录文件·沿现状零改）·`:265` P0-5 行** |
@@ -84,7 +84,7 @@
 | NHP-017-HTTP-BOUND-01 | BOUND | api | 同 interview 重复 HTTP begin（网络重试形） | 202 `alreadyBegun` 同 jobId·恰 1 行 consumption·不双扣（a8ae0d15 `:217`/`:231`） | **case-only** | 件① |
 | NHP-017-HTTP-NEG-01 | NEG | api | 错主体 abandon/events（HTTP 真嘴 RLS） | 404 `not_found_or_forbidden`·原预占仍 reserved（O4 语义 HTTP 升面） | **case-only** | 件① |
 
-  ADV 面**零触**（:122 行 ADV=blind 如实保持·本刀不解决不虚记）。件① 头注必带：`releaseEvidence=false · Not HA · 本绿 ≠ 全链路 E2E covered · ≠ UC-E2E-017 covered · EXIT0 = case ≠ covered`+fixture=pgvector green-risk/R5 注记+`:139` 自证句的 HTTP/SSE 半对照注记。
+  ADV 面**零触**（:122 行 ADV=blind 如实保持·本刀不解决不虚记）。件① 头注必带：`releaseEvidence=false · Not HA · 本绿 ≠ 全链路 E2E covered · ≠ UC-E2E-017 covered · EXIT0 = case ≠ covered`+fixture=pgvector green-risk/R5 注记+`:139` 自证句的 HTTP/SSE 半对照注记+0058 `interview_privacy_active`/`assert_interview_privacy_active` 最小 stub 注记（沿 720f383d 形 pool 级装一次·覆盖五 case：reconcileOwner 围栏 SELECT+guardInterviewPrivacy 全臂·rev P2-1）。
 - **件②（注册行·恰 3 行两文件）**：根 `package.json` 恰 2 行（`:127-130` uc017 族后 append）：`"uc017:orphan-http-sse:prove": "node scripts/run-e2e-isolated.mjs uc017:orphan-http-sse:prove:raw"` + `"uc017:orphan-http-sse:prove:raw": "pnpm -C apps/api prove:uc017-orphan-http-sse"`（`:135-136` 同构）；`apps/api/package.json` 恰 1 行（`:36`/`:39` 同族）：`"prove:uc017-orphan-http-sse": "node --import @swc-node/register/esm-register test/uc-e2e-017-orphan-http-sse.proof.ts"`。**零新依赖**。
 - **件③（harness 卷·恰 1 文件）**：`ai-docs/delivery/harness/uc-e2e-017-orphan-http-sse.md`——五 case 一行一 case 合同+CMD/EXIT 期望+假绿标红表+零 live key/容器依赖预登+矩阵锚点；**既有 `uc-e2e-017-orphan-reservation.md` 零字节改**（其非目标自证保留=诚实链）。
 - **件④（case 矩阵净增·恰 5 行）**：`non-happy-path-perf-load-case-matrix.md` 017 区后 append 上表 5 行（旗=case-only·「登记未执行」·零改旧行零升格）；`e2e-requirement-coverage-matrix.md` **零字节**（`:122`/`:148`/`:180`/`:265` 全部只读——翻面与措辞更新权归协调方）。
@@ -101,7 +101,7 @@
 7. **diff 面机检**：EXEC 交付 commit `git diff --numstat <base>` **恰 5 tracked 路径**=件① .ts（A）+件② 两 .json+件③ .md+件④ case-matrix .md（+收据目录 untracked 仓根非受管根口径；起草 commit 恰 1 tracked=本卷 .md）——多任何 tracked 路径即停（越界需要类）。
 8. **SSOT 行零触机检**：`git diff <base> -- ai-docs/delivery/e2e-requirement-coverage-matrix.md` **零字节**（`:122` 六列行/`:148` 批B行/`:180`/`:265` 全只读）；case-matrix 仅净增 5 行零改旧行。
 9. **EXEC 期容器依赖门（预登条款）**：立项第一步 `docker info` EXIT=0 亲证入收据；run 后一次性容器 `meetwise-e2e-*`（`f89fb27c:2766` 族）由 runner 自清理·收据记清理亲证；**docker 不可用=`blocked` 停上报（非验收红）**。
-10. **卫生+零 live key**：`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；`.env*` ABSENT 双向记录；proof 运行面零 `MODEL_API_KEY`（`_neg-harness:60-62` 删除承载+runner `assertNoFakeServiceFlags` 承）；`actualSpendCny=null`·est live=0（全离线隔离 PG·零模型外呼）。
+10. **卫生+零 live key**：`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；`.env*` ABSENT 双向记录；proof 运行面零 `MODEL_API_KEY`（零 live key 承载=`_neg-harness:60-62` 删除；runner fake-flags 门仅 live 目标路径（`f89fb27c:2901`）触发·本刀非 live 不经——rev P2-3·收据按此如实记）；`actualSpendCny=null`·est live=0（全离线隔离 PG·零模型外呼）。
 
 ## §3 范围外（边界清单·越界即 FAIL）
 
@@ -135,10 +135,26 @@
 
 **STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.3 裁决 (A) 与 §5 Ban/pins 与 §1-修法件①-⑤ 一行一 case 表**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·docker 可用性亲证为立项第一步）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且结论受疑（`:122` 六列行已被他刀翻面或读法句消失·proof `:139` 自证句消失·begin 同事务语义句 `:288` 变·`reconcileOwner` 导出面变·runner 容器原语变·§0.0 在飞分支对本刀触面有新增提交）→停·重 pin 回炉。
-- **机制不满足**：件①-⑤ 落卷后五 case 任一红或既有 O1–O4 邻面翻红（§1.2 推定形被证伪·如 abandon 嘴非 release 语义/SSE 拆除改预占态）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
+- **机制不满足**：件①-⑤ 落卷后五 case 任一红或既有 O1–O4 邻面翻红（§1.2 推定形被证伪·如 abandon 嘴非 release 语义/SSE 拆除改预占态）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。**rev P1-1 补注（已知承载点）**：SSE-FAULT-01 的 429 子臂在默认 boot 栈下 429 永不发生（`_neg-harness` 装载单 `:72-90` 不含 0189→`gateway_slot_lease_acquire` 缺失→`RateLimitService` catch fail-open `return true`·`rate-limit.service:158-175` 亲证）——EXEC 必须按 §9-rev 1-(b) Map 模式 DI 覆盖承载该子臂；漏承载致该臂红属**预登已知面**照本条停上报·非现场新红。
 - **越界需要**：修法诉求超出 §1-修法恰 5 件面（需触产品码/矩阵行翻面/进程级崩溃/live 面/第二迁移/新依赖）→停·另刀或协调方裁决（§1.3-(B)(C) 否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻套件新红/lint 五值超/docs:check>2354/docker 不可用属 blocked 另计）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9-rev 修订席收敛回路（双审席1 FAIL→rev 纯文面落点·2026-10-26）
+
+**rev 由来**：pre-exec 双审席1 对本卷起草 commit `bfaa60e06` 判 FAIL（P1×1+P2×3+OBS×1）→rev 席逐条落文如下。纯文面修订：§1.3 裁决 (A)、§5 Ban/pins 十一值、§1-修法一行一 case 表五 case 面**零改**；新增行零行为语义变更。
+
+1. **P1-1 · SSE-FAULT-01 429 臂承载前置预登（三择一·采 (b)）**
+   - **机制根因（rev 回路亲证 @`38f6e7d78`）**：`_neg-harness.boot()` 装载单（`9768b323:72-90`）**不含** `packages/db/migrations/0189_api_harden_shared_state.sql` → `gateway_slot_lease_acquire` 在隔离库缺失 → `RateLimitService.acquireSlot` 共享臂 query 抛错入 catch **fail-open `return true`**（`rate-limit.service:158` 函数入口·`:173-174` fail-open 句亲证）→ 默认 boot 栈下 429 槽满**永不发生**——SSE-FAULT-01 附带的 429 子臂若沿默认栈承载必空转。
+   - **择 (b) 落文**：件① SSE-FAULT-01 的 429 子臂**改走 Map 模式**——沿 `sse-principal-slot.proof.ts:91`（`new RateLimitService()` 无 DbService=纯进程内本地 Map·`rate-limit.service:149-151` 注释同证）+`:116`（`{ provide: RateLimitService, useValue: rl }`）先例形，对件① booted 栈内 `RateLimitService` 做 DI 覆盖后驱动 429 子臂（先例在树·最小面·零产品码零迁移零新依赖）；其余四 case 承载不变（仍 `_neg-harness.boot()` 全栈）。§1-修法件① case 表 SSE-FAULT-01 行面零改·仅执行承载形按本条精化。
+   - **§8「机制不满足」已补注**此已知承载点（见 §8 rev P1-1 补注句·漏承载致红属预登已知面照停上报·非现场新红）。
+   - **否决 (a)**（proof fixture 显式装载 0189）：改 `_neg-harness` 装载单或 proof 自载迁移均超本刀触界面（共享 harness 面/越界需要），且其装载单尾独立可载性另需专项核——非最小面。**否决 (c)**（429 子臂降为预登条件面·fail-open 现状如实记）：放弃可真实驱动的 429 语义=无谓削弱 case 面——(b) 承载零成本在树先例。
+2. **P2-1 · 件① 头注补 0058 stub 注记**：落点=§1-修法件①「头注必带」清单（已补第四项）：「0058 `interview_privacy_active`/`assert_interview_privacy_active` 最小 stub 沿 720f383d 形 pool 级装一次，覆盖五 case（reconcileOwner 围栏 SELECT+guardInterviewPrivacy 全臂）」——720f383d `:10-11`/`:32-59` 先例亲证（`_neg-harness` 不载 0058·proof 内 `pool.query` 最小 stub 一次装·≠ 0058 fence covered PIN 句同形）。
+3. **P2-2 · §0.1 runner 行锚漂移修正**：落点=§0.1 `scripts/run-e2e-isolated.mjs` 行（已改）：头注行锚 `:14-16`→`:21`/`:25`，引文「在独立、临时的 PostgreSQL cluster 上运行…绝不触碰开发数据库或开发容器」零变（`f89fb27c:21`/`:25` 现行亲证·`:14-16` 实为 S3 forwarder 注记段=原锚漂移）。
+4. **P2-3 · §2 门 10 措辞如实化**：落点=§2 门 10（已改）：「零 live key 承载=`_neg-harness:60-62` 删除；runner fake-flags 门仅 live 目标路径（`f89fb27c:2901` `LIVE_E2E_TARGETS.has(target)` 门）触发·本刀非 live 不经」——机检亲证 `:2901` 该断言被 LIVE 白名单 Set 门控·非 live 目标不触发；**收据（件⑤）按此如实记**：零 live key 承载收据=`_neg-harness:60-62` 删除句+proof 运行面 env 亲证·runner fake-flags 门不列为本刀触发收据。
+5. **OBS-1 · EXEC 立项环境 Docker daemon 落卷**：**EXEC 立项环境必须具备可用 Docker daemon**——rev 回路本机实测 `which docker` 零命中（零 docker CLI on PATH；`~/.docker` 仅陈旧配置残留·非可用 daemon 证据）→§2 门 9「docker 不可用=`blocked` 停上报（非验收红）」预登停形为**承重墙**（本机现状立项即 blocked 停·非验收红）；立项日第一步 `docker info` EXIT=0 亲证**照旧**（§8 三条款③ 同句沿承·不因本注免除）。
+
+**rev 后收束**：五条全落（§9-rev 本节 append+§0.1/§1-修法/§2/§8 四处定点·逐条如上）；docs:check 复跑 2344≤2354（受管文件数口径·纯文面零新增文件）；markers 五类零命中复跑；**STOP 维持 `draft:awaiting_pre_exec_dual`**（rev 落卷≠开工·双审余席+协调方授权链照旧）。
+
 ---
 
-*UC017-ORPHAN-HTTP-SSE REQUEST · 2026-10-26 起草 · **`STOP=draft:awaiting_pre_exec_dual`**（起草落卷即停·本卷=docs-only 1 tracked .md）· base `origin/main` @`38f6e7d78` · 分支 `line/uc017-draft` · 工作树 `meetwise-uc017` · 先验未闭亲证=矩阵 `:122` 六列行（partial/partial/partial(sweeper)/blind/HTTP/SSE 注入未进 isolated）零翻动·批 B 行 6（`:148`）零触·协调方点名在飞七分支（NHP 批 A/B/C·UC-019·pay·rag02·event-ttl）UC-017 触面逐树 0 命中 · 修法=HTTP/SSE 注入面 prove 进 isolated 收据刀（件① 新 proof 五 case 一行一 case 全 case-only+件② 注册行恰 3 行两文件+件③ harness 卷+件④ case-matrix 净增 5 行+件⑤ 收据仓根·零产品码零迁移零 live key·EXEC 期 Docker 一次性 PG 容器依赖预登=§2 门 9）· docs:check 基线 2343≤cap 2354 本树亲跑 EXIT=0（+1 预期 2344）· est live=0 · markers=0 · pins 十一值零翻 · 停止条件四类（未触发）· Ban self-approve · alone≠dual · ⛔push*
+*UC017-ORPHAN-HTTP-SSE REQUEST · 2026-10-26 起草（同日 rev1 落卷：双审席1 FAIL P1×1+P2×3+OBS×1 已逐条落·§9-rev）· **`STOP=draft:awaiting_pre_exec_dual`**（起草落卷即停·本卷=docs-only 1 tracked .md）· base `origin/main` @`38f6e7d78` · 分支 `line/uc017-draft` · 工作树 `meetwise-uc017` · 先验未闭亲证=矩阵 `:122` 六列行（partial/partial/partial(sweeper)/blind/HTTP/SSE 注入未进 isolated）零翻动·批 B 行 6（`:148`）零触·协调方点名在飞七分支（NHP 批 A/B/C·UC-019·pay·rag02·event-ttl）UC-017 触面逐树 0 命中 · 修法=HTTP/SSE 注入面 prove 进 isolated 收据刀（件① 新 proof 五 case 一行一 case 全 case-only+件② 注册行恰 3 行两文件+件③ harness 卷+件④ case-matrix 净增 5 行+件⑤ 收据仓根·零产品码零迁移零 live key·EXEC 期 Docker 一次性 PG 容器依赖预登=§2 门 9·SSE-FAULT-01 429 子臂 Map 模式 DI 覆盖承载=§9-rev 1）· docs:check 基线 2343≤cap 2354 本树亲跑 EXIT=0（起草 +1=2344·rev 纯文面零增量）· est live=0 · markers=0 · pins 十一值零翻 · 停止条件四类（未触发·§8 已补 rev P1-1 已知承载点注）· Ban self-approve · alone≠dual · ⛔push*
