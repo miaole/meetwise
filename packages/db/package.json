@@ -61,6 +61,7 @@
     "prove:int-transcript-answer-fact-root": "tsx test/int-transcript-answer-fact-root.proof.ts",
     "prove:int-transcript-remaining-sinks": "tsx test/int-transcript-remaining-sinks.proof.ts",
     "prove:int-answer-dual-write-fence": "tsx test/int-answer-dual-write-fence.proof.ts",
+    "prove:interview-event-retention": "tsx test/interview-event-retention.proof.ts",
     "prove:db-id-v7": "tsx test/db-id-v7.proof.ts",
     "prove:db-trigfam": "tsx test/db-trigfam-unify.proof.ts",
     "prove:dbhy1": "tsx test/dbhy1.proof.ts",

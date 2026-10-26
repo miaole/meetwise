@@ -57,6 +57,8 @@ export async function casTransition(c: Client, id: string, from: string, to: str
 
 /** 原语③ appendEvent：独立成 packages/db/src/interview-event.ts，此处 re-export 防 index→qbank-miss→index 循环。 */
 export { appendEvent } from './interview/interview-event.ts';
+/** interview_event 保留期清扫（event-ttl 刀件②·只经 0219 SECURITY DEFINER 函数到达）。 */
+export { purgeExpiredInterviewEvents } from './interview/interview-event-retention.ts';
 
 /** 原语④：只按线程抢租约直接拒绝。调用即抛 thread_only_lease_refused，不查询也不更新。 */
 export async function acquireLease(c: Client, threadId: string, leaseOwner: string): Promise<boolean> {
