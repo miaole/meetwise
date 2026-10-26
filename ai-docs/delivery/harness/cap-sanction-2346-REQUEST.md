@@ -1,6 +1,6 @@
 # CAP-SANCTION-2346 文档上限步进记录（mini·快速链·沿 cap-sanction-2272/2280 与 2296/2304/2312/2320/2338 sanction +8 系先例形）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵七门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual`（起草态·本刀单 commit 直落未成独立 draft commit·随派单令「只 commit 一次」颁定）史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`closed`**（2026-10-26 协调方批表翻面笔-3 滞后卷 Status 对账翻面·沿 tokstream-s4b/ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line cap-sanction-2346 nail」段已载 post-prove 双审会签 PASS×2（席1 agent_fef276d4+席2 agent_8337e888 双零 P2）+nail PR #121 merge `1ace8a9c`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · 前值 `draft:awaiting_pre_exec_dual`（起草态·本刀单 commit 直落未成独立 draft commit·随派单令「只 commit 一次」颁定）史录保留于 §8/卷尾注 · est live=0 · ⛔force push ⛔pull --rebase）
 
 ## §0 锚（届时树亲算·4ec27f55 届时值）
 
