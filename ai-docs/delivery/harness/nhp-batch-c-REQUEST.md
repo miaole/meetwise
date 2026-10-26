@@ -20,7 +20,7 @@
 | **UC-E2E-001（分面）** | §1.0.2 `:146` + case-matrix `:40` | PERF_api=blind/`case-only`（NHP-001-PERF-api-01 已注册**零收据**·PERF_web `:41`/LOAD_w `:42` 留后刀） | **有缝**：uc018 PERF 收据形先例在树 + 主链 keyless HTTP 嘴在树 → **本批 case 3** |
 | case-matrix `:86/:87` | NHP-015-FAULT-01 / NHP-015-LOAD-w-01 | 已注册**零执行收据**（锚 `—`） | 有缝（OCR DI 缝/限流缝）但同 UC-015 行多面 → 本批不取（§1.3 · 防多面同刀 wash）· 留后刀 |
 | UC-E2E-027 | `:126` + case-matrix `:112` | gap/blocked | **码面不存在可测注入缝**（产品未接线 · 停止条件登记 §1.3） |
-| UC-E2E-031/032 | `:129` + case-matrix `:96` | gap(e2e)/partial(eval) | 在飞认领：`line/uc31-draft` @`112ac8af0`（uc31-REQUEST.md 亲证）→ 跳过 |
+| UC-E2E-031/032 | `:129` + case-matrix `:96` | gap(e2e)/partial(eval) | 在飞认领：`line/uc31-draft` @`112ac8af0`——`:129` 认领亲证·case-matrix `:96` 邻域预占推断·EXEC 日复核 → 跳过 |
 | UC-E2E-033 | `:130`+`:151`+case-matrix `:97-100` | §1.0.1 四列 partial 0 缺；分面 gap/blind；NHP-033-FAULT-01=A3 live worker 越权 job RLS | **本地不可测**（需 live worker/checkpointer 面 · W1≠闭环 矩阵自钉）+ 七类补集与既有 X 族旁证重叠 wash 风险 → §1.3 |
 | UC-E2E-040–043 | `:131`+`:152`+case-matrix `:111` | gap×4 | **接线未证**（席位 CAS/批 partial_failed=静态 G-GAP · 先接线后 prove）→ blocked §1.3 |
 | UC-050–052 / PRIVACY-HTTP | `:132/:134` | — | 隐私域 + Phase 3 DELETE=503 freeze → 出域 |
@@ -44,7 +44,7 @@
   - `line/nhp-batch-a-draft` @`7983a988e`（executed 待 post-prove dual）——触面=REQUEST+三 proof+收据+**注册名 `uc012:nhp-fault`/`uc003:nhp-adv`/`uc030:nhp-fault`（tip `package.json` 零命中亲证=未并线）**；与本批三名（`uc016:nhp-neg`/`uc015:nhp-adv`/`uc001:nhp-perf-api`）前缀零碰撞亲证。
   - `line/nhp-batch-b-draft` @`c77057d6f`（draft rev）——触面=矩阵 `:115-117`/`:147-148`+case-matrix `:46-59/:83`；与本批触面（矩阵 `:120/:121/:146`+case-matrix `:40-42/:86-87` 邻区+`NHP-016-NEG-01`/`NHP-015-ADV-01` 新行）**行级互斥零重叠**。
   - `line/uc004-draft` @`336b5ee8b` · `line/uc011-draft` @`337efa8d0` · `line/uc31-draft` @`112ac8af0`——各认领 `:115`/`:117`/`:129` 面；与本批零重叠。
-- **在飞交叠复核规则（EXEC 立项日必做）**：本卷起草 turn 产品触面=0（docs-only 恰 1 新 .md）；EXEC 期触面=三隔离 prove 新文件+注册行（root/apps/api package.json）+runner 注册位（`scripts/run-e2e-isolated.mjs`）+双表行内改（矩阵 `:120/:121/:146` 邻区+case-matrix `:40/:86-88` 邻区+§1.3 两新行）。届时对各在飞分支 `git log -1 -- <触面文件>` 逐树逐件复核，任一分支顶对任一触面存在 `7e47688db` 之后新增提交 → 触停止条件「现场漂移」停手上报。
+- **在飞交叠复核规则（EXEC 立项日必做）**：本卷起草 turn 产品触面=0（docs-only 恰 1 新 .md）；EXEC 期触面=三隔离 prove 新文件+注册行（root/apps/api package.json）+runner 注册位（`scripts/run-e2e-isolated.mjs`）+`ai-docs/architecture/ai/provider-egress-inventory.json` additive 环境引用登记（三新 proof×实际出现词名·class=test-isolation·沿 uc028 `10b920521`/uc004 `834c91cb3` 先例形·漏登即 CI `environment_reference_unregistered` 红）+双表行内改（矩阵 `:120/:121/:146` 邻区+case-matrix `:40/:86-88` 邻区+§1.3 两新行）。届时对各在飞分支 `git log -1 -- <触面文件>` 逐树逐件复核，任一分支顶对任一触面存在 `7e47688db` 之后新增提交 → 触停止条件「现场漂移」停手上报。
 
 ### 0.1 blob 锚表（`git rev-parse <tip>:<path>` 亲算·8 hex）
 
@@ -63,7 +63,7 @@
 | 锚 | blob（行数） | 钉位 |
 |----|------------|------|
 | `apps/api/src/modules/quiz/quiz.service.ts` | `98edbeb2`（140） | `:30` 400 `missing_resume_id` · `:38` `pg_advisory_xact_lock` 串行化 · `:39` 404 `not_found_or_forbidden` fail-closed · `:41-42` `alreadyBegun` 幂等（零双扣零双入队）· `:45-49` 409 `resume_not_found_or_not_ready` · `:51-57` 409 `quiz_resume_reference_conflict`（CAS bind `status='created'`+NULL 守卫）· `:59-65` 402 `insufficient_entitlement` 映射（reserve 抛→catch 映射）· `:74-83` abandon CAS（`:79` `status IN ('created','generating')` · `:80` 409 `cannot_abandon` · `:81` releaseConsumption 退还）· `:125` 404 RLS get 越权不泄露 |
-| `apps/api/src/modules/quiz/quiz.controller.ts` | `9b78100d`（72） | `:55-56` SSE 槽 429 `too_many_streams`（per-principal 上限 5）· `:58` events 404 |
+| `apps/api/src/modules/quiz/quiz.controller.ts` | `9b78100d`（72） | `:57` SSE 槽 429 `too_many_streams`（per-principal 上限 5）· `:60` events 404 |
 | `apps/api/src/modules/diagnosis/diagnosis.service.ts` | `2c7c882e`（113） | `:27` 400 · `:35-36` 锁+404 · `:38-39` alreadyBegun · `:43-47` 409 · `:49-56` 409 `diagnosis_resume_reference_conflict` · `:58-64` 402 · `:72-82` abandon CAS · `:98` 404 |
 | `apps/api/src/modules/diagnosis/diagnosis.controller.ts` | `f2d7ea90`（70） | `:55` 429 槽 · `:58` 404 |
 | 旁证（零改动 · 互不替代） | `c81ea951` | `neg-input.proof.ts` `:94/:106/:284-285` quiz/diagnosis 传输层 413/畸形 JSON 臂（**业务规则 NEG 面零臂**=本刀新证据层） |
@@ -98,27 +98,28 @@
 
 ## §1 修法（三行各补缺列隔离收据 · 一行一 case · 零产品码触 · 零 invent covered · 零 live key）
 
-**修法形状**（沿批 A/uc001·uc025 `nhp-*-prove` 族先例）：每行一个具名 NHP case = 新 proof 文件 + apps/api package.json 注册行 + root package.json 双行（`:prove`/`:prove:raw`）+ runner 注册位（`scripts/run-e2e-isolated.mjs`：SOURCE_PATHS/allowlist/isolatedCommand/pre-migrate 名单——**四位全登记**，批 A §9-EXEC 第四位教训承登）· **prove-only · `apps/*/src`/`packages/*/src` 零 diff 意向**；isolated 真 PG · 零 live 模型 · 零 MODEL_API_KEY · 零外呼（`env -u` 三键具名：`MODEL_API_KEY`/`DASHSCOPE_API_KEY`/`DASHSCOPE_COMPAT_BASE_URL`）；收据 `.tmp/<case>-receipts/` + tracked `ai-docs/delivery/receipts/<case>/`（implementer pre-commit runs · **not evidence of record**）。行状态/列状态一字不动：EXIT0=case≠covered，升格仅经 coordinator nail 的 additive honesty；coveredCount=8 不变。
+**修法形状**（沿批 A/uc001·uc025 `nhp-*-prove` 族先例）：每行一个具名 NHP case = 新 proof 文件 + apps/api package.json 注册行 + root package.json 双行（`:prove`/`:prove:raw`）+ runner 注册位（`scripts/run-e2e-isolated.mjs`：SOURCE_PATHS/allowlist/isolatedCommand/pre-migrate 名单——**四位全登记**，批 A §9-EXEC 第四位教训承登）+ egress 环境引用登记（`ai-docs/architecture/ai/provider-egress-inventory.json` additive·三新 proof×实际出现词名·class=test-isolation·沿 uc028 `10b920521`/uc004 `834c91cb3` 先例形·漏登即 CI `environment_reference_unregistered` 红）· **prove-only · `apps/*/src`/`packages/*/src` 零 diff 意向**；isolated 真 PG · 零 live 模型 · 零 MODEL_API_KEY · 零外呼（`env -u` 三键具名：`MODEL_API_KEY`/`DASHSCOPE_API_KEY`/`DASHSCOPE_COMPAT_BASE_URL`）；收据 `.tmp/<case>-receipts/` + tracked `ai-docs/delivery/receipts/<case>/`（implementer pre-commit runs · **not evidence of record**）。行状态/列状态一字不动：EXIT0=case≠covered，升格仅经 coordinator nail 的 additive honesty；coveredCount=8 不变。
 
 ### Case 1 · `NHP-016-NEG-01`（UC-016/029 · `apps/api/test/uc-e2e-016-nhp-neg.proof.ts`）
 
 - **需求源**：`e2e-scenarios.md:163`（UC-016 验收「额度不变」TC-E2E-016-no-credit integration · 契约 `POST /quiz`、`GET /diagnose/:id`）+ `:183`（UC-029 退化边界·本 case 不触其图面·仅 HTTP NEG 族）。
 - **证据层**：isolated 真 PG + Nest createApp+listen(0)+fetch 真产品 HTTP（沿 uc025 三层壳 `07077d30` 先例）。
-- **臂**：PC = 双口（quiz/diagnosis）happy create+begin 202（对照）；N1 = 缺 resume-id → 400 `missing_resume_id`（双口 `:30`/`:27`）；N2 = 不存在 id begin → 404 `not_found_or_forbidden`（advisory 锁后 fail-closed `:39`/`:36`）；N3 = 未摄取/他人 resume 绑定 → 409 `resume_not_found_or_not_ready`（`:49`/`:47`）；N4 = 同壳二次绑定 → 409 `*_resume_reference_conflict`（`:57`/`:56`）；N5 = 零桶用户 begin → 402 `insufficient_entitlement` + **额度净 0**（TC-E2E-016-no-credit 真行使 · `:59-65`/`:58-64`）；N6 = 重复 begin → 202 `alreadyBegun` 同 jobId + 恰 1 job 行 + 额度单扣（幂等 `:41-42`/`:38-39`）；N7 = ready 终态后 abandon → 409 `cannot_abandon`（CAS 不倒退已完成 `:79-80`/`:77-78`）+ created 态 abandon → released 退还净 0（`:81`）；N8 = 跨用户 get/events → 404 不泄露（RLS 0 行 `:125`/`:98` + SSE `:58`）；N1–N8 全程额度净账审计（失败臂零扣零退错）。
+- **前置申明（种子/良构）**：consent 种子（consent_record·`uc-e2e-001-nhp-adv.proof.ts:264` 先例形·§5 豁免具名）+ owned∧ingested resume 前置到位（经产品路径 `POST /resume` 文本摄取·非裸 INSERT·零新增豁免）为 PC/N3/N4 对照基面；臂引用 uuid 列面（`resume.id` uuid·`0061` 迁移起 `resume_quiz`/`resume_diagnosis.resume_id` 亦 uuid）必须良构 UUID 字面量——非 UUID 即 pg `22P02`（invalid_text_representation）→ 500 非产品 NEG 语义·臂自失效。
+- **臂**：PC = 双口（quiz/diagnosis）happy create+begin 202（对照）；N1 = 缺 resume-id → 400 `missing_resume_id`（双口 `:30`/`:27`）；N2 = 不存在 id begin → 404 `not_found_or_forbidden`（advisory 锁后 fail-closed `:39`/`:36`）；N3 = 未摄取/他人 resume 绑定 → 409 `resume_not_found_or_not_ready`（`:49`/`:47`）；N4 = 同壳二次绑定 → 409 `*_resume_reference_conflict`（`:57`/`:56`·预绑壳行种子形状具名：`'created'` 壳 + `resume_id`/`privacy_epoch` 预绑非 NULL 正中 CAS `resume_id IS NULL AND privacy_epoch IS NULL` 守卫 0 行 + 零 job 行（幂等 `:41-42` 不短路）+ bind 目标 resume owned∧ingested（否则 `:49`/`:47` 前段 409 先发遮蔽冲突面）· 沿 `cf1e570b` seedQuiz 先例形）；N5 = 零桶用户 begin → 402 `insufficient_entitlement` + **额度净 0**（TC-E2E-016-no-credit 真行使 · `:59-65`/`:58-64`）；N6 = 重复 begin → 202 `alreadyBegun` 同 jobId + 恰 1 job 行 + 额度单扣（幂等 `:41-42`/`:38-39`）；N7 = ready 终态后 abandon → 409 `cannot_abandon`（CAS 不倒退已完成 `:79-80`/`:77-78`）+ begin→abandon（有预留）→ `released:"released"` 退还预留·净账 0（`:81` releaseConsumption 真退）+ 零预留子臂（`'created'` 壳未经 begin 直 abandon）→ `released:"error"`（releaseConsumption 无 consumption 行如实返回 error·净账 0·期望按真实返回钉死·Ban 断言迁就）；N8 = 跨用户 get/events → 404 不泄露（RLS 0 行 `:125`/`:98` + SSE `:60`）；N1–N8 全程额度净账审计（失败臂零扣零退错）。
 - **非替代申明**：`neg-input`（传输层 413/畸形 JSON）· `full.e2e` quiz-402 面（Key blocked 层）· `uc001:nhp-neg`（interview 口 402 映射族）= 旁证互不替代 · Ban 互借关列。
 
 ### Case 2 · `NHP-015-ADV-01`（UC-015 · `apps/api/test/uc-e2e-015-nhp-adv.proof.ts`）
 
 - **需求源**：`e2e-scenarios.md:140`（UC-015 失败族 · 本 case = 对抗注入/伪造声明面非 F1–F5 重铺）。
 - **证据层**：isolated 真 PG + 真 HTTP（同三层壳）。
-- **臂**：PC = 合法纯文本上传 200 `ingested`（对照 · 零扣费面）；A1 = 声明 `application/pdf` + zip/docx 字节体 → 422 `magic_mismatch`（fail-closed 先于解析 `resume.service:66-69` ← `resume-extract:82/:85`）；A2 = text 路径偷渡压缩体（zip 三签字节 + `.txt` 声明）→ 422 `magic_mismatch`（`:91` 防伪称纯文本偷渡）；A3 = text 路径偷渡 `%PDF-`/OLE2 头 → 422（`:92/:93`）；A4 = 含 `\u0000` 的 ≥20 字文本 → 200 且落库 blob 解密面零 NUL（`:210-211` 剥除 · 注入字节不 500）；A5 = 同 principal 连发 >15 次（突发桶耗尽）→ 第 16 次 429 `too_many_requests`（`:38-41` 反滥用缝真行使 · 拒面零消费零半写）；V1 = `RESUME_PARSE_MAX=1` 进程窗 + 双并发上传 → 第二请求 503 `server_busy`、首请求不受损（`:50-52` 全局解析槽 · **窗值披露 D2**：产品缺省 6 不改 · 仅测试进程 env）；N = 对抗拒面全程零 entitlement 消费净账（415/422/429/503 全零扣）。
+- **臂**：PC = 合法纯文本上传 200 `ingested`（对照 · 零扣费面）；A1 = 声明 `application/pdf` + zip/docx 字节体 → 422 `magic_mismatch`（fail-closed 先于解析 `resume.service:66-69` ← `resume-extract:82/:85`）；A2 = text 路径偷渡压缩体（zip 三签字节 + `.txt` 声明）→ 422 `magic_mismatch`（`:91` 防伪称纯文本偷渡）；A3 = text 路径偷渡 `%PDF-`/OLE2 头 → 422（`:92/:93`）；A4 = 含 `\u0000` 的 ≥20 字文本 → 200 且落库 blob 解密面零 NUL（`:210-211` 剥除 · 注入字节不 500）；A5 = 专用独立 principal 同 principal 连发 >15 次（突发桶耗尽）→ 第 16 次 429 `too_many_requests`（`:38-41` 反滥用缝真行使 · 拒面零消费零半写）；V1 = 专用独立 principal + `RESUME_PARSE_MAX=1` 进程窗 + 真 PDF 首请求或 N 并发上传 → 败者 ≥1 收 503 `server_busy`、首请求不受损（`:50-52` 全局解析槽 · **窗值披露 D2**：产品缺省 6 不改 · 仅测试进程 env）· **臂预算申明：A5/V1 及 PC/A1–A4 各用独立 principal·per-principal 突发桶预算互不挤占（防 A5 突发耗尽误伤他臂 429 串扰）**；N = 对抗拒面全程零 entitlement 消费净账（415/422/429/503 全零扣）。
 - **非替代申明**：F1–F5（`0d0fc91e:57-117`）= 既有旁证零改动；本刀臂 reason 级可分（`magic_mismatch`/`too_many_requests`/`server_busy` 均非 F 族码）· Ban 借本刀收据宣 F 族加强。
 
 ### Case 3 · `NHP-001-PERF-api-01` 执行（UC-001 · `apps/api/test/uc-e2e-001-nhp-perf-api.proof.ts`）
 
 - **需求源**：case-matrix `:40`（已注册 case-only·零收据——本 case=执行收据补账 · 措辞 case-only 保留）+ 矩阵 `:146`（PERF_api 格）。
 - **证据层**：isolated 真 PG + capped 子进程（沿 `uc018-perf-load-capped-child.mjs` `c63259c0` 形 · Docker NanoCpus=2e9 / Memory=4GiB caps 具名入收据）。
-- **负载形状（登记）**：主链 keyless HTTP 嘴序列（`POST /resume` 文本唯一后缀防 dedup 混叠 → `POST /quiz`+`begin` → `GET /quiz/:id` → `POST /diagnosis`+`begin`）· N=100 · concurrency=10 · 虚拟用户桶种子=夹具豁免具名（`cf1e570b:323` 先例形 · 逐项申明入收据 · Ban 裸 INSERT 绕产品路径的豁免仅此一件）；期望（结构面 · 沿 NHP-018-PERF-01 同口径）：p50≤250ms · p95≤750ms · p99≤1500ms · error_rate≤0.5% + 收据四件套（CMD+EXIT+负载参数冻结+`.tmp`/tracked 路径）。
+- **负载形状（登记）**：主链 keyless HTTP 嘴序列（`POST /resume` 文本唯一后缀防 dedup 混叠 → `POST /quiz`+`begin` → `GET /quiz/:id` → `POST /diagnosis`+`begin`）· N=100 · concurrency=10 · 虚拟用户桶种子=夹具豁免具名（`cf1e570b:323` 先例形 · 逐项申明入收据 · Ban 裸 INSERT 绕产品路径·豁免以 §5 枚举完备形逐项具名·本 case 内=桶种子）；期望（结构面 · 沿 NHP-018-PERF-01 同口径）：p50≤250ms · p95≤750ms · p99≤1500ms · error_rate≤0.5% + 收据四件套（CMD+EXIT+负载参数冻结+`.tmp`/tracked 路径）。
 - **读法钉**：隔离库负载 ≠ 生产容量 ≠ 线上 SLO ≠ HA（D3）· 零模型零 drain（job 滞队）· `actualSpendCny=null` · **Ban 借本收据宣 `verify:e2e-performance` 族（`:153` not_run）复绿或 NHP-PERF-API-SUITE（case-matrix `:133`）闭合**——per-UC 实例喂伞不替代伞。
 
 ---
@@ -131,7 +132,7 @@
 | `:120` UC-015 PERF_web/LOAD_worker（`:150`+`:41/:42`） | web 面单机 Chromium ≠ 真机容量（批 A 同 veto）· LOAD 与 case 3 同族重载 → 留后刀。 |
 | `:121` UC-016/029 ADV 列 | 与 uc010 LED-ADV（批 B 行 5）/uc002 跨 user session ADV（Line R）旁证族重叠度高 · quiz/diagnosis SSE 对抗臂 wash 风险 → 留后刀（NEG 本刀取·ADV 留痕）。 |
 | **`:126` UC-027 + case-matrix `:112` NHP-027-NEG-01** | **停止条件登记：码面不存在可测注入缝**——产品无 ManualReview HTTP/表/模块（`apps/api/src/modules/` 全列亲证无此域·矩阵自钉「产品未接线/blocked」）→ 不可测·不硬造断言·先接线后 prove。 |
-| `:129` UC-031/032 + case-matrix `:96` | 在飞认领 `line/uc31-draft` @`112ac8af0`（uc31-REQUEST.md 亲证）· 且 fake-model 禁令/G7-Key 邻域（批 A 先例）→ 他线。 |
+| `:129` UC-031/032 + case-matrix `:96` | 在飞认领 `line/uc31-draft` @`112ac8af0`——`:129` 认领亲证（uc31-REQUEST.md）· case-matrix `:96` 邻域预占推断·EXEC 日复核 · 且 fake-model 禁令/G7-Key 邻域（批 A 先例）→ 他线。 |
 | `:130` UC-033 + `:151` + case-matrix `:97-100` | §1.0.1 四列 partial 0 缺；NHP-033-FAULT-01（A3 live worker 越权 job RLS）**本地不可测**（需 live worker/checkpointer · W1≠闭环 矩阵自钉）；分面 X10≠SLO 留后刀。 |
 | `:131`/`:152`/case-matrix `:111` UC-040–043 | 席位 CAS/批 partial_failed 接线未证（静态 G-GAP）→ **先接线后 prove** · blocked（批 A 先例）。 |
 | `:132`/`:134` UC-050–052/PRIVACY-HTTP | 隐私域（须换 privacy-int）+ Phase 3 DELETE=503 freeze → 出域。 |
@@ -147,14 +148,14 @@
 
 1. **docs:check（红停条款）+ cap 预算核（亲算）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0 · 本树起草前亲跑 **EXIT=0 · scanned 2362**（stdout「public text policy scanned 2362 managed worktree files」亲读）· cap=**2370**（`public-text-policy.mjs:145` `MAX_FILES=2_370` 亲证）· 本卷新文件 +1 → 预期 **2363 ≤ 2370 = 不越限 · 无需步进 · 无越限臂联动**（`public-text-policy.proof.mjs:349-354` 越限臂系 fixture 内注入路径计数 `PTP_FILE_LIMIT:2371`·不随树漂·零改）。协调方「越限沿先例步进（+8·二十先例形）+越限臂联动+承登」预授权条款**本次不触发**·如实承登：若 EXEC 期在飞并线使届时 scanned+1 > 2370 → 触「验收红不可修」停手上报（Ban 就地改 cap）。
 2. **markers 五类零命中 + est live=0**：本刀改动集五类标记词 grep 零命中（词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:159-163`·不复抄卷内防自指·回执入 EXEC 收据）· est live=0（§6）。
-3. **diff 面机检**：起草 commit `git diff --numstat <base>` **恰 1 tracked 路径**=本卷 .md；EXEC 期 diff 面=本卷+双表行内改（矩阵 `:120/:121/:146` 邻区+case-matrix `:40/:86-88` 邻区+§1.3 两新行）+三 proof 新文件+注册行（root/apps/api package.json）+runner 注册位——届时逐件登记·多任何未登记 tracked 路径即停。
+3. **diff 面机检**：起草 commit `git diff --numstat <base>` **恰 1 tracked 路径**=本卷 .md；EXEC 期 diff 面=本卷+双表行内改（矩阵 `:120/:121/:146` 邻区+case-matrix `:40/:86-88` 邻区+§1.3 两新行）+三 proof 新文件+注册行（root/apps/api package.json）+runner 注册位+egress-inventory additive 登记（三新 proof×实际出现词名·class=test-isolation）——届时逐件登记·多任何未登记 tracked 路径即停。
 4. **EXEC 预基面（届时重 pin）**：三 case 隔离 prove EXIT=0 **双 fresh**（实现方恰一次+独立复验恰一次·attempts 台账含红次如实）· 邻面不回退（`neg:input`/`uc015:ingest-failures`/`neg:all` 按届时 SSOT 口径恒等）· case 3 收据含 Docker caps+分位数+error_rate 四件套（缺任一=门红）· 双表同步 diff 逐件登记（§1.0.3 `:164` 令）· 任一门红 → §8 停止条件。
 5. **行/列冻结**：EXIT0=case≠covered · 矩阵 `:120/:121/:146` 与 case-matrix 对应行措辞仅允许 blind/gap→`case-only`（或 partial 保留）诚实登记 · coveredCount=8 零翻转 · Ban 借三收据互 wash（三 case 互不替代互不借用）。
 
 ## §3 范围外（越界即 FAIL）
 
 1. **产品码面零触**：`apps/`、`packages/` 产品源零 diff（EXEC 期仅新增 test prove 文件+注册行+runner 注册位·沿 uc001/uc025 nhp 族 prove-only 先例）。
-2. **批 A/B/UC 专属线触面零触**：矩阵 `:114/:118/:128`（批 A）· `:115-117`/`:147-148`+case-matrix `:46-59/:83`（批 B）· `:122/:124/:125/:127`（uc017/uc019/uc025/uc028）· uc004/uc011/uc31 在飞面——只读。
+2. **批 A/B/UC 专属线触面零触**：矩阵 `:114/:118/:128`（批 A）· `:115-117`/`:147-148`+case-matrix `:46-59/:83`（批 B）· `:122/:124/:125/:127`（uc017/uc019/uc025/uc028）· uc004/uc011/uc31 在飞面——只读；`ai-docs/architecture/ai/provider-egress-inventory.json` 系共享 additive 环境引用登记面（本批 EXEC 按先例形 additive 登记·非他线专属）不在零触之列。
 3. **其余 §1.0 行零触**：盘点表落选行全部只读（§1.3）。
 4. **共享 SSOT 零改**：REMAINING-NORTH-STAR-QUEUE / product-campaign-LEDGER / execution-master-checklist / gap-bug-backlog 只读引用——翻面权归协调方。
 5. **covered/queue 翻面零预支** · **零迁移零配置**（Ban 新迁移 Ban 触告警/CI 配置 · case 3 的 `RESUME_PARSE_MAX` 类 env 仅限 case 2 V1 测试进程窗·零配置文件改）。
@@ -165,7 +166,7 @@
 
 ## §5 Ban 列表 + pins
 
-**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban 自批（pre-exec 双审两独立外席·alone≠dual）；Ban retry-to-green（红即停·attempts 台账·Ban 改断言迁就）；Ban invent covered（含升格 partial/借旁证 wash/实例宣伞）；Ban live key（零 Key 面硬跑）；Ban 触批 A/B/UC 专属线触面与其余 §1.0 行；Ban 触产品码面/迁移/CI 告警配置/cap 值（越限停手上报）；Ban 改共享 SSOT；Ban 触既有 proof 文件（零触只读引用·含 F1–F5 与 uc018-perf-load）；Ban 裸 INSERT 绕产品路径（豁免仅 case 3 桶种子+case 壳行 `'created'` 态·逐项具名入收据）；Ban 就地归因门矩阵外新红（如实登记升级）；Ban 伪造已读/已验来源（§0 全亲证为本卷前提）；Ban 造 .env*/写 Key 值入树入据；Ban 顺带升级依赖包。
+**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban 自批（pre-exec 双审两独立外席·alone≠dual）；Ban retry-to-green（红即停·attempts 台账·Ban 改断言迁就）；Ban invent covered（含升格 partial/借旁证 wash/实例宣伞）；Ban live key（零 Key 面硬跑）；Ban 触批 A/B/UC 专属线触面与其余 §1.0 行；Ban 触产品码面/迁移/CI 告警配置/cap 值（越限停手上报）；Ban 改共享 SSOT；Ban 触既有 proof 文件（零触只读引用·含 F1–F5 与 uc018-perf-load）；Ban 裸 INSERT 绕产品路径（豁免=隔离夹具种子/终态推进逐项具名入收据·枚举完备：case 1 PC/N6 桶种子（entitlement_bucket·`cf1e570b:323` 先例形）+ case 1/2 consent 种子（consent_record·`uc-e2e-001-nhp-adv.proof.ts:264` 先例形）+ case 3 桶种子 + 壳行种子含状态钉（created/ready/failed·沿 `cf1e570b` seedQuiz 先例）——枚举外裸 INSERT 即违本 Ban·新增豁免须先回炉修订本卷）；Ban 就地归因门矩阵外新红（如实登记升级）；Ban 伪造已读/已验来源（§0 全亲证为本卷前提）；Ban 造 .env*/写 Key 值入树入据；Ban 顺带升级依赖包。
 
 **pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
 
