@@ -1,0 +1,309 @@
+closed（§9-post post 双审双 PASS 会签席翻面 2026-10-26 · 原值 executed:awaiting_post_prove_dual 史录 provenance 见 §8/§9-EXEC-R2/§9-post · alone ≠ dual）
+
+# UC-E2E-004 career-path 全链路 · 隔离库 e2e HTTP 主路径 REQUEST（主路径 + 落点断言 + 失败降级臂 · docs-only 零码动）
+
+基线 `47dd6be56d5f3b59ccf5dc0c827b0bdc2e6952de`（origin/main tip，fetch 亲证）。分支 `line/uc004-draft`。工作树 meetwise-uc004（主仓 `git worktree add ../meetwise-uc004 -b line/uc004-draft`）。这一步只新增这份说明，不改产品代码。行号是在这棵树上打开文件看到的。
+
+缺口源：`ai-docs/delivery/REMAINING-NORTH-STAR-QUEUE.md:25` Phase 2 第 9 项「UC-004 FAULT/A3 gap · L」。起草前复核（本树亲测）：`e2e-requirement-coverage-matrix.md:115` UC-E2E-004 整行 gap（NEG gap · FAULT gap · BOUND gap · ADV blind）；`:173` 拆行「抬到 covered 还缺」明示 e2e HTTP 主路径、成长落点、A3 失败降级仍缺；`e2e-covered-path-backlog.md:28` 第 004 行同一口径；本树 `e2e/` 目录（full.e2e.ts / helpers / ocr-fixture.ts / performance.e2e.ts）零 career-path 用例。缺口未闭，无翻面候选。
+
+## §0 锚
+
+### 0.1 HTTP 路由面（已存在，即本门的主路径口）
+
+`apps/api/src/modules/interview/interview.controller.ts:16` `@Controller('interview')`。`:237-241` `@Post(':id/career-path')` + `@HttpCode(HttpStatus.OK)` → `generateCareerPath`；`:243-245` `@Get(':id/career-path')` → `getCareerPath`。即 `POST /interview/:id/career-path`、`GET /interview/:id/career-path`。路由今天只有 `apps/api/test/validate.ts:632-634` 的本地 validate 直打（矩阵 `:173` 已钉「validate.ts 旁证≠covered」），没有隔离库 e2e 门。
+
+### 0.2 AiGraphRun(career-path) 图状态机面（Line T 已接线，本门的落点断言对象）
+
+`apps/api/src/modules/interview/interview.service.ts:821-825` 注释原句：derive 经 career-path 单节点图执行，AiGraphRun(career-path) 状态机真实落库（tx1 guards/评估前置零写 → tx2 create/reuse active version+1 → 图(derive) → career_path upsert 原样 + active→succeeded 同事务 | 失败 active→failed 后 rethrow）。`:827` `generateCareerPath`；`:828` `denyPublicPreviewWrite`；`:829` pre 块（guardInterviewPrivacy + `SELECT overall, dimensions FROM assessment_report WHERE interview_id=$1`，无行 409 `assessment_required`；`requireTrustedPracticeOverall` 抛 `insufficient_evidence` 409）；`:846` `selectCareerPathDerive(id, careerPathFailSeamThreadId(), deriveCareerPath)`；`:847` `runCareerPathGraph`。ledger 三闭包：begin `:850-866`（`:853` 事务级 advisory lock、`:854-857` latest-row `FOR UPDATE` 复用/接管、`:858-865` `ai_graph_run` INSERT/UPDATE `status='active'`、version+1、lease）；commitSuccess `:867-882`（`:871-875` `career_path` upsert `ON CONFLICT (owner_user_id, interview_id) DO UPDATE`、`:877-881` 同事务 `status='succeeded'`，version fence）；markFailed `:883-888`（`status='failed'`，version+1）；`:890` `onTransitionError` fail-closed 只观测不伪装终态。`:894-896` `getCareerPath` 委托 `getCareerPathFor`。
+
+图本体：`packages/ai-graphs/src/career-path.ts:20` `CAREER_PATH_GRAPH_NAME = 'career-path'`；`:21` `CAREER_PATH_INJECTED_FAILURE`；`:40-44` 单节点图 `addNode('derive', …)`（dep=注入的 `deriveCareerPath` 纯本地函数，`packages/domain/src/career.ts` 零 IO 零模型）；`:48-53` `selectCareerPathDerive` 精确等值 fail-only seam；`:55-70` `runCareerPathGraph`（begin → invoke → commitSuccess | markFailed + rethrow 原错误）。导出 `packages/ai-graphs/src/index.ts:15-16`。
+
+### 0.3 FI-3 seam（失败降级臂的注入口，production-off）
+
+`apps/api/src/modules/interview/interview.service.ts:52-55` `careerPathFailSeamThreadId()`：`NODE_ENV=production` 恒返回 undefined；否则读 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID`（`:54`）。`packages/ai-graphs/src/career-path.ts:48-53` 只在 env 值与线程 id **精确相等**时换成确定性抛错 dep；未设/空 = 原 dep 同一引用，零行为差。同一进程内非匹配线程完全不受影响——`apps/api/test/uc-e2e-004-career-path-fault.proof.ts:64`（`IV_FI3` seam 常量）+ `:66`（`SEAM_ENV_KEY`）+ `:230-232`（API 子进程带 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID=IV_FI3` 启动后 CONTROL 线程照常成功）已是先例。失败臂断言集沿该 prove `:44-46` 七项口径：①POST 失败可解释（500 `internal_error` 信封）②`ai_graph_run(career-path,线程)` 恰一行 `failed` ∧ version≥2 ③GET 404 无失败产物 ④额度账本净变 0 ⑤server alive ⑥in-fault 重试再失败 + version 递增 + `career_path` 仍 0 行 ⑦零 trace。
+
+### 0.4 成长落点（A1/A2 如实：能断什么、不能断什么）
+
+A1 曲线：`apps/api/src/modules/profile/profile.controller.ts:26-28` `GET /profile/growth` → `apps/api/src/modules/profile/profile.service.ts:85-105` `growth()` 从 `assessment_report`（status='ready'）按时间序聚 `deriveGrowth` 维度点。种子评估就绪后曲线点存在，A1「≥2 维度数据点」可做确定字段断言。
+A2 档案关联：产品今日**未接线**——`growth()` 只读 `assessment_report`/`score_card`，不 join `career_path`；全仓无 GrowthTimeline 写面（矩阵 `:173`「无 GrowthTimeline 写」、静态钉 harness `uc-e2e-004-career-path.md:34` S4 / `:38` G-GAP-3 原钉）。本门**不造**关联断言；A2 关联落点属另一刀，本门只断今天真实存在的面：`ai_graph_run` succeeded 行 + version、`career_path` 表行（读真相）、`GET /interview/:id/career-path` 确定字段、GET 前置 404。
+GET 重闸：`apps/api/src/modules/interview/interview-assessment.ts:94-108` `getCareerPathFor`——无行 404 `not_found`（`:96`/`:106`）；有行再过 `:99` `requireCurrentScorableCards(c,id,'insufficient_evidence')`（定义 `:36`，资格单源 `aggregateInterviewScores`——0161 收窄后 `eligible_card_count` 只认 `score_card.status='practice_eligible'` 单态，`packages/db/migrations/0161_practice_only_read_narrowing.sql:33` 亲证；`b_review_eligible` 归 B 端评审态不计入，两态口径仅存于 growth answered 计数面 `profile.service.ts:100`），故 GET 200 臂的种子 `score_card` 须满足该资格谓词：`status='practice_eligible'` ∧ `deterministic_total` 数值非空（0100 `:172`）；种子仅 `b_review_eligible` 必假红。
+
+### 0.5 既有门与本门不触碰的口径
+
+- 静态诚实钉：`pnpm uc004:career-path:prove`（根 `package.json:198-199` → `apps/api/package.json:87` → `apps/api/test/uc-e2e-004-career-path.proof.mjs`）。接线落地后它 EXIT=1 是预期绊线（矩阵 `:115` 原钉「静态 `uc004:career-path:prove` EXIT=1 预期绊线（另刀）」）。本门不替代、不改它。
+- 运行时故障钉：`pnpm uc004:career-path-fault:prove`（根 `package.json:200-201` → `apps/api/package.json:88` → `apps/api/test/uc-e2e-004-career-path-fault.proof.ts`）。Line T 后 EXIT=0（4×0）。本门只回归复跑，原句零改。
+- 两者均「本绿 ≠ covered ≠ A3 closed」（fault prove 头注原句）；`GAP-UC004-FAIL-A3` / `NHP-004-FAULT-01` / 矩阵 UC-E2E-004 行 stays gap，翻转只走 covered 评估器 + 协调方 nail。
+
+### 0.6 门注册形三先例与零 live key 形
+
+根 `package.json` 注册形（每门两行）：`:135-136` `uc018:abandon:http:prove` / `:163-164` `uc019:report-regenerate:http:prove` / `:173-174` `uc002:http:prove`——`"<name>": "node scripts/run-e2e-isolated.mjs <name>:raw"` + `"<name>:raw": "pnpm -C apps/api prove:<kebab>"`；`apps/api/package.json` 一行 `prove:<kebab>` 指向 `test/*.proof.ts`（`:36`/`:39`/`:46`），运行形 `node --import @swc-node/register/esm-register`。隔离壳 `scripts/run-e2e-isolated.mjs`：per-run 随机容器 `meetwise-e2e-*` + 动态端口 + `assertIsolatedTestTarget` attestation，绝不触碰开发库。
+零 live key 形：`apps/api/test/_neg-harness.ts:59-63` boot 前 `delete process.env.MODEL_API_KEY / MODEL_BASE_URL` + `assertIsolatedTestTarget`（`:65`）+ 全量 sql/ 与迁移镜像；`apps/api/test/report-retry-http.proof.ts:17` 头注「NO MODEL_API_KEY（generate 注入确定性函数）」=stub 注入先例。career-path 主路径 derive 本就纯本地零模型（0.2），零 live key 依赖天然成立；prove 全程零模型端点、零 `ai_invocation_trace` 写（trace 行数 before/after 为观察面，沿 fault prove C-MO 口径）。
+
+## §1 修法
+
+只新增一个隔离库 e2e prove 文件并按 0.6 注册形注册一门，覆盖主路径 + 落点断言 + 失败降级臂。不改产品代码、不改既有两钉口径、不新增迁移。
+
+### 1.1 新 prove 文件 `apps/api/test/uc-e2e-004-career-path-http.proof.ts`
+
+boot 形沿 `_neg-harness` `boot()`（真 NestJS 栈 + 隔离 attestation + 删 MODEL_API_KEY/MODEL_BASE_URL）；进程 env 预设 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID=<失败线程>`（0.3 精确等值 scoping，同一进程内主路径线程不受影响，同 fault prove `:230-232` 先例）。种子沿 fault prove `:204-226` 同口径（superuser 直插 + `set_config('app.principal_user','userA',false)` GUC：user_account + interview(completed) + assessment_report(status='ready', overall=60, dimensions 2 项 gap) + entitlement_bucket），另按 0.4 补 GET 重闸所需可评分 `score_card` 行——形钉满足 `aggregateInterviewScores` 资格谓词：`status='practice_eligible'` ∧ `deterministic_total` 数值非空（0161 `:33` 单态）；`assessment_report.dimensions` 逐项必含数值 `score`（沿 fault prove dims2 形 `:212-215`——`deriveGrowth` 仅收 `Number.isFinite(score)` 维度项，growth.ts:57）；并补臂 7 两 409 前置线程种子：无评估线程（零 `assessment_report` 行）+ overall 不可信线程（`assessment_report(status='ready', overall=NULL)`，`requireTrustedPracticeOverall` 对 NULL fail `insufficient_evidence`，scoring-honesty.ts:145-147）。断言臂（Ban 减项）：
+
+主路径：
+1. POST 前 `GET /interview/:id/career-path` → 404 `not_found`；
+2. `POST /interview/:id/career-path` → 200，体为契约原形 `{readiness, level, milestones}`（`level='mid'`——种子 overall=60 纯分数阶梯 ≥50→mid，career.ts:51/:57 阶梯单源，沿 validate.ts:632 先例；milestones 非空数组）；
+3. `ai_graph_run`（`graph_name='career-path'` ∧ `thread_id=<主路径线程>`）恰一行 `status='succeeded'` ∧ `version>=2` ∧ `lease_owner IS NULL`（active→succeeded 转换证据，Ban 接受无 version 行）；
+4. `career_path` 表恰一行（owner+interview 维度，读真相）；
+5. `GET /interview/:id/career-path` → 200 同字段（GET 重闸放行）；
+6. 越权负前置（内嵌主路径叙事·非 NEG 列收据，§1.4/§9-rev 裁定）：他人 principal GET → 404 信封 `not_found_or_forbidden`（guard 面 `interview.service.ts:67`，沿 validate.ts:634 口径升 e2e）；
+7. 409 负前置臂（内嵌主路径叙事·非 NEG 列收据）：无评估线程 POST → 409 信封 `assessment_required`（`interview.service.ts:832`）；overall 不可信线程（种子 `overall=NULL`）POST → 409 信封 `insufficient_evidence`（scoring-honesty.ts:145-147 → 映射 `:838-839`）；两 409 线程各断 `ai_graph_run`（`graph_name='career-path'` ∧ `thread_id=`该线程）恰 0 行（tx1 评估前置抛点先于 begin，`:829-843` 零写）；
+8. A1：`GET /profile/growth` → 200 且断言钉 `body.dimensions.length >= 2`（deriveGrowth 维度并集口径，growth.ts:53 dimSet ∪ `:86` 返回单源；Ban 以 `points.length>=2` 顶替——单报告种子恰 1 点必假红；确定字段断言，只读 assessment 驱动的真实聚合）；
+9. 零模型边界：`ai_invocation_trace` 全表行数 before/after 净变 0（观察面）。
+
+失败降级臂（seam 线程）：
+10. POST → 500 `internal_error` 统一信封（实测为准，Ban 编造体）；
+11. `ai_graph_run(career-path,<失败线程>)` 恰一行 `status='failed'` ∧ `version>=2`；
+12. `GET /interview/<失败线程>/career-path` → 404 信封 `not_found`（`interview-assessment.ts:102`，无失败产物）；
+13. 额度账本（`entitlement_bucket`/`entitlement_consumption`/`payment_order` 三表 before/after 逐行快照）净变 0（career-path 不计费 D1，净变 0 是观察结果非假设）；
+14. in-fault 重试：再次 POST 再失败 + run 行 version 递增 + `career_path` 仍 0 行 + 账本仍净变 0；
+15. server alive 钉复打主路径线程形：失败臂后 `POST /interview/<主路径线程>/career-path` → 200 ∧ 主线程 `ai_graph_run` 行仍恰一行 `status='succeeded'`（begin 复用/接管同 run 行·version 单调递增）；Ban 健康 ping 顶替（server alive=主路径真实可服务）。
+
+EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban retry-to-green、Ban 改断言迁就实测、Ban 把 EXIT1 记成 flake。本绿 ≠ covered ≠ A3 closed ≠ 矩阵翻面。
+
+### 1.2 门注册（两文件三行，沿 0.6 三先例形）
+
+- 根 `package.json`（`:201` 后邻位插入两行）：`"uc004:career-path:http:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw"` 与 `"uc004:career-path:http:prove:raw": "pnpm -C apps/api prove:uc004-career-path-http"`；
+- `apps/api/package.json`（`:88` 后邻位插入一行）：`"prove:uc004-career-path-http": "node --import @swc-node/register/esm-register test/uc-e2e-004-career-path-http.proof.ts"`。
+
+执行层允许触碰面仅此三行 + 1.1 新文件。Ban 借刀改：`interview.controller.ts`/`interview.service.ts`/`packages/ai-graphs/**`/`packages/domain/**`/`packages/db/**`/profile/worker、`scripts/run-e2e-isolated.mjs` 与 `scripts/isolated/*`、静态钉与故障钉两 prove、SSOT 三件（矩阵 / checklist / backlog）。
+
+> §9-rev2 差异清单增列（第四处 · EXEC sanction 延伸授权）：`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单一条 `'uc004:career-path:http:prove:raw'` additive（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形 · 零既有行删改）——壳内允许触碰面由 9E.2 三处扩为四处；另一处 rev2 授权窄触 = 门 2 夹具（fault prove 种子块）补 score_card 资格种子（§9-rev2 根因③）。除此之外 Ban 面原样。
+
+## §1.3 否决
+
+- 不依赖 live key：本门零 `MODEL_API_KEY`/零 live 模型端点（`_neg-harness` 删键形 + derive 纯本地）；Ban 引 `e2e/full.e2e.ts` live 形充当本门；Ban 在 prove 里发明 Key。
+- 不造 covered 假翻面：本门 EXIT 0 ≠ covered ≠ 矩阵任何列翻转；covered 翻面须 covered 评估器 + 协调方 nail，本步（draft）与 EXEC 均不改 SSOT；Ban 在文档或断言里写 covered。
+- 不改产品代码（0.2/0.3/0.4 全部锚面零触）；不新增迁移；不改 `scripts/ai-docs/public-text-policy.mjs` 上限。
+- 不改既有 prove：`uc-e2e-004-career-path.proof.mjs`（静态诚实钉，EXIT=1 预期绊线原样保留）与 `uc-e2e-004-career-path-fault.proof.ts` 原句口径零改（只回归复跑）。
+- 不把「成长档案关联 / GrowthTimeline 写」造进断言（0.4 如实：A2 关联未接线，属另一刀）；A1 只断真实聚合面。
+- 不把 EXIT 0 写成 A3 closed / G-GAP 全闭 / UC-E2E-004 covered；不碰 UC-018 / UC-052 / UC-025 任何行与文件。
+- 不改 `deriveCareerPath` 纯函数与对外契约（成功体/409 信封/500 信封/GET 404 语义全部原样）；Ban 为绿改业务语义。
+- 不 push、不 force-push、不碰 secrets/`.env*`；Ban self-approve（alone ≠ dual）。
+
+## §1.4 交叠登记与 EXEC 串行裁定（rev 双审收敛新增）
+
+在飞交叠卷：`line/nhp-batch-b-draft`（bfda3c53c，`ai-docs/delivery/harness/nhp-batch-b-REQUEST.md`）认领覆盖矩阵 §1.0.1 行 4-6，其行 4（矩阵 `:115` UC-E2E-004）拟补 NEG/BOUND/ADV 缺列收据——与本卷同触 UC-E2E-004 行面。双审收敛裁定：**EXEC 串行，本卷先行**（HTTP 主路径 + 失败降级臂先落）；本卷**不声称 NEG 列收据**（NEG 臂 6/7 仅为内嵌负前置，见 §9-rev P1-2），批 B 行 4 的 NEG/BOUND/ADV 列收据空间不被本卷占用；**批 B 在本卷并线后收缩行 4 scope 再 rebase，并按其 §0「EXEC 立项照届时 tip 重 pin」规则重 pin 全部行锚**。本卷 EXEC 前置检查相应加一项：对在飞分支 `git log -1 -- ai-docs/delivery/e2e-requirement-coverage-matrix.md` 逐树复核，交叠面出现 `47dd6be56` 之后新提交即停手上报。
+
+## §2 门
+
+执行时跑（EXEC 阶段）：
+
+1. `pnpm uc004:career-path:http:prove`（新门，1.2 注册形；经 `scripts/run-e2e-isolated.mjs` 隔离壳）。期望 EXIT 0 全臂 PASS（1.1 十五臂）。
+2. `pnpm uc004:career-path-fault:prove` 回归，期望 EXIT 0（4×0 不回退，attempt 台账原样）。
+3. `pnpm uc004:career-path:prove` 静态诚实钉：本刀不改它；现 EXIT=1 为预期绊线（0.5 原钉），不得为绿改其口径。
+4. `pnpm turbo typecheck --force`。
+
+§9-rev2 修正后预期值（如实预登 · 待容器 runtime 恢复后由协调方行使时逐门对账 · 9E.5 红停承登口径不变，行使前本绿未得）：
+
+- 门 1 `pnpm uc004:career-path:http:prove` → 期望 EXIT 0 十五臂全 PASS（修正件两处：壳 migrate 名单第四处——修根因①零迁移面起跑；臂 5 jsonb 键序不敏感等值——修根因②确定性假红；rev3 补登：种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提——行使时夹具崩 ≠ 新根因，归 §9-rev3 承登的 rev2 复审 FAIL 残余一并核销 · rev4 勘正：该前提经 rev3 席2 干跑证伪为不充分——夹具随动仅修 23502 残余，仍被两触发器 permission denied×2 另崩拦截（见 §9-rev4），门 1 可绿前提修正为「种子夹具随动 ∧ 两触发器角色授权自愈」合取）；
+- 门 2 `pnpm uc004:career-path-fault:prove` → 期望 EXIT 0 4×0（修正件：夹具补 practice_eligible score_card 种子 deterministic_total=60——修根因③ CONTROL-0-GET-200 重闸 409）；
+- 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → 现 EXIT=1 预期绊线原值不变（口径零改）；
+- 门 4 `pnpm turbo typecheck --force` → 期望 EXIT 0。
+
+`pnpm docs:check`（根 `package.json:9`，即 `node scripts/ai-docs/check-docs.mjs`）——draft 与 EXEC 两阶段都跑。上限在 `scripts/ai-docs/public-text-policy.mjs:137` `MAX_FILES = 2_346`；本树起草前 main 实测扫描 2341（本席亲测 `47dd6be56`），本步新增一个受管文件 → 2342 ≤ 2346，余 4，通过。前刀形制里「2328 恰等」系当树旧值；本树实值 2346 足额，帽步进无须随刀行使（在飞承登语如实记录于此，不改上限）。不许把上限改大。
+
+`pnpm turbo lint`：0 errors；警告不得超过各包现有 `--max-warnings`：根 `package.json:8` 为 5242，`apps/api/package.json:7` 为 1423，`packages/domain/package.json:10` 为 115，`packages/ai-runtime/package.json:14` 为 628，`apps/worker/package.json:7` 为 959，`packages/db/package.json:11` 为 1042，`apps/web/package.json:7` 为 601，`packages/qdrant-store/package.json:11` 为 27，`packages/ai-graphs/package.json:10` 为 47，`packages/contracts/package.json:12` 为 265，`packages/config/package.json:8` 为 0，`packages/db-mysql/package.json:8` 为 0。低于上限可以通过，不许把上限改大。
+
+本步（draft）届树实测（本席亲测）：`docs:check` EXIT 0，扫描 2342（=main 2341 + 本档 1，≤ 2346）；markers 卫生 grep 唯一命中为下方声明两行自引字面，零真实占位标记（收据随 commit）。
+
+卫生声明：本档零占位标记——`grep -n "TODO|FIXME|XXX|TBD|待补|占位|<MARKER>"` 于落卷前亲证：唯一命中为本声明行自引 pattern 字面（非占位），零真实占位标记。
+
+## §8
+
+closed（§9-post 双审双 PASS 会签翻面 2026-10-26 · §9-EXEC-R2 主门绿史录 · 原 executed:awaiting_post_prove_dual 留痕 · 原 draft 钉值随行使翻面史录 · STOP=closed）
+
+closed（三处状态之二 · §9-post 双审双 PASS 会签翻面 2026-10-26 · rev5+EXEC 复行使门矩阵全绿史录 · releaseEvidence=false · Not HA · coveredCount=8 不变 · STOP=closed）
+
+## §9-rev（双审合并修订 · rev 席落卷 2026-10-26 · 纯文面·零码动·零断言放宽）
+
+双审回路：席1 PASS + 席2 FAIL → rev 回路。以下逐条落点全部 rev 席本树（@`4bf00bed0`）亲证后落文，行号即本卷所见：
+
+1. **P1-1 臂 8 断言钉死**（席2）：臂 8 改钉 `body.dimensions.length >= 2`——deriveGrowth 维度并集口径（growth.ts:53 dimSet ∪ `:86` 返回单源）；Ban `points.length>=2` 顶替（单报告种子恰 1 点必假红）。种子规格同步钉 `assessment_report.dimensions` 逐项必含数值 `score`（沿 fault prove dims2 形 `uc-e2e-004-career-path-fault.proof.ts:212-215`；deriveGrowth 仅收 `Number.isFinite(score)` 项，growth.ts:57）。落点：§1.1 种子段 + 臂 8。
+2. **P1-2 NEG 降格与交叠裁定**（双席收敛）：本卷保持十五臂全貌；NEG 臂 6/7 降格为主路径叙事内嵌负前置（臂题加「负前置·非 NEG 列收据」标注），不单独声称 NEG 列收据、不据此求矩阵任何列翻面；新增 §1.4 交叠登记 `line/nhp-batch-b-draft`（bfda3c53c）并裁定 EXEC 串行：本卷先行·批 B 收缩行 4 scope 后 rebase 重 pin。落点：臂 6/7 题注 + 新 §1.4。
+3. **席1 P2-1 §0 行号四处勘误**（逐处亲证）：QUEUE 缺口源 `:24`→`:25`（`REMAINING-NORTH-STAR-QUEUE.md:25` =「9. UC-004 FAULT/A3 gap · L」）；§0.2 interview.service `denyPublicPreviewWrite` `:829`→`:828`、pre 块 `:830`→`:829`（亲证 `:827` generateCareerPath / `:828` deny / `:829` asPrincipal pre 块）；§0.2 ai-graphs 导出 `:17-18`→`:15-16`（index.ts:15-16 恰为 career-path 两 export 行）；§0.3 fault prove seam 常量 `:55`→`:64`（`const IV_FI3`）并补 `SEAM_ENV_KEY` `:66` 锚。落点：§0 缺口源句 + §0.2 ×2 + §0.3。
+4. **席1 P2-2 臂 7 不可信种子钉 overall NULL**：`insufficient_evidence` 前置线程评估种子钉 `assessment_report(status='ready', overall=NULL)`（亲证 `requireTrustedPracticeOverall` 对 NULL fail `insufficient_evidence`，scoring-honesty.ts:145-147；409 映射 interview.service.ts:838-839）。落点：§1.1 种子段 + 臂 7。
+5. **席1 P2-3 臂 15 钉复打主路径线程形**：server alive 收敛为失败臂后复打主路径线程 `POST` → 200 ∧ 主线程 `ai_graph_run` 仍恰一行 `succeeded`（begin 复用/接管同 run 行·version 单调递增）；Ban 健康 ping 顶替。落点：臂 15。
+6. **席2 P2-1 臂 6/7 信封键钉**：臂 6 越权 GET 404 钉 `not_found_or_forbidden`（guard 面 interview.service.ts:67）；臂 7 两 409 显式落键 `assessment_required`（:832）/`insufficient_evidence`（:838-839）；GET 侧 `not_found`（interview-assessment.ts:102）于臂 1/12 保持显式。落点：臂 1/6/7/12。
+7. **席2 P2-2 409 线程 ai_graph_run 零行臂**：两 409 线程各断 `ai_graph_run`（career-path ∧ 该 thread_id）恰 0 行——tx1 评估前置抛点先于 begin（interview.service.ts:829-843 零写·begin 首写在 `:850` 后）。落点：臂 7。
+8. **席2 P2-3 臂 2 钉 `level='mid'`**：种子 overall=60 → 纯分数阶梯 ≥50→mid（career.ts:51 阶梯单源/`:57`），沿 validate.ts:632 先例（`r.body.level === 'mid'`）。落点：臂 2。
+9. **席2 P2-4 种子 score_card 须满足 aggregateInterviewScores 资格谓词**：钉 `status='practice_eligible'` ∧ `deterministic_total` 数值非空（0100 `:172`）——0161 收窄后 `eligible_card_count` 只认 practice_eligible 单态（`packages/db/migrations/0161_practice_only_read_narrowing.sql:33` 亲证）；连带勘误 §0.4 旧「只认 IN ('practice_eligible','b_review_eligible')」两态口径为 0161 单态口径（两态口径仅存于 growth answered 计数面 profile.service.ts:100，非 GET 重闸资格谓词）——此项为席2 P2-4 落文必要连带，否则种子钉与谓词文面自相矛盾。落点：§0.4 + §1.1 种子段。
+10. **席2 P2-5 QUEUE 行号**：与席1 P2-1 第一处同标（`:24`→`:25`），已并入第 3 条落点。
+
+工序收据：§9-rev append 后复跑 markers 卫生 grep + `pnpm docs:check`（纯文面零新增文件，扫描数维持 2342≤2346；收据随 commit）。本节为纯文面修订：不改 §1 十五臂总数、不改 §2 门矩阵、不改任何 Ban/否决条、不改产品代码与两既有 prove 口径。
+
+draft:awaiting_pre_exec_dual（rev 卷尾钉 · 与卷首行/§8 同值 · STOP 维持 · awaiting_pre_exec_dual 不变）
+
+## §9-EXEC（EXEC 落码落卷 · EXEC 席落码 + 协调方收口席落卷 2026-10-26 · 隔离门红停承登 · 纯 additive 落卷 · 零 SSOT 翻面）
+
+协调方两项裁决随令行使：① sanction 授权壳内三处 additive 条目；② 隔离门行使待容器 runtime 恢复（用户拍板中）。本节为 WIP 落卷防丢 + 壳三处落码 + 静态门承登 + 红停如实承登。
+
+### 9E.1 WIP 落卷核验（本席 git status/diff 亲证）
+
+- 新 prove：`apps/api/test/uc-e2e-004-career-path-http.proof.ts`——十五臂落码形（主路径 arm 1-9 + 失败降级 arm 10-15；arm 7 含 A/B/C 三断言行，全卷 17 条 `A()` 断言收口；boot 形沿 `_neg-harness`、seam `MEETWISE_CAREER_PATH_FAIL_THREAD_ID` 精确等值、EXIT 契约与本绿≠翻面头注原样、`releaseEvidence=false · Not HA`）。
+- 注册三行（§1.2 形）：根 `package.json` 两行（`"uc004:career-path:http:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw"` + `":raw"` → `pnpm -C apps/api prove:uc004-career-path-http`）；`apps/api/package.json` 一行（`prove:uc004-career-path-http` → `node --import @swc-node/register/esm-register test/uc-e2e-004-career-path-http.proof.ts`）。
+- EXEC 前置两件行号勘误（proof 头注「行号随手续勘」·本席逐处开文件亲证）：① `interview-assessment.ts:94-104` `getCareerPathFor`（无行抛点 `:102`、GET 重闸 `requireCurrentScorableCards` 调用 `:99`、定义 `:36`）；② 失败臂七项口径实引 fault prove `:38-41`（REQUEST §0.3 旧引 `:44-46` 勘正如 proof 头注）。
+
+### 9E.2 壳三处 additive（sanction ① 随令行使 · 沿 uc002/uc018/uc019 http 族「同 commit 落壳内三处」先例形）
+
+`scripts/run-e2e-isolated.mjs` 恰三处、每处一条 `uc004:career-path:http:prove:raw` additive、零既有行删改（行号为本卷落卷时所见）：
+
+1. `isolatedReceiptSources` 收据来源清单（`:182`，邻 `uc004:career-path-fault` 条目）：shell 两件 + 新 proof + `_neg-harness` + interview controller/service/assessment 三面 + `db.service`/`all-exceptions.filter`（500 信封）+ `packages/ai-graphs/src/career-path.ts`（图+seam）+ `packages/domain/src/career.ts`/`growth.ts`（derive 纯函数/arm 8）+ profile controller/service（arm 8 路由面）+ `principal`/`isolated-test-target` + `0001`/`0058` 迁移（privacy fence 镜像源）；
+2. 允许表（`.includes(target)` 白名单大行 `:2251`）：`'uc004:career-path:http:prove:raw'` 邻位 append 于 `'uc004:career-path:prove:raw'` 后；
+3. 分派 ternary（`:2464`）：`→ ['pnpm', ['-C', 'apps/api', 'prove:uc004-career-path-http']]`，邻 `uc004:career-path` 分派臂。
+
+registerForm 核对（链路闭合）：根 `<name>` → 壳 `<name>:raw`（允许表 ✓ 分派 ✓）→ apps/api `prove:uc004-career-path-http` → proof 文件；`node --check scripts/run-e2e-isolated.mjs` 语法过。
+
+### 9E.3 偏离登记（§1.2 Ban 借刀改壳 → sanction ① 授权后行使 · EXEC 席落码·协调方收口）
+
+§1.2 原钉 Ban `scripts/run-e2e-isolated.mjs` 与 `scripts/isolated/*`；EXEC 席实测门 1 无法行使的根因即壳面结构缺口（允许表/分派/收据三处均无本门条目）。协调方 sanction ① 授权壳内三处 additive 条目（沿 uc002/uc018/uc019 http 族先例形），本席随令行使如 9E.2。越权面零扩：仅三处 additive、零既有行删改、`scripts/isolated/*` 零触、两既有 prove 与产品代码零触。
+
+9E.3-rev2 增补（EXEC 门行使真红后 rev 回路第二巡 · rev 席落卷）：偏离登记扩第四处——`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单一条 `'uc004:career-path:http:prove:raw'` additive（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形；缺此条 = 门 1 空库起跑零迁移面，§9-rev2 根因①）；连带门 2 夹具窄触登记：`uc-e2e-004-career-path-fault.proof.ts` 种子块补 practice_eligible score_card 资格种子（§9-rev2 根因③ · §1.3「两 prove 口径零改」之窄触豁免随 rev 令授权：断言集与 EXIT 契约零触，属夹具种子 additive 非口径改写）。
+
+### 9E.4 静态门全绿（EXIT 原值 · 本席届树复跑亲测）
+
+- typecheck（§2 门 4）：`pnpm turbo typecheck --force` → Tasks: 8 successful, 8 total（0 cached），EXIT 0；
+- lint：`pnpm turbo lint --force` → Tasks: 12 successful, 12 total，EXIT 0，0 errors；根 5242/5242 恰等、api 1423/1423 恰等（domain 115、ai-graphs 47、contracts 265、web 601、ai-runtime 628、db 1042、worker 959、qdrant-store 27 各恰其帽）；零 `--max-warnings` 帽动；
+- docs:check：EXIT 0，扫描 2343 受管文件 ≤ 2346（draft 2342 + 新 proof 1，余 3；上限帽 `MAX_FILES=2_346` 零触）；
+- markers 卫生 grep：唯一命中 §2 两行自引字面（`:106`/`:108`），此外零命中。
+
+### 9E.5 两道隔离门红停承登（不宣称收口）
+
+1. 壳白名单结构缺口（已 sanction 补齐·静态面闭合）：如 9E.2/9E.3——补齐≠行使，行使仍须容器。
+2. 容器 runtime 缺失（待用户恢复）：本树 `docker` 命令不存在（command not found，exit 127）——隔离壳 per-run 随机容器形（§0.6 原钉）无法 boot。故 §2 门 1（`pnpm uc004:career-path:http:prove` 十五臂）、门 2（`uc004:career-path-fault:prove` 回归）、门 3（`uc004:career-path:prove` 静态诚实钉复跑——同经隔离壳，其 EXIT=1 预期绊线值本刀未追踪、口径零改）三道容器依赖门**全部未行使**；门 4 已行使如 9E.4。待容器 runtime 恢复后由协调方行使门 1/2/3，凭真实 EXIT 值另行落卷，Ban 以静态四门绿顶替运行门绿。
+
+### 9E.6 STOP 处置（沿 UC-028 红停先例）
+
+隔离门未行使、本绿未得——**§8 状态维持 `draft:awaiting_pre_exec_dual` 不翻**：零 covered 宣称、零矩阵/checklist/backlog 触碰、零 A3 closed 宣称、`coveredCount` 零动；本 commit 为落卷防丢 + 壳三处 sanction additive + 静态四门承登，releaseEvidence=false · Not HA。
+
+draft:awaiting_pre_exec_dual（§9-EXEC 卷尾钉 · 与卷首行/§8/§9-rev 同值 · STOP 维持 · 红停承登 · 隔离门未行使不宣称收口）
+
+## §9-rev2（EXEC 门行使红停真红三根因 · rev 回路第二巡 · rev 席落卷 2026-10-26 · 文面+修法面微调 · 零断言放宽）
+
+EXEC 回路：容器 runtime 恢复后双门行使，门 1（`uc004:career-path:http:prove`）真红（ARM8 42501 + ARM5 键序假红）、门 2（`uc004:career-path-fault:prove` 回归）真红（CONTROL-0-GET-200 得 409）→ rev 回路。三根因与修法逐条落点如下（rev2 席本树 @`9e17c3713` 亲证行号）：
+
+1. **根因① ARM8 42501**：runner migrate 名单缺 `uc004:career-path:http:prove:raw` → http 门空库起跑（零迁移面 · 真表不在、影子窄表无授权 → growth() SET LOCAL ROLE 42501；growth 直读 score_card 面 `profile.service.ts:62`/`:100`）。生效机制（rev3 勘误·原「影子 score_card 未授 app_role」单句失真，改如实）：名单补入后门 1 真迁移先行，boot() 影子重放 `sql/01_schema.sql` 于文件头顶 DROP+重建 app_role（`01_schema.sql:8-10`/`:129`）后按 `01_schema.sql:131` blanket GRANT（`SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public`）重授——真迁移链的 score_card 在场即被此 blanket 覆盖，growth() 42501 随真表在场而消。副作用如实登记：该 blanket 越出 0100 最小授权面（`0100_scoring_fact_root.sql:223` 对 scoring 四表仅授 app_role SELECT）多授 INSERT/UPDATE——隔离边界仍由 FORCE RLS owner 谓词承担，非授权面收窄；本登记为文面如实，不改任何授权。修法 = §9-EXEC 偏离登记（9E.3-rev2 增补）+ §1-修法件② 差异清单增列第四处：`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单 additive 一条 `'uc004:career-path:http:prove:raw'`（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形 · 零既有行删改）。落点：runner :3258 + 9E.3-rev2 + §1.2 差异清单。
+2. **根因② ARM5 jsonb 键序**：milestones 经 career_path jsonb 落库回读，PG16 归一化对象键序（短键先行，goal 先于 stage）→ 逐字节 `JSON.stringify` 等值确定性失败。修法 = 臂 5 断言改键序不敏感等值（逐字段 stage/goal——域形 Milestone{stage,goal} `career.ts:20` 全值等值 · 语义等强非断言放宽）。落点：`uc-e2e-004-career-path-http.proof.ts` arm 5（含 proof 头注 arm 5 行）。
+3. **根因③ 门 2 夹具缺 score_card 种子**：夹具只种 user_account+interview+assessment_report(overall=60)+entitlement_bucket · 零 score_card → getCareerPathFor G5 重闸（`interview-assessment.ts:99` requireCurrentScorableCards → aggregateInterviewScores → eligible=0 → 409 `insufficient_evidence`）→ CONTROL-0-GET-200 得 409。修法 = 门 2 夹具补 practice_eligible score_card 种子（deterministic_total=60 · 沿门 1 臂 1 种子参数形；列形沿 `validate.ts:96-112`/`:708-740` 迁移链全链先例——门 2 跑真迁移链，0100 score_card FK 链 NOT NULL 全列）· 仅 IV_CTL 需要（CONTROL-0-GET-200 与 FI-2/FI-3 server-alive GET 200 重闸面；FI1/FI2/FI3 GET 走无行 404 先于重闸）。落点：`uc-e2e-004-career-path-fault.proof.ts` 种子块（interview/assessment 循环后 additive）。
+
+偏离登记（rev2 · 双处 Ban 面窄触 · 均 additive 零删改）：① 壳 migrate 名单（§1.2 原 Ban 壳面 → EXEC sanction ① 延伸授权 · 9E.3-rev2）；② 门 2 夹具（§1.3 原 Ban「两 prove 口径零改」→ rev 令授权的资格种子 additive：断言集与 EXIT 契约零触，属夹具种子非口径改写）。越权面零扩：产品代码、SSOT 三件、`scripts/isolated/*`、静态诚实钉、既有断言语义全部零触。
+
+§1/§2 文面随动：§1.2 差异清单增列第四处（如 1）；§2 门矩阵如实预登修正后预期值（门 1 EXIT 0 十五臂全 PASS / 门 2 EXIT 0 4×0 / 门 3 EXIT=1 预期绊线原值 / 门 4 EXIT 0）。十五臂总数、断言语义（键序不敏感等值为等强修正）、EXIT 契约、本绿≠covered≠A3 closed≠矩阵翻面口径全部原样；零 SSOT 翻面、coveredCount 零动、releaseEvidence=false · Not HA。
+
+工序收据：§9-rev2 append 后复跑 markers 卫生 grep + `pnpm docs:check`（零新增受管文件，扫描数维持 ≤2346；收据随 commit）；修法面三件静态自证：`node --check scripts/run-e2e-isolated.mjs` 过 + apps/api typecheck 过（届树亲测，收据随 commit）。运行门行使仍待协调方（9E.5 红停承登延续），本巡修法落卷不宣称门绿、如实预登仅作行使时对账基线。
+
+draft:awaiting_pre_exec_dual（§9-rev2 卷尾钉 · 与卷首行/§8/§9-rev/§9-EXEC 同值 · STOP 维持 · 红停修法落卷 · 行使仍待协调方）
+
+## §9-rev3（rev2 复审 FAIL 残余 P1 修法落卷 · rev 回路第三巡 · rev 席落卷 2026-10-26 · 复审锚 @`028afdc0b`）
+
+rev2 落卷（028afdc0b）窄域复审 **FAIL** 承登：rev2 runner 名单 additive 使门 1 真迁移先行 → proof 自建窄列种子撞迁移真表 NOT NULL（23502）确定性崩——`question_rubric` 三列窄形缺 `question_version/rubric_version/difficulty/question_content_hash`、`score_card` 八列窄形缺 `answer_id/submission_id/score_request_id/issued_contract_id/rubric_version/measurement_version`（0100/0092 全链 NOT NULL + FK 链全列）。修法路径 = 门 2 夹具同款 `validate.ts:96-115` 全链列形先例。四件落点（rev3 席本树亲证）：
+
+1. **P1 主修**：`uc-e2e-004-career-path-http.proof.ts` 种子块改全链六表 INSERT（`question_rubric` → `interview_answer_submission` → `interview_answer_artifact` → `issued_question_contract` → `score_request` → `score_card`，列形照抄 `validate.ts:96-115`）。约束逐条满足：hash 族 64-hex（^[a-f0-9]{64}$）· coverage=1（0100 0..1 CHECK）· rubric_version=1（≥1 CHECK）· status 白名单（published/issued/scored/practice_eligible ∈ 0100 十态枚举）· 0158 BEFORE INSERT 初始态白名单放行 practice_eligible（0158_score_card_insert_guard.sql:27）；uuid 字面全落 00000000-…-00000000c4xx 段防撞他夹具；ON CONFLICT 幂等保留；资格谓词（practice_eligible 单态 ∧ deterministic_total=60 数值非空）与「仅 MAIN 需要」范围零变。
+2. **头注勘误两处**（同文件）：头注「SCOR 聚合函数在 boot 影子环境缺失」失真注改如实双录（门 1 经壳 migrate 名单真迁移先行 → 起跑时真六表 + 0161 函数在；无迁移链的影子环境才由窄复刻兜底）；「窄列复刻」CREATE 注改如实（真迁移链在时 CREATE TABLE IF NOT EXISTS 为 no-op、CREATE OR REPLACE FUNCTION 以逐字同 0161 收窄体重刷同文函数行为面等价；窄列形不再作为任何种子落点）。
+3. **§9-rev2 文面随动两处**：根因① 生效机制改记「`01_schema.sql:131` blanket GRANT（app_role 重建后重授 · `:8-10`/`:129` DROP+重建在前）」并登记其越 0100 最小授权面副作用（`0100_scoring_fact_root.sql:223` 对 scoring 四表仅授 app_role SELECT，blanket 多授 INSERT/UPDATE；隔离边界仍由 FORCE RLS owner 谓词承担，零授权改写）；§2 门 1 预期补登「种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提 · 行使时夹具崩 ≠ 新根因」。
+4. **STOP 计数口径统一**：全卷钉值 `draft:awaiting_pre_exec_dual` 六处钉行（rev4 勘正口径：钉行清点为事实登记非恰数承诺，防后续巡增钉即假）——卷首 `:1` · §8 双行 `:121`/`:123` · §9-rev 卷尾 `:142` · §9-EXEC 卷尾 `:186` · §9-rev2 卷尾 `:202`；三处主钉（卷首 + §8 双行）维持 `draft:awaiting_pre_exec_dual` 原值不翻；本节不再另立钉行（计数口径统一为钉行清点，防逐节增钉漂移 · rev4 沿本节先例不另立钉行）。
+
+越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触；十五臂总数与断言语义零变（本巡纯种子列形 + 文面如实）。运行门行使仍待协调方（9E.5 红停承登延续），修法落卷不宣称门绿。
+
+工序收据：§9-rev3 落卷后复跑 markers 卫生 grep（改动集新增行零命中；REQUEST 卷内唯一命中仍为 §2 两行自引字面）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2346）+ `pnpm turbo typecheck --force`（EXIT 0）+ `pnpm turbo lint --force`（EXIT 0 · api 1423/1423 恰等 · 零帽动）+ diff 恰本巡四件落点两 tracked 文件（proof + REQUEST · 零新增文件 · ≤4 tracked 界内）。
+
+## §9-rev4（rev3 双审分歧采信 + P1 触发器权限修法落卷 · rev 回路第四巡 · rev 席落卷 2026-10-26 · 复审锚 @`c23c43112`）
+
+rev3 落卷（c23c43112）复审**双审分歧**承登：席1 静态 PASS / 席2 干跑 **FAIL**——协调方**采信席2**（干跑实证优先于静态文面），rev 回路第四巡开。席2 干跑实证（混合环境：门 1 真迁移先行 + boot 影子重放）：影子重放 DROP 重建 `interview`（`sql/01_schema.sql:6`）与 `interview_job`（`sql/05_interview_jobs.sql:3`）湮灭 `0048_checkpoint_physical_erasure.sql:70` / `0058_interview_privacy_queue_fence.sql:12` 对 `privacy_api_owner` 的 SELECT GRANT；而真 `0092:353-355` / `0126:167-169` 两 BEFORE INSERT 触发器（SECURITY DEFINER · 函数 OWNER=`privacy_api_owner`，0092:350 / 0126:164）随真 artifact 表存活、仍以该角色执行 → permission denied×2 确定性崩。三件落点（rev4 席本树亲证）：
+
+1. **P1 主修（两条自愈授权）**：`uc-e2e-004-career-path-http.proof.ts` 种子块前 boot-patch 区（隐私围栏镜像块内 additive）补 `GRANT SELECT ON interview TO privacy_api_owner;` + `GRANT SELECT ON interview_job TO privacy_api_owner;` 两条幂等重授 + 混合机制如实注释——授权面恰回 0048/0058 原面（不多授一权）；断言集、EXIT 契约、十五臂语义零变。
+2. **干跑证据链（席2 实测承登）**：一次性空库行使 → EXIT 3（两断点 permission denied，归因如上）→ 补两条 GRANT → 整链 EXIT 0。修法有效性以该链为凭；「行使时崩 ≠ 新根因」边界同此口径。
+3. **§2 :106 勘正**：rev3 补登的「种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提」经席2 干跑证伪为**不充分**——夹具随动仅修 NOT NULL 23502 残余，仍被触发器 permission denied×2 另崩拦截；门 1 可绿前提自本巡起修正为「种子夹具随动 ∧ 两触发器角色授权自愈」合取（§2 :106 文面已随动加勘正注）。
+
+P2 两登记：
+
+- **P2-1 钉行口径**：§9-rev3 第 4 条「恰六处同值」改「六处钉行」清点口径（§9-rev3 :211 文面已随动）——钉行清点为事实登记非恰数承诺；本巡沿 rev3「不再另立钉行」先例零新钉，六钉（卷首 `:1` · §8 双行 `:121`/`:123` · §9-rev 卷尾 `:142` · §9-EXEC 卷尾 `:186` · §9-rev2 卷尾 `:202`）维持 `draft:awaiting_pre_exec_dual` 原值不翻。
+- **P2-2 连带删除备忘（对十五臂零影响）**：席2 干跑如实观察——影子重放 CASCADE 连带删 4 真对象：`fk_interview_job_binding` / `fk_interview_application_binding`（挂真 interview 表 · `0028_application_bound_interview.sql:27`/`:23`，随 `01_schema.sql:6` DROP…CASCADE 湮灭）、policy `p_application_route_binding_recruiter_insert`（`0104_job_route_decision.sql:261-262`）、function `tf_enforce_job_application_binding`（`0144_db_trigfam_unify.sql:91` · 参数含 job_application 复合类型）。零影响备忘：四对象均在 job binding / application route binding / 触发器族面，十五臂触面（interview / assessment_report / score 六表 / entitlement 三表 / ai_graph_run / career_path / ai_invocation_trace / profile growth）零涉及、零断言依赖、零补建动作。
+
+越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触（本巡落点仅 proof boot-patch 区两条 GRANT + 本卷文面）。运行门行使仍待协调方（9E.5 红停承登延续），修法落卷不宣称门绿。
+
+工序收据：§9-rev4 落卷后复跑 markers 卫生 grep（改动集新增行零命中；REQUEST 卷内唯一命中仍为 §2 自引字面）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2346）+ `pnpm turbo typecheck --force`（EXIT 0）+ `pnpm turbo lint --force`（EXIT 0 · api 1423/1423 恰等 · 零帽动）+ diff 恰两 tracked 文件（proof + REQUEST · 零新增文件 · ≤4 tracked 界内）。
+
+## §9-EXEC-R1（rev4 复验 PASS 后 EXEC 行使 · 门 1 首跑真红 ARM8 第三断点红停 · rev4 复验+EXEC 一体席（席 2）落卷 2026-10-26 · 复审锚 @`09d0b4df7` + merge `299fd6efd`）
+
+### R1.1 行使前置（rev4 窄域复验 PASS 承登）
+
+origin/main fetch 亲证（cb9c8efc5，领先 55 commits）→ merge `299fd6efd`：唯 `scripts/run-e2e-isolated.mjs` 同文件 additive 冲突一处——runner 允许表大行 HEAD 侧 `uc004:career-path:http:prove:raw` × origin/main 侧 `uc025:nhp-bound-isolated:prove:raw` 双位点 additive，**双保留**合并（两侧各归原邻位 · 零删改 · `node --check` 过）；cap union 如实：UC-025 并线 sanction 已将帽 2354→2362（`558690214`），本树 docs:check 届值扫描 2357 ≤ 2362（余 5），本巡无须再步进。`pnpm install --frozen-lockfile` 过。rev4 两 GRANT 落点亲读（proof `:118-119` · rev4 diff 恰 9 行 insertion 零删改 · boot-patch 隐私围栏镜像块内纯 additive）；§9-rev4 承登核对全在（钉行六处原值 · §2 `:106` 勘正 · P2-2 备忘）；静态四门届树复跑全绿（typecheck 8/8 EXIT 0 · lint 12/12 0 errors api 1423/1423 恰等零帽动 · docs:check 2357≤2362 · markers 卫生 grep 唯一命中为 §2 两行自引字面）。协调方授权「复验 PASS 即连续行使 EXEC」已行使。
+
+### R1.2 门矩阵 EXIT 原值（首跑如实录 · attempt 台账 · one_shot 零 retry-to-green）
+
+- docker info 亲证：Server 29.5.2 EXIT 0（容器 runtime 在场，9E.5 第 2 条阻现已解）。
+- **门 1 主门 `node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw` → EXIT 1 真红**：17 断言 **16 PASS / 1 FAIL**——唯 `ARM8-GROWTH-DIMENSIONS-LENGTH-GTE-2` 红（`GET /profile/growth` → 500 · code 42501 · `permission denied for function interview_privacy_fenced_targets`）；其余十六臂全 PASS。**前三巡修法面经本跑逐一验证有效**：rev2 ①壳 migrate 名单（门 1 真迁移起跑 · 无 42501 表级红）✓ · rev2 ②arm5 jsonb 键序不敏感等值 ✓ · rev3 全链六表种子（无 23502 崩）✓ · rev4 两触发器 privacy_api_owner 授权（无 permission denied×2 崩、门 1 行使全程走通至 arm15）✓。attempt 台账：attempt1 一次行使零重跑（Ban retry-to-green 未犯 · 主门第二轮不行使）；stdout 留痕 `.tmp/uc004-exec-gate1-stdout.log`（ISOLATED_POSTGRES_OUTPUT_WITHHELD · LOCAL_ISOLATED_PROOF_RECEIPT release_evidence=false）。
+- 门 2 `pnpm uc004:career-path-fault:prove` 回归 → **EXIT 0** 4×0（ATTEMPT-0-CONTROL / FI1 / FI2 / FI3 attempts=4 one_shot · rev2 根因③夹具补种子后 CONTROL-0-GET-200 得 200 如期）；stdout `.tmp/uc004-exec-gate2-stdout.log`。
+- 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → **EXIT 1 = 预期绊线原值恰等**（口径零改；倒置期望核对通过——红即其预期绿）；stdout `.tmp/uc004-exec-gate3-stdout.log`。
+- neg 抽验 `node scripts/run-e2e-isolated.mjs neg:auth` → **EXIT 0**（90 条负路径全绿 · 本门鉴权邻面无溢出）；stdout `.tmp/uc004-exec-neg-auth-stdout.log`。
+- 静态门复跑：typecheck EXIT 0 8/8 · lint EXIT 0 12/12 0 errors（api 1423/1423 恰等 · 零帽动）· docs:check EXIT 0 2357≤2362 · markers 卫生 grep 唯一命中为 §2 两行自引字面。
+
+### R1.3 ARM8 红根因归因（混合机制同族**第三断点** · 只归因零自修）
+
+- 断点对象：`interview_privacy_fenced_targets()`——`packages/db/migrations/0206_interview_privacy_active_read_tier.sql:43-58`（SECURITY DEFINER · OWNER=`privacy_api_owner`）· `:59` REVOKE ALL FROM PUBLIC · `:60` GRANT EXECUTE TO `app_role`；0206 在壳 migrate 名单（runner `:1400`）真迁移已行、授权曾真实授出。
+- 湮灭机制（rev4 proof `:111-117` 所注混合机制的**同族新面·授权类三异**）：门 1 真迁移先行（0206:60 EXECUTE→app_role 已授）→ boot() 影子重放 `packages/db/sql/01_schema.sql` 于 `:8-10` `DROP OWNED BY app_role; DROP ROLE app_role`（DROP OWNED 剥离 app_role **全部**已授特权——函数 EXECUTE 类同被剥离）→ `:130` 裸建新 app_role → `:131` blanket 重授**仅表级**（`GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public`，零函数 EXECUTE 重授）→ growth()（`profile.service.ts:93`）在 asPrincipal(app_role) 事务内调该函数 42501。
+- 与 rev4 两 GRANT 关系如实：rev4 修法面授的是**表 SELECT × privacy_api_owner**（interview/interview_job 两表），与本断点（**函数 EXECUTE × app_role**）角色、特权类、对象类三异——rev4 修法对其登记面有效（本跑门 1 起跑已过前三巡四根因即证），不能也未曾覆盖本断点；§9-rev4 干跑证据链「补两 GRANT → 整链 EXIT 0」经本首跑实证**不充分**（第四巡修法后仍余第三断点）。
+- 观察面边界（fail-closed 如实）：本跑仅 ARM8 一断点暴露（42501 于 growth() 首个特权调用点即抛）；湮灭面为「全库函数 EXECUTE × app_role」**类**——同类在场如 0206 同文件 `:38-39` `interview_privacy_active_read(text)` EXECUTE（本跑未触达），潜在同族断点未经本跑逐一断言，留 rev 回路穷举（与 §9-rev4 P2-2 CASCADE 备忘系两机制：彼为表 DROP…CASCADE 连带删对象，此为 DROP OWNED 剥离特权，对象均存活）。
+
+### R1.4 §8 处置（红停 · 沿 §9-rev2 / 9E.6 先例）
+
+主门红 → **零自修**（不加 GRANT、不改 proof / runner / 夹具 / 产品码）· **零重跑门 1**（Ban retry-to-green · 主门两轮红停止条件未触发亦不逼近）· 三处主钉（卷首 `:1` + §8 双行 `:121`/`:123`）**维持 `draft:awaiting_pre_exec_dual` 不翻**——`executed:awaiting_post_prove_dual` 翻面以主门绿为前提，红行使不作 executed 宣称；沿 rev3「不再另立钉行」先例本节零新钉，六钉清点原值。零 SSOT 触碰 · coveredCount 零动 · releaseEvidence=false · Not HA · 零 covered / A3 closed 宣称。越权面零扩：本巡落点仅本节文面（stdout 留痕 `.tmp/` 为 gitignored 本地证据 · 门矩阵四门原值已全录 R1.2）。
+
+工序收据：本节落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ diff 恰本卷 REQUEST 一 tracked 文件（纯文面零码动）。
+
+## §9-rev5（首跑 ARM8 第三类湮灭面修法落卷 · rev 回路第五巡 · rev5+EXEC 一体席落卷 2026-10-26 · 复审锚 @`a8bf7ecb2`）
+
+§9-EXEC-R1 门 1 首跑真红（ARM8 42501 · R1.3 只归因零自修）→ rev 回路第五巡。三件落点（rev5 席本树亲证）：
+
+1. **P1 主修（blanket 函数执行授权 · 单件 additive）**：`uc-e2e-004-career-path-http.proof.ts` boot-patch 区 rev4 两 GRANT 邻位 additive 一行 `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role;` + 混合机制如实注释。归因链（行号本树亲证）：门 1 真迁移先行后 `0206_interview_privacy_active_read_tier.sql:60` 曾授 `interview_privacy_fenced_targets()` EXECUTE TO app_role → boot() 影子重放 `01_schema.sql` 于 `:8-10` DROP OWNED BY app_role 剥离其全部已授特权——**函数 EXECUTE 类同被剥离**——而 `:131` blanket 重授仅表级（`GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public`，零函数 EXECUTE 重授）→ `growth()`（`profile.service.ts:94` asPrincipal 内首特权调用点 · R1.3 `:93` 邻行勘正）42501。本行沿 `:131` 同构闭类（ALL FUNCTIONS IN SCHEMA public · test-side 沿 01_schema blanket 先例形）整类补授。**否决逐函数窄修**：第三轮 whack-a-mole——`0206:38` `interview_privacy_active_read` 同类未触达面在后续触达路径仍会复发，逐函数补永穷不尽；断言集、EXIT 契约、十五臂语义零变。
+2. **第三类湮灭面承登**：授权类湮灭面至此三类全录——① 表级 GRANT 湮灭（01_schema `:131` blanket 重授已覆盖 · rev2 根因①面）；② 表 SELECT × privacy_api_owner（rev4 两 GRANT 自愈面）；③ **函数 EXECUTE × app_role**（本巡 blanket 面 · R1.3 同族第三断点）。同族在场 `0206:38` / `:60` 两函数由本 blanket 一并闭合；他迁移同构面（SECURITY DEFINER 函数 EXECUTE × app_role 遭 DROP OWNED 剥离）同闭，不再逐函数登记。
+3. **干跑偏差如实注（§9-rev4 干跑证据链「补两 GRANT → 整链 EXIT 0」为何未暴露本断点）**：席2 干跑种子行以超户（superuser）直插直读执行，未过 app_role EXECUTE 路径；真 proof 业务路径走 asPrincipal(app_role)（db.service SET LOCAL ROLE），函数 EXECUTE 缺权只在真行使暴露——rev4 干跑绿不构成对本断点的排除证据，与 R1.3「rev4 修法不能也未曾覆盖本断点」互证。
+
+越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触（本巡落点仅 proof boot-patch 区一行 blanket GRANT + 本卷文面）。运行门行使随令连续进行（rev5+EXEC 一体席 · 协调方授权复行使），结果另落 §9-EXEC-R2。
+
+工序收据：§9-rev5 落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ diff 届时恰两 tracked 文件（proof + REQUEST · 零新增文件）。
+
+## §9-EXEC-R2（rev5 复行使 · 门矩阵全绿落卷 · rev5+EXEC 一体席落卷 2026-10-26 · 行使锚 @`a8bf7ecb2` + rev5 两 tracked 文件）
+
+### R2.1 行使前置（rev5 落卷收据）
+
+docker info 亲证 Server 29.5.2 EXIT 0（容器 runtime 在场）；rev5 单件落码（proof boot-patch 区 rev4 两 GRANT 邻位一行 blanket `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role;` + 混合机制如实注释 · 否决逐函数窄修）+ §9-rev5 落卷；届时 markers 卫生 grep 唯一命中 §2 两行自引字面 + `pnpm docs:check` EXIT 0（2357≤2362）+ diff 恰两 tracked 文件（proof +8 / REQUEST +12 · 纯 additive 零删改）。协调方「rev5=blanket 函数级重授 + 复行使」授权已行使。
+
+### R2.2 门矩阵 EXIT 原值（attempt 台账 · one_shot 零 retry-to-green）
+
+- **门 1 主门 `node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw` → EXIT 0 全绿**：17 断言 **17 PASS / 0 FAIL**——ARM1-ARM15 全组（ARM7A/B/C 三断言行；**ARM8-GROWTH-DIMENSIONS-LENGTH-GTE-2 本巡转绿**——blanket 函数执行授权后 growth() asPrincipal 路径 42501 消）。attempt 台账：本巡 attempt1 一次行使零重跑（门 1 累计 attempt2 · R1.2 首跑真红如实录在前 · Ban retry-to-green 未犯）；stdout 留痕 `.tmp/uc004-exec-r2-gate1-stdout.log`（ISOLATED_POSTGRES_OUTPUT_WITHHELD · LOCAL_ISOLATED_PROOF_RECEIPT release_evidence=false）。
+- 门 2 `pnpm uc004:career-path-fault:prove` 回归 → **EXIT 0** 4×0（ATTEMPTS_LEDGER attempts=4 one_shot=true retry_to_green=false · ATTEMPT-0-CONTROL / FI1 / FI2 / FI3 全 0）；stdout `.tmp/uc004-exec-r2-gate2-stdout.log`。
+- 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → **EXIT 1 = 预期绊线原值恰等**（倒置期望核对通过——红即其预期绿 · 口径零改）；stdout `.tmp/uc004-exec-r2-gate3-stdout.log`。
+- neg 抽验 `node scripts/run-e2e-isolated.mjs neg:auth` → **EXIT 0**（本门鉴权邻面无溢出）；stdout `.tmp/uc004-exec-r2-neg-auth-stdout.log`。
+- 静态门：typecheck `pnpm turbo typecheck --force` EXIT 0 8/8（0 cached）；lint `pnpm turbo lint --force` EXIT 0 12/12 0 errors（根 5242 / api 1423 / domain 115 / ai-runtime 628 / db 1042 / worker 959 / web 601 / qdrant-store 27 / ai-graphs 47 / contracts 265 各恰其帽 · 零帽动）；docs:check EXIT 0 2357≤2362（上限帽 2362 零触）；markers 卫生 grep 唯一命中 §2 两行自引字面。
+
+### R2.3 §8 处置（主门绿 · 三处主钉翻面 · STOP 语义随值）
+
+主门绿 → 三处主钉（卷首 `:1` + §8 双行）翻 `executed:awaiting_post_prove_dual`（沿 perf-prep / ha-3 等 EXEC 收据先例形 · 待 post-prove 双审 · Ban self-nail · ⛔push 维持）；三处历史节尾钉（§9-rev `:142` · §9-EXEC `:186` · §9-rev2 `:202`）保留届时原值 `draft:awaiting_pre_exec_dual`——各节文面自注「与卷首行/§8 同值 · 届时 STOP 维持」，属各节落卷时的历史记录非现值，沿 rev3「不再另立钉行」先例本节零新钉，钉行清点 6 处 = 3 翻 + 3 存原值。本绿 ≠ covered ≠ A3 closed ≠ 矩阵任何列翻面：零 SSOT 触碰 · coveredCount 零动 · releaseEvidence=false · Not HA · UC-E2E-004 矩阵列翻转只走 covered 评估器 + 协调方 nail。
+
+工序收据：本节落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ commit 净消息 `test(e2e): 职业路径报告隔离测试补函数执行授权`（两 tracked 文件 · proof + REQUEST · 零新增文件）。
+
+## §9-post（post 双审双 PASS 会签席落卷 · 2026-10-26 · **STOP 三处主钉翻终态 `closed`** · 沿 uc019-e2e-REQUEST §9-post 先例形 origin/main @`7e47688db` 亲证）
+
+**post 输入**：§9-EXEC-R2 主门绿在卷（三处主钉 `executed:awaiting_post_prove_dual` · 待 post-prove 双审）→ post 双审席1 + 席2 两独立外席分头行使（alone ≠ dual）→ 双 PASS 会签 → 三处主钉（卷首 `:1` + §8 双行 `:121`/`:123`）翻终态 `closed`；三处历史节尾钉（§9-rev `:142` · §9-EXEC `:186` · §9-rev2 `:202`）保留届时原值 `draft:awaiting_pre_exec_dual` 留痕不洗。卷 closed ≠ covered ≠ A3 closed ≠ 矩阵任何列翻面：coveredCount=8 零动 · releaseEvidence=false · Not HA · 翻面权归协调方 nail。
+
+- **席1 PASS（机制链实证与红绿双账对账 · 本席届树亲证）**：
+  1. **rev5 blanket 机制链三类湮灭面实证**（逐锚开文件亲证）：①表级 GRANT 湮灭——`01_schema.sql:131` blanket 重授（`GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public`，零函数类）由 rev2 壳 migrate 名单生效面覆盖；②表 SELECT × privacy_api_owner——proof `:118-119` rev4 两 GRANT 幂等重授恰回 `0048_checkpoint_physical_erasure.sql:70` / `0058_interview_privacy_queue_fence.sql:12` 原面；③函数 EXECUTE × app_role——proof `:127` rev5 blanket（`GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role`）闭 `0206_interview_privacy_active_read_tier.sql:60`/`:38` 两函数及同构全类；湮灭机制锚 `01_schema.sql:8-10`（DROP OWNED BY app_role 剥离已授特权 · 函数 EXECUTE 类同被剥离）亲证——三类面机制链与 §9-rev5 承登逐条对上。
+  2. **首跑真红如实录 sha256 红绿双账对码态**：红账 `.tmp/uc004-exec-gate1-stdout.log` sha256=`9aa0653aede114737d935dca805d8094431ba974608446d8140311f3f46718cd`（17 断言 16 PASS/1 FAIL · 唯 `ARM8-GROWTH-DIMENSIONS-LENGTH-GTE-2` 42501 `permission denied for function interview_privacy_fenced_targets` · 与 R1.2 如实录逐位对上）· 其 receipt（`2026-10-26T16-26-00-368Z-52388…`）sourceDigests 18 目逐一 sha256 对 `299fd6efd`（rev4 码态）**18/18 恒等**；绿账 `.tmp/uc004-exec-r2-gate1-stdout.log` sha256=`5a2b362e76aaf9802f635a621386686862e27d5f906bae559dab2b96360d2f19`（17 PASS/0 FAIL · ARM8 转绿 · 与 R2.2 对上）· 其 receipt（`2026-10-26T17-07-55-732Z-58140…`）sourceDigests 18 目逐一 sha256 对 `336b5ee8b`（rev5 码态）**18/18 恒等**——红绿两账各归其码态、零错位、红账不冲销。
+  3. **十五臂零扰动**：`git diff 299fd6efd..HEAD -- apps/api/test/uc-e2e-004-career-path-http.proof.ts` 恰 rev5 授权块 8 行 additive（7 注释 + 1 GRANT · boot-patch 区 rev4 两 GRANT 邻位），断言行零改零删零迁——首跑红→复行使绿差异可归因唯一（授权单变量 · 零断言放宽 · EXIT 契约原样）。
+  4. **markers/docs:check 复跑**：markers 卫生 grep 唯一命中仍为 §2 两行自引字面（`:115`/`:117`）· 本节新增行零命中；`pnpm docs:check` EXIT 0 扫描 2357 ≤ 2362（上限帽零触）。
+  5. **P2×4 登记**：（P2-1）rev5 blanket 函数级授权越出迁移逐函数授权面如实登记——未被任何迁移授 EXECUTE 的函数亦被补授，越出面沿 `01_schema.sql:131` 上游表级 blanket 同构先例；隔离边界仍由 FORCE RLS owner 谓词承担；test-side only 零产品码触（与 §9-rev3 表级 blanket 副作用登记同构延申）。（P2-2）rev4 P2-2 四对象 CASCADE 连带删经 R2 绿跑 + 本席 post 复核确认零影响——17 断言全绿无需彼四对象，零补建动作维持。（P2-3）红绿单变量对账（=第 3 条 diff 证据）另承登为修法面收口凭证——「rev4 干跑证据链不充分」由红账实证收束、blanket 修法充分性由绿账 + 席2 第三 fresh 双实证收束，红绿两账闭环不冲销。（P2-4）门 2 attempt 台账纪律 post 复核 intact：`ATTEMPTS_LEDGER attempts=4 one_shot=true retry_to_green=false`（R2 gate2 stdout · 四 attempts 全 0）· 门 3 预期绊线倒置期望 post 独立复跑仍 EXIT=1 原值（口径零改）。
+- **席2 PASS（独立复跑与独立裁定 · 本席独立行使）**：
+  1. **独立复跑门 1 第三 fresh**：`node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw` → **EXIT=0 · 17 PASS/0 FAIL**（`.tmp/uc004-post-dual-gate1-stdout.log` sha256=`693ac87a6ef04dd68ef4bf63f54ba48710459558646832863ee08cfffcd360d8` · receipt `2026-10-26T18-09-10-955Z-71993-9fa3bee5…` outcome=passed · release_evidence=false · attempt1 一次行使零重跑）——门 1 三 fresh 台账：R1 首跑真红（rev4 码态）→ R2 复行使绿（rev5 码态）→ 本席第三 fresh 绿（同 rev5 码态），各 attempt 各归其码态，Ban retry-to-green 未犯。
+  2. **倒置门独立**：`node scripts/run-e2e-isolated.mjs uc004:career-path:prove:raw` → **EXIT=1**（`.tmp/uc004-post-dual-gate3-stdout.log` · receipt `2026-10-26T18-09-20-262Z-72250…`）——静态诚实钉预期绊线原值恰等（红即其预期绿 · 口径零改）。
+  3. **blanket 授权独立裁定：接受**（三条实证）：(a) 机制必要——`01_schema.sql:8-10` DROP OWNED 剥离函数 EXECUTE 类 + `:131` blanket 重授仅表级（本席逐行亲读），类缺口真实存在非假设；(b) 同构先例——`:131` 本身即上游 test-harness 自带表级 blanket 形，函数级 blanket 沿同形闭类非本卷发明，且不加 FORCE RLS 旁路、不触产品授权面；(c) 实证充分——红账（rev4 · ARM8 42501）→绿账（rev5 · ARM8 PASS）单变量归因 + 本席第三 fresh 独立复现绿；逐函数窄修否决维持（`0206:38` 同类未触达面 whack-a-mole 无界）。
+  4. **37 文件 0 mismatch**：R2 三 receipt sourceDigests 合计 37 目（门 1 绿 18 + 门 2 11 + 门 3 8）逐一 sha256 对本树文件 **37/37 MATCH · 0 mismatch**；本席第三 fresh receipt sourceDigests 18 目与 R2 门 1 绿 receipt **逐位恒等**（同码态零漂移）。
+- **STOP 终态=`closed`（三处翻面=卷首 `:1` + §8 双行 `:121`/`:123`）**——翻面依据=门矩阵全绿在卷（R2.2）+ 主门三 fresh（R2 + 席2 独立）+ sha256 红绿双账对码态 + 倒置门独立 + blanket 授权独立裁定接受 + post 双审双 PASS 会签；史录 token `executed:awaiting_post_prove_dual` 保留为 provenance 不回改；沿 rev3「不再另立钉行」先例本节零新钉（钉行清点 6 处 = 3 翻 `closed` + 3 历史留痕原值）。后续=并线 PR 走 main（fetch origin/main 届值 `7e47688db` → merge-tree 预演 → merge --no-ff → `pnpm install --frozen-lockfile` → 终验 → PR）· 矩阵行/coveredCount/backlog 翻面权仍归协调方（本节 append 纯文面零码动）。
