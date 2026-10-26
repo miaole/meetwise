@@ -1,6 +1,6 @@
 # UC-E2E-011 E2E 缺口 REQUEST（ADV 面隔离收据+六列补齐+covered-lift 评估·量级 M）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷 2026-10-26·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null·§9-rev 修订已回卷 2026-10-26：双审席2 FAIL P1×3+P2×4 纯文面修订·rev 后重派双审第二轮以 §9-rev 为基）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 行使落卷 2026-10-26·协调方授权·pre-exec 双审 r2 双 PASS 放行·§1 三件+§2 四门落卷全过·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null）
 
 ## §0 锚（tree 级 @ `47dd6be56`·现树逐处亲证·锚 blob 亲算·2026-10-26）
 
@@ -70,7 +70,7 @@
 ## §8 STOP
 
 - **开工条款**：本卷=起草落卷。EXEC（若派）仅限 §1 三件域+§2 四门·越 §1.3 否决面即红停回炉。pre-exec 双审两独立外席待派（§0.1 六列读数+§0.2 缺口形状七点+§1 三件域三处必核）· alone≠dual · Ban self-approve。
-- **STOP = `draft:awaiting_pre_exec_dual` 三处同值**（Status 头+本节+卷尾注）。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注）·原 `draft:awaiting_pre_exec_dual` 存档更替（EXEC 行使=§9-EXEC：pre-exec 双审 r2 双 PASS → 协调方授权 → 三件行使+四门落卷）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve。
 - **rev 落卷**：2026-10-26 pre-exec 双审席 2 FAIL（P1×3+P2×4）→ §9-rev 修订回卷（纯文面·零码动）·STOP 不翻（rev 落卷非开工许可）·rev 后**重派 pre-exec 双审两独立外席第二轮**·窄域=§9-rev 落点复验 · alone≠dual · Ban self-approve。
 - 卫生：est live=0（隔离收据+docs-only·零模型外呼零 secrets 零生产操作）· actualSpendCny=null · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
@@ -87,6 +87,69 @@
 - **P2-4 `ea35b27b9` 非 main 祖先叙事引注记**（落点 §0.2-4 行内注）：`ea35b27b9` merge-base --is-ancestor 亲跑 NOT-ancestor=非 main 祖先·对其 P8 同型定性引用属**叙事引注**非 live 树证·不构成 EXEC 收据面。
 - **rev 工序记录**：markers 五类探针（i6-239 词族·词面运行时组装防自指不入卷）改动集净增行+全树行首冲突标记双扫 **0/0 EXIT=0**（本席亲跑）·docs:check EXIT=0 scanned **2342**≤cap 2346（append 零新增受管文件·append 前后同值亲跑·余 4）·`git diff --numstat` 恰 1 tracked 本卷 .md·est live=0·pins 零翻。
 
+## §9-EXEC（EXEC 行使落卷·2026-10-26·协调方授权·pre-exec 双审 r2 双 PASS 放行）
+
+**开工链**：pre-exec 双审席 2 r2 复审 PASS×2 → 协调方明示 EXEC 授权行使（colima 可用前置）→ 本席 `docker info` 亲证 ServerVersion=**29.5.2** EXIT=0 先行 → 工序行使。⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 全程未用。
+
+**序 1 并线**：`git fetch origin main` 亲证 tip=**`7e47688db`**（恰等派单下界）→ `git merge origin/main` ort 零冲突零手工并= **`337efa8d0`** → `pnpm install --frozen-lockfile` EXIT=0（4s·零 lockfile 改）。
+
+**序 2 立项日 re-pin（§0 全量锚对现 tip `337efa8d0` 亲算·双审席2 P2-A 纪律·漂移如实改锚·结论全数不变）**：
+
+| 锚 | 卷记值 | 现值 @337efa8d0 | 判定 |
+|----|--------|-----------------|------|
+| matrix（e2e-requirement-coverage-matrix.md） | blob `0cf6ae184d41` | **`5ac58aa2f906`** | **blob 漂**（主线演进）·:117 UC-E2E-011 行/:148 PERF-LOAD 行/:175 §1.1 行/:270 P1-2 行**行号全未漂**·:117 仍 gap/`case-only` 旗·coveredCount=8 在文 |
+| case-matrix（non-happy-path-perf-load-case-matrix.md） | blob `bbbe217dc514` | **`b8a6ee020e3d`** | **blob 漂**·:58 NHP-011-ADV-01 行号未漂·过时句「产品口缺失」原样在（件二处置对象在位） |
+| payment-callback.controller.ts | `37b8af4670f4` | `37b8af4670f4` | 恒等 |
+| commerce-webhook.controller.ts | `2b9766020ac4` | `2b9766020ac4` | 恒等 |
+| commerce.service.ts（:151 refundWebhook） | `f55d414c1cb7` | `f55d414c1cb7` | 恒等（:151 亲读） |
+| e2e-scenarios.md（:238-259） | `9976f9c38208` | `9976f9c38208` | 恒等（:238/:259 亲读） |
+| adv proof（uc-e2e-011-refund-callback-adv.proof.ts） | `c9ba96b69863` | `c9ba96b69863` | 恒等（:98 ZREG 原样臂·:169/:469 DELETE=202 打点亲读） |
+| mouth proof（uc-e2e-011-refund-callback-mouth.proof.ts） | `b3301f6273ee` | `b3301f6273ee` | 恒等 |
+| 旧 adv proof（uc-e2e-011-adv-refund-callback.proof.ts） | `888264792e6b` | `888264792e6b` | 恒等（INV 腿 :85-:94 亲读） |
+| run-e2e-isolated.mjs | `f89fb27ca397` | **`1fb100ba32aa`** | **blob 漂**·允许表行卷记 :2237→现 **:2315**（行漂·`uc011:refund-callback-adv:prove:raw`/`uc011:refund-callback:prove:raw`/`uc011:adv:prove:raw` 三目标在表亲证） |
+| uc-covered-evaluator.mjs | `ec62c4c247a8` | `ec62c4c247a8` | 恒等（read-only 未触） |
+| cap 锚（public-text-policy.mjs） | 行 :137（REQUEST 预记 cap 2346/2354） | **:145 · `MAX_FILES = 2_370`** | **行漂+值进**（主线 cap sanction 步进至 2370=协调方届值亲证一致·blob 现 `202f34257d08`） |
+| package.json（uc011 prove 注册） | :159 | **:161-162** | 行漂 +2（`uc011:refund-callback-adv:prove` 注册内容恒等·:159 现为 refund-callback:prove） |
+| 收据三件（main 可达历史读数） | 登记在卷（§0.2-6/P1-1） | `3fd1bed64714`/`8a4e3892e6cf`/`74c9cfe2c89c` | 树可达亲证·仍非本 tip evidence-of-record（§0 merge-base 注记承） |
+
+**断言口径钉死（68 非 74）**：真断言=词边界 `(^|[ (:={,])A\(` 直数 **68**；裸子串 `'A('` 匹配 **74** 含 6 条 `PATH_A(` 误配（proof :406/:410/:415/:418/:427/:440 亲列·非断言）——74 口径系 PATH_A 子串误配·**废止**·本卷一律 68。mouth proof 41 恒等。
+
+**序 3 件一行使（三 run·EXIT 原值·attempt 台账逐次·收据三件落 `ai-docs/delivery/receipts/uc011-adv/`）**：
+
+| # | 命令 | attempt | EXIT | 臂计 | 隔离 PG | 收据 |
+|---|------|---------|------|------|---------|------|
+| 1 | `pnpm uc011:refund-callback-adv:prove`（68 臂） | #1 首跑 | **0** | **68/68 失败 0**（INV/A1–A7/X/ZREG 十组 ALL PASS·首跑绿·未 retry） | `meetwise-e2e-69918` @127.0.0.1:32866 | `00-refund-callback-adv-68arms.md` |
+| 1-组成臂 | ZREG 内层子进程（proof :98 原样重跑 Path A） | 随上 run 计（P2-2·**不计独立 attempt**） | 0 | 41/41（内层读数 `EXIT=0（实际 0）`） | 同上 | 随 00 件 |
+| 2 | `pnpm uc011:refund-callback:prove`（41 臂独立三层壳） | #1 首跑 | **0** | **41/41 失败 0**（SIG/INV/NF/AMT/M1/M2/M2x·首跑绿·未 retry） | `meetwise-e2e-70235` @127.0.0.1:32867 | `01-refund-callback-mouth-41arms.md` |
+| 3 | `pnpm uc011:adv:prove`（旧 18 臂·预期基线红） | #1 单跑 | **1** | **14/18 失败 4**（INV×3+A2×1·恰=§0.2-4 预测形「陈旧清单 INV+A2 命中真口」） | `meetwise-e2e-70491` | `02-adv-refund-callback-legacy18-baseline-red.md` |
+
+- 三 run 零 live 零外呼零 secrets·est live=0·actualSpendCny=null·`LOCAL_ISOLATED_PROOF_RECEIPT` 机器凭条 untracked 不入 diff 面。
+- 旧 18 臂红=**前提过时非产品回归**（§0.2-4 承）：其 INV 断言「无 refundWebhook/无 refund 路由」被现树双口+本席 68/68·41/41 全绿反证；不修不洗不 retry（§1.3-3/4 遵守）·退役/重锚归另议。
+- **§2 门 4 兑现**：68 臂 EXIT=0 且 41 臂 EXIT=0 @EXEC tip（首跑双绿·EXIT0≠covered）。
+
+**序 4 件二落点（SSOT 措辞更新·行状态零翻转·五处）**：
+1. matrix §1.0.1 :117 **ADV 列**：追加「2026-10-26 UC-011 EXEC tip 收据注记：case registration only」（旗仍 **gap**/`case-only`·禁升 covered/partial·coveredCount=8 不变）。
+2. matrix §1.0.1 :117 **快乐读法列**：追加 EXEC tip 隔离收据注记（68/68+41/41 EXIT=0 首跑绿+旧 18 臂基线红如实登记·历史 EXIT0 读数仍钉非祖先 tip）。
+3. matrix §1.1 :175：追加 EXEC tip 收据注记+Line AF `canHonestlyFlip=false` 承续指向本卷 §9-EXEC。
+4. matrix §3 :270 P1-2：追加 EXEC tip 注记（非翻面·残余缺口同前）。
+5. NHP case-matrix :58：过时句「产品口缺失 = 仍 gap 执行面」**停用**改现势措辞（产品双口已落+case registration only 收据·旗仍 `case-only`）。
+- §1.0.2 :148 PERF/LOAD **零触**（§0.0 格权分界 1：翻面权归批 B·本刀 tip 不翻·零宣称）。
+
+**序 5 件三 covered-lift 评估（Branch A 承 Line AF 形·evaluator `ec62c4c247a8` read-only 只读枚举·零码面·评估落卷=非翻面）**：
+
+- 输入形：六列按现 tip SSOT 读数 + **最宽口径让步**（committed@tip EXIT0+sha 绑定/dual BOTH PASS/真 PG stack/EOR present 全给满）·requiredNhp=UC-011 具名行映射（PERF 无具名 NHP-011-PERF-\*）·§1b openGaps 七项如实（balance-ui/fail HTTP mouth+full.e2e/regenerate(UC-019)/wallet 契约/残余①audit emit absent/残余②amount 显式复核 absent/PERF-LOAD blind）。
+- **机器枚举输出（原值）**：`canHonestlyFlip = false` ✓（预期兑现·非红停）·union reasons=`["STATUS-NOT-COVERED","CASE-ONLY","HAPPY-ONLY","PERF-LOCAL-ONLY","OPEN-GAP","S11-NOT-MET"]`·逐列：NEG/FAULT/BOUND=`STATUS-NOT-COVERED`（partial）·ADV=`CASE-ONLY`（gap/case-only 旗）·PERF=`HAPPY-ONLY`+`PERF-LOCAL-ONLY`（blind+无具名 case+本地隔离永不 capacity-representative）·LOAD=`CASE-ONLY`+`PERF-LOCAL-ONLY`。
+- **与 Line AF refuse five 映射**：MISSING-NHP(PERF)→机器枚举 `HAPPY-ONLY`（evaluator 规则 2 同一 missing-NHP 分支·blind+nhpIds 空落此枚举名·枚举名随实现·判拒真值同一·如实登）·CASE-ONLY(ADV+LOAD) ✓·STATUS-NOT-COVERED ✓·S11-NOT-MET ✓·OPEN-GAP ✓；机器另加 `PERF-LOCAL-ONLY`（更严·真值成立）。
+- **canHonestlyFlip=false 承续钉死**（§5 pin 零翻）·本注记=评估非翻面·翻面权归协调方（§1.3-6 遵守）。
+
+**序 6 门矩阵（§2·EXEC 席亲跑·EXIT 原值）**：
+1. **markers**：改动集净增行五类运行时组装词面 grep + 全树行首冲突标记双扫 **0/0 命中 EXIT=0**（词面不入卷防自匹配）。
+2. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·基线（收据落盘前）scanned=**2363** ≤ cap **2370**（届值·`public-text-policy.mjs:145` 亲证）·余 7；收据三件落盘后终树 scanned=**2366** ≤ 2370（余 4）·恰 §9-rev P1-2 预列 3 件·无越顶无 sanction 路径触发。
+3. **diff 面**：本卷 REQUEST .md + matrix + case-matrix（SSOT 措辞两文件）+ 收据三件（`ai-docs/delivery/receipts/uc011-adv/`）·**零产品码零迁移零 lockfile 零 env 零 CI/wrapper/runner 注册改**·`.tmp/` 凭条 untracked 不入。
+4. **prove 双收据门**：见序 3（68 臂 EXIT=0 68/68 + 41 臂 EXIT=0 41/41 @EXEC tip·首跑双绿·EXIT0≠covered）。
+
+**STOP 终态**：`executed:awaiting_post_prove_dual`（三处翻面：Status 头/§8/卷尾注·原 `draft:awaiting_pre_exec_dual` 存档更替）·post-prove 双审两独立外席待派·alone≠dual·matrix 行翻面/coveredCount/nail 归协调方·est live=0·actualSpendCny=null·⛔push。
+
 ---
 
-*UC011-E2E REQUEST · 2026-10-26 起草 · **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本行）· base `origin/main` @`47dd6be56` · 分支 `line/uc011-draft` · 工作树 `meetwise-uc011` · 立项出处=覆盖矩阵 §1.0.1 :117 UC-E2E-011 ADV 列 gap/case-only + §3 :270 P1-2（未闭亲证）· 定稿=ADV 面缺口形状七点（产品双口/68+41 臂 prove 在树/旧 18 臂前提过时基线红预期/NHP :58 过时锚/现 tip 零可复核收据/历史 SHA 全数非 main 祖先）+修法三件（隔离收据/六列补齐措辞/covered-lift 评估-only）+否决六条+门四条 · 量级 M · est live=0 · markers=0 · rev=§9-rev 2026-10-26（双审席2 FAIL P1×3+P2×4 回卷·纯文面·rev 后重派双审第二轮） · ⛔push ⛔merge 主线 ⛔force push*
+*UC011-E2E REQUEST · 2026-10-26 起草 · 2026-10-26 EXEC 行使落卷 · **`executed:awaiting_post_prove_dual`**（三处同值：Status 头/§8/本行·原 `draft:awaiting_pre_exec_dual` 存档）· EXEC tip=`337efa8d0`（merge `7e47688db` 后） · base `origin/main` @`47dd6be56` · 分支 `line/uc011-draft` · 工作树 `meetwise-uc011` · 立项出处=覆盖矩阵 §1.0.1 :117 UC-E2E-011 ADV 列 gap/case-only + §3 :270 P1-2（未闭亲证）· 定稿=ADV 面缺口形状七点（产品双口/68+41 臂 prove 在树/旧 18 臂前提过时基线红预期/NHP :58 过时锚/现 tip 零可复核收据/历史 SHA 全数非 main 祖先）+修法三件（隔离收据/六列补齐措辞/covered-lift 评估-only）+否决六条+门四条 · 量级 M · est live=0 · markers=0 · rev=§9-rev 2026-10-26（双审席2 FAIL P1×3+P2×4 回卷·纯文面·r2 双 PASS）· EXEC=§9-EXEC 2026-10-26（三件行使 68/68+41/41 EXIT0+旧 18 臂基线红如实登记·四门全绿·re-pin 三 blob 漂如实改锚·canHonestlyFlip=false 承续） · post-prove 双审两独立外席待派 · ⛔push ⛔merge 主线 ⛔force push*
