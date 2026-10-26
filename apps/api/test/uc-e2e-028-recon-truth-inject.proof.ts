@@ -180,7 +180,7 @@ const nineColumnOracle = async (key: string) => {
     && Number(row.inputTokens) === 50 && Number(row.outputTokens) === 20
     && row.estimateInputTokens === row.truthEstimate
     && row.latencyMs === row.truthLatencyMs
-    && row.requestId === row.truthRequestId && row.requestId !== null;
+    && row.requestId === row.truthRequestId && row.requestId === null;
 };
 
 // 「非 success 行不补」臂源行（R2：db 层独立造源·不经业务 invoke·沿 worker proof :64-:88 逐形

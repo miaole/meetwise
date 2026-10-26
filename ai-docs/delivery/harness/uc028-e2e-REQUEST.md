@@ -179,6 +179,24 @@
 - **性质登记（对 §1.3 乙 Ban 边界的显式裁定）**：本修系**断言面勘误非改断言迁就结果**——红面根因在 oracle 条款自身编码：赘余非空前提**静态必假**（两侧同 NULL 时恒假·与运行时无关·本节静态亲证在案）；§1.2 case-② 登记语义（回补恰 1/九列恒等/幂等重放/水位归零/零漂/非 success 不补）**零证伪**（行使回执红面恰 C2 双臂·其余臂绿·红于赘余半）；产品行为与 0207 同源直携语义恒等（根因链第 5 条）。与 §9-EXEC「首跑前修」差异如实登记：本修在首跑（红）后·凭据=条款级静态必假+登记结论零证伪+协调方授权 rev 回路——**非红面洗 flake 非迁就凑绿**·EXIT=1 回执诚实保留。
 - **门面回执+STOP**：markers 五类标记词+冲突对本 rev 改动集零命中 EXIT=0（词族运行时组装沿 §7/`scripts/i6-239-gates.proof.mjs` 同形制·命令回执随交付报告）+docs:check EXIT=0 ≤cap 2346（append 零新增文件·计数不变·落卷前后两跑）；diff 面本刀 tracked 零增（本 rev 恰本卷 .md 纯 append）；**STOP=`draft:awaiting_pre_exec_dual` 三处同值维持零翻**（Status 头/§8/卷尾注）——C2 修落+DB 面门复行使归后续 EXEC 令·翻面权归协调方·⛔push。
 
+## §9-EXEC attempt#3 复行使登记（候选甲落码·主门转绿 40/40·neg:all 题面熔断承登上报·**STOP 不翻**·落卷 2026-10-26 · **append 注记形 · 上文一字不洗** · 与上文冲突处以本节为准读）
+
+- **授权链与候选甲落码**：协调方复行使令（§9-rev3 候选甲定稿后续 EXEC 令·colima 容器可用为前提）——工序①照候选甲落码：proof `:183` `row.requestId !== null` → `row.requestId === null`（**恰 1 行·其余零字节**·`git diff` 1 file 1 insertion(+)/1 deletion(-) 亲证·恒等半与 truth 半不动·臂数 40 不变=§9-rev3 勘正①口径）。
+- **新 attempt 照登**：proof ISO 台账 `ATTEMPT_START iso=2026-10-26T14:31:48.191Z`=**attempt#3**；attempt#1（`…12-06-45-833Z-*.json` 32ms 快败）/attempt#2（`…12-12-27-409Z-*.json` 真红）回执**原位不冲销**（§9-rev3 承登·红跑回执诚实保留）。
+- **门矩阵亲跑（EXIT 原值·docker info 先行亲证=EXIT=0 colima Server 29.5.2）**：
+  1. **主门** `node scripts/run-e2e-isolated.mjs uc028:recon-truth-inject:prove:raw` **EXIT=0 · CHECKS=40 FAIL=0**——臂构成 **ISO 3+C1 8+C2 9+C3 12+PIN 8**（PASS 逐类计数+FAIL=0 亲证）；**C2 双臂（九列恒等主臂+幂等零漂重对账臂）同源转绿=§9-rev3 红面闭·候选甲落码生效**（九列 oracle 末条 `===` 同源直携如实断言·产品面零触）；receipt `.tmp/isolated-proof-receipts/2026-10-26T14-31-48-435Z-*.json` outcome=passed durationMs=6040 release_evidence=false。
+  2. **倒置门** `uc028:trace-fail-open:prove:raw` **EXIT=1**=§2 门 4 预登设计绊线如实复现（**EXIT=0 反红停条款未触发·非红停**）·receipt `…14-32-00-422Z-*.json`。
+  3. **nhp-fault** `uc028:nhp-fault:prove:raw` **EXIT=0 · 45/45**（CHECKS=45 FAIL=0·PASS 45 行亲证）·receipt `…14-32-11-369Z-*.json`。
+  4. **neg:all 本席自证（P2②非 relay 落实）**：`pnpm neg:all` **EXIT=0 六段全绿**·运行时臂 **90+90+91+108+179+135=693**（PASS 逐行亲证）——**实测≠题面 692（差 +1·neg:interview 107→108）→ §2 门 7 熔断条款「实测≠题面停上报如实记归因」命中 → 本席停行使上报**。
+  5. **typecheck** EXIT=0 · **8 successful, 8 total · 0 cached**（题面 8/8·0 cached 恰合零漂）。
+  6. **lint** EXIT=0 · 五贴线**恰等零超支**（逐包 problems 计数亲证）：web **601/601**·root **5242/5242**·api **1423/1423**·worker **959/959**·ai-runtime **628/628**（0 errors 全线）。
+  7. **docs:check** EXIT=0 · **2343≤2346**（派单届值恰合·落卷 append 零新增文件计数不变·落卷前亲跑）。
+  8. **markers** 五类+冲突对（运行时组装沿 §7 形制·词面不入卷）改动集零命中 EXIT=0（落码面先证·落卷前终跑复核）。
+  9. **涉码五 blob 对 §0.1 恒等亲证零漂**（`f6102433`/`33e303c3`/`d69c8a51`/`d25b0752`/`0cdd1275`）。
+- **熔断归因（静态+动态双亲证·根因不在本刀交付面）**：neg:interview 段 +1 臂系 **`babfb2344`**（2026-10-18 `fix(interview): 打卡键收敛为本场学习计划项`·该文件 +2 行含恰 1 `A('` 臂·0 删·`git merge-base --is-ancestor` 对本刀 HEAD 与对派单基线 `47dd6be56` 均 ancestor 亲证）——692 题面谱系源=TSW/trace-recon §9-exec 实测（其基线 `4124c803` 在 babfb2344 之前·trace-recon §2-5 预登「届树实跑复测归 EXEC 立项重 pin·熔断原文不变」本卷 §2 门 7 承继）→ **届树基线即 108**；动态对照=本刀一行 `git stash` 离树后基线 HEAD 复跑 `pnpm neg:interview` **EXIT=0 仍 108 条全绿**亲证（对照毕 stash pop 还原·本刀一行在树复原·无红可冲·**非 retry-to-green 冲销**）·本刀 diff（proof 一行布尔算符）与 neg 面零交集。
+- **P2 两项落实注记**：**P2①** stdout 全量留痕入收据=`.tmp/uc028-attempt3-stdout/`（主门/倒置门/nhp/neg:all/基线探针/typecheck/lint/docs:check 八 log+`ATTEMPT3-RECEIPT.txt` 留痕账：EXIT 原值+臂构成明细+三 receipt json 与八 log 的 sha256 前 16 hex 账·gitignored 非 tracked）·**P2②** neg:all 本席亲跑回执在案（§9-rev3「协调方行使回执承接·本席未复跑」caveat 解除）。
+- **停止裁定与 STOP**：§2 门 7 熔断命中 → **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持零翻**（Status 头/§8/卷尾注）——主门 40/40 绿面+候选甲落码如实保留在卷·**693 届值重 pin sanction 权归协调方**（沿 trace-recon §9-rev3 P1-1 docs cap「红停承登无 sanction 不并线」先例·Ban 就地改登记凑数）；sanction 后复行使仅余本节顺延·零码面余款。diff 面本 commit 恰 **2 tracked**（proof 1 行+本卷 append）∈§1-修法授权面+§9-rev3 勘误授权面。alone≠dual · ⛔push · est live=0（全离线 isolated/fake provider 面·零模型外呼零 Key 加载）。
+
 ---
 
 *UC028-E2E REQUEST · 2026-10-26 起草落卷 · **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本卷尾·pre-exec 双审两独立外席待派·alone≠dual） · base `main` @`47dd6be56`（origin tip 恒等·派单下界成立） · 分支 `line/uc028-draft` · 工作树 `meetwise-uc028` · 读码定稿=三 GAP「码已落·e2e 断言面缺」切分（RECON=队列+worker proof 已落而丢失→回补→最终一致同 run e2e 链缺·TRUTH-BLOCK=invoke 层反例已落而同 run 对照结构缺·INJECT=NHP 内联夹具已落而可引用 e2e 注入面缺·老 prove=设计绊线 EXIT=1 现态）· 修法=一刀三 case 单文件单 prove（case-① 注入面+case-② recon 同 run 承接断言+case-③ 真相阻塞对照臂）+注册面三件·零产品码· 门矩阵十二门（主 prove+nhp-fault 45/trace-recon 17 两邻面+metrics+老 prove 预登 EXIT=1 非红停+typecheck 8/8+lint 五贴线 601/5242/1423/959/628+neg:all 692 题面熔断+docs:check≤2346+markers 五类零命中+diff 恰 1 tracked+PIN+卫生）· §1.3 五否决（invent covered/retry-to-green/live key/触产品码/老 prove 静默改）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭·三 GAP 行翻面归协调方 post-prove 双审后裁决） · ⛔push · ⛔force push · STOP*
