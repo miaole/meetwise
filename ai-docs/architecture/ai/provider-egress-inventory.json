@@ -471,6 +471,11 @@
     },
     {
       "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-recon-truth-inject.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
       "source": "packages/ai-runtime/test/gap-rag05-classifier.proof.ts",
       "class": "test-isolation"
     },
@@ -1196,6 +1201,16 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound-isolated.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-028-recon-truth-inject.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/api/test/validate.ts",
       "class": "test-isolation"
     },
@@ -1681,6 +1696,11 @@
     },
     {
       "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-025-nhp-bound-isolated.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
       "source": "apps/api/test/validate.ts",
       "class": "test-isolation"
     },
@@ -2138,6 +2158,16 @@
       "name": "DASHSCOPE_WORKSPACE_ID",
       "source": "packages/ai-runtime/test/asr-quality-declaration.proof.ts",
       "class": "test-fixture"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-017-orphan-http-sse.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-017-orphan-http-sse.proof.ts",
+      "class": "test-isolation"
     }
   ],
   "deploymentReferences": [

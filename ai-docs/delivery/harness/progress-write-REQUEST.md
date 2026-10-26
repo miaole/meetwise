@@ -67,7 +67,7 @@
 
 ### 1.3 保留窗裁量（件③·#164 永久落库面·零码随卷登记）
 
-- **裁量=保留但轻量化，本刀不动落库面**。依据三桩：①零迁移纪律（派单明示）+锚#10 `:255` `REVOKE DELETE … FROM app_role` 亲证——worker 侧 TTL sweep 零迁移内不可行（需 SECURITY DEFINER 函数或新 grant=迁移面）；②量级算术=≤8 行/生成（常量断言面 `:29`+TS-P4 臂在钉）×event_key 幂等防重放添行×生成频次产品量级（§0.2-4）→非失控膨胀面；③「不落 append-only 表」半=存储形变翻 D-1 既有裁定（否决丁·见下）。**TTL 修法留槽**（后继独立小刀：SECURITY DEFINER 擦旧函数+保留期常量+既有 sweep loop 接线+prove·设计裁决权归后继刀派单）——本卷登记为派单输入。
+- **裁量=保留但轻量化，本刀不动落库面**。依据三桩：①零迁移纪律（派单明示）+锚#10 `:255` `REVOKE DELETE … FROM app_role` 亲证——worker 侧 TTL sweep 零迁移内不可行（需 SECURITY DEFINER 函数或新 grant=迁移面）；②量级算术=≤8 行/生成（常量断言面 `:29`+TS-P4 臂在钉）×event_key 幂等防重放添行×生成频次产品量级（§0.2-4）→非失控膨胀面；③「不落 append-only 表」半=存储形变翻 D-1 既有裁定（否决丁·见下）。**TTL 修法留槽**（后继独立小刀：SECURITY DEFINER 擦旧函数+保留期常量+既有 sweep loop 接线+prove·设计裁决权归后继刀派单）——本卷登记为派单输入。【承接回登记 2026-10-26·协调方收官笔·**留槽兑现**：上槽由 `event-ttl-REQUEST` 承接行使落卷——interview_event 保留期清扫刀=0219 迁移（SD worker role+purge 函数）+`apps/worker/src/interview-event-retention.ts` sweep 接线锚+件④ proof 39 断言十一臂·主线承载 PR #135 merge `36c41ac35` 对 HEAD `git merge-base --is-ancestor` 祖先亲证 EXIT=0·post 双审双 PASS 会签·卷 STOP=`closed`（§9-post 同卷）·本留槽就此销账】
 
 ## §1.3 修法候选淘汰登记（防 EXEC 期重开）
 

@@ -19,6 +19,8 @@ export type ActionErrorPage = 'interviews' | 'quiz' | 'diagnosis' | 'jobs';
 export interface ActionErrorMessage {
   text: string;
   href?: string;
+  /** 回链文案（interviews 页 `?error=` 渲染位；缺省=「额度说明」402 行字节恒等——UC-025 重押题入口用） */
+  hrefLabel?: string;
   note?: string;
 }
 
@@ -57,11 +59,20 @@ const CREATE_FAILED_TEXT: Record<Exclude<ActionErrorPage, 'jobs'>, string> = {
 };
 const INTERVIEWS_BEGIN_FAILED_TEXT = '启动面试失败（未预留额度）,请稍后重试;不会进入空会话。'; // 仅 interviews，不跨页
 
+// ── UC-025 行（押题产物失效/失配；interviews 页域专属·GAP-UC025-REQUIZ-ENTRY-01）─────────────
+// 场景 A1「失效产物开面试被拒，显示重押题入口」：拒绝半（API 三守卫 409）已真接线，本行补重入半
+// ——确定性 409 给「请稍后重试」是错误指引（重试不可解），故三码均带 /quiz 回链=重押题入口。
+const QUIZ_STALE_TEXT = '押题已过期或已失效，请重新押题后再开始这场面试';     // stale_quiz / missing_quiz_expiry（E-过期：拒绝 → 引导重押题）
+const QUIZ_MISMATCH_TEXT = '这份押题对应的是简历的旧版本，请重新押题后再开始这场面试'; // resume_version_mismatch（E-简历变更：重生成或显式确认）
+const QUIZ_REQUIZ_HREF = '/quiz';                                          // 重押题入口目的页（列表+建押题 Server Action 在位）
+const QUIZ_REQUIZ_HREF_LABEL = '重新押题';
+
 // ── 防御行（begin 确定性 409 专码：码透传必达页面不折叠丢失，文案落兜底原文）────
+// （UC-025 语义重锚：resume_version_mismatch 自本集合移入上方三码映射行——防御码集合余三码
+//  与既有断言面强度只迁不降，见 web-logic.proof.ts ERRMSG-MAP 语义重锚登记。）
 const INTERVIEW_BEGIN_DEFENSIVE_CODES: ReadonlySet<string> = new Set([
   'interview_resume_binding_unavailable',
   'legacy_resume_reference_unavailable',
-  'resume_version_mismatch',
   'interview_not_active',
 ]);
 const QUIZ_BEGIN_DEFENSIVE_CODES: ReadonlySet<string> = new Set([
@@ -85,6 +96,13 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
     if (code === 'candidate_route_undecided') return { text: ROUTE_UNDECIDED_TEXT };
     if (code === 'interview_resume_binding_conflict') return { text: BINDING_CONFLICT_TEXT };
     if (code === 'interview_privacy_fenced') return { text: INTERVIEW_PRIVACY_FENCED_TEXT };   // F6 410 行（interviews 页域·映射命中→不再落 begin_failed 兜底）
+    // UC-025 三码行（GAP-UC025-REQUIZ-ENTRY-01）：押题产物失效/失配 → 重押题入口（场景 A1 显示半）。
+    if (code === 'stale_quiz' || code === 'missing_quiz_expiry') {
+      return { text: QUIZ_STALE_TEXT, href: QUIZ_REQUIZ_HREF, hrefLabel: QUIZ_REQUIZ_HREF_LABEL };      // E-过期：拒绝 → 引导重押题
+    }
+    if (code === 'resume_version_mismatch') {
+      return { text: QUIZ_MISMATCH_TEXT, href: QUIZ_REQUIZ_HREF, hrefLabel: QUIZ_REQUIZ_HREF_LABEL };   // E-简历变更：重生成半（旧版本失配 → 重押题）
+    }
     if (code === 'create_failed') return { text: CREATE_FAILED_TEXT.interviews };
     if (code === 'begin_failed' || (code !== null && INTERVIEW_BEGIN_DEFENSIVE_CODES.has(code))) {
       return { text: INTERVIEWS_BEGIN_FAILED_TEXT };
