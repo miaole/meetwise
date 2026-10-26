@@ -1,0 +1,169 @@
+
+> meetwise@0.1.0 uc030:nhp-bound:prove /Users/miaole/Desktop/golucky/meetwise-clock
+> node scripts/run-e2e-isolated.mjs uc030:nhp-bound:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-59190-1793057614865 on 127.0.0.1:32936
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-clock/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc030-nhp-bound /Users/miaole/Desktop/golucky/meetwise-clock/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-bound.proof.ts
+
+NHP-030-BOUND-01 UC-E2E-030 残面 prove（C1-C6 时钟漂移 + R1-R5 刷新轮换 + L1-L3 长会话续命）
+Pins: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · :128 行值零翻动 · :50 case-only 保留 · EXIT0≠covered
+夹具豁免: 仅② auth_user_session 行种子（L1/L2 背签必需·具名）· 其余全产品路径
+PASS  L0 零模型: 三键入场均不在场（零外呼零 Key·est live=0）
+{"level":30,"time":1793057620278,"pid":59480,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:54894"}
+
+──────── C1 · 边界含等 ±1s 两向（auth.ts:69/:71/:95 对码） ────────
+PASS  C1 exp 算术: signToken(u,s,100,t0) → payload.exp = t0+100（:71 纯算术无 grace）
+PASS  C1 verify(exp 等值 now=t0+100) → 非 null（:95 严格小于·等值不拒）
+PASS  C1 verify(now=t0+101) → null（越界恰 1s 即拒·两向界各一断言）
+
+──────── C2 · 零宽过期窗（ttl=0 · 无 grace 秒无漂移容差） ────────
+PASS  C2 exp 算术: ttl=0 → payload.exp = t0（零宽窗）
+PASS  C2 verify(now=t0) → 非 null（等值仍合法·与 C1 同一判定面）
+PASS  C2 verify(now=t0+1) → null（+1s 即拒·过期判定一致）
+
+──────── C3 · 钟偏单调一致（判定是 nowSec 的纯单调函数·E3 服务端钟权威域函数面对码） ────────
+PASS  C3 注入 nowSec=t0-86400s → 判定有效（单调·快/慢钟偏零额外效应）
+PASS  C3 注入 nowSec=t0+0s → 判定有效（单调·快/慢钟偏零额外效应）
+PASS  C3 注入 nowSec=t0+99s → 判定有效（单调·快/慢钟偏零额外效应）
+PASS  C3 注入 nowSec=t0+100s → 判定有效（单调·快/慢钟偏零额外效应）
+PASS  C3 注入 nowSec=t0+101s → 判定null（单调·快/慢钟偏零额外效应）
+
+──────── C4 · 无 silent extend（仅改 exp 重编 base64url 不重签 → HMAC 拒 · 篡改目标=仅延长会话） ────────
+{"level":30,"time":1793057620286,"pid":59480,"hostname":"miaole.local","reqId":"790ad58c-0ef4-412f-b412-dd6c0d05db85","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620334,"pid":59480,"hostname":"miaole.local","reqId":"790ad58c-0ef4-412f-b412-dd6c0d05db85","res":{"statusCode":200},"responseTime":47.562999999999874,"msg":"request completed"}
+PASS  C4 域函数面: 仅改 exp 不重签 → verifyTokenFull null（:92 timingSafeEqual fail-closed）
+{"level":30,"time":1793057620337,"pid":59480,"hostname":"miaole.local","reqId":"0a1aa20a-9f78-47a3-a8eb-ce3f0cad5336","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620338,"pid":59480,"hostname":"miaole.local","reqId":"0a1aa20a-9f78-47a3-a8eb-ce3f0cad5336","res":{"statusCode":401},"responseTime":0.596958000000086,"msg":"request completed"}
+PASS  C4 传输面: 篡改体 GET /profile → 401 invalid_token（guard :87-91·TC-E2E-030-clock-drift 替身）
+
+──────── C5 · 错误码优先序（过期+已吊销叠合 → exp 面先于会话查） ────────
+{"level":30,"time":1793057620339,"pid":59480,"hostname":"miaole.local","reqId":"0306e3e3-07f2-49ce-9aec-b6806af572b1","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620377,"pid":59480,"hostname":"miaole.local","reqId":"0306e3e3-07f2-49ce-9aec-b6806af572b1","res":{"statusCode":200},"responseTime":37.64945899999998,"msg":"request completed"}
+{"level":30,"time":1793057620378,"pid":59480,"hostname":"miaole.local","reqId":"d8aa71c2-c19c-4418-8b82-4ba3b0f77ff7","req":{"method":"POST","url":"/auth/logout","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620383,"pid":59480,"hostname":"miaole.local","reqId":"d8aa71c2-c19c-4418-8b82-4ba3b0f77ff7","res":{"statusCode":200},"responseTime":5.233124999999973,"msg":"request completed"}
+PASS  C5 前置: 产品 logout 真吊销 → 200 {loggedOut:true, revoked:true}（jti 面落账）
+{"level":30,"time":1793057620384,"pid":59480,"hostname":"miaole.local","reqId":"bb493a60-fa55-4f4f-9dc2-45ea9a15d550","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620384,"pid":59480,"hostname":"miaole.local","reqId":"bb493a60-fa55-4f4f-9dc2-45ea9a15d550","res":{"statusCode":401},"responseTime":0.22299999999995634,"msg":"request completed"}
+PASS  C5 叠合臂: 过期+已吊销同 jti → 401 invalid_token 非 session_revoked（:87-91 先 throw·:98 恒不达·优先序对码）
+
+──────── C6 · kid 守卫伴行臂（错 kid :96 拒 · neg-auth 5A-1 簇③既有两臂·Ban 互代仅 C 族回归伴行） ────────
+{"level":30,"time":1793057620385,"pid":59480,"hostname":"miaole.local","reqId":"9d51e1ef-3f7d-4c40-8abc-0f22e31dbbd9","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620420,"pid":59480,"hostname":"miaole.local","reqId":"9d51e1ef-3f7d-4c40-8abc-0f22e31dbbd9","res":{"statusCode":200},"responseTime":34.61529100000007,"msg":"request completed"}
+PASS  C6 域函数面: 他钥 kid 令牌对本钥 verify → null（:96 kid 错配拒）
+{"level":30,"time":1793057620421,"pid":59480,"hostname":"miaole.local","reqId":"20df57a9-9a03-45ba-ae25-cb0355303363","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620421,"pid":59480,"hostname":"miaole.local","reqId":"20df57a9-9a03-45ba-ae25-cb0355303363","res":{"statusCode":401},"responseTime":0.20587499999987813,"msg":"request completed"}
+PASS  C6 传输面: 错 kid → 401 invalid_token（全候选钥不符同码抗探测）
+
+──────── R1 · 双 login 轮换并存（多会话并存·neg-auth logout 段未断言形状·可分） ────────
+{"level":30,"time":1793057620422,"pid":59480,"hostname":"miaole.local","reqId":"2448314a-a827-43ae-bdd4-9e52c94e8322","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620456,"pid":59480,"hostname":"miaole.local","reqId":"2448314a-a827-43ae-bdd4-9e52c94e8322","res":{"statusCode":200},"responseTime":34.46954200000005,"msg":"request completed"}
+{"level":30,"time":1793057620458,"pid":59480,"hostname":"miaole.local","reqId":"d2426841-f4bf-498d-a32c-0acb56aeb78a","req":{"method":"POST","url":"/auth/login","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620492,"pid":59480,"hostname":"miaole.local","reqId":"d2426841-f4bf-498d-a32c-0acb56aeb78a","res":{"statusCode":200},"responseTime":34.512958000000026,"msg":"request completed"}
+PASS  R1 两次 login 均发新令牌（signup+login 双产点第一处·auth.service:120 走 issueSessionTokenOrThrow）
+PASS  R1 两令牌 jti 相异（randomUUID :42）
+PASS  R1 auth_user_session 恰 2 行（签发与 INSERT 同请求原子·:44-47）
+PASS  R1 两行均 revoked_at IS NULL（并存未吊销）
+{"level":30,"time":1793057620495,"pid":59480,"hostname":"miaole.local","reqId":"b0192160-768b-4299-9301-de7720aadc06","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620500,"pid":59480,"hostname":"miaole.local","reqId":"b0192160-768b-4299-9301-de7720aadc06","res":{"statusCode":200},"responseTime":4.84333300000003,"msg":"request completed"}
+PASS  R1 令牌1 GET /profile → 200
+{"level":30,"time":1793057620500,"pid":59480,"hostname":"miaole.local","reqId":"4cc94c55-de3f-4bb2-a7b0-1a320a3195d2","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620503,"pid":59480,"hostname":"miaole.local","reqId":"4cc94c55-de3f-4bb2-a7b0-1a320a3195d2","res":{"statusCode":200},"responseTime":3.1537499999999454,"msg":"request completed"}
+PASS  R1 令牌2 GET /profile → 200（异 jti 同户双活）
+
+──────── R2 · 改密回签续命（产点第二处 profile.service:161-162 对码） ────────
+{"level":30,"time":1793057620504,"pid":59480,"hostname":"miaole.local","reqId":"e176f6b6-6998-4768-ab1d-0567445361e0","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620541,"pid":59480,"hostname":"miaole.local","reqId":"e176f6b6-6998-4768-ab1d-0567445361e0","res":{"statusCode":200},"responseTime":37.30558300000007,"msg":"request completed"}
+{"level":30,"time":1793057620542,"pid":59480,"hostname":"miaole.local","reqId":"5cb029d3-2809-4b35-9e69-2afd861b2468","req":{"method":"POST","url":"/profile/change-password","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620611,"pid":59480,"hostname":"miaole.local","reqId":"5cb029d3-2809-4b35-9e69-2afd861b2468","res":{"statusCode":200},"responseTime":69.18174999999997,"msg":"request completed"}
+PASS  R2 change-password → 200 且响应体 {changed:true, token}（:162 回签令牌出响应体=续命面）
+{"level":30,"time":1793057620612,"pid":59480,"hostname":"miaole.local","reqId":"b815566d-7f89-41ec-aa76-20d1027af0d7","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620616,"pid":59480,"hostname":"miaole.local","reqId":"b815566d-7f89-41ec-aa76-20d1027af0d7","res":{"statusCode":200},"responseTime":4.5685419999999795,"msg":"request completed"}
+PASS  R2 新令牌 GET /profile → 200（neg-auth:360-369 只钉旧令牌死·新令牌活面=本臂主断言）
+PASS  R2 新 jti 行落账（1→2 恰 +1 行）
+PASS  R2 新令牌 pe 与新行 pwd_epoch=自增后代次 1（单语句原子 :154-156）
+
+──────── R3 · 改密吊销双保险（行保留审计 + 代次拒绝 · 无 DELETE 形） ────────
+PASS  R3 旧 jti 行 revoked_at 仍 IS NULL（:159-160 注记+revokeSession 仅 logout 调·行保留供审计）
+{"level":30,"time":1793057620618,"pid":59480,"hostname":"miaole.local","reqId":"1501e437-64c5-4075-ab6a-c98ecb614ef2","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620618,"pid":59480,"hostname":"miaole.local","reqId":"1501e437-64c5-4075-ab6a-c98ecb614ef2","res":{"statusCode":401},"responseTime":0.2887080000000424,"msg":"request completed"}
+PASS  R3 旧令牌 → 401 session_revoked（guard :95 代次拒绝·先于 :98 会话查·吊销由代次机械承担）
+
+──────── R4 · logout 幂等双面（执行顺序钉 (a)→(b)：(a) 后该 jti 所有传输口恒 401·(b) 不断言首次 POST 状态码——r2 席2 P2 消歧句随卷） ────────
+{"level":30,"time":1793057620618,"pid":59480,"hostname":"miaole.local","reqId":"cebed93f-a4cb-457e-a1f6-e946853939d5","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620654,"pid":59480,"hostname":"miaole.local","reqId":"cebed93f-a4cb-457e-a1f6-e946853939d5","res":{"statusCode":200},"responseTime":35.681499999999915,"msg":"request completed"}
+PASS  R4(a) service 级 revokeSession 第 1 次 → true（真吊销 1 行·:56-66）
+PASS  R4(a) 同 jti 第 2 次 → false（WHERE revoked_at IS NULL 二次 0 行如实·幂等面 unowned 真 unowned）
+{"level":30,"time":1793057620658,"pid":59480,"hostname":"miaole.local","reqId":"8778ef40-a1d3-44fe-af49-0eeeae590dd3","req":{"method":"POST","url":"/auth/logout","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620661,"pid":59480,"hostname":"miaole.local","reqId":"8778ef40-a1d3-44fe-af49-0eeeae590dd3","res":{"statusCode":401},"responseTime":2.6670420000000377,"msg":"request completed"}
+PASS  R4(b) (a) 后传输面 POST /auth/logout → 401 session_revoked（guard :98-99 先于 handler·(a) 已吊销故守卫即拒·不断言首次 POST 状态码）
+
+──────── R5 · jti 唯一性（三签发互异 · 0169 jti PRIMARY KEY 对码） ────────
+{"level":30,"time":1793057620661,"pid":59480,"hostname":"miaole.local","reqId":"9b08225e-8dff-4e1d-9598-885266da78dc","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620696,"pid":59480,"hostname":"miaole.local","reqId":"9b08225e-8dff-4e1d-9598-885266da78dc","res":{"statusCode":200},"responseTime":34.65879199999995,"msg":"request completed"}
+{"level":30,"time":1793057620697,"pid":59480,"hostname":"miaole.local","reqId":"5b827fa1-0fb1-4356-a2a0-efc7b6e65aa6","req":{"method":"POST","url":"/auth/login","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620730,"pid":59480,"hostname":"miaole.local","reqId":"5b827fa1-0fb1-4356-a2a0-efc7b6e65aa6","res":{"statusCode":200},"responseTime":33.649584000000004,"msg":"request completed"}
+{"level":30,"time":1793057620731,"pid":59480,"hostname":"miaole.local","reqId":"fb84430e-9414-4cf8-95b1-c47aaff68013","req":{"method":"POST","url":"/profile/change-password","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620796,"pid":59480,"hostname":"miaole.local","reqId":"fb84430e-9414-4cf8-95b1-c47aaff68013","res":{"statusCode":200},"responseTime":64.82233300000007,"msg":"request completed"}
+PASS  R5 signup+login+改密回签三签发 jti 互异（randomUUID :41 对码）
+PASS  R5 auth_user_session 恰 3 行（jti PRIMARY KEY 无碰撞·行形状=签发数）
+
+──────── L1 · 3 天停顿续命（背签 exp=now+4d → 200 · 7d TTL 内真行使·服务端钟权威） ────────
+{"level":30,"time":1793057620797,"pid":59480,"hostname":"miaole.local","reqId":"1b6a1cd8-1229-4bee-8c8e-b4115be7ff9f","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620831,"pid":59480,"hostname":"miaole.local","reqId":"1b6a1cd8-1229-4bee-8c8e-b4115be7ff9f","res":{"statusCode":200},"responseTime":34.450166999999965,"msg":"request completed"}
+PASS  L1 夹具自检: auth_user_session 行种子在位且未吊销（豁免②具名）
+PASS  L1 背签算术: exp − 实钟 = +345600s（=4 天·7d TTL 内 3 天前签发）
+{"level":30,"time":1793057620833,"pid":59480,"hostname":"miaole.local","reqId":"164a4f17-495a-47a3-be46-8c0b6fe05ec2","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620837,"pid":59480,"hostname":"miaole.local","reqId":"164a4f17-495a-47a3-be46-8c0b6fe05ec2","res":{"statusCode":200},"responseTime":3.9658750000000964,"msg":"request completed"}
+PASS  L1 GET /profile → 200（guard :85 实钟判窗内·背签臂经真守卫行使=服务端钟权威面）
+
+──────── L2 · 超 TTL 一致拒（背签 exp=now−1d → 401 invalid_token · 令牌面 8d>7d 一致） ────────
+{"level":30,"time":1793057620837,"pid":59480,"hostname":"miaole.local","reqId":"cb9866cd-5386-4cf3-8393-9f51d90fda3f","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620871,"pid":59480,"hostname":"miaole.local","reqId":"cb9866cd-5386-4cf3-8393-9f51d90fda3f","res":{"statusCode":200},"responseTime":34.093624999999975,"msg":"request completed"}
+PASS  L2 夹具自检: 行种子同形在位（401 归因纯令牌面 exp·非会话缺失）
+PASS  L2 背签算术: exp = 实钟 − 86400 < now（8d 前签发·7d TTL）
+{"level":30,"time":1793057620873,"pid":59480,"hostname":"miaole.local","reqId":"a400ad32-12e3-4387-bbfc-4e103d97f0ea","req":{"method":"GET","url":"/profile","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620873,"pid":59480,"hostname":"miaole.local","reqId":"a400ad32-12e3-4387-bbfc-4e103d97f0ea","res":{"statusCode":401},"responseTime":0.15162499999996726,"msg":"request completed"}
+PASS  L2 GET /profile → 401 invalid_token（一致拒·非 session_revoked 非 account_inactive·E1 面≠本臂）
+
+──────── L3 · 续命/轮换无重复扣费（产品链 consent→resume→begin 恰扣 1 · 异 jti 同户读同场 200 零重扣） ────────
+{"level":30,"time":1793057620873,"pid":59480,"hostname":"miaole.local","reqId":"0fd6cee6-6733-48c1-8367-f2cf26fca7cb","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620908,"pid":59480,"hostname":"miaole.local","reqId":"0fd6cee6-6733-48c1-8367-f2cf26fca7cb","res":{"statusCode":200},"responseTime":34.499750000000176,"msg":"request completed"}
+{"level":30,"time":1793057620908,"pid":59480,"hostname":"miaole.local","reqId":"a11eb447-e63f-4078-98cf-4aa3a023aaa7","req":{"method":"POST","url":"/auth/login","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620942,"pid":59480,"hostname":"miaole.local","reqId":"a11eb447-e63f-4078-98cf-4aa3a023aaa7","res":{"statusCode":200},"responseTime":33.51183399999991,"msg":"request completed"}
+PASS  L3 前置: 两令牌异 jti 同户 + 基线额度可读（signup 试给桶）
+{"level":30,"time":1793057620945,"pid":59480,"hostname":"miaole.local","reqId":"9c65255e-d9c6-492e-97d0-02a5971d3d90","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620951,"pid":59480,"hostname":"miaole.local","reqId":"9c65255e-d9c6-492e-97d0-02a5971d3d90","res":{"statusCode":200},"responseTime":5.745417000000089,"msg":"request completed"}
+PASS  L3 产品 consent → 200（R1 第二令牌走产品链·uc-e2e-001-nhp-adv:264 先例形）
+{"level":30,"time":1793057620952,"pid":59480,"hostname":"miaole.local","reqId":"5bac4ede-35be-42f8-84ce-e195de659117","req":{"method":"POST","url":"/resume","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620960,"pid":59480,"hostname":"miaole.local","reqId":"5bac4ede-35be-42f8-84ce-e195de659117","res":{"statusCode":200},"responseTime":7.91991599999983,"msg":"request completed"}
+PASS  L3 产品 POST /resume 文本 → 200 且 status=ingested（owned∧ingested）
+{"level":30,"time":1793057620960,"pid":59480,"hostname":"miaole.local","reqId":"0a086311-c969-4ee4-8209-64de616ece36","req":{"method":"POST","url":"/interview","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620963,"pid":59480,"hostname":"miaole.local","reqId":"0a086311-c969-4ee4-8209-64de616ece36","res":{"statusCode":200},"responseTime":3.2565420000000813,"msg":"request completed"}
+PASS  L3 产品 POST /interview 壳 → 200 {interviewId, status:"created", reused:false}（created 空壳·begin 才扣额度）
+{"level":30,"time":1793057620964,"pid":59480,"hostname":"miaole.local","reqId":"7c1289e2-2550-42cd-a659-1ce928732c90","req":{"method":"POST","url":"/interview/iv_01a17a9003e27829859995878d191929/begin","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54897},"msg":"incoming request"}
+{"level":30,"time":1793057620978,"pid":59480,"hostname":"miaole.local","reqId":"7c1289e2-2550-42cd-a659-1ce928732c90","res":{"statusCode":202},"responseTime":14.594667000000072,"msg":"request completed"}
+PASS  L3 产品 begin → 202（真产品口 · 恰扣 1 单位面·EXEC 届时路由亲证: interview.controller @Post(":id/begin") @HttpCode(202)）
+{"level":30,"time":1793057620979,"pid":59480,"hostname":"miaole.local","reqId":"6fc655c6-191e-4a9f-bf19-5d70dcc11306","req":{"method":"GET","url":"/interview/iv_01a17a9003e27829859995878d191929","host":"127.0.0.1:54894","remoteAddress":"127.0.0.1","remotePort":54895},"msg":"incoming request"}
+{"level":30,"time":1793057620983,"pid":59480,"hostname":"miaole.local","reqId":"6fc655c6-191e-4a9f-bf19-5d70dcc11306","res":{"statusCode":200},"responseTime":4.668374999999969,"msg":"request completed"}
+PASS  L3 换异 jti 同户令牌（signup 原令牌）读同场面试 → 200（重注入续跑·RLS 只己见）
+EVIDENCE L3-NET {"base":1,"after":0}
+PASS  L3 availableUnits 净变恰 −1（不因续命/轮换重扣·E2 幂等键守域内对码·零 SSE）
+
+✓ NHP-030-BOUND-01 全臂绿（48/48）· C=17 R=17 L=13 + L0=1 · EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: C/R/L 三臂族逐条对 §0.2 缝锚 · 任一臂与对码期望不符 → §8 机制不满足停上报（Ban retry-to-green）
+PIN: 静默刷新分支=码面无可测注入缝停止条件登记（§1.3·不入臂·先接线后 prove）
+PIN: 非替代 — neg:auth / uc030:nhp-fault / full.e2e 旁证互不替代 · Ban 互借关列
+PIN: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · :128 行值零翻动 · :50 case-only 保留 · EXIT0≠covered
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T23-33-41-131Z-59190-37ce37dc-ce32-4012-8635-3c6d8c671a2f.json release_evidence=false
