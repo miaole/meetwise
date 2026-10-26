@@ -1466,6 +1466,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-004-career-path-http.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/api/test/uc-e2e-011-adv-refund-callback.proof.ts",
       "class": "test-isolation"
     },
@@ -1772,6 +1777,11 @@
     {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-004-career-path-fault.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-004-career-path-http.proof.ts",
       "class": "test-isolation"
     },
     {
