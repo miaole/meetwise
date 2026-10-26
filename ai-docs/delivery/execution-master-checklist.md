@@ -4445,6 +4445,11 @@ flowchart TD
 - **批表/能力项剩余全景**：能力项 open 3 全为门控/前置；half 2（AG-14/AG-20）待流式面与 CTX-02 余原语；批表 open 35 中用户门控 7（#97/#98/#240/#26/#32/#2/#199）+ 外部阻塞 1（#38）+ 其余为登记时滞面（详见侦察席 2026-10-22 报告）。
 - Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
 
+### 翻面笔登记（2026-10-26 第三批 · AG-18 滞账补翻 · 协调方翻面权行使 · 证据链亲证在案）
+
+- **AG 一项补翻（done 44→45 · half 2/open 3 维持）**：AG-18 采样温度=sampling-temperature 刀已落 main（EXEC `b94486a00` is-ancestor HEAD 亲证·随 merge `7738c15bd` 并线·proof `ag18-sampling-temperature.proof.ts` 242 行四臂在树·修法在树=model-client.ts `SERVICE_TEMPERATURE` route-classify/vision 钉温 0+:183 `model_eval_temperature_invalid` 加载即拒）·LEDGER :642 已记「AG 台账 done 31→32」系另一记账口径·本笔对账不重复计·issues-final AG-18 行翻面注记同卷落。**勘记如实三件**：①派单 brief 颁「done 45→46」与届树权威值不符——届树最新登记=done 44（bookkeeping-flip-2 2026-10-22·LEDGER :712+本卷 :4443）·全史 git log -S 无「done 45」·本笔按届树实值记 **44→45**（沿 cap-2354「2328 恰等零余量」勘误如实先例形）；②AG-18 系漏翻滞账——open 3 全门控名单（AG-13/AG-32/AG-36）与 half 2（AG-14/AG-20）均不含 AG-18·issues-final 判词行无翻面注记而刀已收官·本笔补翻出账；③LEDGER :642 所记 merge `6c9ab12c` 不在 main 祖（同刀支线 merge 版·双亲 `8d197be6`+`ffeafa7c`·码面与 EXEC `b94486a00` 逐字节恒等·diff 仅 docs/邻线迁移面）·main 实落 merge=`7738c15bd`·如实勘记。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
 ### Line cap-2354 nail（2026-10-26 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2354 文档数量上限步进 2346→2354（sanction +8·沿十八先例形·算术=届树亲跑 2341 余 5+在飞六卷并线必越 2347>2346+本卷 1=2348≤2354 余 6·「2328 恰等零余量」勘误如实[2328 系 LEDGER 历史行值非届树现值]·commit 消息零黑话承规））
 
 - **授权链全链如实载**：协调方派单 brief（sanction 直落形·快速链一体席·两 commit 颁定）→起草 `65d2b62c4`+EXEC `1fe6dffc4`（七门全绿承卷 §9=proof 12/12[2354/2355 双值]+docs 2342≤2354+typecheck 8/8+lint 12/12+markers+自审 grep 清零[deepEqual 亲跟 2355]+diff 恰 3 tracked·STOP=executed:awaiting_post_prove_dual 三处）→post-prove 双审会签 PASS×2（两独立外席·协调方并线授权载）→nail（本席·本波唯一主线推送席）。
