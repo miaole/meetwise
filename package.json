@@ -199,6 +199,8 @@
     "uc004:career-path:prove:raw": "pnpm -C apps/api prove:uc004-career-path",
     "uc004:career-path-fault:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path-fault:prove:raw",
     "uc004:career-path-fault:prove:raw": "pnpm -C apps/api prove:uc004-career-path-fault",
+    "uc004:career-path:http:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw",
+    "uc004:career-path:http:prove:raw": "pnpm -C apps/api prove:uc004-career-path-http",
     "uc001:nhp-neg:prove": "node scripts/run-e2e-isolated.mjs uc001:nhp-neg:prove:raw",
     "uc001:nhp-neg:prove:raw": "pnpm -C apps/api prove:uc001-nhp-neg",
     "uc001:nhp-bound:prove": "node scripts/run-e2e-isolated.mjs uc001:nhp-bound:prove:raw",

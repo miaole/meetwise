@@ -131,3 +131,45 @@ draft:awaiting_pre_exec_dual（三处状态之一 · 本步 docs-only 零码动 
 工序收据：§9-rev append 后复跑 markers 卫生 grep + `pnpm docs:check`（纯文面零新增文件，扫描数维持 2342≤2346；收据随 commit）。本节为纯文面修订：不改 §1 十五臂总数、不改 §2 门矩阵、不改任何 Ban/否决条、不改产品代码与两既有 prove 口径。
 
 draft:awaiting_pre_exec_dual（rev 卷尾钉 · 与卷首行/§8 同值 · STOP 维持 · awaiting_pre_exec_dual 不变）
+
+## §9-EXEC（EXEC 落码落卷 · EXEC 席落码 + 协调方收口席落卷 2026-10-26 · 隔离门红停承登 · 纯 additive 落卷 · 零 SSOT 翻面）
+
+协调方两项裁决随令行使：① sanction 授权壳内三处 additive 条目；② 隔离门行使待容器 runtime 恢复（用户拍板中）。本节为 WIP 落卷防丢 + 壳三处落码 + 静态门承登 + 红停如实承登。
+
+### 9E.1 WIP 落卷核验（本席 git status/diff 亲证）
+
+- 新 prove：`apps/api/test/uc-e2e-004-career-path-http.proof.ts`——十五臂落码形（主路径 arm 1-9 + 失败降级 arm 10-15；arm 7 含 A/B/C 三断言行，全卷 17 条 `A()` 断言收口；boot 形沿 `_neg-harness`、seam `MEETWISE_CAREER_PATH_FAIL_THREAD_ID` 精确等值、EXIT 契约与本绿≠翻面头注原样、`releaseEvidence=false · Not HA`）。
+- 注册三行（§1.2 形）：根 `package.json` 两行（`"uc004:career-path:http:prove": "node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw"` + `":raw"` → `pnpm -C apps/api prove:uc004-career-path-http`）；`apps/api/package.json` 一行（`prove:uc004-career-path-http` → `node --import @swc-node/register/esm-register test/uc-e2e-004-career-path-http.proof.ts`）。
+- EXEC 前置两件行号勘误（proof 头注「行号随手续勘」·本席逐处开文件亲证）：① `interview-assessment.ts:94-104` `getCareerPathFor`（无行抛点 `:102`、GET 重闸 `requireCurrentScorableCards` 调用 `:99`、定义 `:36`）；② 失败臂七项口径实引 fault prove `:38-41`（REQUEST §0.3 旧引 `:44-46` 勘正如 proof 头注）。
+
+### 9E.2 壳三处 additive（sanction ① 随令行使 · 沿 uc002/uc018/uc019 http 族「同 commit 落壳内三处」先例形）
+
+`scripts/run-e2e-isolated.mjs` 恰三处、每处一条 `uc004:career-path:http:prove:raw` additive、零既有行删改（行号为本卷落卷时所见）：
+
+1. `isolatedReceiptSources` 收据来源清单（`:182`，邻 `uc004:career-path-fault` 条目）：shell 两件 + 新 proof + `_neg-harness` + interview controller/service/assessment 三面 + `db.service`/`all-exceptions.filter`（500 信封）+ `packages/ai-graphs/src/career-path.ts`（图+seam）+ `packages/domain/src/career.ts`/`growth.ts`（derive 纯函数/arm 8）+ profile controller/service（arm 8 路由面）+ `principal`/`isolated-test-target` + `0001`/`0058` 迁移（privacy fence 镜像源）；
+2. 允许表（`.includes(target)` 白名单大行 `:2251`）：`'uc004:career-path:http:prove:raw'` 邻位 append 于 `'uc004:career-path:prove:raw'` 后；
+3. 分派 ternary（`:2464`）：`→ ['pnpm', ['-C', 'apps/api', 'prove:uc004-career-path-http']]`，邻 `uc004:career-path` 分派臂。
+
+registerForm 核对（链路闭合）：根 `<name>` → 壳 `<name>:raw`（允许表 ✓ 分派 ✓）→ apps/api `prove:uc004-career-path-http` → proof 文件；`node --check scripts/run-e2e-isolated.mjs` 语法过。
+
+### 9E.3 偏离登记（§1.2 Ban 借刀改壳 → sanction ① 授权后行使 · EXEC 席落码·协调方收口）
+
+§1.2 原钉 Ban `scripts/run-e2e-isolated.mjs` 与 `scripts/isolated/*`；EXEC 席实测门 1 无法行使的根因即壳面结构缺口（允许表/分派/收据三处均无本门条目）。协调方 sanction ① 授权壳内三处 additive 条目（沿 uc002/uc018/uc019 http 族先例形），本席随令行使如 9E.2。越权面零扩：仅三处 additive、零既有行删改、`scripts/isolated/*` 零触、两既有 prove 与产品代码零触。
+
+### 9E.4 静态门全绿（EXIT 原值 · 本席届树复跑亲测）
+
+- typecheck（§2 门 4）：`pnpm turbo typecheck --force` → Tasks: 8 successful, 8 total（0 cached），EXIT 0；
+- lint：`pnpm turbo lint --force` → Tasks: 12 successful, 12 total，EXIT 0，0 errors；根 5242/5242 恰等、api 1423/1423 恰等（domain 115、ai-graphs 47、contracts 265、web 601、ai-runtime 628、db 1042、worker 959、qdrant-store 27 各恰其帽）；零 `--max-warnings` 帽动；
+- docs:check：EXIT 0，扫描 2343 受管文件 ≤ 2346（draft 2342 + 新 proof 1，余 3；上限帽 `MAX_FILES=2_346` 零触）；
+- markers 卫生 grep：唯一命中 §2 两行自引字面（`:106`/`:108`），此外零命中。
+
+### 9E.5 两道隔离门红停承登（不宣称收口）
+
+1. 壳白名单结构缺口（已 sanction 补齐·静态面闭合）：如 9E.2/9E.3——补齐≠行使，行使仍须容器。
+2. 容器 runtime 缺失（待用户恢复）：本树 `docker` 命令不存在（command not found，exit 127）——隔离壳 per-run 随机容器形（§0.6 原钉）无法 boot。故 §2 门 1（`pnpm uc004:career-path:http:prove` 十五臂）、门 2（`uc004:career-path-fault:prove` 回归）、门 3（`uc004:career-path:prove` 静态诚实钉复跑——同经隔离壳，其 EXIT=1 预期绊线值本刀未追踪、口径零改）三道容器依赖门**全部未行使**；门 4 已行使如 9E.4。待容器 runtime 恢复后由协调方行使门 1/2/3，凭真实 EXIT 值另行落卷，Ban 以静态四门绿顶替运行门绿。
+
+### 9E.6 STOP 处置（沿 UC-028 红停先例）
+
+隔离门未行使、本绿未得——**§8 状态维持 `draft:awaiting_pre_exec_dual` 不翻**：零 covered 宣称、零矩阵/checklist/backlog 触碰、零 A3 closed 宣称、`coveredCount` 零动；本 commit 为落卷防丢 + 壳三处 sanction additive + 静态四门承登，releaseEvidence=false · Not HA。
+
+draft:awaiting_pre_exec_dual（§9-EXEC 卷尾钉 · 与卷首行/§8/§9-rev 同值 · STOP 维持 · 红停承登 · 隔离门未行使不宣称收口）
