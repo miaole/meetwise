@@ -1,6 +1,6 @@
-# MOP01 REQUEST — GAP-MOP-01 `:74` + BUG-NOTIFY-REC `:101` 合并侦察起草卷·缺口收口最小面（一行一 case·零 invent covered·零 live key）·docs-only·PG LISTEN retained·STOP=executed
+# MOP01 REQUEST — GAP-MOP-01 `:74` + BUG-NOTIFY-REC `:101` 合并侦察起草卷·缺口收口最小面（一行一 case·零 invent covered·零 live key）·docs-only·PG LISTEN retained·STOP=closed
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 行使落卷即停·两具名 case 行使回执=§9-EXEC·post-prove 双审两独立外席未签·alone≠dual·零 coding 零模型外呼零 Key 加载·零 SSOT 行改动·`gap-bug-backlog.md:74`/`:101` 两行 OPEN 不动·翻面权归协调方·Ban self-approve·Ban self-nail `post_prove_dual_pass`）
+**Status**: **`closed`**（2026-10-26 协调方收官翻面·post-prove 双审两外席会签=席1 两具名 case 独立亲跑 EXIT=0+receipt+门四项·席2 P2×2 零 P0/P1·判词面=侦察起草卷落主线 PR #134 merge `f2ad7ee2c` 对 HEAD `git merge-base --is-ancestor` 祖先亲证 EXIT=0·`gap-bug-backlog.md:74`/`:101` 两行 OPEN 值不动（行翻面权归协调方·本卷只收官不翻行）·§9-post 同卷——前值 **`executed:awaiting_post_prove_dual`** 史录保留：EXEC 行使落卷即停·两具名 case 行使回执=§9-EXEC·alone≠dual·零 coding 零模型外呼零 Key 加载·零 SSOT 行改动·Ban self-approve·Ban self-nail `post_prove_dual_pass`）
 
 **席位**：GAP-MOP-01/BUG-NOTIFY-REC 合并侦察起草（侦察+起草双责·派单 brief 授权·残余队列 Phase 5 MOP 行）。
 **基线**：`origin/main` @ `38f6e7d78`（`38f6e7d78d29b263b29b43e5fc3fae2a8e3f591d`·fetch 后 origin tip 同指亲证·`git rev-parse origin/main` 亲跑）· 分支 `line/mop01-draft`（建前 `git branch --list "line/mop01*"` 恰 1 命中=`line/mop01-knife` 旧立卷线·非本席·本席分支恰增 1）· 工作树 `../meetwise-mop01`（`git worktree add ../meetwise-mop01 -b line/mop01-draft origin/main` 亲立·HEAD 落 `38f6e7d78` 亲证）。
@@ -124,7 +124,7 @@
 
 ## §8 STOP
 
-**STOP=executed:awaiting_post_prove_dual · alone≠dual · EXEC 行使已按协调方授权落卷（两具名 case 回执+门矩阵=§9-EXEC）· post-prove 双审两独立外席未签·Ban self-nail `post_prove_dual_pass`· 本 commit 不预 claim 任何后续 EXIT。** 开工三条款：①pre-exec 双审两独立外席 **BOTH PASS 落卷**；②协调方明示授权（committed SHA 重钉）；③立项不得改 §1.3 否决五臂与 §5 Ban/pins 与 §1-修法件①②③映射（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（§0.3 漂移登记法·行号移只更锚·语义变即停）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP=closed（2026-10-26 收官翻面·协调方翻面权行使·三处同值：Status 头含 H1 短形/本节/§9-post·前值 `executed:awaiting_post_prove_dual` 史录保留见 §9-EXEC 与下文原句） · alone≠dual · 原执行期句史录：EXEC 行使已按协调方授权落卷（两具名 case 回执+门矩阵=§9-EXEC）· post-prove 双审两独立外席未签→已会签（§9-post）·Ban self-nail `post_prove_dual_pass`· 本 commit 不预 claim 任何后续 EXIT。** 开工三条款：①pre-exec 双审两独立外席 **BOTH PASS 落卷**；②协调方明示授权（committed SHA 重钉）；③立项不得改 §1.3 否决五臂与 §5 Ban/pins 与 §1-修法件①②③映射（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（§0.3 漂移登记法·行号移只更锚·语义变即停）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 `:74`/`:101` 任一行已翻面·或 §0.1 任一锚 blob 漂移且语义受疑（flag 门/PG 无条件保留/lossy 语义三锚变·harness CMD 表除名·forwarder 处置变）→停·重 pin 回炉。
 - **机制不满足**：两行语义与本卷 §1 分解不符（如发现 flag 已默认开·或 PG listener 已非无条件启动）→诊断被证伪→停·如实升级协调方。
 - **越界需要**：诉求超出 docs-only 恰 1 件落件（需动码/动注册行/动 SSOT/动 flag/动旧 prove）→停·另刀或协调方裁决（§1.3 五否决沿承）。
@@ -165,3 +165,10 @@
 - **件② 行使回执（EXIT 0/0 同 SHA 原值）**：Q4 `pnpm model-invocation-reconcile:prove` **EXIT=0**（隔离 PG runner·receipt `.tmp/isolated-proof-receipts/2026-10-26T12-13-34-732Z-60490-e9d017a2-9eb6-4539-aac7-76baa9011d72.json` release_evidence=false·`assertIsolatedTestTarget` 容器 nonce 亲证·✓「模型派发后对账：冻结未知、幂等、并发与 RLS 全部通过」）；Q5 根注册 CMD `pnpm model-op00-usage-reconciler:prove` **EXIT=0**（receipt `.tmp/isolated-proof-receipts/2026-10-26T12-13-49-425Z-61631-0da3c2e1-5301-4def-ad6f-7e383911d0b8.json` 同形·✓「usage 对账校准 reconciler 全七类矩阵通过」）——派单文「usage-calibration-reconciler:prove」=packages/ai-runtime 内层 script 名（`prove:usage-calibration-reconciler`·根 `package.json:245-246` forwarder 链亲证）·与卷面 CMD 同一 prove 两名如实登记。**判据边界注随卷沿承**：两 prove 均 tick/域级直调·不证周期臂真触发·不证 sole stack 接线·「EXIT 0/0 同 SHA」≠「`:101` 已闭」。
 - **门矩阵八门亲跑（EXIT 原值·本席亲跑）**：①先验未闭复核=backlog blob `7ede9fb7`+矩阵 blob `788423b1` 对届 tip 恒等（`git hash-object` 亲算）·`:74`/`:101` 零 CLOSED 词面零翻面·REDIS-WAKEUP=`partial` 零翻；②七件锚 blob 对届 tip 逐位重 pin 全对=`7a46fc9b`(lossy 语义)/`fc18131d`(listener)/`5432cb17`(flag 门)/`03bca620`(PG 无条件保留)/`c521a103`(CMD 表)/`d05f44db`+`ed736bd4`(forwarder 两件)——§0.1 全 19 件附全量重算**零漂**；③diff 面机检=本笔落卷后 `git diff --numstat` 恰 **1** tracked=本卷 .md（落卷后 commit 前亲跑回执）；④docs:check=**EXIT=0** scanned **2344**≤cap **2354**（本笔 append 零新增受管文件·落卷后复跑）；⑤markers=五类标记词零命中 **EXIT=0**（i6-239 同源词面运行时组装）；⑥零 SSOT 零码面=`git diff --name-only` 对 backlog/matrix/queue/package.json/migrations/src 全零触；⑦est live=0=零模型外呼零 Key 加载零生产触面·`.env*` ABSENT 双向记录（盘面 glob 零命中+`git ls-files` 零条目；容器依赖=§9-rev R3/R4 预登行使面非 live 面）；⑧卫生=`pnpm install --frozen-lockfile` **EXIT=0** 零 lockfile 改（`git diff -- pnpm-lock.yaml` 零输出）。
 - **STOP 翻面**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`** 三处（Status 头含 H1 短形 `STOP=` 标记/§8/本节）——两行 OPEN 翻面权仍归协调方·本绿 ≠ 已迁·Ban self-nail `post_prove_dual_pass`·Ban push/force-push（git 写只本 worktree commit）·commit 净消息=`test(worker): Redis 旁路连通与双 reconciler 隔离行使——缺口收口收据`。
+
+## §9-post post-prove 双审收官登记（2026-10-26 · post 双审两外席会签 · 协调方翻面权行使 · append-only · **STOP 翻面 `closed`** 三处同值：Status 头含 H1 短形/§8/本节）
+
+- **席1 post-prove PASS**：两具名 case 独立亲跑（件① REDIS 旁路连通 case·件② Q4/Q5 双 reconciler 隔离 case·非承 EXEC 读数）各 **EXIT=0**+隔离 receipt 在卷（`.tmp/isolated-proof-receipts/` 届时戳文件）+门四项独立复跑同值（markers 零命中/docs:check 届值≤cap/§8 四停止条件逐条核未触发/diff 面恰本卷 .md）——零 P0/P1。
+- **席2 post-prove PASS**：P2×2（两观察项不阻塞）**零 P0/P1**——§1.3 五否决零违反亲证+`gap-bug-backlog.md:74`/`:101` 两行 OPEN 值核验不动+§5 Ban/pins 十一值零翻。
+- **判词面落主线亲证**：本卷侦察起草面=主线承载 PR #134 merge `f2ad7ee2c` 对 HEAD `git merge-base --is-ancestor` 祖先亲证 EXIT=0；gap-bug-backlog `:84` 承接注记随协调方收官笔同卷落（两行 OPEN 值不动）。
+- **收官动作**：本卷 STOP 三处翻 `closed`·est live=0·pins 零翻·markers=0·零码面零 SSOT 行改动维持。
