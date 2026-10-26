@@ -424,7 +424,7 @@ const seedUnknownTruth = async (key: string) => {
   A('PIN', 'recon 面零改承载：trace_recon_owner_failed 确定性抛出语义在位（R1 机理锚）',
     reconSrc.includes("throw new Error('trace_recon_owner_failed')"));
   A('PIN', 'recon 面零改承载：owner 事务整体回滚纪律在位（A failure rolls the whole owner transaction back）',
-    reconSrc.includes('rolls the whole owner transaction back'));
+    /rolls\s+the\s+whole\s+owner\s+(?:\*\s+)?transaction\s+back/.test(reconSrc));
   const migSrc = readFileSync(resolve(repoRoot, 'packages/db/migrations/0207_ai_trace_backfill_scoped.sql'), 'utf8');
   A('PIN', '回补写面零改承载：0207 九列回补+ON CONFLICT DO NOTHING 幂等 arbiter（0001 PK）在位',
     migSrc.includes('ON CONFLICT (owner_user_id, idempotency_key) DO NOTHING'));

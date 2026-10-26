@@ -152,6 +152,15 @@
 - **diff 面**：恰 1 tracked=本卷 .md 纯 append 零删改·零他 tracked（码面/SSOT/backlog 对折入前 `96f2dd241` 零 delta 机检随 commit 回执）。
 - **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——§8 条款①达成（两席 PASS 落卷=本节）·条款②待协调方明示 EXEC 授权·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔改码面（本 rev2 恰 1 doc 纯 append 零码面）。
 
+## §9-EXEC 勘正登记（红停复核席一行修·PIN 臂 6 needle 跨行断裂静态必红·首跑前修非 retry-to-green·协调方授权随令·落卷 2026-10-26 · **append 注记形 · 上文一字不洗** · 与上文冲突处以本节为准读）
+
+- **授权链与修位**：EXEC 落码（`8f86d50a5`）后红停复核席亲证 proof `:426-:427` PIN 臂 6（owner 事务整体回滚纪律）needle 跨行断裂静态必红——`apps/worker/src/trace-recon.ts:56-:57` 实字节 `rolls the whole owner\n * transaction back`（JSDoc 续行星 `*` 居中断句·LF 无 CR）——连续词面 `includes` 必 false。协调方授权一行修·随令行使。
+- **针形勘正（proof `:427` 恰 1 行）**：`reconSrc.includes('rolls the whole owner transaction back')` → **`/rolls\s+the\s+whole\s+owner\s+(?:\*\s+)?transaction\s+back/.test(reconSrc)`**。授权候选两形（纯 `\s+` 正则形/`.replace(/\s+/g,' ')` 归一 includes 形）沙箱对实字节**均 false**（`*` 非空白·`\s+` 与归一皆不灭它·两形前提同被实字节证伪）——最小偏差取授权正则形于实断点加可选 `(?:\*\s+)?` JSDoc 续行组·**断言语义不变**（同句在位断言·沙箱 true+负控〔句删则 false〕双亲证 EXIT=0）·零断言放宽（断言对象与红线不变·仅兼容注释换行排版）。其余 **7 条 PIN needle 逐字未动**（diff 恰 1 行·`git diff` 亲证）。
+- **勘正①臂数 39→40**：proof 实测 **ISO 3+C1 8+C2 9+C3 12+PIN 8=40**（`A('…')` 逐类计数亲证）——此前报表面记 39 系漏计·EXEC 期主验收臂数口径以 40 为准（§2 门 1「臂数以届时 proof 实测为准」承此）。
+- **勘正②receipt 路径 26→25**：`scripts/run-e2e-isolated.mjs` `isolatedReceiptSources['uc028:recon-truth-inject:prove:raw']` 条目实数 **25 路径**（2 驱动+1 proof+6 src+2 db-src+14 migrations·逐项计数亲证）——此前报表面记 26 系误计·收据登记面口径以 25 为准。
+- **性质登记**：本修系**首跑前修**——三 case 至今零 runtime 行使（EXEC 受阻=本机无 Docker·`8f86d50a5` 如实上报）·不存在红跑后改断言凑绿·**非 retry-to-green**·Ban 列表零触。
+- **门回执**：`node --check` proof EXIT=0+esbuild parse EXIT=0·沙箱正则对实字节 true/负控 false EXIT=0·markers 五类+冲突对改动集零命中 EXIT=0（词族运行时组装沿 §7 同形制）·diff 面本刀累计恰 2 tracked（proof 1 行+本卷 append）·STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻（DB 面门仍未行使·翻面权归协调方）。
+
 ---
 
 *UC028-E2E REQUEST · 2026-10-26 起草落卷 · **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本卷尾·pre-exec 双审两独立外席待派·alone≠dual） · base `main` @`47dd6be56`（origin tip 恒等·派单下界成立） · 分支 `line/uc028-draft` · 工作树 `meetwise-uc028` · 读码定稿=三 GAP「码已落·e2e 断言面缺」切分（RECON=队列+worker proof 已落而丢失→回补→最终一致同 run e2e 链缺·TRUTH-BLOCK=invoke 层反例已落而同 run 对照结构缺·INJECT=NHP 内联夹具已落而可引用 e2e 注入面缺·老 prove=设计绊线 EXIT=1 现态）· 修法=一刀三 case 单文件单 prove（case-① 注入面+case-② recon 同 run 承接断言+case-③ 真相阻塞对照臂）+注册面三件·零产品码· 门矩阵十二门（主 prove+nhp-fault 45/trace-recon 17 两邻面+metrics+老 prove 预登 EXIT=1 非红停+typecheck 8/8+lint 五贴线 601/5242/1423/959/628+neg:all 692 题面熔断+docs:check≤2346+markers 五类零命中+diff 恰 1 tracked+PIN+卫生）· §1.3 五否决（invent covered/retry-to-green/live key/触产品码/老 prove 静默改）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭·三 GAP 行翻面归协调方 post-prove 双审后裁决） · ⛔push · ⛔force push · STOP*
