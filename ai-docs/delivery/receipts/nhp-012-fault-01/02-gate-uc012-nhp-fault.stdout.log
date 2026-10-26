@@ -1,0 +1,121 @@
+
+> meetwise@0.1.0 uc012:nhp-fault:prove /Users/miaole/Desktop/golucky/meetwise-nhp-a
+> node scripts/run-e2e-isolated.mjs uc012:nhp-fault:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-68813-1793037402453 on 127.0.0.1:32865
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-nhp-a/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:uc012-nhp-fault /Users/miaole/Desktop/golucky/meetwise-nhp-a/apps/worker
+> tsx test/uc-e2e-012-nhp-fault.proof.ts
+
+NHP-012-FAULT-01 UC-E2E-012/024 FAULT prove (PC(含F4b)+F1-F3+F4a+N1-N3 · D1 披露 · Ban live)
+Pins: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :118 措辞零翻动 · EXIT0≠covered
+PASS  L0 零模型: 三键（MODEL_API_KEY/DASHSCOPE_API_KEY/DASHSCOPE_COMPAT_BASE_URL）入场均不在场
+
+──────── PC · scripted 三键全绿对照（§9-rev2 ⑤）+ F4b completed-eligible（:642 unscored===0 谓词臂） ────────
+PASS  [pc] 夹具自检: 种子后 availability=5.0
+PASS  [pc] 守护① 壳行插入态='created'
+PASS  [pc] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [pc] 消费 start job → 自适应路径
+PASS  [pc] 第1轮 API identity ledger 接受
+PASS  [pc] 第2轮 API identity ledger 接受
+PASS  [pc] 第3轮 API identity ledger 接受
+EVIDENCE PC-AFTER-LOOP {"rounds":3,"status":"completed"}
+EVIDENCE PC-QUESTIONS [{"question_id":"q-v1-t0-c0","turn":0,"question":"请结合你简历中一段与「项目经验」相关的真实经历，说明你的做法、关键取舍和验证结果。"},{"question_id":"q-v2-t1-c0","turn":1,"question":"【第1轮】结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并给出一次具体取舍"},{"question_id":"q-v3-t2-c0","turn":2,"question":"【第2轮】结合你的限流经历谈谈高并发下如何兼顾吞吐与一致性，并给出一次具体取舍"}]
+EVIDENCE PC-INVOCATIONS [{"service":"interviewer.ask","n":2},{"service":"mock-interview.evaluate","n":3},{"service":"planner.competencies","n":1}]
+PASS  PC 全轮 answer_evaluated（评分绿 · 3 轮）
+PASS  PC 零 answer_unscored
+PASS  PC interview=completed
+PASS  PC F4b: completed 口径在 unscored=0 下达成（:642 unscored===0 && eligible>0 臂）
+PASS  PC 消费=confirmed（预留转实扣）
+PASS  PC 额度=4.0（净扣 1.0 · 恰一次 settled）
+PASS  PC 报告入队走舱壁（queued）
+PASS  守护⑤ 三图服务键全部被脚本覆盖（planner/ask/evaluate 均真实经模型客户端 · 未脚本化默认拒答未触）
+EVIDENCE PC-CALLS {"planner.competencies":1,"interviewer.ask":2,"mock-interview.evaluate":3}
+
+──────── F1 · 非末题（第1/2轮）deterministic 注入 → 题级落点 + 图级继续（§9-rev2 ④） ────────
+PASS  [f1] 夹具自检: 种子后 availability=5.0
+PASS  [f1] 守护① 壳行插入态='created'
+PASS  [f1] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [f1] 消费 start job → 自适应路径
+PASS  F1 首题已 issued
+PASS  [f1] 第1轮 API identity ledger 接受
+PASS  F1 answer_unscored 恰一（题级落点非静默丢弃）
+PASS  F1 event_key=answer_unscored:<questionId>（幂等键 · :526/:535）
+PASS  F1 守护④ receipt 钉: payload.reason=evaluation_deterministic_refusal 字面（invoke deterministic 臂 → :843 evaluation_${out.error}）
+PASS  F1 下一题已 issued（图未中断 · 面试可继续）
+PASS  F1 下一题 question_ready 落点（:536-537 同事务推进臂）
+PASS  F1 注入钉非末题: 失败轮(1) < 软预算(2) · 下一题在场
+PASS  F1 面试未入终态（仍进行中 · 非 completed/failed/abandoned）
+PASS  F1 N3: 中途臂额度仍占用 4.0（零误退）
+EVIDENCE F1-UNSKEV {"kind":"answer_unscored","event_key":"answer_unscored:q-v1-t0-c0","payload":{"turn":0,"reason":"evaluation_deterministic_refusal","question":"请结合你简历中一段与「项目经验」相关的真实经历，说明你的做法、关键取舍和验证结果。","competency":"项目经验","questionId":"q-v1-t0-c0","stateVersion":1},"created_at":"2026-10-26T17:56:48.295Z"}
+
+──────── F3 · 二次 drain 幂等（F1 夹具内） ────────
+PASS  F3 二次 drain 无待办（idle）
+PASS  F3 同题重复入队 → 幂等同一 job（不重复消费）
+PASS  F3 answer_unscored 仍恰一（不重发 · 幂等键 event_key 守卫）
+PASS  F3 question_ready 零重放（重排前后恒 2=start 题+推进题 · 无新增）
+PASS  F3 额度仍 4.0（零双扣零误退）
+
+──────── F2 f2a · 评分失败 throw 形 → unscored reason=evaluation_external_outcome_unknown（R2 两形收敛） ────────
+PASS  [f2a] 夹具自检: 种子后 availability=5.0
+PASS  [f2a] 守护① 壳行插入态='created'
+PASS  [f2a] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [f2a] 消费 start job → 自适应路径
+PASS  [f2a] 第1轮 API identity ledger 接受
+PASS  f2a answer_unscored 恰一
+PASS  f2a 守护钉: payload.reason=evaluation_external_outcome_unknown（throw 形收敛 · 非 kind 字段）
+PASS  f2a 零伪造分数: payload 无 score 字段
+PASS  f2a reason 级互斥: ≠ F1 的 evaluation_deterministic_refusal
+PASS  f2a 图继续: 下一题 question_ready 已 issued
+
+──────── F2 f2b · 评分失败 unknown 形 → unscored reason=evaluation_external_outcome_unknown（R2 两形收敛） ────────
+PASS  [f2b] 夹具自检: 种子后 availability=5.0
+PASS  [f2b] 守护① 壳行插入态='created'
+PASS  [f2b] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [f2b] 消费 start job → 自适应路径
+PASS  [f2b] 第1轮 API identity ledger 接受
+PASS  f2b answer_unscored 恰一
+PASS  f2b 守护钉: payload.reason=evaluation_external_outcome_unknown（unknown 形收敛 · 非 kind 字段）
+PASS  f2b 零伪造分数: payload 无 score 字段
+PASS  f2b reason 级互斥: ≠ F1 的 evaluation_deterministic_refusal
+PASS  f2b 图继续: 下一题 question_ready 已 issued
+
+──────── F4a · 混合 unscored conclude → failed 臂（:672-679 · 0046 触发器钉禁 completed） ────────
+PASS  [f4a] 夹具自检: 种子后 availability=5.0
+PASS  [f4a] 守护① 壳行插入态='created'
+PASS  [f4a] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [f4a] 消费 start job → 自适应路径
+PASS  [f4a] 第1轮 API identity ledger 接受
+PASS  [f4a] 第2轮 API identity ledger 接受
+PASS  [f4a] 第3轮 API identity ledger 接受
+PASS  F4a 面试终态=failed（混合 unscored 禁 completed · 0046 触发器结算完整性法）
+PASS  F4a assessment_unavailable 恰一
+PASS  F4a event_key=assessment_unavailable:evaluation_unscored · payload.reason=evaluation_unscored
+PASS  F4a 额度 release: consumption=released
+PASS  F4a 额度净变 0: availability=5.0
+PASS  F4a 终态不悬挂: 无 queued/running 残留 job
+PASS  F4a 终态稳定: 复 drain 后仍 failed
+
+──────── N1-N3 · 额度净账（PC settled 恰一次 · F4a released 恰一次 · 中途臂占用守恒） ────────
+PASS  N1 PC 笔恰一次 confirmed（失败不误标）
+PASS  N2 F4a 笔恰一次 released（失败释放 · 雙扣零）
+PASS  N3 中途三笔（f1/f2a/f2b）仍 reserved（图未终 · 额度守恒零误退）
+PASS  N3 全五笔恰一行（无重复预留）
+
+✓ NHP-012-FAULT-01 全臂绿（73/73）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: D1 — spec pending_eval 状态机 ≙ 产品 answer_unscored 事件面（映射披露）· UC-024 补评闭环 NOT claimed
+PIN: F1/F2 reason 级互斥 — evaluation_deterministic_refusal ≠ evaluation_external_outcome_unknown（收据字面钉）
+PIN: 混合面 completed+照计 需放松 0046 = billing rev 战役 · 本刀如实登记不越界（REQUEST §1 Row 1）
+PIN: 旁证族零改动 — adaptive-degrade/ag-f-reroll/bill2-shadow-meter 互不替代（Ban wash）
+PIN: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :118 行措辞零翻动 · EXIT0≠covered
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T17-56-49-104Z-68813-d4f8e4ce-e42c-4bf8-819e-05040b7b859d.json release_evidence=false

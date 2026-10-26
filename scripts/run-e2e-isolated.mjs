@@ -908,6 +908,45 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0001_baseline.sql', 'packages/db/migrations/0007_resume_quiz.sql',
     'packages/db/migrations/0008_resume_diagnosis.sql', 'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
   ],
+  // NHP 批 A Row 1（UC-012/024 FAULT · gap→case）：consumer→adaptive 图→评分缝 scripted 注入→
+  // answer_unscored/assessment_unavailable 事件面→ conclude 三分支 → 额度净账。隔离 PG 全迁移链。
+  'uc012:nhp-fault:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/uc-e2e-012-nhp-fault.proof.ts',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/adaptive-interview-service.ts', 'apps/worker/src/interview-service.ts',
+    'apps/worker/src/adaptive-role-resolve.ts',
+    'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/invoke.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/domain/src/adaptive-interview.ts',
+    'packages/db/migrations/0046_application_assessment_recovery.sql',
+    'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
+    'packages/db/migrations/0192_interview_event_created_at_kind_check.sql',
+  ],
+  // NHP 批 A Row 3（UC-030 FAULT · gap→case）：reclaim sweep 口 × 显式 abandon 口双触发一致性+
+  // 幂等+额度恰一次释放 + principal.guard 401 sanity。隔离 PG 全迁移链。
+  'uc030:nhp-fault:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-030-nhp-fault.proof.ts',
+    'apps/worker/src/commerce-reconcile.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/auth-session.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/domain/src/auth.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
+    'packages/db/migrations/0169_auth_user_session.sql',
+  ],
+  // NHP 批 A Row 2（UC-003 ADV · blind→case）：错误码映射层+locale allowlist 运行级对抗行使
+  // （纯函数 · 零 PG 零外呼零 key · 经隔离面剥生产 key 出收据）。
+  'uc003:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/web/test/uc-e2e-003-nhp-adv.proof.ts',
+    'apps/web/lib/resume/ocr-preview-ui.ts',
+    'apps/web/i18n/request.ts',
+    'apps/web/messages/zh.json',
+  ],
   'reaper:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reaper.proof.ts', 'apps/worker/src/interview-consumer.ts',
@@ -2399,6 +2438,10 @@ if (![
   'obs-ready:prove:raw',
   'uc025:nhp-adv:prove:raw',
   'uc028:nhp-fault:prove:raw',
+  // NHP 批 A 三行（UC-012/024 FAULT · UC-003 ADV · UC-030 FAULT · 一行一 case 一收据）。
+  'uc012:nhp-fault:prove:raw',
+  'uc030:nhp-fault:prove:raw',
+  'uc003:nhp-adv:prove:raw',
   // UC-028 一刀三 case（INJECT/RECON/TRUTH-BLOCK·沿 uc028:nhp-fault 同形注册）。
   'uc028:recon-truth-inject:prove:raw',
   'dbhy1:prove:raw',
@@ -2462,6 +2505,12 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc018-ttl']]
   : target === 'uc016:nhp-fault:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc016-nhp-fault']]
+  : target === 'uc012:nhp-fault:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-fault']]
+  : target === 'uc030:nhp-fault:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-fault']]
+  : target === 'uc003:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/web', 'prove:uc003-nhp-adv']]
   : target === 'uc018:abandon:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc018-abandon-http']]
   : target === 'uc018:adv:prove:raw'
@@ -3327,7 +3376,7 @@ async function main() {
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc030:nhp-fault:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });

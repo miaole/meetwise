@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc030:nhp-fault:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 5767,
+  "startedAt": "2026-10-26T17:44:19.659Z",
+  "finishedAt": "2026-10-26T17:44:25.426Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:0fc749028573b74f18434967a4c53e0d557c5161e2ad9827a4b5d657eb04be02",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-030-nhp-fault.proof.ts": "sha256:a3047dd72a3610d47a7743ae6bfe860f4bfac29cfea1003339dbf0a318d6d419",
+    "apps/worker/src/commerce-reconcile.ts": "sha256:ca6a28ad83d16b7094f34557e37d1513223b4c6238b15c0ca96fb8362fc4c50b",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:14b2d267849ee78cbd63e1ab7094916f52e5d2c3ef5a9177406fe580e9a06493",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:21d501a8590aedf40199a636b8b857e81fdc3819c5aa6c4316f3d1499f6d0d59",
+    "apps/api/src/platform/principal.guard.ts": "sha256:1f12d3d0a8899da98e6000890ec7641559fd6dda21e65c08913bd81031664a75",
+    "apps/api/src/platform/auth-session.ts": "sha256:01c1935cad66ca36241a7ad07367ba97e01ddb45e00868d786c087ec34d0e12a",
+    "packages/db/src/commerce/commerce.ts": "sha256:3913d6762d223398c1069394b707cef87101de0eee1a79d4ed5075761f96402b",
+    "packages/domain/src/auth.ts": "sha256:361233b30d40c73670925a50e8738526c30267328d8995016bf29c77823cbf2d",
+    "packages/db/src/principal.ts": "sha256:0870b9d77eb4fb29a0348381e7f6c29fec2122ab6f6310b3ba3718563172eeac",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/migrations/0058_interview_privacy_queue_fence.sql": "sha256:f5f4931a4b02342abdc56a59abe66a0b317ca9e3e1f00bb99bdcdf8eb9e87ef8",
+    "packages/db/migrations/0169_auth_user_session.sql": "sha256:810b5f5d07c4fe861d681d9e62aa8128d220c49091bb83d94aea1c93df506169"
+  },
+  "schemaMigrationManifest": {
+    "count": 217,
+    "latest": "0219_interview_event_retention_purge.sql",
+    "digest": "sha256:867edcf30bed5e1029f07ed21e3481e839862e27485d030cc316a21b3e657bcc"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}
