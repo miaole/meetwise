@@ -1,4 +1,4 @@
-executed:awaiting_post_prove_dual
+closed（§9-post post 双审双 PASS 会签席翻面 2026-10-26 · 原值 executed:awaiting_post_prove_dual 史录 provenance 见 §8/§9-EXEC-R2/§9-post · alone ≠ dual）
 
 # UC-E2E-004 career-path 全链路 · 隔离库 e2e HTTP 主路径 REQUEST（主路径 + 落点断言 + 失败降级臂 · docs-only 零码动）
 
@@ -118,9 +118,9 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 
 ## §8
 
-executed:awaiting_post_prove_dual（§9-EXEC-R2 主门绿翻面 2026-10-26 · 原 draft 钉值随行使翻面 · 待 post-prove 双审 · STOP）
+closed（§9-post 双审双 PASS 会签翻面 2026-10-26 · §9-EXEC-R2 主门绿史录 · 原 executed:awaiting_post_prove_dual 留痕 · 原 draft 钉值随行使翻面史录 · STOP=closed）
 
-executed:awaiting_post_prove_dual（三处状态之二 · rev5+EXEC 复行使门矩阵全绿翻面 2026-10-26 · releaseEvidence=false · Not HA · coveredCount=8 不变 · STOP）
+closed（三处状态之二 · §9-post 双审双 PASS 会签翻面 2026-10-26 · rev5+EXEC 复行使门矩阵全绿史录 · releaseEvidence=false · Not HA · coveredCount=8 不变 · STOP=closed）
 
 ## §9-rev（双审合并修订 · rev 席落卷 2026-10-26 · 纯文面·零码动·零断言放宽）
 
@@ -290,3 +290,20 @@ docker info 亲证 Server 29.5.2 EXIT 0（容器 runtime 在场）；rev5 单件
 主门绿 → 三处主钉（卷首 `:1` + §8 双行）翻 `executed:awaiting_post_prove_dual`（沿 perf-prep / ha-3 等 EXEC 收据先例形 · 待 post-prove 双审 · Ban self-nail · ⛔push 维持）；三处历史节尾钉（§9-rev `:142` · §9-EXEC `:186` · §9-rev2 `:202`）保留届时原值 `draft:awaiting_pre_exec_dual`——各节文面自注「与卷首行/§8 同值 · 届时 STOP 维持」，属各节落卷时的历史记录非现值，沿 rev3「不再另立钉行」先例本节零新钉，钉行清点 6 处 = 3 翻 + 3 存原值。本绿 ≠ covered ≠ A3 closed ≠ 矩阵任何列翻面：零 SSOT 触碰 · coveredCount 零动 · releaseEvidence=false · Not HA · UC-E2E-004 矩阵列翻转只走 covered 评估器 + 协调方 nail。
 
 工序收据：本节落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ commit 净消息 `test(e2e): 职业路径报告隔离测试补函数执行授权`（两 tracked 文件 · proof + REQUEST · 零新增文件）。
+
+## §9-post（post 双审双 PASS 会签席落卷 · 2026-10-26 · **STOP 三处主钉翻终态 `closed`** · 沿 uc019-e2e-REQUEST §9-post 先例形 origin/main @`7e47688db` 亲证）
+
+**post 输入**：§9-EXEC-R2 主门绿在卷（三处主钉 `executed:awaiting_post_prove_dual` · 待 post-prove 双审）→ post 双审席1 + 席2 两独立外席分头行使（alone ≠ dual）→ 双 PASS 会签 → 三处主钉（卷首 `:1` + §8 双行 `:121`/`:123`）翻终态 `closed`；三处历史节尾钉（§9-rev `:142` · §9-EXEC `:186` · §9-rev2 `:202`）保留届时原值 `draft:awaiting_pre_exec_dual` 留痕不洗。卷 closed ≠ covered ≠ A3 closed ≠ 矩阵任何列翻面：coveredCount=8 零动 · releaseEvidence=false · Not HA · 翻面权归协调方 nail。
+
+- **席1 PASS（机制链实证与红绿双账对账 · 本席届树亲证）**：
+  1. **rev5 blanket 机制链三类湮灭面实证**（逐锚开文件亲证）：①表级 GRANT 湮灭——`01_schema.sql:131` blanket 重授（`GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public`，零函数类）由 rev2 壳 migrate 名单生效面覆盖；②表 SELECT × privacy_api_owner——proof `:118-119` rev4 两 GRANT 幂等重授恰回 `0048_checkpoint_physical_erasure.sql:70` / `0058_interview_privacy_queue_fence.sql:12` 原面；③函数 EXECUTE × app_role——proof `:127` rev5 blanket（`GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role`）闭 `0206_interview_privacy_active_read_tier.sql:60`/`:38` 两函数及同构全类；湮灭机制锚 `01_schema.sql:8-10`（DROP OWNED BY app_role 剥离已授特权 · 函数 EXECUTE 类同被剥离）亲证——三类面机制链与 §9-rev5 承登逐条对上。
+  2. **首跑真红如实录 sha256 红绿双账对码态**：红账 `.tmp/uc004-exec-gate1-stdout.log` sha256=`9aa0653aede114737d935dca805d8094431ba974608446d8140311f3f46718cd`（17 断言 16 PASS/1 FAIL · 唯 `ARM8-GROWTH-DIMENSIONS-LENGTH-GTE-2` 42501 `permission denied for function interview_privacy_fenced_targets` · 与 R1.2 如实录逐位对上）· 其 receipt（`2026-10-26T16-26-00-368Z-52388…`）sourceDigests 18 目逐一 sha256 对 `299fd6efd`（rev4 码态）**18/18 恒等**；绿账 `.tmp/uc004-exec-r2-gate1-stdout.log` sha256=`5a2b362e76aaf9802f635a621386686862e27d5f906bae559dab2b96360d2f19`（17 PASS/0 FAIL · ARM8 转绿 · 与 R2.2 对上）· 其 receipt（`2026-10-26T17-07-55-732Z-58140…`）sourceDigests 18 目逐一 sha256 对 `336b5ee8b`（rev5 码态）**18/18 恒等**——红绿两账各归其码态、零错位、红账不冲销。
+  3. **十五臂零扰动**：`git diff 299fd6efd..HEAD -- apps/api/test/uc-e2e-004-career-path-http.proof.ts` 恰 rev5 授权块 8 行 additive（7 注释 + 1 GRANT · boot-patch 区 rev4 两 GRANT 邻位），断言行零改零删零迁——首跑红→复行使绿差异可归因唯一（授权单变量 · 零断言放宽 · EXIT 契约原样）。
+  4. **markers/docs:check 复跑**：markers 卫生 grep 唯一命中仍为 §2 两行自引字面（`:115`/`:117`）· 本节新增行零命中；`pnpm docs:check` EXIT 0 扫描 2357 ≤ 2362（上限帽零触）。
+  5. **P2×4 登记**：（P2-1）rev5 blanket 函数级授权越出迁移逐函数授权面如实登记——未被任何迁移授 EXECUTE 的函数亦被补授，越出面沿 `01_schema.sql:131` 上游表级 blanket 同构先例；隔离边界仍由 FORCE RLS owner 谓词承担；test-side only 零产品码触（与 §9-rev3 表级 blanket 副作用登记同构延申）。（P2-2）rev4 P2-2 四对象 CASCADE 连带删经 R2 绿跑 + 本席 post 复核确认零影响——17 断言全绿无需彼四对象，零补建动作维持。（P2-3）红绿单变量对账（=第 3 条 diff 证据）另承登为修法面收口凭证——「rev4 干跑证据链不充分」由红账实证收束、blanket 修法充分性由绿账 + 席2 第三 fresh 双实证收束，红绿两账闭环不冲销。（P2-4）门 2 attempt 台账纪律 post 复核 intact：`ATTEMPTS_LEDGER attempts=4 one_shot=true retry_to_green=false`（R2 gate2 stdout · 四 attempts 全 0）· 门 3 预期绊线倒置期望 post 独立复跑仍 EXIT=1 原值（口径零改）。
+- **席2 PASS（独立复跑与独立裁定 · 本席独立行使）**：
+  1. **独立复跑门 1 第三 fresh**：`node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw` → **EXIT=0 · 17 PASS/0 FAIL**（`.tmp/uc004-post-dual-gate1-stdout.log` sha256=`693ac87a6ef04dd68ef4bf63f54ba48710459558646832863ee08cfffcd360d8` · receipt `2026-10-26T18-09-10-955Z-71993-9fa3bee5…` outcome=passed · release_evidence=false · attempt1 一次行使零重跑）——门 1 三 fresh 台账：R1 首跑真红（rev4 码态）→ R2 复行使绿（rev5 码态）→ 本席第三 fresh 绿（同 rev5 码态），各 attempt 各归其码态，Ban retry-to-green 未犯。
+  2. **倒置门独立**：`node scripts/run-e2e-isolated.mjs uc004:career-path:prove:raw` → **EXIT=1**（`.tmp/uc004-post-dual-gate3-stdout.log` · receipt `2026-10-26T18-09-20-262Z-72250…`）——静态诚实钉预期绊线原值恰等（红即其预期绿 · 口径零改）。
+  3. **blanket 授权独立裁定：接受**（三条实证）：(a) 机制必要——`01_schema.sql:8-10` DROP OWNED 剥离函数 EXECUTE 类 + `:131` blanket 重授仅表级（本席逐行亲读），类缺口真实存在非假设；(b) 同构先例——`:131` 本身即上游 test-harness 自带表级 blanket 形，函数级 blanket 沿同形闭类非本卷发明，且不加 FORCE RLS 旁路、不触产品授权面；(c) 实证充分——红账（rev4 · ARM8 42501）→绿账（rev5 · ARM8 PASS）单变量归因 + 本席第三 fresh 独立复现绿；逐函数窄修否决维持（`0206:38` 同类未触达面 whack-a-mole 无界）。
+  4. **37 文件 0 mismatch**：R2 三 receipt sourceDigests 合计 37 目（门 1 绿 18 + 门 2 11 + 门 3 8）逐一 sha256 对本树文件 **37/37 MATCH · 0 mismatch**；本席第三 fresh receipt sourceDigests 18 目与 R2 门 1 绿 receipt **逐位恒等**（同码态零漂移）。
+- **STOP 终态=`closed`（三处翻面=卷首 `:1` + §8 双行 `:121`/`:123`）**——翻面依据=门矩阵全绿在卷（R2.2）+ 主门三 fresh（R2 + 席2 独立）+ sha256 红绿双账对码态 + 倒置门独立 + blanket 授权独立裁定接受 + post 双审双 PASS 会签；史录 token `executed:awaiting_post_prove_dual` 保留为 provenance 不回改；沿 rev3「不再另立钉行」先例本节零新钉（钉行清点 6 处 = 3 翻 `closed` + 3 历史留痕原值）。后续=并线 PR 走 main（fetch origin/main 届值 `7e47688db` → merge-tree 预演 → merge --no-ff → `pnpm install --frozen-lockfile` → 终验 → PR）· 矩阵行/coveredCount/backlog 翻面权仍归协调方（本节 append 纯文面零码动）。
