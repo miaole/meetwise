@@ -45,6 +45,7 @@
 | NHP-002-ADV-01 | 002 | ADV | api | 伪造 LED / 跨用户 session | 401/403/空；不泄露他用户事件 | **blind**→**case-only** | uc033 旁证 |
 | NHP-010-FAULT-01 | 010 | FAULT | api | 断 SSE→LED / R-mid | 续传成功；无双扣 | **partial** | uc010:sse-resume:prove |
 | NHP-010-NEG-01 | 010 | NEG | api | 无权限 LED | authz 拒 | **partial** | R-authz |
+| NHP-010-ADV-01 | 010 | ADV | api | LED malformed 双门 400/伪造高游标/越权订阅复用/跨 user 注入拒收 | 400 具名码逐项；伪造高游标 200 空 catch-up+hold（R4 语义·非机制红）；越权 404 零泄出 | **blind**→**case-only** | `pnpm uc010:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
 | NHP-030-NEG-01 | 030 | NEG | api | token 过期/吊销 | 拒 + 刷新路径可测 | **partial** | neg:auth |
 | NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | — |
 
@@ -56,7 +57,8 @@
 | NHP-011-FAULT-01 | 011 | FAULT | api/worker | 面试失败→released+额度净 0 | HTTP 额度口径 | **partial** | 同上 |
 | NHP-011-BOUND-01 | 011 | BOUND | api | 幂等误 release | already_confirmed | **partial** | 同上 |
 | NHP-011-ADV-01 | 011 | ADV | api | refund-callback 错签/重放 | 拒；无双退 | **gap**→**case-only** | 产品口缺失 = 仍 gap 执行面 |
-| NHP-011-LOAD-w-01 | 011 | LOAD | worker | 并发失败退款风暴 | 无双退；账本一致收据 | **blind**→**case-only** | — |
+| NHP-011-LOAD-w-01 | 011 | LOAD | worker | 并发失败退款风暴 | 无双退；账本一致收据 | **blind**→**case-only** | `pnpm uc011:nhp-load:prove` EXIT=0 双 fresh · HTTP refund-callback 管道行使收据（1×refunded+(N-1)×already/跨单同流水→conflict·防空转钉·收据文无 worker 产能义·Ban 借 LOAD 收据宣 PERF SLO/生产容量/HA） |
+| NHP-011-PERF-api-01 | 011 | PERF | api | refund-callback 负路径并发（错签 403×60+缺字段 400×60） | 全 403/400 零 5xx；状态面零变；延迟观测落收据（观测≠SLO≠容量） | **blind**→**case-only** | `pnpm uc011:nhp-load:prove` EXIT=0 · 四件套=命令+负载形状（16 并发 storm/4 单跨单/负路径 120）+期望形+收据路径（stdout PERF-OBSERVATION·隔离 PG） |
 | NHP-014-ADV-01 | 014/026 | ADV | api | webhook 重放/篡改七类 | 幂等+拒 | **gap**→**case-only** | 错签 403 partial 仅子集 |
 | NHP-017-FAULT-01 | 017 | FAULT | api/db | begin-fail 孤儿 reserved | sweeper→released | **partial** | uc017:orphan:prove |
 | NHP-017-BOUND-01 | 017 | BOUND | db | sweeper 幂等 | 重复扫无二次副作用 | **partial** | 同上 |
@@ -86,6 +88,8 @@
 | NHP-015-FAULT-01 | 015 | FAULT | worker | OCR 管线宕 | 可解释失败；无悬挂消费 | **blind**→**case-only** | — |
 | NHP-015-LOAD-w-01 | 015 | LOAD | worker | 并发大文件拒+小文件通 | 拒率/队列不炸；收据 | **blind**→**case-only** | 413 单点≠负载 |
 | NHP-016-FAULT-01 | 016/029 | FAULT | api | 诊断/押题显式失败注入 | unavailable 终态；无死胡同 | **gap**→**case-only**（**真证据已落（2026-10-07 Line Y2 nail）**：`pnpm uc016:nhp-fault:prove` **EXIT=0** · 45 断言双 fresh @`12a350f7`（链 `2051d12a`→`20fe852d`→`12a350f7`）· F3 按实际行为 `schema_validation_failed` · **E3 transient NOT claimed** · F4 按 D1 重建映射断言（spec 字面 failed→pending 重试口产品不存在 · 非字面口 · 旧对象停 failed 不复活）· scripted 缝零 live · attempts 1,0 · post-dual `4efa85fe`/`822d533b` BOTH PASS · gap **`GAP-UC016-FAULT-01`** 登记 · **EXIT0 = case ≠ covered** · 行状态不动：保持 gap→case-only 措辞（诚实 case registration only），禁止升 covered/partial，coveredCount=8 不变） | full.e2e 终态旁证；`pnpm uc016:nhp-fault:prove` · harness `harness/gap-uc016-fault-inject-nhp.md`（+micro-patch `95b1fd95` 键面）· ≠ 016/029 covered |
+| NHP-004-BOUND-01 | 004 | BOUND | api | 重复 begin/重复幂等/advisory 锁并发 | 接管 version+1；单 active 行；lease 120s 刷新；非 202 alreadyBegun | **gap**→**case-only** | `pnpm uc004:nhp-bound:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
+| NHP-004-ADV-01 | 004 | ADV | api | 伪造/越权 POST + fail seam（production-off） | pre-tx 双 409 先行；有效 pre+seam→500+failed v≥2；越权 404 | **blind**→**case-only** | `pnpm uc004:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
 | NHP-004-FAULT-01 | 004 | FAULT | api | A3 失败降级 | 可解释；无假 completed | **gap** | 静态 G-GAP |
 | NHP-025-NEG-01 | 025 | NEG | api | stale quiz 作输入 | reject/version-mismatch | **gap** | 产品未接线 |
 
