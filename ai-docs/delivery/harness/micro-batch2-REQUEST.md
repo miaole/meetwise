@@ -1,6 +1,6 @@
 # 微刀合卷任务书二——E2EA-01 · L-04 入卷起草 + GAP-G7V-THIRDARM-COPY-SETTLEMENT 销账登记（docs-only 起草 · 协调方授权派单）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban coding · Ban prove 执行 · Ban push · Ban self-approve · Ban invent a fix · 本 commit 非 coding 授权亦非 prove）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·协调方裁断**仅件② L-04 落码**·件① E2EA-01 双前置未满足如实登记待 key·件③ G7V 销账建议维持 §3·门矩阵如实预declared 兑现=账门断言翻 PASS·FAIL 4→3·整体基线红 EXIT=1 维持·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·前值 `draft:awaiting_pre_exec_dual` @draft `a8a624596` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`（十值零翻转）
 **Date**: 2026-10-26
 **Base / tip**: `origin/main` `1e23357a93a0848d4b73a929f296206c48d6f4bf`（fetch 后亲算 · worktree `meetwise-micro2` · branch `line/micro-batch2-draft` · ⛔动主仓 · ⛔push）
@@ -119,16 +119,36 @@ Pins 十值零翻转（见卷头）。**全卷 Ban 面**：零产品行为改（
 
 ## §8
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-（件① E2EA-01 · 件② L-04 · 件③ G7V 销账建议 三处同悬待 pre-exec dual+协调方裁决）
+（件① E2EA-01 · 件② L-04 · 件③ G7V 销账建议 三处同悬待 pre-exec dual+协调方裁决——EXEC 裁断兑现：仅件② 行使·件① 待 key 登记（§9-EXEC 第 6 条）·件③ 维持 §3 销账建议·裁决权归协调方）
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
-本步只新增本卷任务书，不改任何码面、proof、迁移、SSOT、workflow。
+本步只新增本卷任务书，不改任何码面、proof、迁移、SSOT、workflow。（draft 时点原文史录·EXEC 步=件② 落码 `scripts/ha/ha6-companion.proof.mjs` 恰 1 码面文件+本卷 §9-EXEC 落卷）
 
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
+
+（前值 `draft:awaiting_pre_exec_dual` @draft `a8a624596` 史录保留零字洗·三处翻面形沿 cap-sanction-2232 先例·STOP 终态详见 §9-EXEC 第 8 条）
+
+## §9-EXEC 行使记录（EXEC 席·2026-10-26·协调方裁断：仅行使件② L-04）
+
+1. **授权链与裁断**：draft commit `a8a624596`（本卷 §0-§9·`draft:awaiting_pre_exec_dual`）→ pre-exec 双审双 PASS → 协调方裁断：**仅件② L-04 行使**；件① E2EA-01 双前置不满足（MODEL_API_KEY 未配+未配期 Ban 抢改抢跑）**如实登记待 key 不行使**；件③ G7V 销账建议维持 §3 登记·裁决权归协调方。
+2. **并线与 §1.B EXEC 时点复算义务**：EXEC 前 fetch origin/main（届值含 #147/#148）merge 并线零冲突（merge commit `8f2fdb83c`=EXEC tip）+`pnpm install --frozen-lockfile` 门前置。**draft 时点硬编码值对 EXEC tip 复算漂移如实更新**：digest `ca7a18d8…`（draft tip `1e23357a9` 时点值）→**`cc72940dfce57af2c9b379896a3a286797d5198f`**（唯一计算式 `git show 8f2fdb83c:package.json | jq -cS '.scripts' | git hash-object --stdin` 复算·HEAD 与工作树恒等·树净）；键数漂移 653→**698** 纯增 **45** 键 **0 删**（draft 值 690/+37 系并线前时点·照 §1.B 义务以 EXEC tip 复算为准）；管道正确性自证=登记旧值 `106e4579…` 对 `8ae2a93e:package.json` 复算恒等。
+3. **件② 落码落点**（恰 1 码面文件=`scripts/ha/ha6-companion.proof.mjs`·+16/−5）：
+   - **件a digest 重注册**：ROLLING_REGISTRY scripts-set 行**原位更新**（digest→`cc72940d…`·registered→`8f2fdb83c`·note 追加「2026-10-26 L-04 补审重注册」承登·**未追加第二条 scripts-set 行**——`.find()` 取首条语义守住）；文件头 `:32` 漂移账块 **append-only 追加**演进登记（106e4579@8ae2a93e→cc72940d@8f2fdb83c·旧行零删改）。
+   - **件b 工作树双读数恒等臂（F2 机制闭合）**：`:399` 邻增工作树管道读数 `jq -cS '.scripts' package.json | git hash-object --stdin`（cwd=root）；`:401` 断言扩形**四点恒等**（HEAD 管道值+工作树管道值+二者互等+与登记 digest）；`:403` FAIL 文案补 `worktree got=` 读数位。must-exist/must-not-exist 键面与唯一计算式零触。
+   - **件b 机制负验证**：工作树临时注入未提交 scripts 键→账门 FAIL 且 `worktree got=264156e8…` 与 HEAD 读数现形分裂（未提交窗逃逸面闭合实证）→随即 `git checkout -- package.json` 还原·package.json 零残 diff（probe 键不入库）。
+4. **门矩阵（EXIT 原值如实）**：①`node scripts/ha/ha6-companion.proof.mjs` **EXIT=1**——**账门断言翻 PASS**（`scripts-set digest four-point identical HEAD=cc72940d worktree=cc72940d registered=cc72940d`）·FAIL **4→3**（**64 PASS/3 FAIL**）·**整体基线红维持不裁绿（§1.B 第 3 条预declared 如实兑现）**；②docs:check EXIT=0（scanned 2383 ≤ cap 2386·`public-text-policy.mjs:149` `MAX_FILES=2_386` 亲证·届值随 #146 放宽承 merge）；③markers 五类标记词+冲突标记对改动集双文件运行时组装扫 **hits=0**；④码面 diff 恰 1 tracked（本 .mjs +16/−5·落卷另承本卷 .md 沿 cap-sanction EXEC commit 先例）；⑤`node --check` 语法门 EXIT=0。
+5. **邻面三 FAIL 各既登通道零触核**：①principal.ts:946 行号门漂移红（ha6-repin-REQUEST :256 R6 既登残留风险·行使通道=同款 REQUEST 补审）②docker compose config 臂 EXIT=125（本机 docker 环境形）③pgbouncer 负断言红（`packages/db/src/interview/interview-graph-lease.ts` 恰 1 命中）——三面各有既登通道·本卷零触零改；ci.yml :257-:258 接线前置（届时 tip 本地 ha6:prove 绿）仍不满足·接线归另批零触。
+6. **件① E2EA-01 待 key 登记段**：EXEC 双前置（①MODEL_API_KEY 已由协调方/用户配置 ②协调方对本任务书 EXEC 授权）**均未满足**——key 未配如实登记；未配期 Ban 抢改/抢跑（live spend）禁令维持。三层 skip 臂现状零触（wrapper `run-e2e-isolated.mjs:3043-:3046`/self-skip `scoring-eval.ts:16`/nightly `nightly.yml:57-:66` 诚实 skip 形在岗·§0.1 承draft 亲证零动）。**待 key 配置后另派 EXEC 方可行使**（核验刀刀形沿 §1.A 五条·届时 est live>0 实跑面另计呈报）；本卷 est live=0·actualSpendCny=null。
+7. **卫生**：est live=0（全门本地静态·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL·SSOT 三卷（backlog/checklist/LEDGER）零触·`ha6-repin-REQUEST.md` 历史卷零触·ci.yml/workflow 零触·pins 十值零翻转·收据不入库。
+8. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
 ## §9 卷纪律
 
 diff 恰 1 tracked 新增（本卷 `ai-docs/delivery/harness/micro-batch2-REQUEST.md`）；commit 净消息 `docs(test): 起草三件小修任务书`；⛔push；收据不入库（untracked）；实现方不 self-approve · alone≠dual · EXIT0≠covered。
+
+---
+
+*MICRO-BATCH2 REQUEST · 2026-10-26 起草 · **`executed:awaiting_post_prove_dual`**（2026-10-26 EXEC 落码·§9-EXEC·前值 `draft:awaiting_pre_exec_dual` @draft `a8a624596` 史录）· EXEC tip `8f2fdb83c`（fetch origin/main 并线 #147/#148 零冲突 merge commit·install frozen 门前置）· 分支 `line/micro-batch2-draft` · 工作树 `meetwise-micro2` · 协调方裁断=仅件② L-04 行使（件① E2EA-01 待 key 登记·件③ G7V 销账建议维持 §3）· 件② 落点=`scripts/ha/ha6-companion.proof.mjs` 恰 1 码面文件（digest 重注册 `cc72940d`@`8f2fdb83c`+`:32` 漂移账 append+工作树双读数四点恒等臂·+16/−5·EXEC tip 复算 653→698 纯增 45 键 0 删）· 门矩阵=ha6:prove EXIT=1（账门断言翻 PASS·FAIL 4→3·64 PASS/3 FAIL·基线红预declared 维持）+docs:check EXIT=0（2383≤2386）+markers hits=0+码面 diff 恰 1 tracked+件b 负验证 worktree got 现形 · est live=0 · actualSpendCny=null · ⛔push ⛔merge 主线*
