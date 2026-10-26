@@ -195,6 +195,8 @@
     "uc025:nhp-bound-isolated:prove:raw": "pnpm -C apps/api prove:uc025-nhp-bound-isolated",
     "uc028:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc028:nhp-fault:prove:raw",
     "uc028:nhp-fault:prove:raw": "pnpm -C apps/api prove:uc028-nhp-fault",
+    "uc028:recon-truth-inject:prove": "node scripts/run-e2e-isolated.mjs uc028:recon-truth-inject:prove:raw",
+    "uc028:recon-truth-inject:prove:raw": "pnpm -C apps/api prove:uc028-recon-truth-inject",
     "uc025:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc025:nhp-adv:prove:raw",
     "uc025:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc025-nhp-adv",
     "uc025:covered-reassess:prove": "node scripts/uc-e2e-025-covered-reassess.proof.mjs",
