@@ -535,7 +535,7 @@ export async function runMigrateProof(
   const treeVersions = loaded.map((migration) => migration.version);
   const localeOrder = [...treeVersions].sort((a, b) => a.localeCompare(b));
   const byteOrder = [...treeVersions].sort(migrationVersionByteCompare);
-  A('字节序切换前置: 现树 migrations/ 全量文件名 localeCompare 序==字节序逐对等价(197 文件·0143/0152/0160 双号对内序全等)',
+  A(`字节序切换前置: 现树 migrations/ 全量文件名 localeCompare 序==字节序逐对等价(${treeVersions.length} 文件·0143/0152/0160 双号对内序全等)`,
     JSON.stringify(localeOrder) === JSON.stringify(byteOrder));
   A('字节序负测: 构造两序分歧样本证明比较器真切换(字节 B<a · locale a<B)',
     migrationVersionByteCompare('0143_B', '0143_a') === -1 && '0143_B'.localeCompare('0143_a') === 1);
