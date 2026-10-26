@@ -117,6 +117,53 @@
 - **越界需要**：修法诉求超出 §1.4 恰 5 子刀面（需触产品码/批 A 行/covered 翻面/共享 SSOT/迁移/告警配置）→停·另刀或协调方裁决（Ban 就地扩面）。
 - **验收红不可修**：§2 任一门红且根因不在本刀交付面（docs:check>2346/邻套件新红/typecheck/lint 超）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9-rev rev 修订注记（pre-exec 双审席1 FAIL·P1×3 撞行面+P2 两件+P3 三件合并清单→rev 回路 · 与 UC-004 双审席2 撞行裁定收敛 · rev 席落卷 2026-10-26 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
+
+**rev 缘由**：pre-exec 双审席1 FAIL 合并清单（P1×3 撞行面：①行 4 `NHP-004-NEG-01` 撞 `uc004-draft` 臂 6/7 NEG 面·②行 4 fault prove「只增臂」面撞 uc004 回归面·③行 6 `:148` PERF/LOAD 格撞 `uc011-draft`）+P2 两件+P3 三件·本席逐位届树亲证（证据随条·在飞三线 `line/uc004-draft`/`line/uc011-draft`/`line/nhp-batch-a-draft` 逐树 `git log -1` 亲读）后按 rev 回路落卷（只改本卷·纯文面零码动·码面/SSOT/他卷/既有 proof 零触·落卷形=append 不洗·EXEC 期以下列修正句为准读）。**七落点全部届树成立落修正·零跳过**。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+### §9-rev.1 修订①（P1-①②·行 4 收缩——删 NHP-004-NEG-01 整子刀·NEG/FAULT 让位·fault prove 零触只读）
+
+- **届树亲证**：`git log -1 line/uc004-draft`=`4bf00bed0`（base 同 `47dd6be56`·`git diff --name-only origin/main...HEAD` 恰 1 新文件 `ai-docs/delivery/harness/uc004-e2e-REQUEST.md` +110 亲证）。其 §1.1 断言臂亲读：**臂 6 越权（他人 principal GET career-path→404）+臂 7 409 族（无评估线程→409 `assessment_required`·overall 不可信→409 `insufficient_evidence`）=NEG 面整族**；**臂 10-15=FAULT 失败降级臂整族**（500 信封/`ai_graph_run` failed 行/version≥2/GET 404/额度账本净 0/in-fault 重试/server alive·七项口径沿 fault prove `:44-46`）；其 §1.3 明钉「不改既有 prove：`uc-e2e-004-career-path.proof.mjs` 与 `uc-e2e-004-career-path-fault.proof.ts` 原句口径零改（只回归复跑）」且 Ban 触矩阵 SSOT——两 proof 归 **uc004 回归面**·矩阵列值其线零改写。
+- **修正句一（§1.4 行 4 收缩）**：行 4「三子刀」删 `NHP-004-NEG-01` 整子刀→**行 4 收缩为 `NHP-004-BOUND-01`+`NHP-004-ADV-01`+§1.0.2 补 004 分面登记行** 三件；「case-matrix 补三 case 行」→「**补二 case 行**（BOUND+ADV·gap→case-only 措辞同口径）」；分面登记行（三值 blind 如实·只登记不填绿）不变。
+- **修正句二（NEG/FAULT 让位注记）**：行 4 NEG/FAULT 两列隔离收据诉求**让位 `line/uc004-draft` @`4bf00bed0`**（臂 6/7=NEG 面·臂 10-15=FAULT 面·上亲证）——本卷对两列**零 case 零 prove 零矩阵改写**（列值 gap 如实保持·翻面权归协调方）；§1.1 行 4 NEG 读/FAULT 读两段的「本刀补收据」指向随之作废改读（§1.1 缺列诊断本体如实保留）。
+- **修正句三（fault prove 引用形收紧·§0.1+§1.1）**：`apps/api/test/uc-e2e-004-career-path-fault.proof.ts`（§0.1 锚 `c7eeee09`）由「隔离壳/注册形=行 4 新子刀范本」「沿既有…隔离壳只增臂」改**零触只读引用（归 uc004 回归面·其「只回归复跑」原钉不变）**——本卷行 4 全部 prove 为独立新文件（沿 uc001/uc025 `nhp-*-prove` 族命名）·**零增臂零改写零复用其壳内断言**。
+- **修正句四（§5 Ban 收紧）**：§5「Ban 改既有 proof 断言（只增臂）」→「**Ban 触任何既有 proof 文件（零触只读引用·含 Ban 只增臂/Ban 复用既有壳内断言——本卷全部 prove 为新文件）**」。
+- **修正句五（子刀计数）**：全文「恰 5 子刀」→「**恰 4 子刀（行4 两刀+行5 一刀+行6 一刀）**」（§8 停止条件-3「恰 5 子刀面」与卷尾注两处落点·EXEC 期按本句读）。
+
+### §9-rev.2 修订②（P1-③·第二撞行登记——§0.0 在飞补登 uc011/uc004 两线+行 6 `:148` PERF/LOAD 格权属预裁定落文+树数更新）
+
+- **届树亲证**：`git worktree list` rev 时点 **18 树**实测（起草时 13 树→增树含 `meetwise-uc004`/`meetwise-uc011` 两 UC 线·逐树亲读）；`git log -1 line/uc011-draft`=`a23385730`（`git diff --name-only origin/main...HEAD` 恰 1 新文件 `ai-docs/delivery/harness/uc011-e2e-REQUEST.md` 亲证）；其件二亲读=「matrix §1.0.1 `:117` ADV 列+快乐读法列按真收据改注记」+「§1.0.2 `:148` PERF/LOAD **保持 blind 零宣称**（Ban n/a 偷关）」+「NHP 矩阵 `:58` 停用『产品口缺失』过时句改现势措辞」→与本卷行 6 触面（`:148` 两格+`:59` 收据+新 PERF 行）相邻交叠待裁。
+- **修正句一（§0.0 在飞登记补两线）**：§0.0 在飞登记补 **`line/uc011-draft`（@`a23385730`·认领 UC-E2E-011 ADV 面隔离收据+矩阵六列补齐）与 `line/uc004-draft`（@`4bf00bed0`·认领 UC-004 e2e HTTP 主路径+NEG/FAULT 臂·见 §9-rev.1）**——EXEC 期照 §0.0 交叠复核规则对两线 `git log -1 -- <触面文件>` 逐树逐件复核·任一线顶对任一触面存在 `47dd6be56` 之后新增提交→触「现场漂移」停手上报。
+- **修正句二（行 6 `:148` PERF/LOAD 格权属预裁定落文·建议形·终裁权归协调方）**：**本卷独占** §1.0.2 `:148` 行 UC-E2E-011 的 PERF_api/LOAD_worker 两格改写权+case-matrix `:59` NHP-011-LOAD-w-01 执行收据+case-matrix **新 `NHP-011-PERF-api-01` 行**；**UC-E2E-011 ADV 列（`:117`）措辞与 case-matrix `:58` 过时句修正归 `line/uc011-draft`**（其件二自钉「`:148` 保持 blind 零宣称」→两线 `:148` 无字面相撞·本裁定收口防将来越格）；**互 Ban 越格**（本卷 Ban 触 `:117` ADV 列措辞与 `:58` 备注句·uc011-draft 沿其卷自钉不触 PERF/LOAD 格）；**EXEC 顺序 UC-011 先行**（同文件邻区改行避并行·本卷行 6 子刀随其后）。
+- **修正句三（树数）**：§0.0「建后 13 树实测」→「**rev 时点（2026-10-26）18 树实测**」·`line/nhp-batch-b*` 恰 1 命中维持。
+
+### §9-rev.3 修订③（P2-①·行 6 blind→case-only 新措辞防洗句沿 uc017 先例）
+
+- **届树亲证**：矩阵 `:148` UC-E2E-011/017/019 行 uc017（Line Y nail）注记原句亲读=「**Ban 借 LOAD 收据宣 PERF SLO/生产容量/HA**」——先例在树逐字。
+- **修正句**：§1.4 行 6「PERF_api/LOAD_worker blind→case-only 措辞」补防洗句（沿 uc017 先例同纹）：「**Ban 借本刀收据宣 PERF SLO/生产容量/HA**」（case-only=具名 case 诚实登记·EXIT0=case≠covered·隔离库负载≠生产容量·local≠prod≠HA）。
+
+### §9-rev.4 修订④（P2-②·§8 停止条件「机制不满足」举例精化——防机制面误停）
+
+- **届树亲证**：`apps/api/src/platform/last-event-id.ts:10-16` 亲读=**malformed** LED（不合 `^(0|[1-9]\d{0,15})$`/非安全整数）→`HttpException 400 invalid_last_event_id` **fail-closed 实证在树**；`apps/api/test/uc-e2e-010-sse-resume.proof.ts:218-227` R4 亲读=**well-formed** 已追上游标→**SSE 200+空 catch-up+hold ping**（重放游标语义：已追上非错误空）。
+- **修正句**：§8「机制不满足」例「LED 伪造被静默接受」精化两分——EXEC 期判停前置：①**malformed LED 未得 400 `invalid_last_event_id`**=机制真红可停；②**well-formed 伪造游标得空 catch-up=重放游标语义内预期行为（R4 先例）·非机制红·Ban 据此误停**（防把设计内语义误判「静默接受」而触停）。
+
+### §9-rev.5 修订⑤（P3-①·§1.2 rg 计数如实）
+
+- **届树亲证**：`apps/api/test/uc-e2e-010-sse-resume.proof.ts` rg 实测=中文「重放/越权」词面 **6 行**全在既有 R 族臂标签（`:191`/`:192` R1·`:208` R2·`:258`/`:271` R-mid·`:302` R-authz）·英文 `tamper`/`forged`/`replay` **0 命中**。
+- **修正句**：§1.2 ADV 读「（rg 亲证命中仅 2 处注释性词）」→「（rg 亲证：中文重放/越权词面在既有 R 臂标签 6 行·tamper/forged 英文词 0 命中）」——**对抗注入臂零存在·ADV blind 结论不变**（纯计数勘误）。
+
+### §9-rev.6 修订⑥（P3-②·§1.4 ADV-01 越权 POST 臂与 uc004 臂 6 同族旁证注记）
+
+- **修正句**：§1.4 行 4 `NHP-004-ADV-01` 越权 POST 臂**Ban 借 uc004-draft 臂 6（越权 GET→404）wash 本卷任何列值**——两臂同族（越权拒绝面）·只作**同族旁证只读引用**·列值零联动零翻转（沿 §1.3-① Ban 借旁证 wash 同律）。
+
+### §9-rev.7 修订⑦（P3-③·批 A 互斥行号更新）
+
+- **届树亲证**：`git log -1 line/nhp-batch-a-draft`=`fbfdcc0c8`（`git diff --name-only origin/main...HEAD` 恰 1 新文件 `ai-docs/delivery/harness/nhp-batch-a-REQUEST.md` 亲证）；其认领三行亲读=**`:118`（UC-E2E-012/024·NHP-012-FAULT-01）+`:114`（UC-E2E-003·NHP-003-ADV-01）+`:128`（UC-E2E-030·NHP-030-FAULT-01）**·且其行表明钉「`:115` UC-004 他项认领跳过」——非本卷 §0.0 所记「行 1-3（`:112-114`）」。
+- **修正句一（§0.0+§0.1）**：「批 A 认领 §1.0.1 行 1-3（UC-E2E-001/002/003·矩阵 `:112-114`）」→「批 A 认领 §1.0.1 **`:114`/`:118`/`:128` 三行（UC-E2E-003·UC-E2E-012/024·UC-E2E-030）**」（§0.1 锚表「批 A 三行=`:112-114`」随之同读）——**行级互斥零重叠结论维持**（本卷 `:115-117` 与批 A 三行两两不交·批 A 明钉跳过 `:115`）·两卷同触矩阵文件的交叠复核规则维持·立项出处③协调方派单原文照录为史录不洗。
+- **修正句二（§3-2）**：「批 A 三行零触：矩阵 `:112-114`（UC-E2E-001/002/003）及其 case 归批 A 席」→「矩阵 **`:114`/`:118`/`:128`** 及其 case 归批 A 席」。
+
+**rev 自检回执**：`git diff --numstat` 恰 1 tracked=本卷 .md（§0-§8 一字不洗·纯 §9-rev 节 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·本卷系既有文件 append 零新增受管·scanned 2342≤cap 2346）；markers 五类零命中（词面运行时组装口径·本席亲跑 0 命中·回执随 EXEC 收据留痕）；码面/SSOT/他卷/既有 proof 零触（rev turn 全只读+本卷 1 .md append）；est live=0（`actualSpendCny=null` 同源）·markers=0·pins 十一值零翻转·**STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve。
+
 ---
 
-*NHP-BATCH-B REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（本卷唯一 STOP 终态·三处钉：Status 行+§8+本行）· 剩余队列 Phase2 #12 one-knife-one-row 批 B · 覆盖矩阵 §1.0.1 行 4-6（UC-E2E-004 `:115` / UC-E2E-010 `:116` / UC-E2E-011 `:117`）· 缺列=行 4 NEG/BOUND/ADV+分面行缺席·行 5 ADV·行 6 PERF_api/LOAD_worker 执行收据 · 修法=三行各补缺列隔离收据（恰 5 子刀·一刀一行·docs+test-only·零产品码触）· §1.3 三否决（Ban invent covered / Ban live key / Ban retry-to-green）· 双表同步令沿 §1.0.3 `:164` · base=origin/main `47dd6be56` · 分支 `line/nhp-batch-b-draft` · 工作树 `meetwise-nhp-b` · 与批 A（行 1-3）行级互斥零重叠 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push*
+*NHP-BATCH-B REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（本卷唯一 STOP 终态·三处钉：Status 行+§8+本行）· 剩余队列 Phase2 #12 one-knife-one-row 批 B · 覆盖矩阵 §1.0.1 行 4-6（UC-E2E-004 `:115` / UC-E2E-010 `:116` / UC-E2E-011 `:117`）· 缺列=行 4 NEG/BOUND/ADV+分面行缺席·行 5 ADV·行 6 PERF_api/LOAD_worker 执行收据 · 修法=三行各补缺列隔离收据（恰 5 子刀·一刀一行·docs+test-only·零产品码触）· §1.3 三否决（Ban invent covered / Ban live key / Ban retry-to-green）· 双表同步令沿 §1.0.3 `:164` · base=origin/main `47dd6be56` · 分支 `line/nhp-batch-b-draft` · 工作树 `meetwise-nhp-b` · 与批 A（行 1-3）行级互斥零重叠 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push · rev 修订注记 §9-rev 2026-10-26 落卷（pre-exec 双审席1 FAIL 合并清单 P1×3 撞行面+P2 两件+P3 三件回卷·与 UC-004 双审席2 撞行裁定收敛·七落点全成立落修正·零跳过·§0-§8 零字洗·「恰 5 子刀」改读「恰 4 子刀（行4 两刀+行5 一刀+行6 一刀）」·NHP-004-NEG-01 删·行 4 NEG/FAULT 让位 `line/uc004-draft` @`4bf00bed0`·fault prove 零触只读·批 A 互斥行号改读 `:114`/`:118`/`:128`·在飞补登 `line/uc011-draft` @`a23385730`+`:148` 格权属预裁定·STOP 三处同值零翻·第二轮 pre-exec 双审待重派·窄域=§9-rev 落点复验）*
