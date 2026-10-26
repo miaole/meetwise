@@ -232,6 +232,18 @@
     "notAccepted": "删除请求未受理（{status}），未当作已删除。",
     "invalidShape": "删除受理形状不合法，未当作已删除。"
   },
+  "privacyPreview": {
+    "scopeRequired": "请选择范围；面试删除预览需要填写面试标识。",
+    "networkError": "网络错误，请稍后重试。",
+    "sessionExpired": "登录已过期，请重新登录。",
+    "notFound": "找不到该面试，或你无权预览它的删除回执。",
+    "conflict": "同一预览请求与已有目标冲突，请更换范围或面试。",
+    "readOnlyDeployment": "公开预览部署为只读，不能受理删除预览。",
+    "previewUnavailable": "预览删除暂不可用，未伪装为已完成。",
+    "notAccepted": "预览请求未受理（{status}）。",
+    "invalidShape": "回执形状不合法，未当作删除完成。",
+    "productionClaimRejected": "回执宣称了生产完成态，已拒绝展示。"
+  },
   "meta": {
     "titleDefault": "Meetwise 知面 · 预览版",
     "titleTemplate": "%s · 知面 Meetwise",
