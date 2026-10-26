@@ -6,7 +6,7 @@
  * Playwright DOM 扫描 = secondary / 本 prove 不跑
  *
  * S1–S3 钉可证结构；S4/S5/G3' 钉三面收口后的绿结构（原 G-GAP-1/2/3 翻面，见 harness 翻面注记）；
- * S6 钉 UC003 i18n 后刀五面迁移（error 壳/Nav 招聘方三标签/PublicPreviewNav 六面/delete 四消息）；
+ * S6 钉 UC003 i18n 后刀五面迁移（error 壳/Nav 招聘方三标签/PublicPreviewNav 六面/delete 四消息）及 privacy 预览十消息后刀（privacyPreview namespace 双侧注册+零残留）；
  * EXIT=0 = 结构绿 ≠ 产品闭环 ≠ covered（矩阵 stays partial）
  */
 import assert from 'node:assert/strict';
@@ -214,6 +214,7 @@ const checks = {
       errorBoundary: ['title', 'description', 'digestLabel', 'retry', 'backToDashboard'],
       publicPreview: ['brand', 'home', 'features', 'faq', 'legal', 'previewNavAria'],
       resumeDelete: ['networkError', 'notFound', 'notAccepted', 'invalidShape'],
+      privacyPreview: ['scopeRequired', 'networkError', 'sessionExpired', 'notFound', 'conflict', 'readOnlyDeployment', 'previewUnavailable', 'notAccepted', 'invalidShape', 'productionClaimRejected'],
     };
     for (const [ns, keys] of Object.entries(newNamespaces)) {
       for (const key of keys) {
@@ -255,6 +256,31 @@ const checks = {
     );
     assert.match(deleteActions, /t\('notAccepted',\s*\{\s*status:\s*res\.status\s*\}\)/, 'notAccepted arm must use the {status} ICU interpolation');
     assert.ok(!deleteActions.includes("'+ res.status + '"), 'delete face must not concatenate res.status');
+    // ⑤ privacy actions face: the cookie-locale pipe into privacyPreview, the {status} ICU
+    // form instead of a template literal, and zero residual of the ten zh error literals
+    // (delimited full-sentence needles; the wire token `public_preview_read_only` stays untouched).
+    const privacyActions = read('apps/web/app/privacy/actions.ts');
+    assert.match(
+      privacyActions,
+      /getTranslations\(\{\s*locale:\s*await privacyPreviewLocale\(\),\s*namespace:\s*'privacyPreview'\s*\}\)/,
+      'requestPrivacyPreviewAction must feed the cookie locale into the privacyPreview namespace',
+    );
+    assert.match(privacyActions, /t\('notAccepted',\s*\{\s*status:\s*res\.status\s*\}\)/, 'privacy notAccepted arm must use the {status} ICU interpolation');
+    assert.ok(privacyActions.includes("'public_preview_read_only'"), 'wire token public_preview_read_only must stay in place');
+    for (const needle of [
+      '请选择范围；面试删除预览需要填写面试标识。',
+      '网络错误，请稍后重试。',
+      '登录已过期，请重新登录。',
+      '找不到该面试，或你无权预览它的删除回执。',
+      '同一预览请求与已有目标冲突，请更换范围或面试。',
+      '公开预览部署为只读，不能受理删除预览。',
+      '预览删除暂不可用，未伪装为已完成。',
+      '预览请求未受理（',
+      '回执形状不合法，未当作删除完成。',
+      '回执宣称了生产完成态，已拒绝展示。',
+    ]) {
+      assert.ok(!privacyActions.includes(needle), `privacy actions zh face must be migrated: ${needle}`);
+    }
   },
 };
 
