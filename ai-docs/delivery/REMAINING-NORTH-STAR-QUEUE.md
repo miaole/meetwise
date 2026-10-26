@@ -32,7 +32,7 @@ Next: Phase 0 item **2+**（serial COND / A-seed product rootcause still OPEN ·
 DELETE=503 freeze · INT-TRANSCRIPT-01 · GAP-PRIV-01 tenant≠RLS · GAP-PRIV-04 vector erase
 
 ## Phase 4 RAG
-GAP-RAG-02 fixture · GAP-RAG-05 semantic classifier late
+~~GAP-RAG-02 fixture · GAP-RAG-05 semantic classifier late~~ **DONE（fixture 刀 + Stage S 结构面收官勘误 · 2026-10-07 落主线证据亲证）** · fixture knife `post_prove_dual_pass`（coding `263f3bcf4` main 祖先亲证 ≡ 台账 `d4d02e48` patch-id `1767357a` · nail docs `24612b3af` main 祖先亲证 ≡ `6afd8c8ff` patch-id `8909e15a` · backlog `:70` 已录 knife nail）· Stage S `post_prove_dual_pass`（nail = checklist Line RAG05 + backlog `:783` 登记 · POST dual `7d8d7d72d`+`77e9ac85e` main 祖先亲证 · coding 台账 `db7da1cd` ≡ 落地 `281128ce` patch-id `f7142630` 经 #108 `112e6d26f` 落 main · `SEMANTIC_ROUTE_PERF_BUDGET` 冻结在位）· **Route L residual stays**（量化面实测须 EXEC 再显式授权 · `actualSpendCny=null`）· **强制 caveat：翻 queue 行 ≠ `:70`/`:71`/`:73` 任一行 closed ≠ covered flip ≠ HA ≠ 语义质量冻结 ≠ 路由生产接线宣称** · coveredCount=8 · DELETE=503
 
 ## Phase 5 MOP
 GAP-MOP-01/BUG-NOTIFY-REC · GAP-MOP-02 claim
