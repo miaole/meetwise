@@ -2,23 +2,37 @@
 
 > 本文件 + 本分支（`line/campaign-state`）= 战役全部状态快照。主开发线 = `feat/mysql-schema-skeleton`。
 
-## 一、当前状态（2026-10-19 快照）
+## 一、当前状态（2026-10-26 快照）
 
-- 主线 `feat/mysql-schema-skeleton` @ `4c2ea4c9f`，CI 三 workflow 全绿
-- 修复进度：批表 223/271（82.3%，权威计件源=本分支 `.tmp/external/issues-master.md`）；AI 能力台账 done 30 / half 2 / open 16
-- 文档数量帽：`scripts/ai-docs/public-text-policy.mjs` MAX_FILES=2264，主线现值 2261（余 3）
+- 主线 `main` @ `ab282ba81`（PR #123 cap-2354 已并；本次 fetch 前值 47dd6be56）
+- 修复进度：批表 238/271（87.8%，权威计件源=本分支 `.tmp/external/issues-master.md`）；翻面笔-3（`line/bookkeeping-flip-3` @ `88762a65c`）已落卷待 PR 并线
+- AI 能力台账：done 45 / half 1（AG-20）/ open 3（全门控）
+- 文档数量帽：`scripts/ai-docs/public-text-policy.mjs` MAX_FILES=2354，届树实测 2342（余 12，docs:check EXIT=0 本席亲跑）
 - lint 帽恰等：root 5242 / api 1423 / domain 115（0 errors 红线不可放宽）
+- 本状态支线已补并主线新届：merge --no-ff origin/main@ab282ba81（merge-tree 预演 34 文件冲突·逐 blob 取证=支线侧全为陈旧祖先态·其内容已由主线 PR 波以更新形态收编·冲突解全取主线侧·blob 恒等机证零工作丢失）
 
-## 二、在飞四支线（均已提交并推送，各卷 STOP 状态见各自 REQUEST）
+## 二、在飞清单（2026-10-26·各卷 STOP 状态见各自 REQUEST）
 
-| 分支 | 内容 | STOP | 下一步 |
+六条 E2E 缺口卷 + AG-20 卷 + cap-2354（已并）+ 翻面笔-3（待 PR）：
+
+| 分支 | 内容 | STOP/状态 | 下一步 |
 |---|---|---|---|
-| `line/upload-guards-draft` @ df150781d | 上传文件头校验+解析超时强制终止 | executed:awaiting_post_prove_dual | 窄域复核席1 的两条补码（text 全魔数族+探针常驻门，见 REQUEST §9-EXEC 补记）→PASS 即与席2 PASS 会签合并→merge 主线 |
-| `line/ag17-draft` @ 1cf4c4042 | AI 结构化输出 span 档名修正 | draft:awaiting_pre_exec_dual | 双审×2 → 实现 |
-| `line/pgp-key-param-draft` @ c7f30447c | 会话加密密钥移出 SQL 语句参数 | draft:awaiting_rev | 双审×2 → 实现 |
-| `line/threshold-calibration-draft` @ 67f905a2d | 自适应面试阈值参数化 | draft:awaiting_pre_exec_dual | 双审×2 → 实现 |
+| `line/uc004-draft` @ `1c5a02600` | UC-004 career-path 全链路 e2e REQUEST（docs-only） | `draft:awaiting_pre_exec_dual`（席1 PASS+席2 FAIL 合并修订清单已 §9-rev 落卷） | 重派 pre-exec 双审第二轮 |
+| `line/uc025-draft` @ `6da9821c8` | UC-025 E2E 残面 REQUEST（BOUND 隔离收据+重押题入口+covered 评估器） | `draft:awaiting_pre_exec_dual`（席1 FAIL P1×3+P2×6 修订已 §9-rev 落卷） | 重派双审第二轮 |
+| `line/uc011-draft` @ `a23385730` | UC-E2E-011 E2E 覆盖 REQUEST（ADV 面隔离收据+矩阵六列补齐+covered-lift 评估） | `draft:awaiting_pre_exec_dual`（起草落卷 2026-10-26·双审首轮待派） | 派 pre-exec 双审首轮 |
+| `line/uc028-draft` @ `96f2dd241` | UC-E2E-028 E2E 补验 REQUEST（注入面/recon 对账断言/真相阻塞对照） | `draft:awaiting_pre_exec_dual`（双审 BOTH PASS 已折入落卷） | 待协调方明示 EXEC 授权 |
+| `line/nhp-batch-a-draft` @ `fbfdcc0c8` | NHP 批 A·§1.0 盲区三行缺列隔离收据 REQUEST | `draft:awaiting_pre_exec_dual`（起草落卷·双审首轮待派） | 派 pre-exec 双审首轮 |
+| `line/nhp-batch-b-draft` @ `c77057d6f` | NHP 批 B 残面 REQUEST | `draft:awaiting_pre_exec_dual`（席1 FAIL P1×3 撞行面修订已 §9-rev 落卷） | 重派双审第二轮 |
+| `line/ag20-residual-draft` @ `c2d0aeebd` | AG-20 残面复核登记卷（CTX-02 已接线·余 MEM/CTX 原语零调用维持登记） | 双 PASS·EXEC 中 | EXEC 落卷→post 双审 |
+| cap-2354 | 文档帽 2346→2354 步进 | 已并（PR #123 @ `ab282ba81`） | 已收口 |
+| `line/bookkeeping-flip-3` @ `88762a65c` | 批表时滞翻面补登记（docs-only） | 落卷完工 | 走 PR 并线（见「环境变更」） |
 
-**第一波注意**：四卷并线后主线文档数 2265 会超帽 2264——先派一个帽步进任务（2264→2272，改 MAX_FILES+联动断言+自查 grep，模板=仓内 `cap-sanction-2264-REQUEST.md`）。
+**帽量注意**：届树 2342 ≤ 帽 2354 余 12；在飞各卷并线前各自核 docs:check，贴边即先派帽步进（模板=仓内 `cap-sanction-*-REQUEST.md` 先例）。
+
+## 环境变更（2026-10-26）
+
+- **main 分支已设保护**：并线必走 PR——push 支线 → `gh pr create` → `gh pr merge --merge`；直推 main 被 GitHub 拒（GH006）。先例=cap-2354 走 PR #123 并线。
+- 旧流程「`git push origin HEAD:feat/mysql-schema-skeleton`（只许直推）」条款（见「三」）自此作废；主干分支=`main`。
 
 ## 三、任务固定流程
 
