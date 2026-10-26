@@ -281,6 +281,7 @@
 - **用户影响**：目前每次调用都是单轮，暂时没有直接的用户影响；但设计文档会让人误以为已有长期记忆与压缩能力，维护成本也高。
 - **修法**：二选一：接线（在 promptedModel 里映射 components，先裁剪再派发），或者明确标为实验性代码并移出 index 导出；边界规则收敛为一份。
 - **关联审计总表编号**：#51、#217
+- 【AG-20 翻面注记 2026-10-26·协调方批表翻面笔-4 授权随令行使（残面登记卷承卷·本席逐项亲证）：判词两肢面收口——①CTX-02 裁剪半已落主线：main 系承载 merge `7d1a732d1` 对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0（apps/worker/src/ask-context-budget.ts 纯裁定原语 trimOrder 窄化 `['summary']`+apps/worker/src/adaptive-interview-service.ts `:617` `sessionSurvivesAskBudget` 生产调用位在树亲读=interviewer.ask summary 槽位派发前降级裁定一路·transport 层 planContextBudget 权威拒绝臂原在位「只拒不裁」面就此补齐）②余 MEM/CTX 原语（CTX-05 压缩/MEM-02/03 摘要/MEM-07 围栏/MEM-09 生命周期/MEM-11/14 召回）生产派发链路零调用本席届树复证维持（planDispatchBudget 生产调用唯 CTX-02 接线路径·twoStageRecall/buildMemoryIndex 族 apps 生产 src 零命中）=阶段门内「有界当前题答路径」设计内状态（checklist 阶段 3 有界路径门+ask-context-budget.ts:35-36 泛化面归后刀自注）→按登记卷判「零调用=维持登记」处置定稿：登记卷 ag20-residual-REQUEST `c2d0aeebd` 登记+`1b60eda2c` 定稿（维持登记处置届值重钉）pre-exec 双审 Dual PASS·并线 PR #124 merge `f0e6612e8` 对 HEAD 祖先亲证 EXIT=0·DATA_BOUNDARY_RULE 双文案漂移风险由 mem07-injection-fence.proof.ts 字节恒一+基线冻结断言封闭（收敛为一份系跨包结构性码面归本体刀·登记卷否决丙如实承卷）·AG-20 条目收口（接线半已落+余原语登记维持·判词面处置完毕非开放残面）·done 46→47·half 1→0（half 清零·open 3 门控/前置维持 AG-13/AG-32/AG-36）·done 计数勘误统一见 checklist 翻面笔-4 段】
 
 ### AG-21【P3·上下文】截断与预算两套口径：截断按 UTF-16 码元（2 万/1.2 万/1.6 万/8 千），预算按 UTF-8 字节；RAG 素材有 420→600/1600→8000 三层截断
 
