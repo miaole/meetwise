@@ -211,6 +211,7 @@
 - **用户影响**：账本偏差方向不定，对账和预算告警都不可信。
 - **修法**：缺字段时统一视为 usage_missing，按上限结算并打标；embedding 读供应商 usage 或按估算上界结算。
 - **关联审计总表编号**：#49
+- 【AG-14 翻面注记 2026-10-26·协调方批表翻面笔-3 授权行使（残面席证据链承卷·本席逐项亲证）：usage 结算三口径面收口全落在主线——blob 三锚在树亲证=packages/ai-runtime/src/model-client.ts@`f9fd31059`（解析层缺字段上限补齐+usage_missing 打标·绝不按 0）+packages/ai-runtime/src/invoke.ts@`f61024332`（settledUsage/usageSource 结算贯通+校准配对剔除·0119 镜像）+apps/worker/src/rag-cost-governance.ts@`121a7ff1f`（RAG embedding 供应商 usage 读面·缺用量按段估算与上限取小 `79e97f82f`+生产检索扣费前向量缓存复用 `e65f35590`）·流式面 completeStream usage 折叠随 TOKSTREAM-S4B `44b61d6e9` 落地（apps/worker/src/token-stream.ts 结束面 usage 对账+completeStream onUsage 同形在树亲读）·涉引 commit 对 HEAD `git merge-base --is-ancestor` 全亲证 EXIT=0·AG-14 条目收口·done 44→45·half 2→1（AG-20 独留·CTX-02 余原语面归后继）·EG-B1 unknown ageing 与 stress 门 7 FAIL 基线红非 AG-14 面维持】
 
 ### AG-15【P2·编排运行时】图运行时可观测性不足：没有“thread 停在非 interrupt、非 END 节点”的卡死检测；ai_graph_run 没有 current_node/last_error/checkpoint_id
 
