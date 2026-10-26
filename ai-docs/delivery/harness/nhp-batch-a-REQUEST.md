@@ -253,4 +253,52 @@ STOP=executed · awaiting post-prove dual assignment · post-prove 双审通过�
 
 **Non-claims**：EXIT0 ≠ covered ≠ suite green ≠ 行/列升格（升格仅经 coordinator nail additive honesty）· `:114/:118/:128` 措辞零翻动 · coveredCount=8 不变 · ≠HA · est live=0 · 三 case 互不替代互不借用 · D1（pending_eval 字面状态机/补评闭环 NOT claimed）· D2（lazy-on-access 字面口/refresh token NOT claimed）· D3（零模型语言断言）· V1 原型链族预登记未实证（零 EXIT1 触发 · 修复归产品刀）· alone ≠ dual · **⛔push ⛔force-push**。
 
+### §9-EXEC 红次台账勘误（post 双审席1 scoped FAIL P1 处方落卷 · append-only · 2026-10-26 · 纯文面零码动）
+
+**回路**：post-prove 双审席1 scoped FAIL（P1×1 = 红次台账核算错 · P2×2 随落）——FAIL 仅及本节红次台账文面核算面；三 proof 绿证据 / 收据 digest 链 / `apps/*/src`+`packages/*/src` 零产品 diff 三项席1 亲证全成立，证据终态不受影响。本勘误段系席1 处方 append-only 落卷（上方 §9-EXEC 原文留痕不回改）；解销条件 = 本段落卷（协调方裁定 · 见 §9-post）。
+
+**P1（uc012 红次 6→7 · 全批 8→9）**：§9-EXEC「uc012 … 中间六红次」核算有误。15 份回执（`.tmp/isolated-proof-receipts/`）逐份机证：`uc012:nhp-fault:prove:raw` exitCode=1 红次共 **7** 次，逐次在卷：
+
+| 次 | startedAt(UTC) | finishedAt(UTC) | exitCode | proof sha256 前8（回执 sourceDigests `apps/worker/test/uc-e2e-012-nhp-fault.proof.ts`） |
+|----|----------------|-----------------|----------|------|
+| R1 | 17:44:41.054 | 17:44:47.426 | 1 | `0a68761e` |
+| R2 | 17:46:55.504 | 17:47:01.230 | 1 | `eaf83be9` |
+| R3 | 17:49:50.414 | 17:49:56.312 | 1 | `03751ae4` |
+| R4 | 17:50:39.672 | 17:50:46.265 | 1 | `bb0fa21f` |
+| R5 | 17:52:23.053 | 17:52:29.721 | 1 | `45409726` |
+| R6 | 17:55:43.323 | 17:55:50.411 | 1 | `685e3233` |
+| R7 | 17:56:15.222 | 17:56:21.875 | 1 | `d53c098a` |
+| 终绿 | 17:56:42.454 | 17:56:49.104 | 0 | `88f34214`（≡ 届树现值 `88f342140af0133c5c4b4dbc96449f7258d5f60d92efb18124abc5dbf085cc11` 全 64 位同） |
+
+**归因①撤销（席1 机证承登）**：§9-EXEC uc012 归因①「同 premigrate 缺口」**撤销**——runner `scripts/run-e2e-isolated.mjs` sha256 `0fc74902…` 自 `2026-10-26T17:42:58Z`（uc030 R2 回执）起在证恒定：uc012 全部 8 次（R1-R7+终绿）及席2 三次复跑回执 runner digest 逐份同为 `0fc74902…` 零变化；premigrate 名单缺口系 uc030 R1（17:41:53Z · runner 旧值 `e25b075c…`）专属成因——uc012 首红（17:44:41Z）时该缺口已修、此后 runner 零变化，「同 premigrate 缺口」对 uc012 任一红次不成立。旧值 runner 在证仅 2 回执（uc003 终绿 17:41:46Z——纯函数 case 与 premigrate 无关 · uc030 R1）。
+
+**成因可重建性如实申明**：现存成因 ②③④⑤ 系 EXEC 循环内四类夹具/注册/断言精度缺陷类，类级留痕有效（终绿 proof `88f34214` 行使形态在证 · 门红 Ban 自修边界守住：全部归因 EXEC 夹具/注册/断言精度，产品行为面零触碰）；但七红次 proof sha256 逐次各异（每次行使间 proof 即迭代改写、中间版本未留档），且**中间红次 stdout 未逐次持久化**（每 case 仅终次 stdout 落盘 ≡ tracked `02-gate-*.stdout.log`）——单红次级「哪一红次对应哪一成因」的正向归因不可机证重建。凡正向归因缺席的红次，如实申明：**「该次 stdout 未留痕 · 仅回执 digest 在证 · 成因不可重建」**（uc012 R1-R7 全列——R1 原归因①既经机证撤销，同落本申明）。
+
+**全批红次合计 8→9**（uc030 2 + uc012 7）。
+
+**12 回执 exitCode 台账在卷**（implementer EXEC 侧 12 份 = **9 红 + 3 绿** · 席2 post 三次独立复跑 3 份另见 §9-post · `.tmp` 在盘合计 15 份 · 台账逐份对回执亲算零冲销）：
+
+| case | startedAt(UTC) | exitCode | 次别 |
+|------|----------------|----------|------|
+| uc003 | 17:41:46.349 | 0 | 终绿（首跑即绿） |
+| uc030 | 17:41:53.319 | 1 | R1（premigrate 名单缺口 · runner 旧值 `e25b075c`） |
+| uc030 | 17:42:58.965 | 1 | R2（额度基线改净差分断言） |
+| uc030 | 17:44:19.659 | 0 | 终绿 |
+| uc012 | 17:44:41.054 | 1 | R1（次级成因不可重建 · 见上申明） |
+| uc012 | 17:46:55.504 | 1 | R2（同上） |
+| uc012 | 17:49:50.414 | 1 | R3（同上） |
+| uc012 | 17:50:39.672 | 1 | R4（同上） |
+| uc012 | 17:52:23.053 | 1 | R5（同上） |
+| uc012 | 17:55:43.323 | 1 | R6（同上） |
+| uc012 | 17:56:15.222 | 1 | R7（同上） |
+| uc012 | 17:56:42.454 | 0 | 终绿 |
+
+**P2-a（随落 · 流程披露）**：中间红次证据形状 = 仅回执元数据（target/outcome/exitCode/durationMs/startedAt/finishedAt/sourceDigests/schemaMigrationManifest/dataHandling/releaseEvidence）在证、stdout 未逐次持久化——本 EXEC 流程缺口承登（非证据链冲销：红次回执 digest 链与终绿证据自洽）；后续 EXEC 红次留痕沿 NHP-028 attempts-ledger 先例逐次含 stdout 落盘。
+
+**P2-b（随落 · §9-rev2 ② 豁免具名落 proof 夹具段注释落点澄清）**：REQUEST §9-rev2 ② 字母位 = (a) bucket 种子 / (b) lease 回拨 / (c) ai_graph_run 行（仅 T2 形对比臂需要时）/ (d) interview 壳行；proof 夹具段实际注释落点：uc030 proof 头注 `:21-22` 具名枚举 (a)+(b)+(c)=interview 壳行 · uc012 proof 夹具注 `:134` 壳行标「豁免②c」——两 proof 夹具注释将「interview 壳行」落于 ②(c) 字母位（与 REQUEST ② 的 (d) 位字母错位）；`ai_graph_run` 字面两 proof 零命中（②(c) 豁免本批零行使）。**豁免项实质集合同一**（bucket 种子 + lease 回拨 + 壳行 `'created'` 三项 · ai_graph_run 未行使 · 豁免外全部走产品路径）——字母位错位系标注差异承登澄清，零实质发散。
+
+**勘误自检**：本段纯文面（恰 1 tracked `.md`）· 断言强度只增不减 · 行状态/列状态/coveredCount=8/EXIT 契约零翻动 · 9 证据文件（3 proof + runner 链 2 件 + 4 package.json）sha256 编辑前后恒等机证（值与轮次见 §9-post 机械核段）。
+
+---
+
 *NHP-BATCH-A 记录 · 2026-10-26 起草 · **`executed:awaiting_post_prove_dual`**（2026-10-26 EXEC 落码·§9-EXEC·前值 `draft:awaiting_pre_exec_dual` 史录）· base `origin/main` @`ea0fa0a0a`（派单下限锚·merge tip `e4589b57f`）· 分支 `line/nhp-batch-a-draft` · 工作树 `meetwise-nhp-a` · 门矩阵=docker EXIT0+三 case 全绿（67/67·49/49·73/73）· STOP 三处（文首 Status/§2/§8）同值 `executed:awaiting_post_prove_dual` · post-prove 双审两独立外席待派 · alone≠dual · Ban self-approve · 批表行与 Status 终翻面权归协调方 · est live=0 · ⛔push ⛔merge 主线 ⛔force-push*
