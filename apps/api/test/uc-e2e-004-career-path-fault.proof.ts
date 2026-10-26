@@ -220,6 +220,30 @@ console.log('ISOLATED_TARGET_ATTESTATION ok loopback+nonce verified');
         `INSERT INTO assessment_report(id,owner_user_id,interview_id,status,dimensions,overall)
          VALUES ($1,'userA',$2,'ready',$3::jsonb,60) ON CONFLICT DO NOTHING`, [`AR_${iv}`, iv, dims2]);
     }
+    // GET 重闸资格种子（rev2 修法件③·G5 requireCurrentScorableCards→aggregateInterviewScores·
+    // 0161:33 practice_eligible 单态）：仅 IV_CTL 需要（CONTROL-0-GET-200 与 FI-2/FI-3 server-alive
+    // GET 200 重闸放行；FI1/FI2/FI3 GET 走无行 404 先于重闸）。资格参数沿门1 臂1 种子形
+    //（status='practice_eligible' ∧ deterministic_total=60 数值非空 · 0100:172）；列形沿 validate.ts:96-112
+    // 迁移链全链种子先例——本 prove 跑真迁移链（migrateWithRecovery 名单内），0100 score_card FK 链
+    // NOT NULL 全列，窄 7 列种子必红。确定性字面 uuid/hash · 幂等 ON CONFLICT (id) DO NOTHING。
+    await c.query(`INSERT INTO question_rubric(id,question_id,question_version,rubric_version,competency,difficulty,language_scope,question_content_hash,status)
+      VALUES ('00000000-0000-4000-8000-00000000c501','q-uc4-ctl',1,1,'分布式锁',3,'["zh","en"]','0000000000000000000000000000000000000000000000000000000000000004','published')
+      ON CONFLICT (id) DO NOTHING`);
+    await c.query(`INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+      VALUES ('00000000-0000-4000-8000-00000000c502','userA',$1,'q-uc4-ctl',1,'uc4ctl-sub-1','0000000000000000000000000000000000000000000000000000000000000004',1)
+      ON CONFLICT (id) DO NOTHING`, [IV_CTL]);
+    await c.query(`INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
+      VALUES ('00000000-0000-4000-8000-00000000c503','userA',$1,'q-uc4-ctl',1,'00000000-0000-4000-8000-00000000c502',decode('00','hex'),'0000000000000000000000000000000000000000000000000000000000000004',1,1,1)
+      ON CONFLICT (id) DO NOTHING`, [IV_CTL]);
+    await c.query(`INSERT INTO issued_question_contract(id,owner_user_id,interview_id,question_id,state_version,turn,question_content_hash,rubric_id,difficulty,form,language,route,prompt_policy_version,measurement_version,privacy_epoch,status)
+      VALUES ('00000000-0000-4000-8000-00000000c504','userA',$1,'q-uc4-ctl',1,0,'0000000000000000000000000000000000000000000000000000000000000004','00000000-0000-4000-8000-00000000c501',3,'mock','zh','adaptive','prompt-v1','measure-v1',1,'issued')
+      ON CONFLICT (id) DO NOTHING`, [IV_CTL]);
+    await c.query(`INSERT INTO score_request(id,owner_user_id,interview_id,issued_contract_id,submission_id,artifact_id,answer_version,answer_body_hmac,privacy_epoch,operation_policy_version,idempotency_key,status)
+      VALUES ('00000000-0000-4000-8000-00000000c505','userA',$1,'00000000-0000-4000-8000-00000000c504','00000000-0000-4000-8000-00000000c502','00000000-0000-4000-8000-00000000c503',1,'0000000000000000000000000000000000000000000000000000000000000004',1,'op-v1','uc4ctl-req-1','scored')
+      ON CONFLICT (id) DO NOTHING`, [IV_CTL]);
+    await c.query(`INSERT INTO score_card(id,owner_user_id,interview_id,question_id,answer_id,submission_id,score_request_id,issued_contract_id,rubric_id,rubric_version,measurement_version,deterministic_total,coverage,status)
+      VALUES ('00000000-0000-4000-8000-00000000c506','userA',$1,'q-uc4-ctl','00000000-0000-4000-8000-00000000c503','00000000-0000-4000-8000-00000000c502','00000000-0000-4000-8000-00000000c505','00000000-0000-4000-8000-00000000c504','00000000-0000-4000-8000-00000000c501',1,'measure-v1',60,1,'practice_eligible')
+      ON CONFLICT (id) DO NOTHING`, [IV_CTL]);
     await c.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at)
       SELECT 'userA','paid',5.0, now()+interval '300 days' WHERE NOT EXISTS
       (SELECT 1 FROM entitlement_bucket WHERE owner_user_id='userA' AND kind='paid')`);
