@@ -230,3 +230,31 @@ P2 两登记：
 越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触（本巡落点仅 proof boot-patch 区两条 GRANT + 本卷文面）。运行门行使仍待协调方（9E.5 红停承登延续），修法落卷不宣称门绿。
 
 工序收据：§9-rev4 落卷后复跑 markers 卫生 grep（改动集新增行零命中；REQUEST 卷内唯一命中仍为 §2 自引字面）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2346）+ `pnpm turbo typecheck --force`（EXIT 0）+ `pnpm turbo lint --force`（EXIT 0 · api 1423/1423 恰等 · 零帽动）+ diff 恰两 tracked 文件（proof + REQUEST · 零新增文件 · ≤4 tracked 界内）。
+
+## §9-EXEC-R1（rev4 复验 PASS 后 EXEC 行使 · 门 1 首跑真红 ARM8 第三断点红停 · rev4 复验+EXEC 一体席（席 2）落卷 2026-10-26 · 复审锚 @`09d0b4df7` + merge `299fd6efd`）
+
+### R1.1 行使前置（rev4 窄域复验 PASS 承登）
+
+origin/main fetch 亲证（cb9c8efc5，领先 55 commits）→ merge `299fd6efd`：唯 `scripts/run-e2e-isolated.mjs` 同文件 additive 冲突一处——runner 允许表大行 HEAD 侧 `uc004:career-path:http:prove:raw` × origin/main 侧 `uc025:nhp-bound-isolated:prove:raw` 双位点 additive，**双保留**合并（两侧各归原邻位 · 零删改 · `node --check` 过）；cap union 如实：UC-025 并线 sanction 已将帽 2354→2362（`558690214`），本树 docs:check 届值扫描 2357 ≤ 2362（余 5），本巡无须再步进。`pnpm install --frozen-lockfile` 过。rev4 两 GRANT 落点亲读（proof `:118-119` · rev4 diff 恰 9 行 insertion 零删改 · boot-patch 隐私围栏镜像块内纯 additive）；§9-rev4 承登核对全在（钉行六处原值 · §2 `:106` 勘正 · P2-2 备忘）；静态四门届树复跑全绿（typecheck 8/8 EXIT 0 · lint 12/12 0 errors api 1423/1423 恰等零帽动 · docs:check 2357≤2362 · markers 卫生 grep 唯一命中为 §2 两行自引字面）。协调方授权「复验 PASS 即连续行使 EXEC」已行使。
+
+### R1.2 门矩阵 EXIT 原值（首跑如实录 · attempt 台账 · one_shot 零 retry-to-green）
+
+- docker info 亲证：Server 29.5.2 EXIT 0（容器 runtime 在场，9E.5 第 2 条阻现已解）。
+- **门 1 主门 `node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw` → EXIT 1 真红**：17 断言 **16 PASS / 1 FAIL**——唯 `ARM8-GROWTH-DIMENSIONS-LENGTH-GTE-2` 红（`GET /profile/growth` → 500 · code 42501 · `permission denied for function interview_privacy_fenced_targets`）；其余十六臂全 PASS。**前三巡修法面经本跑逐一验证有效**：rev2 ①壳 migrate 名单（门 1 真迁移起跑 · 无 42501 表级红）✓ · rev2 ②arm5 jsonb 键序不敏感等值 ✓ · rev3 全链六表种子（无 23502 崩）✓ · rev4 两触发器 privacy_api_owner 授权（无 permission denied×2 崩、门 1 行使全程走通至 arm15）✓。attempt 台账：attempt1 一次行使零重跑（Ban retry-to-green 未犯 · 主门第二轮不行使）；stdout 留痕 `.tmp/uc004-exec-gate1-stdout.log`（ISOLATED_POSTGRES_OUTPUT_WITHHELD · LOCAL_ISOLATED_PROOF_RECEIPT release_evidence=false）。
+- 门 2 `pnpm uc004:career-path-fault:prove` 回归 → **EXIT 0** 4×0（ATTEMPT-0-CONTROL / FI1 / FI2 / FI3 attempts=4 one_shot · rev2 根因③夹具补种子后 CONTROL-0-GET-200 得 200 如期）；stdout `.tmp/uc004-exec-gate2-stdout.log`。
+- 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → **EXIT 1 = 预期绊线原值恰等**（口径零改；倒置期望核对通过——红即其预期绿）；stdout `.tmp/uc004-exec-gate3-stdout.log`。
+- neg 抽验 `node scripts/run-e2e-isolated.mjs neg:auth` → **EXIT 0**（90 条负路径全绿 · 本门鉴权邻面无溢出）；stdout `.tmp/uc004-exec-neg-auth-stdout.log`。
+- 静态门复跑：typecheck EXIT 0 8/8 · lint EXIT 0 12/12 0 errors（api 1423/1423 恰等 · 零帽动）· docs:check EXIT 0 2357≤2362 · markers 卫生 grep 唯一命中为 §2 两行自引字面。
+
+### R1.3 ARM8 红根因归因（混合机制同族**第三断点** · 只归因零自修）
+
+- 断点对象：`interview_privacy_fenced_targets()`——`packages/db/migrations/0206_interview_privacy_active_read_tier.sql:43-58`（SECURITY DEFINER · OWNER=`privacy_api_owner`）· `:59` REVOKE ALL FROM PUBLIC · `:60` GRANT EXECUTE TO `app_role`；0206 在壳 migrate 名单（runner `:1400`）真迁移已行、授权曾真实授出。
+- 湮灭机制（rev4 proof `:111-117` 所注混合机制的**同族新面·授权类三异**）：门 1 真迁移先行（0206:60 EXECUTE→app_role 已授）→ boot() 影子重放 `packages/db/sql/01_schema.sql` 于 `:8-10` `DROP OWNED BY app_role; DROP ROLE app_role`（DROP OWNED 剥离 app_role **全部**已授特权——函数 EXECUTE 类同被剥离）→ `:130` 裸建新 app_role → `:131` blanket 重授**仅表级**（`GRANT SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public`，零函数 EXECUTE 重授）→ growth()（`profile.service.ts:93`）在 asPrincipal(app_role) 事务内调该函数 42501。
+- 与 rev4 两 GRANT 关系如实：rev4 修法面授的是**表 SELECT × privacy_api_owner**（interview/interview_job 两表），与本断点（**函数 EXECUTE × app_role**）角色、特权类、对象类三异——rev4 修法对其登记面有效（本跑门 1 起跑已过前三巡四根因即证），不能也未曾覆盖本断点；§9-rev4 干跑证据链「补两 GRANT → 整链 EXIT 0」经本首跑实证**不充分**（第四巡修法后仍余第三断点）。
+- 观察面边界（fail-closed 如实）：本跑仅 ARM8 一断点暴露（42501 于 growth() 首个特权调用点即抛）；湮灭面为「全库函数 EXECUTE × app_role」**类**——同类在场如 0206 同文件 `:38-39` `interview_privacy_active_read(text)` EXECUTE（本跑未触达），潜在同族断点未经本跑逐一断言，留 rev 回路穷举（与 §9-rev4 P2-2 CASCADE 备忘系两机制：彼为表 DROP…CASCADE 连带删对象，此为 DROP OWNED 剥离特权，对象均存活）。
+
+### R1.4 §8 处置（红停 · 沿 §9-rev2 / 9E.6 先例）
+
+主门红 → **零自修**（不加 GRANT、不改 proof / runner / 夹具 / 产品码）· **零重跑门 1**（Ban retry-to-green · 主门两轮红停止条件未触发亦不逼近）· 三处主钉（卷首 `:1` + §8 双行 `:121`/`:123`）**维持 `draft:awaiting_pre_exec_dual` 不翻**——`executed:awaiting_post_prove_dual` 翻面以主门绿为前提，红行使不作 executed 宣称；沿 rev3「不再另立钉行」先例本节零新钉，六钉清点原值。零 SSOT 触碰 · coveredCount 零动 · releaseEvidence=false · Not HA · 零 covered / A3 closed 宣称。越权面零扩：本巡落点仅本节文面（stdout 留痕 `.tmp/` 为 gitignored 本地证据 · 门矩阵四门原值已全录 R1.2）。
+
+工序收据：本节落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ diff 恰本卷 REQUEST 一 tracked 文件（纯文面零码动）。
