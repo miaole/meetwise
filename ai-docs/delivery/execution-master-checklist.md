@@ -2379,6 +2379,7 @@ flowchart TD
 - **并缝登记（主线漂移非零交集·如实补登）**：本 nail 窗口主线 tip 漂移 `a62e8fa3→2bc4e2bd` 恰六笔（cost1 nail merge `6f2ed876` 代码面+五笔 docs）——**非零交集三文件**：`apps/worker/package.json`（双面 prove 行·区位不交自动并成）+`invoke.ts`（cost1 `ModelUsage.cachedInputTokens` 类型尾 vs 本刀 `usageSource`/第三臂·区位不交自动并成·双字段共存亲证）+`model-client.ts`（非流 usage 构造块双面重写·**真冲突一处手工并缝**：本刀 AG-14 usage_missing 构造为主干+拼接 cost1 `cachedInputTokens: cachedInputTokensOf(j.usage)` 字段与 `emitUsageCacheObservation` 打点恰一处·presence 三态语义保持·冲突标记零残留·并缝后四门全绿为证）；两树 `apps/web/tsconfig.tsbuildinfo` 构建缓存漂移 checkout 归位未入 commit（沿 :2355 补登②同形）；涉引 hash 全经祖先/双亲亲证.
 - **边界铁律亲证**：流式面 completeStream 零字节（Ban「流式面改动」维持=AG-14 流式面留后继）；历史迁移 0088/0119/0120/0130 零字节（0174 新迁移镜像铁律）；AG-01 准入面/报告键/consumer/embedding/AG-12 估算器零触；breaker 语义外零改（failure 只留网络层不确定·5xx 反向臂亲证）；known_not_executed/unknown/provider_usage_invalid/settled-failed 四既有臂 git diff 原文未动；失败码 `deterministic_output_invalid`/`deterministic_output_truncated` 沿既有码族三处登记.
 - [ ] **STILL OPEN（承接·非本刀面）**：AG-14 流式面（completeStream usage 折叠）=后继刀；EG-B1 unknown ageing=后继刀（Ban 出手维持）；stress 门 7 FAIL 基线红=刀 C/E 领地（本刀零回归机检恒等·不越界）.
+- [x] **STILL OPEN 对账（2026-10-26 批表翻面笔-3）**：上行 AG-14 流式面半项就此出账——已随 TOKSTREAM-S4B `44b61d6e9` 落主线（apps/worker/src/token-stream.ts 结束面 usage 对账+completeStream onUsage 同形在树亲读·blob 三锚 model-client `f9fd31059`/invoke `f61024332`/rag-cost-gov `121a7ff1f` 当前树恒等亲证·issues-final AG-14 翻面注记同卷）·EG-B1 unknown ageing 与 stress 门 7 FAIL 基线红两半非 AG-14 面·维持开放不动.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
 
@@ -4445,6 +4446,11 @@ flowchart TD
 - **批表/能力项剩余全景**：能力项 open 3 全为门控/前置；half 2（AG-14/AG-20）待流式面与 CTX-02 余原语；批表 open 35 中用户门控 7（#97/#98/#240/#26/#32/#2/#199）+ 外部阻塞 1（#38）+ 其余为登记时滞面（详见侦察席 2026-10-22 报告）。
 - Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
 
+### 翻面笔登记（2026-10-26 第三批 · AG-18 滞账补翻 · 协调方翻面权行使 · 证据链亲证在案）
+
+- **AG 一项补翻（done 45→46 · half 2/open 3 维持）**：AG-18 采样温度=sampling-temperature 刀已落 main（EXEC `b94486a00` is-ancestor HEAD 亲证·随 merge `7738c15bd` 并线·proof `ag18-sampling-temperature.proof.ts` 242 行四臂在树·修法在树=model-client.ts `SERVICE_TEMPERATURE` route-classify/vision 钉温 0+:183 `model_eval_temperature_invalid` 加载即拒）·LEDGER :642 已记「AG 台账 done 31→32」系另一记账口径·本笔对账不重复计·issues-final AG-18 行翻面注记同卷落。**勘记如实三件**：①派单 brief 颁「done 45→46」与届树权威值不符——届树最新登记=done 44（bookkeeping-flip-2 2026-10-22·LEDGER :712+本卷 :4443）·全史 git log -S 无「done 45」·本笔按届树实值记 **44→45**（沿 cap-2354「2328 恰等零余量」勘误如实先例形）；②AG-18 系漏翻滞账——open 3 全门控名单（AG-13/AG-32/AG-36）与 half 2（AG-14/AG-20）均不含 AG-18·issues-final 判词行无翻面注记而刀已收官·本笔补翻出账；③LEDGER :642 所记 merge `6c9ab12c` 不在 main 祖（同刀支线 merge 版·双亲 `8d197be6`+`ffeafa7c`·码面与 EXEC `b94486a00` 逐字节恒等·diff 仅 docs/邻线迁移面）·main 实落 merge=`7738c15bd`·如实勘记。**勘误注记 2026-10-26·批表翻面笔-4 统一**：本段原记「done 44→45」系显示 artifact——同日 flip-3 波 AG-14 翻面（44→45）在先·权威递推统一=flip-2 权威 44（10-22）→AG-14 翻面 45→AG-18 翻面 46（#128 波 `183ba02cf` 祖先亲证）→AG-20 翻面 47·净计无重复（AG-14/AG-18 两件各 +1 属实）·行头如实改登 **45→46**·勘记①「全史 git log -S 无 done 45」系写前时点观测非恒值·「half 2」同系 AG-14 翻面前口径（承递实为 half 1）·沿 cap-2354「2328 恰等零余量」勘误如实先例形。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
 ### Line cap-2354 nail（2026-10-26 SSOT nail · 协调方授权（post 双审双 PASS 会签·本波唯一主线推送席·⛔force push·⛔pull --rebase） · CAP-SANCTION-2354 文档数量上限步进 2346→2354（sanction +8·沿十八先例形·算术=届树亲跑 2341 余 5+在飞六卷并线必越 2347>2346+本卷 1=2348≤2354 余 6·「2328 恰等零余量」勘误如实[2328 系 LEDGER 历史行值非届树现值]·commit 消息零黑话承规））
 
 - **授权链全链如实载**：协调方派单 brief（sanction 直落形·快速链一体席·两 commit 颁定）→起草 `65d2b62c4`+EXEC `1fe6dffc4`（七门全绿承卷 §9=proof 12/12[2354/2355 双值]+docs 2342≤2354+typecheck 8/8+lint 12/12+markers+自审 grep 清零[deepEqual 亲跟 2355]+diff 恰 3 tracked·STOP=executed:awaiting_post_prove_dual 三处）→post-prove 双审会签 PASS×2（两独立外席·协调方并线授权载）→nail（本席·本波唯一主线推送席）。
@@ -4455,3 +4461,18 @@ flowchart TD
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
 MDEOF
 echo written
+### 翻面笔登记（2026-10-26 第三批 · 协调方批表翻面笔-3 · 纯台账 docs-only · 每行独立证据在案）
+
+- **批表两行计件翻面（236→238/271 · 87.8%）**：#132（SAFEWRITE-BACKPRESSURE 背压刀·wave81 补翻挂账「+1 计件递推归协调方」出账行使·码面 sse-pump.ts 背压自有旗 bpTripped+连接级未落盘 1MiB 阈值+safeWrite 写败早退在树亲读·主线承载 PR #108 `112e6d26` 对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）/#130（RESERVE-RENEW-FIX 预留续租失败行为面·簇E 呈报件非计件形挂账出账行使·码面 interview-consumer.ts :64 `RESERVATION_RENEW_RETRY_DELAYS_MS=[250,500]`+:369-377 claim 臂有限重试+:373/:388 `reservation_lease_renew_failed` 双发射面在树亲读·主线承载 `71ccd010f` 祖先亲证 EXIT=0）。行头承递：:210 批2 51→52（52/54·残 3→2）/`:216` 合计笔现值层 238=15+26+**52**+23+10+**112**（批5 行头按 236 反推承递 110→112·236 已含 #73 承递·复核席勘误后值）。
+- **+0 出账三笔**：#51 递推挂账（本席核已计入 queue-closeout 笔 :216 批2=50 互证·挂账出账）/#1/#8/#12/#19 四件（:213 行头 81→85 已计在账·:89 注记「本注记不计件」系笔面口径·就此出账）/#73（flip-2 已计·:210 行头与残栏承递同步）。
+- **±1 口径出入两件登记归协调方勿自裁（沿 :218 先例）**：#149（id-order-scope 注释面 `5e1ac660` 祖先亲证+packages/db/src/ids.ts 两生成路径同毫秒口径分立注释在树·惟 :89 行 2026-10-15 已 ✅ 名目翻面而刀面自载「合计不前进」·计件归属歧义）/#148（tenant-owner-trim 229 笔 +1 项下条目身份本仓文本不可钉定·簇E 呈报残面身份歧义）。
+- **跳过登记（证不成立不硬翻·沿 batch-flip 先例）**：#144/#60/#154（本笔未见独立落地证据·维持原状）·#2/#26/#32/#199/#97/#98/#240/#113-keyed 半/#38（用户门控/外部阻塞·真阻塞不碰）·#187（已计 D3）/#212 标注面（已计 I5）维持 ✅。
+- **滞后卷 Status 对账翻面两卷**：cap-sanction-2346-REQUEST 与 context-budget-wire-REQUEST 各 `executed:awaiting_post_prove_dual`→`closed`（沿 tokstream-s4b/ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=本档「Line cap-sanction-2346 nail」/「Line context-budget-wire nail」两段已载 post 双审会签 PASS×2+nail 并线收官+merge 祖先亲证·原状态系滞后登记）·AG-20 行 half 维持（CTX-02 余原语面归后继）不随卷翻。
+- **AG-14 翻面（能力项非 271 计件面·done 44→45·half 2→1·AG-20 独留）**：issues-final AG-14 翻面注记随卷（blob 三锚 model-client `f9fd31059`/invoke `f61024332`/rag-cost-gov `121a7ff1f` 当前树恒等亲证+落地卷 TOKSTREAM-S4B `44b61d6e9`+`79e97f82f`/`e65f35590` 对 HEAD 祖先亲证）+上述 STILL OPEN 对账注记（AG-14 流式面出账）。**勘误对账注记 2026-10-26·批表翻面笔-4 统一**：本行 done 44→45 系权威递推首递维持（flip-2 权威 44→AG-14 翻面 45）·同日 AG-18 补翻段并列记「44→45」系显示 artifact 已改登 45→46（#128 波 `183ba02cf` 承递）·净计无重复（AG-14/AG-18 两件各 +1 属实）。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
+
+### 翻面笔登记（2026-10-26 第四批 · 协调方批表翻面笔-4 · 纯台账 docs-only · AG-20 翻面与 AG 计数勘误统一）
+
+- **AG-20 翻面（能力项非 271 计件面·done 46→47·half 1→0 清零·open 3 门控/前置维持）**：CTX-02 裁剪半=context-budget-wire 已落主线（main 系承载 merge `7d1a732d1` 对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0·apps/worker/src/ask-context-budget.ts trimOrder 窄化 `['summary']`+adaptive-interview-service.ts `:617` `sessionSurvivesAskBudget` 生产调用位在树亲读）·余 MEM/CTX 原语=阶段门内「有界当前题答路径」设计内状态维持登记（本席届树复证零调用维持：planDispatchBudget 生产调用唯 CTX-02 接线路径+twoStageRecall/buildMemoryIndex 族 apps 生产 src 零命中·登记卷 ag20-residual-REQUEST `c2d0aeebd` 登记+`1b60eda2c` 定稿 pre-exec 双审 Dual PASS·并线 PR #124 merge `f0e6612e8` 对 HEAD 祖先亲证 EXIT=0·判「零调用=维持登记」处置定稿·卷 §1 翻面底稿授权注记形行使）·issues-final AG-20 行翻面注记随卷落·DATA_BOUNDARY_RULE 双文案漂移风险由 mem07-injection-fence.proof.ts 字节恒一+基线冻结断言封闭·收敛肢跨包结构性归本体刀如实登记（登记卷否决丙承卷）。
+- **done 计数勘误统一（权威递推·双「44→45」显示 artifact 勘误）**：flip-2 权威 44（2026-10-22·本卷第二批次段+LEDGER bookkeeping-flip-2 行）→AG-14 翻面 45（flip-3 波·上段维持）→AG-18 翻面 46（#128 波 `183ba02cf` 祖先亲证·AG-18 补翻段行头已改登）→AG-20 翻面 47（本笔）·AG-14 与 AG-18 各自从 44 起算系显示 artifact·净计无重复（两件各 +1 属实）·行头与勘误对账注记如实统一（AG-18 段勘误注记+AG-14 段勘误对账注记双落）。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
