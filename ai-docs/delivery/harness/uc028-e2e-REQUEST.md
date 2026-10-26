@@ -120,6 +120,38 @@
 - **越界需要**：修法诉求超出 §1-修法四件面（需触产品码/迁移/e2e/*.e2e.ts/live Key/老 prove）→停·另刀或协调方裁决（§1.3 五候选否决沿承·Ban 就地扩面）。
 - **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻 proof 新红/lint 贴面新增超支/docs:check>cap/neg:all 实测≠题面）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
+## §9-rev2 折入登记（pre-exec 双审两独立外席 **席1 PASS+席2 PASS** 汇流·两席附 P2×2 放行前置+P3×3 逐条折入·协调方授权折入·折入席落卷 2026-10-26 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
+
+**折入缘由与授权链**：pre-exec 双审两独立外席回卷=**席1 PASS+席2 PASS**（零 P0/P1·附 P2×2 放行前置汇合恰两件=R1/R2+P3×3=R3/R4/R5）→协调方明示授权折入→折入席逐位届树亲证（五码面 blob 对 §0.1 `git hash-object` 亲算逐值恒等·机理链逐行 Read 亲证）后照单全落（**五条全成立零跳过**·只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触）。**R1/R2 系 EXEC 放行前置**（不落则 §2 门 1 主 prove 必红·机理见各条）；R3-R5 系引证勘正/先例与漂移登记（结论零变）。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）——§8 开工条款①由本节落卷达成（两外席 BOTH PASS 落卷）·条款②（协调方明示 EXEC 授权·committed SHA 重钉）待令·**折入后两席 PASS 汇流→EXEC 放行权归协调方**。
+
+### §9-rev2.1 R1（P2 放行前置）——§1.2 case-② 增前置工序「tick 前摘 trg_uc028_trace_fail」
+
+- **修正句（§1.2 case-② 行增前置工序·EXEC 期照办）**：case-② 调真 `traceReconTick` 前**先摘 trace 注入 trigger**——摘除=**夹具自建自摘**（case-① 注入段按 NHP 形自建·case-② 起跑前 `DROP TRIGGER IF EXISTS trg_uc028_trace_fail`+`DROP FUNCTION uc028_trace_inject_fail`）·**零产品码**·两 truth trigger（`trg_uc028_truth_status`/`trg_uc028_truth_money`）**保持其在位**（case-③ 对照臂依赖）；摘除生效**由「回补恰 1」隐式正控**（case-② 回补恰 1 断言绿即摘除生效·不另设独立正控臂）。
+- **机理（不摘则确定性 `trace_recon_owner_failed` 全臂红·两席同发现）**：case-① 丢失态键承 `uc028-f1:%` 词面形（nhp proof `:165-:193` 注入族·`:168` trigger 仅对 f1 键 raise P0001）——trace trigger 在位时 recon 回补对 `ai_invocation_trace` 的 INSERT 再度 raise→`aiTraceBackfillScoped` 失败→owner 事务整体回滚（trace-recon.ts `:53-:57`「A failure rolls the whole owner transaction back」）→`ownerFailures>0`→tick 抛 `trace_recon_owner_failed`（trace-recon.ts `:120`）→case-② 回补/九列/幂等全臂红且确定性复现——非 flake·必前置。
+
+### §9-rev2.2 R2（P2 放行前置）——「非自建 seed」按臂切分（主臂承接 case-①·非 success 臂 db 层独立造源）
+
+- **修正句（§1.2 case-②「非自建 seed」词面按臂切分·EXEC 期以本句为准）**：**主臂（丢失→回补→最终一致）**「非自建 seed」成立=丢失态承接 case-①（succeeded 真相行+trace 缺行经业务 invoke+注入产生·非 proof 直造）；**「非 success 行不补」臂不承「非自建」**——failed/unknown 真相行系 **db 层独立造源行**（不经业务 invoke·沿 worker proof `seedFailedTruth`/`seedUnknownTruth` 形·trace-recon.proof.ts `:64-88` 逐形=claim→dispatch→complete(error)/markUnknown 真状态机三步）——两臂 seed 来源如实切分·防 EXEC 期误把非 success 臂亦挂 case-① 承接（case-① 只产 succeeded 丢失态·产不出 failed/unknown 源行）。
+
+### §9-rev2.3 R3（P3）——§0.0 grep 引证勘正（`grep -iE 'uc028|uc-e2e-028'`）
+
+§0.0 `:13`「`ls ai-docs/delivery/harness/ | grep uc028` 建前仅 `uc-e2e-028-trace-ledger-fail-open.md`」词面勘正：plain `grep uc028` 对该缺口件名**零命中**（`uc-e2e-028-*` 不含 `uc028` 连写子串·折入席对 `47dd6be56` `git ls-tree` 亲跑 EXIT=1）——引证改「**`grep -iE 'uc028|uc-e2e-028'`**」（该形建前恰 1 命中=缺口件·亲证）**并如实记原词面建前零命中**；结论（建前唯一 UC-028 卷=缺口件·落卷后唯一同名 REQUEST=本卷）零变。
+
+### §9-rev2.4 R4（P3）——跨 app 相对导入先例登记（EXEC 件① 引 worker 真符号承形）
+
+跨 app 相对导入先例在位亲证：`apps/api/test/uc-e2e-001-nhp-fault.proof.ts:47` `} from '../../worker/src/report-worker.ts';`（blob `ae41c13f`）——EXEC 件① proof 引 worker 真符号（`traceReconTick` 等）沿同形 `../../worker/src/*.ts`；传递依赖已在 apps/api 树（其 `@meetwise/db`/`ai-runtime` 等依赖行已涵盖 worker 源相对导入的传递面·`apps/api/package.json:100-:112` 亲证）·**不加 `@meetwise/worker` package.json 依赖行**（§1-修法预期 diff 面 4 tracked 维持零扩张）。
+
+### §9-rev2.5 R5（P3）——行锚微漂登记（blob 恒等下引证级两处）
+
+折入席 `git hash-object` 亲证五码面 blob 对 §0.1 逐值恒等（`f6102433`/`e6c8be87`/`d69c8a51`/`d25b0752`/`0cdd1275`）·blob 恒等下两处**行锚微漂**如实登记：①pinGap 四臂实跨 **`:172-:187`**（§0.0 `:14` 与锚#6 记 `:172-:185`·差=末臂 INJECT detail 行+闭括号两行·`grep -n "pinGap("` 亲证四调用起行 `:172/:176/:180/:184`）；②invoke.ts `model_invocation_complete_state` 卫串实锚 **`:1205`**（锚#1 记 `:1201`——`:1200` 系 `completeModelInvocation(` 调用起行·卫串行实为 `:1205`·`grep -n` 亲证）——EXEC 期重 pin 以届时实读为准·两处结论（refuse 形在位/卫串语义）零变只更行号。
+
+### §9-rev2.6 门面回执+STOP 状态
+
+- **markers**：rev2 增量行五类标记词+冲突对直扫零命中（词族运行时组装不誊卷·沿 §7/`scripts/i6-239-gates.proof.mjs` §2-7 同形制）——命令与 EXIT 回执随交付报告。
+- **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0 **2342≤2346**（文件计数制·本 rev2 系既有文件 append 零新增文件→计数不变·append 前后两跑亲证）。
+- **diff 面**：恰 1 tracked=本卷 .md 纯 append 零删改·零他 tracked（码面/SSOT/backlog 对折入前 `96f2dd241` 零 delta 机检随 commit 回执）。
+- **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——§8 条款①达成（两席 PASS 落卷=本节）·条款②待协调方明示 EXEC 授权·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔改码面（本 rev2 恰 1 doc 纯 append 零码面）。
+
 ---
 
 *UC028-E2E REQUEST · 2026-10-26 起草落卷 · **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本卷尾·pre-exec 双审两独立外席待派·alone≠dual） · base `main` @`47dd6be56`（origin tip 恒等·派单下界成立） · 分支 `line/uc028-draft` · 工作树 `meetwise-uc028` · 读码定稿=三 GAP「码已落·e2e 断言面缺」切分（RECON=队列+worker proof 已落而丢失→回补→最终一致同 run e2e 链缺·TRUTH-BLOCK=invoke 层反例已落而同 run 对照结构缺·INJECT=NHP 内联夹具已落而可引用 e2e 注入面缺·老 prove=设计绊线 EXIT=1 现态）· 修法=一刀三 case 单文件单 prove（case-① 注入面+case-② recon 同 run 承接断言+case-③ 真相阻塞对照臂）+注册面三件·零产品码· 门矩阵十二门（主 prove+nhp-fault 45/trace-recon 17 两邻面+metrics+老 prove 预登 EXIT=1 非红停+typecheck 8/8+lint 五贴线 601/5242/1423/959/628+neg:all 692 题面熔断+docs:check≤2346+markers 五类零命中+diff 恰 1 tracked+PIN+卫生）· §1.3 五否决（invent covered/retry-to-green/live key/触产品码/老 prove 静默改）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭·三 GAP 行翻面归协调方 post-prove 双审后裁决） · ⛔push · ⛔force push · STOP*
