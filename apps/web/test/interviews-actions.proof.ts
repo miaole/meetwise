@@ -87,6 +87,20 @@ async function main() {
     } finally { spy.restore(); }
   });
 
+  await run('①b UC-025 重押题入口码透传：begin 409 stale_quiz → 码不折叠 redirect error=stale_quiz（GAP-UC025-REQUIZ-ENTRY-01）', async () => {
+    const spy = installFetchSpy([
+      { match: (c) => c.method === 'POST' && c.url === `${API}/interview`, status: 200, body: { interviewId: IV, reused: false } },
+      { match: (c) => c.method === 'POST' && c.url === `${API}/interview/${IV}/begin`, status: 409, body: { error: 'stale_quiz' } },
+      { match: (c) => c.method === 'POST' && c.url === `${API}/interview/${IV}/abandon`, status: 200, body: { status: 'abandoned' } },
+    ]);
+    try {
+      const r: Redirected = await startInterviewAction(form(resumeId)).then(() => { throw new Error('expected_redirect'); }, (e) => ({ digest: (e as Error).digest as string, url: digestUrl((e as Error).digest as string) }));
+      A('begin 409 stale_quiz → 恰好一次 POST :id/abandon（先回收空壳）', spy.count('POST', `/interview/${IV}/abandon`) === 1);
+      A('stale_quiz 码不折叠 → redirect error=stale_quiz（映射命中透传原码·不再折叠 begin_failed）', r.url === '/interviews?error=stale_quiz');
+      A('不重试：begin 恰 1 次·create 恰 1 次', spy.count('POST', `/interview/${IV}/begin`) === 1 && spy.count('POST', '/interview') === 1);
+    } finally { spy.restore(); }
+  });
+
   await run('② abandon 非 2xx → 不阻塞：redirect 仍带原 begin 错误码（best-effort 兑现·F5②）', async () => {
     const spy = installFetchSpy([
       { match: (c) => c.method === 'POST' && c.url === `${API}/interview`, status: 200, body: { interviewId: IV, reused: false } },

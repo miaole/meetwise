@@ -4,7 +4,7 @@
 **对照矩阵行**：`UC-E2E-019`  
 **对照建议补集**：`e2e-requirement-coverage-matrix.md` §3 P1-5（本切片新增）  
 **对照需求**：`e2e-scenarios.md` UC-E2E-019 · A1/A2/A3 · E-regen幂等 / E-既退又扣 / E-顺序守卫  
-**关联**：UC-E2E-011 R2/H2 — quarantined 不可 `requeueFailedReport` / `POST …/report/retry` → 404 **BLOCKED**  
+**关联**：UC-E2E-011 R2/H2 — quarantined 不可 `requeueFailedReport` / `POST …/report/retry` → 404 **BLOCKED**（**勘误 2026-10-26·E2E 台账滞后笔**：本句系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（`requeueFailedReport` CAS 扩 quarantined+重置 · `POST …/report/retry` quarantined→200 requeued:true）；已随 report-retry D2 落主线出账·留痕不洗）  
 **MODEL_API_KEY**：**不需要**（db 集成 + HTTP report/retry 均不调 live 模型）
 
 ---
@@ -30,7 +30,7 @@
 |----|------|------|--------|
 | **G1** | failed 报告上连点 `requeueFailedReport` | 首次 true→queued；二次/三次 false；额度不扣；consumption 仍 confirmed | `packages/db/test/uc-e2e-019-report-regenerate.proof.ts` |
 | **G2** | `requeueFailedReport` ∥ `releaseConsumption`（confirmed） | release→`already_confirmed`；consumption 仍 confirmed；无 `released∧(queued\|running)` 非法组合；额度不退 | 同上 |
-| **G3** | A3 退款先赢 + quarantine regen | confirmed 上 release 无法到 released（A3 产品路径 **GAP**）；quarantined 不可 requeue（UC-011 R2 BLOCKED） | 同上 |
+| **G3** | A3 退款先赢 + quarantine regen | confirmed 上 release 无法到 released（A3 产品路径 **GAP**）；quarantined 不可 requeue（UC-011 R2 BLOCKED）；**勘误 2026-10-26·E2E 台账滞后笔**：本句系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（G3 已翻 quarantined requeue→true+预算重置）；已随 report-retry D2 落主线出账·留痕不洗 | 同上 |
 | **G4** | honesty GAP | `ai_report` 无 regenerate* 列；打印 `GAP-UC019-*`；EXIT=0 仅=诚实钉 ≠ covered | 同上 |
 | **H1** | failed + **HTTP** `POST …/report/retry` | 首次 200 `requeued:true`→queued；二/三次 404 `no_retriable_report`；HTTP 额度不扣；confirmed | `apps/api/test/uc-e2e-019-report-regenerate-http.proof.ts` |
 | **H2** | HTTP retry ∥ `releaseConsumption` | release→`already_confirmed`；无 `released∧regen`；HTTP 额度不变 | 同上 |
@@ -45,7 +45,7 @@
 | `POST /reports/:id/regenerate` | **需求名路径缺失** — 运行时 404；H4 honesty（≠ report/retry 冒充 covered） |
 | `(interviewId, regenerateAttempt)` 幂等键 | **缺失** — `ai_report` 无 regenerate* 列；仅 status=failed CAS |
 | confirmed→released 产品口 | **缺失** — `releaseConsumption` 对 confirmed→`already_confirmed`；A3 不可闭环 |
-| quarantined 免费 regenerate 出口 | **BLOCKED** — retry SELECT 含 quarantined，但 `requeueFailedReport` 仅 failed→queued → HTTP 404 |
+| quarantined 免费 regenerate 出口 | **BLOCKED** — retry SELECT 含 quarantined，但 `requeueFailedReport` 仅 failed→queued → HTTP 404；**勘误 2026-10-26·E2E 台账滞后笔**：本句系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（CAS 现 `status IN ('failed','quarantined')`+attempts/next_attempt_at 重置 · quarantined retry→200）；已随 report-retry D2 落主线出账·留痕不洗 |
 
 ### 明确不测 / BLOCKED（本 harness · 抬 covered 见 §1b）
 
@@ -53,7 +53,7 @@
 |--------|------|
 | 幂等键 `(interviewId, regenerateAttempt)` 产品口 | schema/API 未落；H4/G4 GAP |
 | A3 退款先到→released→regen 拒闭环 | 无 confirmed→released 产品口；H3/G3 GAP |
-| quarantined 免费 regenerate 出口 | UC-011 R2/H2 + 本 H3 已钉 404 BLOCKED |
+| quarantined 免费 regenerate 出口 | UC-011 R2/H2 + 本 H3 已钉 404 BLOCKED；**勘误 2026-10-26·E2E 台账滞后笔**：本句系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（本 H3 已翻 quarantined retry→200 requeued:true·`GAP-UC019-QUARANTINE-REGEN` 退役）；已随 report-retry D2 落主线出账·留痕不洗 |
 | `full.e2e` / Playwright UI regenerate | 未进本 prove；§1b |
 | 支付退款回调 / balance-ui | UC-011 R4/H4 另轨 |
 
@@ -99,7 +99,7 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 
 入口：`package.json` → `uc019:report-regenerate:prove` / `uc019:report-regenerate:http:prove` → `scripts/run-e2e-isolated.mjs …:raw`
 
-**旁证（≠本 UC 验收）**：`pnpm uc011:report-refund:prove`（R2 quarantine BLOCKED）；`pnpm uc011:report-refund:http:prove`（H2 retry 404）；`pnpm report:prove`（bulkhead requeue）；`pnpm commerce:prove`。
+**旁证（≠本 UC 验收）**：`pnpm uc011:report-refund:prove`（R2 quarantine BLOCKED）；`pnpm uc011:report-refund:http:prove`（H2 retry 404）；`pnpm report:prove`（bulkhead requeue）；`pnpm commerce:prove`。**勘误 2026-10-26·E2E 台账滞后笔**：本行括注「R2 quarantine BLOCKED／H2 retry 404」系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（uc011 db R2 钉 :146-155 已翻 quarantined requeue→true · http H2 已翻 200 requeued:true）；已随 report-retry D2 落主线出账·留痕不洗。
 
 ---
 

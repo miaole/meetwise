@@ -69,7 +69,7 @@
 | NHP-018-LOAD-01 | 018 | LOAD | worker/api | 并发 abandon + release + graph safe-terminate（N=50 · concurrency=20） | 无双放 · 无 stuck reservations · error_rate≤1% · 收据 tracked（**implementer pre-commit runs · not evidence of record**）；**≠** HA · **≠** 生产容量 · **workerCapEnforced=false**（release+safe-terminate inside capped API · no separately capped worker） | **partial**（`post_prove_dual_pass` · GAP-UC018-PERF-LOAD **CLOSED**） | `pnpm uc018:perf-load:prove` EXIT=0 · harness `harness/uc-e2e-018-perf-load.md` · prove tip `b29c191` · evidence of record = dual `1745bee`/`37c89dc`+`e33dd63` · DB checks double-release=0 stuck=0 · **LOAD alone ≠ covered** · Ban wash into §1.1 · Ban claim production capacity/HA · cite reassess/`0b7a218` · Ban cite `canHonestlyFlip@b29c191` as assessed（constant-false no-flip guard） |
 | NHP-019-FAULT-01 | 019 | FAULT | api | retry∥release 并发 | 无 released∧regen 非法组合 | **partial** | uc019 prove |
 | NHP-019-BOUND-01 | 019 | BOUND | api | retry 幂等 | 单 regen 轨 | **partial** | 同上 |
-| NHP-019-NEG-01 | 019 | NEG | api | quarantine regen | 404/可解释 GAP 钉 | **partial** | H3/H4 |
+| NHP-019-NEG-01 | 019 | NEG | api | quarantine regen | 404/可解释 GAP 钉 | **partial** | H3/H4；**勘误 2026-10-26·E2E 台账滞后笔**：本行「404/可解释 GAP 钉」系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（H3 已翻 quarantined retry→200 requeued:true · `GAP-UC019-QUARANTINE-REGEN` 退役）；行旗 partial 及其余措辞零动；已随 report-retry D2 落主线出账·留痕不洗 |
 
 ### 1.3 摄取 / 诊断押题 / career（015 / 016 / 004 / 025）
 
