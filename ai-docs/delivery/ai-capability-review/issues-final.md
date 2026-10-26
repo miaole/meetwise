@@ -258,6 +258,7 @@
 - **用户影响**：分类稳定性差，出题风格随供应商默认值漂移。
 - **修法**：route-classify 和 vision 设 0–0.1；env 解析时校验是否为有限数，非法就启动失败。
 - **关联审计总表编号**：—
+- 【AG-18 翻面注记 2026-10-26·协调方翻面笔随令行使：AG-18 采样温度刀落主线·EXEC `b94486a00` is-ancestor 亲证随 merge `7738c15bd` 并 main（LEDGER :642 台账所记 merge `6c9ab12c` 系同刀支线 merge 版不在 main 祖·码面与 EXEC 逐字节恒等·如实勘记）·route-classify/vision 钉温 0（SERVICE_TEMPERATURE·model-client.ts :193）+MODEL_EVAL_TEMPERATURE 非有限数或越 [0,2] 加载即拒 `model_eval_temperature_invalid`（:183）·proof `ag18-sampling-temperature.proof.ts` 242 行四臂在树·LEDGER :642 已记「AG 台账 done 31→32」系另一记账口径·本笔对账不重复计·AG-18 系漏翻滞账本笔补翻·条目收口】
 
 ### AG-19【P3·Prompt】prompt 版本没有落库也没有打点（注释称落 ai_prompt_versions，但这张表没有写入方）；无法按版本归因成本和质量
 
