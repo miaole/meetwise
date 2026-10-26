@@ -76,7 +76,7 @@ type EvalShape = 'green' | 'deterministic' | 'throw' | 'unknown';
 // hasHook=true：评分成功但钩子封顶（HOOK_CAP<CONF_ENOUGH）→ 既有 probe 路径出 fundamental/
 // scenario 追问（pickKind 奇偶）——追问不经 grounded 模板旁路（consent 门下首问 grounded=固定模板
 // 零模型调用，adaptive-consumer 同形）→ ask seam 真实经模型客户端（守护⑤ 全键覆盖可证）。
-const GREEN_EVAL = { ok: true, raw: { relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '滑动窗口' }] } };
+const GREEN_EVAL = { ok: true as const, raw: { relevant: true, hasHook: true, dispositions: [{ criterionId: 'answer_quality', disposition: 'exceeds', quote: '滑动窗口' }] } };
 const callCounts: Record<string, number> = { 'planner.competencies': 0, 'interviewer.ask': 0, 'mock-interview.evaluate': 0 };
 
 /** scriptedModelClient 的 complete(req) 不透出 vars——问句轮标从 ask 题面进入 evaluate 的 userData；
@@ -231,7 +231,7 @@ async function main(): Promise<void> {
     A('PC 额度=4.0（净扣 1.0 · 恰一次 settled）', (await balOf(f.owner)) === 4.0);
     A('PC 报告入队走舱壁（queued）', (await asPrincipal(runtime, f.owner, (c) => getReport(c, f.owner, f.id)))!.status === 'queued');
     A('守护⑤ 三图服务键全部被脚本覆盖（planner/ask/evaluate 均真实经模型客户端 · 未脚本化默认拒答未触）',
-      callCounts['planner.competencies'] > 0 && callCounts['interviewer.ask'] >= 1 && callCounts['mock-interview.evaluate'] === pcRounds);
+      callCounts['planner.competencies']! > 0 && callCounts['interviewer.ask']! >= 1 && callCounts['mock-interview.evaluate'] === pcRounds);
     E('PC-CALLS', { ...callCounts });
   }
 

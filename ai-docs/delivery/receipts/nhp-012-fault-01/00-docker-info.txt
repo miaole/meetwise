@@ -4,8 +4,8 @@ Client: Docker Engine - Community
  Debug Mode: false
 
 Server:
- Containers: 2
-  Running: 2
+ Containers: 3
+  Running: 3
   Paused: 0
   Stopped: 0
  Images: 2
@@ -23,7 +23,7 @@ Server:
   /etc/cdi
   /var/run/cdi
  Swarm: inactive
- Runtimes: runc io.containerd.runc.v2
+ Runtimes: io.containerd.runc.v2 runc
  Default Runtime: runc
  Init Binary: docker-init
  containerd version: 193637f7ee8ae5f5aa5248f49e7baa3e6164966e
