@@ -1,6 +1,6 @@
-# Harness — **NHP 批 A · §1.0 盲区三行缺列隔离收据 REQUEST**（Line NHP-A · **`executed:awaiting_post_prove_dual`** · EXIT0≠covered）
+# Harness — **NHP 批 A · §1.0 盲区三行缺列隔离收据 REQUEST**（Line NHP-A · **`closed`**〔2026-10-26 §9-post 会签翻面 · 原值 `executed:awaiting_post_prove_dual` 史录见 §8/§9-post〕· EXIT0≠covered）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-26 pre-exec dual r2 双 PASS 放行 · 协调方授权落码+行使 · EXEC 落卷见 §9-EXEC · 前值 `draft:awaiting_pre_exec_dual` 史录保留于 §8/卷尾注 · post-prove 双审两独立外席待派 · alone ≠ dual · Ban self-approve · **⛔push**）
+**Status**: **`closed`**（2026-10-26 post 双审会签对账翻面 · 一行依据=席1 scoped FAIL 处方勘误落卷解销+席2 PASS 三门独立复跑 73/73·67/67·49/49+9 红零冲销+协调方裁定 digest 链机械核通过〔§9-post 在卷〕· 卷 closed ≠ 矩阵行/SSOT 翻面〔coveredCount=8 零动 · 行翻面权归协调方〕· 原 `executed:awaiting_post_prove_dual` 史录 provenance 见 §8/§9-EXEC 不回改 · alone ≠ dual）· **STOP=closed（三处钉：本 Status 行 + §2 门矩阵 + §8）** · 运行门已行使（§9-EXEC 三 case 全绿 73/73·67/67·49/49 + §9-post 席2 第三 fresh 独立复跑全绿）· 前值 `draft:awaiting_pre_exec_dual` 史录保留于 §8/卷尾注 · Ban self-approve · 并线 PR 走 main
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · public DELETE stays 503
 **Date**: 2026-10-26
 **Base / parent tip**: `origin/main` **`47dd6be56`**（full `47dd6be56d5f3b59ccf5dc0c827b0bdc2e6952de` · `git fetch origin` 本 turn 成功 · 写前复核 tip 未前进）
@@ -146,7 +146,7 @@
 
 ---
 
-## §2 门矩阵（per-row · pre-dual → prove → post-dual · **Status：`executed:awaiting_post_prove_dual`** · prove 已行使 · post-dual 待派）
+## §2 门矩阵（per-row · pre-dual → prove → post-dual · **Status：`closed`**〔2026-10-26 §9-post 会签翻面 · 原值 `executed:awaiting_post_prove_dual` 史录留痕不回改〕· prove 已行使 · post-dual 双审会签落卷）
 
 | Row | case / prove 命令（授权后注册） | 证据层 | pre-dual stubs | post-dual stubs | 断言面（数） |
 |-----|----------------------------------|--------|----------------|-----------------|--------------|
@@ -189,13 +189,13 @@ Not a pass · not run · not covered · not live · not suite green · not PERF/
 
 ## §8 STOP（本节为冻结声明 · 与文首 Status、§2 门矩阵构成 STOP=draft 三处）
 
-**STOP**。本 REQUEST 终态 = **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）：
+**STOP**。本 REQUEST 终态 = **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗 · 〔2026-10-26 §9-post 翻面：终态现值 **`closed`** · 本行史录值留痕不回改 · 三处钉=文首 Status/§2/§8〕）：
 
 1. ~~docs REQUEST only——零产品码、零 proof 文件、零 script 注册随本 REQUEST 落库；授权前 Ban coding · Ban prove · Ban push。~~ 已由 pre-exec dual r2 双 PASS 放行解除：§9-EXEC 落卷=三 proof 文件 + script/runner 注册 + 门矩阵亲跑（零产品码意向面 `apps/*/src`/`packages/*/src` 零 diff 亲证）· ⛔push 不变。
 2. alone ≠ dual——post-prove 双审两独立外席待派；本席不自批、不自 nail；已落收据=implementer pre-commit runs（**not evidence of record**）· EXIT0 ≠ covered。
 3. 冻结面——三行行状态（`:118` gap · `:114` partial · `:128` partial）、coveredCount=8、releaseEvidence=false、DELETE=503、`g7SuiteGreen=false` 全部不动；任何翻动须经 coordinator nail 的 additive honesty，本 EXEC 不开启之。
 
-STOP=executed · awaiting post-prove dual assignment · post-prove 双审通过前 Ban 宣称任何列闭合 · ⛔push。
+STOP=executed · awaiting post-prove dual assignment · post-prove 双审通过前 Ban 宣称任何列闭合 · ⛔push。**〔2026-10-26 §9-post 翻面：STOP 终态 `closed`（席1 scoped FAIL 处方勘误落卷解销+席2 PASS 三门独立复跑+9 红零冲销+协调方裁定落卷 · 本行史录 append 保史不回改——史录值 `executed:awaiting_post_prove_dual` · 更早 `draft:awaiting_pre_exec_dual` 留痕各节钉）〕**
 
 ---
 
@@ -301,4 +301,19 @@ STOP=executed · awaiting post-prove dual assignment · post-prove 双审通过�
 
 ---
 
-*NHP-BATCH-A 记录 · 2026-10-26 起草 · **`executed:awaiting_post_prove_dual`**（2026-10-26 EXEC 落码·§9-EXEC·前值 `draft:awaiting_pre_exec_dual` 史录）· base `origin/main` @`ea0fa0a0a`（派单下限锚·merge tip `e4589b57f`）· 分支 `line/nhp-batch-a-draft` · 工作树 `meetwise-nhp-a` · 门矩阵=docker EXIT0+三 case 全绿（67/67·49/49·73/73）· STOP 三处（文首 Status/§2/§8）同值 `executed:awaiting_post_prove_dual` · post-prove 双审两独立外席待派 · alone≠dual · Ban self-approve · 批表行与 Status 终翻面权归协调方 · est live=0 · ⛔push ⛔merge 主线 ⛔force-push*
+## §9-post（post 双审会签落卷 · 2026-10-26 · 席1 scoped FAIL 勘误解销 + 席2 PASS + 协调方裁定 · **STOP 三处翻面 `closed`**）
+
+**post 输入**：§9-EXEC 运行门全量行使在卷（三 case 73/73·67/67·49/49 EXIT=0 · STOP 史录值 `executed:awaiting_post_prove_dual` 三处钉维持）→ 席1 scoped FAIL（P1 红次台账核算 + P2×2 随落）处方勘误段落卷（§9-EXEC 尾 append-only · 2026-10-26 · `3d3a06c1a`）→ 本席对账翻终态 **`closed`**（沿 uc019 `be8b1c2e4`/uc004 `6c353a515` §9-post 先例形 · 卷 closed ≠ 矩阵行/SSOT 翻面——coveredCount=8 零动 · 行翻面权归协调方）。
+
+- **席1 scoped FAIL（处方落卷即解销）**：FAIL 仅及红次台账文面核算面（P1：uc012「中间六红次」实为七红次 + 归因①「同 premigrate 缺口」经机证撤销 · P2×2 随落）；同席亲证三项全成立——①三 proof 绿证据（73/73·67/67·49/49 回执链在证）②收据 digest 链与届树全 MATCH ③`apps/*/src`+`packages/*/src` 零产品 diff——证据终态不受影响。勘误段已按处方逐条落卷，**解销兑现**。
+- **席2 PASS（独立亲证/复跑）**：①**三门独立复跑恰一次全绿 EXIT=0（第三 fresh 轮：EXEC 行使→席1 亲证→席2）**——uc012 `73/73`（receipt startedAt `18:07:48.976Z` outcome=passed）、uc003 `67/67`（`18:08:03.567Z` passed）、uc030 `49/49`（`18:07:35.485Z` passed）· 零模型零外呼 `env -u` 三键同合同；②**9 红零冲销**：在盘 15 份回执 exitCode 逐份复算 = EXEC 12 份（9 红 + 3 绿）+ 席2 3 绿，与本卷勘误段台账/§9-EXEC 原账零冲销（红次留痕不冲销）；③**shasum 三文件对收据钉值**：三 proof 届树 sha256 ≡ tracked receipts sourceDigests 逐位恒等（uc012 `88f34214…` / uc003 `5939adeb…` / uc030 `a3047dd7…`）+ runner `0fc74902…` ≡ 13 份在证回执（15 份中除旧值 `e25b075c…` 2 份外全同）。
+- **机械核（收官席亲算 · 勘误+会签两编辑轮前后三轮恒等）**：9 证据文件 sha256 编辑前后全等——3 proof（`88f342140af0133c5c4b4dbc96449f7258d5f60d92efb18124abc5dbf085cc11` / `5939adebd53b44b13a17da6c5a2ffb1792727a08371236feb5d7b9e52b1e256f` / `a3047dd72a3610d47a7743ae6bfe860f4bfac29cfea1003339dbf0a318d6d419`）+ runner 链 2 件（`scripts/run-e2e-isolated.mjs` `0fc749028573b74f18434967a4c53e0d557c5161e2ad9827a4b5d657eb04be02` · `scripts/bounded-command.mjs` `3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582`）+ 4 package.json（root `f159809ae0d7a23e163a146984fe469ed7d48b5993050ceaaf21e5ac70698afa` · worker `0d9cf15f658afdf1bc1ddd3c135b81addfd35ffe1b7988b060a8349e9d412c24` · web `c07c7292d1c8e04ca6c89616740b5eb498d52bd70cbb7c8cb66d0e73e9b1869e` · api `0f58048d4ffa247005df3cb5b1cc67d879143f2aef7bbe5e096c9a14b23a266e`）——文面勘误/会签零触证据面（digest 链机械核通过 · 协调方裁定依据之一）。
+- **协调方裁定（2026-10-26）**：席1 scoped FAIL 以勘误落卷**解销** + 席2 PASS 会签 + **digest 链机械核通过** → 批 A 卷 STOP 对账翻终态 `closed`；并线 PR 走 main（fetch origin/main 届值 → merge-tree 预演 → merge --no-ff〔同文件 additive 双保留 union〕→ `pnpm install --frozen-lockfile` → 终验 docs:check/typecheck/lint/markers/ancestor → push → PR → `gh pr merge --merge --auto`）。
+- **并线承登（收官席 · merge 时点）**：egress 清单 `provider-egress-inventory.json` additive 六目（`MODEL_API_KEY`/`DASHSCOPE_API_KEY`/`DASHSCOPE_COMPAT_BASE_URL` × `apps/worker/test/uc-e2e-012-nhp-fault.proof.ts`/`apps/api/test/uc-e2e-030-nhp-fault.proof.ts` · class=test-isolation · 沿 uc028 `10b920521`/uc004 `834c91cb3` 先例形 · `environment_reference_unregistered` 本地 verify 红承登热修 · 非上列 9 证据文件）· cap 承 origin/main sanctioned 值 **2370**（union 扫描届值见终验）。
+- **Non-claims（翻面不洗）**：卷 closed ≠ covered ≠ 行/列翻面 ≠ suite green ≠ HA——`:114/:118/:128` 措辞零翻动 · coveredCount=8 不变 · releaseEvidence=false · DELETE=503 · g7SuiteGreen=false · est live=0 · 三 case 互不替代互不借用 · D1/D2/D3 NOT claimed 面维持 · 历史节尾钉留痕不洗。
+
+closed（§9-post 卷尾钉 · 与 Status 行/§2/§8 同值 · 席1 scoped FAIL 勘误落卷解销 + 席2 PASS 三门独立复跑 73/73·67/67·49/49 + 9 红零冲销 + shasum 三文件对钉 + 协调方裁定 digest 链机械核通过 · 并线 PR 走 main）
+
+---
+
+*NHP-BATCH-A 记录 · 2026-10-26 起草 · **STOP=`closed`**（三处钉：Status 行+§2+§8 · 2026-10-26 post 双审会签对账翻面——席1 scoped FAIL 处方勘误落卷解销+席2 PASS 三门独立复跑+9 红零冲销+协调方裁定 digest 链机械核通过 · 见 §9-post · 历史态 `executed:awaiting_post_prove_dual`/`draft:awaiting_pre_exec_dual` 留痕于各节钉不回改）· base `origin/main` @`ea0fa0a0a`（派单下限锚·merge tip `e4589b57f`·勘误 `3d3a06c1a`）· 分支 `line/nhp-batch-a-draft` · 工作树 `meetwise-nhp-a` · 门矩阵=docker EXIT0+三 case 全绿（73/73·67/67·49/49）+席2 第三 fresh 独立复跑全绿 · 全批红次 9（uc030 2+uc012 7·勘误段台账在卷零冲销）· 批表行与矩阵行/coveredCount 翻面权归协调方（coveredCount=8 零动）· alone≠dual · Ban self-approve · est live=0 · push 仅经本并线 PR（协调方收官令）· ⛔force-push*
