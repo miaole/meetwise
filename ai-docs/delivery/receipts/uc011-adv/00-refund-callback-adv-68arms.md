@@ -13,7 +13,7 @@
 
 ## attempt 台账（逐次如实）
 
-| attempt | 时点（UTC+8 2026-10-26） | EXIT | 臂计 | 隔离 PG | 判定 |
+| attempt | 时点（UTC 2026-10-26） | EXIT | 臂计 | 隔离 PG | 判定 |
 |---------|------|------|------|---------|------|
 | #1 | 18:05 区间 | **0** | 68/68 · 失败 0 | `meetwise-e2e-69918-1793037944036` @ 127.0.0.1:32866（`pgvector/pgvector:pg16`） | 首跑绿·收据即本件 |
 
@@ -23,6 +23,6 @@
 
 - 隔离真 PG（colima/docker 亲证 `docker info` ServerVersion=29.5.2 EXIT=0 先行）·`run-e2e-isolated` 允许表在表（`uc011:refund-callback-adv:prove:raw`·scripts/run-e2e-isolated.mjs blob `1fb100ba32aa` 允许行 :2315）
 - 零 live provider key·零模型外呼·零 secrets·零生产操作 · est live=0 · actualSpendCny=null
-- `LOCAL_ISOLATED_PROOF_RECEIPT` 机器凭条：`.tmp/isolated-proof-receipts/2026-10-26T18-0*Z`（release_evidence=false·untracked 不入 diff 面）
+- **机器凭条引注勘误（§9-post 勘误一·双审双席同发现）**：本 run（68 目标 `uc011:refund-callback-adv:prove:raw`）**无 `LOCAL_ISOLATED_PROOF_RECEIPT` 机器凭条**——目标入 runner 允许表（:2315）与命令映射（:2490）而**未入凭条源映射 `isolatedReceiptSources`**（`scripts/run-e2e-isolated.mjs` blob `1fb100ba32aa` :93 起·uc011 既有四键 `report-refund`/`report-refund-http`/`adv`/`refund-callback` 皆在·本目标缺席→凭条写盘分支不触发）；原引 glob `.tmp/isolated-proof-receipts/2026-10-26T18-0*Z` 实仅匹配同窗 41/18 两 run 凭条（`18-06-11-559Z-70235`/`18-06-23-389Z-70491`）·非本 run 凭条·原句废止。本件凭据=**本收据+控制台台账（run 原样读数）+post 双审席 2 独立复现**（§9-post）·untracked `.tmp/` 不入 diff 面口径不变。
 
 **EXIT0 ≠ covered**：本收据=行为隔离验证 evidence-of-record @EXEC tip·不翻任何行·coveredCount=8 不变·ADV stays gap/case-only·GAP-UC011-ADV-01 stays OPEN。

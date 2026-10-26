@@ -20,7 +20,7 @@
 
 ## attempt 台账（逐次如实·Ban retry-to-green）
 
-| attempt | 时点（UTC+8 2026-10-26） | EXIT | 臂计 | 隔离 PG | 判定 |
+| attempt | 时点（UTC 2026-10-26） | EXIT | 臂计 | 隔离 PG | 判定 |
 |---------|------|------|------|---------|------|
 | #1 | 18:06 区间 | **1** | 14/18 · 失败 4（INV×3+A2×1） | `meetwise-e2e-70491-1793037979722`（`pgvector/pgvector:pg16`·state/logs 凭条 `ISOLATED_POSTGRES_OUTPUT_WITHHELD`） | 预期基线红·单跑登记·不 retry |
 

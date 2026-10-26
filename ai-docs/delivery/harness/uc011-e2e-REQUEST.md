@@ -1,6 +1,6 @@
 # UC-E2E-011 E2E 缺口 REQUEST（ADV 面隔离收据+六列补齐+covered-lift 评估·量级 M）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 行使落卷 2026-10-26·协调方授权·pre-exec 双审 r2 双 PASS 放行·§1 三件+§2 四门落卷全过·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null）
+**Status**: **`closed`**（2026-10-26 post 双审双 PASS 会签席对账翻面·一行依据=§9-post 席1+席2 双 PASS 会签在卷+P2 勘误两件落卷+并线 PR 走 main·卷 closed ≠ 矩阵行/SSOT 翻面〔coveredCount=8 零动·行翻面权归协调方〕·原 `executed:awaiting_post_prove_dual` 史录 provenance 见 §8/§9-EXEC 不回改·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null）
 
 ## §0 锚（tree 级 @ `47dd6be56`·现树逐处亲证·锚 blob 亲算·2026-10-26）
 
@@ -70,7 +70,7 @@
 ## §8 STOP
 
 - **开工条款**：本卷=起草落卷。EXEC（若派）仅限 §1 三件域+§2 四门·越 §1.3 否决面即红停回炉。pre-exec 双审两独立外席待派（§0.1 六列读数+§0.2 缺口形状七点+§1 三件域三处必核）· alone≠dual · Ban self-approve。
-- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注）·原 `draft:awaiting_pre_exec_dual` 存档更替（EXEC 行使=§9-EXEC：pre-exec 双审 r2 双 PASS → 协调方授权 → 三件行使+四门落卷）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注）·原 `draft:awaiting_pre_exec_dual` 存档更替（EXEC 行使=§9-EXEC：pre-exec 双审 r2 双 PASS → 协调方授权 → 三件行使+四门落卷）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve。**〔post 行使翻面（2026-10-26·§9-post）：post 双审席1+席2 双 PASS 会签+P2 勘误两件落卷·STOP 翻终态 `closed`（三处=Status 行/§8/卷尾注·本条史录 append 保史不回改——史录值 `executed:awaiting_post_prove_dual`·更早 `draft:awaiting_pre_exec_dual` 留痕各节钉）〕**
 - **rev 落卷**：2026-10-26 pre-exec 双审席 2 FAIL（P1×3+P2×4）→ §9-rev 修订回卷（纯文面·零码动）·STOP 不翻（rev 落卷非开工许可）·rev 后**重派 pre-exec 双审两独立外席第二轮**·窄域=§9-rev 落点复验 · alone≠dual · Ban self-approve。
 - 卫生：est live=0（隔离收据+docs-only·零模型外呼零 secrets 零生产操作）· actualSpendCny=null · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
@@ -150,6 +150,19 @@
 
 **STOP 终态**：`executed:awaiting_post_prove_dual`（三处翻面：Status 头/§8/卷尾注·原 `draft:awaiting_pre_exec_dual` 存档更替）·post-prove 双审两独立外席待派·alone≠dual·matrix 行翻面/coveredCount/nail 归协调方·est live=0·actualSpendCny=null·⛔push。
 
+## §9-post（post 双审双 PASS 会签席落卷 · 2026-10-26 · P2 勘误两件随卷落 · **STOP 三处翻面 `closed`**）
+
+**post 输入**：§9-EXEC 三件行使+四门落卷在卷（STOP 史录值 `executed:awaiting_post_prove_dual` 三处钉维持）→ post 双审两独立外席对账**双 PASS 会签**·双席同发现 P2 勘误两件（tracked receipts 文面·纯文面零码动）随卷落：
+
+- **勘误一·收据 00 :26 机器凭条引注如实改写**（席1 P2 之1·席2 P2 之1）：68 目标 `uc011:refund-callback-adv:prove:raw` 入 runner 允许表（:2315）与命令映射（:2490）而**未入凭条源映射 `isolatedReceiptSources`**（`scripts/run-e2e-isolated.mjs` blob `1fb100ba32aa` :93 起·uc011 既有四键 `report-refund`/`report-refund-http`/`adv`/`refund-callback` 皆在·本目标缺席→凭条写盘分支不触发）→ **本 run 无 `LOCAL_ISOLATED_PROOF_RECEIPT`**·原 glob 引注实仅匹配同窗 41/18 两 run 凭条（`18-06-11-559Z-70235`/`18-06-23-389Z-70491`）——落点=收据 00 「隔离与环境」节行内改写·本件凭据如实=**本收据+控制台台账（run 原样读数）+席 2 独立复现**。
+- **勘误二·三件收据 attempt 台账时区标签 UTC+8→UTC**（席1 计 P2×3·席2 与勘误一并计 P2×2）：凭条文件名 `Z` 后缀+三容器 epoch 亲算（`date -u -r 1793037944`→18:05:44Z·`1793037967`→18:06:07Z·`1793037979`→18:06:19Z）均 **UTC**——00/01/02 三处台账头 `时点（UTC+8 2026-10-26）` 行内改 `时点（UTC 2026-10-26）`·台账时刻值零动。
+
+- **席1 PASS（独立亲证）**：①**三件回执亲读**：00/01/02 EXIT/臂计/attempt 台账/HONESTY-PINS 落款逐项对 run 读数（68 臂 EXIT=0 十组 ALL PASS·41 臂 EXIT=0 七组 ALL PASS·旧 18 臂 EXIT=1 失败恰 INV×3+A2×1）；②**68 口径亲数**：词边界 `(^|[ (:={,])A\(` 直数 **68**（`grep -oE|wc -l` 亲跑）·裸子串 `'A('` **74** 系 `PATH_A(` ×6 误配非断言·mouth **41**·旧 adv **18** 同法亲数；③**re-pin 三漂逐件对树 @tip `6564224cd`**：runner blob `1fb100ba32aa` 恒等+允许表 :2315 三 uc011 目标在表亲证·matrix/case-matrix 件二后现值 blob `b0fd13d1f5bc`/`5ac4eb232881` 行锚 :117/:148/:175/:270 与 :58 全在位·§0.2 恒等锚八件逐一亲算仍恒等（controller `37b8af4670f4`/`2b9766020ac4`·service `f55d414c1cb7`·proof 三件 `c9ba96b69863`/`b3301f6273ee`/`888264792e6b`·scenarios `9976f9c38208`·evaluator `ec62c4c247a8`）·cap 锚 `MAX_FILES = 2_370` @`public-text-policy.mjs:145` blob `202f34257d08` 恒等；④**evaluator 只读重跑**：`evaluate()` 纯函数零写面（只读 import·最宽口径让步输入形沿 §9-EXEC 序 5）→ `canHonestlyFlip=false`·union reasons 六元 `["STATUS-NOT-COVERED","CASE-ONLY","HAPPY-ONLY","PERF-LOCAL-ONLY","OPEN-GAP","S11-NOT-MET"]`+逐列 reasons 对序 5 机器输出**逐字节一致**（`assertFlipReasonsInvariant` 过·JSON.stringify 恰等亲证）；⑤**旗零翻机证**：matrix :117 `gap`/`case-only` 旗在（仅追加 case registration only 注记）·:148 blind 零触·`coveredCount=8` SSOT 钉在文·case-matrix :58 `case-only` 旗在——**P2×4**（勘误一×1+勘误二×3）。
+- **席2 PASS（独立复跑）**：①**三门独立复跑**（隔离真 PG·首跑绿·未 retry）：`pnpm uc011:refund-callback-adv:prove` **68/68 EXIT=0**+`pnpm uc011:refund-callback:prove` **41/41 EXIT=0**；②**旧 18 臂红独立复现**：`pnpm uc011:adv:prove` **EXIT=1·14/18**·失败恰 **INV×3+A2×1**（对收据 02 台账逐项恒等·非 flake 非环境·不修不洗不 retry）；③**HMAC fail-closed 恒时序推演**：`commerce.service.ts` :33-35 亲读——期望值 `createHmac('sha256', secret)` 拼装+长度预检+`timingSafeEqual` 恒时序比较·任一不满足 throw 403 `bad_signature` **fail-closed**·无短路早返泄漏路径；④**INV 基线红独立定性**：陈旧清单前提「口缺失」被现树双口+本席三门复跑反证=**前提过时非产品回归**（§0.2-4 承·反向证明产品口已落）——**P2×2**（勘误两件同发现）。
+- **STOP 终态=**`closed`**（三处翻面=Status 行/§8/卷尾注·史录 token 保留为 provenance 不回改）**——翻面依据=门矩阵四门全绿在卷（§9-EXEC 序 6）+post 双审席1+席2 双 PASS 会签+P2 勘误两件落卷；后续=并线 PR 走 main（fetch origin/main 届值→merge-tree 预演→merge --no-ff→pnpm install --frozen-lockfile→终验→PR）·矩阵行/coveredCount/nail 翻面权仍归协调方（本节 append 纯文面零码动·卷 closed ≠ 矩阵行/SSOT 翻面）。
+
+closed（§9-post 卷尾钉 · 与 Status 行/§8/卷尾注同值 · post 双审双 PASS 会签 · P2 勘误两件落卷 · 68/68+41/41+旧 18 臂红独立复现 · 并线 PR 走 main）
+
 ---
 
-*UC011-E2E REQUEST · 2026-10-26 起草 · 2026-10-26 EXEC 行使落卷 · **`executed:awaiting_post_prove_dual`**（三处同值：Status 头/§8/本行·原 `draft:awaiting_pre_exec_dual` 存档）· EXEC tip=`337efa8d0`（merge `7e47688db` 后） · base `origin/main` @`47dd6be56` · 分支 `line/uc011-draft` · 工作树 `meetwise-uc011` · 立项出处=覆盖矩阵 §1.0.1 :117 UC-E2E-011 ADV 列 gap/case-only + §3 :270 P1-2（未闭亲证）· 定稿=ADV 面缺口形状七点（产品双口/68+41 臂 prove 在树/旧 18 臂前提过时基线红预期/NHP :58 过时锚/现 tip 零可复核收据/历史 SHA 全数非 main 祖先）+修法三件（隔离收据/六列补齐措辞/covered-lift 评估-only）+否决六条+门四条 · 量级 M · est live=0 · markers=0 · rev=§9-rev 2026-10-26（双审席2 FAIL P1×3+P2×4 回卷·纯文面·r2 双 PASS）· EXEC=§9-EXEC 2026-10-26（三件行使 68/68+41/41 EXIT0+旧 18 臂基线红如实登记·四门全绿·re-pin 三 blob 漂如实改锚·canHonestlyFlip=false 承续） · post-prove 双审两独立外席待派 · ⛔push ⛔merge 主线 ⛔force push*
+*UC011-E2E REQUEST · 2026-10-26 起草 · 2026-10-26 EXEC 行使落卷 · **`closed`**（三处同值：Status 头/§8/本行·2026-10-26 post 双审双 PASS 会签对账翻面·历史态 `executed:awaiting_post_prove_dual`/`draft:awaiting_pre_exec_dual` 留痕各节钉·见 §9-post）· EXEC tip=`337efa8d0`（merge `7e47688db` 后） · base `origin/main` @`47dd6be56` · 分支 `line/uc011-draft` · 工作树 `meetwise-uc011` · 立项出处=覆盖矩阵 §1.0.1 :117 UC-E2E-011 ADV 列 gap/case-only + §3 :270 P1-2（未闭亲证）· 定稿=ADV 面缺口形状七点（产品双口/68+41 臂 prove 在树/旧 18 臂前提过时基线红预期/NHP :58 过时锚/现 tip 零可复核收据/历史 SHA 全数非 main 祖先）+修法三件（隔离收据/六列补齐措辞/covered-lift 评估-only）+否决六条+门四条 · 量级 M · est live=0 · markers=0 · rev=§9-rev 2026-10-26（双审席2 FAIL P1×3+P2×4 回卷·纯文面·r2 双 PASS）· EXEC=§9-EXEC 2026-10-26（三件行使 68/68+41/41 EXIT0+旧 18 臂基线红如实登记·四门全绿·re-pin 三 blob 漂如实改锚·canHonestlyFlip=false 承续） · post=§9-post 2026-10-26（双审双 PASS 会签+P2 勘误两件落卷·STOP 翻 closed·并线 PR 走 main） · ⛔push ⛔merge 主线 ⛔force push*
