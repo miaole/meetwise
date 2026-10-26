@@ -1,6 +1,6 @@
 # CONTEXT-BUDGET-WIRE REQUEST — AG-20 CTX-02 显式接线刀（#51 残面「经 context-budget 裁剪」半·ask 链 session 槽位·12 路径零迁移·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·§9 EXEC 记录·门矩阵十五门全绿·post-prove 双审两独立外席待派·alone≠dual·⛔push）
+**Status**: **`closed`**（2026-10-26 协调方批表翻面笔-3 滞后卷 Status 对账翻面·沿 tokstream-s4b/ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=checklist「Line context-budget-wire nail」段已载 post 双审会签 PASS×2+nail 并线收官·码面在树亲证=apps/worker/src/ask-context-budget.ts（AG-20 CTX-02 显式接线头注自证）+apps/worker/test/context-budget-wire.proof.ts·主线承载笔 `7d1a732d`（对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）——原 `executed:awaiting_post_prove_dual` 系滞后登记 · AG-20 行 half 维持（CTX-02 余原语面归后继·非本卷宣告）· est live=0）
 
 **席位**：meetwise 战役「AG-20 CONTEXT-BUDGET 接线刀」诊断+起草席（#51 残面注记指向 AG-20/#217 正典范围·协调方派单 brief 2026-10-16·工序=fetch 建支线→诊断三项定稿→量级裁决→起草 REQUEST→自检落卷 commit）。
 **基线**：`feat/mysql-schema-skeleton` @ `a9a8dcd9`（origin tip 亲证·本席 `git fetch` 后 `git rev-parse origin/feat/mysql-schema-skeleton`=a9a8dcd9b2f20e89fb8696e78f23e2cd35b18da4·派单下界「tip≥3cd159dd」成立亲证=`git merge-base --is-ancestor 3cd159dd origin/feat/mysql-schema-skeleton` EXIT=0（3cd159dd⊆24b75b17⊆a9a8dcd9·sanction 2200 波落点为 tip 祖先）·战役主线=feat/mysql-schema-skeleton（近 20+ 刀卷同源·session-summary-deepen 卷 §0.2-1 承））· 分支 `line/context-budget-wire`（主仓 `git worktree add ../meetwise-ag20 -b line/context-budget-wire origin/feat/mysql-schema-skeleton` 本起草席亲立·直接落 origin tip 零 reset）· 工作树 `meetwise-ag20`（仓根同级）。

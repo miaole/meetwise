@@ -2379,6 +2379,7 @@ flowchart TD
 - **并缝登记（主线漂移非零交集·如实补登）**：本 nail 窗口主线 tip 漂移 `a62e8fa3→2bc4e2bd` 恰六笔（cost1 nail merge `6f2ed876` 代码面+五笔 docs）——**非零交集三文件**：`apps/worker/package.json`（双面 prove 行·区位不交自动并成）+`invoke.ts`（cost1 `ModelUsage.cachedInputTokens` 类型尾 vs 本刀 `usageSource`/第三臂·区位不交自动并成·双字段共存亲证）+`model-client.ts`（非流 usage 构造块双面重写·**真冲突一处手工并缝**：本刀 AG-14 usage_missing 构造为主干+拼接 cost1 `cachedInputTokens: cachedInputTokensOf(j.usage)` 字段与 `emitUsageCacheObservation` 打点恰一处·presence 三态语义保持·冲突标记零残留·并缝后四门全绿为证）；两树 `apps/web/tsconfig.tsbuildinfo` 构建缓存漂移 checkout 归位未入 commit（沿 :2355 补登②同形）；涉引 hash 全经祖先/双亲亲证.
 - **边界铁律亲证**：流式面 completeStream 零字节（Ban「流式面改动」维持=AG-14 流式面留后继）；历史迁移 0088/0119/0120/0130 零字节（0174 新迁移镜像铁律）；AG-01 准入面/报告键/consumer/embedding/AG-12 估算器零触；breaker 语义外零改（failure 只留网络层不确定·5xx 反向臂亲证）；known_not_executed/unknown/provider_usage_invalid/settled-failed 四既有臂 git diff 原文未动；失败码 `deterministic_output_invalid`/`deterministic_output_truncated` 沿既有码族三处登记.
 - [ ] **STILL OPEN（承接·非本刀面）**：AG-14 流式面（completeStream usage 折叠）=后继刀；EG-B1 unknown ageing=后继刀（Ban 出手维持）；stress 门 7 FAIL 基线红=刀 C/E 领地（本刀零回归机检恒等·不越界）.
+- [x] **STILL OPEN 对账（2026-10-26 批表翻面笔-3）**：上行 AG-14 流式面半项就此出账——已随 TOKSTREAM-S4B `44b61d6e9` 落主线（apps/worker/src/token-stream.ts 结束面 usage 对账+completeStream onUsage 同形在树亲读·blob 三锚 model-client `f9fd31059`/invoke `f61024332`/rag-cost-gov `121a7ff1f` 当前树恒等亲证·issues-final AG-14 翻面注记同卷）·EG-B1 unknown ageing 与 stress 门 7 FAIL 基线红两半非 AG-14 面·维持开放不动.
 - 预算：est live=0·0 Key 值 · `actualSpendCny=null`.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
 
@@ -4455,3 +4456,12 @@ flowchart TD
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
 MDEOF
 echo written
+### 翻面笔登记（2026-10-26 第三批 · 协调方批表翻面笔-3 · 纯台账 docs-only · 每行独立证据在案）
+
+- **批表两行计件翻面（236→238/271 · 87.8%）**：#132（SAFEWRITE-BACKPRESSURE 背压刀·wave81 补翻挂账「+1 计件递推归协调方」出账行使·码面 sse-pump.ts 背压自有旗 bpTripped+连接级未落盘 1MiB 阈值+safeWrite 写败早退在树亲读·主线承载 PR #108 `112e6d26` 对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）/#130（RESERVE-RENEW-FIX 预留续租失败行为面·簇E 呈报件非计件形挂账出账行使·码面 interview-consumer.ts :64 `RESERVATION_RENEW_RETRY_DELAYS_MS=[250,500]`+:369-377 claim 臂有限重试+:373/:388 `reservation_lease_renew_failed` 双发射面在树亲读·主线承载 `71ccd010f` 祖先亲证 EXIT=0）。行头承递：:210 批2 51→52（52/54·残 3→2）/`:216` 合计笔现值层 238=15+26+**52**+23+10+**112**（批5 行头按 236 反推承递 110→112·236 已含 #73 承递·复核席勘误后值）。
+- **+0 出账三笔**：#51 递推挂账（本席核已计入 queue-closeout 笔 :216 批2=50 互证·挂账出账）/#1/#8/#12/#19 四件（:213 行头 81→85 已计在账·:89 注记「本注记不计件」系笔面口径·就此出账）/#73（flip-2 已计·:210 行头与残栏承递同步）。
+- **±1 口径出入两件登记归协调方勿自裁（沿 :218 先例）**：#149（id-order-scope 注释面 `5e1ac660` 祖先亲证+packages/db/src/ids.ts 两生成路径同毫秒口径分立注释在树·惟 :89 行 2026-10-15 已 ✅ 名目翻面而刀面自载「合计不前进」·计件归属歧义）/#148（tenant-owner-trim 229 笔 +1 项下条目身份本仓文本不可钉定·簇E 呈报残面身份歧义）。
+- **跳过登记（证不成立不硬翻·沿 batch-flip 先例）**：#144/#60/#154（本笔未见独立落地证据·维持原状）·#2/#26/#32/#199/#97/#98/#240/#113-keyed 半/#38（用户门控/外部阻塞·真阻塞不碰）·#187（已计 D3）/#212 标注面（已计 I5）维持 ✅。
+- **滞后卷 Status 对账翻面两卷**：cap-sanction-2346-REQUEST 与 context-budget-wire-REQUEST 各 `executed:awaiting_post_prove_dual`→`closed`（沿 tokstream-s4b/ag37/ag-cost5/ha-6 状态行翻面先例·一行依据=本档「Line cap-sanction-2346 nail」/「Line context-budget-wire nail」两段已载 post 双审会签 PASS×2+nail 并线收官+merge 祖先亲证·原状态系滞后登记）·AG-20 行 half 维持（CTX-02 余原语面归后继）不随卷翻。
+- **AG-14 翻面（能力项非 271 计件面·done 44→45·half 2→1·AG-20 独留）**：issues-final AG-14 翻面注记随卷（blob 三锚 model-client `f9fd31059`/invoke `f61024332`/rag-cost-gov `121a7ff1f` 当前树恒等亲证+落地卷 TOKSTREAM-S4B `44b61d6e9`+`79e97f82f`/`e65f35590` 对 HEAD 祖先亲证）+上述 STILL OPEN 对账注记（AG-14 流式面出账）。
+- Sibling sections stay as written. 翻面笔不宣称 gap closed · 实现方不 self-approve.
