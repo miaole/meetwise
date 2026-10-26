@@ -75,6 +75,7 @@
 | NHP-019-FAULT-01 | 019 | FAULT | api | retry∥release 并发 | 无 released∧regen 非法组合 | **partial** | uc019 prove |
 | NHP-019-BOUND-01 | 019 | BOUND | api | retry 幂等 | 单 regen 轨 | **partial** | 同上 |
 | NHP-019-NEG-01 | 019 | NEG | api | quarantine regen | 404/可解释 GAP 钉 | **partial** | H3/H4；**勘误 2026-10-26·E2E 台账滞后笔**：本行「404/可解释 GAP 钉」系 report-retry D2 面旧口径——quarantine 面已 PIN_RETIRED、D2 五件本体已落主线 `f93984a9a`（H3 已翻 quarantined retry→200 requeued:true · `GAP-UC019-QUARANTINE-REGEN` 退役）；行旗 partial 及其余措辞零动；已随 report-retry D2 落主线出账·留痕不洗 |
+| NHP-019-ADV-01 | 019 | ADV | api | regenerate/retry 对抗注入（未鉴权/跨 owner/伪造状态/连点重放 RL/quarantined 出口） | 401/404/429 拒面+零扣费不变·无重复入队 | **case-only**（blind→） | `pnpm uc019:nhp-adv:prove` EXIT=0 双 fresh（2026-10-26 行使 · V1-V6 44 断言 · attempt1 fixture 预算红留痕 · REQUEST `harness/uc019-e2e-REQUEST.md` §1.4/§9-EXEC）· **case registration only ≠ covered** · 行旗不加 partial/covered · coveredCount=8 不变 |
 
 ### 1.3 摄取 / 诊断押题 / career（015 / 016 / 004 / 025）
 
