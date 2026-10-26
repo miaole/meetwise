@@ -1,0 +1,102 @@
+
+> meetwise@0.1.0 uc003:nhp-adv:prove /Users/miaole/Desktop/golucky/meetwise-nhp-a
+> node scripts/run-e2e-isolated.mjs uc003:nhp-adv:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-64461-1793036506348 on 127.0.0.1:32854
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/web@0.0.0 prove:uc003-nhp-adv /Users/miaole/Desktop/golucky/meetwise-nhp-a/apps/web
+> tsx test/uc-e2e-003-nhp-adv.proof.ts
+
+UC-E2E-003 NHP-003-ADV-01 · ADV 运行级对抗行使 · releaseEvidence=false · Not HA
+NOTE: 纯函数行使零 PG 零外呼零 key；EXIT0 = case ≠ covered；矩阵 :114 行措辞零翻动
+
+──────── PC · 已知码 + locale=en → en 文案（A2 真行使） ────────
+PASS  PC ocr_failed → error 原样透传
+PASS  PC ocr_failed → en 文案非回退且 CJK-free
+PASS  PC file_too_large → error 原样透传
+PASS  PC file_too_large → en 文案非回退且 CJK-free
+PASS  PC empty_file → error 原样透传
+PASS  PC empty_file → en 文案非回退且 CJK-free
+PASS  PC unsupported_file_format → error 原样透传
+PASS  PC unsupported_file_format → en 文案非回退且 CJK-free
+PASS  PC parse_failed → error 原样透传
+PASS  PC parse_failed → en 文案非回退且 CJK-free
+PASS  PC too_many_requests → error 原样透传
+PASS  PC too_many_requests → en 文案非回退且 CJK-free
+PASS  PC server_busy → error 原样透传
+PASS  PC server_busy → en 文案非回退且 CJK-free
+PASS  PC upload_timeout → error 原样透传
+PASS  PC upload_timeout → en 文案非回退且 CJK-free
+PASS  PC consent_required → error 原样透传
+PASS  PC consent_required → en 文案非回退且 CJK-free
+PASS  PC insufficient_entitlement → error 原样透传
+PASS  PC insufficient_entitlement → en 文案非回退且 CJK-free
+PASS  PC 全 20 已知码 en 文案齐备且全 CJK-free
+
+──────── N1 · 已知码 + locale=zh → zh 文案（对照） ────────
+PASS  N1 ocr_failed → zh 文案含中文
+PASS  N1 file_too_large → zh 文案含中文
+PASS  N1 upload_timeout → zh 文案含中文
+PASS  N1 同码 en/zh 文案两形可分（映射层真二值）
+
+──────── V1 · 未知错误码 → upload_failed 回退（键域排除原型链族） ────────
+PASS  V1 未知码[totally_unknown_code] → upload_failed 兜底
+PASS  V1 未知码[OCR_FAILED ] → upload_failed 兜底
+PASS  V1 未知码[ocr-failed] → upload_failed 兜底
+PASS  V1 未知码[OCR:failed] → upload_failed 兜底
+PASS  V1 未知码[{"injected":true}] → upload_failed 兜底
+PASS  V1 未知码[ocr_failed;DROP TABLE] → upload_failed 兜底
+PASS  V1 未知码[码] → upload_failed 兜底
+PASS  V1 未知码[eeeeeeeeeeeeeeeeeeeeeeee] → upload_failed 兜底
+PASS  V1 未知码[ok:false] → upload_failed 兜底
+PASS  V1 未知码[null] → upload_failed 兜底
+PASS  V1 纯空白 error → 机器码 upload_failed（:123 trim 契约）
+PIN   §9-rev2 V1 键域排除原型链族 toString/constructor/__proto__（预登记疑似产品缺陷 · 本刀不行使该族 · 修复归产品刀）
+
+──────── V2 · 伪造 locale 值 → 一律 zh 臂 ────────
+PASS  V2 伪造 locale[EN] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[en-US] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[fr] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[zh-Hans] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[../../etc/passwd] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[en\0] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[en ] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[ en] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[eeeeeeeeeeeeeeee] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[zh;en] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[LOCALE=en] → 落 zh（非 'en' 即 zh）
+PASS  V2 伪造 locale[__proto__] → 落 zh（非 'en' 即 zh）
+PASS  V2 request.ts DEFAULT_LOCALE=zh 字面在场
+PASS  V2 request.ts cookie allowlist includes 守卫在场（伪造值回退默认）
+
+──────── V3 · 对抗信封（非对象/空 error/transcript 形注入） ────────
+PASS  V3 null → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 undefined → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 number → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 string → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 bool → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 array → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 empty-object → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 empty-error → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 null-error → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 numeric-error → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 transcript-injection → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 transcript-only → 机器码 upload_failed 且零 transcript 字段发明
+PASS  V3 readResumeUploadErrorCode 对 transcript 形信封只出机器码
+
+──────── V4 · 413 状态码优先臂 ────────
+PASS  V4 413 + body 已知码 → 仍 file_too_large（状态码先于 body 码）
+PASS  V4 413 + null body → file_too_large en 文案
+PASS  V4 非 413（400）→ 不触发状态码臂（body 码照走）
+PASS  V4 413 en 文案 CJK-free
+
+✓ NHP-003-ADV-01 全臂绿（67/67）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: EXIT0≠covered · §1.0.1 :114 行措辞零翻动（NEG=gap 不因 N-臂翻动 · FAULT=blind 不动）
+PIN: D3 披露 — 零模型产出语言断言 · A1 DOM 残留扫描不重铺（既有 S 锚旁证·Playwright 降次未接线照旧）
+PIN: V1 原型链族预登记（§9-rev2）— 本刀键域排除 · 未实证 → 不触发 EXIT1/backlog · 修复归产品刀
+PIN: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · Ban wash 本收据入任何他列
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T17-41-48-624Z-64461-47993ae3-dea6-457f-a87e-dd935249f8a3.json release_evidence=false
