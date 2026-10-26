@@ -40,7 +40,8 @@
  * fixture 纪律：per-arm 独立 interview/report（RL 桶 report_retry:<id> 按报告分键·臂间零共桶）；
  * 遗留 queued 报告逐臂 parked 出 claim FIFO（沿既有 http proof H1 先例）；
  * 需 complete 收口的臂 interview 一律插 'created'（CAS 收口面恰值·rev2 接线修正——终态值触
- * completeInterviewAndConfirm 防重入闸 interview_terminal_conflict 进程红）。
+ * completeInterviewAndConfirm 防重入闸 interview_terminal_conflict 进程红）；
+ * userA 授益预算顶装 +5（harness 帽 5 单位 vs V1-V6 六次 reserve·运行行使修正·零断言改写）。
  *
  * EXIT 0 = V1–V6 结构收据 + GAP 钉在卷 = **case registration only**。
  * EXIT0 ≠ covered · ≠ UC-E2E-019 covered · matrix stays partial · coveredCount=8 零翻 ·
@@ -96,6 +97,17 @@ GRANT EXECUTE ON FUNCTION interview_privacy_active(text) TO app_role;
 GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 `);
 console.log('PIN   GAP-UC019-PRIVACY-STUB: minimal privacy-active stub（owner-match 形·≠ 0058 fence covered）');
+
+// fixture 预算顶装（运行行使修正 2026-10-26·rev2 V3 fixture 接线红同类：红停于 fixture 接线·非用例
+// 断言红·非产品缺陷）：_neg-harness 授 userA 恰 5 paid units（_neg-harness.ts :279），V1-V6 fixture
+// 计划需 6 次 reserveEntitlement（V2×1+V3 ready/running×2+V4×1+V5×1+V6×1）——首行使 EXIT=1 红
+// insufficient_entitlement(available:0,requested:1) 恰落于 V6 第 6 发（前 36 断言全 PASS·V1-V5 全兑现）。
+// 本修正=test-side 桶顶装 +5（FIFO 记账 units_total−units_reserved−units_consumed 零触·零产品码触·
+// 零断言改写·V1-V6 期望格零变·各臂内 before/after 额度不变断言形零变）。
+await h.pool.query(
+  "UPDATE entitlement_bucket SET units_total = units_total + 5 WHERE owner_user_id='userA' AND kind='paid'",
+);
+console.log('NOTE: fixture 预算顶装 +5（userA 5 单位帽 vs V1-V6 六次 reserve·首行使 V6 insufficient_entitlement 红因修正·零断言改写）');
 
 const HDR_A = h.U('userA');
 const HDR_B = h.U('userB');
