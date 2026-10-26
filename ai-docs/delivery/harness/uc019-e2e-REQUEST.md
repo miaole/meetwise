@@ -1,6 +1,6 @@
 # UC019-E2E REQUEST — 覆盖矩阵 §1.0.1 UC-E2E-019（报告重生成×退款并发·regenerateAttempt GAP）缺列隔离收据起草卷（剩余队列 Phase2 #12 one-knife-one-row 单行卷·docs-only REQUEST·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`** · alone≠dual · **STOP=executed（三处钉：本 Status 行 + §8 + 卷尾注）** · 运行门已行使（§9-EXEC·新 attempt 2026-10-26 · 主门双 fresh EXIT=0）· post-prove dual 双审权归两外席。
+**Status**: **`closed`**（2026-10-26 post 双审双 PASS 会签席对账翻面·一行依据=§9-post 席1+席2 双 PASS 会签在卷+协调方 V6 fixture 追认落卷+并线 PR 走 main·卷 closed ≠ 矩阵行/SSOT 翻面〔coveredCount=8 零动·行翻面权归协调方〕·原 `executed:awaiting_post_prove_dual` 史录 provenance 见 §8/§9-EXEC 不回改·alone ≠ dual）· **STOP=closed（三处钉：本 Status 行 + §8 + 卷尾注）** · 运行门已行使（§9-EXEC·新 attempt 2026-10-26 · 主门双 fresh EXIT=0+§9-post 席2 第三 fresh 44 PASS）。
 
 **席位**：UC-019 行起草席（NHP 批 A/批 B 未认领剩余行·协调方派·与批 A/批 B 行级互斥）。
 **基线**：`origin/main` @ `ab282ba81`（full `ab282ba8134f51938a183691a240e21d02ce08c5` · `git fetch origin` 本 turn 亲证 tip 同指 · docs:check **2342≤2354** 本树亲跑 EXIT=0）· 分支 `line/uc019-draft`（建前 `git branch --list "line/uc019*"` 零命中 · 本席 `git worktree add ../meetwise-uc019 -b line/uc019-draft ab282ba81` 亲立 · HEAD 落 `ab282ba81` 亲证）· 工作树 `meetwise-uc019`（仓根同级）。
@@ -128,7 +128,7 @@
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且结论受疑（六列被他刀改写·`requeueFailedReport` CAS 形变·RL 闸被撤·`:124` 行被他刀触·在飞线对触面新增提交）→停·重 pin 回炉。
 - **机制不满足**：新臂收据与 §1 红事实推定形不符（如跨 owner retry 竟 200·`ready` 报告 retry 竟入队·quarantined retry 竟回退 404·风暴无 429 且无界入队）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1.4 恰一 case 面（需触产品码/迁移/`:182` 翻行/RL 调参/demand-path 实现）→停·另刀或协调方裁决（Ban 就地扩面）。
-- **验收红不可修**：§2 任一门红且根因不在本刀交付面（docs:check>2354/邻套件新红/typecheck/lint 超）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
+- **验收红不可修**：§2 任一门红且根因不在本刀交付面（docs:check>2354/邻套件新红/typecheck/lint 超）→停·stash 对照亲证基线·如实登记（Ban 借机修）。**〔post 行使翻面（2026-10-26·§9-post）：post 双审席1+席2 双 PASS 会签+协调方 V6 fixture 追认落卷·STOP 翻终态 `closed`（三处=Status 行/§8/卷尾注·本条史录 append 保史不回改——史录值 `executed:awaiting_post_prove_dual`·更早 `draft:awaiting_pre_exec_dual` 留痕各节钉）〕**
 
 ## §9-rev 修订席收敛回路（双审席 FAIL→rev 纯文面落点·2026-10-26）
 
@@ -252,6 +252,16 @@ diff 面机检：本 commit 恰 4 tracked 路径=本卷 .md（§9-EXEC·新 atte
 
 executed:awaiting_post_prove_dual（§9-EXEC·新 attempt 卷尾钉 · 与 Status 行/§8/卷尾注同值 · 运行门已行使 · 主门双 fresh EXIT=0 · awaiting post-prove dual 双审）
 
+## §9-post（post 双审双 PASS 会签席落卷 · 2026-10-26 · 协调方 V6 fixture 追认落卷 · **STOP 三处翻面 `closed`**）
+
+**post 输入**：§9-EXEC·新 attempt 运行门全量行使在卷（STOP 史录值 `executed:awaiting_post_prove_dual` 三处钉维持）→ 协调方追认落卷：**V6 fixture 预算顶装追认（2026-10-26）**——test-side 桶顶装 +5 追认在案·零断言改写（V1-V6 期望格零变·各臂内 before/after 额度不变断言形零变·FIFO 记账面零触·零产品码触）·红次留痕不冲销（attempt1 EXIT=1 台账 §9F.2 在卷）。本席 post 双审双 PASS 会签后 STOP 对账翻终态 **`closed`**（沿 uc025 残面卷/ag20 对账翻面先例·卷 closed ≠ 矩阵行/SSOT 翻面——coveredCount=8 零动·行翻面权归协调方）。
+
+- **席1 PASS（独立亲证）**：①**V2 四断言在卷核**：proof `:232`/`:234`/`:236` 三位点四断言全数在位零删零改写（目标报告仍 failed / consumption confirmed / HTTP 额度不变 / owner GET 200——`:234` 一位点双条件·与 §9-rev2-1③ 四断言清单逐条对上）·`GAP-UC019-PRIVACY-STUB` owner-match stub 披露保留；②**V3 接线核**：`'created'` CAS 收口面恰值插位 `:153`（setupFailedReport）/`:251`（V3 臂）/`:321`（V5）·completeInterviewAndConfirm 正常走零 `interview_terminal_conflict`·伪造 `ready`/`running` 双臂 404 `no_retriable_report` 断言在位（`:264-269`）·期望格零变；③**V6 桶顶装追认核**：`git show 594010991` 对 proof 恰 13+/1-——桶顶装 UPDATE+fixture 纪律注记+头注一行·**断言行零触零改写**（diff 零 A() 位点）；④**44 断言复算**：静态 A() 位点 41 + V3 循环 ×2（ready/running）=44 runtime·与 run2/run3 日志各 44 PASS 恰等·honesty 钉在卷（`:410`）；⑤**markers+docs:check 复跑**：五类标记词+冲突标记对本刀改动集四件（REQUEST+proof+矩阵+case-matrix）grep 零命中 EXIT=0·`node scripts/ai-docs/check-docs.mjs` EXIT=0（扫描 2357≤届值 cap）。
+- **席2 PASS（独立复跑）**：①**主门第三 fresh**：`pnpm uc019:nhp-adv:prove` 独立复跑 **44 PASS/0 FAIL/EXIT=0**（`.tmp/uc019-nhp-adv-post-dual.log`·receipt `2026-10-26T17-06-48…` outcome=passed·release_evidence=false）——attempt2/attempt3 后第三独立 fresh·§2-5 双 fresh 纪律超满足；②**sha256 全 MATCH**：attempt2/attempt3 双 receipt `sourceDigests` 十文件逐一 sha256 对届树 **10/10 MATCH**·两 receipt 间 digests 逐位恒等·本席第三 fresh receipt digests 与之恒等（runner/bounded-command/proof/_neg-harness/controller/service/interview-report/rate-limit/commerce/report 十件）；③**倒置门独立**：`node scripts/run-e2e-isolated.mjs uc019:unregistered-probe:prove:raw` **EXIT=1** `unsupported_e2e_target`（拒于 target 解析层·容器零 spawn·与 §9F.3 台账恒等）；④**RL-before-authz P2-a 登记面亲证**：`retryReport` RL 闸 `interview.service.ts :778-779`（键=`report_retry:<id>` 按报告分键·非按 principal）先于 `:780` `retryReportById` 委托·privacy guard（interview-report.ts `:37`）在 RL 之后——跨 owner 调用方终局 404 仍逐发消耗目标报告 RL 令牌（V2 臂 404 实跑即令牌消耗面·V4 第 2/3 发 404 同纹）——**P2 产品 backlog 登记**（gap-bug-backlog.md 一行尾注随本席落卷·无数据暴露/无资金影响）。
+- **STOP 终态=**`closed`**（三处翻面=Status 行/§8/卷尾注·史录 token 保留为 provenance 不回改）**——翻面依据=门矩阵全绿在卷（§9F.3）+主门三 fresh（attempt2/3+席2）+sha256 全 MATCH+倒置门独立+协调方 V6 fixture 追认落卷+post 双审双 PASS 会签；后续=并线 PR 走 main（fetch origin/main 届值→merge-tree 预演→merge --no-ff→终验→PR）·矩阵行/coveredCount/backlog 翻面权仍归协调方（本节 append 纯文面零码动）。
+
+closed（§9-post 卷尾钉 · 与 Status 行/§8/卷尾注同值 · post 双审双 PASS 会签 · 协调方 V6 fixture 追认落卷 · 主门三 fresh+sha256 全 MATCH+倒置门独立 · 并线 PR 走 main）
+
 ---
 
-*UC019-E2E REQUEST · 2026-10-26 起草 · **STOP=`executed:awaiting_post_prove_dual`**（三处钉：Status 行+§8+本行·2026-10-26 翻面——运行门已行使·主门双 fresh EXIT=0·历史态 `draft:awaiting_pre_exec_dual` 留痕于各节钉·post-prove 双审权归两外席）· 剩余队列 Phase2 #12 one-knife-one-row 单行卷 · 覆盖矩阵 §1.0.1 UC-E2E-019 `:124`（NHP 批 A/B 未认领剩余行·两卷表内明钉留后）· 缺列=ADV blind（case-matrix `NHP-019-ADV-01` 行缺席实证→已后补 case-only 行）· 修法=一行一 case 缺列隔离收据（恰一独立新 prove `NHP-019-ADV-01` V1-V6·零产品码触·零 invent covered·零 live key）· regenerateAttempt 幂等键/A3/demand-path/full.e2e 缺口如实再钉（产品实现=另刀）· 历史卷 line/report-retry D2 五件已落主线 @`f93984a9a`（quarantine 出口面已闭·互补不重叠·分支 tip 未并线）· §1.3 六否决 · 双表同步令沿 §1.0.3 `:164`（已行使·§9F.4）· base=origin/main `ab282ba81`（并线 origin/main @`cb9c8efc5` merge=`349affec7`）· 分支 `line/uc019-draft` · 工作树 `meetwise-uc019` · 与批 A（`:114`/`:118`/`:128`）批 B（`:115-117`）行级互斥零重叠 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push*
+*UC019-E2E REQUEST · 2026-10-26 起草 · **STOP=`closed`**（三处钉：Status 行+§8+本行·2026-10-26 post 双审双 PASS 会签对账翻面——§9-post 席1+席2 双 PASS+协调方 V6 fixture 追认落卷·历史态 `executed:awaiting_post_prove_dual`/`draft:awaiting_pre_exec_dual` 留痕于各节钉·见 §9-post）· 剩余队列 Phase2 #12 one-knife-one-row 单行卷 · 覆盖矩阵 §1.0.1 UC-E2E-019 `:124`（NHP 批 A/B 未认领剩余行·两卷表内明钉留后）· 缺列=ADV blind（case-matrix `NHP-019-ADV-01` 行缺席实证→已后补 case-only 行）· 修法=一行一 case 缺列隔离收据（恰一独立新 prove `NHP-019-ADV-01` V1-V6·零产品码触·零 invent covered·零 live key）· regenerateAttempt 幂等键/A3/demand-path/full.e2e 缺口如实再钉（产品实现=另刀）· 历史卷 line/report-retry D2 五件已落主线 @`f93984a9a`（quarantine 出口面已闭·互补不重叠·分支 tip 未并线）· §1.3 六否决 · 双表同步令沿 §1.0.3 `:164`（已行使·§9F.4）· base=origin/main `ab282ba81`（并线 origin/main @`cb9c8efc5` merge=`349affec7`）· 分支 `line/uc019-draft` · 工作树 `meetwise-uc019` · 与批 A（`:114`/`:118`/`:128`）批 B（`:115-117`）行级互斥零重叠 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push*
