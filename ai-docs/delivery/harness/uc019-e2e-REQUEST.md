@@ -77,7 +77,7 @@
 | # | 臂 | 注入 | 期望（现行为如实钉） | 锚 |
 |---|----|------|---------------------|-----|
 | V1 | 未鉴权 | 无 principal 头 POST report/retry | 401（鉴权守卫链） | H4 `:293` 同族旁证 |
-| V2 | 跨 owner | 他人 principal 对目标 interview retry | **4xx 守卫拒·stub 形下实测 410 GONE `interview_privacy_fenced`**（interview 行存在故非 404 `not_found_or_forbidden` 分支；`guardInterviewPrivacyTx` `interview.service.ts :64-73` 先于状态 SELECT `:38`——守卫拒先行即 404/410 均未及白名单 SELECT）；owner-match stub 形如实披露保留（http proof `:70` `GAP-UC019-PRIVACY-STUB` PIN·≠0058 fence covered） | interview-report.ts `:37` |
+| V2 | 跨 owner | 他人 principal 对目标 interview retry | **404 `not_found_or_forbidden`**（真 RLS 形如实·rev2 行使：守卫首条存在性探针 `guardInterviewPrivacyTx` `interview.service.ts :65-67` 受 FORCE RLS `p_owner` owner=principal 谓词过滤（sql/01_schema.sql `:135-146` 引导链·迁移链 0048 `:135-138` 同谓词 TO privacy_api_owner）跨 owner 0 行→404 先行抛出·P0001→410 GONE 映射分支 `:68-73` 真库不可达——rev1「stub 形实测 410」系隔离门未行使期静态推定从未实跑（§9-rev2 双录）；missing/cross-owner 不可区分合同 `:407-412` docstring；守卫拒先于状态 SELECT `:38`）；stub 形保留如实双录（owner-match stub 仍承 owner 侧 GET 臂·http proof `:70` `GAP-UC019-PRIVACY-STUB` PIN·≠0058 fence covered）·零重排零额度不变四断言维持 | interview-report.ts `:37` |
 | V3 | 伪造状态 | `ready`/`running` 报告上 POST retry（真枚举注入栏·rev 更正） | **404 `no_retriable_report`**（状态白名单外一律拒=状态机外拒绝面） | `:38` 白名单 |
 | V4 | 连点重放风暴 | 同一 failed report 连发 ≥5 POST | **真序列**：首 POST **200 `requeued:true`**（`failed` 在白名单→CAS 离场入 `queued`）→ 紧随重复 POST=**404 `no_retriable_report`**（状态 CAS 白名单 `failed\|quarantined`→`queued` 已离场·RL 令牌仍逐发消耗——RL 闸 `:778` 先于 `retryReportById` 委托 `:780`）→ 累计第 4 发起=**429 `report_retry_limited`**（capacity 3·refill 3/h·测试窗内回填可忽略）；全程 `ai_report` 恰单行·零重复入队·额度不变——与 §1.2「连点 404」自述对齐（http H1 首 200/二三次 404 `:169-183` 同构在卷）——**「连点仅一次重生成」现由 RL+状态 CAS 承载非幂等键（`GAP-UC019-REGEN-IDEM-KEY` 现势证据·429≠幂等键）** | service `:36`/`:778-779` |
 | V5 | quarantined 出口对抗复验（**对照臂·H3 同构回归**·rev 标注——非新对抗注入面·对既有 http H3 臂同构复验零替代） | poison→quarantined→POST retry | **200 `requeued:true`+`attempts=0`+额度不变+consumption confirmed**（#229 后现势·对 harness `:33`/`:37`/`:48`/`:56`/`:70` 陈旧句=现势对照证据非 wash） | db `:206`/http `:262-268` |
@@ -187,6 +187,17 @@
 隔离门未行使、运行绿未得——**§8 状态维持 `draft:awaiting_pre_exec_dual` 不翻**（三处钉维持）：零 covered 宣称·矩阵/checklist/backlog/双表零触·`coveredCount=8` 零动·pins 十一值零翻·releaseEvidence=false · Not HA · est live=0 · actualSpendCny=null；本 commit=落码防丢+注册三触点+静态门承登+隔离门红停承登。
 
 draft:awaiting_pre_exec_dual（§9-EXEC 卷尾钉 · 与卷首行/§8/§9-rev 同值 · STOP 维持 · 红停承登 · 隔离门未行使不宣称收口）
+
+## §9-rev2 修订席收敛回路第二轮（EXEC 席根因两件→rev2 落卷 · 2026-10-26）
+
+**审席输入**：EXEC 席隔离门行使（容器环境恢复后实跑 `pnpm uc019:nhp-adv:prove`）回报两根因→协调方派 rev2（**修法面变更=回炉重审项**）→ 本 rev2 席落卷·§5 Ban/pins/§1.3 六否决零翻·零新增文件（改动集=本节+§1.4 V2 期望格+新 proof V2/V3 臂）。逐条落点（全部本席亲证后落）：
+
+1. **根因一 V2 期望 410→404（证伪落点·§1.4 臂表 V2 期望格行使）**：EXEC 实跑证伪 rev1「stub 形下实测 410 GONE」——该措辞系隔离门红停期（§9E.4 未行使）静态推定·从未实跑。真库守卫链**首条存在性探针** `SELECT 1 FROM interview WHERE id=$1`（`guardInterviewPrivacyTx` interview.service.ts `:65-67`）受 FORCE RLS 谓词过滤：sql 引导链 `01_schema.sql :135-146` 对 interview ENABLE+FORCE RLS + `p_owner USING (owner_user_id=current_setting('app.principal_user', true))`（本 prove 走 harness boot 全量 sql/01-23·逐行亲证；迁移链同谓词=0048 `:135-138` `FOR SELECT TO privacy_api_owner`）——跨 owner（userB 探 userA 行）0 行→**404 `not_found_or_forbidden` 先行抛出**（missing/cross-owner 不可区分合同 `:407-412` docstring 亲证）→P0001→410 GONE 映射分支（`:68-73`）真库不可达。**落点三件**：①§1.4 V2 期望格 410→**404 `not_found_or_forbidden`**（真 RLS 形如实）；②新 proof V2 臂两断言改 `r.status===404`/`body.error==='not_found_or_forbidden'`+rev2 双录 console 注记（rev1 410 形降为双录如实登记·stub 形保留：owner-match stub 仍承 owner 侧 GET 臂·`GAP-UC019-PRIVACY-STUB` PIN 不撤）；③**零重排零额度不变四断言维持原位零删**（目标报告仍 failed·consumption confirmed·HTTP 额度不变·owner GET 200）。
+2. **根因二 V3 fixture 接线修正（CAS 收口面恰值）**：rev1 fixture 先插 `status='completed'` 的 interview 再调 `completeInterviewAndConfirm`→产品防重入闸**正确**抛 `interview_terminal_conflict:completed`（commerce.ts `:394-395`）→进程 EXIT 1——红停于 fixture 接线·非用例断言红（产品 CAS 行为本身正确·如实登记非产品缺陷）。**落点**：fixture 改插 CAS 收口面恰值 **`'created'`**（`completeInterviewAndConfirm` 同条带谓词 UPDATE 仅自 `status IN ('created')` CAS 成功·commerce.ts `:378-381` 亲证）→complete 正常走→consumption confirmed→伪造 `ready`/`running` 报告臂 404 `no_retriable_report` 断言如实行使·**V3 期望格零变**。**派单示例值偏差如实登记**：派单载「如 status='in_progress'」——`'in_progress'` 同样非 CAS 白名单值、仍落同一闸（`interview_terminal_conflict:in_progress`）·故落 `'created'`（与 setupFailedReport/V4/V6 同形）·修法方向（改插非终态→complete 正常走→断言 succeeded 路径）逐字行使·仅恰值按码面校正。
+3. **门复跑（届树亲跑）**：markers 五类标记词+冲突标记对改动集 grep 零命中 EXIT=0（词面运行时组装·§2-2/§7 同口径）+ `node scripts/ai-docs/check-docs.mjs` EXIT=0 扫描数≤cap 2354（EXEC 2344 基线·rev2 零新增文件·余数不变）。
+4. **STOP 终态不变**：`draft:awaiting_pre_exec_dual`（三处钉维持）——rev2 落卷≠双审 PASS·**rev2 后重派双审第三轮·窄域=两根因落点复验**（§1.4 V2 期望格 404 真形+V3 fixture `'created'` 接线·与新 proof V2/V3 臂逐件对读·四断言维持复核）·双审重审权归两外席·开工三条款照 §8·运行门仍待容器环境行使（§9E.4 红停承登继续有效·Ban 以静态门绿顶替运行门绿）。
+
+rev2:awaiting_pre_exec_dual（§9-rev2 卷尾钉 · 与 Status 行/§8/§9-EXEC/§9-rev 同值 · STOP 维持 · 修法面 V2 期望格行使=回炉重审项 · 双审第三轮窄域=两根因落点复验）
 
 ---
 

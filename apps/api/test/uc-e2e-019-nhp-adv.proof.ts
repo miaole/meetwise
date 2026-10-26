@@ -10,12 +10,20 @@
  * 对抗臂表（行为面=届时码面亲证 @interview.service.ts :36/:64-73/:776-780 · interview-report.ts :35-44 ·
  * report.ts :7/:10/:66-71）：
  *   V1 未鉴权            无 principal 头 POST report/retry → 401（H4 :293 同族旁证）。
- *   V2 跨 owner          他人 principal 对目标 interview retry → 410 GONE interview_privacy_fenced
- *                        （stub 形·guardInterviewPrivacyTx :64-73 先于状态 SELECT :35-44——interview 行
- *                        存在故非 404 not_found_or_forbidden 分支；owner-match stub 披露保留
+ *   V2 跨 owner          他人 principal 对目标 interview retry → 404 not_found_or_forbidden
+ *                        （真 RLS 形如实·rev2：守卫首条存在性探针 guardInterviewPrivacyTx
+ *                        :65-67 受 FORCE RLS p_owner owner=principal 谓词过滤（sql/01_schema.sql
+ *                        :135-146·迁移链 0048 :135-138 同谓词 TO privacy_api_owner）跨 owner 0 行
+ *                        →404 先行抛出·P0001→410 GONE 映射分支 :68-73 真库不可达——rev1「stub 形
+ *                        实测 410」系静态推定从未实跑；missing/cross-owner 不可区分合同见
+ *                        interview.service.ts :407-412 docstring；owner-match stub 披露保留
  *                        ·PIN GAP-UC019-PRIVACY-STUB ≠ 0058 fence covered）。
  *   V3 伪造状态           ready/running 报告上 POST retry → 404 no_retriable_report（状态白名单外
  *                        一律拒=状态机外拒绝面·白名单 ('failed','quarantined') :35-44）。
+ *                        fixture 接线（rev2）：interview 须插 CAS 收口面恰值 'created'
+ *                        （completeInterviewAndConfirm 仅自 'created' 走·commerce.ts :378-381），
+ *                        插终态（rev1 误插 'completed'）触产品防重入闸 interview_terminal_conflict
+ *                        （:394-395）进程红——非用例断言红。
  *   V4 连点重放风暴        同一 failed report 连发 5 POST 真序列：200 requeued:true → 404 → 404 →
  *                        429 report_retry_limited → 429（RL capacity 3 · refill 3/h 测试窗回填可忽略；
  *                        RL 闸 :778 先于 retryReportById 委托 :780·令牌逐发消耗）·恰单行·零重复入队·
@@ -30,7 +38,9 @@
  *                        + 键零物化（注入后复查仍无 regenerate* 列/表）+ GAP_PIN 族再钉。
  *
  * fixture 纪律：per-arm 独立 interview/report（RL 桶 report_retry:<id> 按报告分键·臂间零共桶）；
- * 遗留 queued 报告逐臂 parked 出 claim FIFO（沿既有 http proof H1 先例）。
+ * 遗留 queued 报告逐臂 parked 出 claim FIFO（沿既有 http proof H1 先例）；
+ * 需 complete 收口的臂 interview 一律插 'created'（CAS 收口面恰值·rev2 接线修正——终态值触
+ * completeInterviewAndConfirm 防重入闸 interview_terminal_conflict 进程红）。
  *
  * EXIT 0 = V1–V6 结构收据 + GAP 钉在卷 = **case registration only**。
  * EXIT0 ≠ covered · ≠ UC-E2E-019 covered · matrix stays partial · coveredCount=8 零翻 ·
@@ -191,9 +201,9 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
     (await reportRows(id)).length === 0);
 }
 
-// ── V2 · 跨 owner：他人 principal 对目标 interview retry → 410 GONE（stub 形·guard 先行）──
+// ── V2 · 跨 owner：他人 principal 对目标 interview retry → 404 not_found_or_forbidden（真 RLS 形·guard 探针先行）──
 {
-  console.log('\n──────── V2 · 跨 owner retry → 410 GONE interview_privacy_fenced（guardInterviewPrivacyTx :64-73 先于状态 SELECT） ────────');
+  console.log('\n──────── V2 · 跨 owner retry → 404 not_found_or_forbidden（FORCE RLS p_owner 过滤守卫存在性探针·404 先于 P0001→410 映射） ────────');
   const id = IID('v2');
   await setupFailedReport('userA', id, `w-uc019-adv-v2-${S}`);
   A('V2 pre target=failed（owner=userA 视角本可 retry 的目标）',
@@ -202,10 +212,11 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   const before = await httpUnits(HDR_A);
 
   const r = await h.post(`/interview/${id}/report/retry`, HDR_B, {});
-  A('V2 他人 principal POST retry → 410 GONE（interview 行存在故非 404 not_found_or_forbidden 分支）',
-    r.status === 410);
-  A('V2 body.error=interview_privacy_fenced（stub 形实测·P0001→GONE 映射）',
-    r.body?.error === 'interview_privacy_fenced');
+  A('V2 他人 principal POST retry → 404 not_found_or_forbidden（真 RLS 形：FORCE RLS p_owner owner=principal 过滤守卫首条存在性探针 interview.service.ts :65-67 跨 owner 0 行→404 先行抛出·先于状态 SELECT）',
+    r.status === 404);
+  A('V2 body.error=not_found_or_forbidden（missing/cross-owner 不可区分合同·:407-412 docstring·P0001→410 GONE 映射分支 :68-73 本库不可达——rev2 双录在卷）',
+    r.body?.error === 'not_found_or_forbidden');
+  console.log('NOTE: V2 双录·rev2 证伪 rev1 静态推定——rev1「stub 形实测 410 GONE interview_privacy_fenced」从未实跑（隔离门红停期未行使）；本库 FORCE RLS p_owner（sql/01_schema.sql :135-146·迁移链 0048 :135-138 同谓词 TO privacy_api_owner）使跨 owner 探针 0 行→404 not_found_or_forbidden 先行；stub 仍承 owner-match 披露面（下方 owner GET 200 臂·PIN GAP-UC019-PRIVACY-STUB 保留）');
   A('V2 目标报告仍 failed（拒面发生在状态 SELECT 之前·零重排）',
     (await asPrincipal(h.pool, 'userA', (c) => getReport(c, 'userA', id)))?.status === 'failed');
   A('V2 consumption 仍 confirmed·额度不变', (await consStatus('userA', id)) === 'confirmed'
@@ -219,8 +230,13 @@ async function forceQuarantine(owner: string, interviewId: string, leaseOwner: s
   console.log('\n──────── V3 · 伪造状态（ready/running）POST retry → 404 no_retriable_report ────────');
   for (const st of ['ready', 'running'] as const) {
     const id = IID(`v3${st}`);
+    // rev2 fixture 接线修正：插 CAS 收口面恰值 'created'（completeInterviewAndConfirm 仅自
+    // 'created' CAS 成功·commerce.ts :378-381；rev1 误插 'completed' 触产品防重入闸
+    // interview_terminal_conflict:completed :394-395 → 进程 EXIT 1 红停——非用例断言红；
+    // 派单示例值 'in_progress' 同样非白名单值仍落闸·故落 'created' 与 setupFailedReport 同形），
+    // complete 正常走 → consumption confirmed → 伪造 ai_report 状态臂如实行使。
     await h.pool.query(
-      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','completed')",
+      "INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','created')",
       [id],
     );
     await asPrincipal(h.pool, 'userA', (c) =>
