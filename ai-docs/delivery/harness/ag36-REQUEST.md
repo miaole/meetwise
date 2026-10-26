@@ -188,6 +188,41 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **rev 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 一字不洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev 时点亲跑·既有文件 append 零新增文件·scanned 2343 ≤ cap 2354）；markers 五类标记词（运行时组装·沿 `scripts/i6-239-gates.proof.mjs:151-163` 同源制）+行首冲突标记对改动面直扫 **0 命中**（本席亲跑·本节零引承重词面·零新增标记词落卷）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev turn 全只读+1 doc append·pins 脚注 `actualSpendCny=null` 同源）；**STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve。
 
+## §9-rev3 rev 修订注记 第二轮（pre-exec 双审第二轮席1 PASS+席2 FAIL 清单 P1×1+P2×5 回路 · rev 增补席落卷 2026-10-26 · **append 注记形 · 上文 §0-§8 及 §9-rev 各修正句正文字面零洗** · EXEC 期与上文及 §9-rev 冲突处以本节为准读）
+
+**rev3 缘由**：pre-exec 双审第二轮（窄域=§9-rev 落点复验）席1 PASS·席2 FAIL 清单 P1 一件（门⑥覆盖申明指错门）+P2 五件——增补代价极小·纯文面。本席逐位届树亲证（`grep -n`/`sed -n`/`git rev-parse HEAD:` 实测·证据随条）后按 rev 回路落卷（只改本卷·纯文面零码动·码面/migrations/LEDGER/SSOT/他卷零触·落卷形=append 不洗）。**六条全部届树成立落修正·零跳过**；席2 条1「可选增强」登记为非必需（是否落入 EXEC 裁决项·见 §9-rev3.1 可选增强句）。**STOP 维持 `draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·**rev3 落卷后重派 pre-exec 双审两独立外席第三轮·窄域=本节六条落点复验·alone≠dual·Ban self-approve**。
+
+### §9-rev3.1 修订一（P1·门⑥覆盖申明指错门）——门⑥增列 prove:migrate-cli 第四门+§9-rev.1 触面归门改指
+
+- **届树亲证（失真申明实证链三段）**：①`packages/db/test/migrate-cli.proof.ts` **:51** `spawn('pnpm', ['-C', 'packages/db', 'migrate'], …)` 真实子入口（child exit code 即 db 包 `migrate` script→`tsx src/migrate-cli.ts` 实跑结果）·**:63/:68 双跑**（`first`/`second = await runMigrationCli()`·双跑 contract 断言=二跑须验已封 manifest 而非抢 ownership）：②`.github/workflows/ci.yml` **:299** 实挂 `run: pnpm migrate-cli:prove`（root package.json :589→`node scripts/run-e2e-isolated.mjs migrate-cli:prove:raw`·:590→`pnpm -C packages/db prove:migrate-cli`·db package.json :30 门名在位）；③**`prove:migrate`（test/migrate.proof.ts）不执行 migrate-cli.ts**——该文件全文件 grep「migrate-cli」EXIT=1 亲证（其测 loadMigrations/runMigrations 模块面·非 CLI 入口）；而 migrate-cli.ts 系 §9-rev.7 编辑点⑥（post-flight 接线一处）——**该文件唯一行为回归承重门即 prove:migrate-cli**·§9-rev.1 修正句一「触面归 §2 门⑥ prove:migrate 回归覆盖」申明指错门=失真（编辑点⑥行为面零门覆盖则申明不闭合）。
+- **修正句一（§2 门⑥ 增列第四门）**：门⑥→「既有门回归原值：`prove:migrate`（:362 0043 装载）/`prove:dbhy1`（:77 hash 台账含 0043 位）/`prove:uc052-checkpoint-physical`（基座包唯一直接消费方回归）/**`prove:migrate-cli`**（migrate-cli.proof.ts :51 spawn 真实子入口 `pnpm -C packages/db migrate`·:63/:68 双跑 contract 断言·ci.yml :299 实挂）**四门全绿 EXIT 原值**·基线同红如实登记不洗」。
+- **修正句二（§9-rev.1 修正句一 触面归门改指）**：「触面归 §2 门⑥ prove:migrate 回归覆盖」→「**触面归门⑥ prove:migrate-cli 回归覆盖**」——migrate-cli.ts 编辑点⑥之行为回归由 prove:migrate-cli 子入口实跑承接·prove:migrate 不执行该文件（亲证③）·原申明失真勘误。
+- **可选增强句（非必需·是否落交 EXEC 裁决）**：migrate-cli.proof 可增失配臂（tamper checkpoint_migrations → child EXIT 1）——落则 post-flight 闸 mismatch→EXIT 1 fail-closed 链路由 CLI 门机器直锁；未落则该链路由门⑤失配双臂+§9-rev3.2 两闸串联文面承接·**非必需·不落不减席2 六条闭合**。
+
+### §9-rev3.2 修订二（P2-1·§9-rev.1 修正句二 append）——两闸串联闭合申明
+
+- **修正句（§9-rev.1 修正句二 尾 append）**：「**常量↔DB 面由 migrate 闸捕（拆步/回滚）·常量↔vendor 面由环三① prove 闸捕·两闸串联方闭合判词红面**」——判词红面（升级时 vendor 新版 0043 不跟·在途运行期 SQL 报错）捕捉链两段：vendor 换版→环三① 常量=vendor 条数断言红（强制「新迁移+常量提版」·§9-rev.9 纪律）→新常量↔旧 DB MAX(v) 失配由 migrate post-flight 闸红（EXIT 1 拒部署）——单闸各有盲面·串联方全闭。
+
+### §9-rev3.3 修订三（P2-2·门⑤第④臂 append 装库形前置）
+
+- **修正句（§9-rev.3 修正句 门⑤第④臂 尾 append）**：「**装库形前置：loadMigrations+runMigrations 全量真实迁移集（含 0045 REVOKE·migrate.proof.ts :362 家族形——:363 同族断言 0045 装载亲证）·0043-only 手工种子形禁用**（0043 :24 GRANT 在效则 0045 :72 REVOKE 未落·app_role 对 checkpoint_migrations 读权未收·第④臂负例必红=种子形反证闸失真；全量集装库后净态=REVOKE 在效·负例臂方绿）」。
+
+### §9-rev3.4 修订四（P2-3·门⑤第④臂文本钉形）
+
+- **修正句（§9-rev.3 修正句 门⑤第④臂 负例臂执行形钉死）**：负例臂文本钉形：「**单 checkout 客户端 BEGIN+SET LOCAL ROLE app_role（dbhy1 :465 形**——「单一 checkout 客户端内 BEGIN+SET LOCAL ROLE 定界（pool.query 跨连丢 SET ROLE·同上实测）」注释原位亲证）·**先断 SET ROLE 成功·后断 SELECT 抛 `e.code==='42501'`**（防 SET ROLE 自身 42501 空过——若 SET 即被拒·SELECT 断言未达而臂误绿）」。
+
+### §9-rev3.5 修订五（P2-4·引证行漂三处批注）
+
+- **届树亲证**：①`packages/db/src/migrate-cli.ts` **:6** `createPool({ purpose: 'migrate' })`（:5=`async function main()` 行·§9-rev.3 引 `:5` 漂 1 行）；②`packages/db/src/principal.ts` CREATE ROLE 字面 **:587**/ALTER ROLE 字面 **:594**（§9-rev.1 引 `:584/:590` 系 connect/query 包裹层行·漂至字面行）；③`pnpm-lock.yaml` **:939** `@langchain/langgraph-checkpoint@1.1.3` integrity `sha512-wgzdQNeE…`（:938=键名行·§9-rev.8 引 `:938` 漂 1 行）。
+- **修正句（三处批注）**：§9-rev.3 `:5`→`:6`；§9-rev.1 `:584/:590`→`:587/:594`；§9-rev.8 `:938`→`:939`——三处均行漂注记级·结论零变（EXEC 立项照 §0 协议届时全量重 pin 原样）。
+
+### §9-rev3.6 修订六（P2-5·§9-rev.1 修正句二 append 残余登记+EXEC 期容器依赖预登）
+
+- **修正句一（§9-rev.1 修正句二 尾 append·残余登记）**：「**残余登记：migrate 后带外漂移（两部署窗间手工 DDL/vendor 直写）至下次 migrate 前不可见·接受为语义收窄同类残余（原启动闸对启动后漂移同盲·收窄不新增盲面）**」。
+- **修正句二（EXEC 期容器依赖预登）**：门⑤新 proof 与 prove:migrate-cli 均需 **isolated loopback PG 容器**（`scripts/run-e2e-isolated.mjs` 家族·root package.json :589 既有挂载先例在位）——EXEC 期门⑤新 proof 入该家族挂载·非新基础设施·est live=0 不变（纯容器本地 SQL·零模型外呼零 secrets）。
+
+**rev3 自检回执**：`git diff --numstat` 恰 1 tracked 本卷 .md（§0-§8 及 §9-rev 正文字面零洗·纯 append+卷尾注行内 append）；`node scripts/ai-docs/check-docs.mjs` EXIT=0（rev3 时点亲跑·既有文件 append 零新增文件·scanned 2343 ≤ cap 2354）；markers 五类标记词（运行时组装·沿 `scripts/i6-239-gates.proof.mjs:151-163` 同源制）+行首冲突标记对改动面直扫 **0 命中**（本席亲跑）；码面/migrations/LEDGER/SSOT/他卷零触；est live=0（rev3 turn 全只读+1 doc append·pins 脚注 `actualSpendCny=null` 同源）；**STOP=`draft:awaiting_pre_exec_dual` 三处同值零翻**（Status 头/§8/卷尾注）·rev3 落卷后重派 pre-exec 双审两独立外席第三轮·窄域=本节六条落点复验·alone≠dual·Ban self-approve。
+
 ---
 
-卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-26 落卷·基线 `origin/main` @ `ab282ba81`·分支 `line/ag36-draft`·工作树 `../meetwise-ag36`·蓝本=issues-final AG-36 :48/:449-458 + LANDING-INDEX :42 + execution-master-checklist :4443 + LEDGER :712 + extrev-deps-audit :197 · 前置定谳=catalog 化机制半在位·点名直钉面与版本自检面均未修·**非翻面候选** · 修法=catalog 收编（版本零变）+0043 版本自检三环链（常量/启动一行/vendor 绑定 proof）·八处接线全 additive·零迁移零 0043 字节改 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push ⛔merge 主线 ⛔force push · 翻面权归协调方 · alone≠dual · Ban self-approve·rev 修订注记 §9-rev 2026-10-26 落卷（pre-exec 双审第一轮席1 FAIL P0×1+P1×2+联动×1+P2 五件六发现点全成立落修正·零跳过·**闸位迁 migrate 服务 post-flight**·蓝本 LANDING-INDEX :42 失真引经 §9-rev.2 勘误删·蓝本面以 §9-rev.2 收窄四件清单为准·上文 §0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。
+卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-26 落卷·基线 `origin/main` @ `ab282ba81`·分支 `line/ag36-draft`·工作树 `../meetwise-ag36`·蓝本=issues-final AG-36 :48/:449-458 + LANDING-INDEX :42 + execution-master-checklist :4443 + LEDGER :712 + extrev-deps-audit :197 · 前置定谳=catalog 化机制半在位·点名直钉面与版本自检面均未修·**非翻面候选** · 修法=catalog 收编（版本零变）+0043 版本自检三环链（常量/启动一行/vendor 绑定 proof）·八处接线全 additive·零迁移零 0043 字节改 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push ⛔merge 主线 ⛔force push · 翻面权归协调方 · alone≠dual · Ban self-approve·rev 修订注记 §9-rev 2026-10-26 落卷（pre-exec 双审第一轮席1 FAIL P0×1+P1×2+联动×1+P2 五件六发现点全成立落修正·零跳过·**闸位迁 migrate 服务 post-flight**·蓝本 LANDING-INDEX :42 失真引经 §9-rev.2 勘误删·蓝本面以 §9-rev.2 收窄四件清单为准·上文 §0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）·rev3 修订注记 §9-rev3 2026-10-26 落卷（pre-exec 双审第二轮席1 PASS+席2 FAIL P1×1+P2×5 六条全成立落修正·零跳过·**门⑥增列 prove:migrate-cli 第四门**·引证行漂三处批注·可选增强登记非必需·上文 §0-§8 及 §9-rev 正文字面零洗·STOP 三处同值零翻·第三轮双审待重派·窄域=§9-rev3 六条落点复验）。
