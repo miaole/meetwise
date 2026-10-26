@@ -4,7 +4,7 @@ draft:awaiting_pre_exec_dual
 
 基线 `47dd6be56d5f3b59ccf5dc0c827b0bdc2e6952de`（origin/main tip，fetch 亲证）。分支 `line/uc004-draft`。工作树 meetwise-uc004（主仓 `git worktree add ../meetwise-uc004 -b line/uc004-draft`）。这一步只新增这份说明，不改产品代码。行号是在这棵树上打开文件看到的。
 
-缺口源：`ai-docs/delivery/REMAINING-NORTH-STAR-QUEUE.md:24` Phase 2 第 9 项「UC-004 FAULT/A3 gap · L」。起草前复核（本树亲测）：`e2e-requirement-coverage-matrix.md:115` UC-E2E-004 整行 gap（NEG gap · FAULT gap · BOUND gap · ADV blind）；`:173` 拆行「抬到 covered 还缺」明示 e2e HTTP 主路径、成长落点、A3 失败降级仍缺；`e2e-covered-path-backlog.md:28` 第 004 行同一口径；本树 `e2e/` 目录（full.e2e.ts / helpers / ocr-fixture.ts / performance.e2e.ts）零 career-path 用例。缺口未闭，无翻面候选。
+缺口源：`ai-docs/delivery/REMAINING-NORTH-STAR-QUEUE.md:25` Phase 2 第 9 项「UC-004 FAULT/A3 gap · L」。起草前复核（本树亲测）：`e2e-requirement-coverage-matrix.md:115` UC-E2E-004 整行 gap（NEG gap · FAULT gap · BOUND gap · ADV blind）；`:173` 拆行「抬到 covered 还缺」明示 e2e HTTP 主路径、成长落点、A3 失败降级仍缺；`e2e-covered-path-backlog.md:28` 第 004 行同一口径；本树 `e2e/` 目录（full.e2e.ts / helpers / ocr-fixture.ts / performance.e2e.ts）零 career-path 用例。缺口未闭，无翻面候选。
 
 ## §0 锚
 
@@ -14,19 +14,19 @@ draft:awaiting_pre_exec_dual
 
 ### 0.2 AiGraphRun(career-path) 图状态机面（Line T 已接线，本门的落点断言对象）
 
-`apps/api/src/modules/interview/interview.service.ts:821-825` 注释原句：derive 经 career-path 单节点图执行，AiGraphRun(career-path) 状态机真实落库（tx1 guards/评估前置零写 → tx2 create/reuse active version+1 → 图(derive) → career_path upsert 原样 + active→succeeded 同事务 | 失败 active→failed 后 rethrow）。`:827` `generateCareerPath`；`:829` `denyPublicPreviewWrite`；`:830` pre 块（guardInterviewPrivacy + `SELECT overall, dimensions FROM assessment_report WHERE interview_id=$1`，无行 409 `assessment_required`；`requireTrustedPracticeOverall` 抛 `insufficient_evidence` 409）；`:846` `selectCareerPathDerive(id, careerPathFailSeamThreadId(), deriveCareerPath)`；`:847` `runCareerPathGraph`。ledger 三闭包：begin `:850-866`（`:853` 事务级 advisory lock、`:854-857` latest-row `FOR UPDATE` 复用/接管、`:858-865` `ai_graph_run` INSERT/UPDATE `status='active'`、version+1、lease）；commitSuccess `:867-882`（`:871-875` `career_path` upsert `ON CONFLICT (owner_user_id, interview_id) DO UPDATE`、`:877-881` 同事务 `status='succeeded'`，version fence）；markFailed `:883-888`（`status='failed'`，version+1）；`:890` `onTransitionError` fail-closed 只观测不伪装终态。`:894-896` `getCareerPath` 委托 `getCareerPathFor`。
+`apps/api/src/modules/interview/interview.service.ts:821-825` 注释原句：derive 经 career-path 单节点图执行，AiGraphRun(career-path) 状态机真实落库（tx1 guards/评估前置零写 → tx2 create/reuse active version+1 → 图(derive) → career_path upsert 原样 + active→succeeded 同事务 | 失败 active→failed 后 rethrow）。`:827` `generateCareerPath`；`:828` `denyPublicPreviewWrite`；`:829` pre 块（guardInterviewPrivacy + `SELECT overall, dimensions FROM assessment_report WHERE interview_id=$1`，无行 409 `assessment_required`；`requireTrustedPracticeOverall` 抛 `insufficient_evidence` 409）；`:846` `selectCareerPathDerive(id, careerPathFailSeamThreadId(), deriveCareerPath)`；`:847` `runCareerPathGraph`。ledger 三闭包：begin `:850-866`（`:853` 事务级 advisory lock、`:854-857` latest-row `FOR UPDATE` 复用/接管、`:858-865` `ai_graph_run` INSERT/UPDATE `status='active'`、version+1、lease）；commitSuccess `:867-882`（`:871-875` `career_path` upsert `ON CONFLICT (owner_user_id, interview_id) DO UPDATE`、`:877-881` 同事务 `status='succeeded'`，version fence）；markFailed `:883-888`（`status='failed'`，version+1）；`:890` `onTransitionError` fail-closed 只观测不伪装终态。`:894-896` `getCareerPath` 委托 `getCareerPathFor`。
 
-图本体：`packages/ai-graphs/src/career-path.ts:20` `CAREER_PATH_GRAPH_NAME = 'career-path'`；`:21` `CAREER_PATH_INJECTED_FAILURE`；`:40-44` 单节点图 `addNode('derive', …)`（dep=注入的 `deriveCareerPath` 纯本地函数，`packages/domain/src/career.ts` 零 IO 零模型）；`:48-53` `selectCareerPathDerive` 精确等值 fail-only seam；`:55-70` `runCareerPathGraph`（begin → invoke → commitSuccess | markFailed + rethrow 原错误）。导出 `packages/ai-graphs/src/index.ts:17-18`。
+图本体：`packages/ai-graphs/src/career-path.ts:20` `CAREER_PATH_GRAPH_NAME = 'career-path'`；`:21` `CAREER_PATH_INJECTED_FAILURE`；`:40-44` 单节点图 `addNode('derive', …)`（dep=注入的 `deriveCareerPath` 纯本地函数，`packages/domain/src/career.ts` 零 IO 零模型）；`:48-53` `selectCareerPathDerive` 精确等值 fail-only seam；`:55-70` `runCareerPathGraph`（begin → invoke → commitSuccess | markFailed + rethrow 原错误）。导出 `packages/ai-graphs/src/index.ts:15-16`。
 
 ### 0.3 FI-3 seam（失败降级臂的注入口，production-off）
 
-`apps/api/src/modules/interview/interview.service.ts:52-55` `careerPathFailSeamThreadId()`：`NODE_ENV=production` 恒返回 undefined；否则读 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID`（`:54`）。`packages/ai-graphs/src/career-path.ts:48-53` 只在 env 值与线程 id **精确相等**时换成确定性抛错 dep；未设/空 = 原 dep 同一引用，零行为差。同一进程内非匹配线程完全不受影响——`apps/api/test/uc-e2e-004-career-path-fault.proof.ts:55`（seam 常量）+ `:230-232`（API 子进程带 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID=IV_FI3` 启动后 CONTROL 线程照常成功）已是先例。失败臂断言集沿该 prove `:44-46` 七项口径：①POST 失败可解释（500 `internal_error` 信封）②`ai_graph_run(career-path,线程)` 恰一行 `failed` ∧ version≥2 ③GET 404 无失败产物 ④额度账本净变 0 ⑤server alive ⑥in-fault 重试再失败 + version 递增 + `career_path` 仍 0 行 ⑦零 trace。
+`apps/api/src/modules/interview/interview.service.ts:52-55` `careerPathFailSeamThreadId()`：`NODE_ENV=production` 恒返回 undefined；否则读 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID`（`:54`）。`packages/ai-graphs/src/career-path.ts:48-53` 只在 env 值与线程 id **精确相等**时换成确定性抛错 dep；未设/空 = 原 dep 同一引用，零行为差。同一进程内非匹配线程完全不受影响——`apps/api/test/uc-e2e-004-career-path-fault.proof.ts:64`（`IV_FI3` seam 常量）+ `:66`（`SEAM_ENV_KEY`）+ `:230-232`（API 子进程带 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID=IV_FI3` 启动后 CONTROL 线程照常成功）已是先例。失败臂断言集沿该 prove `:44-46` 七项口径：①POST 失败可解释（500 `internal_error` 信封）②`ai_graph_run(career-path,线程)` 恰一行 `failed` ∧ version≥2 ③GET 404 无失败产物 ④额度账本净变 0 ⑤server alive ⑥in-fault 重试再失败 + version 递增 + `career_path` 仍 0 行 ⑦零 trace。
 
 ### 0.4 成长落点（A1/A2 如实：能断什么、不能断什么）
 
 A1 曲线：`apps/api/src/modules/profile/profile.controller.ts:26-28` `GET /profile/growth` → `apps/api/src/modules/profile/profile.service.ts:85-105` `growth()` 从 `assessment_report`（status='ready'）按时间序聚 `deriveGrowth` 维度点。种子评估就绪后曲线点存在，A1「≥2 维度数据点」可做确定字段断言。
 A2 档案关联：产品今日**未接线**——`growth()` 只读 `assessment_report`/`score_card`，不 join `career_path`；全仓无 GrowthTimeline 写面（矩阵 `:173`「无 GrowthTimeline 写」、静态钉 harness `uc-e2e-004-career-path.md:34` S4 / `:38` G-GAP-3 原钉）。本门**不造**关联断言；A2 关联落点属另一刀，本门只断今天真实存在的面：`ai_graph_run` succeeded 行 + version、`career_path` 表行（读真相）、`GET /interview/:id/career-path` 确定字段、GET 前置 404。
-GET 重闸：`apps/api/src/modules/interview/interview-assessment.ts:94-108` `getCareerPathFor`——无行 404 `not_found`（`:96`/`:106`）；有行再过 `:99` `requireCurrentScorableCards(c,id,'insufficient_evidence')`（定义 `:36`，只认 `score_card.status IN ('practice_eligible','b_review_eligible')`），故 GET 200 臂的种子须含可评分卡。
+GET 重闸：`apps/api/src/modules/interview/interview-assessment.ts:94-108` `getCareerPathFor`——无行 404 `not_found`（`:96`/`:106`）；有行再过 `:99` `requireCurrentScorableCards(c,id,'insufficient_evidence')`（定义 `:36`，资格单源 `aggregateInterviewScores`——0161 收窄后 `eligible_card_count` 只认 `score_card.status='practice_eligible'` 单态，`packages/db/migrations/0161_practice_only_read_narrowing.sql:33` 亲证；`b_review_eligible` 归 B 端评审态不计入，两态口径仅存于 growth answered 计数面 `profile.service.ts:100`），故 GET 200 臂的种子 `score_card` 须满足该资格谓词：`status='practice_eligible'` ∧ `deterministic_total` 数值非空（0100 `:172`）；种子仅 `b_review_eligible` 必假红。
 
 ### 0.5 既有门与本门不触碰的口径
 
@@ -45,26 +45,26 @@ GET 重闸：`apps/api/src/modules/interview/interview-assessment.ts:94-108` `ge
 
 ### 1.1 新 prove 文件 `apps/api/test/uc-e2e-004-career-path-http.proof.ts`
 
-boot 形沿 `_neg-harness` `boot()`（真 NestJS 栈 + 隔离 attestation + 删 MODEL_API_KEY/MODEL_BASE_URL）；进程 env 预设 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID=<失败线程>`（0.3 精确等值 scoping，同一进程内主路径线程不受影响，同 fault prove `:230-232` 先例）。种子沿 fault prove `:204-226` 同口径（superuser 直插 + `set_config('app.principal_user','userA',false)` GUC：user_account + interview(completed) + assessment_report(status='ready', overall=60, dimensions 2 项 gap) + entitlement_bucket），另按 0.4 补 GET 重闸所需可评分 `score_card` 行。断言臂（Ban 减项）：
+boot 形沿 `_neg-harness` `boot()`（真 NestJS 栈 + 隔离 attestation + 删 MODEL_API_KEY/MODEL_BASE_URL）；进程 env 预设 `MEETWISE_CAREER_PATH_FAIL_THREAD_ID=<失败线程>`（0.3 精确等值 scoping，同一进程内主路径线程不受影响，同 fault prove `:230-232` 先例）。种子沿 fault prove `:204-226` 同口径（superuser 直插 + `set_config('app.principal_user','userA',false)` GUC：user_account + interview(completed) + assessment_report(status='ready', overall=60, dimensions 2 项 gap) + entitlement_bucket），另按 0.4 补 GET 重闸所需可评分 `score_card` 行——形钉满足 `aggregateInterviewScores` 资格谓词：`status='practice_eligible'` ∧ `deterministic_total` 数值非空（0161 `:33` 单态）；`assessment_report.dimensions` 逐项必含数值 `score`（沿 fault prove dims2 形 `:212-215`——`deriveGrowth` 仅收 `Number.isFinite(score)` 维度项，growth.ts:57）；并补臂 7 两 409 前置线程种子：无评估线程（零 `assessment_report` 行）+ overall 不可信线程（`assessment_report(status='ready', overall=NULL)`，`requireTrustedPracticeOverall` 对 NULL fail `insufficient_evidence`，scoring-honesty.ts:145-147）。断言臂（Ban 减项）：
 
 主路径：
 1. POST 前 `GET /interview/:id/career-path` → 404 `not_found`；
-2. `POST /interview/:id/career-path` → 200，体为契约原形 `{readiness, level, milestones}`（milestones 非空数组）；
+2. `POST /interview/:id/career-path` → 200，体为契约原形 `{readiness, level, milestones}`（`level='mid'`——种子 overall=60 纯分数阶梯 ≥50→mid，career.ts:51/:57 阶梯单源，沿 validate.ts:632 先例；milestones 非空数组）；
 3. `ai_graph_run`（`graph_name='career-path'` ∧ `thread_id=<主路径线程>`）恰一行 `status='succeeded'` ∧ `version>=2` ∧ `lease_owner IS NULL`（active→succeeded 转换证据，Ban 接受无 version 行）；
 4. `career_path` 表恰一行（owner+interview 维度，读真相）；
 5. `GET /interview/:id/career-path` → 200 同字段（GET 重闸放行）；
-6. 越权：他人 principal GET → 404（RLS/guard 面，沿 validate.ts:634 口径升 e2e）；
-7. 409 臂：无评估线程 POST → 409 `assessment_required`；overall 不可信线程 POST → 409 `insufficient_evidence`；
-8. A1：`GET /profile/growth` → 200 且维度数据点 ≥2（确定字段断言，只读 assessment 驱动的真实聚合）；
+6. 越权负前置（内嵌主路径叙事·非 NEG 列收据，§1.4/§9-rev 裁定）：他人 principal GET → 404 信封 `not_found_or_forbidden`（guard 面 `interview.service.ts:67`，沿 validate.ts:634 口径升 e2e）；
+7. 409 负前置臂（内嵌主路径叙事·非 NEG 列收据）：无评估线程 POST → 409 信封 `assessment_required`（`interview.service.ts:832`）；overall 不可信线程（种子 `overall=NULL`）POST → 409 信封 `insufficient_evidence`（scoring-honesty.ts:145-147 → 映射 `:838-839`）；两 409 线程各断 `ai_graph_run`（`graph_name='career-path'` ∧ `thread_id=`该线程）恰 0 行（tx1 评估前置抛点先于 begin，`:829-843` 零写）；
+8. A1：`GET /profile/growth` → 200 且断言钉 `body.dimensions.length >= 2`（deriveGrowth 维度并集口径，growth.ts:53 dimSet ∪ `:86` 返回单源；Ban 以 `points.length>=2` 顶替——单报告种子恰 1 点必假红；确定字段断言，只读 assessment 驱动的真实聚合）；
 9. 零模型边界：`ai_invocation_trace` 全表行数 before/after 净变 0（观察面）。
 
 失败降级臂（seam 线程）：
 10. POST → 500 `internal_error` 统一信封（实测为准，Ban 编造体）；
 11. `ai_graph_run(career-path,<失败线程>)` 恰一行 `status='failed'` ∧ `version>=2`；
-12. `GET /interview/<失败线程>/career-path` → 404（无失败产物）；
+12. `GET /interview/<失败线程>/career-path` → 404 信封 `not_found`（`interview-assessment.ts:102`，无失败产物）；
 13. 额度账本（`entitlement_bucket`/`entitlement_consumption`/`payment_order` 三表 before/after 逐行快照）净变 0（career-path 不计费 D1，净变 0 是观察结果非假设）；
 14. in-fault 重试：再次 POST 再失败 + run 行 version 递增 + `career_path` 仍 0 行 + 账本仍净变 0；
-15. server alive（失败臂后主路径线程仍可正常服务）。
+15. server alive 钉复打主路径线程形：失败臂后 `POST /interview/<主路径线程>/career-path` → 200 ∧ 主线程 `ai_graph_run` 行仍恰一行 `status='succeeded'`（begin 复用/接管同 run 行·version 单调递增）；Ban 健康 ping 顶替（server alive=主路径真实可服务）。
 
 EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban retry-to-green、Ban 改断言迁就实测、Ban 把 EXIT1 记成 flake。本绿 ≠ covered ≠ A3 closed ≠ 矩阵翻面。
 
@@ -85,6 +85,10 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 - 不把 EXIT 0 写成 A3 closed / G-GAP 全闭 / UC-E2E-004 covered；不碰 UC-018 / UC-052 / UC-025 任何行与文件。
 - 不改 `deriveCareerPath` 纯函数与对外契约（成功体/409 信封/500 信封/GET 404 语义全部原样）；Ban 为绿改业务语义。
 - 不 push、不 force-push、不碰 secrets/`.env*`；Ban self-approve（alone ≠ dual）。
+
+## §1.4 交叠登记与 EXEC 串行裁定（rev 双审收敛新增）
+
+在飞交叠卷：`line/nhp-batch-b-draft`（bfda3c53c，`ai-docs/delivery/harness/nhp-batch-b-REQUEST.md`）认领覆盖矩阵 §1.0.1 行 4-6，其行 4（矩阵 `:115` UC-E2E-004）拟补 NEG/BOUND/ADV 缺列收据——与本卷同触 UC-E2E-004 行面。双审收敛裁定：**EXEC 串行，本卷先行**（HTTP 主路径 + 失败降级臂先落）；本卷**不声称 NEG 列收据**（NEG 臂 6/7 仅为内嵌负前置，见 §9-rev P1-2），批 B 行 4 的 NEG/BOUND/ADV 列收据空间不被本卷占用；**批 B 在本卷并线后收缩行 4 scope 再 rebase，并按其 §0「EXEC 立项照届时 tip 重 pin」规则重 pin 全部行锚**。本卷 EXEC 前置检查相应加一项：对在飞分支 `git log -1 -- ai-docs/delivery/e2e-requirement-coverage-matrix.md` 逐树复核，交叠面出现 `47dd6be56` 之后新提交即停手上报。
 
 ## §2 门
 
@@ -108,3 +112,22 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 draft:awaiting_pre_exec_dual（起草席 uc004-draft 落卷 2026-10-26 · 待预执行双审 · 双审 PASS 后由协调方行使 EXEC 授权 · STOP）
 
 draft:awaiting_pre_exec_dual（三处状态之一 · 本步 docs-only 零码动 · releaseEvidence=false · Not HA · coveredCount=8 不变 · STOP）
+
+## §9-rev（双审合并修订 · rev 席落卷 2026-10-26 · 纯文面·零码动·零断言放宽）
+
+双审回路：席1 PASS + 席2 FAIL → rev 回路。以下逐条落点全部 rev 席本树（@`4bf00bed0`）亲证后落文，行号即本卷所见：
+
+1. **P1-1 臂 8 断言钉死**（席2）：臂 8 改钉 `body.dimensions.length >= 2`——deriveGrowth 维度并集口径（growth.ts:53 dimSet ∪ `:86` 返回单源）；Ban `points.length>=2` 顶替（单报告种子恰 1 点必假红）。种子规格同步钉 `assessment_report.dimensions` 逐项必含数值 `score`（沿 fault prove dims2 形 `uc-e2e-004-career-path-fault.proof.ts:212-215`；deriveGrowth 仅收 `Number.isFinite(score)` 项，growth.ts:57）。落点：§1.1 种子段 + 臂 8。
+2. **P1-2 NEG 降格与交叠裁定**（双席收敛）：本卷保持十五臂全貌；NEG 臂 6/7 降格为主路径叙事内嵌负前置（臂题加「负前置·非 NEG 列收据」标注），不单独声称 NEG 列收据、不据此求矩阵任何列翻面；新增 §1.4 交叠登记 `line/nhp-batch-b-draft`（bfda3c53c）并裁定 EXEC 串行：本卷先行·批 B 收缩行 4 scope 后 rebase 重 pin。落点：臂 6/7 题注 + 新 §1.4。
+3. **席1 P2-1 §0 行号四处勘误**（逐处亲证）：QUEUE 缺口源 `:24`→`:25`（`REMAINING-NORTH-STAR-QUEUE.md:25` =「9. UC-004 FAULT/A3 gap · L」）；§0.2 interview.service `denyPublicPreviewWrite` `:829`→`:828`、pre 块 `:830`→`:829`（亲证 `:827` generateCareerPath / `:828` deny / `:829` asPrincipal pre 块）；§0.2 ai-graphs 导出 `:17-18`→`:15-16`（index.ts:15-16 恰为 career-path 两 export 行）；§0.3 fault prove seam 常量 `:55`→`:64`（`const IV_FI3`）并补 `SEAM_ENV_KEY` `:66` 锚。落点：§0 缺口源句 + §0.2 ×2 + §0.3。
+4. **席1 P2-2 臂 7 不可信种子钉 overall NULL**：`insufficient_evidence` 前置线程评估种子钉 `assessment_report(status='ready', overall=NULL)`（亲证 `requireTrustedPracticeOverall` 对 NULL fail `insufficient_evidence`，scoring-honesty.ts:145-147；409 映射 interview.service.ts:838-839）。落点：§1.1 种子段 + 臂 7。
+5. **席1 P2-3 臂 15 钉复打主路径线程形**：server alive 收敛为失败臂后复打主路径线程 `POST` → 200 ∧ 主线程 `ai_graph_run` 仍恰一行 `succeeded`（begin 复用/接管同 run 行·version 单调递增）；Ban 健康 ping 顶替。落点：臂 15。
+6. **席2 P2-1 臂 6/7 信封键钉**：臂 6 越权 GET 404 钉 `not_found_or_forbidden`（guard 面 interview.service.ts:67）；臂 7 两 409 显式落键 `assessment_required`（:832）/`insufficient_evidence`（:838-839）；GET 侧 `not_found`（interview-assessment.ts:102）于臂 1/12 保持显式。落点：臂 1/6/7/12。
+7. **席2 P2-2 409 线程 ai_graph_run 零行臂**：两 409 线程各断 `ai_graph_run`（career-path ∧ 该 thread_id）恰 0 行——tx1 评估前置抛点先于 begin（interview.service.ts:829-843 零写·begin 首写在 `:850` 后）。落点：臂 7。
+8. **席2 P2-3 臂 2 钉 `level='mid'`**：种子 overall=60 → 纯分数阶梯 ≥50→mid（career.ts:51 阶梯单源/`:57`），沿 validate.ts:632 先例（`r.body.level === 'mid'`）。落点：臂 2。
+9. **席2 P2-4 种子 score_card 须满足 aggregateInterviewScores 资格谓词**：钉 `status='practice_eligible'` ∧ `deterministic_total` 数值非空（0100 `:172`）——0161 收窄后 `eligible_card_count` 只认 practice_eligible 单态（`packages/db/migrations/0161_practice_only_read_narrowing.sql:33` 亲证）；连带勘误 §0.4 旧「只认 IN ('practice_eligible','b_review_eligible')」两态口径为 0161 单态口径（两态口径仅存于 growth answered 计数面 profile.service.ts:100，非 GET 重闸资格谓词）——此项为席2 P2-4 落文必要连带，否则种子钉与谓词文面自相矛盾。落点：§0.4 + §1.1 种子段。
+10. **席2 P2-5 QUEUE 行号**：与席1 P2-1 第一处同标（`:24`→`:25`），已并入第 3 条落点。
+
+工序收据：§9-rev append 后复跑 markers 卫生 grep + `pnpm docs:check`（纯文面零新增文件，扫描数维持 2342≤2346；收据随 commit）。本节为纯文面修订：不改 §1 十五臂总数、不改 §2 门矩阵、不改任何 Ban/否决条、不改产品代码与两既有 prove 口径。
+
+draft:awaiting_pre_exec_dual（rev 卷尾钉 · 与卷首行/§8 同值 · STOP 维持 · awaiting_pre_exec_dual 不变）
