@@ -38,6 +38,7 @@ import { runUsageCalibrationReconciler, resolveUsageCalibrationReconcileConfig }
 import { runQbankReleaseSweep, resolveQbankReleaseSweepConfig } from './qbank-release-sweep.ts';
 import { runUsageCalibrationRetention, resolveUsageCalibrationRetentionConfig } from './usage-calibration-retention.ts';
 import { runCommerceOutboxRetention, resolveCommerceOutboxRetentionConfig } from './commerce-outbox-retention.ts';
+import { runInterviewEventRetention, resolveInterviewEventRetentionConfig } from './interview-event-retention.ts';
 import { runQuizConsumer } from './quiz-consumer.ts';
 import { runDiagnosisConsumer } from './diagnosis-consumer.ts';
 import { runRouteClassifyConsumer } from './route-classify-consumer.ts';
@@ -749,6 +750,13 @@ async function bootstrap() {
   const commerceOutboxRetentionLoop = commerceOutboxRetentionControl.enabled
     ? runCommerceOutboxRetention(pool, commerceOutboxRetentionControl)
     : undefined;
+  // interview_event 保留期清扫（event-ttl 刀·0219 SECURITY DEFINER·app_role 对 interview_event 无 DELETE
+  // 纪律零破坏）。缺省 ENABLED=false 不起循环（清除是生产数据删除·启用=显式运维决策·两保留期先例同
+  // 纪律）；非法 env=启动失败非静默回退（resolveInterviewEventRetentionConfig·AG-18 同族）。
+  const interviewEventRetentionControl = resolveInterviewEventRetentionConfig();
+  const interviewEventRetentionLoop = interviewEventRetentionControl.enabled
+    ? runInterviewEventRetention(pool, interviewEventRetentionControl)
+    : undefined;
   // AG-43 调度半（qbank-control-sec 刀）：0146:9「Ban 自动清理调度」由协调方派单明示解除（裁决项③落值·
   // 0146 原文零改）后的受控调度。缺省 ENABLED=false（0146 设计内 Ban 的保守延续·显式 opt-in 才起循环，
   // 沿 usageCalibration ENABLED 旋钮先例）；非法 env=启动失败非静默回退（resolveQbankReleaseSweepConfig·AG-18）。
@@ -816,12 +824,13 @@ async function bootstrap() {
   // 记「18 项」,两相归位=loop 相 14(13 静态+stub-tick 条件展开)+deps 相 5):
   // 14 loop.stop(report/interview/quiz/diagnosis/route-classify/commerce/
   // modelInvocationReconcile/usageCalibrationReconcile/usageCalibrationRetention/
-  // commerce-outbox-retention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
+  // commerce-outbox-retention/interview-event-retention/qbankReleaseSweep/privacyErasure/vectorPlaneErasure/gauge+stub-tick 条件展开)
   // + ragCache.close + 3 pool.end(privacy/qbankControl/ragControl)+ langfuse.shutdown。
   // deadline 胜出 → worker_drain_timeout(含相位+该相在飞名)后 exit 0:被弃 job 走租约
   // 过期→reaper/sweep 重领,不双跑(既有 crash-safe);metricsServer.close() 补 await
   // (诚实收口,2s 上限 race,非阻断)。
-  // 当前事实：静态具名 20，名称出现 21 次（含条件 stub-tick），loop 相位贴标全文件 16 处，deps 仍为 5。
+  // 当前事实：静态具名 21（event-ttl 刀增 interview-event-retention 20→21），名称出现 22 次（含条件
+  // stub-tick），loop 相位贴标全文件 17 处，deps 仍为 5。
   const drainStops: NamedStop[] = [
     { name: 'report', stop: () => reportLoop.stop(), phase: 'loop' },
     { name: 'interview', stop: () => interviewLoop.stop(), phase: 'loop' },
@@ -834,6 +843,7 @@ async function bootstrap() {
     { name: 'usage-calibration-reconcile', stop: () => usageCalibrationReconcileLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'usage-calibration-retention', stop: () => usageCalibrationRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'commerce-outbox-retention', stop: () => commerceOutboxRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
+    { name: 'interview-event-retention', stop: () => interviewEventRetentionLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'qbank-release-sweep', stop: () => qbankReleaseSweepLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'privacy-erasure', stop: () => privacyErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },
     { name: 'vector-plane-erasure', stop: () => vectorPlaneErasureLoop?.stop() ?? Promise.resolve(), phase: 'loop' },

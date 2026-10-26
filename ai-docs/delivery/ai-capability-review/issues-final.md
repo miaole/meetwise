@@ -211,6 +211,7 @@
 - **用户影响**：账本偏差方向不定，对账和预算告警都不可信。
 - **修法**：缺字段时统一视为 usage_missing，按上限结算并打标；embedding 读供应商 usage 或按估算上界结算。
 - **关联审计总表编号**：#49
+- 【AG-14 翻面注记 2026-10-26·协调方批表翻面笔-3 授权行使（残面席证据链承卷·本席逐项亲证）：usage 结算三口径面收口全落在主线——blob 三锚在树亲证=packages/ai-runtime/src/model-client.ts@`f9fd31059`（解析层缺字段上限补齐+usage_missing 打标·绝不按 0）+packages/ai-runtime/src/invoke.ts@`f61024332`（settledUsage/usageSource 结算贯通+校准配对剔除·0119 镜像）+apps/worker/src/rag-cost-governance.ts@`121a7ff1f`（RAG embedding 供应商 usage 读面·缺用量按段估算与上限取小 `79e97f82f`+生产检索扣费前向量缓存复用 `e65f35590`）·流式面 completeStream usage 折叠随 TOKSTREAM-S4B `44b61d6e9` 落地（apps/worker/src/token-stream.ts 结束面 usage 对账+completeStream onUsage 同形在树亲读）·涉引 commit 对 HEAD `git merge-base --is-ancestor` 全亲证 EXIT=0·AG-14 条目收口·done 44→45·half 2→1（AG-20 独留·CTX-02 余原语面归后继）·EG-B1 unknown ageing 与 stress 门 7 FAIL 基线红非 AG-14 面维持】
 
 ### AG-15【P2·编排运行时】图运行时可观测性不足：没有“thread 停在非 interrupt、非 END 节点”的卡死检测；ai_graph_run 没有 current_node/last_error/checkpoint_id
 
@@ -257,6 +258,7 @@
 - **用户影响**：分类稳定性差，出题风格随供应商默认值漂移。
 - **修法**：route-classify 和 vision 设 0–0.1；env 解析时校验是否为有限数，非法就启动失败。
 - **关联审计总表编号**：—
+- 【AG-18 翻面注记 2026-10-26·协调方翻面笔随令行使：AG-18 采样温度刀落主线·EXEC `b94486a00` is-ancestor 亲证随 merge `7738c15bd` 并 main（LEDGER :642 台账所记 merge `6c9ab12c` 系同刀支线 merge 版不在 main 祖·码面与 EXEC 逐字节恒等·如实勘记）·route-classify/vision 钉温 0（SERVICE_TEMPERATURE·model-client.ts :193）+MODEL_EVAL_TEMPERATURE 非有限数或越 [0,2] 加载即拒 `model_eval_temperature_invalid`（:183）·proof `ag18-sampling-temperature.proof.ts` 242 行四臂在树·LEDGER :642 已记「AG 台账 done 31→32」系另一记账口径·本笔对账不重复计·AG-18 系漏翻滞账本笔补翻·条目收口】
 
 ### AG-19【P3·Prompt】prompt 版本没有落库也没有打点（注释称落 ai_prompt_versions，但这张表没有写入方）；无法按版本归因成本和质量
 
@@ -279,6 +281,7 @@
 - **用户影响**：目前每次调用都是单轮，暂时没有直接的用户影响；但设计文档会让人误以为已有长期记忆与压缩能力，维护成本也高。
 - **修法**：二选一：接线（在 promptedModel 里映射 components，先裁剪再派发），或者明确标为实验性代码并移出 index 导出；边界规则收敛为一份。
 - **关联审计总表编号**：#51、#217
+- 【AG-20 翻面注记 2026-10-26·协调方批表翻面笔-4 授权随令行使（残面登记卷承卷·本席逐项亲证）：判词两肢面收口——①CTX-02 裁剪半已落主线：main 系承载 merge `7d1a732d1` 对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0（apps/worker/src/ask-context-budget.ts 纯裁定原语 trimOrder 窄化 `['summary']`+apps/worker/src/adaptive-interview-service.ts `:617` `sessionSurvivesAskBudget` 生产调用位在树亲读=interviewer.ask summary 槽位派发前降级裁定一路·transport 层 planContextBudget 权威拒绝臂原在位「只拒不裁」面就此补齐）②余 MEM/CTX 原语（CTX-05 压缩/MEM-02/03 摘要/MEM-07 围栏/MEM-09 生命周期/MEM-11/14 召回）生产派发链路零调用本席届树复证维持（planDispatchBudget 生产调用唯 CTX-02 接线路径·twoStageRecall/buildMemoryIndex 族 apps 生产 src 零命中）=阶段门内「有界当前题答路径」设计内状态（checklist 阶段 3 有界路径门+ask-context-budget.ts:35-36 泛化面归后刀自注）→按登记卷判「零调用=维持登记」处置定稿：登记卷 ag20-residual-REQUEST `c2d0aeebd` 登记+`1b60eda2c` 定稿（维持登记处置届值重钉）pre-exec 双审 Dual PASS·并线 PR #124 merge `f0e6612e8` 对 HEAD 祖先亲证 EXIT=0·DATA_BOUNDARY_RULE 双文案漂移风险由 mem07-injection-fence.proof.ts 字节恒一+基线冻结断言封闭（收敛为一份系跨包结构性码面归本体刀·登记卷否决丙如实承卷）·AG-20 条目收口（接线半已落+余原语登记维持·判词面处置完毕非开放残面）·done 46→47·half 1→0（half 清零·open 3 门控/前置维持 AG-13/AG-32/AG-36）·done 计数勘误统一见 checklist 翻面笔-4 段】
 
 ### AG-21【P3·上下文】截断与预算两套口径：截断按 UTF-16 码元（2 万/1.2 万/1.6 万/8 千），预算按 UTF-8 字节；RAG 素材有 420→600/1600→8000 三层截断
 
@@ -456,6 +459,7 @@
 - **用户影响**：升级时的风险。
 - **修法**：启动时校验 checkpoint_migrations 的最大版本；db 包改用 catalog。
 - **关联审计总表编号**：—
+- 【AG-36 翻面注记 2026-10-26·协调方翻面权行使（本席逐项亲证·涉引 hash 对 HEAD 祖先亲证）：判词两面收口全落主线——①catalog 收编+②0043 vendor 迁移自检：main 系承载 PR #136 merge `846e26d44` 对 HEAD `git merge-base --is-ancestor` 祖先亲证 EXIT=0·post 双审双 PASS 会签（席1 门⑤四臂+门⑥四门+静态+卷面五域全数亲证·席2 四臂独立猎杀含 42501 独立亲跑+九路径零越值）·AG-36 条目收口·done 47→48·open 3→2（余 AG-13 线上数据/AG-32 UNSTUB-VOICE 部署·门控/前置维持）·checklist 翻面笔二批/AG-18 补翻两段行头计数勘误随链（权威递推链 flip-2 权威 44→AG-14 45→AG-18 46→AG-20 47→**AG-36 48**·沿翻面笔-4 显示 artifact 勘误统一先例）】
 
 ### AG-37【P3·RAG】检索侧的 weighted-deficit 每个 job 都从 0 开始，而一个 job 只出一题，所以多叶子岗位的检索恒定落在权重最大的那个叶子上，按轮配额从来不会收敛
 
@@ -583,6 +587,6 @@
 
 【#106 pnpm audit 补核 2026-10-17：critical=0·high 18 全有修复版本（direct 仅 @nestjs/platform-fastify ≥11.2.4）·S1 升级刀 post=25 条与复跑完全同值·点名包全部达标·CI 门 deps-audit.yml fail-closed --audit-level=critical 在仓·两面销案·残余=18 high 定向升级建议 8 包清单登记后继·sprintf-js 无修复版挂账观察】
 
-【批表三行翻面注记 2026-10-16·协调方批表翻面笔随令行使·支线 line/batch-flip-3rows 基线 2eaf387ed：#101 供应链（EXEC d584bcc50+nail 7f6f7b266+deploy:check 对齐 2eaf387ed 翻绿·本席届树亲跑双校验器 EXIT=0）+#185 打卡键（EXEC da3414b0d+复绿 bb1f7e61e+nail 966cef38a·409 plan_required/400 invalid_topic neg+validate 双面届树亲证）+#106 审计销案（ef5ea585a+3c4af399c 两面闭合·本席届树复跑 pnpm audit --prod --audit-level=critical EXIT=0 同值 25 条·销案注记见上段在卷）三行批表翻面收官（LEDGER :11/:59/:89 行内注记+:210/:213 行头+：216 合计笔同卷）·#101/#185 系 issues-master 271 面项非本卷在册条目·本笔如实注记不新开条目·权威合计 216→218（80.4%）·⛔push】
+【批表三行翻面注记 2026-10-16·协调方批表翻面笔随令行使·支线 line/batch-flip-3rows 基线 2eaf387ed：#101 供应链（EXEC d584bcc50+nail 7f6f7b266+deploy:check 对齐 2eaf387ed 翻绿·本席届树亲跑双校验器 EXIT=0）+#185 打卡键（EXEC da3414b0d+复绿 bb1f7e61e+nail 966cef38a·409 plan_required/400 invalid_topic neg+validate 双面届树亲证）+#106 审计销案（ef5ea585a+3c4af399c 两面闭合·本席届树复跑 pnpm audit --prod --audit-level=critical EXIT=0 同值 25 条·销案注记见上段在卷）三行批表翻面收官（LEDGER :11/:59/:89 行内注记+LEDGER 批2/批5 行头+合计笔同卷）·#101/#185 系 issues-master 271 面项非本卷在册条目·本笔如实注记不新开条目·权威合计 216→218（80.4%）·【2026-10-26 行 ID 重锚：原「:210/:213/：216」裸行号引用因 LEDGER PR #125 merge `283b34613` 截断失锚（801→92 行·自 `e4ccafa45` 回捞恢复）改行 ID 锚定（MOP02 卷 :149 先例形·详见 LEDGER「批表截断事故承登与回捞恢复登记」节）】·⛔push】
 
-【批表第二波翻面注记 2026-10-16·协调方批表翻面笔随令行使·支线 line/batch-flip-7rows 基线 7b1b5bdfc（批表三行翻面笔波 tip）：五件翻面=#139 SSE 掉线唤醒（SSE-API 子刀 EXEC 9af6bb99+LISTEN 活性探针落码 30276543e/38194eb6·sse-notify.service.ts loseClient/wakeAllWaiters+探针钉值届树亲证）+#164/#182 进度写（EXEC f7732056+nail 99770ff0+随卷注记 2c257eb0·generation-progress.ts 首拍旁路化链入 inflight 零 DB 等待届树亲证·#164 TTL 修法留槽后继如实挂账不阻翻面）+#172 trace 对账（丢失率分母半随 9af6bb99+A2 recon 回补半=TRACE-RECON d278dccce+nail 57f5fab76·0207 迁移在树）+#142 ACL 闭集（DB-ACL-RESIDUAL 7ac68ed7+DBACL2-CI-WIRE 5f5a4154/1fe540e6 双刀全闭·0150 授权闭集+ci.yml per-push 接线在树）五件批表翻面收官（LEDGER :86/:87 行内注记+:213 行头 93→98+:216 合计笔同卷）·二跳如实登记=#130（RESERVE-RENEW-FIX 7c602df02 nail 落主线·LEDGER :89 翻面注记已由 7b8bc1029 在卷[非计件形]·本笔不重复翻）/#132（SAFEWRITE-BACKPRESSURE 修法 sse-pump.ts safeWrite 在树·:89 行 ✅ wave81 补翻在卷·其挂账 +1 计件递推归协调方未行使）·#139/#164/#182/#172/#142 系 issues-master 271 面项非本卷在册条目·本笔如实注记不新开条目·权威合计 218→223（82.3%）·⛔push】
+【批表第二波翻面注记 2026-10-16·协调方批表翻面笔随令行使·支线 line/batch-flip-7rows 基线 7b1b5bdfc（批表三行翻面笔波 tip）：五件翻面=#139 SSE 掉线唤醒（SSE-API 子刀 EXEC 9af6bb99+LISTEN 活性探针落码 30276543e/38194eb6·sse-notify.service.ts loseClient/wakeAllWaiters+探针钉值届树亲证）+#164/#182 进度写（EXEC f7732056+nail 99770ff0+随卷注记 2c257eb0·generation-progress.ts 首拍旁路化链入 inflight 零 DB 等待届树亲证·#164 TTL 修法留槽后继如实挂账不阻翻面）+#172 trace 对账（丢失率分母半随 9af6bb99+A2 recon 回补半=TRACE-RECON d278dccce+nail 57f5fab76·0207 迁移在树）+#142 ACL 闭集（DB-ACL-RESIDUAL 7ac68ed7+DBACL2-CI-WIRE 5f5a4154/1fe540e6 双刀全闭·0150 授权闭集+ci.yml per-push 接线在树）五件批表翻面收官（LEDGER :86/:87 行内注记+LEDGER 批5 行头 93→98+合计笔同卷）·二跳如实登记=#130（RESERVE-RENEW-FIX 7c602df02 nail 落主线·LEDGER :89 翻面注记已由 7b8bc1029 在卷[非计件形]·本笔不重复翻）/#132（SAFEWRITE-BACKPRESSURE 修法 sse-pump.ts safeWrite 在树·:89 行 ✅ wave81 补翻在卷·其挂账 +1 计件递推归协调方未行使）·#139/#164/#182/#172/#142 系 issues-master 271 面项非本卷在册条目·本笔如实注记不新开条目·权威合计 218→223（82.3%）·【2026-10-26 行 ID 重锚：原「:213/:216」裸行号引用改行 ID 锚定（LEDGER PR #125 截断回捞恢复随行·同上段注记）】·⛔push】
