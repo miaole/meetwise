@@ -12,7 +12,8 @@
  *   arm 3  ai_graph_run(career-path,MAIN) 恰一行 succeeded ∧ version>=2 ∧ lease_owner IS NULL
  *          （commitSuccess 同事务 active→succeeded interview.service.ts:877-881）
  *   arm 4  career_path 表（owner+interview 维度）恰一行（读真相）
- *   arm 5  GET → 200 同字段（GET 重闸放行 requireCurrentScorableCards interview-assessment.ts:99/:36-39）
+ *   arm 5  GET → 200 同字段（GET 重闸放行 requireCurrentScorableCards interview-assessment.ts:99/:36-39；
+ *          milestones 键序不敏感等值——jsonb 回读 PG16 归一化对象键序，rev2 修法件②）
  *   arm 6  越权负前置（内嵌主路径叙事·非 NEG 列收据）：userB GET → 404 not_found_or_forbidden
  *          （guard 面 interview.service.ts:67-69 · validate.ts:634 口径升 e2e）
  *   arm 7  409 负前置（内嵌主路径叙事·非 NEG 列收据）：无评估线程 → 409 assessment_required
@@ -257,11 +258,20 @@ A('ARM4-MAIN-CAREER-PATH-ROW-EXACTLY-1', (await careerRowCount(MAIN)) === 1);
 {
   const getAfter = await h.req('GET', `/interview/${MAIN}/career-path`, U_A);
   const postBody = mainPost1.body;
+  // rev2 修法件②：milestones 经 career_path jsonb 落库回读，PG16 归一化对象键序（短键先行，
+  // goal 先于 stage）→ 逐字节 JSON.stringify 等值为确定性假红；改逐字段 stage/goal 等值
+  //（域形 Milestone{stage,goal} career.ts:20 全值等值 · 键序不敏感 · 语义等强非断言放宽）。
+  const msGet = Array.isArray(getAfter.body?.milestones) ? getAfter.body.milestones : [];
+  const msPost = Array.isArray(postBody?.milestones) ? postBody.milestones : [];
   A('ARM5-MAIN-GET-200-SAME-FIELDS',
     getAfter.status === 200
     && getAfter.body?.level === postBody?.level
     && getAfter.body?.readiness === postBody?.readiness
-    && JSON.stringify(getAfter.body?.milestones) === JSON.stringify(postBody?.milestones));
+    && msGet.length === msPost.length
+    && msGet.every((m: { stage?: unknown; goal?: unknown }, i: number) => {
+      const w = msPost[i] as { stage?: unknown; goal?: unknown } | undefined;
+      return !!m && !!w && m.stage === w.stage && m.goal === w.goal;
+    }));
 }
 
 // arm 6 · 越权负前置（内嵌主路径叙事·非 NEG 列收据）：userB GET → 404 not_found_or_forbidden

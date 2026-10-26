@@ -75,6 +75,8 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 
 执行层允许触碰面仅此三行 + 1.1 新文件。Ban 借刀改：`interview.controller.ts`/`interview.service.ts`/`packages/ai-graphs/**`/`packages/domain/**`/`packages/db/**`/profile/worker、`scripts/run-e2e-isolated.mjs` 与 `scripts/isolated/*`、静态钉与故障钉两 prove、SSOT 三件（矩阵 / checklist / backlog）。
 
+> §9-rev2 差异清单增列（第四处 · EXEC sanction 延伸授权）：`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单一条 `'uc004:career-path:http:prove:raw'` additive（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形 · 零既有行删改）——壳内允许触碰面由 9E.2 三处扩为四处；另一处 rev2 授权窄触 = 门 2 夹具（fault prove 种子块）补 score_card 资格种子（§9-rev2 根因③）。除此之外 Ban 面原样。
+
 ## §1.3 否决
 
 - 不依赖 live key：本门零 `MODEL_API_KEY`/零 live 模型端点（`_neg-harness` 删键形 + derive 纯本地）；Ban 引 `e2e/full.e2e.ts` live 形充当本门；Ban 在 prove 里发明 Key。
@@ -98,6 +100,13 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 2. `pnpm uc004:career-path-fault:prove` 回归，期望 EXIT 0（4×0 不回退，attempt 台账原样）。
 3. `pnpm uc004:career-path:prove` 静态诚实钉：本刀不改它；现 EXIT=1 为预期绊线（0.5 原钉），不得为绿改其口径。
 4. `pnpm turbo typecheck --force`。
+
+§9-rev2 修正后预期值（如实预登 · 待容器 runtime 恢复后由协调方行使时逐门对账 · 9E.5 红停承登口径不变，行使前本绿未得）：
+
+- 门 1 `pnpm uc004:career-path:http:prove` → 期望 EXIT 0 十五臂全 PASS（修正件两处：壳 migrate 名单第四处——修根因①零迁移面起跑；臂 5 jsonb 键序不敏感等值——修根因②确定性假红）；
+- 门 2 `pnpm uc004:career-path-fault:prove` → 期望 EXIT 0 4×0（修正件：夹具补 practice_eligible score_card 种子 deterministic_total=60——修根因③ CONTROL-0-GET-200 重闸 409）；
+- 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → 现 EXIT=1 预期绊线原值不变（口径零改）；
+- 门 4 `pnpm turbo typecheck --force` → 期望 EXIT 0。
 
 `pnpm docs:check`（根 `package.json:9`，即 `node scripts/ai-docs/check-docs.mjs`）——draft 与 EXEC 两阶段都跑。上限在 `scripts/ai-docs/public-text-policy.mjs:137` `MAX_FILES = 2_346`；本树起草前 main 实测扫描 2341（本席亲测 `47dd6be56`），本步新增一个受管文件 → 2342 ≤ 2346，余 4，通过。前刀形制里「2328 恰等」系当树旧值；本树实值 2346 足额，帽步进无须随刀行使（在飞承登语如实记录于此，不改上限）。不许把上限改大。
 
@@ -156,6 +165,8 @@ registerForm 核对（链路闭合）：根 `<name>` → 壳 `<name>:raw`（允�
 
 §1.2 原钉 Ban `scripts/run-e2e-isolated.mjs` 与 `scripts/isolated/*`；EXEC 席实测门 1 无法行使的根因即壳面结构缺口（允许表/分派/收据三处均无本门条目）。协调方 sanction ① 授权壳内三处 additive 条目（沿 uc002/uc018/uc019 http 族先例形），本席随令行使如 9E.2。越权面零扩：仅三处 additive、零既有行删改、`scripts/isolated/*` 零触、两既有 prove 与产品代码零触。
 
+9E.3-rev2 增补（EXEC 门行使真红后 rev 回路第二巡 · rev 席落卷）：偏离登记扩第四处——`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单一条 `'uc004:career-path:http:prove:raw'` additive（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形；缺此条 = 门 1 空库起跑零迁移面，§9-rev2 根因①）；连带门 2 夹具窄触登记：`uc-e2e-004-career-path-fault.proof.ts` 种子块补 practice_eligible score_card 资格种子（§9-rev2 根因③ · §1.3「两 prove 口径零改」之窄触豁免随 rev 令授权：断言集与 EXIT 契约零触，属夹具种子 additive 非口径改写）。
+
 ### 9E.4 静态门全绿（EXIT 原值 · 本席届树复跑亲测）
 
 - typecheck（§2 门 4）：`pnpm turbo typecheck --force` → Tasks: 8 successful, 8 total（0 cached），EXIT 0；
@@ -173,3 +184,19 @@ registerForm 核对（链路闭合）：根 `<name>` → 壳 `<name>:raw`（允�
 隔离门未行使、本绿未得——**§8 状态维持 `draft:awaiting_pre_exec_dual` 不翻**：零 covered 宣称、零矩阵/checklist/backlog 触碰、零 A3 closed 宣称、`coveredCount` 零动；本 commit 为落卷防丢 + 壳三处 sanction additive + 静态四门承登，releaseEvidence=false · Not HA。
 
 draft:awaiting_pre_exec_dual（§9-EXEC 卷尾钉 · 与卷首行/§8/§9-rev 同值 · STOP 维持 · 红停承登 · 隔离门未行使不宣称收口）
+
+## §9-rev2（EXEC 门行使红停真红三根因 · rev 回路第二巡 · rev 席落卷 2026-10-26 · 文面+修法面微调 · 零断言放宽）
+
+EXEC 回路：容器 runtime 恢复后双门行使，门 1（`uc004:career-path:http:prove`）真红（ARM8 42501 + ARM5 键序假红）、门 2（`uc004:career-path-fault:prove` 回归）真红（CONTROL-0-GET-200 得 409）→ rev 回路。三根因与修法逐条落点如下（rev2 席本树 @`9e17c3713` 亲证行号）：
+
+1. **根因① ARM8 42501**：runner migrate 名单缺 `uc004:career-path:http:prove:raw` → http 门空库起跑（零迁移面 · 影子 score_card 未授 app_role → growth() SET LOCAL ROLE 42501；growth 直读 score_card 面 `profile.service.ts:62`/`:100`）。修法 = §9-EXEC 偏离登记（9E.3-rev2 增补）+ §1-修法件② 差异清单增列第四处：`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单 additive 一条 `'uc004:career-path:http:prove:raw'`（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形 · 零既有行删改）。落点：runner :3258 + 9E.3-rev2 + §1.2 差异清单。
+2. **根因② ARM5 jsonb 键序**：milestones 经 career_path jsonb 落库回读，PG16 归一化对象键序（短键先行，goal 先于 stage）→ 逐字节 `JSON.stringify` 等值确定性失败。修法 = 臂 5 断言改键序不敏感等值（逐字段 stage/goal——域形 Milestone{stage,goal} `career.ts:20` 全值等值 · 语义等强非断言放宽）。落点：`uc-e2e-004-career-path-http.proof.ts` arm 5（含 proof 头注 arm 5 行）。
+3. **根因③ 门 2 夹具缺 score_card 种子**：夹具只种 user_account+interview+assessment_report(overall=60)+entitlement_bucket · 零 score_card → getCareerPathFor G5 重闸（`interview-assessment.ts:99` requireCurrentScorableCards → aggregateInterviewScores → eligible=0 → 409 `insufficient_evidence`）→ CONTROL-0-GET-200 得 409。修法 = 门 2 夹具补 practice_eligible score_card 种子（deterministic_total=60 · 沿门 1 臂 1 种子参数形；列形沿 `validate.ts:96-112`/`:708-740` 迁移链全链先例——门 2 跑真迁移链，0100 score_card FK 链 NOT NULL 全列）· 仅 IV_CTL 需要（CONTROL-0-GET-200 与 FI-2/FI-3 server-alive GET 200 重闸面；FI1/FI2/FI3 GET 走无行 404 先于重闸）。落点：`uc-e2e-004-career-path-fault.proof.ts` 种子块（interview/assessment 循环后 additive）。
+
+偏离登记（rev2 · 双处 Ban 面窄触 · 均 additive 零删改）：① 壳 migrate 名单（§1.2 原 Ban 壳面 → EXEC sanction ① 延伸授权 · 9E.3-rev2）；② 门 2 夹具（§1.3 原 Ban「两 prove 口径零改」→ rev 令授权的资格种子 additive：断言集与 EXIT 契约零触，属夹具种子非口径改写）。越权面零扩：产品代码、SSOT 三件、`scripts/isolated/*`、静态诚实钉、既有断言语义全部零触。
+
+§1/§2 文面随动：§1.2 差异清单增列第四处（如 1）；§2 门矩阵如实预登修正后预期值（门 1 EXIT 0 十五臂全 PASS / 门 2 EXIT 0 4×0 / 门 3 EXIT=1 预期绊线原值 / 门 4 EXIT 0）。十五臂总数、断言语义（键序不敏感等值为等强修正）、EXIT 契约、本绿≠covered≠A3 closed≠矩阵翻面口径全部原样；零 SSOT 翻面、coveredCount 零动、releaseEvidence=false · Not HA。
+
+工序收据：§9-rev2 append 后复跑 markers 卫生 grep + `pnpm docs:check`（零新增受管文件，扫描数维持 ≤2346；收据随 commit）；修法面三件静态自证：`node --check scripts/run-e2e-isolated.mjs` 过 + apps/api typecheck 过（届树亲测，收据随 commit）。运行门行使仍待协调方（9E.5 红停承登延续），本巡修法落卷不宣称门绿、如实预登仅作行使时对账基线。
+
+draft:awaiting_pre_exec_dual（§9-rev2 卷尾钉 · 与卷首行/§8/§9-rev/§9-EXEC 同值 · STOP 维持 · 红停修法落卷 · 行使仍待协调方）
