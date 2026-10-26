@@ -108,6 +108,15 @@ BEGIN
 END $$;
 GRANT EXECUTE ON FUNCTION interview_privacy_active(text) TO app_role;
 GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
+-- rev4 自愈授权（混合机制如实注 · rev3 席2 干跑实证 FAIL 残余修法）：门 1 真迁移先行后，
+-- boot() 影子重放于文件头顶 DROP…CASCADE 重建 interview（sql/01_schema.sql:6）与
+-- interview_job（sql/05_interview_jobs.sql:3），湮灭真迁移 0048_checkpoint_physical_erasure.sql:70 /
+-- 0058_interview_privacy_queue_fence.sql:12 对 privacy_api_owner 的 SELECT GRANT；而真
+-- 0092:353-355 / 0126:167-169 两 BEFORE INSERT 触发器（SECURITY DEFINER · 函数
+-- OWNER=privacy_api_owner，0092:350 / 0126:164）随真 artifact 表存活、仍以该角色执行 →
+-- 缺授权即 permission denied×2 确定性崩。此处幂等重授恰回 0048/0058 原授权面（不多授一权）：
+GRANT SELECT ON interview TO privacy_api_owner;
+GRANT SELECT ON interview_job TO privacy_api_owner;
 `);
 
 // SCOR 聚合窄复刻（rev3 勘误·双录）：真迁移链先行时（rev2 壳 migrate 名单生效）真六表与 0161

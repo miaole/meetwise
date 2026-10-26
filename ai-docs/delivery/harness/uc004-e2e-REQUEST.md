@@ -103,7 +103,7 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 
 §9-rev2 修正后预期值（如实预登 · 待容器 runtime 恢复后由协调方行使时逐门对账 · 9E.5 红停承登口径不变，行使前本绿未得）：
 
-- 门 1 `pnpm uc004:career-path:http:prove` → 期望 EXIT 0 十五臂全 PASS（修正件两处：壳 migrate 名单第四处——修根因①零迁移面起跑；臂 5 jsonb 键序不敏感等值——修根因②确定性假红；rev3 补登：种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提——行使时夹具崩 ≠ 新根因，归 §9-rev3 承登的 rev2 复审 FAIL 残余一并核销）；
+- 门 1 `pnpm uc004:career-path:http:prove` → 期望 EXIT 0 十五臂全 PASS（修正件两处：壳 migrate 名单第四处——修根因①零迁移面起跑；臂 5 jsonb 键序不敏感等值——修根因②确定性假红；rev3 补登：种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提——行使时夹具崩 ≠ 新根因，归 §9-rev3 承登的 rev2 复审 FAIL 残余一并核销 · rev4 勘正：该前提经 rev3 席2 干跑证伪为不充分——夹具随动仅修 23502 残余，仍被两触发器 permission denied×2 另崩拦截（见 §9-rev4），门 1 可绿前提修正为「种子夹具随动 ∧ 两触发器角色授权自愈」合取）；
 - 门 2 `pnpm uc004:career-path-fault:prove` → 期望 EXIT 0 4×0（修正件：夹具补 practice_eligible score_card 种子 deterministic_total=60——修根因③ CONTROL-0-GET-200 重闸 409）；
 - 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → 现 EXIT=1 预期绊线原值不变（口径零改）；
 - 门 4 `pnpm turbo typecheck --force` → 期望 EXIT 0。
@@ -208,8 +208,25 @@ rev2 落卷（028afdc0b）窄域复审 **FAIL** 承登：rev2 runner 名单 addi
 1. **P1 主修**：`uc-e2e-004-career-path-http.proof.ts` 种子块改全链六表 INSERT（`question_rubric` → `interview_answer_submission` → `interview_answer_artifact` → `issued_question_contract` → `score_request` → `score_card`，列形照抄 `validate.ts:96-115`）。约束逐条满足：hash 族 64-hex（^[a-f0-9]{64}$）· coverage=1（0100 0..1 CHECK）· rubric_version=1（≥1 CHECK）· status 白名单（published/issued/scored/practice_eligible ∈ 0100 十态枚举）· 0158 BEFORE INSERT 初始态白名单放行 practice_eligible（0158_score_card_insert_guard.sql:27）；uuid 字面全落 00000000-…-00000000c4xx 段防撞他夹具；ON CONFLICT 幂等保留；资格谓词（practice_eligible 单态 ∧ deterministic_total=60 数值非空）与「仅 MAIN 需要」范围零变。
 2. **头注勘误两处**（同文件）：头注「SCOR 聚合函数在 boot 影子环境缺失」失真注改如实双录（门 1 经壳 migrate 名单真迁移先行 → 起跑时真六表 + 0161 函数在；无迁移链的影子环境才由窄复刻兜底）；「窄列复刻」CREATE 注改如实（真迁移链在时 CREATE TABLE IF NOT EXISTS 为 no-op、CREATE OR REPLACE FUNCTION 以逐字同 0161 收窄体重刷同文函数行为面等价；窄列形不再作为任何种子落点）。
 3. **§9-rev2 文面随动两处**：根因① 生效机制改记「`01_schema.sql:131` blanket GRANT（app_role 重建后重授 · `:8-10`/`:129` DROP+重建在前）」并登记其越 0100 最小授权面副作用（`0100_scoring_fact_root.sql:223` 对 scoring 四表仅授 app_role SELECT，blanket 多授 INSERT/UPDATE；隔离边界仍由 FORCE RLS owner 谓词承担，零授权改写）；§2 门 1 预期补登「种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提 · 行使时夹具崩 ≠ 新根因」。
-4. **STOP 计数口径统一**：全卷钉值 `draft:awaiting_pre_exec_dual` 恰六处同值——卷首 `:1` · §8 双行 `:121`/`:123` · §9-rev 卷尾 `:142` · §9-EXEC 卷尾 `:186` · §9-rev2 卷尾 `:202`；三处主钉（卷首 + §8 双行）维持 `draft:awaiting_pre_exec_dual` 原值不翻；本节不再另立钉行（计数口径统一为六处同值，防逐节增钉漂移）。
+4. **STOP 计数口径统一**：全卷钉值 `draft:awaiting_pre_exec_dual` 六处钉行（rev4 勘正口径：钉行清点为事实登记非恰数承诺，防后续巡增钉即假）——卷首 `:1` · §8 双行 `:121`/`:123` · §9-rev 卷尾 `:142` · §9-EXEC 卷尾 `:186` · §9-rev2 卷尾 `:202`；三处主钉（卷首 + §8 双行）维持 `draft:awaiting_pre_exec_dual` 原值不翻；本节不再另立钉行（计数口径统一为钉行清点，防逐节增钉漂移 · rev4 沿本节先例不另立钉行）。
 
 越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触；十五臂总数与断言语义零变（本巡纯种子列形 + 文面如实）。运行门行使仍待协调方（9E.5 红停承登延续），修法落卷不宣称门绿。
 
 工序收据：§9-rev3 落卷后复跑 markers 卫生 grep（改动集新增行零命中；REQUEST 卷内唯一命中仍为 §2 两行自引字面）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2346）+ `pnpm turbo typecheck --force`（EXIT 0）+ `pnpm turbo lint --force`（EXIT 0 · api 1423/1423 恰等 · 零帽动）+ diff 恰本巡四件落点两 tracked 文件（proof + REQUEST · 零新增文件 · ≤4 tracked 界内）。
+
+## §9-rev4（rev3 双审分歧采信 + P1 触发器权限修法落卷 · rev 回路第四巡 · rev 席落卷 2026-10-26 · 复审锚 @`c23c43112`）
+
+rev3 落卷（c23c43112）复审**双审分歧**承登：席1 静态 PASS / 席2 干跑 **FAIL**——协调方**采信席2**（干跑实证优先于静态文面），rev 回路第四巡开。席2 干跑实证（混合环境：门 1 真迁移先行 + boot 影子重放）：影子重放 DROP 重建 `interview`（`sql/01_schema.sql:6`）与 `interview_job`（`sql/05_interview_jobs.sql:3`）湮灭 `0048_checkpoint_physical_erasure.sql:70` / `0058_interview_privacy_queue_fence.sql:12` 对 `privacy_api_owner` 的 SELECT GRANT；而真 `0092:353-355` / `0126:167-169` 两 BEFORE INSERT 触发器（SECURITY DEFINER · 函数 OWNER=`privacy_api_owner`，0092:350 / 0126:164）随真 artifact 表存活、仍以该角色执行 → permission denied×2 确定性崩。三件落点（rev4 席本树亲证）：
+
+1. **P1 主修（两条自愈授权）**：`uc-e2e-004-career-path-http.proof.ts` 种子块前 boot-patch 区（隐私围栏镜像块内 additive）补 `GRANT SELECT ON interview TO privacy_api_owner;` + `GRANT SELECT ON interview_job TO privacy_api_owner;` 两条幂等重授 + 混合机制如实注释——授权面恰回 0048/0058 原面（不多授一权）；断言集、EXIT 契约、十五臂语义零变。
+2. **干跑证据链（席2 实测承登）**：一次性空库行使 → EXIT 3（两断点 permission denied，归因如上）→ 补两条 GRANT → 整链 EXIT 0。修法有效性以该链为凭；「行使时崩 ≠ 新根因」边界同此口径。
+3. **§2 :106 勘正**：rev3 补登的「种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提」经席2 干跑证伪为**不充分**——夹具随动仅修 NOT NULL 23502 残余，仍被触发器 permission denied×2 另崩拦截；门 1 可绿前提自本巡起修正为「种子夹具随动 ∧ 两触发器角色授权自愈」合取（§2 :106 文面已随动加勘正注）。
+
+P2 两登记：
+
+- **P2-1 钉行口径**：§9-rev3 第 4 条「恰六处同值」改「六处钉行」清点口径（§9-rev3 :211 文面已随动）——钉行清点为事实登记非恰数承诺；本巡沿 rev3「不再另立钉行」先例零新钉，六钉（卷首 `:1` · §8 双行 `:121`/`:123` · §9-rev 卷尾 `:142` · §9-EXEC 卷尾 `:186` · §9-rev2 卷尾 `:202`）维持 `draft:awaiting_pre_exec_dual` 原值不翻。
+- **P2-2 连带删除备忘（对十五臂零影响）**：席2 干跑如实观察——影子重放 CASCADE 连带删 4 真对象：`fk_interview_job_binding` / `fk_interview_application_binding`（挂真 interview 表 · `0028_application_bound_interview.sql:27`/`:23`，随 `01_schema.sql:6` DROP…CASCADE 湮灭）、policy `p_application_route_binding_recruiter_insert`（`0104_job_route_decision.sql:261-262`）、function `tf_enforce_job_application_binding`（`0144_db_trigfam_unify.sql:91` · 参数含 job_application 复合类型）。零影响备忘：四对象均在 job binding / application route binding / 触发器族面，十五臂触面（interview / assessment_report / score 六表 / entitlement 三表 / ai_graph_run / career_path / ai_invocation_trace / profile growth）零涉及、零断言依赖、零补建动作。
+
+越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触（本巡落点仅 proof boot-patch 区两条 GRANT + 本卷文面）。运行门行使仍待协调方（9E.5 红停承登延续），修法落卷不宣称门绿。
+
+工序收据：§9-rev4 落卷后复跑 markers 卫生 grep（改动集新增行零命中；REQUEST 卷内唯一命中仍为 §2 自引字面）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2346）+ `pnpm turbo typecheck --force`（EXIT 0）+ `pnpm turbo lint --force`（EXIT 0 · api 1423/1423 恰等 · 零帽动）+ diff 恰两 tracked 文件（proof + REQUEST · 零新增文件 · ≤4 tracked 界内）。
