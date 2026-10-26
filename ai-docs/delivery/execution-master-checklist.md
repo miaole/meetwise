@@ -4459,8 +4459,6 @@ flowchart TD
 - **STILL OPEN**：REQUEST Status 行终翻面权归协调方（沿先例·本刀不宣称关闭）·在飞六条 E2E 缺口领包卷并线后帽余量以届时实测为准如实登记·批表零翻面（非 271 计件面）.
 - 预算：est live=0（nail 面全本地静态门·零外呼零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · cap **2354** 并线后现值 **2342** 余 12.
 - Sibling sections stay as written. alone≠dual · EXIT0≠covered · nail≠gap closed · 实现方不 self-approve.
-MDEOF
-echo written
 ### 翻面笔登记（2026-10-26 第三批 · 协调方批表翻面笔-3 · 纯台账 docs-only · 每行独立证据在案）
 
 - **批表两行计件翻面（236→238/271 · 87.8%）**：#132（SAFEWRITE-BACKPRESSURE 背压刀·wave81 补翻挂账「+1 计件递推归协调方」出账行使·码面 sse-pump.ts 背压自有旗 bpTripped+连接级未落盘 1MiB 阈值+safeWrite 写败早退在树亲读·主线承载 PR #108 `112e6d26` 对 HEAD `git merge-base --is-ancestor` 亲证 EXIT=0）/#130（RESERVE-RENEW-FIX 预留续租失败行为面·簇E 呈报件非计件形挂账出账行使·码面 interview-consumer.ts :64 `RESERVATION_RENEW_RETRY_DELAYS_MS=[250,500]`+:369-377 claim 臂有限重试+:373/:388 `reservation_lease_renew_failed` 双发射面在树亲读·主线承载 `71ccd010f` 祖先亲证 EXIT=0）。行头承递：:210 批2 51→52（52/54·残 3→2）/`:216` 合计笔现值层 238=15+26+**52**+23+10+**112**（批5 行头按 236 反推承递 110→112·236 已含 #73 承递·复核席勘误后值）。
