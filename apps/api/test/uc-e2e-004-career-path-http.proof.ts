@@ -117,6 +117,14 @@ GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 -- 缺授权即 permission denied×2 确定性崩。此处幂等重授恰回 0048/0058 原授权面（不多授一权）：
 GRANT SELECT ON interview TO privacy_api_owner;
 GRANT SELECT ON interview_job TO privacy_api_owner;
+-- rev5 blanket 函数执行授权（首跑 ARM8 真红修法 · additive · 否决逐函数窄修）：门 1 真迁移先行后
+-- 0206_interview_privacy_active_read_tier.sql:60 曾授 interview_privacy_fenced_targets() EXECUTE TO
+-- app_role；boot() 影子重放 01_schema.sql 于 :8-10 DROP OWNED BY app_role 剥离其全部已授特权——函数
+-- EXECUTE 类同被剥离，而 :131 blanket 重授仅表级（GRANT SELECT,INSERT,UPDATE ON ALL TABLES，零函数
+-- EXECUTE）→ growth()（profile.service.ts:94 asPrincipal 内首特权调用点）调该函数 42501。本行沿
+-- :131 同构闭类（ALL FUNCTIONS IN SCHEMA public · test-side 沿 01_schema blanket 先例形）整类补授；
+-- 否决逐函数窄修——第三轮 whack-a-mole，0206:38 interview_privacy_active_read 同类未触达面仍复发：
+GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role;
 `);
 
 // SCOR 聚合窄复刻（rev3 勘误·双录）：真迁移链先行时（rev2 壳 migrate 名单生效）真六表与 0161

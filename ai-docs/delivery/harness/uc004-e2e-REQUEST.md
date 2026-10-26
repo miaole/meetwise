@@ -1,4 +1,4 @@
-draft:awaiting_pre_exec_dual
+executed:awaiting_post_prove_dual
 
 # UC-E2E-004 career-path 全链路 · 隔离库 e2e HTTP 主路径 REQUEST（主路径 + 落点断言 + 失败降级臂 · docs-only 零码动）
 
@@ -118,9 +118,9 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 
 ## §8
 
-draft:awaiting_pre_exec_dual（起草席 uc004-draft 落卷 2026-10-26 · 待预执行双审 · 双审 PASS 后由协调方行使 EXEC 授权 · STOP）
+executed:awaiting_post_prove_dual（§9-EXEC-R2 主门绿翻面 2026-10-26 · 原 draft 钉值随行使翻面 · 待 post-prove 双审 · STOP）
 
-draft:awaiting_pre_exec_dual（三处状态之一 · 本步 docs-only 零码动 · releaseEvidence=false · Not HA · coveredCount=8 不变 · STOP）
+executed:awaiting_post_prove_dual（三处状态之二 · rev5+EXEC 复行使门矩阵全绿翻面 2026-10-26 · releaseEvidence=false · Not HA · coveredCount=8 不变 · STOP）
 
 ## §9-rev（双审合并修订 · rev 席落卷 2026-10-26 · 纯文面·零码动·零断言放宽）
 
@@ -258,3 +258,35 @@ origin/main fetch 亲证（cb9c8efc5，领先 55 commits）→ merge `299fd6efd`
 主门红 → **零自修**（不加 GRANT、不改 proof / runner / 夹具 / 产品码）· **零重跑门 1**（Ban retry-to-green · 主门两轮红停止条件未触发亦不逼近）· 三处主钉（卷首 `:1` + §8 双行 `:121`/`:123`）**维持 `draft:awaiting_pre_exec_dual` 不翻**——`executed:awaiting_post_prove_dual` 翻面以主门绿为前提，红行使不作 executed 宣称；沿 rev3「不再另立钉行」先例本节零新钉，六钉清点原值。零 SSOT 触碰 · coveredCount 零动 · releaseEvidence=false · Not HA · 零 covered / A3 closed 宣称。越权面零扩：本巡落点仅本节文面（stdout 留痕 `.tmp/` 为 gitignored 本地证据 · 门矩阵四门原值已全录 R1.2）。
 
 工序收据：本节落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ diff 恰本卷 REQUEST 一 tracked 文件（纯文面零码动）。
+
+## §9-rev5（首跑 ARM8 第三类湮灭面修法落卷 · rev 回路第五巡 · rev5+EXEC 一体席落卷 2026-10-26 · 复审锚 @`a8bf7ecb2`）
+
+§9-EXEC-R1 门 1 首跑真红（ARM8 42501 · R1.3 只归因零自修）→ rev 回路第五巡。三件落点（rev5 席本树亲证）：
+
+1. **P1 主修（blanket 函数执行授权 · 单件 additive）**：`uc-e2e-004-career-path-http.proof.ts` boot-patch 区 rev4 两 GRANT 邻位 additive 一行 `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role;` + 混合机制如实注释。归因链（行号本树亲证）：门 1 真迁移先行后 `0206_interview_privacy_active_read_tier.sql:60` 曾授 `interview_privacy_fenced_targets()` EXECUTE TO app_role → boot() 影子重放 `01_schema.sql` 于 `:8-10` DROP OWNED BY app_role 剥离其全部已授特权——**函数 EXECUTE 类同被剥离**——而 `:131` blanket 重授仅表级（`GRANT SELECT,INSERT,UPDATE ON ALL TABLES IN SCHEMA public`，零函数 EXECUTE 重授）→ `growth()`（`profile.service.ts:94` asPrincipal 内首特权调用点 · R1.3 `:93` 邻行勘正）42501。本行沿 `:131` 同构闭类（ALL FUNCTIONS IN SCHEMA public · test-side 沿 01_schema blanket 先例形）整类补授。**否决逐函数窄修**：第三轮 whack-a-mole——`0206:38` `interview_privacy_active_read` 同类未触达面在后续触达路径仍会复发，逐函数补永穷不尽；断言集、EXIT 契约、十五臂语义零变。
+2. **第三类湮灭面承登**：授权类湮灭面至此三类全录——① 表级 GRANT 湮灭（01_schema `:131` blanket 重授已覆盖 · rev2 根因①面）；② 表 SELECT × privacy_api_owner（rev4 两 GRANT 自愈面）；③ **函数 EXECUTE × app_role**（本巡 blanket 面 · R1.3 同族第三断点）。同族在场 `0206:38` / `:60` 两函数由本 blanket 一并闭合；他迁移同构面（SECURITY DEFINER 函数 EXECUTE × app_role 遭 DROP OWNED 剥离）同闭，不再逐函数登记。
+3. **干跑偏差如实注（§9-rev4 干跑证据链「补两 GRANT → 整链 EXIT 0」为何未暴露本断点）**：席2 干跑种子行以超户（superuser）直插直读执行，未过 app_role EXECUTE 路径；真 proof 业务路径走 asPrincipal(app_role)（db.service SET LOCAL ROLE），函数 EXECUTE 缺权只在真行使暴露——rev4 干跑绿不构成对本断点的排除证据，与 R1.3「rev4 修法不能也未曾覆盖本断点」互证。
+
+越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触（本巡落点仅 proof boot-patch 区一行 blanket GRANT + 本卷文面）。运行门行使随令连续进行（rev5+EXEC 一体席 · 协调方授权复行使），结果另落 §9-EXEC-R2。
+
+工序收据：§9-rev5 落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ diff 届时恰两 tracked 文件（proof + REQUEST · 零新增文件）。
+
+## §9-EXEC-R2（rev5 复行使 · 门矩阵全绿落卷 · rev5+EXEC 一体席落卷 2026-10-26 · 行使锚 @`a8bf7ecb2` + rev5 两 tracked 文件）
+
+### R2.1 行使前置（rev5 落卷收据）
+
+docker info 亲证 Server 29.5.2 EXIT 0（容器 runtime 在场）；rev5 单件落码（proof boot-patch 区 rev4 两 GRANT 邻位一行 blanket `GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO app_role;` + 混合机制如实注释 · 否决逐函数窄修）+ §9-rev5 落卷；届时 markers 卫生 grep 唯一命中 §2 两行自引字面 + `pnpm docs:check` EXIT 0（2357≤2362）+ diff 恰两 tracked 文件（proof +8 / REQUEST +12 · 纯 additive 零删改）。协调方「rev5=blanket 函数级重授 + 复行使」授权已行使。
+
+### R2.2 门矩阵 EXIT 原值（attempt 台账 · one_shot 零 retry-to-green）
+
+- **门 1 主门 `node scripts/run-e2e-isolated.mjs uc004:career-path:http:prove:raw` → EXIT 0 全绿**：17 断言 **17 PASS / 0 FAIL**——ARM1-ARM15 全组（ARM7A/B/C 三断言行；**ARM8-GROWTH-DIMENSIONS-LENGTH-GTE-2 本巡转绿**——blanket 函数执行授权后 growth() asPrincipal 路径 42501 消）。attempt 台账：本巡 attempt1 一次行使零重跑（门 1 累计 attempt2 · R1.2 首跑真红如实录在前 · Ban retry-to-green 未犯）；stdout 留痕 `.tmp/uc004-exec-r2-gate1-stdout.log`（ISOLATED_POSTGRES_OUTPUT_WITHHELD · LOCAL_ISOLATED_PROOF_RECEIPT release_evidence=false）。
+- 门 2 `pnpm uc004:career-path-fault:prove` 回归 → **EXIT 0** 4×0（ATTEMPTS_LEDGER attempts=4 one_shot=true retry_to_green=false · ATTEMPT-0-CONTROL / FI1 / FI2 / FI3 全 0）；stdout `.tmp/uc004-exec-r2-gate2-stdout.log`。
+- 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → **EXIT 1 = 预期绊线原值恰等**（倒置期望核对通过——红即其预期绿 · 口径零改）；stdout `.tmp/uc004-exec-r2-gate3-stdout.log`。
+- neg 抽验 `node scripts/run-e2e-isolated.mjs neg:auth` → **EXIT 0**（本门鉴权邻面无溢出）；stdout `.tmp/uc004-exec-r2-neg-auth-stdout.log`。
+- 静态门：typecheck `pnpm turbo typecheck --force` EXIT 0 8/8（0 cached）；lint `pnpm turbo lint --force` EXIT 0 12/12 0 errors（根 5242 / api 1423 / domain 115 / ai-runtime 628 / db 1042 / worker 959 / web 601 / qdrant-store 27 / ai-graphs 47 / contracts 265 各恰其帽 · 零帽动）；docs:check EXIT 0 2357≤2362（上限帽 2362 零触）；markers 卫生 grep 唯一命中 §2 两行自引字面。
+
+### R2.3 §8 处置（主门绿 · 三处主钉翻面 · STOP 语义随值）
+
+主门绿 → 三处主钉（卷首 `:1` + §8 双行）翻 `executed:awaiting_post_prove_dual`（沿 perf-prep / ha-3 等 EXEC 收据先例形 · 待 post-prove 双审 · Ban self-nail · ⛔push 维持）；三处历史节尾钉（§9-rev `:142` · §9-EXEC `:186` · §9-rev2 `:202`）保留届时原值 `draft:awaiting_pre_exec_dual`——各节文面自注「与卷首行/§8 同值 · 届时 STOP 维持」，属各节落卷时的历史记录非现值，沿 rev3「不再另立钉行」先例本节零新钉，钉行清点 6 处 = 3 翻 + 3 存原值。本绿 ≠ covered ≠ A3 closed ≠ 矩阵任何列翻面：零 SSOT 触碰 · coveredCount 零动 · releaseEvidence=false · Not HA · UC-E2E-004 矩阵列翻转只走 covered 评估器 + 协调方 nail。
+
+工序收据：本节落卷后复跑 markers 卫生 grep（REQUEST 卷内唯一命中仍为 §2 两行自引字面 · 本节新增行零命中）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2362）+ commit 净消息 `test(e2e): 职业路径报告隔离测试补函数执行授权`（两 tracked 文件 · proof + REQUEST · 零新增文件）。
