@@ -900,13 +900,33 @@ async function main() {
     && actionErrorMessage('quiz', 0, 'begin_failed')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
     && actionErrorMessage('diagnosis', 0, 'begin_failed')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
     && actionErrorMessage('jobs', 0, 'begin_failed') === null);
-  A('防御码七枚透传不折叠丢失：interviews 四码→begin_failed 原文；quiz/diag 三类→各页 create_failed 原文',
-    ['interview_resume_binding_unavailable', 'legacy_resume_reference_unavailable', 'resume_version_mismatch', 'interview_not_active'].every((c) =>
+  A('防御码七枚透传不折叠丢失（语义重锚：resume_version_mismatch 自本数组移入下方 UC-025 三码映射行·仍在断言·强度只迁不降）：interviews 三码→begin_failed 原文；quiz/diag 三类→各页 create_failed 原文',
+    ['interview_resume_binding_unavailable', 'legacy_resume_reference_unavailable', 'interview_not_active'].every((c) =>
       actionErrorMessage('interviews', 0, c)?.text === '启动面试失败（未预留额度）,请稍后重试;不会进入空会话。')
     && actionErrorMessage('quiz', 0, 'resume_not_found_or_not_ready')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
     && actionErrorMessage('quiz', 0, 'quiz_resume_reference_conflict')?.text === '创建押题失败,请稍后重试;若反复出现请确认额度与网络。'
     && actionErrorMessage('diagnosis', 0, 'resume_not_found_or_not_ready')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。'
     && actionErrorMessage('diagnosis', 0, 'diagnosis_resume_reference_conflict')?.text === '创建诊断失败,请稍后重试;若反复出现请确认额度与网络。');
+  A('UC-025 三码映射（GAP-UC025-REQUIZ-ENTRY-01）：stale_quiz/missing_quiz_expiry→过期重押题指引·resume_version_mismatch→旧版本重生成指引；均 /quiz 回链+「重新押题」hrefLabel·不再落「请稍后重试」',
+    actionErrorMessage('interviews', 0, 'stale_quiz')?.text === '押题已过期或已失效，请重新押题后再开始这场面试'
+    && actionErrorMessage('interviews', 0, 'missing_quiz_expiry')?.text === '押题已过期或已失效，请重新押题后再开始这场面试'
+    && actionErrorMessage('interviews', 0, 'resume_version_mismatch')?.text === '这份押题对应的是简历的旧版本，请重新押题后再开始这场面试'
+    && ['stale_quiz', 'missing_quiz_expiry', 'resume_version_mismatch'].every((c) => {
+      const m = actionErrorMessage('interviews', 0, c);
+      return m !== null && m.href === '/quiz' && m.hrefLabel === '重新押题' && !m.text.includes('请稍后重试');
+    }));
+  A('UC-025 三码为 interviews 页域专属：quiz/diagnosis/jobs → null（不跨页）',
+    (['quiz', 'diagnosis', 'jobs'] as const).every((p) =>
+      actionErrorMessage(p, 0, 'stale_quiz') === null
+      && actionErrorMessage(p, 0, 'missing_quiz_expiry') === null
+      && actionErrorMessage(p, 0, 'resume_version_mismatch') === null));
+  A('UC-025 hrefLabel 缺省恒等：402 行与其余既有行 hrefLabel=undefined（page.tsx {hrefLabel ?? "额度说明"} 对既有行字节不变）',
+    actionErrorMessage('interviews', 0, 'insufficient_entitlement')?.hrefLabel === undefined
+    && actionErrorMessage('interviews', 0, 'credits_unavailable')?.hrefLabel === undefined
+    && actionErrorMessage('interviews', 0, 'candidate_route_undecided')?.hrefLabel === undefined
+    && actionErrorMessage('interviews', 0, 'interview_resume_binding_conflict')?.hrefLabel === undefined
+    && actionErrorMessage('interviews', 0, 'interview_privacy_fenced')?.hrefLabel === undefined
+    && actionErrorMessage('interviews', 0, 'begin_failed')?.hrefLabel === undefined);
   A('未知码/空码/无码（非 503）→ null：四页不渲染空壳',
     pages.every((p) => actionErrorMessage(p, 0, 'totally_unknown_code') === null)
     && pages.every((p) => actionErrorMessage(p, 0, '') === null)
@@ -954,6 +974,9 @@ async function main() {
     /targetRole\?: string/.test(ivPageSrc) && /const \{ limit, error, reused, targetRole, quiz \} = await searchParams;/.test(ivPageSrc));
   A('#268 interviews Input defaultValue 消费 prefill(仅初值·用户可改=「可改的 UI」语义)',
     /defaultValue=\{targetRole \?\? ''\}/.test(ivPageSrc));
+  // UC-025（GAP-UC025-REQUIZ-ENTRY-01）回链文案缺省恒等：hrefLabel 缺省 → 「额度说明」402 行字节不变。
+  A('#UC025 interviews 回链文案 hrefLabel 缺省恒等（?? "额度说明"·既有 402 行渲染字节零漂）',
+    /\{actionError\.hrefLabel \?\? '额度说明'\}/.test(ivPageSrc));
   // B-1/B-2(#230 押题岗位 web 段·S1 同形镜像):
   A('#230 quiz action 读 targetRole 且 trim 归一(镜像 interviews/actions)',
     /const targetRole = String\(formData\.get\('targetRole'\) \?\? ''\)\.trim\(\);/.test(quizActionsSrc));
