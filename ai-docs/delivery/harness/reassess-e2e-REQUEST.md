@@ -231,6 +231,14 @@ FAULT cell=批 A case-only（零触零 wash）；PERF/LOAD 列零触；case-matr
 
 **Non-claims**：EXIT0 ≠ covered ≠ suite green ≠ 行/列升格（升格仅经 coordinator nail additive honesty）· `:118`/`:177` 措辞零翻动 · coveredCount=8 不变 · ≠HA · est live=0 · D1/D3（spec 字面 pending_eval 状态机/补评 job/CAS 重算/report 增量 NOT claimed · 产品零接线 fresh 复核）· D2（断言键全用产品真键域 kind 前缀）· D4（UI 面/E1 transient NOT claimed）· N3 观测面校准（:498 子语句窗外部不可确定命中 · stale 臂经原语直证 · 上文台账）· 三 case 互不替代互不借用 · alone ≠ dual · **⛔push ⛔force-push**。
 
+## §9-post 追认承登段（收官席 · cap 三帽追认随令行使 · 2026-10-26 · 本段纯文面 append · STOP=`executed:awaiting_post_prove_dual` 翻面不动 · post-dual 双审待派不变）
+
+- **cap 三帽追认承登（协调方 2026-10-26 追认 · 沿批 A §9-post/`ded20bae6` 先例形）**：来源：批 C 后继补评闭环刀三 proof naming-convention/any 类·stash 对照基线零余量实证·协调方 2026-10-26 追认——EXEC `9c4784bc5` 实测三帽随令落码落注记（恰等零多放）：①docs `scripts/ai-docs/public-text-policy.mjs` MAX_FILES 2_386→**2_392**（`:151`·sanction 注记随刀·「上限经 2346→2354→2362→2370→2378→2386→2392 步进」行同步）+ 越限臂联动 `scripts/ai-docs/public-text-policy.proof.mjs`（fixture 注入 **2_392**·atCap/scannedFiles 同步·超限错误码形 **`PTP_FILE_LIMIT:2393`**·CAP-SANCTION-2392 注记随刀）——`public-text-policy:prove` **12/12 EXIT=0**；②worker lint `apps/worker/package.json` 977→**999**（+22=本刀三 proof `naming-convention` 产品行字段字面+`no-explicit-any` 批 A 同形类·基线 977 恰零余量 stash 对照亲证）；③root lint `package.json` 5274→**5296**（同 +22 计入 monorepo 全量 eslint）。
+- **复跑绿（收官席亲跑 · EXIT 原值）**：turbo lint **12/12 EXIT=0**（root 恰 **5296** warnings/0 errors=帽恰等）· turbo typecheck **8/8 EXIT=0** · docs:check **EXIT=0**（scanned **2392**≤cap 2392 恰等零余量）· `public-text-policy:prove` **12/12 EXIT=0** · markers **0 命中**（本刀改动集 3 文件五类标记词+行首冲突标记 grep 亲跑·沿 `i6-239-gates.proof.mjs:154-163` 门口径）——停止条件「复跑仍红」未触发。
+- **EXEC `9c4784bc5` 三 case 136 断言全绿承登**：uc012:nhp-neg **62/62** + uc012:nhp-bound **29/29** + uc012:nhp-adv **45/45** = **136/136 · EXIT=0**（§9-EXEC 门矩阵亲跑原值如实承登 · 零产品码）。
+- **红次 11 归因承登**：NEG R1-R10 + BOUND R1 共 11 红次全归 EXEC/夹具/观测面侧（归因台账 §9-EXEC「红次台账」在卷 · 零产品缺陷 · 零自修产品码 · 门红 Ban 自修边界守住）。
+- **N3 校准入卷**：`:498` stale 臂占用窗落于 `:495→:497` 子语句窗·外部会话不可确定命中→校准为 drain 级 `:495-:496` fence re-check 具型拒 + `:497-:498` stale 臂语义原语直证（`markInterviewAnswerApplied(A)=false` + 同 identity 重放幂等 `true` 对照半臂）· 语义面（具型拒/占用不被覆写/零伪造评分事件）零弱化（§9-EXEC 红次台账 R3-R7 同源承登）。
+
 ---
 
 
