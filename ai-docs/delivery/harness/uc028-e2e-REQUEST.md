@@ -1,6 +1,6 @@
 # UC028-E2E REQUEST — UC-E2E-028 E2E 缺口承接刀起草（GAP-UC028-RECON e2e 断言 + GAP-UC028-TRUTH-BLOCK-E2E 对照 + GAP-UC028-INJECT 注入面 · 一刀三 case · 量级 M · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷 2026-10-26 · pre-exec 双审两独立外席待派 · alone≠dual · est live=0）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草落卷 2026-10-26 · EXEC 落卷 2026-10-26（§9-EXEC attempt#3 主门 40/40+门矩阵回执在卷·neg:all 693 届值 sanction 闭合） · post-prove 双审两独立外席待派 · alone≠dual · est live=0）
 
 **席位**：UC-E2E-028 E2E 缺口 REQUEST 起草席（读码定稿+修法裁量+起草三责·协调方派单·靶=coverage matrix UC-E2E-028 行三 OPEN GAP 之 E2E 断言面承接）。
 **基线**：`main` @ `47dd6be56`（`git fetch` 后 `origin/main`=`47dd6be56d5f3b59ccf5dc0c827b0bdc2e6952de` 恒等亲证·派单下界「origin tip=47dd6be56」成立）·分支 `line/uc028-draft`（`git worktree add ../meetwise-uc028 -b line/uc028-draft` 亲立·HEAD 落 `47dd6be56` 亲证）·工作树 `meetwise-uc028`（主仓仓根同级）·docs:check 基线 **2341≤cap 2346** 本树亲跑 EXIT=0（`node scripts/ai-docs/check-docs.mjs`·cap 锚 `scripts/ai-docs/public-text-policy.mjs:137` `MAX_FILES = 2_346` 亲证）。
@@ -79,7 +79,7 @@
 4. **老 prove 预登（非红停）**：`pnpm uc028:trace-fail-open:prove` 预期 **EXIT=1**（设计绊线·G-GAP refuse 形·§1.1-④）——EXIT=0 反而红停上报（Ban 本刀改老 proof 使其翻绿·§1.3 戊）。
 5. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（8/8·0 cached 口径）。
 6. **lint 五贴线**：`pnpm turbo lint` 全绿 EXIT=0·五贴线预算**恰等零超支**：web `601≤601`+root `5242≤5242`+api `1423≤1423`+worker `959≤959`+ai-runtime `628≤628`（现值 @`47dd6be56` 亲证锚#13·本刀新增 .ts 面 api 贴线可能漂移——EXEC 对届时实测·任一值新增超支或第三贴面出现即停）。
-7. **neg:all 六段全绿**：`pnpm neg:all` EXIT=0·总臂题面 **692**（trace-recon §9-exec 终值承继·对届树实跑复测归 EXEC 立项重 pin·熔断：实测≠题面停上报如实记归因）。
+7. **neg:all 六段全绿**：`pnpm neg:all` EXIT=0·总臂题面 **693**（90+90+91+108+179+135·**2026-10-26 协调方 sanction 重 pin**：原承继值 692（trace-recon §9-exec 终值·其基线早于届树链内 `babfb2344` +1 臂）·届树基线本即 108·三亲证+基线 stash 动态对照见 §9-EXEC sanction 落卷段·熔断：实测≠题面停上报如实记归因）。
 8. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·≤cap **2346**（锚 `scripts/ai-docs/public-text-policy.mjs:137` `MAX_FILES=2_346` 亲证·基线 2341 亲跑·本卷落卷后 2342·EXEC 期 +proof 等 +2~3 逐个计入后 ≤2346·**超 cap 红停上报**·cap sanction 权归协调方·Ban 自升）。
 9. **markers 五类零命中**：本刀改动集五类标记词 grep 零命中（词面沿 `scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·四词逐字符拼接+行首冲突标记正则——**词面绝不复抄入卷防自匹配**·命令与回执入卷）。
 10. **diff 面机检**：本 commit `git show --stat HEAD` 恰 **1** tracked=.md 本卷；EXEC 期 `git show --stat HEAD` tracked∈§1-修法清单（4·多即停）。
@@ -114,7 +114,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · 起草落卷 2026-10-26 · pre-exec 双审两独立外席待派 · 翻面=执行令明令授权。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.2 三 case 定稿与 §1.3 否决结论与 §5 Ban/pins 与 §1-修法交付面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（先并届时 sanctioned 主线再全量重 pin·行号漂移如实改锚·结论不变只更行号·§0.0 复核必做·三 GAP 现状对届时 matrix 重核——**任一 GAP 已被他刀闭→本刀对该 GAP 的 case 段降级为回归守卫或停·归协调方裁**）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual · 起草落卷 2026-10-26 · EXEC 落卷 2026-10-26（§9-EXEC attempt#3 主门 40/40 绿+门矩阵回执在案·neg:all 693 届值 sanction 闭合） · post-prove 双审两独立外席待派 · 翻面=执行令明令授权。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.2 三 case 定稿与 §1.3 否决结论与 §5 Ban/pins 与 §1-修法交付面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（先并届时 sanctioned 主线再全量重 pin·行号漂移如实改锚·结论不变只更行号·§0.0 复核必做·三 GAP 现状对届时 matrix 重核——**任一 GAP 已被他刀闭→本刀对该 GAP 的 case 段降级为回归守卫或停·归协调方裁**）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚结论漂移（如 A1 旁路被翻改/recon 队列被撤/0207 函数体被改/NHP 注入形或老 prove refuse 形被改/lint 贴线 cap 漂移未经 sanction）→停·重 pin 回炉。
 - **机制不满足**：§2 门矩阵任一门红且根因在本卷登记结论（如 truth-block 对照语义被证伪=真相写失败未阻塞/recon 回补九列不恒等/注入夹具在隔离壳内不可复现）→登记结论被证伪→停·如实升级协调方回炉（Ban 就地改登记 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1-修法四件面（需触产品码/迁移/e2e/*.e2e.ts/live Key/老 prove）→停·另刀或协调方裁决（§1.3 五候选否决沿承·Ban 就地扩面）。
@@ -197,6 +197,17 @@
 - **P2 两项落实注记**：**P2①** stdout 全量留痕入收据=`.tmp/uc028-attempt3-stdout/`（主门/倒置门/nhp/neg:all/基线探针/typecheck/lint/docs:check 八 log+`ATTEMPT3-RECEIPT.txt` 留痕账：EXIT 原值+臂构成明细+三 receipt json 与八 log 的 sha256 前 16 hex 账·gitignored 非 tracked）·**P2②** neg:all 本席亲跑回执在案（§9-rev3「协调方行使回执承接·本席未复跑」caveat 解除）。
 - **停止裁定与 STOP**：§2 门 7 熔断命中 → **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持零翻**（Status 头/§8/卷尾注）——主门 40/40 绿面+候选甲落码如实保留在卷·**693 届值重 pin sanction 权归协调方**（沿 trace-recon §9-rev3 P1-1 docs cap「红停承登无 sanction 不并线」先例·Ban 就地改登记凑数）；sanction 后复行使仅余本节顺延·零码面余款。diff 面本 commit 恰 **2 tracked**（proof 1 行+本卷 append）∈§1-修法授权面+§9-rev3 勘误授权面。alone≠dual · ⛔push · est live=0（全离线 isolated/fake provider 面·零模型外呼零 Key 加载）。
 
+## §9-EXEC neg:all 693 届值 sanction 落卷登记（协调方已裁 sanction 准·沿 trace-recon P1-1 docs cap sanction 先例形·落卷 2026-10-26 · **append 注记形 · 上文一字不洗** · 与上文冲突处以本节为准读）
+
+- **sanction 授权链与裁定**：协调方 2026-10-26 sanction——§9-EXEC attempt#3 承登的 neg:all 题面熔断（693≠692）**裁定重 pin：总臂题面值 692→693**（六段 90+90+91+108+179+135）·§2 门 7 题面值就地同步（沿 trace-recon §2-7/§2-8 lint/docs cap sanction 步进就地改值先例形·**落款=协调方 2026-10-26 sanction**）·attempt#3 熔断承登由此闭合·门 7 转绿认定。
+- **sanction 依据（三亲证·本席届树逐条复证在案）**：
+  1. **`babfb2344` 对派单基线 `47dd6be56` 为祖先**——`git merge-base --is-ancestor babfb2344 47dd6be56` IS ancestor 亲证（对本刀 HEAD 同证）——届树基线链本身已含该 commit·+1 臂系基线承继非本刀引入；
+  2. **该 commit 对 `apps/api/test/neg-interview.proof.ts` 恰 +2 行 0 删·新增行含恰 1 个 `A('` 臂**（`git show babfb2344` 亲证·409 plan_required 臂·#185 CHECKIN-KEY 承接）——neg:interview 段 107→108 唯一来源·六段其余五段值 90/90/91/179/135 对 trace-recon §9-exec 实测逐段恒等零漂；
+  3. **692 题面谱系源 `4124c803` 早于 `babfb2344`**——trace-recon §9-exec ⑤ 实测 692（90+90+91+**107**+179+135·在卷）时基线 `4124c803`（2026-10-17 20:55:38 +0800）**时间序早于** `babfb2344`（2026-10-18 12:17:42 +0800）亲证——692 系 babfb2344 入链前时点值·非届树现值。
+- **动态对照承登（attempt#3 已亲证·本节归档）**：本刀一行 `git stash` 离树后基线 HEAD 复跑 `pnpm neg:interview` **EXIT=0 仍 108 条负路径用例全绿**（receipt `.tmp/uc028-attempt3-stdout/neg-interview-baseline-probe.log` 在案·对照毕 `git stash pop` 还原·无红可冲非 retry-to-green）——**静态谱系+动态复跑双亲证闭合·届树基线即 108·根因不在本刀交付面定谳**。
+- **落点清单（本落卷 commit）**：①§2 门 7 题面值 692→693 就地同步（sanction 归因注记随行）；②**STOP 三处翻面 `draft:awaiting_pre_exec_dual`→`executed:awaiting_post_prove_dual`**（Status 头/§8/卷尾注·EXEC 全门绿+本 sanction 闭合·post-prove 双审两独立外席待派·翻面=协调方明令授权）；③本节 append。零码面·零 proof 面·零新增文件。
+- **门面回执**：markers 五类+冲突对改动集零命中 EXIT=0（运行时组装沿 §7 形制·词面不入卷）·docs:check EXIT=0 **2343≤2346**（append 零新增文件·计数不变·落卷前后两跑）·diff 面**恰仍 2 tracked**（proof 1 行+本卷∈§1-修法授权面+§9-rev3 勘误授权面·零第三 tracked）·est live=0（纯文面零实跑零外呼）。
+
 ---
 
-*UC028-E2E REQUEST · 2026-10-26 起草落卷 · **`draft:awaiting_pre_exec_dual`**（三处同值：Status 头/§8/本卷尾·pre-exec 双审两独立外席待派·alone≠dual） · base `main` @`47dd6be56`（origin tip 恒等·派单下界成立） · 分支 `line/uc028-draft` · 工作树 `meetwise-uc028` · 读码定稿=三 GAP「码已落·e2e 断言面缺」切分（RECON=队列+worker proof 已落而丢失→回补→最终一致同 run e2e 链缺·TRUTH-BLOCK=invoke 层反例已落而同 run 对照结构缺·INJECT=NHP 内联夹具已落而可引用 e2e 注入面缺·老 prove=设计绊线 EXIT=1 现态）· 修法=一刀三 case 单文件单 prove（case-① 注入面+case-② recon 同 run 承接断言+case-③ 真相阻塞对照臂）+注册面三件·零产品码· 门矩阵十二门（主 prove+nhp-fault 45/trace-recon 17 两邻面+metrics+老 prove 预登 EXIT=1 非红停+typecheck 8/8+lint 五贴线 601/5242/1423/959/628+neg:all 692 题面熔断+docs:check≤2346+markers 五类零命中+diff 恰 1 tracked+PIN+卫生）· §1.3 五否决（invent covered/retry-to-green/live key/触产品码/老 prove 静默改）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭·三 GAP 行翻面归协调方 post-prove 双审后裁决） · ⛔push · ⛔force push · STOP*
+*UC028-E2E REQUEST · 2026-10-26 起草落卷 · **`executed:awaiting_post_prove_dual`**（三处同值：Status 头/§8/本卷尾·EXEC 落卷 2026-10-26·§9-EXEC attempt#3 主门 40/40 在卷+neg:all 693 届值 sanction 闭合·post-prove 双审两独立外席待派·alone≠dual） · base `main` @`47dd6be56`（origin tip 恒等·派单下界成立） · 分支 `line/uc028-draft` · 工作树 `meetwise-uc028` · 读码定稿=三 GAP「码已落·e2e 断言面缺」切分（RECON=队列+worker proof 已落而丢失→回补→最终一致同 run e2e 链缺·TRUTH-BLOCK=invoke 层反例已落而同 run 对照结构缺·INJECT=NHP 内联夹具已落而可引用 e2e 注入面缺·老 prove=设计绊线 EXIT=1 现态）· 修法=一刀三 case 单文件单 prove（case-① 注入面+case-② recon 同 run 承接断言+case-③ 真相阻塞对照臂）+注册面三件·零产品码· 门矩阵十二门（主 prove+nhp-fault 45/trace-recon 17 两邻面+metrics+老 prove 预登 EXIT=1 非红停+typecheck 8/8+lint 五贴线 601/5242/1423/959/628+neg:all 692 题面熔断+docs:check≤2346+markers 五类零命中+diff 恰 1 tracked+PIN+卫生）· §1.3 五否决（invent covered/retry-to-green/live key/触产品码/老 prove 静默改）· 停止条件四类零触发 · 翻面权归协调方（本刀不宣称关闭·三 GAP 行翻面归协调方 post-prove 双审后裁决） · ⛔push · ⛔force push · STOP*
