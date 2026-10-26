@@ -275,6 +275,32 @@ const isolatedReceiptSources = {
     'packages/db/sql/20_resume_quiz.sql',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
   ],
+  // NHP 批 B 行 4（UC-004 BOUND/ADV · gap/blind→case-only）：career-path begin 台账面边界族
+  // （advisory 锁+接管 version+1+单 active 行+lease 120s 刷新）与 fail seam 对抗族（pre-tx 双 409
+  // 先行/500+failed v≥2/production-off/越权 404）。boot() 进程内真栈 · 隔离 PG sql/ 链 · est live=0。
+  'uc004:nhp-bound:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-004-nhp-bound.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'packages/ai-graphs/src/career-path.ts',
+    'packages/domain/src/career.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0001_baseline.sql',
+  ],
+  'uc004:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-004-nhp-adv.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'packages/ai-graphs/src/career-path.ts',
+    'packages/domain/src/career.ts',
+    'packages/domain/src/scoring-honesty.ts',
+    'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0001_baseline.sql',
+  ],
   'runtime:claim-join:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/ai-runtime/test/claim-join-orphan.proof.ts',
@@ -1427,6 +1453,17 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
     'packages/db/src/commerce/payment.ts',
   ],
+  // NHP 批 B 行 6（UC-011 LOAD-w 执行收据 + PERF-api case · blind→case-only 注记形）：refund-callback
+  // HTTP 管道并发行使（1×refunded+(N-1)×already/跨单同流水→conflict·防空转钉）+ 负路径并发延迟观测
+  // （观测≠SLO≠容量·Ban 借 LOAD 收据宣 PERF SLO/生产容量/HA·rev3 追钉）。
+  'uc011:nhp-load:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-011-nhp-load.proof.ts', 'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/commerce/payment-callback.controller.ts',
+    'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
+    'packages/db/src/commerce/payment.ts',
+  ],
   'uc019:report-regenerate:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc-e2e-019-report-regenerate.proof.ts', 'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
@@ -1515,6 +1552,18 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
     'apps/api/src/platform/last-event-id.ts',
+    'e2e/helpers/sse.ts',
+  ],
+  // NHP 批 B 行 5（UC-010 ADV · blind→case-only）：LED malformed 双门 400 + well-formed 伪造高游标
+  // 200 空 catch-up+hold（R4 语义正向收证·§9-rev.4 两分）+ 越权订阅复用 404 + 跨 user 注入拒收。
+  'uc010:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-010-nhp-adv.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/platform/last-event-id.ts',
+    'apps/api/src/platform/sse-pump.ts',
     'e2e/helpers/sse.ts',
   ],
   'sse-push:notify:prove:raw': [
@@ -2463,6 +2512,11 @@ if (![
   'obs-ready:prove:raw',
   'uc025:nhp-adv:prove:raw',
   'uc028:nhp-fault:prove:raw',
+  // NHP 批 B 四行（行4 BOUND/ADV·行5 ADV·行6 LOAD+PERF · 一行一 case 一收据·boot() 形沿 uc025 族）。
+  'uc004:nhp-bound:prove:raw',
+  'uc004:nhp-adv:prove:raw',
+  'uc010:nhp-adv:prove:raw',
+  'uc011:nhp-load:prove:raw',
   // NHP 批 A 三行（UC-012/024 FAULT · UC-003 ADV · UC-030 FAULT · 一行一 case 一收据）。
   'uc012:nhp-fault:prove:raw',
   'uc030:nhp-fault:prove:raw',
@@ -2580,6 +2634,14 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-bound-isolated']]
   : target === 'uc025:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc025-nhp-adv']]
+  : target === 'uc004:nhp-bound:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc004-nhp-bound']]
+  : target === 'uc004:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc004-nhp-adv']]
+  : target === 'uc010:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-nhp-adv']]
+  : target === 'uc011:nhp-load:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-nhp-load']]
   : target === 'uc010:sse-resume:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-sse-resume']]
   : target === 'sse-push:notify:prove:raw'
