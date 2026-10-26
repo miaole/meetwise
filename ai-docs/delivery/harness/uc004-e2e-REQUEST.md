@@ -103,7 +103,7 @@ EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录，Ban
 
 §9-rev2 修正后预期值（如实预登 · 待容器 runtime 恢复后由协调方行使时逐门对账 · 9E.5 红停承登口径不变，行使前本绿未得）：
 
-- 门 1 `pnpm uc004:career-path:http:prove` → 期望 EXIT 0 十五臂全 PASS（修正件两处：壳 migrate 名单第四处——修根因①零迁移面起跑；臂 5 jsonb 键序不敏感等值——修根因②确定性假红）；
+- 门 1 `pnpm uc004:career-path:http:prove` → 期望 EXIT 0 十五臂全 PASS（修正件两处：壳 migrate 名单第四处——修根因①零迁移面起跑；臂 5 jsonb 键序不敏感等值——修根因②确定性假红；rev3 补登：种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提——行使时夹具崩 ≠ 新根因，归 §9-rev3 承登的 rev2 复审 FAIL 残余一并核销）；
 - 门 2 `pnpm uc004:career-path-fault:prove` → 期望 EXIT 0 4×0（修正件：夹具补 practice_eligible score_card 种子 deterministic_total=60——修根因③ CONTROL-0-GET-200 重闸 409）；
 - 门 3 `pnpm uc004:career-path:prove` 静态诚实钉 → 现 EXIT=1 预期绊线原值不变（口径零改）；
 - 门 4 `pnpm turbo typecheck --force` → 期望 EXIT 0。
@@ -189,7 +189,7 @@ draft:awaiting_pre_exec_dual（§9-EXEC 卷尾钉 · 与卷首行/§8/§9-rev �
 
 EXEC 回路：容器 runtime 恢复后双门行使，门 1（`uc004:career-path:http:prove`）真红（ARM8 42501 + ARM5 键序假红）、门 2（`uc004:career-path-fault:prove` 回归）真红（CONTROL-0-GET-200 得 409）→ rev 回路。三根因与修法逐条落点如下（rev2 席本树 @`9e17c3713` 亲证行号）：
 
-1. **根因① ARM8 42501**：runner migrate 名单缺 `uc004:career-path:http:prove:raw` → http 门空库起跑（零迁移面 · 影子 score_card 未授 app_role → growth() SET LOCAL ROLE 42501；growth 直读 score_card 面 `profile.service.ts:62`/`:100`）。修法 = §9-EXEC 偏离登记（9E.3-rev2 增补）+ §1-修法件② 差异清单增列第四处：`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单 additive 一条 `'uc004:career-path:http:prove:raw'`（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形 · 零既有行删改）。落点：runner :3258 + 9E.3-rev2 + §1.2 差异清单。
+1. **根因① ARM8 42501**：runner migrate 名单缺 `uc004:career-path:http:prove:raw` → http 门空库起跑（零迁移面 · 真表不在、影子窄表无授权 → growth() SET LOCAL ROLE 42501；growth 直读 score_card 面 `profile.service.ts:62`/`:100`）。生效机制（rev3 勘误·原「影子 score_card 未授 app_role」单句失真，改如实）：名单补入后门 1 真迁移先行，boot() 影子重放 `sql/01_schema.sql` 于文件头顶 DROP+重建 app_role（`01_schema.sql:8-10`/`:129`）后按 `01_schema.sql:131` blanket GRANT（`SELECT, INSERT, UPDATE ON ALL TABLES IN SCHEMA public`）重授——真迁移链的 score_card 在场即被此 blanket 覆盖，growth() 42501 随真表在场而消。副作用如实登记：该 blanket 越出 0100 最小授权面（`0100_scoring_fact_root.sql:223` 对 scoring 四表仅授 app_role SELECT）多授 INSERT/UPDATE——隔离边界仍由 FORCE RLS owner 谓词承担，非授权面收窄；本登记为文面如实，不改任何授权。修法 = §9-EXEC 偏离登记（9E.3-rev2 增补）+ §1-修法件② 差异清单增列第四处：`scripts/run-e2e-isolated.mjs` migrateWithRecovery 触发名单 additive 一条 `'uc004:career-path:http:prove:raw'`（:3258 邻 `'uc004:career-path-fault:prove:raw'` 同形 · 零既有行删改）。落点：runner :3258 + 9E.3-rev2 + §1.2 差异清单。
 2. **根因② ARM5 jsonb 键序**：milestones 经 career_path jsonb 落库回读，PG16 归一化对象键序（短键先行，goal 先于 stage）→ 逐字节 `JSON.stringify` 等值确定性失败。修法 = 臂 5 断言改键序不敏感等值（逐字段 stage/goal——域形 Milestone{stage,goal} `career.ts:20` 全值等值 · 语义等强非断言放宽）。落点：`uc-e2e-004-career-path-http.proof.ts` arm 5（含 proof 头注 arm 5 行）。
 3. **根因③ 门 2 夹具缺 score_card 种子**：夹具只种 user_account+interview+assessment_report(overall=60)+entitlement_bucket · 零 score_card → getCareerPathFor G5 重闸（`interview-assessment.ts:99` requireCurrentScorableCards → aggregateInterviewScores → eligible=0 → 409 `insufficient_evidence`）→ CONTROL-0-GET-200 得 409。修法 = 门 2 夹具补 practice_eligible score_card 种子（deterministic_total=60 · 沿门 1 臂 1 种子参数形；列形沿 `validate.ts:96-112`/`:708-740` 迁移链全链先例——门 2 跑真迁移链，0100 score_card FK 链 NOT NULL 全列）· 仅 IV_CTL 需要（CONTROL-0-GET-200 与 FI-2/FI-3 server-alive GET 200 重闸面；FI1/FI2/FI3 GET 走无行 404 先于重闸）。落点：`uc-e2e-004-career-path-fault.proof.ts` 种子块（interview/assessment 循环后 additive）。
 
@@ -200,3 +200,16 @@ EXEC 回路：容器 runtime 恢复后双门行使，门 1（`uc004:career-path:
 工序收据：§9-rev2 append 后复跑 markers 卫生 grep + `pnpm docs:check`（零新增受管文件，扫描数维持 ≤2346；收据随 commit）；修法面三件静态自证：`node --check scripts/run-e2e-isolated.mjs` 过 + apps/api typecheck 过（届树亲测，收据随 commit）。运行门行使仍待协调方（9E.5 红停承登延续），本巡修法落卷不宣称门绿、如实预登仅作行使时对账基线。
 
 draft:awaiting_pre_exec_dual（§9-rev2 卷尾钉 · 与卷首行/§8/§9-rev/§9-EXEC 同值 · STOP 维持 · 红停修法落卷 · 行使仍待协调方）
+
+## §9-rev3（rev2 复审 FAIL 残余 P1 修法落卷 · rev 回路第三巡 · rev 席落卷 2026-10-26 · 复审锚 @`028afdc0b`）
+
+rev2 落卷（028afdc0b）窄域复审 **FAIL** 承登：rev2 runner 名单 additive 使门 1 真迁移先行 → proof 自建窄列种子撞迁移真表 NOT NULL（23502）确定性崩——`question_rubric` 三列窄形缺 `question_version/rubric_version/difficulty/question_content_hash`、`score_card` 八列窄形缺 `answer_id/submission_id/score_request_id/issued_contract_id/rubric_version/measurement_version`（0100/0092 全链 NOT NULL + FK 链全列）。修法路径 = 门 2 夹具同款 `validate.ts:96-115` 全链列形先例。四件落点（rev3 席本树亲证）：
+
+1. **P1 主修**：`uc-e2e-004-career-path-http.proof.ts` 种子块改全链六表 INSERT（`question_rubric` → `interview_answer_submission` → `interview_answer_artifact` → `issued_question_contract` → `score_request` → `score_card`，列形照抄 `validate.ts:96-115`）。约束逐条满足：hash 族 64-hex（^[a-f0-9]{64}$）· coverage=1（0100 0..1 CHECK）· rubric_version=1（≥1 CHECK）· status 白名单（published/issued/scored/practice_eligible ∈ 0100 十态枚举）· 0158 BEFORE INSERT 初始态白名单放行 practice_eligible（0158_score_card_insert_guard.sql:27）；uuid 字面全落 00000000-…-00000000c4xx 段防撞他夹具；ON CONFLICT 幂等保留；资格谓词（practice_eligible 单态 ∧ deterministic_total=60 数值非空）与「仅 MAIN 需要」范围零变。
+2. **头注勘误两处**（同文件）：头注「SCOR 聚合函数在 boot 影子环境缺失」失真注改如实双录（门 1 经壳 migrate 名单真迁移先行 → 起跑时真六表 + 0161 函数在；无迁移链的影子环境才由窄复刻兜底）；「窄列复刻」CREATE 注改如实（真迁移链在时 CREATE TABLE IF NOT EXISTS 为 no-op、CREATE OR REPLACE FUNCTION 以逐字同 0161 收窄体重刷同文函数行为面等价；窄列形不再作为任何种子落点）。
+3. **§9-rev2 文面随动两处**：根因① 生效机制改记「`01_schema.sql:131` blanket GRANT（app_role 重建后重授 · `:8-10`/`:129` DROP+重建在前）」并登记其越 0100 最小授权面副作用（`0100_scoring_fact_root.sql:223` 对 scoring 四表仅授 app_role SELECT，blanket 多授 INSERT/UPDATE；隔离边界仍由 FORCE RLS owner 谓词承担，零授权改写）；§2 门 1 预期补登「种子夹具随动（§9-rev3 P1 全链列形）为门 1 可绿前提 · 行使时夹具崩 ≠ 新根因」。
+4. **STOP 计数口径统一**：全卷钉值 `draft:awaiting_pre_exec_dual` 恰六处同值——卷首 `:1` · §8 双行 `:121`/`:123` · §9-rev 卷尾 `:142` · §9-EXEC 卷尾 `:186` · §9-rev2 卷尾 `:202`；三处主钉（卷首 + §8 双行）维持 `draft:awaiting_pre_exec_dual` 原值不翻；本节不再另立钉行（计数口径统一为六处同值，防逐节增钉漂移）。
+
+越权面零扩：产品代码、SSOT 三件、runner、门 2 夹具、静态诚实钉、既有断言语义与 EXIT 契约全部零触；十五臂总数与断言语义零变（本巡纯种子列形 + 文面如实）。运行门行使仍待协调方（9E.5 红停承登延续），修法落卷不宣称门绿。
+
+工序收据：§9-rev3 落卷后复跑 markers 卫生 grep（改动集新增行零命中；REQUEST 卷内唯一命中仍为 §2 两行自引字面）+ `pnpm docs:check`（EXIT 0 · 零新增受管文件 · 扫描数 ≤2346）+ `pnpm turbo typecheck --force`（EXIT 0）+ `pnpm turbo lint --force`（EXIT 0 · api 1423/1423 恰等 · 零帽动）+ diff 恰本巡四件落点两 tracked 文件（proof + REQUEST · 零新增文件 · ≤4 tracked 界内）。

@@ -40,10 +40,13 @@
  *          Ban 健康 ping 顶替）
  *
  * boot 形沿 _neg-harness boot()（真 NestJS 栈 + assertIsolatedTestTarget 隔离 attestation +
- * 删 MODEL_API_KEY/MODEL_BASE_URL）；SCOR 聚合函数在 boot 影子环境缺失 → 窄复刻函数体逐字同
- * 0161 收窄后（practice_eligible 单态 · :33），沿 neg-interview.proof.ts:210-235 先例；种子
- * score_card 满足 aggregateInterviewScores 资格谓词（status='practice_eligible' ∧
- * deterministic_total 数值非空 · 0100_scoring_fact_root.sql:172）。
+ * 删 MODEL_API_KEY/MODEL_BASE_URL）。SCOR 聚合面双录（rev3 勘误·原「boot 影子环境缺失」单录
+ * 注失真）：① 门 1 经壳 migrate 名单（rev2 第四处 additive）真迁移先行 → 起跑时真六表 + 0161
+ * 收窄函数已在；② 无迁移链的影子环境 → SCOR 面缺失，由下方窄复刻兜底（函数体逐字同 0161
+ * 收窄后 practice_eligible 单态 · 0161:33，沿 neg-interview.proof.ts:210-235 先例）。种子
+ * score_card 按迁移链真表全链列形直插（validate.ts:96-115 六表先例 · rev3 P1 主修），满足
+ * aggregateInterviewScores 资格谓词（status='practice_eligible' ∧ deterministic_total 数值
+ * 非空 · 0100_scoring_fact_root.sql:172）。
  *
  * EXIT 契约：全臂 PASS → EXIT 0；任一 FAIL → EXIT 1 如实记录（Ban retry-to-green · Ban 改断言
  * 迁就实测 · Ban 把 EXIT1 记成 flake）。本绿 ≠ covered ≠ A3 closed ≠ 矩阵任何列翻面（翻转只走
@@ -107,8 +110,11 @@ GRANT EXECUTE ON FUNCTION interview_privacy_active(text) TO app_role;
 GRANT EXECUTE ON FUNCTION assert_interview_privacy_active(text) TO app_role;
 `);
 
-// SCOR 聚合窄复刻（影子 sql/ 族无 SCOR 面）：函数体逐字同 0161 收窄后单态口径
-//（0161_practice_only_read_narrowing.sql:33 亲证），表为窄列复刻（0100 FK 链不入影子环境）。
+// SCOR 聚合窄复刻（rev3 勘误·双录）：真迁移链先行时（rev2 壳 migrate 名单生效）真六表与 0161
+// 函数已在——下方 CREATE TABLE IF NOT EXISTS 为 no-op，CREATE OR REPLACE FUNCTION 以逐字同
+// 0161 收窄后单态口径（0161_practice_only_read_narrowing.sql:33 亲证）重刷同文函数，行为面
+// 等价；仅无迁移链的影子环境（0100 FK 链不入）由本块窄列复刻兜底。种子列形一律按真表全链形
+//（validate.ts:96-115 先例，见下方种子块），窄列形不再作为任何种子落点。
 await h.pool.query(`
 CREATE TABLE IF NOT EXISTS question_rubric (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -170,14 +176,42 @@ GRANT EXECUTE ON FUNCTION scoring_aggregate_interview_scores(text) TO app_role;
          VALUES ($1,'userA',$2,'ready',$3::jsonb,$4) ON CONFLICT DO NOTHING`,
         [`AR_${iv}`, iv, dims2, iv === NULLOVR ? null : 60]);
     }
-    // GET 重闸资格种子：score_card practice_eligible 单态 ∧ deterministic_total 数值非空
-    //（0161:33 单态谓词 + 0100:172 数值列）——仅 MAIN 需要（arm 5 GET 200 重闸放行）。
-    await c.query(`INSERT INTO question_rubric(id, question_id, competency)
-      VALUES ('00000000-0000-4000-8000-00000000c404','q-uc4-main','分布式锁') ON CONFLICT (id) DO NOTHING`);
+    // GET 重闸资格种子（rev3 P1 主修：rev2 窄列种子撞迁移真表 NOT NULL 23502 残余修法）——
+    // 门 1 真迁移先行（rev2 壳 migrate 名单第四处）→ 六表按迁移链真表全链列形直插，列形照抄
+    // validate.ts:96-115 六表先例（0092/0100 NOT NULL + FK 链全列）。约束逐条：hash 族 64-hex
+    //（^[a-f0-9]{64}$）· coverage=1（0100 0..1 CHECK）· rubric_version=1（≥1 CHECK）· status
+    // 白名单（question_rubric='published' / contract='issued' / score_request='scored' /
+    // score_card='practice_eligible' ∈ 0100 十态枚举）· 0158 BEFORE INSERT 初始态白名单放行
+    // practice_eligible（0158_score_card_insert_guard.sql:27）。uuid 字面全落
+    // 00000000-…-00000000c4xx 段防撞他夹具；ON CONFLICT 幂等保留。资格谓词：practice_eligible
+    // 单态（0161:33）∧ deterministic_total 数值非空（0100:172）——仅 MAIN 需要（arm 5 GET 200
+    // 重闸放行；FAULT 臂走无行 404 先于重闸、两 409 臂走评估前置先于重闸，均不需卡）。
+    const c4 = (n: number): string => `00000000-0000-4000-8000-00000000c4${String(n).padStart(2, '0')}`;
+    const c4Hash = 'c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4c4';
     await c.query(
-      `INSERT INTO score_card(owner_user_id,interview_id,question_id,rubric_id,deterministic_total,coverage,status)
-       VALUES ('userA',$1,'q-uc4-main','00000000-0000-4000-8000-00000000c404',60,1,'practice_eligible')`,
-      [MAIN]);
+      `INSERT INTO question_rubric(id,question_id,question_version,rubric_version,competency,difficulty,language_scope,question_content_hash,status)
+       VALUES ($1,'q-uc4-main',1,1,'分布式锁',3,'["zh","en"]',$2,'published') ON CONFLICT (id) DO NOTHING`,
+      [c4(1), c4Hash]);
+    await c.query(
+      `INSERT INTO interview_answer_submission(id,owner_user_id,interview_id,question_id,state_version,client_submission_key,canonical_body_hmac,privacy_epoch)
+       VALUES ($1,'userA',$2,'q-uc4-main',1,'uc4-http-sub-1',$3,1) ON CONFLICT DO NOTHING`,
+      [c4(2), MAIN, c4Hash]);
+    await c.query(
+      `INSERT INTO interview_answer_artifact(id,owner_user_id,interview_id,question_id,state_version,submission_id,ciphertext,body_hmac,hmac_key_version,enc_key_version,privacy_epoch)
+       VALUES ($1,'userA',$2,'q-uc4-main',1,$3,decode('00','hex'),$4,1,1,1) ON CONFLICT DO NOTHING`,
+      [c4(3), MAIN, c4(2), c4Hash]);
+    await c.query(
+      `INSERT INTO issued_question_contract(id,owner_user_id,interview_id,question_id,state_version,turn,question_content_hash,rubric_id,difficulty,form,language,route,prompt_policy_version,measurement_version,privacy_epoch,status)
+       VALUES ($1,'userA',$2,'q-uc4-main',1,0,$3,$4,3,'mock','zh','adaptive','prompt-v1','measure-v1',1,'issued') ON CONFLICT DO NOTHING`,
+      [c4(4), MAIN, c4Hash, c4(1)]);
+    await c.query(
+      `INSERT INTO score_request(id,owner_user_id,interview_id,issued_contract_id,submission_id,artifact_id,answer_version,answer_body_hmac,privacy_epoch,operation_policy_version,idempotency_key,status)
+       VALUES ($1,'userA',$2,$3,$4,$5,1,$6,1,'op-v1','uc4-http-req-1','scored') ON CONFLICT DO NOTHING`,
+      [c4(5), MAIN, c4(4), c4(2), c4(3), c4Hash]);
+    await c.query(
+      `INSERT INTO score_card(id,owner_user_id,interview_id,question_id,answer_id,submission_id,score_request_id,issued_contract_id,rubric_id,rubric_version,measurement_version,deterministic_total,coverage,status)
+       VALUES ($1,'userA',$2,'q-uc4-main',$3,$4,$5,$6,$7,1,'measure-v1',60,1,'practice_eligible') ON CONFLICT DO NOTHING`,
+      [c4(6), MAIN, c4(3), c4(2), c4(5), c4(4), c4(1)]);
     // 额度桶种子（REQUEST §1.1 种子清单 · 影子环境 boot() 已有 userA paid 桶时为零操作）。
     await c.query(`INSERT INTO entitlement_bucket(owner_user_id,kind,units_total,expires_at)
       SELECT 'userA','paid',5.0, now()+interval '300 days' WHERE NOT EXISTS
