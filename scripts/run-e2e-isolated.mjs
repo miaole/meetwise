@@ -1146,6 +1146,27 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · boot() 进程内真栈·沿 uc050/uc051 同形登记）。
+  'uc014:nhp-neg:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-014-nhp-neg.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/commerce/payment.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
+  'uc014:nhp-bound:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-014-nhp-bound.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/commerce/commerce.service.ts',
+    'apps/api/src/modules/commerce/commerce-webhook.controller.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/commerce/payment.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
   'reaper:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reaper.proof.ts', 'apps/worker/src/interview-consumer.ts',
@@ -2712,6 +2733,9 @@ if (![
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
   'uc050:nhp-kill:prove:raw',
   'uc051:nhp-nopii:prove:raw',
+  // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · 一行一 case 一收据）。
+  'uc014:nhp-neg:prove:raw',
+  'uc014:nhp-bound:prove:raw',
   // UC-028 一刀三 case（INJECT/RECON/TRUTH-BLOCK·沿 uc028:nhp-fault 同形注册）。
   'uc028:recon-truth-inject:prove:raw',
   'dbhy1:prove:raw',
@@ -2970,6 +2994,10 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-kill']]
   : target === 'uc051:nhp-nopii:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc051-nhp-nopii']]
+  : target === 'uc014:nhp-neg:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-nhp-neg']]
+  : target === 'uc014:nhp-bound:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-nhp-bound']]
   : target === 'uc001:nhp-perf-api:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC001_PERF_API_CAPS_CHILD]]
   : target === 'uc011:nhp-perf-api:prove:raw'
@@ -3870,6 +3898,8 @@ async function main() {
   'uc030:nhp-bound:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
+  // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
+  'uc014:nhp-neg:prove:raw', 'uc014:nhp-bound:prove:raw',
   'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
