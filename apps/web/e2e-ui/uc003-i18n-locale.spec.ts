@@ -133,6 +133,34 @@ test('UC003-I18N-locale-en: locale=en DOM —— 迁移区三点 CJK 零残留 +
   expect(CJK.test(errorText), `empty-file arm error must be CJK-free in locale=en, got: ${errorText}`).toBe(false);
   expect(errorText).toContain('Please choose a file to upload');
 
+  // ③b D1 local-refusal arm (NHP-003-DOM-01 · test-only addition · existing arms untouched):
+  // a .png in a NON-preview env hits actions.ts:119 `resumeImageRefusedLocally(locale)` before
+  // any network hop, so the refusal is DOM-reachable via setInputFiles and renders the en
+  // `image_ocr_unavailable` copy at #resume-upload-error (role=alert, ResumeUploadForms.tsx:56
+  // — the action-error single source). DOM asserts the message only: the machine error-code
+  // pass-through (`error === 'image_ocr_unavailable'`) is asserted at the pure-function layer
+  // (uc-e2e-003-nhp-neg.proof.ts D1-PF arm, r2 P2-4) — not re-asserted from DOM text.
+  // The isolated e2e:ui stack starts without OCR_ENABLED/OCR_PREVIEW, so the non-preview
+  // precondition is the stack's real shape; the D2 preview-format arm (:120) needs OCR env
+  // wiring and stays NOT claimed for a later knife.
+  await fileForm.locator('input[type="file"]').setInputFiles({
+    name: 'resume-preview.png',
+    mimeType: 'image/png',
+    buffer: Buffer.from(
+      'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==',
+      'base64',
+    ),
+  });
+  await page.getByRole('button', { name: '提取并上传', exact: true }).click();
+  const d1ErrorP = page.locator('#resume-upload-error');
+  const d1Expected = 'Image resume recognition is not available here. Please upload a PDF/Word or paste text.';
+  await expect(d1ErrorP, 'D1 local-refusal en message must render exact image_ocr_unavailable copy').toHaveText(
+    d1Expected,
+    { timeout: 30_000 },
+  );
+  const d1Text = (await d1ErrorP.innerText()).trim();
+  expect(CJK.test(d1Text), `D1 local-refusal error must be CJK-free in locale=en, got: ${d1Text}`).toBe(false);
+
   // ④ /login en rendering smoke over the existing messages namespace face.
   await page.goto('/login');
   await expect(page.getByRole('button', { name: 'Sign up' }).first()).toBeVisible({ timeout: 20_000 });
