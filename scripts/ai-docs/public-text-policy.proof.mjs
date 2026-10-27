@@ -416,21 +416,22 @@ const checks = {
       // CAP-SANCTION-2427 #160 x33 收官并线恰等步进：cap 2424→2427（2026-10-27 X33-ADV 跨用户授权补集 #160 收官并线 #162 perfweb+#163 x16-adv+#164 webhook-fault·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+3 恰等零多放·union 实测 2427=main 届扫 2424+本支互斥受管目 3（x33-adv-REQUEST+uc-e2e-033-nhp-adv.proof+uc033-nhp-adv/00-docker-info.txt·.txt ∈TEXT_EXTENSIONS 计面·两 stdout 收据 .log 非扫描扩展名不计）·详 policy .mjs 链区 CAP-SANCTION-2427 注记）——本 TC 四联动点 2_427/f-2427.md/:2428 恰等改。
       // CAP-SANCTION-2428 二轮并线恰等步进：cap 2427→2428（2026-10-27 X33 #160 补集收官二轮并线 #165 eslint-ignores·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+1 恰等零多放·union 实测 2428=本支届扫 2427+main 并入互斥受管目 1（eslint-ignores-REQUEST.md·两集合无交叠）·详 policy .mjs 链区 CAP-SANCTION-2428 注记）——本 TC 四联动点 2_428/f-2428.md/:2429 恰等改。
       // CAP-SANCTION-2430 screg post 双审双 PASS 会签后并线恰等步进：cap 2428→2430（2026-10-27 screg 评分键域修法刀 §9-post 落卷后并线收官·fetch EXIT=0·届值如实采：origin/main 7950f45bd（#160 x33-adv 补集收官二轮并线·含 #165 eslint-ignores/#166 backlog-reg 在前·merge-base=b36113958=#164 亲证）承 2428=cap 恰等·本支 0b0f7133a 承 2426=cap 恰等（双亲各自合规）·merge-tree 预演恰 2 处冲突（两 policy 脚本注记/cap 区·dual-keep 双留·本支 CAP-SANCTION-2426 注记+main CAP-SANCTION-2425/2427/2428 注记并留）·合并树终验亲跑 docs:check PTP_FILE_LIMIT 红（未收敛首轮实测 2434 冗计如实承登=2 冲突件×3 stage +4·沿 CAP-SANCTION-2418 同形坑·git add 收敛后终验 EXIT=0 scanned 2430=cap 恰等）——union 实测 2430=main 届扫 2428+本支并入互斥受管目 2（harness/screg-REQUEST.md+apps/worker/test/scoring-eval-key.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）·详 policy .mjs 链区 CAP-SANCTION-2430 注记·协调方常设预授权随令行使）——本 TC 四联动点 2_430/f-2430.md/:2431 恰等改。
+      // CAP-SANCTION-2438 X17-ADV 起草步进：cap 2430→2438（2026-10-27 X17-ADV 起草落卷·总盘小刀 #4·协调方派单令 docs-only 起草授权+常设预授权「越限沿先例步进承登」随令行使·+8 三十三先例形沿 X16 2410→2418 同形·本树 2430=cap 恰等零余量+本卷 harness/x17-adv-REQUEST.md 受管 +1=2431 必越·起草 commit 即触·本刀净增受管 2 件（REQUEST+EXEC proof）届终 2432≤2438·余 6 系在飞共享余量沿 cap 2152 先例形·详 policy .mjs 链区 X17-ADV 步进注记）——本 TC 四联动点 2_438/f-2438.md/:2439 恰等改。
       const paths = [];
-      for (let i = 0; i < 2_430; i += 1) {
+      for (let i = 0; i < 2_438; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_430);
-      // 超限错误码形状断言：第 2431 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2431`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2430.md'] });
+      assert.equal(atCap.scannedFiles, 2_438);
+      // 超限错误码形状断言：第 2439 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2439`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2438.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2431`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2439`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
