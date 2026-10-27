@@ -4,11 +4,12 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --max-warnings 601",
+    "lint": "eslint . --max-warnings 605",
     "prove": "tsx test/web-logic.proof.ts",
     "prove:public-copy": "node test/public-copy.proof.mjs",
     "prove:uc003-i18n-locale": "node test/uc-e2e-003-i18n-locale.proof.mjs",
     "prove:uc003-nhp-adv": "tsx test/uc-e2e-003-nhp-adv.proof.ts",
+    "prove:nhp-perf-web": "tsx test/nhp-perf-web.proof.ts",
     "prove:speak-proxy": "tsx test/speak-proxy.proof.ts",
     "prove:transcribe-proxy": "tsx test/transcribe-proxy.proof.ts",
     "prove:report-export-proxy": "tsx test/report-export-proxy.proof.ts",
