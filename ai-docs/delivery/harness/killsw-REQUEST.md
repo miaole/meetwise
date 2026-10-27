@@ -1,6 +1,6 @@
 # KILLSW REQUEST — UC-E2E-050/051 kill-switch/无 PII 面起草卷·覆盖矩阵 §1.0.1 聚合行 `:132` 050/051 残余列 + §1.0.2 分面行缺席 + case-matrix §1.4 kill/no-pii 缺行处置（docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码落卷 2026-10-27 · 协调方明示授权行使（pre-exec dual r2 双 PASS 放行+落码授权）· post-prove dual 两独立外席待派 · **STOP 三处钉：本 Status 行 + §8 + 卷尾注**）。
+**Status**: **`closed`**（§9-post post 双审双 PASS 会签席翻面 2026-10-27 · 原值 `executed:awaiting_post_prove_dual` 史录 provenance 见 §8/§9-EXEC/§9-post · alone≠dual）· **STOP=closed（三处钉：本 Status 行 + §8 + 卷尾注 · 2026-10-27 §9-post 翻终态 · `executed:awaiting_post_prove_dual`/`draft:awaiting_pre_exec_dual` 史录不洗）** · 两 case 隔离 prove EXIT=0 已落（59+44 断言·implementer pre-commit runs）+ post-prove 双审席1+席2 双 PASS 已落卷（§9-post·红次机证链零产品码红决定性+第三 fresh 独立复跑 uc050 59/0+安全面推演核过+P2 errata 三件随卷）· 本卷不预 claim 任何 covered 升格（EXIT0=case≠covered·coveredCount=8 零动）。
 
 **席位**：UC-050/051 kill-switch/无 PII 起草席（诊断+起草双责·协调方派·认领矩阵 `:132` 聚合行的 **050/051 部分**（UC-052 deletion/export 面零触·出域）+ case-matrix §1.4 kill/no-pii 缺行面·与批 A/B/C 及各 UC 专属线互斥不重叠）。
 **基线**：`origin/main` @ **`0246361dd`**（full `0246361dd75ac84beb70c6bed99be387da989499` · `git fetch origin` 本 turn 成功 · #148 micro-batch 并线点 · 分支 `line/killsw-draft` 建 worktree `git worktree add ../meetwise-killsw -b line/killsw-draft origin/main` 亲立 · HEAD 落 tip 亲证）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2382 ≤ cap 2386**（`public-text-policy.mjs:149` `MAX_FILES = 2_386` 亲证 · §2-1 预算核）· 工作树 `meetwise-killsw`（仓根同级）。
@@ -165,7 +165,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual`（三处钉：本 Status 行+本节+卷尾注 · 2026-10-27 EXEC 落码落卷翻面·2026-10-26 起草落卷 `draft:awaiting_pre_exec_dual` 史录不洗）· post-prove dual 两独立外席待派（宜含 privacy 域席·派单权归协调方）· EXEC commit 不预 claim post-prove-dual EXIT。** 开工三条款：①pre-exec 双审两独立外席 **BOTH PASS 落卷**（宜含 privacy 域席·派单权归协调方）；②**协调方明示 EXEC 授权**；③EXEC 立项**不得改 §1.4 修法面与 §5 Ban/pins 与 §1.3 否决面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `closed`（2026-10-27 §9-post post 双审双 PASS 会签翻终态·三处钉：本 Status 行+本节+卷尾注·原值 `executed:awaiting_post_prove_dual` 史录留痕不洗·2026-10-26 起草落卷 `draft:awaiting_pre_exec_dual` 史录不洗）· alone≠dual · 开工三条款已兑现（①pre-exec 双审两独立外席 BOTH PASS 落卷（宜含 privacy 域席·派单权归协调方）②协调方明示 EXEC 授权 ③EXEC 立项未改 §1.4 修法面与 §5 Ban/pins 与 §1.3 否决面·§0 已对开工 tip 全量重 pin）· post-prove 双审两独立外席已行使双 PASS 落卷（§9-post·EXIT0 ≠ 证据终态 · coveredCount=8 零动）· EXEC commit 不预 claim post-prove-dual EXIT（史录）。** 开工三条款：①pre-exec 双审两独立外席 **BOTH PASS 落卷**（宜含 privacy 域席·派单权归协调方）；②**协调方明示 EXEC 授权**；③EXEC 立项**不得改 §1.4 修法面与 §5 Ban/pins 与 §1.3 否决面**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且结论受疑（`:132` 行 050/051 列值被他刀改写 · kill 闸缝消失或语义变（三态 fail-closed 改静默回退等）· obs-logging/三层壳先例语义变 · 批 C 等在飞卷并线与本刀对同表冲突改行）→ 停·重 pin 回炉。
 - **机制不满足**：EXEC 期新臂收据与 §1 红事实推定形不符（如 env=1 begin 未得 503 具名码=产品机制红 · 非法 env 值静默 off 非 fail-closed · 503 前置仍扣额/入队 · 业务哨兵入卷）→ 根因诊断被证伪 → 停·**产品缺陷=EXIT1 诚实保留+backlog 登记上报（翻面权归协调方）**·Ban retry-to-green·Ban 就地改诊断。
 - **越界需要**：修法诉求超出 §1.4 恰 2 case 面（需触产品码=绕行面接线/擦除域/UC-018 图面/covered 翻面/共享 SSOT/迁移/告警配置）→ 停·另刀或协调方裁决（Ban 就地扩面）。
@@ -202,5 +202,36 @@
 
 ---
 
+## §9-post（post 双审双 PASS 会签席落卷 · 2026-10-27 · **STOP 三处钉翻终态 `closed`** · 沿 nhp-batch-c-REQUEST §9-post 先例形在树亲证）
 
-*KILLSW REQUEST · 2026-10-26 起草 · 2026-10-27 EXEC 落码落卷 · **STOP=`executed:awaiting_post_prove_dual`**（三处钉：Status 行+§8+本行·起草态 `draft:awaiting_pre_exec_dual` 史录不洗）· UC-E2E-050/051 kill-switch/无 PII 面 · 覆盖矩阵 §1.0.1 `:132` 聚合行 050/051 残余列 + §1.0.2 分面行缺席 + case-matrix §1.4 缺行 · 认领=050/051 NEG/FAULT/BOUND 可测面（kill 触发面 gap+no-pii 黄金路径/trace/堆栈面 gap·blind）· NOT claimed 登记=UC-050 ADV applications.start 绕行残余面（`applications.service.ts:44-58`·只登记零臂）+ UC-052 deletion/export/DELETE 面（出域 freeze 维持）· 修法=恰 2 case（`NHP-050-KILL-01` 触发面 503/三态 fail-closed/双闸优先序/零副作用 + `NHP-051-NOPII-01` 业务哨兵日志扫描/trace 脱敏直行使/堆栈原文面）· 一行一 case·docs+test-only·零产品码触 · §1.3 三否决+三域 Ban（UC-052 域/绕行面修复/图面二次实现）· egress 履行=零登记臂形（三模型钥词面码面零直书·片段运行时组装+_neg-harness 自剥·373 目 EXIT=0）· 双表同步令沿 §1.0.3 `:165` 已履行 · EXEC 立项并线=origin/main `e072e957f`（#151·#152 未在 main 如实采）→ merge `f39fcc0de` · base=origin/main `0246361dd` · 分支 `line/killsw-draft` · 工作树 `meetwise-killsw` · **EXEC 收据=NHP-050-KILL-01 EXIT=0 59 断言 + NHP-051-NOPII-01 EXIT=0 44 断言**（attempts 台账 §9.1 红次全录·红因全=harness 镜像夹具面零产品码红）· cap 2397→2402 恰等步进+越限臂联动 EXIT=0 · lint 承登 root 5306→5334 / api 1447→1475 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · post-prove dual 两独立外席待派（宜含 privacy 域席）· ⛔push ⛔force-push*
+**post 输入**：§9-EXEC 两 case 门矩阵全绿在卷（三处钉 `executed:awaiting_post_prove_dual`·待 post-prove 双审）→ post 双审席1+席2 分头独立行使（alone≠dual·协调方派单令两席）→ 双 PASS 会签 → 三处钉（Status 头+§8+卷尾注）翻终态 `closed`；历史节内 token（§9-EXEC 红次台账/各节原值/`:191` 史录锚）保留留痕不洗。卷 closed ≠ covered ≠ 矩阵列升格：coveredCount=8 零动 · releaseEvidence=false · Not HA · 翻面权归协调方 nail。stdout 留痕目录 `.tmp/nhp-050-kill-01-receipts/`+`.tmp/nhp-051-nopii-01-receipts/`（EXEC 红绿次全痕）+`.tmp/isolated-proof-receipts/`（两席 fresh 收据·gitignored 本地证据）。
+
+### 9p.1 席1（14 红次机证链亲核 · P2×6）
+
+- **14 红次机证链亲读**：attempts 台账（§9.1·uc050 ×9+uc051 ×5=14 红次）逐条对 `.tmp` 两目录 stdout/isolated-receipt 留痕亲读——红次叙事与留痕一一对应·零凭空红零凭空绿。
+- **10 回执 digest 逐件比对**：红绿次回执 digest 对台账逐件亲算比对——**除两 proof 文件本体外全零漂**（夹具/迁移链/环境件 digest 恒等）→ 红因全=harness 镜像夹具面（ACL/列位/触发体/RLS/路径/次序/收卷）·**零产品码红=决定性**（`git diff` 产品源零触互证）。
+- **修复 1:1 映射亲读**：每红次根因对夹具修复（真相=迁移链 0028/0046/0049/0064/0088/0119/0121/0130/0142/0144/0206 重放形·零新迁移）1:1 亲读核过——零多余修复零产品码触。
+- **七门亲跑**：docs:check / markers / typecheck / lint 双帽 / `uc050:nhp-kill:prove` / `uc051:nhp-nopii:prove` / 邻面 obs-logging+egress proof 七门本席亲手复跑全绿。
+- **lint 双恰等反证**：root **5333** / api **1474**（差一）复跑 **EXIT=1**（门真在数反证·帽非虚设）→ root **5334** / api **1475** 恰等复跑 **EXIT=0**（0 errors·恰等零余量）。
+- **P2×6 如实登记**（非阻断·随卷 errata 见 9p.3·史录零字洗）。
+
+### 9p.2 席2（独立复跑+安全面推演 · P2×2）
+
+- **独立复跑**：`pnpm uc050:nhp-kill:prove` 第三 fresh（implementer+席1 之外独立行使）**EXIT=0 · 59/0**（isolated receipt `2026-10-27T03-13-37…Z` · target=`uc050:nhp-kill:prove:raw` · class=`local_untrusted_isolated_proof_receipt` · 与 EXEC tracked receipt 双独立在卷）。
+- **安全面推演（对码逐臂）**：K4 非法值 → 500 响应体 opaque `internal_error`（`all-exceptions.filter.ts:39`·err.message/堆栈零泄响应面·词面只入日志）+ 日志词面双断言；K1 时序 → 闸在 DB 会话/扣额/入队之前（`interview.service.ts:425` 前置亲读）=503 零事务零写入零副作用；P 系零 PII → P1 业务哨兵全语料零入卷 / P2 secret 形+Bearer 零入卷 / P3 stored 恰 `{"redacted":true}`+replayable=false / P4 opaque+堆栈只进日志 / P5 query 剥离——逐臂对码推演核过·机制与 §1.2 红事实推定形相符（停止条件「机制不满足」未触发）。
+- **帽步进双恰等算术**：root 5306+28=**5334** · api 1447+28=**1475**（两新 proof 增量恰等·零多放）亲算核过·与 §9.1 承登值恰等。
+- **P2×2 如实登记**（非阻断·随卷 errata 见 9p.3）。
+
+### 9p.3 双 PASS 会签 + P2 errata 随卷（三件·非阻断）
+
+- **双 PASS 会签**：席1+席2 分头独立行使、结论互证、均 **PASS**——两 case 断言实质全过 · 断言谓词零改写 · attempts 台账与回执一致 · Ban 列/§1.3 否决面/pins 十一值零翻 · est live=0 承守。
+- **P2 errata（三件·本节落卷同刀勘正·史录零字洗）**：
+  1. **锚漂勘正 `:191`→`:192`**：本卷「`:191`『Ban elevate UC-050/051/export』」行号锚对现树漂移→亲证 **`:192`**（`e2e-requirement-coverage-matrix.md`·他刀同表行内增行所致·语义零变·本卷 `:191` 史录锚保留不洗·读锚以 `:192` 为准）。
+  2. **矩阵日期勘正「EXEC 落卷 2026-10-27」**：双表把开关刀 EXEC 证据日期误植为起草日 2026-10-26（coverage-matrix `:132`×4+`:154`×1 · case-matrix `:117/:118`×2）→ 同刀勘正为 **2026-10-27**（2026-10-26=起草日·本卷 §8/§9-EXEC 日期原值零动）。
+  3. **uc050 `:530` 措辞勘正**：`uc-e2e-050-nhp-kill.proof.ts:530` 断言消息「unset 唯一正确形」→「**unset=off 合法形之一**」（`content-safety.ts:15-21` unset/`0`=off 两合法形·K3 臂行使 unset 形）——断言谓词零变仅消息措辞·勘正后 proof sha256 `55bf093bcc8fc892bf8ea6921fc2b529b94e271e35727ee0ab1476433b95338c`（对席位 fresh 收据 sourceDigest 漂移如实承登）。
+- **STOP 终态=`closed`（三处翻面=Status 头+§8+卷尾注）**——翻面依据=两 case 门矩阵全绿在卷（§9-EXEC）+ 红次机证链零产品码红决定性（席1）+ 第三 fresh 独立复跑 59/0 与安全面推演核过（席2）+ 双 PASS 会签；史录 token `executed:awaiting_post_prove_dual` 保留为 provenance 不回改；后续=并线 PR 走 main（fetch origin/main→merge-tree 预演→merge --no-ff→`pnpm install --frozen-lockfile`→终验五门→push→PR→auto-merge）·矩阵行/coveredCount/backlog 翻面权仍归协调方（本节 append 纯文面+errata 第 2/3 件勘正·零断言谓词动）。
+
+---
+
+
+*KILLSW REQUEST · 2026-10-26 起草 · 2026-10-27 EXEC 落码落卷 · **STOP=`closed`**（2026-10-27 §9-post post 双审双 PASS 会签翻终态·三处钉：Status 行+§8+本行·原值 `executed:awaiting_post_prove_dual`/起草态 `draft:awaiting_pre_exec_dual` 史录留痕不洗）· UC-E2E-050/051 kill-switch/无 PII 面 · 覆盖矩阵 §1.0.1 `:132` 聚合行 050/051 残余列 + §1.0.2 分面行缺席 + case-matrix §1.4 缺行 · 认领=050/051 NEG/FAULT/BOUND 可测面（kill 触发面 gap+no-pii 黄金路径/trace/堆栈面 gap·blind）· NOT claimed 登记=UC-050 ADV applications.start 绕行残余面（`applications.service.ts:44-58`·只登记零臂）+ UC-052 deletion/export/DELETE 面（出域 freeze 维持）· 修法=恰 2 case（`NHP-050-KILL-01` 触发面 503/三态 fail-closed/双闸优先序/零副作用 + `NHP-051-NOPII-01` 业务哨兵日志扫描/trace 脱敏直行使/堆栈原文面）· 一行一 case·docs+test-only·零产品码触 · §1.3 三否决+三域 Ban（UC-052 域/绕行面修复/图面二次实现）· egress 履行=零登记臂形（三模型钥词面码面零直书·片段运行时组装+_neg-harness 自剥·373 目 EXIT=0）· 双表同步令沿 §1.0.3 `:165` 已履行 · EXEC 立项并线=origin/main `e072e957f`（#151·#152 未在 main 如实采）→ merge `f39fcc0de` · base=origin/main `0246361dd` · 分支 `line/killsw-draft` · 工作树 `meetwise-killsw` · **EXEC 收据=NHP-050-KILL-01 EXIT=0 59 断言 + NHP-051-NOPII-01 EXIT=0 44 断言**（attempts 台账 §9.1 红次全录·红因全=harness 镜像夹具面零产品码红）· cap 2397→2402 恰等步进+越限臂联动 EXIT=0 · lint 承登 root 5306→5334 / api 1447→1475 · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · post-prove dual 席1（14 红次机证链——10 回执 digest 逐件比对除两 proof 外全零漂=零产品码红决定性+修复 1:1 映射亲读+七门亲跑含 lint 双恰等反证 1474/5333 EXIT=1·P2×6）+席2（独立复跑 uc050 59/0+安全面推演 K4 opaque/K1 时序/P 系零 PII+帽步进双恰等算术 +28/+28·P2×2）双 PASS 会签 2026-10-27 落卷（§9-post·P2 errata 三件随卷：:191→:192 锚漂勘正+矩阵日期「EXEC 落卷 2026-10-27」+uc050 :530「unset=off 合法形之一」措辞）· ⛔push ⛔force-push*

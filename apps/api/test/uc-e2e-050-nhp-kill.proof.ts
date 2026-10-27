@@ -527,7 +527,7 @@ type Ledger = { available: number; consumptionRows: number };
   const offChild = await runChild('off', undefined, P_OFF2, shellOff2, resO2.resumeId, false);
   A('CHILD', 'child(off/unset) exits cleanly', offChild.code === 0 && offChild.result !== null);
   const offChildBegin = offChild.result?.results.find((r) => r.arm === 'begin');
-  A('CHILD', 'child(off/unset) begin → 202 现状字节（spawn env 变体面·unset 唯一正确形）',
+  A('CHILD', 'child(off/unset) begin → 202 现状字节（spawn env 变体面·unset=off 合法形之一）',
     offChildBegin?.status === 202 && offChildBegin?.body?.accepted === true);
   A('CHILD', 'child(off) write audited by parent: exactly one start job for its shell',
     (await jobCountOf(shellOff2, 'start')) === 1);
