@@ -1,0 +1,60 @@
+
+> meetwise@0.1.0 uc001:nhp-perf-web:prove /Users/miaole/Desktop/golucky/meetwise-perfweb
+> node scripts/run-e2e-isolated.mjs uc001:nhp-perf-web:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_RESOURCE_CAPS target=uc001:nhp-perf-web:prove:raw docker_args=--cpus 2 --memory 4g
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-21896-1793101637755 on 127.0.0.1:33050
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-perfweb/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+UC001WEB_CAPS pg container=meetwise-e2e-21896-1793101637755 NanoCpus=2000000000 Memory=4294967296 ok=true
+UC001WEB_CAPS api published 127.0.0.1:33051 (keyless boot · caps 2cpu/4g)
+UC001WEB_CAPS api ready /livez ok
+UC001WEB_CAPS web published 127.0.0.1:33052 (container next build+start · build 在测量窗外 prep 段)
+UC001WEB_CAPS web ready / ok
+UC001WEB_CAPS written enforced=true api NanoCpus=2000000000 web NanoCpus=2000000000
+E2E_RESOURCE_CAPS target=uc001:nhp-perf-web:prove:raw docker_args=--cpus 2 --memory 4g (api+web child 面·PG runner 面)
+UC001WEB_D_BUILD disclosure: measured web bundle carries E2E_UI_STRESS=1 build-time inline (e2e-guard-only source) · NOT clean production bundle
+
+> @meetwise/web@0.0.0 prove:nhp-perf-web /Users/miaole/Desktop/golucky/meetwise-perfweb/apps/web
+> tsx test/nhp-perf-web.proof.ts
+
+UC-E2E-001 NHP-001-PERF-web-01 PERF_web 分面执行收据 (uc001 PERF_api 先例形 · nearest-rank · caps 三容器 2cpu/4GiB)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained
+读法钉: 回归守卫预算 ≠ 线上 SLO ≠ 真机容量 ≠ HA · 零模型零上游 fetch(STRESS 源 hermetic) · EXIT0=case≠covered · actualSpendCny=null
+D_BUILD_DISCLOSURE 量测构建携 __E2E_UI_STRESS__='1' build 期内联(e2e-guard-only 源) ≠ 洁净生产 bundle · next build 耗时在测量窗外(prep 段)
+CHROMIUM_HOST_DISCLOSURE Chromium 宿主驱动进程不封顶(单机 headless 单实例) · 单机 ≠ 真机容量
+PREP_DISCLOSURE signup prep 准入节律 1.05s/signup(api signup:global 桶 (60,1/s) 在树防滥用面·≤1/s refill) + 撞桶 ≤2 次有界重试(同 email)·测量窗外·c=1 串行不变 · api 容器 RL_SIGNUP_IP=1000,100(perf/E2E 启动档在树覆写口 auth.service.ts:11「仅 perf/E2E 启动档放宽并显式落档」·ip 桶非量测面)
+ATTEMPT_START  iso=2026-10-27T11:48:24.541Z · Ban retry-to-green · Ban fake-green · 负载参数冻结 N=100 c=1 warmup=10 runs=3 pixel5-P-OBS N=20
+
+PASS  [ISO] model-key-unset-in-process(self-deleted pre-proof · keyless 栈零外呼)
+PASS  [ISO] PERF_WEB_WEB_BASE present(三容器 caps child 传入 web 发布口)
+PASS  [ISO] caps enforced(三容器 PG+api+web Docker NanoCpus=2e9/Memory=4GiB · wrapper HostConfig inspect 亲证·非自报)
+PERF_RUN  surface=chromium run=1 N=100 c=1 p50=208.0ms p95=235.0ms p99=291.0ms max=460.0ms error_rate=0 timeout=0 passed=true
+PERF_RUN  surface=chromium run=2 N=100 c=1 p50=210.0ms p95=234.0ms p99=283.0ms max=403.0ms error_rate=0 timeout=0 passed=true
+PERF_RUN  surface=chromium run=3 N=100 c=1 p50=212.0ms p95=234.0ms p99=283.0ms max=344.0ms error_rate=0 timeout=0 passed=true
+PERF_OBS  surface=pixel5-P-OBS N=20 c=1 p50=209.0ms p95=240.0ms p99=288.0ms max=288.0ms error_rate=0 timeout=0 · 披露臂非预算判据(DISCLOSED)
+PASS  [PERF] Pixel 5 P-OBS 披露臂功能断言全过(N=20 · 零 error 零 timeout·五值仅观测披露)
+PASS  [PERF] 全部 3 runs p50 ≤ 15000ms
+PASS  [PERF] 全部 3 runs p95 ≤ 15000ms
+PASS  [PERF] 全部 3 runs p99 ≤ 15000ms
+PASS  [PERF] 全部 3 runs error_rate ≤ 0.5%
+PASS  [PERF] PERF 五值收据齐(p50/p95/p99/max/error_rate 逐 run 在卷·零空值)
+PASS  [PERF] 全部 3 runs per-sample 功能断言 all-pass(唯一 80 轮窗+题面全唯一+终态可见 · 零 error 零 timeout)
+RECEIPT  raw=/Users/miaole/Desktop/golucky/meetwise-perfweb/.tmp/uc001-perf-web-receipts/perf-receipt.json · caps=/Users/miaole/Desktop/golucky/meetwise-perfweb/.tmp/uc001-perf-web-receipts/_caps-evidence.json · tracked=ai-docs/delivery/receipts/nhp-001-perf-web-01/(gate stdout log·.log 非扫描面)
+
+ATTEMPT_END  iso=2026-10-27T11:54:30.204Z EXIT=0 total=10 fail=0
+PASS  NHP-001-PERF-web-01  PERF_web 分面执行收据 (N=100 c=1 runs=3 · caps 三容器 enforced · Pixel 5 P-OBS N=20)
+EVIDENCE_SHAPE  专用 proof 自启栈(隔离真 PG + api keyless + web production next build/start·E2E_UI_STRESS 期内联) + Playwright chromium 宿主(不封顶披露) · STRESS 源 hermetic 零上游 fetch 零模型 · c=1 串行(非降格·config :14-17 在树钉)
+ROW_STILL_GAP  UC-E2E-001 PERF_web blind/case-only 措辞保留(收据入账). NHP-PERF-WEB-SUITE 伞行零翻(实例≠伞). coveredCount=8.
+NOTE  EXIT0≠covered≠nail≠HA · Ban 借本收据宣 SLO/真机容量/生产 bundle 量测/伞闭合 · post dual still required · actualSpendCny=null
+
+CMD=pnpm uc001:nhp-perf-web:prove EXIT=0
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T11-54-30-626Z-21896-a773941a-dc9f-42cc-9c61-c046fa40e2a7.json release_evidence=false

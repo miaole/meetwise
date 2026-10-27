@@ -186,6 +186,18 @@
 
 双 PASS 会签（席1 修复解销裁定+席2 独立复跑对账）落卷 → **STOP 三处（Status 行+§8+卷尾）翻 `closed`**·原值 `executed:awaiting_post_prove_dual` 史录留痕不洗·alone≠dual 已解。
 
+## §9-post·并线承登段（2026-10-27 收官并线 origin/main `b36113958`·#162 perfweb/#163 x16-adv/#164 webhook-fault 已并）
+
+**届值如实采**：fetch EXIT=0·origin/main tip `b36113958`（≥派单预期 `124a3053e`·其后 #162/#163/#164 三线已并）·merge base=`f82d1a2c2`（#157 并线点·本支 `5a560411a` 已含）·merge-tree 预演恰 **4 处双改冲突**=root `package.json` lint 帽行+两 policy 脚本注记/cap 区+runner 注册区·`git merge --no-ff --no-commit` 实并同值·`pnpm install --frozen-lockfile` EXIT=0（508ms·lockfile 零漂）。
+
+**冲突四解（沿 #157/#162/#163/#164 先例形）**：① root `package.json` lint 帽行取大 `max(5379 本支, 5362 main)=5379`·脚本区 union 双留（本支 `uc033:nhp-adv` 两行+main 四新刀各行）·`apps/api/package.json`（api 帽 1520 本支承·main 仅 additive prove 行）与 `apps/web/package.json`（web 帽 605 main 承）自动并恰等；② 两 policy .mjs 注记栈 dual-keep 双留（本支 X33 起草/EXEC 注记+main X16/PERF-web/webhook-fault/uc003x CAP-SANCTION-2418/2420/2422/2424 注记并留）·`MAX_FILES` 届值取大承 2424；③ proof TC 四联动点随届值 2424 承接；④ runner 注册区 union（本支 `uc033:nhp-adv` 四位注册+main `uc003:nhp-neg`/`uc016:nhp-adv`/`uc001:nhp-perf-web`/`uc014:nhp-fault` 各位·isolatedReceiptSources 五新块/targets/isolatedCommand/pre-migrate 名单全并留）。
+
+**帽对账（合并树实测恰等步进·常设预授权随令行使）**：
+- **PTP cap**：`git add` 收敛后终验亲跑 docs:check `PTP_FILE_LIMIT:2427>2424` 红→**CAP-SANCTION-2427 恰等步进 2424→2427**（+3=本支互斥受管目 3：`harness/x33-adv-REQUEST.md`+`apps/api/test/uc-e2e-033-nhp-adv.proof.ts`+`receipts/uc033-nhp-adv/00-docker-info.txt`〔.txt∈TEXT_EXTENSIONS 计面〕·两 stdout 收据 .log 非扫描扩展名不计·双亲各自合规：main `b36113958` 届扫 2424=cap 恰等·本支 `5a560411a` 届扫 2419=cap 恰等）·两 policy 四联动点 2_427/f-2427.md/:2428 恰等改·复跑 docs:check **EXIT=0 scanned 2427=cap 恰等零余量**·PTP proof **12/12 EXIT=0**（2427/2428 双值全行使亲证）。
+- **lint 三帽取大后实测**：root 5379（取大本支）承入后合并树实测 **5383>5379**（+4=main 侧 #162-#164 四刀 proof warning 增量·0 errors）→**恰等步进 5379→5383**·复跑 root `pnpm lint` **EXIT=0 5383/5383 恰等 0 errors**；api **1520/1520 恰等 EXIT=0**（本支帽承入·main 1499 取大被本支覆盖·零步进）；web **605/605 恰等 EXIT=0**（main 帽承入·零步进）。
+- **egress inventory**：本支零登记（避词面臂·`e15956698` 形）·main 侧 additive 直并零冲突（`provider-egress-inventory.json` 单侧改）·合并树 proof 亲跑 **EXIT=0 environment_references=386**（main 侧 #162-#164 届值承入·本支零新增·union 无需补登）。
+- **turbo typecheck EXIT=0 8/8**·turbo lint 11/12（root 帽步进前红 5383>5379·步进后 root/api/web 三帽恰等复跑全 EXIT=0）·改动集冲突标记 **0**·两矩阵 additive 并留（NHP-033-ADV-01/X16/FAULT/PERF-WEB/NEG 各行齐·零 markers）·产品源 `apps/*/src`+`packages/*/src` 零 diff·coveredCount=8 零翻·pins 十一值零翻·est live=0。
+
 ---
 
 *X33-ADV REQUEST · 2026-10-27 起草落卷 · **STOP=`closed`**（2026-10-27 §9-post 双审双 PASS 会签落卷翻终态·三处钉：Status 行+§8+本行·原值 `executed:awaiting_post_prove_dual`/起草态 `draft:awaiting_pre_exec_dual` 史录留痕不洗·§9-post 承登）· NHP-033-ADV-01 七类越权补集（case-matrix ADV 行）· 七类逐类对树亲点=四已行使（正=对照臂 X2/X7/X8/W1 · 异=X7/W1/X9 fail-closed · 特=X2 空集+X11 体不泄露 · 刁=X1–X6 对抗主面）+三缺臂（**逃=缓存键/会话/trace·job 通道零臂 · 复=跨聚合格零臂 · 并=写路径竞态格零臂〔X10 只读 burst≠竞态〕**）· 补集=恰此三类·非零残余入卷 · 修法=恰 1 具名 case 三臂族新 proof（`uc033:nhp-adv`·沿 uc015/uc016 先例形）· **EXEC 落码：EXIT=0 61 断言双 fresh（implementer attempts=4+独立复验 attempts=1·红次台账 3 红如实承登）· 邻面三门恒等绿（X 族 51/neg:auth/neg:bend 179）· egress 避词面臂零登记· runner 四位+双 package.json 注册· 双表 additive partial 零翻**· 零产品码触·X 族+harness 零触·G-GAP 五钉零洗（SEVEN-CLASS 翻面权归协调方）· §1.3 否决含停止条件登记（A3 live worker 本地不可测 · LED 跨用户缝归 uc010 · full.e2e/sole-stack/PERF 出域）· cap 预算=起草 2409→2417 派单预授权+并线 union 恰等步进 **2417→2419 CAP-SANCTION-2419**· merge base=`origin/main` `5356fa8c5`（#156/#158/#159 三线收官）· merge `b62dfc139` · 分支 `line/x33-adv-draft` · 工作树 `meetwise-x33` · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · releaseEvidence=false · ≠HA · ⛔push*

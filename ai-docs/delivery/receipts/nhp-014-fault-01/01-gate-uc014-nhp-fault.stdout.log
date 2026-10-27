@@ -1,0 +1,61 @@
+
+> meetwise@0.1.0 uc014:nhp-fault:prove /Users/miaole/Desktop/golucky/meetwise-webhook-f
+> node scripts/run-e2e-isolated.mjs uc014:nhp-fault:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-30693-1793103868900 on 127.0.0.1:33063
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-webhook-f/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc014-nhp-fault /Users/miaole/Desktop/golucky/meetwise-webhook-f/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-014-nhp-fault.proof.ts
+
+NHP-014-FAULT-01 · 回调故障注入证据层（红冲不足→savepoint 回滚族：F1 零桶/F2 多桶部分红冲不足/F3 零可用·零半退）· releaseEvidence=false · Not HA
+CMD=pnpm uc014:nhp-fault:prove
+NOTE: EXIT0=case 证据≠covered≠翻行 · 格值 partial 保持 · Ban 借 F 臂宣「退款失败自动重试已证」（:174-178 面无重试语义·conflict 即确定性终态回应·重试归 PSP 侧）/「全量退款正确性背书」/ 借 PC 宣成功面新证据
+{"level":30,"time":1793103874693,"pid":30991,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:60500"}
+{"level":30,"time":1793103874703,"pid":30991,"hostname":"miaole.local","reqId":"6884f754-f831-4d3c-8314-a40676e36705","req":{"method":"POST","url":"/commerce/webhook/pay/FLT_PC","host":"127.0.0.1:60500","remoteAddress":"127.0.0.1","remotePort":60502},"msg":"incoming request"}
+{"level":30,"time":1793103874711,"pid":30991,"hostname":"miaole.local","reqId":"6884f754-f831-4d3c-8314-a40676e36705","res":{"statusCode":200},"responseTime":7.864583000000039,"msg":"request completed"}
+PASS  PC 产品口 pay 合法签 → 200 {result:credited}（管道活性对照·壳行种子活体自证）
+PASS  PC 壳行转 paid ∧ provider_txn 落列（产品路径 CAS 真行使）
+PASS  PC 产品路径落桶 +10（恰 1 桶 units_total=10·非注入路径）
+{"level":30,"time":1793103874715,"pid":30991,"hostname":"miaole.local","reqId":"f51fa194-a5a1-484c-9e06-0bf72df5cdf7","req":{"method":"POST","url":"/commerce/webhook/refund/FLT_PC","host":"127.0.0.1:60500","remoteAddress":"127.0.0.1","remotePort":60502},"msg":"incoming request"}
+{"level":30,"time":1793103874720,"pid":30991,"hostname":"miaole.local","reqId":"f51fa194-a5a1-484c-9e06-0bf72df5cdf7","res":{"statusCode":200},"responseTime":4.876749999999902,"msg":"request completed"}
+PASS  PC 合法签 refund 足额红冲 → 200 {result:refunded}（管道非假阴性对照·成功面=uc011 M1 已钉 zero claim）
+PASS  PC 终态 refunded ∧ refund_provider_txn 落列（对照臂收口）
+PASS  F1 夹具活体自证：owner 零桶（零桶形前提·:156 谓词前空集）
+{"level":30,"time":1793103874724,"pid":30991,"hostname":"miaole.local","reqId":"4d503d83-2b20-4ed2-86cb-adec4ed78ffc","req":{"method":"POST","url":"/commerce/webhook/refund/FLT_F1","host":"127.0.0.1:60500","remoteAddress":"127.0.0.1","remotePort":60502},"msg":"incoming request"}
+{"level":30,"time":1793103874729,"pid":30991,"hostname":"miaole.local","reqId":"4d503d83-2b20-4ed2-86cb-adec4ed78ffc","res":{"statusCode":409},"responseTime":4.703709000000117,"msg":"request completed"}
+PASS  F1 合法签 refund 零桶 → 409 {error:order_conflict}（CAS 命中rowCount=1 后空桶集→:175 回滚→:177 conflict→:166 口层 409）
+PASS  F1 非 500 ∧ 非 200 already（已写态被回滚撤销·非幂等重放语义·非泄漏 500）
+PASS  F1 五面快照恒等（status/provider_txn/refund流水全局/桶合计/全局 refund 行数——status 恒 paid·写态回滚）
+PASS  F1 refund_provider_txn 全局 0 行（CAS 写入被回滚·零落列）
+PASS  F1 桶零行恒等（owner 零桶不因失败臂生出桶）
+PASS  F2 夹具活体自证：两桶 avail 4.00+5.00 合计 9.00 < order.units 10（ck_bucket_capacity 合法形）
+{"level":30,"time":1793103874736,"pid":30991,"hostname":"miaole.local","reqId":"19e3acf9-4862-41a5-920e-c176b88a697b","req":{"method":"POST","url":"/commerce/webhook/refund/FLT_F2","host":"127.0.0.1:60500","remoteAddress":"127.0.0.1","remotePort":60502},"msg":"incoming request"}
+{"level":30,"time":1793103874741,"pid":30991,"hostname":"miaole.local","reqId":"19e3acf9-4862-41a5-920e-c176b88a697b","res":{"statusCode":409},"responseTime":5.59679200000005,"msg":"request completed"}
+PASS  F2 合法签 refund 总 avail 9<need 10 → 409 {error:order_conflict}（:160-172 逐桶 claw 尽 → remaining=1>0 → :173-177 回滚 conflict）
+PASS  F2 两桶 units_total 逐值恢复 4.00/5.00 恒等（部分 claw 已写入被 :175 savepoint 回滚撤销·零半退 :174）
+PASS  F2 桶行无半退残迹（reserved/consumed/version 恒 0/0/0·种子已提交行不在 savepoint 内·回滚只撤本事务 claw 写入）
+PASS  F2 五面快照恒等（status 恒 paid·桶合计恒 9.00·全局 refund 行数零增）
+PASS  F2 refund_provider_txn 全局 0 行（CAS 写入被回滚·零落列零跨单泄漏）
+PASS  F3 夹具活体自证：桶 total=10.00/consumed=10.00（过 ck_bucket_capacity :104·avail=0 零可用形合法）
+{"level":30,"time":1793103874747,"pid":30991,"hostname":"miaole.local","reqId":"1ba4ca16-2afb-4723-bbe0-9357da03eec4","req":{"method":"POST","url":"/commerce/webhook/refund/FLT_F3","host":"127.0.0.1:60500","remoteAddress":"127.0.0.1","remotePort":60502},"msg":"incoming request"}
+{"level":30,"time":1793103874752,"pid":30991,"hostname":"miaole.local","reqId":"1ba4ca16-2afb-4723-bbe0-9357da03eec4","res":{"statusCode":409},"responseTime":4.532790999999861,"msg":"request completed"}
+PASS  F3 合法签 refund 零可用 → 409 {error:order_conflict}（:156 avail>0 谓词过滤出空桶集→:173 回滚 conflict）
+PASS  F3 桶行零触（total/consumed/version 恒等·零 claw 行使零写放）
+PASS  F3 五面快照恒等（status 恒 paid·桶合计恒 10.00·全局 refund 行数零增）
+PASS  F3 refund_provider_txn 全局 0 行（CAS 写入被回滚·零落列）
+
+断言合计: 22 条, 失败 0 条
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
+非替代申明: BOUND（CAS 不中 lifecycle 族 B3–B6）· uc011 mouth/adv（足额红冲成功面+refund 口 400/403/404 全族）· NHP-011-LOAD（足额桶下并发风暴幂等）· neg-commerce（pay 口并发/跨单 23505 面）· uc014-adv C1–C7 = 旁证互不替代互不借用 · FAULT=进了红冲但桶不足的回滚族
+HONESTY: EXIT0 = NHP-014-FAULT-01 case 证据 · ≠ covered ≠ 翻行 · 格值 partial 保持 · coveredCount=8 不变
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T12-24-34-907Z-30693-3eadeeaf-7bc8-49f1-be42-683e23580378.json release_evidence=false

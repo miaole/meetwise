@@ -1,0 +1,170 @@
+
+> meetwise@0.1.0 uc003:nhp-neg:prove /Users/miaole/Desktop/golucky/meetwise-uc003x
+> node scripts/run-e2e-isolated.mjs uc003:nhp-neg:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-86627-1793092204125 on 127.0.0.1:33007
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/web@0.0.0 prove:uc003-nhp-neg /Users/miaole/Desktop/golucky/meetwise-uc003x/apps/web
+> tsx test/uc-e2e-003-nhp-neg.proof.ts
+
+UC-E2E-003 NHP-003-NEG-01 · NEG 契约符合性行使 · releaseEvidence=false · Not HA
+NOTE: 纯函数+静态源对账零 PG 零外呼零 key；EXIT0 = case ≠ covered；矩阵 :114 措辞零翻动
+
+──────── 前置锚 · 方法级 scope（uploadGate+三方法）与映射单源键域 ────────
+PASS  锚 uploadGate 方法标记在场（scope 起点 :38）
+PASS  锚 uploadFile 方法标记在场（:44）
+PASS  锚 uploadImageViaOcr 方法标记在场（:95）
+PASS  锚 uploadInTransaction 方法标记在场（:206）
+PASS  锚 uploadGate 令牌桶 15/0.1 参数形在场（:39）
+PASS  映射单源 zh map 恰 20 键
+PASS  映射单源 en map 恰 20 键
+PASS  映射单源 zh/en 键域 20/20 parity
+PASS  映射单源 en map 20 值全 CJK-free
+
+──────── N1 · 源扫对账（上传链 HttpException error 字面 · 方法级 scope） ────────
+PASS  scope 区源扫 HttpException error 字面恰 18 码
+PASS  scope 区源扫 18 码集合逐码恰等（EXPECTED_18）
+PASS  consent_required 在 scope 区出现 2 次（:107/:214 上传两门）
+PASS  not_found_or_forbidden ∉ scope 区（list/get/delete 面排除=非上传链产出）
+PASS  web 侧独有 4 码 ∉ scope 区（守卫/兜底/abort 面非 API 产出·如实披露）
+PASS  upload 链 scope 区非空（源读成立）
+
+──────── N1a · 16 已映射码 ∈zh∧∈en（绿断言） ────────
+PASS  N1a too_many_requests ∈ zh map 键
+PASS  N1a too_many_requests ∈ en map 键
+PASS  N1a empty_file ∈ zh map 键
+PASS  N1a empty_file ∈ en map 键
+PASS  N1a file_too_large ∈ zh map 键
+PASS  N1a file_too_large ∈ en map 键
+PASS  N1a server_busy ∈ zh map 键
+PASS  N1a server_busy ∈ en map 键
+PASS  N1a unsupported_file_format ∈ zh map 键
+PASS  N1a unsupported_file_format ∈ en map 键
+PASS  N1a parse_failed ∈ zh map 键
+PASS  N1a parse_failed ∈ en map 键
+PASS  N1a extracted_too_short ∈ zh map 键
+PASS  N1a extracted_too_short ∈ en map 键
+PASS  N1a extracted_too_long ∈ zh map 键
+PASS  N1a extracted_too_long ∈ en map 键
+PASS  N1a image_ocr_unavailable ∈ zh map 键
+PASS  N1a image_ocr_unavailable ∈ en map 键
+PASS  N1a consent_required ∈ zh map 键
+PASS  N1a consent_required ∈ en map 键
+PASS  N1a insufficient_entitlement ∈ zh map 键
+PASS  N1a insufficient_entitlement ∈ en map 键
+PASS  N1a ocr_duplicate ∈ zh map 键
+PASS  N1a ocr_duplicate ∈ en map 键
+PASS  N1a ocr_failed ∈ zh map 键
+PASS  N1a ocr_failed ∈ en map 键
+PASS  N1a ocr_binding_missing ∈ zh map 键
+PASS  N1a ocr_binding_missing ∈ en map 键
+PASS  N1a ocr_binding_invalid ∈ zh map 键
+PASS  N1a ocr_binding_invalid ∈ en map 键
+PASS  N1a ocr_no_content ∈ zh map 键
+PASS  N1a ocr_no_content ∈ en map 键
+
+──────── N1b · encrypted/magic_mismatch 缺位段（显式 gap 臂 · 产品契约缺口如实登记） ────────
+PASS  N1b encrypted ∉ zh map 键（blob 级亲证）
+PASS  N1b encrypted ∉ en map 键（blob 级亲证）
+PASS  N1b encrypted en 面 fail-closed 走 upload_failed 兜底（error 码透传+文案兜底）
+PASS  N1b encrypted zh 面同兜底（zh 文案 upload_failed 逐字）
+PASS  N1b magic_mismatch ∉ zh map 键（blob 级亲证）
+PASS  N1b magic_mismatch ∉ en map 键（blob 级亲证）
+PASS  N1b magic_mismatch en 面 fail-closed 走 upload_failed 兜底（error 码透传+文案兜底）
+PASS  N1b magic_mismatch zh 面同兜底（zh 文案 upload_failed 逐字）
+PIN   N1b 产品契约缺口登记：encrypted/magic_mismatch 两码 zh/en map 双侧缺位 → web 面 upload_failed 兜底——backlog 移交协调方（产品码修复出本刀界 · 零断言放宽 · gap→case-only 措辞仅经 EXEC）
+
+──────── N2 · 真信封 × locale=en：16 码 exact en 文案钉 + 2 缺位码 fallback 形 ────────
+PASS  N2 too_many_requests@429 en 文案 exact 钉（全等比较）
+PASS  N2 empty_file@400 en 文案 exact 钉（全等比较）
+PASS  N2 file_too_large@413 en 文案 exact 钉（全等比较）
+PASS  N2 server_busy@503 en 文案 exact 钉（全等比较）
+PASS  N2 unsupported_file_format@415 en 文案 exact 钉（全等比较）
+PASS  N2 parse_failed@422 en 文案 exact 钉（全等比较）
+PASS  N2 extracted_too_short@400 en 文案 exact 钉（全等比较）
+PASS  N2 extracted_too_long@413 en 真路由=413 状态优先 file_too_large 文案 exact 钉（:131 真行为）
+PASS  N2 extracted_too_long en map 本值 exact 钉（非 413 状态面·ERROR_MESSAGES_EN 全等）
+PASS  N2 image_ocr_unavailable@422 en 文案 exact 钉（全等比较）
+PASS  N2 consent_required@403 en 文案 exact 钉（全等比较）
+PASS  N2 insufficient_entitlement@402 en 文案 exact 钉（全等比较）
+PASS  N2 ocr_duplicate@409 en 文案 exact 钉（全等比较）
+PASS  N2 ocr_failed@422 en 文案 exact 钉（全等比较）
+PASS  N2 ocr_binding_missing@422 en 文案 exact 钉（全等比较）
+PASS  N2 ocr_binding_invalid@422 en 文案 exact 钉（全等比较）
+PASS  N2 ocr_no_content@422 en 文案 exact 钉（全等比较）
+PASS  N2 16 码 en 文案全 CJK-free（en 用户面零 zh 泄漏）
+PASS  N2 unsupported_file_format zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 extracted_too_short zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 extracted_too_long zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 image_ocr_unavailable zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 insufficient_entitlement zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 ocr_duplicate zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 ocr_failed zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 ocr_binding_missing zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 ocr_binding_invalid zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 ocr_no_content zh hint 字段零透传（API 中文提示不升格 en 用户面）
+PASS  N2 encrypted fallback 形：error 码透传 + message=upload_failed en 逐字
+PASS  N2 encrypted fallback 形：zh hint 零透传 + CJK-free
+PASS  N2 magic_mismatch fallback 形：error 码透传 + message=upload_failed en 逐字
+PASS  N2 magic_mismatch fallback 形：zh hint 零透传 + CJK-free
+PASS  N2 readResumeUploadErrorCode 对真信封逐码透传（18 码机器码提取）
+
+──────── N3 · 状态耦合（429/400/413/503/415/422/403/402/409 全域） ────────
+PASS  N3 429 → too_many_requests 码透传（状态↔码配对）
+PASS  N3 400 → empty_file 码透传（状态↔码配对）
+PASS  N3 503 → server_busy 码透传（状态↔码配对）
+PASS  N3 415 → unsupported_file_format 码透传（状态↔码配对）
+PASS  N3 422 → encrypted 码透传（状态↔码配对）
+PASS  N3 422 → magic_mismatch 码透传（状态↔码配对）
+PASS  N3 422 → parse_failed 码透传（状态↔码配对）
+PASS  N3 400 → extracted_too_short 码透传（状态↔码配对）
+PASS  N3 422 → image_ocr_unavailable 码透传（状态↔码配对）
+PASS  N3 403 → consent_required 码透传（状态↔码配对）
+PASS  N3 402 → insufficient_entitlement 码透传（状态↔码配对）
+PASS  N3 409 → ocr_duplicate 码透传（状态↔码配对）
+PASS  N3 422 → ocr_failed 码透传（状态↔码配对）
+PASS  N3 422 → ocr_binding_missing 码透传（状态↔码配对）
+PASS  N3 422 → ocr_binding_invalid 码透传（状态↔码配对）
+PASS  N3 422 → ocr_no_content 码透传（状态↔码配对）
+PASS  N3 413 → file_too_large 状态优先（:131 真行为）
+PASS  N3 413 + extracted_too_long → 仍 file_too_large（状态码先于 body 码）
+PASS  N3 非 413（400）+ extracted_too_long → body 码透传（413 门负对照）
+
+──────── N4 · zh 对照（抽样 · 列不翻纪律） ────────
+PASS  N4 too_many_requests × zh → zh 文案 exact 钉
+PASS  N4 unsupported_file_format × zh → zh 文案 exact 钉
+PASS  N4 image_ocr_unavailable × zh → zh 文案 exact 钉
+PASS  N4 insufficient_entitlement × zh → zh 文案 exact 钉
+PASS  N4 ocr_duplicate × zh → zh 文案 exact 钉
+PASS  N4 extracted_too_long × zh 真路由=413 状态优先（zh file_too_large 文案 exact 钉+CJK 在场）
+PASS  N4 extracted_too_long × zh map 本值 exact 钉（非 413 状态面）
+PASS  N4 抽样六码 en/zh 两形可分（映射层真二值）
+
+──────── F1 · abort/timeout 故障注入薄臂（en 面 · web-logic TC-RES-081 zh 缺省臂旁证互不替代） ────────
+PASS  F1 AbortError → isUploadTimeoutError true
+PASS  F1 TimeoutError → isUploadTimeoutError true
+PASS  F1 非超时 Error(network) → false（负判）
+PASS  F1 非 Error 形 → false
+PASS  F1 mapResumeUploadAbort(en) error=upload_timeout 透传
+PASS  F1 mapResumeUploadAbort(en) en 文案 exact 钉
+PASS  F1 en abort 文案 CJK-free
+PASS  F1 mapResumeUploadAbort(zh) zh 对照 exact 钉+CJK 在场
+PASS  F1 超时常量关系 35s>8s 双值 exact
+
+──────── D1-PF · resumeImageRefusedLocally 纯函数面（Case 2 D1 支撑 · r2 P2-4） ────────
+PASS  D1-PF en 臂 error=image_ocr_unavailable 码透传（落纯函数层）
+PASS  D1-PF en 臂 message exact 钉（=en map image_ocr_unavailable 逐字）
+PASS  D1-PF en 臂 CJK-free
+PASS  D1-PF zh 臂对照 exact 钉+CJK 在场
+PASS  D1-PF 与映射单源同源（mapResumeUploadError 码面互证）
+
+✓ NHP-003-NEG-01 全臂绿（129/129）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: EXIT0≠covered · §1.0.1 :114 行措辞零翻动（NEG gap→case-only 措辞仅经 EXEC · FAULT=blind 不因 F1 翻动）
+PIN: N1b 产品契约缺口（encrypted/magic_mismatch 缺位）backlog 移交协调方 · 非 EXIT1 · 零断言放宽
+PIN: 批 A ADV/web-logic TC-RES-081/静态 S4=旁证互不替代 · Ban 借本收据洗 UC-015/批 C ADV 列
+PIN: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T09-10-07-743Z-86627-9d9301a2-593b-484a-9a06-b148d9830f81.json release_evidence=false
