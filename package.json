@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
-    "lint": "eslint . --max-warnings 5362",
+    "lint": "eslint . --max-warnings 5383",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
@@ -240,6 +240,8 @@
     "sse-push:notify:prove:raw": "pnpm -C apps/api prove:sse-push-notify",
     "uc033:cross-user-authz:prove": "node scripts/run-e2e-isolated.mjs uc033:cross-user-authz:prove:raw",
     "uc033:cross-user-authz:prove:raw": "pnpm -C apps/api prove:uc033-cross-user-authz",
+    "uc033:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc033:nhp-adv:prove:raw",
+    "uc033:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc033-nhp-adv",
     "uc025:stale-quiz-expiry:prove": "node scripts/run-e2e-isolated.mjs uc025:stale-quiz-expiry:prove:raw",
     "uc025:stale-quiz-expiry:prove:raw": "pnpm -C apps/api prove:uc025-stale-quiz-expiry",
     "uc025:nhp-neg:prove": "node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs",

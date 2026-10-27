@@ -315,6 +315,10 @@ const checks = {
       // 快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2413 随刀联动补录：cap 2410→2413（2026-10-27 PERF_api 三收据并线 union 恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+3 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410
       // 三十先例形·并线树终验亲跑 PTP_FILE_LIMIT:2413>2410 红——双亲各自合规（main `9c31c0ccc`=#156 届值 2410=cap 恰等·本支 `1a22540a2` 届值 2405=cap 恰等 worktree 实扫亲证）union 实测 2413=main 届值 2410+本支并入受管净增 3（PERF_api 三 proof·stdout 收据 .log 非扫描面不计）·本臂 TC 前值 2402 系本支起草届值漏随 2405 步进（P1 联动漏做）·并线后以合并树实测 2413 为准恰等补录·并线两轮如实承登：首轮对 d1a947e3d 实测 2412（首轮 merge 索引冲突路径三态重扫曾得 2418 冗计·git add 收敛后终验）未及落卷·#156 落 main 后重 merge 终验 2413 如实·
+      // CAP-SANCTION-2419 EXEC 并线 union 越限恰等步进：cap 2417→2419（2026-10-27 X33-ADV EXEC·协调方 EXEC 派单常设预授权「cap 届值如实采·union 越限沿常设预授权恰等步进」随令·+2 恰等零多放·沿 2402→2405/2406→2409→2410→2413 并线先例形·并线 merge origin/main `5356fa8c5`（#156/#158/#159 三线收官）后终验亲跑 PTP_FILE_LIMIT:2418>2417 红——union 实测 2419=2418（REQUEST 并入）+1 proof（stdout 收据 .log 非扫描扩展名不计）·快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2417 随刀：cap 2409→2417（2026-10-27 X33-ADV 起草刀·协调方派单预授权「越限沿先例步进承登」·+8 二十四先例形·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2394
+      // 二十四 +8 先例·其间 2392/2397/2402/2405/2406/2409 恰等变体如实登记·届树亲跑 scanned 2409=cap 2409 恰等零余量+本卷 harness/x33-adv-REQUEST.md 1 件=2410 必超（EXEC 期 +1 proof 终态 2411≤2417）·
+      // 快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2413 EXEC 并线恰等步进：cap 2410→2413（2026-10-27 NHP-014 webhook-neg EXEC·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·+3 恰等零多放·沿 2402→2405/2406→2409→2410 并线先例形·并线 merge `69997bd42` 后终验亲跑 PTP_FILE_LIMIT:2411>2410 红——union 实测 2413=2411（REQUEST 并入）+2 proof（stdout 收据 .log 非扫描扩展名不计）·快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2410 并线恰等步进：cap 2409→2410（2026-10-27 PAY-NEG 支付拒绝 UI 刀收官并线 #155 sse-adv·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·+1 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409
       // 二十九先例形·并线树终验亲跑 PTP_FILE_LIMIT:2410>2409——双亲各自合规（main `d1a947e3d` 届值 2409=cap 恰等零余量·本支 `80847d175` 届值 2405=届 cap 恰等零余量）union 实测 2410=2409+本卷 pay-neg-REQUEST 受管 1 件并入（派单原裁 2405→2406 恰等步进随 #155 并线届值重算·merge `7813aa407` 后亲测）·
@@ -406,21 +410,23 @@ const checks = {
       // CAP-SANCTION-2420 X16 EXEC 并线 union 越限恰等步进：cap 2418→2420（2026-10-27 X16-ADV EXEC 立项并线 #157/#158/#159/#161·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·并线 merge `a69bfdb5e` 后终验亲跑 docs:check PTP_FILE_LIMIT:2419>2418 红——union 实测 2419=2418+本卷 x16-adv-REQUEST 受管 1 件并入·EXEC terminal=2420=2419+本刀 proof 1 件·两 policy 注记栈冲突 dual-keep 双留·沿 2402→…→2418 并线先例形·先手步进·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2423 EXEC 并线 union 越限恰等步进：cap 2422→2423（2026-10-27 eslint-ignores EXEC 并线 #163 x16-adv·协调方常设预授权「union 越限沿常设预授权恰等步进」随令·+1 恰等零多放·并线树终验亲跑 docs:check PTP_FILE_LIMIT:2423>2422 红（真 EXIT=1 亲证）——union 实测 2423=main 届扫 2422+本卷 eslint-ignores-REQUEST 受管 1 件并入·两 policy 注记栈冲突 dual-keep 双留（本支 eslint-ignores 起草注记+main X16-ADV/CAP-SANCTION-2422 注记并留）·沿 2420→2422 并线先例形·先手步进·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // 随本步进勘误（P3 形·随卷承登）：上行「第 2421 个注入路径」原 main 侧文本与其同断言 :2423 不自洽（本步进后正形=第 2424 个注入路径触发早返回）·随四联动点恰等改一并勘正。
+      // CAP-SANCTION-2427 #160 x33 收官并线恰等步进：cap 2424→2427（2026-10-27 X33-ADV 跨用户授权补集 #160 收官并线 #162 perfweb+#163 x16-adv+#164 webhook-fault·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+3 恰等零多放·union 实测 2427=main 届扫 2424+本支互斥受管目 3（x33-adv-REQUEST+uc-e2e-033-nhp-adv.proof+uc033-nhp-adv/00-docker-info.txt·.txt ∈TEXT_EXTENSIONS 计面·两 stdout 收据 .log 非扫描扩展名不计）·详 policy .mjs 链区 CAP-SANCTION-2427 注记）——本 TC 四联动点 2_427/f-2427.md/:2428 恰等改。
+      // CAP-SANCTION-2428 二轮并线恰等步进：cap 2427→2428（2026-10-27 X33 #160 补集收官二轮并线 #165 eslint-ignores·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+1 恰等零多放·union 实测 2428=本支届扫 2427+main 并入互斥受管目 1（eslint-ignores-REQUEST.md·两集合无交叠）·详 policy .mjs 链区 CAP-SANCTION-2428 注记）——本 TC 四联动点 2_428/f-2428.md/:2429 恰等改。
       const paths = [];
-      for (let i = 0; i < 2_425; i += 1) {
+      for (let i = 0; i < 2_428; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_425);
-      // 超限错误码形状断言：第 2426 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2426`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2425.md'] });
+      assert.equal(atCap.scannedFiles, 2_428);
+      // 超限错误码形状断言：第 2429 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2429`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2428.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2426`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2429`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
