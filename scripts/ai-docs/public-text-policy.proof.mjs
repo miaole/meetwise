@@ -371,21 +371,23 @@ const checks = {
       // CAP-SANCTION-2405 并线 union 越限恰等步进：cap 2402→2405（2026-10-27 killsw 开关刀并线 #152 clock-e2e·协调方并线令预授权「union 越限预授权恰等步进+承登」随令·
       // 并线树终验亲跑 PTP_FILE_LIMIT:2405>2402 红·双亲各自合规（本支 d41a4511f 届值 2400≤2402·main 961f5ef12 届值 2402=cap 零余量）union 实测 2405=2400+clock 并入受管 5·
       // 计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2411 随刀：cap 2410→2411（2026-10-27 webhook-fault 回调故障注入刀起草随刀·协调方派单预授权「届值·越限沿先例步进承登预授权」随令·+1 恰等零多放·沿 2208…2410 三十先例形·
+      // 本树起草前亲跑 check-docs EXIT=0 scanned 2410=cap 恰达零余量·本卷新 REQUEST .md +1 必越限·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_410; i += 1) {
+      for (let i = 0; i < 2_411; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_410);
-      // 超限错误码形状断言：第 2411 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2411`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2410.md'] });
+      assert.equal(atCap.scannedFiles, 2_411);
+      // 超限错误码形状断言：第 2412 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2412`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2411.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2411`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2412`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

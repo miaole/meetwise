@@ -168,7 +168,9 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2402→2405（2026-10-27 killsw 开关刀并线 #152 clock-e2e union 越限恰等步进·协调方并线令预授权「union 越限预授权恰等步进+承登」随令·
 // 并线树终验亲跑 PTP_FILE_LIMIT:2405>2402 红·双亲各自合规（本支 d41a4511f 届值 scanned 2400≤2402·main 961f5ef12 届值 2402=cap 零余量）union 实测 2405=本支届值 2400+clock 并入受管 5（REQUEST+proof+txt/json 收据三件）·
 // 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_410;
+// cap 2410→2411（2026-10-27 webhook-fault 回调故障注入刀起草随刀·协调方派单预授权「届值·越限沿先例步进承登预授权」随令·+1 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410
+// 三十先例形·本树起草前亲跑 check-docs EXIT=0 scanned 2410=cap 恰达零余量·本卷新 REQUEST .md +1 必越限·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_411;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
