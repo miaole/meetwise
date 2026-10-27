@@ -110,7 +110,7 @@
 |---------|---------|----|----|------------|--------------|--------|----------|
 | NHP-031-ADV-01 | 031/032 | ADV | api/eval | 注入/越狱结构面 | GuardrailHit 或业务拒；**质量归 ai-eval** | **gap**(e2e)/**partial**(eval) | 禁 fake-model 冒充 |
 | NHP-033-NEG-01 | 033 | NEG | api | 跨用户资源 | 404/403 不泄露 | **partial** | X1–X11 |
-| NHP-033-ADV-01 | 033 | ADV | api | 七类越权未齐补集 | 系统化矩阵 | **partial**（未齐） | harness §1b |
+| NHP-033-ADV-01 | 033 | ADV | api | 七类越权未齐补集（三缺臂类专用格：并=写路径竞态格/复=跨聚合账本格/逃=缓存键·会话·trace·job 逃逸通道格） | PC=A 产品 begin 真预留+双 abandon 恰一 released/alreadyAbandoned+A∥A begin quiz 单胜者/alreadyBegun 同口 202；R1=B 18 臂并行越权写全 404（turn 臂预算 ≤30 减余量分口）；X1=B own-shell bind 他人 resume 双口 409 零绑定；X2=sweep 窗口前后 A 九聚合快照相等+owner 审计；E1=status 翻面广播 ≤1s 401 account_inactive+复活对称+跨主体零窜扰；E2=jti logout 401 session_revoked+零扰；E3=job 写面绑定 owner+reqId 腿 | **partial**（未齐）（**三缺臂类 case 证据已落（2026-10-27 EXEC）**：`pnpm uc033:nhp-adv:prove` **EXIT=0 · 61 断言**（双 fresh·implementer attempts=4（3 红次=壳内夹具 ACL×2/竞态口形+净账算术修正·零断言谓词迁就）+独立复验 attempts=1）· 主体 provenance=signup 产品口（C1/C2/B3 真哈希+jti 会话行）· resume 夹具产品口沿 uc016 形 · **EXIT0=case≠covered·partial 措辞保留+收据注·SEVEN-CLASS 翻面权归协调方·coveredCount=8 不变·post-prove dual 待审** · 收据 `ai-docs/delivery/receipts/uc033-nhp-adv/`） | `pnpm uc033:nhp-adv:prove`（三臂族·与本行既有 X 族 `pnpm uc033:cross-user-authz:prove` 互不替代：X10 只读 burst≠写竞态·X9 读 0 行≠写绑定·X11 体不泄露≠通道全路径）· `neg:auth`/`neg:bend` 旁证 · harness §1b |
 | NHP-033-BOUND-01 | 033 | BOUND | api | X10 burst | 稳定拒；**≠** 容量 SLO | **partial**/**gap**(PERF) | X10 |
 | NHP-033-FAULT-01 | 033 | FAULT | worker | A3 live worker 越权 | job RLS 闭环 | **blind**→**case-only** | W1≠闭环 |
 | NHP-050-NEG-01 | 050–052 | NEG | api | DELETE 公开擦除 | **必须 503**（honesty-pin） | **partial**/honesty-pin | privacy-erasure:http + uc052 NEG-01 |

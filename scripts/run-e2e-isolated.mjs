@@ -1195,6 +1195,29 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // X33-ADV 七类越权补集三臂族（NHP-033-ADV-01 · 并竞态/复跨聚合/逃逸通道 · 一行一 case 一收据）。
+  // 隔离 PG 真 HTTP 三层壳；proof 内 additive 重放 0121/0154/0189+begin 链面（interview 五列/v64/0049 绑定/0142 route）。
+  'uc033:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-033-nhp-adv.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/quiz/quiz.service.ts', 'apps/api/src/modules/quiz/quiz.controller.ts',
+    'apps/api/src/modules/diagnosis/diagnosis.service.ts', 'apps/api/src/modules/diagnosis/diagnosis.controller.ts',
+    'apps/api/src/modules/auth/auth.service.ts', 'apps/api/src/modules/auth/auth.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/modules/commerce/commerce.controller.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/auth-session.ts',
+    'apps/api/src/platform/sse-notify.service.ts',
+    'packages/domain/src/candidate-profile-route.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/interview/interview-jobs.ts', 'packages/db/src/jobs/quiz-jobs.ts', 'packages/db/src/jobs/diagnosis-jobs.ts',
+    'packages/db/src/routing/candidate-route.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+    'packages/db/migrations/0154_trial_bucket_grant.sql',
+    'packages/db/migrations/0189_api_harden_shared_state.sql',
+  ],
   'uc014:nhp-bound:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-014-nhp-bound.proof.ts',
@@ -2791,6 +2814,8 @@ if (![
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · 一行一 case 一收据）。
   'uc014:nhp-neg:prove:raw',
   'uc014:nhp-bound:prove:raw',
+  // X33-ADV 七类越权补集三臂族（NHP-033-ADV-01 · 并竞态/复跨聚合/逃逸通道 · 一行一 case 一收据）。
+  'uc033:nhp-adv:prove:raw',
   // webhook-fault 刀一行（NHP-014-FAULT-01 · 一行一 case 一收据）。
   'uc014:nhp-fault:prove:raw',
   // UC-028 一刀三 case（INJECT/RECON/TRUTH-BLOCK·沿 uc028:nhp-fault 同形注册）。
@@ -3219,6 +3244,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-nhp-neg']]
   : target === 'uc014:nhp-bound:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-nhp-bound']]
+  : target === 'uc033:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc033-nhp-adv']]
   : target === 'uc014:nhp-fault:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-nhp-fault']]
   : target === 'uc001:nhp-perf-api:prove:raw'
@@ -4128,6 +4155,8 @@ async function main() {
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc014:nhp-neg:prove:raw', 'uc014:nhp-bound:prove:raw',
+  // X33-ADV 七类越权补集三臂族（NHP-033-ADV-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
+  'uc033:nhp-adv:prove:raw',
   // webhook-fault 刀一行（NHP-014-FAULT-01 · pre-migrate 名单第四注册位·沿 webhook-neg 同形全登记）。
   'uc014:nhp-fault:prove:raw',
   // PERF-web 执行收据刀（NHP-001-PERF-web-01 · pre-migrate 名单第四注册位·沿批 C/uc001 PERF_api 同形全登记：
