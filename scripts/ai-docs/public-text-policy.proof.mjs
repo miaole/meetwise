@@ -420,21 +420,25 @@ const checks = {
       // CAP-SANCTION-2432 rcload EXEC 立项并线+落码面恰等步进：cap 2430→2432（2026-10-28 worker 负载伞首刀 route-classify EXEC·fetch EXIT=0·届值如实采：origin/main 351501976（#168 recon-flip 已并）承 2430=cap 恰等·本支 e6f217633 承 2429=cap 恰等（双亲各自合规）·merge-tree 预演 EXIT=0 但 auto-merge 于 cap 行误留本支 2429（如实承登）·真实 merge 恰 2 处冲突 dual-keep 双留（本支 CAP-SANCTION-2429 注记+main CAP-SANCTION-2426/2430 注记并留·先例形）·EXEC terminal=main 届扫 2430+本支 rcload-REQUEST 1+本刀主证 proof 1（nhp-load-worker-rc01.proof.ts）=2432 恰等（真跑收据 .log 非扫描扩展名不计）·详 policy .mjs 链区 CAP-SANCTION-2432 注记·常设预授权随令行使）——本 TC 四联动点 2_432/f-2432.md/:2433 恰等改。
       // CAP-SANCTION-2436 XREP 跨副本 SSE 起草步进：cap 2428→2436（2026-10-28 XREP 跨副本 SSE 槽/播双 OS 进程证明起草刀·协调方派单预授权「越限沿先例步进承登」随令·+8 三十一先例形·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2394/2402/2410/2418/2428 快速链·其间 2392/2397/2405/2406/2409 等恰等变体如实登记·届树亲跑 scanned 2428=cap 恰等零余量+本卷 harness/xrep-REQUEST.md 受管 1 件=2429 必超（EXEC 期 +1 proof=2430≤2436·余 6 在飞共享余量沿 cap 2152 先例形）·详 policy .mjs 链区 CAP-SANCTION-2436 注记）——本 TC 四联动点 2_436/f-2436.md/:2437 恰等改。
       // XREP EXEC 立项并线取大承登（随 policy .mjs 链区同记）：merge --no-ff 恰 2 处冲突=两 policy 脚本注记/cap 区 dual-keep 双留·cap 取大 2_436（本支起草步进在先）·union 实测 2433≤2_436 零越限·EXEC 期 +1 proof=2434≤2_436·四联动点 2_436/f-2436.md/:2437 取大零改·本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2438 起草刀越限步进：cap 2430→2438（2026-10-26 回调安全日志接线起草刀 GAP-UC014-AUDIT-EMIT·协调方派单预授权「越限沿先例步进承登」随令行使·+8 沿 CAP-SANCTION-2417/2418 起草刀 +8 同形·union 实测 2431=origin/main 351501976 届扫 2430（=cap 恰等零余量亲证）+本卷 harness/audit-log-REQUEST.md 受管 1 件·EXEC 期 +1 可选 proof 终态 2432≤2438（stdout 收据 .log 非扫描扩展名不计）·详 policy .mjs 链区 CAP-SANCTION-2438 注记）——本 TC 四联动点 2_438/f-2438.md/:2439 恰等改。
+      // CAP-SANCTION-2438 audit-log post 会签后并线届值取大承登：本支 2_438＞main 届值 2_432（CAP-SANCTION-2432 注记并留上）→ 合并树取大恒 2_438·本 TC 四联动点 2_438/f-2438.md/:2439 零再改（2026-10-28 audit-log post 双审双 PASS 会签后并线·dual-keep 双留先例形）。
+      // XREP 收官并线届值取大承登（随 policy .mjs 链区同记·2026-10-28 xrep 卷 post 双审双 PASS 会签后并线）：main 届值 2_438（#171 audit-log 起草链已并·上注）＞本支 2_436（XREP 起草链·上注）→ 合并树取大恒 2_438 零再步进·union 实测=main 届扫 2433+本支并入互斥受管目 2（harness/xrep-REQUEST.md+apps/api/test/sse-cross-replica.proof.ts·两集合无交叠）=2435≤2_438 零越限零多放·本 TC 四联动点 2_438/f-2438.md/:2439 取大零改（本支 2_436 链注记史录并留·PTP 12/12 对 2_438 行使）。
       const paths = [];
-      for (let i = 0; i < 2_436; i += 1) {
+      for (let i = 0; i < 2_438; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_436);
-      // 超限错误码形状断言：第 2437 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2437`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2436.md'] });
+      assert.equal(atCap.scannedFiles, 2_438);
+      // 超限错误码形状断言：第 2439 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2439`（`${CODE}:${n}` 形）·scannedFiles:0。
+      // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2438.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2437`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2439`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
