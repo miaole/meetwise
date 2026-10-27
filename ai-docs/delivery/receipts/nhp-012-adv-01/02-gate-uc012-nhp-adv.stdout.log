@@ -1,0 +1,86 @@
+
+> meetwise@0.1.0 uc012:nhp-adv:prove /Users/miaole/Desktop/golucky/meetwise-reassess
+> node scripts/run-e2e-isolated.mjs uc012:nhp-adv:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-50476-1793055811337 on 127.0.0.1:32932
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-reassess/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:uc012-nhp-adv /Users/miaole/Desktop/golucky/meetwise-reassess/apps/worker
+> tsx test/uc-e2e-012-nhp-adv.proof.ts
+
+NHP-012-ADV-01 UC-E2E-012/024 ADV prove (A1-A4 · 缝 D 0046 闸对抗 · Ban live)
+Pins: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :118 措辞零翻动 · EXIT0≠covered
+PASS  L0 零模型: 三键（MODEL_API_KEY/DASHSCOPE_API_KEY/DASHSCOPE_COMPAT_BASE_URL）入场均不在场
+
+──────── A1 · unscored 在场流直 UPDATE→completed → 23514 interview_completion_requires_all_answers_scored（:118-:139） ────────
+PASS  [a1] 夹具自检: 种子后 availability=5.0
+PASS  [a1] 守护① 壳行插入态='created'
+PASS  [a1] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [a1] API identity ledger 接受
+PASS  [a1] 消费 answer job 走通（mid-flight 前提）
+PASS  A1 前提: answer_unscored 在场恰一（产品路径 unknown 收敛 · :531-:535 臂）
+PASS  A1 前提: consumption 无行（配对触发器 NULL 放行 · 隔离完成闸本体）
+PASS  A1 前提: OLD.status 非 completed（mid-flight）
+PASS  A1 闸拒绝（抛错在场）
+PASS  A1 errcode 23514（check_violation 类 · USING ERRCODE）
+PASS  A1 具名消息: interview_completion_requires_all_answers_scored（:130 字面）
+PASS  A1 全事务回滚: status 零漂（仍 mid-flight · 未落 completed）
+PASS  A1 零部分写: unscored 计数恒（零事件清洗/改写）
+EVIDENCE A1-ERR {"code":"23514","message":"interview_completion_requires_all_answers_scored"}
+
+──────── A2 · (failed, reserved) 直写拒 → 23514 invalid_interview_consumption_pair（:144-:172） ────────
+PASS  [a2] 夹具自检: 种子后 availability=5.0
+PASS  [a2] 守护① 壳行插入态='created'
+PASS  [a2] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [a2] API identity ledger 接受
+PASS  [a2] 消费 answer job 走通（mid-flight 前提）
+PASS  A2 前提: consumption=reserved（产品路径 reserve 落）
+PASS  A2 前提: 零 unscored（隔离被测闸=配对触发器 · 完成闸不在本臂路径）
+PASS  A2 闸拒绝（抛错在场）
+PASS  A2 errcode 23514
+PASS  A2 具名消息前缀: invalid_interview_consumption_pair（failed requires released · :167-:170）
+PASS  A2 全事务回滚: status 零漂 · consumption 仍 reserved
+PASS  A2 额度零误退: availability 恒 4.0（零释放零双扣）
+EVIDENCE A2-ERR {"code":"23514","message":"invalid_interview_consumption_pair: failed requires released, got reserved"}
+
+──────── A3 · 正控: 零 unscored 流同形直写 → completed 成功（闸按证据条件触发 · 非篡改检测） ────────
+PASS  [a3] 夹具自检: 种子后 availability=5.0
+PASS  [a3] 守护① 壳行插入态='created'
+PASS  [a3] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  [a3] API identity ledger 接受
+PASS  [a3] 消费 answer job 走通（mid-flight 前提）
+PASS  A3 前提: answer_evaluated 在场恰一 · 零 unscored
+PASS  A3 前提: consumption 无行
+PASS  A3 同形 UPDATE 成功（零抛错 · 与 A1 唯一差异=unscored 证据面）
+PASS  A3 终态落 completed（闸证据条件触发实证 · 0046 不做篡改检测）
+PASS  A3 前提态曾非 completed（OLD.status≠completed 路径真实经过）
+
+──────── A4 · 重复 bypass 幂等拒（A1/A2 流二次直写仍 23514 · 全态恒零部分写） ────────
+PASS  A4 A1 流二次直写仍拒（errcode 23514 · 具名消息同）
+PASS  A4 A1 流零部分写: status/unscored 恒
+PASS  A4 A2 流二次直写仍拒（errcode 23514 · 配对消息同）
+PASS  A4 A2 流零部分写: status/consumption/额度恒
+
+──────── INTEGRITY · 全案终态总账（A1/A2 拒后不悬挂不部分写 · A3 正控唯一 completed） ────────
+PASS  INTEGRITY A1: 终态仍 mid-flight（未 completed 未 failed · 零悬挂写）
+PASS  INTEGRITY A2: 终态仍 mid-flight · consumption=reserved（零误释放）
+PASS  INTEGRITY A3: completed 恰一（正控流）
+PASS  INTEGRITY 额度总账: a1/a3=5.0（无 reserve）· a2=4.0（reserved 占用恒）
+PASS  INTEGRITY 零直写 completed 污染: 仅 a3 一流 completed
+
+✓ NHP-012-ADV-01 全臂绿（45/45）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: ADV cell blind→case-only · EXIT0≠covered · §1.0.1 :118 措辞零翻动 · coveredCount=8
+PIN: 语义钉=补评证据在场 ⇒ 对抗直写亦不得落 paid-completed（0046 :114-:116 具名对抗对象）
+PIN: A3 正控前提=consumption 无行（具名入收据）· 闸按证据条件触发非按篡改检测（D3）
+PIN: haStatus=NOT_HA · releaseEvidence=false · alone≠dual · ⛔push
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T23-03-37-175Z-50476-d354a87b-ba37-4aae-8cce-e451fd313744.json release_evidence=false
+ADV_ATTEMPT1_EXIT=0

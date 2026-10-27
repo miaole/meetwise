@@ -2226,6 +2226,51 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/uc-e2e-012-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/worker/test/uc-e2e-012-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "apps/worker/test/uc-e2e-012-nhp-neg.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/uc-e2e-012-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/worker/test/uc-e2e-012-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "apps/worker/test/uc-e2e-012-nhp-bound.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/worker/test/uc-e2e-012-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/worker/test/uc-e2e-012-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "apps/worker/test/uc-e2e-012-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/api/test/uc-e2e-030-nhp-fault.proof.ts",
       "class": "test-isolation"
     },
