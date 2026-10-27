@@ -168,7 +168,11 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2402→2405（2026-10-27 killsw 开关刀并线 #152 clock-e2e union 越限恰等步进·协调方并线令预授权「union 越限预授权恰等步进+承登」随令·
 // 并线树终验亲跑 PTP_FILE_LIMIT:2405>2402 红·双亲各自合规（本支 d41a4511f 届值 scanned 2400≤2402·main 961f5ef12 届值 2402=cap 零余量）union 实测 2405=本支届值 2400+clock 并入受管 5（REQUEST+proof+txt/json 收据三件）·
 // 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_410;
+// cap 2410→2413（2026-10-26 PERF-web 起草卷随刀先手步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」承登·
+// 本树届值亲跑 scanned 2410=cap 2410 恰等零余量+本卷 harness/perfweb-REQUEST.md 1 件=2411 必超·算式=REQUEST 1（本刀起草）+EXEC 期 proof 1+EXEC 期 tracked receipt 若落 text-extension 1=2413 恰等 terminal·
+// x33-adv-draft 先手步进先形+killsw 算式先形·在飞三线登记（perf3=2413/x33=2417/webhook=2410·并线 union 届时按 standing rule 重测）·
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_413;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
