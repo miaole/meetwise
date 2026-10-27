@@ -1079,6 +1079,40 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // PERF_api 三收据刀（UC-011/017/019）：主链 keyless HTTP 嘴 PERF 五值（N=100 c=10 runs=3 · capped child
+  // 2cpu/4GiB · wrapper 运行时内联源落 .tmp 收据·零 tracked scripts wrapper·沿 uc001 同形注册）。
+  'uc011:nhp-perf-api:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-011-nhp-perf-api.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/uuid.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0142_candidate_profile_route.sql',
+  ],
+  'uc017:nhp-perf-api:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-017-nhp-perf-api.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview-report.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/uuid.ts',
+    'apps/worker/src/commerce-reconcile.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0142_candidate_profile_route.sql',
+  ],
+  'uc019:nhp-perf-api:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-019-nhp-perf-api.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview-report.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+  ],
   // NHP 开关刀 Row 1（UC-050 KILL · gap→case）：kill-switch 触发面 503/三态 fail-closed/双闸优先序/
   // 净账审计。隔离 PG 真 HTTP + 子进程 env 变体（obs-logging spawn 形·子进程源运行时落 .tmp）。
   'uc050:nhp-kill:prove:raw': [
@@ -2692,6 +2726,10 @@ if (![
   'uc016:nhp-neg:prove:raw',
   'uc015:nhp-adv:prove:raw',
   'uc001:nhp-perf-api:prove:raw',
+  // PERF_api 三收据刀（UC-011 begin 主链 · UC-017 报告链 · UC-019 重试链 · 沿 uc001 先例形注册·一行一 case 一收据）。
+  'uc011:nhp-perf-api:prove:raw',
+  'uc017:nhp-perf-api:prove:raw',
+  'uc019:nhp-perf-api:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
   'uc050:nhp-kill:prove:raw',
   'uc051:nhp-nopii:prove:raw',
@@ -2808,6 +2846,92 @@ spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
 process.exit(start.status ?? 1);
 `;
 
+// PERF_api 三收据刀（UC-011 begin 主链 / UC-017 报告链 / UC-019 重试链）：uc001 capped child 先例形
+// 参数化复用（沿形不触 uc001 常量本体）·wrapper 仍运行时内联源落各自 .tmp 收据目录·零 tracked scripts wrapper。
+const PERF_API_CAPS_CHILD_SRC = (ucId, proofFile) => `
+import { spawnSync, execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+const ROOT = process.cwd();
+const RAW_DIR = join(ROOT, '.tmp/${ucId}-perf-api-receipts');
+const CAPS_PATH = join(RAW_DIR, '_caps-evidence.json');
+const API_NAME = 'meetwise-${ucId}-perf-api-' + process.pid + '-' + Date.now();
+const CPUS = '2';
+const MEMORY = '4g';
+const NANO_CPUS_EXPECTED = 2_000_000_000;
+const MEMORY_EXPECTED = 4 * 1024 * 1024 * 1024;
+const NODE_IMAGE = process.env.${ucId.toUpperCase()}_PERF_NODE_IMAGE || 'node:20-bookworm';
+mkdirSync(RAW_DIR, { recursive: true });
+writeFileSync(join(RAW_DIR, '_caps-child.source.mjs'), 'wrapper-inline-source · uc001 capped child 先例形参数化 · ${ucId} PERF_api 收据(.tmp 生成·零 tracked scripts wrapper)\\n');
+function inspectHostConfig(name) {
+  try {
+    return JSON.parse(execFileSync('docker', ['inspect', '--format', '{{json .HostConfig}}', name], { encoding: 'utf8' }).trim());
+  } catch (e) {
+    return { error: String(e?.message || e) };
+  }
+}
+function capsOk(hc) {
+  if (!hc || hc.error) return false;
+  return Number(hc.NanoCpus || 0) === NANO_CPUS_EXPECTED && Number(hc.Memory || 0) === MEMORY_EXPECTED;
+}
+const pgContainer = process.env.E2E_TEST_CONTAINER;
+if (!pgContainer) {
+  writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker: 'E2E_TEST_CONTAINER_missing' }, null, 2) + '\\n');
+  console.error('${ucId.toUpperCase()}_CAPS: E2E_TEST_CONTAINER missing');
+  process.exit(1);
+}
+const pgHost = inspectHostConfig(pgContainer);
+const pgEnforced = capsOk(pgHost);
+console.log('${ucId.toUpperCase()}_CAPS pg container=' + pgContainer + ' NanoCpus=' + pgHost.NanoCpus + ' Memory=' + pgHost.Memory + ' ok=' + pgEnforced);
+const pull = spawnSync('docker', ['image', 'inspect', NODE_IMAGE], { stdio: 'ignore' });
+if (pull.status !== 0) {
+  console.log('${ucId.toUpperCase()}_CAPS pulling ' + NODE_IMAGE + '…');
+  const p = spawnSync('docker', ['pull', NODE_IMAGE], { stdio: 'inherit' });
+  if (p.status !== 0) {
+    writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker: 'node_image_pull_failed', nodeImage: NODE_IMAGE, pg: { container: pgContainer, NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory } }, null, 2) + '\\n');
+    process.exit(1);
+  }
+}
+const passEnv = ['E2E_ISOLATED', 'E2E_TEST_CONTAINER', 'E2E_TEST_TARGET_TOKEN', 'E2E_ISOLATION_STACK', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE', 'DATABASE_SSL_MODE', 'PATH', 'HOME', 'NODE_OPTIONS'];
+const create = [
+  'create', '--name', API_NAME, '--cpus', CPUS, '--memory', MEMORY,
+  '--add-host=host.docker.internal:host-gateway',
+  '-v', ROOT + ':' + ROOT,
+  '-w', join(ROOT, 'apps/api'),
+  '-u', (process.getuid ?? (() => 1000))() + ':' + (process.getgid ?? (() => 1000))(),
+];
+for (const k of passEnv) {
+  if (process.env[k] != null && process.env[k] !== '') create.push('-e', k + '=' + process.env[k]);
+}
+create.push('-e', 'PGHOST=host.docker.internal');
+create.push(NODE_IMAGE, 'node', '--import', '@swc-node/register/esm-register', '${proofFile}');
+const cr = spawnSync('docker', create, { cwd: ROOT });
+if (cr.status !== 0) {
+  console.error(cr.stderr || cr.stdout);
+  writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker: 'api_container_create_failed', stderr: String(cr.stderr || '').slice(0, 500), pg: { container: pgContainer, NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory, ok: pgEnforced } }, null, 2) + '\\n');
+  process.exit(1);
+}
+const apiHost = inspectHostConfig(API_NAME);
+const apiEnforced = capsOk(apiHost);
+const enforced = pgEnforced && apiEnforced;
+writeFileSync(CAPS_PATH, JSON.stringify({
+  enforced,
+  method: 'docker --cpus=2 --memory=4g',
+  declared: { cpus: 2, memoryGiB: 4 },
+  pg: { container: pgContainer, HostConfig: { NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory }, ok: pgEnforced },
+  api: { container: API_NAME, HostConfig: { NanoCpus: apiHost.NanoCpus, Memory: apiHost.Memory }, ok: apiEnforced },
+  expected: { NanoCpus: NANO_CPUS_EXPECTED, Memory: MEMORY_EXPECTED },
+  blocker: enforced ? null : (!pgEnforced ? 'pg_caps_mismatch' : 'api_caps_mismatch'),
+}, null, 2) + '\\n');
+console.log('${ucId.toUpperCase()}_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' Memory=' + apiHost.Memory);
+const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
+spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
+process.exit(start.status ?? 1);
+`;
+const UC011_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc011', 'test/uc-e2e-011-nhp-perf-api.proof.ts');
+const UC017_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc017', 'test/uc-e2e-017-nhp-perf-api.proof.ts');
+const UC019_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc019', 'test/uc-e2e-019-nhp-perf-api.proof.ts');
+
 const isolatedCommand = target === 'api-harden:prove'
   ? ['pnpm', ['-C', 'apps/api', 'prove:api-harden']]
   : target === 'migrate:prove'
@@ -2876,6 +3000,12 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc014-nhp-bound']]
   : target === 'uc001:nhp-perf-api:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC001_PERF_API_CAPS_CHILD]]
+  : target === 'uc011:nhp-perf-api:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC011_PERF_API_CAPS_CHILD]]
+  : target === 'uc017:nhp-perf-api:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC017_PERF_API_CAPS_CHILD]]
+  : target === 'uc019:nhp-perf-api:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC019_PERF_API_CAPS_CHILD]]
   : target === 'uc018:abandon:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc018-abandon-http']]
   : target === 'uc018:adv:prove:raw'
@@ -3726,6 +3856,7 @@ async function main() {
       process.exit(3);
     }
     const resourceCapArgs = target === 'uc018:perf-load:prove:raw' || target === 'uc001:nhp-perf-api:prove:raw'
+      || target === 'uc011:nhp-perf-api:prove:raw' || target === 'uc017:nhp-perf-api:prove:raw' || target === 'uc019:nhp-perf-api:prove:raw'
       ? ['--cpus', '2', '--memory', '4g']
       : [];
     if (resourceCapArgs.length) {
@@ -3758,6 +3889,11 @@ async function main() {
   'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
   'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
+  // PERF_api 三收据刀（UC-011/017/019）——**不入本 pre-migrate 名单**（world 选择承登）：三 proof 的
+  // interview 隐私栅栏函数面（0058 active/assert·0206 read·SECURITY DEFINER owner=privacy_api_owner）
+  // 在 migrate 链先行的库上被 harness sql/01 表重建断表授权→definer 42501（attempt 红留痕）；boot 侧
+  // virgin 世界（uc017:orphan-http-sse / trial-grant / uc019-report-regenerate-http 先例形·均不入本名单）
+  // 函数由 boot() 新立=definer 同 boot role 表 owner·零断供面。proof 内 0206/0058 ACL 重放块承载 app_role 执行面。
   // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 同第四注册位教训承登）。
   'uc030:nhp-bound:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
