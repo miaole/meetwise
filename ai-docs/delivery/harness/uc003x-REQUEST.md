@@ -1,6 +1,6 @@
 # UC003X REQUEST — UC-E2E-003 简历域残面起草卷（NEG=gap + FAULT=blind + P1-6 locale=en DOM partial 残 · 批 A `NHP-003-ADV-01` 零重叠核 · docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落卷三处翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗·前置链=pre-exec dual r2 两独立外席双 PASS→协调方明示 EXEC 授权+N1b 形制裁决（**采 gap-register 形**：Case 1 EXIT=0·N1b 两码显式 gap 臂登记非 EXIT1·encrypted/magic_mismatch 产品契约缺口移交 backlog）→§9-EXEC 落卷）· alone≠dual（post-prove 双审两独立外席未行使）· 三处钉：本 Status 行 + §8 + 卷尾）· 本 commit 不预 claim 任何 covered 升格（EXIT0=case≠covered · coveredCount=8 零动）· ⛔push ⛔force-push。
+**Status**: **`closed`**（2026-10-27 post 落卷收官翻面·并线刀形一卷收口·STOP 三处钉已闭：本 Status 行 + §8 + 卷尾注 同值 `closed`·前值史录零字洗：`draft:awaiting_pre_exec_dual`（2026-10-26 起草落卷）→ `executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落卷·前置链=pre-exec dual r2 两独立外席双 PASS→协调方明示 EXEC 授权+N1b 形制裁决（**采 gap-register 形**：Case 1 EXIT=0·N1b 两码显式 gap 臂登记非 EXIT1·encrypted/magic_mismatch 产品契约缺口移交 backlog）→§9-EXEC 落卷）→ `closed`（同日 §9-post 双审双 PASS 会签·两独立外席·翻面权归协调方随令行使））· alone≠dual 已解（会签在卷 §9-post）· 本 commit 不预 claim 任何 covered 升格（EXIT0=case≠covered · coveredCount=8 零动）· 后继=并线席随令 fetch/merge/push/PR。
 
 **席位**：UC-003 残面起草席（docs-only · 协调方总盘派单序第 13 项 R5/R6/R7 授权 · 认领 `e2e-requirement-coverage-matrix.md` §1.0.1 `:114` UC-E2E-003 行 NEG 格 gap + FAULT 格 blind + §1.0.2 `:174`/P1-6 `:274` locale=en DOM partial 残 · 与批 A 已落 ADV 面、各 UC 专属线行级互斥）。
 **基线**：`origin/main` @ **`9c31c0ccc`**（full `9c31c0ccce2c5b7a82f80fa7dca332087491ad89` · `git fetch origin` 本 turn 成功 · 分支 `line/uc003x-draft` 零独有 commit · worktree `meetwise-uc003x`）· `node scripts/ai-docs/check-docs.mjs` 本树起草前亲跑 **EXIT=0 · scanned 2410**——**恰等 cap 2410 零余量**（`public-text-policy.mjs:171` `MAX_FILES=2_410` 亲证）· 本卷 REQUEST +1 必越 → **cap 恰等步进 2410→2411 已随刀落码**（§2-1 承登）。
@@ -131,13 +131,13 @@
 
 ## §6 est live=0（起草 turn·EXEC 期同）
 
-起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（docs-only+cap 步进对·policy proof 系 fixture 内合成路径计数零树写）。EXEC 期：Case 1 离线零外呼；Case 2 UI 门走本地隔离栈 production Next+chromium · 零模型零 Key（`E2E_UI_SKIP_WORKER=1`· golden-form 本地 signup 链）· 零生产操作。
+起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（docs-only+cap 步进对·policy proof 系 fixture 内合成路径计数零树写）。EXEC 期：Case 1 离线零外呼；Case 2 UI 门走本地隔离栈 production Next+chromium · 零模型零 Key（`E2E_UI_SKIP_WORKER=1`· golden-form 本地 signup 链）· 零生产操作。**post errata 注记（2026-10-27 §9-post P2-D·additive）**：Case 2 UI 门 Key 通道=loader 方式 b 同 shell env 注入（`~/.meetwise-secrets/load-model-api-key.sh`·零 .env 落盘·零 Key 值入树入据）——「零 Key」准出口径=零 Key 落树/落据/落 .env + 零模型外呼（`E2E_UI_SKIP_WORKER=1`）· est live=0 不变。
 
 ## §7 markers=0（卫生声明）
 
 本刀改动集（本卷 1 .md + cap 步进对 2 件·起草 turn）五类标记词 + conflict-marker grep **零命中**（起草席 commit 前亲跑·词面运行时组装口径·不复抄卷内防自匹配——沿批 B/C §7 同形制）。
 
-## §8 STOP（**`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落卷三处翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗）· 三处钉之一 · 开工三条款已履行：①pre-exec dual r2 两独立外席双 PASS 在前 ②协调方明示 EXEC 授权+N1b gap-register 形制裁决随令 ③§1 修法面/§5 Ban/pins/§1.3 否决面零改动+§0 对开工 tip `09363e8fb` 全量重 pin（§9.0·机制源零漂·文档锚漂移如实更））· alone≠dual（post-prove 双审未行使）· Ban self-approve
+## §8 STOP · **`closed`**（2026-10-27 post 落卷三处翻面·三处钉：本节 + Status 头 + 卷尾注·前值史录零字洗：`executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落卷翻面·开工三条款已履行：①pre-exec dual r2 两独立外席双 PASS 在前 ②协调方明示 EXEC 授权+N1b gap-register 形制裁决随令 ③§1 修法面/§5 Ban/pins/§1.3 否决面零改动+§0 对开工 tip `09363e8fb` 全量重 pin（§9.0·机制源零漂·文档锚漂移如实更）· 再前值 `draft:awaiting_pre_exec_dual`））· post-prove 双审两独立外席双 PASS 会签已落卷 §9-post（席1 attempts 台账机证+断言实质复算 129=9+6+32+8+33+19+8+9+5+九门独立复跑全对·P2×2 · 席2 契约面独立推演 19 抛点/18 码独立划界+N1b fail-closed 真行使非空洞+Case 1 复跑 129/129 fresh 双形+Case 2 loader 通道复跑 14/14·P2×2 含 Case 2 复证须 loader 通道前提注）· P2 errata 三件随卷（§9P.3·非阻断）· 后继=并线席随令 fetch/merge/push/PR（停止条件四类仍对各在飞 step 适用·命中即停手上报·Ban 就地处置）
 
 停止条件（四类·命中即停手上报·Ban 就地处置）：
 - **现场漂移**：届时 tip 对 §0.1/§0.2 任一锚 blob/机制漂移且结论受疑（`:114/:174/:274` 行被他刀改写 · 映射单源 20 键域/门区 18 码域漂移 · UI 门旋钮/`e2e:ui` LIVE 路径漂移 · spec `:24-25` 可达声明失效）→ 停·重 pin 回炉。
@@ -176,4 +176,34 @@
 
 ---
 
+## §9-post 落卷（2026-10-27 post-prove 双审两独立外席·双 PASS 会签·三处钉随本节同拍翻 `closed`·并线刀钉形·原值史录不洗）
+
+### 9P.1 席1（post-prove 独立外席·attempts 台账机证+断言实质复算+九门独立复跑）— **PASS**
+
+- **attempts 台账机证（127 由红次收据自身证实）**：`.tmp/uc003x-neg-receipts/` 逐件亲读——`01-raw-attempt1.stdout.log` EXIT=1 `ENOENT .../api/src/modules/resume/resume.service.ts`（源读路径形·纯路径修复零断言变）· `01-raw-attempt2.stdout.log` EXIT=1 尾行 **`✗ 2/127 NHP-003-NEG-01 断言失败`**——**红次收据自身计数=127**（断言基线 127 由红收据机证·非 §9.1 单方口径）· `01-raw-attempt3.stdout.log` 绿 `129/129` · `10-raw-attempt4-mapform.stdout.log` EXIT=0 `129/129`——**127→129 只增不减由红/绿收据对读机证**（+2=extracted_too_long 双面拆分·零谓词放宽）。
+- **断言实质复算**：`13-runner-gate-final.stdout.log` 分节 PASS 计数亲点——前置锚 9+N1 6+N1a 32+N1b 8+N2 33+N3 19+N4 8+F1 9+D1-PF 5 = **129** 恰等（`grep -c '^PASS'` 同收据=129 恰等）——§9.1 各节断言数逐值复算成立。
+- **九门独立复跑全对（本席亲跑 fresh）**：①`pnpm uc003:nhp-neg:prove` EXIT=0 129/129 ②`pnpm uc003:i18n-locale-ui:prove` EXIT=0 1 passed（2.5s）allowlist 14/14 ③`pnpm uc003:i18n-locale:prove` EXIT=0 ④`pnpm uc003:nhp-adv:prove` EXIT=0 67/67 ⑤`pnpm -C apps/web prove`（web-logic）EXIT=0 ⑥`pnpm -C apps/web typecheck` EXIT=0 ⑦`pnpm -C apps/web lint` **首跑红 2913 warnings→根因=EXEC UI 门 `next build` 副产物 `apps/web/.next` 残留在树（464M·gitignored·非扫描源面·§9.1 清场条款对应物）→按既有条款清场后复跑 EXIT=0 · 601 warnings 恰等**（非 retry-to-green：零断言零码变·仅删 gitignored 构建副产物）⑧`node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2415 恰等** ⑨`pnpm public-text-policy:prove` EXIT=0 12/12。
+- **席1 P2×2（残余如实登记·非阻断）**：**P2-A** lint 门存在未显式化为流程条款的前置——UI 门行使后 `.next` 构建副产物残留即 lint 红（本席实测 2913→清场后 601 恰等）· §9.1 「已清场后终验」系事后记录非门前置条款·建议后继刀将「UI 门后 lint 前清 `apps/web/.next`」升为显式门前置步骤；**P2-B** §9.1 attempts 措辞「attempt3 绿+Map 形 lint 修复复跑双绿」可误读为绿后再红再修复——收据链实形=attempt1 红→attempt2 红×2→attempt3 绿（129/129）→Map 形 lint 形修复+**复跑 1**（attempt4 收据·零断言变）双绿·errata=**「3+复跑1」**（§9P.3 条目②）。
+
+### 9P.2 席2（post-prove 独立外席·契约面独立推演+两 case 复跑 fresh）— **PASS**
+
+- **契约面独立推演（对源重划界·不引 §9.1 口径）**：`resume.service.ts` `new HttpException` 全文件 **24 处**亲数——上传链 scope（uploadGate/uploadFile/uploadImageViaOcr/uploadInTransaction 门区 `:38-:214`）**恰 19 抛点**（`:40/:47/:48/:52/:60/:64/:68/:74/:80/:81/:96/:107/:112/:120/:137/:145/:158/:165/:214`·其中 `consent_required` ×2 `:107`/`:214`）→ 去重**恰 18 码**；`not_found_or_forbidden` ×5（`:257/:298/:305/:320/:323`）系 list/get/delete 面非上传链产出·排除恰等——**19 抛点/18 码独立划界与 proof 上传链枚举臂/`GAP_2` 两码臂逐值恰等**。
+- **N1b fail-closed 真行使非空洞**：proof 以真产品函数 `mapResumeUploadError(status, body, locale)` 行使 `encrypted`/`magic_mismatch`（真码∉map 双侧键域）→ `ocr-preview-ui.ts:133` `messages[error] ?? messages.upload_failed` 兜底分支真执行·断言 `error` 码透传+`message`=upload_failed en/zh 逐字+CJK-free+zh `hint` 零透传（真信封携 zh hint 入参·结果串零泄漏）——**fail-closed 臂非硬造常量·兜底分支真实可达且被断言**（与 D1-PF 纯函数面同源互证·r2 P2-4）。
+- **Case 1 复跑 fresh**：`pnpm uc003:nhp-neg:prove`（runner gate）EXIT=0 **129/129** + `pnpm -C apps/web prove:uc003-nhp-neg`（raw 形）EXIT=0 **129/129**——双形双 fresh·新收据 `.tmp/isolated-proof-receipts/2026-10-27T09-58-53-…json`（release_evidence=false）。
+- **Case 2 loader 通道复跑**：`source ~/.meetwise-secrets/load-model-api-key.sh && pnpm uc003:i18n-locale-ui:prove` EXIT=0 **1 passed（2.5s）**·allowlist **14/14 全 allowlisted**（14 distinct text nodes 亲点·与 EXEC 双 fresh 一致）· D0 既有臂零改动+D1 en 臂绿——**前提注：Case 2 复证须以 loader 方式 b 同 shell env 注入通道为前提**（EXEC §9.1 承登形·本席复跑即经该通道·零 .env 落盘·`E2E_UI_SKIP_WORKER=1` 零模型外呼·est live=0 不变）。
+- **席2 P2×2（残余如实登记·非阻断）**：**P2-C** §9.1 UI 门时长「1.7s+2.7s」系 EXEC 双 fresh 收据锚值非不变量——本席复跑 2.5s·时长逐跑漂移·errata=**UI 门时长取收据锚**（§9P.3 条目①·后继引值须注明收据出处·门判定=EXIT+passed+allowlist 清点非时长）；**P2-D** §6「EXEC 期……零模型零 Key」措辞对 Case 2 不够精确——Key 通道实形=loader 方式 b 同 shell env 注入（§9.1 已披露）·「零 Key」准出口径=零 Key 落树/落据/落 .env+零模型外呼·errata=§6 additive 注记一句（**已随本落卷 additive 落入 §6**·est live=0 不变）。
+
+### 9P.3 会签与 P2 errata（随卷三件·非阻断）
+
+- 席1 **PASS** × 席2 **PASS**＝**post-prove 双审双 PASS 会签成立**（两独立外席各自独立形成裁定·复跑收据各自 fresh 互不引用·alone≠dual 已解）；三处钉（Status 头+§8+卷尾注）随本节同拍翻 **`closed`**（并线刀钉形·原值 `executed:awaiting_post_prove_dual`·史录不洗）· EXIT0=case≠covered 口径维持·格值 partial 零翻·coveredCount=8 不变·pins 十一值零翻（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null）· N1b encrypted/magic_mismatch 产品契约缺口 backlog 移交维持（共享 SSOT `gap-bug-backlog` 零触）· est live=0（两席复跑：Case 1 离线零外呼零模型零 Key 加载·Case 2 `E2E_UI_SKIP_WORKER=1` 零模型外呼·loader 通道 shell 注入零落盘）· 后继=并线席随令 fetch origin/main/merge-tree 预演/merge --no-ff/pnpm install --frozen-lockfile/终验五门/push/PR（翻面权归协调方·门红或冲突不可解即停上报）。
+- **P2 errata 三件（随卷·非阻断·全为措辞/口径精化·零断言零码零门值变）**：
+  1. **UI 门时长取收据锚**：§9.1「1.7s+2.7s」为 EXEC 双 fresh 收据锚值（tracked 收据 `ai-docs/delivery/receipts/nhp-003-dom-01/01-gate-uc003-i18n-locale-ui.stdout.log`=2.7s 一件在树）· post 席2 复跑 2.5s——UI 门时长逐跑漂移·后继引值一律注明收据出处·时长不作为门判定值。
+  2. **attempts 措辞「3+复跑1」**：Case 1 attempts 台账口径 errata=**3 attempts（红 ENOENT/红×2 extracted_too_long/绿 129/129）+复跑 1（Map 形 lint 形修复后·零断言谓词变）**·收据链 `01-raw-attempt1/2/3`+`10-raw-attempt4-mapform` 四件亲证·§9.1「attempt3 绿+Map 形 lint 修复复跑双绿」按此读。
+  3. **§6 零 Key 措辞 additive 注记一句**：已随本落卷 additive 落入 §6（post errata 注记·Case 2 loader 方式 b 同 shell env 注入·「零 Key」准出口径=零 Key 落树/落据/落 .env+零模型外呼·est live=0 不变）。
+- **本 post 落卷 diff 面**：本卷 REQUEST 恰 1 tracked 路径（§9-post 新节+三处钉翻面+§6 additive 注记）· markers 五类标记词+行首冲突标记改动集零命中（运行时组装口径亲跑）· 零产品码触。
+
+---
+
 *UC003X REQUEST · 2026-10-26 起草 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落卷三处翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗·三处钉：Status 行+§8+本行 · alone≠dual（post-prove 双审两独立外席未行使）· ⛔push）· UC-E2E-003 简历域残面 · 认领=§1.0.1 `:114` NEG 格 gap+FAULT 格 blind（薄缝定标：管道故障零可测缝 NOT claimed·abort/timeout 薄臂 F1）+ §1.0.2 `:174`/P1-6 `:274` locale=en DOM partial 残 · 批 A `NHP-003-ADV-01`（`:114` ADV）零重叠亲证零触 · 修法=恰 2 case（`NHP-003-NEG-01` 契约对账 N1 源→map **16⊆20+encrypted/magic_mismatch 两码缺位（blob 级亲证·resume.service.ts:64/:68 两码 zh/en 全域零命中走 upload_failed 兜底·产品契约缺口如实预登记·backlog 移交协调方）**+N2 真信封逐字 en exact 钉+zh hint 零透传+N3 状态耦合+N4 zh 对照+F1 薄臂 · `NHP-003-DOM-01` UI 门 D0 复跑+D1 本地拒 en 臂 test-only 增臂 · D2/管道故障/API-response DOM 臂 NOT claimed 如实登记）· 零产品码触 · cap 预算=届值 2410 恰等零余量+本卷 1 件必越 → **恰等步进 2410→2411 随刀落码**（pay-neg #155 单件先例形·三十先例形链·派单「越限沿先例步进承登预授权」随令·policy proof 越限臂 2_411/2412 联动本树 12/12 EXIT=0 亲跑）· 双表同步令沿 §1.0.3 `:166` · 基线=`origin/main` `9c31c0ccc` · 分支 `line/uc003x-draft` · 工作树 `meetwise-uc003x` · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · EXIT0≠covered · releaseEvidence=false · ≠HA · **EXEC 落卷附记（2026-10-27·§9-EXEC 全录）**：开工 tip `09363e8fb`（届值 origin/main `5356fa8c5` 并线 #156-#159·cap 届值 2415=union 恰等步进随 merge 落值·2410→2411 起草步进对届值前移如实承登）· 两 case EXIT=0（NEG 129 断言双 fresh·DOM UI 门双 fresh 1 passed×2·attempts 红次 2 台账在卷零断言谓词变）· N1b 采 gap-register 形（协调方裁决·非 EXIT1·零断言放宽）· 门矩阵 web typecheck EXIT=0+web lint 601 恰等 EXIT=0+邻面三门（i18n-locale/ADV 67/web-logic）恒等绿+docs:check scanned 2415 恰等+markers=0+PTP 12/12+inventory 376 恒等· 双表 `:114` gap→case-only（FAULT blind 保持）+`:174`/`:274` additive+case-matrix §1.3 两新行· coveredCount=8 零翻· est live=0· ⛔push*
+
+**`closed`**（卷尾注史录翻面 · 2026-10-27 · 与 Status/§8 同值 · 前值史录零字洗：`draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual` → `closed` · §9-post 双审双 PASS 会签收口（席1+席2·P2×4 残余登记·errata 三件随卷 §9P.3）· 并线刀钉形 · post 落卷 commit=`docs(test): 简历域残面卷 post 双审双 PASS 会签落卷——uc003x 线翻终态 closed` · 收官净消息（PR 标题）=`test(web): 补齐简历上传错误契约与界面文案测试` · 后继=并线席 fetch origin/main（届值如实采·cap 届值如实采·union 越限沿常设预授权恰等步进）/merge-tree 预演/merge --no-ff/pnpm install --frozen-lockfile/终验五门/push/PR/`gh pr merge --merge --auto`（门红或冲突不可解即停上报））
