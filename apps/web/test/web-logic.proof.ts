@@ -2035,6 +2035,136 @@ async function main() {
       !/fetch\(|import .*api|from '@meetwise/.test(readSrc('lib/voice-mode-entry.ts')));
   }
 
+  // ══ NHP-UI-PAY-NEG-01「UI 支付拒绝」402 拒绝链五臂（pay-neg-REQUEST §1·EXEC 落码）══════════
+  // 具名 case chain-level 注册（case-matrix :153/:169 + coverage-matrix :136 认领行·行格值零自翻·EXIT0=case≠covered）。
+  // 纯函数输出断言 + 静态源面断言（沿 ERRMSG-MAP :867 输出形 + ROLE-INPUT :939 readSrc 先例）：零 DOM 零浏览器
+  // 零 PG 零 env 键面·离线可证（prove-only·apps/*/src 零 diff）。既有断言零删改：ARM-1 对 ERRMSG-MAP :869-:877、
+  // ARM-3 对 :978 hrefLabel 行、片3-1a :1589-:1590 均系 additive restatement（重叠=复述加固·零替代零删改）。
+  // 序断言一律函数体切片内施行（Ban 裸全文件单 regex 序断言——函数体内重排时假绿·后续函数 redirect 供匹配）。
+  {
+    section('NHP-UI-PAY-NEG-01 UI 支付拒绝：402 拒绝链五臂（具名 case·纯函数+静态源面·chain-level 注册）');
+    const payIvActions = readSrc('app/interviews/actions.ts');
+    const payQuizActions = readSrc('app/quiz/actions.ts');
+    const payDiagActions = readSrc('app/diagnosis/actions.ts');
+    const payJobsActions = readSrc('app/jobs/actions.ts');
+    const payStartErr = readSrc('lib/jobs/application-start-error.ts');
+    const payIvPage = readSrc('app/interviews/page.tsx');
+    const payQuizPage = readSrc('app/quiz/page.tsx');
+    const payDiagPage = readSrc('app/diagnosis/page.tsx');
+    const payJobsPage = readSrc('app/jobs/page.tsx');
+    const payPages = ['interviews', 'quiz', 'diagnosis', 'jobs'] as const;
+    const payCodes402 = ['insufficient_entitlement', 'credits_unavailable', 'apply_credits_unavailable', 'interview_credits_unavailable'];
+
+    // ── ARM-1 文案形（E1/E2）：402 行三元组逐字 + 负含「请稍后重试」仅对 402 行 text 施加 ──
+    A('PAY-NEG ARM-1a 402 四码×四页三元组逐字（text+『额度说明』+/pricing+如实注记·四页同文案页域无关）',
+      payCodes402.every((c) => payPages.every((p) => {
+        const m = actionErrorMessage(p, 0, c);
+        return m !== null && m.text === '额度不足，请前往『额度说明』查看获取方式'
+          && m.href === '/pricing' && m.note === '预览环境暂未开放购买';
+      })));
+    // 负含施加面=仅 402 行 text（重试不可解，给 /pricing+如实注记入口）——begin_failed/create_failed 兜底行
+    // 合法含「请稍后重试」（勿全函数负断言，ARM-1c 对照臂钉施加面）。
+    A('PAY-NEG ARM-1b 重试入口显隐：402 行 text 负含「请稍后重试」（四码×四页 16 组合全负）',
+      payCodes402.every((c) => payPages.every((p) =>
+        actionErrorMessage(p, 0, c)?.text.includes('请稍后重试') === false)));
+    A('PAY-NEG ARM-1c 负含施加面对照：兜底行合法含该语（interviews create_failed/begin_failed 原文在场）',
+      actionErrorMessage('interviews', 0, 'create_failed')?.text.includes('请稍后重试') === true
+      && actionErrorMessage('interviews', 0, 'begin_failed')?.text.includes('请稍后重试') === true);
+    // 防御注（dormant 口径随注）：四码中 apply_credits_unavailable 的 web 侧产出臂唯 ensureOk 402 分支
+    // （lib/jobs/ensure-ok.ts:17·applyAction/declineApplicationAction 调用点）；上游 apply/decline 接口现无
+    // 402 触发（api jobs 模块 402 仅 applications.service.ts 企业分码）=dormant 防御臂——本臂系映射表防御位
+    // 在钉断言，非「可达路径全行使」宣称。web-logic :1245-:1252 既有 ensureOk 402 分支断言零改在钉。
+    A('PAY-NEG ARM-1d 防御臂在钉（dormant 口径随注）：apply_credits_unavailable 三元组与 402 行同源（映射表防御位·非可达路径全行使）',
+      actionErrorMessage('interviews', 0, 'apply_credits_unavailable')?.text === '额度不足，请前往『额度说明』查看获取方式'
+      && actionErrorMessage('jobs', 0, 'apply_credits_unavailable')?.href === '/pricing');
+
+    // ── ARM-2 拒绝链静态源面（E4/E5）：reclaimShellAndRedirect 函数体切片强形序断言 ──
+    // 切片=「async function reclaimShellAndRedirect」行起至顶格闭合括号止——切片隔离本文件后续函数
+    // （restartInterviewAction 亦有 abandon/redirect 形），序断言只在切片内施行。
+    const payReclaimHead = 'async function reclaimShellAndRedirect';
+    const payReclaimFrom = payIvActions.indexOf(payReclaimHead);
+    const payReclaimEnd = payReclaimFrom >= 0 ? payIvActions.indexOf('\n}', payReclaimFrom) : -1;
+    const payReclaimSlice = payReclaimFrom >= 0 && payReclaimEnd > payReclaimFrom
+      ? payIvActions.slice(payReclaimFrom, payReclaimEnd + 2) : '';
+    const payAbandonForm = "serverFetch('/interview/' + interviewId + '/abandon', { method: 'POST' }).catch(() => null)";
+    const payRedirectForm = 'redirect(`/interviews?error=${encodeURIComponent(code)}`)';
+    A('PAY-NEG ARM-2a 函数体切片在位（async function 行起至顶格闭合括号止·切片含签名行）',
+      payReclaimSlice.startsWith(payReclaimHead) && payReclaimSlice.endsWith('}'));
+    A('PAY-NEG ARM-2b 切片隔离本文件后续函数（切片零含 restartInterviewAction/export 臂）',
+      !payReclaimSlice.includes('restartInterviewAction') && !payReclaimSlice.includes('export '));
+    A('PAY-NEG ARM-2c 切片内 abandon 回收形在位（POST :id/abandon·best-effort catch-null）',
+      payReclaimSlice.includes(payAbandonForm));
+    A('PAY-NEG ARM-2d 切片内带码 redirect 形在位（/interviews?error=<encodeURIComponent(code)>）',
+      payReclaimSlice.includes(payRedirectForm));
+    A('PAY-NEG ARM-2e 切片内序断言：abandon 先于 redirect（indexOf 强形·先回收空壳后带码跳转）',
+      payReclaimSlice.indexOf(payAbandonForm) >= 0
+      && payReclaimSlice.indexOf(payAbandonForm) < payReclaimSlice.indexOf(payRedirectForm));
+    const payIv402Arm = "begin.status === 402) await reclaimShellAndRedirect(interviewId, 'credits_unavailable')";
+    A('PAY-NEG ARM-2f 402 臂恰二命中（start/focus-retrain 两臂全文件计数·:51/:104 锚·序断言不在此层）',
+      payIvActions.split(payIv402Arm).length - 1 === 2);
+    A('PAY-NEG ARM-2g quiz/diag 402 直 redirect 带码（credits_unavailable·未预留空壳不进会话页）',
+      payQuizActions.includes("redirect('/quiz?error=credits_unavailable')")
+      && payDiagActions.includes("redirect('/diagnosis?error=credits_unavailable')"));
+    const payJobsBrFrom = payJobsActions.indexOf('if (res.status === 402)');
+    const payJobsBrEnd = payJobsBrFrom >= 0 ? payJobsActions.indexOf('\n  }', payJobsBrFrom) : -1;
+    const payJobsBrSlice = payJobsBrFrom >= 0 && payJobsBrEnd > payJobsBrFrom
+      ? payJobsActions.slice(payJobsBrFrom, payJobsBrEnd + 4) : '';
+    A('PAY-NEG ARM-2h jobs 402 分码分支切片形（res.status===402 分支内 applicationStartRedirectError(b402?.error) 带码 redirect）',
+      payJobsBrSlice.startsWith('if (res.status === 402)')
+      && payJobsBrSlice.includes('applicationStartRedirectError(b402?.error)'));
+    A('PAY-NEG ARM-2i jobs 分码白名单单源+未知 402 回落（application-start-error.ts·片3-1a additive restatement）',
+      payStartErr.includes("application_enterprise_pay_unavailable: '该岗位面试暂不可用，请联系招聘方'")
+      && payStartErr.includes("code in APPLICATION_START_REDIRECT_ERRORS ? code : 'interview_credits_unavailable'"));
+
+    // ── ARM-3 渲染位源面（E1/E3）：四页 ?error= → role=alert 块 + Link label + note span ──
+    // （interviews hrefLabel 缺省行对 :978 既有断言 additive restatement——重叠=复述加固·零替代零删改。）
+    A('PAY-NEG ARM-3a interviews 渲染位（映射调用+role=alert+hrefLabel 缺省「额度说明」+note span+null 不渲染）——:978 additive restatement',
+      payIvPage.includes("actionErrorMessage('interviews', 0, error ?? null)")
+      && /role="alert"/.test(payIvPage)
+      && payIvPage.includes("{actionError.hrefLabel ?? '额度说明'}")
+      && /actionError\.note && <span/.test(payIvPage)
+      && payIvPage.includes('if (!actionError) return null;'));
+    A('PAY-NEG ARM-3b quiz 渲染位（映射调用+role=alert+label 硬编码「额度说明」+note span+null 不渲染）',
+      payQuizPage.includes("actionErrorMessage('quiz', 0, error ?? null)")
+      && /role="alert"/.test(payQuizPage)
+      && payQuizPage.includes('>额度说明</Link>')
+      && /actionError\.note && <span/.test(payQuizPage)
+      && payQuizPage.includes('if (!actionError) return null;'));
+    A('PAY-NEG ARM-3c diagnosis 渲染位（映射调用+role=alert+label 硬编码「额度说明」+note span+null 不渲染）',
+      payDiagPage.includes("actionErrorMessage('diagnosis', 0, error ?? null)")
+      && /role="alert"/.test(payDiagPage)
+      && payDiagPage.includes('>额度说明</Link>')
+      && /actionError\.note && <span/.test(payDiagPage)
+      && payDiagPage.includes('if (!actionError) return null;'));
+    A('PAY-NEG ARM-3d jobs 渲染位（映射调用+role=alert+label 硬编码「额度说明」+note span+null 不渲染）',
+      payJobsPage.includes("actionErrorMessage('jobs', 0, error ?? null)")
+      && /role="alert"/.test(payJobsPage)
+      && payJobsPage.includes('>额度说明</Link>')
+      && /actionError\.note && <span/.test(payJobsPage)
+      && payJobsPage.includes('if (!actionError) return null;'));
+
+    // ── ARM-4 零双扣交互面（E4）：reclaim 序强形（沿 ARM-2 同一切片）+ jobs 原子 begin 注记面 ──
+    // （api 零预留语义=producer 侧仅引证零触：402=预留失败零消费·reserved 未落即零预留。）
+    A('PAY-NEG ARM-4a 零双扣序（ARM-2 同一切片强形）：abandon（catch-null 不阻塞）在前·带码 redirect 必达在后·切片零重试循环',
+      payReclaimSlice.indexOf(payAbandonForm) < payReclaimSlice.indexOf(payRedirectForm)
+      && payReclaimSlice.includes('.catch(() => null)')
+      && !payReclaimSlice.includes('for (') && !payReclaimSlice.includes('while ('));
+    A('PAY-NEG ARM-4b jobs 原子 begin 注记面（begin 已并入 /applications/:id/start 同一服务端事务·候选人零扣·#227 收口注记在位）',
+      payJobsActions.includes('begin 已并入 /applications/:id/start 同一服务端事务')
+      && payJobsActions.includes('候选人零扣'));
+    A('PAY-NEG ARM-4c quiz/diag begin 402 单跳直 redirect（各恰一命中·零 abandon 面=begin 未成功即零预留零消费）',
+      payQuizActions.split('begin.status === 402').length - 1 === 1
+      && payDiagActions.split('begin.status === 402').length - 1 === 1
+      && !payQuizActions.includes('/abandon') && !payDiagActions.includes('/abandon'));
+
+    // ── ARM-5 边界（E2 对照）：status=402+未知码 → null 不渲染空壳；503 行对照 ──
+    A('PAY-NEG ARM-5a status=402+未知码 → null（四页不渲染空壳·redirect 通道只携码不携 status）',
+      payPages.every((p) => actionErrorMessage(p, 402, 'totally_unknown_code') === null));
+    A('PAY-NEG ARM-5b 503 行对照：status 通道 503 → 「服务暂不可用」（非 null·与 402 行异文案异链）',
+      payPages.every((p) => actionErrorMessage(p, 503, null)?.text === '服务暂不可用')
+      && actionErrorMessage('interviews', 503, null)?.text !== actionErrorMessage('interviews', 0, 'credits_unavailable')?.text);
+  }
+
   console.log(`\n${failures === 0 ? '✓ 全部通过' : '✗ ' + failures + ' 项失败'}`);
   process.exit(failures === 0 ? 0 : 1);
 }
