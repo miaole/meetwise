@@ -203,13 +203,20 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // CAP-SANCTION-2420 随刀：cap 2418→2420（2026-10-27 PERF-web post 双审双 PASS 会签后并线 #161 uc003x 残面 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2416→2418 并线先例形·快速链·授权随令）：
 // 届值如实采：origin/main `124a3053e`（#161 uc003x 已并）承 2418=cap 恰等·本支 a5cf2c0c1 承 2418=cap 恰等（双亲各自合规）·merge-tree 预演恰 3 处冲突（apps/web/package.json prove 脚本行 additive 双留+policy .mjs 注释两区 dual-keep 双留）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2420>2418 红——union 实测 2420=main 届扫 2418+本支并入互斥受管目 2（harness/perfweb-REQUEST.md+apps/web/test/nhp-perf-web.proof.ts·两集合无交叠·两 stdout 收据 .log 非扫描扩展名不计）·四联动点 2_420/f-2420.md/:2421 恰等改·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2416→2418（2026-10-27 uc003x 残面 post 收官并线 #157 perf3-receipts union 越限恰等步进·详 CAP-SANCTION-2418 注记（本文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2420→2421（2026-10-26 eslint-ignores 起草刀随刀·+1 恰等零多放·uc003x c1a4ce3a0 起草随刀单件恰等先例形·
+// 协调方派单预授权「越限沿先例步进承登预授权」随令·本支树届扫 2420=cap 恰等零余量+本卷 harness/eslint-ignores-REQUEST.md 受管 1 件=2421 必超（PTP_FILE_LIMIT:2421>2420 形·docs:check 本树起草前亲跑 EXIT=0 scanned 2420 亲证）·派单门「diff 恰 2 tracked」与 cap 恰等零余量现实冲突·随刀步进偏离如实承登·协调方 post 审可否决·
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // X16-ADV 起草注记 dual-keep 并留：cap 2410→2418 X16 步进注记存本文件链区上邻（「cap 2410→2418（2026-10-27 X16-ADV…」两行）——本卷 EXEC 并线 #157-#161 union 恰等步进随 CAP-SANCTION-2420 注记（proof 文件链区）。
 // CAP-SANCTION-2422 并线恰等步进：cap 2420→2422（2026-10-27 X16-ADV post 收官并线 #162 perfweb union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2418→2420 并线先例形·快速链·授权随令）：
 // 届值如实采：origin/main `7c5aa7445`（#162 perfweb 已并）承 2420=cap 恰等·本支 3caa2363a 承 2420=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2422>2420 红——union 实测 2422=main 届扫 2420+本支并入互斥受管目 2（harness/x16-adv-REQUEST.md+apps/api/test/uc-e2e-016-nhp-adv.proof.ts·两集合无交叠·两 stdout 收据 .log 非扫描扩展名不计）·四联动点 2_422/f-2422.md/:2423 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+// CAP-SANCTION-2423 并线恰等步进：cap 2422→2423（2026-10-27 eslint-ignores EXEC 并线 #163 x16-adv union 越限恰等步进·协调方常设预授权「union 越限沿常设预授权恰等步进」随令·+1 恰等零多放·沿 2420→2422 并线先例形·快速链·授权随令）：
+// 届值如实采：origin/main `bd9c6c7f8`（#163 x16-adv 已并）承 2422=cap 恰等·本支 c0b73c21a 承 2421=cap 恰等（双亲各自合规·本支起草随刀已步进）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2423>2422 红（真 EXIT=1 亲证）——union 实测 2423=main 届扫 2422+本支并入互斥受管目 1（harness/eslint-ignores-REQUEST.md·两集合无交叠）·四联动点 2_423/f-2423.md/:2424 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2418→2420（2026-10-27 webhook-fault EXEC 并线 #159/#160/#161 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·main 届值 2418=cap 恰达零余量·union 实测 2420=2418+本卷 webhook-fault-REQUEST 受管 1 件并入+本刀 EXEC 面 proof 1 件受管（stdout 收据 .log 非扫描扩展名不计·TEXT_EXTENSIONS 亲证）·沿 2402→2405/2410→2413/2413→2415/2416→2418 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // CAP-SANCTION-2424 并线恰等步进：cap 2422→2424（2026-10-27 webhook-fault post 收官并线 #162 perfweb+#163 x16-adv union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2420→2422 并线先例形·快速链·授权随令）：
 // 届值如实采：origin/main bd9c6c7f8（#162/#163 已并）承 2422=cap 恰等·本支 4d283bd2d 承 2420=cap 恰等（双亲各自合规）·merge-tree 预演恰 3 处冲突（两 policy 脚本注记/cap 区+runner 注册区·dual-keep/additive）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2424>2422 红——union 实测 2424=main 届扫 2422+本支并入互斥受管目 2（harness/webhook-fault-REQUEST.md+apps/api/test/uc-e2e-014-nhp-fault.proof.ts·两集合无交叠·stdout 收据 .log 非扫描扩展名不计）·四联动点 2_424/f-2424.md/:2425 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
-const MAX_FILES = 2_424;
+// CAP-SANCTION-2425 并线恰等步进：cap 2424→2425（2026-10-27 eslint-ignores EXEC 双审会签后并线 #164 webhook-fault·协调方常设预授权「union 越限沿常设预授权恰等步进」随令·+1 恰等零多放·沿 2422→2423/2422→2424 并线先例形·快速链·授权随令）：
+// 届值如实采：origin/main `b36113958`（#164 webhook-fault 已并）承 2424=cap 恰等·本支 5a690ab66 承 2423=cap 恰等（双亲各自合规）·merge-tree 预演恰 2 处冲突（两 policy 脚本注记/cap 区·dual-keep 双留·本支 eslint-ignores 起草注记+main webhook-fault 起草/CAP-SANCTION-2424 注记并留）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2425 红（真 EXIT=1 亲证）——union 实测 2425=main 届扫 2424+本支并入互斥受管目 1（harness/eslint-ignores-REQUEST.md·两集合无交叠·git ls-tree origin/main 零命中亲证）·四联动点 2_425/f-2425.md/:2426 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+const MAX_FILES = 2_425;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
