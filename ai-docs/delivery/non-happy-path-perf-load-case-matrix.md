@@ -47,7 +47,7 @@
 | NHP-010-NEG-01 | 010 | NEG | api | 无权限 LED | authz 拒 | **partial** | R-authz |
 | NHP-010-ADV-01 | 010 | ADV | api | LED malformed 双门 400/伪造高游标/越权订阅复用/跨 user 注入拒收 | 400 具名码逐项；伪造高游标 200 空 catch-up+hold（R4 语义·非机制红）；越权 404 零泄出 | **blind**→**case-only** | `pnpm uc010:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
 | NHP-030-NEG-01 | 030 | NEG | api | token 过期/吊销 | 拒 + 刷新路径可测 | **partial** | neg:auth |
-| NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | — |
+| NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | `pnpm uc030:nhp-bound:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 clock 卷 · C/R/L 三臂族） |
 
 ### 1.2 钱 / 对账 / 放弃 / 重生成（011 / 014 / 017 / 018 / 019）
 
