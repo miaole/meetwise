@@ -228,6 +228,8 @@
     "uc014:nhp-neg:prove:raw": "pnpm -C apps/api prove:uc014-nhp-neg",
     "uc014:nhp-bound:prove": "node scripts/run-e2e-isolated.mjs uc014:nhp-bound:prove:raw",
     "uc014:nhp-bound:prove:raw": "pnpm -C apps/api prove:uc014-nhp-bound",
+    "uc014:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc014:nhp-fault:prove:raw",
+    "uc014:nhp-fault:prove:raw": "pnpm -C apps/api prove:uc014-nhp-fault",
     "uc010:sse-resume:prove": "node scripts/run-e2e-isolated.mjs uc010:sse-resume:prove:raw",
     "uc010:sse-resume:prove:raw": "pnpm -C apps/api prove:uc010-sse-resume",
     "sse-push:notify:prove": "node scripts/run-e2e-isolated.mjs sse-push:notify:prove:raw",
