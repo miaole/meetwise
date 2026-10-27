@@ -24,16 +24,41 @@ export type CommerceCallbackBody = { providerTxn?: string; sig?: string; ts?: nu
  * 隐私面零关:privacy.service preview digest 为异用途,不经此函数(席1 边界·零触)。
  */
 export function verifyCommerceSig(id: string, body: CommerceCallbackBody, kind: 'paid' | 'refunded'): void {
-  if (!body?.providerTxn || !body?.sig) throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
+  if (!body?.providerTxn || !body?.sig) {
+    emitCommerceRejectLog(kind, 'C2', id, 'invalid_callback');
+    throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
+  }
   const ts = body.ts;
   if (typeof ts !== 'number' || !Number.isFinite(ts) || Math.abs(Date.now() - ts) > PAY_SIG_REPLAY_WINDOW_SECONDS * 1000) {
+    emitCommerceRejectLog(kind, 'C2', id, 'invalid_callback');
     throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
   }
   const secret = process.env.PAY_PROVIDER_SECRET ?? '';
   const exp = createHmac('sha256', secret).update(`${id}:${body.providerTxn}:${kind}:${ts}`).digest('hex');
   const a = Buffer.from(body.sig), e = Buffer.from(exp);
-  if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
+  if (!secret || a.length !== e.length || !timingSafeEqual(a, e)) {
+    emitCommerceRejectLog(kind, 'C1', id, 'bad_signature');
+    throw new HttpException({ error: 'bad_signature' }, HttpStatus.FORBIDDEN);
+  }
 }
+
+/**
+ * 回调拒绝安全日志观察点（GAP-UC014-AUDIT-EMIT · stdout-only 结构化单行 JSON · 零表零迁移零配置；
+ * console.warn(JSON.stringify(…)) 先例形 = interview-jobs 收割/滞留清理日志 :346/:351/:393）。
+ * 只载拒绝事实 {event,kind,class,order_id,reason,outcome}——零签名值/零密钥/零金额/零 PII（AGENTS.md 隐私面）；
+ * 不抛不阻断：序列化失败静默吞，拒绝语义不受扰（各调用点均在 throw 前同臂内，产品行为零改）。
+ */
+function emitCommerceRejectLog(label: 'paid' | 'refunded', cls: 'C1' | 'C2' | 'C7', orderId: string,
+  reason: 'bad_signature' | 'invalid_callback' | 'order_not_found'): void {
+  try {
+    console.warn(JSON.stringify({
+      event: 'security_log',
+      kind: label === 'refunded' ? 'commerce_refund_webhook' : 'commerce_webhook',
+      class: cls, ['order_id']: orderId, reason, outcome: 'rejected',
+    }));
+  } catch { /* 观察点零阻断 */ }
+}
+
 export const PRODUCTS: Array<{ id: string; name: string; amountCents: number; units: number; domain: ProductDomain }> = [
   { id: 'pack_10', name: '10 次面试包', amountCents: 9900, units: 10, domain: 'consumer' },
   { id: 'pack_30', name: '30 次面试包', amountCents: 24900, units: 30, domain: 'consumer' },
@@ -132,11 +157,15 @@ export class CommerceService {
     try {
       owner = requireOwnerUserId(resolved, 'commerce.payWebhook.owner');
     } catch {
+      emitCommerceRejectLog('paid', 'C7', id, 'order_not_found');
       throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     }
     const res = await this.db.asPrincipal(owner, async (c) =>
       markOrderPaidAndCredit(c, owner, id, body.providerTxn!, (await this.bucketForOrder(c, owner, id)) ?? { kind: 'paid' }));
-    if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    if (res === 'not_found') {
+      emitCommerceRejectLog('paid', 'C7', id, 'order_not_found');
+      throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    }
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
     return { result: res };
   }
@@ -158,11 +187,15 @@ export class CommerceService {
     try {
       owner = requireOwnerUserId(resolved, 'commerce.refundWebhook.owner');
     } catch {
+      emitCommerceRejectLog('refunded', 'C7', id, 'order_not_found');
       throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
     }
     const res = await this.db.asPrincipal(owner, async (c) =>
       markOrderRefunded(c, owner, id, body.providerTxn!, await this.bucketForOrder(c, owner, id)));
-    if (res === 'not_found') throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    if (res === 'not_found') {
+      emitCommerceRejectLog('refunded', 'C7', id, 'order_not_found');
+      throw new HttpException({ error: 'order_not_found' }, HttpStatus.NOT_FOUND);
+    }
     if (res === 'conflict') throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
     return { result: res };   // refunded(首次) | already(幂等重放)
   }

@@ -1628,6 +1628,18 @@ const isolatedReceiptSources = {
     'packages/db/test/uc-e2e-017-nhp-load.proof.ts', 'packages/db/src/commerce/commerce.ts',
     'packages/db/migrations/0001_baseline.sql',
   ],
+  // RCLOAD RC-01（worker 负载伞首刀 route-classify·真 worker 子进程缝·REQUEST harness/rcload-REQUEST.md 件② 触点①）。
+  'rcload:route-classify:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/nhp-load-worker-rc01.proof.ts',
+    'apps/worker/src/main.ts', 'apps/worker/src/drain-loop.ts', 'apps/worker/src/route-classify-consumer.ts',
+    'apps/worker/src/job-wakeup-listener.ts', 'apps/worker/src/owner-queue-drain.ts',
+    'packages/db/src/routing/job-route-decision.ts', 'packages/db/src/recruiting/recruiter.ts',
+    'packages/db/src/jobs/gateway-dispatch.ts', 'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/domain/src/job-route-classifier.ts',
+    'packages/db/src/index.ts', 'packages/domain/src/index.ts',
+    'packages/db/migrations/0001_baseline.sql',
+  ],
   'uc018:abandon:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/uc-e2e-018-user-abandon.proof.ts', 'packages/db/src/commerce/commerce.ts',
@@ -2835,6 +2847,8 @@ if (![
   // ASR 质量申报两 prove：本地脚本 provider（零外呼）·沿 ag18 同形注册。
   'asr-quality:prove:raw',
   'r2-p-worker-route-classify:prove:raw',
+  // RCLOAD RC-01：worker 负载伞首刀 route-classify 真 worker 进程积压形状收据（REQUEST 件② 触点②·白名单零命中即 :2852 unsupported_e2e_target 门 1 必红·rev2 P0-1 教训预钉）。
+  'rcload:route-classify:prove:raw',
 ].includes(target)) {
   throw new Error(`unsupported_e2e_target:${target}`);
 }
@@ -3222,6 +3236,9 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-bound']]
   : target === 'uc012:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-adv']]
+  // RCLOAD RC-01（REQUEST 件② 触点③·worker 侧同构 uc012 形）。
+  : target === 'rcload:route-classify:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:rcload-route-classify']]
   : target === 'uc030:nhp-fault:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-fault']]
   : target === 'uc030:nhp-bound:prove:raw'
@@ -4162,6 +4179,8 @@ async function main() {
   // PERF-web 执行收据刀（NHP-001-PERF-web-01 · pre-migrate 名单第四注册位·沿批 C/uc001 PERF_api 同形全登记：
   // api 容器 boot 前真迁移链先立·UI signup 主链读 user_account 零 virgin 世界缺口）。
   'uc001:nhp-perf-web:prove:raw',
+  // RCLOAD RC-01（REQUEST 件② 触点④·worker boot 需全迁移集·沿 r2-p-worker-route-classify 同形全登记）。
+  'rcload:route-classify:prove:raw',
   'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).

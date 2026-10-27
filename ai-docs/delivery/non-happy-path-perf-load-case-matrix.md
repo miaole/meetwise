@@ -150,6 +150,7 @@
 | NHP-PERF-API-SUITE | api | 隔离 API 并发回归 + 契约负路径（脚本+参数冻结） | CMD+EXIT + `.tmp`/CI 收据；`releaseEvidence=false` | **case-only** / **not_run** | 历史数字不得当当前通过 |
 | NHP-PERF-WEB-SUITE | web | production Next + Chromium/Pixel 流式窗口预算 | 可复核回执 | **case-only** / **not_run** | 单机 ≠ 真机容量 |
 | NHP-LOAD-WORKER-SUITE | worker | 报告/OCR/队列积压形状（并发 N、持续 T） | 吞吐/积压/错误率收据 | **case-only** / **blind** | compose healthy ≠ 产能 |
+| NHP-LOAD-WORKER-SUITE-RC-01 | worker | route_pending 积压形状：B 端 createJob 风暴 N=20×M=5 岗（真产品路径）→ LISTEN 唤醒真 worker 进程 drain（隔离·零 Key） | 逐波 backlog/吞吐/错误率收据+硬断言 model_calls=0（DB decision 行全 rule_decided·四队列零染） | **case-only** / **not_run** | 单机隔离 ≠ worker 产能·收据文禁写产能义·compose healthy ≠ 产能（伞行禁令继承） |
 | NHP-PERF-CLOUD | api/web/worker | THR-CLOUD-v1 | TargetGrant + 三联跑 | **blocked** | 无授权禁止硬跑 |
 | NHP-LOAD-HA-FAULT | worker | HA fault-inject × 负载叠加 | 阶 C/D 收据 | **conn-only**/stub | stub ≠ HA |
 
