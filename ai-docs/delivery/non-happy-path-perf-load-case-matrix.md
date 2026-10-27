@@ -46,6 +46,7 @@
 | NHP-010-FAULT-01 | 010 | FAULT | api | 断 SSE→LED / R-mid | 续传成功；无双扣 | **partial** | uc010:sse-resume:prove |
 | NHP-010-NEG-01 | 010 | NEG | api | 无权限 LED | authz 拒 | **partial** | R-authz |
 | NHP-010-ADV-01 | 010 | ADV | api | LED malformed 双门 400/伪造高游标/越权订阅复用/跨 user 注入拒收 | 400 具名码逐项；伪造高游标 200 空 catch-up+hold（R4 语义·非机制红）；越权 404 零泄出 | **blind**→**case-only** | `pnpm uc010:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
+| NHP-010-ADV-02 | 010 | ADV | api | 同主体双流游标交换（S2 高游标施于 S1/S1 低游标施于 S2）/双持实时跨流注入（0214 触发器+token 通道） | 零跨流帧交付（kind/payload 值域互斥种子）；token_delta 零出现（配主动注入对照）；账本 appended-exactly 零写副作用 | **blind**→**case-only** | `pnpm uc010:nhp-crossstream:prove`（SSE-ADV EXEC·收据随卷 2026-10-27） |
 | NHP-030-NEG-01 | 030 | NEG | api | token 过期/吊销 | 拒 + 刷新路径可测 | **partial** | neg:auth |
 | NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | — |
 

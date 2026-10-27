@@ -186,6 +186,8 @@
     "uc004:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc004-nhp-adv",
     "uc010:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc010:nhp-adv:prove:raw",
     "uc010:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc010-nhp-adv",
+    "uc010:nhp-crossstream:prove": "node scripts/run-e2e-isolated.mjs uc010:nhp-crossstream:prove:raw",
+    "uc010:nhp-crossstream:prove:raw": "pnpm -C apps/api prove:uc010-nhp-crossstream",
     "uc019:report-regenerate:prove": "node scripts/run-e2e-isolated.mjs uc019:report-regenerate:prove:raw",
     "uc019:report-regenerate:prove:raw": "pnpm -C packages/db prove:uc019-report-regenerate",
     "uc019:report-regenerate:http:prove": "node scripts/run-e2e-isolated.mjs uc019:report-regenerate:http:prove:raw",

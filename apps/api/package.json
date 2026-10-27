@@ -52,6 +52,7 @@
   "prove:uc004-nhp-bound": "node --import @swc-node/register/esm-register test/uc-e2e-004-nhp-bound.proof.ts",
   "prove:uc004-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-004-nhp-adv.proof.ts",
   "prove:uc010-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-010-nhp-adv.proof.ts",
+  "prove:uc010-nhp-crossstream": "node --import @swc-node/register/esm-register test/uc-e2e-010-nhp-crossstream.proof.ts",
   "prove:uc019-report-regenerate-http": "node --import @swc-node/register/esm-register test/uc-e2e-019-report-regenerate-http.proof.ts",
   "prove:uc019-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-019-nhp-adv.proof.ts",
   "prove:report-retry-http": "node --import @swc-node/register/esm-register test/report-retry-http.proof.ts",
