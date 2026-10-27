@@ -1138,6 +1138,19 @@ const isolatedReceiptSources = {
     'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
   ],
+  // PERF-web 执行收据刀（NHP-001-PERF-web-01 · REQUEST harness/perfweb-REQUEST.md §1 终形）：UI 流式窗口
+  // 预算五值（N=100 c=1 serial runs=3 · warmup 10 · nearest-rank · 三容器 caps 2cpu/4GiB（PG runner 面
+  // +api/web capped child 面·HostConfig inspect 亲证）·Chromium 宿主驱动不封顶披露·web 容器内 production
+  // next build/start·E2E_UI_STRESS 期内联·D-BUILD 披露·STRESS 源 hermetic 零上游 fetch）。
+  'uc001:nhp-perf-web:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/web/test/nhp-perf-web.proof.ts',
+    'apps/web/e2e-ui/stream-window.spec.ts',
+    'apps/web/playwright.config.ts',
+    'apps/web/next.config.mjs',
+    'apps/web/package.json',
+    'packages/db/src/isolated-test-target.ts', 'packages/db/src/principal.ts',
+  ],
   // NHP 开关刀 Row 1（UC-050 KILL · gap→case）：kill-switch 触发面 503/三态 fail-closed/双闸优先序/
   // 净账审计。隔离 PG 真 HTTP + 子进程 env 变体（obs-logging spawn 形·子进程源运行时落 .tmp）。
   'uc050:nhp-kill:prove:raw': [
@@ -2759,6 +2772,8 @@ if (![
   'uc011:nhp-perf-api:prove:raw',
   'uc017:nhp-perf-api:prove:raw',
   'uc019:nhp-perf-api:prove:raw',
+  // PERF-web 执行收据刀（NHP-001-PERF-web-01 · UI 流式窗口预算五值 · 三容器 caps 自启栈 · 一行一 case 一收据）。
+  'uc001:nhp-perf-web:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
   'uc050:nhp-kill:prove:raw',
   'uc051:nhp-nopii:prove:raw',
@@ -2873,6 +2888,166 @@ console.log('UC001_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHo
 const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
 spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
 process.exit(start.status ?? 1);
+`;
+
+// PERF-web 执行收据刀（NHP-001-PERF-web-01 · UC-001 PERF_web 分面）：uc001 capped child 三容器扩展形。
+// PG=runner 面第五注册位 caps；api+web=capped child 面各 --cpus=2 --memory=4g；web 容器内 production
+// next build/start 两阶段（E2E_UI_STRESS='1' 构建期内联·D-BUILD 披露）；api keyless boot（零 MODEL_*
+// 传入容器）；Playwright chromium 宿主驱动（不封顶·披露）；proof 宿主直跑（浏览器在宿主·非容器内）。
+const UC001_PERF_WEB_CAPS_CHILD = `
+import { spawnSync, execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+const ROOT = process.cwd();
+const RAW_DIR = join(ROOT, '.tmp/uc001-perf-web-receipts');
+const CAPS_PATH = join(RAW_DIR, '_caps-evidence.json');
+const STAMP = process.pid + '-' + Date.now();
+const API_NAME = 'meetwise-uc001-perf-web-api-' + STAMP;
+const WEB_NAME = 'meetwise-uc001-perf-web-' + STAMP;
+const CPUS = '2';
+const MEMORY = '4g';
+const NANO_CPUS_EXPECTED = 2_000_000_000;
+const MEMORY_EXPECTED = 4 * 1024 * 1024 * 1024;
+const NODE_IMAGE = process.env.UC001_PERF_NODE_IMAGE || 'node:20-bookworm';
+mkdirSync(RAW_DIR, { recursive: true });
+writeFileSync(join(RAW_DIR, '_caps-child.source.mjs'), 'wrapper-inline-source · uc001 capped child 三容器扩展形 · PERF-web 收据(.tmp 生成·零 tracked scripts wrapper)\\n');
+function inspectHostConfig(name) {
+  try {
+    return JSON.parse(execFileSync('docker', ['inspect', '--format', '{{json .HostConfig}}', name], { encoding: 'utf8' }).trim());
+  } catch (e) {
+    return { error: String(e?.message || e) };
+  }
+}
+function capsOk(hc) {
+  if (!hc || hc.error) return false;
+  return Number(hc.NanoCpus || 0) === NANO_CPUS_EXPECTED && Number(hc.Memory || 0) === MEMORY_EXPECTED;
+}
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+async function waitReady(url, tries) {
+  for (let i = 0; i < tries; i++) {
+    await sleep(1000);
+    try { const r = await fetch(url); if (r.ok || (r.status >= 300 && r.status < 500)) return true; } catch {}
+  }
+  return false;
+}
+function containerLogs(name) {
+  try { return execFileSync('docker', ['logs', '--tail', '80', name], { encoding: 'utf8' }).slice(0, 4000); } catch (e) { return String(e?.message || e); }
+}
+function fail(blocker, extra) {
+  writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker, ...(extra ?? {}) }, null, 2) + '\\n');
+  console.error('UC001WEB_CAPS fail blocker=' + blocker);
+  spawnSync('docker', ['rm', '-f', API_NAME, WEB_NAME], { stdio: 'ignore' });
+  process.exit(1);
+}
+const pgContainer = process.env.E2E_TEST_CONTAINER;
+if (!pgContainer) {
+  fail('E2E_TEST_CONTAINER_missing');
+}
+const pgHost = inspectHostConfig(pgContainer);
+const pgEnforced = capsOk(pgHost);
+console.log('UC001WEB_CAPS pg container=' + pgContainer + ' NanoCpus=' + pgHost.NanoCpus + ' Memory=' + pgHost.Memory + ' ok=' + pgEnforced);
+const pull = spawnSync('docker', ['image', 'inspect', NODE_IMAGE], { stdio: 'ignore' });
+if (pull.status !== 0) {
+  console.log('UC001WEB_CAPS pulling ' + NODE_IMAGE + '…');
+  const p = spawnSync('docker', ['pull', NODE_IMAGE], { stdio: 'inherit' });
+  if (p.status !== 0) fail('node_image_pull_failed', { nodeImage: NODE_IMAGE });
+}
+const uidGid = (process.getuid ?? (() => 1000))() + ':' + (process.getgid ?? (() => 1000))();
+// api 容器(keyless boot：零 MODEL_* 传入 · HOST=0.0.0.0 容器发布面 · main.ts 默认仅回环须显式)。
+const apiCreate = [
+  'create', '--name', API_NAME, '--cpus', CPUS, '--memory', MEMORY,
+  '--add-host=host.docker.internal:host-gateway',
+  '-p', '127.0.0.1::8787',
+  '-v', ROOT + ':' + ROOT,
+  '-w', join(ROOT, 'apps/api'),
+  '-u', uidGid,
+  '-e', 'HOST=0.0.0.0',
+  '-e', 'PORT=8787',
+  '-e', 'PGHOST=host.docker.internal',
+  '-e', 'PGPORT=' + (process.env.PGPORT ?? ''),
+  '-e', 'PGUSER=' + (process.env.PGUSER ?? 'meetwise'),
+  '-e', 'PGPASSWORD=' + (process.env.PGPASSWORD ?? ''),
+  '-e', 'PGDATABASE=' + (process.env.PGDATABASE ?? 'meetwise'),
+  '-e', 'DATABASE_SSL_MODE=disable',
+  '-e', 'E2E_ISOLATED=1',
+  // RL_SIGNUP_IP 放宽（auth.service.ts:11 在树覆写口·自述「仅 perf/E2E 启动档放宽并显式落档」）：
+  // perf-web N=110+20 逐虚拟用户 signup 全部经 web 容器同一出口 IP（172.17.0.1）→ 默认桶 (10,0.05)
+  // 必 429（attempt3 api log POST /auth/signup 429 亲证）。仅 perf boot 档放宽·收据显式落档披露。
+  '-e', 'RL_SIGNUP_IP=1000,100',
+  '-e', 'AUTH_SECRET=e2e-dev-secret-key',
+  '-e', 'PAY_PROVIDER_SECRET=e2e-pay-secret',
+  '-e', 'RESUME_ENC_KEY=e2e-resume-enc-key',
+  '-e', 'RESUME_HASH_SECRET=e2e-resume-hash-secret',
+  '-e', 'RAG_JOB_ROUTE_INPUT_HASH_KEY=e2e-rag03-job-route-input-hmac-key-not-production',
+  NODE_IMAGE, 'node', '--import', '@swc-node/register/esm-register', 'src/main.ts',
+];
+const crApi = spawnSync('docker', apiCreate, { cwd: ROOT });
+if (crApi.status !== 0) fail('api_container_create_failed', { stderr: String(crApi.stderr || '').slice(0, 500) });
+spawnSync('docker', ['start', API_NAME], { cwd: ROOT, stdio: 'ignore' });
+const apiPortOut = execFileSync('docker', ['port', API_NAME, '8787/tcp'], { encoding: 'utf8' });
+const apiPub = String(apiPortOut).match(/127\\.0\\.0\\.1:(\\d+)/)?.[1];
+if (!apiPub) fail('api_port_unparseable', { output: String(apiPortOut).slice(0, 200) });
+console.log('UC001WEB_CAPS api published 127.0.0.1:' + apiPub + ' (keyless boot · caps ' + CPUS + 'cpu/' + MEMORY + ')');
+if (!(await waitReady('http://127.0.0.1:' + apiPub + '/livez', 90))) {
+  fail('api_not_ready', { logs: containerLogs(API_NAME) });
+}
+console.log('UC001WEB_CAPS api ready /livez ok');
+// web 容器(production next build + next start 两阶段 · E2E_UI_STRESS='1' 构建期内联·D-BUILD 披露)。
+const webCreate = [
+  'create', '--name', WEB_NAME, '--cpus', CPUS, '--memory', MEMORY,
+  '--add-host=host.docker.internal:host-gateway',
+  '-p', '127.0.0.1::3100',
+  '-v', ROOT + ':' + ROOT,
+  '-w', join(ROOT, 'apps/web'),
+  '-u', uidGid,
+  '-e', 'PORT=3100',
+  '-e', 'API_BASE_INTERNAL=http://host.docker.internal:' + apiPub,
+  '-e', 'NEXT_PUBLIC_API_BASE=http://127.0.0.1:' + apiPub,
+  '-e', 'E2E_UI_STRESS=1',
+  '-e', 'AUTH_SECRET=e2e-dev-secret-key',
+  '-e', 'PAY_PROVIDER_SECRET=e2e-pay-secret',
+  '-e', 'RESUME_ENC_KEY=e2e-resume-enc-key',
+  '-e', 'RESUME_HASH_SECRET=e2e-resume-hash-secret',
+  '-e', 'RAG_JOB_ROUTE_INPUT_HASH_KEY=e2e-rag03-job-route-input-hmac-key-not-production',
+  NODE_IMAGE, 'sh', '-c', 'node node_modules/next/dist/bin/next build && exec node node_modules/next/dist/bin/next start -p 3100',
+];
+const crWeb = spawnSync('docker', webCreate, { cwd: ROOT });
+if (crWeb.status !== 0) fail('web_container_create_failed', { stderr: String(crWeb.stderr || '').slice(0, 500) });
+spawnSync('docker', ['start', WEB_NAME], { cwd: ROOT, stdio: 'ignore' });
+const webPortOut = execFileSync('docker', ['port', WEB_NAME, '3100/tcp'], { encoding: 'utf8' });
+const webPub = String(webPortOut).match(/127\\.0\\.0\\.1:(\\d+)/)?.[1];
+if (!webPub) fail('web_port_unparseable', { output: String(webPortOut).slice(0, 200) });
+console.log('UC001WEB_CAPS web published 127.0.0.1:' + webPub + ' (container next build+start · build 在测量窗外 prep 段)');
+if (!(await waitReady('http://127.0.0.1:' + webPub + '/', 600))) {
+  fail('web_not_ready', { logs: containerLogs(WEB_NAME) });
+}
+console.log('UC001WEB_CAPS web ready / ok');
+const apiHost = inspectHostConfig(API_NAME);
+const webHost = inspectHostConfig(WEB_NAME);
+const apiEnforced = capsOk(apiHost);
+const webEnforced = capsOk(webHost);
+const enforced = pgEnforced && apiEnforced && webEnforced;
+writeFileSync(CAPS_PATH, JSON.stringify({
+  enforced,
+  method: 'docker --cpus=2 --memory=4g × 3 containers (PG runner 面 + api/web capped child 面)',
+  declared: { cpus: 2, memoryGiB: 4 },
+  pg: { container: pgContainer, HostConfig: { NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory }, ok: pgEnforced },
+  api: { container: API_NAME, HostConfig: { NanoCpus: apiHost.NanoCpus, Memory: apiHost.Memory }, ok: apiEnforced },
+  web: { container: WEB_NAME, HostConfig: { NanoCpus: webHost.NanoCpus, Memory: webHost.Memory }, ok: webEnforced },
+  expected: { NanoCpus: NANO_CPUS_EXPECTED, Memory: MEMORY_EXPECTED },
+  chromium: { host: 'uncapped-disclosed', note: 'Chromium 宿主驱动进程不封顶 · 单机 ≠ 真机容量' },
+  blocker: enforced ? null : (!pgEnforced ? 'pg_caps_mismatch' : (!apiEnforced ? 'api_caps_mismatch' : 'web_caps_mismatch')),
+}, null, 2) + '\\n');
+console.log('UC001WEB_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' web NanoCpus=' + webHost.NanoCpus);
+console.log('E2E_RESOURCE_CAPS target=uc001:nhp-perf-web:prove:raw docker_args=--cpus 2 --memory 4g (api+web child 面·PG runner 面)');
+console.log('UC001WEB_D_BUILD disclosure: measured web bundle carries E2E_UI_STRESS=1 build-time inline (e2e-guard-only source) · NOT clean production bundle');
+const proof = spawnSync('pnpm', ['-C', 'apps/web', 'prove:nhp-perf-web'], {
+  cwd: ROOT,
+  env: { ...process.env, PERF_WEB_WEB_BASE: 'http://127.0.0.1:' + webPub, PERF_WEB_API_BASE: 'http://127.0.0.1:' + apiPub },
+  stdio: 'inherit',
+});
+spawnSync('docker', ['rm', '-f', API_NAME, WEB_NAME], { stdio: 'ignore' });
+process.exit(proof.status ?? 1);
 `;
 
 // PERF_api 三收据刀（UC-011 begin 主链 / UC-017 报告链 / UC-019 重试链）：uc001 capped child 先例形
@@ -3039,6 +3214,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['node', ['--input-type=module', '-e', UC017_PERF_API_CAPS_CHILD]]
   : target === 'uc019:nhp-perf-api:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC019_PERF_API_CAPS_CHILD]]
+  : target === 'uc001:nhp-perf-web:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC001_PERF_WEB_CAPS_CHILD]]
   : target === 'uc018:abandon:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc018-abandon-http']]
   : target === 'uc018:adv:prove:raw'
@@ -3890,6 +4067,7 @@ async function main() {
     }
     const resourceCapArgs = target === 'uc018:perf-load:prove:raw' || target === 'uc001:nhp-perf-api:prove:raw'
       || target === 'uc011:nhp-perf-api:prove:raw' || target === 'uc017:nhp-perf-api:prove:raw' || target === 'uc019:nhp-perf-api:prove:raw'
+      || target === 'uc001:nhp-perf-web:prove:raw'
       ? ['--cpus', '2', '--memory', '4g']
       : [];
     if (resourceCapArgs.length) {
@@ -3935,6 +4113,9 @@ async function main() {
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc014:nhp-neg:prove:raw', 'uc014:nhp-bound:prove:raw',
+  // PERF-web 执行收据刀（NHP-001-PERF-web-01 · pre-migrate 名单第四注册位·沿批 C/uc001 PERF_api 同形全登记：
+  // api 容器 boot 前真迁移链先立·UI signup 主链读 user_account 零 virgin 世界缺口）。
+  'uc001:nhp-perf-web:prove:raw',
   'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
