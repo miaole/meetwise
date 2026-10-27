@@ -1,0 +1,78 @@
+
+> meetwise@0.1.0 uc010:nhp-crossstream:prove /Users/miaole/Desktop/golucky/meetwise-sse-adv
+> node scripts/run-e2e-isolated.mjs uc010:nhp-crossstream:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-74544-1793061972473 on 127.0.0.1:32950
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc010-nhp-crossstream /Users/miaole/Desktop/golucky/meetwise-sse-adv/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-010-nhp-crossstream.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793061975866,"pid":74740,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:62903"}
+NHP-010-ADV-02 同主体多流交叉隔离 prove · releaseEvidence=false · Not HA
+CMD=pnpm uc010:nhp-crossstream:prove
+NOTE: EXIT0=case 证据≠covered≠翻行 · :116 格 blind 保持+case-only additive 注记 · Ban retry-to-green
+NOTE: egress=P2④ 避词面路（零 provider 词面→零新登记）· est live=0
+
+──────── B1 · 跨流高游标 skip-not-error（S2 游标 5 施于 S1）────────
+{"level":30,"time":1793061975876,"pid":74740,"hostname":"miaole.local","reqId":"0d612468-537a-4361-9710-7e4fa817a926","req":{"method":"GET","url":"/interview/IV_SSE_X_S1/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62904},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+PASS  B1 携 S2 游标 5 订 S1 → 200（非 4xx 非 5xx·跨流高游标不判非法不拒连）
+PASS  B1 空 catch-up: 零 id: 帧（S1.maxSeq=3<5 空集·不重放本流亦不杜撰他流）
+PASS  B1 hold ping 在证（skip-not-error·空集非错误·进 SSE hold tail）
+PASS  B1 全窗零 event 帧（S1/S2 种子字节均零出现·空 catch-up 纯净）
+
+──────── B2 · 跨流低游标零跨流帧（S1 游标 1 施于 S2）────────
+{"level":30,"time":1793061978690,"pid":74740,"hostname":"miaole.local","reqId":"50cb75f5-6852-40a6-bdc4-3c0b5f68d704","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62910},"msg":"incoming request"}
+PASS  B2 携 S1 游标 1 订 S2 → 200+恰 seq=[2,3,4,5]（不丢不重·跨流变体 :914 stream_key=$1 单谓词）
+PASS  B2 逐帧 kind/payload=S2 种子（流标签 stream=S2+独立 marker 逐帧核·非仅 seq 面）
+PASS  B2 零 S1 域帧字节（kind s1_ 前缀/marker s1-seed/流标签 "S1" 全族零出现·seq 2,3 跨流同值不可判别·值域互斥判别面兑现）
+{"level":30,"time":1793061980091,"pid":74740,"hostname":"miaole.local","reqId":"ac23f83b-6e1c-4714-8065-74cf0c6f796e","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62911},"msg":"incoming request"}
+PASS  B2 重复行使恒定窗（两次帧集逐字节恒定·uc002 V3 同构跨流版）
+
+──────── B3 · 双持实时跨流注入零互偷（自装 0214 触发器·字节版本钉明）────────
+PASS  B3 自装 0214 语句级触发器在证（pg_trigger 实证·非纸面安装）
+PIN   B3 notify trigger self-install file=0214_interview_event_statement_notify.sql bytes=898 sha256=14279a1acb06e11c (0143 字节不改仅历史·0214 取代)
+{"level":30,"time":1793061987513,"pid":74740,"hostname":"miaole.local","reqId":"dbd20796-7ab1-468a-9a75-9a44943da71a","req":{"method":"GET","url":"/interview/IV_SSE_X_S1/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62924},"msg":"incoming request"}
+{"level":30,"time":1793061987514,"pid":74740,"hostname":"miaole.local","reqId":"21a58830-2067-45cc-9bbb-206ec35b2689","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62925},"msg":"incoming request"}
+PASS  B3 对照:S2 连接收到注入权威行 seq=[6,7]（单语句双行·注入非空转·hold-and-tail 在证）
+PASS  B3 对照:S2 连接收到两条注入 token_delta（s2-token-a/b·LISTEN+trigger 通道活体证）
+PASS  B3 隔离:S1 连接帧集=本流自身注入 seq=[4] 且全窗零 S2 域帧字节（S2 行注入+token 注入全程·kind s2_/marker s2-live/流标签 "S2" 零出现·本流帧在证=线活非空窗·per-streamKey waiter :169/:191+stream_key=$1 谓词链）
+PASS  B3 隔离(P2③):S1 连接 token_delta 零出现（配对主动注入 S2 双 token 帧动作+S1 线本流帧非空窗·零互偷非假绿·delta 环 :64/:73 订阅键=流键）
+{"level":30,"time":1793061991121,"pid":74740,"hostname":"miaole.local","reqId":"84c33200-e37c-415f-958a-53dee936bb40","req":{"method":"GET","url":"/interview/IV_SSE_X_S1/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62936},"msg":"incoming request"}
+{"level":30,"time":1793061991123,"pid":74740,"hostname":"miaole.local","reqId":"0d24a90c-1d16-4871-aa58-fa6796525084","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62937},"msg":"incoming request"}
+PASS  B3 对称对照:S1 连接收到注入权威行 seq=5+两条 token_delta（s1-token-a/b·反向注入非空转）
+PASS  B3 对称隔离:S2 连接帧集=本流自身注入 seq=[8] 且全窗零 S1 域帧字节（kind s1_/marker s1-live/流标签 "S1" 零出现·本流帧在证=线活非空窗·对称断言）
+PASS  B3 对称隔离(P2③):S2 连接 token_delta 零出现（配对主动注入 S1 双 token 帧动作+S2 线本流帧非空窗·对称零互偷）
+
+──────── B4 · 账本零写副作用+确定性（双流三形对照锚）────────
+PASS  B4 双流账本 appended-exactly: 既存行（S1×3/S2×5）逐字节恒等零变异零删（events 面纯 SELECT·:914 唯一语句）
+PASS  B4 恰增 B3 注入行: S1+seq4,5(s1_progress)/S2+seq6,7,8(s2_progress/s2_waiting_user×2) 外零多余行（注入即声明行·零隐式写副作用）
+{"level":30,"time":1793061994727,"pid":74740,"hostname":"miaole.local","reqId":"ab509509-4dc4-4811-b6d5-abb6a77215b5","req":{"method":"GET","url":"/interview/IV_SSE_X_S1/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62935},"msg":"incoming request"}
+{"level":30,"time":1793061994735,"pid":74740,"hostname":"miaole.local","reqId":"ab509509-4dc4-4811-b6d5-abb6a77215b5","res":{"statusCode":404},"responseTime":6.55341700000281,"msg":"request completed"}
+{"level":30,"time":1793061994738,"pid":74740,"hostname":"miaole.local","reqId":"2de38236-2f35-4b4c-b3b3-f515749a7e71","req":{"method":"GET","url":"/interview/IV_SSE_X_S1/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62938},"msg":"incoming request"}
+{"level":30,"time":1793061994743,"pid":74740,"hostname":"miaole.local","reqId":"2de38236-2f35-4b4c-b3b3-f515749a7e71","res":{"statusCode":404},"responseTime":4.605459000002156,"msg":"request completed"}
+{"level":30,"time":1793061994746,"pid":74740,"hostname":"miaole.local","reqId":"1eb7ebdd-38ee-49d3-bbd2-69ed666e657b","req":{"method":"GET","url":"/interview/IV_SSE_X_S1/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62935},"msg":"incoming request"}
+{"level":30,"time":1793061994748,"pid":74740,"hostname":"miaole.local","reqId":"1eb7ebdd-38ee-49d3-bbd2-69ed666e657b","res":{"statusCode":404},"responseTime":2.825417000000016,"msg":"request completed"}
+{"level":30,"time":1793061994750,"pid":74740,"hostname":"miaole.local","reqId":"cbe80f03-b23d-46a1-aea1-231383132120","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62938},"msg":"incoming request"}
+{"level":30,"time":1793061994752,"pid":74740,"hostname":"miaole.local","reqId":"cbe80f03-b23d-46a1-aea1-231383132120","res":{"statusCode":404},"responseTime":2.499791999998706,"msg":"request completed"}
+{"level":30,"time":1793061994753,"pid":74740,"hostname":"miaole.local","reqId":"89b4da7c-9c04-43c7-bc83-65261942e6b6","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62935},"msg":"incoming request"}
+{"level":30,"time":1793061994755,"pid":74740,"hostname":"miaole.local","reqId":"89b4da7c-9c04-43c7-bc83-65261942e6b6","res":{"statusCode":404},"responseTime":2.407875000000786,"msg":"request completed"}
+{"level":30,"time":1793061994756,"pid":74740,"hostname":"miaole.local","reqId":"e7c20523-7eef-420f-bfb5-399754bc9c66","req":{"method":"GET","url":"/interview/IV_SSE_X_S2/events","host":"127.0.0.1:62903","remoteAddress":"127.0.0.1","remotePort":62938},"msg":"incoming request"}
+{"level":30,"time":1793061994759,"pid":74740,"hostname":"miaole.local","reqId":"e7c20523-7eef-420f-bfb5-399754bc9c66","res":{"statusCode":404},"responseTime":2.6644579999992857,"msg":"request completed"}
+PASS  B4 双流三形: userB×(S1,S2)×(合法游标/伪造高游标/无游标) 六探恒 404（privacy 先于游标语义·分界对照锚）
+PASS  B4 双流三形零泄出: 六探均零事件帧（404 body 无账本内容·双流账本字节零出流）
+PIN   GAP-pin: harness RLS=sql 镜像 owner-match stub（interview_privacy_active 镜像）≠ 0062 interview_event_stream_privacy_active 域查 RLS ≠ fence covered——0062/围栏 410 面归真迁移链主证 privacy-erasure-http·本 prove 只证 200 路径内跨流帧隔离
+PIN   GAP-pin: 0214 触发器系本 harness 自装镜像（boot() 夹具非迁移·字节 sha256 钉明）·跨副本/多进程 LISTEN 面不可证（GAP-UC010-CROSS-REPLICA 沿承·本进程内壳）
+PIN   GAP-pin: EXIT0=case 证据≠covered≠翻行——:116 格 blind 保持+case-only additive 注记·coveredCount=8 零翻转·covered 翻面权归协调方
+PASS  G-GAP honesty pins printed (P2⑤·EXIT=0≠covered)
+
+NOTE: still ≠covered; matrix :116 格 blind 保持+case-only additive 注记·§1.0.2 :147 blind 保持·Ban 升 covered
+
+✓ uc010:nhp-crossstream: 21 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T00-46-34-910Z-74544-21cd47d9-79a9-448d-a980-b3c23bf0f210.json release_evidence=false
