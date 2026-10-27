@@ -1034,6 +1034,15 @@ const isolatedReceiptSources = {
     'apps/web/i18n/request.ts',
     'apps/web/messages/zh.json',
   ],
+  // UC-003 残面（NHP-003-NEG-01 · NEG gap→case）：上传链 NEG 码域↔web 映射链契约对账
+  // （纯函数+静态源对账 · 零 PG 零外呼零 key · 批 A uc003:nhp-adv 同壳）。
+  'uc003:nhp-neg:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/web/test/uc-e2e-003-nhp-neg.proof.ts',
+    'apps/web/lib/resume/ocr-preview-ui.ts',
+    'apps/api/src/modules/resume/resume.service.ts',
+    'apps/web/messages/zh.json',
+  ],
   // NHP 批 C Row 1（UC-016/029 NEG · gap→case）：quiz/diagnosis 业务负路径族（400/404/409/402/幂等/CAS/
   // 额度净账）。隔离 PG 真 HTTP（_neg-harness 三层壳·uc025-bound-isolated 先例形）。
   'uc016:nhp-neg:prove:raw': [
@@ -2733,6 +2742,8 @@ if (![
   'uc012:nhp-adv:prove:raw',
   'uc030:nhp-fault:prove:raw',
   'uc003:nhp-adv:prove:raw',
+  // UC-003 残面（NHP-003-NEG-01 · 批 A uc003:nhp-adv 同族 · 一行一 case 一收据）。
+  'uc003:nhp-neg:prove:raw',
   // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 时钟漂移/刷新轮换/长会话续命 · 一行一 case 一收据）。
   'uc030:nhp-bound:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api 执行 · 一行一 case 一收据）。
@@ -3161,6 +3172,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-bound']]
   : target === 'uc003:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/web', 'prove:uc003-nhp-adv']]
+  : target === 'uc003:nhp-neg:prove:raw'
+    ? ['pnpm', ['-C', 'apps/web', 'prove:uc003-nhp-neg']]
   : target === 'uc016:nhp-neg:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-neg']]
   : target === 'uc015:nhp-adv:prove:raw'
