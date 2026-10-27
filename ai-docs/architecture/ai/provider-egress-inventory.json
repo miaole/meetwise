@@ -486,6 +486,11 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-016-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/api/test/uc-e2e-001-nhp-perf-api.proof.ts",
       "class": "test-isolation"
     },
@@ -512,6 +517,11 @@
     {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-015-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-016-nhp-adv.proof.ts",
       "class": "test-isolation"
     },
     {
@@ -2328,8 +2338,17 @@
       "name": "DASHSCOPE_COMPAT_BASE_URL",
       "source": "apps/api/test/uc-e2e-030-nhp-bound.proof.ts",
       "class": "test-isolation"
-    }
-  ],
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/web/test/nhp-perf-web.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/web/test/nhp-perf-web.proof.ts",
+      "class": "test-isolation"
+    }],
   "deploymentReferences": [
     {
       "source": "docker/compose.prod.yml",

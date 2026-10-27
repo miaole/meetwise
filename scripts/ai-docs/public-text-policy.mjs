@@ -107,6 +107,10 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2144→2152（2026-10-15 协调方预 sanction·+8 沿 +8 先例形：COST-COLUMNS nail 并线树——
 // 本刀树 2144=cap 恰等零余量+主线并线增量必越·cost-columns 收据+三刀在飞共享余量·
 // 协调方 sanction·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2410→2418（2026-10-27 X16-ADV quiz/diagnosis 双口对抗边界起草刀·总盘派单序第 4 项常设预授权「越限沿先例步进承登」·+8 三十先例形·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410 快速链·授权随令）：
+// 本支树终验亲跑 scanned 2410=cap 2410 恰等零余量+本卷 x16-adv-REQUEST 受管 1 件=2411 必超（EXEC 期 +1 proof=2412≤2418·余 6 在飞共享余量沿 cap 2152 先例形·X33 line/x33-adv-draft 对同两 script 交涉面随并线届值重算 dual-keep·#154/#155 先例形）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+// CAP-SANCTION-2420 X16 EXEC 并线 union 越限恰等步进：cap 2418→2420（2026-10-27 X16-ADV EXEC 立项并线 #157/#158/#159/#161·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2402→2405/2406→2409→2410→2413→2416→2418 并线先例形·三十三先例形·快速链·授权随令）：
+// 并线 merge `a69bfdb5e`（origin/main `124a3053e`=#161 uc003x 并线点·两 policy 注记栈冲突 dual-keep 双留·cap 届值双亲同值 2418 取等）后终验亲跑 docs:check PTP_FILE_LIMIT:2419>2418 红——双亲各自合规（main `124a3053e` 届值 2418=cap 恰等零余量·本支起草届值 2411≤2418）union 实测 2419=2418+本卷 x16-adv-REQUEST 受管 1 件并入·EXEC terminal=2420=2419+本刀 proof 1 件（stdout 收据 .log 非扫描扩展名不计·TEXT_EXTENSIONS 亲证）·在飞未并如实采：x33 `5a560411a`/perfweb `cad25d5b8`/webhook-fault `3f44c2408`/uc31 `112ac8af0`·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2409→2410（2026-10-27 PAY-NEG 支付拒绝 UI 刀收官并线 #155 sse-adv·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·+1 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409 二十九先例形·快速链·授权随令）：
 // 并线树终验亲跑 PTP_FILE_LIMIT:2410>2409——双亲各自合规（main `d1a947e3d` 届值 2409=cap 恰等零余量·本支 `80847d175` 届值 2405=届 cap 恰等零余量）union 实测 2410=2409+本卷 pay-neg-REQUEST 受管 1 件并入（派单原裁 2405→2406 恰等步进随 #155 并线届值重算·merge `7813aa407` 后亲测）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2406→2409（2026-10-27 SSE-ADV sanction 收官并线 #154 killsw 二轮 union·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·+3 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406 二十八先例形·快速链·授权随令）：
@@ -163,7 +167,8 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // 2240 恰等零余量·在飞四刀并线 2249 超限（DB-HOTSPOT +3/TRACE-RECON +4/#101 供应链 +1/#185 打卡键 +1·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232 四先例形·N-19 修复刀随刀行使·授权随令）：
 // 2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶（PTP_FILE_LIMIT:2233>2232 红停承登·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-// 上限经 2346→2354→2362→2370→2378→2386→2392→2394→2397→2402→2403/2405/2405/2406（四支并行各自步进：webhook-neg 起草/killsw clock union/PERF_api 三收据/SSE-ADV）→2409（#154 并线 union 恰等步进）→2410（pay-neg 并线恰等步进）→2413（并线 union 恰等步进×2：webhook-neg EXEC+PERF_api 三收据）→2416（#157 PERF_api 三收据×webhook-neg 双并 union 恰等步进）→2418（uc003x 残面 post 收官并线 union 恰等步进）→2420（webhook-fault EXEC 并线 union 恰等步进）步进（见上注记）。恰达上限仍通过，多一个仍拒绝。
+// 上限经 2346→2354→2362→2370→2378→2386→2392→2394→2397→2402→2403/2405/2405/2406（四支并行各自步进：webhook-neg 起草/killsw clock union/PERF_api 三收据/SSE-ADV）→2409（#154 并线 union 恰等步进）→2410（pay-neg 并线恰等步进）→2413（并线 union 恰等步进×2：webhook-neg EXEC+PERF_api 三收据）→2416（#157 PERF_api 三收据×webhook-neg 双并 union 恰等步进）→2418（PERF-web EXEC 立项并线 union+EXEC 面恰等步进）步进（见上注记）。恰达上限仍通过，多一个仍拒绝。
+// 上限经 2346→2354→2362→2370→2378→2386→2392→2394→2397→2402→2403/2405/2405/2406（四支并行各自步进：webhook-neg 起草/killsw clock union/PERF_api 三收据/SSE-ADV）→2409（#154 并线 union 恰等步进）→2410（pay-neg 并线恰等步进）→2413（并线 union 恰等步进×2：webhook-neg EXEC+PERF_api 三收据）→2416（#157 PERF_api 三收据×webhook-neg 双并 union 恰等步进）→2418（uc003x 残面 post 收官并线 union 恰等步进）步进（见上注记）。恰达上限仍通过，多一个仍拒绝。
 // CAP-SANCTION-2418 随刀：cap 2416→2418（2026-10-27 uc003x 残面 post 收官并线 #157 perf3-receipts union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410/2413/2416 三十二先例形·快速链·授权随令）：
 // 并线树终验亲跑 docs:check PTP_FILE_LIMIT:2418>2416 红——双亲各自合规（main f82d1a2c2=#157 届值 2416=cap 恰等·本支 e10e1b673 届值 2415=cap 恰等）union 实测 2418=2416+本支并入互斥受管目 2（uc003x-REQUEST+uc-e2e-003-nhp-neg.proof·两集合无交叠·两 stdout 收据 .log 非扫描扩展名不计）·首轮未收敛实测 2422 冗计如实承登（2 冲突件×3 stage=+4·沿 #157 CAP-SANCTION-2413 注记同形坑·git add 收敛后终验 2418）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // CAP-SANCTION-2416 随刀：cap 2413→2416（2026-10-27 #157 PERF_api 三收据并线 #159 webhook-neg 双支受管目 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+3 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410/2413 三十一先例形·快速链·授权随令）：
@@ -184,15 +189,27 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // cap 2402→2405（2026-10-27 killsw 开关刀并线 #152 clock-e2e union 越限恰等步进·协调方并线令预授权「union 越限预授权恰等步进+承登」随令·
 // 并线树终验亲跑 PTP_FILE_LIMIT:2405>2402 红·双亲各自合规（本支 d41a4511f 届值 scanned 2400≤2402·main 961f5ef12 届值 2402=cap 零余量）union 实测 2405=本支届值 2400+clock 并入受管 5（REQUEST+proof+txt/json 收据三件）·
 // 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// cap 2410→2413（2026-10-26 PERF-web 起草卷随刀先手步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」承登·
+// 本树届值亲跑 scanned 2410=cap 2410 恰等零余量+本卷 harness/perfweb-REQUEST.md 1 件=2411 必超·算式=REQUEST 1（本刀起草）+EXEC 期 proof 1+EXEC 期 tracked receipt 若落 text-extension 1=2413 恰等 terminal·
+// x33-adv-draft 先手步进先形+killsw 算式先形·在飞三线登记（perf3=2413/x33=2417/webhook=2410·并线 union 届时按 standing rule 重测）·
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// CAP-SANCTION-2418 随刀：cap 2416→2418（2026-10-27 PERF-web EXEC 立项并线 #157/#158/#159 union 越限恰等步进+EXEC 面 terminal 算式·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2402→2405/2406→2409/2410/2413/2416 并线先例形·快速链·授权随令）：
+// merge 冲突两 policy 双件 dual-keep 注释双留（本支 PERF-web 起草注记+main CAP-SANCTION-2416 注记并留）·cap 届值 main 承 2416（f82d1a2c2=#157 并线点亲证 MAX_FILES=2_416）·并线树终验亲跑 docs:check PTP_FILE_LIMIT:2417>2416 红（union 实测 2417=main 届扫 2416+本支 harness/perfweb-REQUEST.md 受管 1 件并入·双亲各自合规）·EXEC terminal 算式=2416+REQUEST 1+EXEC 期 proof 1=2418 恰等（EXEC 期 tracked gate stdout 收据落 .log ∉TEXT_EXTENSIONS 非扫描面不计·沿 webhook-neg/批 C 收据先形·起草卷算式「若落 text-extension 1」条件分支不触发）·#160 x33/#161 webhook-fault 在飞未在 main 如实采·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2410→2411（2026-10-27 webhook-fault 回调故障注入刀起草随刀·协调方派单预授权「届值·越限沿先例步进承登预授权」随令·+1 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410
-// 三十先例形·本树起草前亲跑 check-docs EXIT=0 scanned 2410=cap 恰达零余量·本卷新 REQUEST .md +1 必越限·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2410→2411（2026-10-26 uc003x 简历域残面起草刀随刀·+1 恰等零多放·pay-neg #155 单件恰等先例形·
 // 协调方派单预授权「越限沿先例步进承登预授权」随令·本支树届扫 2410=cap 恰等零余量+本卷 REQUEST 1 件=2411 必超（PTP_FILE_LIMIT:2411>2410 形·docs:check 本树起草前亲跑 EXIT=0 亲证）·
 // 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2413→2415（2026-10-27 uc003x EXEC 并线 #157/#158/#159 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·main 届值 2413=cap 恰等零余量·union 实测 2415=2413+本卷 uc003x-REQUEST 受管 1 件并入+本刀 EXEC 面 Case 1 proof 1 件受管（stdout 收据 .log 非扫描扩展名不计·TEXT_EXTENSIONS 亲证·Case 2 spec test-only 增臂零新件）·沿 2402→2405/2406→2409→2410→2413 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// CAP-SANCTION-2420 随刀：cap 2418→2420（2026-10-27 PERF-web post 双审双 PASS 会签后并线 #161 uc003x 残面 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2416→2418 并线先例形·快速链·授权随令）：
+// 届值如实采：origin/main `124a3053e`（#161 uc003x 已并）承 2418=cap 恰等·本支 a5cf2c0c1 承 2418=cap 恰等（双亲各自合规）·merge-tree 预演恰 3 处冲突（apps/web/package.json prove 脚本行 additive 双留+policy .mjs 注释两区 dual-keep 双留）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2420>2418 红——union 实测 2420=main 届扫 2418+本支并入互斥受管目 2（harness/perfweb-REQUEST.md+apps/web/test/nhp-perf-web.proof.ts·两集合无交叠·两 stdout 收据 .log 非扫描扩展名不计）·四联动点 2_420/f-2420.md/:2421 恰等改·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2416→2418（2026-10-27 uc003x 残面 post 收官并线 #157 perf3-receipts union 越限恰等步进·详 CAP-SANCTION-2418 注记（本文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+// X16-ADV 起草注记 dual-keep 并留：cap 2410→2418 X16 步进注记存本文件链区上邻（「cap 2410→2418（2026-10-27 X16-ADV…」两行）——本卷 EXEC 并线 #157-#161 union 恰等步进随 CAP-SANCTION-2420 注记（proof 文件链区）。
+// CAP-SANCTION-2422 并线恰等步进：cap 2420→2422（2026-10-27 X16-ADV post 收官并线 #162 perfweb union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2418→2420 并线先例形·快速链·授权随令）：
+// 届值如实采：origin/main `7c5aa7445`（#162 perfweb 已并）承 2420=cap 恰等·本支 3caa2363a 承 2420=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2422>2420 红——union 实测 2422=main 届扫 2420+本支并入互斥受管目 2（harness/x16-adv-REQUEST.md+apps/api/test/uc-e2e-016-nhp-adv.proof.ts·两集合无交叠·两 stdout 收据 .log 非扫描扩展名不计）·四联动点 2_422/f-2422.md/:2423 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // cap 2418→2420（2026-10-27 webhook-fault EXEC 并线 #159/#160/#161 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·main 届值 2418=cap 恰达零余量·union 实测 2420=2418+本卷 webhook-fault-REQUEST 受管 1 件并入+本刀 EXEC 面 proof 1 件受管（stdout 收据 .log 非扫描扩展名不计·TEXT_EXTENSIONS 亲证）·沿 2402→2405/2410→2413/2413→2415/2416→2418 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-const MAX_FILES = 2_420;
+// CAP-SANCTION-2424 并线恰等步进：cap 2422→2424（2026-10-27 webhook-fault post 收官并线 #162 perfweb+#163 x16-adv union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+2 恰等零多放·沿 2420→2422 并线先例形·快速链·授权随令）：
+// 届值如实采：origin/main bd9c6c7f8（#162/#163 已并）承 2422=cap 恰等·本支 4d283bd2d 承 2420=cap 恰等（双亲各自合规）·merge-tree 预演恰 3 处冲突（两 policy 脚本注记/cap 区+runner 注册区·dual-keep/additive）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2424>2422 红——union 实测 2424=main 届扫 2422+本支并入互斥受管目 2（harness/webhook-fault-REQUEST.md+apps/api/test/uc-e2e-014-nhp-fault.proof.ts·两集合无交叠·stdout 收据 .log 非扫描扩展名不计）·四联动点 2_424/f-2424.md/:2425 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+const MAX_FILES = 2_424;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
