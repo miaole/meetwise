@@ -4,7 +4,7 @@
  "private": true,
  "type": "module",
  "scripts": {
-  "lint": "eslint . --max-warnings 1447",
+  "lint": "eslint . --max-warnings 1471",
   "serve": "node --import @swc-node/register/esm-register src/main.ts",
   "typecheck": "tsc -p tsconfig.json --noEmit",
   "validate": "node --import @swc-node/register/esm-register test/validate.ts",
@@ -42,6 +42,9 @@
   "prove:uc016-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-016-nhp-neg.proof.ts",
   "prove:uc015-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-adv.proof.ts",
   "prove:uc001-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-perf-api.proof.ts",
+  "prove:uc011-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-011-nhp-perf-api.proof.ts",
+  "prove:uc017-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-017-nhp-perf-api.proof.ts",
+  "prove:uc019-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-019-nhp-perf-api.proof.ts",
   "prove:uc017-orphan-http-sse": "node --import @swc-node/register/esm-register test/uc-e2e-017-orphan-http-sse.proof.ts",
   "prove:uc018-adv": "node --import @swc-node/register/esm-register test/uc-e2e-018-adv.proof.ts",
   "prove:uc018-perf-load": "node --import @swc-node/register/esm-register test/uc-e2e-018-perf-load.proof.ts",

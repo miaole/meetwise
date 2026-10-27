@@ -153,8 +153,12 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // 2240 恰等零余量·在飞四刀并线 2249 超限（DB-HOTSPOT +3/TRACE-RECON +4/#101 供应链 +1/#185 打卡键 +1·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
 // cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232 四先例形·N-19 修复刀随刀行使·授权随令）：
 // 2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶（PTP_FILE_LIMIT:2233>2232 红停承登·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
-// 上限经 2346→2354→2362→2370→2378→2386→2392→2394→2397→2402 步进（见上注记）。恰达上限仍通过，多一个仍拒绝。
-const MAX_FILES = 2_402;
+// 上限经 2346→2354→2362→2370→2378→2386→2392→2394→2397→2402→2405 步进（见上注记）。恰达上限仍通过，多一个仍拒绝。
+// cap 2402→2405（2026-10-26 协调方授权派单（UC-011/017/019 PERF_api 收据席·总盘派单序第 8 项）·+3 恰等步进·
+// 沿 2394→2397→2402 最小步进先例形：PERF_api 三收据 proof（apps/api/test/uc-e2e-011/017/019-nhp-perf-api.proof.ts）
+// 净增 3 受管件·tracked gate stdout 收据走 .log（∉TEXT_EXTENSIONS·不计面·沿 nhp-001-perf-api-01 收据形）·
+// 计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。
+const MAX_FILES = 2_405;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
