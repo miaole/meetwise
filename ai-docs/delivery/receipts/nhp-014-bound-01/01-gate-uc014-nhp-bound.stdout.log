@@ -1,0 +1,73 @@
+
+> meetwise@0.1.0 uc014:nhp-bound:prove /Users/miaole/Desktop/golucky/meetwise-webhook
+> node scripts/run-e2e-isolated.mjs uc014:nhp-bound:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-84992-1793082557067 on 127.0.0.1:32990
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-webhook/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc014-nhp-bound /Users/miaole/Desktop/golucky/meetwise-webhook/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-014-nhp-bound.proof.ts
+
+NHP-014-BOUND-01 · 双口分叉语义证人+生命周期重放边界 · releaseEvidence=false · Not HA
+CMD=pnpm uc014:nhp-bound:prove
+NOTE: EXIT0=case 证据≠covered≠翻行 · 格值 partial 保持 · Ban 借 B1/B2 宣「跨口幂等已统一」（事实=两分立 partial UNIQUE 命名空间·本刀=语义证人非统一化 claim）
+{"level":30,"time":1793082563431,"pid":85289,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:54131"}
+{"level":30,"time":1793082563441,"pid":85289,"hostname":"miaole.local","reqId":"7eb71116-01b0-41ad-92da-92c13ddede22","req":{"method":"POST","url":"/commerce/webhook/pay/BOUND_B1_X","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563452,"pid":85289,"hostname":"miaole.local","reqId":"7eb71116-01b0-41ad-92da-92c13ddede22","res":{"statusCode":200},"responseTime":10.030333999999812,"msg":"request completed"}
+PASS  B1a 单 X（created 壳）pay 同流水 T → 200 credited
+PASS  B1a X owner 桶 +10（入账落桶）
+{"level":30,"time":1793082563455,"pid":85289,"hostname":"miaole.local","reqId":"cad5c898-6eb5-4edd-8c74-57afd55e4fe5","req":{"method":"POST","url":"/commerce/webhook/refund/BOUND_B1_Y","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563460,"pid":85289,"hostname":"miaole.local","reqId":"cad5c898-6eb5-4edd-8c74-57afd55e4fe5","res":{"statusCode":200},"responseTime":4.644249999999829,"msg":"request completed"}
+PASS  B1b 单 Y（他人·paid 壳）refund 同字符串 T → 200 refunded（两索引分立·pay 命名空间占用不阻 refund 命名空间）
+PASS  B1b provider_txn=T 全局恰 1 行（uq_payment_order_provider_txn 分立空间）
+PASS  B1b refund_provider_txn=T 全局恰 1 行（uq_payment_order_refund_provider_txn 分立空间）
+PASS  B1b Y owner 可用 −10（红冲 exactly-once）
+PASS  B1b 终态：X status=paid∧provider_txn=T ∧ Y status=refunded∧refund_provider_txn=T（两命名空间分立证人）
+{"level":30,"time":1793082563463,"pid":85289,"hostname":"miaole.local","reqId":"89cbce07-0119-4563-9bdd-8c7ea11fb22b","req":{"method":"POST","url":"/commerce/webhook/pay/BOUND_B2","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563468,"pid":85289,"hostname":"miaole.local","reqId":"89cbce07-0119-4563-9bdd-8c7ea11fb22b","res":{"statusCode":200},"responseTime":4.122041000000081,"msg":"request completed"}
+PASS  B2a 同单 pay T → 200 credited
+{"level":30,"time":1793082563469,"pid":85289,"hostname":"miaole.local","reqId":"feec6e95-90f8-4a81-a8fc-8d022f0eeaf9","req":{"method":"POST","url":"/commerce/webhook/refund/BOUND_B2","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54133},"msg":"incoming request"}
+{"level":30,"time":1793082563473,"pid":85289,"hostname":"miaole.local","reqId":"feec6e95-90f8-4a81-a8fc-8d022f0eeaf9","res":{"statusCode":200},"responseTime":4.24654200000009,"msg":"request completed"}
+PASS  B2b 同单同字符串 T refund → 200 refunded（refund CAS 只查 refund_provider_txn 命名空间·结构性放行）
+PASS  B2b 同行 provider_txn=T ∧ refund_provider_txn=T 并存（分立列分立索引·码态真值证人）
+PASS  B2b 净账恒等：+10 入账 −10 红冲 = 桶合计归零
+DISCLOSURE(B2): 语义证人臂——期望=码态真值钉死并显式披露（两分立 partial UNIQUE 无跨 kind 约束→同单同串双列并存系结构性放行）；非产品意图背书·Ban 借本臂宣退款正确性已证。
+DISCLOSURE(B2): 与 REQUEST §0.2 Case2 锚表逐臂对码：CAS :77-87/:130-139 只各查本列 NOT EXISTS·无跨列谓词（亲读非推定·防 UC-019 静态推定错）。
+{"level":30,"time":1793082563476,"pid":85289,"hostname":"miaole.local","reqId":"504e3099-7733-4361-9be4-cb38e93d7de2","req":{"method":"POST","url":"/commerce/webhook/refund/BOUND_B3","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563481,"pid":85289,"hostname":"miaole.local","reqId":"504e3099-7733-4361-9be4-cb38e93d7de2","res":{"statusCode":409},"responseTime":5.234124999999949,"msg":"request completed"}
+PASS  B3 created 壳单 refund（合法签）→ 409 order_conflict（refund CAS status=paid 不中·回读 created≠refunded）
+PASS  B3 零副作用：订单行恒等∧refund_provider_txn=T 全局 0 行∧桶零变
+{"level":30,"time":1793082563484,"pid":85289,"hostname":"miaole.local","reqId":"2099ad6c-697e-48a3-899b-34747d8778fa","req":{"method":"POST","url":"/commerce/webhook/pay/BOUND_B4","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563488,"pid":85289,"hostname":"miaole.local","reqId":"2099ad6c-697e-48a3-899b-34747d8778fa","res":{"statusCode":409},"responseTime":3.3238750000000437,"msg":"request completed"}
+PASS  B4 refunded 壳单 pay（合法签）→ 409 order_conflict（pay CAS status=created 不中·回读 refunded≠paid）
+PASS  B4 零副作用：订单行恒等（status/refund_provider_txn 保持预置）∧provider_txn=T 全局 0 行∧桶零变
+{"level":30,"time":1793082563490,"pid":85289,"hostname":"miaole.local","reqId":"e4df1728-f81a-4add-a572-573795e0a058","req":{"method":"POST","url":"/commerce/webhook/pay/BOUND_B5","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563494,"pid":85289,"hostname":"miaole.local","reqId":"e4df1728-f81a-4add-a572-573795e0a058","res":{"statusCode":200},"responseTime":4.462084000000004,"msg":"request completed"}
+PASS  B5a created 单经产品口 pay T → 200 credited
+{"level":30,"time":1793082563495,"pid":85289,"hostname":"miaole.local","reqId":"0b10abec-1661-40fb-a87a-122181a1d0d7","req":{"method":"POST","url":"/commerce/webhook/refund/BOUND_B5","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54133},"msg":"incoming request"}
+{"level":30,"time":1793082563503,"pid":85289,"hostname":"miaole.local","reqId":"0b10abec-1661-40fb-a87a-122181a1d0d7","res":{"statusCode":200},"responseTime":7.648957999999993,"msg":"request completed"}
+PASS  B5b refund T2 → 200 refunded（生命周期推进 paid→refunded）
+{"level":30,"time":1793082563506,"pid":85289,"hostname":"miaole.local","reqId":"52506bfa-58ea-4a66-a9f3-30a145ea8a6b","req":{"method":"POST","url":"/commerce/webhook/pay/BOUND_B5","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563510,"pid":85289,"hostname":"miaole.local","reqId":"52506bfa-58ea-4a66-a9f3-30a145ea8a6b","res":{"statusCode":409},"responseTime":4.213707999999997,"msg":"request completed"}
+PASS  B5c 原支付流水重放 → 409 order_conflict 非 200 already（:107 already 只认 status=paid·幂等不跨生命周期倒退复活）
+PASS  B5c 零副作用：订单行保持 refunded∧provider_txn=T∧refund_provider_txn=T2 恒等
+PASS  B5c 桶/可用净账恒等（+10 −10 后零再动）
+{"level":30,"time":1793082563514,"pid":85289,"hostname":"miaole.local","reqId":"f8403521-e590-44ac-8f14-776a54b62adc","req":{"method":"POST","url":"/commerce/webhook/refund/BOUND_B6","host":"127.0.0.1:54131","remoteAddress":"127.0.0.1","remotePort":54132},"msg":"incoming request"}
+{"level":30,"time":1793082563518,"pid":85289,"hostname":"miaole.local","reqId":"f8403521-e590-44ac-8f14-776a54b62adc","res":{"statusCode":409},"responseTime":4.056874999999991,"msg":"request completed"}
+PASS  B6 refunded 壳单 refund T3（≠T2·合法签）→ 409 order_conflict（CAS 不中·回读 refund_provider_txn=T2≠T3 非 already）
+PASS  B6 零红冲零副作用：refund_provider_txn 仍=预置 T2∧T3 全局 0 行∧桶零变
+
+断言合计: 22 条, 失败 0 条
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
+非替代申明: neg:commerce 跨单（pay 侧）/已 paid 换流水（pay 侧 :552-557）· uc014-adv C4/C5（pay 口重放/跨单）· uc011 M2/A4/X（refund 口 already/跨单/跨口重放）· NHP-011-LOAD（风暴幂等）= 旁证互不替代互不借用
+HONESTY: EXIT0 = NHP-014-BOUND-01 case 证据 · ≠ covered ≠ 翻行 · 格值 partial 保持 · coveredCount=8 不变
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T06-29-23-678Z-84992-94037d69-6748-42cb-b75e-0295f7499306.json release_evidence=false

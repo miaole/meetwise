@@ -296,6 +296,12 @@ const checks = {
       // N-19 修复刀随刀：cap 2232→2240（2026-10-17 协调方 sanction·+8 沿 2208/2216/2224/2232
       // 四先例形·2224 恰等漏计勘误承 2232 刀+本刀 N-19 REQUEST 触顶·授权随令）——本臂 fabricated
       // 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2416 随刀联动：cap 2413→2416（2026-10-27 #157 PERF_api 三收据并线 #159 webhook-neg 双支受管目 union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+3 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410/2413
+      // 三十一先例形·并线树终验亲跑 docs:check PTP_FILE_LIMIT:2416>2413 红——双亲各自合规（main `5356fa8c5`=#159 届值 2413=cap 恰等·本支 `1fb9acbf8` 届值 2413=cap 恰等）union 实测 2416=双亲届值 2413 各含互斥受管目（main 侧 webhook-neg-REQUEST+两 proof·本支 PERF_api 三 proof）两集合无交叠 2413+3=2416 恰等·egress inventory union 同步登记 +6（376→382·proof 复跑 EXIT=0）·
+      // 快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2413 随刀联动补录：cap 2410→2413（2026-10-27 PERF_api 三收据并线 union 恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+3 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410
+      // 三十先例形·并线树终验亲跑 PTP_FILE_LIMIT:2413>2410 红——双亲各自合规（main `9c31c0ccc`=#156 届值 2410=cap 恰等·本支 `1a22540a2` 届值 2405=cap 恰等 worktree 实扫亲证）union 实测 2413=main 届值 2410+本支并入受管净增 3（PERF_api 三 proof·stdout 收据 .log 非扫描面不计）·本臂 TC 前值 2402 系本支起草届值漏随 2405 步进（P1 联动漏做）·并线后以合并树实测 2413 为准恰等补录·并线两轮如实承登：首轮对 d1a947e3d 实测 2412（首轮 merge 索引冲突路径三态重扫曾得 2418 冗计·git add 收敛后终验）未及落卷·#156 落 main 后重 merge 终验 2413 如实·
+      // CAP-SANCTION-2413 EXEC 并线恰等步进：cap 2410→2413（2026-10-27 NHP-014 webhook-neg EXEC·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·+3 恰等零多放·沿 2402→2405/2406→2409→2410 并线先例形·并线 merge `69997bd42` 后终验亲跑 PTP_FILE_LIMIT:2411>2410 红——union 实测 2413=2411（REQUEST 并入）+2 proof（stdout 收据 .log 非扫描扩展名不计）·快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2410 并线恰等步进：cap 2409→2410（2026-10-27 PAY-NEG 支付拒绝 UI 刀收官并线 #155 sse-adv·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·+1 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409
       // 二十九先例形·并线树终验亲跑 PTP_FILE_LIMIT:2410>2409——双亲各自合规（main `d1a947e3d` 届值 2409=cap 恰等零余量·本支 `80847d175` 届值 2405=届 cap 恰等零余量）union 实测 2410=2409+本卷 pay-neg-REQUEST 受管 1 件并入（派单原裁 2405→2406 恰等步进随 #155 并线届值重算·merge `7813aa407` 后亲测）·
       // 快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
@@ -307,6 +313,9 @@ const checks = {
       // 快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2402 随刀：cap 2397→2402（2026-10-27 SSE-ADV EXEC 立项协调方届值如实采·+5 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2394/2397
       // 二十五先例形·本支树终验亲跑 PTP_FILE_LIMIT:2398>2397——#151 并线后 2397=cap 零余量+本支 REQUEST 1 件=2398 必超（merge a0b5893f4 后亲证）·协调方届值 2402 如实采（#152 在飞预登同值未并）·本刀净增 4 受管文件终态 2402 恰等·
+      // CAP-SANCTION-2403 随刀：cap 2402→2403（2026-10-26 NHP-014 支付回调刀起草随刀协调方预授权 sanction·+1 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2394/2397/2402
+      // 二十六先例形·本刀树终验亲跑 scanned 2402=cap 恰等零余量——本卷 webhook-neg-REQUEST.md 受管 +1=2403 必越（CAP-SANCTION-2354 同形：main 恰 cap 零余量+本卷 REQUEST +1）·
+      // 起草 commit 即触·预授权「越限沿先例步进承登」随令行使·快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2402 随刀：cap 2397→2402（2026-10-26 UC-030 时钟卷并线收官协调方预授权 sanction·+5 恰等零多放·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397
       // 二十五先例形·并线树终验亲跑 PTP_FILE_LIMIT:2402>2397——双亲各自合规（本支 e987e8213 届值 2392≤2394·main e072e957f 届值 2397=cap 零余量）union 实测 2402=本支净增 5 受管文件（REQUEST+proof+3 receipts）并入（累计并入越限·merge-tree 预演同值）·
       // 快速链·授权随令）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
@@ -373,21 +382,27 @@ const checks = {
       // 计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       // CAP-SANCTION-2411 随刀：cap 2410→2411（2026-10-27 webhook-fault 回调故障注入刀起草随刀·协调方派单预授权「届值·越限沿先例步进承登预授权」随令·+1 恰等零多放·沿 2208…2410 三十先例形·
       // 本树起草前亲跑 check-docs EXIT=0 scanned 2410=cap 恰达零余量·本卷新 REQUEST .md +1 必越限·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2411 随刀：cap 2410→2411（2026-10-26 uc003x 简历域残面起草刀随刀·+1 恰等零多放·pay-neg #155 单件恰等先例形·沿 2208/2216/2224/2232/2240/2248/2256/2264/2272/2280/2288/2296/2304/2312/2320/2328/2338/2346/2354/2362/2370/2378/2386/2392/2397/2402/2405/2406/2409/2410
+      // 三十先例形·协调方派单预授权「越限沿先例步进承登预授权」随令·本支树届扫 2410=cap 恰等零余量+本卷 REQUEST 1 件=2411 必超·
+      // 计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2415 EXEC 并线 union 越限恰等步进：cap 2413→2415（2026-10-27 uc003x EXEC 并线 #157/#158/#159·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·main 届值 2413=cap 恰等零余量·union 实测 2415=2413+本卷 uc003x-REQUEST 受管 1 件并入+本刀 EXEC 面 Case 1 proof 1 件受管（stdout 收据 .log 非扫描扩展名不计·TEXT_EXTENSIONS 亲证·Case 2 spec test-only 增臂零新件）·沿 2402→2405/2406→2409→2410→2413 并线先例形·先手步进·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2418 post 收官并线 union 越限恰等步进：cap 2416→2418（2026-10-27 uc003x 残面 post 收官并线 #157 perf3-receipts·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·main 届值 f82d1a2c2 2416=cap 恰等零余量·union 实测 2418=2416+本支并入互斥受管目 2（uc003x-REQUEST+uc-e2e-003-nhp-neg.proof·两 stdout 收据 .log 非扫描面不计）·首轮未收敛实测 2422 冗计如实承登（2 冲突件×3 stage=+4·沿 #157 同形坑·git add 收敛后终验 2418）·沿 2402→…→2416 并线先例形·先手步进·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
+      // CAP-SANCTION-2420 webhook-fault EXEC 并线 union 越限恰等步进：cap 2418→2420（2026-10-27 webhook-fault EXEC 并线 #159/#160/#161·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·main 届值 124a3053e 2418=cap 恰达零余量·union 实测 2420=2418+本卷 webhook-fault-REQUEST 受管 1 件并入+本刀 EXEC 面 proof 1 件受管（stdout 收据 .log 非扫描扩展名不计·TEXT_EXTENSIONS 亲证）·沿 2402→…→2418 并线先例形·先手步进·计数预算非内容策略）——本臂 fabricated 数随 cap 再联动同步（语义不变·强度不减）。
       const paths = [];
-      for (let i = 0; i < 2_411; i += 1) {
+      for (let i = 0; i < 2_420; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_411);
-      // 超限错误码形状断言：第 2412 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2412`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2411.md'] });
+      assert.equal(atCap.scannedFiles, 2_420);
+      // 超限错误码形状断言：第 2421 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2421`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2420.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2412`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2421`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }

@@ -1,0 +1,73 @@
+
+> meetwise@0.1.0 uc014:nhp-neg:prove /Users/miaole/Desktop/golucky/meetwise-webhook
+> node scripts/run-e2e-isolated.mjs uc014:nhp-neg:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-84617-1793082539156 on 127.0.0.1:32989
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-webhook/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc014-nhp-neg /Users/miaole/Desktop/golucky/meetwise-webhook/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-014-nhp-neg.proof.ts
+
+NHP-014-NEG-01 · 验签门边界值证据层（窗锐缘 ±1s 口层/ts 类型形/kind 对偶反向互换）· releaseEvidence=false · Not HA
+CMD=pnpm uc014:nhp-neg:prove
+NOTE: EXIT0=case 证据≠covered≠翻行 · 格值 partial 保持 · Ban 借本收据宣「防重放窗新增能力」/「阈值本体首次行使」（单测层 authz5a2 已行使·本刀=HTTP 口层传输证据层·机制 5A-2 #100 已在码）
+{"level":30,"time":1793082550802,"pid":84943,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:54087"}
+{"level":30,"time":1793082550812,"pid":84943,"hostname":"miaole.local","reqId":"f711adab-e30b-4f47-a097-c2fa16074d38","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_PC","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550820,"pid":84943,"hostname":"miaole.local","reqId":"f711adab-e30b-4f47-a097-c2fa16074d38","res":{"statusCode":200},"responseTime":7.516167000000223,"msg":"request completed"}
+PASS  PC 窗心合法回调 ts=now → 200 {result:credited}
+PASS  PC 壳行转 paid ∧ provider_txn 落列（对照臂·壳行种子活体自证）
+{"level":30,"time":1793082550823,"pid":84943,"hostname":"miaole.local","reqId":"721d5713-1f7d-4595-b220-55d58f5cee57","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_N1","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550828,"pid":84943,"hostname":"miaole.local","reqId":"721d5713-1f7d-4595-b220-55d58f5cee57","res":{"statusCode":200},"responseTime":4.400875000000269,"msg":"request completed"}
+PASS  N1 恰内锐缘 ts=now−299_000 合法签 → 200 credited（|now−ts|=299_000 ≤ 300_000）
+PASS  N1 壳行转 paid ∧ provider_txn 落列（窗下界收口·口层传输证据）
+{"level":30,"time":1793082550829,"pid":84943,"hostname":"miaole.local","reqId":"e120b86f-1d18-421b-8296-1f90930faaf7","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_N3","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550833,"pid":84943,"hostname":"miaole.local","reqId":"e120b86f-1d18-421b-8296-1f90930faaf7","res":{"statusCode":200},"responseTime":3.9067080000004353,"msg":"request completed"}
+PASS  N3 恰内锐缘 ts=now+299_000 合法签 → 200 credited（未来向·Math.abs 双向窗）
+PASS  N3 壳行转 paid ∧ provider_txn 落列（窗上界收口·预签近未来载荷在窗内被接受=码态真值）
+{"level":30,"time":1793082550835,"pid":84943,"hostname":"miaole.local","reqId":"21326055-a0d8-4243-bd73-bfb139913cad","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_N7","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550839,"pid":84943,"hostname":"miaole.local","reqId":"21326055-a0d8-4243-bd73-bfb139913cad","res":{"statusCode":200},"responseTime":4.409583999999995,"msg":"request completed"}
+PASS  N7 ts 浮点（now−60_000+0.5·窗内·载荷同值）→ 200 credited（typeof=number ∧ isFinite 放行）
+PASS  N7 壳行转 paid ∧ provider_txn 落列（全树首证行为臂·浮点非整数 ts 结构性过窗门）
+{"level":30,"time":1793082550842,"pid":84943,"hostname":"miaole.local","reqId":"7fcaf7ad-4b2c-4b23-812e-b88ce4f70b99","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_REJ","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550843,"pid":84943,"hostname":"miaole.local","reqId":"7fcaf7ad-4b2c-4b23-812e-b88ce4f70b99","res":{"statusCode":400},"responseTime":0.6233750000001237,"msg":"request completed"}
+PASS  N2 恰外 ts=now−301_000 合法签 → 400 invalid_callback（|now−ts|=301_000 > 300_000）
+PASS  N2 零副作用五面快照恒等（订单行/桶数/桶合计/全局两流水行数）
+{"level":30,"time":1793082550850,"pid":84943,"hostname":"miaole.local","reqId":"9d04cde5-8f04-4465-aeda-aba21c5792c5","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_REJ","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550850,"pid":84943,"hostname":"miaole.local","reqId":"9d04cde5-8f04-4465-aeda-aba21c5792c5","res":{"statusCode":400},"responseTime":0.3817909999997937,"msg":"request completed"}
+PASS  N4 恰外 ts=now+301_000 合法签 → 400 invalid_callback（未来向·防预签远未来载荷）
+PASS  N4 零副作用五面快照恒等
+{"level":30,"time":1793082550856,"pid":84943,"hostname":"miaole.local","reqId":"0164f308-33f6-4bbc-83e5-bf1163f230c6","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_REJ","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550856,"pid":84943,"hostname":"miaole.local","reqId":"0164f308-33f6-4bbc-83e5-bf1163f230c6","res":{"statusCode":400},"responseTime":0.25091599999996106,"msg":"request completed"}
+PASS  N5 ts 字符串数字形 → 400 invalid_callback（typeof ts!==number 先于 HMAC·非 403 归因）
+PASS  N5 零副作用五面快照恒等
+{"level":30,"time":1793082550860,"pid":84943,"hostname":"miaole.local","reqId":"7a4c1093-a628-48e0-adcf-0ab8781afeca","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_REJ","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550860,"pid":84943,"hostname":"miaole.local","reqId":"7a4c1093-a628-48e0-adcf-0ab8781afeca","res":{"statusCode":400},"responseTime":0.22399999999970532,"msg":"request completed"}
+PASS  N6a ts=null → 400 invalid_callback（typeof null!==number·JSON null 形）
+PASS  N6a 零副作用五面快照恒等
+{"level":30,"time":1793082550864,"pid":84943,"hostname":"miaole.local","reqId":"ec7979af-fb14-4f8b-b554-c5f4bcc099ce","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_REJ","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550865,"pid":84943,"hostname":"miaole.local","reqId":"ec7979af-fb14-4f8b-b554-c5f4bcc099ce","res":{"statusCode":400},"responseTime":0.9386669999998958,"msg":"request completed"}
+PASS  N6b ts=true → 400 invalid_callback（typeof boolean!==number·JSON bool 形）
+PASS  N6b 零副作用五面快照恒等
+{"level":30,"time":1793082550871,"pid":84943,"hostname":"miaole.local","reqId":"f1ac1399-09aa-4e24-9865-d5b44a7d9168","req":{"method":"POST","url":"/commerce/webhook/pay/NEG_REJ","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550871,"pid":84943,"hostname":"miaole.local","reqId":"f1ac1399-09aa-4e24-9865-d5b44a7d9168","res":{"statusCode":403},"responseTime":0.25999999999976353,"msg":"request completed"}
+PASS  N8 refunded 标签签打 pay 口 → 403 bad_signature（kind 入签 :33 对偶不可互换·口层反向臂全树首证）
+PASS  N8 零副作用五面快照恒等（验签拒在先·零入账零落列）
+{"level":30,"time":1793082550876,"pid":84943,"hostname":"miaole.local","reqId":"36027c55-e935-46d7-ba52-287f5f952110","req":{"method":"POST","url":"/commerce/webhook/refund/NEG_N9","host":"127.0.0.1:54087","remoteAddress":"127.0.0.1","remotePort":54088},"msg":"incoming request"}
+{"level":30,"time":1793082550877,"pid":84943,"hostname":"miaole.local","reqId":"36027c55-e935-46d7-ba52-287f5f952110","res":{"statusCode":400},"responseTime":0.22499999999990905,"msg":"request completed"}
+PASS  N9 refund 口 ts=now−301_000 合法签 → 400 invalid_callback（verifyCommerceSig 单源·EXEC 择 Path A 对偶口）
+PASS  N9 零副作用五面快照恒等（跨口同门·零落列）
+
+断言合计: 22 条, 失败 0 条
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
+非替代申明: neg:commerce webhook 族（±360s 远超窗/缺 ts/短签/重放/跨单）· uc014-adv C1–C7（七类）· uc011 41+68+LOAD · authz5a2 单测两形 = 旁证互不替代互不借用
+HONESTY: EXIT0 = NHP-014-NEG-01 case 证据 · ≠ covered ≠ 翻行 · 格值 partial 保持 · coveredCount=8 不变
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T06-29-11-042Z-84617-d5d186df-cc26-4561-a156-8fb8b2f99857.json release_evidence=false
