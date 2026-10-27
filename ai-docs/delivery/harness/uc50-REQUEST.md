@@ -1,6 +1,6 @@
-# UC50 REQUEST — UC-E2E-050 applications.start 绕行残余刀·登记面行使+「绕行不可达」证明复核（docs-only REQUEST 卷·起草落卷即停）
+# UC50 REQUEST — UC-E2E-050 applications.start 绕行残余刀·登记面行使+「现状可达且受控登记」取证（docs-only REQUEST 卷·rev r1 裁决改判修订落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（三处钉：本 Status 行 + §8 + 卷尾注 · 2026-10-26 起草席落卷 · pre-exec 双审未行使 · EXEC 未授权 · 零收据零升格预支）· **起草期裁决核心（§1.5）**：总盘判「EXEC 小刀（Ban 就地补线·须独立 REQUEST）」经本席亲读核实——**零产品码改动不足以证明绕行残余受控**：绕行在起草 tip 为**结构性可达**（kill=1 下 `POST /applications/:id/start` 全链放行）→「断言绕行不可达」臂预期红=产品机制真相 → 闭合需产品码接线+静态门同刀更新 → **超 docs-only 范围·红停归协调方**（§8 停止条件「越界需要」起草期已核实命中·如实标注·EXEC 不预启动）· 改判二择一选项登记于 §1.5（裁决权归协调方·本卷零预支）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（三处钉：本 Status 行 + §8 + 卷尾注 · 2026-10-26 起草席落卷 · **同日 rev r1 裁决改判修订落卷** · pre-exec 双审未行使 · EXEC 未授权 · 零收据零升格预支）· **裁决已下（2026-10-26·§1.5 rev r1 承登）**：协调方对起草席红停上报采 **(b) 诚实证据刀**——**断言极性翻转：「断言绕行不可达」→「断言绕行现状可达且受控登记」**（三证据臂：①kill=1 下 `POST /applications/:id/start` 现状放行 runtime 实证 ②闸接线面全树恰 2 处+core 零 kill 检查+start 直调零触静态结构 ③i6 静态门 `callSites===2` 与产品现状一致=登记边界自洽——断言对象=「**现状与登记边界一致**」非「产品正确」）· **产品接线刀 (a) 清单登记归用户裁决队列（卷内登记·不入本刀·零预支零预启）** · 红停上报史录留痕零洗 · STOP 三处维持本值。
 
 **席位**：UC-050 applications.start 绕行残余起草席（协调方派·认领=覆盖矩阵 `:132` 聚合行 **UC-050 ADV cell 的 applications.start 绕行残余面**——即 killsw 卷 §0.3「**不认领**：…UC-050 ADV 的 applications.start 绕行修复（NOT claimed 残余·只登记）」显式留面的后继登记/裁决面·本席起草 turn 零臂零断言零产品码触·与 killsw（closed）及各在飞线互斥不重叠）。
 **基线**：`origin/main` @ **`c06ed67b5`**（full `c06ed67b5687a1bd52a9477d0124d6f216d8285d` · `git fetch origin` 本 turn 成功 · #172 screg 并线点 · 分支 `line/uc50-draft` 建 worktree `git worktree add ../meetwise-uc50 -b line/uc50-draft origin/main` 亲立 · HEAD 落 tip 亲证）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2433**（stdout「public text policy scanned 2433 managed worktree files」亲读）· cap=**2438**（`public-text-policy.mjs:238` `MAX_FILES = 2_438` 亲证 · §2-1 预算核）· 工作树 `meetwise-uc50`（仓根同级）。
@@ -15,13 +15,13 @@
 
 | 认领 cell / 落点 | 现值（亲读逐字） | 本刀可测面定标 |
 |---|---|---|
-| UC-050 · ADV（矩阵 `:132` 第 4 列） | **blind**（全行 050/051 面 killsw 后仍 blind·ADV 格零 case 零措辞动） | applications.start 绕行残余面=killsw 显式留 NOT claimed 的唯一 UC-050 残格 → 本刀认领=**登记面行使+刀型裁决核实**（起草 turn 零臂零断言；EXEC 面形状经 §1.5 核实为「超 docs-only 范围·红停归协调方」·改判前零 EXEC） |
+| UC-050 · ADV（矩阵 `:132` 第 4 列） | **blind**（全行 050/051 面 killsw 后仍 blind·ADV 格零 case 零措辞动） | applications.start 绕行残余面=killsw 显式留 NOT claimed 的唯一 UC-050 残格 → 本刀认领=**登记面行使+现状取证**（起草 turn 零臂零断言；裁决 (b) 已下·EXEC 面形状=§1.5 rev r1 三证据臂·仍待 pre-exec 双审+明示 EXEC 授权·改判前零 EXEC） |
 | killsw 卷显式留（三处） | §1.1 `:85`「零臂零断言零修复（修复=产品码触·出域归产品刀·Ban 借本卷 wash 或宣称『全入口已闸』）」· §1.3-⑤ `:102`「Ban 触 applications.start 绕行面产品修复：绕行残余=登记面…Ban 就地补线」· §3-1 `:141`「含 applications.start 绕行面修复（产品码·出域）」 | 本刀=该显式留的后继独立 REQUEST（协调方令「须独立 REQUEST」兑现）· **承守同一 Ban：就地补线零触** |
-| 矩阵 `:132` Aggregate cell 注记 | 「**applications.start 绕行残余 NOT claimed**（applications.service.ts:44-58 只登记零臂）· 图面归 UC-018 先例互不替代」 | 本刀 EXEC 面（若协调方改判准 (b) 诚实证据刀）届时行内改：ADV 格 blind→case-only 措辞+`NHP-050-START-BYPASS-01` 收据注·gap 保持·**Ban 升 covered/partial** |
-| case-matrix §1.4 新行落点 | §1.4 头 `:107` · `:126` KILL · `:127` NOPII · **`:128` 空（NOPII 行后）** | 若改判 (b)：新行 `NHP-050-START-BYPASS-01` 落 `:128`（语义命名避让：`:119-123` `NHP-050-FAULT-01..05` 擦除域占名+`:126` KILL 已占）· §1.0.3 双表同步令承守 |
+| 矩阵 `:132` Aggregate cell 注记 | 「**applications.start 绕行残余 NOT claimed**（applications.service.ts:44-58 只登记零臂）· 图面归 UC-018 先例互不替代」 | 裁决 (b) 已下：EXEC 届时行内**格值零动**（blind/NOT claimed 注记语义保持）·只加 case-only 收据注记+`NHP-050-START-BYPASS-01` 注（沿 PERF2 收官先例 `93124ba0d` 形）·gap 保持·**Ban 升 covered/partial** · §1.0.3 双表同步令承守 |
+| case-matrix §1.4 新行落点 | §1.4 头 `:107` · `:126` KILL · `:127` NOPII · **`:128` 空（NOPII 行后）** | 裁决 (b) 已下：新行 `NHP-050-START-BYPASS-01` 落 **`:128` 区**（`:127` NOPII 行后插入·现 `:128`=`NHP-040-BOUND-01` 行随插下移·届时行号重 pin）· **勘误（史录留痕）**：原卷左格「`:128` 空」系行号实点误记（rev r1 亲证实点=既有 `NHP-040-BOUND-01` 行·落点语义改为插行区）·语义命名避让承旧（`:119-123` `NHP-050-FAULT-01..05` 擦除域占名+`:126` KILL 已占）·沿先例行形（`NHP-050-KILL-01` 行七列形） |
 | backlog 登记 | `gap-bug-backlog.md` 全卷 rg「applications.start/绕行」**零命中**（本 turn 亲证） | 绕行残余的 backlog 登记权归协调方（killsw §3-5 承守）· 本卷仅卷内登记·零直书 backlog |
 
-**结论**：残余面**有缝可测**（绕行结构在树·机制链五点亲证见 §1.4）→ 但「缝的闭合」需产品码（§1.5 裁决）→ 本刀起草 turn 交付=登记+裁决卷（本 .md 恰 1 件）；停止条件「码面无可测注入缝」**未触发**——触发的是「闭合超 docs-only 范围」。
+**结论**：残余面**有缝可测**（绕行结构在树·机制链五点亲证见 §1.4）→ 「缝的闭合」需产品码（(a) 清单已登记归用户裁决队列·§1.5 rev r1）→ 裁决 (b) 已下：本刀 EXEC 面=现状取证（§1.5 三证据臂·仍待 pre-exec 双审+授权）；停止条件「码面无可测注入缝」**未触发**——起草期触发的是「闭合超 docs-only 范围」（红停已上报·裁决已下·史录留痕）。
 
 ---
 
@@ -34,7 +34,15 @@
   - `line/loadw-exec` @`62f75399d`——触 case-matrix **`:89` 邻区**（`NHP-015-LOAD-w-01` 行内 EXEC 红停登记·§1.3 区）+ 零他文件——与本刀 §1.4 新行落点 `:128` **同文件邻区异行=并入届时 merge-tree 预演如实登记不停**（killsw §0.0 共享面判级承形）。
   - `line/x17-adv-draft` @`11588183e` / `line/xrep-draft` @`dab570973` / `line/perf2-draft` @`f39fb1a45`——各触**恰各自 REQUEST/harness 卷**（逐支 diff 亲证）·与本刀零字面交叠。
   - `line/uc30-draft` @`c06ed67b5`（与本刀同 tip·**零 commit**）/ `line/scoring-eval-exec` @`bed656e9` / `line/inject-draft` @`d1a947e3d` / `line/pay-neg-draft` @`5f9efa51d` / `line/backlog-reg-draft`（对 origin/main **零 diff**）——对矩阵/case-matrix/涉事机制源/本卷名**零交叠亲证**。
-  - 其余大 ahead 陈旧支（`5c/5e` 族等 ahead>500）系史前基线遗留非在飞 EXEC 线——EXEC 立项日按届时树对触面逐支复核（复核规则承 killsw §0.0：本刀起草 turn 产品触面=0（docs-only 恰 1 新 .md）·EXEC 期触面=本卷 .md+（若改判 (b)）双表行内改+proof+注册行+runner 注册位+收据面·届时任一在飞支顶对独占触面新增=漂移停·共享面按行级冲突判）。
+  - 其余大 ahead 陈旧支（`5c/5e` 族等 ahead>500）系史前基线遗留非在飞 EXEC 线——EXEC 立项日按届时树对触面逐支复核（复核规则承 killsw §0.0：本刀起草 turn 产品触面=0（docs-only 恰 1 新 .md）·EXEC 期触面=本卷 .md+（裁决 (b) 已下）双表行内注记+proof+注册行+runner 注册位+收据面·届时任一在飞支顶对独占触面新增=漂移停·共享面按行级冲突判）。
+
+### 0.0.rev-r1 改判修订台账（2026-10-26·修订席落卷·rev 唯一交付=本小节+全卷对裁决的如实改写）
+
+- **红停上报（史录留痕·零洗）**：起草席对总盘判原形「断言绕行不可达」亲读核实为「零产品码改动不足以证明绕行残余受控」（§1.4 五点铁证）→ §8 停止条件「越界需要」命中 → 红停归协调方（原卷 §1.5 登记·改判二择一 (a)/(b) 选项登记不预支）。
+- **协调方裁决（2026-10-26）**：采 **(b) 诚实证据刀**——断言极性翻转「断言绕行不可达」→「**断言绕行现状可达且受控登记**」·钉「现状放行形状」为 case 证据（keyless·零产品码·零接线）·**产品接线刀 (a) 清单登记归用户裁决队列（卷内登记·不入本刀）**。
+- **修订清单索引（本 rev 恰 1 tracked 文件=本卷 .md）**：①§1.5 臂表重构（三证据臂·断言对象=「现状与登记边界一致」非「产品正确」）②§5 Ban 增「Ban 借本收据宣称产品正确/Ban 借本收据洗 GAP」+case 收据语义=「登记边界如实证据化」非「行为合格证」+(a) 清单队列登记 ③矩阵 `:132`/`:154`+case-matrix `:128` 区落点改注记形（格值零动·沿 PERF2 收官先例）+`:128` 勘误 ④§1.6 keyless 行使面 sharpen（kill=1 env 注入+worker 不在场零消费）⑤本小节。
+- **rev 时点零漂亲证（停止条件「现场漂移」未触发）**：§0.1 十三 blob `git rev-parse` 逐件重算 @rev 前端点 `0f4e0744a` **全量恒等**（行数亦恒等）；极性翻转与产品码现形**零冲突**（闸调用面 rg 仍恰 2=`:425`/`:436`·`beginInterviewCore` `:102` 体内零 kill 检查·`start` `:57` 直调零闸·i6 `:53` 钉值仍 `callSites === 2`）。
+- **STOP 三处维持 `draft:awaiting_pre_exec_dual`**（Status 行+§8+卷尾注·裁决改判≠EXEC 授权·pre-exec 双审未行使）。
 
 ### 0.1 blob 锚表（`git rev-parse <tip>:<path>` 亲算·8 hex·行数亲点）
 
@@ -62,7 +70,7 @@
 
 ### 0.3 认领登记（逐 cell 定标汇总）
 
-认领=矩阵 `:132` **UC-050 ADV cell 的 applications.start 绕行残余面**——本刀起草 turn 交付=登记+裁决卷（本 .md）；EXEC 面两形（产品接线刀/诚实证据刀）**均待协调方改判派单·本卷零预支**；**不认领**：产品码接线面（§1.5 裁决·超 docs-only）、UC-052 擦除/导出域、UC-018 图面、backlog 直书（翻面权归协调方）。
+认领=矩阵 `:132` **UC-050 ADV cell 的 applications.start 绕行残余面**——本刀起草 turn 交付=登记+裁决卷（本 .md）；裁决已下采 (b) 诚实证据刀（§1.5 rev r1）·EXEC 面仍待 pre-exec 双审+明示授权；**(a) 产品接线刀清单登记归用户裁决队列（§1.5·不入本刀·零预支零预启）**；**不认领**：产品码接线面（(a) 队列·超 docs-only）、UC-052 擦除/导出域、UC-018 图面、backlog 直书（翻面权归协调方）。
 
 ---
 
@@ -100,31 +108,38 @@
 5. 同核对照面：begin 口同核在闸后（`:425`→`:431`）——**同核双生产者·恰一者未接线**（`:95-96` 头注自钉）。
 ⇒ **kill=1 下 `POST /applications/:id/start` 结构性放行**：CAS+预留+入队全链零 kill 检查=绕行可达为产品现状事实（非 harness 推定·码面铁证）。
 
-### 1.5 刀型裁决（起草席核实·本卷核心交付）
+### 1.5 刀型裁决（rev r1 重构·协调方改判 (b) 已下·断言极性翻转）
 
-- **总盘判**：EXEC 小刀（Ban 就地补线·须独立 REQUEST）——不修改产品码·以 proof 行使登记面+断言绕行不可达（或可达则如实红停）。
-- **起草席核实结论：零产品码改动不足以证明绕行残余受控。** §1.4 五点铁证 ⇒ 绕行**结构性可达**；「断言绕行不可达」臂按届时推定形**预期红**——红=产品机制真相（非 harness 红·非夹具红）·命中 killsw 承守的「机制不满足」停止条件形态。
-- **闭合面清单（=产品码触·超 docs-only 范围）**：接线二择一（`applications.service.start()` 补 `denyContentSafetyKilled()`（映射 503）或 `beginInterviewCore` 核内接线（双口变双闸冗余·语义面归产品刀裁量））**+ 同刀同步 `i6-239-gates.proof.mjs:53` `callSites === 2` 钉值与断言措辞**（静态门必踩红·Ban 只改产品码不改门=门红不可收）+ 双表行内勘正（矩阵 `:132` NOT claimed 注记+case-matrix `:126` 注记·killsw 卷史录不洗）⇒ **超 docs-only 范围·红停归协调方**（§8 停止条件「越界需要」起草期已核实命中·如实标注·EXEC 不预启动·Ban 就地扩面）。
-- **协调方改判二择一选项（登记不预支）**：
-  - **(a) 产品接线刀**：闭合绕行（§上行清单整包·产品码+静态门+双表同刀）·另卷派单·本卷零触。
-  - **(b) 诚实证据刀（零产品码可绿·但断言极性与总盘判相反·须协调方明示改判）**：行使 kill=1 applications.start **如实钉「现状放行形状」为 case 证据**——臂形（届时重 pin）：B1=kill=1 子进程 spawn 下 start → **非 503 放行形状如实断言**（具名响应形状+interview 行增+预留/入队净账如实·对照臂 kill=1 begin → 503 具名码=同 env 双口差分·reason 级可分）·B2=off 现状字节对照·B3=净账审计；新行 `NHP-050-START-BYPASS-01` 落 case-matrix `:128`+矩阵 `:132` ADV 格 blind→case-only 措辞（gap 保持·**Ban 宣称受控/Ban 升 covered/partial**·`coveredCount=8` 零动）——此形证明的是「**残余在**」而非「残余受控」·与总盘判「断言绕行不可达」极性相反。
-- **若协调方维持原判强制按「不可达断言」EXEC**：预期红收据如实落卷（红=机制真相）→ 命中停止条件「机制不满足」→ 红停上报·**Ban retry-to-green·Ban 凑绿·Ban 改断言极性凑绿**。
+- **红停上报（史录留痕·零洗）**：总盘判原形「EXEC 小刀——断言绕行不可达（或可达则如实红停）」经起草席亲读核实为**「零产品码改动不足以证明绕行残余受控」**——§1.4 五点铁证 ⇒ 绕行**结构性可达**·「不可达断言」臂预期红=产品机制真相（非 harness 红·非夹具红）→ §8 停止条件「越界需要」起草期命中 → 红停归协调方（原卷改判二择一 (a)/(b) 选项登记不预支·史录不洗）。
+- **协调方裁决（2026-10-26·rev r1 承登）**：采 **(b) 诚实证据刀**——**断言极性翻转：「断言绕行不可达」→「断言绕行现状可达且受控登记」**。钉「现状放行形状」为 case 证据（**keyless·零产品码·零接线**·本刀仍 docs-only+proof 面·产品码与静态门零触）；**产品接线刀 (a) 清单登记归用户裁决队列（卷内登记·不入本刀·零预支零预启）**。
+- **三证据臂表（断言对象=「**现状与登记边界一致**」·非「产品正确」）**：
+
+| 臂 | 断言形（极性翻转后） | 证据锚（rev r1 时点重 pin·零漂亲证） |
+|---|---|---|
+| ① 现状放行 runtime 臂 | kill=1 下 env 开关 `MEETWISE_CONTENT_SAFETY_KILL_SWITCH` 置 1 → `POST /applications/:id/start` 仍 **200/正常 begin 面**（非 503 现状放行形状如实断言·interview 行增+预留/入队净账如实）=**现状放行实证**；同 env 双口差分对照臂 kill=1 begin → 503 具名码（reason 级可分） | controller `:21-26`→`start()` `:44-58` 全链零闸（§1.1/§1.2）·届时 spawn 面行使（§1.6 kill=1 env 注入）·B2 off 现状字节对照+B3 净账审计随臂 |
+| ② 静态结构臂 | 闸接线面全树**恰 2 处**（`interview.service.ts:425`/`:436`）+ `beginInterviewCore`（`:102`）体内零 kill 检查 + `start`（`applications.service.ts:57`）直调零触=**结构性放行形状静态铁证** | §1.4 五点链+rg 全树亲证（rev r1 复证恒等·0.0.rev-r1） |
+| ③ 静态门一致性臂 | `i6-239-gates.proof.mjs:53` `callSites === 2` 硬钉与产品现状一致——**门不红=登记边界自洽**（产品契约文注/静态门/登记卷三方同钉 begin/turn 双口最小集·§1.3 三源互证） | `:53` 亲读·与 ② 恰 2 处互证 |
+
+- **case 收据语义=「登记边界如实证据化」非「行为合格证」**：收据证明的是「**残余在+被诚实钉位**」（登记边界与产品现状一致）——**非**「残余受控/产品正确/全入口已闸」的任何行为合格宣称（§5 Ban 承守）。
+- **EXEC 行使形状（届时重 pin）**：B1=kill=1 子进程 spawn 下 start 放行形状如实断言（具名响应形状+interview 行增+预留/入队净账如实·对照臂 kill=1 begin → 503=同 env 双口差分）·B2=off 现状字节对照·B3=净账审计；新行 `NHP-050-START-BYPASS-01` 落 case-matrix `:128` 区（沿先例行形）+矩阵 `:132`/`:154` 行内**格值零动·只加 case-only 注记**（blind/NOT claimed 注记语义保持·沿 PERF2 收官先例 `93124ba0d` 形·gap 保持·`coveredCount=8` 零动）。
+- **(a) 产品接线刀清单（登记归用户裁决队列·不入本刀）**：①`applications.service.start()` 补 `denyContentSafetyKilled()`（503 映射语义面归产品刀裁量·core 内接线备选仍登记）②同刀同步 `i6-239-gates.proof.mjs:53` 静态门钉值 `callSites` 2→3+断言措辞（防「只改产品码踩静态门红」二次返工）③双表勘正（矩阵 `:132` NOT claimed 注记+case-matrix `:126` 注记·killsw 卷史录不洗）——三件整包·翻面权/派单权归用户·本卷零触零预支。
+- **EXEC 期机制推定形不符面**：kill=1 start 竟得 503=闸已在位·残余已闭合→(a) 队列前提翻转·放行形状断言红=机制面漂移——均命中停止条件「机制不满足」→ 停·如实登记上报（翻面权归协调方）·Ban retry-to-green·Ban 改断言极性凑绿。
 
 ### 1.6 keyless 判定核（env 闸子进程 spawn 面零外呼亲证）
 
 - **起草 turn**：est live=**0**——本 turn 零实跑零模型外呼零 Key 加载（git/Read/rg/docs:check 全本地）。
-- **EXEC 面（若改判 (b)）**：沿 uc050 收据先例形（`641000dd` 零触承形）——隔离 PG+`127.0.0.1` 本地 HTTP（uc050 proof `:111`/`:114` 本地 base 亲证）+子进程 spawn env 变体（`:462` spawn·`:507` 假 `DATABASE_URL`（db.invalid）·503/对照路径零 DB 依赖论证先形）+三键词面**运行时组装零直书**（`:84-85` fragment join 形）+`_neg-harness` 自剥（`_neg-harness.ts:61-62` delete `MODEL_API_KEY`/`MODEL_BASE_URL`·egress inventory 已登记）。
+- **EXEC 面（裁决 (b) 已下）**：沿 uc050 收据先例形（`641000dd` 零触承形）——隔离 PG+`127.0.0.1` 本地 HTTP（uc050 proof `:111`/`:114` 本地 base 亲证）+子进程 spawn env 变体（`:462` spawn·`:507` 假 `DATABASE_URL`（db.invalid）·503/对照路径零 DB 依赖论证先形）+**kill=1 env 注入子进程 spawn 面**（现状放行臂注入窗=测试进程 env 变体·零配置文件改·§3-7 承守）+三键词面**运行时组装零直书**（`:84-85` fragment join 形）+`_neg-harness` 自剥（`_neg-harness.ts:61-62` delete `MODEL_API_KEY`/`MODEL_BASE_URL`·egress inventory 已登记）。
 - **行使面外呼定性**：applications.start 绕行臂行使链=DB CAS+预留+入队（**全 PG 面**·api 进程零模型调用·隔离壳 worker 不在场零消费·零 Langfuse/零 OSS/零供应商网络触）→ **keyless 判定成立：零外呼·零模型/供应商触·「触外呼即红停」条款未触发**。
 
 ---
 
 ## §2 验收门矩阵（pre-exec 双审核对单基面·起草门 3 门本 commit 适用+EXEC 预基面届时重 pin·**数字口径以实跑实测为准·熔断阈值即停止条件「验收红不可修」触发面**）
 
-1. **docs:check（含 PTP cap 预算核·亲算）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·本树起草前亲跑 **EXIT=0 · scanned 2433**（stdout 亲读）· cap=**2438**（`public-text-policy.mjs:238` 亲证）· 本卷新文件 +1 → 预期 **2434 ≤ 2438 = 不越限·无需步进·无越限臂联动**。EXEC 面（若改判 (b)）届时 **+3～+4 tracked 文件**（本卷 .md+proof+注册行+收据若落 text-extension）→ EXEC 日按届时 scanned 基数重算余量如实·**越限沿常设预授权恰等步进**（`public-text-policy.proof.mjs` 越限臂 fabricated 数随 cap 联动·cap 上抬权归协调方·Ban 就地改 cap）·越限且无预授权即「验收红不可修」停手上报。
-2. **markers 五类零命中 + est live=0**：本刀改动集五类标记词+行首冲突标记 grep 零命中（词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:152-163`·不复抄卷内防自指——本卷文面零直书该五词面）· 起草席亲跑·回执 §7 · est live=0（§1.6/§6）。
+1. **docs:check（含 PTP cap 预算核·亲算）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·本树起草前亲跑 **EXIT=0 · scanned 2433**（stdout 亲读）· cap=**2438**（`public-text-policy.mjs:238` 亲证）· 本卷新文件 +1 → 预期 **2434 ≤ 2438 = 不越限·无需步进·无越限臂联动**。**rev r1 时点亲跑 EXIT=0 · scanned 2434**（draft 已入树基数·rev 零新增文件恒 2434≤2438 零步进）·PTP `public-text-policy:prove` rev r1 亲跑 **EXIT=0 · 12/12**。EXEC 面（裁决 (b) 已下）届时 **+3～+4 tracked 文件**（本卷 .md+proof+注册行+收据若落 text-extension）→ EXEC 日按届时 scanned 基数重算余量如实·**越限沿常设预授权恰等步进**（`public-text-policy.proof.mjs` 越限臂 fabricated 数随 cap 联动·cap 上抬权归协调方·Ban 就地改 cap）·越限且无预授权即「验收红不可修」停手上报。
+2. **markers 五类零命中 + est live=0**：本刀改动集五类标记词+行首冲突标记 grep 零命中（词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:152-163`·不复抄卷内防自指——本卷文面零直书该五词面）· 起草席亲跑·回执 §7 · **rev r1 改动集（仍恰本卷 1 .md）markers 亲跑 EXIT=0 零命中**· est live=0（§1.6/§6）。
 3. **diff 面机检**：起草 commit `git diff --numstat <base>` **恰 1 tracked 路径**=本卷 .md（多任何 tracked 路径即停）·`apps/*/src`/`packages/*/src` 零 diff 亲证。EXEC 期 diff 面（若改判）=届时逐件登记（本卷+双表行内改+proof+注册行+runner 注册位+egress 预置条款行使面+收据面）·多任何未登记 tracked 路径即停。
-4. **EXEC 预基面（届时重 pin·仅当协调方明示改判授权后适用）**：隔离 prove EXIT=0 **双 fresh**（implementer+独立复验·attempts 台账含红次如实）·邻面不回退（`uc050:nhp-kill:prove` 59 断言/`i6-gates:prove`/`neg:all` 按届时 SSOT 口径恒等——**B1 放行形状断言与 uc050 K1/K2 503 断言并存=绕行面差分自证·互不替代互不 wash**）·双表同步 diff 逐件登记（§1.0.3 令）·pre-exec 双审两独立外席 BOTH PASS 落卷（alone≠dual）·任一门红 → §8 停止条件。
-5. **行/列冻结**：EXIT0=case≠covered · 矩阵 `:132` UC-050 ADV 格仅允许 blind→case-only 措辞（若改判 (b)·gap/blind 保持）· `:192`「Ban elevate UC-050/051/export」逐字维持 · DELETE=503 零动 · **coveredCount=8 零翻转** · Ban 借 uc050/uc051 收据宣本面已覆盖·Ban 借本卷收据宣「kill-switch 全入口已闸」。
+4. **EXEC 预基面（届时重 pin·裁决 (b) 极性已下·pre-exec 双审与 EXEC 授权仍待）**：隔离 prove EXIT=0 **双 fresh**（implementer+独立复验·attempts 台账含红次如实）·邻面不回退（`uc050:nhp-kill:prove` 59 断言/`i6-gates:prove`/`neg:all` 按届时 SSOT 口径恒等——**B1 放行形状断言与 uc050 K1/K2 503 断言并存=绕行面差分自证·互不替代互不 wash**）·双表同步 diff 逐件登记（§1.0.3 令）·pre-exec 双审两独立外席 BOTH PASS 落卷（alone≠dual）·任一门红 → §8 停止条件。
+5. **行/列冻结**：EXIT0=case≠covered · 矩阵 `:132`/`:154` UC-050 面格值零动·仅允许行内 case-only 收据注记加注（裁决 (b) 已下·blind/NOT claimed 注记语义保持·沿 PERF2 收官先例 `93124ba0d` 形·gap/blind 保持）· case-matrix 新行 `NHP-050-START-BYPASS-01` 当前旗落 **blind**+case-only 措辞（gap→case-only 形沿 `NHP-050-KILL-01` 先例·行状态不动）· `:192`「Ban elevate UC-050/051/export」逐字维持 · DELETE=503 零动 · **coveredCount=8 零翻转** · Ban 借 uc050/uc051 收据宣本面已覆盖·Ban 借本卷宣「kill-switch 全入口已闸」。
 
 ## §3 范围外（边界清单·越界即 FAIL）
 
@@ -138,30 +153,30 @@
 
 ## §4 依赖
 
-**①上游已满足**：kill 闸机制全在树（§0.1 blob 亲算 13 件）+ uc050 收据先例（`641000dd`·spawn env 变体/假 DB 论证/净账审计技法全承形）+ 三层隔离壳+`_neg-harness` 自剥先例。**②同文件并发**：起草 turn 恰 1 新 .md 零交涉面；EXEC 期（若改判 (b)）触矩阵 `:132`/case-matrix `:128` 落点——§0.0 在飞交叠复核必做（loadw-exec 触 `:89` 邻区在飞·行号届时重 pin）。**③下游**：本卷裁决供协调方对 (a)/(b)/维持原判三向裁量；(a) 产品接线刀整包清单已列（§1.5·含静态门同步面——防「只改产品码踩静态门红」的二次返工）；(b) 收据供 covered-lift 评估族引用（评估权归后继刀·本刀 Ban 代评）。
+**①上游已满足**：kill 闸机制全在树（§0.1 blob 亲算 13 件）+ uc050 收据先例（`641000dd`·spawn env 变体/假 DB 论证/净账审计技法全承形）+ 三层隔离壳+`_neg-harness` 自剥先例。**②同文件并发**：起草 turn 恰 1 新 .md 零交涉面；EXEC 期（裁决 (b) 已下）触矩阵 `:132`/`:154`+case-matrix `:128` 区落点——§0.0 在飞交叠复核必做（loadw-exec 触 `:89` 邻区在飞·行号届时重 pin）。**③下游**：裁决已下（(b)·三向裁量收束）；(a) 产品接线刀整包清单已登记归用户裁决队列（§1.5 rev r1·含静态门同步面——防「只改产品码踩静态门红」的二次返工·派单权归用户）；(b) 收据供 covered-lift 评估族引用（评估权归后继刀·本刀 Ban 代评）。
 
 ## §5 Ban 列表 + pins
 
-**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban retry-to-green（§1.5 红预期承守·红=机制真相时 Ban 凑绿 Ban 改断言极性凑绿）；Ban invent covered（升格 partial/covered·借 uc050/uc051 收据 wash·借本卷宣「全入口已闸」）；Ban live key（零 `MODEL_API_KEY` 加载/伪造·零 live 外呼·est live=0·三键词面码面零直书·`env -u`/`_neg-harness` 剥除·否则 `environment_reference_unregistered` 红停）；Ban 触产品码/静态门/迁移/CI 告警配置（§3-1·**含绕行面就地补线——killsw §1.3-⑤ 逐字承守**）；Ban 触 UC-052 擦除导出域与 UC-018 图面与 killsw 卷史录与其余 §1.0 行（§3-2/3/3-4）；Ban 改共享 SSOT/backlog 直书（§3-6）；Ban 触既有 proof 文件（uc050/uc051/obs-logging/privacy-erasure-http 零触只读引用）；Ban 裸 INSERT 绕产品路径（豁免=隔离夹具种子逐项具名入收据·新增豁免先回炉修订本卷）；Ban 就地归因门矩阵外新红（新红如实登记升级·Ban 借机修）；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）；Ban 造 `.env*`/写 Key 值入树入据；Ban 顺带升级依赖包。
+**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban retry-to-green（§1.5 红预期承守·红=机制真相时 Ban 凑绿 Ban 改断言极性凑绿）；Ban invent covered（升格 partial/covered·借 uc050/uc051 收据 wash·借本卷宣「全入口已闸」·**Ban 借本收据宣称产品正确·Ban 借本收据洗 GAP——本卷 case 收据语义=「登记边界如实证据化」非「行为合格证」（§1.5 rev r1·收据证的是残余在+登记边界与现状一致·非残余受控非接线合格）**）；Ban live key（零 `MODEL_API_KEY` 加载/伪造·零 live 外呼·est live=0·三键词面码面零直书·`env -u`/`_neg-harness` 剥除·否则 `environment_reference_unregistered` 红停）；Ban 触产品码/静态门/迁移/CI 告警配置（§3-1·**含绕行面就地补线——killsw §1.3-⑤ 逐字承守·(a) 清单已登记归用户裁决队列非本刀面**）；Ban 触 UC-052 擦除导出域与 UC-018 图面与 killsw 卷史录与其余 §1.0 行（§3-2/3/3-4）；Ban 改共享 SSOT/backlog 直书（§3-6）；Ban 触既有 proof 文件（uc050/uc051/obs-logging/privacy-erasure-http 零触只读引用）；Ban 裸 INSERT 绕产品路径（豁免=隔离夹具种子逐项具名入收据·新增豁免先回炉修订本卷）；Ban 就地归因门矩阵外新红（新红如实登记升级·Ban 借机修）；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）；Ban 造 `.env*`/写 Key 值入树入据；Ban 顺带升级依赖包。
 
 **pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
 
 ## §6 est live=0（起草 turn·EXEC 期同）
 
-起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（EXEC 期若改判 (b)：全离线隔离 PG·spawn env 变体零外呼·`_neg-harness` 自剥·§1.6 承）。
+起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（**rev r1 同 est live=0**·门面本地亲跑零外呼；EXEC 期裁决 (b)：全离线隔离 PG·spawn env 变体+kill=1 env 注入零外呼·`_neg-harness` 自剥·§1.6 承）。
 
 ## §7 markers=0（卫生声明）
 
-本刀改动集（本卷 1 .md·起草 turn）**五类标记词+行首冲突标记 grep 零命中**（起草席亲跑·回执随 commit 信息留痕·词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:152-163`·不复抄卷内防自匹配——沿 killsw §7 同形制）· **如实登记**：全量 `i6-gates:prove` 系 i6 刀**自持申报清单门**（申报清单臂对外来改动集按设计红——本卷非 i6 刀触面·该臂红=预期形非本刀门·markers ⑦臂对词面修正后 PASS 亲证）；**勘误留痕（史录不洗）**：起草首版本卷 §2-2 曾直书五类标记词词面致 ⑦臂红·同 turn 自纠（删词面直书·改口径引用）·零 commit 前留痕零凑绿。
+本刀改动集（本卷 1 .md·起草 turn）**五类标记词+行首冲突标记 grep 零命中**（起草席亲跑·回执随 commit 信息留痕·词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:152-163`·不复抄卷内防自匹配——沿 killsw §7 同形制）· **如实登记**：全量 `i6-gates:prove` 系 i6 刀**自持申报清单门**（申报清单臂对外来改动集按设计红——本卷非 i6 刀触面·该臂红=预期形非本刀门·markers ⑦臂对词面修正后 PASS 亲证）；**勘误留痕（史录不洗）**：起草首版本卷 §2-2 曾直书五类标记词词面致 ⑦臂红·同 turn 自纠（删词面直书·改口径引用）·零 commit 前留痕零凑绿。**rev r1（裁决改判修订）改动集仍恰本卷 1 .md**——五类标记词+行首冲突标记 grep 亲跑 **EXIT=0 零命中**（同口径组装·回执随 rev commit 信息留痕）·全量 `i6-gates:prove` 申报清单臂红=按设计非本刀门承旧（§2 承登）。
 
 ## §8 STOP（开工三条款 + 停止条件四类·三处钉之二）
 
-**STOP · `draft:awaiting_pre_exec_dual`（三处钉：Status 行+本节+卷尾注 · 2026-10-26 起草落卷 · pre-exec 双审未行使 · EXEC 未授权）· 开工三条款（若协调方改判准 EXEC 后适用）：①pre-exec 双审两独立外席 BOTH PASS 落卷；②协调方明示 EXEC 授权（含 §1.5 断言极性改判明示——「不可达断言」与「现状放行形状证据」二择一·逐字随令）；③EXEC 立项不得改 §1.5 裁决面与 §5 Ban/pins 与 §3 范围外（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `draft:awaiting_pre_exec_dual`（三处钉：Status 行+本节+卷尾注 · 2026-10-26 起草落卷 · 2026-10-26 rev r1 裁决改判修订落卷（(b) 诚实证据刀·断言极性翻转承登 §1.5·STOP 值不因裁决翻转）· pre-exec 双审未行使 · EXEC 未授权）· 开工三条款（pre-exec 双审+EXEC 授权行使后适用）：①pre-exec 双审两独立外席 BOTH PASS 落卷；②协调方明示 EXEC 授权（**断言极性改判已下——(b) 现状放行形状证据·2026-10-26 裁决逐字承登 §1.5·本条款半已兑现；EXEC 授权仍须另令**）；③EXEC 立项不得改 §1.5 裁决面与 §5 Ban/pins 与 §3 范围外（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且结论受疑（`applications.service.ts` blob 离 `e1bf8ff0`=绕行面被改·闸调用面数变·`i6-239-gates.proof.mjs:53` 钉值被他刀改·`:132`/`:126` NOT claimed 注记被改写·loadw-exec 等在飞卷并线与本刀对同表冲突改行）→ 停·重 pin 回炉。
-- **机制不满足**：EXEC 期新臂收据与 §1 红事实推定形不符（按总盘判原形：kill=1 applications.start **竟得 503**=闸已在位·残余已闭合→改判 (a) 面前提翻转·如实登记上报；按 (b) 形：放行形状断言红=机制面漂移）→ 根因诊断被证伪 → 停·如实登记上报（翻面权归协调方）·Ban retry-to-green。
+- **机制不满足**：EXEC 期新臂收据与 §1 红事实推定形不符（裁决 (b) 三证据臂形：kill=1 applications.start **竟得 503**=闸已在位·残余已闭合→(a) 裁决队列前提翻转·放行形状断言红=机制面漂移·均如实登记上报）→ 根因诊断被证伪 → 停·如实登记上报（翻面权归协调方）·Ban retry-to-green。
 - **越界需要**：修法诉求超出 docs-only 面（**接线产品码/静态门 `callSites` 钉值/backlog 直书/covered 翻面/共享 SSOT**）→ 停·**起草期已核实命中一次（§1.5·闭合需产品码）·本卷如实标注「超 docs-only 范围·红停归协调方」·EXEC 不预启动**·EXEC 期再命中同款即停·另刀或协调方裁决（Ban 就地扩面）。
 - **验收红不可修**：§2 任一门红且根因不在本刀交付面（docs:check 越届时 cap / 邻套件新红 / typecheck/lint 超）→ 停·stash 对照亲证基线·如实登记（Ban 借机修）。
 
 ---
 
-*UC50 REQUEST · 2026-10-26 起草 · **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§8+本行·起草落卷即停·pre-exec 双审与 EXEC 授权与断言极性改判均待协调方）· UC-E2E-050 applications.start 绕行残余面（killsw 卷 NOT claimed 显式留的后继独立 REQUEST）· 覆盖矩阵 §1.0.1 `:132` 聚合行 UC-050 ADV 格（blind）+ case-matrix §1.4 `:128` 预留落点 · 基线 `origin/main` `c06ed67b5` · 分支 `line/uc50-draft` · 工作树 `meetwise-uc50` · 产品面现形=`:44-58` 零 kill 闸直调核（`:57`）+controller `:21-26` 零闸+闸调用面全树恰 2（`:425`/`:436`）+core 体内零闸+静态门 `:53` `callSites === 2` 硬钉 · **刀型裁决=零产品码不足以证明残余受控·绕行结构性可达·闭合需产品码接线+静态门同步·超 docs-only 范围·红停归协调方**（改判二择一 (a) 产品接线刀/(b) 诚实证据刀登记于 §1.5·零预支）· keyless 判定=成立（spawn 面 PG/127.0.0.1/假 DB/三键自剥·零模型零供应商）· cap 2433+1=2434 ≤ 2438 零步进 · docs:check EXIT=0 亲跑 · markers=0 · est live=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push ⛔force-push*
+*UC50 REQUEST · 2026-10-26 起草 · 同日 **rev r1 裁决改判修订**（协调方对红停上报采 **(b) 诚实证据刀**·**断言极性翻转「断言绕行不可达」→「断言绕行现状可达且受控登记」**·三证据臂承登 §1.5·**(a) 产品接线刀清单登记归用户裁决队列·不入本刀**·case 收据语义=「登记边界如实证据化」非「行为合格证」）· **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§8+本行·rev 落卷即停·pre-exec 双审与 EXEC 授权均待）· UC-E2E-050 applications.start 绕行残余面（killsw 卷 NOT claimed 显式留的后继独立 REQUEST）· 覆盖矩阵 §1.0.1 `:132` 聚合行 UC-050 ADV 格（blind·格值零动）+ §1.0.2 `:154` 分面登记行（三值 blind 零动）+ case-matrix §1.4 `:128` 区新行落点（`NHP-050-START-BYPASS-01`·EXEC 届时·沿先例行形）· 基线 `origin/main` `c06ed67b5` · 本支 `line/uc50-draft` rev 前端点 `0f4e0744a` · 工作树 `meetwise-uc50` · 产品面现形=`:44-58` 零 kill 闸直调核（`:57`）+controller `:21-26` 零闸+闸调用面全树恰 2（`:425`/`:436`）+core 体内零闸+静态门 `:53` `callSites === 2` 硬钉——rev r1 十三 blob 重算恒等·极性翻转与产品码现形零冲突 · **三证据臂断言对象=「现状与登记边界一致」非「产品正确」**（①kill=1 现状放行 runtime 实证②闸接线恰 2+core 零检+start 直调静态结构③静态门与现状一致=登记边界自洽）· keyless 判定=成立（spawn 面 PG/127.0.0.1/假 DB/三键自剥+kill=1 env 注入·worker 不在场零消费·零模型零供应商）· cap 2434 ≤ 2438 零步进 · rev 三门亲跑 EXIT=0 原值随 commit 留痕 · markers=0 · est live=0 · pins 十一值零翻 · coveredCount=8 不变 · ⛔push ⛔force-push*
