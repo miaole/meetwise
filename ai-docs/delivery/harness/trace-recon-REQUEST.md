@@ -1,6 +1,6 @@
 # TRACE-RECON REQUEST — trace 对账回补小刀起草（fail-open 缺失面 recon 承接·批5 残件 #172·后继观测刀承接位·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-17·§9-exec 七字段+门矩阵回执在卷·post-prove 双审两独立外席待派·alone≠dual·est live=0）
+**Status**: **`closed`**（2026-10-27 协调方对账补翻·沿 #153 会签补落先例形——LEDGER `product-campaign-LEDGER.md:620`+checklist「Line trace-recon nail」段已记 post-prove 双审会签 PASS×2+nail·两处 SSOT 与本行不自洽就此补翻·史录 `executed:awaiting_post_prove_dual`（EXEC 落卷 2026-10-17·§9-exec 七字段+门矩阵回执在卷）不回改·§8/:123 与卷尾注/:172 系 EXEC 时点 STOP 记录保留原值·翻面=执行令第 5 步明令授权·alone≠dual·est live=0）
 
 **席位**：trace-recon REQUEST 起草席（读码定稿+修法裁量+起草三责·协调方派·批5 残件 #172 承接位=`trace 写入 fail-open 后无对账回补·丢失即永久丢`·后继观测刀=LEDGER :87 四子刀 OBS 域在案承继）。
 **基线**：`feat/mysql-schema-skeleton` @ `4124c803`（origin tip 恒等亲证——`git fetch` 后 `origin/feat/mysql-schema-skeleton`=`4124c803`·派单下界「origin tip≥最新」成立·主仓 HEAD `7d71a64f` 落后 13 commit 本席未用·分支 `line/trace-recon`（`git worktree add ../meetwise-trc -b line/trace-recon origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `4124c803` 亲证）·工作树 `meetwise-trc`（主仓仓根同级）·docs:check 基线 **2223≤cap 2232** 本树亲跑 EXIT=0·迁移链 **204 文件头 0204** 亲数）。

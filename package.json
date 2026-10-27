@@ -198,6 +198,8 @@
     "uc011:refund-callback-adv:prove:raw": "pnpm -C apps/api prove:uc011-refund-callback-adv",
     "uc011:nhp-load:prove": "node scripts/run-e2e-isolated.mjs uc011:nhp-load:prove:raw",
     "uc011:nhp-load:prove:raw": "pnpm -C apps/api prove:uc011-nhp-load",
+    "rcload:route-classify:prove": "node scripts/run-e2e-isolated.mjs rcload:route-classify:prove:raw",
+    "rcload:route-classify:prove:raw": "pnpm -C apps/worker prove:rcload-route-classify",
     "uc004:nhp-bound:prove": "node scripts/run-e2e-isolated.mjs uc004:nhp-bound:prove:raw",
     "uc004:nhp-bound:prove:raw": "pnpm -C apps/api prove:uc004-nhp-bound",
     "uc004:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc004:nhp-adv:prove:raw",
