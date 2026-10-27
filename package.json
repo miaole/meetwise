@@ -142,6 +142,8 @@
     "uc012:nhp-adv:prove:raw": "pnpm -C apps/worker prove:uc012-nhp-adv",
     "uc030:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc030:nhp-fault:prove:raw",
     "uc030:nhp-fault:prove:raw": "pnpm -C apps/api prove:uc030-nhp-fault",
+    "uc030:nhp-bound:prove": "node scripts/run-e2e-isolated.mjs uc030:nhp-bound:prove:raw",
+    "uc030:nhp-bound:prove:raw": "pnpm -C apps/api prove:uc030-nhp-bound",
     "uc003:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc003:nhp-adv:prove:raw",
     "uc003:nhp-adv:prove:raw": "pnpm -C apps/web prove:uc003-nhp-adv",
     "uc016:nhp-neg:prove": "node scripts/run-e2e-isolated.mjs uc016:nhp-neg:prove:raw",

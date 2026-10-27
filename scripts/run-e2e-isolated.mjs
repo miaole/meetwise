@@ -1010,6 +1010,21 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0169_auth_user_session.sql',
   ],
+  // NHP-030-BOUND-01（UC-030 残面 · 时钟漂移/刷新轮换/长会话续命 C/R/L 三臂族）：缝 A domain 纯函数
+  // nowSec 注入面 × 缝 B 守卫实钟优先序面 × 缝 C 签发双产点/轮换/吊销链真 HTTP。隔离 PG 全迁移链。
+  'uc030:nhp-bound:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-030-nhp-bound.proof.ts',
+    'apps/api/src/main.ts', 'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/auth-session.ts',
+    'apps/api/src/modules/auth/auth.controller.ts', 'apps/api/src/modules/auth/auth.service.ts',
+    'apps/api/src/modules/profile/profile.controller.ts', 'apps/api/src/modules/profile/profile.service.ts',
+    'apps/api/src/modules/resume/resume.controller.ts', 'apps/api/src/modules/resume/resume.service.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/modules/interview/interview.controller.ts', 'apps/api/src/modules/interview/interview.service.ts',
+    'packages/domain/src/auth.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0169_auth_user_session.sql',
+  ],
   // NHP 批 A Row 2（UC-003 ADV · blind→case）：错误码映射层+locale allowlist 运行级对抗行使
   // （纯函数 · 零 PG 零外呼零 key · 经隔离面剥生产 key 出收据）。
   'uc003:nhp-adv:prove:raw': [
@@ -2635,6 +2650,8 @@ if (![
   'uc012:nhp-adv:prove:raw',
   'uc030:nhp-fault:prove:raw',
   'uc003:nhp-adv:prove:raw',
+  // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 时钟漂移/刷新轮换/长会话续命 · 一行一 case 一收据）。
+  'uc030:nhp-bound:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api 执行 · 一行一 case 一收据）。
   'uc016:nhp-neg:prove:raw',
   'uc015:nhp-adv:prove:raw',
@@ -2802,6 +2819,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-adv']]
   : target === 'uc030:nhp-fault:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-fault']]
+  : target === 'uc030:nhp-bound:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-bound']]
   : target === 'uc003:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/web', 'prove:uc003-nhp-adv']]
   : target === 'uc016:nhp-neg:prove:raw'
@@ -3694,6 +3713,8 @@ async function main() {
   'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
   'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
+  // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 同第四注册位教训承登）。
+  'uc030:nhp-bound:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
   'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {

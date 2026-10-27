@@ -1,0 +1,39 @@
+{
+  "schemaVersion": 1,
+  "class": "local_untrusted_isolated_proof_receipt",
+  "target": "uc030:nhp-bound:prove:raw",
+  "outcome": "passed",
+  "exitCode": 0,
+  "durationMs": 8736,
+  "startedAt": "2026-10-26T23:33:16.245Z",
+  "finishedAt": "2026-10-26T23:33:24.981Z",
+  "sourceDigests": {
+    "scripts/run-e2e-isolated.mjs": "sha256:e0ecddc414df94af8e434bd69ecd724b0bcdfe0408f408df791c36a225840676",
+    "scripts/bounded-command.mjs": "sha256:3710dacb029505851b15f6d059bb94449b8318a8eb5c3d72c26a9a29c720f582",
+    "apps/api/test/uc-e2e-030-nhp-bound.proof.ts": "sha256:5ff4d828ebd521d695dae9da722700e9f9b6e81d78b2f3bfc9305836f6ce6c2c",
+    "apps/api/src/main.ts": "sha256:3b89b0aeea4866c7174899d7972019f69ec7d1be0ad9d87785b22db0fcca0a7a",
+    "apps/api/src/platform/principal.guard.ts": "sha256:1f12d3d0a8899da98e6000890ec7641559fd6dda21e65c08913bd81031664a75",
+    "apps/api/src/platform/auth-session.ts": "sha256:01c1935cad66ca36241a7ad07367ba97e01ddb45e00868d786c087ec34d0e12a",
+    "apps/api/src/modules/auth/auth.controller.ts": "sha256:36d4092c3c02d2f25c822065139f3b0ac7689d57203c220016b377a5d0a7d80e",
+    "apps/api/src/modules/auth/auth.service.ts": "sha256:2a1e4b4db3fb47b62d2e023974d32919be72cf47deaf54833cba265f2adb5c7d",
+    "apps/api/src/modules/profile/profile.controller.ts": "sha256:5dde7043ba974bca41ef5f9e0d5bf4217667862d46339cefc63ca07870560ad3",
+    "apps/api/src/modules/profile/profile.service.ts": "sha256:828d7efe41cb52c2ea98afab14dd45687685ea80e33550bfd8fba5a85fb16f87",
+    "apps/api/src/modules/resume/resume.controller.ts": "sha256:0c2b32a60d228c8326c5eb0bec0821549e32a5398020bf844b8cfb9bbd2f1679",
+    "apps/api/src/modules/resume/resume.service.ts": "sha256:a16547fae2ae8ab5f1e636c647056cf36e0b17ee7e04e6a47166555a20f69b43",
+    "apps/api/src/modules/privacy/privacy.controller.ts": "sha256:d9895efde4b5a62fed74501a03a9e322f9a21e833450784875d177da504eab42",
+    "apps/api/src/modules/privacy/privacy.service.ts": "sha256:fa81bebffb55073bf9909a203af6ccd1a30b088f4e9404f5ed2daa19db1991af",
+    "apps/api/src/modules/interview/interview.controller.ts": "sha256:21d501a8590aedf40199a636b8b857e81fdc3819c5aa6c4316f3d1499f6d0d59",
+    "apps/api/src/modules/interview/interview.service.ts": "sha256:14b2d267849ee78cbd63e1ab7094916f52e5d2c3ef5a9177406fe580e9a06493",
+    "packages/domain/src/auth.ts": "sha256:361233b30d40c73670925a50e8738526c30267328d8995016bf29c77823cbf2d",
+    "packages/db/src/principal.ts": "sha256:0870b9d77eb4fb29a0348381e7f6c29fec2122ab6f6310b3ba3718563172eeac",
+    "packages/db/src/isolated-test-target.ts": "sha256:d1b8bfbe5db5e17bdefbb7f75fde83cb31b4e60a783f9e19bdb56f71037cfc7d",
+    "packages/db/migrations/0169_auth_user_session.sql": "sha256:810b5f5d07c4fe861d681d9e62aa8128d220c49091bb83d94aea1c93df506169"
+  },
+  "schemaMigrationManifest": {
+    "count": 217,
+    "latest": "0219_interview_event_retention_purge.sql",
+    "digest": "sha256:867edcf30bed5e1029f07ed21e3481e839862e27485d030cc316a21b3e657bcc"
+  },
+  "dataHandling": "no_output_prompt_answer_token_endpoint_or_connection_string_persisted",
+  "releaseEvidence": false
+}
