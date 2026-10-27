@@ -41,6 +41,10 @@
  *     ②A5 冻结基线→滚动注册帧（重锚新基线否决·再注册唯一通道=REQUEST 补审 append）；
  *     ③max:1 census→内容集合门；④漂移事实 append-only 登记。
  *   冻结基线 8ba93f0b 退役（由滚动注册帧承替）·初注册提交 8ae2a93e。
+ *   2026-10-26 L-04 补审重注册（micro-batch2-REQUEST §1.B·EXEC tip 8f2fdb83c）：scripts-set
+ *     digest 106e4579（registered 8ae2a93e）→cc72940d（registered 8f2fdb83c）·scripts 键集
+ *     653→698 纯增 45 键 0 删（唯一计算式对 EXEC tip 复算·工作树与 HEAD 恒等）·additive
+ *     演进漏补审承登·同刀补工作树双读数恒等臂（F2 机制闭合替代时点补偿）。
  *
  * releaseEvidence=false. NOT HA. prove EXIT=0 ≠ DONE (claimDone=false).
  */
@@ -67,8 +71,8 @@ const ROLLING_REGISTRY = [
   { file: 'scripts/ha/probe.multi.mjs', blob: 'b91917e8ede075e08b080f7a9ae76933cfe36dcd',
     registered: '8ae2a93e', note: 'HA6-REPIN 初注册（fail-closed 面整文件·旧 8ba93f0b 零 diff 态顺承）' },
   { file: 'package.json', kind: 'scripts-set',
-    digest: '106e457929a535e9b87d303b94d7487adbbca054', registered: '8ae2a93e',
-    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）' },
+    digest: 'cc72940dfce57af2c9b379896a3a286797d5198f', registered: '8f2fdb83c',
+    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）·2026-10-26 L-04 补审重注册（micro-batch2-REQUEST §1.B·EXEC tip 复算）：8ae2a93e→8f2fdb83c scripts 纯增 45 键（653→698·0 删）·additive 演进漏补审承登·旧值 106e457929a535e9b87d303b94d7487adbbca054 退役留痕' },
 ];
 const SCRIPTS_MUST_EXIST = ['ha6:prove', 'migrate:prove', 'docs:check', 'drift:prove'];
 const SCRIPTS_MUST_NOT_EXIST = ['breaker:prove', 'prove:breaker']; // 724d61b5 AG24 sanctioned 双删·防复活（rev2 R3-P2 补第二键）
@@ -398,9 +402,16 @@ const scriptsSetRow = ROLLING_REGISTRY.find((r) => r.kind === 'scripts-set');
 const recomputedDigest = scriptsSetRow
   ? execFileSync('sh', ['-c', `git show HEAD:package.json | jq -cS '.scripts' | git hash-object --stdin`], { cwd: root, encoding: 'utf8' }).trim()
   : '(scripts-set row missing)';
-check(missingMust.length === 0 && bannedResurrect.length === 0 && recomputedDigest === scriptsSetRow?.digest,
-  `root package.json registered scripts ledger: ${SCRIPTS_MUST_EXIST.length} must-exist keys non-empty + ${SCRIPTS_MUST_NOT_EXIST.length} must-not-exist keys absent + baseline scripts-set digest identical (${recomputedDigest.slice(0, 8)})`,
-  `package.json registered scripts ledger violated: missing=[${missingMust.join(', ')}] resurrected=[${bannedResurrect.join(', ')}] digest got=${recomputedDigest} want=${scriptsSetRow?.digest} — 值漂=非 additive 演进→REQUEST 补审 append`);
+// L-04 件b：工作树双读数恒等臂（F2 机制闭合·未提交窗内 scripts 漂移由工作树读数现形·
+//   断言四点恒等=HEAD 管道值+工作树管道值+二者互等+与登记 digest）
+const worktreeDigest = scriptsSetRow
+  ? execFileSync('sh', ['-c', "jq -cS '.scripts' package.json | git hash-object --stdin"], { cwd: root, encoding: 'utf8' }).trim()
+  : '(scripts-set row missing)';
+check(missingMust.length === 0 && bannedResurrect.length === 0
+  && recomputedDigest === scriptsSetRow?.digest && worktreeDigest === scriptsSetRow?.digest
+  && recomputedDigest === worktreeDigest,
+  `root package.json registered scripts ledger: ${SCRIPTS_MUST_EXIST.length} must-exist keys non-empty + ${SCRIPTS_MUST_NOT_EXIST.length} must-not-exist keys absent + scripts-set digest four-point identical (HEAD=${recomputedDigest.slice(0, 8)} worktree=${worktreeDigest.slice(0, 8)} registered=${scriptsSetRow?.digest.slice(0, 8)})`,
+  `package.json registered scripts ledger violated: missing=[${missingMust.join(', ')}] resurrected=[${bannedResurrect.join(', ')}] digest HEAD got=${recomputedDigest} worktree got=${worktreeDigest} want=${scriptsSetRow?.digest} — 值漂=非 additive 演进→REQUEST 补审 append`);
 check(curScripts['ha6:prove'] === 'node scripts/ha/ha6-companion.proof.mjs',
   'root package.json registers ha6:prove -> node scripts/ha/ha6-companion.proof.mjs (additive)',
   `package.json ha6:prove registration drifted: ${curScripts['ha6:prove']}`);
