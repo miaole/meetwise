@@ -490,6 +490,21 @@
       "class": "test-isolation"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-011-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-017-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-019-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-016-nhp-neg.proof.ts",
       "class": "test-isolation"
@@ -502,6 +517,21 @@
     {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-001-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-011-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-017-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-019-nhp-perf-api.proof.ts",
       "class": "test-isolation"
     },
     {
