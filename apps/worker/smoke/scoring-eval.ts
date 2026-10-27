@@ -20,6 +20,16 @@ const { icc1, sampleStddev, median, percentile, pairwiseOrderAccuracy, kendallTa
 const { fastModelClient, invokeEvaluationOnce, evaluateOutcomeFromValue } = await import('../src/interview-service.ts');
 const { stripScoringManipulation, isNonAnswer } = await import('@meetwise/domain');
 const { MONO_GROUPS, PERTURB_GROUPS, OFFTOPIC, MANIPULATION_INVARIANTS, CALIBRATION_STATUS } = await import('../test/scoring-golden.ts');
+const { createHash } = await import('node:crypto');
+
+/**
+ * 基键规范化（E2EA-01 件①红停修法）：registry businessRevision 只收 ASCII
+ * (`/^[A-Za-z0-9][A-Za-z0-9._:-]{0,255}$/`,约束存档 interview-service.ts:317-320·调用方义务面)。
+ * 样本键直拼 fixture 组 ID(中文域)会 `model_operation_revision_invalid` fail-closed。sha256 hex 全长 64:
+ * 全 ASCII 过白名单、同输入同键(确定性)、原键域两两唯一(样本幂等键破 cache 语义零损);
+ * 总 revision 长=`scoring-eval:v3:`(16)+64+`:answer:`(8)+64=152≤256。
+ */
+const evalKey = (key: string): string => createHash('sha256').update(key, 'utf8').digest('hex');
 
 /**
  * `SCORING_EVAL_IDS=id1,id2` 只跑指定 fixture，便于供应商限速时分片人工复核。
@@ -71,7 +81,8 @@ async function scoreOnce(question: string, answer: string, key: string): Promise
   evaluationRequests++;
   const out = await invokeEvaluationOnce(pool, OWNER, {
     // 每样本唯一 → 必 cache miss → 真打模型 → 方差不被吞；helper 负责 answer hash。
-    baseIdempotencyKey: `scoring-eval:v3:${key}`, question, answer: scored, promptAnswer: scored, model,
+    // 基键经 evalKey 规范化为 sha256 hex——五构造点族(MONO tier/PERTURB v/OFFTOPIC id/MI clean/MI poison)共用,registry 白名单零拒。
+    baseIdempotencyKey: `scoring-eval:v3:${evalKey(key)}`, question, answer: scored, promptAnswer: scored, model,
   }).catch(() => ({ status: 'failed' as const, error: 'threw' }));
   if (out.status === 'scored') {
     // #52 v6：hint 分=evaluateOutcomeFromValue 的确定性派生（档位×量表权重），模型不出总分。

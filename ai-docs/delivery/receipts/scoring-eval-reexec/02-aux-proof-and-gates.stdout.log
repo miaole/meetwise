@@ -1,0 +1,85 @@
+== SCREG EXEC 收据②：辅收离线单测臂 attempts 台账 + 门矩阵 EXIT 原值 ==
+CMD(辅收): pnpm -C apps/worker prove:scoring-eval-key  （apps/worker/test/scoring-eval-key.proof.ts·零外呼零 DB）
+attempts: attempt1 EXIT=1（红1=ENOENT repoRoot join 层级误三层·路径 bug·非断言非产品·修正 join(here,'..','..') 后复跑）
+  → fresh1 EXIT=0（全 PASS·n=76 样本键·负面对照 revision_invalid 在树实证）→ fresh2 EXIT=0（双 fresh）
+  → lint 红处置：新 proof 8×no-explicit-any→精确 fixture 类型（MonoGroup/PerturbGroup/OfftopicCase/ManipulationInvariantGroup·零 any·行为中性非谓词迁就）→ worker lint 1007>999 红→修后 999=cap 恰等 EXIT=0
+  → 终码面双 fresh EXIT=0 ×2（重构后 fresh1+fresh2·断言面零变）
+
+== 终码面 fresh1 ==
+
+> @meetwise/worker@0.0.0 prove:scoring-eval-key /Users/miaole/Desktop/golucky/meetwise-screg/apps/worker
+> tsx test/scoring-eval-key.proof.ts
+
+
+──── ① 负面对照（修法前形状·真关口必拒）────
+PASS  修法前形状（中文组 ID 直拼）经真 evaluationIdempotencyKey 链后仍非 ASCII
+PASS  中文组 ID 实证非空（金标 fixture 域） — n=14
+PASS  修法前形状过真 resolveModelOperation 恰得 model_operation_revision_invalid（缺陷在树实证·非想象码面）
+
+──── ② 修法后形状：真关口全过（revision_invalid=0 的离线必要面）────
+PASS  样本键全枚举 n=76（≥71 派发分母·五构造点族全覆盖）
+PASS  修法后全 revision 过真 resolveModelOperation（ok=true·零 model_operation_revision_invalid）
+PASS  修法后全 revision 纯 ASCII（含 answer hash 段）
+PASS  总 revision 长=152≤256（白名单长度界内）
+PASS  sha256 hex 段恰 64 个小写十六进制（全长零截断）
+
+──── ③ 确定性 + 两两唯一（破 cache 语义零损）────
+PASS  同输入同键（逐键重算恒等）
+PASS  全样本键两两唯一（Set 恒等原键数） — unique=76/76
+PASS  不同样本键不得映射同 hash（answer 段独立于基键仍全链唯一）
+
+──── ④ 构造点源形（恰 1 码面文件·五构造点共用一 helper）────
+PASS  构造点唯一落点已规范化：`scoring-eval:v3:${evalKey(key)}` 恰 1 处
+PASS  修法前原样插值 `scoring-eval:v3:${key}` 零残留
+PASS  evalKey helper=sha256 utf8 hex（与 interview-service answer hash 同形）
+PASS  五构造点仍经 scoreOnce 单口（key 参数面未增第二构造点）
+PASS  fixture 显示词面零触：组 ID 原文仍直入印刷（可读性零损）
+PASS  registry 白名单原文在树零触（案(a) 扩域 Ban 面）
+PASS  registry fail-closed 分支在树零触（model_operation_revision_invalid 语义保持）
+
+✓ scoring-eval 基键规范化离线证明全部通过（ASCII/确定性/唯一性/源形·真关口零 revision_invalid）
+== 终码面 fresh2 ==
+
+> @meetwise/worker@0.0.0 prove:scoring-eval-key /Users/miaole/Desktop/golucky/meetwise-screg/apps/worker
+> tsx test/scoring-eval-key.proof.ts
+
+
+──── ① 负面对照（修法前形状·真关口必拒）────
+PASS  修法前形状（中文组 ID 直拼）经真 evaluationIdempotencyKey 链后仍非 ASCII
+PASS  中文组 ID 实证非空（金标 fixture 域） — n=14
+PASS  修法前形状过真 resolveModelOperation 恰得 model_operation_revision_invalid（缺陷在树实证·非想象码面）
+
+──── ② 修法后形状：真关口全过（revision_invalid=0 的离线必要面）────
+PASS  样本键全枚举 n=76（≥71 派发分母·五构造点族全覆盖）
+PASS  修法后全 revision 过真 resolveModelOperation（ok=true·零 model_operation_revision_invalid）
+PASS  修法后全 revision 纯 ASCII（含 answer hash 段）
+PASS  总 revision 长=152≤256（白名单长度界内）
+PASS  sha256 hex 段恰 64 个小写十六进制（全长零截断）
+
+──── ③ 确定性 + 两两唯一（破 cache 语义零损）────
+PASS  同输入同键（逐键重算恒等）
+PASS  全样本键两两唯一（Set 恒等原键数） — unique=76/76
+PASS  不同样本键不得映射同 hash（answer 段独立于基键仍全链唯一）
+
+──── ④ 构造点源形（恰 1 码面文件·五构造点共用一 helper）────
+PASS  构造点唯一落点已规范化：`scoring-eval:v3:${evalKey(key)}` 恰 1 处
+PASS  修法前原样插值 `scoring-eval:v3:${key}` 零残留
+PASS  evalKey helper=sha256 utf8 hex（与 interview-service answer hash 同形）
+PASS  五构造点仍经 scoreOnce 单口（key 参数面未增第二构造点）
+PASS  fixture 显示词面零触：组 ID 原文仍直入印刷（可读性零损）
+PASS  registry 白名单原文在树零触（案(a) 扩域 Ban 面）
+PASS  registry fail-closed 分支在树零触（model_operation_revision_invalid 语义保持）
+
+✓ scoring-eval 基键规范化离线证明全部通过（ASCII/确定性/唯一性/源形·真关口零 revision_invalid）
+
+== 门矩阵 EXIT 原值 ==
+pnpm install --frozen-lockfile EXIT=0（3.4s·lockfile 零漂）
+apps/worker typecheck EXIT=0 · root typecheck EXIT=0
+apps/worker lint EXIT=0 999=cap 恰等（stash 对照基线 999·新 proof 零新 warning·零帽步进）
+root lint EXIT=0 5362=cap 恰等
+docs:check EXIT=0 scanned 2426=cap 2426 恰等（CAP-SANCTION-2426 先手步进 2421→2426·union=main 届扫 2424+本支 screg-REQUEST 1+本刀辅收 proof 1）
+PTP proof 12/12 EXIT=0（selected=12/12·2_426/f-2426.md/:2427 四联动点全行使）
+markers 五类+行首冲突标记 改动集（4 tracked）零命中（词面运行时组装 i6-239 同形·亲跑 python 组装复现）
+provider-egress:inventory EXIT=0 environment_references=386（=origin/main 届值恒等·git diff origin/main HEAD -- inventory 零漂·新 proof 零 env 词面）
+邻面不回退：scoring-eval:prove EXIT=0（度量数学）·scoring-golden:prove EXIT=0（金标结构）
+docker info EXIT=0（29.5.2 colima·2CPU·真跑隔离 PG meetwise-e2e-71083·migrations applied=217 skipped=0）
