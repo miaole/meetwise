@@ -1,0 +1,27 @@
+== neighbor non-regression set (5 suites) · EXIT via ${pipestatus[1]} 原值 ==
+-- uc014:nhp-neg --
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
+非替代申明: neg:commerce webhook 族（±360s 远超窗/缺 ts/短签/重放/跨单）· uc014-adv C1–C7（七类）· uc011 41+68+LOAD · authz5a2 单测两形 = 旁证互不替代互不借用
+HONESTY: EXIT0 = NHP-014-NEG-01 case 证据 · ≠ covered ≠ 翻行 · 格值 partial 保持 · coveredCount=8 不变
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T12-25-32-021Z-32443-8af093f3-cbc0-4ec7-b64d-d48e13fa2b56.json release_evidence=false
+NEG_EXIT=0
+-- uc014:nhp-bound --
+PINS: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
+非替代申明: neg:commerce 跨单（pay 侧）/已 paid 换流水（pay 侧 :552-557）· uc014-adv C4/C5（pay 口重放/跨单）· uc011 M2/A4/X（refund 口 already/跨单/跨口重放）· NHP-011-LOAD（风暴幂等）= 旁证互不替代互不借用
+HONESTY: EXIT0 = NHP-014-BOUND-01 case 证据 · ≠ covered ≠ 翻行 · 格值 partial 保持 · coveredCount=8 不变
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T12-25-38-057Z-32807-6650d99e-8eba-43f3-b52e-09bf88deabfd.json release_evidence=false
+BOUND_EXIT=0
+-- uc011:refund-callback --
+EXIT 0 ≠ UC-011 covered ≠ ADV covered · 独立 covered-lift + dual + 协调方 nail 另刀。
+releaseEvidence=false · NOT_HA · PG-retained · DELETE=202 软删受理(purge_pending)
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T12-25-41-665Z-33141-76c81637-9506-4f70-8971-9cb738352d72.json release_evidence=false
+UC011_EXIT=0
+-- uc014:webhook-adv --
+EXIT=0 — C1–C7 七类 webhook ADV 真证据全部成立（47 条断言全绿）。
+EXIT 0 ≠ 翻行 ≠ covered：ADV gap→partial 须 post-prove dual PASS + 协调方授权；coveredCount=8 不动。
+releaseEvidence=false · NOT_HA · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+ADV_EXIT=0
+-- neg:commerce --
+
+✓ neg:commerce: 90 条负路径用例全绿
+NEGCOMMERCE_EXIT=0

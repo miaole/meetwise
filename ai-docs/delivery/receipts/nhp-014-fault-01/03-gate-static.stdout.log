@@ -1,0 +1,25 @@
+== static gates (docker info / docs:check / PTP / egress / typecheck / lint) ==
+-- docker info --
+29.5.2 cpus=2 mem=4095574016
+DOCKER_EXIT=0
+-- docs:check --
+ai-docs check passed: 80 required files verified; public text policy scanned 2420 managed worktree files
+DOCSCHECK_EXIT=0
+-- PTP proof --
+static_preflight_valid: selected=12/12; releaseEvidence=false
+PTP_EXIT=0
+-- egress inventory proof --
+static_provider_egress_inventory_proof_valid: selected=7/7; releaseEvidence=false
+EGRESS_EXIT=0
+-- egress word faces on new proof --
+word_faces=40 hits=[]
+-- api typecheck --
+TYPECHECK_EXIT=0
+-- api lint --
+  0 errors and 30 warnings potentially fixable with the `--fix` option.
+
+LINT_EXIT=0
+-- new-file lint --
+FILE_LINT_EXIT=0
+-- markers (改动集词面) --
+markers_hits=[]
