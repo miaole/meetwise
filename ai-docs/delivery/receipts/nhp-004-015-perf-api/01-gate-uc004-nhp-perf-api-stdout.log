@@ -1,0 +1,48 @@
+
+> meetwise@0.1.0 uc004:nhp-perf-api:prove /Users/miaole/Desktop/golucky/meetwise-perf2
+> node scripts/run-e2e-isolated.mjs uc004:nhp-perf-api:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_RESOURCE_CAPS target=uc004:nhp-perf-api:prove:raw docker_args=--cpus 2 --memory 4g
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-57595-1793141131114 on 127.0.0.1:33156
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-perf2/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+UC004_CAPS pg container=meetwise-e2e-57595-1793141131114 NanoCpus=2000000000 Memory=4294967296 ok=true
+UC004_CAPS written enforced=true api NanoCpus=2000000000 Memory=4294967296
+UC-E2E-004 NHP-004-PERF-api-01 PERF_api 分面执行收据 (pre-migrate 世界·uc004-fault 形·nearest-rank · caps Docker 2cpu/4GiB)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained
+读法钉: 隔离库负载 ≠ 生产容量 ≠ 线上 SLO ≠ HA · 零模型零外呼 · EXIT0=case≠covered · actualSpendCny=null
+ATTEMPT_START  iso=2026-10-27T22:45:37.569Z · Ban retry-to-green · Ban fake-green · 负载参数冻结 N=100 c=10 warmup=10(excluded) runs=3
+
+PASS  [ISO] model-key-unset-in-process(self-deleted pre-seed · shell strip list lacks MODEL_API_KEY)
+PASS  [ISO] caps enforced(Docker NanoCpus=2e9/Memory=4GiB · wrapper HostConfig 亲证)
+PASS  [ISO] model-key-still-unset-after-api-child-spawn(no re-import regression)
+API_CHILD_READY base=http://127.0.0.1:43717
+fatal: not a git repository: /Users/miaole/Desktop/golucky/meetwise/.git/worktrees/meetwise-perf2
+PERF_RUN  run=1 N=100 c=10 p50=64.4ms p95=128.7ms p99=147.2ms max=147.7ms error_rate=0 timeout=0 passed=true
+PERF_RUN  run=2 N=100 c=10 p50=64.0ms p95=86.2ms p99=93.9ms max=96.2ms error_rate=0 timeout=0 passed=true
+PERF_RUN  run=3 N=100 c=10 p50=55.9ms p95=67.4ms p99=72.3ms max=77.1ms error_rate=0 timeout=0 passed=true
+PASS  [PERF] 全部 3 runs p50 ≤ 250ms
+PASS  [PERF] 全部 3 runs p95 ≤ 750ms
+PASS  [PERF] 全部 3 runs p99 ≤ 1500ms
+PASS  [PERF] 全部 3 runs error_rate ≤ 0.5%
+PASS  [PERF] PERF 五值收据齐(p50/p95/p99/max/error_rate 逐 run 在卷·零空值)
+PASS  [N] career-path 图零模型本地执行(ai_graph_run succeeded 恰 330/330·单节点图进程内 derive)
+PASS  [N] 零模型调用(ai_model_invocation 行 0 · keyless 主链零外呼)
+RECEIPT  raw=/Users/miaole/Desktop/golucky/meetwise-perf2/.tmp/uc004-perf-api-receipts/perf-receipt.json · caps=/Users/miaole/Desktop/golucky/meetwise-perf2/.tmp/uc004-perf-api-receipts/_caps-evidence.json · tracked=ai-docs/delivery/receipts/nhp-004-015-perf-api/(gate stdout log·四件套内嵌)
+
+ATTEMPT_END  iso=2026-10-27T22:45:44.511Z EXIT=0 total=10 fail=0
+PASS  NHP-004-PERF-api-01  PERF_api 分面执行收据 (N=100 c=10 runs=3 · caps enforced)
+EVIDENCE_SHAPE  isolated three-layer shell + capped child(2cpu/4GiB) + real PG migrate chain · 九件种子窗外(0059 GUC 逐会话) · 零桶种子如实申明 · 零模型双检
+ROW_STILL_GAP  UC-E2E-004 PERF_api blind→case-only 措辞(收据入账·case-only 保留·格值 blind 零翻). LOAD_w 留后刀. coveredCount=8.
+NOTE  EXIT0≠covered≠nail≠HA · Ban 借本收据宣 PERF SLO/生产容量/HA/NHP-PERF-API-SUITE 闭合(实例≠伞)/GAP-UC004-E2E-MAIN/GRAPH/GROWTH/FAIL-A3/UNCERTAINTY 收口 · Ban 与 NHP-004-BOUND/ADV/FAULT 收据互洗 · post dual still required · actualSpendCny=null
+
+CMD=pnpm uc004:nhp-perf-api:prove EXIT=0
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T22-45-44-753Z-57595-e1035b77-d65b-4753-9d34-f30498a3f4df.json release_evidence=false

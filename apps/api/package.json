@@ -47,6 +47,8 @@
   "prove:uc011-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-011-nhp-perf-api.proof.ts",
   "prove:uc017-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-017-nhp-perf-api.proof.ts",
   "prove:uc019-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-019-nhp-perf-api.proof.ts",
+  "prove:uc004-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-004-nhp-perf-api.proof.ts",
+  "prove:uc015-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-perf-api.proof.ts",
   "prove:uc050-nhp-kill": "node --import @swc-node/register/esm-register test/uc-e2e-050-nhp-kill.proof.ts",
   "prove:uc051-nhp-nopii": "node --import @swc-node/register/esm-register test/uc-e2e-051-nopii.proof.ts",
   "prove:uc014-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-014-nhp-neg.proof.ts",
