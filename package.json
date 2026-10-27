@@ -152,6 +152,8 @@
     "uc016:nhp-neg:prove:raw": "pnpm -C apps/api prove:uc016-nhp-neg",
     "uc015:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc015:nhp-adv:prove:raw",
     "uc015:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc015-nhp-adv",
+    "uc016:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc016:nhp-adv:prove:raw",
+    "uc016:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc016-nhp-adv",
     "uc001:nhp-perf-api:prove": "node scripts/run-e2e-isolated.mjs uc001:nhp-perf-api:prove:raw",
     "uc001:nhp-perf-api:prove:raw": "pnpm -C apps/api prove:uc001-nhp-perf-api",
     "uc011:nhp-perf-api:prove": "node scripts/run-e2e-isolated.mjs uc011:nhp-perf-api:prove:raw",

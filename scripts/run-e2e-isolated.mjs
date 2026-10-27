@@ -1073,6 +1073,22 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0189_api_harden_shared_state.sql',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // X16-ADV（NHP-016-ADV-01 · blind→case）：quiz/diagnosis 双口同主体状态机/输入对抗六臂族
+  // （S1 终态壳/S2 死壳 re-begin/S3 换载荷幂等/S4 自弃二次 abandon/A1 list 对抗值域/A2 target_role 列）。
+  // 隔离 PG 真 HTTP（_neg-harness 三层壳·同 row 批 C NEG 先例形）。
+  'uc016:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-016-nhp-adv.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/quiz/quiz.service.ts', 'apps/api/src/modules/quiz/quiz.controller.ts',
+    'apps/api/src/modules/diagnosis/diagnosis.service.ts', 'apps/api/src/modules/diagnosis/diagnosis.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/jobs/quiz-jobs.ts', 'packages/db/src/jobs/diagnosis-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
   // NHP 批 C Row 3（UC-001 PERF_api 分面执行收据）：主链 keyless HTTP 嘴 PERF 五值（N=100 c=10 runs=3 ·
   // capped child 2cpu/4GiB · wrapper 运行时内联源落 .tmp 收据·零 tracked scripts wrapper）。
   'uc001:nhp-perf-api:prove:raw': [
@@ -2737,6 +2753,8 @@ if (![
   'uc016:nhp-neg:prove:raw',
   'uc015:nhp-adv:prove:raw',
   'uc001:nhp-perf-api:prove:raw',
+  // X16-ADV 一行（NHP-016-ADV-01 · 一行一 case 一收据·沿批 C 同形注册）。
+  'uc016:nhp-adv:prove:raw',
   // PERF_api 三收据刀（UC-011 begin 主链 · UC-017 报告链 · UC-019 重试链 · 沿 uc001 先例形注册·一行一 case 一收据）。
   'uc011:nhp-perf-api:prove:raw',
   'uc017:nhp-perf-api:prove:raw',
@@ -3003,6 +3021,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-neg']]
   : target === 'uc015:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc015-nhp-adv']]
+  : target === 'uc016:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-adv']]
   : target === 'uc050:nhp-kill:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-kill']]
   : target === 'uc051:nhp-nopii:prove:raw'
@@ -3902,6 +3922,8 @@ async function main() {
   'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
   'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
+  // X16-ADV 一行（NHP-016-ADV-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
+  'uc016:nhp-adv:prove:raw',
   // PERF_api 三收据刀（UC-011/017/019）——**不入本 pre-migrate 名单**（world 选择承登）：三 proof 的
   // interview 隐私栅栏函数面（0058 active/assert·0206 read·SECURITY DEFINER owner=privacy_api_owner）
   // 在 migrate 链先行的库上被 harness sql/01 表重建断表授权→definer 42501（attempt 红留痕）；boot 侧
