@@ -1113,6 +1113,39 @@ const isolatedReceiptSources = {
     'packages/db/src/commerce/commerce.ts', 'packages/db/src/report/report.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
   ],
+  // NHP 开关刀 Row 1（UC-050 KILL · gap→case）：kill-switch 触发面 503/三态 fail-closed/双闸优先序/
+  // 净账审计。隔离 PG 真 HTTP + 子进程 env 变体（obs-logging spawn 形·子进程源运行时落 .tmp）。
+  'uc050:nhp-kill:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-050-nhp-kill.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/platform/content-safety.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/platform/all-exceptions.filter.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
+  // NHP 开关刀 Row 2（UC-051 NOPII · blind→case）：业务哨兵日志扫描/trace 脱敏直行使（invoke 假模型
+  // 零外呼驱动）/堆栈原文面。子进程 boot 真 HTTP+pino fd1 全量抓取（obs-logging 先例形）。
+  'uc051:nhp-nopii:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-051-nopii.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/platform/all-exceptions.filter.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/ai-runtime/src/invoke.ts', 'packages/ai-runtime/src/langfuse-v5.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/model-op/model-invocation.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
   'reaper:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/reaper.proof.ts', 'apps/worker/src/interview-consumer.ts',
@@ -1691,6 +1724,19 @@ const isolatedReceiptSources = {
     'apps/api/src/platform/last-event-id.ts',
     'apps/api/src/platform/sse-pump.ts',
     'e2e/helpers/sse.ts',
+  ],
+  // SSE-ADV 残余面行（UC-010 ADV 残余·NHP-010-ADV-02）：同主体双流游标交换（高/低）+双持实时
+  // 跨流注入零互偷（自装 0214 语句级触发器+token 通道注入）+账本零写副作用（appended-exactly）。
+  'uc010:nhp-crossstream:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-010-nhp-crossstream.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/platform/last-event-id.ts',
+    'apps/api/src/platform/sse-pump.ts',
+    'apps/api/src/platform/sse-notify.service.ts',
+    'packages/db/migrations/0214_interview_event_statement_notify.sql',
   ],
   'sse-push:notify:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -2642,6 +2688,8 @@ if (![
   'uc004:nhp-bound:prove:raw',
   'uc004:nhp-adv:prove:raw',
   'uc010:nhp-adv:prove:raw',
+  // SSE-ADV 残余面行（NHP-010-ADV-02·同主体多流交叉隔离 prove·一行一 case 一收据）。
+  'uc010:nhp-crossstream:prove:raw',
   'uc011:nhp-load:prove:raw',
   // NHP 批 A 三行（UC-012/024 FAULT · UC-003 ADV · UC-030 FAULT · 一行一 case 一收据）。
   'uc012:nhp-fault:prove:raw',
@@ -2661,6 +2709,9 @@ if (![
   'uc011:nhp-perf-api:prove:raw',
   'uc017:nhp-perf-api:prove:raw',
   'uc019:nhp-perf-api:prove:raw',
+  // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
+  'uc050:nhp-kill:prove:raw',
+  'uc051:nhp-nopii:prove:raw',
   // UC-028 一刀三 case（INJECT/RECON/TRUTH-BLOCK·沿 uc028:nhp-fault 同形注册）。
   'uc028:recon-truth-inject:prove:raw',
   'dbhy1:prove:raw',
@@ -2915,6 +2966,10 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-neg']]
   : target === 'uc015:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc015-nhp-adv']]
+  : target === 'uc050:nhp-kill:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-kill']]
+  : target === 'uc051:nhp-nopii:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc051-nhp-nopii']]
   : target === 'uc001:nhp-perf-api:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC001_PERF_API_CAPS_CHILD]]
   : target === 'uc011:nhp-perf-api:prove:raw'
@@ -2973,6 +3028,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc004-nhp-adv']]
   : target === 'uc010:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-nhp-adv']]
+  : target === 'uc010:nhp-crossstream:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-nhp-crossstream']]
   : target === 'uc011:nhp-load:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-nhp-load']]
   : target === 'uc010:sse-resume:prove:raw'
@@ -3811,6 +3868,8 @@ async function main() {
   // 函数由 boot() 新立=definer 同 boot role 表 owner·零断供面。proof 内 0206/0058 ACL 重放块承载 app_role 执行面。
   // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 同第四注册位教训承登）。
   'uc030:nhp-bound:prove:raw',
+  // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
+  'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
   'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
