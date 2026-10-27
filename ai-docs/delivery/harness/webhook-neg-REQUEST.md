@@ -1,6 +1,6 @@
 # NHP-014 WEBHOOK-NEG REQUEST — 支付回调边界值臂+双口分叉两 case 起草卷·UC-E2E-014/026 NEG/BOUND 三 cell 残余面（docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落卷三处翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗）· alone≠dual · **STOP=executed（三处钉：本 Status 行 + §8 + 卷尾注·两 case 门矩阵全绿在卷 §9-EXEC·待 post-prove 双审两独立外席）** · EXEC 收据=NHP-014-NEG-01 EXIT=0 · 22 断言 + NHP-014-BOUND-01 EXIT=0 · 22 断言（implementer pre-commit runs·not evidence of record·attempts 均=1）· 本 commit 不预 claim post-prove dual PASS 与任何 covered 翻面（EXIT0=case≠covered·coveredCount=8 不变）。
+**Status**: **`closed:post_prove_dual_pass`**（2026-10-27 post 落卷三处翻面·原值 `executed:awaiting_post_prove_dual`·更原 `draft:awaiting_pre_exec_dual` 史录不洗）· alone≠dual 已解（**post-prove 双审两独立外席双 PASS 会签在卷 §9-post**：席1 逐臂对码+两分立 partial UNIQUE 亲证+already 同生命周期核+neg:commerce 90/webhook-adv 47 独立复跑零回退·席2 NEG 22/22 fresh+uc011 41/41 独立复跑+错 kind 常时序零泄漏/浮点 IEEE754/生命周期倒退零红冲三机证·P2×5 残余如实登记含 sig 非 string 500 形 backlog 一行）· **STOP=closed（三处钉：本 Status 行 + §8 + 卷尾注）** · EXEC 收据=NHP-014-NEG-01 EXIT=0 · 22 断言 + NHP-014-BOUND-01 EXIT=0 · 22 断言（implementer pre-commit runs·post 两外席独立复跑 fresh 收据在卷 §9-post）· covered 翻面权归协调方（EXIT0=case≠covered·格值 partial 保持·coveredCount=8 不变·后继=并线席 merge/push/PR 随令）。
 
 **席位**：NHP-014 支付回调刀起草席（docs-only 起草·总盘派单序第 5 项·一卷两 case·协调方授权·与批 A/B/C/各 UC 专属线及 line/uc011 线互斥不重叠）。
 **基线**：`origin/main` @ **`961f5ef12`**（full `961f5ef1295f7abe5bce65c8d852b9a060c9faea` · `git fetch origin` 本 turn 成功 · 分支 `line/webhook-neg-draft` 零独有 commit · worktree 建树即落 tip 亲证 `HEAD is now at 961f5ef12`）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2402**（stdout「public text policy scanned 2402 managed worktree files」亲读）· cap=**2402**（`public-text-policy.mjs:157` `MAX_FILES=2_402` 亲证）——**恰达上限零余量**·本卷新文件 +1 必越限 → **越限沿先例步进承登预授权（协调方派单令原文）本 commit 即行使**：`MAX_FILES 2_402→2_403`（**+1 恰等零多放**·沿 CAP-SANCTION-2354（本卷 REQUEST +1 触顶形）与 clock-e2e `fc33c04e6`（+5 恰等）先例形·越限臂 fabricated 数随 cap 联动 `2403/2404`·承登注记 CAP-SANCTION-2403 随刀入两 .mjs）· 工作树 `meetwise-webhook`（仓根同级）。
@@ -161,7 +161,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落卷三处翻面·三处钉：本节 + Status 头 + 卷尾注·原值 `draft:awaiting_pre_exec_dual` 史录不洗）· alone≠dual · 开工三条款已兑现（①pre-exec 双审 r2 两独立外席 BOTH PASS 落卷 ②协调方明示 EXEC 授权+落码令·egress r2 席2 P2-A/P2-B 修订随令行使 ③§1 修法面/§5 Ban/pins/§1.3 否决面零改动·§0 对开工 tip 全量重 pin·见 §9.0）· 后继=post-prove 双审两独立外席（协调方派单）→ 双 PASS 会签翻终态（漂移如实改锚）——**在飞漂移 rev 实测提示**：四线 tip 均已前移（sse-adv `992039dc8→b4de1a469`·killsw `8c8249289→b00c09df3`·notes `8ea905a44→e01db6990` 三线已并入 main #153/#154/#155·pay-neg `91c54d817→80847d175` 在飞）·矩阵格值零翻仅行号漂（origin/main tip `d1a947e3d` 亲点：`:119` 未动·`:178`→`:179`·`:62`→`:63`）·worktree 自起草 30 上行（派单届值 32·rev 修订席本 turn 实测 34）→ §0.0 在飞登记与 §0.1/§0.2 全锚届时逐件重 pin·以届时实跑为准。** 停止条件（四类·命中即停手上报·Ban 就地处置）：
+**STOP · `closed:post_prove_dual_pass`（2026-10-27 post 落卷三处翻面·三处钉：本节 + Status 头 + 卷尾注·原值 `executed:awaiting_post_prove_dual` 史录不洗）· post-prove 双审两独立外席双 PASS 会签已落卷 §9-post（席1 逐臂对码+两分立 partial UNIQUE 亲证+already 同生命周期核+邻面独立复跑 neg:commerce 90/webhook-adv 47 零回退+P2×3 · 席2 NEG 22/22 fresh+uc011 41/41 独立复跑+错 kind 常时序零泄漏/浮点 IEEE754/生命周期倒退零红冲三机证+P2×2 含 sig 非 string 500 形 backlog 一行）· 后继=并线席 fetch/merge/push/PR（停止条件四类仍对各在飞 step 适用·命中即停手上报·Ban 就地处置）：
 - **现场漂移**：届时 tip 对 §0.1/§0.2 任一锚 blob/机制漂移且结论受疑（三 cell 列值被他刀改写 · `verifyCommerceSig` 单源/两 CAS/两分立索引被重构 · sse-adv/killsw/notes 并线改写 `:119/:178`/`:62` 归属）→ 停·重 pin 回炉。
 - **机制不满足**：EXEC 期臂收据与 §1/§0.2 推定形不符（如恰外 ts 被静默接受 · refunded 签打 pay 口 200 · refund-on-created 非 409 · 原支付流水重放返 already）→ 根因诊断被证伪 → 停·如实升级（**产品缺陷=EXIT1 诚实保留+backlog 登记 · Ban retry-to-green**）。
 - **越界需要**：修法诉求超出 §1 恰 2 case 面（需触产品码/uc011 已钉族/covered 翻面/共享 SSOT/迁移/cap 多放）→ 停·另刀或协调方裁决。
@@ -169,7 +169,7 @@
 
 ## §9 状态
 
-EXEC 期现值 **`executed:awaiting_post_prove_dual`**（2026-10-27 三处翻面·起草态 `draft:awaiting_pre_exec_dual`→pre-exec r2 双审双 PASS→协调方 EXEC 授权·史录不洗）· 起草 commit=本卷 .md + cap 步进两 .mjs · EXEC 落卷=两 case proof+注册+双表 additive+§9-EXEC 全录（下节）· 后继=post-prove 双审（两独立外席·alone≠dual·协调方派单）→ 双 PASS 会签翻终态 → 翻面权归协调方。
+post 期现值 **`closed:post_prove_dual_pass`**（2026-10-27 post 三处翻面·EXEC 态 `executed:awaiting_post_prove_dual`→post 双审两独立外席双 PASS 会签·全链起草态 `draft:awaiting_pre_exec_dual`→pre-exec r2 双审双 PASS→协调方 EXEC 授权→§9-EXEC→§9-post·史录不洗）· 起草 commit=本卷 .md + cap 步进两 .mjs · EXEC 落卷=两 case proof+注册+双表 additive+§9-EXEC 全录 · post 落卷=§9-post 双席双 PASS（四绿复跑+三机证+P2×5 残余登记）· 后继=并线席 fetch/merge/push/PR → 翻面权归协调方。
 
 ---
 
@@ -201,4 +201,32 @@ EXEC 期现值 **`executed:awaiting_post_prove_dual`**（2026-10-27 三处翻面
 
 ---
 
-*NHP-014 WEBHOOK-NEG REQUEST · 2026-10-26 起草 · 2026-10-27 EXEC 落码落卷 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 三处翻面·三处钉：Status 行+§8+本行·原值 `draft:awaiting_pre_exec_dual` 史录留痕不洗）· 剩余队列 Phase2 #12 one-knife-one-row · 覆盖矩阵残余 UC-E2E-014/026 `:119` NEG+BOUND 两 cell 亚层 + `:178` 工具行 + case-matrix `:62` 邻区两新行 · 修法=恰 2 具名 case（`NHP-014-NEG-01` ts 锐缘±1s+类型形+kind 反向互换 / `NHP-014-BOUND-01` 双口分叉跨命名空间+生命周期重放边界）· 零产品码触 · 与 UC-011 41+68+LOAD 面/uc014-adv C1–C7/neg:commerce webhook 族零重复申明（长签/kid 形 wash 否决 §1.3·FAULT/PERF/LOAD 留后刀）· 期望值逐臂对码（防 UC-019 静态推定错·B2 语义证人臂三重披露）· cap 步进预授权行使 2402→2403（+1 恰等·CAP-SANCTION-2403 承登·越限臂 2403/2404 联动）· 起草 commit 恰 3 tracked（本卷+policy 两 .mjs·派单令「恰 1」系零余量前提预排·如实承登）· 在飞四线登记（sse-adv/killsw 并线中·pay-neg rev2 后 EXEC·notes PR 在飞·merge additive 取大）· est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · EXIT0≠covered · releaseEvidence=false · ≠HA · alone≠dual · ⛔动主仓 ⛔push*
+## §9-post 落卷（2026-10-27 post-prove 双审两独立外席·协调方派单·双 PASS 会签·三处钉随本节同拍翻 `closed:post_prove_dual_pass`·原值史录不洗）
+
+### 9P.1 席1（post-prove 独立外席·逐臂对码+两索引亲证+邻面独立复跑）— **PASS**
+
+- **N1–N9 逐臂对码**（`uc-e2e-014-nhp-neg.proof.ts` 逐臂 Read·对 `commerce.service.ts:26-36`+窗常数 `:15` 亲读·零静态推定）：PC ts=now 窗心→`|Δ|≈0≤300_000` 过门 `:28-29`→200 credited+壳行转 paid ✓；N1/N3 恰内 ∓299_000（`Math.abs` 双向·299_000<300_000·口层新鲜）✓；N2/N4 恰外 ∓301_000（301_000>300_000→400 先于 HMAC）✓；N5 string 数字/N6a null/N6b bool（`typeof ts!=='number'` 前段逐形 400·先于 HMAC 非归因 403）✓；N7 浮点窗内（isFinite 放行→200）✓；N8 refunded 标签签打 pay 口（kind 段入 HMAC 载荷 `:33`·期望值不符→`timingSafeEqual` false→403 `bad_signature`）✓；N9 refund 口 −301_000→400（`verifyCommerceSig` 单源继承·Ban 重铺 uc011 族承守）✓——九臂期望值与 §0.2 锚逐值恰等·零断言迁就。
+- **B1–B6 逐臂对码**（`uc-e2e-014-nhp-bound.proof.ts` 逐臂 Read·对 `payment.ts:65-109/:122-189` 亲读）：B1 跨命名空间同流水（pay CAS `:77-87` NOT EXISTS 只查 `claimed.provider_txn`·refund CAS `:130-139` 只查 `claimed.refund_provider_txn`·两谓词互不查对方列→双 200+全局恰 1 行×2）✓；B2 同单同串双列并存（同上零跨列谓词→结构性放行·码态真值证人·DISCLOSURE 两行在卷）✓；B3 refund-on-created（CAS `status='paid'` 不中→回读 `:186-188` created≠refunded→conflict 409）✓；B4 pay-on-refunded（CAS `status='created'` 不中→回读 refunded≠paid→409）✓；B5 原支付流水重放 409 非 already（回读 status='refunded'→`:108` conflict·`:107` already 需 `status='paid'`）✓；B6 refund 换流水二次（回读 refund_provider_txn=T2≠T3→conflict 409 零红冲）✓。
+- **两分立 partial UNIQUE 亲证**：`0020_commerce_terminal_integrity.sql:20-21` `uq_payment_order_provider_txn ON payment_order(provider_txn) WHERE provider_txn IS NOT NULL` + `0136_payment_order_refund_provider_txn.sql:27-29` `uq_payment_order_refund_provider_txn ON payment_order(refund_provider_txn) WHERE refund_provider_txn IS NOT NULL`——两列两索引逐字亲读在树；全迁移目录 grep 对 provider_txn 交乘 CHECK/constraint 谓词 **零命中**亲证（无跨 kind 约束=B1/B2 期望值结构前提在码·与 §0.1 锚 `244acb80`/`4561e6c6` 恒等零漂）。
+- **already 同生命周期核**：pay 侧 `payment.ts:107` already 仅当 `status='paid'∧provider_txn 同`·refund 侧 `:187` 仅当 `status='refunded'∧refund_provider_txn 同`——两 already 均被本生命周期终态门钉死·跨生命周期倒退（B5 形）结构性不可达 already ✓（EXEC 收据与码面亲读恒等·机制源零漂）。
+- **邻面独立复跑（本席自带新跑·非引用 EXEC 收据·attempts=1 零红）**：`pnpm neg:commerce` **EXIT=0 · 90 臂全绿 · 0 FAIL**；`pnpm uc014:webhook-adv:prove` **EXIT=0 · 47 断言全绿（C1–C7）· 0 FAIL**——两邻面恒等绿零回退。
+- **P2×3（残余如实登记·非阻断·翻面/定谳权归协调方）**：①恰等边界值 `|Δ|=300_000` 本值零臂（门谓词 `>` 严格大于→恰等应 200 放行·现有臂 ±299_000/±301_000 两邻域夹逼·恰等本值全树未行使·单测层 authz5a2 亦同 298s/±301_000 两邻域——薄残余·后继触面刀搭车件候选）②B2 同单同串双列并存系两 CAS 零跨列谓词的结构性放行（语义证人臂已三重披露非产品意图背书——产品语义残余·跨列约束/统一化诉求归产品裁决非本刀申明）③N9 单口继承（EXEC 择 Path A mouth `/commerce/webhook/refund/:id`·主口 `/payment/refund-callback` 同门继承仅码面亲证〔两控制器同委托 `refundWebhook` 单管道〕非独立 HTTP 臂·薄残余）。
+- **席1 裁定：PASS**（§2 门 1–5 逐门复核·逐臂对码零不符·邻面零回退·零 retry-to-green·格值 partial 零翻·coveredCount=8 不变）。
+
+### 9P.2 席2（post-prove 独立外席·独立复跑 fresh+三机证）— **PASS**
+
+- **NEG fresh 独立复跑**：`pnpm uc014:nhp-neg:prove` **EXIT=0 · 22/22 断言 · 0 FAIL · fresh 容器新收据**（`.tmp/isolated-proof-receipts/2026-10-27T07-04-37-452Z-*.json`·LOCAL_ISOLATED_PROOF_RECEIPT 在卷·release_evidence=false）。
+- **uc011 独立复跑**：`pnpm uc011:refund-callback:prove` **EXIT=0 · 41/41 · 0 FAIL**（fresh 收据 `2026-10-27T07-04-39-370Z-*.json`·EXIT 0 ≠ covered 口径在 stdout 原文亲读）。
+- **机证①错 kind 常时序零泄漏**（node 实测·非推定）：refunded 标签 HMAC 与 paid 期望值长度恒等 64=64→`a.length!==e.length` 短路门不触发→**必达 `timingSafeEqual` 常时序比较**（`commerce.service.ts:34-35`）→false→403——错 kind 臂与任意伪签走同一代码路径·kind 只入 HMAC 载荷 `:33` 无独立早退分支·**零时序旁路零分支泄漏**（N8 403 与伪签 403 不可区分·安全合同维持）。
+- **机证②浮点 IEEE754**（node 实测）：`ts=Date.now()-60_000+0.5`（0.5=dyadic 二分精确可表示）→`JSON.stringify`/`JSON.parse` 往返 `Object.is` **恒等**→proof 侧与 server 侧 `` `${id}:${txn}:${kind}:${ts}` `` 插值串**逐字节恒等**→HMAC 恒等→200——N7「全树首证行为臂」成立机理=IEEE754 最短往返表示保值+两端同模板插值（签名载荷即所验值·非验签弱化·`typeof number`+`isFinite` 门如实放行）。
+- **机证③生命周期倒退零红冲**：桶插入唯在 `if (upd.rowCount===1)` 守卫内（`payment.ts:99-104`）——B5 重放 pay T 时 CAS `status='created'` 不中（实际 refunded）→0 行→**零桶写零再红冲**·已执行红冲 −10 不重复不逆转→净账恒 0（收据 B5c 双断言在卷）——409 conflict 路径全链无权益面写点·「幂等不跨生命周期倒退复活」机证闭合。
+- **P2×2（残余如实登记·修法/定谳权归协调方）**：①**sig 非 string truthy 形→500**（`:27` `!body?.sig` 只拒 falsy·`:34` `Buffer.from(body.sig)` 对 number/bool/object 抛 `TypeError ERR_INVALID_ARG_TYPE`（node 22.22.3 实测复现）·两控制器无 try/catch→NestJS 默认过滤器→HTTP 500 应 400/403 形——**无验签绕过无数据暴露无资金影响**（异常在 HMAC 比对之前·零入账零落列））→ **已按派单令登记 `gap-bug-backlog.md` 尾注一行**（2026-10-27 · append-only · 沿 UC-019 席2 先例形·修法候选=`:27` 增 `typeof body.sig!=='string'` 同门 400 单源一处修）②ts 门零整数性要求（`typeof==='number'`+`Number.isFinite` 即放行·浮点全值过=N7 已钉行为——语义披露级观察非缺陷定谳·Integer 收紧诉求归产品裁决·登记于本节不另开 backlog 行）。
+- **席2 裁定：PASS**（独立复跑双绿 fresh 收据在卷+三机证闭合+attempts 台账与 §9.1 亲核一致（唯一红次=typecheck TS2554×2 调用形状修复·零断言谓词变）·零断言迁就·格值 partial 零翻）。
+
+### 9P.3 双 PASS 会签（alone≠dual → dual 成立·三处钉随本节翻终态）
+
+- 席1 **PASS** × 席2 **PASS**＝**post-prove 双审双 PASS 会签成立**（两独立外席各自独立形成裁定·收据各自新跑互不引用·alone≠dual 已解）；三处钉（Status 头+§8+卷尾注）随本节同拍翻 **`closed:post_prove_dual_pass`**（原值 `executed:awaiting_post_prove_dual`·2026-10-27 起草态→EXEC→post 三态全链留痕史录不洗）· EXIT0=case≠covered 口径维持·格值 partial 零翻·coveredCount=8 不变·pins 十一值零翻（haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null）· est live=0（四席复跑全离线隔离 boot() 真栈零外呼零模型零 Key 加载）· P2×5（席1×3+席2×2）全部残余如实登记非阻断·sig 非 string 500 形 backlog 一行已落（席2·派单令履行）· 后继=并线席 merge/push/PR（翻面权归协调方）。
+
+---
+
+*NHP-014 WEBHOOK-NEG REQUEST · 2026-10-26 起草 · 2026-10-27 EXEC 落码落卷 · 2026-10-27 post 双审双 PASS 会签落卷 · **STOP=`closed:post_prove_dual_pass`**（2026-10-27 post 三处翻面·三处钉：Status 行+§8+本行·原值 `executed:awaiting_post_prove_dual` 史录留痕不洗）· 剩余队列 Phase2 #12 one-knife-one-row · 覆盖矩阵残余 UC-E2E-014/026 `:119` NEG+BOUND 两 cell 亚层 + `:179` 工具行 + case-matrix `:63` 邻区两新行（双表 additive 注记已随 EXEC 落卷）· 修法=恰 2 具名 case（`NHP-014-NEG-01` ts 锐缘±1s+类型形+kind 反向互换 / `NHP-014-BOUND-01` 双口分叉跨命名空间+生命周期重放边界）· 零产品码触 · 与 UC-011 41+68+LOAD 面/uc014-adv C1–C7/neg:commerce webhook 族零重复申明（长签/kid 形 wash 否决 §1.3·FAULT/PERF/LOAD 留后刀）· 期望值逐臂对码（防 UC-019 静态推定错·B2 语义证人臂三重披露）· post 双外席复跑四绿（neg:commerce 90/webhook-adv 47/NEG 22/uc011 41）+三机证（错 kind 常时序零泄漏/浮点 IEEE754/生命周期倒退零红冲）+P2×5 残余登记（sig 非 string 500 形 backlog 一行随令落 gap-bug-backlog.md）· cap 2410→2413 恰等步进已行使（CAP-SANCTION-2413 承登两 .mjs·越限臂 2_413/2414 联动·check-docs scanned 2413 恰等）· est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · EXIT0≠covered · releaseEvidence=false · ≠HA · 后继=并线席 fetch origin/main/merge-tree 预演/merge --no-ff/终验五门/push/PR（门红或冲突不可解即停上报）*
