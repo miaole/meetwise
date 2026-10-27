@@ -225,7 +225,9 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // 届值如实采：origin/main b36113958（#162/#163/#164 已并）承 2424=cap 恰等·本支 5a560411a 承 2419=cap 恰等（双亲各自合规）·merge-tree 预演恰 4 处冲突（root package.json lint 帽行取大 5379+两 policy 脚本注记/cap 区 dual-keep+runner 注册区 additive union）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2427>2424 红——union 实测 2427=main 届扫 2424+本支并入互斥受管目 3（harness/x33-adv-REQUEST.md+apps/api/test/uc-e2e-033-nhp-adv.proof.ts+receipts/uc033-nhp-adv/00-docker-info.txt·两集合无交叠·两 stdout 收据 .log 非扫描扩展名不计）·四联动点 2_427/f-2427.md/:2428 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // CAP-SANCTION-2428 并线恰等步进：cap 2427→2428（2026-10-27 X33 #160 补集收官二轮并线 #165 eslint-ignores union 越限恰等步进·协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令·+1 恰等零多放·沿 2424→2425/2422→2423 并线先例形·快速链·授权随令）：
 // 届值如实采：origin/main `f3c4fac4b`（#165 eslint-ignores 已并）承 2425=cap 恰等·本支 `128a35e9b`（一轮并线 #162/#163/#164 落卷）承 2427=cap 恰等（双亲各自合规）·merge-tree 预演恰 2 处冲突（两 policy 脚本注记/cap 区·dual-keep 双留·本支 CAP-SANCTION-2427 注记+main CAP-SANCTION-2423/2425 注记并留）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2428>2427 红（真 EXIT=1 亲证）——union 实测 2428=本支届扫 2427+main 并入互斥受管目 1（harness/eslint-ignores-REQUEST.md·两集合无交叠·packages/config/eslint.config.base.mjs additive 单侧零冲突）·四联动点 2_428/f-2428.md/:2429 恰等改（proof 文件链区）·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
-const MAX_FILES = 2_428;
+// CAP-SANCTION-2429 起草随刀恰等步进：cap 2428→2429（2026-10-28 worker 负载伞首刀 route-classify 起草（R43 伞首·具名 NHP-LOAD-WORKER-SUITE-RC-01·harness/rcload-REQUEST.md）随刀·协调方派单预授权「越限沿先例步进承登预授权」随令·+1 恰等零多放·沿 uc003x 2410→2411/eslint-ignores 2420→2421 起草随刀单件恰等先例形·快速链·授权随令）：
+// 本支树届扫 2428=cap 恰等零余量（基线 docs:check EXIT=0 scanned 2428 亲证）+ 本卷 harness/rcload-REQUEST.md 受管 1 件=2429 必超（PTP_FILE_LIMIT:2429>2428 形）·EXEC 期 +1 proof=2430 届值再步进预登（REQUEST §2 门 5）·四联动点 2_429/f-2429.md/:2430 恰等改（proof 文件链区）·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+const MAX_FILES = 2_429;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],

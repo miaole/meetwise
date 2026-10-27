@@ -1,0 +1,162 @@
+# RCLOAD REQUEST — worker 负载伞首刀 **NHP-LOAD-WORKER-SUITE-RC-01**：route-classify 真消费积压形状负载收据刀（沿 uc017 nhp-load 先例形·协调方定标 A 方案·docs-only REQUEST 卷·起草落卷即停）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（docs REQUEST only·stub·Ban self-approve · alone ≠ dual · **Ban coding · Ban prove · Ban push** · 三处同值：Status 头/§8/卷尾注）
+**席位**：worker 负载伞首刀起草席（协调方派·单责起草·诊断锚已并入 §0/§1·协调方裁决：本刀即 R43 伞首刀·具名 **NHP-LOAD-WORKER-SUITE-RC-01** 落 case-matrix §1.6 新行）。
+**基线**：`origin/main` @ `7950f45bd`（`7950f45bde12f53848eb4c2225d4d1061d317f3e`·fetch 后亲证 origin tip 同指=#160 x33-adv 并线点）· 分支 `line/rcload-draft`（新建）· 工作树 `meetwise-rcload`（仓根同级）· docs:check **基线 2428=cap 2428 恰等零余量·本树亲跑 EXIT=0**（本卷 +1 必超 → cap 预算核随刀 +1 恰等步进 2428→2429·见 §2 门 5）。
+**必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/delivery/harness/gap-uc017-load-sweep-nhp.md`（uc017 nhp-load 先例形·负载合同 PC/L1–L5/N1–N4 形制范本）→ `ai-docs/delivery/harness/uc017-REQUEST.md`（§0-§8/停止条件四类/Ban-pins 形制范本）→ `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md`（`:61` NHP-011-LOAD 行·`:95` NHP-015-LOAD 定标链行·`:152` 伞行）→ `ai-docs/delivery/harness/nhp-batch-b-REQUEST.md:144`（收据文禁写 worker 产能义律）→ `ai-docs/delivery/e2e-requirement-coverage-matrix.md`（`:151` UC-E2E-015 行=SSOT 零触面）→ 涉事机制源（§0.1 全表）。
+**立项出处（不自建 SSOT 行——伞行翻面/汇总权归协调方）**：①伞行 `non-happy-path-perf-load-case-matrix.md:152` `NHP-LOAD-WORKER-SUITE │ worker │ 报告/OCR/队列积压形状（并发 N、持续 T） │ 吞吐/积压/错误率收据 │ **case-only** / **blind** │ compose healthy ≠ 产能`（六列逐字亲证=§1.1）；②「非单行刀」先例句 `harness/gap-uc017-load-sweep-nhp.md:37`（「跨 UC 总册行，非单行一刀；由 UC 行逐个落地后汇总」）——本刀=伞首 slice 0（route-classify 真消费单域落地·零伞行汇总宣称）；③定标链可亲点面=case-matrix `:95` NHP-015-LOAD-w-01 行「2026-10-27 协调方红停采信（总盘 R37）→归中大工程排期（worker 负载伞 R43 同批）·并入自 line/loadw-exec `62f75399d`」；④协调方派单 brief（2026-10-28·R43 伞首刀·具名 RC-01 落 §1.6 新行·定标报告 A 方案·STOP=draft）；⑤收据文产能义律 `harness/nhp-batch-b-REQUEST.md:144`（「收据文禁写 worker 产能义（隔离库并发行使≠worker 容量·沿本节防洗句同律）」·定标 P2 勘误的履行落点=本卷 §1 认领注记+§5 Ban——定标报告全文本席无可亲点文件，Ban 伪造已读来源，仅登记其可核对面）。
+
+## §0 现状锚（起草席亲读·file:line+blob 逐条 sed/grep/Read/`git hash-object` 实测 @`7950f45bd`·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号）
+
+### 0.0 防重双对表
+
+- `git worktree list` 建后 **36** 树实测（主仓+34 支线树+本树）；`git branch --list "line/rcload*"` 恰 1 命中=本席分支；`ls ai-docs/delivery/harness/ | grep rcload` 建前 **0** 命中；`git log --all --diff-filter=A -- ai-docs/delivery/harness/rcload-REQUEST.md` 空（全史零命中）=落卷后唯一同名卷=本卷。
+- **在飞交叠复核（2026-10-28 本树亲跑）**：点名在飞分支对本次草触面（`scripts/ai-docs/` 两 policy 件）merge-base diff——`line/uc31-draft`/`line/rag02-draft`/`line/pay-neg-draft`/`line/x33-adv-draft` 全部 **0 命中**；`line/ag18-draft` 有 2 命中（两 policy 件）但该支 2026-10-18 陈旧·后继 `line/ag18-flip` 已并入 origin/main（`merge-base --is-ancestor` 亲证 merged）=旧基线未并历史噪声（沿 reconcile §0.0 判读先例）——**EXEC 立项日照本规则对届时在飞分支重跑**；若届时 cap 注记栈真冲突→沿 CAP-SANCTION-2423 dual-keep 双留先例形承登。
+- 同名命令占用查：`grep -rn "rcload" --include="*.json" --include="*.mjs" --include="*.ts" .`（排除 node_modules）建前零命中=新命令名/新 proof 名无撞面；伞族具名 `NHP-LOAD-WORKER-SUITE-RC-01` 全仓零命中=本刀新认领（非既有钉翻动）。
+
+### 0.1 blob 锚表（`git hash-object` 亲算 @`7950f45bd`）
+
+| 文件 | blob（8 hex·行数） | 关键行锚 |
+|---|---|---|
+| `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md` | `0c6e778d`（212 行） | **`:152` 伞行 `NHP-LOAD-WORKER-SUITE`（case-only/blind·禁令列「compose healthy ≠ 产能」）·`:61` NHP-011-LOAD-w-01 行（HTTP refund-callback 管道行使面·收据文无 worker 产能义）·`:95` NHP-015-LOAD-w-01 行（定标链 R37→R43 注记）·§1.6 表头 `:147-149`——件③ 净增行落位=同表尾 append** |
+| `ai-docs/delivery/harness/gap-uc017-load-sweep-nhp.md` | `8194e1f6`（119 行） | **`:37` 「NHP-LOAD-WORKER-SUITE │ case-only/blind │ 跨 UC 总册行，非单行一刀；由 UC 行逐个落地后汇总」（非单行刀先例句）·`:63` 负载合同冻结参数形（N=20×M=5·C=10·S=10）·`:89-94` prove 方案三层壳形** |
+| `ai-docs/delivery/harness/nhp-batch-b-REQUEST.md` | `65060326`（235 行） | **`:144` rev3 追钉律句「收据文禁写 worker 产能义（隔离库并发行使≠worker 容量·沿本节防洗句同律）」·`:191` 「收据文零 worker 产能义」** |
+| `packages/db/src/routing/job-route-decision.ts` | `598c88a2`（420 行） | **`:76-93` `createJobSemanticRevision`（建岗/编辑即写 revision `route_pending`+digest+HMAC+route 事件·**零模型入队**·`classifyJobRoute` 不在此被调）·`:170-277` 分类漏斗（`FOR UPDATE` 锁定→rules 0 次外发→seam 至多 1 次）·`:214-228` rule 唯一叶臂（`:221` reason=`rule_unique_leaf`·`:227` 返回 `modelCalls: 0`）·`:398-420` `listNextJobRoutePending`（`:401-402` 注「Not HA: no lease column; classifyJobRoute state machine is the send fence」·`:410` `FOR UPDATE SKIP LOCKED LIMIT 1`）** |
+| `apps/worker/src/route-classify-consumer.ts` | `223b7f09`（64 行） | **`:2` 头注「sole classify Worker for job_semantic_revision.route_pending」·`:30-46` `drainRouteClassifyOnce`（claim→`classifyJobRoute({ modelClassify: createJobRouteModelClassify(...) })`·`noop/classified/failed` 三态）·`:53-59` `routeClassifyDispatchTick`（`gatewayDispatchOwners(pool,'job_route')`→per-owner drain until idle）·`:62-64` `runRouteClassifyConsumer`（→`runDrainLoop`·interval 缺省 5000）** |
+| `apps/worker/src/drain-loop.ts` | `5e5e2cb3`（247 行） | **`:8-15` `DrainLoop` 接口（wake/stop/ready/snapshot）·`:24` `TICK_WATCHDOG_DEFAULT_MS=600_000`·`:18-22` 注「单拍工作量受结构性深度护栏（enqueue 帽/退避节流/内部队列量级）界住」·`:76-161` `runDrainLoop`（tick 抛不停循环 `:110`·首拍成功门 `:81`/`:148-158`）** |
+| `apps/worker/src/job-wakeup-listener.ts` | `fc18131d`（157 行） | **头注 `:2-6`「Notifications are deliberately lossy, broadcast hints…Queue tables, RLS and leases remain the source of truth」·`:35-39` `startWorkerJobWakeupListener(pool,onWake)`·`:108` `LISTEN` 通道查询·`:112-114` 「LISTEN first, then reconcile…any old missed work is drained now」+连接即 `onWake()`** |
+| `apps/worker/src/main.ts` | `6962c0a6`（881 行） | **`:510` `jobReconcileIntervalMs=boundedIntEnv('WORKER_JOB_RECONCILE_INTERVAL_MS',5000,1000,60000)`·`:531-532` `model`/`fastModel` 构造（构造不依赖 Key·invoke 时 fail-closed）·`:455` 注「开发可用 observe 跑本地样例，但该模式不可发布」·`:667` `runRouteClassifyConsumer({pool,model:fastModel},jobReconcileIntervalMs)`·`:684-691` `startWorkerJobWakeupListener(...)` 五 loop wake 含 `routeClassifyLoop.wake()`·`:878` worker ready 日志行（route-classify 在列）·`:839` 排水项 `{name:'route-classify'}`·`:881` `if (process.env.WORKER_BOOTSTRAP==='1') bootstrap()`** |
+| `scripts/run-e2e.mjs` | `f3d9361c`（210 行） | **`:132` worker 子进程 spawn 形：`run('worker',['--import',REG,'src/main.ts'],ROOT+'apps/worker',{WORKER_BOOTSTRAP:'1',WEB_ALLOWLIST:'',WORKER_METRICS_PORT:…,E2E_REPORT_FAIL_ALL:'1'})`（真 worker 进程缝范本·本刀件① 子进程 env 形同源）** |
+| `packages/db/test/uc-e2e-017-nhp-load.proof.ts` | `40dbe245`（453 行） | **头注 frozen params（N=20 owners×M=5 orphans=100·C=10 concurrent workers·S=10 settled cohort·F=20 fresh·MAX_DRAIN_WAVES=10·TTL 冻结）·造数诚实注记（真产品路径·Ban 裸 INSERT）·`assertIsolatedTestTarget` 隔离 nonce·零 live 模型零 MODEL_API_KEY** |
+| `packages/db/src/jobs/gateway-dispatch.ts` | `1f752a27`（108 行） | **`:7` `GatewayDispatchWork` 含 `'job_route'`·`:22-26` `gatewayDispatchOwners`（owner-id only seam）·`:9-14` `GatewayJobGauge`（queue ∈ interview_job/report/quiz_job/diagnosis_job 四值·**无 job_route 值**）·`:59-67` `gatewayJobGauges`（`SELECT * FROM gateway_job_gauges()`）** |
+| `packages/db/migrations/0042_runtime_observability_gateway.sql` | `ccac352d`（48 行） | **`:5` `CREATE FUNCTION gateway_job_gauges()`（SECURITY DEFINER·四队列表聚合计数）·`:47` `GRANT EXECUTE … TO app_gateway_role`** |
+| `packages/db/migrations/0040_gateway_dispatch_least_privilege.sql` | `31a685ac`（57 行） | **`:13` `gateway_dispatch_owners(p_work)` v1（CASE 五支：interview/quiz/diagnosis/report/commerce·**无 job_route 支**·else `gateway_dispatch_unknown_work` 22023）** |
+| `packages/db/migrations/0132_job_route_classify_worker_dispatch.sql` | `866a4ee7`（68 行） | **`:4-5` 头注「Extends gateway_dispatch_owners with work='job_route' (owner-id only)」·`:11-13` partial index `ix_job_semantic_revision_route_pending (owner_user_id,created_at ASC,revision ASC) WHERE status='route_pending'`·`:54-59` `WHEN 'job_route'`（`job_semantic_revision WHERE status='route_pending'` GROUP BY owner·无队列行无入队·**故 job_route 域无入队深度帽**——积压深度=route_pending 行数本身·drain peek 直读该表）** |
+| `packages/db/migrations/0133_job_route_pending_worker_wakeup.sql` | `9380e6f9`（33 行） | **头注 `:4-11`「wake idle workers when job_semantic_revision lands at route_pending (createJob / updateJob …). Same lossy wake-only channel as 0084. Does NOT classify inline.」·`:14-21` trigger `worker_job_wakeup_after_route_pending`（AFTER INSERT/UPDATE OF status WHEN NEW.status='route_pending'）·`:20` `pg_notify('meetwise_worker_wakeup_v1','wake')`（LISTEN 唤醒源）** |
+| `packages/db/migrations/0104_job_route_decision.sql` | `07820e8f`（280 行） | **`:18-28` `job_semantic_revision` 表（status 六值 CHECK·digest/HMAC 列）·`:68-` `job_route_decision` 表（`attempt_outcome` 五值 CHECK·`created_at timestamptz DEFAULT clock_timestamp()`·UNIQUE(job_id,revision)·decided 行跨列 CHECK 背书）·头注 `:4-10` 状态机图（rule path 0 model sends/model path exactly 1 send）** |
+| `packages/db/src/recruiting/recruiter.ts` | `70a6d90f`（673 行） | **`:32-` `createJob`（真产品路径建岗）·`:47`/`:59` 「建岗即写 revision(route_pending)」（同事务·幂等 replay 不重复）·`:142-164` route-retry 同管道写新 revision** |
+| `apps/api/src/modules/recruiter/recruiter.controller.ts` | `e9a2b191`（91 行） | **`:14` `@Controller('recruiter')`·`:19` `@Post('jobs')`（B 端建岗 HTTP 嘴·本刀基准承载为 DB 层 `createJob`·HTTP 嘴登记为邻面不行使）·`:67` `@Post('jobs/:id/route-retry')`** |
+| `packages/domain/src/job-route-classifier.ts` | `79ceded8`（273 行） | **`:19-28` `TAXONOMY_V1_LEAVES` 8 叶·`:96-99` `classifyJobByRule`（唯一叶才返回·0 调模型·0/≥2 命中→null）·`:64-83` RULE_SIGNALS 词典+corpus（歧义词刻意不映射）·`:87-91` `signalMatches`（ASCII 词边界/CJK 子串）** |
+| `packages/ai-runtime/src/job-route-classify.ts` | `3b1e7081`（208 行） | **`:5-13` 头注 P-WORKER/P-FAKE pin（「Legitimate rule_unique_leaf (modelCalls=0) still runs inside classifyJobRoute after this MODEL-OP-bound consumer supplies modelClassify — that is NOT P-FAKE」）·`:113-127` PRE_DISPATCH_KNOWN_NOT_SENT 集（含 `model_key_missing`/`model_not_configured`）·`:140-170` `createJobRouteModelClassify`（无 Key fail-closed→`knownNotSent('model_key_missing')`→`route_unresolved`·不抛异常）** |
+| `apps/worker/test/r2-classify-job-route-prereq.proof.ts` | `6e0fe5a0`（298 行） | 头注 `:3-16` P-MODEL/P-WORKER/P-API/P-LOOP/P-START/P-FAKE CLOSED 台账（「closing P-* != R2 fully closed」·本刀 Ban 借以宣 R2 closed） |
+| `apps/worker/test/r2-p-worker-route-classify.proof.ts` | `cb28c236`（319 行） | 头注 `:1-8`（sole Worker 静态/夹具完整性证明·**非进程内 drain 更非真进程负载**=本刀面差自证） |
+| `scripts/run-e2e-isolated.mjs` | `4bd36a65`（4268 行） | **目标注册面四触点：`isolatedReceiptSources` 条目形（`:1626-1630` uc017:nhp-load 条目）·目标白名单数组（`:2682` 单行族段含 `'uc017:nhp-load:prove:raw'`·`:2786` 多行族段含 `'uc011:nhp-load:prove:raw'`）·`isolatedCommand` 分支链（`:3205-3206` uc017:nhp-load 二行形）·全量迁移/compose 目标清单族行（`:4138`·`'uc017:nhp-load:prove:raw'` 在列）——白名单零命中即 `:2839` `throw unsupported_e2e_target`（rev2 P0-1 教训·不注册=门 1 必红）·LIVE 门 `:89`/`:3796`（本刀非 live 不经）** |
+| `package.json`（根） | `25a1e9d6`（760 行） | **`:129-130` `uc017:nhp-load:prove`/`:raw` 双行（packages/db 侧注册形）·`:199-200` `uc011:nhp-load:prove`/`:raw` 双行（apps/api 侧注册形=本刀 worker 侧同构范本）** |
+| `apps/worker/package.json` | `99a669a9`（193 行） | **`:11-18` `prove:*` 族行（`tsx test/*.proof.ts` 形=本刀 raw 行落点同构）** |
+| `ai-docs/delivery/e2e-requirement-coverage-matrix.md` | `81703051`（521 行） | **`:151` `UC-E2E-015（摄取）` 行（blind 列族·SSOT 零触面·件③ 零字节）** |
+| `ai-docs/delivery/harness/uc017-REQUEST.md` | `92168122`（195 行） | §0-§8/停止条件四类/§9 rev 链形制范本（本卷形制沿承源） |
+| `scripts/ai-docs/public-text-policy.mjs` | `45a363ff`（526 行） | **`:228` `const MAX_FILES = 2_428;`（cap 预算核对象·本卷随刀步进面）** |
+| `scripts/ai-docs/public-text-policy.proof.mjs` | `864e2ccd`（445 行） | **`:413-414` CAP-SANCTION 注记栈·`:415-429` 越限臂（loop 界 `2_428`/越限注入路径 `f-2428.md`/错误串 `FILE_LIMIT:2429`——四联动点随 cap 联动同步）** |
+
+### 0.2 派单简报核实登记（结论零变·如实精化）
+
+1. 简报「伞行 :129 区」——**核实为届值 `:152`**（case-matrix 届树 212 行·`:129` 区已为 031/032 行域；伞行内容六列逐字亲证零变）→ 行号漂移如实改锚（§0.1 行 1）。
+2. 简报「job-route-decision :76-92 零模型入队」——**核实为 `:76-93`**（函数闭合行 `:93`；`:76-92` 覆盖主体·+1 行如实）·「零模型入队」语义亲证成立（`createJobSemanticRevision` 只写 revision/事件·零模型调用零队列行）。
+3. 简报「route-classify-consumer :30-64 drain」——**核实成立**（64 行文件·`drainRouteClassifyOnce :30-46`·`routeClassifyDispatchTick :53-59`·`runRouteClassifyConsumer :62-64`）。
+4. 简报「run-e2e.mjs:132 WORKER_BOOTSTRAP=1 形」——**核实成立**（worker 子进程 spawn 真形在树·本刀件① 子进程承载同源改写为隔离 env）。
+5. 简报「定标报告 A 方案·定标 P2 勘误履行」——定标链**在树可亲点面**=case-matrix `:95`（R37 红停采信→worker 负载伞 R43 同批·`62f75399d` 并入）；「定标报告 A 方案」全文与「P2 勘误」原本非本席可亲点文件——按 §5「Ban 伪造已读/已验来源」**不发明文件引用**，如实登记为派单依据；其可核履行面=①具名 `NHP-LOAD-WORKER-SUITE-RC-01` 落 §1.6 新行（件③）②收据文产能义律继承（`:144` 律句亲点→§5 Ban 承接）。
+6. 简报「与 NHP-011-LOAD HTTP 管道面零重叠」——**核实成立**：`:61` 行行使面=HTTP refund-callback 管道（commerce.service `refundWebhook` 单管道·`uc011:nhp-load:prove` 命令族）·本刀行使面=worker 进程 route_pending drain 面（新 proof/新命令 `rcload:route-classify:*`）——零共用 proof/命令/业务嘴·互不替代互不借用。
+7. 简报「遥测=gateway_job_gauges() 1s 直 poll+hrtime」——**核实成立并精化**：`gateway_job_gauges()`（0042/1f752a27 `:59-67`）覆盖四队列聚合计数（**无 job_route 行**）→ 本刀用作「四队列零染」运行时旁证臂；route_pending 积压本体由 proof 侧聚合计数直读（`job_semantic_revision WHERE status='route_pending'` COUNT·只计数零内容·沿 uc017 nhp-load proof 聚合计数先例形）·时延面由 `job_route_decision.created_at`（0104 表列）−`job_semantic_revision.created_at` 推导（**产品无 per-job 时延计数器披露·harness 侧推导·如实措辞**）。
+
+### 0.3 迁移号登记（零迁移刀）
+
+- 本刀 **零迁移**（纯 prove+注册+case-matrix 净增行·`packages/db/migrations/` 零触）——无占号诉求；EXEC 期若发现需 DDL 即触停止条件「越界需要」停上报。
+
+## §1 红事实（机制链·全部亲证 @`7950f45bd`·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
+
+### 1.1 认领核对（伞行现状·R43 伞首 slice 0）
+
+| 读法 | 亲证 |
+|------|------|
+| 伞行旗 | `:152` `**case-only** / **blind**`——双旗在卷·compose healthy ≠ 产能 禁令在列 |
+| 非单行刀先例 | `gap-uc017-load-sweep-nhp.md:37` 逐字：跨 UC 总册行·由 UC 行逐个落地后汇总——**本刀=逐个落地的首片（slice 0）·非伞行翻面刀** |
+| 本刀具名 case | `NHP-LOAD-WORKER-SUITE-RC-01`（RC=route-classify·伞首 slice·全仓零命中=新认领）——EXEC 期落 case-matrix §1.6 新行（件③）·**伞行 `:152` 零字节**（翻面/汇总权归协调方） |
+| 与 NHP-011-LOAD 零重叠 | `:61` 行使面=HTTP refund-callback 管道（§0.2-6）·本刀=worker drain 面·零共用面（§0.0 命令名零撞） |
+| 与 NHP-017-LOAD-w-01 零重叠 | `:62` 行=孤儿预占回收 sweep（commerce 域·`40dbe245`）·本刀=route 域 classify drain·零共用 proof（`uc017:nhp-load:prove` 命令族零触） |
+| 产能义律继承 | `nhp-batch-b-REQUEST.md:144` 律句亲点——**本刀收据文禁写 worker 产能义**（隔离库真 worker 进程行使≠worker 容量宣·§5 Ban 承接·定标 P2 勘误履行面） |
+| 未闭判定 | 伞行无 covered 字样·RC-01 尚不存在（零行）——先验未闭成立 |
+
+### 1.2 route-classify 真消费链（机制·五段全亲证）
+
+1. **入队段（零模型）**：B 端建岗经真产品路径 `createJob`（recruiter.ts `:32`·同事务 `:47` 调 `createJobSemanticRevision`）→ `job_semantic_revision` 新行 status=`route_pending`（0104 `:18-28`·digest+HMAC 列·`route_pending` 入 CHECK 六值）+ `job_route_event` 追加（job-route-decision.ts `:76-93`）——**零模型调用零队列行**（route 域无 jobs 队列表·故无入队深度帽·0132 `:54-59` drain peek 直读 revision 表）。
+2. **唤醒段（LISTEN）**：0133 trigger（AFTER INSERT WHEN status='route_pending'）→ `pg_notify('meetwise_worker_wakeup_v1','wake')`（`9380e6f9:20`）→ worker `startWorkerJobWakeupListener`（main.ts `:684-691`）dedicated 会话 LISTEN（job-wakeup-listener.ts `:108`）→ `routeClassifyLoop.wake()`（coalesced edge trigger·不携 job 数据·`:9-10` 注）——「LISTEN first, then reconcile」（`:112-114`）；漏通知窗由 1s interval 兜底 reconcile 覆盖（main.ts `:510` 下界 1000ms·NOTIFY 系 commit-delivered hint 非队列·main.ts `:506-509` 注）。
+3. **派发段（owner 枚举）**：`routeClassifyDispatchTick` → `gatewayDispatchOwners(pool,'job_route')`（consumer `:56`·gateway-dispatch.ts `:22-26`）→ 0132 `:54-59` SECURITY DEFINER 枚举有 route_pending 的 owner（owner-id only·部分索引 `:11-13` 支撑）。
+4. **drain 段（真进程常驻）**：worker 进程 `WORKER_BOOTSTRAP=1` → `bootstrap()`（main.ts `:881`）→ `runRouteClassifyConsumer({pool,model:fastModel},interval)`（`:667`）→ `runDrainLoop`（drain-loop.ts `:76`）常驻循环·per-owner 串行 drain until idle（consumer `:48-59`）→ `listNextJobRoutePending` SKIP LOCKED peek（`598c88a2:404-420`）→ `classifyJobRoute`（`:170-277` FOR UPDATE 状态机·同 (job,revision) 至多 1 次外发·非 pending 即 noop）。
+5. **零模型判定段（rule 臂）**：`classifyJobByRule` 唯一叶命中 → `rule_decided`→`route_decided`·reason=`rule_unique_leaf`·**`modelCalls: 0`**（`:214-228`·`:221`）；词典歧义词刻意不映射（classifier `:64-83`）·多叶/零叶→null→模型路径——无 Key 时 `createJobRouteModelClassify` fail-closed `knownNotSent('model_key_missing')`→`route_unresolved` 决行（ai-runtime `:140-170`·PRE_DISPATCH 集 `:113-127`）——**故语料必须单信号词定标（每 fixture 输入恰一叶命中·PC 段预校验 `classifyJobByRule` 全非 null）·否则 A2/A3 断言红=语料定标缺陷面内自修项（预登已知面）**。P-FAKE 边界：rule_unique_leaf 经 MODEL-OP-bound consumer 在 `classifyJobRoute` 内跑出 = 合法（ai-runtime `:8-10` 注·非 rule-only fake Worker）。
+
+### 1.3 缺口分解与修法否决（三择一·采 (A)）
+
+- **(A) 采·隔离库+真 worker 进程+B 端 createJob 风暴的 route_pending 积压形状收据刀**：以隔离 runner 一次性 PG（全迁移）+ 真 worker 子进程（`run-e2e.mjs:132` 形·`WORKER_BOOTSTRAP=1`·零 Key observe 形 main.ts `:455` 注）+ 真产品路径 createJob 风暴（N owner×M 岗）产逐波 backlog/吞吐/错误率收据+DB 级 model_calls=0 硬断言。三理由：①伞行收据期望列（吞吐/积压/错误率）在 route 域的真实行使体=worker drain 进程·现有 prove 族全为进程内/静态面（`cb28c236` 头注自证·`6e0fe5a0` P-WORKER CLOSED≠负载收据）——真进程缝在 isolated 面**零先例**（runner `4bd36a65` 全文零 worker 进程 spawn·§0.0 命令占用查亲证）=缺口真实；②先例族现成（uc017 nhp-load 负载合同形 `8194e1f6` + `40dbe245` 参数形 + `run-e2e.mjs:132` 进程形 + runner 注册面 uc017/uc011 nhp-load 同形）——零新机制发明·唯「worker 子进程进 isolated 容器」为**预登新缝**（§8 机制前提）；③零产品码触面（apps/worker/src、packages/db/src、apps/api/src 零字节·prove-only 沿 UC-001 族先例）。
+- **(B) 否决·翻伞行 `:152` 措辞/宣 NHP-LOAD-WORKER-SUITE 收口**：伞行=跨 UC 总册行·由 UC 行逐个落地后汇总（`:37` 先例句）——单 slice 收据≠伞行收口·且无收据的措辞变化=叙事≠证据·翻面权归协调方。
+- **(C) 否决·四模型队列并发负载/容量定标/HA 故障叠加**：report/quiz/diagnosis/interview 四队列吞吐=伞行其余 slice（另刀）·容量 SLO 与生产定标=「compose healthy ≠ 产能」禁令直撞·HA 叠加=NHP-LOAD-HA-FAULT 行（conn-only/stub·另域）·OCR 面=NHP-015-LOAD-w-01 已归排期行（`:95`·本刀不代偿）——全出本刀面。
+
+## §1-修法（预期恰 4 件·零行为变更·零迁移·零产品码）
+
+- **件①（新 proof·恰 1 文件）**：`apps/worker/test/rcload-route-classify.proof.ts`——隔离 runner 容器内：proof 进程经真产品路径 `createJob`（recruiter.ts `:32` 形·`asPrincipal` 逐 owner·Ban 裸 INSERT 绕 revision/事件管道）造 storm→spawn 真 worker 子进程（`node --import @swc-node/register/esm-register src/main.ts`·cwd apps/worker·env：`WORKER_BOOTSTRAP='1'`+`WEB_ALLOWLIST=''`+`WORKER_METRICS_PORT=`空闲口+`RAG_JOB_ROUTE_INPUT_HASH_KEY=`隔离值（≥32 字符·`598c88a2:40-44` 缺失即 `job_route_input_hash_key_missing`）+隔离 `DATABASE_URL`+**删除 `MODEL_API_KEY`/`MODEL_BASE_URL`**（零 live key 承载·沿 `_neg-harness:61-62` 删除形））→ 等 `:878` ready 日志→PC 段→storm→逐波采样至稳态→断言组→收据落盘。**一段一 case·case 表如下（一行一 case·全部 case-only·零 covered 发明）**：
+
+| Case ID | 列 | 面 | 场景（简） | 期望（结构） | 当前旗 | 执行体 |
+|---------|----|----|------------|--------------|--------|--------|
+| NHP-LOAD-WORKER-SUITE-RC-01 | LOAD | worker（真进程） | PC：1 owner×1 岗先行·worker 真进程 LISTEN 唤醒 drain 至 `route_decided`（对照缺失=Ban 假绿） | 决行 1·attempt=`rule_decided`·ready 日志在卷 | **case-only** | 件① |
+| 同上·L1（主证） | LOAD | worker（真进程） | B 端 createJob 风暴 N=20 owner×M=5 岗=100（真产品路径·hrtime 计造数窗）→ route_pending 积压 → LISTEN 唤醒+1s reconcile drain 至稳态 | 稳态 route_pending 残留=0·波数≤W=10 | **case-only** | 件① |
+| 同上·L2（零模型硬闸） | LOAD+NEG | worker/db | 同 run 全量 DB 复核 | `job_route_decision` 行数=100+S=110·`attempt_outcome<>'rule_decided'` 计数=0·`job_semantic_revision` 无 model_prepared/result_validated/route_unresolved 行·`job_route_event` 无 to_status∈{model_prepared,result_validated} 行·`ai_model_invocation` 零新增行·四队列 gauges 全程零染（A5） | **case-only** | 件① |
+| 同上·L3（逐波收据） | LOAD | worker（真进程） | 1s 直 poll 采样（hrtime 计拍）：逐波 backlog（route_pending COUNT）/吞吐（decision 增量·decision.created_at−revision.created_at 推导·**产品无 per-job 时延计数器披露·harness 侧推导如实措辞**）/错误率（`failed` drain 态+route_unresolved 计数/决策总数）落 receipt | 收据七字段齐·错误率=0 | **case-only** | 件① |
+| 同上·L4（幂等·已决对照） | LOAD+BOUND | worker/db | S=10 已决对照（PC 段先决至 route_decided）storm 全程复核 | 已决 revision 零重 peek 零重决（事件流/状态/决策行零变·`listNextJobRoutePending` 只读 route_pending 自证） | **case-only** | 件① |
+
+  **冻结参数定标（沿 uc017 `40dbe245` N=20×M=5×C=10×S=10 形按 route 域实情调·receipt 同步登记）**：N=20 owners×M=5 岗=100 storm revisions（沿形不变）·S=10 已决对照（route 域对应物=PC 段先建先决 cohort·对应 uc017 settled cohort 位）·C=10 **如实改形**：route 域 sole consumer（`223b7f09:2` 头注自证）无并发 worker 维度→C 维度改栽为 观测拍频 1s（`WORKER_JOB_RECONCILE_INTERVAL_MS=1000`·main.ts `:510` 下界）+ 波帽 W=10（沿 uc017 MAX_DRAIN_WAVES=10 形）·语料=单信号词族轮转（每输入恰一叶命中·PC 段 `classifyJobByRule` 全非 null 预校验）·造数窗/drain 窗全程 hrtime。件① 头注必带：`releaseEvidence=false · Not HA · 本绿 ≠ 全链路 E2E covered · ≠ UC 行 covered · ≠ NHP-LOAD-WORKER-SUITE 伞行收口 · EXIT0 = case ≠ covered`+`capacityRepresentative=false`+P-FAKE 边界注记（ai-runtime `:8-10` 形）+零 Key observe 形注记（main.ts `:455`）+「隔离库真 worker 进程行使≠worker 容量」产能义律句（`:144` 律承接）。
+- **件②（注册行·恰 8 行四文件）**：根 `package.json` 恰 2 行（`:199-200` uc011 族后 append·worker 侧同构）：`"rcload:route-classify:prove": "node scripts/run-e2e-isolated.mjs rcload:route-classify:prove:raw"` + `"rcload:route-classify:prove:raw": "pnpm -C apps/worker prove:rcload-route-classify"`；`apps/worker/package.json` 恰 1 行（`:11-18` 族形）：`"prove:rcload-route-classify": "tsx test/rcload-route-classify.proof.ts"`；`scripts/run-e2e-isolated.mjs` 四触点（沿 uc017/uc011 nhp-load 同形·约 8 行）：①`isolatedReceiptSources` 条目（`:1626` 形·源清单含 proof+main.ts+drain-loop.ts+route-classify-consumer.ts+job-wakeup-listener.ts+recruiter.ts+job-route-decision.ts 等）②目标白名单数组条目（`:2682` 单行族段或 `:2786` 多行族段 append `'rcload:route-classify:prove:raw'`）③`isolatedCommand` 分支二行（`:3205` 形：→`['pnpm',['-C','apps/worker','prove:rcload-route-classify']]`）④全量迁移/compose 目标清单条目（`:4138` 族行 append·worker boot 需全迁移集）。**rev2 P0-1 教训预钉**：白名单零命中→`:2839` `throw unsupported_e2e_target`→门 1 必红——四触点缺一即注册面不完整。**零新依赖**（tsx/swc 皆在树）。
+- **件③（case 矩阵净增·恰 1 行）**：`non-happy-path-perf-load-case-matrix.md` §1.6 表尾（`:152` 伞行后·`:153-` HA/CLOUD 行前酌位 append）净增 1 行：`NHP-LOAD-WORKER-SUITE-RC-01 │ worker │ route_pending 积压形状：B 端 createJob 风暴 N=20×M=5 岗（真产品路径）→ LISTEN 唤醒真 worker 进程 drain（隔离·零 Key） │ 逐波 backlog/吞吐/错误率收据+硬断言 model_calls=0（DB decision 行全 rule_decided·四队列零染） │ **case-only** / **not_run** │ 单机隔离 ≠ worker 产能·收据文禁写产能义·compose healthy ≠ 产能（伞行禁令继承）`——**伞行 `:152` 零字节·coverage-matrix `81703051` 零字节·coveredCount=8 不变**。
+- **件④（收据）**：`receipts/rcload-route-classify/00-exec.md`（**仓根 receipts/=非受管根·零 docs:check 增量**·沿 uc017 件⑤ 先例）七字段：门矩阵全表 EXIT 原值+case PASS 名单（含逐波收据表）+diff numstat+重 pin 全表+容器依赖亲证+偏离清单+pins 零翻声明+**产能义律核（收据全文零 worker 容量/产能宣·逐条自检声明）**。
+
+## §2 验收断言（pre-exec 双审核对单基面·门矩阵十门·**数字口径以实跑实测为准·熔断阈值即停止条件「验收红不可修」触发面**）
+
+1. **新 proof 主判据**：`node scripts/run-e2e-isolated.mjs rcload:route-classify:prove:raw` **EXIT=0**·PC+L1–L4 全 PASS（一行一 case·实数 N/0 如实记·逐波收据落盘）；runner 形 `pnpm rcload:route-classify:prove` 同命令如实记。
+2. **邻面不回退**：`pnpm uc017:nhp-load:prove` EXIT=0（commerce 负载先例零触）·`pnpm uc011:nhp-load:prove` EXIT=0（HTTP 管道面零触）·`pnpm -C apps/worker prove:r2-classify-job-route-prereq`（或届时注册行）EXIT=0（P-* 台账零弱化）——邻面 PASS 分母届时如实记。
+3. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（届时口径如实记）。
+4. **lint 五值恰等**：`pnpm turbo lint` 0 errors·web/root/api/worker/ai-runtime 五值对届时主线口径恰等（任一超即停承登·Ban 顺手消偿）。
+5. **docs:check（红停条款·cap 预算核）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·**≤cap（>cap 红停上报·cap 上抬权归协调方·常设预授权「越限沿先例步进承登」随令）**——基线 **2428=cap 2428 恰等零余量本树亲跑**·本卷起草 +1=2429 必超 → **起草随刀 +1 恰等步进 cap 2428→2429**（沿 uc003x 2410→2411/eslint-ignores 2420→2421 起草随刀恰等先例形·`MAX_FILES` 与 proof 越限臂四联动点 `2_429`/`f-2429.md`/`:2430` 同刀联动同步）→ 起草 commit 终态 2429≤2429 EXIT=0；**EXEC 期 +1 proof=2430 必超 → EXEC turn 届值再步进（预登·届时亲跑承登）**；收据仓根非受管根零增量。
+6. **markers 五类零命中**：本刀改动集（件①-③+本卷 .md+cap 步进两件）新增行五类标记词（冲突标记/假绿绕过词/测试门弱化/遗留标/secrets 样值）grep 零命中（词族沿 i6-239 门口径·词面不复抄卷内防自指·命令与回执入收据）。
+7. **diff 面机检**：**起草 commit** `git diff --numstat <base>` **恰 3 tracked 路径**=本卷 .md+`public-text-policy.mjs`（cap 步进）+`public-text-policy.proof.mjs`（联动同步）——派单预期「docs-only 单文件」的偏离如实承登于此（cap 预算核为派单门第 5 项随令面·沿 eslint-ignores 起草「diff 恰 2 tracked」偏离承登先例形）；**EXEC 交付 commit 恰 6 tracked 路径**=件① .ts+件② 两 .json+runner .mjs+件③ case-matrix .md（+收据目录 untracked 仓根非受管根口径）——多任何 tracked 路径即停（越界需要类）。
+8. **SSOT 行零触机检**：`git diff <base> -- ai-docs/delivery/e2e-requirement-coverage-matrix.md` **零字节**（`:151` 等全只读）；case-matrix 仅净增 1 行零改旧行（伞行 `:152` 逐字节不动）；`gap-uc017-load-sweep-nhp.md`/`nhp-batch-b-REQUEST.md` 零触。
+9. **EXEC 期容器依赖门（预登条款）**：立项第一步 `docker info` EXIT=0 亲证入收据；run 后一次性容器由 runner 自清理·收据记清理亲证；**docker 不可用=`blocked` 停上报（非验收红）**。
+10. **卫生+零 live key**：`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改；`.env*` ABSENT 双向记录；proof+worker 子进程运行面零 `MODEL_API_KEY`/`MODEL_BASE_URL`（子进程 env 删除承载·收据记 env 亲证）；`actualSpendCny=null`·est live=0（全离线隔离 PG·零模型外呼·L2 零模型硬闸为运行时旁证）。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **产品码零触**：`apps/api/src`/`packages/db/src`/`apps/worker/src`/`packages/domain/src`/`packages/ai-runtime/src` 零字节——本刀=prove-only；createJob 同事务语义（recruiter.ts `:47`）与 classify 漏斗语义（`598c88a2:170-277`）零改。
+2. **伞行与 SSOT 零触**：伞行 `:152` 措辞/旗不动·case-matrix 仅净增 RC-01 一行·coverage-matrix 零字节——伞行汇总/翻面权全归协调方（§1.3-(B) 否决沿承）。
+3. **四模型队列吞吐面零触**：report/quiz/diagnosis/interview 队列的并发吞吐形状=伞行其余 slice 另刀——本刀四队列只作零染旁证（A5）·Ban 借 route 收据宣四队列任何吞吐/积压结论。
+4. **容量/SLO/HA 零宣**：单机隔离容器≠生产容量·无 SLO 判据（吞吐/时延只入收据不做达标断言）·Not HA·「compose healthy ≠ 产能」伞行禁令逐字继承。
+5. **OCR/大文件面零触**：NHP-015-LOAD-w-01 已归排期（`:95`）·本刀不代偿不互wash。
+6. **NHP-011-LOAD/NHP-017-LOAD 零重叠零互借**：两既有 LOAD 收据面（HTTP refund-callback 管道/孤儿 sweep）与 RC-01 互不替代·Ban 互借收据。
+7. **R2/路由生效面零宣**：P-WORKER/P-FAKE CLOSED 台账（`6e0fe5a0`）≠R2 closed·本刀负载绿≠路由已生效≠R4≠binding/snapshot 消费面（候选侧 apply 链不在本刀）。
+8. **零迁移零新依赖**：§0.3；需第二 DDL/新包即停。
+
+## §4 依赖
+
+**①上游已满足**：route 消费链五段机制全在树（§1.2）；`run-e2e.mjs:132` 真 worker 进程形+runner 注册面四触点同形先例（uc017/uc011 nhp-load）+uc017 nhp-load 参数/负载合同形（`40dbe245`/`8194e1f6`）=修法承载面全在树；部分索引（0132 `:11-13`）与 LISTEN trigger（0133）在迁移集内=隔离库全迁移即得。**②无同文件并发**：起草触面=本卷 .md+两 policy 件（§0.0 在飞复核亲证·ag18 陈旧噪声如实承登）；EXEC 触面=新 .ts+两 .json+runner+case-matrix 净增——§0.0 复核规则 EXEC 立项日必做。**③容器依赖**：Docker daemon+一次性 PG（§2 门 9 预登）。**④预登机制前提（本刀新缝·非既有先例）**：「worker 子进程在 isolated 容器内 boot」依赖隔离库角色清单/连接串满足 `bootstrap()` 启动面（池构建 `:531-532` 不依赖 Key·可选控制池缺省关闭 `:519-528`）——若 boot 面不满足即停止条件「机制不满足」上报（Ban 就地造权限 Ban 改产品码）。**⑤下游**：伞行其余 slice（报告/OCR/队列积压域）待后续刀·伞行汇总归协调方；收据归 G7 全量叙事素材（releaseEvidence 仍 false）。
+
+## §5 Ban 列表 + pins
+
+**Ban 列表**：Ban push/force-push（git 写只本 worktree commit）；Ban 自批（pre-exec 双审两独立外席·alone≠dual 不代签）；Ban invent covered / Ban claiming covered / Ban 把 EXIT0 或 case-only 写成 covered；Ban 借本刀收据宣 **worker 产能/生产容量/SLO/HA**（§3-4·伞行禁令）·**Ban 收据文写 worker 产能义**（`:144` 律句逐字承接·定标 P2 勘误履行面·件④ 逐条自检）；Ban 借 route 收据宣四模型队列吞吐/积压结论（§3-3）；Ban 代偿 OCR/NHP-015 面（§3-5）；Ban 与 NHP-011/017 LOAD 收据互wash（§3-6）；Ban 宣 R2 closed/路由已生效（§3-7）；Ban 裸 INSERT 绕 createJob/revision 管道造数·Ban 混词语料冒充零模型定标（§1.2-5）；Ban 触产品码（§3-1）；Ban 触伞行/SSOT 行（§3-2·翻面权归协调方）；Ban retry-to-green（红不重跑冲销·如实承登）；Ban 触其他工作树；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提·定标报告原本不发明引用）；Ban 就地归因门矩阵外新红（若现新红→如实登记升级·Ban 借机修）；Ban 第二迁移/新依赖/顺手扩面（§3-8/§0.3）。
+
+**pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。**本刀随卷 pin**：capacityRepresentative=**false**（继承 UC-018 PERF/LOAD 与 C-PERF-TEARDOWN 链既定值·Ban 翻 true）· rcloadCapacityClaim=**false**（本卷新钉·收据文产能义律的 pin 形）。
+
+## §6 est live=0（起草 turn·EXEC 期同）
+
+- 起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（本卷=docs-only 起草·未执行任何 prove；EXEC 期 prove 全离线隔离 PG·零模型外呼·零 live key·L2 零模型硬闸+§2 门 10 承）。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（本卷 1 .md+cap 步进两件·起草 turn）**五类标记词 grep 零命中**（起草席本树亲跑 EXIT 全 1·命令与回执随 EXEC 收据留痕·五类词面不复抄卷内防自匹配——沿 uc017/reconcile 卷 §7 同形制）。
+
+## §8 STOP（**`draft:awaiting_pre_exec_dual`**·三处同值：Status 头/本节/卷尾注 · 开工三条款+停止条件四类）
+
+**开工三条款（EXEC 立项前按序履行）**：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.3 裁决 (A) 与 §5 Ban/pins 与 §1-修法件①-④ 一行一 case 表与冻结参数定标**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·docker 可用性亲证为立项第一步）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+- **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且结论受疑（伞行 `:152` 被他刀翻面或汇总·`:144` 产能义律句消失·`createJobSemanticRevision`/`classifyJobRoute`/`listNextJobRoutePending` 机制面变·consumer/`runDrainLoop`/LISTEN trigger 语义变·`gateway_job_gauges()`/`gateway_dispatch_owners` 注册面变·runner 四触点注册形漂移或他刀改写·cap 注记栈真冲突需仲裁）→停·重 pin 回炉。
+- **机制不满足**：①worker 子进程在 isolated 容器 boot 面不成立（角色/连接串/启动断言不满足·§4-④ 预登前提被证伪）②PC/L1–L4 任一红或既有邻面翻红（§1.2 机制推定被证伪·如 rule 唯一叶臂不落 `modelCalls:0` 决行/LISTEN 唤醒不达）③语料漂移致模型路径被触发（`route_unresolved` 行出现=语料定标缺陷·面内自修一轮后仍红即停）→根因诊断被证伪→停·如实升级协调方回炉（Ban 就地改诊断 Ban 凑绿）。
+- **越界需要**：修法诉求超出 §1-修法恰 4 件面（需触产品码/伞行翻面/四队列负载/容量定标/HA/OCR/第二迁移/新依赖/多 worker 进程编排）→停·另刀或协调方裁决（§1.3-(C) 否决沿承·Ban 就地扩面）。
+- **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（邻套件新红/lint 五值超/cap 届值红且步进预授权不适用/docker 不可用属 blocked 另计）→停·stash 对照亲证基线·如实登记（Ban 借机修）。
+
+---
+
+*RCLOAD REQUEST · 2026-10-28 起草（docs-only·起草落卷即停）· **`STOP=draft:awaiting_pre_exec_dual`**（三处同值·Ban self-approve·alone≠dual）· base `origin/main` @`7950f45bd` · 分支 `line/rcload-draft` · 工作树 `meetwise-rcload` · 协调方裁决=R43 伞首刀·具名 `NHP-LOAD-WORKER-SUITE-RC-01` 落 case-matrix §1.6 新行（件③·伞行 `:152` 零字节·汇总权归协调方）· 先验未闭亲证=伞行 case-only/blind+`compose healthy ≠ 产能` 在卷·RC-01 全仓零命中 · 修法=隔离库+真 worker 进程（run-e2e.mjs:132 形·零 Key observe）+B 端 createJob 风暴 N=20×M=5（真产品路径·S=10 已决对照·C 维度如实改形=1s 拍频+W=10 波帽）→route_pending 积压→LISTEN 唤醒 drain→逐波 backlog/吞吐/错误率收据+L2 零模型硬闸（DB decision 行全 rule_decided·ai_model_invocation 零增·四队列零染）· 预期恰 4 件·零产品码零迁移零 live key·docs:check 基线 2428=cap 2428 恰等（cap 预算核随刀 +1 恰等步进→2429·EXEC 期 +1 预登再步进）· est live=0 · markers=0 · pins 十一值零翻+capacityRepresentative=false/rcloadCapacityClaim=false · 停止条件四类 · 收据文禁写 worker 产能义（nhp-batch-b :144 律承接·定标 P2 勘误履行）· ⛔push*
