@@ -964,6 +964,38 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0064_interview_resume_epoch_reference.sql',
     'packages/db/migrations/0192_interview_event_created_at_kind_check.sql',
   ],
+  // NHP 补评三 case（UC-012/024 残余 NEG/BOUND/ADV cell · 一行一 case 一收据 · 沿批 A uc012:nhp-fault 同形）。
+  'uc012:nhp-neg:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/uc-e2e-012-nhp-neg.proof.ts',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/adaptive-interview-service.ts',
+    'packages/db/src/interview/interview-event.ts', 'packages/db/src/interview/interview-question.ts',
+    'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/invoke.ts',
+    'packages/db/migrations/0126_interview_answer_dual_write_fence.sql',
+  ],
+  'uc012:nhp-bound:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/uc-e2e-012-nhp-bound.proof.ts',
+    'packages/db/src/interview/interview-event.ts', 'packages/db/src/interview/interview-question.ts',
+    'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0021_interview_question_identity.sql',
+    'packages/db/migrations/0149_money_status_constraints.sql',
+  ],
+  'uc012:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/uc-e2e-012-nhp-adv.proof.ts',
+    'apps/worker/src/interview-consumer.ts', 'apps/worker/src/adaptive-lifecycle.ts',
+    'apps/worker/src/adaptive-interview-service.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/invoke.ts',
+    'packages/db/migrations/0020_commerce_terminal_integrity.sql',
+    'packages/db/migrations/0046_application_assessment_recovery.sql',
+  ],
   // NHP 批 A Row 3（UC-030 FAULT · gap→case）：reclaim sweep 口 × 显式 abandon 口双触发一致性+
   // 幂等+额度恰一次释放 + principal.guard 401 sanity。隔离 PG 全迁移链。
   'uc030:nhp-fault:prove:raw': [
@@ -978,6 +1010,21 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0058_interview_privacy_queue_fence.sql',
     'packages/db/migrations/0169_auth_user_session.sql',
   ],
+  // NHP-030-BOUND-01（UC-030 残面 · 时钟漂移/刷新轮换/长会话续命 C/R/L 三臂族）：缝 A domain 纯函数
+  // nowSec 注入面 × 缝 B 守卫实钟优先序面 × 缝 C 签发双产点/轮换/吊销链真 HTTP。隔离 PG 全迁移链。
+  'uc030:nhp-bound:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-030-nhp-bound.proof.ts',
+    'apps/api/src/main.ts', 'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/auth-session.ts',
+    'apps/api/src/modules/auth/auth.controller.ts', 'apps/api/src/modules/auth/auth.service.ts',
+    'apps/api/src/modules/profile/profile.controller.ts', 'apps/api/src/modules/profile/profile.service.ts',
+    'apps/api/src/modules/resume/resume.controller.ts', 'apps/api/src/modules/resume/resume.service.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/modules/interview/interview.controller.ts', 'apps/api/src/modules/interview/interview.service.ts',
+    'packages/domain/src/auth.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0169_auth_user_session.sql',
+  ],
   // NHP 批 A Row 2（UC-003 ADV · blind→case）：错误码映射层+locale allowlist 运行级对抗行使
   // （纯函数 · 零 PG 零外呼零 key · 经隔离面剥生产 key 出收据）。
   'uc003:nhp-adv:prove:raw': [
@@ -986,6 +1033,51 @@ const isolatedReceiptSources = {
     'apps/web/lib/resume/ocr-preview-ui.ts',
     'apps/web/i18n/request.ts',
     'apps/web/messages/zh.json',
+  ],
+  // NHP 批 C Row 1（UC-016/029 NEG · gap→case）：quiz/diagnosis 业务负路径族（400/404/409/402/幂等/CAS/
+  // 额度净账）。隔离 PG 真 HTTP（_neg-harness 三层壳·uc025-bound-isolated 先例形）。
+  'uc016:nhp-neg:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-016-nhp-neg.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/quiz/quiz.service.ts', 'apps/api/src/modules/quiz/quiz.controller.ts',
+    'apps/api/src/modules/diagnosis/diagnosis.service.ts', 'apps/api/src/modules/diagnosis/diagnosis.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/jobs/quiz-jobs.ts', 'packages/db/src/jobs/diagnosis-jobs.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
+  // NHP 批 C Row 2（UC-015 ADV · blind→case）：魔数 fail-closed/429 突发桶/503 全局解析槽/NUL 剥除。
+  // 隔离 PG 真 HTTP；proof 内重放真迁移 0189（共享槽 lease 函数在场·harness 未载）。
+  'uc015:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-015-nhp-adv.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/rate-limit.service.ts',
+    'packages/domain/src/resume-extract.ts', 'packages/domain/src/resume-extract-worker.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0189_api_harden_shared_state.sql',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
+  // NHP 批 C Row 3（UC-001 PERF_api 分面执行收据）：主链 keyless HTTP 嘴 PERF 五值（N=100 c=10 runs=3 ·
+  // capped child 2cpu/4GiB · wrapper 运行时内联源落 .tmp 收据·零 tracked scripts wrapper）。
+  'uc001:nhp-perf-api:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-001-nhp-perf-api.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/modules/quiz/quiz.service.ts', 'apps/api/src/modules/quiz/quiz.controller.ts',
+    'apps/api/src/modules/diagnosis/diagnosis.service.ts', 'apps/api/src/modules/diagnosis/diagnosis.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
   'reaper:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -2519,8 +2611,18 @@ if (![
   'uc011:nhp-load:prove:raw',
   // NHP 批 A 三行（UC-012/024 FAULT · UC-003 ADV · UC-030 FAULT · 一行一 case 一收据）。
   'uc012:nhp-fault:prove:raw',
+  // NHP 补评三 case（UC-012/024 残余 NEG/BOUND/ADV cell · 一行一 case 一收据）。
+  'uc012:nhp-neg:prove:raw',
+  'uc012:nhp-bound:prove:raw',
+  'uc012:nhp-adv:prove:raw',
   'uc030:nhp-fault:prove:raw',
   'uc003:nhp-adv:prove:raw',
+  // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 时钟漂移/刷新轮换/长会话续命 · 一行一 case 一收据）。
+  'uc030:nhp-bound:prove:raw',
+  // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api 执行 · 一行一 case 一收据）。
+  'uc016:nhp-neg:prove:raw',
+  'uc015:nhp-adv:prove:raw',
+  'uc001:nhp-perf-api:prove:raw',
   // UC-028 一刀三 case（INJECT/RECON/TRUTH-BLOCK·沿 uc028:nhp-fault 同形注册）。
   'uc028:recon-truth-inject:prove:raw',
   'dbhy1:prove:raw',
@@ -2544,6 +2646,93 @@ if (![
 
 // Public root scripts must point at this isolation gate.  These two concrete
 // package invocations deliberately avoid calling the public script again.
+// NHP 批 C Row 3（UC-001 PERF_api）：capped child 运行时内联源（uc018-perf-load-capped-child.mjs
+// c63259c0 先例形·沿形不触其文件）。REQUEST §1 case 3 wrapper 落位钉：子进程 wrapper 不落 tracked
+// scripts/ —— 本源运行时落 .tmp/uc001-perf-api-receipts/_caps-child.source.mjs（收据留痕）+ caps
+// evidence _caps-evidence.json；Docker --cpus=2 --memory=4g 于默认 bridge+host-gateway（C-PERF-
+// CONTAINER-REACHABILITY 同形：--network=host 在 Docker Desktop/macOS 不可达 host 发布端口）。
+// caps 无法强制 → enforced:false 落盘仍跑（proof EXIT≠0 诚实红）。
+const UC001_PERF_API_CAPS_CHILD = `
+import { spawnSync, execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+const ROOT = process.cwd();
+const RAW_DIR = join(ROOT, '.tmp/uc001-perf-api-receipts');
+const CAPS_PATH = join(RAW_DIR, '_caps-evidence.json');
+const API_NAME = 'meetwise-uc001-perf-api-' + process.pid + '-' + Date.now();
+const CPUS = '2';
+const MEMORY = '4g';
+const NANO_CPUS_EXPECTED = 2_000_000_000;
+const MEMORY_EXPECTED = 4 * 1024 * 1024 * 1024;
+const NODE_IMAGE = process.env.UC001_PERF_NODE_IMAGE || 'node:20-bookworm';
+mkdirSync(RAW_DIR, { recursive: true });
+writeFileSync(join(RAW_DIR, '_caps-child.source.mjs'), 'wrapper-inline-source · uc018 c63259c0 先例形 · REQUEST §1 case 3 落位钉(.tmp 生成·零 tracked scripts wrapper)\\n');
+function inspectHostConfig(name) {
+  try {
+    return JSON.parse(execFileSync('docker', ['inspect', '--format', '{{json .HostConfig}}', name], { encoding: 'utf8' }).trim());
+  } catch (e) {
+    return { error: String(e?.message || e) };
+  }
+}
+function capsOk(hc) {
+  if (!hc || hc.error) return false;
+  return Number(hc.NanoCpus || 0) === NANO_CPUS_EXPECTED && Number(hc.Memory || 0) === MEMORY_EXPECTED;
+}
+const pgContainer = process.env.E2E_TEST_CONTAINER;
+if (!pgContainer) {
+  writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker: 'E2E_TEST_CONTAINER_missing' }, null, 2) + '\\n');
+  console.error('UC001_CAPS: E2E_TEST_CONTAINER missing');
+  process.exit(1);
+}
+const pgHost = inspectHostConfig(pgContainer);
+const pgEnforced = capsOk(pgHost);
+console.log('UC001_CAPS pg container=' + pgContainer + ' NanoCpus=' + pgHost.NanoCpus + ' Memory=' + pgHost.Memory + ' ok=' + pgEnforced);
+const pull = spawnSync('docker', ['image', 'inspect', NODE_IMAGE], { stdio: 'ignore' });
+if (pull.status !== 0) {
+  console.log('UC001_CAPS pulling ' + NODE_IMAGE + '…');
+  const p = spawnSync('docker', ['pull', NODE_IMAGE], { stdio: 'inherit' });
+  if (p.status !== 0) {
+    writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker: 'node_image_pull_failed', nodeImage: NODE_IMAGE, pg: { container: pgContainer, NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory } }, null, 2) + '\\n');
+    process.exit(1);
+  }
+}
+const passEnv = ['E2E_ISOLATED', 'E2E_TEST_CONTAINER', 'E2E_TEST_TARGET_TOKEN', 'E2E_ISOLATION_STACK', 'PGPORT', 'PGUSER', 'PGPASSWORD', 'PGDATABASE', 'DATABASE_SSL_MODE', 'PATH', 'HOME', 'NODE_OPTIONS'];
+const create = [
+  'create', '--name', API_NAME, '--cpus', CPUS, '--memory', MEMORY,
+  '--add-host=host.docker.internal:host-gateway',
+  '-v', ROOT + ':' + ROOT,
+  '-w', join(ROOT, 'apps/api'),
+  '-u', (process.getuid ?? (() => 1000))() + ':' + (process.getgid ?? (() => 1000))(),
+];
+for (const k of passEnv) {
+  if (process.env[k] != null && process.env[k] !== '') create.push('-e', k + '=' + process.env[k]);
+}
+create.push('-e', 'PGHOST=host.docker.internal');
+create.push(NODE_IMAGE, 'node', '--import', '@swc-node/register/esm-register', 'test/uc-e2e-001-nhp-perf-api.proof.ts');
+const cr = spawnSync('docker', create, { cwd: ROOT });
+if (cr.status !== 0) {
+  console.error(cr.stderr || cr.stdout);
+  writeFileSync(CAPS_PATH, JSON.stringify({ enforced: false, blocker: 'api_container_create_failed', stderr: String(cr.stderr || '').slice(0, 500), pg: { container: pgContainer, NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory, ok: pgEnforced } }, null, 2) + '\\n');
+  process.exit(1);
+}
+const apiHost = inspectHostConfig(API_NAME);
+const apiEnforced = capsOk(apiHost);
+const enforced = pgEnforced && apiEnforced;
+writeFileSync(CAPS_PATH, JSON.stringify({
+  enforced,
+  method: 'docker --cpus=2 --memory=4g',
+  declared: { cpus: 2, memoryGiB: 4 },
+  pg: { container: pgContainer, HostConfig: { NanoCpus: pgHost.NanoCpus, Memory: pgHost.Memory }, ok: pgEnforced },
+  api: { container: API_NAME, HostConfig: { NanoCpus: apiHost.NanoCpus, Memory: apiHost.Memory }, ok: apiEnforced },
+  expected: { NanoCpus: NANO_CPUS_EXPECTED, Memory: MEMORY_EXPECTED },
+  blocker: enforced ? null : (!pgEnforced ? 'pg_caps_mismatch' : 'api_caps_mismatch'),
+}, null, 2) + '\\n');
+console.log('UC001_CAPS written enforced=' + enforced + ' api NanoCpus=' + apiHost.NanoCpus + ' Memory=' + apiHost.Memory);
+const start = spawnSync('docker', ['start', '-a', API_NAME], { cwd: ROOT, stdio: 'inherit' });
+spawnSync('docker', ['rm', '-f', API_NAME], { stdio: 'ignore' });
+process.exit(start.status ?? 1);
+`;
+
 const isolatedCommand = target === 'api-harden:prove'
   ? ['pnpm', ['-C', 'apps/api', 'prove:api-harden']]
   : target === 'migrate:prove'
@@ -2586,10 +2775,24 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc016-nhp-fault']]
   : target === 'uc012:nhp-fault:prove:raw'
     ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-fault']]
+  : target === 'uc012:nhp-neg:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-neg']]
+  : target === 'uc012:nhp-bound:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-bound']]
+  : target === 'uc012:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:uc012-nhp-adv']]
   : target === 'uc030:nhp-fault:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-fault']]
+  : target === 'uc030:nhp-bound:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-bound']]
   : target === 'uc003:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/web', 'prove:uc003-nhp-adv']]
+  : target === 'uc016:nhp-neg:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-neg']]
+  : target === 'uc015:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc015-nhp-adv']]
+  : target === 'uc001:nhp-perf-api:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC001_PERF_API_CAPS_CHILD]]
   : target === 'uc018:abandon:http:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc018-abandon-http']]
   : target === 'uc018:adv:prove:raw'
@@ -3437,7 +3640,7 @@ async function main() {
       );
       process.exit(3);
     }
-    const resourceCapArgs = target === 'uc018:perf-load:prove:raw'
+    const resourceCapArgs = target === 'uc018:perf-load:prove:raw' || target === 'uc001:nhp-perf-api:prove:raw'
       ? ['--cpus', '2', '--memory', '4g']
       : [];
     if (resourceCapArgs.length) {
@@ -3467,7 +3670,12 @@ async function main() {
   'uc052:internal-erasure:prove:raw', 'uc052:external-sink-retention:prove:raw', 'uc052:external-sink-async-purge:prove:raw', 'uc052:checkpoint-physical:prove:raw', 'uc052:pool-role-leak:prove:raw', 'int-transcript-preview-submit:http:prove:raw', 'int-transcript-answer-fact-root:prove:raw', 'int-transcript-remaining-sinks:prove:raw', 'api-harden:prove', 'scor-01:prove:raw', 'scor-02:prove:raw', 'scor03-evidence-conflict:prove:raw', 'scor-parity:prove:raw', 'growth:prove:raw', 'rag03-route:prove:raw', 'rag04-track-local:prove:raw', 'rag03-filter-locus:prove:raw', 'rag03-hnsw-completeness:prove:raw', 'rag03c-exactk-observe:prove:raw', 'r4-wrong-track-adv-live-pg:prove:raw', 'nhp-r4-adv-covered:prove:raw', 'r4-wrong-track-prod-surface:prove:raw', 'rag05-qbank-miss:prove:raw', 'rag06-route-scope-cache:prove:raw', 'rag07-free-text-route:prove:raw', 'memory-governance:prove:raw', 'db-id-v7:prove:raw', 'db-intfk:prove:raw', 'db-money3:prove:raw', 'memory-admission:prove:raw', 'memory-fact-adjudication:prove:raw', 'memory-index-generation:prove:raw', 'memory-two-stage-recall:prove:raw', 'memory-control-surface:prove:raw', 'ctx03-event-source:prove:raw', 'mem02-summary:prove:raw', 'mem03-summary-tree:prove:raw', 'ctx04-compression-snapshot:prove:raw', 'ctx05-concurrency-recovery:prove:raw', 'ctx06-deletion-closure:prove:raw', 'int-answer-dual-write-fence:prove:raw', 'memory-vector-chunk-erasure:prove:raw', 'vector-plane-erasure:prove:raw', 'uc004:career-path-fault:prove:raw', 'uc004:career-path:http:prove:raw', 'uc001:nhp-neg:prove:raw', 'uc001:nhp-bound:prove:raw', 'uc001:nhp-adv:prove:raw', 'uc001:nhp-fault:prove:raw', 'uc016:nhp-fault:prove:raw',
   // DBHY-1: sql/ 兼容镜像退役(案A 机械迁面)——这些目标改为预迁移(migrations 单真相),proof 内 sql/ 重放已剥。
   // (vectorstore:prove:raw 不入此名单:marked-red legacy fixture 自证只装 legacy 向量面,归 B' 残面=sql/ 夹具保留至 legacy 退役刀。)
-  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc030:nhp-fault:prove:raw', 'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
+  'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
+  // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
+  'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
+  // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 同第四注册位教训承登）。
+  'uc030:nhp-bound:prove:raw',
+  'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });

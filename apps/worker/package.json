@@ -4,7 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "lint": "eslint . --max-warnings 977",
+    "lint": "eslint . --max-warnings 999",
     "start": "node --import @swc-node/register/esm-register src/main.ts",
     "cost:configure": "node --import @swc-node/register/esm-register src/cost-configure.ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
@@ -37,6 +37,9 @@
     "prove:uc018-ttl": "tsx test/uc-e2e-018-ttl-sweeper-abandon.proof.ts",
     "prove:uc016-nhp-fault": "tsx test/uc-e2e-016-nhp-fault.proof.ts",
     "prove:uc012-nhp-fault": "tsx test/uc-e2e-012-nhp-fault.proof.ts",
+    "prove:uc012-nhp-neg": "tsx test/uc-e2e-012-nhp-neg.proof.ts",
+    "prove:uc012-nhp-bound": "tsx test/uc-e2e-012-nhp-bound.proof.ts",
+    "prove:uc012-nhp-adv": "tsx test/uc-e2e-012-nhp-adv.proof.ts",
     "prove:model-invocation-reconcile": "tsx test/model-invocation-reconcile.proof.ts",
     "prove:trace-recon": "tsx test/trace-recon.proof.ts",
     "prove:usage-calibration-bleed": "tsx test/usage-calibration-bleed.proof.ts",

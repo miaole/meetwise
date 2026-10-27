@@ -37,7 +37,7 @@
 | NHP-001-FAULT-01 | 001 | FAULT | worker | report worker 注入失败 | Interview 可终态；report 非阻塞死胡同 | **partial** | isolated worker 注入旁证 |
 | NHP-001-BOUND-01 | 001 | BOUND | api | 幂等键重复 begin | 单 ConsumptionRecord；无双扣 | **case-only** | UC-017 旁证 ≠ 001 |
 | NHP-001-ADV-01 | 001 | ADV | api | 主链内注入串 | 结构拒或 GuardrailHit；不改 confirmed 账 | **case-only** | 委派 031/032 |
-| NHP-001-PERF-api-01 | 001 | PERF | api | 主链关键 HTTP P95 预算（隔离） | 有可复现脚本+收据；**≠** 线上 SLO | **case-only** / **blind** | verify:e2e-performance **not_run** |
+| NHP-001-PERF-api-01 | 001 | PERF | api | 主链关键 HTTP P95 预算（隔离） | 有可复现脚本+收据；**≠** 线上 SLO | **case-only**（**执行收据已落（2026-10-26 批 C EXEC）**：`pnpm uc001:nhp-perf-api:prove` **EXIT=0**（attempts 1,0）· N=100 c=10 runs=3 all-pass · p50 89.5–103.2ms/p95 99.9–127.4ms/p99 104.7–130.3ms/error_rate 0 · caps Docker 2cpu/4GiB enforced · consent 产品路径逐虚拟用户·桶种子豁免具名 · 零模型零 drain · **隔离≠生产容量≠SLO≠HA** · **EXIT0=case≠covered** · Ban 借收据宣 verify:e2e-performance 族复绿/NHP-PERF-API-SUITE 闭合（实例≠伞）· post 双审双 PASS 2026-10-26·#149 nail 落主线（merge 祖先亲证）·closed） | verify:e2e-performance **not_run** · `pnpm uc001:nhp-perf-api:prove` · 收据 `.tmp/uc001-perf-api-receipts/`（四件套）+ tracked gate stdout `ai-docs/delivery/receipts/nhp-001-perf-api-01/` |
 | NHP-001-PERF-web-01 | 001 | PERF | web | golden UI 流式窗口预算 | 收据可复核；≠ 真机容量 | **case-only** / **blind** | e2e:ui 历史 not_run |
 | NHP-001-LOAD-w-01 | 001 | LOAD | worker | 报告/评分队列积压形状 | 吞吐+积压指标收据；≠ HA | **case-only** / **blind** | — |
 | NHP-002-BOUND-01 | 002 | BOUND | api | lease 竞态双 holder | 单胜出；另侧可解释拒 | **partial** | uc002:lease:prove |
@@ -47,7 +47,7 @@
 | NHP-010-NEG-01 | 010 | NEG | api | 无权限 LED | authz 拒 | **partial** | R-authz |
 | NHP-010-ADV-01 | 010 | ADV | api | LED malformed 双门 400/伪造高游标/越权订阅复用/跨 user 注入拒收 | 400 具名码逐项；伪造高游标 200 空 catch-up+hold（R4 语义·非机制红）；越权 404 零泄出 | **blind**→**case-only** | `pnpm uc010:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
 | NHP-030-NEG-01 | 030 | NEG | api | token 过期/吊销 | 拒 + 刷新路径可测 | **partial** | neg:auth |
-| NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | — |
+| NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | `pnpm uc030:nhp-bound:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 clock 卷 · C/R/L 三臂族）· 48 断言真证据已落 #152（post 双 PASS 会签） |
 
 ### 1.2 钱 / 对账 / 放弃 / 重生成（011 / 014 / 017 / 018 / 019）
 
@@ -87,7 +87,9 @@
 | NHP-015-BOUND-01 | 015 | BOUND | api | 0 字节 / 超大 413 | 入口拒 | **partial** | F2/F3 |
 | NHP-015-FAULT-01 | 015 | FAULT | worker | OCR 管线宕 | 可解释失败；无悬挂消费 | **blind**→**case-only** | — |
 | NHP-015-LOAD-w-01 | 015 | LOAD | worker | 并发大文件拒+小文件通 | 拒率/队列不炸；收据 | **blind**→**case-only** | 413 单点≠负载 |
+| NHP-015-ADV-01 | 015 | ADV | api | 对抗注入/伪造声明面（魔数 fail-closed/429 突发桶/503 全局解析槽/NUL 注入） | 422 `magic_mismatch`（先于解析）；429 `too_many_requests`（第 16 次）；503 `server_busy`（败者 ≥1 胜者不受损）；NUL 剥除零透传；拒面零扣 | **blind**→**case-only**（**真证据已落（2026-10-26 批 C EXEC）**：`pnpm uc015:nhp-adv:prove` **EXIT=0**（attempts 1,0 · 首跑绿）· 30 断言（PC+A1–A5+V1+N）· 0189 真迁移链重放（共享槽 lease·harness 面）· RESUME_PARSE_MAX=1 仅测试进程窗（产品缺省 6 不改）· F1–F5 旁证零改动 reason 级可分 · **EXIT0 = case ≠ covered** · 行状态不动：blind 保持+case-only 措辞（诚实 case registration only），禁止升 covered/partial，coveredCount=8 不变 · post 双审双 PASS 2026-10-26·#149 nail 落主线（merge 祖先亲证）·closed） | `pnpm uc015:nhp-adv:prove` · F1–F5 旁证（`uc-e2e-015-resume-ingest-failures.proof.ts` 零改动）· ≠ 015 covered |
 | NHP-016-FAULT-01 | 016/029 | FAULT | api | 诊断/押题显式失败注入 | unavailable 终态；无死胡同 | **gap**→**case-only**（**真证据已落（2026-10-07 Line Y2 nail）**：`pnpm uc016:nhp-fault:prove` **EXIT=0** · 45 断言双 fresh @`12a350f7`（链 `2051d12a`→`20fe852d`→`12a350f7`）· F3 按实际行为 `schema_validation_failed` · **E3 transient NOT claimed** · F4 按 D1 重建映射断言（spec 字面 failed→pending 重试口产品不存在 · 非字面口 · 旧对象停 failed 不复活）· scripted 缝零 live · attempts 1,0 · post-dual `4efa85fe`/`822d533b` BOTH PASS · gap **`GAP-UC016-FAULT-01`** 登记 · **EXIT0 = case ≠ covered** · 行状态不动：保持 gap→case-only 措辞（诚实 case registration only），禁止升 covered/partial，coveredCount=8 不变） | full.e2e 终态旁证；`pnpm uc016:nhp-fault:prove` · harness `harness/gap-uc016-fault-inject-nhp.md`（+micro-patch `95b1fd95` 键面）· ≠ 016/029 covered |
+| NHP-016-NEG-01 | 016/029 | NEG | api | quiz/diagnosis 业务负路径族（400/404/409/402/幂等/CAS/跨用户） | 400 `missing_resume_id`；404 `not_found_or_forbidden`；409 他人 resume/预绑壳 CAS；402 `insufficient_entitlement` 零桶净 0；alreadyBegun 同 jobId 恰 1 job 行；abandon 族（ready 409 `cannot_abandon`/released/error）；跨用户 get+events 404 不泄露；全程额度净账 | **gap**→**case-only**（**真证据已落（2026-10-26 批 C EXEC）**：`pnpm uc016:nhp-neg:prove` **EXIT=0**（attempts 1,0 · R1 EXIT1=夹具 0121 pgp ACL 缺口 harness 面·零断言面被行使·零产品码触）· 53 断言（PC+N1–N8 双口）· consent+resume 走产品路径（consent 种子豁免未行使·如实申明）· **EXIT0 = case ≠ covered** · 行状态不动：gap 保持+case-only 措辞（诚实 case registration only），禁止升 covered/partial，coveredCount=8 不变 · post 双审双 PASS 2026-10-26·#149 nail 落主线（merge 祖先亲证）·closed） | `pnpm uc016:nhp-neg:prove` · `neg-input`（传输层 413/畸形 JSON）旁证互不替代 · ≠ 016/029 covered |
 | NHP-004-BOUND-01 | 004 | BOUND | api | 重复 begin/重复幂等/advisory 锁并发 | 接管 version+1；单 active 行；lease 120s 刷新；非 202 alreadyBegun | **gap**→**case-only** | `pnpm uc004:nhp-bound:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
 | NHP-004-ADV-01 | 004 | ADV | api | 伪造/越权 POST + fail seam（production-off） | pre-tx 双 409 先行；有效 pre+seam→500+failed v≥2；越权 404 | **blind**→**case-only** | `pnpm uc004:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 批 B） |
 | NHP-004-FAULT-01 | 004 | FAULT | api | A3 失败降级 | 可解释；无假 completed | **gap** | 静态 G-GAP |
@@ -114,7 +116,7 @@
 | HP-050-01 | 050–052 | HP | worker | happy internal authorized erasure | locals admin read=0 · externals `retention_pending` · req `pending_external` | **partial** | same · **≠ covered** · ≠ open DELETE · fence-only checkpoint |
 | NHP-040-BOUND-01 | 040–043 | BOUND | api | 席位 CAS / 批 partial_failed | 状态机载重 | **gap** | 静态 G-GAP |
 | NHP-027-NEG-01 | 027 | NEG | api | 申诉口未开放 | blocked/honest gap 钉 | **gap**/blocked | 产品未接线 |
-| NHP-028-FAULT-01 | 028 | FAULT | api | persistTrace 失败 | 主链路不阻塞（目标）；现 gap | **gap** | 静态 G-GAP |
+| NHP-028-FAULT-01 | 028 | FAULT | api | persistTrace 失败 | 主链路不阻塞（目标）；现 gap | **gap** | 静态 G-GAP · 收据已落（2026-10-07 Line X nail · `pnpm uc028:nhp-fault:prove` EXIT=0 40/40 双 fresh · post dual BOTH PASS）· 收据物 `receipts/archive/2026-09-batch23/receipts/2026-10-07-nhp-028-fault-01-trace-fail-open-prove.md`（在树亲证）· gap 值不动 |
 
 ### 1.5 RAG / 路由域（专家 mw-rag-route）
 
