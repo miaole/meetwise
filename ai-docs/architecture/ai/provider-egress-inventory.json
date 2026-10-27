@@ -2,7 +2,7 @@
   "schemaVersion": 1,
   "mode": "observe-only",
   "releaseEvidence": false,
-  "statement": "\u9759\u6001\u6e05\u5355\u53ea\u679a\u4e3e\u5f53\u524d\u4ed3\u5e93\u5df2\u77e5\u7684\u6a21\u578b\u4f9b\u5e94\u5546\u76f4\u63a5\u51fa\u7ad9\uff0c\u4e0d\u8bc1\u660e\u955c\u50cf\u3001\u4e91\u7f51\u7edc\u3001\u5bc6\u94a5\u5206\u53d1\u6216\u552f\u4e00\u51fa\u53e3\u3002",
+  "statement": "静态清单只枚举当前仓库已知的模型供应商直接出站，不证明镜像、云网络、密钥分发或唯一出口。",
   "requiredOperationIds": [
     "chat",
     "vision-ocr",
@@ -2355,10 +2355,31 @@
       "class": "test-isolation"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-004-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-015-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-004-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-015-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_BASE_URL",
       "source": "apps/web/test/nhp-perf-web.proof.ts",
       "class": "test-isolation"
-    }],
+    }
+  ],
   "deploymentReferences": [
     {
       "source": "docker/compose.prod.yml",
