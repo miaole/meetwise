@@ -1,0 +1,114 @@
+
+> meetwise@0.1.0 uc012:nhp-neg:prove /Users/miaole/Desktop/golucky/meetwise-reassess
+> node scripts/run-e2e-isolated.mjs uc012:nhp-neg:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-49338-1793055570854 on 127.0.0.1:32929
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-reassess/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:uc012-nhp-neg /Users/miaole/Desktop/golucky/meetwise-reassess/apps/worker
+> tsx test/uc-e2e-012-nhp-neg.proof.ts
+
+NHP-012-NEG-01 UC-E2E-012/024 NEG prove (PC+N1-N4 · 缝 A/B · 零伪造评分事件 · Ban live)
+Pins: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :118 措辞零翻动 · EXIT0≠covered
+PASS  L0 零模型: 三键（MODEL_API_KEY/DASHSCOPE_API_KEY/DASHSCOPE_COMPAT_BASE_URL）入场均不在场
+
+──────── PC · scripted 合法答案走通 answer-apply（对照 · 防假绿） ────────
+PASS  [pc] 夹具自检: 种子后 availability=5.0
+PASS  [pc] 守护① 壳行插入态='created'
+PASS  [pc] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  PC API identity ledger 接受
+PASS  PC 消费 answer job 走通
+PASS  PC 题已标 answered（identity 同写 · 围栏原语正向）
+PASS  PC answer_evaluated 恰一（产品路径合法评分事件）
+PASS  PC 零 answer_unscored
+PASS  PC 同 identity 重放 markInterviewAnswerApplied=幂等 true（N3 对照半臂 · :128-138 verify 回路）
+PASS  PC interview 未入终态（单轮不 conclude · maxTurns=2）· consumption=reserved（mid-flight 恒）
+EVIDENCE PC-ROW {"status":"answered","answer_id":"cbbf93b4-72d9-4eda-932c-4fb52be87667","answer_hash":"eb847c98bfffea9f76851046d18c640f8acb1da97006b637b4129e641e4c52ca"}
+
+──────── N1 · 投影题不匹配答案 → :487 answer_not_applied_to_expected_question 具型拒（last_error 字面钉） ────────
+PASS  [n1] 夹具自检: 种子后 availability=5.0
+PASS  [n1] 守护① 壳行插入态='created'
+PASS  [n1] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  N1 claim 接受（identity ledger 仅记账 · 图侧引用校验为第二道闸）
+PASS  N1 drain=failed（consumer 确定性终态臂 · 非 transient requeue 非静默吞）
+PASS  N1 具型钉: interview_job.last_error=answer_not_applied_to_expected_question（:486 !last → :487 · :130 同族字面）
+PASS  N1 零伪造评分事件（answer_unscored=0 · answer_evaluated=0）
+PASS  N1 零静默续跑: question_ready 恒 1（仅 start 题 · 图未发第二题）
+PASS  N1 题未被伪标 answered（仍 queued · 未应用）
+PASS  N1 结算 fail-closed: consumption=released（失败释放 · 恰一次）· availability=5.0（零双扣）
+EVIDENCE N1-KINDS {"kinds":["question_ready","interview_unavailable"],"row":{"status":"queued","answer_id":"","answer_hash":"b2c1cee58227b63456c452a55ecbce4b24d2b721dd3c9268819262559af98b9a"}}
+
+──────── N2 · identity 伪造/陈旧 → :496 answer_identity_lost + 围栏原语证伪直证 ────────
+PASS  [n2] 夹具自检: 种子后 availability=5.0
+PASS  [n2] 守护① 壳行插入态='created'
+PASS  [n2] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  N2 claim 接受（真 identity A）
+PASS  N2 注入生效自证: 钩子已运行 · UPDATE 恰 1 行 · 零错
+PASS  N2 drain=failed（确定性终态臂）
+PASS  N2 具型钉: interview_job.last_error=answer_identity_lost（:495-:496 fence 事务内二次 verify 证伪）
+PASS  N2 原语直证: verifyInterviewAnswerClaim(真 identity A)=false（伪造覆写后 · :115-125 证伪路径）
+PASS  N2 原语直证: verifyInterviewAnswerClaim(伪造 identity)=true（占用行为伪造者所有）
+PASS  N2 零伪造评分事件（answer_unscored=0 · answer_evaluated=0）
+PASS  N2 题未被伪标 answered（伪造覆写仅 identity 字段 · status 仍 queued · 投影未触）
+PASS  N2 结算 fail-closed: consumption=released · availability=5.0（零双扣零悬挂）
+EVIDENCE N2-KINDS {"kinds":["question_ready","interview_unavailable"],"injectLog":{"ran":true,"updated":1,"error":null}}
+
+──────── N3 · 围栏占用后异 identity 重答 → fence 事务 re-check 具型拒（占用=answered 异 identity） ────────
+PASS  [n3] 夹具自检: 种子后 availability=5.0
+PASS  [n3] 守护① 壳行插入态='created'
+PASS  [n3] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  N3 claim 接受（真 identity A）
+PASS  N3 注入生效自证: 钩子已运行 · UPDATE 恰 1 行 · 零错
+PASS  N3 drain=failed（确定性终态臂）
+PASS  N3 具型钉: interview_job.last_error=answer_identity_lost（:495-:496 fence 事务 re-check 证伪 · :497-:498 stale 臂先导）
+PASS  N3 原语直证: markInterviewAnswerApplied(真 identity A)=false（占用行 answered+异 identity → :497-:498 stale 臂语义 · :128-138）
+PASS  N3 占用不被覆写: 行仍 answered+伪造 identity（A 未覆盖 B · 绝不覆盖别的答案）
+PASS  N3 零伪造评分事件（answer_unscored=0 · answer_evaluated=0）
+PASS  N3 对照半臂: PC 行同 identity 重放=幂等 true（已在 PC 臂直证 · :138 verify 回路）
+PASS  N3 结算 fail-closed: consumption=released · availability=5.0（零双扣零悬挂）
+EVIDENCE N3-KINDS {"kinds":["question_ready","interview_unavailable"],"row":{"status":"answered","answer_id":"120fc189-ab5e-4787-b830-b531515c4e02","answer_hash":"7db8587714daedd167805124bd82ca50e2eedb2960c06cf8a8ba4b73521e5e2f"},"injectLog":{"ran":true,"updated":1,"error":null}}
+
+──────── N4 · 事件原语 raw-answer payload → interview_event_raw_answer_fenced（:19-:21） ────────
+PASS  [n4] 夹具自检: 种子后 availability=5.0
+PASS  [n4] 守护① 壳行插入态='created'
+PASS  [n4] 夹具经生产链供给 route（decision+binding+snapshot）
+PASS  N4 对照半臂: answerId/answerHash 载荷合法放行（seq 分配成功）
+PASS  N4 具型拒: interview_event_raw_answer_fenced（仓储先拒 · :19-:21）
+PASS  N4 围栏后零新增行（事件行数恒 = 对照半臂 1 行）
+PASS  N4 零伪造评分事件（answer_unscored=0 · answer_evaluated=0 · 拒绝先于任何 INSERT）
+PASS  N4 interview 状态零漂（原语层拒绝不触业务态）
+
+──────── INTEGRITY · 全案五流账本/结算总账（PC 合法评分 · N1-N3 fail-closed release · N4 原语面） ────────
+EVIDENCE INTEGRITY-pc {"kinds":["question_ready","answer_evaluated","question_ready"]}
+PASS  INTEGRITY PC: answer_evaluated 恰一（产品路径）· 零 unscored
+EVIDENCE INTEGRITY-n1 {"kinds":["question_ready","interview_unavailable"]}
+PASS  INTEGRITY n1: 零伪造评分事件（evaluated=0 · unscored=0）
+EVIDENCE INTEGRITY-n2 {"kinds":["question_ready","interview_unavailable"]}
+PASS  INTEGRITY n2: 零伪造评分事件（evaluated=0 · unscored=0）
+EVIDENCE INTEGRITY-n3 {"kinds":["question_ready","interview_unavailable"]}
+PASS  INTEGRITY n3: 零伪造评分事件（evaluated=0 · unscored=0）
+EVIDENCE INTEGRITY-n4 {"kinds":["question_ready"]}
+PASS  INTEGRITY n4: 零伪造评分事件（evaluated=0 · unscored=0）
+PASS  INTEGRITY PC: consumption=reserved（mid-flight 恒 · 额度 4.0）
+PASS  INTEGRITY N1-N3: consumption=released（失败释放恰一次 · 零双扣）· 额度各 5.0
+PASS  INTEGRITY N1-N3: interview 终态=failed（drain 确定性终态 · 零悬挂非静默）
+PASS  INTEGRITY N4: 原语面零业务态（无 reserve 无消费行 · 额度 5.0）
+
+✓ NHP-012-NEG-01 全臂绿（62/62）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: NEG cell gap→case-only · EXIT0≠covered · §1.0.1 :118 措辞零翻动 · coveredCount=8
+PIN: 具型钉=:487/:496(raw-answer-fence throw)· fence re-check 具型拒 N2/N3=answer_identity_lost · N3 stale 臂=markApplied false 原语直证
+PIN: N3 观测面校准=:495 re-check 先于 :497 stale 臂可见（attempt3-10 台账）· 语义面零弱化 · 收据同笔承登
+PIN: 观测面校准=非 transient 白名单码走 consumer 确定性终态臂（last_error+fail-closed release）· 收据同笔承登
+PIN: 豁免②N2/②N3=围栏占用窗口并发注入 UPDATE（具名入收据 · 生效性臂内自证）
+PIN: haStatus=NOT_HA · releaseEvidence=false · alone≠dual · ⛔push
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-26T22-59-37-027Z-49338-8ec890d1-5ff3-4049-ae62-3f9128aae4eb.json release_evidence=false
+NEG_ATTEMPT11_EXIT=0
