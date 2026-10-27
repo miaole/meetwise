@@ -93,6 +93,7 @@
   "prove:last-event-id": "node --import @swc-node/register/esm-register test/last-event-id.proof.ts",
   "prove:sse-slot": "node --import @swc-node/register/esm-register test/sse-principal-slot.proof.ts",
   "prove:sse-push-notify": "node --import @swc-node/register/esm-register test/sse-push-notify.proof.ts",
+  "prove:sse-cross-replica": "node --import @swc-node/register/esm-register test/sse-cross-replica.proof.ts",
   "prove:sse-listen-probe": "node --import @swc-node/register/esm-register test/sse-listen-probe.proof.ts",
   "prove:s4b-delta-arm": "node --import @swc-node/register/esm-register test/sse-delta-arm.proof.ts",
   "prove:resume-reference-http": "node --import @swc-node/register/esm-register test/resume-reference-http.proof.ts",
