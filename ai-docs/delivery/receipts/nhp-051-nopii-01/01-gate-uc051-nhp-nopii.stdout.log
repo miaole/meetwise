@@ -1,0 +1,80 @@
+
+> meetwise@0.1.0 uc051:nhp-nopii:prove /Users/miaole/Desktop/golucky/meetwise-killsw
+> node scripts/run-e2e-isolated.mjs uc051:nhp-nopii:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-52048-1793069029840 on 127.0.0.1:32967
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-killsw/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc051-nhp-nopii /Users/miaole/Desktop/golucky/meetwise-killsw/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-051-nopii.proof.ts
+
+UC-E2E-051 NHP-051-NOPII-01 isolated PG/HTTP NOPII evidence (业务哨兵日志扫描/trace 脱敏直行使/堆栈原文面)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · 公开 DELETE=503
+Non-substitute: obs-logging(infra 合成探针面) 先例旁证 · reason 级可分（业务哨兵≠合成探针）· Ban 互借
+oracle 前提钉: 扫描前必钉哨兵经产品路径在场对照（resume 2xx+begin 202+turn 409 形 B 现状形状）
+EXIT0=case≠covered · blind→case-only 措辞 · Ban 借收据宣 covered/PII 全域零泄 · est live=0
+ATTEMPT_START  iso=2026-10-27T02:44:08.604Z · Ban retry-to-green · Ban fake-green
+
+PASS  [ISO] egress-strip-pattern-self-test(assembled names all matched · literal-zero file face)
+PIN   CHILD-SOURCE .tmp 落点（gitignore 内·零 tracked 第三文件）: /Users/miaole/Desktop/golucky/meetwise-killsw/apps/api/.tmp/killsw/nopii-child.source.mjs
+PASS  [ISO] isolated-env-attested (E2E_ISOLATED=1 + container nonce + dynamic PGPORT)
+PASS  [ISO] in-process env window: no assembled model-key-shaped key survives
+PIN   NHP-051-NOPII-ISO-AI-FN-ACL: ai_model/ai_trace/ai_cost 函数族 app_role EXECUTE 补授(真相=0088/0119/0130/0179·夹具面·零产品码零新迁移)
+PASS  [P3] redact drive: invoke 返回 value（假模型零外呼·positive control）
+PASS  [P3] redact drive: ai_model_invocation.replayable=false（:1080/:1188-1190 行使）
+PASS  [P3] redact drive: stored output 恰 {"redacted":true}（:1176 行使·零原文）
+PASS  [P3] redact drive: 账本输出零模型原文
+PASS  [P3] redact drive: trace 旁路行存在（可观测旁路非业务真相）
+PASS  [P3] control drive（无 redact）: invoke 返回 value（对照非空转）
+PASS  [P3] control drive: replayable=true 且 output 携带原文（脱敏闸=redact 所致·非空转对照）
+PASS  [P3] pseudonymize: owner/thread/invocation refs 为确定性伪名（同入同出）
+PASS  [P3] pseudonymize: refs 零原文（三 raw 均不出现于 ref）
+PASS  [P3] pseudonymize: namespace 分离（同 raw 异 ns → 异 ref）
+PASS  [P3] pseudonymize: 空入参 fail-closed throw（langfuse_pseudonym_input_invalid）
+PASS  [P3] safe metadata: 键集有界（恰 13 标量键·零自由键）
+PASS  [P3] safe metadata: 全值标量（string|number|null·零嵌套对象零数组）
+PASS  [P3] safe metadata: owner/thread/invocation refs 零原文（伪名出界）
+PASS  [P3] safe metadata: promptVersion 缺省 → null 占位（缺省≠零·AG-19 同形）
+PASS  [P3] safe metadata: 标量计数面（sourceCount/retrievalCount/latency）在场且非原文
+HONESTY P3: LangfuseSpanProcessor 运行时 mask/白名单本刀零触（opt-in smoke 域·REQUEST 修订钉如实登记）
+PASS  [ISO] child-env egress-strip: no assembled model-key-shaped key survives
+PASS  [ISO] child runner booted real HTTP (three-layer shell via _neg-harness boot)
+PASS  [ISO] probe instance booted (非产品面一次性 500 探针·obs-logging 同形)
+PASS  [PC] oracle pin ①: product-path consent → 200
+PASS  [PC] oracle pin ②: resume ingest with business sentinel → 200 ingested（哨兵经产品路径在场·resume 2xx）
+PASS  [PC] oracle pin ③a: interview shell created → 200
+PIN   NHP-051-NOPII-SEED-BUCKET-EXEMPTION: 桶种子（豁免①具名·begin 202 前置）
+PASS  [PC] oracle pin ③b: begin → 202（黄金路径全成功态）
+PASS  [PC] oracle pin ④: turn → 409 question_not_ready（形 B 产品现状预期形状·:466 路径对态·非刀红）
+PASS  [PC] oracle pin ⑤: answer sentinel passed the request face（zod 契约+服务端 hash 重算到达 claim 前）
+PASS  [P4] synthetic 500 → response body opaque {error:internal_error} 零细节
+PASS  [P5] query 携带请求（/livez?token=哨兵）仍正常服务 200
+PASS  [ISO] child runner exits cleanly on SIGTERM
+PASS  [LV] log corpus non-empty (pino JSON lines on fd1)
+PASS  [LV] 每条黄金路径请求的 pino completed 行在场（reqId 逐一对照·捕获面覆盖黄金路径）
+PASS  [LV] ≥1 error 级行在场（P4 探针·error 面活性）
+PASS  [P1] 简历全文哨兵全日志行零入卷
+PASS  [P1] 答案哨兵全日志行零入卷（含 409 形 B 请求面过境）
+PASS  [P2] boot env secret 值泛形扫描（secret/key/token/password/credential 形键·值长≥12 全集）零入卷
+PASS  [P2] _neg-harness 导出 secret 常量值零入卷（AUTH/PAY 双值）
+PASS  [P2] Bearer 形令牌哨兵零入卷（authorization 值面）
+PASS  [P4] error 行 err.stack 只进日志且带帧
+PASS  [P4] error 行 url 去 query（:32 面）
+PASS  [P4] 全日志行（含错误消息/堆栈面）零业务哨兵
+PASS  [P5] incoming 行 req.url 恰为剥后 path /livez（? 后恒剥）
+PASS  [P5] query 哨兵全行零入卷
+HONESTY PC: turn 腿=形 B（409 question_not_ready·:466 路径对态·答案哨兵经请求面过境）
+
+ATTEMPT_END    iso=2026-10-27T02:44:13.822Z attempts=1 · failures=0/44
+✓ NHP-051-NOPII-01: 44 断言全绿（业务哨兵日志扫描/trace 脱敏直行使/堆栈原文面 · live=0 · isolated PG）
+EXIT0=case≠covered · 行状态 blind→case-only 措辞 · coveredCount=8 不变 · ⛔push
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T02-44-14-131Z-52048-72756afd-d509-4164-8c31-0e7347ed6449.json release_evidence=false
