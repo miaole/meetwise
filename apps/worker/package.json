@@ -85,6 +85,7 @@
     "prove:adaptive-latency": "tsx test/adaptive-latency.proof.ts",
     "prove:scoring-integrity": "tsx test/scoring-report-integrity.proof.ts",
     "prove:scoring-golden": "tsx test/scoring-golden-contract.proof.ts",
+    "prove:scoring-eval-key": "tsx test/scoring-eval-key.proof.ts",
     "prove:agent-skills": "tsx test/interview-research-skills.proof.ts",
     "prove:window": "tsx test/context-window.proof.ts",
     "prove:rag-cost": "tsx test/rag-cost-governance.proof.ts",
