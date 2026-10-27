@@ -27,7 +27,7 @@
 | `apps/api/src/modules/commerce/commerce-webhook.controller.ts` | `2b976602`（25） | Path A 双口 `:12-17`（pay）·`:20-24`（refund）——零守卫薄口·验签/owner/CAS 全在 service 单管道 |
 | `apps/api/src/modules/commerce/payment-callback.controller.ts` | `37b8af46`（35） | 主口 `POST /payment/refund-callback` `:27-33`（缺 orderId 400 `invalid_callback` 先于 HMAC·薄适配形校验·委托 refundWebhook 单管道） |
 | `apps/api/test/uc-e2e-014-026-webhook-adv.proof.ts` | `419c15a7`（296）**冻结零触** | `:54-65` `auditObservationBasis()` 运行时扫描 `commerce.service.ts`+`commerce-webhook.controller.ts` 两文件·正则 `/GuardrailHit\|audit[_-]?log\|security[_-]?log/g`（`:62`）·`:67-74` `AUDIT_LINE`（absent\|observed 全局 scan 值·basis 旧号 `:56-70`/`:11-16` stale·disclosed-not-blocking 非 EXIT 门槛）·C 类语义 `:194`（C4 already）/`:212`（C5 409 conflict）/`:231`（C6 并发 CAS）/`:251`（C7 404） |
-| `apps/api/test/uc-e2e-011-refund-callback-adv.proof.ts` | `c9ba96b6`（474）**冻结零触** | `:67-77` 同正则扫三文件（+`payment-callback.controller.ts`）·**`:68` `stripComments` 先剥注释再扫**（emit 必须真代码·注释计数不算）·`:85` AUDIT_LINE absent\|observed |
+| `apps/api/test/uc-e2e-011-refund-callback-adv.proof.ts` | `c9ba96b6`（474）**冻结零触** | `:68-81` 同正则扫三文件（+`payment-callback.controller.ts`·正则 `:78`）·**`:68` `stripComments` 先剥注释再扫**（emit 必须真代码·注释计数不算）·`:85` AUDIT_LINE absent\|observed |
 | `apps/api/test/uc-e2e-001-nhp-adv.proof.ts` | `43f936cf`（553）**冻结零触** | `:302-305` V5 五树 roots（`apps/api/src`/`packages/db/src`/`packages/domain/src`/`packages/ai-runtime/src`/`packages/ai-graphs/src`）· `:324` `/\bGuardrailHit\b/` 计数 · **`:331` `A('V5 GuardrailHit emit = absent …', hits === 0)` 硬断言** · `:546` `process.exit(exit)`（failures>0 → EXIT=1 硬门） |
 | `packages/db/src/interview/interview-jobs.ts` | `7401cc04`（401） | **安全日志先例形**：`:346`/`:351`/`:393` `console.warn(JSON.stringify({ event, kind, job_ref, … }))`（结构化单行 JSON·stderr/stdout·零表零迁移） |
 | `packages/db/sql/15_audit.sql` | `2ae259a9`（13） | `:4-11` `admin_audit` 形状（§0.2-3 证伪①） |
@@ -47,7 +47,7 @@
 | **C7 owner/单不存在** | payWebhook `:132-135`（`requireOwnerUserId` catch → 404）· `:139`（`res==='not_found'` → 404）；refundWebhook 孪生 `:158-161` · `:165` | 404 `order_not_found`（签名再对也不入账·不区分存在性） |
 | refund 入口 | `:151-152`（`refundWebhook` · `verifyCommerceSig(id, body, 'refunded')` 同单源） | 孪生面与 pay 面逐点同构（对偶标签 `paid`/`refunded` 入签不可互换） |
 
-主口 `payment-callback.controller.ts:33` 薄适配形校验 400（缺 orderId·先于 HMAC）与 Path A controller 双口（`:12-17`/`:20-24`）零守卫直委托——emit 落 service 单管道即自然覆盖两口三面（pay 主链/refund Path A/refund 主口），controller 零触（§1.2）。
+主口 `payment-callback.controller.ts:32` 薄适配形校验 400（缺 orderId·先于 HMAC）与 Path A controller 双口（`:12-17`/`:20-24`）零守卫直委托——emit 落 service 单管道即自然覆盖两口三面（pay 主链/refund Path A/refund 主口），controller 零触（§1.2）。
 
 **0.2-2 · 安全日志先例形（stdout-only 证成）**：`interview-jobs.ts:346/:351/:393` = 全仓在产先例——`console.warn(JSON.stringify({ event: 'reaper_takeover'|'stale_payload_purge', kind: 'interview', job_ref, … }))` 结构化单行 JSON 走 stderr/stdout·零表零迁移零配置；本刀 emit helper 沿此形（§1.0）。
 
@@ -78,9 +78,9 @@
 ### 1.0 刀形定标
 
 - **(a) emit helper**：`commerce.service.ts` 恰一个（~10-15 行）·结构化单行 JSON 走 stderr/stdout（`console.warn(JSON.stringify(…))` · 沿 `interview-jobs.ts:346/:351/:393` 先例形 0.2-2）·字段形 `{ event: 'security_log', kind: 'commerce_webhook'|'commerce_refund_webhook', class: 'C1'|'C2'|'C7', order_id, reason: 'bad_signature'|'invalid_callback'|'order_not_found', outcome: 'rejected' }`——**命名受 §1.1 硬约束**（`security_log` 小写字面量恰被 uc014 `:62`/uc011 `:68` 运行时正则扫中）。隐私面：Ban 写 sig/secret 值、Ban 写 owner 之外 PII、Ban 写金额/units（AGENTS.md「不把支付信息/模型密钥写入日志」；verifyCommerceSig 为 pre-auth 纯函数·C1/C2 臂仅 id+kind+reason 可载）。helper 不抛不阻断：emit 失败不得改变拒绝语义（Ban 把安全日志做成新故障点）。
-- **(b) 拒绝出口逐点调用**：C1 `:35` · C2 `:27`/`:30` · C7 pay `:133-135`/`:139` + refund 孪生 `:159-161`/`:165`——六 emit 位；verifyCommerceSig 内三路（C1/C2）pay+refund 双面自然共用。C3/C4-C6 零调用（§0.3 处置条款）。
+- **(b) 拒绝出口逐点调用**：C1 `:35` · C2 `:27`/`:30` · C7 pay `:133-135`/`:139` + refund 孪生 `:159-161`/`:165`——**七 emit 位**（行锚 `:35`/`:27`/`:30`/`:133-135`/`:139`/`:159-161`/`:165`·C2 同类两号并计口径则六·本卷按行锚计七）；verifyCommerceSig 内三路（C1/C2）pay+refund 双面自然共用。C3/C4-C6 零调用（§0.3 处置条款）。
 - **(c) est**：**S 级 · 零迁移零新表零配置零依赖**（stdout-only·三底座证伪 0.2-3 承）·改面仅 `commerce.service.ts` 一文件（§1.2）。
-- **(d) proof 形**：①**冻结 proof 零触**——`uc014:webhook-adv`/`uc011:refund-callback(-adv)` fresh 重跑，其内置运行时扫描（0.2 表）自动翻 `AUDIT-OBSERVATION: absent→observed`·断言面恒等（47 臂/41 臂零改写）·observed 披露入 EXEC 收据；②**可选新臂**=additive 新 proof 断言 stderr/stdout 出现 `security_log` 行（单行 JSON parse+字段断言）·不触任何冻结 proof；③**收据 basis file:line 重钉现号**（`:27`/`:30`/`:35`/`:133-135`/`:139`/`:159-161`/`:165`+controller 现号 `:12-24`/`:27-33`）——冻结 proof 文内旧 basis 串（`:56-70`/`:11-16` stale）**零改**·旧行收据**不动**·Ban 回写历史收据/历史 JSON。
+- **(d) proof 形**：①**冻结 proof 零触**——`uc014:webhook-adv`/`uc011:refund-callback(-adv)` fresh 重跑，其内置运行时扫描（0.2 表）自动翻 `AUDIT-OBSERVATION: absent→observed`·断言面恒等（47 臂/41 臂零改写）·observed 披露入 EXEC 收据；②**可选新臂**=additive 新 proof 断言 stderr/stdout 出现 `security_log` 行（单行 JSON parse+字段断言）·不触任何冻结 proof；③**收据 basis file:line 重钉现号**（`:27`/`:30`/`:35`/`:133-135`/`:139`/`:159-161`/`:165`+controller 现号 `:12-24`/`:27-32`）——冻结 proof 文内旧 basis 串（`:56-70`/`:11-16` stale）**零改**·旧行收据**不动**·Ban 回写历史收据/历史 JSON。
 - **(e) 行状态零翻转**：EXIT0≠covered · 矩阵 `:119`/`:117` ADV/partial 列措辞零动（翻面仅经协调方 nail）· coveredCount=8 不变 · backlog `:396` residual 的「接线」事实登记权归协调方。
 
 ### 1.1 双硬约束条款①（命名条款——定标最重要发现）
@@ -93,7 +93,7 @@
 
 1. **C3 不进刀面**：保持 absent 披露（无码点 0.2-1）·金额复核 DISCLOSED 口径零改·Ban 改口（§0.3）。
 2. **C4-C6 不加 emit**：幂等正常类（§0.3）·absent×4 口径不扩不缩。
-3. **改面仅 `commerce.service.ts`**：controller 三件（commerce-webhook/payment-callback）零触·主口薄适配 400 形校验（`payment-callback.controller.ts:33`）**不加 emit**（pre-HMAC 形校验非安全拒绝面·disclosed-not-blocking·留后刀裁量如实登记）；`packages/db` 零触（先例文件只读）；冻结 proof 四件零触（§1.0-d）。
+3. **改面仅 `commerce.service.ts`**：controller 三件（commerce-webhook/payment-callback）零触·主口薄适配 400 形校验（`payment-callback.controller.ts:32`）**不加 emit**（pre-HMAC 形校验非安全拒绝面·disclosed-not-blocking·留后刀裁量如实登记）；`packages/db` 零触（先例文件只读）；冻结 proof 四件零触（§1.0-d）。
 4. **Ban 宣称 GuardrailHit 已实现**：backlog `:396` Ban 原文逐字承接——本刀落的是 `security_log` 观察点（absent→observed），**非** GuardrailHit 产品路径；Ban 假称告警/GuardrailHit 已实现·Ban 借本刀洗 UC-031/032 的 GuardrailHit 缺口（矩阵 `:280`）·Ban 改口「已实现金额复核」（backlog `:552`）。
 
 ### 1.3 否决表（落选形诚实留痕）
@@ -111,15 +111,16 @@
 
 ## §2 验收门矩阵（pre-exec 双审核对单基面 · 起草门 4 门本 commit 适用 + EXEC 预基面届时重 pin · **数字口径以实跑实测为准·熔断阈值即 §8「验收红不可修」触发面**）
 
-1. **docs:check + cap 预算核（亲算）**：起草前本树亲跑 `node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2430 = cap 2430 恰等零余量**（`public-text-policy.mjs:232` `MAX_FILES=2_430` 亲证）→ 本卷 +1 受管件=2431 **必越** → **CAP-SANCTION-2438 步进 2430→2438**（+8 · 协调方派单预授权「越限沿先例步进承登」随令行使 · 沿 CAP-SANCTION-2417/2418 起草刀 +8 同形 · 2208→…→2430 快速链承前 · 先手步进·计数预算非内容策略）·落码后亲跑 **scanned 2431 ≤ 2438 EXIT=0** + `public-text-policy.proof.mjs` 四联动点（`2_438`/`f-2438.md`/`:2439`）亲跑 **12/12 EXIT=0** · EXEC 期 +1 可选 proof 终态 ≤2432+收据 `.log` 非扫描扩展名不计——越限臂 fabricated 数随 cap 联动同步（语义不变强度不减）。
+1. **docs:check + cap 预算核（亲算）**：起草前本树亲跑 `node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2430 = cap 2430 恰等零余量**（`public-text-policy.mjs:232` `MAX_FILES=2_430` 亲证）→ 本卷 +1 受管件=2431 **必越** → **CAP-SANCTION-2438 步进 2430→2438**（+8 · 协调方派单预授权「越限沿先例步进承登」随令行使 · 沿 CAP-SANCTION-2417（X33-ADV 起草刀 +8·policy.mjs:112）同形 · 2208→…→2430 快速链承前 · 先手步进·计数预算非内容策略）·落码后亲跑 **scanned 2431 ≤ 2438 EXIT=0** + `public-text-policy.proof.mjs` 四联动点（`2_438`/`f-2438.md`/`:2439`）亲跑 **12/12 EXIT=0** · EXEC 期 +1 可选 proof 终态 ≤2432+收据 `.log` 非扫描扩展名不计——越限臂 fabricated 数随 cap 联动同步（语义不变强度不减）。
 2. **markers 五类零命中**：本刀改动集（本卷 1 .md+两 policy 脚本）五类标记词（词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:154-163`·不复抄卷内防自指）+行首冲突标记 grep **零命中**（起草席亲跑·回执随 EXEC 收据留痕）。
 3. **diff 面机检**：起草 commit `git diff --numstat origin/main` **恰 3 tracked 路径**=`ai-docs/delivery/harness/audit-log-REQUEST.md`+`scripts/ai-docs/public-text-policy.mjs`+`scripts/ai-docs/public-text-policy.proof.mjs`·逐件本节登记·多任何未登记 tracked 路径即停；**产品面（`apps/`/`packages/`）零 diff**（起草 turn）。
 4. **行/列冻结**：本卷零触矩阵/backlog/checklist 文面（只读引用）·coveredCount=8 零翻转·EXIT0≠covered·升格权归协调方。
 
 **EXEC 预基面（届时重 pin·起草 turn 不适用）**：
-5. **fresh 重跑两 prove**：`pnpm uc014:webhook-adv:prove` **EXIT=0**（47 臂断言面恒等零改写 + `AUDIT-OBSERVATION: observed`×4 C1/C2/C3/C7 披露入收据·attempts 台账含红次如实）+ `pnpm uc011:refund-callback:prove` **EXIT=0**（41/41 旁证回归·Path A 口）——Ban retry-to-green·Ban 断言迁就。
+5. **fresh 重跑三 prove**：`pnpm uc014:webhook-adv:prove` **EXIT=0**（47 臂断言面恒等零改写 + `AUDIT-OBSERVATION: observed`×4 C1/C2/C3/C7 披露入收据·attempts 台账含红次如实）+ `pnpm uc011:refund-callback:prove` **EXIT=0**（41/41 旁证回归·Path A 口）+ `pnpm uc011:refund-callback-adv:prove` **EXIT=0**（68/68·refund 侧 observed 披露收据唯一产出运行）——**accepted-risk（随 EXEC 收据披露）**：emit 面 pre-auth 可达——log-flood ~200B/行·洪泛 10^3/s≈0.2MB/s 量级可接受；Linux stderr pipe 同步写为既有 tradeoff·沿 `rate-limit.service.ts:49` 先例。Ban retry-to-green·Ban 断言迁就。
 6. **typecheck/lint 届值**：turbo typecheck 零红 · lint 帽届值亲证 `apps/api` **1520** / `apps/worker` **999** / root **5383**（三 package.json `:7-8` 亲读）——超帽沿先例步进预授权承登（「cap/lint 以合并树实测为准恰等步进免再询」族）。
 7. **可选新臂（若行使）**：additive 新 proof（stderr/stdout `security_log` 行断言）+ 注册行/runner/egress inventory 按先例形四位+additive 登记·漏登即停。
+8. **五树 `GuardrailHit` 零命中 EXEC 门（硬约束①-2 在刀 enforcement）**：`rg '\bGuardrailHit\b' apps/api/src packages/db/src packages/domain/src packages/ai-runtime/src packages/ai-graphs/src` **零命中亲跑留痕**（与 uc001 V5 `:324` 同语义·零成本确定性）或纳入 `uc001:nhp-adv:prove`（EXIT=0 收据随证）——补齐 ①-2 在刀 enforcement·消除越刀潜伏红；EXEC 期任一命中=V5 FAIL（§1.1-2·EXIT=1）→ 停（§8）。
 
 ## §3 范围外（越界即 FAIL）
 
@@ -140,7 +141,7 @@
 
 ## §6 est live=0（起草 turn·EXEC 期同）
 
-起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（EXEC 期两 prove 全离线隔离 PG·emit 为 stderr/stdout 本地写·§2-5 承）。
+起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（EXEC 期三 prove 全离线隔离 PG·emit 为 stderr/stdout 本地写·§2-5 承）。
 
 ## §7 markers=0（卫生声明）
 
@@ -160,4 +161,4 @@
 
 ---
 
-*AUDIT-LOG REQUEST · 2026-10-26 起草 · **STOP=`draft`**（三处钉：Status 行+§8+本行·起草落卷即停）· 具名 residual「审计后置未接线」收刀起草（GAP-UC014-AUDIT-EMIT · 载体 backlog `:396`+矩阵 `:119`/`:117`/`:441`+checklist `:683`/`:897` 亲点）· 四 emit 码点 commerce.service.ts `:35`（C1）/`:27`/`:30`（C2）/`:133-135`/`:139`+孪生 `:159-161`/`:165`（C7）现行号重钉（backlog 旧号 `:56-70` 漂移如实登记·旧行收据不动）· 双硬约束=①命名（emit 载小写 `security_log` 字面量恰被 uc014 `:62`/uc011 `:68` 扫中翻 observed·五树禁 `GuardrailHit`（uc001 V5 `:331` A() 硬 EXIT 门 `:546`·注释亦禁）·UC-031/032 真刀届时翻转 V5 需协调方授权预登记）②范围（C3 不进刀面保持 absent 披露·C4-C6 不加 emit 幂等正常类·改面仅 commerce.service.ts·Ban 宣称 GuardrailHit 已实现原文承接）· 刀形=一 emit helper ~10-15 行结构化单行 JSON stderr/stdout（interview-jobs `:346/:351/:393` 先例形）+六 emit 位·est S 零迁移零新表（三底座 admin_audit/memory_audit_event/interview_event 形状/权限双重错配证伪）· proof 形=冻结 proof 零触 fresh 重跑两 prove 取 observed 披露+可选 additive 新臂+收据 basis 现号重钉 · cap=CAP-SANCTION-2438 步进 2430→2438（+8·「越限沿先例步进承登」预授权随令·起草前 scanned 2430=cap 恰等零余量实证）· est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · EXIT0≠covered · releaseEvidence=false · ≠HA · ⛔push ⛔动主仓*
+*AUDIT-LOG REQUEST · 2026-10-26 起草 · **STOP=`draft`**（三处钉：Status 行+§8+本行·起草落卷即停）· 具名 residual「审计后置未接线」收刀起草（GAP-UC014-AUDIT-EMIT · 载体 backlog `:396`+矩阵 `:119`/`:117`/`:441`+checklist `:683`/`:897` 亲点）· 四 emit 码点 commerce.service.ts `:35`（C1）/`:27`/`:30`（C2）/`:133-135`/`:139`+孪生 `:159-161`/`:165`（C7）现行号重钉（backlog 旧号 `:56-70` 漂移如实登记·旧行收据不动）· 双硬约束=①命名（emit 载小写 `security_log` 字面量恰被 uc014 `:62`/uc011 `:68` 扫中翻 observed·五树禁 `GuardrailHit`（uc001 V5 `:331` A() 硬 EXIT 门 `:546`·注释亦禁）·UC-031/032 真刀届时翻转 V5 需协调方授权预登记）②范围（C3 不进刀面保持 absent 披露·C4-C6 不加 emit 幂等正常类·改面仅 commerce.service.ts·Ban 宣称 GuardrailHit 已实现原文承接）· 刀形=一 emit helper ~10-15 行结构化单行 JSON stderr/stdout（interview-jobs `:346/:351/:393` 先例形）+七 emit 位（行锚 `:35`/`:27`/`:30`/`:133-135`/`:139`/`:159-161`/`:165`·C2 同类两号并计则六）·est S 零迁移零新表（三底座 admin_audit/memory_audit_event/interview_event 形状/权限双重错配证伪）· proof 形=冻结 proof 零触 fresh 重跑三 prove 取 observed 披露+可选 additive 新臂+收据 basis 现号重钉 · cap=CAP-SANCTION-2438 步进 2430→2438（+8·「越限沿先例步进承登」预授权随令·起草前 scanned 2430=cap 恰等零余量实证）· est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · EXIT0≠covered · releaseEvidence=false · ≠HA · ⛔push ⛔动主仓*
