@@ -42,7 +42,7 @@ const evalKey = (key: string): string => createHash('sha256').update(key, 'utf8'
 const revisionOf = (key: string): string => `scoring-eval:v3:${evalKey(key)}`;
 const isAscii = (s: string): boolean => [...s].every((ch) => ch.charCodeAt(0) <= 0x7f);
 
-// 五构造点族全枚举（scoring-eval.ts :99/:130/:146/:165/:173 同形）。
+// 五构造点族全枚举（scoring-eval.ts :110/:141/:157/:176/:184 同形）。
 const sampleKeys: string[] = [
   ...MONO_GROUPS.flatMap((g: MonoGroup) => g.cases.map((c) => `${g.id}:${c.tier}`)),
   ...PERTURB_GROUPS.flatMap((g: PerturbGroup) => g.variants.map((_, i) => `${g.id}:v${i}`)),
