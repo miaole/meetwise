@@ -1,6 +1,6 @@
 # X33-ADV REQUEST — NHP-033-ADV-01 七类越权补集起草卷·case-matrix `:105`（UC-E2E-033 ADV 列·七类未齐残余）（docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落码翻面·pre-exec 双审 BOTH PASS + 协调方 EXEC 授权（含 §2-1 cap 步进承登追认）随令行使·STOP 三处钉：本 Status 行 + §8 + 卷尾 同值翻 `executed:awaiting_post_prove_dual`·前值史录零字洗：`draft:awaiting_pre_exec_dual`（2026-10-27 起草落卷）→ `executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落码·本卷 §9-EXEC 承登）· alone≠dual · post-prove 双审两独立外席待派）· 本 EXEC commit 落码面=三臂族新 proof 1+注册行+双表注记+收据·零产品码（§9-EXEC 全承登）。
+**Status**: **`closed`**（2026-10-27 §9-post 双审双 PASS 会签落卷翻终态·STOP 三处钉：本 Status 行 + §8 + 卷尾 同值翻 `closed`·前值史录零字洗：`draft:awaiting_pre_exec_dual`（2026-10-27 起草落卷）→ `executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落码·§9-EXEC 承登）→ `closed`（2026-10-27 §9-post 双 PASS 会签·席1 FAIL P1 帽值补交修复解销+席2 独立复跑 61/61·§9-post 承登）· EXEC 落码面=三臂族新 proof 1+注册行+双表注记+收据·零产品码（§9-EXEC 全承登）· post 修复刀=lint 双帽两行机械补交（§9-EXEC 帽值补交承登）。
 
 **席位**：NHP-033-ADV-01 七类补集起草席（docs-only 起草·协调方派·总盘派单序第 6 项·与 UC 专属线/批 A/B/C 已并线卷行级互斥）。
 **基线**：`origin/main` @ **`d1a947e3d`**（full `d1a947e3dcc019b66816548adfd340b631bac9c4` · `git fetch origin` 本 turn 成功 · 分支 `line/x33-adv-draft` 零独有 commit · worktree `meetwise-x33`）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2409**（≤ cap 2409 恰等零余量 · §2-1 预算核）。
@@ -150,7 +150,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落码翻面·三处钉：本节 + Status 行 + 卷尾·同值·前值 `draft:awaiting_pre_exec_dual` 史录零字洗·开工三条款已于 EXEC 立项日亲证齐备：①pre-exec 双审 BOTH PASS ②协调方明示 EXEC 授权（含 §2-1 cap 步进承登追认·并线 union 恰等步进 CAP-SANCTION-2419 随令）③§1 修法面/§5 Ban/pins/§1.3 否决面零改动+§0 全量重 pin——三者齐后 EXEC 落码·落码承登见 §9-EXEC·post-prove 双审两独立外席待派·alone≠dual）。** 停止条件（四类·命中即停手上报·Ban 就地处置）：
+**STOP · `closed`（2026-10-27 §9-post 双审双 PASS 会签落卷翻终态·三处钉：本节 + Status 行 + 卷尾·同值·前值 `executed:awaiting_post_prove_dual`/起草态 `draft:awaiting_pre_exec_dual` 史录留痕不洗·EXEC 落码三条款史录：①pre-exec 双审 BOTH PASS ②协调方明示 EXEC 授权（含 §2-1 cap 步进承登追认·并线 union 恰等步进 CAP-SANCTION-2419 随令）③§1 修法面/§5 Ban/pins/§1.3 否决面零改动+§0 全量重 pin——三者齐后 EXEC 落码·落码承登见 §9-EXEC·post 双 PASS 会签承登见 §9-post）。** 停止条件（四类·命中即停手上报·Ban 就地处置）：
 - **现场漂移**：届时 tip 对 §0.1/§0.2 任一锚 blob/机制漂移且结论受疑（case-matrix `:105` 列值被他刀改写 · 三缺臂类被邻刀行使（X 族扩臂/SEVEN-CLASS 被翻）· 404/409/`account_inactive`/`session_revoked` 码面漂移）→ 停·重 pin 回炉。
 - **机制不满足**：EXEC 期新臂收据与 §0.2 对码期望不符（越权写非 404 · 他人 resume 非零绑定 · evict 广播跨主体窜扰 · B 行现 A 的 reqId）→ 根因诊断被证伪 → 停·如实升级（**产品缺陷=EXIT1 诚实保留+backlog 登记 · Ban retry-to-green**）。
 - **越界需要**：修法诉求超出 §1 恰 1 case 三臂族面（需触产品码/X 族 proof/NEG-BOUND-FAULT 列/covered 翻面/共享 SSOT/迁移/cap 再步）→ 停·另刀或协调方裁决。
@@ -158,7 +158,7 @@
 
 ## §9 状态
 
-**`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落码翻面·三臂族 proof 落码+门矩阵全绿·承登见 §9-EXEC · post-prove 双审两独立外席待派 · alone≠dual · Ban self-approve）· 卷 EXEC ≠ covered ≠ 矩阵列升格（coveredCount=8 零翻转 · EXIT0=case≠covered · ADV 行 partial 保留+收据注）· 状态翻面权归协调方 · ⛔push ⛔force-push。
+**`closed`**（2026-10-27 §9-post 双审双 PASS 会签落卷翻终态·前值 `executed:awaiting_post_prove_dual`（2026-10-27 EXEC 落码·三臂族 proof 落码+门矩阵全绿·承登见 §9-EXEC）史录留痕不洗·post-prove 双审两独立外席已行使双 PASS 落卷（§9-post）· alone≠dual 已解 · Ban self-approve）· 卷 EXEC ≠ covered ≠ 矩阵列升格（coveredCount=8 零翻转 · EXIT0=case≠covered · ADV 行 partial 保留+收据注）· 状态翻面权归协调方 · ⛔force-push。
 
 ---
 
@@ -172,8 +172,20 @@
 
 **三臂族断言 61 臂全绿**（`pnpm uc033:nhp-adv:prove` **EXIT=0 双 fresh**：implementer attempts=4 + 独立复验 attempts=1·attempts 台账：红1=壳内夹具 ACL（harness `assert_interview_privacy_active` 镜像无 GRANT EXECUTE→A begin 42501→夹具 ①b fence 带 ACL 重放修复·neg-interview ① 同款）·红2=quiz 竞态败臂实为同口 202 alreadyBegun（按想象码面断 200→按真实返回钉死修正·非谓词迁就·败者仍钉 alreadyBegun+同 jobId）·红3=0206 读分层 twin 镜像 ACL（`interview_privacy_active_read`/`interview_privacy_fenced_targets` 同类 42501→夹具 ①c 带 ACL 重放修复·0206 :37-38/:59 ACL 形）+R2 净账算术修正（avail0 已含 begin 预留·竞态窗净变恒 0）·零断言谓词变弱）：臂族 1（并·竞态格）13 断言（PC A interview begin 产品口真预留 202+payload requestId=REQ_A·预留面 consumption reserved+桶 4.0·双 abandon 恰一 released/alreadyAbandoned 双 200·A∥A begin quiz 单胜者 202 新 job+二次同口 alreadyBegun 同 jobId·B 18 臂（abandon 4/turn 4/begin-interview 4/begin-quiz 3/begin-diagnosis 3）全 404 `not_found_or_forbidden`·B turn 4≤30 减余量预算分口·R2 B 零 consumption/job 行+A 恰 1 start job+1 quiz job+桶净变 0+consumption +1 released 1）·臂族 2（复·跨聚格）11 断言（X1 B own-shell 产品口双 create 200 created+bind A-resume 双口 409 `resume_not_found_or_not_ready`+壳 resume_id 仍 NULL+零消费零 job 行·X2 sweep 12 口复行使+sweep 窗口前后 A 九聚合快照逐行相等+九聚合 B 零行+B 行零指向 A 聚合标识）·臂族 3（逃·逃逸通道格）16 断言（E0 LISTEN 健康·E1 C1 login 口 Bearer 暖缓存→disable 广播窗实测 <1s 401 `account_inactive`+C2 全程 200+C2→A 订单 404+复活对称轮询复 200·E2 C2 logout revoked=true→401 `session_revoked`+B logout 零扰 A+C2 重登录+C1 logout 不 evict C2 对称自证·E3 B3 signup trial 桶产品口自动发放+interview begin 202+interview_job owner=B3 恰 1 行+payload requestId=REQ_B3+A reqId 零现于 B 行+userB 终态零 job 行+quiz 口 reqId 腿零参照不取）·夹具 21 断言（SEED_FAIL 即红·consent+resume 产品口沿 uc016 `:104-118` 形·C1/C2/B3 signup 产品口 provenance 真哈希+jti 会话行·壳行种子四件状态钉豁免具名·0154/0189+begin 链面 additive 重放动作具名）·honesty pins 5+1 断言。**主体 provenance 分口**：userA/userB 假哈希种子仅限越权/对照 dev-header 臂·C1/C2/B3 产品口主体（E1/E2/E3 全经 signup/login/logout/interview begin 产品口）。
 
+**分账口径对齐（2026-10-27 post 措辞对齐令·分账口径改收据实分账）**：上段臂族/夹具 prose 分组为叙述形·账面口径按收据 `01-gate` stdout 逐 tag 实计=**SEED 11/PC 7/R1 4/R2 6/X1 6/X2 4/E0 1/E1 7/E2 7/E3 7/G-GAP 1=61**（61 PASS 逐 tag 恰等零出入）·断言数独立对账 55+6=61（55 case 断言+6 honesty pins〔G-GAP 五钉+壳内 additive 重放 1〕恰等）。
+
+**帽值补交承登（post 席1 FAIL P1 修复解销·2026-10-27 修复刀）**：EXEC commit `e15956698` 自述 lint 双帽恰等步进（root 5334→5355/api 1475→1496）但两行未落树（commit 自述与树不符·post 席1 FAIL P1 采信）→ 修复刀两行机械补交：root `package.json:8` `--max-warnings 5334→5355`·`apps/api/package.json:7` `1475→1496`（双 +21 恰等=EXEC 实测增量·沿 `killsw-REQUEST.md:196` 帽值随 EXEC commit 落树先例形）·复跑恰等双 EXIT=0（root 5355 problems/5355 帽·api 1496 problems/1496 帽·0 errors）·turbo typecheck EXIT=0 8/8·docs:check EXIT=0 scanned 2416≤2419·markers=0。
+
 **邻面不回退**：`uc033:cross-user-authz:prove` EXIT=0 51 断言恒等绿（X 族零触）·`neg:auth` EXIT=0·`neg:bend` EXIT=0 179 臂。**门矩阵**：docker info EXIT=0（colima Server 29.5.2·收据 00）·docs:check/PTP proof/lint/typecheck/markers/diff 面见门矩阵复验行（本席亲跑 EXIT 原值随 stdout 收据 01/02 留痕）。tracked 收据三件（`ai-docs/delivery/receipts/uc033-nhp-adv/`：00-docker-info.txt+01 gate stdout+02 verify stdout·`.log` 非扫描扩展名不计 cap）。est live=0·markers=0·pins 十一值零翻·⛔push。
+
+## §9-post 双审双 PASS 会签落卷（2026-10-27·STOP 三处翻 closed 承登）
+
+**席1（post-prove 双审·FAIL P1→修复解销裁定落款）**：EXEC 落码卷 `e15956698` 复验见 lint 双帽步进自述与树不符——commit 自述 root 5334→5355/api 1475→1496 双 +21 恰等，树仍 `5334`/`1475` 旧值→FAIL **P1**（lint 双帽值步进未落树）。协调方裁定=两行机械修复即解销（沿 `killsw-REQUEST.md:196` 帽值随 EXEC commit 落树先例形·帽值补交承登见 §9-EXEC）。修复刀两行补交后复验：root `pnpm lint` 5355/5355 恰等 EXIT=0·`pnpm -C apps/api lint` 1496/1496 恰等 EXIT=0（双 0 errors·+21 算术复核恰等）→ **PASS**。
+
+**席2（post-prove 独立外席·独立复跑+独立对账）**：`pnpm uc033:nhp-adv:prove` 独立复跑 **EXIT=0 61/61** · 断言数独立对账 **55+6=61**（55 case 断言+6 honesty pins 恰等·收据 01 逐 tag 实计 SEED 11/PC 7/R1 4/R2 6/X1 6/X2 4/E0 1/E1 7/E2 7/E3 7/G-GAP 1 恰等）· 安全面五格亲点=G-GAP 五钉（SEVEN-CLASS 翻面权归协调方/WORKER-LIVE 零触/CACHE-TRACE-RESIDUAL 两键已行使余出域/FULL-E2E 未进≠covered/非替代 X1–X11·W1 旁证零改动）零洗 → **PASS**。
+
+双 PASS 会签（席1 修复解销裁定+席2 独立复跑对账）落卷 → **STOP 三处（Status 行+§8+卷尾）翻 `closed`**·原值 `executed:awaiting_post_prove_dual` 史录留痕不洗·alone≠dual 已解。
 
 ---
 
-*X33-ADV REQUEST · 2026-10-27 起草落卷 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-27 EXEC 落码翻面·三处钉：Status 行+§8+本行·同值·前值 `draft:awaiting_pre_exec_dual` 史录零字洗·§9-EXEC 承登）· NHP-033-ADV-01 七类越权补集（case-matrix ADV 行）· 七类逐类对树亲点=四已行使（正=对照臂 X2/X7/X8/W1 · 异=X7/W1/X9 fail-closed · 特=X2 空集+X11 体不泄露 · 刁=X1–X6 对抗主面）+三缺臂（**逃=缓存键/会话/trace·job 通道零臂 · 复=跨聚合格零臂 · 并=写路径竞态格零臂〔X10 只读 burst≠竞态〕**）· 补集=恰此三类·非零残余入卷 · 修法=恰 1 具名 case 三臂族新 proof（`uc033:nhp-adv`·沿 uc015/uc016 先例形）· **EXEC 落码：EXIT=0 61 断言双 fresh（implementer attempts=4+独立复验 attempts=1·红次台账 3 红如实承登）· 邻面三门恒等绿（X 族 51/neg:auth/neg:bend 179）· egress 避词面臂零登记· runner 四位+双 package.json 注册· 双表 additive partial 零翻**· 零产品码触·X 族+harness 零触·G-GAP 五钉零洗（SEVEN-CLASS 翻面权归协调方）· §1.3 否决含停止条件登记（A3 live worker 本地不可测 · LED 跨用户缝归 uc010 · full.e2e/sole-stack/PERF 出域）· cap 预算=起草 2409→2417 派单预授权+并线 union 恰等步进 **2417→2419 CAP-SANCTION-2419**· merge base=`origin/main` `5356fa8c5`（#156/#158/#159 三线收官）· merge `b62dfc139` · 分支 `line/x33-adv-draft` · 工作树 `meetwise-x33` · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · releaseEvidence=false · ≠HA · ⛔push*
+*X33-ADV REQUEST · 2026-10-27 起草落卷 · **STOP=`closed`**（2026-10-27 §9-post 双审双 PASS 会签落卷翻终态·三处钉：Status 行+§8+本行·原值 `executed:awaiting_post_prove_dual`/起草态 `draft:awaiting_pre_exec_dual` 史录留痕不洗·§9-post 承登）· NHP-033-ADV-01 七类越权补集（case-matrix ADV 行）· 七类逐类对树亲点=四已行使（正=对照臂 X2/X7/X8/W1 · 异=X7/W1/X9 fail-closed · 特=X2 空集+X11 体不泄露 · 刁=X1–X6 对抗主面）+三缺臂（**逃=缓存键/会话/trace·job 通道零臂 · 复=跨聚合格零臂 · 并=写路径竞态格零臂〔X10 只读 burst≠竞态〕**）· 补集=恰此三类·非零残余入卷 · 修法=恰 1 具名 case 三臂族新 proof（`uc033:nhp-adv`·沿 uc015/uc016 先例形）· **EXEC 落码：EXIT=0 61 断言双 fresh（implementer attempts=4+独立复验 attempts=1·红次台账 3 红如实承登）· 邻面三门恒等绿（X 族 51/neg:auth/neg:bend 179）· egress 避词面臂零登记· runner 四位+双 package.json 注册· 双表 additive partial 零翻**· 零产品码触·X 族+harness 零触·G-GAP 五钉零洗（SEVEN-CLASS 翻面权归协调方）· §1.3 否决含停止条件登记（A3 live worker 本地不可测 · LED 跨用户缝归 uc010 · full.e2e/sole-stack/PERF 出域）· cap 预算=起草 2409→2417 派单预授权+并线 union 恰等步进 **2417→2419 CAP-SANCTION-2419**· merge base=`origin/main` `5356fa8c5`（#156/#158/#159 三线收官）· merge `b62dfc139` · 分支 `line/x33-adv-draft` · 工作树 `meetwise-x33` · est live=0 · markers=0 · pins 十一值零翻 · coveredCount=8 不变 · releaseEvidence=false · ≠HA · ⛔push*
