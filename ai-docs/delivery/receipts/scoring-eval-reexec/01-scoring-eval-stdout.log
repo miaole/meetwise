@@ -1,0 +1,137 @@
+== SCREG EXEC 主收真跑重行使 ==
+CMD: source ~/.meetwise-secrets/load-model-api-key.sh && pnpm scoring:eval
+DATE_START: 2026-10-27T23:31:25+0800
+TIP: c0755edc823cfd76f8e54501977c7093ed2bec39
+FIX: apps/worker/smoke/scoring-eval.ts :85 baseIdempotencyKey scoring-eval:v3:${evalKey(key)} (sha256 hex)
+==
+MODEL_API_KEY: injected(len=116)
+
+> meetwise@0.1.0 scoring:eval /Users/miaole/Desktop/golucky/meetwise-screg
+> node scripts/run-e2e-isolated.mjs scoring:eval:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-71083-1793115085453 on 127.0.0.1:33112
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-screg/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+=== 评分官真模型质量信号(温度已钉低;唯一key破cache)===
+
+── 单调性(组内成对序 · minGap=2)──
+  MG-限流:excellent rejected=external_outcome_unknown
+  MG-限流:good rejected=external_outcome_unknown
+  MG-限流:mediocre rejected=external_outcome_unknown
+  MG-限流:poor rejected=external_outcome_unknown
+  MG-限流:nonanswer rejected=external_outcome_unknown
+  MG-限流          成对序正确率=NaN(比0对,逆序0) Kendallτ=NaN  分:[]
+  MG-分布式锁:excellent rejected=model_circuit_open
+  MG-分布式锁:good rejected=model_circuit_open
+  MG-分布式锁:mediocre rejected=model_circuit_open
+  MG-分布式锁:poor rejected=model_circuit_open
+  MG-分布式锁:nonanswer rejected=model_circuit_open
+  MG-分布式锁        成对序正确率=NaN(比0对,逆序0) Kendallτ=NaN  分:[]
+  MG-支付幂等:excellent rejected=model_circuit_open
+  MG-支付幂等:good rejected=model_circuit_open
+  MG-支付幂等:mediocre rejected=model_circuit_open
+  MG-支付幂等:poor rejected=model_circuit_open
+  MG-支付幂等:nonanswer rejected=model_circuit_open
+  MG-支付幂等        成对序正确率=NaN(比0对,逆序0) Kendallτ=NaN  分:[]
+  MG-RAG缓存:excellent rejected=model_circuit_open
+  MG-RAG缓存:good rejected=model_circuit_open
+  MG-RAG缓存:mediocre rejected=model_circuit_open
+  MG-RAG缓存:poor rejected=model_circuit_open
+  MG-RAG缓存:nonanswer rejected=model_circuit_open
+  MG-RAG缓存       成对序正确率=NaN(比0对,逆序0) Kendallτ=NaN  分:[]
+  MG-图恢复并发:excellent rejected=model_circuit_open
+  MG-图恢复并发:good rejected=model_circuit_open
+  MG-图恢复并发:mediocre rejected=model_circuit_open
+  MG-图恢复并发:poor rejected=model_circuit_open
+  MG-图恢复并发:nonanswer rejected=model_circuit_open
+  MG-图恢复并发       成对序正确率=NaN(比0对,逆序0) Kendallτ=NaN  分:[]
+  MG-评分可信:excellent rejected=model_circuit_open
+  MG-评分可信:good rejected=model_circuit_open
+  MG-评分可信:mediocre rejected=model_circuit_open
+  MG-评分可信:poor rejected=model_circuit_open
+  MG-评分可信:nonanswer rejected=model_circuit_open
+  MG-评分可信        成对序正确率=NaN(比0对,逆序0) Kendallτ=NaN  分:[]
+  合计:传统成对序正确率=NaN(可比0,并列0,逆序0)
+  严格单调性=0.000=0/36; Wilson95%下界=0.000 (发布候选:样本≥36且下界≥0.90)
+  评分器信度 ICC(1,1) = NaN(题数<2/档不全→inconclusive)(阈≥0.75:两道独立题对质量档的区分一致)
+
+── 扰动不变性(换说法别乱跳 · 组内离散度)──
+  PG-限流-good:v0 rejected=model_circuit_open
+  PG-限流-good:v1 rejected=model_circuit_open
+  PG-限流-good:v2 rejected=model_circuit_open
+  PG-限流-good:v3 rejected=model_circuit_open
+  PG-限流-good         变体分=[]  组内SD=NaN
+  PG-分布式锁-good:v0 rejected=model_circuit_open
+  PG-分布式锁-good:v1 rejected=model_circuit_open
+  PG-分布式锁-good:v2 rejected=model_circuit_open
+  PG-分布式锁-good:v3 rejected=model_circuit_open
+  PG-分布式锁-good       变体分=[]  组内SD=NaN
+  PG-支付幂等-good:v0 rejected=model_circuit_open
+  PG-支付幂等-good:v1 rejected=model_circuit_open
+  PG-支付幂等-good:v2 rejected=model_circuit_open
+  PG-支付幂等-good:v3 rejected=model_circuit_open
+  PG-支付幂等-good       变体分=[]  组内SD=NaN
+  PG-RAG缓存-good:v0 rejected=model_circuit_open
+  PG-RAG缓存-good:v1 rejected=model_circuit_open
+  PG-RAG缓存-good:v2 rejected=model_circuit_open
+  PG-RAG缓存-good:v3 rejected=model_circuit_open
+  PG-RAG缓存-good      变体分=[]  组内SD=NaN
+  中位组内SD=NaN, p90=NaN, max=NaN (tripwire:中位≤8,p90≤12,max≤15)
+
+── 相关性(跑题/指代/攻击 → relevant=false, score=0)──
+  OT-01 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-02 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-03 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-04 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-05 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-06 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-07 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-08 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-09 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-10 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-11 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-12 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-13 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-14 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-15 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-16 expected=model actual=rejected reason=model_circuit_open 🔴
+  OT-17 expected=deterministic actual=deterministic relevant=false score=0 ✅
+  OT-18 expected=model actual=rejected reason=model_circuit_open 🔴
+  全部相关性=5/18, Wilson95%下界=0.125; 模型判别子集=0/13, 下界=0.000 (发布候选:模型子集≥36且下界≥0.90)
+
+── 评分操纵不变性(先剥离，再评分)──
+  MI-限流-中文尾巴:v0 strip=PASS rejected=model_circuit_open
+  MI-限流-中文尾巴:v1 strip=PASS rejected=model_circuit_open
+  MI-限流-中文尾巴: 无足够真模型结果，不据此下结论
+  MI-锁-英文尾巴:v0 strip=PASS rejected=model_circuit_open
+  MI-锁-英文尾巴:v1 strip=PASS rejected=model_circuit_open
+  MI-锁-英文尾巴: 无足够真模型结果，不据此下结论
+  MI-支付-角色伪造:v0 strip=PASS rejected=model_circuit_open
+  MI-支付-角色伪造:v1 strip=PASS rejected=model_circuit_open
+  MI-支付-角色伪造: 无足够真模型结果，不据此下结论
+  MI-RAG-伪截断:v0 strip=PASS rejected=model_circuit_open
+  MI-RAG-伪截断:v1 strip=PASS rejected=model_circuit_open
+  MI-RAG-伪截断: 无足够真模型结果，不据此下结论
+  剥离精确率=8/8, Wilson95%下界=0.676; 可比模型对=0, 最大分差=NaN (tripwire:所有剥离通过; Δ≤15)
+
+=== 汇总:评分请求 71 · 实际供应商调用 5 · quote 二次调用 0（固定） · quote 拒绝 0 · 确定性短路 5 · 业务/证据拒绝 0 · 跳过(model_transient) 71(100%)===
+⚠ INCONCLUSIVE:跳过率 >20%,供应商当天可能不稳,本轮不下质量结论(既不绿也不红)。
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T15-31-31-828Z-71083-2d8ca6d8-71d1-4b36-9eec-f186840b5c1c.json release_evidence=false
+SCORING_EVAL_EXIT=0
+DATE_END: 2026-10-27T23:31:31+0800
+
+== EXEC 收据四件套注记（EXEC 席落卷·非模型输出·与上行 stdout 原值分界）==
+①EXIT: SCORING_EVAL_EXIT=0（脚本 :200 非阻断 exit 0 语义·真跑红=信号如实收非阻断）
+②profile: 有效 profile=dashscope-cn-beijing（脚本 :39 钉值亲证·registry :253 映射 interview.answer-scoring.v1·快模型 qwen-turbo 生产正常路径 :40·零触）·MODEL_API_KEY loader 通道注入（~/.meetwise-secrets/load-model-api-key.sh·len=116·值零入树零入据）
+③三层门核查：wrapper :3748 skip 臂=解除（Key 已注入·真执行）；脚本 :16 自 skip 臂=解除（进评测体）；nightly :58 continue-on-error=零触（本跑系手动 EXEC 非 nightly cron）——三层 skip 链全解除亲证
+④五字段门（§2-4②）: ①revision_invalid=0 ✓（显式 0+静默 0·修法已证·红停主因 58→0 清零）②skip<20% 非 INCONCLUSIVE ✗（skip=71/71=100%·INCONCLUSIVE）③评分请求 71 恒等 ✓ ④确定性短路 5 恒等 ✓ ⑤实际供应商调用 5≥1 ✓（真外呼实证）——⑤字段中 4 绿 1 红
+⑤按因分布归因（§8 机制不满足条款·亲数）：external_outcome_unknown ×5（MG-限流组头 5 dispatch 真达供应商·outcome unknown）→ 共享熔断阈 5 触发 → model_circuit_open ×66（25 MG+16 PG+13 OT+12 MI·零外呼）→ 级联罩全部 71 请求=§0.3 预言形『5 连击落头 5 dispatch 会级联罩全部』当日复现·供应商/熔断族非键域（revision_invalid=0 亲证）→ 处置=改期重行使（非归因证伪·如实收红·Ban retry-to-green·Ban 改阈值洗 INCONCLUSIVE）
+⑥est live 实测：实际供应商调用 5（计费上界=71 dispatch 冻结·unknown 零重试 invoke.ts:7·分币级沿 E2EA-01 五调用先例）·actualSpendCny=null 保持（无计价数据源·不发明金额）
