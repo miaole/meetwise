@@ -1,0 +1,16 @@
+• turbo 2.10.0
+
+   • Packages in scope: @meetwise/api
+   • Running typecheck in 1 packages
+   • Remote caching disabled, using shared worktree cache
+
+@meetwise/api:typecheck: cache bypass, force executing 21b49c89fedb365c
+@meetwise/api:typecheck: 
+@meetwise/api:typecheck: > @meetwise/api@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-x17/apps/api
+@meetwise/api:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/api:typecheck: 
+
+ Tasks:    1 successful, 1 total
+Cached:    0 cached, 1 total
+  Time:    4.211s 
+

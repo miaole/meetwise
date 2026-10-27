@@ -1,0 +1,111 @@
+
+> meetwise@0.1.0 uc017:nhp-adv:prove /Users/miaole/Desktop/golucky/meetwise-x17
+> node scripts/run-e2e-isolated.mjs uc017:nhp-adv:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-63001-1793143558236 on 127.0.0.1:33160
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc017-nhp-adv /Users/miaole/Desktop/golucky/meetwise-x17/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-017-nhp-adv.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793143561578,"pid":63197,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:58592"}
+UC-E2E-017 orphan ADV prove · NHP-017-ADV-01 · releaseEvidence=false · Not HA
+NOTE: 本绿≠UC-E2E-017 covered；EXIT0=case≠covered；ADV blind 保持+case-only·翻面权归协调方
+NOTE: fixture=pgvector isolated (green-risk/R5)·零 live key·零模型外呼·est live=0
+PASS  ISO model-key-unset-in-process (self-deleted pre-boot · shell strip list lacks MODEL_API_KEY)
+PASS  ISO model-key-still-unset-after-boot (boot() :61-62 自删双保险·零 re-import regression)
+PIN   GAP-UC017-BEGIN-FIXTURE-PREAMBLE: 0064/0049/0142 additive 夹具补齐（真相=迁移链·≠ 迁移 covered）
+PIN   GAP-UC017-PRIVACY-MIRROR: boot() 内置 0058 镜像承载隐私触点（五 case 同形）
+
+──────── NHP-017-ADV-01 V1 · 伪造预占同键异 units → 409 idempotency_units_mismatch ────────
+{"level":30,"time":1793143561603,"pid":63197,"hostname":"miaole.local","reqId":"84cff621-ecd5-49ae-9d34-2d5b875259eb","req":{"method":"POST","url":"/interview/IV_A017_v1_mvrbdn56/begin","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561612,"pid":63197,"hostname":"miaole.local","reqId":"84cff621-ecd5-49ae-9d34-2d5b875259eb","res":{"statusCode":409},"responseTime":8.614084000000048,"msg":"request completed"}
+PASS  V1 begin → 409 idempotency_units_mismatch（commerce.ts:67-72 具名错→interview.service.ts:265-267 映射）
+PASS  V1 零 start job 零入队
+PASS  V1 桶 units_reserved 零动（余额恒种子值 5.0）
+PASS  V1 伪造行字节零动（SELECT * 前后逐列恒等·事务回滚）
+PASS  V1 units_requested 仍 0.5（异 units 拒面原值钉）
+PASS  V1 consumption 恰 1 行（伪造行·无新增）
+PASS  V1 零 interview_unavailable 事件
+
+──────── NHP-017-ADV-01 V2 · v64 job 种+夹具 epoch 失配 → 409 legacy_resume_reference_unavailable ────────
+PASS  V2 v64 job 种在场（start 恰 1·绑定三元组恰等形）
+PASS  V2 夹具 resume.privacy_epoch 1→2 已施（超户直 UPDATE·非产品路径如实申明）
+{"level":30,"time":1793143561631,"pid":63197,"hostname":"miaole.local","reqId":"9ec14409-f760-4a49-a302-3ecb004857f3","req":{"method":"POST","url":"/interview/IV_A017_v2_mvrbdn56/begin","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561634,"pid":63197,"hostname":"miaole.local","reqId":"9ec14409-f760-4a49-a302-3ecb004857f3","res":{"statusCode":409},"responseTime":3.799291999999923,"msg":"request completed"}
+PASS  V2 begin → 409 legacy_resume_reference_unavailable（v64 谓词 :217-231 失配 2≠1→anyExistingStart :232-234 命中拒）
+PASS  V2 陈旧 job 行字节零动（SELECT * 前后逐列恒等·零采纳）
+PASS  V2 interview 行字节零动（SELECT * 前后逐列恒等·零绑定写零 version 动）
+PASS  V2 start job 计数不变（仍 1·零复活零换基）
+PASS  V2 consumption 0 行（零扣额）
+PASS  V2 余额零动（恒种子值 5.0）
+PASS  V2 resume 行仅 privacy_epoch 一列动（1→2 夹具自致·非 begin 副作用·逐列 diff 恰 1 键）
+
+──────── NHP-017-ADV-01 V4 · begin→租约过期→abandon 先行→reconcile 零双释放 ────────
+{"level":30,"time":1793143561647,"pid":63197,"hostname":"miaole.local","reqId":"82fff28c-2713-445a-bd9a-215dec798c32","req":{"method":"POST","url":"/interview/IV_A017_v4_mvrbdn56/begin","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561657,"pid":63197,"hostname":"miaole.local","reqId":"82fff28c-2713-445a-bd9a-215dec798c32","res":{"statusCode":202},"responseTime":9.48441600000001,"msg":"request completed"}
+PASS  V4 begin → 202 accepted+jobId
+PASS  V4 reserved 可观测（consumption key=interview id）
+PASS  V4 预留扣 1.0（5→4）
+{"level":30,"time":1793143561661,"pid":63197,"hostname":"miaole.local","reqId":"15de7bab-cdd0-49ca-b32b-ada875e6a774","req":{"method":"POST","url":"/interview/IV_A017_v4_mvrbdn56/abandon","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561669,"pid":63197,"hostname":"miaole.local","reqId":"15de7bab-cdd0-49ca-b32b-ada875e6a774","res":{"statusCode":200},"responseTime":7.907625000000053,"msg":"request completed"}
+PASS  V4 POST abandon → 200 released（已回补）
+PASS  V4 abandon 后 consumption released
+PASS  V4 abandon 回补（4→5·恰一次）
+PASS  V4 interview 终态 abandoned
+PASS  V4 reconcile staleReleased===0（sweep 谓词 status='reserved' commerce.ts:591 不命中 released·零双释放）
+PASS  V4 reconcile abandoned===0（swept 空·零回收零双终态）
+PASS  V4 余额恒种子原值（零双回补·恰一次退款）
+PASS  V4 interview_unavailable 事件 0 条（无回收即无事件）
+PASS  V4 consumption 恰 1 行终态 released（consCount 逐臂=1）
+
+──────── NHP-017-ADV-01 V5 · begin→租约过期→reconcile 先行→abandon noop ────────
+{"level":30,"time":1793143561688,"pid":63197,"hostname":"miaole.local","reqId":"a33cdcb0-608a-4884-83f4-848778ef683b","req":{"method":"POST","url":"/interview/IV_A017_v5_mvrbdn56/begin","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561696,"pid":63197,"hostname":"miaole.local","reqId":"a33cdcb0-608a-4884-83f4-848778ef683b","res":{"statusCode":202},"responseTime":7.46554100000003,"msg":"request completed"}
+PASS  V5 begin → 202 accepted+jobId
+PASS  V5 reserved 可观测
+PASS  V5 预留扣 1.0（5→4）
+PASS  V5 reconcile staleReleased≥1（sweep 谓词命中 reserved 行）
+PASS  V5 reconcile abandoned≥1（C 端回收分支 abandonInterviewAndRelease）
+PASS  V5 consumption released
+PASS  V5 interview 终态 abandoned
+PASS  V5 interview_unavailable 事件恰 1 条
+PASS  V5 reconcile 恰一次回补（4→5）
+{"level":30,"time":1793143561715,"pid":63197,"hostname":"miaole.local","reqId":"98b09e06-4c8f-48de-b1ea-5ad38be2a4c9","req":{"method":"POST","url":"/interview/IV_A017_v5_mvrbdn56/abandon","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561720,"pid":63197,"hostname":"miaole.local","reqId":"98b09e06-4c8f-48de-b1ea-5ad38be2a4c9","res":{"statusCode":200},"responseTime":5.3872499999999945,"msg":"request completed"}
+PASS  V5 POST abandon → 200 {abandoned:true, released:"noop", alreadyAbandoned:true}（interview.service.ts:659 映射）
+PASS  V5 余额恒种子原值（abandon 零二次退款·净恰一次回补）
+PASS  V5 事件仍恰 1 条（零重放）
+PASS  V5 consumption 恰 1 行 released（consCount 逐臂=1）
+
+──────── NHP-017-ADV-01 V6 · V5 回收壳同 id re-begin → 409 interview_not_active ────────
+{"level":30,"time":1793143561727,"pid":63197,"hostname":"miaole.local","reqId":"0483e517-b622-4c69-9c84-cab080f1b0a0","req":{"method":"POST","url":"/interview/IV_A017_v5_mvrbdn56/begin","host":"127.0.0.1:58592","remoteAddress":"127.0.0.1","remotePort":58593},"msg":"incoming request"}
+{"level":30,"time":1793143561729,"pid":63197,"hostname":"miaole.local","reqId":"0483e517-b622-4c69-9c84-cab080f1b0a0","res":{"statusCode":409},"responseTime":2.4644579999999223,"msg":"request completed"}
+PASS  V6 re-begin → 409 interview_not_active（TERMINAL_INTERVIEW :38/:128-129·status=abandoned）
+PASS  V6 零新 start job（仍 1·零复活零入队）
+PASS  V6 零二次扣（余额恒种子值 5.0）
+PASS  V6 interview 仍 abandoned（不复活）
+PASS  V6 consumption 与 V5 同行零新增（consCount 仍 1）
+
+──────── NHP-017-ADV-01 N · 全程净账审计 ────────
+PASS  N V1 臂零扣（余额恒 5.0·伪造行零动）
+PASS  N V2 臂零扣零误退（余额恒 5.0）
+PASS  N V4 臂 consCount 恰 1（终态 released·恰一次扣+恰一次回补）
+PASS  N V5 臂 consCount 恰 1（released·净零）
+PASS  N V6 臂零新增（与 V5 同行·consCount 仍 1）
+PASS  N 全臂合账净耗 0.0（V1/V2 零扣·V4/V5/V6 各恰一次 1.0 扣+恰一次 1.0 回补）
+PASS  N interview_unavailable 事件全臂恰 1 条（V5 回收发出·V4/V6 零新增）
+
+──────── GAP pins (抬 covered 仍缺) ────────
+GAP-UC017-ADV-LEGACY-GUARD-UNPROVED: V3 pre-v64 父壳臂撤臂留痕（rev r1 §0.0.1·rev r2 R2 §0.0.2）——interview.service.ts:190-195 守卫真实在码但产品迁移链 schema 下 HTTP/DB 层不可达（0064:48-51 对拒插+0064:72-83 堵改绑）；boot 镜像世界无 0064 对触发器该态夹具可造但无产品证明价值——零臂对准维持·本收据不复述即登记蒸发面
+GAP-UC017-HTTP-SSE-PROCESS-CRASH: 真 commit 后故障点/进程级 SIGKILL 注入未行使（五 case :432 预登归另刀·本刀 fixture 租约注入同形不越界）
+NOTE: 零报告链风暴/白名单臂+零跨主体臂=对 uc019-adv V2-V5/neg-interview/uc017-perf/五 case NEG-01 的 wash 规避（REQUEST §1.3 否决表）
+PASS  honesty: ADV isolated prove 绿 ≠ UC-E2E-017 covered（EXIT0=case≠covered·ADV blind 保持+case-only·coveredCount=8 零动·翻面权归协调方）
+
+✓ uc017:nhp-adv: 56 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T23-26-01-892Z-63001-138c3f78-420d-4f3a-97e9-b10f62ad8afd.json release_evidence=false
