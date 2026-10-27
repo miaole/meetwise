@@ -1691,6 +1691,19 @@ const isolatedReceiptSources = {
     'apps/api/src/platform/sse-pump.ts',
     'e2e/helpers/sse.ts',
   ],
+  // SSE-ADV 残余面行（UC-010 ADV 残余·NHP-010-ADV-02）：同主体双流游标交换（高/低）+双持实时
+  // 跨流注入零互偷（自装 0214 语句级触发器+token 通道注入）+账本零写副作用（appended-exactly）。
+  'uc010:nhp-crossstream:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-010-nhp-crossstream.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/platform/last-event-id.ts',
+    'apps/api/src/platform/sse-pump.ts',
+    'apps/api/src/platform/sse-notify.service.ts',
+    'packages/db/migrations/0214_interview_event_statement_notify.sql',
+  ],
   'sse-push:notify:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/sse-push-notify.proof.ts', 'apps/api/test/_neg-harness.ts',
@@ -2641,6 +2654,8 @@ if (![
   'uc004:nhp-bound:prove:raw',
   'uc004:nhp-adv:prove:raw',
   'uc010:nhp-adv:prove:raw',
+  // SSE-ADV 残余面行（NHP-010-ADV-02·同主体多流交叉隔离 prove·一行一 case 一收据）。
+  'uc010:nhp-crossstream:prove:raw',
   'uc011:nhp-load:prove:raw',
   // NHP 批 A 三行（UC-012/024 FAULT · UC-003 ADV · UC-030 FAULT · 一行一 case 一收据）。
   'uc012:nhp-fault:prove:raw',
@@ -2883,6 +2898,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc004-nhp-adv']]
   : target === 'uc010:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-nhp-adv']]
+  : target === 'uc010:nhp-crossstream:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc010-nhp-crossstream']]
   : target === 'uc011:nhp-load:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc011-nhp-load']]
   : target === 'uc010:sse-resume:prove:raw'
