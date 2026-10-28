@@ -1,0 +1,9 @@
+== markers 严格形 · EXEC 改动集 ==
+--(a) 新增行（git diff+新收据文件）五类词 TODO/FIXME/XXX/HACK 零命中核--
+ADDED_LINES_MARKER_EXIT=1 (1=零命中)
+--(b) 行首冲突标记（改动集全文件）--
+CONFLICT_MARKER_EXIT=1 (1=零命中)
+--(c) 改动集全文件五类词既存账（如实分列）--
+scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs: 0
+ai-docs/delivery/harness/r5mr-REQUEST.md: 0
+ai-docs/delivery/execution-master-checklist.md: 4（既存史录 :2309/:2721/:2943/:2964 勘误引文·本刀新增行零命中见 (a)）

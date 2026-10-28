@@ -437,24 +437,26 @@ const checks = {
       // CAP-SANCTION-2446 isob EXEC 落卷并线 union 越限恰等步进：cap 2445→2446（2026-10-26 isob EXEC 落卷并线·fetch EXIT=0·届值如实采 origin/main 33fdd233c=#173（cap 届值承 2445=上注 CAP-SANCTION-2445）·merge f76e05751 dual-keep 双留恰 2 处冲突（号随 merge-tree 重排）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2446>2445 红（真 EXIT=1 亲证）——union 实测 2446=main 届扫 2445+本支并入互斥受管目 1（harness/isob-REQUEST.md·两集合无交叠）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2446 注记·常设预授权随令行使·禁止按预登 2442/anticipated 2444 行使·届值如实采）——本 TC 四联动点 2_446/f-2446.md/:2447 恰等改。
       // CAP-SANCTION-2446 UC3F EXEC 并线 union 越限恰等步进：cap 2445→2446（2026-10-26 UC-003 FAULT 残脸收口 EXEC 立项并线·常设预授权随令行使 +1（2445→2446）·届值如实采：merge bffbb6c55=merge origin/main 33fdd233c（cap 届值承 2445=上注 CAP-SANCTION-2445）·本支 51984c36a 承 2_442≤2_445 合规·main 届值 33fdd233c 承 2445=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2446>2445 红（真 EXIT=1 亲证）——union 实测 2446=main 届扫 2445+本支并入互斥受管目 1（harness/uc3f-REQUEST.md·两集合无交叠·EXEC 面=双表行内注记+落卷零新受管文件）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2446 注记·沿 CAP-SANCTION-2445 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_446/f-2446.md/:2447 恰等改。
       // CAP-SANCTION-2447 isob 收官并线 union 越限恰等步进：cap 2446→2447（2026-10-26 GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口卷 post 复审 PASS 后收官并线·常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使 +1（2446→2447）·届值如实采：merge 3e6c96db2=merge origin/main c99d003f1（#180 uc3f 合卷已落·cap 届值承 2446=上注 CAP-SANCTION-2446 双注记（isob+UC3F）三线同号并留·取大恒 2446 零再步进·恰 2 处冲突=两 policy 脚本注记区 dual-keep 双留·#177/#179 在飞未落 main 如实采）·本支 d239baf25 承 2446=cap 恰等·main 届值 c99d003f1 承 2446=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2447>2446 红（真 EXIT=1 亲证）——union 实测 2447=main 届扫 2446+本支并入互斥受管目 1（harness/isob-REQUEST.md·两集合无交叠）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2447 注记·沿 CAP-SANCTION-2446 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_447/f-2447.md/:2448 恰等改。
+      // CAP-SANCTION-2448 r5mr 收官并线 union 越限恰等步进：cap 2447→2448（详 policy .mjs 链区 CAP-SANCTION-2448 注记·2026-10-28 r5mr 卷 post 双审席1+席2 双 PASS 会签后收官并线·常设预授权随令行使 +1 恰等零多放·届值如实采 merge 0b4cd14a9=merge origin/main af273901a（#181 isob 已落·cap 届值承 2447=isob CAP-SANCTION-2447·取大恒 2447 零再步进）·本支 970403fec 承 2446≤2447 合规·main 届值 af273901a 承 2447=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2448>2447 红（真 EXIT=1 亲证）——union 实测 2448=main 届扫 2447+本支并入互斥受管目 1（harness/r5mr-REQUEST.md·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·本刀 PR：line/r5mr-draft→main（链 …→970403fec→0b4cd14a9→本步进 commit 全链随 PR 首·号承 PR/merge ref）·沿 CAP-SANCTION-2447 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_448/f-2448.md/:2449 恰等改。
       const paths = [];
-      for (let i = 0; i < 2_447; i += 1) {
+      for (let i = 0; i < 2_448; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_447);
-      // 超限错误码形状断言：第 2448 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2448`（`${CODE}:${n}` 形）·scannedFiles:0。
+      assert.equal(atCap.scannedFiles, 2_448);
+      // 超限错误码形状断言：第 2449 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2449`（`${CODE}:${n}` 形）·scannedFiles:0。
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
       // UC3F EXEC 立项并线取大承登：本 TC 四联动点随合并树 cap=2_445 行使（本支原 2_442/f-2442.md/:2443 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2446 恰等步进 2445→2446 随本 EXEC commit 兑现（f-2446.md/:2447 联动）。
       // isob 收官并线取大承登：本 TC 四联动点随合并树 cap=2_446 行使（uc3f 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2447 恰等步进 2446→2447 随本收官步进 commit 兑现（f-2447.md/:2448 联动）。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2447.md'] });
+      // r5mr 收官并线取大承登：本 TC 四联动点随合并树 cap=2_447 行使（isob/uc3f 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2448 恰等步进 2447→2448 随本收官步进 commit 兑现（f-2448.md/:2449 联动）。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2448.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2448`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2449`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
