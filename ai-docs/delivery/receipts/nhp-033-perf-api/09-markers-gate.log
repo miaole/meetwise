@@ -46,3 +46,8 @@ scripts/run-e2e-isolated.mjs::FIXME=0
 scripts/run-e2e-isolated.mjs::XXX=0
 scripts/run-e2e-isolated.mjs::HACK=0
 scripts/run-e2e-isolated.mjs::conflict-marker=0
+# ── post dual-review erratum annotation (2026-10-26 收官随卷·席1①+席2② 同项·上方原始扫描输出逐行未动) ──
+# 勘误：上方 changed-set 枚举遗漏 apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts（EXEC 期新增 proof 文件未列入本次 grep 逐文件枚举）。
+# 实质核：post 双审两独立外席对该文件按同口径（TODO/FIXME/XXX/HACK 五类标记词+行首冲突标记）代扫=零命中；
+# 收官席（2026-10-26）同口径复跑该单文件 grep 亦零命中（TODO=0 FIXME=0 XXX=0 HACK=0 conflict-marker=0），
+# 复跑 stdout 见 16-markers-final.log（proof 单文件段）。
