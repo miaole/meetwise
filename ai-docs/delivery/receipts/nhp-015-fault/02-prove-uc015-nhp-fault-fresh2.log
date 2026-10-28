@@ -1,0 +1,101 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-96381-1793158310041 on 127.0.0.1:33186
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-uc15f/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc015-nhp-fault /Users/miaole/Desktop/golucky/meetwise-uc15f/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-fault.proof.ts
+
+UC-E2E-015 NHP-015-FAULT-01 isolated PG/HTTP FAULT evidence (visionOcr 缝故障注入→产品降级形状)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained
+EXIT0=case≠covered · FAULT 格 partial 保持零翻 · est live=0（scripted 注入零出站）
+ATTEMPT_START  iso=2026-10-28T03:31:57.489Z · Ban retry-to-green · Ban fake-green
+
+PASS  [ISO] model-key-unset-in-process(self-deleted pre-boot · R6)
+{"level":30,"time":1793158317918,"pid":96592,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:51627"}
+PASS  [ISO] model-key-still-unset-after-boot(no re-import regression)
+PASS  [ISO] ocr-preview-window-post-boot(OCR_ENABLED=1 ∧ OCR_PREVIEW=1 · call-time read seam)
+PASS  [ISO] boot-world carrier alignment(claim 19 参末形+terminalize 10 参+permit 表+admission fn 在场·迁移链重放六件+七列对齐+重放收敛)
+PIN   NHP-015-FAULT-ISO-CARRIER-ALIGN: harness 面迁移链重放（0121/0085/0088/0120/0179/0209+七列对齐+收敛 DROP 四行+terminalize GRANT·真相=迁移链 migrate 全链·ADV 0189/0121 同形）
+{"level":30,"time":1793158317972,"pid":96592,"hostname":"miaole.local","reqId":"4f0ca7b5-4ca6-48de-8ada-942d5c07211c","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:51627","remoteAddress":"127.0.0.1","remotePort":51629},"msg":"incoming request"}
+{"level":30,"time":1793158317980,"pid":96592,"hostname":"miaole.local","reqId":"4f0ca7b5-4ca6-48de-8ada-942d5c07211c","res":{"statusCode":200},"responseTime":7.3241669999999885,"msg":"request completed"}
+PASS  [PC] seed consent via product path POST /privacy/consent → 200 (uc15f_pc)
+PASS  [PC] seed entitlement_bucket direct INSERT rowCount 1 (uc15f_pc · 豁免②)
+PASS  [PC] 面1-4 臂前基线（resume 0/confirmed 0/artifact 0/units 5.0）
+PASS  [PC] scripted 成功 → 200（非假阴性·承载活性）
+PASS  [PC] 200 body status='ingested'
+PASS  [PC] 200 body format='image'
+PASS  [PC] 200 body ocr=true
+PASS  [PC] scripted resume.vision 调用计数恰 1（承载缝红线·计数=0 即环境红）
+PASS  [PC] consumption confirmed 恰 1（按次计费·:171-196 事务 confirmed）
+PASS  [PC] 成功后工件已删（:194 同事务 deleteResumeOcrArtifact）
+PASS  [PC] resume 恰 1 行（成功面登记于 full.e2e live-key·本臂 zero claim 仅证承载）
+PASS  [PC] 可用额度恰扣 1（5.0→4.0）
+{"level":30,"time":1793158318064,"pid":96592,"hostname":"miaole.local","reqId":"8c4e01fe-cb6e-423e-8476-15e355a17ee5","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:51627","remoteAddress":"127.0.0.1","remotePort":51629},"msg":"incoming request"}
+{"level":30,"time":1793158318067,"pid":96592,"hostname":"miaole.local","reqId":"8c4e01fe-cb6e-423e-8476-15e355a17ee5","res":{"statusCode":200},"responseTime":3.2545419999999012,"msg":"request completed"}
+PASS  [F1] seed consent via product path POST /privacy/consent → 200 (uc15f_f1)
+PASS  [F1] seed entitlement_bucket direct INSERT rowCount 1 (uc15f_f1 · 豁免②)
+PASS  [F1] scripted throw 裸传 → 422（非 500 非静默·invoke :1024 catch→:1130 恒返）
+PASS  [F1] 422 body error='ocr_failed'
+PASS  [F1] 422 body reason='external_outcome_unknown'
+PASS  [F1] 422 body hint 在场（可解释信封）
+PASS  [F1] scripted 调用计数恰 1
+PASS  [F1] 面1 resume 行 before/after 恒等 0===0 (F1)
+PASS  [F1] 面2 consumption confirmed 行恒等 0 (F1)
+PASS  [F1] 面3 resume_ocr_artifact 行恒等 0 (F1)
+PASS  [F1] 面4 桶可用额度扣 1 后回升恒等 5.0 (F1)
+PASS  [F1] 面5 账本恰 1 新行
+PASS  [F1] 面5 status='unknown'
+PASS  [F1] 面5 error_code='external_outcome_unknown'
+{"level":30,"time":1793158318104,"pid":96592,"hostname":"miaole.local","reqId":"01785c33-28b6-4c56-9618-698399c020e1","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:51627","remoteAddress":"127.0.0.1","remotePort":51629},"msg":"incoming request"}
+{"level":30,"time":1793158318107,"pid":96592,"hostname":"miaole.local","reqId":"01785c33-28b6-4c56-9618-698399c020e1","res":{"statusCode":200},"responseTime":2.4414589999998952,"msg":"request completed"}
+PASS  [F2] seed consent via product path POST /privacy/consent → 200 (uc15f_f2)
+PASS  [F2] seed entitlement_bucket direct INSERT rowCount 1 (uc15f_f2 · 豁免②)
+PASS  [F2] F2 成对窗请求前置（MODEL_EXECUTION_TIMEOUT_MS=1000 ∧ MODEL_TIMEOUT_MS=1000·下界 invoke :376-379 bounded）
+PASS  [F2] 臂后成对窗 finally 删两键（save/restore·窗不外溢）
+PASS  [F2] scripted 挂起 → 产品 withAbortTimeout 1_000ms 到点 → 422（HTTP 面与 F1 同码=:1130 恒返·如实承登）
+PASS  [F2] 422 body error='ocr_failed'
+PASS  [F2] 422 body reason='external_outcome_unknown'（:1130 恒返·两成因 HTTP 口不可区分）
+PASS  [F2] scripted 调用计数恰 1
+PASS  [F2] 面1 resume 行 before/after 恒等 0===0 (F2)
+PASS  [F2] 面2 consumption confirmed 行恒等 0 (F2)
+PASS  [F2] 面3 resume_ocr_artifact 行恒等 0 (F2)
+PASS  [F2] 面4 桶可用额度扣 1 后回升恒等 5.0 (F2)
+PASS  [F2] 面5 账本恰 1 新行
+PASS  [F2] 面5 status='unknown'
+PASS  [F2] 面5 error_code='model_execution_timeout'（:1116→:1120 账本 reason 级可分=本形独立断言面）
+{"level":30,"time":1793158319153,"pid":96592,"hostname":"miaole.local","reqId":"27d961f3-0606-4353-85d5-2ab983b26f02","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:51627","remoteAddress":"127.0.0.1","remotePort":51629},"msg":"incoming request"}
+{"level":30,"time":1793158319156,"pid":96592,"hostname":"miaole.local","reqId":"27d961f3-0606-4353-85d5-2ab983b26f02","res":{"statusCode":200},"responseTime":3.481083000000126,"msg":"request completed"}
+PASS  [F3] seed consent via product path POST /privacy/consent → 200 (uc15f_f3)
+PASS  [F3] seed entitlement_bucket direct INSERT rowCount 1 (uc15f_f3 · 豁免②)
+PASS  [F3] 空转写（trim 后 0 < MIN_OCR_CHARS=10）→ 422（resume-ocr :138 businessValidate）
+PASS  [F3] 422 body error='ocr_failed'
+PASS  [F3] 422 body reason='business:ocr_text_too_short'（调用方可读 reason·:1241-1243）
+PASS  [F3] scripted 调用计数恰 1
+PASS  [F3] 面3 工件零写入（:1199 persistValidatedOutput 跳过·写入从未发生非删后残留）
+PASS  [F3] 面1 resume 行恒等 0
+PASS  [F3] 面2 consumption confirmed 行恒等 0
+PASS  [F3] 面4 桶可用额度扣 1 后回升恒等 5.0
+PASS  [F3] 面5 账本恰 1 新行
+PASS  [F3] 面5 status='failed'（completeModelInvocation error≠undefined→'failed'·r1 修订③）
+PASS  [F3] 面5 error_code='business_validation_failed'（落库机器码·与调用方 reason 二者分离）
+PASS  [N] F1–F3 confirmed 净账恒 0（reserve→release 闭环·零 confirmed）
+PASS  [N] F1 可用额度回升恒等 5.0
+PASS  [N] F2 可用额度回升恒等 5.0
+PASS  [N] F3 可用额度回升恒等 5.0
+PASS  [N] resume 行三臂聚合恒 0（无半写）
+PASS  [N] resume_ocr_artifact 行三臂聚合恒 0（工件卫生）
+PASS  [N] 面5 三臂账本合计恰 3（每臂恰 1 新行·具名终态已逐臂断言）
+
+✓ uc015:nhp-fault: 65 条断言全绿（NHP-015-FAULT-01 · FAULT cell 残余亚层 · EXIT0=case≠covered）
+pins: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
+est live=0 · scripted 缝零出站 · Ban 借 F 臂宣自动重试已证/成功面背书/HTTP 口可区分（:1130 恒返·区分面=账本 reason） · ⛔push · CMD=pnpm uc015:nhp-fault:prove
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-28T03-31-59-404Z-96381-1982ab64-a939-4640-961e-f8273748255b.json release_evidence=false
+PROVE_FRESH2_EXIT=0

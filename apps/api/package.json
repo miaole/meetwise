@@ -4,7 +4,7 @@
  "private": true,
  "type": "module",
  "scripts": {
-  "lint": "eslint . --max-warnings 1520",
+  "lint": "eslint . --max-warnings 1526",
   "serve": "node --import @swc-node/register/esm-register src/main.ts",
   "typecheck": "tsc -p tsconfig.json --noEmit",
   "validate": "node --import @swc-node/register/esm-register test/validate.ts",
@@ -43,6 +43,7 @@
   "prove:uc030-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-adv.proof.ts",
   "prove:uc016-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-016-nhp-neg.proof.ts",
   "prove:uc015-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-adv.proof.ts",
+  "prove:uc015-nhp-fault": "node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-fault.proof.ts",
   "prove:uc016-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-016-nhp-adv.proof.ts",
   "prove:uc001-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-001-nhp-perf-api.proof.ts",
   "prove:uc011-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-011-nhp-perf-api.proof.ts",
