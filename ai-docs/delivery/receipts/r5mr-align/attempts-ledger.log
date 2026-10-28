@@ -1,0 +1,29 @@
+# r5mr-align attempts 台账 · gap-sole-stack-align.md:111 协议（记修复 diff 与授权出处 · 每跑 EXIT/命令全文/日志路径全录·含失败项·零 retry-to-green）
+# 刀：r5-mark-red documented-red 断言对齐修复 · REQUEST=ai-docs/delivery/harness/r5mr-REQUEST.md · 树 line/r5mr-draft @ 2157c2558（origin/main 33fdd233c）
+# est live=0（静态 node prove·零容器零外呼零模型零 Key）
+
+## 授权出处（逐条亲点）
+- A1 协调方 EXEC 派单令（2026-10-26）：「修复 checklist :1255 承登的 documented-red · 修复=断言词面对齐现横幅文 · ⛔push ⛔动主仓」+ 门矩阵/停止条件/commit 净消息随令。
+- A2 execution-master-checklist.md:1255 documented-red 承登原文（亲读）——本卷=该「另刀显式授权」兑现。
+- A3 gap-sole-stack-align.md:99 修复授权条款 + :111 授权修复协议（改后 EXIT=0 并在 attempts 记修复 diff 与授权出处）——本台账即 :111 兑现。
+- A4 pre-exec 双审两独立外席 PASS 落卷（dual r1 三条修订全采纳随本 commit 落 REQUEST 卷）。
+
+## 立项日工序 1（fetch/merge/install/重 pin）
+- git fetch origin → EXIT=0；origin/main 届值=33fdd233c（=起草基线·#177 line/uc50-draft / #179 line/uc33p-draft / #180 line/uc3f-draft 在飞未落 main 如实采；#178 uc15f 已在主线 91aca39bf）。
+- git merge origin/main → 「Already up to date.」EXIT=0——零冲突零 union 越限·dual-keep/cap 取大/恰等步进条款届值未触发（无 materialize 冲突面）。
+- pnpm install --frozen-lockfile → EXIT=0（Done in 4.3s·零漂）。
+- §0.1 blob 重 pin @2157c2558：6/8 恒等（prove 53325554·runner 48f3c86e·根 forwarder 324bc365·checklist 17674ca3·gap ea45b081·package.json 10fc87fd）；两 policy 脚本届树值 d8ade44a/0e7844e2（起草刀 CAP-SANCTION-2446 步进 2445→2446 后届值·起草卷 §0.1 载 fbd3d65c 系 main 基线 blob——漂移如实改锚·四联动点 2_446/f-2446.md/:2447 届树亲证在位）；行锚 :182-:184 / :3885-:3893 / :1255 恒等亲证。
+- 在飞触面逐树复核（§4②）：三分支越 HEAD 新提交触面=policy 注记/cap 区（uc50 5c861d3f3·uc33p 937773839·uc3f 89f465776）+uc33p 另触 runner 937773839（isolatedCommand/resource-caps 登记位·横幅块 :3885-:3893 零触）+uc3f bffbb6c55 已预订同号 CAP-SANCTION-2446（2445→2446·双预订实况→REQUEST §2-3⑤ 修订②承登）；prove 文件在全部树 last-touch=112e6d26f（#108）零在飞改写→§8「现场漂移」不触发（结论零受疑）。
+
+## attempts（每跑全录·时序如实）
+- #1 PRE `pnpm conn-stack:r5-mark-red:prove` → RAW_EXIT=1 · PASS=117 · FAIL=1（唯一红=:182 横幅臂 `run-e2e-isolated.mjs: must emit R5-MARKED-RED banner`·与 checklist :1255/gap :64 承登恰一红恒等）· 日志=ai-docs/delivery/receipts/r5mr-align/00-prefix-conn-stack.stdout.log · 恰 1 跑（§0.3 届树重 pin·非 retry）。
+- #2 PRE `pnpm mysql-stack:r5-mark-red:prove` → RAW_EXIT=1 · PASS=117 · FAIL=1 · 日志=ai-docs/delivery/receipts/r5mr-align/01-prefix-mysql-stack.stdout.log · 恰 1 跑。双 stdout 仅 pnpm 头两行（alias 名/入口路径）异·断言流逐位恒等=根 forwarder 同 body 同红亲证。
+- 修复 diff（恰 1 文件 2+/2- · git diff --stat=1 file changed）：scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs
+  - :182 `if (/R5-MARKED-RED/.test(e2e) && /NOT sole-stack truth/.test(e2e)) {` → `if (/R5-MARKED-RED/.test(e2e) && /NOT stack truth/.test(e2e)) {`
+  - :183 `pass('run-e2e-isolated.mjs: R5-MARKED-RED / NOT sole-stack truth banner');` → `pass('run-e2e-isolated.mjs: R5-MARKED-RED / NOT stack truth / NOT cutover evidence banner');`
+  - :184 fail 文案零改·其余 117 臂/NOTE/头注零改·零断言增删（总数恒等 118）；产品横幅 scripts/run-e2e-isolated.mjs/根 forwarder/package.json 零 diff（git diff 空输出亲证）。
+- #3 POST `pnpm conn-stack:r5-mark-red:prove` → RAW_EXIT=0 · PASS=118 · FAIL=0 · pass 文案现形 `PASS  run-e2e-isolated.mjs: R5-MARKED-RED / NOT stack truth / NOT cutover evidence banner` · 日志=ai-docs/delivery/receipts/r5mr-align/02-postfix-conn-stack.stdout.log · 修后恰 1 跑即绿·**零 retry-to-green**。
+- #4 POST `pnpm mysql-stack:r5-mark-red:prove` → RAW_EXIT=0 · PASS=118 · FAIL=0 · 日志=ai-docs/delivery/receipts/r5mr-align/03-postfix-mysql-stack.stdout.log · 修后恰 1 跑即绿·**零 retry-to-green**。post-fix 双 body（tail -n +4 后）diff 恒等=根 forwarder 恒等亲证；双 CMD 行同解析 node …/scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs EXIT=0。
+
+## 定性承登（红转绿·非洗红）
+- 红因=产品措辞演进（Line AL c633584 PG-retained 诚实对齐改串）致断言锚陈旧；修复=断言追产品现行真话（/NOT stack truth/ 仍锚死「隔离夹具叙述 ≠ 栈真相」横幅在场·钉力不减）；产品横幅诚实语义零弱化零回退。≠ retry-to-green 洗红（零跑重复至绿）· ≠ 断言迁就产品缺陷（无产品缺陷可掩盖）。

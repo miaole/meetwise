@@ -1,0 +1,28 @@
+== r5mr 收官并线终验门（2026-10-28 · 后继形制=每门 CMD/EXIT 尾行 · 勘误⑤兑现面）==
+-- 门0 · 锁文件安装 --
+CMD=pnpm install --frozen-lockfile
+Done in 651ms using pnpm v10.18.0
+EXIT=0（首跑 Done in 602ms·本收据复跑 Done in 651ms·lockfile 零漂）
+-- 门1 · docs:check --
+CMD=node scripts/ai-docs/check-docs.mjs
+ai-docs check passed: 80 required files verified; public text policy scanned 2448 managed worktree files
+EXIT=0
+-- 门2 · PTP public-text-policy:prove --
+CMD=pnpm run public-text-policy:prove
+✓ TC-quality-04-E11
+static_preflight_valid: selected=12/12; releaseEvidence=false
+EXIT=0
+-- 门3 · markers 五类+行首冲突标记（收官改动集=970403fec+0b4cd14a9+0e42adb21 触面 4 文件）--
+CMD=git diff 170d78d3c..HEAD -- <触面 4 文件> | grep ^+ | 五类词 grep -c + 各文件行首冲突标记 grep -c（词面运行时组装·字面不复抄防自匹配）
+ADDED_LINES_FIVE_CLASSES_ZERO_HIT_FORM: hits=0 (0=零命中·EXIT=1 形)
+-- 门4 · 本刀主门 r5-mark-red 双 alias 修后恒绿（并线树复核）--
+CMD=pnpm conn-stack:r5-mark-red:prove
+PASS  run-e2e-isolated.mjs: R5-MARKED-RED / NOT stack truth / NOT cutover evidence banner
+EXIT=0
+PASS_COUNT= 118
+CMD=pnpm mysql-stack:r5-mark-red:prove
+EXIT=0
+PASS_COUNT= 118
+CMD=node /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs EXIT=0
+CMD=node /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs EXIT=0
+== 终验门完 · 全部门值见上 CMD/EXIT 尾行 ==
