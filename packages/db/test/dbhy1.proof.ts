@@ -217,6 +217,9 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   'apps/worker/test/bill4-ledger-list.proof.ts',
   // AG-15 graph-run 观测 proof 读 schema 镜像·登记销案：01_schema.sql 三列镜像对账承重消费（C5g·按 bill4/entpay-s3 形·非影子替代）：
   'apps/worker/test/graph-run-observability.proof.ts',
+  // sse-cross-replica（xrep 并线 proof·跨副本 ParentPreload 裸池父进程零 import _neg-harness·经 sqlPath 直载
+  // sql/ 22 本体+4 早迁移逐字执行——装载名单与 _neg-harness.ts:72-:90 同源同序·承重消费·按 entpay-s3/bill4 直载登记形）：
+  'apps/api/test/sse-cross-replica.proof.ts',
 ]);
 
 /** P4⑤ 对象类豁免：sql/ 侧独有但经亲核判定为夹具辅助/演示对象（非 fresh deploy 承载面）——逐对象登记理由。 */
