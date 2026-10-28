@@ -1,6 +1,6 @@
 # R5MR REQUEST — `r5-mark-red` documented-red 断言对齐修复任务书（容器横幅断言对齐 · prove 扫描正则追产品现行真话 · isob 双审席2 发现先在红 · 协调方显式授权另刀修复 · docs-only REQUEST 卷 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-26 起草落卷 · docs-only 起草席 · 修复行使权归 EXEC 席按本卷 §1 修法面行使 · pre-exec 双审两独立外席放行后方开工 · alone≠dual · ⛔push ⛔动主仓 · STOP 三处钉：本 Status 行 + §8 + 卷尾 同值）。
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-26 起草落卷+同日 EXEC 落卷 · 修复行使+门矩阵+登记面兑现随 §9-EXEC 账 · post-prove 双审两独立外席会签后方并线 · alone≠dual · ⛔push ⛔动主仓 · STOP 三处钉：本 Status 行 + §8 + 卷尾 同值）。
 
 **席位**：meetwise「r5-mark-red documented-red 修复」REQUEST 起草席（docs-only 起草 · 协调方显式授权令 · ⛔push ⛔动主仓）。
 **基线**：`origin/main` @ **`33fdd233c`**（full `33fdd233c4069942569b12b40a95fc05ff448de2` · `git fetch origin` 本 turn 成功 91aca39bf..33fdd233c · 分支 `line/r5mr-draft` 零独有 commit · worktree `meetwise-r5mr`）· `node scripts/ai-docs/check-docs.mjs` 本树起草前亲跑 **EXIT=0 · scanned 2445**（=cap 2_445 恰等零余量 · §2-1 预算核 · 本卷新 .md +1 必越 → 随刀步进 2_445→2_446 承登后终态 2446=cap 恰等）。
@@ -108,7 +108,7 @@ if (isolationStack === LEGACY_STACK) {
 | 落选项 | 否决/登记理由 |
 |---|---|
 | 改产品横幅文（把 `NOT stack truth` 改回/改成含 `NOT sole-stack truth`） | **停止条件触发面**——产品措辞演进是 AL PG-retained 诚实对齐的意图产物（backlog `:63` named gap 语义面·翻面须另立 SSOT 授权）；为迁就 prove 正则回改产品文=反向迁就·诚实化倒退·**禁**（§3/§8） |
-| 正则放宽为双收 `/NOT\s+(sole-stack\s+)?stack\s+truth/` 或 `/NOT sole-stack truth|NOT stack truth/` | 否决——旧字面量全树零命中（§0.2 词面判定），双收=死字面容忍·钉力稀释·Ban 断言松弛化；恰等锚现行文即足 |
+| 正则放宽为双收 `/NOT\s+(sole-stack\s+)?stack\s+truth/` 或 `/NOT sole-stack truth|NOT stack truth/` | 否决——扫描锚面零命中·全树余 run-isolated.mjs:10 注释残留（无扫描依赖·零触范围外如实登记）；双收=死字面容忍·钉力稀释·Ban 断言松弛化；恰等锚现行文即足（r1 dual 修订 2026-10-26 EXEC 立项日兑现·修订③；亲证：扫描锚面 `run-e2e-isolated.mjs` 全文旧字面量零命中·`scripts/isolated/run-isolated.mjs:10` 系注释行史录·无任何 prove 扫描依赖·零触范围外如实承登） |
 | 改锚至更长 verbatim（`/NOT stack truth \/ NOT cutover evidence/`） | 备选未取——`/NOT stack truth/` 已唯一命中且为协调方令首选词面；更长锚对横幅后续措辞微演进更脆（AL 已示范横幅文会随诚实对齐演进）·取**最小恰等锚** |
 | 删除/跳过该臂（标记 skip/删 `:182-:184`） | **禁**——marked-red ≠ deleted 同理：断言臂零删·删除=洗红最劣形 |
 | 断言改扫 prove 自身/改扫 gap 文档替代 | 否决——臂的本意=钉产品横幅在场（harness ↔ product 钉链）·改扫文档=换命题·假绿 |
@@ -120,9 +120,9 @@ if (isolationStack === LEGACY_STACK) {
 
 1. **EXEC 主门 · 双 alias EXIT=0 + 断言数核**：`pnpm mysql-stack:r5-mark-red:prove` **EXIT=0** + `pnpm conn-stack:r5-mark-red:prove` **EXIT=0**（双 alias 各亲跑·各留 stdout 收据）· 数核：**PASS=118 · FAIL=0 · 总断言 118 恒等**（对 §0.3 起草账 117+1=118 恒等·零断言增删）· `:183` pass 文案现形亲读。红次如实分口：若修后仍红 → 触 §8「断言对齐后仍红」停手上报（Ban 调宽断言 Ban 动产品文）。
 2. **邻面不回退**：`pnpm g1-default-switch:prep:prove` EXIT=0 · `pnpm g3-e2e-pg-image:prove` EXIT=0（checklist `:1254` 同族回归读数口径 · 届时 SSOT 恒等）· `pnpm e2e-case-inventory:prove` EXIT=0 · checklist `:1254` 载 `g1/g3` PRE-POST 全等先例形——本刀单文件单点·邻 prove 零触恒等绿。
-3. **docs:check + cap 预算核（起草刀随刀步进已行使 · EXEC 期届值重 pin）**：起草前本树亲跑 `node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2445**=cap 2_445 恰等零余量（`public-text-policy.mjs:253` 亲证）→ 本卷新 .md 受管 +1 = **2446 必越** → 沿协调方常设预授权「越限沿常设预授权恰等步进」**+1=2_445→2_446**（**CAP-SANCTION-2446** · 起草随刀单件恰等先例形=CAP-SANCTION-2411/2421/2429/2433 · 随本起草 commit 先手步进）：①`public-text-policy.mjs:253` `2_445→2_446` + CAP-SANCTION-2446 注记插注记链区（`:252` 后）；②`public-text-policy.proof.mjs` 越限臂联动 `:435`（`i < 2_446`）·`:442`（`scannedFiles, 2_446`）·`:446`（`f-2446.md`）·`:449`（`FILE_LIMIT}:2447`）+ `:443-:444` 注释两 2446 字面随改 + 链区 CAP-SANCTION-2446 注记置底（`:433` 后）·本树亲跑 **12/12 EXIT=0**；③语义申明：计数预算联动零门语义变更·越限臂 fabricated 数随 cap 联动同步·proof 强度不减；④起草 commit 终态 **2446=cap 恰等**（docs:check 亲跑 EXIT=0 复核）；⑤**EXEC 期预算预登**：EXEC 期触面=prove 文件 in-place 词面替换（零新增受管文件）+ attempts/收据 .log（∉TEXT_EXTENSIONS 非扫描面不计·沿 webhook-neg/批 C 收据先形）→ EXEC 期 **2446 ≤ 2446 恰等零多放**；若 EXEC 期在飞并线致合并树实测 >2446 → 沿常设预授权恰等步进（CAP-SANCTION-24xx 承登·四联动点·PTP 12/12）·越值红停上报。
+3. **docs:check + cap 预算核（起草刀随刀步进已行使 · EXEC 期届值重 pin）**：起草前本树亲跑 `node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2445**=cap 2_445 恰等零余量（`public-text-policy.mjs:253` 亲证）→ 本卷新 .md 受管 +1 = **2446 必越** → 沿协调方常设预授权「越限沿常设预授权恰等步进」**+1=2_445→2_446**（**CAP-SANCTION-2446** · 起草随刀单件恰等先例形=CAP-SANCTION-2411/2421/2429/2433 · 随本起草 commit 先手步进）：①`public-text-policy.mjs:253` `2_445→2_446` + CAP-SANCTION-2446 注记插注记链区（`:252` 后）；②`public-text-policy.proof.mjs` 越限臂联动 `:435`（`i < 2_446`）·`:442`（`scannedFiles, 2_446`）·`:446`（`f-2446.md`）·`:449`（`FILE_LIMIT}:2447`）+ `:443-:444` 注释两 2446 字面随改 + 链区 CAP-SANCTION-2446 注记置底（`:433` 后）·本树亲跑 **12/12 EXIT=0**；③语义申明：计数预算联动零门语义变更·越限臂 fabricated 数随 cap 联动同步·proof 强度不减；④起草 commit 终态 **2446=cap 恰等**（docs:check 亲跑 EXIT=0 复核）；⑤**EXEC 期预算预登**：EXEC 期触面=prove 文件 in-place 词面替换（零新增受管文件）+ attempts/收据 .log（∉TEXT_EXTENSIONS 非扫描面不计·沿 webhook-neg/批 C 收据先形）→ EXEC 期 **2446 ≤ 2446 恰等零多放**；若 EXEC 期在飞并线致合并树实测 >2446 → 沿常设预授权恰等步进（CAP-SANCTION-24xx 承登·四联动点·PTP 12/12）·越值红停上报；**isob 在飞支同号 CAP-SANCTION-2446 双/三预订·合并树取大再步进时注记出处分列**（r1 dual 修订 2026-10-26 EXEC 立项日兑现·修订②）——EXEC 立项日亲点：在飞三分支 #177 `line/uc50-draft`（届值承 2443）/ #179 `line/uc33p-draft`（届值承 2443）/ #180 `line/uc3f-draft`（`bffbb6c55` 已预订同号 CAP-SANCTION-2446 2445→2446·四联动点）→ **2446 现为双预订**（本卷起草刀+uc3f 支）；后继并线若合并树 union 实测越 2446 需取大再步进（2447+），步进注记须**出处分列**——各支预订号/commit/届扫值逐条分立承登（Ban 同号混记单注）·届值取大恒等零再步进时亦须双预订出处分列承登。
 4. **markers + est live**：本刀改动集（起草=本卷 .md+两 policy 脚本 · EXEC=prove 文件+登记注记）五类标记词+行首冲突标记严格形 grep 零命中（起草席亲跑·回执随 EXEC 收据·词面运行时组装口径 `scripts/i6-239-gates.proof.mjs:159-163`·不复抄卷内防自指）· est live=0（§6）。
-5. **行/列冻结 + 登记面**：EXIT0=case≠covered · coveredCount=8 零翻转 · pins 十一值零翻 · **本刀 Ban 自翻 checklist `:1255` 行状态**（STILL OPEN 行的其他子句——backlog `:63` 翻面/方案 b/DELETE=503 冻结/external=retention_pending——零触）；EXEC 修复落袋后登记面=`:1255` 先在红子句尾 additive 注记（「已由 r5mr 线修复 · commit hash · EXIT=0 双 alias · 断言 118 恒等」形·**授权随协调方本令**）+ attempts 台账按 gap `:111` 协议记修复 diff 与授权出处 · gap-sole-stack-align.md 本体只读引用（其 `:111` 协议即范本·本体注记候选归协调方）。
+5. **行/列冻结 + 登记面**：EXIT0=case≠covered · coveredCount=8 零翻转 · pins 十一值零翻 · **本刀 Ban 自翻 checklist `:1255` 行状态**（STILL OPEN 行的其他子句——backlog `:63` 翻面/方案 b/DELETE=503 冻结/external=retention_pending——零触）；EXEC 修复落袋后登记面=`:1255` 先在红子句尾 additive 注记（「已由 r5mr 线修复 · commit hash · EXIT=0 双 alias · 断言 118 恒等 · **锚目标行位=run-e2e-isolated.mjs R5-MARKED-RED 横幅（现 `:3890`）**」形·**授权随协调方本令**·r1 dual 修订 2026-10-26 EXEC 立项日兑现·修订①=模板追加锚目标行位字段）+ attempts 台账按 gap `:111` 协议记修复 diff 与授权出处 · gap-sole-stack-align.md 本体只读引用（其 `:111` 协议即范本·本体注记候选归协调方）。
 
 ## §3 范围外（越界即 FAIL · 停止条件触发面）
 
@@ -153,7 +153,7 @@ if (isolationStack === LEGACY_STACK) {
 
 ## §8 STOP（开工前置 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual`**（三处钉：本节 + Status 行 + 卷尾·同值 · 开工三条款=①pre-exec 双审两独立外席 PASS 落卷②协调方 EXEC 授权随令③§0 全量重 pin 履行·届时 tip 对 §0.1 blob 逐值亲算·漂移如实改锚）。停止条件（四类·命中即停手上报·Ban 就地处置）：
+**STOP · `executed:awaiting_post_prove_dual`**（2026-10-26 EXEC 落卷翻面·三处钉：本节 + Status 行 + 卷尾·同值 · 开工三条款已履行=①pre-exec 双审两独立外席 PASS 落卷②协调方 EXEC 授权随令③§0 全量重 pin 履行（blob 6/8 恒等+两 policy 脚本届树值如实改锚·行锚恒等）·停止条件四类届值零触发详见 §9-EXEC）。停止条件（四类·命中即停手上报·Ban 就地处置）：
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob 漂移且结论受疑（prove 文件被在飞刀改写 · 横幅文/`:3` header 再改 · checklist `:1255` 子句被他刀改写 · policy 注记链区冲突不可 dual-keep）→ 停·重 pin 回炉。
 - **断言对齐后仍红 / 需动产品面**：EXEC 期 `/NOT stack truth/` 对齐后该臂仍 FAIL，且根因需改产品横幅文/`run-e2e-isolated.mjs` 任意字节 → **停·如实红停上报**（协调方停止条件原文兑现·Ban 调宽断言 Ban 动产品文 Ban 洗红）。若红因=横幅文再演进（第三种措辞）→ 如实报新现文·修法回炉重起草。
 - **越界需要**：修法诉求超出 §1 恰 1 处词面对齐面（需触产品面/其余臂/根 forwarder/方案 b/named gap 翻面/cap 再步超预授权）→ 停·另刀或协调方裁决。
@@ -161,8 +161,36 @@ if (isolationStack === LEGACY_STACK) {
 
 ## §9 状态
 
-**`draft:awaiting_pre_exec_dual`**（2026-10-26 起草落卷 · docs-only · 修复行使权归 EXEC 席 · pre-exec 双审两独立外席放行后方开工 · alone≠dual · Ban self-approve · ⛔push ⛔动主仓 · STOP 三处钉同值）。
+**`executed:awaiting_post_prove_dual`**（2026-10-26 EXEC 落卷 · 修复行使+门矩阵+登记面全兑现 · ⛔push ⛔动主仓 · STOP 三处钉同值翻面 · post-prove 双审两独立外席会签后方并线 · alone≠dual · Ban self-approve）。
+
+### §9-EXEC 落卷账（2026-10-26 EXEC 席亲跑·EXIT 原值·stdout 留痕 `ai-docs/delivery/receipts/r5mr-align/`）
+
+**立项日工序 1**：`git fetch origin` EXIT=0 → origin/main 届值 **33fdd233c**（=起草基线零漂移·#177 `line/uc50-draft`/ #179 `line/uc33p-draft`/ #180 `line/uc3f-draft` 在飞未落 main 如实采·#178 uc15f 已在主线 91aca39bf）→ `git merge origin/main` **Already up to date. EXIT=0**（零冲突零 union 越限·dual-keep/cap 取大/恰等步进条款届值零触发）→ `pnpm install --frozen-lockfile` **EXIT=0**（4.3s 零漂）→ §0 重 pin：blob **6/8 恒等**（prove `53325554`·runner `48f3c86e`·根 forwarder `324bc365`·checklist `17674ca3`·gap `ea45b081`·package.json `10fc87fd`）·两 policy 脚本届树值 `d8ade44a`/`0e7844e2`（起草刀 CAP-SANCTION-2446 步进 2445→2446 后届值·起草卷 §0.1 载 `fbd3d65c` 系 main 基线 blob·漂移如实改锚·四联动点 `2_446`/`f-2446.md`/`:2447` 届树亲证在位）·行锚 `:182-:184`/`:3885-:3893`/`:1255` 恒等亲证。在飞触面逐树复核（§4②）：三分支越 HEAD 新提交触面=policy 注记/cap 区（uc50 `5c861d3f3`·uc33p `937773839`·uc3f `89f465776`）+uc33p 另触 runner `937773839`（isolatedCommand/resource-caps 登记位·横幅块 `:3885-:3893` 零触）+uc3f `bffbb6c55` 已预订同号 CAP-SANCTION-2446=双预订实况（修订②承登）；prove 文件全树 last-touch=`112e6d26f`（#108）零在飞改写 → §8「现场漂移」不触发（结论零受疑）。
+
+**dual r1 三条修订**（全采纳·随本 commit 落卷）：①§2-5 EXEC 注记模板追加锚目标行位字段（现 `:3890`）✓ ②§2-3⑤ 补「isob 在飞支同号 CAP-SANCTION-2446 双/三预订·合并树取大再步进时注记出处分列」（附立项日亲点=双预订实况·uc50/uc33p 届值 2443 零重叠）✓ ③§1.3 否决表第二行理由改「扫描锚面零命中·全树余 run-isolated.mjs:10 注释残留（无扫描依赖·零触范围外如实登记）」（亲证 `scripts/isolated/run-isolated.mjs:10` 注释行·扫描锚面 `run-e2e-isolated.mjs` 旧字面量零命中）✓。
+
+**修法行使（§1 恰 1 处）**：`scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs` **1 file changed 2+/2-**——`:182` 正则第二支 `/NOT sole-stack truth/`→`/NOT stack truth/` + `:183` pass 文案追现文；`:184` fail 文案零改·其余 117 臂/NOTE/头注零改·零断言增删；产品横幅 `run-e2e-isolated.mjs`/根 forwarder `scripts/mysql-stack.r5-mark-red.proof.mjs`/root `package.json` **零 diff**（git diff 空输出亲证）。
+
+**门矩阵（EXIT 原值）**：
+
+| 门 | EXIT 原值 | 数核 |
+|---|---|---|
+| §2-1 修复前双 alias（§0.3 届树重 pin·各恰 1 跑） | 1 / 1 | 117P+1F=118 恒等·唯一红=`:182` 横幅臂（与 checklist `:1255`/gap `:64` 承登恰一红恒等）·双 stdout 仅 pnpm 头两行异·断言流逐位恒等=根 forwarder 同 body 同红（收据 00/01） |
+| §2-1 修复后 `conn-stack:r5-mark-red:prove` | **0** | **118P+0F=118 恒等**·pass 文案现形 `R5-MARKED-RED / NOT stack truth / NOT cutover evidence banner`（收据 02）·修后恰 1 跑即绿·零 retry-to-green |
+| §2-1 修复后 `mysql-stack:r5-mark-red:prove` | **0** | 同上恒等（收据 03）·双 CMD 行同解析 `node …/conn-stack/mysql-stack.r5-mark-red.proof.mjs EXIT=0`=根 forwarder 恒等·post-fix body 逐位恒等 |
+| §2-2 `g1-default-switch:prep:prove` | 0 | 邻面恒等绿（收据 06） |
+| §2-2 `g3-e2e-pg-image:prove` | 0 | 邻面恒等绿（收据 07） |
+| §2-2 `e2e-case-inventory:prove` | 0 | 邻面恒等绿（收据 08） |
+| §2-3 `docs:check` | 0 | **scanned 2446 = cap 2_446 恰等零多放**（EXEC 期零新增受管文件预登兑现·80 required files verified·收据 04） |
+| §2-3 PTP `public-text-policy:prove` | 0 | **12/12**·selected=12/12（收据 05） |
+| §2-4 markers 严格形 | 命中=0 | 新增行五类词零命中·行首冲突标记零命中（零命中原值 EXIT=1 形·收据 09）·checklist 4 处系 main 既存史录勘误引文（`:2309`/`:2721`/`:2943`/`:2964`）如实分列·本刀新增行零命中·est live=0 |
+
+**登记面（§2-5）**：checklist `:1255` 先在红子句尾 additive 注记（按修订①模板·含锚目标行位字段=run-e2e-isolated.mjs R5-MARKED-RED 横幅现 `:3890`·**行状态 STILL OPEN 零翻**·方案 b/DELETE=503/external 子句零触）+ attempts 台账 `receipts/r5mr-align/attempts-ledger.log`（gap `:111` 协议·修复 diff+授权出处+四跑全录）+ `:1254` 同族读数零触（翻面权归协调方）。
+
+**停止条件四类**：届值**零触发**——现场漂移（锚 blob 零漂·merge 零冲突）/断言对齐后仍红或需动产品面（EXIT=0 绿·产品面零 diff）/越界需要（恰 1 处兑现）/验收红不可修（门矩阵全绿）。
+
+**Non-claims**：≠HA≠cutover≠R5 retired≠releaseEvidence=true·named gap（backlog `:63`）翻面权归协调方·checklist `:1254` 读数翻面权归协调方·pins 十一值零翻·marked-red ≠ deleted·本绿≠已迁·本刀 commit hash 随并线 ref 承登。
 
 ---
 
-*R5MR REQUEST · 2026-10-26 起草落卷 · **STOP=`draft:awaiting_pre_exec_dual`**（三处钉：Status 行+§8+本行·同值）· 认领=checklist `:1255` documented-red 承登（conn-stack:r5-mark-red:prove / mysql-stack:r5-mark-red:prove 根 forwarder 双 alias · `:182` 门锚 AL 前字面量 `NOT sole-stack truth`）+gap-sole-stack-align `:64/:72/:90-:94/:99/:111` §3 先在缺陷披露+授权协议 · 授权=协调方本令显式授权另刀修复（isob 双审席2 发现先在红·席1 报根 forwarder 亲证同红——本卷 §0.3 双向亲证兑现）· 断言现形=`:182-:184` 双支正则 `/R5-MARKED-RED/ && /NOT sole-stack truth/`（第二支恒 false · 现文零命中）· 现横幅文=`run-e2e-isolated.mjs:3885-:3893`（`:3889` `[R5-MARKED-RED]`·`:3890` `NOT stack truth / NOT cutover evidence` 唯一命中 · 令引 :3836-:3848 系较早 tip 行锚·漂移如实登记）· AL 改串根因=`c633584`≡`9e2b1aa2` 链载孪生（banner-string only · 删 `NOT sole-stack truth` 增 `NOT stack truth / NOT cutover evidence` · 未同步 prove 正则）· 全臂账亲跑 RAW_EXIT=1 · PASS=117 · FAIL=1（唯一红=`:182` 横幅臂·与承登恰一红恒等·根 forwarder 纯 import 同红同源）· 修法=恰 1 处词面对齐（`:182` `/NOT sole-stack truth/`→`/NOT stack truth/` 现文 verbatim 子串唯一锚 + `:183` pass 文案追现文 · fail 文案零改 · 零断言增删·修复后 118 PASS/0 FAIL/EXIT=0 总数恒等 118 数核）· 定性=红因产品措辞演进致断言陈旧·修复=断言追产品现行真话·≠ retry-to-green 洗红 ≠ 断言迁就产品缺陷 ≠ 洗红（如实区分承登）· 产品横幅文零触（停止条件触发面·需动产品文即红停上报）· 根 forwarder/双 alias 零改（单点同修）· cap=起草随刀步进 **2_445→2_446 CAP-SANCTION-2446**（+1 单件恰等先例形·四联动点+PTP 12/12 亲跑·EXEC 期零新增受管文件预期 2446≤2446 恰等零多放·越值沿常设预授权恰等步进红停）· 基线=`origin/main` `33fdd233c` · 分支 `line/r5mr-draft` · 工作树 `meetwise-r5mr` · 45 树实测 `line/r5mr-draft` 恰 1 命中·同名卷落卷前零命中· pins 十一值零翻 · est live=0 · markers=0 · releaseEvidence=false · Not HA · marked-red ≠ deleted · 本绿≠已迁 · named gap（backlog `:63`）翻面权归协调方 · ⛔push ⛔动主仓 · 起草态 STOP*
+*R5MR REQUEST · 2026-10-26 起草落卷 · **STOP=`executed:awaiting_post_prove_dual`**（三处钉：Status 行+§8+本行·同值）· 认领=checklist `:1255` documented-red 承登（conn-stack:r5-mark-red:prove / mysql-stack:r5-mark-red:prove 根 forwarder 双 alias · `:182` 门锚 AL 前字面量 `NOT sole-stack truth`）+gap-sole-stack-align `:64/:72/:90-:94/:99/:111` §3 先在缺陷披露+授权协议 · 授权=协调方本令显式授权另刀修复（isob 双审席2 发现先在红·席1 报根 forwarder 亲证同红——本卷 §0.3 双向亲证兑现）· 断言现形=`:182-:184` 双支正则 `/R5-MARKED-RED/ && /NOT sole-stack truth/`（第二支恒 false · 现文零命中）· 现横幅文=`run-e2e-isolated.mjs:3885-:3893`（`:3889` `[R5-MARKED-RED]`·`:3890` `NOT stack truth / NOT cutover evidence` 唯一命中 · 令引 :3836-:3848 系较早 tip 行锚·漂移如实登记）· AL 改串根因=`c633584`≡`9e2b1aa2` 链载孪生（banner-string only · 删 `NOT sole-stack truth` 增 `NOT stack truth / NOT cutover evidence` · 未同步 prove 正则）· 全臂账亲跑 RAW_EXIT=1 · PASS=117 · FAIL=1（唯一红=`:182` 横幅臂·与承登恰一红恒等·根 forwarder 纯 import 同红同源）· 修法=恰 1 处词面对齐（`:182` `/NOT sole-stack truth/`→`/NOT stack truth/` 现文 verbatim 子串唯一锚 + `:183` pass 文案追现文 · fail 文案零改 · 零断言增删·修复后 118 PASS/0 FAIL/EXIT=0 总数恒等 118 数核）· 定性=红因产品措辞演进致断言陈旧·修复=断言追产品现行真话·≠ retry-to-green 洗红 ≠ 断言迁就产品缺陷 ≠ 洗红（如实区分承登）· 产品横幅文零触（停止条件触发面·需动产品文即红停上报）· 根 forwarder/双 alias 零改（单点同修）· cap=起草随刀步进 **2_445→2_446 CAP-SANCTION-2446**（+1 单件恰等先例形·四联动点+PTP 12/12 亲跑·EXEC 期零新增受管文件预期 2446≤2446 恰等零多放·越值沿常设预授权恰等步进红停）· 基线=`origin/main` `33fdd233c` · 分支 `line/r5mr-draft` · 工作树 `meetwise-r5mr` · 45 树实测 `line/r5mr-draft` 恰 1 命中·同名卷落卷前零命中· pins 十一值零翻 · est live=0 · markers=0 · releaseEvidence=false · Not HA · marked-red ≠ deleted · 本绿≠已迁 · named gap（backlog `:63`）翻面权归协调方 · ⛔push ⛔动主仓 · EXEC 落卷态 STOP（awaiting_post_prove_dual·§9-EXEC 账随卷）*

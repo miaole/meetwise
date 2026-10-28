@@ -179,8 +179,8 @@ if (existsSync(vectorstoreProofPath)) {
 
 if (existsSync(e2eIsolatedPath)) {
   const e2e = readFileSync(e2eIsolatedPath, 'utf8');
-  if (/R5-MARKED-RED/.test(e2e) && /NOT sole-stack truth/.test(e2e)) {
-    pass('run-e2e-isolated.mjs: R5-MARKED-RED / NOT sole-stack truth banner');
+  if (/R5-MARKED-RED/.test(e2e) && /NOT stack truth/.test(e2e)) {
+    pass('run-e2e-isolated.mjs: R5-MARKED-RED / NOT stack truth / NOT cutover evidence banner');
   } else fail('run-e2e-isolated.mjs: must emit R5-MARKED-RED banner');
   if (/E2E_PG_IMAGE/.test(e2e) && /pgvector\/pgvector:pg16/.test(e2e)) {
     pass('run-e2e-isolated.mjs: still defaults E2E_PG_IMAGE to pgvector (not cut)');
