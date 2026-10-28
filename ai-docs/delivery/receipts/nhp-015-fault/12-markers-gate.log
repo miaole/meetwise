@@ -1,0 +1,5 @@
+markers gate (i6-239-gates.proof.mjs:157-163 runtime-assembled word faces) over EXEC change set
+change-set files: 11
+marker hits: NONE (markers=0)
+conflict markers: 0
+est live=0 (scripted seam, zero provider egress, keys self-deleted in-process)

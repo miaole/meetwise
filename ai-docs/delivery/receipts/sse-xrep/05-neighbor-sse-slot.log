@@ -1,0 +1,32 @@
+CMD: pnpm sse-slot:prove
+EXIT=0
+---
+
+> meetwise@0.1.0 sse-slot:prove /Users/miaole/Desktop/golucky/meetwise-xrep
+> pnpm -C apps/api prove:sse-slot
+
+
+> @meetwise/api@0.0.0 prove:sse-slot /Users/miaole/Desktop/golucky/meetwise-xrep/apps/api
+> node --import @swc-node/register/esm-register test/sse-principal-slot.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+PASS  面试 SSE 占槽 1/5 → 200 text/event-stream
+PASS  面试 SSE 占槽 2/5 → 200 text/event-stream
+PASS  面试 SSE 占槽 3/5 → 200 text/event-stream
+PASS  押题 SSE 占槽 1/5 → 200 text/event-stream
+PASS  押题 SSE 占槽 2/5 → 200 text/event-stream
+PASS  打满 5 条后进程内槽计数 = 5
+PASS  第 6 条同主体面试 → 429 too_many_streams（got 429/too_many_streams）
+PASS  满额后再开押题（共享桶）→ 429 too_many_streams（got 429/too_many_streams）
+PASS  满额后再开诊断（第三路共享桶）→ 429 too_many_streams（got 429/too_many_streams）
+PASS  三次拒绝后槽仍为 5（被拒连接未占槽）
+PASS  溢出拒连零 catch-up（UC184 领槽先于取数·拒连不付取数副作用）
+PASS  异主体不受 userA 槽占用影响 → 200
+PASS  userB 自有槽 = 1
+PASS  满额后一个 poll 周期 counting stub(userA) 只 +5（holders），被拒连接不入环
+PASS  userA holders 断开后槽释放为 0
+PASS  释放后再等一个 poll 周期，counting stub(userA) 不再增加（拒连接未留下轮询）
+PASS  释放后诊断可再占槽 → 200
+PASS  释放后再占诊断，槽 = 1
+
+✓ sse-slot 5+1 429 + shared principal bucket passed

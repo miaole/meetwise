@@ -1,0 +1,139 @@
+CMD: pnpm sse-push:notify:prove
+EXIT=0 · 66 全绿
+---
+
+> meetwise@0.1.0 sse-push:notify:prove /Users/miaole/Desktop/golucky/meetwise-xrep
+> node scripts/run-e2e-isolated.mjs sse-push:notify:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-41034-1793135967624 on 127.0.0.1:33151
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:sse-push-notify /Users/miaole/Desktop/golucky/meetwise-xrep/apps/api
+> node --import @swc-node/register/esm-register test/sse-push-notify.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793135970784,"pid":41230,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:63814"}
+SSE-PUSH prove · Opt1 通道健康分级兜底 · releaseEvidence=false · Not HA
+PIN   GAP-SSEPUSH-PRIVACY-STUB: minimal privacy-active stub (≠ 0058 fence covered; uc010 precedent)
+
+──────── Phase A · live degraded (trigger_missing) ────────
+PASS  P-2a 约束①双条件:LISTEN 可达但 trigger 缺席 → 仍降级 reason=trigger_missing(LISTEN 在位非充分)
+PASS  P-2a 约束②结构化降级日志:reason=trigger_missing + fallback=legacy_2s_poll
+PIN   OPT1-C2-LIVE-DEGRADED-LOG SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793135970792,"pid":41230,"hostname":"miaole.local","reqId":"b55df13f-dd60-4c61-9c0a-36476a79876a","req":{"method":"GET","url":"/interview/IV_SSEPUSH0/events","host":"127.0.0.1:63814","remoteAddress":"127.0.0.1","remotePort":63815},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+PASS  P-2a 退化=掉线唤醒即取数(真实 HTTP):首 ping 延迟 110ms <1000(wakeAllWaiters 唤醒兑现·非 30s 兜底)
+PASS  P-2a 退化=legacy 2s 封顶 cadence(真实 HTTP):连续 3 个 ping 间隔 max 1488ms ≤2100(唤醒驱动+2s 封顶·30s 兜底不可能绿)
+PASS  P-2a 断开后 router 归零(退化态 waiter 同样无泄漏)
+
+──────── Phase B · install real 0143 → health flip ────────
+PASS  P-5 前置:0143 内容装载后 pg_trigger 实证 trigger 在场(真实迁移文件字节)
+PASS  P-2d 健康翻转:trigger 装载后(退避重连期内)LISTEN+trigger 双条件达成 → healthy
+PIN   OPT1-C2-DEGRADED-WINDOW reason=trigger_missing window_ms=5677 (live receipt: degrade log → healthy flip)
+PASS  P-2d 约束②收据:降级窗口已登记(窗口为正、有限)
+
+──────── P-1 · notify latency (real LISTEN, healthy) ────────
+{"level":30,"time":1793135976378,"pid":41230,"hostname":"miaole.local","reqId":"74af9ef0-a25b-480b-8f83-d7bc192953d5","req":{"method":"GET","url":"/interview/IV_SSEPUSH1/events","host":"127.0.0.1:63814","remoteAddress":"127.0.0.1","remotePort":63821},"msg":"incoming request"}
+PASS  P-1 INSERT→SSE 帧端到端延迟 20ms < 500ms(notify 精确推送,非轮询相位)
+PASS  P-1 帧格式原值:id:/event:/data: 三段式(wire format 零改)
+PIN   P1_LATENCY_MEASURED insert_to_frame_ms=20 gate=<500
+PIN   P1_LEGACY_CONTRAST registered_not_gated: old 2s poll phase-worst ≥2000ms constant (对照登记不设门)
+
+──────── P-3 · disconnect → close-wake → Last-Event-ID resume ────────
+{"level":30,"time":1793135976667,"pid":41230,"hostname":"miaole.local","reqId":"f5f4b7cc-fe17-440c-b51c-712832325005","req":{"method":"GET","url":"/interview/IV_SSEPUSH2/events","host":"127.0.0.1:63814","remoteAddress":"127.0.0.1","remotePort":63825},"msg":"incoming request"}
+PASS  P-3 健康态静默窗 2.8s 零 ping(= 零取数;轮询已消除,B6 兜底≥30s)
+PASS  P-3 客户端断开 → waiter 即时注销(router Map 归零,close 即醒不滞留 30s)
+{"level":30,"time":1793136012567,"pid":41230,"hostname":"miaole.local","reqId":"c03d26e0-aaa4-4681-8f5d-1b72191f925a","req":{"method":"GET","url":"/interview/IV_SSEPUSH2/events","host":"127.0.0.1:63814","remoteAddress":"127.0.0.1","remotePort":63847},"msg":"incoming request"}
+PASS  P-3 重连带 Last-Event-ID=2 → 只补 seq>2(=[3],不重放 1..2)
+
+──────── P-4 · multi-waiter routing ────────
+PASS  P-4 同 stream_key 两 waiter 单次 notify 双醒
+PASS  P-4 异 stream_key 不误醒(等待者仍挂起)
+PASS  P-4 全部注销后 router 归零
+
+──────── P-5 · trigger → pg_notify payload (independent listener) ────────
+PASS  P-5 测试 LISTEN 连接实收 notification(真实 trigger,非 mock)
+PASS  P-5 channel=interview_event_ch 且 payload=裸 stream_key 只 id(不携 owner/kind/事件数据)
+
+──────── Phase F2 · statement notify once per distinct stream_key ────────
+PASS  语句级目录：同名触发器仍只挂在 interview_event，定义为 FOR EACH STATEMENT 且 REFERENCING NEW TABLE，不再是 FOR EACH ROW
+PASS  同一语句里重复 stream_key 只通知一次：函数对 inserted 中不同的 stream_key 各 pg_notify 一次，且不再读取 NEW
+PASS  一条插入写入两个不同 stream_key 时 LISTEN 收到两条，通道为 interview_event_ch，载荷为这两个裸流键
+PASS  一条插入实际写入零行时不收到通知
+
+──────── P-2 unit · healthy fallback arm + notify 主推 ────────
+PASS  P-2b 健康态兜底臂:notify 抑制时由 fallback 计时器唤醒并写 `: ping`(注入 250ms ≥3 次)
+PASS  P-2b 兜底 cadence=fallback 值而非 legacy 2s(最大间隔 <1000ms)
+PIN   P2B_HEALTHY_FALLBACK_ARM injected_fallback_ms=250 observed_gaps_ms=[252,250] elapsed_ms=773 (production pin: HEALTHY_FALLBACK_MS=30_000 in sse-pump.ts)
+PASS  P-2b 单元收尾:close 后 pump 返回且 waiter 归零
+PASS  P-2b notify 主推:30s 兜底静默期 notify 即刻唤醒发帧(0ms <1000,不等兜底)
+PASS  P-2b 帧格式原值(id/event/data 三段)
+
+──────── P-2 unit · degraded listen_down arm (legacy 2s) ────────
+PASS  P-2c listen_down 退化:2.4s 窗内恰 1 次取数 + 1 次 ping(legacy 2s cadence,非 30s)
+PASS  P-2c 取数时刻 ≈2000ms(首个 ping 延迟 2003ms ∈[1800,2400])
+PASS  P-2c 约束②:reason=listen_down 结构化日志
+PIN   OPT1-C2-UNIT-DEGRADED-LOG SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+PASS  P-2c 退化态健康读数 reason=listen_down
+
+──────── P-2 unit · LISTEN 断连退避重连 100ms→5s cap 读数 ────────
+PASS  P-2c 退避读数:首退避 ∈[40,160](base 100ms)
+PASS  P-2c 退避读数:单调不减(指数增长)
+PASS  P-2c 退避读数:后期触顶(5s cap ×0.75=3750,读数 ∈[3500,5000])
+PASS  P-2c 退避读数:全部 ≤5000(cap 生效)
+PIN   P2C_BACKOFF_READINGS_MS base=100 max=5000 random=0 deltas=[77,151,302,601,1201,2402,3752] (蓝本 job-wakeup-listener 同构)
+
+──────── P-2 unit · health flip + 约束②日志/计划关停静默 ────────
+PASS  P-2d 翻转预备:fake LISTEN+trigger 在场 → healthy
+PASS  P-2d LISTEN 断连 → 即时降级 reason=listen_down + 结构化日志
+PIN   OPT1-C2-UNIT-DEGRADED-WINDOW reason=listen_down window_ms=27 (断连→复绿单元收据)
+PASS  P-2d 退避重连后复绿(healthy 翻转回)
+PASS  P-2d 计划关停不打降级日志(关停 ≠ 退化转变)
+
+──────── P-2d N1-N6 · 掉线唤醒臂族(掉线即醒·跨流全醒·补偿拉取失败收尾·重连重放) ────────
+PASS  P-2d N1 掉线即醒:emit('end') 后 waiter 0msresolve(<100ms 不等注入 fallback)+health()=false reason=listen_down
+PASS  P-2d N2 跨流全醒:双流三 waiter 掉线窗全 resolve+waitingCount 归零(全醒非单流)
+PASS  P-2d N3 泵补偿拉取臂:掉线唤醒后 fetchMore 即调恰 1 次(不等 30s 兜底)
+PASS  P-2d N3 补偿失败收尾臂:fetchMore null → 泵帧边界 break 收尾(0ms退出 <1000ms·既有语义零改)
+PASS  P-2d N3 客户端 Last-Event-ID 重连重放零丢失:重连按游标 100 重放掉线窗持久化事件 seq 101(帧三段原值·零丢失)
+PASS  P-2d N4 trigger_missing 同醒:trigger 实证空→loseClient 同路唤醒等待者+health reason=trigger_missing
+PASS  P-2d N5 源级:loseClient 函数体含 wakeAllWaiters 唤醒调用+快照遍历词面在场(includes 形·零行号锚)
+PASS  P-2d N6 卫生臂:醒后 entry 全自除(waitingCount=0)+dispose 幂等零抛+醒后可再注册
+
+──────── 取数抛错 / 空结果 ────────
+PASS  取数抛错:pumpSseEvents 以同一个错误拒绝
+PASS  取数抛错:登记计数回到 0
+PASS  取数抛错:end 次数为 0
+PASS  取数抛错:destroy 被调用
+PASS  空结果:泵不因空结果拒绝,写出仍有 : ping
+
+──────── BP · #132 背压四臂(阈值内计数·超阈值断开·drain 复位·源静态) ────────
+PASS  BP-1 阈值内计数:恒 false 注入下四帧全落(emit 未 early-return·阈值内恒 true 仅计数)
+PASS  BP-1 lastSeq 前进:第二轮取数游标含 103(若误冻结则停在 101)
+PASS  BP-1 阈值内零断开:close 拉起前泵未 trip(end 计数=0·背压断开会走 end 单点)
+PASS  BP-2 超阈值断开:累计 false > 1 MiB → 泵帧边界退出(不悬挂)
+PASS  BP-2 拒写镜像形:trip 后早停(writes < 轮内全量 12 帧·超阈值后不落 write 零缓冲滞留)
+PASS  BP-2 end 恰一次:自有旗路径不抑制 raw.end(客户端见干净 end)
+PASS  BP-2 registry 归零:超阈值退出走 unregister 单点(count()===0)
+PASS  BP-3 惰性挂载形:首次 false 后经 on 缝挂 drain 监听恰一次(fake 容忍面在证)
+PASS  BP-3 drain 复位:复位后次轮 ~600KiB 大帧仍被接受(两轮累计下发 >1 MiB 零断开·end=0)
+PASS  BP-4 源静态:write() 返回值被消费(#132 原病=弃置恒 true 已修)
+PASS  BP-4 源静态:阈值常量 1_048_576 词面在场(1 MiB=64×16KiB)
+PASS  BP-4 源静态:自有旗 bpTripped 在场+消歧措辞在场(背压 drain(socket)≠HA-2 排水)
+PASS  BP-4 源静态:end 守卫词面零扩(if (!closed) 守卫行不被自有旗并入)
+PIN   GAP-SSEPUSH-FULL-E2E: full.e2e 三流(interview/quiz/diagnosis 终态段)未在本证明面跑(本刀授权=三既有 proof 复跑)
+PIN   GAP-SSEPUSH-CROSS-REPLICA: 跨副本 SSE 槽/播 HC-GAP-008 未证(单进程单 LISTEN)
+PIN   GAP-SSEPUSH-QUIZ-DX-HTTP: quiz/diagnosis 控制器与 interview 共用同一 pump/同表同 channel(码面单源+类型检查;HTTP 级逐实体流证明未单列)
+PIN   GAP-SSEPUSH-PROD-30S: 生产兜底 30s 为源钉值(HEALTHY_FALLBACK_MS=30_000),行为证明用注入 250ms 加速 + HTTP 2.8s 静默窗旁证
+PIN   GAP-SSEPUSH-REG-WINDOW: 控制器 initial 取数→pump waiter 注册之间存在 ~ms 级窗口,窗内事件由兜底收(≤30s 一次,非丢失;退化态 2s 收)
+PIN   NOT-HA · releaseEvidence=false · actualSpendCny=null · ≠ covered 宣称 · Ban 全程生效(wakeup 五 blob/事件表本体/Last-Event-ID/secrets 零触碰)
+PASS  G-GAP honesty pins printed (EXIT=0 ≠ covered)
+
+NOTE: Opt1 退化面已活体实证(两既有 proof 复跑路径);生产 B6 posture 由 P-1~P-5 真 LISTEN 承担;≠ full e2e;≠ HA
+
+✓ sse-push:notify: 66 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T21-20-26-827Z-41034-52d570ac-aee0-4a30-892d-75e0b9fc6476.json release_evidence=false
