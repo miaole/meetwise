@@ -236,6 +236,8 @@
     "uc002:http:prove:raw": "pnpm -C apps/api prove:uc002-http",
     "uc002:adv:prove": "node scripts/run-e2e-isolated.mjs uc002:adv:prove:raw",
     "uc002:adv:prove:raw": "pnpm -C apps/api prove:uc002-adv",
+    "uc002:nhp-http-bound:prove": "node scripts/run-e2e-isolated.mjs uc002:nhp-http-bound:prove:raw",
+    "uc002:nhp-http-bound:prove:raw": "pnpm -C apps/api prove:uc002-nhp-http-bound",
     "uc015:ingest-failures:prove": "node scripts/run-e2e-isolated.mjs uc015:ingest-failures:prove:raw",
     "uc015:ingest-failures:prove:raw": "pnpm -C apps/api prove:uc015-ingest-failures",
     "uc014:webhook-adv:prove": "node scripts/run-e2e-isolated.mjs uc014:webhook-adv:prove:raw",
