@@ -1,0 +1,45 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-96961-1793158440611 on 127.0.0.1:33188
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc015-ingest-failures /Users/miaole/Desktop/golucky/meetwise-uc15f/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-015-resume-ingest-failures.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793158445948,"pid":97117,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:52106"}
+UC-E2E-015 resume-ingest-failures prove · releaseEvidence=false · Not HA
+NOTE: 本绿≠全链路 E2E covered；≠ matrix covered；相对 OCR 成功+409；fixture=pgvector → green-risk/R5
+{"level":30,"time":1793158445960,"pid":97117,"hostname":"miaole.local","reqId":"9c36e8b9-95d7-4493-bc2d-87d209c40720","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52106","remoteAddress":"127.0.0.1","remotePort":52107},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+{"level":30,"time":1793158445970,"pid":97117,"hostname":"miaole.local","reqId":"9c36e8b9-95d7-4493-bc2d-87d209c40720","res":{"statusCode":422},"responseTime":9.42795799999999,"msg":"request completed"}
+PASS  F1 加密 PDF → 422
+PASS  F1 error=encrypted
+{"level":30,"time":1793158445975,"pid":97117,"hostname":"miaole.local","reqId":"5ef8ef0d-d29f-4136-8cf9-c745dab5374f","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52106","remoteAddress":"127.0.0.1","remotePort":52108},"msg":"incoming request"}
+{"level":30,"time":1793158445976,"pid":97117,"hostname":"miaole.local","reqId":"5ef8ef0d-d29f-4136-8cf9-c745dab5374f","res":{"statusCode":400},"responseTime":0.9434999999998581,"msg":"request completed"}
+PASS  F2 0字节 contentBase64 空串 → 400 入口即拒
+{"level":30,"time":1793158446012,"pid":97117,"hostname":"miaole.local","reqId":"182fa3fb-0207-4288-a761-2715b4d4e037","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52106","remoteAddress":"127.0.0.1","remotePort":52107},"msg":"incoming request"}
+{"level":30,"time":1793158446059,"pid":97117,"hostname":"miaole.local","reqId":"182fa3fb-0207-4288-a761-2715b4d4e037","res":{"statusCode":413},"responseTime":46.836917000000085,"msg":"request completed"}
+PASS  F3 超大(>8MB) → 413
+PASS  F3 error=file_too_large
+{"level":30,"time":1793158446061,"pid":97117,"hostname":"miaole.local","reqId":"59de2fb0-1095-4686-bc6b-94398c29f2ce","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52106","remoteAddress":"127.0.0.1","remotePort":52108},"msg":"incoming request"}
+{"level":30,"time":1793158446677,"pid":97117,"hostname":"miaole.local","reqId":"59de2fb0-1095-4686-bc6b-94398c29f2ce","res":{"statusCode":422},"responseTime":615.2519579999998,"msg":"request completed"}
+PASS  F4 畸形 PDF → 422
+PASS  F4 error=parse_failed
+{"level":30,"time":1793158446679,"pid":97117,"hostname":"miaole.local","reqId":"1927336a-a242-4d49-b07c-d59264a8ed82","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52106","remoteAddress":"127.0.0.1","remotePort":52107},"msg":"incoming request"}
+{"level":30,"time":1793158446679,"pid":97117,"hostname":"miaole.local","reqId":"1927336a-a242-4d49-b07c-d59264a8ed82","res":{"statusCode":415},"responseTime":0.602292000000034,"msg":"request completed"}
+PASS  F5 非简历格式 .exe → 415
+PASS  F5 error=unsupported_file_format
+{"level":30,"time":1793158446681,"pid":97117,"hostname":"miaole.local","reqId":"4f2479d6-9c05-4147-9f92-05b3c6fb5d5e","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52106","remoteAddress":"127.0.0.1","remotePort":52108},"msg":"incoming request"}
+{"level":30,"time":1793158446681,"pid":97117,"hostname":"miaole.local","reqId":"4f2479d6-9c05-4147-9f92-05b3c6fb5d5e","res":{"statusCode":415},"responseTime":0.5325000000002547,"msg":"request completed"}
+PASS  F5 xlsx → 415（不乱码入库）
+PASS  F-billing 失败族无新增 entitlement_consumption
+PASS  F-billing 失败族无新增 resume 行
+
+NOTE: still needs e2e:isolated for OCR success+409 (Key) + scanned no_text_layer reason/UI; ≠covered
+
+✓ uc015:ingest-failures: 12 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-28T03-34-06-923Z-96961-ece9790a-d2ba-4f2c-96e4-8c8b795c2159.json release_evidence=false
+NEIGHBOR_INGEST_EXIT=0

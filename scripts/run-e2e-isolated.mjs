@@ -1085,6 +1085,33 @@ const isolatedReceiptSources = {
     'packages/db/migrations/0189_api_harden_shared_state.sql',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // UC-015 FAULT（NHP-015-FAULT-01 · REQUEST harness/uc15f-REQUEST.md §1 rev r1 终形）：visionOcr 缝故障注入
+  // 三形（F1 throw/F2 成对窗超时/F3 空转写）+PC canary+N 净账 → 产品降级形状（422 ocr_failed+release+工件卫生+
+  // 账本 reason 级可分）。boot+最小模块同进程承载（useValue scripted·零组合根零 main.ts:146 启动校验）。
+  // 隔离 PG 全迁移链（pre-migrate 世界·0120 共享准入承重）。
+  'uc015:nhp-fault:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-015-nhp-fault.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/modules/resume/ocr-model-client.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/rate-limit.service.ts',
+    'packages/ai-runtime/src/resume-ocr.ts', 'packages/ai-runtime/src/invoke.ts',
+    'packages/ai-runtime/src/model-client.ts', 'packages/ai-runtime/src/timeout.ts',
+    'packages/ai-runtime/src/model-admission.ts',
+    'packages/db/src/commerce/commerce.ts', 'packages/db/src/model-op/model-invocation.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0037_ai_model_invocation_durable_claim.sql',
+    'packages/db/migrations/0038_resume_ocr_artifact.sql',
+    'packages/db/migrations/0085_ai_model_logical_node_dispatch_slot.sql',
+    'packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql',
+    'packages/db/migrations/0119_usage_reconciliation_wiring.sql',
+    'packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+    'packages/db/migrations/0179_ag_d_release_refused_claim.sql',
+    'packages/db/migrations/0209_ag09_replay_first_claim.sql',
+  ],
   // X16-ADV（NHP-016-ADV-01 · blind→case）：quiz/diagnosis 双口同主体状态机/输入对抗六臂族
   // （S1 终态壳/S2 死壳 re-begin/S3 换载荷幂等/S4 自弃二次 abandon/A1 list 对抗值域/A2 target_role 列）。
   // 隔离 PG 真 HTTP（_neg-harness 三层壳·同 row 批 C NEG 先例形）。
@@ -2878,6 +2905,9 @@ if (![
   'uc016:nhp-neg:prove:raw',
   'uc015:nhp-adv:prove:raw',
   'uc001:nhp-perf-api:prove:raw',
+  // UC-015 FAULT 一行（NHP-015-FAULT-01 · visionOcr 缝故障注入→产品降级形状 · REQUEST harness/uc15f-REQUEST.md
+  // §1 rev r1 终形·case-matrix 锚「—」全族唯一零命令零收据 case 即补·一行一 case 一收据·沿批 C 同形注册）。
+  'uc015:nhp-fault:prove:raw',
   // X16-ADV 一行（NHP-016-ADV-01 · 一行一 case 一收据·沿批 C 同形注册）。
   'uc016:nhp-adv:prove:raw',
   // PERF_api 三收据刀（UC-011 begin 主链 · UC-017 报告链 · UC-019 重试链 · 沿 uc001 先例形注册·一行一 case 一收据）。
@@ -3327,6 +3357,9 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-neg']]
   : target === 'uc015:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc015-nhp-adv']]
+  // UC-015 FAULT（NHP-015-FAULT-01）分派：api 原生 prove script 名（沿 uc015-nhp-adv 同形）。
+  : target === 'uc015:nhp-fault:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc015-nhp-fault']]
   : target === 'uc016:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-adv']]
   : target === 'uc050:nhp-kill:prove:raw'
@@ -4242,6 +4275,12 @@ async function main() {
   'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'estimate-threading-invoke:prove:raw', 'failover-price-policy:prove:raw', 'model-op00-usage-reconciler:prove:raw', 'ucal-windowing:prove:raw', 'adaptive-latency:prove', 'uc028:nhp-fault:prove:raw', 'uc028:recon-truth-inject:prove:raw', 'uc012:nhp-fault:prove:raw', 'uc012:nhp-neg:prove:raw', 'uc012:nhp-bound:prove:raw', 'uc012:nhp-adv:prove:raw', 'uc030:nhp-fault:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api · pre-migrate 名单第四注册位全登记——批 A §9-EXEC 第四位教训承登）。
   'uc016:nhp-neg:prove:raw', 'uc015:nhp-adv:prove:raw', 'uc001:nhp-perf-api:prove:raw',
+  // UC-015 FAULT 一行（NHP-015-FAULT-01 · pre-migrate 名单第四注册位·**承重披露（r1 修订⑤·非程序性）**：
+  // OCR invoke=operation-scoped 共享准入（resume-ocr :136 operation {id:'resume.ocr.v1'} → invoke :749
+  // resolveModelAdmissionPartition → admitSharedModelOperation model-admission :126-145 无 try/catch 裸调
+  // ai_model_admission_acquire_scoped SECURITY DEFINER 函数）→ 0120 迁移必需（_neg-harness 迁移链零 0120·
+  // virgin 世界漏登记=PC 臂裸 500 环境红非产品红）+ 0120:59 resume.ocr.v1 allowed 种子已核·沿批 C 同形全登记。
+  'uc015:nhp-fault:prove:raw',
   // X16-ADV 一行（NHP-016-ADV-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc016:nhp-adv:prove:raw',
   // PERF_api 三收据刀（UC-011/017/019）——**不入本 pre-migrate 名单**（world 选择承登）：三 proof 的
