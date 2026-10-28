@@ -1,0 +1,61 @@
+
+> meetwise@0.1.0 dbhy1:prove /Users/miaole/Desktop/golucky/meetwise-xrep
+> node scripts/run-e2e-isolated.mjs dbhy1:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-4853-1793162370139 on 127.0.0.1:33197
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-xrep/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:dbhy1 /Users/miaole/Desktop/golucky/meetwise-xrep/packages/db
+> tsx test/dbhy1.proof.ts
+
+PASS  P0 隔离目标实证（E2E_ISOLATED + 容器 nonce）
+PASS  P1-1 app_setting 已退役（to_regclass NULL）
+PASS  P1-2 consumption_record 已退役（to_regclass NULL）
+PASS  P1-3 幂等真身 entitlement_consumption 在产
+PASS  P1-4 生产 src 静态 grep 两死表名 0 命中（primitives.sql 本地副本豁免·登记）
+PASS  P2-1 0001–0144 全 145 文件 sha256 与冻结基线逐一相等（Ban 历史迁移改写）
+PASS  P3-1 全代码面 sql/ 引用仅剩登记残面（neg 族+legacy 夹具+孤儿+manifest/拷贝·案B'）
+PASS  P4-1 schema_migrations 行数=217 = 迁移文件数=217（fresh deploy 全链落账）
+PASS  P4-2 resume_quiz.expires_at 存在（0007+0135 链·sql/20 的替代证明）
+PASS  P4-3 0019 封口：admin_audit 存在
+PASS  P4-4 0019 封口：question_feedback 存在
+PASS  P4-5 0019 封口：learning_progress 存在
+PASS  P4-6 0019 封口：user_account.is_admin 存在
+  P4⑤ functions: sql=34 mig=365 缺=0（豁免登记=0）
+  P4⑤ triggers: sql=7 mig=93 缺=0（豁免登记=0）
+  P4⑤ policies: sql=48 mig=340 缺=3（豁免登记=3）
+    - [policies] public.ai_model_invocation:p_owner（豁免·迁移侧 0037:39 以 p_ai_model_invocation_owner 承载（改名后继在产））
+    - [policies] public.consumption_record:p_owner（豁免·0145 本刀 DROP 死表·迁移侧无此表（sql/ 夹具仍载历史镜像））
+    - [policies] public.resume_ocr_artifact:p_owner（豁免·迁移侧 0038:21 以 p_resume_ocr_artifact_owner 承载（改名后继在产））
+  P4⑤ indexes: sql=38 mig=115 缺=4（豁免登记=4）
+    - [indexes] ix_outbox_pending（豁免·0212 故意 DROP（非部分索引退役，ix_outbox_unsettled 接替）·sql/ 夹具滞后旧索引）
+    - [indexes] ix_qfb_rating（豁免·0199 故意 DROP（#122 半2 冗余索引退役·全仓 rg 零查询引用）·sql/ 夹具滞后旧索引）
+    - [indexes] ix_user_email（豁免·0199 故意 DROP（#122 半2 冗余索引退役·email UNIQUE 约束背衬索引同列双 btree）·sql/ 夹具滞后旧索引）
+    - [indexes] uq_interview_application_binding（豁免·0046:33 故意 DROP（评估恢复刀放宽一次性绑定）·sql/ 夹具滞后旧索引）
+PASS  P4⑤ 对象类承载：sql/ 侧四类名录 ⊆ 迁移侧（未登记缺口=0·逐名打印入 attempts）
+PASS  P5-1 G2 active 后 G1=retired（元数据在产）
+PASS  P5-2 corpus 未前进时释放 retired 代被拒（回滚窗口守卫·check_violation）（拒绝·check_violation）
+PASS  P5-3 corpus epoch 已前进（4 → 5·回滚窗口关闭）
+PASS  P5-4 G1 分区已 DETACH+DROP（to_regclass NULL·HNSW 随表落）
+PASS  P5-5 G1 元数据行保留且 storage_released_at 落时间戳（审计面不抹）
+PASS  P5-6 active 代(G2) evidence 不受释放影响（G-R4-5 闭面零波及负门）
+PASS  P5-7 释放 active 代被拒（check_violation）（拒绝·check_violation）
+PASS  P5-8 幂等门：二次释放被拒（check_violation）（拒绝·check_violation）
+PASS  P5-9 unknown 代被拒（check_violation）（拒绝·check_violation）
+PASS  P5-10 building 代释放被拒（check_violation）（拒绝·check_violation）
+PASS  P5-11 app_role 直调释放函数被拒（executor-only·42501）
+PASS  P5-12 failed 代分区回收（to_regclass NULL）
+PASS  P5-13 active 指针仍=G2（释放不动控制面）
+PASS  P6-1 四 jsonb 老列 pg_description 含 DEPRECATED（规范冻结·拆表另刀）
+
+✓ DBHY-1 prove 28 断言全绿
+EXIT=0
