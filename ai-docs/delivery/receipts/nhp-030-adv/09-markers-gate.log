@@ -1,0 +1,18 @@
+# NHP-030-ADV-01 closing gate 2 — markers changed-set grep (2026-10-28 closing turn)
+# changed set: ai-docs/delivery/harness/uc30-adv-REQUEST.md scripts/ai-docs/public-text-policy.mjs scripts/ai-docs/public-text-policy.proof.mjs (+ merge 7f256d705 auto-merged faces)
+# words: runtime-assembled per scripts/i6-239-gates.proof.mjs:158-163 (TODO FIXME XXX HACK) + leading conflict markers
+ai-docs/delivery/harness/uc30-adv-REQUEST.md::TODO=0
+ai-docs/delivery/harness/uc30-adv-REQUEST.md::FIXME=0
+ai-docs/delivery/harness/uc30-adv-REQUEST.md::XXX=0
+ai-docs/delivery/harness/uc30-adv-REQUEST.md::HACK=0
+ai-docs/delivery/harness/uc30-adv-REQUEST.md::conflict-marker=0
+scripts/ai-docs/public-text-policy.mjs::TODO=0
+scripts/ai-docs/public-text-policy.mjs::FIXME=0
+scripts/ai-docs/public-text-policy.mjs::XXX=0
+scripts/ai-docs/public-text-policy.mjs::HACK=0
+scripts/ai-docs/public-text-policy.mjs::conflict-marker=0
+scripts/ai-docs/public-text-policy.proof.mjs::TODO=0
+scripts/ai-docs/public-text-policy.proof.mjs::FIXME=0
+scripts/ai-docs/public-text-policy.proof.mjs::XXX=0
+scripts/ai-docs/public-text-policy.proof.mjs::HACK=0
+scripts/ai-docs/public-text-policy.proof.mjs::conflict-marker=0
