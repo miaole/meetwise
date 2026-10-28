@@ -1,0 +1,120 @@
+
+> meetwise@0.1.0 uc030:nhp-fault:prove /Users/miaole/Desktop/golucky/meetwise-uc30
+> node scripts/run-e2e-isolated.mjs uc030:nhp-fault:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-71312-1793147634299 on 127.0.0.1:33166
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-uc30/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc030-nhp-fault /Users/miaole/Desktop/golucky/meetwise-uc30/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-fault.proof.ts
+
+NHP-030-FAULT-01 UC-E2E-030 FAULT prove (F1-F5 + N1-N2 · 零模型 · Ban wash UC-018/017)
+Pins: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :128 措辞零翻动 · EXIT0≠covered
+守护 §9-rev2: ①壳行 created ②夹具豁免具名 ③per_session 缺省计费形 ⑥Ban wash UC-018/017
+PASS  L0 零模型: 三键（MODEL_API_KEY/DASHSCOPE_API_KEY/DASHSCOPE_COMPAT_BASE_URL）入场均不在场
+{"level":30,"time":1793147639460,"pid":71602,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:64920"}
+
+──────── F1 · reclaim sweep 口（commerceReconcileTick → abandonInterviewAndRelease） ────────
+{"level":30,"time":1793147639468,"pid":71602,"hostname":"miaole.local","reqId":"935290bd-6f21-4792-a4cb-af2e9146f4b7","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639517,"pid":71602,"hostname":"miaole.local","reqId":"935290bd-6f21-4792-a4cb-af2e9146f4b7","res":{"statusCode":200},"responseTime":48.61616600000002,"msg":"request completed"}
+PASS  F1 夹具自检: 基线可读且含试给桶（signup +1.0 + 种子 5.0 = 6.0）
+PASS  守护① 壳行 iv-uc030f-f1-mvrdt18a 插入态='created'
+PASS  F1 reserve（产品原语·begin 同 CAS）→ reserved
+PASS  F1 预留后 availability=基线-1.0
+PASS  守护③ F1 计费形=per_session 缺省（billing_cap_units IS NULL）
+PASS  F1 tick staleReleased≥1
+PASS  F1 tick abandoned≥1
+PASS  F1 interview 终态=abandoned
+PASS  F1 consumption=released
+PASS  F1 额度全回补 availability=基线（净变 0）
+PASS  F1 interview_unavailable 补发恰一（无静默死胡同）
+
+──────── F2 · 显式 abandon 口（interview.service → abandonInterviewAndRelease · 真 HTTP） ────────
+{"level":30,"time":1793147639556,"pid":71602,"hostname":"miaole.local","reqId":"ed43d9f5-2515-45ce-9b36-211d8447f924","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639592,"pid":71602,"hostname":"miaole.local","reqId":"ed43d9f5-2515-45ce-9b36-211d8447f924","res":{"statusCode":200},"responseTime":35.19458300000008,"msg":"request completed"}
+PASS  守护① 壳行 iv-uc030f-f2-mvrdt18a 插入态='created'
+PASS  F2 reserve → reserved
+PASS  守护③ F2 计费形=per_session 缺省（billing_cap_units IS NULL）
+{"level":30,"time":1793147639602,"pid":71602,"hostname":"miaole.local","reqId":"8debc851-fc6e-41e7-94d7-853526afb2e9","req":{"method":"POST","url":"/interview/iv-uc030f-f2-mvrdt18a/abandon","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639615,"pid":71602,"hostname":"miaole.local","reqId":"8debc851-fc6e-41e7-94d7-853526afb2e9","res":{"statusCode":200},"responseTime":12.411417000000029,"msg":"request completed"}
+PASS  F2 HTTP 200
+PASS  F2 响应 {abandoned:true, released:"released", alreadyAbandoned:false}
+PASS  F2 interview 终态=abandoned（与 F1 同终态）
+PASS  F2 consumption=released（与 F1 同原语释放）
+PASS  F2 额度全回补 availability=基线（净变 0）
+PASS  F2 显式口零 interview_unavailable（补偿事件=sweep 口专属 · 家族形状）
+
+──────── F3a · F1(sweep)→F2(显式 HTTP) 幂等 · 200 {alreadyAbandoned:true, released:"noop"} ────────
+{"level":30,"time":1793147639622,"pid":71602,"hostname":"miaole.local","reqId":"99fe54c9-3dbd-4b74-a171-9b3c52ebf995","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639657,"pid":71602,"hostname":"miaole.local","reqId":"99fe54c9-3dbd-4b74-a171-9b3c52ebf995","res":{"statusCode":200},"responseTime":35.105125000000044,"msg":"request completed"}
+PASS  守护① 壳行 iv-uc030f-f3-mvrdt18a 插入态='created'
+PASS  F3a 前置 F1 生效（abandoned + 基线回补 + 事件恰一）
+{"level":30,"time":1793147639682,"pid":71602,"hostname":"miaole.local","reqId":"bbe63c89-bf1a-4bcf-986a-3b0034e71079","req":{"method":"POST","url":"/interview/iv-uc030f-f3-mvrdt18a/abandon","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639693,"pid":71602,"hostname":"miaole.local","reqId":"bbe63c89-bf1a-4bcf-986a-3b0034e71079","res":{"statusCode":200},"responseTime":10.790457999999944,"msg":"request completed"}
+PASS  F3a HTTP 200（非 409 conflict）
+PASS  F3a 响应 {abandoned:true, released:"noop", alreadyAbandoned:true}（interview.service.ts:659 映射 · commerce.ts:522/:542）
+PASS  F3a 终态不复活: 仍 abandoned
+PASS  F3a 无二次 release: consumption 仍 released
+PASS  F3a 额度不动: availability 仍基线（无双退）
+PASS  F3a 事件恰一: interview_unavailable 仍 1（无重放）
+
+──────── F3b · F2(显式)→F1(sweep) 反向幂等 · sweep 不触已释放 ────────
+{"level":30,"time":1793147639701,"pid":71602,"hostname":"miaole.local","reqId":"b0676139-770b-4aca-9b36-ca50798c2633","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639735,"pid":71602,"hostname":"miaole.local","reqId":"b0676139-770b-4aca-9b36-ca50798c2633","res":{"statusCode":200},"responseTime":34.20170800000005,"msg":"request completed"}
+PASS  守护① 壳行 iv-uc030f-f4-mvrdt18a 插入态='created'
+{"level":30,"time":1793147639743,"pid":71602,"hostname":"miaole.local","reqId":"4ced62a5-f588-4d10-8d1f-35df5f49af3a","req":{"method":"POST","url":"/interview/iv-uc030f-f4-mvrdt18a/abandon","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639753,"pid":71602,"hostname":"miaole.local","reqId":"4ced62a5-f588-4d10-8d1f-35df5f49af3a","res":{"statusCode":200},"responseTime":9.985083999999915,"msg":"request completed"}
+PASS  F3b 前置 F2 生效（HTTP 200 released · abandoned · 基线回补）
+EVIDENCE F3b-TICK {"staleReleased":0}
+PASS  F3b 终态不复活: 仍 abandoned
+PASS  F3b consumption 仍 released（sweep 不二次处理已释放）
+PASS  F3b 额度不动: availability 仍基线（无双退）
+PASS  F3b 零补偿事件: interview_unavailable 恒 0
+
+──────── F4 · 未过期对照（lease 新鲜 → sweep 不误伤） ────────
+{"level":30,"time":1793147639765,"pid":71602,"hostname":"miaole.local","reqId":"6026c153-3177-465e-947e-4ee64c80e57f","req":{"method":"POST","url":"/auth/signup","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639799,"pid":71602,"hostname":"miaole.local","reqId":"6026c153-3177-465e-947e-4ee64c80e57f","res":{"statusCode":200},"responseTime":34.15712499999995,"msg":"request completed"}
+PASS  守护① 壳行 iv-uc030f-f5-mvrdt18a 插入态='created'
+EVIDENCE F4-TICK {"staleReleased":0}
+PASS  F4 interview 仍 created（未入 abandoned 终态）
+PASS  F4 consumption 仍 reserved
+PASS  F4 额度仍占用: availability=基线-1.0（未误退）
+PASS  F4 零事件: interview_unavailable=0
+
+──────── F5 · 过期/垃圾令牌 401 短回归（sanity · 非全家） ────────
+{"level":30,"time":1793147639815,"pid":71602,"hostname":"miaole.local","reqId":"0f123942-d321-437d-8c71-0efb37e0c7b5","req":{"method":"POST","url":"/interview/iv-uc030f-f5-mvrdt18a/abandon","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639816,"pid":71602,"hostname":"miaole.local","reqId":"0f123942-d321-437d-8c71-0efb37e0c7b5","res":{"statusCode":401},"responseTime":1.0290830000001279,"msg":"request completed"}
+PASS  F5 过期令牌（exp<服务端钟）→ 401 invalid_token
+{"level":30,"time":1793147639818,"pid":71602,"hostname":"miaole.local","reqId":"2585c6ae-ce5f-4c06-adba-dbfad4c9096a","req":{"method":"POST","url":"/interview/iv-uc030f-f5-mvrdt18a/abandon","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64923},"msg":"incoming request"}
+{"level":30,"time":1793147639818,"pid":71602,"hostname":"miaole.local","reqId":"2585c6ae-ce5f-4c06-adba-dbfad4c9096a","res":{"statusCode":401},"responseTime":0.22166600000014114,"msg":"request completed"}
+PASS  F5 垃圾签名 → 401 invalid_token（fail-closed）
+{"level":30,"time":1793147639819,"pid":71602,"hostname":"miaole.local","reqId":"99c5fc17-275b-476c-9844-a8201b1a7106","req":{"method":"POST","url":"/interview/iv-uc030f-f5-mvrdt18a/abandon","host":"127.0.0.1:64920","remoteAddress":"127.0.0.1","remotePort":64921},"msg":"incoming request"}
+{"level":30,"time":1793147639819,"pid":71602,"hostname":"miaole.local","reqId":"99c5fc17-275b-476c-9844-a8201b1a7106","res":{"statusCode":401},"responseTime":0.13970799999992778,"msg":"request completed"}
+PASS  F5 无令牌 → 401（unauthenticated/invalid_token · 不落 dev 回退）
+PASS  F5 对照: 有效令牌同口 200 可达（401 非路由缺失假阳性）
+
+──────── N1-N2 · 额度净账（恰一次 release · 全 owner 汇总） ────────
+EVIDENCE N1-NET {"net":{"f1":6,"f2":6,"f3":6,"f4":6,"f5":5},"bases":[6,6,6,6,6]}
+PASS  N1 五 owner availability 对基线: 四终态净变 0（恰一次 release）· F4 未终态恰占 1.0
+PASS  N2 每笔 interview 恰一 consumption 行（无重复预留）
+PASS  N2 全部 service_type=mock_interview · units_requested=1.0
+PASS  N2 四笔终态笔恰一次 released（零双退零悬挂）
+PASS  N2 未终态笔仍 reserved（F4 对照笔零泄漏零误退）
+
+✓ NHP-030-FAULT-01 全臂绿（49/49）· EXIT=0 = 具名 case 真证据 ≠ covered
+PIN: 双触发路径一致性+sweep/显式口幂等 = UC-030 行 FAULT 面独立新证据
+PIN: §9-rev2 ⑥ Ban wash — 本收据不关 UC-018（abandon 家族已闭）不关 UC-017（LOAD Line Y）任何列
+PIN: D2 — lazy-on-access 字面口 / refresh token 静默刷新 = NOT claimed（产品未接线）
+PIN: F5 仅触发链 sanity · Ban 代 neg:auth 全家 · ADV=blind 留后刀
+PIN: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8 · §1.0.1 :128 行措辞零翻动 · EXIT0≠covered
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-28T00-33-59-958Z-71312-1a137457-577f-4b5a-8876-9482c422c70b.json release_evidence=false
+FAULT_EXIT=0
