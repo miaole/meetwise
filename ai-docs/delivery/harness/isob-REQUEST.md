@@ -1,6 +1,6 @@
-# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED · SOLE_STACK 命名语义收口任务书**（Line ISOB · docs REQUEST · **`executed:awaiting_post_prove_dual`** · docs 钉刀 · 零产品行为变更）
+# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED · SOLE_STACK 命名语义收口任务书**（Line ISOB · docs REQUEST · **`closed`** · docs 钉刀 · 零产品行为变更）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（dual r1 双 PASS 放行 + 协调方显式授权 EXEC 落卷 · 修订 r1 逐条随落 · rev r2 回炉修订随落（post 双审双 FAIL·互盲同判 P1·§0.0.1/§9）·§9 承登 · EXEC commit 零 e2e / 零 docker / 零 live key / 零模型调用（门=三静态门 + A 层 prove 抽验四件本地 EXIT 核·§7）· Ban self-approve · Ban coding · Ban push）
+**Status**: **`closed`**（dual r1 双 PASS 放行 + 协调方显式授权 EXEC 落卷 · 修订 r1 逐条随落 · rev r2 回炉修订随落（post 双审双 FAIL·互盲同判 P1·§0.0.1/§9）·§9 承登 · EXEC commit 零 e2e / 零 docker / 零 live key / 零模型调用（门=三静态门 + A 层 prove 抽验四件本地 EXIT 核·§7）· Ban self-approve · Ban coding · Ban push）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503
 **Date**: 2026-10-26
 **Base / parent tip**: 起草基线 `origin/main` **`2818c252`** / full `2818c2522a4d5003fb4f9a888c9fa67e7881adc9`（#176·docs tip · not a prove tip · fetch EXIT=0）→ **EXEC 立项并线届值如实采重 pin**：`origin/main` **`33fdd233`** / full `33fdd233c4069942569b12b40a95fc05ff448de2`（#173 xrep 合卷已落·含 #178 uc15f 合卷 `91aca39bf` + XREP 二轮 CAP-SANCTION-2445 步进 `9047aefdc` 在前·fetch EXIT=0）·merge **`f76e05751`**（dual-keep 恰 2 处冲突·cap 取大恒 2_445·union 实测与步进见 §6）
@@ -21,7 +21,7 @@
 
 - **post 双 FAIL 分歧**：EXEC 落卷后 post 双审两席（互盲）均 FAIL——席1 P1×1+P2×3 / 席2 P1×2+P2×3（分歧在 P1 计数与 P2 面拆分·非在 P1 定性）。
 - **同判 P1 裁决**：两席互盲同判交叉印证＝**§9 门实测记录对 g7 失实**——g7 EXIT=3 内含 1 条**先在未承登断言红**（`:27` 钉 `g7-sole-fixture-retire-scor00.md` 已被 ptp-archive `426e0b281` git mv 迁往 `receipts/archive/2026-09-batch23/harness/`·proof 常量未随迁 → missing FAIL·`:40` prereq() 把 exit 1 掩码为 3）·「PREREQ 臂非断言红 / 26 项全过 / 与 r5-mark-red 异质」三处申报失实 → 协调方裁决**两席修订清单全采纳**（P1×3＝清单①②③·P2×5＝清单④⑤⑥⑦⑧）·checklist 补登沿 documented-red 承登先例形 additive 登记·**Ban 翻转既有行**。
-- **清单索引（rev r2 八条）**：① §9:168 g7 三处改登+陷阱注记；② checklist `:1255` r5-mark-red 条目紧邻 additive 补登 g7 先在红（裁决授权的 SSOT additive 例外）；③ §7/§9 prereq-override 型门抽验方法条款+两件复跑机检数字落卷；④ §6 r5mr 第三线「三线同号」+并线序届值重排；⑤ §6/§9 policy 注记位 `:256`→`:254`+§1 行锚标注；⑥ §9 背书范围收窄（g1/g3 限 runner SOLE_STACK 锚点/禁项/allowlist/G3 行为臂·ADR 词面覆盖主体=docs:check+uc018-sole assertPins）；⑦ §9 A/B 复核注记（对照实验零留痕·两席独立复现同值承登）；⑧ 即本小节。STOP 三处维持 `executed:awaiting_post_prove_dual`（回炉后待 post 复审）。
+- **清单索引（rev r2 八条）**：① §9:168 g7 三处改登+陷阱注记（**[P2 微勘·post 复审席 P2-A/P2-B 登记·证面冻结零触]** 该「§9:168」系 r1 修订前位置锚·r2 落卷后现址 `:175`；**[P2-B]** §7/§9 所登 qb 75/0/3 两复审席未独立复跑·抽验余量如实注记）；② checklist `:1255` r5-mark-red 条目紧邻 additive 补登 g7 先在红（裁决授权的 SSOT additive 例外）；③ §7/§9 prereq-override 型门抽验方法条款+两件复跑机检数字落卷；④ §6 r5mr 第三线「三线同号」+并线序届值重排；⑤ §6/§9 policy 注记位 `:256`→`:254`+§1 行锚标注；⑥ §9 背书范围收窄（g1/g3 限 runner SOLE_STACK 锚点/禁项/allowlist/G3 行为臂·ADR 词面覆盖主体=docs:check+uc018-sole assertPins）；⑦ §9 A/B 复核注记（对照实验零留痕·两席独立复现同值承登）；⑧ 即本小节。STOP 三处维持 `executed:awaiting_post_prove_dual`（回炉后待 post 复审）。
 
 ## 1. 产品面侦察（只读取证 · file:line 全引 · 基线 tip `2818c252` 实读；SS2 时代行号 `:1845-1848` 已因 tip 前进漂移，现址如下）**[rev r2 行锚标注]**：本节 file:line 均为**起草基线值（并线后漂移**——如 `:3746` SOLE_STACK 定义并线后现址 `:3798`·漂移 +52 亲证**）·定位一律按文本锚优先，基线行号仅为参考**
 
@@ -179,4 +179,4 @@ docs 钉刀执行形态：本卷即收口登记面（§5）；可选（若双审
 
 ---
 
-*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口任务书 · executed:awaiting_post_prove_dual · docs 钉刀 · ≠ sole cutover · 零产品行为变更 · STOP*
+*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口任务书 · closed · docs 钉刀 · ≠ sole cutover · 零产品行为变更 · STOP*
