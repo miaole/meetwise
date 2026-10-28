@@ -45,3 +45,42 @@ git merge-base --is-ancestor origin/main HEAD → EXIT=0（届值 2818c2522 祖�
 产品源四 src 面 diff origin/main→HEAD 空（零 drift·本刀零产品码）
 
 新 tip：b1a234dae（链 dab570973→50217aeda→b1a234dae 全随 PR #173）
+
+═══ 二轮并线（届值推移：push 后 main 推进 #178 uc15f→91aca39bf·auto-merge 转 DIRTY·二轮并线随令同授权行使）═══
+
+CMD: git fetch origin main
+EXIT=0 新届值 origin/main=91aca39bf（#178 uc15f 合卷·cap 届值承 2443=CAP-SANCTION-2443（UC-015 注记）·LINT-SANCTION api 1520→1526/root 5383→5389）
+
+CMD: git merge origin/main --no-ff（merge commit=fb350cff0）
+恰 2 处冲突 dual-keep 双留：scripts/ai-docs/public-text-policy.mjs+public-text-policy.proof.mjs 注记区（本支 XREP 收官+CAP-SANCTION-2443 XREP 注记并留·main CAP-SANCTION-2443 UC-015 注记并留·MAX_FILES 双亲恒 2_443 auto 取大恰等）·runner isolatedCommand 面 auto-merge 零冲突（main uc015:nhp-fault 两行+本支 sse:xrep 行并留）
+
+CMD: pnpm docs:check（merge 树 union 实测）
+EXIT=1 PTP_FILE_LIMIT:2445>2443 红（真红亲证）——union 实测 2445=main 届扫 2443+本支并入互斥受管目 2（harness/xrep-REQUEST.md+apps/api/test/sse-cross-replica.proof.ts·两集合无交叠）
+
+CMD: CAP-SANCTION-2445 恰等步进（commit=9047aefdc·常设预授权随令行使 +2 零多放）
+- policy .mjs：MAX_FILES 2_443→2_445 + CAP-SANCTION-2445 注记两行
+- proof .mjs 四联动点恰等改：i<2_445/atCap 2_445/f-2445.md/FILE_LIMIT:2446 + 链区注记一行
+- lint 帽：取大承 main LINT-SANCTION 1526/5389（双亲取大·本支 1520/5383＜）
+
+CMD: pnpm public-text-policy:prove
+EXIT=0 selected=12/12
+
+CMD: pnpm install --frozen-lockfile
+EXIT=0
+
+CMD: pnpm docs:check
+EXIT=0 scanned 2445=cap 2445 恰等零多放
+
+CMD: pnpm turbo typecheck
+EXIT=0 Tasks: 8 successful
+
+CMD: pnpm turbo lint + apps/api pnpm lint
+EXIT=0 Tasks: 12 successful + api 1526 problems=帽 1526 恰等零 warning 增量（LINT-SANCTION 取大承登）
+
+CMD: markers 五类+行首冲突标记改动集 grep（二轮 9 文件）
+EXIT=0 TOTAL_HITS=0
+
+CMD: ancestor 门
+merge-base --is-ancestor origin/main HEAD → EXIT=0（91aca39bf 祖先亲证）·src 四面 diff 空（零 drift）
+
+新 tip：9047aefdc（链 dab570973→50217aeda→b1a234dae→8a661b483→fb350cff0→9047aefdc 全随 PR #173）
