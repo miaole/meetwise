@@ -2351,6 +2351,21 @@
     },
     {
       "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-030-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_API_KEY",
+      "source": "apps/api/test/uc-e2e-030-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "DASHSCOPE_COMPAT_BASE_URL",
+      "source": "apps/api/test/uc-e2e-030-nhp-adv.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_API_KEY",
       "source": "apps/web/test/nhp-perf-web.proof.ts",
       "class": "test-isolation"
     },

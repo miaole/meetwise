@@ -1,0 +1,32 @@
+@meetwise/qdrant-store:lint: ✖ 27 problems (0 errors, 27 warnings)
+@meetwise/domain:lint: ✖ 115 problems (0 errors, 115 warnings)
+@meetwise/ai-graphs:lint: ✖ 47 problems (0 errors, 47 warnings)
+@meetwise/api:lint: cache miss, executing 9ebe91e0d5072431
+@meetwise/contracts:lint: ✖ 265 problems (0 errors, 265 warnings)
+@meetwise/ai-runtime:lint: ✖ 628 problems (0 errors, 628 warnings)
+@meetwise/web:lint: ✖ 605 problems (0 errors, 605 warnings)
+@meetwise/db:lint: ✖ 1042 problems (0 errors, 1042 warnings)
+@meetwise/worker:lint: ✖ 999 problems (0 errors, 999 warnings)
+@meetwise/api:lint: 
+@meetwise/api:lint: > @meetwise/api@0.0.0 lint /Users/miaole/Desktop/golucky/meetwise-uc30/apps/api
+@meetwise/api:lint: > eslint . --max-warnings 1520
+@meetwise/api:lint: 
+@meetwise/api:lint: 
+@meetwise/api:lint: /Users/miaole/Desktop/golucky/meetwise-uc30/apps/api/src/app.module.ts
+@meetwise/api:lint:   11:1  warning  `@meetwise/ai-runtime` import should occur before import of `./platform/platform.module`  import/order
+@meetwise/api:lint: 
+@meetwise/api:lint: /Users/miaole/Desktop/golucky/meetwise-uc30/apps/api/src/main.ts
+@meetwise/api:lint:    53:16  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:    53:28  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   195:57  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   205:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   205:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   205:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   220:38  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   220:50  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   220:61  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   258:39  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   258:51  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+@meetwise/api:lint:   258:62  warning  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+...
+[full 1.9MB stdout retained in .tmp/uc030-nhp-adv-receipts/08-turbo-lint.stdout (non-scanned, untracked) · summary extract above]
