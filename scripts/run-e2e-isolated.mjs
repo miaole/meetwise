@@ -1177,6 +1177,25 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // UC-033 PERF_api 残格刀（NHP-033-PERF-api-01 · REQUEST harness/uc33p-REQUEST.md §1.4 · 矩阵 :152
+  // X10≠SLO 格 · 沿 uc001/#157/perf2 同形注册 additive·一行一 case 一收据）：合法用户 begin 链
+  // （begin 202 预留→entitlement 预留可见·残队形零 abandon）· 窗外 prep consent/resume/interview
+  // create 产品路径+桶种子豁免① · interview 链面机制源（candidate-route 供给/interview-jobs 背压闸）。
+  'uc033:nhp-perf-api:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts',
+    'apps/api/src/modules/commerce/commerce.controller.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/uuid.ts',
+    'packages/db/src/routing/candidate-route.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+    'packages/db/migrations/0142_candidate_profile_route.sql',
+  ],
   // PERF-web 执行收据刀（NHP-001-PERF-web-01 · REQUEST harness/perfweb-REQUEST.md §1 终形）：UI 流式窗口
   // 预算五值（N=100 c=1 serial runs=3 · warmup 10 · nearest-rank · 三容器 caps 2cpu/4GiB（PG runner 面
   // +api/web capped child 面·HostConfig inspect 亲证）·Chromium 宿主驱动不封顶披露·web 容器内 production
@@ -2873,6 +2892,9 @@ if (![
   // ·沿 uc001/#157 先例形注册 additive·一行一 case 一收据）。
   'uc004:nhp-perf-api:prove:raw',
   'uc015:nhp-perf-api:prove:raw',
+  // UC-033 PERF_api 残格刀（NHP-033-PERF-api-01 · REQUEST harness/uc33p-REQUEST.md §1.4 · 矩阵 :152
+  // X10≠SLO 格 · 沿 #157/perf2 先例形注册 additive·一行一 case 一收据）。
+  'uc033:nhp-perf-api:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
   'uc050:nhp-kill:prove:raw',
   'uc051:nhp-nopii:prove:raw',
@@ -3242,6 +3264,7 @@ const UC017_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc017', 'test/uc-e2e-
 const UC019_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc019', 'test/uc-e2e-019-nhp-perf-api.proof.ts');
 const UC004_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc004', 'test/uc-e2e-004-nhp-perf-api.proof.ts');
 const UC015_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc015', 'test/uc-e2e-015-nhp-perf-api.proof.ts');
+const UC033_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc033', 'test/uc-e2e-033-nhp-perf-api.proof.ts');
 
 const isolatedCommand = target === 'api-harden:prove'
   ? ['pnpm', ['-C', 'apps/api', 'prove:api-harden']]
@@ -3336,6 +3359,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['node', ['--input-type=module', '-e', UC004_PERF_API_CAPS_CHILD]]
   : target === 'uc015:nhp-perf-api:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC015_PERF_API_CAPS_CHILD]]
+  : target === 'uc033:nhp-perf-api:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC033_PERF_API_CAPS_CHILD]]
   : target === 'uc001:nhp-perf-web:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC001_PERF_WEB_CAPS_CHILD]]
   : target === 'uc018:abandon:http:prove:raw'
@@ -4190,6 +4215,7 @@ async function main() {
     const resourceCapArgs = target === 'uc018:perf-load:prove:raw' || target === 'uc001:nhp-perf-api:prove:raw'
       || target === 'uc011:nhp-perf-api:prove:raw' || target === 'uc017:nhp-perf-api:prove:raw' || target === 'uc019:nhp-perf-api:prove:raw'
       || target === 'uc004:nhp-perf-api:prove:raw' || target === 'uc015:nhp-perf-api:prove:raw'
+      || target === 'uc033:nhp-perf-api:prove:raw'
       || target === 'uc001:nhp-perf-web:prove:raw'
       ? ['--cpus', '2', '--memory', '4g']
       : [];
@@ -4252,6 +4278,11 @@ async function main() {
   // ·九件种子形已证可种·零 boot() 零 ACL 重放块（授权面迁移链自足·proof 内零重放）。本刀 Case 2
   // NHP-015-PERF-api-01 = boot 世界维持·**不入本名单**（沿 #157 三条 world 选择承登注记 :4164-4168 同族）。
   'uc004:nhp-perf-api:prove:raw',
+  // UC-033 PERF_api 残格刀（NHP-033-PERF-api-01·REQUEST harness/uc33p-REQUEST.md §1.4·boot 世界·
+  // **不入本名单**（沿 #157 三先例/uc015 world 选择承登注记同族）：本 proof begin 链隐私栅栏函数面
+  // （0058 active/assert·0206 read）在 boot 侧 virgin 世界由 boot() 新立=零 definer 断供面·proof 内
+  // 0206/0058/0121 ACL 重放块承载 app_role 执行面。X33-ADV=pre-migrate 世界·本刀=boot 世界·两刀世界
+  // 不同·夹具形跨世界借用 boot 世界先例（uc011 preamble/uc015 resume+0121 机制锚）·X33-ADV 仅取形不取世界。
   'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).

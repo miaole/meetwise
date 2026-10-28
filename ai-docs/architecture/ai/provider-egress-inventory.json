@@ -2380,6 +2380,11 @@
       "class": "test-isolation"
     },
     {
+      "name": "MODEL_API_KEY",
+      "source": "apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-004-nhp-perf-api.proof.ts",
       "class": "test-isolation"
@@ -2387,6 +2392,11 @@
     {
       "name": "MODEL_BASE_URL",
       "source": "apps/api/test/uc-e2e-015-nhp-perf-api.proof.ts",
+      "class": "test-isolation"
+    },
+    {
+      "name": "MODEL_BASE_URL",
+      "source": "apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts",
       "class": "test-isolation"
     },
     {

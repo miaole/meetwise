@@ -426,22 +426,23 @@ const checks = {
       // CAP-SANCTION-2439 UC-017 收官并线恰等步进：cap 2438→2439（2026-10-28 X17-ADV 孤儿任务对抗 NHP-017-ADV-01 收官并线·协调方 CAP-SANCTION-2439 sanction 恰等步进 +1·常设预授权「并线收官越限恰等步进免再询·四联动点+注记栈承登」随令行使·双亲各自合规（本支 40477910f 承 2436≤2438·main 7ea825ff9 承 2436≤2438·共享基 c06ed67b5=2433·并集净增不相交恰 +3+3）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2439>2438 红（真 EXIT=1 亲证·红停登记 f1f5488a7·Ban 就地再改 cap 停手上报）——union 实测 2439 恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2439 注记·本刀 PR 链 40477910f→e3edde87f→f1f5488a7→本步进 commit）——本 TC 四联动点 2_439/f-2439.md/:2440 恰等改。
       // CAP-SANCTION-2440 起草随刀恰等步进：cap 2439→2440（2026-10-26 UC-033 PERF_api 残格刀起草（总盘 P2 小刀·「UC-033 PERF_api（X10≠SLO）」·harness/uc33p-REQUEST.md）随刀·协调方派单预授权「越限沿常设预授权恰等步进」随令·+1 恰等零多放·本树届扫 2439=cap 恰等零余量（基线 docs:check EXIT=0 scanned 2439 亲证）+本卷 REQUEST 受管 1 件=2440 必超·EXEC 期 +1 proof 届值再步进预登=2441（REQUEST §2 门 1）·详 policy .mjs 链区 CAP-SANCTION-2440 注记·沿 2433 起草随刀单件恰等先例形·快速链·授权随令）——本 TC 四联动点 2_440/f-2440.md/:2441 恰等改。
       // CAP-SANCTION-2441 UC-030 收官并线恰等步进：cap 2439→2441（2026-10-28 长会话刷新对抗 NHP-030-ADV-01 收官并线·协调方收官令预 sanction「并线越限恰等步进免停报·CAP-SANCTION-24xx 承登注记+proof 四联动点恰等改+PTP 12/12 亲跑·链接本刀 PR」随令行使 +2（2439→2441）·届值如实采：merge 7f256d705=merge origin/main c8f8effff（#175 x17-adv 合卷已落·cap 届值承 2439=CAP-SANCTION-2439）·本支 98062574a 承 2438≤2439 合规·main 届值 c8f8effff 承 2439=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2441>2439 红（真 EXIT=1 亲证）——union 实测 2441=main 届扫 2439+本支并入互斥受管目 2（harness/uc30-adv-REQUEST.md+apps/api/test/uc-e2e-030-nhp-adv.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2441 注记·本刀 PR：line/uc30-draft→main（链 98062574a→7f256d705→本步进 commit 全链随 PR 首·号承 PR/merge ref）·沿 CAP-SANCTION-2439 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_441/f-2441.md/:2442 恰等改。
-      // CAP-SANCTION-2440/2441 uc33p EXEC 立项并线届值取大承登：本支 2_440＜main 届值 2_441（两上行注记并留）→ 合并树取大恒 2_441·EXEC 期 +1 proof 届值沿常设预授权恰等步进 2_441→2_443（详 policy .mjs 链区 CAP-SANCTION-2440/2441 uc33p EXEC 注记·2026-10-26）——本 TC 四联动点 2_443/f-2443.md/:2444 恰等改。
+      // CAP-SANCTION-2440/2441 uc33p EXEC 立项并线届值取大承登：本支 2_440＜main 届值 2_441（两上行注记并留）→ 合并树取大恒 2_441·EXEC 期 +1 proof 届值沿常设预授权恰等步进 2_441→2_443（详 policy .mjs 链区 CAP-SANCTION-2440/2441 uc33p EXEC 注记·2026-10-26）。
+      // CAP-SANCTION-2443 uc33p EXEC 落码面恰等步进：cap 2441→2443（2026-10-26 UC-033 PERF_api 残格刀 EXEC 落码+并线树终验·合并树实测 PTP_FILE_LIMIT:2442>2441 红亲证留痕·union 实测 2443 恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2443 注记）——本 TC 四联动点 2_443/f-2443.md/:2444 恰等改。
       const paths = [];
-      for (let i = 0; i < 2_441; i += 1) {
+      for (let i = 0; i < 2_443; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_441);
-      // 超限错误码形状断言：第 2442 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2442`（`${CODE}:${n}` 形）·scannedFiles:0。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2441.md'] });
+      assert.equal(atCap.scannedFiles, 2_443);
+      // 超限错误码形状断言：第 2444 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2444`（`${CODE}:${n}` 形）·scannedFiles:0。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2443.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2442`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2444`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
