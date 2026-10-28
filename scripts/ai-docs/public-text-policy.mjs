@@ -259,7 +259,9 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // CAP-SANCTION-2446 本 TC 四联动点 2_446/f-2446.md/:2447 恰等改（proof 文件链区）。
 // CAP-SANCTION-2447 isob 收官并线 union 越限恰等步进：cap 2446→2447（2026-10-26 GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口卷 post 复审 PASS（两席 P1 处方执行验证·会签）后收官并线·常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使 +1（2446→2447）·届值如实采：merge 3e6c96db2=merge origin/main c99d003f1（#180 uc3f 合卷已落（544e5dd6a 收官在卷）·cap 届值承 2446=上行 CAP-SANCTION-2446 双注记（isob+UC3F）三线同号并留·取大恒 2446 零再步进·恰 2 处冲突=两 policy 脚本注记/cap 区 dual-keep 双留+号随 merge-tree 重排·#177/#179 在飞未落 main 如实采·r5mr 在飞预登 CAP-SANCTION-2446 承登于 harness/isob-REQUEST.md §6）·本支 d239baf25 承 2446=cap 恰等·main 届值 c99d003f1 承 2446=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2447>2446 红（真 EXIT=1 亲证·收敛前首轮 2451 冗计 +4=2 冲突件×stage 冗计沿 CAP-SANCTION-2430 同形坑如实承登）——union 实测 2447=main 届扫 2446+本支并入互斥受管目 1（harness/isob-REQUEST.md·两集合无交叠·收官 commit 零新受管文件·真跑收据 .log 非扫描扩展名不计）恰等零多放·沿 CAP-SANCTION-2446 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // CAP-SANCTION-2447 本 TC 四联动点 2_447/f-2447.md/:2448 恰等改（proof 文件链区）。
-const MAX_FILES = 2_447;
+// CAP-SANCTION-2448 r5mr 收官并线 union 越限恰等步进：cap 2447→2448（2026-10-28 r5-mark-red 断言对齐卷 post 双审席1+席2 双 PASS 会签后收官并线 PR（line/r5mr-draft→main）·常设预授权「union 越限沿常设预授权恰等步进 CAP-SANCTION-24xx 承登+四联动点+PTP 12/12」随令行使 +1（2447→2448）·届值如实采：merge 0b4cd14a9=merge origin/main af273901a（#181 isob 合卷已落·cap 届值承 2447=isob CAP-SANCTION-2447·取大恒 2447 零再步进·恰 3 处冲突=两 policy 脚本注记/cap 区+checklist :1255 additive 区 dual-keep 双留+号随 merge-tree 重排·同号 2446 三线预订（isob+UC3F+r5mr）出处分立并留）·本支 970403fec 承 2446≤2447 合规·main 届值 af273901a 承 2447=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2448>2447 红（真 EXIT=1 亲证）——union 实测 2448=main 届扫 2447+本支并入互斥受管目 1（harness/r5mr-REQUEST.md·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·本刀 PR：line/r5mr-draft→main（链 2157c2558→170d78d3c→970403fec→0b4cd14a9→本步进 commit 全链随 PR 首·号承 PR/merge ref）·沿 CAP-SANCTION-2447 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+// CAP-SANCTION-2448 本 TC 四联动点 2_448/f-2448.md/:2449 恰等改（proof 文件链区）。
+const MAX_FILES = 2_448;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
