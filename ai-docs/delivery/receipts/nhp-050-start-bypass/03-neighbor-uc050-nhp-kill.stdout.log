@@ -1,0 +1,126 @@
+
+> meetwise@0.1.0 uc050:nhp-kill:prove /Users/miaole/Desktop/golucky/meetwise-uc50
+> node scripts/run-e2e-isolated.mjs uc050:nhp-kill:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-78087-1793151076935 on 127.0.0.1:33174
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-uc50/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc050-nhp-kill /Users/miaole/Desktop/golucky/meetwise-uc50/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-050-nhp-kill.proof.ts
+
+UC-E2E-050 NHP-050-KILL-01 isolated PG/HTTP KILL evidence (kill-switch 触发面/三态 fail-closed/双闸优先序/零副作用)
+releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · 公开 DELETE=503
+HONESTY: applications.start 绕行残余面 NOT claimed · 图面归 UC-018 先例 · 本 case=触发面 only
+Non-substitute: i6-239 静态词面门 / uc018 图 prove / public-preview-write-gate / privacy-erasure-http 互不替代
+EXIT0=case≠covered · gap→case-only 措辞 · Ban 借收据宣 covered/全入口覆盖 · est live=0
+ATTEMPT_START  iso=2026-10-28T01:31:22.605Z · Ban retry-to-green · Ban fake-green
+
+PASS  [ISO] egress-strip-pattern-self-test(assembled names all matched · literal-zero file face)
+{"level":30,"time":1793151082937,"pid":78580,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:53899"}
+PASS  [ISO] dynamic-PG-port-present(or DATABASE_URL)
+PASS  [ISO] kill-switch-env-unset-at-boot(off=缺省现状)
+PASS  [ISO] preview-env-unset-at-boot(ingress 闸未装·服务级闸序面可达)
+PIN   NHP-050-KILL-ISO-0121-REPLAY: harness 面迁移链重放(pgp ACL·真相=迁移链 migrate 全链)
+PIN   NHP-050-KILL-ISO-INTERVIEW-FIXTURE: 面试域镜像 ACL/列位/触发体/RLS 策略补齐(真相=0028/0046/0049/0064/0142/0144/0206·夹具面·零产品码零新迁移·pg_policies=2)
+{"level":30,"time":1793151082949,"pid":78580,"hostname":"miaole.local","reqId":"995a1608-8d21-4bbe-9ea9-30d4e2910396","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151082955,"pid":78580,"hostname":"miaole.local","reqId":"995a1608-8d21-4bbe-9ea9-30d4e2910396","res":{"statusCode":200},"responseTime":5.592834000000039,"msg":"request completed"}
+PASS  [SEED] product-path consent nhp050k_MVRFUUNY → 200
+{"level":30,"time":1793151082959,"pid":78580,"hostname":"miaole.local","reqId":"c7ecd174-a3f4-44e1-b5e2-37e4f1b71302","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53901},"msg":"incoming request"}
+{"level":30,"time":1793151082962,"pid":78580,"hostname":"miaole.local","reqId":"c7ecd174-a3f4-44e1-b5e2-37e4f1b71302","res":{"statusCode":200},"responseTime":2.6760830000000624,"msg":"request completed"}
+PASS  [SEED] product-path consent nhp050o1_MVRFUUNY → 200
+{"level":30,"time":1793151082963,"pid":78580,"hostname":"miaole.local","reqId":"2c1b1789-9c78-40d3-afbb-bf1307fc6195","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151082965,"pid":78580,"hostname":"miaole.local","reqId":"2c1b1789-9c78-40d3-afbb-bf1307fc6195","res":{"statusCode":200},"responseTime":2.407709000000068,"msg":"request completed"}
+PASS  [SEED] product-path consent nhp050o2_MVRFUUNY → 200
+{"level":30,"time":1793151082966,"pid":78580,"hostname":"miaole.local","reqId":"0149f358-d042-411e-84f6-28fe1394d2ef","req":{"method":"POST","url":"/resume","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53901},"msg":"incoming request"}
+{"level":30,"time":1793151082977,"pid":78580,"hostname":"miaole.local","reqId":"0149f358-d042-411e-84f6-28fe1394d2ef","res":{"statusCode":200},"responseTime":10.227082999999993,"msg":"request completed"}
+PASS  [SEED] product-path resume nhp050k_MVRFUUNY/K → 200 ingested
+{"level":30,"time":1793151082978,"pid":78580,"hostname":"miaole.local","reqId":"ff1bbaff-b95e-4f48-bab8-552248677f7a","req":{"method":"POST","url":"/resume","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151082983,"pid":78580,"hostname":"miaole.local","reqId":"ff1bbaff-b95e-4f48-bab8-552248677f7a","res":{"statusCode":200},"responseTime":5.13716700000009,"msg":"request completed"}
+PASS  [SEED] product-path resume nhp050o1_MVRFUUNY/O1 → 200 ingested
+{"level":30,"time":1793151082984,"pid":78580,"hostname":"miaole.local","reqId":"b5dcdce6-a519-45fc-b909-ff127e86da0c","req":{"method":"POST","url":"/resume","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53901},"msg":"incoming request"}
+{"level":30,"time":1793151082989,"pid":78580,"hostname":"miaole.local","reqId":"b5dcdce6-a519-45fc-b909-ff127e86da0c","res":{"statusCode":200},"responseTime":4.284208000000035,"msg":"request completed"}
+PASS  [SEED] product-path resume nhp050o2_MVRFUUNY/O2 → 200 ingested
+{"level":30,"time":1793151082991,"pid":78580,"hostname":"miaole.local","reqId":"0464681a-cdc2-4e6d-85f5-3dcb592f72d7","req":{"method":"POST","url":"/interview","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151082994,"pid":78580,"hostname":"miaole.local","reqId":"0464681a-cdc2-4e6d-85f5-3dcb592f72d7","res":{"statusCode":200},"responseTime":2.658374999999978,"msg":"request completed"}
+PASS  [SEED] product-path interview shell nhp050k_MVRFUUNY → 200 created
+{"level":30,"time":1793151082994,"pid":78580,"hostname":"miaole.local","reqId":"c5420343-1a20-4b12-bd8b-1b05ee620698","req":{"method":"POST","url":"/interview","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53901},"msg":"incoming request"}
+{"level":30,"time":1793151082997,"pid":78580,"hostname":"miaole.local","reqId":"c5420343-1a20-4b12-bd8b-1b05ee620698","res":{"statusCode":200},"responseTime":2.5945829999998296,"msg":"request completed"}
+PASS  [SEED] product-path interview shell nhp050o1_MVRFUUNY → 200 created
+{"level":30,"time":1793151082999,"pid":78580,"hostname":"miaole.local","reqId":"0049cd44-4566-463c-a7e8-e869c381711c","req":{"method":"POST","url":"/interview","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151083002,"pid":78580,"hostname":"miaole.local","reqId":"0049cd44-4566-463c-a7e8-e869c381711c","res":{"statusCode":200},"responseTime":3.309291999999914,"msg":"request completed"}
+PASS  [SEED] product-path interview shell nhp050o2_MVRFUUNY → 200 created
+PASS  [SEED] three shells created (kill/off1/off2)
+PASS  [K3] off: kill env stays unset through the off arm
+{"level":30,"time":1793151083005,"pid":78580,"hostname":"miaole.local","reqId":"6e0d80c2-8ef6-4c57-bec6-d47a308f8aae","req":{"method":"POST","url":"/interview/iv_01a1802221f47da7ae656b7dcf68ba2d/begin","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151083019,"pid":78580,"hostname":"miaole.local","reqId":"6e0d80c2-8ef6-4c57-bec6-d47a308f8aae","res":{"statusCode":202},"responseTime":13.828125,"msg":"request completed"}
+PASS  [K3] off begin → 202 (现状字节保真)
+PASS  [K3] off begin body {accepted:true, jobId} (现状形状)
+PASS  [K3] off begin writes exactly one start job (对照面唯一写入)
+PASS  [K3] off begin consumes/holds entitlement exactly once (额度单扣对照)
+PIN   K3-OFF-DELTA available=-1 consumptionRows=+1 jobs=+1 (off 单位成本基线)
+{"level":30,"time":1793151083023,"pid":78580,"hostname":"miaole.local","reqId":"5d87d384-f1c9-4a9f-ae36-9389243b49a4","req":{"method":"POST","url":"/interview/iv_01a1802221f1733ea1671ab45690e242/begin","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151083023,"pid":78580,"hostname":"miaole.local","reqId":"5d87d384-f1c9-4a9f-ae36-9389243b49a4","res":{"statusCode":503},"responseTime":0.3327919999999267,"msg":"request completed"}
+PASS  [K1] env=1 begin → 503
+PASS  [K1] env=1 begin body error code exact (具名码)
+PASS  [K1] env=1 begin message 诚实文案逐字
+PASS  [K1] K1 net-ledger zero (额度净 0·消费行 0)
+PASS  [K1] K1 job rows zero for shell (job 行净 0)
+{"level":30,"time":1793151083025,"pid":78580,"hostname":"miaole.local","reqId":"3c700fc2-ccf5-46df-bc50-c8e1eaa650df","req":{"method":"POST","url":"/interview/iv_01a1802221f1733ea1671ab45690e242/turn","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151083025,"pid":78580,"hostname":"miaole.local","reqId":"3c700fc2-ccf5-46df-bc50-c8e1eaa650df","res":{"statusCode":503},"responseTime":0.6660830000000715,"msg":"request completed"}
+PASS  [K2] env=1 turn → 503 (同具名码)
+PASS  [K2] env=1 turn 诚实文案逐字
+PASS  [K2] env=1 turn answer job rows zero (答案零入队)
+{"level":30,"time":1793151083026,"pid":78580,"hostname":"miaole.local","reqId":"286d6a46-d024-42bc-80a8-77ac05ca01e4","req":{"method":"POST","url":"/interview/iv_01a1802221f1733ea1671ab45690e242/begin","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":50,"time":1793151083026,"pid":78580,"hostname":"miaole.local","reqId":"286d6a46-d024-42bc-80a8-77ac05ca01e4","method":"POST","url":"/interview/iv_01a1802221f1733ea1671ab45690e242/begin","err":{"type":"Object","message":"invalid_meetwise_content_safety_kill_switch","stack":"Error: invalid_meetwise_content_safety_kill_switch\n    at resolveContentSafetyKillSwitch (file:///Users/miaole/Desktop/golucky/meetwise-uc50/apps/api/src/platform/content-safety.ts:16:11)\n    at assertContentSafetyKillSwitchOff (file:///Users/miaole/Desktop/golucky/meetwise-uc50/apps/api/src/platform/content-safety.ts:32:9)\n    at InterviewService.denyContentSafetyKilled (file:///Users/miaole/Desktop/golucky/meetwise-uc50/apps/api/src/modules/interview/interview.service.ts:377:13)\n    at InterviewService.begin (file:///Users/miaole/Desktop/golucky/meetwise-uc50/apps/api/src/modules/interview/interview.service.ts:477:14)\n    at InterviewController.begin (file:///Users/miaole/Desktop/golucky/meetwise-uc50/apps/api/src/modules/interview/interview.controller.ts:39:32)\n    at /Users/miaole/Desktop/golucky/meetwise-uc50/node_modules/.pnpm/@nestjs+core@11.1.27_@nestjs+common@11.1.27_reflect-metadata@0.2.2_rxjs@7.8.2__@nestjs+_d0fb58107ed2b5ed700a0795957c51ef/node_modules/@nestjs/core/router/router-execution-context.js:38:29\n    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)\n    at async /Users/miaole/Desktop/golucky/meetwise-uc50/node_modules/.pnpm/@nestjs+core@11.1.27_@nestjs+common@11.1.27_reflect-metadata@0.2.2_rxjs@7.8.2__@nestjs+_d0fb58107ed2b5ed700a0795957c51ef/node_modules/@nestjs/core/router/router-execution-context.js:47:62\n    at async Object.<anonymous> (/Users/miaole/Desktop/golucky/meetwise-uc50/node_modules/.pnpm/@nestjs+core@11.1.27_@nestjs+common@11.1.27_reflect-metadata@0.2.2_rxjs@7.8.2__@nestjs+_d0fb58107ed2b5ed700a0795957c51ef/node_modules/@nestjs/core/router/router-proxy.js:9:17)","name":"Error"},"msg":"unhandled"}
+{"level":30,"time":1793151083027,"pid":78580,"hostname":"miaole.local","reqId":"286d6a46-d024-42bc-80a8-77ac05ca01e4","res":{"statusCode":500},"responseTime":0.43454099999985374,"msg":"request completed"}
+PASS  [K4] env='2' begin → 500 (fail-closed, 非静默 off)
+PASS  [K4] env='2' begin body opaque {error:internal_error} 零细节
+PASS  [K4] K4 net-ledger zero (非法值路径零事务)
+PASS  [K4] K4 job rows still zero
+{"level":30,"time":1793151083029,"pid":78580,"hostname":"miaole.local","reqId":"ce48c23e-67e5-4762-82b5-5213bbcf2fc6","req":{"method":"POST","url":"/interview/iv_01a1802221f1733ea1671ab45690e242/begin","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53900},"msg":"incoming request"}
+{"level":30,"time":1793151083029,"pid":78580,"hostname":"miaole.local","reqId":"ce48c23e-67e5-4762-82b5-5213bbcf2fc6","res":{"statusCode":503},"responseTime":0.13116700000000492,"msg":"request completed"}
+PASS  [K5] dual-gate begin → 503 kill code first (非 public_preview_read_only)
+PASS  [K5] dual-gate 诚实文案逐字（kill 闸文案）
+{"level":30,"time":1793151083029,"pid":78580,"hostname":"miaole.local","reqId":"4d58a4b5-bc72-400d-a1b7-0ab2377741c5","req":{"method":"POST","url":"/interview/iv_01a1802221f1733ea1671ab45690e242/begin","host":"127.0.0.1:53899","remoteAddress":"127.0.0.1","remotePort":53901},"msg":"incoming request"}
+{"level":30,"time":1793151083030,"pid":78580,"hostname":"miaole.local","reqId":"4d58a4b5-bc72-400d-a1b7-0ab2377741c5","res":{"statusCode":503},"responseTime":0.17529100000001563,"msg":"request completed"}
+PASS  [K5] control: kill removed + preview on → 503 public_preview_read_only (第二闸在位)
+PASS  [K5] K5 净账零（双闸/对照臂均零写入）
+PASS  [ISO] env-window-hygiene: kill/preview env restored to unset after arms
+PIN   CHILD-SOURCE .tmp 落点（gitignore 内·零 tracked 第三文件）: /Users/miaole/Desktop/golucky/meetwise-uc50/apps/api/.tmp/killsw/killsw-child.source.mjs
+PASS  [ISO] child-env egress-strip: no assembled model-key-shaped key survives
+PASS  [CHILD] child(kill=1) exits cleanly
+PASS  [CHILD] child(kill=1) begin → 503 具名码（spawn env 变体面）
+PASS  [CHILD] child(kill=1) turn → 503 具名码（spawn env 变体面）
+PASS  [CHILD] child(dual) exits cleanly
+PASS  [CHILD] child(dual) begin → 503 kill code 先行（:425 先于 :426 spawn 面）
+PASS  [CHILD] child(off/unset) exits cleanly
+PASS  [CHILD] child(off/unset) begin → 202 现状字节（spawn env 变体面·unset=off 合法形之一）
+PASS  [CHILD] child(off) write audited by parent: exactly one start job for its shell
+PASS  [CHILD] child(off) entitlement delta exactly one consumption（跨进程净账）
+PASS  [CHILD] child spawn env truly had kill unset（result echoes killVal undefined）
+PASS  [CHILD] child(illegal) 500 opaque body (spawn env 变体面)
+PASS  [CHILD] child(illegal) pino produced JSON log lines on fd1 (日志面活性对照)
+PASS  [CHILD] child(illegal) error-level line exists (K4 日志面活性)
+PASS  [CHILD] K4 log literal: err.message === invalid_meetwise_content_safety_kill_switch (fail-closed 词面双断言·日志面)
+PASS  [CHILD] K4 log err.stack present (堆栈只进日志面)
+PASS  [CHILD] K4 log url query-stripped (url 去 query 面)
+PASS  [K6] kill-shell start jobs == 0（K1/K4/K5 全臂零入队）
+PASS  [K6] kill-shell answer jobs == 0（K2 零入队）
+PASS  [K6] kill principal interview rows unchanged（零新面试行）
+PASS  [K6] kill principal entitlement net zero across all kill arms（额度净账 0）
+PASS  [K6] off arms total: exactly 2 start jobs / 2 consumption rows（唯一写入=off begin×2·业务事实独立保全）
+PASS  [K6] off arms job kinds: start only（无 answer job 泄入）
+
+ATTEMPT_END    iso=2026-10-28T01:31:27.991Z attempts=1 · failures=0/59
+✓ NHP-050-KILL-01: 59 断言全绿（kill 触发面/三态 fail-closed/双闸优先序/净账审计 · live=0 · isolated PG）
+EXIT0=case≠covered · 行状态 gap→case-only 措辞 · coveredCount=8 不变 · ⛔push
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-28T01-31-28-152Z-78087-26aca08c-2e76-4504-92e3-5d66891f89f5.json release_evidence=false

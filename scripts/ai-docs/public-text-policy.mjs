@@ -240,7 +240,16 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // CAP-SANCTION-2438 audit-log post 会签后并线届值取大承登：本支 2_438（起草刀步进在先）＞main 届值 2_432（#169 rcload/#170 screg 改期收据承·CAP-SANCTION-2432 注记并留上）→ 合并树取大恒 2_438 零再步进·union 实测=main 届扫 2432+本支并入互斥受管目 1（harness/audit-log-REQUEST.md·两集合无交叠）=2433≤2_438 零越限零多放（2026-10-28 audit-log post 双审双 PASS 会签后并线·dual-keep 双留先例形）。
 // CAP-SANCTION-2438 perf2 EXEC 立项并线届值取大承登：本支 2_433（perf2 起草刀步进在先 2432→2433·CAP-SANCTION-2433 注记并留上）＜main 届值 2_438（audit-log 起草刀 +8·CAP-SANCTION-2438 注记并留上）→ 合并树取大恒 2_438 零再步进·union 实测=main 届扫 2433+本支并入互斥受管目 1（harness/perf2-REQUEST.md·两集合无交叠）=2434≤2_438 零越限零多放（2026-10-28 perf2 EXEC 立项 fetch EXIT=0·届值 origin/main c06ed67b5=#172（含 #171 audit-log/#170 screg 改期在前·#173 未落 main 如实采）·dual-keep 双留先例形·EXEC 期 +2 proof 预登越限臂沿常设预授权恰等步进（届时实测 scanned 取算·REQUEST §2 门 1））。
 // CAP-SANCTION-2439 UC-017 收官并线越限恰等步进：cap 2438→2439（2026-10-28 X17-ADV 孤儿任务对抗 NHP-017-ADV-01 收官并线·协调方 CAP-SANCTION-2439 sanction 恰等步进 +1（2438→2439）·常设预授权「并线收官越限恰等步进免再询·四联动点+注记栈承登」随令行使·届值如实采：合并树 e3edde87f=merge origin/main 7ea825ff9（#174 perf2 合卷已落·#173 xrep 在飞未落 main 如实采）承 2438=cap 恰等·本支 40477910f 承 2436≤2438·双亲各自合规 2436+2436（共享基 c06ed67b5=2433·并集净增不相交恰 +3+3：本支=x17-adv-REQUEST.md+uc017 proof+00-docker-info.txt〔.txt ∈TEXT_EXTENSIONS 计面〕·main=perf2-REQUEST.md+两 PERF proof）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2439>2438 红（真 EXIT=1 亲证·红停登记 f1f5488a7·Ban 就地再改 cap 停手上报）——union 实测 2439 恰等零多放·四联动点 2_439/f-2439.md/:2440 恰等改（proof 文件链区）·本刀 PR：line/x17-adv-draft→main（链 40477910f→e3edde87f→f1f5488a7→本步进 commit 全链随 PR 首·号承 PR/merge ref）·沿 2436→2438 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
-const MAX_FILES = 2_439;
+// CAP-SANCTION-2441 UC-050 绕行残余登记刀 EXEC 立项并线+落码面恰等步进：cap 2439→2441（2026-10-28
+// UC-050 applications.start 现状取证 EXEC·fetch EXIT=0·届值如实采：origin/main c8f8effff（#175 x17-adv
+// 已并·承 2439=cap 恰等零余量）·merge 零冲突兑现（merge-base=c06ed67b5=#172 亲证·两集合零交叠纯 additive）·
+// 合并树终验亲跑 docs:check PTP_FILE_LIMIT:2440>2439 红（本支 uc50-REQUEST.md 受管 1 件并入=union 2440）——
+// EXEC terminal 算式=合并树实测 2440+本刀主证 proof 1（apps/api/test/uc-e2e-050-nhp-start-bypass.proof.ts）
+// =2441 恰等零多放·真跑收据 stdout 落 .log ∉TEXT_EXTENSIONS 非扫描面不计（TEXT_EXTENSIONS 亲证）·
+// 协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使·四联动点 2_441/f-2441.md/:2442
+// 恰等改（proof 文件链区）·沿 2438→2439 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随
+// cap 联动同步·语义不变强度不减。
+const MAX_FILES = 2_441;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
