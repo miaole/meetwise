@@ -258,7 +258,9 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // CAP-SANCTION-2446 本 TC 四联动点 2_446/f-2446.md/:2447 恰等改（proof 文件链区）。
 // CAP-SANCTION-2447 isob 收官并线 union 越限恰等步进：cap 2446→2447（2026-10-26 GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口卷 post 复审 PASS（两席 P1 处方执行验证·会签）后收官并线·常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使 +1（2446→2447）·届值如实采：merge 3e6c96db2=merge origin/main c99d003f1（#180 uc3f 合卷已落（544e5dd6a 收官在卷）·cap 届值承 2446=上行 CAP-SANCTION-2446 双注记（isob+UC3F）三线同号并留·取大恒 2446 零再步进·恰 2 处冲突=两 policy 脚本注记/cap 区 dual-keep 双留+号随 merge-tree 重排·#177/#179 在飞未落 main 如实采·r5mr 在飞预登 CAP-SANCTION-2446 承登于 harness/isob-REQUEST.md §6）·本支 d239baf25 承 2446=cap 恰等·main 届值 c99d003f1 承 2446=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2447>2446 红（真 EXIT=1 亲证·收敛前首轮 2451 冗计 +4=2 冲突件×stage 冗计沿 CAP-SANCTION-2430 同形坑如实承登）——union 实测 2447=main 届扫 2446+本支并入互斥受管目 1（harness/isob-REQUEST.md·两集合无交叠·收官 commit 零新受管文件·真跑收据 .log 非扫描扩展名不计）恰等零多放·沿 CAP-SANCTION-2446 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 // CAP-SANCTION-2447 本 TC 四联动点 2_447/f-2447.md/:2448 恰等改（proof 文件链区）。
-const MAX_FILES = 2_447;
+// CAP-SANCTION-2448 CWN 起草随刀恰等步进：cap 2447→2448（2026-10-26 C-WORD-NEG UC-018 follow-up 词面负例起草（总盘 #9 · P3 小刀 · NEG 臂设计 docs 起草卷 · harness/cwn-REQUEST.md）随刀·协调方派单含「cap 预算核」项·常设预授权「越限沿常设预授权恰等步进预登」随令·+1 恰等零多放·本支树届扫 2447=cap 2447 恰等零余量（基线 docs:check EXIT=0 scanned 2447 亲证）+本卷 harness/cwn-REQUEST.md 受管 1 件=2448 必超（PTP_FILE_LIMIT:2448>2447 形）·EXEC 期预计 +0 受管计面（NEG 臂 additive 进既有 prove 文件；若 pre-exec dual 裁定独立 prove 文件则届值如实采·零收据件·.log 非扫描扩展名不计）届终 2448=cap 恰等·沿 CAP-SANCTION-2442 isob 起草随刀单件恰等先例形·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
+// CAP-SANCTION-2448 本 TC 四联动点 2_448/f-2448.md/:2449 恰等改（proof 文件链区）。
+const MAX_FILES = 2_448;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [
   ['git' + 'hub', 'com'],
