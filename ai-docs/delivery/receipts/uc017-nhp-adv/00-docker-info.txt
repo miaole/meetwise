@@ -1,0 +1,3 @@
+CMD: docker info --format '{{.ServerVersion}} {{.OperatingSystem}}'
+29.5.2 Ubuntu 24.04.4 LTS
+DOCKER_EXIT=0

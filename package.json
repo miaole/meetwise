@@ -130,6 +130,8 @@
     "uc017:nhp-load:prove:raw": "pnpm -C packages/db prove:uc017-nhp-load",
     "uc017:orphan-http-sse:prove": "node scripts/run-e2e-isolated.mjs uc017:orphan-http-sse:prove:raw",
     "uc017:orphan-http-sse:prove:raw": "pnpm -C apps/api prove:uc017-orphan-http-sse",
+    "uc017:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc017:nhp-adv:prove:raw",
+    "uc017:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc017-nhp-adv",
     "uc016:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc016:nhp-fault:prove:raw",
     "uc016:nhp-fault:prove:raw": "pnpm -C apps/worker prove:uc016-nhp-fault",
     "uc012:nhp-fault:prove": "node scripts/run-e2e-isolated.mjs uc012:nhp-fault:prove:raw",
