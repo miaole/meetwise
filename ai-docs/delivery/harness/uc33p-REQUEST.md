@@ -151,7 +151,9 @@
   - **席1③（家族共性观察登记）**：`gitSha()` 落 `'unknown'`——PERF 家族七 proof（uc001/004/011/015/017/019/033）同一形 `execSync('git rev-parse HEAD')`，capped child 内 git 不可达即 fallback `'unknown'`；本刀两 fresh 收据 `perf-receipt.json` 均 `"gitSha":"unknown"`。登记为家族共性观察·本卷不改码（证面冻结）。
   - **席2③（建议登记）**：建议后继刀向 capped child 传 `GIT_SHA` env（或 wrapper 侧预解析 SHA 注入）使 perf 收据携真 commit SHA——采纳与否及落法归后继 PERF 刀·本卷不随行。
   - **席2①（P2-1 登记）**：N 组断言恒等腿缺失（queued 恰数腿 `qj===expectJobs` 侧·席2 指认）——post-prove 窗内不追补（证面冻结零触）·归后继 PERF 刀统一收口（腿形细节以席2 意见原文为准）。
-- **收官并线**：`git fetch origin` EXIT=0（届值见下）→ merge origin/main（冲突沿 dual-keep 双留）→ `pnpm install --frozen-lockfile` → 终验三门（门 1 docs:check·门 2 markers·门 3 ancestor·协调方步进预 sanction：union 越限沿常设预授权恰等步进免停报）——EXIT 原值与本节随收官 commit 承登（stdout 收据 `14-final-merge.log`/`15-docs-check-final.log`/`16-markers-final.log`/`17-ptp-proof-final.log`）。
+- **收官并线（2026-10-26 收官 commit 链承登）**：`git fetch origin` **EXIT=0**·届值 `origin/main` @**`2818c2522`**=**#176**（**#177 uc15f/uc50 与 #178 仍在飞未落 main·如实采**·merge-base 亲证=`2818c2522`=本支 EXEC 立项已并点）→ `git merge origin/main --no-edit` **Already up to date·EXIT=0**（零冲突·dual-keep 未需要·零新 merge commit）· `pnpm install --frozen-lockfile` **EXIT=0**（499ms·lockfile 零漂）。
+- **终验三门（EXIT 原值·收官 turn 亲跑·stdout 收据 `14-final-merge.log`/`15-docs-check-final.log`/`16-markers-final.log`/`17-ptp-proof-final.log`）**：**门 1 docs:check**——**EXIT=0 scanned 2443=cap 2443 恰等**（CAP-SANCTION-2443 不变·并线届值未上抬→**协调方步进预 sanction 未行使·零越限行**）；PTP 联动复跑 **EXIT=0 12/12**（cap 不变·完整性核）；**门 2 markers**——收官改动集（本卷+两 policy `.mjs`+本刀 proof `.ts` 四逻辑件·`.log` 收据引用标记词原文字面循 EXEC 09 收据同口径不入 grep 面）五类标记词+行首冲突标记 **全零命中**（含 proof 单文件段=席1①/席2② 勘误实质核证据）；**门 3 ancestor**——`git merge-base --is-ancestor origin/main HEAD` **EXIT=0** + 产品源 `apps/*/src`/`packages/*/src` 对届值 **零 diff**（总 diff 面 24 tracked 路径=10 逻辑件+14 收据 `.log`·全为 docs/proof/注册行/收据·零产品码）。
+- **收官 commit 链**：`5c65dd788`（post 双 PASS 翻面 closed+P2 勘误五件）→ merge（Already up to date·零新 commit）→ 本收官承登 commit（§9-post 台账+收据 `14-17` 四件）→ push/PR 随收官令行使（PR 号随 push 后承登于 PR 描述·本卷不再改）。
 
 ---
 
