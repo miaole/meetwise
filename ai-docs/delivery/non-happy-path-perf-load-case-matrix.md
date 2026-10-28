@@ -49,6 +49,7 @@
 | NHP-010-ADV-02 | 010 | ADV | api | 同主体双流游标交换（S2 高游标施于 S1/S1 低游标施于 S2）/双持实时跨流注入（0214 触发器+token 通道） | 零跨流帧交付（kind/payload 值域互斥种子）；token_delta 零出现（配主动注入对照）；账本 appended-exactly 零写副作用 | **blind**→**case-only** | `pnpm uc010:nhp-crossstream:prove`（SSE-ADV EXEC·收据随卷 2026-10-27） |
 | NHP-030-NEG-01 | 030 | NEG | api | token 过期/吊销 | 拒 + 刷新路径可测 | **partial** | neg:auth |
 | NHP-030-BOUND-01 | 030 | BOUND | api | 时钟漂移边界 | 过期判定一致；无 silent extend | **case-only** | `pnpm uc030:nhp-bound:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-26 clock 卷 · C/R/L 三臂族）· 48 断言真证据已落 #152（post 双 PASS 会签） |
+| NHP-030-ADV-01 | 030 | ADV | api | 长会话刷新对抗：死 jti 令牌重放对写嘴 sweep / 代次族撤销全族 / legacy 代次死面 / 并发双改密自锁 / 并发双吊销 exactly-once / 传输面实钟短窗 / 远期 exp 越 TTL 窗 / 跨户令牌串用（归因·jti-uid 非绑定·代次零串扰） | 死令牌写嘴全婴拒+DB 零副作用；族改密全灭且行保留；并发恰一胜者零双到账；越窗恒拒（发送前 guard 防 flaky·越窗=ENV-RED 分口）；跨户恒归因零扰 | **case-only**（**blind 保持**） | `pnpm uc030:nhp-adv:prove` EXIT=0 双 fresh · 隔离 PG 收据（2026-10-28 uc30-adv 卷 · RP/RC/TC/XU 四臂族十臂）· EXIT0=case≠covered（升格权归协调方） |
 
 ### 1.2 钱 / 对账 / 放弃 / 重生成（011 / 014 / 017 / 018 / 019）
 
