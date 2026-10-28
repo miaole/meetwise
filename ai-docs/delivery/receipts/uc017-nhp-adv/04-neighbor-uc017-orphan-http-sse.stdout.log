@@ -1,0 +1,121 @@
+
+> meetwise@0.1.0 uc017:orphan-http-sse:prove /Users/miaole/Desktop/golucky/meetwise-x17
+> node scripts/run-e2e-isolated.mjs uc017:orphan-http-sse:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-63232-1793143566094 on 127.0.0.1:33161
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc017-orphan-http-sse /Users/miaole/Desktop/golucky/meetwise-x17/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-017-orphan-http-sse.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793143569218,"pid":63428,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:58611"}
+UC-E2E-017 orphan HTTP/SSE prove · releaseEvidence=false · Not HA
+NOTE: 本绿≠全链路 E2E covered；≠ UC-E2E-017 covered；EXIT0 = case ≠ covered；matrix partial 翻面权归协调方
+NOTE: fixture=pgvector isolated (green-risk/R5)·零 live key·零模型外呼·est live=0
+PIN   GAP-UC017-BEGIN-FIXTURE-PREAMBLE: 0064/0049/0142 additive 夹具补齐（真相=迁移链·≠ 迁移 covered）
+PIN   GAP-UC017-PRIVACY-MIRROR: boot() 内置 0058 镜像承载隐私触点（proof 级 stub 可免装·rev2 P2-1）
+
+──────── NHP-017-HTTP-FAULT-01 · HTTP begin → 租约过期注入 → reconcileOwner 回收 ────────
+{"level":30,"time":1793143569240,"pid":63428,"hostname":"miaole.local","reqId":"8e7cd9ed-8cb7-4836-a5d8-719936eef58e","req":{"method":"POST","url":"/interview/IV_H017_fault_mvrbdt1e/begin","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58612},"msg":"incoming request"}
+{"level":30,"time":1793143569253,"pid":63428,"hostname":"miaole.local","reqId":"8e7cd9ed-8cb7-4836-a5d8-719936eef58e","res":{"statusCode":202},"responseTime":13.281791999999996,"msg":"request completed"}
+PASS  FAULT-01 HTTP begin → 202 accepted+jobId
+PASS  FAULT-01 reserved 可观测（consumption idempotency_key=interview id）
+PASS  FAULT-01 预留扣 1.0（5→4）
+PASS  FAULT-01 reconcileOwner staleReleased≥1
+PASS  FAULT-01 reconcileOwner abandoned≥1（mock_interview 终态口径）
+PASS  FAULT-01 consumption → released
+PASS  FAULT-01 interview 终态 abandoned
+PASS  FAULT-01 interview_unavailable 终态事件已补发（无静默死胡同）
+PASS  FAULT-01 额度全回补（4→5·净零泄漏）
+{"level":30,"time":1793143569277,"pid":63428,"hostname":"miaole.local","reqId":"c919e8c3-0084-4b83-8dac-7bf86d600737","req":{"method":"GET","url":"/interview/IV_H017_fault_mvrbdt1e","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58612},"msg":"incoming request"}
+{"level":30,"time":1793143569281,"pid":63428,"hostname":"miaole.local","reqId":"c919e8c3-0084-4b83-8dac-7bf86d600737","res":{"statusCode":200},"responseTime":3.6354999999998654,"msg":"request completed"}
+PASS  FAULT-01 HTTP GET 终态可读（200 abandoned）
+
+──────── NHP-017-HTTP-COMP-01 · HTTP begin → POST abandon → 200 released ────────
+{"level":30,"time":1793143569289,"pid":63428,"hostname":"miaole.local","reqId":"f8bca62f-f7fc-4dd6-a8bb-0dd2983a2c0e","req":{"method":"POST","url":"/interview/IV_H017_comp_mvrbdt1e/begin","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58612},"msg":"incoming request"}
+{"level":30,"time":1793143569297,"pid":63428,"hostname":"miaole.local","reqId":"f8bca62f-f7fc-4dd6-a8bb-0dd2983a2c0e","res":{"statusCode":202},"responseTime":8.54791699999987,"msg":"request completed"}
+PASS  COMP-01 HTTP begin → 202 accepted
+PASS  COMP-01 reserved 可观测
+PASS  COMP-01 预留扣 1.0（5→4）
+{"level":30,"time":1793143569302,"pid":63428,"hostname":"miaole.local","reqId":"5d92e746-c8e1-46e7-8d7c-6a11ebde8a68","req":{"method":"POST","url":"/interview/IV_H017_comp_mvrbdt1e/abandon","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58612},"msg":"incoming request"}
+{"level":30,"time":1793143569309,"pid":63428,"hostname":"miaole.local","reqId":"5d92e746-c8e1-46e7-8d7c-6a11ebde8a68","res":{"statusCode":200},"responseTime":7.214625000000069,"msg":"request completed"}
+PASS  COMP-01 POST abandon → 200
+PASS  COMP-01 body.abandoned=true
+PASS  COMP-01 body.released=released
+PASS  COMP-01 body.alreadyAbandoned≠true
+PASS  COMP-01 interview=abandoned
+PASS  COMP-01 consumption 终态 released
+PASS  COMP-01 额度净零（回补·4→5）
+
+──────── NHP-017-SSE-FAULT-01 · SSE 建连→abort→拆除（附 404 跨主体/429 槽满子臂）────────
+{"level":30,"time":1793143569319,"pid":63428,"hostname":"miaole.local","reqId":"d44117ca-c6e5-46ce-ba33-190bb665140a","req":{"method":"POST","url":"/interview/IV_H017_sse_mvrbdt1e/begin","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58612},"msg":"incoming request"}
+{"level":30,"time":1793143569327,"pid":63428,"hostname":"miaole.local","reqId":"d44117ca-c6e5-46ce-ba33-190bb665140a","res":{"statusCode":202},"responseTime":7.924542000000201,"msg":"request completed"}
+PASS  SSE-FAULT-01 HTTP begin → 202 accepted
+PASS  SSE-FAULT-01 原预占 reserved（拆除前基线）
+{"level":30,"time":1793143569329,"pid":63428,"hostname":"miaole.local","reqId":"6ae5e571-27ea-4c26-bee6-61fafa657d87","req":{"method":"GET","url":"/interview/IV_H017_sse_mvrbdt1e/events","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58612},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+PASS  SSE-FAULT-01 建连 → 200 text/event-stream
+PASS  SSE-FAULT-01 拆除零假释放（consumption 仍 reserved）
+PASS  SSE-FAULT-01 拆除零新 orphan（恰 1 行 consumption）
+PASS  SSE-FAULT-01 原预占语义不变（额度仍 -1）
+PASS  SSE-FAULT-01 零假终态（无 interview_unavailable 事件）
+PASS  SSE-FAULT-01 interview 未被 SSE 拆除翻转（仍 created）
+{"level":30,"time":1793143570958,"pid":63428,"hostname":"miaole.local","reqId":"188d78d8-fd22-4068-bc76-c0f621d1aff3","req":{"method":"GET","url":"/interview/IV_H017_sse_mvrbdt1e/events","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58615},"msg":"incoming request"}
+{"level":30,"time":1793143570961,"pid":63428,"hostname":"miaole.local","reqId":"188d78d8-fd22-4068-bc76-c0f621d1aff3","res":{"statusCode":404},"responseTime":3.3040000000000873,"msg":"request completed"}
+PASS  SSE-FAULT-01 附：跨主体 events → 404 not_found_or_forbidden
+PASS  SSE-FAULT-01 429 臂·占槽 1/5 → 200 text/event-stream
+PASS  SSE-FAULT-01 429 臂·占槽 2/5 → 200 text/event-stream
+PASS  SSE-FAULT-01 429 臂·占槽 3/5 → 200 text/event-stream
+PASS  SSE-FAULT-01 429 臂·占槽 4/5 → 200 text/event-stream
+PASS  SSE-FAULT-01 429 臂·占槽 5/5 → 200 text/event-stream
+PASS  SSE-FAULT-01 429 臂·满额进程内槽计数=5
+PASS  SSE-FAULT-01 429 臂·第 6 条同主体 → 429 too_many_streams（零取数副作用·不占槽）
+PASS  SSE-FAULT-01 429 臂·被拒后槽仍 5
+PASS  SSE-FAULT-01 429 臂·holds 断开后槽释放为 0
+PASS  SSE-FAULT-01 429 臂·释放后可再占槽 → 200
+PASS  SSE-FAULT-01 收束：主场景预占仍 reserved（全程零假释放）
+
+──────── NHP-017-HTTP-BOUND-01 · 重复 HTTP begin → 202 alreadyBegun 同 jobId（不双扣）────────
+{"level":30,"time":1793143580213,"pid":63428,"hostname":"miaole.local","reqId":"f0a502ae-40bd-4882-8fe6-c6d40eca0bea","req":{"method":"POST","url":"/interview/IV_H017_bound_mvrbdt1e/begin","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58615},"msg":"incoming request"}
+{"level":30,"time":1793143580226,"pid":63428,"hostname":"miaole.local","reqId":"f0a502ae-40bd-4882-8fe6-c6d40eca0bea","res":{"statusCode":202},"responseTime":12.793125000000146,"msg":"request completed"}
+PASS  BOUND-01 首次 begin → 202 accepted+jobId（alreadyBegun 缺席）
+PASS  BOUND-01 首次后恰 1 个 start job
+PASS  BOUND-01 首次后恰 1 行 consumption（reserved）
+PASS  BOUND-01 首次后额度 -1（5→4）
+{"level":30,"time":1793143580234,"pid":63428,"hostname":"miaole.local","reqId":"a5100e6c-3aa2-462a-8086-e10b71f8bbe5","req":{"method":"POST","url":"/interview/IV_H017_bound_mvrbdt1e/begin","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58615},"msg":"incoming request"}
+{"level":30,"time":1793143580239,"pid":63428,"hostname":"miaole.local","reqId":"a5100e6c-3aa2-462a-8086-e10b71f8bbe5","res":{"statusCode":202},"responseTime":5.378416999999899,"msg":"request completed"}
+PASS  BOUND-01 重复 begin → 202 alreadyBegun 同 jobId
+PASS  BOUND-01 start job 计数不变（仍 1·不双入队）
+PASS  BOUND-01 consumption 行计数不变（仍 1 行）
+PASS  BOUND-01 额度净零增量（仍 4·不双扣）
+
+──────── NHP-017-HTTP-NEG-01 · 错主体 abandon/events → 404 + 原预占仍 reserved ────────
+{"level":30,"time":1793143580251,"pid":63428,"hostname":"miaole.local","reqId":"eb250266-c139-4254-a15f-0af1b405febc","req":{"method":"POST","url":"/interview/IV_H017_neg_mvrbdt1e/begin","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58615},"msg":"incoming request"}
+{"level":30,"time":1793143580260,"pid":63428,"hostname":"miaole.local","reqId":"eb250266-c139-4254-a15f-0af1b405febc","res":{"statusCode":202},"responseTime":8.540915999999925,"msg":"request completed"}
+PASS  NEG-01 HTTP begin → 202 accepted
+PASS  NEG-01 原预占 reserved
+{"level":30,"time":1793143580262,"pid":63428,"hostname":"miaole.local","reqId":"e33e27fb-2721-405f-83bb-0dd74fd4ff6b","req":{"method":"POST","url":"/interview/IV_H017_neg_mvrbdt1e/abandon","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58615},"msg":"incoming request"}
+{"level":30,"time":1793143580264,"pid":63428,"hostname":"miaole.local","reqId":"e33e27fb-2721-405f-83bb-0dd74fd4ff6b","res":{"statusCode":404},"responseTime":1.8097079999988637,"msg":"request completed"}
+PASS  NEG-01 错主体 abandon → 404 not_found_or_forbidden（RLS 零行·:652）
+{"level":30,"time":1793143580264,"pid":63428,"hostname":"miaole.local","reqId":"c0952c3c-94d8-4a5e-86bb-e3c689b8a55a","req":{"method":"GET","url":"/interview/IV_H017_neg_mvrbdt1e/events","host":"127.0.0.1:58611","remoteAddress":"127.0.0.1","remotePort":58636},"msg":"incoming request"}
+{"level":30,"time":1793143580268,"pid":63428,"hostname":"miaole.local","reqId":"c0952c3c-94d8-4a5e-86bb-e3c689b8a55a","res":{"statusCode":404},"responseTime":3.138666999999259,"msg":"request completed"}
+PASS  NEG-01 错主体 events → 404 not_found_or_forbidden
+PASS  NEG-01 原预占仍 reserved（未被误放）
+PASS  NEG-01 consumption 恰 1 行
+PASS  NEG-01 额度仍 -1（未被 intruder 触碰）
+PASS  NEG-01 interview 仍 created（未被误改）
+
+──────── GAP pins (抬 covered 仍缺) ────────
+GAP-UC017-HTTP-SSE-PROCESS-CRASH: 真 commit 后故障点/进程级 SIGKILL 注入未行使（fixture 租约过期=预登诚实模拟形态·REQUEST §1.3-(C)）
+GAP-UC017-SSE-AFTER-COMMIT-ORPHAN: SSE 建连后 commit 侧孤儿注入未行使（本刀只证拆除零副作用半）
+GAP-UC017-ADV: 对抗面零触（:122 行 ADV=blind 保持·归对抗族刀）
+GAP-UC017-FULL-E2E: e2e/full.e2e.ts 纳入归协调方另裁；本绿 ≠ 全链路 E2E covered
+PASS  honesty: HTTP/SSE isolated prove 绿 ≠ UC-E2E-017 covered（五 case 收据≠升格·翻面权归协调方 post 双审链）
+
+✓ uc017:orphan-http-sse: 57 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T23-26-20-394Z-63232-05ce472d-b6e0-4b6d-8f85-a25f23b83122.json release_evidence=false
