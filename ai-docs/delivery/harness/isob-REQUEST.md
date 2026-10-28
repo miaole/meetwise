@@ -1,9 +1,9 @@
-# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED · SOLE_STACK 命名语义收口任务书**（Line ISOB · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · docs 钉刀 · 零产品行为变更）
+# Harness — **GAP-E2E-ISO-BANNER-PG-RETAINED · SOLE_STACK 命名语义收口任务书**（Line ISOB · docs REQUEST · **`executed:awaiting_post_prove_dual`** · docs 钉刀 · 零产品行为变更）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（L0 docs REQUEST only · Ban self-approve · Ban coding · Ban prove · 本 commit 不运行任何 e2e / prove）
+**Status**: **`executed:awaiting_post_prove_dual`**（dual r1 双 PASS 放行 + 协调方显式授权 EXEC 落卷 · 修订 r1 逐条随落·§9 承登 · EXEC commit 零 e2e / 零 docker / 零 live key / 零模型调用（门=三静态门 + A 层 prove 抽验四件本地 EXIT 核·§7）· Ban self-approve · Ban coding · Ban push）
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503
 **Date**: 2026-10-26
-**Base / parent tip**: `origin/main` **`2818c252`** / full `2818c2522a4d5003fb4f9a888c9fa67e7881adc9`（docs tip · not a prove tip · fetch EXIT=0、本地 origin ref 与远端一致；本地 `main` 分支落后于 origin/main 属正常滞后，非分叉）
+**Base / parent tip**: 起草基线 `origin/main` **`2818c252`** / full `2818c2522a4d5003fb4f9a888c9fa67e7881adc9`（#176·docs tip · not a prove tip · fetch EXIT=0）→ **EXEC 立项并线届值如实采重 pin**：`origin/main` **`33fdd233`** / full `33fdd233c4069942569b12b40a95fc05ff448de2`（#173 xrep 合卷已落·含 #178 uc15f 合卷 `91aca39bf` + XREP 二轮 CAP-SANCTION-2445 步进 `9047aefdc` 在前·fetch EXIT=0）·merge **`f76e05751`**（dual-keep 恰 2 处冲突·cap 取大恒 2_445·union 实测与步进见 §6）
 **Worktree**: `meetwise-isob`（仓根同级 worktree）· branch `line/isob-draft`（一切 git 写操作只在此 worktree）
 **Knife**: **GAP-E2E-ISO-BANNER-PG-RETAINED · SOLE_STACK 命名语义收口任务书**（总盘 #11 派单 · 隔离 runner PG 容器横幅命名含 SOLE_STACK 陈旧语义 · 刀型二择一裁决 = **docs 钉刀** · **≠ sole cutover** · **零产品行为变更**）
 **Gap id**: **`GAP-E2E-ISO-BANNER-PG-RETAINED`**（`ai-docs/delivery/gap-bug-backlog.md:63` · P1 · named gap · **backlog 行状态本刀不改 · stays OPEN**）
@@ -31,7 +31,7 @@
 
 ### 1.2 「PG 容器横幅」词面现形（张力本体）
 
-- `:3836-3848`　R5-MARKED-RED 横幅块（legacy pgvector disposable PG 容器路径，分支入口 `:3836` `isolationStack === LEGACY_STACK`）：`:3837` 文案 `(dual-track; SOLE_STACK=${SOLE_STACK} is a dual-track code-path label ≠ product stack truth)` + `:3838-3839` 指向 ADR。**陈旧语义 = 标识符名「SOLE_STACK（唯一栈）」+ 值 `'mysql-qdrant-redis'` 在 PG-retained ADR（Postgres · PostgresSaver · pgvector retained）下的时代错位**；runtime 已由 post-AL banner + post-SS2(a) header 诚实框定，唯名面残留——即 backlog `:63` 「SOLE_STACK 对齐另包」所指剩余开放面。
+- `:3835-3848`　R5-MARKED-RED 横幅块（legacy pgvector disposable PG 容器路径，分支入口 `:3835` `isolationStack === LEGACY_STACK`）：`:3837` 文案 `(dual-track; SOLE_STACK=${SOLE_STACK} is a dual-track code-path label ≠ product stack truth)` + `:3838-3839` 指向 ADR。**陈旧语义 = 标识符名「SOLE_STACK（唯一栈）」+ 值 `'mysql-qdrant-redis'` 在 PG-retained ADR（Postgres · PostgresSaver · pgvector retained）下的时代错位**；runtime 已由 post-AL banner + post-SS2(a) header 诚实框定，唯名面残留——即 backlog `:63` 「SOLE_STACK 对齐另包」所指剩余开放面。
 - 邻接横幅：`:3826-3831` `[R5-SOLE-WIRING]`（sole 轨放行横幅）· `:3790-3792` / `:3800-3802` `[G3-E2E-PG-IMAGE]` fail-closed 文案 · `:3818-3822` `[G7-SCOR00-SOLE-PREREQ]`。
 - 隔离 PG 容器就绪横幅：`:4214` `E2E isolated PostgreSQL: ${container} …` + `:4216` `E2E_ISO_STACK_NOTE`（Line N 产物 · narration-only · 本刀保留原样，Ban 触碰）。ADR `:39` 所引 `@L2139/L2141` 系 2026-10-06 时点行锚，现漂移至 `:4214/:4216`——行号漂移本身如实登记，ADR 文本本刀不改。
 
@@ -44,13 +44,13 @@
 | `:3755` / `:3758` | **判定值 / 文案** | 未知栈值校验 → **EXIT=2**（fail-closed） |
 | `:3782` | **分支入口** | `isolationStack === SOLE_STACK` → G3 fail-closed 块 |
 | `:3790` / `:3800` | 文案 | `[G3-E2E-PG-IMAGE]` 两处 EXIT=3 文案插值 |
-| `:3806` / `:3808` | 文案 | `[R5-DUAL-TRACK]` allowlist 拒绝文案（→ EXIT=3） |
+| `:3808` / `:3809` | 文案 | `[R5-DUAL-TRACK]` allowlist 拒绝文案两行（分支入口 `:3806` → EXIT=3·EXEC 行号勘误 `:3806→:3808` 补 `:3809`） |
 | `:3826` | 文案 | `[R5-SOLE-WIRING]` 放行横幅 |
 | `:3837` | 文案 | R5-MARKED-RED 横幅（§1.2 张力本体） |
 | `:4103` | **分支入口** | sole env 注入分支（无 disposable PG 容器） |
 | `:4106` | **env 值** | 子进程 `E2E_ISOLATION_STACK: SOLE_STACK`（`:4107` 同步注入 fixture env） |
 | `:4144` | **receipt 值** | `stack: SOLE_STACK` 写入 `class='local_untrusted_sole_stack_allowlist_receipt'`（`:4143` class · `:4156` claimsForbidden · `:4174` stdout 收据行） |
-| `:4185` | 文案 | G3 defense-in-depth 拒 docker-run 文案（分支入口 `:4183` → EXIT=3） |
+| `:4183` / `:4185` / `:4186` | **分支入口** / 文案 | G3 defense-in-depth 拒 docker-run（`:4183` 独立列＝分支入口 → EXIT=3·文案 `:4185`/`:4186`·EXEC 行号勘误 `:4185→:4185/:4186`） |
 
 **关键结论**：`SOLE_STACK` 不是纯装饰字符串——3 个 fail-closed 判定值分支（EXIT=2 ×1、EXIT=3 ×2）、1 个 env 注入分支 + 子进程 env 值、1 个 receipt 数据值。**改常量值**即改 G3/DUAL-TRACK 匹配语义、子进程 env、receipt 内容；**改标识符名**即波及 §1.4A 四件源码扫描型 prove。同族 SOLE_ 前缀标识符（`SOLE_WIRING_ALLOWLIST` `:3767` 消费 `:3806/:3808/:3818/:3847/:4103/:4153`；`SOLE_WIRING_PREREQS` `:3774` 消费 `:3811`；`SOLE_APPROVED_FIXTURE_CONFIG` `:3749` 消费 `:3786-3787/:3791/:3798/:3801/:3827/:4107`）在方案 b 下同需同步。
 
@@ -71,7 +71,7 @@
 |---|---|
 | `package.json:440-444` | 5 条 alias 以 `E2E_ISOLATION_STACK=mysql-qdrant-redis` spawn harness |
 | `scripts/g3-e2e-pg-image.proof.mjs:177-178, :186, :205, :218` | 扫 package.json 值防 flip + 扫自源值 + fail-closed 子进程 env 值两处 |
-| `scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs:109, :133, :191-193` | 值字面量三重扫描门（根 `scripts/mysql-stack.r5-mark-red.proof.mjs` 为 forwarder 同红） |
+| `scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs:109, :133, :191-193` | 值字面量三重扫描门（根 `scripts/mysql-stack.r5-mark-red.proof.mjs` 为 forwarder 同红）· **先在红补注（EXEC 承登）**：`:182-184` 门锚 `/NOT sole-stack truth/` 对 post-AL 现横幅文（`is a dual-track code-path label ≠ product stack truth`·Line AL `c633584` 改串遗留）不匹配＝**documented-red**（execution-master-checklist `:1255` 承登在案·非本刀引入·本刀零触碰该 prove·修复＝改 prove 扫描正则须另刀授权——协调方已另授权 r5-mark-red 修复刀在途·本卷登记指针） |
 | `packages/qdrant-store/test/qdrant-vectorstore-adapter.proof.ts:131` | `/pgvector-legacy/ && /mysql-qdrant-redis/` 值扫描 |
 | `scripts/conn-stack/mysql-stack.sole-wiring.proof.mjs:34` | 自持 `const STACK = 'mysql-qdrant-redis'` 读 env 匹配 |
 | receipt 值族 | `scripts/lib/uc-covered-real-gatherer.mjs:42, :227-229, :253-254`（`parseSoleStack` 值解析）· `scripts/uc018-receipt-backfill-emit.mjs:174-176`（backfill 发射 `soleStack`）· `scripts/uc-e2e-018-covered-criterion.proof.mjs:630`（`delete j.soleStack`） |
@@ -88,7 +88,7 @@ env **名**面（仅当 env 改名才涉及，const 改名不触）：`scripts/u
 
 ### 1.6 方案 b 复活力语义（亲点复核）
 
-SS2 §2(b) 自评（tip `50423a6f` 时点）：利「命名层最大诚实」；弊「blast radius 覆盖 ≥5 个已注册 prove 的扫描门与 spawn 合同，任何一步不同步即红」+「需要 coding+prove 全量授权，远超 docs 刀形态」。**本 tip `2818c252` 亲点复核**：标识符锚定 prove 恰 4 件（§1.4A）、值级合同 ≥6 面（§1.4B）、receipt 值解析 1 族、同族 SOLE_ 前缀标识符 3 组（§1.3）——爆炸半径在 `50423a6f` → `2818c252` 间**未缩小**（g7 `:114`、qdrant-backed `:274` 均现行在飞门）。复活力 = 名面残留仍在（backlog `:63` OPEN）；复活成本 = 未降反稳。
+SS2 §2(b) 自评（tip `50423a6f` 时点）：利「命名层最大诚实」；弊「blast radius 覆盖 ≥5 个已注册 prove 的扫描门与 spawn 合同，任何一步不同步即红」+「需要 coding+prove 全量授权，远超 docs 刀形态」。**本 tip `2818c252` 亲点复核**：标识符锚定 prove 恰 4 件（§1.4A）、值级合同 ≥6 面（§1.4B）、receipt 值解析 1 族、同族 SOLE_ 前缀标识符 3 组（§1.3）——爆炸半径在 `50423a6f` → `2818c252` 间**未缩小**（g7 `:114`、qdrant-backed `:274` 均现行在飞门）。复活力 = 名面残留仍在（backlog `:63` OPEN）；复活成本 = 未降反稳。**基线含一件 documented-red 门**：§1.4B r5-mark-red `:182-184` `/NOT sole-stack truth/`（checklist `:1255` 承登在案·修复刀协调方另授权在途·本卷登记指针）——方案 b 全量回归台账（门⑤）须将该先在红单列，Ban 冒领修复、Ban 以其冒充方案 b 新增红。
 
 ## 2. 刀型裁决（二择一）
 
@@ -106,10 +106,11 @@ docs 钉刀执行形态：本卷即收口登记面（§5）；可选（若双审
 2. 预执行双审：`mw-e2e-ha` + `mw-privacy-int` **BOTH PASS**（alone ≠ dual · Ban self-approve）。
 3. 协调方显式授权 → 执行形态按 §2 末段行使（默认仅本卷登记；ADR bullet 须双审显式放行方可 append）。
 4. post docs supplement + post 双审 + nail **另起**；backlog `:63` 行状态/行文只在彼时、只按彼时授权动。
+5. **[R5 nail 时另授权事项预登]**：execution-master-checklist 本刀条目落笔时**显式携 freeze 指针**（本卷 executed 态 commit hash + STOP 三钉位置：标题/Status/尾注）**与 §4 六门位置**（①—⑦ 复活门全清单·含第⑦观察门）——两指针缺一即补登，Ban 空引、Ban 只引「见 REQUEST」不带 §4 定位。
 
 ## 4. 方案 b 复活路径预登（不预判翻案 · 若未来启动须全数具备）
 
-① §1.4A 恰 4 件标识符扫描 prove 同步改写授权（g1/g3/g7/qdrant-backed）；② §1.4B 值级合同同步（package.json 5 alias、g3 spawn 值 3 处、r5-mark-red 值门 3 处、adapter 值门、sole-wiring 自持值）；③ receipt 值迁移策略（历史收据 append-only Ban 改写 → 新旧值并存期 `parseSoleStack` 双读兼容）；④ §1.3 同族 SOLE_ 前缀 3 组标识符一并裁决是否改名；⑤ 全量 prove 回归计划（基线红/绿逐项台账）；⑥ backlog `:63` 翻转另授权。缺一即不得开工。
+① §1.4A 恰 4 件标识符扫描 prove 同步改写授权（g1/g3/g7/qdrant-backed·授权主体＝双审+协调方显式授权·alone ≠ dual）；② §1.4B 值级合同同步（package.json 5 alias、g3 spawn 值 3 处、r5-mark-red 值门 3 处、adapter 值门、sole-wiring 自持值）；③ receipt 值迁移策略（历史收据 append-only Ban 改写 → 新旧值并存期 `parseSoleStack` 双读兼容）；④ §1.3 同族 SOLE_ 前缀 3 组标识符一并裁决是否改名（授权主体＝双审+协调方显式授权）；⑤ 全量 prove 回归计划（基线红/绿逐项台账·§1.4B r5-mark-red 先在红单列）；⑥ backlog `:63` 翻转另授权（授权主体＝双审+协调方显式授权·**另需 nail 层 SSOT 授权**）；⑦ ai-docs 82 件词面引用面同步观察门（§1.4C·非阻断观察：方案 b 落卷时 82 件词面引用逐一同步或显式豁免登记·观察结果随 post 双审卷承登）。缺一即不得开工。
 
 ## 5. GAP 收口注记（docs 钉刀本体）
 
@@ -119,16 +120,16 @@ docs 钉刀执行形态：本卷即收口登记面（§5）；可选（若双审
 
 ## 6. cap 预算核 + 零重叠核 + est live
 
-- **cap 预算核（届值亲跑）**：基线 docs:check EXIT=0「public text policy scanned **2441** managed worktree files」= `scripts/ai-docs/public-text-policy.mjs:244` `MAX_FILES = 2_441` **恰等零余量**（亲证）。本卷 +1 受管（`harness/isob-REQUEST.md`）= 2442 必超（`PTP_FILE_LIMIT:2442>2441` 形）→ 沿派单常设预授权「越限沿先例步进承登预授权」**恰等步进 2441→2442 随本 commit 预登**：四联动点 = policy `:244` `2_442` + proof 越限臂 `:429` `i < 2_442` / `:436` `scannedFiles, 2_442` / `:439` `f-2442.md` / `:442` `FILE_LIMIT:2443`，双链区 CAP-SANCTION-2442 注记各一条；沿 CAP-SANCTION-2429（rcload 起草）/2433（perf2 起草·总盘小刀 #12-13）起草随刀恰等先例形，**+1 零多放**·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。EXEC 期预计 **+0** 受管计面（ADR bullet 为既有受管文件行内编辑；收据 `.log` ∉ TEXT_EXTENSIONS 不计）→ 届终 2442 = cap 恰等。
-- **零重叠核**：`harness/` 无既有 `isob*` 件（git ls-files 全树零命中 · 文件名唯一）；在飞 worktree 43 个中与本刀同 tip（`2818c252`）者唯 `line/uc3f-draft`（0 commits ahead 尚未落卷 · 派单域 UC-003 后继与本刀触面零交）；本刀零触碰 `run-e2e-isolated.mjs`、§1.4 全部 prove 面与 receipt 族；policy 两件 cap 注记区若遇并线冲突沿 dual-keep 双留取大先例（CAP-SANCTION-2430 注记在案）。
-- **est live=0**：本 commit 与本刀全生命周期零 e2e / 零 prove 运行 / 零 docker / 零 live key / 零模型调用；门 = 三静态门（本地 node 脚本 + grep，§7）。
+- **cap 预算核（届值亲跑·[P1] EXEC 全面重导如实改登）**：起草时基线 docs:check EXIT=0「public text policy scanned **2441** managed worktree files」= `scripts/ai-docs/public-text-policy.mjs` `MAX_FILES = 2_441` **恰等零余量**（亲证）→ 起草随刀预登 2441→2442（CAP-SANCTION-2442 注记在案·沿 CAP-SANCTION-2429/2433 起草随刀先例形）。**[P1] EXEC 立项并线届值如实采（禁止按预登 2442 行使·预登作废重导）**：fetch EXIT=0·origin/main `33fdd233`=#173 xrep 合卷已落（含 #178 uc15f 合卷 `91aca39bf`+XREP 二轮 CAP-SANCTION-2445 步进 `9047aefdc` 在前·起草预登时 anticipated #178 届值 2443 已被 #179 推移·如实采新届值）承 **2445**=cap 恰等·merge `f76e05751` dual-keep 恰 2 处冲突（两 policy 注记/cap 区·本支 CAP-SANCTION-2442 注记+main CAP-SANCTION-2443 双注记（XREP+UC-015）/2445 注记并留·号随 merge-tree 重排）·cap 取大恒 2_445 零再步进·合并树终验亲跑 docs:check **`PTP_FILE_LIMIT:2446>2445` 红（真 EXIT=1 亲证）**——union 实测 **2446**=main 届扫 2445+本支并入互斥受管目 1（`harness/isob-REQUEST.md`·两集合无交叠）→ 常设预授权「union 越限沿常设预授权恰等步进免再询」随令**恰等步进 2445→2446**：四联动点 = policy `:255` `MAX_FILES = 2_446` + proof 越限臂 `:438` `i < 2_446` / `:445` `scannedFiles, 2_446` / `:449` `f-2446.md` / `:452` `FILE_LIMIT:2447`，双链区 CAP-SANCTION-2446 注记各一条（policy `:256` / proof `:436`）；**+1 零多放**·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减→ 届终 2446 = cap 恰等（docs:check EXIT=0 scanned 2446 亲证）。EXEC 期 **+0** 受管计面（ADR bullet 为既有受管文件行内编辑；零新 proof 零收据件·`.log` ∉ TEXT_EXTENSIONS 不计）。
+- **零重叠核**：`harness/` 无既有 `isob*` 件（git ls-files 全树零命中 · 文件名唯一）；在飞 worktree 43 个中与本刀同 tip（`2818c252`）者唯 `line/uc3f-draft`（0 commits ahead 尚未落卷 · 派单域 UC-003 后继与本刀触面零交）；本刀零触碰 `run-e2e-isolated.mjs`、§1.4 全部 prove 面与 receipt 族；policy 两件 cap 注记区若遇并线冲突沿 dual-keep 双留取大先例（CAP-SANCTION-2430 注记在案）。**[P1] 零重叠核失真补登（EXEC 如实承登·协调方裁决）**：上记「`line/uc3f-draft` 尚未落卷·触面零交」至 EXEC 并线时点已失真——uc3f 同基同刻落卷＝#178 uc15f 合卷（`91aca39bf`）已入 main，其 EXEC 面触恰同一对 policy 文件，且起草时点两卷曾**同号预登 CAP-SANCTION-2442（同号双预订）**；并线 merge `f76e05751` 按协调方裁决 **dual-keep 双留+号随 merge-tree 重排**（uc15f 注记随其并线已重排为 CAP-SANCTION-2443 双注记·本支 2442 注记保留史录·本刀新步进承 CAP-SANCTION-2446）；REQUEST 触面仍零交（uc15f 面=`uc15f-REQUEST.md`+`nhp-fault` proof·本刀面=`isob-REQUEST.md`）——零重叠结论对 REQUEST 面成立、对 policy 两件不成立，如实分记。
+- **est live=0**：零 e2e / 零 docker / 零 live key / 零模型调用；门 = 三静态门（本地 node 脚本 + grep，§7）+ EXEC 期协调方工序增派 A 层 prove 抽验四件（g1/g3/g7/qdrant-backed·本地 node EXIT 核·stdout 即弃·零新 proof 零新收据件）；docs:check / PTP 属静态门不计 prove。
 
 ## 7. 门与验收判据（本 commit 亲跑原值 + post 双审机检预告）
 
 - **基线原值（改动前亲跑）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0**（scanned 2441）· `node scripts/ai-docs/public-text-policy.proof.mjs` **EXIT=0**（12/12 · `static_preflight_valid: selected=12/12; releaseEvidence=false`）· markers 全仓 grep（`^<<<<<<< ` / `^=======$` / `^>>>>>>> `）**EXIT=1** 零命中。
-- **本 commit 后**：docs:check **EXIT=0**（scanned 2442 = 新 cap 恰等）· PTP **EXIT=0**（12/12）· markers **EXIT=1** 零命中。任何新增红 = 红停上报，Ban retry-to-green。
-- **diff 面（如实）**：恰 3 tracked = `ai-docs/delivery/harness/isob-REQUEST.md`（新增）+ `scripts/ai-docs/public-text-policy.mjs`（cap const + 注记）+ `scripts/ai-docs/public-text-policy.proof.mjs`（越限臂 + 注记）；零其他。
-- **验收**：本卷 §1 file:line 与 tip `2818c252` 亲点一致；§2 裁决含三理由；§8 Ban 全数在卷；`run-e2e-isolated.mjs` / `adr-postgres-retained.md` / backlog / matrix / checklist 本 commit 零 diff。
+- **本 commit 后（[P1] 届值重导后 EXEC 实测预期）**：docs:check **EXIT=0**（scanned **2446** = 新 cap 恰等·§6）· PTP **EXIT=0**（12/12）· markers **EXIT=1** 零命中 · **A 层 prove 抽验四件 EXIT 核**（`g1-default-switch-prep` / `g3-e2e-pg-image` / `g7-scor00-sole-fixture` / `conn-stack/mysql-stack.qdrant-backed`·本地 node EXIT 核·stdout 即弃·先在红 r5-mark-red 不在抽验面且其 documented-red 状态不因本刀改变）。任何新增红（非先在红 documented-red）= 红停上报，Ban retry-to-green。
+- **diff 面（如实）**：EXEC commit 恰 4 tracked = `ai-docs/delivery/harness/isob-REQUEST.md`（修订落卷）+ `scripts/ai-docs/public-text-policy.mjs`（cap const 2_446 + CAP-SANCTION-2446 注记）+ `scripts/ai-docs/public-text-policy.proof.mjs`（越限臂四联动点 + 注记）+ `ai-docs/delivery/adr-postgres-retained.md`（[R4] 放行 bullet·`:39` 后 append-only）；并线 merge `f76e05751` 单列（dual-keep 恰 2 policy 件·union 件随 origin/main 合入）；零其他。
+- **验收**：本卷 §1 file:line 与起草 tip `2818c252` 亲点一致（EXEC 行号勘误四处如实注记：`:3806→:3808+:3809`·`:3836→:3835`·`:4183` 独立列·`:4185/:4186`；行号漂移按文本锚定位）；§2 裁决含三理由；§8 Ban 全数在卷；`run-e2e-isolated.mjs` / backlog / matrix / checklist 本 commit 零 diff·`adr-postgres-retained.md` 仅 `:39` 后 [R4] 放行 bullet 一条（Decision 本体 L7-14 逐字零改）。
 
 ## 8. Ban（逐条）
 
@@ -138,7 +139,7 @@ docs 钉刀执行形态：本卷即收口登记面（§5）；可选（若双审
 4. **Ban 改 `adr-postgres-retained.md` Decision 本体**（L7-14 逐字不动）；可选 bullet 仅 `:39` 后 append-only additive，且须双审显式放行。
 5. **Ban 触碰 `E2E_ISO_STACK_NOTE`（`:4215-4218` narration-only · Line N 钉死）** 与 `receipts/` 332 件历史日志（append-only）。
 6. **Ban prove / e2e / docker / push / force-push / self-approve / secrets / `.env*`**；三门有红即红停上报，Ban retry-to-green · Ban 选择性汇报。
-7. **Ban 把本刀写成 sole cutover / MySQL 切流暗示**；Pins 八项冻结；本 REQUEST ≠ nail ≠ gap 关闭 ≠ HA ≠ releaseEvidence。
+7. **Ban 把本刀写成 sole cutover / MySQL 切流暗示**；Pins 八项冻结；本 REQUEST ≠ nail ≠ gap 关闭 ≠ HA ≠ releaseEvidence；STOP 状态钉三处（标题 `:1` / Status `:3` / 尾注末行·第三处状态钉）EXEC 三处同翻 `executed:awaiting_post_prove_dual`·Ban 漏翻尾注第三钉。
 
 ## 遗留（非本刀范围）
 
@@ -160,6 +161,14 @@ docs 钉刀执行形态：本卷即收口登记面（§5）；可选（若双审
 | Stack | **PG-retained** |
 | 公开 DELETE | **503**（stays） |
 
+## 9. EXEC 落卷承登（dual r1 修订逐条 · 2026-10-26）
+
+- **并线**：fetch EXIT=0 → merge `f76e05751`=merge origin/main `33fdd233`（届值如实采·恰 2 处冲突=两 policy 注记/cap 区·dual-keep 双留+号随 merge-tree 重排·cap 取大恒 2_445）→ 合并树 docs:check 红 `PTP_FILE_LIMIT:2446>2445`（真 EXIT=1 亲证·union 实测 2446）→ `pnpm install --frozen-lockfile` EXIT=0。
+- **修订逐条落点**：[P1] cap 重导 2446 恰等→§6 + 两 policy 四联动点/CAP-SANCTION-2446 双注记（policy `:255`/`:256`·proof `:436`/`:438`/`:445`/`:449`/`:452`）；[P1] uc3f 同号双预订失真→§6 零重叠补登；[P2] r5-mark-red documented-red 先在红→§1.4B 行内补注+§1.6 补「基线含一件 documented-red 门」+§7 抽验面注记；[P2] §4 门①④⑥授权主体显式指名（⑥ 另需 nail 层 SSOT 授权）+第⑦门增补；[R4] ADR bullet→`adr-postgres-retained.md:39` 后 append-only 一条；[P2] 行号卫生→§6 policy `:255`/proof 现行值·§1.3 表 `:3808/:3809`+`:4183` 独立列+`:4185/:4186`·§1.2 `:3835`·§8 第三处状态钉；[R5 预登]→§3 第 5 条。
+- **门实测（亲跑原值·stdout 即弃·零新 proof 零收据件）**：docs:check EXIT=**0**（scanned **2446** = cap 2446 恰等）· PTP EXIT=**0**（**12**/12 · `static_preflight_valid: selected=12/12; releaseEvidence=false`）· markers 全仓 grep EXIT=**1**（零命中）· A 层 prove 抽验四件：g1 EXIT=**0** / g3 EXIT=**0** / g7 EXIT=**3**（性质＝**PREREQ fail-closed 臂非断言红**：sole compose 未起（`docker/compose.mysql-local.yml`）·本刀 Ban docker 故该臂为唯一可达终态·其 26 项扫描/文档钉 PASS 面全过·与 r5-mark-red documented-red 异质） / qdrant-backed EXIT=**3**（同性质＝Qdrant `/readyz` PREREQ 拒 fake-green·非 §1.4A 复合扫描门红）——g7/qdrant-backed 两 EXIT=3 已 **A/B 亲证先在**：临时 worktree `362b97f5c`（起草基线·本刀零触碰态）同跑同 EXIT=3·非本刀引入·非停止条件所指断言红；扫描内容面由 g1/g3 EXIT=0 背书（runner `SOLE_STACK` 锚点与禁项全过）。
+- **STOP 三处翻**：标题 `:1` / Status `:3` / 尾注末行 三处同翻 `draft:awaiting_pre_exec_dual` → `executed:awaiting_post_prove_dual`。
+- **零码面核验**：`run-e2e-isolated.mjs`·§1.4A 四 prove·§1.4B 值级合同·receipt 族·`uc018-perf-load-capped-child.mjs` 本刀零 diff（两 policy 件属常设预授权机制面）；backlog `:63`/matrix/checklist 零触碰；Decision 本体 L7-14 逐字零改。
+
 ---
 
-*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口任务书 · draft:awaiting_pre_exec_dual · docs 钉刀 · ≠ sole cutover · 零产品行为变更 · STOP*
+*Harness · GAP-E2E-ISO-BANNER-PG-RETAINED SOLE_STACK 命名语义收口任务书 · executed:awaiting_post_prove_dual · docs 钉刀 · ≠ sole cutover · 零产品行为变更 · STOP*

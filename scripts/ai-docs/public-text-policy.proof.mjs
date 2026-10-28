@@ -433,22 +433,23 @@ const checks = {
       // CAP-SANCTION-2443 XREP 并线 union 越限恰等步进：cap 2441→2443（2026-10-28 XREP 跨副本 SSE 槽/播双 OS 进程证明卷并线 PR #173（line/xrep-draft→main）·协调方续行令「cap 届值取大·union 越限沿常设预授权恰等步进 CAP-SANCTION-24xx 承登+四联动点+PTP 12/12」随令行使 +2（2441→2443）·届值如实采：merge 50217aeda=merge origin/main 2818c2522（#176 uc30 合卷已落·cap 届值承 2441=上注 CAP-SANCTION-2441·取大恒 2441 零再步进）·本支 dab570973 承 2435≤2438 合规·main 届值 2818c2522 承 2441=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2443>2441 红（真 EXIT=1 亲证）——union 实测 2443=main 届扫 2441+本支并入互斥受管目 2（harness/xrep-REQUEST.md+apps/api/test/sse-cross-replica.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2443 注记·本刀 PR：line/xrep-draft→main（链 dab570973→50217aeda→本步进 commit 全链随 PR 首·号承 PR/merge ref）·沿 CAP-SANCTION-2441 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_443/f-2443.md/:2444 恰等改。
       // CAP-SANCTION-2443 UC-015 FAULT EXEC 立项并线恰等步进：cap 2441→2443（2026-10-26 简历 OCR 管线故障注入 NHP-015-FAULT-01 EXEC 立项·常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使 +2（2441→2443）·届值如实采：merge 087a80809=merge origin/main 2818c2522（#176 uc30 合卷已落·cap 届值承 2441=CAP-SANCTION-2441·#177 在飞未落 main 如实采）·本支 fa4f99cdf 承 2437≤2438 合规（起草卷算式）·main 届值 2818c2522 承 2441=cap 恰等（双亲各自合规）·合并树立项终验亲跑 docs:check PTP_FILE_LIMIT:2442>2441 红（真 EXIT=1 亲证）——union 实测 2442=main 届扫 2441+本支并入互斥受管目 1（harness/uc15f-REQUEST.md）·EXEC 期 +1 proof 终态 2443 恰等零多放（真跑收据 .log 非扫描扩展名不计）·详 policy .mjs 链区 CAP-SANCTION-2443 注记·沿 CAP-SANCTION-2441 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_443/f-2443.md/:2444 恰等改。
       // CAP-SANCTION-2445 XREP 二轮并线 union 越限恰等步进：cap 2443→2445（2026-10-28 XREP 跨副本 SSE 卷并线 PR #173 二轮并线（届值推移 #178 uc15f 已落）·常设预授权随令行使 +2（2443→2445）·届值如实采：merge fb350cff0=merge origin/main 91aca39bf（#178 uc15f 合卷已落·cap 届值承 2443=上注 CAP-SANCTION-2443 双注记并留·取大恒 2443 零再步进）·本支 8a661b483 承 2443=cap 恰等·main 届值 91aca39bf 承 2443=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2445>2443 红（真 EXIT=1 亲证）——union 实测 2445=main 届扫 2443+本支并入互斥受管目 2（harness/xrep-REQUEST.md+apps/api/test/sse-cross-replica.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2445 注记·本刀 PR：line/xrep-draft→main（链 …→b1a234dae→8a661b483→fb350cff0→本步进 commit 全链随 PR #173 首·号承 PR/merge ref）·沿 CAP-SANCTION-2443 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_445/f-2445.md/:2446 恰等改。
+      // CAP-SANCTION-2446 isob EXEC 落卷并线 union 越限恰等步进：cap 2445→2446（2026-10-26 isob EXEC 落卷并线·fetch EXIT=0·届值如实采 origin/main 33fdd233c=#173（cap 届值承 2445=上注 CAP-SANCTION-2445）·merge f76e05751 dual-keep 双留恰 2 处冲突（号随 merge-tree 重排）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2446>2445 红（真 EXIT=1 亲证）——union 实测 2446=main 届扫 2445+本支并入互斥受管目 1（harness/isob-REQUEST.md·两集合无交叠）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2446 注记·常设预授权随令行使·禁止按预登 2442/anticipated 2444 行使·届值如实采）——本 TC 四联动点 2_446/f-2446.md/:2447 恰等改。
       const paths = [];
-      for (let i = 0; i < 2_445; i += 1) {
+      for (let i = 0; i < 2_446; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_445);
-      // 超限错误码形状断言：第 2446 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2446`（`${CODE}:${n}` 形）·scannedFiles:0。
+      assert.equal(atCap.scannedFiles, 2_446);
+      // 超限错误码形状断言：第 2447 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2447`（`${CODE}:${n}` 形）·scannedFiles:0。
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2445.md'] });
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2446.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2446`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2447`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
