@@ -40,6 +40,7 @@
   "prove:uc018-abandon-http": "node --import @swc-node/register/esm-register test/uc-e2e-018-user-abandon-http.proof.ts",
   "prove:uc030-nhp-fault": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-fault.proof.ts",
   "prove:uc030-nhp-bound": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-bound.proof.ts",
+  "prove:uc030-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-030-nhp-adv.proof.ts",
   "prove:uc016-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-016-nhp-neg.proof.ts",
   "prove:uc015-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-adv.proof.ts",
   "prove:uc016-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-016-nhp-adv.proof.ts",

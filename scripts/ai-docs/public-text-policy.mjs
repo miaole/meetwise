@@ -249,6 +249,7 @@ export const TEXT_EXTENSIONS = new Set(['.md', '.mdx', '.mjs', '.cjs', '.js', '.
 // 协调方常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使·四联动点 2_441/f-2441.md/:2442
 // 恰等改（proof 文件链区）·沿 2438→2439 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随
 // cap 联动同步·语义不变强度不减。
+// CAP-SANCTION-2441 UC-030 收官并线越限恰等步进：cap 2439→2441（2026-10-28 长会话刷新对抗 NHP-030-ADV-01（UC-E2E-030 `:128` ADV 格·harness/uc30-adv-REQUEST.md）收官并线·协调方收官令预 sanction「并线越限恰等步进免停报·CAP-SANCTION-24xx 承登注记+proof 四联动点恰等改+PTP 12/12 亲跑·链接本刀 PR」随令行使 +2（2439→2441）·届值如实采：merge 7f256d705=merge origin/main c8f8effff（#175 x17-adv 合卷已落·cap 届值承 2439=上行 CAP-SANCTION-2439）·本支 98062574a 承 2438≤2439 合规（本支 EXEC 届扫 2438=cap 2438 恰等·#175 步进后届值取大恒合规）·main 届值 c8f8effff 承 2439=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2441>2439 红（真 EXIT=1 亲证）——union 实测 2441=main 届扫 2439+本支并入互斥受管目 2（harness/uc30-adv-REQUEST.md+apps/api/test/uc-e2e-030-nhp-adv.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·本刀 PR：line/uc30-draft→main（链 98062574a→7f256d705→本步进 commit 全链随 PR 首·号承 PR/merge ref）·沿 CAP-SANCTION-2439 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 const MAX_FILES = 2_441;
 const MAX_FILE_BYTES = 2 * 1_024 * 1_024;
 const CODE_HOSTS = [

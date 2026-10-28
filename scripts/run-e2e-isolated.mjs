@@ -1025,6 +1025,18 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0169_auth_user_session.sql',
   ],
+  // NHP-030-ADV-01（UC-030 残面 · 长会话刷新对抗 RP/RC/TC/XU 四臂族十臂）：缝 B 守卫优先序面（:95 代次→
+  // :98-99 jti）× Promise.all 并行竞态口 × 缝 A 背签传输面实钟 × 跨户令牌串用。隔离 PG 全迁移链。
+  'uc030:nhp-adv:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-030-nhp-adv.proof.ts',
+    'apps/api/src/main.ts', 'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/auth-session.ts',
+    'apps/api/src/modules/auth/auth.controller.ts', 'apps/api/src/modules/auth/auth.service.ts',
+    'apps/api/src/modules/profile/profile.controller.ts', 'apps/api/src/modules/profile/profile.service.ts',
+    'packages/domain/src/auth.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0169_auth_user_session.sql',
+  ],
   // NHP 批 A Row 2（UC-003 ADV · blind→case）：错误码映射层+locale allowlist 运行级对抗行使
   // （纯函数 · 零 PG 零外呼零 key · 经隔离面剥生产 key 出收据）。
   'uc003:nhp-adv:prove:raw': [
@@ -2857,6 +2869,8 @@ if (![
   'uc003:nhp-neg:prove:raw',
   // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 时钟漂移/刷新轮换/长会话续命 · 一行一 case 一收据）。
   'uc030:nhp-bound:prove:raw',
+  // UC-030 残面（NHP-030-ADV-01 · RP/RC/TC/XU 四臂族十臂 · 长会话刷新对抗 · 一行一 case 一收据）。
+  'uc030:nhp-adv:prove:raw',
   // NHP 批 C 三行（UC-016/029 NEG · UC-015 ADV · UC-001 PERF_api 执行 · 一行一 case 一收据）。
   'uc016:nhp-neg:prove:raw',
   'uc015:nhp-adv:prove:raw',
@@ -3302,6 +3316,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-fault']]
   : target === 'uc030:nhp-bound:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-bound']]
+  : target === 'uc030:nhp-adv:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc030-nhp-adv']]
   : target === 'uc003:nhp-adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/web', 'prove:uc003-nhp-adv']]
   : target === 'uc003:nhp-neg:prove:raw'
@@ -4234,6 +4250,8 @@ async function main() {
   // 函数由 boot() 新立=definer 同 boot role 表 owner·零断供面。proof 内 0206/0058 ACL 重放块承载 app_role 执行面。
   // UC-030 残面（NHP-030-BOUND-01 · C/R/L 三臂族 · 同第四注册位教训承登）。
   'uc030:nhp-bound:prove:raw',
+  // UC-030 残面（NHP-030-ADV-01 · RP/RC/TC/XU 四臂族十臂 · 同第四注册位教训承登·bound 同面零 sql/ 重放）。
+  'uc030:nhp-adv:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
   // UC-050 绕行残余登记刀一行（NHP-050-START-BYPASS-01 · pre-migrate 名单第四注册位·沿 uc050:nhp-kill
