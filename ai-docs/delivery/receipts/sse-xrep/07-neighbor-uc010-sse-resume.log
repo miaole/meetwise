@@ -1,0 +1,58 @@
+CMD: pnpm uc010:sse-resume:prove
+EXIT=0 · 13 全绿
+---
+
+> meetwise@0.1.0 uc010:sse-resume:prove /Users/miaole/Desktop/golucky/meetwise-xrep
+> node scripts/run-e2e-isolated.mjs uc010:sse-resume:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-41705-1793136053042 on 127.0.0.1:33153
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc010-sse-resume /Users/miaole/Desktop/golucky/meetwise-xrep/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-010-sse-resume.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793136056246,"pid":41901,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:63937"}
+UC-E2E-010 SSE resume prove · releaseEvidence=false · Not HA
+NOTE: 本绿≠全链路 E2E covered；≠ matrix covered；cite helpers/sse + last-event-id:unit + sse-slot；fixture=pgvector → green-risk/R5
+PIN   GAP-UC010-PRIVACY-STUB: minimal privacy-active stub (≠ 0058 fence covered)
+{"level":30,"time":1793136056255,"pid":41901,"hostname":"miaole.local","reqId":"b7cdb4f2-5044-4488-98da-40acdf846636","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63938},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+PASS  R1 全量重放进入 SSE（200 或已收 catch-up）
+PASS  R1 全量重放 seq=[1,2,3]
+PASS  R1 kinds 含 question_ready/waiting_user/progress
+{"level":30,"time":1793136057469,"pid":41901,"hostname":"miaole.local","reqId":"b44062ad-317f-4d5d-9ebb-f36c6aced64f","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63943},"msg":"incoming request"}
+PASS  R2 断线后重连 Last-Event-ID=3 → seq=[4,5]（不重放 1..3）
+PASS  R2 无重复 seq≤3
+{"level":30,"time":1793136058672,"pid":41901,"hostname":"miaole.local","reqId":"fa72b4ea-070a-42be-9acd-042ceefcde15","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63942},"msg":"incoming request"}
+PASS  R3 Last-Event-ID=2 → seq=[3,4,5]
+{"level":30,"time":1793136059877,"pid":41901,"hostname":"miaole.local","reqId":"9e946a54-a216-4985-a3f4-a2aa1c7af456","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63945},"msg":"incoming request"}
+PASS  R4 Last-Event-ID=5 → SSE 200 + 空 ids + hold ping（已追上，非错误空）
+
+──────── R-mid · mid-interview live-tail → abort → LED resume ────────
+{"level":30,"time":1793136062679,"pid":41901,"hostname":"miaole.local","reqId":"83813d35-8b10-4d5b-8696-40b3df71ddc5","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63948},"msg":"incoming request"}
+PIN   R-mid inject seq=6,7 while SSE held (mid-interview live)
+PASS  R-mid live hold 收到 mid-interview seq=[6,7]（hold-and-tail，非仅 catch-up）
+PASS  R-mid live 无重放 seq≤5
+{"level":30,"time":1793136064704,"pid":41901,"hostname":"miaole.local","reqId":"20b02739-3eff-441d-bf95-4aa1660c9de0","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63955},"msg":"incoming request"}
+PASS  R-mid 断线后 Last-Event-ID=7 → seq=[8,9]（不重放 live 已收 6..7）
+PASS  R-mid resume 无重复 seq≤7
+{"level":30,"time":1793136065909,"pid":41901,"hostname":"miaole.local","reqId":"dbdf2269-841f-4fbf-a6c6-e82d96a15930","req":{"method":"GET","url":"/interview/IV_SSE010/events","host":"127.0.0.1:63937","remoteAddress":"127.0.0.1","remotePort":63954},"msg":"incoming request"}
+{"level":30,"time":1793136065926,"pid":41901,"hostname":"miaole.local","reqId":"dbdf2269-841f-4fbf-a6c6-e82d96a15930","res":{"statusCode":404},"responseTime":16.272417000000132,"msg":"request completed"}
+PASS  R-authz userB 越权订阅 → 404
+PIN   GAP-UC010-FULL-E2E: full.e2e / e2e:isolated mid-interview SSE kill→resume 未接线（R-mid=HTTP ledger live-tail ≠ full.e2e）
+PIN   GAP-UC010-A3-KILL-BILLING: 进程 kill + 无双扣费 / seq 无洞 未在本 prove（需 worker+commerce）
+PIN   GAP-UC010-UI: Playwright 断线重连 UI 非本切片主路径（stream-window≠断线续传）
+PIN   GAP-UC010-PRIVACY-0058: _neg-harness 未载 0058；本 prove 仍 minimal stub ≠ fence covered
+PIN   GAP-UC010-CROSS-REPLICA: 跨副本 SSE 槽 HC-GAP-008；sse-slot:prove 仅进程内
+PIN   GAP-UC010-LAYER: last-event-id:unit:prove / sse-slot:prove / helpers/sse 为层证明 ≠ UC covered
+PASS  G-GAP honesty pins printed (EXIT=0≠covered)
+
+NOTE: still ≠covered; stay matrix **partial**; R-mid advances HTTP mid-interview live-tail only; cite unit/slot/helpers; no full.e2e/A3/UI claim
+
+✓ uc010:sse-resume: 13 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T21-21-06-072Z-41705-37ad99d5-cf8c-4a99-894a-127faa7ba15a.json release_evidence=false

@@ -1,0 +1,245 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-97227-1793158545797 on 127.0.0.1:33189
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 neg:resume /Users/miaole/Desktop/golucky/meetwise-uc15f/apps/api
+> node --import @swc-node/register/esm-register test/neg-resume.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793158549905,"pid":97363,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:52299"}
+{"level":30,"time":1793158549913,"pid":97363,"hostname":"miaole.local","reqId":"43de1ad0-980e-4df2-a671-8a42c8e8c6df","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549919,"pid":97363,"hostname":"miaole.local","reqId":"43de1ad0-980e-4df2-a671-8a42c8e8c6df","res":{"statusCode":403},"responseTime":6.226959000000079,"msg":"request completed"}
+PASS  userB 文本上传未同意 → 403
+PASS  userB 文本上传 error=consent_required
+PASS  userB 文本上传回带 purpose=resume_processing
+{"level":30,"time":1793158549924,"pid":97363,"hostname":"miaole.local","reqId":"c8b15a75-8814-4bc9-99c7-f2798cc6cd58","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+{"level":30,"time":1793158549930,"pid":97363,"hostname":"miaole.local","reqId":"c8b15a75-8814-4bc9-99c7-f2798cc6cd58","res":{"statusCode":422},"responseTime":5.850000000000136,"msg":"request completed"}
+PASS  userB 图片上传未同意 → 422(OCR 能力门先答,计费前即拦,绝不先扣费)
+PASS  userB 图片上传 error=image_ocr_unavailable
+{"level":30,"time":1793158549931,"pid":97363,"hostname":"miaole.local","reqId":"c20764df-b38d-4670-8481-1aeadfc31e4e","req":{"method":"GET","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549934,"pid":97363,"hostname":"miaole.local","reqId":"c20764df-b38d-4670-8481-1aeadfc31e4e","res":{"statusCode":200},"responseTime":2.7972500000000764,"msg":"request completed"}
+PASS  userB GET consent → consented=false
+{"level":30,"time":1793158549935,"pid":97363,"hostname":"miaole.local","reqId":"133bf1de-0854-41d6-ad95-cd62b44e725c","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549936,"pid":97363,"hostname":"miaole.local","reqId":"133bf1de-0854-41d6-ad95-cd62b44e725c","res":{"statusCode":400},"responseTime":0.7889170000000831,"msg":"request completed"}
+{"level":30,"time":1793158549937,"pid":97363,"hostname":"miaole.local","reqId":"59bcce5a-d530-440a-8bc0-4b91df9641f2","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549940,"pid":97363,"hostname":"miaole.local","reqId":"59bcce5a-d530-440a-8bc0-4b91df9641f2","res":{"statusCode":403},"responseTime":3.326917000000094,"msg":"request completed"}
+PASS  userB 仅同意 marketing 后文本上传仍 403(purpose 隔离)
+PASS  userB 未知/无关 purpose 未泄漏成简历同意
+{"level":30,"time":1793158549943,"pid":97363,"hostname":"miaole.local","reqId":"a6b85ed9-3f57-44a0-8870-7793ee307406","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549946,"pid":97363,"hostname":"miaole.local","reqId":"a6b85ed9-3f57-44a0-8870-7793ee307406","res":{"statusCode":200},"responseTime":3.338792000000012,"msg":"request completed"}
+{"level":30,"time":1793158549947,"pid":97363,"hostname":"miaole.local","reqId":"f53df9b8-4201-4340-933e-a3ee0157d432","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549949,"pid":97363,"hostname":"miaole.local","reqId":"f53df9b8-4201-4340-933e-a3ee0157d432","res":{"statusCode":200},"responseTime":1.9143750000000637,"msg":"request completed"}
+{"level":30,"time":1793158549950,"pid":97363,"hostname":"miaole.local","reqId":"66c67c24-9656-4483-9eb1-fd6f5db756cf","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549952,"pid":97363,"hostname":"miaole.local","reqId":"66c67c24-9656-4483-9eb1-fd6f5db756cf","res":{"statusCode":200},"responseTime":2.0381660000000466,"msg":"request completed"}
+PASS  victimU 三次同意(含缺 purpose 默认)仅落 1 条记录(幂等)
+{"level":30,"time":1793158549954,"pid":97363,"hostname":"miaole.local","reqId":"a4e34910-2b80-48c4-990f-18c7c42bb470","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549957,"pid":97363,"hostname":"miaole.local","reqId":"a4e34910-2b80-48c4-990f-18c7c42bb470","res":{"statusCode":200},"responseTime":3.1425420000000486,"msg":"request completed"}
+PASS  userA 重复同意仍仅 1 条记录(幂等)
+{"level":30,"time":1793158549960,"pid":97363,"hostname":"miaole.local","reqId":"a4b26421-989f-4173-a057-0b66b8503da7","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549960,"pid":97363,"hostname":"miaole.local","reqId":"a4b26421-989f-4173-a057-0b66b8503da7","res":{"statusCode":401},"responseTime":0.47612500000013824,"msg":"request completed"}
+PASS  未鉴权 POST /resume → 401
+{"level":30,"time":1793158549961,"pid":97363,"hostname":"miaole.local","reqId":"10a85ccb-7fce-462f-862e-de89a42a8e4c","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549961,"pid":97363,"hostname":"miaole.local","reqId":"10a85ccb-7fce-462f-862e-de89a42a8e4c","res":{"statusCode":401},"responseTime":0.1694999999999709,"msg":"request completed"}
+PASS  未鉴权 POST /resume/file → 401
+{"level":30,"time":1793158549962,"pid":97363,"hostname":"miaole.local","reqId":"c1780658-ece6-4593-9a33-dc518bc8dc05","req":{"method":"GET","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549962,"pid":97363,"hostname":"miaole.local","reqId":"c1780658-ece6-4593-9a33-dc518bc8dc05","res":{"statusCode":401},"responseTime":0.125,"msg":"request completed"}
+PASS  未鉴权 GET /resume → 401
+{"level":30,"time":1793158549962,"pid":97363,"hostname":"miaole.local","reqId":"3674af6f-96c6-4dab-8384-411cbe5cb262","req":{"method":"POST","url":"/resume/00000000-0000-0000-0000-000000000000/reparse","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549962,"pid":97363,"hostname":"miaole.local","reqId":"3674af6f-96c6-4dab-8384-411cbe5cb262","res":{"statusCode":401},"responseTime":0.12425000000007458,"msg":"request completed"}
+PASS  未鉴权 POST /resume/00000000-0000-0000-0000-000000000000/reparse → 401
+{"level":30,"time":1793158549963,"pid":97363,"hostname":"miaole.local","reqId":"2ac92491-fc18-4996-b755-10085414287b","req":{"method":"DELETE","url":"/resume/00000000-0000-0000-0000-000000000000","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549963,"pid":97363,"hostname":"miaole.local","reqId":"2ac92491-fc18-4996-b755-10085414287b","res":{"statusCode":401},"responseTime":0.29683399999998983,"msg":"request completed"}
+PASS  未鉴权 DELETE /resume/00000000-0000-0000-0000-000000000000 → 401
+{"level":30,"time":1793158549963,"pid":97363,"hostname":"miaole.local","reqId":"1f422c7e-0477-4f3b-9d62-c48b359f1c2f","req":{"method":"GET","url":"/resume/00000000-0000-0000-0000-000000000000/profile","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549963,"pid":97363,"hostname":"miaole.local","reqId":"1f422c7e-0477-4f3b-9d62-c48b359f1c2f","res":{"statusCode":401},"responseTime":0.09550000000012915,"msg":"request completed"}
+PASS  未鉴权 GET /resume/00000000-0000-0000-0000-000000000000/profile → 401
+{"level":30,"time":1793158549964,"pid":97363,"hostname":"miaole.local","reqId":"c0b16639-7442-40cb-87f5-b11a242c61e5","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549964,"pid":97363,"hostname":"miaole.local","reqId":"c0b16639-7442-40cb-87f5-b11a242c61e5","res":{"statusCode":401},"responseTime":0.10674999999991996,"msg":"request completed"}
+PASS  未鉴权 POST /privacy/consent → 401
+{"level":30,"time":1793158549964,"pid":97363,"hostname":"miaole.local","reqId":"d5b92100-604b-47dd-a9b8-3d51e7f64bc5","req":{"method":"GET","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549964,"pid":97363,"hostname":"miaole.local","reqId":"d5b92100-604b-47dd-a9b8-3d51e7f64bc5","res":{"statusCode":401},"responseTime":0.12108399999988251,"msg":"request completed"}
+PASS  未鉴权 GET /privacy/consent → 401
+{"level":30,"time":1793158549965,"pid":97363,"hostname":"miaole.local","reqId":"c880794e-e157-4db5-80b8-7913ea8e44a4","req":{"method":"GET","url":"/privacy/export","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549965,"pid":97363,"hostname":"miaole.local","reqId":"c880794e-e157-4db5-80b8-7913ea8e44a4","res":{"statusCode":401},"responseTime":0.12179100000003018,"msg":"request completed"}
+PASS  未鉴权 GET /privacy/export → 401
+{"level":30,"time":1793158549965,"pid":97363,"hostname":"miaole.local","reqId":"6933a406-7d2e-4419-966b-a4aa3d46d792","req":{"method":"DELETE","url":"/privacy/resume-data","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549965,"pid":97363,"hostname":"miaole.local","reqId":"6933a406-7d2e-4419-966b-a4aa3d46d792","res":{"statusCode":401},"responseTime":0.18262499999991633,"msg":"request completed"}
+PASS  未鉴权 DELETE /privacy/resume-data → 401
+{"level":30,"time":1793158549966,"pid":97363,"hostname":"miaole.local","reqId":"5a0ab16e-e036-4d36-ac0e-98c1deeeb550","req":{"method":"GET","url":"/privacy/export","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549966,"pid":97363,"hostname":"miaole.local","reqId":"5a0ab16e-e036-4d36-ac0e-98c1deeeb550","res":{"statusCode":401},"responseTime":0.09791700000005221,"msg":"request completed"}
+PASS  未鉴权 export body error=unauthenticated
+{"level":30,"time":1793158549966,"pid":97363,"hostname":"miaole.local","reqId":"b0ed8ac8-29b8-4d51-b88b-f36e064e1eb0","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549966,"pid":97363,"hostname":"miaole.local","reqId":"b0ed8ac8-29b8-4d51-b88b-f36e064e1eb0","res":{"statusCode":400},"responseTime":0.31645800000001145,"msg":"request completed"}
+PASS  文本上传畸形拒:空字符串 → 400
+{"level":30,"time":1793158549967,"pid":97363,"hostname":"miaole.local","reqId":"252348dd-f2a0-463e-b9d3-7a93b9370530","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549967,"pid":97363,"hostname":"miaole.local","reqId":"252348dd-f2a0-463e-b9d3-7a93b9370530","res":{"statusCode":400},"responseTime":0.1525410000001557,"msg":"request completed"}
+PASS  文本上传畸形拒:纯短空白(5 空格 <20) → 400
+{"level":30,"time":1793158549967,"pid":97363,"hostname":"miaole.local","reqId":"8f912b41-2e6b-4538-a3fb-95ec87c07c65","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549967,"pid":97363,"hostname":"miaole.local","reqId":"8f912b41-2e6b-4538-a3fb-95ec87c07c65","res":{"statusCode":400},"responseTime":0.16587500000014188,"msg":"request completed"}
+PASS  文本上传畸形拒:过短(2 字) → 400
+{"level":30,"time":1793158549968,"pid":97363,"hostname":"miaole.local","reqId":"0ec8e603-88d2-49ef-8616-c2c6a6fcafec","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549968,"pid":97363,"hostname":"miaole.local","reqId":"0ec8e603-88d2-49ef-8616-c2c6a6fcafec","res":{"statusCode":400},"responseTime":0.2055000000000291,"msg":"request completed"}
+PASS  文本上传畸形拒:边界 19 字(< min20) → 400
+{"level":30,"time":1793158549969,"pid":97363,"hostname":"miaole.local","reqId":"18f4f888-dd4c-4aa8-bbfa-3f206e70cc0e","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549969,"pid":97363,"hostname":"miaole.local","reqId":"18f4f888-dd4c-4aa8-bbfa-3f206e70cc0e","res":{"statusCode":400},"responseTime":0.2266660000000229,"msg":"request completed"}
+PASS  文本上传畸形拒:超大(>60000 字) → 400
+{"level":30,"time":1793158549969,"pid":97363,"hostname":"miaole.local","reqId":"86dae5f5-3904-4d72-9f9b-63df09c47c44","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549970,"pid":97363,"hostname":"miaole.local","reqId":"86dae5f5-3904-4d72-9f9b-63df09c47c44","res":{"statusCode":400},"responseTime":0.209041999999954,"msg":"request completed"}
+PASS  文本上传畸形拒:text 为数字(非字符串) → 400
+{"level":30,"time":1793158549970,"pid":97363,"hostname":"miaole.local","reqId":"85a74024-0784-4fcd-bb75-bb41fd7b2094","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549970,"pid":97363,"hostname":"miaole.local","reqId":"85a74024-0784-4fcd-bb75-bb41fd7b2094","res":{"statusCode":400},"responseTime":0.1331249999998363,"msg":"request completed"}
+PASS  文本上传畸形拒:text 为 null → 400
+{"level":30,"time":1793158549970,"pid":97363,"hostname":"miaole.local","reqId":"ba58ef07-5f1a-4e3d-81f6-7053e737c72d","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549971,"pid":97363,"hostname":"miaole.local","reqId":"ba58ef07-5f1a-4e3d-81f6-7053e737c72d","res":{"statusCode":400},"responseTime":0.20391700000004676,"msg":"request completed"}
+PASS  文本上传畸形拒:text 为数组 → 400
+{"level":30,"time":1793158549971,"pid":97363,"hostname":"miaole.local","reqId":"979b36d9-a8b7-4b89-9b71-8a757e9eb3d2","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549971,"pid":97363,"hostname":"miaole.local","reqId":"979b36d9-a8b7-4b89-9b71-8a757e9eb3d2","res":{"statusCode":400},"responseTime":0.1455829999999878,"msg":"request completed"}
+PASS  文本上传畸形拒:text 为布尔 → 400
+{"level":30,"time":1793158549971,"pid":97363,"hostname":"miaole.local","reqId":"b26dd25b-2b32-48bc-8f73-ba824514eaa7","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549972,"pid":97363,"hostname":"miaole.local","reqId":"b26dd25b-2b32-48bc-8f73-ba824514eaa7","res":{"statusCode":400},"responseTime":0.17633299999988594,"msg":"request completed"}
+PASS  文本上传缺 text 字段 → 400
+{"level":30,"time":1793158549972,"pid":97363,"hostname":"miaole.local","reqId":"18c983e8-fbca-4be5-b887-80434075e65f","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549983,"pid":97363,"hostname":"miaole.local","reqId":"18c983e8-fbca-4be5-b887-80434075e65f","res":{"statusCode":200},"responseTime":11.306750000000193,"msg":"request completed"}
+PASS  文本含 null 字节 → 不 5xx(落库前剥除 NUL 优雅处理,不崩)
+{"level":30,"time":1793158549984,"pid":97363,"hostname":"miaole.local","reqId":"8ca12d5e-ff04-4b25-9bc9-0bf72006a4e4","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549991,"pid":97363,"hostname":"miaole.local","reqId":"8ca12d5e-ff04-4b25-9bc9-0bf72006a4e4","res":{"statusCode":200},"responseTime":6.780250000000024,"msg":"request completed"}
+PASS  userA(已同意)含 PII 文本上传成功入库(前置:取 resumeId 定位库行)
+PASS  structured 不含明文手机号 13800138000
+PASS  structured 不含明文邮箱 zhangsan@example.com
+PASS  structured 不含明文身份证 11010119900307461X
+PASS  pii_summary.phone 计数 >=1
+PASS  pii_summary.email 计数 >=1
+PASS  pii_summary.idcard 计数 >=1
+PASS  pii_summary 只存计数不存掩码/明文值(值均为数字)
+{"level":30,"time":1793158549992,"pid":97363,"hostname":"miaole.local","reqId":"fcb9df13-38d0-4fb2-b192-d6f02fad59d8","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549997,"pid":97363,"hostname":"miaole.local","reqId":"fcb9df13-38d0-4fb2-b192-d6f02fad59d8","res":{"statusCode":200},"responseTime":4.977624999999989,"msg":"request completed"}
+PASS  分隔符/全角规避文本上传成功(前置:取 id)
+PASS  规避手机号(点分隔)被兜底脱敏,structured 不含 13800138000
+PASS  规避手机号(点分隔)原串不整段泄漏
+PASS  全角手机号被归一后脱敏,structured 不含半角 13612345678
+{"level":30,"time":1793158549998,"pid":97363,"hostname":"miaole.local","reqId":"e4edc66f-810d-4961-b399-596231f5a2c0","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549998,"pid":97363,"hostname":"miaole.local","reqId":"e4edc66f-810d-4961-b399-596231f5a2c0","res":{"statusCode":400},"responseTime":0.26041700000018864,"msg":"request completed"}
+PASS  文件缺 filename → 400
+{"level":30,"time":1793158549998,"pid":97363,"hostname":"miaole.local","reqId":"d7321550-ac52-46f7-b676-0b026f196146","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549998,"pid":97363,"hostname":"miaole.local","reqId":"d7321550-ac52-46f7-b676-0b026f196146","res":{"statusCode":400},"responseTime":0.1488329999999678,"msg":"request completed"}
+PASS  文件缺 contentBase64 → 400
+{"level":30,"time":1793158549999,"pid":97363,"hostname":"miaole.local","reqId":"b6ce613c-be28-497e-86ac-acb2d44c3769","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158549999,"pid":97363,"hostname":"miaole.local","reqId":"b6ce613c-be28-497e-86ac-acb2d44c3769","res":{"statusCode":400},"responseTime":0.12841699999989942,"msg":"request completed"}
+PASS  文件 filename 空串(< min1) → 400
+{"level":30,"time":1793158549999,"pid":97363,"hostname":"miaole.local","reqId":"5a2da9f9-2352-495e-8e46-5a58a0e710b1","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158549999,"pid":97363,"hostname":"miaole.local","reqId":"5a2da9f9-2352-495e-8e46-5a58a0e710b1","res":{"statusCode":400},"responseTime":0.13420799999994415,"msg":"request completed"}
+PASS  文件 filename 超长(>255) → 400
+{"level":30,"time":1793158550000,"pid":97363,"hostname":"miaole.local","reqId":"ff3dc280-c69f-4cb7-b5e3-098764678839","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550000,"pid":97363,"hostname":"miaole.local","reqId":"ff3dc280-c69f-4cb7-b5e3-098764678839","res":{"statusCode":400},"responseTime":0.2490419999999176,"msg":"request completed"}
+PASS  文件 mimeType 超长(>255) → 400
+{"level":30,"time":1793158550003,"pid":97363,"hostname":"miaole.local","reqId":"ab3b0763-c90d-4bb0-8a88-f7ca9a35a7c7","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550003,"pid":97363,"hostname":"miaole.local","reqId":"ab3b0763-c90d-4bb0-8a88-f7ca9a35a7c7","res":{"statusCode":400},"responseTime":0.19716700000003584,"msg":"request completed"}
+PASS  文件 contentBase64 空串(< min1) → 400
+{"level":30,"time":1793158550004,"pid":97363,"hostname":"miaole.local","reqId":"b852fda0-eb40-4853-a859-d68758723776","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550004,"pid":97363,"hostname":"miaole.local","reqId":"b852fda0-eb40-4853-a859-d68758723776","res":{"statusCode":400},"responseTime":0.1452910000000429,"msg":"request completed"}
+PASS  非法 base64 padding(====) → 400，解码/解析前拒绝
+{"level":30,"time":1793158550036,"pid":97363,"hostname":"miaole.local","reqId":"126f8033-aec3-4387-bf58-27f3a7277ccc","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550067,"pid":97363,"hostname":"miaole.local","reqId":"126f8033-aec3-4387-bf58-27f3a7277ccc","res":{"statusCode":400},"responseTime":30.304791999999907,"msg":"request completed"}
+PASS  文件 base64 超上限 → 400(大文件 DoS 门)
+{"level":30,"time":1793158550068,"pid":97363,"hostname":"miaole.local","reqId":"985a1ffe-e0eb-4d51-af60-5f086f35256c","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550068,"pid":97363,"hostname":"miaole.local","reqId":"985a1ffe-e0eb-4d51-af60-5f086f35256c","res":{"statusCode":400},"responseTime":0.41808400000013535,"msg":"request completed"}
+PASS  坏字节冒充 PDF → >=400 可解释(非 5xx 裸崩)
+{"level":30,"time":1793158550068,"pid":97363,"hostname":"miaole.local","reqId":"1c6015f9-4217-44ed-a7ec-074906e6af55","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550069,"pid":97363,"hostname":"miaole.local","reqId":"1c6015f9-4217-44ed-a7ec-074906e6af55","res":{"statusCode":422},"responseTime":0.3854160000000775,"msg":"request completed"}
+PASS  mime 与内容不符(文本冒充 PDF) → >=400
+{"level":30,"time":1793158550069,"pid":97363,"hostname":"miaole.local","reqId":"e6508d14-bc2c-460f-a4f5-386e86b37d11","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550069,"pid":97363,"hostname":"miaole.local","reqId":"e6508d14-bc2c-460f-a4f5-386e86b37d11","res":{"statusCode":415},"responseTime":0.1461669999998776,"msg":"request completed"}
+PASS  不支持类型/扩展(.exe) → 415 unsupported_file_format
+{"level":30,"time":1793158550070,"pid":97363,"hostname":"miaole.local","reqId":"dae7df9b-3a4a-49ff-a679-d015861b4fa0","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550070,"pid":97363,"hostname":"miaole.local","reqId":"dae7df9b-3a4a-49ff-a679-d015861b4fa0","res":{"statusCode":415},"responseTime":0.19466600000009748,"msg":"request completed"}
+PASS  XLSX 未接专用表格 adapter 时 → 415，绝不乱码入库
+{"level":30,"time":1793158550070,"pid":97363,"hostname":"miaole.local","reqId":"430a9e16-62b2-481a-a112-dd5ffbdb5ead","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550070,"pid":97363,"hostname":"miaole.local","reqId":"430a9e16-62b2-481a-a112-dd5ffbdb5ead","res":{"statusCode":415},"responseTime":0.14066600000001017,"msg":"request completed"}
+PASS  PPTX 即使 MIME 伪称 PDF 仍 → 415，文件名/MIME 双侧 fail-closed
+{"level":30,"time":1793158550071,"pid":97363,"hostname":"miaole.local","reqId":"55a34816-2110-40e5-b9fd-2b47e03b0926","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550071,"pid":97363,"hostname":"miaole.local","reqId":"55a34816-2110-40e5-b9fd-2b47e03b0926","res":{"statusCode":415},"responseTime":0.12612500000000182,"msg":"request completed"}
+PASS  视频不走简历 text 解析 → 415，等待 ASR/时间轴摄取器
+{"level":30,"time":1793158550071,"pid":97363,"hostname":"miaole.local","reqId":"31642a49-f111-4e02-8987-066e3311f26a","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550072,"pid":97363,"hostname":"miaole.local","reqId":"31642a49-f111-4e02-8987-066e3311f26a","res":{"statusCode":400},"responseTime":0.2542089999999462,"msg":"request completed"}
+PASS  路径穿越 filename 被安全处理(4xx,不写文件/不 5xx)
+{"level":30,"time":1793158550072,"pid":97363,"hostname":"miaole.local","reqId":"b39d54bb-bf20-47ba-a4ca-57cd562317bc","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550072,"pid":97363,"hostname":"miaole.local","reqId":"b39d54bb-bf20-47ba-a4ca-57cd562317bc","res":{"statusCode":400},"responseTime":0.21062499999993634,"msg":"request completed"}
+PASS  文件提取文本过短 → 400(extracted_too_short)
+{"level":30,"time":1793158550072,"pid":97363,"hostname":"miaole.local","reqId":"a8c05e0d-6e76-4ae0-8623-3ba7c7d6bbe9","req":{"method":"POST","url":"/resume/11111111-1111-1111-1111-111111111111/reparse","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550077,"pid":97363,"hostname":"miaole.local","reqId":"a8c05e0d-6e76-4ae0-8623-3ba7c7d6bbe9","res":{"statusCode":404},"responseTime":4.3585420000001704,"msg":"request completed"}
+PASS  reparse 不存在 id → 404
+PASS  reparse 不存在 error=not_found_or_forbidden
+{"level":30,"time":1793158550077,"pid":97363,"hostname":"miaole.local","reqId":"6b95d925-f153-47ff-80a1-ab0725a926b4","req":{"method":"POST","url":"/resume/b376a972-885c-41ce-899f-bb4d409088a1/reparse","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550080,"pid":97363,"hostname":"miaole.local","reqId":"6b95d925-f153-47ff-80a1-ab0725a926b4","res":{"statusCode":404},"responseTime":2.434500000000071,"msg":"request completed"}
+PASS  userB reparse userA 的简历 → 404(RLS 越权即不可见)
+{"level":30,"time":1793158550080,"pid":97363,"hostname":"miaole.local","reqId":"0c0f40ba-4213-4517-ac0b-8216d0bf4147","req":{"method":"POST","url":"/resume/not-a-uuid/reparse","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550082,"pid":97363,"hostname":"miaole.local","reqId":"0c0f40ba-4213-4517-ac0b-8216d0bf4147","res":{"statusCode":404},"responseTime":2.182459000000108,"msg":"request completed"}
+PASS  reparse 非法 uuid → >=400(不 200 泄漏)
+{"level":30,"time":1793158550083,"pid":97363,"hostname":"miaole.local","reqId":"4186947c-8efe-4e70-93d1-59354c532658","req":{"method":"DELETE","url":"/resume/22222222-2222-2222-2222-222222222222","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550086,"pid":97363,"hostname":"miaole.local","reqId":"4186947c-8efe-4e70-93d1-59354c532658","res":{"statusCode":404},"responseTime":3.580249999999978,"msg":"request completed"}
+PASS  delete 不存在 id → 404(沿 reparse 同形,不按存在性分叉)
+PASS  delete 不存在 error=not_found_or_forbidden
+{"level":30,"time":1793158550087,"pid":97363,"hostname":"miaole.local","reqId":"8bac5aee-c749-4811-9de1-3d1ad24495ee","req":{"method":"DELETE","url":"/resume/b376a972-885c-41ce-899f-bb4d409088a1","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550090,"pid":97363,"hostname":"miaole.local","reqId":"8bac5aee-c749-4811-9de1-3d1ad24495ee","res":{"statusCode":404},"responseTime":2.7518749999999272,"msg":"request completed"}
+PASS  userB 删 userA 的简历 → 404(RLS 越权即不可见,不泄漏存在性)
+PASS  越权删除后 userA 的简历依然存在(未被删)
+{"level":30,"time":1793158550091,"pid":97363,"hostname":"miaole.local","reqId":"c1042c8d-9c78-439b-8af2-1775cb03c971","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550098,"pid":97363,"hostname":"miaole.local","reqId":"c1042c8d-9c78-439b-8af2-1775cb03c971","res":{"statusCode":200},"responseTime":6.550083000000086,"msg":"request completed"}
+PASS  删除测试前置:创建一份 userA 简历
+{"level":30,"time":1793158550098,"pid":97363,"hostname":"miaole.local","reqId":"676a74cf-b8f0-4e09-b7f6-a0ba48b31c67","req":{"method":"DELETE","url":"/resume/bf5bd246-1340-48c2-a3e7-8b3348a63e4d","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550101,"pid":97363,"hostname":"miaole.local","reqId":"676a74cf-b8f0-4e09-b7f6-a0ba48b31c67","res":{"statusCode":202},"responseTime":2.750208000000157,"msg":"request completed"}
+PASS  首次删除自有简历 → 202 软删受理(mode=logical+purgePending=true,非完成态)
+{"level":30,"time":1793158550101,"pid":97363,"hostname":"miaole.local","reqId":"e4e70e67-7167-49ae-9b06-371ac3ac7e21","req":{"method":"GET","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550104,"pid":97363,"hostname":"miaole.local","reqId":"e4e70e67-7167-49ae-9b06-371ac3ac7e21","res":{"statusCode":200},"responseTime":2.6201249999999163,"msg":"request completed"}
+{"level":30,"time":1793158550104,"pid":97363,"hostname":"miaole.local","reqId":"e8a798c0-0152-4cad-a2fe-12b821e47736","req":{"method":"GET","url":"/resume/bf5bd246-1340-48c2-a3e7-8b3348a63e4d/profile","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550106,"pid":97363,"hostname":"miaole.local","reqId":"e8a798c0-0152-4cad-a2fe-12b821e47736","res":{"statusCode":404},"responseTime":1.9803340000000844,"msg":"request completed"}
+PASS  软删后读面不可见:列表不含 + profile 404(0063 active-read RLS 即时生效)
+PASS  软删后物理行仍在(S1 不撒谎):status=erasure_fenced 且 erasure_requested_at 非空
+{"level":30,"time":1793158550107,"pid":97363,"hostname":"miaole.local","reqId":"8b483319-91e7-4117-acbd-6f5549025c88","req":{"method":"DELETE","url":"/resume/bf5bd246-1340-48c2-a3e7-8b3348a63e4d","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550109,"pid":97363,"hostname":"miaole.local","reqId":"8b483319-91e7-4117-acbd-6f5549025c88","res":{"statusCode":202},"responseTime":2.285333000000037,"msg":"request completed"}
+PASS  二次删除同一简历 → 202 同态幂等(alreadyFenced+同 requestId)
+PASS  二次删除不建第二份账(同 (owner,resume) 恰 1 条 resume_data request)
+{"level":30,"time":1793158550110,"pid":97363,"hostname":"miaole.local","reqId":"6bb1ae53-3396-4d8f-8155-87bf48be60a7","req":{"method":"GET","url":"/resume/33333333-3333-3333-3333-333333333333/profile","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550112,"pid":97363,"hostname":"miaole.local","reqId":"6bb1ae53-3396-4d8f-8155-87bf48be60a7","res":{"statusCode":404},"responseTime":1.617040999999972,"msg":"request completed"}
+PASS  GET profile 不存在 id → 404
+{"level":30,"time":1793158550112,"pid":97363,"hostname":"miaole.local","reqId":"5e10c82b-82ee-4db3-bae7-c25ca499917a","req":{"method":"GET","url":"/resume/b376a972-885c-41ce-899f-bb4d409088a1/profile","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550113,"pid":97363,"hostname":"miaole.local","reqId":"5e10c82b-82ee-4db3-bae7-c25ca499917a","res":{"statusCode":404},"responseTime":1.3254589999999098,"msg":"request completed"}
+PASS  userB 读 userA 的画像 → 404(RLS 越权)
+{"level":30,"time":1793158550114,"pid":97363,"hostname":"miaole.local","reqId":"62eb8e15-27ae-4016-9e39-d2dd82fd1f15","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550119,"pid":97363,"hostname":"miaole.local","reqId":"62eb8e15-27ae-4016-9e39-d2dd82fd1f15","res":{"statusCode":200},"responseTime":5.371000000000095,"msg":"request completed"}
+PASS  跨租户前置:victimU 上传一份简历
+{"level":30,"time":1793158550119,"pid":97363,"hostname":"miaole.local","reqId":"2b5f17a4-9787-4a45-ae21-85b0d38b7f84","req":{"method":"GET","url":"/privacy/export","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550123,"pid":97363,"hostname":"miaole.local","reqId":"2b5f17a4-9787-4a45-ae21-85b0d38b7f84","res":{"statusCode":200},"responseTime":3.903874999999971,"msg":"request completed"}
+PASS  userA 导出成功(前置:取 resumes 列表)
+PASS  userA 导出不含 victimU 的简历(跨租户隔离)
+PASS  userA 导出确实含自己的简历 RA(RLS 只己见,自证非空导错)
+{"level":30,"time":1793158550126,"pid":97363,"hostname":"miaole.local","reqId":"57651a43-f65c-4b0c-990f-b11e39b94581","req":{"method":"POST","url":"/privacy/consent","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550128,"pid":97363,"hostname":"miaole.local","reqId":"57651a43-f65c-4b0c-990f-b11e39b94581","res":{"statusCode":200},"responseTime":2.230750000000171,"msg":"request completed"}
+{"level":30,"time":1793158550129,"pid":97363,"hostname":"miaole.local","reqId":"b5e371d8-10e3-4a3b-9e54-33c5d75099a0","req":{"method":"POST","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550133,"pid":97363,"hostname":"miaole.local","reqId":"b5e371d8-10e3-4a3b-9e54-33c5d75099a0","res":{"statusCode":200},"responseTime":4.142708000000084,"msg":"request completed"}
+PASS  全量删前置:userB 授予同意并上传一份自有简历(种子护栏 before>0)
+{"level":30,"time":1793158550133,"pid":97363,"hostname":"miaole.local","reqId":"0ef84020-357e-4316-9bfb-a1827132eec0","req":{"method":"GET","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550135,"pid":97363,"hostname":"miaole.local","reqId":"0ef84020-357e-4316-9bfb-a1827132eec0","res":{"statusCode":200},"responseTime":2.0201250000000073,"msg":"request completed"}
+{"level":30,"time":1793158550137,"pid":97363,"hostname":"miaole.local","reqId":"671098df-b65c-49ae-92ec-330e0d10c689","req":{"method":"DELETE","url":"/privacy/resume-data","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550139,"pid":97363,"hostname":"miaole.local","reqId":"671098df-b65c-49ae-92ec-330e0d10c689","res":{"statusCode":202},"responseTime":2.8790839999999207,"msg":"request completed"}
+PASS  userB 删除自有简历数据 → 202 软删受理(mode=logical+purgePending=true,非完成态)
+PASS  userB 全量删受理 resumesFenced>=1
+{"level":30,"time":1793158550140,"pid":97363,"hostname":"miaole.local","reqId":"b293f378-6990-4248-928a-7cbf13418ae0","req":{"method":"GET","url":"/resume","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52301},"msg":"incoming request"}
+{"level":30,"time":1793158550142,"pid":97363,"hostname":"miaole.local","reqId":"b293f378-6990-4248-928a-7cbf13418ae0","res":{"statusCode":200},"responseTime":2.1622919999999795,"msg":"request completed"}
+PASS  全量删列表收缩>0(种子护栏 before>0)且物理行数不变(列表过滤≠物理删除)
+PASS  userB 的 OCR trace 行数在 202 软删受理后不变(登记不删,S2 清除;种子护栏 before>0)
+PASS  userB 的 OCR durable invocation 行数在 202 软删受理后不变(同上种子护栏)
+PASS  删除 userB 时不误删 userA 的 OCR 衍生记录
+PASS  userB 删数据后 userA 的 RA 仍在(跨用户不越界)
+PASS  userB 删数据后 victimU 的 RV 仍在(跨用户不越界)
+{"level":30,"time":1793158550145,"pid":97363,"hostname":"miaole.local","reqId":"0fe87222-6e83-4e9d-85d4-6f232ed1b078","req":{"method":"POST","url":"/resume/file","host":"127.0.0.1:52299","remoteAddress":"127.0.0.1","remotePort":52300},"msg":"incoming request"}
+{"level":30,"time":1793158550145,"pid":97363,"hostname":"miaole.local","reqId":"0fe87222-6e83-4e9d-85d4-6f232ed1b078","res":{"statusCode":422},"responseTime":0.390625,"msg":"request completed"}
+PASS  OCR 链路降级路径可解释(>=400,非 200 半成品)
+PASS  OCR 降级回带 error 标志(不静默)
+
+✓ neg:resume: 91 条负路径用例全绿
+NEIGHBOR_NEGRESUME_EXIT=0

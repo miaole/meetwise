@@ -1,0 +1,26 @@
+CMD: node scripts/ai-docs/public-text-policy.proof.mjs
+EXIT=0 12/12（合并树四联动点 2_436/f-2436.md/:2437 取大零改全行使）
+---
+✓ TC-quality-04-main
+✓ TC-quality-04-E1
+✓ TC-quality-04-E2
+✓ TC-quality-04-E3
+✓ TC-quality-04-E4
+✓ TC-quality-04-E5
+✓ TC-quality-04-E6
+✓ TC-quality-04-E7
+✓ TC-quality-04-E8
+✓ TC-quality-04-E9
+✓ TC-quality-04-E10
+✓ TC-quality-04-E11
+static_preflight_valid: selected=12/12; releaseEvidence=false
+
+CMD: markers 五类标记词+行首冲突标记改动集 grep（i6-239 词面运行时组装同形亲跑）
+EXIT=0 零命中（changeSet 5 文件）
+---
+changeSet files: 5 / MARKERS_ZERO_HIT
+
+CMD: pnpm provider-egress:inventory
+attempt1 EXIT=1 environment_reference_unregistered:MODEL_API_KEY:apps/api/test/sse-cross-replica.proof.ts（词面亲证=零 Key 非声明注释·r3 P2-7 additive 预算 ≥1 按实承登）→ manifest additive +1（386→387·X33 先例形）→ EXIT=0
+---
+static_provider_egress_inventory_valid: adapters=5; operations=10; registered_consumer_source_pairs=55; environment_references=387; releaseEvidence=false

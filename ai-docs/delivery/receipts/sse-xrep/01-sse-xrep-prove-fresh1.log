@@ -1,0 +1,93 @@
+CMD: pnpm sse:xrep:prove (runner form·fresh1-of-final-shape·post seed-optimization·pre lint-restructure)
+EXIT=0 · 40 PASS
+---
+
+> meetwise@0.1.0 sse:xrep:prove /Users/miaole/Desktop/golucky/meetwise-xrep
+> node scripts/run-e2e-isolated.mjs sse:xrep:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-40421-1793135806102 on 127.0.0.1:33149
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:sse-cross-replica /Users/miaole/Desktop/golucky/meetwise-xrep/apps/api
+> node --import @swc-node/register/esm-register test/sse-cross-replica.proof.ts
+
+XREP · sse-cross-replica · 两 OS 进程证明形 · releaseEvidence=false · Not HA · est live=0
+XREP preset: sql/01-22 + 0037/0038/0039/0046 + 0178/0172/0173 + 23_api_gateway + 0167/0168/0169 loaded（harness :72-:90 逐字序）
+XREP preset: seeds replicated（harness :273-:277 形状·dev-header 零 user 种子依存承登）
+XREP preset: 0189_api_harden_shared_state.sql + 0214_interview_event_statement_notify.sql self-installed（真迁移字节·先于双子 spawn=唯一序）
+[child:replica-B] {"level":30,"time":1793135809991,"pid":40619,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:63552"}
+[child:replica-A] {"level":30,"time":1793135809998,"pid":40618,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:63553"}
+[child:replica-A] XREP_CHILD_READY {"role":"replica-A","pid":40618,"base":"http://127.0.0.1:63553","health":{"healthy":true}}
+[child:replica-B] XREP_CHILD_READY {"role":"replica-B","pid":40619,"base":"http://127.0.0.1:63552","health":{"healthy":true}}
+XR-0 health gate
+PASS  XR-0.pids-distinct 两 OS 进程 PID 相异
+PASS  XR-0.ports-distinct 双副本端口相异
+PASS  XR-0.health-A replica-A whenHealthy()==={healthy:true}
+PASS  XR-0.health-B replica-B whenHealthy()==={healthy:true}
+PASS  XR-0.pg-trigger 在场（0214 自装物证·establish 同式 SELECT）
+XREP replicas: A=http://127.0.0.1:63553 (pid 40618) B=http://127.0.0.1:63552 (pid 40619)
+XR-1/XR-2 delivery + latency
+[child:replica-A] {"level":30,"time":1793135810031,"pid":40618,"hostname":"miaole.local","reqId":"1984801a-816b-4e6b-a684-9c9a5dec0826","req":{"method":"GET","url":"/interview/XREP_S1/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63554},"msg":"incoming request"}
+[child:replica-B] {"level":30,"time":1793135810050,"pid":40619,"hostname":"miaole.local","reqId":"3a8c82b8-8f57-41aa-9004-648ea7872025","req":{"method":"GET","url":"/interview/XREP_S1/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63556},"msg":"incoming request"}
+PASS  XR-1.open-A replica-A 流打开 200
+PASS  XR-1.open-B replica-B 流打开 200
+PASS  XR-2.reg-window-elim 首帧先到后发射（waiter 注册序证据）
+PASS  XR-1.replica-A 全收 K 帧序完整
+PASS  XR-1.replica-B 全收 K 帧序完整
+PASS  XR-1.gap=0 零缺零重（A∪B 恰等 1..5）
+XR-2 latency readings (replica-B·INSERT commit→frame·raw ms): seq2=2.9ms seq3=9.3ms seq4=10.2ms seq5=9.3ms
+PASS  XR-2.all-<500ms 逐条延迟 <500ms（功能门非 SLO·读数如实透出）
+PASS  XR-1.teardown 前臂连接收池（lease 归零·finally releaseSlot 跨进程）
+XR-3 last-event-id cross-replica resume
+[child:replica-A] {"level":30,"time":1793135810984,"pid":40618,"hostname":"miaole.local","reqId":"546d40bd-5c37-4473-b9fe-84d75d924f6b","req":{"method":"GET","url":"/interview/XREP_S3/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63561},"msg":"incoming request"}
+PASS  XR-3.open-A replica-A 流打开 200
+PASS  XR-3.initial-A 收至 seq=N=2（seed 形状 :277）
+PASS  XR-3.disconnect-A 断开即释放（lease 行归零·finally releaseSlot）
+[child:replica-B] {"level":30,"time":1793135811214,"pid":40619,"hostname":"miaole.local","reqId":"dac7b868-2a43-4d5b-bc5d-9fcf8580cd7a","req":{"method":"GET","url":"/interview/XREP_S3/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63560},"msg":"incoming request"}
+PASS  XR-3.open-B replica-B 重连 200（携 Last-Event-ID）
+PASS  XR-3.first-frame 首帧 id=N+1=3
+PASS  XR-3.no-replay ≤N 零重放（续传面恰 seq>N）
+PASS  XR-3.no-gap 零间隙（续传集合=库中 (N,∞) 现存行恰 {3}）
+PASS  XR-3.teardown-B replica-B 侧断开释放（跨实例对称）
+XR-5 token fanout broadcast replication
+[child:replica-B] {"level":30,"time":1793135841479,"pid":40619,"hostname":"miaole.local","reqId":"62cdafd6-358d-47d0-9e2c-e2f45049eb51","req":{"method":"GET","url":"/interview/XREP_S5A/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63601},"msg":"incoming request"}
+[child:replica-A] {"level":30,"time":1793135841490,"pid":40618,"hostname":"miaole.local","reqId":"997da4e4-1e3a-4427-af29-4f6e46b219de","req":{"method":"GET","url":"/interview/XREP_S5B/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63602},"msg":"incoming request"}
+PASS  XR-5.open-B S5A 流落于 replica-B 200（delta 臂 interview 流）
+PASS  XR-5.open-A S5B 第二流落于 replica-A 200（异 streamKey 异主体）
+PASS  XR-5.broadcast-B replica-B 流收 token_delta 帧（广播复制·pg_notify 全库每 LISTEN 各收）
+PASS  XR-5.no-steal-A replica-A 第二流对 S5A 键零帧（禁互偷·streamKey 分域）
+PASS  XR-5.symmetric-A 第二流自身键直注 A 侧收（对称行使）
+PASS  XR-5.bad-frames-dropped 坏帧即丢不外溢·良帧后续仍达（帧契约校验）
+PASS  XR-5.teardown delta 臂双流收池（lease 归零）
+XR-4 cross-replica slot lease
+PASS  XR-4.pre3 前臂在途面归零（platform_slot_lease sse:% 零行）
+[child:replica-A] {"level":30,"time":1793135842538,"pid":40618,"hostname":"miaole.local","reqId":"d9eb946a-01db-4d09-9671-fae4ef51c9a5","req":{"method":"POST","url":"/quiz","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63604},"msg":"incoming request"}
+[child:replica-A] {"level":30,"time":1793135842546,"pid":40618,"hostname":"miaole.local","reqId":"d9eb946a-01db-4d09-9671-fae4ef51c9a5","res":{"statusCode":200},"responseTime":7.614333999998053,"msg":"request completed"}
+[child:replica-A] {"level":30,"time":1793135842548,"pid":40618,"hostname":"miaole.local","reqId":"5a8ae2da-ffe2-4c02-8062-ab5750ee87b0","req":{"method":"POST","url":"/quiz","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63606},"msg":"incoming request"}
+[child:replica-A] {"level":30,"time":1793135842552,"pid":40618,"hostname":"miaole.local","reqId":"5a8ae2da-ffe2-4c02-8062-ab5750ee87b0","res":{"statusCode":200},"responseTime":3.7818330000009155,"msg":"request completed"}
+[child:replica-A] {"level":30,"time":1793135842554,"pid":40618,"hostname":"miaole.local","reqId":"87ec5544-451b-427f-b2f1-688b6d611f47","req":{"method":"GET","url":"/interview/XREP_S4A/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63604},"msg":"incoming request"}
+[child:replica-A] {"level":30,"time":1793135842562,"pid":40618,"hostname":"miaole.local","reqId":"4d0359c1-8bb9-4009-b1e6-8daba1ad357f","req":{"method":"GET","url":"/interview/XREP_S4B/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63606},"msg":"incoming request"}
+[child:replica-A] {"level":30,"time":1793135842568,"pid":40618,"hostname":"miaole.local","reqId":"17a5ffbd-cf7a-4724-b7fc-399eb50cd904","req":{"method":"GET","url":"/quiz/qz_01a17f3994eb7917b3632622ad547132/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63607},"msg":"incoming request"}
+[child:replica-B] {"level":30,"time":1793135842573,"pid":40619,"hostname":"miaole.local","reqId":"ab0208d3-f63f-4fb8-8869-214095ec081d","req":{"method":"GET","url":"/interview/XREP_S4C/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63605},"msg":"incoming request"}
+[child:replica-B] {"level":30,"time":1793135842579,"pid":40619,"hostname":"miaole.local","reqId":"83e0d6b5-0f7d-4dfb-8a36-fae920f5ff1d","req":{"method":"GET","url":"/quiz/qz_01a17f3994f47aa2a9dd4da90cde7a01/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63608},"msg":"incoming request"}
+PASS  XR-4.five-open 5 条连接全部 200（跨双副本·3 interview+2 quiz 集群合计）
+PASS  XR-4.pre2 lease 行在 n=5 held_until_ms>now（共享路径直接物证）
+PASS  XR-4.pre1 RL_SHARED_DEGRADED 零命中（捕获窗至本臂·双流合入面）
+[child:replica-B] {"level":30,"time":1793135842585,"pid":40619,"hostname":"miaole.local","reqId":"c6ccef36-a749-404e-9513-ec46ae2f9d24","req":{"method":"GET","url":"/interview/XREP_S4D/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63609},"msg":"incoming request"}
+PASS  XR-4.sixth-429 第 6 条 HTTP 429 非 SSE（网关原子占拒·同码 :262）
+[child:replica-B] {"level":30,"time":1793135842587,"pid":40619,"hostname":"miaole.local","reqId":"c6ccef36-a749-404e-9513-ec46ae2f9d24","res":{"statusCode":429},"responseTime":2.5490829999980633,"msg":"request completed"}
+PASS  XR-4.still-five 429 后 lease 行 n 恒 5（拒路径零副作用）
+PASS  XR-4.release 释放一条 lease n 回落 4（对称减零减穿）
+[child:replica-B] {"level":30,"time":1793135842693,"pid":40619,"hostname":"miaole.local","reqId":"ff08b31a-cbaa-4125-b12d-314f421cb92d","req":{"method":"GET","url":"/interview/XREP_S4D/events","host":"127.0.0.1:63552","remoteAddress":"127.0.0.1","remotePort":63610},"msg":"incoming request"}
+PASS  XR-4.sixth-prime-reacquire 第 6' 条连接成功（释放可再占）
+PASS  XR-4.lease-back-5 lease 行 n 回落 5
+[child:replica-A] {"level":30,"time":1793135842703,"pid":40618,"hostname":"miaole.local","reqId":"3469d4a4-acd0-40ff-9588-5c0979c9b560","req":{"method":"GET","url":"/interview/XREP_S7/events","host":"127.0.0.1:63553","remoteAddress":"127.0.0.1","remotePort":63611},"msg":"incoming request"}
+PASS  XR-4.other-principal 异主体 U7 并行连接不受占满影响（200+lease sse:U7 n=1）
+PASS  XR-4.teardown 全臂收池（U4+U7 lease 归零·集群语义闭合）
+PASS  XR-0.window-clean 全窗 SSE_NOTIFY_DEGRADED/RL_SHARED_DEGRADED 零命中（双子 stdout+stderr 合入捕获面）
+
+✓ sse-cross-replica: 40 断言全绿（六臂 XR-0…XR-5·两 OS 进程 pid A=40618/B=40619）
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-27T21-17-56-946Z-40421-68f8a50a-9628-497c-9a1d-97962e532b50.json release_evidence=false
