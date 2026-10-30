@@ -38,6 +38,7 @@ import {
   gapClosedInText,
   assertCleanPorcelain,
   parseReviewFileVerdict,
+  diagnoseReviewFile,
   roleFromReviewPath,
   dualFromReviewFiles,
   pickExitFromReceipt,
@@ -459,16 +460,86 @@ function setPath(root, path, mode) {
   const trailing = read(join(dualFix, 'FX-DUAL-TRAILING-TEXT.md'));
   const details = read(join(dualFix, 'FX-DUAL-DETAILS-BLOCK.md'));
   const unbalanced = read(join(dualFix, 'FX-DUAL-UNBALANCED-BOLD.md'));
+  const unclosedDetails = read(join(dualFix, 'FX-DUAL-DETAILS-UNCLOSED.md'));
   for (const [label, text] of [
     ['FX-DUAL-HTML-COMMENT-MULTILINE', htmlMultiline],
     ['FX-DUAL-HIDDEN-PASS-AFTER-FAIL', hidden],
     ['FX-DUAL-TRAILING-TEXT', trailing],
     ['FX-DUAL-DETAILS-BLOCK', details],
     ['FX-DUAL-UNBALANCED-BOLD', unbalanced],
+    ['FX-DUAL-DETAILS-UNCLOSED', unclosedDetails],
+    ['FX-DUAL-DETAILS-UNCLOSED-ATTR', '<details open>\nVerdict: PASS\n'],
+    ['FX-DUAL-STRAY-CLOSE-THEN-OPEN', '</details>\n<details>\nVerdict: PASS\n'],
+    ['FX-DUAL-DETAILS-UPPER', '<DETAILS>\nVerdict: PASS\n'],
   ]) {
     const v = parseReviewFileVerdict(text);
     if (v != null) fail(`${label} got ${v} want null (last-line-only + HTML defense)`);
     else pass(`${label}: null (not met)`);
+  }
+  // details defense: negative side (must not over-reject) — near-miss + balanced block
+  if (parseReviewFileVerdict('<detailsx>\nVerdict: PASS\n') !== 'PASS') {
+    fail('FX-DUAL-DETAILS-NEAR-MISS: <detailsx> is not a tag ⇒ want PASS');
+  } else pass('FX-DUAL-DETAILS-NEAR-MISS: <detailsx> not a tag ⇒ PASS (lookahead negative)');
+  if (parseReviewFileVerdict('<details>\nsummary\n</details>\nVerdict: PASS\n') !== 'PASS') {
+    fail('balanced details block + last-line Verdict ⇒ want PASS (no over-reject)');
+  } else pass('balanced details block + last-line Verdict ⇒ PASS (no over-reject)');
+  // details close-token discrimination (§1-4 close group; sole definition site)
+  const closeCases = [
+    ['close-inline-space', '<details>\nsummary\n</details >\nVerdict: PASS', 'PASS'],
+    ['close-upper', '<details>\nsummary\n</DETAILS>\nVerdict: PASS', 'PASS'],
+    ['close-not-token', '<details>\nx/details>\nVerdict: PASS', null],
+    ['pseudo-close-newline', '<details>\nprose </details\n\n> quote\nVerdict: PASS', null],
+    ['known-limit-balanced-prose', '<details>\nclose it with </details>.\nVerdict: PASS', 'PASS'],
+  ];
+  for (const [label, text, want] of closeCases) {
+    const v = parseReviewFileVerdict(text);
+    if (v !== want) fail(`${label} got ${v} want ${want} (close-token form)`);
+    else pass(`${label}: ${want === null ? 'null' : want} (close-token form)`);
+  }
+  // test-only diagnostics: reason selection (parseReviewFileVerdict stays the verdict source)
+  const diagCases = [
+    ['unclosed-details', read(join(dualFix, 'FX-DUAL-DETAILS-UNCLOSED.md')), 'unclosed-details'],
+    ['unclosed-comment', '<!--\nnote\n', 'unclosed-comment'],
+    ['verdict-in-comment-block', htmlMultiline, 'verdict-in-comment'],
+    ['verdict-in-unclosed-comment', '<!-- unclosed\nVerdict: PASS', 'verdict-in-comment'],
+    ['verdict-in-comment-first-trigger', '<!-- Verdict: PASS -->\n<!-- unclosed\n', 'verdict-in-comment'],
+    ['unterminated-fence', read(join(dualFix, 'FX-DUAL-UNTERMINATED-FENCE.md')), 'unterminated-fence'],
+    ['no-verdict-line', trailing, 'no-verdict-line'],
+    ['unbalanced-bold', read(join(dualFix, 'FX-DUAL-UNBALANCED-BOLD.md')), 'unbalanced-bold'],
+    ['empty-string', '', 'empty'],
+    ['empty-null', null, 'empty'],
+    ['empty-whitespace', '  \n\t\n', 'empty'],
+    ['ok', read(join(dualFix, 'FX-DUAL-RETRACTED.md')), 'ok'],
+    ['prose-mention-self-lock', 'Parser rejects unclosed <details> tags.\nVerdict: PASS\n', 'unclosed-details'],
+  ];
+  for (const [label, text, wantReason] of diagCases) {
+    const d = diagnoseReviewFile(text);
+    if (d.reason !== wantReason || d.verdict != null) {
+      fail(`diagnose ${label} got ${JSON.stringify(d)} want {verdict:null,reason:${wantReason}}`);
+    } else pass(`diagnose ${label}: ${wantReason} (verdict null)`);
+  }
+  const diagOk = diagnoseReviewFile(read(join(dualFix, 'FX-DUAL-SINGLE-FILE-NAMES-PEER-mw-rag-route.md')));
+  if (diagOk.verdict !== 'PASS' || diagOk.reason !== 'ok') {
+    fail(`diagnose ok-case got ${JSON.stringify(diagOk)} want {verdict:PASS,reason:ok}`);
+  } else pass('diagnose ok: PASS verdict carries reason ok');
+  // parity: diagnose.verdict === parse verdict across the 11 pre-existing fixtures
+  // (constructive wiring lock; reason is computed separately)
+  {
+    const parityFiles = readdirSync(dualFix)
+      .filter((f) => f.startsWith('FX-DUAL-') && f !== 'FX-DUAL-DETAILS-UNCLOSED.md')
+      .sort();
+    let parityBad = 0;
+    for (const f of parityFiles) {
+      const text = read(join(dualFix, f));
+      const a = diagnoseReviewFile(text).verdict;
+      const b = parseReviewFileVerdict(text);
+      if (a !== b) {
+        fail(`parity ${f}: diagnose=${a} parse=${b}`);
+        parityBad += 1;
+      }
+    }
+    if (parityFiles.length !== 11) fail(`parity fixture count got ${parityFiles.length} want 11`);
+    if (parityBad === 0) pass(`diagnose/parse parity: ${parityFiles.length}/11 fixtures agree`);
   }
   // blocker repro from mw-rag-route f4abf1b
   if (parseReviewFileVerdict('Verdict: FAIL\n<!--\nVerdict: PASS\n-->') != null) {
