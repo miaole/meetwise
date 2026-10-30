@@ -1,0 +1,67 @@
+
+> meetwise@0.1.0 uc002:http:prove /Users/miaole/Desktop/golucky/meetwise-uc2b
+> node scripts/run-e2e-isolated.mjs uc002:http:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-52217-1793178880705 on 127.0.0.1:33204
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc002-http /Users/miaole/Desktop/golucky/meetwise-uc2b/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-002-cross-device-http.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793178884859,"pid":52413,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:63210"}
+UC-E2E-002 cross-device HTTP prove · releaseEvidence=false · Not HA
+NOTE: 本绿≠UC-E2E-002 covered；HTTP dual-session GET+LED only；≠ HTTP lease mouth；fixture=pgvector → green-risk/R5
+CITE: uc010:sse-resume:prove = SSE LED 旁证 ≠ 002 covered；uc002:lease:prove = db CAS 旁证 ≠ HTTP dual-session covered
+PIN   GAP-UC002-PRIVACY-STUB: minimal privacy-active stub (≠ 0058 fence covered)
+PIN   GAP-UC002-LIST-SCHEMA-STUB: job_title_snapshot additive (≠ 0123 snapshot covered)
+PIN   GAP-UC002-SNAPSHOT-ROUTE: no GET /interview/:id/snapshot — using GET /interview/:id as state resume stand-in
+
+──────── H1 · 双 HTTP session 顺序 GET 同 thread 状态一致 ────────
+{"level":30,"time":1793178884876,"pid":52413,"hostname":"miaole.local","reqId":"e66772ac-2acc-4407-ae22-8f961373ad0e","req":{"method":"GET","url":"/interview/IV_UC002_HTTP","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63211},"msg":"incoming request"}
+{"level":30,"time":1793178884886,"pid":52413,"hostname":"miaole.local","reqId":"e66772ac-2acc-4407-ae22-8f961373ad0e","res":{"statusCode":200},"responseTime":9.423916999999847,"msg":"request completed"}
+{"level":30,"time":1793178884890,"pid":52413,"hostname":"miaole.local","reqId":"12c08f0a-69de-4f63-abcf-1da1c5ea01b9","req":{"method":"GET","url":"/interview/IV_UC002_HTTP","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63212},"msg":"incoming request"}
+{"level":30,"time":1793178884896,"pid":52413,"hostname":"miaole.local","reqId":"12c08f0a-69de-4f63-abcf-1da1c5ea01b9","res":{"statusCode":200},"responseTime":5.5452909999999065,"msg":"request completed"}
+PASS  H1 device-A GET → 200
+PASS  H1 device-B GET → 200
+PASS  H1 双 session status 一致
+PASS  H1 双 session id/display 一致
+PASS  H1 双 session progress 投影一致
+
+──────── H2 · device-A 断线后 device-B Last-Event-ID 续传 ────────
+{"level":30,"time":1793178884898,"pid":52413,"hostname":"miaole.local","reqId":"a935184b-edce-4013-95b9-d85f2f82d646","req":{"method":"GET","url":"/interview/IV_UC002_HTTP/events","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63211},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+PASS  H2 device-A 全量 catch-up seq=[1,2,3]
+PASS  H2 device-A 进入 SSE（200 或已收 catch-up）
+{"level":30,"time":1793178886105,"pid":52413,"hostname":"miaole.local","reqId":"d4bd4c15-b181-41e4-ae45-9cdfb5e54f07","req":{"method":"GET","url":"/interview/IV_UC002_HTTP/events","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63217},"msg":"incoming request"}
+PASS  H2 device-B Last-Event-ID=3 → seq=[4,5]（不重放 1..3）
+PASS  H2 device-B 无重复 seq≤3
+
+──────── H3 · device-B 中位游标 Last-Event-ID=2 ────────
+{"level":30,"time":1793178887308,"pid":52413,"hostname":"miaole.local","reqId":"71a85b68-19cd-4b00-b3cf-40b7f708e359","req":{"method":"GET","url":"/interview/IV_UC002_HTTP/events","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63212},"msg":"incoming request"}
+PASS  H3 device-B Last-Event-ID=2 → seq=[3,4,5]
+
+──────── H-authz · 错主体 GET/SSE → 404 ────────
+{"level":30,"time":1793178888511,"pid":52413,"hostname":"miaole.local","reqId":"6308a1e3-b8a9-4f7b-8b12-5d1bd0029015","req":{"method":"GET","url":"/interview/IV_UC002_HTTP","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63219},"msg":"incoming request"}
+{"level":30,"time":1793178888522,"pid":52413,"hostname":"miaole.local","reqId":"6308a1e3-b8a9-4f7b-8b12-5d1bd0029015","res":{"statusCode":404},"responseTime":9.749667000000045,"msg":"request completed"}
+PASS  H-authz userB GET → 404 not_found_or_forbidden
+{"level":30,"time":1793178888525,"pid":52413,"hostname":"miaole.local","reqId":"86b33b47-ab37-422e-83c5-5b1a1f2a8a3e","req":{"method":"GET","url":"/interview/IV_UC002_HTTP/events","host":"127.0.0.1:63210","remoteAddress":"127.0.0.1","remotePort":63221},"msg":"incoming request"}
+{"level":30,"time":1793178888532,"pid":52413,"hostname":"miaole.local","reqId":"86b33b47-ab37-422e-83c5-5b1a1f2a8a3e","res":{"statusCode":404},"responseTime":7.029375000000073,"msg":"request completed"}
+PASS  H-authz userB SSE → 404
+PIN   GAP-UC002-HTTP-LEASE-MOUTH: 无 HTTP thread lease CAS /「会话在别处活跃」产品口（lease 仍仅 db L1–L3）
+PIN   GAP-UC002-SNAPSHOT-ROUTE: 无 GET /interview/:id/snapshot（本 prove 用 GET /:id 顶替）
+PIN   GAP-UC002-PLAYWRIGHT-DUAL: Playwright 双 browser.newContext 降次未接线
+PIN   GAP-UC002-FULL-E2E: full.e2e / e2e:isolated 双设备场景未纳入
+PIN   GAP-UC002-UC010-CITE: uc010:sse-resume:prove = SSE LED 旁证 ≠ UC-E2E-002 covered
+PASS  G-GAP honesty pins printed (EXIT=0≠covered)
+
+NOTE: still ≠covered; matrix stay **partial**; HTTP dual GET+LED advanced; HTTP lease mouth remaining
+BLOCKED_FOR_COVERED: HTTP lease CAS mouth + snapshot route + Playwright dual + full.e2e dual-device
+
+✓ uc002:http: 13 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-28T09-14-48-725Z-52217-e0f9c496-9ded-43b4-8f36-773b01580920.json release_evidence=false
+EXIT=0

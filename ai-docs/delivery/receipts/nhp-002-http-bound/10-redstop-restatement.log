@@ -1,0 +1,14 @@
+NHP-002-HTTP-BOUND-01 · 红停双标注复述（post-fix tracked 收据补件 · 2026-10-30）
+====================================================================================
+
+红停①：HTTP thread-lease CAS 产品口不存在不可测。
+  锚：eval §1b#1 GAP-UC002-HTTP-LEASE-MOUTH；uc-e2e-002-cross-device-http.proof.ts:226 G-GAP pin 在钉。
+  本刀零臂零产品码；路由/口产品面零命中（apps/+packages/ 仅 honesty pin 2 命中）。
+
+红停②：snapshot 专用口路由+ADR 双零不可测。
+  锚：eval §1b#2 GAP-UC002-SNAPSHOT-ROUTE；uc-e2e-002-cross-device-http.proof.ts:227 G-GAP pin「本 prove 用 GET /:id 顶替」在钉。
+  interview.controller 全路由零 /snapshot；ADR 0015–0022 零 snapshot ADR、零「GET /:id 即 snapshot」钉。本刀零臂零触。
+
+两面零他刀落、零重叠登记；裁决权归协调方。
+本收据不得被借用宣两面闭合 / UC-002 covered / 矩阵 :113 BOUND 格升格。
+REDSTOP_RESTATEMENT_EXIT=0

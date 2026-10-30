@@ -1,0 +1,9 @@
+✓ TC-MODEL-002-E3-inventory-main
+✓ TC-MODEL-002-E3-inventory-missing-operation
+✓ TC-MODEL-002-E3-inventory-policy-cannot-self-shrink
+✓ TC-MODEL-002-E3-inventory-unregistered-adapter-consumer
+✓ TC-MODEL-002-E3-inventory-unregistered-environment
+✓ TC-MODEL-002-E3-inventory-unregistered-transport
+✓ TC-MODEL-002-E3-inventory-no-release-overclaim
+static_provider_egress_inventory_proof_valid: selected=7/7; releaseEvidence=false
+EGRESS_EXIT=0

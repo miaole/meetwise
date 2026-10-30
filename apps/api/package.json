@@ -35,6 +35,7 @@
   "prove:uc010-sse-resume": "node --import @swc-node/register/esm-register test/uc-e2e-010-sse-resume.proof.ts",
   "prove:uc002-http": "node --import @swc-node/register/esm-register test/uc-e2e-002-cross-device-http.proof.ts",
   "prove:uc002-adv": "node --import @swc-node/register/esm-register test/uc-e2e-002-adv-led-crossuser.proof.ts",
+  "prove:uc002-nhp-http-bound": "node --import @swc-node/register/esm-register test/uc-e2e-002-nhp-http-bound.proof.ts",
   "prove:uc033-cross-user-authz": "node --import @swc-node/register/esm-register test/uc-e2e-033-cross-user-authz.proof.ts",
   "prove:uc033-nhp-adv": "node --import @swc-node/register/esm-register test/uc-e2e-033-nhp-adv.proof.ts",
   "prove:uc018-abandon-http": "node --import @swc-node/register/esm-register test/uc-e2e-018-user-abandon-http.proof.ts",
