@@ -1,0 +1,19 @@
+# NHP-033-PERF-api-01 finalization merge step (2026-10-26 收官 turn)
+$ git fetch origin
+EXIT=0
+as-fetched origin/main = 2818c2522 (#176; #177 uc15f/uc50 + #178 still in flight, recorded as-is, not in main)
+merge-base = 2818c2522 (branch already contains origin/main tip)
+
+$ git merge origin/main --no-edit
+Already up to date.
+merge EXIT=0
+
+$ git merge-base --is-ancestor origin/main HEAD
+ancestor EXIT=0
+
+$ pnpm install --frozen-lockfile
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+Done in 499ms using pnpm v10.18.0
+install EXIT=0

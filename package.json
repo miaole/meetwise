@@ -256,6 +256,8 @@
     "uc033:cross-user-authz:prove:raw": "pnpm -C apps/api prove:uc033-cross-user-authz",
     "uc033:nhp-adv:prove": "node scripts/run-e2e-isolated.mjs uc033:nhp-adv:prove:raw",
     "uc033:nhp-adv:prove:raw": "pnpm -C apps/api prove:uc033-nhp-adv",
+    "uc033:nhp-perf-api:prove": "node scripts/run-e2e-isolated.mjs uc033:nhp-perf-api:prove:raw",
+    "uc033:nhp-perf-api:prove:raw": "pnpm -C apps/api prove:uc033-nhp-perf-api",
     "uc025:stale-quiz-expiry:prove": "node scripts/run-e2e-isolated.mjs uc025:stale-quiz-expiry:prove:raw",
     "uc025:stale-quiz-expiry:prove:raw": "pnpm -C apps/api prove:uc025-stale-quiz-expiry",
     "uc025:nhp-neg:prove": "node apps/api/test/uc-e2e-025-nhp-neg.proof.mjs",

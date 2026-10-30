@@ -1,0 +1,6 @@
+# gate 1 docs:check (finalization turn)
+$ node scripts/ai-docs/check-docs.mjs
+ai-docs check passed: 80 required files verified; public text policy scanned 2443 managed worktree files
+docs:check EXIT=0
+# scanned 2443 = cap 2443 exactly equal (CAP-SANCTION-2443 unchanged) -> step-up pre-sanction NOT exercised (no over-limit rows)
+# ptp linkage re-run moved to 17-ptp-proof-final.log
