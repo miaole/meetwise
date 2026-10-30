@@ -3,13 +3,13 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草态 · 本卷 1 个新 .md · 零产品码零迁移零依赖 · pre-exec 双审 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · Ban 自翻 `GAP-SSEPUSH-QUIZ-DX-HTTP` 行 · ⛔push ⛔动主仓）。
 
 **席位**：meetwise quiz/diagnosis SSE 起草席（docs-only 起草 · 协调方授权 · 新建 worktree `meetwise-quizdx` · 分支 `line/quizdx-draft`）。
-**基线**：`origin/main` @ **`1ca3ce1d`**（full `1ca3ce1daa31903efc834de911f78752a8168e78` · 2026-10-30 16:46:36 +0800 · `git fetch origin` 本 turn 成功 · `git worktree add … origin/main` 新建 · 零独有 commit）· 起草前 `node scripts/ai-docs/check-docs.mjs` 亲跑 **EXIT=0 · scanned 2457**（cap `2_461` 余 4 · §2 cap 预算核）。
+**基线**：`origin/main` @ **`53cc4a434`**（full `53cc4a434dad51f59460c58481c9c19789f3d088` · 2026-10-30 · rev r2 回炉时 `git fetch origin` 亲点后 rebase 本支；`1ca3ce1d→53cc4a434` diff 恰 7 件，全在 policy/脚本面（`cwn-REQUEST.md` +1、两 policy/proof + 四 eval 脚本），与 §0.1 机制锚**零交**）· rev r2 树 `node scripts/ai-docs/check-docs.mjs` 亲跑 **EXIT=0 · scanned 2459**（cap `2_461` 余 2；EXEC `+1 proof = 2460` 余 1 · §2 cap 预算核）。
 **必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/architecture/current-runtime-truth.md`（`:282` quiz:prove / `:283` diagnosis:prove 均只到「SSE 终态」层）→ `ai-docs/delivery/execution-master-checklist.md`（**`:1660` STILL OPEN 原文** · `:1659` SSE-PUSH Non-claims）→ `ai-docs/delivery/e2e-requirement-coverage-matrix.md`（`:116` UC-E2E-010 行 · `:176`  ledger · `:271` P1-1 · `:313` 证据表）→ `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md`（§1.1 `:47` NHP-010-FAULT-01 · `:50` NHP-010-ADV-02）→ `ai-docs/delivery/harness/uc-e2e-010-sse-resume.md`（五 case 先例 R1–R4 + R-mid · `:74`）→ `ai-docs/delivery/harness/xrep-REQUEST.md`（`§9-post` 跨副本已 CLOSED 界）→ `ai-docs/delivery/harness/sse-adv-REQUEST.md`（同主体双流隔离先例）→ 机制源 `apps/api/src/modules/quiz/quiz.controller.ts` / `diagnosis.controller.ts` / `interview.controller.ts` / `apps/api/src/platform/sse-pump.ts` / `sse-notify.service.ts` / `rate-limit.service.ts` / `last-event-id.ts` / `packages/db/src/interview/interview-event.ts` / `packages/db/sql/20_resume_quiz.sql` / `21_resume_diagnosis.sql` / `packages/db/migrations/0143_sse_push_notify.sql` / `0214_interview_event_statement_notify.sql` / `0062_interview_privacy_event_stream_scope.sql` → 宿主/注册面 `apps/api/src/main.ts` / `apps/api/src/platform/principal.guard.ts` / `apps/api/src/platform/sse-registry.ts` → 注册器 `scripts/run-e2e-isolated.mjs` / `scripts/bounded-command.mjs`（注册五位·**provenance 两 script 前置**·P2⑥）→ 证明先例 `apps/api/test/uc-e2e-010-sse-resume.proof.ts` · `uc-e2e-010-nhp-crossstream.proof.ts` · `sse-push-notify.proof.ts` · `uc-e2e-016-nhp-neg.proof.ts` · `uc-e2e-002-nhp-http-bound.proof.ts` · `validate.ts`（SSE 子集）· `e2e/helpers/sse.ts`。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①`execution-master-checklist.md:1660` **`GAP-SSEPUSH-QUIZ-DX-HTTP`（quiz/diagnosis 共 pump 共表码面单源+类型检查 · HTTP 级逐实体流证明未单列）**；②协调方派单令（总盘 v4 明示唯一未认领 keyless 小刀 · P2）；③同族 STILL OPEN 行 `GAP-SSEPUSH-FULL-E2E`（三流终态段未跑）与 `GAP-SSEPUSH-REG-WINDOW`（initial→waiter 注册 ~ms 窗）本卷零认领；④`GAP-SSEPUSH-CROSS-REPLICA` 已由 xrep 关（本卷零重叠·§0.3）。
 
 ---
 
-## 认领核对 · 登记处 fresh 亲点（逐行对 `origin/main` @`1ca3ce1d` 亲读 · file:line 逐字）
+## 认领核对 · 登记处 fresh 亲点（逐行对 `origin/main` @`53cc4a434` 亲读 · file:line 逐字 · rev r2 重 pin；1ca3ce1d→53cc4a434 diff 7 件与本表零交，逐条结论不变）
 
 | 登记处 | 对树行使证据（亲读逐字） | 判定 |
 |---|---|---|
@@ -26,12 +26,12 @@
 
 ---
 
-## §0 现状锚（起草席亲读 · file:line + blob 逐条 `git rev-parse HEAD:<path>` 亲算 @`1ca3ce1d` · **EXEC 立项照本节对届时 tip 再重 pin**——漂移如实改锚 · 结论不变则只更行号）
+## §0 现状锚（起草席亲读 · file:line + blob 逐条 `git rev-parse HEAD:<path>` 亲算 @`53cc4a434`（rev r2 重算：38 路径逐件比对，仅 `public-text-policy.mjs` blob 随 main 步进由 `05083d8a`→`43f95af5`，其余 37 件逐字不变）· **EXEC 立项照本节对届时 tip 再重 pin**——漂移如实改锚 · 结论不变则只更行号）
 
 ### 0.0 防重双对表 + 在飞交叠登记
 
 - `git worktree list` 本 turn **18 树**实测——`line/quizdx-draft` 恰 1 命中=本席（`meetwise-quizdx`）；`ls ai-docs/delivery/harness | grep quizdx` 落卷前**零命中** → 落卷后唯一同名卷=本卷。
-- **在飞交叠复核（EXEC 立项日必做）**：起草 turn 产品触面=0（docs-only 恰 1 新 .md）；EXEC 期触面=隔离 proof 新文件 1 + root/`apps/api` 两 `package.json` 注册行 + `scripts/run-e2e-isolated.mjs` 注册位三（**新目标登记 additive·§5 carve-out**）+ tracked 收据。届时对各在飞分支 `git log -1 -- <触面文件>` 逐树逐件复核；任一分支顶对任一触面存在 `1ca3ce1d` 之后新增提交 → 触停止条件「现场漂移」停手上报。
+- **在飞交叠复核（EXEC 立项日必做）**：起草 turn 产品触面=0（docs-only 恰 1 新 .md）；EXEC 期触面=隔离 proof 新文件 1 + root/`apps/api` 两 `package.json` 注册行 + `scripts/run-e2e-isolated.mjs` 注册位三（**新目标登记 additive·§5 carve-out**）+ tracked 收据。届时对各在飞分支 `git log -1 -- <触面文件>` 逐树逐件复核；任一分支顶对任一触面存在 `53cc4a434` 之后新增提交 → 触停止条件「现场漂移」停手上报。
 
 ### 0.0.1 rev r1 回炉修订小节（2026-10-30 · docs-only · 恰 1 tracked 路径=本卷 · 本 commit 适用）
 
@@ -39,13 +39,33 @@
 - **§0.0.1.2 修订清单索引（18 条·落点）**：①[P1-1] QD1/DX1 jsonb 逐字节 oracle 改形（删「逐帧 `data` 与种子 `JSON.stringify` 逐字节相等」；改**帧包络逐字节 + `data` 解析 deep-equal 种子对象 + `f.data===JSON.stringify(JSON.parse(f.data))` 紧凑性**·PG16 jsonb 键序规范化不可达·沿 crossstream `:164-170` parsed-field 先例）→ **§1 逐帧断言助手/QD1/DX1**；②[P1-2] IV_ISO 夹具与冲刷（`interview` 行 upsert + 本流注入/正控帧冲刷响应头 + 断言 200+自身帧集）→ **§1 夹具合同/QD4/DX4**；③[P1-3] §5 Ban carve-out（runner 仅限 §1 注册面 additive 行·注册面称「新目标登记」）→ **§1 注册面/§5**；④[P2①] quiz-lifecycle 锚 `:43/:73/:74`→`:38/:72/:73` → **§0.1/§0.2-G**；⑤[P2②] case-matrix 锚 `:44/:47/:50`→`:47-:50`（010 组四行）+新 case id `NHP-010-FAULT-02`（非 QZDX）→ **§0.1/§0.4**；⑥[P2③] diff 实测 **1 tracked（REQUEST）非 3 tracked**·不要求 policy 步进·核对面更新 → **§0.0.1.3/§2-5/§9**；⑦[P2④] §4 boot 世界改 `sql/01-22+23_api_gateway+选迁移·零 0214/0062` → **§4**；⑧[P2⑤] 断言预算「≥40」→**「≥52（5+7+6+8+5+7+6+8）」** → **§1 注册面/§2-2**；⑨[P2⑥] provenance 前置 `run-e2e-isolated.mjs`+`bounded-command.mjs`+补 `main.ts`/`principal.guard.ts`/`sse-registry.ts` → **必读清单/§1 注册面④**；⑩[P2⑦] 0214-only 世界 0143 ACL 未重放收据注 → **§1 夹具合同/§3/§4**；⑪[P2⑧] 700ms 建立启发式改「非空 catch-up 帧回执后再注入」（防 REG-WINDOW 假红）→ **QD4/DX4**；⑫[P2⑨] 前臂 hold 显式 await + 跨臂 50-100ms settle → **§1 夹具合同**；⑬[P2⑩] QD2 LED=3 连接 abort/await 序写死 → **QD2/DX2**；⑭[P2⑪] QD3/DX3 插入时点固定 700/1400ms 不依赖观察 + 退化容差臂 `holdMs≥5000` → **QD3/DX3**；⑮[P2⑫] 夹具 DELETE 枚举全 key + 三表 ON CONFLICT DO UPDATE → **§1 夹具合同**；⑯[P2⑬] QD4 删「kind 前缀」改 marker/流标签 + IV 线零 QZ/DX 域帧且零 `: ping` + token 副断言加 IV 正控 → **QD4/DX4**；⑰[P2⑭] §8 REG-WINDOW/仪器误红 bisect 条款（五读数+单次修复重跑+红值留账）→ **§8**；⑱ 本小节。
 - **§0.0.1.3 修订面冻结（实测）**：本 rev commit `git diff --name-status` 实测 **1 tracked（`ai-docs/delivery/harness/quizdx-REQUEST.md`）非 3 tracked**（P2③）；两 policy script/`MAX_FILES`/四联动点零触 ⇒ **不要求 policy 步进**（cap 只按本卷 1 件计）；产品码/迁移/既有 proof/runner 源码零触（EXEC 才落注册面 additive 行）；STOP 三处维持 `draft:awaiting_pre_exec_dual`。
 
-### 0.1 blob 锚表（`git rev-parse HEAD:<path>` 亲算 · 8 hex）
+### 0.0.2 rev r2 回炉修订小节（2026-10-30 · docs-only · 恰 1 tracked 路径=本卷 · 本 commit 适用）
+
+- **§0.0.2.0 基线/预算升级**：rev r2 前 `git fetch origin` 亲点 `origin/main=53cc4a434`（`1ca3ce1d` 为其祖先）；本支 rebase 到该点（r0/r1 两 docs-only commit 内容零改写，树等价）。树届 `docs:check` 亲跑 **scanned 2459**（含本卷）≤ `MAX_FILES=2_461`（余 2）；EXEC `+1 proof = 2460` 余 1。`public-text-policy.mjs` 的 `MAX_FILES` 行随 main 重排 **`:276`→`:281`**（值仍 `2_461`·blob `05083d8a`→`43f95af5`）。
+- **§0.0.2.1 r2 复审与裁决**：席1 **FAIL P1×2 + P2×10**、席2 **FAIL P1×5 + P2×5**（双席互盲同判）→ 协调方裁决**按两席处方合并全采纳**（去重后 13 条落点见 §0.0.2.2）。裁决口径：只改**断言判定形/夹具键域/信号面**，不改期望语义、不触产品码。
+- **§0.0.2.2 修订清单索引（13 条·落点）**：
+  ①[P1-1 撞键] **QD4/DX4 键域互斥**：DX4 改用 `QZ_ISO_DX`/`DX_ISO_DX`/`IV_ISO_DX`；清场 12 枚全 key 显式枚举；`interview` upsert 覆盖两枚 IV key；`interview_event.owner_user_id` 逐列写死 `'userA'` → **§1 夹具合同/QD4/DX4**（机制根：`packages/db/sql/01_schema.sql:48` `uq_event_seq UNIQUE (stream_key,seq)`；同键同 seq 二次注入必崩，或 LED=max-1 推 catch-up=[2] 使「帧集恰 [1,2]」必红）。
+  ②[P1-2 切帧] **assertFrame 改 buffer 切帧**：`rawFrame`=`buffer` 上 `/^id: \d+\nevent: [^\n]+\ndata: .+\n\n/gm` 的 `m[0]`（含尾空行）；删 `rawChunk === …` 三处（r2 前 §1 助手①/QD1/DX1 的包络字节形）；网络 chunk 仅作 `: ping`/到达时刻旁证（沿 `sse-push-notify.proof.ts:152-182` `openSse` 的 `chunks[{t,text}]` 先例；机制根：`sse-pump.ts:130` 每帧一次 `raw.write`，Node/undici 可合并/切分 chunk，`chunk` 边界≠帧边界） → **§1 逐帧助手/QD1/QD2/QD3/DX1/DX2/DX3**。
+  ③[P1-3 零 ping] **删 IV 线零 `: ping` 断言**：保留「自身帧集恰 [1,2] + 零他域字节」；活性旁证改读 `waitingCount()`（**总数口径**·健康态前置·`sse-notify.service.ts:212-217`） → **QD4/DX4**（机制根：`sse-notify.service.ts:309-319` 按裸 stream_key 精确分发，他流 notify 到不了本流；退化态 `DEGRADED_POLL_MS=2_000` 必 ping（`sse-pump.ts:208`），`sse-push-notify.proof.ts:299-300` 注释自认「退化态 2s 必 ping」）。
+  ④[P1-4 判别针] **针 JSON 化**：`"marker":"d-iso-`/`"marker":"i-iso-`/`"stream":"DX_ISO"`/`"stream":"IV_ISO"`（QZ 族同形）；禁单引号 `marker:'…'` 形（线上=`{"marker":"d-iso-2"}`，单引号针恒绿空转） → **QD4/DX4**。**收据注**：每线 **marker 族 + stream 族两族针均须逐线断言**并逐条留痕（只断言一族=判别面半覆盖）。
+  ⑤[P1-5 hold helper] **改时间戳 reader**：`chunks[{t,text}]`+`ids()`+`frames()`+`until(pred,ms)`+`abort()` 后 `sleep(60)`（沿 `sse-push-notify.proof.ts:152-190`）；QD3/QD4/DX3/DX4 回执门 `await until(() => ids().length >= 1, 1500)` 先于注入 → **§1 夹具合同/QD3/QD4/DX3/DX4**（机制根：r2 前 `holdStream` 只在窗口结束返回，窗口中途给不出「先收正控帧再注入」信号）。
+  ⑥[P2①] 删恒真紧凑性 `f.data===JSON.stringify(JSON.parse(f.data))`；如需字节面旁证改 `SELECT payload::text` 回读（注明 `jsonb::text` 含空格不可文本等值） → **§1 逐帧助手**。
+  ⑦[P2②] deep-equal 钉 `node:util.isDeepStrictEqual`（禁手写递归·注键序无关） → **§1 逐帧助手**。
+  ⑧[P2③] token 载荷钉 `{v:1,streamKey,attemptKey,seq,text}` + 注入前静默 ≥100ms + hold ≥3000ms + 注 delta-only 唤醒 `sse-pump.ts:192` → **QD4/DX4 可选副断言**。
+  ⑨[P2④] QD4/DX4 钉 `holdMs≥3000` + 断言取**截止快照**（abort 前定格） → **QD4/DX4**。
+  ⑩[P2⑤] `sleep(6000)` 改 `Promise.race([whenHealthy(), sleep(8000)])` → **§1 夹具合同**。
+  ⑪[P2⑥] §4 依赖补 `_neg-harness.ts:114-142`/`:214-225` privacy stub 面 → **§4**。
+  ⑫[P2⑦] §8 五读数补第 6 项 `waitingCount()`（总数口径）+「意外多帧/意外 ping」独立分口 → **§8**。
+  ⑬[P2⑧–⑭+席1 P2] QD1/DX1 失败终态改 §3 non-claim；§1 开头明「类型检查子句=引用面不新增证据」；QD2/DX2 hold 300→700ms；QD2/QD3/DX2/DX3 补种子 payload 期望；§2-5 cap 按 rebase 后改算（2459/2460 余 1）；§0.1 `:272`→`:271`；§1 断言预算 52→64 → **§1/§2/§3/§8**。
+- **§0.0.2.3 修订面冻结（实测）**：本 rev commit `git diff --name-status` 实测 **1 tracked（本卷）**；两 policy script/`MAX_FILES`/四联动点零触（rebase 带来的 main 差异不计入本 commit 改动面）⇒ 不要求 policy 步进；产品码/迁移/既有 proof/runner 源码零触；STOP 三处维持 `draft:awaiting_pre_exec_dual`。
+
+### 0.1 blob 锚表（`git rev-parse HEAD:<path>` 亲算 · 8 hex · rev r2 @`53cc4a434`）
 
 | 文件 | blob | 关键行锚（亲读） |
 |---|---|---|
 | `apps/api/src/modules/quiz/quiz.controller.ts` | `9b78100d` | `:6` `import { pumpSseEvents }`；`:12` `@Controller('quiz')`；**`:53-71` `@Get(':id/events')` events**（`:56` `slotKey=\`sse:${req.principal}\``；`:57` `acquireSlot(slotKey,5)` 败→429 `too_many_streams` 非 SSE；`:59` `quizzes.events(...)`；`:60` null→404 `not_found_or_forbidden`；**`:61` 终态集合 `quiz_ready｜quiz_unavailable｜error`**；`:62-69` pump；**`:65` `streamKey:id`**；`:67` `fetchMore(lastSeq)` 重调 events；`:70` finally `releaseSlot`） |
 | `apps/api/src/modules/diagnosis/diagnosis.controller.ts` | `f2d7ea90` | `:6` 同 import；`:12` `@Controller('diagnosis')`；**`:51-69` `@Get(':id/events')`**（`:54` 同槽键；`:55` cap 5→429；`:57` `diagnoses.events`；`:58` null→404；**`:59` 终态集合 `diagnosis_ready｜diagnosis_unavailable｜error`**；`:60-67` pump；`:63` `streamKey:id`；`:65` `fetchMore`；`:68` finally release） |
-| `apps/api/src/modules/interview/interview.controller.ts` | `d10db4ae` | **`:257-279` 同形 events（五 case 先例宿主）**：`:261` 槽键；`:262` cap 5→429；`:264` initial；`:265` 404；**`:267` 终态集合 `report_ready｜report_unavailable｜assessment_unavailable｜interview_unavailable｜error`（五 kind·含 session_concluded 明确不在终态）**；`:268-277` pump；`:272` `streamKey:id`；`:273` `fetchMore`；**`:275-276` `deltaSource` 仅 interview 接线 `subscribeToken(id)`**（quiz/diagnosis 零触=裁决⑤） |
+| `apps/api/src/modules/interview/interview.controller.ts` | `d10db4ae` | **`:257-279` 同形 events（五 case 先例宿主）**：`:261` 槽键；`:262` cap 5→429；`:264` initial；`:265` 404；**`:267` 终态集合 `report_ready｜report_unavailable｜assessment_unavailable｜interview_unavailable｜error`（五 kind·含 session_concluded 明确不在终态）**；`:268-277` pump；**`:271` `streamKey:id`**（rev r2 勘误：原 `:272`）；`:273` `fetchMore`；**`:275-276` `deltaSource` 仅 interview 接线 `subscribeToken(id)`**（quiz/diagnosis 零触=裁决⑤） |
 | `apps/api/src/platform/sse-pump.ts` | `b93121dc` | `:5-9` 三控制器零复制粘贴单源声明；`:70-71` `HEALTHY_FALLBACK_MS=30_000` / `DEGRADED_POLL_MS=2_000`；`:83` `pumpSseEvents`；`:87` hijack；`:88` `writeHead(200,text/event-stream)`；**:130 权威帧 `id: ${seq}` + `event: ${kind}` + `data: JSON`**；`:135` 10min deadline；`:169` 先注册 waiter 再 catch-up（D5）；`:173-209` hold 循环（`:174-176` 健康 30s / 退化 2s；`:191` 每轮重注册；`:205` null 收尾；`:207-208` tail emit / `: ping`）；`:213` unregister；`:222` `raw.end()` 单点 |
 | `apps/api/src/platform/sse-notify.service.ts` | `a20b0720` | `:28` `SSE_NOTIFY_CHANNEL='interview_event_ch'`；`:197-209` `waitFor(streamKey)` per-key waiter 集；**`:309-319` `onNotification` 载荷=裸 stream_key → `router.get(key)` 同流全醒（回调内零 SQL）**；`:418-431` 降级结构化日志；**:433-483 `establish`（`:444` LISTEN 通道；`:461-469` establish 期恰一次 `pg_trigger` 实证 `interview_event_sse_notify` 在场；缺→`trigger_missing`）**；`:489-492` 进程单例 |
 | `apps/api/src/platform/rate-limit.service.ts` | `fce544ff` | `:158-181` `acquireSlot(key,max)`（网关原子占·无 DbService 缝走进程内 Map）；`:184-199` `releaseSlot(key)` 对称减——三控制器共用 `sse:${principal}` cap=5 语义（本刀不重测·引旁证） |
@@ -64,7 +84,7 @@
 | `apps/worker/src/diagnosis-consumer.ts` | `e588d72d` | `:66` 失败终态 `diagnosis_unavailable{reason}`；`:93` `worker_died` 臂 |
 | `apps/web/lib/stream/quiz-state.ts` | `1aa2af90` | `:10-30` `QuizEvent` 判别联合（`progress` / `question_ready{question,refs}` / `quiz_ready{count,report}` / `quiz_unavailable{reason}` / `error` + TOKSTREAM 三 kind） |
 | `apps/web/lib/stream/diagnosis-state.ts` | `5ed244fe` | `:12-26` `DiagnosisEvent` 判别联合（`progress` / `section_ready` / `rewrite_ready` / `diagnosis_ready{overall,summary,sectionCount,rewriteCount}` / `diagnosis_unavailable` / `error`） |
-| `apps/api/test/_neg-harness.ts` | `9768b323` | `:50-90` `boot()`（`AUTH_DEV_HEADER=1` · 删 `MODEL_API_KEY`/`MODEL_BASE_URL` · `createApp` · **全量 sql/01-22 + 23_api_gateway + 选迁移**（0037/0038/0039/0046/0178/0172/0173/0167/0168/0169）；零 0214/0062）；`:267-281` 种子（userA/userB + interview 族）；**`:72` 名单含 sql/20、21 但零 quiz/diagnosis 种子行 → 本 proof 自种** |
+| `apps/api/test/_neg-harness.ts` | `9768b323` | `:50-90` `boot()`（`AUTH_DEV_HEADER=1` · 删 `MODEL_API_KEY`/`MODEL_BASE_URL` · `createApp` · **全量 sql/01-22 + 23_api_gateway + 选迁移**（0037/0038/0039/0046/0178/0172/0173/0167/0168/0169）；零 0214/0062）；`:267-281` 种子（userA/userB + interview 族）；**`:72` 名单含 sql/20、21 但零 quiz/diagnosis 种子行 → 本 proof 自种**；**privacy stub 面 `:114-142`（`interview_privacy_active`/`_read` 双镜像=owner-check-only）+ `:214-225`（`assert_interview_privacy_active` fail-closed）**——本刀 IV 线读写只走 owner 匹配正臂，与 stub 行为一致（§4/P2⑪） |
 | `ai-docs/delivery/execution-master-checklist.md` | `2884be76` | `:1660` STILL OPEN 行（原文见 §认领核对）；`:1659` Non-claims |
 | `ai-docs/delivery/harness/uc-e2e-010-sse-resume.md` | `200477a7` | `:31-37` R1–R4 + R-mid + R-authz + G-GAP 表；`:74` CMD |
 | `ai-docs/delivery/e2e-requirement-coverage-matrix.md` | `6706ad56` | `:116` UC-010 四格；`:176` 证据行；`:271` P1-1；`:313` 证据表 |
@@ -80,7 +100,7 @@
 | `scripts/run-e2e-isolated.mjs` | `dff85f04` | `:93` `isolatedReceiptSources`；`:2831-3011` 支持目标准入数组；`:3353` `isolatedCommand` 链；`:4308-4314` resource-caps；`:4338-4392` pre-migrate 名单 |
 | root `package.json` | `748fc360` | `:221-222` crossstream 两行；`:253-258` `uc010:sse-resume` / `sse-push:notify` / `sse:xrep` 六行注册位 |
 | `apps/api/package.json` | `388a95fa` | `:35` `prove:uc010-sse-resume`；`:73-74` crossstream 注册位 |
-| `scripts/ai-docs/public-text-policy.mjs` | `05083d8a` | `:276` `MAX_FILES = 2_461`（cap 亲证） |
+| `scripts/ai-docs/public-text-policy.mjs` | `43f95af5` | **`:281` `MAX_FILES = 2_461`**（rev r2 重 pin：main CWN 并线后注记行 +5 → 原 `:276` 顺移 `:281`·值不变） |
 
 ### 0.2 产品面侦察（两流现形 · 逐处亲点 · 结论=两流均有真 HTTP 级 SSE 端点 → 停止条件「无端点红停」**未命中**）
 
@@ -126,44 +146,68 @@
 
 ## §1 修法（恰 1 具名 proof=`quizdx:sse-http` · QD1–QD4/DX1–DX4 八臂一 proof · 零产品码零迁移零 Key · prove-only）
 
-**修法形状**：新 proof `apps/api/test/quizdx-sse-http.proof.ts`——`boot()` 起真 Nest 栈（隔离 PG + 真 HTTP + `AUTH_DEV_HEADER`），自种 quiz/diagnosis 聚合行与 `interview_event` 账本行（**不经 worker 零模型**），用真 `fetch` 打 `GET /quiz/:id/events` 与 `GET /diagnosis/:id/events`，按 SSE 帧逐条断言。**八臂**：quiz 四臂 QD1–QD4，diagnosis 四臂 DX1–DX4。**零 `apps/*/src` / `packages/*/src` / migrations diff 意向**；隔离真 PG·零 `MODEL_API_KEY`·零外呼·零 worker drain（job 滞队不跑）。
+**修法形状**：新 proof `apps/api/test/quizdx-sse-http.proof.ts`——`boot()` 起真 Nest 栈（隔离 PG + 真 HTTP + `AUTH_DEV_HEADER`），自种 quiz/diagnosis 聚合行与 `interview_event` 账本行（**不经 worker 零模型**），用真 `fetch` 打 `GET /quiz/:id/events` 与 `GET /diagnosis/:id/events`，按 SSE 帧逐条断言。**八臂**：quiz 四臂 QD1–QD4，diagnosis 四臂 DX1–DX4。**零 `apps/*/src` / `packages/*/src` / migrations diff 意向**；隔离真 PG·零 `MODEL_API_KEY`·零外呼·零 worker drain（job 滞队不跑）。**类型检查子句=引用面不新增证据**：`pnpm -C apps/api typecheck` 0 只证明三控制器共用 `pumpSseEvents` 的类型面成立（`sse-pump.ts:83` 单源声明 `:5-9`），**不构成逐实体流交付证据**。
 
 **夹具合同（EXEC 落码顺序钉死）**：
-- `boot()` 后：`userA` 持 QZ/DX/IV 夹具、`userB` 零权限；**三表 upsert 直插**（P2⑫）：`INSERT INTO resume_quiz(id,owner_user_id,status) VALUES ($1,'userA','generating') ON CONFLICT (id) DO UPDATE SET owner_user_id=EXCLUDED.owner_user_id, status=EXCLUDED.status`、`resume_diagnosis` 同形；**`INSERT INTO interview(id,owner_user_id,status) VALUES ('IV_ISO','userA','active') ON CONFLICT (id) DO UPDATE SET owner_user_id=EXCLUDED.owner_user_id, status=EXCLUDED.status`**（P1-2①——interview `events()` 先 `SELECT 1 FROM interview WHERE id=$1`，缺行=404 而非 200）；status 语义无关，只作归属存在行。
-- `interview_event` 逐行 `(owner_user_id,stream_key,seq,kind,payload)` 种入（每臂独立 stream_key，臂间零共用）。
-- **清场**（P2⑫）：`DELETE FROM interview_event WHERE stream_key IN ($1,…,$N)`——**全 key 显式枚举**（每臂/每线一枚，含 `IV_ISO`），Ban 前缀/`LIKE` 模式；三表 upsert 保可重复。
-- **0214 自装**：`readFileSync` 真迁移字节执行（沿 crossstream B3 先例·`uc-e2e-010-nhp-crossstream.proof.ts` 同形）；`pg_trigger` 实证 `interview_event_sse_notify` 在场；随后 **`sleep(6000)`** 等单例 `establish` 退避翻面（LISTEN+trigger 双条件健康）——仅 QD3/DX3 活体臂与 QD4/DX4 跨流臂需要；QD1/QD2/DX1/DX2 不依赖 notify（catch-up/LED 全走 `seq>lastSeq` 取数）。
+- `boot()` 后：`userA` 持 QZ/DX/IV 夹具、`userB` 零权限；**三表 upsert 直插**（P2⑫）：`INSERT INTO resume_quiz(id,owner_user_id,status) VALUES ($1,'userA','generating') ON CONFLICT (id) DO UPDATE SET owner_user_id=EXCLUDED.owner_user_id, status=EXCLUDED.status`、`resume_diagnosis` 同形；**`interview` 同形 upsert 覆盖 `IV_ISO` 与 `IV_ISO_DX` 两枚**（`INSERT INTO interview(id,owner_user_id,status) VALUES ($1,'userA','active') ON CONFLICT (id) DO UPDATE SET owner_user_id=EXCLUDED.owner_user_id, status=EXCLUDED.status`；interview `events()` 先 `SELECT 1 FROM interview WHERE id=$1`，缺行=404 而非 200）。status 语义无关，只作归属存在行。聚合行枚举：`resume_quiz` = QZ_CATCH/QZ_LED/QZ_LIVE/QZ_ISO/**QZ_ISO_DX**；`resume_diagnosis` = DX_CATCH/DX_LED/DX_LIVE/DX_ISO/**DX_ISO_DX**；`interview` = IV_ISO/**IV_ISO_DX**。
+- `interview_event` 逐行 `(owner_user_id,stream_key,seq,kind,payload)` 种入，**`owner_user_id` 逐列写死 `'userA'`**（禁依赖 DEFAULT/会话变量/隐式注入）；每臂独立 stream_key，臂间零共用。
+- **清场（P2⑫）**：`DELETE FROM interview_event WHERE stream_key IN ($1,…,$12)`——**12 枚全 key 显式枚举**：QZ_CATCH/QZ_LED/QZ_LIVE/QZ_ISO/QZ_ISO_DX/DX_CATCH/DX_LED/DX_LIVE/DX_ISO/DX_ISO_DX/IV_ISO/IV_ISO_DX；Ban 前缀/`LIKE` 模式；三表 upsert 保可重复。
+- **QD4/DX4 键域互斥（P1-1）**：QD4 独占 `QZ_ISO`/`DX_ISO`/`IV_ISO`，DX4 独占 `QZ_ISO_DX`/`DX_ISO_DX`/`IV_ISO_DX`。**两臂禁共用任何 stream_key**——否则第二臂对同 key 二次注入 `seq=2` 撞 `uq_event_seq (stream_key,seq)`（`packages/db/sql/01_schema.sql:48`）必崩；若改以 `LED=max-1` 避撞，则 catch-up 退化为 `[2]`，使「帧集恰 `[1,2]`」必红。两臂各自仍三线并发（**臂内**三线同 seq 不同 key，合法）。
+- **0214 自装**：`readFileSync` 真迁移字节执行（沿 crossstream B3 先例·`uc-e2e-010-nhp-crossstream.proof.ts` 同形）；`pg_trigger` 实证 `interview_event_sse_notify` 在场；随后 **`await Promise.race([getSseNotify().whenHealthy(), sleep(8000)])`（P2⑤·替代固定 `sleep(6000)`）**——健康翻面即进，超时打印 `health()` 原值继续（退化 2s 兜底仍须在 hold 窗内交付，禁把超时改判红）。仅 QD3/DX3 活体臂与 QD4/DX4 跨流臂需要；QD1/QD2/DX1/DX2 不依赖 notify（catch-up/LED 全走 `seq>lastSeq` 取数）。
 - **0214-only 世界授权面收据注（P2⑦）**：本世界仅装 0214，**0143 的 ACL 行未重放**（`0143_sse_push_notify.sql:31` `REVOKE ALL ON FUNCTION sse_event_notify_after_insert() FROM PUBLIC, app_role`）；`CREATE OR REPLACE` 不改 ACL ⇒ 0214-only 世界函数 ACL=默认 PUBLIC EXECUTE，与「0143→0214」生产链不同。本 proof 只证触发器行为面，**不证授权面**；读数原值入收据（Ban 借本收据宣 ACL/迁移链 posture covered）。
-- **跨臂纪律（P2⑨）**：每臂 hold **显式 `await`**（禁悬空 promise）；跨臂 `sleep(50-100)` 待 abort 断连的 `releaseSlot`/waiter 注销落定（防臂间 429/串帧）。活体臂另遵 §8 五读数分口。
-- **hold 助手**：本地实现 `holdStream({path,led,holdMs})`——`fetch` + `AbortController`，逐 chunk 累积 buffer，`parseFrames` 拆 `id/event/data`（并保留原始 chunk），`sawPing` 旁证；abort=断线（预期）。**断言面**：`status===200`、`content-type` 含 `text/event-stream`、帧 id 序列、逐帧 kind、**逐帧 `assertFrame`（下条）**、终态后 reader 自然 `done`（非 abort）。
-- **逐帧断言助手 `assertFrame(rawChunk, exp)`（P1-1·jsonb oracle 改形）**：①**帧包络逐字节**——`rawChunk === \`id: ${f.id}\nevent: ${f.kind}\ndata: ${f.data}\n\n\``（分隔符/顺序/空行零容差·`sse-pump.ts:130` 原值）；②`JSON.parse(f.data)` **deep-equal** `exp.payload`（**PG16 实证：`payload` 列 `jsonb`，`JSON.stringify(种子)` 的键序经 jsonb 存取必被规范化，逐字节等价不可达**——沿 crossstream `:164-170` parsed-field 先例，禁写 `f.data===JSON.stringify(seed)`）；③紧凑性 `f.data===JSON.stringify(JSON.parse(f.data))`（无空格）。期望值亦可在 EXEC 取 DB 读回 `payload::text` 再解析（与②等价，二择一）。
-- **帧契约常量**（与产品同形·零新契约）：`id: <seq>\nevent: <kind>\ndata: <compact JSON>\n\n`（`sse-pump.ts:130`）；无 `id` 帧不存在于本刀两流（`token_delta` 仅 interview delta 臂·`sse-pump.ts:165` 注释）。
+- **跨臂纪律（P2⑨）**：每臂 hold **显式 `await`**（禁悬空 promise）；跨臂 `sleep(50-100)` 待 abort 断连的 `releaseSlot`/waiter 注销落定（防臂间 429/串帧）。活体臂另遵 §8 六读数分口。
+- **hold 助手（P1-5·时间戳 reader·沿 `sse-push-notify.proof.ts:152-190` `openSse`/`until` 先例）**：本地实现 `openSse({path, led?, maxMs})` → `{ status, headers, chunks: Array<{t:number,text:string}>, text(), ids(), frames(), ended, abort() }`：
+  - `fetch` + `AbortController`；后台 `reader.read()` 逐**网络 chunk** 推 `{t:Date.now(), text}`（网络 chunk 只作到达时刻/`: ping` 旁证，**不作帧边界**）；`status`/`content-type` 在响应头到达时取。
+  - `text()` = chunks 拼接 buffer；`ids()` = buffer 上 `/^id: (\d+)$/gm`（行首锚定，与 `: ping`/`data:` 内数字无涉）；`frames()` = 下文 `parseFrames(buffer)`。
+  - `ended` 由 read 循环 `done` 置真（**自然收尾判据**，与 abort 区分）；`abort()` = `clearTimeout` + `ac.abort()` + **`await sleep(60)`**（等断连传播与 `releaseSlot`/waiter 注销落定）。
+  - `until(pred, ms, step=25)` 轮询助手（同先例 `:184-190`）。**回执门**：任何「先注入」的臂必须先 `await until(() => ids().length >= 1, 1500)`（或 `ids().includes(期望 catch-up id)`）——`LED=max` 的空 catch-up 不冲刷响应头、`fetch` 不 resolve，窗口中途无法注入（P1-5）。
+- **buffer 切帧（P1-2·帧边界=协议边界，非网络 chunk 边界）**：`parseFrames(buf)` = `[...buf.matchAll(/^id: (\d+)\nevent: ([^\n]+)\ndata: (.+)\n\n/gm)].map(m => ({ id:+m[1], kind:m[2], data:m[3], raw:m[0] }))`（`raw`=**含尾部空行的整帧字节**）。`sse-pump.ts:130` 每帧恰一次 `raw.write`，Node/undici 可把多帧合并进一个 chunk、也可把一帧切进多个 chunk ⇒ **network chunk 与帧无一一对应**；**删** r2 前 `rawChunk === \`id: …\`` 三处形断言（包络/逐帧/正文），必假红且退化为无判别力的解析保真核。
+- **逐帧断言 `assertFrame(f, exp)`**：①**结构面**：`f.raw.split('\n')` 恰 `['id: N','event: K','data: D','','']`（单 `\n` 分隔、恰一尾空行、零 `\r`、零多余行——对**实际字节**断言，非重建等值）；②`f.id===exp.id && f.kind===exp.kind`；③`isDeepStrictEqual(JSON.parse(f.data), exp.payload)`（`node:util` 内建·**键序无关**；PG16 `payload` 列 `jsonb` 键序经存取必规范化 ⇒ 禁 `f.data===JSON.stringify(seed)` 字节等值，沿 crossstream `:164-170` parsed-field 先例）。
+- **帧集断言 `assertFrameSet(buf, exp[])`**：①`frames()` 的 id/kind 序恰 `exp` 且条数相等；②**帧间零残留**：`frames().map(f=>f.raw).join('')` 恒等于 `stripNoise(buf)`（`stripNoise` 删全部 `: ping\n\n` 与 `event: token_delta\ndata: …\n\n` 无 id 帧）——证明帧与帧之间无任何未解释字节（切帧漏抓/串流残留即红）。
+- **删恒真紧凑性断言（P2①）**：`f.data === JSON.stringify(JSON.parse(f.data))` 在线上恒真（`sse-pump.ts:130` 的 `data` 即 `JSON.stringify` 产物），零判别力 ⇒ **删除**。如需 payload 字节面旁证，改 DB `SELECT seq,kind,payload::text … ORDER BY seq` 回读作语义对照——**注 `jsonb::text` 含空格（`{"a": 1}`），不可与线上 compact 文本等值**，只可 `JSON.parse` 后 deep-equal。
+- **帧契约常量**（与产品同形·零新契约）：`id: <seq>\nevent: <kind>\ndata: <compact JSON>\n\n`（`sse-pump.ts:130`）；无 `id` 帧不存在于本刀两流（`token_delta` 仅 interview delta 臂·`sse-pump.ts:159-166` 无 id 形）。
 
 ### QD1 · quiz 全量 catch-up 逐实体帧（R1 同形）
-种 `QZ_CATCH`：`1 progress{stage:'generating'}` → `2 question_ready{question:'Q1',refs:['r1']}` → `3 question_ready{question:'Q2',refs:['r2']}` → `4 quiz_ready{count:2,report:{score:80,grounded:2,summary:'s'}}`。`GET /quiz/QZ_CATCH/events` 无 LED → **200 + text/event-stream**；帧 id 恰 `[1,2,3,4]`；**逐帧 `assertFrame`（包络逐字节 + `data` deep-equal 种子 + 紧凑性·P1-1）**；**终态后流自然收尾（reader done·非 abort）**；零 `token_delta`。
+种 `QZ_CATCH`：`1 progress{stage:'generating'}` → `2 question_ready{question:'Q1',refs:['r1']}` → `3 question_ready{question:'Q2',refs:['r2']}` → `4 quiz_ready{count:2,report:{score:80,grounded:2,summary:'s'}}`。`GET /quiz/QZ_CATCH/events` 无 LED。断言（计 6 条）：①**200 + text/event-stream**；②帧集 id/kind 序恰 `[1,2,3,4]`；③逐帧结构面（`id/event/data` 三段 + 恰一尾空行）；④逐帧 `isDeepStrictEqual` 种子 payload；⑤帧间零残留；⑥**终态后流自然收尾（`ended===true`·非 abort）且零 `token_delta`**。**失败终态 `quiz_unavailable` 不在本臂在证**（§3 non-claim；生产者 `quiz-consumer.ts:68/:95`）。
 
 ### QD2 · quiz 断线窗续写 + Last-Event-ID 续传 + 终态收口（R2/R3 同形）
-种 `QZ_LED`：`1 progress` `2 question_ready` `3 question_ready`。**连接 abort/await 序写死（P2⑩）**：①`await hold(LED=1, holdMs=300)`——到期 abort、Promise 落定后才进下一步；②断线窗内 INSERT `4 question_ready` `5 question_ready`；③`await hold(LED=3, holdMs=1500)`——**该连接的 abort/await 落定后**才允许下一步（防 `6` 被第二连接吃掉/游标错位）；④INSERT `6 quiz_ready`；⑤`await hold(LED=5)` 至自然收尾。断言：①恰 `[2,3]`（无 1）；③恰 `[4,5]`（无 ≤3 重放）；⑤恰 `[6]` + **自然收尾**；三窗逐帧 `assertFrame`。副断言：`userB GET /quiz/QZ_LED/events → 404`。
+种 `QZ_LED`：`1 progress{stage:'generating'}` `2 question_ready{question:'Q1',refs:['r1']}` `3 question_ready{question:'Q2',refs:['r2']}`。**连接 abort/await 序写死（P2⑩）**：①`r1=openSse(LED=1)` → `await until(() => r1.ids().join(',')==='2,3', 1500)`（回执门）→ `await sleep(700)` → `await r1.abort()`（**abort/await 落定后才进下一步**；700ms=r2 修订值，防首连未稳即断）；②断线窗 INSERT `4 question_ready{question:'Q3',refs:['r3']}` `5 question_ready{question:'Q4',refs:['r4']}`；③`r2=openSse(LED=3)` → `until(ids==='4,5', 1500)` → `sleep(700)` → `abort()`（**该连接落定后**才允许下一步·防 `6` 被第二连接吃掉/游标错位）；④INSERT `6 quiz_ready{count:4,report:{score:90,grounded:4,summary:'s2'}}`；⑤`r3=openSse(LED=5)` → `await until(() => r3.ended, 3000)`。断言（计 9 条）：①首连 200 + `text/event-stream`；②首连帧集恰 `[2,3]`（无 1）；③首连逐帧 deep-equal 种子；④二连帧集恰 `[4,5]`（无 ≤3 重放）；⑤二连逐帧 deep-equal；⑥三连帧集恰 `[6]`；⑦三连**自然收尾**（`ended`）；⑧副断言 `userB GET /quiz/QZ_LED/events → 404`；⑨全程零 `token_delta` + 三窗帧间零残留。
 
 ### QD3 · quiz live hold → live-tail → 终态（R-mid 同形）
-种 `QZ_LIVE`：`1 progress` `2 question_ready`（非终态）。hold `LED=1` → **catch-up 非空恰 `[2]`**（响应头冲刷 + `waitFor` 先注册后重放 `sse-pump.ts:169-170` 的物证·防 REG-WINDOW 假红·P2⑧）；**注入时点固定不依赖观察（P2⑪）**：hold 起算 `+700ms` 单语句 INSERT `3 question_ready`（0214 语句级触发器恰一 notify(QZ_LIVE)）、`+1400ms` INSERT `4 quiz_ready`；**正控帧回执须早于首个注入点**（700ms 远大于回执时延；未到则按 §8 五读数分口·不以观察门控时序）；`holdMs≥5000`（退化 2s 兜底轮询容差臂·P2⑪）。断言：catch-up 恰 `[2]`、live 恰 `[3,4]`、全序 `[2,3,4]`、逐帧 `assertFrame`、无重放/无重复、`pg_trigger` 物证、全窗零 `token_delta`、终态后自然收尾。**退化容差**：若 30s 健康未翻面，2s 兜底轮询仍须在 `holdMs≥5000` 窗内交付——打印 `notify.health()` 读数入收据（§8 五读数之一），禁把超时改断言。
+种 `QZ_LIVE`：`1 progress{stage:'generating'}` `2 question_ready{question:'Q1',refs:['r1']}`（非终态）。`r=openSse(LED=1)` → **回执门** `await until(() => r.ids().join(',')==='2', 1500)`（catch-up 非空恰 `[2]`=响应头已冲刷 + `waitFor` 先注册后重放的物证·防 REG-WINDOW 假红·P2⑧/P1-5）；**时点以 hold 起点为基准**：`+700ms` 单语句 INSERT `3 question_ready{question:'Q2',refs:['r2']}`（0214 语句级触发器恰一 notify(QZ_LIVE)）、`+1400ms` INSERT `4 quiz_ready{count:2,report:{score:88,grounded:2,summary:'s'}}`；回执若已晚于某时点则**立即注入**（不等待观察，P2⑪）；`holdMs≥3000`（P2④·退化 2s 兜底容差）。断言（计 7 条）：①200 + `text/event-stream`；②catch-up 恰 `[2]`；③live 恰 `[3,4]`；④全序 `[2,3,4]` 无重放/无重复；⑤逐帧 `assertFrame` 结构面+deep-equal；⑥`pg_trigger` 物证；⑦终态后自然收尾且零 `token_delta`。**退化容差**：若 30s 健康未翻面，2s 兜底轮询仍须在 `holdMs≥3000` 窗内交付——打印 `notify.health()` 读数入收据（§8 六读数之一），禁把超时改断言。
 
 ### QD4 · quiz 跨流 key 域隔离 + 跨 owner 拒绝（key 域正臂）
-三流双持（**每线 `LED=max-1` ⇒ catch-up 恰一帧非空正控**·P1-2②/P2⑧）：`QZ_ISO`（种 `1 progress{stream:'QZ_ISO',marker:'q-iso-1'}`·LED=0）、`DX_ISO`（种 `1 progress{stream:'DX_ISO',marker:'d-iso-1'}`·LED=0）、`IV_ISO`（种 `1 progress{stream:'IV_ISO',marker:'i-iso-1'}`·LED=0；**`interview` 行 upsert 见夹具合同**）。三线并发 hold 后**先 await 三线 catch-up 正控帧回执**（响应头已冲刷、`waitFor` 已注册——`LED=max` 空 catch-up + `writeHead` 不冲刷 ⇒ `fetch` 不 resolve，故必须先取非空回执再注入·P1-2②/P2⑧）→ **分语句**注入各线本流新行：`QZ_ISO`→`2 question_ready{stream:'QZ_ISO',marker:'q-iso-2'}`、`DX_ISO`→`2 question_ready{stream:'DX_ISO',marker:'d-iso-2'}`、`IV_ISO`→`2 question_ready{stream:'IV_ISO',marker:'i-iso-2'}`（三线**故意同 kind**，证明判别面只能是 payload marker/流标签；各单语句单 key，语句级触发器每 key 恰一 notify）。断言：QZ 线 200 + 帧集恰 `[1,2]` 且逐帧 `payload.stream==='QZ_ISO'`+本流 marker、**零 DX/IV 域帧字节**（`marker:'d-iso-`/`marker:'i-iso-`/`"stream":"DX_ISO"`/`"stream":"IV_ISO"` 全族零出现）；DX 线对称（恰 `[1,2]`·零 QZ/IV 域）；**IV 线 200 + 自身帧集恰 `[1,2]`（catch-up 正控 `1`+本流注入 `2`）·零 QZ/DX 域帧字节且零 `: ping`（本流非空尾）**——**不得只写「零 QZ/DX 域字节」而无自身帧断言**（P1-2③/⑬）。`userB` 对 `QZ_ISO`/`DX_ISO` 各 → 404。可选副断言（token 无订阅·P2⑬）：对本流 key 发 `pg_notify('interview_token_ch',…)` → ①`QZ_ISO`/`DX_ISO` 线 `token_delta` 零出现（两控制器零 `deltaSource` 接线·`sse-pump.ts:62-67`/`interview.controller.ts:275-276`）；②**IV 线同一注入出 `event: token_delta` 正控**（interview 接线 `subscribeToken`——证明注入有效、QZ/DX 零出现非注入失效）。与 crossstream B3（interview 双流互偷）正交，只证「无订阅」不冒充其面。
+三线并发（**QD4 独占键 `QZ_ISO`/`DX_ISO`/`IV_ISO`·与 DX4 键域零共用**·P1-1）：各线 LED 缺省（=0）⇒ catch-up 恰 `[1]` 非空正控：
+- `QZ_ISO`（`resume_quiz` upsert）：种 `1 progress{stream:'QZ_ISO',marker:'q-iso-1'}`
+- `DX_ISO`（`resume_diagnosis` upsert）：种 `1 progress{stream:'DX_ISO',marker:'d-iso-1'}`
+- `IV_ISO`（`interview` upsert·见夹具合同）：种 `1 progress{stream:'IV_ISO',marker:'i-iso-1'}`
+
+三线并发 `openSse` 后**先 await 三线回执门**（`until(() => r.ids().length >= 1, 1500)`；健康态前置 + 可选活性旁证 `waitingCount() >= 3`——**总数口径、不证 per-key 归属**`sse-notify.service.ts:212-217`·P1-3）→ **分语句**注入各线本流新行（三线**故意同 kind**，判别面只能是 payload marker/流标签；各单语句单 key，语句级触发器每 key 恰一 notify）：`2 question_ready{stream:'QZ_ISO',marker:'q-iso-2'}` / `{stream:'DX_ISO',marker:'d-iso-2'}` / `{stream:'IV_ISO',marker:'i-iso-2'}`；各线 `await until(ids().includes(2), 1500)`；`await sleep(300)`（仍在 `holdMs≥3000` 窗内）后取**截止快照**（`text()`/`frames()` 在 abort 前定格·P2④）再 `abort()`。
+断言（QD4 计 10 条）：
+① QZ 线 200 + `text/event-stream`；
+② QZ 线帧集恰 `[1,2]` 且逐帧 `payload.stream==='QZ_ISO'` + 本流 marker（`q-iso-1`/`q-iso-2`）；
+③ QZ 线零 DX/IV 域针——**JSON 形态**：`"marker":"d-iso-`、`"marker":"i-iso-`、`"stream":"DX_ISO"`、`"stream":"IV_ISO"` 全族零出现（P1-4·禁单引号 `marker:'…'` 形）；
+④ DX 线 200 + 帧集恰 `[1,2]` + 本流 marker；
+⑤ DX 线零 QZ/IV 域针：`"marker":"q-iso-`、`"marker":"i-iso-`、`"stream":"QZ_ISO"`、`"stream":"IV_ISO"`；
+⑥ IV 线 200 + 自身帧集恰 `[1,2]`（catch-up 正控 `1` + 本流注入 `2`）——**不得只写「零他域」而无自身帧断言**；
+⑦ IV 线零 QZ/DX 域针（**不写零 `: ping`**——P1-3：ping 是健康/退化节奏面，退化 2s 必 ping ⇒ 必假红；判别面只留帧集+域针）；
+⑧ `userB` 对 `QZ_ISO`/`DX_ISO` 各 → 404；
+⑨ 可选 token 无订阅副断言（P2③）：对本流 key 发 `SELECT pg_notify('interview_token_ch', $1)`，**载荷钉 `{v:1,streamKey,attemptKey,seq,text}`**（沿 crossstream `:196-197`）；**注入前静默 ≥100ms、hold ≥3000ms**：QZ/DX 线 `token_delta` 零出现（两控制器零 `deltaSource` 接线·`sse-pump.ts:62-67`/`interview.controller.ts:275-276`）；
+⑩ **IV 线同一注入出恰一帧 `event: token_delta` 正控**（interview 接线 `subscribeToken`；wire 形=`{"attemptKey","seq","text"}`·`v/streamKey` 由 pump 剥·`sse-pump.ts:159-166`；delta-only 唤醒免 fetchMore=`sse-pump.ts:192`）——证注入有效、QZ/DX 零出现非注入失效。**与 crossstream B3（interview 双流互偷）正交**，只证「无订阅」不冒充其面。
 
 ### DX1 · diagnosis 全量 catch-up 逐实体帧（R1 同形）
-种 `DX_CATCH`：`1 progress` → `2 section_ready{kind:'structure',title:'结构',score:70,findings:[…]}` → `3 section_ready{…}` → `4 rewrite_ready{before:'b',after:'a',refs:['r']}` → `5 diagnosis_ready{overall:78,summary:'s',sectionCount:2,rewriteCount:1}`。`GET /diagnosis/DX_CATCH/events` → 帧 id 恰 `[1..5]`；**逐帧 `assertFrame`（包络逐字节 + `data` deep-equal 种子 + 紧凑性·P1-1）**；终态后自然收尾；零 `token_delta`。
+种 `DX_CATCH`：`1 progress{stage:'generating'}` → `2 section_ready{kind:'structure',title:'结构',score:70,findings:[{id:'f1',text:'t1'}]}` → `3 section_ready{kind:'depth',title:'深度',score:68,findings:[{id:'f2',text:'t2'}]}` → `4 rewrite_ready{before:'b',after:'a',refs:['r']}` → `5 diagnosis_ready{overall:78,summary:'s',sectionCount:2,rewriteCount:1}`。`GET /diagnosis/DX_CATCH/events`。断言（计 6 条）：①**200 + text/event-stream**；②帧集 id/kind 序恰 `[1..5]`；③逐帧结构面；④逐帧 `isDeepStrictEqual` 种子 payload；⑤帧间零残留；⑥终态后自然收尾（`ended`）且零 `token_delta`。**失败终态 `diagnosis_unavailable` 不在本臂在证**（§3 non-claim；生产者 `diagnosis-consumer.ts:66/:93`）。
 
 ### DX2 · diagnosis 断线窗续写 + LED 续传 + 终态收口
-种 `DX_LED`：`1 progress` `2 section_ready`；**连接 abort/await 序同 QD2 写死（P2⑩）**：①`await hold(LED=1, holdMs=300)`→`[2]`；②INSERT `3 section_ready` `4 rewrite_ready`；③`await hold(LED=2, holdMs=1500)`→`[3,4]`；④INSERT `5 diagnosis_ready`；⑤`await hold(LED=4)`→`[5]` + 自然收尾；逐帧 `assertFrame`。副断言：`userB → 404`。
+种 `DX_LED`：`1 progress{stage:'generating'}` `2 section_ready{kind:'structure',title:'结构',score:70,findings:[{id:'f1',text:'t1'}]}`；**序同 QD2 写死（P2⑩·700ms 修订值）**：①`r1=openSse(LED=1)` → `until(ids==='2',1500)` → `sleep(700)` → `abort()`；②INSERT `3 section_ready{kind:'depth',title:'深度',score:68,findings:[{id:'f2',text:'t2'}]}` `4 rewrite_ready{before:'b',after:'a',refs:['r']}`；③`r2=openSse(LED=2)` → `until(ids==='3,4',1500)` → `sleep(700)` → `abort()`；④INSERT `5 diagnosis_ready{overall:80,summary:'s2',sectionCount:2,rewriteCount:1}`；⑤`r3=openSse(LED=4)` → `until(() => r3.ended, 3000)`。断言（计 9 条）：①首连 200 + `text/event-stream`；②首连帧集恰 `[2]`；③首连逐帧 deep-equal；④二连帧集恰 `[3,4]`（无 ≤2 重放）；⑤二连逐帧 deep-equal；⑥三连帧集恰 `[5]`；⑦三连自然收尾（`ended`）；⑧副断言 `userB → 404`；⑨全程零 `token_delta` + 三窗帧间零残留。
 
 ### DX3 · diagnosis live hold → live-tail → 终态
-种 `DX_LIVE`：`1 progress` `2 section_ready`；hold `LED=1` → **catch-up 非空恰 `[2]`**（响应头冲刷+注册物证·P2⑧）；**注入时点固定不依赖观察（P2⑪）**：hold 起算 `+700ms` INSERT `3 section_ready`、`+1400ms` INSERT `4 diagnosis_ready`；**正控帧回执须早于首个注入点**（未到按 §8 分口）；`holdMs≥5000`。断言：catch-up `[2]`、live `[3,4]`、全序 `[2,3,4]`、逐帧 `assertFrame`、`pg_trigger` 物证、零 `token_delta`、自然收尾。
+种 `DX_LIVE`：`1 progress{stage:'generating'}` `2 section_ready{kind:'structure',title:'结构',score:70,findings:[{id:'f1',text:'t1'}]}`（非终态）；`r=openSse(LED=1)` → **回执门** `until(ids==='2',1500)`（响应头冲刷+注册物证·P2⑧/P1-5）；**时点固定不依赖观察（P2⑪）**：hold 起算 `+700ms` INSERT `3 section_ready{kind:'depth',title:'深度',score:68,findings:[{id:'f2',text:'t2'}]}`、`+1400ms` INSERT `4 diagnosis_ready{overall:80,summary:'s',sectionCount:2,rewriteCount:1}`；`holdMs≥3000`（P2④）。断言（计 7 条）：①200 + `text/event-stream`；②catch-up 恰 `[2]`；③live 恰 `[3,4]`；④全序 `[2,3,4]` 无重复；⑤逐帧 `assertFrame` 结构面+deep-equal；⑥`pg_trigger` 物证；⑦自然收尾且零 `token_delta`。
 
 ### DX4 · diagnosis 跨流 key 域隔离 + 跨 owner 拒绝（对称正臂）
-镜像 QD4（DX 线为主体·三线各 `LED=max-1` 非空 catch-up 正控、**先 await 三线回执再分语句注入**）：DX 线 200+帧集恰 `[1,2]` 且本流 marker/流标签在证、零 QZ/IV 域帧字节；QZ 线对称（恰 `[1,2]`·零 DX/IV 域）；**IV 线 200 + 自身帧集恰 `[1,2]`·零 QZ/DX 域帧字节且零 `: ping`**（P1-2③/⑬）；`userB` 对 `DX_ISO`/`QZ_ISO` → 404；可选 token 无订阅副断言对称（**含 IV 线 `token_delta` 正控**）。
+镜像 QD4（DX 线为主体；**独占键 `QZ_ISO_DX`/`DX_ISO_DX`/`IV_ISO_DX`·与 QD4 键域零共用**·P1-1）：三线各 LED 缺省非空 catch-up 正控（种子：`1 progress{stream:'QZ_ISO_DX',marker:'q-iso-1'}` / `{stream:'DX_ISO_DX',marker:'d-iso-1'}` / `{stream:'IV_ISO_DX',marker:'i-iso-1'}`）、**先 await 三线回执再分语句注入**（`2 question_ready{stream:'QZ_ISO_DX',marker:'q-iso-2'}` / `{stream:'DX_ISO_DX',marker:'d-iso-2'}` / `{stream:'IV_ISO_DX',marker:'i-iso-2'}`，三线同 kind；`holdMs≥3000`+截止快照）。断言（计 10 条）：①DX 线 200；②帧集恰 `[1,2]`+本流 marker/流标签在证；③零 QZ/IV 域针（`"marker":"q-iso-`、`"marker":"i-iso-`、`"stream":"QZ_ISO_DX"`、`"stream":"IV_ISO_DX"`）；④QZ 线 200；⑤帧集恰 `[1,2]`·零 DX/IV 域针（`"marker":"d-iso-`、`"marker":"i-iso-`、`"stream":"DX_ISO_DX"`、`"stream":"IV_ISO_DX"`）；⑥IV 线 200；⑦帧集恰 `[1,2]`·零 QZ/DX 域针（`"marker":"q-iso-`、`"marker":"d-iso-`、`"stream":"QZ_ISO_DX"`、`"stream":"DX_ISO_DX"`；**不写零 ping**）；⑧`userB` 对 `DX_ISO_DX`/`QZ_ISO_DX` → 404；⑨QZ/DX 线 token 无订阅零 `token_delta`；⑩IV_ISO_DX 线 `token_delta` 正控恰一帧（载荷/静默/hold 同 QD4⑨⑩）。
 
-**注册面（EXEC 期·五处 + 两 N/A 承登·「新目标登记」additive）**：①新 proof 文件；②root `package.json` 两行（`quizdx:sse-http:prove` → `node scripts/run-e2e-isolated.mjs quizdx:sse-http:prove:raw`；`:raw` → `pnpm -C apps/api prove:quizdx-sse-http`）；③`apps/api/package.json` 一行（`prove:quizdx-sse-http`）；④runner `isolatedReceiptSources`（`:93` 区）新增一 entry——**provenance 前置 `scripts/run-e2e-isolated.mjs` + `scripts/bounded-command.mjs`**（P2⑥），补 `apps/api/src/main.ts` / `apps/api/src/platform/principal.guard.ts` / `apps/api/src/platform/sse-registry.ts`，再列 proof + `_neg-harness.ts` + 两 controller/two service + `sse-pump.ts` + `sse-notify.service.ts` + `rate-limit.service.ts` + `last-event-id.ts` + `packages/db/src/interview/interview-event.ts` + `packages/db/sql/01_schema.sql`/`20_resume_quiz.sql`/`21_resume_diagnosis.sql` + `packages/db/migrations/0214_interview_event_statement_notify.sql`；⑤runner 支持目标准入数组（`:2831-3011` 区）与 `isolatedCommand` 链（`:3353` 区）；⑥tracked 收据 `ai-docs/delivery/receipts/quizdx-sse-http/`（`.log` 面·`∉TEXT_EXTENSIONS`）。**「新目标登记」界（P1-3）**：上述 runner/两 `package.json` 改动**仅限本目标 additive 行**——新增 entry/分支/注册行，**零改既有目标语义、断言、源清单、准入判据**；此面不落入 §5 Ban 的「改既有 proof/仪器」定义（§5 carve-out）。**N/A 承登**：pre-migrate 名单（`:4338-4392`）**不入**——boot() virgin 世界（uc010 家族 / xrep 先例同形：pre-migrate 先行装迁移链会撞 0058 definer 面；本 proof 零 0058 依赖，但世界选择沿 uc010 家族）；resource-caps（`:4308-4314`）**不适用**（非 PERF/LOAD）。**断言预算**：八臂 **≥52 条（QD1 5 / QD2 7 / QD3 6 / QD4 8 / DX1 5 / DX2 7 / DX3 6 / DX4 8·P2⑤）**；EXEC 实跑原值入收据。
+**注册面（EXEC 期·五处 + 两 N/A 承登·「新目标登记」additive）**：①新 proof 文件；②root `package.json` 两行（`quizdx:sse-http:prove` → `node scripts/run-e2e-isolated.mjs quizdx:sse-http:prove:raw`；`:raw` → `pnpm -C apps/api prove:quizdx-sse-http`）；③`apps/api/package.json` 一行（`prove:quizdx-sse-http`）；④runner `isolatedReceiptSources`（`:93` 区）新增一 entry——**provenance 前置 `scripts/run-e2e-isolated.mjs` + `scripts/bounded-command.mjs`**（P2⑥），补 `apps/api/src/main.ts` / `apps/api/src/platform/principal.guard.ts` / `apps/api/src/platform/sse-registry.ts`，再列 proof + `_neg-harness.ts` + 两 controller/two service + `sse-pump.ts` + `sse-notify.service.ts` + `rate-limit.service.ts` + `last-event-id.ts` + `packages/db/src/interview/interview-event.ts` + `packages/db/sql/01_schema.sql`/`20_resume_quiz.sql`/`21_resume_diagnosis.sql` + `packages/db/migrations/0214_interview_event_statement_notify.sql`；⑤runner 支持目标准入数组（`:2831-3011` 区）与 `isolatedCommand` 链（`:3353` 区）；⑥tracked 收据 `ai-docs/delivery/receipts/quizdx-sse-http/`（`.log` 面·`∉TEXT_EXTENSIONS`）。**「新目标登记」界（P1-3）**：上述 runner/两 `package.json` 改动**仅限本目标 additive 行**——新增 entry/分支/注册行，**零改既有目标语义、断言、源清单、准入判据**；此面不落入 §5 Ban 的「改既有 proof/仪器」定义（§5 carve-out）。**N/A 承登**：pre-migrate 名单（`:4338-4392`）**不入**——boot() virgin 世界（uc010 家族 / xrep 先例同形：pre-migrate 先行装迁移链会撞 0058 definer 面；本 proof 零 0058 依赖，但世界选择沿 uc010 家族）；resource-caps（`:4308-4314`）**不适用**（非 PERF/LOAD）。**断言预算**：八臂 **≥64 条（QD1 6 / QD2 9 / QD3 7 / QD4 10 / DX1 6 / DX2 9 / DX3 7 / DX4 10·r2 修订值）**；EXEC 实跑原值入收据（含可选 token 副断言；未跑即未跑如实登记）。
 
 ### §1.3 否决表（落选项诚实留痕）
 
@@ -175,11 +219,11 @@
 
 ## §2 验收门矩阵（pre-exec 双审核对单基面 · 起草门本 commit 适用 + EXEC 预基面届时重 pin）
 
-1. **起草/修订门（本 commit 已亲跑·EXIT 原值见 §9 收据表）**：`node scripts/ai-docs/check-docs.mjs` → **0**（scanned 2458 · cap 2_461 余 3）；`pnpm public-text-policy:prove` → **0**（12/12）；markers 五类标记词 + 行首冲突标记改动集 grep → **0 命中**（词面运行时组装·不改写卷内防自指）。
-2. **EXEC 主门**：`pnpm quizdx:sse-http:prove` **EXIT=0**（八臂 **≥52 断言（5+7+6+8+5+7+6+8）**；隔离 PG 真 HTTP；attempts 台账如实·零 retry-to-green）。**EXIT0 = case 证据 ≠ covered ≠ 翻行**。
-3. **EXEC 静态门**：`pnpm -C apps/api typecheck` 0；新 proof eslint 0 warning（lint 帽零新增）；`pnpm quizdx:sse-http:prove:raw` 经 runner 三层壳（isolated → raw → package）EXIT=0。
+1. **起草/修订门（本 commit 已亲跑·EXIT 原值见 §9 收据表）**：`node scripts/ai-docs/check-docs.mjs` → **0**（scanned 2459 · cap 2_461 余 2）；`pnpm public-text-policy:prove` → **0**（12/12）；markers 五类标记词 + 行首冲突标记改动集 grep → **0 命中**（词面运行时组装·不改写卷内防自指）。
+2. **EXEC 主门**：`pnpm quizdx:sse-http:prove` **EXIT=0**（八臂 **≥64 断言（6+9+7+10+6+9+7+10）**；隔离 PG 真 HTTP；attempts 台账如实·零 retry-to-green）。**EXIT0 = case 证据 ≠ covered ≠ 翻行**。
+3. **EXEC 静态门**：`pnpm -C apps/api typecheck` 0（**引用面**：三控制器共用 pump 类型成立·不新增逐实体流证据）；新 proof eslint 0 warning（lint 帽零新增）；`pnpm quizdx:sse-http:prove:raw` 经 runner 三层壳（isolated → raw → package）EXIT=0。
 4. **邻面不回退（引旁证·不重测槽/游标）**：`pnpm uc010:sse-resume:prove`、`pnpm sse-push:notify:prove`、`pnpm sse:xrep:prove`、`pnpm sse-slot:prove` 各 EXIT=0（若 EXEC 期环境允许；如实登记未跑即未跑）。
-5. **cap 预算核**：起草基线 **2457** + 本卷 **+1 = 2458**；rev r1 修订同卷再改（`git diff --name-status` 实测 **1 tracked**·零新增受管件）→ 仍 **2458**；EXEC **+1 proof = 2459** ≤ `MAX_FILES=2_461`（余 **2**）；收据 `.log` 非受管扩展名不计；**零 cap 步进、零 policy 面触、零四联动点改**（P2③）。若 EXEC 期实测越限 → 停止条件「验收红不可修」停手上报（Ban 就地改 cap）。
+5. **cap 预算核（r2 rebase 后改算）**：`origin/main` @`53cc4a434` 届树 + 本卷 **= 2459**（`docs:check` 亲跑）；rev r2 同卷再改（`git diff --name-status` 实测 **1 tracked**·零新增受管件）→ 仍 **2459**；EXEC **+1 proof = 2460** ≤ `MAX_FILES=2_461`（余 **1**）；收据 `.log` 非受管扩展名不计；**零 cap 步进、零 policy 面触、零四联动点改**（P2③）。若 EXEC 期实测越限 → 停止条件「验收红不可修」停手上报（Ban 就地改 cap）。
 6. **门面纪律**：`docs:check` > cap、PTP 红、markers 命中、lint 超帽、邻套件新红且根因不在本刀 → 停（§8）。
 
 ---
@@ -194,6 +238,8 @@
 - 不证 privacy fence 0062 真迁移面（harness 未载 0062·本刀走 boot 世界，跨 owner 404 只由聚合归属 + harness owner RLS 承担；Ban 借本收据宣 0062/隐私围栏 covered）。
 - 不证 0143/0214 授权面（ACL）：0214-only 世界 0143 `REVOKE` 未重放，本刀只证触发器行为面（§1 收据注·Ban 借本收据宣 ACL/迁移链 posture covered）。
 - 不改产品码/迁移/共享 SSOT/coveredCount；不翻 checklist `:1660` 行、不翻 coverage matrix 格、不翻 case 行旗（EXEC 只加 additive case 行候选，落位/翻面权归协调方）。
+- **不证失败终态**（`quiz_unavailable`/`diagnosis_unavailable`）：QD1/DX1 只走成功终态链；失败终态的事件形引生产者源（`quiz-consumer.ts:68/:95`、`diagnosis-consumer.ts:66/:93`）**未落断言**——Ban 借本收据宣失败终态交付 covered。
+- **不证 `: ping`/心跳面**：r2 已删 IV 线「零 ping」断言（ping 随健康/退化节奏变化：退化 2s 必 ping、健康 30s 兜底，`sse-pump.ts:208`）；本刀不证心跳 cadence，也不把「窗内未见 ping」当交付证据。
 - 不证模型输出质量/worker 编排（本刀零 worker 零模型）。
 
 ---
@@ -201,6 +247,7 @@
 ## §4 依赖
 
 - 隔离 PG：`scripts/run-e2e-isolated.mjs`（Docker disposable PG）+ `_neg-harness.ts` boot 世界（**sql/01-22 + 23_api_gateway + 选迁移**（0037/0038/0039/0046/0178/0172/0173/0167/0168/0169）；**零 0214/0062 装载** → proof 自装 0214；0143 ACL 未重放收据注见 §1/§3·P2④/P2⑦）。
+- **privacy stub 面（P2⑥）**：harness `:114-142` 装 `interview_privacy_active` / `interview_privacy_active_read` 双镜像（SECURITY DEFINER·只做 owner 匹配，真相=0058/0076 迁移链）、`:214-225` 装 `assert_interview_privacy_active`（fail-closed 同码）。本刀 IV 线只走 `userA` owner 匹配正臂，与 stub 行为一致；**跨 owner 404 由聚合归属检查 + harness owner RLS 承担**，不冒充 0062 隐私围栏（§3 同界）。
 - 真 HTTP：`createApp()`（`apps/api/src/main.ts`）+ `AUTH_DEV_HEADER=1`（harness `:51-57`）+ `principal.guard.ts`（principal 注入）+ `sse-registry.ts`（HA-2 注册/注销同点）。
 - 零外部依赖、零新 npm 包、零 Key、零 secret。
 
@@ -220,7 +267,7 @@
 
 ## §7 markers=0（卫生声明）
 
-本刀改动集（本卷 1 .md · 起草 turn）**五类标记词 + 行首冲突标记 grep 零命中**（起草席亲跑·词面按 `scripts/i6-239-gates.proof.mjs:154-163` 运行时组装口径·不复抄卷内防自匹配·回执随 EXEC 收据留痕）。EXEC 期改动集=proof+双 package.json+runner（可执行面）·同口径复跑。
+本刀改动集（本卷 1 .md · 起草/rev r1/rev r2 turn）**五类标记词 + 行首冲突标记 grep 零命中**（起草席亲跑·词面按 `scripts/i6-239-gates.proof.mjs:154-163` 运行时组装口径·不复抄卷内防自匹配·回执随 EXEC 收据留痕）。EXEC 期改动集=proof+双 package.json+runner（可执行面）·同口径复跑。
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
@@ -230,21 +277,23 @@
 - **机制不满足**：EXEC 期新臂收据与 §0.2/§1 期望不符（如 quiz 流出现 diagnosis 域帧=真泄漏 · 终态后流不自然收尾 · LED 重放 ≤N · 跨 owner 200）→ 根因诊断被证伪 → **产品真红** → 停·EXIT1 诚实保留 + backlog 登记如实升级协调方（Ban 就地改诊断/凑绿）。
 - **越界需要**：修法诉求超出 §1 恰 1 proof 八臂面（需触产品码/迁移/0062 世界/既有 proof 家族/covered 翻面/共享 SSOT/cap 步进）→ 停·另刀或协调方裁决（Ban 就地扩面）。
 - **验收红不可修**：§2 任一门红且根因不在本刀交付面（docs:check>2_461 / PTP 红 / markers 命中 / 邻套件新红 / typecheck / lint 超）→ 停·stash 对照亲证基线·如实登记（Ban 借机修）。
-- **REG-WINDOW/仪器误红 bisect（P2⑭·活体臂强制分口）**：活体臂红（live 帧未在 `holdMs` 窗内到达 / `status===0` / `fetch` 未 resolve）**先分口再判红**，五读数原值入收据：①`getSseNotify().health()`（healthy/通道）；②`pg_trigger` 物证（`interview_event_sse_notify` 在场）；③**正控 catch-up 帧到达时刻**（证明 `waitFor` 已注册·`sse-pump.ts:169-170`）；④注入时刻 + 注入前后 `MAX(seq)` 账本读数（行是否真落）；⑤hold 读数（`holdMs`/abort 时刻/帧到达时刻）。判据：③缺失或晚于注入 → **REG-WINDOW/仪器误红**（非产品红）；①/② 不健康 → 环境/退化分口（打印读数·不判产品红）；④行在账而⑤窗外仍无帧 → **机制红**（走「机制不满足」·EXIT1 诚实保留）。**单次修复重跑**：仅允许一次修复（夹具/时序，**不改断言谓词**）后重跑；**红值留账**（五读数原值入收据/attempts），Ban retry-to-green、Ban 删红账。
+- **REG-WINDOW/仪器误红 bisect（P2⑭·活体臂强制分口）**：活体臂红（live 帧未在 `holdMs` 窗内到达 / `status===0` / `fetch` 未 resolve）**先分口再判红**，六读数原值入收据：①`getSseNotify().health()`（healthy/通道）；②`pg_trigger` 物证（`interview_event_sse_notify` 在场）；③**正控 catch-up 帧到达时刻**（证明 `waitFor` 已注册·`sse-pump.ts:169-170`）；④注入时刻 + 注入前后 `MAX(seq)` 账本读数（行是否真落）；⑤hold 读数（`holdMs`/abort 时刻/帧到达时刻）；⑥**`waitingCount()`（r2 新增·总数口径；健康态前置）**。判据：③缺失或晚于注入 → **REG-WINDOW/仪器误红**（非产品红）；①/② 不健康 → 环境/退化分口（打印读数·不判产品红）；④行在账而⑤窗外仍无帧 → **机制红**（走「机制不满足」·EXIT1 诚实保留）。**独立分口（r2 新增）**：**意外多帧**（帧数>期望/重复 seq）→ 先分清「跨流泄漏（机制红）」vs「同帧重复（泵/夹具）」；**意外 `: ping`** → 归健康/退化节奏分口（**非产品红**，不据此判隔离失败）。**单次修复重跑**：仅允许一次修复（夹具/时序，**不改断言谓词**）后重跑；**红值留账**（六读数原值入收据/attempts），Ban retry-to-green、Ban 删红账。
 - **红停特条（派单前置）**：若两流中任一**无 HTTP 级 SSE 端点** → 如实红停上报，**不得**降级为单元面/GET 轮询冒充。**本起草 turn 已亲点：两流均有真端点（§0.2-A/B）→ 特条未命中。**
 
 ## §9 状态
 
-**`draft:awaiting_pre_exec_dual`** · 2026-10-30 起草落卷（基线 `origin/main` @`1ca3ce1d` · 分支 `line/quizdx-draft` · worktree `meetwise-quizdx` · 零独有 commit）· 本卷 1 个 .md · **rev r1 同卷修订（零新增受管件）** · 零产品码零迁移零依赖 · 零 push 零主仓。
+**`draft:awaiting_pre_exec_dual`** · 2026-10-30 起草落卷（rev r2 基线 `origin/main` @`53cc4a434`·`1ca3ce1d→53cc4a434` rebase 后 · 分支 `line/quizdx-draft` · worktree `meetwise-quizdx` · 本支 docs-only 提交 r0/r1/r2 三件）· 本卷 1 个 .md · **rev r1/r2 同卷修订（零新增受管件）** · 零产品码零迁移零依赖 · 零 push 零主仓。
 
 **起草/修订门亲跑收据（EXIT 原值 · 本 turn）**：
 
 | 门 | 命令 | EXIT | 读数 |
 |---|---|---|---|
-| docs:check | `node scripts/ai-docs/check-docs.mjs` | **0** | `80 required files verified; public text policy scanned 2458 managed worktree files`（起草前 2457·本卷 +1；rev r1 同卷改·仍 2458） |
+| docs:check | `node scripts/ai-docs/check-docs.mjs` | **0** | `80 required files verified; public text policy scanned 2459 managed worktree files`（rev r2 rebase 到 `53cc4a434` 后：main 届树 2458 + 本卷 1；rev r1 时旧基线 2458） |
 | PTP | `pnpm public-text-policy:prove` | **0** | `static_preflight_valid: selected=12/12; releaseEvidence=false` |
 | markers | 五类标记词+行首冲突标记改动集 grep（词面运行时组装） | **0** | changeSet=本卷 1 件 · 零命中 |
 
-**rev r1 回炉（2026-10-30 · 本 commit）**：`git diff --name-status` 实测 **1 tracked（本卷）非 3 tracked**（P2③）·docs-only·零 policy 步进·STOP 三处维持 `draft:awaiting_pre_exec_dual`；修订 18 条落点见 §0.0.1.2。
+**rev r1 回炉（2026-10-30）**：`git diff --name-status` 实测 **1 tracked（本卷）非 3 tracked**（P2③）·docs-only·零 policy 步进·STOP 三处维持 `draft:awaiting_pre_exec_dual`；修订 18 条落点见 §0.0.1.2。
+
+**rev r2 回炉（2026-10-30 · 本 commit）**：双席 FAIL 互盲同判（席1 P1×2+P2×10 / 席2 P1×5+P2×5）→ 裁决按两席处方合并全采纳（去重 13 条·落点见 §0.0.2.2）。**核心五处**：①QD4/DX4 键域互斥（12 key 枚举·`uq_event_seq` 撞键消因）②`assertFrame` 改 buffer 切帧（删 `rawChunk===` 三处·网络 chunk 仅作旁证）③删 IV 线零 `: ping`（改帧集/域针+`waitingCount` 旁证）④判别针 JSON 化（`"marker":"d-iso-`/`"stream":"DX_ISO"` 形）⑤hold helper 改时间戳 reader（`chunks[{t,text}]`+`ids()`+`until()`+`abort()`+`sleep(60)`·回执门先于注入）。**基线**：fetch 亲点 `origin/main=53cc4a434` → rebase（r0/r1 内容零改写）·`docs:check` scanned 2459 ≤ 2_461（EXEC 2460 余 1）·断言预算 ≥64（6+9+7+10+6+9+7+10）。`git diff --name-status` 实测 **1 tracked（本卷）**·STOP 三处维持 `draft:awaiting_pre_exec_dual`。
 
 **待办（EXEC 立项前）**：pre-exec 双审（两外席 BOTH PASS）→ 协调方 EXEC 授权 → 届时 tip 全量重 pin → 落 proof 八臂 + 五处注册 + 收据 → 主门 EXIT 原值入 §9-EXEC（占位：本节后续追加 · 本卷不改写）。
