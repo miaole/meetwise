@@ -18,7 +18,7 @@
  * Ban假关 · Ban invent covered · Ban suite green / HA / R5 retired globally · Ban MySQL/Qdrant
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync, rmSync } from 'node:fs';
-import { assertCleanPorcelain } from './lib/uc-covered-real-gatherer.mjs';
+import { assertCleanPorcelain, nonNegatedMatch, parseNhpRow } from './lib/uc-covered-real-gatherer.mjs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import {
@@ -106,11 +106,11 @@ function assertPins(label, text, checks) {
 
 function cellStatus(cell) {
   const c = (cell || '').trim();
-  if (/\*\*blind\*\*|\bblind\b/i.test(c) && !/\*\*partial\*\*|\*\*covered\*\*/.test(c)) return 'blind';
-  if (/\*\*covered\*\*/.test(c)) return 'covered';
-  if (/\*\*partial\*\*|\bpartial\b/i.test(c)) return 'partial';
-  if (/\*\*gap\*\*|\bgap\b/i.test(c)) return 'gap';
-  if (/not_run|case-only|blocked/i.test(c)) return 'blind';
+  if (nonNegatedMatch(c, /\*\*blind\*\*|\bblind\b/i) && !/\*\*partial\*\*|\*\*covered\*\*/.test(c)) return 'blind';
+  if (nonNegatedMatch(c, /\*\*covered\*\*/)) return 'covered';
+  if (nonNegatedMatch(c, /\*\*partial\*\*|\bpartial\b/i)) return 'partial';
+  if (nonNegatedMatch(c, /\*\*gap\*\*|\bgap\b/i)) return 'gap';
+  if (nonNegatedMatch(c, /not_run|case-only|blocked/i)) return 'blind';
   return 'unknown';
 }
 
@@ -169,16 +169,18 @@ const col = {
 // in this knife (PERF/LOAD partial ≠ UC covered · covered-lift = separate later knife).
 const hasNhp018Perf = /NHP-018-PERF/i.test(nhp);
 const hasNhp018Load = /NHP-018-LOAD/i.test(nhp);
-const nhpPerfPartial = /NHP-018-PERF-01[\s\S]{0,400}?\|\s*\*\*partial\*\*/i.test(nhp);
-const nhpLoadPartial = /NHP-018-LOAD-01[\s\S]{0,400}?\|\s*\*\*partial\*\*/i.test(nhp);
-const nhpPerfCaseOnly = /NHP-018-PERF-01[\s\S]{0,400}?case-only/i.test(nhp) && !nhpPerfPartial;
-const nhpLoadCaseOnly = /NHP-018-LOAD-01[\s\S]{0,400}?case-only/i.test(nhp) && !nhpLoadPartial;
+const nhpRowPartial = (text, id) => parseNhpRow(text, id)?.status === 'partial';
+const nhpRowCaseOnly = (text, id) => parseNhpRow(text, id)?.status === 'case-only';
+const nhpPerfPartial = nhpRowPartial(nhp, 'NHP-018-PERF-01');
+const nhpLoadPartial = nhpRowPartial(nhp, 'NHP-018-LOAD-01');
+const nhpPerfCaseOnly = nhpRowCaseOnly(nhp, 'NHP-018-PERF-01') && !nhpPerfPartial;
+const nhpLoadCaseOnly = nhpRowCaseOnly(nhp, 'NHP-018-LOAD-01') && !nhpLoadPartial;
 const section102Row = matrix.match(/\| UC-E2E-018（abandon） \|([^|]+)\|([^|]+)\|([^|]+)\|/);
 const cell102 = (c) => {
   const s = String(c || '');
-  if (/\*\*partial\*\*/i.test(s)) return 'partial';
-  if (/case-only/i.test(s)) return 'case-only';
-  if (/\*\*blind\*\*|blind/i.test(s)) return 'blind';
+  if (nonNegatedMatch(s, /\*\*partial\*\*/i)) return 'partial';
+  if (nonNegatedMatch(s, /case-only/i)) return 'case-only';
+  if (nonNegatedMatch(s, /\*\*blind\*\*|blind/i)) return 'blind';
   return 'blind';
 };
 col.PERF = nhpPerfPartial || cell102(section102Row?.[1]) === 'partial'
@@ -195,6 +197,19 @@ col.LOAD = nhpLoadPartial || cell102(section102Row?.[3]) === 'partial'
     : hasNhp018Load
       ? 'case-only'
       : 'blind';
+
+// --- C-WORD-NEG status-arm negation injection · reassess host 4 arms ---
+// 每臂一条断言（文案含臂名）· neuter 态逐格恰红。
+if (cellStatus('not **blind**') === 'unknown') pass('ARM-5 reassess cellStatus: "not **blind**" ⇒ unknown');
+else fail('ARM-5 reassess cellStatus: "not **blind**" must ⇒ unknown');
+if (nhpRowPartial('| NHP-018-PERF-01 | 018 | PERF | api | **partial** | exp | not **partial** | notes |', 'NHP-018-PERF-01') === false) {
+  pass('ARM-7a reassess nhpRowPartial: PERF status cell "not **partial**" ⇒ false');
+} else fail('ARM-7a reassess nhpRowPartial: PERF status cell "not **partial**" must ⇒ false');
+if (nhpRowPartial('| NHP-018-LOAD-01 | 018 | LOAD | api | **partial** | exp | not **partial** | notes |', 'NHP-018-LOAD-01') === false) {
+  pass('ARM-7c reassess nhpRowPartial: LOAD status cell "not **partial**" ⇒ false');
+} else fail('ARM-7c reassess nhpRowPartial: LOAD status cell "not **partial**" must ⇒ false');
+if (cell102('not **partial**') === 'blind') pass('ARM-7b reassess cell102: "not **partial**" ⇒ blind (fallback)');
+else fail('ARM-7b reassess cell102: "not **partial**" must ⇒ blind (fallback)');
 
 note(`columns NEG=${col.NEG} FAULT=${col.FAULT} BOUND=${col.BOUND} ADV=${col.ADV} PERF=${col.PERF} LOAD=${col.LOAD}`);
 
