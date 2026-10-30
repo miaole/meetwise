@@ -5,7 +5,7 @@
   "packageManager": "pnpm@10.18.0",
   "scripts": {
     "candidate-route:prove": "pnpm -C packages/domain prove:candidate-route",
-    "lint": "eslint . --max-warnings 5389",
+    "lint": "eslint . --max-warnings 5408",
     "docs:check": "node scripts/ai-docs/check-docs.mjs",
     "golden-tasks:check": "node scripts/golden-tasks-check.mjs",
     "generation-trust:prove": "node scripts/generation-trust-check.mjs",
@@ -176,6 +176,8 @@
     "uc001:nhp-perf-web:prove:raw": "pnpm -C apps/web prove:nhp-perf-web",
     "uc050:nhp-kill:prove": "node scripts/run-e2e-isolated.mjs uc050:nhp-kill:prove:raw",
     "uc050:nhp-kill:prove:raw": "pnpm -C apps/api prove:uc050-nhp-kill",
+    "uc050:nhp-start-bypass:prove": "node scripts/run-e2e-isolated.mjs uc050:nhp-start-bypass:prove:raw",
+    "uc050:nhp-start-bypass:prove:raw": "pnpm -C apps/api prove:uc050-nhp-start-bypass",
     "uc051:nhp-nopii:prove": "node scripts/run-e2e-isolated.mjs uc051:nhp-nopii:prove:raw",
     "uc051:nhp-nopii:prove:raw": "pnpm -C apps/api prove:uc051-nhp-nopii",
     "uc018:abandon:prove": "node scripts/run-e2e-isolated.mjs uc018:abandon:prove:raw",

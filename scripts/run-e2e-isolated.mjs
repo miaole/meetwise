@@ -1252,6 +1252,20 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // UC-050 绕行残余登记刀（NHP-050-START-BYPASS-01 · REQUEST harness/uc50-REQUEST.md §1.5 rev r1
+  // 三证据臂·沿 uc050:nhp-kill 同形注册 additive·一行一 case 一收据·申请面夹具承 entpay-s2 真迁移链形）。
+  'uc050:nhp-start-bypass:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-050-nhp-start-bypass.proof.ts',
+    'apps/api/src/platform/content-safety.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/jobs/applications.service.ts', 'apps/api/src/modules/jobs/applications.controller.ts',
+    'apps/api/src/platform/all-exceptions.filter.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/recruiting/recruiter.ts', 'packages/db/src/routing/job-route-decision.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+  ],
   // NHP 开关刀 Row 2（UC-051 NOPII · blind→case）：业务哨兵日志扫描/trace 脱敏直行使（invoke 假模型
   // 零外呼驱动）/堆栈原文面。子进程 boot 真 HTTP+pino fd1 全量抓取（obs-logging 先例形）。
   'uc051:nhp-nopii:prove:raw': [
@@ -2945,6 +2959,8 @@ if (![
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
   'uc050:nhp-kill:prove:raw',
   'uc051:nhp-nopii:prove:raw',
+  // UC-050 绕行残余登记刀一行（NHP-050-START-BYPASS-01 · 一行一 case 一收据）。
+  'uc050:nhp-start-bypass:prove:raw',
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · 一行一 case 一收据）。
   'uc014:nhp-neg:prove:raw',
   'uc014:nhp-bound:prove:raw',
@@ -3387,6 +3403,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-adv']]
   : target === 'uc050:nhp-kill:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-kill']]
+  : target === 'uc050:nhp-start-bypass:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-start-bypass']]
   : target === 'uc051:nhp-nopii:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc051-nhp-nopii']]
   : target === 'uc014:nhp-neg:prove:raw'
@@ -4320,6 +4338,9 @@ async function main() {
   'uc030:nhp-adv:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
+  // UC-050 绕行残余登记刀一行（NHP-050-START-BYPASS-01 · pre-migrate 名单第四注册位·沿 uc050:nhp-kill
+  // 同形全登记：proof 内 runMigrations skip-or-apply 世界无关确定形·真迁移链单真相）。
+  'uc050:nhp-start-bypass:prove:raw',
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc014:nhp-neg:prove:raw', 'uc014:nhp-bound:prove:raw',
   // X33-ADV 七类越权补集三臂族（NHP-033-ADV-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
