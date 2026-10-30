@@ -1,6 +1,6 @@
 # UC2B REQUEST — UC-002 HTTP lease mouth（SSE 槽租约口）BOUND 孪生面 + snapshot 专用口边界起草卷·覆盖矩阵 §1.0.1 `:113` BOUND 格（partial 残面·§1.1 `:173` 残面注记两分口）（docs-only REQUEST 卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-26 起草落卷→同日 EXEC 立项落码行使（§0.0.3 r3 履行+§9-EXEC 落卷）→2026-10-30 post 双审同判 FAIL 后 P1/P2 修复落卷（§9-post-fix·双 fresh 重跑 34/34）·本卷不 claim 任何 covered 升格（EXIT0=case≠covered·coveredCount=8 零动·BOUND 格 partial 保持+case-only 措辞）· alone≠dual · Ban self-approve · post-prove dual 复审待审 · ⛔push）。
+**Status**: **`closed`**（2026-10-26 起草落卷→同日 EXEC 立项落码行使（§0.0.3 r3 履行+§9-EXEC 落卷）→2026-10-30 post 双审同判 FAIL 后 P1/P2 修复落卷（§9-post-fix·双 fresh 重跑 34/34）→同日 post-fix 复审 PASS 放行→协调方授权关闭（§9-CLOSE·前值 `executed:awaiting_post_prove_dual` 史录不洗）·本卷不 claim 任何 covered 升格（EXIT0=case≠covered·coveredCount=8 零动·BOUND 格 partial 保持+case-only 措辞）· alone≠dual · Ban self-approve · 关闭随行终验三门+并线 push/PR（§9-CLOSE）·证面（proof/收据/双表）冻结零触）。
 
 **席位**：UC2B 起草席（总盘 #16「NHP-017-HTTP-BOUND 孪生面/UC-002 HTTP lease mouth + snapshot 专用口（§1.1 残面）」·小-中 EXEC 刀·docs-only 起草·协调方派·与批 A/B/C 已并线卷、UC 专属线、在飞行行级互斥）。
 **基线**：`origin/main` @ **`33fdd233c`**（full `33fdd233c4069942569b12b40a95fc05ff448de2` · `git fetch origin` 本 turn 成功 · 分支 `line/uc2b-draft` 零独有 commit · worktree `meetwise-uc2b`）· `node scripts/ai-docs/check-docs.mjs` 本树亲跑 **EXIT=0 · scanned 2445**（stdout「public text policy scanned 2445 managed worktree files」亲读·= cap 2445 恰等零余量 · §2-1 预算核·步进已随本落卷行使）。
@@ -178,7 +178,7 @@ r3 P2 随立项日履行四件（派单语·执行席 2026-10-26 落卷）：
 
 本刀改动集（本卷 1 .md+policy 两 script 数值联动·起草 turn）五类标记词 + conflict-marker grep **零命中**（起草席亲跑·回执随 EXEC 收据留痕·词面运行时组装口径·不复抄卷内防自匹配——沿 X17 §7 同形制）。
 
-## §8 STOP · **`executed:awaiting_post_prove_dual`**（2026-10-26 EXEC 落卷翻面·起草停令条款史录保持·停止条件对 post-prove dual 审继续有效）
+## §8 STOP · **`closed`**（2026-10-30 post-fix 复审 PASS 放行→协调方授权关闭·前值 `executed:awaiting_post_prove_dual`（2026-10-26 EXEC 落卷翻面·2026-10-30 post-fix 落卷维持）史录不洗·起草停令条款与下表停止条件原文保留为结卷史录·本卷证据已冻结·零新 step 适用·关闭并线走 main（§9-CLOSE））
 
 **开工三条款**（EXEC 前置·缺一即停）：①pre-exec 双审 BOTH PASS 落卷（两独立外席·alone≠dual）；②协调方明示 EXEC 授权（含 §2-1 cap 步进 +8=2445→2453 追认）；③§1 修法面/§5 Ban/pins/§1.3 否决面零改动（§0 对开工 tip 全量重 pin）。停止条件：
 - **现场漂移**：届时 tip 对 §0.1/§0.2 任一锚 blob/机制漂移且结论受疑（`:113` BOUND 格列值被他刀改写 · 槽口嘴 `:257-:279`/`acquireSlot` 码面漂移 · 六既有收据被改写 · 红停两面被他刀落（造口/ADR 落地）· 在飞并线改写 case-matrix `:43` 邻区或 policy 注记栈致本卷 §2-1 分界面失准）→ 停·重 pin 回炉。
@@ -234,8 +234,23 @@ r3 P2 随立项日履行四件（派单语·执行席 2026-10-26 落卷）：
 
 **重跑门矩阵（post-fix·EXIT 原值）**：`pnpm uc002:nhp-http-bound:prove` **EXIT=0 双 fresh**（fresh1 34/34+fresh2 34/34·逐臂 6/3/2/3/4/16 两跑恒等·stdout receipts 11/12）·docs:check **EXIT=0·scanned 2455**（=cap 2_455 恰等·receipts 13）·PTP **12/12 EXIT=0**（receipts 14）·markers 五类+conflict 改动集 **0 命中**·provider-egress **EXIT=0**（receipts 15）·邻面 `uc002:http:prove` **13/13 EXIT=0**+`uc002:lease:prove` **EXIT=0**+`sse-slot:prove` **EXIT=0**（receipts 16-18）·`pnpm -C apps/api typecheck` **EXIT=0**·新 proof eslint **EXIT=0 零 warning**·diff 面=本卷+proof+runner+双表+policy 两脚本（CAP-SANCTION-2455 四联动点）+收据 10-18（.log 不计受管）。
 
-**STOP 终态**：维持 **`executed:awaiting_post_prove_dual`**（post-fix 完成≠post 复审 PASS≠covered·coveredCount=8 零翻转·`:113` BOUND 格 partial 保持+case-only·红停①②两面零臂零触·⛔push·待 post 复审）。
+**STOP 终态**：2026-10-30 post-fix 落卷时为 **`executed:awaiting_post_prove_dual`**（post-fix 完成≠post 复审 PASS≠covered·coveredCount=8 零翻转·`:113` BOUND 格 partial 保持+case-only·红停①②两面零臂零触·⛔push·待 post 复审）——同日 post-fix 复审 PASS 放行→协调方授权关闭，现翻 **`closed`**（前值史录不洗·关闭登记见 §9-CLOSE）。
+
+### §9-CLOSE 关闭登记（2026-10-30·post-fix 复审 PASS 放行·协调方授权关闭·复审九件在卷+随附 P2 观察六项逐条登记·证面冻结零触）
+
+**放行与关闭授权**：post 双审同判 FAIL→P1/P2 修复落卷（§9-post-fix 双 fresh 34/34）→post-fix 复审 **PASS**（协调方派单语；本卷未载席次明细，不代拟双签）→协调方授权关闭。复审九件（§9-post-fix「P2 逐条落点」1–9）已在卷；本节六项为复审随附 P2 观察，**全部登记为后继刀/勘误候选**——本卷 proof 码面、tracked 收据、双表（`e2e-requirement-coverage-matrix.md:113` BOUND 格 partial+case-only / `non-happy-path-perf-load-case-matrix.md:46` 行）均零触。
+
+1. **B6 增量臂 flake 硬化建议（后继刀候选·本卷零触）**：`B6.storm 6×429 期间 storm 主体 DB 触碰增量=0` 现判据=`baseline>=5 && calls===baseline`（`apps/api/test/uc-e2e-002-nhp-http-bound.proof.ts:424/:433-434`）。5 条 holder 若在风暴窗内被 notify 全醒重采（每轮 catch-up 5 次取数），增量可为 5 的整数倍，而拒连本身仍零取数——建议后继硬化：`delta % 5 === 0` 时判为 notify 全醒并重采基线。当前窗口命中概率约 0.2–0.5%（参与复审的观察值，本卷双 fresh 未命中）；登记为后继刀候选，Ban 借本注记改本卷 proof。
+2. **「零 DB 触碰」措辞收窄建议（勘误候选·只登记不改判据）**：该臂实际证明的是「6 条拒连无业务取数」——风暴模块 RateLimitService 为进程内 Map 形（槽位操作结构化零 DB），counting stub 只统计 asPrincipal 业务取数。建议后继将措辞收窄为「零业务取数（asPrincipal）+ Map 形槽位零 DB」，避免共享 lease 形落地后被读成全局「零 DB 触碰」。本卷断言文本与臂名不改（证面冻结）。
+3. **夹具事务 ROLLBACK 建议（后继刀候选）**：B6 前置夹具事务 `BEGIN`→`COMMIT`，`finally` 仅 `cli.release()`（`:260-279`）；异常路径无显式 `ROLLBACK` 即回池。建议后继在 `catch`/`finally` 补 `ROLLBACK`（或 `SAVEPOINT` 形），防连接池残留未闭合事务。本卷夹具零触。
+4. **B6.failopen 活性门建议（后继刀候选）**：`B6.failopen` 现为「boot 栈 6 并发 /events 全 200」的结果面证伪（`:444-446`）；若 fail-open 分支未被实际走到（如共享模式未尝试），臂仍可绿。建议后继补活性门（共享模式尝试计数>0 / 降级标记出现 / 探测节流观测），使「fail-open 被行使」可独立证伪。本卷零触。
+5. **防证清单 digest 差登记（勘误候选·如实登记）**：post-fix run1 红版 proof digest=`30efa5d1`（`.tmp/isolated-proof-receipts/2026-10-30T04-00-06-442Z-36190-c3efa7d8-e18e-4165-b789-5044e74ba6a1.json`·outcome=failed/exitCode=1）·中间绿版=`72302592`（04-00-56 / 04-04-03 / 04-04-31 三份）·终稿=`4cf486f0`（04-06-58 / 04-07-21 两份·与提交 proof 字节一致，§9-post-fix 已记）。红版收据只对应旧 proof 字节，**不得用作终稿证据**；§9-post-fix 已记红次根因与修正，但未记 digest 差——本条补登。后继防证清单建议同时列三档 digest 与对应收据号。
+6. **post-fix markers/typecheck 收据留档状态（如实降级登记）**：§9-post-fix 门矩阵记「markers 零命中」「typecheck EXIT=0」，但 tracked 收据 10–18 号无 markers/typecheck 专件；typecheck stdout 仅存在于未跟踪 `.tmp/uc002-nhp-http-bound-postfix/typecheck.stdout.log`，markers 无 stdout 留档。**如实降级为「亲跑未留档」**（不改门矩阵结论、不回补伪件）；后继门收据应附逐件清单与 stdout。
+
+**Non-claims（翻面不洗）**：卷 `closed` ≠ covered ≠ HA ≠ 生产容量 ≠「HTTP lease mouth 已闭合」≠「snapshot 专用口已闭合」。coveredCount=8 零翻转·EXIT0=case≠covered·`:113` BOUND 格 **partial** + case-only 保持·`:173`/`:269`/`:147` 措辞零触仍真·红停① HTTP thread lease CAS 产品口（`GAP-UC002-HTTP-LEASE-MOUTH`）与红停② snapshot 专用口（`GAP-UC002-SNAPSHOT-ROUTE`）两面零臂零触·Pins 十一值零翻。
+
+**关闭随行终验三门+并线（本次实跑值）**：fetch EXIT=0·届值 origin/main `44f624253`（较本支合并点 a566902e3 无新提交·merge **Already up to date** 零冲突·dual-keep 未需要）·`pnpm install --frozen-lockfile` EXIT=0·docs:check EXIT=0 scanned **2455=cap 2_455 恰等**（零新受管文件·零步进·常设预授权未动用）·PTP 12/12 EXIT=0·markers 五类+行首冲突标记关闭改动集零命中·产品源对届值零 diff·成果入 PR（base main）+`gh pr merge --merge --auto` 武装。
 
 ---
 
-*UC2B REQUEST · 2026-10-26 起草落卷 · 认领=UC-002 BOUND 格（`:113`）HTTP 槽租约口层残余（`NHP-002-HTTP-BOUND-01` B1–B6 六臂两载体·与 sse-slot HC-GAP-007/XR-4 集群面/五 case 429 子臂/uc002 三 prove reason 级可分·§1 非替代申明）· **红停双标注如实入卷**：HTTP thread lease CAS 产品口（eval §1b#1·产品口不存在不可测）+snapshot 专用口（eval §1b#2·路由+ADR 双零不可测）——两面**零他刀落零重叠登记**·裁决权归协调方·Ban 借本卷宣两面闭合（`:173`/`:269` 措辞仍真零触）· 矩阵 fresh 行号=`:113`/`:122`/`:173`/`:182`/`:267`/`:269`+case-matrix `:43`/`:66`/`:68-:77` @`33fdd233c` 亲点 · 槽口嘴锚=`interview.controller.ts:261-:262`（`sse:${principal}` 键+429 `too_many_streams` 具名码）+`:278` finally 释放+`rate-limit.service.ts:158-:198`（进程内 Map 形/fail-open `:173-:175` 机制源）· cap 步进 **2445→2453**（docs:check scanned 2445=cap 恰等+REQUEST 1 件必越·起草刀 +8 先例形·PTP 12/12 EXIT=0 亲跑·起草树终态 2446≤2453·EXEC +1 预登 2447≤2453）· keyless=eval `:7` 亲证 · est live=0 · markers=0 · pins 十一值零翻 · releaseEvidence=false · ≠HA · ⛔push*
+*UC2B REQUEST · 2026-10-26 起草落卷 · 2026-10-30 §9-post-fix 修复落卷 · 2026-10-30 post-fix 复审 PASS 放行→协调方授权关闭 · **STOP=`closed`**（三处钉：Status 行+§8+本行·同值·前值 `executed:awaiting_post_prove_dual`（2026-10-30 post-fix 落卷）史录不洗·更前值 `draft:awaiting_pre_exec_dual` 史录不洗·复审九件+六项随附 P2 观察随 §9-CLOSE 登记·证面冻结零触）· 认领=UC-002 BOUND 格（`:113`）HTTP 槽租约口层残余（`NHP-002-HTTP-BOUND-01` B1–B6 六臂两载体·与 sse-slot HC-GAP-007/XR-4 集群面/五 case 429 子臂/uc002 三 prove reason 级可分·§1 非替代申明）· **红停双标注如实入卷**：HTTP thread lease CAS 产品口（eval §1b#1·产品口不存在不可测）+snapshot 专用口（eval §1b#2·路由+ADR 双零不可测）——两面**零他刀落零重叠登记**·裁决权归协调方·Ban 借本卷宣两面闭合（`:173`/`:269` 措辞仍真零触）· 矩阵 fresh 行号=`:113`/`:122`/`:173`/`:182`/`:267`/`:269`+case-matrix `:43`/`:66`/`:68-:77` @`33fdd233c` 亲点 · 槽口嘴锚=`interview.controller.ts:261-:262`（`sse:${principal}` 键+429 `too_many_streams` 具名码）+`:278` finally 释放+`rate-limit.service.ts:158-:198`（进程内 Map 形/fail-open `:173-:175` 机制源）· cap 步进 **2445→2453**（docs:check scanned 2445=cap 恰等+REQUEST 1 件必越·起草刀 +8 先例形·PTP 12/12 EXIT=0 亲跑·起草树终态 2446≤2453·EXEC +1 预登 2447≤2453）· keyless=eval `:7` 亲证 · est live=0 · markers=0 · pins 十一值零翻 · releaseEvidence=false · ≠HA · executed 窗 ⛔push 条款随复审 PASS 放行解除·关闭并线 push/PR 已行使（§9-CLOSE）*
