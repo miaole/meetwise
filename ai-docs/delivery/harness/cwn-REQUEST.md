@@ -1,6 +1,6 @@
-# Harness — **C-WORD-NEG · UC-018 follow-up 词面负例（覆盖状态解析器词面边界 NEG）起草任务书**（Line CWN · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · NEG 臂设计起草卷 · rev r7 · 起草落卷即停）
+# Harness — **C-WORD-NEG · UC-018 follow-up 词面负例（覆盖状态解析器词面边界 NEG）起草任务书**（Line CWN · docs REQUEST · **`draft:awaiting_pre_exec_dual`** · NEG 臂设计起草卷 · rev r8 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-26 起草落卷 · rev r1 回炉修订 2026-10-30（双席 FAIL 同判·修订清单九件全采纳·§0.0.2）· rev r2 回炉修订 2026-10-30（r2 双席 FAIL 互盲同判·两席清单合并去重全采纳·窗形裁决＝后向邻接·§0.0.3）· **rev r3 回炉修订 2026-10-30**（r3 双席 FAIL 互盲同判：①span 正则 `m.index` 指向行 ID 致否定判定空转 ②验收面仅覆 4/11 函数·两席清单合并去重全采纳·锚点按 site 分形钉死·§0.0.4）· **rev r4 回炉修订 2026-10-30**（r4 双席 FAIL 互盲同判：①ARM-7a「基线 true」系假值——现行 span 形 `|` 后紧接 `**partial**`，合成行 status 格 `not **partial**` 不命中 ②site 10 `nhpLoadPartial` 无臂 ③第二通路 `not still X` 中 `still` 不在分隔符类、不在邻接语义内；两席清单合并去重全采纳·§0.0.5）· **rev r5 回炉修订 2026-10-30**（r5 席1 FAIL·**零 P0/P1**·仅 P2×2+P3×5 全采纳：锚点/描述与机制源逐字更正·§0.0.6）· **rev r6 终轮回炉 2026-10-30**（r6 双席 FAIL 互盲同判·协调方时间盒裁决**最后一轮**：site 3 `case-only` 锚点 `:73`→**`:74`** 修正 + 采席2 方案 (b) 子臂登记排除（不补臂）·两席清单合并全采纳·§0.0.7）· **rev r7 回炉修订 2026-10-30**（r7 双席 FAIL 互盲同判 P1×1·协调方裁决**采方案 A**：负验证步前移至「最终还原 H0」之前·三宿主 delta 4/10/3=17·§0.0.8）· docs-only 起草卷·本步零码面零 NEG 臂零收据件·后继 EXEC 待协调方派单 + fresh pre-exec dual 放行·alone≠dual·Ban self-approve）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-26 起草落卷 · rev r1 回炉修订 2026-10-30（双席 FAIL 同判·修订清单九件全采纳·§0.0.2）· rev r2 回炉修订 2026-10-30（r2 双席 FAIL 互盲同判·两席清单合并去重全采纳·窗形裁决＝后向邻接·§0.0.3）· **rev r3 回炉修订 2026-10-30**（r3 双席 FAIL 互盲同判：①span 正则 `m.index` 指向行 ID 致否定判定空转 ②验收面仅覆 4/11 函数·两席清单合并去重全采纳·锚点按 site 分形钉死·§0.0.4）· **rev r4 回炉修订 2026-10-30**（r4 双席 FAIL 互盲同判：①ARM-7a「基线 true」系假值——现行 span 形 `|` 后紧接 `**partial**`，合成行 status 格 `not **partial**` 不命中 ②site 10 `nhpLoadPartial` 无臂 ③第二通路 `not still X` 中 `still` 不在分隔符类、不在邻接语义内；两席清单合并去重全采纳·§0.0.5）· **rev r5 回炉修订 2026-10-30**（r5 席1 FAIL·**零 P0/P1**·仅 P2×2+P3×5 全采纳：锚点/描述与机制源逐字更正·§0.0.6）· **rev r6 终轮回炉 2026-10-30**（r6 双席 FAIL 互盲同判·协调方时间盒裁决**最后一轮**：site 3 `case-only` 锚点 `:73`→**`:74`** 修正 + 采席2 方案 (b) 子臂登记排除（不补臂）·两席清单合并全采纳·§0.0.7）· **rev r7 回炉修订 2026-10-30**（r7 双席 FAIL 互盲同判 P1×1·协调方裁决**采方案 A**：负验证步前移至「最终还原 H0」之前·三宿主 delta 4/10/3=17·§0.0.8）· **rev r8 终落卷席 2026-10-30**（r8 双席 FAIL 互盲同判·**协调方时间盒硬裁决：本轮按两席处方逐字落卷后即收敛、不再派双审、本轮后直接放行 EXEC**·席1 P1×1+席2 P1×2+P2×6+P3 批合并去重 11 件全采纳·§0.0.9）· docs-only 起草卷·本步零码面零 NEG 臂零收据件·后继 EXEC 待协调方派单 + fresh pre-exec dual 放行·alone≠dual·Ban self-approve）。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`（十值零翻转·本刀全卷不改）。
 **Date**: 2026-10-30
 **Base / tip**: 起草时点 `origin/main` **`af273901a`** / full `af273901a165c910fe16cfef675d122812d3e779`（#181 isob 合卷已落）；**r2 现场漂移如实采（2026-10-30 r2 亲跑·`git fetch origin` EXIT=0）**：`origin/main` 届值 **`44f624253`**（#177 uc50 二轮并线已落·cap 届值 `MAX_FILES=2_452` 亲证）——**`af273901a` 已非 origin/main 届值**，本卷不重定基线、不 rebase、不追并线（EXEC 立项日按当时届值重导·§4）；**r4 现场漂移如实采（2026-10-30 r4 亲跑·`git fetch origin` EXIT=0）**：`origin/main` 届值 **`3af835ad4`**（#183 uc2b 并线已落·cap 届值 `MAX_FILES=2_455` 亲证）——r2 的 `44f624253`/2452 亦已推移，**两代届值均只登不用**；worktree `meetwise-cwn` · branch `line/cwn-draft` · ⛔动主仓 · ⛔push。
@@ -85,17 +85,37 @@
 ## 0.0.8 rev r7 回炉（2026-10-30 · r7 双席 FAIL 互盲同判 P1×1 · 协调方裁决采方案 A · 两席清单合并去重全采纳 · 卷内落点索引）
 
 - **入卷因由**：r7 pre-exec dual **两席均 FAIL**，互盲同判 **P1 同根**——§2.4 负验证（原第 7 步）排在「最终还原 H0」（原第 4 步）**之后**：跑到负验证时树内 artifact 已在场，`reassess :70-76` `assertCleanPorcelain` 早退 `exit(1)`（**零断言**），且 neuter 临时 commit 清不掉 untracked artifact → **四臂恰红不可得**；r6「负验证 4 FAIL」在门序上**不可达**。
-- **协调方裁决（采席2 方案 A·门序重排）**：**负验证步前移**到「最终还原 H0」**之前**（artifact 仍在工作区外时跑）；末步改为「**移出 H′ → 从 H0 副本逐字节还原 → 核 hash `9e541f5e…`**」。**同一 neuter commit 下三宿主并跑**：reassess `21+4=25` / cite `39+10=49` / lift `15+3=18`，**三件 delta 合计 17** 后方可还原 commit；**只报 reassess 4 格＝以 4 冒充 17**，违本卷 Ban。
+- **协调方裁决（采席2 方案 A·门序重排）**：**负验证步前移**到「最终还原 H0」**之前**（artifact 仍在工作区外时跑）；末步改为「**移出 H′ → 从 H0 副本逐字节还原 → 核 hash `9e541f5e…`**」。**同一 neuter commit 下三宿主顺序跑（r8 更正：原「并跑」→ `reassess→cite→lift` 固定序·lift 末位）**：reassess `21+4=25` / cite `39+10=49` / lift `15+3=18`，**三件 delta 合计 17** 后方可回滚 neuter commit（**回修法 commit B1 态·非基线 tip**）；**只报 reassess 4 格＝以 4 冒充 17**，违本卷 Ban。
 - **修订索引（两席 P1×1 + P2×3 + P3×5 合并去重·全采纳）**：
   ①[P1 方案 A] 门序重排（负验证前移·末步移出 H′→还原 H0→核 hash）+ reassess 基线 **21+4=25 FAIL**（差集逐字·4 为臂 delta·Ban 断言总数 4）→ §2.4-4/5 + §2.5；
-  ②[P2] 三宿主并跑 delta **4/10/3=17**（cite 先保 artifact 在工作区外·`criterion :749` 同族 porcelain 门）→ §2.4-4 + §2.5 + §8；
+  ②[P2] 三宿主**顺序** delta **4/10/3=17**（r8 更正「并跑」；cite 先保 artifact 在工作区外·`criterion :749` 同族 porcelain 门）→ §2.4-4 + §2.5 + §8；
   ③[P2] 清场核三类（+reassess 探针 `.tmp-lift-porcelain-probe-uc018.txt`·`:336` 定义/`:338` 写/`:344` rmSync·**仓根**·`.gitignore:15` 的 `.tmp/` 不覆盖）+ `find <root> -maxdepth 1 -name '.tmp-*probe*'` 复核 → §2.4-1 + §5；
   ④[P2] ARM-4a 同树修前 B0：0a 清场后取 B0（artifact 已移出）/ 0b 落码 commit / 0c 跑 B1 / 0d B0≡B1；r2 的 39/15/21 降为交叉校验不作恒等锚 → §2.4-0；
-  ⑤[P3] 「不设豁免口」限定函数级（子臂按下一目登记）· §2.6 行 3 注入臂 ARM-1/2→**ARM-2** · §2.3 `#4` 整行夹具（status 格 index 7=`not **partial**`·防 fail-closed 假绿）· note d-1 `:676-677`/`:681-682`/`:690-691` · §0.0.7⑥ 锚点改「整行哨兵末位登记（现 :172）」· §3/§6 量化锚（**+1.82ms/858 格×3 parser·3.63→5.45ms·零 I/O 零轮询零锁**）· criterion 探针改「`:526-528` try/finally 块」→ §2.6 + §2.3 + §1.1 + §0.0.7 + §3 + §6 + §2.4-1；
+  ⑤[P3] 「不设豁免口」限定函数级（子臂按下一目登记）· §2.6 行 3 注入臂 ARM-1/2→**ARM-2** · §2.3 `#4` 整行夹具（status 格 index 7=`not **partial**`；原「防 fail-closed 假绿」已由 r8 删）· note d-1 `:676-677`/`:681-682`/`:690-691` · §0.0.7⑥ 锚点改「整行哨兵末位登记（现 :172）」· §3/§6 量化锚（**+1.82ms/858 格×3 parser·3.63→5.45ms·零 I/O 零轮询零锁**）· criterion 探针改「`:517` try / `:527` finally / `:528` rmSync」块（r8 锚点精化·r7 稿 `:526-528` 不确）→ §2.6 + §2.3 + §1.1 + §0.0.7 + §3 + §6 + §2.4-1；
   ⑥ 本小节。
 - **行号口径**：本条及 r7 清单中的行号锚对 **r6 卷面**（§0.0.8 插入前）亲点；插入后正文行号顺延，语义锚以节名/函数名为准。
 - **处方逐字偏差（r7 更正·按机制源落）**：派单 ② 括注「cite … 免 `:749` porcelain FAIL」——机制源 `:749` 属 **criterion**（`uc-e2e-018-covered-criterion.proof.mjs:749` `assertCleanPorcelain`）；**cite 宿主自身无 porcelain 门**（`eval-harness-matrix-cite.proof.mjs` 零 `assertCleanPorcelain`/零 `DIRTY_TREE`）。本卷按源记为「`criterion :749` 同族门」，**移出 artifact 的动作与三宿主 delta 口径零改**（仅归属与行号校正，不构成修订与机制源冲突）。
+- **门值口径（r8 补）**：r7 门只含 **docs:check / PTP / markers**（四 prove 未复跑·沿用 r2 值）；r7 门值当轮**未单列落卷**，§6 以 **r8 本轮同树复跑值**承登（同口径：docs:check 清场核后 EXIT=0/scanned 2448、PTP EXIT=0 12/12、markers hits=0）。
 - **STOP 维持**：卷内三处（标题 · Status · 卷尾注）仍 `draft:awaiting_pre_exec_dual`——r7 只改卷面门序与计数口径，**不放行 EXEC**；再放行须 fresh dual（r1–r7 均未放行）。r6「时间盒最后一轮」经协调方 r7 派单延续修订。
+- **零证据面翻转**：Pins 十值零翻转；`apps/*/src`/`packages/*/src` 零 diff；本 rev 只改本卷 `.md` 一件（§9）。
+
+## 0.0.9 rev r8 终落卷席（2026-10-30 · r8 双席 FAIL 互盲同判 · 协调方时间盒硬裁决「本轮按两席处方逐字落卷后即收敛·不再派双审」 · 两席清单合并去重全采纳 · 卷内落点索引）
+
+- **入卷因由**：r8 pre-exec dual **两席均 FAIL**，互盲同判——**席1 P1×1**：§2.6 行 1 把 `cellStatusLegacy018` 记为 `ARM-1/2/3`，照表落臂会造**恒红**（ARM-2 `**case-only**（not partial）` 在 legacy018 修后返 `'blind'`（r8 探针按 §2.1 判准形复算），而 §2.2 期望 `case-only`）与**零 delta**（ARM-3 拉低 `still **partial**（not gap）` 在 legacy018 基线 `'partial'`、修后 `'partial'`＝期望同值）→ **17 格恰红不可达**；**席2 P1×2**：①§2.4-0a/0c 四 prove 含 `lift`（`:220` 无条件写盘）与批内后序 porcelain 门自相矛盾 ②「三宿主并跑」与负验证净树/门序矛盾（lift 写盘后任何后序 porcelain 门必 `DIRTY_TREE`）。
+- **协调方时间盒硬裁决**：本轮**按两席处方逐字落卷后即收敛**，**不再派双审**；**本轮落卷后由协调方直接放行 EXEC**——卷面 STOP 值**不自行翻面**（翻面动作归协调方），fresh dual 步骤按本裁决免除。
+- **修订索引（11 件·合并去重·全采纳）**：
+  ①[P1 席1] §2.6 行 1 改 `ARM-1（五）· cite` + §2.3.1 补 cite 分账 `10 = #1 五 + #2 二 + #3 二 + #4 一` + §2.3 表注/§2.3.1 宿主行钉「**臂→函数以 §2.3 对码列为准·§2.6 列不得扩展**」；
+  ②[P1 席2-A] §2.4-0a/0c 批内固定序 **cite→criterion→reassess→lift**（lift 末位）·批末把树内产物（H′）移入**独立弃置区**（与 H0 保管区路径不同）·**H0 保管区只在首轮清场写一次·明文 Ban 覆盖**·第 1 步「核 hash」对象明示为 **H0 保管副本**；
+  ③[P1 席2-B]「并跑」改「**同一 neuter commit 下顺序跑 reassess→cite→lift**（lift 末位·其后不得再跑任何 porcelain 门）」+ §8 Ban「三宿主真并发」；
+  ④[P2] §2.4-0b pathspec：只 `git add scripts/*.mjs`（+本卷若需）·**Ban `git add -A`/`git add .`**（0a 后树内有 untracked H′，误 add 即脏）；
+  ⑤[P2] neuter 语义钉死：「**保留函数提取与臂接线·仅令 `isNegatedHit` 恒 false**」（Ban 回退修复前源码→`ReferenceError`）；
+  ⑥[P2] 17 强制证据面：EXEC 收据**强制列三宿主逐字差集 `25−21`/`49−39`/`18−15`（17 行）或集合 hash**；
+  ⑦[P2] neuter commit 回滚路径：`git log -1` 自检 neuter 标记 + 反向 commit/reset **回修法 commit（B1 态）**；
+  ⑧[P2]「还原 commit」二义消解：「回基线 tip」→「**回到修法 commit（B1 态）**」+ 还原后实证（HEAD 断言 + 17 臂复绿）；
+  ⑨[P2] `STATUS-NOT-COVERED` 假阳性登记（`\bnot\b` 对 SCREAMING-KEBAB 枚举误触发·当前被同格 GAP 掩蔽·**登记例外·不改 matcher**）；
+  ⑩[P3 批] `#4` 表注删「防 fail-closed 假绿」过度声明 · 探针锚精度（criterion `:517` try/`:527` finally/`:528` rmSync；reassess `:343` finally/`:344` rmSync）· §2.4-4 cite 括注改「同批 reassess `:72` + 末段 docs:check 计面」· find 复核 `|| exit 1` · §6 补 r7 门值 + 口径句 · 量化锚 #6 全 matrix 面显式排除 · `.`/`。` 不入分隔符类·`not. partial` 不承诺 · ARM-6c 本体/buggy 复跑措辞区分 · §2.6 宿主分工改函数编号 #9/#10/#11 · 臂文案唯一性（每臂一条断言·文案含臂名）；
+  ⑪ 本小节。
+- **STOP 维持**：卷内三处（标题 · Status · 卷尾注）仍 `draft:awaiting_pre_exec_dual`——r8 只改卷面臂归属与门序路径，**翻面归协调方**（时间盒裁决：本轮后直接放行 EXEC）。
 - **零证据面翻转**：Pins 十值零翻转；`apps/*/src`/`packages/*/src` 零 diff；本 rev 只改本卷 `.md` 一件（§9）。
 
 ## 1. 产品面侦察（只读取证 · file:line 全引 · blob 对 tip `af273901a` 亲算）
@@ -205,7 +225,8 @@ export function isNegatedHit(text, hitIndex) {
   - **`未` 不入表**：r2 实测裸 `未` 对「未进/未齐」误触发——**扩展前先收窄**，裸 `未` 留待专刀；`不得`/`禁止`/`Ban`/`不可` 同不入 status 表（仅 `gapClosedInText` 的 banNear 保留）。
   - **中文否定收窄登记（r3 增列·留待专刀）**：实测 `不是 **partial**` / `无 **partial**` / `没有 **partial**` **仍返 `partial`**（未入表＝已知缺口·与 `未` 同格登记）；**`并非 **partial**` 不属缺口**（r3 实测返 `unknown`——`非` 邻接分支连带命中），r3 稿曾误列，**如实更正·勿重复登记**。
   - **裸 `非` 禁全文匹配**：只许本 matcher 邻接分支；`非常 **partial**` / `非空 **gap**` 不误抑（r3 复测仍成立）。
-  - **分隔符类＝「标点」措辞对齐（r3）**：本卷「标点」一律指 `[\s*_~\-–—:：()（）\[\]{}|,，、；;]`（空白/星号/下划线/波浪/破折/连接号/冒号/中英括号/方括/花括/竖线/逗号顿号分号）——**该字符类即定义，别处不再另立「标点」义**。
+  - **分隔符类＝「标点」措辞对齐（r3）**：本卷「标点」一律指 `[\s*_~\-–—:：()（）\[\]{}|,，、；;]`（空白/星号/下划线/波浪/破折/连接号/冒号/中英括号/方括/花括/竖线/逗号顿号分号）——**该字符类即定义，别处不再另立「标点」义**。**（r8 登记）`.`/`。` 不入该类**——`not. partial` **不承诺**被否定（点号切断邻接），EXEC 不得为该形设臂、不得扩类收编。
+  - **`\bnot\b` 对 SCREAMING-KEBAB 枚举的假阳性登记（r8 P2·登记例外·不改 matcher）**：`matrix:177`（UC-E2E-011）备注格含 `STATUS-NOT-COVERED`，`\bnot\b` 会命其中 `NOT`，再借分隔符类中的 `-` 紧邻其后的 `covered` 正向 hit → **误判为否定**（r8 探针：该格 `covered` 命中在字符偏移 **1317** 处被弃）。**当前被同格 GAP 掩蔽**——同一格另有多枚 `gap` 正向命中，conservative min 仍 `gap`、解析值不变，**非现行误判**。**本卷如实登记为例外**；matcher 未加 `(?![A-Z])` 上下文排除（零语义变更·时间盒）；EXEC 若采上下文排除，须重跑 §2.3 全表 sweep 并复核本格。
   - **为何不复用 banNear**：banNear 服务 `gapClosedInText` 的**成对词窗**语义（CLOSED/已关 与否定词可相隔 ≤48/16 字仍算成对），与 status 词的**紧邻否定**语义不同；共享会把闭包判定拖进 status 域（同一 `no` 在两域含义不同），且会连带把 `未`/`≠ closed` 等闭包专用词元带入 status 臂。**两表独立维护**：改 status 表不动 banNear，反之亦然。
   - **单一 helper 落位**：`isNegatedHit` 落 `uc-covered-real-gatherer.mjs` 并 export；**11 个函数全共用**（cite legacy018/conservative 与 reassess/lift 各件从 gatherer import——gatherer 为纯模块、顶层零副作用，已有 `assertCleanPorcelain` import 先例）。**修法即测法**：同一 helper 既实现又作为断言对象，杜绝两处实现漂移。
 - **第二通路与守卫子句（r3 P2·r4 改定性）**：
@@ -247,9 +268,11 @@ export function isNegatedHit(text, hitIndex) {
 | ARM-3 | `not partial` | `partial` | `unknown` | `unknown` | `:462-465` | 真红 |
 | ARM-3 守卫 | `still **gap**（not partial）` | `gap` | `gap` | `unknown` | `:456`/`:462-465`/`:470-472` | 守卫臂（出生即绿） |
 | ARM-3 拉低 | `still **partial**（not gap）` | `gap` | `partial` | `unknown` | 同上 | 真红（拉低形） |
-| `#4` | **整行夹具** `\| NHP-018-FAULT-01 \| 018 \| FAULT \| api \| inj \| exp \| not **partial** \| notes \|`（status 格 **index 7**=`not **partial**`） | `partial` | `unknown` | `unknown` | `:86` | 真红（粗体否定·整行夹具防 fail-closed 假绿） |
+| `#4` | **整行夹具** `\| NHP-018-FAULT-01 \| 018 \| FAULT \| api \| inj \| exp \| not **partial** \| notes \|`（status 格 **index 7**=`not **partial**`） | `partial` | `unknown` | `unknown` | `:86` | 真红（粗体否定·整行夹具） |
 
-**（表注 r3·r6 统一 §2.6 函数编号）** 上表 13 行仅覆 **§2.6 函数 #1–#4**（cite legacy018/conservative/`#4`→gatherer parseNhpRow）——**函数 #5–#11 零臂**，故 r3 增列下表 2.3.1（两席 P1 同判：验收面 4/11 不可证伪）。**本卷此后以 §2.6 函数编号 #1–#11 指代，不再用易混的 site 编号指代函数。**
+**（`#4` 标注更正 r8 P3）**：该臂期望值＝`unknown`，**不能区分「恰接 per-cell 否定」与「全格 fail-closed」**——原标注「防 fail-closed 假绿」系**过度声明·已删**；正向方向由 ARM-1 五臂 / ARM-2 / ARM-3 的**非 unknown 期望值**承担。**不得**据此臂宣称 fail-closed 判别力（补正向臂须另立并重算 17）。
+
+**（表注 r3·r6 统一 §2.6 函数编号）** 上表 13 行仅覆 **§2.6 函数 #1–#4**（cite legacy018/conservative/`#4`→gatherer parseNhpRow）——**函数 #5–#11 零臂**，故 r3 增列下表 2.3.1（两席 P1 同判：验收面 4/11 不可证伪）。**本卷此后以 §2.6 函数编号 #1–#11 指代，不再用易混的 site 编号指代函数。** **臂→函数以本 §2.3/§2.3.1 对码列为准·§2.6「注入臂 / 宿主」列不得扩展（r8 P1）**：§2.6 行 1 曾写 `ARM-1/2/3`，照该列落臂会造**恒红**（ARM-2 `**case-only**（not partial）` 在 legacy018 修后返 `'blind'`，§2.2 期望 `case-only`）与**零 delta**（ARM-3 拉低 `still **partial**（not gap）` 基线 `'partial'`＝修后 `'partial'`）→ 17 格恰红不可达。
 
 **§2.3.1 补臂：函数 #5–#11 注入臂（r3 P1 · r4 补 #10·逐个亲测判别力）**
 
@@ -260,7 +283,7 @@ export function isNegatedHit(text, hitIndex) {
 | ARM-5 | reassess `cellStatus`（§2.6-5 `:107`/`:109`） | `not **blind**` | `blind` | `unknown` | **判别**（恰红） |
 | ARM-6a | lift `advIsBlind`（§2.6-7 `:132`） | `not **blind**` | `true` | `false` | **判别**（恰红） |
 | ARM-6b | lift `advIsPartial`（§2.6-8 `:139`） | `**case-only**（not partial）` | `true` | `false` | **判别**（恰红） |
-| ARM-6c | lift `advBlind`（§2.6-6 `:125`·整行哨兵·合成行） | `\| UC-E2E-018 \| **partial** \| **partial** \| **partial** \| not **blind** \|` | `true` | `false` | **判别**（恰红·**同时是锚点臂**：以 buggy 锚点 `m.index` 直传时本臂**必仍 true**＝空转反证·§2.5 记作机制反证非臂） |
+| ARM-6c | lift `advBlind`（§2.6-6 `:125`·整行哨兵·合成行） | `\| UC-E2E-018 \| **partial** \| **partial** \| **partial** \| not **blind** \|` | `true` | `false` | **判别**（恰红·**本体＝hit 子偏移**）；**buggy 复跑另记**：以 buggy 锚点 `m.index` 直传时本臂**必仍 true**（空转反证）——该复跑**非臂、不入 17 格**（§2.5 机制反证）；**本体与复跑两形文案须分开写**，不得混述 |
 | ARM-7a | reassess `nhpPerfPartial`（§2.6-9 `:172`·per-cell·合成行·**r4 替换夹具**） | `\| NHP-018-PERF-01 \| 018 \| PERF \| api \| **partial** \| exp \| not **partial** \| notes \|` | `true` | `false` | **判别**（恰红·per-cell 后 span 预算不参与） |
 | ARM-7c | reassess `nhpLoadPartial`（§2.6-10 `:173`·per-cell·合成行·**r4 镜像臂**） | `\| NHP-018-LOAD-01 \| 018 \| LOAD \| api \| **partial** \| exp \| not **partial** \| notes \|` | `true` | `false` | **判别**（恰红·与 ARM-7a 同形镜像） |
 | ARM-7b | reassess `cell102`（§2.6-11 `:179`） | `not **partial**` | `'partial'` | `'blind'`（cell102 兜底支） | **判别**（恰红·断言写 `!== 'partial'` 亦可） |
@@ -268,7 +291,7 @@ export function isNegatedHit(text, hitIndex) {
 - **ARM-7a/7c 夹具替换理由（r4 P1）**：r3 夹具 `… | inj | exp | not **partial** | …` 的 status 格 `|` 后是 `not`，现行 span 形要求 `|` 后**紧接** `**partial**` → 该行 span **返 false**，与「基线 true」矛盾（两席亲跑同判·假值）。r4 采席2 形：注入格置 `**partial**`，使旧 span **自合成行行 ID 偏移 2 起匹配**（`NHP-018-PERF-01` 起始；注入格＝**cell 5**；`**partial**` 绝对偏移 **39**）→ **基线确为 true**；per-cell 修法取 **cell 7** `not **partial**` → helper 否定 → **false**。该形**既判 true→false 翻转、又能识别「未接 per-cell」**（若不切格而整行判，注入格 `**partial**` 仍正向命中 → 臂不红）。ARM-7c 以 `NHP-018-LOAD-01` 同形镜像。
 - **不作臂的候选（r3 实测否定）**：`cellStatus('not **blind**（**partial**）')` → 基线与邻接形**同为 `partial`**（blind 臂被复合守卫让位、partial 命中未被否定）→ **非判别·不采用**；其存在即「守卫子句不对称」的实例（§2.1 已登记）。**协调方原示例以此形为 site 5 臂，r3 实测不可恰红，改用 `not **blind**`**（如实上报偏离，非降标）。
 - **site 3 `case-only` 子臂登记排除（r6 P1 裁决 (b)·不补臂）**：gatherer `cellStatus` **`:74` `case-only` 子臂**明文**登记排除**——仅以 probe 复现（`not case-only` 基线 `case-only` → 修后 `unknown`，r6 亲跑可达），**不入 17 格恰红集·不设注入臂**；**验收口径＝函数级主臂 + 已声明子臂两级**：11 函数主臂必设注入/同改落点，已声明子臂（本条）只登记 probe。理由：时间盒（P3 级小刀已 6 轮）·补臂需连带改 17→18/19 多处计数再引新一轮风险；**半修态盲区**（`partial` 臂已接 · `:74` 未接 → 17 臂仍全绿）随本条**显式登记**，不构成未登记缺口。
-- **宿主**：ARM-5/7a/7c/7b 落 `reassess` prove；ARM-6a/6b/6c 落 `lift` prove；ARM-1/2/3/`#4` 落 `cite` prove（§2.6 三宿主分工）。
+- **宿主**：ARM-5/7a/7c/7b 落 `reassess` prove；ARM-6a/6b/6c 落 `lift` prove；ARM-1/2/3/`#4` 落 `cite` prove（§2.6 三宿主分工）。**cite 10 臂分账（r8 P1·§2.4-4/§2.5 同值）**：**`cite 10 = #1 五（ARM-1）+ #2 二（ARM-3 两红）+ #3 二（ARM-2 两红）+ #4 一`**；**臂→函数以本表对码列为准·§2.6「注入臂 / 宿主」列不得扩展**（§2.6 行 1 只记 `ARM-1（五）`）。
 
 **真矩阵面**（邻接形恒等性·r3 口径收窄为 **60 UC 行 × 312 非空格**；**行集定义（r6 补）**：`e2e-requirement-coverage-matrix.md` 表格行中**首格（行首 `|` 后第一格）以 `UC-E2E` 开头**者＝**60 行**，非空单元格（含首格）合计 **312 格**；r6 亲跑 `node` 复算 60/312 同值——**不得**以「全表 200 数据行/858 非空格」冒充该口径）：
 
@@ -338,22 +361,23 @@ export function isNegatedHit(text, hitIndex) {
 
 **ARM-4 门序钉死（r3 修正·r4 加第 0 步·顺序本身即断言）**：
 0. **ARM-4a 同树修前 B0 / 修后 B1（r7 P2·判据换锚）**：
-   0a. **清场后先取同树修前 B0**：按第 1 步同一动作移出 evidence（保 H0 副本）+ 清两类探针 → `git status --porcelain` 净（**artifact 已移出**）→ 在**未落修法**的同树上跑四 prove，逐字保存 FAIL 文字集 **B0**（criterion 仍崩 `:584`·零断言；reassess/criterion 均不 `DIRTY_TREE`）。
-   0b. **落码 commit**（或等价净树）后才进 criterion/reassess 的 porcelain 门：清场核**只针对 gate artifact**（三类·§2.4-1），**不把本刀 tracked diff 当脏**；否则修码本身未提交即触 `DIRTY_TREE`——**自伤误判停手**（r4 P2）。
-   0c. **跑 B1**：修法落码后在同一树上重跑四 prove，逐字保存 FAIL 文字集 **B1**。
+   0a. **清场后先取同树修前 B0**：按第 1 步同一动作移出 evidence（**在 H0 保管区落一次副本**·**该区只在本次首轮清场写一次·Ban 覆盖**）+ 清两类探针 → `git status --porcelain` 净（**artifact 已移出**）→ 在**未落修法**的同树上按**固定序 `cite→criterion→reassess→lift`** 跑四 prove，逐字保存 FAIL 文字集 **B0**（criterion 仍崩 `:584`·零断言；**前序 cite/criterion/reassess 均不 `DIRTY_TREE`**）。**批末处置（r8 P1）**：`lift :220` 无条件写盘 → 批末树内必有 **H′**；**跑完即把树内 H′ 移入独立弃置区**（路径与 H0 保管区**不同**；弃置区可清空/覆盖），**不得留在树内**——否则后序任何 porcelain 门（含 0b 提交后自检与 0c）现 `DIRTY_TREE`。
+   0b. **落码 commit**（或等价净树）后才进 criterion/reassess 的 porcelain 门：清场核**只针对 gate artifact**（三类·§2.4-1），**不把本刀 tracked diff 当脏**；否则修码本身未提交即触 `DIRTY_TREE`——**自伤误判停手**（r4 P2）。**pathspec 钉死（r8 P2）**：**只 `git add scripts/*.mjs`（+本卷若需）**；**Ban `git add -A` / `git add .`**——0a 批末若尚有 untracked **H′** 在树内，误 add 会把它纳入 index（显示 `A`；随后的移出又显示 `D`）→ porcelain 仍脏且污染 commit。
+   0c. **跑 B1**：修法落码后在同一树上按**同一固定序 `cite→criterion→reassess→lift`** 重跑四 prove，逐字保存 FAIL 文字集 **B1**；**批末同 0a 把树内 H′ 移入独立弃置区**（**不得写 H0 保管区**·不得留树内）。
    0d. **B0≡B1**：绝对路径前缀 `<worktree>/` 归一化后逐字比对；`EXIT=1` 为现值锚，但**只在 FAIL 集合逐字恒等时**才算恒等通过。**r2 的 39/15/21 降为交叉校验值，不作恒等锚**（届值/树形可变；三宿主 delta 会改变 PASS 面而不改 FAIL 集）。
-1. **先移出 evidence（保 H0 副本）并清两类探针 → find 复核 → 清场核 → cite（r6 重写·r7 补 reassess 探针）**：进任何 porcelain 门前，**先**把 untracked lift evidence（`ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-evidence.json`）**移出工作区**到固定外部路径并核 hash（**H0=`9e541f5e…`**）；**再**清理**两类探针**：①criterion `.tmp-porcelain-dirty-probe-uc018.txt`（**`:516` 定义路径 · `:518` `writeFileSync` 写 · `:526-528` try/finally 块**（`:528` `rmSync`）；中断 SIGINT/`process.exit` 跳过 finally 时可能残留）；②reassess `.tmp-lift-porcelain-probe-uc018.txt`（**`:336` 定义 · `:338` `writeFileSync` 写 · `:344` `finally` + `rmSync`**；落**仓根**——`.gitignore:15` 的 `.tmp/` 只忽略该目录，**不覆盖**仓根同名探针）。清完跑 **`find <worktree-root> -maxdepth 1 -name '.tmp-*probe*'` 复核零命中**；**然后**才跑 `git status --porcelain` **清场核**（未过即停手，不得带脏跑门）；清场核通过后才进 **cite**。**清场核范围（r5 钉死·r7 扩三类）**：**只核三类 gate artifact**——上述 evidence 与两类探针；**不把本刀 tracked diff 当脏**（未提交修码按第 0b 步先 commit/等价净树处理）。**副本保留至 §2.4-5 最终还原**——**Ban 把它当 tracked 改动 / 以它在场凑红凑绿**。**崩溃 gate 本轮输出作废**：清理后**重跑**，不得沿用崩溃轮的部分输出/计数。
-2. **门序（r7 重排）＝移出 evidence（保 H0 副本）+ 清两类探针 → 清场核 → cite → criterion → reassess → lift（前先建 H0 副本）→ 移出 H′ → 半场门 → 负验证（§2.4-4）→ 还原 H0 + 核 hash（§2.4-5·末步）**。**钉死理由（r3 P2·r4 去引述·r6 补 H0 目标·r7 门序重排）**：
+1. **先移出 evidence（保 H0 副本）并清两类探针 → find 复核 → 清场核 → cite（r6 重写·r7 补 reassess 探针）**：进任何 porcelain 门前，**先**把 untracked lift evidence（`ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-evidence.json`）**移出工作区**到**固定 H0 保管区**并核 **H0 保管副本** hash（**H0=`9e541f5e…`**；**核 hash 对象＝保管副本·不是树内 artifact**；**H0 保管区只在本次首轮清场写一次·Ban 覆盖**（H′ 一律进独立弃置区））；**再**清理**两类探针**：①criterion `.tmp-porcelain-dirty-probe-uc018.txt`（**`:516` 定义路径 · `:517` `try` · `:518` `writeFileSync` 写 · `:527` `finally` · `:528` `rmSync`**；中断 SIGINT/`process.exit` 跳过 finally 时可能残留）；②reassess `.tmp-lift-porcelain-probe-uc018.txt`（**`:336` 定义 · `:338` `writeFileSync` 写 · `:343` `finally` · `:344` `rmSync`**；落**仓根**——`.gitignore:15` 的 `.tmp/` 只忽略该目录，**不覆盖**仓根同名探针）。清完跑 **`test -z "$(find <worktree-root> -maxdepth 1 -name '.tmp-*probe*' -print -quit)" || exit 1`**（零命中才续行·`|| exit 1` 即命中/失败即中止）；**然后**才跑 `git status --porcelain` **清场核**（未过即停手，不得带脏跑门）；清场核通过后才进 **cite**。**清场核范围（r5 钉死·r7 扩三类）**：**只核三类 gate artifact**——上述 evidence 与两类探针；**不把本刀 tracked diff 当脏**（未提交修码按第 0b 步先 commit/等价净树处理）。**副本保留至 §2.4-5 最终还原**——**Ban 把它当 tracked 改动 / 以它在场凑红凑绿**。**崩溃 gate 本轮输出作废**：清理后**重跑**，不得沿用崩溃轮的部分输出/计数。
+2. **门序（r7 重排）＝移出 evidence（保 H0 副本）+ 清两类探针 → 清场核 → cite → criterion → reassess → lift（前先核 H0 保管副本·§2.4-3b）→ 移出 H′（独立弃置区）→ 半场门 → 负验证（§2.4-4）→ 回滚 neuter（→B1 态）→ 还原 H0 + 核 hash（§2.4-5·末步）**。**钉死理由（r3 P2·r4 去引述·r6 补 H0 目标·r7 门序重排）**：
    - **`criterion` 亦 `DIRTY_TREE` 面**——`uc-e2e-018-covered-criterion.proof.mjs:511`/`:521` 直调 `assertCleanPorcelain`（`:749` 亦调），且 `:533` 经 `gatherRealUc018` 命中 gatherer **`:522`** 内建检查（`reassess :72`/`:329` 同构）。**按实测事实**：criterion 与 reassess **均须排在 lift 之前**——lift `:220` 重写 artifact 后二者**必被 `DIRTY_TREE` 挡下** → **误判停手**（r3 稿引 r2「cite→criterion→lift→reassess」序列不实·r4 删，改按本条实测陈述）。
    - **任一 porcelain 门前**若树已含 artifact（例如上一门前序调整或中途 lift），须**先临时移出 → 跑 → 逐字节还原 + hash 核验**（`H0=H1`·r2/r3 两轮 `9e541f5e…`）。**崩溃/被杀路径（r5 补）**：若门中途崩溃或进程被杀死，致 artifact **已移出而未还原**——**只许从先前的副本逐字节还原（保 H0）**；**Ban 以重跑 lift 复位 hash**（`lift :220` 每次重写、`datePT` 变 → hash 变 → **`H0≠H1`**，还原核验失效）。
 3. **`lift` 置门序末位**（`lift :220` `writeFileSync` 必重写 untracked evidence artifact → 树变脏）；lift 之后**不再跑任何 porcelain 门**。**r4 更正**：lift **本身无 porcelain 门**（`:20-22` 仅 node 内置 import），末位**只因产物写盘**，不因拒跑。
-3b. **lift 前 H0 副本（r6 P2·新增一步）**：进 `lift` **前**确认/建立 artifact 的 **H0 副本**于**工作区外**固定路径（第 1 步已移出者即以此为源复制）并核 hash（`9e541f5e2d4e165df661031a49e7e40f5ab2c452290f943cdfb50515caac922a`）。**两目标区分**：①**lift 前**（树内/移出面 artifact＝**H0**）供 porcelain 门移出/还原，对象是 **H0**；②**lift 后** `:216` `datePT` 变 + `:220` 无条件重写使树内 artifact＝**H'**（hash 必变，只证「lift 已跑」）——**最终还原对象仍是 H0 副本，不是 H'**；否则「保 H0」在 lift 后**不可达**。**Ban 用重跑 lift 复位 H0**（每次 `datePT` 变 → hash 变）。
-4. **负验证（r7 方案 A·前移到最终还原 H0 之前·artifact 在工作区外时跑）**：ARM-4a/4b 基线（B0/B1）**先**完成；lift 后先把树内 **H′ 移出工作区**（半场门亦在此净态跑），再做 **ARM-5 负验证**——摘除 helper 须**临时 neuter commit** 使树净（否则 `reassess :72` `assertCleanPorcelain` 直接 `exit(1)`、**零断言**）。**同一 neuter commit 下三宿主并跑**：
+3b. **lift 前 H0 副本（r6 P2·r8 补保管口径）**：进 `lift` **前**确认 **H0 保管副本**已在**工作区外固定 H0 保管区**（第 1 步已写·**只写一次·Ban 覆盖**），并核**保管副本** hash（`9e541f5e2d4e165df661031a49e7e40f5ab2c452290f943cdfb50515caac922a`·**对象是保管副本**）；**Ban 以树内 artifact 或 H′ 为源重写 H0 保管区**。**两目标区分**：①**lift 前**（树内/移出面 artifact＝**H0**）供 porcelain 门移出/还原，对象是 **H0**；②**lift 后** `:216` `datePT` 变 + `:220` 无条件重写使树内 artifact＝**H'**（hash 必变，只证「lift 已跑」）——**最终还原对象仍是 H0 副本，不是 H'**；否则「保 H0」在 lift 后**不可达**。**Ban 用重跑 lift 复位 H0**（每次 `datePT` 变 → hash 变）。
+4. **负验证（r7 方案 A·前移到最终还原 H0 之前·artifact 在工作区外时跑）**：ARM-4a/4b 基线（B0/B1）**先**完成；lift 后先把树内 **H′ 移出工作区**（半场门亦在此净态跑），再做 **ARM-5 负验证**——摘除 helper 须**临时 neuter commit** 使树净（否则 `reassess :72` `assertCleanPorcelain` 直接 `exit(1)`、**零断言**）。**neuter 语义钉死（r8 P2）**：**保留函数提取与臂接线**（`advBlindOf`/`advIsBlindOf`/`advIsPartialOf`/`nhpRowPartial` 等提取形与各臂接线**原样保留**），**仅令 `isNegatedHit` 恒返 `false`**；**Ban 回退到修法前源码**（提取函数消失 → 注入臂 `ReferenceError`，恰红不可得且误判）。
+   **同一 neuter commit 下按固定序 `reassess→cite→lift` 顺序跑（r8 P1·不得真并发）**：
    - **reassess 4 臂**：`21+4=25 FAIL`（基线 21 + delta 4＝ARM-5/7a/7c/7b）；**以「25 − 21」逐字差集比对**——**4 是臂 delta，不是断言总数**。
-   - **cite 10 臂**：`39+10=49 FAIL`（ARM-1 五 / ARM-2 二 / ARM-3 二 / `#4` 一）；跑前保持 artifact 在**工作区外**（`criterion :749` 同族 `assertCleanPorcelain` 脏树即拒跑；**cite 宿主自身无 porcelain 门**）。
-   - **lift 3 臂**：`15+3=18 FAIL`（ARM-6a/6b/6c）。
-   **三件 delta 合计 4+10+3=17**——**17 格恰红齐备后方可还原 commit**。**Ban 只报 reassess 4 格＝以 4 冒充 17**（§8）；**Ban 把 25/49/18 记作「断言总数」**（它们是「基线 FAIL + 臂 delta」的 FAIL 计数）；**Ban 在脏树/负验证态下取 ARM-4 基线**（负验证态不得混入基线）。
-5. **末步：移出 H′ → 还原 H0 → 核 hash（r7 方案 A）**：确认树内 artifact 已移出（H′ 在 §2.4-4 前已移出；若半场门/负验证轮回置则**再移出**），从 **lift 前 H0 副本**逐字节还原到原路径，核 **`9e541f5e2d4e165df661031a49e7e40f5ab2c452290f943cdfb50515caac922a`**。半场门（docs:check 等按受管计面/`--others` 计数的门）须在 artifact 移出态跑（否则 docs:check 现扫 2449 > cap 2448·§6；**r4 届值**：本支 cap 仍 2448，origin/main 届值 2455 未并入）。**Ban 以还原 H′ 冒充 H0**（H′ 不是原始 artifact）。**崩溃/被杀路径（r5 补）**：若门中途崩溃/被杀致 artifact 已移出而未还原，**只许从 H0 副本逐字节还原·Ban 以重跑 lift 复位 hash**（`datePT` 变→hash 变→`H0≠H1`）。**崩溃轮门输出作废**，清理后重跑。
+   - **cite 10 臂**：`39+10=49 FAIL`（ARM-1 五 / ARM-2 二 / ARM-3 二 / `#4` 一）；跑前保持 artifact 在**工作区外**（**同批 `reassess :72` 与末段 docs:check 计面**均要求净树；**cite 宿主自身无 porcelain 门**）。
+   - **lift 3 臂**：`15+3=18 FAIL`（ARM-6a/6b/6c）；**lift 末位**（`:220` 写盘）——**其后不得再跑任何 porcelain 门**。
+   **三件 delta 合计 4+10+3=17**——**17 格恰红齐备后方可回滚 neuter commit**。**17 强制证据面（r8 P2）**：EXEC 收据**必须逐宿主列 `25−21`/`49−39`/`18−15` 的逐字差集（合计 17 行）或列三集合 hash**；只报单宿主或只报总数均不足。**Ban 只报 reassess 4 格＝以 4 冒充 17**（§8）；**Ban 把 25/49/18 记作「断言总数」**（它们是「基线 FAIL + 臂 delta」的 FAIL 计数）；**Ban 在脏树/负验证态下取 ARM-4 基线**（负验证态不得混入基线）；**Ban 三宿主真并发**（写盘/净树互踩）。
+5. **末步：回滚 neuter commit（→B1 态）→ 移出 H′ → 还原 H0 → 核 hash（r7 方案 A·r8 补回滚路径）**：**先回滚 neg 验证的临时 neuter commit**——`git log -1 --format=%s` **自检 commit message 含 neuter 标记**（标记缺失即停手上报，不得盲回滚），再 `git revert --no-edit <neuter>` 或 `git reset --hard <B1 commit>`，回修法 commit；**回滚后实证**：`git rev-parse HEAD` 断言＝**B1 commit** 且 **17 臂复绿**（重跑三宿主对码）。**「还原 commit」只指回修法 commit（B1 态）·不是回基线 tip**（§2.5 ③ 同口径）。确认树内 artifact 已移出（H′ 在 §2.4-4 前已移出；若半场门/负验证轮回置则**再移出**），从 **H0 保管副本**逐字节还原到原路径，核 **`9e541f5e2d4e165df661031a49e7e40f5ab2c452290f943cdfb50515caac922a`**。半场门（docs:check 等按受管计面/`--others` 计数的门）须在 artifact 移出态跑（否则 docs:check 现扫 2449 > cap 2448·§6；**r4 届值**：本支 cap 仍 2448，origin/main 届值 2455 未并入）。**Ban 以还原 H′ 冒充 H0**（H′ 不是原始 artifact）。**崩溃/被杀路径（r5 补）**：若门中途崩溃/被杀致 artifact 已移出而未还原，**只许从 H0 副本逐字节还原·Ban 以重跑 lift 复位 hash**（`datePT` 变→hash 变→`H0≠H1`）。**崩溃轮门输出作废**，清理后重跑。
 6. `DIRTY_TREE` **≠** 恒等通过——拒跑记作 `BLOCKED` 并停手上报，**不得**当作「无新增 FAIL」记绿。
 7. **B0≡B1 与 ARM-4b**：四 prove 的 FAIL 集合逐字比对（§2.4-0d）后才可报 ARM-4a 恒等；被断言格逐格等值后才可报 ARM-4b 恒等。
 
@@ -361,14 +385,14 @@ export function isNegatedHit(text, hitIndex) {
 
 ### 2.5 ARM-5 负验证（恰红口径）
 
-摘除否定判定（还原裸词面 + helper 变恒 false）→ **对期望矩阵逐格恰红（r4 恰红集＝17 臂·不多不少；r3 为 16，r4 +ARM-7c）**：
+摘除否定判定（**保留函数提取与臂接线·仅令 `isNegatedHit` 恒返 `false`**；**Ban 回退裸词面/修法前源码**——提取函数消失即 `ReferenceError`）→ **对期望矩阵逐格恰红（r4 恰红集＝17 臂·不多不少；r3 为 16，r4 +ARM-7c）**：
 - **site 1/2/3/4（r2 已有）10 臂**：ARM-1 五行真红、ARM-2 两行、ARM-3 两行、`#4` 一行；
 - **函数 #5–#11（r3 补主面·r4 加 #10 ARM-7c）7 臂**：ARM-5 一行、ARM-6a/6b/6c 三行、ARM-7a/7c/7b 三行。
 - **site 3 `case-only` 子臂（`:74`）登记排除（r6 P1 裁决 (b)）**：该子臂**不入 17 格恰红集**——仅 probe 复现 `not case-only`：基线 `case-only` → 修后 `unknown`（r6 亲跑可达）；**17 格恰红集只覆盖函数级主臂**（§2.6 #1–#11），子臂排除**不改变 17 计数**。**半修态**（`partial` 臂已接、`:74` `case-only` 臂未接 → 17 臂仍全绿）为本条**已登记排除的已知盲区**，**不是**本刀验收失败；如需子臂恰红须另立臂并重算 18/19。
 - 合计 **17 格逐格 FAIL 可见**；**守卫臂三条**（`not covered` / `no covered` / `still **gap**（not partial）`）**保持绿**（若转红＝误杀，同样 FAIL 上报）→ 原样还原复绿。另 §2.1 **反误抑形**（`非常 **partial**` / `非空 **gap**`）在修法前后**均须**为 `partial`/`gap`（剥除 helper 后亦然——防「为抑否定而抑掉正形」）。假绿证伪＝否定臂有真实检出力（沿 pay-neg §9-EXEC 换序 FAIL 还原先例形）。
-- **机制反证（非臂·r3 单列）**：ARM-6c 另须复跑**buggy 锚点形**（`isNegatedHit(text, m.index)` 直传整段 match 起点）——该形下 ARM-6c **必然仍返回 `true`**（空转），此即两席 P1 的实证；**该复跑只作反证、不进出题臂集**（它不随修法转红，因它本身就是错形）。
+- **机制反证（非臂·r3 单列·r8 措辞区分）**：**ARM-6c 本体**（hit 子偏移·§2.1 整行哨兵形）随修法 `true→false`，是 17 格之一；**buggy 复跑**另记——`isNegatedHit(text, m.index)` 直传整段 match 起点时 ARM-6c **必然仍返回 `true`**（空转），此即两席 P1 的实证。**本体与复跑两条文案分开写、分开计数**：复跑**只作反证、非臂、不入 17 格**（它不随修法转红，因它本身就是错形）。
 - **判据**：17 格**全红**才算恰红；**任一格不红＝该 site 未接线**（r2 版即此病：函数 #5–#11 全无臂 → 全修与半修**同绿**；r3 版 #10 无臂 → 同病，r4 补 ARM-7c）。
-- **负验证净树门（r6 P2·r7 三宿主与 delta 口径）**：ARM-5 摘除 helper 属**工作树改动** → `reassess :72` `assertCleanPorcelain` 会直接 `exit(1)`、**零断言输出**（`:71-76` catch 仅 `console.error` + `process.exit(1)`）。故负验证按**临时 neuter commit**：①把 helper 改恒 `false`/还原裸词面并 **commit**（净树）；②**同一 neuter commit 下三宿主并跑**：reassess 记录 **25 FAIL＝基线 21 + 臂 delta 4**（ARM-5/7a/7c/7b·**以 25−21 差集逐字比对**）/ cite **49 FAIL＝39+10**（ARM-1 五 / ARM-2 二 / ARM-3 二 / `#4` 一）/ lift **18 FAIL＝15+3**（ARM-6a/6b/6c）；**三件 delta 合计 4+10+3=17** 后方可还原 commit；③**还原 commit**（回基线 tip/反向 commit·按门纪律）。**Ban 把 4 写成断言总数**、**Ban 以 reassess 单宿主 4 格冒充 17**（§8）。**ARM-5 负验证排在 ARM-4a/4b 基线之后、最终还原 H0 之前（r7 方案 A·§2.4-4/5）**——**负验证态不得混入基线**（否则四 prove FAIL 集与 ARM-4b 被断言格恒等基线被污染）。
+- **负验证净树门（r6 P2·r7 三宿主与 delta 口径）**：ARM-5 摘除 helper 属**工作树改动** → `reassess :72` `assertCleanPorcelain` 会直接 `exit(1)`、**零断言输出**（`:71-76` catch 仅 `console.error` + `process.exit(1)`）。故负验证按**临时 neuter commit**：①**保留函数提取与臂接线·仅把 `isNegatedHit` 改恒 `false`**（commit message 带 neuter 标记）并 **commit**（净树）；②**同一 neuter commit 下按 `reassess→cite→lift` 顺序跑**（**不真并发**·lift 末位·其后不得再跑任何 porcelain 门）：reassess 记录 **25 FAIL＝基线 21 + 臂 delta 4**（ARM-5/7a/7c/7b·**以 25−21 差集逐字比对**）/ cite **49 FAIL＝39+10**（ARM-1 五 / ARM-2 二 / ARM-3 二 / `#4` 一）/ lift **18 FAIL＝15+3**（ARM-6a/6b/6c）；**三件 delta 合计 4+10+3=17**，收据**须列三宿主逐字差集（17 行）或集合 hash**；③**回滚 neuter commit 回「修法 commit（B1 态）」**（`git log -1 --format=%s` 自检 neuter 标记 → `git revert --no-edit` / `git reset --hard <B1>`），**不是回基线 tip**；回滚后实证 **HEAD＝B1 commit** 且 **17 臂复绿**。**Ban 把 4 写成断言总数**、**Ban 以 reassess 单宿主 4 格冒充 17**、**Ban 三宿主真并发**（§8）。**ARM-5 负验证排在 ARM-4a/4b 基线之后、最终还原 H0 之前（r7 方案 A·§2.4-4/5）**——**负验证态不得混入基线**（否则四 prove FAIL 集与 ARM-4b 被断言格恒等基线被污染）。
 
 ### 2.6 交付面（r4 钉死·**11 函数逐一列名** + **三宿主分工**）
 
@@ -376,7 +400,7 @@ export function isNegatedHit(text, hitIndex) {
 
 | # | 函数 | 件:行 | 修法形（§2.1） | 注入臂 / 宿主 |
 |---|---|---|---|---|
-| 1 | `cellStatusLegacy018` | `eval-harness-matrix-cite.proof.mjs:429` | 单 token 臂·`m.index` | ARM-1/2/3 · cite |
+| 1 | `cellStatusLegacy018` | `eval-harness-matrix-cite.proof.mjs:429` | 单 token 臂·`m.index` | **ARM-1（五）** · cite |
 | 2 | `cellStatusConservative` | 同上 `:452` | 多 token 臂·子偏移（`:456` stillRe · `:461` honesty-pin 第二通路）；**`:467` found-空兜底 `/not_run|blocked/` 同接 helper**（同形·不设豁免） | ARM-3 · cite |
 | 3 | `cellStatus` | `lib/uc-covered-real-gatherer.mjs:70` | 单 token 臂·`m.index`；**`case-only` 臂（`:74`）同接 helper**（该件**无末位臂**） | ARM-2 · cite（import） |
 | 4 | `parseNhpRow` | 同上 `:79` | **per-cell**（index 7）+ 单 token 臂 | `#4` · cite（import） |
@@ -390,15 +414,16 @@ export function isNegatedHit(text, hitIndex) {
 
 同族派生 `nhpPerfCaseOnly`/`nhpLoadCaseOnly`（`reassess:174-175`，臂为 `case-only`）**随 #9/#10 同改·不另立注入臂**；同形复制件（#5 对 #1、#6/#7/#8 对 #3）**与主 site 同改**，**函数级不设「豁免登记」活口；函数内子臂按下一目「site 3 `case-only` 子臂登记排除」（r6 卷面 :368）单点登记**——**r4 补 #10 的 ARM-7c 后，11 函数全部有臂或同改落点，无「随 9 可选」的豁免口**。
 - **site 3 `case-only` 子臂（`:74`）登记排除（r6 P1 裁决 (b)·不补臂）**：`cellStatus` 的 `case-only` 子臂**不设注入臂、不入 17 格恰红集**——仅 probe 复现（`not case-only` 基线 `case-only`→修后 `unknown`）；**「11 函数全覆盖」＝函数级主臂全覆盖**（每函数至少一条主臂注入或同改落点），**不含**函数内已声明子臂。**半修态**（`partial` 臂已接、`:74` 未接 → 17 臂仍全绿）的盲区**已在本条登记**；补臂须连带改 17→18/19 计数，**时间盒内不做**。
-- **宿主分工（r3 修正 r2「cite 唯一宿主」·r4 修正 lift porcelain 事实）**：**cite＝主宿主**（site 1/2 本地 + site 3/4 直 import gatherer）；**reassess＝site 5/9/10/11 宿主**；**lift＝site 6/7/8 宿主**；**criterion 仍零承载**（`:584` 崩前不 flush·§1.4）。**理由**：site 5/6/7 系各件**本地函数**，**不可从 cite import**——prove 脚本顶层即执行、末尾 `process.exit(exitCode)`，import 即跑门并截断宿主；若为此抽公共 module 则 **+1 受管件**（PTP +1·破 §4「EXEC 期 +0」预算）且 diff 面扩大。故取「各自宿主补臂」最小改，**以 11 函数主臂全覆盖换宿主单一性**（r3 取舍·r6 限定主臂·如实登记）。**宿主脆弱性（r4 更正）**：`reassess` 会 `DIRTY_TREE` 拒跑（`:21` import `assertCleanPorcelain`、`:72`/`:329` 直调，零断言输出）→ **只在门序清场后承载**，拒跑记 `BLOCKED` 非绿（§2.4-6/7）；**`lift` 无 porcelain 门**（`:20-22` 仅 import `node:fs`/`node:path`/`node:url`）→ **不会拒跑**，置门序末位**仅因 `:220` 产物写盘**。
+- **宿主分工（r3 修正 r2「cite 唯一宿主」·r4 修正 lift porcelain 事实）**：**cite＝主宿主**（函数 **#1/#2** 本地 + **#3/#4** 直 import gatherer）；**reassess＝函数 #5/#9/#10/#11 宿主**；**lift＝函数 #6/#7/#8 宿主**；**criterion 仍零承载**（`:584` 崩前不 flush·§1.4）。**理由**：函数 **#5/#6/#7** 系各件**本地函数**，**不可从 cite import**——prove 脚本顶层即执行、末尾 `process.exit(exitCode)`，import 即跑门并截断宿主；若为此抽公共 module 则 **+1 受管件**（PTP +1·破 §4「EXEC 期 +0」预算）且 diff 面扩大。故取「各自宿主补臂」最小改，**以 11 函数主臂全覆盖换宿主单一性**（r3 取舍·r6 限定主臂·如实登记）。**宿主脆弱性（r4 更正）**：`reassess` 会 `DIRTY_TREE` 拒跑（`:21` import `assertCleanPorcelain`、`:72`/`:329` 直调，零断言输出）→ **只在门序清场后承载**，拒跑记 `BLOCKED` 非绿（§2.4-6/7）；**`lift` 无 porcelain 门**（`:20-22` 仅 import `node:fs`/`node:path`/`node:url`）→ **不会拒跑**，置门序末位**仅因 `:220` 产物写盘**。
 - **可测性**＝①直 import（§2.1）：cite prove `import { cellStatus, parseNhpRow, isNegatedHit } from './lib/uc-covered-real-gatherer.mjs'` 直调断言；**reassess 已 import gatherer 的 `assertCleanPorcelain`（`:21`·先例在位）**，补 import `isNegatedHit` 即可；**lift 未 import porcelain 门**，须新增 `isNegatedHit` import（**不新增文件**·`:20-22` 现仅 node 内置）；**fixture 落 tempdir** 形仅用于需要整文件输入的 site（沿 `covered-criterion.proof.mjs:575-600` 先例），**Ban 在真矩阵上原地改格驱动**。
+- **臂文案唯一性（r8 P3）**：**每臂只落一条断言·断言文案含臂名**（`ARM-5`/`ARM-6a`/`ARM-7c`…）——17 格恰红按臂名逐条数；**Ban 一臂多断言 / 多臂同文案**（否则「17 格」计数不可核）。**cite 10 臂分账（r8 P1）**：`10 = #1 五（ARM-1）+ #2 二（ARM-3 两红）+ #3 二（ARM-2 两红）+ #4 一`（与 §2.3.1 宿主行同值）。
 - **零触面**：§1.1 note d 的 pin 断言 site（cite `:35`/`:322` 等）**零触**；**§1.1 note d-1 的 absence 断言族（cite `:673-819` 整块含 `:676`/`:681`/`:690`/`:807-818`、sole-stack `:205`、lift `:305`、eval-uc-e2e-001-002-cite `:33`/`:60`）零触**（缺席断言非状态解析·`matrix:202` 文本被其读取）；`banNear`（`:103`）**零触**；`:752`/`:764` 兜底链**零触**；**`matrix:202` 文本零触**（§2.3 全表 sweep 的 1 格变化是**修法结果·观测面**、不是改文本的理由）。
 
 **非目标**：姊妹 `GAP-EVAL-PARSER-DETAILS-UNCLOSED`（`<details>` 结构解析/诊断·P1 另刀）；NHP-018 产品行补证；双矩阵/backlog 行文与行状态（SSOT 翻面权归协调方）。
 
 ## 3. keyless 判定（停止条件核）
 
-**触模型分类器＝否**。C-WORD 面全部为 markdown 字符串 regex 解析（`test()`/`exec()`）· node+git+fs；涉及 prove 四件均本地 node 脚本零 docker 零 MODEL_API_KEY 零外部服务（§1.1/§2 ARM-4 亲证）。**派单停止条件（模型分类器 keyless 不可达→红停）未触发**；est live=0（零 e2e / 零 docker / 零 live key / 零模型调用）。派单 gloss「追问链敏感词/禁词」与仓内登记（覆盖状态解析器词面残余）不符——按 SSOT 登记起草·分歧如实上报（§0）。**量化锚（r7 席测）**：邻接判定门内增量 **+1.82ms / 858 非空格 × 3 parser**（**3.63→5.45ms**）·**零 I/O / 零轮询 / 零锁**（纯文本正则判定）——不改变 keyless / est live=0 判定。
+**触模型分类器＝否**。C-WORD 面全部为 markdown 字符串 regex 解析（`test()`/`exec()`）· node+git+fs；涉及 prove 四件均本地 node 脚本零 docker 零 MODEL_API_KEY 零外部服务（§1.1/§2 ARM-4 亲证）。**派单停止条件（模型分类器 keyless 不可达→红停）未触发**；est live=0（零 e2e / 零 docker / 零 live key / 零模型调用）。派单 gloss「追问链敏感词/禁词」与仓内登记（覆盖状态解析器词面残余）不符——按 SSOT 登记起草·分歧如实上报（§0）。**量化锚（r7 席测）**：邻接判定门内增量 **+1.82ms / 858 非空格 × 3 parser**（**3.63→5.45ms**）·**零 I/O / 零轮询 / 零锁**（纯文本正则判定）——不改变 keyless / est live=0 判定。**口径（r8）**：该计量**只覆盖 3 个逐格 parser**；**函数 #6 `advBlind`（整行/全 matrix 哨兵）显式排除**在本计量之外（不同作用域，不并入 +1.82ms 口径）。
 
 ## 4. cap 预算核（CAP-SANCTION-2448 起草随刀恰等步进）
 
@@ -411,7 +436,7 @@ export function isNegatedHit(text, hitIndex) {
 ## 5. 零重叠核 + est live
 
 - **零重叠**：`harness/` 除本卷外无 `cwn*` 件（`git ls-files … | grep -v 'harness/cwn-REQUEST.md' | grep cwn` **零输出**亲证·文件名唯一）；在飞 **16 树**（r4 实测·§0.0.1）逐名亲点；本刀零触 NHP-018 行、双矩阵格值、SSOT 行状态、姊妹 DETAILS 刀、`receipts/` append-only 史录、§1.1 note d / note d-1 的 pin 与缺席断言 site。
-- **清场核三类 gate artifact（r7 补）**：①lift evidence（`ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-evidence.json`）②criterion 探针 `.tmp-porcelain-dirty-probe-uc018.txt`（`:516` 定义 / `:518` 写 / `:526-528` try/finally）③reassess 探针 `.tmp-lift-porcelain-probe-uc018.txt`（`:336` 定义 / `:338` 写 / `:344` rmSync·**仓根**·`.gitignore:15` 的 `.tmp/` 不覆盖）。复核命令 `find <worktree-root> -maxdepth 1 -name '.tmp-*probe*'` **须零命中**；tracked diff 不算脏（§2.4-0b/1）。
+- **清场核三类 gate artifact（r7 补）**：①lift evidence（`ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-evidence.json`）②criterion 探针 `.tmp-porcelain-dirty-probe-uc018.txt`（`:516` 定义 / `:517` try / `:518` 写 / `:527` finally / `:528` rmSync）③reassess 探针 `.tmp-lift-porcelain-probe-uc018.txt`（`:336` 定义 / `:338` 写 / `:343` finally / `:344` rmSync·**仓根**·`.gitignore:15` 的 `.tmp/` 不覆盖）。复核命令 `test -z "$(find <worktree-root> -maxdepth 1 -name '.tmp-*probe*' -print -quit)" || exit 1`（**须零命中**·命中即中止）；tracked diff 不算脏（§2.4-0b/1）。
 - **est live=0**：零 e2e / 零 docker / 零 live key / 零模型调用；门＝三静态门（本地 node 脚本 + grep·§6）· docs:check / PTP 属静态门不计 prove。
 
 ## 6. 门矩阵（r4 亲跑原值 · 原值即报不修饰）
@@ -426,7 +451,9 @@ export function isNegatedHit(text, hitIndex) {
 | prove 四件 | §2 ARM-4a 四命令 | **r2 亲跑值（r3/r4 未复跑·如实标注）**：cite **EXIT=1 · 39 FAIL** · criterion **EXIT=1 · 零断言输出 · 崩 `:584:7` cpSync ENOENT**（树脏先 `DIRTY_TREE` @ `:522`）· lift **EXIT=1 · 15 FAIL**（重写 evidence artifact）· reassess **EXIT=1 · 21 FAIL**（树脏 `DIRTY_TREE` 拒跑） | 必跑（修法后断言＝FAIL 文字集恒等 + ARM-4b 被断言格恒等·门序见 §2.4；**注意**：r3 新增 6 臂/r4 再 +1 臂会改变 PASS 计数与 PASS 文字集，**FAIL 集合恒等口径不变**·ARM-4a 仍只比 FAIL 集） |
 | 环境供给 | — | est live=0 · 0 Key 值 · `actualSpendCny=null` · 零 docker/零模型 | 同左 |
 
-**§6 口径申明（r4）**：本卷为**起草未实跑修法**之卷——四 prove **纯 node 可跑（keyless/零 docker）**；r2 已亲跑取届值并**如实承登全红 + 两类崩溃**（不是未跑、不是全绿），**r3/r4 未复跑四 prove（本轮门只含 docs:check/PTP/markers·四值沿用 r2 并已标注）**；**「四 prove 全 EXIT=0」为假绿基线，已删**。docs:check 红系 **gate run artifact**（lift 每次跑必重写·§0.0.1）受 `--others` 计面，非卷内新增受管件——**Ban 以删/改该件、改 `.gitignore` 掩盖或抬 cap 凑绿**；允许的唯一动作是**临时移出 + 逐字节还原（hash 核验）**；r4 实测 `H0=H1=9e541f5e…`（与 r2/r3 各轮同值）。**量化锚（r7·席测）**：三 parser × 858 非空格门内增量 **+1.82ms**（**3.63→5.45ms**）·**零 I/O / 零轮询 / 零锁**；不构成新门、不改四 prove FAIL 集口径。
+**r7 门值承登（r8 P3·r8 本轮同树复跑取得）**：docs:check 清场核后 **EXIT=0 · scanned 2448**（gate artifact 在场时 **EXIT=1 · `PTP_FILE_LIMIT:2449`**）· PTP **EXIT=0 · 12/12**（`static_preflight_valid: selected=12/12; releaseEvidence=false`）· markers **hits=0**。r7 当轮门值未另存，按同口径以此复跑值承登；四 prove 未复跑（沿用 r2 值·见上表）。**口径句**：§6 的 docs:check/PTP/markers 三值只对「artifact 移出态」成立，artifact 在场即如实登记红、不修饰。
+
+**§6 口径申明（r4）**：本卷为**起草未实跑修法**之卷——四 prove **纯 node 可跑（keyless/零 docker）**；r2 已亲跑取届值并**如实承登全红 + 两类崩溃**（不是未跑、不是全绿），**r3/r4 未复跑四 prove（本轮门只含 docs:check/PTP/markers·四值沿用 r2 并已标注）**；**「四 prove 全 EXIT=0」为假绿基线，已删**。docs:check 红系 **gate run artifact**（lift 每次跑必重写·§0.0.1）受 `--others` 计面，非卷内新增受管件——**Ban 以删/改该件、改 `.gitignore` 掩盖或抬 cap 凑绿**；允许的唯一动作是**临时移出 + 逐字节还原（hash 核验）**；r4 实测 `H0=H1=9e541f5e…`（与 r2/r3 各轮同值）。**量化锚（r7·席测·r8 口径）**：三 parser × 858 非空格门内增量 **+1.82ms**（**3.63→5.45ms**）·**零 I/O / 零轮询 / 零锁**；不构成新门、不改四 prove FAIL 集口径。**函数 #6 `advBlind`（整行/全 matrix 哨兵）显式排除**在该计量之外（作用域不同·不并入 +1.82ms）。
 
 ## 7. 停止条件核（r4 如实登记）
 
@@ -450,12 +477,14 @@ export function isNegatedHit(text, hitIndex) {
 9. **Ban prove / e2e / docker / push / force-push / self-approve / secrets / `.env*`**；三门有红即红停上报，Ban retry-to-green · Ban 选择性汇报。
 10. **Ban 把本刀写成 UC-018 covered flip 前置或贡献**：EXIT0≠covered·coveredCount=8 不变·UC-018 stays partial·本刀 ≠ nail ≠ 残余关闭。
 11. **Ban 触 `receipts/` 史录**（append-only·含 `:250`/`:260` 残余出处件与 adv review `:112` 词形实录件）。
-12. **Ban 只报 reassess 单宿主 4 格**（以 4 冒充 17 格恰红集·§2.4-4/§2.5）；**Ban 把 25/49/18 记作断言总数**（＝基线 FAIL + 臂 delta；恰红集只认三件 delta 合计 **17**）；**Ban 在负验证态取 ARM-4 基线**。
+12. **Ban 只报 reassess 单宿主 4 格**（以 4 冒充 17 格恰红集·§2.4-4/§2.5）；**Ban 把 25/49/18 记作断言总数**（＝基线 FAIL + 臂 delta；恰红集只认三件 delta 合计 **17**）；**Ban 在负验证态取 ARM-4 基线**；**收据未列三宿主逐字差集（`25−21`/`49−39`/`18−15`·17 行）或集合 hash 即证据不足**（r8 P2）。
+13. **Ban 三宿主真并发**（r8 P1）：负验证三宿主**只许同一 neuter commit 下按 `reassess→cite→lift` 顺序跑**——`lift :220` 写盘与 porcelain 净树互踩；**lift 末位·其后不得再跑任何 porcelain 门**。
+14. **Ban `git add -A` / `git add .`**（r8 P2）：0a/0c 批末树内可能仍有 untracked **H′**，误 add 会把产物纳入 index（`A`；移出后 `D`）→ porcelain 仍脏且污染 commit；**只 `git add scripts/*.mjs`（+本卷若需）**。**Ban 覆盖 H0 保管区**（H0 副本只写一次；H′ 一律进独立弃置区）。
 
 ## 9. 卷纪律
 
-r7 rev diff 恰 **1 tracked**（本卷 `ai-docs/delivery/harness/cwn-REQUEST.md` 纯编辑·policy 双件零 diff·cap 不动）；commit 净消息 `docs(test): 调整覆盖解析任务书负验证门序`；⛔push；**收据只落 `.tmp/`（`.gitignore:15` 已忽略）或工作区外**——**Ban 落仓内其他路径**（否则后序 `criterion`/`reassess` porcelain 门现 `DIRTY_TREE` 拒跑）；实现方不 self-approve · alone≠dual · EXIT0≠covered · 登记≠修复≠定谳≠关闭 · **EXIT1≠本刀红**（三类环境先在红已分口）。
+r8 rev diff 恰 **1 tracked**（本卷 `ai-docs/delivery/harness/cwn-REQUEST.md` 纯编辑·policy 双件零 diff·cap 不动）；commit 净消息 `docs(test): 更正覆盖解析任务书臂归属与门序路径`；⛔push；**收据只落 `.tmp/`（`.gitignore:15` 已忽略）或工作区外**——**Ban 落仓内其他路径**（否则后序 `criterion`/`reassess` porcelain 门现 `DIRTY_TREE` 拒跑）；实现方不 self-approve · alone≠dual · EXIT0≠covered · 登记≠修复≠定谳≠关闭 · **EXIT1≠本刀红**（三类环境先在红已分口）。
 
 ---
 
-*Harness · C-WORD-NEG UC-018 follow-up 词面负例起草任务书 · rev r7 2026-10-30 · draft:awaiting_pre_exec_dual（卷尾注 · STOP 三处钉之三 · 与标题/Status 同值 · 起草/修订落卷即停 · 后继 EXEC 待协调方派单 + fresh pre-exec dual 放行）*
+*Harness · C-WORD-NEG UC-018 follow-up 词面负例起草任务书 · rev r8 2026-10-30 · draft:awaiting_pre_exec_dual（卷尾注 · STOP 三处钉之三 · 与标题/Status 同值 · 起草/修订落卷即停 · 后继 EXEC 待协调方派单 + fresh pre-exec dual 放行；r8 时间盒裁决：本轮后由协调方直接放行 EXEC）*
