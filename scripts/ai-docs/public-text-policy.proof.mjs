@@ -445,17 +445,18 @@ const checks = {
       // CAP-SANCTION-2450 uc33p 二轮并线 union 越限恰等步进：cap 2448→2450（2026-10-28 PR #179 二轮并线·届值推移至 origin/main 0f41af1c4=#182·常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使 +2（2448→2450）·届值如实采：merge 树承 main 2448=CAP-SANCTION-2448（r5mr 收官）＞本支 2443（uc33p EXEC·上注并留）→取大恒 2_448 零再步进·本支 39afdb8d4 承 2443≤2448 合规（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2450>2448 红（收敛前首轮 2456 冗计 +6=3 冲突件×stage 冗计沿 CAP-SANCTION-2430 同形坑如实承登）——union 实测 2450=main 届扫 2448+本支并入互斥受管目 2（harness/uc33p-REQUEST.md 起草件+apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts EXEC 落码件·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·沿 CAP-SANCTION-2448 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_450/f-2450.md/:2451 恰等改。
       // CAP-SANCTION-2450 UC-050 再并线 union 越限恰等步进：cap 2448→2450（详 policy .mjs 链区 CAP-SANCTION-2450 注记·2026-10-28 PR #177 落后 main 多轮后再并线·单方预授权「union 越限沿常设预授权恰等步进 CAP-SANCTION-24xx 承登+四联动点」随令行使 +2（2448→2450）恰等零多放·届值如实采 origin/main 0f41af1c4=#182·merge --no-ff 恰 2 处冲突=两 policy 脚本注记/cap 区 dual-keep 双留·cap 取大恒 2_448 零再步进·本支承 2443≤2448 合规·main 届值 0f41af1c4 承 2448=cap 恰等（双亲各自合规）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2450>2448 红（真 EXIT=1 亲证）——union 实测 2450=main 届扫 2448+本支并入互斥受管目 2（harness/uc50-REQUEST.md+apps/api/test/uc-e2e-050-nhp-start-bypass.proof.ts·两集合无交叠）恰等零多放·沿 CAP-SANCTION-2448 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_450/f-2450.md/:2451 恰等改。
       // CAP-SANCTION-2452 UC-050 二轮再并线 union 越限恰等步进：cap 2450→2452（详 policy .mjs 链区 CAP-SANCTION-2452 注记·2026-10-28 PR #177 二轮再并线·常设预授权随令行使 +2（2450→2452）恰等零多放·届值 origin/main d10723200=#179 uc33p 已并·cap 取大恒 2_450 零再步进·双亲各自 2450=cap 恰等·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2452>2450 红（真 EXIT=1 亲证）——union 实测 2452=main 届扫 2450+本支并入互斥受管目 2（harness/uc50-REQUEST.md+apps/api/test/uc-e2e-050-nhp-start-bypass.proof.ts·两集合无交叠）恰等零多放·沿 CAP-SANCTION-2450 并线先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_452/f-2452.md/:2453 恰等改。
+      // CAP-SANCTION-2456 UC3M 起草随刀恰等步进：cap 2455→2456（2026-10-30 UC-003 NEG-01 收据 N1b 两缺位码映射任务书起草（总盘 #5·P2·gap-bug-backlog :953 兑现·harness/uc3m-REQUEST.md）随刀·协调方派单常设预授权「越限沿常设预授权恰等步进预登」随令行使 +1 恰等零多放·本树届扫 2455=cap 2455 恰等零余量（docs:check EXIT=0 scanned 2455 起草前亲跑）+本卷 REQUEST 受管 1 件=2456 必越·EXEC 期产品码面=既有文件行内补键零新受管文件（终态 2456 零新增）·在飞 evap/cwn 各承 2448 如实采·沿 CAP-SANCTION-2455 单件恰等先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_456/f-2456.md/:2457 恰等改。
       const paths = [];
-      for (let i = 0; i < 2_455; i += 1) {
+      for (let i = 0; i < 2_456; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_455);
-      // 超限错误码形状断言：第 2456 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2456`（`${CODE}:${n}` 形）·scannedFiles:0。
+      assert.equal(atCap.scannedFiles, 2_456);
+      // 超限错误码形状断言：第 2457 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2457`（`${CODE}:${n}` 形）·scannedFiles:0。
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
       // UC3F EXEC 立项并线取大承登：本 TC 四联动点随合并树 cap=2_445 行使（本支原 2_442/f-2442.md/:2443 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2446 恰等步进 2445→2446 随本 EXEC commit 兑现（f-2446.md/:2447 联动）。
       // isob 收官并线取大承登：本 TC 四联动点随合并树 cap=2_446 行使（uc3f 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2447 恰等步进 2446→2447 随本收官步进 commit 兑现（f-2447.md/:2448 联动）。
@@ -463,10 +464,11 @@ const checks = {
       // uc33p 二轮并线取大承登：本 TC 四联动点随合并树 cap=2_448 行使（uc33p 原 2_443/f-2443.md/:2444 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2450 恰等步进 2448→2450 随本步进 commit 兑现（f-2450.md/:2451 联动）。
       // UC2B EXEC 立项并线取大承登：本 TC 四联动点随合并树 cap=2_453 行使（UC2B 起草链 CAP-SANCTION-2453 注记史录并留上·r5mr 合并树原 2_448/f-2448.md/:2449 链注记史录并留上·语义不变强度不减·取大恒 2_453 零再步进）。
       // UC2B post-fix 并线取大承登：本 TC 四联动点随合并树 cap=2_455 行使（UC2B 原 2_453/f-2453.md/:2454 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2455 恰等步进 2453→2455 随本 merge step 兑现（f-2455.md/:2456 联动）。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2455.md'] });
+      // UC3M 起草随刀取大承登：本 TC 四联动点随 cap=2_456 行使（UC2B 2_455/f-2455.md/:2456 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2456 恰等步进 2455→2456 随本起草 commit 兑现（f-2456.md/:2457 联动）。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2456.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2456`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2457`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
