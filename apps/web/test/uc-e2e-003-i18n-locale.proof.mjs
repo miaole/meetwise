@@ -107,8 +107,8 @@ const checks = {
     assert.ok(enBlock, 'en ERROR_MESSAGES_EN map parseable');
     const zh = parseStringMapEntries(zhBlock[1]);
     const en = parseStringMapEntries(enBlock[1]);
-    assert.equal(zh.size, 20, `zh map must keep exactly 20 machine codes (got ${zh.size})`);
-    assert.deepEqual([...en.keys()].sort(), [...zh.keys()].sort(), 'ERROR_MESSAGES_EN keys must be 20/20 parity with zh');
+    assert.equal(zh.size, 22, `zh map must keep exactly 22 machine codes (got ${zh.size})`);
+    assert.deepEqual([...en.keys()].sort(), [...zh.keys()].sort(), 'ERROR_MESSAGES_EN keys must be 22/22 parity with zh');
     const cjkEn = [...en.entries()].filter(([, v]) => CJK.test(v)).map(([k]) => k);
     assert.deepEqual(cjkEn, [], `en map values must be CJK-free: ${cjkEn.join(',')}`);
     // locale contract (inverted former no-locale-param pin): third optional param defaulting to zh

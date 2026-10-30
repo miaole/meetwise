@@ -5,20 +5,18 @@
  * 行使面 = API 上传链 NEG 产出码域（apps/api/src/modules/resume/resume.service.ts 上传链
  * HttpException `error:` 字面 · 方法级 scope=uploadGate/uploadFile/uploadImageViaOcr/
  * uploadInTransaction · 排除 not_found_or_forbidden list/get/delete 面=非上传链产出）
- * ↔ web 映射链（apps/web/lib/resume/ocr-preview-ui.ts 映射单源 :19 zh 20 键 · :45 en 20 键 ·
- * :129 mapResumeUploadError · :133 `messages[error] ?? messages.upload_failed` fail-closed ·
- * :137 mapResumeUploadAbort · :142 isUploadTimeoutError）的**契约符合性**——供给侧全域对账+
+ * ↔ web 映射链（apps/web/lib/resume/ocr-preview-ui.ts 映射单源 :19 zh 22 键 · :47 en 22 键 ·
+ * :133 mapResumeUploadError · :137 `messages[error] ?? messages.upload_failed` fail-closed ·
+ * :141 mapResumeUploadAbort · :146 isUploadTimeoutError）的**契约符合性**——供给侧全域对账+
  * 真信封形，非批 A NHP-003-ADV-01 的对抗健壮性重铺（旁证互不替代 · Ban 互借关列）。
  *
  * 臂（uc003x-REQUEST §1 Case 1）：
- *   N1  契约对账（源→map 键域 · 两段形）——源扫上传链 18 码枚举：
- *       N1a 已映射段 16 码 ∈zh∧∈en（绿断言 · 方向钉死=API⊆map·API 新增码缺映射即红）
- *       N1b 缺位段 2 码（encrypted/magic_mismatch）∉ map 双侧——**产品契约缺口显式 gap 臂
- *           （如实登记 · backlog 移交协调方 · 非 EXIT1 · 零断言放宽）**：fail-closed 走
- *           upload_failed 兜底为现行产品行为，本臂如实行使该行为并登记缺口。
+ *   N1  契约对账（源→map 键域 · 单段形）——源扫上传链 18 码枚举：
+ *       N1a 已映射段 18 码 ∈zh∧∈en（绿断言 · 方向钉死=API⊆map·API 新增码缺映射即红）
+ *       N1b encrypted/magic_mismatch 补齐在证（12 条逐字谓词 + 2 条未知码兜底继任臂）——
+ *           原否证臂前提（两码 ∉ map 双侧）已被产品映射消灭，退役属**前提失效**非断言放宽。
  *   N2  真信封逐字——zh message/hint 字段逐字 pin 自 resume.service（blob 锚）× locale='en'：
- *       16 已映射码 exact en 文案钉（ERROR_MESSAGES_EN 对应值全等）；2 缺位码 fallback 形臂
- *       （error 码透传 + message=upload_failed en 逐字 + zh hint 零透传）。
+ *       18 码 exact en 文案钉（ERROR_MESSAGES_EN 对应值全等）+ 未知码兜底（由 N1b 强形臂承接）。
  *   N3  状态耦合——真实状态↔码配对全状态域行使（429/400/413/503/415/422/403/402/409 ·
  *       413 状态优先臂 :131 为真产品行为如实行使）。
  *   N4  zh 对照子臂——抽样真信封 × zh → zh 文案（对照 · 列不翻纪律同批 A N1）。
@@ -32,7 +30,8 @@
  * 静态 S4（map 内部 parity）=旁证互不替代 · Ban 借本 case 收据洗 UC-015/批 C ADV 列。
  *
  * EXIT=0 = 本 case 全臂绿 ≠ UC-E2E-003 covered ≠ suite green；§1.0.1 :114 行措辞零翻动
- * （NEG gap→case-only 措辞仅经 EXEC · FAULT=blind 不因 F1 翻动 · coveredCount=8 不变）。
+ * （NEG case-only 格值零翻动 · N1b 否证措辞随 2026-10-30 EXEC additive 注记改写 ·
+ * FAULT=blind 不因 F1 翻动 · coveredCount=8 不变）。
  *
  *   pnpm uc003:nhp-neg:prove            （root · 经 run-e2e-isolated 隔离面）
  *   pnpm -C apps/web prove:uc003-nhp-neg （raw）
@@ -82,8 +81,7 @@ const EXPECTED_18 = [
   'image_ocr_unavailable', 'consent_required', 'insufficient_entitlement', 'ocr_duplicate',
   'ocr_failed', 'ocr_binding_missing', 'ocr_binding_invalid', 'ocr_no_content',
 ];
-const GAP_2 = ['encrypted', 'magic_mismatch'];
-const MAPPED_16 = EXPECTED_18.filter((c) => !GAP_2.includes(c));
+const MAPPED_18 = EXPECTED_18;
 const WEB_ONLY_4 = ['ocr_preview_format', 'public_preview_read_only', 'upload_timeout', 'upload_failed'];
 
 // 真信封形：zh message/hint 字段逐字 pin 自 resume.service.ts 届值（blob 锚钉 · REQUEST §0.1）。
@@ -128,6 +126,8 @@ const EN_EXACT = new Map<string, string>([
   ['ocr_binding_missing', 'The image resume lacks a registered recognition binding. Please upload a PDF/Word or paste text.'],
   ['ocr_binding_invalid', 'The image resume binding cannot be parsed; it was treated as a failure and the credit was refunded. Please upload a PDF/Word or paste text.'],
   ['ocr_no_content', 'No valid resume content could be extracted from the image; it was treated as a failure and nothing invented is saved. Try a clearer image or paste text.'],
+  ['encrypted', 'The file is encrypted and cannot be parsed. Remove the password protection and upload again, or paste the text. If the file is not actually encrypted, please upload a different file.'],
+  ['magic_mismatch', 'The file content does not match its declared format. Please confirm the file type and upload again.'],
 ]);
 const EN_UPLOAD_FAILED = 'The file upload did not complete. Check the file and network and try again. Recognition results are never invented.';
 const EN_UPLOAD_TIMEOUT = 'Upload timed out. A recognition failure never invents text. Please retry later or switch to PDF/Word or pasted text.';
@@ -140,6 +140,8 @@ const ZH_EXACT = new Map<string, string>([
   ['insufficient_entitlement', '额度不足，图片识别未执行。请改传 PDF/Word 或粘贴文本。'],
   ['ocr_duplicate', '该图片已在识别或对账中，请到简历列表查看，不要当作新的识别结果。'],
   ['extracted_too_long', '文件内容过长，请精简后重传或粘贴核心文本。'],
+  ['encrypted', '该 PDF 受密码保护，系统无法读取其中内容。请先解除密码保护后重新上传，或改为粘贴文本；若文件确实未加密，请改传其他文件。'],
+  ['magic_mismatch', '文件内容与声明格式不符，请确认文件类型后重新上传。'],
 ]);
 const ZH_UPLOAD_FAILED = '文件上传暂未完成，请检查文件和网络后重试。不会编造识别结果。';
 const ZH_UPLOAD_TIMEOUT = '上传超时。识别失败不会编造文字，请稍后重试或改传 PDF/Word / 粘贴文本。';
@@ -155,10 +157,10 @@ section('前置锚 · 方法级 scope（uploadGate+三方法）与映射单源�
   A('锚 uploadImageViaOcr 方法标记在场（:95）', /private async uploadImageViaOcr\(/.test(svcSrc));
   A('锚 uploadInTransaction 方法标记在场（:206）', /private async uploadInTransaction\(/.test(svcSrc));
   A('锚 uploadGate 令牌桶 15/0.1 参数形在场（:39）', /this\.rl\.allow\(`resume-file:\$\{principal\}`, 15, 0\.1\)/.test(svcSrc));
-  A('映射单源 zh map 恰 20 键', ZH_MAP.size === 20);
-  A('映射单源 en map 恰 20 键', EN_MAP.size === 20);
-  A('映射单源 zh/en 键域 20/20 parity', [...ZH_MAP.keys()].sort().join(',') === [...EN_MAP.keys()].sort().join(','));
-  A('映射单源 en map 20 值全 CJK-free', [...EN_MAP.values()].every((v) => v.length > 0 && !CJK.test(v)));
+  A('映射单源 zh map 恰 22 键', ZH_MAP.size === 22);
+  A('映射单源 en map 恰 22 键', EN_MAP.size === 22);
+  A('映射单源 zh/en 键域 22/22 parity', [...ZH_MAP.keys()].sort().join(',') === [...EN_MAP.keys()].sort().join(','));
+  A('映射单源 en map 22 值全 CJK-free', [...EN_MAP.values()].every((v) => v.length > 0 && !CJK.test(v)));
 }
 
 // ── N1 · 契约对账（源→map 键域 · 方法级 scope 源扫）──
@@ -174,29 +176,48 @@ section('N1 · 源扫对账（上传链 HttpException error 字面 · 方法级 
   A('upload 链 scope 区非空（源读成立）', uploadChainSrc.length > 1000);
 }
 
-// ── N1a · 已映射段（16 码 · ∈zh∧∈en 绿断言 · 方向钉死=API⊆map）──
-section('N1a · 16 已映射码 ∈zh∧∈en（绿断言）');
-for (const code of MAPPED_16) {
+// ── N1a · 已映射段（18 码 · ∈zh∧∈en 绿断言 · 方向钉死=API⊆map）──
+section('N1a · 18 已映射码 ∈zh∧∈en（绿断言）');
+for (const code of MAPPED_18) {
   A(`N1a ${code} ∈ zh map 键`, ZH_MAP.has(code));
   A(`N1a ${code} ∈ en map 键`, EN_MAP.has(code));
 }
 
-// ── N1b · 缺位段（2 码 · 显式 gap 臂 · backlog 移交 · 非 EXIT1）──
-section('N1b · encrypted/magic_mismatch 缺位段（显式 gap 臂 · 产品契约缺口如实登记）');
-for (const code of GAP_2) {
-  A(`N1b ${code} ∉ zh map 键（blob 级亲证）`, !ZH_MAP.has(code));
-  A(`N1b ${code} ∉ en map 键（blob 级亲证）`, !EN_MAP.has(code));
-  const en = mapResumeUploadError(422, { error: code }, 'en');
-  A(`N1b ${code} en 面 fail-closed 走 upload_failed 兜底（error 码透传+文案兜底）`, en.error === code && en.message === EN_UPLOAD_FAILED);
-  const zh = mapResumeUploadError(422, { error: code }, 'zh');
-  A(`N1b ${code} zh 面同兜底（zh 文案 upload_failed 逐字）`, zh.error === code && zh.message === ZH_UPLOAD_FAILED);
+// ── N1b · 补齐在证（encrypted/magic_mismatch · 12 条逐字谓词 + 2 条未知码兜底继任臂）──
+section('N1b · encrypted/magic_mismatch 补齐在证（12 条逐字谓词 · 前提失效臂退役≠放宽）');
+// 迭代源只许字面两码数组：禁 GAP_2/任何可空集合/EXPECTED_18.filter 派生
+// （空循环静默零迭代且计数门拦不住；MAPPED_18 忘改=131 且 EXIT=0）。
+for (const code of ['encrypted', 'magic_mismatch'] as const) {
+  const env = ENVELOPES.find((e) => e.code === code) as Envelope;
+  A(`N1b ${code} ∈ zh map 键`, ZH_MAP.has(code) === true);
+  A(`N1b ${code} ∈ en map 键`, EN_MAP.has(code) === true);
+  A(`N1b ${code} en 文案 exact 钉（map 本值）`, mapResumeUploadError(422, { error: code }, 'en').message === EN_EXACT.get(code));
+  A(`N1b ${code} zh 文案 exact 钉（map 本值）`, mapResumeUploadError(422, { error: code }, 'zh').message === ZH_EXACT.get(code));
+  A(`N1b ${code} en 文案 CJK-free`, typeof EN_MAP.get(code) === 'string' && !CJK.test(EN_MAP.get(code) as string));
+  // 真信封（含 zh hint 字段）全链：码提取 → 映射 error 透传 → en exact 文案（区别于第 3 条合成最小体）。
+  A(`N1b ${code} 码路径 422 真信封透传`, 'hint' in env.body
+    && env.status === 422
+    && readResumeUploadErrorCode(env.body) === code
+    && mapResumeUploadError(env.status, env.body, 'en').error === code
+    && mapResumeUploadError(env.status, env.body, 'en').message === EN_EXACT.get(code));
 }
-console.log('PIN   N1b 产品契约缺口登记：encrypted/magic_mismatch 两码 zh/en map 双侧缺位 → web 面 upload_failed 兜底——backlog 移交协调方（产品码修复出本刀界 · 零断言放宽 · gap→case-only 措辞仅经 EXEC）');
+// 未知码兜底继任臂（原 N1b zh 兜底断言的继任者·强形）：合成码非 18 码/非 22 键域，
+// 双 locale 逐字钉 upload_failed 且与两表本值同源一致；en 面另有 ADV V1/V3 承接。
+{
+  const unknown = 'some_unknown_code';
+  const unknownEn = mapResumeUploadError(400, { error: unknown }, 'en');
+  A('N1b 未知码 some_unknown_code en 兜底 upload_failed 双表 exact 钉',
+    unknownEn.error === unknown && unknownEn.message === EN_MAP.get('upload_failed') && unknownEn.message === EN_UPLOAD_FAILED);
+  const unknownZh = mapResumeUploadError(400, { error: unknown }, 'zh');
+  A('N1b 未知码 some_unknown_code zh 兜底 upload_failed 双表 exact 钉',
+    unknownZh.error === unknown && unknownZh.message === ZH_MAP.get('upload_failed') && unknownZh.message === ZH_UPLOAD_FAILED);
+}
+console.log('PIN   N1b 补齐在证：encrypted/magic_mismatch 两码 zh/en 双侧 22 键全映射（API 18 码 ⊆ web 22 键）· 原 backlog 登记已由本刀产品映射兑现 · 零断言放宽');
 
 // ── N2 · 真信封逐字臂（zh 字段逐字 × locale=en）──
-section('N2 · 真信封 × locale=en：16 码 exact en 文案钉 + 2 缺位码 fallback 形');
+section('N2 · 真信封 × locale=en：18 码 exact en 文案钉 + 未知码兜底（N1b 强形承接）');
 {
-  for (const env of ENVELOPES.filter((e) => MAPPED_16.includes(e.code))) {
+  for (const env of ENVELOPES.filter((e) => MAPPED_18.includes(e.code))) {
     if (env.code === 'extracted_too_long') {
       // 真信封=HTTP 413（resume.service.ts:81）→ :131 413 状态优先真路由 → file_too_large 文案
       // （真行为如实行使·与 N3 413 臂同真行为互证）——非断言放宽：双面各 exact 钉。
@@ -210,18 +231,12 @@ section('N2 · 真信封 × locale=en：16 码 exact en 文案钉 + 2 缺位码 
     const r = mapResumeUploadError(env.status, env.body, 'en');
     A(`N2 ${env.code}@${env.status} en 文案 exact 钉（全等比较）`, r.message === EN_EXACT.get(env.code));
   }
-  const allEn = ENVELOPES.filter((e) => MAPPED_16.includes(e.code))
+  const allEn = ENVELOPES.filter((e) => MAPPED_18.includes(e.code))
     .map((e) => mapResumeUploadError(e.status, e.body, 'en'));
-  A('N2 16 码 en 文案全 CJK-free（en 用户面零 zh 泄漏）', allEn.every((r) => !CJK.test(r.message)));
-  for (const env of ENVELOPES.filter((e) => MAPPED_16.includes(e.code) && e.hint)) {
+  A('N2 18 码 en 文案全 CJK-free（en 用户面零 zh 泄漏）', allEn.every((r) => !CJK.test(r.message)));
+  for (const env of ENVELOPES.filter((e) => MAPPED_18.includes(e.code) && e.hint)) {
     const r = mapResumeUploadError(env.status, env.body, 'en');
     A(`N2 ${env.code} zh hint 字段零透传（API 中文提示不升格 en 用户面）`, !r.message.includes(env.hint as string));
-  }
-  for (const code of GAP_2) {
-    const env = ENVELOPES.find((e) => e.code === code) as Envelope;
-    const r = mapResumeUploadError(env.status, env.body, 'en');
-    A(`N2 ${code} fallback 形：error 码透传 + message=upload_failed en 逐字`, r.error === code && r.message === EN_UPLOAD_FAILED);
-    A(`N2 ${code} fallback 形：zh hint 零透传 + CJK-free`, !r.message.includes(env.hint as string) && !CJK.test(r.message));
   }
   A('N2 readResumeUploadErrorCode 对真信封逐码透传（18 码机器码提取）', ENVELOPES.every((e) => readResumeUploadErrorCode(e.body) === e.code));
 }
@@ -300,7 +315,7 @@ console.log(`\n${fail === 0
   ? `✓ NHP-003-NEG-01 全臂绿（${total}/${total}）· EXIT=0 = 具名 case 真证据 ≠ covered`
   : `✗ ${fail}/${total} NHP-003-NEG-01 断言失败`}`);
 console.log('PIN: EXIT0≠covered · §1.0.1 :114 行措辞零翻动（NEG gap→case-only 措辞仅经 EXEC · FAULT=blind 不因 F1 翻动）');
-console.log('PIN: N1b 产品契约缺口（encrypted/magic_mismatch 缺位）backlog 移交协调方 · 非 EXIT1 · 零断言放宽');
+console.log('PIN: N1b 已补齐在证（encrypted/magic_mismatch 22 键全映射 · API 18 码 ⊆ web 22 键）· 原 backlog 登记已由本刀兑现 · 零断言放宽');
 console.log('PIN: 批 A ADV/web-logic TC-RES-081/静态 S4=旁证互不替代 · Ban 借本收据洗 UC-015/批 C ADV 列');
 console.log('PIN: haStatus=NOT_HA · releaseEvidence=false · coveredCount=8');
 process.exit(fail ? 1 : 0);

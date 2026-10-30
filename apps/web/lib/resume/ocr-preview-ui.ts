@@ -37,9 +37,11 @@ const ERROR_MESSAGES: Record<string, string> = {
   public_preview_read_only: '公开预览为只读，不能上传简历。',
   upload_timeout: '上传超时。识别失败不会编造文字，请稍后重试或改传 PDF/Word / 粘贴文本。',
   upload_failed: '文件上传暂未完成，请检查文件和网络后重试。不会编造识别结果。',
+  encrypted: '该 PDF 受密码保护，系统无法读取其中内容。请先解除密码保护后重新上传，或改为粘贴文本；若文件确实未加密，请改传其他文件。',
+  magic_mismatch: '文件内容与声明格式不符，请确认文件类型后重新上传。',
 };
 
-// Product-facing en mapping for the same 20 machine codes. Keys must stay in
+// Product-facing en mapping for the same 22 machine codes. Keys must stay in
 // parity with the zh map above (asserted by the uc003-i18n-locale prove, S4);
 // values must stay CJK-free. Unknown codes fall back to `upload_failed`.
 const ERROR_MESSAGES_EN: Record<string, string> = {
@@ -63,6 +65,8 @@ const ERROR_MESSAGES_EN: Record<string, string> = {
   public_preview_read_only: 'The public preview is read-only; resumes cannot be uploaded.',
   upload_timeout: 'Upload timed out. A recognition failure never invents text. Please retry later or switch to PDF/Word or pasted text.',
   upload_failed: 'The file upload did not complete. Check the file and network and try again. Recognition results are never invented.',
+  encrypted: 'The file is encrypted and cannot be parsed. Remove the password protection and upload again, or paste the text. If the file is not actually encrypted, please upload a different file.',
+  magic_mismatch: 'The file content does not match its declared format. Please confirm the file type and upload again.',
 };
 
 function errorMessagesFor(locale: ResumeUploadLocale): Record<string, string> {

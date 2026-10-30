@@ -1,9 +1,9 @@
 /**
  * UC-E2E-003 — NHP-003-ADV-01（ADV 分面 · 运行级对抗行使 · 纯函数 · 零 PG · 零外呼 · 零 key）
  *
- * 行使面 = `apps/web/lib/resume/ocr-preview-ui.ts` 错误码映射层（:123 readResumeUploadErrorCode ·
- * :129 mapResumeUploadError · :133 `messages[error] ?? messages.upload_failed` fail-closed 回退 ·
- * :68-70 `locale === 'en' ? EN : ZH` 二值 allowlist）+ `apps/web/i18n/request.ts` locale allowlist
+ * 行使面 = `apps/web/lib/resume/ocr-preview-ui.ts` 错误码映射层（:127 readResumeUploadErrorCode ·
+ * :133 mapResumeUploadError · :137 `messages[error] ?? messages.upload_failed` fail-closed 回退 ·
+ * :72-74 `locale === 'en' ? EN : ZH` 二值 allowlist）+ `apps/web/i18n/request.ts` locale allowlist
  * 契约（:6 DEFAULT_LOCALE='zh' · :11 cookie `includes` 守卫 → 伪造 locale 一律回退默认）。
  *
  * 臂（§1 Row 2 + §9-rev2）：
@@ -39,6 +39,7 @@ const CJK = /[\u4e00-\u9fff]/;
 const KNOWN_CODES = [
   'ocr_failed', 'file_too_large', 'empty_file', 'unsupported_file_format', 'parse_failed',
   'too_many_requests', 'server_busy', 'upload_timeout', 'consent_required', 'insufficient_entitlement',
+  'encrypted', 'magic_mismatch',
 ];
 
 console.log('UC-E2E-003 NHP-003-ADV-01 · ADV 运行级对抗行使 · releaseEvidence=false · Not HA');
@@ -52,12 +53,12 @@ section('PC · 已知码 + locale=en → en 文案（A2 真行使）');
     A(`PC ${code} → error 原样透传`, r.error === code);
     A(`PC ${code} → en 文案非回退且 CJK-free`, r.message.length > 0 && r.message !== 'The file upload did not complete. Check the file and network and try again. Recognition results are never invented.' && !CJK.test(r.message));
   }
-  // 全量 20 已知码 en 面 CJK-free（覆盖完整键域 · A2）
+  // 全量 22 已知码 en 面 CJK-free（覆盖完整键域 · A2）
   const enCatalog = new Map(KNOWN_CODES.concat([
     'image_ocr_unavailable', 'ocr_no_content', 'ocr_duplicate', 'ocr_binding_missing', 'ocr_binding_invalid',
     'extracted_too_short', 'ocr_preview_format', 'extracted_too_long', 'public_preview_read_only', 'upload_failed',
   ]).map((code) => [code, mapResumeUploadError(400, { error: code }, 'en').message]));
-  A('PC 全 20 已知码 en 文案齐备且全 CJK-free', [...enCatalog.values()].every((m) => m.length > 0 && !CJK.test(m)));
+  A('PC 全 22 已知码 en 文案齐备且全 CJK-free', [...enCatalog.values()].every((m) => m.length > 0 && !CJK.test(m)));
 }
 
 // ── N1 · 已知码 + zh → zh 文案（对照臂 · NEG 列不翻）──
