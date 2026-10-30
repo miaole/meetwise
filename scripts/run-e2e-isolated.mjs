@@ -1204,6 +1204,25 @@ const isolatedReceiptSources = {
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
   ],
+  // UC-033 PERF_api 残格刀（NHP-033-PERF-api-01 · REQUEST harness/uc33p-REQUEST.md §1.4 · 矩阵 :152
+  // X10≠SLO 格 · 沿 uc001/#157/perf2 同形注册 additive·一行一 case 一收据）：合法用户 begin 链
+  // （begin 202 预留→entitlement 预留可见·残队形零 abandon）· 窗外 prep consent/resume/interview
+  // create 产品路径+桶种子豁免① · interview 链面机制源（candidate-route 供给/interview-jobs 背压闸）。
+  'uc033:nhp-perf-api:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts',
+    'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
+    'apps/api/src/modules/privacy/privacy.controller.ts',
+    'apps/api/src/modules/commerce/commerce.controller.ts',
+    'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/uuid.ts',
+    'packages/db/src/routing/candidate-route.ts', 'packages/db/src/interview/interview-jobs.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+    'packages/db/migrations/0142_candidate_profile_route.sql',
+  ],
   // PERF-web 执行收据刀（NHP-001-PERF-web-01 · REQUEST harness/perfweb-REQUEST.md §1 终形）：UI 流式窗口
   // 预算五值（N=100 c=1 serial runs=3 · warmup 10 · nearest-rank · 三容器 caps 2cpu/4GiB（PG runner 面
   // +api/web capped child 面·HostConfig inspect 亲证）·Chromium 宿主驱动不封顶披露·web 容器内 production
@@ -1232,6 +1251,20 @@ const isolatedReceiptSources = {
     'packages/db/src/commerce/commerce.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0121_resume_pgcrypto_runtime_acl.sql',
+  ],
+  // UC-050 绕行残余登记刀（NHP-050-START-BYPASS-01 · REQUEST harness/uc50-REQUEST.md §1.5 rev r1
+  // 三证据臂·沿 uc050:nhp-kill 同形注册 additive·一行一 case 一收据·申请面夹具承 entpay-s2 真迁移链形）。
+  'uc050:nhp-start-bypass:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-050-nhp-start-bypass.proof.ts',
+    'apps/api/src/platform/content-safety.ts',
+    'apps/api/src/modules/interview/interview.service.ts', 'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/jobs/applications.service.ts', 'apps/api/src/modules/jobs/applications.controller.ts',
+    'apps/api/src/platform/all-exceptions.filter.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/recruiting/recruiter.ts', 'packages/db/src/routing/job-route-decision.ts',
+    'packages/db/src/commerce/commerce.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
   ],
   // NHP 开关刀 Row 2（UC-051 NOPII · blind→case）：业务哨兵日志扫描/trace 脱敏直行使（invoke 假模型
   // 零外呼驱动）/堆栈原文面。子进程 boot 真 HTTP+pino fd1 全量抓取（obs-logging 先例形）。
@@ -1877,6 +1910,27 @@ const isolatedReceiptSources = {
     'apps/api/src/platform/last-event-id.ts',
     'apps/api/src/platform/principal.guard.ts',
     'apps/api/test/uc-e2e-002-cross-device-http.proof.ts',
+  ],
+  // NHP-002-HTTP-BOUND-01（REQUEST harness/uc2b-REQUEST.md §1 rev r2 终形 + post-fix P2-5）：SSE 槽租约口
+  // BOUND 孪生面六臂 B1–B6·载体甲最小模块（rate-limit Map 形 429 可达·面试/押题/诊断三口）+载体乙
+  // boot 栈 6 并发 fail-open 臂 + storm 后态稳定性（非因果）。
+  // 位4 pre-migrate 迁移名单不适用（载体甲零 PG·载体乙 boot() sql/01-23+proof 内 0064/0049/0142
+  // additive 夹具）；位5 resource-caps 不适用（非 PERF/LOAD 臂）。
+  // 源清单补件（post 双审 P2-5）：interview-view.ts+packages/db/src/index.ts+diagnosis.controller.ts
+  // +migrations/0142_*.sql 四件按裁决补登；diagnosis.service.ts 系补 diagnosis 口连带导入，同族增登。
+  'uc002:nhp-http-bound:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/api/test/uc-e2e-002-nhp-http-bound.proof.ts', 'apps/api/test/_neg-harness.ts',
+    'apps/api/src/modules/interview/interview.controller.ts',
+    'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview-view.ts',
+    'apps/api/src/modules/quiz/quiz.controller.ts', 'apps/api/src/modules/quiz/quiz.service.ts',
+    'apps/api/src/modules/diagnosis/diagnosis.controller.ts', 'apps/api/src/modules/diagnosis/diagnosis.service.ts',
+    'apps/api/src/platform/rate-limit.service.ts', 'apps/api/src/platform/sse-pump.ts',
+    'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/index.ts',
+    'packages/db/migrations/0142_candidate_profile_route.sql',
+    'packages/db/src/commerce/commerce.ts',
   ],
   'uc015:ingest-failures:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
@@ -2782,7 +2836,7 @@ if (![
   'authz5a2:password-max:prove', 'authz5a2:stale-payload-ttl:prove',
   // AUTHZ #34 残面（scrypt 异步化 promisify 形 + chunked 封顶钩子 preParsing 流计数·隔离容器·est live=0）。
   'authz34:scrypt-async:prove', 'authz34:chunked-cap:prove',
-  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc017:orphan-http-sse:prove:raw', 'uc017:nhp-adv:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc019:nhp-adv:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'interview-privacy-read-tier:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc025:nhp-bound-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'sse:xrep:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc004:career-path:http:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
+  'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc017:orphan-http-sse:prove:raw', 'uc017:nhp-adv:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc019:nhp-adv:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc002:nhp-http-bound:prove:raw', 'interview-privacy-read-tier:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc025:nhp-bound-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'sse:xrep:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc004:career-path:http:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
@@ -2920,9 +2974,14 @@ if (![
   // ·沿 uc001/#157 先例形注册 additive·一行一 case 一收据）。
   'uc004:nhp-perf-api:prove:raw',
   'uc015:nhp-perf-api:prove:raw',
+  // UC-033 PERF_api 残格刀（NHP-033-PERF-api-01 · REQUEST harness/uc33p-REQUEST.md §1.4 · 矩阵 :152
+  // X10≠SLO 格 · 沿 #157/perf2 先例形注册 additive·一行一 case 一收据）。
+  'uc033:nhp-perf-api:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · 一行一 case 一收据）。
   'uc050:nhp-kill:prove:raw',
   'uc051:nhp-nopii:prove:raw',
+  // UC-050 绕行残余登记刀一行（NHP-050-START-BYPASS-01 · 一行一 case 一收据）。
+  'uc050:nhp-start-bypass:prove:raw',
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · 一行一 case 一收据）。
   'uc014:nhp-neg:prove:raw',
   'uc014:nhp-bound:prove:raw',
@@ -3289,6 +3348,7 @@ const UC017_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc017', 'test/uc-e2e-
 const UC019_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc019', 'test/uc-e2e-019-nhp-perf-api.proof.ts');
 const UC004_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc004', 'test/uc-e2e-004-nhp-perf-api.proof.ts');
 const UC015_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc015', 'test/uc-e2e-015-nhp-perf-api.proof.ts');
+const UC033_PERF_API_CAPS_CHILD = PERF_API_CAPS_CHILD_SRC('uc033', 'test/uc-e2e-033-nhp-perf-api.proof.ts');
 
 const isolatedCommand = target === 'api-harden:prove'
   ? ['pnpm', ['-C', 'apps/api', 'prove:api-harden']]
@@ -3364,6 +3424,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc016-nhp-adv']]
   : target === 'uc050:nhp-kill:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-kill']]
+  : target === 'uc050:nhp-start-bypass:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc050-nhp-start-bypass']]
   : target === 'uc051:nhp-nopii:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc051-nhp-nopii']]
   : target === 'uc014:nhp-neg:prove:raw'
@@ -3386,6 +3448,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['node', ['--input-type=module', '-e', UC004_PERF_API_CAPS_CHILD]]
   : target === 'uc015:nhp-perf-api:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC015_PERF_API_CAPS_CHILD]]
+  : target === 'uc033:nhp-perf-api:prove:raw'
+    ? ['node', ['--input-type=module', '-e', UC033_PERF_API_CAPS_CHILD]]
   : target === 'uc001:nhp-perf-web:prove:raw'
     ? ['node', ['--input-type=module', '-e', UC001_PERF_WEB_CAPS_CHILD]]
   : target === 'uc018:abandon:http:prove:raw'
@@ -3422,6 +3486,8 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc002-http']]
   : target === 'uc002:adv:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc002-adv']]
+  : target === 'uc002:nhp-http-bound:prove:raw'
+    ? ['pnpm', ['-C', 'apps/api', 'prove:uc002-nhp-http-bound']]
   : target === 'uc015:ingest-failures:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc015-ingest-failures']]
   : target === 'uc014:webhook-adv:prove:raw'
@@ -4242,6 +4308,7 @@ async function main() {
     const resourceCapArgs = target === 'uc018:perf-load:prove:raw' || target === 'uc001:nhp-perf-api:prove:raw'
       || target === 'uc011:nhp-perf-api:prove:raw' || target === 'uc017:nhp-perf-api:prove:raw' || target === 'uc019:nhp-perf-api:prove:raw'
       || target === 'uc004:nhp-perf-api:prove:raw' || target === 'uc015:nhp-perf-api:prove:raw'
+      || target === 'uc033:nhp-perf-api:prove:raw'
       || target === 'uc001:nhp-perf-web:prove:raw'
       ? ['--cpus', '2', '--memory', '4g']
       : [];
@@ -4294,6 +4361,9 @@ async function main() {
   'uc030:nhp-adv:prove:raw',
   // NHP 开关刀两行（UC-050 KILL · UC-051 NOPII · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc050:nhp-kill:prove:raw', 'uc051:nhp-nopii:prove:raw',
+  // UC-050 绕行残余登记刀一行（NHP-050-START-BYPASS-01 · pre-migrate 名单第四注册位·沿 uc050:nhp-kill
+  // 同形全登记：proof 内 runMigrations skip-or-apply 世界无关确定形·真迁移链单真相）。
+  'uc050:nhp-start-bypass:prove:raw',
   // webhook-neg 刀两行（NHP-014-NEG-01/BOUND-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
   'uc014:nhp-neg:prove:raw', 'uc014:nhp-bound:prove:raw',
   // X33-ADV 七类越权补集三臂族（NHP-033-ADV-01 · pre-migrate 名单第四注册位·沿批 C 同形全登记）。
@@ -4310,6 +4380,11 @@ async function main() {
   // ·九件种子形已证可种·零 boot() 零 ACL 重放块（授权面迁移链自足·proof 内零重放）。本刀 Case 2
   // NHP-015-PERF-api-01 = boot 世界维持·**不入本名单**（沿 #157 三条 world 选择承登注记 :4164-4168 同族）。
   'uc004:nhp-perf-api:prove:raw',
+  // UC-033 PERF_api 残格刀（NHP-033-PERF-api-01·REQUEST harness/uc33p-REQUEST.md §1.4·boot 世界·
+  // **不入本名单**（沿 #157 三先例/uc015 world 选择承登注记同族）：本 proof begin 链隐私栅栏函数面
+  // （0058 active/assert·0206 read）在 boot 侧 virgin 世界由 boot() 新立=零 definer 断供面·proof 内
+  // 0206/0058/0121 ACL 重放块承载 app_role 执行面。X33-ADV=pre-migrate 世界·本刀=boot 世界·两刀世界
+  // 不同·夹具形跨世界借用 boot 世界先例（uc011 preamble/uc015 resume+0121 机制锚）·X33-ADV 仅取形不取世界。
   // XREP 跨副本 SSE 证明（sse:xrep:prove:raw）——**不入本 pre-migrate 名单**（world 选择承登·PERF_api
   // 排除先例逐字同因）：proof 预置面=父进程 harness 同形 sql/01 重建+privacy 函数对镜像（definer=
   // 预置 role 表 owner 同源零断供·virgin 世界 uc017:orphan-http-sse 先例形）——若登记 pre-migrate 则

@@ -1,0 +1,49 @@
+
+> meetwise@0.1.0 g1-default-switch:prep:prove /Users/miaole/Desktop/golucky/meetwise-r5mr
+> node scripts/g1-default-switch-prep.proof.mjs
+
+PASS  G1 prep harness present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/g1-default-switch-prep.md
+PASS  R5 retirement sole-stack status present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/r5-retirement-sole-stack-status.md
+PASS  run-e2e-isolated.mjs present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/run-e2e-isolated.mjs
+PASS  package.json present: /Users/miaole/Desktop/golucky/meetwise-r5mr/package.json
+PASS  this proof script present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/g1-default-switch-prep.proof.mjs
+PASS  harness: releaseEvidence=false
+PASS  harness: Not HA
+PASS  harness: 本绿≠已迁
+PASS  harness: PREP only scope
+PASS  harness: FORBIDDEN flip default this slice
+PASS  harness: pins pgvector-legacy
+PASS  harness: pins mysql-qdrant-redis sole target
+PASS  harness: prereq P14 selector
+PASS  harness: prereq sole allowlist
+PASS  harness: G2 still remaining/OPEN
+PASS  harness: has flip checklist
+PASS  harness: has rollback steps
+PASS  harness: has prove gates
+PASS  harness: has FORBIDDEN claims
+PASS  harness: flip NOT open
+PASS  harness: lists prove CMD
+PASS  harness: prove never flips env
+PASS  harness: lists mw-e2e-ha review
+PASS  harness: lists mw-rag-route review
+PASS  status-G1: mentions G1
+PASS  status-G1: default track pgvector-legacy
+PASS  status-G1: G1 prep landed
+PASS  status-G1: flip NOT open
+PASS  status-G1: GAP: default still legacy
+PASS  status-G1: G2 still referenced
+PASS  status-G1: releaseEvidence=false
+PASS  status-G1: links G1 prep harness
+PASS  run-e2e-isolated.mjs: LEGACY_STACK = pgvector-legacy
+PASS  run-e2e-isolated.mjs: SOLE_STACK = mysql-qdrant-redis (target name only)
+PASS  run-e2e-isolated.mjs: unset E2E_ISOLATION_STACK → LEGACY_STACK (default still legacy)
+PASS  run-e2e-isolated.mjs: no default-to-SOLE_STACK (flip not open)
+PASS  run-e2e-isolated.mjs: writes E2E_ISOLATION_STACK=LEGACY_STACK when unset
+PASS  run-e2e-isolated.mjs: sole allowlist exactly 5 (P8; P13 OFF)
+PASS  run-e2e-isolated.mjs: comments G1 still open / NOT default switch
+PASS  package.json: g1-default-switch:prep:prove → g1-default-switch-prep.proof.mjs
+PASS  package.json: prep:prove does not flip E2E_ISOLATION_STACK
+PASS  proof script: never assigns E2E_ISOLATION_STACK=mysql-qdrant-redis
+PASS  proof script: documents never-flips invariant
+NOTE  STILL-GAP: G1 default isolation flip NOT open · G2 vector/rag/memory defaults · G3 E2E_PG_IMAGE · G7 HA/releaseEvidence
+NOTE  releaseEvidence=false · Not HA · prep landed != flip · default unchanged=pgvector-legacy

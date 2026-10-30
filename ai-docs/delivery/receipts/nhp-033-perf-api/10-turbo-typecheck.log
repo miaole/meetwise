@@ -1,0 +1,55 @@
+• turbo 2.10.0
+
+   • Packages in scope: //, @meetwise/ai-graphs, @meetwise/ai-runtime, @meetwise/api, @meetwise/config, @meetwise/contracts, @meetwise/db, @meetwise/db-mysql, @meetwise/domain, @meetwise/errors, @meetwise/qdrant-store, @meetwise/web, @meetwise/worker
+   • Running typecheck in 13 packages
+   • Remote caching disabled, using shared worktree cache
+
+//:typecheck: cache miss, executing 43e08335629acf62
+@meetwise/domain:typecheck: cache hit, replaying logs 8b24af6a5c8592d2
+@meetwise/domain:typecheck: 
+@meetwise/domain:typecheck: > @meetwise/domain@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-audit/packages/domain
+@meetwise/domain:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/domain:typecheck: 
+@meetwise/contracts:typecheck: cache hit, replaying logs d18bd2f95567b7e8
+@meetwise/contracts:typecheck: 
+@meetwise/contracts:typecheck: > @meetwise/contracts@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-audit/packages/contracts
+@meetwise/contracts:typecheck: > tsc --noEmit
+@meetwise/contracts:typecheck: 
+@meetwise/web:typecheck: cache hit, replaying logs bcb760ed30c3fb21
+@meetwise/web:typecheck: 
+@meetwise/web:typecheck: > @meetwise/web@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-audit/apps/web
+@meetwise/web:typecheck: > tsc --noEmit
+@meetwise/web:typecheck: 
+@meetwise/api:typecheck: cache miss, executing b7fdabf73501e4ae
+@meetwise/ai-runtime:typecheck: cache hit, replaying logs aee705d204096504
+@meetwise/ai-runtime:typecheck: 
+@meetwise/ai-runtime:typecheck: > @meetwise/ai-runtime@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-audit/packages/ai-runtime
+@meetwise/ai-runtime:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/ai-runtime:typecheck: 
+@meetwise/db:typecheck: cache hit, replaying logs 046460ad0d33c526
+@meetwise/db:typecheck: 
+@meetwise/db:typecheck: > @meetwise/db@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-audit/packages/db
+@meetwise/db:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/db:typecheck: 
+@meetwise/worker:typecheck: cache hit, replaying logs 4e005b99caf62356
+@meetwise/worker:typecheck: 
+@meetwise/worker:typecheck: > @meetwise/worker@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-audit/apps/worker
+@meetwise/worker:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/worker:typecheck: 
+//:typecheck: 
+//:typecheck: > meetwise@0.1.0 typecheck /Users/miaole/Desktop/golucky/meetwise-uc33p
+//:typecheck: > pnpm typecheck:e2e
+//:typecheck: 
+@meetwise/api:typecheck: 
+@meetwise/api:typecheck: > @meetwise/api@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-uc33p/apps/api
+@meetwise/api:typecheck: > tsc -p tsconfig.json --noEmit
+@meetwise/api:typecheck: 
+//:typecheck: 
+//:typecheck: > meetwise@0.1.0 typecheck:e2e /Users/miaole/Desktop/golucky/meetwise-uc33p
+//:typecheck: > tsc -p tsconfig.e2e.json
+//:typecheck: 
+
+ Tasks:    8 successful, 8 total
+Cached:    6 cached, 8 total
+  Time:    4.947s 
+

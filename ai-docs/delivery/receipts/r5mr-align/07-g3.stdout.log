@@ -1,0 +1,58 @@
+
+> meetwise@0.1.0 g3-e2e-pg-image:prove /Users/miaole/Desktop/golucky/meetwise-r5mr
+> node scripts/g3-e2e-pg-image.proof.mjs
+
+PASS  G3 E2E_PG_IMAGE harness present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/g3-e2e-pg-image.md
+PASS  R5 retirement sole-stack status present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/r5-retirement-sole-stack-status.md
+PASS  run-e2e-isolated.mjs present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/run-e2e-isolated.mjs
+PASS  isolated forwarder present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/isolated/run-isolated.mjs
+PASS  package.json present: /Users/miaole/Desktop/golucky/meetwise-r5mr/package.json
+PASS  this proof script present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/g3-e2e-pg-image.proof.mjs
+PASS  compose.dev.yml present: /Users/miaole/Desktop/golucky/meetwise-r5mr/docker/compose.dev.yml
+PASS  compose.demo.yml present: /Users/miaole/Desktop/golucky/meetwise-r5mr/docker/compose.demo.yml
+PASS  M5 fixture retirement plan present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/m5-pgvector-fixture-retirement-plan.md
+PASS  harness: releaseEvidence=false
+PASS  harness: Not HA
+PASS  harness: 本绿≠默认镜像已退役
+PASS  harness: has inventory
+PASS  harness: pins legacy default image
+PASS  harness: pins sole approved fixture
+PASS  harness: pins sole fail-closed
+PASS  harness: names G3-E2E-PG-IMAGE marker
+PASS  harness: FORBIDDEN flip isolation default
+PASS  harness: FORBIDDEN retire default image value this slice
+PASS  harness: has retirement path
+PASS  harness: default image value still OPEN/GAP
+PASS  harness: lists prove CMD
+PASS  harness: has FORBIDDEN claims
+PASS  harness: lists mw-e2e-ha review
+PASS  harness: lists mw-rag-route review
+PASS  harness: dual-review packet
+PASS  status-G3: mentions G3
+PASS  status-G3: links G3 harness
+PASS  status-G3: G3 path marked / fail-closed
+PASS  status-G3: default image still OPEN/legacy
+PASS  status-G3: pins pgvector-legacy
+PASS  status-G3: releaseEvidence=false
+PASS  status-G3: lists g3 prove CMD
+PASS  run-e2e-isolated.mjs: LEGACY_PG_IMAGE_DEFAULT = pgvector/pgvector:pg16 (unchanged)
+PASS  run-e2e-isolated.mjs: image defaults via E2E_PG_IMAGE ?? LEGACY_PG_IMAGE_DEFAULT
+PASS  run-e2e-isolated.mjs: E2E_ISOLATION_STACK default still pgvector-legacy (≠ flip)
+PASS  run-e2e-isolated.mjs: no default-to-SOLE_STACK
+PASS  run-e2e-isolated.mjs: SOLE_APPROVED_FIXTURE_CONFIG = compose.mysql-local
+PASS  run-e2e-isolated.mjs: sole + explicit E2E_PG_IMAGE → EXIT=3 fail-closed
+PASS  run-e2e-isolated.mjs: sole without approved fixture config → fail-closed
+PASS  run-e2e-isolated.mjs: defense-in-depth refuses sole docker-run of PG image
+PASS  run-e2e-isolated.mjs: soleEnv strips E2E_PG_IMAGE
+PASS  isolated forwarder: documents G3 / E2E_PG_IMAGE
+PASS  inventory: compose.dev/demo still pin pgvector/pgvector:pg16 (legacy surface)
+PASS  package.json: g3-e2e-pg-image:prove → g3-e2e-pg-image.proof.mjs
+PASS  package.json: g3 prove does not flip E2E_ISOLATION_STACK
+PASS  proof script: never-flips invariant documented / no default assign
+PASS  proof script: documents NEVER flips / NEVER retires default
+PASS  behavior: sole + E2E_PG_IMAGE → EXIT=3 [G3-E2E-PG-IMAGE]
+PASS  behavior: sole + unapproved fixture → EXIT=3 [G3-E2E-PG-IMAGE]
+NOTE  STILL-GAP: G3 default E2E_PG_IMAGE *value* not retired · G1 flip NOT open · G2 vector/rag/memory defaults · G7 HA/releaseEvidence
+NOTE  releaseEvidence=false · Not HA · path marked + sole fail-closed · default unchanged=pgvector/pgvector:pg16 · isolation default=pgvector-legacy
+NOTE  CMD=pnpm g3-e2e-pg-image:prove
+EXIT=0
