@@ -1,0 +1,2 @@
+static_provider_egress_inventory_valid: adapters=5; operations=10; registered_consumer_source_pairs=55; environment_references=397; releaseEvidence=false
+EGRESS_EXIT=0

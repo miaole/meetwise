@@ -1,0 +1,86 @@
+# XREP PR #173 续行并线终验门收据（2026-10-26 续行 fixer 席·协调方裁决解法①：dbhy1 P3_RESIDUE_FILES additive 登记 sse-cross-replica.proof.ts 一行）
+# 链：dab570973（前席红停 tip）→ dbhy1 登记 → merge 50217aeda → 步进 b1a234dae（本 tip）
+
+CMD: pnpm dbhy1:prove（登记后·merge 前）
+EXIT=0 28/28 全绿（P3-1 全代码面 sql/ 引用仅剩登记残面=PASS·sse-cross-replica.proof.ts 为唯一未登记越限臂·登记后零未登记）
+留痕：11-dbhy1-gate.log（61 行 stdout 全留）
+
+CMD: git fetch origin main
+EXIT=0 届值 origin/main=2818c2522（#176 uc30 合卷已落·cap 届值承 2441=CAP-SANCTION-2441）
+
+CMD: git merge origin/main --no-ff（merge commit=50217aeda）
+恰 3 处冲突 dual-keep 双留（协调方令：双留·cap 取大·union 越限沿常设预授权恰等步进）：
+1. scripts/ai-docs/public-text-policy.mjs 注记/cap 区——main CAP-SANCTION-2433/2438 起草/audit-log post/perf2/2439/2441 六注记 + 本支 XREP 起草/届树亲跑/EXEC 立项/XREP 收官四注记并留（公共三行 byte-identical 亲证单留）·cap 取大恒 2_441（本支 2_438＜main 2_441）
+2. scripts/ai-docs/public-text-policy.proof.mjs 链区+断言区——main CAP-SANCTION-2433/2438/audit-log post/perf2/2439/2441 + 本支 CAP-SANCTION-2436/XREP EXEC/XREP 收官并留·断言区取 main 侧 2_441/2442/f-2441.md+本支 XREP 取大承登注记并留
+3. scripts/run-e2e-isolated.mjs isolatedCommand 名单+pre-migrate additive 面——名单 union 双留（main +uc017:nhp-adv:prove:raw + 本支 +sse:xrep:prove:raw）·pre-migrate 区 main PERF_api 注记+uc004:nhp-perf-api:prove:raw 行 + 本支 XREP 不入名单注记并留
+
+CMD: pnpm docs:check（merge 树 union 实测）
+EXIT=1 PTP_FILE_LIMIT:2443>2441 红（真红亲证）——union 实测 2443=main 届扫 2441+本支并入互斥受管目 2（harness/xrep-REQUEST.md+apps/api/test/sse-cross-replica.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）
+
+CMD: CAP-SANCTION-2443 恰等步进（commit=b1a234dae·常设预授权随令行使 +2 零多放）
+- policy .mjs：MAX_FILES 2_441→2_443 + CAP-SANCTION-2443 注记两行（链区）
+- proof .mjs 四联动点恰等改：i<2_443（:433）/atCap.scannedFiles 2_443（:440）/f-2443.md（:444）/FILE_LIMIT:2444（:447）+链区 CAP-SANCTION-2443 注记一行
+- lint 帽：双亲恒一（root 5383/api 1520）取大恰等零改零步进
+
+CMD: pnpm public-text-policy:prove
+EXIT=0 selected=12/12（步进后四联动点全行使）
+
+CMD: pnpm install --frozen-lockfile
+EXIT=0
+
+CMD: pnpm docs:check（步进后）
+EXIT=0 scanned 2443=cap 2443 恰等零多放
+
+CMD: pnpm turbo typecheck
+EXIT=0 Tasks: 8 successful
+
+CMD: pnpm turbo lint + apps/api pnpm lint
+EXIT=0 Tasks: 12 successful + api 1520 problems=帽 1520 恰等零 warning 增量
+
+CMD: markers 五类标记词+行首冲突标记改动集 grep（i6-239 词面运行时组装同形）
+EXIT=0 零命中（改动集 10 文件：本刀 4 码面+merge auto-merged 6 面·TOTAL_HITS=0）
+
+CMD: ancestor 门
+git merge-base --is-ancestor origin/main HEAD → EXIT=0（届值 2818c2522 祖先亲证）
+产品源四 src 面 diff origin/main→HEAD 空（零 drift·本刀零产品码）
+
+新 tip：b1a234dae（链 dab570973→50217aeda→b1a234dae 全随 PR #173）
+
+═══ 二轮并线（届值推移：push 后 main 推进 #178 uc15f→91aca39bf·auto-merge 转 DIRTY·二轮并线随令同授权行使）═══
+
+CMD: git fetch origin main
+EXIT=0 新届值 origin/main=91aca39bf（#178 uc15f 合卷·cap 届值承 2443=CAP-SANCTION-2443（UC-015 注记）·LINT-SANCTION api 1520→1526/root 5383→5389）
+
+CMD: git merge origin/main --no-ff（merge commit=fb350cff0）
+恰 2 处冲突 dual-keep 双留：scripts/ai-docs/public-text-policy.mjs+public-text-policy.proof.mjs 注记区（本支 XREP 收官+CAP-SANCTION-2443 XREP 注记并留·main CAP-SANCTION-2443 UC-015 注记并留·MAX_FILES 双亲恒 2_443 auto 取大恰等）·runner isolatedCommand 面 auto-merge 零冲突（main uc015:nhp-fault 两行+本支 sse:xrep 行并留）
+
+CMD: pnpm docs:check（merge 树 union 实测）
+EXIT=1 PTP_FILE_LIMIT:2445>2443 红（真红亲证）——union 实测 2445=main 届扫 2443+本支并入互斥受管目 2（harness/xrep-REQUEST.md+apps/api/test/sse-cross-replica.proof.ts·两集合无交叠）
+
+CMD: CAP-SANCTION-2445 恰等步进（commit=9047aefdc·常设预授权随令行使 +2 零多放）
+- policy .mjs：MAX_FILES 2_443→2_445 + CAP-SANCTION-2445 注记两行
+- proof .mjs 四联动点恰等改：i<2_445/atCap 2_445/f-2445.md/FILE_LIMIT:2446 + 链区注记一行
+- lint 帽：取大承 main LINT-SANCTION 1526/5389（双亲取大·本支 1520/5383＜）
+
+CMD: pnpm public-text-policy:prove
+EXIT=0 selected=12/12
+
+CMD: pnpm install --frozen-lockfile
+EXIT=0
+
+CMD: pnpm docs:check
+EXIT=0 scanned 2445=cap 2445 恰等零多放
+
+CMD: pnpm turbo typecheck
+EXIT=0 Tasks: 8 successful
+
+CMD: pnpm turbo lint + apps/api pnpm lint
+EXIT=0 Tasks: 12 successful + api 1526 problems=帽 1526 恰等零 warning 增量（LINT-SANCTION 取大承登）
+
+CMD: markers 五类+行首冲突标记改动集 grep（二轮 9 文件）
+EXIT=0 TOTAL_HITS=0
+
+CMD: ancestor 门
+merge-base --is-ancestor origin/main HEAD → EXIT=0（91aca39bf 祖先亲证）·src 四面 diff 空（零 drift）
+
+新 tip：9047aefdc（链 dab570973→50217aeda→b1a234dae→8a661b483→fb350cff0→9047aefdc 全随 PR #173）

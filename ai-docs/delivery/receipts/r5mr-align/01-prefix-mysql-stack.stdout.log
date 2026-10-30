@@ -1,0 +1,128 @@
+
+> meetwise@0.1.0 mysql-stack:r5-mark-red:prove /Users/miaole/Desktop/golucky/meetwise-r5mr
+> node scripts/mysql-stack.r5-mark-red.proof.mjs
+
+PASS  R5 mark-red harness present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/r5-pgvector-fixture-mark-red.md
+PASS  e2e-case-inventory present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/e2e-case-inventory.md
+PASS  proof script present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs
+PASS  M5 fixture retirement plan present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/m5-pgvector-fixture-retirement-plan.md
+PASS  R5 retirement sole-stack status present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/r5-retirement-sole-stack-status.md
+PASS  gap-bug-backlog present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/gap-bug-backlog.md
+PASS  vectorstore.proof.ts present: /Users/miaole/Desktop/golucky/meetwise-r5mr/packages/db/test/vectorstore.proof.ts
+PASS  run-e2e-isolated.mjs present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/run-e2e-isolated.mjs
+PASS  mysql-stack.sole-wiring.proof.mjs present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/conn-stack/mysql-stack.sole-wiring.proof.mjs
+PASS  run-e2e-performance-suite.mjs present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/run-e2e-performance-suite.mjs
+PASS  package.json present: /Users/miaole/Desktop/golucky/meetwise-r5mr/package.json
+PASS  retrieval-store.ts present: /Users/miaole/Desktop/golucky/meetwise-r5mr/packages/db/src/retrieval/retrieval-store.ts
+PASS  rag-adversarial-pg-eval.ts present: /Users/miaole/Desktop/golucky/meetwise-r5mr/apps/worker/smoke/rag-adversarial-pg-eval.ts
+PASS  qbank-retrieval-eval-pg.proof.ts present: /Users/miaole/Desktop/golucky/meetwise-r5mr/apps/worker/test/qbank-retrieval-eval-pg.proof.ts
+PASS  harness: releaseEvidence=false
+PASS  harness: Not HA
+PASS  harness: 本绿≠已迁
+PASS  harness: marked-red ≠ deleted
+PASS  harness: lists prove CMD
+PASS  harness: pins 不得冒充
+PASS  harness: pins 整套 E2E 家族（非单点）
+PASS  harness: inventories vectorstore:prove
+PASS  harness: inventories rag* family
+PASS  harness: inventories memory family
+PASS  harness: inventories e2e:isolated
+PASS  harness: forbids pretending full E2E
+PASS  harness: no production expansion / no vector cut
+PASS  harness: forbids claiming RAG migrated
+PASS  harness: lists non-isolated / pg-eval leaf
+PASS  harness: lists rag-adversarial-pg-eval.ts path
+PASS  harness: lists qbank-retrieval-eval-pg.proof.ts
+PASS  harness: lists perf memory:prove marked leaf
+PASS  harness: lists perf rag-generation marked leaf
+PASS  harness: lists perf rag-cache marked leaf
+PASS  harness: pins multi-step perf R5 marks
+PASS  harness: E2E_PG_IMAGE NOT sole-stack (explicit)
+PASS  harness-dual-track: pins E2E_ISOLATION_STACK dual-track
+PASS  harness-dual-track: pins pgvector-legacy track
+PASS  harness-dual-track: pins mysql-qdrant-redis sole track
+PASS  harness-dual-track: forbids silent fake-green
+PASS  harness-dual-track: local green ≠ HA
+PASS  harness-dual-track: need multi-instance + fault-inject for releaseEvidence
+PASS  harness-dual-track: links sole-stack status
+PASS  harness-dual-track: has Proven vs GAP summary
+PASS  status: releaseEvidence=false
+PASS  status: Not HA
+PASS  status: sole stack MySQL+Qdrant+Redis
+PASS  status: has Proven section
+PASS  status: has GAP section
+PASS  status: GAP: isolated default still pgvector-legacy
+PASS  status: GAP: Qdrant-backed proves
+PASS  status: local green ≠ HA
+PASS  status: pins multi-instance
+PASS  status: pins fault-inject
+PASS  status: dual-track env
+PASS  status: legacy track name
+PASS  status: sole track name
+PASS  status: north-star parallel link
+PASS  status: forbids HA claim
+PASS  status: forbids cutover/migrated/covered
+PASS  status: Proven P8 sole allowlist (wiring+expand+P12)
+PASS  status: Proven P13 rag/memory:qdrant opt-in slices
+PASS  status: Proven P15 G5 subject erase slice
+PASS  status: Proven P16 G5 ledger-map / PREREQ slice
+PASS  status: GAP G5 erasure ledger (≠ 0091)
+PASS  status: CMD pins non-allowlist EXIT=3 / PREREQ
+PASS  e2e-case-inventory: references BUG-FAKE-R5
+PASS  e2e-case-inventory: names R5 假绿家族
+PASS  e2e-case-inventory: pins 不得冒充的需求满足
+PASS  e2e-case-inventory: pins isolation root
+PASS  e2e-case-inventory: lists vectorstore:prove
+PASS  e2e-case-inventory: lists rag family
+PASS  e2e-case-inventory: lists memory family
+PASS  e2e-case-inventory: lists e2e:isolated
+PASS  e2e-case-inventory: lists performance marked-red row
+PASS  e2e-case-inventory: forbids skeleton/ping as E2E
+PASS  e2e-case-inventory: family scope not single-point
+PASS  e2e-case-inventory: releaseEvidence=false
+PASS  vectorstore.proof.ts: BUG-FAKE-R5 / marked-red / fake-green warning
+PASS  vectorstore.proof.ts: green ≠ RAG migrated
+PASS  vectorstore.proof.ts: E2E_PG_IMAGE ≠ sole-stack
+PASS  vectorstore.proof.ts still present (marked-red ≠ deleted)
+FAIL  run-e2e-isolated.mjs: must emit R5-MARKED-RED banner
+PASS  run-e2e-isolated.mjs: still defaults E2E_PG_IMAGE to pgvector (not cut)
+PASS  run-e2e-isolated.mjs: 本绿≠已迁
+PASS  run-e2e-isolated.mjs: dual-track E2E_ISOLATION_STACK (legacy + sole names)
+PASS  run-e2e-isolated.mjs: local green ≠ HA / multi-instance+fault-inject
+PASS  run-e2e-isolated.mjs: sole allowlist wiring+ping+qdrant-backed+adapter+vectorstore-qdrant (P13 rag/memory NOT on allowlist)
+PASS  run-e2e-isolated.mjs: sole allowlist exactly 5 dual-approved (P13 rag/memory OFF allowlist)
+PASS  run-e2e-isolated.mjs: non-allowlist sole fails closed EXIT=3 with PREREQ (no fake-green)
+PASS  run-e2e-isolated.mjs: sole allowlist uses compose.mysql-local (shared ≠ disposable)
+PASS  performance suite: pgvector/vectorstore row R5-MARKED-RED
+PASS  performance suite: ≠ RAG migrated / ≠ sole-stack
+PASS  performance suite: 6 LEGACY/R5-MARKED-RED steps (not only vectorstore)
+PASS  performance suite: memory:prove carries LEGACY/R5-MARKED-RED
+PASS  performance suite: rag-generation:prove carries LEGACY/R5-MARKED-RED
+PASS  performance suite: rag-corpus-version:prove carries LEGACY/R5-MARKED-RED
+PASS  performance suite: qbank-control-role:prove carries LEGACY/R5-MARKED-RED
+PASS  performance suite: rag-cache:prove carries LEGACY/R5-MARKED-RED
+PASS  rag-adversarial-pg-eval.ts: R5-MARKED-RED / fake-green NOTE
+PASS  rag-adversarial-pg-eval.ts: BUG-FAKE-R5 / 本绿≠已迁
+PASS  rag-adversarial-pg-eval.ts: documents non-isolated leaf
+PASS  qbank-retrieval-eval-pg.proof.ts: R5-MARKED-RED / fake-green NOTE
+PASS  qbank-retrieval-eval-pg.proof.ts: BUG-FAKE-R5 / 本绿≠已迁
+PASS  package.json: mysql-stack:r5-mark-red:prove wired
+PASS  package.json: vectorstore:prove kept (≠ deleted)
+PASS  package.json: vectorstore:prove:legacy alias
+PASS  package.json: rag:adversarial:pg-eval kept
+PASS  package.json: sole-wiring prove scripts wired
+PASS  package.json: e2e-isolation:sole-vectorstore-qdrant:prove wired (P12 allowlist)
+PASS  package.json: rag/memory:qdrant:prove standalone opt-in only (NOT sole allowlist)
+PASS  retrieval-store.ts: annSearch/pgvector serving kept (no production cut)
+PASS  gap-bug-backlog: BUG-FAKE-R5 INFLIGHT/mark-red note
+PASS  gap-bug-backlog: BUG-FAKE-R5 points at harness/inventory/prove
+PASS  sole-wiring.proof: releaseEvidence=false / Not HA
+PASS  sole-wiring.proof: forbids fixtures retired / disposable overclaim
+PASS  sole-wiring.proof: pins compose ports 33069/63809/6333
+PASS  sole-wiring.proof: writes .tmp/sole-stack-receipts receipt
+NOTE  EXIT=0 ⇒ mark-red eval-honesty pins only; 本绿≠已迁; ≠ RAG migrated; ≠ full E2E; ≠ fixtures retired; releaseEvidence=false; Not HA
+NOTE  dual-track: default E2E_ISOLATION_STACK=pgvector-legacy; sole allowlist wiring/ping/qdrant-backed/adapter/vectorstore-qdrant may EXIT=0; P13 rag/memory:qdrant = standalone package scripts (NOT allowlist); default rag/memory/vectorstore:prove still EXIT=3; G2 still OPEN
+NOTE  local green ≠ HA; need multi-instance + fault-inject for releaseEvidence; ≠ covered/cutover
+NOTE  mysql-stack:r5-mark-red:prove must NOT冒充完整 E2E — mw-e2e-ha + mw-rag-route review via inventory + r5-retirement-sole-stack-status
+CMD=node /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/conn-stack/mysql-stack.r5-mark-red.proof.mjs EXIT=1
+ ELIFECYCLE  Command failed with exit code 1.

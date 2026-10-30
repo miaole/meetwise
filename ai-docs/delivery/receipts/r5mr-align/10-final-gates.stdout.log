@@ -1,0 +1,8 @@
+== 终态复跑（§9/STOP 落卷后全内容面）==
+ai-docs check passed: 80 required files verified; public text policy scanned 2446 managed worktree files
+DOCS_CHECK_FINAL_EXIT=0
+--markers 新增行终态--
+ADDED_MARKER_FINAL_EXIT=1 (1=零命中)
+38
+ADDED_LINES_TOTAL(上值)
+ALL_ADDED_MARKER_EXIT=1 (1=零命中)

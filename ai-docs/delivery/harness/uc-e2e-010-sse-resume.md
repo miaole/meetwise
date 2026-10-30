@@ -59,7 +59,7 @@
 | 2 | A3：进程 kill + **无双扣费** + seq 无洞（worker+commerce 可执行断言） | A3 · `GAP-UC010-A3-KILL-BILLING` |
 | 3 | Playwright UI 断线重连（次层；不可单独升 covered） | UI · `GAP-UC010-UI` |
 | 4 | 载入真实 **0058** privacy fence（去 `_neg-harness` minimal stub）+ 擦除/越权合同 | privacy · `GAP-UC010-PRIVACY-0058` |
-| 5 | 跨副本 SSE 槽合同（`HC-GAP-008`；非仅进程内 `sse-slot:prove`） | slot · `GAP-UC010-CROSS-REPLICA` |
+| 5 | 跨副本 SSE 槽合同（`HC-GAP-008`；非仅进程内 `sse-slot:prove`） | slot · `GAP-UC010-CROSS-REPLICA` ✅ CLOSED（2026-10-28 xrep 卷行使=`pnpm sse:xrep:prove` 两 OS 进程六臂 40 断言全绿·post 双审双 PASS 会签·`harness/xrep-REQUEST.md` §9-post·PR #173） |
 | 6 | sole-stack 夹具替换默认 pgvector isolated，去掉 **R5 green-risk** | 矩阵 §0 / R5 |
 | — | ~~HTTP mid-interview live hold→live-tail→abort→LED resume~~ **CLOSED（本波 partial 阶 · R-mid）** | was mid-interview HTTP 面 · **已挂** `uc010:sse-resume:prove` R-mid（仍 ≠ covered；≠ full.e2e） |
 

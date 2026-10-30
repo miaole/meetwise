@@ -1,0 +1,35 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-97488-1793158666476 on 127.0.0.1:33190
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-uc15f/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/worker@0.0.0 prove:ocr /Users/miaole/Desktop/golucky/meetwise-uc15f/apps/worker
+> tsx test/ocr.proof.ts
+
+PASS  ④ OCR reserve 成功(非 duplicate)
+PASS  ④ 视觉转写返回原文(含待脱敏的 PII)
+PASS  MODEL-OP-01 成功转写携带密封 provenance（operation/profile/model，无原文）
+PASS  OCR 成功与调用状态同事务留下加密恢复工件(无明文列)
+PASS  进程在 OCR 成功后中断时，同图重传可从加密工件恢复原文
+PASS  ④ OCR 转写成功 → confirmed 恰 1 单元(按次计费)
+PASS  ④ 可用额度按次减 1
+PASS  确认额度后的正常完成删除恢复工件，缩短 PII 保留时间
+PASS  ⑧ trace.output 只存脱敏占位 {redacted:true}
+PASS  ⑧ trace.output 不含转写全文/手机号(PII 不入 trace)
+PASS  失败：视觉转写返回 !ok
+PASS  失败 → released(不扣费)
+PASS  失败后可用额度回到成功后水平(未多扣)
+PASS  ⑥ 注入行被 blocked(不进结构化/不喂模型)
+PASS  ⑥/⑧ PII 脱敏:facts 不含明文手机号
+PASS  ⑥ 真技能仍抽出(Go/Redis 进 facts)
+
+✓ OCR 全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-28T03-37-54-221Z-97488-7b436569-990a-4e89-9492-7198626d9ca2.json release_evidence=false
+NEIGHBOR_OCR_EXIT=0

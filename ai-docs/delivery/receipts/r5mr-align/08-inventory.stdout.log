@@ -1,0 +1,52 @@
+
+> meetwise@0.1.0 e2e-case-inventory:prove /Users/miaole/Desktop/golucky/meetwise-r5mr
+> node scripts/e2e-case-inventory.proof.mjs
+
+PASS  e2e-case-inventory present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/e2e-case-inventory.md
+PASS  e2e-full-suite harness present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/harness/e2e-full-suite.inventory.md
+PASS  gap-bug-backlog present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/gap-bug-backlog.md
+PASS  impl-review-gate present: /Users/miaole/Desktop/golucky/meetwise-r5mr/ai-docs/delivery/impl-review-gate.md
+PASS  package.json present: /Users/miaole/Desktop/golucky/meetwise-r5mr/package.json
+PASS  proof script present: /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/e2e-case-inventory.proof.mjs
+PASS  inventory: releaseEvidence=false
+PASS  inventory: Not HA
+PASS  inventory: 本绿≠已迁
+PASS  inventory: 禁止 mysql-stack 冒充 E2E
+PASS  inventory: 连通绿不计入业务 covered
+PASS  inventory: MySQL+Qdrant+Redis sole stack
+PASS  inventory: BUG-FAKE-R5
+PASS  inventory: BUG-E2E-ISO
+PASS  inventory: BUG-FAKE-QBANK-EVAL
+PASS  harness: releaseEvidence=false
+PASS  harness: Not HA
+PASS  harness: 本绿≠已迁
+PASS  harness: 禁止 mysql-stack 冒充 E2E
+PASS  harness: 连通绿不计入业务 covered
+PASS  harness: MySQL+Qdrant+Redis sole stack
+PASS  harness: BUG-FAKE-R5
+PASS  harness: BUG-E2E-ISO
+PASS  harness: BUG-FAKE-QBANK-EVAL
+PASS  inventory: 需求ID column/matrix
+PASS  inventory: 用例 acceptance
+PASS  inventory: 缺口 / gap-bug-backlog cross-ref
+PASS  inventory lists ≥10 family ids (hit 11)
+PASS  docs mention script e2e:isolated
+PASS  docs mention script verify:e2e-performance
+PASS  docs mention script vectorstore:prove
+PASS  docs mention script privacy-erasure:http:prove
+PASS  docs mention script worker-wakeup:prove
+PASS  docs mention script rag:adversarial:pg-eval
+PASS  harness: EXIT recording
+PASS  harness: full-run command families
+PASS  harness: does not claim full E2E green / no mandatory full run
+PASS  harness: mw-e2e-ha review hook
+PASS  harness: pgvector fake-green risk
+PASS  inventory marks F-CONN as conn-only / never business covered
+PASS  gap-bug-backlog contains BUG-FAKE-R5
+PASS  gap-bug-backlog contains BUG-E2E-ISO
+PASS  gap-bug-backlog contains BUG-FAKE-QBANK-EVAL
+PASS  gap-bug-backlog contains BUG-FAKE-CONN
+PASS  impl-review-gate pins 禁止 mysql-stack 冒充 E2E + full-suite harness path
+PASS  package.json pins e2e-case-inventory:prove → proof script
+NOTE  EXIT=0 ⇒ inventory+harness static pins only; ≠ full E2E green; ≠ cutover; 连通绿≠业务 covered; releaseEvidence=false; Not HA; 本绿≠已迁
+CMD=node /Users/miaole/Desktop/golucky/meetwise-r5mr/scripts/e2e-case-inventory.proof.mjs EXIT=0

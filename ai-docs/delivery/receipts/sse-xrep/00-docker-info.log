@@ -1,0 +1,12 @@
+CMD: docker info
+EXIT=0 captured separately below
+---
+Client: Docker Engine - Community
+ Version:    29.9.2
+ Context:    colima
+ Debug Mode: false
+
+Server:
+ Containers: 2
+  Running: 2
+docker info EXIT=0
