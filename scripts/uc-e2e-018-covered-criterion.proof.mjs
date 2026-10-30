@@ -497,26 +497,32 @@ function setPath(root, path, mode) {
     else pass(`${label}: ${want === null ? 'null' : want} (close-token form)`);
   }
   // test-only diagnostics: reason selection (parseReviewFileVerdict stays the verdict source)
+  // Every case pins BOTH reason and verdict (4th column) — `ok` is reason-ok with a real
+  // verdict (FX-DUAL-RETRACTED ⇒ FAIL), so a reason-only check would be vacuously red there.
   const diagCases = [
-    ['unclosed-details', read(join(dualFix, 'FX-DUAL-DETAILS-UNCLOSED.md')), 'unclosed-details'],
-    ['unclosed-comment', '<!--\nnote\n', 'unclosed-comment'],
-    ['verdict-in-comment-block', htmlMultiline, 'verdict-in-comment'],
-    ['verdict-in-unclosed-comment', '<!-- unclosed\nVerdict: PASS', 'verdict-in-comment'],
-    ['verdict-in-comment-first-trigger', '<!-- Verdict: PASS -->\n<!-- unclosed\n', 'verdict-in-comment'],
-    ['unterminated-fence', read(join(dualFix, 'FX-DUAL-UNTERMINATED-FENCE.md')), 'unterminated-fence'],
-    ['no-verdict-line', trailing, 'no-verdict-line'],
-    ['unbalanced-bold', read(join(dualFix, 'FX-DUAL-UNBALANCED-BOLD.md')), 'unbalanced-bold'],
-    ['empty-string', '', 'empty'],
-    ['empty-null', null, 'empty'],
-    ['empty-whitespace', '  \n\t\n', 'empty'],
-    ['ok', read(join(dualFix, 'FX-DUAL-RETRACTED.md')), 'ok'],
-    ['prose-mention-self-lock', 'Parser rejects unclosed <details> tags.\nVerdict: PASS\n', 'unclosed-details'],
+    ['unclosed-details', read(join(dualFix, 'FX-DUAL-DETAILS-UNCLOSED.md')), 'unclosed-details', null],
+    ['unclosed-comment', '<!--\nnote\n', 'unclosed-comment', null],
+    ['verdict-in-comment-block', htmlMultiline, 'verdict-in-comment', null],
+    ['verdict-in-comment-hidden-pass', hidden, 'verdict-in-comment', null],
+    ['verdict-in-comment-html-ml', read(join(dualFix, 'FX-DUAL-HTML-ML.md')), 'verdict-in-comment', null],
+    ['verdict-in-unclosed-comment', '<!-- unclosed\nVerdict: PASS', 'verdict-in-comment', null],
+    ['verdict-in-comment-first-trigger', '<!-- Verdict: PASS -->\n<!-- unclosed\n', 'verdict-in-comment', null],
+    ['verdict-in-comment-fail-in-block', '<!--\nVerdict: FAIL\n-->\nVerdict: PASS\n', 'verdict-in-comment', null],
+    ['unterminated-fence', read(join(dualFix, 'FX-DUAL-UNTERMINATED-FENCE.md')), 'unterminated-fence', null],
+    ['no-verdict-line', trailing, 'no-verdict-line', null],
+    ['unbalanced-bold', read(join(dualFix, 'FX-DUAL-UNBALANCED-BOLD.md')), 'unbalanced-bold', null],
+    ['empty-string', '', 'empty', null],
+    ['empty-null', null, 'empty', null],
+    ['empty-whitespace', '  \n\t\n', 'empty', null],
+    ['ok', read(join(dualFix, 'FX-DUAL-RETRACTED.md')), 'ok', 'FAIL'],
+    ['comment-verdict-no-value', '<!-- Verdict: -->\nVerdict: PASS\n', 'ok', 'PASS'],
+    ['prose-mention-self-lock', 'Parser rejects unclosed <details> tags.\nVerdict: PASS\n', 'unclosed-details', null],
   ];
-  for (const [label, text, wantReason] of diagCases) {
+  for (const [label, text, wantReason, wantVerdict] of diagCases) {
     const d = diagnoseReviewFile(text);
-    if (d.reason !== wantReason || d.verdict != null) {
-      fail(`diagnose ${label} got ${JSON.stringify(d)} want {verdict:null,reason:${wantReason}}`);
-    } else pass(`diagnose ${label}: ${wantReason} (verdict null)`);
+    if (d.reason !== wantReason || d.verdict !== wantVerdict) {
+      fail(`diagnose ${label} got ${JSON.stringify(d)} want {verdict:${JSON.stringify(wantVerdict)},reason:${wantReason}}`);
+    } else pass(`diagnose ${label}: ${wantReason} (verdict ${wantVerdict == null ? 'null' : wantVerdict})`);
   }
   const diagOk = diagnoseReviewFile(read(join(dualFix, 'FX-DUAL-SINGLE-FILE-NAMES-PEER-mw-rag-route.md')));
   if (diagOk.verdict !== 'PASS' || diagOk.reason !== 'ok') {

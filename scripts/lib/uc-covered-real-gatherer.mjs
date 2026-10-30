@@ -351,7 +351,7 @@ function unterminatedFenceFails(text) {
  * Unclosed `<details>` anywhere ⇒ fail closed (like unclosed `<!--` / fence).
  *
  * Token form (single implementation shape — see REQUEST §1-1):
- *   open  = `<details` followed by one of `[ \t\r\n]/` or `>`
+ *   open  = `<details` followed by one of `[\s/>]`
  *   close = `</details` followed by inline blanks only (`[ \t]*`) then `>`
  * One case-folded pass, single alternating regex. Standalone close clamps at
  * depth 0 (mirrors the stray `-->` handling above; a bare `</details>` fixture
