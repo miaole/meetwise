@@ -1,6 +1,6 @@
 # UC3M REQUEST — UC-003 NEG-01 收据 N1b 显式 gap 臂收口：`encrypted`/`magic_mismatch` 两码 web 双侧产品映射（backlog `:953` 兑现 · 刀型裁决=产品映射小刀 · docs-only 起草卷 · 起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草落卷态→rev r1 席1 FAIL P1×3·裁决=处方全采纳·回炉修订落卷（§0.0.1）→rev r2 席1 FAIL P1×1+P2×6·裁决=处方全采纳·回炉修订落卷（§0.0.2）→rev r3 席1 FAIL P1×1+P2×3·裁决=处方全采纳·回炉修订落卷（§0.0.3）→rev r4 双席分歧（席1 PASS · 席2 FAIL P1×3+P2×7）·裁决=按席2 处方全采纳（席1 P2×2 并入）·回炉修订落卷（§0.0.4）→**rev r5 双席分歧（席1 PASS · 席2 FAIL P1×1+P2×9）·裁决=按两席处方合并（席1 P2×5 去重并入）·回炉修订落卷（§0.0.5）**→**rev r6 双审 P2 批随立项日履行 + EXEC 落码（§0.0.6/§9-EXEC·pre dual r6 双 PASS 放行·协调方授权）**·EXEC 落码已行使·post-prove 双审待行使·翻面权均归协调方·alone≠dual（pre 已满足）·STOP 三处钉：本 Status 行 + §8 + 卷尾·⛔push ⛔动主仓）。
+**Status**: **`closed`**（起草落卷态→rev r1 席1 FAIL P1×3·裁决=处方全采纳·回炉修订落卷（§0.0.1）→rev r2 席1 FAIL P1×1+P2×6·裁决=处方全采纳·回炉修订落卷（§0.0.2）→rev r3 席1 FAIL P1×1+P2×3·裁决=处方全采纳·回炉修订落卷（§0.0.3）→rev r4 双席分歧（席1 PASS · 席2 FAIL P1×3+P2×7）·裁决=按席2 处方全采纳（席1 P2×2 并入）·回炉修订落卷（§0.0.4）→**rev r5 双席分歧（席1 PASS · 席2 FAIL P1×1+P2×9）·裁决=按两席处方合并（席1 P2×5 去重并入）·回炉修订落卷（§0.0.5）**→**rev r6 双审 P2 批随立项日履行 + EXEC 落码（§0.0.6/§9-EXEC·pre dual r6 双 PASS 放行·协调方授权）**·EXEC 落码已行使·**post-prove 双审双 PASS 放行（2026-10-30·P2×14 合并登记见 §9-POST）**·翻面权归协调方（已行使）·alone≠dual（pre/post 均已满足）·前值史录零字洗：`executed:awaiting_post_prove_dual`→`closed`·STOP 三处钉：本 Status 行 + §8 + 卷尾·push/PR 随收官令）。
 
 **席位**：meetwise「UC-003 encrypted/magic_mismatch 两缺位码映射」REQUEST 起草席（总盘 #5 · P2 · 协调方裁决派产品映射小刀或 docs 钉刀 · docs-only 起草 · ⛔动主仓 ⛔push）。
 **基线**：`origin/main` @ **`3af835ad4`**（full `3af835ad427176983c08d939ea9d71288c04b4d4` = PR #183 `line/uc2b-draft` 并线点 · `git fetch origin` 本 turn EXIT=0 · 分支 `line/uc3m-draft` **起草前**零独有 commit（起草+r1/r2/r3 修订 **4 commits**·本 r5 落卷后 6·史录措辞·不逐次重数） · worktree `meetwise-uc3m`）· `node scripts/ai-docs/check-docs.mjs` 本树起草前亲跑 **EXIT=0 · scanned 2455**（= cap `2_455` 恰等零余量 · `scripts/ai-docs/public-text-policy.mjs:275` `MAX_FILES = 2_455` 亲证）→ 本卷新 .md +1 必越 → **恰等步进 2455→2456 随刀落码**（§2-1 承登·四联动点已同步 `public-text-policy.proof.mjs`）。
@@ -282,7 +282,9 @@
 
 本刀改动集（本卷 1 .md + cap 步进对 2 件）四类标记词 + conflict-marker grep **零命中**（起草席 commit 前亲跑·词面运行时组装口径·不复抄卷内防自匹配）。**rev r1–r5 修订 commit 改动集均=本卷 1 件**，同样零命中。**本案不在卷内字面书写该四词**（避免自撞门）。
 
-## §8 STOP · **`executed:awaiting_post_prove_dual`**
+## §8 STOP · **`closed`**
+
+（前值 `executed:awaiting_post_prove_dual` 史录·2026-10-30 post-prove 双审双 PASS 放行后翻面·见 §9-POST）
 
 停止条件（四类+修订回炉一类·命中即停手上报·Ban 就地处置）：
 - **现场漂移**：EXEC 届时 tip 对 §0 任一锚漂移且结论受疑（两码出码点消失/状态码变更 · 映射单源两表键域或 `:133` 兜底链形变 · DOM 单源 `{message}` 改为渲染 `error` · `i18n-locale` S4 `:110` 常量已非 22 · 矩阵 `:114`/case-matrix `:109` 行被改写）→ 停·重 pin 回炉。**漂移判据只认锚基=HEAD 值**；§0 基线锚 `bd992a6f`/`f16d8dfd`（`3af835ad4:` 起草前值）为起草前史录，不参与判据。
@@ -293,7 +295,7 @@
 
 ## §9 状态
 
-**`executed:awaiting_post_prove_dual`**（起草落卷→rev r1–r5 回炉落卷（2026-10-30）→ **rev r6 双 PASS 放行 + EXEC 落码（同日·P2 批随立项日履行）**· pre-exec 双审**已行使**（r6 双 PASS·alone≠dual 已满足）· post-prove 双审**未行使**）· 后续=post-prove 双审 → 协调方翻面/并线。卷 executed ≠ covered ≠ 矩阵列升格（coveredCount=8 零动 · EXIT0=case≠covered）· est live=0 · markers=0。
+**`closed`**（起草落卷→rev r1–r5 回炉落卷（2026-10-30）→ **rev r6 双 PASS 放行 + EXEC 落码（同日·P2 批随立项日履行）**· pre-exec 双审**已行使**（r6 双 PASS·alone≠dual 已满足）· post-prove 双审**已行使·双 PASS**（2026-10-30·P2×14 合并登记见 §9-POST）·前值 `executed:awaiting_post_prove_dual` 史录零字洗）· 后续=push/PR/auto-merge（§9-POST）。卷 executed ≠ covered ≠ 矩阵列升格（coveredCount=8 零动 · EXIT0=case≠covered）· est live=0 · markers=0。
 
 ### §9-EXEC（2026-10-30 · pre dual r6 双 PASS 放行 · 协调方授权 · `line/uc3m-draft` @ merge `41ea16eef`）
 
@@ -312,8 +314,41 @@
 
 **未齐项（如实登记）**：post-prove 双审未行使（alone≠dual）；`EN_EXACT`/`ZH_EXACT` 文案正确性比对结论待 post 席人工核对（**exact 只证存在且与表一致·不证文案正确**·§1.5 口径）；`unstub-inventory` 行号指针按 §3-8 显式接受过期；门 stdout 收据落 `.tmp/`（非扫描面·零新增受管路径）。
 
-**STOP=`executed:awaiting_post_prove_dual`**（三处钉：Status 行 + §8 + 本行）· coveredCount=8 不变 · pins 十一值零翻 · est live=0 · markers=0 · releaseEvidence=false。
+**STOP=`executed:awaiting_post_prove_dual`**（EXEC 届值·2026-10-30 post-prove 双 PASS 放行后翻 `closed`·见 §9-POST·三处钉：Status 行 + §8 + 卷尾）· coveredCount=8 不变 · pins 十一值零翻 · est live=0 · markers=0 · releaseEvidence=false。
+
+### §9-POST（2026-10-30 · post-prove 双审双 PASS 放行 · P2×14 合并登记 · 协调方收官令）
+
+**放行承登**：post-prove 双审两独立外席各自独立裁定 **PASS**（alone≠dual 已满足）；两席 P2 共 14 条合并为下列 10 项登记，逐项如实。产品源、proof、spec、收据零触（本轮仅本卷 + `uc-e2e-003-i18n-locale.md` 一处指针修正）。
+
+**① i18n-locale §6 新条指针修正（已改）**：`ai-docs/delivery/harness/uc-e2e-003-i18n-locale.md:101` 原句「与 `:93`（§5「`ERROR_MESSAGES` zh-only 列为下一刀产品债」·评审记 `:94`）」——`:94` 为空行，评审记实为 `:93`（§5 product-sense 行）；已删除「·评审记 `:94`」，只留 `:93` 单一指针。该卷表行本体零触。
+
+**② total 自门建议（登记·归后继刀·未实施）**：建议在 `apps/web/test/uc-e2e-003-nhp-neg.proof.ts` 末尾加 `if (total !== 139) fail += 1;`（不套 `A()`、不增 `total`，避免自增计入）。本刀不落：现树只有 `process.exit(fail ? 1 : 0)`，无总数自检；新增会改门形与计数口径，归后继刀。当前 139 由逐臂输出 + 9 段归因人工核对保证。
+
+**③ 矩阵/case-matrix 描述列按届值快照读（登记·零改）**：`ai-docs/delivery/e2e-requirement-coverage-matrix.md:114` 与 `ai-docs/delivery/non-happy-path-perf-load-case-matrix.md:109` 的描述列仍含 2026-10-27 届值（`16⊆20`、`20 键`、`129 断言`、`upload_failed fallback` 等）。读法钉死：**描述列为届值快照，不作当前断言**；当前真话以同处 additive 注记（`16⊆20→18⊆22 @2026-10-30`、`129→139`、`22 键`）为准。行值/格值零动、不回写。
+
+**④ ADV「全 22」弱臂披露**：`apps/web/test/uc-e2e-003-nhp-adv.proof.ts` 的 `A('PC 全 22 已知码 en 文案齐备且全 CJK-free', …)` 只断言 `enCatalog` 22 条 message 非空且 CJK-free；对 `KNOWN_CODES` 之外的 10 码不证「非 fallback/非 exact」，仅 12 码另有逐码 PC 臂（`r.message !== FALLBACK`）较强。该「全 22」臂不得单独引作 22 键全覆盖或非兜底证据。
+
+**⑤ ENVELOPES hint 未源钉（登记·后继刀）**：`uc-e2e-003-nhp-neg.proof.ts` 的 `ENVELOPES` 中 `hint`/`body` 为手工副本；proof 只从 `apps/api/src/modules/resume/resume.service.ts` 扫描 `error:` 码（`scanCodes`），不校验 `hint` 与源逐字一致。本轮人工逐条核对：12 条 hint 与源 `:60/:64/:68/:80/:81/:96/:112/:120/:137/:145/:158/:165` 一致；机械源钉归后继刀。
+
+**⑥ 恒真臂 8.6% 口径（12 条 N2 hint 臂）**：`uc-e2e-003-nhp-neg.proof.ts:237-240` 的 12 条 N2「zh hint 零透传」臂断言 `!r.message.includes(env.hint)`；`mapResumeUploadError` 不读 `hint`（`apps/web/lib/resume/ocr-preview-ui.ts:127-137`），故 en 文案 CJK-free 后该 12 条恒真。12/139 = **8.63%**（口径 8.6%），属结构性恒真臂，不计作行为证据；139 总数含此 12 条。
+
+**⑦ fixture 无耦合（登记·接受）**：`ENVELOPES` 为静态手工表，与 `resume.service.ts` 无机械耦合（状态、`hint`、其余字段均非派生）；源漂移只能人工重锚。与 ⑤ 同一残余，接受并登记，后继刀一并源钉。
+
+**⑧ 闭卷 uc3f:91 残留（登记接受·不 append）**：`ai-docs/delivery/harness/uc3f-REQUEST.md:91`「N1b 缺口恒持隔离……」为 2026-10-26 届史录；本刀已补两码映射，该句所述「缺口」现仅存于史录。处置=**登记接受**，不改闭卷（避免为一句史录触发闭卷零触规则与新增路径）；当前真话见 `ai-docs/delivery/gap-bug-backlog.md:954` 兑现行、`uc-e2e-003-i18n-locale.md:101` 与本节。
+
+**⑨ 第 10 件记录面（11 路径 vs 九件字面）**：EXEC commit `70597801c` 实触 **11 tracked 路径**；§1.4 九件中第 7 件为两个 `package.json`（2 路径），其余 8 件各 1 路径=10 路径；第 11 路径=本卷 `uc3m-REQUEST.md` 自身，即**第 10 件记录面**（非产品/测试面）。登记后 diff 面计数闭合：9 件=10 路径 + 记录面 1=11。
+
+**⑩ P3 措辞批（逐条如实）**：
+- （a）`uc-e2e-003-i18n-locale.md:101`「评审记 `:94`」→ 已删除（见 ①）。
+- （b）本卷 §0.0.5 r5 史录行「评审记 `:94`·本树 `grep -n` 实测 `:93`」：r5 史录保留不改；当前真话以本节与 ① 为准。
+- （c）本卷 §9-EXEC「落码九件面」与 11 路径的差异由 ⑨ 登记，不改原文。
+- （d）policy `CAP-SANCTION-2456` 注记「两 proof 断言面」：实际三件（`nhp-neg`/`i18n-locale`/`nhp-adv`）；policy 注记为起草届史录，不回改，已见 §1.4 第 4 件备注。
+- （e）`uc-e2e-003-i18n-locale.md:99`「20/20 键 parity」：2026-10-14 append-only 史录，零触。
+
+**STOP 三处翻 `closed`**：Status 头 + §8 + 卷尾同值翻面（前值 `draft:awaiting_pre_exec_dual`→`executed:awaiting_post_prove_dual`→`closed` 史录零字洗）· EXIT0=case≠covered 口径维持 · coveredCount=8 零动 · pins 十一值零翻。
+
+**收官并线终验（2026-10-30 亲跑实测）**：`git fetch origin` **EXIT=0**·origin/main 由 `1ca3ce1da`（#184 evap）推进至 **`53cc4a434`（#185 cwn）**→ `git merge --no-ff origin/main` 恰 **2 处冲突=两 policy 脚本注记/cap 区**，dual-keep 双留（CWN 2448/2456 与 UC3M 2456 注记并留）+号按 merge-tree 重排，merge commit **`231d76ad1`**；cap 取大 **`max{cwn 2456, evap 2461, 本支 2461}=2_461` 零再步进**（`public-text-policy.mjs:282` 亲证）。`pnpm install --frozen-lockfile` **EXIT=0**（521ms·lockfile 零漂）。**终验三门**：① `node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2459 ≤ cap 2_461**（余量 2·非恰等）② `pnpm public-text-policy:prove` **EXIT=0 · 12/12** ③ 改动集 **13 路径**（`git diff --name-only origin/main`）五类标记词 + 行首冲突标记运行时组装 grep **零命中**（`scripts/i6-239-gates.proof.mjs:154-163` 口径·字面不复抄）。邻面复跑随录：`pnpm uc003:nhp-neg:prove` **EXIT=0 · 139/139**、`pnpm uc003:nhp-adv:prove` **EXIT=0 · 71/71**、`pnpm uc003:i18n-locale:prove` **EXIT=0**（stdout 落 `.tmp/uc3m-post-receipts/`·非扫描面）。push/PR/auto-merge 随令（号见回报）。
 
 ---
 
-*UC3M REQUEST · 2026-10-30 起草 · rev r1 回炉（同日·P1×3+P2×9 处方全采纳）· rev r2 回炉（同日·P1×1+P2×6 处方全采纳·约束④证据链重写+zh 文案 (a) 改写）· rev r3 回炉（同日·P1×1+P2×3 处方全采纳·lint 预算机制核 +2）· **rev r4 回炉（同日·席1 PASS/席2 FAIL P1×3+P2×7·按席2 处方全采纳：§4 在飞 pin 重取（evap `2f54b0ddf`/7 件/cap 2461·cwn `976f019ed`）+ `GAP_2` 空循环防呆 + nhp-neg 门槛 **139（±0）** + 改动面显式 grep 清单 + public-copy 门 + 收据介质钉）** · **rev r5 回炉（同日·席1 PASS/席2 FAIL P1×1+P2×9·按两席处方合并：§1.4 第 9 件（harness 史录卷 §6 append-only·表行本体零改）+ main cap 口径（origin/main 2455/本支 2456·取大 evap 2461）+ `GAP_2` 删自许·不设负向臂 + 12 条新臂逐字谓词 + 9 段归因 + `:274` 逐字引文 + FAULT/`unstub` 口径）** · **rev r6 + EXEC（同日·P2 批随立项日履行：MAPPED_18 忘改=131 算式 / 12 谓词 #5#6 可鉴别化 / exact 钉自证性降调 / §2-5 机检门 / 127-125 两树拆开 / FAULT 第 3 列 / cap max{} / 第 9 件避撞句 / lint 609-5412 备路径 / 9 段取数命令形 / 未知码强形双表 exact / case-matrix :111 拆句 / 闭卷史录规则一般化 / 收据 :148-156）** · 实跑：`nhp-neg` **139/139 EXIT=0**、`nhp-adv` **71/71**、`i18n-locale` **EXIT=0**、`public-copy` **14/14**、web/root lint **607/5410 恰等**、`docs:check` **2458≤2_461 EXIT=0**、PTP **12/12** · **STOP=`executed:awaiting_post_prove_dual`**（三处钉：Status 行 + §8 + 本行 · pre r6 双 PASS 已行使 · post 双审待行使 · ⛔push ⛔动主仓）· UC-003 NEG-01 收据 N1b 两缺位码映射 · 认领=backlog `:953` + 矩阵 §1.0.1 `:114` NEG 格 N1b gap 臂 + case-matrix `:109` · 刀型裁决**建议=方案 A 产品映射小刀**（产品源单文件 `apps/web/lib/resume/ocr-preview-ui.ts` +2 zh/+2 en + 注释改数 · 测试面 **3 件**断言常量/臂形（`nhp-neg`/`i18n-locale`/`nhp-adv`）· 文档面 3 处 additive + backlog 追加一行 · lint 预算 **+2**（仅 `magic_mismatch` 含 `_` × 2 表·`encrypted` 过 `isCamelCase` 0 warning·UPPER_CASE const 不计）越限沿常设预授权恰等步进（605→607/5408→5410））· 判据实况=**无裸码泄漏但双侧误导性兜底（locale 对称）** → 缺陷成立·小刀可承 · 方案 B（docs 钉刀）留 §1.3 翻面条件 · 零 API/domain/errors/`messages` 触 · 零迁移 · 零跨包 · cap 恰等步进 2455→2456（四联动点已同步）· pins 十一值零翻 · coveredCount=8 不变 · est live=0 · markers=0 · releaseEvidence=false · ≠HA*
+*UC3M REQUEST · 2026-10-30 起草 · rev r1 回炉（同日·P1×3+P2×9 处方全采纳）· rev r2 回炉（同日·P1×1+P2×6 处方全采纳·约束④证据链重写+zh 文案 (a) 改写）· rev r3 回炉（同日·P1×1+P2×3 处方全采纳·lint 预算机制核 +2）· **rev r4 回炉（同日·席1 PASS/席2 FAIL P1×3+P2×7·按席2 处方全采纳：§4 在飞 pin 重取（evap `2f54b0ddf`/7 件/cap 2461·cwn `976f019ed`）+ `GAP_2` 空循环防呆 + nhp-neg 门槛 **139（±0）** + 改动面显式 grep 清单 + public-copy 门 + 收据介质钉）** · **rev r5 回炉（同日·席1 PASS/席2 FAIL P1×1+P2×9·按两席处方合并：§1.4 第 9 件（harness 史录卷 §6 append-only·表行本体零改）+ main cap 口径（origin/main 2455/本支 2456·取大 evap 2461）+ `GAP_2` 删自许·不设负向臂 + 12 条新臂逐字谓词 + 9 段归因 + `:274` 逐字引文 + FAULT/`unstub` 口径）** · **rev r6 + EXEC（同日·P2 批随立项日履行：MAPPED_18 忘改=131 算式 / 12 谓词 #5#6 可鉴别化 / exact 钉自证性降调 / §2-5 机检门 / 127-125 两树拆开 / FAULT 第 3 列 / cap max{} / 第 9 件避撞句 / lint 609-5412 备路径 / 9 段取数命令形 / 未知码强形双表 exact / case-matrix :111 拆句 / 闭卷史录规则一般化 / 收据 :148-156）** · 实跑：`nhp-neg` **139/139 EXIT=0**、`nhp-adv` **71/71**、`i18n-locale` **EXIT=0**、`public-copy` **14/14**、web/root lint **607/5410 恰等**、`docs:check` **2458≤2_461 EXIT=0**、PTP **12/12** · **STOP=`closed`**（三处钉：Status 行 + §8 + 本行 · pre r6 双 PASS 已行使 · post 双审双 PASS 已行使（2026-10-30）· 前值 `executed:awaiting_post_prove_dual` 史录零字洗 · push/PR 随收官令）· **2026-10-30 §9-POST 收官**：P2×14 合并登记 10 项 + 终验三门 + push/PR 随令 · UC-003 NEG-01 收据 N1b 两缺位码映射 · 认领=backlog `:953` + 矩阵 §1.0.1 `:114` NEG 格 N1b gap 臂 + case-matrix `:109` · 刀型裁决**建议=方案 A 产品映射小刀**（产品源单文件 `apps/web/lib/resume/ocr-preview-ui.ts` +2 zh/+2 en + 注释改数 · 测试面 **3 件**断言常量/臂形（`nhp-neg`/`i18n-locale`/`nhp-adv`）· 文档面 3 处 additive + backlog 追加一行 · lint 预算 **+2**（仅 `magic_mismatch` 含 `_` × 2 表·`encrypted` 过 `isCamelCase` 0 warning·UPPER_CASE const 不计）越限沿常设预授权恰等步进（605→607/5408→5410））· 判据实况=**无裸码泄漏但双侧误导性兜底（locale 对称）** → 缺陷成立·小刀可承 · 方案 B（docs 钉刀）留 §1.3 翻面条件 · 零 API/domain/errors/`messages` 触 · 零迁移 · 零跨包 · cap 恰等步进 2455→2456（四联动点已同步）· pins 十一值零翻 · coveredCount=8 不变 · est live=0 · markers=0 · releaseEvidence=false · ≠HA*
