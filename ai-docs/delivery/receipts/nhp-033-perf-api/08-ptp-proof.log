@@ -1,0 +1,17 @@
+
+> meetwise@0.1.0 public-text-policy:prove /Users/miaole/Desktop/golucky/meetwise-uc33p
+> node scripts/ai-docs/public-text-policy.proof.mjs
+
+✓ TC-quality-04-main
+✓ TC-quality-04-E1
+✓ TC-quality-04-E2
+✓ TC-quality-04-E3
+✓ TC-quality-04-E4
+✓ TC-quality-04-E5
+✓ TC-quality-04-E6
+✓ TC-quality-04-E7
+✓ TC-quality-04-E8
+✓ TC-quality-04-E9
+✓ TC-quality-04-E10
+✓ TC-quality-04-E11
+static_preflight_valid: selected=12/12; releaseEvidence=false
