@@ -1,0 +1,33 @@
+LINT 首跑留痕：apps/api 1546 → 1545 恰等（attempt ledger · nail 期补录）
+工作树：/Users/miaole/Desktop/golucky/meetwise-regw · 帽值来源 apps/api/package.json:7 `--max-warnings 1545`
+记录日：2026-10-30
+
+────────────────────────────────────────────────────────────────────
+ATTEMPT 1（首跑 · 红）
+命令：pnpm -C apps/api lint
+读数：✖ 1546 problems (0 errors, 1546 warnings) · EXIT=1
+新增告警恰 1 条，来源 apps/api/test/sse-reg-window.proof.ts：
+  断言辅助以 `function A(...)` 声明 → 触发 @typescript-eslint/naming-convention
+  （函数名 `A` 非 camelCase；该形在 proof 内为短名断言辅助）。
+判定：新增面唯一告警，属形制（函数声明式）而非判据面。
+
+────────────────────────────────────────────────────────────────────
+纠正（仅形制）
+改动：`function A(...)` → `const A = (...) => void`（保持同名、同签名、同调用点、
+      同输出前缀 PASS/FAIL/PASS·aux、同台账写入语义、同失败计数语义）。
+改动件：apps/api/test/sse-reg-window.proof.ts（现文 :78 `const A = (id: string, label: string, ok: boolean, detail?: unknown, aux = false): void => {`）。
+
+ATTEMPT 2（复跑 · 绿）
+命令：pnpm -C apps/api lint
+读数：✖ 1545 problems (0 errors, 1545 warnings) · EXIT=0
+对照：帽值 1545 恰等（余 0）；相对基线（rebase 前）新增 0 条。
+基线实测记录：receipts/regw-reg-window/03-lint.log 尾部 `✖ 1545 problems (0 errors, 1545 warnings)` / `EXIT=0`。
+
+────────────────────────────────────────────────────────────────────
+声明（写死）：
+**判据 / 断言 / 阈值零改，仅改函数形制，非 retry-to-green。**
+- 未改任何断言编号、期望值、时间钉值（<300ms / ∈[40,1000]ms / ∈[1900,5000]ms / until 超时）、
+  pins 十一值、cap（`--max-warnings 1545` 未上调、未 sanction）。
+- 未删除/跳过/降级任何断言，未改 lint 规则或共享 eslint 配置（`packages/config/eslint.config.base.mjs` 零触）。
+- 1546→1545 的差值来源唯一：函数声明式改常量箭头式（naming-convention 告警消失）。
+- 本文件为 EXEC 席首跑实录的 nail 期补留痕；读数与 03-lint.log 一致。

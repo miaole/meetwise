@@ -1,0 +1,69 @@
+REGW 三变异 · 原样注入 hunk（git diff 导出 · nail 期补录）
+工作树：/Users/miaole/Desktop/golucky/meetwise-regw · 被注入件 apps/api/src/platform/sse-pump.ts（blob b93121dc9）
+记录日：2026-10-30
+
+口径：
+- 三变异均为瞬时自检（REQUEST §3-1 carve-out）：同 turn 还原、不 commit。
+- 本文件 hunk 由 nail 期按 04/05/06 日志的实测 index/行为以最小编辑重建并 `git diff -U3` 原样导出；
+  注入后 `git checkout -- apps/api/src/platform/sse-pump.ts`，`git diff --exit-code` 亲证零残留
+  （RESIDUE_DIFF_EXIT=0）。
+- 期望红集与读数沿用 EXEC 首跑日志（04-mutation1.log / 05-mutation2.log / 06-mutation3.log），本文件不改任何断言/阈值。
+
+────────────────────────────────────────────────────────────────────
+变异一（对应 04-mutation1.log）：`:191` 重注册移到取数后（注册移到 fetchMore 之后）
+实测读数：FAIL RW-0-2 / RW-0-6 / RW-1-① / RW-1-② / RW-1-③ / RW-1b（六红）；
+          LEDGER arm_assertions=38/44 dedup_pass_lines=42/48 failures=12；EXIT=1；RESIDUE_DIFF_EXIT=0。
+diff --git a/apps/api/src/platform/sse-pump.ts b/apps/api/src/platform/sse-pump.ts
+index b93121dc9..f263a0388 100644
+--- a/apps/api/src/platform/sse-pump.ts
++++ b/apps/api/src/platform/sse-pump.ts
+@@ -188,7 +188,6 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
+     clearTimeout(timer);                            // 无论胜败必清(败者不留悬挂句柄)
+     wait.dispose();
+     if (closed || done || draining) break;          // HA-2:drain 落在等待臂 → 帧边界退出
+-    wait = notify.waitFor(o.streamKey);             // 注册下一轮 waiter(消灭取数窗竞态;delta-only 臂同样持有,防 notify 窗丢失)
+     if (deltaRing.length && !notifyWoke) {          // delta-only 唤醒:免 fetchMore(零 SQL·权威行路径不在本臂)
+       const frames = deltaRing.splice(0);
+       if (!emitDeltaFrames(frames)) break;          // 写失败即知断开(safeWrite 同旗)
+@@ -202,6 +201,7 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
+       fetchRejected = true;
+       break;
+     }
++    wait = notify.waitFor(o.streamKey);             // 注册下一轮 waiter(消灭取数窗竞态;delta-only 臂同样持有,防 notify 窗丢失)
+     if (more === null) break;                       // 调用方主动返回 null → 正常收尾
+     if (draining) break;                            // HA-2:drain 落在取数窗 → 帧边界退出(禁 emit,R1 防写后关)
+     if (more.rows.length) emit(more.rows);          // 2. notify/兜底唤醒后 tail 新事件
+
+────────────────────────────────────────────────────────────────────
+变异二（对应 05-mutation2.log）：`wait.dispose()` 与重注册之间插入 `await Promise.resolve()`
+实测读数：FAIL RW-0-6 / RW-1b（两红）；LEDGER arm_assertions=42/44 dedup_pass_lines=46/48 failures=4；
+          EXIT=1；RESIDUE_DIFF_EXIT=0。
+diff --git a/apps/api/src/platform/sse-pump.ts b/apps/api/src/platform/sse-pump.ts
+index b93121dc9..b50da1d0b 100644
+--- a/apps/api/src/platform/sse-pump.ts
++++ b/apps/api/src/platform/sse-pump.ts
+@@ -187,6 +187,7 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
+     wakeForDelta = undefined;
+     clearTimeout(timer);                            // 无论胜败必清(败者不留悬挂句柄)
+     wait.dispose();
++    await Promise.resolve();                        // 变异二：在 dispose→重注册之间插入 await
+     if (closed || done || draining) break;          // HA-2:drain 落在等待臂 → 帧边界退出
+     wait = notify.waitFor(o.streamKey);             // 注册下一轮 waiter(消灭取数窗竞态;delta-only 臂同样持有,防 notify 窗丢失)
+     if (deltaRing.length && !notifyWoke) {          // delta-only 唤醒:免 fetchMore(零 SQL·权威行路径不在本臂)
+
+────────────────────────────────────────────────────────────────────
+变异三（对应 06-mutation3.log）：`writeHead(200, …)` 之后插入 `await Promise.resolve()`
+实测读数：FAIL RW-0-5b / RW-0-6 / RW-3-1 / RW-6-M1（四红，其余绿）；
+          LEDGER arm_assertions=40/44 dedup_pass_lines=44/48 failures=8；EXIT=1；RESIDUE_DIFF_EXIT=0。
+diff --git a/apps/api/src/platform/sse-pump.ts b/apps/api/src/platform/sse-pump.ts
+index b93121dc9..153f26202 100644
+--- a/apps/api/src/platform/sse-pump.ts
++++ b/apps/api/src/platform/sse-pump.ts
+@@ -86,6 +86,7 @@ export async function pumpSseEvents(o: SsePumpOptions): Promise<void> {
+   const { reply } = o;
+   reply.hijack();                                   // Fastify:接管底层响应做 SSE
+   reply.raw.writeHead(200, { 'content-type': 'text/event-stream', 'cache-control': 'no-cache', connection: 'keep-alive', 'x-accel-buffering': 'no' });
++  await Promise.resolve();                          // 变异三：在 writeHead 之后插入 await
+   let closed = false;
+   let draining = false;                             // HA-2 停机排水旗(R1:registry 条目持旗·只停取不 end)
+   let bpTripped = false;                            // #132 背压自有旗:超阈值断开用,与 closed/draining 正交(背压 drain(socket)≠HA-2 排水)

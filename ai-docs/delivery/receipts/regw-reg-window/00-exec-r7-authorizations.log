@@ -1,0 +1,41 @@
+REGW EXEC · r7 授权留痕（nail 期补录 · 逐字记录协调方四项授权）
+工作树：/Users/miaole/Desktop/golucky/meetwise-regw（line/regw-draft · HEAD 1ee953ebe）
+记录日：2026-10-30
+
+前提：pre-exec 双席 BOTH PASS · post-prove 双席 BOTH PASS。
+本文件只记录授权与形制，不构成任何断言、不改任何判据/阈值/pins。
+
+────────────────────────────────────────────────────────────────────
+(a) 删 `guardTimer.unref?.()`
+授权逐字：删 `guardTimer.unref?.()`——理由=unref 会让 `bounded` 在「泵挂死」唯一设计场景下静默 EXIT=0
+落地读数：apps/api/test/sse-reg-window.proof.ts:104-112 `bounded()` 内 `guardTimer = setTimeout(...)`
+          后无 `unref`；`finally { if (guardTimer !== undefined) clearTimeout(guardTimer); }` 保留自清。
+          源码注释（:100-102）逐字：「**不 unref**——挂死链若只剩 unref 定时器会静默 EXIT=0，
+          使本 guard 在其设计的失败模式下失效；保留 ref 才能在挂死时真得到 `arm_timeout`。」
+
+(b) S4 切片起点含形参列表 `async events(`
+授权逐字：S4 切片起点含形参列表 `async events(`
+落地读数：apps/api/test/sse-reg-window.proof.ts:188-190 `events handler 作用域切片：自
+          \`async events(\` 起（含形参列表）至函数体收口 \`}\` 止」，`const start = src.indexOf('async events(')`。
+
+(c) S8 分类器只作用六业务键
+授权逐字：S8 分类器只作用六业务键
+落地读数：apps/api/test/sse-reg-window.proof.ts:609-631 S8 只对
+          {reply, reqRaw, streamKey, initial, fetchMore, isTerminal} 六键做键名/值形比对；
+          三注入键 {notify, registry, fallbackMsHealthy} 只作为差集校验，不进入分类器。
+
+(d) `until` 10ms ref'd
+授权逐字：`until` 10ms ref'd
+落地读数：apps/api/test/sse-reg-window.proof.ts:88-94 `until()` 轮询 `await sleep(10)`；
+          `sleep` 走 `setTimeout` 未 `unref`（ref'd），注释逐字「保持 ref'd 10ms——防与
+          unref 叠加成静默空退出」。
+
+────────────────────────────────────────────────────────────────────
+撤销声明（写死）：
+**REQUEST §1.1「确定性纪律（全臂）」中的 `guardTimer.unref?.()` 形已撤销。**
+现行形制以本文件 (a) 为准：guard timer 保持 ref'd、仅以 `finally clearTimeout` 自清。
+⚠️ 不得反向修改 proof 回 `unref` 形；后续任何席位若在 proof 中恢复 `unref?.()`，
+   即与本授权冲突，应按 RETURN/红停处理，不得以「与 §1.1 原文一致」为由放行。
+
+判据/断言/阈值零改：本四项授权只改辅助形制（guard timer 是否 unref、S4 切片起点、S8 分类器作用域、
+until 轮询 timer 是否 ref），不涉任何断言编号、期望值、时间钉值、pins 十一值。
