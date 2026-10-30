@@ -1,16 +1,59 @@
-# HA-1 REQUEST — 队列 status/lease 前导索引 + 队列 gauge 聚合改形（R-50 · HA 簇配套 · EXEC REQUEST 起草 · docs-only 零码动 · **rev r1**）
+# HA-1 REQUEST — 队列 status/lease 前导索引 + 队列 gauge 聚合改形（R-50 · HA 簇配套 · EXEC REQUEST 起草 · docs-only 零码动 · **rev r2**）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（rev r1 修订落卷即停 · 本卷恰 1 tracked `.md`（仅本文件）· 零产品码零迁移零依赖 · pre-exec 双审 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔动主仓）
+**Status**: **`draft:awaiting_pre_exec_dual`**（rev r2 修订落卷即停 · 本卷恰 1 tracked `.md`（仅本文件）· 零产品码零迁移零依赖 · pre-exec 双审 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔动主仓）
 
-**席位**：meetwise HA 簇配套起草席（docs-only 起草 · 协调方授权 · 新建 worktree `meetwise-ha1` · 分支 `line/ha1-draft`）；**rev r1 = 修订席**（双审两席均 FAIL · 两席独立命中同一 P0 · 本 rev 只改本卷，不落码不开 EXEC）。
-**基线**：`origin/main` @ **`99e4e3f385d7f992a88aad4b3e5f31d1e77ba3d3`**（short `99e4e3f38` · 2026-10-30 · 本卷 file:line 与 blob 均对 `HEAD=99e4e3f38` 亲读/`git rev-parse` 亲算）· 本支 HEAD `c36f53907`（rev r0 落卷 commit）+ 本 rev r1 修订 commit。本树 rev r1 落卷前 `node scripts/ai-docs/check-docs.mjs` 亲跑 **EXIT=0 · scanned 2460**（cap `MAX_FILES=2_461` · `scripts/ai-docs/public-text-policy.mjs:282`）——**本 rev 只改既有 tracked 一件 ⇒ 落卷后仍 2460（净增 0 · 余 1）**。
+**席位**：meetwise HA 簇配套起草席（docs-only 起草 · 协调方授权 · 新建 worktree `meetwise-ha1` · 分支 `line/ha1-draft`）；**rev r1 = 修订席**（双审两席均 FAIL · 两席独立命中同一 P0）· **rev r2 = 修订席**（双审 r2 席2 FAIL P1×3+P2×9 · 席1 网络中断结论不参与 · 本 rev 只改本卷，不落码不开 EXEC）。
+**基线**：`origin/main` @ **`99e4e3f385d7f992a88aad4b3e5f31d1e77ba3d3`**（short `99e4e3f38` · 2026-10-30 · 本卷 file:line 与 blob 均对 `HEAD=99e4e3f38` 亲读/`git rev-parse` 亲算）· 本支 HEAD `c20df0fa3`（rev r1 落卷 commit）+ 本 rev r2 修订 commit。本树 rev r2 落卷前 `node scripts/ai-docs/check-docs.mjs` 亲跑 **EXIT=0 · scanned 2460**（cap `MAX_FILES=2_461` · `scripts/ai-docs/public-text-policy.mjs:282`）——**本 rev 只改既有 tracked 一件 ⇒ 落卷后仍 2460（净增 0 · 余 1）**。
 **审计项（不自建 SSOT 行，翻面权归协调方）**：①`ai-docs/delivery/harness/product-campaign-LEDGER.md:136`「R-20/R-21/R-23/R-24/R-36/R-37/R-44/R-50/R-51 | 连接预算/PgBouncer/多实例状态/队列指标/登录锁定/scrypt/索引/生命周期 | HA 配套 | 中」；②`ai-docs/delivery/harness/ha-6-companion-REQUEST.md:106`「余六件——后刀」；③审计底稿 `~/Documents/Meetwise学习与审查/03-原始清单与评审/refactor-backlog.md:494-500` **R-50 原文**（本文不自建条目号，逐字引用底稿）。
 **必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/delivery/north-star-ha.md`（`:24` 状态钉 · `:46` 硬约束 · `:55` G7 · `:67` 本地一律 NOT_HA）→ `ai-docs/delivery/harness/product-campaign-LEDGER.md:136` → `ai-docs/delivery/harness/ha-6-companion-REQUEST.md:5`/`:106` → **机制源（rev r1 订正为 live 定义）** `packages/db/migrations/0144_db_trigfam_unify.sql`（`:883`-`:933` `tf_gateway_dispatch_owners` **六 work 臂** · `:935`-`:944` `gateway_dispatch_owners` 薄壳 · `:946`-`:949` §8 演进规则冻结）· 原贴（现已非 live·仅作索引与史录面）`packages/db/migrations/0132_job_route_classify_worker_dispatch.sql`（`:11`-`:13` `ix_job_semantic_revision_route_pending` 部分索引 · `:15`-`:60` 六臂原贴）· `packages/db/migrations/0042_runtime_observability_gateway.sql`（`:5`-`:26` gauge 四表 FILTER 聚合 · `:45`-`:48` ACL）· `packages/db/src/jobs/gateway-dispatch.ts`（`:22`-`:26` owner 枚举 seam · `:58`-`:67` gauge seam）· `apps/worker/src/main.ts`（`:217`-`:241` gauge 数据源与刷新 · `:510` 对账间隔 5s · `:660`-`:667` 四消费循环 · `:768` privacy checkpoint 擦除循环 5s · `:773`-`:776` gauge 循环 15s）→ 索引面 `packages/db/migrations/0001_baseline.sql`（`:109`-`:122` entitlement_consumption · `:135` `ix_outbox_pending` · `:224`-`:239` ai_report · `:253`-`:268` interview_job）· `0007_resume_quiz.sql:17`-`:31` · `0008_resume_diagnosis.sql:18`-`:32` · **`0010_consumption_stale_lease_idx.sql:7`-`:9`（`ix_consumption_stale_lease` · rev r1 实测已覆盖 commerce 臂）** · `0049_resume_reference_foundation.sql:34`-`:36` · `0055_resume_reference_legacy_backfill_index.sql:11`-`:13` · `0064_interview_resume_epoch_reference.sql:37`-`:38` · `0190_outbox_consumption_unique_concurrent.sql:12`-`:13` → 迁移运行器 `packages/db/src/migrate.ts`（`:11`-`:24` 三执行模式 · `:204`-`:228` concurrent-index 单语句/谓词正则 · `:336`-`:340` 定义/有效性断言 · `:241`-`:243` 并发建索引超时 300s · `:430`-`:455` checksum/前缀门 · `:470`-`:479` 重放路径逐次断言 · `:487`-`:495` fresh 执行路径自愈 · `:609` 注记检测）→ 并发/部分索引先例 `0198_trace_created_at_index.sql:1`-`:9` · `0211_outbox_unsettled_partial.sql:1`-`:9` · `0219_interview_event_retention_purge.sql:45`-`:47` · `0213_interview_job_autovacuum_reloptions.sql:1`-`:10` → 回归面 `packages/db/test/interview-event-retention.proof.ts:76`-`:83`（链头 0219/文件数 217 钉）· `packages/db/test/runtime-role.proof.ts:108`-`:113`（gauge 四行/列名断言）· `packages/db/test/migrate.proof.ts`（concurrent-index/特权面）· `packages/ai-runtime/src/metrics.ts:67`-`:77`/`:153`-`:156` → 告警面 `ai-docs/observability/alerting-runbook.md:124`（下钻锚指 `0042:5-26`·rev r1 登记将过期）/`:141`/`:169`/`:188` → 注册面 `scripts/run-e2e-isolated.mjs`（`level-policy-migrate:prove` 同形：`:894` 目标表 · `:3357` 命令映射 · `:2839` 允许清单 · `:89` `LIVE_E2E_TARGETS`）· `packages/db/package.json:25`/`:30` → 计数预算面 `scripts/ai-docs/public-text-policy.mjs`（`:36` `MANAGED_ROOTS` 含 `packages` · `:39` `TEXT_EXTENSIONS` 含 `.sql`/`.ts`、不含 `.log` · `:282` `MAX_FILES` · `:482` `git ls-files --cached --others` 未跟踪新增亦计面）· `scripts/ai-docs/public-text-policy.proof.mjs:452`/`:459`/`:474`/`:477`（cap 四联动点）· `.github/workflows/ci.yml:49`（`pnpm docs:check`）。
-**Honesty**：六条候选的判定全部对 `99e4e3f38` 实树亲读（§认领核对），未凭记忆；本刀只在六条中取 **R-50**，其余五条只作判定与剔除记录（§2 非范围）。零实跑零 prove（本刀=REQUEST 卷；prove 判据见 §4 待 EXEC 兑现）；`est live=0`（动态面全在隔离 PG 容器，零生产操作、零真实流量、零模型外呼）。**rev r1 的量化读数来自双审两席在隔离 PG16 的实测（本节逐处标「席测」），修订席未重跑；EXEC 必须在自己的隔离容器复测并入收据。**
+**Honesty**：六条候选的判定全部对 `99e4e3f38` 实树亲读（§认领核对），未凭记忆；本刀只在六条中取 **R-50**，其余五条只作判定与剔除记录（§2 非范围）。零实跑零 prove（本刀=REQUEST 卷；prove 判据见 §4 待 EXEC 兑现）；`est live=0`（动态面全在隔离 PG 容器，零生产操作、零真实流量、零模型外呼）。**rev r1 的量化读数来自双审两席在隔离 PG16 的实测（本节逐处标「席测」），修订席未重跑；rev r2 的量化读数来自双审 r2 席2 的隔离 PG16 实测（含 400k 稳态夹具），修订席同样未重跑；EXEC 必须在自己的隔离容器复测并入收据。**
+
+---
+
+## rev r2 修订小节（双审 r2：席2 FAIL · 席1 网络中断 · P1×5 + P2×12）
+
+> 触发：pre-exec 双审 r2——席2 **FAIL**（P1×3 + P2×9），席1 网络中断（其结论不参与判定，其实测数据已并入）。**rev r1 的两个 P0 已确证修好**（cap 步进算式、W1-5 撤销正确）。本 rev 对 P1 五条**全采纳精确修**，P2 十二条逐条精确修或降残面。**修订席未重跑席2 的实测；EXEC 必须在自己的隔离容器复测并入收据。**
+
+### P1（5 条 · 全采纳）
+
+| # | 命中 | 落法 |
+|---|---|---|
+| **P1-1** | **§1.5 回滚形不可执行且会把账本打成非连续态**（席2 阻塞项）：`migrate.ts:450`-`:457` 先查 `manifest.get(row.version)`（不存在即 `migration_ledger_unknown_version`），再逐位校验 `ordered.slice(0, doneRows.length)`（不符即 `migration_ledger_not_contiguous_prefix`），**该校验在任何 DDL 之前**。卷内「删四账本行 + DROP 四索引、保留 C6 账本行」⇒ 账本 = 旧 217 + 0224，`expectedPrefix` 第 218 位是 0220 ⇒ 下次 migrate 立刻 `migration_ledger_not_contiguous_prefix`；若连 0224 账本行也删，四条迁移文件仍在 manifest ⇒ 下次 migrate 按序重放，`CREATE INDEX CONCURRENTLY IF NOT EXISTS` **原样重建**已 DROP 的索引，回滚净效果为零。 | **§1.5 第 1 条整段重写**：索引回滚 = ①删四条 `.sql` 文件 + ②删四条账本行 + ③DROP 四条索引，**三件同一动作**（删文件后 0224 成为第 218 位，前缀自洽）；回滚时同步把 C10 改为 **218 件 / 0224**、cap 按「实测 scanned + 6」下调。补两条中间态恢复剧本：**DROP-first 崩** ⇒ 账本在、索引缺 ⇒ 重放路径 `assertConcurrentIndexDefinition` 抛 `migration_concurrent_index_definition_mismatch`（`:338`/`:362`）且**重放路径不自愈**（自愈仅 fresh 路径 `:487`-`:495`），唯一恢复 = 手工重建索引或删账本行；**DELETE-first 崩** ⇒ 下拍 migrate 走 fresh 路径自愈。若同时撤 C6 则再删 C6 文件 + 账本行回 217/0219。§8 回滚硬门同步。 |
+| **P1-2** | **cap 应是「届值 + 6」不是固定 2466**（席2）：§8 自己要求「§0 全量对届时 tip 重 pin」，而 2460 只是起草届读数。EXEC 立项日若 main 已推进，`> sanctioned cap(2466)` 会把无关增长误判为「验收红不可修」。 | **C12 重写**：`MAX_FILES` = **EXEC 届 `check-docs` 实测 scanned + 6**；**2466 仅为起草基线最小值**（2460 + 6）。C13 四联动点取同一届值（`cap`/`cap`/`f-<cap>.md`/`cap+1`）。§8 验收红判据改「> 届值 cap（实测 scanned + 6）」。 |
+| **P1-3** | **收据扩展名禁令不封闭**（席2）：C11 只 Ban `.json`，但 `TEXT_EXTENSIONS` 同时含 `.txt`（`public-text-policy.mjs:39`），且树内 `ai-docs/delivery/receipts/**` 现存 **26 个 `.md`** 收据（多数沿惯例落 `exec-receipt.md`）⇒ EXEC 若写 `.md`/`.txt` 收据，扫描面 2467 > 2466 ⇒ docs:check 红。 | **C11 重写**：**Ban 落 `.md`/`.txt`/`.json` 收据，只准 `.log`**（`.log` ∉ `TEXT_EXTENSIONS`）；cap 算式显式写「+0 收据」前提。§5 Ban 同步扩词。 |
+| **P1-4** | **「claim 内两条 NOT EXISTS 94x 隐藏收益」在稳态下被证伪**（席2 实测）：夹具 400k `failed` + 50k `done` + 5 queued + 5 running-expired，`claimNextInterviewJob` 同形语句有 `(status, lease_expires_at)` 索引 **51.3ms**（计划 `Hash Right Anti Join → Seq Scan on big failed`，400,003 行、33.0ms；failed 臂仍全表扫），无该索引 **64.8ms** ⇒ 真实增益 **≈1.26x**。0.101ms 只出现在「failed 段仅 3 行」的夹具，而 §1.2 自己说 40 万终态行就是上线后稳态。 | **删「最大隐藏收益」叙事**：§0.3 末段与 §1.4 改如实写「running 臂 ≈1.2x、failed 臂仍 O(终态集)」；`(interview_id)`/`(interview_id,status)` 索引登记为 **R-50 后续残面（另刀）**，不计入本刀收益。 |
+| **P1-5** | **B32 在真实夹具下不可达**（席2）：B32 判据「claim 全语句默认计划无 `interview_job` 的 Seq Scan」——400k `failed` 稳态下必为 Seq Scan（加索引前后都红）。EXEC 只有两条路：把终态种子压到 3 行（夹具使断言恒绿=构造性绿）或按稳态种子红整刀。 | **B32 拆两臂**：①**B32 可判臂**：per-owner 候选段必须走 `ix_ijob_claim`（断 `Index Cond` 前缀含 `owner_user_id,status` 或索引名 = `ix_ijob_claim`，防被新索引抢成跨 owner 扫描）；②**B33 登记臂（不判红）**：终态 anti-join 打印计划并登记 O(终态集)。sweep/live-count 顺延 B34/B35，`idx_scan` 顺延 B36。断言总数 44→**45**。 |
+
+### P2（12 条 · 逐条精确修 / 降残面）
+
+| # | 命中 | 落法 |
+|---|---|---|
+| **P2-1** | **`v_cutoff` 实为 Param 会进 Index Cond**（席2 实测证伪卷内结论）：plpgsql 变量 `v_cutoff timestamptz := clock_timestamp(); … lease_expires_at < v_cutoff` **会进** Index Cond；`PREPARE p(timestamptz)` custom plan 与 `force_generic_plan` 均呈 `Index Cond: ((status='running') AND (lease_expires_at < $1/…))`。与「单条 RETURN QUERY 单快照」不冲突（变量在函数入口取一次，仍是单语句）。 | §1.1 那句「仍不进 Index Cond（v_cutoff 非常量）」**改正为「`v_cutoff` 为 Param，会进 Index Cond」**，并**升为 W2 推荐实现**（§1.2 body 加 `v_cutoff`）；B16-B19/B27-B30 按**两列**判；仅内联 `clock_timestamp()` 退回时才按「不适用」登记。 |
+| **P2-2** | **A9「全树 gateway_job_gauges 定义点 = 2 处」为假**：`packages/db/sql/24_runtime_observability_gateway.sql:4` 是第三处。 | A9 明写「**扫描域 = `packages/db/migrations/*.sql`（2 处）**」，另断 `sql/24:4` 为**已登记滞后镜像**；§1.2 合规声明「全树仅一份定义」改为「**迁移目录内仅一份**」。 |
+| **P2-3** | **§2-15②「online_judge_dispatch 本仓树内不存在」为假证词**：`0050_online_judge_control_plane.sql:130` 建表、`:152`-`:153` 建 `ix_online_judge_dispatch_claimable (created_at) WHERE status IN ('queued','claimed')`、`:388`-`:400` 全局 claim，调用点 `packages/db/src/model-op/online-judge-control.ts:86`。结论（不纳入）仍成立（部分索引覆盖），但「不存在/亲跑零命中」是假证词。 | §2-15② 改如实写「**存在且已覆盖**」并给四处锚；§0.5「缺口只有四张 job 表」的完备性叙事据此保持成立（不再建立在假证上）。 |
+| **P2-4** | **链头空号在飞未纳入碰撞面**：`0216_scoring_*`/`0217_interview_question_asr_*` 存在于未并分支，origin/main 缺失（0215→0218 断号）。这些分支若在本刀之后并线，`migrate.ts:450`-`:457` 连续前缀断言会让**已记账 0220+ 的库整链红**。 | §8「现场漂移」补「**低于链头的在飞空号（当前 0216/0217）**」并写明并线前须先重排/回滚重放。 |
+| **P2-5** | **B35 `idx_scan` 增量断言缺 flush 语义**：`pg_stat_reset()` 后连跑 3 条命中查询，直接读 `idx_scan` 仍是 **0**；`SELECT pg_stat_force_next_flush()` 后读到 **4**。 | **B36 明写**：每组前后各 `pg_stat_force_next_flush()`（或 ≥1s 后重读）；**必须真执行而非 EXPLAIN**（EXPLAIN-only 不计数）；`Bitmap Index Scan` 计入。 |
+| **P2-6** | **HOT 面引用错位**：W1-5 撤销后 `entitlement_consumption` 不再建索引，但卷内仍写 `commerce.ts:562-571` 心跳永久失 HOT（自相矛盾）；且漏掉真实受影响的两条 `quiz-jobs.ts:75`、`diagnosis-jobs.ts:66`。 | **删 commerce**，补 quiz/diagnosis：**三表心跳失 HOT**（`interview-jobs.ts:313`/`quiz-jobs.ts:75`/`diagnosis-jobs.ts:66`）。§1.5 与 §7 同步。 |
+| **P2-7** | **B33/B34 判据过弱**：「仍走索引 + owner Filter（非 Seq Scan）」任何索引都满足，抓不住「从 owner 前导翻到 status 前导」的真实回归。 | B32/B34/B35 统一断 **`Index Cond` 前缀为 `owner_user_id` 或索引名 = `ix_ijob_claim`**。 |
+| **P2-8** | **§0.5 头条 316x 与稳态 2.1x 并存易误读**。 | §0.5 头条同时给「**夹具口径 316x / 稳态 2.1x**」。 |
+| **P2-9** | **B21/B22 四行三列 vs 四列自相矛盾 + owner 比对对象不存在**：「比对对象 = 0042 应用后 `pg_proc.proowner` 快照」——proof 运行期拿不到历史快照。 | **统一「四行四列」**；owner 断言钉「`proowner` = 迁移角色（迁移时 `current_user`）且收据登记角色名」。 |
+| **P2-10** | **§8 标题「停止条件五类」实为 7 条**；§9 修订算式「删该表 4 条：B1-B5/B8-B12/B14-B18/B19-B23 各 −1」区间互相重叠、与「4 条」不匹配。 | §8 标题改「**七类**」；§9 改为**可核的逐条断言行清单**（见 §9）。 |
+| **P2-11** | **基线已红的两道既有门未登记**：`db-trigfam-unify.proof.ts:344`-`:350`「StageB 恰只应用 0144」在 0145+ 入树后必红（当前 `48dee7a2..HEAD -- packages/db/migrations` 已 73 件；同文件 `:491` 断言期望 1 件）；不在 CI、不在 §4 门表。 | §0.1 增**事实钉之三：基线已红**（两条断言逐条钉），§8「跨刀红」登记；本刀不修。 |
+| **P2-12** | **`SET LOCAL` 需绑定连接**：B20 已写「单 client + 同一事务」，但需再钉取连接方式。 | B20 明写「必须 `pool.connect()` 取 client 后显式 `BEGIN/SET LOCAL/EXPLAIN/ROLLBACK`；`pool.query('BEGIN')` 不绑连接，可能分到不同 backend」。§5 Ban 同步。 |
+
+### 落卷纪律核对（rev r2）
+
+- 迁移数 **5**（C1-C4 + C6；P1-1 回滚形改动只动回滚剧本与 C10/cap 的**回滚后**取值，不改 EXEC 终态件数）。
+- 断言总数 **44→45**（B32 拆两臂；sweep/live-count/`idx_scan` 顺延 B34/B35/B36）。
+- STOP 三处 `draft:awaiting_pre_exec_dual`；pins 十一值零翻。
+- 三门亲跑：docs:check **EXIT=0 scanned 2460** / PTP **12/12 EXIT=0** / markers **0**。
+- 本轮 diff 恰 1 tracked（仅本文件）。
 
 ---
 
 ## rev r1 修订小节（双审两席 FAIL → 逐条落法）
+
+> **本小节为 rev r1 历史记录**；以下五处已被 rev r2 取代：①cap 固定 2466 → 届值 + 6；②§1.5 回滚形 → 三件成对 + 中间态剧本；③§1.1 `v_cutoff` 不进 Index Cond → **会进**；④P2-4「94x 隐藏收益」→ **≈1.26x**；⑤B32 判据 → 拆两臂。
 
 > 触发：pre-exec 双审两席均 **FAIL**，且**两席独立命中同一 P0**（cap 必撞 + `entitlement_consumption` 索引已存在）。两席另外各自给出 P1/P2，本 rev 全数处置，**无一条以「不予采纳」草率结案**：精确修 20 条、降为残面并写明理由与归属 6 条。
 
@@ -40,9 +83,9 @@
 1. **W2 与 0144:946-949 演进规则正面冲突** → **精确修（合规声明）**：该冻结只覆盖 `tf_` 13 名（`db-trigfam-unify.proof.ts:61`-`:64`）与 REQUEST 附录 A Tier-2 长尾；`gateway_job_gauges` 不属任一（`grep -n gateway_job_gauges 0144_db_trigfam_unify.sql` = 0 行·本席亲跑；Tier-2 名单亦不含）⇒ 本刀是**首次体变更非重贴**。**不作 `_v2` 包装**：新增 `tf_gateway_job_gauges` 会破 `db-trigfam-unify.proof.ts:61-64` 的 13 名精确集合门，代价更高。理由须逐字登记进 C6 头注（防后人误判）。
 2. **§1.5 首个否决项理由改** → **精确修**：真正决定性约束是**谓词语法**——`migrate.ts:216`-`:222` 正则只接受 `WHERE <col> IS NULL` 或 `WHERE <col> = '<literal>'`，`IN`/`OR` 一律拒收 ⇒「一个部分索引覆盖 queued+running」在不动 runner 前提下**不可表达**；并解释为何 `0010` 那种单值部分索引是既有惯例而本刀不能用同一惯例（四队列每表需 queued/running-expired/终态三值 ⇒ 3 条迁移/表 = 12 条，见 §1.5 否决表）。
 3. **`dead` 列修不动**（席1 实测 400k quarantined：`count(*) WHERE status='quarantined'` 默认 Parallel Seq Scan 42.2ms / 禁 seqscan 29.7ms / VACUUM 后 Index Only Scan 33.1ms、Heap Fetches 0；整 gauge 体 45.1ms → 23.5ms 仅 **2.1x**）→ **降为残面 + 量化阈值**：§1.2 与 §7 明写「`dead` 列仍为 O(终态集)，本刀只压 queued/running_expired；终态集成本归 R-44/R-51」，并给阈值（终态 40 万行时该列 ~30ms/拍/副本）；B31 判据改「索引可用 + 该列耗时不超过对比表所列上限」而非「必须走索引」。runbook `:141`/`:169`-`:178` 自登记「四队列终态行零 retention ⇒ `worker_jobs_dead` 单调累积」⇒ 400k 就是上线后稳态，据此改判。
-4. **per-owner 路径实测会翻计划**（席1·70k 行）：claim 里两条 `NOT EXISTS (... r.interview_id=j.interview_id ...)` 加索引前是**两次 Seq Scan 70,013 行**（claim 合计 9.48ms），加索引后 0.101ms（`interview_job` 无 `interview_id` 前导索引：`0001:268`/`0049:34`/`0055:11`/`0064:37` 全 owner 打头）——**这是本刀最大的隐藏收益**，也证明「per-owner 路径已正确」不成立。sweep（`interview-jobs.ts:331`-`:345`）与 live-count 守卫（`:175`-`:180`）会从 `ix_ijob_claim(owner,status)` 翻到新索引 + owner Filter。→ **精确修**：§0.3 末段改实测口径；§4 增 **B32-B34** 三条「per-owner 计划非回归」；§2 增「相邻队列（privacy_deletion_target / online_judge_dispatch / ai_model_invocation）已核，不纳入，理由逐条」。
+4. **per-owner 路径实测会翻计划**（席1·70k 行）：claim 里两条 `NOT EXISTS (... r.interview_id=j.interview_id ...)` 加索引前是**两次 Seq Scan 70,013 行**（claim 合计 9.48ms），加索引后 0.101ms（`interview_job` 无 `interview_id` 前导索引：`0001:268`/`0049:34`/`0055:11`/`0064:37` 全 owner 打头）——**这是本刀最大的隐藏收益**，也证明「per-owner 路径已正确」不成立。sweep（`interview-jobs.ts:331`-`:345`）与 live-count 守卫（`:175`-`:180`）会从 `ix_ijob_claim(owner,status)` 翻到新索引 + owner Filter。→ **精确修**：§0.3 末段改实测口径；§4 增 **B32-B34** 三条「per-owner 计划非回归」；§2 增「相邻队列（privacy_deletion_target / online_judge_dispatch / ai_model_invocation）已核，不纳入，理由逐条」。**（rev r2 更正：稳态增益 ≈1.26x，非 94x；B32-B34 改为 B32-B36，见 rev r2 小节。）**
 5. **§0.3 表头与两行普查不全** → **精确修**：表头改「现有索引（键序逐条注明·非全部 owner 前导）」；`entitlement_consumption` 行改为 `(lease_expires_at) WHERE status='reserved'`；`commerce_outbox` 补 `0001:135` `ix_outbox_pending (owner_user_id,status)` 与 `0190:12`-`:13` `uq_outbox_consumption`；另登 `packages/db-mysql/migrations/0001_skeleton.sql:42`-`:43` `idx_job_queue_claim (status, lease_expires_at)` 同形先例（仅形态佐证，非本仓契约）。
-6. **HOT 破断无量化** → **精确修**：§1.5 增量化与边界——`interview-jobs.ts:309`-`:317`（`renewInterviewJobLease`、`LEASE_SECONDS=120`、只更新 `lease_expires_at`）与 `packages/db/src/commerce/commerce.ts:562`-`:571` 今天都是 HOT 可用；新增 `(status, lease_expires_at)` 后心跳**永久失去 HOT 资格**（每拍 +1 索引元组 + 堆膨胀，`0213` 的 autovacuum 调优只能缓解）；并明写**部分索引方案同样破 HOT**（running 行正是心跳行）⇒ rev r0「部分索引写放大更低」在心跳面不成立，该论点收窄为「迁移条数 12 条 vs 4 条」。
+6. **HOT 破断无量化** → **精确修**：§1.5 增量化与边界——`interview-jobs.ts:309`-`:317`（`renewInterviewJobLease`、`LEASE_SECONDS=120`、只更新 `lease_expires_at`）与 `packages/db/src/commerce/commerce.ts:562`-`:571` 今天都是 HOT 可用；新增 `(status, lease_expires_at)` 后心跳**永久失去 HOT 资格**（每拍 +1 索引元组 + 堆膨胀，`0213` 的 autovacuum 调优只能缓解）；并明写**部分索引方案同样破 HOT**（running 行正是心跳行）⇒ rev r0「部分索引写放大更低」在心跳面不成立，该论点收窄为「迁移条数 12 条 vs 4 条」。**（rev r2 更正：commerce 心跳不受影响，实际是 interview/quiz/diagnosis 三表。）**
 7. **建索引时长未量化** → **精确修**：§8 增「若累计/单条超 `MIGRATION_CONCURRENT_INDEX_TIMEOUT_MS`（`migrate.ts:241`-`:243` 默认 300s、上限 900s）则以 env 上调并在收据登记；上调后仍超则停手上报」。
 8. **`sql/24` 镜像滞后** → **降为残面 + 登记**：`packages/db/sql/24_runtime_observability_gateway.sql:4`-`:24` 是 `gateway_job_gauges()` 的旧 FILTER 体镜像；本刀只改迁移 ⇒ 镜像滞后。当前无门抓（`schema-drift-check.mjs:1`-`:6` 只比列/UNIQUE/PK；`dbhy1.proof.ts:357` 只比对象名录且 sql⊆mig 单向）。§2-8 登记「已知滞后 + 无门覆盖的理由 + 归属（sql/ 镜像同步刀）」，**不在本刀增同步条目**（否则 cap 与断言面再扩，违反 S 体量）。
 9. **gauge 数值等价的隐含前提未写** → **精确修**：§5 增 Ban「Ban 把 gauge 体拆成多条 `RETURN QUERY`」；§4 B21 增「同语句取数（单 `RETURN QUERY` ⇒ 单快照）」实现约束，并写清 0042 旧体单遍扫描同快照的对齐理由。
@@ -52,7 +95,7 @@
 13. **EXPLAIN 执行角色未钉** → **精确修**：§4 动态门口径加「EXPLAIN 以 superuser 或 `SET row_security = off` 执行，principal GUC 状态在收据逐行登记」；理由：四表均 `ENABLE/FORCE RLS`，`0059:92`-`:94` 策略 `TO app_role USING (owner_user_id=current_setting('app.principal_user',true) …)`，`app_gateway_role` 无 SELECT（`0040:3`-`:5`/`0042:3`）⇒ 以受 RLS 约束角色 EXPLAIN 且 GUC 未设会走 `ix_ijob_claim`（owner 前导）而不含新索引。另登记（非本刀）「SECURITY DEFINER + FORCE RLS 下若迁移角色非 superuser/BYPASSRLS，`gateway_job_gauges()` 会因无适用策略返回全 0」。
 14. **B26 列型断言取数方式未钉** → **精确修**：B22 补 `pg_get_function_result` 全串逐字比对，或 `pg_proc.proallargtypes + format_type` 双轨；并写明比对对象 = `0042:5-26` 时点的签名（`queue text, queued bigint, running_expired bigint, dead bigint`）。
 15. **runbook 下钻锚会过期** → **精确修**：`alerting-runbook.md:124` 指向 `0042:5-26`，W2 后不再 live；§2-9 与 §7 登记该指针过期、指向新迁移（runbook 本刀零触，改指针归文档刀）。
-16. **B1-B12 多为运行器已保证的恒真** → **精确修（诚实计数）**：§4 增「44 条 = 9 静态 + 12 元数据（B1-B11/B22）+ 21 EXPLAIN 形态（B12-B20/B23-B31/B32-B34）+ **2 条真行为**（B21 数值等价、B35 `idx_scan` 增量）」，并新增 B35 增量臂（`pg_stat_user_indexes.idx_scan` 执行前后必须增长），使「索引真被用」有行为证据而非只看 planner。
+16. **B1-B12 多为运行器已保证的恒真** → **精确修（诚实计数）**：§4 增「44 条 = 9 静态 + 12 元数据（B1-B11/B22）+ 21 EXPLAIN 形态（B12-B20/B23-B31/B32-B34）+ **2 条真行为**（B21 数值等价、B35 `idx_scan` 增量）」，并新增 B35 增量臂（`pg_stat_user_indexes.idx_scan` 执行前后必须增长），使「索引真被用」有行为证据而非只看 planner。**（rev r2 更正：总数 45；B32 拆两臂，增量臂顺延 B36。）**
 
 ---
 
@@ -73,7 +116,7 @@
 1. **硬前置性最强**：R-50 是 R-44（最老排队年龄=按 status+created_at 取 min）与 R-51（按时间清理需时间索引）的共同前置；底稿 R-24 `:290` 的修法原文也把「gauge 与枚举改走部分索引/物化计数」列为首选——**R-50 是 R-24/R-44/R-51 三条同时吃到的结构性前置**。
 2. **对多实例的收益是线性的**：`0144:890`-`:926` owner 枚举每 5s×四队列×N 副本；`0042:10`-`:24` gauge 每 15s×四表×N 副本。HA-1 拓扑（api×2+worker×2）把这些全部翻倍；索引把「扫全表历史」降为「扫匹配 status 的键段」，收益随 `done` 历史行数线性放大（底稿 `:498`「扫描成本随历史线性增长」）。
 3. **本地可证且零云**：真隔离 PG 上 EXPLAIN 可判（默认计划 + 事务内 `enable_seqscan=off` 双口径），不依赖任何云资源/密钥。
-4. **S 体量、单点可回滚**：4 条并发索引 + 1 条函数改形，全部 additive（回滚形见 §1.5，rev r1 已修正为 runner-recognized 的成对动作）。
+4. **S 体量、单点可回滚**：4 条并发索引 + 1 条函数改形，全部 additive（回滚形见 §1.5，rev r2 已修正为「删文件 + 删账本 + `DROP`」三件同一动作）。
 5. 其余五条：R-37=已落地剔除；R-36=残面属云侧/产品裁决；R-44/R-51=被本刀前置；R-24=底稿建议先由 R-50 吃掉成本，编排改动留后。
 
 ---
@@ -89,7 +132,8 @@
 5. **事实钉之一（链头/文件数）**：`packages/db/migrations/*.sql` 当前 **217** 件，链头 `0219_interview_event_retention_purge`（`ls packages/db/migrations/*.sql | wc -l` = 217 亲证）；任何新迁移都会打破 `interview-event-retention.proof.ts:81`-`:83` 的「链头 0219 / 文件数 217」双钉——本卷已把它列为 EXEC 必须同步的最小子项（§3-C10）。
 6. **事实钉之二（rev r1 新增·链头钉共 4 处，其中 3 处基线已红）**：全仓链头钉共 **4 处**——`packages/db/test/interview-event-retention.proof.ts:81`-`:83`（0219/217，**本刀必须同步**）、`apps/api/test/i2b.proof.ts:153`-`:154`（钉 `0218_remit_invoice_id_v7`，**基线树即为假**：真链头已是 0219）、`apps/api/test/entpay-s3.proof.ts:70`-`:71`（钉 `0159_entpay_my_offline_orders`）、`apps/api/test/entpay-s2.proof.ts:83`-`:84`（钉 `0157_billing_payer_route`）。后三件**非本刀引入**（rev r0 起草日即已陈旧），且 `i2b:prove` 不在 CI（`.github/workflows/*.yml` 对 `i2b|entpay` 零命中，本席亲跑）。**已排除的误报**：`dbhy1.proof.ts:288`-`:293`（extra 只统计 `f < '0145_'`，新增 0220+ 不计）、`dbhy1.proof.ts:357`（sql⊆mig 单向缺失统计）、`migrate.proof.ts:317`（无计数钉）、`checkpoint-schema.proof.ts:109`-`:111`（只打印 `total=`）。
 7. **勘误⑤（rev r1·P0-2 假证纠正）**：rev r0 §0.3 写「`entitlement_consumption` 无 `(status,lease)` 索引（全迁移 CREATE INDEX 零命中）」为**错误证词**——该表由 `0010_consumption_stale_lease_idx.sql:7`-`:9` 的**部分索引**覆盖（`(lease_expires_at) WHERE status='reserved'`），形态即「status 定值 + lease 范围」。rev r0 的 `rg` 只搜 `ON <table> (status` 前导形，漏掉部分谓词形；本 rev 修正并扩 A6 的负断言形态（含隐式 status 谓词）。
-8. **勘误⑥（rev r1·P0-1 计数面纠正）**：rev r0 §9 写「cap 零步进」只对**起草状态**成立；**EXEC 必撞 cap**（详见 rev r1 小节 P0-1 与 §3-C12/C13）。本 rev 已把 cap 步进登记为 EXEC 必做项，并把 §8 的验收红判据改为「> sanctioned cap」。
+8. **勘误⑥（rev r1·P0-1 计数面纠正）**：rev r0 §9 写「cap 零步进」只对**起草状态**成立；**EXEC 必撞 cap**（详见 rev r1 小节 P0-1 与 §3-C12/C13）。本 rev 已把 cap 步进登记为 EXEC 必做项，并把 §8 的验收红判据改为「> 届值 cap」（rev r2 进一步钉为「EXEC 届 `check-docs` 实测 scanned + 6」）。
+9. **事实钉之三（rev r2·基线已红的既有门）**：`packages/db/test/db-trigfam-unify.proof.ts:344`-`:350`「StageB 恰只应用 0144」在 0145+ 入树后**必红**——`runMigrations(pool, all)` 会应用 0144 起的全部迁移，`rB.applied.length !== 1`；同文件 `:491`「P6 历史迁移 0001–0143 零字节（迁移面唯一新增=0144）」亦红（`git diff --name-only 48dee7a2..HEAD -- packages/db/migrations` 当前实为 **73 件**，断言期望 1 件）。该 prove **不在 CI**（`.github/workflows/*.yml` 对 `trigfam` 零命中，本席亲跑），也**不在 §4 门表** ⇒ **基线已红、非本刀引入**，本刀不修、不得顺手改（§8「跨刀红」登记）。
 
 ### 0.2 blob 锚表（`git rev-parse HEAD:<path>` 8 hex · 行数）
 
@@ -148,7 +192,7 @@
 
 | 表 | 现有索引（键序逐条注明·**非**全部 owner 前导） | 锚 | status/lease 前导 | 处置 |
 |---|---|---|---|---|
-| `interview_job` | `ix_ijob_claim (owner_user_id, status, seq, created_at)`；`ix_interview_job_resume_reference (owner_user_id, resume_id) WHERE resume_id IS NOT NULL`；`ix_interview_job_reference_legacy_backfill (created_at, id) WHERE reference_schema_version IS NULL`；`ix_interview_job_v64_resume_epoch (owner_user_id, interview_id, …) WHERE reference_schema_version=64`。**`interview_id` 无前导索引** | `0001:268`/`0049:34`-`:36`/`0055:11`-`:13`/`0064:37`-`:38` | **无** | **新建** `ix_ijob_status_lease` |
+| `interview_job` | `ix_ijob_claim (owner_user_id, status, seq, created_at)`；`ix_interview_job_resume_reference (owner_user_id, resume_id) WHERE resume_id IS NOT NULL`；`ix_interview_job_reference_legacy_backfill (created_at, id) WHERE reference_schema_version IS NULL`；`ix_interview_job_v64_resume_epoch (owner_user_id, interview_id, …) WHERE reference_schema_version=64`。**`interview_id` 无前导索引** | `0001:268`/`0049:34`-`:36`/`0055:11`-`:13`/`0064:37`-`:38` | **无** | **新建** `ix_ijob_status_lease`；`interview_id` 无前导索引 ⇒ 终态 anti-join 残面（**另刀·不计本刀收益**） |
 | `ai_report` | `ix_report_claimable (owner_user_id, status)` | `0001:239` | **无** | **新建** `ix_report_status_lease` |
 | `quiz_job` | `ix_quizjob_claim (owner_user_id, status, created_at)` | `0007:31` | **无** | **新建** `ix_quizjob_status_lease` |
 | `diagnosis_job` | `ix_diagnosisjob_claim (owner_user_id, status, created_at)` | `0008:32` | **无** | **新建** `ix_diagnosisjob_status_lease` |
@@ -156,7 +200,7 @@
 | `commerce_outbox` | `ix_outbox_unsettled (owner_user_id) WHERE status='pending'`；`ix_outbox_pending (owner_user_id, status)`；`uq_outbox_consumption (consumption_id)` | `0211:7`-`:9`；`0001:135`；`0190:12`-`:13` | **已覆盖**（部分谓词即 status） | **不新建**；A8 断言其仍在 |
 | `job_semantic_revision` | `ix_job_semantic_revision_route_pending (owner_user_id, created_at, revision) WHERE status='route_pending'` | `0132:11`-`:13` | **已覆盖**（部分谓词定 status·集合本身极小） | **零触**；A8 断言其仍在 |
 
-**per-owner 路径实测口径（rev r1·P2-4）**：`WHERE owner_user_id=$1` 的 per-owner claim/sweep 走现有 owner 前导索引**并非「已足够」**——claim 内的两条 `NOT EXISTS (… r.interview_id=j.interview_id …)` 在 `interview_id` 无前导索引时会退化为**两次 Seq Scan**（席测 70k 行：加索引前 claim 合计 9.48ms／两次 70,013 行扫描，加索引后 0.101ms）。sweep（`:331`-`:345`）与 live-count 守卫（`:175`-`:180`）会从 `ix_ijob_claim(owner,status)` 翻到新索引 + owner `Filter`。**本刀不改这些查询**（产品语义零触），但 §4 增 B32-B34 作「计划非回归」守卫，并在 §7 如实登记该收益。
+**per-owner 路径实测口径（rev r2 更正·P1-4）**：`WHERE owner_user_id=$1` 的 per-owner claim/sweep 走现有 owner 前导索引**并非「已足够」**，但收益远小于 rev r1 的叙事。稳态夹具（400k `failed` + 50k `done` + 5 queued + 5 running-expired）实测：claim 内两条 `NOT EXISTS (… r.interview_id=j.interview_id …)` 加 `(status, lease_expires_at)` 索引后 **51.3ms**、加索引前 **64.8ms**，真实增益 **≈1.26x**；计划为 `Hash Right Anti Join → Seq Scan on big failed`（400,003 行、33.0ms）——**failed 臂仍 O(终态集)**。rev r1 的 0.101ms 仅出现在「failed 段仅 3 行」的夹具，不代表稳态。`interview_id` 无前导索引（`0001:268`/`0049:34`/`0055:11`/`0064:37` 全 owner 打头）⇒ `(interview_id)`/`(interview_id,status)` 索引登记为 **R-50 后续残面（另刀）**，**不计入本刀收益**。sweep（`:331`-`:345`）与 live-count 守卫（`:175`-`:180`）必须继续走 `ix_ijob_claim`（owner 前导），由 B34/B35 断「`Index Cond` 前缀 owner_user_id 或索引名 = `ix_ijob_claim`」防翻计划。**本刀不改这些查询**（产品语义零触）。
 
 **形态佐证（非契约）**：`packages/db-mysql/migrations/0001_skeleton.sql:42`-`:43` 已有 `KEY idx_job_queue_claim (status, lease_expires_at)`（MySQL 侧 stub）——本刀键序与之同形，仅作惯例佐证，不构成对本仓 PG 的约束。
 
@@ -175,7 +219,7 @@
 
 ### 0.5 靶心一句话（rev r1 收窄口径）
 
-**在队列/gauge 面**，`done` 历史行只增不删（R-51 未收口），而每副本每 5s 的 owner 枚举与每 15s 的 gauge 聚合都**不带 owner 谓词**，四张 job 表的现有索引全部 owner 前导，于是每条查询都退化为对整张历史表顺序扫描；HA-1 拓扑把副本翻倍、R-51 迟迟不落又把历史继续做大——**R-50 的修法是把「按 status/lease 过滤」变成索引可服务的键段，并把 gauge 的多 FILTER 单遍聚合改成逐 status 的可索引子查询**。这样 R-24 的重复聚合成本被结构性压小（不必先做 leader 选举），R-44 的 age 指标与 R-51 的时间清理也拿到可用的索引基座。**缺口只有四张 job 表**：commerce 双表（`0010`/`0211`）与 job_route（`0132`）已有匹配的部分索引（rev r1 实测确认）；`entitlement_consumption` 再补一条 `(status,lease)` 在实测中 **0 次使用**，故本刀不建。量级见 §1.4（席测：interview dispatch 66x、report 118x、gauge 四表 FILTER 316x）。
+**在队列/gauge 面**，`done` 历史行只增不删（R-51 未收口），而每副本每 5s 的 owner 枚举与每 15s 的 gauge 聚合都**不带 owner 谓词**，四张 job 表的现有索引全部 owner 前导，于是每条查询都退化为对整张历史表顺序扫描；HA-1 拓扑把副本翻倍、R-51 迟迟不落又把历史继续做大——**R-50 的修法是把「按 status/lease 过滤」变成索引可服务的键段，并把 gauge 的多 FILTER 单遍聚合改成逐 status 的可索引子查询**。这样 R-24 的重复聚合成本被结构性压小（不必先做 leader 选举），R-44 的 age 指标与 R-51 的时间清理也拿到可用的索引基座。**缺口只有四张 job 表**：commerce 双表（`0010`/`0211`）与 job_route（`0132`）已有匹配的部分索引（rev r1 实测确认）；`entitlement_consumption` 再补一条 `(status,lease)` 在实测中 **0 次使用**，故本刀不建。量级见 §1.4（席测：interview dispatch 66x、report 118x；gauge 四表 FILTER **夹具口径 316x / 稳态（400k 终态）2.1x**——两个口径必须成对引用，禁单取 316x）。
 
 ---
 
@@ -195,10 +239,10 @@
 
 每条迁移文件头含稳定内容标记（供 A1 静态发现，不靠文件名/编号）：`-- job-queue-index: <table>`（`<table>` 为四表名之一），并含 `-- @migration-mode concurrent-index`（`migrate.ts:609` 检测）。索引名 ≤63 字节；四名全仓唯一。
 
-**覆盖判定（rev r1 订正·P1-6）**：
+**覆盖判定（rev r2 订正·P2-1）**：
 - `status='queued'` / `'failed'` / `'quarantined'` 等值 → 走键段**前缀全覆盖**（席测：由 Seq Scan 转 BitmapOr/Index Scan，见 §1.4）。
-- `status='running' AND lease_expires_at < clock_timestamp()` → **因 `clock_timestamp()` 是 volatile，lease 列不进 `Index Cond`**：计划呈 `Index Cond: (status = 'running')` + `Filter: (lease_expires_at < clock_timestamp())`。`running` 行天然极少 ⇒ 收益仍达标，但**第二列的索引收益在本形态下不体现**；时间范围型收益（age/清理）留给 R-44/R-51 的查询，后者应改用 `now()`/绑定参数/常量以吃到两列条件。
-- **可选修法（EXEC 允许，需登记）**：W2 body 内先取 `v_cutoff timestamptz := clock_timestamp();` 再用 `lease_expires_at < v_cutoff` ⇒ 只保留一个 volatile 求值点，仍不进 Index Cond（`v_cutoff` 非常量）；若要做到两列全用上，必须用 `now()` 或绑定参数——**这会改变事务时间语义**，本刀不建议。断言口径据此改为「`Index Cond` 含 `lease_expires_at`，否则按『不适用』明示登记」（§4 B16-B19/B27-B30）。
+- `status='running' AND lease_expires_at < <cutoff>` 分两种写法：①**内联** `clock_timestamp()`（`0144` 六臂现状，本刀零触）⇒ volatile 表达式**不进** Index Cond，计划呈 `Index Cond: (status='running')` + `Filter: (lease_expires_at < clock_timestamp())`；②**plpgsql 变量 / 绑定参数**（`v_cutoff timestamptz := clock_timestamp(); … lease_expires_at < v_cutoff`）⇒ Param 属 pseudo-constant，**会进** Index Cond（席2 实测：`PREPARE p(timestamptz)` custom plan 与 `force_generic_plan` 后均呈 `Index Cond: ((status='running') AND (lease_expires_at < $1))`）。**本刀 W2 body 采用 ②（推荐实现）**；与「单条 `RETURN QUERY` 单快照」不冲突——变量在函数入口取一次，仍是单语句。
+- **断言口径**：B16-B19/B27-B30 按**两列**判 `Index Cond` 含 `status` 与 `lease_expires_at`；仅当实现退回内联 `clock_timestamp()` 时，该列按「**不适用**」明示登记（打印 `Index Cond` 原文，**不得静默算绿**）。`0144` 的六个 dispatch 臂仍用内联 `clock_timestamp()` ⇒ B12-B15 只判 `status` 前缀索引命中，不判 lease 列。
 - `commerce_outbox` 由 `0211:7`-`:9` 覆盖、`entitlement_consumption` 由 `0010:7`-`:9` 覆盖、`job_route` 由 `0132:11`-`:13` 覆盖 ⇒ **本刀不新增**（A8 断言三者仍在）。
 
 ### 1.2 W2 · `gateway_job_gauges()` 改形为逐 status 可索引子查询（1 条事务迁移）
@@ -209,26 +253,28 @@
 CREATE OR REPLACE FUNCTION gateway_job_gauges()
 RETURNS TABLE(queue text, queued bigint, running_expired bigint, dead bigint)
 LANGUAGE plpgsql SECURITY DEFINER SET search_path = pg_catalog, public AS $$
+DECLARE
+  v_cutoff timestamptz := clock_timestamp();
 BEGIN
   RETURN QUERY
     SELECT 'interview_job'::text,
       (SELECT count(*)::bigint FROM public.interview_job WHERE status='queued'),
-      (SELECT count(*)::bigint FROM public.interview_job WHERE status='running' AND lease_expires_at < clock_timestamp()),
+      (SELECT count(*)::bigint FROM public.interview_job WHERE status='running' AND lease_expires_at < v_cutoff),
       (SELECT count(*)::bigint FROM public.interview_job WHERE status='failed')
     UNION ALL
     SELECT 'report'::text,
       (SELECT count(*)::bigint FROM public.ai_report WHERE status='queued'),
-      (SELECT count(*)::bigint FROM public.ai_report WHERE status='running' AND lease_expires_at < clock_timestamp()),
+      (SELECT count(*)::bigint FROM public.ai_report WHERE status='running' AND lease_expires_at < v_cutoff),
       (SELECT count(*)::bigint FROM public.ai_report WHERE status='quarantined')
     UNION ALL
     SELECT 'quiz_job'::text,
       (SELECT count(*)::bigint FROM public.quiz_job WHERE status='queued'),
-      (SELECT count(*)::bigint FROM public.quiz_job WHERE status='running' AND lease_expires_at < clock_timestamp()),
+      (SELECT count(*)::bigint FROM public.quiz_job WHERE status='running' AND lease_expires_at < v_cutoff),
       (SELECT count(*)::bigint FROM public.quiz_job WHERE status='failed')
     UNION ALL
     SELECT 'diagnosis_job'::text,
       (SELECT count(*)::bigint FROM public.diagnosis_job WHERE status='queued'),
-      (SELECT count(*)::bigint FROM public.diagnosis_job WHERE status='running' AND lease_expires_at < clock_timestamp()),
+      (SELECT count(*)::bigint FROM public.diagnosis_job WHERE status='running' AND lease_expires_at < v_cutoff),
       (SELECT count(*)::bigint FROM public.diagnosis_job WHERE status='failed');
 END;
 $$;
@@ -239,15 +285,15 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 
 **语义逐条不变**：四行、`queue` 名与顺序不变、`dead` 谓词逐表不变（report=quarantined，其余=failed，沿 `main.ts:217`-`:219`）。`CREATE OR REPLACE` 保留 owner/ACL，随后 REVOKE/GRANT 与 `0042:45`-`:47` 逐字同形（幂等重发）。**不新增参数、不改返回列、不动 `gateway_cost_budget_snapshot`**（`0042:28` 起）。
 
-**数值等价的隐含前提（rev r1·P2-9）**：本体是**单条** `RETURN QUERY SELECT … UNION ALL …` ⇒ PG 单语句单快照 ⇒ 与旧 FILTER 单遍扫描**同快照**（席2 实测：EXCEPT 双向空 + `pg_get_function_result` 逐字同 + `prosecdef=t`）。**若 EXEC 拆成多条 `RETURN QUERY`，plpgsql 会变成多快照**（每条语句各自取快照），告警口径出现跨行时间不一致 ⇒ §5 Ban 明列。C6 头注须写「单 `RETURN QUERY` 保单一快照」。
+**数值等价的隐含前提（rev r1·P2-9 · rev r2 补 `v_cutoff`）**：本体是**单条** `RETURN QUERY SELECT … UNION ALL …` ⇒ PG 单语句单快照 ⇒ 与旧 FILTER 单遍扫描**同快照**（席2 实测：EXCEPT 双向空 + `pg_get_function_result` 逐字同 + `prosecdef=t`）。`v_cutoff` 在 `DECLARE` 段（函数入口）取一次，仍是单语句、单一求值点；与「单 `RETURN QUERY` 单快照」不冲突。**若 EXEC 拆成多条 `RETURN QUERY`，plpgsql 会变成多快照**（每条语句各自取快照），告警口径出现跨行时间不一致 ⇒ §5 Ban 明列。C6 头注须写「单 `RETURN QUERY` 保单一快照 + `v_cutoff` 入口取一次」。
 
-**合规声明（rev r1·P2-1·0144:946-949 §8 演进规则）**：该冻结的对象是 0144 §7 立账的 `tf_` 家族（13 名·`db-trigfam-unify.proof.ts:61`-`:64` 精确集合）与 REQUEST 附录 A 的 Tier-2 长尾（40 名）。`gateway_job_gauges` **不属任一集合**：全树仅 `0042:5`-`:26` 一份定义（`grep -n gateway_job_gauges packages/db/migrations/0144_db_trigfam_unify.sql` = 0 行·本席亲跑），不在 `TF_MEMBERS` 13 名清单，不在 Tier-2 名单。故本刀属**首次函数体变更**，非规则所禁的「同名全量重贴」（重贴 = 该函数已在 0144 迁过一遍后再抄一遍）。**不采用 `_v2` 包装**：新增 `tf_gateway_job_gauges` 会破 `db-trigfam-unify.proof.ts:61`-`:64` 的 13 名精确集合门，代价高于收益。C6 头注须逐字登记此理由。
+**合规声明（rev r1·P2-1·0144:946-949 §8 演进规则）**：该冻结的对象是 0144 §7 立账的 `tf_` 家族（13 名·`db-trigfam-unify.proof.ts:61`-`:64` 精确集合）与 REQUEST 附录 A 的 Tier-2 长尾（40 名）。`gateway_job_gauges` **不属任一集合**：**迁移目录内**仅 `0042:5`-`:26` 一份定义（`grep -n gateway_job_gauges packages/db/migrations/0144_db_trigfam_unify.sql` = 0 行·本席亲跑），不在 `TF_MEMBERS` 13 名清单，不在 Tier-2 名单；另 `packages/db/sql/24_runtime_observability_gateway.sql:4` 是**已登记的滞后镜像**（第三处定义，本刀不改，见 §2-8）。故本刀属**首次函数体变更**，非规则所禁的「同名全量重贴」（重贴 = 该函数已在 0144 迁过一遍后再抄一遍）。**不采用 `_v2` 包装**：新增 `tf_gateway_job_gauges` 会破 `db-trigfam-unify.proof.ts:61`-`:64` 的 13 名精确集合门，代价高于收益。C6 头注须逐字登记此理由。
 
 **`dead` 列的诚实边界（rev r1·P2-3）**：`count(*)` 对匹配集是 **O(匹配行数)**，索引只省 I/O 不省计数。席测（400k quarantined）：`count(*) WHERE status='quarantined'` 默认 Parallel Seq Scan 42.2ms / 禁 seqscan 29.7ms / VACUUM 后 Index Only Scan 33.1ms（Heap Fetches 0）；整 gauge 体 45.1ms → 23.5ms，**仅 2.1x**（12 计数里 8 个降到 ~0，4 个 `dead` 仍几十 ms）。且 `alerting-runbook.md:141`/`:169`-`:178` 自登记「四队列终态行零 retention ⇒ `worker_jobs_dead` 单调累积」⇒ **400k 终态行就是上线后稳态**。故本刀**只压 queued/running_expired**，`dead` 列成本归 R-44/R-51；判据不许写成「必须走索引」（见 §4 B31）。
 
 ### 1.3 W3 · 证明载体（1 新 proof + 注册）
 
-`packages/db/test/job-queue-index.proof.ts`（新生，44 断言载体），`packages/db/package.json` 加一行 `"prove:job-queue-index": "tsx test/job-queue-index.proof.ts"`；`scripts/run-e2e-isolated.mjs` 沿 `level-policy-migrate:prove` 同形**纯 additive** 注册三处：目标 provenance 条目（`:894` 形）、`isolatedCommand` 分支（`:3357` 形，`['pnpm',['-C','packages/db','prove:job-queue-index']]`）、允许清单（`:2839` 形）。**target id = `job-queue-index:prove`**；不入 `LIVE_E2E_TARGETS`（`:89`）。
+`packages/db/test/job-queue-index.proof.ts`（新生，45 断言载体），`packages/db/package.json` 加一行 `"prove:job-queue-index": "tsx test/job-queue-index.proof.ts"`；`scripts/run-e2e-isolated.mjs` 沿 `level-policy-migrate:prove` 同形**纯 additive** 注册三处：目标 provenance 条目（`:894` 形）、`isolatedCommand` 分支（`:3357` 形，`['pnpm',['-C','packages/db','prove:job-queue-index']]`）、允许清单（`:2839` 形）。**target id = `job-queue-index:prove`**；不入 `LIVE_E2E_TARGETS`（`:89`）。
 
 证明用真隔离 PG（`pgvector/pgvector:pg16` 固定镜像，沿 `run-e2e-isolated` 现形；`assertIsolatedTestTarget` 门），**不依赖云、不读 `.env*`、零模型外呼**。
 
@@ -262,9 +308,9 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 | interview dispatch（`0144:890-896`） | Seq Scan **50,013 行** · 5.27ms · 667 buffers | BitmapOr on `ix_ijob_status_lease` · 0.079ms · 3 buffers | **66x** |
 | report dispatch（`0144:907-911`） | Seq Scan · 5.06ms · 569 buffers | BitmapOr · 0.043ms · 5 buffers | **118x** |
 | commerce dispatch（`0144:912-920`） | `Index Scan ix_consumption_stale_lease` · 0.014ms | **同一旧索引**（新索引 0 次使用） | 0（**故本刀不建该索引**） |
-| gauge 四表 FILTER（`0042:10-24`） | 4×Seq Scan · 18.66ms | 12 InitPlan 全 Index Only Scan · 0.059ms | **316x** |
+| gauge 四表 FILTER（`0042:10-24`） | 4×Seq Scan · 18.66ms | 12 InitPlan 全 Index Only Scan · 0.059ms | **316x**（夹具口径；稳态 400k 终态 **2.1x**，见 §1.2） |
 | 560k 行 interview（禁 index/bitmap 强制） | 29.1ms | 0.069ms | **420x** |
-| claim 内两条 `NOT EXISTS`（70k 行） | 2×Seq Scan 70,013 行 · claim 合计 9.48ms | 0.101ms（新索引 serving） | **~94x** |
+| claim 内两条 `NOT EXISTS`（稳态夹具：400k `failed` + 50k `done` + 5 queued + 5 running-expired） | 64.8ms（failed 臂 `Seq Scan` 400,003 行 33.0ms） | 51.3ms（running 臂走 `ix_ijob_status_lease`；failed 臂仍 `Seq Scan`） | **≈1.26x**（**仅 running 臂**；终态 anti-join 仍 O(终态集)，`interview_id` 索引归另刀） |
 
 体积/写代价：索引 **~360kB/表**（PG16 btree dedup）；20k INSERT 102→110ms（**+7.8%**）。
 **边界三条**：①上表是**席测本地口径**，非生产实测（§7 非声称）；②`dead` 列收益仅 2.1x，见 §1.2；③HOT 破断见 §1.5。
@@ -278,19 +324,25 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 | gauge 改用 `pg_class.reltuples` 估算/物化计数 | 估算对告警会出假阴性（排队 99 但估算 0），与 HA 告警的 fail-closed 口径冲突；物化计数引入新状态与刷新正确性问题，体量远超 S。 |
 | 合并为一条 `multi-statement` 迁移 | 运行器 `migrate.ts:11`-`:24` 明示 CONCURRENTLY 必须非事务；`executionMode` 不可混用。 |
 | 在 0219 之前插号 | 违反只前进/链头单调；且 `migrate.proof.ts`/唯一性门按目录序断言。 |
-| 改 per-owner claim/sweep 查询 | 它们语义已正确（席测另有隐藏收益，见 §0.3 末段），改查询=产品语义改动，越界。 |
+| 改 per-owner claim/sweep 查询 | 它们语义已正确；终态 anti-join 仍 O(终态集)（席测稳态 ≈1.26x 只来自 running 臂，见 §0.3 末段），改查询=产品语义改动，越界。 |
 | 做 leader 选举（R-24 本体） | 编排改动，非本刀；底稿 `:290` 明示先走索引/物化计数。 |
 | 做 R-44 的 age/duration/attempts 指标 | 独立条目；本刀只提供其索引基座。 |
 | 做 R-51 的终态行 retention | 删改语义重刀，HA-7 `:49` 明示越界即废；本刀只索引，不删一行。 |
 | 给 `entitlement_consumption` 也补 `(status,lease)` | rev r1 撤销：`0010:7`-`:9` 已覆盖，席测新索引 0 次使用（0.014ms 不变）⇒ 纯写放大。 |
 
-**HOT 破断量化（rev r1·P2-6）**：`interview-jobs.ts:309`-`:317`（`renewInterviewJobLease`，`LEASE_SECONDS=120`，**只更新 `lease_expires_at`**）与 `packages/db/src/commerce/commerce.ts:562`-`:571` 今天都满足 HOT（更新列未被索引、页内有空位）。新增 `(status, lease_expires_at)` 后，心跳**永久失去 HOT 资格**：每拍（job 运行期 ~每 30-60s 一次）产生 **+1 索引元组**并阻止同页 HOT 链复用 ⇒ 堆膨胀与 autovacuum 压力上升；`0213` 的表级 autovacuum 调优（`scale_factor=0.02`/`threshold=200`）只能**缓解**，不能消除。此代价换 66x/118x/316x 的读侧收益，判定为净正，但须在 EXEC 收据登记写放大读数（20k INSERT +7.8% 席测）。
+**HOT 破断量化（rev r2 更正·P2-6）**：`interview-jobs.ts:313`（`renewInterviewJobLease`）、`quiz-jobs.ts:75`（`renewQuizJobLease`）、`diagnosis-jobs.ts:66`（`renewDiagnosisJobLease`）今天都满足 HOT（`UPDATE … SET lease_expires_at = now() + …`，更新列未被索引、页内有空位）。`entitlement_consumption` 因 W1-5 撤销**不建新索引**，commerce 心跳**不受本刀影响**（rev r1 误引 `commerce.ts:562`-`:571`，rev r2 删除）。新增 `(status, lease_expires_at)` 后，**三表心跳永久失去 HOT 资格**：每拍（job 运行期 ~每 30-60s 一次）产生 **+1 索引元组**并阻止同页 HOT 链复用 ⇒ 堆膨胀与 autovacuum 压力上升；`0213` 的表级 autovacuum 调优（`scale_factor=0.02`/`threshold=200`）只能**缓解**，不能消除。此代价换 66x/118x/316x 的读侧收益（316x 为夹具口径，稳态 2.1x，见 §1.2/§0.5），判定为净正，但须在 EXEC 收据登记写放大读数（20k INSERT +7.8% 席测）。
 
-**回滚形（rev r1 订正·P1-8·runner fail-closed 兼容）**：
-1. **索引回滚必须成对**：`DELETE FROM schema_migrations WHERE version IN ('0220_…','0221_…','0222_…','0223_…');` 与 `DROP INDEX CONCURRENTLY IF EXISTS public.<name>;` **同一运维动作**执行。理由：`migrate.ts:470`-`:479` 对已记账的 `concurrent-index` 版本**每次重放**都 `assertConcurrentIndexDefinition`，`:336`-`:340` 定义不符抛 `migration_concurrent_index_definition_mismatch`、`indisvalid/indisready/indislive` 任一假抛 `migration_concurrent_index_not_valid`，**重放路径不自愈**（自愈只在 fresh 执行路径 `:487`-`:495`）。只 DROP 不删账 ⇒ 任何一次 `pnpm migrate` 立即红。
-2. **gauge 回滚只能走前向迁移**：`0042` 的 checksum 已记账（`:430`-`:455` 的 `migration_drift` 门），**禁止改 0042 重跑**；回滚 = 新写一条前向迁移，`CREATE OR REPLACE` 重放 `0042:5`-`:26` 原体（ACL 不变）。
-3. **走前向迁移的连带**：链头钉（C10）与 cap（C12/C13）各 **+1**（文件数 222→223、扫描面 2466→2467），且必须在同一次 EXEC 内同步，不得留半态。
-4. 回滚不删表、不删行、不改任何既有索引（`0010`/`0132`/`0211` 三者零触）。
+**回滚形（rev r2 重写·P1-1·与 `migrate.ts:450`-`:457` 连续前缀门自洽）**：运行器在**任何 DDL 之前**先查 `manifest.get(row.version)`（账本行不在 manifest 即 `migration_ledger_unknown_version`），再逐位校验 `ordered.slice(0, doneRows.length)` 与账本（不符即 `migration_ledger_not_contiguous_prefix`）。因此**只删账本行或只删文件都不成立**。
+
+1. **索引回滚 = 三件同一动作**：①删四条 `.sql` 迁移文件（`0220`-`0223`）；②`DELETE FROM schema_migrations WHERE version IN ('0220_…','0221_…','0222_…','0223_…');`；③`DROP INDEX CONCURRENTLY IF EXISTS public.<name>;` 四条。删文件后 C6（`0224`）成为**第 218 位**，账本保留 C6 行 ⇒ `expectedPrefix` 自洽，下一次 migrate 不再 `migration_ledger_not_contiguous_prefix`。
+   - **反例（禁）**：只删账本行不删文件 ⇒ 下次 migrate 按 manifest 重放四条，`CREATE INDEX CONCURRENTLY IF NOT EXISTS` **原样重建**已 DROP 的索引，回滚净效果为零；只删文件不删账本行 ⇒ 账本行在 manifest 缺失 ⇒ `migration_ledger_unknown_version`；只 DROP 不删账本 ⇒ 重放路径 `assertConcurrentIndexDefinition` 抛 `migration_concurrent_index_definition_mismatch`（`:338`/`:362`），**重放路径不自愈**（自愈仅在 fresh 执行路径 `:487`-`:495`）。
+2. **中间态恢复两条**：
+   - **DROP-first 崩**（索引已 DROP、账本行与文件仍在）⇒ 下次 migrate 走重放路径，索引不存在 ⇒ `migration_concurrent_index_definition_mismatch`（`:338`/`:362`），**不自愈**。唯一恢复：手工按迁移体重建索引（`CREATE INDEX CONCURRENTLY IF NOT EXISTS …`），或删账本行（保留文件 ⇒ 下拍 migrate 重建并重新记账，转自愈；文件一并删除 ⇒ 转 1 的全套三件）。
+   - **DELETE-first 崩**（账本行已删、文件与索引仍在）⇒ 下次 migrate 把该版本当未应用，走 fresh 路径 `CREATE INDEX CONCURRENTLY IF NOT EXISTS`（命中已存在索引即 no-op）+ `assertOrHealConcurrentIndexDefinition` 复核后重新记账 ⇒ **自愈**。若 DROP 已先执行，则 fresh 路径会重建索引——这等价于「回滚未完成」，须重做 1 的全套三件。
+3. **C10 与 cap 同步（回滚后）**：链头钉改为 **218 件 / `0224_job_gauge_index_friendly`**（不是 217/0219）；cap 按「回滚后 `check-docs` 实测 scanned + 6」重算（相对 EXEC 终态 2466 减 4 ⇒ 起草基线 2462，以实测为准）。**不得留半态**。
+4. **若同时撤 C6**：再删 C6 迁移文件 + C6 账本行 ⇒ 回到 **217 件 / `0219`**、cap = 实测 scanned + 6（起草基线 2461）；C10 与 cap 同一次同步。
+5. **gauge 回滚仍只能走前向迁移**：`0042` 的 checksum 已记账（`:430`-`:455` 的 `migration_drift` 门），**禁止改 0042 重跑**；回滚 = 新写一条前向迁移，`CREATE OR REPLACE` 重放 `0042:5`-`:26` 原体（ACL 不变）。此时迁移数 **+1**，链头钉与 cap 再各 +1，须同一次 EXEC 内同步。
+6. 回滚不删表、不删行、不改任何既有索引（`0010`/`0132`/`0211` 三者零触）。
 
 ### 1.6 W4 · 链头钉最小同步（既有 proof 的 bounded 更新）
 
@@ -305,7 +357,7 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 3. **R-37 scrypt**——已落地（authz-34 nail），本刀零触。
 4. **R-44 新指标**（oldest_queued_age/running_expired_age/attempts 直方图/job_duration/unknown age/quarantined_total）——后刀；本刀只交付索引基座。
 5. **R-51 retention/分区/归档**——后刀；本刀不 DELETE/不建分区/不改 autovacuum（`0213` 零触）。
-6. **per-owner claim/sweep 查询与既有索引**（`ix_ijob_claim` 等）——查询零改；`0001`/`0007`/`0008`/`0010`/`0049`/`0055`/`0064`/`0132`/`0190`/`0211` 的既有索引零删零改（§4-B32-B34 只作计划非回归守卫）。
+6. **per-owner claim/sweep 查询与既有索引**（`ix_ijob_claim` 等）——查询零改；`0001`/`0007`/`0008`/`0010`/`0049`/`0055`/`0064`/`0132`/`0190`/`0211` 的既有索引零删零改（§4-B32-B36 只作计划非回归/登记守卫）。
 7. **`commerce_outbox` / `entitlement_consumption` / `job_semantic_revision` 新索引**——分别由 `0211`/`0010`/`0132` 覆盖，本刀只断言三者仍在（A8）。
 8. **`gateway_cost_budget_snapshot`/`gateway_dispatch_owners`/其它网关函数**——零触（本刀只改 `gateway_job_gauges`）。**`sql/24_runtime_observability_gateway.sql:4`-`:24` 镜像滞后已知登记**：本刀只改迁移，`sql/` 侧仍是旧 FILTER 体；当前无门覆盖（`schema-drift-check.mjs:1`-`:6` 只比列 + UNIQUE/PK；`dbhy1.proof.ts:357` 只比对象名录且 sql⊆mig 单向），故不构成本刀红；同步归 `sql/` 镜像同步刀（若在本刀补，cap 与断言面再扩，违反 S 体量）。
 9. **告警阈值/runbook/alert.rules**——零触；R-51 的 DLQ 风险登记维持 `alerting-runbook.md:141`/`:169`/`:188` 原样。**`alerting-runbook.md:124` 的下钻锚（指 `0042:5-26`）在本刀后过期**（W2 已改体），本刀不修（改指针归文档刀），已在 §7 登记。
@@ -314,12 +366,12 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 12. **迁移编号的最终值**：以 EXEC 立项日链顶顺延为准；本卷拟名 0220-0224 只作起草基线。
 13. **另三处链头钉（`apps/api/test/i2b.proof.ts:153-154` / `entpay-s3.proof.ts:70-71` / `entpay-s2.proof.ts:83-84`）**——**基线已红**（非本刀引入），本刀不修、不顺手改；EXEC 若遇其红按 §8「跨刀红」登记。
 14. **privacy checkpoint 擦除派单 feed（`0048:374-386`，5s×N 副本，`privacy_deletion_target` 零索引）**——同类缺陷（全局 status/lease 枚举无索引），但**非队列/gauge 面**，且属删改语义域 ⇒ 归 R-51/隐私刀，本刀零触。
-15. **相邻队列已逐条核过、均不纳入**：①`privacy_deletion_target`（见上条，`0048:374-386` 零索引，归隐私刀）；②`online_judge_dispatch`——**本仓树内不存在**（`packages/db/migrations` 与 `apps/worker/src` 对该名零命中·本席亲跑；仅出现在 receipts/归档的无关文本），无此队列可核；③`ai_model_invocation`——**已有** `0037:32`-`:33` 部分索引 `(created_at) WHERE status IN ('dispatching','unknown')`，其派单走 `gateway_model_invocation_owners`/`_backlog` 专用口、谓词是 `olderThanMs` 时间界，且不在六 work 臂内 ⇒ 属 R-44 观测域。三者均**不在本刀索引清单**，理由如上逐条。
+15. **相邻队列已逐条核过、均不纳入**：①`privacy_deletion_target`（见上条，`0048:374-386` 零索引，归隐私刀）；②`online_judge_dispatch`——**存在且已覆盖**：`0050_online_judge_control_plane.sql:130` 建表、`:152`-`:153` 建部分索引 `ix_online_judge_dispatch_claimable (created_at) WHERE status IN ('queued','claimed')`、全局 claim 函数 `online_judge_claim_next_dispatch` 在 `:388`-`:400`（`ORDER BY d.created_at,d.id FOR UPDATE SKIP LOCKED`），调用点 `packages/db/src/model-op/online-judge-control.ts:86`；部分索引覆盖 claim 谓词 ⇒ 不纳入（rev r1 的「本仓树内不存在/亲跑零命中」是假证词，rev r2 更正）；③`ai_model_invocation`——**已有** `0037:32`-`:33` 部分索引 `(created_at) WHERE status IN ('dispatching','unknown')`，其派单走 `gateway_model_invocation_owners`/`_backlog` 专用口、谓词是 `olderThanMs` 时间界，且不在六 work 臂内 ⇒ 属 R-44 观测域。三者均**不在本刀索引清单**，理由如上逐条。
 16. **`dead` 列成本与终态集增长**——本刀只压 queued/running_expired；终态 40 万行时该列 ~30ms/拍/副本（席测），归 R-44/R-51。
 
 ---
 
-## §3 逐条改动清单（EXEC 落码对账表 · rev r1 = 12 条有效登记）
+## §3 逐条改动清单（EXEC 落码对账表 · rev r2 = 12 条有效登记）
 
 | # | 码面 | 现状（亲读） → 目标 |
 |---|---|---|
@@ -329,21 +381,21 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 | C4 | `0223_job_queue_report_status_lease_index.sql`（新增） | 同形 → `ix_report_status_lease ON public.ai_report (status, lease_expires_at)` |
 | ~~C5~~ | ~~`0224_entitlement_consumption_status_lease_index.sql`~~ | **rev r1 撤销**（`0010:7`-`:9` 已覆盖·席测 0 次使用）⇒ 本行不计入改动集。 |
 | C6 | `0224_job_gauge_index_friendly.sql`（新增·事务迁移） | 不存在 → W2 的 `CREATE OR REPLACE FUNCTION gateway_job_gauges()` + REVOKE/GRANT（与 `0042:45`-`:48` 同形）；**唯一改函数体的迁移**；头注**严禁**含 `-- job-queue-index:` 标记（否则 A1 数出 5 个）；须登记两条理由：①§8 演进规则合规（首次体变更·非重贴·不引入 `tf_` 名）②单 `RETURN QUERY` 保单一快照。 |
-| C7 | `packages/db/test/job-queue-index.proof.ts`（新增） | 不存在 → §4 的 **44 断言**载体 |
+| C7 | `packages/db/test/job-queue-index.proof.ts`（新增） | 不存在 → §4 的 **45 断言**载体 |
 | C8 | `packages/db/package.json` | `:25`/`:30`/`:41`/`:65` 形 → additive 一行 `"prove:job-queue-index": "tsx test/job-queue-index.proof.ts"`；既有脚本零删改 |
 | C9 | `scripts/run-e2e-isolated.mjs` | `:894`/`:3357`/`:2839` 形 → additive 三处（provenance 条目、命令分支、允许清单）；**target id = `job-queue-index:prove`**；既有目标零删改；不入 `LIVE_E2E_TARGETS`（`:89`） |
 | C10 | `packages/db/test/interview-event-retention.proof.ts` | `:81`-`:83` 链头 0219/**217** → 新链头 `0224_job_gauge_index_friendly`/**222**；**仅此两断言与同行注释数字**，其余零触 |
-| C11 | `ai-docs/delivery/receipts/ha1/*.log`（新增·真跑收据） | 不存在 → EXIT 读数与 PIN 行；**必须落 `.log`**（`.log` ∉ `public-text-policy.mjs:39` `TEXT_EXTENSIONS` ⇒ 不入扫描面）；**Ban 落 `.json`**（∈ 扩展名 ⇒ 直接 +1 撞 cap） |
-| C12 | `scripts/ai-docs/public-text-policy.mjs` | `:282` `MAX_FILES = 2_461` → **2_466**；并在 `:280` 链区（`CAP-SANCTION-2461` 之后）追加 `CAP-SANCTION-2466` 注记，逐项列清 **union 算式**（2460 起草届扫 + 5 迁移 sql + 1 proof ts = 2466 恰等零多放）与**四联动点**；`MANAGED_ROOTS`/`TEXT_EXTENSIONS`/扫描面三处**零改**（语义不变强度不减） |
-| C13 | `scripts/ai-docs/public-text-policy.proof.mjs` | 四处联动：`:452` `for (let i = 0; i < 2_466; i += 1)` · `:459` `scannedFiles, 2_466` · `:474` `'ai-docs/f-2466.md'` · `:477` `${FILE_LIMIT}:2467`；并在链区补 `CAP-SANCTION-2466` 史录一行（沿 `:450` 同形） |
+| C11 | `ai-docs/delivery/receipts/ha1/*.log`（新增·真跑收据） | 不存在 → EXIT 读数与 PIN 行；**只准落 `.log`**（`.log` ∉ `public-text-policy.mjs:39` `TEXT_EXTENSIONS` ⇒ 不入扫描面）；**Ban 落 `.md`/`.txt`/`.json`**（三者 ∈ `TEXT_EXTENSIONS` ⇒ 直接 +1 撞 cap；树内 `ai-docs/delivery/receipts/**` 现存 26 个 `.md` 收据，沿惯例写 `.md` 即红）；cap 算式显式写「**+0 收据**」前提 |
+| C12 | `scripts/ai-docs/public-text-policy.mjs` | `:282` `MAX_FILES = 2_461` → **EXEC 届 `check-docs` 实测 scanned + 6**（**2466 仅为起草基线最小值**：2460 + 5 迁移 sql + 1 proof ts）；并在 `:280` 链区（`CAP-SANCTION-2461` 之后）追加 `CAP-SANCTION-<届值 cap>` 注记，逐项列清 **union 算式**（届扫 + 5 迁移 sql + 1 proof ts + **0 收据** = 届值 cap，恰等零多放）与**四联动点**；`MANAGED_ROOTS`/`TEXT_EXTENSIONS`/扫描面三处**零改**（语义不变强度不减）。**不得把固定 2466 写死**：EXEC 立项日 main 若已推进，cap 随届值重算 |
+| C13 | `scripts/ai-docs/public-text-policy.proof.mjs` | 四处联动取**同一届值 cap**（起草基线示例：`:452` `for (let i = 0; i < 2_466; i += 1)` · `:459` `scannedFiles, 2_466` · `:474` `'ai-docs/f-2466.md'` · `:477` `${FILE_LIMIT}:2467`）；并在链区补 `CAP-SANCTION-<届值 cap>` 史录一行（沿 `:450` 同形）。四处必须与 C12 的届值同步，禁一处手改 |
 
-**EXEC 改动集口径（rev r1 重算）**：**12 条有效登记**（C1-C4 + C6 + C7-C13；~~C5~~ 撤销不计）。其中**新增受管文件 6 件**（5 条迁移 `.sql` + 1 个 proof `.ts`），**修改既有 tracked 5 件**（`package.json`/`run-e2e-isolated.mjs`/`interview-event-retention.proof.ts`/两个 policy 脚本），**收据 `*.log` 若非 tracked 不入面**。**多任何未登记 tracked 路径即停**。
+**EXEC 改动集口径（rev r2 复核）**：**12 条有效登记**（C1-C4 + C6 + C7-C13；~~C5~~ 撤销不计）。其中**新增受管文件 6 件**（5 条迁移 `.sql` + 1 个 proof `.ts`），**修改既有 tracked 5 件**（`package.json`/`run-e2e-isolated.mjs`/`interview-event-retention.proof.ts`/两个 policy 脚本），**收据只准 `*.log` 且若非 tracked 不入面**。**多任何未登记 tracked 路径即停**。
 
-**cap 终态算式（P0-1 明写）**：起草届树 scanned **2460**（cap 2461·余 1）→ EXEC 新增受管 6 件 → **2466**；cap 步进 `2461 → 2466`（恰等零多放）。若回滚走前向迁移（§1.5 第 3 条）则各 **+1**（迁移 222→223、扫描面 2466→2467，cap 须同步 2467）。收据落 `.json` 会 `+1` ⇒ **Ban**（见 C11）。
+**cap 终态算式（rev r2·P1-2）**：EXEC 立项日先跑 `check-docs` 取**届扫** `S`（起草基线 `S=2460`、cap 2461）→ cap 设为 **`S + 6`**（5 迁移 sql + 1 proof ts + **0 收据**，恰等零多放）；起草基线即 **2466**，仅作最小值参照，**不是写死值**。若回滚走前向迁移（§1.5 第 5 条）则迁移与扫描面各 **+1**，cap 同步 `届扫 + 7`。收据落 `.md`/`.txt`/`.json` 会 `+1` ⇒ **Ban**（见 C11）。
 
 ---
 
-## §4 prove 判据（**44 断言** = 静态 9 + 动态 35 · 全在隔离 PG · Ban retry-to-green）
+## §4 prove 判据（**45 断言** = 静态 9 + 动态 36 · 全在隔离 PG · Ban retry-to-green）
 
 ### A. 静态确定性（9 断言 · 零 DB）
 
@@ -355,11 +407,11 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 - **A6** 负断言（**rev r1 扩形**）：除四新文件外，全仓迁移对**四目标表**无 ①`ON <table> (status`／`ON <table>(status` 前导形，且无 ②**隐式 status 谓词**形 `ON <table> (<col>) WHERE status\s*=\s*'<字面量>'`。`entitlement_consumption`（`0010`）/`commerce_outbox`（`0211`）/`job_semantic_revision`（`0132`）的既有命中是**预期**，白名单放行后由 A8 正向断言。
 - **A7** additive-only：四新文件不含 `DROP`/`ALTER`/`INSERT`/`UPDATE`/`DELETE` token；C6 只含 `CREATE OR REPLACE FUNCTION` + `REVOKE`/`GRANT`，不含 `DROP FUNCTION`。
 - **A8** 既有索引在树且未被新文件触碰（**7 项**）：`ix_report_claimable`（`0001:239`）、`ix_ijob_claim`（`0001:268`）、`ix_quizjob_claim`（`0007:31`）、`ix_diagnosisjob_claim`（`0008:32`）、`ix_consumption_stale_lease`（`0010:7`-`:9`）、`ix_outbox_unsettled`（`0211:7`-`:9`）、`ix_job_semantic_revision_route_pending`（`0132:11`-`:13`）。
-- **A9** C6 结构唯一性：全树 `gateway_job_gauges` 定义点 = `0042` + C6（2 处·无 `tf_` 兄弟函数），且 C6 体内含**恰一条** `RETURN QUERY`（保单一快照）。
+- **A9** C6 结构唯一性：**扫描域 = `packages/db/migrations/*.sql`**，`gateway_job_gauges` 定义点 = `0042` + C6（2 处·无 `tf_` 兄弟函数），且 C6 体内含**恰一条** `RETURN QUERY`（保单一快照）与 `v_cutoff` 入口单次求值。**另断**：`packages/db/sql/24_runtime_observability_gateway.sql:4` 是**已登记的滞后镜像**（迁移目录外的第三处定义），本刀不改、不计入迁移域断言（见 §2-8）。
 
-### B. 动态（35 断言 · 隔离 PG + 真迁移链 + 种子数据）
+### B. 动态（36 断言 · 隔离 PG + 真迁移链 + 种子数据）
 
-**夹具**：四表各种子 `done` ≥ 50,000 行（模拟历史），`queued` 恰 5、`running` 且 `lease_expires_at = now() - interval '1 hour'` 恰 5、终态 `failed`（report 为 `quarantined`）恰 3；**控制组** `entitlement_consumption` 种子 `reserved` + 过期租约恰 5、`confirmed` ≥ 50,000（只用于 B11 前置与 A8 复核，不建新索引）；`interview_job` 另造 ≥ 20k 行**同 `interview_id` 族**（供 B32-B34 的 `NOT EXISTS` 面）。种子后 `ANALYZE` 四表。唯一约束按表体满足（`quiz_id`/`diagnosis_id`/`interview_id`/`idempotency_key` 逐行唯一，`interview_id` 族按夹具脚本显式构造）。
+**夹具**：四表各种子 `done` ≥ 50,000 行（模拟历史），`queued` 恰 5、`running` 且 `lease_expires_at = now() - interval '1 hour'` 恰 5、终态 `failed`（report 为 `quarantined`）恰 3；**控制组** `entitlement_consumption` 种子 `reserved` + 过期租约恰 5、`confirmed` ≥ 50,000（只用于 B11 前置与 A8 复核，不建新索引）；`interview_job` 另造 ≥ 20k 行**同 `interview_id` 族**（供 B32-B33 的 `NOT EXISTS` 面；B33 只登记不判红）。种子后 `ANALYZE` 四表。唯一约束按表体满足（`quiz_id`/`diagnosis_id`/`interview_id`/`idempotency_key` 逐行唯一，`interview_id` 族按夹具脚本显式构造）。**B33 登记臂另用稳态夹具**（400k `failed` + 50k `done` + 5 queued + 5 running-expired）单独造：主夹具的 `failed=3` 只服务 B12-B31 的计划形态断言，**不得**用 3 行 failed 的夹具给 B33 判绿（构造性绿，见 P1-5）。
 
 | # | 断言 | 判据 |
 |---|---|---|
@@ -369,38 +421,41 @@ GRANT EXECUTE ON FUNCTION gateway_job_gauges() TO app_gateway_role;
 | B7-B10 | 定义逐字 | `pg_get_indexdef` 含 `(status, lease_expires_at)` 且**无** `WHERE`（四表各 1） |
 | B11 | 种子前置 | 四表计数与夹具合同全等 + `entitlement_consumption` 控制组计数全等（防种子失败造成空表假绿） |
 | B12-B15 | 四条 dispatch 枚举默认计划 | `EXPLAIN (FORMAT JSON)` 对应 `0144:890-911` 四查询（interview/quiz/diagnosis/report）：计划**含对应新索引**（按索引名逐条匹配，禁「含任一索引」），且对目标表**无** `Seq Scan`（四表各 1） |
-| B16-B19 | running-expired 单条件默认计划 | `WHERE status='running' AND lease_expires_at < now()`（rev r1 用 `now()` 而非 `clock_timestamp()` 作量测口径）四表各 1：**`Index Cond` 文本须含 `lease_expires_at`**；若 W2/枚举体维持 `clock_timestamp()` 形态导致该列不进 Index Cond，则该条按「**不适用**」明示登记（打印 `Index Cond` 原文），**不得静默算绿** |
-| B20 | 适用性硬门 | **单 client + 同一事务**：`BEGIN; SET LOCAL enable_seqscan = off; <EXPLAIN>; ROLLBACK;`；每条 EXPLAIN 前**自检** `current_setting('enable_seqscan') = 'off'`；四查询全部走对应新索引，且**该计划与默认计划不同**或 **`Index Cond` 含两列**（二者取一，防在默认计划上量测） |
-| B21 | gauge 数值等价 | `SELECT * FROM gateway_job_gauges()` 四行三列与 `0042:10`-`:24` 原 FILTER 查询逐值全等（种子计数）；**实现约束**：live 调用为单 `RETURN QUERY`（单快照），与旧体同快照对齐，收据标明取数语句 |
-| B22 | gauge 元数据/ACL | `prosecdef = true`；owner 与 `0042` 时点相同（比对对象=`0042` 应用后 `pg_proc.proowner` 快照）；`has_function_privilege('app_gateway_role','gateway_job_gauges()','EXECUTE') = true`；**返回列名/类型取数方式钉死**：`pg_get_function_result('gateway_job_gauges()'::regprocedure)` 全串逐字等于 `TABLE(queue text, queued bigint, running_expired bigint, dead bigint)`（辅以 `proallargtypes + format_type` 双轨） |
+| B16-B19 | running-expired 单条件默认计划 | `WHERE status='running' AND lease_expires_at < now()`（`now()` 为 stable、属 pseudo-constant）四表各 1：**`Index Cond` 文本须同时含 `status` 与 `lease_expires_at`**（两列判据）；W2 body 用 `v_cutoff` Param 时同样两列进 Cond。仅当实现退回内联 `clock_timestamp()`（volatile）时该列按「**不适用**」明示登记（打印 `Index Cond` 原文），**不得静默算绿** |
+| B20 | 适用性硬门 | **必须 `pool.connect()` 取 client** 后在同一 client 上显式 `BEGIN; SET LOCAL enable_seqscan = off; <EXPLAIN>; ROLLBACK;`（`pool.query('BEGIN')` 不绑连接，可能分到不同 backend ⇒ 构造性假绿）；每条 EXPLAIN 前**自检** `current_setting('enable_seqscan') = 'off'`；四查询全部走对应新索引，且**该计划与默认计划不同**或 **`Index Cond` 含两列**（二者取一，防在默认计划上量测） |
+| B21 | gauge 数值等价 | `SELECT * FROM gateway_job_gauges()` **四行四列**（`queue` + 三个计数）与 `0042:10`-`:24` 原 FILTER 查询逐值全等（种子计数）；**实现约束**：live 调用为单 `RETURN QUERY`（单快照）+ `v_cutoff` 入口一次，与旧体同快照对齐，收据标明取数语句 |
+| B22 | gauge 元数据/ACL | `prosecdef = true`；`proowner` = **迁移角色（迁移时 `current_user`）**，收据登记角色名（proof 运行期拿不到 `0042` 时点的历史快照，**不做跨时点比对**）；`has_function_privilege('app_gateway_role','gateway_job_gauges()','EXECUTE') = true`；**返回列名/类型取数方式钉死**：`pg_get_function_result('gateway_job_gauges()'::regprocedure)` 全串逐字等于 `TABLE(queue text, queued bigint, running_expired bigint, dead bigint)`（辅以 `proallargtypes + format_type` 双轨） |
 | B23-B26 | gauge queued 子查询默认计划 | 四表 `count(*) WHERE status='queued'` 各 1：计划含对应新索引（或 index-only scan） |
-| B27-B30 | gauge running-expired 子查询默认计划 | 四表 `count(*) WHERE status='running' AND lease < now()` 各 1：同 B16-B19 的 `Index Cond` 判据与「不适用」登记规则 |
+| B27-B30 | gauge running-expired 子查询默认计划 | 四表 `count(*) WHERE status='running' AND lease < now()` 各 1：**两列** `Index Cond`（`status` + `lease_expires_at`）；live body 的 `v_cutoff` 同样进 Cond；仅内联 volatile 退回时按「不适用」登记 |
 | B31 | gauge 终态子查询：可用性 + 上限 | 事务内 `enable_seqscan=off`（含自检）下四表 `failed`/`quarantined` 子查询全部走对应新索引**或** index-only scan；且**该列耗时不超过 §1.4 对比表所列上限**（终态 40 万行时 ~30ms/拍/副本为登记基线）——**判据不是「必须走索引」**（`count(*)` 对匹配集是 O(匹配行数)，见 §1.2） |
-| B32-B34 | per-owner 计划非回归（3 条） | ①claim 全语句（`interview-jobs.ts:154-181` 含两条 `NOT EXISTS`）默认计划**无** `interview_job` 的 `Seq Scan`；②sweep（`:329-345`）仍走索引 + owner `Filter`（非 Seq Scan）；③live-count 守卫（`:175-180`）仍走索引；三条各打印计划关键行入收据 |
-| B35 | 索引真被使用的行为证据 | 记录 `pg_stat_user_indexes.idx_scan` 初值 → 执行 B12-B15 四查询 → 复读：**四索引 `idx_scan` 均增长**（防 planner 选择与真实执行脱节；与 B12-B15 分工在收据标明） |
+| B32 | per-owner claim 可判臂 | claim 的候选段（`interview-jobs.ts:154`-`:181`，`owner_user_id=$1`）默认计划**必须**走 `ix_ijob_claim`：断 `Index Cond` 前缀含 `owner_user_id,status`，**或**索引名 = `ix_ijob_claim`（防新 `ix_ijob_status_lease` 把它抢成跨 owner 段 + owner `Filter`） |
+| B33 | 终态 anti-join 登记臂（**不判红**） | claim 内两条 `NOT EXISTS (… r.interview_id=j.interview_id …)` 的终态 anti-join：打印计划关键行并登记 **O(终态集)**（稳态 400k `failed` 下为 `Hash Right Anti Join → Seq Scan on failed`）；**不判红、不计入本刀收益**；`(interview_id)`/`(interview_id,status)` 索引登记为 R-50 后续残面（另刀） |
+| B34 | sweep 计划非回归 | sweep（`:331`-`:345`）断 **`Index Cond` 前缀为 `owner_user_id`** 或索引名 = `ix_ijob_claim`（不接受「仍走某索引 + owner Filter」的弱判据，见 P2-7） |
+| B35 | live-count 守卫非回归 | 守卫（`:175`-`:180`）同 B34 判据（`Index Cond` 前缀 owner_user_id 或索引名 `ix_ijob_claim`） |
+| B36 | 索引真被使用的行为证据 | 每组前后各 `SELECT pg_stat_force_next_flush()`（或 ≥1s 后重读；实测 `pg_stat_reset()` 后直接读仍为 0，flush 后才可见）；**必须真执行** B12-B15 四查询（**EXPLAIN-only 不计数**）→ 复读 `pg_stat_user_indexes.idx_scan`：四索引均增长（`Bitmap Index Scan` 计入；与 B12-B15 分工在收据标明） |
 
 **口径与诚实边界**：
 - B12-B19/B23-B31 的 EXPLAIN 是**子句体计划**（与 `rag03-hnsw-completeness.proof.ts:190`-`:280` 的 substituted-body 同形），不等于 live 函数内层计划；B21 用 live 调用证**数值**等价，两者分工在收据中逐行标明。
 - **EXPLAIN 角色口径**：以 superuser 或 `SET row_security = off` 执行；收据逐行登记 `current_user` / `row_security` / `app.principal_user` 三态（见 §1.3；受 RLS 约束角色会走 owner 前导索引 ⇒ 假红）。
-- 若某默认计划在种子规模下仍选 `Seq Scan`（例如 `failed` 行数占比极高），**不得改断言迁就**：该条按机制红上报，登记为残面并回 REQUEST 重裁索引形态；`enable_seqscan=off` 的适用性条仍须绿（用来区分「索引不可用」与「规划器不选」）。
+- 若某默认计划在种子规模下仍选 `Seq Scan`（例如 `failed` 行数占比极高），**不得改断言迁就**：该条按机制红上报，登记为残面并回 REQUEST 重裁索引形态；`enable_seqscan=off` 的适用性条仍须绿（用来区分「索引不可用」与「规划器不选」）。**B33 登记臂除外**：它显式按 O(终态集) 登记、不判红（P1-5），**不得**把它当机制红停整刀。
 - `main.ts:226` 原注释「小表全扫可接受」在本刀后应被证明为历史口径；不修改该注释（产品码零触），只在 proof 输出 PIN 行。
-- **诚实计数（P2-16）**：44 = **9 静态** + **12 元数据**（B1-B11 + B22）+ **21 EXPLAIN 形态**（B12-B20 + B23-B31 + B32-B34）+ **2 真行为**（B21 数值等价、B35 `idx_scan` 增量）。B1-B11 多为运行器已保证的恒真，价值在**防回归/防半态**而非新发现，此点如实入卷。
+- **诚实计数（rev r2 重算）**：**45** = **9 静态** + **12 元数据**（B1-B11 + B22）+ **22 EXPLAIN/登记**（B12-B20 = 9 + B23-B31 = 9 + B32-B35 = 4，其中 B33 为**登记臂**：打印计划并登记 O(终态集)，不判红）+ **2 真行为**（B21 数值等价、B36 `idx_scan` 增量）。B1-B11 多为运行器已保证的恒真，价值在**防回归/防半态**而非新发现，此点如实入卷。
 
 **EXEC 主门（§2 验收 · 一律经 runner）**：
-1. `node scripts/run-e2e-isolated.mjs job-queue-index:prove` **EXIT=0**，44 断言全 PASS，PIN 行入 `ai-docs/delivery/receipts/ha1/*.log`（**禁**直跑 `pnpm -C packages/db prove:job-queue-index`：绕开 runner 且 `assertIsolatedTestTarget` 必抛）。
+1. `node scripts/run-e2e-isolated.mjs job-queue-index:prove` **EXIT=0**，45 断言全 PASS，PIN 行入 `ai-docs/delivery/receipts/ha1/*.log`（**只准 `.log`**；**禁**直跑 `pnpm -C packages/db prove:job-queue-index`：绕开 runner 且 `assertIsolatedTestTarget` 必抛）。
 2. `node scripts/run-e2e-isolated.mjs migrate:prove` **EXIT=0**（真链全量 apply，含 5 新迁移）。
 3. `migrate:prove` 的 concurrent-index 面零回归（定义/有效性/谓词/特权四类断言）。
 4. `node scripts/run-e2e-isolated.mjs interview-event-retention:prove:raw` **EXIT=0**（C10 同步后链头/文件数复绿）。
 5. `node scripts/run-e2e-isolated.mjs runtime-role:prove:raw` **EXIT=0**（`gateway_job_gauges` 四行/列名/ACL 不回归）。
 6. `node scripts/schema-drift-check.mjs`（`drift:prove`）零漂移；`node scripts/check-migration-version-uniqueness.mjs` **files=222·violations=0**。
-7. `node scripts/ai-docs/check-docs.mjs` **EXIT=0**（**cap 已 sanction 后**：C12/C13 生效、scanned 2466 ≤ 2466）；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**；改动集 markers 零命中。
+7. `node scripts/ai-docs/check-docs.mjs` **EXIT=0**（**cap 已 sanction 后**：C12/C13 生效、`scanned ≤ 届值 cap`；起草基线 2460 ≤ 2466）；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**；改动集 markers 零命中。
 8. 若任一触 DB 的门未在 runner 允许清单登记 → **停**（禁直连开发库/禁绕隔离门）。
 
 ---
 
 ## §5 Ban
 
-Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban self-approve（pre-exec 双审两独立外席·alone≠dual）· Ban retry-to-green（红即停·attempts 全账·Ban 改断言迁就）· **Ban 让 EXPLAIN 假绿**（不得用 `enable_seqscan=off` 冒充默认计划；两口径必须分开报；`SET LOCAL` 必须在同一事务内且带 `current_setting` 自检）· **Ban 把 substituted-body 计划写成 live 函数内层计划** · **Ban 把 gauge 体拆成多条 `RETURN QUERY`**（plpgsql 多语句=多快照，破坏与旧 FILTER 的数值等价前提）· **Ban 只做索引就宣称 gauge 已修 / 只改 gauge 就宣称 R-50 收口** · **Ban 借 C10 同步改 `interview-event-retention.proof.ts` 任何其他断言** · **Ban 顺手改 i2b/entpay-s2/s3 的三处链头钉（基线已红·非本刀）** · **Ban 在迁移里混入多语句 CONCURRENTLY 或 `WHERE` 谓词（运行器正则外）** · **Ban 让 `@migration-mode concurrent-index` 与注释同行**（须独占整行）· Ban 改 per-owner claim/sweep 查询或既有 owner 前导索引 · Ban 做 R-24 选举/R-44 指标/R-51 删除（各自后刀）· Ban 新增 `commerce_outbox`/`entitlement_consumption`/`job_semantic_revision` 索引（`0211`/`0010`/`0132` 已覆盖）· Ban 改 `gateway_dispatch_owners`/`gateway_cost_budget_snapshot`/告警阈值/runbook · Ban 生产库/云侧/宿主操作 · Ban secrets 入树入据 · **Ban 收据落 `.json`**（撞 cap 面）· **Ban 只 DROP INDEX 不删账**（runner 重放必红·见 §1.5）· Ban 翻 pins · Ban 借本刀宣 HA/HA 簇收口/R-50 已关（§7）· **Ban 在代码注释写任务号/刀号**（迁移头注只写语义标记 `job-queue-index: <table>` 与登记用语义理由）。
+Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban self-approve（pre-exec 双审两独立外席·alone≠dual）· Ban retry-to-green（红即停·attempts 全账·Ban 改断言迁就）· **Ban 让 EXPLAIN 假绿**（不得用 `enable_seqscan=off` 冒充默认计划；两口径必须分开报；`SET LOCAL` 必须在同一事务内且带 `current_setting` 自检）· **Ban 把 substituted-body 计划写成 live 函数内层计划** · **Ban 把 gauge 体拆成多条 `RETURN QUERY`**（plpgsql 多语句=多快照，破坏与旧 FILTER 的数值等价前提）· **Ban 只做索引就宣称 gauge 已修 / 只改 gauge 就宣称 R-50 收口** · **Ban 借 C10 同步改 `interview-event-retention.proof.ts` 任何其他断言** · **Ban 顺手改 i2b/entpay-s2/s3 的三处链头钉（基线已红·非本刀）** · **Ban 在迁移里混入多语句 CONCURRENTLY 或 `WHERE` 谓词（运行器正则外）** · **Ban 让 `@migration-mode concurrent-index` 与注释同行**（须独占整行）· Ban 改 per-owner claim/sweep 查询或既有 owner 前导索引 · Ban 做 R-24 选举/R-44 指标/R-51 删除（各自后刀）· Ban 新增 `commerce_outbox`/`entitlement_consumption`/`job_semantic_revision` 索引（`0211`/`0010`/`0132` 已覆盖）· Ban 改 `gateway_dispatch_owners`/`gateway_cost_budget_snapshot`/告警阈值/runbook · Ban 生产库/云侧/宿主操作 · Ban secrets 入树入据 · **Ban 收据落 `.md`/`.txt`/`.json`**（只准 `.log`，三者均 ∈ `TEXT_EXTENSIONS` ⇒ 撞 cap）· **Ban 回滚单边**（只删账/只删文件/只 DROP 任一单边；三件必须同一动作，见 §1.5）· **Ban `pool.query('BEGIN'/'SET LOCAL …')` 不绑 client**（必须 `pool.connect()` 取 client 后同一 client 执行）· **Ban 用 EXPLAIN-only 冒充 `idx_scan` 增量**（必须真执行；读前 `pg_stat_force_next_flush()`）· Ban 翻 pins · Ban 借本刀宣 HA/HA 簇收口/R-50 已关（§7）· **Ban 在代码注释写任务号/刀号**（迁移头注只写语义标记 `job-queue-index: <table>` 与登记用语义理由）。
 
 ---
 
@@ -408,38 +463,40 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban se
 
 `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · `PG-retained`（业务+LangGraph PostgresSaver+pgvector；禁 MySQL/Qdrant 业务切流叙事）· 公开 `DELETE /privacy/interview-data/:id` = 503 · `g7SuiteGreen=false` · `r1Closed=false` · 脚注 `actualSpendCny=null`（本刀零模型外呼·零消耗·est live=0）。
 
-**本卷附加钉**：R-50 判定=底稿 `refactor-backlog.md:93`/`:494`-`:500` 原文 · 四索引键序固定 `(status, lease_expires_at)` · gauge 返回四行顺序固定 · `entitlement_consumption`/`commerce_outbox`/`job_semantic_revision` 三者走既有索引不新增 · 链头钉同步只准动 C10 两断言 · 计划口径=substituted-body 与 live 数值分工 + `Index Cond` 文本判据 · 隔离镜像固定 `pgvector/pgvector:pg16` · EXPLAIN 以 superuser 或 `row_security=off` · cap 步进 `2461→2466` 恰等零多放 · 本刀不宣称 HA/簇收口。
+**本卷附加钉**：R-50 判定=底稿 `refactor-backlog.md:93`/`:494`-`:500` 原文 · 四索引键序固定 `(status, lease_expires_at)` · gauge 返回四行顺序固定 · `entitlement_consumption`/`commerce_outbox`/`job_semantic_revision` 三者走既有索引不新增 · 链头钉同步只准动 C10 两断言 · 计划口径=substituted-body 与 live 数值分工 + `Index Cond` 文本判据 · 隔离镜像固定 `pgvector/pgvector:pg16` · EXPLAIN 以 superuser 或 `row_security=off` · **cap = EXEC 届 `check-docs` 实测 scanned + 6**（起草基线 `2461→2466`）恰等零多放 · 本刀不宣称 HA/簇收口。
 
 ---
 
 ## §7 Non-claims
 
-本刀 ≠ HA ≠ `haStatus` 翻转 ≠ HA 簇收口 ≠ R-50 全量闭环之外的任何条目（R-24/R-36/R-44/R-51 各自仍开/半开）≠ R-44 指标已补（本刀只给索引基座）≠ R-51 保留/分区已做（本刀一行不删）≠ R-24 leader 选举已做 ≠ 生产容量/负载绿（EXPLAIN 计划 ≠ 生产 SLO）≠ **索引在百万级生产表上的真实收益（§1.4 为席测 5 万行本地口径，非生产实测）** ≠ **`dead` 列已优化（仍为 O(终态集)，终态 40 万行时 ~30ms/拍/副本；归 R-44/R-51）** ≠ **`count(*)` 复杂度下降（索引只省 I/O 不省计数）** ≠ **心跳写路径无代价（新增 `(status,lease_expires_at)` 使 `interview-jobs.ts:309-317`/`packages/db/src/commerce/commerce.ts:562-571` 的 HOT 永久失效，写放大 +7.8% 席测）** ≠ gauge 指标语义/告警阈值变更（数值等价，阈值零触）≠ **gauge 的 cutoff 瞬时语义逐位不变（旧=逐行 volatile 求值，新=每子查询一次；对告警口径无实质影响，但非逐位同）** ≠ **runbook 下钻锚仍指向 live 定义（`alerting-runbook.md:124` 指 `0042:5-26`，本刀后过期，归文档刀）** ≠ **`sql/24` 镜像已同步（仍滞后，无门覆盖，归镜像同步刀）** ≠ **链头钉全绿（i2b/entpay-s2/s3 三处基线已红，非本刀）** ≠ 已跑全量套件（`g7SuiteGreen=false` 维持）· prove EXIT=0 ≠ DONE（`claimDone=false` · 完成判定走双审+nail）· `est live=0`。
+本刀 ≠ HA ≠ `haStatus` 翻转 ≠ HA 簇收口 ≠ R-50 全量闭环之外的任何条目（R-24/R-36/R-44/R-51 各自仍开/半开）≠ R-44 指标已补（本刀只给索引基座）≠ R-51 保留/分区已做（本刀一行不删）≠ R-24 leader 选举已做 ≠ 生产容量/负载绿（EXPLAIN 计划 ≠ 生产 SLO）≠ **索引在百万级生产表上的真实收益（§1.4 为席测 5 万行本地口径，非生产实测）** ≠ **`dead` 列已优化（仍为 O(终态集)，终态 40 万行时 ~30ms/拍/副本；归 R-44/R-51）** ≠ **`count(*)` 复杂度下降（索引只省 I/O 不省计数）** ≠ **心跳写路径无代价（新增 `(status,lease_expires_at)` 使 `interview-jobs.ts:313`/`quiz-jobs.ts:75`/`diagnosis-jobs.ts:66` 三表心跳的 HOT 永久失效，写放大 +7.8% 席测；`entitlement_consumption` 不建索引，commerce 心跳不受影响）** ≠ **claim 终态 anti-join 已优化（仍 O(终态集)，`(interview_id)` 索引归另刀，B33 只登记不判红）** ≠ **`0144` 六个 dispatch 臂的两列 Index Cond 收益（本刀零触，仍内联 `clock_timestamp()`；两列收益只落在 W2 body 的 `v_cutoff`）** ≠ gauge 指标语义/告警阈值变更（数值等价，阈值零触）≠ **gauge 的 cutoff 瞬时语义逐位不变（旧=逐行 volatile 求值，新=`v_cutoff` 函数入口一次；对告警口径无实质影响，但非逐位同）** ≠ **runbook 下钻锚仍指向 live 定义（`alerting-runbook.md:124` 指 `0042:5-26`，本刀后过期，归文档刀）** ≠ **`sql/24` 镜像已同步（仍滞后，无门覆盖，归镜像同步刀）** ≠ **链头钉全绿（i2b/entpay-s2/s3 三处基线已红，非本刀）** ≠ 已跑全量套件（`g7SuiteGreen=false` 维持）· prove EXIT=0 ≠ DONE（`claimDone=false` · 完成判定走双审+nail）· `est live=0`。
 
 ---
 
-## §8 STOP（开工三条款 + 停止条件五类）
+## §8 STOP（开工三条款 + 停止条件七类）
 
-**STOP · `draft:awaiting_pre_exec_dual`（三处钉：Status 行 + 本节 + 卷尾 · 同值）。** 开工三条款（未履行不得 EXEC）：① **pre-exec 双审两独立外席 BOTH PASS 落卷**（含 W1 复合索引 vs 12 条部分索引的形态裁决、W2 gauge 改形的数值等价面、cap 步进授权）；② **协调方明示 EXEC 授权**（LEDGER:136 HA 簇解锁亲证 · 批1 收口状态确认 · **cap 2461→2466 步进授权**）；③ **§0 全量对届时 tip 重 pin**——四表索引普查/**`0144:883`-`:949` 六臂与 §8 冻结段**/0042 谓词/链头 0219/文件数 217/既有 proof 钉任一漂移且结论受疑即回炉。
+**STOP · `draft:awaiting_pre_exec_dual`（三处钉：Status 行 + 本节 + 卷尾 · 同值）。** 开工三条款（未履行不得 EXEC）：① **pre-exec 双审两独立外席 BOTH PASS 落卷**（含 W1 复合索引 vs 12 条部分索引的形态裁决、W2 gauge 改形的数值等价面、cap 步进授权）；② **协调方明示 EXEC 授权**（LEDGER:136 HA 簇解锁亲证 · 批1 收口状态确认 · **cap = 届值 scanned + 6 步进授权**，起草基线 2466）；③ **§0 全量对届时 tip 重 pin**——四表索引普查/**`0144:883`-`:949` 六臂与 §8 冻结段**/0042 谓词/链头 0219/文件数 217/既有 proof 钉任一漂移且结论受疑即回炉。
 
-- **现场漂移**：`origin/main` 届 tip 的四表索引清单、**`0144:883`-`:949` 六臂谓词与 §8 演进冻结段**（`0132` 仅史录）、`0042` gauge 列语义、`interview-event-retention.proof.ts:81`-`:83` 链头钉、`migrate.ts:204-228` 正则 / `:241-243` 超时 / `:470-479` 重放断言任一变化 → 停·重 pin；拟名 0220-0224 与届链顶撞号 → 按链顶顺延并同步 C10。
+- **现场漂移**：`origin/main` 届 tip 的四表索引清单、**`0144:883`-`:949` 六臂谓词与 §8 演进冻结段**（`0132` 仅史录）、`0042` gauge 列语义、`interview-event-retention.proof.ts:81`-`:83` 链头钉、`migrate.ts:204-228` 正则 / `:241-243` 超时 / `:450-457` 连续前缀门 / `:470-479` 重放断言任一变化 → 停·重 pin；拟名 0220-0224 与届链顶撞号 → 按链顶顺延并同步 C10。**低于链头的在飞空号（当前 `0216_scoring_*`/`0217_interview_question_asr_*`，存在于 `line/ag14-residual-draft`/`line/ag18-flip`/`line/ag20-*`/`line/ag32-draft` 等未并分支、origin/main 缺失）**：这些分支若在本刀之后并线，`migrate.ts:450`-`:457` 的连续前缀断言会让**已记账 0220+ 的库整链红** ⇒ 并线前必须先重排空号或按 §1.5 回滚重放，不得直接 merge。
 - **机制不满足**：若**四目标表**已出现 status 前导（A6 红）或隐式 status 谓词索引（`ON <t> (<col>) WHERE status='<lit>'`）→ 停手上报，不重复建、不顺手补。**注意保险丝的正确触发面**：`entitlement_consumption`（`0010`）/`commerce_outbox`（`0211`）/`job_semantic_revision`（`0132`）已有匹配形态是**预期命中**，不得据其停手，也不得据此给它们再建索引；仅当四目标表出现命中才停。
-- **计划红分诊**：B12-B15/B23-B30 默认计划仍 `Seq Scan` → 先分**仪器红**（种子不足/未 ANALYZE/统计过期/EXPLAIN 角色受 RLS 约束）与**机制红**（索引形态不适用）；仪器红只许修夹具并重跑（attempts 入账），机制红即停手上报（Ban 改断言迁就、Ban 用 `enable_seqscan=off` 冒充默认计划）。B16-B19/B27-B30 若因 `clock_timestamp()` volatile 而 `Index Cond` 不含 lease 列 → 按「不适用」登记续行，**不判红**。
-- **回滚/时长硬门**：任一条 `CREATE INDEX CONCURRENTLY` 超过 `MIGRATION_CONCURRENT_INDEX_TIMEOUT_MS`（`migrate.ts:241-243` 默认 300s、上限 900s）→ 以 env 上调并在收据登记；上调后仍超 → 停手上报。回滚必须按 §1.5 成对执行（`DELETE FROM schema_migrations` + `DROP INDEX CONCURRENTLY` 同一动作）；**只 DROP 不删账**或**改 0042 重放** → 立即停（前者使后续任何 `pnpm migrate` 红，后者被 `:430-455` checksum 门拦）。
-- **跨刀红**：C10 同步后 `interview-event-retention:prove:raw` 仍红（非链头/计数原因）→ 停·stash 对照亲证基线，不得借机改该 proof 其他断言。**`i2b.proof.ts:153-154` / `entpay-s3.proof.ts:70-71` / `entpay-s2.proof.ts:83-84` 三处链头钉若在 EXEC 期红，按「基线已红」登记，不计本刀新增红、不得顺手改**（§0.1-事实钉之二）。
+- **计划红分诊**：B12-B15/B23-B30 默认计划仍 `Seq Scan` → 先分**仪器红**（种子不足/未 ANALYZE/统计过期/EXPLAIN 角色受 RLS 约束）与**机制红**（索引形态不适用）；仪器红只许修夹具并重跑（attempts 入账），机制红即停手上报（Ban 改断言迁就、Ban 用 `enable_seqscan=off` 冒充默认计划）。B16-B19/B27-B30 若实现退回内联 `clock_timestamp()`（volatile）而 `Index Cond` 不含 lease 列 → 按「不适用」登记续行，**不判红**（推荐实现用 `v_cutoff` ⇒ 两列均进 Cond，届时必须两列绿）。
+- **回滚/时长硬门**：任一条 `CREATE INDEX CONCURRENTLY` 超过 `MIGRATION_CONCURRENT_INDEX_TIMEOUT_MS`（`migrate.ts:241-243` 默认 300s、上限 900s）→ 以 env 上调并在收据登记；上调后仍超 → 停手上报。回滚必须按 §1.5 **三件同一动作**执行（删迁移文件 + 删账本行 + `DROP INDEX CONCURRENTLY`）；任一单边 → 立即停：**只 DROP 不删账** ⇒ 重放路径 `migration_concurrent_index_definition_mismatch`；**只删账不删文件** ⇒ 下次 migrate 重放重建索引、回滚净效果为零；**只删文件不删账** ⇒ `migration_ledger_unknown_version`；**改 0042 重放** ⇒ `:430-455` checksum 门拦。回滚后 C10 钉 **218 件/0224**（若同撤 C6 则 217/0219），cap 按实测 scanned + 6 重算。
+- **跨刀红**：C10 同步后 `interview-event-retention:prove:raw` 仍红（非链头/计数原因）→ 停·stash 对照亲证基线，不得借机改该 proof 其他断言。**`i2b.proof.ts:153-154` / `entpay-s3.proof.ts:70-71` / `entpay-s2.proof.ts:83-84` 三处链头钉若在 EXEC 期红，按「基线已红」登记，不计本刀新增红、不得顺手改**（§0.1-事实钉之二）。**`db-trigfam-unify.proof.ts:344-350`（StageB 恰只应用 0144）与 `:491`（P6 迁移面唯一新增=0144）同样基线已红**（0145+ 已 73 件；不在 CI、不在 §4 门表），不计本刀新增红、不得顺手改（§0.1-事实钉之三）。
 - **越界需要**：修法诉求超出 §3 的 12 条有效登记（要做 leader 选举/新指标/删除保留/改告警/改 per-owner 查询/给已覆盖表再建索引）→ 停·另刀或协调方裁决。
-- **验收红不可修**：`docs:check` 扫描数 **> sanctioned cap（2466）** / PTP 红 / migrate:prove 红且根因不在本刀交付面 → 停·stash 对照亲证基线·如实登记·Ban 借机修。**注意**：C12/C13 未生效前撞 cap 是**预期红**（rev r0 的 P0-1），必须先落 cap 步进再跑门 7，不得把 cap 红当机制红停整刀。
+- **验收红不可修**：`docs:check` 扫描数 **> 届值 cap（EXEC 届实测 scanned + 6；起草基线 2466）** / PTP 红 / migrate:prove 红且根因不在本刀交付面 → 停·stash 对照亲证基线·如实登记·Ban 借机修。**注意**：C12/C13 未生效前撞 cap 是**预期红**（rev r0 的 P0-1），必须先落 cap 步进再跑门 7，不得把 cap 红当机制红停整刀；EXEC 立项日 main 推进导致的扫面增长属届值重算，**不是**验收红。
 
 ---
 
 ## §9 状态
 
-**`draft:awaiting_pre_exec_dual`**（rev r1 · 2026-10-30 修订落卷即停 · 前状态 rev r0 `draft:awaiting_pre_exec_dual` 双审 FAIL · 本 rev 逐条处置 P0×2 + P1×8 + P2×16 后重投 pre-exec 双审 · Ban self-approve · alone≠dual · ⛔push ⛔动主仓 · est live=0 · markers=0 · **起草面 cap 零步进（2460·cap 2461·余 1）**；**EXEC 面 cap 必步进 2461→2466**（C12/C13·已登记）· 收据/EXEC 记录待后续席追加，本节 append-only 不改既有字）。
+**`draft:awaiting_pre_exec_dual`**（rev r2 · 2026-10-30 修订落卷即停 · 前状态 rev r1 `draft:awaiting_pre_exec_dual` 双审 r2 席2 FAIL / 席1 网络中断 · 本 rev 逐条处置 P1×5 + P2×12 后重投 pre-exec 双审 · Ban self-approve · alone≠dual · ⛔push ⛔动主仓 · est live=0 · markers=0 · **起草面 cap 零步进（2460·cap 2461·余 1）**；**EXEC 面 cap = 届值 `check-docs` 实测 scanned + 6**（起草基线 2466，C12/C13·已登记）· 收据/EXEC 记录待后续席追加，本节 append-only 不改既有字）。
 
-**rev r1 落法汇总**：迁移数 **6→5**（删 W1-5/C5）· 断言总数 **43→44**（删该表 4 条：B1-B5/B8-B12/B14-B18/B19-B23 各 −1；新增 5 条：A9 + B32-B34 + B35）· 链头 0219→**0224**、文件数 217→**222** · cap 2461→**2466** · 三门读数：docs:check **EXIT=0 scanned 2460** / PTP **12/12 EXIT=0** / markers **0**。
+**rev r1 落法汇总（可核逐条）**：迁移数 **6→5**（删 W1-5/C5）；断言总数 **43→44**——删该表 4 条（对当前编号：B1-B4 组 −1、B7-B10 组 −1、B12-B15 组 −1、B16-B19 组 −1），新增 5 条（A9、B32、B33、B34、B35）；链头 0219→**0224**、文件数 217→**222**；cap 2461→**2466**（rev r2 已改为「届值 + 6」）；三门读数：docs:check **EXIT=0 scanned 2460** / PTP **12/12 EXIT=0** / markers **0**。
+
+**rev r2 落法汇总（可核逐条）**：迁移数 **5**（不变，C1-C4 + C6）；断言总数 **44→45**——B32 拆为 B32 可判臂 + B33 登记臂，sweep/live-count/`idx_scan` 顺延 B34/B35/B36。逐条清单：静态 A1-A9 = **9**；元数据 B1-B11 + B22 = **12**；EXPLAIN/登记 B12-B20（9）+ B23-B31（9）+ B32-B35（4）= **22**；真行为 B21 + B36 = **2**；合计 **45**。回滚形改「删文件 + 删账本 + `DROP INDEX` 三件同一动作」；cap 改「EXEC 届实测 scanned + 6」；EXEC 终态链头/文件数仍 `0224`/**222**。三门读数：docs:check **EXIT=0 scanned 2460** / PTP **12/12 EXIT=0** / markers **0**。
 
 ---
 
-*HA-1 REQUEST **rev r1** · 2026-10-30 修订落卷 · 认领=R-50（底稿 `refactor-backlog.md:93`/`:494`-`:500` 原文；本仓实登记=`product-campaign-LEDGER.md:136` + `ha-6-companion-REQUEST.md:106`；north-star-ha.md 对六条 R 号零命中已勘误）· 六条判定=R-37 已落地剔除 / R-36 半做（残面归 HA-6 R-23 接受 ×N）/ R-24 未做（编排改动后置）/ R-44 半做（仅失败 counter）/ R-51 半做（outbox+interview_event+autovacuum 已落，job 终态未落）/ **R-50 选中**（R-24/R-44/R-51 共同硬前置）· 修法=**四条** `(status, lease_expires_at)` 并发索引 + `gateway_job_gauges()` 逐 status 子查询改形 + **44** 断言隔离 proof + 链头钉两行同步 + cap 步进四联动 · 全锚 @`99e4e3f38` 亲读亲算 · pins 十一值零翻转 · est live=0 · markers=0 · ⛔push ⛔动主仓 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · proof EXIT=0 ≠ DONE · STOP=`draft:awaiting_pre_exec_dual`*
+*HA-1 REQUEST **rev r2** · 2026-10-30 修订落卷 · 认领=R-50（底稿 `refactor-backlog.md:93`/`:494`-`:500` 原文；本仓实登记=`product-campaign-LEDGER.md:136` + `ha-6-companion-REQUEST.md:106`；north-star-ha.md 对六条 R 号零命中已勘误）· 六条判定=R-37 已落地剔除 / R-36 半做（残面归 HA-6 R-23 接受 ×N）/ R-24 未做（编排改动后置）/ R-44 半做（仅失败 counter）/ R-51 半做（outbox+interview_event+autovacuum 已落，job 终态未落）/ **R-50 选中**（R-24/R-44/R-51 共同硬前置）· 修法=**四条** `(status, lease_expires_at)` 并发索引 + `gateway_job_gauges()` 逐 status 子查询改形（`v_cutoff` 入口一次）+ **45** 断言隔离 proof + 链头钉两行同步 + cap 按届值 scanned + 6 四联动 · 全锚 @`99e4e3f38` 亲读亲算 · pins 十一值零翻转 · est live=0 · markers=0 · ⛔push ⛔动主仓 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · proof EXIT=0 ≠ DONE · STOP=`draft:awaiting_pre_exec_dual`*
 
 *卫生声明：markers=0 = 本卷改动集五类标记词与行首冲突标记 grep 零命中——词面由门命令运行时组装、卷内不复抄（防自匹配；沿 ha-3/ha-6 同款）。*
