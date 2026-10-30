@@ -1,0 +1,48 @@
+REGW rebase 后复跑留痕（nail 席 · 2026-10-30）
+工作树：/Users/miaole/Desktop/golucky/meetwise-regw · branch line/regw-draft
+rebase：git fetch origin && git rebase origin/main → origin/main 99e4e3f38，behind 28 → 0；零冲突
+        （无 ai-docs/delivery/harness/ 同名冲突；package.json 注册区 additive 无冲突）；
+        机制源 blob 复核：apps/api/src/platform/sse-pump.ts = b93121dc（与 rebase 前及 §0.1 恰等）。
+
+────────────────────────────────────────────────────────────────────
+① pnpm -C apps/api prove:sse-reg-window
+   LEDGER  arm_assertions=44/44  dedup_pass_lines=48/48  failures=0
+   ✓ 注册窗口矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）
+   EXIT=0
+② pnpm -C apps/api typecheck
+   > tsc -p tsconfig.json --noEmit
+   EXIT=0
+③ pnpm -C apps/api lint
+   ✖ 1545 problems (0 errors, 1545 warnings)
+   帽值 apps/api/package.json:7 --max-warnings 1545（恰等余 0；相对基线新增 0）
+   EXIT=0
+④ node scripts/ai-docs/check-docs.mjs
+   ai-docs check passed: 80 required files verified; public text policy scanned 2461 managed worktree files
+   cap scripts/ai-docs/public-text-policy.mjs:282 const MAX_FILES = 2_461 → 2461 = cap（零余量）
+   EXIT=0
+⑤ node scripts/ai-docs/public-text-policy.proof.mjs
+   static_preflight_valid: selected=12/12; releaseEvidence=false
+   ✓ TC-quality-04-main … ✓ TC-quality-04-E11（12/12）
+   EXIT=0
+⑥ markers（改动集 21 件 · 五类标记词〔词面运行时组装口径〕+ 行首冲突标记）
+   CHANGE_SET_COUNT=21；MARKERS_HITS=0；MARKERS_SCAN_DONE
+⑦ pnpm -C apps/api prove:ha2-drain
+   ===== ha2-drain.proof(api) PASS=47 FAIL=0 =====
+   EXIT=0
+⑧ pnpm -C apps/api prove:s4b-delta-arm
+   ✓ TOKSTREAM S4b api delta 臂矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）
+   EXIT=0
+⑨ pnpm -C apps/api prove:last-event-id
+   ✓ last-event-id fail-closed parser passed
+   EXIT=0
+⑩ pnpm -C apps/api prove:sse-listen-probe
+   ✓ sse-listen-probe: 4 臂全绿
+   EXIT=0
+⑪ pnpm sse-reg-window:prove（root 转发脚本）
+   LEDGER  arm_assertions=44/44  dedup_pass_lines=48/48  failures=0
+   ✓ 注册窗口矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）
+   EXIT=0
+
+────────────────────────────────────────────────────────────────────
+结论：11 门全绿；docs:check 2461 = cap 2461（零余量，未越限）；无门红、无基线红。
+判据/断言/阈值/pins 零改（rebase 只搬基线，proof 与两注册行原样）。
