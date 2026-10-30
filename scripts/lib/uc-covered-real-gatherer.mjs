@@ -326,6 +326,7 @@ function pickStack(receipt) {
  *   - unclosed `<!--` anywhere ⇒ null
  *   - any `Verdict:` line inside an HTML comment block ⇒ null
  *   - unterminated markdown fence (``` / ~~~) ⇒ null (Verdict would be inside code)
+ *   - unclosed `<details>` (tag-depth net-open > 0) ⇒ null (Verdict inside the block)
  *
  * Removed: markdown fence/quote/indent stripping code path (and the no-op stub).
  *
@@ -333,9 +334,16 @@ function pickStack(receipt) {
  * must match mw-e2e-ha / mw-rag-route. Unparseable ⇒ MISSING-DUAL.
  * Known limit (not blocker): git-author can be spoofed via `git -c user.name/email`;
  * path+author is tamper-evident in review only, not cryptographic.
+ * Known limit (details defense): balanced tags are token-balanced only, not
+ * structure-aware — a literal `</details>` anywhere (prose, fence, attribute
+ * value of another tag) neutralizes one open tag; and a lone unpaired
+ * `<details>` mentioned in prose (even in inline code) rejects the whole file.
  */
 export const REVIEW_VERDICT_LINE_RE = /^(\*\*)?Verdict: (PASS|FAIL)(\*\*)?$/;
 
+/**
+ * @returns {false|'unclosed-comment'|'verdict-in-comment'} first tripping reason
+ */
 function htmlCommentDefenseFails(text) {
   // Unclosed <!-- (last <!-- after last -->)
   let i = 0;
@@ -348,9 +356,12 @@ function htmlCommentDefenseFails(text) {
       depthOpenAt = open;
       i = open + 4;
       const nextClose = text.indexOf('-->', i);
-      if (nextClose < 0) return true; // unclosed
+      if (nextClose < 0) {
+        // Unclosed: a Verdict inside the remaining block is the more specific reason.
+        return /Verdict:\s*(PASS|FAIL)/i.test(text.slice(open)) ? 'verdict-in-comment' : 'unclosed-comment';
+      }
       const block = text.slice(open, nextClose + 3);
-      if (/Verdict:\s*(PASS|FAIL)/i.test(block)) return true;
+      if (/Verdict:\s*(PASS|FAIL)/i.test(block)) return 'verdict-in-comment';
       i = nextClose + 3;
       depthOpenAt = -1;
       continue;
@@ -388,6 +399,36 @@ function unterminatedFenceFails(text) {
 }
 
 /**
+ * Unclosed `<details>` anywhere ⇒ fail closed (like unclosed `<!--` / fence).
+ *
+ * Token form (single implementation shape — see REQUEST §1-1):
+ *   open  = `<details` followed by one of `[\s/>]`
+ *   close = `</details` followed by inline blanks only (`[ \t]*`) then `>`
+ * One case-folded pass, single alternating regex. Standalone close clamps at
+ * depth 0 (mirrors the stray `-->` handling above; a bare `</details>` fixture
+ * stays null via last-non-empty-line, not via this defense).
+ *
+ *  - `</details >` / `</details\t>` count as close; `</DETAILS>` folds too.
+ *  - `</details\n>` and `</details/>` do NOT count (over-reject direction).
+ *  - `<detailsx>` is not a tag; `<details/>` / `<details open>` are opens.
+ *  - Attribute values are not parsed: a literal `</details>` inside any
+ *    attribute value or prose still closes one open tag (known limit).
+ */
+function unclosedDetailsFails(text) {
+  const lo = String(text).toLowerCase();
+  const TOKEN_RE = /<\/details[ \t]*(?=>)|<details(?=[\s/>])/g;
+  let depth = 0;
+  for (const m of lo.matchAll(TOKEN_RE)) {
+    if (m[0][1] === '/') {
+      if (depth > 0) depth -= 1;
+    } else {
+      depth += 1;
+    }
+  }
+  return depth > 0;
+}
+
+/**
  * Verdict ONLY from the last non-empty line of the raw file.
  * @returns {'PASS'|'FAIL'|null}
  */
@@ -395,6 +436,7 @@ export function parseReviewFileVerdict(text) {
   if (!text || typeof text !== 'string') return null;
   if (htmlCommentDefenseFails(text)) return null;
   if (unterminatedFenceFails(text)) return null;
+  if (unclosedDetailsFails(text)) return null;
 
   const lines = text.split(/\r?\n/);
   let lastNonEmpty = null;
@@ -412,6 +454,51 @@ export function parseReviewFileVerdict(text) {
   const closeBold = m[3] === '**';
   if (openBold !== closeBold) return null; // unbalanced bold
   return m[2] === 'PASS' || m[2] === 'FAIL' ? m[2] : null;
+}
+
+/**
+ * Test-only diagnostic companion to `parseReviewFileVerdict` (no production
+ * exit: `dualFromReviewFiles` never calls it and carries no diagnostics).
+ *
+ * Reason priority = defense chain order:
+ *   empty > comment family (`verdict-in-comment` before `unclosed-comment`)
+ *   > `unterminated-fence` > `unclosed-details` > `unbalanced-bold`
+ *   > `no-verdict-line` > `ok`
+ * First tripping defense wins the reason; verdict is always null on any
+ * non-ok reason, so wiring this in cannot change a green path.
+ *
+ * NOTE: the last-line/verdict logic below is a second implementation of the
+ * same rule (not a shared source); the parity assertion in the host proof is a
+ * constructive lock against wiring drift, not independent behavioral evidence.
+ *
+ * @param {string} text
+ * @returns {{verdict: 'PASS'|'FAIL'|null, reason: 'ok'|'unclosed-details'|'unclosed-comment'|'verdict-in-comment'|'unterminated-fence'|'unbalanced-bold'|'no-verdict-line'|'empty'}}
+ */
+export function diagnoseReviewFile(text) {
+  if (!text || typeof text !== 'string') return { verdict: null, reason: 'empty' };
+  if (text.trim().length === 0) return { verdict: null, reason: 'empty' };
+  const commentReason = htmlCommentDefenseFails(text);
+  if (commentReason) return { verdict: null, reason: commentReason };
+  if (unterminatedFenceFails(text)) return { verdict: null, reason: 'unterminated-fence' };
+  if (unclosedDetailsFails(text)) return { verdict: null, reason: 'unclosed-details' };
+
+  const lines = text.split(/\r?\n/);
+  let lastNonEmpty = null;
+  for (const line of lines) {
+    const trimmedEnd = line.replace(/[ \t\f\v]+$/g, '').replace(/\r$/, '');
+    if (trimmedEnd.trim().length === 0) continue;
+    lastNonEmpty = trimmedEnd;
+  }
+  if (lastNonEmpty == null) return { verdict: null, reason: 'empty' };
+
+  const m = lastNonEmpty.match(REVIEW_VERDICT_LINE_RE);
+  if (!m) return { verdict: null, reason: 'no-verdict-line' };
+  const openBold = m[1] === '**';
+  const closeBold = m[3] === '**';
+  if (openBold !== closeBold) return { verdict: null, reason: 'unbalanced-bold' };
+  const verdict = m[2] === 'PASS' || m[2] === 'FAIL' ? m[2] : null;
+  if (verdict == null) return { verdict: null, reason: 'no-verdict-line' };
+  return { verdict, reason: 'ok' };
 }
 
 export function roleFromReviewPath(filePath) {
