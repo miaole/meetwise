@@ -1,0 +1,5 @@
+
+> @meetwise/api@0.0.0 typecheck /Users/miaole/Desktop/golucky/meetwise-regw/apps/api
+> tsc -p tsconfig.json --noEmit
+
+EXIT=0

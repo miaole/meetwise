@@ -1,0 +1,91 @@
+
+> @meetwise/api@0.0.0 prove:sse-reg-window /Users/miaole/Desktop/golucky/meetwise-regw/apps/api
+> node --import @swc-node/register/esm-register test/sse-reg-window.proof.ts
+
+SSE-REG-WINDOW prove · 流式注册窗口（区1 泵内零窗 + 区2 边界窗承接） · 单元缝零 DB · actualSpendCny=null
+PASS  RW-0-1 首次 waiter 注册先于 catch-up 重放（token 恰两处·首处 index < emit(initial.rows)）
+PASS  RW-0-2 尾取数窗序：第二处注册 index < fetchMore index 且 < delta-only 分支 index（合取）
+PASS  RW-0-3 边界窗在控制器：三文件各恰 1 处 const x = await this.<svc>.events( 且选项块含 initial
+PASS  RW-0-4 双钉值在场：HEALTHY_FALLBACK_MS=30_000 / DEGRADED_POLL_MS=2_000
+PASS  RW-0-5a SsePumpOptions 块不含 fetchInitial/loadInitial（锚命中且块非空·次级 token）
+PASS  RW-0-5b 泵体首个 await index > 首个 waitFor( index（initial 未移入泵：区2 存在性一等判据）
+PASS  RW-0-6 区1 两区间（writeHead→首 waitFor / 首 dispose→次 waitFor）剥注释后均无 await
+PASS  RW-6-S1(quiz) 选项块键集恰六且无 deltaSource
+PASS  RW-6-S2(quiz) reply 值形=shorthand
+PASS  RW-6-S3(quiz) reqRaw 值形=member
+PASS  RW-6-S4(quiz) streamKey 值形=identifier-value
+PASS  RW-6-S5(quiz) initial 值形=shorthand
+PASS  RW-6-S6(quiz) fetchMore 值形=arrow
+PASS  RW-6-S7(quiz) isTerminal 值形=shorthand
+PASS  RW-6-S1(diagnosis) 选项块键集恰六且无 deltaSource
+PASS  RW-6-S2(diagnosis) reply 值形=shorthand
+PASS  RW-6-S3(diagnosis) reqRaw 值形=member
+PASS  RW-6-S4(diagnosis) streamKey 值形=identifier-value
+PASS  RW-6-S5(diagnosis) initial 值形=shorthand
+PASS  RW-6-S6(diagnosis) fetchMore 值形=arrow
+PASS  RW-6-S7(diagnosis) isTerminal 值形=shorthand
+PASS  RW-6-S8 镜像同形链闭合：六键名+值形双锚且差集恰 {notify,registry,fallbackMsHealthy}
+PASS  RW-1/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-1/PA-0 whenHealthy 3000ms 有界门 healthy=true 且 health().healthy===true
+PASS  RW-1/PA-0-FAKE LISTEN 恰 3 次（事件/token/evict 三通道全 resolve）
+PASS  RW-1/PA-0-FAKE pg_trigger rowCount===1（否则 trigger_missing 降级）
+PASS  RW-1/PA-0-FAKE listenerCount('notification')===1（订阅在位）
+PASS  RW-1-② fetch#1 在飞时 waitingCount===1（:191 注册先于 :199 取数）
+PASS  RW-1-① fire 前后 waitingCount 1→0（提示命中在册 waiter 并自摘除·不掉地）
+PASS  RW-1-③ seq=1 写出 − fire 时刻 <300ms（序回归则退 1000ms 兜底=判决性）
+PIN  zero_window_delivery_ms=12
+PASS·aux  RW-1 收尾自证：close 后泵返回且 waitingCount===0
+PASS  RW-1b/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-1b/PA-0 whenHealthy 3000ms 有界门 healthy=true 且 health().healthy===true
+PASS  RW-1b/PA-0-FAKE LISTEN 恰 3 次（事件/token/evict 三通道全 resolve）
+PASS  RW-1b/PA-0-FAKE pg_trigger rowCount===1（否则 trigger_missing 降级）
+PASS  RW-1b/PA-0-FAKE listenerCount('notification')===1（订阅在位）
+PASS  RW-1b dispose 后微任务内 fire 前 waitingCount===1、fire 后立即 0，且 id:1 <300ms
+PIN  dispose_to_fire_delivery_ms=21
+PASS·aux  RW-1b 收尾自证：close 后泵返回且 waitingCount===0
+PASS  RW-2/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-2/PA-0 whenHealthy 3000ms 有界门 healthy=true 且 health().healthy===true
+PASS  RW-2/PA-0-FAKE LISTEN 恰 3 次（事件/token/evict 三通道全 resolve）
+PASS  RW-2/PA-0-FAKE pg_trigger rowCount===1（否则 trigger_missing 降级）
+PASS  RW-2/PA-0-FAKE listenerCount('notification')===1（订阅在位）
+PASS  RW-2-①b 注册前 NOTIFY 掉地不排队（后注册 120ms 内不 resolve·≥100ms）
+PASS  RW-2-①a 注册前 fire：fire 时 waitingCount===0 且 fire 后仍 0（无在册=提示掉地）
+PASS  RW-2-② 窗内 seq=3 经 60ms 兜底送达 elapsed∈[40,1000]ms（下沿=判别边）
+PASS  RW-2-③ 写出 id 子序列恰 [1,2,3]（catch-up 不重放、窗行不丢、零间隙零重复）
+PASS  RW-2-④ close 后泵返回且 waitingCount===0（无 waiter 泄漏）
+PASS  RW-3/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-3/PA-0 whenHealthy 3000ms 有界门 healthy=true 且 health().healthy===true
+PASS  RW-3/PA-0-FAKE LISTEN 恰 3 次（事件/token/evict 三通道全 resolve）
+PASS  RW-3/PA-0-FAKE pg_trigger rowCount===1（否则 trigger_missing 降级）
+PASS  RW-3/PA-0-FAKE listenerCount('notification')===1（订阅在位）
+PASS  RW-3-0 注入序自证 snapshotSeq<insertSeq<fireSeq 且快照不含 seq=3
+PASS  RW-3-1 送达 <300ms（:169 已注册→立即取数承接，非 1000ms 兜底）
+PASS  RW-3-2 恰一次写出 id:3（零重复零缺失）
+PASS·aux  RW-3 收尾自证：close 后泵返回且 waitingCount===0
+PASS  RW-4/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-4-1 healthy===false 且送达 ∈[1900,5000]ms（首 tick=2_000 → 走 DEGRADED_POLL_MS 非 60ms 注入值）
+PIN  degraded_delivery_ms=2002
+PASS  RW-4-3 until(送达) 后有界读 connectCalls===1（connect 覆盖键被消费·establish 恰一次=注入生效）
+PASS  RW-4-2 close 后泵返回且 waitingCount===0（无 waiter 泄漏）
+PASS  RW-5/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-5/PA-0 whenHealthy 3000ms 有界门 healthy=true 且 health().healthy===true
+PASS  RW-5/PA-0-FAKE LISTEN 恰 3 次（事件/token/evict 三通道全 resolve）
+PASS  RW-5/PA-0-FAKE pg_trigger rowCount===1（否则 trigger_missing 降级）
+PASS  RW-5/PA-0-FAKE listenerCount('notification')===1（订阅在位）
+PASS  RW-5-1 兜底送达终态帧且 elapsed∈[40,1000]ms（不漏终态、不空转到 deadline）
+PASS  RW-5-2 end() 恰一次且无写后半截（writesAfterEnd===0）
+PASS  RW-6/INJ 注入件身份自证（notify/registry 均非进程单例·禁 ?? 回退）
+PASS  RW-6/PA-0 whenHealthy 3000ms 有界门 healthy=true 且 health().healthy===true
+PASS  RW-6/PA-0-FAKE LISTEN 恰 3 次（事件/token/evict 三通道全 resolve）
+PASS  RW-6/PA-0-FAKE pg_trigger rowCount===1（否则 trigger_missing 降级）
+PASS  RW-6/PA-0-FAKE listenerCount('notification')===1（订阅在位）
+PASS  RW-6-M1 snapshotSeq<insertSeq<fireSeq 且 fire 拍 waitingCount===0 / 起泵后===1
+PASS  RW-6-M2 窗行 seq=2 经 60ms 兜底送达 elapsed∈[40,1000]ms
+PASS  RW-6-M3 写出 id 子序列恰 [1,2]（快照不重放、窗行不丢、零重复）
+PASS  RW-6-M4 close 后 waitingCount/registry.count 归零且 endCount===0（close 守卫原值）
+PIN  mirror_window_delivery_ms=61
+PIN  sse-pump fallback tokens: o.notify ??=true o.registry ??=true
+LEDGER  arm_assertions=44/44  dedup_pass_lines=48/48  failures=0
+
+✓ 注册窗口矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）
+EXIT=0

@@ -1,0 +1,133 @@
+=== prove:ha2-drain ===
+
+> @meetwise/api@0.0.0 prove:ha2-drain /Users/miaole/Desktop/golucky/meetwise-regw/apps/api
+> node --import @swc-node/register/esm-register test/ha-2-drain.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+--- C1 sse-registry 单元 ---
+PASS  空表 count=0
+PASS  未排水时 isDraining=false
+PASS  空表 drainAll 返回 0（此时旗已翻——beginDrain 先行是生产序，语义见下行）
+PASS  同条目重复注册 identity 去重 count=1
+PASS  drainAll 返回在册条数=1 且同步置旗
+PASS  重复 drainAll 幂等（返回条数不变·requestDrain 可重入，end 只由泵单点触发）
+PASS  unregister 后 count=0（置旗不 end——R1：条目只持旗）
+PASS  unregister 幂等（不抛·二次移除后 count 仍 0）
+PASS  beginDrain 只翻旗不动条目
+PASS  进程单例同读一份（门/readiness/泵同源）
+PASS  HEALTH_PROBE_PATHS 钉三别名（livez/readyz/api/health·C4 钉）
+--- A.2 泵注册表排水（drain 落等待臂） ---
+PASS  drainAll 返回在册 1（实得 1）
+PASS  全部 write 为完整帧（尾 \n\n·不发半截·共 2 帧）
+PASS  raw.end() 恰一次（泵内单点）
+PASS  end 后 write=0（R1：写后关封死·零 ERR_STREAM_WRITE_AFTER_END）
+PASS  排空后在册=0（泄漏断言）
+--- A.2 drain 落取数窗（禁 emit·防写后关） ---
+PASS  取数窗 drain：新行不 emit（写面停在 drain 前末帧）
+PASS  end 恰一次 · end 后 write=0
+PASS  在册=0
+--- A.2 其余退出路径全注销（断开/终态/取数失败/晚到连接） ---
+PASS  断开路径：注销 count=0 · 不 end（socket 已亡，语义原值）
+PASS  终态路径：end 恰一次 · count=0
+PASS  取数失败路径：end 恰一次 · count=0
+PASS  晚到连接（drain 已开）：零写 · end 恰一次 · count=0
+--- A.1 drainGateHook（真 fastify inject） ---
+PASS  未排水：普通路由 200
+PASS  排水期普通路由 503
+PASS  信封 service_unavailable_draining（AllExceptionsFilter 形制）
+PASS  connection: close 头
+PASS  /livez 恒 200（进程存活信号·门豁免）
+PASS  /readyz/api 门豁免（放行至路由层——翻脸由 C4 handler 承担）
+--- A.1 createApiShutdownChain（注入 closeApp/registry/计时） ---
+PASS  链入口即翻旗（503 门/readiness 立即生效）
+PASS  exit 0（进程自退·非 137）
+PASS  close 完成 ≥ 在飞 handler resolve（放旧时序）
+PASS  api_drained 日志在卷
+PASS  未触 deadline（api_drain_timeout 零命中）
+PASS  排空后在册=0
+PASS  SIGTERM 后 SIGINT 幂等（不二次 close/exit）
+PASS  deadline 到点 api_drain_timeout 日志
+PASS  deadline 强退 exit 0（内部上限 < 容器宽限）
+--- A.4-api 源级断言（main.ts / sse-pump.ts 接线） ---
+PASS  R2：main.ts 零 enableShutdownHooks 调用
+PASS  SIGTERM 与 SIGINT 注册同一 shutdown handler
+PASS  deadline 强退面在位（api_drain_timeout + exit(0)）
+PASS  deadline 计时器不 unref（进程生命周期被上限钉住）
+PASS  R1：raw.end 保持泵内单点（end 调用恰一处）
+PASS  R1：while 条件同读 drain 旗+背压旗（!draining && !bpTripped）
+PASS  C1：drainAll 只置旗（零 end 调用·剥注释后判）
+--- C4 /readyz/api·/health 排水翻脸（同 handler） ---
+PASS  未排水 readiness ok
+PASS  排水期 readiness 503（/readyz/api 与 /health 同 handler 同翻）
+
+===== ha2-drain.proof(api) PASS=47 FAIL=0 =====
+EXIT=0
+=== prove:s4b-delta-arm ===
+
+> @meetwise/api@0.0.0 prove:s4b-delta-arm /Users/miaole/Desktop/golucky/meetwise-regw/apps/api
+> node --import @swc-node/register/esm-register test/sse-delta-arm.proof.ts
+
+PASS  契约面：delta emit 无 id 帧（事件名 token_delta·safeWrite 单点）
+PASS  契约面：delta-only 唤醒免 fetchMore 支路在位（!notifyWoke 条件=权威行 notify 唤醒照旧取数）
+PASS  R4(ii) 权威行 notify 唤醒 → fetchMore 照旧（A10 零改）+权威行带 id
+PASS  R4(i) delta 帧 emit 无 id（事件名 token_delta·data 三字段·id 缺席）
+PASS  R4(ii) 单元收尾：close 后 pump 返回·waiter 归零·token 订阅归零（断开退出零 end 写=守卫原值）
+PASS  R4 delta-only 唤醒免 fetchMore（三帧零取数 SQL·「无权威事件零 SQL」承诺保持）
+PASS  R4 notify 唤醒（含与 delta 共醒）恒走 fetchMore（逆命题=权威行不饿死）
+PASS  R4 共醒时 delta 帧不丢（留环待下一 delta-only 唤醒后照常 emit）
+PASS  fan-out 订阅计数=3
+PASS  fan-out 广播复制：同流两订阅者各得同帧（禁互偷帧）+订阅者异常吞没不外溢
+PASS  跨流不误醒：OTHER 流帧只投递 OTHER 订阅者（CUR 订阅者零误投）
+PASS  坏帧形状校验即丢（五类坏载荷零投递·§C-3 有损通道不补发）
+PASS  fan-out dispose 注销无泄漏
+PASS  R4(iii) 环有界丢旧：258 帧灌入 → 收 256 帧·seq 1/2 丢失不补发（at-most-once）
+PASS  R4(iii) 丢旧痕迹以 coalesced 标记随帧透出（有损标记非 L1 语义）
+PASS  R4(iv) 注入缝 delta 帧 emit 无 id
+PASS  R4(iv) 断开后 delta 臂即停（close 后零新帧·注入再推不 resurrect）
+PASS  R4(iv) delta 订阅随泵全退出路径 dispose 恰一次
+PASS  R4(iv) 断开退出零 end 写（`if (!closed)` 守卫原值·端已断不写）
+PASS  基线：delta 臂缺席帧时兜底臂照旧 ping（cadence=注入 200ms·≥3 次）
+PASS  基线：isTerminal 终态语义原值（权威行 emit 后单点收尾·raw.end 恰一次=:116 单点承重面）
+
+✓ TOKSTREAM S4b api delta 臂矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）
+EXIT=0
+=== prove:last-event-id ===
+
+> @meetwise/api@0.0.0 prove:last-event-id /Users/miaole/Desktop/golucky/meetwise-regw/apps/api
+> node --import @swc-node/register/esm-register test/last-event-id.proof.ts
+
+PASS  缺省 / 未传 header → 0（全量重放起点）
+PASS  空串失败关闭，不降级为全量重放
+PASS  0 与正整数合法
+PASS  负号、小数、科学计数、前导加号、前导零失败关闭
+PASS  Infinity / 超安全整数 / 非数字失败关闭，不降级为全量重放
+PASS  过长数字串失败关闭
+
+✓ last-event-id fail-closed parser passed
+EXIT=0
+=== prove:sse-listen-probe ===
+
+> @meetwise/api@0.0.0 prove:sse-listen-probe /Users/miaole/Desktop/golucky/meetwise-regw/apps/api
+> node --import @swc-node/register/esm-register test/sse-listen-probe.proof.ts
+
+SSE-LISTEN-PROBE prove · LISTEN 活性探针(#139 半开盲区闭合) · 单元缝零 DB · actualSpendCny=null
+PASS  LP-1.0 配对不变式 probeTimeoutMs < probeIntervalMs(注入缝同遵守)
+PASS  LP-1.1 establish 健康(假 LISTEN×3+0143 trigger 实证恰一次)
+PASS  LP-1.2 探针超时单击判负→loseClient→在册等待者全醒(waitingCount→0)
+PASS  LP-1.3 health() 翻 false reason=listen_down
+PASS  LP-1.4 降级结构化日志恰一行 SSE_NOTIFY_DEGRADED reason=listen_down
+PASS  LP-1.5 半开连接释放恰一次(loseClient release)
+PASS  LP-1.6 outage 窗探针 tick no-op+退避未重连(connects 恒 1·probe 停在判负拍)
+PASS  LP-1.7 race 败者 query 迟到 rejection 吞没(release 后 reject 零 unhandledRejection 外溢)
+PASS  LP-2.0 配对不变式 probeTimeoutMs < probeIntervalMs(注入缝同遵守)
+PASS  LP-2.1 恒 healthy(探针拍续跑零误降)
+PASS  LP-2.2 探针确已续拍(probe≥3)
+PASS  LP-2.3 零降级日志(健康面零翻转·rowCount:0 不降级)
+PASS  LP-3.1 探针失败单击判负→既有退避重连→healthy 复位
+PASS  LP-3.2 重连后探针重挂续拍(client#2 probe≥2)
+PASS  LP-3.3 恰一次重连(connects=2)
+PASS  LP-4.1 stop() 后探针 timer 清零(探针拍零前进)
+PASS  LP-4.2 计划内关停零降级日志(不刷 SSE_NOTIFY_DEGRADED)
+
+✓ sse-listen-probe: 4 臂全绿
+EXIT=0
