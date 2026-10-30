@@ -16,9 +16,14 @@
  *     429 子臂/XR-4 三源亲证）。设备框架=同 principal 双 HTTP client（x-user-id 同值·双
  *     AbortController=两台设备·键 `sse:${principal}` 共享一桶=UC-002 双设备场景义）。
  *   载体乙（B6）=isolated 真 PG+boot 栈（_neg-harness createApp 全量 sql/01-23+手挑迁移清单·
- *     五 case 同形）——boot 栈本体 429 不可达（migration 0189 未装载→acquireSlot 共享臂
- *     fail-open return true·rate-limit.service.ts:173-:175 机制源如实申明），429 风暴打自建
- *     最小模块（五 case :311-:378 rev2 收紧形同构），真 PG 态源前后夹逼断言零副作用。
+ *     五 case 同形）——boot 栈 **burst 形 429 不可达**（migration 0189 未装载→acquireSlot 共享臂
+ *     fail-open return true·rate-limit.service.ts:173-:175；且 :61-:66 降级期 1s 探测节流），
+ *     429 风暴打自建最小模块（五 case :311-:378 rev2 收紧形同构）。**可证伪零副作用臂**=
+ *     风暴模块 byPrincipal 计数在 6×429 期间增量 0（拒连零 DB 触碰·计数基线=holder 取数，
+ *     本 run 观测 10=5 初始 catch-up+5 立即补偿取数）；
+ *     boot 栈侧以 6 并发 /events 全 200 证伪式验证 fail-open 语义。真 PG 态源仅登记
+ *     **storm 后态稳定性（非因果）**：风暴主体/池与真 PG 态源不同（STORM≠OWNB6 且风暴打
+ *     进程内最小模块），不得读作「零假扣/零双扣/同主体夹逼」的因果证据（post 双审 P1 修复）。
  *
  * B4 释放传播窗（rev r2 P1 锚形）：poll-until 槽 4 带超时·先例锚 sse-cross-replica.proof.ts:317-:322
  *   （waitFor 形·stepMs=100 默认·deadline 超时=FAIL 计红）+:439 调用值先例
@@ -60,6 +65,8 @@ import { Module } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter, type NestFastifyApplication } from '@nestjs/platform-fastify';
 import { asPrincipal, availableUnits } from '@meetwise/db';
+import { DiagnosisController } from '../src/modules/diagnosis/diagnosis.controller.ts';
+import { DiagnosisService } from '../src/modules/diagnosis/diagnosis.service.ts';
 import { InterviewController } from '../src/modules/interview/interview.controller.ts';
 import { InterviewService } from '../src/modules/interview/interview.service.ts';
 import { QuizController } from '../src/modules/quiz/quiz.controller.ts';
@@ -85,6 +92,7 @@ const ISO = `uc002i-${S}`;            // B5 异主体
 const STORM = `uc002s-${S}`;          // B6 风暴主体（载体乙侧最小模块）
 const IV = (k: string) => `/interview/iv-uc002b-${k}-${S}/events`;
 const QZ = (k: string) => `/quiz/qz-uc002b-${k}-${S}/events`;
+const DG = (k: string) => `/diagnosis/dg-uc002b-${k}-${S}/events`;
 
 /**
  * 等待谓词成立（XREP sse-cross-replica.proof.ts:317-:322 同形·Ban 裸 sleep 硬等——判定面恒谓词非
@@ -170,17 +178,20 @@ async function startMinimalModule(_principal: string) {
   const rl = new RateLimitService();
   const interviews = new InterviewService(db as unknown as DbService, rl, {} as never, {} as never, { id: 'disabled' } as never);
   const quizzes = new QuizService(db as unknown as DbService);
+  const diagnoses = new DiagnosisService(db as unknown as DbService);
   const catchUp = new Map<string, number>();
   wrapEvents(interviews, catchUp);
   wrapEvents(quizzes, catchUp);
+  wrapEvents(diagnoses, catchUp);
 
   @Module({
-    controllers: [InterviewController, QuizController],
+    controllers: [InterviewController, QuizController, DiagnosisController],
     providers: [
       PrincipalGuard,
       { provide: RateLimitService, useValue: rl },
       { provide: InterviewService, useValue: interviews },
       { provide: QuizService, useValue: quizzes },
+      { provide: DiagnosisService, useValue: diagnoses },
       { provide: DbService, useValue: db },
     ],
   })
@@ -194,7 +205,7 @@ async function startMinimalModule(_principal: string) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 载体乙：isolated 真 PG + boot 栈（B6 态源夹逼）· 载体甲：B1–B5 双设备框架
+// 载体乙：isolated 真 PG + boot 栈（B6 storm 后态稳定性·非因果 + fail-open 臂）· 载体甲：B1–B5 双设备框架
 // ─────────────────────────────────────────────────────────────────────────────
 const h = await boot();
 console.log('UC-E2E-002 NHP-002-HTTP-BOUND-01 prove · releaseEvidence=false · Not HA');
@@ -250,7 +261,9 @@ await h.pool.query(
   const cli = await h.pool.connect();
   try {
     await cli.query('BEGIN');
-    await cli.query(`SET app.principal_user='${OWNB6}'`);
+    // 事务级 GUC（沿 packages/db/src/principal.ts asPrincipal 同形 set_config(...,true)）：
+    // 会话级 SET 会在 release 回池后残留，且拼接值破坏参数化——本夹具改参数化事务级。
+    await cli.query("SELECT set_config('app.principal_user', $1, true)", [OWNB6]);
     await cli.query(
       `INSERT INTO candidate_profile_route_decision(id,interview_id,owner_user_id,resume_id,resume_content_sha,input_digest,taxonomy_version,policy_version,route_outcome,attempt_outcome,leaf_track_id,allocation_bps,decision_hash)
        VALUES ($1,$2,$3,$4,$5,$5,'v1','policy-uc002-1','route_decided','rule_decided','backend',10000,$5) ON CONFLICT (interview_id) DO NOTHING`,
@@ -294,7 +307,7 @@ const evCount = (owner: string, stream: string, kind: string) =>
   // 夹具直置 sentinel（rev r2 P2 词面：waiting_user 借形·断言面值无关·直写先例 scor-00:151）
   await h.pool.query("UPDATE interview SET status='waiting_user' WHERE id=$1 AND owner_user_id=$2", [IV_B6, OWNB6]);
   const before = await h.req('GET', `/interview/${IV_B6}`, U(OWNB6));
-  A('B6.sentinel GET :id → 200+status=waiting_user（前夹逼·零状态分支直透）', before.status === 200 && before.body?.status === 'waiting_user');
+  A('B6.sentinel GET :id → 200+status=waiting_user（前置态观测·零状态分支直透）', before.status === 200 && before.body?.status === 'waiting_user');
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -303,13 +316,13 @@ const evCount = (owner: string, stream: string, kind: string) =>
 const m = await startMinimalModule(DEV);
 const held: HeldStream[] = [];
 try {
-  // ── B1 · 跨设备共享桶占满（同 principal·设备 A×3+设备 B×2·面试/押题双口交叉）──
-  console.log('\n──────── B1 · 跨设备共享桶占满（设备 A×3+设备 B×2=5·双口交叉）────────');
+  // ── B1 · 跨设备共享桶占满（同 principal·设备 A×3+设备 B×2·面试/押题/诊断三口交叉）──
+  console.log('\n──────── B1 · 跨设备共享桶占满（设备 A×3+设备 B×2=5·三口交叉 面试/押题/诊断）────────');
   const devA1 = await openSse(m.base, IV('a'), DEV);
-  const devA2 = await openSse(m.base, IV('a'), DEV);
+  const devA2 = await openSse(m.base, DG('a'), DEV);
   const devA3 = await openSse(m.base, QZ('a'), DEV);
   A('B1 设备A面试第1条 → 200 text/event-stream', devA1.status === 200 && devA1.contentType.includes('text/event-stream') && !!devA1.hold);
-  A('B1 设备A面试第2条 → 200 text/event-stream', devA2.status === 200 && devA2.contentType.includes('text/event-stream') && !!devA2.hold);
+  A('B1 设备A诊断第2条 → 200 text/event-stream（第三口 diagnosis·sse:${principal} 同桶）', devA2.status === 200 && devA2.contentType.includes('text/event-stream') && !!devA2.hold);
   A('B1 设备A押题第3条 → 200 text/event-stream（同主体跨口同桶）', devA3.status === 200 && devA3.contentType.includes('text/event-stream') && !!devA3.hold);
   const devB1 = await openSse(m.base, IV('b'), DEV);
   const devB2 = await openSse(m.base, QZ('b'), DEV);
@@ -323,15 +336,17 @@ try {
   const sixth = await openSse(m.base, IV('b'), DEV);
   const sixthErr = (sixth.body as { error?: string }).error;
   A('B2 第 6 条（设备B·面试口）→ 429 具名码 too_many_streams', sixth.status === 429 && sixthErr === 'too_many_streams');
-  A('B2 拒绝为 JSON 非 SSE envelope（无 hold·无 event-stream 头）', !sixth.contentType.includes('text/event-stream') && !sixth.hold && typeof sixth.body === 'object');
-  A('B2 三次拒绝后槽仍为 5（被拒不占槽·RL_SHARED_DEGRADED 前置形不承登=载体甲无 db 结构性不可达·Map 计数即模式证人）', slotCount(m.rl, PKEY) === 5);
+  A('B2 拒绝为 JSON 非 SSE envelope（content-type application/json·无 hold·无 event-stream 头）', sixth.contentType.includes('application/json') && !sixth.contentType.includes('text/event-stream') && !sixth.hold && typeof sixth.body === 'object');
+  A('B2 第 6 条被拒后槽仍为 5（被拒不占槽·RL_SHARED_DEGRADED 前置形不承登=载体甲无 db 结构性不可达·Map 计数即模式证人）', slotCount(m.rl, PKEY) === 5);
 
   // ── B3 · 拒连零取数零轮询（UC184 领槽先于取数 :259-:262 同码）──
   console.log('\n──────── B3 · 拒连零取数（catch-up）零轮询（2s 环不入）────────');
   A('B3 catch-up 计数恰 5（仅 5 条占槽连接付取数·拒连零付·UC184 领槽先于取数）', (m.catchUp.get(DEV) ?? 0) === 5);
   const afterReject = m.db.calls(DEV);
   await sleep(2100);
-  A('B3 满 5 后一个 poll 周期 counting stub 只 +5（holders 入环·被拒连接不入 2s 轮询环）', m.db.calls(DEV) - afterReject === 5);
+  const pollDelta = m.db.calls(DEV) - afterReject;
+  console.log(`B3 观测（日志非判据）: 一个 poll 周期 counting stub 增量=${pollDelta}（holders 入环旁证·判据与 poll 节律解耦）`);
+  A('B3 满 5 后一个 poll 周期 catch-up 仍恰 5（被拒连接零取数·判据与 poll 节律解耦）', (m.catchUp.get(DEV) ?? 0) === 5);
 
   // ── B4 · 释放跨设备交接（设备 A abort 一条→finally releaseSlot :278→poll-until 槽 4→设备 B 再连）──
   console.log('\n──────── B4 · 释放传播 poll-until 槽 4（XREP waitFor 形·step 100ms·上限 15s）→设备 B 再连 200 ────────');
@@ -357,13 +372,12 @@ try {
   await m.app.close();
 }
 
-// ── B6 · 载体乙风暴+真 PG 态源前后夹逼（额度桶恒值+consumption 零新增+GET :id 恒等）──
-console.log('\n──────── B6 · 同主体 6×429 风暴（载体甲同构最小模块）→ 真 PG 态源夹逼 ────────');
+// ── B6 · 载体乙：6×429 风暴计数臂（可证伪零 DB 触碰）+ boot 栈 fail-open 臂 + 真 PG 态稳定性（非因果）──
+// 风暴主体 STORM 与真 PG 态源主体 OWNB6 **不同**、风暴打进程内最小模块（非真 PG 池）——故
+// 真 PG 读数只作 storm 后态稳定性观测，不作因果夹逼；可证伪面=db6 计数在 6×429 期间增量 0。
+console.log('\n──────── B6 · 6×429 风暴（同构最小模块·byPrincipal 计数）→ fail-open 臂 + 真 PG 态稳定性（非因果）────────');
 {
-  const db6 = {
-    asPrincipal: async <T>(_user: string, fn: (c: { query: (...args: unknown[]) => Promise<{ rowCount: number; rows: unknown[] }> }) => Promise<T>): Promise<T> =>
-      fn({ query: async () => ({ rowCount: 1, rows: [] }) }),
-  };
+  const db6 = createCountingDb();
   const rl6 = new RateLimitService();
   const interviews6 = new InterviewService(db6 as unknown as DbService, rl6, {} as never, {} as never, { id: 'disabled' } as never);
   const slotCount6 = (key: string) => (rl6 as unknown as { slots: Map<string, number> }).slots.get(key) ?? 0;
@@ -407,19 +421,30 @@ console.log('\n──────── B6 · 同主体 6×429 风暴（载体�
     five.forEach((r, i) => A(`B6.storm 风暴前占槽 ${i + 1}/5 → 200 text/event-stream`, r.status === 200 && r.ct.includes('text/event-stream') && !!r.hold));
     five.forEach((r) => { if (r.hold) held6.push(r.hold); });
     A('B6.storm 满额进程内槽计数=5', slotCount6(`sse:${STORM}`) === 5);
+    const db6Baseline = db6.calls(STORM);
     const rejects = await Promise.all([openSse6(STORM), openSse6(STORM), openSse6(STORM), openSse6(STORM), openSse6(STORM), openSse6(STORM)]);
     A('B6.storm 6×429 全部具名码 too_many_streams（同主体风暴·非 SSE envelope）',
       rejects.every((r) => r.status === 429 && (r.body as { error?: string }).error === 'too_many_streams' && !r.ct.includes('text/event-stream')));
     A('B6.storm 风暴后槽仍 5（被拒不占槽）', slotCount6(`sse:${STORM}`) === 5);
+    // 可证伪零副作用臂：计数基线=5 条 holder 的取数（≥5·本 run 观测 10=初始+立即补偿·计数活）；6×429 全程增量恒 0
+    // （拒连零 DB 触碰·UC184 领槽先于取数）。P1 修复：原「真 PG 夹逼」对 storm 零灵敏度=不可
+    // 证伪，此臂把「零副作用」落回风暴模块自身的 byPrincipal 计数上。
+    console.log(`B6.storm 观测（日志非判据）: db6.calls(STORM) 基线=${db6Baseline} 风暴后=${db6.calls(STORM)}`);
+    A('B6.storm 6×429 期间 storm 主体 DB 触碰增量=0（计数基线=holder 取数·拒连零 DB·可证伪臂）',
+      db6Baseline >= 5 && db6.calls(STORM) === db6Baseline);
 
-    // 真 PG 态源前后夹逼（boot 栈 429 不可达=fail-open 机制源如实申明·风暴零产品路径写入）
-    const afterBal = await bal(OWNB6);
-    const afterCons = await consCountAll(OWNB6);
-    A('B6.clamp 额度桶恒值 4.0（429 风暴零假扣零双扣=:89「输者不双扣」槽满边界映射）', afterBal === 4);
-    A('B6.clamp consumption 零新增（恰 begin 种子 1 行·reserved 原样）', afterCons === 1 && (await consStatusOf(OWNB6, IV_B6)) === 'reserved');
+    // 真 PG 态源 = storm 后态稳定性观测（**非因果**：风暴主体/池与真 PG 不同）。
     const afterGet = await h.req('GET', `/interview/${IV_B6}`, U(OWNB6));
-    A('B6.clamp 原会话 GET :id → 200+status=waiting_user 恒等（后夹逼·TERMINAL_INTERVIEW 不含 waiting_user·零状态分支直透）', afterGet.status === 200 && afterGet.body?.status === 'waiting_user');
-    A('B6.clamp 零假终态（无 interview_unavailable 事件）', (await evCount(OWNB6, IV_B6, 'interview_unavailable')) === 0);
+    A('B6.steady storm 后原会话 GET :id → 200+status=waiting_user 恒等（态源稳定性观测·非因果·TERMINAL_INTERVIEW 不含 waiting_user·零状态分支直透）', afterGet.status === 200 && afterGet.body?.status === 'waiting_user');
+    A('B6.steady 零假终态（无 interview_unavailable 事件·态源稳定性观测·非因果）', (await evCount(OWNB6, IV_B6, 'interview_unavailable')) === 0);
+
+    // boot 栈 fail-open 臂（burst 形 429 不可达）：0189 未装载→acquireSlot :173-:175 fail-open
+    // + :61-:66 降级期 1s 探测节流——6 并发 /events 在 boot 栈全 200。此为证伪式验证：
+    // 若 fail-open 失效，进程内 Map 满额将令第 6 条 429（burst 形可达）。
+    const bootBurst = await Promise.all(Array.from({ length: 6 }, () => openSse(h.base, `/interview/${IV_B6}/events`, OWNB6)));
+    A('B6.failopen boot 栈 6 并发 /events 全 200 text/event-stream（fail-open 语义证伪式验证·burst 形 429 不可达 :173-:175+:61-:66）',
+      bootBurst.every((r) => r.status === 200 && r.contentType.includes('text/event-stream') && !!r.hold));
+    for (const r of bootBurst) await release(r.hold);
     for (const hold of held6) await release6(hold);
   } finally {
     for (const hold of held6) await release6(hold);

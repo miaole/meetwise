@@ -1911,18 +1911,25 @@ const isolatedReceiptSources = {
     'apps/api/src/platform/principal.guard.ts',
     'apps/api/test/uc-e2e-002-cross-device-http.proof.ts',
   ],
-  // NHP-002-HTTP-BOUND-01（REQUEST harness/uc2b-REQUEST.md §1 rev r2 终形）：SSE 槽租约口 BOUND
-  // 孪生面六臂 B1–B6·载体甲最小模块（rate-limit Map 形 429 可达）+载体乙 boot 栈真 PG 夹逼。
+  // NHP-002-HTTP-BOUND-01（REQUEST harness/uc2b-REQUEST.md §1 rev r2 终形 + post-fix P2-5）：SSE 槽租约口
+  // BOUND 孪生面六臂 B1–B6·载体甲最小模块（rate-limit Map 形 429 可达·面试/押题/诊断三口）+载体乙
+  // boot 栈 6 并发 fail-open 臂 + storm 后态稳定性（非因果）。
   // 位4 pre-migrate 迁移名单不适用（载体甲零 PG·载体乙 boot() sql/01-23+proof 内 0064/0049/0142
   // additive 夹具）；位5 resource-caps 不适用（非 PERF/LOAD 臂）。
+  // 源清单补件（post 双审 P2-5）：interview-view.ts+packages/db/src/index.ts+diagnosis.controller.ts
+  // +migrations/0142_*.sql 四件按裁决补登；diagnosis.service.ts 系补 diagnosis 口连带导入，同族增登。
   'uc002:nhp-http-bound:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/api/test/uc-e2e-002-nhp-http-bound.proof.ts', 'apps/api/test/_neg-harness.ts',
     'apps/api/src/modules/interview/interview.controller.ts',
     'apps/api/src/modules/interview/interview.service.ts',
+    'apps/api/src/modules/interview/interview-view.ts',
     'apps/api/src/modules/quiz/quiz.controller.ts', 'apps/api/src/modules/quiz/quiz.service.ts',
+    'apps/api/src/modules/diagnosis/diagnosis.controller.ts', 'apps/api/src/modules/diagnosis/diagnosis.service.ts',
     'apps/api/src/platform/rate-limit.service.ts', 'apps/api/src/platform/sse-pump.ts',
     'apps/api/src/platform/principal.guard.ts',
+    'packages/db/src/index.ts',
+    'packages/db/migrations/0142_candidate_profile_route.sql',
     'packages/db/src/commerce/commerce.ts',
   ],
   'uc015:ingest-failures:prove:raw': [

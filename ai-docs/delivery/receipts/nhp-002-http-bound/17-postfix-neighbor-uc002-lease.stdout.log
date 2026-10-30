@@ -1,0 +1,75 @@
+
+> meetwise@0.1.0 uc002:lease:prove /Users/miaole/Desktop/golucky/meetwise-uc2b
+> node scripts/run-e2e-isolated.mjs uc002:lease:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-37937-1793333115619 on 127.0.0.1:33213
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-uc2b/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:uc002-lease /Users/miaole/Desktop/golucky/meetwise-uc2b/packages/db
+> tsx test/uc-e2e-002-cross-device-lease.proof.ts
+
+UC-E2E-002 cross-device lease prove · NON-UI · releaseEvidence=false · Not HA
+NOTE: 本绿≠UC-E2E-002 covered；integration lease CAS only；HTTP dual GET/LED → see uc002:http:prove；≠ HTTP lease mouth / Playwright
+
+──────── L1 · 同 owner 双 leaseOwner 并发抢 fence：恰一胜，输者 acquired=false ────────
+PASS  L1 holder assertInterviewGraphFence=true
+PASS  L1 并发第二 device → acquired=false（无双跑）
+PASS  L1 首 device 正常完成
+
+──────── L2 · 释放后第二 device 可顺序取得 fence（顺序 resume 的 lease 面） ────────
+PASS  L2 device-a 取得 fence
+PASS  L2 device-b 在 a 释放后取得 fence
+PASS  L2 version CAS 递增
+
+──────── L3 · 错主体看不到 / 抢不到他人 thread lease（404/0 行语义） ────────
+PASS  L3 属主可见 ≥1 行 ai_graph_run
+PASS  L3 他主体 RLS 下见 0 行
+PASS  L3 他主体抢 fence → 未取得（false 或抛错）
+PASS  L3 属主行仍可见（未被偷走）
+PASS  L3 属主 hold 正常完成
+
+──────── X1 · 真并发双 begin（事务级锁形）：恰一 acquired ────────
+PASS  X1 真并发双 begin 恰一 acquired
+PASS  X1 胜者完成/败者 acquired=false 形
+
+──────── X2 · 同 leaseOwner 重复 begin：version 严格递增+前任 assert/renew fail-closed ────────
+PASS  X2 同 leaseOwner 重复 begin 接管成功且 version 严格递增
+PASS  X2 前任版本 assertInterviewGraphFence 翻 false（fail-closed·checkpoint 写守门谓词=写必被消费层拒）
+PASS  X2 前任版本 renewInterviewGraphFence 不复活（三项同判）
+PASS  X2 首任正常完成（业务投影零污染·四护栏+heartbeat 停跳承重）
+
+──────── X3 · 锁连接占用收窄：begin 事务外无 advisory 锁悬挂+源级形制 ────────
+PASS  X3 invoke 运行中同键 advisory 锁零悬挂（连接只在 begin 短事务内占用）
+PASS  X3 源级形制：session 锁三件（try_lock/unlock/专用 connect）零残留·事务级锁在位
+PASS  X3 属主 hold 正常完成
+
+──────── T · 终态行不被迟到作业写回 active ────────
+PASS  T failed 未取得且未抛错
+PASS  T failed 仍一行且 status 与 version 保持原值
+PASS  T succeeded 未取得且未抛错
+PASS  T succeeded 仍一行且 status 与 version 保持原值
+PASS  T safely_terminated 未取得且未抛错
+PASS  T safely_terminated 仍一行且 status 与 version 保持原值
+PASS  T safe_terminating 未取得且未抛错
+PASS  T safe_terminating 仍一行且 status 与 version 保持原值
+PASS  T completed 未取得且未抛错
+PASS  T completed 仍一行且 status 与 version 保持原值
+PASS  T 活状态 created 仍可取得并写成 active，且不另插一行
+PASS  T 活状态 active 仍可取得并写成 active，且不另插一行
+PASS  T 活状态 waiting_user 仍可取得并写成 active，且不另插一行
+PASS  T 活状态 migrating 仍可取得并写成 active，且不另插一行
+PASS  T 活状态 paused 仍可取得并写成 active，且不另插一行
+PASS  T 活状态 quarantined 仍可取得并写成 active，且不另插一行
+
+✓ UC-E2E-002 L1–L3+X1–X3 lease CAS integration passed (partial ladder only; ≠ covered; ≠ HTTP dual-session)
+BLOCKED_FOR_COVERED: HTTP lease mouth + snapshot route + Playwright dual + full.e2e (HTTP GET/LED advanced via uc002:http:prove; ≠ covered)
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-30T04-05-23-288Z-37937-6eafe5e1-b70a-4f83-aad0-80f6d6c541d5.json release_evidence=false

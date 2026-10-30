@@ -1,0 +1,87 @@
+
+> meetwise@0.1.0 uc002:nhp-http-bound:prove /Users/miaole/Desktop/golucky/meetwise-uc2b
+> node scripts/run-e2e-isolated.mjs uc002:nhp-http-bound:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-38645-1793333223200 on 127.0.0.1:33215
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:uc002-nhp-http-bound /Users/miaole/Desktop/golucky/meetwise-uc2b/apps/api
+> node --import @swc-node/register/esm-register test/uc-e2e-002-nhp-http-bound.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793333227170,"pid":38841,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:59280"}
+UC-E2E-002 NHP-002-HTTP-BOUND-01 prove · releaseEvidence=false · Not HA
+NOTE: 本绿≠UC-E2E-002 covered；EXIT0 = case ≠ covered；矩阵 BOUND 格 partial 保持+case-only 收据注
+NOTE: 红停①HTTP thread-lease CAS 口/红停②snapshot 专用口两面零臂零触（裁决权归协调方·两面未闭合）
+
+──────── B6 · 载体乙真 PG 场景种子（begin 202→reserved→sentinel 直置）────────
+{"level":30,"time":1793333227205,"pid":38841,"hostname":"miaole.local","reqId":"ff0bc8d1-0bc9-4806-b7cc-b8c951c5752e","req":{"method":"POST","url":"/interview/IV_UC002_B6_mvugato9/begin","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59281},"msg":"incoming request"}
+{"level":30,"time":1793333227225,"pid":38841,"hostname":"miaole.local","reqId":"ff0bc8d1-0bc9-4806-b7cc-b8c951c5752e","res":{"statusCode":202},"responseTime":19.247333000000026,"msg":"request completed"}
+PASS  B6.begin HTTP begin → 202 accepted+jobId（真产品嘴·本地隔离库）
+PASS  B6.begin consumption 恰 1 行 reserved（idempotency_key=interview id）
+PASS  B6.begin 额度 5→4（真实扣 1·begin 后仍 created·Ban 状态推进依赖）
+{"level":30,"time":1793333227235,"pid":38841,"hostname":"miaole.local","reqId":"156d2b5c-1936-4c93-b4e2-c0897dff5458","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59281},"msg":"incoming request"}
+{"level":30,"time":1793333227240,"pid":38841,"hostname":"miaole.local","reqId":"156d2b5c-1936-4c93-b4e2-c0897dff5458","res":{"statusCode":200},"responseTime":4.793332999999848,"msg":"request completed"}
+PASS  B6.sentinel GET :id → 200+status=waiting_user（前置态观测·零状态分支直透）
+
+──────── B1 · 跨设备共享桶占满（设备 A×3+设备 B×2=5·三口交叉 面试/押题/诊断）────────
+PASS  B1 设备A面试第1条 → 200 text/event-stream
+PASS  B1 设备A诊断第2条 → 200 text/event-stream（第三口 diagnosis·sse:${principal} 同桶）
+PASS  B1 设备A押题第3条 → 200 text/event-stream（同主体跨口同桶）
+PASS  B1 设备B面试第4条 → 200 text/event-stream（跨设备同 principal 共享桶）
+PASS  B1 设备B押题第5条 → 200 text/event-stream
+PASS  B1 双设备合计进程内槽计数 = 5（sse:${principal} 键跨 client 共享=UC-002 双设备一桶）
+
+──────── B2 · 设备 B 第 6 条 → 429 too_many_streams ────────
+PASS  B2 第 6 条（设备B·面试口）→ 429 具名码 too_many_streams
+PASS  B2 拒绝为 JSON 非 SSE envelope（content-type application/json·无 hold·无 event-stream 头）
+PASS  B2 第 6 条被拒后槽仍为 5（被拒不占槽·RL_SHARED_DEGRADED 前置形不承登=载体甲无 db 结构性不可达·Map 计数即模式证人）
+
+──────── B3 · 拒连零取数（catch-up）零轮询（2s 环不入）────────
+PASS  B3 catch-up 计数恰 5（仅 5 条占槽连接付取数·拒连零付·UC184 领槽先于取数）
+B3 观测（日志非判据）: 一个 poll 周期 counting stub 增量=5（holders 入环旁证·判据与 poll 节律解耦）
+PASS  B3 满 5 后一个 poll 周期 catch-up 仍恰 5（被拒连接零取数·判据与 poll 节律解耦）
+
+──────── B4 · 释放传播 poll-until 槽 4（XREP waitFor 形·step 100ms·上限 15s）→设备 B 再连 200 ────────
+PASS  B4 设备A abort 一条后槽传播至 4（finally releaseSlot 全退出路径·poll-until 非裸 sleep·超时=机制红）
+PASS  B4 释放后设备 B 再连 → 200 text/event-stream（交接方向跨设备=UC-002 场景义·非立即断言再连）
+PASS  B4 再占后槽回到 5（XR-4「释放可再占」单进程同构臂）
+
+──────── B5 · 异主体隔离（userB 独立桶·userA 双侧不变）────────
+PASS  B5 异主体满桶下仍 → 200 text/event-stream
+PASS  B5 userB 自有槽 = 1（独立桶）
+PASS  B5 userA 槽位双侧不变：A 侧桶仍 5（异主体零挤占）
+PASS  B5 userB catch-up 自付恰 1（取数面同样隔离）
+
+──────── B6 · 6×429 风暴（同构最小模块·byPrincipal 计数）→ fail-open 臂 + 真 PG 态稳定性（非因果）────────
+PASS  B6.storm 风暴前占槽 1/5 → 200 text/event-stream
+PASS  B6.storm 风暴前占槽 2/5 → 200 text/event-stream
+PASS  B6.storm 风暴前占槽 3/5 → 200 text/event-stream
+PASS  B6.storm 风暴前占槽 4/5 → 200 text/event-stream
+PASS  B6.storm 风暴前占槽 5/5 → 200 text/event-stream
+PASS  B6.storm 满额进程内槽计数=5
+PASS  B6.storm 6×429 全部具名码 too_many_streams（同主体风暴·非 SSE envelope）
+PASS  B6.storm 风暴后槽仍 5（被拒不占槽）
+B6.storm 观测（日志非判据）: db6.calls(STORM) 基线=10 风暴后=10
+PASS  B6.storm 6×429 期间 storm 主体 DB 触碰增量=0（计数基线=holder 取数·拒连零 DB·可证伪臂）
+{"level":30,"time":1793333239304,"pid":38841,"hostname":"miaole.local","reqId":"cbb32df1-279f-43c8-a76e-70154e029ac9","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59281},"msg":"incoming request"}
+{"level":30,"time":1793333239317,"pid":38841,"hostname":"miaole.local","reqId":"cbb32df1-279f-43c8-a76e-70154e029ac9","res":{"statusCode":200},"responseTime":11.924333000000843,"msg":"request completed"}
+PASS  B6.steady storm 后原会话 GET :id → 200+status=waiting_user 恒等（态源稳定性观测·非因果·TERMINAL_INTERVIEW 不含 waiting_user·零状态分支直透）
+PASS  B6.steady 零假终态（无 interview_unavailable 事件·态源稳定性观测·非因果）
+{"level":30,"time":1793333239326,"pid":38841,"hostname":"miaole.local","reqId":"01e2215c-abe5-475d-af47-3e22d4afcdb1","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9/events","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59281},"msg":"incoming request"}
+{"level":30,"time":1793333239327,"pid":38841,"hostname":"miaole.local","reqId":"7ce51aaf-a079-4b57-87bb-f7699981712a","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9/events","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59352},"msg":"incoming request"}
+{"level":30,"time":1793333239328,"pid":38841,"hostname":"miaole.local","reqId":"00607f31-967e-4c73-aaad-81aaa964b1c0","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9/events","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59353},"msg":"incoming request"}
+{"level":30,"time":1793333239329,"pid":38841,"hostname":"miaole.local","reqId":"0ee1b93c-b0e1-439d-932a-09413b317094","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9/events","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59354},"msg":"incoming request"}
+{"level":30,"time":1793333239329,"pid":38841,"hostname":"miaole.local","reqId":"68fc6be6-cab8-4716-9f97-f65e2f1be20c","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9/events","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59355},"msg":"incoming request"}
+{"level":30,"time":1793333239330,"pid":38841,"hostname":"miaole.local","reqId":"b1cf20aa-d308-4e85-84ba-75984b2e17d0","req":{"method":"GET","url":"/interview/IV_UC002_B6_mvugato9/events","host":"127.0.0.1:59280","remoteAddress":"127.0.0.1","remotePort":59356},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+PASS  B6.failopen boot 栈 6 并发 /events 全 200 text/event-stream（fail-open 语义证伪式验证·burst 形 429 不可达 :173-:175+:61-:66）
+
+NOTE: still ≠covered; matrix BOUND cell stays **partial**+case-only; red-stop ①②两面未闭合零臂零触
+
+✓ uc002:nhp-http-bound: 34 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-30T04-07-21-638Z-38645-d2a56707-fc6e-4742-8ee9-f68d8ba73cc8.json release_evidence=false
