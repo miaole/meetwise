@@ -1,0 +1,53 @@
+# NHP-033-PERF-api-01 EXEC gate — markers changed-set grep (2026-10-26 EXEC turn · final change set re-run after §9 ledger landing)
+# changed set: git diff --name-only vs origin/main
+# words: runtime-assembled (TODO FIXME XXX HACK) + leading conflict markers
+ai-docs/architecture/ai/provider-egress-inventory.json::TODO=0
+ai-docs/architecture/ai/provider-egress-inventory.json::FIXME=0
+ai-docs/architecture/ai/provider-egress-inventory.json::XXX=0
+ai-docs/architecture/ai/provider-egress-inventory.json::HACK=0
+ai-docs/architecture/ai/provider-egress-inventory.json::conflict-marker=0
+ai-docs/delivery/e2e-requirement-coverage-matrix.md::TODO=0
+ai-docs/delivery/e2e-requirement-coverage-matrix.md::FIXME=0
+ai-docs/delivery/e2e-requirement-coverage-matrix.md::XXX=0
+ai-docs/delivery/e2e-requirement-coverage-matrix.md::HACK=0
+ai-docs/delivery/e2e-requirement-coverage-matrix.md::conflict-marker=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::TODO=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::FIXME=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::XXX=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::HACK=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::conflict-marker=0
+ai-docs/delivery/non-happy-path-perf-load-case-matrix.md::TODO=0
+ai-docs/delivery/non-happy-path-perf-load-case-matrix.md::FIXME=0
+ai-docs/delivery/non-happy-path-perf-load-case-matrix.md::XXX=0
+ai-docs/delivery/non-happy-path-perf-load-case-matrix.md::HACK=0
+ai-docs/delivery/non-happy-path-perf-load-case-matrix.md::conflict-marker=0
+apps/api/package.json::TODO=0
+apps/api/package.json::FIXME=0
+apps/api/package.json::XXX=0
+apps/api/package.json::HACK=0
+apps/api/package.json::conflict-marker=0
+package.json::TODO=0
+package.json::FIXME=0
+package.json::XXX=0
+package.json::HACK=0
+package.json::conflict-marker=0
+scripts/ai-docs/public-text-policy.mjs::TODO=0
+scripts/ai-docs/public-text-policy.mjs::FIXME=0
+scripts/ai-docs/public-text-policy.mjs::XXX=0
+scripts/ai-docs/public-text-policy.mjs::HACK=0
+scripts/ai-docs/public-text-policy.mjs::conflict-marker=0
+scripts/ai-docs/public-text-policy.proof.mjs::TODO=0
+scripts/ai-docs/public-text-policy.proof.mjs::FIXME=0
+scripts/ai-docs/public-text-policy.proof.mjs::XXX=0
+scripts/ai-docs/public-text-policy.proof.mjs::HACK=0
+scripts/ai-docs/public-text-policy.proof.mjs::conflict-marker=0
+scripts/run-e2e-isolated.mjs::TODO=0
+scripts/run-e2e-isolated.mjs::FIXME=0
+scripts/run-e2e-isolated.mjs::XXX=0
+scripts/run-e2e-isolated.mjs::HACK=0
+scripts/run-e2e-isolated.mjs::conflict-marker=0
+# ── post dual-review erratum annotation (2026-10-26 收官随卷·席1①+席2② 同项·上方原始扫描输出逐行未动) ──
+# 勘误：上方 changed-set 枚举遗漏 apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts（EXEC 期新增 proof 文件未列入本次 grep 逐文件枚举）。
+# 实质核：post 双审两独立外席对该文件按同口径（TODO/FIXME/XXX/HACK 五类标记词+行首冲突标记）代扫=零命中；
+# 收官席（2026-10-26）同口径复跑该单文件 grep 亦零命中（TODO=0 FIXME=0 XXX=0 HACK=0 conflict-marker=0），
+# 复跑 stdout 见 16-markers-final.log（proof 单文件段）。

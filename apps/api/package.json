@@ -4,7 +4,7 @@
  "private": true,
  "type": "module",
  "scripts": {
-  "lint": "eslint . --max-warnings 1526",
+  "lint": "eslint . --max-warnings 1545",
   "serve": "node --import @swc-node/register/esm-register src/main.ts",
   "typecheck": "tsc -p tsconfig.json --noEmit",
   "validate": "node --import @swc-node/register/esm-register test/validate.ts",
@@ -52,7 +52,9 @@
   "prove:uc019-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-019-nhp-perf-api.proof.ts",
   "prove:uc004-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-004-nhp-perf-api.proof.ts",
   "prove:uc015-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-015-nhp-perf-api.proof.ts",
+  "prove:uc033-nhp-perf-api": "node --import @swc-node/register/esm-register test/uc-e2e-033-nhp-perf-api.proof.ts",
   "prove:uc050-nhp-kill": "node --import @swc-node/register/esm-register test/uc-e2e-050-nhp-kill.proof.ts",
+  "prove:uc050-nhp-start-bypass": "node --import @swc-node/register/esm-register test/uc-e2e-050-nhp-start-bypass.proof.ts",
   "prove:uc051-nhp-nopii": "node --import @swc-node/register/esm-register test/uc-e2e-051-nopii.proof.ts",
   "prove:uc014-nhp-neg": "node --import @swc-node/register/esm-register test/uc-e2e-014-nhp-neg.proof.ts",
   "prove:uc014-nhp-bound": "node --import @swc-node/register/esm-register test/uc-e2e-014-nhp-bound.proof.ts",

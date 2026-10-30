@@ -1,0 +1,29 @@
+# gate 2 markers (finalization turn · changed set vs EXEC tip 937773839)
+# changed set (logical files): ai-docs/delivery/harness/uc33p-REQUEST.md + scripts/ai-docs/public-text-policy.mjs + scripts/ai-docs/public-text-policy.proof.mjs + apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts
+# .log receipts excluded from grep surface (receipts quote marker words verbatim · same convention as EXEC 09 receipt which enumerated logical files only)
+# words: runtime-assembled below
+words: TODO FIXME XXX HACK + leading conflict markers
+
+ai-docs/delivery/harness/uc33p-REQUEST.md::TODO=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::FIXME=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::XXX=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::HACK=0
+ai-docs/delivery/harness/uc33p-REQUEST.md::conflict-marker=0
+scripts/ai-docs/public-text-policy.mjs::TODO=0
+scripts/ai-docs/public-text-policy.mjs::FIXME=0
+scripts/ai-docs/public-text-policy.mjs::XXX=0
+scripts/ai-docs/public-text-policy.mjs::HACK=0
+scripts/ai-docs/public-text-policy.mjs::conflict-marker=0
+scripts/ai-docs/public-text-policy.proof.mjs::TODO=0
+scripts/ai-docs/public-text-policy.proof.mjs::FIXME=0
+scripts/ai-docs/public-text-policy.proof.mjs::XXX=0
+scripts/ai-docs/public-text-policy.proof.mjs::HACK=0
+scripts/ai-docs/public-text-policy.proof.mjs::conflict-marker=0
+apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts::TODO=0
+apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts::FIXME=0
+apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts::XXX=0
+apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts::HACK=0
+apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts::conflict-marker=0
+
+# erratum subject single-file re-run (09-markers receipt missing-enumeration annotation evidence):
+# apps/api/test/uc-e2e-033-nhp-perf-api.proof.ts all-zero above (TODO=0 FIXME=0 XXX=0 HACK=0 conflict-marker=0)
