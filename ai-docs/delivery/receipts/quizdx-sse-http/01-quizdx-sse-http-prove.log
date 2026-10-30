@@ -1,0 +1,44 @@
+CMD: pnpm quizdx:sse-http:prove
+EXIT=0
+DATE: 2026-10-30
+SCOPE: quiz / diagnosis 逐实体 SSE 流 HTTP 级证明（八臂一 proof：QD1-QD4 / DX1-DX4）
+
+ASSERTIONS: total=62 · PASS=62 · FAIL=0
+  QD1=5  QD2=9  QD3=7  QD4=10
+  DX1=5  DX2=9  DX3=7  DX4=10
+  (每编号恰一次注册；done() 前逐臂 reg.length 边界 + 总数双条件自检通过)
+
+RUNNER RECEIPT (machine-checked, not stored in ai-docs):
+  LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-30T13-48-26-101Z-98870-f250ad08-5ba4-45e8-8ee2-3ad3757d7686.json release_evidence=false
+  target=quizdx:sse-http:prove:raw   outcome=passed   exitCode=0
+  sourceDigests=26 (matches the registered source list)
+  schemaMigrationManifest: count=217 latest=0219_interview_event_retention_purge.sql
+  class=local_untrusted_isolated_proof_receipt   durationMs=18671
+
+GATES:
+  docs:check      EXIT=0  80 required files verified; scanned 2461 managed worktree files (cap 2_461, zero headroom)
+  PTP             EXIT=0  static_preflight_valid: selected=12/12; releaseEvidence=false
+  markers         EXIT=0  change-set zero hits (runtime-assembled words + conflict markers)
+  typecheck api   EXIT=0  tsc -p apps/api/tsconfig.json --noEmit
+  lint api        EXIT=0  1545 warnings (cap 1545, zero new)
+
+PER-ARM RESULT SUMMARY:
+  QD1 quiz full catch-up: frames 1-4 in order, payload deep-equal, natural end, no token_delta
+  QD2 quiz disconnect window + Last-Event-ID resume: 2,3 / 4,5 / 6; cross-owner 404; no token_delta
+  QD3 quiz live hold: catch-up [2] at gate, live tail [3,4], terminal, pg_trigger present
+  QD4 quiz across three streams (quiz/diagnosis/interview, same principal): own frames only,
+      zero cross-domain markers, token on quiz/diagnosis absent, interview token exactly one
+  DX1 diagnosis full catch-up: frames 1-5 in order, payload deep-equal, natural end
+  DX2 diagnosis disconnect window + resume: 2 / 3,4 / 5; cross-owner 404
+  DX3 diagnosis live hold: catch-up [2] at gate, live tail [3,4], terminal
+  DX4 diagnosis across three streams with mutually exclusive keys: isolation + token controls
+
+NOTES:
+  releaseEvidence=false. EXIT0 = case evidence only: not covered, not a matrix row flip, not full e2e.
+  Not claimed: quiz_unavailable / diagnosis_unavailable failure terminals; slot capacity/429;
+  cross-replica; 30s production fallback; ping heartbeat cadence; 0062 privacy fence;
+  0143/0214 ACL posture.
+  0214 statement-level trigger installed inside the proof world. 0143 REVOKE was not replayed,
+  so this receipt covers trigger behaviour only, not function ACL.
+  Fixture owners are per-arm principals; shared-resume/diagnosis/interview rows plus the
+  interview_event ledger are seeded directly (no worker, no model key).
