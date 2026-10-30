@@ -1,6 +1,6 @@
 # QUIZDX REQUEST — quiz/diagnosis HTTP 级逐实体 SSE 流证明起草卷（`GAP-SSEPUSH-QUIZ-DX-HTTP` · 总盘 v4 唯一未认领 keyless 小刀 · P2 · QD1–QD4/DX1–DX4 八臂一 proof）（docs-only REQUEST 卷 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草态 · 本卷 1 个新 .md · 零产品码零迁移零依赖 · pre-exec 双审 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · Ban 自翻 `GAP-SSEPUSH-QUIZ-DX-HTTP` 行 · ⛔push ⛔动主仓）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使 · 交付 commit `076b7bed2`（5 路径=proof + runner + 双 package.json + 收据 .log）· 主门 62/62 PASS · 收据三段机检齐 · 前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录不洗 · post-prove 双审两独立外席待派 · alone≠dual · Ban self-approve · Ban 自翻 `GAP-SSEPUSH-QUIZ-DX-HTTP` 行 · ⛔push ⛔动主仓）。
 
 **席位**：meetwise quiz/diagnosis SSE 起草席（docs-only 起草 · 协调方授权 · 新建 worktree `meetwise-quizdx` · 分支 `line/quizdx-draft`）。
 **基线**：`origin/main` @ **`99e4e3f38`**（full `99e4e3f385d7f992a88aad4b3e5f31d1e77ba3d3` · 2026-10-30 · rev r3 回炉时 `git fetch origin` 亲点后 rebase 本支；`53cc4a434→99e4e3f38` diff 恰 **13 件**，全在 UC-003/UC3M 面（`uc3m-REQUEST.md` +1、`harness/uc-e2e-003-i18n-locale.md`、web OCR/i18n 测试与产品薄缝、coverage/case 矩阵 UC-003 注记、`gap-bug-backlog` +1）+ policy/lint 帽（`public-text-policy.mjs` +1 注记、root `package.json:8` lint 帽 5408→5410），与 §0.1 **UC-010 机制锚零交**）· rev r3 树 `node scripts/ai-docs/check-docs.mjs` 亲跑 **EXIT=0 · scanned 2460**（main 届 2459 + 本卷 1；cap `MAX_FILES=2_461` 余 1；EXEC `+1 proof = 2461` **恰等 cap 余 0** · §2 cap 预算核）。
@@ -396,7 +396,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual`**（三处钉=文首 Status/本节/卷尾同值）· alone≠dual · Dual PASS ≠ 开工（PASS 只过审；开工须协调方明示授权）。**开工三条款**：①pre-exec 双审两外席 BOTH PASS 落卷；②协调方明示 EXEC 授权；③EXEC 立项未改 §1 修法面/§5 Ban/pins/§1.3 否决 · 立项时照 §0 协议对届时 tip 全量重 pin。
+**STOP · `executed:awaiting_post_prove_dual`**（四处同值=文首 Status/本节/§9 状态行/§9-EXEC 记录·前值 `draft:awaiting_pre_exec_dual` 史录）· alone≠dual · Dual PASS ≠ 开工（PASS 只过审；开工须协调方明示授权）。**开工三条款**：①pre-exec 双审两外席 BOTH PASS 落卷；②协调方明示 EXEC 授权；③EXEC 立项未改 §1 修法面/§5 Ban/pins/§1.3 否决 · 立项时照 §0 协议对届时 tip 全量重 pin。
 
 **`hardStop(reason, cls?: 'env'|'instrument', ctx?: HardStopCtx)` 统一形（r6 七槽显式 · r4 钉死非零退出 · 撤二择）**：`fs.writeSync(2, 'HARDSTOP ' + reason + '\n')` → 输出**七行读数表（含 `N/A` 行）** → 输出一行 `HARDSTOP_CLASS=<cls>` → `process.exit(2)`（**非零**；环境/仪器分口 EXIT2 与产品真红 EXIT1 分口；`cls` 缺省 `'env'`，**instrument 调用点 = 断言预算（`hardStop('断言预算','instrument',…)`）/ 夹具自检（`hardStop('夹具自检','instrument',…)`）**）。**`HARDSTOP_CLASS` 的机检口径（r8 订正；r7 P2⑥ 的「归 `child_exit_nonzero`」对本目标不成立）**：`safeFailureClass` 仅在 `runRedactedProof` 内被调（`scripts/run-e2e-isolated.mjs:4049` 函数 / `:4065` 调用），其入口门在 `:4415`（只含 `privacy-erasure:`/`unstube-erase:`/`resume-erasure:`/`resume-derivative-reference:`/`adaptive-consumer:prove:raw`）；本目标走 `:4424-4426` 的 `run()` 分支 ⇒ `failureClass` 恒 `null`（`:4215`；仅 `e2e:prove`/`e2e:ui`/`performance:e2e` 的 catch 分支 `:4438` 会赋值）且 `writeLocalIsolatedReceipt` 不接收该字段（`:4473-4484`）⇒ **本目标根本没有 class 归类面**。故 class 行**纯人读**、不声称机检，登记为未来 `safeFailureClass` 扩展候选；**七读数禁止进入任何正则归类面**——将来若改走 `runRedactedProof`，读数 `pgTrigger.name=interview_event_sse_notify` 会命中 `:4037` 的 `/interview_[a-z0-9_:-]+/i` ⇒ 归 `interview_contract_failed`，把 env hardStop 洗成产品契约红。**`HardStopCtx` 显式七槽（每槽 optional，槽含多项时整槽序列化）**：①`health`（`health()` 全量；ctx 缺省时 hardStop **自读单例** `getSseNotify().health()`）；②`pgTrigger`（`{name, present}`·须在 0214 自装/健康前置点**就地捕获**——需 DB 查询）；③`gates`（`{gq?, gd?, gi?, gate?, tokGate?, at:{...}}`·**四/五布尔+各自到达时戳**，须在 gate/tokGate 点就地写入；ctx 不再只有单个 `gate` 布尔）；④`injection`（`{at, maxSeqBefore, maxSeqAfter, silentBeforeMs, wakeSkewMs[]}`·注入时刻+注入前后 `MAX(seq)`+注入前静默实测 `Date.now()-r.lastAt()`+同刻共醒滞留，须在注入点就地捕获）；⑤`hold`（`{holdMs, openedAt, abortAt?, frameArrivals[]}`·可由臂内时间戳派生）；⑥`waitingCount`（ctx 缺省时 hardStop **自读单例**）；⑦`tokenSubscriberCount`（同上自读）。**读数输出防管道截断（r5→r6 只留一种写法）**：七行+class 行逐行 `fs.writeSync(2, line + '\n')` 直写 fd 2 后再 `process.exit(2)`——**删「或置 `process.exitCode = 2` 后显式 drain」二择**（r6：runner 以 `stdio:'inherit'` 起子进程，`scripts/run-e2e-isolated.mjs:4026-4031`，fd 2 直写即无管道截断面；drain 形在 `exit()` 前无保证）。**调用点必须传臂内 ctx 的就地槽**（②③④ 在 gate/注入点写；①⑥⑦ 允许缺省交给 hardStop 自读；缺项该行打 `N/A` 且仍 exit(2)）。健康/回执门/token 到达门/夹具自检/settle/断言预算分口一律走此单点；**禁**把分口改写成 `A()` 断言计入 62 预算（原「或写成断言」二择撤销），禁静默跳过/继续后续臂。**调用点 ctx 齐备（r7 P2⑫）**：QD3/QD4/DX3/DX4 的 health/gate/live/token/settle 与 QD1/DX1/QD3/DX3（及 QD2/DX2 第三连）的 end 门一律传就地槽（`health`/`gates`/`injection`/`hold`/`waitingCount`/`tokenSubscriberCount`），缺项行打 `N/A` 仍 `exit(2)`。
 **QD2/DX2 与通道健康无因果（r7 P2⑤机制句更正）**：catch-up 在 `sse-pump.ts:169-170` 是 `waitFor` 注册后**立刻 `emit(initial.rows)`**、**在健康判定与 hold 循环之前无条件冲刷**，与 LISTEN/trigger 状态无关 ⇒ 两臂回执门**无**健康依赖。gate 超时若归 env 分口，仅因它属**到达问题时延**（`until(...,1500)` 窗口不足），**不是**「退化才导致回执失败」的因果；不得据此把产品红 EXIT1 洗成 env，也不得反向把 env 洗成产品红。
@@ -410,7 +410,7 @@
 
 ## §9 状态
 
-**`draft:awaiting_pre_exec_dual`** · 2026-10-30 起草落卷（rev r7 基线 `origin/main` @`99e4e3f38` · 分支 `line/quizdx-draft` · worktree `meetwise-quizdx` · 本支 docs-only 提交 r0–r7 八件）· 本卷 1 个 .md · **rev r1–r7 同卷修订（零新增受管件）** · 零产品码零迁移零依赖 · 零 push 零主仓。
+**`executed:awaiting_post_prove_dual`** · 2026-10-30 EXEC 落码落卷（交付 commit `076b7bed2` · §9-EXEC 记录见卷尾 · 前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录）· 2026-10-30 起草落卷（rev r7 基线 `origin/main` @`99e4e3f38` · 分支 `line/quizdx-draft` · worktree `meetwise-quizdx` · 本支 docs-only 提交 r0–r7 八件）· 本卷 1 个 .md · **rev r1–r7 同卷修订（零新增受管件）** · 零产品码零迁移零依赖 · 零 push 零主仓。
 
 **起草/修订门亲跑收据（EXIT 原值 · 本 turn）**：
 
@@ -436,4 +436,31 @@
 
 **rev r7 回炉（2026-10-30 · 本 commit · 时间盒最后一轮）**：前七轮 dual 两席一致确认 **r6 的 P0（`wBefore`）方向与机制正确**，方案 (a) 的单布尔 AND 不会吞半错（席2 自述 9 场景实测，无脚本留痕，非承重）；病灶限四处。本轮 **P1×5 全精确修 + P2×15 二选一处置**（**13 条精确修（含 P2⑭ 其余锚项）/ 1 条降级登记（P2⑥ `HARDSTOP_CLASS` 机检）/ P2⑭ 内 2 个子锚实测偏离（`.gitignore` 与 proof `:296` 处方与树不符，保留实测锚）**）。**P1 落法**：①`stripNoise` 采**甲案**从头消费式分词（删 r6 单遍正则+尾清理两族，含「保留前一帧完整尾空行」矛盾括注）；②Ban carve-out 键补 `:raw`（缺即静默跳过）；③§4 IV owner 改臂内 principal；④八臂各独立 principal（QD1–QD3/DX1–DX3=`userA1..userA6`、QD4=`userC`、DX4=`userD`），判据「基线为 0 且本臂 ≤3」，§3 注槽面零认领；⑤预算采**方案 (i)** 删重复号 → **{5,9,7,10,5,9,7,10}=62**，承重 58 + 纯护栏 4 = 62。**P2**：QD3/DX3② `gateSnap` 独立定格（非构造性）、gate 谓词改首帧 `id===2`、臂首零基线硬前置、收尾门 false 分支、`tBefore` 对称、`ids(): number[]`、owner 语义二分、0214 一次安装、token 滞留环第三因、树数 15、hardStop ctx 齐备、`abort` 容差 4 KiB 上界；§8 QD2/DX2 健康因果句更正为「无因果」。**基线**：`origin/main`=`99e4e3f38`（不变）·父提交 `af0b4d22f`·`docs:check` scanned **2460**（cap `2_461` 余 1；EXEC +1=2461 恰等余 0）·PTP **12/12**·markers 零命中·pins 十一值零翻·`git diff --name-status` 恰 **1 tracked（本卷）**·STOP 三处维持 `draft:awaiting_pre_exec_dual`。
 
-**待办（EXEC 立项前）**：pre-exec 双审（两外席 BOTH PASS）→ 协调方 EXEC 授权 → 届时 tip 全量重 pin → 落 proof 八臂 + 五处注册 + 收据 → 主门 EXIT 原值入 §9-EXEC（占位：本节后续追加 · 本卷不改写）。
+**待办（EXEC 立项前）**：pre-exec 双审（两外席 BOTH PASS）→ 协调方 EXEC 授权 → 届时 tip 全量重 pin → 落 proof 八臂 + 五处注册 + 收据 → 主门 EXIT 原值入 §9-EXEC（占位：本节后续追加 · 本卷不改写）。**↑ 已于 2026-10-30 EXEC 履行，见下 §9-EXEC 记录。**
+
+## §9-EXEC 记录（2026-10-30 · EXEC 席 · STOP=`executed:awaiting_post_prove_dual` · ⛔push）
+
+**`executed:awaiting_post_prove_dual`**（四处同值=文首 Status/§8/§9 状态行/本条·前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录不洗）。
+
+**授权链**：起草落卷 r0–r7（本支 docs-only 八件·tip `619f8c0e5`）→ r8 订正并入同卷文本（§8/§0.0.6 等的 r8 引用）→ **双席 r9 复审两外席 BOTH PASS**（两席互盲）→ **协调方授权 EXEC 四条**（派单令·明细以派单令原文为准）→ EXEC 落码 + 提交 `076b7bed2`（5 路径）+ 本记录。
+
+**① 交付面（`git show --stat 076b7bed2` 恰 5 文件·1060 insertions / 1 deletion）**：`apps/api/test/quizdx-sse-http.proof.ts`（新增·991 行·八臂一 proof）· `scripts/run-e2e-isolated.mjs`（+23/−1·`.tmp` 回执源清单注册键 `quizdx:sse-http:prove:raw`）· `package.json`（+2·`quizdx:sse-http:prove` / `:prove:raw`）· `apps/api/package.json`（+1·`prove:quizdx-sse-http`）· `ai-docs/delivery/receipts/quizdx-sse-http/01-quizdx-sse-http-prove.log`（新增·44 行·人写摘要）。零产品码零迁移零依赖。
+
+**② 主门 62/62**：`pnpm quizdx:sse-http:prove` EXIT=0 · `total=62 · PASS=62 · FAIL=0`（QD1=5 QD2=9 QD3=7 QD4=10 · DX1=5 DX2=9 DX3=7 DX4=10；`{5,9,7,10,5,9,7,10}` 预算双条件自检通过）= 承重 58 + 纯护栏 4。`releaseEvidence=false`（case evidence only：非 covered 翻面、非 e2e 全量、非矩阵行翻面）。
+
+**③ 收据三段机检（判对象=runner `.json` 回执·§9 收据门口径）**：(i) stdout 出现 `LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-10-30T13-48-26-101Z-98870-f250ad08-…json`；(ii) 该 `.json` `target=quizdx:sse-http:prove:raw` / `outcome=passed` / `exitCode=0`；(iii) `sourceDigests=26`（与注册源清单相符）+ `schemaMigrationManifest: count=217 latest=0219_interview_event_retention_purge.sql` 非空。`.json` 零入 `ai-docs`（tracked `.log` 为人写摘要·非机检对象）。
+
+**④ 门矩阵读数（EXEC turn 原值）**：
+
+| 门 | 命令 | EXIT | 读数 |
+|---|---|---|---|
+| 主门 | `pnpm quizdx:sse-http:prove` | **0** | 62/62 PASS · 八臂计数如上 |
+| docs:check | `node scripts/ai-docs/check-docs.mjs` | **0** | `80 required files verified; public text policy scanned 2461 managed worktree files`（cap 2_461 · 零余量恰等） |
+| PTP | `pnpm public-text-policy:prove` | **0** | `static_preflight_valid: selected=12/12; releaseEvidence=false` |
+| markers | 四类标记词（词面运行时组装·同 `i6-239` 口径）+ 行首冲突标记 · 改动集 5 件扫描 | **0** | 零命中 |
+| typecheck api | `tsc -p apps/api/tsconfig.json --noEmit` | **0** | 零错 |
+| lint api | api lint | **0** | 1545 warnings（帽 1545 · 零新增） |
+
+**⑤ 交付纪律**：提交经仓库 pre-commit 密匙门（`scripts/check-staged-secrets.mjs`）真过（`Secret gate passed: no blocked environment file or credential pattern in staged content.`）·⛔`--no-verify` 未用·⛔push 未用·`.tmp/` 零纳入（`git status --short` 无 `.tmp/` 路径）。
+
+**⑥ STOP 终态**：`executed:awaiting_post_prove_dual` **四处同值**——待 post-prove 双审两独立外席·alone≠dual·Ban self-approve·Dual PASS≠nail·`GAP-SSEPUSH-QUIZ-DX-HTTP` 行与 covered/矩阵翻面权归协调方·本刀不宣称关闭。
