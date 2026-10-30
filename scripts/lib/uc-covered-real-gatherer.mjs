@@ -67,25 +67,76 @@ function readJson(p) {
   if (t == null) return null;
   try { return JSON.parse(t); } catch { return null; }
 }
-function cellStatus(cell) {
+export function cellStatus(cell) {
   const c = (cell || '').trim();
-  if (/\*\*covered\*\*/.test(c)) return 'covered';
-  if (/\*\*partial\*\*|\bpartial\b/i.test(c)) return 'partial';
-  if (/case-only/i.test(c)) return 'case-only';
-  if (/\*\*blind\*\*|\bblind\b/i.test(c)) return 'blind';
-  if (/\*\*gap\*\*|\bgap\b/i.test(c)) return 'gap';
+  if (nonNegatedMatch(c, /\*\*covered\*\*/)) return 'covered';
+  if (nonNegatedMatch(c, /\*\*partial\*\*|\bpartial\b/i)) return 'partial';
+  if (nonNegatedMatch(c, /case-only/i)) return 'case-only';
+  if (nonNegatedMatch(c, /\*\*blind\*\*|\bblind\b/i)) return 'blind';
+  if (nonNegatedMatch(c, /\*\*gap\*\*|\bgap\b/i)) return 'gap';
   return 'unknown';
 }
-function parseNhpRow(nhpText, id) {
+
+/**
+ * STATUS-arm negation table (C-WORD-NEG). Deliberately independent from the
+ * banNear closure table (`gapClosedInText`): status words need *adjacent*
+ * negation only, never a 48/16 look-back window, and never a suffix check.
+ * `未` / `不得` / `禁止` / `Ban` / `不可` are NOT in this table (narrowing).
+ */
+const NEG_STATUS = /(?:\bnot\b|\bno\b|\bnon-?|非)[\s*_~\-–—:：()（）\[\]{}|,，、；;]*$/i;
+
+/**
+ * True when the status-word hit starting at `hitIndex` is directly preceded by
+ * a negation token (only separators in between). `hitIndex` MUST be the status
+ * token's own start offset — never the start of a multi-cell / whole-row match.
+ * Never inspects the hit suffix.
+ */
+export function isNegatedHit(text, hitIndex) {
+  if (!text || hitIndex <= 0) return false;
+  return NEG_STATUS.test(text.slice(0, hitIndex));
+}
+
+/**
+ * One-regex exec loop per status arm: skip negated hits, keep scanning the same
+ * arm, only then fall through to the next arm. Fresh regex per call ⇒ no stale
+ * `lastIndex`. Ban `.test()` single-point short-circuit for status arms.
+ */
+export function nonNegatedMatch(text, re) {
+  const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+  let m;
+  while ((m = r.exec(text)) !== null) {
+    if (m[0].length === 0) { r.lastIndex += 1; continue; }
+    if (!isNegatedHit(text, m.index)) return m;
+  }
+  return null;
+}
+
+/** Split a markdown table row on unescaped `|` (only `\|` is not a separator). */
+function splitUnescapedPipes(row) {
+  const cells = [];
+  let cur = '';
+  for (let i = 0; i < row.length; i += 1) {
+    if (row[i] === '\\' && row[i + 1] === '|') { cur += '\\|'; i += 1; continue; }
+    if (row[i] === '|') { cells.push(cur); cur = ''; continue; }
+    cur += row[i];
+  }
+  cells.push(cur);
+  return cells;
+}
+
+export function parseNhpRow(nhpText, id) {
   const re = new RegExp('\\|\\s*' + id.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*\\|([^\\n]+)');
   const m = nhpText.match(re);
   if (!m) return null;
   const row = m[0];
+  // per-cell: status grid is the 8th column (0-based index 7); short row ⇒ fail closed.
+  const cells = splitUnescapedPipes(row);
+  const statusCell = cells.length > 7 ? cells[7] : '';
   let status = 'unknown';
-  if (/\*\*covered\*\*/.test(row)) status = 'covered';
-  else if (/\*\*partial\*\*/.test(row)) status = 'partial';
-  else if (/case-only/i.test(row)) status = 'case-only';
-  else if (/\*\*blind\*\*|\bblind\b/i.test(row)) status = 'blind';
+  if (nonNegatedMatch(statusCell, /\*\*covered\*\*/)) status = 'covered';
+  else if (nonNegatedMatch(statusCell, /\*\*partial\*\*/)) status = 'partial';
+  else if (nonNegatedMatch(statusCell, /case-only/i)) status = 'case-only';
+  else if (nonNegatedMatch(statusCell, /\*\*blind\*\*|\bblind\b/i)) status = 'blind';
   return { id, status, row };
 }
 

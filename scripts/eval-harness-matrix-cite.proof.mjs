@@ -7,6 +7,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { cellStatus, parseNhpRow, isNegatedHit, nonNegatedMatch } from './lib/uc-covered-real-gatherer.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const matrixPath = join(root, 'ai-docs/delivery/e2e-requirement-coverage-matrix.md');
@@ -428,11 +429,12 @@ const STATUS_RANK = Object.freeze({
 /** Legacy UC-018-style first-hit parser (covered-lift-reassess L107–114 shape). */
 function cellStatusLegacy018(cell) {
   const c = (cell || '').trim();
-  if (/\*\*blind\*\*|\bblind\b/i.test(c) && !/\*\*partial\*\*|\*\*covered\*\*/.test(c)) return 'blind';
-  if (/\*\*covered\*\*/.test(c)) return 'covered';
-  if (/\*\*partial\*\*|\bpartial\b/i.test(c)) return 'partial';
-  if (/\*\*gap\*\*|\bgap\b/i.test(c)) return 'gap';
-  if (/not_run|case-only|blocked/i.test(c)) return 'blind';
+  // 复合守卫子句保持裸判（只决定 blind 优先级·不赋 status·失败方向 fail-closed）
+  if (nonNegatedMatch(c, /\*\*blind\*\*|\bblind\b/i) && !/\*\*partial\*\*|\*\*covered\*\*/.test(c)) return 'blind';
+  if (nonNegatedMatch(c, /\*\*covered\*\*/)) return 'covered';
+  if (nonNegatedMatch(c, /\*\*partial\*\*|\bpartial\b/i)) return 'partial';
+  if (nonNegatedMatch(c, /\*\*gap\*\*|\bgap\b/i)) return 'gap';
+  if (nonNegatedMatch(c, /not_run|case-only|blocked/i)) return 'blind';
   return 'unknown';
 }
 
@@ -456,15 +458,31 @@ function cellStatusConservative(cell) {
   const stillRe = /still\s+(\*\*)?(blind|gap|case-only|honesty-pin|partial|covered)\b/gi;
   let m;
   while ((m = stillRe.exec(c)) !== null) {
+    // 多 token 臂：取状态词元自身子偏移（非整段 match 起点）
+    const tokenIndex = m.index + m[0].toLowerCase().lastIndexOf(m[2].toLowerCase());
+    if (isNegatedHit(c, tokenIndex)) continue;
     found.push(m[2].toLowerCase());
   }
-  if (/still[^\n]{0,40}honesty-pin/i.test(c)) found.push('honesty-pin');
+  const stillHonestyRe = /still[^\n]{0,40}honesty-pin/gi;
+  let h;
+  while ((h = stillHonestyRe.exec(c)) !== null) {
+    const tokenIndex = h.index + h[0].toLowerCase().lastIndexOf('honesty-pin');
+    if (isNegatedHit(c, tokenIndex)) continue;
+    found.push('honesty-pin');
+    break;
+  }
   for (const name of ['covered', 'partial', 'honesty-pin', 'case-only', 'gap', 'blind']) {
-    const re = new RegExp('\\*\\*' + name.replace('-', '\\-') + '\\*\\*|\\b' + name.replace('-', '\\-') + '\\b', 'i');
-    if (re.test(c)) found.push(name);
+    const re = new RegExp('\\*\\*' + name.replace('-', '\\-') + '\\*\\*|\\b' + name.replace('-', '\\-') + '\\b', 'ig');
+    let x;
+    while ((x = re.exec(c)) !== null) {
+      if (x[0].length === 0) { re.lastIndex += 1; continue; }
+      if (isNegatedHit(c, x.index)) continue;
+      found.push(name);
+      break;
+    }
   }
   if (found.length === 0) {
-    if (/not_run|blocked/i.test(c)) return 'blind';
+    if (nonNegatedMatch(c, /not_run|blocked/i)) return 'blind';
     return 'unknown';
   }
   let cur = found[0];
@@ -603,6 +621,32 @@ for (const u of units) {
   eq(cellStatusConservative(' **blind** '), 'blind', 'bare blind');
   eq(cellStatusConservative(' **partial** '), 'partial', 'bare partial');
   eq(cellStatusConservative('??? no status ???'), 'unknown', 'unparseable ⇒ unknown fail-closed');
+  // --- C-WORD-NEG status-arm negation injection · cite host 10 arms (+3 guard) ---
+  // #1 cellStatusLegacy018 · ARM-1（五）
+  eq(cellStatusLegacy018('not partial'), 'unknown', 'ARM-1 legacy018: "not partial" ⇒ unknown');
+  eq(cellStatusLegacy018('not blind'), 'unknown', 'ARM-1 legacy018: "not blind" ⇒ unknown');
+  eq(cellStatusLegacy018('no gap'), 'unknown', 'ARM-1 legacy018: "no gap" ⇒ unknown');
+  eq(cellStatusLegacy018('non-partial'), 'unknown', 'ARM-1 legacy018: "non-partial" ⇒ unknown');
+  eq(cellStatusLegacy018('非 partial'), 'unknown', 'ARM-1 legacy018: "非 partial" ⇒ unknown');
+  // #3 gatherer cellStatus（直 import）· ARM-2（二）
+  eq(cellStatus('**case-only**（not partial）'), 'case-only',
+    'ARM-2 gatherer cellStatus: **case-only**（not partial）⇒ case-only');
+  eq(cellStatus('not partial'), 'unknown', 'ARM-2 gatherer cellStatus: "not partial" ⇒ unknown');
+  // #2 cellStatusConservative · ARM-3（二）
+  eq(cellStatusConservative('not partial'), 'unknown', 'ARM-3 conservative: "not partial" ⇒ unknown');
+  eq(cellStatusConservative('still **partial**（not gap）'), 'partial',
+    'ARM-3 conservative: "still **partial**（not gap）" ⇒ partial (min 抬升)');
+  // #4 parseNhpRow（直 import）· 整行夹具 · status 格 index 7 = `not **partial**`
+  eq(parseNhpRow('| NHP-018-FAULT-01 | 018 | FAULT | api | inj | exp | not **partial** | notes |', 'NHP-018-FAULT-01')?.status,
+    'unknown', '#4 parseNhpRow: status cell "not **partial**" ⇒ unknown');
+  // 守卫三臂（不入 17 格恰红集·修法与摘除态均须恒绿）
+  eq(cellStatusLegacy018('not covered'), 'unknown', 'GUARD legacy018: "not covered" stays unknown');
+  eq(cellStatusLegacy018('no covered'), 'unknown', 'GUARD legacy018: "no covered" stays unknown');
+  eq(cellStatusConservative('still **gap**（not partial）'), 'gap',
+    'GUARD conservative: "still **gap**（not partial）" stays gap');
+  // 反误抑形（修法前后均须为 partial/gap）
+  eq(cellStatusLegacy018('非常 **partial**'), 'partial', 'GUARD anti-suppress: "非常 **partial**" stays partial');
+  eq(cellStatusLegacy018('非空 **gap**'), 'gap', 'GUARD anti-suppress: "非空 **gap**" stays gap');
   // UC-018 plain cells: conservative ≡ legacy018
   const plain018 = [' **partial** ', ' **partial**（CAS waiting_user） ', ' **blind** ', ' **gap** '];
   let uc018Eq = true;

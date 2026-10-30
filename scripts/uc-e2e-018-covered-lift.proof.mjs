@@ -20,6 +20,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { isNegatedHit, nonNegatedMatch } from './lib/uc-covered-real-gatherer.mjs';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 
@@ -120,23 +121,58 @@ if (scripts['uc018:covered-lift:prove'] === 'node scripts/uc-e2e-018-covered-lif
 }
 
 // --- Assess canHonestlyFlip from matrix §1.0 ---
-const m018NegFaultBoundAdv =
-  matrix.match(/\| UC-E2E-018 \|[^\n]+/)?.[0] || '';
-const advBlind = /\|\s*UC-E2E-018\s*\|[^\n]*\*\*blind\*\*/.test(m018NegFaultBoundAdv)
-  || /UC-E2E-018[^\n]*ADV[^\n]*\*\*blind\*\*/i.test(matrix)
-  || /\| UC-E2E-018 \|[^\n]*\|\s*\*\*blind\*\*\s*\|/.test(matrix);
+// C-WORD-NEG: 否定判定锚＝状态词元自身起始 offset（整行哨兵取 hit 子偏移·lastIndexOf）。
+// advBlindOf 收 `text`（alt2/alt3 作用于全 matrix·收单行会静默丢弃他行命中面）。
+const ADV_BLIND_RES = [
+  /\|\s*UC-E2E-018\s*\|[^\n]*\*\*blind\*\*/,
+  /UC-E2E-018[^\n]*ADV[^\n]*\*\*blind\*\*/i,
+  /\| UC-E2E-018 \|[^\n]*\|\s*\*\*blind\*\*\s*\|/,
+];
+function advBlindOf(text) {
+  if (!text) return false;
+  for (const re of ADV_BLIND_RES) {
+    const r = new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g');
+    let m;
+    while ((m = r.exec(text)) !== null) {
+      if (m[0].length === 0) { r.lastIndex += 1; continue; }
+      const tokenIndex = m.index + m[0].toLowerCase().lastIndexOf('**blind**');
+      if (!isNegatedHit(text, tokenIndex)) return true;
+    }
+  }
+  return false;
+}
+function advIsBlindOf(cell) {
+  const s = String(cell || '');
+  return nonNegatedMatch(s, /\*\*blind\*\*/) !== null || s === 'blind';
+}
+function advIsPartialOf(cell) {
+  const s = String(cell || '');
+  return nonNegatedMatch(s, /\*\*partial\*\*|\bpartial\b/) !== null;
+}
+const advBlind = advBlindOf(matrix);
 
 // Parse ADV column specifically from §1.0.1 row (NEG|FAULT|BOUND|ADV)
 const row101 = matrix.match(/\| UC-E2E-018 \|([^|\n]+)\|([^|\n]+)\|([^|\n]+)\|([^|\n]+)\|/) || [];
 const advCell = (row101[4] || '').trim();
-const advIsBlind = /\*\*blind\*\*/.test(advCell) || advCell === 'blind';
+const advIsBlind = advIsBlindOf(advCell);
 
 // PERF/LOAD honesty: UC-018 has no dedicated green PERF/LOAD facet row; §1.0 summary says zero covered
 const perfLoadBlindResidual =
   /PERF\/LOAD 分面 \*\*零 covered\*\*/.test(matrix) ||
   /PERF\/LOAD[^\n]*blind/i.test(matrix);
 
-const advIsPartial = /\*\*partial\*\*/.test(advCell) || /\bpartial\b/.test(advCell);
+const advIsPartial = advIsPartialOf(advCell);
+
+// --- C-WORD-NEG status-arm negation injection · lift host 3 arms ---
+// 每臂一条断言（文案含臂名）· 整行哨兵本体取 hit 子偏移（非整段 match 起点）。
+if (advIsBlindOf('not **blind**') === false) pass('ARM-6a lift advIsBlind: "not **blind**" ⇒ false');
+else fail('ARM-6a lift advIsBlind: "not **blind**" must ⇒ false');
+if (advIsPartialOf('**case-only**（not partial）') === false) {
+  pass('ARM-6b lift advIsPartial: "**case-only**（not partial）" ⇒ false');
+} else fail('ARM-6b lift advIsPartial: "**case-only**（not partial）" must ⇒ false');
+if (advBlindOf('| UC-E2E-018 | **partial** | **partial** | **partial** | not **blind** |') === false) {
+  pass('ARM-6c lift advBlind: synthetic row "not **blind**" ⇒ false');
+} else fail('ARM-6c lift advBlind: synthetic row "not **blind**" must ⇒ false');
 let canHonestlyFlip = true;
 const refuseReasons = [];
 // Historical refuse at covered-lift nail abfbbc0 was ADV **blind**. After GAP-UC018-ADV
