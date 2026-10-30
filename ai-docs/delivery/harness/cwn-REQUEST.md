@@ -1,6 +1,6 @@
-# Harness — **C-WORD-NEG · UC-018 follow-up 词面负例（覆盖状态解析器词面边界 NEG）起草任务书**（Line CWN · docs REQUEST · **`executed:awaiting_post_prove_dual`** · NEG 臂设计起草卷 · rev r8 + §9-EXEC · 2026-10-30 EXEC 落卷翻面）
+# Harness — **C-WORD-NEG · UC-018 follow-up 词面负例（覆盖状态解析器词面边界 NEG）起草任务书**（Line CWN · docs REQUEST · **`closed`**（post 双审双 PASS 放行 · 2026-10-30 收官并线翻面 · 前值 `executed:awaiting_post_prove_dual` 史录不洗）· NEG 臂设计起草卷 · rev r8 + §9-EXEC + §10 收官登记 · 2026-10-30 收官并线）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（**2026-10-30 EXEC 落卷翻面**：EXEC 续做席沿半成品续做·11 函数主臂接线 + 17 臂恰红 + B0≡B1 + 三门亲跑·§9-EXEC 七字段在卷；原值 `draft:awaiting_pre_exec_dual` 史录不洗 · 2026-10-26 起草落卷 · rev r1 回炉修订 2026-10-30（双席 FAIL 同判·修订清单九件全采纳·§0.0.2）· rev r2 回炉修订 2026-10-30（r2 双席 FAIL 互盲同判·两席清单合并去重全采纳·窗形裁决＝后向邻接·§0.0.3）· **rev r3 回炉修订 2026-10-30**（r3 双席 FAIL 互盲同判：①span 正则 `m.index` 指向行 ID 致否定判定空转 ②验收面仅覆 4/11 函数·两席清单合并去重全采纳·锚点按 site 分形钉死·§0.0.4）· **rev r4 回炉修订 2026-10-30**（r4 双席 FAIL 互盲同判：①ARM-7a「基线 true」系假值——现行 span 形 `|` 后紧接 `**partial**`，合成行 status 格 `not **partial**` 不命中 ②site 10 `nhpLoadPartial` 无臂 ③第二通路 `not still X` 中 `still` 不在分隔符类、不在邻接语义内；两席清单合并去重全采纳·§0.0.5）· **rev r5 回炉修订 2026-10-30**（r5 席1 FAIL·**零 P0/P1**·仅 P2×2+P3×5 全采纳：锚点/描述与机制源逐字更正·§0.0.6）· **rev r6 终轮回炉 2026-10-30**（r6 双席 FAIL 互盲同判·协调方时间盒裁决**最后一轮**：site 3 `case-only` 锚点 `:73`→**`:74`** 修正 + 采席2 方案 (b) 子臂登记排除（不补臂）·两席清单合并全采纳·§0.0.7）· **rev r7 回炉修订 2026-10-30**（r7 双席 FAIL 互盲同判 P1×1·协调方裁决**采方案 A**：负验证步前移至「最终还原 H0」之前·三宿主 delta 4/10/3=17·§0.0.8）· **rev r8 终落卷席 2026-10-30**（r8 双席 FAIL 互盲同判·**协调方时间盒硬裁决：本轮按两席处方逐字落卷后即收敛、不再派双审、本轮后直接放行 EXEC**·席1 P1×1+席2 P1×2+P2×6+P3 批合并去重 11 件全采纳·§0.0.9）· docs-only 起草卷·本步零码面零 NEG 臂零收据件·后继 EXEC 待协调方派单 + fresh pre-exec dual 放行·alone≠dual·Ban self-approve）。
+**Status**: **`closed`**（**2026-10-30 收官并线席翻面**：post-prove dual **两席均 PASS** 放行并线；两席 P2×6 + P3 批合并去重**九件**已登记（§10·含 post-EXEC 重锚表）；前值 `executed:awaiting_post_prove_dual` 史录不洗（2026-10-30 EXEC 落卷翻面：EXEC 续做席沿半成品续做·11 函数主臂接线 + 17 臂恰红 + B0≡B1 + 三门亲跑·§9-EXEC 七字段在卷；原值 `draft:awaiting_pre_exec_dual` 史录不洗 · 2026-10-26 起草落卷 · rev r1 回炉修订 2026-10-30（双席 FAIL 同判·修订清单九件全采纳·§0.0.2）· rev r2 回炉修订 2026-10-30（r2 双席 FAIL 互盲同判·两席清单合并去重全采纳·窗形裁决＝后向邻接·§0.0.3）· **rev r3 回炉修订 2026-10-30**（r3 双席 FAIL 互盲同判：①span 正则 `m.index` 指向行 ID 致否定判定空转 ②验收面仅覆 4/11 函数·两席清单合并去重全采纳·锚点按 site 分形钉死·§0.0.4）· **rev r4 回炉修订 2026-10-30**（r4 双席 FAIL 互盲同判：①ARM-7a「基线 true」系假值——现行 span 形 `|` 后紧接 `**partial**`，合成行 status 格 `not **partial**` 不命中 ②site 10 `nhpLoadPartial` 无臂 ③第二通路 `not still X` 中 `still` 不在分隔符类、不在邻接语义内；两席清单合并去重全采纳·§0.0.5）· **rev r5 回炉修订 2026-10-30**（r5 席1 FAIL·**零 P0/P1**·仅 P2×2+P3×5 全采纳：锚点/描述与机制源逐字更正·§0.0.6）· **rev r6 终轮回炉 2026-10-30**（r6 双席 FAIL 互盲同判·协调方时间盒裁决**最后一轮**：site 3 `case-only` 锚点 `:73`→**`:74`** 修正 + 采席2 方案 (b) 子臂登记排除（不补臂）·两席清单合并全采纳·§0.0.7）· **rev r7 回炉修订 2026-10-30**（r7 双席 FAIL 互盲同判 P1×1·协调方裁决**采方案 A**：负验证步前移至「最终还原 H0」之前·三宿主 delta 4/10/3=17·§0.0.8）· **rev r8 终落卷席 2026-10-30**（r8 双席 FAIL 互盲同判·**协调方时间盒硬裁决：本轮按两席处方逐字落卷后即收敛、不再派双审、本轮后直接放行 EXEC**·席1 P1×1+席2 P1×2+P2×6+P3 批合并去重 11 件全采纳·§0.0.9）· docs-only 起草卷·本步零码面零 NEG 臂零收据件·后继 EXEC 待协调方派单 + fresh pre-exec dual 放行·alone≠dual·Ban self-approve）。
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null`（十值零翻转·本刀全卷不改）。
 **Date**: 2026-10-30
 **Base / tip**: 起草时点 `origin/main` **`af273901a`** / full `af273901a165c910fe16cfef675d122812d3e779`（#181 isob 合卷已落）；**r2 现场漂移如实采（2026-10-30 r2 亲跑·`git fetch origin` EXIT=0）**：`origin/main` 届值 **`44f624253`**（#177 uc50 二轮并线已落·cap 届值 `MAX_FILES=2_452` 亲证）——**`af273901a` 已非 origin/main 届值**，本卷不重定基线、不 rebase、不追并线（EXEC 立项日按当时届值重导·§4）；**r4 现场漂移如实采（2026-10-30 r4 亲跑·`git fetch origin` EXIT=0）**：`origin/main` 届值 **`3af835ad4`**（#183 uc2b 并线已落·cap 届值 `MAX_FILES=2_455` 亲证）——r2 的 `44f624253`/2452 亦已推移，**两代届值均只登不用**；worktree `meetwise-cwn` · branch `line/cwn-draft` · ⛔动主仓 · ⛔push。
@@ -150,7 +150,7 @@
 
 **（note b）仓内否定感知先例（修向模板·但 status 臂不复用其词表）**：`uc-covered-real-gatherer.mjs:93-108` `gapClosedInText`——CLOSED/已关 匹配配 **banNear 否定窗**（`:103` 词表逐字：`不得|禁止|\bBan\b|不可|未|不得写已关|\bnot\b|not\s+closed|≠\s*closed`）逐 hit 回看 **前 48 字 / 后 16 字**窗（`:108` `m.index - 48` · `:109` `+ 16` 亲证），窗内否定词即弃该 hit。该窗形服务的是**成对词**（CLOSED/已关 与否定词可相隔成句）语义，**与 status 词的紧邻否定语义不同**——r2 裁决 status 臂另立邻接表且**不复用 banNear**（§2）。
 
-**（note c）`:752`/`:764` unknown→partial 兜底交互**：真矩阵 §1.1 statusCell 消费点 `:752` `cellStatus(row11?.[2] || row11?.[1] || 'partial')`（缺格时以字面 `'partial'` 兜底），返回 `'unknown'` 时又在 `:764` `status: s11Status === 'unknown' ? 'partial' : s11Status` 二次兜底为 `partial`。**后果**：否定感知修法若取「hit 级 skip → 全臂耗尽返 unknown」，§1.1 面**仍会由 :764 归为 partial**——故：①ARM 断言不得写「§1.1 由 partial 翻 unknown」；②§1.1 的否定形只能断言「不经 :752 的 `cellStatus` 直调结果」；③此交互属**登记**，改不改兜底链归协调方（本刀零触 :752/:764 代码）。
+**（note c）`:752`/`:764` unknown→partial 兜底交互**：真矩阵 §1.1 statusCell 消费点 `:752` `cellStatus(row11?.[2] || row11?.[1] || 'partial')`（缺格时以字面 `'partial'` 兜底），返回 `'unknown'` 时又在 `:764` `status: s11Status === 'unknown' ? 'partial' : s11Status` 二次兜底为 `partial`。**后果**：否定感知修法若取「hit 级 skip → 全臂耗尽返 unknown」，§1.1 面**仍会由 :764 归为 partial**——故：①ARM 断言不得写「§1.1 由 partial 翻 unknown」；②§1.1 的否定形只能断言「不经 :752 的 `cellStatus` 直调结果」；③此交互属**登记**，改不改兜底链归协调方（本刀零触 :752/:764 代码）。**§10-③ 收官扩登（终态行号 `:890`/`:902`）**：gatherer `buildCol` `:756` 兜底式 `nhpRow?.status !== 'unknown' ? … : cellStatus(statusCell)` **同属掩蔽链**——`parseNhpRow` 的否定弃尽 `unknown` 被 matrix 格重算覆盖，故 #9/#10 的 NHP 面 `unknown` 经 `gatherRealUc018` **不可观测**；否定形断言只对直调 `parseNhpRow`/`cellStatus` 成立。
 
 **（note d）pin 断言 site 零触名单（r2 单列·非状态解析）**：以下 `\bpartial\b` 命中系**文档 pin 断言**（对 harness/eval/backlog 文本做词面在场断言），**不是状态解析**；**仓级 `\bpartial\b` 替换/统一改写会打断 pin 门**（把断言词一起改掉）——EXEC 修法须逐 site 定向改解析函数，**Ban 全仓 find-replace**：
 - `uc-e2e-018-sole-stack-pg-retained.proof.mjs:144` / `:181` / `:239`
@@ -200,7 +200,7 @@
   | 作用域 | 赋值形 | 适用函数（§2.6 编号） |
   |---|---|---|
   | 单元格·**单 token 臂** | 臂内 hit 起点 `m.index`（此时 match 起点 ≡ 词元起点） | 1 legacy018 · 3 gatherer cellStatus · 4 parseNhpRow（per-cell 后）· 5 reassess cellStatus · 7 advIsBlind · 8 advIsPartial · 11 cell102 |
-  | 单元格·**多 token 臂** | **词元子偏移**（stillRe 取 group 2 偏移；`still…honesty-pin` 取 `honesty-pin` 偏移） | 2 cellStatusConservative（`:456` · `:461`） |
+  | 单元格·**多 token 臂** | **词元子偏移**（stillRe 取 group 2 偏移；`still…honesty-pin` 取 `honesty-pin` 偏移） | 2 cellStatusConservative（`:456` · `:461`；终态行号见 §10 重锚表 `:458` · `:466`）——**§10-① 收官登记：该臂对终值结构性冗余（generic 六词循环同判）·判别力主张撤回·不补 ARM-3b** |
   | **跨格/跨行** | **per-cell**：先按未转义竖线切格，只对 status 格（index 7）取判定 | 9 nhpPerfPartial · 10 nhpLoadPartial（r3 择形·r4 维持） |
   | **整行哨兵** | **hit 子偏移** `m.index + m[0].toLowerCase().lastIndexOf('**blind**')`（r4 更正：`/i` 正则匹配与 `lastIndexOf` 大小写先统一小写；alt1/alt2 以 `**blind**` 收尾、alt3 以 `**blind**\s*\|` 收尾，`lastIndexOf('**blind**')` 仍返回词元起点） | 6 advBlind（r3 择形·r4 公式更正） |
 
@@ -502,6 +502,48 @@ r8 rev diff 恰 **1 tracked**（本卷 `ai-docs/delivery/harness/cwn-REQUEST.md`
 9. **H0/H′ 处置（§2.4-1/3b/5 口径·如实偏离一处）**：入口时 `ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-evidence.json` **不存在**——PTP-archive 迁移余波已将其移入 tracked `receipts/archive/2026-09-batch23/receipts/…`（该 archived 件 hash `fe839964…`，非卷面旧轮 `9e541f5e…`）；故 **H0＝absent**，无 H0 副本可移、H0 保管区不建立（不覆盖）。每次 lift 产物 **H′**（0a `40685c43…` / 0c `65290384…` / 负验证 / 回滚后复跑）均移入工作区外独立弃置区（`/tmp/cwn-discard-*`）；终态旧路径仍 **absent＝H0**，无还原动作、`git status --porcelain` 净，archived tracked 件零触。
 10. **STOP 翻面**：三处钉（标题 / Status / 卷尾注）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**·前值史录不洗·post-prove 双审归后继席·⛔push ⛔merge 主线·alone≠dual·EXIT0≠covered·本卷不 claim 任何 covered 升格。
 
+## 10. 收官并线 P2 观察登记（2026-10-30 · post 双审双 PASS 放行 · 两席 P2×6 + P3 批合并去重九件 · 证面冻结零触）
+
+- **入卷口径**：post-prove dual **两席均 PASS**（放行并线）；两席 P2×6 + P3 批观察**合并去重＝九件**。本 § **只落本卷一件 `.md`**：`scripts/**` 四件（gatherer/cite/lift/reassess）**零 diff**、17 臂/17 delta **零改**、`matrix` 格值零触、Pins 十值零翻转。合并 commit 内的 `scripts/**` 改动**全部来自 `origin/main` `1ca3ce1da`（#184 evap）与本线 policy 区 dual-keep 会签**，非本 § 产物。**登记≠修复**：凡属缺口/盲区者一律登记在案、**不入门判据、不设臂、不入 17 计数**。
+- **重锚口径（②）**：§1.1/§2.1/§2.6 行号写于 EXEC 前 tip，经 EXEC 落码 `fbb0cadec`（gatherer 增 helper 区）与并线 `1ca3ce1da`（gatherer 审查判定区 +86 行）**双重推移**。下表为**合并树终态亲点**（`grep -n` 逐行·2026-10-30）；**正文旧行号不再重写、只作史录，后继席一律以本表为准**。
+
+| 件 | 函数 / 锚点 | 稿值（§1.1/§2.1/§2.6） | 合并树终态 | 位移 |
+|---|---|---|---|---|
+| gatherer | `cellStatus` 五臂 | `:70-77` | **`:70-77`**（covered `:72`/partial `:73`/case-only `:74`/blind `:75`/gap `:76`） | 0 |
+| gatherer | `NEG_STATUS` 表 | 新增（EXEC） | **`:86`** | 新增 |
+| gatherer | `isNegatedHit` / `nonNegatedMatch` / `splitUnescapedPipes` | 新增（EXEC） | **`:94-97` / `:104-112` / `:115-125`** | 新增 |
+| gatherer | `parseNhpRow` | `:79-90`（partial 臂 `:86`） | **`:127-141`**（`statusCell` index 7 `:134`；臂 `:136-139`） | +48 |
+| gatherer | `gapClosedInText`（`banNear`） | `:93-108`（`:103`） | **`:144-165`**（`banNear` `:154`） | +51 |
+| gatherer | `assertCleanPorcelain`（export） | `:448` | **`:586`** | +138 |
+| gatherer | `gatherRealUc018` | `:519` | **`:657`** | +138 |
+| gatherer | `parseNhpRow` 调用块（NHP 行族） | `:539-543` | **`:677-681`** | +138 |
+| gatherer | `buildCol` 状态兜底 | `:618` | **`:755-756`**（兜底式 `:756`） | +138 |
+| gatherer | §1.1 `s11Status` | `:752` | **`:890`** | +138 |
+| gatherer | §1.1 status 二次兜底 | `:764` | **`:902`** | +138 |
+| gatherer | §1.0 `boundCell` | `:772` | **`:910`** | +138 |
+| cite | `cellStatusLegacy018` | `:429-437`（臂 `:431/:432/:433/:434/:435`） | **`:430-439`**（臂 **`:433/:434/:435/:436/:437`**） | +1（臂 +2） |
+| cite | `cellStatusConservative` | `:452-473` | **`:454-491`** | +2 |
+| cite | still 主通路 / honesty-pin 第二通路 | `:456` / `:461` | **`:458-465`**（词元子偏移 `:462`）/ **`:466-473`**（`:469`） | +2 / +5 |
+| cite | 六词独立命中循环（`new RegExp` 先例） | `:462-465` | **`:474-483`** | +12 |
+| cite | found 空兜底 `not_run\|blocked` | `:467` | **`:484-487`** | +17 |
+| lift | `import { isNegatedHit, nonNegatedMatch }` | 无（EXEC 新增） | **`:23`** | 新增 |
+| lift | `advBlindOf(text)` | inline `:125-127` | **`:131-143`**（子偏移 `:138`） | 提函数 |
+| lift | `advIsBlindOf` / `advIsPartialOf` | inline `:132` / `:139` | **`:144-147` / `:148-151`** | 提函数 |
+| lift | 臂 ARM-6a/6b/6c | 新增 | **`:168-175`** | 新增 |
+| reassess | `cellStatus`（含末位臂 `:113`） | `:107-114` | **`:107-115`**（臂位不变） | +1（尾行） |
+| reassess | `nhpRowPartial` + 常量 | inline `:172-173` | **`:172`** + **`:174-175`** | 提函数 |
+| reassess | `cell102` | `:177-182` | **`:179-185`** | 提函数形 |
+| reassess | 臂 ARM-5/7a/7c/7b | 新增 | **`:203-212`** | 新增 |
+
+- **① #2 多 token 子偏移＝二择一采「结构冗余登记·删判别力主张」（不补 ARM-3b·17 计数不动）**：cite `:458` stillRe 与 `:466` honesty-pin 两臂取词元子偏移（`:462`/`:469`）后交 `isNegatedHit`；但同格 `:474-483` 六词独立命中循环对**同一词元**另有判定，`found` 为集合、`min` 与顺序无关 ⇒ still 臂的否定判定**不改变任何终值**。**本席探针亲跑（三种实现并排）**：仅关 still 臂判定（generic 循环照留）——`still **partial**（not gap）`＝`partial`、`not still **partial**`＝`partial`、`still **gap**（not partial）`＝`gap`、`still blind（not covered）`＝`blind`，**逐形与全开同值**；仅关 generic 判定才复现修前值（`gap`/`blind`/`partial`）。⇒ **无法构造 ARM-3b 真反例**（与 r4 对「分拆 alt」的伪证同判）。**处置**：§2.1 表「多 token 臂」一行的**判别力主张撤回**，still 臂**保留为防御性重复实现**（不删码、不改计数）；后继若要立 ARM-3b，须先给「still 臂弃而 generic 留且 min 变」的真反例。
+- **③ note c 扩登到 gatherer 兜底链（`:756`）**：`buildCol` `:756` `nhpRow?.status && nhpRow.status !== 'unknown' ? nhpRow.status : cellStatus(statusCell)` —— `parseNhpRow` 因否定弃尽而返的 `unknown` 会被 **matrix 格 `cellStatus` 重算覆盖**；即 #9/#10 的 NHP 面 `unknown` **经 `gatherRealUc018` 不可观测**，与 §1.1 的 `:890`/`:902` 双兜底**同链**。故断言口径：**只对直调** `parseNhpRow`/`cellStatus` 成立；Ban 经 `gatherRealUc018` 写「NHP 行翻 `unknown`」。**零触** `:756`/`:890`/`:902`（兜底链改不改归协调方）。
+- **④ alt1 作用域放宽登记（有意·不收紧）**：`NEG_STATUS` 首支 `\bnon-?`（r3 钉「无尾 `\b`」）实为**前缀形**——`non` 后接可选连字符、再要求**分隔符收尾** ⇒ 裸 `non partial`（无连字符）亦判否定；`none`/`nonpartial` 不命中（后接非分隔符）。同理 `\bno\b`（`no gap`）与裸 `非`（`非 covered`）亦前缀形，`非常`/`非空` 由「必须紧跟分隔符」挡住（反误抑二臂在案）。**登记为相对「`non-` 严格读法」的有意放宽**；不收紧、不另立形、不设臂。
+- **⑤ 量化锚并列实测（并列登记·不设阈值）**：**两席报值**——席1 **`+0.87ms`**（修后总开销量级）、席2 **`#6 0.010→0.212ms`**（`advBlindOf` 全 matrix 单次）。**本席复测（2026-10-30 · node · 本机 · 合并树）**——conservative 全表 200 行/860 列（含空列）200 轮均值 **`2.628→3.112 ms/轮`（+0.48ms/轮）**；`advBlindOf(matrix)` 500 轮均值 **`0.023→0.055 ms`（×2.4 · +0.032ms）**。**口径**：修法**非零成本**；绝对值随机器/负载漂移（与两席报值数量级不同即因于此），**不设阈值、不入门判据、不据此回退**，只登记「有可测开销」事实。
+- **⑥ cap 零余量 · lift 复跑即红（时点事实 + 并线后复测）**：**EXEC 收卷时点** `docs:check` 亲跑 **`scanned 2456 = MAX_FILES 2_456`（零余量）**；lift 每次执行**必写** `ai-docs/delivery/receipts/2026-09-23-uc-e2e-018-covered-lift-evidence.json`（lift `:254`/`:256`；`.json` ∈ `TEXT_EXTENSIONS`）⇒ **任何 lift 复跑未移出即 `scanned 2457 > 2456` → `PTP_FILE_LIMIT:2457` EXIT=1**（§9-EXEC 同形红已亲证）。**并线后**（cap 取大 **`2_461`** · `public-text-policy.mjs:281`）本席亲跑 **`scanned 2458`（余量 3）** ⇒ 复跑 lift 得 2459 仍绿——**「零余量」是时点事实，随并线变动**。**门序义务不变**：lift 只作末位宿主，其后任何 `docs:check` 之前**必须把 artifact 移出工作区**（`/tmp/cwn-discard-*`）；Ban 凑绿删件/改 `.gitignore`/抬 cap。
+- **⑦ #9/#10 call-site 无臂（登记·与 `case-only` 子臂同格盲区）**：ARM-7a/7c（reassess `:205-210`）只**直调** `nhpRowPartial`；**call-site 等式无臂**——`:174-175` 常量与 `:186-199` 的 `col.PERF`/`col.LOAD` 三分支（`nhpPerfPartial || cell102(...)==='partial'` 等）**无等值断言**。采**登记不补臂**：与 §2.3.1 `case-only` 子臂**同格盲区**（半修/错接仍 17 臂全绿）。补 call-site 等式须引入 matrix fixture 行并重算 17→18/19，**时间盒内不做**；如需补，另刀立臂。
+- **⑧ 中英否定缺口补登**：`NEG_STATUS` 未收 **`no longer` / `not yet` / `不再` / `尚未`**（前两者因**第二词打断邻接**；后两者未入表，`未` 系 r3 有意排除）。**实测四形均返正向 status**：`no longer partial` / `not yet partial` / `不再 partial` / `尚未 partial` → 皆 `partial`。**登记为已知缺口**（与 `:226` 的 `不是`/`无`/`没有` 同格），**非回归、不设臂、扩表另刀**；`并非 partial` 仍返 `unknown`（`:226` 已更正，不重复登记）。
+- **⑨ 跨件同输入异值登记（既定分叉·不统一臂序）**：同一输入 `**case-only**（not partial）` 四解析器终态——gatherer `cellStatus`＝**`case-only`**；cite `cellStatusLegacy018`＝**`blind`**；reassess `cellStatus`＝**`blind`**；cite `cellStatusConservative`＝**`case-only`**。根因＝**臂序不同**（gatherer `:74` 有独立 case-only 臂；legacy018/reassess 的 case-only 只在末位 `/not_run|case-only|blocked/ → blind` 臂内），**非本次修法引入**。另：`not **blind**` 三处同为 `unknown`；`still **partial**（not gap）` 仅 conservative `gap→partial`。**登记为件间语义分叉**：**断言不得跨件复用期望值**；本刀不统一臂序。
+
 ---
 
-*Harness · C-WORD-NEG UC-018 follow-up 词面负例起草任务书 · rev r8 + §9-EXEC 2026-10-30 · **executed:awaiting_post_prove_dual**（卷尾注 · STOP 三处钉之三 · 与标题/Status 同值 · 2026-10-30 EXEC 落卷翻面（原值 `draft:awaiting_pre_exec_dual` 史录不洗）· 11 函数接线 + 17 臂恰红 + B0≡B1 + 三门亲跑 · post-prove 双审归后继席 · ⛔push）*
+*Harness · C-WORD-NEG UC-018 follow-up 词面负例起草任务书 · rev r8 + §9-EXEC + §10 2026-10-30 · **`closed`**（卷尾注 · STOP 三处钉之三 · 与标题/Status 同值 · 2026-10-30 收官并线席翻面：post 双审双 PASS 放行并线·两席 P2×6+P3 批九件登记（§10）+ post-EXEC 重锚表 · 前值 `executed:awaiting_post_prove_dual` 史录不洗（2026-10-30 EXEC 落卷翻面·原值 `draft:awaiting_pre_exec_dual`）· 11 函数接线 + 17 臂恰红 + B0≡B1 + 三门亲跑 + 并线终验三门 · 实现方不 self-approve · alone≠dual · EXIT0≠covered）*
