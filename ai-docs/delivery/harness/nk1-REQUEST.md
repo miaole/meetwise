@@ -1,6 +1,6 @@
 # FLKWARM REQUEST — 隐私授权证明暖库重跑夹具隔离起草卷（`GAP-PRIV-AUTHZ-PROVE-FLAKE` 可选后续刀 · fixture 每跑命名空间 + W-0…W-2b 四臂 · docs-only 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 2026-11-02 rev r1 dual 回炉修订落卷（两独立外席 FAIL 高度收敛·并集全消化：必改四条 + 精确修六条·留痕见 §10）· 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本 cap 注记 r1 重锚预登·**数值本树 2462 恰等保持**·rebase 对届后改 2464）· 产品码/迁移/runner/既有 proof 零触 · pre-exec 双审两独立外席 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔动主仓 · 三处钉：本行 + §8 + 卷尾 · 同值）
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 2026-11-02 rev r1 dual 回炉修订落卷（两独立外席 FAIL 高度收敛·并集全消化：必改四条 + 精确修六条·留痕见 §10）· 2026-11-02 rev r2 微修轮落卷（P1 记账歧义消解 + P2 加固·留痕见 §10）· 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本 cap 注记 r1 重锚预登·**数值本树 2462 恰等保持**·rebase 对届后改 2464）· 产品码/迁移/runner/既有 proof 零触 · pre-exec 双审两独立外席 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔动主仓 · 三处钉：本行 + §8 + 卷尾 · 同值）
 
 **席位**：meetwise 隐私授权证明夹具隔离起草席（docs-only 起草 · 协调方派单「剩余 local keyless 小刀逐条对账后择优」 · ⛔push ⛔动主仓）。
 **基线**：`origin/main` @ **`5c94266b1`**（full `5c94266b15ceab472b0a5897bc7a2f34ea6c0294` = PR #187 `line/regw-draft` 并线点 · `git fetch origin` 本 turn EXIT=0 · 本 worktree `meetwise-nk1` 由 `git worktree add ... -b line/nk1-draft origin/main` 亲立 · HEAD 落 `5c94266b1` 亲证）。起草前本树三门亲跑：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2461 = cap `2_461` 恰等零余量**（`scripts/ai-docs/public-text-policy.mjs:282` `const MAX_FILES = 2_461` 亲读）；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**；改动集 markers 零命中（词面运行时组装·本卷不复抄）。**本卷 +1 受管件必越** ⇒ 起草 commit 即行使 **CAP-SANCTION-2462（cap 2461→2462 恰等零多放）**，四联动点在 §3-C2/C3 逐点登记；落卷后复跑 `scanned 2462 = cap 2462` 亲证（§9）。**r1 重锚（2026-11-02）**：届 tip 已进至 `origin/main` @ **`2e808c9e3`**（full `2e808c9e3f55c069ac83f99ce95e59346dd52087` = PR #188 quizdx 并线 · main 侧两 policy 脚本 cap 2461→2463·届扫 2463·`public-text-policy.mjs` `const MAX_FILES = 2_463` 亲读·注记已承「在飞 nk1-draft 承 2462 未落 main 如实采」）⇒ 本支 rebase 对届后 union = main 届扫 2463 + 本卷 REQUEST 1 = **2464** ⇒ 承 **CAP-SANCTION-2464（恰等零多放 · cap 随届值如实采=本卷附加钉唯一豁免项）** · rebase 冲突 dual-keep 预案见 §3-C2/C3；本树（rebase 前）两脚本数值 2462 恰等保持·r1 后三门复跑见 §9。
@@ -122,27 +122,27 @@
 - `const FX8 = randomBytes(4).toString('hex');`
 - `const FX_IDS = new Set<string>();`
 - `const fx = (tag: string): string => { const id = `${FX_PREFIX}${FX8}${tag.padStart(4, '0')}`; FX_IDS.add(id); return id; };`
-- **熵限量（r1 一行登记）**：`FX8` = 32-bit ⇒ 任一 id 与历史 id 跨跑相撞 ≈ 50/2³² ≈ 1.2e-8/对跑；N=1000 跑累积期望 ≈ 0.6%；特例 `FX8='00000000' ∧ tag='a1'` 与 `RESIDUAL_INTERVIEW` 相撞同属 2⁻³² 类——残余概率如实限量，**不宣称零概率**。
+- **熵限量（r1 一行登记）**：`FX8` = 32-bit ⇒ 任一 id 与历史 id 跨跑相撞 ≈ 53/2³² ≈ 1.2e-8/对跑；N=1000 跑累积期望 ≈ 0.6%；特例 `FX8='00000000' ∧ tag='a1'` 与 `RESIDUAL_INTERVIEW` 相撞同属 2⁻³² 类——残余概率如实限量，**不宣称零概率**。
 - `const RESIDUAL_INTERVIEW = FX_PREFIX + '0000000000a1';`（**负向对照用的历史固定 id**·`FX_PREFIX` + 末段 **12** hex = 历史 36 字符字面**全等重建**（`warm-2.log:14` 亲读形）·与重构后 `ivA`（含 `FX8`）**异值**·不在本跑命名空间。**r1 订正**：旧稿末段 10 hex 与历史字面**不等值**，M1 撞不上预置行、期望红集不可复现，已废）
-- `const FOREIGN_INTERVIEW = FX_PREFIX + '0000000000c0';`（`:366` 现字面值域·末段 12 hex 同改全等重建·r1）
 
 **替换规则**：**53 处**字面 → `fx('<原末 2 位 tag>')`（**47 处行键** = 46 实插主键 + 1 guard 拒插 `:430`；**6 处值域 id**：`ff` 未知 jti · `e1` 过期 jti · `f1`/`f2` 拒绝路径 jti · `c0` 外来 interview 值 · `bb` 租约 token——六者同样换 `fx`，非写库点/拒插点属防御性收口，语义不变）；tag 逐点一一对应（`a1`→`fx('a1')`、`d1`→…、`ff`→…、`f1`→…、`f7`→…），**禁重排禁合并**。`fx` 对同 tag 幂等（同一 run 同值），故 `ivA` 在 `:125` 声明一次即可。
 
-> **字面存留恰 0 处**：改造后全文件对 `00000000-0000-4000-8000-` 字面出现次数 = **0**（前缀由 `FX_PREFIX` 组装；`RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 亦经前缀拼接）。**这一条由 W-0 机械锁定**。
+> **字面存留恰 0 处**：改造后全文件对 `00000000-0000-4000-8000-` 字面出现次数 = **0**（前缀由 `FX_PREFIX` 组装；`RESIDUAL_INTERVIEW` 亦经前缀拼接）。**这一条由 W-0 机械锁定**。
 
 ### 1.2 四臂设计（W-0…W-2b · 插入位点钉死）
 
-**插入序**（`main()` 内 · **r1 位点钉死 · EXEC 禁现场自选**）：`:119` `assertIsolatedTestTarget` → `:121`-`:122` catalog 门（原样）→ **W-0 → W-2a** → 原 `:124` 起 A 段（`ivA` 声明改 `fx('a1')`）→ **`:128` 之后 W-2b** → 其余段原样 → **W-1 收尾**（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前）。**r1 依据**：53 处 `fx()` 调用全部在 `:125` 之后（模块级零调用），W-1 若在 `:122` 后则 `FX_IDS.size === 0` ⇒ `size > 0` 恒假 ⇒ 主门每次必红——故 W-1 必须收口在最后一个 `fx()`（`:468`）之后。
+**插入序**（`main()` 内 · **r1 位点钉死 · EXEC 禁现场自选**）：`:119` `assertIsolatedTestTarget` → `:121`-`:122` catalog 门（原样）→ **W-0 → W-2a** → 原 `:124` 起 A 段（`ivA` 声明改 `fx('a1')`）→ **`:128` 之后 W-2b** → 其余段原样 → **W-1 收尾**（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前）。**r1 依据**：53 处 `fx()` 调用全部在 `:125` 之后（模块级零调用），W-1 若在 `:122` 后则 `FX_IDS.size === 0` ⇒ `size > 0` 恒假 ⇒ 主门每次必红——故 W-1 必须收口在最后一个 `fx()`（`:468`）之后。**r2 注**：位点钉死的实质理由是**计数完备**（最后一个 `fx()` 在 `:468`·此后方能数满恰等）而非连接存活；真正危险边界是 `:489` `process.exit` 之后（死代码·断言挂其后者永不执行）。
 
 | 臂 | 位点 | 判据 | DB |
 |---|---|---|---|
 | **W-0** | `:122` 后 | `const src = readFileSync(new URL(import.meta.url), 'utf8');` → `A('W-0 源内固定前缀字面恰 0 处', src.split(FX_PREFIX).length - 1 === 0)`（**不引 `fileURLToPath`**·`readFileSync` 直接收 `URL`） | 零 DB |
 | **W-2a** | W-0 后（`:127` 前） | 先以同键跳过子句写入残留行（`INSERT INTO interview(...) VALUES ($1,'prior-run-residual','completed',0,0,'[]'::jsonb) ON CON`+`FLICT (id) DO NOTHING`·键=id·参数 `RESIDUAL_INTERVIEW`·子句名二段拼接=标记词面自匹配防呆）→ 快照读回行 owner/status → `A('W-2a 历史固定 id 残留行在位且与本跑命名空间零交叠', (row.owner_user_id === 'prior-run-residual' \|\| row.owner_user_id.startsWith('privacy-authz-owner-')) && !FX_IDS.has(RESIDUAL_INTERVIEW))`（**owner 两分支容忍·r1**：冷库/复跑=本臂预置形 `prior-run-residual`；真暖库=旧版 proof 残留形 `privacy-authz-owner-<pid>`·status `active`——旧版残行 owner 断言原形必红，r1 修订） | 隔离 PG |
 | **W-2b** | `:128` 后 | `A('W-2b 残留行零触碰（本跑种子不重绑他人行）', 重读同 id 行 owner/status 与 W-2a 快照逐字节恒等)`（**相对断言·r1**：无论初值是谁——这才是「本跑零重绑」的真不变量） | 隔离 PG |
-| **W-1** | **收尾**（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前·r1 钉死） | `[...FX_IDS].every((id) => id.startsWith(FX_PREFIX + FX8) && /^[0-9a-f]{4}$/.test(id.slice((FX_PREFIX + FX8).length)))` **且** `FX_IDS.size > 0`（此位点 53 处 `fx()` 全部落码·期望 `size=53`·53 tag 互异亲数）**且** 集合无重复（`Set` 天然·附打印 size） | 零 DB |
+| **W-1** | **收尾**（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前·r1 钉死） | `[...FX_IDS].every((id) => id.startsWith(FX_PREFIX + FX8) && /^[0-9a-f]{4}$/.test(id.slice((FX_PREFIX + FX8).length)))` **且** `FX_IDS.size === 53`（**r2 增补恰等支**·53 tag 一一对应（§6 附加钉）——旧 `size > 0` 下两处字面误配同一 tag ⇒ size=52 仍绿·tag 塌缩静默；此位点 53 处 `fx()` 全部落码·53 tag 互异亲数）**且** 集合无重复（`Set` 天然·附打印 size） | 零 DB |
 
 **设计要点**：
 - W-2a 的同键跳过子句使**本臂自身**暖库安全（第二跑不撞）；残留行**初值随库况而异**（冷库/本刀复跑=`prior-run-residual`/`completed`；真暖库=旧版 proof 残留 `privacy-authz-owner-<pid>`/`active`），故 W-2a 对 owner 两分支容忍、W-2b 用相对断言锁「本跑零触碰」而**不锁初值**（r1）。
+- **W-2a 观测面（r2 登记）**：容忍支对『快照前已带本跑 owner 形态的行』自掩（无代码可达路径·防御性登记）；W-2a 打印命中分支名（`prior-run-residual` ∨ `privacy-authz-owner-`）以留观测面。
 - W-2a/W-2b 组合 = **E-WARM-2 的确定性等价类**：残留行先于本跑种子存在（`warm-2.log` 场景），本跑种子成功后残留行零变更。
 - **W-0 判别力边界（r1 登记）**：`split(FX_PREFIX)` 仅捕获**连续字面**；`'00000000-' + '…'` 式分段拼接可逃逸 W-0 盲区（运行时 id 恒等）——**W-0 是对 M1 类整行还原变异的有效绊线，非「无固定 id」的存在性证明**。
 - **不新增 run 级双跑**：runner 无复用口（§0.4），不硬造。
@@ -181,7 +181,7 @@
 
 | # | 码面 | 现状（亲读） → 目标 |
 |---|---|---|
-| **C1** | `packages/db/test/privacy-authorization.proof.ts`（**既有·唯一产品/测试改动面**） | 现状：固定字面 53 处（**47 行键 = 46 实插主键 + 1 guard 拒插 `:430` · 6 值域**·r1 拆分）+ 裸 INSERT 四写点 + 51 断言（blob `3f310ec9`）→ 目标：① import 区 +`randomBytes`/`readFileSync`（`:20` 后）；② `:22` 前新增 `FX_PREFIX`/`FX8`/`FX_IDS`/`fx`/`RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 六项；③ **53 处**字面 → `fx('<tag>')`（§1.1 清单；`:125`-`:126` 两声明同改）；④ `:366` 字面 → `FOREIGN_INTERVIEW`；⑤ 新增 W-0（`:122` 后）· W-2a（W-0 后·`:127` 前预置残留行+快照）· W-2b（`:128` 后·相对断言）· **W-1（收尾：末断言 `:482`-`:483` 后、`admin.end()` `:485` 前——r1 位点钉死·EXEC 禁现场自选）**四臂；⑥ **既有 51 断言谓词零改**。源内固定前缀字面终态 **0 处**（W-0 锁·**自扫含注释** ⇒ 新增/改写注释禁含该字面）。 |
+| **C1** | `packages/db/test/privacy-authorization.proof.ts`（**既有·唯一产品/测试改动面**） | 现状：固定字面 53 处（**47 行键 = 46 实插主键 + 1 guard 拒插 `:430` · 6 值域**·r1 拆分）+ 裸 INSERT 四写点 + 51 断言（blob `3f310ec9`）→ 目标：① import 区 +`randomBytes`/`readFileSync`（`:20` 后）；② `:22` 前新增 `FX_PREFIX`/`FX8`/`FX_IDS`/`fx`/`RESIDUAL_INTERVIEW` 五项；③ **53 处**字面 → `fx('<tag>')`（§1.1 清单；`:125`-`:126` 两声明同改）；④ `:366` 字面 → `fx('c0')`（§1.1 六值域同款·bound-consume 比较值·零写库·r2）；⑤ 新增 W-0（`:122` 后）· W-2a（W-0 后·`:127` 前预置残留行+快照）· W-2b（`:128` 后·相对断言）· **W-1（收尾：末断言 `:482`-`:483` 后、`admin.end()` `:485` 前——r1 位点钉死·EXEC 禁现场自选）**四臂；⑥ **既有 51 断言谓词零改**。源内固定前缀字面终态 **0 处**（W-0 锁·**自扫含注释** ⇒ 新增/改写注释禁含该字面）。 |
 | **C2** | `scripts/ai-docs/public-text-policy.mjs`（**cap 步进（C 编号）**） | 锚基 `5c94266b1`:`282` `const MAX_FILES = 2_461` → 起草 commit（`4d97b9f83`）已落 **`2_462`** + `CAP-SANCTION-2462` 注记（本树恰等·届扫 2462=cap 2462）；**r1 预登（本 rev 已落）**：`MAX_FILES` 行前追加 `CAP-SANCTION-2464` 重锚注记一行（**数值零改**·本树仍 `2_462` 恰等）；**rebase 对届 tip `2e808c9e3` 后行使 `2_462`→`2_464`**：union = main 届扫 2463 + 本卷 REQUEST 1 = **2464 恰等零多放（CAP-SANCTION-2464 · cap 随届值如实采=附加钉唯一豁免项）**。**rebase 冲突 dual-keep 预案**（沿 CAP-SANCTION-2461 CWN 收官并线先例形）：main 侧同区已落 `CAP-SANCTION-2463` QUIZDX 注记，与本支 `CAP-SANCTION-2462` 注记同区冲突 → 取「**main 的 2463 注记全保留（史录并留）+ 本支改写 2_464**」，终态 HEAD `MAX_FILES = 2_464`。EXEC 期零新增受管件 ⇒ terminal 2464 不变。`MANAGED_ROOTS`/`TEXT_EXTENSIONS`/扫描面**零改**（语义不变强度不减）。 |
 | **C3** | `scripts/ai-docs/public-text-policy.proof.mjs`（**proof 四处联动**） | 锚基 `5c94266b1`:`452`/`:459`/`:474`/`:477` 四联动点 → 起草 commit 已落 **2462 形**（`i < 2_462` / `scannedFiles, 2_462` / `'ai-docs/f-2462.md'` / `${FILE_LIMIT}:2463`·本树自洽·PTP 12/12 亲跑）+ 链区 `CAP-SANCTION-2462` 史录；**r1 预登（本 rev 已落）**：链区追加 `CAP-SANCTION-2464` 重锚注记一行（**数值零改**）；**rebase 对届后改 2464 形**：四联动点 = **`i < 2_464` / `scannedFiles, 2_464` / `'ai-docs/f-2464.md'` / `${FILE_LIMIT}:2465`**（+ 相邻注释 `2464`/`2465` 两处同步·错误码形 `${CODE}:${n}`）。**四处同一届值·禁一处手改**；行号随 merge-tree 重排，EXEC 立项照 §0 对届时 tip 重 pin。 |
 | **C4** | `ai-docs/delivery/receipts/flkwarm/*.log`（EXEC 期新增·真跑收据） | 不存在 → teed 单跑日志（末行 `PROCESS_EXIT=<n>`）+ 变异 M1 红跑日志 + 还原复跑日志；**只准 `.log`**（`.log` ∉ `TEXT_EXTENSIONS` ⇒ 不入扫描面·cap 零增）。**Ban 落 `.md`/`.txt`/`.json`**（三者 ∈ `TEXT_EXTENSIONS`）。 |
@@ -196,7 +196,7 @@
 ### A. 新增 4 臂（逐条可判）
 
 - **W-0**（静态·零 DB）源内固定前缀字面恰 **0** 处（自读 `import.meta.url` 源；判别力边界=绊线非存在性证明·见 §1.2 设计要点）。
-- **W-1**（静态·零 DB · **位点=收尾：`admin.end()` 前·53 处 `fx()` 全部落码后·r1 钉死**）`FX_IDS` 每 id `startsWith(FX_PREFIX + FX8)` 且末 4 位 `^[0-9a-f]{4}$`，集合非空（期望 `size=53`·53 tag 互异亲数）、互异（`Set` 天然·打印 size）。
+- **W-1**（静态·零 DB · **位点=收尾：`admin.end()` 前·53 处 `fx()` 全部落码后·r1 钉死**）`FX_IDS` 每 id `startsWith(FX_PREFIX + FX8)` 且末 4 位 `^[0-9a-f]{4}$` **且** `FX_IDS.size === 53`（**r2 恰等支**·53 tag 一一对应（§6 附加钉）·防两处字面误配同一 tag 的塌缩静默·53 tag 互异亲数·互异=`Set` 天然·打印 size）。
 - **W-2a**（隔离 PG）历史固定 id 残留行在位且 ∉ `FX_IDS`（owner **两分支容忍·r1**：`prior-run-residual` ∨ `privacy-authz-owner-` 前缀——真暖库残留行源自旧版 proof·owner 形 `privacy-authz-owner-<pid>`·status `active`）。
 - **W-2b**（隔离 PG）A 段前快照残留行 owner/status，`:128` 后重读**逐字节恒等**（相对断言·无论初值是谁·本跑零重绑·r1）。
 
@@ -211,7 +211,7 @@
 3. **变异门 M1**（§1.3）：期望 `W-0` 红 + `EXIT=1`（23505 崩溃形·撞 `RESIDUAL_INTERVIEW` 预置残留行——r1 全等重建后撞键成立）；`git diff -- packages/db/test/privacy-authorization.proof.ts` 该行零残留后**复跑主门绿**。三次 run 的 EXIT 全录·**零 retry-to-green**。**digest 链易失性（r1 登记）**：红跑的机器可验 digest 链在 `.tmp/isolated-proof-receipts/`（gitignored · 易失 · runner `run-e2e-isolated.mjs:4475`/`:4485`）；committed 收据仅 `PROCESS_EXIT` 无 digest ⇒ **EXEC 期 teed `.log` 应附 `LOCAL_ISOLATED_PROOF_RECEIPT file=…` 路径行**以链回隔离收据。
 4. **docs 门**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · 本树（rebase 前）scanned 2462 = cap 2462 · rebase 对届 `2e808c9e3` 后 scanned 2464 = cap 2464（CAP-SANCTION-2464）**；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**。
 5. **markers 门**：改动集（3 tracked 净增行）五类标记词 + 行首冲突标记 **0 命中**（词面运行时组装）。
-6. **面收敛门（merge-base 口径 · r1）**：`git diff --name-status $(git merge-base HEAD origin/main)..HEAD` 恰 `A ai-docs/delivery/harness/nk1-REQUEST.md` / `M scripts/ai-docs/public-text-policy.mjs` / `M scripts/ai-docs/public-text-policy.proof.mjs`（起草+r1）+ EXEC 期 `M packages/db/test/privacy-authorization.proof.ts` + `A ai-docs/delivery/receipts/flkwarm/*.log`；**产品码/迁移/runner 零命中**。两支分叉期对 `origin/main` **裸 diff 9 条系 main 侧 quizdx 件**（quizdx-REQUEST/收据 .log/apps api package.json/quizdx proof/根 package.json/runner·非本支越界）；rebase 后裸 diff 亦收敛为本支面。
+6. **面收敛门（merge-base 口径 · r1）**：`git diff --name-status $(git merge-base HEAD origin/main)..HEAD` 恰 `A ai-docs/delivery/harness/nk1-REQUEST.md` / `M scripts/ai-docs/public-text-policy.mjs` / `M scripts/ai-docs/public-text-policy.proof.mjs`（起草+r1）+ EXEC 期 `M packages/db/test/privacy-authorization.proof.ts` + `A ai-docs/delivery/receipts/flkwarm/*.log`；**产品码/迁移/runner 零命中**。两支分叉期对 `origin/main` **裸 diff 9 条 = main 侧 quizdx 6 条 + 本支面 3 条**（quizdx-REQUEST/收据 .log/apps api package.json/quizdx proof/根 package.json/runner·非本支越界）；rebase 后裸 diff 亦收敛为本支面。
 7. **隔离开关**：只准经 runner 的 `privacy-authorization:prove`（含 `assertIsolatedTestTarget`）；**Ban 直连开发库**。
 
 ---
@@ -250,22 +250,22 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban se
 
 ## §9 状态
 
-**`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 2026-11-02 rev r1 回炉修订落卷（§10）· 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本）· 产品码/迁移/runner/既有 51 断言零触 · pre-exec 双审两独立外席待派 · alone≠dual · Ban self-approve · ⛔push ⛔动主仓 · est live=0 · markers=0）。
+**`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 2026-11-02 rev r1 回炉修订落卷（§10）· 2026-11-02 rev r2 微修落卷（§10）· 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本）· 产品码/迁移/runner/既有 51 断言零触 · pre-exec 双审两独立外席待派 · alone≠dual · Ban self-approve · ⛔push ⛔动主仓 · est live=0 · markers=0）。
 
-**门读数（r1 修订席亲跑·2026-11-02）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2462 = cap 2462**（本树恰等零多放·r1 两脚本注记预登数值零动）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0** · 改动集 markers **0/0**（五类标记词 + 行首冲突标记·词面运行时组装）· 面收敛 **merge-base 口径**：`git diff --name-status $(git merge-base HEAD origin/main)..HEAD` = 本卷 + 两 policy 恰 3 tracked（对 `origin/main` 裸 diff 9 条系 main 侧 quizdx 件·非本支越界·rebase 后裸差收敛为本支面）。
+**门读数（r2 修订席亲跑·2026-11-02）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2462 = cap 2462**（本树恰等零多放·r1 两脚本注记预登数值零动）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0** · 改动集 markers **0/0**（五类标记词 + 行首冲突标记·词面运行时组装）· 面收敛 **merge-base 口径**：`git diff --name-status $(git merge-base HEAD origin/main)..HEAD` = 本卷 + 两 policy 恰 3 tracked（对 `origin/main` 裸 diff 9 条 = main 侧 quizdx 6 条 + 本支面 3 条·非本支越界·rebase 后裸差收敛为本支面）。
 
 **EXEC 期预登（未行使）**：C1 proof 改动 + C4 `.log` 收据 → terminal 受管件数 **2464**（rebase 对届 `2e808c9e3` 后承 CAP-SANCTION-2464·零新增）· 主门期望 **55 PASS** · 变异 M1 期望红集 **W-0 + 崩溃 EXIT=1（撞全等重建 `RESIDUAL_INTERVIEW` 残留行）** · `PROCESS_EXIT` 逐 run 入据 + teed `.log` 附 `LOCAL_ISOLATED_PROOF_RECEIPT file=…` 路径行。
 
 ---
 
-## §10 rev r1 修订记录（dual 回炉 · 2026-11-02 · 本节为修订留痕 · 刀型丙与 §3 四条骨架不变）
+## §10 rev 修订记录（r1 dual 回炉 + r2 微修轮 · 2026-11-02 · 本节为修订留痕 · 刀型丙与 §3 四条骨架不变）
 
 **dual r1 两独立外席 FAIL · 高度收敛**（席1 P1×4 / 席2 P0×1+P1×1+P2×4）→ 回炉并集全消化。逐条落法：
 
 | 级 | 发现（两席证据） | 落法（落点节） |
 |---|---|---|
 | **P0** | W-1 位点永红：53 处 `fx()` 调用全部在 `:125` 之后（模块级零调用），原钉位点（`:122` 后）处 `FX_IDS.size===0` ⇒ `size>0` 恒假 ⇒ `A()` 记录型不抛 ⇒ `failures=1` ⇒ `process.exit(1)` ⇒ 主门每次必红且 EXEC 无自救路径（两席独立同判） | 三择一采 **(a) 并钉死**：W-1 移至收尾（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前）· §1.2 插入序/臂表、§3-C1-⑤、§4-A 同步 · EXEC **禁现场自选** · 断言总数 **55 不变**（未拆 W-1a/W-1b） |
-| **P1** | `RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 末段 10 hex ≠ 历史字面末段 **12** hex（`warm-2.log:14` 亲读 36 字符）⇒ 与 M1 改回的历史字面**不同键**、不撞预置残留行 ⇒ §1.3 期望红集不可复现；「与 ivA 同值」措辞亦误（重构后 `ivA` 必含 `FX8`）（席1 实测 + 席2 隔离 PG E4 逐字复现 warm-2.log 崩溃形） | 两常量改 `FX_PREFIX + '0000000000a1'` / `'0000000000c0'`（12 hex 全等重建）· 删「与 ivA 同值」改「与历史固定字面同值、与重构后 ivA 异值」（§1.1/§1.2） |
+| **P1** | `RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 末段 10 hex ≠ 历史字面末段 **12** hex（`warm-2.log:14` 亲读 36 字符）⇒ 与 M1 改回的历史字面**不同键**、不撞预置残留行 ⇒ §1.3 期望红集不可复现；「与 ivA 同值」措辞亦误（重构后 `ivA` 必含 `FX8`）（席1 实测 + 席2 隔离 PG E4 逐字复现 warm-2.log 崩溃形） | 两常量改 `FX_PREFIX + '0000000000a1'` / `'0000000000c0'`（12 hex 全等重建）· 删「与 ivA 同值」改「与历史固定字面同值、与重构后 ivA 异值」（§1.1/§1.2）· **r2 订正**：`FOREIGN_INTERVIEW` 常量撤编（不经 `fx()`·不入 `FX_IDS` ⇒ 与 C1-③「53 处 → fx」双重记账），`:366` 改循六值域 `fx('c0')`·详 §10 rev r2 |
 | **P1** | W-2a/W-2b 绝对 owner 断言在真暖库必红：真暖残留行来自旧版 proof（owner=`privacy-authz-owner-<pid>` · status `active`），`ON CONFLICT DO NOTHING` 跳插后读回 ≠ `prior-run-residual` ⇒ 「暖库复跑」目标在真场景自败（席1 推演 + 席2 隔离 PG E1 实测） | W-2a owner **两分支容忍**（`prior-run-residual` ∨ `privacy-authz-owner-` 前缀）∧ `!FX_IDS.has(RESIDUAL_INTERVIEW)`；W-2b 改**相对断言**（A 段前快照 · `:128` 后逐字节恒等·无论初值是谁）（§1.2/§4-A） |
 | **P1** | cap 时点错位 2462→应 2464：届 tip 已进 `2e808c9e3`（#188 quizdx 并线 · main 侧 cap 已 2463 · 两 policy 同行已改）⇒ rebase 后 union = 2463 + 本卷 1 = **2464** 且 rebase 必冲突（两席独立同判） | 全卷对届 tip 重锚 **CAP-SANCTION-2464**（§0.1-3 / §3-C2/C3 / §6 附加钉改述「cap 随届值如实采=唯一豁免」/ §8 停止阈值 / §9 / Status 行 / 基线行）· 四联动点数值写 2464/`f-2464.md`/`:2465`（**rebase 后行使**）· dual-keep 预案沿 CAP-SANCTION-2461 CWN 收官并线先例形写明（卷面 §3-C2/C3 + 两脚本 `CAP-SANCTION-2464` 预登注记·**数值本树 2462 恰等保持**） |
 | P2-1 | §0.3 归因错：`:307`/`:455`/`:162` 三者不落库 | 移出必撞面改注「非写库点·换 fx 防御性收口」；真撞面 = interview 8 + request 14 + target 24 + `:167` jti 1；字面拆分改 **47 行键（46 实插 + 1 guard 拒插 `:430`）+ 6 值域**·总数 53 不变（§0.3/§1.1/认领核对） |
@@ -277,8 +277,20 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban se
 
 **r1 后自检**：三门亲跑（docs 本树 2462 = 本支 cap / PTP 12/12 / markers 0·读数见 §9）· 断言总数 **55 = 51 + 4 不变** · pins 十一值零翻（cap 项豁免按重锚处理）· STOP 三处 `draft:awaiting_pre_exec_dual` 同值 · diff 恰 3 tracked。
 
+**rev r2 微修轮（dual 回炉 · 2026-11-02 · 席1 FAIL / 席2 PASS → FAIL 优先 · 席1 实证 r1 十条全部兑现·骨架不变）**：
+
+| 级 | 发现 | 落法（落点节） |
+|---|---|---|
+| **P1** | §3-C1 ③/④ 对 `:366` 双重记账：③「53 处字面 → `fx`」与 ④「`:366` 字面 → `FOREIGN_INTERVIEW`」互斥（`:366` 的 c0 字面只能一个去向）——`FOREIGN_INTERVIEW` 为模块级常量、不经 `fx()`、不入 `FX_IDS`，按 ④ 则 `FX_IDS.size=52`≠53（§1.2/§4-A/§6/§10-P0 四处期望值），按 §1.1 六值域则 ④ 跳单+常量死代码——两读法迫使 EXEC 现场自选（本卷明令禁止） | 采席1 方案一：C1-④ 改「`:366` 字面 → `fx('c0')`（§1.1 六值域同款·bound-consume 比较值·零写库）」· 删 §1.1 `FOREIGN_INTERVIEW` 声明行与字面存留注记「/FOREIGN_INTERVIEW」· C1-②「六项」→「五项」· §10-P1 行补 r2 订正——53 处 fx / `size=53` / §10-P0 依据全链自洽，改动面最小（§1.1/§3-C1） |
+| P2-1 | W-1 谓词 `every(形) ∧ size>0` 不含 53 恰等——两处字面误配同一 tag ⇒ size=52 仍绿（tag 塌缩静默） | W-1 增补第三合取支 `FX_IDS.size === 53`（与 §6「53 处 tag 一一对应」自洽·零误红）；§1.2 注明位点钉死实质理由=**计数完备**（最后一个 `fx()` 在 `:468`）而非连接存活、真正危险边界=`:489` `process.exit` 之后（死代码）（§1.2/§4-A） |
+| P2-2 | W-2a 容忍支对「快照前已带本跑 owner 形态的行」自掩（无代码可达路径） | §1.2 设计要点一行登记；W-2a 打印命中分支名以留观测面（§1.2） |
+| P2-3 | 裸 diff 9 条归属措辞粗（「系 main 侧 quizdx 件」未计本支面） | 改「裸 diff 9 条 = main 侧 quizdx 6 条 + 本支面 3 条」（§4-C-6/§9） |
+| P2-4 | §1.1 熵行「50/2³²」与 53 处 fx 口径不一（席1 提·可选采） | 统一为「53/2³²」（§1.1） |
+
+**r2 后自检**：三门亲跑（docs 本树 2462 = 本支 cap / PTP 12/12 / markers 0·读数见 §9）· 断言总数 **55 = 51 + 4 不变**（`size === 53` 为 W-1 同一断言内增补合取支·未拆条）· pins 十一值零翻（cap 豁免按 r1 口径）· STOP 三处 `draft:awaiting_pre_exec_dual` 同值 · diff 恰 3 tracked。
+
 ---
 
-*FLKWARM REQUEST · 2026-10-30 起草落卷 · 2026-11-02 rev r1 dual 回炉修订（§10）· 认领=`GAP-PRIV-AUTHZ-PROVE-FLAKE` 行内已登记的**独立后继刀**（`gap-bug-backlog.md:68`「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用））· 账面核实五事实钉（§0.1：UC-003 映射已闭 / UC-028 TRUTH-BLOCK-E2E 已闭 / QUIZ-DX-HTTP 已并 `2e808c9e3` / L-01、L-08 stale）· 修法=**每跑命名空间**（53 处字面 → `fx(tag)`·源内前缀字面 0）+ **四臂**（W-0/W-2a/W-2b + W-1 收尾位点·r1 钉死）+ cap 2461→2462（起草）→**2464**（rebase 对届 `2e808c9e3` 承 CAP-SANCTION-2464·随届如实采唯一豁免）四联动 · 断言 **55 = 51 + 4** · 锚 @`5c94266b1` 起草亲读亲算 · r1 重锚 @`2e808c9e3` · pins 十一值零翻转 · est live=0 · markers=0 · ⛔push ⛔动主仓 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · proof EXIT=0 ≠ DONE · STOP=`draft:awaiting_pre_exec_dual`*
+*FLKWARM REQUEST · 2026-10-30 起草落卷 · 2026-11-02 rev r1 dual 回炉修订 + rev r2 微修（§10）· 认领=`GAP-PRIV-AUTHZ-PROVE-FLAKE` 行内已登记的**独立后继刀**（`gap-bug-backlog.md:68`「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用））· 账面核实五事实钉（§0.1：UC-003 映射已闭 / UC-028 TRUTH-BLOCK-E2E 已闭 / QUIZ-DX-HTTP 已并 `2e808c9e3` / L-01、L-08 stale）· 修法=**每跑命名空间**（53 处字面 → `fx(tag)`·源内前缀字面 0）+ **四臂**（W-0/W-2a/W-2b + W-1 收尾位点·r1 钉死）+ cap 2461→2462（起草）→**2464**（rebase 对届 `2e808c9e3` 承 CAP-SANCTION-2464·随届如实采唯一豁免）四联动 · 断言 **55 = 51 + 4** · 锚 @`5c94266b1` 起草亲读亲算 · r1 重锚 @`2e808c9e3` · pins 十一值零翻转 · est live=0 · markers=0 · ⛔push ⛔动主仓 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · proof EXIT=0 ≠ DONE · STOP=`draft:awaiting_pre_exec_dual`*
 
 *卫生声明：markers=0 = 本卷改动集五类标记词与行首冲突标记 grep 零命中——词面由门命令运行时组装、卷内不复抄（防自匹配；沿 ha-1/ag09 同款）。*
