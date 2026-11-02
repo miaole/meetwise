@@ -1,6 +1,6 @@
 # QGEN-CRITIQUE-RESILIENCE REQUEST（出题批判韧性修复刀 · 修法两件=模板旁路闭合+图级批判门降格可恢复 · 恰 2 产品文件 +44/−0 · 零迁移零 DDL 零 SSOT 行）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-16·merge `729d1ac4`+修法两件逐字节落码+门矩阵全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线） · base = 主线 `feat/mysql-schema-skeleton` @ `0c94d1ec`（全 hex `0c94d1ec5dbeb67fade0c9fb5cb40c096f6ee9e1`·fetch 后 origin tip=qpl nail 波 tip 同指亲证零漂） · 分支 `line/qgen-critique-resilience` · 工作树 `meetwise-qcr`（`git worktree add ../meetwise-qcr -b line/qgen-critique-resilience` 本起草席已立·`git worktree list` 恰一本树在册）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-16·merge `729d1ac4`+修法两件逐字节落码+门矩阵全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线） · base = 主线 `feat/mysql-schema-skeleton` @ `0c94d1ec`（全 hex `0c94d1ec5dbeb67fade0c9fb5cb40c096f6ee9e1`·fetch 后 origin tip=qpl nail 波 tip 同指亲证零漂） · 分支 `line/qgen-critique-resilience` · 工作树 `meetwise-qcr`（`git worktree add ../meetwise-qcr -b line/qgen-critique-resilience` 本起草席已立·`git worktree list` 恰一本树在册）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：QGEN-CRITIQUE-RESILIENCE 出题批判韧性修复刀起草席（**G7K 诊断排程刀 2·鉴别刀定谳后的修复主刀** · 协调方派单 brief：QGEN-CRITIQUE-DISCRIMINATOR 鉴别刀混合岔定谳后授权本刀范围=**①+② 产品韧性两件**；③ 环境协议修复另刀 iso-dotenv **在飞·本刀零触**；④ 提示词回滚**不适用已裁**·本刀沿裁零翻案 · docs-only 起草卷 · ⛔push · ⛔改产品码）。
 
@@ -202,7 +202,7 @@
 | markers | 改动集五类标记词直扫（四标记词+冲突标记·词面运行时组装防自指·本卷自笔避词面沿 e2e-stress 门⑧先例） | 零命中 | 零命中亲证 |
 | diff 面 | `git diff --stat` 对 base | — | **恰 2 产品文件**（adaptive-interview-service.ts +17/−0·generate-question.ts +27/−0·净 +44/−0 容差 ±10 行如实登记）+测试件（测试面）·零迁移零 DDL 零域包零 SSOT 四卷零锁文件零 package.json |
 
-**STOP=`executed:awaiting_post_prove_dual`**（本卷第一处·EXEC 席 2026-10-16 终态·原 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签+rev1 窄域复审 PASS+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）——EXEC 已施工落卷·本席⛔push ⛔merge 主线 ⛔force push 未用。
+**STOP=`executed:awaiting_post_prove_dual`**（本卷第一处·EXEC 席 2026-10-16 终态·原 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签+rev1 窄域复审 PASS+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）——EXEC 已施工落卷·本席⛔push ⛔merge 主线 ⛔force push 未用。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §3 范围外（零触清单）
 
@@ -219,7 +219,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 3. **修法面破约束**：落码 diff 超「恰 2 产品文件」或净行漂出 +44±10 窗、或域单源（QUESTION_GENERATION_REROLL_FAMILY/critiqueQuestion/QUESTION_GENERATION_ERROR_CODES）在 EXEC 时点被他刀改形 → 停·rev 重审归因链。
 4. **双审否决**：pre-exec 双审任一席 FAIL → 停·按处方 rev（append-only 勘误·零洗卷）。
 
-**STOP=`executed:awaiting_post_prove_dual`**（本卷第二处=§2 尾·第三处=本行·EXEC 席 2026-10-16 终态翻转）——EXEC 落卷终态：待 post-prove 双审。
+**STOP=`executed:awaiting_post_prove_dual`**（本卷第二处=§2 尾·第三处=本行·EXEC 席 2026-10-16 终态翻转）——EXEC 落卷终态：待 post-prove 双审。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## Non-claims
 
@@ -285,10 +285,10 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 2. **「旧代码忽略仍正确」书面结论**（wire/checkpoint 契约义务）：本刀两件零新增 checkpoint 键·零 wire/Redis 结构变更——`competencyExhaustions ?? 0` 缺省容错（旧 checkpoint 无此键=0 起跑）·`degraded`/`generationProvenance` 均既有通道原键·件① failure 形为纯 provenance 审计元数据（`:t:0` 键零 invoke 零归集行·rev1 P2 注记沿承）——**旧 checkpoint/旧消费者忽略新形仍正确**。
 3. **submit 侧 planner 序空位架构事实登记**：lifecycle submit 形图 deps `competencies=[]`（planner 序仅 start 注入）→turn≥1 族失败/批判拒在该流向无序可换（单发终场保留）——件①/件② 的帽内换序接管面=start 流向+直接 deps 注入面（F3b/件② 4 组已证）·该事实非本刀引入·登记供 post-prove 双审与后继刀（如需 mid-interview 换序可另刀立题）。
 
-**STOP 终态**：三处（卷头 Status/§2 尾/§8 尾）已翻 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·本席⛔push ⛔merge 主线 ⛔force push 未用。
+**STOP 终态**：三处（卷头 Status/§2 尾/§8 尾）已翻 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·本席⛔push ⛔merge 主线 ⛔force push 未用。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-POST post 双审会签 P2 勘误随卷（nail 席代落·post 双审会签 PASS 席1 agent_b7ad34e6+席2 agent_9944fea0 授权·2026-10-16·append 注记形不洗上文一字）
 
-- **P3-A（席1·STOP 自指序数 cosmetic 登记）**：§2 尾 STOP 行自指「本卷第一处」与卷内三处口径（**卷头 Status/§2 尾/§8 尾**·§9 rev1 回执与 §9-EXEC 终态行同此口径）不符——按该口径本行（§2 尾）系第二处·卷头 Status（:3）方为第一处；§8 尾行「本卷第二处=§2 尾·第三处=本行」与三处口径自洽。**纯 cosmetic：三处 STOP 值均正确**（`executed:awaiting_post_prove_dual` @ :3/:205/:222 三行实测一致）·序数自指零语义影响·STOP 值零翻·原文零洗（append 保史）。
+- **P3-A（席1·STOP 自指序数 cosmetic 登记）**：§2 尾 STOP 行自指「本卷第一处」与卷内三处口径（**卷头 Status/§2 尾/§8 尾**·§9 rev1 回执与 §9-EXEC 终态行同此口径）不符——按该口径本行（§2 尾）系第二处·卷头 Status（:3）方为第一处；§8 尾行「本卷第二处=§2 尾·第三处=本行」与三处口径自洽。**纯 cosmetic：三处 STOP 值均正确**（`executed:awaiting_post_prove_dual` @ :3/:205/:222 三行实测一致）·序数自指零语义影响·STOP 值零翻·原文零洗（append 保史）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **P3-B（席1·ag-f-reroll +145/−4 非「纯增」如实注记）**：§9-EXEC 字段⑥ numstat `+145/−4` 之 −4 系**载体改写**非断言删洗（nail 席 diff 逐行亲证四行=头注块 §E 尾注释行标点改写+测试 import 行扩名改写（+createResumeWithBlob/transitionResume/completeIngestion）+domain import 行扩名改写（+ingestResume）+尾汇总 console.log 行 §A-§E→§A-§F 改写·四行语义均在 +145 侧以新形在场）——**47 基线臂零删零洗**（§A 族 17+§B 换序 10+§C unscored 7+§D 负证 4+§E 保守 3 原样）·**61=47+14 两次复跑坐实**（EXEC 期字段⑥+nail 期 §F 复跑·数值见 nail 工序）。
 - **P2-C（席2·关键定性转录承登——submit 流向定性）**：submit 侧图 deps `competencies=[]`（`adaptive-lifecycle.ts:361` `makeDeps(d, [], …)` 第二形参即 competencies·签名 `:161` 本席亲证）系**既有架构事实**（planner 序仅 start 流向注入·非本刀 hunk 所致）——**本刀件① 在生产 submit 流向终态与改前逐形相同（单发终场）**·**实际增益=更早 seam 拒收+零键消费+诚实收据**（模板旁路同文二次出题在 seam critique 门即拒·初诊键 `:0` 零消费·failure 收据 provenance 三键形）·**帽内换序接管面实存于 start 流向+直接 deps 注入面**（F3b/件② 4 组已证）·**G7K 红在 submit 流向不因本刀单独翻面**·后继刀=**submit-flow-competency-wire（起草中）**。本条沿 §9-EXEC 字段⑦-3 登记升格为席2 定性承登·两产品文件字节零让步。

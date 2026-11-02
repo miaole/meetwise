@@ -1,6 +1,6 @@
-# QUEUE-CLOSEOUT 队列收尾微刀（批5 盘点 Top2+5C post P2-1 三件一卷·零迁移·STOP=`executed:awaiting_post_prove_dual`）
+# QUEUE-CLOSEOUT 队列收尾微刀（批5 盘点 Top2+5C post P2-1 三件一卷·零迁移·STOP=`executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 G7W 先例「自述三处实测四处」教训预勘误·开工权归协调方·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 G7W 先例「自述三处实测四处」教训预勘误·开工权归协调方·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：QUEUE-CLOSEOUT 队列收尾微刀起草席（协调方派单令·批5 盘点席 Top2+5C-BEHAVIOR post 席2 P2-1 三件一卷·量级微·⛔push·⛔merge 主线）。
 
@@ -91,7 +91,7 @@ EXEC 可选加强项（不预支·零必做）：兜底臂独走全路径判别�
 
 **停止条件四类**：①单件法则=件①/件③ 机制独立·单件机制不满足可停单件余件继续；②卷级门红全卷停；③现场漂移（锚漂超 ±3 且结论受影响·LEDGER `:87` 翻面被他刀先行行使→本刀翻面笔底稿作废如实改登）停手上报；④STOP 状态翻面权=pre-exec 双审 BOTH PASS 后归协调方（EXEC 授权随派单令）。
 
-**STOP · `executed:awaiting_post_prove_dual`**（三处锚定=①卷头标题行+②Status 行+③本节·前值 `draft:awaiting_pre_exec_dual` 史录=EXEC 落卷翻面·翻面授权=pre-exec 双审 BOTH PASS 后随协调方 EXEC 派单令）。开工三条款：①pre-exec 双审 BOTH PASS（两外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项）。双审前零 EXEC 零落码·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。
+**STOP · `executed:awaiting_post_prove_dual`**（三处锚定=①卷头标题行+②Status 行+③本节·前值 `draft:awaiting_pre_exec_dual` 史录=EXEC 落卷翻面·翻面授权=pre-exec 双审 BOTH PASS 后随协调方 EXEC 派单令）。开工三条款：①pre-exec 双审 BOTH PASS（两外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项）。双审前零 EXEC 零落码·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9 EXEC 记录（2026-10-16·本席亲跑）
 

@@ -1,6 +1,6 @@
 # INTERVIEW-JOB-AUTOVACUUM REQUEST（面试作业表表级自动清理参数调优刀——5C 批表残半「调优半」承接·单迁移 expand-only·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·est live=0·Ban self-approve·alone≠dual·⛔push·pre-exec 双审待两独立外席·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·est live=0·Ban self-approve·alone≠dual·⛔push·pre-exec 双审待两独立外席·翻面权归协调方）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：战役批表下一刀起草席（协调方派单·标的=5C 组半闭注记之「autovacuum 调优半」残面）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `7a4288fb`（`git fetch` 后 `git rev-parse` 亲证=`7a4288fb137bbd162e176e3020f16b085f046bb2`）。分支 `line/autovacuum-tuning-draft`·工作树 `meetwise-iss4`（`git worktree add -B … ../meetwise-iss4 origin/feat/mysql-schema-skeleton` 本席亲立·直接落 origin tip 零 reset）。
@@ -87,7 +87,7 @@ ALTER TABLE interview_job SET (
 ## §8 停止条件与 STOP
 
 - 停止四类（现场漂移超注记级/机制不满足/越界需要/验收红不可修）：起草期均未触发（§0 亲证·侦察卡两处勘误系锚级如实登记非结论漂移）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审待两独立外席·Dual PASS≠开工·开工授权权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审待两独立外席·Dual PASS≠开工·开工授权权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（零模型外呼零 DNS 零 Key·零 env 闸零新增）·⛔push。
 
 ## §9-rev
@@ -100,7 +100,7 @@ ALTER TABLE interview_job SET (
 4. **历史提交**：提到 autovacuum 的不止起草时写的笔数（§0 写 `git log --all --oneline --grep=autovacuum` 恰 2 笔 `0a4d6901`/`b7dcce89`）。同一条检索现为 3 笔。多出来的 `9aa51852` 是文档里提到锁（`ai-docs/delivery/harness/batch5b-mig-REQUEST.md`：VALIDATE 期 SHARE UPDATE EXCLUSIVE 锁阻塞 autovacuum 时窗），不是给这张表设过存储参数。拒认领那句的原文起词是 autovacuum，不是别的字母（`queue-closeout-REQUEST.md` blob `dd0639f851e948467bffeb09c5b2f8b279086762` §1.3-1 原文起句为「autovacuum 系 DB 运维参数调优面」，§1 引文从该词末字母截成「n 系…」）。结论不变。
 
 ---
-卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草落卷即停·est live=0·⛔push ⛔merge 主线 ⛔force push 未用·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已改结构检查口径。§9-EXEC 已落码
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草落卷即停·est live=0·⛔push ⛔merge 主线 ⛔force push 未用·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已改结构检查口径。§9-EXEC 已落码【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC
 
