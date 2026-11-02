@@ -1,6 +1,6 @@
 # CACHE-OBSERVE-REPIN REQUEST — model-usage-cache-observe 零计费负臂随翻重钉小刀（COST-COLUMNS 件②-b 授权语义翻转伴生证明适配·恰 1 测试文件 4 处编辑·28 臂守恒·cache-observe-repin 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（rev2 落卷→窄域复审 PASS（`agent_e2faa007`·双审会签基线干净·可授权 EXEC）→协调方明示 EXEC 授权→**EXEC 落卷（§9 EXEC 记录·门矩阵十四门全绿·STOP 翻面**·nail/行翻面归协调方·alone≠dual·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（rev2 落卷→窄域复审 PASS（`agent_e2faa007`·双审会签基线干净·可授权 EXEC）→协调方明示 EXEC 授权→**EXEC 落卷（§9 EXEC 记录·门矩阵十四门全绿·STOP 翻面**·nail/行翻面归协调方·alone≠dual·⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：cache-observe-repin 起草席（诊断+起草双责·协调方派·承接 cost-columns 授权件②-b 的必然证伪·协调方已裁随翻重钉归后继小刀）。
 **基线**：`feat/mysql-schema-skeleton` @ `aed9ba43`（origin tip 亲证恒等·fetch 后 `git rev-parse` 双指同值·ci-wiring3 nail SSOT commit）· 分支 `line/cache-observe-repin`（建前 `git branch --list "line/cache-observe*"` 零命中·本起草席 `git worktree add ../meetwise-cob -b line/cache-observe-repin feat/mysql-schema-skeleton` 亲立·HEAD 落 `aed9ba43` 亲证）· 工作树 `meetwise-cob`（仓根同级）。
@@ -36,7 +36,7 @@
 
 1. **「词面 3→7」系口径混用（本刀最重要勘误）**：基线「词面恰三处」=**词符口径**（`invokeSrc.match(/cachedInputTokens/g)` 实测 3 词符/占 2 行）；②-b 后本席 node 同法实测=**9 词符/7 行**（ccl 树 `node -e` 亲证·分布见 §0.1 #2）——上游登记的「7」=**行数**非词符数。**重钉断言钉 9（词符·与 proof 正则同法）·若照抄 7 则重钉后仍红**。EXEC 实测≠9 即停（现场漂移类）。
 2. **「docs:check≤2136」已过时（rev2 翻新 cap 2152）**：cap 2136→**2144**（reconcile-retry sanction `4fcbeffb`+ci-wiring3 sanction `485a5601` 两笔）→**2152**（登记出处=cost-columns sanction `591d07cf`·随 cost-columns nail f417d8e7 落主线·`scripts/ai-docs/public-text-policy.mjs` :90 `MAX_FILES = 2_152`+sanction 注记亲证·翻新先例=negbend-fix §9:144 cap 2088→2104 随并线翻新形）·起草基线树（@`aed9ba43`·cap 2144 时点）`node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2143** 本席亲跑——**rev2 算术补全：并线后受管计数≈2147（base 2143+cost-columns 三新件+本卷 1）+件⑤收据 1=2148 ≤2152 ✓**（余量 4·cap sanction 权归协调方·Ban 自升）。
-3. **「词面 3 处现值」提问答**：本起草基线（`aed9ba43`·cost-columns 未并线）invoke.ts 词面仍=**3 词符/2 行**（§0.1 #2）——②-b 形现仅存 `line/cost-columns` @`d44c8307`（STOP=`executed:awaiting_post_prove_dual`·未 nail）。故本刀执行前置=cost-columns 已并主线（§4-①）。
+3. **「词面 3 处现值」提问答**：本起草基线（`aed9ba43`·cost-columns 未并线）invoke.ts 词面仍=**3 词符/2 行**（§0.1 #2）——②-b 形现仅存 `line/cost-columns` @`d44c8307`（STOP=`executed:awaiting_post_prove_dual`·未 nail）。故本刀执行前置=cost-columns 已并主线（§4-①）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 4. **起草后主线漂移登记（rev2 亲证）**：cost-columns 已 nail 入主线（merge `c6c71a64`/SSOT f417d8e7）·**执行前置已满足**（§4-①「未 nail 则停」状态解除）·链头 203→204（0204 头已主线·`git ls-tree` 亲数 204）·invoke.ts 词符 9 已在主线现树（blob `2320a0f2` 亲证·`node` 同法 9 词符）·proof.ts 仍 `245d6db8` 恒等零漂——本卷仅 cap/链头/词符三锚随主线翻新（§0.2-2/§2-11/§2-6 对届时 tip 重 pin）。
 
 ### 0.3 迁移号登记（预期零迁移）
@@ -116,7 +116,7 @@
 
 ## §4 依赖
 
-**①上游（执行前置·硬序）**：`line/cost-columns` @`d44c8307`（件②-b 语义翻转本体·STOP=`executed:awaiting_post_prove_dual`）**nail 入主线后本刀方可执行**——执行时树实测 invoke.ts 词符≠9（=3 即 cost-columns 未并）→停（顺序前提不满足·现场漂移类）。EXEC 工序 1 并主线（`git merge --no-ff feat/mysql-schema-skeleton`·禁 pull --rebase）照 negbend-fix §9 先例形。
+**①上游（执行前置·硬序）**：`line/cost-columns` @`d44c8307`（件②-b 语义翻转本体·STOP=`executed:awaiting_post_prove_dual`）**nail 入主线后本刀方可执行**——执行时树实测 invoke.ts 词符≠9（=3 即 cost-columns 未并）→停（顺序前提不满足·现场漂移类）。EXEC 工序 1 并主线（`git merge --no-ff feat/mysql-schema-skeleton`·禁 pull --rebase）照 negbend-fix §9 先例形。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 **②无同文件并发**：proof.ts 全史末触=AG-24 `724d61b5`（已在主线）·在飞交叠复核=§0.0（EXEC 立项日必做）。
 **③迁移号**：§0.3 预期零。
 **④下游**：prove 门复绿→cost-columns post-prove 双审邻面清净+nail 波门矩阵闭环；本刀自身无批表行·nail 与任何 SSOT 登记归协调方。
@@ -187,10 +187,10 @@
 
 **停止条件四类全数未触**（现场漂移=六锚+cap+链头+词符 9 全恒等+§0.0 复扫零非残枝触面；机制不满足=门 0 恰 27 绿 1 红臂一+件③ 新断言 GREEN；越界需要=修法恒等恰 1 测试文件面；验收红不可修=十四门全绿）·**§1 红事实结论/§5 Ban/pins 十一值/§8 停止条件四类/§1-修法定稿文本面零改零翻转**。
 
-**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与批表/行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口·post 双审两外席待派 · nail 与批表/行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **P2 勘正注记（nail 随卷·post 双审会签 PASS 双认授权·append 注记形不洗·上段原文保全不动）**：偏离分类归口以收据 §⑤ 四项清单为准。
 
 ---
 
-*CACHE-OBSERVE-REPIN REQUEST · 2026-10-14 起草·rev2 落卷同日（六项修订折入·§9） · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十四门全绿·post 双审待派·nail/行翻面归协调方）** · base `feat/mysql-schema-skeleton` @`aed9ba43`（origin tip 亲证恒等·起草时 docs:check EXIT=0 scanned 2143≤cap 2144 本席亲跑·rev2 cap 翻新 2152=sanction `591d07cf` 随 cost-columns nail f417d8e7 落主线·§0.2-2）· 分支 `line/cache-observe-repin` · 工作树 `meetwise-cob`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=cost-columns E3 四红第三红（卷内矛盾上报裁决原文）+协调方派单 brief（裁随翻重钉归后继小刀）· 诊断=件②-b（settle/validUsage cached 贯通）必然证伪负臂臂一前提——invoke.ts 词面 base 3 词符/2 行（:75/:738）→②-b 9 词符/7 行（:76/:481-:483×4/:744×2/:1044/:1151）·上游「词面 3→7」系行口径混用如实改正（§0.2-1·**重钉钉 9 非 7**）·臂四断言存活唯文本前提失真·臂二/臂三全绿零触·AG-24 计数钉 1→3 先例形（ag24 卷 :215/:227）· 修法=候选甲恰 1 文件 4 处编辑（头注 :13+块注释 :165+臂一改形断言 3→4 子句计数钉 9+settle 形钉恰 2+臂四文本随翻断言字节恒等）·28 臂守恒·候选乙（容忍双态）候选丙（触产品码）否决在卷· 门矩阵十四门（改前 run 27绿1红+prove 28/28 复绿+邻面 ag11 12/model-op 四门/neg 687/interview 57+migrate 链届时 204+drift+uniqueness+typecheck 8/8+lint 五值恰等+docs:check≤2152 红停（rev2 翻新·§0.2-2）+markers+diff 恰 2 tracked+卫生）· 执行前置=cost-columns nail 入主线（词符 9 在场）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*
+*CACHE-OBSERVE-REPIN REQUEST · 2026-10-14 起草·rev2 落卷同日（六项修订折入·§9） · **`executed:awaiting_post_prove_dual`（§9 EXEC 记录·门矩阵十四门全绿·post 双审待派·nail/行翻面归协调方）** · base `feat/mysql-schema-skeleton` @`aed9ba43`（origin tip 亲证恒等·起草时 docs:check EXIT=0 scanned 2143≤cap 2144 本席亲跑·rev2 cap 翻新 2152=sanction `591d07cf` 随 cost-columns nail f417d8e7 落主线·§0.2-2）· 分支 `line/cache-observe-repin` · 工作树 `meetwise-cob`（本起草席立·建前 branch+worktree 双查不存在）· 立项出处=cost-columns E3 四红第三红（卷内矛盾上报裁决原文）+协调方派单 brief（裁随翻重钉归后继小刀）· 诊断=件②-b（settle/validUsage cached 贯通）必然证伪负臂臂一前提——invoke.ts 词面 base 3 词符/2 行（:75/:738）→②-b 9 词符/7 行（:76/:481-:483×4/:744×2/:1044/:1151）·上游「词面 3→7」系行口径混用如实改正（§0.2-1·**重钉钉 9 非 7**）·臂四断言存活唯文本前提失真·臂二/臂三全绿零触·AG-24 计数钉 1→3 先例形（ag24 卷 :215/:227）· 修法=候选甲恰 1 文件 4 处编辑（头注 :13+块注释 :165+臂一改形断言 3→4 子句计数钉 9+settle 形钉恰 2+臂四文本随翻断言字节恒等）·28 臂守恒·候选乙（容忍双态）候选丙（触产品码）否决在卷· 门矩阵十四门（改前 run 27绿1红+prove 28/28 复绿+邻面 ag11 12/model-op 四门/neg 687/interview 57+migrate 链届时 204+drift+uniqueness+typecheck 8/8+lint 五值恰等+docs:check≤2152 红停（rev2 翻新·§0.2-2）+markers+diff 恰 2 tracked+卫生）· 执行前置=cost-columns nail 入主线（词符 9 在场）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · ⛔push · STOP*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

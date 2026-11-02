@@ -1,6 +1,6 @@
 # CONFIG-REJECT-GUIDANCE REQUEST（生产数据库配置拒绝修复指引刀——`production_local_database_host` 启动错误附人读修复指引 + 精简 CD 部署文档写明云库前提 · 拒绝语义零改 · 零迁移 · 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`·史录保留·2026-10-22 落卷·pre-exec 双审第二轮窄域双 PASS→协调方授权 EXEC 落码已行使·EXEC 落码毕见 §9-EXEC·est live=0·Ban self-approve·alone≠dual·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`·史录保留·2026-10-22 落卷·pre-exec 双审第二轮窄域双 PASS→协调方授权 EXEC 落码已行使·EXEC 落码毕见 §9-EXEC·est live=0·Ban self-approve·alone≠dual·⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #116 merged 5123019e5（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：批表下一刀起草席（#249 · P4·运维/文档）。
 **基线**：`origin/main` @ `65a9c40f407eb6a7e5f04bc627254cb20fc1faf6`（`git rev-parse` 亲证恰等）。分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`（派单给定·届树亲证在位）。
@@ -85,9 +85,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类（现场漂移超注记级/机制不满足/越界需要/验收红不可修）——**起草期均未触发**（§0.2 勘正均注记级·前刀互补零撞·在飞零交叠·批表不可读已如实登记并以仓内承登链定性）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头＋本节＋卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·pre-exec 双审第二轮窄域双 PASS→协调方授权 EXEC 落码已行使（§9-EXEC）·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头＋本节＋卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·pre-exec 双审第二轮窄域双 PASS→协调方授权 EXEC 落码已行使（§9-EXEC）·翻面权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #116 merged 5123019e5（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（EXEC 面＝1 函数签名＋2 调用位文案＋6 锚断言＋1 文档段·纯本地静态门·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=`executed:awaiting_post_prove_dual`**（与 Status 头/§8 同值第三处·前值史录保留）·EXEC 落码毕·post prove 双审待派·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（与 Status 头/§8 同值第三处·前值史录保留）·EXEC 落码毕·post prove 双审待派·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #116 merged 5123019e5（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev rev 修订注记（pre-exec 双审 FAIL+PASS 两席合并清单·席1 PASS（2×P2）＋席2 FAIL（P1×1＋P2×3）·四条届树亲证成立全落卷·零跳过）
 
@@ -124,7 +124,7 @@
 
 ---
 
-卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual` 史录保留）三处同值（Status 头/§8/本注）·2026-10-22 落卷·基线 `origin/main` `65a9c40f`·分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`·批表原文不可读（iCloud 逐出·读取挂起止读）以仓内承登链三处定性·前刀 config-reject-local 互补承证·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。**rev 2026-10-22**：pre-exec 双审两席合并清单四条修订入 §9-rev（门② ha6:prove 基线即红三 FAIL 臂承登协议勘误＋`invalidDatabaseConfig` 计数 17→15 含定义 16＋rag-control createPool 行锚 :38→:36＋门④ 大帽计数器注记·四条全届树亲证零跳过）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=§9-rev 落点复验·alone≠dual·Ban self-approve·STOP 三处同值维持不变。**EXEC 2026-10-22**：协调方授权开工·EXEC 落码毕五 tracked 一体 commit（落点/门值/偏离见 §9-EXEC）·STOP 三处翻 `executed:awaiting_post_prove_dual`（前值史录保留）·post prove 双审待派。
+卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual` 史录保留）三处同值（Status 头/§8/本注）·2026-10-22 落卷·基线 `origin/main` `65a9c40f`·分支 `line/config-reject-guidance-draft`·工作树 `meetwise-iss249`·批表原文不可读（iCloud 逐出·读取挂起止读）以仓内承登链三处定性·前刀 config-reject-local 互补承证·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。**rev 2026-10-22**：pre-exec 双审两席合并清单四条修订入 §9-rev（门② ha6:prove 基线即红三 FAIL 臂承登协议勘误＋`invalidDatabaseConfig` 计数 17→15 含定义 16＋rag-control createPool 行锚 :38→:36＋门④ 大帽计数器注记·四条全届树亲证零跳过）·rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=§9-rev 落点复验·alone≠dual·Ban self-approve·STOP 三处同值维持不变。**EXEC 2026-10-22**：协调方授权开工·EXEC 落码毕五 tracked 一体 commit（落点/门值/偏离见 §9-EXEC）·STOP 三处翻 `executed:awaiting_post_prove_dual`（前值史录保留）·post prove 双审待派。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #116 merged 5123019e5（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC 记录（EXEC 落码席·2026-10-22·协调方授权开工后届树行使·本节由 EXEC 席 append·上文零字洗）
 
@@ -162,4 +162,4 @@
 
 ### EXEC-4 后继
 
-- STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留于翻面处）——待 post prove 双审两独立外席·翻面权归协调方·alone≠dual·Ban self-approve·⛔push。
+- STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留于翻面处）——待 post prove 双审两独立外席·翻面权归协调方·alone≠dual·Ban self-approve·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #116 merged 5123019e5（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

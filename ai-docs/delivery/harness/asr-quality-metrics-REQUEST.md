@@ -1,6 +1,6 @@
 # ASR-QUALITY-METRICS REQUEST（#73 批3 ASR 质量指标真实化刀——Asr 接口结构化质量载荷+qwen-audio 诚实申报 unavailable+裁决映射 low 分支就位·'low' 生产者缺位正身·零迁移·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（前值史录：`draft:awaiting_pre_exec_dual` 起草 2026-10-22 落卷·pre-exec 双审三轮（双 FAIL→席1 FAIL→双 PASS）·协调方授权 EXEC 落码 2026-10-22 完成·十二门原值见 §9-EXEC·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（前值史录：`draft:awaiting_pre_exec_dual` 起草 2026-10-22 落卷·pre-exec 双审三轮（双 FAIL→席1 FAIL→双 PASS）·协调方授权 EXEC 落码 2026-10-22 完成·十二门原值见 §9-EXEC·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #118 merged 508450c14（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：meetwise 批表下一刀起草席（标的 **#73（批3）**：ASR 置信度/时长/语种不返回不落库，评分无法区分转写错误与答错——质量指标真实化）。
 **基线**：`origin/main` @ `65a9c40f`（派单令要求届 tip≥`acf046db`·`git fetch origin` 后 `git rev-parse` 亲证 `65a9c40f407eb6a7e5f04bc627254cb20fc1faf6`·其含 `acf046db` 与 2338 帽联动笔 `848d7a84` 双祖先）。分支 `line/asr-quality-draft`·工作树 `meetwise-iss73`。
@@ -218,4 +218,4 @@ pin 入卷：**required**（`z.literal('unavailable')` 申报常量·与 `Transc
 
 **偏离清单（全量如实录）**：①门⑤行使路径经隔离 runner（上引）；②门⑦首跑红→出站清单补注册（矩阵外 +2 tracked·门⑫口径 20 拆录）；③门⑧首跑红→门② proof 断言 widened 修法；④门⑨两超帽→Map 构形/headers array 形等价修；⑤门⑩ scanned 届值 2334（预申明 2332）；⑥工作树 node_modules 缺席（卷「依赖已装」与届树不符）——`pnpm install --frozen-lockfile --prefer-offline` EXIT=0 装齐后各门方可行使（lockfile 零字节零触）；⑦新 prove 文件系既有 dashscope-http-voice 消费面被出站静态清单扫中（非新增外呼路径·est live=0 维持）。**Ban 面复核**：sha256 摘要管线/原文零落零回退亲证·730d03b0 三界零回退·`'voice_low_quality'` 枚举与 `:151`/:451 low 臂零触·scoring-aggregation.ts/disabledAsr/TTS 面零触·graph 内核零触（voice-turn `.text` 解包后喂图仍纯文本）·SSOT/LEDGER/他卷零触·⛔push ⛔merge 零违。markers 直扫改动集 0 命中。
 
-**STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头/§8/本注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·post-prove 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·est live=0·actualSpendCny=null。
+**STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头/§8/本注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·post-prove 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·est live=0·actualSpendCny=null。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #118 merged 508450c14（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

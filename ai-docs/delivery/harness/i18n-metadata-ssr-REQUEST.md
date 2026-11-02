@@ -1,6 +1,6 @@
 # I18N-METADATA-SSR REQUEST（UC003 i18n 漏项迁移刀 · SSR 元数据与漏项四文件级收口 = layout metadata 三锚 generateMetadata + resume meta title + not-found 四词 + loading/Spinner 加载面 + messages 键增 + UC003 spec 词条联动定谳 · 零迁移 · 单日级）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（rev1 起草席落卷→rev2 pre-exec 席1 八项落卷→**EXEC 席九文件落码+门矩阵落卷+§9-append（2026-10-16·协调方 EXEC 授权）**·post 双审两外席待派·alone≠dual·nail/行翻面归协调方·⛔push）。
+**Status**: **`executed:awaiting_post_prove_dual`**（rev1 起草席落卷→rev2 pre-exec 席1 八项落卷→**EXEC 席九文件落码+门矩阵落卷+§9-append（2026-10-16·协调方 EXEC 授权）**·post 双审两外席待派·alone≠dual·nail/行翻面归协调方·⛔push）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：I18N-METADATA-SSR 漏项迁移刀 REQUEST 起草席（协调方派单 brief：UC003-arm4 §6 漏项登记定谳·真实 i18n 漏项 4 文件级——①`apps/web/app/layout.tsx` metadata 三锚 ②`apps/web/app/resume/page.tsx:17` static title ③`apps/web/app/not-found.tsx:7-11` 四词 ④加载面 `loading.tsx:6`+`Spinner.tsx:7`·修法方向=UC003-arm4 §6 候选 ii「generateMetadata 读 locale 供 per-locale title/description/og:locale+词面迁 messages+t() 替换」。docs-only 起草卷·⛔push·⛔改产品码）。
 
@@ -189,7 +189,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款 + 裁决项 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。**（EXEC 2026-10-16 翻面·原 `draft:awaiting_pre_exec_dual` 演进如实注零洗——九文件落码+门矩阵落卷见 §9-append·post 双审两外席待派。）起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（授权出处=UC003-arm4 §6 漏项登记定谳在案·本卷非授权本身）；③EXEC 立项**不得改 §1-修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.3 两处锚勘误如实在案）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。**（EXEC 2026-10-16 翻面·原 `draft:awaiting_pre_exec_dual` 演进如实注零洗——九文件落码+门矩阵落卷见 §9-append·post 双审两外席待派。）起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（授权出处=UC003-arm4 §6 漏项登记定谳在案·本卷非授权本身）；③EXEC 立项**不得改 §1-修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.3 两处锚勘误如实在案）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项（六项·各带推荐）**：
 
@@ -254,7 +254,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **字段⑦·pins 零翻声明**：十一值零翻——haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · **actualSpendCny=null**。§1-修法六件/§1.3 否决十一条/§5 Ban/pins/§8 停止条件四类零改零翻转（P2-α/γ/δ 系协调方随令勘正·非 EXEC 擅改）；停止条件四类全数未触（基线漂移=并线后重 pin 两锚照实·S2 212→224 系本刀键增非漂移；越界=diff 恰 9 tracked/allowlist·proof·locale 管道零字节；门红=全绿；环境受阻=主门 LIVE 特授权通道在位全绿）。
 
-**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口（并线 `6f8d82b3`+九文件落码+主门 LIVE 四臂绿 UNKNOWN=0）· post 双审两外席待派 · nail 与批表行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**
+**STOP · `executed:awaiting_post_prove_dual` · 码面/门矩阵 EXEC 侧已收口（并线 `6f8d82b3`+九文件落码+主门 LIVE 四臂绿 UNKNOWN=0）· post 双审两外席待派 · nail 与批表行翻面权归协调方/主会话批边界 · alone≠dual · ⛔push**【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-append-2 · post 双审 P2 勘误注记（nail 席随卷落卷·2026-10-16·append 注记形·§0-§9-append 上文原文零字节改·授权=post 双审会签 PASS 席1 agent_a18c6540+席2 agent_91290696 双认·协调方 nail 令）
 
