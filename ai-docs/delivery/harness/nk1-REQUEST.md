@@ -1,13 +1,13 @@
 # FLKWARM REQUEST — 隐私授权证明暖库重跑夹具隔离起草卷（`GAP-PRIV-AUTHZ-PROVE-FLAKE` 可选后续刀 · fixture 每跑命名空间 + W-0…W-2b 四臂 · docs-only 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本 cap 步进/四联动点）· 产品码/迁移/runner/既有 proof 零触 · pre-exec 双审两独立外席 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔动主仓 · 三处钉：本行 + §8 + 卷尾 · 同值）
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 2026-11-02 rev r1 dual 回炉修订落卷（两独立外席 FAIL 高度收敛·并集全消化：必改四条 + 精确修六条·留痕见 §10）· 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本 cap 注记 r1 重锚预登·**数值本树 2462 恰等保持**·rebase 对届后改 2464）· 产品码/迁移/runner/既有 proof 零触 · pre-exec 双审两独立外席 BOTH PASS + 协调方明示 EXEC 授权前不得落码 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔动主仓 · 三处钉：本行 + §8 + 卷尾 · 同值）
 
 **席位**：meetwise 隐私授权证明夹具隔离起草席（docs-only 起草 · 协调方派单「剩余 local keyless 小刀逐条对账后择优」 · ⛔push ⛔动主仓）。
-**基线**：`origin/main` @ **`5c94266b1`**（full `5c94266b15ceab472b0a5897bc7a2f34ea6c0294` = PR #187 `line/regw-draft` 并线点 · `git fetch origin` 本 turn EXIT=0 · 本 worktree `meetwise-nk1` 由 `git worktree add ... -b line/nk1-draft origin/main` 亲立 · HEAD 落 `5c94266b1` 亲证）。起草前本树三门亲跑：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2461 = cap `2_461` 恰等零余量**（`scripts/ai-docs/public-text-policy.mjs:282` `const MAX_FILES = 2_461` 亲读）；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**；改动集 markers 零命中（词面运行时组装·本卷不复抄）。**本卷 +1 受管件必越** ⇒ 起草 commit 即行使 **CAP-SANCTION-2462（cap 2461→2462 恰等零多放）**，四联动点在 §3-C2/C3 逐点登记；落卷后复跑 `scanned 2462 = cap 2462` 亲证（§9）。
+**基线**：`origin/main` @ **`5c94266b1`**（full `5c94266b15ceab472b0a5897bc7a2f34ea6c0294` = PR #187 `line/regw-draft` 并线点 · `git fetch origin` 本 turn EXIT=0 · 本 worktree `meetwise-nk1` 由 `git worktree add ... -b line/nk1-draft origin/main` 亲立 · HEAD 落 `5c94266b1` 亲证）。起草前本树三门亲跑：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2461 = cap `2_461` 恰等零余量**（`scripts/ai-docs/public-text-policy.mjs:282` `const MAX_FILES = 2_461` 亲读）；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**；改动集 markers 零命中（词面运行时组装·本卷不复抄）。**本卷 +1 受管件必越** ⇒ 起草 commit 即行使 **CAP-SANCTION-2462（cap 2461→2462 恰等零多放）**，四联动点在 §3-C2/C3 逐点登记；落卷后复跑 `scanned 2462 = cap 2462` 亲证（§9）。**r1 重锚（2026-11-02）**：届 tip 已进至 `origin/main` @ **`2e808c9e3`**（full `2e808c9e3f55c069ac83f99ce95e59346dd52087` = PR #188 quizdx 并线 · main 侧两 policy 脚本 cap 2461→2463·届扫 2463·`public-text-policy.mjs` `const MAX_FILES = 2_463` 亲读·注记已承「在飞 nk1-draft 承 2462 未落 main 如实采」）⇒ 本支 rebase 对届后 union = main 届扫 2463 + 本卷 REQUEST 1 = **2464** ⇒ 承 **CAP-SANCTION-2464（恰等零多放 · cap 随届值如实采=本卷附加钉唯一豁免项）** · rebase 冲突 dual-keep 预案见 §3-C2/C3；本树（rebase 前）两脚本数值 2462 恰等保持·r1 后三门复跑见 §9。
 
-**必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/delivery/gap-bug-backlog.md:68`（本刀立项 SSOT 行·原文见「认领核对」）→ `ai-docs/delivery/execution-master-checklist.md`（`:556` 历史「本 nail 不跑」条款 · `:636`/`:645` 「future teed first run requires a new REQUEST」条款 · `:937` CITE_EXIT 条款）→ `ai-docs/delivery/e2e-requirement-coverage-matrix.md:132`（UC-052 聚合行含 `GAP-PRIV-AUTHZ-PROVE-FLAKE OPEN mitigated/cause-unknown`）→ `ai-docs/delivery/harness/gap-priv-authz-prove-flake-teed-oneshot.md:21`-`:52`（teed 收据形 + `PROCESS_EXIT` 约定）→ 机制源 `packages/db/test/privacy-authorization.proof.ts`（`:22` admin 池 · `:54`-`:55` `nextHash` · `:57`-`:62` `insertInterview` · `:63`-`:71` `insertRequest` · `:72`-`:77` `insertTarget` · `:80`-`:96` `insertSnapshotMismatch` · **`:118`-`:128` 主入口/首批种子** · `:162` 未知 jti 字面 · `:165`-`:170` 过期快照直插 · `:188`-`:192`/`:206`-`:207`/`:214`-`:215`/`:221`-`:222`/`:228`-`:229`/`:235`-`:236`/`:242`-`:246`/`:259`-`:260`/`:270`-`:271`/`:278`-`:279`/`:291`-`:292` D 段固定 id 族 · `:307` 内联 jti 字面 · `:312`-`:316` G 段 · `:329` `ivH2` · **`:366` 外来 interview 值字面** · `:382`-`:386` F1 段 · `:421`/`:427` M 段 · `:455` 内联 jti 字面 · `:464`-`:468` 租约段 · `:485`-`:492` 收尾）→ `packages/db/migrations/0091_privacy_authorization_issuer.sql`（`56`-`:78` snapshot 表 · **`:58` `jti` UNIQUE** · `84`-`:95` receipt 表 · **`:86`-`:87` 双 FK `ON DELETE RESTRICT`** · **`:94` `UNIQUE (target_id, receipt_kind)`**）→ `packages/db/migrations/0047_checkpoint_privacy_fence.sql`（`:34` `idempotency_key_hash` · `:40` `UNIQUE (owner_user_id, idempotency_key_hash)` · `:53` `request_id` RESTRICT）→ `packages/db/migrations/0001_baseline.sql:18`-`:25`（`interview.id text PRIMARY KEY`）→ `0048` `:47` / `0092` `:123` / `0096` `:237`（同族 RESTRICT 引用者）→ `scripts/run-e2e-isolated.mjs`（`:2173` `privacy-authorization:prove:raw` 源摘要清单 · `:2878` 允许清单 · `:3719`-`:3720` 命令映射）→ `packages/db/package.json:50`（`prove:privacy-authorization`）→ `package.json:471`/`:474` → 两 policy 面（`public-text-policy.mjs:282` · `public-text-policy.proof.mjs:452`/`:459`/`:474`/`:477` 四联动点）。
+**必读清单（EXEC 立项前逐件亲读·显式路径）**：`AGENTS.md` → `ai-docs/delivery/gap-bug-backlog.md:68`（本刀立项 SSOT 行·原文见「认领核对」）→ `ai-docs/delivery/execution-master-checklist.md`（`:556` 历史「本 nail 不跑」条款 · `:636`「Ban re-running the prove in this knife」/ **`:637`**「future teed first run requires a new REQUEST」条款（r1 行号订正：旧稿 `:636` 实为 Ban re-running 行）· `:645` attempt-2 teed 收据条款 · `:937` CITE_EXIT 条款）→ `ai-docs/delivery/e2e-requirement-coverage-matrix.md:132`（UC-052 聚合行含 `GAP-PRIV-AUTHZ-PROVE-FLAKE OPEN mitigated/cause-unknown`）→ `ai-docs/delivery/harness/gap-priv-authz-prove-flake-teed-oneshot.md:21`-`:52`（teed 收据形 + `PROCESS_EXIT` 约定）→ 机制源 `packages/db/test/privacy-authorization.proof.ts`（`:22` admin 池 · `:54`-`:55` `nextHash` · `:57`-`:62` `insertInterview` · `:63`-`:71` `insertRequest` · `:72`-`:77` `insertTarget` · `:80`-`:96` `insertSnapshotMismatch` · **`:118`-`:128` 主入口/首批种子** · `:162` 未知 jti 字面 · `:165`-`:170` 过期快照直插 · `:188`-`:192`/`:206`-`:207`/`:214`-`:215`/`:221`-`:222`/`:228`-`:229`/`:235`-`:236`/`:242`-`:246`/`:259`-`:260`/`:270`-`:271`/`:278`-`:279`/`:291`-`:292` D 段固定 id 族 · `:307` 内联 jti 字面 · `:312`-`:316` G 段 · `:329` `ivH2` · **`:366` 外来 interview 值字面** · `:382`-`:386` F1 段 · `:421`/`:427` M 段 · `:455` 内联 jti 字面 · `:464`-`:468` 租约段 · `:485`-`:492` 收尾）→ `packages/db/migrations/0091_privacy_authorization_issuer.sql`（`56`-`:78` snapshot 表 · **`:58` `jti` UNIQUE** · `84`-`:95` receipt 表 · **`:86`-`:87` 双 FK `ON DELETE RESTRICT`** · **`:94` `UNIQUE (target_id, receipt_kind)`**）→ `packages/db/migrations/0047_checkpoint_privacy_fence.sql`（`:34` `idempotency_key_hash` · `:40` `UNIQUE (owner_user_id, idempotency_key_hash)` · `:53` `request_id` RESTRICT）→ `packages/db/migrations/0001_baseline.sql:18`-`:25`（`interview.id text PRIMARY KEY`）→ `0048` `:47` / `0092` `:123` / `0096` `:237`（同族 RESTRICT 引用者）→ `scripts/run-e2e-isolated.mjs`（`:2173` `privacy-authorization:prove:raw` 源摘要清单 · `:2878` 允许清单 · `:3719`-`:3720` 命令映射）→ `packages/db/package.json:50`（`prove:privacy-authorization`）→ `package.json:471`/`:474` → 两 policy 面（`public-text-policy.mjs` CAP-SANCTION 链区 + `MAX_FILES` 行 · `public-text-policy.proof.mjs` 链区四联动点——本树 2462 形 / rebase 对届后 2464 形·§3-C2/C3）。
 
-**立项出处（不自建 SSOT 行——行翻面权归协调方）**：① `gap-bug-backlog.md:68` 行内**已登记的独立后继刀**原文：「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用）；② 同行的确定性成因 `**warm cause-pinned**（机理级 · 确定性 2/2）：复用库/残留行 × 固定 id（`…0000000000a1`/`…a2`）裸 INSERT 无 cleanup（`privacy-authorization.proof.ts:57-62`/`:125-126`）—— E-WARM-1 同库第二遍 designed-red + E-WARM-2 预置行首跑红」；③ `execution-master-checklist.md:636`-`:645`「A future teed first run (log contains `PROCESS_EXIT` from the start) **requires a new REQUEST**」——本卷即该 REQUEST（§4 收据形照办）；④ `e2e-requirement-coverage-matrix.md:132` 同 GAP 在册（`OPEN`·`mitigated/cause-unknown`）；⑤ 协调方派单令（「剩余小刀全枚举→择优→起草」）。
+**立项出处（不自建 SSOT 行——行翻面权归协调方）**：① `gap-bug-backlog.md:68` 行内**已登记的独立后继刀**原文：「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用）；② 同行的确定性成因 `**warm cause-pinned**（机理级 · 确定性 2/2）：复用库/残留行 × 固定 id（`…0000000000a1`/`…a2`）裸 INSERT 无 cleanup（`privacy-authorization.proof.ts:57-62`/`:125-126`）—— E-WARM-1 同库第二遍 designed-red + E-WARM-2 预置行首跑红」；③ `execution-master-checklist.md:637`（并列 `:636`「Ban re-running the prove in this knife」·r1 行号订正）「A future teed first run (log contains `PROCESS_EXIT` from the start) **requires a new REQUEST**」——本卷即该 REQUEST（§4 收据形照办）；④ `e2e-requirement-coverage-matrix.md:132` 同 GAP 在册（`OPEN`·`mitigated/cause-unknown`）；⑤ 协调方派单令（「剩余小刀全枚举→择优→起草」）。
 
 ---
 
@@ -18,9 +18,9 @@
 | backlog 行本体 | `gap-bug-backlog.md:68`（blob `dccc7f0d` 960 行）单行在：`**OPEN** · status **mitigated/cause-unknown**` + 「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用）+ 「保持 **OPEN** · **mitigated/cause-unknown**. Record every attempt EXIT. Do not treat v2 20/20 or a later single green as closing this row」「**warm cause-pinned + cold cause-partially-pinned（stays OPEN · Ban close）**」 | **开**（本刀只修 warm 面·行不关） |
 | 确定性证据（warm E-WARM-2） | `receipts/archive/2026-09-batch23/receipts/uc052-pool-role-leak/logs/warm-2.log`：`:6` `error: duplicate key value violates unique constraint "interview_pkey"` · `:13` `code: '23505'` · `:14` `detail: 'Key (id)=(00000000-0000-4000-8000-0000000000a1) already exists.'` · `:24` `constraint: 'interview_pkey'`（四行亲读） | **现形**（固定 id 与残留行同键） |
 | 成因码面 | `privacy-authorization.proof.ts:57`-`:62` 裸 `INSERT INTO interview(...)` 无冲突处理 · `:125`-`:126` 固定 `…a1`/`…a2` · `:127`-`:128` 首两发种子 | **现形**（与登记逐字一致） |
-| 同族碰撞面（登记未列全） | `:63`-`:71` `insertRequest`（`privacy_erasure_request.id` 主键）· `:72`-`:77` `insertTarget` · `:165`-`:170` 固定 jti `…e1` 直插（`0091:58` `jti UNIQUE`）· `:307`/`:455` 内联固定 jti `…f1`/`…f2` | **现形**（第二跑必撞，非仅 `…a1`） |
+| 同族碰撞面（登记未列全） | `:63`-`:71` `insertRequest`（`privacy_erasure_request.id` 主键）· `:72`-`:77` `insertTarget` · `:165`-`:170` 固定 jti `…e1` 直插（`0091:58` `jti UNIQUE`）· `:307`/`:455` 内联固定 jti `…f1`/`…f2`（**拒绝路径·不落库**·r1 归因更正：换 fx 属防御性收口） | **现形**（写库点第二跑必撞，非仅 `…a1`；`…f1`/`…f2` 非撞键面） |
 | 暖库不可复跑的另一半 | `0091:94` `UNIQUE (target_id, receipt_kind)`：receipt 行由**产品函数** `recordDeletionReceipt`/`privacy_resolve_deletion_receipt` 写（`privacy-authorization.proof.ts:14` import 面亲证），fixture 侧无法 upsert ⇒ 仅 upsert 父行不足以暖库复跑（§1.1 甲案否决依据） | **现形** |
-| 历史禁跑条款 | `execution-master-checklist.md:556`「This nail does not run `pnpm privacy-authorization:prove`」· `:636`「Ban re-running the prove in this knife」——两条均为**该届刀面**约束，且 `:636`-`:645` 明示「future teed first run **requires a new REQUEST**」 | **非永久禁令**（本卷逐条兑现） |
+| 历史禁跑条款 | `execution-master-checklist.md:556`「This nail does not run `pnpm privacy-authorization:prove`」· `:636`「Ban re-running the prove in this knife」——两条均为**该届刀面**约束，且 `:637` 明示「future teed first run **requires a new REQUEST**」（r1 行号订正） | **非永久禁令**（本卷逐条兑现） |
 | matrix 在册 | `e2e-requirement-coverage-matrix.md:132`（UC-052 聚合行）：`**GAP-PRIV-AUTHZ-PROVE-FLAKE OPEN** mitigated/cause-unknown` | **开**（本卷零翻面） |
 | 在飞/同名复核 | `git branch --list "line/nk1*"` 恰本席一支；`ls ai-docs/delivery/harness/ | grep -i "nk1|flkwarm"` 落卷前零命中 → 落卷后唯一同名卷=本卷；`grep -rn "GAP-PRIV-AUTHZ-PROVE-FLAKE"` 全树命中面=backlog `:68`+checklist 五节+matrix `:132`+harness 一件+本卷 | **零第二认领卷** |
 
@@ -34,7 +34,7 @@
 
 1. **简报项① UC-003 两缺位码映射（P2）＝已闭**。`git log origin/main` 亲证 PR **#186**（`Merge pull request #186 from miaole/line/uc3m-draft`）并线，收官两 commit `a50bfbc99`（「UC3M P2×14 合并登记十项并收官翻面 closed」）+ `45442be29`（「补登 UC3M 兑现锚与 PR 号」）；矩阵 `:114` 与 case-matrix `:109` 均带 2026-10-30 注记（`18⊆22`、proof 139 断言、blob `1b1324f6`）。**本卷零认领**。
 2. **简报项② `GAP-UC028-TRUTH-BLOCK-E2E`＝已闭**。矩阵 `:127` 2026-10-27 协调方行裁注记逐字「`GAP-UC028-RECON`+`GAP-UC028-TRUTH-BLOCK-E2E` 就此翻面……TRUTH-BLOCK-E2E 同批翻面=同一 closed REQUEST 共同闭合证据·case-③ 对照臂承接」；`ai-docs/delivery/harness/uc028-e2e-REQUEST.md:3` Status **`closed`**（2026-10-26 post 双审双 PASS 会签对账翻面）。**本卷零认领**。
-3. **简报项③ SSE QUIZ-DX-HTTP**：EXEC 已行使（worktree `meetwise-quizdx` `ecfe43bb9` · 主门 62/62 · 状态 `executed:awaiting_post_prove_dual` · **未并 origin/main**）。**本卷零认领**（并线/post 归其自身链）。
+3. **简报项③ SSE QUIZ-DX-HTTP**：EXEC 已行使且 **r1 期已并 `origin/main`**（届 tip `2e808c9e3` = `Merge pull request #188 from miaole/line/quizdx-draft` · main 侧两 policy 脚本 cap 2461→2463（`CAP-SANCTION-2463` QUIZDX 收官并线注记·届扫 2463·亲读）·注记并承「在飞 nk1-draft 承 2462（`4d97b9f83`）未落 main 如实采」）。**本卷零认领**（post 归其自身链；cap 联动见 §3-C2/C3 r1 重锚）。
 4. **`L-01`（`apps/web/app/privacy/actions.ts:35` zh 硬编码）＝stale**。现值：`:6` `import { getTranslations } from 'next-intl/server';` · `:26` `const t = await getTranslations({ locale: await privacyPreviewLocale(), namespace: 'privacyPreview' });` · `:44` `return { error: t('networkError') };`；`apps/web/messages/zh.json:235`/`en.json:235` 双侧 `privacyPreview` 段在位。**已修，不得再立刀**。
 5. **`L-08`（`db-money3` P6 白名单旧形）＝stale**。现值 `packages/db/test/db-money3.proof.ts:344`-`:404` 已是 `fuseRe`/`isFuse`/`validateRe` 新形（`:350` 熔单 ALTER 正则 · `:395`/`:397` P6-1/P6-2 断言），对应 `0149` 重制形。**修法已落，仅余台账勘误**（归另刀·本卷零触）。
 
@@ -55,7 +55,7 @@
 | `packages/db/package.json` | `2566537c`（117） | `:50` `"prove:privacy-authorization": "tsx test/privacy-authorization.proof.ts"` |
 | `package.json` | `c5e3ce69`（781） | `:471` `privacy-authorization:prove`（runner 包装）· `:474` `privacy-authorization:prove:raw` |
 | `ai-docs/delivery/gap-bug-backlog.md` | `dccc7f0d`（960） | **`:68` 本刀立项行**（原文见「认领核对」） |
-| `ai-docs/delivery/execution-master-checklist.md` | `2884be76`（4503） | `:556`/`:636`/`:645`/`:937` 四段历史条款（「本 nail 不跑」/「future teed first run requires a new REQUEST」/CITE_EXIT） |
+| `ai-docs/delivery/execution-master-checklist.md` | `2884be76`（4503） | `:556`/`:636`/`:637`/`:645`/`:937` 五段历史条款（「本 nail 不跑」/「Ban re-running」/「future teed first run requires a new REQUEST」/attempt-2 teed 收据/CITE_EXIT·r1 行号订正 `:636`→`:637` 归位） |
 | `ai-docs/delivery/e2e-requirement-coverage-matrix.md` | `1c35605f`（522） | `:132` UC-052 聚合行：`GAP-PRIV-AUTHZ-PROVE-FLAKE OPEN mitigated/cause-unknown` |
 | `ai-docs/delivery/harness/gap-priv-authz-prove-flake-teed-oneshot.md` | `ee82a010`（137） | `:21` 「本刀不修根因」· `:30`/`:33` teed 形（`tee -a` + `printf '\nPROCESS_EXIT=%s\n' "$rc"`）· `:40`-`:45` 「恰好一次跑·末行 `PROCESS_EXIT=<n>`·JSON `exit` 同值」 |
 | `receipts/archive/2026-09-batch23/receipts/uc052-pool-role-leak/logs/warm-2.log` | `4ce66da1`（29） | `:6`/`:13`/`:14`/`:24` 23505 `interview_pkey` + `…a1` 残留行（本刀确定性成因证据） |
@@ -65,25 +65,27 @@
 
 ### 0.3 暖库碰撞链现形（逐行 · 第二跑与"预置行首跑"同形）
 
-`interview_id` 为 `text PRIMARY KEY`（`0001:18`-`:19`），`privacy_erasure_request.id`/`privacy_deletion_target.id` 为 `uuid PRIMARY KEY`，`privacy_authorization_snapshot.jti` 为 `text UNIQUE`（`0091:58`）。本 proof 全部 **53 处**固定字面（50 处为插入行主键 + 3 处值域 id）逐点见 §3-C1 清单，首跑成功；**同一库第二跑**（或首跑前已有同 id 残留行）逐面必撞：
+`interview_id` 为 `text PRIMARY KEY`（`0001:18`-`:19`），`privacy_erasure_request.id`/`privacy_deletion_target.id` 为 `uuid PRIMARY KEY`，`privacy_authorization_snapshot.jti` 为 `text UNIQUE`（`0091:58`）。本 proof 全部 **53 处**固定字面（**47 处行键 = 46 实插主键 + 1 guard 拒插 `:430` · 6 处值域 id**·r1 拆分定谳）逐点见 §3-C1 清单，首跑成功；**同一库第二跑**（或首跑前已有同 id 残留行）逐面必撞：
 
 | 顺序 | 写点 | 撞键 | 失败形 |
 |---|---|---|---|
 | 1 | `:127` `insertInterview(owner, ivA)` | `interview_pkey` | 23505（即 `warm-2.log:6`/`:13`-`:14`/`:24` 实读） |
 | 2 | `:128` `insertInterview(otherOwner, ivOther)` | 同上 | 23505 |
-| 3 | `:194` `insertRequest(reqD, …)` | `privacy_erasure_request_pkey` | 23505 |
-| 4 | 各段 `insertTarget(...)` | `privacy_deletion_target_pkey` | 23505 |
-| 5 | `:168` 过期快照直插 `…e1` / `:307` `…f1` / `:455` `…f2` | `privacy_authorization_snapshot_jti_*` | 23505 |
+| 3 | `insertRequest` **14 处**（`:194`/`:208`/`:216`/`:223`/`:230`/`:237`/`:247`/`:261`/`:272`/`:280`/`:293`/`:318`/`:389`/`:471`） | `privacy_erasure_request_pkey` | 23505 |
+| 4 | `insertTarget` **24 处**（`:195`-`:197`/`:209`/`:217`/`:224`/`:231`/`:238`/`:248`-`:250`/`:254`/`:262`/`:273`/`:281`/`:294`/`:319`-`:321`/`:390`-`:391`/`:472`-`:474`） | `privacy_deletion_target_pkey` | 23505 |
+| 5 | `:166`-`:171` 过期快照直插 `…e1`（`:165` 声明） | `privacy_authorization_snapshot_jti_*` | 23505 |
 | 6 | 产品函数 `recordDeletionReceipt`（`0091:86`-`:94`） | `UNIQUE (target_id, receipt_kind)` | 23505（**fixture 侧不可 upsert**） |
 
-**跨跑唯一性缺口**：principal 三串含 `process.pid`（`:23`-`:25`），故 `UNIQUE (owner_user_id, idempotency_key_hash)`（`0047:40`）不跨跑撞——**唯一等值面就是这 53 处固定字面（50 主键 + 3 值域）**。这正是本刀要切的那一刀。
+**归因更正（r1）**：`:307`（`privacy_issue_authorization_snapshot` 函数 EXECUTE 权限拒绝·函数体不执行）/`:455`（raw INSERT 无表授权拒绝）/`:162`（未知 jti CAS UPDATE 0 行）三者**均不落库**，移出「第二跑必撞面」——换 `fx` 对三者属**防御性收口**；guard 拒插 `:428`-`:432`（`:430` INSERT 行·状态门拒绝·永不落库）同理。**真撞面 = interview 主键 8 处（`:127`/`:128`/`:193`/`:317`/`:330`/`:388`/`:422`/`:469`）+ request 主键 14 处 + target 主键 24 处 + `:167` 过期 jti 直插 1 处**（= 46 实插行键 + 1 值域直插）。
+
+**跨跑唯一性缺口**：principal 三串含 `process.pid`（`:23`-`:25`），故 `UNIQUE (owner_user_id, idempotency_key_hash)`（`0047:40`）不跨跑撞——**在 pid 不复用前提下**（r1 限定：pid 跨跑复用=容器重启/长会话 wraparound 时，`nextHash()` 进程内计数器每跑从 `'0…01'` 重来（`:54`-`:55`），首个 `insertRequest`（`:194`）即撞 23505——此残面本刀**不闭**，§7 如实登记 non-claim）——**唯一等值面就是这 53 处固定字面（47 行键 + 6 值域）**。这正是本刀要切的那一刀。
 
 ### 0.4 量化（before / after · 本地隔离口径）
 
 | 维 | 现状（亲读） | 本刀后 |
 |---|---|---|
 | 暖库第二跑 | 必红：首撞 `:127` 23505（`warm-2.log` 四行逐字），其后至少 5 面同族必撞（§0.3） | 全跑命名空间与残留/历史 id 零交叠 → 第二跑不撞（W-0/W-1/W-2a 三臂机器可判） |
-| 残留行隔离 | 无概念：`insertInterview` 直接写目标 id | W-2b 断「残留行 owner/status 恒等」——本跑不重绑他人行 |
+| 残留行隔离 | 无概念：`insertInterview` 直接写目标 id | W-2b **相对断言**（A 段前快照 owner/status vs `:128` 后逐字节恒等）——本跑不重绑他人行（无论残留初值是谁·r1） |
 | 修复形态 | — | 53 处字面 → `fx('<tag>')`；源内固定前缀字面 **0 处**（W-0 断 0） |
 | **可复跑性上限（诚实）** | runner 无暖库复用口（`KEEP`/`REUSE`/`keepContainer`/`reuse` 各 0 命中） | 以「同 run 内残留行前置」模拟 E-WARM-2 条件；**不宣称**真暖容器双跑已证（§7） |
 | cold 类（ECONNREFUSED） | `mitigated · cause-partially-pinned`（backlog `:68`） | **零触**（本刀不碰、不测、不关） |
@@ -120,29 +122,31 @@
 - `const FX8 = randomBytes(4).toString('hex');`
 - `const FX_IDS = new Set<string>();`
 - `const fx = (tag: string): string => { const id = `${FX_PREFIX}${FX8}${tag.padStart(4, '0')}`; FX_IDS.add(id); return id; };`
-- `const RESIDUAL_INTERVIEW = FX_PREFIX + '00000000a1';`（**负向对照用的历史固定 id**·与 `ivA` 同值但不在本跑命名空间）
-- `const FOREIGN_INTERVIEW = FX_PREFIX + '00000000c0';`（`:366` 现字面值域）
+- **熵限量（r1 一行登记）**：`FX8` = 32-bit ⇒ 任一 id 与历史 id 跨跑相撞 ≈ 50/2³² ≈ 1.2e-8/对跑；N=1000 跑累积期望 ≈ 0.6%；特例 `FX8='00000000' ∧ tag='a1'` 与 `RESIDUAL_INTERVIEW` 相撞同属 2⁻³² 类——残余概率如实限量，**不宣称零概率**。
+- `const RESIDUAL_INTERVIEW = FX_PREFIX + '0000000000a1';`（**负向对照用的历史固定 id**·`FX_PREFIX` + 末段 **12** hex = 历史 36 字符字面**全等重建**（`warm-2.log:14` 亲读形）·与重构后 `ivA`（含 `FX8`）**异值**·不在本跑命名空间。**r1 订正**：旧稿末段 10 hex 与历史字面**不等值**，M1 撞不上预置行、期望红集不可复现，已废）
+- `const FOREIGN_INTERVIEW = FX_PREFIX + '0000000000c0';`（`:366` 现字面值域·末段 12 hex 同改全等重建·r1）
 
-**替换规则**：**53 处**字面 → `fx('<原末 2 位 tag>')`（50 处为插入行主键；3 处为值域 id：`ff` 未知 jti · `c0` 外来 interview 值 · `bb` 租约 token——三者同样入本跑命名空间，语义不变）；tag 逐点一一对应（`a1`→`fx('a1')`、`d1`→…、`ff`→…、`f1`→…、`f7`→…），**禁重排禁合并**。`fx` 对同 tag 幂等（同一 run 同值），故 `ivA` 在 `:125` 声明一次即可。
+**替换规则**：**53 处**字面 → `fx('<原末 2 位 tag>')`（**47 处行键** = 46 实插主键 + 1 guard 拒插 `:430`；**6 处值域 id**：`ff` 未知 jti · `e1` 过期 jti · `f1`/`f2` 拒绝路径 jti · `c0` 外来 interview 值 · `bb` 租约 token——六者同样换 `fx`，非写库点/拒插点属防御性收口，语义不变）；tag 逐点一一对应（`a1`→`fx('a1')`、`d1`→…、`ff`→…、`f1`→…、`f7`→…），**禁重排禁合并**。`fx` 对同 tag 幂等（同一 run 同值），故 `ivA` 在 `:125` 声明一次即可。
 
 > **字面存留恰 0 处**：改造后全文件对 `00000000-0000-4000-8000-` 字面出现次数 = **0**（前缀由 `FX_PREFIX` 组装；`RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 亦经前缀拼接）。**这一条由 W-0 机械锁定**。
 
 ### 1.2 四臂设计（W-0…W-2b · 插入位点钉死）
 
-**插入序**（`main()` 内）：`:119` `assertIsolatedTestTarget` → `:121`-`:122` catalog 门（原样）→ **W-0 / W-1 / W-2a** → 原 `:124` 起 A 段（`ivA` 声明改 `fx('a1')`）→ **`:128` 之后 W-2b** → 其余段原样。
+**插入序**（`main()` 内 · **r1 位点钉死 · EXEC 禁现场自选**）：`:119` `assertIsolatedTestTarget` → `:121`-`:122` catalog 门（原样）→ **W-0 → W-2a** → 原 `:124` 起 A 段（`ivA` 声明改 `fx('a1')`）→ **`:128` 之后 W-2b** → 其余段原样 → **W-1 收尾**（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前）。**r1 依据**：53 处 `fx()` 调用全部在 `:125` 之后（模块级零调用），W-1 若在 `:122` 后则 `FX_IDS.size === 0` ⇒ `size > 0` 恒假 ⇒ 主门每次必红——故 W-1 必须收口在最后一个 `fx()`（`:468`）之后。
 
 | 臂 | 位点 | 判据 | DB |
 |---|---|---|---|
 | **W-0** | `:122` 后 | `const src = readFileSync(new URL(import.meta.url), 'utf8');` → `A('W-0 源内固定前缀字面恰 0 处', src.split(FX_PREFIX).length - 1 === 0)`（**不引 `fileURLToPath`**·`readFileSync` 直接收 `URL`） | 零 DB |
-| **W-1** | W-0 后 | `[...FX_IDS].every((id) => id.startsWith(FX_PREFIX + FX8) && /^[0-9a-f]{4}$/.test(id.slice((FX_PREFIX + FX8).length)))` **且** `FX_IDS.size > 0` **且** 集合无重复（`Set` 天然·附打印 size） | 零 DB |
-| **W-2a** | W-1 后 | 先以同键跳过子句写入残留行（`INSERT INTO interview(...) VALUES ($1,'prior-run-residual','completed',0,0,'[]'::jsonb) ON CON`+`FLICT (id) DO NOTHING`·键=id·参数 `RESIDUAL_INTERVIEW`·子句名二段拼接=标记词面自匹配防呆）→ `A('W-2a 历史固定 id 残留行在位且与本跑命名空间零交叠', row.owner_user_id === 'prior-run-residual' && !FX_IDS.has(RESIDUAL_INTERVIEW))` | 隔离 PG |
-| **W-2b** | `:128` 后 | `A('W-2b 残留行零触碰（本跑种子不重绑他人行）', 再读同 id 行 owner/status 仍 'prior-run-residual'/'completed')` | 隔离 PG |
+| **W-2a** | W-0 后（`:127` 前） | 先以同键跳过子句写入残留行（`INSERT INTO interview(...) VALUES ($1,'prior-run-residual','completed',0,0,'[]'::jsonb) ON CON`+`FLICT (id) DO NOTHING`·键=id·参数 `RESIDUAL_INTERVIEW`·子句名二段拼接=标记词面自匹配防呆）→ 快照读回行 owner/status → `A('W-2a 历史固定 id 残留行在位且与本跑命名空间零交叠', (row.owner_user_id === 'prior-run-residual' \|\| row.owner_user_id.startsWith('privacy-authz-owner-')) && !FX_IDS.has(RESIDUAL_INTERVIEW))`（**owner 两分支容忍·r1**：冷库/复跑=本臂预置形 `prior-run-residual`；真暖库=旧版 proof 残留形 `privacy-authz-owner-<pid>`·status `active`——旧版残行 owner 断言原形必红，r1 修订） | 隔离 PG |
+| **W-2b** | `:128` 后 | `A('W-2b 残留行零触碰（本跑种子不重绑他人行）', 重读同 id 行 owner/status 与 W-2a 快照逐字节恒等)`（**相对断言·r1**：无论初值是谁——这才是「本跑零重绑」的真不变量） | 隔离 PG |
+| **W-1** | **收尾**（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前·r1 钉死） | `[...FX_IDS].every((id) => id.startsWith(FX_PREFIX + FX8) && /^[0-9a-f]{4}$/.test(id.slice((FX_PREFIX + FX8).length)))` **且** `FX_IDS.size > 0`（此位点 53 处 `fx()` 全部落码·期望 `size=53`·53 tag 互异亲数）**且** 集合无重复（`Set` 天然·附打印 size） | 零 DB |
 
 **设计要点**：
-- W-2a 的同键跳过子句使**本臂自身**暖库安全（第二跑不撞）；残留行内容恒定，故不引入跨跑耦合。
+- W-2a 的同键跳过子句使**本臂自身**暖库安全（第二跑不撞）；残留行**初值随库况而异**（冷库/本刀复跑=`prior-run-residual`/`completed`；真暖库=旧版 proof 残留 `privacy-authz-owner-<pid>`/`active`），故 W-2a 对 owner 两分支容忍、W-2b 用相对断言锁「本跑零触碰」而**不锁初值**（r1）。
 - W-2a/W-2b 组合 = **E-WARM-2 的确定性等价类**：残留行先于本跑种子存在（`warm-2.log` 场景），本跑种子成功后残留行零变更。
+- **W-0 判别力边界（r1 登记）**：`split(FX_PREFIX)` 仅捕获**连续字面**；`'00000000-' + '…'` 式分段拼接可逃逸 W-0 盲区（运行时 id 恒等）——**W-0 是对 M1 类整行还原变异的有效绊线，非「无固定 id」的存在性证明**。
 - **不新增 run 级双跑**：runner 无复用口（§0.4），不硬造。
-- `RESIDUAL_INTERVIEW` 取历史固定 id 的**同尾值**（`…0000000000a1`），与 `ivA`（`…` + `FX8` + `00a1`）**不同值**——刻意如此：它证明"历史固定 id 在库内存在"时本跑仍不撞，因为本跑不占用该 id 族。
+- `RESIDUAL_INTERVIEW` 与历史固定字面**全等**（36 字符·`FX_PREFIX` + 末段 12 hex——r1 修订：旧稿末段 10 hex 与历史字面**不等值**已废），与 `ivA`（`FX_PREFIX` + `FX8` + `00a1`）**异值**——刻意如此：它证明"历史固定 id 在库内存在"时本跑仍不撞，因为本跑不占用该 id 族。
 
 ### 1.3 变异自检（EXEC 必做·如实入收据·不计数）
 
@@ -166,7 +170,7 @@
 6. **种子 principal**：`owner`/`otherOwner`/`worker` 的 pid 后缀形零改（`:23`-`:25`）。
 7. **`nextHash` 形**：零改（`0047:40` 唯一性由 owner 区分，跨跑不撞）。
 8. **RLS/FORCE/策略**：零触；种子仍走 superuser（`0001:10`「超级用户仅做 setup/seed」）。
-9. **`teed` 收据的既有历史 log**：`oneshot-attempt-1.json`/`oneshot-attempt-1.log`/`teed-oneshot-attempt-2.log` 零改（`checklist:636`-`:645` 逐字禁令）。
+9. **`teed` 收据的既有历史 log**：`oneshot-attempt-1.json`/`oneshot-attempt-1.log`/`teed-oneshot-attempt-2.log` 零改（`checklist:636`-`:646` 逐字禁令：Ban re-running / Ban forge / Do not modify `oneshot-attempt-1.*` / attempt-1 冻结锚零漂移·r1 行号订正）。
 10. **真暖容器双跑**：不造（runner 无口·§0.4）；W-2 同 run 残留模拟为等价形并如实限量。
 11. **pins / SSOT 翻面**：十一值零翻转；LEDGER/checklist/backlog 只读引用。
 12. **其它 GAP**：`UC-003`/`UC-028`/SSE 三族零认领（§0.1 已证三条账面已闭/在飞）。
@@ -177,9 +181,9 @@
 
 | # | 码面 | 现状（亲读） → 目标 |
 |---|---|---|
-| **C1** | `packages/db/test/privacy-authorization.proof.ts`（**既有·唯一产品/测试改动面**） | 现状：固定字面 53 处（50 主键 + 3 值域）+ 裸 INSERT 四写点 + 51 断言（blob `3f310ec9`）→ 目标：① import 区 +`randomBytes`/`readFileSync`（`:20` 后）；② `:22` 前新增 `FX_PREFIX`/`FX8`/`FX_IDS`/`fx`/`RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 六项；③ **53 处**字面 → `fx('<tag>')`（§1.1 清单；`:125`-`:126` 两声明同改）；④ `:366` 字面 → `FOREIGN_INTERVIEW`；⑤ 新增 W-0/W-1/W-2a（`:122` 后）与 W-2b（`:128` 后）四臂；⑥ **既有 51 断言谓词零改**。源内固定前缀字面终态 **0 处**（W-0 锁·**自扫含注释** ⇒ 新增/改写注释禁含该字面）。 |
-| **C2** | `scripts/ai-docs/public-text-policy.mjs`（**cap 步进（C 编号）**） | 锚基 `5c94266b1`:`282` `const MAX_FILES = 2_461` → **`2_462`**（起草 commit 后该行位于 `:283`·因本注记 +1 行）；并在 `:281` 后追加 `CAP-SANCTION-2462` 注记（本节已随起草 commit 落卷·逐字见树）。**算式**：届扫 2461（起草前亲跑）+ 本卷 REQUEST 1 = **2462 恰等零多放**；EXEC 期零新增受管件 ⇒ terminal 2462 不变。`MANAGED_ROOTS`/`TEXT_EXTENSIONS`/扫描面**零改**（语义不变强度不减）。 |
-| **C3** | `scripts/ai-docs/public-text-policy.proof.mjs`（**proof 四处联动**） | 锚基 `5c94266b1`:`452` `for (let i = 0; i < 2_462; …)` · `:459` `scannedFiles, 2_462` · `:474` `'ai-docs/f-2462.md'` · `:477` `${FILE_LIMIT}:2463`（+ `:460`-`:461` 注释两处 `2463`）；并在链区（`:473` 后）追加 `CAP-SANCTION-2462` 史录一行（**起草 commit 后**：loop/atCap 仍 `:452`/`:459`，链注 `:474`，overCap `:475`，错误码 `:478`）。**四处同一届值·禁一处手改**。本节已随起草 commit 落卷。 |
+| **C1** | `packages/db/test/privacy-authorization.proof.ts`（**既有·唯一产品/测试改动面**） | 现状：固定字面 53 处（**47 行键 = 46 实插主键 + 1 guard 拒插 `:430` · 6 值域**·r1 拆分）+ 裸 INSERT 四写点 + 51 断言（blob `3f310ec9`）→ 目标：① import 区 +`randomBytes`/`readFileSync`（`:20` 后）；② `:22` 前新增 `FX_PREFIX`/`FX8`/`FX_IDS`/`fx`/`RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 六项；③ **53 处**字面 → `fx('<tag>')`（§1.1 清单；`:125`-`:126` 两声明同改）；④ `:366` 字面 → `FOREIGN_INTERVIEW`；⑤ 新增 W-0（`:122` 后）· W-2a（W-0 后·`:127` 前预置残留行+快照）· W-2b（`:128` 后·相对断言）· **W-1（收尾：末断言 `:482`-`:483` 后、`admin.end()` `:485` 前——r1 位点钉死·EXEC 禁现场自选）**四臂；⑥ **既有 51 断言谓词零改**。源内固定前缀字面终态 **0 处**（W-0 锁·**自扫含注释** ⇒ 新增/改写注释禁含该字面）。 |
+| **C2** | `scripts/ai-docs/public-text-policy.mjs`（**cap 步进（C 编号）**） | 锚基 `5c94266b1`:`282` `const MAX_FILES = 2_461` → 起草 commit（`4d97b9f83`）已落 **`2_462`** + `CAP-SANCTION-2462` 注记（本树恰等·届扫 2462=cap 2462）；**r1 预登（本 rev 已落）**：`MAX_FILES` 行前追加 `CAP-SANCTION-2464` 重锚注记一行（**数值零改**·本树仍 `2_462` 恰等）；**rebase 对届 tip `2e808c9e3` 后行使 `2_462`→`2_464`**：union = main 届扫 2463 + 本卷 REQUEST 1 = **2464 恰等零多放（CAP-SANCTION-2464 · cap 随届值如实采=附加钉唯一豁免项）**。**rebase 冲突 dual-keep 预案**（沿 CAP-SANCTION-2461 CWN 收官并线先例形）：main 侧同区已落 `CAP-SANCTION-2463` QUIZDX 注记，与本支 `CAP-SANCTION-2462` 注记同区冲突 → 取「**main 的 2463 注记全保留（史录并留）+ 本支改写 2_464**」，终态 HEAD `MAX_FILES = 2_464`。EXEC 期零新增受管件 ⇒ terminal 2464 不变。`MANAGED_ROOTS`/`TEXT_EXTENSIONS`/扫描面**零改**（语义不变强度不减）。 |
+| **C3** | `scripts/ai-docs/public-text-policy.proof.mjs`（**proof 四处联动**） | 锚基 `5c94266b1`:`452`/`:459`/`:474`/`:477` 四联动点 → 起草 commit 已落 **2462 形**（`i < 2_462` / `scannedFiles, 2_462` / `'ai-docs/f-2462.md'` / `${FILE_LIMIT}:2463`·本树自洽·PTP 12/12 亲跑）+ 链区 `CAP-SANCTION-2462` 史录；**r1 预登（本 rev 已落）**：链区追加 `CAP-SANCTION-2464` 重锚注记一行（**数值零改**）；**rebase 对届后改 2464 形**：四联动点 = **`i < 2_464` / `scannedFiles, 2_464` / `'ai-docs/f-2464.md'` / `${FILE_LIMIT}:2465`**（+ 相邻注释 `2464`/`2465` 两处同步·错误码形 `${CODE}:${n}`）。**四处同一届值·禁一处手改**；行号随 merge-tree 重排，EXEC 立项照 §0 对届时 tip 重 pin。 |
 | **C4** | `ai-docs/delivery/receipts/flkwarm/*.log`（EXEC 期新增·真跑收据） | 不存在 → teed 单跑日志（末行 `PROCESS_EXIT=<n>`）+ 变异 M1 红跑日志 + 还原复跑日志；**只准 `.log`**（`.log` ∉ `TEXT_EXTENSIONS` ⇒ 不入扫描面·cap 零增）。**Ban 落 `.md`/`.txt`/`.json`**（三者 ∈ `TEXT_EXTENSIONS`）。 |
 
 **EXEC 改动集口径**：**1 tracked 既有件**（C1 proof）+ **N tracked `.log` 收据**（C4·非扫描面）+ **0 新增受管件**；C2/C3 两 policy 已在**起草 commit** 落卷（EXEC 期零再改·除非届值漂移须按 §8 重算后重登）。**多任何未登记 tracked 路径即停**。
@@ -191,10 +195,10 @@
 
 ### A. 新增 4 臂（逐条可判）
 
-- **W-0**（静态·零 DB）源内固定前缀字面恰 **0** 处（自读 `import.meta.url` 源）。
-- **W-1**（静态·零 DB）`FX_IDS` 每 id `startsWith(FX_PREFIX + FX8)` 且末 4 位 `^[0-9a-f]{4}$`，集合非空、互异（`Set` 天然·打印 size）。
-- **W-2a**（隔离 PG）历史固定 id 残留行在位（owner `prior-run-residual`、status `completed`）且 ∉ `FX_IDS`。
-- **W-2b**（隔离 PG）`:128` 后残留行 owner/status 恒等（本跑零重绑）。
+- **W-0**（静态·零 DB）源内固定前缀字面恰 **0** 处（自读 `import.meta.url` 源；判别力边界=绊线非存在性证明·见 §1.2 设计要点）。
+- **W-1**（静态·零 DB · **位点=收尾：`admin.end()` 前·53 处 `fx()` 全部落码后·r1 钉死**）`FX_IDS` 每 id `startsWith(FX_PREFIX + FX8)` 且末 4 位 `^[0-9a-f]{4}$`，集合非空（期望 `size=53`·53 tag 互异亲数）、互异（`Set` 天然·打印 size）。
+- **W-2a**（隔离 PG）历史固定 id 残留行在位且 ∉ `FX_IDS`（owner **两分支容忍·r1**：`prior-run-residual` ∨ `privacy-authz-owner-` 前缀——真暖库残留行源自旧版 proof·owner 形 `privacy-authz-owner-<pid>`·status `active`）。
+- **W-2b**（隔离 PG）A 段前快照残留行 owner/status，`:128` 后重读**逐字节恒等**（相对断言·无论初值是谁·本跑零重绑·r1）。
 
 ### B. 既有 51 断言（零改·原样复跑）
 
@@ -203,11 +207,11 @@
 ### C. EXEC 门矩阵（一律经 runner · 逐条 EXIT）
 
 1. **主门（teed 单跑·恰好一次）**：`LOG=ai-docs/delivery/receipts/flkwarm/teed-oneshot.log; set -o pipefail; pnpm privacy-authorization:prove 2>&1 | tee -a "$LOG"; rc=$?; printf '\nPROCESS_EXIT=%s\n' "$rc" | tee -a "$LOG"` → **`EXIT=0` · 55 PASS / 0 FAIL · 末行 `PROCESS_EXIT=0`**（形照 `harness/gap-priv-authz-prove-flake-teed-oneshot.md:30`-`:45`）。**Ban 事后手补 `PROCESS_EXIT`**；`n≠0` 亦为诚实证据（红即停·§8）。
-2. **W-2 等价形说明门**：收据逐字写明「runner 无暖库复用口（四词 grep 各 0）→ 以同 run 残留行前置为 E-WARM-2 等价类；**非真暖容器双跑**」。
-3. **变异门 M1**（§1.3）：期望 `W-0` 红 + `EXIT=1`（23505 崩溃形）；`git diff -- packages/db/test/privacy-authorization.proof.ts` 该行零残留后**复跑主门绿**。三次 run 的 EXIT 全录·**零 retry-to-green**。
-4. **docs 门**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2462 = cap 2462**；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**。
+2. **W-2 等价形说明门**：收据逐字写明「runner 无暖库复用口（四词 grep 各 0）→ 以同 run 残留行前置为 E-WARM-2 等价类；**非真暖容器双跑**；真暖库（旧版 proof 残留 `privacy-authz-owner-<pid>`/`active`）兼容由 W-2a 两分支容忍 + W-2b 相对断言承（r1）」。
+3. **变异门 M1**（§1.3）：期望 `W-0` 红 + `EXIT=1`（23505 崩溃形·撞 `RESIDUAL_INTERVIEW` 预置残留行——r1 全等重建后撞键成立）；`git diff -- packages/db/test/privacy-authorization.proof.ts` 该行零残留后**复跑主门绿**。三次 run 的 EXIT 全录·**零 retry-to-green**。**digest 链易失性（r1 登记）**：红跑的机器可验 digest 链在 `.tmp/isolated-proof-receipts/`（gitignored · 易失 · runner `run-e2e-isolated.mjs:4475`/`:4485`）；committed 收据仅 `PROCESS_EXIT` 无 digest ⇒ **EXEC 期 teed `.log` 应附 `LOCAL_ISOLATED_PROOF_RECEIPT file=…` 路径行**以链回隔离收据。
+4. **docs 门**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · 本树（rebase 前）scanned 2462 = cap 2462 · rebase 对届 `2e808c9e3` 后 scanned 2464 = cap 2464（CAP-SANCTION-2464）**；`node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**。
 5. **markers 门**：改动集（3 tracked 净增行）五类标记词 + 行首冲突标记 **0 命中**（词面运行时组装）。
-6. **面收敛门**：`git diff --name-status origin/main` 恰 `A ai-docs/delivery/harness/nk1-REQUEST.md` / `M scripts/ai-docs/public-text-policy.mjs` / `M scripts/ai-docs/public-text-policy.proof.mjs`（起草）+ EXEC 期 `M packages/db/test/privacy-authorization.proof.ts` + `A ai-docs/delivery/receipts/flkwarm/*.log`；**产品码/迁移/runner 零命中**。
+6. **面收敛门（merge-base 口径 · r1）**：`git diff --name-status $(git merge-base HEAD origin/main)..HEAD` 恰 `A ai-docs/delivery/harness/nk1-REQUEST.md` / `M scripts/ai-docs/public-text-policy.mjs` / `M scripts/ai-docs/public-text-policy.proof.mjs`（起草+r1）+ EXEC 期 `M packages/db/test/privacy-authorization.proof.ts` + `A ai-docs/delivery/receipts/flkwarm/*.log`；**产品码/迁移/runner 零命中**。两支分叉期对 `origin/main` **裸 diff 9 条系 main 侧 quizdx 件**（quizdx-REQUEST/收据 .log/apps api package.json/quizdx proof/根 package.json/runner·非本支越界）；rebase 后裸 diff 亦收敛为本支面。
 7. **隔离开关**：只准经 runner 的 `privacy-authorization:prove`（含 `assertIsolatedTestTarget`）；**Ban 直连开发库**。
 
 ---
@@ -218,42 +222,63 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban se
 
 ---
 
-## §6 pins（十一值照抄同族卷 · EXEC/审查不得改口 · 本刀零翻转）
+## §6 pins（十一值照抄同族卷 · EXEC/审查不得改口 · 本刀零翻转 · **cap 项唯一豁免=随届值如实采**·r1）
 
 `haStatus=NOT_HA` · `releaseEvidence=false` · `claimProductionHA=false` · `gR45Closed=true` · `coveredCount=8` · `ms3EqualsR4Closed=false` · `PG-retained`（业务 + PostgresSaver + pgvector；禁 MySQL/Qdrant 业务切流叙事）· 公开 `DELETE /privacy/interview-data/:id` = **503** · `g7SuiteGreen=false` · `r1Closed=false` · 脚注 `actualSpendCny=null`（本刀零模型外呼·零消耗·est live=0）。
 
-**本卷附加钉**：`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**（`mitigated/cause-unknown` 措辞零改）· 隔离镜像固定 `E2E_PG_IMAGE` 既有缺省（不新增 `sole` 叙事）· 种子角色=superuser（`0001:10`）· 断言总数 **55**（51+4）· 53 处 tag 一一对应禁重排 · 源内固定前缀字面 **0** · 收据只准 `.log` · `cap = 2462`（起草随刀恰等·EXEC 零新增）。
+**本卷附加钉**：`GAP-PRIV-AUTHZ-PROVE-FLAKE` stays **OPEN**（`mitigated/cause-unknown` 措辞零改）· 隔离镜像固定 `E2E_PG_IMAGE` 既有缺省（不新增 `sole` 叙事）· 种子角色=superuser（`0001:10`）· 断言总数 **55**（51+4）· 53 处 tag 一一对应禁重排 · 源内固定前缀字面 **0** · 收据只准 `.log` · `cap = 2462`（本树起草形恰等）→ **`2464`**（rebase 对届 `2e808c9e3` 后承 **CAP-SANCTION-2464** = main 届扫 2463 + 本卷 1·恰等零多放 · **cap 随届值如实采=唯一豁免项**（r1 改述：非「EXEC/审查不得改口」管辖 · EXEC 零新增受管件））。
 
 ---
 
 ## §7 Non-claims
 
-本刀 **≠** `GAP-PRIV-AUTHZ-PROVE-FLAKE` 关闭 **≠** 该 flake 已定根因 **≠** cold 类（`ECONNREFUSED`）已处理 **≠** 本 proof 之外任何 proof 已可暖库复跑 **≠** 已证"真暖容器双跑"（runner 无复用口；W-2 为同 run 等价类） **≠** `privacy-authorization:prove` 的 10/10 或 20/20 类读数为本刀产出 **≠** UC-052 行/covered 翻转 **≠** `coveredCount` 变化（仍 8） **≠** HA/容量/suite green **≠** `GAP-UC028-*`/UC-003/SSE 族任何行状态变化（§0.1 三事实钉只作账面核实，不构成翻面） **≠** 生产行为（本地隔离证据） **≠** 其它 flaky proof 的通用修法（本刀只切该 proof 的固定 id 面）。prove EXIT=0 ≠ DONE（完成判定走双审 + nail）。`est live=0`。
+本刀 **≠** `GAP-PRIV-AUTHZ-PROVE-FLAKE` 关闭 **≠** 该 flake 已定根因 **≠** cold 类（`ECONNREFUSED`）已处理 **≠** 本 proof 之外任何 proof 已可暖库复跑 **≠** 已证"真暖容器双跑"（runner 无复用口；W-2 为同 run 等价类） **≠** `privacy-authorization:prove` 的 10/10 或 20/20 类读数为本刀产出 **≠** UC-052 行/covered 翻转 **≠** `coveredCount` 变化（仍 8） **≠** HA/容量/suite green **≠** `GAP-UC028-*`/UC-003/SSE 族任何行状态变化（§0.1 三事实钉只作账面核实，不构成翻面） **≠** 生产行为（本地隔离证据） **≠** 其它 flaky proof 的通用修法（本刀只切该 proof 的固定 id 面） **≠** pid 复用残面已闭（r1 登记：`nextHash()` 进程内计数器每跑重置 `:54`-`:55` + owner 含 `process.pid` `:23`-`:25` ⇒ pid 跨跑复用（容器重启/长会话 wraparound）时 `:194` 首个 `insertRequest` 即撞 `UNIQUE (owner_user_id, idempotency_key_hash)`（`0047:40`）23505——命名空间刀**不闭此面**） **≠** 任意 id 零相撞概率（`FX8`=32-bit·残余 ≈ 1.2e-8/对跑·§1.1 熵限量如实登记）。prove EXIT=0 ≠ DONE（完成判定走双审 + nail）。`est live=0`。
 
 ---
 
 ## §8 STOP（开工三条款 + 停止条件五类）
 
-**STOP · `draft:awaiting_pre_exec_dual`（三处钉：Status 行 + 本节 + 卷尾 · 同值）。** 开工三条款（未履行不得 EXEC）：① **pre-exec 双审两独立外席 BOTH PASS 落卷**（含**刀型三择一定谳**=甲/乙/丙、W-2 等价形采纳、cap 2462 步进授权）；② **协调方明示 EXEC 授权**（含"本刀将真跑 `privacy-authorization:prove`"的显式放行——`checklist:556`/`:636` 历史条款为本刀前置，须逐条兑现后再落码）；③ **§0 全量对届时 tip 重 pin**——`:57`-`:96` 四写点/`:118`-`:128` 主入口/53 处字面清单/`0091:58`/`:86`-`:94`/`0047:40`/runner `:2173`/`:3719` 任一漂移且结论受疑即回炉。
+**STOP · `draft:awaiting_pre_exec_dual`（三处钉：Status 行 + 本节 + 卷尾 · 同值）。** 开工三条款（未履行不得 EXEC）：① **pre-exec 双审两独立外席 BOTH PASS 落卷**（含**刀型三择一定谳**=甲/乙/丙、W-2 等价形采纳、W-1 收尾位点钉死（r1）、cap 2462→2464 步进授权（CAP-SANCTION-2464·随届如实采·唯一豁免））；② **协调方明示 EXEC 授权**（含"本刀将真跑 `privacy-authorization:prove`"的显式放行——`checklist:556`/`:636` 历史条款为本刀前置，须逐条兑现后再落码）；③ **§0 全量对届时 tip 重 pin**——`:57`-`:96` 四写点/`:118`-`:128` 主入口/53 处字面清单/`0091:58`/`:86`-`:94`/`0047:40`/runner `:2173`/`:3719` 任一漂移且结论受疑即回炉。
 
 - **现场漂移**：`origin/main` 届 tip 上该 proof 的 53 处字面清单、主入口结构、`insertInterview`/`insertRequest`/`insertTarget` 三 helper、`0091` 两表约束、runner 目标映射、两 policy 四联动点任一变化 → 停·重 pin。
 - **机制不满足**：若届时 proof 已改为每跑 id（W-0 前置已成立）、或已加 upsert/cleanup（甲/乙已落）→ **停手上报**（本刀零增量，不得重复立刀）。
 - **越界需要**：修法诉求超出 §3 四条（如要求改 runner 以支持暖库复用、要求改产品函数 receipt 幂等、要求清理其它 proof）→ 停·另刀或协调方裁决。
-- **验收红不可修**：主门 `EXIT≠0` 且红因不在本刀改动面（如 cold 类复现、既有 51 断言红）→ 停·stash 对照亲证基线·如实登记·**Ban 借机修**；`docs:check` 扫描数 **> 2462** / PTP 红 → 停（**注意**：起草期未落 C2/C3 前撞 cap 是**预期红**，须先落 cap 步进再跑 docs 门）。
+- **验收红不可修**：主门 `EXIT≠0` 且红因不在本刀改动面（如 cold 类复现、既有 51 断言红）→ 停·stash 对照亲证基线·如实登记·**Ban 借机修**；`docs:check` 扫描数 **> cap（本树 2462 / rebase 对届后 2464·CAP-SANCTION-2464）** / PTP 红 → 停（**注意**：起草期未落 C2/C3 前撞 cap 是**预期红**，须先落 cap 步进再跑 docs 门）。
 - **关闭诉求**：若双审/授权席要求"顺手关行/翻 matrix `:132`/改 mitigated 措辞" → **停**（§2-2/§7）；本刀无翻面授权。
 
 ---
 
 ## §9 状态
 
-**`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本）· 产品码/迁移/runner/既有 51 断言零触 · pre-exec 双审两独立外席待派 · alone≠dual · Ban self-approve · ⛔push ⛔动主仓 · est live=0 · markers=0）。
+**`draft:awaiting_pre_exec_dual`**（2026-10-30 起草落卷即停 · 2026-11-02 rev r1 回炉修订落卷（§10）· 本卷恰 3 tracked 路径（本卷 `.md` + 两 policy 脚本）· 产品码/迁移/runner/既有 51 断言零触 · pre-exec 双审两独立外席待派 · alone≠dual · Ban self-approve · ⛔push ⛔动主仓 · est live=0 · markers=0）。
 
-**起草期门读数（本席亲跑·落卷后）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2462 = cap 2462**（C2 生效后恰等零多放）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0** · 改动集 markers **0/0**（五类标记词 + 行首冲突标记·词面运行时组装）· `origin/main` 上本 proof **零触**（`git diff --name-only origin/main` 面 = 本卷 + 两 policy）。
+**门读数（r1 修订席亲跑·2026-11-02）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2462 = cap 2462**（本树恰等零多放·r1 两脚本注记预登数值零动）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0** · 改动集 markers **0/0**（五类标记词 + 行首冲突标记·词面运行时组装）· 面收敛 **merge-base 口径**：`git diff --name-status $(git merge-base HEAD origin/main)..HEAD` = 本卷 + 两 policy 恰 3 tracked（对 `origin/main` 裸 diff 9 条系 main 侧 quizdx 件·非本支越界·rebase 后裸差收敛为本支面）。
 
-**EXEC 期预登（未行使）**：C1 proof 改动 + C4 `.log` 收据 → terminal 受管件数仍 **2462**（零新增）· 主门期望 **55 PASS** · 变异 M1 期望红集 **W-0 + 崩溃 EXIT=1** · `PROCESS_EXIT` 逐 run 入据。
+**EXEC 期预登（未行使）**：C1 proof 改动 + C4 `.log` 收据 → terminal 受管件数 **2464**（rebase 对届 `2e808c9e3` 后承 CAP-SANCTION-2464·零新增）· 主门期望 **55 PASS** · 变异 M1 期望红集 **W-0 + 崩溃 EXIT=1（撞全等重建 `RESIDUAL_INTERVIEW` 残留行）** · `PROCESS_EXIT` 逐 run 入据 + teed `.log` 附 `LOCAL_ISOLATED_PROOF_RECEIPT file=…` 路径行。
 
 ---
 
-*FLKWARM REQUEST · 2026-10-30 起草落卷 · 认领=`GAP-PRIV-AUTHZ-PROVE-FLAKE` 行内已登记的**独立后继刀**（`gap-bug-backlog.md:68`「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用））· 账面核实五事实钉（§0.1：UC-003 映射已闭 / UC-028 TRUTH-BLOCK-E2E 已闭 / QUIZ-DX-HTTP 在飞 / L-01、L-08 stale）· 修法=**每跑命名空间**（53 处字面 → `fx(tag)`·源内前缀字面 0）+ **四臂**（W-0/W-1/W-2a/W-2b）+ cap 2461→2462 四联动 · 断言 **55 = 51 + 4** · 全锚 @`5c94266b1` 亲读亲算 · pins 十一值零翻转 · est live=0 · markers=0 · ⛔push ⛔动主仓 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · proof EXIT=0 ≠ DONE · STOP=`draft:awaiting_pre_exec_dual`*
+## §10 rev r1 修订记录（dual 回炉 · 2026-11-02 · 本节为修订留痕 · 刀型丙与 §3 四条骨架不变）
+
+**dual r1 两独立外席 FAIL · 高度收敛**（席1 P1×4 / 席2 P0×1+P1×1+P2×4）→ 回炉并集全消化。逐条落法：
+
+| 级 | 发现（两席证据） | 落法（落点节） |
+|---|---|---|
+| **P0** | W-1 位点永红：53 处 `fx()` 调用全部在 `:125` 之后（模块级零调用），原钉位点（`:122` 后）处 `FX_IDS.size===0` ⇒ `size>0` 恒假 ⇒ `A()` 记录型不抛 ⇒ `failures=1` ⇒ `process.exit(1)` ⇒ 主门每次必红且 EXEC 无自救路径（两席独立同判） | 三择一采 **(a) 并钉死**：W-1 移至收尾（末断言 `:482`-`:483` 后、`admin.end()` `:485` 前）· §1.2 插入序/臂表、§3-C1-⑤、§4-A 同步 · EXEC **禁现场自选** · 断言总数 **55 不变**（未拆 W-1a/W-1b） |
+| **P1** | `RESIDUAL_INTERVIEW`/`FOREIGN_INTERVIEW` 末段 10 hex ≠ 历史字面末段 **12** hex（`warm-2.log:14` 亲读 36 字符）⇒ 与 M1 改回的历史字面**不同键**、不撞预置残留行 ⇒ §1.3 期望红集不可复现；「与 ivA 同值」措辞亦误（重构后 `ivA` 必含 `FX8`）（席1 实测 + 席2 隔离 PG E4 逐字复现 warm-2.log 崩溃形） | 两常量改 `FX_PREFIX + '0000000000a1'` / `'0000000000c0'`（12 hex 全等重建）· 删「与 ivA 同值」改「与历史固定字面同值、与重构后 ivA 异值」（§1.1/§1.2） |
+| **P1** | W-2a/W-2b 绝对 owner 断言在真暖库必红：真暖残留行来自旧版 proof（owner=`privacy-authz-owner-<pid>` · status `active`），`ON CONFLICT DO NOTHING` 跳插后读回 ≠ `prior-run-residual` ⇒ 「暖库复跑」目标在真场景自败（席1 推演 + 席2 隔离 PG E1 实测） | W-2a owner **两分支容忍**（`prior-run-residual` ∨ `privacy-authz-owner-` 前缀）∧ `!FX_IDS.has(RESIDUAL_INTERVIEW)`；W-2b 改**相对断言**（A 段前快照 · `:128` 后逐字节恒等·无论初值是谁）（§1.2/§4-A） |
+| **P1** | cap 时点错位 2462→应 2464：届 tip 已进 `2e808c9e3`（#188 quizdx 并线 · main 侧 cap 已 2463 · 两 policy 同行已改）⇒ rebase 后 union = 2463 + 本卷 1 = **2464** 且 rebase 必冲突（两席独立同判） | 全卷对届 tip 重锚 **CAP-SANCTION-2464**（§0.1-3 / §3-C2/C3 / §6 附加钉改述「cap 随届值如实采=唯一豁免」/ §8 停止阈值 / §9 / Status 行 / 基线行）· 四联动点数值写 2464/`f-2464.md`/`:2465`（**rebase 后行使**）· dual-keep 预案沿 CAP-SANCTION-2461 CWN 收官并线先例形写明（卷面 §3-C2/C3 + 两脚本 `CAP-SANCTION-2464` 预登注记·**数值本树 2462 恰等保持**） |
+| P2-1 | §0.3 归因错：`:307`/`:455`/`:162` 三者不落库 | 移出必撞面改注「非写库点·换 fx 防御性收口」；真撞面 = interview 8 + request 14 + target 24 + `:167` jti 1；字面拆分改 **47 行键（46 实插 + 1 guard 拒插 `:430`）+ 6 值域**·总数 53 不变（§0.3/§1.1/认领核对） |
+| P2-2 | `nextHash()` 计数器每跑重置 + owner 含 pid ⇒ pid 复用时 `:194` 首个 `insertRequest` 撞 `0047:40` UNIQUE | §7 补 non-claim；§0.3「唯一等值面」加「在 pid 不复用前提下」限定 |
+| P2-3 | FX8=32-bit 熵未限量 | §1.1 一行登记（≈1.2e-8/对跑 · N=1000 期望 ≈0.6% · 特例同 2⁻³² 类） |
+| P2-4 | 红跑 digest 链在 `.tmp/isolated-proof-receipts/`（gitignored·易失）·committed 收据仅 PROCESS_EXIT | §4-C-3 注明 teed `.log` 应附 `LOCAL_ISOLATED_PROOF_RECEIPT file=…` 路径行 |
+| P2-5 | W-0 对分段拼接逃逸（盲区实测） | §1.2 设计要点登记「W-0 是对 M1 类整行还原变异的有效绊线，非『无固定 id』的存在性证明」 |
+| P2-6 | checklist 行号漂移 + 裸 diff 口径 | `:636`→`:637`（future teed 条款归位·全卷同步）；面收敛门/§9 注明 **merge-base 口径**（现裸 diff 9 条系 main 侧 quizdx 件·非本支越界） |
+
+**r1 后自检**：三门亲跑（docs 本树 2462 = 本支 cap / PTP 12/12 / markers 0·读数见 §9）· 断言总数 **55 = 51 + 4 不变** · pins 十一值零翻（cap 项豁免按重锚处理）· STOP 三处 `draft:awaiting_pre_exec_dual` 同值 · diff 恰 3 tracked。
+
+---
+
+*FLKWARM REQUEST · 2026-10-30 起草落卷 · 2026-11-02 rev r1 dual 回炉修订（§10）· 认领=`GAP-PRIV-AUTHZ-PROVE-FLAKE` 行内已登记的**独立后继刀**（`gap-bug-backlog.md:68`「可选后续刀（独立 REQUEST）：fixture 加同键跳过子句/cleanup」（原文该子句含标记词面·卷内按运行时组装惯例以语义改写引用））· 账面核实五事实钉（§0.1：UC-003 映射已闭 / UC-028 TRUTH-BLOCK-E2E 已闭 / QUIZ-DX-HTTP 已并 `2e808c9e3` / L-01、L-08 stale）· 修法=**每跑命名空间**（53 处字面 → `fx(tag)`·源内前缀字面 0）+ **四臂**（W-0/W-2a/W-2b + W-1 收尾位点·r1 钉死）+ cap 2461→2462（起草）→**2464**（rebase 对届 `2e808c9e3` 承 CAP-SANCTION-2464·随届如实采唯一豁免）四联动 · 断言 **55 = 51 + 4** · 锚 @`5c94266b1` 起草亲读亲算 · r1 重锚 @`2e808c9e3` · pins 十一值零翻转 · est live=0 · markers=0 · ⛔push ⛔动主仓 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · proof EXIT=0 ≠ DONE · STOP=`draft:awaiting_pre_exec_dual`*
 
 *卫生声明：markers=0 = 本卷改动集五类标记词与行首冲突标记 grep 零命中——词面由门命令运行时组装、卷内不复抄（防自匹配；沿 ha-1/ag09 同款）。*
