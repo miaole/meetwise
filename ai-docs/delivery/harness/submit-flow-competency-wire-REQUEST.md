@@ -1,6 +1,6 @@
 # SUBMIT-FLOW-COMPETENCY-WIRE REQUEST（submit 流向 competency 供给修复刀 · 修法一件=submit 形图 deps 沿 checkpoint mind 序补供 · 恰 1 产品文件 · 零迁移零 DDL 零 SSOT 行零图包触）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席 2026-10-14 落码+门矩阵全绿·修法+6 新臂+wave94 微扩面三臂改写在树·§9-EXEC 七字段+§9-补 裁决处置记录卷尾·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push） · 起草席原态=`draft:awaiting_pre_exec_dual`（2026-10-14·docs-only 恰 1 .md·pre-exec 双审会签 PASS 席1 agent_3befd22c+席2 agent_d3b05119 后协调方授权 EXEC） · base = 主线 `feat/mysql-schema-skeleton` @ `0ff55592`（全 hex `0ff55592`·fetch 后 origin tip 亲证恒等·cap sanction 2184 卷 tip 同指） · 分支 `line/submit-flow-competency-wire` · 工作树 `meetwise-sfc`（`git worktree add ../meetwise-sfc -b line/submit-flow-competency-wire 0ff55592` 本起草席已立·`git worktree list` 恰一本树在册）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席 2026-10-14 落码+门矩阵全绿·修法+6 新臂+wave94 微扩面三臂改写在树·§9-EXEC 七字段+§9-补 裁决处置记录卷尾·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push） · 起草席原态=`draft:awaiting_pre_exec_dual`（2026-10-14·docs-only 恰 1 .md·pre-exec 双审会签 PASS 席1 agent_3befd22c+席2 agent_d3b05119 后协调方授权 EXEC） · base = 主线 `feat/mysql-schema-skeleton` @ `0ff55592`（全 hex `0ff55592`·fetch 后 origin tip 亲证恒等·cap sanction 2184 卷 tip 同指） · 分支 `line/submit-flow-competency-wire` · 工作树 `meetwise-sfc`（`git worktree add ../meetwise-sfc -b line/submit-flow-competency-wire 0ff55592` 本起草席已立·`git worktree list` 恰一本树在册）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：meetwise 战役「SUBMIT-FLOW-COMPETENCY-WIRE submit 流向 competency 供给修复刀」诊断+起草席（**G7K 红真正翻面的关键后继刀·QGEN post 席2 关键定性转达立项** · 协调方派单 brief：QGEN-CRITIQUE-RESILIENCE post 席2 定谳「submit 侧图 deps `competencies=[]` 系架构事实·G7K 红在 submit 流向不因 QGEN 单独翻面」→ 本刀承接诊断定稿+修法裁决+起草落卷 · docs-only · ⛔push · ⛔改产品码）。
 
@@ -36,7 +36,7 @@
 
 ### 0.3 现势并发登记（强制）
 
-1. **QGEN-CRITIQUE-RESILIENCE（`line/qgen-critique-resilience`@`22112950`·STOP=executed:awaiting_post_prove_dual·未并主线）**：改 `adaptive-interview-service.ts`（`373c4032`→`3dcc366f`·+17/−0）+`generate-question.ts`（`8a97f9c9`→`c4f88f74`·+27/−0）+两测试件（ag-f 47→61/adaptive-graph 27→34）。**与本刀零文件交点亲证**：本刀修法落点=adaptive-lifecycle.ts+adaptive-lifecycle.proof.ts——与 QGEN 两产品文件+两测试件四件全无交集。QGEN 并线与否仅影响 §2 邻面门基线值（两态登记），不影响本刀修法语义（本刀补供的 `deps.competencies` 消费点 `nextCompetencyAfter` 在 QGEN 件② 前后签名/语义零变）。**本刀+QGEN 合成语义**：QGEN 件① 使模板判重拒绝走族内 failure 形→图族臂；本刀使该族臂在 submit 流向真有序可换——「环境链路死→模板→同文重发→终场」原死链在 submit 流向变帽内可恢复（§1-修法合成项）。
+1. **QGEN-CRITIQUE-RESILIENCE（`line/qgen-critique-resilience`@`22112950`·STOP=executed:awaiting_post_prove_dual·未并主线）**：改 `adaptive-interview-service.ts`（`373c4032`→`3dcc366f`·+17/−0）+`generate-question.ts`（`8a97f9c9`→`c4f88f74`·+27/−0）+两测试件（ag-f 47→61/adaptive-graph 27→34）。**与本刀零文件交点亲证**：本刀修法落点=adaptive-lifecycle.ts+adaptive-lifecycle.proof.ts——与 QGEN 两产品文件+两测试件四件全无交集。QGEN 并线与否仅影响 §2 邻面门基线值（两态登记），不影响本刀修法语义（本刀补供的 `deps.competencies` 消费点 `nextCompetencyAfter` 在 QGEN 件② 前后签名/语义零变）。**本刀+QGEN 合成语义**：QGEN 件① 使模板判重拒绝走族内 failure 形→图族臂；本刀使该族臂在 submit 流向真有序可换——「环境链路死→模板→同文重发→终场」原死链在 submit 流向变帽内可恢复（§1-修法合成项）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 2. **主线 tip 前移处置**：起草窗口主线 tip=`0ff55592`（建树时点亲证）；EXEC 立项时若主线再前移（含 QGEN 并线）照 §8-① 协议并线重 pin。
 3. **docs cap**：主线 cap=2184（`0ff55592` sanction 卷·docs:check 2165≤2184 本席亲跑 EXIT=0）；本卷落卷后本树 2166≤2184。
 
@@ -194,7 +194,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **触面清单更新**：`ag-f-reroll.proof.ts` 移入本刀授权面（§3 append 注记·恰此一件仅 §F F3a 三臂·收据三键断言面零弱化）；§5 pins 十一值照抄零翻未触。
 
-**STOP=`executed:awaiting_post_prove_dual`**（三处 Status/§2 尾/§8 尾同步更替·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push ⛔force push 未用）。
+**STOP=`executed:awaiting_post_prove_dual`**（三处 Status/§2 尾/§8 尾同步更替·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·⛔push ⛔force push 未用）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 
@@ -208,6 +208,6 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 2. **P2-B（b）§2/§3 起草期预估值与 §9 实测并存存档注记**：§1-量级行（产品 +10/−1 ±6 窗/测试 4-6 臂 +80±40 窗）与 §2 门矩阵（ag-f 两态 47/61·adaptive-graph 两态 27/34 等）系**起草期预估值**——EXEC/wave94 实测（§9-③ +15/−2·§9-④ +114/−1 43→49 臂·§9-⑤ ag-f 58/61 红→§9-补 63/63 绿·§3 wave94 扩面注记）与之**并存存档**：预估值原文零字节改留档（append-only），operative 门值/diff 面口径以 §9/§9-补 实测值为准（量级定性「小刀·恰 1 产品文件」两态恒等零漂）。
 3. **P2-C（c）收据目录勘记（§1 量级行沿 append-only 不动）**：§1 量级行「EXEC 总 diff=2 tracked 码面+本卷 1 .md+**收据目录**」之「收据目录」实测=`.tmp/isolated-proof-receipts/`（`.gitignore:15` `.tmp/` 忽略·**不入树不入 tracked diff 面**）·本刀窗内在册 **11 件**收据 JSON（schema=`local_untrusted_isolated_proof_receipt`：ag-f-reroll ×7（2 failed=§9-⑤ 红窗与改写前对照如实留痕+5 passed）+interview ×2 passed+resume-grounding ×2 passed·终件 ag-f-reroll EXIT=0 `finishedAt=2026-10-16T03:45:35Z`）——**§1 量级行沿 append-only 不动**，本注记为该词唯一通行口径（收据=会话期本地不信任工件·非 tracked 交付物·沿 .tmp 会话隔离纪律）。
 
-**维持面**：§1-修法定稿块+§1.3 否决/Ban+§2 门矩阵语义+§3 边界+§5 pins 十一值+Non-claims——零改零翻转。STOP 三处承 `executed:awaiting_post_prove_dual` 终态·post 双审会签已 PASS·值翻面权归协调方（本 nail 非翻面·沿 gitleaks nail 口径）。
+**维持面**：§1-修法定稿块+§1.3 否决/Ban+§2 门矩阵语义+§3 边界+§5 pins 十一值+Non-claims——零改零翻转。STOP 三处承 `executed:awaiting_post_prove_dual` 终态·post 双审会签已 PASS·值翻面权归协调方（本 nail 非翻面·沿 gitleaks nail 口径）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 *post P2 勘误随卷 2026-10-16·席1 agent_a935142b+席2 agent_5082222b 双审会签 PASS 授权·本席（nail）随卷笔录·est live=0·actualSpendCny=null·⛔push*

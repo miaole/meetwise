@@ -1,6 +1,6 @@
-# READYZ-PRIVACY-WIRE REQUEST — privacy 健康消费接线刀（WSS post P2-1 跟进·量级微·编排面两件一卷零迁移 · 起草席落卷 · **STOP=`executed:awaiting_post`**——EXEC 席 2026-10-16 R1 修法 (a) 落改翻面·前值 `draft:rework`（rev 席复审 REJECTED 回炉）→更前值 `draft:awaiting_rev` 史录·见 §10/§10-rev2）
+# READYZ-PRIVACY-WIRE REQUEST — privacy 健康消费接线刀（WSS post P2-1 跟进·量级微·编排面两件一卷零迁移 · 起草席落卷 · **STOP=`executed:awaiting_post`**——EXEC 席 2026-10-16 R1 修法 (a) 落改翻面·前值 `draft:rework`（rev 席复审 REJECTED 回炉）→更前值 `draft:awaiting_rev` 史录·见 §10/§10-rev2）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
-> 战役 meetwise · 支线 `line/readyz-privacy-wire` · 工作树 `meetwise-rzp` · 起草基线 @origin/feat/mysql-schema-skeleton=`2c257eb0`（派单下界「fetch 后 origin tip≥92086586」以等号成立亲证=`git merge-base --is-ancestor 92086586 origin/feat/mysql-schema-skeleton` 形等号臂实跑 PASS·92086586 系现 tip 直系祖先）· ⛔push ⛔merge 主线（push/翻面权归协调方）。**STOP=`executed:awaiting_post`**（EXEC 席 2026-10-16 R1 修法 (a) 落改翻面·前值 `draft:rework`（rev 席 2026-10-16 回炉翻面）→更前值 `draft:awaiting_rev` 史录·三处同值·§8 协议+§10/§10-rev2）。主仓 worktree 建支线：`git worktree add ../meetwise-rzp -b line/readyz-privacy-wire origin/feat/mysql-schema-skeleton`。
+> 战役 meetwise · 支线 `line/readyz-privacy-wire` · 工作树 `meetwise-rzp` · 起草基线 @origin/feat/mysql-schema-skeleton=`2c257eb0`（派单下界「fetch 后 origin tip≥92086586」以等号成立亲证=`git merge-base --is-ancestor 92086586 origin/feat/mysql-schema-skeleton` 形等号臂实跑 PASS·92086586 系现 tip 直系祖先）· ⛔push ⛔merge 主线（push/翻面权归协调方）。**STOP=`executed:awaiting_post`**（EXEC 席 2026-10-16 R1 修法 (a) 落改翻面·前值 `draft:rework`（rev 席 2026-10-16 回炉翻面）→更前值 `draft:awaiting_rev` 史录·三处同值·§8 协议+§10/§10-rev2）。主仓 worktree 建支线：`git worktree add ../meetwise-rzp -b line/readyz-privacy-wire origin/feat/mysql-schema-skeleton`。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief（2026-10-16·WSS post P2-1 跟进·窗口期问题=privacy 域红信号现无自动消费方）；②WSS 载体刀定谳承引（worker-shutdown-seq-REQUEST §1.1 部署注记+§9.4：「`/readyz/privacy` 新端点**零消费方**（新面·无编排面/LB 规则配置消费该端点=观测面落地先行）……后续消费接线**另案不入本刀**」——本刀即该「另案」）；③端点源码注记亲读（`apps/worker/src/main.ts:269`「零消费方部署先行（编排面/LB 接线另案不入本刀）」）。
 
 ## §0 现状锚（窗口期问题全链双向锚·起草席亲读+blob 亲算 @`2c257eb0`·**rev/EXEC 立项照本节对届时 tip 再重 pin——结论不变则只更行号**）
@@ -73,7 +73,7 @@
 
 ## §8 治理（STOP 协议·起草席权限边界）
 
-- 本卷 **STOP=`executed:awaiting_post`**（EXEC 席 2026-10-16 R1 修法 (a) 落改行使 §8 EXEC 臂翻面·前值 `draft:rework`（rev 席 2026-10-16 复审 REJECTED 行使 §8 回炉臂翻面·更前值 `draft:awaiting_rev` 史录）·三处同值：本节+标题+头注）——落改+门复行+行为验证亲跑在卷（§10-rev2）；post 链复核/SSOT 行翻面权/并线权全归协调方（⛔push ⛔merge 主线）。
+- 本卷 **STOP=`executed:awaiting_post`**（EXEC 席 2026-10-16 R1 修法 (a) 落改行使 §8 EXEC 臂翻面·前值 `draft:rework`（rev 席 2026-10-16 复审 REJECTED 行使 §8 回炉臂翻面·更前值 `draft:awaiting_rev` 史录）·三处同值：本节+标题+头注）——落改+门复行+行为验证亲跑在卷（§10-rev2）；post 链复核/SSOT 行翻面权/并线权全归协调方（⛔push ⛔merge 主线）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 - rev 审点建议（不约束）：①90s 静默窗与 30s 拍值裁量；②Ticket severity 分层裁量（合规面拔 Page 的可能）；③HA 覆写最小面 vs 全块重述取形；④§1.3-⑤ 零 depends_on 裁决追认。
 - 前瞻耦合注记（随卷·处置归后继刀/协调方裁）：S15 买云 Prometheus 常驻化后，metrics 面收编（privacy gauge+规则）可另刀评估，本探针届时可退役或降级双轨；LB/编排面若引入分域路由语义，本探针消费面随之收敛。
 
@@ -114,7 +114,7 @@
 
 *—— §10 完 · rev 席 · 2026-10-16*
 
-## §10-rev2 EXEC 修法落卷（EXEC 席 · 2026-10-16 · R1 修法 (a) 兑现 · STOP→`executed:awaiting_post`）
+## §10-rev2 EXEC 修法落卷（EXEC 席 · 2026-10-16 · R1 修法 (a) 兑现 · STOP→`executed:awaiting_post`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
 > 协调方裁决=修法 (a)（rev §10.3 推荐形）快速链行使。落改+亲证+门复行+行为验证全在卷；⛔push ⛔merge 主线。
 

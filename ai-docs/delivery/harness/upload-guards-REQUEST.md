@@ -1,6 +1,6 @@
 # Harness — **5A UPLOAD-GUARDS**（#108 简历提取硬超时=Promise 竞速不真终止 + #109 上传只信后缀/MIME 无魔数嗅探 · 一卷两题 · REQUEST · **`executed:awaiting_post_prove_dual`**）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码+门矩阵全绿 2026-10-19 · 前值 `draft:awaiting_pre_exec_dual` @draft/rev/rev2 史录保留 · post-prove 双审两独立外席待派 · alone ≠ dual · Ban self-approve）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落码+门矩阵全绿 2026-10-19 · 前值 `draft:awaiting_pre_exec_dual` @draft/rev/rev2 史录保留 · post-prove 双审两独立外席待派 · alone ≠ dual · Ban self-approve）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=**8** · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE /privacy/interview-data/:id = 503 · PERF/LOAD local partial · capacityRepresentative=false · canHonestlyFlip=false
 **Date**: 2026-10-16
 **Base / parent tip**: `origin/feat/mysql-schema-skeleton` **`d5141dfc8`**（本席 `git fetch origin` 亲证 tip 恰等派单下界 ≥d5141dfc8 · 本 worktree `line/upload-guards-draft` 同源）
@@ -152,7 +152,7 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 ## §8 STOP
 
-状态 **`executed:awaiting_post_prove_dual`**（EXEC 已行使 2026-10-19·门矩阵全绿见 §9-EXEC·post-prove 双审两独立外席待派·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）。EXEC 面=§1 修法清单（不得改 §1 与 §4 Ban/pins·改则回炉重审）；实现不自批；nail 归协调方。**STOP**
+状态 **`executed:awaiting_post_prove_dual`**（EXEC 已行使 2026-10-19·门矩阵全绿见 §9-EXEC·post-prove 双审两独立外席待派·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）。EXEC 面=§1 修法清单（不得改 §1 与 §4 Ban/pins·改则回炉重审）；实现不自批；nail 归协调方。**STOP**【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①worker 文件形制（同文件自 fork vs 伴生件·G2 tsx 实证后定）；②pdf 魔数窗（1024 窗 vs 恰 0·EXEC 实定落 receipt）；③resourceLimits 定值；④LEDGER `:85` 🔒 注记更新措辞（nail 时点行使）。
 
@@ -248,4 +248,4 @@ extrev REQUEST §0.5 评审锚 vs 现树：`:29 .doc` **恰等零漂**；`:53-60
 
 ---
 
-*5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-19 EXEC 落码·前值 draft 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve） · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
+*5A-UPLOAD-GUARDS REQUEST · 2026-10-16 起草落卷 · **STOP=`executed:awaiting_post_prove_dual`**（2026-10-19 EXEC 落码·前值 draft 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve） · base `origin/feat/mysql-schema-skeleton` @`d5141dfc8`（fetch 恰等亲证）· 分支 `line/upload-guards-draft` · 工作树 `meetwise-5ag` · 一卷两题：#108 竞速假终止（worker terminate 真终止·AbortSignal seam·resourceLimits 帽·零迁移）+ #109 魔数嗅探（恰判定面=domain 分派点·`magic_mismatch` fail-closed·负例族·DEPS S3 残面承接=仅③半面·①②④ 维持登记）· 🔒DEPS S3 锁失效四步判定链在卷（§0.5·#106 销案 `ef5ea585a`+nail `3c4af399c` 祖先亲证 EXIT=0）· 上传入口全集三面枚举（§0.3）· 门矩阵 G1-G8 · est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
