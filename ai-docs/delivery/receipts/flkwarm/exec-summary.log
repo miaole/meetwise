@@ -1,0 +1,89 @@
+# 隐私授权证明暖库重跑夹具隔离 EXEC 收据摘要（2026-11-02 · 落码席人写 · 只准 .log）
+# 席位：EXEC 落码（pre-exec 双审 r3 BOTH PASS + 协调方明示授权后落码）· 工作树 meetwise-nk1 · 禁 push
+
+## 1. rebase 冲突与 dual-keep 解法
+- fetch origin EXIT=0 · 届 tip = 2e808c9e3（#188 quizdx 已并·与卷 r1 重锚一致）。
+- git rebase origin/main：三个 commit 依次重放，冲突恰 2 处 = 两 policy 脚本（起草 commit 4d97b9f83 重放时；
+  r1 commit 94d39e20e 重放时注记追加处再冲突一次）· 与卷 §3-C2/C3 预登「恰 2 处冲突=两 policy 脚本注记/cap 区」一致。
+- 解法（沿 CAP-SANCTION-2461 CWN 收官并线先例形 dual-keep）：
+  policy .mjs = main 侧 CAP-SANCTION-2463 QUIZDX 注记全保留（史录并留）+ 本支 CAP-SANCTION-2462 注记保留
+  + MAX_FILES 行改 2_464；proof .mjs = 2463 注记保留 + 2462 注记保留 + 四联动点 2_464/2_464/f-2464.md/:2465
+  + 相邻注释两处（第 2465 个注入路径 / PTP_FILE_LIMIT:2465）同步；r1 的 CAP-SANCTION-2464 重锚预登注记行照原样落位。
+- rebase 后 HEAD 链：9d9d7b4ed（起草）→ 6cbb30910（r1）→ 65f8ec9a2（r2）· 基于 2e808c9e3。
+
+## 2. cap 步进四处 diff 摘要（对届行使 · CAP-SANCTION-2464 = main 届扫 2463 + 本卷 REQUEST 1 = 2464 恰等零多放）
+- scripts/ai-docs/public-text-policy.mjs：const MAX_FILES = 2_462（起草形）→ 2_464。
+- scripts/ai-docs/public-text-policy.proof.mjs：i < 2_462 → i < 2_464；atCap.scannedFiles, 2_462 → 2_464；
+  'ai-docs/f-2462.md' → 'ai-docs/f-2464.md'；FILE_LIMIT}:2463 → FILE_LIMIT}:2465；相邻注释 2463/2464 → 2465/2465 两处同步。
+- 四处同一届值 · EXEC 期零新增受管件（.log 非扫描扩展名不计）→ terminal 2464。
+
+## 3. 主门（teed 单跑·恰好一次 · §4-C-1 形）
+- 命令形：set -o pipefail; pnpm privacy-authorization:prove 2>&1 | tee -a <log>; printf '\nPROCESS_EXIT=%s\n' | tee -a。
+- 读数：**55 PASS / 0 FAIL · EXIT=0 · PROCESS_EXIT=0**（PASS 行 grep 计 55·FAIL 行 0）。
+- 四臂读数：
+  PASS W-0 源内固定前缀字面恰 0 处（readFileSync(import.meta.url) 自读·split 计数 0）
+  W-2a 残留行归属分支: prior-run-residual（命中分支名打印·置 A() 外·行首非 PASS/FAIL）
+  PASS W-2a 历史固定 id 残留行在位且与本跑命名空间零交叠
+  PASS W-2b 残留行零触碰（本跑种子不重绑他人行）
+  W-1 fx 命名空间计数: FX_IDS.size=53（打印·置 A() 外）
+  PASS W-1 本跑命名空间 id 族形合法且计数恰等(53 tag 一一对应)
+- 三次 run EXIT 全录（§4-C-3 · 零 retry-to-green；M1 为设计变异 run·第三跑为还原核验 run）：
+  run1 主门 teed：EXIT=0（teed-oneshot.log）
+  run2 变异 M1：EXIT=1（m1-mutation-red.log）
+  run3 还原复跑：EXIT=0 · 55 PASS / 0 FAIL（post-restore-rerun.log）
+- 三跑各自起独立隔离容器（33257/33258/33259 端口·迁移 applied=217）·每跑命名空间跨容器/跨跑零撞（实证）。
+
+## 4. M1 变异自检实录（§1.3 唯一形）
+- 变异：const ivA = fx('a1') 一行改回历史固定字面（其余零动）。
+- 期望红集逐字命中：
+  FAIL  W-0 源内固定前缀字面恰 0 处
+  （W-2a 先 PASS：残留行预置·归属分支 prior-run-residual）
+  error: duplicate key value violates unique constraint "interview_pkey"
+  code: '23505'
+  detail: 'Key (id)=(00000000-0000-4000-8000-0000000000a1) already exists.'
+  constraint: 'interview_pkey'
+  → 崩形与 receipts/archive/2026-09-batch23/.../warm-2.log:14 逐字同形（本刀立项确定性成因证据）·EXIT=1。
+- 还原：同 turn 自字节快照回写 · cmp 全等 · 源内固定前缀字面计数 0 · ivA 恢复 fx('a1')。
+- 零残留核验：工作树文件与变异前快照逐字节恒等（cmp 静默）；git diff 仅含本刀登记改动面（53 处 fx + 四臂 +
+  五项声明 + import 前置），零变异残迹；既有 51 断言谓词零改（仅两处按规则改 id 取值来源：ff 与 c0 两个字面 → fx）。
+- Ban 遵守：未动任何 A(...) 谓词迁就；未把 M1 写成产品缺陷。
+
+## 5. W-2 等价形说明门（§4-C-2 逐字）
+runner 无暖库复用口（KEEP/REUSE/keepContainer/reuse 四词 grep 各 0·届 tip 亲跑）→ 以同 run 残留行前置为
+E-WARM-2 等价类；**非真暖容器双跑**；真暖库（旧版 proof 残留 privacy-authz-owner-<pid>/active）兼容由
+W-2a 两分支容忍 + W-2b 相对断言承（r1）。
+
+## 6. 其余各门读数（rebase 后·落码后）
+- docs 门：node scripts/ai-docs/check-docs.mjs → EXIT=0 · scanned 2464 = cap 2464 恰等零多放。
+- PTP 门：node scripts/ai-docs/public-text-policy.proof.mjs → 12/12 · EXIT=0。
+- markers 门：改动集五类标记词 + 行首冲突标记 grep 计数 = 0/0/0/0/0（冲突标记/fake·绕过词/测试门弱化/遗留标/secrets 样值）。
+- lint：packages/db/test/privacy-authorization.proof.ts 文件级 = 1 warning（request_status naming · 既有基线同源·行号 405→449 平移）·零新增；
+  root 帽与 packages/db 帽全量跑读数见下节追加（以届时实测为准·EXIT=0 · 零新增 warning）。
+- typecheck：pnpm -C packages/db typecheck → EXIT=0。
+- 面收敛门（merge-base 口径）：本支三 commit 恰 = A harness/nk1-REQUEST.md + M 两 policy 脚本；
+  EXEC 期追加 = M packages/db/test/privacy-authorization.proof.ts + A ai-docs/delivery/receipts/flkwarm/*.log；
+  产品码（packages/db/src / packages/domain / migrations）/ runner / 他人 proof 零命中。
+- 隔离开关：仅经 runner 的 privacy-authorization:prove（assertIsolatedTestTarget 在位）·未直连开发库。
+
+## 7. 隔离收据链（LOCAL_ISOLATED_PROOF_RECEIPT · .tmp 下 gitignored 易失·r2 P2-4）
+run1: LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T07-05-29-309Z-93438-3624da72-c9ea-402d-bd13-8dc33058e6ae.json release_evidence=false
+run2: LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T07-06-58-262Z-94184-cd94cdac-ece8-433b-b329-c6f2861e2d6c.json release_evidence=false
+run3: LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T07-07-46-065Z-94640-71c33d92-c196-4bf5-88b9-34f43d573034.json release_evidence=false
+（三行已分别抄入对应 teed .log 尾）
+
+## 8. 偏离登记（理想零·本刀 1 条实现细节级）
+- W-2a/W-2b 残留行快照 SELECT 对 owner_user_id 列做 AS "ownerUserId" 别名：原因 = eslint naming-convention
+  对泛型属性 snake_case 记 warning，本刀帽=零新增 warning；谓词语义零变（同列同值比较）。
+- node:crypto/node:fs import 置于 import 区最前（非卷面字面「:20 后」）：原因 = eslint import/order（node: 内建先于包导入）·零新增 warning 帽。
+- 五项声明/53 处 fx/四臂位点/判据/断言名均照卷 §1/§3 机械清单逐字落码，其余零偏离。
+
+## 9. lint 全量实测（EXEC 期末读数 · 2026-11-02）
+- 两 policy 脚本文件级 eslint：EXIT=0 · 0 warning（cap 步进仅注释/数值行·零新增）。
+- packages/db 全量：pnpm lint → EXIT=0 · 0 errors / 1042 warnings = 帽 1042 恰等（本刀唯一 lint 面改动件
+  privacy-authorization.proof.ts 相对其 HEAD 基线 +0 warning · 基线同款唯一 warning=request_status naming 平移）。
+- root 全量：pnpm lint → EXIT=0 · 0 errors / 5410 warnings = 帽 5410 恰等 · 零新增。
+
+## 10. Non-claims（照 §7 · 摘）
+本刀 ≠ 该 GAP 关闭 ≠ 根因定谳 ≠ cold 类处理 ≠ 真暖容器双跑已证 ≠ 其它 proof 可暖库复跑 ≠ 行状态翻面；
+pid 复用残面（nextHash 进程内计数器 + owner 含 pid）不闭·如实承登；FX8=32-bit 残余相撞概率 ≈1.2e-8/对跑如实限量。
+est live=0（零模型外呼·零消耗）。

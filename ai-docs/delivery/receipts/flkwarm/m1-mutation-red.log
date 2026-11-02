@@ -1,0 +1,53 @@
+
+> meetwise@0.1.0 privacy-authorization:prove /Users/miaole/Desktop/golucky/meetwise-nk1
+> node scripts/run-e2e-isolated.mjs privacy-authorization:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=5
+E2E isolated PostgreSQL: meetwise-e2e-94184-1793603210627 on 127.0.0.1:33258
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+
+> @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-nk1/packages/db
+> tsx src/migrate-cli.ts
+
+migrations: applied=217 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+E2E_POSTGRES_READY label=post-migrate consecutive=3 attempt=3
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:privacy-authorization /Users/miaole/Desktop/golucky/meetwise-nk1/packages/db
+> tsx test/privacy-authorization.proof.ts
+
+PASS  catalog gate: privacy_issuer/privacy_guard_owner 非登录/非继承/非超管且 membership 封闭(L11)
+FAIL  W-0 源内固定前缀字面恰 0 处
+W-2a 残留行归属分支: prior-run-residual
+PASS  W-2a 历史固定 id 残留行在位且与本跑命名空间零交叠
+error: duplicate key value violates unique constraint "interview_pkey"
+    at /Users/miaole/Desktop/golucky/meetwise-nk1/node_modules/.pnpm/pg-pool@3.14.0_pg@8.22.0/node_modules/pg-pool/index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async insertInterview (/Users/miaole/Desktop/golucky/meetwise-nk1/packages/db/test/privacy-authorization.proof.ts:70:3)
+    at async main (/Users/miaole/Desktop/golucky/meetwise-nk1/packages/db/test/privacy-authorization.proof.ts:162:3) {
+  length: 227,
+  severity: 'ERROR',
+  code: '23505',
+  detail: 'Key (id)=(00000000-0000-4000-8000-0000000000a1) already exists.',
+  hint: undefined,
+  position: undefined,
+  internalPosition: undefined,
+  internalQuery: undefined,
+  where: undefined,
+  schema: 'public',
+  table: 'interview',
+  column: undefined,
+  dataType: undefined,
+  constraint: 'interview_pkey',
+  file: 'nbtinsert.c',
+  line: '666',
+  routine: '_bt_check_unique'
+}
+ ELIFECYCLE  Command failed with exit code 1.
+ISOLATED_POSTGRES_OUTPUT_WITHHELD container=meetwise-e2e-94184-1793603210627 state_bytes=219 logs_bytes=1663
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T07-06-58-262Z-94184-cd94cdac-ece8-433b-b329-c6f2861e2d6c.json release_evidence=false
+ ELIFECYCLE  Command failed with exit code 1.
+
+PROCESS_EXIT=1
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T07-06-58-262Z-94184-cd94cdac-ece8-433b-b329-c6f2861e2d6c.json release_evidence=false

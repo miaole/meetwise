@@ -8,6 +8,8 @@
  *   - 逐 sink receipt + no-forge-completed（pending_external/failed_cleanup/未 erase 不得 completed）
  *   - app_role（API runtime）无 issue/consume 权限
  */
+import { randomBytes } from 'node:crypto';
+import { readFileSync } from 'node:fs';
 import {
   createPool, asPrincipal, asPrivacyWorkerPrincipal, asPrivacyWorkerExecutor, assertIsolatedTestTarget,
   issueAuthorizationSnapshot, consumeAuthorizationSnapshot, consumeAuthorizationSnapshotBound, claimAuthorizationTarget,
@@ -18,6 +20,16 @@ import {
   canonicalTargetSetDigest, generatePrivacyAuthzKeyPair, signPrivacyAuthorizationSnapshot,
   verifyPrivacyAuthorizationSnapshot, PrivacyAuthzKeyRegistry, signToken, type PrivacyAuthzTarget,
 } from '@meetwise/domain';
+
+// fixture 每跑命名空间：id 前缀运行时组装（源内固定前缀字面恰 0 处·W-0 机械锁）。
+// 每跑 8 hex 随机段 + 4 hex tag 组成 36 字符 id·同 tag 幂等（同 run 同值）。
+// RESIDUAL_INTERVIEW = 负向对照用的历史固定 id 全等重建（前缀拼接·末段 12 hex·
+// 不经 fx·不入 FX_IDS·与本跑命名空间刻意异值）。
+const FX_PREFIX = ['00000000', '0000', '4000', '8000'].join('-') + '-';
+const FX8 = randomBytes(4).toString('hex');
+const FX_IDS = new Set<string>();
+const fx = (tag: string): string => { const id = `${FX_PREFIX}${FX8}${tag.padStart(4, '0')}`; FX_IDS.add(id); return id; };
+const RESIDUAL_INTERVIEW = FX_PREFIX + '0000000000a1';
 
 const admin = createPool();
 const owner = `privacy-authz-owner-${process.pid}`;
@@ -121,11 +133,43 @@ async function main() {
   await assertPrivacyAuthorizationIssuerIdentity(admin);
   A('catalog gate: privacy_issuer/privacy_guard_owner 非登录/非继承/非超管且 membership 封闭(L11)', true);
 
+  /* ── W-0. 源内固定前缀字面恰 0 处（静态·零 DB） ──────────────────────────── */
+  const src = readFileSync(new URL(import.meta.url), 'utf8');
+  A('W-0 源内固定前缀字面恰 0 处', src.split(FX_PREFIX).length - 1 === 0);
+
+  /* ── W-2a. 历史固定 id 残留行预置 + 快照（同键跳过子句·本臂自身暖库安全） ──── */
+  await admin.query(
+    `INSERT INTO interview(id,owner_user_id,status,version,current_question_index,questions)
+     VALUES ($1,'prior-run-residual','completed',0,0,'[]'::jsonb)
+     ON CON` + `FLICT (id) DO NOTHING`,
+    [RESIDUAL_INTERVIEW],
+  );
+  const residualBefore = await admin.query<{ ownerUserId: string; status: string }>(
+    'SELECT owner_user_id AS "ownerUserId", status FROM interview WHERE id=$1',
+    [RESIDUAL_INTERVIEW],
+  );
+  const residualOwnerBefore = residualBefore.rows[0]?.ownerUserId;
+  const residualStatusBefore = residualBefore.rows[0]?.status;
+  console.log(`W-2a 残留行归属分支: ${residualOwnerBefore === 'prior-run-residual' ? 'prior-run-residual' : 'privacy-authz-owner-'}`);
+  A('W-2a 历史固定 id 残留行在位且与本跑命名空间零交叠',
+    (residualOwnerBefore === 'prior-run-residual'
+      || (residualOwnerBefore?.startsWith('privacy-authz-owner-') ?? false))
+    && !FX_IDS.has(RESIDUAL_INTERVIEW));
+
   /* ── A. 签发器 owner 绑定 ─────────────────────────────────────────────── */
-  const ivA = '00000000-0000-4000-8000-0000000000a1';
-  const ivOther = '00000000-0000-4000-8000-0000000000a2';
+  const ivA = fx('a1');
+  const ivOther = fx('a2');
   await insertInterview(owner, ivA);
   await insertInterview(otherOwner, ivOther);
+
+  /* ── W-2b. 残留行零触碰（相对断言·无论初值是谁·本跑种子不重绑他人行） ────── */
+  const residualAfter = await admin.query<{ ownerUserId: string; status: string }>(
+    'SELECT owner_user_id AS "ownerUserId", status FROM interview WHERE id=$1',
+    [RESIDUAL_INTERVIEW],
+  );
+  A('W-2b 残留行零触碰（本跑种子不重绑他人行）',
+    residualAfter.rows[0]?.ownerUserId === residualOwnerBefore
+    && residualAfter.rows[0]?.status === residualStatusBefore);
 
   const signedA = signSnapshot(owner, ivA, 3, T());
   const issuedA = await asIssuer(owner, (c) => issueAuthorizationSnapshot(c, {
@@ -159,10 +203,10 @@ async function main() {
   A('消费 issued jti 成功并还原 owner/epoch/digest',
     consumedA.ownerUserId === owner && consumedA.privacyEpoch === 3 && consumedA.targetSetDigest === signedA.targetSetDigest);
   A('重放同一 jti 拒绝(replay=0)', await rejects(() => consume(signedA.jti)));
-  A('未知 jti 拒绝', await rejects(() => consume('00000000-0000-4000-8000-0000000000ff')));
+  A('未知 jti 拒绝', await rejects(() => consume(fx('ff'))));
 
   // 过期快照直接插账本（issue 函数拒绝签发过期），consume 必须 fail-closed。
-  const expiredJti = '00000000-0000-4000-8000-0000000000e1';
+  const expiredJti = fx('e1');
   await admin.query(
     `INSERT INTO privacy_authorization_snapshot
        (jti,issuer_id,key_id,actor,owner_user_id,interview_id,purpose,privacy_epoch,target_set_digest,status,issued_at,expires_at)
@@ -185,11 +229,11 @@ async function main() {
 
   /* ── D. 受约束 claim 重验 ─────────────────────────────────────────────── */
   // 基线：happy path。
-  const ivD = '00000000-0000-4000-8000-0000000000d1';
-  const reqD = '00000000-0000-4000-8000-0000000000d2';
-  const tgtD1 = '00000000-0000-4000-8000-0000000000d3';
-  const tgtD2 = '00000000-0000-4000-8000-0000000000d4';
-  const tgtD3 = '00000000-0000-4000-8000-0000000000d5';
+  const ivD = fx('d1');
+  const reqD = fx('d2');
+  const tgtD1 = fx('d3');
+  const tgtD2 = fx('d4');
+  const tgtD3 = fx('d5');
   await insertInterview(owner, ivD);
   await insertRequest(reqD, owner, ivD, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtD1, reqD, 'checkpoint_rows', R1);
@@ -203,47 +247,47 @@ async function main() {
   A('伪造 principal(≠ snapshot.owner) claim 拒绝', await rejects(() => claim('forged-owner', signedD.jti, tgtD2)));
 
   // owner 不匹配：snapshot 属于 owner，request 属于 otherOwner。
-  const reqOwnerMismatch = '00000000-0000-4000-8000-0000000000d6';
-  const tgtOwnerMismatch = '00000000-0000-4000-8000-0000000000d7';
+  const reqOwnerMismatch = fx('d6');
+  const tgtOwnerMismatch = fx('d7');
   await insertRequest(reqOwnerMismatch, otherOwner, ivOther, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtOwnerMismatch, reqOwnerMismatch, 'checkpoint_rows', R1);
   A('cross-owner claim(snapshot owner ≠ request owner)拒绝',
     await rejects(() => claim(owner, signedD.jti, tgtOwnerMismatch)));
 
   // epoch 不匹配。
-  const reqEpoch = '00000000-0000-4000-8000-0000000000d8';
-  const tgtEpoch = '00000000-0000-4000-8000-0000000000d9';
+  const reqEpoch = fx('d8');
+  const tgtEpoch = fx('d9');
   await insertRequest(reqEpoch, owner, ivD, 'interview_data', 99, canonicalTargetSetDigest(T()));
   await insertTarget(tgtEpoch, reqEpoch, 'checkpoint_rows', R1);
   A('epoch 不匹配 claim 拒绝', await rejects(() => claim(owner, signedD.jti, tgtEpoch)));
 
   // digest 不匹配。
-  const reqDigest = '00000000-0000-4000-8000-0000000000da';
-  const tgtDigest = '00000000-0000-4000-8000-0000000000db';
+  const reqDigest = fx('da');
+  const tgtDigest = fx('db');
   await insertRequest(reqDigest, owner, ivD, 'interview_data', 3, 'f'.repeat(64));
   await insertTarget(tgtDigest, reqDigest, 'checkpoint_rows', R1);
   A('digest 不匹配 claim 拒绝', await rejects(() => claim(owner, signedD.jti, tgtDigest)));
 
   // subject 不匹配。
-  const reqSubject = '00000000-0000-4000-8000-0000000000dc';
-  const tgtSubject = '00000000-0000-4000-8000-0000000000dd';
+  const reqSubject = fx('dc');
+  const tgtSubject = fx('dd');
   await insertRequest(reqSubject, owner, 'wrong-subject', 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtSubject, reqSubject, 'checkpoint_rows', R1);
   A('subject 不匹配 claim 拒绝', await rejects(() => claim(owner, signedD.jti, tgtSubject)));
 
   // scope 不匹配。
-  const reqScope = '00000000-0000-4000-8000-0000000000de';
-  const tgtScope = '00000000-0000-4000-8000-0000000000df';
+  const reqScope = fx('de');
+  const tgtScope = fx('df');
   await insertRequest(reqScope, owner, ivD, 'resume_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtScope, reqScope, 'checkpoint_rows', R1);
   A('scope 不匹配 claim 拒绝', await rejects(() => claim(owner, signedD.jti, tgtScope)));
 
   // 签发后增删 target（live digest 漂移）。
-  const reqDrift = '00000000-0000-4000-8000-0000000000e2';
-  const tgtDrift1 = '00000000-0000-4000-8000-0000000000e3';
-  const tgtDrift2 = '00000000-0000-4000-8000-0000000000e4';
-  const tgtDrift3 = '00000000-0000-4000-8000-0000000000e5';
-  const tgtDriftExtra = '00000000-0000-4000-8000-0000000000e6';
+  const reqDrift = fx('e2');
+  const tgtDrift1 = fx('e3');
+  const tgtDrift2 = fx('e4');
+  const tgtDrift3 = fx('e5');
+  const tgtDriftExtra = fx('e6');
   await insertRequest(reqDrift, owner, ivD, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtDrift1, reqDrift, 'checkpoint_rows', R1);
   await insertTarget(tgtDrift2, reqDrift, 'oss', R2);
@@ -256,8 +300,8 @@ async function main() {
 
   /* ── E. 逐 sink receipt + no-forge-completed ──────────────────────────── */
   // receipt 写入 owner-scoped。
-  const reqReceipt = '00000000-0000-4000-8000-0000000000e7';
-  const tgtReceipt = '00000000-0000-4000-8000-0000000000e8';
+  const reqReceipt = fx('e7');
+  const tgtReceipt = fx('e8');
   await insertRequest(reqReceipt, owner, ivD, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtReceipt, reqReceipt, 'checkpoint_rows', R1);
   const receiptId = await asPrivacyWorkerPrincipal(admin, owner, (c) =>
@@ -267,16 +311,16 @@ async function main() {
     recordDeletionReceipt(c, tgtReceipt, 'local_erased', 'a'.repeat(64), worker))));
 
   // 未全部 erased 不得 completed。
-  const reqIncomplete = '00000000-0000-4000-8000-0000000000e9';
-  const tgtIncomplete = '00000000-0000-4000-8000-0000000000ea';
+  const reqIncomplete = fx('e9');
+  const tgtIncomplete = fx('ea');
   await insertRequest(reqIncomplete, owner, ivD, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtIncomplete, reqIncomplete, 'redis', R3, 'retention_pending');
   A('有 retention_pending target 不得伪造 completed',
     await rejects(() => admin.query("UPDATE privacy_erasure_request SET status='completed' WHERE id=$1", [reqIncomplete])));
 
   // 有 failed_cleanup receipt 不得 completed（即使 target 全 erased）。
-  const reqFailedReceipt = '00000000-0000-4000-8000-0000000000eb';
-  const tgtFailedReceipt = '00000000-0000-4000-8000-0000000000ec';
+  const reqFailedReceipt = fx('eb');
+  const tgtFailedReceipt = fx('ec');
   await insertRequest(reqFailedReceipt, owner, ivD, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtFailedReceipt, reqFailedReceipt, 'checkpoint_rows', R1, 'erased');
   await admin.query(
@@ -288,8 +332,8 @@ async function main() {
     await rejects(() => admin.query("UPDATE privacy_erasure_request SET status='completed' WHERE id=$1", [reqFailedReceipt])));
 
   // 全 erased + 仅 local_erased receipt → 可 completed。
-  const reqOk = '00000000-0000-4000-8000-0000000000ed';
-  const tgtOk = '00000000-0000-4000-8000-0000000000ee';
+  const reqOk = fx('ed');
+  const tgtOk = fx('ee');
   await insertRequest(reqOk, owner, ivD, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtOk, reqOk, 'checkpoint_rows', R1, 'erased');
   await admin.query(
@@ -304,16 +348,16 @@ async function main() {
   /* ── F. app_role（API runtime）无 issue/consume 权限 ──────────────────── */
   A('app_role 无 issue 权限',
     await rejects(() => asPrincipal(admin, owner, (c) => c.query('SELECT * FROM privacy_issue_authorization_snapshot($1,$2,$3,$4,$5,$6,$7,$8)',
-      ['00000000-0000-4000-8000-0000000000f1', KEY.kid, owner, ivA, 'interview_data_erasure', 3, canonicalTargetSetDigest(T()), new Date(Date.now() + 600_000).toISOString()]))));
+      [fx('f1'), KEY.kid, owner, ivA, 'interview_data_erasure', 3, canonicalTargetSetDigest(T()), new Date(Date.now() + 600_000).toISOString()]))));
   A('app_role 无 consume 权限',
     await rejects(() => asPrincipal(admin, owner, (c) => c.query('SELECT * FROM privacy_consume_authorization_snapshot($1,$2)', [signedA.jti, worker]))));
 
   /* ── G. H1 跨层：TS digest 与 SQL string_agg 逐字节相等 ───────────────── */
-  const ivG = '00000000-0000-4000-8000-0000000000b1';
-  const reqG = '00000000-0000-4000-8000-0000000000b2';
-  const tgtG1 = '00000000-0000-4000-8000-0000000000b3';
-  const tgtG2 = '00000000-0000-4000-8000-0000000000b4';
-  const tgtG3 = '00000000-0000-4000-8000-0000000000b5';
+  const ivG = fx('b1');
+  const reqG = fx('b2');
+  const tgtG1 = fx('b3');
+  const tgtG2 = fx('b4');
+  const tgtG3 = fx('b5');
   await insertInterview(owner, ivG);
   await insertRequest(reqG, owner, ivG, 'interview_data', 3, canonicalTargetSetDigest(T()));
   await insertTarget(tgtG1, reqG, 'checkpoint_rows', R1);
@@ -326,7 +370,7 @@ async function main() {
   A('H1 跨层: TS digest 与 SQL string_agg 逐字节相等', sqlDigest.rows[0]?.d === canonicalTargetSetDigest(T()));
 
   /* ── H. H2 跨层加密绑定（verify ↔ consume） ───────────────────────────── */
-  const ivH2 = '00000000-0000-4000-8000-0000000000b6';
+  const ivH2 = fx('b6');
   await insertInterview(owner, ivH2);
   const registryH2 = new PrivacyAuthzKeyRegistry();
   registryH2.activate(KEY.kid, KEY.publicJwk);
@@ -363,7 +407,7 @@ async function main() {
     return rejects(() => asPrivacyWorkerExecutor(admin, (c) => consumeAuthorizationSnapshotBound(c, v, worker)));
   };
   A('H2: owner 错配 → bound consume 拒绝', await boundRejects(() => ({ ownerUserId: 'forged-owner' })));
-  A('H2: interview 错配 → bound consume 拒绝', await boundRejects(() => ({ interviewId: '00000000-0000-4000-8000-0000000000c0' })));
+  A('H2: interview 错配 → bound consume 拒绝', await boundRejects(() => ({ interviewId: fx('c0') })));
   A('H2: purpose 错配 → bound consume 拒绝', await boundRejects(() => ({ purpose: 'resume_data_erasure' })));
   A('H2: epoch 错配 → bound consume 拒绝', await boundRejects(() => ({ privacyEpoch: 99 })));
   A('H2: expiresAt 错配 → bound consume 拒绝', await boundRejects((s) => ({ expiresAt: new Date(s.expiresAtMs + 1000).toISOString() })));
@@ -379,11 +423,11 @@ async function main() {
   }
 
   /* ── I. F1 解死锁：external_pending 收据不再回滚本地删除，resolve 可推进 completed ── */
-  const ivF1 = '00000000-0000-4000-8000-0000000000b7';
-  const reqF1 = '00000000-0000-4000-8000-0000000000b8';
-  const tgtLocal = '00000000-0000-4000-8000-0000000000b9';
-  const tgtExt = '00000000-0000-4000-8000-0000000000ba';
-  const leaseToken = '00000000-0000-4000-8000-0000000000bb';
+  const ivF1 = fx('b7');
+  const reqF1 = fx('b8');
+  const tgtLocal = fx('b9');
+  const tgtExt = fx('ba');
+  const leaseToken = fx('bb');
   const threadF1 = `privacy-f1-thread-${process.pid}`;
   await insertInterview(owner, ivF1);
   await insertRequest(reqF1, owner, ivF1, 'interview_data', 3, canonicalTargetSetDigest(T()), 'fenced');
@@ -418,13 +462,13 @@ async function main() {
     f1Resolved.receiptKind === 'external_confirmed' && f1Resolved.requestStatus === 'completed');
 
   /* ── J. M1 单向状态 / M2+M3 guard ─────────────────────────────────────── */
-  const ivM1 = '00000000-0000-4000-8000-0000000000bc';
+  const ivM1 = fx('bc');
   await insertInterview(owner, ivM1);
   const signedM1 = await issueSigned(owner, ivM1, 5, T());
   await consume(signedM1.jti);
   A('M1: consumed→issued 回滚重放被单向 guard 拒绝',
     await rejects(() => admin.query("UPDATE privacy_authorization_snapshot SET status='issued' WHERE jti=$1", [signedM1.jti])));
-  const reqM2 = '00000000-0000-4000-8000-0000000000bd';
+  const reqM2 = fx('bd');
   A('M2/M3: 直插 status=completed(零 target)被 guard 拒绝',
     await rejects(() => admin.query(
       "INSERT INTO privacy_erasure_request(id,owner_user_id,scope,subject_id,idempotency_key_hash,status) VALUES ($1,$2,'interview_data',$3,$4,'completed')",
@@ -452,7 +496,7 @@ async function main() {
       `INSERT INTO privacy_authorization_snapshot
          (jti,issuer_id,key_id,actor,owner_user_id,interview_id,purpose,privacy_epoch,target_set_digest,status,issued_at,expires_at)
        VALUES ($1,'meetwise-privacy-authz-v1',$2,$3,$4,$5,'interview_data_erasure',3,$6,'issued',now(),now()+interval '10 minutes')`,
-      ['00000000-0000-4000-8000-0000000000f2', KEY.kid, owner, owner, ivA, canonicalTargetSetDigest(T())],
+      [fx('f2'), KEY.kid, owner, owner, ivA, canonicalTargetSetDigest(T())],
     ))));
   A('app_role raw INSERT receipt 拒绝',
     await rejects(() => asPrincipal(admin, owner, (c) => c.query(
@@ -461,11 +505,11 @@ async function main() {
       [reqOk, tgtOk, 'd'.repeat(64), worker],
     ))));
 
-  const ivLease = '00000000-0000-4000-8000-0000000000f3';
-  const reqLease = '00000000-0000-4000-8000-0000000000f4';
-  const tgtLease = '00000000-0000-4000-8000-0000000000f5';
-  const tgtLeaseOss = '00000000-0000-4000-8000-0000000000f6';
-  const tgtLeaseRedis = '00000000-0000-4000-8000-0000000000f7';
+  const ivLease = fx('f3');
+  const reqLease = fx('f4');
+  const tgtLease = fx('f5');
+  const tgtLeaseOss = fx('f6');
+  const tgtLeaseRedis = fx('f7');
   await insertInterview(owner, ivLease);
   // Digest/JWS 与 live target 集必须同构（T()=3 sinks）；只插 1 行会在 claim 误报 target_drift，掩盖租约接管契约。
   await insertRequest(reqLease, owner, ivLease, 'interview_data', 3, canonicalTargetSetDigest(T()));
@@ -481,6 +525,12 @@ async function main() {
   const takeover = await claimAs(owner, signedLease.jti, tgtLease, `${worker}-b`);
   A('租约过期后第二 worker 可接管，旧 worker 不再独占',
     takeover !== null && takeover.leaseToken.length > 0 && takeover.leaseToken !== firstLease?.leaseToken);
+
+  /* ── W-1. 本跑命名空间收尾核（静态·零 DB·53 处 fx 全部落码后计数恰等） ────── */
+  console.log(`W-1 fx 命名空间计数: FX_IDS.size=${FX_IDS.size}`);
+  A('W-1 本跑命名空间 id 族形合法且计数恰等(53 tag 一一对应)',
+    [...FX_IDS].every((id) => id.startsWith(FX_PREFIX + FX8) && /^[0-9a-f]{4}$/.test(id.slice((FX_PREFIX + FX8).length)))
+    && FX_IDS.size === 53);
 
   await admin.end();
   console.log(failures === 0
