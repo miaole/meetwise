@@ -1,6 +1,6 @@
 # STATUS-RECON REQUEST（harness REQUEST 状态对账刀——274 卷全量普查·executed*/proofed* 137 卷逐份并线考证·四类归类·executed 历史台账债分批翻面计划·起草落卷即停·零字节翻面·行使留 EXEC 期）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-11-03 落卷·rev r1 回炉修订 2026-11-03 落卷（§6）·普查只读亲证·翻面行使权留 EXEC 期分批+协调方授权·est live=0·Ban self-approve·alone≠dual·⛔push ⛔EXEC ⛔改产品码·前值无=新卷·状态钉三处：本行+§8+卷尾·同值）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-03 EXEC 行使落卷·前值 `draft:awaiting_pre_exec_dual`（起草 2026-11-03 落卷·rev r1 回炉修订 2026-11-03 落卷（§6）史录保留）·EXEC=131 卷四批行尾 additive 翻面注行使已落（§9-EXEC 记录·pre-exec 双审 r2 两席 BOTH PASS+协调方裁定 131 明示 EXEC 授权）·est live=0·Ban self-approve·alone≠dual·⛔push·状态钉三处：本行+§8+卷尾·同值）
 
 **席位**：北星「STATUS-RECON」REQUEST 状态对账刀起草席（协调方派单·主会话四门复评实测移交·本席只起草不行使）。
 **基线**：`origin/main` @ `e647fcffa`（fetch 后亲证 `git rev-parse origin/main`=`e647fcffaccb8c955b9538c85d12a643999ae1ee`=PR #191 ha1 并线点）·分支 `line/rc-draft`·工作树 `meetwise-rc`（仓根同级·`git worktree add ... -b line/rc-draft origin/main` 本席亲立·`-b` 成功即分支建前不存在的机证·EXEC 期 rebase 对届后 LOCAL_PATH 门修：绝对路径字面沿 flip-REQUEST 先例改省略形·语义不变）。
@@ -281,12 +281,19 @@ r0 读数 1（uc003-arm4-filter）系普查未对普查集内此卷应用本卷 
 
 ## §8 STOP
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** REQUEST 写完即停零翻面零码动；EXEC 须双审 BOTH PASS + 协调方明示授权后按 §2 分批行使；Ban self-approve；Ban retry-to-green；⛔push。
+**STOP 值 = `executed:awaiting_post_prove_dual`（2026-11-03 EXEC 行使落卷·前值 `draft:awaiting_pre_exec_dual` 史录保留·状态钉三处：Status 行+本节+卷尾·同值）。** EXEC 三条款已履行（pre-exec 双审 r2 两席 BOTH PASS+协调方裁定 131 明示 EXEC 授权随令行使+逐批三门与 diff 恰符校验·§9-EXEC 记录）；Ban self-approve；Ban retry-to-green；⛔push（push/收官权归协调方）。
 
 ## §9 预登与行使分离声明
 
 本卷 §1 为普查结论（只读亲证）·§2 为行使计划（未行使）·EXEC 期逐批落录于此节（append-only·不改既有字）。起草期门读数如实记于交付报告：docs 记 scanned（越限红=预登证据）/ PTP 12/12 / markers 0。
 
+### §9-EXEC 行使记录（2026-11-03·append-only·pre-exec 双审 r2 两席 BOTH PASS + 协调方裁定 131 明示 EXEC 授权后随令行使）
+
+- **rebase 与 cap 并线（前置 commit `34043e996`）**：`git fetch origin` EXIT=0·届 tip=`b66e113f8`=#193 flip 已并（main 届扫 2474=cap 2474 恰等）·rebase **零 git 冲突**（本支 2 commit 仅触本卷一件·两 policy 脚本本支未触·main 侧 2464/2465/2471/2472/2473/2474 六注记史录全保留）·rebase 后 docs:check 亲跑 `PTP_FILE_LIMIT:2475>2474` 红（真 EXIT=1 亲证）——union 实测 2475=main 届扫 2474+本卷 REQUEST 1=2475 恰等零多放·沿协调方常设预授权「并线期 union 越限恰等步进」行使 **cap 2474→2475**（两 policy 脚本 CAP-SANCTION-2475 注记含算式+proof 四联动点 `2_475/f-2475.md/:2476` 恰等改）·docs 复跑 EXIT=0 scanned **2475=cap** 恰等。同 commit 落裁定 131 回执（① 129→131 增补 closed-job-start `:1` bare/quiz-loopback-host §8 `:174/:178/:180` 三处 bare·各 walk 首中 `26ec18425` 亲证+LEDGER `product-campaign-LEDGER.md:698`/`:665` 回执·桶表 executed 132→134 子桶 **127/5/1/1** §0.1-2 同口径复算亲证·r1 子桶不合勘误登记·④ 137→139·B4 21→23·裸 token 判定加固·draft 族 3 卷桶位安全向注记）+LOCAL_PATH 门修（本卷 `:6` worktree 绝对路径字面沿 flip-REQUEST 先例改省略形·语义不变——该违面起草期被 FILE_LIMIT 早返回遮蔽·cap 恰等后首曝）。
+- **四批行使读数（每批独立 commit+三门）**：B1=36 卷/121 行 commit `ddd88dda2` · B2=36 卷/125 行 commit `14ce6b678` · B3=36 卷/129 行 commit `c5e7d183e` · B4=23 卷（①-乙 13+①-丙 8+裁定增补 2）/87 行 commit `d997491d2`——合计 **131 卷/462 行**·`git diff --stat` 逐批校验恰本批卷集零外溢·零跳卷零硬翻（131 卷逐卷考证复核：canon token 全 executed 族·承载证据逐卷亲证）·翻面注=行尾 additive（沿 obs-logging 先例形·append-only·原行留痕·原文零字节改写·前值史录零洗）·submit-flow-competency-wire 两处/e2e-runner-stale-build-guard 两处历史中间态 token（`executed:halted:awaiting_coordinator`/`executed:red_unresolved`/`executed:gate1_green`）非活值承载行零触如实登记。
+- **三门四轮读数**：docs EXIT=0 scanned 2475=cap 恰等 ×4 / PTP 12/12 EXIT=0 ×4 / markers=0 ×4（B2 基线项如实登记：lint-cap-step-242 `:71` 卷内门矩阵叙述自带四词面字面（卷内不复抄·防自指口径同 `scripts/i6-239-gates.proof.mjs` §2-7）为 HEAD 预存字节·本批 +行零引入亲证·词面防自指口径对引字卷固有命中原样登记不修）；终轮全门同值。draft/proofed 档 5 卷/附记-甲乙丙丁/smoke-env-fix/uc003-arm4-filter/proofed 档零触亲证（diff 面 131 卷恰符）。
+- **状态三处同值转 `executed:awaiting_post_prove_dual`**（Status 行+§8+卷尾·待 post-prove 双审·翻面/关账权归协调方）·est live=0·actualSpendCny=null·⛔push。
+
 ---
 
-*STATUS-RECON REQUEST · 2026-11-03 起草落卷 · rev r1 回炉修订落卷（§6）· `draft:awaiting_pre_exec_dual` · base `origin/main` @ `e647fcffa` · 分支 `line/rc-draft` · 工作树 `meetwise-rc` · 协调方派单（四门复评实测移交）· pins 十一值照抄零翻（§头）· STOP 三处同值（Status 头+§8+本卷尾）· est live=0 · markers=0 · ⛔push ⛔EXEC ⛔改产品码 · alone≠dual · Ban self-approve · Dual PASS ≠ 开工*
+*STATUS-RECON REQUEST · 2026-11-03 起草落卷 · rev r1 回炉修订落卷（§6）· rev r2 裁定 131 回执落卷+EXEC 四批行使落卷（§9-EXEC·2026-11-03）· **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录保留·三处同值：Status 头+§8+本卷尾）· base `origin/main` @ `e647fcffa` · EXEC 届 tip `b66e113f8`=#193（cap 2475 恰等步进随行使 commit 兑现）· 分支 `line/rc-draft` · 工作树 `meetwise-rc` · 协调方派单（四门复评实测移交）· pins 十一值照抄零翻（§头）· est live=0 · markers=0 · ⛔push · alone≠dual · Ban self-approve · Dual PASS ≠ 开工*
