@@ -3,7 +3,7 @@
 **Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-11-03 落卷·rev r1 回炉修订 2026-11-03 落卷（§6）·普查只读亲证·翻面行使权留 EXEC 期分批+协调方授权·est live=0·Ban self-approve·alone≠dual·⛔push ⛔EXEC ⛔改产品码·前值无=新卷·状态钉三处：本行+§8+卷尾·同值）
 
 **席位**：北星「STATUS-RECON」REQUEST 状态对账刀起草席（协调方派单·主会话四门复评实测移交·本席只起草不行使）。
-**基线**：`origin/main` @ `e647fcffa`（fetch 后亲证 `git rev-parse origin/main`=`e647fcffaccb8c955b9538c85d12a643999ae1ee`=PR #191 ha1 并线点）·分支 `line/rc-draft`·工作树 `meetwise-rc`（仓根同级·`git worktree add /Users/miaole/Desktop/golucky/meetwise-rc -b line/rc-draft origin/main` 本席亲立·`-b` 成功即分支建前不存在的机证）。
+**基线**：`origin/main` @ `e647fcffa`（fetch 后亲证 `git rev-parse origin/main`=`e647fcffaccb8c955b9538c85d12a643999ae1ee`=PR #191 ha1 并线点）·分支 `line/rc-draft`·工作树 `meetwise-rc`（仓根同级·`git worktree add ... -b line/rc-draft origin/main` 本席亲立·`-b` 成功即分支建前不存在的机证·EXEC 期 rebase 对届后 LOCAL_PATH 门修：绝对路径字面沿 flip-REQUEST 先例改省略形·语义不变）。
 **性质**：机械对账刀（零产品码·零迁移·零 proof 改动·唯本卷 1 tracked 新件）·每份 executed/proofed 状态 REQUEST 核其分支/PR 是否已并 origin/main→已并者拟批量翻面（行使留 EXEC）·未并/停摆/不可考者如实保留归类。
 **pins（十一值照抄零翻）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `actualSpendCny=null` · r1Closed=false · alone≠dual · Ban self-approve · Dual PASS ≠ 开工。
 
@@ -18,7 +18,7 @@
 ### 0.1 普查方法（命令在案·锚定本卷基线提交·可复跑）
 
 1. 卷全集：`git ls-tree -r --name-only e647fcffa -- ai-docs/delivery/harness/ | grep REQUEST` → **274 份**（`wc -l` 亲证·**命令锚定基线提交**——origin/main 届 tip 已进 `36740147b` 后树增 sse2 一件·锚定基线方保可复跑）。
-2. 状态提取（rev r1 勘定口径·全量可复算）：对每份 `git show e647fcffa:<path>` 取首个 canonical 状态 token（`executed/closed/draft/proofed/stopped/exec_landed/post_prove_dual_pass` 及 `:子值`/`_revN` 形）·**token 锚定**：Status 头行 / STOP 行（含 `STOP=` 赋值行）/ 行首裸 token 行——行中嵌入 token 一律视为 prose 混入不取（r0「携带 Status/状态/STOP 字样的行」全行取词口径过宽=resume-reread-status/money-status-proof 误归根因）。**注记优先读法（有效态裁定层）**：卷内终翻/撤回权威注记先于首 token——「本注记为权威」形（smoke-env-fix `:3`）、「→ `closed` 终态注记」形（uc003-arm4-filter `:3`）、「撤回+现以 §N 为准」形（money-status-proof §10/§11）——裁定不改 raw 桶计·有效态随附记登记（附记-乙/丙/丁）·EXEC 行使按裁定层排除。提取对 274 份全跑·计数见 §0.2；**EXEC 复跑沿用本节同一口径·禁另起口径**（保持可复算性）。
+2. 状态提取（rev r1 勘定口径·全量可复算）：对每份 `git show e647fcffa:<path>` 取首个 canonical 状态 token（`executed/closed/draft/proofed/stopped/exec_landed/post_prove_dual_pass` 及 `:子值`/`_revN` 形）·**token 锚定**：Status 头行 / STOP 行（含 `STOP=` 赋值行）/ 行首裸 token 行——行中嵌入 token 一律视为 prose 混入不取（r0「携带 Status/状态/STOP 字样的行」全行取词口径过宽=resume-reread-status/money-status-proof 误归根因）。**rev r2 裸 token 判定加固（协调方裁定 131 回执落卷）**：行首裸 token 行=token 前后零 prose（行内除 token 本体与 backtick/bold 包裹记号外零其他字）·backtick/bold 包裹允许（quiz-loopback-host §8 `:174/:178/:180` 三行形同判·closed-job-start `:1` 同形）。**注记优先读法（有效态裁定层）**：卷内终翻/撤回权威注记先于首 token——「本注记为权威」形（smoke-env-fix `:3`）、「→ `closed` 终态注记」形（uc003-arm4-filter `:3`）、「撤回+现以 §N 为准」形（money-status-proof §10/§11）——裁定不改 raw 桶计·有效态随附记登记（附记-乙/丙/丁）·EXEC 行使按裁定层排除。提取对 274 份全跑·计数见 §0.2；**EXEC 复跑沿用本节同一口径·禁另起口径**（保持可复算性）。
 3. 并线考证（executed*/proofed* 137 份逐份）：①取卷最新触卷 commit：`git log e647fcffa --full-history --no-merges -1 --format='%H' -- <path>`；②找承载 PR merge：沿 `git rev-list --first-parent --merges e647fcffa`（97 记）自新向旧逐个测 `git merge-base --is-ancestor <C_last> <M>^2` 且 **NOT** `--is-ancestor <C_last> <M>^1`（带入判据·防 rebase 后支线 tip 恒真假阳）→ 首中即承载 merge·PR 号取其 subject；③无承载 merge 者回查 C_last 本体 subject（squash 形携 `(#N)` 号）。
 4. 代码级抽验（佐证「卷并=刀并」机械代理）：ag17→`git grep -c schema_invalid origin/main -- packages/ai-runtime/src/trace.ts`=1 且 schema_retry 旧值=0（改名真落）·worker-hang-guard→`git grep -c watchdog origin/main -- apps/worker/src/drain-loop.ts`=18（watchdog 真落）·boundary-rule-single→`git grep -c UNTRUSTED_DATA_BOUNDARY_RULE origin/main -- packages/ai-runtime/src/model-client.ts`=0（第二份文案已按刀清除）。
 
@@ -27,27 +27,29 @@
 | 桶 | 计数 | 明细 |
 |---|---|---|
 | `closed` | 99 | 含 2026-10-15 协调方授权批量滞后卷对账翻面批（negresume-driver-fix/obs-logging/obs-ready 等先例）与 uc004-e2e 等 |
-| executed 族 | **132** | `executed:awaiting_post_prove_dual` **125**（r0 读数 123 + **resume-reread-status `:1` 卷首 bare token** + **money-status-proof §8 `:108/:112/:114`**·恰此 2 卷 r0 误归 draft 族=史录勘正；含 stream-known-executed·其 §8 `:119` 实值）+ `executed:awaiting_post` 4（n19-stale-comment/nightly-recall-fix/readyz-privacy-wire/weakness-s30-fix）+ `executed:dual_pass_nail` 1（e2ea05-backfill）+ `executed:stopped_gate_red_escalated` 1（uc003-arm4-filter·raw 读数·附记-丁裁定 closed） |
-| draft 族 | **37** | `draft:awaiting_pre_exec_dual` 31 + 裸 `draft` **5**（r0 读数 7·差额恰此 2 卷=resume-reread-status/money-status-proof 误归史录）+ `draft:rev3` 1（resume-grounding·§8 STOP=`draft_rev2:pre_exec_dual_PASS`） |
+| executed 族 | **134** | `executed:awaiting_post_prove_dual` **127**（r1 读数 125 + **裁定 131 增补 2**：closed-job-start `:1` bare token + quiz-loopback-host §8 `:174/:178/:180` 三处 bare token·各 walk 首中 `26ec18425` 亲证·LEDGER `:698`/`:665` 回执；r1 读数史录=r0 读数 123 + resume-reread-status `:1` 卷首 bare token + money-status-proof §8 `:108/:112/:114`·恰此 2 卷 r0 误归 draft 族=史录勘正；含 stream-known-executed·其 §8 `:119` 实值）+ `executed:awaiting_post` **5**（n19-stale-comment/nightly-recall-fix/readyz-privacy-wire/weakness-s30-fix + smoke-env-fix·r1 子桶列 4 系漏列勘正）+ `executed:dual_pass_nail` 1（e2ea05-backfill）+ `executed:stopped_gate_red_escalated` 1（uc003-arm4-filter·raw 读数·附记-丁裁定 closed）·**r2 子桶真值按 §0.1-2 同口径全量复算亲证（127+5+1+1=134·勘误登记见下）** |
+| draft 族 | **35** | r1 读数 37 − 裁定 131 移出 2（quiz-loopback-host/closed-job-start 双入 executed 族·bare executed token 复算在案）= 35·`draft:awaiting_pre_exec_dual` 30 + 裸 `draft` 3（b110/evidence-delivery/resume-grounding）+ `draft:rev3` 形 1（r1 记 resume-grounding·r2 复算读 safewrite-backpressure `:3`·子桶归属沿 §0.1-2 口径可复算·族计不变）+ **桶位注记（安全向如实注·raw 桶计不动·处置权归协调方）3 卷**：event-ttl 卷 `:3` Status 权威已翻 `closed`（2026-10-26 协调方收官翻面·PR #135 merged `36c41ac35`·r1 读法经标题 STOP=draft·真值复算归 closed 族）、evidence-delivery 卷 `:3` Status 链终值 `nailed`（post-prove 双席 BOTH PASS @2026-10-11）、b110 卷 `:3` Status 链 `exec_landed:awaiting_dual_review`（backfill 双席 BOTH PASS） |
 | `proofed:dual_pass` | 4 | ha1 / led / nk1 / quizdx |
 | `post_prove_dual_pass` | 1 | uc017（PR #138 已并） |
 | 无状态行 | 1 | g7-enoent-fix（全卷零状态 token·亲证） |
-| **合计** | **274** | `git ls-tree` 计数恰等 |
+| **合计** | **274** | 99+134+35+4+1+1=274 `git ls-tree` 计数恰等·rev r2 全表按裁定 131+§0.1-2 同口径勘正重列 |
 | 卷内权威裁定（不另计·EXEC 行使按此排除） | 3 卷 | smoke-env-fix→closed（附记-乙）· money-status-proof→draft（附记-丙）· uc003-arm4-filter→closed（附记-丁） |
 
 r0 桶表 executed 129/裸 draft 7 系提取法漏（§0.1-2 根因·发布桶无法由在案方法复算）·机器真值（席1 全量复算）executed **132**/裸 draft **5**·差额恰此 2 卷误归·rev r1 勘正并如实登记。
+
+**r1 子桶不合勘误登记（rev r2·协调方裁定 131 回执）**：r1 executed 行总 **132** 与其子桶行 125+4+1+1=**131** 不合（子桶行漏列 smoke-env-fix·awaiting_post 实为 5）·r2 按 §0.1-2 同口径对 274 卷全量复算子桶真值 **127/5/1/1=134**（亲跑在案）：awaiting_post_prove_dual 127 = r1 125 + 裁定增补 2（closed-job-start `:1` bare/quiz-loopback-host §8 三处 bare——两卷 r1 未入 §1 ① 清单：前者漏斗同 resume-reread-status 形·后者 §8 bare token 读法分歧）·awaiting_post 5 = r1 4 + smoke-env-fix 漏列勘正·nail/stopped 子桶 1+1 恰等。draft 族行 r1 37 → r2 35 = 274−99−134−4−1−1（账目自洽兜数·含 quiz-loopback-host/closed-job-start 移出；event-ttl 真值复算归 closed 族其桶位注记已如实落上行·桶计终裁归协调方）。
 
 ### 0.3 与四门复评口径差异（两侧同法同盲区·非独立佐证·差异归属如实登记）
 
 四门复评席实测（closed 103 / executed 130 / draft 32 / proofed 3 / 无状态行 5 = 273）vs 本席机扫（§0.2 = 274）。r0 曾以「executed 恰等 130」为两读数独立佐证——**rev r1 撤销该宣称**：四门 executed 130 = 本席新读法 132 − 同漏 2 卷（resume-reread-status/money-status-proof）·两侧同法同盲区·130 系假阳契合·非独立佐证。其余差异归属如实登记不猜（符号=本席−四门）：总数 +1（ha1-REQUEST.md 于四门扫后由 PR #191 并入=最可能项·四门扫描时点不可考）；closed −3~−4（本席 99 vs 四门 103：批量滞后卷对账翻面批登记面口径差·四门口径未附逐卷清单·本刀不代裁）；draft +5（本席 37 vs 四门 32：本席族口径将裸 draft 5+rev3 归 draft 族）；proofed +1（本席 4 vs 四门 3：ha1 #191 并入转 proofed:dual_pass 时点）；无状态 −4（本席 1 vs 四门 5：无 Status 头行古卷形读法差——boundary-rule-single 形凭 §8 `:76/:80/:82` 行首 token 读 executed·本席不计无状态行）。四门口径未附逐卷清单·本刀不代裁·EXEC/协调方可按 §0.1 口径复跑对账。
 
-## §1 四类考证结论（executed*/proofed* 137 卷逐份全考·零凭印象·rev r1 勘正）
+## §1 四类考证结论（executed*/proofed* 139 卷逐份全考·零凭印象·rev r1 勘正·rev r2 裁定 131 增补）
 
 **对账判据（机械代理声明）**：「刀已并线」= 卷最新触卷 commit（full-history 无剪枝）已属 origin/main 可达集·落定形态为 PR merge commit 或携号 squash commit。卷文本（含 §9-EXEC 落码记录与 blob 锚）既已在 main·其支线 EXEC 落码内容并线即为该 merge 所携带——代码级抽验三卷佐证（§0.1-4）。
 
-### ① 已并→可翻 closed：**129 卷**（129 = 108 + 13 + 8·rev r1 勘补 resume-reread-status·三类承载证据全列·翻面行使留 EXEC 期分批）
+### ① 已并→可翻 closed：**131 卷**（rev r1 129 + 协调方裁定 131 增补 2（closed-job-start/quiz-loopback-host）= 110 + 13 + 8·三类承载证据全列·翻面行使留 EXEC 期分批）
 
-##### ①-甲 PR #110 merge `26ec18425` 承载 108 卷
+##### ①-甲 PR #110 merge `26ec18425` 承载 110 卷（108 + 裁定 131 增补 2）
 - 5c-behavior-trio — line/5c-behavior-trio — PR #110 merged 26ec18425
 - 5e-cleanup-sweep-2 — line/5e-cleanup-sweep-2 — PR #110 merged 26ec18425
 - 5e-cleanup-sweep — line/5e-cleanup-sweep — PR #110 merged 26ec18425
@@ -73,6 +75,7 @@ r0 桶表 executed 129/裸 draft 7 系提取法漏（§0.1-2 根因·发布桶�
 - checkin-key — line/checkin-key — PR #110 merged 26ec18425
 - checkpoint-config-batch —  — PR #110 merged 26ec18425
 - checkpoint-terminal-slim —  — PR #110 merged 26ec18425
+- closed-job-start —  — PR #110 merged 26ec18425（裁定 131 增补·`:1` bare token·walk 首中 `26ec18425` 亲证·LEDGER `product-campaign-LEDGER.md:698` 回执·①-甲同组）
 - config-reject-local — line/config-reject-draft — PR #110 merged 26ec18425
 - contact-header-line — line/contact-header-draft — PR #110 merged 26ec18425
 - context-byte-truncation — line/context-byte-cap-draft — PR #110 merged 26ec18425
@@ -118,6 +121,7 @@ r0 桶表 executed 129/裸 draft 7 系提取法漏（§0.1-2 根因·发布桶�
 - pgp-key-param — line/pgp-key-param-draft — PR #110 merged 26ec18425
 - provision-lock-release — line/provision-lock-release-draft — PR #110 merged 26ec18425
 - q2-validate-scene-fix — line/q2-validate-scene-fix — PR #110 merged 26ec18425
+- quiz-loopback-host —  — PR #110 merged 26ec18425（裁定 131 增补·§8 `:174/:178/:180` 三处 bare token·walk 首中 `26ec18425` 亲证·LEDGER `product-campaign-LEDGER.md:665` 回执·①-甲同组）
 - qgen-critique-resilience — line/qgen-critique-resilience — PR #110 merged 26ec18425
 - queue-closeout — line/worker-hang-guard — PR #110 merged 26ec18425
 - queue-enqueue-bp — line/queue-enqueue-bp — PR #110 merged 26ec18425
@@ -193,7 +197,7 @@ r0 读数 1（uc003-arm4-filter）系普查未对普查集内此卷应用本卷 
 
 ### ④ 无法考证：**0 卷**
 
-137 份全部考证到 PR/commit 级证据（① 129 + 附记-甲 5 + 附记-乙 1 + 附记-丙 1 + 附记-丁 1·账目自洽·rev r1 重列）。
+139 份全部考证到 PR/commit 级证据（① 131 + 附记-甲 5 + 附记-乙 1 + 附记-丙 1 + 附记-丁 1·账目自洽·rev r2 裁定 131 重列）。
 
 ### 附记-甲 proofed 档 5 卷（已并·档位高于 executed·**翻面权归协调方·本刀零触零字节**）
 
@@ -232,9 +236,9 @@ r0 读数 1（uc003-arm4-filter）系普查未对普查集内此卷应用本卷 
 | B1 | ①-甲 #110 组第 1–36 卷（§1 清单序） | 36 | 本批独立 commit + 三门 + `git diff --stat` 卷数=36·触面仅 harness 36 卷 |
 | B2 | ①-甲 #110 组第 37–72 卷 | 36 | 同上 |
 | B3 | ①-甲 #110 组第 73–108 卷 | 36 | 同上 |
-| B4 | ①-乙 #108 组 13 卷 + ①-丙单线 8 卷 | 21 | 同上 |
+| B4 | ①-乙 #108 组 13 卷 + ①-丙单线 8 卷 + 裁定 131 增补 2 卷（closed-job-start/quiz-loopback-host·①-甲同组 #110 承载） | 23 | 同上 |
 
-每批四步：①逐卷翻面（§2 先例形·复跑沿用 §0.1-2 同一提取口径——注记优先+token 锚定·禁另起口径）；②`git diff --stat` 校验恰本批卷集·每卷 3~4 行级改动；③三门复跑（docs:check 记 scanned / PTP 12/12 / markers=0——markers 口径同 `scripts/i6-239-gates.proof.mjs` §2-7：四词面+行首冲突标记零命中·词面运行时组装防自指·卷内不复抄字面）；④批 commit（单行净描述）。129 卷翻面零新件——cap 零再步进（§3 预登 2473 已含本卷 REQUEST +1·rebase 对届按 §3 并线实测更新重算 2474）。
+每批四步：①逐卷翻面（§2 先例形·复跑沿用 §0.1-2 同一提取口径——注记优先+token 锚定·禁另起口径）；②`git diff --stat` 校验恰本批卷集·每卷 3~4 行级改动；③三门复跑（docs:check 记 scanned / PTP 12/12 / markers=0——markers 口径同 `scripts/i6-239-gates.proof.mjs` §2-7：四词面+行首冲突标记零命中·词面运行时组装防自指·卷内不复抄字面）；④批 commit（单行净描述）。131 卷翻面零新件（rev r1 129 + 裁定增补 2）——cap 零再步进（§3 预登 2473 已含本卷 REQUEST +1·rebase 对届按 §3 并线实测更新重算·rev r2 实测承 **2475**·步进已随 EXEC 前置 commit 兑现·详 §9）。
 
 **翻面行使前置（硬门）**：EXEC 期须 pre-exec 双审 BOTH PASS + 协调方明示授权·Ban self-approve·alone≠dual·⛔push（push/收官权归协调方）。③类卷（rev r1 起为空集）与附记-甲/乙/丙/丁卷本刀**零触**。
 
