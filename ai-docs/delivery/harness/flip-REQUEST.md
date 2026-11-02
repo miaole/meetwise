@@ -1,6 +1,6 @@
 # BATCH-FLIP 批量翻面刀起草卷 — gap-bug-backlog 翻面候选行状态起草（docs-only · 起草落卷即停 · ⛔EXEC ⛔push ⛔动主仓）
 
-**Status**: **`drafted:awaiting_pre_exec_dual`**（2026-11-03 起草落卷即停史录值·翻面行使（backlog 三处 additive 翻面注）留 pre-exec 双审两独立外席 BOTH PASS + 协调方明示 EXEC 授权后随令行使 · 本卷起草 commit 恰 3 tracked 路径=本卷 `.md` + 两 policy 脚本 CAP-SANCTION-2466 恰等步进 · alone≠dual · Ban self-approve · est live=0 · markers=0 · 状态钉三处：本行 + §8 + 卷尾 · 同值）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-03 EXEC 行使落卷·前值 `drafted:awaiting_pre_exec_dual`（2026-11-03 起草落卷即停史录值）· 翻面行使（backlog 三处 additive 翻面注）已随 pre-exec 双审 r1 两席 BOTH PASS + 协调方明示 EXEC 授权随令行使（§9 EXEC 记录）· 本卷起草 commit 恰 3 tracked 路径=本卷 `.md` + 两 policy 脚本 CAP-SANCTION-2466 恰等步进（EXEC 期 rebase union 本支注记改写 CAP-SANCTION-2474·届值如实采=唯一豁免项）· alone≠dual · Ban self-approve · est live=0 · markers=0 · 状态钉四处：本行 + §8 + §9 + 卷尾 · 同值）
 
 **席位**：meetwise 北星 BATCH-FLIP 批量翻面刀起草席（docs-only 起草 · 协调方派单「批量翻面刀起草」 · ⛔push ⛔EXEC ⛔动主仓）。
 
@@ -82,7 +82,7 @@
 1. `node scripts/ai-docs/check-docs.mjs` → 起草前 **EXIT=0 scanned 2465=cap 2465 恰等**；落卷后 **EXIT=0 scanned 2466=cap 2466 恰等**（§3 联动已先行落位）。
 2. `node scripts/ai-docs/public-text-policy.proof.mjs` → **12/12 EXIT=0**（2466 形·落位后亲跑）。
 3. markers 门 → 改动集（3 tracked 净增行）五类标记词（冲突/fake-green/门弱化/遗留标/secrets 样值·词面运行时组装防自指·同 `scripts/i6-239-gates.proof.mjs` §2-7 口径）+ 行首冲突标记 **0 命中**。
-4. 面收敛门 → `git diff --name-status origin/main..HEAD` 恰 `A ai-docs/delivery/harness/flip-REQUEST.md` + `M scripts/ai-docs/public-text-policy.mjs` + `M scripts/ai-docs/public-text-policy.proof.mjs`；**产品码/迁移/runner/既有 proof/backlog 零命中**。
+4. 面收敛门 → `git diff --name-status origin/main..HEAD` 恰 `A ai-docs/delivery/harness/flip-REQUEST.md` + `M scripts/ai-docs/public-text-policy.mjs` + `M scripts/ai-docs/public-text-policy.proof.mjs`；**产品码/迁移/runner/既有 proof/backlog 零命中**。（fetch 时点形·EXEC 复跑以届时基线计）
 5. EXEC 期（授权后）门：第 1-4 条复跑 + 翻面行使面 diff 复核（F1/F2 行尾注两条+F3 blockquote 一条·append-only·零既有字节改写机证 `git diff` 逐行核）+ 行号对届时 tip 重 pin（三处翻面注行号 `:935`/`:938`/`:915`/`:917` 随届核对·漂则如实采新值）。
 
 ## §5 Ban 清单
@@ -101,10 +101,18 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 
 ## §8 STOP
 
-**STOP 值 = `drafted:awaiting_pre_exec_dual`（起草落卷即停·三处钉：Status 行 + 本节 + 卷尾 · 同值）。** 翻面行使三条款（EXEC 期逐项履行后始得行使）：① pre-exec 双审两独立外席 BOTH PASS 落卷（§1 二分清单逐条证据链对届时 tip 复核）；② 协调方明示 EXEC 授权（行使面=§2 三条翻面注·F4/F5 零字节维持）；③ 行号重 pin 已履行（三处翻面注落点行号随届 tip 核对·漂则如实采新值）。
+**STOP 值 = `executed:awaiting_post_prove_dual`（2026-11-03 EXEC 行使落卷·前值 `drafted:awaiting_pre_exec_dual`（起草落卷即停）史录·状态钉四处：Status 行 + 本节 + §9 + 卷尾 · 同值）。** 翻面行使三条款（EXEC 期逐项履行后始得行使）：① pre-exec 双审两独立外席 BOTH PASS 落卷（§1 二分清单逐条证据链对届时 tip 复核）——r1 两席 BOTH PASS（协调方派单令为据）；② 协调方明示 EXEC 授权（行使面=§2 三条翻面注·F4/F5 零字节维持）——已随令行使；③ 行号重 pin 已履行（三处翻面注落点行号随届 tip 核对·漂则如实采新值）——已履行（§9 重 pin 记录）。
 
-停止条件：`docs:check` scanned > cap（2466）红 → 停；PTP 红 → 停；翻面候选行号与届时 tip 不符且无法重 pin → 停如实登记；证据链复核翻车（任一 F 面证据在届时树不可复现）→ 停·该条退回不可翻；需越界（碰 F4/F5/LED 五编号/pins/产品码/GH secrets）才能继续 → 停。
+停止条件：`docs:check` scanned > cap（届值）红 → 停；PTP 红 → 停；翻面候选行号与届时 tip 不符且无法重 pin → 停如实登记；证据链复核翻车（任一 F 面证据在届时树不可复现）→ 停·该条退回不可翻；需越界（碰 F4/F5/LED 五编号/pins/产品码/GH secrets）才能继续 → 停。
 
+
+## §9 EXEC 记录（2026-11-03 行使落卷 · 状态钉之一）
+
+- **行使面**：F1 E2EA-02 行尾销案终翻注 + F2 E2EA-05 行尾残面窄化注 + F3 L-06 CLOSED blockquote 翻面注（§2 逐字文本·全 additive·零既有字节改写机证亲跑：F1 原 `】` 括注收尾保留+注插其后同 cell 内·F2 行尾 strict-prefix append·F3 新 blockquote 行插 `:917` 之后·`:915`/`:917` 与全文 `:1`-`:917` 逐字节零改机证·恰 2 行 modified+1 行 inserted）· E2EA-06/G7W-TAIL 族零字节亲证（`git diff` 零命中）。
+- **落点行号（EXEC 期重 pin·rebase 后届 tip=`10f0007fb`·基 `36740147b`）**：行使前亲证 `:935`（E2EA-02）`:938`（E2EA-05）`:915`（L-06）`:917`（收口注）与卷载同值零漂；行使后 F3 插行使 F1/F2 行载体顺延 `:936`/`:939`（注文本以行 ID 定位零歧义）·F3 注落 `:918`。重 pin（席1）：ci.yml 基线红半 `:196-:197`→**`:197-:198`**·CI 纳入半 `:198-:200`→**`:199-:200`**·汇总重钉笔 `:129`→**`:130`**·recruiting-bound `:76-77`→**`:77-:78`**·uc018-abandon `:22` 零漂+`:66`→**`:67`**+`:110`→**`:112`**·packages/db/package.json `:73`→**`:74`**（`prove:db-acl2`→`tsx test/db-acl2.proof.ts` 现值亲读）·零漂亲证：nightly.yml `:33`/`:41`/`:50`/`:58`·checklist 三 nail 段 `:2970`/`:3554`/`:3672`·PR #108 mergeCommit `112e6d26` main 祖先（merge-base EXIT=0）。席2 P2-1：F3 残面② 句内 additive 半句「db-acl:prove 孪生面纳入归另批（载体=DBACL2-CI-WIRE REQUEST §1.3-丁）」已落（载体文件+节位现树亲读）。
+- **cap 承登（届值如实采=唯一豁免项）**：起草形 2466（史录）→ EXEC 期 rebase origin/main `36740147b`=#192 sse2 已并·恰 2 处冲突（两 policy 脚本注记/cap 区）·dual-keep：main 侧 CAP-SANCTION-2464/2465/2471/2472/2473 五注记史录全保留 + 本支注记改写 **2474**（union=main 届扫 2473+本卷 REQUEST 1=2474 恰等零多放）·proof 四联动点 `2_474`/`f-2474.md`/`:2475`+相邻注释两处 2475 同步改·首轮未收敛实测 2478 冗计如实承登（2 冲突件×3 stage=+4·沿 CAP-SANCTION-2418 同形坑·git add 收敛后终验 2474）。
+- **三门读数（EXEC 期届时树亲跑）**：`docs:check` EXIT=0 **scanned 2474=cap 2474 恰等** · PTP **12/12 EXIT=0** · markers 五类标记词+行首冲突标记 **0 命中**。
+- **状态**：四处同值转 **`executed:awaiting_post_prove_dual`**（Status 行+§8+本节+卷尾·待 post-prove 双审·翻面/关账权归协调方）· est live=0 · actualSpendCny=null。
 ---
 
-**卷尾 trace**：任务类型=L1 docs-only 批量翻面刀起草（起草落卷即停·审核 ∧ 验证收束归协调方）· 工作区=`meetwise-flip`（`line/flip-draft` · 基 origin/main `4751aab28`=#190）· 来源证据=`git show origin/main:` 逐条亲读（backlog `:130`/`:915`/`:917`/`:928`-`:943`/`:110`/`:805`/`:941` pins·nightly.yml `:33`/`:36-42`/`:50`/`:55`/`:58`·ci.yml `:196-:200`·assert-strengthen-REQUEST/e2ea05-backfill-REQUEST/smoke-env-fix-REQUEST 三卷 Status·checklist `:2970`/`:3554`/`:3672` 三 nail 段·spec 四断言现值·`gh pr view 108` MERGED `112e6d26`·merge-base 亲跑 ha1 未落/sse2 在飞）· 已读=AGENTS.md/ai-docs/README.md/meta/task-sop.md/led-REQUEST.md（形制蓝本）/nk1-REQUEST §3（cap 预登形）/i6-239-gates.proof.mjs §2-7（markers 口径）· 跳过=front/backend 域规范索引（本刀 docs-only 零产品码零 Java 零前端·规范路由未命中）· 结论状态=`drafted:awaiting_pre_exec_dual` · 验证=起草前两门亲跑全绿（docs scanned 2465=cap 2465 恰等/PTP 12/12）· 落卷后三门复跑（docs scanned 2466=cap 2466 恰等/PTP 12/12/markers 0）见 §4 读数。
+**卷尾 trace**：任务类型=L1 docs-only 批量翻面刀起草→EXEC 行使（起草落卷即停史录→pre-exec 双审 r1 两席 BOTH PASS+协调方明示 EXEC 授权→2026-11-03 随令行使·审核 ∧ 验证收束归协调方 post-prove 双审）· 工作区=`meetwise-flip`（`line/flip-draft` · 基 origin/main `4751aab28`=#190）· 来源证据=`git show origin/main:` 逐条亲读（backlog `:130`/`:915`/`:917`/`:928`-`:943`/`:110`/`:805`/`:941` pins·nightly.yml `:33`/`:36-42`/`:50`/`:55`/`:58`·ci.yml `:196-:200`·assert-strengthen-REQUEST/e2ea05-backfill-REQUEST/smoke-env-fix-REQUEST 三卷 Status·checklist `:2970`/`:3554`/`:3672` 三 nail 段·spec 四断言现值·`gh pr view 108` MERGED `112e6d26`·merge-base 亲跑 ha1 未落/sse2 在飞）· 已读=AGENTS.md/ai-docs/README.md/meta/task-sop.md/led-REQUEST.md（形制蓝本）/nk1-REQUEST §3（cap 预登形）/i6-239-gates.proof.mjs §2-7（markers 口径）· 跳过=front/backend 域规范索引（本刀 docs-only 零产品码零 Java 零前端·规范路由未命中）· 结论状态=`executed:awaiting_post_prove_dual`（前值 `drafted:awaiting_pre_exec_dual` 史录·四处同值：Status 行+§8+§9+本行） · 验证=起草前两门亲跑全绿（docs scanned 2465=cap 2465 恰等/PTP 12/12）· 落卷后三门复跑（docs scanned 2466=cap 2466 恰等/PTP 12/12/markers 0）见 §4 读数。· EXEC 期三门亲跑全绿（docs EXIT=0 scanned 2474=cap 2474 恰等/PTP 12/12 EXIT=0/markers 0）· rebase 后届 tip=`10f0007fb`（基 origin/main `36740147b`=#192 sse2 并线点·届值如实采=唯一豁免项）· 重 pin 与 cap dual-keep 详 §9。
