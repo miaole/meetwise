@@ -1,0 +1,162 @@
+
+> meetwise@0.1.0 quizdx:sse-http:prove /Users/miaole/Desktop/golucky/meetwise-sse2
+> node scripts/run-e2e-isolated.mjs quizdx:sse-http:prove:raw
+
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-80996-1793640178192 on 127.0.0.1:33313
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/api@0.0.0 prove:quizdx-sse-http /Users/miaole/Desktop/golucky/meetwise-sse2/apps/api
+> node --import @swc-node/register/esm-register test/quizdx-sse-http.proof.ts
+
+SSE_NOTIFY_DEGRADED reason=listen_down fallback=legacy_2s_poll hint=listen_connect_failed_will_retry_backoff
+SSE_NOTIFY_DEGRADED reason=trigger_missing fallback=legacy_2s_poll hint=trigger_interview_event_sse_notify_absent_see_migration_0143
+{"level":30,"time":1793640181797,"pid":81192,"hostname":"miaole.local","msg":"Server listening at http://127.0.0.1:50528"}
+quizdx:sse-http · quiz/diagnosis 逐实体 SSE 流 HTTP prove · releaseEvidence=false · Not HA
+CMD=pnpm quizdx:sse-http:prove
+NOTE: EXIT0=case 证据≠covered≠翻行 · quiz_unavailable/diagnosis_unavailable 失败终态不在证面 · 槽/429 面零认领
+PIN   0214 trigger self-install bytes=898 sha256=14279a1acb06e11c present=true (0143 字节不改仅历史·0214 取代)
+PIN   0214-only world: 0143 REVOKE 未重放 ⇒ 函数 ACL=默认 PUBLIC EXECUTE；本 prove 只证触发器行为面，不证授权面
+PIN   notify healthy=true reason=-
+PIN   fixture self-check 12 keys ok (counts=4/3/2/1/1/5/2/2/1/1/1/1)
+{"level":30,"time":1793640181836,"pid":81192,"hostname":"miaole.local","reqId":"aa5b2e6e-8fd1-4619-a12f-c5ba7b4871e1","req":{"method":"GET","url":"/quiz/QZ_CATCH/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50530},"msg":"incoming request"}
+RL_SHARED_DEGRADED reason=pg_error fallback=fail_open
+{"level":30,"time":1793640181844,"pid":81192,"hostname":"miaole.local","reqId":"aa5b2e6e-8fd1-4619-a12f-c5ba7b4871e1","res":{"statusCode":200},"responseTime":7.123458999999912,"msg":"request completed"}
+PASS  QD1① quiz events 200 + text/event-stream
+FACET set cut=closed order=true orphan=true residual=true ids=1,2,3,4 exp=1,2,3,4
+PASS  QD1② 帧集 id/kind 序恰 [1,2,3,4]（残留等式+孤儿 id 门）
+PASS  QD1③ 逐帧结构面（三段+恰一尾空行·护栏）
+PASS  QD1④ 逐帧 payload deep-equal 种子
+PASS  QD1⑤ 终态后自然收尾且零 token_delta
+PIN   arm=QD1 assertions=5
+{"level":30,"time":1793640181876,"pid":81192,"hostname":"miaole.local","reqId":"cb9bb90e-6219-4040-a3c2-369d1b7b00e5","req":{"method":"GET","url":"/quiz/QZ_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50530},"msg":"incoming request"}
+{"level":30,"time":1793640182686,"pid":81192,"hostname":"miaole.local","reqId":"f8e85aea-c103-4498-9490-c3a5bbfe8b65","req":{"method":"GET","url":"/quiz/QZ_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50534},"msg":"incoming request"}
+{"level":30,"time":1793640183501,"pid":81192,"hostname":"miaole.local","reqId":"888103a6-0b0d-4f53-9e3a-a9d348989373","req":{"method":"GET","url":"/quiz/QZ_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50537},"msg":"incoming request"}
+{"level":30,"time":1793640183514,"pid":81192,"hostname":"miaole.local","reqId":"888103a6-0b0d-4f53-9e3a-a9d348989373","res":{"statusCode":200},"responseTime":13.10483400000021,"msg":"request completed"}
+{"level":30,"time":1793640183547,"pid":81192,"hostname":"miaole.local","reqId":"a0f5da87-fcb6-4542-b5c1-6bae42abc473","req":{"method":"GET","url":"/quiz/QZ_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50537},"msg":"incoming request"}
+{"level":30,"time":1793640183560,"pid":81192,"hostname":"miaole.local","reqId":"a0f5da87-fcb6-4542-b5c1-6bae42abc473","res":{"statusCode":404},"responseTime":12.688958999999613,"msg":"request completed"}
+PIN   QD2 quiet=snap1:1682ms snap2:861ms (CLOSED_SILENT_MS=250; 700ms 静默后定格)
+PASS  QD2① 首连 200 + text/event-stream
+FACET set cut=closed order=true orphan=true residual=true ids=2,3 exp=2,3
+PASS  QD2② 首连帧集恰 [2,3]（不重放 1）
+PASS  QD2③ 首连逐帧 payload deep-equal 种子
+FACET set cut=closed order=true orphan=true residual=true ids=4,5 exp=4,5
+PASS  QD2④ 二连帧集恰 [4,5]（无 ≤3 重放）
+PASS  QD2⑤ 二连逐帧 payload deep-equal 种子
+FACET set cut=closed order=true orphan=true residual=true ids=6 exp=6
+PASS  QD2⑥ 三连帧集恰 [6]
+PASS  QD2⑦ 三连自然收尾（非 abort）
+PASS  QD2⑧ userB 越权订阅 → 404
+PASS  QD2⑨ 三窗全程零 token_delta
+PIN   arm=QD2 assertions=9
+{"level":30,"time":1793640183565,"pid":81192,"hostname":"miaole.local","reqId":"65061a72-f3b4-452d-9fc6-5a366ea1bf4d","req":{"method":"GET","url":"/quiz/QZ_LIVE/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50538},"msg":"incoming request"}
+{"level":30,"time":1793640184982,"pid":81192,"hostname":"miaole.local","reqId":"65061a72-f3b4-452d-9fc6-5a366ea1bf4d","res":{"statusCode":200},"responseTime":1416.4675829999996,"msg":"request completed"}
+PASS  QD3① live 200 + text/event-stream
+PASS  QD3② gate 内独立定格：首帧恰 [2]（catch-up 非空·非构造性）
+PASS  QD3③ 终态增量恰 [3,4]（严格多重集）
+FACET set cut=closed order=true orphan=true residual=true ids=2,3,4 exp=2,3,4
+PASS  QD3④ 全序恰 [2,3,4] 无重放/无重复
+PASS  QD3⑤ 逐帧结构面 + payload deep-equal 种子
+PASS  QD3⑥ pg_trigger 物证（安装面旁证·护栏）
+PASS  QD3⑦ 终态后自然收尾且零 token_delta
+PIN   arm=QD3 assertions=7
+{"level":30,"time":1793640185211,"pid":81192,"hostname":"miaole.local","reqId":"7aef8ef5-d7ba-4afb-b2c2-4999de7956f9","req":{"method":"GET","url":"/quiz/QZ_ISO/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50537},"msg":"incoming request"}
+{"level":30,"time":1793640185212,"pid":81192,"hostname":"miaole.local","reqId":"57dd4841-9d9d-460b-942e-665328ef433a","req":{"method":"GET","url":"/diagnosis/DX_ISO/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50538},"msg":"incoming request"}
+{"level":30,"time":1793640185215,"pid":81192,"hostname":"miaole.local","reqId":"a1f652ea-127b-4432-8114-e9250870d77d","req":{"method":"GET","url":"/interview/IV_ISO/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50540},"msg":"incoming request"}
+PIN   QD4 wAtGate=3 wBefore=0 tBefore=0 (读数·非判据)
+PIN   QD4 holdMs=3000 frames=qz:1/2 dx:1/2 iv:1/2
+PASS  QD4⑪ settle 后 getSseRegistry().count()===0（三连接 abort+settle 落定后在册清零·sse-pump.ts:213 删/挪漏式即泄漏红）
+{"level":30,"time":1793640188275,"pid":81192,"hostname":"miaole.local","reqId":"01372ded-80c3-4c8a-80eb-1ef640d69663","req":{"method":"GET","url":"/quiz/QZ_ISO/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50545},"msg":"incoming request"}
+{"level":30,"time":1793640188287,"pid":81192,"hostname":"miaole.local","reqId":"01372ded-80c3-4c8a-80eb-1ef640d69663","res":{"statusCode":404},"responseTime":11.782916999999543,"msg":"request completed"}
+{"level":30,"time":1793640188290,"pid":81192,"hostname":"miaole.local","reqId":"80b1420d-403d-4d35-9347-d055b0e3706d","req":{"method":"GET","url":"/diagnosis/DX_ISO/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50544},"msg":"incoming request"}
+{"level":30,"time":1793640188299,"pid":81192,"hostname":"miaole.local","reqId":"80b1420d-403d-4d35-9347-d055b0e3706d","res":{"statusCode":404},"responseTime":8.412124999999833,"msg":"request completed"}
+PASS  QD4① QZ 线 200 + text/event-stream
+FACET set cut=abort order=true orphan=true residual=true ids=1,2 exp=1,2
+PASS  QD4② QZ 线帧集恰 [1,2] + 本流 stream/marker 在证
+PASS  QD4③ QZ 线零 DX/IV 域针（JSON 形态四针）
+FACET set cut=abort order=true orphan=true residual=true ids=1,2 exp=1,2
+PASS  QD4④ DX 线 200 + 帧集恰 [1,2] + 本流 stream/marker 在证
+PASS  QD4⑤ DX 线零 QZ/IV 域针（JSON 形态四针）
+FACET set cut=abort order=true orphan=true residual=true ids=1,2 exp=1,2
+PASS  QD4⑥ IV 线 200 + 自身帧集恰 [1,2]（catch-up 正控 + 本流注入）
+PASS  QD4⑦ IV 线零 QZ/DX 域针（不写零 ping）
+PASS  QD4⑧ userB 对 QZ_ISO / DX_ISO → 404
+PASS  QD4⑨ QZ/DX 线 token 无订阅零 token_delta（三线各一次注入后）
+PASS  QD4⑩ IV 线同一注入恰一帧 token_delta 正控（text=tok-neutral）
+PASS  QD4⑫ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）
+PIN   arm=QD4 assertions=12
+{"level":30,"time":1793640188304,"pid":81192,"hostname":"miaole.local","reqId":"195c4beb-ea3b-4e9e-8adc-9d8e0079cb44","req":{"method":"GET","url":"/diagnosis/DX_CATCH/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50545},"msg":"incoming request"}
+{"level":30,"time":1793640188315,"pid":81192,"hostname":"miaole.local","reqId":"195c4beb-ea3b-4e9e-8adc-9d8e0079cb44","res":{"statusCode":200},"responseTime":10.393208000000413,"msg":"request completed"}
+PASS  DX1① diagnosis events 200 + text/event-stream
+FACET set cut=closed order=true orphan=true residual=true ids=1,2,3,4,5 exp=1,2,3,4,5
+PASS  DX1② 帧集 id/kind 序恰 [1..5]（残留等式+孤儿 id 门）
+PASS  DX1③ 逐帧结构面（三段+恰一尾空行·护栏）
+PASS  DX1④ 逐帧 payload deep-equal 种子
+PASS  DX1⑤ 终态后自然收尾且零 token_delta
+PIN   arm=DX1 assertions=5
+{"level":30,"time":1793640188346,"pid":81192,"hostname":"miaole.local","reqId":"24d48988-11ea-4669-819e-2a5be529908e","req":{"method":"GET","url":"/diagnosis/DX_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50545},"msg":"incoming request"}
+{"level":30,"time":1793640189168,"pid":81192,"hostname":"miaole.local","reqId":"9511582e-e458-4c6e-be0c-fcea5f219929","req":{"method":"GET","url":"/diagnosis/DX_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50547},"msg":"incoming request"}
+{"level":30,"time":1793640189983,"pid":81192,"hostname":"miaole.local","reqId":"ffed4773-d29f-4587-9a5b-b735d4830aa8","req":{"method":"GET","url":"/diagnosis/DX_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50548},"msg":"incoming request"}
+{"level":30,"time":1793640189989,"pid":81192,"hostname":"miaole.local","reqId":"ffed4773-d29f-4587-9a5b-b735d4830aa8","res":{"statusCode":200},"responseTime":5.766708999999537,"msg":"request completed"}
+{"level":30,"time":1793640190019,"pid":81192,"hostname":"miaole.local","reqId":"f5482aa2-398d-48d7-95a7-24cf898610fc","req":{"method":"GET","url":"/diagnosis/DX_LED/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50548},"msg":"incoming request"}
+{"level":30,"time":1793640190028,"pid":81192,"hostname":"miaole.local","reqId":"f5482aa2-398d-48d7-95a7-24cf898610fc","res":{"statusCode":404},"responseTime":9.031499999999141,"msg":"request completed"}
+PIN   DX2 quiet=snap1:1667ms snap2:843ms (CLOSED_SILENT_MS=250; 700ms 静默后定格)
+PASS  DX2① 首连 200 + text/event-stream
+FACET set cut=closed order=true orphan=true residual=true ids=2 exp=2
+PASS  DX2② 首连帧集恰 [2]（不重放 1）
+PASS  DX2③ 首连逐帧 payload deep-equal 种子
+FACET set cut=closed order=true orphan=true residual=true ids=3,4 exp=3,4
+PASS  DX2④ 二连帧集恰 [3,4]（无 ≤2 重放）
+PASS  DX2⑤ 二连逐帧 payload deep-equal 种子
+FACET set cut=closed order=true orphan=true residual=true ids=5 exp=5
+PASS  DX2⑥ 三连帧集恰 [5]
+PASS  DX2⑦ 三连自然收尾（非 abort）
+PASS  DX2⑧ userB 越权订阅 → 404
+PASS  DX2⑨ 三窗全程零 token_delta
+PIN   arm=DX2 assertions=9
+{"level":30,"time":1793640190031,"pid":81192,"hostname":"miaole.local","reqId":"ef236e20-91ee-446a-9a05-e510884f7b2c","req":{"method":"GET","url":"/diagnosis/DX_LIVE/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50544},"msg":"incoming request"}
+{"level":30,"time":1793640191450,"pid":81192,"hostname":"miaole.local","reqId":"ef236e20-91ee-446a-9a05-e510884f7b2c","res":{"statusCode":200},"responseTime":1418.342333999999,"msg":"request completed"}
+PASS  DX3① live 200 + text/event-stream
+PASS  DX3② gate 内独立定格：首帧恰 [2]（catch-up 非空·非构造性）
+PASS  DX3③ 终态增量恰 [3,4]（严格多重集）
+FACET set cut=closed order=true orphan=true residual=true ids=2,3,4 exp=2,3,4
+PASS  DX3④ 全序恰 [2,3,4] 无重放/无重复
+PASS  DX3⑤ 逐帧结构面 + payload deep-equal 种子
+PASS  DX3⑥ pg_trigger 物证（安装面旁证·护栏）
+PASS  DX3⑦ 终态后自然收尾且零 token_delta
+PIN   arm=DX3 assertions=7
+{"level":30,"time":1793640191676,"pid":81192,"hostname":"miaole.local","reqId":"e67177aa-b05a-4b6a-bd25-d212ff28c04a","req":{"method":"GET","url":"/diagnosis/DX_ISO_DX/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50548},"msg":"incoming request"}
+{"level":30,"time":1793640191677,"pid":81192,"hostname":"miaole.local","reqId":"79d3aab4-24e1-4139-a7f2-32cf77563d31","req":{"method":"GET","url":"/quiz/QZ_ISO_DX/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50544},"msg":"incoming request"}
+{"level":30,"time":1793640191678,"pid":81192,"hostname":"miaole.local","reqId":"c9712fab-4eb0-4048-b2d2-48cee63621a7","req":{"method":"GET","url":"/interview/IV_ISO_DX/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50543},"msg":"incoming request"}
+PIN   DX4 wAtGate=3 wBefore=0 tBefore=0 (读数·非判据)
+PIN   DX4 holdMs=3000 frames=dx:1/2 qz:1/2 iv:1/2
+{"level":30,"time":1793640194741,"pid":81192,"hostname":"miaole.local","reqId":"ef49cfa0-8e2e-48c9-acd5-585f11dd82eb","req":{"method":"GET","url":"/diagnosis/DX_ISO_DX/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50555},"msg":"incoming request"}
+{"level":30,"time":1793640194750,"pid":81192,"hostname":"miaole.local","reqId":"ef49cfa0-8e2e-48c9-acd5-585f11dd82eb","res":{"statusCode":404},"responseTime":8.878166999998939,"msg":"request completed"}
+{"level":30,"time":1793640194752,"pid":81192,"hostname":"miaole.local","reqId":"45b13fda-5460-41f2-b61e-2ed8d026543e","req":{"method":"GET","url":"/quiz/QZ_ISO_DX/events","host":"127.0.0.1:50528","remoteAddress":"127.0.0.1","remotePort":50554},"msg":"incoming request"}
+{"level":30,"time":1793640194761,"pid":81192,"hostname":"miaole.local","reqId":"45b13fda-5460-41f2-b61e-2ed8d026543e","res":{"statusCode":404},"responseTime":8.574749999999767,"msg":"request completed"}
+PASS  DX4① DX 线 200 + text/event-stream
+FACET set cut=abort order=true orphan=true residual=true ids=1,2 exp=1,2
+PASS  DX4② DX 线帧集恰 [1,2] + 本流 stream/marker 在证
+PASS  DX4③ DX 线零 QZ/IV 域针（JSON 形态四针）
+PASS  DX4④ QZ 线 200 + text/event-stream
+FACET set cut=abort order=true orphan=true residual=true ids=1,2 exp=1,2
+PASS  DX4⑤ QZ 线帧集恰 [1,2] + 本流 stream/marker 在证 + 零 DX/IV 域针
+PASS  DX4⑥ IV 线 200 + text/event-stream
+FACET set cut=abort order=true orphan=true residual=true ids=1,2 exp=1,2
+PASS  DX4⑦ IV 线帧集恰 [1,2] + 零 QZ/DX 域针（不写零 ping）
+PASS  DX4⑧ userB 对 DX_ISO_DX / QZ_ISO_DX → 404
+PASS  DX4⑨ QZ/DX 线 token 无订阅零 token_delta（三线各一次注入后）
+PASS  DX4⑩ IV 线同一注入恰一帧 token_delta 正控（text=tok-neutral）
+PASS  DX4⑪ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）
+PIN   arm=DX4 assertions=11
+PIN   assertion budget perArm=QD1:5 QD2:9 QD3:7 QD4:12 DX1:5 DX2:9 DX3:7 DX4:11 total=65
+PIN   non-claim: quiz_unavailable / diagnosis_unavailable 失败终态不在本证明面（生产者源见 quiz-consumer / diagnosis-consumer）
+PIN   non-claim: 槽容量/429（sse-slot:prove / uc002 旁证）· 跨副本（xrep CLOSED）· 30s 生产兜底 · : ping 心跳 cadence
+PIN   non-claim: 0062 隐私围栏（harness 未载·IV 线只走臂内 principal owner 匹配正臂）· 0143/0214 授权面（0214-only 世界 ACL 未重放）
+PIN   non-claim: token_delta 剥离前提=worker 纪律（仅传输态·不落 interview_event），非库约束
+NOTE: EXIT0=case 证据≠covered≠翻行≠full e2e; case 行/格值翻面权归协调方
+
+✓ quizdx:sse-http: 65 条负路径用例全绿
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T17-23-14-957Z-80996-225d798a-39ac-417c-84b7-05bca86f5a91.json release_evidence=false

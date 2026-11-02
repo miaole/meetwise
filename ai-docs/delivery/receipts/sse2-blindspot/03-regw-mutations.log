@@ -1,0 +1,33 @@
+== regw mutation self-checks ==
+carve-out: apps/api/src/platform/sse-pump.ts temp edit per mutation; same-turn restore
+via git checkout + git diff --exit-code -- apps/api/src/platform/sse-pump.ts => RESTORE_OK x4;
+final whole-tree check: git status --porcelain shows ONLY the two proof files (product zero residue).
+
+-- MUT-3: insert "  await Promise.resolve();" immediately AFTER sse-pump.ts:88 (writeHead) --
+note: first perl attempt landed the line BEFORE :88 (print-before-$_ slip) => 5 red
+(RW-0-6 stayed green: seg1 no longer straddles the inserted await); re-applied after :88.
+canonical run FAIL lines:
+FAIL  RW-0-5b 泵体首个 await index > 首个 waitFor( index（initial 未移入泵：区2 存在性一等判据）
+FAIL  RW-0-6 区1 两区间（writeHead→首 waitFor / 首 dispose→次 waitFor）剥注释后均无 await
+FAIL  RW-3-0b 泵调用返回当拍（fire 前）waitingCount()===1（:169 同步前缀注册可判断言·EXTRA 台账去重入账、不入 49 臂计数）
+FAIL  RW-3-1 送达 <300ms（:169 已注册→立即取数承接，非 1000ms 兜底）
+FAIL  RW-6-M1 snapshotSeq<insertSeq<fireSeq 且 fire 拍 waitingCount===0 / 起泵后===1
+FAIL  RW-6-M5 泵运行中 registry.count()===1（:124 register 同步前缀在位·:213 注销提前/挪位即红）
+LEDGER  arm_assertions=44/49  dedup_pass_lines=48/54  failures=12
+EXIT=1; distinct red assertions = 6 = pinned set {RW-0-5b, RW-0-6, RW-3-0b, RW-6-M5, RW-3-1, RW-6-M1}: MATCH
+
+-- MUT-4: delete sse-pump.ts:210 (tail wait.dispose();) --
+FAIL  RW-5-2b 泵返回后 notify.waitingCount()===0（末位 waiter 仅由 sse-pump.ts:210 尾 dispose 摘除·删行即泄漏红）
+LEDGER  arm_assertions=48/49  dedup_pass_lines=53/54  failures=2
+EXIT=1; distinct red assertions = 1 = pinned {RW-5-2b}: MATCH
+
+-- MUT-5: move :213 registry.unregister to immediately after :124 registry.register (before first await :185) --
+FAIL  RW-6-M5 泵运行中 registry.count()===1（:124 register 同步前缀在位·:213 注销提前/挪位即红）
+LEDGER  arm_assertions=48/49  dedup_pass_lines=53/54  failures=2
+EXIT=1; distinct red assertions = 1 = pinned {RW-6-M5} single red: MATCH
+
+-- MUT-6: :170 "if (!draining) emit(o.initial.rows);" -> "if (!draining) emit([]);" --
+FAIL  RW-0-1 首次 waiter 注册先于 catch-up 重放（token 恰两处·首处 index < emit(initial.rows)）
+FAIL  RW-6-M3 写出 id 子序列恰 [1,2]（快照不重放、窗行不丢、零重复）
+LEDGER  arm_assertions=47/49  dedup_pass_lines=52/54  failures=4
+EXIT=1; distinct red assertions = 2 = pinned {RW-0-1, RW-6-M3}: MATCH

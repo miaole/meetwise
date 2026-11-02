@@ -32,6 +32,7 @@ import { readFileSync, writeSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { isDeepStrictEqual } from 'node:util';
 import { getSseNotify, SSE_TOKEN_CHANNEL } from '../src/platform/sse-notify.service.ts';
+import { getSseRegistry } from '../src/platform/sse-registry.ts';
 import { boot, mkAssert } from './_neg-harness';
 
 const CMD = 'pnpm quizdx:sse-http:prove';
@@ -512,7 +513,7 @@ let t0 = Date.now();
   await requireZeroBaseline('QD2');
   t0 = Date.now();
   const r1 = await openSse({ path: `/quiz/${QZ_LED}/events`, uid: 'userA2', led: 1 });
-  const g1 = await until(() => r1.ids().join(',') === '2,3', 1500);
+  const g1 = await until(() => r1.ids().length >= 2, 1500);
   if (!g1) hardStop('env分口(QD2-gate1)', 'env', { gates: { gate: g1, at: Date.now() }, hold: { openedAt: r1.chunks[0]?.t ?? t0, frameArrivals: r1.chunks.map((c) => c.t) } });
   await sleep(700);
   await r1.abort();
@@ -522,7 +523,7 @@ let t0 = Date.now();
 
   t0 = Date.now();
   const r2 = await openSse({ path: `/quiz/${QZ_LED}/events`, uid: 'userA2', led: 3 });
-  const g2 = await until(() => r2.ids().join(',') === '4,5', 1500);
+  const g2 = await until(() => r2.ids().length >= 2, 1500);
   if (!g2) hardStop('env分口(QD2-gate2)', 'env', { gates: { gate: g2, at: Date.now() }, hold: { openedAt: r2.chunks[0]?.t ?? t0, frameArrivals: r2.chunks.map((c) => c.t) } });
   await sleep(700);
   await r2.abort();
@@ -616,7 +617,7 @@ let t0 = Date.now();
   armEnd('QD3', from);
 }
 
-// ══ QD4 · quiz 跨流 key 域隔离 + 跨 owner 拒绝（10 条·principal=userC）════════════
+// ══ QD4 · quiz 跨流 key 域隔离 + 跨 owner 拒绝（12 条·principal=userC）════════════
 {
   const from = reg.length;
   await requireZeroBaseline('QD4');
@@ -681,6 +682,7 @@ let t0 = Date.now();
       hardStop('env分口(QD4-settle)', 'env', { waitingCount: getSseNotify().waitingCount(), tokenSubscriberCount: getSseNotify().tokenSubscriberCount() });
     }
   }
+  A('QD4⑪ settle 后 getSseRegistry().count()===0（三连接 abort+settle 落定后在册清零·sse-pump.ts:213 删/挪漏式即泄漏红）', getSseRegistry().count() === 0);
 
   const expQz: ExpFrame[] = [
     { id: 1, kind: 'progress', payload: { stream: 'QZ_ISO', marker: 'q-iso-1' } },
@@ -722,6 +724,7 @@ let t0 = Date.now();
   A('QD4⑧ userB 对 QZ_ISO / DX_ISO → 404', userBQz === 404 && userBDx === 404 && userBQz > 0 && userBDx > 0);
   A('QD4⑨ QZ/DX 线 token 无订阅零 token_delta（三线各一次注入后）', qzTok === 0 && dxTok === 0);
   A('QD4⑩ IV 线同一注入恰一帧 token_delta 正控（text=tok-neutral）', ivTok === 1 && tokenPayload.text === 'tok-neutral' && tokenPayload.seq === 2 && tokenPayload.attemptKey === 'att-i');
+  A('QD4⑫ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）', isDeepStrictEqual(tokenPayload, { attemptKey: 'att-i', seq: 2, text: 'tok-neutral' }));
   armEnd('QD4', from);
 }
 
@@ -756,7 +759,7 @@ let t0 = Date.now();
   await requireZeroBaseline('DX2');
   t0 = Date.now();
   const r1 = await openSse({ path: `/diagnosis/${DX_LED}/events`, uid: 'userA5', led: 1 });
-  const g1 = await until(() => r1.ids().join(',') === '2', 1500);
+  const g1 = await until(() => r1.ids().length >= 1, 1500);
   if (!g1) hardStop('env分口(DX2-gate1)', 'env', { gates: { gate: g1, at: Date.now() }, hold: { openedAt: r1.chunks[0]?.t ?? t0, frameArrivals: r1.chunks.map((c) => c.t) } });
   await sleep(700);
   await r1.abort();
@@ -766,7 +769,7 @@ let t0 = Date.now();
 
   t0 = Date.now();
   const r2 = await openSse({ path: `/diagnosis/${DX_LED}/events`, uid: 'userA5', led: 2 });
-  const g2 = await until(() => r2.ids().join(',') === '3,4', 1500);
+  const g2 = await until(() => r2.ids().length >= 2, 1500);
   if (!g2) hardStop('env分口(DX2-gate2)', 'env', { gates: { gate: g2, at: Date.now() }, hold: { openedAt: r2.chunks[0]?.t ?? t0, frameArrivals: r2.chunks.map((c) => c.t) } });
   await sleep(700);
   await r2.abort();
@@ -858,7 +861,7 @@ let t0 = Date.now();
   armEnd('DX3', from);
 }
 
-// ══ DX4 · diagnosis 跨流 key 域隔离 + 跨 owner 拒绝（10 条·principal=userD）════════
+// ══ DX4 · diagnosis 跨流 key 域隔离 + 跨 owner 拒绝（11 条·principal=userD）════════
 {
   const from = reg.length;
   await requireZeroBaseline('DX4');
@@ -963,19 +966,20 @@ let t0 = Date.now();
   A('DX4⑧ userB 对 DX_ISO_DX / QZ_ISO_DX → 404', userBDx === 404 && userBQz === 404 && userBDx > 0 && userBQz > 0);
   A('DX4⑨ QZ/DX 线 token 无订阅零 token_delta（三线各一次注入后）', qzTok === 0 && dxTok === 0);
   A('DX4⑩ IV 线同一注入恰一帧 token_delta 正控（text=tok-neutral）', ivTok === 1 && tokenPayload.text === 'tok-neutral' && tokenPayload.seq === 2 && tokenPayload.attemptKey === 'att-i');
+  A('DX4⑪ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）', isDeepStrictEqual(tokenPayload, { attemptKey: 'att-i', seq: 2, text: 'tok-neutral' }));
   armEnd('DX4', from);
 }
 
 // ── 断言预算自检（顺序钉死：逐臂 reg.length 边界 + 总数；不等先补打 FAIL 行再 exit 2）──
 const ARM_BUDGET: Array<[string, number]> = [
-  ['QD1', 5], ['QD2', 9], ['QD3', 7], ['QD4', 10],
-  ['DX1', 5], ['DX2', 9], ['DX3', 7], ['DX4', 10],
+  ['QD1', 5], ['QD2', 9], ['QD3', 7], ['QD4', 12],
+  ['DX1', 5], ['DX2', 9], ['DX3', 7], ['DX4', 11],
 ];
 const countsOk = armCounts.length === ARM_BUDGET.length
   && ARM_BUDGET.every(([arm, n], i) => armCounts[i]?.arm === arm && armCounts[i]?.n === n);
-const totalOk = reg.length === 62;
+const totalOk = reg.length === 65;
 if (!countsOk || !totalOk) {
-  console.log(`FACET budget perArm=${JSON.stringify(armCounts)} expected=${JSON.stringify(ARM_BUDGET)} total=${reg.length}/62`);
+  console.log(`FACET budget perArm=${JSON.stringify(armCounts)} expected=${JSON.stringify(ARM_BUDGET)} total=${reg.length}/65`);
   for (const id of failedIds) writeSync(2, `FAIL  ${id}\n`);
   hardStop('断言预算', 'instrument', { gates: { at: Date.now() } });
 }

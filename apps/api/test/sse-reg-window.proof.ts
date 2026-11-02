@@ -12,10 +12,12 @@
  *        承接式：窗内提交 → 兜底送达，零丢失/零重放/有界时延（零丢失以泵未提前收尾为前提）。
  *
  * 刀型 = 双臂复合（证伪 + 承接）：
- *   RW-0 结构静态 7（源 token 锚优先）· RW-6 静态接线 15（镜像泵 + proof 自身源闭合）+ 动态镜像泵 4
- *   PA-0 共享健康前置门 1 · RW-1 证伪 4 · RW-2 承接 5 · RW-3 立即承接 3 · RW-4 退化 3 · RW-5 终态 2
- *   合计 44 臂断言 = 静态 22 + 动态 22；另注入自证 1 条 + PA-0 fake 契约 3 项（按臂重复执行、
- *   打印加臂名前缀、去重后入账）→ 去重 PASS 行 48。
+ *   RW-0 结构静态 10（源 token 锚优先·含三取数面谓词 RW-0-7a/7b/7c）· RW-6 静态接线 15（镜像泵 + proof 自身源闭合）+ 动态镜像泵 5
+ *   PA-0 共享健康前置门 1 · RW-1 证伪 4 · RW-2 承接 5 · RW-3 立即承接 3 · RW-4 退化 3 · RW-5 终态 3
+ *   合计 49 臂断言 = 静态 25 + 动态 24；另注入自证 2 条（INJECTION + RW-3-0b·EXTRA 台账去重入账、不入臂计数）
+ *   + PA-0 fake 契约 3 项（按臂重复执行、打印加臂名前缀、去重后入账）→ 去重 PASS 行 54。
+ * 变异三红集口径（泵同步前缀截断：writeHead 后、首 waitFor 前插 await）：期望红集=六红
+ *   RW-0-5b + RW-0-6 + RW-3-0b + RW-6-M5 + RW-3-1 + RW-6-M1（regw 源卷「四红」钉对本刀后 proof 已 stale）。
  *
  * keyless：真 `SseNotifyService({ connect: fake LISTEN client })` + fake sink/内存行存储；
  * 零 `@meetwise/db` 连接、零 PG、零 HTTP 起服、零模型外呼、零环境变量。**零控制器 import**：
@@ -52,7 +54,7 @@ export type _RW05 = MustBeNever<Extract<keyof SsePumpOptions, 'fetchInitial' | '
 
 // ── 断言台账（去重判据）────────────────────────────────────────────────────────
 const ARM_IDS = [
-  'RW-0-1', 'RW-0-2', 'RW-0-3', 'RW-0-4', 'RW-0-5a', 'RW-0-5b', 'RW-0-6',
+  'RW-0-1', 'RW-0-2', 'RW-0-3', 'RW-0-4', 'RW-0-5a', 'RW-0-5b', 'RW-0-6', 'RW-0-7a', 'RW-0-7b', 'RW-0-7c',
   'RW-6-S1:quiz', 'RW-6-S2:quiz', 'RW-6-S3:quiz', 'RW-6-S4:quiz', 'RW-6-S5:quiz', 'RW-6-S6:quiz', 'RW-6-S7:quiz',
   'RW-6-S1:diagnosis', 'RW-6-S2:diagnosis', 'RW-6-S3:diagnosis', 'RW-6-S4:diagnosis',
   'RW-6-S5:diagnosis', 'RW-6-S6:diagnosis', 'RW-6-S7:diagnosis',
@@ -62,10 +64,10 @@ const ARM_IDS = [
   'RW-2-1a', 'RW-2-1b', 'RW-2-2', 'RW-2-3', 'RW-2-4',
   'RW-3-0', 'RW-3-1', 'RW-3-2',
   'RW-4-1', 'RW-4-2', 'RW-4-3',
-  'RW-5-1', 'RW-5-2',
-  'RW-6-M1', 'RW-6-M2', 'RW-6-M3', 'RW-6-M4',
+  'RW-5-1', 'RW-5-2', 'RW-5-2b',
+  'RW-6-M1', 'RW-6-M2', 'RW-6-M3', 'RW-6-M4', 'RW-6-M5',
 ];
-const EXTRA_IDS = ['INJECTION', 'PA-0-FAKE-1', 'PA-0-FAKE-2', 'PA-0-FAKE-3'];
+const EXTRA_IDS = ['INJECTION', 'PA-0-FAKE-1', 'PA-0-FAKE-2', 'PA-0-FAKE-3', 'RW-3-0b'];
 
 const outcomes = new Set<string>();
 let failures = 0;
@@ -597,6 +599,20 @@ async function main(): Promise<void> {
     A('RW-0-6', 'RW-0-6 区1 两区间（writeHead→首 waitFor / 首 dispose→次 waitFor）剥注释后均无 await',
       seg1.length > 0 && seg2.length > 0 && !/\bawait\b/.test(seg1) && !/\bawait\b/.test(seg2),
       { seg1Len: seg1.length, seg2Len: seg2.length });
+
+    // RW-0-7 三取数面源谓词（三 service 各恰 1 命中：参数序 $1=stream_key/$2=游标 + 严格 > + ORDER BY seq 在位）
+    const quizSvcSrc = readSource('../src/modules/quiz/quiz.service.ts');
+    A('RW-0-7a', 'RW-0-7a(quiz) 取数面源谓词 token 恰 1 命中（WHERE stream_key=$1 AND seq>$2 ORDER BY seq）',
+      countOccurrences(quizSvcSrc, 'WHERE stream_key=$1 AND seq>$2 ORDER BY seq') === 1,
+      { hits: countOccurrences(quizSvcSrc, 'WHERE stream_key=$1 AND seq>$2 ORDER BY seq') });
+    const diagnosisSvcSrc = readSource('../src/modules/diagnosis/diagnosis.service.ts');
+    A('RW-0-7b', 'RW-0-7b(diagnosis) 取数面源谓词 token 恰 1 命中（WHERE stream_key=$1 AND seq>$2 ORDER BY seq）',
+      countOccurrences(diagnosisSvcSrc, 'WHERE stream_key=$1 AND seq>$2 ORDER BY seq') === 1,
+      { hits: countOccurrences(diagnosisSvcSrc, 'WHERE stream_key=$1 AND seq>$2 ORDER BY seq') });
+    const interviewSvcSrc = readSource('../src/modules/interview/interview.service.ts');
+    A('RW-0-7c', 'RW-0-7c(interview) 取数面源谓词 token 恰 1 命中（WHERE stream_key=$1 AND seq>$2 ORDER BY seq）',
+      countOccurrences(interviewSvcSrc, 'WHERE stream_key=$1 AND seq>$2 ORDER BY seq') === 1,
+      { hits: countOccurrences(interviewSvcSrc, 'WHERE stream_key=$1 AND seq>$2 ORDER BY seq') });
   }
 
   // ═══ 静态接线臂 RW-6（S1–S7 ×2 + S8 = 15 断言）═══════════════════════════════
@@ -814,6 +830,8 @@ async function main(): Promise<void> {
       fetchMore: (lastSeq) => store.fetch(lastSeq),
       fallbackMsHealthy: 1000,
     });
+    const countAtSyncReturn = notify.waitingCount();
+    A('RW-3-0b', 'RW-3-0b 泵调用返回当拍（fire 前）waitingCount()===1（:169 同步前缀注册可判断言·EXTRA 台账去重入账、不入 49 臂计数）', countAtSyncReturn === 1, { countAtSyncReturn });
     // 泵调用返回后同 tick 立即 fire（泵体同步执行到 `await race`，`:169` waiter 已在册）
     const fireSeq = ++clock;
     const fireAt = Date.now();
@@ -910,6 +928,7 @@ async function main(): Promise<void> {
     A('RW-5-2', 'RW-5-2 end() 恰一次且无写后半截（writesAfterEnd===0）',
       ended && sink.endCount === 1 && sink.writesAfterEnd === 0,
       { ended, endCount: sink.endCount, writesAfterEnd: sink.writesAfterEnd });
+    A('RW-5-2b', 'RW-5-2b 泵返回后 notify.waitingCount()===0（末位 waiter 仅由 sse-pump.ts:210 尾 dispose 摘除·删行即泄漏红）', notify.waitingCount() === 0, { waiting: notify.waitingCount() });
     await notify.stop();
   }
 
@@ -922,7 +941,7 @@ async function main(): Promise<void> {
     const store = memStore([{ seq: 1, kind: 'reply', payload: {} }]);
     const sink = fakeSink();
     let clock = 0;
-    const initial = { lastId: 0, rows: store.rows.slice() };
+    const initial = { lastId: 1, rows: store.rows.slice() }; // lastId=快照 max(seq)：fetchMore 恒 seq>1 ⇒ seq=1 唯一来源=sse-pump.ts:170 catch-up ⇒ 既有 RW-6-M3 谓词零改转正为 catch-up 功能判据
     const snapshotSeq = ++clock;
     store.append({ seq: 2, kind: 'reply', payload: {} });
     const insertSeq = ++clock;
@@ -941,9 +960,11 @@ async function main(): Promise<void> {
       arm.registry,
     );
     const countAfterStart = notify.waitingCount();
+    const registryAtRun = arm.registry.count();
     A('RW-6-M1', 'RW-6-M1 snapshotSeq<insertSeq<fireSeq 且 fire 拍 waitingCount===0 / 起泵后===1',
       snapshotSeq < insertSeq && insertSeq < fireSeq && countAtFire === 0 && countAfterStart === 1,
       { snapshotSeq, insertSeq, fireSeq, countAtFire, countAfterStart });
+    A('RW-6-M5', 'RW-6-M5 泵运行中 registry.count()===1（:124 register 同步前缀在位·:213 注销提前/挪位即红）', registryAtRun === 1, { registryAtRun });
 
     const delivered = await until(() => sink.writes.some((w) => w.startsWith('id: 2\n')), 2000);
     const writeAt = writeTimeOf(sink, 2);
@@ -978,7 +999,7 @@ async function main(): Promise<void> {
   }
   const armPass = ARM_IDS.filter((id) => outcomes.has(id)).length;
   const dedupPass = countedIds.filter((id) => outcomes.has(id)).length;
-  console.log(`LEDGER  arm_assertions=${armPass}/44  dedup_pass_lines=${dedupPass}/48  failures=${failures}`);
+  console.log(`LEDGER  arm_assertions=${armPass}/49  dedup_pass_lines=${dedupPass}/54  failures=${failures}`);
 
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ 注册窗口矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）');
   process.exit(failures ? 1 : 0);
