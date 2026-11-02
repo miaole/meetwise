@@ -449,16 +449,16 @@ const checks = {
       // CAP-SANCTION-2456 UC3M 起草随刀恰等步进：cap 2455→2456（2026-10-30 UC-003 NEG-01 收据 N1b 两缺位码映射任务书起草（总盘 #5·P2·gap-bug-backlog :953 兑现·harness/uc3m-REQUEST.md）随刀·协调方派单常设预授权「越限沿常设预授权恰等步进预登」随令行使 +1 恰等零多放·本树届扫 2455=cap 2455 恰等零余量（docs:check EXIT=0 scanned 2455 起草前亲跑）+本卷 REQUEST 受管 1 件=2456 必越·EXEC 期产品码面=既有文件行内补键零新受管文件（终态 2456 零新增）·在飞 evap/cwn 各承 2448 如实采·沿 CAP-SANCTION-2455 单件恰等先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_456/f-2456.md/:2457 恰等改。
       // CAP-SANCTION-2461 EVAP EXEC 立项 union 越限恰等步进：cap 2455→2461（2026-10-30 GAP-EVAL-PARSER-DETAILS-UNCLOSED 评测解析收口 EXEC 落码·fetch 届值 origin/main 3af835ad4=#183（cap 承 2455=CAP-SANCTION-2455）·EXEC 前 docs:check PTP_FILE_LIMIT:2456>2455 红亲证·union 实测 2460=main 届扫 2455+在飞互斥受管目 5（cwn@24ca62f73/uc3m@1b2f6ad0f/online-pay@fdaa1ecf0/uc31@112ac8af0/本卷 REQUEST 各 1）+EXEC +1 fixture=2461 恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2461 注记）——本 TC 四联动点 2_461/f-2461.md/:2462 恰等改（loop/atCap/overCap 三处）。
       const paths = [];
-      for (let i = 0; i < 2_461; i += 1) {
+      for (let i = 0; i < 2_463; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_461);
-      // 超限错误码形状断言：第 2462 个注入路径触发早返回（先于读盘·免落盘可断言）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2462`（`${CODE}:${n}` 形）·scannedFiles:0。
+      assert.equal(atCap.scannedFiles, 2_463);
+      // 超限错误码形状断言：第 2464 个注入路径触发早返回（先于读盘·免落盘可断言）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2464`（`${CODE}:${n}` 形）·scannedFiles:0。
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
       // UC3F EXEC 立项并线取大承登：本 TC 四联动点随合并树 cap=2_445 行使（本支原 2_442/f-2442.md/:2443 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2446 恰等步进 2445→2446 随本 EXEC commit 兑现（f-2446.md/:2447 联动）。
       // isob 收官并线取大承登：本 TC 四联动点随合并树 cap=2_446 行使（uc3f 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2447 恰等步进 2446→2447 随本收官步进 commit 兑现（f-2447.md/:2448 联动）。
@@ -471,10 +471,11 @@ const checks = {
       // UC3M 起草链 CAP-SANCTION-2456 史录并留上（2455→2456·本 merge 取大 2_461 零再步进·语义不变强度不减）。
       // EVAP EXEC 立项取大承登：本 TC 四联动点随合并树 cap=2_461 行使（UC2B 链史录并留上·语义不变强度不减）·CAP-SANCTION-2461 恰等步进 2455→2461 随本 EXEC commit 兑现（f-2461.md/:2462 联动）。
       // CWN 收官并线取大承登：本 TC 四联动点随合并树 cap=2_461 行使（CWN 2456/EVAP 2461 链注记史录并留上·语义不变强度不减·cap 取大恒 2_461 零再步进）。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2461.md'] });
+      // CAP-SANCTION-2463 QUIZDX nail 收官并线 union 越限恰等步进：cap 2461→2463（2026-10-30 quiz/diagnosis HTTP 级逐实体 SSE 流证明卷 post-prove 双席 BOTH PASS 会签后收官并线（GAP-SSEPUSH-QUIZ-DX-HTTP · harness/quizdx-REQUEST.md 卷）·fetch EXIT=0·届值如实采 origin/main 5c94266b1=#187 regw 合卷已落（cap 届值承 2461=CAP-SANCTION-2461）·rebase 零冲突（双 package.json additive 区 auto-merge）·合并树终验亲跑 docs:check PTP_FILE_LIMIT:2463>2461 红（真 EXIT=1 亲证）——union 实测 2463=main 届扫 2461+本支并入互斥受管目 2（harness/quizdx-REQUEST.md+apps/api/test/quizdx-sse-http.proof.ts·两集合无交叠·真跑收据 .log 非扫描扩展名不计）恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2463 注记·协调方常设预授权「并线期 union 越限沿常设预授权恰等步进」随令行使·在飞 nk1-draft 承 2462（4d97b9f83）未落 main 如实采·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_463/f-2463.md/:2464 恰等改。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2463.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2462`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2464`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
