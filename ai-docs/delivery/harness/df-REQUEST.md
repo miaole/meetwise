@@ -1,6 +1,6 @@
 # DRAFT-FLIP draft 族批量关闭刀起草卷 — 15 卷静止 draft 关闭注起草（分析席全量走查 275 卷后承刀 · docs-only 起草落卷即停 · ⛔EXEC ⛔push ⛔动主仓）
 
-**Status**: **`drafted:awaiting_pre_exec_dual`**（2026-11-03 起草落卷即停 · 状态钉三处：本行 + §8 + 卷尾注 · 同值 · 关闭行使（15 卷 additive 关闭注）全留 pre-exec 双审两独立外席 BOTH PASS + 协调方明示授权后 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔merge 主线）
+**Status**: **`draft:awaiting_pre_exec_dual`**（rev r1 修订 2026-11-03 落卷·前值 `drafted:awaiting_pre_exec_dual` 史录保留 · 起草落卷即停 · 状态钉三处：本行 + §8 + 卷尾注 · 同值 · 关闭行使（15 卷 additive 关闭注）全留 pre-exec 双审两独立外席 BOTH PASS + 协调方明示授权后 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔merge 主线）
 
 **席位**：meetwise 北星「DRAFT-FLIP」draft 族批量关闭刀起草席（draft 族处置分析席全量走查 275 卷后承刀 · docs-only 起草 · 协调方派单「15 卷批量关闭授权起草——每条翻面附证据链」 · ⛔push ⛔EXEC ⛔动主仓）。
 
@@ -9,30 +9,30 @@
 ## §0 认领核对与在飞对账
 
 1. **认领唯一性**：`ai-docs/delivery/harness/` 无 `df-REQUEST.md` 同名卷（落卷前 `git ls-tree origin/main` 零命中亲证）→ 落卷后唯一同名卷=本卷。
-2. **分析席承刀零重叠**：draft 族处置分析席（本会话·275 卷全量走查）产出=15 卷 A 类「目标已达成」滞翻卷清单；本席逐卷以 `git show origin/main:` 亲读复核其 Status 行+STOP 钉+证据锚（抽 5 卷全深核+其余 Status 与关键证据锚核·每卷证据链均落 §1）。与在飞 flip-draft（`line/flip-draft` @`f9ffc4973`·gap-bug-backlog 三行翻面）**零交叠**（flip 行使面=backlog 行注·本卷行使面=harness 15 卷卷尾 additive 注·两集合无共享文件）；与 rc-draft（`line/rc-draft` @`b53e4ccd7`·STATUS-RECON 对账刀）目标面（卷状态普查登记）不重叠——本卷为「关闭注行使文本起草」·rc 为「状态普查对账」·两类登记互补且触面互斥（本卷零改 backlog 零改 rc 卷）。
+2. **分析席承刀零重叠**：draft 族处置分析席（本会话·275 卷全量走查）产出=15 卷 A 类「目标已达成」滞翻卷清单；本席逐卷以 `git show origin/main:` 亲读复核其 Status 行+STOP 钉+证据锚（抽 5 卷全深核+其余 Status 与关键证据锚核·每卷证据链均落 §1）。与在飞 flip-draft（`line/flip-draft` @`f9ffc4973`·gap-bug-backlog 三行翻面）**零交叠**（flip 行使面=backlog 行注·本卷行使面=harness 15 卷卷尾 additive 注·两集合无共享文件）；与 rc-draft（`line/rc-draft` @`b53e4ccd7`·STATUS-RECON 对账刀）目标面（卷状态普查登记）不重叠——本卷为「关闭注行使文本起草」·rc 为「状态普查对账」·两类登记互补且触面互斥（本卷零改 backlog 零改 rc 卷）。**rev r1 口径补登记**：rc 普查族口径=头部线/首 token 提取（rc-REQUEST `:21`「按优先级取首个 canonical 状态 token」亲读）·七卷（D1/D2/D6/D7/D8/D11/D12）头部 `draft`/卷内 `executed` 分类分裂故不入 rc executed 族计数——该七卷 df 为唯一收口刀（rc `:245` 亦自记「卷内终翻注记卷建议注记优先读法·防首 token 误读」·与本登记同向）。
 3. **在飞 cap 对账（三方竞争·按合并序逐个恰等步进）**：本支承 **2474**（main 届扫 2473+本卷 REQUEST 1）；flip-draft @`f9ffc4973` 承 **2474 已 EXEC 待 post** 未落 main（其 §9 承登同值=届值如实采）·rc-draft @`b53e4ccd7` 承 **2473 将步 2474** 未落 main——三方在飞如实列·任一支并线时沿协调方常设预授权「cap 以合并树实测恰等步进免再询」对届重算（届值如实采=本卷附加钉唯一豁免项）·同触两 policy 脚本=已知共享热面 dual-keep 先例形。
 
 ## §1 15 卷逐卷亲读二分清单（每卷 `git show origin/main:ai-docs/delivery/harness/<卷名>` 亲读最新版 · 禁凭分析席转述 · 深核标记：〔全深核〕=Status+STOP 钉+证据链全链亲证；〔锚核〕=Status 行+关键证据锚亲证）
 
-### 二分总表（B/C/D 类=0 · 15/15 全 A 类「目标已达成」滞翻卷 · 零剔除）
+### 二分总表（B/C/D 类=0 · 15/15 全 A 类「目标已达成」滞翻卷 · 零剔除 · rev r1 增列卷内 STOP 权威现值——七卷头部/卷内分裂如实呈现）
 
-| # | 卷 | Status 现值（亲读） | 裁决 | 深度 |
-|---|----|--------------------|------|------|
-| D1 | ai-graphs-cycle-break-REQUEST | `draft:awaiting_pre_exec_dual`（标题行 STOP 三处） | **可关（目标已达成）** | 锚核 |
-| D2 | uuid-id-check-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 〔全深核〕 |
-| D3 | growth-gen-REQUEST | `PENDING` / `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 〔全深核〕 |
-| D4 | ha-6-companion-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 锚核 |
-| D5 | bill1-topic-fields-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·卷内 §9 已随翻 executed） | **可关（目标已达成）** | 锚核 |
-| D6 | bill2-shadow-meter-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 锚核 |
-| D7 | bill3-settlement-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 锚核 |
-| D8 | bill4-ledger-list-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·rev2 勘误已落卷） | **可关（目标已达成）** | 锚核 |
-| D9 | entpay-slice2-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·rev2-R10 尾行指针） | **可关（目标已达成）** | 锚核 |
-| D10 | db-acl-residual-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 〔全深核〕 |
-| D11 | g2-report-page-REQUEST | `PENDING` / `draft:awaiting_pre_exec_dual`（`:3`） | **可关（目标已达成）** | 〔全深核〕 |
-| D12 | ci-red-clear-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·rev4） | **可关（目标已达成·红面被后继吸收）** | 锚核 |
-| D13 | safewrite-backpressure-REQUEST | `draft:rev3:awaiting_post_dual`（`:3`）+EXEC append `executed:stopped_gate_red_escalated`（`:5`） | **可关（特殊处置·残面移交注随行）** | 〔全深核〕 |
-| D14 | ag25-replay-residual-erratum-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·三处同值） | **可关（零登记卷·勘误已随卷落）** | 锚核 |
-| D15 | ag35-legacy-api-erratum-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·三处同值） | **可关（零登记卷·勘误已随卷落）** | 锚核 |
+| # | 卷 | Status 现值（亲读） | 卷内 STOP 权威现值（append 史录后·权威收口据） | 裁决 | 深度 |
+|---|----|--------------------|----------------------------------------------|------|------|
+| D1 | ai-graphs-cycle-break-REQUEST | `draft:awaiting_pre_exec_dual`（标题行 STOP 三处） | `executed:awaiting_post_prove_dual`（卷内 `:66`/`:103` append 翻面·post 会签 PASS `:105`·nail 落卷卷尾） | **可关（目标已达成）** | 锚核 |
+| D2 | uuid-id-check-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | `executed:awaiting_post_prove_dual`（卷内 `:144` 终态·`:150` post 会签 PASS·终值=nail 落卷） | **可关（目标已达成）** | 〔全深核〕 |
+| D3 | growth-gen-REQUEST | `PENDING` / `draft:awaiting_pre_exec_dual`（`:3`） | `draft:awaiting_pre_exec_dual`（卷内零随翻·头/卷内同值·完成证在 LEDGER `:29` 外部） | **可关（目标已达成）** | 〔全深核〕 |
+| D4 | ha-6-companion-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | `draft:awaiting_pre_exec_dual`（卷内零随翻·闭卷证在 LEDGER `:214`/checklist 外部） | **可关（目标已达成）** | 锚核 |
+| D5 | bill1-topic-fields-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·卷内 §9 已随翻 executed） | `executed:awaiting_post_prove_dual`（卷内 `:134` §9 随翻） | **可关（目标已达成）** | 锚核 |
+| D6 | bill2-shadow-meter-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | `executed:awaiting_post_prove_dual`（卷内 `:126` §9 翻面） | **可关（目标已达成）** | 锚核 |
+| D7 | bill3-settlement-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | `executed:awaiting_post_prove_dual`（卷内 `:170`/`:227` §9 翻面） | **可关（目标已达成）** | 锚核 |
+| D8 | bill4-ledger-list-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·rev2 勘误已落卷） | `executed:awaiting_post_prove_dual`（卷内 `:181` §9 翻面+`:199` post-errata PASS 维持） | **可关（目标已达成）** | 锚核 |
+| D9 | entpay-slice2-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·rev2-R10 尾行指针） | `executed_slice2:awaiting_post_prove_dual`（文尾 append 终指针 `:180`·`:178` rev2 指针前值史录） | **可关（目标已达成）** | 锚核 |
+| D10 | db-acl-residual-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`） | `executed:awaiting_post_prove_dual`（卷内 `:177` STOP 翻面+`:181` 卷尾同值·post 面卷内未载） | **可关（目标已达成）** | 〔全深核〕 |
+| D11 | g2-report-page-REQUEST | `PENDING` / `draft:awaiting_pre_exec_dual`（`:3`） | `executed:awaiting_post_prove_dual`（卷内 `:87` EXEC 落卷整段·`:91` nail post BOTH PASS） | **可关（目标已达成）** | 〔全深核〕 |
+| D12 | ci-red-clear-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·rev4） | `executed:awaiting_post_prove_dual`（卷内 `:179` 随翻+`:203` 终态） | **可关（目标已达成·本卷 EXEC 已行使落主线·后继仅增量）** | 锚核 |
+| D13 | safewrite-backpressure-REQUEST | `draft:rev3:awaiting_post_dual`（`:3`）+EXEC append `executed:stopped_gate_red_escalated`（`:5`） | EXEC `executed:stopped_gate_red_escalated`（`:5`）→rev3 重钉 `draft:rev3:awaiting_post_dual`（`:3`/`:155`）→post 会签 PASS（`:178` 勘误注 agent_96ae3854/agent_95934140）·仅余协调方头部翻面权 | **可关（特殊处置·残面移交注随行）** | 〔全深核〕 |
+| D14 | ag25-replay-residual-erratum-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·三处同值） | `draft:awaiting_pre_exec_dual`（三处同值·卷内零随翻） | **可关（零登记卷·勘误已随卷落）** | 锚核 |
+| D15 | ag35-legacy-api-erratum-REQUEST | `draft:awaiting_pre_exec_dual`（`:3`·三处同值） | `draft:awaiting_pre_exec_dual`（三处同值·卷内零随翻） | **可关（零登记卷·勘误已随卷落）** | 锚核 |
 
 ### §1-D1 ai-graphs-cycle-break（可关）——证据链
 
@@ -100,17 +100,17 @@
 - **证据链（三 issue 码面注释现树全亲读）**：**#257**=`apps/web/app/api/interview/[id]/report/export/route.ts:5`「同源报告导出代理(#257)：服务端读 httpOnly cookie 加 Bearer 转发」（=卷载位形 A 落码）+`apps/web/lib/api/report-export-proxy.ts:2`「同源报告导出代理 seam(#257)」+`apps/web/test/report-export-proxy.proof.ts:2`「#257 同源报告导出代理合同证明」+消费点 `apps/web/app/report/[id]/page.tsx:72`（导出走同源代理）/`:158`/`:172`（站内跳转用站内路由·不再落 API 主机）三处亲读；**#254**=`apps/web/components/InterviewPanel.tsx:483`「#254:report_ready 产出 view_report（view-model 单一出处）」+`:606`「#254:view_report kind 渲染分支」两处亲读；**#232**=`apps/web/app/quiz/page.tsx:18`「#232:API list 扩投影返回 created_at/resume_display_name（简历 id 不再当显示名——列表行不撒谎）」+`:113`（简历名+时间复用 helper·NULL 兜底内建）两处亲读。
 - **残面走向**：**零残面**（三 issue 修法全落主线在树·同形镜像面 diagnosis `:108` 归 H5/#230 域=卷载 §2 登记不扩权原态·不属本卷面）。
 
-### §1-D12 ci-red-clear（可关·红面被后继吸收）——证据链
+### §1-D12 ci-red-clear（可关·本卷 EXEC 已行使落主线·后继仅增量）——证据链
 
 - **现行值亲读**：`:3` Status `draft:awaiting_pre_exec_dual`（rev2 amend+rev3+rev4 沿革全载·旧起草卷 commit `b0877528` amend 重写失效·新 SHA=`d056dd91`·rev3 叠 `d6ac92ed`）。
-- **证据链（三红+僵尸步现树清零亲证）**：**红① gitleaks**=`.gitleaks.toml:26` 亲读「'''(^|/)packages/ai-runtime/test/ag24-langfuse-model\.proof\.ts$''',」ag24 proof allowlist 条目在树（`:28` 注记「沿 ag24/98d4bab7 形制」=卷载裁决 allowlist 兑现）；**红② egress manifest**=主仓 checkout 亲跑 `node scripts/provider-egress-inventory.mjs` → **EXIT=0**「`static_provider_egress_inventory_valid: adapters=5; operations=10; registered_consumer_source_pairs=55; environment_references=400; releaseEvidence=false`」——invoke-model-delta.proof+model-op02-endpoint-partition.proof 两 consumer 已登记（`ai-docs/architecture/ai/provider-egress-inventory.json` 检索命中亲证）+`scripts/provider-egress-inventory.proof.mjs:31` 计数断言现值 `registeredConsumerSourcePairCount, 55`（卷载 rev3 sanction 件⑤ proof.mjs:31 计数同步已随后继落码兑现）；**红③ 僵尸步**=`git show origin/main:.github/workflows/ci.yml | grep breaker:prove` **零命中**+`git ls-tree origin/main packages/ai-runtime/` 零 breaker 文件（`724d61b5` 清理笔卷载自证承续）——三红+僵尸步全被后继刀吸收、红面清零实测。
-- **残面走向**：**零残面**（本卷五件修法的行使目标=CI 红面清零·后继刀逐面吸收兑现·本卷 EXEC 行使已无对象——关闭不灭其 rev2-rev4 处置史录）。
+- **证据链（三红+僵尸步现树清零亲证）**：**红① gitleaks**=`.gitleaks.toml:26` 亲读「'''(^|/)packages/ai-runtime/test/ag24-langfuse-model\.proof\.ts$''',」ag24 proof allowlist 条目在树（`:28` 注记「沿 ag24/98d4bab7 形制」=卷载裁决 allowlist 兑现）；**红② egress manifest**=主仓 checkout 亲跑 `node scripts/provider-egress-inventory.mjs` → **EXIT=0**「`static_provider_egress_inventory_valid: adapters=5; operations=10; registered_consumer_source_pairs=55; environment_references=400; releaseEvidence=false`」——invoke-model-delta.proof+model-op02-endpoint-partition.proof 两 consumer 已登记（`ai-docs/architecture/ai/provider-egress-inventory.json` 检索命中亲证）+`scripts/provider-egress-inventory.proof.mjs:31` 计数断言现值 `registeredConsumerSourcePairCount, 55`（卷载 rev3 sanction 件⑤ proof.mjs:31 计数同步已随落码兑现）；**红③ 僵尸步**=`git show origin/main:.github/workflows/ci.yml | grep breaker:prove` **零命中**+`git ls-tree origin/main packages/ai-runtime/` 零 breaker 文件（`724d61b5` 清理笔卷载自证承续）——**归因如实修正（rev r1）**：红② manifest/env 增量系本卷 EXEC 亲落（卷内 §9·2026-10-14·五件修法落码 19+/5-·consumers 18→20/env 327→328 在卷亲证）·后继仅 51→55/328→400 增量·三红+僵尸步现树清零实测。
+- **残面走向**：**零残面**（本卷五件修法 EXEC 已行使落主线（卷内 §9·2026-10-14）·后继仅增量 55/400·CI 红面清零兑现——关闭不灭其 rev2-rev4 处置史录）。
 
 ### §1-D13 safewrite-backpressure〔全深核·特殊处置〕（可关+残面移交注随行）——证据链
 
 - **现行值亲读**：`:3` Status `draft:rev3:awaiting_post_dual`（rev3 窄域重钉落卷即停·沿革=rev2 双审回炉→EXEC 落码红停上报→wave70 授权 rev3 窄域重钉）+`:5` EXEC Status（append-only）`executed:stopped_gate_red_escalated`（件①② 绿·四新臂绿·门矩阵 12/15 绿·§8 停止条件命中停手上报）。
 - **证据链**：件①② 落码笔=`46c5ed57c`（docs(safewrite-backpressure): EXEC 即停手上报 · origin/main 祖先 **EXIT=0** 亲跑 · `git log -S bpTripped` 恰该笔=背压码面随该笔落主线）。**现树件①落码亲读**：`apps/api/src/platform/sse-pump.ts` 全 223 行——`:77-79`「#132 背压刀：连接级累计『未落盘』字节阈值 = 1 MiB（=64× http socket 默认 highWaterMark…瞬时抖动由 drain 复位归零」+`:90-93` `bpTripped`/`bpBytes`/`bpDrainArmed` 三旗（自有旗与 closed/draining 正交=rev2 消歧①兑现）+`:104` drain 复位惰性挂载+`:107-113` safeWrite 本体（超阈值拒写 return false·阈值内恒 true 仅内部计数=rev2 消歧②兑现）+`:121-122` HA-2 C1 end 单点不抑制——钉值五点逐点在树。rev3 重钉笔=`882167274`（docs(safewrite-backpressure): rev3 窄域重钉 · origin/main 祖先 EXIT=0·`git log origin/main -3 -- apps/api/test/ha-2-drain.proof.ts` 恰链上）。**残面定谳面亲读**（本卷 §9-EXEC+§9-rev3 `:133-181`）：门5 ha2-drain api `:278` 词面臂与钉值点4 机制性相撞+api C4 段（`3684bc00` HealthService.apiReady 三值枚举契约深化撞陈旧 fake·预存漂移非本刀引入定谳在卷 `:163`）+worker 清单臂两红=rev3 修订清单恰 2 proof+本卷（`:165`/`:174`）·rev3 自检四门亲跑读数在卷 `:176`（ha2-drain api 47/47+worker 41/41+sse-push 48/48+typecheck 8/8+docs 2149≤2152）+两勘误 `:180-181`。
-- **残面走向（不消失·协调方授权移交注随行）**：**主体已落主线（件①② 背压机制+EXEC 收据+rev3 两 proof 重钉全在树）·rev3 窄域残面（ha2-drain 词面臂相撞+两基线红甄别）移交后继刀或 post 双审补收·处置权不灭**——载体=本卷 §9-EXEC/§9-rev3+收据 `receipts/safewrite-backpressure/00-exec.md`；rev3 修订随 post 双审一并裁的原裁决面（`:3`/`:155` STOP 行）由关闭注承接待收。
+- **残面走向（不消失·处置权不灭承接待收）**：**主体已落主线（件①② 背压机制+EXEC 收据+rev3 两 proof 重钉已在树绿：ha-2-drain api `:281` 四旗整词面钉+`:292` C4 契约回填·worker 侧 `:81-82` 清单 19 项·重钉笔 `882167274` 在主线）·post 双审已 PASS（卷内 `:178` 勘误注 席1 agent_96ae3854+席2 agent_95934140）·仅余协调方头部翻面权·残面处置权不灭承接待收**——载体=本卷 §9-EXEC/§9-rev3+收据 `receipts/safewrite-backpressure/00-exec.md`。
 
 ### §1-D14 ag25-replay-residual-erratum（可关·零登记卷）——证据链
 
@@ -130,21 +130,21 @@
 
 ## §2 修法（EXEC 期行使内容 · 15 条关闭注逐字文本 · 全部 additive · 原文不洗 · 落点=各卷卷尾注之后 append · 行号随届时 tip 重 pin）
 
-> 通用形：【关闭 2026-11-03（DRAFT-FLIP draft 族批量关闭刀·协调方授权·append-only·本卷全文零字节改写·卷 Status 行/§8 STOP/卷尾注三处原值史录保留·本注为权威收口）: …证据链…——目标已达成滞翻卷·STOP 值收口 **`closed`**（沿 ag-cost5 卷 closed 先例形）·est live=0·alone≠dual·⛔push】
+> 通用形：【关闭 2026-11-03（DRAFT-FLIP draft 族批量关闭刀·协调方授权·append-only·本卷全文零字节改写·卷 Status 行/§8 STOP/卷尾注三处原值史录保留·本注为权威收口）: …证据链…——目标已达成滞翻卷·STOP 值收口 **`closed`**（沿 smoke-env-fix 卷内终翻注记权威先例形——旧值史录保留零洗史；ag-cost5 系卷主头部行直翻先例·与本刀卷尾 additive 形差异如实注）·est live=0·alone≠dual·⛔push】
 
-1. **D1 ai-graphs-cycle-break-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 落码笔 `5d122397b`（origin/main 祖先亲证·恰 2 码文件 session-summary.ts+state.ts）·现树亲读 state.ts:52-54「以局部 SessionTurnInput 结构子集承接（不再 import Turn」甲案逐字在树+session-summary.ts:12 回边零命中——双向环两沿全拆·PR #109 arch no-circular 红解目标兑现·**零残面**·STOP 收口 `closed`】
-2. **D2 uuid-id-check-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: EXEC 笔 `53e24ad03`（origin/main 祖先亲证·恰 2 prod 文件=uuid.ts+15/privacy.service.ts +3-1）·现树 uuid.ts 件①单源化「byte 恒等仅单源化零行为」+件②「#85 残面普查 2026-10-16 定谳」表外形九行显式登记在树——归一目标兑现·**零残面**（表外形刻意不归入=定谳原态）·STOP 收口 `closed`】
+1. **D1 ai-graphs-cycle-break-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 落码笔 `5d122397b`（origin/main 祖先亲证·恰 2 码文件 session-summary.ts+state.ts）·现树亲读 state.ts:52-54「以局部 SessionTurnInput 结构子集承接（不再 import Turn」甲案逐字在树+session-summary.ts:12 回边零命中——双向环两沿全拆·PR #109 arch no-circular 红解目标兑现·**卷内生命周期已走完如实补面**：EXEC 落卷笔 `bf07d3241`+post/SSOT 三处翻面笔 `b88d497d3`（触 checklist+本卷+LEDGER·均 origin/main 祖先亲证 EXIT=0）·卷内 `:66`/`:103` STOP 现值=`executed:awaiting_post_prove_dual`（append 史录）·post 双审会签 PASS（卷内 `:105`）·nail 落卷在卷尾——头部 Status 行滞翻·本注按卷内权威现值收口·**零残面**·STOP 收口 `closed`】
+2. **D2 uuid-id-check-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: EXEC 笔 `53e24ad03`（origin/main 祖先亲证·恰 2 prod 文件=uuid.ts+15/privacy.service.ts +3-1）·现树 uuid.ts 件①单源化「byte 恒等仅单源化零行为」+件②「#85 残面普查 2026-10-16 定谳」表外形九行显式登记在树——归一目标兑现·**卷内生命周期已走完如实补面**：`:144` STOP 终态=`executed:awaiting_post_prove_dual`+`:150` post 双审会签 PASS（终值=nail 落卷）——头部 Status 行滞翻·本注按卷内权威现值收口·**零残面**（表外形刻意不归入=定谳原态）·STOP 收口 `closed`】
 3. **D3 growth-gen-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: LEDGER:29 #204「✅ nail @6a7a3acc（REQUEST 状态行滞留…以主线 nail 为准）」引文在卷·`6a7a3acc` 系 skeleton 线号如实分注——主线携入祖先笔 `2b2ca23bc`（S1+S2 EXEC）+`0fef984e0`（post-dual BOTH PASS 54 PASS）双 origin/main 祖先亲证·现树 report-worker.ts:81/:190 generateGrowthChain 定义+claim 循环硬接线亲读——成长链三区块目标兑现·**零残面**·STOP 收口 `closed`】
 4. **D4 ha-6-companion-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: LEDGER:214「HA-6 已闭 @88459afb」+checklist:2829-2832 授权链全载在卷·`88459afb`/`90258ec3` 系 skeleton 线号如实分注——主线携入祖先笔 `65464444f`（merge post-prove BOTH PASS）+`5eb6ecbaf`（ha6-close 闭登记）双 origin/main 祖先亲证·现树 compose.ha.yml:56 `PGPOOL_MAX: "12"`+scripts/ha/ha6-companion.proof.mjs 在树——R-20/R-21/R-23 三件已闭·**零残面**·pins 十一值（haStatus=NOT_HA 等）维持零翻·STOP 收口 `closed`】
 5. **D5 bill1-topic-fields-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0170_interview_question_topic_fields.sql 现树在链（随 PR #108 `112e6d26f` origin/main 祖先）·卷内 §9 EXEC 附记已随翻 executed——仅头部 Status 行滞翻·本注对齐收口·**零残面**·STOP 收口 `closed`】
-6. **D6 bill2-shadow-meter-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0180_topic_shadow_meter.sql 现树在链（随 `112e6d26f` PR #108·`git log -S` 恰该笔）·头注 :6 逐字点名本卷「REQUEST：…bill2-shadow-meter-REQUEST.md（pre-exec 双审 BOTH PASS+协调方常设 loop 授权）」——影子计量 P2「只算不扣」目标兑现·**零残面**·STOP 收口 `closed`】
-7. **D7 bill3-settlement-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0172_topic_charge.sql+0173_tf_interview_consumption_terminal_pair.sql 双现树在链（随 `112e6d26f` PR #108）+commerce/topic-charge.ts 消费面在树·卷载 §0 自记 0172「P3 已落」——P3 结算刀目标兑现·**零残面**·STOP 收口 `closed`】
-8. **D8 bill4-ledger-list-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: billing-ledger.controller.ts 现树亲读 `@Controller('billing')`+GET ledger（C 端 listMyLedger）+GET ledger/enterprise（B 端 listEnterpriseLedger）=双端逐笔读面逐形落码·commerce/ledger.ts 读面在树——目标兑现·**零残面**·rev2 勘误处置维持卷尾原态·STOP 收口 `closed`】
+6. **D6 bill2-shadow-meter-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0180_topic_shadow_meter.sql 现树在链（随 `112e6d26f` PR #108·`git log -S` 恰该笔）·头注 :6 逐字点名本卷「REQUEST：…bill2-shadow-meter-REQUEST.md（pre-exec 双审 BOTH PASS+协调方常设 loop 授权）」——影子计量 P2「只算不扣」目标兑现·卷内 `:126` §9 EXEC 附记已翻面 `executed:awaiting_post_prove_dual`（头部 Status 行滞翻·按卷内权威现值收口）·**零残面**·STOP 收口 `closed`】
+7. **D7 bill3-settlement-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0172_topic_charge.sql+0173_tf_interview_consumption_terminal_pair.sql 双现树在链（随 `112e6d26f` PR #108）+commerce/topic-charge.ts 消费面在树·卷载 §0 自记 0172「P3 已落」——P3 结算刀目标兑现·卷内 `:170`/`:227` §9 已翻面 `executed:awaiting_post_prove_dual`（头部 Status 行滞翻·按卷内权威现值收口）·**零残面**·STOP 收口 `closed`】
+8. **D8 bill4-ledger-list-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: billing-ledger.controller.ts 现树亲读 `@Controller('billing')`+GET ledger（C 端 listMyLedger）+GET ledger/enterprise（B 端 listEnterpriseLedger）=双端逐笔读面逐形落码·commerce/ledger.ts 读面在树——目标兑现·卷内 `:181` §9 已翻面 `executed:awaiting_post_prove_dual`+`:199` post-errata 修复附记（post-prove 双审两席 PASS 带 errata 修复条件·修复随落）——头部 Status 行滞翻·按卷内权威现值收口·**零残面**·rev2 勘误处置维持卷尾原态·STOP 收口 `closed`】
 9. **D9 entpay-slice2-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: applications.service.ts 现树亲读 :8-10「S2-C4 拒因分码（修法③）」+:47-51「B271 片2 S2-C4（修法⑤·#227 缺陷收口）：start+begin 服务端动作合一」逐字落码·企业预留基建 0156/0157/0185 三迁移在链·卷载旧树锚 recruiter.ts:361-465 系域移动前路径如实重锚（结论零变）——S2-C1/C2/C4 目标兑现·**零残面**·STOP 收口 `closed`】
 10. **D10 db-acl-residual-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: ci.yml:198 现值逐字「基线红已由 DB-ACL-RESIDUAL nail 翻绿」点名本卷+:199-200 db-acl2:prove per-push 在树·落码笔 `eb99d1638`（origin/main 祖先）+EXEC 收据 `36967f339`/`ed7a5176d`+诊断落卷笔 `14d1f36c3` 全在卷——#142 基线红残面翻绿目标兑现·**零残面**·STOP 收口 `closed`】
-11. **D11 g2-report-page-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 三 issue 码面注释现树全亲读——#257=同源代理 route.ts:5+report-export-proxy.ts:2+proof:2+report/[id]/page.tsx:72/:158/:172 三消费点·#254=InterviewPanel.tsx:483/:606·#232=quiz/page.tsx:18/:113——三红修法全落主线·**零残面**（diagnosis 镜像面归 H5/#230 域=卷载登记原态）·STOP 收口 `closed`】
-12. **D12 ci-red-clear-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 三红+僵尸步现树清零亲证——红① .gitleaks.toml:26 ag24 allowlist 在树·红② 亲跑 provider-egress-inventory.mjs EXIT=0 registered_consumer_source_pairs=55+proof.mjs:31 计数断言 55 恰等（rev3 sanction 件⑤随后继落码兑现）·红③ ci.yml 零 breaker:prove+ai-runtime 零 breaker 文件——三红全被后继刀吸收·行使对象已不存在·**零残面**（rev2-rev4 处置史录不灭）·STOP 收口 `closed`】
-13. **D13 safewrite-backpressure-REQUEST.md 卷尾 append（特殊处置·移交注随行）**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 件①② 落码笔 `46c5ed57c`（origin/main 祖先·`git log -S bpTripped` 恰该笔）·现树 sse-pump.ts 亲读=:77-79「#132 背压刀」1 MiB 阈值+:90-93 三正交旗+:107-113 safeWrite 背压本体（rev2 两消歧逐字兑现）——主体已落主线·**rev3 窄域残面（ha2-drain 词面臂相撞+两基线红甄别）移交后继刀或 post 双审补收·处置权不灭**（载体=本卷 §9-EXEC/§9-rev3+收据 receipts/safewrite-backpressure/00-exec.md·rev3 重钉笔 `882167274` 在主线·rev3 修订随 post 双审一并裁的原裁决面由本注承接待收）·STOP 收口 `closed`（残面移交注为本卷关闭唯一附带面）】
+11. **D11 g2-report-page-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 三 issue 码面注释现树全亲读——#257=同源代理 route.ts:5+report-export-proxy.ts:2+proof:2+report/[id]/page.tsx:72/:158/:172 三消费点·#254=InterviewPanel.tsx:483/:606·#232=quiz/page.tsx:18/:113——三红修法全落主线·卷内 `:87` EXEC 落卷整段（`executed:awaiting_post_prove_dual`）+`:91` nail 落卷 post-prove 双席 BOTH PASS @`b11d6d12`（头部 Status 行滞翻·按卷内权威现值收口）·**零残面**（diagnosis 镜像面归 H5/#230 域=卷载登记原态）·STOP 收口 `closed`】
+12. **D12 ci-red-clear-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 三红+僵尸步现树清零亲证——红① .gitleaks.toml:26 ag24 allowlist 在树·红② 亲跑 provider-egress-inventory.mjs EXIT=0 registered_consumer_source_pairs=55+proof.mjs:31 计数断言 55 恰等（rev3 sanction 件⑤随后继落码兑现）·红③ ci.yml 零 breaker:prove+ai-runtime 零 breaker 文件——**归因如实修正：本卷 EXEC 已行使五件修法落主线（卷内 §9·2026-10-14·五件落码 19+/5-·consumers 18→20/env 327→328 系本卷亲落在卷）·后继仅增量至现树 55/400**·三红+僵尸步现树清零实测·**零残面**（rev2-rev4 处置史录不灭）·STOP 收口 `closed`】
+13. **D13 safewrite-backpressure-REQUEST.md 卷尾 append（特殊处置·移交注随行）**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 件①② 落码笔 `46c5ed57c`（origin/main 祖先·`git log -S bpTripped` 恰该笔）·现树 sse-pump.ts 亲读=:77-79「#132 背压刀」1 MiB 阈值+:90-93 三正交旗+:107-113 safeWrite 背压本体（rev2 两消歧逐字兑现）——主体已落主线·**rev3 两 proof 重钉已在树绿（ha-2-drain api `:281` 四旗整词面钉+`:292` C4 契约回填·worker 侧 `:81-82` 清单 19 项·重钉笔 `882167274` 在主线）+post 双审已 PASS（卷内 `:178` 勘误注 席1 agent_96ae3854+席2 agent_95934140）·仅余协调方头部翻面权·残面处置权不灭承接待收**（载体=本卷 §9-EXEC/§9-rev3+收据 receipts/safewrite-backpressure/00-exec.md）·STOP 收口 `closed`（残面移交注为本卷关闭唯一附带面）】
 14. **D14 ag25-replay-residual-erratum-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 本卷即勘误登记卷·AG-25 残面逐项核定全零（卷尾核定在卷）·本席抽验三锚 2b460443/fd6ef5b1/f5b7eb2e origin/main 祖先三笔全 EXIT=0·卷载 EXEC 零落码动作=无 EXEC 对象——核定+登记双目标已随卷兑现·**零残面**·STOP 收口 `closed`】
 15. **D15 ag35-legacy-api-erratum-REQUEST.md 卷尾 append**：【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 本卷即勘误登记卷·AG-35 三项台账面逐项定谳全被邻刀顺带收口（卷尾定谳+rev 勘误在卷）·本席抽验 e9a1a035/d4d29ee8 origin/main 祖先 EXIT=0+5c449d46 非祖先=与卷内 rev 自记逐字吻合零翻案·卷载 EXEC 零落码动作=无 EXEC 对象——定谳+登记双目标已随卷兑现·**零残面**·STOP 收口 `closed`】
 
@@ -165,7 +165,7 @@
 2. `node scripts/ai-docs/public-text-policy.proof.mjs` → **12/12 EXIT=0**（2474 形·落位后亲跑）。
 3. markers 门 → 改动集（3 tracked）五类标记词（遗留待办/待修/占位/临时代码四词族·词面运行时组装防自指+行首冲突标记 · 同 `scripts/i6-239-gates.proof.mjs` §2-7 口径）**0 命中**。
 4. 面收敛门 → `git diff --name-status origin/main..HEAD` 恰 `A ai-docs/delivery/harness/df-REQUEST.md` + `M scripts/ai-docs/public-text-policy.mjs` + `M scripts/ai-docs/public-text-policy.proof.mjs`；**产品码/迁移/runner/既有 proof/15 卷本体/backlog 零命中**。（fetch 时点形·EXEC 复跑以届时基线计）
-5. EXEC 期（授权后）门：第 1-4 条复跑 + 15 卷关闭注行使面 diff 复核（恰 15 卷卷尾各 1 条 additive append·零既有字节改写机证 `git diff` 逐卷核）+ 落点随届时 tip 重 pin（漂则如实采新值）+ D13 移交注逐字核对（「主体已落主线·rev3 窄域残面（ha2-drain 词面臂相撞+两基线红甄别）移交后继刀或 post 双审补收·处置权不灭」）。
+5. EXEC 期（授权后）门：第 1-4 条复跑 + 15 卷关闭注行使面 diff 复核（恰 15 卷卷尾各 1 条 additive append·零既有字节改写机证 `git diff` 逐卷核）+ 落点随届时 tip 重 pin（漂则如实采新值）+ D13 移交注逐字核对（「主体已落主线·rev3 两 proof 重钉已在树绿（ha-2-drain api `:281`/`:292`·worker 侧 `:81-82`·重钉笔 `882167274`）+post 双审已 PASS（卷内 `:178` 勘误注 agent_96ae3854/agent_95934140）·仅余协调方头部翻面权·残面处置权不灭承接待收」）。
 
 ## §5 Ban 清单
 
@@ -179,14 +179,30 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 
 ## §7 Non-claims
 
-本刀 ≠ 15 卷内任何 proof 门重跑结论（本席只读现树+卷载读数·不代跑） ≠ LEDGER/checklist/backlog 任一行翻面（翻面权归协调方） ≠ safewrite rev3 残面已收口（移交注如实·处置权不灭） ≠ pins/hard gates/coveredCount 任一变化 ≠ flip/rc 在飞面行使或代裁 ≠ D3/D4 所引 skeleton 线 SHA 系主线祖先（如实分注非祖先·主线携入笔分列） ≠ 产品码/迁移/runner 触面（docs-only） ≠ 分析席 275 卷全量走查复算（本席只复核其 15 卷清单·余卷零触）。
+本刀 ≠ 15 卷内任何 proof 门重跑结论（本席只读现树+卷载读数·不代跑） ≠ LEDGER/checklist/backlog 任一行翻面（翻面权归协调方） ≠ safewrite 卷头部翻面已行使（rev3 两 proof 重钉在树绿+post 双审 PASS 如实登记·关闭行使仍留授权后·处置权不灭） ≠ pins/hard gates/coveredCount 任一变化 ≠ flip/rc 在飞面行使或代裁 ≠ D3/D4 所引 skeleton 线 SHA 系主线祖先（如实分注非祖先·主线携入笔分列） ≠ 产品码/迁移/runner 触面（docs-only） ≠ 分析席 275 卷全量走查复算（本席只复核其 15 卷清单·余卷零触）。
 
 ## §8 STOP
 
-**STOP 值 = `drafted:awaiting_pre_exec_dual`（起草落卷即停 · 状态钉三处：Status 行 + 本节 + 卷尾注 · 同值）。** 关闭行使三条款（EXEC 期逐项履行后始得行使）：① pre-exec 双审两独立外席 BOTH PASS 落卷（§1 逐卷证据链对届时 tip 复核·任一卷证据翻车该卷退回不可关如实登记）；② 协调方明示 EXEC 授权（行使面=§2 十五条关闭注·D13 移交注逐字随行）；③ 落点重 pin 已履行（15 卷卷尾落点随届 tip 核对·漂则如实采新值）。
+**STOP 值 = `draft:awaiting_pre_exec_dual`（rev r1 修订落卷·前值 `drafted:awaiting_pre_exec_dual` 史录保留 · 起草落卷即停 · 状态钉三处：Status 行 + 本节 + 卷尾注 · 同值）。** 关闭行使三条款（EXEC 期逐项履行后始得行使）：① pre-exec 双审两独立外席 BOTH PASS 落卷（§1 逐卷证据链对届时 tip 复核·任一卷证据翻车该卷退回不可关如实登记）；② 协调方明示 EXEC 授权（行使面=§2 十五条关闭注·D13 移交注逐字随行）；③ 落点重 pin 已履行（15 卷卷尾落点随届 tip 核对·漂则如实采新值）。
 
 停止条件：`docs:check` scanned > cap（届值）红 → 停；PTP 红 → 停；任一卷 Status/STOP 钉与届时 tip 现值不符且无法如实重 pin → 停如实登记；任一卷证据链复核翻车（码面/迁移面/注释面锚在届时树不可复现）→ 停·该卷退回不可关；需越界（碰 backlog/LEDGER 行翻面/flip-rc 在飞面/pins/产品码）才能继续 → 停。
 
+**停止条件履行登记（rev r1·2026-11-03）**：「任一卷 Status/STOP 钉与届 tip 现值不符」条款对七卷（D1/D2/D6/D7/D8/D11/D12）命中——头部行 `draft` 滞翻×卷内 append 史录已走完 executed/post 生命周期（§1 权威现值列逐卷行号亲证）→ 按「如实重 pin」履行并留痕：rev r1 增设卷内 STOP 权威现值列+七条关闭注补真实生命周期面（§2 修订）·EXEC 期 §9 登记行使时按卷内权威现值收口·头部行翻面仍归协调方（本刀只产关闭注文本）。
+
 ---
 
-**卷尾注**：STOP=`drafted:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-11-03 落卷·基线 `origin/main` @ `36740147b`=#192·15 卷静止 draft 逐卷 `git show origin/main:` 亲读（深核 5 卷 D2/D3/D10/D11/D13+锚核 10 卷·每卷证据链落 §1）·15/15 可关零剔除·safewrite 特殊处置移交注逐字在 §2-13（残面处置权不灭）·cap 预登 CAP-SANCTION-2474（§3·两 policy 脚本四联动点已落位·在飞 flip/rc 如实列·三方竞争按合并序逐个恰等步进）·三门读数见 §4（起草期亲跑全绿：docs EXIT=0 scanned 2474=cap 2474 恰等/PTP 12/12 EXIT=0/markers 0）·恰 3 tracked（本卷 .md+两 policy 脚本）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面/关账权归协调方·alone≠dual·Ban self-approve·**`drafted:awaiting_pre_exec_dual`**。
+## rev r1 修订记录（2026-11-03 · pre-exec 双审席 1 FAIL「7/15 关闭注状态定谳失实」消化 · 口径修正非撤回 · 15 条注全保留）
+
+双审席 1 定谳：起草席只按头部行判定七卷「静止 draft 滞翻」，而卷内 append 史录显示真实生命周期已走完（头部 `draft`×卷内 `executed` 分类分裂·关闭注以滞翻口径收口实际已 executed/post-PASS 的卷=权威收口记录与卷内史录自相矛盾）——本节履行修正留痕，五条修法全数落卷：
+
+1. **§1 二分总表增设「卷内 STOP 权威现值」列**（15 卷逐卷·append 后权威值）——D1 `:66`/`:103`、D2 `:144`/`:150`、D5 `:134`、D6 `:126`、D7 `:170`/`:227`、D8 `:181`/`:199`、D9 `:180`、D10 `:177`/`:181`、D11 `:87`/`:91`、D12 `:179`/`:203`、D13 `:5`→`:3`/`:155`→`:178` 全为本席 rev r1 逐行亲读复核。
+2. **七条关闭注补真实生命周期面**（§2-1/2/6/7/8/11/12）：D1 补 EXEC 落卷笔 `bf07d3241`+post/SSOT 三处翻面笔 `b88d497d3`（触 checklist+本卷+LEDGER·均 origin/main 祖先亲证 EXIT=0）+post 会签 PASS+nail 落卷；D2 补 `:144` 终态+`:150` post PASS·终值=nail 落卷；D6/D7/D8/D11 补 §9 翻面行号；D8 补 post-errata PASS；D12 归因改写=本卷 EXEC 已行使五件修法落主线（卷内 §9·2026-10-14·consumers 18→20/env 327→328 系本卷亲落）+后继仅增量 55/400——原「行使对象已不存在」定谳删除（§1-D12 同源三处同步）。
+3. **D13 移交注改写**（§2-13+§1-D13 残面走向+§4 门 5 逐字引同源同步）：rev3 两 proof 重钉已在树绿（ha-2-drain api `:281`/`:292`·worker 侧 `:81-82`·重钉笔 `882167274` 在主线）+post 双审已 PASS（卷内 `:178` 勘误注 席1 agent_96ae3854+席2 agent_95934140）·仅余协调方头部翻面权·残面处置权不灭承接待收——原「移交后继刀或 post 双审补收」待裁措辞删除（残面实质已收口）。
+4. **§8 停止条件履行登记**：七卷现值失实按「如实重 pin」履行并留痕·EXEC 期 §9 登记行使时按卷内权威现值收口。
+5. **§0.2 补登记**：rc 普查族口径（头部线提取）×「7 卷头部 draft/卷内 executed 分类分裂」→rc executed 族计数不覆盖此七卷·df 为唯一收口刀；§2 通用形先例改引 smoke-env-fix（卷内终翻注记权威）+ag-cost5 卷主直翻差异双注。
+
+同席复核如实并记（本席逐卷填列时亲证·非席 1 清单扩权）：D9 文尾 `:180` `executed_slice2:awaiting_post_prove_dual` 终指针与 D10 卷内 `:177`/`:181` executed 翻面系同族「头部/卷内分裂」两卷——其关闭注原文无「静止 draft」定谳语（D9 注已载 EXEC 落码既成·D10 注已载 EXEC 收据笔）·故不入七条补面集·仅以 §1 权威现值列如实呈现；D10 post 面卷内未载·其关闭注维持原文本。
+
+---
+
+**卷尾注**：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注·rev r1 修订 2026-11-03·前值 `drafted:awaiting_pre_exec_dual` 史录保留）·起草 2026-11-03 落卷·基线 `origin/main` @ `36740147b`=#192·15 卷静止 draft 逐卷 `git show origin/main:` 亲读（深核 5 卷 D2/D3/D10/D11/D13+锚核 10 卷·每卷证据链落 §1）·15/15 可关零剔除·safewrite 特殊处置移交注逐字在 §2-13（残面处置权不灭承接待收·rev r1 已按 post 双审 PASS 实况改写）·cap 预登 CAP-SANCTION-2474（§3·两 policy 脚本四联动点已落位·在飞 flip/rc 如实列·三方竞争按合并序逐个恰等步进）·三门读数见 §4（起草期亲跑全绿：docs EXIT=0 scanned 2474=cap 2474 恰等/PTP 12/12 EXIT=0/markers 0·rev r1 修订后复跑同值全绿）·恰 3 tracked（本卷 .md+两 policy 脚本）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面/关账权归协调方·alone≠dual·Ban self-approve·**`draft:awaiting_pre_exec_dual`**。
