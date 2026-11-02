@@ -1,0 +1,12 @@
+final-state static gates after status flip commit prep — 2026-11-02
+docs:check EXIT=0 scanned 2471 = cap 2_471 恰等 (public-text-policy MAX_FILES=2_471)
+public-text-policy.proof.mjs 12/12 EXIT=0 (四联动点 2_471/2_471/f-2471.md/:2472)
+check-migration-version-uniqueness files=222 violations=0 (exemptions 0143,0152,0160 既有)
+schema-drift-check 无漂移 EXIT=0
+i6-239-gates markers=0 PASS (⑦ markers=0 改动集五类标记词零命中; ⑦ est live=0 PASS)
+  注: i6-239 的「零迁移/改动集恰符」两断言对本刀改动集天然红 (该门为 i6-239 刀自申报清单范围闸·非本刀门表项·基线即红·不顺手改)
+packages/db typecheck EXIT=0 (tsc --noEmit clean)
+packages/db lint 1042 warnings = 基线零新增 (baseline --max-warnings 1042)
+cap 算式: main 届扫 2464(=cap 2464 恰等 CAP-SANCTION-2464 nk1 #189) + 本卷 REQUEST 1 = 2465
+  (rebase 后 docs:check PTP_FILE_LIMIT:2465>2464 红亲证) + EXEC 净增 6 (5 sql + 1 ts) + 0 收据 = 2471 恰等
+  派单预登 2470 系按卷内陈旧届值 (main 2463) 推得; 卷 §3 C12 = EXEC 届实测 scanned + 6 且禁按预登值行使 → 取 2_471

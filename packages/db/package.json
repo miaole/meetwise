@@ -23,6 +23,7 @@
     "growth": "tsx test/growth.proof.ts",
     "prove:vectorstore": "tsx test/vectorstore.proof.ts",
     "prove:migrate": "tsx test/migrate.proof.ts",
+    "prove:job-queue-index": "tsx test/job-queue-index.proof.ts",
     "prove:checkpoint-schema-selfcheck": "tsx test/checkpoint-schema.proof.ts",
     "prove:authz5a-email-normalization": "tsx test/authz5a-email-normalization.proof.ts",
     "prove:authz5a-mirror": "tsx test/authz5a-gateway-mirror.proof.ts",

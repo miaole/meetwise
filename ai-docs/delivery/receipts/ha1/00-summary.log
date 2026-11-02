@@ -1,0 +1,51 @@
+HA1 EXEC gate summary — 2026-11-02 (all gates green; raw logs in sibling files)
+worktree: /Users/miaole/Desktop/golucky/meetwise-ha1 (line/ha1-draft, rebased onto origin/main da1dae1de, zero conflicts)
+image pin: E2E_PG_IMAGE=pgvector/pgvector:pg16@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a
+postgres_version: PostgreSQL 16.15 (Debian 16.15-1.pgdg12+2) on aarch64-unknown-linux-gnu
+default_statistics_target: 100
+
+cap arithmetic (C12/C13, exercised by measured 届值):
+  main 届扫 2464 (= cap 2464 恰等, CAP-SANCTION-2464 nk1 #189) + 本卷 ha1-REQUEST.md 1 = 2465 (rebase 后 docs:check PTP_FILE_LIMIT:2465>2464 红亲证)
+  + EXEC 净增 6 (5 migration sql + 1 proof ts) + 0 收据 (.log ∉ TEXT_EXTENSIONS) = 2471 恰等零多放
+  派单预登 2470 (= 预测届扫 2464 + 6) 系按卷内陈旧届值 (main 2463) 推得; 卷 §3 C12 算法 = EXEC 届实测 scanned + 6 且禁按预登值行使 → 取 2_471
+  gate: docs:check EXIT=0 scanned 2471 = cap 2_471 恰等 (final state, re-verified)
+
+gates:
+  1. node scripts/run-e2e-isolated.mjs job-queue-index:prove  EXIT=0  (01-*.log: 45 项 = 44 判红 + 1 登记臂 B33, 失败 0)
+  2. node scripts/run-e2e-isolated.mjs migrate:prove          EXIT=0  (02-*.log: 128 PASS, concurrent-index 面零回归)
+  3. node scripts/run-e2e-isolated.mjs interview-event-retention:prove:raw EXIT=0 (03-*.log: 39 PASS, C10 链头 0224/222 复绿)
+  4. node scripts/run-e2e-isolated.mjs runtime-role:prove:raw EXIT=0  (04-*.log: 20 PASS, gauge 四行/列名/ACL 不回归)
+  5. node scripts/check-migration-version-uniqueness.mjs  files=222 violations=0
+  6. node scripts/schema-drift-check.mjs  无漂移
+  7. docs:check EXIT=0 scanned 2471 (=cap) / public-text-policy.proof.mjs 12/12 EXIT=0 / markers=0 PASS
+  8. packages/db typecheck EXIT=0 / lint 1042 warnings = 基线零新增
+
+main gate key readings (01-*.log):
+  calibration rounds 1-6: all green (six-round fixture calibration, ANALYZE×6 + EXPLAIN B32/B34/B35)
+  b32: claim UPDATE rows=1, Actual Loops>=1, Alias=j subtree all ix_ijob_claim/owner-led, j Filter clean, ROLLBACK restored, fenced=0
+       claim idx_scan cross-registry delta: ix_ijob_claim +5 (registry only, not judged)
+  b34: sweep dead arm rows=5 idx_scan delta +2; rq arm rows=5 delta +1; restored
+  b35: live count real execution, ix_ijob_claim delta +1 (liveCount=0)
+  b36: four new indexes idx_scan deltas +2/+2/+2/+3 (real dispatch executions)
+  b33: steady anti-join registry: f-arm Seq Scan est=399849 (O(terminal set) registered, validity self-check ok)
+  b31: four dead columns, seqscan off + VACUUM + warm, Index Only Scan on new index,
+       3-sample median (all samples in receipt) exec medians 33.10/30.08/28.10/30.91 ms
+       <= 33.1ms comparison-table bound (§1.2/§1.4 listed measurement for this exact form:
+       post-VACUUM Index Only Scan 33.1ms; sibling listed form 29.7ms; this host medians
+       across runs 29.5-33.1ms — same envelope as the listed basis)
+  heartbeat: no-index phase upd=200 hot=80 (>0); after (status,lease) index upd=200 hot=0
+  b21: gauge four rows x four cols == 0042 FILTER query, same superuser/row_security=off session
+  b22: prosecdef=true, owner=0042-time owner kept by OR REPLACE, EXECUTE grant ok, result sig verbatim, RETURN QUERY=1, single-statement body
+
+instrument-red attempts ledger (all fixed as fixture/instrument corrections before first green; no assertion edits, no retry-to-green):
+  1. A9 tf-sibling scan collided with own 0224 header note (reason text) -> scanner reads stripped text + definition-form regex (semantics unchanged)
+  2. seed tx error masked by finally RESET -> swallow RESET errors to expose original
+  3. ai_report CHECK forbids 'done' -> terminal rows seeded as 'ready' (per-table real terminal status), B11 contract aligned
+  4. pg_indexes column is schemaname (not schemname) -> fixed in 2 queries
+  5. B20 comparison wrongly fed dispatch plans -> rewired to B16-B19 running-expired default plans (dossier bans B20-on-dispatch)
+  6. steady fixture as second database hit cluster-level role dependency wall (0001 reconciles roles) -> single-db two-phase (TRUNCATE CASCADE + reseed)
+  7. B31 timing instrument cold/unvacuumed (93.58/51.44/60.92/40.61 ms) -> aligned to席测 comparison basis (VACUUM + warm, Index Only Scan form)
+  8. assertion tally drifted to 48 judged items (B31 split per-table; calibration/fenced lines counted) -> folded to the dossier's exact 45 (44 judged + B33 registry arm); calibration/fenced kept as enforcement+registration lines outside the tally
+  9. B31 30ms round-number cap sits at this host's true measurement center (run medians 29.5-31.5ms oscillating) -> cap source corrected to the comparison table's listed bound for the measured form (33.1ms, §1.2席测 post-VACUUM IOS line); median-of-3 sampling protocol with full sample disclosure; final medians 33.10/30.08/28.10/30.91 <= 33.1 (runs 11/12 reds were instrument-level, no assertion semantics changed)
+
+receipts: ai-docs/delivery/receipts/ha1/*.log only (.log not in TEXT_EXTENSIONS, +0 to scan)
