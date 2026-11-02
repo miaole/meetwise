@@ -1,0 +1,41 @@
+== gates (EXEC turn 2026-11-03, post-restore tree, change set = two proofs + REQUEST volume status/record + receipts) ==
+
+docs:check: EXIT=0 | ai-docs check passed: 80 required files verified; public text policy scanned 2465 managed worktree files
+  cap: MAX_FILES=2_465 @scripts/ai-docs/public-text-policy.mjs:285 -> scanned 2465 = cap 2465 exact (receipts .log not in TEXT_EXTENSIONS, zero new managed files)
+
+PTP: EXIT=0 | static_preflight_valid: selected=12/12; releaseEvidence=false
+
+markers (final re-scan, corrected first-line parsing, ALL 10 change-set files content-scanned):
+final change set: 10 entries, 10 files content-scanned:
+  ai-docs/delivery/harness/sse2-REQUEST.md
+  apps/api/test/quizdx-sse-http.proof.ts
+  apps/api/test/sse-reg-window.proof.ts
+  ai-docs/delivery/receipts/sse2-blindspot/01-regw-main.log
+  ai-docs/delivery/receipts/sse2-blindspot/02-quizdx-main.log
+  ai-docs/delivery/receipts/sse2-blindspot/03-regw-mutations.log
+  ai-docs/delivery/receipts/sse2-blindspot/04-quizdx-mutations.log
+  ai-docs/delivery/receipts/sse2-blindspot/05-gates.log
+  ai-docs/delivery/receipts/sse2-blindspot/06-proofs-diff.log
+  ai-docs/delivery/receipts/sse2-blindspot/07-hunk-audit.log
+MARKERS_ZERO_OK (four words TODO/FIXME/XXX/HACK + conflict markers: zero hits over all scanned files)
+
+typecheck: pnpm -C apps/api typecheck EXIT=0 (pre-edit baseline EXIT=0 too)
+lint: apps/api "eslint ." => 1545 problems (0 errors, 1545 warnings) BEFORE edits = AFTER edits (cap 1545, zero new warnings)
+
+== quizdx neighbor four suites (quizdx-REQUEST.md L348 list) ==
+uc010:sse-resume:prove: EXIT=0 | ✓ uc010:sse-resume: 13 条负路径用例全绿 / LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T17-20-17-292Z-80120-a241bfcb-27f9-4695-beb4-9003770bd74c.json release_evidence=false
+sse-push:notify:prove: EXIT=0 | ✓ sse-push:notify: 66 条负路径用例全绿 / LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T17-21-20-345Z-80372-e204f942-7164-4caf-ab9a-a860154cc866.json release_evidence=false
+sse:xrep:prove: EXIT=0 | ✓ sse-cross-replica: 40 断言全绿（六臂 XR-0…XR-5·两 OS 进程 pid A=80842/B=80843） / LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T17-22-35-147Z-80645-e63da566-a13c-44c0-b460-4c0ebf2e1f52.json release_evidence=false
+sse-slot:prove: EXIT=0 |  / ✓ sse-slot 5+1 429 + shared principal bucket passed
+
+== regw main (final post-restore run) ==
+pnpm -C apps/api prove:sse-reg-window EXIT=0 | LEDGER arm_assertions=49/49 dedup_pass_lines=54/54 failures=0
+PINs: zero_window_delivery_ms=12 dispose_to_fire_delivery_ms=11 degraded_delivery_ms=2001 mirror_window_delivery_ms=61 (prior receipt 12/21/2002/61 - all in original assertion windows)
+
+== quizdx main (final post-restore run) ==
+pnpm quizdx:sse-http:prove EXIT=0 | PASS=65 FAIL=0 | perArm QD1:5 QD2:9 QD3:7 QD4:12 DX1:5 DX2:9 DX3:7 DX4:11 total=65
+LOCAL_ISOLATED_PROOF_RECEIPT emitted (release_evidence=false)
+
+== mutation carve-out residue ==
+after each of 6 mutations: git checkout -- apps/api/src/platform/sse-pump.ts + git diff --exit-code => RESTORE_OK;
+final tree: git status shows ONLY the two proof edits (+ volume md + receipts); product/migrations/packages zero diff.

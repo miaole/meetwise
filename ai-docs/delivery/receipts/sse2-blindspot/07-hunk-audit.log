@@ -1,0 +1,53 @@
+== mechanical hook: per-hunk audit vs REQUEST four authorized categories ==
+categories: [1]=add assertions  [2]=fixture one line  [3]=receipt gates x4  [4]=ledger/budget constants
+out-of-list hunk => stop. Every hunk below maps to exactly one category (context-only lines excluded).
+
+== quizdx-sse-http.proof.ts (base blob b2abcf15 @ HEAD 7144da5fe) — 10 hunks ==
+H1  @@ -32,6   +import getSseRegistry                     -> [1] 1.2-E1 (import named by REQUEST)
+H2  @@ -512,7  QD2 g1 gate ==="2,3" -> length>=2          -> [3] 1.2-E4 gate 1/4
+H3  @@ -522,7  QD2 g2 gate ==="4,5" -> length>=2          -> [3] 1.2-E4 gate 2/4
+H4  @@ -616,7  QD4 arm header comment 10 -> 12            -> [4] 1.2-E3 comment face
+H5  @@ -681,6  +A(QD4⑪ registry settle count()===0)       -> [1] 1.2-E1
+H6  @@ -722,6  +A(QD4⑫ isDeepStrictEqual key-set pin)     -> [1] 1.2-E2
+H7  @@ -756,7  DX2 g1 gate ==="2" -> length>=1            -> [3] 1.2-E4 gate 3/4
+H8  @@ -766,7  DX2 g2 gate ==="3,4" -> length>=2          -> [3] 1.2-E4 gate 4/4
+H9  @@ -858,7  DX4 arm header comment 10 -> 11            -> [4] 1.2-E3 comment face
+H10 @@ -963,19 +A(DX4⑪) + ARM_BUDGET 12/11 + total 65 + /65 -> [1] 1.2-E2 (DX4⑪ line) + [4] 1.2-E3 (constants)
+
+== sse-reg-window.proof.ts (base blob d1e405e1 @ HEAD 7144da5fe) — 9 hunks ==
+H11 @@ -12,10  header counts 44/48 -> 49/54 + mutation-3 six-red note -> [4] 1.1-E6 header count notes + dispatch ledger item (mutation-3 red-set note)
+H12 @@ -52,7   context-only hunk (A() helper docstring untouched)     -> n/a (no member line; see stale-note below)
+H13 @@ -62,10  ARM_IDS +5 / EXTRA_IDS +RW-3-0b                        -> [4] 1.1-E6
+H14 @@ -597,6  +RW-0-7a/7b/7c source-token assertions                 -> [1] 1.1-E1
+H15 @@ -814,6  +countAtSyncReturn +A(RW-3-0b) aux-default form        -> [1] 1.1-E5
+H16 @@ -910,7  +A(RW-5-2b) waitingCount()===0 after awaitPump         -> [1] 1.1-E2
+H17 @@ -922,7  RW-6 fixture initial.lastId 0 -> 1 (single line+comment) -> [2] 1.1-E4
+H18 @@ -941,9  +registryAtRun +A(RW-6-M5)                             -> [1] 1.1-E3
+H19 @@ -978,7  LEDGER /44 /48 -> /49 /54                              -> [4] 1.1-E6
+
+AUDIT VERDICT: 19/19 hunks in-list; zero out-of-list hunks. No STOP condition triggered.
+
+known stale note (NOT touched, outside named anchors): sse-reg-window.proof.ts A() helper docstring
+":77 aux=true 的自证不入 48 台账" still says 48 — the REQUEST names only header :15-:18 + LEDGER line for
+count-note sync; left byte-identical for coordinator/next knife.
+
+== machine evidence: existing assertion predicates byte-identical ==
+apps/api/test/sse-reg-window.proof.ts: assertion-call lines HEAD=38 worktree=44 removed/modified=0 added=6
+  + A('RW-0-7a', 'RW-0-7a(quiz) 取数面源谓词 token 恰 1 命中（WHERE stream_key=$1 AND seq>$2 ORDER BY se
+  + A('RW-0-7b', 'RW-0-7b(diagnosis) 取数面源谓词 token 恰 1 命中（WHERE stream_key=$1 AND seq>$2 ORDER 
+  + A('RW-0-7c', 'RW-0-7c(interview) 取数面源谓词 token 恰 1 命中（WHERE stream_key=$1 AND seq>$2 ORDER 
+  + A('RW-3-0b', 'RW-3-0b 泵调用返回当拍（fire 前）waitingCount()===1（:169 同步前缀注册可判断言·EXTRA 台账去重入账、不入 49
+  + A('RW-5-2b', 'RW-5-2b 泵返回后 notify.waitingCount()===0（末位 waiter 仅由 sse-pump.ts:210 尾 dispos
+  + A('RW-6-M5', 'RW-6-M5 泵运行中 registry.count()===1（:124 register 同步前缀在位·:213 注销提前/挪位即红）', reg
+  VERDICT: existing assertion predicates byte-identical, additions only
+apps/api/test/quizdx-sse-http.proof.ts: assertion-call lines HEAD=62 worktree=65 removed/modified=0 added=3
+  + A('QD4⑪ settle 后 getSseRegistry().count()===0（三连接 abort+settle 落定后在册清零·sse-pump.ts:213 删/挪
+  + A('QD4⑫ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）', is
+  + A('DX4⑪ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）', is
+  VERDICT: existing assertion predicates byte-identical, additions only
+
+== negative-side note: the only modified non-addition lines ==
+quizdx gates x4 (until predicates) are receipt gates, NOT assertion entries (source volume pin: gates excluded
+from assertion budget) — modified under category [3]; LED red-shift responsibility handed to existing
+QD2②/QD2④/DX2②/DX2④ assertFrameSet strict exps (EXIT1 product-red direction; missing-frame direction
+unchanged: length<N still breaks gate to EXIT2 env wash). regw: no existing A() line modified (machine evidence above).

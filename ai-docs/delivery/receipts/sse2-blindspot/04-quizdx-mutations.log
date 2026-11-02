@@ -1,0 +1,20 @@
+== quizdx mutation self-checks ==
+carve-out: apps/api/src/platform/sse-pump.ts temp edit per mutation; same-turn restore
+via git checkout + git diff --exit-code -- apps/api/src/platform/sse-pump.ts => RESTORE_OK x2.
+
+-- M-E: token wire payload adds v/streamKey (sse-pump.ts:162 JSON.stringify) --
+applied: "attemptKey: f.attemptKey, seq: f.seq, text: f.text," ->
+        "v: 1 as const, streamKey: f.attemptKey, attemptKey: f.attemptKey, seq: f.seq, text: f.text,"
+typecheck EXIT=0 (mutation compiles). run FAIL/PASS lines:
+PASS  QD4⑪ settle 后 getSseRegistry().count()===0（三连接 abort+settle 落定后在册清零·sse-pump.ts:213 删/挪漏式即泄漏红）
+PASS  QD4⑩ IV 线同一注入恰一帧 token_delta 正控（text=tok-neutral）
+FAIL  QD4⑫ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）
+PASS  DX4⑩ IV 线同一注入恰一帧 token_delta 正控（text=tok-neutral）
+FAIL  DX4⑪ token wire 键集恰 {attemptKey,seq,text}（isDeepStrictEqual 全对象钉·v/streamKey 泄漏即红）
+PIN   assertion budget perArm=QD1:5 QD2:9 QD3:7 QD4:12 DX1:5 DX2:9 DX3:7 DX4:11 total=65
+EXIT=1; red = {QD4⑫, DX4⑪} exact; QD4⑩/DX4⑩ green; QD4⑪ green: MATCH (key-set pin closes blind spot 2)
+
+-- DELETE-213: delete sse-pump.ts:213 (registry.unregister) --
+FAIL  QD4⑪ settle 后 getSseRegistry().count()===0（三连接 abort+settle 落定后在册清零·sse-pump.ts:213 删/挪漏式即泄漏红）
+PIN   assertion budget perArm=QD1:5 QD2:9 QD3:7 QD4:12 DX1:5 DX2:9 DX3:7 DX4:11 total=65
+EXIT=1; red = {QD4⑪} exact: MATCH (registry settle pin closes blind spot 1)
