@@ -1,6 +1,6 @@
 # 台账勘误 REQUEST — gap-bug-backlog 同编号多行矛盾唯一权威化 + 总控台账 R 号标签映射修正起草卷（docs-only · 起草落卷即停 · ⛔EXEC ⛔push ⛔动主仓）
 
-**Status**: **`drafted:awaiting_pre_exec_dual`**（2026-11-02 起草落卷即停 · SSOT 勘误主体零行使——矛盾行改唯一权威值/冲突行标 superseded/R 号标签映射修正/对账表入卷四事全留 EXEC 期随授权行使 · 本卷起草 commit 恰 3 tracked 路径=本卷 `.md` + 两 policy 脚本 CAP-SANCTION-2464 恰等步进 · pre-exec 双审两独立外席 BOTH PASS + 协调方明示 EXEC 授权前不得行使 · alone≠dual · Ban self-approve · est live=0 · markers=0 · 三处钉：本行 + §8 + 卷尾 · 同值）
+**Status**: **`executed:awaiting_post_prove_dual`**（前值 `drafted:awaiting_pre_exec_dual` 2026-11-02 起草落卷即停史录·SSOT 勘误主体当时零行使——矛盾行改唯一权威值/冲突行标 superseded/R 号标签映射修正/对账表入卷四事留 EXEC 期随授权行使 · 本卷起草 commit 恰 3 tracked 路径=本卷 `.md` + 两 policy 脚本 CAP-SANCTION-2464 恰等步进 · **2026-11-03 pre-exec 双审 r1 席1+席2 BOTH PASS+协调方明示 EXEC 授权后已行使**（§9 EXEC 记录）· alone≠dual · Ban self-approve · est live=0 · markers=0 · 状态钉四处：本行 + §8 + §9 + 卷尾 · 同值）
 
 **席位**：meetwise 台账卫生勘误起草席（docs-only 起草 · 协调方派单「SSOT 卫生勘误刀起草」 · ⛔push ⛔EXEC ⛔动主仓）。
 
@@ -53,6 +53,24 @@
 - **本席自证清单（origin/main 亲读实证 · 独立复核与移交清单的并集/差集由 pre-exec dual 对账）**：§1-B B1/B2 两行 + §1-D D3 模式（checklist 内部跨段行号漂移实例——L-10 注记自身已承载一例「锚实为 :2756 门矩阵行」）。
 - **不上账项（如实保留 · 零触）**：L-07（label 陈旧·定谳在飞）/L-08（静态门白名单·另刀）/L-09（环境 pending）/L-10（已由 2026-10-26 打包刀注记·终值权在 perf-load post 席）/`:871` GAP-COMM-PARTIAL-PAIR（语义裁决刀未立·OPEN 如实）/E2EA-01..06（P2 不入本账·E2EA-01 行使面 screg 已并线 `c0755edc8` 其台账承载在其自身链）。
 
+**复核席 D 类 13 条台账滞后清单 intake 登记（2026-11-03 协调方信道·pre-exec r1 双审并卷 · 本席逐条亲读对账后落表 · 属 §1-A/§1-B 已覆盖的并卷行使 · 其余 additive 注落 backlog 行尾 · 登记不翻面·处置权仍归各注明载体或协调方）**
+
+| # | 条目 | 登记（PR/证据·本席亲读） | 行使落点 |
+|---|------|--------------------------|----------|
+| 1 | GAP-DEBT-DB-TRIGFAM | 0144+commit `4e734a522`（commit 对象亲证在） | 并卷 §1-A A1（superseded 注 `:889`/`:894`） |
+| 2 | GAP-DEBT-DB-NOFK | 0147+0148+commit `32c9e2db8`（亲证在） | 并卷 §1-A A2（superseded 注 `:888`/`:895`·错挂注归 `:896`） |
+| 3 | GAP-DEBT-DB-MONEY3 | 0149+commit `a79a811ae`（亲证在） | 并卷 §1-A A4（superseded 注 `:897`） |
+| 4 | GAP-DEBT-DB-HYGIENE | 0145+0146+commit `cb22270ca`（亲证在） | 并卷 §1-A A5（superseded 注 `:900`） |
+| 5 | GAP-DEBT-DB-SRCBOILER | DBSB-1+commit `0ff210196`（亲证在） | 并卷 §1-A A3（订正注 `:896`+superseded 注 `:893`） |
+| 6 | GAP-DEBT-BE-R4SCRIPTS | CI-WIRING F 簇 #169（checklist Line CI-WIRING nail 段 F 簇「r4-* 31 文件迁 apps/worker/evidence/」亲读） | additive 注 `:901` |
+| 7 | BUG-E2E-FAILUNIMPORT | commit `665f98945`（亲证在·import 修复+static guard+双常驻负例 TC） | 并卷 §1-B B1（滞后注 `:879`） |
+| 8 | E2EA-02 | nightly.yml 现树诚实门位（`.github/workflows/nightly.yml:33` 现文亲读=「门位如实:冒烟=硬门阻断…recall/scoring=信号臂(continue-on-error…)」在树） | 并卷 `:935` 既有销案注（零新注） |
+| 9 | E2EA-05 | assert-strengthen `a0b01305`（checklist Line assert-strengthen nail 段亲读）+backfill nail（checklist Line e2ea05-backfill nail 段亲读：恒真 ×15 逐点定性锚表+漏网七处 M1-M7） | additive 注 `:938` |
+| 10 | E2EA-06 | smoke-env-fix nail（backlog `:939` 行销案注+`:943` smoke-env-fix 注记亲读在卷） | 并卷 `:939`/`:943` 既有行注（零新注） |
+| 11 | L-06 | DBACL2 PR #108（backlog `:917` DBACL2-CI-WIRE 收口注亲读在卷·PR #108 MERGED `112e6d26`） | 并卷 `:917` 既有收口注（零新注） |
+| 12 | GAP-EVAL-PARSER-DETAILS-UNCLOSED | 移交清单记「uc3m（#186）」——亲读对账差异如实：EVAP 本体刀=本 GAP 收口已落线（`harness/evap-REQUEST.md` Status=`closed` 2026-10-30·PR #184 merge `1ca3ce1da` 在 origin/main 祖先亲证·fixture 在树）·uc3m #186 系 UC-003x N1b 两码映射刀（锚 `:953` 族·非本行）——登记以亲读为准·差异处置权归协调方 | additive 注 `:36`（对账差异如实） |
+| 13 | C-PERF-TEARDOWN | 已 CLOSED 非 OPEN（backlog `:35` 现值亲读=「~~OPEN~~→CLOSED（fixed）2026-10-07 协调方授权翻转」在卷·移交清单口径滞后于行体现值） | 并卷 `:35` 现状（零新注） |
+
 ## §2 修法（EXEC 期行使内容 · 全部 additive 注记 · 原文不洗）
 
 1. **superseded 标注形**（沿 `abd2080e2` unstub-erase「原文保留+superseded 注记」先例）：`:889`/`:894`/`:888`/`:895`/`:893`/`:897`/`:900` 七行行尾 additive 注「〔superseded 2026-11-02 台账勘误：同编号多行残排·唯一权威行=`:8XX`·本行原文不洗〕」；`:895` 加注「编号错挂载·处置文内容归 `:896` SRCBOILER 行承载」。
@@ -95,10 +113,19 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 
 ## §8 STOP
 
-**STOP · `drafted:awaiting_pre_exec_dual`（2026-11-02 起草落卷即停 · 三处钉：Status 行 + 本节 + 卷尾 · 同值）。** 开工三条款（未履行不得 EXEC）：① **pre-exec 双审两独立外席 BOTH PASS 落卷**（含 §1-E 移交清单 intake 对账·cap 2464 步进复核）；② **协调方明示 EXEC 授权**（勘误行使面=§2 六项逐项授权）；③ **§1 全量对届时 tip 重 pin**——五编号十二行任一行号/原文漂移且结论受疑即回炉重普查（行号漂移=新增行插入所致属预期·按重钉笔去重口径重对表·结论受疑才回炉）。
+**STOP 已解 · `executed:awaiting_post_prove_dual`（2026-11-03 EXEC 行使后转值·前值 `drafted:awaiting_pre_exec_dual` 2026-11-02 起草落卷即停史录 · 三处钉已扩为四处：Status 行 + 本节 + §9 + 卷尾 · 同值）。** 开工三条款（已履行亲证）：① **pre-exec 双审两独立外席 BOTH PASS 落卷**（r1 席1+席2 BOTH PASS·含 §1-E 移交清单 intake 对账·cap 步进复核）；② **协调方明示 EXEC 授权**（勘误行使面=§2 六项逐项授权·本席明示授权行使全部勘误面）；③ **§1 全量对届时 tip 重 pin 已履行**——rebase 对届 tip `da1dae1de`（#189 nk1 已并）后五编号十二行（`:887`/`:888`/`:889`/`:890`/`:893`/`:894`/`:895`/`:896`/`:897`/`:898`/`:899`/`:900`）逐行亲读与 §1-A 表行号/原文零漂移·B1 `:879`/B2 `:902`/LEDGER `:136`/`:134` 同验零漂·结论不受疑未回炉。
 
 停止条件：`docs:check` scanned > cap（2464）红 → 停（预登已先行落位不触发）；PTP 红 → 停；普查行号与届 tip 不符且去重口径无法重对 → 停如实登记；需越界（碰他卷历史原文/翻 pins/动产品码）才能继续 → 停。
 
+## §9 EXEC 记录（2026-11-03 行使席落卷 · Status=**`executed:awaiting_post_prove_dual`**·与 Status 行/§8/卷尾四处同值）
+
+1. **rebase**：`git fetch origin` EXIT=0 → `git rebase origin/main` @`da1dae1de`（#189 nk1 已并·届值预登命中）恰 2 处冲突=两 policy 脚本注记/cap 区·dual-keep 双留（main 侧 CAP-SANCTION-2462 FLKWARM+2464 FLKWARM r1 两注记+本支 2464 台账勘误注记并留·值同 2_464）·rebase 后本支 tip `45205c9a8`。
+2. **cap 步进 2464→2465**（先手步进·先步进再跑门）：union 算式=main 届扫 2464+本卷 REQUEST 1=**2465** 恰等零多放·协调方常设预授权「cap 以合并树实测恰等步进免再询」随令行使·`MAX_FILES = 2_465`+链区 CAP-SANCTION-2465 注记（「在飞如实采」按届重枚举：sse2 `5767389ae→7144da5fe` 承 2465 同值在飞·ha1 `b3ac84efa` 承 2_471 未落 main 不预采·nk1 已出在飞名单·其余九树陈旧如实列）+proof 四联动点 `2_465/f-2465.md/:2466`+相邻注释两处同步（预登 2464 形遇 nk1 并入按届重算承登·cap 随届值如实采=本卷附加钉唯一豁免）。
+3. **勘误行使**（§2 六项+双审精度项·零既有字节改写机证 git diff 逐行前缀恒等·原文不洗·pins 零翻）：superseded 七注（`:889`/`:894` 唯一权威行=`:887`·`:888`=`:890`·`:895`=席2 修订形（模板权威行 `:890`+错挂注内容归 `:896`·E2 豁免 D2/14 项基线红 DBACL-1 复跑潮/r4→DIR-1 B3 详 checklist Line DBSB-1 NAIL 段 STILL OPEN 如实）·`:893`=`:896`·`:897`=`:899`·`:900`=`:898`）·`:896` 订正注（「awaiting post-dual」已被 `0ff210196` post BOTH PASS 超越+归档指针勘误半句·receipts/archive/2026-09-batch23/harness/ 仅 `.exec.md` 在卷亲证）·LEDGER `:136` 九号九标签修正+行尾勘误注（`:134` 引用漂移钉·§1-D2）·对账表 12 行 append（席1 修订形：行号列注「行号系本表落位届值·编号为机械锚」·**落位=文件尾 append**——两选项择一：C 区后插入将致 `:887`-`:902` 区段整体位移令本支行号注即落即漂·为零位移择文件尾·本行即选择记载）·B1 滞后注 `:879`/B2 进展注 `:902`（B2 依据=席2 修订形：checklist Line GODFN-1a/1b/1c NAIL 段（1b EXEC `1af8987e` 链）·`28d0d7a7` 经 `git cat-file -t` 亲证系 blob 非 commit·禁照抄假锚未引）·`:895` 三子项承载并引 checklist DBSB-1 NAIL 段（席1 P2-①-2）·L-07..L-13/`:871`/行统计数值/pins 零触。
+4. **intake 对账**（§1-E 槽位）：复核席 D 类 13 条落表——5 条并卷 §1-A+1 条并卷 B1+3 条并卷既有行注（E2EA-02 `:935`/E2EA-06 `:939`/L-06 `:917`）+1 条并卷现状（C-PERF-TEARDOWN `:35` 已 CLOSED 非 OPEN·清单口径滞后）+3 条 additive 注（`:901` R4SCRIPTS/`:938` E2EA-05/`:36` GAP-EVAL-PARSER）·第 12 条对账差异如实登记（移交清单记 uc3m #186·亲读=EVAP PR #184 系本行本体刀·uc3m #186 系 `:953` 族·以亲读为准·差异处置权归协调方）。
+5. **三门读数（EXEC 期复跑 §4 门 1-3）**：`node scripts/ai-docs/check-docs.mjs` **EXIT=0 · scanned 2465=cap 2_465 恰等** · `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12 EXIT=0**（2465 形四联动点）· markers 门=改动集净增行五类标记词（词面运行时组装防自指·同 i6-239 §2-7 口径·本卷不复抄词面）+行首冲突标记 **0 命中** · §4 门 4 面收敛=EXEC commit diff 恰本卷 `.md`+backlog+LEDGER+两 policy 脚本**五 tracked 路径**·产品码/迁移/runner/既有 proof 零命中。
+6. **收束**：`executed:awaiting_post_prove_dual`（post-prove 双审待派·翻面/收官/push 权归协调方·⛔push）。
+
 ---
 
-**卷尾 trace**：任务类型=L1 docs-only 台账勘误起草（docs 门·审核 ∧ 验证收束归协调方）· 工作区=`meetwise-led`（line/led-draft @`2e808c9e3`）· 来源证据=`git show origin/main:` 两 SSOT 卷逐行亲读+migrations `0144-0149` ls-tree+checklist nail 段+六 commit（`4e734a522`/`32c9e2db8`/`0ff210196`/`cb22270ca`/`a79a811ae`/`665f98945`）+HA-6/HA-7 REQUEST 亲读 · 已读=AGENTS.md/meta/task-sop.md/两 policy 脚本/i6-239 gates §2-7/nk1-REQUEST（预登形模板） · 结论状态=`drafted:awaiting_pre_exec_dual` · 验证=§4 门 1-4 本席亲跑全绿。
+**卷尾 trace**：任务类型=L1 docs-only 台账勘误起草→EXEC 行使（docs 门·审核 ∧ 验证收束归协调方·post-prove 双审待派）· 工作区=`meetwise-led`（line/led-draft·起草 @`2e808c9e3` 基·rebase 对届 tip `da1dae1de` 后行使）· 来源证据=`git show origin/main:` 两 SSOT 卷逐行亲读+migrations `0144-0149` ls-tree+checklist nail 段（DBSB-1/GODFN-1a/1b/1c/CI-WIRING/assert-strengthen/e2ea05-backfill）+六 commit（`4e734a522`/`32c9e2db8`/`0ff210196`/`cb22270ca`/`a79a811ae`/`665f98945`）+HA-6/HA-7 REQUEST 亲读+EXEC 期补证（`1af8987e`/`a0b01305`/`49ab12d24`/`bfd27b293`/`857058d9d`/`82ea54e41`/`1ca3ce1da` 亲证·`28d0d7a7` blob 亲证排除） · 已读=AGENTS.md/meta/task-sop.md/两 policy 脚本/i6-239 gates §2-7/nk1-REQUEST（预登形模板） · 结论状态=`executed:awaiting_post_prove_dual`（前值 `drafted:awaiting_pre_exec_dual` 史录） · 验证=起草期 §4 门 1-4 全绿+EXEC 期 §9 三门亲跑全绿（docs scanned 2465=cap 恰等/PTP 12/12/markers 0）。
