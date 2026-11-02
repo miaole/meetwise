@@ -33,6 +33,7 @@
   "prove:unstube-erase": "node --import @swc-node/register/esm-register test/unstube-erase.proof.ts",
   "prove:uc015-ingest-failures": "node --import @swc-node/register/esm-register test/uc-e2e-015-resume-ingest-failures.proof.ts",
   "prove:uc010-sse-resume": "node --import @swc-node/register/esm-register test/uc-e2e-010-sse-resume.proof.ts",
+  "prove:quizdx-sse-http": "node --import @swc-node/register/esm-register test/quizdx-sse-http.proof.ts",
   "prove:uc002-http": "node --import @swc-node/register/esm-register test/uc-e2e-002-cross-device-http.proof.ts",
   "prove:uc002-adv": "node --import @swc-node/register/esm-register test/uc-e2e-002-adv-led-crossuser.proof.ts",
   "prove:uc002-nhp-http-bound": "node --import @swc-node/register/esm-register test/uc-e2e-002-nhp-http-bound.proof.ts",
