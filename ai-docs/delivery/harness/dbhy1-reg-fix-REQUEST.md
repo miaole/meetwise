@@ -1,6 +1,6 @@
 # DBHY1-REG-FIX REQUEST — DBHY-1 卫生刀 P3 残面登记缺口修复刀（AG-15 `graph-run-observability.proof.ts:108` 读 `packages/db/sql/01_schema.sql` 镜像未登记 P3_RESIDUE_FILES→P3-1 `✗ 未登记引用`·CI run 39037323125/39037518235/39037857731 三连红 1/28·修法=登记恰一行·dbhy1-reg-fix 战役·快速链诊断+起草+EXEC 一体席·沿 cap-sanction 快速链形制）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 快速链一体席 EXEC 落卷翻面·前值 `draft:awaiting_pre_exec_dual` @`45459ba9` 史录保留零字洗·post 双审两外席待派·alone≠dual·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 快速链一体席 EXEC 落卷翻面·前值 `draft:awaiting_pre_exec_dual` @`45459ba9` 史录保留零字洗·post 双审两外席待派·alone≠dual·⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：dbhy1-reg-fix 快速链席（诊断+起草+EXEC 三责一体·协调方派单·主线 CI dbhy1 步三连红 1/28 在靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `1b013667`（=origin tip·fetch 后 `git rev-parse` 亲证恒等·派单下界「tip≥1b013667」等号成立）· 分支 `line/dbhy1-reg-fix`（`git worktree add ../meetwise-drf -b line/dbhy1-reg-fix origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `1b013667` 亲证）· 工作树 `meetwise-drf`（仓根同级）。
@@ -72,7 +72,7 @@ FAIL  P3-1 全代码面 sql/ 引用仅剩登记残面（neg 族+legacy 夹具+�
 
 ## §8 STOP（开工三条款+停止条件）
 
-**STOP · `executed:awaiting_post_prove_dual`**（EXEC 期翻面·前值 `draft:awaiting_pre_exec_dual` @`45459ba9` 史录保留零字洗）** · alone≠dual · Dual PASS ≠ 开工（开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 BOTH PASS 落卷；②协调方明示 EXEC 授权；③EXEC 不得改 §1-修法登记面与 §5 Ban（改则回炉）·照 §0 对届时 tip 重 pin。**停止条件**：①现场漂移（两锚 blob/行锚漂移·改前复跑≠1/28 或红名单≠一件）→停；②机制不满足（登记后 THE prove≠28/28）→停；③越界需要（需触 cap 常量/产品码/登记面外文件）→停；④验收红不可修（docs:check 超限=§2-4 预披露面·如实登记升级不就地修）→登记升级。
+**STOP · `executed:awaiting_post_prove_dual`**（EXEC 期翻面·前值 `draft:awaiting_pre_exec_dual` @`45459ba9` 史录保留零字洗）** · alone≠dual · Dual PASS ≠ 开工（开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 BOTH PASS 落卷；②协调方明示 EXEC 授权；③EXEC 不得改 §1-修法登记面与 §5 Ban（改则回炉）·照 §0 对届时 tip 重 pin。**停止条件**：①现场漂移（两锚 blob/行锚漂移·改前复跑≠1/28 或红名单≠一件）→停；②机制不满足（登记后 THE prove≠28/28）→停；③越界需要（需触 cap 常量/产品码/登记面外文件）→停；④验收红不可修（docs:check 超限=§2-4 预披露面·如实登记升级不就地修）→登记升级。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9 EXEC 记录（快速链一体席落卷·2026-10-16·授权链=派单 brief 快速链三责一体形制[沿 cap-sanction-2216/2208 一体席先例]·基线 `1b013667`=origin tip 等号成立亲证·两锚 blob 零漂零重 pin 需求）
 
@@ -90,8 +90,8 @@ FAIL  P3-1 全代码面 sql/ 引用仅剩登记残面（neg 族+legacy 夹具+�
 
 **偏离任务书清单**：①cap 零余量系起草期发现（§0.3 前置披露·非 EXEC 期突现）·任务书「docs:check≤届 cap」门对「届 cap=2232」实测超限 1——按停止条件④登记升级·Ban 就地改 `MAX_FILES` 未行使；②零其余偏离——登记面恰一件、+2/−0 恰预期、两 run 各司其职零 retry、pins 零翻（haStatus=NOT_HA·releaseEvidence=false·actualSpendCny=null）。
 
-**STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·cap sanction 步进刀与 LEDGER/checklist 行翻面权归协调方·alone≠dual·⛔push。
+**STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·cap sanction 步进刀与 LEDGER/checklist 行翻面权归协调方·alone≠dual·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 
-*DBHY1-REG-FIX REQUEST · 2026-10-16 起草 · **`executed:awaiting_post_prove_dual`**（§9 EXEC 记录落卷·28/28 翻绿·门矩阵五门·docs:check cap 超限 1 如实登记升级归 cap sanction 刀·post 双审待派·行翻面/nail 归协调方·前值 draft @`45459ba9` 史录保留·⛔push · STOP）*
+*DBHY1-REG-FIX REQUEST · 2026-10-16 起草 · **`executed:awaiting_post_prove_dual`**（§9 EXEC 记录落卷·28/28 翻绿·门矩阵五门·docs:check cap 超限 1 如实登记升级归 cap sanction 刀·post 双审待派·行翻面/nail 归协调方·前值 draft @`45459ba9` 史录保留·⛔push · STOP）*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

@@ -1,6 +1,6 @@
 # CAP-SANCTION-2280 文档上限步进记录（mini·快速链·沿 a75736a0/e9f99940/51abfe78/89074c5d/b7dde404/5ec0cf6d0/e5ea355ca/2adcb0078/cap-sanction-2272 九先例形）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵七门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual`（起草态·本刀单 commit 直落未成独立 draft commit·随派单令「只 commit 一次」颁定）史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵七门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual`（起草态·本刀单 commit 直落未成独立 draft commit·随派单令「只 commit 一次」颁定）史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（届时树亲算·7a4288fb 届时值）
 
@@ -59,7 +59,7 @@
 ## §8 STOP（开工条款 + 翻面形）
 
 - **开工条款（sanction 直落形）**：①协调方派单 brief 即 sanction 授权（`2272→2280` 步进值+修法+门矩阵由 brief 颁定·在飞新登记三件算术=2270+3=2273 超·+8 先手）；②快速链诊断+起草+EXEC 一体席·沿九先例 sanction 刀单波直落先例·pre-exec 双审由 sanction 形制承载；③EXEC 不得越 §1-修法三件落点与 §1.3 否决面（越则红停回炉）。
-- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗·本刀单 commit 直落形·draft 态未成独立 draft commit 随派单令「只 commit 一次」颁定）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行/Status 终翻面权归协调方·本刀不宣称关闭。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗·本刀单 commit 直落形·draft 态未成独立 draft commit 随派单令「只 commit 一次」颁定）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行/Status 终翻面权归协调方·本刀不宣称关闭。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - 卫生：est live=0（全门本地静态/隔离·零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
 ## §9 EXEC 记录（快速链一体席·2026-10-19·门矩阵七门 EXIT 原值）
@@ -70,7 +70,7 @@
 4. **proof 臂账**：越限臂 fabricated 数 2_280 恰 cap 臂 `valid=true`+`scannedFiles=2_280`·第 2281 注入路径早返回 `valid=false`+`scannedFiles=0`+错误串恰 `PTP_FILE_LIMIT:2281` 三断言全行使绿·cap 数字预算联动语义不变强度不减（改动前基线 proof 12/12 EXIT=0 先证·改动后同跑 12/12 EXIT=0 双跑亲证）。
 5. **偏离**：①markers 逐词交替形补扫 3 行 5 词次命中（全落本刀新注记行·派单 brief 颁定注记内容沿九先例同形卷面文体·join 形主扫与 commit 消息双形 0 命中·门 5 判定沿 cap-sanction-2272 先例 join 形口径=绿·补扫非零命面如实登记）；②门 4 沿派单原样 `pnpm turbo lint` 未加 --force（12/12 中 11 cached/1 fresh·根 lint 面含两 script 改动为 fresh·真实退出码无管道直取 EXIT=0·另以两 script 直扫 eslint EXIT=0 零输出补强）·如实登记；③门 2/⑦在 §9 回填前后双跑同值（2271/3 tracked 恒定·回填不改计数面）·如实登记；④其余零（落点/门矩阵/STOP 形全沿 §1/§2/§8 定稿·零越面零 amend）。
 6. **卫生**：est live=0（七门全本地静态/隔离 fixture·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL 零 env 闸·pins 不适用（本刀无 pins 面）。
-7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 

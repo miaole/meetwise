@@ -1,6 +1,6 @@
 # ASSERT-STRENGTHEN 断言强度治理小刀 REQUEST（test-only·E2EA-05 跟进·恒真升格+弱断言收紧·零产品码）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（blob 级·届时树 2c257eb0 亲证·12 文件 19 点位）
 
@@ -100,7 +100,7 @@
 ## §8 STOP（开工条款 + 翻面形）
 
 - **开工条款**：①本卷=起草落卷·落码权归 EXEC 席（协调方派单后行）·落点不得越 §1 修法三组（A1–A3 升格/H4–H15 注记/W1–W4 升格）与 §1.3 否决面（越则红停回炉）；②pre-exec 双审两独立外席待派（§0 锚表+§0.4 parity 定稿+§1.1 A3 形状臂三处必核）·alone≠dual·Ban self-approve·Dual PASS≠开工。
-- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·EXEC commit 翻面·前值 `draft:awaiting_pre_exec_dual` 史录·post-prove 双审两独立外席待派）·批表行/Status 终翻面权归协调方·本刀不宣称关闭。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·EXEC commit 翻面·前值 `draft:awaiting_pre_exec_dual` 史录·post-prove 双审两独立外席待派）·批表行/Status 终翻面权归协调方·本刀不宣称关闭。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **停止条件四类**：现场漂移（blob/行号/script 注册名漂超注记级）/机制不满足（pg 多语句形状等现场实测推翻 §1.1 定稿形）/越界需要（扩面 apps/** parity·A 契约改形等 §1.3 域）/验收红不可修。
 - 卫生：est live=0（全门本地静态/隔离·零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用。
 

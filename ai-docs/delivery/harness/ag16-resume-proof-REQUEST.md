@@ -1,6 +1,6 @@
 # AG16-RESUME-PROOF REQUEST（AG-16 残面 proof 补齐小刀 · 旧 checkpoint resume 确定性 proof + recursionLimit 面纪实收口 · test-only 零产品码零迁移）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·EXEC 落卷=2 新 proof+4 注册件改+§9-exec append+收据·post-prove 双审两独立外席待派·Ban self-approve · alone≠dual · est live=0 · ⛔push⛔merge主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·EXEC 落卷=2 新 proof+4 注册件改+§9-exec append+收据·post-prove 双审两独立外席待派·Ban self-approve · alone≠dual · est live=0 · ⛔push⛔merge主线）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：AG-16 残面 proof 补齐小刀起草席（AG 盘点席定谳承接口·协调方派单）。
 **基线**：`feat/mysql-schema-skeleton` @ `fe4079a0`（fetch 后 origin tip 亲证·`git rev-parse origin/feat/mysql-schema-skeleton`=`fe4079a0` 全串 `fe4079a0…`·派单下界 tip≥fe4079a0 **等号成立**·本卷全锚对该 tip 亲算）。分支 `line/ag16-resume-proof`·工作树 `meetwise-ag16`（`git worktree add ../meetwise-ag16 -b line/ag16-resume-proof fe4079a0` 本起草席已立·建前 branch 双查无同名·HEAD 落 `fe4079a0` 亲证）。
@@ -115,9 +115,9 @@ base 树本席亲跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2200
 
 本刀改动集（起草 turn=恰 1 .md）**五类标记词零命中**（起草席亲跑·五类词沿 `scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·**词面不复抄卷内防自匹配**——沿 negbend/g7w/context-budget-wire 卷 §7 同形制）·全树行首冲突标记零命中。
 
-## §8 STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录）
+## §8 STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。** 起草席写完即停零码动（起草 turn 恰 1 .md·两 proof 件 EXEC 已落=§9-exec）。开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**（第四次双审会签 PASS×2=席1 agent_8ff74c69+席2 agent_264162ff）；②**协调方明示授权**（已行使=派单令 EXEC 六条收据落法随卷）；③EXEC 立项**不得改 §1-修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin=§9-exec 已行使）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：①**cap 未 sanction**（届 cap=2216 已上游 nail·届实跑 2215≤2216 见 §9-exec）②§0 锚漂（§9-exec 十一 blob 重 pin 零漂）③邻面新红（门 3-6/8 届实跑全绿）④验收红不可修（Ban 借机修·lint 贴边红自纠两处如实登记）。**post-prove 双审两独立外席待派**。
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。** 起草席写完即停零码动（起草 turn 恰 1 .md·两 proof 件 EXEC 已落=§9-exec）。开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**（第四次双审会签 PASS×2=席1 agent_8ff74c69+席2 agent_264162ff）；②**协调方明示授权**（已行使=派单令 EXEC 六条收据落法随卷）；③EXEC 立项**不得改 §1-修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin=§9-exec 已行使）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：①**cap 未 sanction**（届 cap=2216 已上游 nail·届实跑 2215≤2216 见 §9-exec）②§0 锚漂（§9-exec 十一 blob 重 pin 零漂）③邻面新红（门 3-6/8 届实跑全绿）④验收红不可修（Ban 借机修·lint 贴边红自纠两处如实登记）。**post-prove 双审两独立外席待派**。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①件①三面臂的合成旧 checkpoint 手法（推荐=直改 inner cp channel_values 剥字段形·零产品缝 vs CrashCheckpoint 子类拦截形备选）；②件② 住地（推荐=`packages/ai-graphs/test/` 与图包同住地 vs 并入 worker test 减一注册文件）；③件② C6 自环小图行为纪实臂是否入刀（推荐=入——「默认 25 生效」唯一行为级证据）vs 纯静态五臂；④门名（推荐=`prove:adaptive-legacy-checkpoint`/`prove:adaptive-compile-contract` 沿既有形）。
 
@@ -290,7 +290,7 @@ base 树本席亲跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2200
 - **diff 面**：本 rev 恰 1 tracked=本卷 .md 纯 append 零删改·零码面·B 段门 1-12 沿 §2 预 registered 判据·随 §9-rev.1/§9-rev.4/§9-rev3.3/§9-rev4.2/§9-rev4.6 修正值读。
 - **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（Status 头/§8/卷尾注零字洗）——rev4 落卷后待双审 FAIL 修订清单（R-1-R-5+R4-1-R4-4）落点确认（或协调方裁定）→**重派 pre-exec 双审两独立外席**（rev4 后重审·alone≠dual·Ban self-approve）·开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）·est live=0（rev turn 全只读+1 doc append·届树亲跑系只读临时 worktree）·actualSpendCny=null。
 
-## §9-exec EXEC 记录（EXEC 席落卷 2026-10-17·七字段+F-1/A1-A7 落法逐条+收据披露·STOP→`executed:awaiting_post_prove_dual`）
+## §9-exec EXEC 记录（EXEC 席落卷 2026-10-17·七字段+F-1/A1-A7 落法逐条+收据披露·STOP→`executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **授权链**：起草落卷→rev/rev3/rev4 三轮 pre-exec 回路（append 注记形·上文零洗）→第四次双审会签 **PASS×2**（席1 `agent_8ff74c69`+席2 `agent_264162ff`）→协调方明示授权 EXEC（EXEC 六条收据落法=F-1/A1-A7 硬前置随派单令）→EXEC 本卷（fetch 亲证 origin/feat/mysql-schema-skeleton=`79d83617`·派单届 tip≥79d83617 等号成立+对 rev4 pin 656fc7be merge-base --is-ancestor EXIT=0 祖先亲证→**merge `741bc79e`** --no-ff 双亲 1510999a+79d83617·SSOT 冲突并集解**未触发**=auto-merge 零冲突 40 files·⛔pull --rebase 未用）。
 
@@ -298,4 +298,4 @@ base 树本席亲跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2200
 
 ---
 
-*AG16-RESUME-PROOF REQUEST · 2026-10-16 起草 · STOP=`executed:awaiting_post_prove_dual`[EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录] · base `feat/mysql-schema-skeleton` @`fe4079a0`（起草 origin tip 亲证）· EXEC 基线=merge `741bc79e`（--no-ff 并届 tip `79d83617`）· 分支 `line/ag16-resume-proof` · 工作树 `meetwise-ag16`（本起草席立）· 立项出处=issues-final AG-16 `:28/:224-234`+AG-27 `:345-353`+EXPERT-REVIEWS `:69`+review-log `:136`+ci-wiring2 偏离⑦ `:130/:146/:157`+checklist `:2609/:3340`· 残面=①旧 checkpoint resume 三面（兼容/版本失配/中断点确定性）②recursionLimit 纪实收口· 修法=两新 proof+门注册四处·EXEC 落码=43+18 断言两件全绿+邻面/负门/静态门届实跑全绿· est live=0 · pins 十一值零翻转 · markers=0 · docs:check 届实跑 2215≤2216 余 1 · ⛔push⛔merge主线 · Ban self-approve · alone≠dual · post-prove 双审待派 · **STOP***
+*AG16-RESUME-PROOF REQUEST · 2026-10-16 起草 · STOP=`executed:awaiting_post_prove_dual`[EXEC 席翻面 2026-10-17·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录] · base `feat/mysql-schema-skeleton` @`fe4079a0`（起草 origin tip 亲证）· EXEC 基线=merge `741bc79e`（--no-ff 并届 tip `79d83617`）· 分支 `line/ag16-resume-proof` · 工作树 `meetwise-ag16`（本起草席立）· 立项出处=issues-final AG-16 `:28/:224-234`+AG-27 `:345-353`+EXPERT-REVIEWS `:69`+review-log `:136`+ci-wiring2 偏离⑦ `:130/:146/:157`+checklist `:2609/:3340`· 残面=①旧 checkpoint resume 三面（兼容/版本失配/中断点确定性）②recursionLimit 纪实收口· 修法=两新 proof+门注册四处·EXEC 落码=43+18 断言两件全绿+邻面/负门/静态门届实跑全绿· est live=0 · pins 十一值零翻转 · markers=0 · docs:check 届实跑 2215≤2216 余 1 · ⛔push⛔merge主线 · Ban self-approve · alone≠dual · post-prove 双审待派 · **STOP***【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

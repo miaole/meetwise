@@ -1,6 +1,6 @@
 # DB-HOTSPOT REQUEST — DB 热点/锁族刀（批5 盘点 Top10·三件同域一卷 #116 预算全局热点行+#9 会话级 advisory 锁+#248 privacy_active 逐行求值·两件零迁移+一件认领 0206）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已落卷·待 post-prove 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已落卷·待 post-prove 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 > 战役 meetwise · 支线 `line/db-hotspot` · 工作树 `meetwise-dbh2` · 起草基线 @origin/feat/mysql-schema-skeleton=`4124c803`（派单「fetch 后 origin tip≥最新」：fetch 后 origin tip=`4124c803`·含 origin/main `112e6d26` 祖先亲证 `git merge-base --is-ancestor` EXIT=0·本刀 worktree 即建于该 tip）·⛔push ⛔merge 主线（push/翻面权归协调方）。主仓建支线：`git worktree add ../meetwise-dbh2 -b line/db-hotspot 4124c803`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief（2026-10-16·批5 盘点席 Top10「DB-HOTSPOT 数据库热点/锁族刀」：#116 成本预算全局热点行+#9 会话级 advisory 锁+#248 interview_privacy_active·同性能族三件）；②三件 issues-master 原文仓外（协调方持有·不阻起草·EXEC 立项如已入卷照 §0 协议补锚）；③TASK-SOP-v2 闸列+LEDGER 位图（只读）。
@@ -122,7 +122,7 @@
 
 ## §8 STOP（开工条款 + 待裁决项）
 
-**STOP · `executed:awaiting_post_prove_dual` · alone≠dual · post BOTH PASS ≠ push · EXEC 门值见 §9-EXEC（届实测在卷）。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**；③EXEC 立项**不得改 §1-修法定稿契约与 §5 pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）·迁移号按 §0.3 对届链复核（0206 被占则顺延最小未占+如实登记）。
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual · post BOTH PASS ≠ push · EXEC 门值见 §9-EXEC（届实测在卷）。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**；③EXEC 立项**不得改 §1-修法定稿契约与 §5 pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号）·迁移号按 §0.3 对届链复核（0206 被占则顺延最小未占+如实登记）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待裁决项**：①件① 短路窗 TTL 定值（本卷钉 30_000ms 模块常量·双审可裁它值·env 化诉求即越界停）；②件① 幂等重放窗口变形（1.1-b）接受度；③件② 同 leaseOwner 重复 begin 接管语义（1.2 delta）接受度；④0206 函数命名（`interview_privacy_active_read`/`interview_privacy_fenced_targets`）与镜像 append 面宽度（红集 vs 全量 17）。
 
@@ -192,7 +192,7 @@
 
 **⑦ P2 吸收落点**：P2-1=0206 头注 schema 级 DDL 排除注记（已落）；P2-2=unlock 行锚 `:55`/`:56` 照实（已落）；P2-3=同键自愈唯一通道=TTL——proof 臂ξ/ο 以复位缝承载过窗·臂ο 复证「非 exhausted 到达 SQL 才清键」窄效化（已落）；P2-4=docs 届 cap 2240 显式（⑤已落）；P2-6=「全域引用」口径更正——`rg -l interview_privacy_active` 全域=100 文件（含 ai-docs/receipts 文档面）·纯 src 触面=7 切换文件+10 保留面文件+测试镜像 17（本注记为口径基准）；席2 R4=interview-consumer.ts `:451` 行锚为准·该注释「advisory lock 覆盖 invoke 全程」于件② 后失真·零字节 Ban 未改=注释债（本条登记）；P1-a 不可判别面=同 leaseOwner 接管窗内 checkpoint 写的 DB 层取证不可判别（lease 接管不 bump checkpoint fence_epoch·写拒绝由消费层 assert/renew fail-closed 承重）——X2 臂以 assert/renew 翻 false 判别+本条如实登记；RESERVE 排序面（interview-consumer.ts :359-373）与本刀触面（ai-cost-governance.ts）零交叠亲证·merge 届 tip 下不冲突。
 
-**⑧ STOP 翻面**：三处同值 → **`executed:awaiting_post_prove_dual`**（本节+Status 行+§8）·待 post-prove 双审两外席·alone≠dual·Ban self-approve·post BOTH PASS ≠ push·⛔push。
+**⑧ STOP 翻面**：三处同值 → **`executed:awaiting_post_prove_dual`**（本节+Status 行+§8）·待 post-prove 双审两外席·alone≠dual·Ban self-approve·post BOTH PASS ≠ push·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC-rev1（post 席1 P1×2 修复落卷 rev 注记·2026-10-17·proof 双修+披露订正+簿记·零契约变更零 §1/§5 触面·与本卷正文冲突处以本节为准）
 
@@ -202,4 +202,4 @@
 
 
 ---
- · 2026-10-16 · **STOP=`executed:awaiting_post_prove_dual`（三处同值：Status 行+本卷尾+§8·EXEC 已落卷见 §9-EXEC·待 post-prove 双审两外席·alone≠dual·Ban self-approve·post BOTH PASS ≠ push·⛔push）** · base origin/feat/mysql-schema-skeleton @`4124c803`（fetch 后 origin tip 等号亲证·origin/main 祖先亲证）· 分支 `line/db-hotspot` · 工作树 `meetwise-dbh2`（主仓 `git worktree add` 本起草席立·防重三查 §0.0 过）· 三件同域=#116 预算全局热点行（0204:92/:133 FOR UPDATE·0033:70 REVOKE=TS 零直读判据·修法=exhausted 决策缓存 30s 短路·零迁移）+#9 会话级 advisory 锁独占连接（interview-graph-lease.ts:18/:22·PgBouncer 事务池冲突·修法=事务级锁+lease 行 CAS 单事务·零迁移）+#248 privacy_active 每调取锁+列表逐行求值（0058:40/:149·**谓词体现行权威=0076**〔rev2 R1-⑤〕·14 调用点/13 SQL 串 7 码文件亲证〔rev2 R5 勘误〕·修法=read twin+fenced set 聚合分层·认领 0206）· 否决六件（分片/外置账本/session lane/弃锁/单函数去锁/GRANT 直读）· 门八（邻 proof+neg+typecheck 8/8+lint 12/12 六值〔rev2 P1-b：届值照 cap-sanction 步进〕+docs:check 2223≤2232+markers+diff 面〔rev2：主面 ≤13+镜像另计〕）· est live=0 · 审计链=本卷+§9-rev+§9-rev2*
+ · 2026-10-16 · **STOP=`executed:awaiting_post_prove_dual`（三处同值：Status 行+本卷尾+§8·EXEC 已落卷见 §9-EXEC·待 post-prove 双审两外席·alone≠dual·Ban self-approve·post BOTH PASS ≠ push·⛔push）** · base origin/feat/mysql-schema-skeleton @`4124c803`（fetch 后 origin tip 等号亲证·origin/main 祖先亲证）· 分支 `line/db-hotspot` · 工作树 `meetwise-dbh2`（主仓 `git worktree add` 本起草席立·防重三查 §0.0 过）· 三件同域=#116 预算全局热点行（0204:92/:133 FOR UPDATE·0033:70 REVOKE=TS 零直读判据·修法=exhausted 决策缓存 30s 短路·零迁移）+#9 会话级 advisory 锁独占连接（interview-graph-lease.ts:18/:22·PgBouncer 事务池冲突·修法=事务级锁+lease 行 CAS 单事务·零迁移）+#248 privacy_active 每调取锁+列表逐行求值（0058:40/:149·**谓词体现行权威=0076**〔rev2 R1-⑤〕·14 调用点/13 SQL 串 7 码文件亲证〔rev2 R5 勘误〕·修法=read twin+fenced set 聚合分层·认领 0206）· 否决六件（分片/外置账本/session lane/弃锁/单函数去锁/GRANT 直读）· 门八（邻 proof+neg+typecheck 8/8+lint 12/12 六值〔rev2 P1-b：届值照 cap-sanction 步进〕+docs:check 2223≤2232+markers+diff 面〔rev2：主面 ≤13+镜像另计〕）· est live=0 · 审计链=本卷+§9-rev+§9-rev2*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

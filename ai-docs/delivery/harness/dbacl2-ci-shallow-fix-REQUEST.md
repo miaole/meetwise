@@ -1,6 +1,6 @@
 # DBACL2-CI-SHALLOW-FIX REQUEST — db-acl2 浅克隆修复刀（PR #109 verify 唯一红 step 40 首曝·ci.yml verify checkout 补 `fetch-depth: 0` 恰 1 码面文件纯增 4 行·零产品码零 proof 零迁移·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-16·pre-exec 双审会签 PASS 席1 agent_753a33c4+席2 agent_fb238374→协调方明示 EXEC 授权·P2 重 pin 四件+席1 P2-B 随卷落·§9·Ban self-approve·alone≠dual·est live=0·⛔push ⛔merge 主线·本 commit 不预 claim CI 运行结果·post-prove 双审两独立外席待派）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-16·pre-exec 双审会签 PASS 席1 agent_753a33c4+席2 agent_fb238374→协调方明示 EXEC 授权·P2 重 pin 四件+席1 P2-B 随卷落·§9·Ban self-approve·alone≠dual·est live=0·⛔push ⛔merge 主线·本 commit 不预 claim CI 运行结果·post-prove 双审两独立外席待派）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：DBACL2-CI-SHALLOW-FIX 诊断+起草席（协调方派·读码定稿+CI 直读+双形模拟亲证+起草）。
 **基线**：`feat/mysql-schema-skeleton` @ **`f2e8de7b`**（**EXEC 重 pin·P2-1**·届时 tip=派单下界「tip≥f2e8de7b」以等号成立亲证·merge `cadd973e` 并入·merge-base=`d1d01853`；起草日基线 `d1d01853`=PR #109 head·fetch 后 `origin/feat/mysql-schema-skeleton` 恒等亲证·已随并）· 分支 `line/dbacl2-ci-shallow-fix`（建前 `git branch --list "line/dbacl2-ci-shallow-fix"`/`ls ../ | grep meetwise-dsf`/`ls ai-docs/delivery/harness/ | grep dbacl2-ci-shallow` 三查零命中·`git worktree add ../meetwise-dsf -b line/dbacl2-ci-shallow-fix` 本席亲立·base=主仓 HEAD=d1d01853）· 工作树 `meetwise-dsf`（仓根同级）。
@@ -109,7 +109,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual` · alone≠dual · post-prove 双审两独立外席待派（Ban self-approve）· 本 commit 不预 claim CI 运行结果（门 12 推 PR 后观察归 pusher/协调方）。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.4 裁位（候选甲单点 wiring）与 §1-修法件① 逐字节内容与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号/blob 漂移如实改锚·结论不变只更锚·§0.0 在飞复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual · post-prove 双审两独立外席待派（Ban self-approve）· 本 commit 不预 claim CI 运行结果（门 12 推 PR 后观察归 pusher/协调方）。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.4 裁位（候选甲单点 wiring）与 §1-修法件① 逐字节内容与 §5 Ban/pins**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号/blob 漂移如实改锚·结论不变只更锚·§0.0 在飞复核必做）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob 漂移·verify steps≠103·db-acl2:prove 翻红或 PASS≠38·`git ls-remote origin refs/heads/line/db-pgp-acl` 空（锚存活依赖失守）·在飞线对 ci.yml 新触（§0.0）→停·重 pin 回炉。
 - **机制不满足**：`fetch-depth: 0` 落地后 CI 仍红（锚对象脱离全支可达集/服务器侧对象缺失类）→停·如实升级协调方（候补=候选乙 robust 形**另刀严审**·Ban 就地改 proof Ban 凑绿）。
 - **越界需要**：修复诉求超出 §1-修法件①（需触 proof 本体/secrets-scan 面/其他 job/package.json 方能绿）→停·另刀或协调方裁决。
@@ -132,9 +132,9 @@
 - **偏离两项如实登记**：①actionlint 3 既有告警行锚 +4 平移（`:146`/`:155`→`:150`/`:159`·纯插入位 `:33-:36` 行使·告警集恒等零新增）；②§8-④/卷尾 trailer「2184」时代冻结字面留档·operative 2192（P2-2·沿 wire R3 形）。余零偏离·§1 裁位/件① 逐字节/§5 Ban/pins 零触零翻。
 - **成本登记**：全史 fetch pack **size-pack 83.86 MiB**（`count-objects -v`·5627 tracked files·2433 commits·§1.3 口径承继）→GH runner 估 +5~20s/verify 跑 <6%·>60s 异常带上报线承 §1.3·首跑实测归门 12 回填收据字段⑥。
 - **卫生**：markers 五类零命中·tracked 码面恰 1 路径（ci.yml）·零 lockfile 改·零迁移零 DDL 零依赖升级零产品码·共享 SSOT 零触·est live=0·actualSpendCny=null·pins 十一值零翻（承 §5 原文）。
-- **STOP=**`executed:awaiting_post_prove_dual`**（post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·本 commit 不预 claim CI 运行结果·门 12 推 PR 后观察归 pusher/协调方·⛔push）**。
+- **STOP=**`executed:awaiting_post_prove_dual`**（post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·本 commit 不预 claim CI 运行结果·门 12 推 PR 后观察归 pusher/协调方·⛔push）**。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-*EXEC 落卷 2026-10-16·序1 fetch+merge `cadd973e` --no-ff 并 `f2e8de7b`（merge-base `d1d01853`·对 ci.yml 恰 0 commit·零冲突·⛔pull --rebase 未用）·序2 §0 全量重 pin 对 `f2e8de7b`（六锚 blob 恒等+steps 103+cap 锚 `:100`/2_192 漂随 sanction 承登+基线锚重 pin+§0.0 全量重跑含 sanction 四支+ssd 活推进 0 触登记）·序3 件① ci.yml 纯增 4 行逐字节（`:33-:36`·卷 `:58-:61` 提取 diff EXIT=0·steps 恒 103·`steps[0].with` 恰 `{"fetch-depth":0}`）·序4 门矩阵十二门=11 绿+门 12 移交（db-acl2 两跑 38/38 EXIT=0 23.126s/20.535s+docs:check 2178≤2192+markers 五类零命中+双形模拟 128/0 复现+卫生全绿）·P2 重 pin 四件+席1 P2-B 随卷落·偏离两项登记·**STOP=`executed:awaiting_post_prove_dual`**（post-prove 双审两独立外席待派·翻面/nail 权归协调方）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*
+*EXEC 落卷 2026-10-16·序1 fetch+merge `cadd973e` --no-ff 并 `f2e8de7b`（merge-base `d1d01853`·对 ci.yml 恰 0 commit·零冲突·⛔pull --rebase 未用）·序2 §0 全量重 pin 对 `f2e8de7b`（六锚 blob 恒等+steps 103+cap 锚 `:100`/2_192 漂随 sanction 承登+基线锚重 pin+§0.0 全量重跑含 sanction 四支+ssd 活推进 0 触登记）·序3 件① ci.yml 纯增 4 行逐字节（`:33-:36`·卷 `:58-:61` 提取 diff EXIT=0·steps 恒 103·`steps[0].with` 恰 `{"fetch-depth":0}`）·序4 门矩阵十二门=11 绿+门 12 移交（db-acl2 两跑 38/38 EXIT=0 23.126s/20.535s+docs:check 2178≤2192+markers 五类零命中+双形模拟 128/0 复现+卫生全绿）·P2 重 pin 四件+席1 P2-B 随卷落·偏离两项登记·**STOP=`executed:awaiting_post_prove_dual`**（post-prove 双审两独立外席待派·翻面/nail 权归协调方）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 

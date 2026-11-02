@@ -1,6 +1,6 @@
 # AG17-SCHEMA-SPAN REQUEST（AG-17 结构化输出观测诚实化刀——span 档名 schema_retry→schema_invalid·「暗示有重试实际没有」最小收口·零行为变更·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码=§9-EXEC 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·post-prove 双审待重派·翻面权归协调方·前值 `draft:awaiting_pre_exec_dual` 史录保留）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码=§9-EXEC 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·post-prove 双审待重派·翻面权归协调方·前值 `draft:awaiting_pre_exec_dual` 史录保留）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：AG 能力复核台账下一刀起草席（done 30/half 2/open 16·AG-13 需线上分布数据挂起·顺延选标 **AG-17**=P3 Prompt 轨·协调方派单·北星 loop）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `4c2ea4c9f`（`git fetch` 后亲证：`origin/line/ag-next-draft`=`4c2ea4c9f` 恰等·`git rev-list --count 4c2ea4c9f..origin/main`=0 即 origin/main 为其祖先·派单下界「origin tip≥4c2ea4c9f」**成立**）。分支 `line/ag17-draft`·工作树 `meetwise-ag17`（仓根同级·`git worktree add ../meetwise-ag17 -b line/ag17-draft 4c2ea4c9f` 本席亲立·`-b` 成功即分支建前不存在的机证）。
@@ -89,9 +89,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.2-5 漂移注记级亲证·§0.0 防重三查零撞）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·pre-exec 双审第二轮 Dual PASS·协调方授权 EXEC 落码（§9-EXEC）·post-prove 双审待重派·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·pre-exec 双审第二轮 Dual PASS·协调方授权 EXEC 落码（§9-EXEC）·post-prove 双审待重派·翻面权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（proof=本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处·前值 `draft:awaiting_pre_exec_dual` 史录保留）·EXEC 落码落卷即停·⛔push。
+- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处·前值 `draft:awaiting_pre_exec_dual` 史录保留）·EXEC 落码落卷即停·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev rev 修订注记（pre-exec 双审第一轮 FAIL 两席合并修订清单 P1 一件甲+P2 六件乙/丙/丁/戊/己/庚回路 · rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
 
@@ -180,4 +180,4 @@
 3. **push 归因声明（席1 P2-2 销案）**：origin/line/ag17-draft 两笔 push（`e12a6343` rev·`39ffb654` EXEC）系协调方验收后行使，非 EXEC 席违令，reflog 时间戳与之相符。
 4. **补码后门**：proof 14 断言 EXIT=0+lint 真实 EXIT=0（ai-runtime 628 帧原值）+码面旧档名 grep 零命中+markers 净增行 0 命中+docs:check EXIT=0（2026-10-19 补码后亲跑原值：proof 四臂 14/14 PASS·隔离库真迁移链收据在 `.tmp/isolated-proof-receipts/`；lint 12 任务全成 0 errors·ai-runtime 628 warnings；`git grep schema_retry -- packages apps scripts` EXIT=1 零命中；markers 净增行五类词面+行首冲突标记 0/0；docs:check 80 required files verified·public text policy scanned 2263 managed worktree files）。
 
-卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·EXEC 届树 `e12a6343`·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码（§9-EXEC 逐条落录·门矩阵九门定稿树复跑·偏离 D1-D5 如实登记）·post-prove 双审待重派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮回卷·P1 一件+P2 六件·其中 P2-丁 行号半不成立只登记）。
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注·前值 `draft:awaiting_pre_exec_dual` 史录保留）·起草 2026-10-19 落卷·基线 `4c2ea4c9f`·EXEC 届树 `e12a6343`·pre-exec 双审两独立外席待派→第二轮 Dual PASS→协调方授权 EXEC 落码（§9-EXEC 逐条落录·门矩阵九门定稿树复跑·偏离 D1-D5 如实登记）·post-prove 双审待重派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮回卷·P1 一件+P2 六件·其中 P2-丁 行号半不成立只登记）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
