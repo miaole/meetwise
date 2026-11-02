@@ -1,6 +1,6 @@
 # QUIZDX REQUEST — quiz/diagnosis HTTP 级逐实体 SSE 流证明起草卷（`GAP-SSEPUSH-QUIZ-DX-HTTP` · 总盘 v4 唯一未认领 keyless 小刀 · P2 · QD1–QD4/DX1–DX4 八臂一 proof）（docs-only REQUEST 卷 · 起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使 · 交付 commit `076b7bed2`（5 路径=proof + runner + 双 package.json + 收据 .log）· 主门 62/62 PASS · 收据三段机检齐 · 前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录不洗 · post-prove 双审两独立外席待派 · alone≠dual · Ban self-approve · Ban 自翻 `GAP-SSEPUSH-QUIZ-DX-HTTP` 行 · ⛔push ⛔动主仓）。
+**Status**: **`proofed:dual_pass`**（post-prove 双席 BOTH PASS 已落卷（§9-post-prove 记录）· EXEC 已行使 · 交付 commit `076b7bed2`（5 路径=proof + runner + 双 package.json + 收据 .log）· 主门 62/62 PASS · 收据三段机检齐 · 前值 `executed:awaiting_post_prove_dual` @`ecfe43bb9` 史录不洗 · 前前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录不洗 · alone≠dual · Ban self-approve · Ban 自翻 `GAP-SSEPUSH-QUIZ-DX-HTTP` 行 · ⛔push ⛔动主仓）。
 
 **席位**：meetwise quiz/diagnosis SSE 起草席（docs-only 起草 · 协调方授权 · 新建 worktree `meetwise-quizdx` · 分支 `line/quizdx-draft`）。
 **基线**：`origin/main` @ **`99e4e3f38`**（full `99e4e3f385d7f992a88aad4b3e5f31d1e77ba3d3` · 2026-10-30 · rev r3 回炉时 `git fetch origin` 亲点后 rebase 本支；`53cc4a434→99e4e3f38` diff 恰 **13 件**，全在 UC-003/UC3M 面（`uc3m-REQUEST.md` +1、`harness/uc-e2e-003-i18n-locale.md`、web OCR/i18n 测试与产品薄缝、coverage/case 矩阵 UC-003 注记、`gap-bug-backlog` +1）+ policy/lint 帽（`public-text-policy.mjs` +1 注记、root `package.json:8` lint 帽 5408→5410），与 §0.1 **UC-010 机制锚零交**）· rev r3 树 `node scripts/ai-docs/check-docs.mjs` 亲跑 **EXIT=0 · scanned 2460**（main 届 2459 + 本卷 1；cap `MAX_FILES=2_461` 余 1；EXEC `+1 proof = 2461` **恰等 cap 余 0** · §2 cap 预算核）。
@@ -396,7 +396,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual`**（四处同值=文首 Status/本节/§9 状态行/§9-EXEC 记录·前值 `draft:awaiting_pre_exec_dual` 史录）· alone≠dual · Dual PASS ≠ 开工（PASS 只过审；开工须协调方明示授权）。**开工三条款**：①pre-exec 双审两外席 BOTH PASS 落卷；②协调方明示 EXEC 授权；③EXEC 立项未改 §1 修法面/§5 Ban/pins/§1.3 否决 · 立项时照 §0 协议对届时 tip 全量重 pin。
+**STOP · `proofed:dual_pass`**（四处同值=文首 Status/本节/§9 状态行/§9-post-prove 记录·前值 `executed:awaiting_post_prove_dual` @`ecfe43bb9` 史录 · 前前值 `draft:awaiting_pre_exec_dual` 史录）· alone≠dual · Dual PASS ≠ 开工（PASS 只过审；开工须协调方明示授权）。**开工三条款**：①pre-exec 双审两外席 BOTH PASS 落卷；②协调方明示 EXEC 授权；③EXEC 立项未改 §1 修法面/§5 Ban/pins/§1.3 否决 · 立项时照 §0 协议对届时 tip 全量重 pin。
 
 **`hardStop(reason, cls?: 'env'|'instrument', ctx?: HardStopCtx)` 统一形（r6 七槽显式 · r4 钉死非零退出 · 撤二择）**：`fs.writeSync(2, 'HARDSTOP ' + reason + '\n')` → 输出**七行读数表（含 `N/A` 行）** → 输出一行 `HARDSTOP_CLASS=<cls>` → `process.exit(2)`（**非零**；环境/仪器分口 EXIT2 与产品真红 EXIT1 分口；`cls` 缺省 `'env'`，**instrument 调用点 = 断言预算（`hardStop('断言预算','instrument',…)`）/ 夹具自检（`hardStop('夹具自检','instrument',…)`）**）。**`HARDSTOP_CLASS` 的机检口径（r8 订正；r7 P2⑥ 的「归 `child_exit_nonzero`」对本目标不成立）**：`safeFailureClass` 仅在 `runRedactedProof` 内被调（`scripts/run-e2e-isolated.mjs:4049` 函数 / `:4065` 调用），其入口门在 `:4415`（只含 `privacy-erasure:`/`unstube-erase:`/`resume-erasure:`/`resume-derivative-reference:`/`adaptive-consumer:prove:raw`）；本目标走 `:4424-4426` 的 `run()` 分支 ⇒ `failureClass` 恒 `null`（`:4215`；仅 `e2e:prove`/`e2e:ui`/`performance:e2e` 的 catch 分支 `:4438` 会赋值）且 `writeLocalIsolatedReceipt` 不接收该字段（`:4473-4484`）⇒ **本目标根本没有 class 归类面**。故 class 行**纯人读**、不声称机检，登记为未来 `safeFailureClass` 扩展候选；**七读数禁止进入任何正则归类面**——将来若改走 `runRedactedProof`，读数 `pgTrigger.name=interview_event_sse_notify` 会命中 `:4037` 的 `/interview_[a-z0-9_:-]+/i` ⇒ 归 `interview_contract_failed`，把 env hardStop 洗成产品契约红。**`HardStopCtx` 显式七槽（每槽 optional，槽含多项时整槽序列化）**：①`health`（`health()` 全量；ctx 缺省时 hardStop **自读单例** `getSseNotify().health()`）；②`pgTrigger`（`{name, present}`·须在 0214 自装/健康前置点**就地捕获**——需 DB 查询）；③`gates`（`{gq?, gd?, gi?, gate?, tokGate?, at:{...}}`·**四/五布尔+各自到达时戳**，须在 gate/tokGate 点就地写入；ctx 不再只有单个 `gate` 布尔）；④`injection`（`{at, maxSeqBefore, maxSeqAfter, silentBeforeMs, wakeSkewMs[]}`·注入时刻+注入前后 `MAX(seq)`+注入前静默实测 `Date.now()-r.lastAt()`+同刻共醒滞留，须在注入点就地捕获）；⑤`hold`（`{holdMs, openedAt, abortAt?, frameArrivals[]}`·可由臂内时间戳派生）；⑥`waitingCount`（ctx 缺省时 hardStop **自读单例**）；⑦`tokenSubscriberCount`（同上自读）。**读数输出防管道截断（r5→r6 只留一种写法）**：七行+class 行逐行 `fs.writeSync(2, line + '\n')` 直写 fd 2 后再 `process.exit(2)`——**删「或置 `process.exitCode = 2` 后显式 drain」二择**（r6：runner 以 `stdio:'inherit'` 起子进程，`scripts/run-e2e-isolated.mjs:4026-4031`，fd 2 直写即无管道截断面；drain 形在 `exit()` 前无保证）。**调用点必须传臂内 ctx 的就地槽**（②③④ 在 gate/注入点写；①⑥⑦ 允许缺省交给 hardStop 自读；缺项该行打 `N/A` 且仍 exit(2)）。健康/回执门/token 到达门/夹具自检/settle/断言预算分口一律走此单点；**禁**把分口改写成 `A()` 断言计入 62 预算（原「或写成断言」二择撤销），禁静默跳过/继续后续臂。**调用点 ctx 齐备（r7 P2⑫）**：QD3/QD4/DX3/DX4 的 health/gate/live/token/settle 与 QD1/DX1/QD3/DX3（及 QD2/DX2 第三连）的 end 门一律传就地槽（`health`/`gates`/`injection`/`hold`/`waitingCount`/`tokenSubscriberCount`），缺项行打 `N/A` 仍 `exit(2)`。
 **QD2/DX2 与通道健康无因果（r7 P2⑤机制句更正）**：catch-up 在 `sse-pump.ts:169-170` 是 `waitFor` 注册后**立刻 `emit(initial.rows)`**、**在健康判定与 hold 循环之前无条件冲刷**，与 LISTEN/trigger 状态无关 ⇒ 两臂回执门**无**健康依赖。gate 超时若归 env 分口，仅因它属**到达问题时延**（`until(...,1500)` 窗口不足），**不是**「退化才导致回执失败」的因果；不得据此把产品红 EXIT1 洗成 env，也不得反向把 env 洗成产品红。
@@ -410,7 +410,7 @@
 
 ## §9 状态
 
-**`executed:awaiting_post_prove_dual`** · 2026-10-30 EXEC 落码落卷（交付 commit `076b7bed2` · §9-EXEC 记录见卷尾 · 前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录）· 2026-10-30 起草落卷（rev r7 基线 `origin/main` @`99e4e3f38` · 分支 `line/quizdx-draft` · worktree `meetwise-quizdx` · 本支 docs-only 提交 r0–r7 八件）· 本卷 1 个 .md · **rev r1–r7 同卷修订（零新增受管件）** · 零产品码零迁移零依赖 · 零 push 零主仓。
+**`proofed:dual_pass`** · 2026-10-30 post-prove 双席 BOTH PASS 落卷（§9-post-prove 记录见卷尾 · 前值 `executed:awaiting_post_prove_dual` @`ecfe43bb9` 史录不洗）· 2026-10-30 EXEC 落码落卷（交付 commit `076b7bed2` · §9-EXEC 记录见卷尾 · 前前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录）· 2026-10-30 起草落卷（rev r7 基线 `origin/main` @`99e4e3f38` · 分支 `line/quizdx-draft` · worktree `meetwise-quizdx` · 本支 docs-only 提交 r0–r7 八件）· 本卷 1 个 .md · **rev r1–r7 同卷修订（零新增受管件）** · 零产品码零迁移零依赖 · 零 push 零主仓。
 
 **起草/修订门亲跑收据（EXIT 原值 · 本 turn）**：
 
@@ -463,4 +463,19 @@
 
 **⑤ 交付纪律**：提交经仓库 pre-commit 密匙门（`scripts/check-staged-secrets.mjs`）真过（`Secret gate passed: no blocked environment file or credential pattern in staged content.`）·⛔`--no-verify` 未用·⛔push 未用·`.tmp/` 零纳入（`git status --short` 无 `.tmp/` 路径）。
 
-**⑥ STOP 终态**：`executed:awaiting_post_prove_dual` **四处同值**——待 post-prove 双审两独立外席·alone≠dual·Ban self-approve·Dual PASS≠nail·`GAP-SSEPUSH-QUIZ-DX-HTTP` 行与 covered/矩阵翻面权归协调方·本刀不宣称关闭。
+**⑥ STOP 终态**：`executed:awaiting_post_prove_dual` **四处同值**——待 post-prove 双审两独立外席·alone≠dual·Ban self-approve·Dual PASS≠nail·`GAP-SSEPUSH-QUIZ-DX-HTTP` 行与 covered/矩阵翻面权归协调方·本刀不宣称关闭。（2026-10-30 补记：post-prove 双席 BOTH PASS → 四处同值转 `proofed:dual_pass`，见下 §9-post-prove 记录·本节 EXEC 时值史录不洗。）
+
+## §9-post-prove 记录（2026-10-30 · nail 席补录 · STOP=`proofed:dual_pass` · ⛔push）
+
+**`proofed:dual_pass`**（四处同值=文首 Status/§8/§9 状态行/本条·前值 `executed:awaiting_post_prove_dual` @`ecfe43bb9` 史录不洗 · 前前值 `draft:awaiting_pre_exec_dual` @draft `619f8c0e5` 史录不洗）。
+
+**post-prove 双席判定**：两独立外席互盲 BOTH PASS（协调方派单原文：「post-prove 双席 BOTH PASS」）。判定输入=主门 62/62 + 收据三段机检 + 14 变异中 54 条真判别（变异期望红集真红·逐条判别零洗绿）。
+
+**关键读数（EXEC 期原值·收据 `ai-docs/delivery/receipts/quizdx-sse-http/01-quizdx-sse-http-prove.log`）**：主门 `pnpm quizdx:sse-http:prove` EXIT=0 · total=62 · PASS=62 · FAIL=0（`{5,9,7,10,5,9,7,10}` 预算双条件自检过）· 收据三段机检齐（runner `.json` 回执 `target=quizdx:sse-http:prove:raw` / `outcome=passed` / `exitCode=0` · `sourceDigests=26` · `schemaMigrationManifest count=217` 非空）。
+
+**残面/盲区登记（post-prove 席2 后续刀建议 · 不在本刀修 · 后续刀清单）**：
+- 盲区①：`apps/api/src/platform/sse-pump.ts:213` registry 注销挪位不被现有断言发现（变异实测主门 62/62 绿）——后续刀建议零基线/settle 门加 `getSseRegistry().count()` 读数。
+- 盲区②：token wire 键集未钉（M-E `v/streamKey` 泄漏变异实测绿）——后续刀建议 QD4⑩/DX4⑩ 改 `isDeepStrictEqual` 钉键集。
+- 盲区③：QD2⑨/DX2⑨ 无注入激励源（近恒真）——后续刀建议归类「承重 56 + 护栏 6」或补注入。
+- 归因口径：产品回归（静默触发器/泵泄漏/LED 重放）实际落 `HARDSTOP_CLASS=env` EXIT2 而非产品红——后续刀可改回执门 `ids().length >= N` 让 QD2②/DX2④ 承担 LED 语义判红。
+- P2-1：`apps/api/test/quizdx-sse-http.proof.ts:464` endGate 注释「status=0 归 env 分口」与实现不符（实际落编号①判产品红·保守向·无洗绿）——如实登记；⛔禁改 proof（含注释），登记不修，后续刀一并处置。
