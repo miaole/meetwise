@@ -1,0 +1,74 @@
+[R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16@sha256:7b822b0aac60967beb1ea5e576b8602c94c300a157d187f385ae3e0da199b90a is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
+E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
+E2E isolated PostgreSQL: meetwise-e2e-53632-1793634162531 on 127.0.0.1:33288
+E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
+E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
+
+> @meetwise/db@0.0.0 prove:interview-event-retention /Users/miaole/Desktop/golucky/meetwise-ha1/packages/db
+> tsx test/interview-event-retention.proof.ts
+
+PASS  迁移链全量应用(全链恰一次·链头 0224)
+PASS  迁移目录文件数=222(现最大 0219 顺延·0220-0224 认领零冲突·实测 222)
+PASS  清扫函数在库(0219 SECURITY DEFINER·owner=event_retention_worker)
+PASS  fixture: 15 行 interview_event 落库(经 0059/0126/0214 三触发器面·guard 须真实 interview+principal)
+
+──────── ① 界 fail-closed 双面（SQL 侧 30..3650/1..10000 + db 仓侧断言） ────────
+PASS  臂①: keep_days=29 低越界 RAISE check_violation(收窄下界防误删近窗)
+PASS  臂①: keep_days=3651 高越界 RAISE
+PASS  臂①: batch_cap=0 低越界 RAISE
+PASS  臂①: batch_cap=10001 高越界 RAISE
+PASS  臂①: db 仓侧断言 keepDays=29 越界即抛(interview_event_retention_invalid)
+PASS  臂①: db 仓侧断言 batchCap=10001 越界即抛
+
+──────── ② 表权-函数权双验（app_role 无 DELETE·有 EXECUTE·PUBLIC 零执行权） ────────
+PASS  臂②: app_role 对 interview_event 无 DELETE(0096:255 纪律零破坏)
+PASS  臂②: app_role 对 interview_event SELECT,INSERT 保持(基线零回归)
+PASS  臂②: app_role 有清扫函数 EXECUTE(0177:172 同形·worker 登录身份直调)
+PASS  臂②: PUBLIC 对清扫函数零执行权(REVOKE ALL FROM PUBLIC)
+PASS  臂②: event_retention_worker 表权最小面(SELECT,DELETE 有·UPDATE 无)
+
+──────── ③ 超龄 progress 族行被清（批 LIMIT 批帽行使）+ 事务局域 GUC 零残留 ────────
+PASS  臂③: 批帽行使 purge(30,3)=3(批删 LIMIT 生效)
+PASS  臂③: 批后残余超龄 progress 族=7(10-3·零重复计账)
+PASS  臂③: 全量拍 purge(30,10000)=7(超龄 progress 族恰清·purged=实际删除行数)
+PASS  臂③: 清后超龄 progress 族=0
+PASS  臂③: GUC 事务局域亲证(未置新会话读 NULL·is_local 置位事务内可见·提交后值不复存)
+
+──────── ④ 未龄行零触（缺省保留窗 30d 边界语义亲证） ────────
+PASS  臂④: 未龄 progress 行(created_at=now)零触仍在
+PASS  臂④: 31d 行已被清(恰在缺省保留窗 30d 外·窗界语义)
+
+──────── ⑤ 超龄 business 终态 kind 行零触（kind 收窄主断言·恰 4 值 ephemeral 域） ────────
+PASS  臂⑤: 超龄 question_ready/report_ready/answer_evaluated 三行零触(域外零删)
+PASS  臂⑤: 全库残余超龄行恰为域外 3 行(kind IN 收窄·不存在第 5 值放行面)
+
+──────── ⑥ 0195 律回归（两释放臂外一切路径恒 RAISE 23514） ────────
+PASS  臂⑥: app_role 直 DELETE 仍拦(表权墙 42501 permission denied·0096:255)
+PASS  臂⑥: 直连超管会话 DELETE 仍 RAISE interview_event_immutable(0195 恒 RAISE 基线·零行亦触发)
+PASS  臂⑥: privacy_worker_owner 无隐私 GUC DELETE 仍 RAISE(0208 键2 拦回·interview_event_immutable)
+
+──────── ⑦ TG_OP='DELETE' 收窄（GUC 单键不解锁 UPDATE 面） ────────
+PASS  臂⑦: 持 app.event_ttl_sweep GUC 的 UPDATE 仍 RAISE(收窄臂·UPDATE 豁免零正当)
+PASS  臂⑦: event_retention_worker(带 GUC)UPDATE 42501(表权 UPDATE 未授予·0195 REVOKE 面)
+
+──────── ⑧ 0208 隐私臂回归（放行臂行为不变·0096:529 语义逐字） ────────
+PASS  臂⑧: 隐私单目标臂 DELETE 恰删 1 行(四键放行·行为零变)
+PASS  臂⑧: 隐私删除后该 stream 零残行(0096 删后 read=0 语义)
+
+──────── ⑨ 幂等（二连拍零新删） ────────
+PASS  臂⑨: 二连拍 purged=0(幂等·零重复计账)
+
+──────── ⑩ RLS 裸删拒 + policy 目录断言 ────────
+PASS  臂⑩: 无 GUC 下 definer 角色直 DELETE 拦(触发器墙 23514·policy GUC 门双墙)
+PASS  臂⑩: RLS select policy 在册(FOR SELECT TO event_retention_worker USING true·0096 dispatch 同构)
+PASS  臂⑩: RLS delete policy 在册(USING app.event_ttl_sweep 非空门·0096:286-290 同构·裸删 policy 层即拒)
+PASS  臂⑩: 既有 policy 面零扰动(p_owner+两 privacy_worker 仍各在其位·additive 形亲证)
+
+──────── ⑪ pg_auth_members 防漂移长效臂（P2-3·0208:38-39 同构显式 Ban 的库面回归） ────────
+PASS  臂⑪: event_retention_worker 零成员资格(零可登录角色成员·SET ROLE 伪造上游防在位)
+PASS  臂⑪: 角色形制 NOLOGIN NOINHERIT 非超user(判别器键1/键3 上游防)
+PASS  臂⑪: app_role 成员资格面零漂移(REVOKE 显式随发后零 membership)
+
+✓ interview-event-retention — 保留期清扫隔离库 prove 完成(失败 0)
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-02T15-42-47-517Z-53632-ea287274-a1a0-49aa-9e0e-a00f0338a6c7.json release_evidence=false
+RETENTION_EXIT=0

@@ -220,6 +220,9 @@ const P3_RESIDUE_FILES: ReadonlySet<string> = new Set([
   // sse-cross-replica（xrep 并线 proof·跨副本 ParentPreload 裸池父进程零 import _neg-harness·经 sqlPath 直载
   // sql/ 22 本体+4 早迁移逐字执行——装载名单与 _neg-harness.ts:72-:90 同源同序·承重消费·按 entpay-s3/bill4 直载登记形）：
   'apps/api/test/sse-cross-replica.proof.ts',
+  // job-queue-index（R-50 队列索引 nail proof·GAUGE_MIRROR_STALE 常量文本提及=已知滞后镜像 PIN 登记
+  // `gauge_stale_mirror_registered`·非加载器·零影子 schema 消费·沿 bill 族「文本提及」登记类）：
+  'packages/db/test/job-queue-index.proof.ts',
 ]);
 
 /** P4⑤ 对象类豁免：sql/ 侧独有但经亲核判定为夹具辅助/演示对象（非 fresh deploy 承载面）——逐对象登记理由。 */
