@@ -1,0 +1,15 @@
+== erratum to 07-hunk-audit.log (append-only receipt preserved byte-identical · ERRATA-SWEEP sweep knife · 2026-11-03) ==
+E1: line 19 H12 label WRONG ("context-only hunk ... -> n/a (no member line; see stale-note below)").
+    ACTUAL: @@ -52,7 +54,7 modifies an ARM_IDS member line: +'RW-0-7a', 'RW-0-7b', 'RW-0-7c' appended to the RW-0 row.
+    Correct mapping: H12 -> [4] sse2-REQUEST.md 1.1-E6 member line (E6 names the RW-0-7a/7b/7c insertion; sse2-REQUEST.md:76).
+    Machine evidence: git diff d1e405e1 b77334904:apps/api/test/sse-reg-window.proof.ts (single replaced member line at old file line 55).
+    AUDIT VERDICT line 28 (19/19 hunks in-list; zero out-of-list) UNAFFECTED: the modified member line belongs to in-list
+    category [4] 1.1-E6 (same mapping class already carried by H13). stale-note lines 30-33 (A() helper docstring
+    "aux 自证不入 48 台账" unsynced) NOT TOUCHED and stands (receipt append-only).
+
+E2: erratum to 05-gates.log line 33 prior-receipt citation:
+    "(prior receipt 12/21/2002/61 - all in original assertion windows)" -> prior receipt (01-regw-main.log) actuals are
+    13/14/2002/61 (line 39 zero_window_delivery_ms=13 / line 47 dispose_to_fire_delivery_ms=14 / line 71
+    degraded_delivery_ms=2002 / line 92 mirror_window_delivery_ms=61).
+    This-run values 12/11/2001/61 unchanged; "all in original assertion windows" holds for BOTH runs. Citation-value
+    erratum only; no gate/assertion semantic change.
