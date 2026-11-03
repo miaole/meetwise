@@ -1,0 +1,28 @@
+== A4 tripwire probe (expected EXIT=1, single honest reading, tree=EXEC post-append a86390264 dirty)
+PASS S1-persistTrace-inserts-ai_invocation_trace
+FAIL S2-persistTrace-coupled-in-settle-txn: persistTrace awaited in same settle region
+PASS S3-no-missing-trace-rewrite-queue
+PASS S4-no-e2e-uc028-scenario
+PASS S5-spec-best-effort-vs-code-coupling
+FAIL G-GAP-product-surface-or-pins: PRODUCT_SURFACE: persistTrace fail-open / rewrite queue / UC-028 e2e appears wired — refuse gap EXIT=0; wire fail-open isolation prove (TC-E2E-028-*) instead of mark-red
+
+GAPS=0 
+NOTE: releaseEvidence=false · Not HA · 本绿≠UC-E2E-028 covered · 本绿≠全链路 E2E covered
+NOTE: matrix=gap(honest) · EXIT=0=mark-red honesty ≠ A1 fail-open / A2 recon / A3 E2E closed
+NOTE: 旁证≠covered: report-bulkhead · releaseSharedAdmissionBestEffort · reqid/estimate-threading · model-invocation-reconcile
+CMD=pnpm -C apps/api prove:uc028-trace-fail-open EXIT=1
+RAW_PROBE_EXIT=1
+
+== A2 append-only machine proof
+14	0	ai-docs/delivery/harness/uc-e2e-028-trace-ledger-fail-open.md
+2	0	receipts/archive/2026-09-batch23/eval/uc-e2e-028-trace-ledger-fail-open.eval.md
+prefix116_cmp_EXIT=0
+prefix78_cmp_EXIT=0
+== A3 zero-touch faces diff vs origin/main (empty=ok)
+0
+== A5 cite gate post-append (single rerun)
+cite_exit=1 fail_count=39 failset_identical=true unit_rows_identical=true
+== gates (pre-commit final)
+docs_exit=0 scanned=2479 cap=2479
+ptp=12/12 exit=0 static_preflight_valid
+markers added_lines=227 receipt_lines=15 hits=0 linestart_conflict=0
