@@ -179,3 +179,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 11. **meter_version 存量**：writer 全文零 UPDATE/DELETE 语句（grep=0）·42501 UPDATE/DELETE live 负臂·增量仅调用面传值 ✓
 12. **0046**：触发器 `trg_interview_scoring_completion_integrity` 在场断言（proof ④）+混合 unscored 场实证 failed 照实（C 臂）·零放松 ✓
 13. **est live=0**：全门 run-e2e-isolated 临时 PG 隔离容器（迁移全链亲跑）+scripted 假体零模型真实外呼+fixture 直写臂零生产触+零 secrets 零消耗（pins 脚注 actualSpendCny=null 同源）✓
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0180_topic_shadow_meter.sql 现树在链（随 `112e6d26f` PR #108·`git log -S` 恰该笔）·头注 :6 逐字点名本卷「REQUEST：…bill2-shadow-meter-REQUEST.md（pre-exec 双审 BOTH PASS+协调方常设 loop 授权）」——影子计量 P2「只算不扣」目标兑现·卷内 `:126` §9 EXEC 附记已翻面 `executed:awaiting_post_prove_dual`（头部 Status 行滞翻·按卷内权威现值收口）·**零残面**·STOP 收口 `closed`】

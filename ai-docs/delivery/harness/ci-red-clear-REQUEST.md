@@ -201,3 +201,6 @@
   11. **CI 终审**：推 PR 后观察口径（secrets-scan 绿+verify 全步首过·:84 后 20 步首曝红属存量红翻面另刀口径·push 归协调方/pusher·EXEC ⛔push）。
 - **est live=0**（全部门=本地静态检查+scripted prove·零模型外呼零 Key 加载零生产操作零 secrets 零消耗）。
 - **STOP 终态**：**`executed:awaiting_post_prove_dual`**（post 双审两外席归协调方派席·行翻面/nail/推 PR 归协调方）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 三红+僵尸步现树清零亲证——红① .gitleaks.toml:26 ag24 allowlist 在树·红② 亲跑 provider-egress-inventory.mjs EXIT=0 registered_consumer_source_pairs=55+proof.mjs:31 计数断言 55 恰等（rev3 sanction 件⑤随后继落码兑现）·红③ ci.yml 零 breaker:prove+ai-runtime 零 breaker 文件——**归因如实修正：本卷 EXEC 已行使五件修法落主线（卷内 §9·2026-10-14·五件落码 19+/5-·consumers 18→20/env 327→328 系本卷亲落在卷）·后继仅增量至现树 55/400**·三红+僵尸步现树清零实测·**零残面**（rev2-rev4 处置史录不灭）·STOP 收口 `closed`】
+
