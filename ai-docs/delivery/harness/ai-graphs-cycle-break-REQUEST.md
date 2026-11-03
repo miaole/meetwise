@@ -59,11 +59,11 @@
 ## §8 est live / 预算 + STOP
 
 - est live=0（纯类型面+docs·EXEC 期同）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · 零模型外呼。
-- **STOP=`draft:awaiting_pre_exec_dual`（三处同值：本 REQUEST §8 + LEDGER 刀位图「ai-graphs-cycle-break」行 + execution-master-checklist「Line ai-graphs-cycle-break」段）**。
+- **STOP=`draft:awaiting_pre_exec_dual`（三处同值：本 REQUEST §8 + LEDGER 刀位图「ai-graphs-cycle-break」行 + execution-master-checklist「Line ai-graphs-cycle-break」段）**。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - rev 落卷（2026-10-16·pre-exec 双审席1 agent_54f5d327 **PASS** P2×2+席2 agent_6b56363e **FAIL** P1×1 后·码面 rev 随卷·沿 API-HARDEN rev2 `acee3bb9` EXEC 前落卷先例形）：①P1 守卫机制修订落 (a) 形=state.ts 真实断言消费者+措辞「零运行时」→「零运行时副作用」五处同步（§1.1 件②/state.ts 守卫注/session-summary.ts 子集注/checklist 修法行/LEDGER 管线行）②P2 反向漂移窗登记=常开观察面（本 §1.1 件②+state.ts 守卫注）③P2 数字口径=门 6「102 行」+门 2 receipt 注记。**STOP 值不变仍 `draft:awaiting_pre_exec_dual` 三处同值——rev 落卷后经席2 窄域确认（仅 rev 落点复验）方会签**。
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；若基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1 在 HEAD 已被他刀翻绿（→本刀降级为 docs-only 空转·如实呈报协调方裁决）③邻面 34/57/17 任一非恰等（→熔断呈报·禁 retry-to-green）。
-- **EXEC 落卷（2026-10-16·§9 落卷随附·本节上文零字洗）**：**STOP 现值=`executed:awaiting_post_prove_dual`**（§9-⑦·前值 `draft:awaiting_pre_exec_dual` 史录保留·本行 append 翻面）·post 双审两外席待派·⛔push。
+- **EXEC 落卷（2026-10-16·§9 落卷随附·本节上文零字洗）**：**STOP 现值=`executed:awaiting_post_prove_dual`**（§9-⑦·前值 `draft:awaiting_pre_exec_dual` 史录保留·本行 append 翻面）·post 双审两外席待派·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9 EXEC 记录（EXEC 席落卷·2026-10-16·授权链=rev 复审确认 PASS（agent_2dbbd639·「rev 确认·双审会签完成·可授权 EXEC」·tsc 活体证四场景全过）+协调方授权 EXEC（派单 brief·七字段沿 obs-family §9 先例形）·收据落点=本节 inline 自裁最小集（③全表承载各门 EXIT））
 
@@ -100,7 +100,7 @@
 
 **⑥est live=0 + pins**：EXEC 期全门=本地 tsx/node/tsc/eslint+隔离 PG 容器（interview 隔离形一次性）+静态源读·零模型外呼零 Key 加载零 SMTP 零 secrets 读用零生产操作·`actualSpendCny=null`·零迁移零 DDL 零 env 闸·pins 零翻（四 blob 锚：index `47d381f2`/config `562f23c9` 恒等·两码锚前移=本刀自身落卷②；邻面 34/57/17·门 1 基线「8 warnings/0 errors」·lint ai-graphs cap 47 全命中）。
 
-**⑦STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·STOP 翻面三处同值（本 §8 append 行+LEDGER 刀位图行+checklist 段·append 注记形·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）·批表行与 STILL OPEN 行翻面权归协调方 nail·alone≠dual·EXIT0≠covered·⛔push。
+**⑦STOP → `executed:awaiting_post_prove_dual`**：post 双审两外席待派·STOP 翻面三处同值（本 §8 append 行+LEDGER 刀位图行+checklist 段·append 注记形·前值 `draft:awaiting_pre_exec_dual` 史录保留零字洗）·批表行与 STILL OPEN 行翻面权归协调方 nail·alone≠dual·EXIT0≠covered·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ### §9-补 post 双审随卷注记（2026-10-16 post 双审会签 PASS（席1 重派 agent_0607baef+席2 重派 agent_3f4de778）P2 两件随卷·append 注记形·§0-§9 上文零字洗）
 

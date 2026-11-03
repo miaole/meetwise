@@ -1,6 +1,6 @@
 # DB-ACL-RESIDUAL REQUEST — db-acl2:prove 基线红残面刀（冻结常数+非连续 ledger 崩溃·proof 改形恰 1 文件·零产品码零迁移·db-acl:prove 已随批5b 窄化翻绿零触·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`** · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT · est live=0 · ⛔push
+**Status**: **`draft:awaiting_pre_exec_dual`** · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT · est live=0 · ⛔push【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：DB-ACL-RESIDUAL 起草席（诊断+起草双责·协调方派·台账 L05 批5 5B 行 #142 残面立靶）。
 **基线**：`feat/mysql-schema-skeleton` @ `418f16e8`（=fetch 后 origin tip 亲证恒等·ops-hygiene nail 收官 SSOT·docs:check 2139≤cap 2144 本树亲跑）· 分支 `line/db-acl-residual`（本起草席 `git worktree add ../meetwise-dar -b line/db-acl-residual origin/feat/mysql-schema-skeleton` 亲立·HEAD 落 `418f16e8`）· 工作树 `meetwise-dar`（仓根同级）。
@@ -132,7 +132,7 @@ ciw2 时点基线红（归置卷 ：25）→批5b 迁移簇 EXEC `7152cd3c` **�
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.3 红臂根因结论与 §5 Ban/pins 与 §1-修法件① 改形面与「保留语义臂零弱化」条款**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.3 红臂根因结论与 §5 Ban/pins 与 §1-修法件① 改形面与「保留语义臂零弱化」条款**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠复核必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且 §1.3 结论受疑（如 db-acl2.proof.ts 被并发刀触及/链数≠202/`loadMigrations` 实数对 §0.3 漂移/expectedWindow 八名漂移/门 1-8 任一分母超熔断）→停·重 pin 回炉。
 - **机制不满足**：件② prove run 保留语义臂（P0/P1/P2/P3 任一）现红=「零语义漂移」诊断被证伪（非冻结常数面）→停·如实升级协调方回炉（Ban 就地改断言 Ban 凑绿）。
 - **越界需要**：修法诉求超出 §1-修法件① 恰 1 文件面（需触产品码/迁移/runner/其他 proof/其他测试）→停·另刀或协调方裁决（§1.4 候选乙/丙否决沿承·Ban 就地扩面）。
@@ -178,4 +178,4 @@ ciw2 时点基线红（归置卷 ：25）→批5b 迁移簇 EXEC `7152cd3c` **�
 
 ---
 
-*DB-ACL-RESIDUAL REQUEST · 2026-10-15 起草 · **EXEC 落卷 2026-10-15（§9）**：pre-exec 双审 BOTH PASS（席1 agent_9ffa0cc6+席2 agent_e22738db）+协调方 EXEC 授权·并线 `dca42710`（--no-ff feat/mysql-schema-skeleton@f417d8e7·零冲突）·全量重 pin（链 204 头 0204·blob 六恒一漂·八名恒等·交叠复核零新触）·六处改形全落恰 1 文件·db-acl2:prove EXIT=0 **38/38 翻绿**（37 保留+P5-2b 新臂·零删门零弱化）·db-acl:prove 62/0 维持·门矩阵十四门全绿·STOP=**`executed:awaiting_post_prove_dual`**·待 post-prove 双审 · 基线 `feat/mysql-schema-skeleton` @`418f16e8`（起草时点 origin tip）→EXEC 时点 origin tip `f417d8e7` · 分支 `line/db-acl-residual` · 工作树 `meetwise-dar` · 修法=候选甲恰 1 文件六处改形·臂 37→38 零删门 · 迁移预期零=实际零（migrations 目录零字节触）· est live=0 · markers=0 · pins 十一值照抄零翻 · 停止条件四类全程未触发 · Ban self-approve · alone≠dual · ⛔push*
+*DB-ACL-RESIDUAL REQUEST · 2026-10-15 起草 · **EXEC 落卷 2026-10-15（§9）**：pre-exec 双审 BOTH PASS（席1 agent_9ffa0cc6+席2 agent_e22738db）+协调方 EXEC 授权·并线 `dca42710`（--no-ff feat/mysql-schema-skeleton@f417d8e7·零冲突）·全量重 pin（链 204 头 0204·blob 六恒一漂·八名恒等·交叠复核零新触）·六处改形全落恰 1 文件·db-acl2:prove EXIT=0 **38/38 翻绿**（37 保留+P5-2b 新臂·零删门零弱化）·db-acl:prove 62/0 维持·门矩阵十四门全绿·STOP=**`executed:awaiting_post_prove_dual`**·待 post-prove 双审 · 基线 `feat/mysql-schema-skeleton` @`418f16e8`（起草时点 origin tip）→EXEC 时点 origin tip `f417d8e7` · 分支 `line/db-acl-residual` · 工作树 `meetwise-dar` · 修法=候选甲恰 1 文件六处改形·臂 37→38 零删门 · 迁移预期零=实际零（migrations 目录零字节触）· est live=0 · markers=0 · pins 十一值照抄零翻 · 停止条件四类全程未触发 · Ban self-approve · alone≠dual · ⛔push*【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

@@ -1,6 +1,6 @@
 # E2E-SCENE-BATCH2 — 隐私升 LIVE + 同意撤回 E2E 场景（处方 7-④/⑤ · full.e2e 第 10 段 · 件1 report_ready 被闸登记 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）→ **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/e2e-scene-batch2` @`182fd31a`·恰 1 件 225+/0−·EXEC 席状态行未随翻·nail 席如实补登）→ nailed（post-prove 双席 BOTH PASS @2026-10-12）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）→ **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/e2e-scene-batch2` @`182fd31a`·恰 1 件 225+/0−·EXEC 席状态行未随翻·nail 席如实补登）→ nailed（post-prove 双席 BOTH PASS @2026-10-12）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **席位**：E2E 场景第二批起草席（北星 loop · E2E 覆盖缺口盘点处方 7 中期补场景三件·前置闸逐一实测后收编判定=**部分被闸**：件2+件3 可收一张卷·件1 结构性被闸登记移交）。
 **基线**：`feat/mysql-schema-skeleton` @ `388e5f7b`（主线 tip·`git log -1` 实测=merge(i5-caliber) 口径诚实化九件 nail·post-prove 双席 BOTH PASS）。分支 `line/e2e-scene-batch2` · 工作树 `meetwise-e2s2`（`git worktree add meetwise-e2s2 -b line/e2e-scene-batch2` 仓根同级 worktree·本起草席已立·建前实查均不存在：`git worktree list` 九树无 e2s2·目录 `ls` NOT_EXISTS）。
@@ -134,7 +134,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本卷恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 场景清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·件1 被闸登记与 §0.3 两分读法必随卷落收据）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本卷恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 场景清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·件1 被闸登记与 §0.3 两分读法必随卷落收据）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **登记建议（pre-exec 双审可核）**：①本卷立项关联处方 7 中期三件（④⑤收编·①被闸登记）——盘点三向判定=部分被闸；②件1 六步闸链（§0.2）随本卷入账·INT-TRANSCRIPT-01 cutover 刀立项时引本卷 §0.2 开 report_ready 场景卷·届时「报告自洽断言沿既有 7 段形」两臂现成（full.e2e.ts:220）；③处方背景漂移（「FAIL_ALL 注入是唯一闸」不完整·0082 非闸体）已 §0.1/§0.2 如实登记；④409 卷并线后本卷卷尾锚/tag 照 §8 重 pin 零回炉。
 
@@ -169,4 +169,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*E2E-SCENE-BATCH2 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`388e5f7b` · 分支 `line/e2e-scene-batch2` · 工作树 `meetwise-e2s2` · 蓝本=处方 7 中期三件（④⑤①）+ 形制 e2e-scene-409-REQUEST（Ban/pins 同源誊录）+ 场景先例 privacy-erasure-http.proof（UNSTUB-ERASE rev2 全形）/g7fix1 DB 直连 SELECT-only 形 · 收编判定=部分被闸：R4 隐私升 LIVE（resume-data 全量软删 202 两态+interview 预览围栏前后读零+503 pin 正面行使）+R5 同意撤回（授予→撤回→403 门→撤回≠擦除→恢复·三态全链）两场落 full.e2e 第 10 段·件1 report_ready 主通路被闸登记（六步闸链=0126 互斥→零卡→score_aggregate_empty·与 FAIL_ALL 注入正交·0082 非闸体·移交 INT-TRANSCRIPT-01 cutover 刀）· 产品码+scripts 零字节 · 新增断言 ≥23（下界 20）· est live=0 场量级（零 begin 零模型·主体另账）· pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*E2E-SCENE-BATCH2 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`388e5f7b` · 分支 `line/e2e-scene-batch2` · 工作树 `meetwise-e2s2` · 蓝本=处方 7 中期三件（④⑤①）+ 形制 e2e-scene-409-REQUEST（Ban/pins 同源誊录）+ 场景先例 privacy-erasure-http.proof（UNSTUB-ERASE rev2 全形）/g7fix1 DB 直连 SELECT-only 形 · 收编判定=部分被闸：R4 隐私升 LIVE（resume-data 全量软删 202 两态+interview 预览围栏前后读零+503 pin 正面行使）+R5 同意撤回（授予→撤回→403 门→撤回≠擦除→恢复·三态全链）两场落 full.e2e 第 10 段·件1 report_ready 主通路被闸登记（六步闸链=0126 互斥→零卡→score_aggregate_empty·与 FAIL_ALL 注入正交·0082 非闸体·移交 INT-TRANSCRIPT-01 cutover 刀）· 产品码+scripts 零字节 · 新增断言 ≥23（下界 20）· est live=0 场量级（零 begin 零模型·主体另账）· pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】

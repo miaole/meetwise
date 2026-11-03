@@ -1,8 +1,8 @@
 # H5-ROLE-INPUT REQUEST（ROLE-INPUT 后继刀：S2a 入口 + S2b 引导最小形 + #230 押题岗位输入 + api proof 8 红修锚与证据件替换 · 批2 残39 首组）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
-**Status 链补全（nail 席 append-only 一次补登·2026-10-11）**：`draft:awaiting_pre_exec_dual` → executed:awaiting_post_prove_dual（EXEC e54fc551·翻面滞后由 nail 补登·如实记）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-11·H5 簿记更正程序链追认终局：次桩系协调方修正·勘误 085f941a 为 EXEC 直接父提交·席1 时序亲证）。上文原 draft 态文字照录不改。
+**Status 链补全（nail 席 append-only 一次补登·2026-10-11）**：`draft:awaiting_pre_exec_dual` → executed:awaiting_post_prove_dual（EXEC e54fc551·翻面滞后由 nail 补登·如实记）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-11·H5 簿记更正程序链追认终局：次桩系协调方修正·勘误 085f941a 为 EXEC 直接父提交·席1 时序亲证）。上文原 draft 态文字照录不改。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **席位**：ROLE-INPUT 后继刀起草席（北星 loop · 批2 残39 首组：ROLE-INPUT S2a/S2b/S3 + #266/#268/#199/#230/#133UI/#270 · 派单口径 2026-10-11；LEDGER C 表 :209 末印「批2 残 42」后 H4 六件+diag #213 等收口后的现行水位·以协调方对账为准）。
 **基线**：`feat/mysql-schema-skeleton` @ **`f3a54577`**（本地主线 tip·`git log -1` 实测=merge(g7trio2) trio 全景重跑刀全链并主线）。**如实登记：`origin/feat/mysql-schema-skeleton` tip `6a7a3acc` 未含 route-dict 及其后全链而本地已含——以本地为 pin**（沿 role-input 卷 rev4 同款登记）。分支 `line/h5-role-input` · 工作树 `meetwise-h5`（仓根同级 worktree·`git worktree add` 本起草席已立·建前实查不存在·树/分支名均新）。
@@ -160,7 +160,7 @@ EXEC 改动集**五类标记词 grep 零命中**（起草席自检·命令与回
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**（拟 `mw-rag-route`（quiz prompt/图域主审）+`mw-e2e-ha`（web 入口/proof 诚实副审）·实现方禁自审自批）；②**协调方明示授权**（含切片裁定：片1-A/B/C/D 范围·C-3 CTA 与 C-4 i18n 形制·D-1 显隐规则）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**（拟 `mw-rag-route`（quiz prompt/图域主审）+`mw-e2e-ha`（web 入口/proof 诚实副审）·实现方禁自审自批）；②**协调方明示授权**（含切片裁定：片1-A/B/C/D 范围·C-3 CTA 与 C-4 i18n 形制·D-1 显隐规则）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 ## §9 nail 收据勘误与登记项随落（nail 席·2026-10-11·post-prove 双席 BOTH PASS）
 
@@ -174,4 +174,4 @@ EXEC 改动集**五类标记词 grep 零命中**（起草席自检·命令与回
 
 ---
 
-*H5-ROLE-INPUT REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`f3a54577`（origin `6a7a3acc` 未含如实登记·以本地为 pin）· 分支 `line/h5-role-input` · 工作树 `meetwise-h5` · 九件盘点=S2a/S2b(min)/#230/api 8红修锚+证据件替换入片1·#133 三面已收闭卷登记·#270 剔除归 #201·S3/#199 与 #266 存储半后刀· H2 零文件交集可独立 EXEC · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*H5-ROLE-INPUT REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`f3a54577`（origin `6a7a3acc` 未含如实登记·以本地为 pin）· 分支 `line/h5-role-input` · 工作树 `meetwise-h5` · 九件盘点=S2a/S2b(min)/#230/api 8红修锚+证据件替换入片1·#133 三面已收闭卷登记·#270 剔除归 #201·S3/#199 与 #266 存储半后刀· H2 零文件交集可独立 EXEC · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】

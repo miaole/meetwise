@@ -1,6 +1,6 @@
 # EVIDENCE-DELIVERY — 逐题评分证据四断口接线刀（criterion 数组随事件/转写带出+报告页退役冒充 · EXEC REQUEST）
 
-**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**） → **`executed:awaiting_post_prove_dual`**（EXEC `eviddel-exec` 2026-10-10 完工·rebase `df12a054` 干净·C1-C13 逐条落位·锚点漂移表 D9/D11/D-evid+O-a..O-d 勘误入 `receipts/evidence-delivery/2026-10-10-exec-prove.md`·web prove EXIT=0·interview:prove EXIT=0·api:validate EXIT=0·neg:interview EXIT=0·scoring-integrity/stress 既有 base 红如实记（pristine 对照+SCORE-WRITER S2 在先登记同形佐证）·est live=0·零迁移·markers=0·pins 十一值零翻转·完工≠收口·post-prove dual 待开） → **`nailed`**（post-prove 双席 BOTH PASS @2026-10-11·原文保留）
+**Status**: **`draft_rev2:pre_exec_dual_PASS`**（双席 BOTH PASS · EXEC 授权 · 蓝本=本 rev2 · **Ban self-approve** · **alone≠dual**） → **`executed:awaiting_post_prove_dual`**（EXEC `eviddel-exec` 2026-10-10 完工·rebase `df12a054` 干净·C1-C13 逐条落位·锚点漂移表 D9/D11/D-evid+O-a..O-d 勘误入 `receipts/evidence-delivery/2026-10-10-exec-prove.md`·web prove EXIT=0·interview:prove EXIT=0·api:validate EXIT=0·neg:interview EXIT=0·scoring-integrity/stress 既有 base 红如实记（pristine 对照+SCORE-WRITER S2 在先登记同形佐证）·est live=0·零迁移·markers=0·pins 十一值零翻转·完工≠收口·post-prove dual 待开） → **`nailed`**（post-prove 双席 BOTH PASS @2026-10-11·原文保留）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 **Date**: 2026-10-07（起草席 mw-eviddel-draft）· rev2 2026-10-07（修订席 mw-eviddel-rev2·预执行双审双席 BOTH PASS 附 P1-P4 处方·逐字落位·除处方外冻结）
 **Base**: `origin/feat/mysql-schema-skeleton` @`5e1e7fde` · 分支 `line/evidence-delivery`（工作树 `meetwise-line-eviddel`）
 **立项依据**: `ai-docs/delivery/harness/extreview-fix-campaign-SOP.md` §接线债审计收编（2026-10-09 归档·EVIDENCE-DELIVERY 产品偏移级·A1+A2+C1 连带）+ EXTREV-7 三铁律（交付/隐私流量/简化优先）。
@@ -176,7 +176,7 @@
 
 **渲染级限度**：page 渲染层无 DOM 级自动化断言（P3 组件测试 Ban 既定限度·收据如实披露）——源级静态断言+AnnotationCard 未改签名封住风险·后继解禁可补。
 
-**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @eae56953·逐题评分证据「指出哪里可以补」到达用户眼前·接线债 A1+A2+C1 正式清偿·markers=0·est live=0）。
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @eae56953·逐题评分证据「指出哪里可以补」到达用户眼前·接线债 A1+A2+C1 正式清偿·markers=0·est live=0）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nail:closed` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 ---
 
@@ -206,4 +206,4 @@
 
 四绿键 EXIT=0·两 base 红同形零新增红→过。本刀 own 断言（interview +3/api +3）随 57/204 恰合基线确认在位。
 
-**Status**: `nailed`（post-prove 双席 BOTH PASS @2026-10-11·merge 收束 @`eae56953`·本卷=状态行+六登记项+六键复验补全·markers=0·est live=0·不 push）。
+**Status**: `nailed`（post-prove 双席 BOTH PASS @2026-10-11·merge 收束 @`eae56953`·本卷=状态行+六登记项+六键复验补全·markers=0·est live=0·不 push）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】

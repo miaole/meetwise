@@ -1,6 +1,6 @@
 # BILL2-SHADOW-METER REQUEST（billing 战役 P2 起草刀 · 影子计量钩子——topic 关闭/面试收尾写影子计量行 · 只算不扣 · 零扣费零积分零结算 · 话题数分布/计费-成本相关性/封顶 6 实测数据面 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：billing 战役 P2 起草席（billing P1 nail `a1241e90` 收官+SSOT 双登记 `3cd8e63f`/`d6ee387c`「P2 影子计量待立项」承接·LEDGER 刀位图行 `:420` 只读引用·billing-redesign 蓝本 rev 定稿 §7 上线序③影子计量刀·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `d6ee387c`（`d6ee387c647e775e69b2ff38c3145a056874ffe8`·主线 tip·`git log -1` 实测·BILL1 nail 收官 SSOT commit·零码面——开工首测即落卷实测·会话内零前移·**基线按落卷时 tip 重钉**·§0.2-1）。分支 `line/bill2-shadow-meter`·工作树 `meetwise-bill2`（`git worktree add ../meetwise-bill2 -b line/bill2-shadow-meter` 本起草席已立·建前 `git worktree list` 21 树无 bill2 树+`git branch --list "*bill2*"`/`"*shadow*"` 双查空输出+`rg -l "bill2|shadow-meter" ai-docs/` 零命中三查亲证·HEAD 落 `d6ee387c` 亲证）。
@@ -111,7 +111,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（README §7 步③+§11-3+INDEX 十二/十四节系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 六条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 六条漂移全系登记性：收尾区行锚漂移三分支语义零变/INDEX 挂点候选被 bill1 裁决实质取代/编号链 0179 空·蓝本 §7 止③「只算不扣」与现码零抵触）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（README §7 步③+§11-3+INDEX 十二/十四节系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 六条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 六条漂移全系登记性：收尾区行锚漂移三分支语义零变/INDEX 挂点候选被 bill1 裁决实质取代/编号链 0179 空·蓝本 §7 止③「只算不扣」与现码零抵触）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①**影子表形**（推荐 **A=独立影子表新迁移 0179**（`topic_shadow_meter`·mirror §6.3 topic_charge 列形降结算语义+场级聚合观测列·RLS 只授 SELECT,INSERT 沿 0171 `:36-42` 形·PK 幂等·2 周观察期时点快照可回放）vs B=既有观测面复用（0177 观测表族/interview_event kind——零新迁移但语义混杂·封顶/分布观测列无处安放·event 流非查询面）vs C=零写面纯聚合查询（零侵入零迁移·但 2 周观察期无留存快照·分布漂移不可回放·旧行清理即失据））；②**metric 住地/挂点**（推荐=**worker 收尾 done 臂事务外围 fail-soft 钩子**（`:475-546` 区·`recordAskedQuestions :543-545` 毗邻同形·每场恰一行·崩溃重放 PK 幂等·零新定时器）vs 独立巡检任务（reaper 式定时——**违 §5 Ban 新定时器**·如行使须先裁 Ban 例外）vs topic 关闭逐题即时写（pivot 时点逐 topic 写——图内触面深·并发重放面大·不推荐））；③**聚合查询源**（推荐=**interview_question 主源**（0170 topic_id 分组+status/answer 判 counted/skipped/waived·ix_iq_topic `:33-34` 取数面现成）**+question_usage_ledger LEFT JOIN**（tokens 成本对·一次聚合双列同出）vs ledger 单源（缺 skipped/waived 判定面——answer 语义在题目表更全）vs 双源独立交叉核对（一致性好但存储×2·读面×2·不推荐））；附**meter_version 填值**（推荐 `'shadow-v1'`·§0.2-5 预留兑现·存量 NULL 零回填）。
 
@@ -123,7 +123,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §9 EXEC 附记（随翻·append 保史·§0-§8 原文零改·2026-10-12）
 
-**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **施工落点（恰 10 文件：新 3+改 7）**：新=packages/db/migrations/0179_topic_shadow_meter.sql（127 行·零历史迁移触）+packages/db/src/model-op/topic-shadow-meter.ts（writeTopicShadowMeter/SHADOW_METER_VERSION/SHADOW_METER_CAP·单语句 CTE 聚合）+apps/worker/test/bill2-shadow-meter.proof.ts（44 臂）；改=packages/db/src/index.ts（导出区 additive 4 行）+apps/worker/src/adaptive-lifecycle.ts（import+writeShadowMeterSoft+2 调用点）+apps/worker/src/adaptive-interview-service.ts（import+3 挂点 meterVersion 传值）+apps/worker/package.json+根 package.json+scripts/run-e2e-isolated.mjs（四处注册只增不清沿 AG-C）。
 

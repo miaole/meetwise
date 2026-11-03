@@ -1,6 +1,6 @@
 # H2 QBANK-CORPUS REQUEST（题库语料大块 EXEC 任务书 · 批2 · L 体量）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）→ nailed（post-prove 双席 BOTH PASS @2026-10-11）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工）→ nailed（post-prove 双席 BOTH PASS @2026-10-11）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **席位**：H2 QBANK-CORPUS EXEC 任务书起草席（北星 loop · 批2 · L 体量 · 题库语料大块）。
 **基线**：`feat/mysql-schema-skeleton` @ `20186718`（主线最新 tip·`git log -1` 实测·H3 LEVEL-SCHEME nail 卷即本 tip）。分支 `line/h2-qbank-corpus`·工作树 `meetwise-h2q`（`git -C meetwise worktree add ../meetwise-h2q -b line/h2-qbank-corpus 20186718` 本起草席已立）。
@@ -149,8 +149,8 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §9 STOP
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）；预执行双审两外席 PASS + meetwise 明示授权后，EXEC 方可依本任务书 §3 改动清单立项实施（立项时重 pin §5.1 全锚+迁移编号 claim）。本刀 L 体量·六项可拆片执行（片序建议：④近重复门→①②导入+谱→③⑤检索参数→⑥切面·每片独立 REQUEST-EXEC-nail 循环沿 b271 总档先例）——拆片与否=协调方裁定。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）；预执行双审两外席 PASS + meetwise 明示授权后，EXEC 方可依本任务书 §3 改动清单立项实施（立项时重 pin §5.1 全锚+迁移编号 claim）。本刀 L 体量·六项可拆片执行（片序建议：④近重复门→①②导入+谱→③⑤检索参数→⑥切面·每片独立 REQUEST-EXEC-nail 循环沿 b271 总档先例）——拆片与否=协调方裁定。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 ---
 
-*H2 QBANK-CORPUS EXEC REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`20186718` · 分支 `line/h2-qbank-corpus` · 工作树 `meetwise-h2q` · 蓝本=batch-residual-plan H2 组（entpay 树 @`ab02d499` :97/:54/:102）+ 更正版 issues-master #75-79+收编 #202（:202/:336/:337/:469/:338/:347 修法列逐字）· 六项=①导入工具+审核流程②逐题 rubric③难度 1-5 谱+过滤参数④非向量近重复+复核⑤检索扩 scenario/岗位技术栈/已问排除⑥C 端检索面切 candidate-route · RAG 面归 rag 刀·embedding 计算归后刀·est live=0 · pins 十一值照抄 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*H2 QBANK-CORPUS EXEC REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`20186718` · 分支 `line/h2-qbank-corpus` · 工作树 `meetwise-h2q` · 蓝本=batch-residual-plan H2 组（entpay 树 @`ab02d499` :97/:54/:102）+ 更正版 issues-master #75-79+收编 #202（:202/:336/:337/:469/:338/:347 修法列逐字）· 六项=①导入工具+审核流程②逐题 rubric③难度 1-5 谱+过滤参数④非向量近重复+复核⑤检索扩 scenario/岗位技术栈/已问排除⑥C 端检索面切 candidate-route · RAG 面归 rag 刀·embedding 计算归后刀·est live=0 · pins 十一值照抄 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】

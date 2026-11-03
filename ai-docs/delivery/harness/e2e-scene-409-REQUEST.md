@@ -1,6 +1,6 @@
 # E2E-SCENE-409 — 选岗/身份 409/误判场景 E2E 补刀（#133/#195 409 退役行为面 + #270 静默误判现状锚 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）→ **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/e2e-scene-409` @`3735d6b9`·恰 1 件 157+/0−·EXEC 席状态行未随翻·nail 席如实补登）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-12·裁 A 扩面授权链追认终局）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）→ **`executed:awaiting_post_prove_dual`**（EXEC 落卷 `line/e2e-scene-409` @`3735d6b9`·恰 1 件 157+/0−·EXEC 席状态行未随翻·nail 席如实补登）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-12·裁 A 扩面授权链追认终局）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **席位**：E2E 场景补刀起草席（北星 loop · E2E 覆盖缺口盘点处方 7-②·P1 消零成本最低项）。
 **基线**：`feat/mysql-schema-skeleton` @ `f92a5035`（主线 tip·`git log -1` 实测=merge(e2e-assert-refresh) S1 85 断言绿+UI 18P/0F 落主线）。分支 `line/e2e-scene-409` · 工作树 `meetwise-e2sc`（`git worktree add meetwise-e2sc -b line/e2e-scene-409` 仓根同级 worktree·本起草席已立·建前实查均不存在：`git worktree list` 八树无 e2sc·`git rev-parse --verify refs/heads/line/e2e-scene-409` exit 128 BRANCH_ABSENT）。
@@ -117,7 +117,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 场景清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·R3 随演定谳三行必落）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 场景清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·R3 随演定谳三行必落）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **登记建议（pre-exec 双审可核）**：①本刀立项关联处方 7-②（E2E 覆盖缺口盘点·P1 消零成本最低项）；②处方背景「v4 已并主线」漂移已 §0.2 如实登记——若 v4 在本刀 EXEC 前并线·R3 按随演条款定谳为 `backend/general`·零回炉；③覆盖矩阵「选岗/身份路由」行登记建议见 §2-6。
 
@@ -126,7 +126,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 **双席判决照登（互盲独立·2026-10-12）**：席1=实现核对 **PASS**·LIVE 独立复跑 119 断言一次过；席2=验收/风险 **PASS**。loop 协调方本次派单即 nail 授权。nail 并线 `line/e2e-scene-409` @`3735d6b9` → 主线 merge（两卷触 full.e2e.ts 零冲突 ort 自动合并·本卷段 :390-:545·batch2 段随 +157 下移至 :647-:871）。
 
 **席2 登记四条（nail 席逐项实物复核后照登）**：
-- **R-1 REQUEST Status 未随 EXEC 演进——nail 补登**：EXEC 落卷时状态行仍 `draft:awaiting_pre_exec_dual` 未随翻·nail 席沿 batch2 先例补登三节点链（draft → executed:awaiting_post_prove_dual → nailed）·本卷 Status 行即补登实物。
+- **R-1 REQUEST Status 未随 EXEC 演进——nail 补登**：EXEC 落卷时状态行仍 `draft:awaiting_pre_exec_dual` 未随翻·nail 席沿 batch2 先例补登三节点链（draft → executed:awaiting_post_prove_dual → nailed）·本卷 Status 行即补登实物。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 - **R-2 §2-6 覆盖矩阵登记建议待登记工单**：「选岗/身份路由」行登记建议（§2-6）未入 `e2e-requirement-coverage-matrix.md`——SSOT 只读纪律下登记归协调方工单·nail 席不代行·待登记。
 - **R-3 并线顺序提示（与 batch2 双双触 full.e2e.ts·后并卷重 pin）**：batch2 先并（`f7082391`·第 10 段卷尾 :488 后追加 225 行）·本卷后并（本 merge·:390 后插入 157 行）——两卷锚区 :388-:545 vs :488+ 理论不交叠·实测 ort 零冲突亲证。后并卷重 pin 面见席1 A-1（g7fix1 引用锚随本刀 +157 自移）·batch2 卷内行号引用若涉 :488 后区由 batch2 侧后续刀按 §8 重 pin 条款自理（本卷不越权代改）。
 - **R-4 assertionCount 逐跑漂移 [-1 既有]**：assertionCount 逐跑存在既有侧 ±1 漂移（既有终态族 diagnosis_ready/diagnosis_unavailable 两跑异·batch2 EXEC 已登记同源·既有断言族皆收）·本刀新段 28 断言恒在不受漂移影响——nail 复验以 EXIT=0 + 新段全行使 + capability 恰 2 为准·不以单次 assertionCount 绝对值为门。
@@ -138,4 +138,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 ---
 
 
-*E2E-SCENE-409 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`f92a5035` · 分支 `line/e2e-scene-409` · 工作树 `meetwise-e2sc` · 蓝本=更正版 issues-master #133=:203/#195=:179/#270=:352（逐字誊录）+ 形制 e2e-assert-refresh-REQUEST（Ban/pins 同源誊录）+ 场景先例红① 显式耗尽形/g7fix1 DB 直连形 · 三场=R1 规整差分锚（backend/nodejs）+R2 歧义 P1 旅程面（degraded backend/general 全旅程·409 退役定谳）+R3 #270 现状锚（v3→qa 现状 / ≥v4→general 随演两向定谳）· 定谳=v3 主线歧义简历 degraded 兜底正常开非 409（分类器纯函数双树实测）· 产品码零改 · v4 并线零触 · est live ≤3 场量级（1-2 场主体·如实另账）· pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*E2E-SCENE-409 REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`f92a5035` · 分支 `line/e2e-scene-409` · 工作树 `meetwise-e2sc` · 蓝本=更正版 issues-master #133=:203/#195=:179/#270=:352（逐字誊录）+ 形制 e2e-assert-refresh-REQUEST（Ban/pins 同源誊录）+ 场景先例红① 显式耗尽形/g7fix1 DB 直连形 · 三场=R1 规整差分锚（backend/nodejs）+R2 歧义 P1 旅程面（degraded backend/general 全旅程·409 退役定谳）+R3 #270 现状锚（v3→qa 现状 / ≥v4→general 随演两向定谳）· 定谳=v3 主线歧义简历 degraded 兜底正常开非 409（分类器纯函数双树实测）· 产品码零改 · v4 并线零触 · est live ≤3 场量级（1-2 场主体·如实另账）· pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
