@@ -127,6 +127,7 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 6. **收束**：`executed:awaiting_post_prove_dual`（post-prove 双审待派·翻面/收官/push 权归协调方·⛔push）。（2026-11-03 补记：post-prove 双席 BOTH PASS → 状态四处同值转 `proofed:dual_pass`，见下行 post-prove 记录行·本节 EXEC 时值史录不洗。）
 
 7. **post-prove 记录行（2026-11-03 post-prove 双席亲审·BOTH PASS）**：两独立外席对行使树与 SSOT 落面逐项复核·BOTH PASS。关键读数：**13 前缀+18 尾增机证**（backlog 既有行逐行前缀恒等 13 注（+13/-13）+ 对账表及注记落位=文件尾纯尾增 18 行（+18/-0）·零既有字节改写）· **七注字节全等**（superseded 七注与行使 commit 逐字节全等·原文不洗）· **intake 13 条抽验全实**（§1-E 复核席 D 类移交清单逐条抽验与 backlog 落表相符·含第 12 条对账差异如实登记在卷）· **cap 2465 独立复算**（双席独立复算 scanned=cap 2_465 恰等·PTP 12/12·markers 0）。**双席 P2 登记**（均不在本卷行使·留痕归协调方）：席1 ①CAP-SANCTION-2465 注记 audit 树实为已落 #171 应出名单 ②pre-exec 记录载体惯例；席2 ①§9.3 前缀恒等机证范围=backlog 13 注+对账表·LEDGER `:136` 系授权行内插入 ②支线 nail SHA 与主线携入 SHA 分注纪律。双席 PASS ≠ 任何行翻面（pins 零翻·翻面/收官权归协调方）。
+8. 【勘误注 2026-11-03（ERRATA-SWEEP 扫尾刀 · 登记面勘误 · append-only · 上行零字节改写）】: §9-3「零既有字节改写机证 git diff 逐行前缀恒等」的机证范围按上行席2 P2① 登记精确化=**backlog 13 注逐行前缀恒等（+13/-13）+ 对账表及注记落位文件尾纯尾增 18 行（+18/-0）**；LEDGER `:136` 九号九标签修正+行尾勘误注系**协调方授权行使面之行内插入形**（非前缀恒等机证对象·零删改既有字节·插入致后行顺延属预期）——两口径并存如实·本注不改史录字·仅把 §9-3 机证范围限定词挂明（沿上行双席 P2 登记兑现 · 登记形）。】
 
 ---
 
