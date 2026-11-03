@@ -114,3 +114,17 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 | 评测说明 | `eval/uc-e2e-028-trace-ledger-fail-open.eval.md` | 引用矩阵行 ID |
 | P1-10 | 静态 GAP mark-red 已挂；fail-open 旁路 + 注入 + recon + A3 E2E 仍缺（见 §1b） | 见矩阵 §3 |
 
+## 5. 静态库存勘误注（L-13 处置 · 2026-11-03 · additive · 上文 §0–§4 一字不洗 · 老 proof 本体零改动）
+
+**§5-0 绊线现态（设计内·非回归）**：`pnpm uc028:trace-fail-open:prove`（`apps/api/test/uc-e2e-028-trace-ledger-fail-open.proof.mjs`）现树期望 **EXIT=1**=设计绊线——上文 §1「产品若浮出→拒 EXIT=0」条款逐字兑现（S1/S3/S4/S5 PASS · S2 同事务耦合断言 FAIL · G-GAP `PRODUCT_SURFACE … refuse gap EXIT=0` FAIL · GAPS=0 · 起草期 raw 亲证 @`8c8119d0c`·与矩阵 Line X 2026-10-07 收据三方一致）。**Ban wash 为回归；Ban 借任何后续刀静默改老 proof 本体**（矩阵 Line X `:520` 明令维持）——旁路/recon 浮出后本 prove 的 gap mark-red 叙事退役，运营承接位=`pnpm uc028:nhp-fault:prove`（A1 fail-open isolation·40/40 双 fresh）+`harness/uc028-e2e-REQUEST.md`（closed）case-①②③。
+
+**§5-1 G-GAP 四挂清账（上文 §1 G-GAP-1..4 行对现态已滞）**：`GAP-UC028-FAIL-OPEN`→已闭（2026-10-07 Line X nail：persistTrace 拆 settle 事务 best-effort 旁路 `persistTraceBestEffort`+失败观测 `ai_trace_persist_failures_total`·新 prove EXIT=0 40/40 双 fresh）；`GAP-UC028-RECON`→已闭（迁移 `0207_ai_trace_backfill_scoped` SECURITY DEFINER+worker `trace-recon.ts` 30s drainLoop+case-② 九列恒等/幂等重放/水位 gauge 归零·40/40 两独立复现）；`GAP-UC028-TRUTH-BLOCK-E2E`→已闭（同一 closed REQUEST case-③ 对照臂）；`GAP-UC028-INJECT`→已闭（2026-10-27 行裁·case-① 承接）。闭合 REQUEST=`harness/uc028-e2e-REQUEST.md`（Status `closed`·#140 落主线·post 双审双 PASS 会签）·翻面注记见矩阵 `:127`/`:187`/`:278`/`:521`。
+
+**§5-2 §1b 现态对账（上文 §1b 表逐件）**：件1（persistTrace 旁路）已闭（Line X nail）·件2（故障注入 harness）已闭（case-①）·件3（对账补写路径+prove）已闭（0207+trace-recon+case-②）·件4（对照 E2E）已闭（case-③）·**件5（e2e/*.e2e.ts 隔离 HTTP/worker 专段）未做·件7（sole-stack 夹具）未做**——UC-E2E-028 行/FAULT 列 stays **gap**·≠covered·case-only 措辞维持·件6（假绿禁令）不变。
+
+**§5-3 §1b-3 字面偏差勘误（钉）**：上文 §1b 件3「以 `interview_event`（事件账本）为准」原述源不可构造（console JSON 流非持久可查账面·`trace-recon-REQUEST.md` §1.3 候选三否决）——实现定稿=「以 `ai_model_invocation` 真相差集为准」（同卷 §0.2-1 读码定稿修正·协调方 2026-10-27 显式背书在案·矩阵 `:521` 逐字）。
+
+**§5-4 §2/§4 时点勘误**：§2「`pnpm uc028:trace-fail-open:prove` 期望 EXIT=0」系 2026-09-10 时点值·现树期望=**EXIT=1**（§5-0）·raw/prove:raw 双入口与 `package.json:297`-`:298`/`apps/api/package.json:128` 入口映射不变（零触）；§2「`pnpm eval-harness-matrix-cite:prove` 期望 0」系时点值·现树该门基线红 EXIT=1（基线红 39=15 evalDoc 路径漂移+23 uc018 harness 随 ptp-archive 迁移缺文件级联+1 词形不符·详 `harness/uc003-i18n-REQUEST.md:79` 先例全归因·**非本刀修面·零触**）；§4 锚点行「S1–S5 + G-GAP pin」mark-red 叙事按 §5-0/§5-1 退役读法承。eval 面（`receipts/archive/2026-09-batch23/eval/uc-e2e-028-trace-ledger-fail-open.eval.md`）已随卷尾时点勘误注对账（原文不洗）。
+
+**Pins 不变**：矩阵行/FAULT 列 stays **gap** · coveredCount=**8** · EXIT0≠covered · releaseEvidence=false · Not HA · fixture=pgvector→green-risk/R5 · Ban 升 covered/假 partial-closed。本节=backlog 台账 L-13 静态库存勘误行使落点（行翻面权归协调方）。
+

@@ -76,3 +76,5 @@ pnpm eval-harness-matrix-cite:prove ; echo EXIT=$?
 1. S1–S5 + G-GAP 是否足以支撑矩阵保持 **gap**（honest mark-red；仍明示 ≠ covered）？  
 2. 下一刀应优先 **persistTrace 旁路拆事务**，还是先 **故障注入 harness**（在现耦合上证明「会阻塞」）？  
 3. 结论写入 `reviews/`，含「仍 ≠ covered / 仍 gap」明示；`mw-e2e-ha` + `mw-model-op`。
+
+**【2026-11-03 时点勘误注（backlog L-13 静态库存勘误刀 · append-only · 上文一字不洗）】**：本卷系 **2026-09-10 时点执行记录**（原文保留·时点真）。对现态已滞三处如实对账：①上文 §2「`pnpm uc028:trace-fail-open:prove` 实测 EXIT=0+G-GAP 四 pins」系接线前时点读数——persistTrace 旁路（2026-10-07 Line X nail `persistTraceBestEffort`）+对账补写（`0207`+worker `trace-recon.ts` 30s drainLoop）落主线后，该 prove 零改动翻转 **EXIT=1=设计绊线**（S2+G-GAP `PRODUCT_SURFACE refuse`·S1/S3/S4/S5 PASS·GAPS=0）；②上文 §3 G-GAP-1..4 四挂已全部清账（FAIL-OPEN→Line X nail·RECON→case-②·TRUTH-BLOCK-E2E→case-③·INJECT→2026-10-27 case-① 行裁·闭合 REQUEST=`harness/uc028-e2e-REQUEST.md` closed）——G-GAP 打印语义由「未闭诚实钉」退役为「绊线现态」；③本卷非 covered 证据·矩阵 UC-E2E-028 行/FAULT 列 stays **gap**·coveredCount=8 不变·EXIT0≠covered。现态权威读法=`harness/uc-e2e-028-trace-ledger-fail-open.md` §5 静态库存勘误注（L-13 处置落点）。
