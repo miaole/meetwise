@@ -1,6 +1,6 @@
 # DIAG-HONESTY REQUEST（诊断诚实处置统一 · #213 新立项 · S 体量）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工） → nailed（post-prove 双席 BOTH PASS @2026-10-11·seam 授权偏差协调方追认·W9 决议协调方签认）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工） → nailed（post-prove 双席 BOTH PASS @2026-10-11·seam 授权偏差协调方追认·W9 决议协调方签认）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **席位**：#213 DIAG-HONESTY EXEC 任务书起草席（北星 loop · #213 新立项 · S 体量 · 诊断诚实处置统一）。
 **基线**：`feat/mysql-schema-skeleton` @ `899cab1a`（主线最新 tip·`git rev-parse --short HEAD` 实测）。分支 `line/diag-honesty`·工作树 `meetwise-diag`（`git worktree add ../meetwise-diag -b line/diag-honesty 899cab1a` 本起草席已立·树/分支建前实查不存在）。
@@ -118,10 +118,10 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **登记（pre-exec 席1）**：#213↔W9 LEDGER 显式映射——`ai-docs/delivery/harness/product-campaign-LEDGER.md` `:58`（批2「其他」行含 #213）/:69（口径三态标注刀 W9 行）——决议文档签认时补登 LEDGER（本体共享 SSOT 只读·§5 Ban·本刀零触）。
 
 ---
 
-*DIAG-HONESTY REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`899cab1a` · 分支 `line/diag-honesty` · 工作树 `meetwise-diag` · 蓝本=更正版 issues-master #213（:478 原文/修法列逐字）+ 形制 h2-qbank-corpus-REQUEST（meetwise-h2q 树·Ban/pins 同源誊录）· 三件=①rejectedCount 前端展示（web 层 GET 代理路由取数·零后端 API 改）②match 维度 role 条件化（prompts :54/:57 条件组装·枚举本体不动）③处置口径决议文档化（W9 三态·行为零改）· 改写硬闸链零翻 · H2 六项零触 · #209/#259/#200/#201 不并 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*
+*DIAG-HONESTY REQUEST · 2026-10-11 · draft:awaiting_pre_exec_dual · base `feat/mysql-schema-skeleton` @`899cab1a` · 分支 `line/diag-honesty` · 工作树 `meetwise-diag` · 蓝本=更正版 issues-master #213（:478 原文/修法列逐字）+ 形制 h2-qbank-corpus-REQUEST（meetwise-h2q 树·Ban/pins 同源誊录）· 三件=①rejectedCount 前端展示（web 层 GET 代理路由取数·零后端 API 改）②match 维度 role 条件化（prompts :54/:57 条件组装·枚举本体不动）③处置口径决议文档化（W9 三态·行为零改）· 改写硬闸链零翻 · H2 六项零触 · #209/#259/#200/#201 不并 · est live=0 · pins 十一值照抄 · markers=0 · ⛔push · Dual PASS ≠ 开工 · Ban self-approve · alone≠dual*【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】

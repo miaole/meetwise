@@ -1,6 +1,6 @@
 # 5E-CLEANUP-SWEEP REQUEST（5E 批量清理长尾刀 · W9 既定 · 批表盘点席 Wave D 14 行逐行定谳 · a 类核翻 9 件+剔除呈报 5 件 · docs-only 零码面 · 体量 S）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席落卷翻面·§9-EXEC 记录在卷·⛔push ⛔merge主线 · alone≠dual · Ban self-approve · est live=0）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席落卷翻面·§9-EXEC 记录在卷·⛔push ⛔merge主线 · alone≠dual · Ban self-approve · est live=0）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：#5E 批量清理长尾 诊断+起草席（批表盘点席 Wave D · 北星 loop · W9 批量清理刀既定未开工之清点定稿+起草）。
 **基线**：`feat/mysql-schema-skeleton` @ `397d037b`（主线最新 tip·fetch 后 `origin/feat/mysql-schema-skeleton` 同值亲证=tip≥最新·本席亲跑 `git fetch origin`+`git rev-parse` 双值恒等）。分支 `line/5e-cleanup-sweep`·工作树 `meetwise-5e`（`git worktree add ../meetwise-5e -b line/5e-cleanup-sweep` 本席已立·建前 `git worktree list` 实查该路径空闲·建后 tip `397d037b` 亲证）。
@@ -110,7 +110,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。** 起草席写完即停零码动（本卷起草阶段恰 1 新增 .md=本卷）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·漂移只更行号不改结论）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。** 起草席写完即停零码动（本卷起草阶段恰 1 新增 .md=本卷）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·漂移只更行号不改结论）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①c 类 5 件归槽呈报确认（#1/#8/#12/#19 归 5C 域行为小刀或后继刀·#2 归产品决议/簇E 呈报维持）；②`:89` 行注记形制（行内 append 沿 #132 先例=建议 vs 文末翻面笔节沿 2026-10-15 docs 收口席形·rev 同步：簇A 注记+簇B 剔除登记句已按 §1 逐字底稿定稿·两形任择 EXEC 均逐字落笔零改 §1·择文末形则底稿随节平移）；③§0.3-2 同源残 token（不在 14 行派单面）同形对账时点与归属（后继笔 or SSOT 刀）；④EXEC 时点 `:89` 行号漂移重 pin 行使。
 
@@ -164,4 +164,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ---
 
-*5E-CLEANUP-SWEEP REQUEST · 2026-10-16 起草落卷（原稿落款 2026-10-14·rev 席1 勘正）· **STOP=`executed:awaiting_post_prove_dual`** · base `feat/mysql-schema-skeleton` @`397d037b`（fetch 后 origin tip 同值亲证）· 分支 `line/5e-cleanup-sweep` · 工作树 `meetwise-5e` · 蓝本=LEDGER `:89`（14 行载体）+`:213`/:216`（计件在账）+`:97`（W9 排期）+ issues-master 更正版 14 行（:360/:361/:363/:364/:367/:376/:381/:382/:383/:384/:388/:486/:487/:488）+ 5E GROUP 卷（收编 25 件@`eb5c3f09`·§0.1/§8.1）· 分桶=**a 类已完成未翻面 9**（#21/#22/#28/#39/#62/#63/#64/#65/#85·@`eb5c3f09` 祖先亲证 EXIT=0+逐件实树注记锚在卷+计件已在账=+0 计件纯名目对账）/**b 类可批量清小件 0**/**c 类另立或裁 5**（#1/#8/#12/#19=第5批-C 行为面剔除归槽呈报+#2=设计取舍产品决议件剔除·零触不落弃）· a+b=9≥5 达起草线·修法=LEDGER `:89` 恰 1 行行内 append 翻面注记（簇A 一笔 9 件+簇B 剔除登记同笔·docs-only 零码面零迁移）· 门矩阵 G1-G6（docs:check≤cap 2184+markers 0/0+migrations 零触+diff 恰 1 .md+祖先锚复证+est live=0）· 防重检查过（harness 无同名卷·邻刀逐卷零占有）· est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工*
+*5E-CLEANUP-SWEEP REQUEST · 2026-10-16 起草落卷（原稿落款 2026-10-14·rev 席1 勘正）· **STOP=`executed:awaiting_post_prove_dual`** · base `feat/mysql-schema-skeleton` @`397d037b`（fetch 后 origin tip 同值亲证）· 分支 `line/5e-cleanup-sweep` · 工作树 `meetwise-5e` · 蓝本=LEDGER `:89`（14 行载体）+`:213`/:216`（计件在账）+`:97`（W9 排期）+ issues-master 更正版 14 行（:360/:361/:363/:364/:367/:376/:381/:382/:383/:384/:388/:486/:487/:488）+ 5E GROUP 卷（收编 25 件@`eb5c3f09`·§0.1/§8.1）· 分桶=**a 类已完成未翻面 9**（#21/#22/#28/#39/#62/#63/#64/#65/#85·@`eb5c3f09` 祖先亲证 EXIT=0+逐件实树注记锚在卷+计件已在账=+0 计件纯名目对账）/**b 类可批量清小件 0**/**c 类另立或裁 5**（#1/#8/#12/#19=第5批-C 行为面剔除归槽呈报+#2=设计取舍产品决议件剔除·零触不落弃）· a+b=9≥5 达起草线·修法=LEDGER `:89` 恰 1 行行内 append 翻面注记（簇A 一笔 9 件+簇B 剔除登记同笔·docs-only 零码面零迁移）· 门矩阵 G1-G6（docs:check≤cap 2184+markers 0/0+migrations 零触+diff 恰 1 .md+祖先锚复证+est live=0）· 防重检查过（harness 无同名卷·邻刀逐卷零占有）· est live=0 · pins 十一值照抄零翻 · markers=0 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

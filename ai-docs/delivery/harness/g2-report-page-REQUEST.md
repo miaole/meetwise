@@ -1,6 +1,6 @@
 # REQUEST — **G2 REPORT-PAGE 体验刀**（#254+#257+#232残 · S 体量 · 三处同域=报告/列表前端小改 · docs-only 起草）
 
-**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（docs-only 起草 · Ban coding · Ban prove 执行 · Ban self-approve · alone ≠ dual · 不代签 peer）
+**Status**: **PENDING** / `draft:awaiting_pre_exec_dual`（docs-only 起草 · Ban coding · Ban prove 执行 · Ban self-approve · alone ≠ dual · 不代签 peer）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nail:closed` 史录零洗·有效态翻面→`closed`】
 **Line**: **G2 REPORT-PAGE**（批1 残余打包 G2 组 · 蓝本 `batch-residual-plan.md:87` 分组表 + `:114` 派序建议「G2/G3 S 批1 收官·用户面立见」· 台账 `product-campaign-LEDGER.md:38` #254 行在册 + **#257 行漏登**（`:119` 注记1·回填归协调方））
 **Base tip**: `df12a054`（`feat/mysql-schema-skeleton` tip · worktree `meetwise-g2`（仓根同级 worktree）分支 `line/g2-report-page` · 本文全部 file:line 于本 worktree **实树亲读** · 上游行号漂±登记 §0 表）
 **Author**: `g2-draft`（REQUEST 起草席 · 实现不自批）
@@ -94,4 +94,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **ENOSPC 全账**：EXEC 中段磁盘 100%（pnpm store prune 释放 16Gi 零用户数据·Docker daemon 重启）——quiz-list 首两跑失败=注册缺口+0061 约束 fixture 缺口，修正形 commit 实物可验非 masking；双席断电式独立复跑全数同值=可复现性反 masking 证。
 
-**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @b11d6d12·#254/#257/#232 正式解除·批1 残 12→9·markers=0·est live=0）。
+**Status**: `nail:closed`（post-prove 双席 BOTH PASS·merge 落主线 @b11d6d12·#254/#257/#232 正式解除·批1 残 12→9·markers=0·est live=0）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nail:closed` 史录零洗·有效态翻面→`closed`】

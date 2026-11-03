@@ -1,4 +1,4 @@
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 # 出题续跑先记住检索包再调用模型
 
@@ -169,11 +169,11 @@ executed:awaiting_post_prove_dual
 
 ## §8 状态
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 这次提交改了检索包通道和续跑证明，不新增迁移，不新增代码文件。具体文件见 §9-EXEC。
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC
 

@@ -1,6 +1,6 @@
 # AG09-REPLAY-FIRST REQUEST（AG-09 重放稳定性刀——succeeded 可回放结果先于 digest 墙·「成功后崩溃→重放误杀」最小收口·迁移 0209+新 proof 五臂·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-16 落卷·**rev1**=pre-exec 双审两席 FAIL 收敛 P0×1/P1×2/P2 批量全数处置（§9-rev 逐条落卷）·rev 后重派双审第二轮 Dual PASS·**EXEC**=协调方授权落码（§9-EXEC 逐条落卷）·est live=0·Ban self-approve·alone≠dual·⛔push·post-prove 双审待重派·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-16 落卷·**rev1**=pre-exec 双审两席 FAIL 收敛 P0×1/P1×2/P2 批量全数处置（§9-rev 逐条落卷）·rev 后重派双审第二轮 Dual PASS·**EXEC**=协调方授权落码（§9-EXEC 逐条落卷）·est live=0·Ban self-approve·alone≠dual·⛔push·post-prove 双审待重派·翻面权归协调方）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：AG 能力复核台账下一刀起草席（done 29/half 2/open 17·按 P1>P2>P3·同级别编号序选标 **AG-09**=P2 open 最小号·协调方派单·北星 loop）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `2eaf387ed`（`git fetch` 后 `git rev-parse` 亲证=`2eaf387ed1a2a0b22ce542d653bcd7fa0d905334`·派单下界「tip≥2eaf387ed」**恰等成立**）。分支 `line/ag-next-draft`·工作树 `meetwise-agnext`（仓根同级·`git worktree add ../meetwise-agnext -b line/ag-next-draft origin/feat/mysql-schema-skeleton` 本席亲立·直接落 origin tip 零 reset；`-b` 成功即分支建前不存在的机证）。
@@ -103,9 +103,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——起草期均未触发（§0.2-4 亲证）·EXEC 期未触发（锚漂均注记级=§9-EXEC 锚勘 A/B/D/E 如实改锚·十三门全绿=§9-EXEC 门矩阵）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头 `:3`+本节+卷尾注）·pre-exec 双审两独立外席第一轮两席 FAIL 已收敛=rev1（§9-rev）·第二轮 Dual PASS 后协调方授权 EXEC 落码（§9-EXEC）·**post-prove 双审待重派**·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头 `:3`+本节+卷尾注）·pre-exec 双审两独立外席第一轮两席 FAIL 已收敛=rev1（§9-rev）·第二轮 Dual PASS 后协调方授权 EXEC 落码（§9-EXEC）·**post-prove 双审待重派**·翻面权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（全 proof 隔离库真迁移链/fixture·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处）·EXEC 落码+门矩阵全绿后停·⛔push。
+- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处）·EXEC 落码+门矩阵全绿后停·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev rev1 修订登记（pre-exec 双审两席 FAIL 收敛·P0×1/P1×2/P2 批量全数处置·逐条注记+落点）
 
@@ -153,4 +153,4 @@ rev 届树实测：`docs:check` EXIT=0（scanned **2258**≤cap 2264·余 6·与
 **STOP 已翻面**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**（Status 头/§8/卷尾注三处同值）·post-prove 双审待重派·翻面权归协调方·alone≠dual·Ban self-approve·est live=0·actualSpendCny=null·⛔push。
 
 ---
-卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·**rev1**（pre-exec 双审 P0×1/P1×2/P2 批量全数处置·§9-rev 逐条落卷·第二轮 Dual PASS）→**EXEC**（协调方授权落码·§9-EXEC 逐条落录·门矩阵十三门届树亲跑全绿）·post-prove 双审待重派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve。
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·**rev1**（pre-exec 双审 P0×1/P1×2/P2 批量全数处置·§9-rev 逐条落卷·第二轮 Dual PASS）→**EXEC**（协调方授权落码·§9-EXEC 逐条落录·门矩阵十三门届树亲跑全绿）·post-prove 双审待重派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用·翻面权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

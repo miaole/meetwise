@@ -1,6 +1,6 @@
 # LINT-CAP-STEP-242 lint 帽步进刀 REQUEST（mini·快速链·sanction 随令直落形·沿 lint-cap-step 先例形·#185 件③冻结文本 +2 归因·root 5240→5242+api 1421→1423）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵五门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·前值 `draft:awaiting_pre_exec_dual` @draft `c1245e330` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵五门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·前值 `draft:awaiting_pre_exec_dual` @draft `c1245e330` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（届时树亲算·349c33e90 届时值）
 
@@ -72,4 +72,4 @@
 4. **归因账（本席亲证）**：届实测净树口径 12/12 恰等贴线余 0 全表（root 5240/api 1421 恰等零余量）·#185 件③ `da3414b0d` 冻结文本两臂隔离壳亲证=换装裸跑 apps/api `eslint .` `1423 problems (0 errors, 1423 warnings)`=1421+2 恰等·warning 落点 `473:64`+`486:66` naming-convention 恰两条新增臂·余零漂移·root 面同源 +2（全树口径含 apps/api）·本刀步进 +2/+2 恰等归因增量零宽值·在飞 #185 并线后预期恰等贴线 5242/1423（与 `da3414b0d` 门9 红停承登「api 1423>1421+root 5240 帽破」闭环）。
 5. **偏离**：零（落点/门矩阵/STOP 形全沿 §1/§2/§8 定稿·两行逐字节落定·零越面零程序性偏差·新支线树依赖安装系门前置非码面偏差·SSOT LEDGER/checklist append 面未列入本刀 brief 两 commit 形·归后继并线刀随卷承登）。
 6. **卫生**：est live=0（五门全本地静态·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL 零 env 闸·pins 不适用（本刀无 pins 面）·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
-7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭。
+7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

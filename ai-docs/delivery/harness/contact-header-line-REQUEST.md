@@ -1,4 +1,4 @@
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 # 无标题联系行要按归一化原文过滤
 
@@ -86,11 +86,11 @@ executed:awaiting_post_prove_dual
 lint 必须 0 errors。警告上限是 root 5242、api 1423、domain 115、ai-runtime 628、worker 959、db 1042、web 601。对应根 `package.json` 第 8 行、`apps/api/package.json` 第 7 行、`packages/domain/package.json` 第 10 行、`packages/ai-runtime/package.json` 第 14 行、`apps/worker/package.json` 第 7 行、`packages/db/package.json` 第 11 行、`apps/web/package.json` 第 7 行的 `--max-warnings`。低于上限可以通过。不许改这些上限。
 
 ## §8
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 以上三处相同。本步只留下这一份说明。
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC
 

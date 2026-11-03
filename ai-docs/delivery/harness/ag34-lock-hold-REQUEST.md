@@ -1,6 +1,6 @@
 # AG34-LOCK-HOLD REQUEST（AG-34 在飞 job 锁连接占用余面收口刀——围栏注释纠偏+派发预算对池上限结构闸·锁 pin 机制半已由 db-hotspot 件② 落地移除·本卷只收真余面·零迁移零模型调用·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·EXEC 落码+九门亲跑毕 2026-10-22 见 §9·pre-exec 双审已 Dual PASS→协调方授权 EXEC 已行使·est live=0·Ban self-approve·alone≠dual·⛔push ⛔merge 主线·翻面权归协调方）。
+**Status**: **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·EXEC 落码+九门亲跑毕 2026-10-22 见 §9·pre-exec 双审已 Dual PASS→协调方授权 EXEC 已行使·est live=0·Ban self-approve·alone≠dual·⛔push ⛔merge 主线·翻面权归协调方）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #115 merged fae1c0997（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：AG 能力复核台账下一刀起草席（派单自数 done 33/half 2/open 14·P1 无可派（AG-40 已修复移出）·P2 唯 AG-13 挂起（需线上数据）·P3 已落待翻 7 项（AG-22/23/27/28/30/31/33）走翻面笔非新刀·AG-32/36 前置未修·AG-25/29 为残面另刀 → 选标 **AG-34**=P3 编排运行时最小真未动号；上列计数系协调方派单 brief 自数·本席未独立全量复数 43 项·AG-34 余面码面亲证见 §0.2）。
 **基线**：`origin/main` @ `65a9c40f`（分支 `line/ag34-lock-hold-draft`·工作树 `meetwise-ag34` 本席亲立·`git status` 干树亲证）。
@@ -88,11 +88,11 @@ migrations 0001-0218 零字节·零新迁移（0219 不占用）；interview-gra
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.2-1 机制半移除系邻刀已落事实·余面两件真实在位=选标有效·§0.0 防重三查零撞）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席已 Dual PASS·协调方已授权 EXEC 落码并已行使（§9）·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席已 Dual PASS·协调方已授权 EXEC 落码并已行使（§9）·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #115 merged fae1c0997（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（proof 纯静态+纯函数·零模型外呼零 DNS 零 PG 零 Key·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·与 Status 头/§8 同值第三处）·EXEC 落码毕待 post-prove 双审·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual` 史录·与 Status 头/§8 同值第三处）·EXEC 落码毕待 post-prove 双审·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #115 merged fae1c0997（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头/§8/本注）·起草 2026-10-22 落卷·EXEC 2026-10-22 行使见 §9·基线 `65a9c40f`·est live=0·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+卷尾注：STOP=`executed:awaiting_post_prove_dual`（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头/§8/本注）·起草 2026-10-22 落卷·EXEC 2026-10-22 行使见 §9·基线 `65a9c40f`·est live=0·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #115 merged fae1c0997（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC 记录（EXEC 落码席·2026-10-22·届树 `d364d8b3` 亲跑·EXIT 原值如实）
 

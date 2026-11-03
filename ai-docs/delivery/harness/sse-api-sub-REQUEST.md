@@ -1,6 +1,6 @@
-# SSE-API 子刀 REQUEST（批5 盘点 Top8 两件一卷·服务端 LISTEN 唤醒+客户端看门狗·零迁移·STOP=`executed:awaiting_post_prove_dual`）
+# SSE-API 子刀 REQUEST（批5 盘点 Top8 两件一卷·服务端 LISTEN 唤醒+客户端看门狗·零迁移·STOP=`executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷翻面·前值 `draft:awaiting_pre_exec_dual` 史录·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 QUEUE-CLOSEOUT 先例「自述三处」形制·翻面行使=第三审 P2 复审 PASS×2 会签（席1 agent_870cfa7b+席2 agent_14342a4f）+协调方 EXEC 授权·post-prove 双审两独立外席待派·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷翻面·前值 `draft:awaiting_pre_exec_dual` 史录·本值为卷内三处锚定=①本卷头标题行+②本 Status 行+③§8 STOP 节·卷尾落款行不载 STOP 值防多锚漂移·沿 QUEUE-CLOSEOUT 先例「自述三处」形制·翻面行使=第三审 P2 复审 PASS×2 会签（席1 agent_870cfa7b+席2 agent_14342a4f）+协调方 EXEC 授权·post-prove 双审两独立外席待派·⛔push·⛔merge 主线·est live=0·`actualSpendCny=null`）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：meetwise 战役「SSE-API 子刀」起草席（协调方派单令·批5 盘点席 Top8 两件一卷·同域两件=服务端唤醒+客户端看门狗·量级微·⛔push·⛔merge 主线）。
 
@@ -84,7 +84,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **停止条件四类**：①单件法则=件A（服务端探针）/件B（客户端看门狗）机制独立，单件机制不满足可停单件余件继续（两件同卷不同进程域·互不阻塞）；②卷级门红全卷停（§2 任一门 EXEC 期红且非基线既红）；③现场漂移（锚漂超 ±3 且结论受影响·LEDGER `:87`「留 5C-SSE-API 子刀」登记被他刀先行行使→本刀立项锚作废如实改登）停手上报；④STOP 状态翻面权=pre-exec 双审 BOTH PASS 后归协调方（EXEC 授权随派单令）。
 
-**STOP · `executed:awaiting_post_prove_dual`**（三处锚定=①卷头标题行+②Status 行+③本节·前值 `draft:awaiting_pre_exec_dual` 史录·翻面行使=pre-exec 双审 FAIL 回炉 rev2→第三审 P2 复审 PASS×2 会签（席1 agent_870cfa7b+席2 agent_14342a4f）+协调方 EXEC 授权随派单令·沿 QUEUE-CLOSEOUT 三处锚定制·EXEC 卷尾 §9 落门矩阵全表）。开工三条款：①pre-exec 双审 BOTH PASS（两独立外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项·#117 式翻面笔无）。**EXEC 翻面同步注记（第三审 P2-④·两处 noted 之一）**：本节 STOP 值已随 EXEC 落码卷与标题行/Status 行三处同值翻面（`draft:awaiting_pre_exec_dual`→`executed:awaiting_post_prove_dual`·§9-rev2 尾同步注记为两处之二）·第三审 P2 修订清单五条随 EXEC 落点见 §9-EXEC·post-prove 双审两独立外席待派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。
+**STOP · `executed:awaiting_post_prove_dual`**（三处锚定=①卷头标题行+②Status 行+③本节·前值 `draft:awaiting_pre_exec_dual` 史录·翻面行使=pre-exec 双审 FAIL 回炉 rev2→第三审 P2 复审 PASS×2 会签（席1 agent_870cfa7b+席2 agent_14342a4f）+协调方 EXEC 授权随派单令·沿 QUEUE-CLOSEOUT 三处锚定制·EXEC 卷尾 §9 落门矩阵全表）。开工三条款：①pre-exec 双审 BOTH PASS（两独立外席·Ban self-approve）②协调方 EXEC 授权③零裁决前置（本刀零新裁决项·#117 式翻面笔无）。**EXEC 翻面同步注记（第三审 P2-④·两处 noted 之一）**：本节 STOP 值已随 EXEC 落码卷与标题行/Status 行三处同值翻面（`draft:awaiting_pre_exec_dual`→`executed:awaiting_post_prove_dual`·§9-rev2 尾同步注记为两处之二）·第三审 P2 修订清单五条随 EXEC 落点见 §9-EXEC·post-prove 双审两独立外席待派·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev2 修订卷（pre-exec 双审双 FAIL 回炉·协调方裁决落卷·append 注记形不洗史·**文面修订零码面**）
 
@@ -112,7 +112,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **rev2 自检回执（本席届树亲跑 2026-10-16）**：markers=本卷改动集（本卷 1 `.md`）五类标记词运行时组装直扫 **0 命中**+全树行首冲突标记零命中；docs:check=EXIT=0 **scanned 2214**（≤cap 2216·余 2·与本卷落卷后预期恰等）——EXEC 预期=2216=cap 恰等零余量（+两 proof 各计 1·G11 亲证）。§7 起草时点读数（2213）如实存史不洗。est live=0（rev2 文面修订·零容器零外呼零模型调用）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 全程未犯·STOP=`draft:awaiting_pre_exec_dual` 维持。
 
-**EXEC 翻面同步注记（第三审 P2-④·两处 noted 之二）**：本卷 STOP 三处锚定已于 EXEC 落码卷（merge 782d37bb 并 origin tip 23e80b40 后）同值翻面=`executed:awaiting_post_prove_dual`（前值史录不洗·§8 为三处之三注记位）·第三审 P2 修订清单五条（①件A+臂1 配对不变式+败者吞没②UC 五处行号实值化③G11 cap 届值化④本两处 noted⑤服务端重连抖动 OBS-3）随 EXEC 落点全录 §9-EXEC·rev2 文面届值（cap 2216/scanned 2214 等）以 §9-EXEC 届值化读数为准。
+**EXEC 翻面同步注记（第三审 P2-④·两处 noted 之二）**：本卷 STOP 三处锚定已于 EXEC 落码卷（merge 782d37bb 并 origin tip 23e80b40 后）同值翻面=`executed:awaiting_post_prove_dual`（前值史录不洗·§8 为三处之三注记位）·第三审 P2 修订清单五条（①件A+臂1 配对不变式+败者吞没②UC 五处行号实值化③G11 cap 届值化④本两处 noted⑤服务端重连抖动 OBS-3）随 EXEC 落点全录 §9-EXEC·rev2 文面届值（cap 2216/scanned 2214 等）以 §9-EXEC 届值化读数为准。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC EXEC 落卷记录（第三审 P2 复审 PASS×2 会签+协调方 EXEC 授权随令全序执行·2026-10-17 届树亲跑·七字段在卷）
 
@@ -132,4 +132,4 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 **OBS-3 服务端重连抖动（提请 post 注视）**：探针判负走既有 `scheduleReconnect`——`delayFor` 抖动带=75%~100%×退避档（base 100ms→cap 5s）·探针判负后实际重连时刻有档内 ≤25% 抖动（多客户端同拍判负防惊群既有语义零改）·半开检测窗上限=probeIntervalMs 10s+probeTimeoutMs 5s+重连抖动 ≤1 档·纯时序面零语义影响·登记 post 审阅注视（与 rev2 OBS-1/OBS-2 并读）。
 
-**④STOP**=`executed:awaiting_post_prove_dual` 三处同值翻面（标题行/Status 行/§8·前值 `draft:awaiting_pre_exec_dual` 史录不洗·post-prove 双审两独立外席待派·翻面权归协调方）。**⑤est live=0**（隔离 runner 容器随收据自清·零长驻进程零外呼零模型调用）。**⑥actualSpendCny=null**。**⑦Ban 纪律**=worker wakeup 通道本体零触/SSOT 行本体零触（LEDGER `:87` 翻面权归协调方）/0143 trigger 与 migrations 全目录零触/sse-pump.ts 与 HEALTHY_FALLBACK_MS 钉值零触/quiz+diagnosis 驱动零触/控制器零触/self-approve 无/alone≠dual 遵守/⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 全程未犯。
+**④STOP**=`executed:awaiting_post_prove_dual` 三处同值翻面（标题行/Status 行/§8·前值 `draft:awaiting_pre_exec_dual` 史录不洗·post-prove 双审两独立外席待派·翻面权归协调方）。**⑤est live=0**（隔离 runner 容器随收据自清·零长驻进程零外呼零模型调用）。**⑥actualSpendCny=null**。**⑦Ban 纪律**=worker wakeup 通道本体零触/SSOT 行本体零触（LEDGER `:87` 翻面权归协调方）/0143 trigger 与 migrations 全目录零触/sse-pump.ts 与 HEALTHY_FALLBACK_MS 钉值零触/quiz+diagnosis 驱动零触/控制器零触/self-approve 无/alone≠dual 遵守/⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 全程未犯。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

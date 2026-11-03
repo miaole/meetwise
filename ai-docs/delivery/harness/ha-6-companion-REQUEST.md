@@ -1,6 +1,6 @@
 # HA-6 · HA 配套三件（R-20 连接预算 + R-21 PgBouncer 预览尺度裁决 + R-23 多实例状态处置 · HA 簇中优先 · EXEC REQUEST 起草 · docs-only 零码动）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席 `ha6-draft` · docs-only · Ban self-approve · 待预执行双审 PASS 后才派 EXEC coding · **Dual PASS ≠ 开工** · alone≠dual）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席 `ha6-draft` · docs-only · Ban self-approve · 待预执行双审 PASS 后才派 EXEC coding · **Dual PASS ≠ 开工** · alone≠dual）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 **Date**: 2026-10-11
 **审计项**: LEDGER HA 簇配套行（`ai-docs/delivery/harness/product-campaign-LEDGER.md:134`「R-20/R-21/R-23/R-24/R-36/R-37/R-44/R-50/R-51 | 连接预算/PgBouncer/多实例状态/队列指标/登录锁定/scrypt/索引/生命周期 | HA 配套 | 中」——本刀只取 **R-20 连接预算 / R-21 PgBouncer / R-23 多实例状态** 三件，余六件 :134 后刀）·:136 执行裁定（HA 簇北星门 2 工作·pins `haStatus=NOT_HA` 维持至簇收口）·HA-1 rev2 §9-9（R4）稀释表继承面（「恢复全局精确上限归 R-20/21（Redis 共享桶）与 R-23 配套后刀，届时按本表逐流继承核对」——**本刀即该后刀**）
 **Base**: `feat/mysql-schema-skeleton` @`20186718`（主线 tip 本席 `git rev-parse` 亲证=h3 nail 落卷提交）· 分支 `line/ha-6-companion`（工作树 `meetwise-ha6`：`git -C ../meetwise worktree add ../meetwise-ha6 -b line/ha-6-companion 20186718` · 与 ha-1..ha-5 线互不触碰）
@@ -158,7 +158,7 @@ Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · Ban retry-to-green�
 
 ## §8 STOP
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工。** 本 REQUEST 为起草席 docs-only 产物：未动任何产品码/compose、未跑 prove、无实现自批资格。开工三条款（缺一保持本状态零码动）：① **协调方开工授权**（LEDGER:136 HA 簇解锁亲证·批1 收口状态确认）；② **本档预执行双审 BOTH PASS**（落 `reviews/REQUEST-2026-10-11-ha-6-companion-*-mw-*.md`，含 W1 P 值终裁与 B 组裁撤裁定）——EXEC 不得改 §1 修法口径与 §5 Ban，漂移须回 REQUEST 补审；③ **沙箱授权**（若 B 组保留）：`MEETWISE_HA6_PROOF_AUTHORIZED=1` 由协调方设，不得默认可跑。任何越 §2 非范围冲动（顺手实现 Redis 桶、引入 PgBouncer、动 rate-limit 产品码、调云参数）= 停手上报，不借机修。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工。** 本 REQUEST 为起草席 docs-only 产物：未动任何产品码/compose、未跑 prove、无实现自批资格。开工三条款（缺一保持本状态零码动）：① **协调方开工授权**（LEDGER:136 HA 簇解锁亲证·批1 收口状态确认）；② **本档预执行双审 BOTH PASS**（落 `reviews/REQUEST-2026-10-11-ha-6-companion-*-mw-*.md`，含 W1 P 值终裁与 B 组裁撤裁定）——EXEC 不得改 §1 修法口径与 §5 Ban，漂移须回 REQUEST 补审；③ **沙箱授权**（若 B 组保留）：`MEETWISE_HA6_PROOF_AUTHORIZED=1` 由协调方设，不得默认可跑。任何越 §2 非范围冲动（顺手实现 Redis 桶、引入 PgBouncer、动 rate-limit 产品码、调云参数）= 停手上报，不借机修。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 ---
 
@@ -166,6 +166,6 @@ Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · Ban retry-to-green�
 
 *卫生声明（沿 ha-3 同款）：markers=0 = 本档零占位标记——`rg -n "TODO|FIXME|XXX|TBD|待补|占位|<MARKER>"` 于落卷前亲证：唯一命中=本声明行自引 pattern 字面（非占位），零真实占位标记（收据随 commit）。*
 
-draft:awaiting_pre_exec_dual（起草席 ha6-draft 落卷 2026-10-11 · 待预执行双审·双审 PASS 后由协调方行使 EXEC 授权）
+draft:awaiting_pre_exec_dual（起草席 ha6-draft 落卷 2026-10-11 · 待预执行双审·双审 PASS 后由协调方行使 EXEC 授权）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
-→ nailed（post-prove 双席 BOTH PASS @2026-10-11 · nail 席 merge `line/ha-6-companion` @`90258ec3` 落主线 `feat/mysql-schema-skeleton` · 原文保留 append-only）
+→ nailed（post-prove 双席 BOTH PASS @2026-10-11 · nail 席 merge `line/ha-6-companion` @`90258ec3` 落主线 `feat/mysql-schema-skeleton` · 原文保留 append-only）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】

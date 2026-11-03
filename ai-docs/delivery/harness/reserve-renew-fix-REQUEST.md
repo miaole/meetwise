@@ -1,4 +1,4 @@
-# RESERVE-RENEW-FIX REQUEST — 预留续租失败行为面小刀（结构化失败日志+告警事件升格+续租有限重试 · 簇E #130 承接 · **STOP=`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-16 §9·前值 `draft:awaiting_pre_exec_dual`=史录·post+prove 双审归协调方派单·Ban self-approve））
+# RESERVE-RENEW-FIX REQUEST — 预留续租失败行为面小刀（结构化失败日志+告警事件升格+续租有限重试 · 簇E #130 承接 · **STOP=`executed:awaiting_post_prove_dual`**（EXEC 落卷 2026-10-16 §9·前值 `draft:awaiting_pre_exec_dual`=史录·post+prove 双审归协调方派单·Ban self-approve））【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 > 战役 meetwise · 支线 `line/reserve-renew-fix` · 工作树 `meetwise-rrf2` · 起草基线 @origin/feat/mysql-schema-skeleton=`4124c803`（派单下界「fetch 后 origin tip≥最新」以等号成立亲证=fetch 后 `origin/feat/mysql-schema-skeleton` tip·`git rev-parse` 亲算 `4124c803a9f08c9176d0755d23577de485c97b82`）· ⛔push ⛔merge 主线（push/翻面权归协调方）。主仓 worktree 建支线：`git worktree add ../meetwise-rrf2 -b line/reserve-renew-fix origin/feat/mysql-schema-skeleton`。
 > 承接链：批5 残件 #130（簇E 行为面·呈报维持）＝「预留续租失败只 console.error·极窄窗口可能被对账当孤儿回收」——本刀即簇E 呈报「归独立行为小刀」的载体卷。修法裁量权随派单令行使（§1-修法·最小面定稿）。
@@ -88,12 +88,12 @@
 ## §8 est live / 预算 + STOP
 
 - est live=0（结构化日志+目录/手册 docs 面+静态 proof·EXEC 期全门=本地 tsx/turbo/eslint/node+静态源读·零模型外呼零 DB 外呼零容器零 Key 加载零 secrets 读用零生产操作）· 0 Key 值 · `actualSpendCny=null` · 零迁移零 env 闸。
-- **STOP=`executed:awaiting_post_prove_dual`（EXEC 已落卷=§9·三处同值=本 REQUEST §8+LEDGER 管线「reserve-renew-fix 起草」行+execution-master-checklist「Line reserve-renew-fix」段·post+prove 双审归协调方派单·Ban self-approve·前值 `draft:awaiting_pre_exec_dual`=史录）**。
+- **STOP=`executed:awaiting_post_prove_dual`（EXEC 已落卷=§9·三处同值=本 REQUEST §8+LEDGER 管线「reserve-renew-fix 起草」行+execution-master-checklist「Line reserve-renew-fix」段·post+prove 双审归协调方派单·Ban self-approve·前值 `draft:awaiting_pre_exec_dual`=史录）**。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1/门 2 邻面基线被他刀改动（→熔断呈报·禁 retry-to-green）③届 cap 步进致门 6 判据变（→按届 sanction 后值重验·如实登记）。
 - 波序注记：本刀触面 `interview-consumer.ts` 与 WORKER-HANG-GUARD（该刀 §0.1 零字节 Ban 锚）/G7W-DIAG-NEEDLES 两刀呈报面存在同文件交集——平行触改必熔断·并线顺序归协调方裁·后并线刀 §0 对届时 tip 再重 pin。
 
-## §9 EXEC 记录（EXEC 席落卷 2026-10-16·STOP→`executed:awaiting_post_prove_dual`）
+## §9 EXEC 记录（EXEC 席落卷 2026-10-16·STOP→`executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 - **①届 merge（波序并线）**：`git fetch` 亲证 origin/feat/mysql-schema-skeleton=`ce4bfd1d0`（届 tip≥`ce4bfd1d0` 派单下界等号成立亲证）·`git merge --no-ff` 落 `673f26e33`——merge-tree 预演 EXIT=1 恰 SSOT 两处（checklist+LEDGER 双刀 append-append 同位·并集解=两侧全保留仅去标记行零删改）·本刀触 `interview-consumer.ts` :359-373 区对届 tip 该文件零 hunk 交叠亲证（merge 零冲突自动并·blob 恒 `265798df`）·⛔pull --rebase 未用·⛔force push 未用。
 - **②§0 全量重 pin**：11 锚 blob 对届树亲算——10/11 恒等零漂移；唯一漂移 `apps/worker/package.json`（`d83fbde4`→`ba0c157c`·AG-15 增 `prove:graph-run-observability` 注册恰 1 行·与本刀注册面零碰撞=良性漂移照实登记）；行号微漂四处照实值修订入 §0.2/§1.1/§1.2（`:583-584`/`:557-565`/`:931`/`:951`·第四处协调方传值「:10」无法对表任何在面引用·照届树亲证实值 `principal.ts:951` 落·偏离如实登记）。停止条件①未触发（无锚语义变）。
@@ -115,9 +115,9 @@
 
 - **⑤P2 四修订落点**：P2-1 件⑤ neg 臂扫描域显式钉 consumer 单文件源读+catalog/runbook 史录注记双面明示排除防假红（§1.1 件⑤+proof ①臂+目录注记+runbook §6 注记四处同载）；P2-2 §1.2 件② 行为位移登记改「renew 处置零变+伴生正向位移一处（graph fence 该拍不再被跳过）」；P2-3 §1 缺陷② 叙事收敛（claim 臂拍内零重试+两臂零观测·孤立抖动靠心跳隐式自愈但不可见·sustained 失败才是真断点）；P2-4 件① ≤750ms 措辞精化（sleep 附加·尝试自身往返另计受 statement_timeout 15s 界）+行号微漂四处照实值（:583-584/:557-565/:931/:951·第四处传值「:10」无法对表照实值落·偏离登记）。
 - **⑥est live/markers/diff**：est live=0（本地 tsx/turbo/eslint/node+静态源读·零模型外呼零 DB 外呼零容器零 Key 零 secrets）· 0 Key 值 · `actualSpendCny=null` · 零迁移零 env 闸 · `pnpm install --frozen-lockfile` 零 lockfile 改。
-- **⑦结论**：五件落位零偏离（件③ source_also=沿 reaper_takeover 先例 additive 载第二发射面·落点细节非修法偏离）·门 3/4/6/7/8 绿+alerts-lint 绿·门 1/2 隔离形如实登记·门 5 双层红（届基线在先+本刀净增契约形）如实登记零洗·STOP=`executed:awaiting_post_prove_dual`（post+prove 双审归协调方派单·Ban self-approve·门 5 帽步进 sanction+并线归协调方）。
+- **⑦结论**：五件落位零偏离（件③ source_also=沿 reaper_takeover 先例 additive 载第二发射面·落点细节非修法偏离）·门 3/4/6/7/8 绿+alerts-lint 绿·门 1/2 隔离形如实登记·门 5 双层红（届基线在先+本刀净增契约形）如实登记零洗·STOP=`executed:awaiting_post_prove_dual`（post+prove 双审归协调方派单·Ban self-approve·门 5 帽步进 sanction+并线归协调方）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - post 双审双席实测勘误：门 5 基线=worker 954/root 5235 恰等帽绿（stash 亲测 956/5237 系 untracked proof 未随 stash 测量污染）·本刀净 +5=−1 any+4 naming-convention+2 proof·越帽全归本刀·并线刀零带入·帽步进数额不变（root 5240/worker 959 为准）·顺带：件② 心跳拍事务由连坐回滚变失败隔离（第二处正向位移·保守向）·proof 臂数实测 17
 
 ---
 
-*reserve-renew-fix REQUEST · 2026-10-16 起草+EXEC 落卷 · **STOP=`executed:awaiting_post_prove_dual`（EXEC=§9·post+prove 双审归协调方派单·前值 `draft:awaiting_pre_exec_dual`=史录）** · merge base=`feat/mysql-schema-skeleton` @`ce4bfd1d0`（届 tip 等号成立亲证·⛔pull --rebase 未用）· merge commit=`673f26e33` · 分支 `line/reserve-renew-fix` · 工作树 `meetwise-rrf2` · 修法五件=claim 臂有限重试[250,500]+结构化事件 reservation_lease_renew_failed（claim:372/heartbeat:387·false benign 臂零触）+catalog 升格 Ticket+runbook §3.14+新静态 proof 16 臂 · est live=0 · markers=0 · ⛔push · STOP*
+*reserve-renew-fix REQUEST · 2026-10-16 起草+EXEC 落卷 · **STOP=`executed:awaiting_post_prove_dual`（EXEC=§9·post+prove 双审归协调方派单·前值 `draft:awaiting_pre_exec_dual`=史录）** · merge base=`feat/mysql-schema-skeleton` @`ce4bfd1d0`（届 tip 等号成立亲证·⛔pull --rebase 未用）· merge commit=`673f26e33` · 分支 `line/reserve-renew-fix` · 工作树 `meetwise-rrf2` · 修法五件=claim 臂有限重试[250,500]+结构化事件 reservation_lease_renew_failed（claim:372/heartbeat:387·false benign 臂零触）+catalog 升格 Ticket+runbook §3.14+新静态 proof 16 臂 · est live=0 · markers=0 · ⛔push · STOP*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

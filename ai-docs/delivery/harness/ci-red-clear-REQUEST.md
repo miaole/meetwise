@@ -1,6 +1,6 @@
 # CI-RED-CLEAR REQUEST — PR #108 双红+僵尸步清欠刀（gitleaks allowlist 补登+provider-egress manifest 补账+breaker:prove 僵尸步删除+lint 基线注释对表·ci-red-clear 战役·起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · rev2 amend 2026-10-14＝pre-exec 双审双 FAIL 处置（P0 假 key 字面脱敏+P1 numstat 实测修正+P2 五项+§0.2-4 升级项登记）·旧起草卷 commit `b0877528` 已被 amend 重写失效·新 SHA=`d056dd91` · rev3 2026-10-14＝§0.2-4 升级项协调方裁选项 (a) sanction＝件⑤ proof.mjs:31 计数同步单行并入（正常叠于 `d056dd91`·非 amend·rev2 SHA 映射仍有效）· rev4 2026-10-14＝rev3 窄域复审 FAIL 恰一处 P1+P2 处置＝§0.0 残枝 twin 三枝如实登记+EXEC 重扫触发词钉死「非祖先且非已登记残枝」+§0.2 增第 5 条 rev3 numstat 自述差登记（正常叠于 `d6ac92ed`·非 amend·rev2/rev3 SHA 映射仍有效）·修法四件→五件·三→四 tracked 文件 · pre-exec 双审两外席待派 · alone≠dual · STOP 维持 · 本 commit docs-only 恰 1 .md · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草 2026-10-14 · rev2 amend 2026-10-14＝pre-exec 双审双 FAIL 处置（P0 假 key 字面脱敏+P1 numstat 实测修正+P2 五项+§0.2-4 升级项登记）·旧起草卷 commit `b0877528` 已被 amend 重写失效·新 SHA=`d056dd91` · rev3 2026-10-14＝§0.2-4 升级项协调方裁选项 (a) sanction＝件⑤ proof.mjs:31 计数同步单行并入（正常叠于 `d056dd91`·非 amend·rev2 SHA 映射仍有效）· rev4 2026-10-14＝rev3 窄域复审 FAIL 恰一处 P1+P2 处置＝§0.0 残枝 twin 三枝如实登记+EXEC 重扫触发词钉死「非祖先且非已登记残枝」+§0.2 增第 5 条 rev3 numstat 自述差登记（正常叠于 `d6ac92ed`·非 amend·rev2/rev3 SHA 映射仍有效）·修法四件→五件·三→四 tracked 文件 · pre-exec 双审两外席待派 · alone≠dual · STOP 维持 · 本 commit docs-only 恰 1 .md · ⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：ci-red-clear 起草席（诊断已由 CI 对账席完成·本席四项现场核验+起草·协调方派）。
 **基线**：`feat/mysql-schema-skeleton` @ `79382f4d`（`git fetch` 后 origin/feat/mysql-schema-skeleton 与本地支线同指 `79382f4d` 亲证）· 分支 `line/ci-red-clear`（本起草席 `git worktree add ../meetwise-crc -b line/ci-red-clear feat/mysql-schema-skeleton` 亲立·HEAD 落 `79382f4d` 亲证）· 工作树 `meetwise-crc`（仓根同级）。
@@ -152,7 +152,7 @@
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实四项结论与 §1.5 淘汰登记与 §5 Ban/pins 与 §1-修法件①-⑤ verbatim 落值**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠重扫必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·开工须协调方明示授权）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 红事实四项结论与 §1.5 淘汰登记与 §5 Ban/pins 与 §1-修法件①-⑤ verbatim 落值**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin（行号漂移如实改锚·结论不变只更行号·§0.0 在飞交叠重扫必做·§0.2 简报漂移复核）。**停止条件（四类·命中即停手上报·Ban 就地处置）**：【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **现场漂移**：届时 tip 对 §0.1 任一锚 blob/行锚漂移且结论受疑（如 gitleaks action pin 变/manifest 计数非 327/18/proof.mjs:31 断言非 49·ci.yml 僵尸步行号位移或已被他刀删·lint 值再漂）·或 §0.0 在飞重扫现非祖先**且非已登记残枝三枝**（`1ab83bd8`/`369a07ca`/`a175b02a`·§0.0 rev4 登记）的新触→停·重 pin 回炉。
 - **机制不满足**：件①② 改后目标红未消（gitleaks 仍现 ag24 命中/egress 仍现 3 findings 任一）→归因链被证伪→停·如实升级协调方回炉（Ban 就地改裁决 Ban 凑绿）。
 - **越界需要**：修法诉求超出四 tracked 文件面（需触检查器/其余 proof 面/迁移/共享 SSOT）→停·另刀或协调方裁决。
@@ -176,7 +176,7 @@
 ## §8 随翻注记（EXEC 落卷 2026-10-14·上文 §8 原文照录零改·沿 i6-239 随翻形制）
 
 - **三条款行使**：①rev4 pre-exec 双审=窄域席 `agent_e8ac9578` PASS（rev4 复审恰一处 P1+P2 一则·处置已随本卷 P2 落卷）落卷；②**协调方明示 EXEC 授权**（派单令·本刀=CI 转绿关键刀·ci-wiring3 待本刀并线后立项·EXEC 先行序维持）；③§1 红事实四项结论/§1.5 淘汰登记/§5 Ban/pins/§1-修法件①-⑤ verbatim 落值零改·照 §0 协议对届时 tip 全量重 pin（重 pin 全表见 §9·零漂移零改锚）。
-- **STOP 状态**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**。
+- **STOP 状态**：`draft:awaiting_pre_exec_dual` → **`executed:awaiting_post_prove_dual`**。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9 EXEC 记录（2026-10-14·正常叠于 merge `eaf30eb2`·收据=`ai-docs/delivery/receipts/ci-red-clear/`（untracked 不入库·沿 negbend 先例）·⛔push）
 
@@ -200,4 +200,4 @@
   10. **markers**：五类词族沿 negbend 门 10 口径·改动集新增行（`git diff -U0` `^+`）零命中（词面运行时组装防自匹配·EXIT=1 零匹配·§9 落卷后复扫落收据）。
   11. **CI 终审**：推 PR 后观察口径（secrets-scan 绿+verify 全步首过·:84 后 20 步首曝红属存量红翻面另刀口径·push 归协调方/pusher·EXEC ⛔push）。
 - **est live=0**（全部门=本地静态检查+scripted prove·零模型外呼零 Key 加载零生产操作零 secrets 零消耗）。
-- **STOP 终态**：**`executed:awaiting_post_prove_dual`**（post 双审两外席归协调方派席·行翻面/nail/推 PR 归协调方）。
+- **STOP 终态**：**`executed:awaiting_post_prove_dual`**（post 双审两外席归协调方派席·行翻面/nail/推 PR 归协调方）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

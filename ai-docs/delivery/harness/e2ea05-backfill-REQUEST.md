@@ -1,6 +1,6 @@
 # E2EA-05 恒真清单回填 REQUEST（docs-only·恒真 ×15 逐点定性+漏网扫描·零码面·量级微）
 
-**Status**: **`executed:dual_pass_nail`**（nail 2026-10-16 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·pre-exec 双审定谳成立=首轮双 FAIL→rev→re-dual 席1 条形 PASS+席2 全 PASS→rev2 单点修毕→H3 单点抽验 PASS·协调方明示授权 nail+翻面·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null）
+**Status**: **`executed:dual_pass_nail`**（nail 2026-10-16 落卷·前值 `draft:awaiting_pre_exec_dual` 史录·pre-exec 双审定谳成立=首轮双 FAIL→rev→re-dual 席1 条形 PASS+席2 全 PASS→rev2 单点修毕→H3 单点抽验 PASS·协调方明示授权 nail+翻面·alone≠dual·Ban self-approve · est live=0 · actualSpendCny=null）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:dual_pass_nail` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（tree 级 @ `c4bd89132`·现树逐处亲证·2026-10-16）
 
@@ -84,7 +84,7 @@
 ## §8 STOP
 
 - **开工条款**：本卷=起草落卷·EXEC（若派）仅限本卷 1 tracked 文件域+§2 三门·越 §1.3 否决面即红停回炉；pre-exec 双审两独立外席待派（§0.1 现树行号+§0.2 七处漏网定性+§0.3 零新增结论三处必核）·alone≠dual·Ban self-approve。
-- **STOP = `executed:dual_pass_nail` 三处同值**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头+本节+卷尾注）·pre-exec 双审定谳成立（首轮双 FAIL→rev→re-dual 席1 条形 PASS+席2 全 PASS→rev2 单点修毕→H3 单点抽验 PASS）·协调方明示授权 nail+翻面·本刀不宣称关闭（E2EA-05 登记行本体翻面/销案权仍归协调方）。
+- **STOP = `executed:dual_pass_nail` 三处同值**（前值 `draft:awaiting_pre_exec_dual` 史录·三处同值：Status 头+本节+卷尾注）·pre-exec 双审定谳成立（首轮双 FAIL→rev→re-dual 席1 条形 PASS+席2 全 PASS→rev2 单点修毕→H3 单点抽验 PASS）·协调方明示授权 nail+翻面·本刀不宣称关闭（E2EA-05 登记行本体翻面/销案权仍归协调方）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:dual_pass_nail` 史录零洗·有效态翻面→`closed`】
 - 卫生：est live=0（docs-only 零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase 未用。
 - 卫生异常登记（rev 席承登）：双审窗内 worktree `meetwise-eb` 被外部 checkout 一件（HEAD detached @ `6308bc348`）——`line/e2ea05-backfill` ref 完好零损（同指 `6308bc348` rev-parse 亲证·工作树 clean 零丢面）·建议双审窗内独占管护工作树防再发。
 

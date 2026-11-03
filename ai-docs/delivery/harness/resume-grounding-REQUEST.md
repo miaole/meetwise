@@ -167,7 +167,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP
 
-**STOP · `draft_rev2:pre_exec_dual_PASS` · alone≠dual。** REQUEST 写完即停零码动；EXEC 须双审 BOTH PASS + meetwise 明示授权；Ban self-approve；Ban retry-to-green。
+**STOP · `draft_rev2:pre_exec_dual_PASS` · alone≠dual。** REQUEST 写完即停零码动；EXEC 须双审 BOTH PASS + meetwise 明示授权；Ban self-approve；Ban retry-to-green。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft_rev2:pre_exec_dual_PASS` 史录零洗·前值 `exec_resume-grounding:post_prove_awaiting_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 
@@ -182,10 +182,10 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 - **G3（文案）**：同意文案明示「简历要点将发送给模型服务商用于出题」（审计附录 C E 项原文）；web 同意面（上传页 consent 流）另刀或随本刀最小版（上传后一次性 purpose 选择），S1 落最小版即可。
 - **G4（撤回语义）**：撤回=停止后续使用（审计批 4 #81 口径）；已落 checkpoint/事件不回溯清除（P1 Non-claims 既有条文继续覆盖），撤回断言=撤回后新一轮面试 buildData 无 digest/facts。
 - **范围不变条款**：围栏/四重过滤/防编造闸/refs 禁入 Turn.sources/raw-only 差分——全部保留；G1-G4 仅在注入点外再包一层 consent 开关。#81 全量改造（撤回端点/policy 升版通用化）仍归 W5 批 4，本刀只带最小同意读写面（若 consent_record 读写已够则零迁移；不够则迁移 0152 起编号 expand-only）。
-- Status: `draft_rev3:pre_exec_dual_PASS_plus_consent_gate`（rev2 双审 BOTH PASS 有效·G1-G4 经协调方据 D7 已决并入·EXEC 授权·蓝本=本 rev3）。
+- Status: `draft_rev3:pre_exec_dual_PASS_plus_consent_gate`（rev2 双审 BOTH PASS 有效·G1-G4 经协调方据 D7 已决并入·EXEC 授权·蓝本=本 rev3）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft_rev3:pre_exec_dual_PASS_plus_consent_gate` 史录零洗·前值 `exec_resume-grounding:post_prove_awaiting_dual` 史录零洗·有效态翻面→`closed`】
 
 ## EXEC 状态行（append-only · mw-resground-exec2 · 2026-10-10）
 
-- **`exec_resume-grounding:post_prove_awaiting_dual`** —— EXEC 已按本 rev3 完成全范围（S1-S4+P1-P8+G1-G4），续作前任 6 脏面（CONTINUE，处置入收据 §0）。验收：`node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw` **EXIT=0**（39 PASS/0 FAIL · est live=0 · 零 Key · actualSpendCny=null）；基线 quiz/adaptive-life/adaptive-flow/adaptive-consumer(35/35)/diagnosis/adaptive-degrade/tokenstream/ocr/uc016/resume-derivative-reference/adaptive-grounding/adaptive-latency 全绿（最终字节）；tsc 平衡 worker 41=41 · api 26=26 · web 0。G1-G4：consent_record purpose=`interview_personalization` 最小读写面（0152 expand-only GRANT DELETE）+worker 链进入点一次读门+未同意/撤回与现状逐字节一致断言（S1/S3/B 段）+web 最小用途选择/撤回（审计附录 C E 项原文）。新 proof=`apps/worker/test/resume-grounding.proof.ts`（prove 槽 `prove:resume-grounding`+runner `resume-grounding:prove:raw`）。attempts 全账（8 跑 7 红逐因）与基线先在红披露（interview/stress/context-stress=HEAD 平衡坐实先在红，未修）见 `ai-docs/delivery/receipts/resume-grounding/2026-10-10-run-manifest.json` + `2026-10-10-exec-prove.md`。**Ban self-approve：post-prove 双审待独立域（建议 rag/route+privacy）· nail 归 meetwise。**
+- **`exec_resume-grounding:post_prove_awaiting_dual`** —— EXEC 已按本 rev3 完成全范围（S1-S4+P1-P8+G1-G4），续作前任 6 脏面（CONTINUE，处置入收据 §0）。验收：`node scripts/run-e2e-isolated.mjs resume-grounding:prove:raw` **EXIT=0**（39 PASS/0 FAIL · est live=0 · 零 Key · actualSpendCny=null）；基线 quiz/adaptive-life/adaptive-flow/adaptive-consumer(35/35)/diagnosis/adaptive-degrade/tokenstream/ocr/uc016/resume-derivative-reference/adaptive-grounding/adaptive-latency 全绿（最终字节）；tsc 平衡 worker 41=41 · api 26=26 · web 0。G1-G4：consent_record purpose=`interview_personalization` 最小读写面（0152 expand-only GRANT DELETE）+worker 链进入点一次读门+未同意/撤回与现状逐字节一致断言（S1/S3/B 段）+web 最小用途选择/撤回（审计附录 C E 项原文）。新 proof=`apps/worker/test/resume-grounding.proof.ts`（prove 槽 `prove:resume-grounding`+runner `resume-grounding:prove:raw`）。attempts 全账（8 跑 7 红逐因）与基线先在红披露（interview/stress/context-stress=HEAD 平衡坐实先在红，未修）见 `ai-docs/delivery/receipts/resume-grounding/2026-10-10-run-manifest.json` + `2026-10-10-exec-prove.md`。**Ban self-approve：post-prove 双审待独立域（建议 rag/route+privacy）· nail 归 meetwise。**【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `exec_resume-grounding:post_prove_awaiting_dual` 史录零洗·有效态翻面→`closed`】
 
 - N2 补句（席2·nail 顺手）：#259 目标岗位输入面不在本刀·planner 仅消费既有 role 形参。

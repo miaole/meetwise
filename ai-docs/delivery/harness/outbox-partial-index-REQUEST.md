@@ -1,6 +1,6 @@
 # OUTBOX-PARTIAL-INDEX REQUEST（P2 批表 #24·P2·5B 刀——commerce_outbox relayed 行零清理持续膨胀+ix_outbox_pending 非部分索引·修复方案卷·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码=届时 § 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码=届时 § 逐条落录·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：P2 批表下一刀起草席（协调方派单·标的 **#24=P2·5B**·侦察卡五点全数届树亲证见 §0）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `7a4288fb1`（`git fetch` 后亲证主仓工作树同值恰等·fetch 无漂）。分支 `line/outbox-partial-index-draft`·工作树 `meetwise-iss24`（仓根同级·本席亲立·`-B` 于派单基线即分支建位机证）。
@@ -94,9 +94,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.0 三查零撞·§0.2-5 选标有效·蓝本缺席系制式替代已登记非现场漂移）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（全门隔离 PG+本地静态·零模型外呼零 DNS零 Key 值·`actualSpendCny=null`）·env 三旋钮缺省关·零新增必填 env。
-- **STOP=`executed:awaiting_post_prove_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=`executed:awaiting_post_prove_dual`**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev
 
@@ -109,7 +109,7 @@
 
 亲证：本卷件②拟号 0211、件③拟号 0212；面试作业表清理参数方案拟号 0211，并写明撞号则后到者重编号。主仓、本树、面试作业表清理树三处 `packages/db/migrations` 最大序号都是 0210，磁盘上没有 0211 或 0212 的 sql 文件。
 
-卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb1`·指定蓝本 ag18 缺席改沿 ag17 同构已登记·**runner 事务行为亲证=三通道在案（transactional 全包裹/multi-statement 逐语句 BEGIN-COMMIT/concurrent-index 裸会话+账本独立事务）·concurrent 通道谓词 allowlist IS NULL-only·等值字面量必拒**·修法形=窄扩解析器（0199 案b「双审明示」入口·本卷即载体）+0211 部分索引 CONCURRENTLY 建（0190 `#115` 纪律）+0212 旧索引普通 DROP（0199 案a 先例）+SECURITY DEFINER 归档函数（0177 全同构·app_role 无 DELETE 纪律零破坏）+worker retention 接线（usage-calibration-retention 全同构·缺省关）·est live=0·actualSpendCny=null·⛔push·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已补迁移序号治理。§9-EXEC 已落码
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb1`·指定蓝本 ag18 缺席改沿 ag17 同构已登记·**runner 事务行为亲证=三通道在案（transactional 全包裹/multi-statement 逐语句 BEGIN-COMMIT/concurrent-index 裸会话+账本独立事务）·concurrent 通道谓词 allowlist IS NULL-only·等值字面量必拒**·修法形=窄扩解析器（0199 案b「双审明示」入口·本卷即载体）+0211 部分索引 CONCURRENTLY 建（0190 `#115` 纪律）+0212 旧索引普通 DROP（0199 案a 先例）+SECURITY DEFINER 归档函数（0177 全同构·app_role 无 DELETE 纪律零破坏）+worker retention 接线（usage-calibration-retention 全同构·缺省关）·est live=0·actualSpendCny=null·⛔push·翻面权归协调方·alone≠dual·Ban self-approve。§9-rev 已补迁移序号治理。§9-EXEC 已落码【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC
 

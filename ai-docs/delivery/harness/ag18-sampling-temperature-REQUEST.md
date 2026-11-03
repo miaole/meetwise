@@ -1,6 +1,6 @@
 # AG18-SAMPLING-TEMPERATURE REQUEST（AG-18 采样温度钉低温刀——route-classify/resume.vision 入 SERVICE_TEMPERATURE+MODEL_EVAL_TEMPERATURE 非法值启动失败·采样确定性最小收口·零迁移·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）
+**Status**: **`executed:awaiting_post_prove_dual`**（起草 2026-10-19 落卷·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·est live=0·Ban self-approve·alone≠dual·⛔push·翻面权归协调方）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：AG 能力复核台账下一刀起草席（**自数 done 31/half 2/open 15**·台账管线行亲证：`:632` ag09 行「done 29→30」+`:636` ag17 行「**done 30→31**[AG-17 翻面·协调方翻面笔随令行使·**half 2/open 15**]」·half 2 维持登记。选标序 P1>P2>P3 同级别小编号：P1 open 唯余 AG-40——台账 `:695` 验证席定谳「**AG-40 对现 tip 不成立：已被 634eb645 §1⑥ 修复——改判『不成立（现状）·历史成立』**」=停止条件「标的已修复」**跳过**；P2 open 唯余 AG-13——issues-final `:193` CRAG 阈值校准需线上分布数据·沿上刀挂起纪律**跳过**；依赖未修前置项同跳（AG-32 语音契约/AG-36 vendor 迁移各待前置）。顺延 **P3 最小号 AG-18**=Prompt 轨·台账 AG-18 **零命中**（grep 亲证）=零在飞零收编·协调方派单·北星 loop）。
 **基线**：`origin/feat/mysql-schema-skeleton` @ `7a4288fb137bbd162e176e3020f16b085f046bb2`（派单令给定·`git rev-parse` 亲证恰等）。分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`（仓根同级·`git worktree add -B line/ag-next2-draft ../meetwise-agN2 origin/feat/mysql-schema-skeleton` 本席亲立·`-B` 成功即分支新建机证）。
@@ -87,9 +87,9 @@
 ## §8 停止条件与 STOP
 
 - 停止四类：现场漂移超注记级/机制不满足/越界需要/验收红不可修——**起草期均未触发**（§0.2-4 漂移注记级亲证·§0.0 防重三查零撞·在飞两线零交集亲证）。
-- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。
+- **本卷 STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）·pre-exec 双审两独立外席待派→Dual PASS→协调方授权 EXEC 落码·翻面权归协调方·alone≠dual·Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **est live=0**（proof=本地 http 脚本 provider+隔离 PG·零模型外呼零 DNS·0 Key 值·`actualSpendCny=null`）·零 env 闸零新增。
-- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。
+- **STOP=executed:awaiting_post_prove_dual**（与 Status 头/§8 同值第三处）·起草落卷即停·⛔push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev rev 修订注记（pre-exec 双审第一轮双 FAIL 两席合并清单 P1 两件甲/乙+P2 六件①-⑥回路 · rev 席落卷 2026-10-19 · **append 注记形 · 上文 §0-§8 一字不洗** · EXEC 期与上文冲突处以本节为准读）
 
@@ -153,7 +153,7 @@
 
 ---
 
-卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。§9-rev2 已补触面文件数。§9-EXEC 已落码
+卷尾注：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-19 落卷·基线 `7a4288fb`·分支 `line/ag-next2-draft`·工作树 `meetwise-agN2`·选标自数 done 31/half 2/open 15（台账 `:632`/:636 管线行亲证）·AG-40（已修复定谳）/AG-13（线上数据挂起）双跳过亲证入卷·est live=0·actualSpendCny=null·pre-exec 双审两独立外席待派·翻面权归协调方·alone≠dual·Ban self-approve·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase·rev 修订注记 §9-rev 2026-10-19 落卷（pre-exec 双审第一轮双 FAIL 两席合并清单回卷·P1 两件甲/乙+P2 六件①-⑥全成立落修正·零跳过·两处届树实测差随条如实登记·§0-§8 零字洗·STOP 三处同值零翻·第二轮双审待重派）。§9-rev2 已补触面文件数。§9-EXEC 已落码【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC
 

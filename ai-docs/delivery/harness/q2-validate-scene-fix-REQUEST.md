@@ -1,6 +1,6 @@
-# Q2-VALIDATE-SCENE-FIX REQUEST — PR #109 verify step 99 api:validate 唯一红 2 断言场景面修复刀（validate.ts ABND 场景 × Q2 入队背压闸场景自洽 · 单文件测试场景面 · 快速链一体席 · STOP=`executed:awaiting_post_prove_dual`）
+# Q2-VALIDATE-SCENE-FIX REQUEST — PR #109 verify step 99 api:validate 唯一红 2 断言场景面修复刀（validate.ts ABND 场景 × Q2 入队背压闸场景自洽 · 单文件测试场景面 · 快速链一体席 · STOP=`executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席同席翻面·前值 `draft:awaiting_exec`=起草态保全于 git 史 `faa3ea2d`·快速链=起草→自审（窄域五项 PASS·P2-1 prose 勘误随 EXEC 落卷）→EXEC→STOP·门矩阵七门全绿·api:validate 红翻绿亲证（§9 字段①）·post-prove 双审归协调方派席 · alone≠dual · est live=0 · `actualSpendCny=null` · ⛔push · STOP 三处锚定=①卷头标题行②本 Status 行③§8 节 · 卷尾不载 STOP 值防多锚漂移）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-10-16 EXEC 席同席翻面·前值 `draft:awaiting_exec`=起草态保全于 git 史 `faa3ea2d`·快速链=起草→自审（窄域五项 PASS·P2-1 prose 勘误随 EXEC 落卷）→EXEC→STOP·门矩阵七门全绿·api:validate 红翻绿亲证（§9 字段①）·post-prove 双审归协调方派席 · alone≠dual · est live=0 · `actualSpendCny=null` · ⛔push · STOP 三处锚定=①卷头标题行②本 Status 行③§8 节 · 卷尾不载 STOP 值防多锚漂移）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：Q2-VALIDATE-SCENE-FIX 诊断+起草+自审+EXEC 一体席（协调方派单 2026-10-16 · PR #109 verify step 99 唯一红口径指派 · 快速链授权链=派单 brief 明示「快速链：诊断→起草→自审→EXEC 一体」· ⛔push）。
 **基线**：`feat/mysql-schema-skeleton` @ **`d5dc0726`**（`git fetch` 后亲证 `origin/feat/mysql-schema-skeleton` tip=`d5dc0726` **恰等**（≥ 以等号成立）· PR #109 head · ai-graphs 环解 nail 波 tip）· worktree **`meetwise-qvf`**（仓根同级 · `git worktree add ../meetwise-qvf -b line/q2-validate-scene-fix` 本席亲立·reset 到 origin tip 亲证）· branch **`line/q2-validate-scene-fix`**。
@@ -122,7 +122,7 @@ q = await db.pool.query("SELECT count(*)::int n FROM interview_job WHERE owner_u
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `executed:awaiting_post_prove_dual`（2026-10-16 EXEC 席翻面·前值 `draft:awaiting_exec` 史录于 commit `faa3ea2d`·本值为卷内三处锚定=①卷头标题行②Status 行③本节 · 卷尾不载 STOP 值 · 沿姊妹卷「自述三处实测四处」预勘误）。** 快速链开工三条款兑现记录：①协调方派单令+修法裁决 a 随单已定=**已兑现**（派单 brief 明示）；②快速链授权（沿 ssd-egress 先例·起草→自审→EXEC 同席连行使）=**已兑现**（派单 brief 明示「总时长 50 分钟」）；③⛔push（并线/推送归协调方）=**兑现**（本刀零 push 零 merge 主线）。EXEC 已落卷（§9 七字段）· post-prove 双审归协调方派席 · alone≠dual · Ban self-approve。
+**STOP · `executed:awaiting_post_prove_dual`（2026-10-16 EXEC 席翻面·前值 `draft:awaiting_exec` 史录于 commit `faa3ea2d`·本值为卷内三处锚定=①卷头标题行②Status 行③本节 · 卷尾不载 STOP 值 · 沿姊妹卷「自述三处实测四处」预勘误）。** 快速链开工三条款兑现记录：①协调方派单令+修法裁决 a 随单已定=**已兑现**（派单 brief 明示）；②快速链授权（沿 ssd-egress 先例·起草→自审→EXEC 同席连行使）=**已兑现**（派单 brief 明示「总时长 50 分钟」）；③⛔push（并线/推送归协调方）=**兑现**（本刀零 push 零 merge 主线）。EXEC 已落卷（§9 七字段）· post-prove 双审归协调方派席 · alone≠dual · Ban self-approve。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **停止条件（四类 · 命中即停手上报）**：
 1. **现场漂移**：EXEC 面对届时 tip 重 pin——§0.1 锚漂移超 ±3 且结论受影响、或 `:312`-`:321` 场景块被他刀改写 → 停手上报。

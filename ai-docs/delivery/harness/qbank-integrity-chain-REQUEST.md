@@ -1,6 +1,6 @@
 # QBANK-INTEGRITY-CHAIN REQUEST（qbank 链窗修复刀 · retrieval 版面探针缝 + integrity 链窗 proof 红翻绿 · docs-only 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·主门 qbank-integrity-upgrade:prove 红翻绿 20 PASS/0 FAIL·门矩阵 §2 全表已跑·两基线红承登非本刀因果如实登记·alone≠dual·Ban self-approve·待 post 双审两外席会签+协调方·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 落卷·主门 qbank-integrity-upgrade:prove 红翻绿 20 PASS/0 FAIL·门矩阵 §2 全表已跑·两基线红承登非本刀因果如实登记·alone≠dual·Ban self-approve·待 post 双审两外席会签+协调方·⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：meetwise 战役「QBANK-INTEGRITY-CHAIN-EXTEND 链窗修复刀」诊断+起草席（docs-only·零码动·单文件落卷）。
 **基线**：支线 `line/qbank-integrity-chain` @ `77ba32ab`（本起草席新建·`git worktree add ../meetwise-qit -b line/qbank-integrity-chain 77ba32ab`·工作树 `../meetwise-qit`·仓根同级）。`77ba32ab`=主线 nail（cache-observe-repin 收官卷·并线 feat/mysql-schema-skeleton@`317ea3df` 双亲 `ec8e19d6`+`317ea3df`）；fetch 实测 origin/main=`c4244470`（2026-09-04·**系 `77ba32ab` 祖先**·rev-list 亲证 `origin/main..77ba32ab`=2153/`77ba32ab..origin/main`=0）。**派单前提勘误注（如实登记）**：派单书「origin tip≥77ba32ab」按祖先序实测方向相反——origin/main 包含于 `77ba32ab`；且红签名文件 `packages/db/src/qbank/qbank-generation-retrieval.ts` 在 origin/main **不存在**（`git cat-file -e` 亲证 NOT_ON_ORIGIN·系本仓线栈增文件）→ 切基=本地线栈最新 nail `77ba32ab`（恰符「≥77ba32ab」下界语义·含 origin/main 全集）。
@@ -140,7 +140,7 @@
 
 **门预申明（EXEC 收尾必跑·§2 表原样）**：主翻门+九邻面+rag-generation+migrate/drift+neg:all+typecheck+lint 五值+docs:check+markers+diff 面（§2 十八行全跑全录）。
 
-**交付报告格式（EXEC 收尾随翻·append 保史·§0-§8 原文零改）**：①门矩阵逐门 EXIT 实测值+主翻门臂计数；②裁决①-④行使结果逐项落值；③改动集文件清单+净行数+markers 五类扫描回执；④`:285`/`:289` 修后形与探针助手 rg 回执；⑤§0 重 pin 漂移登记（如有）+§0.0 式在飞枚举一句（预登记 rev2·席2②）；⑥STOP 翻面建议（`executed:awaiting_post_prove_dual`）归协调方。
+**交付报告格式（EXEC 收尾随翻·append 保史·§0-§8 原文零改）**：①门矩阵逐门 EXIT 实测值+主翻门臂计数；②裁决①-④行使结果逐项落值；③改动集文件清单+净行数+markers 五类扫描回执；④`:285`/`:289` 修后形与探针助手 rg 回执；⑤§0 重 pin 漂移登记（如有）+§0.0 式在飞枚举一句（预登记 rev2·席2②）；⑥STOP 翻面建议（`executed:awaiting_post_prove_dual`）归协调方。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **Sibling sections stay as written. alone≠dual · EXIT0≠covered · 实现方不 self-approve。**
 
@@ -161,7 +161,7 @@
 
 **rev2 自检回执（落卷席亲跑）**：`node scripts/ai-docs/check-docs.mjs` EXIT=0（2154≤cap 2160）；markers 五类 `git diff 77ba32ab -U0` 改动集新增行直扫零命中（词族与冲突标记双查·P1-R2 后词面全卷零再现·命令与回执沿 receipts 形留执行席收据）；改动集仍恰 1 .md=本卷。**STOP 终态**：三处（Status/§8/自检）恒 `draft:awaiting_pre_exec_dual`——rev2 落卷后席1 复审确认方会签·alone≠dual·⛔push。
 
-**rev3 处置摘要（2026-10-16·post 审读席2 P1×2+P2+席1 P2 随卷落·落卷席 append）**：四项勘误以 §11 注记形落卷（P1-R1 A21 勘正倒置改回原值+P1-R2 blob 锚勘正 `3fd0c292`+P2 STOP 生效面=Status :3+§10⑥+席1 P2 探针参数名假阳观察登记）——§0-§10 原文零洗·零码面·改动集恰 1 .md=本卷；markers 新增行直扫零命中（词面运行时组装+冲突标记双查）；docs:check EXIT=0 复跑（≤cap 2168）；**STOP 维持 `executed:awaiting_post_prove_dual`**（勘误随 post 双审会签一并裁·alone≠dual·⛔push）。
+**rev3 处置摘要（2026-10-16·post 审读席2 P1×2+P2+席1 P2 随卷落·落卷席 append）**：四项勘误以 §11 注记形落卷（P1-R1 A21 勘正倒置改回原值+P1-R2 blob 锚勘正 `3fd0c292`+P2 STOP 生效面=Status :3+§10⑥+席1 P2 探针参数名假阳观察登记）——§0-§10 原文零洗·零码面·改动集恰 1 .md=本卷；markers 新增行直扫零命中（词面运行时组装+冲突标记双查）；docs:check EXIT=0 复跑（≤cap 2168）；**STOP 维持 `executed:awaiting_post_prove_dual`**（勘误随 post 双审会签一并裁·alone≠dual·⛔push）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §10 EXEC 记录（2026-10-15/16 EXEC 席落卷·append 保史·§0-§8 正文零改·仅 §0 头款授权内重 pin 锚更行号+O1-O3 随落）
 
@@ -177,11 +177,11 @@
 
 **⑤ §0 重 pin 漂移登记+在飞枚举（§0.0 式一句·收据⑤预登记兑现）**：漂移=零结构漂·仅 A21 映射勘正+O2 内锚 ±1+O1 cap 转录（①节）；在飞枚举=EXEC 时点在飞卷沿 cap sanction 卷 `fb97734c` 载明四卷 `nul-escape-visibility`/`qbank-integrity-chain`（本卷）/`e2e-runner-stale-build-guard`/`i18n-metadata-ssr` 各 +2 预算·本刀改动集九文件（并线 7+本刀 2）他卷零命中亲证。**存量观察登记（§4 席2③ 承卷一句）**：0201 不 bump `qbank_cache_epoch`——滚动窗 TTL ≤120s 界定存量陈旧上界·系存量现状观察·非本刀引入·非本刀处置面。**缓存键 v6 零跳核**：`qbank-retrieval-cache.ts` 零触（change set 零命中）·`CACHE_KEY_VERSION='qbank-retrieval-cache:v6'` 恒等·legacy 态行为恒等旧版即版本语义已含（§1.4 禁触遵守）。**停止条件四类盘点**：现场漂移未命中/机制不满足未命中（主门 20 臂零新红·rg 普查复证 owner_kind 函数返回列面仅 `:285`/`:289` 两处=修面盖全）/越界未命中（修法未触 §3 边界·两承登红处置面在刀外未自行扩权）/验收红=两基线红承登非原值翻红（§3 边界未触·裁决权上交协调方+post 双审）。
 
-**⑥ est live=0·actualSpendCny=null**（全隔离容器+假体 embedder·零模型外呼·零 secrets·scratch 排演库用后即弃·零生产操作）。**STOP 终态=`executed:awaiting_post_prove_dual`**（Status 行随翻·§8 体 draft 期 STOP 词面沿 append 保史零洗·EXEC 终态以本节+Status 为准·alone≠dual·待 post 双审两外席会签+协调方·⛔push 未用）。
+**⑥ est live=0·actualSpendCny=null**（全隔离容器+假体 embedder·零模型外呼·零 secrets·scratch 排演库用后即弃·零生产操作）。**STOP 终态=`executed:awaiting_post_prove_dual`**（Status 行随翻·§8 体 draft 期 STOP 词面沿 append 保史零洗·EXEC 终态以本节+Status 为准·alone≠dual·待 post 双审两外席会签+协调方·⛔push 未用）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-## §11 rev3 勘误注记（2026-10-16 post 审读落卷席·append 保史·§0.1/§8/§9/§10 原文零洗·仅以本节四注记勘误·STOP 维持 `executed:awaiting_post_prove_dual`）
+## §11 rev3 勘误注记（2026-10-16 post 审读落卷席·append 保史·§0.1/§8/§9/§10 原文零洗·仅以本节四注记勘误·STOP 维持 `executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 1. **P1-R1·A21 勘正倒置（落点=§0.1-A21 行+§10① A21 勘正句）**：rev3 注记改回原值——`:119`=neg:all·`:348`=migrate:prove·`:558`=主翻门 qbank-integrity-upgrade:prove（原卷 pin 本就正确·EXEC 勘正自身首尾颠倒·『现树 sed 亲证』证词与实测相反·席2 grep -n 实测为凭·落卷席同法 `grep -n package.json` 复核逐行亲证一致）。
 2. **P1-R2·blob 锚转录错（落点=§10② 落值句）**：§10② 「blob `2c5ed849`→`201bf1df`」rev3 注记勘正为→**`3fd0c292`**（交付 blob·席2 cat-file 实证·201bf1df 对象不存在系中间态误录·行数/numstat/收据 sha256 66c983ca/a2610be1 均无恙）。
-3. **P2·STOP 生效面**：本卷生效终态=Status `:3`+§10⑥（`executed:awaiting_post_prove_dual`）·§8 `:123` 与自检 `:147` draft 词面系条款节原文沿 append 保史零洗·非现态。
+3. **P2·STOP 生效面**：本卷生效终态=Status `:3`+§10⑥（`executed:awaiting_post_prove_dual`）·§8 `:123` 与自检 `:147` draft 词面系条款节原文沿 append 保史零洗·非现态。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 4. **席1 P2·探针参数名假阳观察登记**：`retrievalOwnerSurface` 探针谓词 `'owner_kind' = ANY(proargnames)` 对 proargnames 参数名词面存在理论假阳面——现状零撞名·窗内三函数入参沿 `p_*` 前缀惯例（p_generation/p_embedding/p_query/p_k·0201 `:66/:129/:149` sed 亲证）·p_* 前缀惯例护住·纯观察登记零码动。

@@ -1,4 +1,4 @@
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 # 失败面试已有图行时不再续租
 
@@ -112,11 +112,11 @@ executed:awaiting_post_prove_dual
 
 ## §8
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 以上三处状态相同。本步只新增这一份说明，不改产品代码。前提不在基线上就停止，不在这里改作业写回。
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev
 

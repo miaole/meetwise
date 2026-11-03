@@ -1,6 +1,6 @@
 # LINT-CAP-STEP lint 帽步进刀 REQUEST（mini·快速链·沿 cap-sanction-2232 sanction 直落先例形·lint 门协议 P1-b 届 tip 重测步进·AG-15/SSE 期已立）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵五门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·前值 `draft:awaiting_pre_exec_dual` @draft `7ed020077` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵五门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·前值 `draft:awaiting_pre_exec_dual` @draft `7ed020077` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（届时树亲算·ce4bfd1d0 届时值）
 
@@ -67,7 +67,7 @@
 4. **双口径账**：届实测净树口径 12/12 恰等贴线（本席亲测·基线绿零余量）；brief stash 口径 956/5237 差 +2/+2 如实登记归 stash 在飞态不洗史；步进幅度 +5/+5 = RESERVE 在飞净增 +3 预登记 + stash 口径 +2 余量吸收·取派单颁定宽值安全侧（帽 ≥ 净树+RESERVE 预判 957/5238 亦覆盖）·RESERVE 并线后预期恰等贴线 959/5240。
 5. **偏离**：零（落点/门矩阵/STOP 形全沿 §1/§2/§8 定稿·两行逐字节落定·零越面零程序性偏差·新支线树依赖安装系门前置非码面偏差）。
 6. **卫生**：est live=0（五门全本地静态·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL 零 env 闸·pins 不适用（本刀无 pins 面）·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
-7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭。
+7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 

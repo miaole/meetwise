@@ -95,7 +95,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §9 nail disposition（append-only·nail 席随落主线补记）
 
-**Status 演进补登**：卷面 §8/卷尾仍 `draft:awaiting_pre_exec_dual`（EXEC 未随翻状态行·如实照登）→ `executed:awaiting_post_prove_dual`（EXEC commit `9b177b24` 卷语）→ **`→ nailed（post-prove 双席 BOTH PASS @2026-10-12·收窄裁形+四停报如实）`**。
+**Status 演进补登**：卷面 §8/卷尾仍 `draft:awaiting_pre_exec_dual`（EXEC 未随翻状态行·如实照登）→ `executed:awaiting_post_prove_dual`（EXEC commit `9b177b24` 卷语）→ **`→ nailed（post-prove 双席 BOTH PASS @2026-10-12·收窄裁形+四停报如实）`**。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **并线事实**：`git merge --no-ff line/ci-wiring @9b177b24` 入主线 `feat/mysql-schema-skeleton`（merge-base `2f6662ef`）——**零冲突自动并**（merge-tree 预检 EXIT=0 与席2 预判一致）；重叠文件恰 2（`.github/workflows/ci.yml`+根 `package.json`）双面共存亲验：合并后 ci.yml **322 行三步共存**（:98 typecheck gate〔本刀簇A〕+:159-160 迁移编号唯一性门〔MIG-RUNNER 裁③·line/mig-runner 归属留名〕+:162 migrate:prove+:165-166 drift 门〔本刀簇E·migrate:prove 后邻位〕·序=db:prove→唯一性→migrate:prove→drift 合理）；package.json=主线 MIG 面全保+本刀 `drift:prove = node scripts/schema-drift-check.mjs` 历史位复活。主线侧自基线以来的 r4 邻面（e2e 断言随演 full.e2e 等）与本刀 31 迁移件零重叠（两侧 diff 交集仅上述 2 文件·亲证）。
 

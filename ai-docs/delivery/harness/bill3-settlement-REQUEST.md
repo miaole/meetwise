@@ -1,6 +1,6 @@
 # BILL3-SETTLEMENT REQUEST（billing 战役 P3 结算刀 · 0172 topic_charge 话题计费表+interview 计费列 + 0173 tf_ 触发器改写 + closeTopic/confirmConsumptionUnits/completeInterviewAndConfirm/abandon/sweep 改造 + #31 报错 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：billing 战役 P3 起草席（billing rev 定稿双审 BOTH PASS+P1 `a1241e90`/P2 `f3968440` 两 nail 已落主线后实施刀·LEDGER :420 计费行 STILL OPEN「0172-0173 结算刀 P3」承接行·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `aeaf4141`（`aeaf4141ec9566babe4fa0724290c7153f6ed362`·主线 tip·`git log -1` 实测·开工=落卷零前移·BILL2 SSOT 行翻面 commit·零码面）·分支 `line/bill3-settlement`·工作树 `meetwise-bill3`（`git worktree add ../meetwise-bill3 -b line/bill3-settlement` 本起草席已立·HEAD 落 `aeaf4141` 亲证）。
@@ -155,7 +155,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（billing-redesign rev1+INDEX 第七/十二/十三/十四节+LEDGER :420 承接行系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 七条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 七条漂移全系登记性·承重锚 #31 `:54-62`/begin `:256-268`/tf_ `:365-395` 原位零漂）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（billing-redesign rev1+INDEX 第七/十二/十三/十四节+LEDGER :420 承接行系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 七条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 七条漂移全系登记性·承重锚 #31 `:54-62`/begin `:256-268`/tf_ `:365-395` 原位零漂）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①**topic_charge 行权形状**（推荐=RLS ENABLE+FORCE+p_owner 策略+只授 SELECT,INSERT 沿 0171 `:36-42` 形——计费事实表只增不改·更正走红冲/后行 vs 授 UPDATE 允就地更正）；②**跳过话题落行形状+closeTopic 挂点**（推荐=跳过话题落 waived 行 reason='skipped'（明细可见·与 0180 影子面五值对齐映射·蓝本三值 CHECK 逐字容纳）+closeTopic 挂换话题 pivot 与收尾 done 双挂点 vs 跳过不落行（Σ 缺口·明细断档））；③**sweep 拆分挂点**（推荐=sweepExpiredReservations 内 mock_interview 行按 topic_charge Σ 判定结算或释放——行锁原子性最窄面·flip 前判定时序唯一可行 vs reconcileOwner 层分流（sweep 已 flip·须改 reconcile 返回契约·不推荐））；④**#31 报错形状**（推荐=具名 P0001 `idempotency_units_mismatch`+begin catch 409 映射（沿 enterprise_insufficient_balance 分码先例）vs 23514 沿触发器族——后者与「约束违例」语义混叠·不推荐）。
 
@@ -167,7 +167,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §9 EXEC 附记（随翻·append 保史·§0-§8 原文零改·2026-10-13）
 
-**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **施工落点（恰 15 文件：新 4+改 10+本卷随翻 1）**：新=packages/db/migrations/0172_topic_charge.sql+0173_tf_interview_consumption_terminal_pair.sql（两新迁移·零历史迁移触）+packages/db/src/commerce/topic-charge.ts（closeTopic/interviewBillingOf/topicCountedUnits/listTopicSettlementMismatches）+apps/worker/test/bill3-settlement.proof.ts（43 断言六臂）；改=packages/db/src/commerce/commerce.ts（#31+confirmConsumptionUnits+complete/fail/abandon/sweep 模式感知拆分+settleOrReleaseForTerminal/terminalReleasedOf）+packages/db/src/index.ts（导出区 additive 两块）+apps/worker/src/adaptive-lifecycle.ts（import+closeTopicForQuestion+pivot 挂点+done 两分支尾挂点）+apps/worker/src/commerce-reconcile.ts（import+巡检 fail-soft 只告警块）+apps/api/src/modules/interview/interview.service.ts（#31 409 catch 一支 additive）+packages/contracts/src/index.ts（SessionConcludedPayload 两可选字段）+apps/worker/test/bill2-shadow-meter.proof.ts（两枚过期负臂随翻·§9-2 E4）+scripts/run-e2e-isolated.mjs（四处注册只增不清·node --check EXIT=0）+根 package.json+apps/worker/package.json（门名各两行/一行）。
 

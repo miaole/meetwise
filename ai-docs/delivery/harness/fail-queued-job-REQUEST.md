@@ -1,4 +1,4 @@
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 # 绑定申请失败时仍排队的作业一并失败
 
@@ -221,8 +221,8 @@ await failQueuedInterviewJobsOnAbandon(c, owner, interviewId);
 不跑出站清单。不写迁移唯一性门。本说明是这一步唯一新增的文件。
 
 ## §8
-executed:awaiting_post_prove_dual
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-EXEC
 

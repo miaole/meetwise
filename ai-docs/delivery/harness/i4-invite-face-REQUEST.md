@@ -1,8 +1,8 @@
 # I4 INVITE-FACE REQUEST（批3 段 · B 端邀约/通知/列表面 · #221/#222/#223/#265 · M 体量）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（**rev2** pre-exec 勘误落卷 2026-10-11·双审席1+席2 窄 FAIL 八处方+两席登记全落·**待复审**·原 rev1 起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）
+**Status**: **`draft:awaiting_pre_exec_dual`**（**rev2** pre-exec 勘误落卷 2026-10-11·双审席1+席2 窄 FAIL 八处方+两席登记全落·**待复审**·原 rev1 起草席落卷即停·本刀 docs-only 恰 1 .md 零码动。EXEC/任何实施须预执行双审两外席 PASS + meetwise 明示授权 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 开工 · ⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
-**Status 链补全（nail 席 append-only 一次补登·2026-10-11）**：`draft:awaiting_pre_exec_dual`（rev2 落卷·上行原文照录零改）→ `executed:awaiting_post_prove_dual`（EXEC 落卷 @`f5fa2f52` 15 文件·迁移 0165/0166·EXEC 未翻本 Status 行·照实补登）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-11·两裁决项①SECURITY DEFINER④形①协调方裁·随落·merge 主线 nail·错峰等 I3 merge(i3-job-mgmt) @`c042729b` 可见后动手·loop 协调方本次派单即 nail 授权）。上文原 Status 行文字照录不改。
+**Status 链补全（nail 席 append-only 一次补登·2026-10-11）**：`draft:awaiting_pre_exec_dual`（rev2 落卷·上行原文照录零改）→ `executed:awaiting_post_prove_dual`（EXEC 落卷 @`f5fa2f52` 15 文件·迁移 0165/0166·EXEC 未翻本 Status 行·照实补登）→ **nailed**（post-prove 双席 BOTH PASS @2026-10-11·两裁决项①SECURITY DEFINER④形①协调方裁·随落·merge 主线 nail·错峰等 I3 merge(i3-job-mgmt) @`c042729b` 可见后动手·loop 协调方本次派单即 nail 授权）。上文原 Status 行文字照录不改。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **席位**：#批3 段 I4 INVITE-FACE EXEC 任务书起草席（北星 loop · 批3 残余组 · B 端邀约/通知/列表面 · M 体量）。
 **基线**：`feat/mysql-schema-skeleton` @ `83a940c7`（主线最新 tip·`git log -1` 实测 2026-10-11·merge(diag-honesty) #213）。分支 `line/i4-invite-face`·工作树 `meetwise-i4`（`git worktree add ../meetwise-i4 -b line/i4-invite-face` 本起草席已立·建前 worktree list 实查不存在）。
@@ -144,7 +144,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 baseline-red5 滞后登记对账翻面先例直接翻 closed）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `nailed` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①#221 通知写侧形（倾向 a=SECURITY DEFINER `gateway_notify_invited` 函数级迁移·0155/0160 先例；备选 b=worker lane 异步）+ kind 命名（倾向 `job_invited`）与 payload 最小集（倾向 `{jobId, jobTitle}`·id=`ntf_<applicationId>`）；②#222 收窄形（倾向 A=读侧窄投影+contracts 新 JobPublicView·JobList 保留 recruiter 自有面）+ description 去留（倾向窄投影内保留供投递前可见·与 I3 时序独立）；③#223 识别形（倾向 b=CONSENT_PURPOSES 加候选人侧 purpose 同意门邮箱显示·零迁移 fail-closed；邀请邮箱持久化/备注列默认不入）+ purpose 命名（EXEC 定·倾向 `recruiter_contact_share`）；④#265 形（倾向 a=隐藏 checkbox——**rev2 席2-① 扩形：形 a 须同刀修 `settings/actions.ts` 发送体（`lang→locale`·删 `notify` 键·`locale` 已在 contracts 白名单·零后端改）或显式登记保存面残面另刀（只删 checkbox 不修 payload=保存钮红面原样留存·不得沉默）**；若裁「通知带偏好开关」则 b=改站内通知真开关）；⑤web 文案逐字值（KIND_LABELS 新标签/招聘方识别列文案——**rev2 席1-③ 邻接补句：详情页识别列文案随本项同裁**（识别列三页枚举见 §1-③）/设置页隐藏后措辞）；⑥迁移文件编号与命名（若裁①a·0162+ 函数级·EXEC 立项时按最新迁移序实 pin）。
 

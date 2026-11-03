@@ -1,4 +1,4 @@
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 # 失败面试上过期的运行作业不再回到排队
 
@@ -100,11 +100,11 @@ SET 仍把 `lease_owner` 与 `lease_expires_at` 写成 NULL，`version` 加 1。
 
 ## §8
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 以上说明的产品代码本步不改。
 
-executed:awaiting_post_prove_dual
+executed:awaiting_post_prove_dual【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9-rev
 

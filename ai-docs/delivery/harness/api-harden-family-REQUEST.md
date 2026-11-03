@@ -1,6 +1,6 @@
 # API-HARDEN-FAMILY REQUEST（5C 拆刀排程第四发 · api-harden 面残行 · R10 停手解除落码 + 复核两项落卷 + E4/E5 呈报 · 3 码文件 + 1 新件 · 落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**
+**Status**: **`executed:awaiting_post_prove_dual`**【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 **Date**: 2026-10-16
 **席位**: API-HARDEN-FAMILY 起草席（协调方派单·5C 拆刀排程第四发·QUEUE=Q1 EXEC✓·OBS/SSE-API 起草中·授权按 LEDGER :87 组标签+checklist :2680「Line API-HARDEN nail」段锚定·⛔push·⛔merge主线）
 **刀位**: `ai-docs/delivery/harness/product-campaign-LEDGER.md:87`（5C 可靠性（52）行逐字：「…/#248/#245/#246/#172/#14/#216 — 🆕 **分 4 子刀（OBS/QUEUE/SSE-API/API-HARDEN）**」——本刀=**API-HARDEN 子刀·靶=api-harden 面残行**）+:234（R10 行逐字：「| R10 | ensure-ok server-only 标注 | SSE nail @ed56c73b 席1 nit | lib/jobs/ensure-ok.ts 未标 server-only（无实际渗漏·可选收紧） | **5C-API-HARDEN 顺手** | 开放 |」=批表 API-HARDEN 组靶行·组内唯一在册开放行）+ `ai-docs/delivery/execution-master-checklist.md:2680/:2683/:2685`（Line API-HARDEN nail 段头/件⑥ R10 停手登记三证据/STILL OPEN 四项=J2 广播臂强度+清理频度上限+E4/E5 占位+件⑥ R10）
@@ -135,7 +135,7 @@ checklist :2685 明载「原文不在工作树…待协调方将原文随卷归�
 
 ## §8 STOP（开工三条款）+ 待裁决项 + 停止条件
 
-**STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面·2026-10-16） · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md 落卷）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**（已兑现：席1 agent_ac73e84b PASS+席2 agent_448ec3d8 PASS P2×5+R1-R5 修订清单随 EXEC 立项落）；②**协调方明示授权**（已兑现：含裁决项①-④ 逐项行使=R10 解除甲案行使·件②③ 登记结案行使·docs:check 余量共享行使·E4/E5 催办行使）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（遵守：双审 P2 修订落点=措辞/勘正/登记面·修法实质零改·§9-B 逐条留痕）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。
+**STOP · `executed:awaiting_post_prove_dual`（EXEC 席翻面·2026-10-16） · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md 落卷）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**（已兑现：席1 agent_ac73e84b PASS+席2 agent_448ec3d8 PASS P2×5+R1-R5 修订清单随 EXEC 立项落）；②**协调方明示授权**（已兑现：含裁决项①-④ 逐项行使=R10 解除甲案行使·件②③ 登记结案行使·docs:check 余量共享行使·E4/E5 催办行使）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（遵守：双审 P2 修订落点=措辞/勘正/登记面·修法实质零改·§9-B 逐条留痕）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ### 待裁决项（四项 · 双审/EXEC 行使 · 推荐案已注）
 

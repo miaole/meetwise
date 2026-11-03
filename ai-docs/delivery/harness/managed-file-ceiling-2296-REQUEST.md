@@ -1,6 +1,6 @@
 # MANAGED-FILE-CEILING-2296 受管文件上限步进记录（mini·快速链·沿 managed-file-ceiling-2288 先例形）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（码面已落·门按顺序亲跑·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual` 未成独立提交·随「只 commit 一次」史录保留于 §8/文末 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（码面已落·门按顺序亲跑·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual` 未成独立提交·随「只 commit 一次」史录保留于 §8/文末 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（本工作树亲算·1a3fb08b 届时值·不抄旧行号）
 
@@ -53,7 +53,7 @@
 
 ## §8 STOP
 
-- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头、本节、文末）。前值 `draft:awaiting_pre_exec_dual` 只作史录，未另成提交。post-prove 双审两独立外席待派。alone≠dual。Ban self-approve。终态翻面不在本记录内宣称完成。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头、本节、文末）。前值 `draft:awaiting_pre_exec_dual` 只作史录，未另成提交。post-prove 双审两独立外席待派。alone≠dual。Ban self-approve。终态翻面不在本记录内宣称完成。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - 卫生：est live=0。⛔push。⛔merge 主线。⛔force。⛔pull --rebase。不改产品代码、迁移、锁文件。
 
 ## §9 实测记录（2026-10-19·退出码取自 gate-ceiling2296-*.log·不预写）
@@ -64,7 +64,7 @@
 4. **lint**：`pnpm turbo lint` 输出 `Tasks: 12 successful, 12 total`、`Cached: 11 cached, 12 total`、`Time: 6.607s`。根任务 `//:lint` 为 cache miss，其余 11 个为 cache hit。`gate-ceiling2296-lint.log` 的 EXIT= **0**。问题汇总均为 0 errors：root `5242 problems (0 errors, 5242 warnings)`、api `1423 problems (0 errors, 1423 warnings)`、domain `115 problems (0 errors, 115 warnings)`、ai-runtime `628 problems (0 errors, 628 warnings)`、worker `959 problems (0 errors, 959 warnings)`、db `1042 problems (0 errors, 1042 warnings)`、web `601 problems (0 errors, 601 warnings)`。警告数未改。
 5. **自审**：两个 script 中 `2_288` 与 `2_289` 零命中，`2289` 零命中。`2288` 只出现在注记：policy `:110` `:111`（本记录置顶注记，说明 2288→2296，以及开工前扫描 2285、加上本记录后 2286，2286≤2288 所以先加 8 不是因为已经越限）与 `:112`（保留的 2280→2288 注记）；proof `:299`（置顶注记，说明这次是 2288→2296）与 `:302`（保留的 MANAGED-FILE-CEILING-2288 注记）。活代码与断言是 `MAX_FILES = 2_296`、`i < 2_296`、`scannedFiles, 2_296`、`ai-docs/f-2296.md`、`PTP_FILE_LIMIT:2297`。两处长度比较仍是 `paths.length > MAX_FILES`（`:338`）与 `listed.paths.length > MAX_FILES`（`:395`）。
 6. **改动面**：回填前 `git status --porcelain` 为 `M scripts/ai-docs/public-text-policy.mjs`、`M scripts/ai-docs/public-text-policy.proof.mjs`、`?? ai-docs/delivery/harness/managed-file-ceiling-2296-REQUEST.md`。无第四路径。
-7. **STOP**：Status 头、§8、文末三处同值 **`executed:awaiting_post_prove_dual`**。前值 `draft:awaiting_pre_exec_dual` 未另成提交。未 push。
+7. **STOP**：Status 头、§8、文末三处同值 **`executed:awaiting_post_prove_dual`**。前值 `draft:awaiting_pre_exec_dual` 未另成提交。未 push。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 

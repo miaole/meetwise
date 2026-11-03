@@ -1,6 +1,6 @@
 # UNSTUBE-ERASE 基线红诊断刀 REQUEST — 0195 append-only 触发器 vs 0096 投影 purge 写（诊断定谳+修法裁量定稿·迁移面 0208 认领〔rev 勘误原 0207·§9-rev+§9-rev3 双审定谳修订〕）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落码+门矩阵亲跑落卷·pre-exec 双审第三轮双 PASS 会签+协调方授权 EXEC 在案 §9-EXEC·待 post-prove 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。本值三处同值：Status 头+§8+卷尾注。
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落码+门矩阵亲跑落卷·pre-exec 双审第三轮双 PASS 会签+协调方授权 EXEC 在案 §9-EXEC·待 post-prove 双审两外席·**Ban self-approve**·**alone≠dual**·⛔push ⛔merge 主线·push/翻面权归协调方）。本值三处同值：Status 头+§8+卷尾注。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 > 战役 meetwise · 支线 `line/unstube-erase-diag` · 工作树 `meetwise-und` · 起草基线 @origin/feat/mysql-schema-skeleton=`c4bd89132`（派单下界「fetch 后 origin tip≥`c4bd89132` 或更新」：届树 origin tip=`c4bd89132` 等号成立亲证；本 turn `git fetch` origin 访问受限零新波·如实登记沿 42cf5f121 先例形；`origin/main 112e6d26f` 为基线祖先 `git merge-base --is-ancestor` EXIT=0 亲证）。主仓建支线：`git worktree add ../meetwise-und -b line/unstube-erase-diag c4bd89132`。
 > 立项出处（不自建 SSOT 行——行翻面权归协调方）：①协调方派单 brief「UNSTUBE-ERASE 基线红诊断刀」（DB-HOTSPOT EXEC 席+post 席1/2 三席独立复现 `pnpm unstube-erase:prove` EXIT=1·`failure_class=privacy_contract_failed pass_count=41 fail_count=0`·崩点 `interview_event_immutable`·如实升级在案：`ai-docs/delivery/execution-master-checklist.md:3637` + `ai-docs/delivery/harness/db-hotspot-REQUEST.md:191` §⑥）；②本席=第四席独立复核（链文件亲读+考古+PG16 触发器语义实证）。
@@ -103,7 +103,7 @@
 
 ## §8 STOP（开工条款+待裁决项）
 
-- **STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）。〔pre-exec 双审第三轮双 PASS 会签→协调方授权 EXEC 已行使·EXEC 面 §9-EXEC 落卷·2026-10-18〕
+- **STOP=`executed:awaiting_post_prove_dual`**（三处同值：Status 头+本节+卷尾注）。〔pre-exec 双审第三轮双 PASS 会签→协调方授权 EXEC 已行使·EXEC 面 §9-EXEC 落卷·2026-10-18〕【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - post-prove 双审两外席审面建议优先序：§1.2 释放臂四元谓词逐字对 0208 文本与 0096 实况复核（双审主战场）→ §1.3 否决七件无翻案 → §2 门1 翻绿指纹（46/46·failure_class=none·`applied=207 skipped=0`）+门5 邻面回执（`cleanup failed` 噪声原地/sinks 翻绿/db-acl P3-6 转绿/uc052·db-int-fk 附记回执）。
 - 裁决项一（不阻 EXEC）：5b P-3 §1 遗留「清理句 TRUNCATE 载体」后继处置是否另立刀（本刀 §1.3-5 已述不利面）。
 - ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase（push/翻面权归协调方）。

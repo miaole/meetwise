@@ -1,6 +1,6 @@
 # PERFLOAD-ENV-FIX REQUEST — uc018:perf-load:prove 恒红环境根因刀（oxc-resolver linux 原生绑定缺装·安装面声明式修·恰 1 配置文件·perfload-env-fix 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（docs-only REQUEST · EXEC 已落码+post 双审会签 PASS·本行 P2-A 漏翻 nail 席顺带修·⛔push）
+**Status**: **`executed:awaiting_post_prove_dual`**（docs-only REQUEST · EXEC 已落码+post 双审会签 PASS·本行 P2-A 漏翻 nail 席顺带修·⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：perfload-env-fix 起草席（诊断+起草双责·协调方派·工作树本席亲立）。
 **基线**：`feat/mysql-schema-skeleton` @ `156dd977`（PERF-PREP nail 收官 SSOT commit·本树亲证：docs:check **2122**≤cap 2128 EXIT=0·migrate 链 **202** 头 `0202_interview_event_kind_score_card_written.sql` `ls` 亲数）· 分支 `line/perfload-env-fix`（建前 `git branch --list "line/perfload*"` 零命中·本席 `git worktree add ../meetwise-ple -b line/perfload-env-fix feat/mysql-schema-skeleton` 亲立·fetch 后以 origin tip `156dd977` 为基·HEAD 落点亲证）· 工作树 `meetwise-ple`（仓根同级）。
@@ -163,7 +163,7 @@
 - **门 3 臂数偏差登记**：题面 46→实测 **33 PASS/0 FAIL/EXIT=0**——proof 本体在基线内 `5b1208a1`（5E 二十面测试改形·`156dd977` 祖先亲证）已改形至 33 `A()` 臂·起草卷照抄旧 SSOT 行未复测·门本体绿·钉漂移如实上报。
 - **卫生**：markers 五类零命中（9 件+收据复扫）·tracked 恰 2 路径（`pnpm-workspace.yaml`+本卷·typecheck 触发 `tsconfig.tsbuildinfo` 副产已还原如实记）·零 lockfile 改·零迁移·proof/runner/caps/assert 产品面零触·共享 SSOT 零触·est live=0·actualSpendCny=null。
 - **pins 十二值零翻**（承 §5 原文·翻绿外推禁令沿承·PERF/LOAD stays local partial）。
-- **门 8 红转绿（cap sanction 落值·2026-10-15 协调方 sanction 后原地续跑收尾）**：协调方 sanction **cap 2128→2136**（+8·沿 +8 先例取 2136 头空·事由=件③ TRACKED_DIR 7 件机检产出首现+merge 漂 1+收据 1=2132）→ `public-text-policy.mjs` `MAX_FILES` 2_128→**2_136**+cap 史 sanction 注记（perf-load 机检产出 TRACKED_DIR 首现·协调方 sanction）落卷；`public-text-policy.proof.mjs` 越限臂 fabricated 数随 cap 联动 2_128→2_136+超限错误串 2129→**2137**+sanction 注记随卷。**proof 复跑 EXIT=0**（`static_preflight_valid: selected=12/12`·cap 数字行为断言 2136/超限 2137 全行使）；**`node scripts/ai-docs/check-docs.mjs` EXIT=0·`scanned 2132 managed worktree files`≤2136**——§8 停止条件「验收红不可修」门 8 红消解·十门终态=**10 绿**（门 3 臂数 33 偏差登记保持如实记·门 2 取道记保持）。本收尾零产品码零 proof 语义变更（cap 数字预算联动·语义不变强度不减）·est live=0·STOP 维持 **`executed:awaiting_post_prove_dual`**（post 双审归协调方派）。
+- **门 8 红转绿（cap sanction 落值·2026-10-15 协调方 sanction 后原地续跑收尾）**：协调方 sanction **cap 2128→2136**（+8·沿 +8 先例取 2136 头空·事由=件③ TRACKED_DIR 7 件机检产出首现+merge 漂 1+收据 1=2132）→ `public-text-policy.mjs` `MAX_FILES` 2_128→**2_136**+cap 史 sanction 注记（perf-load 机检产出 TRACKED_DIR 首现·协调方 sanction）落卷；`public-text-policy.proof.mjs` 越限臂 fabricated 数随 cap 联动 2_128→2_136+超限错误串 2129→**2137**+sanction 注记随卷。**proof 复跑 EXIT=0**（`static_preflight_valid: selected=12/12`·cap 数字行为断言 2136/超限 2137 全行使）；**`node scripts/ai-docs/check-docs.mjs` EXIT=0·`scanned 2132 managed worktree files`≤2136**——§8 停止条件「验收红不可修」门 8 红消解·十门终态=**10 绿**（门 3 臂数 33 偏差登记保持如实记·门 2 取道记保持）。本收尾零产品码零 proof 语义变更（cap 数字预算联动·语义不变强度不减）·est live=0·STOP 维持 **`executed:awaiting_post_prove_dual`**（post 双审归协调方派）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 

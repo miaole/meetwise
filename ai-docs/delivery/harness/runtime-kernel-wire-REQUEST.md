@@ -1,6 +1,6 @@
 # RUNTIME-KERNEL-WIRE REQUEST — 运行内核接线修复刀（CI verify step 97 新首曝红·proof 由隔离 runner 预迁移而 CI 步指 raw 别名=结构性接线缺·恰 1 workflow 文件恰 1 行 run 值翻·runtime-kernel-wire 战役·起草落卷即停）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-16·pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b+协调方 EXEC 授权·merge `80a22fc8` 并 12b21412+恰 1 行修法+门矩阵全绿（§9）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 席落卷 2026-10-16·pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b+协调方 EXEC 授权·merge `80a22fc8` 并 12b21412+恰 1 行修法+门矩阵全绿（§9）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · est live=0 · ⛔push⛔merge 主线）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：RUNTIME-KERNEL-WIRE 诊断+起草席（诊断+起草双责·协调方派单·qpl nail 席 CI 逐帧定性=「结构性接线缺·rag-cache 同族」）。
 **基线**：`feat/mysql-schema-skeleton` @ `fc64c7c9`（qpl nail SSOT commit·fetch 后 origin tip 亲证=任务书下界恰等·`git log --oneline -1 origin/feat/mysql-schema-skeleton`=`fc64c7c9` 双值恒等）· 分支 `line/runtime-kernel-wire`（本起草席 `git worktree add ../meetwise-rkw -b line/runtime-kernel-wire fc64c7c9` 亲立·HEAD 落 `fc64c7c9` 亲证）· 工作树 `meetwise-rkw`（仓根同级）。
@@ -118,7 +118,7 @@
 5. **越界需要**：实测产生迁移/DDL/码面触面需求（§0.3/§3）→停上报走认领规则。
 6. **docs:check 超限**：落卷后 >2176→停上报（基线 2162·本卷 +1=2163·余量 13）。
 
-**STOP=`executed:awaiting_post_prove_dual`**（EXEC 席终态 2026-10-16·原起草终态 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·nail/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）。
+**STOP=`executed:awaiting_post_prove_dual`**（EXEC 席终态 2026-10-16·原起草终态 `draft:awaiting_pre_exec_dual` 经 pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b+协调方 EXEC 授权后推进·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·nail/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §9 EXEC 记录（2026-10-16·EXEC 席·pre-exec 双审会签 PASS 席1 agent_6b5f6604+席2 agent_3e3ab89b·协调方授权 EXEC）
 
@@ -157,8 +157,8 @@
 2. **P2-2 dbacl2 pin 引注新鲜度（EXEC 日复核即清）**：dbacl2 tip `4ace2d5f`→**`08e0590c`**（rev2 勘误落卷 docs-only +14/−0 零触 ci.yml·`git log ccl/line/dbacl2-ci-wire -1 -- ci.yml` last-touch=`2d1cc66b` 已在主线=对本刀行面零基线后新增提交·§8-1 未触）；且 `08e0590c` 非 `12b21412` 祖亲（dbacl2 未并主线）→§0.0 预置双口径按届时树实测取 **「rkw 先并」臂=行锚 :331 维持/steps=102 维持**。残枝 `origin/line/db-hygiene` last-touch ci.yml 仍=`1ab83bd8`@2026-10-08 照录零变。
 3. **P2-3 proof :5 头注陈旧登记不修**：修后 CI 语境 proof.ts :5「pnpm runtime:prove (需 pnpm db:up)」陈旧化（CI 步改指 isolated 形=容器自持+预迁移零需 db:up·raw 形本地门值仍真）——沿 Ban 列表「Ban 触 proof 断言面」零字节不修（`6db1edea` 恒等亲证）·登记归协调方/后继刀酌处。
 
-**STOP=`executed:awaiting_post_prove_dual`**（§9 落卷即停·post-prove 双审两独立外席待派·nail/批表/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）
+**STOP=`executed:awaiting_post_prove_dual`**（§9 落卷即停·post-prove 双审两独立外席待派·nail/批表/行翻面权归协调方·本席⛔push ⛔merge 主线 ⛔force push 未用）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 
-*EXEC 落卷 2026-10-16·序1 merge `80a22fc8` --no-ff 并 origin/feat/mysql-schema-skeleton@`12b21412`（=ISO+REMAP nail≥下界恰等·零冲突 6 files +419/−1·merge-base=fc64c7c9 亲证）·序2 §0 全量重 pin（十 blob 锚恒等+LEDGER `d10bcf28`→`e484c6b7` 漂移改锚=nail SSOT 四行携入·迁移链 204/0204 恒等·步骤基线口径=102·行锚 :331 维持=dbacl2 未并主线实证）·序3 EXEC 修法恰 1 行（ci.yml :331 run 值翻·逐字节沿 §1-修法件①）·序4 门矩阵全绿（改前基线 docs:check 2165+主门 `pnpm runtime:isolated:prove` 恰 1 复跑 CAPTURE_EXIT=0·applied=204 skipped=0·四链 ✓·`^PASS` 83/`^FAIL` 0·wall-clock 11s+邻面 claim-join CAPTURE_EXIT=0+js-yaml 形模拟 steps=102 恒等步名面 diff=0 run 值 diff 恰 1@idx95+markers 五类零命中+diff 恰 2 tracked+卫生恒等）·P2 三件落点在 §9 字段⑦（时长对照 Δ≈+9s 低于 band 下沿如实登记/dbacl2 新鲜度复核即清 tip `08e0590c` 零触本刀行面/proof :5 头注陈旧登记不修）·收据 `ai-docs/delivery/receipts/runtime-kernel-wire/00-exec.md` untracked 不入库·STOP=`executed:awaiting_post_prove_dual`·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*
+*EXEC 落卷 2026-10-16·序1 merge `80a22fc8` --no-ff 并 origin/feat/mysql-schema-skeleton@`12b21412`（=ISO+REMAP nail≥下界恰等·零冲突 6 files +419/−1·merge-base=fc64c7c9 亲证）·序2 §0 全量重 pin（十 blob 锚恒等+LEDGER `d10bcf28`→`e484c6b7` 漂移改锚=nail SSOT 四行携入·迁移链 204/0204 恒等·步骤基线口径=102·行锚 :331 维持=dbacl2 未并主线实证）·序3 EXEC 修法恰 1 行（ci.yml :331 run 值翻·逐字节沿 §1-修法件①）·序4 门矩阵全绿（改前基线 docs:check 2165+主门 `pnpm runtime:isolated:prove` 恰 1 复跑 CAPTURE_EXIT=0·applied=204 skipped=0·四链 ✓·`^PASS` 83/`^FAIL` 0·wall-clock 11s+邻面 claim-join CAPTURE_EXIT=0+js-yaml 形模拟 steps=102 恒等步名面 diff=0 run 值 diff 恰 1@idx95+markers 五类零命中+diff 恰 2 tracked+卫生恒等）·P2 三件落点在 §9 字段⑦（时长对照 Δ≈+9s 低于 band 下沿如实登记/dbacl2 新鲜度复核即清 tip `08e0590c` 零触本刀行面/proof :5 头注陈旧登记不修）·收据 `ai-docs/delivery/receipts/runtime-kernel-wire/00-exec.md` untracked 不入库·STOP=`executed:awaiting_post_prove_dual`·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push 未用*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】

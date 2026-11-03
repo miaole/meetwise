@@ -1,6 +1,6 @@
 # NIGHTLY-RECALL-FIX 夜间召回门断链修复刀（e2e skip 猎杀席 P1 新缺陷·快速链诊断+起草+EXEC 一体·量级微·起草 REQUEST · 落卷即停）
 
-**Status**: **`executed:awaiting_post`**（EXEC 落卷 §9·rev 落卷 §9-rev 待席2 复核修订块·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录·⛔push）
+**Status**: **`executed:awaiting_post`**（EXEC 落卷 §9·rev 落卷 §9-rev 待席2 复核修订块·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录·⛔push）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 **席位**：NIGHTLY-RECALL-FIX 夜间召回门断链修复刀快速链席（诊断+起草+EXEC 一体·量级微·e2e 猎杀席 P1 新缺陷承单·⛔push·⛔merge主线）。
 **基线**：`feat/mysql-schema-skeleton` @ `656fc7be`（本席亲 fetch 亲证 origin tip=`656fc7be`=trace-service-wire nail 波链顶·派单下界「origin tip≥WSS nail 后 tip」以届时链顶满足·docs:check 2210 本席本树亲跑 EXIT=0）· 分支 `line/nightly-recall-fix`（本席 `git worktree add ../meetwise-nrf -b line/nightly-recall-fix origin/feat/mysql-schema-skeleton` 亲立·零自造 merge 节点·⛔pull --rebase 未用）· 工作树 `meetwise-nrf`（仓根同级）。
 **立项出处（不自建 SSOT 行——行翻面权归协调方）**：①协调方派单 brief（2026-10-16·e2e skip 猎杀席 P1 新缺陷·快速链 40 分钟·诊断+起草+EXEC 一体）；②brief 缺陷原文源级亲证成立见 §1（nightly.yml:55 调 `pnpm recall:eval`·root package.json 已无该 script=幽灵脚本·`:49` continue-on-error 洗绿=结构性 skip-as-pass）；③修向承猎杀席建议=改接 `pnpm qbank:retrieval:eval`（smoke/qbank-retrieval-eval.ts fail-closed 真 embed 后继）。
@@ -84,7 +84,7 @@
 
 ## §6 est live=0（起草 turn）+ EXEC 门预申明
 
-起草与 EXEC 全程零模型外呼零 Key 加载零生产操作（纯本地 node/actionlint/pnpm 元门）。EXEC 预申明：件a-d 落位→§2 十门逐条亲跑 EXIT 入 §9→STOP 翻 `executed:awaiting_post`。
+起草与 EXEC 全程零模型外呼零 Key 加载零生产操作（纯本地 node/actionlint/pnpm 元门）。EXEC 预申明：件a-d 落位→§2 十门逐条亲跑 EXIT 入 §9→STOP 翻 `executed:awaiting_post`。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
 ## §7 markers=0（卫生声明）
 
@@ -92,7 +92,7 @@
 
 ## §8 STOP（开工条款 + 待裁决项）
 
-**STOP · `executed:awaiting_post`**（EXEC 已落卷=§9·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录）。开工三条款：①本席自审（§0 锚亲证齐全+四件修法与四点派单修向逐条对表+门矩阵可机检）PASS 落记；②快速链一体授权=派单 brief 明示「诊断+起草+EXEC 一体」（§席位）；③EXEC 不得改 §1-修法四件契约与 §5 Ban/pins（改则回炉）——三条款兑现录于 §9。停止条件：**现场漂移**（§0.1 任一锚 blob 漂移）→停重 pin；**门红不可修**（§2 任一门红且根因不在本刀交付面）→停如实登记；**越界需要**（任何 §3 面诉求）→停另裁。
+**STOP · `executed:awaiting_post`**（EXEC 已落卷=§9·post 审归协调方派单·Ban self-approve·前值 `draft:awaiting_exec`=史录）。开工三条款：①本席自审（§0 锚亲证齐全+四件修法与四点派单修向逐条对表+门矩阵可机检）PASS 落记；②快速链一体授权=派单 brief 明示「诊断+起草+EXEC 一体」（§席位）；③EXEC 不得改 §1-修法四件契约与 §5 Ban/pins（改则回炉）——三条款兑现录于 §9。停止条件：**现场漂移**（§0.1 任一锚 blob 漂移）→停重 pin；**门红不可修**（§2 任一门红且根因不在本刀交付面）→停如实登记；**越界需要**（任何 §3 面诉求）→停另裁。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
 **待裁决项**：
 - ①**env 接线改 `DASHSCOPE_EMBED_API_KEY`**（§1-件a）：推荐=改（后继唯一真依赖·不改=新断链形 §1-4）vs 维持旧双 key 名（仅守卫形不变·脚本恒红）。
@@ -101,9 +101,9 @@
 
 ---
 
-*nightly-recall-fix REQUEST · 2026-10-16 起草 · **STOP=`executed:awaiting_post`（EXEC 落卷=§9+rev 落卷=§9-rev 待席2 复核修订块·post 审归协调方派单·前值 `draft:awaiting_exec`=史录）** · 起草 base=`feat/mysql-schema-skeleton` @`656fc7be`（本席亲 fetch·origin tip 链顶亲证·⛔pull --rebase 未用）· 分支 `line/nightly-recall-fix` · 工作树 `meetwise-nrf`（本席立·branch/worktree/同名卷三查 §0.2-5）· 缺陷=nightly.yml:55 幽灵 `pnpm recall:eval`（e621235b 摘除未跟改）被 `:49` continue-on-error 洗绿=夜间召回金标门结构性 skip-as-pass+`:54`/`:64` skip 注解缺失+`:33` 段注释失实 · 修法四件=改接 qbank:retrieval:eval（诚实 env 接线 DASHSCOPE_EMBED_API_KEY）+双 `::warning::`+段注释诚实形+新静态门 ≤30 行（改前 missing=1 机检·改后 0）· 零产品码零迁移 · est live=0 · markers=0 · ⛔push · STOP*
+*nightly-recall-fix REQUEST · 2026-10-16 起草 · **STOP=`executed:awaiting_post`（EXEC 落卷=§9+rev 落卷=§9-rev 待席2 复核修订块·post 审归协调方派单·前值 `draft:awaiting_exec`=史录）** · 起草 base=`feat/mysql-schema-skeleton` @`656fc7be`（本席亲 fetch·origin tip 链顶亲证·⛔pull --rebase 未用）· 分支 `line/nightly-recall-fix` · 工作树 `meetwise-nrf`（本席立·branch/worktree/同名卷三查 §0.2-5）· 缺陷=nightly.yml:55 幽灵 `pnpm recall:eval`（e621235b 摘除未跟改）被 `:49` continue-on-error 洗绿=夜间召回金标门结构性 skip-as-pass+`:54`/`:64` skip 注解缺失+`:33` 段注释失实 · 修法四件=改接 qbank:retrieval:eval（诚实 env 接线 DASHSCOPE_EMBED_API_KEY）+双 `::warning::`+段注释诚实形+新静态门 ≤30 行（改前 missing=1 机检·改后 0）· 零产品码零迁移 · est live=0 · markers=0 · ⛔push · STOP*【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
-## §9 EXEC 记录（EXEC 席落卷 2026-10-16·快速链一体席·STOP→`executed:awaiting_post`）
+## §9 EXEC 记录（EXEC 席落卷 2026-10-16·快速链一体席·STOP→`executed:awaiting_post`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
 **授权链**：起草落卷 `5c9e34a7`（STOP=`draft:awaiting_exec` 史录）→ 本席自审 PASS（§0 十锚亲证在卷+四件修法对派单四修向逐条对表恰等+§2 十门全可机检）→ 快速链一体授权=派单 brief「诊断+起草+EXEC 一体」明示 → EXEC 本卷（零 merge·基线即建树 `656fc7be`·⛔merge主线 ⛔pull --rebase 未用）。
 
@@ -145,7 +145,7 @@
 
 **⑨ 后继登记（归协调方·非本刀面）**：①GH secrets 配 `DASHSCOPE_EMBED_API_KEY`（§8-③·不配则 recall 臂每夜=skip+`::warning::` 注解诚实形·**配 secret 仅解除 key 缺失臂·CI 真跑还须 .env 占位——本刀 rev touch .env 已消账·§9-rev P1-1**）；②recall 臂硬门化（摘 continue-on-error）须以 secret 在配为前提·归后刀；③并线（`line/nightly-recall-fix`→主线）归协调方 nail 波（§9-② 零冲突预期）；④LEDGER/checklist 行翻面权归协调方（本刀不宣称关闭）；⑤**第二断链消账（§9-rev P1-1）**+同型面观测登记：顶层裸 `readFileSync(.env)` 全 smoke 共 9 处（含 `model-live-smoke.ts:11`=夜间**硬门臂**·配 `MODEL_API_KEY` 后 CI 同型 ENOENT 即真红无洗绿）——归后继观测刀（本刀 Ban 借机修·零触）。
 
-## §9-rev 修订记录（2026-10-16·席2 post FAIL P1×2+P2×2→rev 回路落卷·快速链席·STOP 维持 `executed:awaiting_post` 待席2 复核修订块）
+## §9-rev 修订记录（2026-10-16·席2 post FAIL P1×2+P2×2→rev 回路落卷·快速链席·STOP 维持 `executed:awaiting_post` 待席2 复核修订块）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】
 
 **rev 触发**：席2 post 审 FAIL 定谳四项（P1-1 第二断链/P1-2 诊断漏推导/P2-4 行号/P2-5 docs 口径）→rev 回路（量级微·20 分钟形）→本席亲证后落卷。rev 面=nightly.yml recall 步 +1 行+本卷四处勘正/补登·零产品码零迁移。
 
@@ -165,4 +165,4 @@
 | 5 | docs:check 届树 | 2212 ≤ 2216 余 4（rev 零新件·文件计数不变） | 0 | 绿 |
 | 6 | diff 面 | 恰 2 tracked=nightly.yml+本卷 REQUEST·零其他 | 0 | 绿 |
 
-**rev 结论**：P1-1/P1-2/P2-4/P2-5 四项全落卷·门复行使全绿·STOP 维持 `executed:awaiting_post`（rev 后待席2 复核修订块·Ban self-approve）。
+**rev 结论**：P1-1/P1-2/P2-4/P2-5 四项全落卷·门复行使全绿·STOP 维持 `executed:awaiting_post`（rev 后待席2 复核修订块·Ban self-approve）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post` 史录零洗·有效态翻面→`closed`】

@@ -1,4 +1,4 @@
-# PGP-KEY-PARAM REQUEST — pgp_sym_encrypt 密钥移出 SQL 参数面起草刀（AUTHZ-HARDEN 残子刀·0108 SD 面最小改·两件一卷·rev 席复核通过 · **STOP=`executed:awaiting_post_prove_dual`**·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 翻面→`draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS→2026-10-19 EXEC 落码翻面·见 §9-EXEC）
+# PGP-KEY-PARAM REQUEST — pgp_sym_encrypt 密钥移出 SQL 参数面起草刀（AUTHZ-HARDEN 残子刀·0108 SD 面最小改·两件一卷·rev 席复核通过 · **STOP=`executed:awaiting_post_prove_dual`**·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 翻面→`draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS→2026-10-19 EXEC 落码翻面·见 §9-EXEC）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 > 战役 meetwise · 支线 `line/pgp-key-param-draft` · 工作树 `meetwise-pgp` · 起草基线 @origin/feat/mysql-schema-skeleton=`4c2ea4c9f`（派单下界「fetch 后 origin tip≥4c2ea4c9f」以等号成立亲证：`git merge-base --is-ancestor 4c2ea4c9f origin/feat/mysql-schema-skeleton` PASS+`git log -1 origin/feat/mysql-schema-skeleton` 恰该 SHA·2026-10-19 实测）· ⛔push ⛔merge 主线（push/翻面/EXEC/SSOT 行权全归协调方）。**STOP=`executed:awaiting_post_prove_dual`**（2026-10-19 EXEC 席落码翻面·前值 `draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS 史录保留·三处同值：本头注+标题+§8·EXEC 记录见 §9-EXEC）。
 > 主仓 worktree 建支线：`git worktree add ../meetwise-pgp -b line/pgp-key-param-draft origin/feat/mysql-schema-skeleton`。
@@ -95,7 +95,7 @@
 
 ## §8 治理（STOP 协议·起草席权限边界）
 
-- 本卷 **STOP=`executed:awaiting_post_prove_dual`**（三处同值：标题+头注+本节·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 席独立外席六项复核通过翻面·见 §9-rev→`draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS→2026-10-19 EXEC 席落码翻面·见 §9-EXEC）——rev 席已行使翻面臂（`awaiting_rev`→`awaiting_pre_exec_dual`）；EXEC 席已按协调方授权落码（前值 `draft:awaiting_pre_exec_dual` 系 pre-exec 双审第二轮双 PASS 后协调方放行）；翻面/SSOT 行/并线/push 权仍归协调方（⛔push ⛔merge 主线未行使）。
+- 本卷 **STOP=`executed:awaiting_post_prove_dual`**（三处同值：标题+头注+本节·前值史录：`draft:awaiting_rev` 起草席落卷→2026-10-19 rev 席独立外席六项复核通过翻面·见 §9-rev→`draft:awaiting_pre_exec_dual` pre-exec 双审第二轮双 PASS→2026-10-19 EXEC 席落码翻面·见 §9-EXEC）——rev 席已行使翻面臂（`awaiting_rev`→`awaiting_pre_exec_dual`）；EXEC 席已按协调方授权落码（前值 `draft:awaiting_pre_exec_dual` 系 pre-exec 双审第二轮双 PASS 后协调方放行）；翻面/SSOT 行/并线/push 权仍归协调方（⛔push ⛔merge 主线未行使）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - rev 审点建议（不约束）：①§1.3-② 处方刷新（D6「改应用侧加密」→set_config 注入）裁决追认；②GUC 名 `app.conversation_event_enc_key` 两段形与 is_local=true 语义；③0210 DROP→CREATE 顺序与授予同形重申面；④§9 残余披露充分性（set_config 语句自身参数在 log_statement=all 下可达·是否上升为独立刀）。
 - 前瞻耦合注记（处置归协调方/后继刀）：B 组三链密钥仍居数据语句绑定参数表（resume 链生产在位=同族残余最重处）；`log_parameter_max_length=0` role pin 为一次性低成本互补候选（§1.3-④）；CTX 链真实启用前本卷修法+门 5 EXEC 义务为**前置门槛**（D6「启用前处理」兑现路径）。
 

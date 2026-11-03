@@ -1,4 +1,4 @@
-# WORKER-HANG-GUARD REQUEST — worker 单侧停摆自愈刀（drain-loop tick 级 watchdog 甲案 · G7W 新红诊断席修复建议②产品码独立刀 · 诊断+起草席落卷 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录]）
+# WORKER-HANG-GUARD REQUEST — worker 单侧停摆自愈刀（drain-loop tick 级 watchdog 甲案 · G7W 新红诊断席修复建议②产品码独立刀 · 诊断+起草席落卷 · **STOP=`executed:awaiting_post_prove_dual`**[EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录]）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 > 战役 meetwise · 支线 `line/worker-hang-guard` · 工作树 `meetwise-whg` · 起草基线 @origin/feat/mysql-schema-skeleton=`d5dc0726`（派单下界「fetch 后 origin tip≥最新」以等号成立亲证=fetch 后 `origin/feat/mysql-schema-skeleton` tip·`origin/main`=`112e6d26` 为其祖先亲证 `git merge-base --is-ancestor` EXIT=0）· ⛔push ⛔merge 主线（push/翻面权归协调方）。主仓 worktree 建支线：`git worktree add ../meetwise-whg -b line/worker-hang-guard origin/feat/mysql-schema-skeleton`。
 
@@ -88,7 +88,7 @@
 ## §8 est live / 预算 + STOP
 
 - est live=0（watchdog 纯调度面+proof 注入形·EXEC 期全门=本地 tsx/turbo/eslint+静态源读·零模型外呼零 DB 外呼零容器零 Key 加载零 secrets 读用零生产操作）· 0 Key 值 · `actualSpendCny=null` · 零迁移 · 零模型外呼。
-- **STOP=`executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值翻面=本 REQUEST §8+LEDGER 管线「worker-hang-guard 起草」行+execution-master-checklist「Line worker-hang-guard」段·post-prove 双审两独立外席待派·alone≠dual）**。
+- **STOP=`executed:awaiting_post_prove_dual`（EXEC 席翻面 2026-10-16·前值 `draft:awaiting_pre_exec_dual`=起草+rev 史录·三处同值翻面=本 REQUEST §8+LEDGER 管线「worker-hang-guard 起草」行+execution-master-checklist「Line worker-hang-guard」段·post-prove 双审两独立外席待派·alone≠dual）**。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - **波序注记[双审席1 R3·EXEC 落]（append 形·上文零洗）**：本刀与 **G7W-DIAG-NEEDLES 串行排程**——`interview-consumer.ts`/`interview-jobs.ts` 系两刀触面交集（本刀 §0.1 零字节 Ban 锚·彼刀诊断针面）·**平行触改必熔断**；并入顺序归协调方裁，后并线刀 §0 对届时 tip 再重 pin（blob 漂移语义不变只更行号·语义变回炉）。
 - 开工条款：pre-exec 双审 BOTH PASS 后 EXEC 席按 §0 对届时 tip 重 pin 开工；若基线漂移致 §0.2 行号位移，结论不变则只更行号并如实登记。
 - 停止条件：①重 pin 时 blob 漂移且语义变（→回炉起草）②门 1/门 2 基线臂账被他刀改动（→熔断呈报·禁 retry-to-green）③门 3 邻面任一非恰等（→熔断呈报）。
@@ -147,9 +147,9 @@ watchdog **每次触发=弃当前 tick promise→+1 在飞僵尸**（DB 面 15s 
 
 **STOP=`draft:awaiting_pre_exec_dual` 三处同值维持**（本 REQUEST §8+LEDGER 管线「worker-hang-guard 起草」行+execution-master-checklist「Line worker-hang-guard」段·零改）。rev 落卷后待**窄域复审确认**五条修订落点（§9.1-§9.5）→**重派 pre-exec 双审两席**；开工权归协调方·⛔push ⛔merge 主线 ⛔改码面（本 rev 恰 1 doc 零码面）。
 
-### §9.8 EXEC 记录（EXEC 席落卷 2026-10-16·七字段+双审落卷义务清单逐项落点·STOP→`executed:awaiting_post_prove_dual`）
+### §9.8 EXEC 记录（EXEC 席落卷 2026-10-16·七字段+双审落卷义务清单逐项落点·STOP→`executed:awaiting_post_prove_dual`）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
-**授权链**：起草落卷 `c3f1708e`→rev 落卷 `a479fdc2`（席1 FAIL P1×1 修法算术回路五条修订）→pre-exec 双审**重派会签 PASS×2**（席1 `agent_32506ecd`+席2 `agent_5b8c541d`·「双审会签完成·可授权 EXEC」·落卷义务清单八件 R1-R4+P2-1/P2-2/P3-1/P3-2 随 EXEC 全落）→协调方授权 EXEC（派单令·STOP→executed:awaiting_post_prove_dual）→EXEC 本卷（merge `4c20f12b` --no-ff 并 `origin/feat/mysql-schema-skeleton@5c8e122c`·派单下界「届时 tip≥5c8e122c」等号成立亲证·merge-base `d5dc0726`=起草基线亲证·SSOT 两 docs 同位 append 冲突沿并集解先例=checklist+LEDGER 双段双保·冲突标记行首全树零残留·⛔pull --rebase 未用）。
+**授权链**：起草落卷 `c3f1708e`→rev 落卷 `a479fdc2`（席1 FAIL P1×1 修法算术回路五条修订）→pre-exec 双审**重派会签 PASS×2**（席1 `agent_32506ecd`+席2 `agent_5b8c541d`·「双审会签完成·可授权 EXEC」·落卷义务清单八件 R1-R4+P2-1/P2-2/P3-1/P3-2 随 EXEC 全落）→协调方授权 EXEC（派单令·STOP→executed:awaiting_post_prove_dual）→EXEC 本卷（merge `4c20f12b` --no-ff 并 `origin/feat/mysql-schema-skeleton@5c8e122c`·派单下界「届时 tip≥5c8e122c」等号成立亲证·merge-base `d5dc0726`=起草基线亲证·SSOT 两 docs 同位 append 冲突沿并集解先例=checklist+LEDGER 双段双保·冲突标记行首全树零残留·⛔pull --rebase 未用）。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **① 门矩阵十二门全表**（并线树 `4c20f12b` 基·交付 commit 前亲跑）：
 

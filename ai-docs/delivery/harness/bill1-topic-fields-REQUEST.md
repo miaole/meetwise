@@ -1,6 +1,6 @@
 # BILL1-TOPIC-FIELDS REQUEST（billing 战役 P1 起草刀 · 0170 题目表补话题 + 0171 question_usage_ledger 消耗归集 + clarify_cause 透传 + usage_missing 打标行 ledger 衔接 · docs-only 落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。
+**Status**: **`draft:awaiting_pre_exec_dual`**（起草席写完即停零码动·本刀恰 1 .md·⛔push·待预执行双审两外席·**Ban self-approve** · **alone≠dual** · **Dual PASS ≠ 开工**）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **席位**：billing 战役 P1 起草席（billing-redesign 蓝本 rev1 nail 收官（merge `925b6cfc`·LEDGER 刀位图行刷新 `09768397`）后实施刀首卷·INDEX 第七节定谳「P1 字段迁移（0170/0171 纯加列）=可立即并行面」承接·协调方常设 loop）。
 **基线**：`feat/mysql-schema-skeleton` @ `09768397`（`09768397dbe19b07715988a70498f3f4273245de`·主线 tip·`git log -1` 实测·billing-rev nail 后 SSOT commit·零码面——开工首测 `4978f729` 后主线前移三 commit 全 docs·`git diff --name-only 4978f729..HEAD` 排除 ai-docs 后为空亲证·**基线按落卷时 tip 重钉**·§0.2-1）。分支 `line/bill1-topic-fields`·工作树 `meetwise-bill1`（`git worktree add ../meetwise-bill1 -b line/bill1-topic-fields` 本起草席已立·建前 `git worktree list` 无 bill1 树+`git branch --list "*bill1*"` 空输出+`rg -l "bill1-topic-fields" ai-docs/` 零命中三查亲证·HEAD 落 `09768397` 亲证）。
@@ -119,7 +119,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §8 STOP（开工三条款）
 
-**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（billing-redesign rev1+INDEX 第七/十二/十三/十四节系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 六条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 六条漂移全系登记性·蓝本 rev1 锚与现码 ±1 行内吻合）。
+**STOP · `draft:awaiting_pre_exec_dual` · alone≠dual。** 起草席写完即停零码动（本刀恰 1 .md）。开工三条款：①预执行双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（billing-redesign rev1+INDEX 第七/十二/十三/十四节系登记出处·本卷非授权本身）；③EXEC 立项**不得改 §1 修法清单与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin——含 §0.2 六条漂移登记如实在案·主线 tip 再前移照 §0.2-1 协议重钉）。**alone≠dual**（单席自验不计双审）· **Dual PASS ≠ 开工**（PASS 只过审·开工须协调方授权）。**停止条件**：蓝本边界与现码冲突即停上报（现 tip 重 pin 已核对零冲突——§0.2 六条漂移全系登记性·蓝本 rev1 锚与现码 ±1 行内吻合）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·前值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 **待双审/EXEC 裁决项**：①**索引形状**（推荐=蓝本列序 partial `WHERE topic_id IS NOT NULL`——旧行为空不入索引·逐话题聚合/明细查询面覆盖 vs 蓝本草案全行索引 vs 影子期看查询面再定暂不加）；②**recordUsage 挂点**（推荐=worker 侧 adaptive-interview-service 三调用点（plan/ask/assess·键变量现成·失败臂同写）·ai-runtime 零触 vs invoke 关口可选 interview 上下文参数——后者动 ai-runtime 契约面·16 操作调用方全查）；③**clarify_cause 源字段**（推荐=assess 返回显式 cause 字段（蓝本 §6.1 原文）+图侧 deterministicNonAnswer 直派·两源合一流经 evaluate-answer `:50` 拆分 vs 消费面从 evidence 字符串派生（脆弱·不推荐））。
 
@@ -131,7 +131,7 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 
 ## §9 EXEC 附记（随翻·append 保史·§0-§8 原文零改·2026-10-12）
 
-**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
+**Status 翻面（append）**：**`executed:awaiting_post_prove_dual`**——EXEC 施工+随翻完成·全门绿·⛔push·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。【翻面 2026-11-03（STATUS-RECON 对账刀 B5 批·pre-exec 双审 r4 BOTH PASS+协调方授权 B5 行使·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形（B1-B4 同构·机械代理判据））: PR #108 squash-merged 112e6d26f（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ### §9-1 并线重 pin（§8-③ 照本节协议行使）
 

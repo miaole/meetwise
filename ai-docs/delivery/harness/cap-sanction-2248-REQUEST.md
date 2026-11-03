@@ -1,6 +1,6 @@
 # CAP-SANCTION-2248 文档帽步进刀 REQUEST（mini·快速链·沿 a75736a0/e9f99940/51abfe78/89074c5d/b7dde404 五先例形）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵七门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）
+**Status**: **`executed:awaiting_post_prove_dual`**（EXEC 已行使·门矩阵七门全绿·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve · 前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录保留于 §8/卷尾注 · est live=0 · ⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase）【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ## §0 锚（届时树亲算·7c602df0 届时值）
 
@@ -59,7 +59,7 @@
 ## §8 STOP（开工条款 + 翻面形）
 
 - **开工条款（sanction 直落形）**：①协调方派单 brief 即 sanction 授权（`2240→2248` 步进值+修法+门矩阵由 brief 颁定·在飞四刀并线算术=DB-HOTSPOT +3/TRACE-RECON +4/#101 供应链 +1/#185 打卡键 +1=2249 超·+8 先手）；②快速链诊断+起草+EXEC 一体席·沿五先例 sanction 刀单波直落先例·pre-exec 双审由 sanction 形制承载；③EXEC 不得越 §1-修法三件落点与 §1.3 否决面（越则红停回炉）。
-- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录保留零字洗）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS≠关闭·批表行/Status 终翻面权归协调方·本刀不宣称关闭。
+- **STOP = `executed:awaiting_post_prove_dual` 三处同值**（Status 头+本节+卷尾注·前值 `draft:awaiting_pre_exec_dual` @draft `42cf5f12` 史录保留零字洗）·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS≠关闭·批表行/Status 终翻面权归协调方·本刀不宣称关闭。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 - 卫生：est live=0（全门本地静态/隔离·零外呼零 secrets）·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
 
 ---
@@ -72,7 +72,7 @@
 4. **proof 臂账**：越限臂 fabricated 数 2_248 恰 cap 臂 `valid=true`+`scannedFiles=2_248`·第 2249 注入路径早返回 `valid=false`+`scannedFiles=0`+错误串恰 `PTP_FILE_LIMIT:2249` 三断言全行使绿·cap 数字预算联动语义不变强度不减。
 5. **偏离**：①本卷 §2 门5 起草稿四词字面误入卷（词面自匹配面·markers 门预跑抓获 hits=4）→ draft commit amend 修正恢复「词面不入卷防自匹配」纪律（58db74b1→42cf5f121·文面一处·零码面影响·§9 落卷后终扫 hits=0 亲证）；②新支线树依赖安装门前置（2232 刀同形·非码面偏差）；③draft 树 2241>2240 红停为 sanction 随刀预期面非偏离（§0 已承登）；④origin 远端 fetch 本 turn 访问受限（下界以本地 origin ref=7c602df0 恒等承登·§0 已登记）；⑤其余零（落点/门矩阵/STOP 形全沿 §1/§2/§8 定稿·零越面）。
 6. **卫生**：est live=0（七门全本地静态/隔离 fixture·零外呼零 secrets 零模型调用）·actualSpendCny=null·零迁移零 DDL 零 env 闸·pins 不适用（本刀无 pins 面）。
-7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。
+7. **STOP 终态**：三处（Status 头/§8/卷尾注）同值 **`executed:awaiting_post_prove_dual`**——post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·批表行与 Status 终翻面权归协调方·本刀不宣称关闭·⛔push ⛔merge 主线 ⛔force push ⛔pull --rebase。【翻面 2026-11-03（STATUS-RECON 对账刀·协调方授权裁定 131·append-only·原行留痕·原文零字节改写·沿 obs-logging 先例形）: PR #110 merged 26ec18425（STATUS-RECON 对账·2026-11-03）——本行活值 `executed:awaiting_post_prove_dual` 史录零洗·有效态翻面→`closed`】
 
 ---
 
