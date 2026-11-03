@@ -1,6 +1,6 @@
 # DRAFT-FLIP draft 族批量关闭刀起草卷 — 15 卷静止 draft 关闭注起草（分析席全量走查 275 卷后承刀 · docs-only 起草落卷即停 · ⛔EXEC ⛔push ⛔动主仓）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（rev r1 修订 2026-11-03 落卷·前值 `drafted:awaiting_pre_exec_dual` 史录保留 · 起草落卷即停 · 状态钉三处：本行 + §8 + 卷尾注 · 同值 · 关闭行使（15 卷 additive 关闭注）全留 pre-exec 双审两独立外席 BOTH PASS + 协调方明示授权后 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔merge 主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-03 EXEC 行使落卷·前值 `draft:awaiting_pre_exec_dual`（rev r1 修订落卷·起草落卷即停）史录保留 · 前前值 `drafted:awaiting_pre_exec_dual` 史录保留 · 关闭行使（15 卷卷尾 additive 关闭注·D13 移交注逐字随行·EXEC 期两处同源小修）已随 pre-exec 双审 r4 两席 BOTH PASS + 协调方明示 EXEC 授权随令行使（§9 EXEC 记录）· post-prove 双审两外席留协调方派席 · 状态钉三处：本行 + §8 + 卷尾注 · 同值 · alone≠dual · Ban self-approve · est live=0 · markers=0 · ⛔push ⛔merge 主线）
 
 **席位**：meetwise 北星「DRAFT-FLIP」draft 族批量关闭刀起草席（draft 族处置分析席全量走查 275 卷后承刀 · docs-only 起草 · 协调方派单「15 卷批量关闭授权起草——每条翻面附证据链」 · ⛔push ⛔EXEC ⛔动主仓）。
 
@@ -14,7 +14,7 @@
 
 ## §1 15 卷逐卷亲读二分清单（每卷 `git show origin/main:ai-docs/delivery/harness/<卷名>` 亲读最新版 · 禁凭分析席转述 · 深核标记：〔全深核〕=Status+STOP 钉+证据链全链亲证；〔锚核〕=Status 行+关键证据锚亲证）
 
-### 二分总表（B/C/D 类=0 · 15/15 全 A 类「目标已达成」滞翻卷 · 零剔除 · rev r1 增列卷内 STOP 权威现值——七卷头部/卷内分裂如实呈现）
+### 二分总表（B/C/D 类=0 · 15/15 全 A 类「目标已达成」滞翻卷 · 零剔除 · rev r1 增列卷内 STOP 权威现值——九卷头部/卷内分裂如实呈现）
 
 | # | 卷 | Status 现值（亲读） | 卷内 STOP 权威现值（append 史录后·权威收口据） | 裁决 | 深度 |
 |---|----|--------------------|----------------------------------------------|------|------|
@@ -185,7 +185,7 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 
 ## §8 STOP
 
-**STOP 值 = `draft:awaiting_pre_exec_dual`（rev r1 修订落卷·前值 `drafted:awaiting_pre_exec_dual` 史录保留 · 起草落卷即停 · 状态钉三处：Status 行 + 本节 + 卷尾注 · 同值）。** 关闭行使三条款（EXEC 期逐项履行后始得行使）：① pre-exec 双审两独立外席 BOTH PASS 落卷（§1 逐卷证据链对届时 tip 复核·任一卷证据翻车该卷退回不可关如实登记）；② 协调方明示 EXEC 授权（行使面=§2 十五条关闭注·D13 移交注逐字随行）；③ 落点重 pin 已履行（15 卷卷尾落点随届 tip 核对·漂则如实采新值）。
+**STOP 值 = `executed:awaiting_post_prove_dual`（2026-11-03 EXEC 行使落卷·前值 `draft:awaiting_pre_exec_dual`（rev r1 修订落卷·起草落卷即停）史录·前前值 `drafted:awaiting_pre_exec_dual` 史录·状态钉三处：Status 行 + 本节 + 卷尾注 · 同值）。** 关闭行使三条款（EXEC 期逐项履行后始得行使）：① pre-exec 双审两独立外席 BOTH PASS 落卷（§1 逐卷证据链对届时 tip 复核·任一卷证据翻车该卷退回不可关如实登记）——已履行（r4 两席 BOTH PASS·协调方派单令为据）；② 协调方明示 EXEC 授权（行使面=§2 十五条关闭注·D13 移交注逐字随行）——已随令行使；③ 落点重 pin 已履行（15 卷卷尾落点随届 tip 核对·漂则如实采新值）——已履行（rebase 后届 tip=`b66e113f8`·15 卷 main 侧零触锚值零漂·详 §9）。
 
 停止条件：`docs:check` scanned > cap（届值）红 → 停；PTP 红 → 停；任一卷 Status/STOP 钉与届时 tip 现值不符且无法如实重 pin → 停如实登记；任一卷证据链复核翻车（码面/迁移面/注释面锚在届时树不可复现）→ 停·该卷退回不可关；需越界（碰 backlog/LEDGER 行翻面/flip-rc 在飞面/pins/产品码）才能继续 → 停。
 
@@ -201,7 +201,7 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 2. **七条关闭注补真实生命周期面**（§2-1/2/6/7/8/11/12）：D1 补 EXEC 落卷笔 `bf07d3241`+post/SSOT 三处翻面笔 `b88d497d3`（触 checklist+本卷+LEDGER·均 origin/main 祖先亲证 EXIT=0）+post 会签 PASS+nail 落卷；D2 补 `:144` 终态+`:150` post PASS·终值=nail 落卷；D6/D7/D8/D11 补 §9 翻面行号；D8 补 post-errata PASS；D12 归因改写=本卷 EXEC 已行使五件修法落主线（卷内 §9·2026-10-14·consumers 18→20/env 327→328 系本卷亲落）+后继仅增量 55/400——原「行使对象已不存在」定谳删除（§1-D12 同源三处同步）。
 3. **D13 移交注改写**（§2-13+§1-D13 残面走向+§4 门 5 逐字引同源同步）：rev3 两 proof 重钉已在树绿（ha-2-drain api `:281`/`:292`·worker 侧 `:81-82`·重钉笔 `882167274` 在主线）+post 双审已 PASS（卷内 `:178` 勘误注 席1 agent_96ae3854+席2 agent_95934140）·仅余协调方头部翻面权·残面处置权不灭承接待收——原「移交后继刀或 post 双审补收」待裁措辞删除（残面实质已收口）。
 4. **§8 停止条件履行登记**：九卷（+D3+D4·rev r2/r3 补登）现值失实按「如实重 pin」履行并留痕·EXEC 期 §9 登记行使时按卷内权威现值收口。
-5. **§0.2 补登记**：rc 普查族口径（头部线提取）×「7 卷头部 draft/卷内 executed 分类分裂」→rc executed 族计数不覆盖此七卷·df 为唯一收口刀；§2 通用形先例改引 smoke-env-fix（卷内终翻注记权威）+ag-cost5 卷主直翻差异双注。
+5. **§0.2 补登记**：rc 普查族口径（头部线提取）×「7 卷头部 draft/卷内 executed 分类分裂」→rc executed 族计数不覆盖此七卷·df 为唯一收口刀（EXEC 期同源小修补登：此七卷现值勘正九卷（+D3+D4）·§0.2 本体 rev r3 P2① 已扩·沿 rev r3 对 rev r1 记录第 4 条同源同步先例形）；§2 通用形先例改引 smoke-env-fix（卷内终翻注记权威）+ag-cost5 卷主直翻差异双注。
 
 同席复核如实并记（本席逐卷填列时亲证·非席 1 清单扩权）：D9 文尾 `:180` `executed_slice2:awaiting_post_prove_dual` 终指针与 D10 卷内 `:177`/`:181` executed 翻面系同族「头部/卷内分裂」两卷——其关闭注原文无「静止 draft」定谳语（D9 注已载 EXEC 落码既成·D10 注已载 EXEC 收据笔）·故不入七条补面集·仅以 §1 权威现值列如实呈现；D10 post 面卷内未载·其关闭注维持原文本。
 
@@ -235,4 +235,16 @@ Ban push/force-push（git 写只本 worktree commit）· Ban 动主仓 · Ban EX
 
 ---
 
-**卷尾注**：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注·rev r1 修订 2026-11-03·前值 `drafted:awaiting_pre_exec_dual` 史录保留）·起草 2026-11-03 落卷·基线 `origin/main` @ `36740147b`=#192·15 卷静止 draft 逐卷 `git show origin/main:` 亲读（深核 5 卷 D2/D3/D10/D11/D13+锚核 10 卷·每卷证据链落 §1）·15/15 可关零剔除·safewrite 特殊处置移交注逐字在 §2-13（残面处置权不灭承接待收·rev r1 已按 post 双审 PASS 实况改写）·cap 预登 CAP-SANCTION-2474（§3·两 policy 脚本四联动点已落位·在飞 flip/rc 如实列·三方竞争按合并序逐个恰等步进）·三门读数见 §4（起草期亲跑全绿：docs EXIT=0 scanned 2474=cap 2474 恰等/PTP 12/12 EXIT=0/markers 0·rev r1/rev r2/rev r3 修订后复跑同值全绿）·恰 3 tracked（本卷 .md+两 policy 脚本）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面/关账权归协调方·alone≠dual·Ban self-approve·**`draft:awaiting_pre_exec_dual`**。
+## §9 EXEC 记录（2026-11-03 · pre-exec 双审 r4 两席 BOTH PASS + 协调方明示 EXEC 授权后随令行使 · §2 十五条关闭注逐字行使落卷）
+
+1. **授权链与行使面**：pre-exec 双审 r4 两独立外席 BOTH PASS（协调方派单令为据）+协调方明示 EXEC 授权——行使面=§2 十五条关闭注·D13 移交注逐字随行+EXEC 期同源小修两处（dual r4 两席建议·协调方授权·属本刀登记面收尾）。
+2. **rebase（届值如实采）**：`git fetch origin` EXIT=0·origin/main 自派单届值 `36740147b` 前进 4 commit 至 **`b66e113f8`**=#193 flip-draft 已并（派单届值已过时→按届值如实采=本卷附加钉唯一豁免项）·`git rebase origin/main` 恰 2 处冲突=两 policy 脚本注记/cap 区（本支 2474 形 vs main flip 2474 形·数值侧同值平凡合并）→ **dual-keep 双留**（main 侧批量翻面 2474 注记+本支 DRAFT-FLIP 起草 2474 注记并留·号随 merge-tree 重排·沿 CAP-SANCTION-2473 SSE2 起草先例形）·重放后 4 commit 链=`b95478137`/`768dfae9a`/`6f3abe3da`/`caa018ba7` 干净落位。
+3. **cap 步进 2475（§3 C5/§4 门 5 显式列兑现）**：rebase 后本树 `docs:check` 亲跑 **PTP_FILE_LIMIT:2475>2474 红（真 EXIT=1 亲证·union 红复现=预登命中）**——union 实测 2475=main 届扫 2474+本卷 REQUEST 1 恰等零多放·沿协调方常设预授权「cap 以合并树实测恰等步进免再询」随令行使 +1：两 policy 脚本四处联动点同步改写 **2475 形**（`MAX_FILES = 2_475`/`i < 2_475`/`scannedFiles, 2_475`/负例 `f-2475.md`+断言 `:2476`·相邻注释两行同步）+ `CAP-SANCTION-2475` 注记落位·步进后 docs **EXIT=0 scanned 2475=cap 2475 恰等**·在飞承登如实更新：flip 已并 main（届 tip）·rc 未落如实维持在飞。
+4. **15 条关闭注行使**：15 卷卷尾各 1 条 additive append（§2 逐字·八卷+D3+D4 补生命周期面形照抄）——机证三重：①§2 源文本与各卷卷尾行逐字节全等 **15/15**；②numstat 15 卷 **0 删除行**=零既有字节改写（原文不洗兑现）；③落点重 pin=rebase 后届 tip 对 15 卷亲证 main 侧零触（base→`b66e113f8` harness 面仅新增 flip-REQUEST.md 一件）锚值零漂·落点=各卷卷尾注之后·D13 特殊处置=**closed+移交注随行（残面处置权不灭承接待收）**逐字落卷。
+5. **EXEC 期同源小修（两处·一行各）**：①§1 二分总表标题「七卷头部/卷内分裂如实呈现」→「九卷头部/卷内分裂如实呈现」；②§0.2 同源史录（rev r1 记录第 5 条）「不覆盖此七卷·df 为唯一收口刀」句尾 additive 补登现值勘正九卷（+D3+D4）——**指针偏离如实登记**：派单指 §0.2 本体（`:12`）实测已为九卷（rev r3 P2① 已落·「七卷」零命中）无该词可改·按 dual r4 意图（登记面九卷同源收尾）实改其同源史录行·沿 rev r3 对 rev r1 记录第 4 条同源同步先例形·其余「七卷」字样均系 rev 史录自引/定谳引述（原文不洗不动）。
+6. **三门读数（EXEC 期届时树亲跑）**：docs **EXIT=0 scanned 2475=cap 2475 恰等** · PTP **12/12 EXIT=0**（`static_preflight_valid: selected=12/12`）· markers：本刀新增字节（diff 新增行）五类标记词+行首冲突标记直扫 **0 命中**（词面不入卷防自指）——改动集整文件扫如实登记 3 命中均为既有原文自引声明行（ha-6 `:167`/g2 `:85`/ai-graphs `:87`·各卷落卷时自证「自引 pattern 字面非占位」·非本刀引入·Ban 洗原文不可动·零真实占位标记）。
+7. **状态翻转**：状态钉三处（Status 行+§8+卷尾注）同值转 **`executed:awaiting_post_prove_dual`**（前值 `draft:awaiting_pre_exec_dual`/前前值 `drafted:awaiting_pre_exec_dual` 史录保留）·post-prove 双审两独立外席留协调方派席·翻面/关账权归协调方·est live=0·actualSpendCny=null·⛔push。
+
+---
+
+**卷尾注**：STOP=`executed:awaiting_post_prove_dual` 三处同值（Status 头/§8/本注·2026-11-03 EXEC 行使落卷·前值 `draft:awaiting_pre_exec_dual`（rev r1 修订 2026-11-03·起草落卷即停）史录保留·前前值 `drafted:awaiting_pre_exec_dual` 史录保留）·起草 2026-11-03 落卷·基线 `origin/main` @ `36740147b`=#192·15 卷静止 draft 逐卷 `git show origin/main:` 亲读（深核 5 卷 D2/D3/D10/D11/D13+锚核 10 卷·每卷证据链落 §1）·15/15 可关零剔除·safewrite 特殊处置移交注逐字在 §2-13（残面处置权不灭承接待收·rev r1 已按 post 双审 PASS 实况改写）·cap 预登 CAP-SANCTION-2474（§3·两 policy 脚本四联动点已落位·在飞 flip/rc 如实列·三方竞争按合并序逐个恰等步进）→EXEC 期 rebase union 恰等步进 CAP-SANCTION-2475 兑现（详 §9）·三门读数见 §4（起草期亲跑全绿：docs EXIT=0 scanned 2474=cap 2474 恰等/PTP 12/12 EXIT=0/markers 0·rev r1/rev r2/rev r3 修订后复跑同值全绿）·EXEC 期三门亲跑（docs EXIT=0 scanned 2475=cap 2475 恰等/PTP 12/12 EXIT=0/markers 本刀新增字节 0 命中·详 §9）·恰 3 tracked（本卷 .md+两 policy 脚本）·EXEC 期改动集 18 tracked（15 卷 M+本卷 M+两 policy M·详 §9）·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面/关账权归协调方·alone≠dual·Ban self-approve·**`executed:awaiting_post_prove_dual`**（2026-11-03 EXEC 行使落卷·前值史录）。

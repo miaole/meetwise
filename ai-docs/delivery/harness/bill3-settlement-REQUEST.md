@@ -226,3 +226,5 @@ pins 十一值照抄零翻（haStatus=NOT_HA·releaseEvidence=false·claimProduc
 11. **pins**：十一值照抄零翻·脚注 actualSpendCny=null 承接（全门隔离容器零真实扣费零消耗）。
 12. **状态行**：本卷 Status 翻面 draft:awaiting_pre_exec_dual→**executed:awaiting_post_prove_dual**（本节 append·§0-§8 及头部 Status 史录零改·沿 bill1/bill2 同形）·待 post-prove 双审两外席（alone≠dual·Ban self-approve）。
 13. **回滚**：flag 关=行值回 per_session（新场旧行为·进行中 capped 场按其行值收口=§7 步⑥「进行中面试不切换」）·0173 回滚=恢复 0144 函数体（CREATE OR REPLACE 前体在案）·0172 回滚=列不用（默认 per_session 零行为）·topic_charge 停写即止·历史迁移零字节恒真。
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 0172_topic_charge.sql+0173_tf_interview_consumption_terminal_pair.sql 双现树在链（随 `112e6d26f` PR #108）+commerce/topic-charge.ts 消费面在树·卷载 §0 自记 0172「P3 已落」——P3 结算刀目标兑现·卷内 `:170`/`:227` §9 已翻面 `executed:awaiting_post_prove_dual`（头部 Status 行滞翻·按卷内权威现值收口）·**零残面**·STOP 收口 `closed`】

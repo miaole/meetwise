@@ -178,3 +178,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 *`draft_rev2:pre_exec_dual`（双席处方 10 条落卷·席1 PASS+席2 FAIL 窄面转 PASS 条件已落·待复审确认后协调方行使 EXEC 授权·0-b 闸已开 @79aeb04b）*
 
 *`executed_slice2:awaiting_post_prove_dual`（B271 片2 EXEC 落卷·2026-10-10·entpay-slice2-exec 席·rebase 主线 6799544f 干净 2/2·锚点路径漂移表全登记入 receipts/enterprise-pay/slice2/·0-c 六件前置闸两形状 12 格矩阵逐格留痕·D-1 裁决=形状甲（owner=候选人+payer_user_id=招聘方·乙⑤⑥ FAIL 实证）写入 0157 头注·S2-C1~C9 全落·entpay:s2:prove 28/28 EXIT 0·neg:interview 97/neg:commerce 84 基线/neg:bend 157/worker interview:prove:raw 全绿·TS 三门 contracts 0/web 0/api 30 与 pristine 逐字节全同/db 20 与 pristine 逐字节全同·C 端五调用点零 diff·markers=0·est live=0·零生产 DSN·pins 十一值零翻转·⛔push·Ban self-approve·alone≠dual）*
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: applications.service.ts 现树亲读 :8-10「S2-C4 拒因分码（修法③）」+:47-51「B271 片2 S2-C4（修法⑤·#227 缺陷收口）：start+begin 服务端动作合一」逐字落码·企业预留基建 0156/0157/0185 三迁移在链·卷载旧树锚 recruiter.ts:361-465 系域移动前路径如实重锚（结论零变）——S2-C1/C2/C4 目标兑现·**零残面**·STOP 收口 `closed`】

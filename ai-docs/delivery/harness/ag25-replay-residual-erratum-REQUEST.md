@@ -94,3 +94,5 @@
 - **est live=0**（起草全轮只读+1 doc·零模型外呼零 DNS 零 Key·`actualSpendCny=null`）·⛔push。
 
 卷尾注：STOP=`draft:awaiting_pre_exec_dual` 三处同值（Status 头/§8/本注）·起草 2026-10-22 落卷·基线 `origin/main` @ `d5b03ee6`·AG-25 残面逐项核定全零（检索外呼半=2b460443·进度帧半=fd6ef5b1/f5b7eb2e 均系 main 祖先亲证·派单所引 6f29338c/f49982ae 非祖先已如实更正登记·wasAsked/读面=读语义零副作用·写面=键幂等或终态闸·ask+1=首成语义·证据 §0.2 逐项）·旧支线 line/replay-side-effect-draft 零独有内容=旧壳复核登记 §0.0·本卷勘误登记零码面·恰 1 新增 .md·est live=0·actualSpendCny=null·⛔push ⛔merge 主线 ⛔force push·翻面权归协调方·alone≠dual·Ban self-approve。
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 本卷即勘误登记卷·AG-25 残面逐项核定全零（卷尾核定在卷）·本席抽验三锚 2b460443/fd6ef5b1/f5b7eb2e origin/main 祖先三笔全 EXIT=0·卷载 EXEC 零落码动作=无 EXEC 对象——核定+登记双目标已随卷兑现·**零残面**·STOP 收口 `closed`】

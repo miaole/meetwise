@@ -154,3 +154,5 @@ haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Close
 3. **席2 P2×1（install 前置登记缺位·处置=补登一行）**：与席1 观察登记①同槽合流——补登见上条 1（一行补登·销案选项不行使）。
 
 **nail 工序注记**：merge `2ab6db99`（--no-ff 并 origin/feat/mysql-schema-skeleton@`d5dc0726`=ai-graphs 环解 nail 波 tip·派单下界等号亲证·merge-base `93b3db5a`·零冲突）·SSOT 三处+checklist 段+#85 残面登记兑现注记随 nail 落（LEDGER ·支线树内改主仓路径文件随支线推·⛔主仓单独 commit 未犯）。
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: EXEC 笔 `53e24ad03`（origin/main 祖先亲证·恰 2 prod 文件=uuid.ts+15/privacy.service.ts +3-1）·现树 uuid.ts 件①单源化「byte 恒等仅单源化零行为」+件②「#85 残面普查 2026-10-16 定谳」表外形九行显式登记在树——归一目标兑现·**卷内生命周期已走完如实补面**：`:144` STOP 终态=`executed:awaiting_post_prove_dual`+`:150` post 双审会签 PASS（终值=nail 落卷）——头部 Status 行滞翻·本注按卷内权威现值收口·**零残面**（表外形刻意不归入=定谳原态）·STOP 收口 `closed`】

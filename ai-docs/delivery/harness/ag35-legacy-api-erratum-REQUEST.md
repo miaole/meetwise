@@ -93,3 +93,5 @@
 - **落卷 commit message 同误知悉**：落卷笔 `ae39408b` message 携带同一错误 hash（`5c449d46`）系落卷后不可改——本节知悉即可·不另动作。
 - **门①③ 数值不变**：本节系纯 append 文面·改动集仍恰本卷 1 个 .md（零码面触）——rev 树复跑 `node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned **2332** ≤ cap 2338 不变；markers 五类标记词+行首冲突标记对本卷改动集 **0 命中** 不变；`git diff --stat` 恰 1 tracked 不变。
 - **STOP 与复审**：本卷 STOP 维持 **`draft:awaiting_pre_exec_dual`** 三处同值（Status 头/§8/卷尾注）不变；**rev 落卷后重派 pre-exec 双审两独立外席第二轮·窄域=本节落点复验·alone≠dual·Ban self-approve**。
+
+【关闭 2026-11-03（DRAFT-FLIP 批量关闭刀·协调方授权·append-only·原文零字节改写）: 本卷即勘误登记卷·AG-35 三项台账面逐项定谳全被邻刀顺带收口（卷尾定谳+rev 勘误在卷）·本席抽验 e9a1a035/d4d29ee8 origin/main 祖先 EXIT=0+5c449d46 非祖先=与卷内 rev 自记逐字吻合零翻案·卷载 EXEC 零落码动作=无 EXEC 对象——定谳+登记双目标已随卷兑现·**零残面**·STOP 收口 `closed`】
