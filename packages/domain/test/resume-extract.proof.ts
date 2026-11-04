@@ -1,8 +1,9 @@
 /**
  * resume-extract:prove — 简历多格式提取 + 清洗。
- * 测:格式探测(pdf/docx/image/text)· 清洗(控制字符/空白/空行/不间断空格)· 文本直通 · 图片抛 OCR。
+ * 测:格式探测(pdf/docx/image/text)· 清洗(控制字符/空白/空行/不间断空格)· 文本直通 · 图片抛 OCR
+ *    · 解压守卫双帽负例/恰帽边界/多条目正例旁证(条目数/解压总量·fail-closed 先于 worker spawn)。
  */
-import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf } from '../src/resume-extract.ts';
+import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf, assertDocxZipWithinCaps } from '../src/resume-extract.ts';
 
 let n = 0;
 const ok = (c: boolean, m: string) => { if (!c) { console.error('✗', m); process.exit(1); } n++; };
@@ -103,8 +104,10 @@ function crc32(buf: Buffer): number {
   for (const b of buf) c = (CRC_TABLE[(c ^ b) & 0xff] ?? 0) ^ (c >>> 8);
   return (c ^ 0xffffffff) >>> 0;
 }
-/** 最小 zip(STORED)：local header + central directory + EOCD——足够 jszip/mammoth 读取。 */
-function craftDocx(entries: Array<[name: string, content: string]>): Buffer {
+/** 最小 zip(STORED)：local header + central directory + EOCD——足够 jszip/mammoth 读取。
+ *  opts.centralUncompressedOverride：仅覆写 central directory uncompressedSize 声明值(解压守卫
+ *  负例专用——超大声明炸弹形·local header 与实体字节保持真实小体)。 */
+function craftDocx(entries: Array<[name: string, content: string]>, opts?: { centralUncompressedOverride?: (name: string, actual: number) => number }): Buffer {
   const locals: Buffer[] = [];
   const centrals: Buffer[] = [];
   let offset = 0;
@@ -121,7 +124,7 @@ function craftDocx(entries: Array<[name: string, content: string]>): Buffer {
     const ch = Buffer.alloc(46);
     ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0, 8);
     ch.writeUInt16LE(0, 10); ch.writeUInt16LE(0, 12); ch.writeUInt16LE(0x2100, 14); ch.writeUInt32LE(crc, 16);
-    ch.writeUInt32LE(data.length, 20); ch.writeUInt32LE(data.length, 24);
+    ch.writeUInt32LE(data.length, 20); ch.writeUInt32LE(opts?.centralUncompressedOverride?.(name, data.length) ?? data.length, 24);
     ch.writeUInt16LE(nameB.length, 28); ch.writeUInt16LE(0, 30); ch.writeUInt16LE(0, 32);
     ch.writeUInt16LE(0, 34); ch.writeUInt16LE(0, 36); ch.writeUInt32LE(0, 38); ch.writeUInt32LE(offset, 42);
     centrals.push(ch, nameB);
@@ -134,14 +137,46 @@ function craftDocx(entries: Array<[name: string, content: string]>): Buffer {
   eocd.writeUInt32LE(cd.length, 12); eocd.writeUInt32LE(offset, 16);
   return Buffer.concat([...locals, cd, eocd]);
 }
-const realDocx = craftDocx([
+const realDocxEntries: Array<[string, string]> = [
   ['[Content_Types].xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/></Types>'],
   ['_rels/.rels', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/></Relationships>'],
   ['word/document.xml', '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:body><w:p><w:r><w:t>张三 · 后端工程师</w:t></w:r></w:p><w:p><w:r><w:t>五年 Node/Go 分布式经验</w:t></w:r></w:p></w:body></w:document>'],
-]);
+];
+const realDocx = craftDocx(realDocxEntries);
 const rDocx = await extractResumeText(realDocx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-real.docx');
 ok(rDocx.format === 'docx', 'A1: 真实 docx → format=docx');
 ok(rDocx.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', 'A1: 真实 docx 端到端提取输出断言(mammoth+xmldom0.8.15)');
+
+// 6b. S3 解压守卫(解包前置双帽:条目数 ≤1000·解压总量声明合计 ≤64MB)负例/边界/正例旁证——
+//     负例两向(条目数越帽/超大解压声明)经 extractResumeText 生产缝全链 fail-closed(先于 worker
+//     spawn);恰帽边界 guard 级直证上界零误伤;多条目真 docx 正例旁证防误伤合法多 media 文档。
+const guardCodeOf = (fn: () => unknown): string => { try { fn(); return ''; } catch (e) { return codeOf(e); } };
+const fillerEntries = (count: number, prefix = 'w/f'): Array<[string, string]> =>
+  Array.from({ length: count }, (_, i) => [`${prefix}-${String(i).padStart(4, '0')}.xml`, '<x/>']);
+// 恰帽边界(guard 级·零解包零 worker):恰 1000 条目·恰 64MB 声明 → 零抛。
+ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>'], ...fillerEntries(999)]))) === '', '守卫边界:恰 1000 条目 → 零抛(上界不误伤)');
+ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>']], { centralUncompressedOverride: () => 64 * 1024 * 1024 }))) === '', '守卫边界:恰 64MB 解压声明 → 零抛(上界不误伤)');
+// 负例一:条目数越帽(1001 条目)→ zip_entry_overflow(guard 直证 + 生产缝全链)。
+ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>'], ...fillerEntries(1000)]))) === 'zip_entry_overflow', '守卫:1001 条目 → zip_entry_overflow');
+let entryBomb = '';
+try { await extractResumeText(craftDocx([['a.xml', '<a/>'], ...fillerEntries(1000)]), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'bomb-entries.docx'); } catch (e) { entryBomb = codeOf(e); }
+ok(entryBomb === 'zip_entry_overflow', '负例一:条目数越帽 docx 经生产缝 → zip_entry_overflow(worker 零 spawn 面拒)');
+// 负例二:超大解压声明(真 document.xml 条目声明 0xFFFFFFFF=zip64 哨兵形·实体字节极小)→ zip_uncompressed_overflow。
+ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>']], { centralUncompressedOverride: () => 64 * 1024 * 1024 + 1 }))) === 'zip_uncompressed_overflow', '守卫:64MB+1 声明 → zip_uncompressed_overflow');
+let sizeBomb = '';
+try { await extractResumeText(craftDocx([['word/document.xml', realDocxEntries[2][1]]], { centralUncompressedOverride: () => 0xFFFFFFFF }), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'bomb-size.docx'); } catch (e) { sizeBomb = codeOf(e); }
+ok(sizeBomb === 'zip_uncompressed_overflow', '负例二:超大解压声明 docx 经生产缝 → zip_uncompressed_overflow(zip64 哨兵声明同拒)');
+// 结构不可核(PK 头过魔数门但 central directory 缺失)→ zip_directory_invalid(fail-closed:"核不了"="拒")。
+let noEocd = '';
+try { await extractResumeText(Buffer.from('PK\x03\x04garbage-no-central-directory-anywhere'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'trunc.docx'); } catch (e) { noEocd = codeOf(e); }
+ok(noEocd === 'zip_directory_invalid', '结构不可核:PK 头无 central directory → zip_directory_invalid');
+// 正例旁证(防误伤):100 条目真 docx(3 真实件+97 media 形 filler)守卫零误伤·全链提取输出与 A1 恒等。
+const wideDocx = craftDocx([
+  realDocxEntries[0], realDocxEntries[1], realDocxEntries[2],
+  ...fillerEntries(97, 'word/media/img'),
+]);
+const rWide = await extractResumeText(wideDocx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-wide.docx');
+ok(rWide.format === 'docx' && rWide.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', '正例旁证:100 条目真 docx 守卫零误伤·端到端提取输出恒等');
 
 // 7. #108/#109 伴生:真实 PDF 提取正例——手构合法 xref(禁依赖 pdf.js recovery 模式)·pdf-parse 端到端
 //    经 worker isolate(#108)全链提取并断言非空文本输出(补 worker+pdf-parse happy path 零覆盖面)。

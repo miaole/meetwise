@@ -8,6 +8,9 @@
  *
  * #109 魔数嗅探:分派点最前置(先于加密扫描与任何解析 spawn),声明格式与字节不符 → magic_mismatch
  * fail-closed——垃圾字节/伪造后缀永不进解析器。
+ * #107 解压守卫:docx 解包前置——zip central directory 手读(零新依赖)核条目数/解压总量双帽,
+ * 越帽或结构不可核一律 fail-closed(zip_entry_overflow/zip_uncompressed_overflow/zip_directory_invalid)
+ * ——炸弹字节零 worker spawn 零解包,进不了 mammoth→jszip 解压面。
  * #108 解析真终止:pdf/docx 解析搬进 worker isolate(worker_threads),8s 到点/外部 abort 即 terminate——
  * 僵尸解析占事件循环/解析槽的面就此闭合(槽位释放=解析真死)。isolate 级 OOM 隔离
  * (ERR_WORKER_OUT_OF_MEMORY 只死 worker)+heap 卫生;resourceLimits 帽不构成容器内存保证。
@@ -98,6 +101,47 @@ export function assertMagicMatchesDeclaration(buffer: Buffer, format: ResumeFile
   }
 }
 
+// ── #107 解压守卫(docx 解包前置·central directory 手读·零新依赖)────────────────────
+// 处方锚(外部评审 #107):docx 此前魔数门后直达 mammoth→jszip 解包面,无条目数/解压总量上限——
+// 海量条目或超大解压声明的 zip 炸弹可借合法 PK 头过魔数门后在解压面炸内存。帽值(评审处方预登记):
+// 条目数 ≤1000(正常 docx <100 条目含 media 余量·10× 余量)·解压总量 ≤64MB(各条目 central
+// directory uncompressedSize 声明合计;12MB 传输信封 bodyLimit × 压缩比合理域)。按声明合计而非
+// 真解压累计=守卫在解包前零解压成本定夺;zip64 哨兵 0xFFFFFFFF 声明天然越帽同拒(fail-closed)。
+const DOCX_ZIP_MAX_ENTRIES = 1000;
+const DOCX_ZIP_MAX_UNCOMPRESSED_TOTAL = 64 * 1024 * 1024;
+const ZIP_EOCD_SIG = 0x06054b50;   // PK\x05\x06
+const ZIP_CDH_SIG = 0x02014b50;    // PK\x01\x02
+
+const zipGuardErr = (code: string) => Object.assign(new Error(code), { code });
+
+/** docx 解包前置守卫:手读 zip EOCD + central directory 并核双帽——条目数/解压总量(声明合计)
+ *  任一越帽即拒(zip_entry_overflow / zip_uncompressed_overflow);EOCD 缺失·CD 签名失配·走读越界
+ *  等结构不可核形态同归 zip_directory_invalid(fail-closed:"核不了"="拒")。守卫恒先于解析 worker
+ *  spawn——越帽字节零解包零 isolate 占用。读法:EOCD 自尾反向扫(注释区 ≤65535+22)·CDH 定长 46
+ *  +name+extra+comment 变长步进·字段全小端;前插数据(self-extracting 形)声明偏移必失配同拒——
+ *  Office 工具产 docx 恒为纯 zip 不受影响。 */
+export function assertDocxZipWithinCaps(buffer: Buffer): void {
+  const EOCD_MIN = 22;
+  if (buffer.length < EOCD_MIN) throw zipGuardErr('zip_directory_invalid');
+  const scanFloor = Math.max(0, buffer.length - EOCD_MIN - 65535);
+  let eocd = -1;
+  for (let i = buffer.length - EOCD_MIN; i >= scanFloor; i--) {
+    if (buffer.readUInt32LE(i) === ZIP_EOCD_SIG) { eocd = i; break; }
+  }
+  if (eocd < 0) throw zipGuardErr('zip_directory_invalid');
+  const totalEntries = buffer.readUInt16LE(eocd + 10);
+  if (totalEntries > DOCX_ZIP_MAX_ENTRIES) throw zipGuardErr('zip_entry_overflow');
+  const cdOffset = buffer.readUInt32LE(eocd + 16);
+  let p = cdOffset;
+  let uncompressedTotal = 0;
+  for (let n = 0; n < totalEntries; n++) {
+    if (p + 46 > eocd || buffer.readUInt32LE(p) !== ZIP_CDH_SIG) throw zipGuardErr('zip_directory_invalid');
+    uncompressedTotal += buffer.readUInt32LE(p + 24);   // central directory uncompressedSize 声明值
+    if (uncompressedTotal > DOCX_ZIP_MAX_UNCOMPRESSED_TOTAL) throw zipGuardErr('zip_uncompressed_overflow');
+    p += 46 + buffer.readUInt16LE(p + 28) + buffer.readUInt16LE(p + 30) + buffer.readUInt16LE(p + 32);
+  }
+}
+
 const EXTRACT_TIMEOUT_MS = Number(process.env.RESUME_EXTRACT_TIMEOUT_MS ?? 8000);   // 提取硬超时(界定解压炸弹/病态文档的 hang;安全审计 F2)。到点抛 extract_timeout,上层降级为可解释错误。
 /** #108 worker isolate 堆帽:isolate 级 OOM 隔离(ERR_WORKER_OUT_OF_MEMORY 只死 worker,宿主存活)+heap 卫生。
  *  帽值由 resume-cap-probe 实测探针定值(8MB 文本充实合法 PDF 阶梯:64/96/192 OOM·256 成功·heapUsed 232.6MB;
@@ -182,6 +226,7 @@ export async function extractResumeText(buffer: Buffer, mime: string, filename: 
     return { text: cleanResumeText(text), format };
   }
   if (format === 'docx') {
+    assertDocxZipWithinCaps(buffer);   // 解压守卫恒先于 worker spawn:越帽/不可核字节零解包零 isolate 占用
     const raw = await runInWorker('docx', buffer, options?.signal);
     return { text: cleanResumeText(raw), format };
   }
