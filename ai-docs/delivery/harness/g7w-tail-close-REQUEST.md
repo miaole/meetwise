@@ -1,6 +1,6 @@
 # G7W-TAIL-CLOSE REQUEST（G7W-TAIL-DEATH 收口刀 · P1 · docs-only · 两前卷残面四项逐项闭合 · 行关闭全链断言面+两向 Ban 定谳落纸 · 起草落卷即停零码动）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（闭合 EXEC 已行使 2026-11-05 · 起草席落卷 2026-11-05 · 起草期零码动零 live 零外呼零 DB 连接 · 改动集=本卷+姊妹 qgen-reverify 卷两 .md+cap 届值步进两 policy 脚本联动（CAP-SANCTION-2481·派单「cap 届值步进预登」随令）· docs:check EXIT=0 2481≤cap 2481 恰等+markers 五类零命中+diff 面亲跑（回执随交付报告）· pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）
+**Status**: **`proofed:dual_pass`**（2026-11-05 post-prove 双席两独立外席 BOTH PASS 落卷·详 §9 post-prove 记录 · 前值 **`executed:awaiting_post_prove_dual`**（闭合 EXEC 已行使 2026-11-05 · 起草席落卷 2026-11-05 · 起草期零码动零 live 零外呼零 DB 连接 · 改动集=本卷+姊妹 qgen-reverify 卷两 .md+cap 届值步进两 policy 脚本联动（CAP-SANCTION-2481·派单「cap 届值步进预登」随令）· docs:check EXIT=0 2481≤cap 2481 恰等+markers 五类零命中+diff 面亲跑（回执随交付报告）· pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）· alone ≠ dual）
 
 **席位**：G7W-TAIL-DEATH 收口刀 起草席（协调方派单令「门④三块拦路之二」· 承案 B 卷 `g7w-tail-contract-ruling-REQUEST.md` 与案 A 卷 `g7w-tail-seg-emit-REQUEST.md` 两卷残面清单逐项闭合 · 行关闭仍须其自身全链+协调方裁——本卷=该全链的 REQUEST 起点，翻面/关闭宣称权沿例归协调方）。
 **基线**：`origin/main` @ **`edda65a4`**（fetch 后亲证 origin tip=`edda65a4`=#198 l13-draft merge 点 · 派单下界「届时 tip≥最新」以 fetch 实测成立 · worktree **`meetwise-g7w`**（仓根同级 · `git worktree add ../meetwise-g7w -b line/g7w-draft origin/main` 本起草席立 · 建树 docs:check 亲跑 EXIT=0 scanned 2479=cap 2479 恰等）· branch **`line/g7w-draft`**）。
@@ -132,7 +132,7 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `executed:awaiting_post_prove_dual`（闭合 EXEC 已行使 · 起草席落卷终态 · 三处实测一致=Status 头/本节/卷尾）· 起草席写完即停零码动条款在卷。** 开工三条款：①本卷 pre-exec 双审 BOTH PASS（双审对象=§0 残面对账与锚保真+§1 闭①-闭④ 四案逐项+§1.3 否决+§2 门矩阵——两独立外席 · alone ≠ dual）；②协调方闭合 EXEC 授权（面② `:110` append 日期按落字日 re-pin · 闭② A1-A5 对届时 tip 重 pin 判定 · +N 以 numstat 实测）；③post-prove 双审+**行状态翻转归协调方裁**（本卷定谳案=落纸建议 · 采纳/改写/驳回均协调方权）。三者全属后继工序 · 本卷不含 EXEC。
+**STOP · `proofed:dual_pass`（2026-11-05 post-prove 双席两独立外席 BOTH PASS 落卷转 · 前值 `executed:awaiting_post_prove_dual`（闭合 EXEC 已行使 · 起草席落卷终态 · 三处实测一致=Status 头/本节/卷尾））· 起草席写完即停零码动条款在卷。** 开工三条款：①本卷 pre-exec 双审 BOTH PASS（双审对象=§0 残面对账与锚保真+§1 闭①-闭④ 四案逐项+§1.3 否决+§2 门矩阵——两独立外席 · alone ≠ dual）；②协调方闭合 EXEC 授权（面② `:110` append 日期按落字日 re-pin · 闭② A1-A5 对届时 tip 重 pin 判定 · +N 以 numstat 实测）；③post-prove 双审+**行状态翻转归协调方裁**（本卷定谳案=落纸建议 · 采纳/改写/驳回均协调方权）。三者全属后继工序 · 本卷不含 EXEC。
 
 **停止条件（五类 · 命中即停手上报）**：
 1. **现场漂移**：pre-exec/EXEC 面对届时 tip 重 pin——`:110` 行被翻面/他刀插入注记、`:805` 先例形被改写、案 A/加针落码面（blob `5aaa9097`/`f5fadeab`/`f3d9361c` 族）被他刀改动、或 §0 锚漂移超 ±3 且结论受影响 → 停手上报（不得就地改闭合实质）。
@@ -158,6 +158,12 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 - **r1-⑤（席1 P2-5）recon R6 现状一行**：「G7X 刀② 弱输入 report 校准刀=授权在案未立卷」归协调方排程清单（§0.2 附带残面段后新增一行+§9 悬决项并登）。
 - **r1 门回执**：rev r1 落卷期三门亲跑=docs:check EXIT=0（2481=cap 2481 恰等）+PTP EXIT=0 12/12+markers 改动集零命中（回执随交付报告）· STOP 三处 `draft:awaiting_pre_exec_dual` 零翻 · pins 十一值零翻 · 累计 diff 对 base `edda65a4` 恰 4 tracked 零增路径。
 
+## §9 post-prove dual 交接（两席 post-prove BOTH PASS · 2026-11-05 落卷 · 本节 append-only 不改既有字 · 在席双审记录以协调方台账为准）
+
+- **裁决**：post-prove 双席两独立外席 **BOTH PASS**（协调方派单令明示·本席按令转录·沿 fin/df/iso-dotenv-ui 先例形）· 状态三处转 `proofed:dual_pass`（Status 头/§8/卷尾·前值 `executed:awaiting_post_prove_dual` 史录保留）· EXEC 行使面零触。
+- **对树复认（post-prove 落卷期对合并 tip `faeb05f76` name-only 亲跑）**：`e2e/full.e2e.ts` blob=`5aaa9097` 零漂（A5 埋点三锚族主锚恒等）· `:210`-`:212` identity 断言现形=「identities === questions + clarifications」固定形亲读（A2 mainLoop 肢）· `:637` boundLoop 孪生断言形亲读（A2 boundLoop 肢）· `packages/db/src/report/report.ts` `MAX_REPORT_ATTEMPTS = 3` 现值亲读（A3 设计钟）· backlog `:110` 行区闭合勘误注在树亲证（面② append 落卷·行原文零字节改）· 锚族 `4252efc8`≡`1789e321`（patch-id `6f72ba61`）+`f8769cea0`/`f83e12e3f`+`5e5e2cb3`+`2ce86946` 全数可解析零 MISSING。
+- **Pins 十一值零翻转**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `r1Closed=false` · `actualSpendCny=null` · 行状态 `:110` P1 OPEN→CLOSED 翻转权归协调方（本卷闭合建议维持·零翻转）· alone≠dual.
+
 ---
 
-*G7W-TAIL-CLOSE REQUEST · 2026-11-05 起草 · **`executed:awaiting_post_prove_dual`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`edda65a4`（#198 merge 点 · fetch 后亲证恰等届值）· worktree `meetwise-g7w` · branch `line/g7w-draft`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令+案 B 卷 `e1eeca4b`+案 A 卷 `fbd7027e`（§9-LIVE 主证据）+加针卷 `8cc6f347`+backlog `:110`（派单 `:108` era 漂移如实改锚）+`:805`/`:801`/`:841`/`:861`+checklist `:3167`/`:3284`/`:3409` · 残面四项=案 A 埋点肢闭合承登（非产品码·零产品码改动面判读）+行关闭全链断言面 A1-A5+面③ sbg 不立项建议+两向 Ban 定谳案落纸 · 行关闭=P1 OPEN→CLOSED 建议归协调方裁 · 撤销≠翻绿 · 附带残面两项登记（runner 收据门+二轮 LIVE 待授权）· 域 disjoint=`:111` QGEN/`:107`/POST7B/7A-DOWNGRADE/WHG/runner 六域 · 门矩阵=docs:check 2481≤2481+PTP 12/12+markers+diff 恰 4（两 .md+两 policy 联动）· 迁移号=零 · est live=0 · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
+*G7W-TAIL-CLOSE REQUEST · 2026-11-05 起草 · **`proofed:dual_pass`**（2026-11-05 post-prove dual BOTH PASS 转 · 前值 `executed:awaiting_post_prove_dual` 史录保留）· ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`edda65a4`（#198 merge 点 · fetch 后亲证恰等届值）· worktree `meetwise-g7w` · branch `line/g7w-draft`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令+案 B 卷 `e1eeca4b`+案 A 卷 `fbd7027e`（§9-LIVE 主证据）+加针卷 `8cc6f347`+backlog `:110`（派单 `:108` era 漂移如实改锚）+`:805`/`:801`/`:841`/`:861`+checklist `:3167`/`:3284`/`:3409` · 残面四项=案 A 埋点肢闭合承登（非产品码·零产品码改动面判读）+行关闭全链断言面 A1-A5+面③ sbg 不立项建议+两向 Ban 定谳案落纸 · 行关闭=P1 OPEN→CLOSED 建议归协调方裁 · 撤销≠翻绿 · 附带残面两项登记（runner 收据门+二轮 LIVE 待授权）· 域 disjoint=`:111` QGEN/`:107`/POST7B/7A-DOWNGRADE/WHG/runner 六域 · 门矩阵=docs:check 2481≤2481+PTP 12/12+markers+diff 恰 4（两 .md+两 policy 联动）· 迁移号=零 · est live=0 · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
