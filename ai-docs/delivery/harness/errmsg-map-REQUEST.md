@@ -1,6 +1,6 @@
 # ERRMSG-MAP — #250/#251/#224 错误文案映射刀（actionErrorMessage 四页 · 审计批 0 几行前端止血 · EXEC REQUEST）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC）
+**Status**: **`draft:awaiting_pre_exec_dual`**（本 REQUEST 只送审 · **Ban self-approve** · **alone≠dual** · Dual PASS ≠ 自动开工 · 须 meetwise 明示授权才进 EXEC）【翻面 2026-11-05（fin 台账收官刀 U6·协调方终裁授权「除买云外全部完结」行使·append-only·本行既有字零字节改写·沿 STATUS-RECON 对账先例形）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗——rev2 双审 BOTH PASS 在卷（`:108-116` 席1 PASS+席2 PASS）+EXEC 收口在卷（`:118-124` 亲读：Status `exec:done_prove_green`·`pnpm web:prove` 第 1 次运行 EXIT=0（199 PASS/0 FAIL·attempts=1 一次过零 retry）·门全 ✓）·落主线承并亲证=`apps/web/lib/errors/action-error.ts` blob `c27014844` 在 origin/main 树（ls-tree 亲跑）——有效态翻面→`closed`；rc 普查曾以「`:120` 纯 Status 复述行不构成翻面行」机制保持 draft 桶位（史录不洗）·收据 `ai-docs/delivery/receipts/errmsg-map/EXEC-RECEIPT.md` 系源卷自述（主线树零该目录·如实注）·残面沿 §7 Non-claims（防御码兜底「请稍后重试」残留如实保留）——翻面/关账权归协调方（本注=终裁授权行使）】
 **Date**: 2026-10-07
 **Base**: `origin/feat/mysql-schema-skeleton` @`115c47f2` · 分支 `line/errmsg-map`（工作树 `meetwise-line-errmsg`·仓根同级 worktree）
 **蓝本**: fix-roadmap 批 0 原文（协调方审定誊录）：「统一 actionErrorMessage(status, code) 覆盖四页；映射表：402→『额度不足，去哪里获取』·candidate_route_undecided→『暂时无法判断岗位方向』·interview_resume_binding_conflict→『你有一场未结束的面试：继续/放弃后重来』·503→『服务暂不可用』；/jobs 不再写『将消耗你 1 次额度』——D5 已决企业付费，#271 上线前如实提示。」——**唯一蓝本**，文案逐字忠实，**禁自由发挥**。

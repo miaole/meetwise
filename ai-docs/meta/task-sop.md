@@ -93,3 +93,12 @@ E0=用户确认/已验证仓库事实；E1=据 E0 合理推断；E2=猜测；E3=
 ## 10. 边界
 
 SOP 给判断上轨道，不替代判断。**反过度流程**：L0/L1 走轻量，别给小任务套重门禁；评审只压在高危处。
+
+## 11. SHA 分注纪律（多刀通用 · additive 成文）
+
+卷内凡引 commit SHA 须按线别**分注双值**，禁单值混引：
+
+- **支线 nail SHA**：skeleton/ccl 线 commit。含仅存在于 `ccl/*` refs 侧、main 历史重建不携 commit 对象者——须注明 refs 侧归属与 `git cat-file -t` 形。
+- **主线携入 SHA**：merge/squash 并线后落 main 的 commit——须注明 `git merge-base --is-ancestor` 亲证。
+
+内容权威面恒以 SSOT 段与现树脚本/接线注现值为准（SHA 仅为引注）。首例形=支线短 SHA 在重建后 main 不携对象（内容以 SSOT 段+现树为准的如实分注形）；纪律全文与首例引注见 `ai-docs/delivery/harness/err-REQUEST.md` §2-6；本节=其 SOP 级落位行使（载体=`ai-docs/delivery/harness/fin-REQUEST.md` · 2026-11-05）。
