@@ -1,6 +1,6 @@
 # G7W-QGEN-REVERIFY REQUEST（GAP-G7W-QGEN-SCHEMA-VALIDATION 复验门二行使刀 · P2 · docs REQUEST · 钉死统一口径 → 定值复跑（现树）→ 归因重裁 · 前轮 env 已排除承登 · 码面/复跑 EXEC 期落卷 · 起草零实跑落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草席落卷 2026-11-05 · docs REQUEST only · 本 turn 零实跑零 live 零 Key 加载零 DB 连接 · 改动集=本卷+姊妹 tail-close 卷两 .md+cap 届值步进两 policy 脚本联动（CAP-SANCTION-2481·派单「cap 届值步进预登」随令）· docs:check EXIT=0 2481≤cap 2481 恰等+markers 五类零命中+diff 面亲跑（回执随交付报告）· pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · Ban retry-to-green · Ban coding · 起草 est live=0 · `actualSpendCny=null`）
+**Status**: **`executed:awaiting_post_prove_dual`**（闭合 EXEC 已行使 2026-11-05 · 起草席落卷 2026-11-05 · docs REQUEST only · 本 turn 零实跑零 live 零 Key 加载零 DB 连接 · 改动集=本卷+姊妹 tail-close 卷两 .md+cap 届值步进两 policy 脚本联动（CAP-SANCTION-2481·派单「cap 届值步进预登」随令）· docs:check EXIT=0 2481≤cap 2481 恰等+markers 五类零命中+diff 面亲跑（回执随交付报告）· pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · Ban retry-to-green · Ban coding · 起草 est live=0 · `actualSpendCny=null`）
 
 **席位**：GAP-G7W-QGEN-SCHEMA-VALIDATION 复验门二行使刀 起草席（协调方派单令「门④三块拦路之二」· 承前卷 `harness/qgen-schema-env-recheck.md` 三步法一轮全链（REQUEST→errata→EXEC `a285e4cf`→post dual BOTH PASS→nail · backlog `:807`/`:811` 行使注）· 本刀=该注裁决②「第 3 可测样本如需=新授权臂独立 REQUEST」+现树产物变化后的复验门二行使）。
 **基线**：`origin/main` @ **`edda65a4`**（fetch 后亲证 origin tip=#198 merge 点 · worktree **`meetwise-g7w`**（与姊妹 tail-close 卷同树同支 · 两刀分开两卷互不并裁）· branch **`line/g7w-draft`** · 建树 docs:check 亲跑 EXIT=0 scanned 2479=cap 2479 恰等）。
@@ -83,13 +83,13 @@ SELECT status, count(*) FROM interview GROUP BY 1;
 -- (R-B2) 供给链旁证：job 全 done + last_error
 SELECT id, kind, status, attempts, last_error, created_at
   FROM interview_job ORDER BY created_at DESC LIMIT 20;
--- (R-B3) trace 旁证：persistTrace 仅 !error 落 → trace 数==succeeded 数（re-roll 上行亦然 · rev r1 判读纪律钉明：恒等式按「设计恒等·best-effort 允差」判——invoke.ts:519 注释原文「INSERT 失败不回滚」系 UC-028 fail-open 旁路设计内 · 小失配如实记账不自动升判读异常/仪器错误）
+-- (R-B3) trace 旁证：persistTrace 仅 !error 落 → trace 数==succeeded 数（re-roll 上行亦然 · rev r1 判读纪律钉明：恒等式按「设计恒等·best-effort 允差」判——invoke.ts:518 注释原文「INSERT 失败不回滚」系 UC-028 fail-open 旁路设计内 · 小失配如实记账不自动升判读异常/仪器错误）
 SELECT count(*) FROM ai_invocation_trace;
 -- (R-C) journey 推进旁证（表名 job_application 纠偏承卷 · :20=CREATE TABLE 语句本体口径）
 SELECT status, count(*) FROM job_application GROUP BY 1;
 ```
 
-- **每跑读数三元组（全记录 Ban 删改）**：**R-A**=generation 面（`service=interview.question-generation.v1` · registry operationId · 现 blob `f07688cb`）`error_code='schema_validation_failed'` 计数**分布**（含 0 · 含 reroll trajectory 对照）+全 service 面分布全录；**R-B**=吸收路径（interview 终态分布+job 全 done+last_error+trace==succeeded〔「设计恒等·best-effort 允差」判读纪律钉明（rev r1 席2 P2-c）——`invoke.ts:519` INSERT 失败不回滚 · fail-open 旁路设计内 · 小失配如实记账不自动升异常〕）——**re-roll 语义下 R-B 系「吸收终态」判读非「completed 恒等」判读（§0.2c）**；**R-C**=run 形状（EXIT 原值+`E2E_FAILURE_CLASS`+machine receipt `durationMs`）。
+- **每跑读数三元组（全记录 Ban 删改）**：**R-A**=generation 面（`service=interview.question-generation.v1` · registry operationId · 现 blob `f07688cb`）`error_code='schema_validation_failed'` 计数**分布**（含 0 · 含 reroll trajectory 对照）+全 service 面分布全录；**R-B**=吸收路径（interview 终态分布+job 全 done+last_error+trace==succeeded〔「设计恒等·best-effort 允差」判读纪律钉明（rev r1 席2 P2-c）——`invoke.ts:518` INSERT 失败不回滚 · fail-open 旁路设计内 · 小失配如实记账不自动升异常〕）——**re-roll 语义下 R-B 系「吸收终态」判读非「completed 恒等」判读（§0.2c）**；**R-C**=run 形状（EXIT 原值+`E2E_FAILURE_CLASS`+machine receipt `durationMs`）。
 - **七字段逐 attempt 全记录**：CMD 原文（含 env 钉值逐字）· EXIT 原值 · 起止时间戳（UTC）· 实跑 code SHA · worktree+branch · 环境探针 · 判读三元组。EXIT/`E2E_FAILURE_CLASS`/machine receipt/快照 log 四来源交叉一致才可引用；**全部 attempt 全记录 · Ban 删除/覆盖/择优**。
 - **预算（est-not-counter）**：era 每 journey 观测口径 ≤7（succeeded 5+failed 2 账本实测）；刀F re-roll 后 generation 每 turn 调用上限 ≤3 → 每 run est 以**账本实测为准**（sidecar R-A 读数=账本实测载体 · 守卫臂 unset 无 G7_RUN_COST_LEDGER 账本臂承前卷 §1.1 同款）· N=3 est 上限=任务帽内预注册（EXEC 授权落字定值 · 前轮 ≤24 形）· 超限即停如实记中止（不洗 not_run）；链累计沿 g7p6 126+前卷 ≤21+案 A LIVE 17=≈164 在案 · **硬帽 200** 口径如实另账 · 超帽即停。**`actualSpendCny=null`**（无计价数据源 · Ban invented spend）· DB 直读用容器固定测试凭据。
 
@@ -166,10 +166,10 @@ SELECT status, count(*) FROM job_application GROUP BY 1;
 
 ## §8 STOP（开工三条款）+ 停止条件
 
-**STOP · `draft:awaiting_pre_exec_dual`（起草席落卷终态 · 三处实测一致=Status 头/本节/卷尾）· 起草席写完即停零实跑零码动条款在卷。** 开工三条款：①本卷 pre-exec 双审 BOTH PASS（双审对象=§0 锚保真+§0.2 读码四项（口径分叉表/re-roll 形状改形/观测兼容性）+§1 三步法二轮逐段（钉值表/N=3/判读表 J2-R1-R3）+§1.3 八款否决+§2 门矩阵——两独立外席 · alone ≠ dual）；②协调方 EXEC 授权（钉值一次成型落字+N=3+任务帽+sidecar 落点 · **LIVE 跑数须协调方另行两票分立授权**——EXEC 授权≠LIVE 授权）；③post-prove 双审+行状态归协调方裁。三者全属后继工序 · 本卷不含 EXEC 不含复跑。
+**STOP · `executed:awaiting_post_prove_dual`（闭合 EXEC 已行使 · 起草席落卷终态 · 三处实测一致=Status 头/本节/卷尾）· 起草席写完即停零实跑零码动条款在卷。** 开工三条款：①本卷 pre-exec 双审 BOTH PASS（双审对象=§0 锚保真+§0.2 读码四项（口径分叉表/re-roll 形状改形/观测兼容性）+§1 三步法二轮逐段（钉值表/N=3/判读表 J2-R1-R3）+§1.3 八款否决+§2 门矩阵——两独立外席 · alone ≠ dual）；②协调方 EXEC 授权（钉值一次成型落字+N=3+任务帽+sidecar 落点 · **LIVE 跑数须协调方另行两票分立授权**——EXEC 授权≠LIVE 授权）；③post-prove 双审+行状态归协调方裁。三者全属后继工序 · 本卷不含 EXEC 不含复跑。
 
 **停止条件（五类 · 命中即停手上报）**：
-1. **现场漂移**：pre-exec/EXEC 面对届时 tip 重 pin——`:111` 行被翻面/他刀插入注记、`:807`/`:811` 注记被改写、§0.1 六锚 blob 漂移超面（error_code 值面/族面/钉值面任一实质变化——漂移如实改锚结论不变则只更行号）、或行锚漂移超 ±3 且结论受影响 → 停手上报（不得就地改判读实质）。
+1. **现场漂移**：pre-exec/EXEC 面对届时 tip 重 pin——`:111` 行被翻面/他刀插入注记、`:807`/`:811` 注记被改写、§0.1 七锚（含 registry）blob 漂移超面（error_code 值面/族面/钉值面/registry 注册面任一实质变化——漂移如实改锚结论不变则只更行号）、或行锚漂移超 ±3 且结论受影响 → 停手上报（不得就地改判读实质）。
 2. **机制不满足**：吸收路径再变（REROLL_FAMILY/帽值/耗尽面被他刀改）、error_code 值面被改（`schema_validation_failed` 恒等前提破）、或 wrapper withhold 面被他刀动 → 停手上报回炉（不得就地改仪表）。
 3. **越界需要**：执行中若需触 §3 任何域（产品码/`:110` 域/withhold 码面/守卫臂形）→ 停手上报（换定值分支若判必要=并陈回协调方 · 不得就地换钉值）。
 4. **验收红不可修**：A 段任一门红且无法在本刀范围内归因修复 → 停手上报（Ban 为绿放宽门——含 Ban 放宽 cap 步进幅度：恰等 +2 零多放）。
@@ -179,17 +179,35 @@ SELECT status, count(*) FROM job_application GROUP BY 1;
 
 ## §9 pre-exec dual 交接（预留 · 本节零 SSOT 触碰）
 
-- **双审对象四件**：§0 全节（blob 锚表九锚+读码四项 0.2a-0.2d）· §1 三步法二轮逐段（钉值表六行+复跑仪表与白名单 5 查询+判读表 J2-R1-R3 与边界列）· §1.3 八款否决 · §2 门矩阵 A/B 两段判据。
+- **双审对象四件**：§0 全节（blob 锚表十行（七码锚+三卷锚）+读码四项 0.2a-0.2d）· §1 三步法二轮逐段（钉值表六行+复跑仪表与白名单 5 查询+判读表 J2-R1-R3 与边界列）· §1.3 八款否决 · §2 门矩阵 A/B 两段判据。
 - **悬决项（归协调方）**：EXEC 排程 · 钉值一次成型落字（主口径 vs 换定值分支 §0.2b）· N=3+任务帽定值 · LIVE 两票分立授权 · 判别 run 与收口刀闭合 EXEC 排程先后（两卷互不依赖可并行）。
 - **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数系读数登记（原值记账零冲销）；0.2a 一轮结论承登系既成事实。
 
 ## §9-r1 rev r1 修订注记（两席 pre-exec dual BOTH PASS · P2 修订清单去重落卷 · rev r1 修订席 2026-11-05 · 本节=修订回路台账 · 勘正处已随令就地落位 · STOP/pins/门矩阵判据零翻）
 
 - **r1-①（席1 P2-3）§0.1 受管锚表补第 10 行**：`packages/ai-runtime/src/model-operation-registry.ts`（blob `f07688cb` · `:77` operationId 注册+`:250`-`:251` profile 绑定亲证）入表——并纳入 §2-B1 blob pre/post 全等机检（由「operationId 面」旁证升格 blob 全等锚 · 共七锚）。
-- **r1-②（席2 P2-a）§0.2b/§1.1/§0.1#6 机制叙述精度勘正**：「守卫启用即 pin 覆盖 MODEL_NAME」在现树生产码零调用（`applyG7FreetierReproveEnv` 全仓 grep 仅定义+单测 · GODFN-1b 组合根装配不 pin env）且 `qwen-plus ∈ G7_PAID_FALLBACK_ALLOWLIST`（guard `:30`）——改写为「守卫臂形（`G7_FREETIER_REPROVE=1`）实测口径=qwen3.8-flash（案 A 账本实证）· guard 源 `:132-136` pin 函数现树生产零调用 · 防覆盖处方（unset）不变仍充分」——防后继席按已失效机制推演。
-- **r1-③（席2 P2-c）R-B3 恒等式判读纪律钉明**：「恒等式」按「设计恒等·best-effort 允差（`invoke.ts:519` INSERT 失败不回滚 · UC-028 fail-open 旁路设计内）」判——R-B3 SQL 注与 §1.2 R-B 判读句两处已就地落（小失配如实记账不自动升异常/仪器错误）。
+- **r1-②（席2 P2-a）§0.2b（表行+判读段两处）/§1.1/§0.1#6/卷尾 计五处落位 机制叙述精度勘正**：「守卫启用即 pin 覆盖 MODEL_NAME」在现树生产码零调用（`applyG7FreetierReproveEnv` 全仓 grep 仅定义+单测 · GODFN-1b 组合根装配不 pin env）且 `qwen-plus ∈ G7_PAID_FALLBACK_ALLOWLIST`（guard `:30`）——改写为「守卫臂形（`G7_FREETIER_REPROVE=1`）实测口径=qwen3.8-flash（案 A 账本实证）· guard 源 `:132-136` pin 函数现树生产零调用 · 防覆盖处方（unset）不变仍充分」——防后继席按已失效机制推演。
+- **r1-③（席2 P2-c）R-B3 恒等式判读纪律钉明**：「恒等式」按「设计恒等·best-effort 允差（`invoke.ts:518` INSERT 失败不回滚 · UC-028 fail-open 旁路设计内）」判——R-B3 SQL 注与 §1.2 R-B 判读句两处已就地落（小失配如实记账不自动升异常/仪器错误）。
 - **r1 门回执**：rev r1 落卷期三门亲跑=docs:check EXIT=0（2481=cap 2481 恰等）+PTP EXIT=0 12/12+markers 改动集零命中（回执随交付报告）· STOP 三处 `draft:awaiting_pre_exec_dual` 零翻 · pins 十一值零翻 · 累计 diff 对 base `edda65a4` 恰 4 tracked 零增路径。
+
+## §9-exec OB-3 归因判别 run 行内注（EXEC 期落卷 2026-11-05 · 单跑口径 · 读数原值如实记账红绿都记 · 零重跑零冲销 · 本节=读数登记+行内更新建议 非归因定谳非行翻转 · `:111` 行 P2 OPEN 零翻转 · backlog/共享 SSOT 零触碰 · LIVE 授权=协调方派单随令落字）
+
+- **授权与口径**：协调方 EXEC 授权（pre-exec dual r2 两席 BOTH PASS 后派单）· 单跑 OB-3 归因判别 run（超 1 次行使即停 · 禁重跑刷绿）· 钉值口径=§1.1（`MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing` × `MODEL_NAME=qwen-plus` · 显式 export 钉死）· `G7_FREETIER_REPROVE=unset` 守卫不介入 · `MODEL_API_KEY` 仅经 loader source（name-only · 值/fingerprint 零落盘零入 receipt）· `.env*` 零读取零创建（探针 dotenv_absent_count=0）· 本节系单跑口径（§1.2 N=3 预注册复跑案未被本授权取代·如需仍归协调方另授权）。
+- **B1 七锚 blob pre/post 全等机检**：`invoke.ts` `f6102433`/`question-generation.ts` `31079959`/`text-endpoint-config.ts` `005c68cc`/`g7-freetier-reprove-guard.ts` `4e75fae7`/`adaptive-interview-service.ts` `71c9a502`/`run-e2e-isolated.mjs` `cde76fda`/`model-operation-registry.ts` `f07688cb` —— pre（2026-11-04T20:06:05Z）=post（20:07:06Z）七值全等 · `git status --porcelain --untracked-files=no` 空=tracked 树零改（回执 `receipts/g7w-qgen-reverify/00-b1-pre-post.log`）。
+- **环境探针（跑前+跑后 name-only）**：MODEL_API_KEY=set（loader）· MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing · MODEL_NAME=qwen-plus · G7_FREETIER_REPROVE=unset · MODEL_BACKUP_API_KEY=unset · MODEL_TEST_TRANSPORT_OVERRIDES=unset · G7_RUN_COST_LEDGER_PATH=unset（无账本臂）· dotenv_absent_count=0 —— pre/post 全项同值（`01-env-probe.log`）。
+- **run meta（R-C 三元组）**：cmd=`pnpm run e2e:isolated` · **EXIT=1** · start 2026-11-04T20:06:05Z → end 20:07:05Z（machine receipt durationMs=59196 · outcome=failed · failureClass=api · `.tmp/e2e-receipts/2026-11-04T20-07-05-419Z-48850-d1a9eb5f-409c-4aa6-bd92-4360de17e73b.json`）· `E2E_FAILURE_CLASS class=api` · withhold state_bytes=216 logs_bytes=53 · code SHA `86af8b34b` · worktree `meetwise-g7w` · branch `line/g7w-draft` · migrations applied=222 —— 红也是读数原值记账（预期 EXIT 形如实记 · 判别成功判据=sidecar 快照捕获读取清单读数=满足）· 尾段面形状归收口刀/POST7B 域·本刀零归因零定位（§1.3-3）。
+- **判别读数原值（sidecar 白名单 5 查询 · 1000ms · 快照 57 份 · 最后 ok 快照 snap-0055 @2026-11-04T20:07:04.342Z · 逐查询 ok 纪律 5/5 ok · 末份 snap-0056=容器拆除后 connect_error 如实不计读数）**：
+  - **R-A（全 service 面分布全录）**：`interviewer.ask`/succeeded/—/11 · `mock-interview.evaluate`/claimed/—/7 · `mock-interview.evaluate`/unknown/`external_outcome_unknown`/5 · `planner.competencies`/unknown/`external_outcome_unknown`/2 —— **generation 面 `schema_validation_failed` 计数=0（含 0 如实登记）**；
+  - **R-B1**：interview `abandoned`×1 · `failed`×2（本 run 吸收路径未达前轮 completed 形——如实记录 · 致死性子读数只记录·致命性定谳权归协调方）；
+  - **R-B2**：interview_job 15 行=start done×2 + start failed（attempts=0 · last_error=abandoned）×1 + answer done×12 · attempts 全 1（failed 0）· last_error 除 abandoned 外全 NULL；
+  - **R-B3**：ai_invocation_trace=11 == R-A succeeded 计数 11（恒等式按「设计恒等·best-effort 允差」判——本 run 恒等成立零失配）；
+  - **R-C**：job_application **0 行**；
+  - **值域外读数如实另记**：`external_outcome_unknown` ×7（mock-interview.evaluate/planner.competencies 两 service 面·判读表外如实登记不就地 reinterpret·归协调方）· whitelist 5 查询未含 trajectory 列（本 run 无 schema 失败语义·reroll trajectory 无对照面·如实记）。
+- **判读分支落字（§1.3 判读表）**：读数方向=**J2-R2（复现不成立）**——本 run generation 面 `schema_validation_failed`=0；**单跑样本限如实**：N=1 不定谳全称 · 本 run journey 形状与前轮异形（interview failed/abandoned 非前轮 completed · 吸收路径形状未行使至前轮形 · 跨时代可比性披露承 §1.3）——**归因=未闭合（候选族并列如实）** · **Ban 定谳「已修复」**（机读甄别钉承：无针对 prompt/validator 面修复 commit · 刀F=吸收语义变更·`6b66a14cf`=观测档名）· **Ban 定谳「永不复现」** · 前轮 2/2 与 G7W-era `×2` retained 零冲销 · trio 1/1/1 零冲销。**行内更新建议（供协调方采/改 · Ban 就地改行）**：「OB-3 门两轮已行使 · 钉值口径（dashscope-cn-beijing × qwen-plus）单跑零复现（N=1 样本限·本 run journey 异形如实）· 前轮 2/2 retained · 归因未闭合（候选族并列 · 值域外 external_outcome_unknown ×7 另记）· 如需 N=3 定值复跑=协调方另授权」。
+- **预算（est-not-counter 账本实测）**：本 run R-A 账本实测 **25 calls**（11+7+5+2）· 链累计 ≈164+25=**189 ≤200 硬帽** ✓ · **`actualSpendCny=null`**（无计价数据源·Ban invented spend）· DB 直读=容器固定测试凭据（非模型 Key）。
+- **收据落点**：`ai-docs/delivery/receipts/g7w-qgen-reverify/`（00-run1.log · 00-b1-pre-post.log · 01-env-probe.log · 02-run-meta.log · 全 .log 非扫描扩展名不计 cap · sk/Bearer 扫描零命中）· sidecar 快照 57 份+脚本落 `.tmp/qgen-reverify2/`（不入 git · sidecar 读 DB 不读 stderr·与子进程 stdio 零接触·端口行锚 `run-e2e-isolated.mjs:4379` 停靠亲证）· `.tmp` 判别产物 name-only（e2e-seg-heartbeat.ndjson/e2e-consent-capture.ndjson/e2e-tsx-stderr-tail.ndjson——尾段面读数零触碰零归因）。
+- **Pins 保持**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · `g7SuiteGreen=false` · `r1Closed=false` · `actualSpendCny=null` —— 十一值零翻转 · 行状态 `:111` P2 OPEN 零翻转（翻转权归协调方 nail）· alone≠dual.
 
 ---
 
-*G7W-QGEN-REVERIFY REQUEST · 2026-11-05 起草 · **`draft:awaiting_pre_exec_dual`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`edda65a4` · worktree `meetwise-g7w`（与姊妹 tail-close 卷同树 · 两刀分开两卷互不并裁）· branch `line/g7w-draft`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令+backlog `:111` 行 P2 OPEN+`:807`/`:811` 一轮行使注（env 排除+2/3 可测+J-R3+两席裁决② 新授权臂授权源）+前卷 `dedd3672` 三步法母本+现树产物变化三件（刀F re-roll `cf196a035`/观测档名 `6b66a14cf`/账本隐私 `31e1afe1b`）· 考证=env 口径分叉表（trio qwen-plus vs 守卫臂 qwen3.8-flash 同端点异模型名 · 守卫 `:132-136` pin 函数现树生产零调用 · 防覆盖处方 unset 不变仍充分 · rev r1 机制精度勘正）+吸收路径改形（REROLL_FAMILY schema_invalid 在族 · MAX_ERROR_REROLL=2 · 耗尽 unavailable+reroll trajectory · 旧「恒 2」单值形判读作废→分布+吸收终态族判）+观测兼容性（error_code 值恒等 · span 档名变化不涉 R-A）· 三步法二轮=口径钉死（dashscope-cn-beijing × qwen-plus · 守卫 unset 防覆盖 · 换定值分支并陈归协调方）→定值复跑（现树 N=3 预注册 · sidecar 白名单 5 查询 · 端口行现锚 `:4379` · R-A/R-B/R-C 三元组 · est-not-counter 账本实测 · 链累计 ≤200 硬帽）→归因重裁（J2-R1 候选加强/J2-R2 未闭合候选族并列+Ban「已修复」机读甄别/J2-R3 仪器缺口/值域外另记 · 致命性定谳权归协调方）· 门矩阵=A 段三锚（docs:check 2481≤2481+markers+diff 恰 4）+B 段六门（blob 机检/探针/sidecar/三元组/预算/收据）· 迁移号=零 · 起草 est live=0 · 复跑 est=账本实测（LIVE 两票分立另行授权）· pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*
+*G7W-QGEN-REVERIFY REQUEST · 2026-11-05 起草 · **`executed:awaiting_post_prove_dual`** · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`edda65a4` · worktree `meetwise-g7w`（与姊妹 tail-close 卷同树 · 两刀分开两卷互不并裁）· branch `line/g7w-draft`（建前零同名树/同名分支/同名卷三查亲证）· 立项出处=协调方派单令+backlog `:111` 行 P2 OPEN+`:807`/`:811` 一轮行使注（env 排除+2/3 可测+J-R3+两席裁决② 新授权臂授权源）+前卷 `dedd3672` 三步法母本+现树产物变化三件（刀F re-roll `cf196a035`/观测档名 `6b66a14cf`/账本隐私 `31e1afe1b`）· 考证=env 口径分叉表（trio qwen-plus vs 守卫臂 qwen3.8-flash 同端点异模型名 · 守卫 `:132-136` pin 函数现树生产零调用 · 防覆盖处方 unset 不变仍充分 · rev r1 机制精度勘正）+吸收路径改形（REROLL_FAMILY schema_invalid 在族 · MAX_ERROR_REROLL=2 · 耗尽 unavailable+reroll trajectory · 旧「恒 2」单值形判读作废→分布+吸收终态族判）+观测兼容性（error_code 值恒等 · span 档名变化不涉 R-A）· 三步法二轮=口径钉死（dashscope-cn-beijing × qwen-plus · 守卫 unset 防覆盖 · 换定值分支并陈归协调方）→定值复跑（现树 N=3 预注册 · sidecar 白名单 5 查询 · 端口行现锚 `:4379` · R-A/R-B/R-C 三元组 · est-not-counter 账本实测 · 链累计 ≤200 硬帽）→归因重裁（J2-R1 候选加强/J2-R2 未闭合候选族并列+Ban「已修复」机读甄别/J2-R3 仪器缺口/值域外另记 · 致命性定谳权归协调方）· 门矩阵=A 段三锚（docs:check 2481≤2481+markers+diff 恰 4）+B 段六门（blob 机检/探针/sidecar/三元组/预算/收据）· 迁移号=零 · 起草 est live=0 · 复跑 est=账本实测（LIVE 两票分立另行授权）· pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · STOP*

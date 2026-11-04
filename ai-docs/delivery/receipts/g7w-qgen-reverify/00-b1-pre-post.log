@@ -1,0 +1,19 @@
+# B1 pre blob machine check (seven anchors per REQUEST §0.1 #2-#7+#10)
+ts_utc=2026-11-04T20:06:05Z head=86af8b34bc550ad7c93e19f9df33d3369a1b7745 branch=line/g7w-draft worktree=meetwise-g7w
+f61024332018b336ef7447598f91d2c3127acba1  packages/ai-runtime/src/invoke.ts
+31079959865bacd725a64cd886be30e6f0baca19  packages/domain/src/question-generation.ts
+005c68ccce6398f97d5931723e77dbfd5cb68901  packages/ai-runtime/src/text-endpoint-config.ts
+4e75fae7746e1c8bbeb74a2915e6545636596779  packages/ai-runtime/src/g7-freetier-reprove-guard.ts
+71c9a502a8bdb5a34cdf4b91529aeef1c1267216  apps/worker/src/adaptive-interview-service.ts
+cde76fda53fe32e22b7d38883a5ca4fc29c30599  scripts/run-e2e-isolated.mjs
+f07688cb54a612d3c0e50a107c3d98326fe307d1  packages/ai-runtime/src/model-operation-registry.ts
+# B1 post blob machine check (seven anchors)
+ts_utc=2026-11-04T20:07:06Z head=86af8b34bc550ad7c93e19f9df33d3369a1b7745
+f61024332018b336ef7447598f91d2c3127acba1  packages/ai-runtime/src/invoke.ts
+31079959865bacd725a64cd886be30e6f0baca19  packages/domain/src/question-generation.ts
+005c68ccce6398f97d5931723e77dbfd5cb68901  packages/ai-runtime/src/text-endpoint-config.ts
+4e75fae7746e1c8bbeb74a2915e6545636596779  packages/ai-runtime/src/g7-freetier-reprove-guard.ts
+71c9a502a8bdb5a34cdf4b91529aeef1c1267216  apps/worker/src/adaptive-interview-service.ts
+cde76fda53fe32e22b7d38883a5ca4fc29c30599  scripts/run-e2e-isolated.mjs
+f07688cb54a612d3c0e50a107c3d98326fe307d1  packages/ai-runtime/src/model-operation-registry.ts
+# git status --porcelain --untracked-files=no (expect empty = tracked zero delta)

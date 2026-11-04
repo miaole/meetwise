@@ -1,0 +1,20 @@
+## env probe phase=pre ts_utc=2026-11-04T20:06:05Z (name-only · values never recorded)
+MODEL_API_KEY=set
+MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing
+MODEL_NAME=qwen-plus
+G7_FREETIER_REPROVE=unset
+MODEL_BACKUP_API_KEY=unset
+MODEL_TEST_TRANSPORT_OVERRIDES=unset
+G7_RUN_COST_LEDGER_PATH=unset
+MODEL_G7_env_names=MODEL_API_KEY,MODEL_ENDPOINT_PROFILE,MODEL_NAME,
+dotenv_absent_count=0 (expect 0)
+## env probe phase=post ts_utc=2026-11-04T20:07:05Z (name-only · values never recorded)
+MODEL_API_KEY=set
+MODEL_ENDPOINT_PROFILE=dashscope-cn-beijing
+MODEL_NAME=qwen-plus
+G7_FREETIER_REPROVE=unset
+MODEL_BACKUP_API_KEY=unset
+MODEL_TEST_TRANSPORT_OVERRIDES=unset
+G7_RUN_COST_LEDGER_PATH=unset
+MODEL_G7_env_names=MODEL_API_KEY,MODEL_ENDPOINT_PROFILE,MODEL_NAME,
+dotenv_absent_count=0 (expect 0)
