@@ -1,6 +1,6 @@
 # FIN REQUEST — meetwise 台账收官刀（U5a/U5b/U5c/U6/U7/U8/U10 七项 + G7K 勘误一次性收口·起草+行使随令同卷·docs-only）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（起草+行使随令同卷落卷 2026-11-05·协调方终裁授权「除买云外全部完结」随令行使（沿 err-REQUEST §9-1 df 卷转录先例形·在席双审记录以协调方台账为准·本席按令转录）·行使面=§2-§7 七项 additive（U5a regw 终裁注/U5b rc 四子项勘误注/U5c backlog G7K 定性勘误注/U6 两卷翻面 closed+两卷残面注+一卷维持承登/U7 普查正形登记注）+§6 U8 登记表（只登记不删）+§7 U10 成文落位·alone≠dual·Ban self-approve·post-prove 双审留协调方派席·翻面/关账权归协调方·est live=0·markers 新增字节 0·⛔push ⛔动主仓）【状态钉三处：本行+§8+卷尾·同值】
+**Status**: **`proofed:dual_pass`**（2026-11-05 post-prove 双席两独立外席 BOTH PASS 落卷·详 §9 post-prove 记录 · 前值 `executed:awaiting_post_prove_dual`（起草+行使随令同卷落卷 2026-11-05·协调方终裁授权「除买云外全部完结」随令行使（沿 err-REQUEST §9-1 df 卷转录先例形·在席双审记录以协调方台账为准·本席按令转录）·行使面=§2-§7 七项 additive（U5a regw 终裁注/U5b rc 四子项勘误注/U5c backlog G7K 定性勘误注/U6 两卷翻面 closed+两卷残面注+一卷维持承登/U7 普查正形登记注）+§6 U8 登记表（只登记不删）+§7 U10 成文落位·alone≠dual·Ban self-approve·post-prove 双审留协调方派席·翻面/关账权归协调方·est live=0·markers 新增字节 0·⛔push ⛔动主仓）史录保留 · alone≠dual · 翻面/关账权归协调方）【状态钉三处：本行+§8+卷尾·同值】
 **Date**: 2026-11-05
 **Base**: `origin/main` @ **`edda65a44`**（#198 l13-draft 已并·fetch 亲证 tip 恰等·main 届扫 2479=cap 2479 恰等=CAP-SANCTION-2479 L-13 承值）
 **工作区**: worktree `meetwise-fin`（branch `line/fin-draft`·按派单令 remove --force 重建于 origin/main 届 tip·工作树 0 脏亲证后落卷）
@@ -82,7 +82,7 @@
 
 ## §8 STOP / 状态
 
-**STOP · `executed:awaiting_post_prove_dual` · alone≠dual。** 起草+行使随令同卷落卷（协调方终裁授权「除买云外全部完结」随令行使·沿 err rev r1 转录先例形）；post-prove 双审两独立外席留协调方派席·翻面/关账权归协调方·Ban self-approve·Ban retry-to-green·⛔push ⛔动主仓。状态钉三处：Status 行+本节+卷尾·同值。
+**STOP · `proofed:dual_pass`（2026-11-05 post-prove 双席两独立外席 BOTH PASS 落卷转·前值 `executed:awaiting_post_prove_dual` 史录保留·详 §9 post-prove 记录） · alone≠dual。** 起草+行使随令同卷落卷（协调方终裁授权「除买云外全部完结」随令行使·沿 err rev r1 转录先例形）；post-prove 双审两独立外席留协调方派席·翻面/关账权归协调方·Ban self-approve·Ban retry-to-green·⛔push ⛔动主仓。状态钉三处：Status 行+本节+卷尾·同值。
 
 ## §9 cap 届值步进预登（CAP-SANCTION-2480）
 
@@ -92,6 +92,7 @@
 - 四联动点恰等改（本 commit 同体兑现）：①`scripts/ai-docs/public-text-policy.mjs` MAX_FILES 2_479→2_480+CAP-SANCTION-2480 注记入链区②`scripts/ai-docs/public-text-policy.proof.mjs` loop（i<2_480）/atCap（scannedFiles 2_480）/overCap（f-2480.md/FILE_LIMIT:2481）三处恰等改+CAP-SANCTION-2480 注记入 proof 链区。
 - 在飞如实采按届枚举：df/rc/flip/err/l13/audit/uc011adv 七支**已并出名单**（`merge-base --is-ancestor` EXIT=0 亲跑——l13/uc011adv 本届消·g7w 未并如实列）·g7w-draft `27b5c940b` 未并（两 policy 触面 2 件=已知共享热面 dual-keep 先例形如实列）·ag20/loadw/pay/scoringeval/uc31 各 ahead=1 两 policy 零触·campaign-state 含 .tmp 面如实注·ag18/cap-2272 ancient 分叉不预采（沿 CAP-SANCTION-2479 承列）。
 - 先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减·PTP 12/12 亲跑。
+- **post-prove 记录（2026-11-05 双席两独立外席 BOTH PASS 落卷 · 本节 append-only 不改既有字）**：post-prove 双席两独立外席 **BOTH PASS**（席1 七项独立复算+席2 证伪未推翻·协调方派单令明示·本席按令转录·沿 l13/df 卷 post-prove 记录先例形）→ 状态三处（Status 行+§8+卷尾）转 **`proofed:dual_pass`**（翻面/关账权归协调方）。关键读数（双席独立亲读同值·落卷时本席对树复认亲跑）：U5a regw `:3` 终裁注在树（两注并存史录零洗·终值=proofed:dual_pass 取时间后位+授权精度）；U5b rc 四子项勘误注在树（提取器只读实跑三值复现 31=25+1+1+2+1+1·resume-grounding raw=R2:185+ci-wiring raw=R2:98）；U5c backlog 文件尾定性收官勘误注在树（`:109` 行 P1 OPEN 维持零翻面·carrier 引注错挂见双席 P2 登记）；U6 b110/errmsg-map 两卷翻面 closed+extrev-deps-audit/extrev-score-writer 两卷残面注+money-status-proof 附记-丙承登零触；U7 g7-enoent-fix 卷尾正形登记注在树（无状态行=正形维持）；U8 八树登记表只登记不删零树触；U10 task-sop §11 SHA 分注纪律在卷；cap **2480 恰等**。origin/main 届核 fetch 亲证=`edda65a44` 恰等本支 base（零前进→零 rebase·cap 2480 维持）。三门落卷时点复认亲跑全绿：门 1 docs **EXIT=0 · scanned 2480 = cap 2480 恰等**；门 2 PTP **12/12 EXIT=0**（`static_preflight_valid`）；门 3 markers=改动集新增字节直扫 **0 命中**（落卷期读数 139 行·词面运行时组装·i6-239 §2-7 口径）。双席 P2 登记（全部登记不修·修法/处置权归协调方·本卷行使面零触）：**席1** ①U5c 引注错置 P2（席2 证伪读数=U5c QGEN carrier=#110 非 #108·§3 行使文本引注 #108 系错挂·留后继勘误）②行数誊写滑差 ③cap 并线冲突前瞻（在飞 g7w 承 2481/r2·idu 承 2480 竞争·常设预授权随届值取大如实采）④P3×2 备查；**席2** ①U5c carrier 错挂同判（QGEN=#110 非 #108）②P3×2 备查（细则以协调方台账为准·本席按令转录）。est live=0 · actualSpendCny=null · ⛔push。
 
 ## §10 三门读数（落卷时点亲跑·worktree=meetwise-fin）
 
@@ -105,4 +106,4 @@ file:line 与实际代码逐条核对相符（§0 五项亲读）/机制满足�
 
 ---
 
-*fin 台账收官刀 · 2026-11-05 · executed:awaiting_post_prove_dual（起草+行使随令同卷） · base origin/main `edda65a44`=#198 · 工作区 meetwise-fin（line/fin-draft） · 行使面=U5a regw 终裁注+U5b rc 四子项+U5c G7K 定性注+U6 两卷翻面两卷残面注一卷维持承登+U7 正形登记注+U8 八树登记不删+U10 task-sop §11 成文 · CAP-SANCTION-2480 恰等步进预登（2479→2480·四联动点恰等改） · 三门 docs 2480=cap/PTP 12/12/markers 新增字节 0 · est live=0 · actualSpendCny=null · post-prove 双审留协调方派席 · 翻面/关账权归协调方 · ⛔push ⛔动主仓 · alone≠dual*
+*fin 台账收官刀 · 2026-11-05 · proofed:dual_pass（2026-11-05 post-prove 双席两独立外席 BOTH PASS 落卷转·前值 executed:awaiting_post_prove_dual 起草+行使随令同卷 史录保留） · base origin/main `edda65a44`=#198 · 工作区 meetwise-fin（line/fin-draft） · 行使面=U5a regw 终裁注+U5b rc 四子项+U5c G7K 定性注+U6 两卷翻面两卷残面注一卷维持承登+U7 正形登记注+U8 八树登记不删+U10 task-sop §11 成文 · CAP-SANCTION-2480 恰等步进预登（2479→2480·四联动点恰等改） · 三门 docs 2480=cap/PTP 12/12/markers 新增字节 0 · est live=0 · actualSpendCny=null · post-prove 双审留协调方派席 · 翻面/关账权归协调方 · ⛔push ⛔动主仓 · alone≠dual*
