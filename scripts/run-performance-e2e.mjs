@@ -21,7 +21,9 @@ const env = {
   // prod 不设该 env 即用钉死值 (10,0.05)。桶检查(每请求真打)零删零静默 special-case。
   RL_SIGNUP_IP: process.env.RL_SIGNUP_IP ?? '64,0.05',
 };
-if (existsSync(ROOT + '.env')) {
+// ISO-DOTENV-ISOLATION:isolated 形(E2E_ISOLATED=1)一律跳仓根 .env 回灌——主仓 .env 在场时其环境语义键(APP_RUNTIME_DB_EXPECTED_ROLE/NODE_ENV/PORT 类)穿透隔离删单(:32-42 只删云凭据)漏入 api/worker 子进程=伪红源(G7K 诊断席环境发现);包装器 baseEnv 已供隔离全套 env,隔离形零回灌需求。
+// 本 runner 无 E2E_SKIP_DOTENV 钩(先形恒回灌):守卫语义按本文件实构取先例唯一翻转格(isolated→skip)最小移植——非 isolated 形行为零变(恒回灌先形保持)。
+if (env.E2E_ISOLATED !== '1' && existsSync(ROOT + '.env')) {
   for (const line of readFileSync(ROOT + '.env', 'utf8').split('\n')) {
     const m = line.match(/^([A-Z_][A-Z0-9_]*)=(.*)$/);
     if (m && !env[m[1]]) env[m[1]] = m[2].replace(/^["']|["']$/g, '');

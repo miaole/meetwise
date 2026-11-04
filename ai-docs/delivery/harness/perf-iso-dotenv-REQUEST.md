@@ -1,0 +1,115 @@
+# ISO-DOTENV-PERF REQUEST（perf runner isolated 形跳仓根 .env 回灌守卫移植·起草席落卷）
+
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-05 起草落卷即停·pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve·Dual PASS ≠ 开工·est live=0·markers=0·⛔push⛔merge 主线）
+
+> 任务类型：runner 测试基建面一行守卫移植（ISO-DOTENV-ISOLATION → ISO-DOTENV-UI 承登后继刀·performance 腿第三 runner·起草落卷即停·禁 EXEC 期改修法面）。
+> 立项出处：协调方派单 brief（ISO-DOTENV-PERF 起草席·沿 `iso-dotenv-ui-REQUEST.md` 同构·「若结构异于 ui/iso 两先例，修法形状按实际结构定（最小移植守卫语义·禁自由发挥）」随令授权）。
+> 本刀唯一修法面：`scripts/run-performance-e2e.mjs:24` 仓根 .env 回灌守卫行增 `env.E2E_ISOLATED !== '1'` 判+两行注释（先例形最小移植·净 +3/−1）。零产品码触面。
+
+## §0 事实锚（本席亲证清单·2026-11-05）
+
+- **基线/分支/工作树**：`origin/main` = `09fe2a23d`（=PR #199 fin-draft merge·fetch 后 `git rev-parse origin/main` 亲证·主仓 main behind 3 与本刀无涉）· 分支 `line/perf-draft`（建前 worktree 列表零 `meetwise-perf`·本席 `git worktree add ../meetwise-perf -b line/perf-draft origin/main` 亲立·**主仓只做 worktree add 零其他 mutation**）· 工作树 `meetwise-perf`（仓根同级）· 工作树仓根 `.env` ABSENT 天然成立（基线协议 ABSENT 面承载·主仓 `.env` 内容零读零复制）。
+- **防重双查**：harness 目录 `perf-iso-dotenv-REQUEST.md` 建前零命中（`iso-dotenv-isolation-REQUEST.md` 系 HTTP 线原刀卷·`iso-dotenv-ui-REQUEST.md` 系 UI 腿卷（落 `meetwise-idu` 树未并主线）——本卷名零冲突）。
+- **现状固化表**（全部 `git show origin/main:<path>` + Read 逐行亲读 @`09fe2a23d`·`scripts/run-performance-e2e.mjs` base blob `28ef896a`·130 内容行 wc -l 亲证）：
+
+| # | 锚 | 亲证结论 |
+| --- | --- | --- |
+| 1 | `run-performance-e2e.mjs:24-29` | 仓根 .env 回灌区**无任何守卫**（:24 `if (existsSync(ROOT + '.env')) {` 直落→:25-28 逐行正则回灌·`!env[m[1]]` 不覆盖已设→:29 收）——**isolated 形照灌**·恒回灌先形。派单锚「:23-29」→实际 refill if-行在 **:24**（:23 = :11-23 env 对象收尾 `};`）·行号偏差如实登记·语义判定不受影响 |
+| 2 | `run-performance-e2e.mjs:30-40` | isolated 删单段在守卫**之后**（:30 `if (env.E2E_ISOLATED === '1') {`→:31-37 凭据删单→:38 `LANGFUSE_` 命名空间整删→:39 `DATABASE_SSL_MODE='disable'`）——删单不覆盖环境语义键（APP_RUNTIME_DB_EXPECTED_ROLE/NODE_ENV/PORT 类）·与 iso 卷 §1.1 环 3 同构 |
+| 3 | `run-performance-e2e.mjs:41` | `if (env.E2E_ISOLATED !== '1') throw tagE2EFailure('capability', 'performance_e2e_isolation_required')`——runner **de-facto isolated-only**·**ISOLATED 守卫位在删单段与 throw 两处在场·唯回灌区缺失**（不对称点=ui 卷同形根因） |
+| 4 | `run-performance-e2e.mjs:42-47` | `assertNoFakeServiceFlags(env)`+`VOICE_FAKE/OCR_FAKE/E2E_FAKE_MODEL` 三旗扫描→`fake_service_mode_forbidden`——回灌区之后仍可达的 fail-closed 面（哨兵向量载体·§0-6） |
+| 5 | `run-performance-e2e.mjs` 全文 | **无 `MODEL_API_KEY` 门·无 `live_provider_key_missing` 词面**（rg 零命中亲证）——结构异于 ui/iso 两先例的**第一异**；g6 行为门 `scripts/g6-e2e-iso-blocked.proof.mjs:103-109` 明文合同：「performance does NOT require Key」+ `:104` 断言 `!KEY_GATE_RE.test(runPerf) && /不把模型时延计入\|无外部模型/` + `:106-107` 断言 runner 词面**不含** `live_provider_key_missing`——**给 perf 加 Key 门=撞 g6 合同·Ban** |
+| 6 | `run-performance-e2e.mjs:92-96` | runner 自起 api+worker 子进程（`spawnNode('api'…)`+`spawnNode('worker'… WORKER_BOOTSTRAP:'1')`·**worker spawn extraEnv 无 PORT 覆盖**）——worker 形=与 run-e2e.mjs 同形·**无 web/playwright 面**（结构第二异：无 ui 卷 B 臂的 next build 段·boot 健康观测面=:97 databaseReady+:101-102 exitCode 门+:106-110 readyz 40×1s 环） |
+| 7 | `package.json:447-448` | `performance:e2e` → `node scripts/run-performance-e2e.mjs`（直跑·非 isolated·回灌区可达）· `performance:e2e:isolated` → `node scripts/run-e2e-isolated.mjs performance:e2e`（包装器注入）·包装器 baseEnv `E2E_ISOLATED:'1'`（`run-e2e-isolated.mjs:4044` 亲证）+隔离全套 env·**不注 E2E_SKIP_DOTENV**（iso 卷 §0.1-#4 沿承） |
+| 8 | `run-e2e.mjs:20-22` | 先例形亲读（ISO-DOTENV-ISOLATION 已并刀）：`:20` ISO-DOTENV-ISOLATION 长注释+`:21` SKIP_DOTENV 语义保持注释+`:22` `if (process.env.E2E_SKIP_DOTENV !== '1' && env.E2E_ISOLATED !== '1') {` |
+| 9 | `run-e2e-ui.mjs:27` | UI 腿已修形亲读（`meetwise-idu` 树 `line/idu-draft`·ISO-DOTENV-UI 卷 §1）：if 行加第二判 `&& env.E2E_ISOLATED !== '1'`+同文注释两行（删单行号引用按本文件修改后实值适配）——ui runner **先有** REG-FIX 组8b E2E_SKIP_DOTENV 钩（:24-26 注释在卷）故移植=纯加第二判；**本 runner 无该钩**（结构第三异·§0.2-2 定形） |
+| 10 | 哨兵对照对（本席 /tmp 实证·仓树零触·fixture 副本+哨兵 .env 两行=`E2E_FAKE_MODEL=1` 与 `MODEL_API_KEY` 哑值 `dummy-perf-iso-probe`（非真实凭证·仅占位）·依赖文件同布局随拷·apps/api·apps/worker 空目录） | **旧码**（base blob `28ef896a` 原样副本）isolated 形→EXIT=1·输出含 `fake_service_mode_forbidden` ×2·spawn banner「启 API + worker」**0 命中**（哨兵穿透隔离形·spawn 前预检即斩=诊断席伪红机制对 perf runner 的操作级复证）；**修法套用副本**（`037ab2d9`）同态→EXIT=1 `code=database_not_ready`（/tmp fixture 无栈的预期收尾·有界 ~62s）·`fake_service_mode_forbidden` **0 命中**·spawn banner **在场**（哨兵未载=回灌已被阻断直证）——探针临时件已清场 |
+
+- **在飞登记**（两 policy 脚本触面·本席逐支亲测 MAX_FILES 承值）：`line/idu-draft` `0aac6a4c`（ISO-DOTENV-UI 承登后继卷）承 **2_480** 未落 main / `line/g7w-draft` `86af8b34` 承 **2_481** 未落 main / `line/r2-draft` `185b0b39` 承 **2_481** 未落 main——三支同触两 policy 脚本=已知共享热面（dual-keep 双留先例形·并线 union 沿常设预授权届时取大重算承登）。其余非祖先 ref 簇全早于基线（逐支 last-policy-touch 亲测 ≤2026-10-18·零基线后在飞触面）。
+
+## §0.2 结构异形三问答（「沿先例同构」的实构适配定稿·EXEC 与双审必读）
+
+1. **问：修法是否照抄两先例的 `E2E_SKIP_DOTENV !== '1' &&` 双判全形？答：不照抄·单判移植。** 本 runner 回灌区**素无** E2E_SKIP_DOTENV 钩（无注释无判·恒回灌先形）；ui 腿系「已有钩+加第二判」，本刀若连 SKIP 判一并移植=**给 perf 新增一个素不存在的旗语义面**（非 isolated+携旗→跳=新行为）——超出「最小移植守卫语义」·按派单「禁自由发挥」条款否决。定稿=守卫行只增 `env.E2E_ISOLATED !== '1'` 判（本刀判据面与 :30/:41 隔离合同同一变量·同源同写防双源漂移；判据时点 .env 未读→`env.` 与 `process.env.` 恒等·iso 卷 §0.2-5 同证）。
+2. **问：非 isolated 形行为零变何证？答：真值表两态·唯一翻转格。** (ISO=0)→第一判真→existsSync 照评→回灌（**原样**·恒回灌先形保持）；(ISO=1)→第一判假→短路**不 stat 不回灌**（**本刀唯一新语义格**）。E2E_ISOLATED 从 .env 自举的病态形（shell 未设+.env 设 `E2E_ISOLATED=1`）修法前后行为不变（判据读回灌前 env 拷贝·回灌照走·:30 起删单照跑——iso 卷 §1-④③ 同构登记）。短路面副效应：isolated 形不再 stat 仓根 .env（纯早退·行为面等价）。
+3. **问：任务书 C 臂钉 `live_provider_key_missing` 为何改形？答：perf runner 结构不可达（§0-5）。** 该码系 ui runner :55 顶抛门的行为面；perf runner **素无该门**且 g6 `:104-109` 行为合同**明文禁加**（Key-unset 快速失败语义=ui/iso 两 runner 专属·perf 走「no-model」立场）。**结构性适配**：回灌阻断的 perf 形 observable=**哨兵不载**（isolated+哨兵 .env→`fake_service_mode_forbidden` **0 命中**+spawn banner 在场=§0-10 修法臂）对旧码穿透臂（`fake_service_mode_forbidden` ×2·零 banner）——同证回灌已被阻断·强度不减（操作级对照对）。已入偏离清单（§9-①）。
+
+## §1 修法（已随起草落卷·逐字·⛔EXEC 期不得更改）
+
+`scripts/run-performance-e2e.mjs` 单文件·净 3 insertions / 1 deletion（numstat 亲测）·base blob `28ef896a`→`037ab2d9`·130→132 内容行·零产品码触面：
+
+```diff
+@@ -24 +24,3 @@
+-if (existsSync(ROOT + '.env')) {
++// ISO-DOTENV-ISOLATION:isolated 形(E2E_ISOLATED=1)一律跳仓根 .env 回灌——主仓 .env 在场时其环境语义键(APP_RUNTIME_DB_EXPECTED_ROLE/NODE_ENV/PORT 类)穿透隔离删单(:32-42 只删云凭据)漏入 api/worker 子进程=伪红源(G7K 诊断席环境发现);包装器 baseEnv 已供隔离全套 env,隔离形零回灌需求。
++// 本 runner 无 E2E_SKIP_DOTENV 钩(先形恒回灌):守卫语义按本文件实构取先例唯一翻转格(isolated→skip)最小移植——非 isolated 形行为零变(恒回灌先形保持)。
++if (env.E2E_ISOLATED !== '1' && existsSync(ROOT + '.env')) {
+```
+
+- 首行注释系 `run-e2e.mjs:20` 先例形的同文移植；其中删单行号引用按本文件修改后实值适配为 `(:32-42 只删云凭据)`（先例文本 `(:28-34)` 系 run-e2e.mjs 写时快照·本文件修改后隔离段实值 :32-42·沿 UI 卷 §1 同一适配纪律）。
+- 次行注释系本刀实构适配声明（无 SKIP 钩→单判移植·非 isolated 零变）——**新增注释非自由发挥面**：系「同文移植不可达时按实构定形」的派单授权条款落笔（§0.2-1）。
+- **守恒断言**：:11-23 env 默认键七行零字节（AUTH_SECRET/PAY_PROVIDER_SECRET/RESUME_ENC_KEY/RESUME_HASH_SECRET/RAG_JOB_ROUTE_INPUT_HASH_KEY/RL_SIGNUP_IP 默认值面零触）；:30-42 删单段/:43 隔离 throw/:44 fake flags/:48-50 假旗扫描零字节（修后行号=原 +2）；:92 起 spawn 面/:97 databaseReady/:101-110 boot 门零字节；`assertNoFakeServiceFlags` import/call 恒在（static-guards :49-50 合同）；runner 词面**零** `live_provider_key_missing`（g6 :106-107 合同）·零 `MODEL_API_KEY` 词面（g6 :104 合同）；「无外部模型」立场注释（:2）零字节（g6 :104 正则合同）；新增注释零敏感词（token/Authorization/secret 字面值·secret-redaction 判据形）。
+- **行为语义登记（非偏离·本刀明示语义）**：①真值表两态·唯一翻转格 isolated→skip（§0.2-2）；②包装器入 isolated 形零回灌=主仓 .env 泄漏向量对 `performance:e2e:isolated` 闭合；③直跑 `pnpm performance:e2e`（非 isolated）回灌面零变；④run-e2e.mjs/run-e2e-ui.mjs/capture-screenshots.mjs 零触（先行两刀面+登记面零字节）。
+
+## §2 验收断言预算（三臂+门矩阵·**数字口径以实跑实测为准+偏差熔断**·命令原样可复制）
+
+- **A 臂（改前基线红·本席哨兵对照对操作级复证在卷 §0-10）**：修复前同宿主形态（isolated·哨兵 .env 在场）→旧码 `fake_service_mode_forbidden` ×2·spawn banner 0（哨兵穿透=伪红机制源证·/tmp fixture 副本·仓树零触）。
+- **B 臂（主断言·EXEC 期亲跑·docker 隔离栈·bounded 观测窗）**：修复后 worktree（仓根 `.env` **ABSENT** 形——本刀语义下 isolated 形零回灌需求·哨兵/真实 .env 均零需求）+零 shell Key+零哨兵·`pnpm performance:e2e:isolated`：断言 **`worker_exited_before_test` 0 次**+**`api_exited_before_test` 0 次**+runner 越 `:101` databaseReady 门与 `:106-110` readyz 40×1s 环推进至 perf client spawn 段=隔离 boot 健康正面观测达成；本席有界杀窗截断（外呼面零·performance.e2e.ts 纯 API burst 无模型·RL_SIGNUP_IP 默认放宽值自足）·**不强求全量绿**（杀窗截断预期 code 面如实登记·沿 UI 卷 §2 B 臂「或」判据先例形）。
+- **C 臂（回灌阻断门证据·本席亲跑在卷 §0-10+EXEC 期可复跑）**：isolated+哨兵 .env 同态→修法副本 `fake_service_mode_forbidden` **0 命中**+spawn banner **在场**（哨兵不载=回灌阻断直证）对旧码穿透臂×2——**结构性适配**：任务书钉的 `live_provider_key_missing` 在 perf runner 不可达（g6 :104-109 合同禁 Key 门·§0.2-3）·C 臂码面按实构定为哨兵不载 observable·已入偏离清单（§9-①）。
+- **门矩阵**（起草已跑七件+EXEC 期补跑三件）：
+
+| # | 门 | 期望 | 实测（起草 turn 亲跑） | 结论 |
+|---|---|---|---|---|
+| 0a | docs:check **改前基线** | EXIT=0 | EXIT=0·scanned **2480**=cap 2480 恰等零余量 | 绿 |
+| 0b | PTP proof **改前基线** | 12/12 | EXIT=0 `selected=12/12` | 绿 |
+| 0c | static-guards **改前基线** | EXIT=0 | EXIT=0 runners=6 helpers=21 flags=9 aiPaths=6 | 绿 |
+| 0d | g6-e2e-iso-blocked **改前基线** | EXIT=0 | EXIT=0 | 绿 |
+| 1 | static-guards **改后** | EXIT=0·四值恰等 | EXIT=0 runners=6 helpers=21 flags=9 aiPaths=6 | 绿恰等 |
+| 2 | g6-e2e-iso-blocked **改后**（runner 形制行为门零回归） | EXIT=0 | EXIT=0（performance no-Key 门/三 LIVE 目标/包装器 wiring 断言全绿） | 绿 |
+| 3 | 非 isolated 直跑臂（修后树·`.env` ABSENT 形） | EXIT=1+`performance_e2e_isolation_required` | EXIT=1·`E2E_FAILURE class=capability code=performance_e2e_isolation_required`（零 spawn 秒级早退·隔离要求语义零变） | 绿恰等 |
+| 4 | `node --check` 修后 runner | PARSE-OK | PARSE-OK（两 policy 脚本同跑 PARSE-OK） | 绿 |
+| 5 | docs:check **落卷后** | EXIT=0·scanned=cap 2481 恰等 | 见 §9 落卷读数 | 待落卷实测 |
+| 6 | PTP proof **落卷后** | 12/12 | 见 §9 落卷读数（cap 联动后已预验 12/12） | 待落卷实测 |
+| 7 | markers 五类 **落卷后** | 改动集零命中 | 见 §9 落卷读数 | 待落卷实测 |
+| 8 | B 臂 isolated boot（EXEC 期·docker） | 双 0 次 exit 门+越门推进 | EXEC 期亲跑收据留痕 | EXEC 待跑 |
+
+## §3 cap 预登（CAP-SANCTION-2481 恰等步进·随届值如实采）
+
+- 届值亲证：起草前 worktree `node scripts/ai-docs/check-docs.mjs` **EXIT=0 scanned 2480 = cap 2480 恰等零余量**（本席亲跑·`MAX_FILES = 2_480` 行亲证 @origin/main `09fe2a23d`）。
+- 本卷 REQUEST 受管 1 件 → 2481 必超 → 沿协调方派单 §4「基=origin/main 届 cap +1·CAP-SANCTION-<n+1> 注记沿链式」+ 常设预授权先例形随令行使 +1 恰等零多放：**cap 2480→2481（CAP-SANCTION-2481）**。
+- 四联动点已随卷恰等改（两 policy 脚本）：`policy.mjs` `MAX_FILES 2_481` + 链区注记；`proof.mjs` loop `i < 2_481` / atCap `scannedFiles 2_481` / overCap `f-2481.md` / `FILE_LIMIT:2482` + 链区注记（越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）。PTP 12/12 联动后预验绿。
+- 在飞如实列（§0 末条亲测）：**g7w-draft `86af8b34` 承 2_481**（同触两 policy·dual-keep 先例形）/**idu-draft `0aac6a4c`（ISO-DOTENV-UI）承 2_480**（同前）/**r2-draft `185b0b39` 承 2_481**（同前）——g7w/r2 承值与本卷预登同值 2481·并线 union 沿常设预授权「届时取大重算承登」·idu 并线则 union 2482 届时重算。
+- EXEC 期=既有 runner 单文件零新受管文件（修法已随起草落卷·真跑收据 .log ∉TEXT_EXTENSIONS 不计）→ EXEC terminal **2481 零新增**。
+
+## §5 Ban
+
+- Ban self-approve · alone≠dual（pre-exec 双审两独立外席待派）· Dual PASS ≠ 开工。
+- Ban 触产品码（本刀修法面=scripts runner 基建面唯一）· Ban 改 `run-e2e.mjs`/`run-e2e-ui.mjs` 既有先例形与已修形 · Ban 改 perf runner 立场注释「无外部模型」与 g6 no-Key 合同面（:104-109）· Ban 给 perf runner 加任何 Key 门/词面。
+- Ban push · Ban merge 主线 · Ban force push · 一切改动只交付本工作树（主仓零 mutation·worktree add 除外）。
+- Ban 超出 §3 预登值（2481）自升 cap（cap sanction 权归协调方·并线期 union 越限沿常设预授权届时重算承登·非本席越权）。
+- Ban 洗史录（两 policy 注记栈 append-only·既有注记零字节改写）· Ban 假绿绕过与测试门弱化 · Ban 读/打印 .env 值（本刀全程 name-only·哨兵系哑值非真实凭证·零真实 Key 值触面）· Ban 造/复制/删仓树任何形态 `.env`（哨兵仅限 /tmp fixture 副本·已清场）。
+- Ban 重跑冲销（门矩阵任一门红不重跑冲销·如实登记升级）· Ban 就地归因邻面新红（Ban 借机修）· Ban 触其他工作树。
+
+## §8 停手
+
+**STOP · `draft:awaiting_pre_exec_dual` · 起草落卷即停 · pre-exec 双审两独立外席待派 · 开工三条款=①双审 BOTH PASS 落卷 ②协调方明示 EXEC 授权 ③立项对届时 tip 全量重 pin（锚漂如实改锚·结论不变只更行号·在飞重扫必做）· Ban self-approve · alone≠dual。** 停止条件四类（命中即停手上报·Ban 就地处置）：
+- **file:line 不符**：亲证阶段全锚吻合·唯两处如实登记（派单 refill 锚 :23-29→实值 :24-29·机制判定不受影响§0-1；C 臂码面结构性适配§0.2-3）——EXEC 期再遇锚漂 → 停手上报。
+- **机制不满足**：EXEC 期复跑 B 臂若现 `worker_exited_before_test`/`api_exited_before_test` 任一 → 红停上报（Ban 改判据凑绿）；哨兵对照对任一臂码面翻转 → 红停。
+- **验收红且口径内修不了**：docs:check 超 §3 届值且协调方未裁 → 红停；PTP proof 红 → 红停；markers 净增行非零 → 红停；g6/static-guards 改后红 → 红停。
+- **越界**：需触产品码 / 别的仓 / 主仓 mutation（worktree add 除外）/ 超出 §1 修法面的改动才能继续 → 停手记录现场证据上报。
+
+## §9 落卷记录（2026-11-05 起草席）
+
+- **落卷内容**（本 commit tracked 面恰 4 文件）：① `scripts/run-performance-e2e.mjs`（§1 修法·唯一码面·base blob `28ef896a`→`037ab2d9`·+3/−1）② 本卷 `ai-docs/delivery/harness/perf-iso-dotenv-REQUEST.md` ③ `scripts/ai-docs/public-text-policy.mjs`（§3 cap+链注）④ `scripts/ai-docs/public-text-policy.proof.mjs`（§3 四联动点+链注）。
+- **三门读数（本席落卷前亲跑·树上终形 staged 后实测）**：门 1 docs:check **EXIT=0·scanned 2481 = cap 2481 恰等零余量**；门 2 PTP proof **12/12 EXIT=0**（`static_preflight_valid: selected=12/12; releaseEvidence=false`）；门 3 markers 五类标记词探针（i6-239 §2-7 运行时组装口径·四词 join 形+行首冲突标记对·**词面防自指不入卷**）对本 commit 改动集 4 文件 **0 命中**（首跑红系本卷 §9 本行曾直写四词词面触发自匹配——按「词面防自指」纪律改写去词面后复跑 0 命中·如实登记非掩盖）。
+- **改前基线七件亲跑在卷**（§2 门矩阵 0a-0d+1-4 行）：docs 2480 恰等/PTP 12/12/static-guards 6-21-9-6/g6 EXIT=0/哨兵对照对两臂/非 isolated 直跑臂/`node --check` PARSE-OK——全部绿。
+- **偏离任务书清单（如实·三处）**：
+  1. **C 臂码面结构性适配**：任务书 §2 钉「C 臂回灌阻断=`live_provider_key_missing`」→ perf runner 素无该门且 g6 `:104-109` 行为合同明文禁加（Key-unset 快速失败=ui/iso 两 runner 专属·perf 走 no-model 立场）→ C 臂 observable 按实构定=哨兵不载（`fake_service_mode_forbidden` 0 命中+spawn banner 在场）对旧码穿透臂——回灌阻断的证明强度不减（操作级对照对·§0-10）。派单「若结构异于先例按实际结构定」条款授权面内·非自由发挥。
+  2. **refill 锚行号**：派单锚「:23-29」→实际回灌 if-行 **:24-29**（:23=env 对象收尾 `};`）——语义判定不受影响·照实改锚。
+  3. **B 臂 draft 期不跑**：B 臂需 docker 隔离栈（长驻服务面）——起草席 est live=0 纪律下留 EXEC 期 bounded 观测窗执行·draft 期以哨兵对照对+非 isolated 直跑臂+g6 行为门三件零 docker 证据承载机制面。
+- **est live=0**：起草 turn 零模型外呼零 Key 加载（哨兵哑值占位非真实凭证）零生产操作零 secrets 零 docker 栈·哨兵探针秒级-有界 fail-closed 已清场。
+
+**STOP · `draft:awaiting_pre_exec_dual` · 2026-11-05 起草落卷即停 · pre-exec 双审两独立外席待派 · nail/批表/行翻面权归协调方 · alone≠dual · ⛔push⛔merge 主线⛔force push**
+
+---
+
+*ISO-DOTENV-PERF REQUEST · 2026-11-05 起草落卷 · **`draft:awaiting_pre_exec_dual`（起草席落卷即停·pre-exec 双审待派·协调方 EXEC 授权前码面零新触）** · base `origin/main` @`09fe2a23d`（=PR #199 fin-draft merge·fetch 后 rev-parse 亲证）· 分支 `line/perf-draft` · 工作树 `meetwise-perf`（本起草席 `git worktree add` 亲立·主仓零其他 mutation·建前 worktree 列表零同名）· 立项出处=协调方派单 brief（ISO-DOTENV-UI 承登后继刀·performance 腿第三 runner·沿 `iso-dotenv-ui-REQUEST.md` 同构）· 现状固化=`run-performance-e2e.mjs` base blob `28ef896a` 130 行·:24-29 回灌区无任何守卫（恒回灌先形·派单锚 :23-29→实值 :24-29 照实改锚）+:30-42 删单段+:43 隔离 throw（ISOLATED 守卫位删单/throw 两处在场·唯回灌区缺失=ui 卷同形不对称根因）+**无 Key 门**（g6 :104-109 行为合同明文禁加=结构第一异）+runner 自起 api+worker 无 web 面（第二异）+**素无 E2E_SKIP_DOTENV 钩**（第三异）· 先例对照=run-e2e.mjs :20-22 双判全形（HTTP 线已并刀）+run-e2e-ui.mjs :27 已修形（meetwise-idu 树 ISO-DOTENV-UI 卷·先有 SKIP 钩加第二判形）· 修法=单文件净 +3/−1（守卫行增 `env.E2E_ISOLATED !== '1'` 判+两行注释·`28ef896a`→`037ab2d9`·真值表两态唯一翻转格 isolated→skip·非 isolated 零变·E2E_ISOLATED 自举病态形零变）· 哨兵对照对亲证（/tmp fixture·哑值哨兵·仓树零触已清场：旧码穿透 `fake_service_mode_forbidden` ×2 零 banner / 修法 `0` 命中 banner 在场 `database_not_ready` 有界收尾）· 三臂断言（A 穿透在卷 / B EXEC 期 docker bounded 隔离 boot 健康·双 0 次 exit 门 / C 哨兵不载回灌阻断——C 臂码面结构性适配偏离登记·`live_provider_key_missing` 在 perf 不可达 g6 合同禁加）· CAP-SANCTION-2481 恰等步进预登（2480→2481·四联动点 2_481/f-2481.md/:2482·在飞 idu 2_480/g7w 2_481/r2 2_481 三支两 policy 热面如实列·union 届时取大重算）· 三门本席亲跑 docs 2481=cap 恰等+PTP 12/12+markers 0/0（改前基线四门+改后四门全绿在卷）· 偏离三处如实登记（C 臂码面适配/refill 锚 :24 实值/B 臂 EXEC 期跑）· pins 十一值照抄零翻（haStatus=NOT_HA·releaseEvidence=false·claimProductionHA=false·gR45Closed=true·coveredCount=8·ms3EqualsR4Closed=false·PG-retained·公开 DELETE=503·g7SuiteGreen=false·r1Closed=false·actualSpendCny=null）· est live=0 · markers=0 · 停止条件四类全设 · ⛔push ⛔merge主线 ⛔force push · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*
