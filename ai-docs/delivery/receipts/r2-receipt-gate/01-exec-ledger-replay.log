@@ -1,0 +1,214 @@
+# R2 EXEC A3 real-ledger replay receipt (.log only per scroll §2-A3/§5 Ban; repo tree meetwise-r2@line/r2-draft rebased onto origin/main 09fe2a23d; cap union 2481; EXEC authorized 2026-11-05).
+# Ledger physical source = main worktree ../meetwise/.tmp/g7-ledgers (read-only; copied into /tmp/r2-a3-replay/ledgers then replayed; main repo untouched).
+# INPUT source sha256 (main repo, pre-copy):
+# 8c83cd6917d94f3477b10074ae2fe7543b11ede9e51b75378348fabebd34d4c1  /Users/miaole/Desktop/golucky/meetwise/.tmp/g7-ledgers/g7-91160-1793811488060.ndjson
+# 3b31faf911549be15c37218426e3f16676a41867da38a5f04df799f647c2d3e2  /Users/miaole/Desktop/golucky/meetwise/.tmp/g7-ledgers/g7-98822-1793811969432.ndjson
+# INPUT copy sha256 (temp dir, post-copy — identical):
+# 8c83cd6917d94f3477b10074ae2fe7543b11ede9e51b75378348fabebd34d4c1  ledgers/g7-91160-1793811488060.ndjson
+# 3b31faf911549be15c37218426e3f16676a41867da38a5f04df799f647c2d3e2  ledgers/g7-98822-1793811969432.ndjson
+# A2 numstat pre-commit reading: git diff --numstat -- scripts/run-e2e-isolated.mjs => 7 0 (single hunk @@ -64,6 +64,13 @@ inside loadG7ReceiptFromLedger).
+# REPLAY SCRIPT FULL TEXT (replicates scroll §1.2 judgment bytes inline; real writeLocalE2EReceipt imported from repo tree; loadG7ReceiptFromLedger not exported -> in-script replica per §2-A3 pin):
+# ---8<--- replay.mjs ---8<---
+# // R2 EXEC A3 real-ledger replay (temp-dir exercise; nothing here enters the repo).
+# // Red arm  = pre-fix push-all replica x REAL writeLocalE2EReceipt -> contract throw.
+# // Green arm= post-fix judgment replica (bytes per scroll §1.2) x REAL writeLocalE2EReceipt.
+# // loadG7ReceiptFromLedger is not exported by the runner, so both arms replicate the
+# // read-loop bytes inline (scroll §2-A3 pin), while the receipt contract is the real
+# // scripts/local-e2e-receipt.mjs imported from the repo tree.
+# import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+# import { join } from 'node:path';
+# import { createHash } from 'node:crypto';
+# import { writeLocalE2EReceipt } from '/Users/miaole/Desktop/golucky/meetwise-r2/scripts/local-e2e-receipt.mjs';
+# 
+# const REPO = '/Users/miaole/Desktop/golucky/meetwise-r2';
+# const LEDGER_DIR = '/tmp/r2-a3-replay/ledgers';
+# const RECEIPT_ROOT = '/tmp/r2-a3-replay/receipts';
+# const W1 = join(LEDGER_DIR, 'g7-91160-1793811488060.ndjson');
+# const W2 = join(LEDGER_DIR, 'g7-98822-1793811969432.ndjson');
+# 
+# const sha256File = (p) => `sha256:${createHash('sha256').update(readFileSync(p)).digest('hex')}`;
+# 
+# // Pre-fix mechanism replica: push every row (window-1 production failure shape).
+# function loadPushAll(ledgerPath) {
+#   let calls = [];
+#   let estimatedCostCny = 0;
+#   if (existsSync(ledgerPath)) {
+#     const lines = readFileSync(ledgerPath, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
+#     for (const line of lines) {
+#       const row = JSON.parse(line);
+#       calls.push(row);
+#       estimatedCostCny += Number(row.estimatedCostCny ?? 0);
+#     }
+#   }
+#   return { calls, estimatedCostCny };
+# }
+# 
+# // Post-fix mechanism replica: bytes identical to the scroll §1.2 replacement block.
+# function loadFixed(ledgerPath) {
+#   let calls = [];
+#   let estimatedCostCny = 0;
+#   if (existsSync(ledgerPath)) {
+#     const lines = readFileSync(ledgerPath, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
+#     for (const line of lines) {
+#       const row = JSON.parse(line);
+#       if (row.row === 'reservation' || row.row === 'release') continue;
+#       if (typeof row.estimatedCostCny !== 'number' || typeof row.actualModel !== 'string') continue;
+#       calls.push(row);
+#       estimatedCostCny += Number(row.estimatedCostCny ?? 0);
+#     }
+#   }
+#   return { calls, estimatedCostCny };
+# }
+# 
+# function g7BaseOf(loaded) {
+#   return {
+#     g7FreetierReprove: true,
+#     runnerCommitSha: null,
+#     porcelainClean: false,
+#     keyFingerprint: null,
+#     estimatedCostCny: loaded.estimatedCostCny,
+#     actualSpendCny: null,
+#     runCostCapCny: 5,
+#     calls: loaded.calls,
+#     evidenceLabel: 'free-tier model; not production-model evidence; not perf SLO evidence',
+#   };
+# }
+# 
+# const results = [];
+# const check = (name, ok, detail = '') => {
+#   results.push(`${ok ? 'PASS' : 'FAIL'} ${name}${detail ? ` :: ${detail}` : ''}`);
+#   if (!ok) process.exitCode = 1;
+# };
+# const dist = (rows) => JSON.stringify(rows.reduce((m, r) => { const k = r.row ?? 'no_row_field'; m[k] = (m[k] ?? 0) + 1; return m; }, {}));
+# 
+# const w1PushAll = loadPushAll(W1);
+# const w1Fixed = loadFixed(W1);
+# 
+# // P1 red direction: pre-fix mechanism on the real window-1 ledger.
+# check('P1a push-all row count (window-1 ledger)', w1PushAll.calls.length === 65, `calls=${w1PushAll.calls.length}`);
+# check('P1b row distribution', dist(w1PushAll.calls) === '{"reservation":22,"release":22,"call":21}', dist(w1PushAll.calls));
+# 
+# // P1c red arm through the REAL receipt contract: expect the exact production throw.
+# let redThrown = null;
+# try {
+#   await writeLocalE2EReceipt({
+#     repoRoot: REPO,
+#     receiptRoot: RECEIPT_ROOT,
+#     target: 'e2e:prove',
+#     outcome: 'passed',
+#     exitCode: 0,
+#     startedAt: new Date(Date.now() - 1000),
+#     finishedAt: new Date(),
+#     assertionCount: 148,
+#     failureClass: null,
+#     reviewLedger: [{ class: 'worker', code: 'seg3_mainloop_enter' }],
+#     g7: { ...g7BaseOf(w1PushAll), requireCalls: true },
+#   });
+# } catch (error) {
+#   redThrown = error instanceof Error ? error.message : String(error);
+# }
+# check('P1c current mechanism receipt write throws actual_model_required', redThrown === 'local_e2e_receipt_g7_actual_model_required', String(redThrown));
+# 
+# // P2 green direction: fixed judgment on the same real ledger.
+# check('P2a fixed calls count', w1Fixed.calls.length === 21, `calls=${w1Fixed.calls.length}`);
+# check('P2b fixed all row=call', dist(w1Fixed.calls) === '{"call":21}', dist(w1Fixed.calls));
+# check('P2c fixed all actualModel=qwen3.8-flash', w1Fixed.calls.every((c) => c.actualModel === 'qwen3.8-flash'), `all=${w1Fixed.calls.every((c) => c.actualModel === 'qwen3.8-flash')}`);
+# check('P2d model set', JSON.stringify([...new Set(w1Fixed.calls.map((c) => c.actualModel))]) === '["qwen3.8-flash"]', JSON.stringify([...new Set(w1Fixed.calls.map((c) => c.actualModel))]));
+# check('P2e cost sum unchanged (bookkeeping rows costless)', w1Fixed.estimatedCostCny === w1PushAll.estimatedCostCny, `fixed=${w1Fixed.estimatedCostCny} current=${w1PushAll.estimatedCostCny}`);
+# 
+# // P2f/P2g/P2h green arm through the REAL receipt contract (requireCalls=true, 148 assertions).
+# let greenReceipt = null;
+# let greenPath = null;
+# try {
+#   const { receipt, finalPath } = await writeLocalE2EReceipt({
+#     repoRoot: REPO,
+#     receiptRoot: RECEIPT_ROOT,
+#     target: 'e2e:prove',
+#     outcome: 'passed',
+#     exitCode: 0,
+#     startedAt: new Date(Date.now() - 1000),
+#     finishedAt: new Date(),
+#     assertionCount: 148,
+#     failureClass: null,
+#     reviewLedger: [{ class: 'worker', code: 'seg3_mainloop_enter' }],
+#     g7: { ...g7BaseOf(w1Fixed), requireCalls: true },
+#   });
+#   greenReceipt = receipt;
+#   greenPath = finalPath;
+# } catch (error) {
+#   check('P2f receipt written + calls exactly 21', false, `threw ${error instanceof Error ? error.message : String(error)}`);
+# }
+# if (greenReceipt) {
+#   check('P2f receipt written + calls exactly 21', Array.isArray(greenReceipt.calls) && greenReceipt.calls.length === 21, `${greenPath} calls=${greenReceipt.calls.length}`);
+#   check('P2g receipt g7 flag', greenReceipt.g7FreetierReprove === true, `g7FreetierReprove=${greenReceipt.g7FreetierReprove}`);
+#   check('P2h receipt assertionCount', greenReceipt.assertionCount === 148, `assertionCount=${greenReceipt.assertionCount}`);
+# }
+# 
+# // P3 legacy compatibility: pre-2026-10-16 shape (call rows carry no `row` field).
+# const legacyRows = w1Fixed.calls.map(({ row: _row, ...rest }) => rest);
+# const legacyPath = join(LEDGER_DIR, 'legacy-no-row-field.ndjson');
+# writeFileSync(legacyPath, legacyRows.map((r) => JSON.stringify(r)).join('\n') + '\n');
+# const legacyCurrent = loadPushAll(legacyPath);
+# const legacyFixed = loadFixed(legacyPath);
+# check('P3a legacy current calls', legacyCurrent.calls.length === 21, `calls=${legacyCurrent.calls.length}`);
+# check('P3b legacy fixed calls identical count', legacyFixed.calls.length === legacyCurrent.calls.length, `fixed=${legacyFixed.calls.length} current=${legacyCurrent.calls.length}`);
+# check('P3c legacy fixed deep-identical to current', JSON.stringify(legacyFixed.calls) === JSON.stringify(legacyCurrent.calls), `deep=${JSON.stringify(legacyFixed.calls) === JSON.stringify(legacyCurrent.calls)}`);
+# check('P3d legacy cost identical', legacyFixed.estimatedCostCny === legacyCurrent.estimatedCostCny, `fixed=${legacyFixed.estimatedCostCny} current=${legacyCurrent.estimatedCostCny}`);
+# 
+# // P4 second real ledger (window-2 shape).
+# const w2Fixed = loadFixed(W2);
+# const w2PushAll = loadPushAll(W2);
+# check('P4a g7-98822 fixed calls', w2Fixed.calls.length === 15 && w2PushAll.calls.length === 47, `fixed=${w2Fixed.calls.length} pushall=${w2PushAll.calls.length}`);
+# check('P4b g7-98822 all qwen3.8-flash', w2Fixed.calls.every((c) => c.actualModel === 'qwen3.8-flash'), `all=${w2Fixed.calls.every((c) => c.actualModel === 'qwen3.8-flash')}`);
+# 
+# console.log(`INPUT w1 ${sha256File(W1)}`);
+# console.log(`INPUT w2 ${sha256File(W2)}`);
+# for (const line of results) console.log(line);
+# console.log(`PROBE_EXIT=${process.exitCode ?? 0}`);
+# ---8<--- end replay.mjs ---8<---
+# RUN OUTPUT (node replay.mjs, 2026-11-04T19:14Z window; REPLAY_EXIT=0):
+# INPUT w1 sha256:8c83cd6917d94f3477b10074ae2fe7543b11ede9e51b75378348fabebd34d4c1
+# INPUT w2 sha256:3b31faf911549be15c37218426e3f16676a41867da38a5f04df799f647c2d3e2
+# PASS P1a push-all row count (window-1 ledger) :: calls=65
+# PASS P1b row distribution :: {"reservation":22,"release":22,"call":21}
+# PASS P1c current mechanism receipt write throws actual_model_required :: local_e2e_receipt_g7_actual_model_required
+# PASS P2a fixed calls count :: calls=21
+# PASS P2b fixed all row=call :: {"call":21}
+# PASS P2c fixed all actualModel=qwen3.8-flash :: all=true
+# PASS P2d model set :: ["qwen3.8-flash"]
+# PASS P2e cost sum unchanged (bookkeeping rows costless) :: fixed=0 current=0
+# PASS P2f receipt written + calls exactly 21 :: /tmp/r2-a3-replay/receipts/2026-11-04T19-15-06-103Z-39578-aba0e115-722a-4a58-8c51-9980a559fd9d.json calls=21
+# PASS P2g receipt g7 flag :: g7FreetierReprove=true
+# PASS P2h receipt assertionCount :: assertionCount=148
+# PASS P3a legacy current calls :: calls=21
+# PASS P3b legacy fixed calls identical count :: fixed=21 current=21
+# PASS P3c legacy fixed deep-identical to current :: deep=true
+# PASS P3d legacy cost identical :: fixed=0 current=0
+# PASS P4a g7-98822 fixed calls :: fixed=15 pushall=47
+# PASS P4b g7-98822 all qwen3.8-flash :: all=true
+# PROBE_EXIT=0
+# PERSISTED GREEN RECEIPT INSPECTION (real writeLocalE2EReceipt, requireCalls=true):
+# calls=21 allRowCall=true allActualModelQwen38Flash=true estimatedCostCny=0 g7FreetierReprove=true assertionCount=148 outcome=passed exitCode=0
+# PROBE_EXIT=0 · 17/17 PASS · readings identical to scroll §0.3 draft-probe set (A4 re-run zero drift).
+
+# ===== A6 main-gate discriminating run (coordinator-dispatched LIVE ticket, 2026-11-05) =====
+# Attempt 1 (19:17Z): EXIT=1 infra red — E2E_FAILURE class=db code=isolated_postgres_database_not_ready:boot
+#   (node_modules absent in worktree; suite never ran: 0 assertions, empty ledger, red-arm receipt wrote fine).
+#   Logged as-is per honest-record duty: .tmp/g7-run-r2-exec-cmd1.log (kept, not washed).
+# Environment prepared (pnpm install --frozen-lockfile, 3.8s), then Attempt 2 = the single discriminating run.
+# Attempt 2 log: .tmp/g7-run-r2-exec-cmd1-attempt2.log — key lines:
+# migrations: applied=222 skipped=0 rag_control_manifest=not_requested qbank_control_manifest=not_requested runtime_login=not_requested qbank_control_login=not_requested privacy_worker_login=not_requested
+# E2E_FINAL_SUMMARY assertions=147
+# E2E_REVIEW_CLASS_COUNT count=26
+# E2E_REVIEW_CODES codes=image_ocr_unavailable,voice_unavailable,seg3_mainloop_enter,seg3_mainloop_terminal,report_ready,seg3_7a_enter,report_unavailable,seg3_7a_loop_terminal,quiz_ready,diagnosis_unavailable,seg_diag_green_enter,seg_step8_enter,seg_step9_green,seg_expert_enter,report_ready,seg_bound_start_enter,seg2_start_readjson,seg2_start_assert_pre,seg2_start_assert_post,seg2_idem_assert_post,seg2_begin_assert_post,seg_boundloop_enter,assessment_unavailable,seg_boundloop_terminal,seg3_finalize_pre,seg3_finalize_assert_post
+# LOCAL_E2E_RECEIPT file=.tmp/e2e-receipts/2026-11-04T19-26-19-589Z-42599-6fa5bef5-6f98-4ce3-aeee-1bea2648c71e.json release_evidence=false
+# MAIN_GATE_EXIT=0
+# Attempt-2 real ledger .tmp/g7-ledgers/g7-42599-1793820153485.ndjson: 58 rows = {"reservation":20,"release":20,"call":18} · call rows all qwen3.8-flash · costSum=0 (free tier).
+# Attempt-2 receipt .tmp/e2e-receipts/2026-11-04T19-26-19-589Z-42599-6fa5bef5-6f98-4ce3-aeee-1bea2648c71e.json:
+#   outcome=passed exit=0 assertions=147 g7FreetierReprove=true calls=18 allRowCall=true allActualModelQwen38Flash=true estimatedCostCny=0 keyFingerprint=d26808ef (8-hex cap honored).
+# DISCRIMINATION: same mixed-ledger poison shape that made window-1 throw local_e2e_receipt_g7_actual_model_required
+#   (window-1: assertions=148 + LOCAL_E2E_RECEIPT_FAILED + EXIT=1 · cmd1.log) now writes the receipt and exits 0.
+# Assertion-count variance disclosure: 147 (this run) vs 148 (window-1 dying run) — seg_expert path report_ready
+#   (this run) vs report_unavailable (window-1); identical 26-code observation set otherwise; zero E2E_FAILURE lines;
+#   variance is product-path, not the receipt-gate face (+7/-0 executes only in the receipt writer after the suite).
+# est live (A6, est-not-counter): est≈7/run (case-A §0.2c accounting) → actual 18 model calls this run, honestly recorded.
