@@ -64,6 +64,13 @@ function loadG7ReceiptFromLedger(env) {
     const lines = readFileSync(ledgerPath, 'utf8').split('\n').map((l) => l.trim()).filter(Boolean);
     for (const line of lines) {
       const row = JSON.parse(line);
+      // Ledger bookkeeping rows (reservation/release) are cost-guard accounting,
+      // not model calls. Classify call rows exactly like the shared-ledger reader
+      // in packages/ai-runtime/src/g7-freetier-reprove-guard.ts
+      // (inspectG7SharedLedgerUnlocked) so receipt `calls` carries only actual
+      // model-call rows; legacy rows without a `row` field stay accepted.
+      if (row.row === 'reservation' || row.row === 'release') continue;
+      if (typeof row.estimatedCostCny !== 'number' || typeof row.actualModel !== 'string') continue;
       calls.push(row);
       estimatedCostCny += Number(row.estimatedCostCny ?? 0);
     }
