@@ -45,7 +45,9 @@
 | ③ 面③ sbg 微刀 | 案 B §1-修法面③「另立登记 · 若协调方裁需 scoped readback 契约例外」 | 现树仪器面已变：加针针③（`run-e2e.mjs:187`-`:190` 红路 stderr 尾量入 `.tmp` 侧通道 · 非隔离 wrapper 红路判别面）+案 A driver 侧 NDJSON 通道（进程内写盘 · withhold 域外 · §0.2b 案 A 卷判读承）——**本行甄别力缺项的回读需求已被非契约面通道满足**；iso wrapper scoped readback 例外不再为本行所需（§1-闭③ 裁定建议=不立项 · 立项权归协调方） | 裁定建议落纸（§1-闭③） |
 | ④ 两向 Ban 定谳 | 案 B §1 三因子「两向 Ban 维持」+`:805` 同款 | 两向读数已齐：修法消除（C-MO-P3 语义纠+首次全绿+LIVE in-driver 直读 31.08s report_ready）+环境臂可控（LIVE run 账本 actualModel 全数 qwen3.8-flash=守卫臂 pin 口径 · 非混杂 unset）+纯间歇挂起向无活证据（批级 wall-clock 15 批正常完成 · worker 侧停摆形已由 worker-hang-guard 域独立修复落主线）→ 定谳案落纸 §1-闭④（定谳权归协调方） | 定谳案落纸（§1-闭④） |
 
-**案 A 卷 §9-LIVE 交割附带残面（本卷登记不处置）**：⑤ **收据写盘失败**（`LOCAL_E2E_RECEIPT_FAILED reason=local_e2e_receipt_g7_actual_model_required` · 案 A ⑦）——现树 blob `2ce86946` `:112`-`:125` 机制原样在（任一 `G7_FREETIER_REPROVE=1` 的 e2e:prove run 绿面亦被翻红）· 属 runner 域非本行域 · 本卷零触零修 · **如实登记另立归协调方排程**；⑥ **B7 二轮 LIVE**（加针卷 STILL OPEN）——「下一 LIVE 前置」钉死形 run 待协调方两票分立另行授权 · 判读谱沿加针卷 §9-rev.2 四行矩阵 · 本卷零预支零代跑（其判别对象=POST7B 域新红非本行老红面——域 disjoint 承 `:841` POST7B 立行判例）。
+**案 A 卷 §9-LIVE 交割附带残面（本卷登记不处置）**：⑤ **收据写盘失败**（`LOCAL_E2E_RECEIPT_FAILED reason=local_e2e_receipt_g7_actual_model_required` · 案 A ⑦）——现树 blob `2ce86946` `:112`-`:125` 机制原样在（任一 `G7_FREETIER_REPROVE=1` 的 e2e:prove run 绿面亦被翻红）· 属 runner 域非本行域 · 本卷零触零修 · **如实登记另立归协调方排程** · **2026-11-03 receipt=R2 未修最新实证补登（rev r1 席1 P2-2+席2 P2-b）**：读数 id `74825`（name-only · recon R7 原值记账 · 承 §1 闭合全链注草案第四段）；⑥ **B7 二轮 LIVE**（加针卷 STILL OPEN）——「下一 LIVE 前置」钉死形 run 待协调方两票分立另行授权 · 判读谱沿加针卷 §9-rev.2 四行矩阵 · 本卷零预支零代跑（其判别对象=POST7B 域新红非本行老红面——域 disjoint 承 `:841` POST7B 立行判例）。
+
+**recon R6 现状登记（rev r1 席1 P2-5 · 本卷零处置零代立）**：G7X 刀② 弱输入 report 校准刀=**授权在案未立卷**——归协调方排程清单（与 §0.2 附带残面⑤ runner 收据门/⑥ 二轮 LIVE 并列排程 · 本卷零预支零代立零排程宣称）。
 
 ## §1 闭合法（四残面逐项闭合定稿 · 本卷 docs-only 零码动 · 面② append 草案 EXEC 期落卷）
 
@@ -60,12 +62,12 @@
 行关闭对象=`:110` GAP-G7W-API-TAIL-DEATH 行（P1 OPEN · 「候选真实缺陷」主张）。关闭=主张撤销非翻绿（`g7SuiteGreen=false` 维持 · trio retained 零冲销）。五项断言（全绿方可行使闭合 EXEC；任一红→停止条件②）：
 
 - **A1 老红形状零复现（仪器在位）**：①G7FIX-2 首次全绿 EXIT=0/75 干预确认（checklist `:1907` G7FIX-2 nail 段 · C-MO-P3 语义纠落地后 CMD1 主旅程首次全绿）；②LIVE 判别 run in-driver 直读=主旅程 `report_ready` 达成（F1 elapsed_ms=31083 · F2 status=200 reportStatus=ready · 案 A §9-LIVE ③/⑤(a)）——38013ms 簇形状（主旅程尾死+~12s 静默+uncaught throw）不在；③探针臂按设计行使零 uncaught throw（案 B §1 依据链承）；④案 A 后全部 CMD1 run（含判别 run 本体）零 38013ms 簇复现读数。
-- **A2 归因链闭合（结构性成因已消除）**：G7X 双面收敛 C-MO-P3 定谳（`:801` 注 · 老 `:201`-`:203` 断言 identities 对双 kind 计 vs questions 单 kind 计→恒 False 由构造算术证明=harness 断言语义 bug 非产品缺陷）+ 语义纠两刀分锚承登（mainLoop 澄清感知形=CMOP03-FIX 刀①〔coding `4252efc8` · checklist `:1469` C-MO-P3 落地登记：恒 False 消除·T-1 死亡点不复现·step 7/7a/7b 首执行全过〕→现形 `:210`-`:212` `identities === questions + clarifications`；boundLoop 孪生同步=`1789e321`〔`e2e/full.e2e.ts:637` 断言消息原文「identities=q+c 孪生同步 1789e321」〕=G7FIX-2〔checklist `:1907` · 恰 1 run EXIT=0/75/19 ledger 首次全绿干预确认〕——案 B 卷「G7FIX-2 `:206` 语义纠」系族称连书·两刀各锚如实分承不改裁断实质）+ LIVE run ⑧ C-MO-P3 算术 live 实采成立（identities 4=questions 2+clarifications 2 ✓）——候选缺陷主张的承重环（「journey 尾段死亡=候选真实缺陷」）由构造性消除+实采证伪。
+- **A2 归因链闭合（结构性成因已消除）**：G7X 双面收敛 C-MO-P3 定谳（`:801` 注 · 老 `:201`-`:203` 断言 identities 对双 kind 计 vs questions 单 kind 计→恒 False 由构造算术证明=harness 断言语义 bug 非产品缺陷）+ 语义纠两刀分锚承登（rev r1 勘正·patch-id 孪生实证：mainLoop 澄清感知形=CMOP03-FIX 刀①〔coding 孪生 `4252efc8`≡`1789e321`（`git patch-id` `6f72ba61` 两 commit 全等亲证）· checklist `:1469` C-MO-P3 落地登记：恒 False 消除·T-1 死亡点不复现·step 7/7a/7b 首执行全过〕→现形 `e2e/full.e2e.ts:210`-`:212` `identities === questions + clarifications`；boundLoop 孪生同步=G7FIX-2 EXEC 孪生族 `f8769cea0`/`f83e12e3f`〔`full.e2e.ts` numstat +8/−2 · commit 原文「twin synced to `1789e321` mainLoop `:206` fixed form」· checklist `:1907` · 恰 1 run EXIT=0/75/19 ledger 首次全绿干预确认〕→现形 `e2e/full.e2e.ts:637` 断言消息原文「identities=q+c 孪生同步 1789e321」——**`:637` 消息内 `1789e321` 系 mainLoop 定型参照非 boundLoop 落点 commit**（boundLoop 落点=G7FIX-2 EXEC 孪生族 · EXEC 期照 A2 逐锚核时在 `1789e321` diff 找不到 boundLoop 改动系本实证非现场漂移·不触发 §8 停止条件①）· 案 B 卷「G7FIX-2 `:206` 语义纠」系族称连书·两刀各锚如实分承不改裁断实质）+ LIVE run ⑧ C-MO-P3 算术 live 实采成立（identities 4=questions 2+clarifications 2 ✓）——候选缺陷主张的承重环（「journey 尾段死亡=候选真实缺陷」）由构造性消除+实采证伪。
 - **A3 ai_report 舱壁=设计内时钟非抛点**：报告链 3-attempts 烧尽=确定性钟（G7X 判读① · `MAX_REPORT_ATTEMPTS=3` era 锚承）· `report_unavailable`+`quarantined`=设计终态（刀② branch P 判例 · G7Y 双过）· 弱输入语义（practice 应否产出可计分 ScoreCard）=D 假说 OPEN 转用户裁决队列（checklist `:1537`）——属产品席域非本行缺陷候选面 · Ban 本卷代裁产品语义。
-- **A4 新红归位（域 disjoint 三面）**：LIVE run 新红（7b 后带 class=api · bracket 段域）=`:841` GAP-CMOP03-POST7B 域（P1 OPEN 独立行 · 立行判例原文「不并入 `:107`/`GAP-G7W-API-TAIL-DEATH` 任一行」）· worker 停摆成因=worker-hang-guard 域（诊断+watchdog 已 nail 落主线 `5e5e2cb3`）· 收据写盘失败=runner 域（§0.2-⑤ 登记）——**Ban 洗 POST7B/WHG/runner 三域任一入本行**（沿 `:110` 行 Ban「洗 `:107` 入本行」同构）。
+- **A4 新红归位（域 disjoint 三面）**：LIVE run 新红（7b 后带 class=api · bracket 段域）=`:841` GAP-CMOP03-POST7B 域（P1 OPEN 独立行 · 立行判例原文「不并入 `:107`/`GAP-G7W-API-TAIL-DEATH` 任一行」）· worker 停摆成因=worker-hang-guard 域（诊断+watchdog 已 nail 落主线 `5e5e2cb3`）——**症状行域=POST7B·成因域=WHG 分承**（新红症状行归 `:841` 行域·其成因面 worker 停摆归 worker-hang-guard 域·两域分承不混裁 · rev r1 补）· 收据写盘失败=runner 域（§0.2-⑤ 登记）——**Ban 洗 POST7B/WHG/runner 三域任一入本行**（沿 `:110` 行 Ban「洗 `:107` 入本行」同构）。
 - **A5 withhold 承登面已补偿（盲区不再阻断闭合）**：案 B 面① 肢二裁定（盲区真实但有界 · 补偿通道在）+案 A/加针仪器面落树（seg3 五帧+heartbeat N2c+R2 退出帧 N1+红路 stderr 尾量 N3b/N3c · 全部 driver 进程内或 runner 侧通道 · withhold 契约零触）——本行不再依赖「回读直证」式收口（案 B 面② 原文「只阻断『回读直证』式收口」的阻断对象已由补偿通道解除）。
 
-**闭合全链（面② EXEC 期落卷 · 授权包络 +2~+6/−0 · est live=0）**：`:110` 行区 append 闭合勘误注（沿 `:805` 先例形 · 单行 blockquote+前后空行 · 行原文零字节改 · 行首日期 EXEC 期按落字日 re-pin · **行状态翻转 P1 OPEN→CLOSED 仍归协调方裁**——本卷只落注草案 · 注草案措辞=「收口刀全链断言面 A1-A5 EXEC 判定结果+定谳案（§1-闭④ 落纸文本）+关闭建议」三段式）；backlog/checklist 其余全部行零触（`:111`/`:107`/POST7B/7A-DOWNGRADE 域 disjoint）。
+**闭合全链（面② EXEC 期落卷 · 授权包络 +2~+6/−0 · est live=0）**：`:110` 行区 append 闭合勘误注（沿 `:805` 先例形 · 单行 blockquote+前后空行 · 行原文零字节改 · 行首日期 EXEC 期按落字日 re-pin · **行状态翻转 P1 OPEN→CLOSED 仍归协调方裁**——本卷只落注草案 · 注草案措辞=「收口刀全链断言面 A1-A5 EXEC 判定结果+定谳案（§1-闭④ 落纸文本）+关闭建议+**针后判别读数原值记账（recon R7）**」**四段式**〔rev r1 席1 P2-2+席2 P2-b 双旗·由三段式扩四段·二择一取「扩四段」案并写明（「R7 独立残面另立排程」案未取）——第四段=针后判别读数原值记账：2026-11-03 针后判别读数 name-only 原值记账零冲销 · `75127`=class=api code=assertion · `75181`=心跳 5 帧形 b 签名 · `74825`=R2 收据门实证（承 §0.2-⑤ runner 收据门残面）· .tmp 读数入 SSOT 本注即载体〕）；backlog/checklist 其余全部行零触（`:111`/`:107`/POST7B/7A-DOWNGRADE 域 disjoint）。
 
 ### 闭③ · 面③ sbg 微刀裁定建议（落纸 · 立项权归协调方）
 
@@ -75,8 +77,8 @@
 
 **定谳案（协调方可采纳文本 · 本卷不宣称定谳既成）**：
 
-> 两向 Ban（「永不复现」与「纯间歇挂起」均不定谳 · 案 B §1 承）于本收口刀断言面下重裁：**「纯间歇挂起」向=排除（证据链）**——LIVE 判别 run 批级 wall-clock 直读主旅程 15 批全部正常完成（tMs≈1202ms hold-and-tail 窗×14+末批 20ms · 无挂起形 · 案 A §9-LIVE ③）+ 老红 38013ms 簇=断言面 fail-fast（A2 构造算术）+报告链设计钟（A3）复合形——两成分均有确定性机制解释 · 无一成分需「间歇挂起」假设 · worker 侧停摆形（6min03s 零活动）已由 worker-hang-guard 域独立定谳并修复落主线（A4 域 disjoint）· 「纯间歇挂起」对本行老红面无活证据支撑；**「永不复现」向=结构性成因消除成立（样本限内）**——修法消除=C-MO-P3 恒 False 断言由 G7FIX-2 语义纠**构造性消除**（恒 False 系算术证明的构造缺陷 · 修复=语义纠非避红 · 修复后首次全绿 EXIT=0/75+LIVE in-driver 绿直读双确认）+ 环境混杂排除（LIVE run 账本 actualModel 全数 qwen3.8-flash=守卫臂 pin 口径 · 模型/端点显式可控 · 非 G7W-era unset 混杂面）+ 复现样本=零（G7FIX-2 起全部 CMD1 run 无 38013ms 簇读数）——「结构性成因已修致不复现」可落 · 全称「永不复现」仍 Ban（样本限内 · 沿 G7W 残红② 措辞纪律）。
-> **行内容定谳案措辞（供协调方闭合 EXEC 采或改）**：`:110` 行老红正面内容定谳=「journey 尾段死亡 38013ms 簇=C-MO-P3 恒 False 断言（harness 断言语义 bug · 构造算术证明）fail-fast 产生×报告链 3-attempts 设计钟复合形 · 非产品缺陷 · 非环境混杂 · 非间歇挂起 · 已由 G7FIX-2 语义纠构造性消除（首次全绿+LIVE in-driver 直读双确认）」——行处置建议=**P1 OPEN→CLOSED（候选真实缺陷主张撤销）** · 撤销≠翻绿≠trio 翻绿≠`g7SuiteGreen=true` · G7W-era 读数（`×2`/38013ms/35 tick 全窗口）原值记账零冲销史录。
+> 两向 Ban（「永不复现」与「纯间歇挂起」均不定谳 · 案 B §1 承）于本收口刀断言面下重裁：**「纯间歇挂起」向=排除（证据链）**——LIVE 判别 run 批级 wall-clock 直读主旅程 15 批全部正常完成（tMs≈1202ms hold-and-tail 窗×14+末批 20ms · 无挂起形 · 案 A §9-LIVE ③）+ 老红 38013ms 簇=断言面 fail-fast（A2 构造算术）+报告链设计钟（A3）复合形——两成分均有确定性机制解释 · 无一成分需「间歇挂起」假设 · worker 侧停摆形（6min03s 零活动）已由 worker-hang-guard 域独立定谳并修复落主线（A4 域 disjoint）· 「纯间歇挂起」对本行老红面无活证据支撑；**「永不复现」向=结构性成因消除成立（样本限内）**——修法消除=C-MO-P3 恒 False 断言由 C-MO-P3 语义纠两刀（CMOP03-FIX 刀①+G7FIX-2）**构造性消除**（rev r1 措辞勘正·两刀分锚承 §1-闭② A2 · 恒 False 系算术证明的构造缺陷 · 修复=语义纠非避红 · 修复后首次全绿 EXIT=0/75+LIVE in-driver 绿直读双确认）+ 环境混杂排除（LIVE run 账本 actualModel 全数 qwen3.8-flash=守卫臂 pin 口径 · 模型/端点显式可控 · 非 G7W-era unset 混杂面）+ 复现样本=零（G7FIX-2 起全部 CMD1 run 无 38013ms 簇读数）——「结构性成因已修致不复现」可落 · 全称「永不复现」仍 Ban（样本限内 · 沿 G7W 残红② 措辞纪律）。
+> **行内容定谳案措辞（供协调方闭合 EXEC 采或改）**：`:110` 行老红正面内容定谳=「journey 尾段死亡 38013ms 簇=C-MO-P3 恒 False 断言（harness 断言语义 bug · 构造算术证明）fail-fast 产生×报告链 3-attempts 设计钟复合形 · 非产品缺陷 · 非环境混杂 · 非间歇挂起 · 已由 C-MO-P3 语义纠两刀（CMOP03-FIX 刀①+G7FIX-2）构造性消除（首次全绿+LIVE in-driver 直读双确认）」——行处置建议=**P1 OPEN→CLOSED（候选真实缺陷主张撤销）** · 撤销≠翻绿≠trio 翻绿≠`g7SuiteGreen=true` · G7W-era 读数（`×2`/38013ms/35 tick 全窗口）原值记账零冲销史录。
 
 **Ban 项承登**：Ban 本卷就地定谳（两向重裁文本=落纸建议 · 定谳权沿 `:110` 行原文「归协调方裁」）· Ban 以探针臂绿代 in-driver 绿（本卷断言面 A1 全部 in-driver 读数 · 探针绿仅辅助）· Ban retry-to-green/Ban 只留绿 attempt（本卷零跑零补跑 · 断言面全部读数=在案读数重 pin 非新跑）。
 
@@ -144,8 +146,17 @@ docs-only 边界：本刀零产品码零 spec 零夹具零迁移零占号零锁�
 ## §9 pre-exec dual 交接（预留 · 本节零 SSOT 触碰）
 
 - **双审对象四件**：§0 残面清单对账（0.1 十四锚+0.2 四残面表+附带残面两项）· §1 闭①-闭④ 逐案（闭① 零产品码判读+闭② A1-A5 五断言逐条+闭③ 不立项建议三点依据+闭④ 两向重裁文本逐句）· §1.3 七款否决 · §2 门矩阵四条判据。
-- **悬决项（归协调方）**：闭合 EXEC 排程 · 闭② 五断言 EXEC 期判定 · 定谳案采纳/改写/驳回 · 闭③ 立项/销案终裁 · runner 收据门残面与二轮 LIVE 各自排程（均非本卷权）。
+- **悬决项（归协调方）**：闭合 EXEC 排程 · 闭② 五断言 EXEC 期判定 · 定谳案采纳/改写/驳回 · 闭③ 立项/销案终裁 · runner 收据门残面与二轮 LIVE 各自排程 · recon R6（G7X 刀② 弱输入 report 校准刀=授权在案未立卷）排程（均非本卷权）。
 - **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数系读数登记（原值记账零冲销）；闭① 肢已行使与域定性系既成事实承登。
+
+## §9-r1 rev r1 修订注记（两席 pre-exec dual BOTH PASS · P2 修订清单去重落卷 · rev r1 修订席 2026-11-05 · 本节=修订回路台账 · 勘正处已随令就地落位 · STOP/pins/门矩阵判据零翻）
+
+- **r1-①（席1 P2-1）§1-闭② A2 两刀分锚勘正（patch-id 孪生实证）**：mainLoop 澄清感知=CMOP03-FIX 刀①（coding 孪生 `4252efc8`≡`1789e321`·`git patch-id` `6f72ba61` 两 commit 全等亲证）→现形 `full.e2e.ts:210`-`:212`；boundLoop 孪生同步=G7FIX-2 EXEC 孪生族 `f8769cea0`/`f83e12e3f`（`full.e2e.ts` +8/−2·twin synced to `1789e321` fixed form）→现形 `:637`——**`:637` 消息内 `1789e321` 系 mainLoop 定型参照非 boundLoop 落点 commit**，防 EXEC 期照 A2 逐锚核在 `1789e321` diff 找不到 boundLoop 改动触发误停（A2 已就地勘正）。
+- **r1-②（席1 P2-2+席2 P2-b 双旗·recon R7）闭合全链注草案三段式扩四段**：增设「针后判别读数原值记账」段（2026-11-03 读数 name-only：`75127` class=api code=assertion / `75181` 心跳 5 帧形 b 签名 / `74825` R2 收据门实证·.tmp 读数入 SSOT 本注即载体）——二择一取「扩四段」案并写明，「R7 独立残面另立排程」案未取（闭合全链段已就地扩）。
+- **r1-③ §0.2-⑤ runner 收据门登记补 74825**：2026-11-03 receipt=R2 未修最新实证（§0.2-⑤ 已就地补登）。
+- **r1-④（席1 P2-4）§1-闭④ 定谳案措辞勘正**：「由 G7FIX-2 语义纠构造性消除」→「由 C-MO-P3 语义纠两刀（CMOP03-FIX 刀①+G7FIX-2）构造性消除」（两向重裁文本+行内容定谳案措辞两处）；A4 补「症状行域=POST7B·成因域=WHG」分承半句（均已就地落）。
+- **r1-⑤（席1 P2-5）recon R6 现状一行**：「G7X 刀② 弱输入 report 校准刀=授权在案未立卷」归协调方排程清单（§0.2 附带残面段后新增一行+§9 悬决项并登）。
+- **r1 门回执**：rev r1 落卷期三门亲跑=docs:check EXIT=0（2481=cap 2481 恰等）+PTP EXIT=0 12/12+markers 改动集零命中（回执随交付报告）· STOP 三处 `draft:awaiting_pre_exec_dual` 零翻 · pins 十一值零翻 · 累计 diff 对 base `edda65a4` 恰 4 tracked 零增路径。
 
 ---
 
