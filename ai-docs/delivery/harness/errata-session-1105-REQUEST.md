@@ -39,6 +39,20 @@
 
 > 逐条结论汇总：修=9（a/b/c/d/e/f-1/f-2/g/h/i）；已修复免勘误=0；不适用=0。全部行使=既有面 additive（原文/前值零字节改写）+ 一枚 `.log` 机械收编 + checklist 文件尾 append 一行。
 
+### §1-R1 rev r1 增补核定表（七条 · 2026-11-05 rev r1 席现树亲读 · 登记源=勘定席 U6/U7/U9 独立复验·本席逐锚亲证复证 · 基线=本卷落卷 tip `a39cf7b6e`）
+
+| # | 条目 | 核定结论 | 证据（file:line 亲读 · 基线 `a39cf7b6e`） |
+|---|---|---|---|
+| j | **extrev-deps-audit 闭卷注（U6 尾 3 draft 之一）** | **修**（§2-F11） | S1/S2 材料面六锚亲证：`.github/workflows/deps-audit.yml` fail-closed（`:4`-`:5`+`:40`-`:42`）·`renovate.json` 在树·next `15.5.28`=`apps/web/package.json:46`·fastify `5.12.5`=`apps/api/package.json:142`+根 overrides `package.json:771`·@xmldom/xmldom `0.8.15`=lockfile `:2397`·multer `2.4.0`=lockfile `:3715`；S3 窄化三件亲证：`packages/domain/src/resume-extract.ts`（218 行）+`resume-extract-worker.ts`（42 行）零 entry/size 帽命中·rev2 A2=`:176` 定值 ≤1000 条/≤64MB·s3-upload-caps 小刀在飞（worktree `meetwise-s3caps`+branch `line/s3caps-draft`·目标面 M 状态+`DOCX_ZIP_MAX_ENTRIES = 1000` 亲读）·OLE2 门=`:85`（docx 形 PK 门）+`:93`（text 形 OLE2 显式拒）·receipts 零 extrev 目录 |
+| k | **extrev-score-writer 闭卷注（U6 尾 3 draft 之二）** | **修**（§2-F12） | S1/S2 材料面四锚亲证：`apps/worker/src/score-writer.ts:25`（claim/fence/writeFinal import 行）+`:112`（writeFinalScoreCard 调用行）·`packages/db/src/scoring-wire.ts:38`=`'mock-interview.evaluate.v6'`·`apps/worker/test/interview.proof.ts:396`（去桩 section 行）+`:422`（realLoadSummary）·`deriveScoreCardAssessmentLegacy` 切换=`packages/db/src/growth-generation.ts:46`（`@19ddcbb4 #103` 注）；S3 四件亲证：#41=`ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md:8` accepted+`:84`·#42=`packages/db/test/scor-parity.proof.ts` §D（`:435`/`:476` 三方互拍）·#43=同 proof §E（`:567`·0158·23514）·#47=卷 `:48`「下次触该面迁移顺带」·adjudicate 调用点唯一=`scoring-aggregation.ts:71` voiceQuality 分支（卷 `:126` 结构性不可达承登）·receipts 零 extrev-score-writer 目录 |
+| l | **money-status-proof 状态对账翻面（U7 勘定面）** | **修**（§2-F13） | §8 三行 `executed:awaiting_post_prove_dual`=`:108`/`:112`/`:114`（全文件恰三处亲证）·§11 权威条款=`:156`-`:160`·修法四件在卷（P6 白名单 `:35`-`:37`/P3-2 `:148`/P3-4 `:150`/P5-1 `:146`）·0149 sha256 亲算=`e7b916d05f4b7072eb5a1d6ca9c788e2fd2d6dbec0086aa3b9911807325947d8`（6022 字节·与卷 `:136`/`:158` 记录恒等）·卷链三 commit `858929635`/`065dacd7c`/`c32d568ca` is-ancestor HEAD 全 EXIT=0·rc #194 MERGED（STATUS-RECON 对账刀）+附记-丙=rc-REQUEST `:36`/`:255`·rc 156 卷对账=rc-REQUEST §1 ①156（`:54`） |
+| m | **g7-enoent-fix 归档注（U7 普查面·勘定选项 b）** | **修**（§2-F14） | 目标面全应用亲证：runner `scripts/run-e2e-isolated.mjs` 旧路径 `packages/db/src/report.ts` 零残留+新域路径 `packages/db/src/report/report.ts` 在树（卷载时点 13 处·现树 12 处亲扫·后继 wave 行区重组如实采）·proof `packages/db/test/report-retry.proof.ts:213`/`:224` 新域路径+零旧路径；rc 普查「无状态行 1」正形=rc-REQUEST §0.1-2 六锚全空+fin U7 注在卷尾（`:73`-`:74`）亲读；receipts 零 g7-enoent 目录 |
+| n | **AG-36 确认注+AG-32 引路径勘正（U9 面）** | **修**（§2-F15） | issues-final `:462` AG-36 翻面注 done 47→48·open 3→2（余 AG-13 线上数据/AG-32 UNSTUB-VOICE 部署）亲读；main 双锚亲证：`packages/db/package.json:115`-`:116` catalog:langchain+`packages/db/src/checkpoint-schema.ts` 在树+migrate-cli drift 退出 1=`packages/db/src/migrate-cli.ts:19`-`:20`（checkpoint_migrations_version_mismatch）·AG-32 维持 open（`:4447` 承登）；引路径漂亲证=issues-final `:413`「`packages/ai-graphs/src/voice-turn.ts:16`」不存在·实位 `apps/worker/src/voice-turn.ts`（await-answer.ts/voice-adaptive.ts 两锚不漂） |
+| o | **proof.mjs `:460` 行内注释 cap 联动数（perf 双审席2 P3-4 承继既旧）** | **已联动免行**（§2-F16 如实登记·零字节改） | 标的现值亲证：本树 `:460`=「第 2486 个注入路径」+`:461`=「`PTP_FILE_LIMIT:2486`」+`:452` loop `2_485`+`:499` `f-2485.md`+`:501` errors `:2486`（cap 2485 现值形恰等）·perf 支 tip `5de306687` 同位行同 2486 形亲证——陈旧 2480 形已被后继 cap wave（2481/2482/2484/2485 各 wave 相邻注释同步条款）等价覆盖·免行 |
+| p | **U6/U7 处置登记源注（checklist append 一行）** | **修**（§2-F17） | U6 尾 3 draft=extrev-deps-audit/extrev-score-writer/money-status-proof（fin U6 注承登三卷桶位+rc-REQUEST `:31` 净 draft 名单互证）·U7=g7-enoent-fix 普查正形（fin `:62` 行使文本亲读）·勘定席报告归档 `.tmp` 不入 git（lane 铁律 §0.4 承）·checklist 对应区=文件尾 append 形（F10 同区先例） |
+
+> rev r1 增补结论汇总：修=6（j/k/l/m/n/p）+已联动免行=1（o——勘定标的现值亲证已被后继 cap wave 等价覆盖·如实登记不虚改·沿「已被后继刀等价覆盖」判形）。增补行使面全为既有面文件尾/行区 additive（原文/前值零字节改写）+ F16 免行零字节改。
+
 ## §2 行使项（EXEC 期逐字落卷 · 九项全 additive · 原文不洗 · 前值史录保留 · 落点行号系落卷时点值 `fd2b74635` · EXEC 期对届时 tip 重 pin——漂则如实采新值·定性漂移即停）
 
 ### F1 · fin-REQUEST U5c QGEN carrier 勘正（登记源=fin §9 post-prove 席1①+席2① · 协调方台账转录）
@@ -113,7 +127,51 @@ git show fc861681 > ai-docs/delivery/receipts/scoring-eval-exec/01-scoring-eval-
 
 - **T-3 读数登记（2026-11-05 · ERRATA-SESSION-1105 总刀 · append-only · 上行 STILL OPEN 残面登记零字节改写）**：改期重行使 T-3 读数原值记账=**INCONCLUSIVE 维持**——`scoring:eval` 真跑 **EXIT=0** · **跳过率 100%** · **5 调用后 `model_circuit_open`**（供应商当日不稳·熔断族沿 `:4495` 归因口径）——**当轮无读数不判红**（EXIT=0+全 skip=诚实跳过非绿 · INCONCLUSIVE 不洗不翻）· **单跑纪律**（恰 1 run · Ban retry-to-green · Ban 择优 · Ban 改阈值洗 INCONCLUSIVE）· 改期重行使（供应商稳定窗口）仍归协调方排程 · 上行 STILL OPEN 残面维持 OPEN · 登记源=协调方台账本会话 scoring-eval 重行使 T-3 读数（ERRATA-SESSION-1105 总刀收编·协调方裁断随令）· Pins 零翻 · alone≠dual。
 
+### F11 · extrev-deps-audit-REQUEST 卷尾闭卷注（登记源=勘定席 U6 尾 3 draft 处置建议 · 勘定席独立复验·本席逐锚亲证复证 · 协调方采认随令）
+
+落点=`ai-docs/delivery/harness/extrev-deps-audit-REQUEST.md` 文件尾（fin 台账收官刀 U6 残面登记注之后）append 一行 blockquote（沿 fin U6 注同位先例形·卷内既有字零字节改写）：
+
+> 【闭卷注 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · 协调方采认勘定建议 · append-only · 卷内既有字零字节改写 · 前值 fin U6 残面登记注史录保留）】: 本卷闭卷登记——**S1/S2 闭卷**（材料面 main 全在树·rev r1 席逐锚亲证：`.github/workflows/deps-audit.yml` fail-closed 门 `:4`-`:5`/`:40`-`:42` 亲读·`renovate.json` 在树·next `15.5.28`=`apps/web/package.json:46`·fastify `5.12.5`=`apps/api/package.json:142`+根 overrides `package.json:771`·@xmldom/xmldom `0.8.15`=lockfile `:2397`·multer `2.4.0`=lockfile `:3715`）——**S3 残面窄化登记**：#107 四守卫中魔数门已由 #109 全量落树（`packages/domain/src/resume-extract.ts:78`-`:96` 魔数体系亲读）·**zip 条目数+解压总大小两帽未落**（`resume-extract.ts` 全文 218 行+`resume-extract-worker.ts` 42 行 rev r1 席亲扫零 entry/size 帽命中·rev2 A2（`:176`）已定值 **≤1000 条/≤64MB**）→**已另立 s3-upload-caps 小刀承接**（worktree `meetwise-s3caps`·branch `line/s3caps-draft`·目标面 `resume-extract.ts`+`resume-extract.proof.ts` 修改在树 M 状态亲证·`DOCX_ZIP_MAX_ENTRIES=1000` 形亲读·帽值=rev2 A2 承）——**`.doc` 拆分效果等价**（OLE2 经 `:85` 魔数门（声明 docx 形 PK 门）fail-closed 拒·`:93` 声明 text 形 OLE2 显式拒同族门·错误码名不等价（`magic_mismatch` 非拆分形专码））**降 P2 登记**；**收据目录未入仓如实披露**（S1/S2 EXEC 节所引 `receipts/extrev-deps-audit/` 目录主线 `ai-docs/delivery/receipts/` 零命中亲证）。闭卷=残面清零登记·行状态桶位翻面/关账权归协调方·Pins 零动。】
+
+### F12 · extrev-score-writer-REQUEST 卷尾闭卷注（登记源=勘定席 U6 尾 3 draft 处置建议 · 勘定席独立复验·本席逐锚亲证复证 · 协调方采认随令）
+
+落点=`ai-docs/delivery/harness/extrev-score-writer-REQUEST.md` 文件尾（fin U6 残面登记注之后）append 一行 blockquote（卷内既有字零字节改写）：
+
+> 【闭卷注 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · 协调方采认勘定建议 · append-only · 卷内既有字零字节改写 · 前值 fin U6 残面登记注史录保留）】: 本卷闭卷登记——**S1/S2 闭卷**（材料面 main 全在树·rev r1 席逐锚亲证：`apps/worker/src/score-writer.ts:25`（claim/fence/writeFinal import 行）+`:112`（`writeFinalScoreCard` 调用行）·`packages/db/src/scoring-wire.ts:38`=`SCORING_PROMPT_POLICY_VERSION 'mock-interview.evaluate.v6'`·`apps/worker/test/interview.proof.ts:396` 去桩 section 行+`:422` `realLoadSummary`·`deriveScoreCardAssessmentLegacy` 切换在树=`packages/db/src/growth-generation.ts:46`（`EXTREV-1 S2 @19ddcbb4 #103 切换承继` 注亲读））——**S3 四件处置**：#41（`ai-docs/architecture/adr/0020-scorecard-authority-and-eligibility.md:8` `status: accepted` 亲读+`:84` 翻面承登）·#42（`packages/db/test/scor-parity.proof.ts` §D 公式值级对拍 `:435` 起·write_final(0103 副本)↔TS↔adjudicate(0109 副本) 三方逐值互拍 `:476` 亲读）·#43（同 proof §E INSERT 守门 `:567` 起·0158 守门白名单外 23514 负测亲读）——**三件已被后继刀等价覆盖**；#47（`assessment_report.dimensions.evidence` 类型统一）**按卷 §2 既有口径归「下次触 assessment_report DDL 面迁移顺带」**（卷 `:48` 亲读·DDL 注释修不新开迁移）——**adjudicateScoreCard 生产零调用维持观察登记**（调用点唯一=`packages/db/src/scoring/scoring-aggregation.ts:71` `writeFinalScoreCard` voiceQuality low/unavailable 分支·seed 过渡窗结构性不可达（本卷 `:126` 承登）·生产零调用维持）；**收据目录未入仓如实披露**（S1/S2 EXEC 节所引 `receipts/extrev-score-writer/` 目录主线零命中亲证）。闭卷=残面清零登记·行状态桶位翻面/关账权归协调方·Pins 零动。】
+
+### F13 · money-status-proof-REQUEST 状态对账翻面注（登记源=协调方采认勘定建议 · 勘定席 byte 级独立复验·本席逐锚复证 · 协调方对账翻面随令 · 沿 rc #194 附记-丙超越裁定+rc 156 卷对账先例）
+
+落点=`ai-docs/delivery/harness/money-status-proof-REQUEST.md` 文件尾（§11 之后）append 一行 blockquote（§8 三行 `:108`/`:112`/`:114` 原文零字节改写·前值史录在注）：
+
+> 【状态对账翻面注 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · 协调方对账翻面权行使 · append-only · §8 三行 `:108`/`:112`/`:114` 原文零字节改写 · 前值史录在注）】: §8 三行 `executed:awaiting_post_prove_dual` → **`closed`**（终值=closed）——**前值史录在注**：前值 `executed:awaiting_post_prove_dual`（§8 三行原文零洗·§10「已改回 draft」与 §11「现以 §11 为准」两权条款史录保留·本注为后位有效态）。**翻面依据（协调方采认勘定建议·沿 rc #194 附记-丙超越裁定形+rc 156 卷对账先例）**：byte 级独立复验=证明修法四件（P6 白名单/P3-2/P3-4/P5-1）与卷修法（§1/§9-rev/§10）同构亲证·`packages/db/migrations/0149_money_status_constraints.sql` sha256=`e7b916d05f4b7072eb5a1d6ca9c788e2fd2d6dbec0086aa3b9911807325947d8`（6022 字节）恒等（rev r1 席本树亲算同值）·改史三 commit（`858929635`/`065dacd7c`/`c32d568ca`）`merge-base --is-ancestor` 对 HEAD 三值全 EXIT=0 亲证已并线——**材料面零残唯状态对账残**·§11 权威条款在卷（`:156`-`:160`）·**免再启 post-prove 双审空转**（沿 rc 156 卷对账先例=STATUS-RECON 对账刀 ①156 卷对账行使形·rc-REQUEST §1 亲读）。翻面行使源=协调方裁断（ERRATA-SESSION-1105 总刀 rev r1 收编·随令）· alone≠dual · Pins 零动。】
+
+### F14 · g7-enoent-fix-REQUEST 卷尾归档注（登记源=勘定席 U7 普查处置建议 · 勘定选项 b·勘定席独立复验·本席逐锚亲证复证 · 协调方采认随令）
+
+落点=`ai-docs/delivery/harness/g7-enoent-fix-REQUEST.md` 文件尾（fin U7 普查裁定登记注之后）append 一行 blockquote（沿勘定选项 b·卷内既有字零字节改写·不补状态行）：
+
+> 【归档注 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · 协调方采认勘定建议选项 b · append-only · 卷内既有字零字节改写 · 零状态行补登（rc 普查「无状态行 1」正形维持·两读制可复算性））】: 本卷归档登记——**目标面已全应用**（rev r1 席亲扫：runner `scripts/run-e2e-isolated.mjs` 旧路径 `packages/db/src/report.ts` 零残留亲证+新域路径 `packages/db/src/report/report.ts` 在树（卷载落卷时点 13 处·现树 12 处亲扫·后继 wave 行区重组如实采）·proof `packages/db/test/report-retry.proof.ts` 2 处（`:213`/`:224`）新域路径亲读+零旧路径）——**rc 普查「无状态行 1」正形维持不补行**（rc-REQUEST §0.1-2 六锚全空亲证+fin U7 注承登·补行=改卷形动普查基线·两读制可复算性维持）；**收据目录未入仓如实披露**（主线 `ai-docs/delivery/receipts/` 零 g7-enoent 目录亲证）。归档=闭卷登记·处置/翻面权归协调方·Pins 零动。】
+
+### F15 · AG-36 确认注（issues-final · 登记源=勘定席 U9 面处置建议 · 勘定席独立复验·本席逐锚亲证复证 · 无需处置确认+AG-32 引路径勘正随注）
+
+落点=`ai-docs/delivery/ai-capability-review/issues-final.md` 文件尾 append 一行（`:462` AG-36 翻面注记与 `:413` AG-32 file:line 行既有字零字节改写）：
+
+> 【AG-36 确认注 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · 协调方采认勘定建议 · append-only · 既有字零字节改写）】: 上行 `:462` AG-36 翻面注记（done 47→48·open 3→2）**确认与 main 双锚一致·无需处置**——双锚亲证（rev r1 席）：①`packages/db/package.json:115`-`:116` `catalog:langchain` 两行+`packages/db/src/checkpoint-schema.ts` 在树·②migrate-cli vendor/0043 drift 自检门退出 1 机制在树（`packages/db/src/migrate-cli.ts:19`-`:20` `checkpoint_migrations_version_mismatch` 退出 1 亲读）——**AG-13/AG-32 维持 open**（外部前置：AG-13 线上分布数据/AG-32 UNSTUB-VOICE 部署·`:462` 承登一致）·**AG-32 ledger 引路径漂随本注勘正**：`:413` file:line 行「`packages/ai-graphs/src/voice-turn.ts:16`」系旧路径——实位 **`apps/worker/src/voice-turn.ts`**（`packages/ai-graphs/src/voice-turn.ts` 不存在亲证·`apps/worker/src/voice-turn.ts` 在树亲读·同行 `await-answer.ts`/`voice-adaptive.ts` 两锚不漂亲证）·AG-32 条目实质（P3·编排运行时·修法/前置）零变仅引路径勘正·登记源=勘定席 U9 面（协调方采认随令）。】
+
+### F16 · proof.mjs `:460` 行内注释 cap 联动数（登记源=perf 双审席2 P3-4 承继既旧 · 勘定席独立复验·本席现树亲证 · 本刀勘误域内）
+
+落点=登记形（**免行**·零字节改）——`scripts/ai-docs/public-text-policy.proof.mjs:460` 行内注释 cap 联动数标的核实登记：
+
+> 【勘误标的核实登记 2026-11-05（ERRATA-SESSION-1105 总刀 rev r1 · perf 双审席2 P3-4「第 2480 个注入路径…PTP_FILE_LIMIT:2480」承继既旧登记兑现 · append-only · 免行零字节改）】: 标的=`proof.mjs:460` 行内注释 cap 联动数（「第 N 个注入路径」+`PTP_FILE_LIMIT:N+1` 形）——**rev r1 席现树亲证=已现值**：本树 `:460`=「第 2486 个注入路径触发早返回」+`:461`=「`PTP_FILE_LIMIT:2486`」+`:452` loop `2_485`+`:499` `f-2485.md`+`:501` errors `:2486`（cap 2485 现值形恰等）·perf 支 tip `5de306687` 同位行同 2486 形亲证——**陈旧 2480 形已被后继 cap wave 等价覆盖**（2481/2482/2484/2485 各 wave「相邻注释两处同步」条款随步进行使+perf 分支并线联动）→ **免行**（零字节改·登记源处置完毕·沿本卷 F12「已被后继刀等价覆盖」同判形）·后继 cap 步进沿 C3「相邻注释同步」条款续行·本登记不构成新增义务。】
+
+### F17 · U6/U7 处置登记源注（checklist 对应区 append 一行 · 登记源=勘定席报告归档（.tmp 不入 git）·协调方采认随令）
+
+落点=`ai-docs/delivery/execution-master-checklist.md` 文件尾（F10 T-3 读数登记行之后·同一文件尾区）append 一行（既有字零字节改写）：
+
+- **U6/U7 处置登记（2026-11-05 · ERRATA-SESSION-1105 总刀 rev r1 · append-only · 既有字零字节改写）**：fin 台账收官刀 U6/U7 处置完成登记——**U6 尾 3 draft**（extrev-deps-audit/extrev-score-writer/money-status-proof）+**U7**（g7-enoent-fix 普查正形）处置兑现=本卷 rev r1 F11（deps-audit 闭卷注）/F12（score-writer 闭卷注）/F13（money-status §8 三行对账翻面 closed）/F14（g7-enoent-fix 归档注·选项 b）·**登记源=勘定席报告归档**（勘定席 U6/U7/U9 独立复验报告归档 `.tmp`·不入 git·本行即其处置登记载体）· 2026-11-05 · Pins 零动 · alone≠dual。
+
 **零改承诺**：fin/qgen-reverify/iso-dotenv-ui/r2-receipt-gate/g7w-tail-close 五卷既有字零字节改写（全部为节尾/行尾/行区/文件尾 append）· backlog `:110`/`:111` 行原文零字节改写（翻面/采认全走行区新 blockquote）· checklist 既有字零字节改写（文件尾 append）· receipts 面仅 F9 一枚新 `.log`·五卷既有收据零触 · 在飞四树零字节 · Key 值零触 · 产品码/迁移/runner/既有 proof 零触 · 行统计数值零改 · pins 零翻。
+
+**零改承诺（rev r1 增补面 · 2026-11-05）**：extrev-deps-audit/extrev-score-writer/money-status-proof/g7-enoent-fix 四卷+issues-final+checklist 六目标既有字零字节改写（全部文件尾/行区 append）· proof.mjs `:460` 免行零字节改（F16·现值亲证已被后继 cap wave 等价覆盖）· money-status §8 三行 `:108`/`:112`/`:114` 原文零字节改写（F13 翻面走卷尾新 blockquote·前值史录在注）· cap 不变（F16 系登记形非新文件·EXEC 期零新增受管件·terminal 仍 2485）· 在飞树零触（s3caps 仅分支/worktree 存在性登记·对 `meetwise-s3caps` 零字节）· Key 值零触 · 产品码/迁移/runner/既有 proof 零触 · pins 零翻 · Status 四处钉 `draft:awaiting_pre_exec_dual` 零翻。
 
 ## §3 cap 预登（本卷 REQUEST +1 ⇒ **CAP-SANCTION-2485** · 沿 nk1/flip/sse2/err/l13/fin/r2/idu 预登先例形 · 随届值如实采=唯一豁免项）
 
@@ -126,6 +184,8 @@ git show fc861681 > ai-docs/delivery/receipts/scoring-eval-exec/01-scoring-eval-
 
 在飞如实采（本 turn 亲跑）：`perf-draft` `9b24a1936` 承 2_481（ahead=1·两 policy 热面·并线期 union 届时重算承登）/`pay` `fdaa1ecf0`/`scoringeval` `bed65e869`/`uc31` `112ac8af0` 各 ahead=1 两 policy 零触（四支 `merge-base --is-ancestor` EXIT≠0 亲跑）· ag20/loadw ref 已撤如实注 · ag18/cap-2272 ancient 不预采。先手步进 · 计数预算非内容策略 · 越限臂 fabricated 数随 cap 联动同步 · 语义不变强度不减。
 
+**rev r1 增补 cap 对账（2026-11-05）**：F11-F17 行使面全为既有 .md 文件尾/行区 append+F16 免行零字节改 → **零新增受管件·cap 2485 不变**（本卷已计·C1-C4 预登判据维持·EXEC terminal 仍 2485 零新增）· rev r1 落卷 commit 本身恰 1 tracked `.md`（本卷）· 在飞如实采注：`perf-draft` 本 turn 复核 tip 已前进 `5de306687`（ISO-DOTENV-PERF 起草·仍两 policy 热面·并线期 union 届时重算承登）· 其余三支同 `:127` 上文· ag20/loadw 已撤/ag18·cap-2272 ancient 维持。
+
 ## §4 门矩阵（起草期本席亲跑 · EXEC 期复跑同表）
 
 1. `node scripts/ai-docs/check-docs.mjs` → 起草前 **EXIT=0 scanned 2484=cap 2484 恰等**（已亲跑）；落卷后 **EXIT=0 scanned 2485=cap 2485 恰等**（§3 联动已先行落位）。
@@ -133,6 +193,7 @@ git show fc861681 > ai-docs/delivery/receipts/scoring-eval-exec/01-scoring-eval-
 3. markers 门 → 改动集（本卷起草 3 tracked）五类标记词（词面运行时组装防自指 · 本卷不复抄词面）+ 行首冲突标记 **0 命中**。
 4. 面收敛门 → `git diff --name-status origin/main..HEAD` 恰 **3 tracked**=`A ai-docs/delivery/harness/errata-session-1105-REQUEST.md` + `M scripts/ai-docs/public-text-policy.mjs` + `M scripts/ai-docs/public-text-policy.proof.mjs`；**产品码/迁移/runner/既有 proof/backlog/checklist/五目标卷/在飞四树零命中**（行使面全留 EXEC 期）。
 5. EXEC 期（授权后）门：第 1-4 条复跑 + 行使面 diff 复核（五卷/backlog/checklist 各 append 点 numstat 逐行核+F9 `.log` 恰新件 blob 恒等 `fc861681b8b5…`）+ §2 落点行号对届时 tip 重 pin（漂则如实采新值 · 定性漂移即停）。
+6. rev r1 增补落卷门（本席亲跑 2026-11-05）：`check-docs.mjs` **EXIT=0 scanned 2485=cap 2485 恰等** · PTP **12/12 EXIT=0**（`static_preflight_valid`）· markers=改动集新增字节五类标记词+行首冲突标记 **0 命中** · 面收敛=rev r1 commit 恰 1 tracked `.md`（本卷）· 六目标卷/issues-final/checklist/proof.mjs 零触（行使面留 EXEC 期）。
 
 ## §5 Ban 清单
 
@@ -162,6 +223,16 @@ Ban push/force-push/pull --rebase（git 写只本 worktree 起草 commit）· Ba
 - **悬决项（归协调方）**：EXEC 排程 · F6 行值翻转落字 · F9 收编后 scoringeval 树处置（撤树/归档）· F10 后继改期重行使排程（供应商稳定窗口）· checklist 案 B 段与 `:1660` 族面③ 承引后继行使（均非本卷权）。
 - **本卷落卷后事实基座不受后继裁决影响的部分**：§1 九条亲证读数系读数登记（原值记账零冲销）· F9 blob 亲证系机械事实。
 
+## §9-r1 rev r1 增补注记（U6/U7/U9 采认行使项增补 · 本节零 SSOT 触碰）
+
+**rev r1 增补登记（2026-11-05）**：协调方采认勘定席 U6/U7/U9 勘定建议（勘定席独立复验报告归档 `.tmp`·不入 git）→ 本卷 §2 增补行使项 **F11-F17 七项**（§1-R1 增补核定表七行随增）· 行使面=§2 九项+rev r1 七项=**十六项**（Status 行/§8 既有「九项」字面系起草时点值·史录保留·EXEC 期行使面以本注十六项口径为准）· **F16 勘定标的现值亲证已被后继 cap wave 等价覆盖→免行登记**（唯一非 append 行使项·零字节改）· F13 翻面行使源=协调方对账裁断（沿 rc #194 附记-丙超越裁定+rc 156 卷对账先例）· cap 2485 不变 · STOP/§8/§9/卷尾状态钉 `draft:awaiting_pre_exec_dual` 零翻 · pins 十一值零翻 · pre-exec 双审待派（双审对象随 §1-R1+§2 F11-F17 增补面扩）· alone ≠ dual。
+
+- **双审增补对象（rev r1 面）**：§1-R1 七条核定表逐条证据链对届时 tip 复核 · §2 F11-F17 行使文本逐字（F13 翻面注对 §8 三行/§11 权威条款+rc 先例锚复核·F16 免行判定对 proof.mjs 联动区现值复核）· §3 rev r1 cap 对账行+§4 第 6 条门判据。
+- **悬决项（归协调方·rev r1 面新增）**：F11/F12 闭卷注落卷后两卷行状态桶位翻面/关账裁断 · F13 翻面落字 · F14 归档后 g7-enoent-fix 卷处置 · s3-upload-caps 小刀排程（两帽承接近在飞）。
+- **本卷落卷后事实基座不受后继裁决影响的部分（rev r1 面）**：§1-R1 七条亲证读数系读数登记（原值记账零冲销）· F13 0149 sha256 恒等亲算+改史三 commit is-ancestor 亲证系机械事实 · F16 现值亲证系机械事实。
+
 ---
 
 *ERRATA-SESSION-1105 REQUEST · 2026-11-05 起草 · **`draft:awaiting_pre_exec_dual`**（起草落卷即停 · pre-exec 双审两独立外席待派 · alone≠dual · Dual PASS ≠ 开工）· base `origin/main` @`fd2b74635`（PR #205 `line/g7w-status-pin` 并线点 · fetch EXIT=0 · worktree `meetwise-errata` 亲立 · branch `line/errata-draft` · 建前同名树/分支/卷三查零命中）· 立项出处=协调方派单令「收编本会话全部已登记勘误+协调方裁断」· 九项行使=F1 fin U5c QGEN carrier 勘正（#110 非 #108·fin post-prove 席1①+席2①）+F2 qgen-reverify `invoke.ts` 锚 `:518`→`:519` 三处（`:86`/`:92`/`:190`·INSERT 失败不回滚实位 `:519`·`:518` 系 JSDoc 块首）+F3 qgen-reverify §9-exec 迁移窗前三快照口径闭合句（G7W 席2 P2）+F4 iso-dotenv-ui 三处勘注（EX2 计数同值/EX8① `.next` 协议内清理补行/杀窗 Z 后缀真 UTC=2026-11-04T18:45:44Z·IDU 席2 P2-A/B/C+席1 P3-a/P3-b）+F5 r2 §1.2 两臂并列明示（R2 席2 P2-A）+F6 backlog `:110` 行翻面 P1 OPEN→CLOSED（协调方采认 G7W-TAIL-CLOSE 闭合裁定·沿 err #196 先例·前值史录在注·定谳案措辞 tail-close `:81` 全形补两处括注）+F7 backlog `:111` 行内更新采认注（OPEN 维持·G7W J2-R2 归因未闭合如实）+F8 面③ sbg 不立项终裁注（tail-close §9 悬决项所指）+F9 scoringeval 收据收编（blob `fc861681` byte-identical→`receipts/scoring-eval-exec/01-scoring-eval-stdout.log`·.log 不计 cap·收编后该树可删·fin U8 补档条款）+F10 scoring-eval T-3 读数登记 INCONCLUSIVE 注（checklist scoring-eval/G7 区文件尾 append·当轮无读数不判红·单跑纪律）· CAP-SANCTION-2485 恰等步进预登（2484→2485·四联动点 2_485/f-2485.md/:2486）· 三门起草前亲跑全绿（docs EXIT=0 scanned 2484=cap 2484 恰等/PTP 12/12/markers 0）· 在飞四树+Key 值零触 · 迁移号=零 · est live=0 · actualSpendCny=null · pins 十一值照抄 · markers=0 · 停止条件五类全设 · Ban self-approve · pre-exec dual ≠ 开工 · ⛔push ⛔动主仓 · STOP*
+
+*ERRATA-SESSION-1105 rev r1 · 2026-11-05 增补落卷 · 协调方采认勘定席 U6/U7/U9 勘定建议·七项行使增补落纸 §2（F11 extrev-deps-audit 闭卷注·S1/S2 材料面六锚亲证+S3 两帽窄化移交 s3-upload-caps 小刀+`.doc` 等价降 P2+收据未入仓披露 · F12 extrev-score-writer 闭卷注·S1/S2 四锚亲证+#41/#42/#43 后继刀等价覆盖+#47 归 assessment_report DDL 迁移顺带+adjudicateScoreCard 观察登记 · F13 money-status §8 三行对账翻面→closed·沿 rc #194 附记-丙超越裁定+rc 156 卷对账先例·0149 sha256 恒等亲算·改史三 commit 并线亲证·免 post-prove 双审空转 · F14 g7-enoent-fix 归档注·勘定选项 b·零旧路径残留亲证·不补状态行两读制可复算 · F15 AG-36 确认注·main 双锚一致无需处置+AG-32 引路径勘正 ai-graphs→apps/worker · F16 proof.mjs `:460` cap 联动数免行登记·已被后继 cap wave 等价覆盖现值亲证 · F17 U6 尾 3 draft+U7 处置登记源注 checklist 文件尾 append）· cap 2485 不变 · 三门 rev r1 亲跑全绿（docs EXIT=0 scanned 2485=cap 2485 恰等/PTP 12/12 EXIT=0/markers 0）· 状态钉四处 `draft:awaiting_pre_exec_dual` 零翻 · 行使面=十六项留 EXEC · 在飞树零触（s3caps 仅登记）· est live=0 · actualSpendCny=null · pins 十一值照抄 · ⛔push ⛔动主仓 · alone≠dual · STOP*
