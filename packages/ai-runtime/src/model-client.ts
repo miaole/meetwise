@@ -172,6 +172,8 @@ export function scriptedModelClient(scripts: Record<string, (attempt: number) =>
  * 评分官若跑在供应商默认高温(~0.7),同一答案天生忽高忽低,只在 eval 事后量方差是治标;在源头钉低温才是治本。
  * 生成性任务(出题)**不列** = 不设 temperature = 留供应商默认求多样。**未映射服务行为与从前逐字节一致(零回归)**。
  * env `MODEL_EVAL_TEMPERATURE` 可覆盖评分温度(默认 0.2),便于 characterization 调参。
+ * SCORE-STABILITY 刀曾单测缺省 0.2→0:同输入档位翻转与 0.2 无显著差(qwen-plus 温 0 仍非确定,
+ * 见 harness/scoring-stability-REQUEST.md §1-A E2/E3 对照)——不采纳,缺省维持 0.2;env 覆盖面留作 characterization。
  * 约束性的 route-classify 与 vision 已列，生成性任务仍不列。
  */
 /** 未设置或空串保持 0.2。非有限数，或小于 0、大于 2，在求值时失败。 */

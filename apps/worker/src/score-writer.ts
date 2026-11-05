@@ -9,8 +9,8 @@
  * 恢复钉（D4）：crash 重放**复用 claim 返回的既有 lease_token**（禁新造——pending→claimed
  * 单次 CAS，新 token 重放永远 claim 不到，请求会永久卡 claimed）。
  *
- * disposition 供源（#52 v6 起，S1 过渡桥已废除·rg 门零残留）：mock-interview.evaluate v6
- * 模型直出 per-criterion disposition（below/meets/exceeds + 逐字引文引文 span），evaluate 侧经
+ * disposition 供源（#52 v6 起，S1 过渡桥已废除·rg 门零残留）：mock-interview.evaluate
+ * v7（SCORE-STABILITY 升版；v6 起）模型直出 per-criterion disposition（below/meets/exceeds + 逐字引文 span），evaluate 侧经
  * scoreDispositionFromCodeUnitSpan 派生 0103 契约证据（utf8_byte span+digest）随图 transcript
  * （checkpoint 审计投影，无答案原文）到达本步；模型不出总分，总分在 0103 DB 函数按确定性公式
  * 算。answer_evaluated.score 仍为 hint（进度提示/完成判定），其值 = computeDeterministicTotal
@@ -46,7 +46,7 @@ export interface ScoreWriteQuery {
   stateVersion: number;
   /** 答案明文（drain 内存态，绝不落图 state/checkpoint）；供 span/digest 复算。 */
   answerText: string;
-  /** v6 模型档位证据（evaluate 侧派生·0103 契约形状；非 v5 hint 分——过渡桥已废除）。 */
+  /** v7 模型档位证据（evaluate 侧派生·0103 契约形状；非 v5 hint 分——过渡桥已废除）。 */
   dispositions: readonly ScoredCriterionDisposition[];
   /** 已有转写结果。缺省表示这次没有带转写结果。 */
   asrOutcome?: string;

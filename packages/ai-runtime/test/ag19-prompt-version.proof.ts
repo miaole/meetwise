@@ -46,7 +46,7 @@ const EXPECTED: [string, string][] = [
   ['resume-diagnosis.generate', 'v1'],
   ['planner.competencies', 'v4'],
   ['interviewer.ask', 'v8'],
-  ['mock-interview.evaluate', 'v6'],
+  ['mock-interview.evaluate', 'v7'],
   ['resume.vision', 'v2'],
   ['report.generate', 'v3'],
 ];
@@ -93,8 +93,8 @@ async function main() {
   {
     const content = readFileSync(fileURLToPath(new URL('../src/prompts.ts', import.meta.url)), 'utf8');
     const blobSha = createHash('sha1').update(`blob ${Buffer.byteLength(content)}\0`).update(content).digest('hex');
-    A('prompts.ts 字节恒定面（git blob sha1=96acf9c3414f8dd19b781d795f8d04e779e04c5c·REGISTRY v8 随翻重钉(#51)·AG-20 单源提取恒等·blob=96acf9c3414f8dd19b781d795f8d04e779e04c5c）',
-      blobSha === '96acf9c3414f8dd19b781d795f8d04e779e04c5c');
+    A('prompts.ts 字节恒定面（git blob sha1=eaaa434e8f718aa2e0509ce3e5f0f1dc029fbbbc·REGISTRY v8 随翻重钉(#51)·AG-20 单源提取恒等·blob=eaaa434e8f718aa2e0509ce3e5f0f1dc029fbbbc·SCORE-STABILITY 刀 evaluate v6→v7（档位锚+quote 纪律）随翻重钉·前值 96acf9c3414f8dd19b781d795f8d04e779e04c5c 史录并留）',
+      blobSha === 'eaaa434e8f718aa2e0509ce3e5f0f1dc029fbbbc');
   }
 
   // ── 臂 0-b（源级门·#14/#216「非空断言」落位=机检非运行时）：生产 src 全部 `await invoke({` 站点
