@@ -99,7 +99,7 @@
 
 ## §2 验收（EXEC 后门矩阵 · 本起草卷已随刀预跑全绿 · EXEC 期重跑为准）
 
-1. 四件 proof：`pnpm neg:input`(142)/`pnpm neg:commerce`(95)/`pnpm neg:interview`(114)/`pnpm apih:cost-rl:prove`(10·新门已注册 run-e2e-isolated fingerprint+gate list+runner 映射+双 package.json)/`pnpm -C apps/web prove:api-proxy-resilience`(10·新)/`prove:transcribe-proxy`(4)/`prove`(web-logic 含新 429 断言)/`pnpm uc011:nhp-load:prove`(17)。
+1. 四件 proof：`pnpm neg:input`(142)/`pnpm neg:commerce`(95)/`pnpm neg:interview`(114)/`pnpm apih:cost-rl:prove`(12·rev r1 回调三场景臂+失败桶臂换入·新门已注册 run-e2e-isolated fingerprint+gate list+runner 映射+双 package.json)/`pnpm -C apps/web prove:api-proxy-resilience`(11·rev r1 +流建立后取消臂)/`prove:transcribe-proxy`(4)/`prove`(web-logic 含新 429 断言)/`pnpm uc011:nhp-load:prove`(17·rev r1 P1 臂合同回正全 403/400)。
 2. `pnpm neg:all` 六段全绿（auth 90/commerce 95/resume 91/interview 114/bend 179/input 142）。
 3. apps/api+apps/web typecheck EXIT=0；lint 双帽不升：api 1545=1545 恰等/web 604<607（turn route 重写净 −3，如实注）。
 4. `pnpm arch` 8 warnings=基线同值零增；`node scripts/provider-egress-inventory.mjs` valid（401 条目=基线零新增）；`node scripts/e2e-static-guards.mjs` passed。
@@ -124,11 +124,12 @@
 
 1. **#84 login 移出**（复核不成立）：普查 8 处裸 `@Body` 中 login（auth.controller.ts:25）系文档化故意形（「限流必须看到所有尝试+登录不校验复杂度」两理由原文在树）+服务侧最小校验已给 400——Zod 收编属重复且破坏裁决②语义。本刀实际收编 7 处。普查/E-1 的「8 处」点数与树实锚一致，裁定差异如实承登。
 2. **fetch 失败与届值漂移**：起草令 fetch 两次网络失败（如实 §Header）；本地 ref 恰=`e282c5ebd` 同物建支。起草期 origin/main 推进 `d549a497b`（#212 已并 · 本支基为其祖先亲证）——cap 承 2489；并线期 §3 算式届时取大重算。
-3. **nhp-load P1 两臂合同精确化**（§1 件④）系行为边界变更（洪水面 429 先发制人），已在该 proof 内注释逐字登记；L2/L3/L4/防空转臂零触。
+3. **nhp-load P1 两臂合同精确化**（§1 件④）系行为边界变更（洪水面 429 先发制人），已在该 proof 内注释逐字登记；L2/L3/L4/防空转臂零触。（rev r1 该合同已回正为全 403/400 面零 429——见 7。）
 4. **lint 净变化**：api 恰等 1545；web 604<607（turn route 缝化重写净 −3 · 禁升帽未触）。折堕面如实载：零豁免新增（computed-key 先例形 enterprise-pay-s1 同款）。
 5. **markers=0**：起草后「awaiting_post/exec 授权」类标记词探针逐类扫零命中；est live=0 零模型零外呼。
 6. **residual 如实登记**（不在本刀、普查仍在）：#84 残面=「禁裸 @Body lint 规则」（login 例外待设计）；#87 残面=IP 维度桶（authz 域，5A-1 已落 signup/login/chgpwd/invite 四口，其余口是否需 :ip 归并网关面另行派单）；#66 残面=无（三代理全收）。
-7. **Status: `draft:awaiting_pre_exec_dual`**（2026-11-06 · 状态钉四处同值 · 本卷=起草落卷即停 · ⛔push）。
+7. **rev r1（2026-11-06 · 登记源=席外证伪审查报告 `meetwise/.tmp/reviews/apih-pre-2.md`，VERDICT FAIL P1×1）**：①件④回调闸改形——闸移 `verifyCommerceSig` 后、owner 查询前+验签失败独立同源桶 `cbfail:ip:*`（RL_CB_FAIL 默认 60,2），三场景断言修前 4 红留档 `/tmp/apih-rev1-cb-red.log`（同单 3 垃圾/120 垃圾/合法超频三臂+失败桶臂均红）、修后 `apih:cost-rl` 12/12 绿，nhp-load P1 臂合同回正 17/17；②件②events 缝取消监听全程保留（修前探针 closed=0，proof 臂⑪修前红→修后 `prove:api-proxy-resilience` 13 臂全绿）；③件②transcribe 超时依据改正（唯一硬帽=10MB 字节·时长无帽；60s 值保留合理，env 可覆写）；④§3 补桶归属/多副本 ×2/重启清零登记+后续迁共享存储建议（本刀不改码）。§2 计数随改恰等更新（cost-rl 10→12·proxy-resilience 10→11），门矩阵重跑全绿见 §2。**Status: `draft:awaiting_pre_exec_dual`**（pre-2 席 FAIL 已回修落卷，双审待齐）。
+8. **Status: `draft:awaiting_pre_exec_dual`**（2026-11-06 · 状态钉四处同值 · 本卷=起草落卷即停 · ⛔push）。
 
 ---
 
