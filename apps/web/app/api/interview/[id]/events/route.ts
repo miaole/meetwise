@@ -1,5 +1,6 @@
 import { getServerToken } from '../../../../../lib/api/server';
 import { sseProxyFailureResponse } from '../../../../../lib/stream/sse-cursor';
+import { openInterviewEventsUpstream } from '../../../../../lib/api/events-proxy';
 
 /**
  * 同源 SSE 代理(修审计 P0:面试流原来硬编码 x-user-id:'demo' 未鉴权)。
@@ -7,6 +8,8 @@ import { sseProxyFailureResponse } from '../../../../../lib/stream/sse-cursor';
  * client 因此无需(也读不到)令牌,鉴权是真的。
  */
 const API = process.env.API_BASE_INTERNAL ?? process.env.NEXT_PUBLIC_API_BASE ?? 'http://localhost:8787';
+// #66/API-HARDEN-A:上游打开首包超时帽(仅到响应头;SSE 流体不设整体超时)。
+const SSE_TTFB_TIMEOUT_MS = Number(process.env.PROXY_SSE_TTFB_TIMEOUT_MS ?? 10_000) || 10_000;
 export const dynamic = 'force-dynamic';
 
 const STRESS_ID = '__e2e_stream_stress__';
@@ -119,10 +122,19 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
       headers: { 'content-type': 'text/event-stream', 'cache-control': 'no-cache, no-transform', connection: 'keep-alive' },
     });
   }
-  const headers: Record<string, string> = { authorization: `Bearer ${token}`, accept: 'text/event-stream' };
   const lastEventIdHeader = req.headers.get('last-event-id');
-  if (lastEventIdHeader) headers['last-event-id'] = lastEventIdHeader;     // 续传水位透传
-  const upstream = await fetch(`${API}/interview/${encodeURIComponent(id)}/events`, { headers, signal: req.signal });
+  // #66/API-HARDEN-A:上游打开收敛到 events-proxy 缝——网络抛错/首包超时 → 502 stream_unavailable
+  // (与 sseProxyFailureResponse 同信封,客户端 SSE-RESILIENCE #56 分类零新分支);SSE 流体本身不设
+  // 整体超时(计时器到头即清),客户端取消仍即时终止上游 fetch。首包帽可 env 覆写
+  // (PROXY_SSE_TTFB_TIMEOUT_MS,默认 10000:api 侧打开=DB 回放+pump 启动,秒级路径,10s 含冷池余量)。
+  const upstream = await openInterviewEventsUpstream({
+    apiBase: API,
+    interviewId: id,
+    bearerToken: token,
+    lastEventId: lastEventIdHeader ?? undefined,
+    clientSignal: req.signal,
+    ttfbTimeoutMs: SSE_TTFB_TIMEOUT_MS,
+  });
   if (!upstream.ok || !upstream.body) return sseProxyFailureResponse(upstream);
   return new Response(upstream.body, {                          // 透传 SSE 流(ReadableStream)
     status: 200,

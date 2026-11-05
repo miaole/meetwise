@@ -13,6 +13,7 @@
     "prove:uc003-nhp-neg": "tsx test/uc-e2e-003-nhp-neg.proof.ts",
     "prove:speak-proxy": "tsx test/speak-proxy.proof.ts",
     "prove:transcribe-proxy": "tsx test/transcribe-proxy.proof.ts",
+    "prove:api-proxy-resilience": "tsx test/api-proxy-resilience.proof.ts",
     "prove:report-export-proxy": "tsx test/report-export-proxy.proof.ts",
     "prove:middleware": "tsx test/web-middleware.proof.ts",
     "prove:authz5a2-csp": "tsx test/authz5a2-csp.proof.ts",
