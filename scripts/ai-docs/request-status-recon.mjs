@@ -42,7 +42,9 @@
 //      总刀 + fin 台账收官刀 U5a）：`有效态翻面→`态字``翻面注（cap-sanction-2232 `:3`/`:73` 形·
 //      `终值裁定=` 同线并存时裁定注后位胜）/ `【关闭 … STOP 收口 `态字``（g2-report-page `:99` 形）/
 //      `【闭卷注|【归档注 … 本卷闭卷|归档登记】`（extrev-deps-audit `:203` / g7-enoent-fix `:76` 形·
-//      闭卷登记=closed·零态字亦命中）/ `终值裁定=态字`（fin `:27` / regw `:3` 形·链/标记赋值前取）；
+//      闭卷登记=closed·零态字亦命中）/ `终值裁定=态字`（fin `:27` / regw `:3` 形·链/标记赋值前取；
+//      2026-11-06 post r2：独立成行（无链/Status/翻面注共线）亦触发——adjudFlip 旗与
+//      reconFlip/stopCloseNote 同构，裁定值压位序末条链行）；
 //      2026-11-06 rev 引述/提及免疫：三类显式标记与闭卷/归档注只在「规范注头（【终裁注/【翻面/
 //      【关闭/【闭卷注|【归档注 + ISO 日期）共线 + marker 本体在 code span 外 + 态字紧邻
 //      （marker 后只容反引号/加粗/括号/空白等包裹字符）」时取值，且 marker 本体不被反引号引述
@@ -368,10 +370,15 @@ function readTerminal(lines, raw, debug) {
     // ——small-fixes-1105 §0 表行（引四关闭注格式）即被旧子串旗伪触发。
     const reconFlip = explicitMarkerHit(line, RECON_MARKER_RE, FLIP_NOTE_RE) !== null; // STATUS-RECON 对账刀翻面注（卷头 :3 形无 STOP/Status 标记时由此触发）
     const stopCloseNote = explicitMarkerHit(line, STOPCLOSE_MARKER_RE, CLOSE_NOTE_RE) !== null; // DRAFT-FLIP 批量关闭刀（无 dualPass 共现时由此触发）
+    // 终裁注独立行旗（2026-11-06 post r2）：`终值裁定=` 独立成行（无链/Status/翻面注共线）此前
+    // 不入触发旗链——explicitAssign 正则要求「终值」后紧跟赋值符，「终值裁定=」隔「裁定」二字
+    // 不命中，终裁注输给位序末条链行（xs-post-2 P1-2）。adjudFlip 与 reconFlip/stopCloseNote
+    // 同构（注头+span 外+态字紧邻同判据），取值层 adjudicated 优先级本就高于 reconFlip（末位权威）。
+    const adjudFlip = explicitMarkerHit(line, ADJUD_MARKER_RE, ADJUD_NOTE_RE) !== null; // fin U5a 终裁注独立行（终值裁定=）
     // 翻面行判定：链形须与 Status/STOP/EXEC 标记或链续行（行首 →）共现——纯 prose 链复述
     // （closed-job-start `:68` 代码箭头 / ag09 `:156` / ci-wiring2 `:34` 等叙述形）不翻。
     const chainIsFlip = chainFlip && (statusShape || statusMarked || stopFlip || execBold || lineStartArrow || sectionCarry);
-    if (chainIsFlip || statusMarked || stopFlip || execBold || explicitAssign || dualPass || flipGloss || sectionCarry || closeNoteFlip || reconFlip || stopCloseNote) {
+    if (chainIsFlip || statusMarked || stopFlip || execBold || explicitAssign || dualPass || flipGloss || sectionCarry || closeNoteFlip || reconFlip || stopCloseNote || adjudFlip) {
       const parsed = parseFlipLine(line);
       if (parsed) {
         if (parsed.token && parsed.token.startsWith('stopped')) continue; // 红停上报=中间停报态非终值翻面

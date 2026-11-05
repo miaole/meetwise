@@ -119,6 +119,27 @@ const probe1 = makeProbeRepo('forms', {
     '【翻面 2026-11-03（STATUS-RECON 对账刀·append-only）: 本行系引述非注记原行·有效态翻面→ 的态字须紧邻 marker 方命中·真注在真卷读 closed】',
     '',
   ].join('\n'),
+  // 独立终裁注臂·后位（xs-post-2 P1-2）：位序末条=EXEC 翻面注 executed，其后独立一行终裁注
+  // closed → 裁定注必须胜位序末条（adjudFlip 独立旗·修前该卷伪读 executed）。
+  'adjud-after-chain-REQUEST.md': [
+    '# ADJUD-AFTER-CHAIN REQUEST',
+    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
+    '',
+    '【翻面 2026-11-05（EXEC 翻面·协调方授权·append-only）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·有效态翻面→`executed:awaiting_post_prove_dual`】',
+    '',
+    '【终裁注 2026-11-06（U5a·协调方终裁授权行使·append-only）: 本行独立成行·终值裁定=`closed`（翻面权归协调方）】',
+    '',
+  ].join('\n'),
+  // 独立终裁注臂·前位：裁定注在 EXEC 翻面注之前位——裁定层优先于位序末条仍取裁定值。
+  'adjud-before-chain-REQUEST.md': [
+    '# ADJUD-BEFORE-CHAIN REQUEST',
+    '**Status**: **`draft:awaiting_pre_exec_dual`**（起草落卷即停）',
+    '',
+    '【终裁注 2026-11-05（U5a·协调方终裁授权行使·append-only）: 本行独立成行·终值裁定=`closed`（翻面权归协调方）】',
+    '',
+    '【翻面 2026-11-06（EXEC 翻面·协调方授权·append-only）: 本行活值 `draft:awaiting_pre_exec_dual` 史录零洗·有效态翻面→`executed:awaiting_post_prove_dual`】',
+    '',
+  ].join('\n'),
 });
 
 // 探针臂统一走显式 --ref=HEAD（=真仓全量跑同读法·且绕开 HEAD 默认读法的卷数收缩门）。
@@ -166,6 +187,20 @@ check(
   'positive control: real 【关闭 STOP 收口 form still flips to closed',
   'real-close volume must flip to closed',
   realCloseRow,
+);
+const adjudAfterRow = rowFor(p1.stdout, 'adjud-after-chain');
+check(
+  /\bclosed\b/.test(adjudAfterRow) && !/executed/.test(adjudAfterRow),
+  'P1 r2: standalone 【终裁注 line after position-last EXEC flip beats executed → closed',
+  'adjud-after-chain volume must read closed (not executed)',
+  adjudAfterRow,
+);
+const adjudBeforeRow = rowFor(p1.stdout, 'adjud-before-chain');
+check(
+  /\bclosed\b/.test(adjudBeforeRow) && !/executed/.test(adjudBeforeRow),
+  'P1 r2: standalone 【终裁注 line before position-last EXEC flip still wins → closed',
+  'adjud-before-chain volume must read closed (not executed)',
+  adjudBeforeRow,
 );
 
 // 卷数收缩门：HEAD 默认读法（未显式 --ref=）在探针仓（卷数 < 下界）必须如实红；
