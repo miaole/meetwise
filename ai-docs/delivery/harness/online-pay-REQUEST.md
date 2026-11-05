@@ -1,0 +1,162 @@
+# ONLINE-PAY REQUEST — B 端在线支付适配器第一期最小面（provider 接口契约+适配器骨架+回调幂等语义+fail-closed·二期对账/退款如实登记·起草落卷即停）
+
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 落码翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗·pre-exec 双审 BOTH PASS+协调方明示 EXEC 授权随令·十二门全绿+协调方加门全绿·est live=0 · alone≠dual · post-prove 双审两独立外席未在卷 · ⛔push）
+
+**席位**：online-pay REQUEST 起草席（协调方派单·#271 审计 N-06「维持部分修」后继·四读码面+起草双责）。
+**基线**：`origin/main` @ `92a82a944`（2026-11-05 rev r2 席 rebase 后重 pin·`git fetch`+`git rebase origin/main` 零冲突·届 tip 亲证·`fcbccea40` r1 史录·起草日基线 `38f6e7d78` 史录）· 分支 `line/online-pay-rev`（viability 双席 (a)+(a) 裁定后强制重 pin 新支：**ff-only 不可用**——`fdaa1ecf0` 非 main 祖先 `git merge-base --is-ancestor` EXIT=1 亲证→`git checkout -b line/online-pay-rev origin/main` 新支落卷·卷件自旧支 `git show fdaa1ecf0:<path>` 复制 blob `8f61c5336` 逐字节一致亲证·旧支 `line/online-pay-draft` @`fdaa1ecf0` 史录零动·工作树 `meetwise-pay` 已在 `git worktree list` 在册）。
+**立项出处**：①`ai-docs/delivery/harness/product-campaign-LEDGER.md:793`（2026-11-05 rev r2 席届值行号勘正·N-06 行亲读亲证在 `:793`·r1 锚 `:83` 陈旧史录）N-06「维持部分修」——企业充值线下链已落亲证（actions channel online/offline 下单+admin offline-remits 确认入账）·**在线支付适配器仍缺（grep 零命中亲证）**；②协调方派单 brief（2026-10-26·第一期最小面范围指派：provider 接口契约+适配器骨架+回调幂等语义+fail-closed·二期对账/退款归后继如实登记）；③**停止条件预登记：支付网关选型须用户拍板**——本卷第一期骨架面为网关无关 fail-closed 基建可独立 EXEC·任何具体网关适配器落座与放产开关均属用户拍板前置·触之红停上报（§8）；④必读清单（EXEC 席开工前全读）：`ai-docs/delivery/harness/entpay-slice2-REQUEST.md`（B271 片2 先例卷·隔离 proof 形制）+ 仓根 `AGENTS.md` + `apps/api/test/_neg-harness.ts` + `scripts/run-e2e-isolated.mjs`（头注容器语义）+ `apps/api/src/modules/commerce/commerce.service.ts`（验签/CAS 本体）+ `ai-docs/delivery/harness/webhook-neg-REQUEST.md` §0.1（0020/0136 两分立 partial UNIQUE 锚）。
+
+## §0 现状锚（起草席亲读 @`38f6e7d78`·2026-11-05 rev r2 席届值重 pin @`92a82a944`·file:line+blob 逐条 Read/rg/sed/git hash-object 实测·**EXEC 立项照本节对届时 tip 再重 pin**——基线漂移如实改锚·结论不变则只更行号·重 pin 清单含 `product-campaign-LEDGER.md` N-06 行锚（届值 `:793`·2026-11-05 rev r2 亲证））
+
+### 0.0 防重双对表 + 在飞交叠预扫（2026-10-26 亲扫）
+
+- `ls ai-docs/delivery/harness/ | grep pay` 建前唯一命中=`entpay-slice2-REQUEST.md`（B271 片2 历史卷·非本卷）→`online-pay-REQUEST.md` 落卷后唯一同名卷=本卷；`git branch --list "*online-pay*"` 恰 2 命中（2026-11-05 rev 重扫）=`line/online-pay-draft`（旧支史录零动）+`line/online-pay-rev`（本席重 pin 在卷支）。
+- **在飞交叠判定法登记**：本仓 PR 落线为历史改写合并（line/* 分支 SHA 恒非 main 祖先——`git merge-base --is-ancestor line/enterprise-pay HEAD` EXIT=1 亲证·而其内容件 `0157_billing_payer_route.sql`/`entpay-s2.proof.ts` 经 `git cat-file -e HEAD:<path>` EXIT=0 亲证已吸收）→SHA 祖先判定法失效·**内容级吸收以 blob 判**：`packages/db/migrations/0156_enterprise_bucket_billing.sql` 三线（HEAD/`line/enterprise-pay`/`feat/mysql-schema-skeleton`）blob 恒等 `9ace5b30` 亲证；commerce `.ts` 面三线 blob 各异（`f55d414c`/`6c798996`/`ae748ce0`）=**权威证据源钉 HEAD 线**·他线仅形状参照非权威（沿 admin-disable-evict 卷 §0.1 跨线锚加注先例；HEAD 线 commerce `.ts` blob 届值 `960f7402` @`92a82a944`（2026-11-05 rev r2 重 pin 亲证 blob 恒等）·`f55d414c` 系起草日史录）。
+- **在飞同域卷重扫（2026-11-05 rev 席亲扫·§0.0 交叠表补登）**：四同域卷在册——`pay-neg-REQUEST.md`（**closed**·收官并线 #155）·`webhook-fault-REQUEST.md`（**closed:post_prove_dual_pass**）·`webhook-neg-REQUEST.md`（**closed:post_prove_dual_pass**·其 §0.0 `:44` 亲点载登本域：载 `line/online-pay-draft` @`fdaa1ecf0`「零产品码零双矩阵触·commerce 域相邻零重叠」·与本卷互不替代）·`gap-uc014-026-adv-webhook-nhp.md`（**draft:awaiting_pre_exec_dual**·ADV draft 在飞）；本刀交付面（第一期 EXEC 预期触点=commerce 新文件+service/controller+contracts+新 proof）对四卷内容级零 novel 触者亲证·EXEC 立项日对本表重扫·出现 novel 触者→触停止条件「现场漂移」停手上报。**2026-11-05 rev r2 重扫补登**：`gap-uc014-026-adv-webhook-nhp.md` 卷 §0 红事实已陈旧——其诉请的 uc014 proof/注册已在树亲证（`apps/api/test/uc-e2e-014-026-webhook-adv.proof.ts`+`apps/api/package.json:79` `prove:uc014-webhook-adv`+根 `package.json:245` `uc014:webhook-adv:prove`+runner whitelist 亲证）·本卷不代翻其面（处置权归该卷后继/协调方）。
+- `git worktree list` 亲扫无第二 online-pay 同名树；本刀交付面在飞分支末触 commit 内容级零 novel 触者（N-06 明载在线适配器「零命中」=无人落座）；EXEC 立项日对本表重扫·出现 novel 触者→触停止条件「现场漂移」停手上报。
+- **三汇聚面 additive 交叠（2026-11-05 rev r2 补登）**：本卷件⑤ 预期触点根 `package.json`+`apps/api/package.json`+`scripts/run-e2e-isolated.mjs` 系在飞多卷共享的 proof 注册汇聚面（uc014/entpay 等已注册条目同形亲证）——与在飞同域卷构成 additive 交叠（三方各 additive 追加注册行·行集互斥）·EXEC 期 Ban 触他卷既有注册行·注册位冲突即停上报。
+
+### 0.1 blob 锚表（`git hash-object` 亲算 @`38f6e7d78`·2026-11-05 rev r2 对届 tip `92a82a944` 全锚重验 blob 恒等零漂移）
+
+| 文件 | blob（8 hex） | 关键行锚 |
+|---|---|---|
+| `apps/web/app/recruiter/billing/actions.ts` | `73819195`（68 行） | **`:9-:12` `createOrderAction(productId, {channel?: 'online'\|'offline', idempotencyKey?})`·`:19` body `channel: opts.channel ?? 'online'`（**线上=缺省通道**）+`idempotency-key` 头 `:20`·`:28` 回读 `body.channel`（OrderResult 契约 `17740454` `:301` 无 channel 字段=响应形状只增不改）** |
+| `apps/web/app/billing/actions.ts` | `044ed06f`（9 行） | C 端公开计费面封闭 stub（`ok:false` 恒拒·B271 片1 域归位·本刀零触） |
+| `apps/web/app/recruiter/billing/RechargeForms.tsx` | `181f80c4`（130 行） | **`:21-:23` 线上 action=`createOrderAction(productId,{channel:'online',…})` 仅下单·`:29` toast「线上订单已创建」——下单后无任何支付会话/跳转/网关调用（缺口现形点）** |
+| `apps/api/src/modules/commerce/commerce.service.ts` | `960f7402`（325 行·2026-11-05 rev r2 重 pin @`92a82a944` 亲证恒等·附注：主侧已增 C1/C2/C7 拒绝审计日志（GAP-UC014-AUDIT-EMIT·语义零变·`:45-:60` stdout-only 结构化单行 JSON 观察点·各调用点 throw 前同臂内不阻断）） | **`:14-:15` 签名载荷 `${id}:${providerTxn}:${kind}:${ts}`+`PAY_SIG_REPLAY_WINDOW_SECONDS=300`（`:15`）·`:26-:43` `verifyCommerceSig`（`:32` ±300s 防重放窗·`:36` `process.env.PAY_PROVIDER_SECRET ?? ''`·`:39-:41` 密钥缺失/不等长/不等→403 fail-closed）·`:62-:69` PRODUCTS（ent_* enterprise 域）·`:96-:130` `createOrder`（`:99` offline 判·`:114` online 恒 `status:'created'`·`:115` channel 翻转 CAS）·`:150-:171` `payWebhook`（`:152-:154` asGateway `gateway_payment_order_owner` 解析 owner·`:158` requireOwnerUserId·`:163-:164` asPrincipal `markOrderPaidAndCredit`）·`:180-:201` `refundWebhook` 对偶** |
+| `apps/api/src/modules/commerce/commerce.controller.ts` | `6eaf29b7`（95 行） | `:26-:32` `POST /commerce/orders`（CreateOrderDto 真校验+idempotency-key 头）·`:34-:41` `POST /commerce/orders/:id/pay-callback`（纯签名委托 payWebhook）·`:57-:61` `GET offline-orders` |
+| `apps/api/src/modules/commerce/commerce-webhook.controller.ts` | `2b976602`（25 行） | `:12-:17` `POST /commerce/webhook/pay/:id`·`:19-:24` `refund/:id`（无登录态·HMAC 单管道） |
+| `apps/api/src/modules/commerce/payment-callback.controller.ts` | `37b8af46`（35 行） | `:24-:34` `POST /payment/refund-callback`（body 白名单四字段·id 从 path→body） |
+| `packages/db/src/commerce/payment.ts` | `15d7887a`（189 行） | **`:8-:44` `createOrder` 幂等（ON CONFLICT owner+idempotency_key→同 key 同参返回原单·`:40-:42` 换商品/金额→`idempotency_key_conflict`）·`:53-:109` `markOrderPaidAndCredit`（`:59` `provider_txn` partial global UNIQUE 注释·`:74-:94` SAVEPOINT+CAS `status='created' AND channel='online'`（`:81` 通道守卫·offline 单误入→conflict 409）·`:95-:102` 入账桶同事务 INSERT 365d+source_order_id）·`:122-:189` `markOrderRefunded`（FIFO 红冲+桶类型过滤+不足回滚）·`:46` `getOrder`（owner+id 单查只读面·2026-11-05 rev r2 补锚——件② 本人单守卫现成读面·EXEC 期 `packages/db` 零触依据）** |
+| `packages/contracts/src/index.ts` | `17740454`（1647 行） | `:257` `CreateOrderDto{productId, channel?: 'online'\|'offline'}`·`:267-:270` OfflineRemitEntry/FailDto·`:301` OrderResult·`:1496` 端点注册表 createOrder 行（**全注册表零 pay-session/webhook 支付会话行**·rg 亲证） |
+| `packages/db/migrations/0156_enterprise_bucket_billing.sql` | `9ace5b30`（326 行） | `:74-:78` `channel` 列 DEFAULT 'online'+CHECK·`:84-:97` `offline_remit_record` 侧表·`:174` entry 函数·**:202-:265 confirm 函数（`:216-:218` 双人分离 entered_by≠caller·`:222-:224` 金额==订单校验·`:227-:235` bank_ref→provider_txn 同形 CAS·`:236-:251` 幂等重放通道·`:257-:259` 企业桶落位·`:260-:262` audit）**·`:268-:292` fail·`:295-:316` 队列读函数·`:319` REVOKE 纪律 |
+| `packages/db/migrations/0041_api_runtime_least_privilege.sql` | `2e981a7c`（161 行） | `:38` `gateway_payment_order_owner(text)`（无表权限网关函数解析 owner·不信调用方）·`:141` REVOKE；镜像 `packages/db/sql/23_api_gateway.sql` `bdb20ecb`（787 行）`:62`/`:424`/`:427` |
+| `apps/api/src/modules/admin/admin.controller.ts` | `6ee92ca7`（83 行） | `:50-:72` 对公三端点（`:56` entry·**:62 `POST /admin/offline-remits/:id/confirm`**·`:68` fail·PrincipalGuard+AdminGuard 双层） |
+| `apps/api/src/modules/admin/admin.service.ts` | `82e56b95`（132 行） | `:101-:131` `offlineRemits`/`remitEntry`（`:106`）/`remitConfirm`（`:115-:122` 受控函数 `gateway_admin_offline_remit_confirm`·true=首次入账|重放收敛）/`remitFail`（`:124`） |
+| `apps/api/src/platform/env-schema.ts` | `abab7491`（165 行） | `:59-:84` `criticalEnvSchema`（T1 必需面）——**`PAY_PROVIDER_SECRET` 零成员（rg 亲证）=运行时 fail-closed T3 档（缺失→`f55d414c` `:35` 403·非启动即死）·本卷维持该档不收编** |
+| `docker/compose.prod.yml` | `663720c3`（413 行） | `:19` `PAY_PROVIDER_SECRET: ${PAY_PROVIDER_SECRET:?set PAY_PROVIDER_SECRET from the cloud secret manager}`（密钥服务强制的既有部署契约·`compose.ha.yml:59` 同形） |
+
+### 0.2 派单简报漂移登记（结论零变·如实改锚）
+
+1. 简报「billing/actions.ts channel 面」：B 端企业充值 action 面在 `apps/web/app/recruiter/billing/actions.ts`（`73819195`·68 行）；`apps/web/app/billing/actions.ts`（`044ed06f`·9 行）系 C 端公开封闭 stub——简报指涉域按前者落锚，结论（channel online/offline 双通道下单·线上缺省）零变。
+2. 简报「online 分支现形」：精确化——`createOrderAction` 的 online 分支止于「创建订单」（`:19` 缺省 online→service `:89` 恒 `status:'created'`），**无支付会话创建无跳转**；UI 线上按钮（`181f80c4` `:21-:23`）下单后仅 toast 提示。online 通道推进到 paid 的唯一在链管道=自研 HMAC 三回调口（非任何真实网关回调格式）。
+3. 简报「在线 provider 适配器零命中」：亲证恒等——`PaymentProvider|payAdapter|paymentSession|precreate|prepay` 于 apps/api/src+packages rg 零命中；contracts 端点注册表（`:1496-:1503` commerce 段）零 pay-session 行。
+
+### 0.3 迁移号登记（第一期预期零迁移）
+
+- 主线链顶实测（2026-11-05 rev r2 重 pin @`92a82a944` 亲数恒等）：`ls packages/db/migrations | wc -l`=**222**·头 `0224_job_gauge_index_friendly.sql`（届时亲数亲读·起草日值 216/头 0218 史录）。
+- 第一期修法（§1-修法件①-⑤）=纯 TS 面（新接口文件+service/controller 增方法+contracts 增 DTO+新 proof）·**预期零迁移零 DDL**（`payment_order.channel`/`provider_txn`/`offline_remit_record` 基建 0156 已在）。EXEC 期若实测产生非预期迁移需求→**停（越界需要类）上报**·认领号=对届时链顶亲数后取最小未占号顺延·Ban 抢号。
+
+## §1 红事实（机制链·全部亲证·「与 X 一致」≠「X 已证」措辞纪律全卷适用）
+
+### 1.1 缺口形状（N-06「维持部分修」的在链缺口本体）
+
+1. **线上通道单向断头**：B 端企业充值页两通道下单（`73819195` `:11/:19`）——offline 单走 admin 双人确认入账全链闭环（`6ee92ca7` `:62`→`82e56b95` `:115-:122`→`9ace5b30` `:202-:265`）；**online 单创建后无任何推进面**：无支付会话创建端点、无网关跳转、无 provider SDK 适配（`181f80c4` `:21-:23` 下单即终·`:29` toast 即终）。订单滞 `created` 直至 `0156` `:268` fail 函数亦不适用（该函数 offline 队列读面 `:312` 限定）——线上单成为无出口悬挂单。
+2. **回调管道是自研模拟契约非网关集成**：三回调口（`2b976602`/`37b8af46`/`6eaf29b7` `:34-:41`）共用 `verifyCommerceSig`（`f55d414c` `:26-:36`）——HMAC-SHA256、载荷 `${id}:${providerTxn}:${kind}:${ts}`、±300s 防重放、单共享密钥 `PAY_PROVIDER_SECRET`（`:32`）。该契约无任何真实支付网关对应物；持有密钥者手工构造即可置单 paid（设计如此的内测钩子），生产语义=「无网关」。
+3. **幂等/exactly-once 语义已承重且必须原样承接**：`markOrderPaidAndCredit`（`15d7887a` `:53-:109`）=`provider_txn` partial global UNIQUE（跨订单同流水禁双入）+CAS created→paid 带 `channel='online'` 守卫（`:81`·offline 单持有效签名亦 409）+SAVEPOINT 23505→确定性 `conflict`+权益桶同事务（不留「paid 未发权益」）；重放收敛 `already`/`conflict` 三态（`:104-:108`）。offline 链 bank_ref 复用同一 CAS 形（`9ace5b30` `:225-:235` 注释自证同形）。
+4. **凭证纪律现状健康·须锁定**：`PAY_PROVIDER_SECRET` 仅经 env 读取（`f55d414c` `:32`·缺失 fail-closed 403 非默认钥回退）；生产 compose 强制云密钥服务注入（`663720c3` `:19`）；env-schema T1 面不收编（`abab7491` `:59-:84` 零成员·运行时档设计如此）；测试侧先例=env 注入一次性非生产值（`entpay-s2.proof.ts:34` `??= 'entpay-s2-proof-pay-secret-not-production'` 形）+CI gitleaks 门（`.github/workflows/ci.yml:18-:19`）承底。
+5. **对账/退款发起面整体缺席**：全仓零对账面（provider 账单下载/逐单比对/差异处置零命中）；退款仅有回调消费端（`refundWebhook`+`payment-callback`）·B 端无退款发起链。该缺席在 offline 人工链下可容忍（银行流水人工核对），**在线真实网关下不可容忍**——归第二期（§1-修法二·如实登记非静默跳过）。
+
+### 1.2 机制链（第一期骨架必须承接的既有承重面）
+
+1. 下单幂等：同 owner+idempotencyKey 并发重试收敛同单（`15d7887a` `:18-:43` ON CONFLICT 形·换商品 409 `idempotency_key_conflict` `f55d414c` `:101`）——provider 会话创建不得绕过该收敛自造第二下单路径。
+2. 回调→入账单管道：adapter 层验签归一后**必须终止于 `payWebhook`/`refundWebhook` 同一管道**（owner 网关函数解析 `2e981a7c` `:38`+`requireOwnerUserId` 校验 `f55d414c` `:133`+CAS 三态）——Ban 第二套入账/CAS 路径（安全关键面唯一化·`37b8af46` `:10-:14` 先例注释承卷）。
+3. fail-closed 方向钉死：凭证缺失/空白→骨架拒绝（503/403）·**永不**回退测试钥/沙箱钥/默认钥；`verifyCommerceSig` 的 `?? ''` 恒时序失败形即先例（`f55d414c` `:35`）。
+4. C 端零触：`044ed06f` 封闭 stub·`pack_*` 商品面·`markOrderPaidAndCredit` 缺省桶 `'paid'` 语义——第一期全部零字节触。
+
+### 1.3 修法候选否决登记（防 EXEC 期重开·三条指派否决+两条自证否决）
+
+- **候选甲（采纳）**：provider 接口契约+适配器骨架+回调幂等语义原样承接+fail-closed（§1-修法第一期·网关无关基建面）。
+- **候选乙（否决·Ban）=硬编码密钥**：任何真实/可用的 provider 凭据字面量（AppSecret/私钥/API Key）写入源码、示例或测试——**否决**。凭证只从环境变量或密钥服务读取（既有部署契约 `663720c3` `:19` 强制云密钥服务）；源码、示例和测试都不写入可用的凭据字面量（测试夹具沿既有先例 env 注入一次性非生产值·gitleaks 门承底·Ban 借「示例需要」落真钥）。
+- **候选丙（否决·Ban）=跳过对账**：以「骨架已交付」宣称在线支付生产就绪、对账面静默缺席——**否决**。对账是真实网关下的账实一致承重面（掉单/重复/金额不符的兜底），第二期如实登记（§1-修法二）·第二期落地前在线真实支付面维持 fail-closed 封闭（503）·禁放产。
+- **候选丁（否决·Ban）=一步到位全链**：本刀直接绑定某具体支付网关端到端落座（含选型/对账/退款发起/放产开关一把梭）——**否决**。选型属用户拍板前置（§8 红停项）·爆炸半径不可界（网关 SDK 依赖/凭证面/回调格式/沙箱环境全链入交付面）·与「第一期最小面」指派相悖。
+- **候选戊（否决·Ban）=PAY_PROVIDER_SECRET 收编 env-schema T1 启动即死**：缺钥启动死会令全部既有 neg/proof 夹具与本地开发链断裂（`_neg-harness.ts:53` 等在用）；现运行时 fail-closed（403）方向正确且范围恰为支付面——维持 T3 档零触（`abab7491` `:59-:84` 零成员=现状亲证）。
+
+## §1-修法（分二期：第一期最小面定稿+第二期如实登记·第一期纯 TS 零迁移）
+
+### 一·第一期（本卷定稿面·EXEC 蓝本）
+
+- **件①（新建 `apps/api/src/modules/commerce/payment-provider.ts`·接口契约+骨架·网关无关）**：
+  1. `PaymentProvider` 接口：`readonly id: string`；`createPaymentSession(input: { orderId: string; amountCents: number; subject: string }): Promise<{ redirectUrl?: string; providerOrderRef?: string }>`；`verifyCallback(input: { headers: Record<string, string>; rawBody: string }): { orderId: string; providerTxn: string; kind: 'paid' | 'refunded' } | { reject: 'invalid_callback' | 'bad_signature' }`——provider 专属回调格式在 adapter 内归一，归一产物**只**许喂给 `payWebhook`/`refundWebhook` 单管道（§1.2-2 Ban 第二套 CAS 写入接口文件头注释承重）。
+  2. `UnconfiguredPaymentProvider` 骨架：`id='unconfigured'`；`createPaymentSession` 抛 `payment_provider_not_configured`（controller 映射 503）；`verifyCallback` 恒 `{ reject: 'bad_signature' }`（fail-closed·永不接受任何回调）。
+  3. `resolvePaymentProvider(env)`：`PAY_PROVIDER_ID` 缺失/空白→返回骨架；**非空→抛 `payment_provider_unknown`**（第一期无任何具体适配器可落座·非空配置=配置错误·fail-closed 不回退）；文件头注释载明：具体网关适配器落座须用户拍板选型后按第二期/后继刀入位。
+- **件②（`f55d414c`/`6eaf29b7` 增支付会话面·薄适配层纪律沿 `6eaf29b7` 头注）**：service 增 `createPaymentSession(principal, orderId)`——RLS 本人单+`status='created'`+`channel='online'` 三守卫→`resolvePaymentProvider().createPaymentSession(...)`（未配置→503 `payment_provider_not_configured`·订单状态零变）；controller 增 `POST /commerce/orders/:id/pay-session`（PrincipalGuard）。既有三回调口与 `createOrder` 零字节改。
+- **件③（`17740454` additive 增 DTO）**：`PaymentSessionCreated = z.object({ orderId: z.string(), redirectUrl: z.string().url().optional(), providerOrderRef: z.string().optional() })`+端点注册表一行（additive·C 端契约面零触）。
+- **件④（fail-closed 准则落卷·件① 文件头+本卷 §5 Ban 双承载）**：凭证只从 env/密钥服务读取；缺失/空白→骨架拒绝；零可用凭据字面量入源码/示例/测试；`PAY_PROVIDER_SECRET`/`PAY_PROVIDER_ID` 家族 env-schema 收编问题挂起归第二期评估（候选戊）。
+- **件⑤（隔离库真 PG proof·`apps/api/test/online-pay-s1.proof.ts` 新建+`apps/api/package.json` `online-pay:s1:prove`+根 `package.json` 透传行+`scripts/run-e2e-isolated.mjs` runner 注册位 additive）**：载体照 `entpay-s2.proof.ts` 先例（真迁移链+真 `CommerceService` 最小 DbService seam·零 HTTP 面）。判据四行：①未配置 provider→pay-session 503 `payment_provider_not_configured`·订单滞 created·桶零入账；②非空 `PAY_PROVIDER_ID`→resolve 抛 `payment_provider_unknown`（不回退）；③回调幂等语义回归零变——既有 HMAC 口对 online 单 exactly-once 三态（credited/already/conflict）+`:81` 通道守卫（offline 单持有效签名→409）逐臂复证；④改动集零凭据字面量（gitleaks 门+grep 双检·回执留痕）。
+
+### 二·第二期（如实登记·本卷不设计不裁形）
+
+对账面（provider 账单下载/逐单比对/差异工单）·B 端退款发起链·provider 查单/轮询兜底（掉单补偿）·结算对账期·**commerce 面限流与网关 IO 策略（post-prove 双审预登记 2026-11-06）**：现有限流桶仅 auth signup/login 专有不覆盖 commerce——pay-session 二期携带外部网关 IO 时须限流/超时/重试/凭证缓存策略入位·届时第二期 REQUEST 立项必含·对账面候选项按候选丙承续·具体网关适配器落座（**选型=用户拍板前置·红停上报项**）·`PAY_PROVIDER_ID`/凭证家族 env-schema 档位评估。第二期落地前：在线真实支付面维持第一期 fail-closed 封闭（503）·对账缺席=不放产的显式前提（候选丙）。登记落点=届时后继 REQUEST·本卷仅登记存在与边界·Ban 本卷内顺手扩面。
+
+## §2 验收断言（pre-exec 双审核对单基面·第一期 EXEC 门矩阵十二门·数字口径以实跑实测为准·届时值重 pin）
+
+1. **隔离库真 PG 门（容器依赖如实预登）**：`node scripts/run-e2e-isolated.mjs online-pay:s1:prove` EXIT=0·件⑤ 判据①-④ 全绿。**容器依赖预登**：本门经 `run-e2e-isolated.mjs` 临时 PostgreSQL 容器跑真迁移链——EXEC 期须 Docker daemon 在场+PG 镜像可拉（`E2E_PG_IMAGE` 缺省 pgvector 家族·`run-e2e-isolated.mjs` 头注 `BUG-FAKE-R5` 双轨语义亲读）；无 Docker/拉镜像失败→门不可跑→**红停上报**·Ban 跳门 Ban fake-green Ban 改判据凑容器缺席。**容器现状预登（2026-11-05 rev 席亲证）**：colima/docker daemon 需先启（2026-11-05 实测 down·`docker info` EXIT≠0 亲证）——环境恢复非红停终态（EXEC 期先启 daemon 再跑门·daemon 缺席跑门即红·按本条预登归因非终态）。
+2. **neg:commerce 零回归**：`pnpm -C apps/api neg:commerce` EXIT=0·臂数/PASS 名单对改前 diff=∅（非空即停·如实登记归因）。
+3. **neg:all 六段全绿**：`pnpm neg:all` EXIT=0（段序沿 `apps/api/package.json:110`·2026-11-05 届时亲核）·邻五段名单 diff=∅。
+4. **migrate:prove 零新迁移**：EXIT=0·链头对届时亲数（重 pin 基线 222 头 0224·2026-11-05）·第一期零 DDL——非预期迁移出现即停「越界需要」。
+5. **drift:prove**：`pnpm drift:prove` EXIT=0。
+6. **migration uniqueness**：`node scripts/check-migration-version-uniqueness.mjs`→violations=0。
+7. **typecheck**：`pnpm turbo typecheck --force` EXIT=0（届时面板数亲数）。
+8. **lint 全绿贴边**：`pnpm turbo lint` 全绿·sanction 三值对届时 checklist 亲取贴边（任一 +1 warning 即红停·Ban 借机消偿）。
+9. **docs:check**：`node scripts/ai-docs/check-docs.mjs` EXIT=0·scanned ≤ 届时 cap（2026-11-05 rev r2 换基重 pin：cap 承**届值+1**=**2487**——main 届值 cap **2486**（=CAP-SANCTION-2486 ISO-DOTENV-PERF 承值·届 tip `92a82a944` 亲跑 scanned 2486=cap 恰等 EXIT=0）+本卷 REQUEST 1；本卷并入 2487 恰等红亲证（rebase 后步进前本树 docs:check `PTP_FILE_LIMIT:2487` 真 EXIT=1）·沿常设预授权「越限沿先例步进承登」先落卷（webhook-neg CAP-SANCTION-2403「main 恰 cap 零余量+本卷 REQUEST +1 起草即触」同形）·步进已随本刀 CAP-SANCTION-2487 行使（`public-text-policy.mjs:311` `MAX_FILES=2_487`+proof 越限臂 loop/atCap/overCap fixture/FILE_LIMIT :2488+两链区注记恰等改·r1 锚 `:307`/`MAX_FILES=2_485` 史录）·**同号竞争如实列**：s3caps（`2cfdade94` ahead=4 同承 2487）/uc31（`17195e4d4` ahead=1 承 2486 届值进位后落点同 2487）两支在飞（perf 已并 #208/#209 如实注）·并线期 union 取大重算沿常设预授权「cap/lint 以合并树实测为准恰等步进免再询」·起草日值 cap 2354/r1 值 2486 史录·超限红停上报·cap 张弛归协调方）。
+10. **markers 五类+冲突标记零命中**：改动集五类标记词+冲突标记 grep 零命中（`scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·词面不复抄卷内防自匹配·命令回执入收据）。
+11. **diff 面机检**：`git diff --numstat <base>` 预期 tracked 路径=件① 新文件+件② service+件② controller+件③ contracts+件⑤ proof+`apps/api/package.json`+根 `package.json`+`scripts/run-e2e-isolated.mjs`（additive 注册位·照届时 runner 头注形制 whitelist Set+isolatedCommand 映射两处·entpay 先例）+本卷 .md——多任何 tracked 路径即停（越界需要类·tsbuildinfo 翻动则 checkout 回滚）。
+12. **卫生**：`pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改·`.env*` ABSENT 双向记录·改动集零可用凭据字面量（gitleaks+grep 双检回执）·零真实支付外呼（全部语义在隔离库/签名模拟面内验证）·`actualSpendCny=null`·零模型外呼（est live=0）。
+
+## §3 范围外（边界清单·越界即 FAIL）
+
+1. **既有三回调口/`verifyCommerceSig`/CAS 入账语义零字节改**（件① 只增适配归一层·§1.2-2 单管道承接）。
+2. **offline 对公链零触**：`6ee92ca7` `:50-:72`/`82e56b95` `:101-:131`/`9ace5b30` 全函数面（N-06 已落亲证面·本卷只读引用）。
+3. **C 端面零触**：`044ed06f` stub·`pack_*` 目录（`f55d414c` `:62-:64` C 端域子集）·C 端桶语义（`15d7887a` 缺省 `'paid'`）。
+4. **具体网关适配器零落座**（选型未拍板·§8 红停项）·对账/退款发起/查单轮询/结算零设计零实现（§1-修法二）·env-schema 零触（候选戊）。
+5. **共享 SSOT 零改**：backlog/checklist/LEDGER（N-06 行翻面权归协调方）/north-star 只读引用。
+6. 零迁移零 DDL（§0.3）·零 CI/wrapper 改（根 package.json 仅加 proof 透传行属件⑤ 交付面）·零依赖升级（Ban 引入任何网关 SDK）。
+
+## §4 依赖
+
+1. **上游已满足**：B271 片1-3 线下链+channel 守卫+桶语义全在链（`92a82a944` 2026-11-05 rev r2 重 pin 亲证·`fcbccea40` r1 史录·0156/0157/0159/0185 在册·起草日基线 `38f6e7d78` 史录）；`run-e2e-isolated.mjs` 隔离 runner+entpay proof 先例形在册。
+2. **同域在飞**：N-06 登记的「只缺在线适配器」面=本卷唯一占座（harness 目录建前零同名卷亲证）；EXEC 立项日 §0.0 重扫·novel 触者出现即停「现场漂移」。
+3. **外部前置（用户拍板·非本卷可解）**：支付网关选型（渠道/费率/结算周期/退款政策）——第一期骨架面不依赖该拍板可独立 EXEC；具体适配器落座（第二期/后继）**必须**拍板先行。**下游**：第二期刀接本卷件① 接口位。
+
+## §5 Ban 列表 + pins
+
+**Ban 列表**：Ban push/force-push；Ban 自批（pre-exec 双审两独立外席·alone≠dual）；Ban retry-to-green；Ban 翻 pins；**Ban 硬编码密钥**（候选乙·任何可用凭据字面量入源码/示例/测试·凭证只从环境变量或密钥服务读取）；Ban 跳过对账宣称生产就绪（候选丙·二期落地前在线真支付面禁放产）；Ban 一步到位全链/绑定具体网关（候选丁·选型红停项）；Ban 第二套入账/CAS 路径（§1.2-2·adapter 回调归一只走 `payWebhook`/`refundWebhook` 单管道）；Ban 默认钥/沙箱钥回退（fail-closed 方向§1.2-3）；Ban 网关 SDK 依赖引入（§3-6）；Ban 触 offline 链/C 端面/env-schema（§3-2/3/4）；Ban 迁移 Ban DDL（§0.3·需则停上报走认领规则）；Ban 改共享 SSOT（§3-5）；Ban 触其他工作树；Ban 伪造已读/已验来源（§0 锚全亲证为本卷前提）；Ban 跳隔离容器依赖跑门（§2-1·无 Docker 红停上报非降级）；Ban 造 .env*；Ban 顺带升级依赖包。
+
+**pins（十一值照抄·零翻转）**：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。
+
+## §6 est live=0（起草 turn·第一期 EXEC 期同）
+
+- 起草 turn（本 commit）：est live=**0**——零实跑零模型外呼零 Key 加载零生产操作零 secrets 零消耗（docs-only）。第一期 EXEC 期亦 est live=0（隔离库+签名模拟面·零真实支付网关外呼·零模型外呼·§2-12 承）。
+
+## §7 markers=0（卫生声明）
+
+本刀改动集（本卷 1 .md·起草 turn）**五类标记词+冲突标记 grep 零命中**（起草席亲跑·回执随 EXEC 收据留痕·词面沿 `scripts/i6-239-gates.proof.mjs` §2-7 运行时组装口径·不复抄卷内防自匹配）。
+
+## §8 STOP（开工三条款 + 停止条件四类 + 用户拍板前置）
+
+**STOP · `executed:awaiting_post_prove_dual`（2026-11-06 EXEC 落码翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗·开工三条款当时点已满足：pre-exec 双审 BOTH PASS 落卷+协调方明示 EXEC 授权随令）· alone≠dual · post-prove 双审两独立外席未在卷 · 本 EXEC commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示 EXEC 授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1.3 三条指派否决与 §5 Ban/pins 与 §1-修法第一期件①-⑤ 唯一交付面与「网关无关」边界**（改则回炉重审）·立项时照 §0 协议对届时 tip 全量重 pin。**用户拍板前置（红停上报项·本卷起草期已触即停的终态依据）**：**支付网关选型须用户定**——本卷第一期骨架面网关无关可独立走双审/EXEC；EXEC 期任何诉求触具体网关落座/渠道费率/放产开关→**红停上报协调方转用户拍板·Ban 就地代选**。**停止条件（四类·命中即停手上报·Ban 就地处置）**：
+- **现场漂移**：届时 tip 对 §0.1 任一锚 blob/机制漂移且 §1 结论受疑（如 CAS/通道守卫被改写/verifyCommerceSig 收敛面变动/0156 函数域改动/§0.0 重扫出 novel 触者）→停·重 pin 回炉。
+- **机制不满足**：件⑤ 判据与 §1.2 机制推定不符（如未配置 provider 未 503/非空 ID 未拒/通道守卫失效）→fail-closed 前提被证伪→停·如实升级回炉（Ban 就地改判据 Ban 凑绿）。
+- **越界需要**：交付诉求超出 §1-修法第一期件①-⑤ 面（触具体网关/对账/退款发起/迁移/env-schema/C 端面）→停·另刀或协调方裁决（网关面转用户拍板）。
+- **验收红不可修**：§2 门矩阵任一门红且根因不在本刀交付面（容器缺席/邻套件新红/docs:check 超届时 cap/lint 贴边 +1）→停·如实登记（Ban 借机修）。
+
+## §9 rev 注记（2026-11-05 重 pin 落卷·docs-only 零码零门面动）
+
+- **登记源**：viability 双席 2026-11-05 (a)+(a) 裁定 + 重 pin 清单（本节即该清单落卷·逐条对号）。席别=meetwise「online-pay」rev 席·工作树 `meetwise-pay`。
+- **支线手术**：ff-only 不可用（`fdaa1ecf0` 非 main 祖先 `git merge-base --is-ancestor` EXIT=1 亲证）→`git checkout -b line/online-pay-rev origin/main`（届时 tip `fcbccea40` 亲证）·卷件自旧支 `git show fdaa1ecf0:ai-docs/delivery/harness/online-pay-REQUEST.md` 复制落新支（blob `8f61c5336` 逐字节一致亲证）·旧支 `line/online-pay-draft` @`fdaa1ecf0` 史录零动。
+- **重 pin 落位（九条）**：①§2-11 预期 tracked 路径补 `scripts/run-e2e-isolated.mjs`（additive 注册位·照届时 runner 头注形制 whitelist Set+isolatedCommand 映射两处·entpay 先例）+件⑤ 透传行措辞改「runner 注册位 additive」；②基线四处（卷头/§0/§4-1/卷尾）`38f6e7d78`→`fcbccea40`（届时 origin/main tip 新值亲证）+注「ff-only 不可用·新支落卷」；③§0.1 commerce.service.ts blob `f55d414c`→`960f7402`（325 行·行锚届时亲读重 pin·其余 §0.1 十四锚 blob 届值恒等零漂移亲证）+附注「主侧已增 C1/C2/C7 拒绝审计日志（GAP-UC014-AUDIT-EMIT·语义零变）」；④计数锚：迁移 222/头 0224（届时亲数）·cap 承届值+1=2486（main cap 2485 亲读+本卷 REQUEST 1·同号竞争如实列：perf/s3caps/uc31 在飞·并线期 union 取大重算沿常设预授权·两 policy 步进+四联动点）·§2-3 `apps/api/package.json:77`→`:110`（届时亲核）；⑤§0.0 在飞交叠表补四同域卷（pay-neg closed/webhook-fault closed/webhook-neg closed/gap-uc014 ADV draft）+webhook-neg §0.0 `:44` 亲点载登；⑥§2-1 容器预登补「colima/docker daemon 需先启（2026-11-05 实测 down）——环境恢复非红停终态」；⑦必读清单补 webhook-neg-REQUEST §0.1（0020/0136 两分立 partial UNIQUE 锚）；⑧本节 §9 登记；⑨Status 保持 `draft:awaiting_pre_exec_dual`（四处：Status 行+§8 STOP+卷尾+本节）·pins 十一值零翻转。
+- **三门亲跑读数（2026-11-05 rev 席）**：docs 届值+1 恰等（main scanned 2485=cap 2485 EXIT=0 绿·本卷并入 PTP_FILE_LIMIT:2486=2485+1 恰等红·常设预授权承登形非终态）·PTP `static_preflight_valid: selected=12/12` EXIT=0·markers=0（改动集五类标记词+冲突标记·`i6-239-gates.proof.mjs` §2-7 运行时组装口径零命中）。
+- **零字改申明**：§1-修法件①②③④ 全文零字改·件⑤ 仅透传行措辞一处（①指定）·§3/§5/§8 全文零字改·门矩阵门数与判据语义零变——其余任何文字零动。（上行为 r1 史录·r2 申明见下）
+- **rev r2 注记（2026-11-05·登记源=pre-exec 双审席2 成立项消化+协调方派单「rev r2」随令）**：席别=meetwise「online-pay」rev r2 席·工作树 `meetwise-pay`·支 `line/online-pay-rev`。①**rebase 并线**：`git fetch origin` EXIT=0→`git rebase origin/main` **零冲突**·届值 origin/main `92a82a944`=#209 perf-status-pin 已并（起草 commit 重落 `2f1794c47`·单文件 patch 恰等）·基线四处（卷头/§0/§4-1/卷尾）`fcbccea40`→`92a82a944`·§0.1 全锚 blob 对届 tip 重验恒等零漂移（16 锚亲算）·迁移 222/头 0224 亲数恒等·`apps/api/package.json:110`（neg:all）亲证恒等。②**PTP 证伪勘正（如实登记）**：席2 FAIL 主因称「卷 §9『PTP selected=12/12』读数不实」系**跑错脚本**——本卷 PTP 门=`scripts/ai-docs/public-text-policy.proof.mjs`，协调方在本树亲跑 `selected=12/12` EXIT=0 推翻该主因；席2 实跑的 `scripts/quality-governance.proof.mjs` 系另一治理 proof·其主线红登记为**卷外问题另立刀处理**·与本卷门矩阵无关·卷 §9 r1 的 12/12 读数维持有效。③**立项行锚勘正**：LEDGER N-06 行届值 `:793`（亲读亲证·r1 锚 `:83` 陈旧史录）——§0 立项出处①已换锚+LEDGER 行锚列入 §0 EXEC 立项日重 pin 清单（席2 读数成立项）。④**§0.1 补锚**：payment.ts `:46` `getOrder`（owner+id 单查只读面亲证·件② 本人单守卫现成读面——EXEC 期 `packages/db` 零触依据）。⑤**§0.0 交叠表两补**：(a) `gap-uc014-026-adv-webhook-nhp.md` 卷 §0 红事实已陈旧——其诉请 uc014 proof/注册已在树（`uc-e2e-014-026-webhook-adv.proof.ts`+双 package.json+runner 注册亲证·本卷不代翻面）；(b) 根 `package.json`+`apps/api/package.json`+`scripts/run-e2e-isolated.mjs` 三汇聚面 additive 交叠（件⑤ 注册触点与在飞多卷共享·EXEC 期 additive 追加·Ban 触他卷既有注册行）。⑥**cap 换基步进**：CAP-SANCTION-2487 恰等步进 2486→2487（main 届值 2486=cap 恰等零余量·union=main 届扫 2486+本卷 REQUEST 1=2487 恰等零多放·两 policy 四联动点 2_487/f-2487.md/:2488+相邻注释恰等改·既有链注史录全保留零洗·在飞同号竞争 s3caps `2cfdade94`/uc31 `17195e4d4` 如实列·详两 policy 链区 CAP-SANCTION-2487 注记）。⑦§2-9 cap 算式换基到届值+卷尾门摘要同步（r1 九条注记与三门读数史录零洗）·§0.1/§0.3 届值锚随 rebase 换 pin。⑧Status 保持 `draft:awaiting_pre_exec_dual`（四处：Status 行+§8 STOP+卷尾+本节）·pins 十一值零翻转·§1-修法件①-⑤/§3/§5/§8 零字改·门矩阵门数与判据语义零变。
+- **rev r2 三门亲跑读数（2026-11-05）**：docs EXIT=0 scanned **2487**=cap 2487 恰等（步进后本树亲跑绿）·PTP `static_preflight_valid: selected=12/12` EXIT=0（`scripts/ai-docs/public-text-policy.proof.mjs` 本树亲跑）·markers 改动集五类标记词+冲突标记零命中（`i6-239-gates.proof.mjs` §2-7 运行时组装口径）·`node --check` 两 policy EXIT=0·步进前基线红 `PTP_FILE_LIMIT:2487`（union 真亲证 EXIT=1）随卷留痕。
+- **EXEC 立项重 pin（2026-11-06·对届 tip `bc9d6fd08` 亲测）**：§0.1 十六锚 blob+行数全表亲算恒等零漂移（`git hash-object`+`wc -l` 逐条：`73819195`/`044ed06f`/`181f80c4`/`960f7402`/`6eaf29b7`/`2b976602`/`37b8af46`/`15d7887a`/`17740454`/`9ace5b30`/`2e981a7c`/`6ee92ca7`/`82e56b95`/`abab7491`/`663720c3`/镜像 `bdb20ecb`）·行锚抽验（actions `:9-:12/:19/:28`·RechargeForms `:21-:23/:29`·contracts `:257/:301/:1496`·0041 `:38`·admin.ctrl `:62`·0156 `:74-:78/:202-:265`·payment.ts `:46-:51/:65-:109/:122-:189`·env-schema `:59-:84` 零 PAY_PROVIDER_SECRET 亲证）全恰等·机制结论零变（缺口=PaymentProvider|payAdapter|paymentSession|pay-session|precreate|prepay 于 apps/api/src+packages rg 零命中亲证·PAY_PROVIDER_ID 零命中亲证）→停止条件「现场漂移」未触发；LEDGER N-06 行亲读 `:793` 恰等（「维持部分修…只缺在线适配器」逐字在）·迁移 `222`/头 `0224_job_gauge_index_friendly.sql` 亲数恒等·`neg:all` 亲核 `apps/api/package.json:110` 恒等；§0.0 重扫：harness 目录 pay 名卷 3（entpay-slice2/本卷/pay-neg closed）+同域三卷（webhook-fault/webhook-neg closed·gap-uc014 draft）零 novel 触者·`git branch --list "*online-pay*"` 恰 2·`git worktree list` 无第二同名树；**`git fetch` 两次网络失败如实登记**（github.com:443 connect 失败·origin/main 本地引用恒 `92a82a944` 与卷基线一致=无前进可判·无 rebase 需求·届 tip=本支头 `bc9d6fd08`）。
+- **EXEC 落码（2026-11-06·件①-⑤ 全落·diff 面恰 11 tracked 路径）**：件① `apps/api/src/modules/commerce/payment-provider.ts`（PaymentProvider 接口+UnconfiguredPaymentProvider 恒拒骨架+resolvePaymentProvider fail-closed 不回退·头注载单管道承接与网关选型用户拍板前置）；件② service `createPaymentSession`（RLS 本人单+created+online 三守卫→resolve→provider.create·未配置 503 `payment_provider_not_configured` 订单状态零变·既有三回调口与 createOrder 零字节改）+controller `POST /commerce/orders/:id/pay-session`（PrincipalGuard·薄适配层）；件③ contracts `PaymentSessionCreated` DTO+端点注册表 additive 一行（`createPaymentSession`）；件④ 凭证只从 env/密钥服务（provider 模块零凭据字面量·proof 判据④ 源码扫描臂+env 显式注入结构臂·gitleaks 可复现实测口径（post-prove 双审两席 gitleaks 8.30.1 亲跑）：工作树扫描 0 findings·全史 `gitleaks detect --source .` EXIT=0 零泄露·branch-range `gitleaks detect --source . --log-opts="origin/main..HEAD"` EXIT=0 零泄露（EXEC 期自报「基线 24=改动集 24」计数口径两席均不可复现·如实改记·原值史录不洗）+grep 双检零命中回执）；件⑤ `apps/api/test/online-pay-s1.proof.ts`（真迁移链+真 CommerceService 最小 DbService seam·判据①-④）+`apps/api/package.json`/根 `package.json`/`scripts/run-e2e-isolated.mjs`（whitelist Set+isolatedCommand 两处 additive·entpay 先例形）；两 policy 恰等步进 2487→2489（union=届扫 2487+新受管件 2·CAP-SANCTION-2489 链注两区追加零洗·四联动点 2_489/f-2489.md/:2490 恰等改·协调方令+常设预授权行使）。
+- **EXEC 三门读数（2026-11-06）**：proof 先红后绿——改前树（件② 未落）runner 亲跑 **4/17 红**（判据①/①c/②b service 面三臂承重红=load-bearing+判据②c 断言形勘误如实记并补说明（post-prove 双审消化）：原断言形预期「resolve 空白应抛错」与规范「缺失/空白→返回骨架」（§1-修法件①-3）自相矛盾·勘误系断言对齐规范非降格——现形=合取加强断言（骨架身份 `id==='unconfigured'` **且**骨架调用臂恒拒 503 `not_configured`）较原形严格增益未削弱·方向 fail-closed；EXEC 单 commit 交付致改前断言形无版本史物证·post-prove 两外席探针背书（改前树件② 未落现形②c 实测 PASS·三承重红 ①/①c/②b 断言级复现 EXIT=1 非文件缺失伪红）·**后继先红后绿刀规约**：改前 proof 断言形快照（diff 或全文）随 receipts 落卷使断言形勘误可第三方复核）→落码后 **17/17 全绿 EXIT=0**（判据① 503 滞 created 桶零入账+他人单 404 RLS·判据② 非空 ID 抛 unknown 不回退+空白骨架·判据③ credited/already/conflict 三态+跨单同流水 409+offline 持有效签名 409 滞 created 桶零入账+refund refunded/already 对偶·判据④ 源码扫描+结构双臂）；docs EXIT=0 scanned **2489**=cap **2489** 恰等·PTP `selected=12/12` EXIT=0；markers=0（改动集十文件·五类标记词+冲突标记运行时组装口径独立回执·`i6-239-gates.proof.mjs` ⑦ 臂 PASS·其尾「改动集恰符」系 I6 刀自 scoped 申报断言对本研究刀不适用如实登记非基线红）。
+- **EXEC 十二门读数（2026-11-06）**：①隔离库真 PG 门 17/17 绿（Docker daemon 在场·容器 `meetwise-e2e-*` runner 自管）；②neg:commerce **90 臂全绿 0 FAIL EXIT=0**（对历史 90 基线恒等·经根 runner 隔离路由——直跑 `pnpm -C apps/api neg:commerce` 缺 DB env 被 env-schema fail-closed 拒·如实登记路由差异同套件零回归）；③neg:all 六段全绿（auth 90/commerce 90/resume 91/interview 108/bend 179/input 135·EXIT=0 邻段名单零回归）；④migrate:prove EXIT=0（链头 0224·零新迁移零 DDL）；⑤drift:prove EXIT=0；⑥migration uniqueness violations=0；⑦turbo typecheck --force 8/8 EXIT=0；⑧turbo lint 12/12 EXIT=0（贴边四值亲取：contracts 265=265/api 1545/db 1042/web 607·sanction 零翻转·本刀触面零新增 warning——三处行内豁免沿先例形+proof seam 全 typed 零 any·Ban 消偿他人行未触；contracts `:305` 豁免措辞精确化（post-prove 双审消化）：系**形状**类比非豁免先例类比——PascalCase schema 常量形状同相邻 DTO·warning 计入既有祖父计数面（OrderResult/OrderList 本身不带 disable）·本 inline disable 防 +1 越贴边·豁免方向保守（移除只红门不放行任何东西））；⑨docs 2489=cap 恰等 EXIT=0；⑩markers=0（独立回执）；⑪diff 面 11 tracked 路径恰符（件①+件② service/controller+件③ contracts+件⑤ proof+apps/api/package.json+根 package.json+runner+本卷 .md+两 policy 步进件——两 policy 系协调方 EXEC 令第 7 条明界面·§2-11 起草清单外的授权内触点如实登记）；⑫卫生 `pnpm install --frozen-lockfile` EXIT=0 零 lockfile 改+`.env*` ABSENT 双向记录+零凭据字面量（gitleaks 实测口径：工作树 0 findings·全史 EXIT=0·branch-range EXIT=0 零泄露——「24=24」计数口径不可复现已改记可复现口径·原值史录·grep 零命中双回执）+零真实支付外呼（全部语义隔离库+签名模拟面）+est live=0（零模型外呼）；**协调方加门**：provider-egress-inventory EXIT=0（adapters=5/operations=10/pairs=55）·e2e-static-guards EXIT=0（runners=6/helpers=21/flags=9）·`pnpm arch` EXIT=0（0 errors·8 既有 warning）·PTP 12/12·浏览器 UI runner 未跑（遵令）。
+- **post-prove 双审 P2 措辞吸收（2026-11-06·只改卷文字零码动·push/合并授权随协调方令）**：post-prove 双审两独立外席互盲评审 **BOTH PASS**（外席1 P0=0/P1=0/P2=3·外席2 P0=0/P1=0/P2=5·报告存 `.tmp/reviews/pay-post-1.md`/`pay-post-2.md`）·措辞类 P2 入卷四处：①gitleaks 读数改可复现实测口径（工作树 0 findings·全史 EXIT=0·branch-range EXIT=0·命令行随记·「24=24」计数口径两席不可复现如实改记·原值史录不洗）；②判据②c 断言形勘误说明补全（原形无版本史物证·现形合取加强未削弱 fail-closed·后继先红后绿刀改前断言形快照随 receipts 落卷规约）；③contracts `:305` 豁免措辞精确化（形状类比非豁免先例类比·方向保守）；④§1-修法二补 commerce 限流/网关超时重试凭证缓存/对账候选丙承续预登记。观察登记类不吸收不翻面（红先证第 4 臂物证弱点已随②消化·外席 docker 清理误删他席在飞容器系评审过程插记·public-preview backstop 缺席系 commerce 模块内一致现状·均非交付缺陷）。Status 本支保持 `executed:awaiting_post_prove_dual`（翻 `proofed:dual_pass` 归 status-pin 刀·前值史录不洗）·本吸收 commit 不预 claim 任何 post-commit EXIT。
+- **EXEC 翻面**：Status 四处（本行上方 Status 行+§8 STOP+§9 本节+卷尾）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**·pins 十一值零翻转·§1-修法件①-⑤ 交付面/§3 范围外/§5 Ban 零违背（零网关 SDK 依赖·零迁移·env-schema 零触·C 端面零触·offline 链零触·共享 SSOT 零触）·post-prove 双审两独立外席待开·⛔push。
+
+---
+
+*ONLINE-PAY REQUEST · 2026-10-26 起草 · **`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 落码翻面·原值 `draft:awaiting_pre_exec_dual` 史录不洗·十二门全绿+协调方加门全绿·post-prove 双审待开）· base `origin/main` @`92a82a944`（2026-11-05 rev r2 rebase 后重 pin·零冲突·`fcbccea40` r1 史录·**ff-only 不可用·新支落卷**史录·EXEC 立项日 fetch 两次网络失败如实登记·origin/main 本地引用恒 `92a82a944` 无 rebase 需求）· 分支 `line/online-pay-rev`（旧支 `line/online-pay-draft` @`fdaa1ecf0` 史录零动）· 工作树 `meetwise-pay` · 立项出处=LEDGER N-06 维持部分修后继+协调方派单 brief 2026-10-26 · 缺口=线上通道单向断头（下单 `73819195` :19 缺省 online→`f55d414c` :89 恒 created·无支付会话无跳转 `181f80c4` :21-:29·自研 HMAC 三回调口 `2b976602`/`37b8af46` 非网关契约·`verifyCommerceSig` :26-:36 单共享密钥 fail-closed）+对账/退款发起面整体缺席 · 承重=provider_txn UNIQUE+CAS created→paid 通道守卫（`15d7887a` :74-:94）exactly-once 三态+offline 双人确认链（`9ace5b30` :202-:265）· 修法分二期：第一期最小面定稿=件① PaymentProvider 接口+Unconfigured 骨架（未配置 503/非空 ID 抛错·fail-closed 不回退）+件② pay-session 端点薄面+件③ contracts additive+件④ 凭证只从 env/密钥服务·零可用凭据字面量+件⑤ 隔离库真 PG proof 四判据；第二期登记=对账/退款发起/查单轮询/commerce 面限流与网关超时重试凭证缓存/具体网关落座（选型须用户拍板·落地前禁放产）· 否决在卷：硬编码密钥/跳过对账/一步到位全链/env-schema 收编 · 门矩阵十二门（隔离库真 PG 门容器依赖预登〔colima/docker daemon 需先启·2026-11-05 实测 down·环境恢复非红停终态〕+neg 零回归+零迁移+typecheck+lint 贴边+docs:check 届值 2486·本卷+1=2487 承届值+1〔CAP-SANCTION-2487 已随 rev r2 恰等步进·常设预授权·同号竞争 s3caps/uc31 在飞如实列〕+markers+diff 面〔含 runner 注册位 additive〕+卫生）· 迁移预期零 · est live=0 · markers=0 · pins 十一值照抄 · 停止条件四类全设+用户拍板前置红停项 · Ban self-approve · alone≠dual · Dual PASS ≠ 开工 · STOP*

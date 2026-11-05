@@ -300,6 +300,12 @@ export const InvoiceRequestCreated = z.object({
 export type InvoiceRequestCreated = z.infer<typeof InvoiceRequestCreated>;
 export const OrderResult = z.object({ orderId: z.string(), amountCents: z.number().int(), status: z.string() });
 
+// 支付会话结果（additive·网关无关骨架面）：redirectUrl/providerOrderRef 均 optional——未配置 provider
+// 恒 503 payment_provider_not_configured 拒绝（订单状态零变），永不落本 DTO；回调推进不走本面。
+// eslint-disable-next-line @typescript-eslint/naming-convention -- wire 契约 DTO 名与相邻 OrderResult/OrderList 同形（PascalCase schema 常量·零新增 warning 贴边）
+export const PaymentSessionCreated = z.object({ orderId: z.string(), redirectUrl: z.string().url().optional(), providerOrderRef: z.string().optional() });
+export type PaymentSessionCreated = z.infer<typeof PaymentSessionCreated>;
+
 // B271 片3 P4：本人订单列表（RLS p_owner 仅本人·LIMIT 50 窗口·开票下拉数据源——web 侧仅取 status='paid' 行）。
 export const OrderList = z.object({
   orders: z.array(z.object({
@@ -1501,6 +1507,7 @@ export const apiContract: ContractRoute[] = [
   { id: 'submitInvoiceRequest', method: 'post', path: '/commerce/invoice-requests', summary: '提交开票申请(仅 paid 订单·DB 触发器门)', tags: ['commerce'], auth: true, request: InvoiceRequestDto, response: InvoiceRequestCreated },
   { id: 'listMyOrders', method: 'get', path: '/commerce/orders', summary: '本人订单列表(RLS 仅本人·片3 开票下拉数据源)', tags: ['commerce'], auth: true, response: OrderList },
   { id: 'listMyOfflineOrders', method: 'get', path: '/commerce/offline-orders', summary: '本人对公订单台账(0159 受控 DEFINER 读函数·approved recruiter·片3)', tags: ['commerce'], auth: true, response: OfflineOrderList },
+  { id: 'createPaymentSession', method: 'post', path: '/commerce/orders/{id}/pay-session', summary: '创建支付会话(网关无关骨架·未配置 provider 恒 503·仅本人 created/online 单)', tags: ['commerce'], auth: true, response: PaymentSessionCreated },
   { id: 'createJob', method: 'post', path: '/recruiter/jobs', summary: '招聘方发布岗位', tags: ['recruiter'], auth: true, request: CreateJobDto, response: JobCreated },
   { id: 'listJobs', method: 'get', path: '/recruiter/jobs', summary: '招聘方岗位列表(租户隔离·含路由状态旁车 routes)', tags: ['recruiter'], auth: true, response: RecruiterJobList },
   { id: 'getJob', method: 'get', path: '/recruiter/jobs/{id}', summary: '岗位详情', tags: ['recruiter'], auth: true, response: JobView },
