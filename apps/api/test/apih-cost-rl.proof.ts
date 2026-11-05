@@ -8,7 +8,7 @@
  * #146(begin 成本闸)臂在 neg-interview.proof.ts(该文件持 begin 路径 schema 补丁单源)。
  * rev r1(证伪 apih-pre-2 P1-1):回调闸移 verifyCommerceSig 之后、owner 查询之前——垃圾签不占
  * 成功桶;验签失败另计独立同源失败桶。三场景断言(修前全红,见 /tmp/apih-rev1-cb-red*.log):
- * ①同单 3 垃圾签后合法回调放行 ②120 垃圾耗全局后合法回调放行 ③合法回调自身超频仍 429。
+ * ①同单 3 垃圾签后合法回调放行 ②120 垃圾(被验签层/失败桶挡)后合法回调放行 ③合法回调自身超频仍 429。
  * 运行:pnpm apih:cost-rl(经 scripts/run-e2e-isolated.mjs 供隔离库)。
  */
 process.env.RL_QUIZ_BEGIN = '2,0.01';           // 押题 per-principal 桶短窗:容量 2·近零补充
@@ -67,7 +67,7 @@ async function main() {
     cv1.status === 404 && cv1.body?.error === 'order_not_found');
   const cFail = await h.post(`/commerce/webhook/pay/ORD_NOPE_RL8`, {}, cb());
   A('回调失败桶/同源垃圾签超失败帽 → 429(独立按来源计·只挡垃圾签)', cFail.status === 429 && cFail.body?.error === 'too_many_requests');
-  // 场景②(证伪 P1-1 全局形):120 发垃圾(随机单号)耗全局共享桶后,合法签回调必须放行(修前:垃圾挤占全局桶 → 全平台回调被 429)。
+  // 场景②(证伪 P1-1 全局形):120 发垃圾(随机单号·被验签层 403/失败桶 429 挡·不占成功桶)后,合法签回调必须放行(修前:垃圾挤占全局桶 → 全平台回调被 429)。
   for (let i = 0; i < 120; i++) await h.post(`/commerce/webhook/pay/ORD_GARB_G${i}`, {}, cb());
   const cv2 = await h.post(`/commerce/webhook/pay/${oid2}`, {}, payCallbackBody(oid2, 'txn-gl'));
   A('回调全局桶/场景② 120垃圾后合法回调放行(共享桶不被伪造洪水挤占·修前 429)',

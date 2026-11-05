@@ -1,6 +1,6 @@
 # API-HARDEN-A REQUEST（普查勘误四件本地收口刀 · #84 裸 @Body 收编 + #66 三代理韧性 + #146 begin 成本闸 + #87 成本分级限流 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草落卷即停 · pre-exec 双审两独立外席待派 → Dual PASS → 协调方明示 EXEC 授权后始有 EXEC（行使面=本卷 §1 修法逐字落码 · 全部既有字零字节改写纪律仅约束既有注记 · 翻面/计件终裁行使源=协调方随令）· alone ≠ dual · Ban self-approve · est live=0 · markers=0 · 状态钉四处：本行+§8+§9+卷尾·同值 · ⛔push ⛔merge 主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 行使落卷（协调方明示 EXEC 授权随令·行使面=§1 修法逐字落码已随起草 commits 在树+EXEC 期 rebase 并线届核+P2 吸收+门矩阵重跑全绿·读数 §9-11）· rebase 冲突恰两 policy 脚本 dual-keep+CAP-SANCTION-2500 union（§3/§9-9）· 前值 `draft:awaiting_pre_exec_dual` @draft 史录保留 · alone ≠ dual · Ban self-approve · est live=0 · markers=0 · 状态钉四处：本行+§8+§9+卷尾·同值 · ⛔push ⛔merge 主线）
 **Date**: 2026-11-06
 **刀位**: 普查席 A `.tmp/residual-census-a-1105.md` 表 1 行 19（#66）/行 25（#84）/行 27（#87）/行 29（#146）+ LEDGER-FLIP-A §1-E1 勘误亲读（LEDGER `:87` 两组组级 ✅ 错挂勘正 · 本刀四件=勘误十件 OPEN 中「本地可收尾」之四）· 起草席对本树逐项亲读复核（复核不成立者移出，见 §0.1）。
 **Base**: `origin/main` @`e282c5ebd`（cap 2489 · 起草令亲证值）· 分支 `line/apih-draft`（仓根同级工作树 `meetwise-apih`：`git -C ../meetwise worktree add ../meetwise-apih -b line/apih-draft origin/main` · 主仓只此一改动）。**fetch 如实注**：`git fetch origin` 两次均网络失败（HTTP2 framing → `-c http.version=HTTP/1.1` 重试仍 connect fail），但本地 `origin/main` ref 实测恰为 `e282c5ebd`=派单亲证值，worktree 从该 ref 建=与 fetch 成功后同物；起草期 `origin/main` 已被他席 fetch 推进至 `d549a497b`（#212 rtx 已并 · `merge-base --is-ancestor e282c5ebd origin/main` EXIT=0 亲证 · cap 承 2489 未动）——本支 EXEC/并线期沿协调方常设预授权「cap/lint 以合并树实测恰等步进免再询」届时取大重算承登，§3-政策步进算式按 union 届时重算。
@@ -99,17 +99,18 @@
 
 ## §2 验收（EXEC 后门矩阵 · 本起草卷已随刀预跑全绿 · EXEC 期重跑为准）
 
-1. 四件 proof：`pnpm neg:input`(142)/`pnpm neg:commerce`(95)/`pnpm neg:interview`(114)/`pnpm apih:cost-rl:prove`(12·rev r1 回调三场景臂+失败桶臂换入·新门已注册 run-e2e-isolated fingerprint+gate list+runner 映射+双 package.json)/`pnpm -C apps/web prove:api-proxy-resilience`(11·rev r1 +流建立后取消臂)/`prove:transcribe-proxy`(4)/`prove`(web-logic 含新 429 断言)/`pnpm uc011:nhp-load:prove`(17·rev r1 P1 臂合同回正全 403/400)。
+1. 四件 proof：`pnpm neg:input`(142)/`pnpm neg:commerce`(95)/`pnpm neg:interview`(114)/`pnpm apih:cost-rl:prove`(12·rev r1 回调三场景臂+失败桶臂换入·新门已注册 run-e2e-isolated fingerprint+gate list+runner 映射+双 package.json)/`pnpm -C apps/web prove:api-proxy-resilience`(11 臂/13 断言行·rev r1 +流建立后取消臂·计数口径 EXEC 期统一)/`prove:transcribe-proxy`(4)/`prove`(web-logic 含新 429 断言)/`pnpm uc011:nhp-load:prove`(17·rev r1 P1 臂合同回正全 403/400)。
 2. `pnpm neg:all` 六段全绿（auth 90/commerce 95/resume 91/interview 114/bend 179/input 142）。
 3. apps/api+apps/web typecheck EXIT=0；lint 双帽不升：api 1545=1545 恰等/web 604<607（turn route 重写净 −3，如实注）。
 4. `pnpm arch` 8 warnings=基线同值零增；`node scripts/provider-egress-inventory.mjs` valid（401 条目=基线零新增）；`node scripts/e2e-static-guards.mjs` passed。
-5. `node scripts/ai-docs/check-docs.mjs` scanned 2494=cap 2494 恰等（§3 步进后）；`node scripts/ai-docs/public-text-policy.proof.mjs` 12/12；markers 五类探针 0。不跑浏览器 UI runner。
+5. `node scripts/ai-docs/check-docs.mjs` scanned 2500=cap 2500 恰等（起草期 2494→EXEC 期并线 union 步进·§3）；`node scripts/ai-docs/public-text-policy.proof.mjs` 12/12；markers 五类探针 0。不跑浏览器 UI runner。
 
 ## §3 政策步进（CAP-SANCTION 链注追加 · 四联动点恰等 · 不改写既有注记）
 
 - **受管净增恰 5**：`harness/api-harden-a-REQUEST.md`（本卷）+`apps/web/lib/api/turn-proxy.ts`+`apps/web/lib/api/events-proxy.ts`+`apps/web/test/api-proxy-resilience.proof.ts`+`apps/api/test/apih-cost-rl.proof.ts`（tracked gate stdout 收据 .log ∉TEXT_EXTENSIONS 不计·本刀收据走 /tmp 不入树）。改前树亲跑 docs:check `PTP_FILE_LIMIT:2493>2489` 红亲证（4 件码/proof 已入树时点值）→ 随本卷 +1=2494 恰等零多放。
 - **cap 2489→2494 恰等步进**（协调方常设预授权「cap/lint 以合并树实测恰等步进免再询」随令行使）落两 policy 脚本：`MAX_FILES=2_494`+CAP-SANCTION-2494 注记**追加置链区**（policy .mjs 链区+proof 链区各一条 · 既有注记零字节改写 · dual-keep 先例形）+proof TC 四联动点恰等改（loop `i<2_494`/atCap `scannedFiles 2_494`/越限件 `f-2494.md`/错误码 `FILE_LIMIT:2495`）·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减。
 - **在飞七支触两 policy 热面**（§0.5 表）如实列——并线期 union 沿常设预授权届时取大重算承登。
+- **EXEC 期并线 union 恰等步进（2026-11-06 届核）**：fetch EXIT=0 · 届值 origin/main `af9ffec7c`=#215 UC31-REV 已并（main 届扫 2495=cap 2495 恰等=CAP-SANCTION-2495 承值；届值窗内 RTX nail +1/SBG nail +3/UC31-REV nail +2 进位，起草预登 2494 系并线前预登·实际落点 2500>2494 如实重算承登·预登注史录零洗）——union 算式=main 届扫 2495+本支受管 5=**2500** 恰等零多放。rebase 冲突恰两 policy 脚本 3 冲突块（均在注记/注释行+数值行）dual-keep 双留+新增 CAP-SANCTION-2500 union 注记（policy .mjs 链区+proof 链区各一条）+proof 四联动点 2_500/f-2500.md/:2501 恰等改；合并树 docs:check 届核 scanned 2500=cap 2500 恰等（冲突件先 git add 收敛后终测）。
 - **限流桶归属与多副本/重启语义如实登记（rev r1·证伪 pre-2 P2-3·本刀不改码）**：RateLimitService 分级制——`*:global`/`*:ip:*` 键落 PG 共享桶表（跨实例合计、重启存续、7 天 TTL）；其余键=**进程内 LRU**（本刀 `begin:${owner}`/`qzbegin:`/`dgbg:`/`cbpay:${id}`/`cbref:${id}` per-principal/per-order 族全在此列；`cbfail:ip:*` 属 `:ip:` 共享形）。compose.ha 双实例+lb 轮询下进程内桶实际阈值 ×2：对合法用户=突发跨实例分摊（放宽），对单点攻击者=需 ×2 发数；进程重启桶清零。沿平台既有 `login:${email}` 同形制（登记缺口，非行为 bug）。**后续建议（另行派单）**：per-principal/per-order 桶迁共享存储（沿 `gateway_rl_bucket_*` 网关函数形）使多副本/重启语义归一。rev r1 改形残余面如实：验签失败洪水打 HMAC CPU=微秒级/请求，可忽略量级。
 
 ## §8 停止条件
@@ -118,7 +119,7 @@
 2. 合法请求行为变化即停（本刀全部负路径面新增 400/429/502；正路径面零触——neg 系具名词保留臂+既有全绿套件为证）。
 3. EXCEED 范围即停：本刀不做 #86 游标分页/#88 错误信封归一/#68 前端上报/#71 录音上限/#72 语音额度预留（普查另四件，另行派单）；不加「禁裸 @Body」lint 规则（login 文档化裸 @Body 需例外设计，残面如实登记 §9）。
 4. 并线冲突超两 policy 双件+interview.service/web-logic.proof 共享热面即停问协调方。
-5. **Status: `draft:awaiting_pre_exec_dual`**（2026-11-06 · pre-exec 双审待派 · alone≠dual · ⛔push ⛔merge）。
+5. **Status: `executed:awaiting_post_prove_dual`**（2026-11-06 · EXEC 行使落卷·前值 `draft:awaiting_pre_exec_dual` 史录保留 · post-prove 双审待派 · alone≠dual · ⛔push ⛔merge）。
 
 ## §9 起草如实注记
 
@@ -127,10 +128,14 @@
 3. **nhp-load P1 两臂合同精确化**（§1 件④）系行为边界变更（洪水面 429 先发制人），已在该 proof 内注释逐字登记；L2/L3/L4/防空转臂零触。（rev r1 该合同已回正为全 403/400 面零 429——见 7。）
 4. **lint 净变化**：api 恰等 1545；web 604<607（turn route 缝化重写净 −3 · 禁升帽未触）。折堕面如实载：零豁免新增（computed-key 先例形 enterprise-pay-s1 同款）。
 5. **markers=0**：起草后「awaiting_post/exec 授权」类标记词探针逐类扫零命中；est live=0 零模型零外呼。
-6. **residual 如实登记**（不在本刀、普查仍在）：#84 残面=「禁裸 @Body lint 规则」（login 例外待设计）；#87 残面=IP 维度桶（authz 域，5A-1 已落 signup/login/chgpwd/invite 四口，其余口是否需 :ip 归并网关面另行派单）；#66 残面=无（三代理全收）。
+6. **residual 如实登记**（不在本刀、普查仍在）：#84 残面=「禁裸 @Body lint 规则」（login 例外待设计）；#87 残面=IP 维度桶（authz 域，5A-1 已落 signup/login/chgpwd/invite 四口，其余口是否需 :ip 归并网关面另行派单）；#66 残面=无（三代理全收）。EXEC 期随 pre-1 P2 补登两语义位（同归上列 :ip 归并网关面另行派单承登·零码改）：①`commerceSigFailureGate` 对 `!rl||!sourceIp` 直接放行不计数（fail-open 语义位·Fastify 生产 req.ip 恒在=实际不可达，防未来调用口漏 @Ip）；②trustProxy 下 XFF 伪造轮换可稀释 `:ip:` 单桶（平台 signup:ip 同制既有语义·非本刀引入·观察项）。
 7. **rev r1（2026-11-06 · 登记源=席外证伪审查报告 `meetwise/.tmp/reviews/apih-pre-2.md`，VERDICT FAIL P1×1）**：①件④回调闸改形——闸移 `verifyCommerceSig` 后、owner 查询前+验签失败独立同源桶 `cbfail:ip:*`（RL_CB_FAIL 默认 60,2），三场景断言修前 4 红留档 `/tmp/apih-rev1-cb-red.log`（同单 3 垃圾/120 垃圾/合法超频三臂+失败桶臂均红）、修后 `apih:cost-rl` 12/12 绿，nhp-load P1 臂合同回正 17/17；②件②events 缝取消监听全程保留（修前探针 closed=0，proof 臂⑪修前红→修后 `prove:api-proxy-resilience` 13 臂全绿）；③件②transcribe 超时依据改正（唯一硬帽=10MB 字节·时长无帽；60s 值保留合理，env 可覆写）；④§3 补桶归属/多副本 ×2/重启清零登记+后续迁共享存储建议（本刀不改码）。§2 计数随改恰等更新（cost-rl 10→12·proxy-resilience 10→11），门矩阵重跑全绿见 §2。**Status: `draft:awaiting_pre_exec_dual`**（pre-2 席 FAIL 已回修落卷，双审待齐）。
-8. **Status: `draft:awaiting_pre_exec_dual`**（2026-11-06 · 状态钉四处同值 · 本卷=起草落卷即停 · ⛔push）。
+8. **Status: `executed:awaiting_post_prove_dual`**（2026-11-06 · 状态钉四处同值 · 本卷=EXEC 行使落卷待 post-prove 双审 · 前值 `draft:awaiting_pre_exec_dual` 史录保留 · ⛔push）。
+11. **EXEC 期门矩阵读数（2026-11-06 届树 af9ffec7c+本支 11 commit 重放后亲跑）**：`neg:all` 六段全绿（auth 90/commerce 95/resume 91/interview 114/bend 179/input 142·与 §2 恰等）；`apih:cost-rl:prove` **12/12**（三场景+失败桶臂全绿）；`prove:api-proxy-resilience` **13 断言 PASS/0 FAIL**（11 臂·含流建立后取消臂）；`prove:transcribe-proxy` **4 PASS**；web-logic `prove` **456 PASS/0 FAIL**（429 三页域断言臂绿·apps 面 byte 同物审查树）；`uc011:nhp-load:prove` **17 条全绿**（P1 两臂回正全 403/400 零 429）；typecheck api/web 双 EXIT=0；lint api **1545=1545 恰等**/web **604<607**（帽零动）；`pnpm arch` **8 warnings=基线同值零增**；`provider-egress-inventory` valid·**401=基线零新增**；`e2e-static-guards` **passed**；`check-docs` **scanned 2500=cap 2500 恰等**；`public-text-policy.proof` **12/12**；markers 五类探针 0（§9-12）。不跑浏览器 UI runner；DB 系门 runner 一次性容器自清（他席容器零触）。
+9. **EXEC 期 rebase 并线届核（2026-11-06 · 协调方明示 EXEC 授权随令行使）**：`git fetch origin` EXIT=0，届值如实采 origin/main `af9ffec7c`=#215 UC31-REV 结构证明刀已并（起草 §9.2 所记 `d549a497b` 系起草时点史录）——本支 11 commit 重放其上，冲突实测恰两 policy 脚本 3 冲突块（policy 注记/cap 区+proof loop/atCap 区+proof 注记/overCap 区·均在注记/注释行+数值行）dual-keep 双留（main 侧 ONLINE-PAY rev/EXEC+RTX 起草/nail+SBG 起草/nail+UC31-REV 起草/r2/EXEC/nail 十注史录全保留+本支 2494 起草注并留）+新增 CAP-SANCTION-2500 union 注记，算式与四联动点见 §3（起草预登 2494→实际落点 **2500** 如实重算承登·预登注史录零洗）；合并树 docs:check 届核 scanned 2500=cap 2500 恰等+PTP 12/12 亲跑。**interview.service.ts/限流服务等本刀机制文件主线零触零冲突**（§8.4 停止条件未触发：冲突实测未超两 policy 双件；ksw-draft 内容安全开关刀未落 main 如实注）；main 侧 e282c5ebd→af9ffec7c 共 27 件与本刀机制面逐文件 comm 亲证零交叠=**机制结论零变化**（web-logic.proof 共享热面 xs #57 修复亦未并零冲突）；冲突后受影响面随 §2 门矩阵全量重跑全绿亲见（§9-11）。
+10. **P2 吸收（两审查共 7 条 · EXEC 期随令吸收 · 零行为变化）**：pre-2 三条（P2-1 events 缝 abort 监听不摘/P2-2 transcribe 超时依据改字节帽口径/P2-3 桶归属多副本登记）rev r1 已随刀落码（`5cc23ce57`/`4166ec1ab`/`5ceddaab7`·rebase 后新 SHA），EXEC 期树内核实仍在；pre-1 四条：①§2 proxy-resilience 计数改「11 臂/13 断言行」双口径注（消除与 §9.7 双径）②`apih-cost-rl.proof.ts` 场景②臂名/头注去「耗全局」修前残留表述（注释级·断言零改）③§9.6 补登 commerceSigFailureGate fail-open 语义位+XFF 轮换稀释观察项（两残面归 :ip 归并网关面另行派单）④XFF 项观察即可零改（§9.6 既有残面已覆盖）。七条全部就地修/已修，无一改变已审行为。
+12. **markers 五类探针 0（翻面后逐类实扫·计数除本注自述行外）**：①卷内 `proofed:dual_pass` 0 命中（post 双审未行不得预 claim）；②卷内「双审收口」完成态词 0 命中；③四处 live 状态钉（Status 头/§8.5/§9.8/卷尾 SOP trace）全=`executed:awaiting_post_prove_dual` 同值亲见；④`draft:awaiting_pre_exec_dual` 仅存前值史录位（Status 头/§8.5/§9.8 三处「前值…史录保留」+§9.7 rev r1 时点注+卷尾 SOP 流程叙事·live 位 0）；⑤本刀 4 code/proof 受管文件 awaiting/proofed/授权类标记词 **0 命中**（两 policy 脚本内命中全部位于 CAP-SANCTION dual-keep 史录链注既有先例形·零本刀新增未 earned 声明）。est live=0 零模型零外呼。
 
 ---
 
-SOP trace：Intake(派单+普查+flipa §1-E1) → 需求门（证据=E0 本树亲读+红读数实跑留档）→ Generate（四件修法沿既有机制）→ EXEC（本支已随四 commit 落码 d3354a8f8/d953ed32c/1c077b6f1/e380e077a+hygiene 23d010280 · 门矩阵全绿）→ **本卷起草落卷 `draft:awaiting_pre_exec_dual` → pre-exec 双审两独立外席 → Dual PASS → 协调方 EXEC 授权** → post 双审 → 翻面行使归协调方随令。
+SOP trace：Intake(派单+普查+flipa §1-E1) → 需求门（证据=E0 本树亲读+红读数实跑留档）→ Generate（四件修法沿既有机制）→ EXEC（本支已随四 commit 落码 d3354a8f8/d953ed32c/1c077b6f1/e380e077a+hygiene 23d010280 · 门矩阵全绿）→ 本卷起草落卷 `draft:awaiting_pre_exec_dual` → pre-exec 双审两独立外席（证伪路 FAIL→修订 r1→核对路 PASS · Dual PASS）→ 协调方 EXEC 授权 → **EXEC 行使落卷 `executed:awaiting_post_prove_dual`（2026-11-06 · rebase 并线届核+P2 吸收+门矩阵重跑全绿·读数 §9-11·前值史录保留）** → post 双审（待派）→ 翻面行使归协调方随令。
