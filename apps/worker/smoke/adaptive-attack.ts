@@ -12,7 +12,7 @@ const { ATTACK_CORPUS } = await import('../test/attack-corpus.ts');
 const { stripScoringManipulation, isNonAnswer } = await import('@meetwise/domain');
 const { asErr } = await import('@meetwise/db');
 
-const FAST = process.env.MODEL_FAST_NAME ?? 'qwen-turbo';
+const FAST = process.env.MODEL_FAST_NAME ?? 'qwen-plus';
 const fastClient = openAICompatibleClient({ model: FAST });
 const plusClient = openAICompatibleClient({ model: 'qwen-plus' });   // 检到操纵 → 升级 plus 复评(复刻 assess)
 const p = getPrompt('mock-interview.evaluate');

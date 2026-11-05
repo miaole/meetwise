@@ -105,6 +105,14 @@ function optionalPositive(env: NodeJS.ProcessEnv, name: string, max = 1_000_000_
   return positive(env, name, max);
 }
 
+/** 快模型缺省名（单一来源）：MODEL_FAST_NAME 未设时，enforce 计费行模型（本文件）与实际
+ *  派发模型（interview-service fastModelClient）必须同一字面量，否则启动即
+ *  model_cost_model_binding_mismatch / model_cost_policy_model_mismatch。
+ *  取 qwen-plus 而非 qwen-turbo：现网 Key 对 qwen-turbo 持续模型级 429（limit_requests），
+ *  5 次即打满共享断路器（0200 种子 threshold=5）→ 整条快链 model_circuit_open 零外呼；
+ *  qwen-plus 为 G7 付费 fallback allowlist 成员且同 Key 实测 200。 */
+export const MODEL_FAST_DEFAULT_NAME = 'qwen-plus';
+
 function endpoint(
   env: NodeJS.ProcessEnv, prefix: string, scopeId: string, expectedModel: string,
 ): ModelCostPriceRow {
@@ -157,7 +165,7 @@ export function resolveModelCostGovernance(env: NodeJS.ProcessEnv = process.env)
   const scopeId = required(env, 'MODEL_COST_BUDGET_SCOPE');
   const monthlyBudgetMicroCny = positive(env, 'MODEL_COST_MONTHLY_BUDGET_MICRO_CNY');
   const primaryModel = env.MODEL_NAME ?? 'qwen-plus';
-  const fastModel = env.MODEL_FAST_NAME ?? 'qwen-turbo';
+  const fastModel = env.MODEL_FAST_NAME ?? MODEL_FAST_DEFAULT_NAME;
   const primary = endpoint(env, 'MODEL_PRIMARY', scopeId, primaryModel);
   const fastPrimary = endpoint(env, 'MODEL_FAST', scopeId, fastModel);
   const rows = [primary, fastPrimary];
