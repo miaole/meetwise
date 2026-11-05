@@ -10,7 +10,73 @@
 #   ssh meetwise-ecs 'bash -s -- <backend_ref> <web_ref>' < ops/deploy/remote-deploy.sh
 # 其中 *_ref 是完整的 <registry>/<ns>/<image>@sha256:<digest>(摘要即被部署事实,
 # tag 只用于人读定位)。
+# 信号回滚:HUP/TERM/INT 与 ERR 同走 restore_and_fail(快照回写 .env+尽力拉回上一版),
+# 连接掉线/调度器终止不再把 .env 留在半部署态。沙箱自测:bash ops/deploy/remote-deploy.sh
+# --self-test(发真信号验证回滚,零 docker 依赖,走桩 compose)。
 set -euo pipefail
+
+SELF_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+
+# ── 信号回滚自测(真信号×桩 compose·不触真 /srv 与 docker daemon)───────────────
+#   臂1 TERM 臂2 INT 臂3 HUP:.env 改写后立即发信号 → 断言 非零退出+.env 原样恢复
+#      +回滚 up 恰一次;臂4 无信号走通 → 退出零+deploy_ok+.env 落新镜像行。
+self_test() {
+  local sandbox stubbin proj envf old_be old_web new_be new_web rc
+  set -m  # 后台作业独立进程组:SIGINT 不被继承忽略(foreground SSH 会话里 INT 本就可捕获)
+  sandbox="$(mktemp -d)"
+  stubbin="$sandbox/bin"; proj="$sandbox/srv/meetwise-compose"
+  mkdir -p "$stubbin" "$proj/docker"
+  printf 'services: {}\n' > "$proj/docker/compose.prod.yml"
+  printf 'services: {}\n' > "$proj/docker/compose.prod.override.yml"
+  envf="$proj/.env"
+  old_be="$(printf '1%.0s' {1..64})"; old_web="$(printf '2%.0s' {1..64})"
+  new_be="$(printf 'a%.0s' {1..64})"; new_web="$(printf 'b%.0s' {1..64})"
+  printf 'PROVISIONED_SECRET=never-touch\nBACKEND_IMAGE=reg/ns/img@sha256:%s\nWEB_IMAGE=reg/ns/img@sha256:%s\n' \
+    "$old_be" "$old_web" > "$envf"
+  cp "$envf" "$sandbox/env.orig"
+  cat > "$stubbin/docker" <<'STUB'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${DOCKER_CALL_LOG:?}"
+case "$*" in *pull*) sleep 3 ;; esac
+exit 0
+STUB
+  chmod +x "$stubbin/docker"
+  local failed=0 arm sig arm_pid calls
+  for arm in TERM INT HUP none; do
+    cp "$sandbox/env.orig" "$envf"  # 每臂复位 .env 到部署前态,臂间零串扰
+    calls="$sandbox/calls-$arm.log"; : > "$calls"
+    DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" \
+      bash "$SELF_PATH" "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" >/dev/null 2>&1 &
+    rc=0
+    arm_pid=$!
+    if [[ "$arm" != none ]]; then
+      # 信号窗=.env 已改写为新镜像行(此后被终止即半部署风险面)
+      for _ in $(seq 1 100); do grep -q "sha256:$new_be" "$envf" 2>/dev/null && break; sleep 0.05; done
+      kill -s "$arm" "$arm_pid" 2>/dev/null || true
+    fi
+    wait "$arm_pid" || rc=$?
+    if [[ "$arm" == none ]]; then
+      if [[ $rc -eq 0 && "$(grep -c "sha256:$new_be" "$envf")" == 1 && "$(grep -c ' up -d --no-deps --wait' "$calls")" == 1 ]]; then
+        echo "self-test arm[$arm]: PASS (exit 0 + env carries new refs + one up)"
+      else
+        echo "self-test arm[$arm]: FAIL (exit=$rc env_new=$(grep -c "sha256:$new_be" "$envf") ups=$(grep -c ' up -d --no-deps --wait' "$calls"))" >&2
+        failed=1
+      fi
+    else
+      if [[ $rc -ne 0 && "$(cmp -s "$envf" "$sandbox/env.orig" && echo same || echo diff)" == same && "$(grep -c ' up -d --no-deps --wait' "$calls")" == 1 ]]; then
+        echo "self-test arm[$arm]: PASS (non-zero exit + env restored byte-identical + rollback up x1)"
+      else
+        echo "self-test arm[$arm]: FAIL (exit=$rc env_state=$(cmp -s "$envf" "$sandbox/env.orig" && echo restored || echo half-deployed) ups=$(grep -c ' up -d --no-deps --wait' "$calls"))" >&2
+        failed=1
+      fi
+    fi
+  done
+  rm -rf "$sandbox"
+  if [[ $failed -ne 0 ]]; then echo "self-test: FAILED" >&2; return 1; fi
+  echo "self-test: 4/4 arms PASS"
+}
+
+if [[ "${1:-}" == '--self-test' ]]; then self_test; exit $?; fi
 
 BACKEND_REF="${1:?usage: remote-deploy.sh <backend_ref@sha256> <web_ref@sha256>}"
 WEB_REF="${2:?usage: remote-deploy.sh <backend_ref@sha256> <web_ref@sha256>}"
@@ -20,7 +86,7 @@ for ref in "$BACKEND_REF" "$WEB_REF"; do
   [[ "$ref" =~ ^[A-Za-z0-9._/-]+@sha256:[a-f0-9]{64}$ ]] || { echo "deploy_ref_not_pinned_by_digest:$ref" >&2; exit 2; }
 done
 
-PROJECT_DIR=/srv/meetwise-compose
+PROJECT_DIR="${DEPLOY_PROJECT_DIR:-/srv/meetwise-compose}"  # 沙箱自测经 DEPLOY_PROJECT_DIR 注入,生产默认不变
 COMPOSE_FILE="$PROJECT_DIR/docker/compose.prod.yml"
 # 非治理叠加层:部署期运行时旋钮(如 web HOSTNAME=0.0.0.0),与受治理的
 # compose.prod.yml 一起加载。后加载者覆盖/合并,故 override 里的键生效。
@@ -37,14 +103,19 @@ dc() { docker compose --project-directory "$PROJECT_DIR" -f "$COMPOSE_FILE" -f "
 BACKUP="$(mktemp)"; cat "$ENV_FILE" > "$BACKUP"
 
 restore_and_fail() {
+  trap - ERR HUP TERM INT  # 防重入:回滚自身不再被后续信号打断
   echo "deploy_failed → 回滚到上一版镜像" >&2
+  if [[ ! -f "$BACKUP" ]]; then  # 信号早于快照=.env 未被触碰,无物可还
+    echo "rollback_snapshot_missing(.env 未触·直接退非零)" >&2
+    exit 1
+  fi
   cat "$BACKUP" > "$ENV_FILE"
   # 尽力把上一版重新拉起;回滚本身失败也如实退非零,让部署红着可重试。
   dc up -d --no-deps --wait --wait-timeout 180 api worker web >&2 || echo "rollback_restart_failed(需人工介入)" >&2
   rm -f "$BACKUP"
   exit 1
 }
-trap restore_and_fail ERR
+trap restore_and_fail ERR HUP TERM INT
 
 # 2. 只重写两行镜像引用(用 @sha256 钉死),其余 .env 原样保留。
 tmp_env="$(mktemp)"
@@ -71,7 +142,7 @@ dc run --rm -T migrate </dev/null
 #    一次性 migrate(否则 `--wait` 会一直等一个正常退出的服务而挂住)。
 dc up -d --no-deps --wait --wait-timeout 180 api worker web
 
-# 6. 成功:清理回滚快照,输出被部署的摘要身份。
-trap - ERR
+# 6. 成功:清理回滚快照与全部 trap,输出被部署的摘要身份。
+trap - ERR HUP TERM INT
 rm -f "$BACKUP"
 echo "deploy_ok backend=$BACKEND_REF web=$WEB_REF"
