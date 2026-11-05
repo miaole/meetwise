@@ -27,13 +27,16 @@ if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
 fi
 
 # ── 信号回滚自测(真信号×真失败注入×桩 compose·不触真 /srv 与 docker daemon)─────────
-#   15 臂矩阵 × 2 种调用形态共 30 跑。形态:file=bash <script> refs;stdin=
+#   16 臂矩阵 × 2 种调用形态共 32 跑。形态:file=bash <script> refs;stdin=
 #   bash -s -- refs < script(=deploy.yml 生产原形,曾被 BASH_SOURCE 空数组炸退的形态)。
 #   臂:TERM/INT/HUP × pull/migrate/up 九臂(非零退出+.env 逐字节恢复+回滚 up 恰一次;
 #   @up 臂=部署 up+回滚 up 恰两次)+连发两信号臂(回滚恰一次·防重入)+回滚 up 中再发
 #   信号臂(回滚恰一次·不重入)+无信号臂(退出零+deploy_ok+.env 落新镜像行恰一次)
 #   +ERR@pull/ERR@migrate/ERR@up 三失败注入臂(DOCKER_FAIL_AT 一次性失败注入·验证
-#   ERR trap 穿透 dc() 函数体真回滚——无 -E 时这三臂红:零回滚+.env 残留新镜像行)。
+#   ERR trap 穿透 dc() 函数体真回滚——无 -E 时这三臂红:零回滚+.env 残留新镜像行)
+#   +notrail 尾换行臂(末行无换行的 .env 部署后 PROVISIONED_SECRET 行必须完好——
+#   无尾换行守卫时 GNU grep 不补换行,追加镜像行拼进末行=凭据行损毁;桩 PATH 内置
+#   GNU 末行语义 grep shim,macOS BSD grep 恒补换行会掩盖本面)。
 #   失败臂(信号+ERR)一律断言:非零退出+.env 逐字节恢复+回滚 up 恰计数+stderr
 #   deploy_failed 标记恰一次。信号窗=对应桩调用已落日志(trap 必已安装,避免信号落在
 #   安装前的假红);轮询窗 240×0.05s=12s,慢机不再误红。
@@ -55,7 +58,33 @@ self_test() {
   printf 'PROVISIONED_SECRET=never-touch\nBACKEND_IMAGE=reg/ns/img@sha256:%s\nWEB_IMAGE=reg/ns/img@sha256:%s\n' \
     "$old_be" "$old_web" > "$envf"
   cp "$envf" "$sandbox/env.orig"
+  # notrail 臂夹具:凭据行居末且末行无换行(provision 脚本一次性产物的现实风险形)——
+  # GNU grep 语义下剔除镜像行后存活行无尾换行,追加即拼行损毁。
+  printf 'BACKEND_IMAGE=reg/ns/img@sha256:%s\nWEB_IMAGE=reg/ns/img@sha256:%s\nPROVISIONED_SECRET=never-touch' \
+    "$old_be" "$old_web" > "$sandbox/env.notrail"
   ln -s "$(command -v bash)" "$stubbin/bash"  # 子进程 bash=宿主同版本:bash 3.2 / 5.x 各自全矩阵验证
+  # GNU grep 末行语义 shim(仅自测桩 PATH·只服务 deploy 的 `grep -vE <pat> <file>` 形):
+  # 输入文件末行无换行→输出末行同样无换行。macOS /usr/bin/grep(BSD)恒给末行补换行,会把
+  # 无尾换行损毁面掩盖成本机全绿,notrail 臂须真语义方红;其他形态原样透传真 grep。
+  cat > "$stubbin/grep" <<'GREP'
+#!/usr/bin/env bash
+if [[ "$1" == -vE && $# -eq 3 ]]; then
+  sent=__GNU_GREP_SHIM_SENTINEL__
+  t="$(mktemp)"
+  cp "$3" "$t"
+  had_nl=0
+  if [[ -s "$t" && -z "$(tail -c 1 "$t")" ]]; then had_nl=1; fi
+  # 哨兵须自起一行:末行无换行时先补 \n 再落哨兵(否则哨兵拼进末行,误伤末行被 -e 滤除)。
+  if [[ "$had_nl" == 1 ]]; then printf '%s\n' "$sent" >> "$t"; else printf '\n%s\n' "$sent" >> "$t"; fi
+  out="$(/usr/bin/grep -v -E -e "$2" -e "$sent" "$t")"; rc=$?
+  rm -f "$t"
+  if [[ -z "$out" ]]; then exit "$rc"; fi
+  if [[ "$had_nl" == 1 ]]; then printf '%s\n' "$out"; else printf '%s' "$out"; fi
+  exit "$rc"
+fi
+exec /usr/bin/grep "$@"
+GREP
+  chmod +x "$stubbin/grep"
   cat > "$stubbin/docker" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${DOCKER_CALL_LOG:?}"
@@ -87,11 +116,11 @@ STUB
   }
   local failed=0 want_ups fail_at
   for form in file stdin; do
-    for arm in TERM@pull INT@pull HUP@pull TERM@migrate INT@migrate HUP@migrate TERM@up INT@up HUP@up double@pull reenter@pull none ERR@pull ERR@migrate ERR@up; do
+    for arm in TERM@pull INT@pull HUP@pull TERM@migrate INT@migrate HUP@migrate TERM@up INT@up HUP@up double@pull reenter@pull none ERR@pull ERR@migrate ERR@up notrail; do
       sig="${arm%%@*}"; phase="${arm##*@}"
       fail_at=""
       [[ "$sig" == ERR ]] && fail_at="$phase"  # ERR 臂:桩在对应相位一次性退 1,零信号
-      cp "$sandbox/env.orig" "$envf"  # 每臂复位 .env 到部署前态,臂间零串扰
+      if [[ "$arm" == notrail ]]; then cp "$sandbox/env.notrail" "$envf"; else cp "$sandbox/env.orig" "$envf"; fi  # 每臂复位,臂间零串扰
       calls="$sandbox/calls-$form-$arm.log"; : > "$calls"
       out="$sandbox/out-$form-$arm.txt"; : > "$out"
       errf="$sandbox/err-$form-$arm.txt"; : > "$errf"
@@ -115,7 +144,7 @@ STUB
           kill -s TERM "$arm_pid" 2>/dev/null || true
           selftest_wait_call "$calls" ' up ' 1 || true  # 回滚 up 已开跑:二发信号须被吞(trap 已自撤)
           kill -s TERM "$arm_pid" 2>/dev/null || true ;;
-        none|ERR@*) : ;;  # none 臂直跑;ERR 臂失败自驱(桩退 1→ERR trap→回滚),零信号零等待
+        none|notrail|ERR@*) : ;;  # none/notrail 直跑;ERR 臂失败自驱(桩退 1→ERR trap→回滚),零信号零等待
         *)  # 信号窗=对应相位的桩调用已落日志(.env 已改写=半部署风险面内)
           case "$phase" in
             pull) selftest_wait_call "$calls" pull 1 || true ;;
@@ -131,7 +160,17 @@ STUB
         *@up) want_ups=2 ;;  # 部署 up+回滚 up(ERR@up 同:部署 up 桩退 1 亦落日志)
         *) want_ups=1 ;;     # 仅回滚 up(或 none 臂的部署 up)
       esac
-      if [[ "$arm" == none ]]; then
+      if [[ "$arm" == notrail ]]; then
+        # 尾换行守卫臂:凭据行居末无尾换行的 .env,部署后凭据行必须完好+新镜像行恰各一次。
+        if [[ $rc -eq 0 && "$(grep -c '^PROVISIONED_SECRET=never-touch$' "$envf")" == 1 \
+          && "$(grep -c "sha256:$new_be" "$envf")" == 1 && "$(grep -c "sha256:$new_web" "$envf")" == 1 \
+          && "$ups" == 1 && "$(grep -c 'deploy_ok' "$out")" == 1 ]]; then
+          echo "self-test[$form] arm[$arm]: PASS (exit 0 + no-trailing-newline .env keeps secret line intact + new refs)"
+        else
+          echo "self-test[$form] arm[$arm]: FAIL (exit=$rc secret=$(grep -c '^PROVISIONED_SECRET=never-touch$' "$envf") env_be=$(grep -c "sha256:$new_be" "$envf") env_web=$(grep -c "sha256:$new_web" "$envf") ups=$ups deploy_ok=$(grep -c 'deploy_ok' "$out"))" >&2
+          failed=1
+        fi
+      elif [[ "$arm" == none ]]; then
         if [[ $rc -eq 0 && "$env_state" == changed && "$(grep -c "sha256:$new_be" "$envf")" == 1 \
           && "$(grep -c "sha256:$new_web" "$envf")" == 1 && "$ups" == 1 && "$(grep -c 'deploy_ok' "$out")" == 1 ]]; then
           echo "self-test[$form] arm[$arm]: PASS (exit 0 + env carries new refs + one up + deploy_ok)"
@@ -149,7 +188,7 @@ STUB
   done
   rm -rf "$sandbox"
   if [[ $failed -ne 0 ]]; then echo "self-test: FAILED" >&2; return 1; fi
-  echo "self-test: 30/30 arms PASS (15 arms x file/stdin)"
+  echo "self-test: 32/32 arms PASS (16 arms x file/stdin)"
 }
 
 if [[ "${1:-}" == '--self-test' ]]; then self_test; exit $?; fi
@@ -198,6 +237,10 @@ trap restore_and_fail ERR HUP TERM INT
 # 2. 只重写两行镜像引用(用 @sha256 钉死),其余 .env 原样保留。
 tmp_env="$(mktemp)"
 grep -vE '^(BACKEND_IMAGE|WEB_IMAGE)=' "$ENV_FILE" > "$tmp_env"
+# 尾换行守卫:.env 末行无换行时 Linux GNU grep 原样输出不补换行,下面的 printf 追加会拼进
+# 末行(PROVISIONED_SECRET 行损毁服务起不来;macOS BSD grep 恒补换行掩盖本机探针——自测
+# notrail 臂以 GNU 末行语义 grep shim 复现)。补一次换行,镜像行各自成行。
+if [[ -s "$tmp_env" && -n "$(tail -c 1 "$tmp_env")" ]]; then printf '\n' >> "$tmp_env"; fi
 printf 'BACKEND_IMAGE=%s\n' "$BACKEND_REF" >> "$tmp_env"
 printf 'WEB_IMAGE=%s\n' "$WEB_REF" >> "$tmp_env"
 # 原地覆盖写:/srv/meetwise-compose 目录是 root 属主,部署账号不能在其中 unlink/新建
