@@ -932,7 +932,9 @@ export function openAICompatibleClient(cfg: {
           }
           if (error instanceof ExternalHttpStatusError) {
             const transient = error.status >= 500 || error.status === 429 || error.status === 408 || error.status === 425;
-            return { ok: false, kind: transient ? 'transient' : 'deterministic', externalOutcome: transient ? 'unknown' : 'known_not_executed' };
+            // 传输观测明细：HTTP 状态随结果面带出（http_<status>），仅供进程内调用方按状态族归因
+            // （评测门不再把限速 429 归成「供应商不稳」的笼统跳过）；externalOutcome/终态/重试判定零变。
+            return { ok: false, kind: transient ? 'transient' : 'deterministic', externalOutcome: transient ? 'unknown' : 'known_not_executed', errorCode: `http_${error.status}` };
           }
           if (g7 && error instanceof Error && error.message.startsWith('g7_')) {
             throw error;

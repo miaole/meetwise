@@ -11,6 +11,7 @@ import { aggregateScores, CRISIS_DISPOSITION_REASON, computeDeterministicTotal, 
 import { DIAGNOSIS_SECTION_KINDS, validateReportContent, type GenerateQuestions, type GenerateReport, type GenerateDiagnosis, type QuizItem, type RawDiagnosis, type ReportContent, type InterviewSummary } from '@meetwise/ai-graphs';
 import { withGenerationProgress } from './generation-progress.ts';
 import { withTokenStream, type TokenSink } from './token-stream.ts';
+import { MODEL_FAST_DEFAULT_NAME } from './model-cost-governance.ts';
 
 export const QuizSchema = z.object({ items: z.array(z.object({ q: z.string().min(1).max(2000), refs: z.array(z.string()) })) });   // q 封顶:模型出题理应短,超长=异常输出 → schema 闸拦下并以失败/降级收口
 /**
@@ -135,7 +136,8 @@ export const EVALUATION_RUBRIC_VERSION = getPrompt('mock-interview.evaluate').ve
 export type EvaluationInvokeResult =
   | { status: 'scored'; value: z.infer<typeof EvalSchema>; primaryIdempotencyKey: string }
   | { status: 'quote_repair_exhausted'; error: 'business:evidence_quote_not_in_answer'; primaryIdempotencyKey: string }
-  | { status: 'failed'; error: string; primaryIdempotencyKey: string };
+  /** errorDetail：additive 传输观测明细（如 `http_429`，缺省=非 HTTP 失败）——仅进程内归因用，零落库零语义变化。 */
+  | { status: 'failed'; error: string; errorDetail?: string; primaryIdempotencyKey: string };
 
 export interface EvaluationInvokeInput {
   /** 必须包含业务回合 identity；调用者不允许为 repair 新造 turn。 */
@@ -188,7 +190,7 @@ export async function invokeEvaluationOnce(pool: DbPool, owner: string, input: E
   if (!('error' in primary)) return { status: 'scored', value: primary.value, primaryIdempotencyKey };
   if (primary.error === 'business:evidence_quote_not_in_answer')
     return { status: 'quote_repair_exhausted', error: primary.error, primaryIdempotencyKey };
-  return { status: 'failed', error: primary.error, primaryIdempotencyKey };
+  return { status: 'failed', error: primary.error, ...(primary.errorDetail ? { errorDetail: primary.errorDetail } : {}), primaryIdempotencyKey };
 }
 /** 简历诊断结构化输出 schema(第一道闸:schema 校验;枚举/区间在此硬性表达)。 */
 export const DiagnosisSchema = z.object({
@@ -232,9 +234,12 @@ function withFailover(model?: string, costs: { primary?: ModelCostPolicy; backup
 }
 /** 生产默认模型客户端(真境内模型 + 跨供应商 failover;未配 MODEL_* 时 openAICompatibleClient 自身降级为 transient)。 */
 export function defaultModelClient(costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}): ModelClient { return withFailover(undefined, costs); }
-/** 快模型(qwen-turbo 等):**约束性任务**(评分/relevant 判定、能力规划)用它——质量够、明显更快更省。同样带 failover。 */
+/** 快模型(缺省 MODEL_FAST_DEFAULT_NAME=qwen-plus,单一来源在 model-cost-governance):**约束性任务**
+ *  (评分/relevant 判定、路由分类)用它。同样带 failover。缺省从 qwen-turbo 改 qwen-plus:现网 Key
+ *  对 qwen-turbo 持续模型级 429(limit_requests),5 次即打满共享断路器(0200 种子 threshold=5),
+ *  此后整条快链 model_circuit_open 零外呼——等于生产评分/路由分类全断。 */
 export function fastModelClient(costs: { primary?: ModelCostPolicy; backup?: ModelCostPolicy } = {}): ModelClient {
-  return withFailover(process.env.MODEL_FAST_NAME ?? 'qwen-turbo', costs, process.env.MODEL_FAST_BACKUP_NAME ?? process.env.MODEL_BACKUP_NAME);
+  return withFailover(process.env.MODEL_FAST_NAME ?? MODEL_FAST_DEFAULT_NAME, costs, process.env.MODEL_FAST_BACKUP_NAME ?? process.env.MODEL_BACKUP_NAME);
 }
 
 /** 押题:resume-quiz 图的 generate。经 invoke(双校验:schema + 非空业务校验)+ 图侧 factuality 过滤幻觉。

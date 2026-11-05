@@ -18,6 +18,7 @@ if (!process.env.MODEL_API_KEY) { console.log('skip scoring:eval —— 未由�
 const { assertIsolatedTestTarget, createPool } = await import('@meetwise/db');
 const { icc1, sampleStddev, median, percentile, pairwiseOrderAccuracy, kendallTauB, wilsonLowerBound } = await import('@meetwise/ai-runtime');
 const { fastModelClient, invokeEvaluationOnce, evaluateOutcomeFromValue } = await import('../src/interview-service.ts');
+const { MODEL_FAST_DEFAULT_NAME } = await import('../src/model-cost-governance.ts');
 const { stripScoringManipulation, isNonAnswer } = await import('@meetwise/domain');
 const { MONO_GROUPS, PERTURB_GROUPS, OFFTOPIC, MANIPULATION_INVARIANTS, CALIBRATION_STATUS } = await import('../test/scoring-golden.ts');
 const { createHash } = await import('node:crypto');
@@ -47,8 +48,26 @@ const pool = createPool();
 await assertIsolatedTestTarget(pool);
 const OWNER = 'scoring-eval-owner';
 process.env.MODEL_ENDPOINT_PROFILE = 'dashscope-cn-beijing';
-const rawModel = fastModelClient();   // 生产正常评分走快模型(qwen-turbo);检到操纵才升 plus——金标无操纵,故测的就是生产正常路径
+const rawModel = fastModelClient();   // 生产正常评分走快模型(MODEL_FAST_NAME 缺省 qwen-plus);检到操纵才升 quality 模型——金标无操纵,故测的就是生产正常路径
 let transientSkipped = 0, validationRejected = 0, evaluationRequests = 0, physicalModelCalls = 0, quoteRejected = 0, deterministicShortCircuits = 0;
+// 跳过归因分桶(只分桶不改口径):transientSkipped 总数与 >20% INCONCLUSIVE 阈值语义零变;
+// 子桶只为让跳过原因能看到传输层错误族(429 限速 ≠ 熔断/准入拒绝 ≠ 网络未知),不再笼统归成「供应商不稳」。
+let skipAdmission = 0, skipHttp429 = 0, skipHttp5xx = 0, skipHttp4xx = 0, skipNetworkUnknown = 0;
+/** 共享准入/熔断确定性拒绝族(invoke 原样 error 码;5 次传输失败打满 threshold 后的连锁零外呼面)。 */
+const ADMISSION_ERRORS = new Set(['model_circuit_open', 'model_circuit_half_open', 'model_concurrency_exhausted', 'cost_budget_exhausted', 'model_admission_timeout', 'model_admission_failed']);
+function countSkipBucket(error: string, detail?: string): void {
+  if (ADMISSION_ERRORS.has(error)) { skipAdmission++; return; }
+  if (detail?.startsWith('http_')) {
+    const status = Number(detail.slice(5));
+    if (status === 429) skipHttp429++;
+    else if (status >= 500) skipHttp5xx++;
+    else skipHttp4xx++;
+    return;
+  }
+  skipNetworkUnknown++;
+}
+/** 每样本明细尾巴(有传输明细才带;`rejected=${s.reason}` 词面保持——scoring-eval-key 证明钉源形)。 */
+const detailTail = (s: ScoreRun): string => (isSuccess(s) || !s.detail ? '' : ` detail=${s.detail}`);
 // 真模型 nightly 不可再手抄 invoke：这里包一层只为量化实际供应商调用，评分语义仍完全复用生产 helper。
 const model = {
   async complete(req: any, attempt: number) {
@@ -61,8 +80,9 @@ const model = {
 // `01_schema.sql`：该 legacy baseline 会 DROP 表/角色，不能作为评测建库方式。
 
 type ScoreSuccess = { score: number; relevant: boolean; source: 'model' | 'deterministic' };
-/** 评分模型给了无效 schema/证据时是质量失败，不能缩小分母伪装成“没测到”。 */
-type ScoreRejected = { source: 'rejected'; reason: string };
+/** 评分模型给了无效 schema/证据时是质量失败，不能缩小分母伪装成“没测到”。
+ *  detail：传输层观测明细（invoke 透传的 `http_<status>` 等，缺省=无 HTTP 明细），只进打印与分桶。 */
+type ScoreRejected = { source: 'rejected'; reason: string; detail?: string };
 type ScoreRun = ScoreSuccess | ScoreRejected;
 const isSuccess = (run: ScoreRun): run is ScoreSuccess => run.source !== 'rejected';
 
@@ -95,11 +115,12 @@ async function scoreOnce(question: string, answer: string, key: string): Promise
   }
   // quote/schema/business rejection 是评分官质量失败，不得伪装成供应商 transient skip。
   if (out.error.startsWith('business:') || out.error === 'deterministic_refusal') validationRejected++;
-  else transientSkipped++;
-  return { source: 'rejected', reason: out.error };
+  else { transientSkipped++; countSkipBucket(out.error, out.errorDetail); }
+  return { source: 'rejected', reason: out.error, ...(out.errorDetail ? { detail: out.errorDetail } : {}) };
 }
 
-console.log('=== 评分官真模型质量信号(温度已钉低;唯一key破cache)===\n');
+console.log(`=== 评分官真模型质量信号(温度已钉低;唯一key破cache)===`);
+console.log(`快模型=${process.env.MODEL_FAST_NAME?.trim() || MODEL_FAST_DEFAULT_NAME}(fastModelClient 有效值;检到操纵升 quality 模型,金标无操纵不涉)\n`);
 
 // ── ① 单调性:同题组内,好答案不能反低分(只断非相邻档 minGap=2)──
 console.log('── 单调性(组内成对序 · minGap=2)──');
@@ -109,7 +130,7 @@ for (const g of monoGroups) {
   for (const c of g.cases) {
     const s = await scoreOnce(g.question, c.answer, `${g.id}:${c.tier}`);
     if (isSuccess(s)) scored.push({ rank: c.rank, score: s.score });
-    else console.log(`  ${g.id}:${c.tier} rejected=${s.reason}`);
+    else console.log(`  ${g.id}:${c.tier} rejected=${s.reason}${detailTail(s)}`);
   }
   monoScored.push(scored);
   const acc = pairwiseOrderAccuracy([scored], 2);
@@ -139,7 +160,7 @@ for (const g of perturbGroups) {
   const scores: number[] = [];
   for (let i = 0; i < g.variants.length; i++) {
     const s = await scoreOnce(g.question, g.variants[i], `${g.id}:v${i}`);
-    if (isSuccess(s)) scores.push(s.score); else console.log(`  ${g.id}:v${i} rejected=${s.reason}`);
+    if (isSuccess(s)) scores.push(s.score); else console.log(`  ${g.id}:v${i} rejected=${s.reason}${detailTail(s)}`);
   }
   const sd = sampleStddev(scores);
   console.log(`  ${g.id.padEnd(18)} 变体分=[${scores.join(',')}]  组内SD=${Number.isNaN(sd) ? 'NaN' : sd.toFixed(1)}`);
@@ -162,7 +183,7 @@ for (const o of offtopic) {
   if (o.route === 'model' && ok) modelRelOk++;
   console.log(isSuccess(s)
     ? `  ${o.id} expected=${o.route} actual=${s.source} relevant=${s.relevant} score=${s.score}${ok ? ' ✅' : ' 🔴'}`
-    : `  ${o.id} expected=${o.route} actual=rejected reason=${s.reason} 🔴`);
+    : `  ${o.id} expected=${o.route} actual=rejected reason=${s.reason}${detailTail(s)} 🔴`);
 }
 const relLcb = wilsonLowerBound(relOk, relTot);
 const modelRelLcb = wilsonLowerBound(modelRelOk, modelRelTot);
@@ -194,8 +215,18 @@ console.log(`  剥离精确率=${stripOk}/${stripTot}, Wilson95%下界=${Number.
 
 // ── 汇总(非阻断信号)──
 const skipRate = evaluationRequests ? transientSkipped / evaluationRequests : 0;
-console.log(`\n=== 汇总:评分请求 ${evaluationRequests} · 实际供应商调用 ${physicalModelCalls} · quote 二次调用 0（固定） · quote 拒绝 ${quoteRejected} · 确定性短路 ${deterministicShortCircuits} · 业务/证据拒绝 ${validationRejected} · 跳过(model_transient) ${transientSkipped}(${(skipRate * 100).toFixed(0)}%)===`);
-if (skipRate > 0.2) console.log('⚠ INCONCLUSIVE:跳过率 >20%,供应商当天可能不稳,本轮不下质量结论(既不绿也不红)。');
+const skipBreakdown = `熔断/准入拒绝=${skipAdmission}(零外呼连锁面) · HTTP429限速=${skipHttp429} · HTTP5xx=${skipHttp5xx} · HTTP4xx拒绝=${skipHttp4xx} · 网络/未知=${skipNetworkUnknown}`;
+console.log(`\n=== 汇总:评分请求 ${evaluationRequests} · 实际供应商调用 ${physicalModelCalls} · quote 二次调用 0（固定） · quote 拒绝 ${quoteRejected} · 确定性短路 ${deterministicShortCircuits} · 业务/证据拒绝 ${validationRejected} · 跳过(model_transient) ${transientSkipped}(${(skipRate * 100).toFixed(0)}%)[${skipBreakdown}]===`);
+if (skipRate > 0.2) {
+  // 归因替代笼统「供应商不稳」:熔断/准入拒绝=早前传输失败的连锁零外呼面,先看 HTTP 明细定位首因;
+  // 429 限速=该模型被供应商按模型级限流(配置级问题,换模型才解,非"当天不稳"会自愈)。
+  const dominant = skipAdmission >= skipHttp429 && skipAdmission >= skipHttp5xx && skipAdmission >= skipHttp4xx && skipAdmission >= skipNetworkUnknown
+    ? '熔断/准入拒绝为主(共享断路器被此前传输失败打满后的零外呼拒绝;首因看下方/上方 HTTP 明细与熔断分区)'
+    : skipHttp429 >= skipHttp5xx && skipHttp429 >= skipHttp4xx && skipHttp429 >= skipNetworkUnknown
+      ? '供应商模型级限速(429)为主(该模型对此 Key 持续不可用;属配置/额度问题,不会当天自愈)'
+      : skipHttp5xx + skipHttp4xx > skipNetworkUnknown ? '供应商 HTTP 错误为主' : '网络/未知传输失败为主';
+  console.log(`⚠ INCONCLUSIVE:跳过率 >20%,本轮不下质量结论(既不绿也不红)。跳过构成: ${skipBreakdown} → ${dominant}。`);
+}
 else if (scoped) console.log(`⚠ SCOPED RUN: ${[...selectedIds].join(',')}；仅作样本级真模型证据，禁止据此得出完整发布结论。`);
 else {
   const monoOk = monoExpectedPairs >= 36 && !Number.isNaN(monoLcb) && monoLcb >= 0.9;

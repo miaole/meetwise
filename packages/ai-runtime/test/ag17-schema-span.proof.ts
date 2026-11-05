@@ -151,14 +151,19 @@ async function main() {
     count(traceSrc, priorOutcome) === 0 && count(traceSrc, 'schema_invalid') === 1);
   A('invoke.ts 旧档名双文件零命中（注释/known_executed 臂/三元臂三落点全改·零消费方残留）',
     count(invokeSrc, priorOutcome) === 0);
-  A('invoke.ts :1082 注释同步 schema_invalid 档（保留「允许换 revision 重试·不重试同 key」原语义句）',
-    invokeLines[1081]?.includes('schema_invalid 档') === true
-      && invokeLines[1081]?.includes('允许换 revision 重试') === true
-      && invokeLines[1081]?.includes('不重试同 key') === true);
-  A('invoke.ts :1083 known_executed 臂 span 字面量=schema_invalid 原行形',
-    invokeLines[1082] === `      span(1, 'schema_invalid', latencyMs, settledUsage);`);
-  A('invoke.ts :1203 三元臂 else 支=schema_invalid 原行形（business_error 支零触）',
-    invokeLines[1202] === `    span(1, error.startsWith('business:') ? 'business_error' : 'schema_invalid', latencyMs, settledUsage);`);
+  // 行号钉再钉登记（S4b 同协议）：旧钉 :1082/:1083/:1203 在 base 92a82a944 即漂（base 实测
+  // :1112/:1113/:1242=历刀合法增删行后未随钉的基线漂移·本 proof DB 门本地不可跑致漂移不可见）——
+  // 传输观测 errorCode/errorDetail additive 刀再推移至 :1127/:1128/:1259，随刀再钉。三行内容形
+  // 逐字节亲证未变（语义句/span 发射位形/business_error 支零触全原值）；旧档名零命中与
+  // schema_invalid 恰 3 两枚计数钉与行号无关，修订时点实测原值。
+  A('invoke.ts :1127 注释同步 schema_invalid 档（保留「允许换 revision 重试·不重试同 key」原语义句）',
+    invokeLines[1126]?.includes('schema_invalid 档') === true
+      && invokeLines[1126]?.includes('允许换 revision 重试') === true
+      && invokeLines[1126]?.includes('不重试同 key') === true);
+  A('invoke.ts :1128 known_executed 臂 span 字面量=schema_invalid 原行形',
+    invokeLines[1127] === `      span(1, 'schema_invalid', latencyMs, settledUsage);`);
+  A('invoke.ts :1259 三元臂 else 支=schema_invalid 原行形（business_error 支零触）',
+    invokeLines[1258] === `    span(1, error.startsWith('business:') ? 'business_error' : 'schema_invalid', latencyMs, settledUsage);`);
   A('invoke.ts schema_invalid 计数恰 3（注释 1+字面量 2·恰等发射位）',
     count(invokeSrc, 'schema_invalid') === 3);
 

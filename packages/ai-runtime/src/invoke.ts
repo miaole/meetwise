@@ -80,7 +80,18 @@ export type ModelUsage = {
 /** `known_not_executed` requires an explicit negative response from the endpoint. Omission means unknown. */
 export type ModelResult =
   | { ok: true; raw: unknown; usage?: ModelUsage; actualModel?: string }
-  | { ok: false; kind: 'transient' | 'deterministic'; externalOutcome?: 'known_not_executed' | 'unknown' }
+  | {
+    ok: false;
+    kind: 'transient' | 'deterministic';
+    externalOutcome?: 'known_not_executed' | 'unknown';
+    /**
+     * 可选传输观测明细（additive·缺省=非 HTTP 失败如网络/超时，无状态可带）。
+     * 仅 HTTP 状态失败时由传输层带出（形如 `http_429`，稳定 ASCII 过 0088 码形约束），
+     * 供进程内调用方（评测/诊断面）按 HTTP 状态族归因；终态判定（externalOutcome/unknown
+     * 冻结/落库 error_code）完全不受此字段影响——零落库、零重试语义变化。
+     */
+    errorCode?: string;
+  }
   | {
     /**
      * AG-06 统一结算状态机第三态（EXPERT-REVIEWS §四 :35）：HTTP 200 已执行、但输出确定性不可用
@@ -274,7 +285,9 @@ export interface InvokeSpec<T> {
    */
   executionTimeoutMs?: number;
 }
-export type InvokeOutcome<T> = { value: T } | { error: string };
+export type InvokeOutcome<T> = { value: T } | { error: string; errorDetail?: string };
+/** `errorDetail` 是 additive 进程内观测明细（如传输层 `http_<status>`），只供调用方归因；
+ *  绝不落库、绝不参与终态/重试/冻结判定——所有持久面仍以 `error` 码与既有落库链为准。 */
 
 /**
  * This is the one admission error for which a route may safely be recomputed:
@@ -1041,7 +1054,9 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
       } : undefined);
       if (policy) getMetrics().inc(METRIC.modelCostDecisions, { decision: 'rejected' });
       span(1, 'deterministic_refusal', latencyMs);
-      return { error: result.kind === 'deterministic' ? 'deterministic_refusal' : 'provider_rejected' };
+      // errorDetail 只带传输观测（http_<status>，模型层可带）——落库 error_code（上行 completeModelInvocation）
+      // 保持原码零字节，终态/冻结/重试语义零变。
+      return { error: result.kind === 'deterministic' ? 'deterministic_refusal' : 'provider_rejected', ...(result.errorCode ? { errorDetail: result.errorCode } : {}) };
     }
     if (result.externalOutcome === 'known_executed') {
       // AG-06 修法⑤：HTTP 200 已执行但输出确定性不可用 → 接线既有 settled-failed 先例臂形
@@ -1127,7 +1142,9 @@ async function invokeExecuteAndSettlePhase<T>(args: InvokeExecuteArgs<T>): Promi
     } : undefined);
     if (policy) getMetrics().inc(METRIC.modelCostDecisions, { decision: 'unknown' });
     span(1, 'exhausted', latencyMs);
-    return { error: 'external_outcome_unknown' };
+    // unknown 冻结语义零变：落库 unknownReason/计费 unknown/零重试全部保持；errorDetail 仅把
+    // 传输层 HTTP 状态（http_<status>，网络/超时失败无此字段）带给进程内调用方做状态族归因。
+    return { error: 'external_outcome_unknown', ...(result.errorCode ? { errorDetail: result.errorCode } : {}) };
   }
 
   // A successful HTTP response proves that the supplier may have charged. Bad
