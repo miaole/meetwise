@@ -151,6 +151,27 @@ async function main() {
     assert('events/客户端取消 → AbortError 原样抛(取消语义零变化)', aborted);
   }
 
+  // ⑪(rev r1/证伪 pre-2 P2-1)流建立后客户端取消 → 上游组合信号同步中止。修前缝在 finally 摘除
+  // abort 监听 → 头到达后 clientSignal 与上游组合信号脱钩,弃置 SSE 流挂到 api 侧 10min pump deadline
+  // (探针实证上游 socket closed=0);修法=保留监听不摘,取消即中止上游 fetch 撤 socket。
+  {
+    const client = new AbortController();
+    let observed: AbortSignal | undefined;
+    const upstream = await openInterviewEventsUpstream({
+      apiBase: 'http://api.internal', interviewId: 'iv-1', bearerToken: 'tok',
+      clientSignal: client.signal, ttfbTimeoutMs: 5000,
+      fetchImpl: ((_url: string | URL | Request, init?: RequestInit) => {
+        observed = init?.signal ?? undefined;
+        return Promise.resolve(new Response('data: hello\n\n', { status: 200, headers: { [contentTypeHeader]: 'text/event-stream' } }));
+      }) as typeof fetch,
+    });
+    assert('events/流已建立(头到达·组合信号在位)', upstream.status === 200 && observed?.aborted === false);
+    await new Promise((r) => setTimeout(r, 0));
+    client.abort();   // 流建立后再取消(Next 在客户端断开时销毁 signal 的运行时形态)
+    await new Promise((r) => setTimeout(r, 0));
+    assert('events/流建立后客户端取消 → 上游组合信号同步中止(修前摘监听=永不中止)', observed?.aborted === true);
+  }
+
   console.log(`\n${failures === 0 ? '✓ 同源代理韧性合同全部通过' : `✗ ${failures} 个失败`}`);
   process.exit(failures === 0 ? 0 : 1);
 }

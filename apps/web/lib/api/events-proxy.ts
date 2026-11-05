@@ -1,14 +1,19 @@
 /**
  * Same-origin interview events (SSE) upstream-open seam (#66/API-HARDEN-A).
  * The route keeps its existing non-OK mapping (sseProxyFailureResponse); this
- * seam only owns the OPEN phase:
+ * seam owns the OPEN phase plus full-lifetime cancellation:
  *   - upstream replies (any status) resolve as-is;
  *   - upstream network failure / TTFB timeout resolve to a 502 plain-text
  *     `stream_unavailable` Response — the same envelope sseProxyFailureResponse
  *     emits for upstream 5xx, so the client's existing classification
  *     (SSE-RESILIENCE #56) treats both identically;
- *   - client cancellation still rejects with AbortError (existing semantics:
- *     browser navigation/cancel must tear down the upstream fetch).
+ *   - client cancellation is bound for the seam's whole lifetime: before open
+ *     it rejects with AbortError (existing semantics); after open (rev r1,
+ *     falsification pre-2 P2-1) the abort listener stays attached so the
+ *     upstream fetch signal aborts synchronously and undici tears the socket
+ *     down — the pre-fix seam removed this listener in `finally`, so a client
+ *     disconnect after open left the orphaned upstream stream alive up to the
+ *     api-side 10min pump deadline (probe: upstream socket closed=0).
  * The TTFB timer is cleared the moment headers arrive; the SSE body stream
  * itself is never time-limited (long-lived by design, 10min pump deadline
  * lives server-side).
@@ -42,6 +47,7 @@ export async function openInterviewEventsUpstream(input: {
     return new Response('stream_unavailable', { status: 502 });
   } finally {
     if (timer !== undefined) clearTimeout(timer);
-    input.clientSignal.removeEventListener('abort', onClientAbort);
+    // rev r1:abort 监听不摘——{ once: true } 单次触发,clientSignal(req.signal)随请求生命周期回收;
+    // 流建立后取消经它同步中止上游 fetch(undici 撤 socket),弃置流不再挂到 api 侧 10min deadline。
   }
 }

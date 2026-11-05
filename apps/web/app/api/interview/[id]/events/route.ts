@@ -125,7 +125,8 @@ export async function GET(req: Request, { params }: { params: Promise<{ id: stri
   const lastEventIdHeader = req.headers.get('last-event-id');
   // #66/API-HARDEN-A:上游打开收敛到 events-proxy 缝——网络抛错/首包超时 → 502 stream_unavailable
   // (与 sseProxyFailureResponse 同信封,客户端 SSE-RESILIENCE #56 分类零新分支);SSE 流体本身不设
-  // 整体超时(计时器到头即清),客户端取消仍即时终止上游 fetch。首包帽可 env 覆写
+  // 整体超时(计时器到头即清),客户端取消全程绑定(打开前拒 AbortError;流建立后同步中止上游 fetch
+  // 撤 socket·rev r1)。首包帽可 env 覆写
   // (PROXY_SSE_TTFB_TIMEOUT_MS,默认 10000:api 侧打开=DB 回放+pump 启动,秒级路径,10s 含冷池余量)。
   const upstream = await openInterviewEventsUpstream({
     apiBase: API,
