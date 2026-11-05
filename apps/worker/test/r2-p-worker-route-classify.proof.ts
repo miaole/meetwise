@@ -622,11 +622,109 @@ async function proveKnownNotSentRetryUnblocked(): Promise<void> {
   }
 }
 
+/**
+ * 跨 owner 冷却隔离臂（pre-exec 双审两路 P2 补证·EXEC 令随令行使）：owner-A 岗位首账 unknown
+ * 处于缺省冷却窗内时，owner-B 独立岗位的重试不受 owner-A 冷却窗影响——闸谓词
+ * `owner_user_id=$1 AND idempotency_key=$2`（ai_model_invocation PK 0037 同构）+ FORCE RLS
+ * owner 相等（0037）双保险，冷却窗按各 owner 自身前账结算时刻计。正向对照：owner-A 自身重试
+ * 同窗仍抑制（unknown_pending），证明隔离是「B 不被 A 拦」而非「闸失效」。
+ */
+async function proveCrossOwnerRetryIsolation(): Promise<void> {
+  process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-retry-gate-hmac-proof-key-not-production-01';
+  const port = process.env.PGPORT ?? '';
+  A('隔离库端口不是 54329（跨 owner 冷却隔离臂）', port !== '' && port !== '54329', `PGPORT=${port}`);
+  if (port === '' || port === '54329') return;
+
+  const priorExecTimeout = process.env.MODEL_EXECUTION_TIMEOUT_MS;
+  const priorTransportTimeout = process.env.MODEL_TIMEOUT_MS;
+  const priorCooldownMs = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  process.env.MODEL_EXECUTION_TIMEOUT_MS = '4000';
+  process.env.MODEL_TIMEOUT_MS = '4000';
+  delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const pool = createPool();
+  try {
+    await assertIsolatedTestTarget(pool);
+    const suffix = createHash('sha256').update(`${Date.now()}:cross-owner`).digest('hex').slice(0, 12);
+    const ownerA = `xown_a_${suffix}`;
+    const ownerB = `xown_b_${suffix}`;
+    const fields = { title: '全栈工程师', description: '前后端都写', competencies: ['全栈'] };
+    const jobA = await asPrincipal(pool, ownerA, (c) => createJob(c, ownerA, fields));
+    const jobB = await asPrincipal(pool, ownerB, (c) => createJob(c, ownerB, fields));
+    const digest = canonicalJobSemanticDigest({
+      title: fields.title, description: fields.description, competencies: fields.competencies,
+    });
+
+    let hangCalls = 0;
+    let refuseCalls = 0;
+    let fastCalls = 0;
+    const hangModel: ModelClient = {
+      async complete() {
+        hangCalls += 1;
+        await new Promise((resolve) => setTimeout(resolve, 9000));
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/general', allocationBps: 10000 }], confidenceBps: 5000, marginBps: 3000, reasonCodes: [] } };
+      },
+    };
+    const refuseModel: ModelClient = {
+      async complete() {
+        refuseCalls += 1;
+        return { ok: false as const, kind: 'deterministic' as const };
+      },
+    };
+    const fastModel: ModelClient = {
+      async complete() {
+        fastCalls += 1;
+        return { ok: true as const, raw: { allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [] } };
+      },
+    };
+    const hangA = createJobRouteModelClassify({ pool, owner: ownerA, model: hangModel });
+    const refuseB = createJobRouteModelClassify({ pool, owner: ownerB, model: refuseModel });
+    const fastB = createJobRouteModelClassify({ pool, owner: ownerB, model: fastModel });
+
+    const tick1a = await classifyJobRoute(pool, ownerA, jobA.id, 1, { modelClassify: hangA });
+    const invA = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [ownerA, `job-route-classify:${jobA.id}:1:${digest}`],
+    );
+    const retryA = await asPrincipal(pool, ownerA, (c) => retryJobRoute(c, ownerA, jobA.id));
+    A('正向对照：owner-A 缺省窗内自身重试仍抑制（unknown_pending·闸未失效）',
+      tick1a.status === 'route_unresolved' && invA.rows[0]?.status === 'unknown'
+      && retryA?.status === 'unknown_pending' && hangCalls === 1,
+      `invA=${String(invA.rows[0]?.status ?? 'none')} retryA=${retryA?.status ?? 'null'} hangCalls=${hangCalls}`);
+
+    const tick1b = await classifyJobRoute(pool, ownerB, jobB.id, 1, { modelClassify: refuseB });
+    const tick1bFace = tick1b.status === 'route_unresolved' ? tick1b : null;
+    const retryB = await asPrincipal(pool, ownerB, (c) => retryJobRoute(c, ownerB, jobB.id));
+    A('跨 owner 隔离：owner-A 冷却窗内时 owner-B 重试不受影响（缺省冷却下照常 retried@rev2）',
+      tick1bFace?.attemptOutcome === 'known_not_sent' && refuseCalls === 1
+      && retryB !== null && retryB.status === 'retried' && retryB.revision === 2,
+      `outcome=${tick1bFace?.attemptOutcome ?? tick1b.status} retryB=${retryB?.status ?? 'null'}@${retryB?.revision ?? '-'}`);
+    const tick2b = await classifyJobRoute(pool, ownerB, jobB.id, 2, { modelClassify: fastB });
+    const invAAfter = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [ownerA, `job-route-classify:${jobA.id}:1:${digest}`],
+    );
+    A('owner-B 重试走完分类且 owner-A 前账 unknown 原样未动',
+      tick2b.status === 'route_decided' && fastCalls === 1
+      && invAAfter.rows[0]?.status === 'unknown',
+      `tick2b=${tick2b.status} fastCalls=${fastCalls} invAAfter=${String(invAAfter.rows[0]?.status ?? 'none')}`);
+  } finally {
+    if (priorExecTimeout === undefined) delete process.env.MODEL_EXECUTION_TIMEOUT_MS;
+    else process.env.MODEL_EXECUTION_TIMEOUT_MS = priorExecTimeout;
+    if (priorTransportTimeout === undefined) delete process.env.MODEL_TIMEOUT_MS;
+    else process.env.MODEL_TIMEOUT_MS = priorTransportTimeout;
+    if (priorCooldownMs === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    else process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = priorCooldownMs;
+    await pool.end();
+  }
+}
+
 A('重试 unknown 冷却缺省=2 分钟（120000ms·2026-11-06 协调方裁定·env ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 可覆盖）',
   ROUTE_RETRY_UNKNOWN_COOLDOWN_MS === 120_000, String(ROUTE_RETRY_UNKNOWN_COOLDOWN_MS));
 
 {
-  // 冷却窗环境变量覆盖 resolver 断言（纯函数·零 DB）：缺省回落 / env 数值生效 / 非法与越界抛错。
+  // 冷却窗环境变量覆盖 resolver 断言（纯函数·零 DB）：缺省回落 / env 数值生效 / 非法值
+  // fail-closed 回退缺省并警告一次（EXEC 令 P2 裁定：0/负数/非数字/越界不再抛错、也绝不静默
+  // 关闸——统一回退缺省 120000·进程生命周期内警告恰一次）。
   const priorCd = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
   const cdRestore = () => {
     if (priorCd === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
@@ -634,26 +732,32 @@ A('重试 unknown 冷却缺省=2 分钟（120000ms·2026-11-06 协调方裁定·
   };
   let defaultOk = false;
   let envOk = false;
-  let invalidThrows = 0;
+  let invalidFallbacks = 0;
+  let warnCalls = -1;
   try {
     delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
     defaultOk = resolveRouteRetryUnknownCooldownMs() === 120_000;
     process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = '30';
     envOk = resolveRouteRetryUnknownCooldownMs() === 30;
-    for (const bad of ['abc', '-1', '1.5', '3600001']) {
-      process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = bad;
-      try {
-        resolveRouteRetryUnknownCooldownMs();
-      } catch {
-        invalidThrows += 1;
+    const warns: string[] = [];
+    const priorWarn = console.warn;
+    console.warn = (...args: unknown[]) => { warns.push(args.map(String).join(' ')); };
+    try {
+      // 六例非法：非数字/负数/0（旧「关闭」语义废止）/小数/越上限/纯空白静默归 0 角。
+      for (const bad of ['abc', '-1', '0', '1.5', '3600001', ' ']) {
+        process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = bad;
+        if (resolveRouteRetryUnknownCooldownMs() === 120_000) invalidFallbacks += 1;
       }
+    } finally {
+      console.warn = priorWarn;
     }
+    warnCalls = warns.length;
   } finally {
     cdRestore();
   }
-  A('冷却窗环境变量覆盖 resolver（缺省 120000·env 数值生效·非法/越界四例全抛）',
-    defaultOk && envOk && invalidThrows === 4,
-    `default=${defaultOk} env=${envOk} throws=${invalidThrows}`);
+  A('冷却窗环境变量覆盖 resolver（缺省 120000·env 数值生效·非法六例 fail-closed 全回退缺省·警告恰一次）',
+    defaultOk && envOk && invalidFallbacks === 6 && warnCalls === 1,
+    `default=${defaultOk} env=${envOk} fallbacks=${invalidFallbacks} warns=${warnCalls}`);
 }
 
 
@@ -661,6 +765,7 @@ proveStaleRevisionDoesNotBlockDrain()
   .then(() => proveSlowModelDoesNotWedgeRoute())
   .then(() => proveRetryGateBlocksDoubleBilling())
   .then(() => proveKnownNotSentRetryUnblocked())
+  .then(() => proveCrossOwnerRetryIsolation())
   .then(() => {
   console.log(failures === 0
     ? '\nOK  r2-p-worker-route-classify prove (P-WORKER closed via sole route-classify consumer + MODEL-OP modelClassify; R2 NOT closed; ≠ 路由已生效; releaseEvidence=false; Not HA)'

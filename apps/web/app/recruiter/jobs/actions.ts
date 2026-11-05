@@ -78,12 +78,31 @@ export async function closeJobAction(jobId: string): Promise<CreateJobActionResu
 }
 
 /**
+ * unknown_pending 等待文案与实际配置同源（pre-exec 双审 P2 吸收·EXEC 令随令行使）：web 服务端
+ * 读同一 ROUTE_RETRY_UNKNOWN_COOLDOWN_MS（与 db resolver 同法 fail-closed——非正整数/越界回退
+ * 缺省 120000，文案不再硬编码「约 2 分钟」，环境改了文案跟着走）；展示面静默回退不警告
+ * （警告归 db resolver 单一所有方，避免同机部署双份日志）。分钟数向上取整下限 1，措辞「约」承
+ * 非整分钟配置与对账老化的近似性。
+ */
+function routeRetryWaitMinutes(): string {
+  const raw = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const ms = raw === undefined || raw === ''
+    ? 120_000
+    : (() => {
+      const value = Number(raw);
+      return Number.isSafeInteger(value) && value > 0 && value <= 3_600_000 ? value : 120_000;
+    })();
+  return String(Math.max(1, Math.ceil(ms / 60_000)));
+}
+
+/**
  * I3 JOB-MGMT（#219·裁决③）：显式重试路由——POST /recruiter/jobs/:id/route-retry。
  * 重试=以当前岗位内容写新 revision（route_pending）走既有 drain；sticky 终态本体零改，无界自动重试被 Ban，
  * 本动作是招聘方显式且可计数的一次投递。already_* 为幂等门：非未决态不制造空 revision。
  * unknown_pending（GAP-ROUTE-RETRY-UNKNOWN-REBILL 二次计费闸）：前账结果未确认时暂缓重发并披露
- * 原因与等待时间（缺省约 2 分钟·2026-11-06 协调方裁定）加两个出口（稍后再试/编辑岗位内容触发重新
- * 分类），不谎报已提交；ok=false 使面板不硬刷新（该状态零状态变化，刷新会冲掉文案且重试入口仍在）。
+ * 原因与等待时间（缺省约 2 分钟·2026-11-06 协调方裁定·文案自 env 实际配置生成见上）加两个出口
+ * （稍后再试/编辑岗位内容触发重新分类），不谎报已提交；ok=false 使面板不硬刷新（该状态零状态变化，
+ * 刷新会冲掉文案且重试入口仍在）。
  */
 export async function retryJobRouteAction(jobId: string): Promise<JobMutationActionResult> {
   if (!jobId.trim()) return { ok: false, message: '缺少岗位标识。' };
@@ -98,7 +117,7 @@ export async function retryJobRouteAction(jobId: string): Promise<JobMutationAct
     if (body?.status === 'already_pending') return { ok: true, message: '路由已在队列中，无需重复重试。' };
     if (body?.status === 'already_decided') return { ok: true, message: '路由已就绪，无需重试。' };
     if (body?.status === 'not_retryable') return { ok: true, message: '路由分类进行中，请稍后刷新查看。' };
-    if (body?.status === 'unknown_pending') return { ok: false, message: '上一次岗位识别结果尚未确认（为避免重复计费已暂缓重发），请约 2 分钟后再试，或编辑岗位内容触发重新分类。' };
+    if (body?.status === 'unknown_pending') return { ok: false, message: `上一次岗位识别结果尚未确认（为避免重复计费已暂缓重发），请约 ${routeRetryWaitMinutes()} 分钟后再试，或编辑岗位内容触发重新分类。` };
     return { ok: true, message: '已提交重路由，稍后自动完成。' };
   } catch {
     return { ok: false, message: '网络暂不可用，请稍后重试。' };

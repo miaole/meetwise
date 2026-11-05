@@ -151,15 +151,24 @@ const ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS = 3_600_000;
 
 /**
  * 冷却窗环境变量覆盖（每次调用读取·opts 注入优先）：ROUTE_RETRY_UNKNOWN_COOLDOWN_MS（毫秒·
- * 缺省 120000·0=关闭抑制·上限 1 小时）——非法/越界即抛（配置错误不容忍静默改策，沿
- * model-invocation-reconcile resolver 同法）。
+ * 缺省 120000·正值域 1–3,600,000 整数）。fail-closed（2026-11-06 EXEC 令 P2 裁定行使）：0、
+ * 负数、非数字（含空白/`-0` 静默归 0 角·小数·越上限）均视为非法配置——**回退缺省 120000
+ * 并警告一次**（进程生命周期内仅首例警告一次，沿启动日志面不逐请求刷屏；抑制闸保持开启，
+ * 不可经 env 关闭——配置错误不容忍静默改策，0=关闸旧语义废止）。
  */
+let routeRetryUnknownCooldownWarned = false;
+
 export function resolveRouteRetryUnknownCooldownMs(env: NodeJS.ProcessEnv = process.env): number {
   const raw = env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
   if (raw === undefined || raw === '') return ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
   const value = Number(raw);
-  if (!Number.isSafeInteger(value) || value < 0 || value > ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS)
-    throw new Error('route_retry_unknown_cooldown_invalid');
+  if (!Number.isSafeInteger(value) || value <= 0 || value > ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS) {
+    if (!routeRetryUnknownCooldownWarned) {
+      routeRetryUnknownCooldownWarned = true;
+      console.warn(`route_retry_unknown_cooldown_invalid ROUTE_RETRY_UNKNOWN_COOLDOWN_MS=${JSON.stringify(raw)} fail_closed_fallback_default_ms=${ROUTE_RETRY_UNKNOWN_COOLDOWN_MS}`);
+    }
+    return ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  }
   return value;
 }
 
