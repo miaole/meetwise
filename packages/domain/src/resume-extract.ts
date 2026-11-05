@@ -107,10 +107,21 @@ export function assertMagicMatchesDeclaration(buffer: Buffer, format: ResumeFile
 // 条目数 ≤1000(正常 docx <100 条目含 media 余量·10× 余量)·解压总量 ≤64MB(各条目 central
 // directory uncompressedSize 声明合计;12MB 传输信封 bodyLimit × 压缩比合理域)。按声明合计而非
 // 真解压累计=守卫在解包前零解压成本定夺;zip64 哨兵 0xFFFFFFFF 声明天然越帽同拒(fail-closed)。
+// EOCD 六字段 zip64 哨兵任一命中同拒(0xFFFF/0xFFFFFFFF)——否则 jszip 走 zip64 EOCD 覆写路径,
+// 攻击者记录覆写条目数/目录偏移后另读一张目录,守卫声明面失守(12MB 信封下合法 docx 不可能 zip64)。
 const DOCX_ZIP_MAX_ENTRIES = 1000;
 const DOCX_ZIP_MAX_UNCOMPRESSED_TOTAL = 64 * 1024 * 1024;
 const ZIP_EOCD_SIG = 0x06054b50;   // PK\x05\x06
 const ZIP_CDH_SIG = 0x02014b50;    // PK\x01\x02
+// zip64 哨兵判定(jszip zipEntries.js:190 判定全集):EOCD 六字段(diskNumber/diskWithCentralDirStart/
+// centralDirRecordsOnThisDisk/centralDirRecords 各 16 位,centralDirSize/centralDirOffset 各 32 位)任一
+// 等于哨兵,jszip 弃 EOCD 声明面改走 zip64 EOCD 覆写路径——以攻击者 zip64 记录覆写条目数/目录大小/
+// 目录偏移后另读一张目录,守卫所审目录与 jszip 实读目录就此分叉。哨兵取值:16 位 0xFFFF(=jszip
+// MAX_VALUE_16BITS),32 位 0xFFFFFFFF 字形(=jszip MAX_VALUE_32BITS,其 readInt(4) 32 位符号回绕读作
+// -1,与无符号 0xFFFFFFFF 字节形恒等)。12MB 传输信封帽下合法 docx 不可能 zip64(zip64 为 >4GB/>65535
+// 条目而生),命中即拒零误伤面。
+const ZIP64_SENTINEL_16 = 0xffff;
+const ZIP64_SENTINEL_32 = 0xffffffff;
 
 const zipGuardErr = (code: string) => Object.assign(new Error(code), { code });
 
@@ -119,7 +130,11 @@ const zipGuardErr = (code: string) => Object.assign(new Error(code), { code });
  *  等结构不可核形态同归 zip_directory_invalid(fail-closed:"核不了"="拒")。守卫恒先于解析 worker
  *  spawn——越帽字节零解包零 isolate 占用。读法:EOCD 自尾反向扫(注释区 ≤65535+22)·CDH 定长 46
  *  +name+extra+comment 变长步进·字段全小端;前插数据(self-extracting 形)声明偏移必失配同拒——
- *  Office 工具产 docx 恒为纯 zip 不受影响。 */
+ *  Office 工具产 docx 恒为纯 zip 不受影响。
+ *  zip64 哨兵六字段(diskNumber/diskWithCentralDirStart/centralDirRecordsOnThisDisk/centralDirRecords
+ *  =0xFFFF,centralDirSize/centralDirOffset=0xFFFFFFFF)任一命中即 zip_directory_invalid——否则 jszip
+ *  弃声明面走 zip64 EOCD 覆写路径,守卫审的目录不再是 jszip 实读的目录(C5 实锤绕过形)。注释区声明
+ *  长度不得越过缓冲余量(与 jszip 读法恒等,消除守卫放行而解析器越界抛错的判定缝)。 */
 export function assertDocxZipWithinCaps(buffer: Buffer): void {
   const EOCD_MIN = 22;
   if (buffer.length < EOCD_MIN) throw zipGuardErr('zip_directory_invalid');
@@ -129,6 +144,15 @@ export function assertDocxZipWithinCaps(buffer: Buffer): void {
     if (buffer.readUInt32LE(i) === ZIP_EOCD_SIG) { eocd = i; break; }
   }
   if (eocd < 0) throw zipGuardErr('zip_directory_invalid');
+  if (buffer.readUInt16LE(eocd + 20) > buffer.length - eocd - EOCD_MIN) throw zipGuardErr('zip_directory_invalid');   // 注释区声明不越缓冲余量
+  if (
+    buffer.readUInt16LE(eocd + 4) === ZIP64_SENTINEL_16 ||     // diskNumber
+    buffer.readUInt16LE(eocd + 6) === ZIP64_SENTINEL_16 ||     // diskWithCentralDirStart
+    buffer.readUInt16LE(eocd + 8) === ZIP64_SENTINEL_16 ||     // centralDirRecordsOnThisDisk
+    buffer.readUInt16LE(eocd + 10) === ZIP64_SENTINEL_16 ||    // centralDirRecords
+    buffer.readUInt32LE(eocd + 12) === ZIP64_SENTINEL_32 ||    // centralDirSize
+    buffer.readUInt32LE(eocd + 16) === ZIP64_SENTINEL_32       // centralDirOffset
+  ) throw zipGuardErr('zip_directory_invalid');                 // zip64 覆写路径触发面:命中即拒,守卫审的目录=jszip 实读的目录
   const totalEntries = buffer.readUInt16LE(eocd + 10);
   if (totalEntries > DOCX_ZIP_MAX_ENTRIES) throw zipGuardErr('zip_entry_overflow');
   const cdOffset = buffer.readUInt32LE(eocd + 16);

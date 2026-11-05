@@ -3,6 +3,7 @@
  * 测:格式探测(pdf/docx/image/text)· 清洗(控制字符/空白/空行/不间断空格)· 文本直通 · 图片抛 OCR
  *    · 解压守卫双帽负例/恰帽边界/多条目正例旁证(条目数/解压总量·fail-closed 先于 worker spawn)
  *    · EOCD 字段谎报自洽检负例/真实三件同构变体两向(越帽拒·同构合法件必通)。
+ *    · EOCD 六字段 zip64 哨兵负例(C5 覆写形·守卫审的目录=jszip 实读的目录)/注释区越界廉价检。
  */
 import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf, assertDocxZipWithinCaps } from '../src/resume-extract.ts';
 
@@ -204,6 +205,84 @@ ok(realBombSeam === 'zip_entry_overflow', '负例一变体:真实三件 1001 条
 const realWide1000 = craftDocx([...realDocxEntries, ...fillerEntries(997, 'word/media/img')]);
 const rRealWide = await extractResumeText(realWide1000, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-real-1000.docx');
 ok(rRealWide.format === 'docx' && rRealWide.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', '负例一变体对向:恰 1000 条目同构合法件全链必通·输出与 A1 恒等(反事实仓内机证)');
+// rev r3 负例(zip64 覆写类):EOCD 六字段任一命中 zip64 哨兵(diskNumber/diskWithCentralDirStart/
+// centralDirRecordsOnThisDisk/centralDirRecords=0xFFFF·centralDirSize/centralDirOffset=0xFFFFFFFF 字形
+// ——jszip zipEntries.js:190 zip64 判定全集,MAX_VALUE_16BITS=65535/MAX_VALUE_32BITS=-1 即同字形)
+// → jszip 弃 EOCD 声明面走 zip64 EOCD 覆写路径:以 zip64 记录覆写条目数/目录大小/目录偏移后另读一张
+// 目录——守卫只审声明面目录则与 jszip 实读目录分叉。fixture=C5 探针形:守卫可见良性 CD(3 条目·
+// cdOffset+cdSize 恰抵 EOCD·恰被 3 条目耗尽)+敌对 CD(151 条目)+zip64 EOCD 记录+locator,EOCD 声明面
+// 全自洽仅单哨兵位命中——修复前守卫声明面 PASS、mammoth 全链 ACCEPT 151 条目(席2 实锤),修复后
+// 守卫哨兵位即拒 zip_directory_invalid(guard 直证 + 生产缝全链·worker 零 spawn)。
+function craftZip64OverrideDocx(sentinelOffset: 4 | 6 | 8 | 10 | 12 | 16): Buffer {
+  const hostile: Array<[string, string]> = [['word/document.xml', realDocxEntries[2][1]], ...Array.from({ length: 150 }, (_, i) => [`h/f${String(i).padStart(3, '0')}.xml`, `<x n="${i}"/>`] as [string, string])];
+  const locals: Buffer[] = [];
+  const hostileCd: Buffer[] = [];
+  let cursor = 0;
+  for (const [name, content] of hostile) {
+    const nameB = Buffer.from(name, 'utf8');
+    const data = Buffer.from(content, 'utf8');
+    const lh = Buffer.alloc(30);
+    lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(20, 4); lh.writeUInt16LE(0x0800, 6);
+    lh.writeUInt32LE(crc32(data), 14); lh.writeUInt32LE(data.length, 18); lh.writeUInt32LE(data.length, 22);
+    lh.writeUInt16LE(nameB.length, 26); lh.writeUInt16LE(0, 28);
+    locals.push(lh, nameB, data);
+    const ch = Buffer.alloc(46);
+    ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0x2100, 14);
+    ch.writeUInt32LE(crc32(data), 16); ch.writeUInt32LE(data.length, 20); ch.writeUInt32LE(data.length, 24);
+    ch.writeUInt16LE(nameB.length, 28); ch.writeUInt32LE(cursor, 42);
+    hostileCd.push(ch, nameB);
+    cursor += 30 + nameB.length + data.length;
+  }
+  const yStart = cursor;
+  const z64Pos = yStart + hostileCd.reduce((s, b) => s + b.length, 0);
+  const benignCdParts: Buffer[] = [];
+  for (const [name, content] of [['a.xml', '<a/>'], ['b.xml', '<b/>'], ['c.xml', '<c/>']] as Array<[string, string]>) {
+    const nameB = Buffer.from(name, 'utf8');
+    const data = Buffer.from(content, 'utf8');
+    const ch = Buffer.alloc(46);
+    ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0x2100, 14);
+    ch.writeUInt32LE(crc32(data), 16); ch.writeUInt32LE(data.length, 20); ch.writeUInt32LE(data.length, 24);
+    ch.writeUInt16LE(nameB.length, 28); ch.writeUInt32LE(0, 42);
+    benignCdParts.push(ch, nameB);
+  }
+  const benignCd = Buffer.concat(benignCdParts);
+  const xStart = z64Pos + 76;   // zip64 EOCD 记录(56B)+zip64 locator(20B)
+  const ePos = xStart + benignCd.length;
+  const z64 = Buffer.alloc(56);
+  z64.writeUInt32LE(0x06064b50, 0); z64.writeBigUInt64LE(44n, 4);   // 声明 size 44 → 扩展区循环 0
+  z64.writeBigUInt64LE(BigInt(hostile.length), 24); z64.writeBigUInt64LE(BigInt(hostile.length), 32);   // 覆写后条目数=151
+  z64.writeBigUInt64LE(BigInt(ePos - yStart - 76), 40); z64.writeBigUInt64LE(BigInt(yStart), 48);       // 覆写后目录大小/偏移(extraBytes=0 对齐)
+  const loc = Buffer.alloc(20);
+  loc.writeUInt32LE(0x07064b50, 0); loc.writeBigUInt64LE(BigInt(z64Pos), 8); loc.writeUInt32LE(1, 16);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(3, 10); eocd.writeUInt32LE(benignCd.length, 12); eocd.writeUInt32LE(xStart, 16); eocd.writeUInt16LE(0, 20);   // 声明面:良性 CD 全自洽
+  if (sentinelOffset === 12 || sentinelOffset === 16) eocd.writeUInt32LE(0xffffffff, sentinelOffset);
+  else eocd.writeUInt16LE(0xffff, sentinelOffset);
+  return Buffer.concat([...locals, ...hostileCd, z64, loc, benignCd, eocd]);
+}
+const ZIP64_SENTINEL_FIELDS: Array<[string, 4 | 6 | 8 | 10 | 12 | 16]> = [
+  ['diskNumber', 4], ['diskWithCentralDirStart', 6], ['centralDirRecordsOnThisDisk', 8],
+  ['centralDirRecords', 10], ['centralDirSize', 12], ['centralDirOffset', 16],
+];
+for (const [field, off] of ZIP64_SENTINEL_FIELDS) {
+  const buf = craftZip64OverrideDocx(off);
+  ok(guardCodeOf(() => assertDocxZipWithinCaps(buf)) === 'zip_directory_invalid', `守卫 zip64 哨兵:EOCD+${off} ${field}=哨兵(C5 形) → zip_directory_invalid`);
+  let z64Seam = '';
+  try { await extractResumeText(buf, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', `z64-${off}.docx`); } catch (e) { z64Seam = codeOf(e); }
+  ok(z64Seam === 'zip_directory_invalid', `zip64 哨兵负例:EOCD+${off} ${field} 经生产缝 → zip_directory_invalid(worker 零 spawn)`);
+}
+// rev r3 廉价检(判定缝):EOCD 注释区声明长度不得越过缓冲余量——否则守卫放行而 jszip readData
+// 越界抛错,守卫 ACCEPT 判定与解析器实际行为分叉。守卫注释区核验与 jszip 读法恒等,越界形 guard 即拒。
+const commentLenOverride = (buf: Buffer, val: number): Buffer => {
+  const b = Buffer.from(buf);   // 深拷贝:不动 realDocx 原 fixture 字节
+  b.writeUInt16LE(val, b.length - 22 + 20);
+  return b;
+};
+ok(guardCodeOf(() => assertDocxZipWithinCaps(commentLenOverride(realDocx, 0xffff))) === 'zip_directory_invalid', '守卫廉价检:EOCD 注释区声明越过缓冲余量 → zip_directory_invalid');
+let cmtSeam = '';
+try { await extractResumeText(commentLenOverride(realDocx, 0xffff), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'lie-comment.docx'); } catch (e) { cmtSeam = codeOf(e); }
+ok(cmtSeam === 'zip_directory_invalid', '廉价检负例:注释区越界形经生产缝 → zip_directory_invalid(worker 零 spawn)');
 
 // 7. #108/#109 伴生:真实 PDF 提取正例——手构合法 xref(禁依赖 pdf.js recovery 模式)·pdf-parse 端到端
 //    经 worker isolate(#108)全链提取并断言非空文本输出(补 worker+pdf-parse happy path 零覆盖面)。
