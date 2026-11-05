@@ -38,8 +38,8 @@ export async function proxyInterviewTranscribe(input: {
       status: upstream.status,
       headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' },
     });
-  } catch (error: any) {
-    if (error?.name === 'AbortError') throw error;   // 客户端取消:取消合同零变化
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') throw error;   // 客户端取消:取消合同零变化
     return Response.json({ error: 'upstream_unavailable' }, { status: 502 });
   }
 }

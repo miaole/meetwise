@@ -37,8 +37,8 @@ export async function openInterviewEventsUpstream(input: {
       `${input.apiBase}/interview/${encodeURIComponent(input.interviewId)}/events`,
       { headers, signal: controller.signal },
     );
-  } catch (error: any) {
-    if (error?.name === 'AbortError') throw error;   // 客户端取消:取消合同零变化
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') throw error;   // 客户端取消:取消合同零变化
     return new Response('stream_unavailable', { status: 502 });
   } finally {
     if (timer !== undefined) clearTimeout(timer);

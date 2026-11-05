@@ -80,7 +80,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 0));
     c2.abort();
     let rejected2 = false;
-    try { await p2; } catch (e: any) { rejected2 = e?.name === 'AbortError'; }
+    try { await p2; } catch (e) { rejected2 = (e as { name?: string })?.name === 'AbortError'; }
     assert('ASR 代理无 timeoutMs → 信号同一性取消合同零变化', observed2 === c2.signal && rejected2);
   }
 

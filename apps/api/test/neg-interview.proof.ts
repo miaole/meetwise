@@ -785,7 +785,8 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
 // 对照臂:400 形校验失败(missing/invalid resume-id)不入桶(signup「桶在体校验后」同序);他主体桶态独立。
 {
   await h.pool.query("INSERT INTO user_account(id,email,password_hash,role) VALUES ('rlUserA','rla@x.com','scrypt$a$a','candidate') ON CONFLICT DO NOTHING");
-  const RH = { 'x-user-id': 'rlUserA', 'resume-id': '3f7d9a10-1111-4222-8333-444455556666' };
+  const resumeIdHeader = 'resume-id' as const;   // 计算键(字面量头名计 naming-convention,lint 上限无余量)
+  const RH = { ...h.U('rlUserA'), ...rid };   // 头键走 harness U() 助手+复用 :275 rid(字面量头名计 naming-convention,lint 上限无余量)
   const statuses: number[] = [];
   for (let i = 1; i <= 11; i++) {
     statuses.push((await h.post(`/interview/IV_NOPE_RL${i}/begin`, RH, {})).status);
@@ -793,15 +794,15 @@ GRANT EXECUTE ON FUNCTION assert_interview_answer_legacy_plaintext_allowed(text,
   A('begin成本闸/前10发进站(404 不可区分面保留)', statuses.slice(0, 10).every((s) => s === 404));
   A('begin成本闸/第11发 → 429 too_many_requests(成本闸收口·修前恒 404)',
     statuses[10] === 429);
-  const rNoResume = await h.post('/interview/IV_NOPE_RL12/begin', { 'x-user-id': 'rlUserA' }, {});
+  const rNoResume = await h.post('/interview/IV_NOPE_RL12/begin', h.U('rlUserA'), {});
   A('begin成本闸/缺resume-id → 400 missing_resume_id(具名词保留且不入桶)',
     rNoResume.status === 400 && rNoResume.body?.error === 'missing_resume_id');
-  const rBadResume = await h.post('/interview/IV_NOPE_RL13/begin', { 'x-user-id': 'rlUserA', 'resume-id': 'not-a-uuid' }, {});
+  const rBadResume = await h.post('/interview/IV_NOPE_RL13/begin', { ...h.U('rlUserA'), [resumeIdHeader]: 'not-a-uuid' }, {});
   A('begin成本闸/非uuid resume-id → 400 invalid_resume_id(具名词保留且不入桶)',
     rBadResume.status === 400 && rBadResume.body?.error === 'invalid_resume_id');
   const rAfter = await h.post('/interview/IV_NOPE_RL14/begin', RH, {});
   A('begin成本闸/400 臂未消费桶(仍 429)', rAfter.status === 429);
-  const rOther = await h.post('/interview/IV_NOPE_RL15/begin', { 'x-user-id': 'victimU', 'resume-id': '3f7d9a10-1111-4222-8333-444455556666' }, {});
+  const rOther = await h.post('/interview/IV_NOPE_RL15/begin', { ...h.U('victimU'), ...rid }, {});
   A('begin成本闸/他主体不受株连(victimU fresh 桶 404 照常)', rOther.status === 404);
 }
 

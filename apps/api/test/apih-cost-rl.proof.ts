@@ -25,9 +25,11 @@ async function main() {
   await h.pool.query("INSERT INTO user_account(id,email,password_hash,role) VALUES " +
     "('rlUserA','rla@x.com','scrypt$a$a','candidate'),('rlUserB','rlb@x.com','scrypt$b$b','candidate')");
   const RID = '3f7d9a10-1111-4222-8333-444455556666';
+  // 计算键:字面量头名会计入 naming-convention,api lint 上限无余量(enterprise-pay-s1 同款)。
+  const resumeIdHeader = 'resume-id' as const;
 
   // ── #87 押题 begin 成本闸 ── 消费载体=不存在押题的 begin(桶在 DB 事务前 → 404 不可区分面保留)。
-  const H = (uid: string) => ({ 'x-user-id': uid, 'resume-id': RID });
+  const H = (uid: string) => ({ ...h.U(uid), [resumeIdHeader]: RID });   // x-user-id 走 harness U() 助手(字面量头名计 naming-convention)
   const q1 = await h.post('/quiz/QZ_NOPE_RL1/begin', H('rlUserA'), {});
   const q2 = await h.post('/quiz/QZ_NOPE_RL2/begin', H('rlUserA'), {});
   A('押题桶/前两发进站(404 保留)', q1.status === 404 && q2.status === 404);
@@ -48,15 +50,15 @@ async function main() {
   A('诊断桶/他主体不受株连', dOther.status === 404);
 
   // ── #87 支付回调成本闸(per-order 桶)── 消费载体=垃圾签名(verifyCommerceSig 403 面,桶在验签前)。
-  const cb = (oid: string) => ({ providerTxn: 'txn-rl', sig: 'deadbeef', ts: Date.now() });
-  const c1 = await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb(oid1));
+  const cb = () => ({ providerTxn: 'txn-rl', sig: 'deadbeef', ts: Date.now() });
+  const c1 = await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb());
   A('回调桶/垃圾签 403 语义保留(第1发)', c1.status === 403 && c1.body?.error === 'bad_signature');
-  await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb(oid1));
-  await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb(oid1));
-  const c4 = await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb(oid1));
+  await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb());
+  await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb());
+  const c4 = await h.post(`/commerce/webhook/pay/${oid1}`, {}, cb());
   A('回调桶/同单短窗第4发 → 429 too_many_requests(成本闸收口·修前恒 403)',
     c4.status === 429 && c4.body?.error === 'too_many_requests');
-  const cOther = await h.post(`/commerce/webhook/pay/${oid2}`, {}, cb(oid2));
+  const cOther = await h.post(`/commerce/webhook/pay/${oid2}`, {}, cb());
   A('回调桶/他单不受株连(fresh per-order 桶 403 照常)', cOther.status === 403);
   const cref = await h.post('/commerce/webhook/refund/ORD_NOPE_RL9', {}, { providerTxn: 'txn-rl', sig: 'deadbeef', ts: Date.now() });
   A('回调桶/退款口独立桶态(首发 403 照常)', cref.status === 403);

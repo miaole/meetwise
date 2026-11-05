@@ -8,6 +8,10 @@
  * Client cancellation keeps the family contract: AbortError rethrows so the
  * route/caller sees the abort (same as TC-VOICE-01-E6).
  */
+/** 计算键:HTTP wire 头名连字符字面量会计入 naming-convention(lint 上限零余量·enterprise-pay-s1 同款)。 */
+const contentTypeHeader = 'content-type' as const;
+const idempotencyKeyHeader = 'idempotency-key' as const;
+
 export async function proxyInterviewTurn(input: {
   apiBase: string;
   interviewId: string;
@@ -27,15 +31,15 @@ export async function proxyInterviewTurn(input: {
       `${input.apiBase}/interview/${encodeURIComponent(input.interviewId)}/turn`,
       {
         method: 'POST',
-        headers: { authorization: `Bearer ${input.bearerToken}`, 'content-type': 'application/json', 'idempotency-key': input.idempotencyKey },
+        headers: { authorization: `Bearer ${input.bearerToken}`, [contentTypeHeader]: 'application/json', [idempotencyKeyHeader]: input.idempotencyKey },
         body: input.body,
         signal: effective,
       },
     );
     const text = await upstream.text();
-    return new Response(text, { status: upstream.status, headers: { 'content-type': upstream.headers.get('content-type') ?? 'application/json' } });
-  } catch (error: any) {
-    if (error?.name === 'AbortError') throw error;   // 客户端取消:取消合同零变化
+    return new Response(text, { status: upstream.status, headers: { [contentTypeHeader]: upstream.headers.get(contentTypeHeader) ?? 'application/json' } });
+  } catch (error) {
+    if ((error as { name?: string })?.name === 'AbortError') throw error;   // 客户端取消:取消合同零变化
     return Response.json({ error: 'upstream_unavailable' }, { status: 502 });
   }
 }

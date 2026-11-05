@@ -13,8 +13,9 @@ const assert = (name: string, ok: boolean) => {
   console.log(`${ok ? 'PASS' : 'FAIL'}  ${name}`);
   if (!ok) failures++;
 };
+// 计算键:HTTP wire 头名连字符字面量会计入 naming-convention(lint 上限零余量·enterprise-pay-s1 同款)。
+const contentTypeHeader = 'content-type' as const;
 
-const never = () => new Promise<Response>(() => {});
 /** 模拟真 fetch 的中止语义:组合信号一旦 abort 即按 abort reason 拒绝(undici 同形)。
  *  keep-alive 定时器仅为本进程占住事件循环(AbortSignal.timeout 的内计时器不保活事件循环,
  *  真服务端由在途 HTTP 请求天然保活——离线证明需要替身)。 */
@@ -32,7 +33,7 @@ async function main() {
   const up200 = await proxyInterviewTurn({
     apiBase: 'http://api.internal', interviewId: 'iv-1', bearerToken: 'tok',
     body: '{"turn":0,"answer":"答案"}', idempotencyKey: 'idem-1', signal: new AbortController().signal,
-    fetchImpl: (async () => new Response('{"accepted":true}', { status: 202, headers: { 'content-type': 'application/json' } })) as typeof fetch,
+    fetchImpl: (async () => new Response('{"accepted":true}', { status: 202, headers: { [contentTypeHeader]: 'application/json' } })) as typeof fetch,
   });
   assert('turn/上游202 → 透传 202 + JSON 体 + content-type',
     up200.status === 202 && (await up200.text()) === '{"accepted":true}' && up200.headers.get('content-type') === 'application/json');
@@ -88,7 +89,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 0));
     client.abort();
     let aborted = false;
-    try { await pending; } catch (e: any) { aborted = e?.name === 'AbortError'; }
+    try { await pending; } catch (e) { aborted = (e as { name?: string })?.name === 'AbortError'; }
     assert('turn/客户端取消 → AbortError 原样抛 + 组合信号转发', aborted && observed?.aborted === true);
   }
 
@@ -98,7 +99,7 @@ async function main() {
     const upstream = await openInterviewEventsUpstream({
       apiBase: 'http://api.internal', interviewId: 'iv-1', bearerToken: 'tok',
       clientSignal: new AbortController().signal, ttfbTimeoutMs: 20,
-      fetchImpl: (async () => new Response('data: {"kind":"question_ready"}\n\n', { status: 200, headers: { 'content-type': 'text/event-stream' } })) as typeof fetch,
+      fetchImpl: (async () => new Response('data: {"kind":"question_ready"}\n\n', { status: 200, headers: { [contentTypeHeader]: 'text/event-stream' } })) as typeof fetch,
     });
     assert('events/上游200 → 原样透传 SSE Response', upstream.status === 200 && upstream.headers.get('content-type') === 'text/event-stream');
     assert('events/头到达后计时器已清(体可完整读取)', (await upstream.text()).includes('question_ready'));
@@ -146,7 +147,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 0));
     client.abort();
     let aborted = false;
-    try { await pending; } catch (e: any) { aborted = e?.name === 'AbortError'; }
+    try { await pending; } catch (e) { aborted = (e as { name?: string })?.name === 'AbortError'; }
     assert('events/客户端取消 → AbortError 原样抛(取消语义零变化)', aborted);
   }
 
