@@ -1,10 +1,10 @@
 # PRIV1 · GAP-PRIV-01 owner 隔离实证 REQUEST（候选 A prove · backlog `:57` · PG-retained）
 
-**Status**: `draft:awaiting_pre_exec_dual`
+**Status**: `executed:awaiting_post_prove_dual`
 **Pins**: haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null
 **Date**: 2026-11-06
-**Rev**: r1（pre-exec dual 审后修订 · 源=`priv1-pre-1.md` PASS + `priv1-pre-2.md` FAIL·按其 §7 · 见 §0-R1/§9-R1）
-**Base / parent tip**: `origin/main` `e282c5ebd`（cap 2489 · 开工时点 origin/main 实测值 · fetch 两次失败：attempt1 默认 HTTP/2 `Failed to connect to github.com port 443` · attempt2 `-c http.version=HTTP/1.1` 同败 · origin/main 本地 ref 开工前已恰在 `e282c5ebd` · 零位移如实登记）
+**Rev**: r2（EXEC 期：rebase 并线 + r1 复审四条 P2 吸收 + 证伪路实现告警落地 · 源=EXEC 令 + `priv1-r1.md` §6 · 见 §9-R2 · r1=pre-exec dual 审后修订 · 源=`priv1-pre-1.md` PASS + `priv1-pre-2.md` FAIL·按其 §7 · 见 §0-R1/§9-R1）
+**Base / parent tip**: rebase 后基=`origin/main` `db0dc8bfe`（#214 sbg-draft 已并 · 自 r0 基 `e282c5ebd` 起 main 前进 12 commit=rtx 路由分类事务刀+rtx-status-pin+sbg 构建守卫刀两波 · EXEC 期 `git fetch origin` 一次成功（HTTP/2 默认未败·r0 起草时两连败史录如实对照保留）· 两 policy 冲突各 1 处 dual-keep（main 侧 RTX 起草/RTX nail/SBG 起草/SBG nail 注史录全保留+本支 PRIV1 起草注并留+新增 CAP-SANCTION-2495 union 注记）· cap 按合并树实测 **2493→2495** 恰等步进（main 届扫 2493=cap 2493 恰等+本支受管恰 2 件·四联动点 2_495/f-2495.md/:2496 恰等改·合并树 docs:check 届核亲跑 scanned **2495=cap 2495 恰等** EXIT=0）· rebase 后本支 tip=`a8b20cb51`）
 **Authority**: meetwise — 起草并实现刀（本卷随码起草 · 状态停在 `draft:awaiting_pre_exec_dual` · pre-exec dual BOTH PASS + 协调方 AUTHORIZE 前不 push · implementer 禁自批 · alone ≠ dual）
 **Line**: PRIV01（GAP-PRIV-01 owner 隔离实证 · 立卷刀 `line/priv01-nail` 先行 · 本刀=候选 A 实施起草）
 
@@ -52,6 +52,8 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 | `ai_model_fee_ledger` | 0120:74 | 同上全 0 | 仅 SECURITY DEFINER（record 写入路径 owner-gated；**全库无任何读取该表的函数**） | 每次调用的钱事实（金额/token 数·无 prompt/output 内容·非应用读面） |
 | `ai_model_invocation_transition_permit` | 0088:15 | 同上全 0（0088:27 `REVOKE ALL ... FROM PUBLIC, app_role`） | 仅 BEFORE 触发器消费（`ai_model_consume_transition_permit` NOT app_role-executable，实测 has_function_privilege=false） | 事务本地 capability 存根（owner/idempotency/期望状态·无内容） |
 
+**角色枚举勘正（rev r2 · r1 复审 P2-4 + EXEC 令）**：上行「其余 10 个运行时/definer 角色」系起草时普查值的**不完整清单**——非超用户角色全量实测 **24 个**（另 12 个：memory_policy_releaser/memory_reviewer/online_judge_executor/online_judge_scheduler/privacy_guard_owner/privacy_issuer/scoring_worker_executor/qbank_control_definer/rag_control_definer/rag_control_executor/rag_control_login/app_gateway_role；此为 authoring-time 普查值，**以 G 探针的机器复验为准**）。rev r2 起 G 探针不再硬编码 app_role/PUBLIC：`pg_roles` 全角色动态枚举（排除 superuser、白名单表 owner、BYPASSRLS、`pg_%` 保留）+ PUBLIC 伪角色，每次运行实测复核——终态读数 26 principals（24 角色+PUBLIC+本 proof 临时 runtime login）×3 表×四权=312 三元组全 0、violations=[]（§9-R2）。
+
 裁定：三表均「运行时角色零直接权限、只经受控函数（且入口 owner 绑定）访问、无任何 API 读面暴露用户可区分数据」——按证伪路 §7-3 第二分支进**具名白名单**：proof 内以常量列名+逐表理由，G 断言 live 复核零权限面 + SD 入口 owner-gated witness + 迁移 REVOKE 源文 witness，白名单全文写入收据，不静默放行。补 RLS 对运行时行为面零变化且属动授权根（§1 零触碰），本刀不动。
 
 ## §1 修法
@@ -71,7 +73,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **既有文件 additive 行内改（零新增件）**：根 `package.json` + `packages/db/package.json` 具名 CMD（`tenant-rls-isolation:prove` → `run-e2e-isolated.mjs tenant-rls-isolation:prove:raw` → `pnpm -C packages/db prove:tenant-rls-isolation`）；`scripts/run-e2e-isolated.mjs` 恰 4 注册点沿 `tenant-wiring-neg:prove:raw` 同形（watchlist/rawTargets/isolatedCommand 分派/pre-migrate 名单第四注册位）；两 policy 脚本 cap 链注**纯追加**（CAP-SANCTION-2491）+ 四联动点恰等改（`public-text-policy.mjs` MAX_FILES `2_489`→`2_491`、`public-text-policy.proof.mjs` loop/atCap/overCap 三处 `2_491`/`f-2491.md`/`:2492`）——不改写任何既有注记。基线亲证：起草前 main `e282c5ebd` 树 `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2489=cap 2489 恰等**。
 
-**cap 算式**：届扫 2489 + 本刀新受管件恰 2 = **2491** 恰等零多放。**在飞同号竞争如实列**（2026-11-06 本地 ref 实测 · fetch 网络败未刷新）：s3caps-draft ahead=6 / ksw-draft ahead=3 / fastm-draft ahead=3 / xs-draft ahead=14（均 merge-base 92a82a944 两 policy 热面）+ uc31-rev ahead=4（同基两 policy 热面）+ rtx-draft ahead=3（merge-base e282c5ebd=届 tip 两 policy 热面）——并线期沿常设预授权「cap 以合并树实测恰等步进免再询」届时取大重算承登，冲突区 dual-keep 双留史录。
+**cap 算式**：届扫 2489 + 本刀新受管件恰 2 = **2491** 恰等零多放。（rev r2 EXEC 期 rebase 落点如实重算承登：origin/main `db0dc8bfe` 届扫 2493=cap 2493 恰等（RTX/SBG 两波已并）→ union=2493+本支受管恰 2=**2495** 恰等零多放·预登 2491 史录保留零洗·四联动点 2_495/f-2495.md/:2496 恰等改·详 CAP-SANCTION-2495 注记。）**在飞同号竞争如实列**（2026-11-06 本地 ref 实测 · fetch 网络败未刷新）：s3caps-draft ahead=6 / ksw-draft ahead=3 / fastm-draft ahead=3 / xs-draft ahead=14（均 merge-base 92a82a944 两 policy 热面）+ uc31-rev ahead=4（同基两 policy 热面）+ rtx-draft ahead=3（merge-base e282c5ebd=届 tip 两 policy 热面）——并线期沿常设预授权「cap 以合并树实测恰等步进免再询」届时取大重算承登，冲突区 dual-keep 双留史录。
 
 **行文口径**：全文 PG-retained（`ai-docs/delivery/adr-postgres-retained.md`），零 MySQL/Qdrant 切流方向表述；隔离 shell 仅测试基础设施，≠ 产品栈变更 ≠ cutover 证据。
 
@@ -92,7 +94,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 | E2 | user_memory `p_owner`→`USING(true) WITH CHECK(true)` | 谓词恒真 | r0 红（M3+I2） | 同 r0 + M7 user_memory |
 | F | 新建 `priv_isolation_decoy(id, owner_user_id NOT NULL)` 零 RLS | 新表漏 RLS | **r0 满绿（假绿）** | G 反演差集非空 |
 
-  r0 的 MUT-PRIV1-1（`0001_baseline.sql` user_memory 手术替换 `USING (true)`）由 E2 同形追加迁移承载；r0 两读数（M3 `upd=1 del=1` + I2 `qual=false chk=false` 红）如实承登不洗。
+  r0 的 MUT-PRIV1-1（`0001_baseline.sql` user_memory 手术替换 `USING (true)`）由 E2 同形追加迁移承载；r0 两读数（M3 `upd=1 del=1` + I2 `qual=false chk=false` 红）如实承登不洗。（rev r2 EXEC 期：八形全部重跑仍全红+新增 G2 第三角色授权/H2 fence 钉自证两形，11 形读数见 §9-R2。）
 - **新 proof 绿**：`pnpm tenant-rls-isolation:prove` 隔离容器真迁移链 EXIT=0。attempts 全录：本卷 §9（r0 台账 + §9-R1 rev r1 台账）。
 - **相关既有 proof**：`pnpm db:prove` · `pnpm uc033:cross-user-authz:prove` · `pnpm neg:resume` · `pnpm tenant-wiring-neg:prove`（同锚热面回归）。
 - **静态面**：受影响包 typecheck/lint 不高于基线 · `pnpm arch` · `node scripts/e2e-static-guards.mjs` · `node scripts/provider-egress-inventory.mjs` · `node scripts/ai-docs/check-docs.mjs`（届扫 2491=cap 恰等）· `node scripts/ai-docs/public-text-policy.proof.mjs`（12/12）· markers 0。rev r1 零迁移零新增受管件，cap 不动；不跑浏览器 UI runner；不跑 `migrate:prove`/`drift:prove`（无迁移）。
@@ -103,7 +105,7 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 ## §8 停止条件
 
-`draft:awaiting_pre_exec_dual`。pre-exec dual（mw-privacy-int + mw-e2e-ha）BOTH PASS + 协调方 AUTHORIZE 前：Ban push · Ban nail · Ban self-write `post_prove_dual_pass` · Ban SSOT 翻行（backlog `:57`/checklist/matrix/queue）· Ban 翻 coveredCount · Ban 借 `:60`/`:64`/`:68` 证据 · Ban 开公开 DELETE · Ban UC-050/051/052 covered flip · Ban retry-to-green · Ban 接线 `packages/db/src/tenant/` · Ban 加 tenant/org 列 · Ban 动授权根（RLS/asPrincipal/set_config/app_role）· Ban secrets/`.env*` · Ban 冒充 dual/代签。prove 复现或门红无法收窄 → 停，如实记 attempt 报告。若双审判 M6 witness 化（apps/api 依赖不可 import）强度不足，回炉补动态守卫面（如经 apps/api 侧姊妹 proof），Ban 静默降级。
+`executed:awaiting_post_prove_dual`（EXEC 已行使·rev r2 台账见 §9-R2；r0 起草期本行承 `draft:awaiting_pre_exec_dual`·史录保留）。pre-exec dual（mw-privacy-int + mw-e2e-ha）BOTH PASS + 协调方 AUTHORIZE 前：Ban push · Ban nail · Ban self-write `post_prove_dual_pass` · Ban SSOT 翻行（backlog `:57`/checklist/matrix/queue）· Ban 翻 coveredCount · Ban 借 `:60`/`:64`/`:68` 证据 · Ban 开公开 DELETE · Ban UC-050/051/052 covered flip · Ban retry-to-green · Ban 接线 `packages/db/src/tenant/` · Ban 加 tenant/org 列 · Ban 动授权根（RLS/asPrincipal/set_config/app_role）· Ban secrets/`.env*` · Ban 冒充 dual/代签。prove 复现或门红无法收窄 → 停，如实记 attempt 报告。若双审判 M6 witness 化（apps/api 依赖不可 import）强度不足，回炉补动态守卫面（如经 apps/api 侧姊妹 proof），Ban 静默降级。
 
 ## §9（r0 台账 · 如实承登不洗 · r1 见 §9-R1）
 
@@ -150,8 +152,47 @@ r0 起草刀收两路 pre-exec 审查：`meetwise/.tmp/reviews/priv1-pre-1.md`�
 
 **门读数（r1 终验 · 2026-11-06）**：`pnpm tenant-rls-isolation:prove` EXIT=0（**98 PASS**，终态复跑 receipt `2026-11-05T19-54-40-881Z-61664-*.json`）+ 变异八形全红如上 · `pnpm db:prove` EXIT=0（四原语）· `pnpm uc033:cross-user-authz:prove` EXIT=0（51 例）· `pnpm neg:resume` EXIT=0（91 例）· `pnpm tenant-wiring-neg:prove` EXIT=0 · packages/db `tsc --noEmit` EXIT=0 · packages/db eslint 全包 **1042 warnings=cap 1042 基线恰等·0 errors**（r1 proof 文件自身 0 warning）· `pnpm arch` EXIT=0（0 error · 8 既有 warning）· `node scripts/e2e-static-guards.mjs` EXIT=0（runners=6/helpers=21/flags=9）· `node scripts/provider-egress-inventory.mjs` EXIT=0（adapters=5/operations=10/pairs=55）· `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2491=cap 2491 恰等**（r1 零新增受管件，cap 不动）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集代码面零命中）· 零迁移 → `migrate:prove`/`drift:prove` 不适用未跑 · 浏览器 UI runner 未跑。
 
-**状态**: `draft:awaiting_pre_exec_dual`
+**状态**: `executed:awaiting_post_prove_dual`
+
+## §9-R2 rev r2 EXEC 台账（2026-11-06 · 树 `line/priv1-draft` · rebase 后基 `db0dc8bfe`=#214 · 本支 tip `a8b20cb51` · 源=EXEC 令四项 + `priv1-r1.md` §6 P2×4 + `priv1-pre-2.md` §8 附记实现告警）
+
+**rev r2 内容**（r0/r1 断言面零弱化 · 只改 proof+本卷+rebase 触面，零新增受管件、零迁移、零授权根触碰）：
+
+1. **G 探针全角色动态枚举（P2-1）**：白名单三表零权限探针不再硬编码 app_role/PUBLIC——`pg_roles` 全量动态枚举（排除 superuser、白名单表 owner、BYPASSRLS、`pg_%` 保留）+ PUBLIC 伪角色，逐 (表,角色,权) 断言；唯一例外是具名三元组白名单 `RLS_FREE_GRANT_TRIPLES`——**现存恒空**（24 角色+PUBLIC×3 表×四权=312 三元组活体全 0），每条若加须写明理由+迁移 witness，为绿扩白名单 Ban。RLS 表上的设计内非 owner 访问面（event_retention_worker `qual=true` 0219 retention purge 面、p_vchunk_read qbank 面 0016/0018 已由 I2 全等钉、rag global 析取 0032 已由 I3 钉）系 **RLS 约束的 policy 面，不入本白名单**——白名单表无 RLS，一条 grant=全权无控访问；全库伴生角色 grant 面（privacy/scoring/memory/qbank/rag 诸角色·百级三元组）全部落在 relrowsecurity=true 表上受策略约束，由 I2 全等+receipt 名录钉，盲收进白名单即「为绿扩白名单」故不收。
+2. **fence 分支 + interview_privacy_active 函数体钉（P2-2）**：与 `stream_privacy_active` 首道闸钉同形（live `pg_proc.prosrc` 子串 + `rowCount===1` 防重载 + EXECUTE 面 app_role=yes/PUBLIC=no）——① `interview_event_stream_privacy_active` 首闸之后的 fence 面（interview 墓碑 `interview_privacy_active(target_stream)` 调用 + resume_quiz/resume_diagnosis 属主复核 `q/d.owner_user_id=target_owner`）；② `interview_privacy_active(text)` 自身体（0076 现行体：`principal IS NULL`/`length(principal)=0` 首闸 + `i.owner_user_id=principal` 属主复核 + 擦除围栏状态集 `'requested','fenced',...`——即 ai_graph_run 谓词的函数根）。
+3. **角色枚举勘正 24（P2-4）**：§0-R1 注记（起草 12 名系不完整普查清单；authoring-time 普查以 G 探针机器复验为准）。
+4. **I3 恰等 census 的并线落点（P2-3）**：见下行 rebase 记录。
+
+**rebase 与 census 重计（EXEC 令①·设计行为逐条亲证）**：`git fetch origin` 一次成功（HTTP/2 默认未败）→ origin/main `db0dc8bfe`=#214（rtx+rtx-status-pin+sbg 三刀 12 commit）· rebase 冲突=两 policy 脚本各 1 处，dual-keep（main 侧 RTX 起草/RTX nail/SBG 起草/SBG nail 注史录全保留+本支 PRIV1 起草注并留+新增 **CAP-SANCTION-2495** union 注）· cap 按合并树实测 **2493→2495** 恰等步进（main 届扫 2493=cap 2493 恰等+本支受管恰 2；四联动点 2_495/f-2495.md/:2496 恰等改；合并树 docs:check 届核亲跑 scanned **2495=cap 2495** EXIT=0）· **I3 EXACT census：主线新增迁移=0**（`git diff e282c5ebd..db0dc8bfe -- packages/db/migrations` 空·迁移链 222 件不变·rtx/sbg 两刀零迁移零新表）→ 340/166 **无漂移**，数字未动系逐表核查后实测无漂移、非静默改数（活体亲证 I3 EXACT 绿：policies=340/340 · rlsTables=166/166）；主线新增带归属列表=0，**无新增表处置项**。机制结论（白名单三表裁定、I2 全等谓词、M1–M7 行为面、S 静态钉）在届 tip 活体复验全部成立，无停下上报事由。
+
+**prove attempts（Asia/Shanghai）**：
+
+| # | 时点 | CMD | EXIT | 读数 |
+|---|---|---|---|---|
+| R2-1 | 04:32 | `pnpm tenant-rls-isolation:prove`（真树终码首跑） | 0 | **101 PASS**（=R1 98+新断言 3）· receipt：policies=340 · rlsTables=166 · ownerColumnCensus=112/109/未覆盖恰 3 白名单表 · **allowlistProbe principals=26 · triples=312 · namedTriples=0 · violations=[]** |
+| R2-2 | 04:35 / 04:37 | 同上（/tmp 克隆基线·首两跑） | 1 | 环境红 `isolated_postgres_database_not_ready:boot`——克隆缺 `packages/db/node_modules`（pnpm workspace 依赖面）→ host 探针模块解析失败·补 symlink 后消除·非隔离/断言面红·如实登记 |
+| R2-3 | 04:40 | 同上（克隆基线终跑） | 0 | 101 PASS · applied=222 |
+
+**变异（`/tmp/priv1-exec-mut` = clone @ `a8b20cb51` + 工作树终码 proof/policy 三件 + node_modules 双 symlink；每跑追加 `0225_mut_<ID>.sql`、`applied=223` 逐跑亲证、跑后删变异文件·迁移目录还原 222 件亲证；log `/tmp/priv1-exec-mut-<ID>.log`）**——**11 形全红（EXIT=1）**：
+
+| ID | 变异 SQL（追加迁移） | 失败数 | 红读数（首因） |
+|---|---|---|---|
+| A | `DROP POLICY p_owner ON ai_graph_run` | 6 | M7 ai_graph_run 行为臂×3 + I2 appFacing=空×2 + I3 census 339/340 |
+| A2 | `DROP POLICY p_owner ON interview_event` | 5 | M7 interview_event 行为臂×2（r0 假绿形态保持红）+ I2 appFacing=空×2 + census 339/340 |
+| B | `ALTER TABLE user_memory NO FORCE ROW LEVEL SECURITY` | 1 | I1 user_memory force=false |
+| C | `ALTER ROLE app_role BYPASSRLS` | 33 | 行为面全红（M1 rowCount=1 · M2 insert-succeeded · M3 upd=1 del=1 · M4a/b n=5 等） |
+| D | interview `p_owner` 谓词加 `OR current_setting(...) IS NULL` | 3 | M5f n=4（真登录 GUC 未设全泄）+ I2 interview readExact/writeExact=false |
+| E | interview_event `p_owner`→`USING(true) WITH CHECK(true)` | 3 | M7 sel neg=1（恒真世界真实泄漏被抓）+ I2 readExact/writeExact=false |
+| E2 | user_memory `p_owner`→`USING(true) WITH CHECK(true)` | 6 | M3 upd=1 del=1 + M7 user_memory×3 + I2 ×2 |
+| F | 新建 `priv_isolation_decoy(owner_user_id)` 零 RLS | 1 | G 反演 uncovered=[3 白名单+decoy] census=113/109 |
+| G1 | `GRANT SELECT ON ai_model_fee_ledger TO app_role` | 2 | G allowlist held=[app_role:SELECT] + receipt violations=[(ai_model_fee_ledger,app_role,SELECT)]——白名单非永久豁免保持 |
+| G2（EXEC 新增·第三角色授权） | `GRANT SELECT ON ai_model_concurrency_lease TO memory_runtime` | 2 | **r1 复审同形假绿转红**：held=[memory_runtime:SELECT] + violations=[(ai_model_concurrency_lease,memory_runtime,SELECT)]——全角色枚举后第三角色漂移必红（EXEC 令验证项达成） |
+| H2（EXEC 新增·fence 钉自证） | `interview_event_stream_privacy_active` 体改：首闸保持、删墓碑 fence 调用+quiz/diagnosis 属主复核 | 1 | I2 fence 分支钉 fence=false（首闸钉 rows=1 仍绿——变异只坏 fence 面即被新钉抓捕·新钉有牙实证） |
+
+**门读数（r2 终验 · 2026-11-06）**：新 proof EXIT=0（**101 PASS** · 真树 receipt `2026-11-05T20-33-01-964Z-95677-*.json` + 终态复跑 `20-38-01-771Z-14054-*.json`）+ 变异 11 形全红如上 · `pnpm db:prove` EXIT=0（四原语）· `pnpm uc033:cross-user-authz:prove` EXIT=0（51 例）· `pnpm neg:resume` EXIT=0（91 例）· packages/db `tsc --noEmit` EXIT=0 · packages/db eslint 全包 **1042 warnings=cap 1042 基线恰等 · 0 errors**（proof 文件自身 0 warning）· `pnpm arch` EXIT=0（0 error · 8 既有 warning）· `node scripts/e2e-static-guards.mjs` EXIT=0（runners=6/helpers=21/flags=9）· `node scripts/provider-egress-inventory.mjs` EXIT=0（adapters=5/operations=10/pairs=55）· `node scripts/ai-docs/check-docs.mjs` EXIT=0 scanned **2495=cap 2495 恰等**（rebase union 步进·见 CAP-SANCTION-2495）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12** EXIT=0 · markers=0（改动集代码面零命中）· 零迁移 → `migrate:prove`/`drift:prove` 不适用未跑 · 浏览器 UI runner 未跑（按派单）。
+
+**状态**: `executed:awaiting_post_prove_dual`
 
 ---
 
-**Status**: `draft:awaiting_pre_exec_dual`（起草并实现随刀 · rev r1 按证伪路 §7 修订完成，两份审查已登记 §9-R1 · prove/mutation 读数已实测在卷 · pre-exec dual BOTH PASS + 协调方 AUTHORIZE 前 Ban push/Ban nail/Ban SSOT · alone ≠ dual · STOP）
+**Status**: `executed:awaiting_post_prove_dual`（起草并实现随刀 · rev r1 按证伪路 §7 修订完成，两份审查已登记 §9-R1 · rev r2 EXEC 期 rebase 并线+四条 P2 吸收+变异 11 形全红+门全绿，台账 §9-R2 · post-prove dual BOTH PASS + 协调方 AUTHORIZE 前 Ban push/Ban nail/Ban SSOT · alone ≠ dual · STOP）

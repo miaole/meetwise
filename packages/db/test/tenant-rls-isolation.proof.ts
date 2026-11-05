@@ -36,6 +36,22 @@
  *      (REVOKE ALL + SECURITY DEFINER-only access paths), recorded in the
  *      receipt. Silent allowance is Ban'd.
  *
+ * rev r2 (EXEC 期, four P2 items absorbed per EXEC order + falsification-path
+ * implementation warnings; zero weakening of r0/r1 faces):
+ *   a. G allowlist zero-privilege probe no longer hardcodes app_role/PUBLIC:
+ *      it dynamically enumerates EVERY principal from pg_roles (minus superusers,
+ *      minus BYPASSRLS holders, minus pg_ reserved, minus the probed table's
+ *      owner) plus the PUBLIC pseudo-role, and asserts zero table privileges for
+ *      all of them. The only escape is the named (table, role, privilege) triple
+ *      allowlist — deliberately EMPTY today, every hypothetical entry needs a
+ *      written reason; widening it to green a live grant is Ban'd.
+ *   b. Fence-branch body pins (same form as the r1 stream_privacy_active
+ *      first-gate pin: live prosrc substrings + rowCount===1 anti-reload):
+ *      interview_event_stream_privacy_active's post-gate fence face (interview
+ *      tombstone fence call + resume_quiz/resume_diagnosis owner re-checks) and
+ *      interview_privacy_active's own body (first owner gate + erasure-fence
+ *      status set — the ai_graph_run predicate's root).
+ *
  * Faces (nail REQUEST `gap-priv-01-tenant-rls.md` §3 · C-P3: matrix 6 + introspection 3, no weakening):
  *   M1  cross-owner SELECT isolation   — owner A SELECT owner B interview row → 0 rows
  *                                        (positive controls: A self-read ≥1 · B self-read ≥1 — no idle-green)
@@ -78,9 +94,12 @@
  *                                        separately, never mixed into the owner-data face conclusion
  *   G   whole-DB owner-column inversion — every table (relkind r/p) carrying owner_user_id / tenant_id /
  *                                        org_id / workspace_id must have relrowsecurity=true; uncovered ⊆
- *                                        named RLS-free allowlist (each member live-proven zero app_role AND
- *                                        zero PUBLIC table privileges + SECURITY DEFINER owner-gated entry
- *                                        witnesses); allowlist + owner-column census written into receipt
+ *                                        named RLS-free allowlist (each member live-proven zero table
+ *                                        privileges across ALL dynamically enumerated principals — rev r2,
+ *                                        superuser/owner/BYPASSRLS/pg_ excluded, PUBLIC included — with a
+ *                                        named empty (table,role,privilege) triple allowlist as the only
+ *                                        escape + SECURITY DEFINER owner-gated entry witnesses);
+ *                                        allowlist + owner-column census + principal probe counts into receipt
  *   T1  tenant/org record introspection — information_schema/pg_policies assert no tenant_id/org_id/workspace
  *                                        column or tenant predicate policy exists (record-only: owner-only
  *                                        status is an explicit deferred design extension, 0001_baseline.sql:280-281 —
@@ -207,6 +226,25 @@ const RLS_FREE_ALLOWLIST: readonly { table: string; reason: string }[] = [
 ];
 const ATTRIBUTION_COLUMNS = ['owner_user_id', 'tenant_id', 'org_id', 'workspace_id'] as const;
 
+/** rev r2 (EXEC P2-1): named (table, role, privilege) triple allowlist for the
+ *  RLS-free tables' zero-privilege probe. Deliberately EMPTY today — live census
+ *  (2026-11-06, one-off container, full 222-file chain): all 24 non-superuser
+ *  roles + PUBLIC hold zero SELECT/INSERT/UPDATE/DELETE on all three allowlist
+ *  tables. The machine probe below re-verifies this every run; any live grant
+ *  outside a listed triple turns the proof red (mutation G2: GRANT SELECT on
+ *  ai_model_fee_ledger TO memory_runtime → red).
+ *
+ *  Designed non-owner access faces that DO exist in this database live on
+ *  RLS-enabled tables as RLS-constrained POLICY faces — e.g. event_retention_worker's
+ *  qual=true on interview_event (0219 retention purge face), p_vchunk_read's qbank
+ *  face on vector_chunk (0016/0018, pinned exact by I2 EXPECTED_READ), rag_corpus_document's
+ *  visibility='global' disjunction (0032, pinned by I3 shared-corpus face). Those are
+ *  NOT eligible here: this allowlist only covers tables WITHOUT RLS, where a single
+ *  grant equals full uncontrolled access and there is no policy layer to constrain it.
+ *  Adding an entry requires a concrete reason + migration witness; widening it to
+ *  turn a live grant green is Ban'd. */
+const RLS_FREE_GRANT_TRIPLES: readonly { table: string; role: string; privilege: string; reason: string }[] = [];
+
 /** Census baseline pinned to THIS branch's migration chain (222 files, no new
  *  migration in rev r1). If a rebase/merge moves the chain, re-count and update
  *  these two constants consciously — drift must never green silently. */
@@ -251,6 +289,7 @@ interface Receipt {
   tenantOrgObservation: { tenantColumns: number; tenantPredicatePolicies: number };
   ownerColumnCensus: { tablesWithAttributionColumn: number; withRls: number; uncoveredWithoutRls: string[] };
   rlsFreeAllowlist: { table: string; reason: string }[];
+  allowlistProbe: { principalsProbed: number; triplesProbed: number; namedTripleAllowlistSize: number; violations: string[] };
 }
 
 const receipt: Receipt = {
@@ -262,6 +301,7 @@ const receipt: Receipt = {
   tenantOrgObservation: { tenantColumns: -1, tenantPredicatePolicies: -1 },
   ownerColumnCensus: { tablesWithAttributionColumn: -1, withRls: -1, uncoveredWithoutRls: [] },
   rlsFreeAllowlist: RLS_FREE_ALLOWLIST.map((x) => ({ table: x.table, reason: x.reason })),
+  allowlistProbe: { principalsProbed: -1, triplesProbed: -1, namedTripleAllowlistSize: RLS_FREE_GRANT_TRIPLES.length, violations: [] },
 };
 
 let envFailed: string | null = null;
@@ -757,6 +797,39 @@ try {
       A('I2 interview_event function gate: live prosrc carries the first owner gate (principal NULL/mismatch → false)',
         fn.rowCount === 1 && gate && f.app_exec === true && f.public_exec === false,
         `rows=${String(fn.rowCount)} gate=${String(gate)} appExec=${String(f.app_exec)} publicExec=${String(f.public_exec)}`);
+
+      // rev r2 (EXEC P2-2): the first gate alone does not pin the POST-gate fence
+      // face — a mutation that only defangs the fence branches (drops the interview
+      // tombstone fence call, or drops the resume_quiz/resume_diagnosis owner
+      // re-check) previously stayed green. Same pin form: live prosrc substrings +
+      // rowCount===1 anti-reload.
+      const fence = src.includes('interview_privacy_active(target_stream)')
+        && src.includes('q.owner_user_id=target_owner')
+        && src.includes('d.owner_user_id=target_owner');
+      A('I2 interview_event fence branch: tombstone fence call + quiz/diagnosis owner re-checks pinned in live prosrc (post-first-gate face)',
+        fn.rowCount === 1 && fence,
+        `rows=${String(fn.rowCount)} fence=${String(fence)}`);
+    }
+
+    // rev r2 (EXEC P2-2): interview_privacy_active(text) is the fence root under the
+    // ai_graph_run predicate (AI_GRAPH_RUN_PRED calls interview_privacy_active(thread_id))
+    // and of the tombstone face above. Pin its body: first owner gate substrings +
+    // erasure-fence status set, same form (live prosrc + rowCount===1 + EXECUTE face).
+    {
+      const fn = await admin.query(
+        `SELECT p.prosrc,
+                has_function_privilege('app_role', p.oid, 'EXECUTE') AS app_exec,
+                has_function_privilege('public', p.oid, 'EXECUTE') AS public_exec
+           FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+          WHERE n.nspname='public' AND p.proname='interview_privacy_active'`);
+      const f = fn.rows[0] ?? {};
+      const src = String(f.prosrc ?? '');
+      const gate = src.includes('principal IS NULL') && src.includes('length(principal)=0')
+        && src.includes('i.owner_user_id=principal') && src.includes('IF NOT FOUND THEN RETURN false');
+      const fenceSet = src.includes("'requested','fenced','purging','pending_external','completed','partial_failed','authorization_paused'");
+      A('I2 interview_privacy_active body: first owner gate + erasure-fence status set pinned in live prosrc (ai_graph_run predicate root; 0076 current body)',
+        fn.rowCount === 1 && gate && fenceSet && f.app_exec === true && f.public_exec === false,
+        `rows=${String(fn.rowCount)} gate=${String(gate)} fenceSet=${String(fenceSet)} appExec=${String(f.app_exec)} publicExec=${String(f.public_exec)}`);
     }
   }
 
@@ -798,7 +871,9 @@ try {
   // allowed). The inversion: EVERY table (relkind r/p) carrying owner_user_id or a
   // tenant/org/workspace attribution column MUST have RLS enabled. The uncovered set must be
   // empty OR exactly the named RLS_FREE_ALLOWLIST — never anything unnamed — and each
-  // allowlist member is live-proven to hold ZERO app_role and ZERO PUBLIC table privileges
+  // allowlist member is live-proven to hold ZERO table privileges across ALL dynamically
+  // enumerated principals (rev r2: superuser/owner/BYPASSRLS/pg_ excluded, PUBLIC included,
+  // app_role in the set; named empty triple allowlist is the only escape)
   // (REVOKE ALL + SECURITY DEFINER-only access), so no user-reachable face exists to protect.
   {
     const uncoveredRows = await admin.query(
@@ -828,18 +903,50 @@ try {
       uncovered.every((t) => allowNames.includes(t)),
       `uncovered=[${uncovered.join(',')}] allowlist=[${allowNames.join(',')}] census=${String(census.rows[0]?.n)}/${String(census.rows[0]?.rls)}`);
 
+    // rev r2 (EXEC P2-1): zero-privilege probe across ALL principals. Dynamically
+    // enumerated from pg_roles — superusers, BYPASSRLS holders, pg_ reserved roles
+    // and the probed table's owner are EXCLUDED (they access by definition); the
+    // PUBLIC pseudo-role joins the must-be-zero set. app_role is in the enumerated
+    // set (no longer hardcoded), so this face subsumes the r1 probe. The only
+    // exception is the named empty triple allowlist above.
+    const principalRows = await admin.query(
+      `SELECT r.rolname
+         FROM pg_roles r
+        WHERE r.rolname NOT LIKE 'pg\\_%'
+          AND NOT r.rolsuper AND NOT r.rolbypassrls
+          AND NOT EXISTS (SELECT 1 FROM pg_class c
+                           WHERE c.relowner = r.oid
+                             AND c.relnamespace = 'public'::regnamespace
+                             AND c.relname = ANY($1::text[]))
+        ORDER BY r.rolname`, [allowNames]);
+    const principals = ['public', ...principalRows.rows.map((x: { rolname: string }) => x.rolname)];
+    const tripleAllowed = (t: string, role: string, priv: string) =>
+      RLS_FREE_GRANT_TRIPLES.some((x) => x.table === t && x.role === role && x.privilege === priv);
+    const violations: string[] = [];
     for (const entry of RLS_FREE_ALLOWLIST) {
       const probe = await admin.query(
-        `SELECT has_table_privilege('app_role',$1,'SELECT') rs, has_table_privilege('app_role',$1,'INSERT') ri,
-                has_table_privilege('app_role',$1,'UPDATE') ru, has_table_privilege('app_role',$1,'DELETE') rd,
-                has_table_privilege('public',$1,'SELECT') ps, has_table_privilege('public',$1,'INSERT') pi,
-                has_table_privilege('public',$1,'UPDATE') pu, has_table_privilege('public',$1,'DELETE') pd`, [entry.table]);
-      const p = probe.rows[0] ?? {};
-      const none = [p.rs, p.ri, p.ru, p.rd, p.ps, p.pi, p.pu, p.pd].every((v) => v === false);
-      A(`G allowlist ${entry.table}: zero app_role AND zero PUBLIC table privileges (SELECT/INSERT/UPDATE/DELETE)`,
-        probe.rowCount === 1 && none,
-        `app=[${String(p.rs)} ${String(p.ri)} ${String(p.ru)} ${String(p.rd)}] public=[${String(p.ps)} ${String(p.pi)} ${String(p.pu)} ${String(p.pd)}]`);
+        `SELECT x.principal, p.priv,
+                has_table_privilege(x.principal, $1, p.priv) AS held
+           FROM unnest($2::text[]) AS x(principal)
+          CROSS JOIN (SELECT unnest(ARRAY['SELECT','INSERT','UPDATE','DELETE']::text[]) AS priv) p
+          ORDER BY x.principal, p.priv`, [entry.table, principals]);
+      const held = probe.rows
+        .filter((x: { held: boolean }) => x.held === true)
+        .filter((x: { principal: string; priv: string }) => !tripleAllowed(entry.table, x.principal, x.priv));
+      for (const x of held) violations.push(`(${entry.table},${x.principal},${x.priv})`);
+      A(`G allowlist ${entry.table}: zero table privileges across ALL enumerated principals (${principals.length} principals = PUBLIC + non-superuser/non-BYPASSRLS/non-owner roles; named triples are the only escape)`,
+        (principalRows.rowCount ?? 0) >= 1 && principals.includes('app_role') && principals.includes('public') && probe.rowCount === principals.length * 4 && held.length === 0,
+        `principals=${principals.length} rows=${String(probe.rowCount)} held=[${held.map((x: { principal: string; priv: string }) => `${x.principal}:${x.priv}`).join(' ')}]`);
     }
+    receipt.allowlistProbe = {
+      principalsProbed: principals.length,
+      triplesProbed: principals.length * 4 * RLS_FREE_ALLOWLIST.length,
+      namedTripleAllowlistSize: RLS_FREE_GRANT_TRIPLES.length,
+      violations,
+    };
+    A('G allowlist probe receipt: principal/triple counts + zero violations recorded',
+      principals.length >= 10 && receipt.allowlistProbe.violations.length === 0,
+      `principals=${principals.length} triples=${String(receipt.allowlistProbe.triplesProbed)} namedTriples=${String(RLS_FREE_GRANT_TRIPLES.length)} violations=[${violations.join(' ')}]`);
 
     // SECURITY DEFINER entry witnesses: the only functions touching the ledger tables are
     // definer-owned, and the app-reachable ones are owner-bound at entry (0035 gate).
