@@ -185,12 +185,16 @@ async function main() {
     A('静态门：dispatchOnce 本体零字节零改（sha256 pin @S4b-EXEC 287e8885…）',
       sha256(block('const dispatchOnce = async (dispatchModel: string) => fetchJsonWithTimeout<{', 'const reserveFor = (dispatchModel: string) => {'))
         === '287e88858aa28db0074dc15e317f952419bab4f202bc73b25708239e00bb14ff');
-    // S4b EXEC 再钉登记（同上协议）：旧钉 3283dfcd 系 S4a 时点值——主线 AG-B/成本轨合法触面后未随钉=
-    // 基线漂移（rev3 基实测同值 b83d8f6f=非本刀引入；本刀 complete 面零字节亲证）。行为面由「非流式
-    // 零回归：complete 语义原值」臂承底。
-    A('静态门：complete 非流式语义原值零字节（sha256 pin @S4b-EXEC b83d8f6f…）',
+    // S4b 修订再钉登记（同上协议）：旧钉 b83d8f6f 在 base 92a82a944 实测吻合（本席 git show 亲算）——
+    // 传输观测 errorCode additive 刀在 complete 区 ExternalHttpStatusError 分支合法触面（+两行注释+
+    // `errorCode: \`http_<status>\`` 字段）后未随钉=本刀改破。语义亲证：区块 diff 恰=该三行，
+    // kind/externalOutcome 分支条件、unknown 冻结面与全部其余逻辑逐字节原值（diff 亲证）——该钉护的
+    // 「complete 非流式终态/未派发判定原样」语义不受触。行为面由「非流式零回归：complete 语义原值」臂
+    // +dispatch/output-limit proof+uc-e2e-028 catch 区 external_outcome_unknown 裸形 regex PIN
+    // （修订时点实测仍命中）全数承底。
+    A('静态门：complete 非流式语义原值零字节（sha256 pin @S4b-修订 756695a4…）',
       sha256(block('async complete(req, _attempt, executionSignal) {', '\n    },'))
-        === 'b83d8f6f24422195b21685f73c4fca08966dcf99e7b06a226b3c8d307905161a');
+        === '756695a4065dcc0d34515606f6bd96b1dca83898531719d2fe27c86dd2249483');
     const streamRegion = block('async completeStream(', '\n  };\n  return client;');
     for (const banned of ['g7RuntimeInjection', 'reserveG7CallOnSharedLedger', 'finalizeG7ReservationOnSharedLedger',
       'releaseG7ReservationOnSharedLedger', 'assertModelApiKeyPresent', 'assertModelAllowedForTest', 'reserveFor(']) {

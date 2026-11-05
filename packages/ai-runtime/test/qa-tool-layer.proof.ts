@@ -168,8 +168,15 @@ async function main() {
       /runToolLoop\(decide,\s*cfg\.registry,\s*\{\s*maxSteps:\s*cfg\.maxSteps\s*\}\)/.test(src));
     const mc = readFileSync(fileURLToPath(new URL('../src/model-client.ts', import.meta.url)), 'utf8');
     const mcSha = createHash('sha1').update(`blob ${Buffer.byteLength(mc)}\0`).update(mc).digest('hex');
-    A('model-client.ts 字节恒定面(请求体/数据围栏/G7 预留调用点零字节·blob 锚 bef16cbdc2a1)',
-      mcSha === 'bef16cbdc2a1244935de837b26b3eb45d951631e');
+    // blob 锚再钉登记（S4b 同协议）：旧锚 bef16cbd 在 base 92a82a944 即漂（base blob 实测 f9fd3105…=
+    // 历刀合法触面后未随钉的基线漂移·非修订刀引入；本 proof DB 门本地不可跑致漂移长期不可见）——
+    // 修订刀 complete 面 errorCode additive 再漂至 1af93fbc…，随刀再钉承继漂移基线。锚护语义
+    // （请求体形/数据围栏/G7 预留调用点）由行为臂承底：model-client-dispatch（请求体/scripted fetch）、
+    // g7-freetier-reprove-client（G7 预留/allowlist）、model-usage-cache-observe（围栏词面零命中钉）。
+    // 本 proof 仍 DB 门：再钉系 blob 等值机械亲证（git show base 与工作树双侧同法复算），非全
+    // proof 本地绿——全 proof 绿归 CI DB 面。
+    A('model-client.ts 字节恒定面(请求体/数据围栏/G7 预留调用点零字节·blob 锚 1af93fbc3a53)',
+      mcSha === '1af93fbc3a53932bd9938ed530049f949687fcf0');
   }
 
   // ── S1 C 端读面(RLS+显式 owner 谓词) ──────────────────────────────────────────────

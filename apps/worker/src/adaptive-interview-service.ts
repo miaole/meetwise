@@ -211,7 +211,7 @@ function recordUsageSoft(pool: DbPool, owner: string, entry: QuestionUsageLedger
 
 export interface AdaptiveServiceDeps {
   pool: DbPool; owner: string; threadId: string; model: ModelClient;
-  /** 快模型(qwen-turbo):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
+  /** 快模型(缺省 MODEL_FAST_DEFAULT_NAME=qwen-plus):评分/relevant 等约束性任务用,显著降反问延迟;缺省回退 model(兼容旧调用)。出题仍用 model(质量关键)。 */
   fastModel?: ModelClient;
   /**
    * AG-20(CTX-02 显式接线):interviewer.ask 主端点成本策略——组合根(main.ts resolveModelCostGovernance()
