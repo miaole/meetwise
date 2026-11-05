@@ -4,24 +4,28 @@
  * （startAdaptiveInterview / submitAdaptiveAnswer）：转写经 claimInterviewAnswer 写入答案 →
  * 以 `{ answerId }` resume 推进同一自适应图（AG-32②契约）；非法 resume 输入拒绝并重问、
  * 不结束整场（AG-32①）；语音编排不再直触 Command(resume)（AG-32③变异面）。
+ * AG-32 rev r1（证伪外席2 P1）：语音提交缝内容闸等位面——空白转写 → invalid_turn、
+ * 超长转写 → answer_too_long（与文本入口逐值同码），先于 claim 拒收：不吃题、题目保持
+ * issued 可重答、checkpoint/ledger/事件/计费/模型调用零副作用（零持久化）；流式空白守卫
+ * （streaming_asr_malformed）恢复为 proof 断言臂。
  * 隔离 PG 投影面（runMigrations）+ MemorySaver + scripted ModelClient + fake ASR/TTS，零外呼。
  *   pnpm voice-adaptive:prove  (需 db:up)
  */
 import { fileURLToPath } from 'node:url';
-import { randomUUID } from 'node:crypto';
 import { MemorySaver, Command } from '@langchain/langgraph';
 import {
-  createPool, asPrincipal, reserveEntitlement, availableUnits, answerHash,
-  claimInterviewAnswer, persistInterviewQuestion, loadMigrations, runMigrations,
+  createPool, asPrincipal, reserveEntitlement, availableUnits,
+  persistInterviewQuestion, loadMigrations, runMigrations,
 } from '@meetwise/db';
 import { scriptedModelClient, type ModelClient } from '@meetwise/ai-runtime';
 import { fakeAsr, fakeTts, fakeStreamingAsr, fakeStreamingTts } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径
 import { VOICE_CAPTURE_POLICY_VERSION } from '@meetwise/contracts';
+import { INTERVIEW_ANSWER_MAX_LENGTH } from '@meetwise/domain';
 import { buildAdaptiveInterviewGraph, type AdaptiveInterviewGraphState } from '@meetwise/ai-graphs';
-import { startAdaptiveInterview, submitAdaptiveAnswer, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
+import { startAdaptiveInterview, type AdaptiveLifecycleDeps } from '../src/adaptive-lifecycle.ts';
 import { runVoiceAdaptiveInterview } from '../src/voice-adaptive.ts';
 import { type VoiceTurnDeps } from '../src/voice-turn.ts';
-import { previewVoiceAnswerTurn } from '../src/interview-voice.ts';
+import { previewVoiceAnswerTurn, submitVoiceTranscriptAnswer } from '../src/interview-voice.ts';
 import { assertContentSafetyKillSwitchOff, ContentSafetyKillSwitchActiveError } from '../../api/src/platform/content-safety.ts';
 import { transcribeForIssuedQuestion } from '../../api/src/modules/interview/interview-voice.ts';
 
@@ -32,6 +36,15 @@ async function* audio(n: number) { for (let i = 0; i < n; i++) yield new Uint8Ar
 async function errorOf(action: () => Promise<unknown>): Promise<string> {
   try { await action(); return 'no_error'; }
   catch (error) { return error instanceof Error ? error.message : String(error); }
+}
+
+/** 具码错误读取（rev r1 内容闸断言面：message/code/max 三值全收）。 */
+async function codedErrorOf(action: () => Promise<unknown>): Promise<{ message: string; code?: unknown; max?: unknown }> {
+  try { await action(); return { message: 'no_error' }; }
+  catch (error) {
+    const e = error as { message?: string; code?: unknown; max?: unknown };
+    return { message: error instanceof Error ? error.message : String(error), code: e.code, max: e.max };
+  }
 }
 
 /** interrupt value 的只读形状（LangGraph Interrupt.value 为 unknown，这里结构化收窄）。 */
@@ -109,21 +122,18 @@ const readonlyGraph = (cp: MemorySaver) => buildAdaptiveInterviewGraph(cp, {
   loadAnswer: async () => { throw new Error('inspect-only'); },
 });
 const inspect = async (cp: MemorySaver, threadId: string) => readonlyGraph(cp).getState(cfgOf(threadId));
+/** checkpoint values 字节数（rev r1 零持久化断言面：拒收轮次 state 零增长）。 */
+const stateBytesOf = async (cp: MemorySaver, threadId: string) =>
+  JSON.stringify(((await inspect(cp, threadId)).values) ?? {}).length;
 
-/** 真 submit 闭包：与文本作答同一条写入+恢复路——读 issued 题 identity → claimInterviewAnswer
- *  写入答案 → submitAdaptiveAnswer（内部以 { answerId } resume 推进图+投影）。 */
+/** 真 submit 闭包：语音提交缝（submitVoiceTranscriptAnswer=内容闸→读 issued 题 identity→
+ *  claimInterviewAnswer 写入答案 → submitAdaptiveAnswer 以 { answerId } resume 推进图+投影）
+ *  ——与文本作答同一条写入+恢复路，内容闸单一真相在缝内（rev r1）。submitted 留作触达 tripwire。 */
 const makeRealSubmit = (d: AdaptiveLifecycleDeps) => {
   const submitted: string[] = [];
   const submit = async (answer: string): Promise<{ nextQuestion?: string; done: boolean }> => {
     submitted.push(answer);
-    const rows = await issuedQuestionOf(d.interviewId);
-    const issued = rows.find((row) => row.status === 'issued');
-    if (!issued) throw new Error('voice_submit_no_issued_question');
-    const input = { questionId: issued.questionId, stateVersion: issued.stateVersion, turn: issued.turn, answerId: randomUUID(), answerHash: answerHash(answer), answer };
-    const claimed = await asPrincipal(pool, OWNER, (c) => claimInterviewAnswer(c, OWNER, d.interviewId, input));
-    if (claimed.status !== 'accepted') throw new Error(`voice_submit_claim_${claimed.status}`);
-    const r = await submitAdaptiveAnswer(d, input);
-    return { nextQuestion: r.nextQuestion, done: r.done };
+    return submitVoiceTranscriptAnswer(d, answer);
   };
   return { submitted, submit };
 };
@@ -295,7 +305,71 @@ async function main() {
     A('③ 模型面 exactly-once:planner1+首题ask+每轮(evaluate+ask)=2N+1（零重放重评·零外呼）',
       calls - callsBeforeVt === 2 * vtTurns + 1);
 
-    // ════════ ⑤ 守卫不绕面：内容安全开关·voice_capture 同意门 ════════
+    // ════════ ⑤ AG-32 rev r1：语音缝内容闸等位面（空白/超长与文本入口逐值同码·不吃题可重答·零持久化） ════════
+    section('AG-32 rev r1 语音缝内容闸:空白→invalid_turn·超长→answer_too_long（同码）·拒收零副作用·原题可重答');
+    // 直接缝形（=证伪 P-B1/P-B2 探针形的缝内等价）：拒收必须先于 claim（题目保持 issued·answer_id 空）。
+    const iidGate = 'va32-gate-' + Date.now();
+    await seedInterview(iidGate);
+    const dGate = lifecycleDeps(iidGate);
+    await startAdaptiveInterview(dGate, ROLE, []);
+    const gatePending0 = ((await inspect(dGate.cp, iidGate)).values as AdaptiveInterviewGraphState).pending;
+    const gateBytes0 = await stateBytesOf(dGate.cp, iidGate);
+    const gateEvents0 = (await eventKinds(iidGate)).length;
+    const gateBalance0 = await balanceOf();
+    const gateCalls0 = calls;
+    const blankErr = await codedErrorOf(() => submitVoiceTranscriptAnswer(dGate, '   '));
+    A('⑤ 空白转写被缝内闸拒:invalid_turn（与文本入口 400 同码）',
+      blankErr.message === 'invalid_turn' && blankErr.code === 'invalid_turn');
+    const overlongText = 'x'.repeat(INTERVIEW_ANSWER_MAX_LENGTH + 1);
+    const overlongErr = await codedErrorOf(() => submitVoiceTranscriptAnswer(dGate, overlongText));
+    A('⑤ 超长转写被缝内闸拒:answer_too_long+max（与文本入口 413 同码同上限 8000）',
+      overlongErr.message === 'answer_too_long' && overlongErr.code === 'answer_too_long' && overlongErr.max === INTERVIEW_ANSWER_MAX_LENGTH);
+    const gateRows = await issuedQuestionOf(iidGate);
+    const gateValues1 = (await inspect(dGate.cp, iidGate)).values as AdaptiveInterviewGraphState;
+    A('⑤ 拒收不吃题:题目保持 issued·answer_id 空·identity 原样（claim 未发生）',
+      gateRows.length === 1 && gateRows[0]?.status === 'issued' && gateRows[0]?.answerId === null
+      && gateValues1.pending?.questionId === gatePending0?.questionId && gateValues1.pending?.turn === gatePending0?.turn);
+    A('⑤ 拒收零持久化:checkpoint state 字节数零增长·transcript 零推进·模型调用零触发',
+      (await stateBytesOf(dGate.cp, iidGate)) === gateBytes0 && (gateValues1.transcript ?? []).length === 0 && calls === gateCalls0);
+    A('⑤ 拒收零副作用:事件零增长·额度恒 reserved 不动',
+      (await eventKinds(iidGate)).length === gateEvents0 && (await consStatus(iidGate)) === 'reserved' && (await balanceOf()) === gateBalance0);
+    const wGate = makeRealSubmit(dGate);
+    const vGate = await wGate.submit(ANS);
+    A('⑤ 拒后原题可重答:同一 issued 题真提交一次通过（推进到下一题）',
+      !!vGate.nextQuestion && vGate.done === false && (await issuedQuestionOf(iidGate))[0]?.status === 'answered');
+
+    // 经语音编排全程（previewVoiceAnswerTurn = ASR 边缘→缝）同样被拒：接线携带闸（证伪 P-B4 形）。
+    const wEdge = makeRealSubmit(dGate);
+    const edgeBlankErr = await codedErrorOf(() => previewVoiceAnswerTurn({ asr: fakeAsr('   '), tts: fakeTts(), submit: wEdge.submit }, new Uint8Array([7, 7, 7])));
+    const edgeOverErr = await codedErrorOf(() => previewVoiceAnswerTurn({ asr: fakeAsr(overlongText), tts: fakeTts(), submit: wEdge.submit }, new Uint8Array([8, 8, 8])));
+    A('⑤ 编排全程同拒:previewVoiceAnswerTurn 空白/超长经 ASR 边缘→缝同码拒绝（触达提交闭包但 claim 零发生）',
+      edgeBlankErr.message === 'invalid_turn' && edgeOverErr.message === 'answer_too_long'
+      && wEdge.submitted.length === 2 && (await issuedQuestionOf(iidGate)).every((row) => row.status !== 'queued'));
+
+    // 流式守卫臂（恢复旧 proof 删除的空白断言臂 + 超长经缝闸臂）：runVoiceAdaptiveInterview 边缘。
+    const iidStream = 'va32-stream-' + Date.now();
+    await seedInterview(iidStream);
+    const dStream = lifecycleDeps(iidStream);
+    await startAdaptiveInterview(dStream, ROLE, []);
+    let streamSubmits = 0;
+    A('⑤ 流式空白守卫:streaming_asr_malformed·submit 零触（守卫在缝外边缘先拒）',
+      await errorOf(() => runVoiceAdaptiveInterview({
+        asr: fakeStreamingAsr('   '), tts: fakeStreamingTts(4),
+        start: async () => ({ question: 'q' }),
+        submit: async () => { streamSubmits++; return { done: true }; },
+        userAudioFor: () => audio(5),
+      })) === 'streaming_asr_malformed' && streamSubmits === 0);
+    const streamOverErr = await codedErrorOf(() => runVoiceAdaptiveInterview({
+      asr: fakeStreamingAsr(overlongText), tts: fakeStreamingTts(4),
+      start: async () => ({ question: 'q' }),
+      submit: async (answer: string) => { streamSubmits++; return await submitVoiceTranscriptAnswer(dStream, answer); },
+      userAudioFor: () => audio(5),
+    }));
+    A('⑤ 流式超长经缝闸拒:answer_too_long（边缘非空白但缝闸接住·claim 零发生题保持 issued）',
+      streamOverErr.message === 'answer_too_long' && streamSubmits === 1
+      && (await issuedQuestionOf(iidStream))[0]?.status === 'issued');
+
+    // ════════ ⑥ 守卫不绕面：内容安全开关·voice_capture 同意门 ════════
     section('守卫不绕面:内容安全 kill-switch fail-closed·voice_capture 同意门先于 ASR');
     process.env.MEETWISE_CONTENT_SAFETY_KILL_SWITCH = '1';
     let switchErr: unknown;
@@ -335,7 +409,7 @@ async function main() {
     }
   }
 
-  console.log(`\n${fail === 0 ? '✓ AG-32 voice-adaptive 真路径契约（claim→{answerId} resume·非法输入重问·守卫不绕）通过' : '✗ ' + fail + ' failed'}`);
+  console.log(`\n${fail === 0 ? '✓ AG-32 voice-adaptive 真路径契约（claim→{answerId} resume·非法输入重问·语音缝内容闸同码拒收不吃题·守卫不绕）通过' : '✗ ' + fail + ' failed'}`);
   await pool.end();
   process.exit(fail === 0 ? 0 : 1);
 }

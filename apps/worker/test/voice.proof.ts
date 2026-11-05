@@ -2,6 +2,12 @@
  * 语音面试证明（对真 Postgres checkpointer）：证明**同一面试图经语音(ASR/TTS)推进,与纯文本路径行为完全一致**(modality-agnostic)。
  * 语音只是边缘适配器:转写留在适配器返回值,图状态作答固定为 answer_omitted;下一题合成音频,checkpointer/续会话/状态机一行不动。CI 用 fake ASR/TTS(不联网)。
  *   pnpm voice:prove   (需 pnpm db:up)
+ *
+ * 世界口径（AG-32 rev r1 注记·证伪外席2 P2）：本 proof 在隔离 runner 的 boot 世界跑
+ * （预迁移名单不含 0047 checkpoint 隐私栅栏等业务迁移——本证面是 mock 图边缘契约,零业务表依赖,
+ * boot 世界自足）；其断言不涉及 0047 管辖面（守卫不绕面/同意门/内容安全/计费/隐私栅栏）。
+ * AG-32 守卫不绕面与生产接线形由 voice-adaptive.proof 在全量真迁移链（loadMigrations+runMigrations）
+ * 的隔离 PG 世界承载——本门（runner voice:prove）绿不得读成产品世界证据。
  */
 import { buildMockInterviewGraph } from '@meetwise/ai-graphs';
 import { fakeAsr, fakeTts } from '@meetwise/ai-runtime/test-support';   // #74: fake 族经 test-support 子路径

@@ -1,6 +1,6 @@
-# AG32-CODE REQUEST（meetwise AG-32 码面修复刀 · P3 · 编排运行时三处：await-answer 非法输入即终场 · voice-turn 原始转写 resume 违 {answerId} 契约 · voice-adaptive.proof 假 submit 掩盖契约差 · 起草落卷即停）
+# AG32-CODE REQUEST（meetwise AG-32 码面修复刀 · P3 · 编排运行时三处：await-answer 非法输入即终场 · voice-turn 原始转写 resume 违 {answerId} 契约 · voice-adaptive.proof 假 submit 掩盖契约差 · rev r1 证伪修订：语音缝内容闸等位下沉 · 起草落卷即停）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草席落卷 · 起草期已含修复实现与真路径 proof 全绿 · pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草席落卷 · 同日 rev r1 证伪修订落卷（登记源=`.tmp/reviews/ag32-pre-2.md` FAIL · P1×1·P2×3）· 起草期已含修复实现与真路径 proof 全绿 · pre-exec 双审两独立外席待派 · alone ≠ dual · ⛔push ⛔merge 主线 · Ban self-approve · est live=0 · `actualSpendCny=null`）
 
 **席位**：AG-32 码面修复刀 起草席（协调方派单令「普查三处均纯代码问题本地可修 · 语音对真实用户开放依赖部署不在本刀」· 普查结论只作线索 · 本席逐条亲读代码与台账原文复核后落修）。
 **基线**：`origin/main` @ **`768db078f`**（fetch EXIT=0 后亲证 origin tip=#213 merge 点 · 主仓仅 `git worktree add ../meetwise-ag32 -b line/ag32-draft origin/main` 一改动 · `pnpm install --frozen-lockfile` EXIT=0 · branch **`line/ag32-draft`**）。
@@ -17,7 +17,7 @@
 | 2 | `packages/ai-graphs/src/adaptive-interview/nodes/await-answer.ts:32-38` | `submittedReference` 校验失败（原始字符串/缺 answerId/answerId 非 1..256 字符串）→ 返回 `pending:null·concluded:true·degraded:answer_reference_invalid`——**一次非法输入即结束整场** | ✓ |
 | 3 | `apps/worker/src/voice-turn.ts:16` | `await deps.graph.invoke(new Command({ resume: transcript }), deps.cfg)` —— 用 ASR 原始转写字符串直驱 resume，与图 `{ answerId }` 契约（`await-answer.ts:20` interrupt 载荷仅收 `{answerId:string}`）**必不兼容** | ✓ |
 | 4 | `apps/worker/test/voice-adaptive.proof.ts:26`（修复前） | `submit: async (answer: string) => { submitted.push(answer); q++; return … }` —— 纯假 submit 闭包，真实 `submitAdaptiveAnswer` 链（claim→`{answerId}` resume→投影）零覆盖，契约差异被跑绿掩盖 | ✓ |
-| 5 | `apps/worker/src/adaptive-lifecycle.ts:498` | 文本作答真路：`g.invoke(new Command({ resume: { answerId: input.answerId } }), cfg)`，前置 `verifyInterviewAnswerClaim` 占用核对 | ✓ |
+| 5 | `apps/worker/src/adaptive-lifecycle.ts:473` | 文本作答真路：`g.invoke(new Command({ resume: { answerId: input.answerId } }), cfg)`，前置 `verifyInterviewAnswerClaim` 占用核对（rev r1 勘正：r0 卷锚 `:498` 系漂移，基 commit 实位 `:473`，证伪外席2 P2-1 勘正·结论不变） | ✓ |
 | 6 | `packages/db/src/interview/interview-question.ts:85-109` | `claimInterviewAnswer`：API 事务内占用 issued 题、answerHash 服务端重算、同 identity 可重放——「写入答案」的唯一合法入口 | ✓ |
 | 7 | `packages/ai-graphs/src/adaptive-interview/ephemeral-answer-vault.ts` | `createEphemeralAnswerVault().issue(text)→{answerId}` + `loadAnswer`——答案引用式恢复的测试原语（adaptive-flow/adaptive-interview 等 proof 均经此走 `{answerId}`） | ✓ |
 
@@ -43,6 +43,26 @@
 - 计费预留：API begin `reserveEntitlement` → worker done 分支 `completeInterviewAndConfirm` 结算/失败 `failInterviewAndRelease`（`adaptive-lifecycle.ts:645/655`）。
 - worker 侧语音门：`runVoiceAdaptiveInterview` 首行 `assertVoiceTurnTakingPreviewAllowed`（`voice-adaptive.ts:27`，production/enforce/公开预览 refuse-closed）。
 
+### 0.5 rev r1 增锚（证伪外席2 报告 `.tmp/reviews/ag32-pre-2.md` 原值记账 · 2026-11-06）
+
+**文本作答入口（`interview.service.ts turn()`）全部校验清单（起草席 rev r1 亲读盘点）**：
+
+| # | 校验 | 层 | 缝内等位 |
+|---|------|-----|---------|
+| 1 | `denyContentSafetyKilled()` → 503 | HTTP/env ops 开关 | 留 HTTP 层（worker 生命周期不重设；proof 直证同一闸函数面） |
+| 2 | `denyPublicPreviewWrite()` 公开预览写禁 | HTTP | 留 HTTP 层 |
+| 3 | Zod TurnDto（answer `.min(1).max(8000)`·strict·identity 正则）→ 400 | HTTP pipe | 缝内等价=内容层长度闸（#5）+ 空白闸（#4）；请求体形状/大小仍 HTTP-only |
+| 4 | `!body.answer.trim()` 空白 → 400 `invalid_turn` | 内容层 | **下沉共用**（judgeInterviewAnswerContent） |
+| 5 | `resolveOverlongAnswerPolicy` >8000 → 413 `answer_too_long` | 内容层 | **下沉共用**（同上·单一上限 INTERVIEW_ANSWER_MAX_LENGTH） |
+| 6 | per-principal 令牌桶 → 429 | HTTP DoS | 留 HTTP 层（语音缝无队列无逐 turn 计费 job，无对应面） |
+| 7 | `assertAnswerable` 状态机 → 409 | ledger | 已同路共享（claim/verify fence + pending identity 核对 = stale_question） |
+| 8 | `guardInterviewPrivacy` 隐私栅栏 → 404/410 | DB RLS | 已同路共享（asPrincipal + claim owner 域） |
+| 9 | `claimInterviewAnswer` identity fence | DB | 已同路共享（语音缝同函数） |
+| 10 | 入队背压 `interview_queue_saturated` → 429 | HTTP/enqueue | 语音缝无队列（直驱图），无对应面 |
+| 11 | 计费预留/结算（reserve→confirmed/release） | 生命周期 | 已同路共享（同一 lifecycle，proof 逐腿断言） |
+
+**语音缝缺口（证伪读数原值 · 修复前 = r0 实现形）**：P-B1 空白 `'   '` 直走 claim→submit → claim **accepted**（claim 无空白拒）→ 图判非作答 `unresolved` score=0 → **该题 turn 被消耗**；P-B2 超长 11000 字符直走 claim→submit → claim accepted → 模面评 **100** 计入 eligible（文本路同载荷 413 `answer_too_long`）；P-B4 `previewVoiceAnswerTurn` 空白音频 → transcript 直通 submit 同 B1 后果；膨胀读数：5 拒含 100KB 载荷 → checkpoint_writes **+200,177B**（`__resume__` 通道行·终态 deleteThread 清零）。`voice:prove`（mock 图）跑在无 0047 隐私栅栏的 runner boot 世界（P2-3 世界口径，§1.3 注记承接）。
+
 ## §1 修法（三处 · 不另造恢复路径 · 不松动 `{answerId}` 契约）
 
 ### 1.1 修1 `await-answer.ts`：非法输入拒绝+重问，不结束整场
@@ -57,32 +77,37 @@
 - `VoiceTurnDeps` 由 `{asr,tts,graph,cfg}` 改为 `{asr,tts,submit}`（`submit: (answer) => Promise<{nextQuestion?,done}>`，与 `runVoiceAdaptiveInterview` 的 `d.submit` 同形=「submitAdaptiveAnswer 包一层」既有约定）：本层零图直触，**转写字符串绝不进 Command(resume)**；`@langchain/langgraph` import 随之移除。
 - 组合根 `previewVoiceAnswerTurn` 透传 `submit`（production 接线=claim+submitAdaptiveAnswer，本刀由真路径 proof 承证：转写→claimInterviewAnswer→`{answerId}` resume→投影，claim 行 queued→answered、结算 confirmed 全链断言）。
 - `voice.proof.ts`（mock 图）适配：submit 闭包内 resume 归口（mock 图契约本就是字符串 resume，与本刀无涉；adaptive 图契约由 voice-adaptive.proof 真路覆盖）。
+- **rev r1（证伪外席2 P1 修复）语音缝内容闸等位下沉**：文本入口两道内容闸（空白 `invalid_turn`/超长 `answer_too_long`，上限=INTERVIEW_ANSWER_MAX_LENGTH 8000）下沉为 `@meetwise/domain` 单一真相 `judgeInterviewAnswerContent`/`assertInterviewAnswerContentAcceptable`，两路三挂点共用同一判定同一错误码：①文本入口 `turn()` 判定经 judge、HTTP 码面映射（400/413+max）留 service 层（`interviewAnswerContentException`，码面与旧形逐值不变）；②语音提交缝 `submitVoiceTranscriptAnswer`（interview-voice.ts 新组合形=生产接线）**内容闸先于 claim**——拒收轮次不 claim 不推进图：题目保持 issued 可重答，checkpoint/ledger/事件/计费零变更（证伪 P-B1「吃题」/P-B2「满分计分」的根因面即 claim 先于校验的排序）；③`submitAdaptiveAnswerImpl` 缝顶闸（文本/语音两路收敛点纵深兜底，先于 enrollCheckpointThread 任何 DB 写）——HTTP-only 校验（请求体大小）的缝内等价即此内容层长度闸。流式边缘空白守卫 `streaming_asr_malformed` 保持原位（边缘 ASR 形缺≠作答内容闸）。
 
 ### 1.3 修3 `voice-adaptive.proof.ts`：假 submit 换真路径 + AG-32 三断言面 + 守卫不绕面
 
-- 真 submit 闭包 `makeRealSubmit`：读 issued 题 identity（ledger）→ `claimInterviewAnswer`（randomUUID answerId+服务端同形 answerHash）→ `submitAdaptiveAnswer`——与 API turn+worker job 同一条写入恢复路。
+- 真 submit 闭包 `makeRealSubmit`：委托语音提交缝 `submitVoiceTranscriptAnswer`（内容闸→读 issued 题 identity（ledger）→ `claimInterviewAnswer`（randomUUID answerId+服务端同形 answerHash）→ `submitAdaptiveAnswer`）——与 API turn+worker job 同一条写入恢复路，缝内校验单一真相（rev r1）。
 - 真路三腿：② `runVoiceAdaptiveInterview`×真 lifecycle 整场收敛（转写=ANS、全题 answered、结算 confirmed、SSE question_ready=N/answer_evaluated=N、模型面 exactly-once 2N+1）；③ `previewVoiceAnswerTurn` 逐轮至 done（identity 链=issued 题面恒等 nextQuestion、done 后零开题）；① 非法 resume 三形（原始转写字符串/`{answerId:42}`/`{}`）拒绝+重问+identity 原样+resumeError 标记+拒绝后真提交一次通过（修复前红=§0.3 MUT-A）。
+- **rev r1 语音缝内容闸臂（恢复旧 proof 删除断言 + 增超长臂）**：⑤ 直接缝形空白 `'   '` → `invalid_turn`、超长 8001 字符 → `answer_too_long`+max=8000（与文本入口逐值同码同上限）+ 拒收不吃题（题保持 issued·answer_id 空·identity 原样）+ 零持久化（checkpoint state 字节数零增长·transcript 零推进·模型调用零触发）+ 零副作用（事件零增长·额度恒 reserved）+ 拒后原题真提交一次通过；编排全程形 `previewVoiceAnswerTurn` 空白/超长经 ASR 边缘→缝同码拒（claim 零发生）；流式守卫臂 `streaming_asr_malformed` submit 零触（恢复 P-B3 证实在场的旧臂）+ 流式超长经缝闸拒（题保持 issued）。变异承证：MUT-C 双闸去除 → 7 FAIL EXIT=1；MUT-C1 仅去组合根闸（缝顶闸仍在）→ 拒码不变但「不吃题」红+真提交 abort `voice_submit_no_issued_question` EXIT=1（pre-claim 排序承重）；恢复后 37/37 EXIT=0。
 - 守卫不绕面：预览门五 refusal 臂（无旗标/半旗标/production/enforce/公开预览，tripwire=真 submit 零触）；内容安全开关 engage 即抛+缺省 off（api 同一闸原语亲证）；voice_capture 同意门（零 consent_record → `consent_required` 且题仍 issued，音频不出进程）；计费同路（reserve 1.0→结算 confirmed、可用额度逐腿核对）。
 - 零外呼守面：入场删三 provider 键并断言不在场（词面运行时组装防自指）；ASR/TTS=fake 族（test-support 子路径）；ModelClient=scripted。零新受管 proof 文件（全并入既有 `voice-adaptive.proof.ts`）；egress inventory 对新 proof 的三键引用按 `test-isolation` 类 additive 登记 3 行（`.json` 既有注记零改写）。
+- **rev r1 世界口径注记（证伪外席2 P2-3）**：`voice:prove`（`voice.proof.ts`，mock 图边缘契约）跑在隔离 runner **boot 世界**（预迁移名单不含 0047 checkpoint 隐私栅栏——本证面零业务表依赖自足）；其断言不涉 0047 管辖面，守卫不绕面/同意门/内容安全/计费/隐私栅栏由 voice-adaptive.proof 在全量真迁移链（loadMigrations+runMigrations）隔离 PG 世界承载——`voice:prove` 门绿不得读成产品世界证据（proof 头注+本条双登记；不补 0047 的理由=mock 图世界无业务表，0047 管辖面（checkpoint 隐私栅栏写闸）在该世界无消费者，强补属换世界非补证）。
 
-## §2 验收（起草落卷期全跑 · 读数为亲跑回执）
+## §2 验收（起草落卷期全跑 · 读数为亲跑回执 · rev r1 同日全门复跑更新）
 
 | # | 门 | 判据 | 结论 |
 |---|-----|------|------|
-| 1 | 真路径 proof | `pnpm voice-adaptive:prove`（隔离 PG `meetwise-va32-pg`:54331 + scripted + fake ASR/TTS）28/28 PASS | **绿** |
-| 2 | 修复前红（变异） | /tmp 拷贝 MUT-A=4 FAIL+abort EXIT=1 · MUT-B=运行时红 EXIT=1（§0.3） | **红（已证）→ 恢复后 28/28 绿** |
-| 3 | 语音边缘 proof | `node scripts/run-e2e-isolated.mjs voice:prove` 全 PASS（mock 图 modality-agnostic 面零回归） | **绿** |
-| 4 | 自适应图族 proof | adaptive-flow（隔离 runner）✓ · ag-a-resume（AG-05/AG-26 全臂）✓ · adaptive-life ✓ · adaptive-consumer 37/37 ✓ · adaptive-degrade ✓ · ag16-legacy ✓ · graph-run-observability ALL PASS（零 DB 直跑） | **绿** |
+| 1 | 真路径 proof | `pnpm voice-adaptive:prove`（隔离 PG + scripted + fake ASR/TTS）r0=28/28 → **rev r1=37/37 PASS EXIT=0**（增语音缝内容闸九臂） | **绿** |
+| 2 | 修复前红（变异） | r0：MUT-A=4 FAIL+abort EXIT=1 · MUT-B=运行时红 EXIT=1（§0.3）。rev r1 增：**MUT-C**（/tmp 双闸去除）=7 FAIL EXIT=1 · **MUT-C1**（仅去组合根闸）=2 FAIL+abort `voice_submit_no_issued_question` EXIT=1（pre-claim 排序承重）→ 恢复后 **37/37 EXIT=0** | **红（已证）→ 恢复后绿** |
+| 3 | 语音边缘 proof | `node scripts/run-e2e-isolated.mjs voice:prove` 全 PASS EXIT=0（mock 图 modality-agnostic 面零回归；世界口径注记见 §1.3——本门绿≠产品世界证据） | **绿** |
+| 4 | 自适应图族 proof | adaptive-flow（隔离 runner）✓ · ag-a-resume ✓ · adaptive-life ✓ · adaptive-consumer ✓ · adaptive-degrade ✓ · graph-run-observability ALL PASS（零 DB 直跑）· **ag16-legacy：rev r1 亲跑 EXIT=1 `stale_question`（重放臂 c F-2）——基线即红四证**：`768db078f`（runner+直跑两形）· `1a028cf79` · rev r1 树 · 审查期收据（19:57Z failed/1）同臂同错=**基线预存红，非本刀回归、AG-16 域越界不可修**；r0 卷本行「ag16-legacy ✓」判定被今日读数推翻，本行勘正如实记账（归协调方派单，见 §9 悬决项） | **族 6/7 绿 + ag16 基线即红如实记账** |
 | 5 | ai-graphs prove | prove:adaptive-graph ✓ · prove:adaptive-signals ✓ · prove:adaptive-compile-contract ✓ | **绿** |
-| 6 | N1 具型拒面 | `node scripts/run-e2e-isolated.mjs uc012:nhp-neg:prove:raw` **62/62**（N1 空引用载荷→`:487` 具型拒语义零变） | **绿** |
-| 7 | `pnpm neg:interview` | 108 条负路径用例全绿 | **绿** |
-| 8 | typecheck | `pnpm -C apps/worker typecheck` EXIT=0 · ai-graphs 无 typecheck 脚本（以 lint+tsx 真跑承） | **绿** |
-| 9 | lint | worker 0 errors/**991** warnings（base 999——新 proof 去 any/命名告警后**低于基线**）· ai-graphs exit=0（47 warnings=cap 47 恰等） | **绿（不高于基线）** |
-| 10 | `pnpm arch` | 0 errors/8 warnings · 1191 modules/3788 deps（base 同 8 warnings/3777 deps·+11 边=proof 新增跨包 import 面，零新违例）EXIT=0 | **绿（违例与 base 恒等）** |
-| 11 | egress inventory | `static_provider_egress_inventory_valid: adapters=5; operations=10; pairs=55; environment_references=404` EXIT=0（base 401+本刀 proof 三键 `test-isolation` 登记，最小追加 diff） | **绿** |
-| 12 | docs:check | cap 步进后 `scanned 2491=cap 2491` 恰等 EXIT=0（步进前基线亲跑 scanned 2490=cap 2490 恰等） | **绿** |
-| 13 | PTP | `public-text-policy.proof.mjs` EXIT=0 **12/12**（cap 联动四点步进后亲跑） | **绿** |
-| 14 | markers | 改动集五类标记词 grep 零命中（词面不入卷防自匹配） | **0** |
+| 6 | N1 具型拒面 | `node scripts/run-e2e-isolated.mjs uc012:nhp-neg:prove:raw` **62/62** EXIT=0（N1 空引用载荷→`:487` 具型拒语义零变） | **绿** |
+| 7 | `pnpm neg:interview` | 108 条负路径用例全绿 EXIT=0 | **绿** |
+| 7b | `pnpm neg:input`（rev r1 增门：内容闸单一真相入口负路径面） | 135 条负路径用例全绿 EXIT=0 | **绿** |
+| 7c | domain 内容闸 proof（rev r1 增） | `pnpm -C packages/domain prove:ctx-01-input-routing` 增 C2 七臂全 PASS EXIT=0（空白/边界 8000/超长 8001/assert 形同码） | **绿** |
+| 8 | typecheck | worker EXIT=0 · api EXIT=0 · domain EXIT=0（rev r1 三包全跑）· ai-graphs 无 typecheck 脚本（以 lint+tsx 真跑承） | **绿** |
+| 9 | lint | worker 0 errors/**991** warnings（=r0 读数恒等·base 999）· domain 0 errors/115=cap 115 恰等 EXIT=0 · ai-graphs 47=cap 47 恰等 EXIT=0 · api 0 errors/1545 EXIT=0 | **绿（不高于基线）** |
+| 10 | `pnpm arch` | 0 errors/8 warnings · 1191 modules/3792 deps（r0=3788·rev r1 +4 边=内容闸单一真相 import 面：domain 新原语+interview-voice→lifecycle/db/domain 组合根装配，零新违例）EXIT=0 | **绿（违例与 base 恒等）** |
+| 11 | egress inventory | `static_provider_egress_inventory_valid: adapters=5; operations=10; registered_consumer_source_pairs=55; environment_references=404` EXIT=0（与 r0 读数恒等——rev r1 零新 proof 文件零新登记） | **绿** |
+| 12 | docs:check | `scanned 2491=cap 2491` 恰等 EXIT=0（rev r1 零新受管文件，cap 零步进） | **绿** |
+| 13 | PTP | `public-text-policy.proof.mjs` EXIT=0 **12/12**（`static_preflight_valid: selected=12/12`） | **绿** |
+| 14 | markers | 改动集（9 文件）五类标记词 grep 零命中（词面不入卷防自匹配） | **0** |
 
 ## §3 范围外（越界即 FAIL）
 
@@ -122,10 +147,11 @@
 
 ## §9 pre-exec dual 交接
 
-- **双审对象**：§0.1 锚表逐条 file:line 与台账原文（含 `:413` 旧路径勘正对齐）· §0.2 两路径判读 · §0.3 变异红读数原值 · §1.1 重问机制（LangGraph 多 interrupt 回放语义）与 N1 具型拒兼容面 · §1.2 submit 缝形 · §1.3 真路径/守卫/零外呼三面 · §2 十四门判定 · §3 范围外。
-- **悬决项（归协调方）**：pre-exec 双席派定 · EXEC 排程 · post-prove 双席 · AG 台账 AG-32 行翻面（**建议**：三处修毕且本卷门全绿后按登记笔惯例翻 CLOSED，翻面注引本卷）· `resumeError` 的 SSE/前端消费提示（additive 字段已可观测，消费面后刀）· 语音生产接线排程（依赖部署）。
-- **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数与 §0.3 变异红读数系原值记账（零冲销）。
+- **双审对象**：§0.1 锚表逐条 file:line 与台账原文（含 `:413` 旧路径勘正对齐）· §0.2 两路径判读 · §0.3 变异红读数原值 · §0.5 rev r1 增锚（文本入口校验清单+语音缝缺口原值）· §1.1 重问机制（LangGraph 多 interrupt 回放语义）与 N1 具型拒兼容面 · §1.2 submit 缝形与内容闸三挂点单一真相 · §1.3 真路径/守卫/零外呼/缝内容闸四面与 `voice:prove` 世界口径注记 · §2 门矩阵（含 rev r1 ag16 勘正记账）· §3 范围外。
+- **rev r1 注记（登记源=证伪外席2 报告 `.tmp/reviews/ag32-pre-2.md` FAIL · P1×1·P2×3）**：P1 语音缝入口校验不等位 → 按 1(a) 修法落（内容闸下沉单一真相+pre-claim 排序，§1.2/§1.3，proof 九臂+双变异承证）；P2-1 锚漂移 → §0.1-#5 `:498`→`:473` 勘正；P2-2 状态膨胀 → 缝内拒收先于 claim+invoke=被拒内容**零持久化**（checkpoint state 字节零增长 proof 断言承证；重问 interrupt value 仅携带枚举诊断字段不含原始 payload），**登记义务：未来任何直驱 resume 的接线必须保持非法 resume 面关闭或加拒绝次数帽**（否则框架仍按拒绝次数持久化原始 payload 进 checkpoint_writes，实测 +200KB/5拒·100KB 载荷）；P2-3 `voice:prove` 0047 世界口径 → §1.3 注记（理由在案：boot 世界零业务表自足，0047 管辖面在该世界无消费者）。
+- **悬决项（归协调方）**：pre-exec 双席派定 · EXEC 排程 · post-prove 双席 · AG 台账 AG-32 行翻面（**建议**：三处修毕且本卷门全绿后按登记笔惯例翻 CLOSED，翻面注引本卷）· `resumeError` 的 SSE/前端消费提示（additive 字段已可观测，消费面后刀）· 语音生产接线排程（依赖部署）· **ag16-legacy 基线预存红派单**（`stale_question` 于重放臂 c F-2，`768db078f` 即红四证——AG-16 域，非本刀面，§2 门 4 勘正记账待专刀归因修复）。
+- **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数、§0.3 变异红读数、§0.5 证伪原值记账、§2 门 4 ag16 四证系原值记账（零冲销）。
 
 ---
 
-*AG32-CODE REQUEST · 2026-11-06 起草 · 起草落卷即停 · **`draft:awaiting_pre_exec_dual`**（Status 头/§8/§9/卷尾四处同值）· alone ≠ dual · base `origin/main` @`768db078f`（#213 merge 点 · fetch 后亲证）· worktree `meetwise-ag32` · branch `line/ag32-draft` · 起草改动集=三 src（await-answer.ts 重问臂/voice-turn.ts submit 缝/interview-voice.ts 组合根）+三 proof（voice-adaptive.proof 真路径重写/voice.proof submit 形适配/—）+egress inventory.json additive 三行+两 policy 脚本 cap 恰等步进 2490→2491（CAP-SANCTION-2491 链注追加·四联动点恰等改）+本卷（唯一新受管件）· 修复前红已证（§0.3 变异两臂）· 修复后全绿（§2 门 1-14）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · self-approve 禁令不变 · **STOP（起草落卷即停·pre-exec 双审待派）***
+*AG32-CODE REQUEST · 2026-11-06 起草 · 同日 rev r1 证伪修订（登记源=证伪外席2 FAIL · P1 语音缝内容闸等位下沉+P2×3 勘正）· 起草落卷即停 · **`draft:awaiting_pre_exec_dual`**（Status 头/§8/§9/卷尾四处同值）· alone ≠ dual · base `origin/main` @`768db078f`（#213 merge 点 · fetch 后亲证）· worktree `meetwise-ag32` · branch `line/ag32-draft` · r0 改动集=三 src（await-answer.ts 重问臂/voice-turn.ts submit 缝/interview-voice.ts 组合根）+三 proof（voice-adaptive.proof 真路径重写/voice.proof submit 形适配/—）+egress inventory.json additive 三行+两 policy 脚本 cap 恰等步进 2490→2491+本卷（唯一新受管件）；rev r1 增改集=domain input-routing.ts+index.ts（内容闸单一真相 judge/assert）+domain input-routing.proof.ts（C2 七臂）+api interview.service.ts（turn() 判定经 judge·HTTP 码面映射不变）+worker adaptive-lifecycle.ts（submitAdaptiveAnswerImpl 缝顶闸）+worker interview-voice.ts（submitVoiceTranscriptAnswer 组合形=pre-claim 闸）+voice-adaptive.proof.ts（真缝委托+九臂）+voice.proof.ts（0047 世界口径头注）+本卷——**零新受管文件零新依赖零迁移，cap 恒等 2491，egress 零新增** · 修复前红已证（§0.3 变异两臂+§0.5 证伪原值）· rev r1 双变异红已证（MUT-C/C1）· 恢复后 37/37 绿 · §2 门 1-3/5-14 绿 · 门 4 族 6/7 绿+ag16 基线即红四证如实记账（§9 悬决派单）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · self-approve 禁令不变 · **STOP（起草落卷即停·pre-exec 双审待派）***

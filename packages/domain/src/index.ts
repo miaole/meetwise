@@ -307,13 +307,16 @@ export type {
 
 // 面试输入分流 + 超长作答策略（CTX-01）纯域原语：面试 vs 自由对话显式分流 + reject-only 超长策略。
 // 只做判定不建自由对话链路；评分事实不变性由 proof 复用 scoring-aggregation 原语证明（本模块不改评分公式）。
+// AG-32 rev r1：作答内容闸判定/断言（judgeInterviewAnswerContent / assertInterviewAnswerContentAcceptable）
+// 同模块下沉——文本入口与语音提交缝共用的单一真相（空白→invalid_turn · 超长→answer_too_long 同码同值）。
 export {
   INTERVIEW_ANSWER_MAX_LENGTH, INPUT_ROUTE_KINDS, OVERLONG_POLICY_KINDS, SEGMENT_POLICIES,
   isInterviewQuestionIdentity, routeInterviewOrFreeConversation, resolveOverlongAnswerPolicy,
+  judgeInterviewAnswerContent, assertInterviewAnswerContentAcceptable,
 } from './input-routing.ts';
 export type {
   InputRouteKind, OverlongPolicyKind, SegmentPolicy, OverlongAnswerPolicy, OverlongAnswerDecision,
-  InterviewQuestionIdentity, RouteInputDecision,
+  InterviewQuestionIdentity, RouteInputDecision, InterviewAnswerContentDecision,
 } from './input-routing.ts';
 
 // 两阶段召回 + 派发前复核（MEM-14）纯域原语：授权/范围版本 digest + 渲染 digest（E1 字节等价）。
