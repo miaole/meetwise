@@ -39,10 +39,12 @@ const PRICING_HREF = '/pricing';                                 // 充值入口
 const ROUTE_UNDECIDED_TEXT = '暂时无法判断岗位方向';              // rev3 后结构性不可达，映射行保留防御
 const BINDING_CONFLICT_TEXT = '你有一场未结束的面试：继续/放弃后重来';
 
-// ── 429 行（begin 成本闸 #146/API-HARDEN-A·interviews 页域先行，quiz/diagnosis 同名码随其各自
-//    begin 闸刀接入本映射）：api 429 {error:'too_many_requests'} 不再落 begin_failed 兜底
-//    （「未预留额度」文案对限流语义失真），给「稍后再试」的可执行出路。─────────
+// ── 429 行（begin 成本闸 #146/#87/API-HARDEN-A）：api 429 {error:'too_many_requests'} 不再落
+//    begin_failed/create_failed 兜底（对限流语义失真），给「稍后再试」的可执行出路；
+//    三页各自 begin 闸同码，文案随页域（开面/押题/诊断）。─────────
 const RATE_LIMITED_TEXT = '开面过于频繁，请稍候再试';
+const QUIZ_RATE_LIMITED_TEXT = '押题过于频繁，请稍候再试';
+const DIAG_RATE_LIMITED_TEXT = '诊断过于频繁，请稍候再试';
 // （E1 出口注：继续=列表「进入 →」按钮；放弃=进会话后 InterviewPanel「放弃」+确认弹层（放弃退还额度）
 //  ——两跳可达，页面自身即 /interviews 列表，故本行不带链接。）
 
@@ -115,6 +117,7 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
     }
   } else if (page === 'quiz' || page === 'diagnosis') {
     // quiz/diagnosis：create_failed 兜底文案；begin_failed/防御码按 rev2 E2 归一到本页 create_failed 文案
+    if (code === 'too_many_requests') return { text: page === 'quiz' ? QUIZ_RATE_LIMITED_TEXT : DIAG_RATE_LIMITED_TEXT };   // 429 行（begin 成本闸·#87）
     if (
       code === 'create_failed' || code === 'begin_failed'
       || (code !== null && (page === 'quiz' ? QUIZ_BEGIN_DEFENSIVE_CODES : DIAGNOSIS_BEGIN_DEFENSIVE_CODES).has(code))

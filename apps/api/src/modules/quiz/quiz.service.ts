@@ -1,8 +1,17 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Optional, HttpException, HttpStatus } from '@nestjs/common';
 import { reserveEntitlement, enqueueQuizJob, releaseConsumption, requireOwnerUserId, buildRequiredOwnerFilter, newEntityId, errCode } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
+import { RateLimitService } from '../../platform/rate-limit.service';
 import { parseLastEventId } from '../../platform/last-event-id.ts';
 import { resumeDisplayName } from '../resume/resume-display.ts';
+
+// #87/API-HARDEN-A:押题 begin 成本闸(每 begin=1.0 单位预留 + generate job=整条押题生成模型管线)。
+// 形制/量级/env 覆写口与 interview begin 闸(interview.service.ts RL_BEGIN 族)同源同依据:
+// principal 桶(10,0.05)管单主体,`qzbegin:global` 共享桶(60,1)管多账号脚本总量。
+const RL_QUIZ_BEGIN_RAW = (process.env.RL_QUIZ_BEGIN ?? '10,0.05').split(',');
+const QUIZ_BEGIN_RL = { capacity: Number(RL_QUIZ_BEGIN_RAW[0]) > 0 ? Number(RL_QUIZ_BEGIN_RAW[0]) : 10, refillPerSec: Number(RL_QUIZ_BEGIN_RAW[1]) > 0 ? Number(RL_QUIZ_BEGIN_RAW[1]) : 0.05 };
+const RL_QUIZ_BEGIN_GLOBAL_RAW = (process.env.RL_QUIZ_BEGIN_GLOBAL ?? '60,1').split(',');
+const QUIZ_BEGIN_GLOBAL_RL = { capacity: Number(RL_QUIZ_BEGIN_GLOBAL_RAW[0]) > 0 ? Number(RL_QUIZ_BEGIN_GLOBAL_RAW[0]) : 60, refillPerSec: Number(RL_QUIZ_BEGIN_GLOBAL_RAW[1]) > 0 ? Number(RL_QUIZ_BEGIN_GLOBAL_RAW[1]) : 1 };
 
 /**
  * 押题应用服务(拥有 asPrincipal 事务边界 + 业务编排:advisory 锁、幂等、额度预留、入队、状态机、RLS)。
@@ -12,7 +21,8 @@ import { resumeDisplayName } from '../resume/resume-display.ts';
  */
 @Injectable()
 export class QuizService {
-  constructor(private readonly db: DbService) {}
+  // @Optional 形沿 RateLimitService 自身 db 注入先例(直接 new 的单测证明可零 rl 构造;Nest DI 生产恒注入)。
+  constructor(private readonly db: DbService, @Optional() private readonly rl?: RateLimitService) {}
 
   // 新建押题(空壳,created)。begin 才扣额度跑图。
   async create(principal: string) {
@@ -26,8 +36,16 @@ export class QuizService {
   // 开始押题:扣额度 + 入队 generate job(resume-quiz 图在 worker 跑,api 薄)。202 已受理。
   // #230 可选 targetRole:归一化 trim/限长 100/空串→undefined(interview begin/diagnosis 同形制,限长防滥用)。
   // 仅作 quiz_job payload 安全标量传输(不入表列/图 state/SSE);undefined → payload '{}' 零新键=现状字节。
-  begin(principal: string, id: string, resumeId: string, targetRole?: string) {
+  async begin(principal: string, id: string, resumeId: string, targetRole?: string) {
     if (!resumeId) throw new HttpException({ error: 'missing_resume_id' }, HttpStatus.BAD_REQUEST);
+    // #87/API-HARDEN-A:成本闸在 400 形校验后、advisory 锁/事务前(400 不入桶;幂等 alreadyBegun
+    // 重放也计费——重复 begin 本身就是可刷面,与 interview begin 闸同口径)。
+    if (this.rl) {
+      const ownerGate = requireOwnerUserId(principal, 'quiz.begin');
+      if (!(await this.rl.allow(`qzbegin:${ownerGate}`, QUIZ_BEGIN_RL.capacity, QUIZ_BEGIN_RL.refillPerSec))
+        || !(await this.rl.allow('qzbegin:global', QUIZ_BEGIN_GLOBAL_RL.capacity, QUIZ_BEGIN_GLOBAL_RL.refillPerSec)))
+        throw new HttpException({ error: 'too_many_requests', message: '押题过于频繁,请稍候' }, HttpStatus.TOO_MANY_REQUESTS);
+    }
     const targetRoleNormalized = (targetRole ?? '').trim().slice(0, 100) || undefined;
     const owner = requireOwnerUserId(principal, 'quiz.begin');   // PRIV01-C 第二层 E1
     const jobFilter = buildRequiredOwnerFilter(owner, 'quiz.begin.existingJob');     // E2 必选谓词

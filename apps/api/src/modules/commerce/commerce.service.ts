@@ -1,7 +1,8 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { Injectable, Optional, HttpException, HttpStatus } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, listLedger, requireOwnerUserId, newEntityId, errCode, asErr, type Client, type CreditBucketKind } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
+import { RateLimitService } from '../../platform/rate-limit.service';
 import { resolvePaymentProvider } from './payment-provider';
 
 /**
@@ -16,6 +17,28 @@ export type ProductDomain = 'consumer' | 'enterprise';
 export const PAY_SIG_REPLAY_WINDOW_SECONDS = 300;
 
 export type CommerceCallbackBody = { providerTxn?: string; sig?: string; ts?: number };
+
+// #87/API-HARDEN-A:支付回调成本闸(money 变更面:验签 HMAC + 网关 owner 解析 + CAS 入账;无限流 =
+// 脚本可无界重放/喷射)。per-order 桶(`cbpay:${id}`/`cbref:${id}`,30 突发/1/s)管单订单风暴——合法 PSP
+// 重试为个位数,套件内同单峰值 8 连发(nhp-load 重放臂)/11 散发(neg-commerce ORD_A)实测在上限内;
+// 全局共享桶(`cbpay:global`/`cbref:global`,120 突发/5/s)管全体回调面总量——套件单进程峰值 <60 在上限内,
+// 生产语义=每张实付订单一条回调,120 突发/300 每分稳态远高于真实交易节奏,洪水在此收口。
+// 闸在 verifyCommerceSig 之前(429 先于 400/403;验签 CPU 与 owner 查询都不为洪水买单)。
+// RL_CB_ORDER/RL_CB_GLOBAL env 覆写口沿 RL_SIGNUP_IP「容量,速率」双值形(prod 钉死默认,禁删桶检查)。
+const RL_CB_ORDER_RAW = (process.env.RL_CB_ORDER ?? '30,1').split(',');
+const CB_ORDER_RL = { capacity: Number(RL_CB_ORDER_RAW[0]) > 0 ? Number(RL_CB_ORDER_RAW[0]) : 30, refillPerSec: Number(RL_CB_ORDER_RAW[1]) > 0 ? Number(RL_CB_ORDER_RAW[1]) : 1 };
+const RL_CB_GLOBAL_RAW = (process.env.RL_CB_GLOBAL ?? '120,5').split(',');
+const CB_GLOBAL_RL = { capacity: Number(RL_CB_GLOBAL_RAW[0]) > 0 ? Number(RL_CB_GLOBAL_RAW[0]) : 120, refillPerSec: Number(RL_CB_GLOBAL_RAW[1]) > 0 ? Number(RL_CB_GLOBAL_RAW[1]) : 5 };
+
+/** #87:回调门统一闸(pay/refund 两族同形,prefix 区分桶域)。429 词沿 turn/voice 家族 too_many_requests。 */
+async function commerceCallbackGate(rl: RateLimitService | undefined, kind: 'paid' | 'refunded', id: string): Promise<void> {
+  if (!rl) return;
+  const orderKey = kind === 'paid' ? `cbpay:${id}` : `cbref:${id}`;
+  const globalKey = kind === 'paid' ? 'cbpay:global' : 'cbref:global';
+  if (!(await rl.allow(orderKey, CB_ORDER_RL.capacity, CB_ORDER_RL.refillPerSec))
+    || !(await rl.allow(globalKey, CB_GLOBAL_RL.capacity, CB_GLOBAL_RL.refillPerSec)))
+    throw new HttpException({ error: 'too_many_requests' }, HttpStatus.TOO_MANY_REQUESTS);
+}
 
 /**
  * #100 HMAC 验签单源(原 :87/:105/:135 三份复制块收敛于此):
@@ -84,7 +107,8 @@ export class CommerceService {
     "SELECT 1 AS ok FROM user_account WHERE id = current_setting('app.principal_user', true) " +
     "AND role='recruiter' AND status='active' AND approval_status='approved'";
 
-  constructor(private readonly db: DbService) {}
+  // @Optional 形沿 RateLimitService 自身 db 注入先例(直接 new 的单测证明可零 rl 构造;Nest DI 生产恒注入)。
+  constructor(private readonly db: DbService, @Optional() private readonly rl?: RateLimitService) {}
 
   // 公开目录=**C 端域子集**（B271 片1·前席发现②兼容收口）：C 端契约「恰 2 个面试包」逐字节不变
   // （neg-commerce:389 / api validate:448 / openapi 公开面零弱化）；企业商品经独立端点 enterpriseProducts
@@ -153,6 +177,7 @@ export class CommerceService {
    * 入账复用同一 exactly-once CAS(markOrderPaidAndCredit),重复回调幂等不双入。
    */
   async payWebhook(id: string, body: CommerceCallbackBody) {
+    await commerceCallbackGate(this.rl, 'paid', id);   // #87:成本闸先于验签(429 先于 400/403)
     verifyCommerceSig(id, body, 'paid');
     const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
@@ -183,6 +208,7 @@ export class CommerceService {
    * 200 {result: refunded|already}。Ban any-non-404-4xx-as-sig-evidence。
    */
   async refundWebhook(id: string, body: CommerceCallbackBody) {
+    await commerceCallbackGate(this.rl, 'refunded', id);   // #87:成本闸先于验签(429 先于 400/403)
     verifyCommerceSig(id, body, 'refunded');
     const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],

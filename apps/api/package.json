@@ -16,6 +16,7 @@
   "authz5a:login-ip-throttle": "node --import @swc-node/register/esm-register test/authz5a-login-ip-throttle.proof.ts",
   "authz5a:login-global-throttle": "node --import @swc-node/register/esm-register test/authz5a-login-global-throttle.proof.ts",
   "authz5a:chgpwd-lock": "node --import @swc-node/register/esm-register test/authz5a-chgpwd-lock.proof.ts",
+  "apih:cost-rl": "node --import @swc-node/register/esm-register test/apih-cost-rl.proof.ts",
   "authz5a2:hmac": "node --import @swc-node/register/esm-register test/authz5a2-hmac.proof.ts",
   "authz5a2:g7-refuse": "node --import @swc-node/register/esm-register test/authz5a2-g7-refuse.proof.ts",
   "authz5a2:password-max": "node --import @swc-node/register/esm-register test/authz5a2-password-max.proof.ts",
