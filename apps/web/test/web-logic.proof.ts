@@ -892,6 +892,10 @@ async function main() {
     (['quiz', 'diagnosis', 'jobs'] as const).every((p) =>
       actionErrorMessage(p, 0, 'candidate_route_undecided') === null
       && actionErrorMessage(p, 0, 'interview_resume_binding_conflict') === null));
+  A('429 begin 成本闸码（#146）：too_many_requests → 开面过于频繁文案；jobs → null（不跨页）',
+    actionErrorMessage('interviews', 429, 'too_many_requests')?.text === '开面过于频繁，请稍候再试'
+    && actionErrorMessage('interviews', 429, 'too_many_requests')?.href === undefined
+    && actionErrorMessage('jobs', 429, 'too_many_requests') === null);
   A('503：码通道 public_preview_read_only 与 status 通道（含无码/未知码）→ 服务暂不可用',
     pages.every((p) => actionErrorMessage(p, 0, 'public_preview_read_only')?.text === '服务暂不可用')
     && actionErrorMessage('interviews', 503, null)?.text === '服务暂不可用'

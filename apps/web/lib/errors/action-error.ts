@@ -38,6 +38,11 @@ const PRICING_HREF = '/pricing';                                 // 充值入口
 // ── 409 行（interview begin 确定性冲突；interviews 页域专属）──────────────────
 const ROUTE_UNDECIDED_TEXT = '暂时无法判断岗位方向';              // rev3 后结构性不可达，映射行保留防御
 const BINDING_CONFLICT_TEXT = '你有一场未结束的面试：继续/放弃后重来';
+
+// ── 429 行（begin 成本闸 #146/API-HARDEN-A·interviews 页域先行，quiz/diagnosis 同名码随其各自
+//    begin 闸刀接入本映射）：api 429 {error:'too_many_requests'} 不再落 begin_failed 兜底
+//    （「未预留额度」文案对限流语义失真），给「稍后再试」的可执行出路。─────────
+const RATE_LIMITED_TEXT = '开面过于频繁，请稍候再试';
 // （E1 出口注：继续=列表「进入 →」按钮；放弃=进会话后 InterviewPanel「放弃」+确认弹层（放弃退还额度）
 //  ——两跳可达，页面自身即 /interviews 列表，故本行不带链接。）
 
@@ -96,6 +101,7 @@ export function actionErrorMessage(page: ActionErrorPage, status: number, code: 
     if (code === 'candidate_route_undecided') return { text: ROUTE_UNDECIDED_TEXT };
     if (code === 'interview_resume_binding_conflict') return { text: BINDING_CONFLICT_TEXT };
     if (code === 'interview_privacy_fenced') return { text: INTERVIEW_PRIVACY_FENCED_TEXT };   // F6 410 行（interviews 页域·映射命中→不再落 begin_failed 兜底）
+    if (code === 'too_many_requests') return { text: RATE_LIMITED_TEXT };                      // 429 行（begin 成本闸·#146）
     // UC-025 三码行（GAP-UC025-REQUIZ-ENTRY-01）：押题产物失效/失配 → 重押题入口（场景 A1 显示半）。
     if (code === 'stale_quiz' || code === 'missing_quiz_expiry') {
       return { text: QUIZ_STALE_TEXT, href: QUIZ_REQUIZ_HREF, hrefLabel: QUIZ_REQUIZ_HREF_LABEL };      // E-过期：拒绝 → 引导重押题
