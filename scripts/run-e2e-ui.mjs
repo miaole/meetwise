@@ -3,13 +3,19 @@
  * 跑 Playwright(headless chromium + Pixel 5 两端)驱动真实 UI → 拆栈。
  * 这是 HTTP 层 e2e(run-e2e.mjs)之外的浏览器证据:cookie 鉴权 / middleware 在真实浏览器里端到端跑通。
  * 用法:pnpm e2e:ui(需 docker DB 在跑)。没有 apps/web/.next/BUILD_ID 时先 `next build` 再 `next start`。
- * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
+ * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)、
+ * 或既有构建缺本 runner 压测源(意图判:本 runner build/start 两阶段恒 E2E_UI_STRESS='1' 构建期内联;
+ * 无 E2E_UI_STRESS 生产构建被误复用 → events 路由压测分支死码剔除 → 压测 SSE 零帧·stream-window
+ * 饿死假红)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的
+ * web_not_ready 仍是失败;补构建不改写历史 exit。复用/重建的全部判定在 scripts/e2e-platform/
+ * stale-build-guard.mjs,本文件只收集输入、调用、按结果执行(stale-build-guard-REQUEST.md 卷)。
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
-import { readFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { readFileSync, existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
+import { evaluateExistingBuild } from './e2e-platform/stale-build-guard.mjs';
 import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -241,26 +247,21 @@ async function main() {
   // Build when BUILD_ID is absent — or when STALE_BUILD_GUARD finds the existing
   // build older than HEAD(陈旧构建假红防线·UC003 门⑥事故:BUILD_ID mtime 早于接线
   // 仍「在即不重建」→ 服务陈旧构建假红·复跑席再实证扣留输出不可回收)。
+  // 或既有构建与本 runner 压测意图不符:本 runner build/start 两阶段 spawn 恒显式置 E2E_UI_STRESS='1'
+  // (构建期内联),无该开关的生产构建(perf 套件步1 `pnpm -C apps/web build` 形)被误复用时 events 路由压测
+  // 分支已死码剔除→压测 SSE 零帧→stream-window 饿死假红。
+  // 判定全在 stale-build-guard.mjs(含新鲜度判不可得时的 fail-open、检测串选型):这里只收集输入、调用、
+  // 按结果执行。BEGIN/END 界标之间的代码由 proof 截出,跑在假 .next 与替身 build 上,不要删界标。
+  // STALE_BUILD_GUARD_SEGMENT_BEGIN
   const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
-  let forceRebuild = false;
-  if (existsSync(nextBuildId)) {
-    const headCommitTimeSec = headTimeSec();
-    if (headCommitTimeSec === null) {
-      console.warn('E2E-UI: STALE_BUILD_GUARD HEAD commit time 不可得(git 不可用/非 git 树)→ 按现行为服务既有构建');
-    } else {
-      try {
-        const buildIdMtimeMs = statSync(nextBuildId).mtimeMs;
-        if (buildIdMtimeMs / 1000 < headCommitTimeSec) {
-          forceRebuild = true;
-          console.warn(`E2E-UI: STALE_BUILD_GUARD .next/BUILD_ID mtime=${new Date(buildIdMtimeMs).toISOString()} 早于 HEAD commit time=${new Date(headCommitTimeSec * 1000).toISOString()} → 强制重建(防陈旧构建假红)`);
-        }
-      } catch {
-        console.warn('E2E-UI: STALE_BUILD_GUARD BUILD_ID mtime 读取失败 → 按现行为服务既有构建');
-      }
-    }
-  }
-  if (!existsSync(nextBuildId) || forceRebuild) {
-    console.log(forceRebuild ? 'E2E-UI: STALE_BUILD_GUARD 判定陈旧构建 → 强制 next build…' : 'E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
+  const guard = evaluateExistingBuild({
+    webDir: ROOT + 'apps/web',
+    headTimeSec: headTimeSec(),
+    stressExpected: true,   // 本 runner build/start 两阶段 spawn 恒显式置 E2E_UI_STRESS:'1' → 意图恒含压测源
+  });
+  for (const warning of guard.warnings) console.warn(warning);
+  if (guard.rebuild) {
+    console.log(guard.buildLog);
     const build = spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {
       PORT: String(webPort),
       API_BASE_INTERNAL: apiBase,
@@ -287,6 +288,7 @@ async function main() {
     NEXT_PUBLIC_API_BASE: apiBase,
     E2E_UI_STRESS: '1',
   });
+  // STALE_BUILD_GUARD_SEGMENT_END
   if (!(await waitFor(`${webBase}/`, 'web', 60))) { cleanup(); process.exit(1); }
 
   console.log('E2E-UI: 跑 Playwright 浏览器用例…');

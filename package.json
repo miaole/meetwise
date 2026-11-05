@@ -458,6 +458,7 @@
     "g1-default-switch:prep:prove": "node scripts/g1-default-switch-prep.proof.mjs",
     "g3-e2e-pg-image:prove": "node scripts/g3-e2e-pg-image.proof.mjs",
     "g6-e2e-iso-blocked:prove": "node scripts/g6-e2e-iso-blocked.proof.mjs",
+    "e2e-ui-stale-build-guard:prove": "node scripts/e2e-ui-stale-build-guard.proof.mjs",
     "e2e-runner:prove": "node scripts/bounded-command.proof.mjs",
     "e2e-receipt:prove": "node scripts/local-e2e-receipt.proof.mjs",
     "runtime-role:prove": "node scripts/run-e2e-isolated.mjs runtime-role:prove:raw",
