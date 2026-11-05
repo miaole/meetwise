@@ -87,6 +87,8 @@ export class RecruiterService {
    * I3 JOB-MGMT（裁决③·#219）：显式重试路由——db 写新 revision（route_pending）后 wakeup 走既有 drain。
    * sticky 枚举语义零改（unresolved 旧 revision 原样留存·同 revision 重跑仍 noop already_unresolved）；
    * 重试=招聘方显式动作·一次至多一个新 revision（Ban 无界自动重试）。API 零 classifyJobRoute（Worker 唯一调用方）。
+   * unknown_pending（GAP-ROUTE-RETRY-UNKNOWN-REBILL 二次计费闸）原样透传（不 wakeup·零新 revision），
+   * 冷却窗缺省在 db 层（ROUTE_RETRY_UNKNOWN_COOLDOWN_MS），文案披露在 web actions。
    */
   async retryRoute(principal: string, id: string) {
     const r = await this.db.asPrincipal(principal, (c) => retryJobRoute(c, principal, id));

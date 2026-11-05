@@ -498,10 +498,12 @@ export const JobRouteStatusEnvelope = z.object({ route: JobRouteStatusView.nulla
 export type JobRouteStatusEnvelope = z.infer<typeof JobRouteStatusEnvelope>;
 /**
  * I3 JOB-MGMT（裁决③）：显式重试路由结果。retried=写新 revision(route_pending) 走既有 drain；
- * already_pending/already_decided/not_retryable=幂等门（非未决态不制造空 revision·有界非自动）。
+ * already_pending/already_decided/not_retryable=幂等门（非未决态不制造空 revision·有界非自动）；
+ * unknown_pending=二次计费闸（GAP-ROUTE-RETRY-UNKNOWN-REBILL：同键前账 unknown/dispatching
+ * 冷却窗内抑制重试·零新 revision·稍后再试或编辑岗位内容触发重新分类）。
  */
 export const JobRouteRetryResult = z.object({
-  status: z.enum(['retried', 'already_pending', 'already_decided', 'not_retryable']).nullable(),
+  status: z.enum(['retried', 'already_pending', 'already_decided', 'not_retryable', 'unknown_pending']).nullable(),
   revision: z.number().int().nullable(),
 });
 export type JobRouteRetryResult = z.infer<typeof JobRouteRetryResult>;
