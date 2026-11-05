@@ -50,6 +50,7 @@ import {
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
+  ssotMatrixMatchesEmitted,
 } from '../evidence/r4-eg2-funnel-covered-matrix.ts';
 
 let failures = 0;
@@ -62,7 +63,8 @@ const section = (t: string) => console.log(`\n──────── ${t} ─�
 const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
-const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
+// 生成的回执/矩阵件落 .tmp（gitignore）：原写 ai-docs/delivery/receipts 旧址（PTP-archive 后已非 tracked），跑完留未跟踪件污染工作树与 PTP 计数。
+const receiptDir = join(repoRoot, '.tmp/proof-receipts');
 const receiptJson = join(
   receiptDir,
   '2026-09-23-g-r4-5-funnel-covered-count-batch4b-08-eval-evidence.json',
@@ -72,15 +74,22 @@ const proveMd = join(
   '2026-09-23-g-r4-5-funnel-covered-count-batch4b-08-eval-prove.md',
 );
 const eg2Json = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json');
+// eval wire 以 root 参数决定落盘根（写 <root>/ai-docs/delivery/receipts）：传 .tmp 下的根，生成件不入工作树。
+const evalOutRoot = join(receiptDir, 'funnel-08-eval');
 const releaseReceiptPath = join(
-  receiptDir,
-  'production-equivalent-funnel-08-release.json',
+  evalOutRoot,
+  'ai-docs/delivery/receipts/production-equivalent-funnel-08-release.json',
 );
 const thresholdsPath = join(
-  receiptDir,
-  'production-equivalent-funnel-08-thresholds.json',
+  evalOutRoot,
+  'ai-docs/delivery/receipts/production-equivalent-funnel-08-thresholds.json',
 );
-const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+// B2 评估器读归档在案回执（类1 路径修复）；B1 新产出须与其逐字节一致（只比对不写），保 B1→B2 承接不断。
+const archivedReleasePath = join(repoRoot, 'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-release.json');
+const archivedThresholdsPath = join(repoRoot, 'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-thresholds.json');
+// tracked SSOT 矩阵只比对不写（原直接整文件覆盖，跑旧批即把 SSOT 回退成旧批文案）；本 proof 生成的矩阵 md 落 .tmp。
+const ssotMatrixPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
+const mdPath = join(receiptDir, 'rag-funnel-01-08-covered-matrix.batch4b.md');
 const harnessPath = join(
   repoRoot,
   'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch4b-08-eval.md',
@@ -120,7 +129,7 @@ A('B0 harness status post_prove_dual_pass + Ban invent flags false', (() => {
 })());
 
 section('B1 run production-equivalent eval matrix wire (real produce+bind)');
-const evalRun = runProductionEquivalentFunnel08Eval(repoRoot);
+const evalRun = runProductionEquivalentFunnel08Eval(evalOutRoot);
 A('B1 eval mode production-equivalent', evalRun.mode === 'production-equivalent');
 A('B1 eval releaseEvidence=false (product honesty)', evalRun.releaseEvidence === false);
 A('B1 datasetDigest bound', /^[a-f0-9]{64}$/.test(evalRun.datasetDigest));
@@ -131,6 +140,10 @@ A('B1 wrongTrackZero hard assert', evalRun.wrongTrackZero === true);
 A('B1 hardZeroAssert text', /wrong-track=0 hard-zero/.test(evalRun.hardZeroAssert));
 A('B1 release receipt written', existsSync(releaseReceiptPath));
 A('B1 thresholds written', existsSync(thresholdsPath));
+A('B1 fresh release/thresholds ≡ archived receipts（只比对不写·B2 读归档件）',
+  read(archivedReleasePath) !== ''
+  && read(releaseReceiptPath) === read(archivedReleasePath)
+  && read(thresholdsPath) === read(archivedThresholdsPath));
 A(
   'B1 holdout kinds multi-lang/fullstack/ambiguity/injection',
   evalRun.holdoutKindsPresent.includes('multi-lang')
@@ -289,6 +302,9 @@ const mdLines = [
 ];
 writeFileSync(mdPath, mdLines.join('\n'), 'utf8');
 A('B5 matrix md written', existsSync(mdPath));
+const ssotCheck = ssotMatrixMatchesEmitted(matrix, read(ssotMatrixPath));
+A('B5 SSOT matrix compare-only（表格行与 coveredCount 行同 live 矩阵·不回写）', ssotCheck.ok,
+  ssotCheck.missing.length ? `missing=${ssotCheck.missing.length}` : undefined);
 
 const proveLines = [
   '# Prove — G-R4-5 / FUNNEL coveredCount Batch4b（08 eval true-cover）',
