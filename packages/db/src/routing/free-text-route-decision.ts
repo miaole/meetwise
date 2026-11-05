@@ -11,7 +11,8 @@
  *    revision 状态机、event outbox 全部与 RAG-03 逐值一致；
  *  - **不扩权限**：revision 只存 canonical digest（free-text-semantic:v1）+ keyed input HMAC
  *    （服务端派生，goal 原文结构上无处可写）；同一 (scope, revision) 最多 1 次模型外发
- *    （route_pending 被 FOR UPDATE 锁定后先落 model_prepared，再调用 seam，任何终态不重发）；
+ *    （事务 A 在 FOR UPDATE 锁内 CAS 落 model_prepared 并**提交**；外呼严格在事务外；
+ *    事务 B 重锁仍为 model_prepared 才写终态——与 RAG-03 job-route 同刀同形，任何终态不重发）；
  *  - dispatched_unknown / known_not_sent / validation_rejected 是 sticky 终态，永不自动重试；
  *  - **无 binding/snapshot/plan/检索消费链**：分类结果只是「建议 allowlisted track」，
  *    绝不授予读取/工具权限（无 public-read RLS、无 SECURITY DEFINER 读面）。
@@ -175,26 +176,33 @@ async function writeFreeTextRouteDecided(c: Client, args: {
  * 分类漏斗：rules（0 次）→ seam（最多 1 次）→ 服务端双重校验 → 终态。同一 (scope, revision)
  * 最多 1 次外发；任何终态或非 route_pending 都 noop，绝不重发。
  *
+ * 三相拆分（与 RAG-03 job-route 同刀同形·外呼不占任何 DB 事务/行锁）：事务 A 锁+CAS 落
+ * model_prepared 并提交；seam 调用严格在事务外；事务 B 重锁仍为 model_prepared 才写终态。
+ * seam 抛非 dispatched_unknown 错误 → 补偿 model_prepared→route_pending 再上抛（可重试）；
+ * 崩溃残面 = revision 滞留 model_prepared（不重发，fail-closed）。
+ *
  * goal 原文以参数传入（自由文本无 job_posting 可回读），仅用于重派生 digest 复核 + 喂受控
  * seam；绝不落库/落日志/落 cache/落 event。
  */
 export async function classifyFreeTextScope(pool: DbPool, owner: string, scopeId: string, revision: number, goal: string, deps: {
   modelClassify: FreeTextRouteModelClassify;
 }): Promise<ClassifyFreeTextScopeResult> {
-  return asPrincipal(pool, owner, async (c) => {
+  type ClassifyPhaseA = { phase: 'done'; result: ClassifyFreeTextScopeResult } | { phase: 'prepared' };
+  // ── 事务 A：锁 + 校验 + rules 终态 / model_prepared CAS；提交并释放锁后才允许模型 I/O ──
+  const phaseA = await asPrincipal<ClassifyPhaseA>(pool, owner, async (c): Promise<ClassifyPhaseA> => {
     const rev = await c.query(
       'SELECT status, semantic_digest, input_hmac FROM free_text_scope_revision WHERE scope_id=$1 AND revision=$2 FOR UPDATE',
       [scopeId, revision],
     );
-    if (rev.rowCount === 0) return { status: 'noop', reason: 'revision_not_found' } as const;
+    if (rev.rowCount === 0) return { phase: 'done', result: { status: 'noop', reason: 'revision_not_found' } as const };
     const r = rev.rows[0] as { status: FreeTextScopeRevisionStatus; semantic_digest: string; input_hmac: string };
-    if (r.status === 'route_decided') return { status: 'noop', reason: 'already_decided' } as const;
-    if (r.status === 'route_unresolved') return { status: 'noop', reason: 'already_unresolved' } as const;
-    if (r.status !== 'route_pending') return { status: 'noop', reason: 'not_pending' } as const;
+    if (r.status === 'route_decided') return { phase: 'done', result: { status: 'noop', reason: 'already_decided' } as const };
+    if (r.status === 'route_unresolved') return { phase: 'done', result: { status: 'noop', reason: 'already_unresolved' } as const };
+    if (r.status !== 'route_pending') return { phase: 'done', result: { status: 'noop', reason: 'not_pending' } as const };
 
     // goal 原文与 revision 的 digest 不一致 = 调用方传了与本 revision 不同的文本，fail-closed。
     const digest = canonicalFreeTextSemanticDigest({ goal });
-    if (digest !== r.semantic_digest) return { status: 'noop', reason: 'stale_revision' } as const;
+    if (digest !== r.semantic_digest) return { phase: 'done', result: { status: 'noop', reason: 'stale_revision' } as const };
     if (computeFreeTextInputHmac(digest) !== r.input_hmac) throw codeError('free_text_route_input_hmac_mismatch');
 
     // ── rules 路径：唯一 leaf → route_decided，0 次模型外发 ──
@@ -211,26 +219,62 @@ export async function classifyFreeTextScope(pool: DbPool, owner: string, scopeId
         allocations: [{ leafTrackId: ruleLeaf, allocationBps: 10000 }],
         confidenceBps: 10000, marginBps: 10000, fromStatus: 'rule_decided',
       });
-      return { status: 'route_decided', decisionId, attemptOutcome: 'rule_decided', modelCalls: 0 };
+      return { phase: 'done', result: { status: 'route_decided', decisionId, attemptOutcome: 'rule_decided', modelCalls: 0 } };
     }
 
-    // ── 模型路径：先持久化 model_prepared 意图，再恰一次外发 ──
+    // ── 模型路径：事务 A 持久化 model_prepared 意图后提交（send fence 落定），外呼留给事务外 ──
     await c.query(
       `UPDATE free_text_scope_revision SET status='model_prepared', updated_at=clock_timestamp()
         WHERE scope_id=$1 AND revision=$2 AND status='route_pending'`,
       [scopeId, revision],
     );
     await appendFreeTextRouteEvent(c, { scopeId, owner, revision, fromStatus: 'route_pending', toStatus: 'model_prepared', reason: 'rule_ambiguous', decisionId: null });
+    return { phase: 'prepared' };
+  });
+  if (phaseA.phase !== 'prepared') return phaseA.result;
 
-    let output: JobRouteModelOutput;
-    try {
-      output = await deps.modelClassify({ scopeId, revision, goal });
-    } catch (err) {
-      // 只有 seam 显式报告 dispatched_unknown 才落 unresolved；其余错误 rethrow（回滚，revision 仍 pending 可重试）。
-      if ((err as { code?: unknown } | undefined)?.code !== 'dispatched_unknown') throw err;
+  // ── 模型外呼：严格在任何 DB 事务之外 ──
+  let output: JobRouteModelOutput;
+  try {
+    output = await deps.modelClassify({ scopeId, revision, goal });
+  } catch (err) {
+    // 只有 seam 显式报告 dispatched_unknown 才落 sticky unresolved（事务 B）；其余错误补偿回
+    // route_pending 再上抛——与旧单事务回滚的可重试语义逐值一致。补偿用既有事件词面
+    // （model_prepared→route_pending）留审计痕；补偿事务失败整体回滚，残面仍 fail-closed。
+    if ((err as { code?: unknown } | undefined)?.code !== 'dispatched_unknown') {
+      await asPrincipal(pool, owner, async (c) => {
+        const undone = await c.query(
+          `UPDATE free_text_scope_revision SET status='route_pending', updated_at=clock_timestamp()
+            WHERE scope_id=$1 AND revision=$2 AND status='model_prepared'`,
+          [scopeId, revision],
+        );
+        if ((undone.rowCount ?? 0) > 0) {
+          await appendFreeTextRouteEvent(c, {
+            scopeId, owner, revision,
+            fromStatus: 'model_prepared', toStatus: 'route_pending',
+            reason: 'compensation_retriable', decisionId: null,
+          });
+        }
+      }).catch(() => undefined);
+      throw err;
+    }
+    return asPrincipal(pool, owner, async (c) => {
       const { decisionId } = await writeFreeTextRouteUnresolved(c, { scopeId, owner, revision, attemptOutcome: 'dispatched_unknown', reasonCodes: ['dispatched_unknown'] });
       return { status: 'route_unresolved', decisionId, attemptOutcome: 'dispatched_unknown', reasonCodes: ['dispatched_unknown'], modelCalls: 1 };
-    }
+    });
+  }
+
+  // ── 事务 B：重锁；revision 仍为 model_prepared 才写终态（stale/并发双写 = noop） ──
+  return asPrincipal(pool, owner, async (c) => {
+    const cur = await c.query(
+      'SELECT status FROM free_text_scope_revision WHERE scope_id=$1 AND revision=$2 FOR UPDATE',
+      [scopeId, revision],
+    );
+    if (cur.rowCount === 0) return { status: 'noop', reason: 'revision_not_found' } as const;
+    const status = (cur.rows[0] as { status: FreeTextScopeRevisionStatus }).status;
+    if (status === 'route_decided') return { status: 'noop', reason: 'already_decided' } as const;
+    if (status === 'route_unresolved') return { status: 'noop', reason: 'already_unresolved' } as const;
+    if (status !== 'model_prepared') return { status: 'noop', reason: 'not_pending' } as const;
 
     // 模型主动含原因码 = 明确拒分（known_not_sent，未进入评分路径）。
     if (Array.isArray(output?.reasonCodes) && output.reasonCodes.length > 0) {
