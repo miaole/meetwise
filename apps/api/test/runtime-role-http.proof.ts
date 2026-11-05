@@ -5,7 +5,7 @@
  */
 import 'reflect-metadata';
 import { fileURLToPath } from 'node:url';
-import { asGateway, createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
+import { asGateway, assertIsolatedTestTarget, createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
 
 const admin = createPool();
 const role = `api_runtime_${process.pid}`;
@@ -15,6 +15,8 @@ const A = (name: string, ok: boolean) => { console.log(`${ok ? 'PASS' : 'FAIL'} 
 const rejects = async (fn: () => Promise<unknown>) => { try { await fn(); return false; } catch { return true; } };
 
 async function main() {
+  // 隔离靶自证（E2E_ISOLATED 五件套+容器 nonce·破坏性 DROP 账本前向断言·沿 turn-idempotency.proof 同形）。
+  await assertIsolatedTestTarget(admin);
   await admin.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
   await runMigrations(admin, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
   await provisionRuntimeLogin(admin, { roleName: role, password });
