@@ -1930,6 +1930,11 @@
       "class": "manual-live-smoke"
     },
     {
+      "name": "MODEL_ENDPOINT_PROFILE",
+      "source": "scripts/run-performance-e2e.mjs",
+      "class": "live-test-launcher"
+    },
+    {
       "name": "MODEL_REVOKED_KEY_FINGERPRINTS",
       "source": "packages/ai-runtime/src/text-endpoint-config.ts",
       "class": "adapter-configuration"
