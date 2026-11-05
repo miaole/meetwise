@@ -450,16 +450,16 @@ const checks = {
       // CAP-SANCTION-2461 EVAP EXEC 立项 union 越限恰等步进：cap 2455→2461（2026-10-30 GAP-EVAL-PARSER-DETAILS-UNCLOSED 评测解析收口 EXEC 落码·fetch 届值 origin/main 3af835ad4=#183（cap 承 2455=CAP-SANCTION-2455）·EXEC 前 docs:check PTP_FILE_LIMIT:2456>2455 红亲证·union 实测 2460=main 届扫 2455+在飞互斥受管目 5（cwn@24ca62f73/uc3m@1b2f6ad0f/online-pay@fdaa1ecf0/uc31@112ac8af0/本卷 REQUEST 各 1）+EXEC +1 fixture=2461 恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2461 注记）——本 TC 四联动点 2_461/f-2461.md/:2462 恰等改（loop/atCap/overCap 三处）。
       const paths = [];
 // CAP-SANCTION-2498 RRETRY 路由重试二次计费闸刀 nail 期并线 union 越限恰等步进：cap 2497→2498（详 policy .mjs 链区 CAP-SANCTION-2498 注记·2026-11-06 meetwise 路由分类重试二次计费修复刀 nail 期 rebase 并线行使（pre-exec 双审两独立外席 PASS·报告 .tmp/reviews/rretry-pre-1.md/rretry-pre-2.md·协调方 EXEC 授权随令）·fetch EXIT=0·届值如实采 origin/main 6ecce7705=#217（main 届扫 2497=cap 2497 恰等=CAP-SANCTION-2497 KSW nail 承值）·rebase 冲突=两 policy 脚本注记/注释行+数值行 dual-keep 双留（main 侧十四注史录全保留+本支 RRETRY 起草注并留·号随 merge-tree 重排·沿 CAP-SANCTION-2497 KSW nail 先例形）·union=main 届扫 2497+本卷 REQUEST 1 件=2498 恰等零多放·协调方常设预授权「cap 以合并树实测恰等步进免再询」随令行使 +1（2497→2498）·合并树 docs:check 届核亲跑 scanned 2498=cap 2498 恰等·EXEC 期零新增受管文件→terminal 2498 零新增）——本 TC 四联动点 2_498/f-2498.md/:2499 恰等改。
-      for (let i = 0; i < 2_502; i += 1) {
+      for (let i = 0; i < 2_513; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_502);
-      // 超限错误码形状断言：第 2503 个注入路径触发早返回（先于读盘·免落盘可断言·随 CAP-SANCTION-2502 RRETRY 四次并线四联动点恰等改一并勘正与 :2503 同断言自洽）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2503`（`${CODE}:${n}` 形）·scannedFiles:0。
+      assert.equal(atCap.scannedFiles, 2_513);
+      // 超限错误码形状断言：第 2514 个注入路径触发早返回（先于读盘·免落盘可断言·随 CAP-SANCTION-2513 XS-SMALLFIXES 并线四联动点恰等改一并勘正与 :2514 同断言自洽）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2514`（`${CODE}:${n}` 形）·scannedFiles:0。
       // CAP-SANCTION-2488 UC31 EXEC 期新 proof 受管 +1 恰等步进：cap 2487→2488（详 policy .mjs 链区 CAP-SANCTION-2488 注记·2026-11-06 UC-031/032 结构面第一期 EXEC 行使（harness/uc31-REQUEST.md §1 件①④·pre-exec 双审 BOTH PASS+协调方 EXEC 授权）·apps/worker/test/uc-e2e-031-032-structure.proof.ts 新 proof 受管 +1·收据 receipts/uc31-032-structure/ 3 件实测 ∉ MANAGED_ROOTS 非扫描面不计（r2 算式示例不作硬数承兑·门3 union 取大重算为准）·本树终验亲跑 PTP_FILE_LIMIT:2488>2487 红（真 EXIT=1 亲证）——union 实测 2488=届值 2487+本刀 proof 1 恰等零多放·常设预授权随令行使·四联动点 2_488/f-2488.md/:2489 恰等改·沿 CAP-SANCTION-2487 先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_488/f-2488.md/:2489 恰等改。
 
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
@@ -530,10 +530,11 @@ const checks = {
       // CAP-SANCTION-2499 AG32-CODE 主线二轮并线 union 恰等步进：cap 2498→2499（详 policy .mjs 链区 CAP-SANCTION-2499 注记·2026-11-06 line/ag32-draft 转并线任务随令并线 26c7c3d3b=#218 union 届值 2499 恰等·四联动点 2_499/f-2499.md/:2500 同断言自洽）。
       // CAP-SANCTION-2501 AG32-CODE 三次并线 push 行使 union 越限恰等步进：cap 2500→2501（详 policy .mjs 链区 CAP-SANCTION-2501 注记·2026-11-07 line/ag32-draft 门开后随令 push 并线行使·届值如实采 origin/main 6c67dace2=#219 regr 已并（main 届扫 2500=cap 2500 恰等）·union=main 届扫 2500+本卷 harness/ag32-code-REQUEST.md 受管 1 件=2501 恰等零多放·常设预授权「cap 以合并树实测恰等步进免再询」随令行使 +1·四联动点 2_501/f-2501.md/:2502 恰等改（loop/atCap/overCap 三处）·PTP 12/12 亲跑·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_501/f-2501.md/:2502 恰等改。
       // CAP-SANCTION-2502 RRETRY 四次并线 push 行使 union 越限恰等步进：cap 2501→2502（详 policy .mjs 链区 CAP-SANCTION-2502 注记·2026-11-07 line/rretry-draft 门开后随令 push 并线行使·届值如实采 origin/main ag32 已并（post-merge main 届扫 2501=cap 2501 恰等）·union=main 届扫 2501+本卷 harness/route-retry-billing-REQUEST.md 受管 1 件=2502 恰等零多放·常设预授权「cap 以合并树实测恰等步进免再询」随令行使 +1·四联动点 2_502/f-2502.md/:2503 恰等改（loop/atCap/overCap 三处）·PTP 12/12 亲跑·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_502/f-2502.md/:2503 恰等改。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2502.md'] });
+      // CAP-SANCTION-2513 XS-SMALLFIXES 门开并线 push 行使 union 越限恰等步进：cap 2502→2513（详 policy .mjs 链区 CAP-SANCTION-2513 注记·2026-11-08 line/xs-draft 门开后随令 push 并线行使·届值如实采 origin/main rretry 已并（post-merge main 届扫 2502=cap 2502 恰等）·union=main 届扫 2502+本支新增受管件恰 11（small-fixes-1105-REQUEST+request-status-recon.proof+proof-samples 九件）=2513 恰等零多放·常设预授权「cap 以合并树实测恰等步进免再询」随令行使 +11·四联动点 2_513/f-2513.md/:2514 恰等改（loop/atCap/overCap 三处）·PTP 12/12 亲跑·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_513/f-2513.md/:2514 恰等改。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2513.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2503`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2514`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
