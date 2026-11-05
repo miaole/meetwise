@@ -22,10 +22,20 @@ async function main() {
   const gV = buildMockInterviewGraph(cp, QUESTIONS);
   const cfgV = { configurable: { thread_id: `voice-${run}` } };
   await gV.invoke({}, cfgV);                                          // → interrupt 第1题
-  const t1 = await previewVoiceAnswerTurn({ asr: fakeAsr(ANSWERS[0]!), tts: fakeTts(), graph: gV, cfg: cfgV }, new Uint8Array([1, 2, 3]));
+  // AG-32: voice-turn 不再直触图——resume 形归提交闭包（mock 图的契约是字符串 resume,
+  // adaptive 图的 { answerId } 契约由 voice-adaptive.proof 的真 submitAdaptiveAnswer 覆盖）。
+  const submitV = async (answer: string) => {
+    await gV.invoke(new Command({ resume: answer }), cfgV);
+    const snap = await gV.getState(cfgV) as unknown as {
+      tasks?: Array<{ interrupts?: Array<{ value?: { question?: string } }> }>;
+      next: unknown[];
+    };
+    return { nextQuestion: snap.tasks?.[0]?.interrupts?.[0]?.value?.question, done: snap.next.length === 0 };
+  };
+  const t1 = await previewVoiceAnswerTurn({ asr: fakeAsr(ANSWERS[0]!), tts: fakeTts(), submit: submitV }, new Uint8Array([1, 2, 3]));
   A('第1轮:语音答案被 ASR 转写并推进图', t1.transcript === ANSWERS[0]);
   A('第1轮:下一题被 TTS 合成出音频', !!t1.questionAudio && t1.nextQuestion === QUESTIONS[1]);
-  const t2 = await previewVoiceAnswerTurn({ asr: fakeAsr(ANSWERS[1]!), tts: fakeTts(), graph: gV, cfg: cfgV }, new Uint8Array([4, 5, 6]));
+  const t2 = await previewVoiceAnswerTurn({ asr: fakeAsr(ANSWERS[1]!), tts: fakeTts(), submit: submitV }, new Uint8Array([4, 5, 6]));
   A('第2轮:答完,会话完成(done)', t2.done && !t2.nextQuestion);
   const snapV = await gV.getState(cfgV);
 
