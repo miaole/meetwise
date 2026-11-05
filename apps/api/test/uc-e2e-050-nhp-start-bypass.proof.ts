@@ -1,31 +1,38 @@
 /**
  * UC-E2E-050 · START-BYPASS isolated real-PG/HTTP evidence · NHP-050-START-BYPASS-01
- * (REQUEST ai-docs/delivery/harness/uc50-REQUEST.md §1.5 rev r1 三证据臂 · 裁决 (b) 诚实证据刀)
+ * (REQUEST ai-docs/delivery/harness/uc50-REQUEST.md §1.5 rev r1 三证据臂 · 裁决 (b) 诚实证据刀
+ *  · 2026-11-06 内容安全开关第三入口收口刀（ai-docs/delivery/harness/kill-switch-entry-REQUEST.md）
+ *  同刀 re-pin：SB1/SB3 极性随修复翻转 + SB4 行钉改形状锚 · 断言数 46→47 零删减·off 既有行为断言零动)
  *
- * 断言对象 = 「现状与登记边界一致」非「产品正确」：applications.start 绕行残余在树且被
- * 诚实钉位（killsw 卷 NOT claimed 显式留的后继登记面行使）。case 收据语义 = 登记边界如实
- * 证据化，非行为合格证——Ban 借本收据宣称产品正确 / 洗 GAP / 宣 kill-switch 全入口已闸。
+ * 断言对象 = 「修复后契约形状」：开关开启（kill=1）时 applications.start → 503 具名码+零副作用
+ * （闸放 beginInterviewCore 核首语句共享位 denyContentSafetyKilledShared·合一事务整体回滚）·
+ * 开关关闭（off/unset）时既有放行字节保真（SB2 对照臂不动）。原「绕行残余在树」登记语义已被
+ * 收口刀合法翻转（残余已收口·史录见 uc50 卷 closed 收据/矩阵注记）——Ban 借本收据宣称
+ * 「kill-switch 全入口已闸」超出本证面（worker 消费侧=暂停入队语义·翻转前已入队 job 仍消费至
+ * 有界上界·ksw 卷 §1.1⑦ 承登）。
  *
- * Arms（REQUEST §1.5 rev r1 三证据臂·dual r1 P2 修订承登）:
- *   SB1 = 臂① 现状放行 runtime（kill=1 子进程 spawn）: POST /applications/:id/start 仍 200
- *         且 body 四元非 noop 形（applicationId / status∈{started,reused} / interviewId /
- *         redirectTo——Ban applications.service.ts:83 noop 空壳形 200 计为放行证据）；
- *         同 env 双口差分: 同 interviewId POST /interview/:id/begin → 503
- *         content_safety_kill_switch_active 具名码+诚实文案逐字（同核双生产者·恰一者未接线）。
+ * Arms（re-pin 后）:
+ *   SB1 = 开关开启拒 runtime（kill=1 子进程 spawn）: POST /applications/:id/start → 503
+ *         content_safety_kill_switch_active 具名码+诚实文案逐字（非 200 非 noop 空壳形·
+ *         applicationId/status/interviewId/redirectTo 全缺位=零放行形状）；同 env 双口差分:
+ *         同 interviewId POST /interview/:id/begin → 503 同形（start/begin 双口同闸一致=
+ *         核共享位覆盖第二生产者 applications.start 直调）。
  *   SB2 = off 对照臂（kill=0/unset spawn 变体）: start → 200 现状字节四元 + begin → 202
- *         accepted/alreadyBegun（off=现状保真·双口在同 env 下差分自证）。
- *   SB3 = 净账审计（父进程跨进程 DB 审计）: interview 行增量 +1/臂 · start job 恰 1 ·
- *         answer job 0 · 预留净账=entitlement_consumption 恰 1 行 reserved（owner=候选人 ·
- *         payer=招聘方 0157 单跳派生）· 企业桶 units_reserved +1.00/臂 · 候选人个人桶零触 ·
- *         job_application CAS 迁移 invited→in_progress。
- *   SB4 = 臂② 静态结构: 闸接线全树恰 2 处（interview.service.ts:425/:436 逐行）+
- *         denyContentSafetyKilled 定义 :335-347（:341 具名码·:342 503 状态字）+
- *         beginInterviewCore（:102-）体内零 kill 检查（守卫链在场对照）+
- *         start（applications.service.ts:57）直调零触 + controller 零闸 +
- *         applications.service/controller 全文零 kill 词元（接线零触=P2 防呆断言）。
- *   SB5 = 臂③ 静态门一致性: i6-239-gates.proof.mjs:53 `callSites === 2` 与产品现状一致——
- *         :52 测量域=interview.service.ts 单文件字面（P2 勘误：他文件接线不改计数）·
- *         全树判定以臂② 为准（本臂单文件计数 === 臂② 全树计数 → 门不红=登记边界自洽）。
+ *         accepted/alreadyBegun（off=现状保真·双口在同 env 下差分自证）——既有行为断言零动。
+ *   SB3 = 净账审计（父进程跨进程 DB 审计）: kill 臂全零（interview 行 0/interview_job 0/
+ *         entitlement_consumption 0/候选人个人桶 0/申请仍 invited=合一事务整体回滚）·
+ *         off 臂同净账形（interview +1/start job 恰 1/answer 0/四元绑定在场/预留 1 行
+ *         reserved payer=招聘方/CAS invited→in_progress）；企业桶 units_reserved 恰 +1.00
+ *         （仅 off 臂）· consumed=0（worker 不在场零结算）。
+ *   SB4 = 臂② 静态结构（形状锚·行号无关——基线漂移随形状翻转不再随行号误红）:
+ *         方法闸 this.denyContentSafetyKilled(); 全树恰 2（首处 begin 口·次处 turn 口）+
+ *         共享映射体 denyContentSafetyKilledShared 导出在场（体内 assert+具名码+503 状态字）+
+ *         private denyContentSafetyKilled 委托共享体 + beginInterviewCore 核首语句共享闸
+ *         （先于 resumeId 校验=第三入口同闸覆盖）+ 全树恰位形 + applications.service/controller
+ *         全文零 kill 词元（start 零内联闸=闸承自共享核首语句非 start 内联）。
+ *   SB5 = 臂③ 静态门一致性: i6-239-gates.proof.mjs `callSites === 2` 与产品现状一致——
+ *         测量域=interview.service.ts 单文件字面（核共享闸同文件·方法闸计数恒 2 门不红）·
+ *         全树判定以臂② 为准（本臂单文件计数 === 臂② 全树文件数 → 门不红=自洽）。
  *
  * Evidence layer（REQUEST §1.6·uc-e2e-050-nhp-kill.proof.ts 先例形）: 隔离真 PG
  * （run-e2e-isolated pre-migrate 世界+proof 内 runMigrations skip-or-apply 幂等）+ 真 HTTP
@@ -38,9 +45,11 @@
  * （applications.start 直调形不携 quiz header·码面亲证）。
  *
  * HONESTY:
- *   - 本收据证明「kill=1 下 applications.start 现状放行且全链零 kill 检查」=残余在+登记边界
- *     与现状一致；非「残余受控/产品正确/全入口已闸」的任何行为合格宣称（REQUEST §5 承守）。
- *   - (a) 产品接线刀清单登记归用户裁决队列（REQUEST §1.5 rev r1·本刀零产品码零接线）。
+ *   - 本收据证明「开关开启时 start 被核首语句共享闸拒 503 且合一事务零副作用」+「off 现状字节
+ *     保真」+「闸接线形状全树恰位」；非「kill-switch 全入口已闸/生产 HA/容量」的任何宣称
+ *     （worker 消费侧=暂停入队语义·翻转前已入队 job 仍消费至有界上界·ksw 卷 §1.1⑦ 承登）。
+ *   - (a) 产品接线刀已行使（kill-switch-entry 收口刀·闸放核首语句共享位·applications.service.ts
+ *     零触 catch 原样重抛透传 503）——本 proof 同刀 re-pin（2026-11-06·源=两路审查 ksw-1/ksw-2）。
  *   - i6-gates:prove 申报清单臂对外来改动集按设计红（killsw §7 同口径）=预期形非本刀门。
  *   - 邻面旁证互不替代: uc050:nhp-kill:prove（触发面 503）/ privacy-erasure-http（UC-052）/
  *     public-preview-write-gate（preview 闸）/ entpay:s2:prove（扣费路由·非 kill 面）。
@@ -118,10 +127,11 @@ const results = [];
 const principal = process.env.__UC050SB_PRINCIPAL__;
 const appId = process.env.__UC050SB_APP__;
 const resumeId = process.env.__UC050SB_RESUME__;
-// 臂①/对照臂主行使: applications.start（合一事务 CAS+预留+入队·直调 beginInterviewCore 零 kill 闸）。
+// 臂①/对照臂主行使: applications.start（合一事务·直调 beginInterviewCore——核首语句共享闸
+// denyContentSafetyKilledShared: kill=1 → 503 具名码+事务整体回滚 / off → CAS+预留+入队放行）。
 const start = await post('/applications/' + appId + '/start', U(principal), { resumeId });
 results.push({ arm: 'start', status: start.status, body: start.body });
-// 同 env 双口差分: 同核 begin 端点（第二生产者·闸后）——kill=1 → 503 具名码 / unset → 202 现状字节。
+// 同 env 双口差分: 同核 begin 端点——kill=1 → 503 同形（start/begin 双口同闸）/ unset → 202 现状字节。
 const iv = start.body && typeof start.body.interviewId === 'string' ? start.body.interviewId : 'none';
 const begin = await post('/interview/' + iv + '/begin', { ...U(principal), 'resume-id': resumeId }, {});
 results.push({ arm: 'begin', status: begin.status, body: begin.body });
@@ -175,6 +185,11 @@ const interviewRowCountOf = async (pool: DbPool, principal: string) =>
   Number((await pool.query(`SELECT count(*)::int AS n FROM interview WHERE owner_user_id=$1`, [principal])).rows[0]?.n ?? 0);
 const jobCountOf = async (pool: DbPool, interviewId: string, kind: 'start' | 'answer') =>
   Number((await pool.query(`SELECT count(*)::int AS n FROM interview_job WHERE interview_id=$1 AND kind=$2`, [interviewId, kind])).rows[0]?.n ?? 0);
+// owner-join 口径（kill 臂零增审计用：无 interview 行可绑 → 恒 0·不依赖 start body 的 interviewId）。
+const jobRowsOfOwner = async (pool: DbPool, principal: string) =>
+  Number((await pool.query(
+    `SELECT count(*)::int AS n FROM interview_job j JOIN interview i ON i.id=j.interview_id WHERE i.owner_user_id=$1`, [principal],
+  )).rows[0]?.n ?? 0);
 const consumptionRowsOf = async (pool: DbPool, principal: string) => {
   const r = await pool.query(
     `SELECT status, payer_user_id, idempotency_key, units_requested::float8 AS units
@@ -189,9 +204,9 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
   String((await pool.query(`SELECT status FROM job_application WHERE id=$1`, [appId])).rows[0]?.status ?? '');
 
 (async () => {
-  console.log(`UC-E2E-050 ${CASE_ID} isolated PG/HTTP START-BYPASS evidence (现状放行 runtime/静态结构/静态门一致性·三证据臂)`);
+  console.log(`UC-E2E-050 ${CASE_ID} isolated PG/HTTP START-BYPASS evidence (开关开启拒 503 零副作用/off 保真/静态形状锚·re-pin 后三证据臂)`);
   console.log('releaseEvidence=false · haStatus=NOT_HA · claimProductionHA=false · coveredCount=8 · PG-retained · 公开 DELETE=503');
-  console.log('HONESTY: 断言对象=现状与登记边界一致 非产品正确 · (a) 接线刀清单归用户裁决队列·本刀零产品码零接线');
+  console.log('HONESTY: 断言对象=修复后契约形状（kill=1 start 503+零副作用·off 字节保真） 非全入口已闸宣称 · 同刀 re-pin（ksw 收口刀）');
   console.log('Non-substitute: uc050:nhp-kill(触发面)/i6-gates(邻接旁证)/privacy-erasure-http/entpay:s2 互不替代互不 wash');
   console.log('EXIT0=case≠covered · 行状态 blind 保持+case-only 措辞 · est live=0 · Ban retry-to-green · Ban fake-green');
   console.log(`ATTEMPT_START  iso=${ATTEMPT_STARTED_AT}\n`);
@@ -362,26 +377,27 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
   A('ISO', 'child-env egress-strip: no assembled model-key-shaped key survives',
     Object.keys(childEnvProbe).every((k) => !EGRESS_STRIP_RE.test(k)));
 
-  // ── SB1 臂①（kill=1 spawn 变体·真 PG——start 全链 CAS/预留/入队需 DB·现状放行实证）──
+  // ── SB1 臂①（kill=1 spawn 变体·真 PG——开关开启拒 503+合一事务整体回滚·re-pin 后契约形状）──
   const killChild = await runChild('start-kill', '1', CAND_KILL, appKill, RESUME_KILL);
   A('CHILD', 'child(kill=1) exits cleanly', killChild.code === 0 && killChild.result !== null);
   const killStart = killChild.result?.results.find((r) => r.arm === 'start');
   const killBegin = killChild.result?.results.find((r) => r.arm === 'begin');
-  A('SB1', 'kill=1 start → 200（现状放行实证·非 503 非 4xx）', killStart?.status === 200);
-  A('SB1', 'kill=1 start body 四元: applicationId 恒等', killStart?.body?.applicationId === appKill);
-  A('SB1', 'kill=1 start body status ∈ {started,reused}（Ban :83 noop 空壳形 200 计为放行证据）',
-    killStart?.body?.status === 'started' || killStart?.body?.status === 'reused');
-  A('SB1', 'kill=1 start body interviewId 服务端绑定形（iv_ 前缀 newEntityId·持久化绑定·非 noop 缺位形）',
-    typeof killStart?.body?.interviewId === 'string' && /^iv_[0-9a-f]{16,}$/.test(String(killStart?.body?.interviewId)));
-  A('SB1', 'kill=1 start body redirectTo 形（/interview/<id>?applicationId=<app>）',
-    typeof killStart?.body?.redirectTo === 'string'
-    && String(killStart?.body?.redirectTo).startsWith('/interview/')
-    && String(killStart?.body?.redirectTo).includes(encodeURIComponent(appKill)));
-  A('SB1', '同 env 双口差分: begin → 503（同核第二生产者闸后·同 interviewId）', killBegin?.status === 503);
+  A('SB1', 'kill=1 start → 503（开关开启拒·具名 503 非 200 非 4xx——原「现状放行 200」形状已随修复合法翻转）',
+    killStart?.status === 503);
+  A('SB1', 'kill=1 start body 具名码 content_safety_kill_switch_active（与 begin/turn 口逐字同形）',
+    killStart?.body?.error === KILL_CODE);
+  A('SB1', 'kill=1 start body 诚实文案逐字（核共享映射体·零新造）',
+    killStart?.body?.message === KILL_MSG);
+  A('SB1', 'kill=1 start body 零放行形状（applicationId/status/interviewId/redirectTo 全缺位——Ban noop 空壳形 200 与四元放行形）',
+    killStart?.body?.applicationId === undefined && killStart?.body?.status === undefined
+    && killStart?.body?.interviewId === undefined && killStart?.body?.redirectTo === undefined);
+  A('SB1', '同 env 双口差分: begin → 503（同核第二生产者同闸·同 interviewId）', killBegin?.status === 503);
   A('SB1', 'begin 503 body 具名码+诚实文案逐字（reason 级可分）',
     killBegin?.body?.error === KILL_CODE && killBegin?.body?.message === KILL_MSG);
+  A('SB1', 'start/begin 双口同闸一致（同 env 两口 503+同具名码同文案=核首语句共享位覆盖第二生产者）',
+    killStart?.status === 503 && killBegin?.status === 503
+    && killStart?.body?.error === killBegin?.body?.error && killStart?.body?.message === killBegin?.body?.message);
   A('SB1', 'child spawn env truly had kill=1（result echoes killVal）', killChild.result?.killVal === '1');
-  const ivKill = String(killChild.result?.interviewId ?? '');
 
   // ── SB2 off 对照臂（kill=0/unset spawn 变体·现状字节保真）──
   const offChild = await runChild('start-off', undefined, CAND_OFF, appOff, RESUME_OFF);
@@ -399,44 +415,54 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
   A('SB2', 'child spawn env truly had kill unset（result echoes killVal undefined）', offChild.result?.killVal === undefined);
   const ivOff = String(offChild.result?.interviewId ?? '');
 
-  // ── SB3 净账审计（父进程跨进程 DB 审计·预留/入队净账）──
-  A('SB3', 'kill 臂 interview 行增量恰 +1（0→1·合一事务 CAS 建绑）', (await interviewRowCountOf(pool, CAND_KILL)) === 1);
-  A('SB3', 'kill 臂 iv start job 恰 1 · answer job 0（入队净 1·模型面 job 在 kill=1 下仍入队=绕行铁证）',
-    (await jobCountOf(pool, ivKill, 'start')) === 1 && (await jobCountOf(pool, ivKill, 'answer')) === 0);
-  const killBoundRow = await pool.query(
-    `SELECT application_id, job_id, resume_id FROM interview WHERE id=$1 AND owner_user_id=$2`, [ivKill, CAND_KILL]);
-  A('SB3', 'kill 臂 interview 四元绑定在场（application_id/job_id/resume_id 全绑·合一事务产品事实）',
-    killBoundRow.rows[0]?.application_id === appKill
-    && killBoundRow.rows[0]?.job_id != null && killBoundRow.rows[0]?.resume_id != null);
+  // ── SB3 净账审计（父进程跨进程 DB 审计·kill 臂全零=合一事务整体回滚 / off 臂既有净账形保持）──
+  A('SB3', 'kill 臂 interview 行零增（开关开启拒=核首语句闸抛·合一事务整体回滚·恒 0 行）',
+    (await interviewRowCountOf(pool, CAND_KILL)) === 0);
+  A('SB3', 'kill 臂零 interview_job 入队（owner-join 口径 start/answer 全 0=闸先于一切入队）',
+    (await jobRowsOfOwner(pool, CAND_KILL)) === 0);
   const killCons = await consumptionRowsOf(pool, CAND_KILL);
-  A('SB3', 'kill 臂预留净账恰 1 行 reserved（owner=候选人·payer=招聘方·idempotency_key=interviewId·0157 形状甲）',
-    killCons.length === 1 && killCons[0]?.status === 'reserved' && killCons[0]?.payer_user_id === REC
-    && killCons[0]?.idempotency_key === ivKill);
-  A('SB3', 'kill 臂候选人个人桶零触（企业路由·候选人桶零读写）', (await personalBucketOf(pool, CAND_KILL)) === 0);
-  A('SB3', 'off 臂 interview 行增量恰 +1 · start job 恰 1 · answer 0（对照臂同净账形）',
+  A('SB3', 'kill 臂零预留（entitlement_consumption 恒 0 行=reserveEntitlementForApplication 未达）',
+    killCons.length === 0);
+  A('SB3', 'kill 臂候选人个人桶零触（企业路由·候选人桶零读写·既有语义保持）', (await personalBucketOf(pool, CAND_KILL)) === 0);
+  A('SB3', 'kill 臂申请状态仍 invited（CAS 迁移随事务回滚·未至 in_progress 非 noop 非 held）',
+    (await applicationStatusOf(pool, appKill)) === 'invited');
+  A('SB3', 'off 臂 interview 行增量恰 +1 · start job 恰 1 · answer 0（对照臂既有行为保持）',
     (await interviewRowCountOf(pool, CAND_OFF)) === 1
     && (await jobCountOf(pool, ivOff, 'start')) === 1 && (await jobCountOf(pool, ivOff, 'answer')) === 0);
+  const offBoundRow = await pool.query(
+    `SELECT application_id, job_id, resume_id FROM interview WHERE id=$1 AND owner_user_id=$2`, [ivOff, CAND_OFF]);
+  A('SB3', 'off 臂 interview 四元绑定在场（application_id/job_id/resume_id 全绑·原 kill 臂绑定形状断言移至 off 对照臂）',
+    offBoundRow.rows[0]?.application_id === appOff
+    && offBoundRow.rows[0]?.job_id != null && offBoundRow.rows[0]?.resume_id != null);
   const offCons = await consumptionRowsOf(pool, CAND_OFF);
-  A('SB3', 'off 臂预留净账恰 1 行 reserved（对照臂同形状）',
+  A('SB3', 'off 臂预留净账恰 1 行 reserved（对照臂同形状 payer=招聘方）',
     offCons.length === 1 && offCons[0]?.status === 'reserved' && offCons[0]?.payer_user_id === REC);
   const bucketAfter = await enterpriseBucketOf(pool, REC);
-  A('SB3', '企业桶净账: units_reserved 恰 +2.00（两臂各 +1.00）· consumed=0（worker 不在场零结算零泄漏）',
-    Math.abs(bucketAfter.reserved - bucketBefore.reserved - 2) < 1e-9 && bucketAfter.consumed === 0);
-  A('SB3', '两申请 CAS 迁移 invited→in_progress（合一事务状态面·非 noop 非 held）',
-    (await applicationStatusOf(pool, appKill)) === 'in_progress' && (await applicationStatusOf(pool, appOff)) === 'in_progress');
+  A('SB3', '企业桶净账: units_reserved 恰 +1.00（仅 off 臂·kill 臂零预留）· consumed=0（worker 不在场零结算零泄漏）',
+    Math.abs(bucketAfter.reserved - bucketBefore.reserved - 1) < 1e-9 && bucketAfter.consumed === 0);
+  A('SB3', 'off 臂 CAS 迁移 invited→in_progress（kill 臂仍 invited 见臂5·合一事务状态面·非 noop 非 held）',
+    (await applicationStatusOf(pool, appOff)) === 'in_progress');
 
-  // ── SB4 臂② 静态结构（全树 rg 口径·§0.2 亲证复刻）──
+  // ── SB4 臂② 静态结构（全树 rg 口径·形状锚行号无关——基线漂移随形状翻转不随行号误红）──
   const svcRel = 'apps/api/src/modules/interview/interview.service.ts';
   const svc = readRepo(svcRel);
   const svcLines = svc.split('\n');
-  const callLines = svcLines.map((l, i) => ({ l, n: i + 1 })).filter((x) => x.l.includes('this.denyContentSafetyKilled();'));
-  A('SB4', '闸接线全树恰 2 处且逐行钉位 :425/:436（§0 重 pin 锚）',
-    callLines.length === 2 && callLines[0]?.n === 425 && callLines[1]?.n === 436);
-  A('SB4', '闸定义 :335-347（:335 头·:341 具名码·:342 503 状态字·:347 收口——P2⑦ 勘误锚）',
-    svcLines[334]?.includes('private denyContentSafetyKilled(): void {') === true
-    && svcLines[340]?.includes(KILL_CODE) === true
-    && svcLines[341]?.includes('HttpStatus.SERVICE_UNAVAILABLE') === true
-    && svcLines[346]?.trim() === '}');
+  const callLines = svcLines.filter((l) => l.includes('this.denyContentSafetyKilled();'));
+  const beginIdx = svc.indexOf('begin(principal: string, id: string, resumeId: string');
+  const turnIdx = svc.indexOf('turn(principal: string, id: string, body: TurnDto');
+  const firstCallIdx = svc.indexOf('this.denyContentSafetyKilled();');
+  const lastCallIdx = svc.lastIndexOf('this.denyContentSafetyKilled();');
+  A('SB4', '方法闸接线全树恰 2 处·形状锚（首处 begin 口·次处 turn 口——行号无关锚·不再钉 :425/:436）',
+    callLines.length === 2 && beginIdx > 0 && turnIdx > beginIdx
+    && firstCallIdx > beginIdx && firstCallIdx < turnIdx && lastCallIdx > turnIdx);
+  const sharedIdx = svc.indexOf('export function denyContentSafetyKilledShared(): void');
+  const sharedBody = sharedIdx > 0 ? svc.slice(sharedIdx, svc.indexOf('\n}', sharedIdx)) : '';
+  const delegateIdx = svc.indexOf('private denyContentSafetyKilled(): void');
+  const delegateBody = delegateIdx > 0 ? svc.slice(delegateIdx, svc.indexOf('\n}', delegateIdx)) : '';
+  A('SB4', '闸映射形状锚（共享体 denyContentSafetyKilledShared 导出在场·体内 assert+具名码+503 状态字·private denyContentSafetyKilled 委托共享体）',
+    sharedIdx > 0 && sharedBody.includes('assertContentSafetyKillSwitchOff()')
+    && sharedBody.includes(KILL_CODE) && sharedBody.includes('HttpStatus.SERVICE_UNAVAILABLE')
+    && delegateIdx > 0 && delegateBody.includes('denyContentSafetyKilledShared()'));
 
   const packagesRoot = join(repoRoot, 'packages');
   const packageSrcDirs = readdirSync(packagesRoot, { withFileTypes: true })
@@ -469,10 +495,10 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
   const coreStartIdx = svc.indexOf('export async function beginInterviewCore(');
   const coreEndIdx = svc.indexOf('\n}\n', coreStartIdx);
   const coreBody = svc.slice(coreStartIdx, coreEndIdx);
-  A('SB4', 'beginInterviewCore 体内零 kill 检查（三词元全负）',
+  A('SB4', 'beginInterviewCore 核首语句共享闸在场（denyContentSafetyKilledShared 先于 resumeId 校验=第三入口 applications.start 直调同闸·原「体内零 kill 检查」形状已随修复合法翻转）',
     coreStartIdx > 0 && coreEndIdx > coreStartIdx
-    && !coreBody.includes('denyContentSafetyKilled') && !coreBody.includes('assertContentSafetyKillSwitchOff')
-    && !coreBody.includes(KILL_ENV));
+    && coreBody.includes('denyContentSafetyKilledShared();')
+    && coreBody.indexOf('denyContentSafetyKilledShared();') < coreBody.indexOf("missing_resume_id"));
   A('SB4', 'beginInterviewCore 守卫链在场对照（advisory/FOR UPDATE/privacy/terminal/扣额路由/入队——切片非空转）',
     coreBody.includes('pg_advisory_xact_lock') && coreBody.includes('FOR UPDATE')
     && coreBody.includes('guardInterviewPrivacyTx') && coreBody.includes('TERMINAL_INTERVIEW')
@@ -480,7 +506,7 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
   const startFnIdx = appsService.indexOf('async start(principal');
   const startFnEnd = appsService.indexOf('\n  }\n', startFnIdx);
   const startBody = appsService.slice(startFnIdx, startFnEnd);
-  A('SB4', 'start() 直调核零闸（:57 beginInterviewCore 直调在场·体内零 kill 词元）',
+  A('SB4', 'start() 自身零内联闸（beginInterviewCore 直调在场·start 体内零 kill 词元=闸承自共享核首语句非 start 内联）',
     startFnIdx > 0 && startBody.includes('await beginInterviewCore(c, owner, started.interviewId')
     && KILL_TOKENS.every((t) => !startBody.includes(t)));
   A('SB4', ':83 noop 空壳行在场（P2② 陷阱锚登记·本收据 Ban noop 形 200 计为放行证据）',
@@ -509,25 +535,26 @@ const applicationStatusOf = async (pool: DbPool, appId: string) =>
     assertions: total, failures: failures.length,
     killEnv: KILL_ENV, killCode: KILL_CODE,
     arms: {
-      SB1: 'kill=1 start 200 four-tuple non-noop + same-env begin 503 named code',
-      SB2: 'off start 200 + begin 202 alreadyBegun (byte-faithful control)',
-      SB3: 'net accounting: interview +1/arm, start job 1, answer 0, reservation 1 (payer=recruiter), enterprise bucket +2.00',
-      SB4: 'static: wiring exactly 2 (:425/:436), core zero kill checks, start direct-call zero gate',
-      SB5: 'i6 :53 callSites===2 consistent with product status (registration boundary self-consistent)',
+      SB1: 'kill=1 start 503 named code + honest message, zero pass-through shape; begin 503 same-shape (dual-mouth same shared gate)',
+      SB2: 'off start 200 + begin 202 alreadyBegun (byte-faithful control, unchanged)',
+      SB3: 'net accounting: kill arm all-zero (interview/job/reservation/personal bucket/app still invited = single-tx rollback), off arm +1/+1/reserved 1 + four-tuple binding + CAS in_progress, enterprise bucket +1.00 (off only)',
+      SB4: 'static shape anchors (line-number-free): method gates exactly 2 (begin mouth then turn mouth), shared mapping body + delegate, core first-statement shared gate before resumeId check, start zero inline gate',
+      SB5: 'i6 callSites===2 consistent with product status (single-file domain, method-gate count stable)',
     },
     egress: 'zero-registration arm shape: fragment-assembled strip; no model-key literal in this file',
     seedExemptions: 'user_account + entitlement_bucket(enterprise) + resume(ingested) bare INSERT (entpay-s2 precedent form), named per REQUEST §5',
-    honesty: 'receipt proves residual present + registration boundary consistent with product status; NOT a fitness certificate',
+    honesty: 'receipt proves post-fix contract shape (kill=1 start rejected 503 + zero side effects, off byte-faithful); NOT an all-entries-gated certificate (worker drain = pause-enqueue semantics, ksw volume §1.1-7)',
+    repin: '2026-11-06 re-pinned by kill-switch-entry knife (SB1/SB3 polarity flipped with fix, SB4 line pins -> shape anchors, 46->47 assertions, source = dual review ksw-1/ksw-2)',
   };
   writeFileSync(join(receiptDir, 'receipt.json'), JSON.stringify(receipt, null, 2) + '\n');
 
   console.log(`\nATTEMPT_END    iso=${new Date().toISOString()} attempts=1 · failures=${failures.length}/${total}`);
   if (failures.length > 0) {
     console.log(`✗ ${CASE_ID}: ${failures.length}/${total} 失败（EXIT1 诚实保留·Ban retry-to-green）`);
-    console.log('停止条件核对: kill=1 start 竟得 503=闸已在位=机制面漂移 → 停·如实登记上报（REQUEST §1.5/§8）');
+    console.log('停止条件核对: kill=1 start 竟得 200/放行形状=绕行回归=机制面漂移 → 停·如实登记上报（ksw 卷 §8 承守·Ban 改断言极性凑绿）');
     process.exit(1);
   }
-  console.log(`✓ ${CASE_ID}: ${total} 断言全绿（现状放行 runtime/静态结构/静态门一致性 · live=0 · isolated PG）`);
+  console.log(`✓ ${CASE_ID}: ${total} 断言全绿（开关开启拒 503 零副作用/off 字节保真/静态形状锚 · live=0 · isolated PG）`);
   console.log('EXIT0=case≠covered · 行状态 blind 保持+case-only 措辞 · coveredCount=8 不变 · ⛔push');
   process.exit(0);
 })().catch((error) => {
