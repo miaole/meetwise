@@ -1,6 +1,6 @@
 # STALE-BUILD-GUARD REQUEST（UI runner 误复用无压测源生产构建假红修复·STALE_BUILD_GUARD 增「压测意图判」·起草+落卷席）
 
-**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 立项落卷·修订后会签 sbg-r1 PASS+协调方 EXEC 授权随令·fetch 零漂移 rebase 不适用·届时 tip 重 pin 零漂移·会签两 P2 吸收·门矩阵全绿读数 §9-⑦·真机不补跑理由 §9-⑦-5·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·est live=1 臂已行使（零新增消耗）·markers=0·前值 `draft:awaiting_pre_exec_dual` @draft `abfb78659` 史录保留·⛔push⛔merge 主线）
+**Status**: **`proofed:dual_pass`**（2026-11-06 post-prove 双审收口+nail 期 rebase 并线落卷·双审两独立外席报告 sbg-post-1/sbg-post-2（post-1 唯一 P1 已由协调方按处方修正 fa962db10 零码面）·P2 吸收表 §9-⑧-2·门矩阵 nail 届核读数 §9-⑧-3·真机 blob 四方恒等不补跑 §9-⑧-5·cap union 2490→2493 CAP-SANCTION-2493·alone≠dual·Ban self-approve·est live=1 臂已行使（零新增消耗）·markers=0·前值 `executed:awaiting_post_prove_dual` 史录保留·再前值 `draft:awaiting_pre_exec_dual` @draft `abfb78659` 史录保留·nail PR 归协调方派单随令）
 
 > 任务类型：runner 测试基建面守卫缺陷修复（STALE_BUILD_GUARD 旧判单一 BUILD_ID mtime 新鲜 → 误复用 `verify:e2e-performance` 步1 无 `E2E_UI_STRESS` 生产构建 → events 路由压测分支死码剔除 → stream-window 压测 SSE 零帧饿死假红；修法=复用前增「意图判」递归扫编译产物压测载荷串·缺源即重建·步1 生产构建零触不被测试开关污染）。
 > 立项出处：协调方派单 brief（2026-11-05 SBG 起草席·「本波唯一被允许跑浏览器 UI runner 的席位」随令·修法候选「守卫不只看时间·还判断既有构建是否符合本次意图（E2E_UI_STRESS=1 时检查编译产物是否含压测源·缺失即强制重建）」优先采纳随令授权）。
@@ -118,7 +118,7 @@ B 臂系真机 UI run（隔离 PG+隔离栈+真浏览器·按派单随令行使�
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `executed:awaiting_post_prove_dual` · 2026-11-06 EXEC 立项落卷（前值 `draft:awaiting_pre_exec_dual`·原句「2026-11-05 起草+落卷即停 · pre-exec 双审两独立外席待派」byte 史录留本注）· post-prove 双审两独立外席待派 · alone≠dual · nail/批表/行翻面权归协调方 · 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 修法清单与 §0.2 检测串定稿与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·漂移只更行号不改结论）——三条款 2026-11-06 EXEC 立项时已兑现：①修订后会签 sbg-r1 PASS 落卷 ②协调方 EXEC 授权随令 ③照 §0 重 pin 零漂移（详 §9-⑦）。
+**STOP · `proofed:dual_pass` · 2026-11-06 post-prove 双审收口+nail 期 rebase 并线落卷（前值 `executed:awaiting_post_prove_dual`·其 EXEC 期原句与再前值 `draft:awaiting_pre_exec_dual` byte 史录留本注与 git 历史）· 双审已收口（sbg-post-1/sbg-post-2·P2 吸收 §9-⑧-2） · alone≠dual · nail/批表/行翻面权归协调方 · 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 修法清单与 §0.2 检测串定稿与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·漂移只更行号不改结论）——三条款 2026-11-06 EXEC 立项时已兑现：①修订后会签 sbg-r1 PASS 落卷 ②协调方 EXEC 授权随令 ③照 §0 重 pin 零漂移（详 §9-⑦）。
 
 **停止条件（四类·命中即停手上报·Ban 就地处置）——本席起草期逐条核：零命中**：
 
@@ -222,8 +222,26 @@ B 臂系真机 UI run（隔离 PG+隔离栈+真浏览器·按派单随令行使�
 6. **状态转轨**：四处 live 状态 pin（Status 头/§8 STOP/文末 STOP/卷尾摘要）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**（前值 @draft `abfb78659` 史录保留·git 历史在案）；待 post-prove 双审两独立外席·nail/批表/行翻面权归协调方。
 7. **post-prove 席1 勘正（2026-11-06·协调方）**：本节第 4 项 markers 一句原写出了四个标记词字面，使本卷自身在改动集扫描中命中 4 处，与“0 命中”自相矛盾（报告 `.tmp/reviews/sbg-post-1.md` P1）。已改为“四类遗留标记词”，按 i6-239 运行时组装口径对改动集 11 个文件复扫为 0 命中；check-docs EXIT=0 scanned 2489 等于 cap，PTP 12/12。代码零改动。
 
-**STOP**：**`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 立项落卷·前值 `draft:awaiting_pre_exec_dual` 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）。
+**⑧ post-prove 双审收口 + nail 期并线记录（2026-11-06·协调方 nail 授权随令·append-only 不改既有字）**：
+
+1. **双审收口**：post-prove 两独立外席报告 `.tmp/reviews/sbg-post-1.md`（对 `ccb8c54ee`·判 FAIL·唯一 P1-1=§9-⑦-4 markers 读数自反系卷内字面自指·代码面零缺陷·其余七门读数独立亲证为真）/`.tmp/reviews/sbg-post-2.md`（对 `ccb8c54ee`·判 PASS·P2×3）。P1-1 已由协调方按处方修正落卷 `fa962db10`（卷内去标记词字面·markers 复扫 0·零码面·详 §9-⑦-7）→ 两路会签收口成立。
+2. **post-prove P2 吸收表**（只登记/既有登记维持·零就地扩面）：
+
+   | P2 | 处置 |
+   | --- | --- |
+   | post-1 P2-1 main 已前进（PR #210 于 EXEC 落卷前 3 分钟并线）·nail 需 rebase+cap union 重算 | 本 nail 已行使：fetch EXIT=0 届值 `768db078f`=#213·rebase 冲突两 policy 脚本注记/注释行+数值行 dual-keep 双留+新增 union 注记 CAP-SANCTION-2493（cap 2490→2493=main 届扫 2490+本支受管 3 件恰等零多放）·docs:check 届核亲跑 scanned 2493=cap 2493 恰等 |
+   | post-1 P2-2 收据无显式 EXIT 尾行 | 既有登记维持原处置：后继收据带 `EXIT=$?` 尾行·落盘收据不回改 |
+   | post-2 P2-1 扫描内存无上限（`scanServerStressMarkers` readFileSync 全量入内存·数百 MB `.js` 实测瞬时 RSS 1.2-1.7GB） | 只登记不修·后继刀候选：单文件尺寸上限（如 >64MB 按缺源计）·现方向恒 fail-safe（超长串被 catch 按缺源重建·绝不误复用）·登记属实 |
+   | post-2 P2-2 残留消费者枚举缺一件 | 补登 §9-⑥-6 表 1-1 同族一件：`apps/web` package.json `start`（`next start`）——运营者在 runner 跑后手跑 `pnpm -C apps/web start` 会把压测形残留 `.next` 当生产产物服务·同族同因·runner 无法代守他面·与卷「只登记不修」口径一致 |
+   | post-2 P2-3 并发竞态 | 卷已登记 §9-⑥-6 表 1-10/2-1·post-2 实测复核属实（判定时点性+markers≠内容同一性·未发现静默假绿路径）·维持 P2 不升·加锁留后继 |
+
+3. **门矩阵（nail 届核终跑读数·本席亲跑·全绿）**：新 proof EXIT=0 **81 PASS**；static-guards EXIT=0 runners=6 helpers=21 flags=9 aiPaths=6；g6 EXIT=0；egress EXIT=0 adapters=5 operations=10 pairs=55 refs=401；check-docs EXIT=0 **scanned 2493 = cap 2493 恰等**；PTP EXIT=0 **12/12**；markers 五类（冲突标记+四遗留词·词面运行时组装不入卷防自指）对本支对 main 全改动集 12 文件亲扫 **0 命中**；`node --check` 五脚本（runner/模块/proof/两 policy）全 PARSE-OK；受影响包 typecheck：本支对 main diff 零 package 面（apps/*/packages/* 零触·仅 scripts/CI/package.json/docs）→ **N/A 如实注**。
+4. **rebase 细目**：`git fetch origin` EXIT=0（一次过·未需 HTTP/1.1 重试）·rebase 4 commits：commit1 两 policy 恰 4 冲突块（注记/注释行+数值行）dual-keep 解（main 侧 ONLINE-PAY rev/ONLINE-PAY EXEC/RTX 起草/RTX nail 四注史录全保留+本支 SBG 起草注并留+新增 union 注 CAP-SANCTION-2493）·commits 2-4 干净套用零冲突·分支 tip `6550ee8d1`（`fa962db10` 重写）·冲突件 `git add` 收敛后终测无三 stage 冗计（沿 CAP-SANCTION-2418 坑规避先例）。
+5. **真机不补跑（理由在卷）**：rebase 后现树 runner blob=`20b6ab180349fe6bffca70da007cb2cdee6e39e1`、模块 blob=`ea6bfd87b708e975c410663cc43faec9571cfdc9`（`git hash-object` 亲算）与 §9-⑥-5 绑定值及 pre-rebase `fa962db10` 提交 blob（`git cat-file` 亲算）四方逐字相等=run2/run3 收据所绑代码即现树代码·零字节漂移·§9-⑥-5 真机读数继续有效·不再消耗 UI runner 预算。
+6. **状态转轨**：四处 live 状态 pin（Status 头/§8 STOP/文末 STOP/卷尾摘要）`executed:awaiting_post_prove_dual`→**`proofed:dual_pass`**（前值史录保留·git 历史在案）·状态钉与代码同 PR 交付（本 commit）·nail/批表/行翻面权归协调方。
+
+**STOP**：**`proofed:dual_pass`**（2026-11-06 post-prove 双审收口+nail 期 rebase 并线落卷·前值 `executed:awaiting_post_prove_dual` 史录保留·再前值 `draft:awaiting_pre_exec_dual` 史录保留·P2 吸收与届核读数 §9-⑧·alone≠dual·Ban self-approve）。
 
 ---
 
-**卷尾 STOP · `executed:awaiting_post_prove_dual` · 2026-11-06**（Status 头/§8/§9/卷尾四处同值·前值 `draft:awaiting_pre_exec_dual` @draft `abfb78659` 史录保留·EXEC 立项读数 §9-⑦·post-prove 双审两独立外席待派·alone≠dual·⛔push⛔merge 主线·一切改动只交付本工作树）
+**卷尾 STOP · `proofed:dual_pass` · 2026-11-06**（Status 头/§8/§9/卷尾四处同值·前值 `executed:awaiting_post_prove_dual` 史录保留·再前值 `draft:awaiting_pre_exec_dual` @draft `abfb78659` 史录保留·EXEC 立项读数 §9-⑦·post-prove 双审收口+nail 届核读数 §9-⑧·alone≠dual·nail PR 归协调方派单随令·一切改动只交付本工作树）
