@@ -459,6 +459,7 @@ const checks = {
       assert.equal(atCap.scannedFiles, 2_495);
       // 超限错误码形状断言：第 2496 个注入路径触发早返回（先于读盘·免落盘可断言·随 CAP-SANCTION-2495 四联动点恰等改一并勘正与 :2496 同断言自洽）——
       // 错误串恰为 `PTP_FILE_LIMIT:2496`（`${CODE}:${n}` 形）·scannedFiles:0。
+      // CAP-SANCTION-2488 UC31 EXEC 期新 proof 受管 +1 恰等步进：cap 2487→2488（详 policy .mjs 链区 CAP-SANCTION-2488 注记·2026-11-06 UC-031/032 结构面第一期 EXEC 行使（harness/uc31-REQUEST.md §1 件①④·pre-exec 双审 BOTH PASS+协调方 EXEC 授权）·apps/worker/test/uc-e2e-031-032-structure.proof.ts 新 proof 受管 +1·收据 receipts/uc31-032-structure/ 3 件实测 ∉ MANAGED_ROOTS 非扫描面不计（r2 算式示例不作硬数承兑·门3 union 取大重算为准）·本树终验亲跑 PTP_FILE_LIMIT:2488>2487 红（真 EXIT=1 亲证）——union 实测 2488=届值 2487+本刀 proof 1 恰等零多放·常设预授权随令行使·四联动点 2_488/f-2488.md/:2489 恰等改·沿 CAP-SANCTION-2487 先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_488/f-2488.md/:2489 恰等改。
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
       // UC3F EXEC 立项并线取大承登：本 TC 四联动点随合并树 cap=2_445 行使（本支原 2_442/f-2442.md/:2443 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2446 恰等步进 2445→2446 随本 EXEC commit 兑现（f-2446.md/:2447 联动）。
       // isob 收官并线取大承登：本 TC 四联动点随合并树 cap=2_446 行使（uc3f 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2447 恰等步进 2446→2447 随本收官步进 commit 兑现（f-2447.md/:2448 联动）。

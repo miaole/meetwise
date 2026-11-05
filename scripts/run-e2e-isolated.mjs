@@ -965,6 +965,18 @@ const isolatedReceiptSources = {
     'apps/worker/src/diagnosis-lifecycle.ts', 'packages/db/src/jobs/diagnosis-jobs.ts',
     'packages/db/migrations/0061_resume_derivative_reference_guard.sql',
   ],
+  // UC-E2E-031/032 结构面第一期两臂隔离证明（注入越狱/诱导造假·Arm-REJ ② 两腿经隔离 PG 真路径·est live=0）。
+  'uc031-032:structure:prove:raw': [
+    'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
+    'apps/worker/test/uc-e2e-031-032-structure.proof.ts',
+    'apps/worker/src/diagnosis-consumer.ts', 'apps/worker/src/diagnosis-lifecycle.ts',
+    'apps/worker/src/interview-service.ts',
+    'packages/ai-runtime/src/invoke.ts',
+    'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
+    'packages/db/migrations/0001_baseline.sql', 'packages/db/migrations/0008_resume_diagnosis.sql',
+    'packages/domain/src/index.ts', 'packages/domain/src/adaptive-interview.ts',
+    'packages/domain/src/assessment.ts', 'packages/domain/src/growth.ts',
+  ],
   'uc016:nhp-fault:prove:raw': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'apps/worker/test/uc-e2e-016-nhp-fault.proof.ts',
@@ -2885,6 +2897,8 @@ if (![
   // AUTHZ #34 残面（scrypt 异步化 promisify 形 + chunked 封顶钩子 preParsing 流计数·隔离容器·est live=0）。
   'authz34:scrypt-async:prove', 'authz34:chunked-cap:prove',
   'api:validate', 'neg:all', 'neg:auth', 'neg:commerce', 'neg:resume', 'neg:interview', 'neg:bend', 'neg:input', 'turn-idempotency:prove', 'trial:grant:prove', 'migrate:prove', 'level-policy-migrate:prove', 'job-queue-index:prove', 'qbank-corpus:prove', 'qbank-corpus-retrieve:prove', 'entpay:s1:prove', 'entpay:s2:preverify', 'entpay:s2:prove', 'entpay:s3:prove', 'online-pay:s1:prove', 'i2b:prove', 'commerce:prove:raw', 'uc017:orphan:prove:raw', 'uc017:nhp-load:prove:raw', 'uc017:orphan-http-sse:prove:raw', 'uc017:nhp-adv:prove:raw', 'uc018:abandon:prove:raw', 'uc018:graph:prove:raw', 'uc018:ttl:prove:raw', 'uc018:abandon:http:prove:raw', 'uc018:adv:prove:raw', 'uc018:perf-load:prove:raw', 'uc011:report-refund:prove:raw', 'uc011:report-refund:http:prove:raw', 'uc011:refund-callback:prove:raw', 'uc011:refund-callback-adv:prove:raw', 'uc011:refund-callback:adv:prove:raw', 'uc019:report-regenerate:prove:raw', 'uc019:report-regenerate:http:prove:raw', 'uc019:nhp-adv:prove:raw', 'report-retry:prove:raw', 'report-retry:http:prove:raw', 'uc002:lease:prove:raw', 'uc002:http:prove:raw', 'uc002:adv:prove:raw', 'uc002:nhp-http-bound:prove:raw', 'interview-privacy-read-tier:prove:raw', 'uc015:ingest-failures:prove:raw', 'uc014:webhook-adv:prove:raw', 'uc025:nhp-fault-isolated:prove:raw', 'uc025:nhp-bound-isolated:prove:raw', 'uc010:sse-resume:prove:raw', 'sse-push:notify:prove:raw', 'sse:xrep:prove:raw', 'quizdx:sse-http:prove:raw', 'uc033:cross-user-authz:prove:raw', 'uc003:i18n-locale:prove:raw', 'uc025:stale-quiz-expiry:prove:raw', 'uc004:career-path:prove:raw', 'uc004:career-path:http:prove:raw', 'uc028:trace-fail-open:prove:raw', 'uc027:manual-review-appeal:prove:raw', 'uc040-043:batch-qbank-seat:prove:raw', 'uc031-032:injection-jailbreak:prove:raw', 'resume:prove:raw',
+  // UC-E2E-031/032 结构面第一期两臂隔离证明（additive 注册沿 uc031-032:injection-jailbreak:prove:raw 同形·隔离 PG·est live=0）。
+  'uc031-032:structure:prove:raw',
   'stress:prove:raw', 'adaptive-latency:prove', 'runtime:prove:raw', 'runtime:claim-join:prove:raw', 'model-cost:prove:raw', 'adaptive-degrade:prove:raw', 'vectorstore:prove:raw',
   'qbank-source:prove:raw', 'memory:prove:raw', 'weakness:prove:raw', 'report:prove:raw', 'quiz:prove:raw', 'diagnosis:prove:raw', 'reaper:prove:raw', 'requeue-backoff:prove:raw', 'bill1-topic-fields:prove:raw', 'bill2-shadow-meter:prove:raw', 'ag19-prompt-version:prove:raw', 'ag12-estimator-freeze:prove:raw', 'bill3-settlement:prove:raw', 'bill4-ledger-list:prove:raw', 'ocr:prove:raw', 'adaptive-consumer:prove:raw', 'adaptive-life:prove:raw', 'adaptive-flow:prove:raw', 'ag-a-resume:prove:raw', 'ag16-legacy:prove:raw', 'graph-fence-write:prove:raw', 'resume-grounding:prove:raw', 'tokenstream:prove:raw', 'rag-generation:prove:raw', 'rag-corpus-version:prove:raw', 'qa-tool-layer:prove:raw', 's4b-invoke-delta:prove:raw', 's4b-token-stream:prove:raw',
   'voice:prove', 'scoring-integrity:prove', 'scoring:eval:raw', 'qbank-pipeline:prove:raw', 'runtime-role:prove:raw', 'checkpoint-role:prove:raw', 'api-runtime-role:prove:raw',
@@ -3596,6 +3610,9 @@ const isolatedCommand = target === 'api-harden:prove'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc040-043-batch-qbank-seat']]
   : target === 'uc031-032:injection-jailbreak:prove:raw'
     ? ['pnpm', ['-C', 'apps/api', 'prove:uc031-032-injection-jailbreak']]
+  // UC-E2E-031/032 结构面两臂:worker 原生 prove script 名(-C apps/worker 先例形 adaptive-degrade:prove:raw 同形)。
+  : target === 'uc031-032:structure:prove:raw'
+    ? ['pnpm', ['-C', 'apps/worker', 'prove:uc031-032-structure']]
   : target === 'resume:prove:raw'
     ? ['pnpm', ['-C', 'packages/db', 'resume']]
   : target === 'adaptive-degrade:prove:raw'
@@ -4444,7 +4461,9 @@ async function main() {
   // 排除先例逐字同因）：proof 预置面=父进程 harness 同形 sql/01 重建+privacy 函数对镜像（definer=
   // 预置 role 表 owner 同源零断供·virgin 世界 uc017:orphan-http-sse 先例形）——若登记 pre-migrate 则
   // runner 先行装迁移链→0058 原字节 definer（privacy_api_owner）断 42501 两难（REQUEST §1 第四位 N/A）。
-  'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw'].includes(target)) {
+  'dbhy1:prove:raw', 'qbank-control-sec:prove:raw', 'ag39-org-qbank:prove:raw', 'ag11-settle:prove:raw', 'ag39-quality:prove:raw', 'ag17-schema-span:prove:raw', 'ag18-sampling-temperature:prove:raw', 'asr-quality:prove:raw', 'r2-p-worker-route-classify:prove:raw',
+  // UC-E2E-031/032 结构面两臂（第四注册位·diagnosis:prove:raw 在册先例形·不登记则裸库跑证明必红）。
+  'uc031-032:structure:prove:raw'].includes(target)) {
       await migrateWithRecovery(env);
       // Re-attest host SQL after migrate (flake: migrate green → prove ECONNREFUSED).
       await waitForPostgres(env, { consecutive: 3, label: 'post-migrate' });

@@ -1,0 +1,52 @@
+{
+  "knife": "uc31-032-structure",
+  "requestBlueprint": "ai-docs/delivery/harness/uc31-REQUEST.md（§1 件①④ · §2 门矩阵 · rev r3 @1a5f4210c · pre-exec 双审两独立外席 BOTH PASS + 协调方 EXEC 授权 · 两路复审实测新路径走通）",
+  "runId": "2026-11-06",
+  "nodeVersion": "v22.22.3",
+  "branch": "line/uc31-rev",
+  "base": "origin/main 92a82a944（#209 · fetch 三试两超时一 EXIT=0 后亲证零前进·无并线需求）",
+  "cmd": {
+    "wrapper": "pnpm uc031-032:structure:prove",
+    "isolated": "node scripts/run-e2e-isolated.mjs uc031-032:structure:prove:raw",
+    "leaf": "pnpm -C apps/worker prove:uc031-032-structure = tsx test/uc-e2e-031-032-structure.proof.ts",
+    "exit": 0
+  },
+  "guards": {
+    "fakeSeamOnly": "模型恒经 scriptedModelClient（@meetwise/ai-runtime 测试缝）·零真实外呼零网络",
+    "estimatedLiveCalls": 0,
+    "keyTouch": "零 Key 触碰·零 secrets·零 env 闸（隔离 PG=本机 pgvector/pgvector:pg16 容器·即用即灭）",
+    "dbTouch": "唯二 DB 触面=Arm-REJ ② 两腿+control 腿经隔离 PG 真迁移链（diagnosis:prove:raw 同世界 pre-migrate 名单第四注册位）·其余全臂纯函数/静态源只读",
+    "productDiff": "零产品码零迁移零 lockfile（apps/api/src、apps/web、packages/*/src、migrations 全零 diff·domain/interview-service 语义零字节改只 assert）",
+    "lintCapStep": "apps/worker lint 帽恰等步进 999→1005（归因=新 proof 6 条 @typescript-eslint/naming-convention warning：'resume-diagnosis.generate' 操作键×3 + privacy_epoch/last_error DB 列名×3·domain 固有命名非可改名面·0 errors 零新增·沿 lint-cap-step 先例形 Ban 改定稿文本消 warning·落点=门7 恰数清单内已授权编辑面 apps/worker/package.json 同件再改）",
+    "ptpCapStep": "PTP cap 恰等步进 2487→2488（union 实测=届值+新 proof 1·收据 3 件实测 ∉ MANAGED_ROOTS 非扫描面不计·r2 算式示例不作硬数承兑·CAP-SANCTION-2488 注记两 policy 落卷·四联动点 2_488/f-2488.md/:2489 恰等改）",
+    "ban": "Ban fake-model 冒充安全闭环（A15 fail-closed + 既有 proof S4 在树）·Ban 质量断言冒充（拦截率/绕过率归 ai-eval 二期）·Ban retry-to-green（attempts 全账披露）"
+  },
+  "pins": {
+    "haStatus": "NOT_HA",
+    "releaseEvidence": false,
+    "coveredCount": 8,
+    "matrixStateWords": "gap(e2e)/partial(eval) 逐字节零动",
+    "estLive": 0,
+    "actualSpendCny": null
+  },
+  "attemptsLedger": {
+    "uc031-032:structure:prove": [
+      { "attempt": 1, "exit": 1, "note": "Arm-ESC ①②③+Arm-REJ ① 全 PASS 后红于 control 腿查询：last_error 误从 resume_diagnosis 取（42703 column does not exist）——该列在 diagnosis_job（先例 diagnosis.proof.ts ⑧ 即 FROM diagnosis_job WHERE diagnosis_id=$1）。proof 查询面接线缺陷·零断言面被行使·零产品码触。" },
+      { "attempt": 2, "exit": 0, "note": "48/48 PASS。修复=拆双查询（diagnosis status/report + diagnosis_job status/last_error）·断言集修复后更强（last_error 断言加 job.status==='failed' 前件）·非断言迁就。" },
+      { "attempt": "final", "exit": 0, "note": "终态确认 fresh re-run（新 pgvector 容器·隔离壳全迁移链）：48 PASS / 0 FAIL · AUDIT-OBSERVATION: absent ×3 —— 2026-11-05T17:21:48Z。" }
+    ],
+    "retryToGreenDisclosure": "Ban retry-to-green 全账：2 attempt + final fresh 1。#1 红因=测试侧查询接线（表归属），product 通道零行为变更零 diff；断言修复为语义更精确化（非放松）。既有 uc031-032:injection-jailbreak:prove 复跑 EXIT=0 attempts=1（S1–S6+G-GAP 6 pins 零绊·新文件不在 e2e/ 扫描域·零迁移·矩阵状态词保）。",
+    "existingRegression": { "cmd": "pnpm uc031-032:injection-jailbreak:prove", "exit": 0, "attempts": 1, "note": "S1–S6 + G-GAP 6 pins 保持" }
+  },
+  "assertions": { "total": 48, "failed": 0, "auditObservationAbsent": 3 },
+  "arms": [
+    { "name": "Arm-ESC", "receipt": "2026-11-06-arm-escape.md", "assertions": 16, "auditObservation": "absent" },
+    { "name": "Arm-REJ", "receipt": "2026-11-06-arm-biz-reject.md", "assertions": 32, "auditObservation": "absent（逐腿 ×2）" }
+  ],
+  "estimatedCostCny": {
+    "total": 0,
+    "formula": "零外呼（全 scripted seam·零网络）·隔离 PG 本机容器——无计费面",
+    "actualSpendCny": null
+  },
+  "honesty": "本收据=结构面第一期两臂隔离收据：≠模型抗注入/不造假质量闭环（A1 :399 纠偏原文承引）·≠covered·真模型 TC（031-model-resist/032-no-fabricate-model）与 GuardrailHit 表/API 接线归二期（key 授权/产品裁决前置）·release_evidence=false"
+}

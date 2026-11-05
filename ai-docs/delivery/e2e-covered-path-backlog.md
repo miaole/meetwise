@@ -36,7 +36,7 @@
 | 019 | HTTP regenerate；regenerateAttempt；A3 产品路径 |
 | 033 | worker principal；cache/trace；七类高并发；独立 full.e2e |
 | 050–052 | DELETE 保持 **503**；**UC-052 deletion → partial**（`uc052:internal-erasure:prove` @`3c4847a` · EOR `08d54f8`/`3e39c1e`）· **≠ covered** · Ban UC-050/051/export elevates · 导出/外部 sink/checkpoint 物理删另包 |
-| 031/032 | **ai-eval** jailbreak/造假 golden+阈值 release-gate；结构 e2e escape/biz-reject（禁 fake-model 质量断言）；GuardrailHit 表/API；sole-stack 去 R5 |
+| 031/032 | **ai-eval** jailbreak/造假 golden+阈值 release-gate；结构 e2e escape/biz-reject（禁 fake-model 质量断言）——**UC-031-032-STRUCTURE-01 两臂结构收据已落（2026-11-06 EXEC）**：`pnpm uc031-032:structure:prove` EXIT=0 · 48 断言（Arm-ESC 结构臂+Arm-REJ biz-reject 双腿经隔离 PG 真路径拒·收据 `receipts/uc31-032-structure/`·AUDIT-OBSERVATION: absent）；GuardrailHit 表/API（仍缺·产品裁决前置）；sole-stack 去 R5 |
 
 实现方不自批；每片 harness→prove→≥2 域对抗→reviews/。
 
