@@ -1127,7 +1127,7 @@ const isolatedReceiptSources = {
     'apps/api/src/modules/resume/resume.service.ts', 'apps/api/src/modules/resume/resume.controller.ts',
     'apps/api/src/modules/privacy/privacy.controller.ts', 'apps/api/src/modules/privacy/privacy.service.ts',
     'apps/api/src/platform/principal.guard.ts', 'apps/api/src/platform/rate-limit.service.ts',
-    'packages/domain/src/resume-extract.ts', 'packages/domain/src/resume-extract-worker.ts',
+    'packages/domain/src/resume-extract.ts', 'packages/domain/src/resume-extract-child.ts',
     'packages/db/src/commerce/commerce.ts',
     'packages/db/src/principal.ts', 'packages/db/src/isolated-test-target.ts',
     'packages/db/migrations/0189_api_harden_shared_state.sql',

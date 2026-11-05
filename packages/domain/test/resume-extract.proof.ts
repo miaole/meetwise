@@ -1,14 +1,20 @@
 /**
  * resume-extract:prove — 简历多格式提取 + 清洗。
  * 测:格式探测(pdf/docx/image/text)· 清洗(控制字符/空白/空行/不间断空格)· 文本直通 · 图片抛 OCR
- *    · 解压守卫双帽负例/恰帽边界/多条目正例旁证(条目数/解压总量·fail-closed 先于 worker spawn)
+ *    · 解压守卫多帽负例/恰帽边界/多条目正例旁证(条目数/单条目声明/解压总量·fail-closed 先于子进程 spawn)
  *    · EOCD 字段谎报自洽检负例/真实三件同构变体两向(越帽拒·同构合法件必通)。
  *    · EOCD 六字段 zip64 哨兵负例(C5 覆写形·守卫审的目录=jszip 实读的目录)/注释区越界廉价检。
+ *    · rev r4(复验别名读放大类):单条目声明帽负例 guard+生产缝/关系别名诚实件全链提取恒等/
+ *      单条目 liar 声明值早停全链拒(子进程流式计量)。
  */
+import { deflateRawSync } from 'node:zlib';
 import { detectResumeFormat, cleanResumeText, extractResumeText, looksLikeEncryptedPdf, assertDocxZipWithinCaps } from '../src/resume-extract.ts';
 
 let n = 0;
 const ok = (c: boolean, m: string) => { if (!c) { console.error('✗', m); process.exit(1); } n++; };
+// liar 早停时窗上界(诊断性·主判据=错误码):子进程 fork 冷启(tsx loader 实测 ~110-300ms)+早停读面,
+// 远低于全量膨胀 32MB+jszip 事后核对的旧路径。
+const EXTRACT_LIAR_EARLY_STOP_MS = 4000;
 
 // 1. 格式探测(按 mime + 文件名)
 ok(detectResumeFormat('application/pdf', 'cv.pdf') === 'pdf', 'pdf by mime');
@@ -155,14 +161,14 @@ ok(rDocx.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验',
 const guardCodeOf = (fn: () => unknown): string => { try { fn(); return ''; } catch (e) { return codeOf(e); } };
 const fillerEntries = (count: number, prefix = 'w/f'): Array<[string, string]> =>
   Array.from({ length: count }, (_, i) => [`${prefix}-${String(i).padStart(4, '0')}.xml`, '<x/>']);
-// 恰帽边界(guard 级·零解包零 worker):恰 1000 条目·恰 64MB 声明 → 零抛。
+// 恰帽边界(guard 级·零解包零子进程):恰 1000 条目·恰 64MB 声明(r4:7 条目均摊,均 <单条目帽) → 零抛。
 ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>'], ...fillerEntries(999)]))) === '', '守卫边界:恰 1000 条目 → 零抛(上界不误伤)');
-ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>']], { centralUncompressedOverride: () => 64 * 1024 * 1024 }))) === '', '守卫边界:恰 64MB 解压声明 → 零抛(上界不误伤)');
+ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>'], ...fillerEntries(6)], { centralUncompressedOverride: () => Math.floor(64 * 1024 * 1024 / 7) }))) === '', '守卫边界:恰 64MB 解压声明(7 条目均摊·单条目 <10MB 帽) → 零抛(上界不误伤)');
 // 负例一:条目数越帽(1001 条目)→ zip_entry_overflow(guard 直证 + 生产缝全链)。
 ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>'], ...fillerEntries(1000)]))) === 'zip_entry_overflow', '守卫:1001 条目 → zip_entry_overflow');
 let entryBomb = '';
 try { await extractResumeText(craftDocx([['a.xml', '<a/>'], ...fillerEntries(1000)]), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'bomb-entries.docx'); } catch (e) { entryBomb = codeOf(e); }
-ok(entryBomb === 'zip_entry_overflow', '负例一:条目数越帽 docx 经生产缝 → zip_entry_overflow(worker 零 spawn 面拒)');
+ok(entryBomb === 'zip_entry_overflow', '负例一:条目数越帽 docx 经生产缝 → zip_entry_overflow(子进程零 spawn 面拒)');
 // 负例二:超大解压声明(真 document.xml 条目声明 0xFFFFFFFF=zip64 哨兵形·实体字节极小)→ zip_uncompressed_overflow。
 ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>']], { centralUncompressedOverride: () => 64 * 1024 * 1024 + 1 }))) === 'zip_uncompressed_overflow', '守卫:64MB+1 声明 → zip_uncompressed_overflow');
 let sizeBomb = '';
@@ -180,7 +186,8 @@ const wideDocx = craftDocx([
 const rWide = await extractResumeText(wideDocx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-wide.docx');
 ok(rWide.format === 'docx' && rWide.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', '正例旁证:100 条目真 docx 守卫零误伤·端到端提取输出恒等');
 // 自洽检负例(EOCD 字段谎报探针复刻):谎报 totalEntries(定界少报)则走读早停 CD 区残余 → zip_directory_invalid;
-// 谎报 cdSize(cdOffset+cdSize 失配 EOCD)走读前即拒——守卫走读自洽与 EOCD 声明恒等,谎报整类 fail-closed。
+// 谎报 cdSize(cdOffset+cdSize 失配 EOCD)走读前即拒——两检所闭=声明面谎报类 fail-closed
+// (zip64 覆写类由上方六字段哨兵检另闭,rev r3 勘正)。
 const eocdFieldPatch = (buf: Buffer, field: 'totalEntries' | 'cdSize', val: number): Buffer => {
   const b = Buffer.from(buf);   // 深拷贝:不动 realDocx 原 fixture 字节
   if (field === 'totalEntries') b.writeUInt16LE(val, b.length - 22 + 10); else b.writeUInt32LE(val, b.length - 22 + 12);
@@ -189,11 +196,11 @@ const eocdFieldPatch = (buf: Buffer, field: 'totalEntries' | 'cdSize', val: numb
 ok(guardCodeOf(() => assertDocxZipWithinCaps(eocdFieldPatch(realDocx, 'totalEntries', 2))) === 'zip_directory_invalid', '守卫自洽检:谎报 totalEntries=2(CD 定界少报·CD 区残余) → zip_directory_invalid');
 let lieEntries = '';
 try { await extractResumeText(eocdFieldPatch(realDocx, 'totalEntries', 2), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'lie-entries.docx'); } catch (e) { lieEntries = codeOf(e); }
-ok(lieEntries === 'zip_directory_invalid', '自洽检负例:谎报 totalEntries 经生产缝 → zip_directory_invalid(全链拒·worker 零 spawn)');
+ok(lieEntries === 'zip_directory_invalid', '自洽检负例:谎报 totalEntries 经生产缝 → zip_directory_invalid(全链拒·子进程零 spawn)');
 ok(guardCodeOf(() => assertDocxZipWithinCaps(eocdFieldPatch(realDocx, 'cdSize', 1))) === 'zip_directory_invalid', '守卫自洽检:谎报 cdSize(cdOffset+cdSize 失配 EOCD) → zip_directory_invalid');
 let lieCdSize = '';
 try { await extractResumeText(eocdFieldPatch(realDocx, 'cdSize', 1), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'lie-cdsize.docx'); } catch (e) { lieCdSize = codeOf(e); }
-ok(lieCdSize === 'zip_directory_invalid', '自洽检负例:谎报 cdSize 经生产缝 → zip_directory_invalid(全链拒·worker 零 spawn)');
+ok(lieCdSize === 'zip_directory_invalid', '自洽检负例:谎报 cdSize 经生产缝 → zip_directory_invalid(全链拒·子进程零 spawn)');
 // 真实三件同构变体两向同 fixture 族闭合:1001=3 真实件+998 media 形 filler 越帽拒;恰 1000 同构合法件
 // 全链必通且输出与 A1 恒等——证拒因唯一=条目数非结构(无守卫反事实=同构含真实件 zip 被 mammoth→jszip
 // 静默吃下,本对向即其仓内机证)。
@@ -212,7 +219,7 @@ ok(rRealWide.format === 'docx' && rRealWide.text === '张三 · 后端工程师\
 // 目录——守卫只审声明面目录则与 jszip 实读目录分叉。fixture=C5 探针形:守卫可见良性 CD(3 条目·
 // cdOffset+cdSize 恰抵 EOCD·恰被 3 条目耗尽)+敌对 CD(151 条目)+zip64 EOCD 记录+locator,EOCD 声明面
 // 全自洽仅单哨兵位命中——修复前守卫声明面 PASS、mammoth 全链 ACCEPT 151 条目(席2 实锤),修复后
-// 守卫哨兵位即拒 zip_directory_invalid(guard 直证 + 生产缝全链·worker 零 spawn)。
+// 守卫哨兵位即拒 zip_directory_invalid(guard 直证 + 生产缝全链·子进程零 spawn)。
 function craftZip64OverrideDocx(sentinelOffset: 4 | 6 | 8 | 10 | 12 | 16): Buffer {
   const hostile: Array<[string, string]> = [['word/document.xml', realDocxEntries[2][1]], ...Array.from({ length: 150 }, (_, i) => [`h/f${String(i).padStart(3, '0')}.xml`, `<x n="${i}"/>`] as [string, string])];
   const locals: Buffer[] = [];
@@ -270,7 +277,7 @@ for (const [field, off] of ZIP64_SENTINEL_FIELDS) {
   ok(guardCodeOf(() => assertDocxZipWithinCaps(buf)) === 'zip_directory_invalid', `守卫 zip64 哨兵:EOCD+${off} ${field}=哨兵(C5 形) → zip_directory_invalid`);
   let z64Seam = '';
   try { await extractResumeText(buf, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', `z64-${off}.docx`); } catch (e) { z64Seam = codeOf(e); }
-  ok(z64Seam === 'zip_directory_invalid', `zip64 哨兵负例:EOCD+${off} ${field} 经生产缝 → zip_directory_invalid(worker 零 spawn)`);
+  ok(z64Seam === 'zip_directory_invalid', `zip64 哨兵负例:EOCD+${off} ${field} 经生产缝 → zip_directory_invalid(子进程零 spawn)`);
 }
 // rev r3 廉价检(判定缝):EOCD 注释区声明长度不得越过缓冲余量——否则守卫放行而 jszip readData
 // 越界抛错,守卫 ACCEPT 判定与解析器实际行为分叉。守卫注释区核验与 jszip 读法恒等,越界形 guard 即拒。
@@ -282,7 +289,56 @@ const commentLenOverride = (buf: Buffer, val: number): Buffer => {
 ok(guardCodeOf(() => assertDocxZipWithinCaps(commentLenOverride(realDocx, 0xffff))) === 'zip_directory_invalid', '守卫廉价检:EOCD 注释区声明越过缓冲余量 → zip_directory_invalid');
 let cmtSeam = '';
 try { await extractResumeText(commentLenOverride(realDocx, 0xffff), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'lie-comment.docx'); } catch (e) { cmtSeam = codeOf(e); }
-ok(cmtSeam === 'zip_directory_invalid', '廉价检负例:注释区越界形经生产缝 → zip_directory_invalid(worker 零 spawn)');
+ok(cmtSeam === 'zip_directory_invalid', '廉价检负例:注释区越界形经生产缝 → zip_directory_invalid(子进程零 spawn)');
+
+// rev r4 负例(post-prove FAIL 复验报告别名读放大类):mammoth 关系别名可把同一部件重复解压最多 6 次
+// (jszip 不缓存),乘双字节解码 ×2=12 倍读放大——守卫增单条目声明帽 10MB,越帽即拒(解包前定夺,
+// 子进程零 spawn);同帽下子进程内适配器按 (部件,encoding) 记忆化+按声明值流式计量(liar 早停)。
+// 单条目声明帽(guard 直证 + 生产缝全链·修复前 guard 声明面 PASS→worker 内三路并发解码同一大条目
+// →V8 单次大分配越堆帽 FatalProcessOutOfMemory→宿主进程 abort EXIT=134 复验实锤,详卷 §9 rev r4 注记)。
+ok(guardCodeOf(() => assertDocxZipWithinCaps(craftDocx([['a.xml', '<a/>']], { centralUncompressedOverride: () => 10 * 1024 * 1024 + 1 }))) === 'zip_uncompressed_overflow', '守卫 rev r4:单条目声明越 10MB 帽 → zip_uncompressed_overflow');
+let entrySizeBomb = '';
+try { await extractResumeText(craftDocx([['word/document.xml', realDocxEntries[2][1]]], { centralUncompressedOverride: () => 10 * 1024 * 1024 + 1 }), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'bomb-entry-size.docx'); } catch (e) { entrySizeBomb = codeOf(e); }
+ok(entrySizeBomb === 'zip_uncompressed_overflow', 'rev r4:单条目声明越帽经生产缝 → zip_uncompressed_overflow(子进程零 spawn 面拒)');
+// 正例旁证(防误伤):关系别名件(footnotes/endnotes/comments 同指 word/document.xml·复验崩溃形同构但
+// 声明诚实)全链必通且输出与 A1 恒等——记忆化适配器把别名并发读收敛为单次解压/解码,诚实件零误伤。
+const aliasRels = '<?xml version="1.0" encoding="UTF-8"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+  + ['footnotes', 'endnotes', 'comments'].map((t, i) => `<Relationship Id="r${i}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/${t}" Target="document.xml"/>`).join('') + '</Relationships>';
+const aliasDocx = craftDocx([
+  realDocxEntries[0],
+  realDocxEntries[1],
+  ['word/_rels/document.xml.rels', aliasRels],
+  realDocxEntries[2],
+]);
+const rAlias = await extractResumeText(aliasDocx, 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'resume-alias.docx');
+ok(rAlias.format === 'docx' && rAlias.text === '张三 · 后端工程师\n\n五年 Node/Go 分布式经验', 'rev r4:关系别名件(三部件同指 document.xml·声明诚实)全链提取输出恒等(记忆化适配器零误伤)');
+// 负例(liar 早停·子进程流式计量):document.xml 声明 100B·deflate 实体实际膨胀 512KB——修复前 jszip
+// 全量膨胀完才事后核对 size mismatch(实测 8s 内 worker 留存数 GB ArrayBuffer);修复后子进程适配器
+// 累计膨胀字节越声明值即中止,生产缝确定性 zip_uncompressed_overflow 且远早于全量膨胀。
+function craftLiarDocx(): Buffer {
+  const stream = deflateRawSync(Buffer.alloc(32 * 1024 * 1024, 0x41), { level: 9 });
+  const crc = crc32(Buffer.alloc(32 * 1024 * 1024, 0x41));
+  const declared = 100;
+  const nameB = Buffer.from('word/document.xml');
+  const lh = Buffer.alloc(30);
+  lh.writeUInt32LE(0x04034b50, 0); lh.writeUInt16LE(20, 4); lh.writeUInt16LE(0, 6); lh.writeUInt16LE(8, 8);   // method 8=deflate
+  lh.writeUInt32LE(crc, 14); lh.writeUInt32LE(stream.length, 18); lh.writeUInt32LE(declared, 22);
+  lh.writeUInt16LE(nameB.length, 26); lh.writeUInt16LE(0, 28);
+  const ch = Buffer.alloc(46);
+  ch.writeUInt32LE(0x02014b50, 0); ch.writeUInt16LE(20, 4); ch.writeUInt16LE(20, 6); ch.writeUInt16LE(0, 8); ch.writeUInt16LE(8, 10);   // method 8=deflate
+  ch.writeUInt32LE(crc, 16); ch.writeUInt32LE(stream.length, 20); ch.writeUInt32LE(declared, 24);
+  ch.writeUInt16LE(nameB.length, 28); ch.writeUInt32LE(0, 42);
+  const cd = Buffer.concat([ch, nameB]);
+  const eocd = Buffer.alloc(22);
+  eocd.writeUInt32LE(0x06054b50, 0);
+  eocd.writeUInt16LE(1, 8); eocd.writeUInt16LE(1, 10); eocd.writeUInt32LE(cd.length, 12); eocd.writeUInt32LE(30 + nameB.length + stream.length, 16);
+  return Buffer.concat([lh, nameB, stream, cd, eocd]);
+}
+let liarCode = '';
+const liarT0 = Date.now();
+try { await extractResumeText(craftLiarDocx(), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'liar-entry.docx'); } catch (e) { liarCode = codeOf(e); }
+const liarMs = Date.now() - liarT0;
+ok(liarCode === 'zip_uncompressed_overflow' && liarMs < EXTRACT_LIAR_EARLY_STOP_MS, `rev r4:单条目 liar(声明 100B·实际 32MB)经生产缝 → zip_uncompressed_overflow(子进程流式计量早停·${liarMs}ms 远早于全量膨胀)`);
 
 // 7. #108/#109 伴生:真实 PDF 提取正例——手构合法 xref(禁依赖 pdf.js recovery 模式)·pdf-parse 端到端
 //    经 worker isolate(#108)全链提取并断言非空文本输出(补 worker+pdf-parse happy path 零覆盖面)。
