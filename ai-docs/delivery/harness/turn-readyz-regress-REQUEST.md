@@ -7,7 +7,7 @@
 ### 红A `pnpm turn-idempotency:prove`（普查 PRODUCT-REGRESSION?）
 
 - **复现读数（origin/main `e282c5ebd` · 隔离 PG `meetwise-e2e-34005-1793905297704`）**：**3 FAIL / 3**——「并发重发受理（accepted/replayed）」「队列仅 1 answer job」「ledger 首答 identity」三断言全红；两并发 POST `/turn` 均 **500**；真实错误 **SQLSTATE 42703 `column i.resume_privacy_epoch does not exist`**，栈指 `enqueueInterviewJob`（`packages/db/src/interview/interview-jobs.ts` 父引用锁读 SELECT `FROM interview i JOIN resume r`）→ `interview.service.ts` /turn 调用点 → 500 unhandled。
-- **引入提交（git 考古·非新近回归）**：结构不相容自 **proof 出生 commit `3f5bdc805`（2026-08-18·同 squash 序列父 `d9394e914` 已载 v64 简历引用契约+迁移 0064）**。三证：①`git log -S resume_privacy_epoch -- packages/db/sql/` 全史零命中——boot 世界 sql/01-23 镜像链**从未有**该列；②harness（`_neg-harness.ts`）迁移白名单全程无 0064（`git log --all -S 0064_interview_resume_epoch_reference -- _neg-harness.ts` 零命中）；③门控父引用 SELECT 自 `d9394e914` 即在（-S/G 双证）而 /turn 自同日即调 `enqueueInterviewJob`。→ **proof 出生即红，从未绿过**；`g7-green-gap.md:80`（3 FAIL·「answer job 去重面与现实现漂移」）与 `product-campaign-LEDGER.md:243`（「turn-idempotency/resume-reference 基线红」）在卷承登一致。
+- **引入提交（git 考古·非新近回归）**：结构不相容自 **proof 出生 commit `3f5bdc805`（2026-08-18·同 squash 序列父 `d9394e914` 已载 v64 简历引用契约+迁移 0064）**。三证：①`git log -S resume_privacy_epoch -- packages/db/sql/` 全史零命中——boot 世界 sql/01-23 镜像链**从未有**该列；②harness（`_neg-harness.ts`）迁移白名单全程无 0064（`git log --all -S 0064_interview_resume_epoch_reference -- _neg-harness.ts` 零命中）；③门控父引用 SELECT 自 `d9394e914` 即在（-S/G 双证）而 /turn 自同日即调 `enqueueInterviewJob`。→ **proof 出生即红，从未绿过**；`ai-docs/delivery/harness/g7-green-gap.md:80`（3 FAIL·「answer job 去重面与现实现漂移」）与 `ai-docs/delivery/harness/product-campaign-LEDGER.md:243`（「turn-idempotency/resume-reference 基线红」）在卷承登一致。
 - **根因判定：proof 过期（出生夹具/世界漂移），非产品缺陷**。proof 挂 boot 世界（无 0064 列）+夹具 interview 无 resume 绑定，与同日落地的 v64 契约（answer job 必须绑父 interview 隐私 epoch）结构性不相容。产品幂等语义本身完好：`claimInterviewAnswer` FOR UPDATE 串行占用→先 accepted 后 replayed；`enqueueInterviewJob` ON CONFLICT 唯一键幂等回读返同 jobId——修后绿实证（§2）。**用户可见影响：无**（生产走真迁移链、0064 列齐、语义正确；boot 世界仅测试夹具面）。
 
 ### 红B `pnpm api-runtime-role:prove`（普查 PRODUCT-REGRESSION?·隔离 2/2 复现+本地第 3 次）
@@ -24,7 +24,7 @@
 
 ### 件② 红B——产品码修：#92 设计按网关元数据先例补完
 
-沿 **0040/0041/0042 网关元数据先例**（「gateway role 零表授权·只执行评审过的固定 SECURITY DEFINER 函数」架构不变量）：新迁移 **`0225_readiness_migration_ledger_gateway.sql`** 建 `gateway_migration_ledger_max()`（SQL SECURITY DEFINER STABLE·search_path 钉死·REVOKE PUBLIC/app_role·GRANT EXECUTE TO app_gateway_role·返回 `max(version COLLATE "C")` 与探针原查询同字节序）；`health.service.ts apiReady()` 账本读改经 **`db.asGateway`**（SET LOCAL ROLE app_gateway_role 调该函数·`DbService.asGateway` 既有原语零新增）。**探针仍恒两读有界、fail-closed 语义零变**（函数不可执行/账本表缺失 42P01 仍归 mismatch 503·SELECT 1 短路不变·连接类归 db_unreachable 不变）；**运行时登录零表授权不变量保持**（无任何表 GRANT·账本只读不可写·业务表照旧不可读）。
+沿 **0040/0041/0042 网关元数据先例**（「gateway role 零表授权·只执行评审过的固定 SECURITY DEFINER 函数」架构不变量）：新迁移 **`0225_readiness_migration_ledger_gateway.sql`** 建 `gateway_migration_ledger_max()`（**plpgsql** SECURITY DEFINER STABLE·search_path 钉死·REVOKE PUBLIC/app_role·GRANT EXECUTE TO app_gateway_role·返回 `max(version COLLATE "C")` 与探针原查询同字节序·**`to_regclass` 短路：账本表不存在（drift 纯文件重放世界）返回 NULL 绝不出错**——rev r1·§9-8）；`health.service.ts apiReady()` 账本读改经 **`db.asGateway`**（SET LOCAL ROLE app_gateway_role 调该函数·`DbService.asGateway` 既有原语零新增）。**探针仍恒两读有界、fail-closed 语义零变**（账本为空/缺失→函数返 NULL 仍 mismatch 503 fail-closed·SELECT 1 短路不变·连接类归 db_unreachable 不变）；**运行时登录零表授权不变量保持**（无任何表 GRANT·账本只读不可写·业务表照旧不可读）。
 
 ### 件③ 配套断言（修复前红→修复后绿）
 
@@ -49,7 +49,7 @@
 6. **两 policy 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2491=cap 2491 恰等**（+2=新受管 migration 0225（.sql ∈TEXT_EXTENSIONS）+本卷 REQUEST·界值亲测步进前 PTP_FILE_LIMIT:2490 红亲证）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12**（四联动点 2_491/f-2491.md/:2492 恰等改·沿 CAP-SANCTION-2491 注记）· markers 五类改动集组装词面 0 命中。
 7. 不跑浏览器 UI runner（派单令）。
 
-**门停止条件（命中即停手上报）**：两 proof 任一红·neg:interview/db:prove 新红·arch 红·check-docs 非 2491 恰等红·PTP 非 12/12·markers 非零·typecheck/lint 高于基线。
+**门停止条件（命中即停手上报）**：两 proof 任一红·neg:interview/db:prove 新红·arch 红·check-docs 非 2491 恰等红·PTP 非 12/12·markers 非零·typecheck/lint 高于基线。**状态位（本节即「四处」之 §2 门尾）：`draft:awaiting_pre_exec_dual`**。
 
 ## §6 CI 接入建议（本刀不改 CI·仅建议与理由）
 
@@ -70,6 +70,7 @@
 5. **两 policy 步进**：`CAP-SANCTION-2491` 注记两 policy 文件链区**追加**（既有注记零改写·史录全保留）·MAX_FILES **2_489→2_491**（+2 恰等=新受管 migration+REQUEST·届值 e282c5ebd 扫 2489 恰等亲证）·proof 四联动点 **2_491/f-2491.md/:2492** 恰等改·PTP 12/12 亲跑。
 6. **偏离**：一处如实承登——派单预期两红「各自独立判定」成立（红A proof 过期/红B 产品缺陷），但红A 修复采用了红B 的 NOINHERIT 运行时登录生产同构形（红A proof 新世界即红B proof 世界）=两件共用身份面，属修法协同非越面。P7 注入面两次实测失败（§1.3-4）如实承登非静默。
 7. **STOP 终态**：四处（Status 头/§2 门尾/§8/卷尾注）同值 **`draft:awaiting_pre_exec_dual`**——pre-exec 双审两独立外席待派·alone≠dual·Ban self-approve·本刀不宣称关闭·批表行与 Status 终翻面权归协调方。
+8. **rev r1（2026-11-06·登记源=核对路审查报告）**：核对路发现 **`pnpm drift:prove`（CI 必绿·ci.yml 挡合并面）被 0225 打红**——原 `LANGUAGE sql` 字符串体在 PG16 `check_function_bodies` 默认开（psql 重放）下 **CREATE 期即分析表引用**，drift 临时库=纯文件重放（migrate runner 的账本引导不在迁移文件里）无 `schema_migrations` → CREATE 报 relation 不存在 → ON_ERROR_STOP 红。**修法（rev r1·件②）**：函数体改 plpgsql + `to_regclass('public.schema_migrations')` 短路——表不存在（drift 重放世界）返回 NULL 绝不出错；迁移完成世界行为语义零变（readiness 仍返回真实最新版本号；落后/为空仍 mismatch 503 fail-closed·库不可达仍 SELECT 1 短路 db_unreachable）。rev r1 门复测（§2 矩阵重跑）：`pnpm drift:prove` EXIT=0（修前红复证）·`pnpm migrate:prove` EXIT=0（迁移行为不变）·迁移编号唯一性核对过（0225 单号无重复）·两 proof 5/5+9/9·obs-ready 18/18·neg:interview 108 全绿·typecheck/lint 恰等贴线·arch/egress/check-docs 2491 恰等/PTP 12/12/markers 0 全绿。**P2 三笔随修**：①「四处」指落实位 §2 门尾（本节上 prior 版枚举 Status 头+§2 门尾+§8+卷尾注中 §2 门尾行原无状态字面·已补）；②turn-idem proof 恢复 `assertIsolatedTestTarget` 前向断言；③LEDGER/g7-green-gap 引用补全仓路径 `ai-docs/delivery/harness/…`。
 
 ---
 

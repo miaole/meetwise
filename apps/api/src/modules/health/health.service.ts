@@ -64,8 +64,9 @@ export class HealthService {
    * 账本读经固定 SECURITY DEFINER 网关函数（0225 gateway_migration_ledger_max，asGateway→
    * SET LOCAL ROLE app_gateway_role 执行）：探针在 NOINHERIT 运行时登录裸连接上运行、
    * 绝不持表权限——直读 schema_migrations 会 permission-denied（#92 引入过的生产身份
-   * readiness 恒假红回归面）。fail-closed 语义零变：函数不可执行/账本表缺失（42P01 等
-   * 非连接类错误）仍归 migration_mismatch，绝不 fail-open。
+   * readiness 恒假红回归面）。函数体 plpgsql + to_regclass 短路：账本表不存在（drift 纯
+   * 文件重放世界）返回 NULL 绝不出错。fail-closed 语义零变：NULL/函数不可执行仍归
+   * migration_mismatch，绝不 fail-open。
    */
   async apiReady(): Promise<ApiReadiness> {
     try {

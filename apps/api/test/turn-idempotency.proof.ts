@@ -17,7 +17,7 @@
  */
 import { createHash, randomUUID } from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
+import { assertIsolatedTestTarget, createPool, loadMigrations, provisionRuntimeLogin, runMigrations } from '@meetwise/db';
 
 const admin = createPool();
 const role = `turn_idem_${process.pid}`;
@@ -43,6 +43,8 @@ const bearerHeaders = (token: string, contentType: boolean): Headers => {
 };
 
 async function main() {
+  // 隔离靶自证（runner 隔离容器前向断言·沿 runtime-role.proof 同形）。
+  await assertIsolatedTestTarget(admin);
   // 真·迁移链单真相（skip-or-apply 世界无关确定形；DROP 账本保证脏库也全量重放）。
   await admin.query('DROP TABLE IF EXISTS schema_migrations CASCADE');
   await runMigrations(admin, loadMigrations(fileURLToPath(new URL('../../../packages/db/migrations', import.meta.url))));
