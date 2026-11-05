@@ -212,7 +212,9 @@ function errorCode(err: unknown): string {
  */
 async function proveSlowModelDoesNotWedgeRoute(): Promise<void> {
   process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-slow-model-hmac-proof-key-not-production-01';
+  const priorIdleTxTimeout = process.env.PG_IDLE_TX_TIMEOUT_MS;
   // 压低 idle 事务超时；只影响本函数随后 createPool 的新池（证明内其余 pool 先于本行创建，零影响）。
+  // 臂尾 finally 还原，防臂序调整或被 import 时进程级扩散。
   process.env.PG_IDLE_TX_TIMEOUT_MS = '1000';
   const port = process.env.PGPORT ?? '';
   A('隔离库端口不是 54329（慢模型臂）', port !== '' && port !== '54329', `PGPORT=${port}`);
@@ -297,6 +299,8 @@ async function proveSlowModelDoesNotWedgeRoute(): Promise<void> {
       && !reasons.some((r) => r.includes('sensitive_result_replay')),
       `status=${finalRow.rev_status} outcome=${String(finalRow.outcome)} calls=${providerCalls} reasons=${reasons.join(',')}`);
   } finally {
+    if (priorIdleTxTimeout === undefined) delete process.env.PG_IDLE_TX_TIMEOUT_MS;
+    else process.env.PG_IDLE_TX_TIMEOUT_MS = priorIdleTxTimeout;
     await pool.end();
   }
 }

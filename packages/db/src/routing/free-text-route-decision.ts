@@ -239,13 +239,23 @@ export async function classifyFreeTextScope(pool: DbPool, owner: string, scopeId
     output = await deps.modelClassify({ scopeId, revision, goal });
   } catch (err) {
     // 只有 seam 显式报告 dispatched_unknown 才落 sticky unresolved（事务 B）；其余错误补偿回
-    // route_pending 再上抛——与旧单事务回滚的可重试语义逐值一致。
+    // route_pending 再上抛——与旧单事务回滚的可重试语义逐值一致。补偿用既有事件词面
+    // （model_prepared→route_pending）留审计痕；补偿事务失败整体回滚，残面仍 fail-closed。
     if ((err as { code?: unknown } | undefined)?.code !== 'dispatched_unknown') {
-      await asPrincipal(pool, owner, (c) => c.query(
-        `UPDATE free_text_scope_revision SET status='route_pending', updated_at=clock_timestamp()
-          WHERE scope_id=$1 AND revision=$2 AND status='model_prepared'`,
-        [scopeId, revision],
-      )).catch(() => undefined);
+      await asPrincipal(pool, owner, async (c) => {
+        const undone = await c.query(
+          `UPDATE free_text_scope_revision SET status='route_pending', updated_at=clock_timestamp()
+            WHERE scope_id=$1 AND revision=$2 AND status='model_prepared'`,
+          [scopeId, revision],
+        );
+        if ((undone.rowCount ?? 0) > 0) {
+          await appendFreeTextRouteEvent(c, {
+            scopeId, owner, revision,
+            fromStatus: 'model_prepared', toStatus: 'route_pending',
+            reason: 'compensation_retriable', decisionId: null,
+          });
+        }
+      }).catch(() => undefined);
       throw err;
     }
     return asPrincipal(pool, owner, async (c) => {

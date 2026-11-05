@@ -319,6 +319,22 @@ async function main() {
   const compStatus = String((await pool.query('SELECT status FROM free_text_scope_revision WHERE scope_id=$1 AND revision=$2', [compScope.scopeId, compScope.revision])).rows[0]?.status ?? '');
   A('seam 抛非 dispatched_unknown 错误 → 上抛且 revision 回 route_pending（可重试·非 sticky）',
     compThrew === 'ft_comp_seam_transient' && compStatus === 'route_pending');
+  // 补偿臂审计痕（与 job-route 同形）：既有事件词面 model_prepared→route_pending
+  // （compensation_retriable）恰 3 条 seq 单调——缺补偿事件=状态静默回退不对称（修复前红）。
+  const compEvents = await pool.query(
+    'SELECT event_seq AS "eventSeq", from_status AS "fromStatus", to_status AS "toStatus", reason FROM free_text_route_event WHERE scope_id=$1 AND revision=$2 ORDER BY event_seq',
+    [compScope.scopeId, compScope.revision],
+  );
+  const compEventRows = compEvents.rows as Array<{ eventSeq: number; fromStatus: string | null; toStatus: string; reason: string | null }>;
+  const compAudit = compEventRows.find((e) => e.fromStatus === 'model_prepared' && e.toStatus === 'route_pending' && e.reason === 'compensation_retriable');
+  A('补偿留审计事件 model_prepared→route_pending(compensation_retriable)，序列恰 3 条 seq 单调',
+    !!compAudit
+    && compEventRows.length === 3
+    && compEventRows[0]?.fromStatus === null && compEventRows[0]?.toStatus === 'route_pending'
+    && compEventRows[1]?.fromStatus === 'route_pending' && compEventRows[1]?.toStatus === 'model_prepared'
+    && compEventRows[2]?.fromStatus === 'model_prepared' && compEventRows[2]?.toStatus === 'route_pending'
+    && Number(compEventRows[0]?.eventSeq) < Number(compEventRows[1]?.eventSeq)
+    && Number(compEventRows[1]?.eventSeq) < Number(compEventRows[2]?.eventSeq));
   const compRetry = await classifyFreeTextScope(pool, recA, compScope.scopeId, compScope.revision, AMBIGUOUS, { modelClassify: mkSeam(async () => ({
     allocations: [{ leafTrackId: 'backend/nodejs', allocationBps: 7000 }, { leafTrackId: 'frontend/web', allocationBps: 3000 }], confidenceBps: 8500, marginBps: 4000, reasonCodes: [],
   })).classify });

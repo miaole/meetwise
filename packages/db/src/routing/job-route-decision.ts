@@ -256,13 +256,24 @@ export async function classifyJobRoute(pool: DbPool, owner: string, jobId: strin
   } catch (err) {
     // 只有 seam 显式报告 dispatched_unknown 才落 sticky unresolved（事务 B）；其余错误补偿回
     // route_pending 再上抛——与旧单事务回滚的可重试语义逐值一致（并发双 tick 已被 model_prepared
-    // 闸拦为 noop，补偿无竞态）。
+    // 闸拦为 noop，补偿无竞态）。补偿用既有事件词面（model_prepared→route_pending）留审计痕，
+    // 避免「事件流只见 pending→prepared 后状态静默回退」的不对称；补偿事务失败整体回滚，
+    // 残面仍=model_prepared fail-closed。
     if ((err as { code?: unknown } | undefined)?.code !== 'dispatched_unknown') {
-      await asPrincipal(pool, owner, (c) => c.query(
-        `UPDATE job_semantic_revision SET status='route_pending', updated_at=clock_timestamp()
-          WHERE job_id=$1 AND revision=$2 AND status='model_prepared'`,
-        [jobId, revision],
-      )).catch(() => undefined);
+      await asPrincipal(pool, owner, async (c) => {
+        const undone = await c.query(
+          `UPDATE job_semantic_revision SET status='route_pending', updated_at=clock_timestamp()
+            WHERE job_id=$1 AND revision=$2 AND status='model_prepared'`,
+          [jobId, revision],
+        );
+        if ((undone.rowCount ?? 0) > 0) {
+          await appendRouteEvent(c, {
+            jobId, owner, revision,
+            fromStatus: 'model_prepared', toStatus: 'route_pending',
+            reason: 'compensation_retriable', decisionId: null,
+          });
+        }
+      }).catch(() => undefined);
       throw err;
     }
     return asPrincipal(pool, owner, async (c) => {
