@@ -71,8 +71,8 @@ const ROLLING_REGISTRY = [
   { file: 'scripts/ha/probe.multi.mjs', blob: 'b91917e8ede075e08b080f7a9ae76933cfe36dcd',
     registered: '8ae2a93e', note: 'HA6-REPIN 初注册（fail-closed 面整文件·旧 8ba93f0b 零 diff 态顺承）' },
   { file: 'package.json', kind: 'scripts-set',
-    digest: 'cc72940dfce57af2c9b379896a3a286797d5198f', registered: '8f2fdb83c',
-    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）·2026-10-26 L-04 补审重注册（micro-batch2-REQUEST §1.B·EXEC tip 复算）：8ae2a93e→8f2fdb83c scripts 纯增 45 键（653→698·0 删）·additive 演进漏补审承登·旧值 106e457929a535e9b87d303b94d7487adbbca054 退役留痕' },
+    digest: 'd7540d5694cdddf7b954be7666f3aab02b59dc9a', registered: 'af55b8b',
+    note: 'rev2 R5 基线 scripts 键值集 digest（计算式唯此一条：git show <tip>:package.json | jq -cS \'.scripts\' | git hash-object --stdin·8ae2a93e 与 rev2 起草树亲证恒等·Node JSON.stringify 键排序形=96e70b39e30b781c3d9065c071613c9630d4729d 与本值字节不同形已证·rev2 复审 P2 实测勘正原示例 3ef5dc2f 不可复现废·Ban 另造等价形替算）·2026-10-26 L-04 补审重注册（micro-batch2-REQUEST §1.B·EXEC tip 复算）：8ae2a93e→8f2fdb83c scripts 纯增 45 键（653→698·0 删）·additive 演进漏补审承登·旧值 106e457929a535e9b87d303b94d7487adbbca054 退役留痕·2026-11-06 L-04 二次补审重注册（small-fixes-1105-REQUEST §1·工作树双读臂复核时发现 main 届漂：HEAD=工作树=d7540d569 恒等≠登记 cc72940df·注册 tip af55b8b 复算）：8f2fdb83c→af55b8b scripts 纯增 63 键（698→761·0 删·key-level diff 亲证）·2026-10-26 后诸刀 additive 演进漏补审承登·旧值 cc72940dfce57af2c9b379896a3a286797d5198f@8f2fdb83c 退役留痕' },
 ];
 const SCRIPTS_MUST_EXIST = ['ha6:prove', 'migrate:prove', 'docs:check', 'drift:prove'];
 const SCRIPTS_MUST_NOT_EXIST = ['breaker:prove', 'prove:breaker']; // 724d61b5 AG24 sanctioned 双删·防复活（rev2 R3-P2 补第二键）
