@@ -37,7 +37,7 @@ const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
 const receiptPath = join(receiptDir, '2026-09-17-g-r4-3-pr1b-combo-root-flag-on-evidence.json');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-3-pr1-bc-true-evidence-impl.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-3-pr1-bc-true-evidence-impl.md',
 );
 
 function read(p: string) {

@@ -16,7 +16,7 @@ import { fileURLToPath } from 'node:url';
 const root = join(dirname(fileURLToPath(import.meta.url)), '..', '..');
 const harnessPath = join(root, 'ai-docs/delivery/harness/r4-domain-isolation.md');
 const statusPath = join(root, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
-const evalPath = join(root, 'ai-docs/delivery/eval/r4-domain-isolation.eval.md');
+const evalPath = join(root, 'receipts/archive/2026-09-batch23/eval/r4-domain-isolation.eval.md');
 const scriptPath = join(root, 'scripts/conn-stack/mysql-stack.r4-domain-isolation.proof.mjs');
 const forwarderPath = join(root, 'scripts/mysql-stack.r4-domain-isolation.proof.mjs');
 const m4Path = join(root, 'ai-docs/delivery/m4-rag-hard-gates.md');
@@ -25,8 +25,8 @@ const packageJsonPath = join(root, 'package.json');
 const mainPath = join(root, 'apps/worker/src/main.ts');
 const trackLocalPath = join(root, 'packages/db/src/qbank/qbank-track-local-retrieval.ts');
 const rag04ProofPath = join(root, 'packages/db/test/rag04-track-local-retrieval.proof.ts');
-const requestRagPath = join(root, 'ai-docs/delivery/reviews/REQUEST-r4-domain-isolation-mw-rag-route.md');
-const requestE2ePath = join(root, 'ai-docs/delivery/reviews/REQUEST-r4-domain-isolation-mw-e2e-ha.md');
+const requestRagPath = join(root, 'receipts/archive/2026-09-batch23/reviews/REQUEST-r4-domain-isolation-mw-rag-route.md');
+const requestE2ePath = join(root, 'receipts/archive/2026-09-batch23/reviews/REQUEST-r4-domain-isolation-mw-e2e-ha.md');
 
 let exitCode = 0;
 const lines = [];
@@ -190,8 +190,8 @@ if (apiClassifyHits.length === 0) {
 } else {
   fail(`classifyJobRoute( found in apps/api (inline classify forbidden; wakeup-only): ${apiClassifyHits.join(', ')}`);
 }
-const r2Status = read(join(root, 'ai-docs/delivery/harness/r2-classify-job-route-status.md'));
-if (/R2 NOT closed/.test(r2Status) && /≠ 路由已生效|不得宣称路由生效/.test(r2Status + read(join(root, 'ai-docs/delivery/harness/r2-classify-job-route.md')))) {
+const r2Status = read(join(root, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route-status.md'));
+if (/R2 NOT closed/.test(r2Status) && /≠ 路由已生效|不得宣称路由生效/.test(r2Status + read(join(root, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route.md')))) {
   pass('R2 status still pins NOT closed / ≠ 路由已生效 (Worker sole ≠ R2 closed)');
 } else {
   fail('R2 status must still pin R2 NOT closed and ≠ 路由已生效');

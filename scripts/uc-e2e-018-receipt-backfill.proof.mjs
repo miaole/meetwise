@@ -644,18 +644,23 @@ function fxCapture(overrides = {}) {
       }
     }
 
+    // PTP-archive（e3502c0b6）把这批历史回执连同 logs/ 以 R100 搬到 receipts/archive/2026-09-batch23/receipts/；
+    // 回执正文 logPath 仍记搬家前相对路径（原字节不改）——验签前把该前缀按改名映射解析到归档位置，摘要比对照旧。
+    const archivedLogPath = (p) => (typeof p === 'string' && p.startsWith('ai-docs/delivery/receipts/'))
+      ? 'receipts/archive/2026-09-batch23/receipts/' + p.slice('ai-docs/delivery/receipts/'.length)
+      : p;
     const historical = [
       'ADV.json', 'FULL-E2E.json', 'GRAPH.json', 'PERF-LOAD.json', 'SOLE.json', 'TTL.json', 'UI.json',
     ];
     for (const name of historical) {
-      const abs = join(root, 'ai-docs/delivery/receipts/uc018-receipt-backfill', name);
+      const abs = join(root, 'receipts/archive/2026-09-batch23/receipts/uc018-receipt-backfill', name);
       const receipt = JSON.parse(readFileSync(abs, 'utf8'));
       const cls = classifyReceiptAuth(receipt);
       if (cls.signed === true || cls.legacy !== true || cls.auth !== 'unsigned-historical') {
         fail('legacy ' + name + ' classified wrong: ' + JSON.stringify(cls));
         continue;
       }
-      const hv = validateMachineEmittedReceipt(receipt, { root, env: {} });
+      const hv = validateMachineEmittedReceipt({ ...receipt, logPath: archivedLogPath(receipt.logPath) }, { root, env: {} });
       if (!hv.ok) {
         fail('legacy ' + name + ' not readable as unsigned: ' + hv.reason);
       } else if (hv.signed !== false || hv.auth !== 'unsigned-historical') {

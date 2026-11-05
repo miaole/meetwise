@@ -15,6 +15,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { harnessAwaitingOrDualNailed } from '../evidence/r4-superseded-pins.ts';
 import {
   R4_PR1_PRODUCT_CLOSE_EMITTER_WIRED,
   R4_PR1_PRODUCT_CLOSE_EVIDENCE_KIND,
@@ -35,7 +36,7 @@ const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
 const receiptJson = join(receiptDir, '2026-09-23-g-r4-3-r1-product-close-evidence.json');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/g-r4-3-r1-product-close.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/g-r4-3-r1-product-close.md');
 
 function read(p: string) {
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
@@ -47,10 +48,10 @@ console.log('EXIT=0 = product-close evidence · defaultFlipped=true · gR43/r1 p
 section('P0 anchors');
 A('P0 emitter wired', R4_PR1_PRODUCT_CLOSE_EMITTER_WIRED === true);
 A('P0 harness present', existsSync(harnessPath));
-A('P0 harness status awaiting_post_prove_dual + Ban self-nail', (() => {
+A('P0 harness status awaiting_post_prove_dual + Ban self-nail（或双审后已授权 nail）', (() => {
   const h = read(harnessPath);
-  return /\*\*Status\*\*: \*\*`executed:awaiting_post_prove_dual`/.test(h)
-    && !/\*\*Status\*\*: \*\*`post_prove_dual_pass`/.test(h)
+  // 本刀 post-prove 双审通过后归档 harness 已授权 nail 为 post_prove_dual_pass——认原钉（待双审）或双审后 nail 形（非自钉）。
+  return harnessAwaitingOrDualNailed(h)
     && /Ban self-nail|Ban自批/.test(h)
     && /defaultFlipped=true/.test(h)
     && /failClosedDefaultStill0=false/.test(h);

@@ -42,6 +42,11 @@ import {
   productAlignsWithF3Serving,
 } from '../evidence/r4-p-meta-serving-product-remaining.ts';
 import { isTechRoleFailClosedEnabled } from '../src/adaptive-role-resolve.ts';
+import {
+  domainIsolationNotClosedOrAuthorizedClose,
+  envExampleFailClosedOffOrAuthorizedFlip,
+  r1DefaultFlipAuthorized,
+} from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -54,13 +59,13 @@ const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f5-p-meta-serving-product.md');
-const evalPath = join(repoRoot, 'ai-docs/delivery/eval/r4-f5-p-meta-serving-product.eval.md');
-const slicePath = join(repoRoot, 'ai-docs/delivery/r4-f5-p-meta-serving-product.slice.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f5-p-meta-serving-product.md');
+const evalPath = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/r4-f5-p-meta-serving-product.eval.md');
+const slicePath = join(repoRoot, 'receipts/archive/2026-09-batch23/slices/r4-f5-p-meta-serving-product.slice.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const inventoryPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation.md');
-const f3HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f3-p-meta-serving.md');
-const f4HarnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f4-p-r1-fail-closed.md');
+const f3HarnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f3-p-meta-serving.md');
+const f4HarnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f4-p-r1-fail-closed.md');
 const funnel01aPath = join(repoRoot, 'ai-docs/rules/backend/qbank-control-definer-sealed-manifest.md');
 const principalPath = join(repoRoot, 'packages/db/src/principal.ts');
 const funnelArchPath = join(repoRoot, 'ai-docs/architecture/ai/rag-funnel-routing.md');
@@ -69,8 +74,8 @@ const f3HelperPath = join(workerRoot, 'evidence/r4-p-meta-serving-remaining.ts')
 const f2HelperPath = join(workerRoot, 'evidence/r4-p-meta-p-r1-remaining.ts');
 const handoffProvePath = join(repoRoot, 'packages/db/test/qbank-handoff-closure.proof.ts');
 const workerEnvExample = join(repoRoot, 'docker/env/worker.env.example');
-const preExecE2e = join(repoRoot, 'ai-docs/delivery/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-e2e-ha.md');
-const preExecRag = join(repoRoot, 'ai-docs/delivery/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-rag-route.md');
+const preExecE2e = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-e2e-ha.md');
+const preExecRag = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/2026-09-17-r4-f5-p-meta-serving-product-mw-rag-route.md');
 
 function read(p: string) {
   return existsSync(p) ? readFileSync(p, 'utf8') : '';
@@ -267,18 +272,20 @@ A('MS4 eval registers MS1–MS4 / E* product stubs',
 A('MS4 slice indexes harness+eval',
   /r4-f5-p-meta-serving-product\.md/.test(slice)
   && /r4-f5-p-meta-serving-product\.eval\.md/.test(slice));
-A('MS4 status pins 题域隔离 NOT closed + releaseEvidence=false',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('MS4 status pins 题域隔离 NOT closed + releaseEvidence=false（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(status) && /releaseEvidence=false/.test(status));
 A('MS4 status mentions F5 / G-R4-5 / MS1–MS3 still false (or F5 knife)',
   (/F5|p-meta-serving-product|G-R4-5/.test(status))
   && (/MS1–MS3 still false|MS1-MS3 still false|G-R4-5|P-META serving/.test(status)));
 A('MS4 pre-exec dual reviews exist · verdict pass (docs gate)',
   (/pass|结论.*pass|\*\*pass\*\*/i.test(preE2e))
   && (/pass|结论.*pass|\*\*pass\*\*/i.test(preRag)));
-A('MS4 P-R1 default fail-closed still OFF (no flip this knife)',
-  isTechRoleFailClosedEnabled({}) === false);
-A('MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent)',
-  !envExample || /MEETWISE_TECH_ROLE_FAIL_CLOSED\s*=\s*0/.test(envExample));
+// 本刀不翻 P-R1 默认；2026-09-23 G-R4-3/R1 product close（101fb51e0·授权+双审 nail）已翻为默认 ON——认原钉或该刀在案翻面。
+A('MS4 P-R1 default fail-closed still OFF (no flip this knife；或 G-R4-3/R1 授权翻面在案)',
+  isTechRoleFailClosedEnabled({}) === false || r1DefaultFlipAuthorized());
+A('MS4 worker.env.example still documents MEETWISE_TECH_ROLE_FAIL_CLOSED=0 (or absent；或 R1 授权翻面在案)',
+  envExampleFailClosedOffOrAuthorizedFlip(envExample));
 A('MS4 prove never assigns MODEL_API_KEY (no invent)',
   !/MODEL_API_KEY\s*=/.test(read(join(here, 'r4-p-meta-serving-product.proof.ts'))));
 A('MS4 SOLE allowlist 恰 5 · F5 NOT on allowlist', (() => {

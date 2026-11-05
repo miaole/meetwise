@@ -97,9 +97,9 @@ export function assessFunnel03JobRouteDecisionProductionPath(): Funnel03Assessor
   const db = readPkg('packages/db/src/routing/job-route-decision.ts');
   const consumer = readSrc('route-classify-consumer.ts');
   const main = readSrc('main.ts');
-  const r2Status = readRepo('ai-docs/delivery/harness/r2-classify-job-route-status.md');
-  const r2Harness = readRepo('ai-docs/delivery/harness/r2-classify-job-route.md');
-  const r2Ssot = readRepo('ai-docs/delivery/harness/r2-ssot-flip-real-close.md');
+  const r2Status = readRepo('receipts/archive/2026-09-batch23/harness/r2-classify-job-route-status.md');
+  const r2Harness = readRepo('receipts/archive/2026-09-batch23/harness/r2-classify-job-route.md');
+  const r2Ssot = readRepo('receipts/archive/2026-09-batch23/harness/r2-ssot-flip-real-close.md');
 
   const contractsJobRouteDecisionPresent =
     /export const JobRouteDecision = z\.object\(/.test(contracts)

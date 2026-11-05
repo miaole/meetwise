@@ -26,6 +26,7 @@ import {
 } from '../src/adaptive-role-resolve.ts';
 import { hasComboRootFlagOnProductionEvidence } from './r4-pr1b-combo-root-flag-on-evidence.ts';
 import { hasDefaultOnNoLegacyPathEvidence } from './r4-pr1c-default-on-no-legacy-evidence.ts';
+import { harnessNailedAfterPostProveDual } from './r4-superseded-pins.ts';
 
 export const R4_PR1_PRODUCT_CLOSE_EVIDENCE_KIND =
   'GR43R1ProductCloseEvidence' as const;
@@ -124,7 +125,7 @@ export function assessGR43R1ProductClose(): {
   const gap = readRepo('ai-docs/delivery/gap-bug-backlog.md');
   const m4 = readRepo('ai-docs/delivery/m4-rag-hard-gates.md');
   const w0 = readRepo('ai-docs/delivery/w0-w8-workflow-status.md');
-  const harness = readRepo('ai-docs/delivery/harness/g-r4-3-r1-product-close.md');
+  const harness = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-3-r1-product-close.md');
 
   // Authorized SSOT must reflect flip + this-knife product close under authorize,
   // while retaining Ban claim R4/FUNNEL/题域/G-R4-5/EG closed + Ban self-nail dual_pass.
@@ -132,7 +133,8 @@ export function assessGR43R1ProductClose(): {
     /GAP-RAG-01/.test(gap)
     && /defaultFlipped=true|产品默认.*fail-closed|fail-closed.*产品默认|MEETWISE_TECH_ROLE_FAIL_CLOSED.*默认\s*1|default ON/i.test(gap + m4)
     && /gR43ProductClosed=true|r1ProductClosed=true|G-R4-3 \/ R1 product close/.test(w0 + harness)
-    && /executed:awaiting_post_prove_dual/.test(harness)
+    // 本刀 post-prove 双审通过后归档 harness 已授权 nail 为 post_prove_dual_pass——认原钉（待双审）或双审后 nail 形。
+    && (/executed:awaiting_post_prove_dual/.test(harness) || harnessNailedAfterPostProveDual(harness))
     && /Ban self-nail|Ban自批|awaiting_post_prove_dual/.test(harness)
     && /R4\/FUNNEL|G-R4-5 STILL OPEN|题域 STILL OPEN|EG1–EG6 STILL OPEN/.test(harness)
     && /failClosedDefaultStill0=false/.test(harness)

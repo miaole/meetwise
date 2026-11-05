@@ -45,6 +45,7 @@ import {
   scoredRefsFromDispatch,
 } from '../src/qbank-track-local-retrieve.ts';
 import { decideRouteSnapshotRetrieve } from '../src/qbank-retrieve-scope.ts';
+import { domainIsolationNotClosedOrAuthorizedClose } from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -61,7 +62,7 @@ const consumerPath = join(workerSrc, 'interview-consumer.ts');
 const mainPath = join(workerSrc, 'main.ts');
 const dbTrackLocal = join(repoRoot, 'packages/db/src/qbank/qbank-track-local-retrieval.ts');
 const domainTrackLocal = join(repoRoot, 'packages/domain/src/qbank-track-local-retrieval.ts');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-wrong-track-adv.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-wrong-track-adv.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const parentHarness = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation.md');
 const matrixPath = join(repoRoot, 'ai-docs/delivery/non-happy-path-perf-load-case-matrix.md');
@@ -357,10 +358,11 @@ A('A5/A6 harness pins wire≠ADV · releaseEvidence=false · ≠R4 closed',
   /wire.*≠|wire 绿 ≠|≠ wrong_track/.test(harness)
   && /releaseEvidence=false/.test(harness)
   && (/NOT closed|≠ R4|仍 NOT closed|仍开/.test(harness)));
-A('A7/A8 status still 题域隔离 NOT closed + releaseEvidence=false',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
-A('A8 parent harness still 题域隔离 NOT closed',
-  /题域隔离 NOT closed/.test(parent));
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status/parent harness 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('A7/A8 status still 题域隔离 NOT closed + releaseEvidence=false（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(status) && /releaseEvidence=false/.test(status));
+A('A8 parent harness still 题域隔离 NOT closed（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(parent));
 A('LIVE_PG_GAP honesty: prove header documents remaining live Worker+PG gap',
   /LIVE_PG_GAP/.test(read(join(here, 'r4-wrong-track-adv.proof.ts')))
   && /≠ covered/.test(read(join(here, 'r4-wrong-track-adv.proof.ts')))

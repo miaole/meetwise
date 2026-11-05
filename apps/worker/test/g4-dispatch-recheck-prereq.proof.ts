@@ -9,6 +9,7 @@
 import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { domainIsolationNotClosedOrAuthorizedClose } from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -28,10 +29,10 @@ const trackLocalPath = join(repoRoot, 'packages/db/src/qbank/qbank-track-local-r
 const domainPlanPath = join(repoRoot, 'packages/domain/src/qbank-track-local-retrieval.ts');
 const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
-const evalPath = join(repoRoot, 'ai-docs/delivery/eval/r4-domain-isolation.eval.md');
+const evalPath = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/r4-domain-isolation.eval.md');
 const backlogPath = join(repoRoot, 'ai-docs/delivery/gap-bug-backlog.md');
-const requestRag = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-g4-dispatch-recheck-prereq-mw-rag-route.md');
-const requestE2e = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-g4-dispatch-recheck-prereq-mw-e2e-ha.md');
+const requestRag = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-g4-dispatch-recheck-prereq-mw-rag-route.md');
+const requestE2e = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-g4-dispatch-recheck-prereq-mw-e2e-ha.md');
 const appsRoot = join(repoRoot, 'apps');
 
 function read(p: string) {
@@ -127,7 +128,7 @@ for (const f of workerClassifyFiles) {
 }
 A('R2 honesty: apps/api/src zero classifyJobRoute( (Worker sole; wakeup-only P-API allowed)',
   apiClassifyCalls === 0, `apiCalls=${apiClassifyCalls}`);
-const r2StatusDoc = read(join(repoRoot, 'ai-docs/delivery/harness/r2-classify-job-route-status.md'));
+const r2StatusDoc = read(join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route-status.md'));
 A('R2 still NOT closed documented',
   /R2 NOT closed/.test(r2StatusDoc) && (/闭环|G-R2-1|G-R2-3|G-R2-4|P-LOOP|P-START|P-API/.test(r2StatusDoc)),
   `workerCalls=${workerClassifyCalls}`);
@@ -143,13 +144,14 @@ for (const f of workerSrcFiles) {
 A('worker src has planner→retrieve/dispatch path (REAL-WIRE)',
   plannerToRetrieve);
 
-A('harness pins 题域隔离 NOT closed', /题域隔离 NOT closed/.test(harness));
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 harness/status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('harness pins 题域隔离 NOT closed（或 EG3 授权关闭在案）', domainIsolationNotClosedOrAuthorizedClose(harness));
 A('harness mentions dispatchTrackLocalRetrieval / recheck',
   /dispatchTrackLocalRetrieval/.test(harness) && /recheck/.test(harness));
 A('harness releaseEvidence=false + Not HA',
   /releaseEvidence=false/.test(harness) && /Not HA/.test(harness));
-A('status still pins 题域隔离 NOT closed (wire ≠ R4 closed)',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
+A('status still pins 题域隔离 NOT closed (wire ≠ R4 closed；或 EG3 授权关闭在案)',
+  domainIsolationNotClosedOrAuthorizedClose(status) && /releaseEvidence=false/.test(status));
 A('status documents G-R4-1 / dispatch',
   /G-R4-1/.test(status) && /dispatch/.test(status));
 A('eval pins ≠ R4 closed / ≠ 题域已隔离',

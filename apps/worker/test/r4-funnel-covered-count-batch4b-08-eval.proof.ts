@@ -83,11 +83,11 @@ const thresholdsPath = join(
 const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch4b-08-eval.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch4b-08-eval.md',
 );
 const slicePath = join(
   repoRoot,
-  'ai-docs/delivery/g-r4-5-funnel-covered-count-batch4b-08-eval.slice.md',
+  'receipts/archive/2026-09-batch23/slices/g-r4-5-funnel-covered-count-batch4b-08-eval.slice.md',
 );
 
 function read(p: string) {

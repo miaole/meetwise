@@ -116,7 +116,7 @@ if (existsSync(consumerPath)) {
     /getInterviewRouteSnapshot/.test(consumer) && /isTechRoleFailClosedEnabled/.test(consumer));
 }
 
-const evalPath = join(repoRoot, 'ai-docs/delivery/eval/r1-tech-role-fail-closed.eval.md');
+const evalPath = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/r1-tech-role-fail-closed.eval.md');
 A('eval proof doc present', existsSync(evalPath), evalPath);
 
 if (existsSync(harnessPath)) {

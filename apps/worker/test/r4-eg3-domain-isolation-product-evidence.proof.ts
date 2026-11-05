@@ -41,7 +41,7 @@ const receiptPath = join(
 );
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-eg3-true-evidence-impl.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-eg3-true-evidence-impl.md',
 );
 
 function read(p: string) {

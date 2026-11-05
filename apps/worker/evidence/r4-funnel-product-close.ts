@@ -114,7 +114,7 @@ function readJson(rel: string): Record<string, unknown> | null {
 /** Canonical reassess harness (this knife). ARCHIVE harness retained separately. */
 function reassessHarness(): string {
   return readRepo(
-    'ai-docs/delivery/harness/g-r4-5-r4-funnel-product-close-reassess.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-r4-funnel-product-close-reassess.md',
   );
 }
 
@@ -232,10 +232,10 @@ export function assessR4FunnelProductCloseHonestyPins(opts?: {
   const w0 = readRepo('ai-docs/delivery/w0-w8-workflow-status.md');
   const matrix = readRepo('ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
   const eg3Receipt = readJson(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-close-evidence.json',
   );
   const archiveHarness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-r4-funnel-product-close.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-r4-funnel-product-close.md',
   );
 
   const eg3FlagsRetained =

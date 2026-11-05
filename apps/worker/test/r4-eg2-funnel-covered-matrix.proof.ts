@@ -53,7 +53,7 @@ const jsonPath = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.j
 const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-eg1-eg2-true-evidence-impl.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-eg1-eg2-true-evidence-impl.md',
 );
 const checklistPath = join(repoRoot, 'ai-docs/delivery/execution-master-checklist.md');
 

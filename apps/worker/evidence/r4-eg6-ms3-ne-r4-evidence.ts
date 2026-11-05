@@ -20,6 +20,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { eg2MatrixReceiptZeroOrAuthorizedLift } from './r4-superseded-pins.ts';
 
 /** Canonical EG6 MS3≠R4 pin retention honesty evidence kind. */
 export const EG6_MS3_NE_R4_EVIDENCE_KIND =
@@ -104,32 +105,32 @@ export function assessMs3NeR4PinRetentionEvidence(): {
   metaProveAloneDoesNotClose: boolean;
 } {
   const eg1 = readJson(
-    'ai-docs/delivery/receipts/2026-09-17-g-r4-5-eg1-dual-claim-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-17-g-r4-5-eg1-dual-claim-evidence.json',
   );
   const eg2 = readJson(
-    'ai-docs/delivery/receipts/2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-17-g-r4-5-eg2-funnel-covered-matrix.json',
   );
   const eg3 = readJson(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-evidence.json',
   );
   const eg4 = readJson(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg4-wrong-track-product-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg4-wrong-track-product-evidence.json',
   );
   const eg5 = readJson(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg5-product-ssot-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg5-product-ssot-evidence.json',
   );
 
   const eg6Harness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-eg6-true-evidence-impl.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-eg6-true-evidence-impl.md',
   );
   const status = readRepo(
     'ai-docs/delivery/harness/r4-domain-isolation-status.md',
   );
   const l4Harness = readRepo(
-    'ai-docs/delivery/harness/r4-funnel-explicit-close-ssot-flip.md',
+    'receipts/archive/2026-09-batch23/harness/r4-funnel-explicit-close-ssot-flip.md',
   );
   const eg5Harness = readRepo(
-    'ai-docs/delivery/harness/g-r4-5-eg5-true-evidence-impl.md',
+    'receipts/archive/2026-09-batch23/harness/g-r4-5-eg5-true-evidence-impl.md',
   );
 
   const eg1ThroughEg5EvidencePresent =
@@ -137,7 +138,8 @@ export function assessMs3NeR4PinRetentionEvidence(): {
     && eg1.gR45DualClaimClosed === false
     && eg1.releaseEvidence === false
     && eg2 != null
-    && eg2.coveredCount === 0
+    // Batch1–4b 授权刀按设计复写 EG2 回执抬升计数——认 0 或「自洽计数 + inventCovered=false + 收官刀在案」。
+    && eg2MatrixReceiptZeroOrAuthorizedLift(eg2)
     && eg2.releaseEvidence === false
     && eg3 != null
     && eg3.eg3ProductClosed === false

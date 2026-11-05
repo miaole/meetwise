@@ -39,7 +39,7 @@ const receiptDir = join(repoRoot, 'ai-docs/delivery/receipts');
 const receiptPath = join(receiptDir, '2026-09-17-g-r4-3-pr1c-default-on-no-legacy-evidence.json');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-3-r1-product-close.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-3-r1-product-close.md',
 );
 const workerEnvExample = join(repoRoot, 'docker/env/worker.env.example');
 

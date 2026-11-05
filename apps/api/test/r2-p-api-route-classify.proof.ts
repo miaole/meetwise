@@ -27,12 +27,12 @@ const migratePath = join(repoRoot, 'packages/db/migrations/0133_job_route_pendin
 const migrate0132 = join(repoRoot, 'packages/db/migrations/0132_job_route_classify_worker_dispatch.sql');
 const consumerPath = join(appsRoot, 'worker', 'src', 'route-classify-consumer.ts');
 const recruiterDbPath = join(repoRoot, 'packages/db/src/recruiting/recruiter.ts');
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r2-classify-job-route.md');
-const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r2-classify-job-route-status.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route.md');
+const statusPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r2-classify-job-route-status.md');
 const backlogPath = join(repoRoot, 'ai-docs/delivery/gap-bug-backlog.md');
 const m4Path = join(repoRoot, 'ai-docs/delivery/m4-rag-hard-gates.md');
-const requestModelOp = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-r2-p-api-route-classify-mw-model-op.md');
-const requestRag = join(repoRoot, 'ai-docs/delivery/reviews/REQUEST-r2-p-api-route-classify-mw-rag-route.md');
+const requestModelOp = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-r2-p-api-route-classify-mw-model-op.md');
+const requestRag = join(repoRoot, 'receipts/archive/2026-09-batch23/reviews/REQUEST-r2-p-api-route-classify-mw-rag-route.md');
 const rootPkg = join(repoRoot, 'package.json');
 
 function read(p: string) {

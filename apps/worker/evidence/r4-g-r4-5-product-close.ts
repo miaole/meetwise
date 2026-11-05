@@ -100,37 +100,37 @@ export type GR45AggregateGateAssessment = {
 };
 
 export function assessGR45AggregateProductClose(): GR45AggregateGateAssessment {
-  const eg1 = readRepo('ai-docs/delivery/harness/g-r4-5-eg1-dual-claim-product-close.md');
-  const eg2 = readRepo('ai-docs/delivery/harness/g-r4-5-eg2-funnel-covered-product-close.md');
-  const eg3 = readRepo('ai-docs/delivery/harness/g-r4-5-eg3-domain-isolation-product-close.md');
-  const eg4 = readRepo('ai-docs/delivery/harness/g-r4-5-eg4-wrong-track-product-close.md');
-  const eg5 = readRepo('ai-docs/delivery/harness/g-r4-5-eg5-product-ssot-product-close.md');
-  const eg6 = readRepo('ai-docs/delivery/harness/g-r4-5-eg6-ms3-ne-r4-product-close.md');
-  const r4 = readRepo('ai-docs/delivery/harness/g-r4-5-r4-funnel-product-close-reassess.md');
-  const harness = readRepo('ai-docs/delivery/harness/g-r4-5-product-close.md');
+  const eg1 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg1-dual-claim-product-close.md');
+  const eg2 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg2-funnel-covered-product-close.md');
+  const eg3 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg3-domain-isolation-product-close.md');
+  const eg4 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg4-wrong-track-product-close.md');
+  const eg5 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg5-product-ssot-product-close.md');
+  const eg6 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg6-ms3-ne-r4-product-close.md');
+  const r4 = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-r4-funnel-product-close-reassess.md');
+  const harness = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-product-close.md');
   const gap = readRepo('ai-docs/delivery/gap-bug-backlog.md');
   const m4 = readRepo('ai-docs/delivery/m4-rag-hard-gates.md');
   const w0 = readRepo('ai-docs/delivery/w0-w8-workflow-status.md');
   const eg1Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg1-dual-claim-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg1-dual-claim-product-close-evidence.json',
   );
   const eg2Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg2-funnel-covered-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg2-funnel-covered-product-close-evidence.json',
   );
   const eg3Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg3-domain-isolation-product-close-evidence.json',
   );
   const eg4Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg4-wrong-track-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg4-wrong-track-product-close-evidence.json',
   );
   const eg5Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg5-product-ssot-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg5-product-ssot-product-close-evidence.json',
   );
   const eg6Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-eg6-ms3-ne-r4-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-eg6-ms3-ne-r4-product-close-evidence.json',
   );
   const r4Ev = readRepo(
-    'ai-docs/delivery/receipts/2026-09-23-g-r4-5-r4-funnel-product-close-evidence.json',
+    'receipts/archive/2026-09-batch23/receipts/2026-09-23-g-r4-5-r4-funnel-product-close-evidence.json',
   );
   const tipBlob = eg1 + eg2 + eg3 + eg4 + eg5 + eg6 + r4 + harness + w0 + gap + m4;
   const ssotBlob = gap + m4 + w0 + harness;

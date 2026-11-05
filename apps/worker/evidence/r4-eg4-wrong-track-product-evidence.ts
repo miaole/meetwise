@@ -95,8 +95,8 @@ export function assessWrongTrackProductEvidence(): {
   const prodCfg = readSrc('production-config.ts');
   const consumer = readSrc('interview-consumer.ts');
   const status = readRepo('ai-docs/delivery/harness/r4-domain-isolation-status.md');
-  const f1Harness = readRepo('ai-docs/delivery/harness/r4-f1-wrong-track-prod-surface.md');
-  const eg4Harness = readRepo('ai-docs/delivery/harness/g-r4-5-eg4-true-evidence-impl.md');
+  const f1Harness = readRepo('receipts/archive/2026-09-batch23/harness/r4-f1-wrong-track-prod-surface.md');
+  const eg4Harness = readRepo('receipts/archive/2026-09-batch23/harness/g-r4-5-eg4-true-evidence-impl.md');
 
   const enforceWrongTrackZeroOnServedWired =
     /export function enforceWrongTrackZeroOnServed\s*\(/.test(trackLocal)

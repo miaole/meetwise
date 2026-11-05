@@ -38,6 +38,7 @@ import {
   isFunnel03Covered,
   isFunnel04Covered,
 } from '../evidence/r4-funnel-covered-count-batch1.ts';
+import { isFunnel07Covered, isFunnel08Covered } from '../evidence/r4-funnel-covered-count-batch4.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
@@ -66,11 +67,11 @@ const eg2Json = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.js
 const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch3b-05-06-wire.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch3b-05-06-wire.md',
 );
 const slicePath = join(
   repoRoot,
-  'ai-docs/delivery/g-r4-5-funnel-covered-count-batch3b-05-06-wire.slice.md',
+  'receipts/archive/2026-09-batch23/slices/g-r4-5-funnel-covered-count-batch3b-05-06-wire.slice.md',
 );
 
 function read(p: string) {
@@ -192,9 +193,13 @@ const covered02B = isFunnel02BCovered();
 const covered03 = isFunnel03Covered();
 const covered04 = isFunnel04Covered();
 const matrix = emitRagFunnel0108CoveredMatrix();
+// Batch2–4b（2026-09-23 授权刀·双审后 nail）其后合法抬升本刀范围外各行——按各自活评估器校验（covered 当且仅当评估器肯定·Ban invent），同 Batch4 B4 口径。
+const covered07Later = isFunnel07Covered();
+const covered08Later = isFunnel08Covered();
 const expectedCovered =
   Number(covered02A) + Number(covered02B) + Number(covered03) + Number(covered04)
-  + Number(covered05) + Number(covered06);
+  + Number(covered05) + Number(covered06)
+  + Number(covered07Later) + Number(covered08Later);
 A('B4 isHonestFunnelCoveredMatrix', isHonestFunnelCoveredMatrix(matrix) === true);
 A('B4 inventCovered=false', matrix.inventCovered === false);
 A('B4 releaseEvidence=false', matrix.releaseEvidence === false);
@@ -215,8 +220,8 @@ A(
   'B4 row06 status honest',
   covered06 ? row06?.status === 'covered' : row06?.status === 'not_covered',
 );
-A('B4 row07 still not_covered', row07?.status === 'not_covered');
-A('B4 row08 still not_covered', row08?.status === 'not_covered');
+A('B4 row07 still not_covered（或 Batch4 活评估器肯定）', covered07Later ? row07?.status === 'covered' : row07?.status === 'not_covered');
+A('B4 row08 still not_covered（或 Batch4/4b 活评估器肯定）', covered08Later ? row08?.status === 'covered' : row08?.status === 'not_covered');
 A('B4 02A retained', covered02A === true);
 A('B4 02B retained', covered02B === true);
 A('B4 03 retained', covered03 === true);

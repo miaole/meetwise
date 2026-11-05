@@ -31,6 +31,8 @@ import {
   isFunnel03Covered,
   isFunnel04Covered,
 } from '../evidence/r4-funnel-covered-count-batch1.ts';
+import { isFunnel05Covered, isFunnel06Covered } from '../evidence/r4-funnel-covered-count-batch3.ts';
+import { isFunnel07Covered, isFunnel08Covered } from '../evidence/r4-funnel-covered-count-batch4.ts';
 import {
   emitRagFunnel0108CoveredMatrix,
   isHonestFunnelCoveredMatrix,
@@ -59,7 +61,7 @@ const eg2Json = join(receiptDir, '2026-09-17-g-r4-5-eg2-funnel-covered-matrix.js
 const mdPath = join(repoRoot, 'ai-docs/delivery/rag-funnel-01-08-covered-matrix.md');
 const harnessPath = join(
   repoRoot,
-  'ai-docs/delivery/harness/g-r4-5-funnel-covered-count-batch2.md',
+  'receipts/archive/2026-09-batch23/harness/g-r4-5-funnel-covered-count-batch2.md',
 );
 
 function read(p: string) {
@@ -155,8 +157,16 @@ section('B4 matrix emit (Batch2-aware EG2 · retain Batch1 03/04)');
 const covered03 = isFunnel03Covered();
 const covered04 = isFunnel04Covered();
 const matrix = emitRagFunnel0108CoveredMatrix();
+// Batch2–4b（2026-09-23 授权刀·双审后 nail）其后合法抬升本刀范围外各行——按各自活评估器校验（covered 当且仅当评估器肯定·Ban invent），同 Batch4 B4 口径。
+const laterCovered = new Map<string, boolean>([
+  ['RAG-FUNNEL-05', isFunnel05Covered()],
+  ['RAG-FUNNEL-06', isFunnel06Covered()],
+  ['RAG-FUNNEL-07', isFunnel07Covered()],
+  ['RAG-FUNNEL-08', isFunnel08Covered()],
+]);
 const expectedCovered =
-  Number(covered02A) + Number(covered02B) + Number(covered03) + Number(covered04);
+  Number(covered02A) + Number(covered02B) + Number(covered03) + Number(covered04)
+  + [...laterCovered.values()].filter(Boolean).length;
 A('B4 isHonestFunnelCoveredMatrix', isHonestFunnelCoveredMatrix(matrix) === true);
 A('B4 inventCovered=false', matrix.inventCovered === false);
 A('B4 releaseEvidence=false', matrix.releaseEvidence === false);
@@ -179,14 +189,10 @@ A(
 );
 A('B4 row03 retained covered from Batch1', covered03 ? row03?.status === 'covered' : row03?.status === 'not_covered');
 A('B4 row04 retained covered from Batch1', covered04 ? row04?.status === 'covered' : row04?.status === 'not_covered');
-for (const id of [
-  'RAG-FUNNEL-05',
-  'RAG-FUNNEL-06',
-  'RAG-FUNNEL-07',
-  'RAG-FUNNEL-08',
-]) {
+for (const [id, laterAffirmed] of laterCovered) {
   const row = matrix.rows.find((r) => r.id === id);
-  A(`B4 ${id} still not_covered`, row?.status === 'not_covered');
+  A(`B4 ${id} still not_covered（或后继 Batch 活评估器肯定）`,
+    laterAffirmed ? row?.status === 'covered' : row?.status === 'not_covered');
 }
 const row01 = matrix.rows.find((r) => r.id === 'RAG-FUNNEL-01');
 A('B4 01 ≠ invent covered', row01?.status !== 'covered');

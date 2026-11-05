@@ -34,6 +34,7 @@ import {
   isProductionNodeEnv,
   productionRequiresTrackLocal,
 } from '../src/production-config.ts';
+import { domainIsolationNotClosedOrAuthorizedClose } from '../evidence/r4-superseded-pins.ts';
 
 let failures = 0;
 const A = (name: string, ok: boolean, detail?: string) => {
@@ -46,9 +47,9 @@ const here = dirname(fileURLToPath(import.meta.url));
 const workerRoot = join(here, '..');
 const repoRoot = join(workerRoot, '..', '..');
 
-const harnessPath = join(repoRoot, 'ai-docs/delivery/harness/r4-f1-wrong-track-prod-surface.md');
-const evalPath = join(repoRoot, 'ai-docs/delivery/eval/r4-f1-wrong-track-prod-surface.eval.md');
-const slicePath = join(repoRoot, 'ai-docs/delivery/r4-f1-wrong-track-prod-surface.slice.md');
+const harnessPath = join(repoRoot, 'receipts/archive/2026-09-batch23/harness/r4-f1-wrong-track-prod-surface.md');
+const evalPath = join(repoRoot, 'receipts/archive/2026-09-batch23/eval/r4-f1-wrong-track-prod-surface.eval.md');
+const slicePath = join(repoRoot, 'receipts/archive/2026-09-batch23/slices/r4-f1-wrong-track-prod-surface.slice.md');
 const statusPath = join(repoRoot, 'ai-docs/delivery/harness/r4-domain-isolation-status.md');
 const helperPath = join(workerRoot, 'src/qbank-track-local-retrieve.ts');
 const consumerPath = join(workerRoot, 'src/interview-consumer.ts');
@@ -247,8 +248,9 @@ A('PS3 eval registers E1–E* / PS mapping',
 A('PS3 slice indexes harness+eval',
   /r4-f1-wrong-track-prod-surface\.md/.test(slice)
   && /r4-f1-wrong-track-prod-surface\.eval\.md/.test(slice));
-A('PS3 status pins 题域隔离 NOT closed + releaseEvidence=false',
-  /题域隔离 NOT closed/.test(status) && /releaseEvidence=false/.test(status));
+// 2026-09-23 EG3 题域 isolation product close（f2dfa3ed7·授权+双审 nail）后 status 改记 domainIsolationClosed=true——认原钉或 EG3 在案翻面。
+A('PS3 status pins 题域隔离 NOT closed + releaseEvidence=false（或 EG3 授权关闭在案）',
+  domainIsolationNotClosedOrAuthorizedClose(status) && /releaseEvidence=false/.test(status));
 A('PS3 status still lists P-R1/P-R2/P-META/P-FIX open OR R4 NOT closed',
   /R4.*NOT closed|题域隔离 NOT closed/.test(status));
 A('PS3 prove never assigns MODEL_API_KEY (no invent)',

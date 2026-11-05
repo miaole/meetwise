@@ -211,17 +211,17 @@ export function assessFunnel08ProductionEquivalentEval(): Funnel08Assessor {
   const uc = readRepo('ai-docs/requirements/use-cases/rag-funnel-intent-routing.md');
   const releaseReceiptPath = join(
     repoRoot(),
-    'ai-docs/delivery/receipts/production-equivalent-funnel-08-release.json',
+    'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-release.json',
   );
   const thresholdsPath = join(
     repoRoot(),
-    'ai-docs/delivery/receipts/production-equivalent-funnel-08-thresholds.json',
+    'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-thresholds.json',
   );
   const releaseReceipt = existsSync(releaseReceiptPath) ? readRepo(
-    'ai-docs/delivery/receipts/production-equivalent-funnel-08-release.json',
+    'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-release.json',
   ) : '';
   const thresholds = existsSync(thresholdsPath) ? readRepo(
-    'ai-docs/delivery/receipts/production-equivalent-funnel-08-thresholds.json',
+    'receipts/archive/2026-09-batch23/receipts/production-equivalent-funnel-08-thresholds.json',
   ) : '';
 
   // UC defines the target; alone ≠ covered.
