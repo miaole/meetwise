@@ -2,6 +2,7 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { createHmac, timingSafeEqual } from 'node:crypto';
 import { createOrder, getOrder, markOrderPaidAndCredit, markOrderRefunded, availableUnits, listLedger, requireOwnerUserId, newEntityId, errCode, asErr, type Client, type CreditBucketKind } from '@meetwise/db';
 import { DbService } from '../../platform/db.service';
+import { resolvePaymentProvider } from './payment-provider';
 
 /**
  * 交易应用服务(拥有 asPrincipal 事务边界 + 业务编排)。controller 只解析/校验/映射 HTTP,不碰 SQL(修审计 F1)。
@@ -204,6 +205,25 @@ export class CommerceService {
     const o = await this.db.asPrincipal(principal, (c) => getOrder(c, principal, id));
     if (!o) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
     return o;
+  }
+
+  /**
+   * 支付会话面（薄适配层·网关无关 fail-closed）：RLS 本人单（asPrincipal·getOrder SQL 只有
+   * `WHERE id=$1`，owner 由 RLS 收窄）+ `status='created'` + `channel='online'` 三守卫全过后才
+   * resolvePaymentProvider()——未配置 → 骨架恒拒 503 `payment_provider_not_configured`（订单状态
+   * 零变·零外部 IO）；非空 PAY_PROVIDER_ID → 503 `payment_provider_unknown`（不回退）。回调推进
+   * 不走本面：adapter 回调归一只喂 payWebhook/refundWebhook 既有单管道（payment-provider.ts 头注
+   * 承重·Ban 第二套入账/CAS 路径）。
+   */
+  async createPaymentSession(principal: string, orderId: string) {
+    const o = await this.db.asPrincipal(principal, (c) => getOrder(c, principal, orderId));
+    if (!o) throw new HttpException({ error: 'not_found' }, HttpStatus.NOT_FOUND);
+    if (o.status !== 'created' || o.channel !== 'online') {
+      throw new HttpException({ error: 'order_conflict' }, HttpStatus.CONFLICT);
+    }
+    const provider = resolvePaymentProvider();
+    const session = await provider.createPaymentSession({ orderId, amountCents: o.amountCents, subject: o.productId });
+    return { orderId, redirectUrl: session.redirectUrl, providerOrderRef: session.providerOrderRef };
   }
 
   async entitlement(principal: string) {

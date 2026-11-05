@@ -53,6 +53,17 @@ export class CommerceController {
     return this.commerce.getOrder(req.principal, id);
   }
 
+  // 支付会话端点（薄适配层·网关无关 fail-closed）：本人单/created/online 三守卫在 service，
+  // 未配置 provider → 503 payment_provider_not_configured（订单状态零变）。回调面零改——adapter
+  // 回调归一只喂 payWebhook/refundWebhook 既有单管道。
+  @Post('orders/:id/pay-session')
+  @UseGuards(PrincipalGuard)
+  @HttpCode(HttpStatus.OK)
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any -- 薄适配层同控制器既有 @Req() req: any 形（零新增 warning 贴边）
+  paySession(@Param('id') id: string, @Req() req: any) {
+    return this.commerce.createPaymentSession(req.principal, id);
+  }
+
   // B271 片3 P2：本人对公订单台账（approved recruiter 门 + 0159 受控 DEFINER 本人行读函数）。
   @Get('offline-orders')
   @UseGuards(PrincipalGuard)
