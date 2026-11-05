@@ -12,16 +12,32 @@
 # tag 只用于人读定位)。
 # 信号回滚:HUP/TERM/INT 与 ERR 同走 restore_and_fail(快照回写 .env+尽力拉回上一版),
 # 连接掉线/调度器终止不再把 .env 留在半部署态。沙箱自测:bash ops/deploy/remote-deploy.sh
-# --self-test(发真信号验证回滚,零 docker 依赖,走桩 compose)。
+# --self-test(12 臂信号矩阵×文件/stdin 两种调用形态=24 跑,发真信号验证回滚,零 docker
+# 依赖,走桩 compose)。
 set -euo pipefail
 
-SELF_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+# stdin 形态(生产=ssh 'bash -s -- …' < 本脚本)下 BASH_SOURCE 是空数组,set -u 下取 [0]
+# 即 unbound variable 开工炸退;:- 兜底空串。SELF_PATH 仅 --self-test 复跑自身时需要,
+# 部署路径零引用;stdin 形态无自身文件可复跑,self_test 入口如实拒(见下)。
+SELF_PATH=""
+if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
+  SELF_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+fi
 
 # ── 信号回滚自测(真信号×桩 compose·不触真 /srv 与 docker daemon)───────────────
-#   臂1 TERM 臂2 INT 臂3 HUP:.env 改写后立即发信号 → 断言 非零退出+.env 原样恢复
-#      +回滚 up 恰一次;臂4 无信号走通 → 退出零+deploy_ok+.env 落新镜像行。
+#   12 臂信号矩阵 × 2 种调用形态共 24 跑。形态:file=bash <script> refs;stdin=
+#   bash -s -- refs < script(=deploy.yml 生产原形,曾被 BASH_SOURCE 空数组炸退的形态)。
+#   臂:TERM/INT/HUP × pull/migrate/up 九臂(非零退出+.env 逐字节恢复+回滚 up 恰一次;
+#   @up 臂=部署 up+回滚 up 恰两次)+连发两信号臂(回滚恰一次·防重入)+回滚 up 中再发
+#   信号臂(回滚恰一次·不重入)+无信号臂(退出零+deploy_ok+.env 落新镜像行恰一次)。
+#   信号窗=对应桩调用已落日志(trap 必已安装,避免信号落在安装前的假红);轮询窗
+#   240×0.05s=12s,慢机不再误红。
 self_test() {
-  local sandbox stubbin proj envf old_be old_web new_be new_web rc
+  if [[ -z "$SELF_PATH" || ! -f "$SELF_PATH" ]]; then
+    echo "self-test requires file-form invocation(stdin 形态无自身路径可复跑·部署路径不受影响)" >&2
+    return 1
+  fi
+  local sandbox stubbin proj envf old_be old_web new_be new_web rc form arm sig phase calls out arm_pid n env_state ups
   set -m  # 后台作业独立进程组:SIGINT 不被继承忽略(foreground SSH 会话里 INT 本就可捕获)
   sandbox="$(mktemp -d)"
   stubbin="$sandbox/bin"; proj="$sandbox/srv/meetwise-compose"
@@ -34,46 +50,86 @@ self_test() {
   printf 'PROVISIONED_SECRET=never-touch\nBACKEND_IMAGE=reg/ns/img@sha256:%s\nWEB_IMAGE=reg/ns/img@sha256:%s\n' \
     "$old_be" "$old_web" > "$envf"
   cp "$envf" "$sandbox/env.orig"
+  ln -s "$(command -v bash)" "$stubbin/bash"  # 子进程 bash=宿主同版本:bash 3.2 / 5.x 各自全矩阵验证
   cat > "$stubbin/docker" <<'STUB'
 #!/usr/bin/env bash
 printf '%s\n' "$*" >> "${DOCKER_CALL_LOG:?}"
-case "$*" in *pull*) sleep 3 ;; esac
+case "$*" in *pull*|*" run "*|*" up "*) sleep 2 ;; esac
 exit 0
 STUB
   chmod +x "$stubbin/docker"
-  local failed=0 arm sig arm_pid calls
-  for arm in TERM INT HUP none; do
-    cp "$sandbox/env.orig" "$envf"  # 每臂复位 .env 到部署前态,臂间零串扰
-    calls="$sandbox/calls-$arm.log"; : > "$calls"
-    DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" \
-      bash "$SELF_PATH" "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" >/dev/null 2>&1 &
-    rc=0
-    arm_pid=$!
-    if [[ "$arm" != none ]]; then
-      # 信号窗=.env 已改写为新镜像行(此后被终止即半部署风险面)
-      for _ in $(seq 1 100); do grep -q "sha256:$new_be" "$envf" 2>/dev/null && break; sleep 0.05; done
-      kill -s "$arm" "$arm_pid" 2>/dev/null || true
-    fi
-    wait "$arm_pid" || rc=$?
-    if [[ "$arm" == none ]]; then
-      if [[ $rc -eq 0 && "$(grep -c "sha256:$new_be" "$envf")" == 1 && "$(grep -c ' up -d --no-deps --wait' "$calls")" == 1 ]]; then
-        echo "self-test arm[$arm]: PASS (exit 0 + env carries new refs + one up)"
+  # 等待调用日志出现第 $3 个 $2 匹配(信号窗=该桩调用已在跑·trap 必已安装)·上限 12s
+  selftest_wait_call() {
+    local log="$1" pat="$2" want="$3" have
+    for n in $(seq 1 240); do
+      have="$(grep -c "$pat" "$log" 2>/dev/null)"; have="${have:-0}"
+      [[ "$have" -ge "$want" ]] && return 0
+      sleep 0.05
+    done
+    return 1
+  }
+  local failed=0 want_ups
+  for form in file stdin; do
+    for arm in TERM@pull INT@pull HUP@pull TERM@migrate INT@migrate HUP@migrate TERM@up INT@up HUP@up double@pull reenter@pull none; do
+      sig="${arm%%@*}"; phase="${arm##*@}"
+      cp "$sandbox/env.orig" "$envf"  # 每臂复位 .env 到部署前态,臂间零串扰
+      calls="$sandbox/calls-$form-$arm.log"; : > "$calls"
+      out="$sandbox/out-$form-$arm.txt"; : > "$out"
+      if [[ "$form" == file ]]; then
+        DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" \
+          bash "$SELF_PATH" "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" >"$out" 2>/dev/null &
       else
-        echo "self-test arm[$arm]: FAIL (exit=$rc env_new=$(grep -c "sha256:$new_be" "$envf") ups=$(grep -c ' up -d --no-deps --wait' "$calls"))" >&2
+        DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" \
+          bash -s -- "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" < "$SELF_PATH" >"$out" 2>/dev/null &
+      fi
+      arm_pid=$!
+      rc=0
+      case "$arm" in
+        double@pull)
+          selftest_wait_call "$calls" pull 1 || true
+          kill -s TERM "$arm_pid" 2>/dev/null || true
+          sleep 0.3
+          kill -s INT "$arm_pid" 2>/dev/null || true ;;
+        reenter@pull)
+          selftest_wait_call "$calls" pull 1 || true
+          kill -s TERM "$arm_pid" 2>/dev/null || true
+          selftest_wait_call "$calls" ' up ' 1 || true  # 回滚 up 已开跑:二发信号须被吞(trap 已自撤)
+          kill -s TERM "$arm_pid" 2>/dev/null || true ;;
+        none) : ;;
+        *)  # 信号窗=对应相位的桩调用已落日志(.env 已改写=半部署风险面内)
+          case "$phase" in
+            pull) selftest_wait_call "$calls" pull 1 || true ;;
+            migrate) selftest_wait_call "$calls" ' run --rm -T migrate' 1 || true ;;
+            up) selftest_wait_call "$calls" ' up -d --no-deps' 1 || true ;;
+          esac
+          kill -s "$sig" "$arm_pid" 2>/dev/null || true ;;
+      esac
+      wait "$arm_pid" || rc=$?
+      env_state="$(cmp -s "$envf" "$sandbox/env.orig" && echo restored || echo changed)"
+      ups="$(grep -c ' up -d --no-deps' "$calls")"
+      case "$arm" in
+        *@up) want_ups=2 ;;  # 部署 up+回滚 up
+        *) want_ups=1 ;;     # 仅回滚 up(或 none 臂的部署 up)
+      esac
+      if [[ "$arm" == none ]]; then
+        if [[ $rc -eq 0 && "$env_state" == changed && "$(grep -c "sha256:$new_be" "$envf")" == 1 \
+          && "$(grep -c "sha256:$new_web" "$envf")" == 1 && "$ups" == 1 && "$(grep -c 'deploy_ok' "$out")" == 1 ]]; then
+          echo "self-test[$form] arm[$arm]: PASS (exit 0 + env carries new refs + one up + deploy_ok)"
+        else
+          echo "self-test[$form] arm[$arm]: FAIL (exit=$rc env_state=$env_state env_be=$(grep -c "sha256:$new_be" "$envf") env_web=$(grep -c "sha256:$new_web" "$envf") ups=$ups deploy_ok=$(grep -c 'deploy_ok' "$out"))" >&2
+          failed=1
+        fi
+      elif [[ $rc -ne 0 && "$env_state" == restored && "$ups" == "$want_ups" ]]; then
+        echo "self-test[$form] arm[$arm]: PASS (non-zero exit + env restored byte-identical + up x$want_ups)"
+      else
+        echo "self-test[$form] arm[$arm]: FAIL (exit=$rc env_state=$env_state ups=$ups want=$want_ups)" >&2
         failed=1
       fi
-    else
-      if [[ $rc -ne 0 && "$(cmp -s "$envf" "$sandbox/env.orig" && echo same || echo diff)" == same && "$(grep -c ' up -d --no-deps --wait' "$calls")" == 1 ]]; then
-        echo "self-test arm[$arm]: PASS (non-zero exit + env restored byte-identical + rollback up x1)"
-      else
-        echo "self-test arm[$arm]: FAIL (exit=$rc env_state=$(cmp -s "$envf" "$sandbox/env.orig" && echo restored || echo half-deployed) ups=$(grep -c ' up -d --no-deps --wait' "$calls"))" >&2
-        failed=1
-      fi
-    fi
+    done
   done
   rm -rf "$sandbox"
   if [[ $failed -ne 0 ]]; then echo "self-test: FAILED" >&2; return 1; fi
-  echo "self-test: 4/4 arms PASS"
+  echo "self-test: 24/24 arms PASS (12 arms x file/stdin)"
 }
 
 if [[ "${1:-}" == '--self-test' ]]; then self_test; exit $?; fi
