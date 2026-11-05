@@ -20,12 +20,16 @@ export type CommerceCallbackBody = { providerTxn?: string; sig?: string; ts?: nu
 /**
  * #100 HMAC 验签单源(原 :87/:105/:135 三份复制块收敛于此):
  *  - 缺 providerTxn/sig/ts 或 ts 非有限数或超 ±窗 → 400 invalid_callback(结构性拒·fail-closed);
+ *  - providerTxn/sig 非字符串或越 128 帽 → 400 invalid_callback(#84/API-HARDEN-A·NHP-014 单源前置
+ *    typeof 检查:非字符串真值此前穿透 falsy 检查直打 Buffer.from/HMAC(TypeError→500);控制器 pipe
+ *    为第一线,本单源检查纵深兜底,覆盖未来新调用口;C2 结构化拒绝日志随臂);
  *  - 密钥缺失或签名不等长/不等 → 403 bad_signature(恒时序比较);
  *  - kind 入签(paid/refunded 对偶标签不可互换),签名与订单 id 绑定不弱化。
  * 隐私面零关:privacy.service preview digest 为异用途,不经此函数(席1 边界·零触)。
  */
 export function verifyCommerceSig(id: string, body: CommerceCallbackBody, kind: 'paid' | 'refunded'): void {
-  if (!body?.providerTxn || !body?.sig) {
+  if (typeof body?.providerTxn !== 'string' || body.providerTxn.length === 0 || body.providerTxn.length > 128
+    || typeof body?.sig !== 'string' || body.sig.length === 0 || body.sig.length > 128) {
     emitCommerceRejectLog(kind, 'C2', id, 'invalid_callback');
     throw new HttpException({ error: 'invalid_callback' }, HttpStatus.BAD_REQUEST);
   }

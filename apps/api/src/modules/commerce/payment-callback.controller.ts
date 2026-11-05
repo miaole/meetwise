@@ -1,5 +1,7 @@
 import { Controller, Post, Body, HttpCode, HttpStatus, HttpException } from '@nestjs/common';
+import { PaymentRefundCallbackDto } from '@meetwise/contracts';
 import { CommerceService } from './commerce.service';
+import { ZodValidationPipe } from '../../platform/zod.pipe';
 
 /**
  * 退款回调主口（GAP-UC011-ADV-01 · scenarios 契约字面路径 `POST /payment/refund-callback`）。
@@ -23,7 +25,10 @@ export class PaymentCallbackController {
 
   @Post('refund-callback')
   @HttpCode(HttpStatus.OK)
-  refundCallback(@Body() b: { orderId?: string; providerTxn?: string; sig?: string; ts?: number }) {
+  // #84/API-HARDEN-A(NHP-014 对偶口)：裸 @Body 收编 PaymentRefundCallbackDto（失败信封=域具名词
+  // invalid_callback·pipe 参变词形·缺 orderId 仍由下方具名词裁决零漂移）——非字符串 sig/providerTxn
+  // 此前穿透 falsy 检查直打 Buffer.from/HMAC(TypeError→500)。
+  refundCallback(@Body(new ZodValidationPipe(PaymentRefundCallbackDto, 'invalid_callback')) b: PaymentRefundCallbackDto) {
     // 白名单解构：只取四字段，额外字段（含 amountCents/units/refundAmount 等）在此结构性丢弃。
     const orderId = b?.orderId;
     const providerTxn = b?.providerTxn;
