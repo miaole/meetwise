@@ -101,7 +101,7 @@ tags:
 - 异常流 Exception：E1 相同 run/case/artifact 的终态重放只返回原回执，绝不创建第二个目标；E2 20 个并发请求恰一条获得同一 attempt 的租约，其余在首条 DDL（数据定义语言）前失败；E3 错误实例、VPC、证书、账户、库名、角色、run、固定只读目标或环境变量污染均在控制库创建和首条 DDL 前拒绝；E4 case 或执行器中断后，仅持有已过期 attempt 围栏的恢复器可读取不可变清单、终止该 run 标记的连接并清理已确认拥有的资源，随后写 `failed` 或 `failed_cleanup`；自动重跑原 suite=0；E5 缺少 vector（向量）/HNSW（分层可导航小世界索引）、CREATEDB（创建数据库）或 CREATEROLE（创建角色）能力时进入持久 `failed` 且无业务对象写入；E6 清理回读失败、外来 sentinel（哨兵）角色/成员关系或迟到连接使 run=`failed_cleanup`，不得伪装通过。
 - 后置 Postcondition：成功后仅保留脱敏 test receipt（测试回执）；数据库、临时角色和 Tair 前缀均为 0。若崩溃发生在 `CREATE` 与 OID 归属记录之间，恢复器不得盲删，必须以 `failed_cleanup` 终结并给出人工处置证据。任何实际业务 schema（模式）、业务事件、用户数据、发布账本和生产资源均为 0。
 - 验收 Acceptance：`TC-CLOUD-TEST-001-main/E1/E2/E3/E4/E5/E6` 逐项验证 profile、命名、并发、错误目标、崩溃恢复、能力缺失和回读。E4 必须在真实 PostgreSQL（关系型数据库）中覆盖 `requested/leased/executing` 和每条创建/删除 DDL 后中断；E2 必须 20 路并发且 winner=1、其他 DDL=0；E3 必须证明错误 target profile 时控制库/业务 DDL=0；E4/E6 必须证明外来同名角色和成员关系=0 影响。所有回执固定 `test_only=true`、`releaseEvidence=false`。本 UC 不替代 TargetGrant（目标授权）、ReleaseAttestation（发布证明）或 28 条 release-required（发布必需）TC。
-- 关联 Relation：`apps/worker/src/cloud-test-serial.ts`、`apps/worker/src/cloud-test-run-ledger.ts`、对应 PostgreSQL 故障注入 proof、云端运行与迁移测试矩阵；依赖目标身份、事务 CAS、attempt fence、精确拥有资源清单和 HMAC 回执，不将命名、advisory lock 或环境变量允许列表当作授权根。
+- 关联 Relation：`apps/worker/evidence/cloud-test-serial.ts`、`apps/worker/evidence/cloud-test-run-ledger.ts`（2026-11-06 勘正：证据件已迁 evidence）、对应 PostgreSQL 故障注入 proof、云端运行与迁移测试矩阵；依赖目标身份、事务 CAS、attempt fence、精确拥有资源清单和 HMAC 回执，不将命名、advisory lock 或环境变量允许列表当作授权根。
 - 七类覆盖：正常（Main）/异常（E4、E5、E6）/特殊（Alternate）/逃逸通道（E3）/高并发（E2）/复杂（RDS 与 Tair 分层）/刁钻（重放、孤儿和错误清理）。
 
 ### UC-cloud-test-002 · 云端隔离测试套件替代本地 Docker
@@ -114,7 +114,7 @@ tags:
 - 异常流 Exception：E1 同一 `runId + suiteId + artifactDigest` 重放只返回首次 receipt（幂等键）；E2 多个请求竞争时 CAS winner（胜者）=1、输家在首条 DDL（数据定义语言）前失败；E3 固定只读库、非本项目实例、错数据库、错 token、非 allowlist suite、环境变量污染、任意命令或非私网/TLS 目标均在首条业务 SQL（结构化查询语言）前拒绝（RLS/allowlist）；E4 执行器中断后的 successor（继任）只根据 run ledger（运行账本）清理该 run 的精确资源，不能按名称通配删除；E5 缺扩展、缺角色能力、Tair/OSS/浏览器依赖不可用时进入 `failed`、不执行替代本地 Docker 路径；E6 cleanup（清理）超时、遗留 cluster 角色、迟到子进程或连接重建时进入 `failed_cleanup`，保留最小清理清单，自动跨 run 重试=0。
 - 后置 Postcondition：每个成功 run 仅保留不含连接信息、密钥、用户数据或子进程原文的 receipt；临时数据库、临时角色及临时成员关系、Tair/OSS 前缀均为 0。任何非清理成功、孤儿或异常 run 都不能被 CI（持续集成）视为通过。
 - 验收 Acceptance：每个登记的 `TC-CLOUD-TEST-002-*` 或其子 suite（例如 `TC-CLOUD-TEST-003-*`）分别覆盖 manifest 执行、重放、全实例并发、目标/命令逃逸、中断恢复、能力缺失和 cleanup 失败；每个原 Docker 数据面 gate 必须先在云端连续两次通过且相同 suite 的 E1–E6 已通过，才可删除其 Docker 路由。所有结果固定 `test_only=true`、`releaseEvidence=false`，不改变 28 条 release-required（发布必需）TC 的状态。
-- 关联 Relation：`scripts/run-e2e-isolated.mjs`、`packages/db/src/isolated-test-target.ts`、`apps/worker/src/cloud-test-serial.ts`、云端运行与迁移测试矩阵；依赖 CAS、幂等键、RLS、append-only receipt 和精确资源清单，禁止动态 shell、名称通配清理或固定共享库替代。
+- 关联 Relation：`scripts/run-e2e-isolated.mjs`、`packages/db/src/isolated-test-target.ts`、`apps/worker/evidence/cloud-test-serial.ts`、云端运行与迁移测试矩阵（2026-11-06 勘正：证据件已迁 evidence）；依赖 CAS、幂等键、RLS、append-only receipt 和精确资源清单，禁止动态 shell、名称通配清理或固定共享库替代。
 - 七类覆盖：正常（Main）/异常（E4、E5、E6）/特殊（A1–A5）/逃逸通道（E3）/高并发（E2）/复杂（数据库、缓存、对象、API、Worker 与浏览器分层）/刁钻（E1、E4、E6）。
 
 ### 0.1 ReleaseAttestation（发布证明）、TargetGrant（破坏性执行授权）与目标预检

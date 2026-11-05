@@ -138,7 +138,7 @@ related:
 | PRD-TEST-005 | `apps/worker/src/main.ts`、`packages/db/src/rag-corpus-versioning.ts` | `architecture/ai/rag-corpus-lifecycle.md`。 |
 | PRD-TEST-006 | `apps/worker/src/voice-adaptive.ts`、`apps/worker/test/voice-adaptive.proof.ts`、API voice composition root | `architecture/ai/voice-capability-boundary.md`。 |
 | PRD-TEST-007 | `packages/ai-runtime/src/evaluation-manifest.ts`、offline evaluation runner、online-judge control proof | `architecture/ai/agent-observability-evaluation-runtime.md`。 |
-| PRD-TEST-008 | `apps/worker/src/cloud-test-run-ledger.ts`、`apps/worker/src/cloud-test-serial.ts` | 云运行时迁移用例与云测试矩阵。 |
+| PRD-TEST-008 | `apps/worker/evidence/cloud-test-run-ledger.ts`、`apps/worker/evidence/cloud-test-serial.ts`（2026-11-06 勘正：四件证据件已迁 evidence 目录） | 云运行时迁移用例与云测试矩阵。 |
 | PRD-TEST-009 | `packages/ai-runtime/src/catalog/index.ts`、`packages/ai-runtime/src/invoke.ts` | `architecture/ai/agent-runtime.md`。 |
 | PRD-TEST-010 | `apps/worker/smoke/rag-demo.ts`、`apps/worker/smoke/retrieval-benchmark.ts`、`apps/worker/smoke/rag-adversarial-eval.ts` | RAG 检索评测基线。 |
 | PRD-TEST-011 | `apps/worker/src/memory-service.ts`、`packages/db/src/memory-store.ts`、`apps/worker/src/adaptive-interview-service.ts` | `architecture/ai/memory-context-design.md`、`architecture/ai/tool-skill-memory-runtime-design.md`。 |

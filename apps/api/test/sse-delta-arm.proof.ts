@@ -315,7 +315,7 @@ async function main() {
     let client: Client | undefined;
     const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });
     const sink = fakeSink();
-    const boom = new Error('fetch_more_rejected');
+    const boom = Object.assign(new Error('fetch_more_rejected'), { code: 'FETCH_MORE_REJECTED' });
     let destroyCount = 0;
     let destroyed: unknown;
     (sink.reply as { raw: { destroy?: (err?: unknown) => void } }).raw.destroy = (err) => { destroyCount += 1; destroyed = err; };
@@ -334,15 +334,22 @@ async function main() {
       sleep(3000).then(() => false),
     ]);
     const firstLog = logCalls[0];
-    A('取数抛错留痕：结构化日志 sse_fetch_rejected 落卷恰一次（streamKey/lastSeq=0/err.message 三键齐）',
+    const loggedErr = (firstLog?.payload ?? {}).err as { name?: string; code?: string } | undefined;
+    A('取数抛错留痕：结构化日志 sse_fetch_rejected 落卷恰一次（streamKey/lastSeq=0/err.name+code 齐）',
       rejected && caught === boom
       && logCalls.length === 1
       && firstLog !== undefined
       && firstLog.label === 'sse_fetch_rejected'
       && firstLog.payload.streamKey === 'CUR_FETCH_ERR'
       && firstLog.payload.lastSeq === 0
-      && (firstLog.payload.err as { message?: string } | undefined)?.message === 'fetch_more_rejected',
+      && loggedErr?.name === 'Error'
+      && loggedErr?.code === 'FETCH_MORE_REJECTED',
       { rejected, caught: (caught as Error | undefined)?.message, logCalls });
+    A('取数抛错留痕：日志只录错误类别与码，message/stack 原文不落卷（脱敏面）',
+      firstLog !== undefined && loggedErr !== undefined
+      && !('message' in loggedErr) && !('stack' in loggedErr)
+      && !JSON.stringify(firstLog.payload).includes('fetch_more_rejected'),
+      { logCalls });
     A('取数抛错留痕：destroy 恰一次携原错误（既有语义零改）', destroyCount === 1 && destroyed === boom, { destroyCount });
     sink.reqRaw.emit('close');  // 泵已随 rejection 退出:close 仅作登记清理,不重复观察已处理 rejection
     await notify.stop();
