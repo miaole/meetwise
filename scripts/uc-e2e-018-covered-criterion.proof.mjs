@@ -446,6 +446,31 @@ function setPath(root, path, mode) {
     fail('path without role suffix must not fill dual slots');
     dualMutOk = false;
   } else pass('dual-parser: path without -mw-e2e-ha/-mw-rag-route suffix ⇒ no slots filled');
+  // 诊断出口（GAP-EVAL-PARSER-DETAILS-UNCLOSED 残面）：角色匹配的 unparseable reviewer 文件
+  // ⇒ stderr 点名 reason=…；槽位仍 null（fail-closed 语义零变）；parseable 文件零诊断输出。
+  {
+    const errChunks = [];
+    const origErrWrite = process.stderr.write.bind(process.stderr);
+    process.stderr.write = (chunk) => { errChunks.push(String(chunk)); return true; };
+    try {
+      // 角色后缀临时副本（名恰以 -mw-e2e-ha.md 结尾；path-only 无 root=跳过作者门·直抵解析面）
+      const rolePath = join(tmpdir(), `FX-DUAL-DETAILS-UNCLOSED-${process.pid}-mw-e2e-ha.md`);
+      writeFileSync(rolePath, read(join(dualFix, 'FX-DUAL-DETAILS-UNCLOSED.md')));
+      const slots = dualFromReviewFiles([rolePath]);
+      const diagLine = errChunks.join('').split('\n').find((l) => l.includes('unparseable reviewer file'));
+      if (slots.e2eHa != null) fail('diagnostic exit must not change slot semantics (null stays null)');
+      else if (!diagLine || !/reason=unclosed-details/.test(diagLine)) fail(`unparseable reviewer file got no stderr diagnostic (got=${JSON.stringify(errChunks.join(''))})`);
+      else pass(`dual-parser diagnostic exit: ${diagLine.trim()} (slot stays null)`);
+      errChunks.length = 0;
+      const okSlots = dualFromReviewFiles([join(dualFix, 'FX-DUAL-SINGLE-FILE-NAMES-PEER-mw-rag-route.md')]);
+      if (errChunks.length !== 0) fail(`parseable reviewer file must emit no diagnostic (got=${JSON.stringify(errChunks.join(''))})`);
+      else if (okSlots.ragRoute !== 'PASS') fail(`silence arm slot drifted: ${JSON.stringify(okSlots)}`);
+      else pass('dual-parser diagnostic silence: parseable file zero stderr (slot=PASS)');
+      rmSync(rolePath, { force: true });
+    } finally {
+      process.stderr.write = origErrWrite;
+    }
+  }
   if (dualMutOk) pass('dual-parser mutations: deleted/junk/prose markers ⇒ not PASS');
 
   const fenced = read(join(dualFix, 'FX-DUAL-FENCED.md'));
