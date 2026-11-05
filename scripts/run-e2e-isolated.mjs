@@ -909,7 +909,7 @@ const isolatedReceiptSources = {
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/level-policy-version.proof.ts', 'packages/db/migrations/0160_level_policy_version.sql',
   ],
-  // JOB-QUEUE-INDEX（队列 status/lease 前导索引 + gauge 聚合改形隔离证明·真迁移链 222 件·additive 注册沿 level-policy-migrate:prove 同形）。
+  // JOB-QUEUE-INDEX（队列 status/lease 前导索引 + gauge 聚合改形隔离证明·真迁移链 223 件（0225 PRIV01 rev r3 起）·additive 注册沿 level-policy-migrate:prove 同形）。
   'job-queue-index:prove': [
     'scripts/run-e2e-isolated.mjs', 'scripts/bounded-command.mjs',
     'packages/db/test/job-queue-index.proof.ts', 'packages/db/package.json',

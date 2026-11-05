@@ -1,7 +1,7 @@
 /**
  * job-queue-index.proof.ts — 队列 status/lease 前导索引 + gauge 聚合改形隔离库证明（45 项 = 44 判红断言 + 1 登记臂 B33）。
  *
- * 真迁移链（全量 0001→0224，222 件）+ 隔离容器（run-e2e-isolated 包装·assertIsolatedTestTarget nonce 门）。
+ * 真迁移链（全量 0001→0225，223 件·0225=PRIV01 rev r3 会话表 owner RLS）+ 隔离容器（run-e2e-isolated 包装·assertIsolatedTestTarget nonce 门）。
  * 计数分组：9 静态（A1-A9）+ 12 元数据（B1-B11+B22）+ 19 EXPLAIN/登记（B12-B20+B23-B31+B33）+ 5 真行为
  * （B21 数值等价 / B32 按别名真执行 / B34 sweep idx_scan / B35 live idx_scan / B36 四新索引 idx_scan）。
  *
@@ -191,8 +191,8 @@ async function freshDatabase(admin: DbPool, name: string): Promise<DbPool> {
   const pool = createPool({ purpose: `jqidx_${name}`, database: name });
   const manifest = loadMigrations(MIG_DIR);
   const applied = await runMigrations(pool, manifest);
-  if (applied.applied.length !== manifest.length || manifest.length !== 222
-    || applied.applied[applied.applied.length - 1] !== '0224_job_gauge_index_friendly') {
+  if (applied.applied.length !== manifest.length || manifest.length !== 223
+    || applied.applied[applied.applied.length - 1] !== '0225_auth_user_session_owner_rls') {
     throw new Error(`jqidx_migration_chain_unexpected: applied=${applied.applied.length} manifest=${manifest.length}`);
   }
   return pool;

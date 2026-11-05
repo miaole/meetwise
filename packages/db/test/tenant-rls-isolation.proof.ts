@@ -52,6 +52,54 @@
  *      interview_privacy_active's own body (first owner gate + erasure-fence
  *      status set — the ai_graph_run predicate's root).
  *
+ * rev r3 (post-prove falsification revision; source = meetwise/.tmp/reviews/priv1-post-2.md
+ * FAIL P0=0 P1=3 P2=4 — all three P1s were reproduction-tested live; zero weakening of
+ * r0/r1/r2 faces): the three P1s were one root cause — the whole-DB inversion built its
+ * completeness on four hard-coded column names and named-only pins. Fixes:
+ *   1. Column-name coverage widened from the four canonical names to the full
+ *      user-scope alias family found by a whole-schema census (user_id, *_user_id
+ *      suffixed aliases) PLUS the actor _by family as a second inversion class —
+ *      both must carry RLS unless the table is in the named allowlist; a
+ *      migration-chain column scan pins that any NEW attribution-shaped column
+ *      name must enter these constants or a named semantic-exclusion list
+ *      (lease_owner/owner_kind are named non-user semantics), so a fresh alias
+ *      can never re-open the alias blind spot. `auth_user_session.user_id`
+ *      (0169 granted SELECT/INSERT/UPDATE to app_role, zero RLS — the P1-1 live
+ *      cross-owner read/revoke leak) is closed at the root by migration
+ *      0225_auth_user_session_owner_rls.sql (ENABLE+FORCE RLS + p_owner
+ *      `user_id = current_setting('app.principal_user', true)`, same shape as the
+ *      0001 canonical p_owner); the three app code paths
+ *      (apps/api/src/platform/auth-session.ts INSERT-login / UPDATE-revoke /
+ *      SELECT-validate) already run inside db.asPrincipal(uid) transactions, so
+ *      the predicate is self-satisfying and auth flow is unchanged — evidenced
+ *      live by the M8 session matrix below (asPrincipal-shaped seeding +
+ *      cross-owner read/revoke/impersonating-INSERT negatives + policy exact pin
+ *      + grant-absence pin) and by `pnpm neg:auth` staying green. No legitimate
+ *      cross-user session face exists today (zero function bodies reference the
+ *      table, rev r3 live census); if one is ever needed it must be an explicit
+ *      controlled function with an entry owner gate — direct table access is not
+ *      the design.
+ *   2. Ownership drift capture (P1-2, mut F2): every attribution-carrying
+ *      relation (tables AND views) must be owned by a FIXED name list declared in
+ *      the migration chain (the migration-executor superuser plus the three
+ *      migration-declared NOLOGIN/NOINHERIT/NOBYPASSRLS definer owners). An
+ *      ALTER TABLE ... OWNER TO <runtime role> no longer silently shrinks the
+ *      probe set — it is red on sight; non-super fixed owners are asserted to
+ *      keep the definer-isolation role shape, and every attribution-carrying rel
+ *      they own must stay FORCE RLS.
+ *   3. SD-reader and view faces (P1-3, mut F6/F7): SECURITY DEFINER functions
+ *      executable by app_role/PUBLIC are dynamically enumerated; every
+ *      superuser-owned one whose body references a user-scope/actor column or a
+ *      protected table must carry the standard first owner gate
+ *      (`principal IS NULL` / `ai_cost_require_request_owner`) or be in the named
+ *      SD_GATE_ALLOWLIST (each entry live-pins its own authorizing witnesses);
+ *      non-superuser-owned SD functions are asserted to run under the
+ *      NOBYPASSRLS definer-isolation shape so RLS governs them. All views and
+ *      materialized views are enumerated: any referencing an attribution column
+ *      must be security_invoker=true OR in the named VIEW_EXEMPT list, whose
+ *      members pin superuser ownership + exact view body (pg16 pg_get_viewdef)
+ *      so body drift (RLS bypass through a definer-rights view) is red.
+ *
  * Faces (nail REQUEST `gap-priv-01-tenant-rls.md` §3 · C-P3: matrix 6 + introspection 3, no weakening):
  *   M1  cross-owner SELECT isolation   — owner A SELECT owner B interview row → 0 rows
  *                                        (positive controls: A self-read ≥1 · B self-read ≥1 — no idle-green)
@@ -87,18 +135,40 @@
  *                                        predicate (interview_event: pinned function call + live prosrc
  *                                        first-gate witness; real pg_policies deparse, Ban grep substitute,
  *                                        Ban substring SOME semantics)
+ *   M8  session-table face (rev r3)   — auth_user_session (0169 + 0225 owner RLS): asPrincipal-shaped
+ *                                        INSERT seeding (the login code path shape) succeeds; cross-owner
+ *                                        SELECT=0; cross-owner revoke UPDATE=0 rows and B's row stays
+ *                                        unrevoked; impersonating INSERT (user_id=B) → 42501 + absent;
+ *                                        own-row revoke positive control; GUC-unset app_role → 0 rows;
+ *                                        DELETE grant absent pinned (revocation is UPDATE revoked_at, no
+ *                                        DELETE by 0169 design); relrowsecurity+force + exactly one
+ *                                        app_role-facing policy exact-matching the session predicate on
+ *                                        both sides; auth-session.ts three code-path statements + 0225
+ *                                        migration witnesses
  *   I3  policy census receipt          — total policy count + RLS table count pinned EXACT to this branch's
  *                                        migration chain (drift = conscious re-count at merge, like the cap) +
  *                                        per-family policy names (all + app_role-facing) into receipt JSON;
  *                                        visibility='global' shared-corpus face (rag_corpus_document) reported
  *                                        separately, never mixed into the owner-data face conclusion
- *   G   whole-DB owner-column inversion — every table (relkind r/p) carrying owner_user_id / tenant_id /
- *                                        org_id / workspace_id must have relrowsecurity=true; uncovered ⊆
- *                                        named RLS-free allowlist (each member live-proven zero table
- *                                        privileges across ALL dynamically enumerated principals — rev r2,
- *                                        superuser/owner/BYPASSRLS/pg_ excluded, PUBLIC included — with a
- *                                        named empty (table,role,privilege) triple allowlist as the only
- *                                        escape + SECURITY DEFINER owner-gated entry witnesses);
+ *   G   whole-DB owner-column inversion — every table (relkind r/p) carrying a user-scope attribution column
+ *                                        (rev r3 widened: owner_user_id / user_id / *_user_id / tenant_id /
+ *                                        org_id / workspace_id) or an actor _by column must have
+ *                                        relrowsecurity=true; uncovered ⊆ named RLS-free allowlist (each
+ *                                        member live-proven zero table privileges across ALL dynamically
+ *                                        enumerated principals — rev r2, superuser/owner/BYPASSRLS/pg_
+ *                                        excluded, PUBLIC included — with a named empty (table,role,
+ *                                        privilege) triple allowlist as the only escape + SECURITY
+ *                                        DEFINER owner-gated entry witnesses); a migration-chain column
+ *                                        scan (rev r3) forces any NEW attribution-shaped column name into
+ *                                        the constants or the named semantic-exclusion list;
+ *                                        G-O ownership drift: attribution-carrying rels (r/p/v/m) owned
+ *                                        only by migration-chain-declared fixed owners (rev r3);
+ *                                        G-SD reader face: superuser-owned app/PUBLIC-executable SECURITY
+ *                                        DEFINER functions touching user columns/protected tables carry a
+ *                                        first owner gate or a named+evidenced allowlist entry, non-super
+ *                                        definer owners keep the NOBYPASSRLS isolation shape (rev r3);
+ *                                        G-V view face: attribution-referencing views are security_invoker
+ *                                        or named exemptions with exact body pins (rev r3);
  *                                        allowlist + owner-column census + principal probe counts into receipt
  *   T1  tenant/org record introspection — information_schema/pg_policies assert no tenant_id/org_id/workspace
  *                                        column or tenant predicate policy exists (record-only: owner-only
@@ -114,7 +184,7 @@
  * ≠ authorization-root migration ≠ HA ≠ releaseEvidence. UC-052 stays partial.
  * releaseEvidence=false · Not HA · PG-retained (ai-docs/delivery/adr-postgres-retained.md).
  */
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { randomBytes } from 'node:crypto';
 import { dirname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -223,8 +293,127 @@ const RLS_FREE_ALLOWLIST: readonly { table: string; reason: string }[] = [
     reason: 'internal per-call money ledger (no prompt/output content, no read procedure); REVOKE ALL (0120:132), zero runtime-role table privileges, written only via owner-gated SECURITY DEFINER record path' },
   { table: 'ai_model_invocation_transition_permit',
     reason: 'transaction-local capability stub consumed by BEFORE trigger; REVOKE ALL (0088:27), zero runtime-role table privileges, consumer function not app_role-executable' },
+  // rev r3 (post-falsification P1-1/P2-3): the whole-schema census widened the column
+  // families and these two zero-RLS attribution carriers surfaced. Both live-proven
+  // zero runtime-role table privileges (same trust shape as the three entries above),
+  // reached only via owner-gated SECURITY DEFINER paths pinned by the G-SD arm.
+  { table: 'ai_cost_reservation',
+    reason: 'internal per-request cost reservation stub (request_owner_user_id alias census, rev r3); zero runtime-role table privileges (live role_table_grants census: owner only), reached only via ai_cost_require_request_owner-gated SECURITY DEFINER ai_cost_settle_text_scoped / ai_model_transition_dispatched_scoped' },
+  { table: 'offline_remit_record',
+    reason: 'admin-entered offline remittance ledger (entered_by/confirmed_by/failed_by actor columns, rev r3 census); zero runtime-role table privileges (owner-only grants), reached only via admin-gated SECURITY DEFINER gateway_admin_offline_remit_entry/confirm/fail/queue (G-SD allowlist pins gateway_require_active_admin + maker/checker segregation)' },
 ];
-const ATTRIBUTION_COLUMNS = ['owner_user_id', 'tenant_id', 'org_id', 'workspace_id'] as const;
+
+/** User-scope attribution columns (rev r3 widened from the four canonical names after a
+ *  whole-schema census — falsification P1-1 root cause: the inversion was only as good as
+ *  this name list, and `auth_user_session.user_id` fell outside it while app_role held
+ *  SELECT/INSERT/UPDATE grants). Semantics confirmed per name on the live chain:
+ *  user_id (session/curator identity), candidate_user_id/recruiter_user_id (route +
+ *  application party scope), payer_user_id (billing payer), access_principal_user_id
+ *  (memory admission principal), request_owner_user_id (cost governance request owner).
+ *  tenant_id/org_id/workspace_id stay per the §0 deviation-2 definition (org_id = B-side
+ *  enterprise qbank compliance columns, 0186). */
+const ATTRIBUTION_COLUMNS = [
+  'owner_user_id', 'tenant_id', 'org_id', 'workspace_id',
+  'user_id', 'candidate_user_id', 'recruiter_user_id', 'payer_user_id',
+  'access_principal_user_id', 'request_owner_user_id',
+] as const;
+
+/** Actor-attribution columns (rev r3 second inversion class): WHO performed an action
+ *  (operator/admin/worker identity on audit, receipt and evidence rows). They identify
+ *  users but are not the row-ownership root; the inversion still requires their tables
+ *  to carry RLS (all do except the allowlisted admin ledger below), and the migration
+ *  scan below forces any new alias into one of these two constants. */
+const ACTOR_BY_COLUMNS = [
+  'added_by', 'reviewed_by', 'recorded_by', 'resolved_by', 'consumed_by',
+  'settled_by', 'entered_by', 'confirmed_by', 'failed_by',
+] as const;
+
+/** Attribution-SHAPED names found in the migration chain that are deliberately NOT user
+ *  attribution (named semantic exclusions — the migration scan below asserts the chain
+ *  introduces no other shaped name). `subject_id`/`data_subject_id`/`actor` are
+ *  subject-of-action references with mixed non-ownership referents (privacy/rag/audit
+ *  domains) and every table carrying them today is already RLS-covered via sibling
+ *  attribution columns — recorded in the census, not silently dropped. */
+const SEMANTIC_EXCLUDED_COLUMNS: readonly { name: string; reason: string }[] = [
+  { name: 'lease_owner', reason: 'worker/replica lease holder identity (dispatch/claim slots), not a user' },
+  { name: 'owner_kind', reason: 'corpus owner-class discriminator (system/org/qbank), not a user id' },
+];
+
+/** rev r3 G-O: FIXED owner names for attribution-carrying relations. Any other role
+ *  owning such a relation is ownership drift (falsification P1-2: ALTER TABLE ... OWNER
+ *  TO memory_runtime silently exited the rev r2 probe set with full owner rights).
+ *  The migration executor superuser plus the three migration-declared definer owners —
+ *  each declared NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS in-chain; those shape
+ *  assertions run live below. */
+const FIXED_TABLE_OWNERS: readonly { owner: string; super: boolean; declaredAt: string }[] = [
+  { owner: 'meetwise', super: true, declaredAt: 'migration executor superuser (0001 baseline chain; isolated container init POSTGRES_USER=meetwise)' },
+  { owner: 'rag_control_definer', super: false, declaredAt: '0073_rag_control_plane_identity_isolation.sql:17 (role) / :220,:278 (ALTER TABLE ... OWNER TO rag_control_definer)' },
+  { owner: 'privacy_worker_owner', super: false, declaredAt: '0048_checkpoint_physical_erasure.sql:16 / 0107_memory_control_surface.sql:49 (NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS)' },
+  { owner: 'online_judge_owner', super: false, declaredAt: '0050_online_judge_control_plane.sql:17 (NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS)' },
+];
+
+/** rev r3 G-SD: SECURITY DEFINER reader allowlist. Dynamically enumerated
+ *  app_role/PUBLIC-executable SD functions whose body references a user-scope/actor
+ *  attribution column or a protected table are flagged; superuser-owned flagged
+ *  functions must carry the standard first owner gate (`principal IS NULL` /
+ *  `ai_cost_require_request_owner`) or be exactly one of these entries. Each entry
+ *  live-pins its own authorizing witnesses (prosrc substrings, whitespace-flattened)
+ *  plus the EXECUTE face (app_role yes, PUBLIC no) — so the allowlist is an evidence
+ *  contract, not a silent pass. rev r3 live census: 155 app/PUBLIC-executable SD
+ *  functions, 126 flagged, 12 superuser-owned carry the standard gate, 98 owned by
+ *  NOBYPASSRLS definer roles (RLS-governed — shape asserted live), and exactly these
+ *  16 entries. */
+const SD_GATE_ALLOWLIST: readonly { fn: string; witnesses: readonly string[]; reason: string }[] = [
+  { fn: 'gateway_admin_orders', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin cross-owner order queue read (payment_order.owner_user_id listed); caller re-checked in-function by gateway_require_active_admin — admin face by design (user_account.is_admin cross-user read-only, sql/09_auth)' },
+  { fn: 'gateway_admin_offline_remit_entry', witnesses: ['gateway_require_active_admin', 'offline_remit_entry_invalid_input'],
+    reason: 'admin enters offline remittance row (entered_by=caller admin identity); admin-gated' },
+  { fn: 'gateway_admin_offline_remit_confirm', witnesses: ['gateway_require_active_admin', 'offline_remit_segregation_required'],
+    reason: 'admin confirms offline remittance; admin-gated + maker/checker segregation (r.entered_by = caller rejected via offline_remit_segregation_required)' },
+  { fn: 'gateway_admin_offline_remit_fail', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin fails offline remittance + order; admin-gated (failed_by=caller identity)' },
+  { fn: 'gateway_admin_offline_remit_queue', witnesses: ['gateway_require_active_admin'],
+    reason: 'admin offline-remit queue read (payment_order.owner_user_id + remit actor columns listed); admin-gated' },
+  { fn: 'gateway_entpay_reserve', witnesses: ['entpay_principal_missing', 'candidate_user_id = v_owner'],
+    reason: 'entitlement reserve: v_owner = current_setting principal, fail-closed when unset; payer derived single hop via application.candidate_user_id = v_owner' },
+  { fn: 'gateway_entpay_apply_allocation', witnesses: ['entpay_apply_principal_missing', 'owner_user_id = v_owner'],
+    reason: 'entitlement allocation applied strictly inside caller principal scope (idempotency row matched on owner_user_id = v_owner)' },
+  { fn: 'gateway_entpay_my_offline_orders', witnesses: ["p.owner_user_id = current_setting('app.principal_user', true)"],
+    reason: 'own offline orders read — principal predicate in the query itself' },
+  { fn: 'gateway_billing_ledger_payer', witnesses: ["ec.payer_user_id = current_setting('app.principal_user', true)"],
+    reason: 'billing ledger for the caller as payer — principal predicate in the query itself' },
+  { fn: 'gateway_notify_invited', witnesses: ['gateway_require_active_recruiter', 'recruiter_user_id = p_recruiter'],
+    reason: 'recruiter invite notification: recruiter-bound application + active-recruiter check; the notification INSERT executes under the candidate principal context (WITH CHECK satisfied), then reverts' },
+  { fn: 'gateway_recruiter_contact_share', witnesses: ['gateway_require_active_recruiter', 'recruiter_user_id = p_recruiter', "purpose = 'recruiter_contact_share'"],
+    reason: 'contact share: recruiter-bound application + per-candidate consent gate; output whitelist (application_id, email) only' },
+  { fn: 'gateway_b_qualitative_projection', witnesses: ['recruiter_user_id = p_recruiter', "purpose = 'b_qualitative_share'", 'interview_privacy_fenced_targets'],
+    reason: 'B-side qualitative disclosure: recruiter-bound + consent gate + privacy fence re-check under switched principal; counts-only whitelist projection, no numeric scores (0215 design)' },
+  { fn: 'qbank_generation_distances', witnesses: ['qbank_assert_retrieval_scope', 'search_path=public, pg_temp'],
+    reason: 'qbank bounded retrieval reader (§6.1 manifest-pinned in packages/db/src/principal.ts QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST); org-scoped system corpus only, retrieval-scope asserted in-query, no candidate user content' },
+  { fn: 'qbank_generation_lexical_search', witnesses: ['qbank_assert_retrieval_scope', 'search_path=public, pg_temp'],
+    reason: 'qbank bounded retrieval reader (§6.1 manifest); org-scoped system corpus only, retrieval-scope asserted in-query' },
+  { fn: 'qbank_generation_evidence', witnesses: ['qbank_assert_retrieval_scope', 'search_path=public, pg_temp'],
+    reason: 'qbank bounded evidence reader (§6.1 manifest); org-scoped system corpus only, retrieval-scope asserted in-query' },
+  { fn: 'qbank_generation_question_evidence', witnesses: ['qbank_assert_retrieval_scope', 'search_path=public, pg_temp'],
+    reason: 'qbank bounded question-evidence reader (§6.1 manifest); org-scoped system corpus only, retrieval-scope asserted in-query' },
+];
+
+/** rev r3 G-V: view exemptions. All views/materialized views are enumerated; any whose
+ *  body references an attribution column must be security_invoker=true OR exactly one of
+ *  these entries, whose contract is: superuser owner + EXACT view body (pg16
+ *  pg_get_viewdef, whitespace-normalized) + pinned invoker state. qbank_visible_ref is
+ *  deliberately definer-rights BY DESIGN (0016:63-65 — the owner-bypass is load-bearing
+ *  for the curated-visible join face, fail-closed DO at 0016:71+, body restricted to the
+ *  __system_qbank__ corpus + curated pool, app_role SELECT is the only exposed grant), so
+ *  drift in EITHER direction (body widened OR invoker flipped) is red via the exact pins. */
+const VIEW_EXEMPT: readonly { view: string; invokerMustBe: boolean; defExact: string; reason: string }[] = [
+  { view: 'qbank_visible_ref', invokerMustBe: false,
+    defExact: "SELECT p.ref_id FROM qbank_pool_entry p JOIN qbank_source s ON s.id = p.source_id WHERE s.status = 'approved'::text UNION SELECT v.ref_id FROM vector_chunk v WHERE v.kind = 'qbank'::text AND v.owner_user_id = '__system_qbank__'::text AND NOT (EXISTS ( SELECT 1 FROM qbank_pool_entry pe WHERE pe.ref_id = v.ref_id));",
+    reason: '0016 curated-visible join face; security_invoker=false is the documented design (0016:63-65) with a fail-closed owner-bypass DO at 0016:71; body restricted to system qbank corpus + curated pool — no owner data; exact body pin makes the falsification F7 widening red' },
+  { view: 'qbank_retrieval_candidate', invokerMustBe: false,
+    defExact: "SELECT p.ref_id, p.source_id, p.content_hash FROM qbank_pool_entry p JOIN qbank_source s ON s.id = p.source_id JOIN qbank_chunk ch ON ch.ref_id = p.ref_id AND ch.source_id = p.source_id AND ch.content_hash = p.content_hash WHERE s.status = 'approved'::text AND s.content_hash = p.content_hash AND (p.content_hash = \"left\"(encode(digest(convert_to(ch.content, 'UTF8'::name), 'sha256'::text), 'hex'::text), 32) OR p.content_hash = encode(digest(convert_to(ch.content, 'UTF8'::name), 'sha256'::text), 'hex'::text));",
+    reason: '0068 content-fact retrieval candidate face (0068:111-121); body references no attribution column today but reads qbank corpus tables, so its definer-rights body is exact-pinned too — any widening is red' },
+];
 
 /** rev r2 (EXEC P2-1): named (table, role, privilege) triple allowlist for the
  *  RLS-free tables' zero-privilege probe. Deliberately EMPTY today — live census
@@ -245,10 +434,25 @@ const ATTRIBUTION_COLUMNS = ['owner_user_id', 'tenant_id', 'org_id', 'workspace_
  *  turn a live grant green is Ban'd. */
 const RLS_FREE_GRANT_TRIPLES: readonly { table: string; role: string; privilege: string; reason: string }[] = [];
 
-/** Census baseline pinned to THIS branch's migration chain (222 files, no new
- *  migration in rev r1). If a rebase/merge moves the chain, re-count and update
- *  these two constants consciously — drift must never green silently. */
-const POLICY_CENSUS_BASELINE = { policies: 340, rlsTables: 166 };
+/** Census baseline pinned to THIS branch's migration chain (223 files since rev r3 —
+ *  0225_auth_user_session_owner_rls adds one policy + flips auth_user_session to an
+ *  RLS table: 340+1/166+1 from the rev r2 chain). If a rebase/merge moves the chain,
+ *  re-count and update these two constants consciously — drift must never green
+ *  silently. */
+const POLICY_CENSUS_BASELINE = { policies: 341, rlsTables: 167 };
+
+/** rev r3 session-table policy predicate (0225), exact-equality target for the M8
+ *  introspection arm — same normalization as the canonical OWNER_PREDICATE. */
+const SESSION_PREDICATE_RAW = "user_id = current_setting('app.principal_user', true)";
+const SESSION_PREDICATE = normPolicy(SESSION_PREDICATE_RAW);
+
+/** pg_policies deparses roles as a text[] — normalize to a plain string list. Shared by
+ *  the I2 canonical face and the rev r3 M8 session face. */
+function toRolesSafe(v: unknown): string[] {
+  return Array.isArray(v)
+    ? v.map((x) => String(x))
+    : String(v ?? '').replace(/[{}]/g, '').split(',').map((s) => s.trim().replace(/^"|"$/g, '')).filter(Boolean);
+}
 
 const HEX = randomBytes(4).toString('hex');
 const PID = process.pid;
@@ -276,6 +480,9 @@ const VC_A = `tir-vc-a-${HEX}`;   // vector_chunk row ids (kind='memory', 512-di
 const VC_B = `tir-vc-b-${HEX}`;
 const NT_A = `tir-nt-a-${HEX}`;   // notification row ids
 const NT_B = `tir-nt-b-${HEX}`;
+const SES_A = `tir-ses-a-${HEX}`;      // A active session row (M8 cross-owner NEG anchors)
+const SES_A_REVOKE = `tir-ses-a2-${HEX}`; // A session A revokes itself (own-UPDATE positive control)
+const SES_B = `tir-ses-b-${HEX}`;      // B active session row = cross-owner NEG target
 const UM_A3 = `tir-um-a3-${PID}-${HEX}`; // extra A memory row for the M7 own-DELETE control
 
 const admin = createPool();
@@ -287,9 +494,19 @@ interface Receipt {
   familyAppFacingPolicies: Record<string, string[]>;
   sharedCorpusFace: { table: string; readPolicySharesGlobal: boolean; writePolicyOwnerPredicated: boolean };
   tenantOrgObservation: { tenantColumns: number; tenantPredicatePolicies: number };
-  ownerColumnCensus: { tablesWithAttributionColumn: number; withRls: number; uncoveredWithoutRls: string[] };
+  ownerColumnCensus: {
+    tablesWithAttributionColumn: number; withRls: number; uncoveredWithoutRls: string[];
+    userScope: { tables: number; withRls: number };
+    actorBy: { tables: number; withRls: number };
+    migrationScanSuspects: string[];
+    semanticExcluded: { name: string; reason: string }[];
+  };
   rlsFreeAllowlist: { table: string; reason: string }[];
   allowlistProbe: { principalsProbed: number; triplesProbed: number; namedTripleAllowlistSize: number; violations: string[] };
+  sessionFace: { policies: number; usingExact: boolean; withCheckExact: boolean; deleteGrantAbsent: boolean; codePathsWitnessed: boolean };
+  ownershipCensus: { attributionRelations: number; ownerCounts: Record<string, number>; fixedOwners: { owner: string; super: boolean; declaredAt: string }[]; violations: string[] };
+  sdReaderCensus: { executableSd: number; flagged: number; standardGated: number; nonSuperOwned: number; allowlist: { fn: string; reason: string }[]; violations: string[] };
+  viewCensus: { views: { name: string; kind: string; owner: string; ownerSuper: boolean; securityInvoker: boolean; touchesAttributionColumns: boolean }[]; violations: string[] };
 }
 
 const receipt: Receipt = {
@@ -299,9 +516,24 @@ const receipt: Receipt = {
   familyAppFacingPolicies: {},
   sharedCorpusFace: { table: 'rag_corpus_document', readPolicySharesGlobal: false, writePolicyOwnerPredicated: false },
   tenantOrgObservation: { tenantColumns: -1, tenantPredicatePolicies: -1 },
-  ownerColumnCensus: { tablesWithAttributionColumn: -1, withRls: -1, uncoveredWithoutRls: [] },
+  ownerColumnCensus: {
+    tablesWithAttributionColumn: -1, withRls: -1, uncoveredWithoutRls: [],
+    userScope: { tables: -1, withRls: -1 },
+    actorBy: { tables: -1, withRls: -1 },
+    migrationScanSuspects: [],
+    semanticExcluded: SEMANTIC_EXCLUDED_COLUMNS.map((x) => ({ name: x.name, reason: x.reason })),
+  },
   rlsFreeAllowlist: RLS_FREE_ALLOWLIST.map((x) => ({ table: x.table, reason: x.reason })),
   allowlistProbe: { principalsProbed: -1, triplesProbed: -1, namedTripleAllowlistSize: RLS_FREE_GRANT_TRIPLES.length, violations: [] },
+  sessionFace: { policies: -1, usingExact: false, withCheckExact: false, deleteGrantAbsent: false, codePathsWitnessed: false },
+  ownershipCensus: {
+    attributionRelations: -1, ownerCounts: {}, fixedOwners: FIXED_TABLE_OWNERS.map((x) => ({ ...x })), violations: [],
+  },
+  sdReaderCensus: {
+    executableSd: -1, flagged: -1, standardGated: -1, nonSuperOwned: -1,
+    allowlist: SD_GATE_ALLOWLIST.map((x) => ({ fn: x.fn, reason: x.reason })), violations: [],
+  },
+  viewCensus: { views: [], violations: [] },
 };
 
 let envFailed: string | null = null;
@@ -364,6 +596,25 @@ try {
     "INSERT INTO notification(id, owner_user_id, kind) VALUES ($1,$2,'system'), ($3,$4,'system')",
     [NT_A, OWNER_A, NT_B, OWNER_B],
   );
+
+  // M8 session fixtures: seeded through the LOGIN CODE PATH ITSELF (auth-session.ts
+  // issueSessionToken issues `INSERT INTO auth_user_session(jti, user_id, pwd_epoch)`
+  // inside db.asPrincipal(uid)) — the policy must be self-satisfying for the app's own
+  // three paths, so the positive control is the app-shaped statement under asPrincipal,
+  // not an admin bypass seed. A failure here is an honest red (not an env crash).
+  {
+    let seedErr: string | null = null;
+    try {
+      await asPrincipal(admin, OWNER_A, (c) => c.query(
+        'INSERT INTO auth_user_session(jti, user_id, pwd_epoch) VALUES ($1,$2,$3)', [SES_A, OWNER_A, 0]));
+      await asPrincipal(admin, OWNER_A, (c) => c.query(
+        'INSERT INTO auth_user_session(jti, user_id, pwd_epoch) VALUES ($1,$2,$3)', [SES_A_REVOKE, OWNER_A, 0]));
+      await asPrincipal(admin, OWNER_B, (c) => c.query(
+        'INSERT INTO auth_user_session(jti, user_id, pwd_epoch) VALUES ($1,$2,$3)', [SES_B, OWNER_B, 0]));
+    } catch (e) { seedErr = code(e); }
+    A('M8a login-path INSERT positive control: asPrincipal(uid) INSERT INTO auth_user_session succeeds (issueSessionToken shape, 0225 predicate self-satisfying)',
+      seedErr === null, `err=${seedErr ?? 'none'}`);
+  }
 
   // ---- M1: cross-owner SELECT isolation (+ positive controls, C-E3 anti-idle-green) ----
   {
@@ -713,6 +964,100 @@ try {
     }
   }
 
+  // ---- M8 (rev r3): auth_user_session face — the P1-1 live leak closed by 0225 ----
+  // Falsification priv1-post-2 P1-1: this table (user_id attribution, 0169 object grants
+  // SELECT/INSERT/UPDATE to app_role, zero RLS) let app_role read and REVOKE other users'
+  // session rows (jti/pwd_epoch truth source) — live-tested. 0225 adds FORCE RLS + p_owner
+  // keyed on user_id; the three app paths already run inside db.asPrincipal(uid). This
+  // matrix evidences the closed face; the falsification's F5-style alias blind spot is
+  // closed by the widened G census + migration scan below.
+  {
+    // cross-owner SELECT: A sees none of B's session rows, own row visible (isSessionActive query shape)
+    const selNeg = await asPrincipal(admin, OWNER_A, (c) => c.query('SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL', [SES_B]));
+    const selPos = await asPrincipal(admin, OWNER_A, (c) => c.query('SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL', [SES_A]));
+    A('M8b cross-owner session SELECT=0 / own row ≥1 (isSessionActive query shape)', selNeg.rowCount === 0 && (selPos.rowCount ?? 0) === 1,
+      `neg=${String(selNeg.rowCount)} pos=${String(selPos.rowCount)}`);
+    // cross-owner revoke: A cannot revoke B's session (revocation truth source integrity)
+    const updNeg = await asPrincipal(admin, OWNER_A, (c) => c.query(
+      'UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL', [SES_B]));
+    const bUnrevoked = (await admin.query('SELECT revoked_at FROM auth_user_session WHERE jti=$1', [SES_B])).rows[0]?.revoked_at === null;
+    A('M8c cross-owner session revoke UPDATE=0 rows + B row stays unrevoked', updNeg.rowCount === 0 && bUnrevoked,
+      `neg=${String(updNeg.rowCount)} bUnrevoked=${String(bUnrevoked)}`);
+    const updPos = await asPrincipal(admin, OWNER_A, (c) => c.query(
+      'UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL', [SES_A_REVOKE]));
+    const aRevoked = (await admin.query('SELECT revoked_at FROM auth_user_session WHERE jti=$1', [SES_A_REVOKE])).rows[0]?.revoked_at !== null;
+    A('M8c-pos own-session revoke positive control: own UPDATE=1 row, revoked_at set (revokeSession shape)',
+      (updPos.rowCount ?? 0) === 1 && aRevoked, `pos=${String(updPos.rowCount)} aRevoked=${String(aRevoked)}`);
+    // impersonating INSERT under B's user_id → WITH CHECK 42501, row absent
+    const impJti = `tir-ses-n-${HEX}`;
+    let insErr = 'insert-succeeded';
+    try {
+      await asPrincipal(admin, OWNER_A, (c) => c.query(
+        'INSERT INTO auth_user_session(jti, user_id, pwd_epoch) VALUES ($1,$2,$3)', [impJti, OWNER_B, 0]));
+    } catch (e) { insErr = code(e); }
+    const impAbsent = (await admin.query('SELECT count(*)::int AS n FROM auth_user_session WHERE jti=$1', [impJti])).rows[0]?.n === 0;
+    A('M8d impersonating session INSERT (user_id=B) rejected 42501 + row absent', insErr === '42501' && impAbsent,
+      `got=${insErr} absent=${String(impAbsent)}`);
+    // GUC-unset app_role → 0 rows default deny
+    {
+      const c = await admin.connect();
+      try {
+        await c.query('BEGIN');
+        await c.query('SET LOCAL ROLE app_role');
+        const n = await c.query('SELECT count(*)::int AS n FROM auth_user_session');
+        A('M8e app_role GUC unset → session rows default deny 0', n.rows[0]?.n === 0, `n=${String(n.rows[0]?.n)}`);
+        await c.query('ROLLBACK');
+      } finally { c.release(); }
+    }
+    // grant face: SELECT/INSERT/UPDATE per 0169, DELETE deliberately absent (revocation is UPDATE revoked_at)
+    const grants = await admin.query(
+      `SELECT has_table_privilege('app_role','auth_user_session','SELECT') AS s,
+              has_table_privilege('app_role','auth_user_session','INSERT') AS i,
+              has_table_privilege('app_role','auth_user_session','UPDATE') AS u,
+              has_table_privilege('app_role','auth_user_session','DELETE') AS d`);
+    const g = grants.rows[0] ?? {};
+    A('M8f grant face pinned: app_role SELECT/INSERT/UPDATE present, DELETE absent (0169 audit-keeping design)',
+      g.s === true && g.i === true && g.u === true && g.d === false,
+      `s=${String(g.s)} i=${String(g.i)} u=${String(g.u)} d=${String(g.d)}`);
+    receipt.sessionFace.deleteGrantAbsent = g.d === false;
+    // introspection: RLS enabled+forced, exactly one app_role-facing policy, predicate exact both sides
+    const rls = await admin.query(
+      `SELECT c.relrowsecurity AS rls, c.relforcerowsecurity AS force_rls
+         FROM pg_class c WHERE c.relnamespace='public'::regnamespace AND c.relname='auth_user_session' AND c.relkind='r'`);
+    const pol = await admin.query(
+      `SELECT policyname, roles, cmd, qual, with_check FROM pg_policies
+        WHERE schemaname='public' AND tablename='auth_user_session'`);
+    interface SesPol { policyname: string; roles: unknown; cmd: string; qual: string | null;
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- pg_policies column is snake_case
+      with_check: string | null }
+    const appFacing = (pol.rows as SesPol[]).filter((x) => toRolesSafe(x.roles).includes('app_role') || toRolesSafe(x.roles).includes('public'));
+    const usingExact = appFacing.every((x) => x.qual !== null && normPolicy(x.qual) === SESSION_PREDICATE);
+    const withCheckExact = appFacing.every((x) => x.with_check !== null && normPolicy(x.with_check) === SESSION_PREDICATE);
+    A('M8g introspection: auth_user_session relrowsecurity+relforcerowsecurity=true (0225)',
+      rls.rows[0]?.rls === true && rls.rows[0]?.force_rls === true,
+      `rls=${String(rls.rows[0]?.rls)} force=${String(rls.rows[0]?.force_rls)}`);
+    A('M8h introspection: exactly one app_role-facing policy, USING and WITH CHECK exact-match the 0225 session predicate (Ban substring)',
+      appFacing.length === 1 && usingExact && withCheckExact,
+      `policies=${appFacing.length} usingExact=${String(usingExact)} withCheckExact=${String(withCheckExact)}`);
+    receipt.sessionFace.policies = appFacing.length;
+    receipt.sessionFace.usingExact = appFacing.length === 1 && usingExact;
+    receipt.sessionFace.withCheckExact = appFacing.length === 1 && withCheckExact;
+    // code-path witnesses: the three statements live in asPrincipal(uid) transactions
+    const ses = readWitness('apps/api/src/platform/auth-session.ts');
+    const wInsert = ses.includes('INSERT INTO auth_user_session(jti, user_id, pwd_epoch) VALUES ($1,$2,$3)');
+    const wUpdate = ses.includes('UPDATE auth_user_session SET revoked_at=now() WHERE jti=$1 AND revoked_at IS NULL RETURNING 1');
+    const wSelect = ses.includes('SELECT 1 FROM auth_user_session WHERE jti=$1 AND revoked_at IS NULL');
+    const wAsPrincipal = (ses.match(/asPrincipal\(uid/g) ?? []).length >= 3;
+    const m0225 = readWitness('packages/db/migrations/0225_auth_user_session_owner_rls.sql');
+    const w0225 = m0225.includes('FORCE ROW LEVEL SECURITY') && m0225.includes(SESSION_PREDICATE_RAW);
+    const m0169 = readWitness('packages/db/migrations/0169_auth_user_session.sql');
+    const w0169 = m0169.includes('GRANT SELECT, INSERT, UPDATE ON auth_user_session TO app_role');
+    A('M8i witnesses: three auth-session.ts paths (INSERT/UPDATE/SELECT) inside asPrincipal(uid) + 0225 predicate + 0169 grant face',
+      wInsert && wUpdate && wSelect && wAsPrincipal && w0225 && w0169,
+      `insert=${String(wInsert)} update=${String(wUpdate)} select=${String(wSelect)} asPrincipal=${String(wAsPrincipal)} m0225=${String(w0225)} m0169=${String(w0169)}`);
+    receipt.sessionFace.codePathsWitnessed = wInsert && wUpdate && wSelect && wAsPrincipal && w0225 && w0169;
+  }
+
   // ---- I1: canonical owner family ENABLE + FORCE RLS ----
   {
     for (const t of CANONICAL_FAMILY) {
@@ -865,43 +1210,113 @@ try {
       `readGlobal=${readSharesGlobal} writeOwner=${writeOwnerPredicated}`);
   }
 
-  // ---- G (rev r1): whole-database owner/attribution-column → RLS inversion ----
+  // ---- G (rev r1, widened rev r3): whole-database attribution-column → RLS inversion ----
   // rev r0 had zero capture power over "table with owner column, no RLS" (mut F: a fresh
   // decoy table stayed green; three existing tables already had that shape and were silently
-  // allowed). The inversion: EVERY table (relkind r/p) carrying owner_user_id or a
-  // tenant/org/workspace attribution column MUST have RLS enabled. The uncovered set must be
-  // empty OR exactly the named RLS_FREE_ALLOWLIST — never anything unnamed — and each
-  // allowlist member is live-proven to hold ZERO table privileges across ALL dynamically
-  // enumerated principals (rev r2: superuser/owner/BYPASSRLS/pg_ excluded, PUBLIC included,
-  // app_role in the set; named empty triple allowlist is the only escape)
-  // (REVOKE ALL + SECURITY DEFINER-only access), so no user-reachable face exists to protect.
+  // allowed). rev r1 inverted the four canonical names. rev r3 widens the inversion after the
+  // falsification P1-1 root cause: the alias blind spot (`auth_user_session.user_id`) — the
+  // inversion now runs over the UNION of the user-scope attribution family and the actor _by
+  // family, each member of which was semantics-confirmed on the live chain (constants above).
+  // The uncovered set must be empty OR exactly the named RLS_FREE_ALLOWLIST — never anything
+  // unnamed — and each allowlist member is live-proven to hold ZERO table privileges across
+  // ALL dynamically enumerated principals (rev r2: superuser/owner/BYPASSRLS/pg_ excluded,
+  // PUBLIC included, app_role in the set; named empty triple allowlist is the only escape)
+  // (REVOKE ALL / owner-only grants + SECURITY DEFINER-only access), so no user-reachable
+  // face exists to protect.
   {
+    const ALL_ATTRIBUTION_COLUMNS = [...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS];
+    const allowNames = RLS_FREE_ALLOWLIST.map((x) => x.table);
+    const attrRelPredicate = `EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($1::text[]))`;
     const uncoveredRows = await admin.query(
       `SELECT c.relname AS t
          FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
         WHERE n.nspname='public' AND c.relkind IN ('r','p') AND NOT c.relrowsecurity
-          AND EXISTS (SELECT 1 FROM pg_attribute a
-                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
-                         AND a.attname = ANY($1::text[]))
-        ORDER BY c.relname`, [ATTRIBUTION_COLUMNS]);
+          AND ${attrRelPredicate}
+        ORDER BY c.relname`, [ALL_ATTRIBUTION_COLUMNS]);
     const uncovered = uncoveredRows.rows.map((x: { t: string }) => x.t);
-    const allowNames = RLS_FREE_ALLOWLIST.map((x) => x.table);
     const census = await admin.query(
       `SELECT count(*)::int AS n,
-              count(*) FILTER (WHERE c.relrowsecurity)::int AS rls
+              count(*) FILTER (WHERE c.relrowsecurity)::int AS rls,
+              count(*) FILTER (WHERE EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($2::text[])))::int AS user_scope_n,
+              count(*) FILTER (WHERE EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($2::text[])) AND c.relrowsecurity)::int AS user_scope_rls,
+              count(*) FILTER (WHERE EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($3::text[])))::int AS actor_by_n,
+              count(*) FILTER (WHERE EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($3::text[])) AND c.relrowsecurity)::int AS actor_by_rls
          FROM pg_class c JOIN pg_namespace n ON n.oid=c.relnamespace
         WHERE n.nspname='public' AND c.relkind IN ('r','p')
-          AND EXISTS (SELECT 1 FROM pg_attribute a
-                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
-                         AND a.attname = ANY($1::text[]))`, [ATTRIBUTION_COLUMNS]);
+          AND ${attrRelPredicate}`, [ALL_ATTRIBUTION_COLUMNS, ATTRIBUTION_COLUMNS, ACTOR_BY_COLUMNS]);
+    const row = census.rows[0] ?? {};
     receipt.ownerColumnCensus = {
-      tablesWithAttributionColumn: census.rows[0]?.n ?? -1,
-      withRls: census.rows[0]?.rls ?? -1,
+      tablesWithAttributionColumn: row.n ?? -1,
+      withRls: row.rls ?? -1,
       uncoveredWithoutRls: uncovered,
+      userScope: { tables: row.user_scope_n ?? -1, withRls: row.user_scope_rls ?? -1 },
+      actorBy: { tables: row.actor_by_n ?? -1, withRls: row.actor_by_rls ?? -1 },
+      migrationScanSuspects: [],
+      semanticExcluded: SEMANTIC_EXCLUDED_COLUMNS.map((x) => ({ name: x.name, reason: x.reason })),
     };
-    A('G inversion: uncovered = attribution-column tables without RLS ⊆ named allowlist (nonempty diff beyond it = FAIL)',
+    A('G inversion (rev r3 union): uncovered = attribution/actor-column tables without RLS ⊆ named allowlist (nonempty diff beyond it = FAIL)',
       uncovered.every((t) => allowNames.includes(t)),
-      `uncovered=[${uncovered.join(',')}] allowlist=[${allowNames.join(',')}] census=${String(census.rows[0]?.n)}/${String(census.rows[0]?.rls)}`);
+      `uncovered=[${uncovered.join(',')}] allowlist=[${allowNames.join(',')}] census=${String(row.n)}/${String(row.rls)} (userScope ${String(row.user_scope_n)}/${String(row.user_scope_rls)} actorBy ${String(row.actor_by_n)}/${String(row.actor_by_rls)})`);
+    // per-class sanity: both families must be non-empty (the widened constants match live
+    // columns — guards against the census silently matching nothing after a rename)
+    A('G census sanity: user-scope family and actor _by family both live-non-empty (widened constants bind real columns)',
+      (row.user_scope_n ?? 0) >= 100 && (row.actor_by_n ?? 0) >= 5,
+      `userScope=${String(row.user_scope_n)} actorBy=${String(row.actor_by_n)}`);
+
+    // rev r3 G-SCAN: migration-chain column scan — the alias blind spot must never reopen.
+    // Every attribution-shaped column name introduced by the migration chain (static CREATE
+    // TABLE bodies + ADD COLUMN clauses, plpgsql variables excluded) must be one of the
+    // pinned constants or a named semantic exclusion; any NEW alias name (falsification
+    // F5 decoy shape) turns this red before the live inversion can even miss it.
+    {
+      const migDir = join(REPO_ROOT, 'packages', 'db', 'migrations');
+      const migFiles = readdirSync(migDir).filter((f) => f.endsWith('.sql')).sort();
+      const TYPE = String.raw`\s+(?:text|integer|int|bigint|smallint|boolean|bool|timestamptz|timestamp|jsonb|json|uuid|vector|halfvec|numeric|real|double\s+precision|bytea|date|interval|serial|bigserial|char|varchar)\b`;
+      const colDefRe = new RegExp(String.raw`^\s+([a-z][a-z0-9_]*)` + TYPE);
+      const colInlineRe = new RegExp(String.raw`([a-z][a-z0-9_]*)` + TYPE, 'g');
+      const addColRe = new RegExp(String.raw`\bADD\s+(?:COLUMN\s+)?(?:IF\s+NOT\s+EXISTS\s+)?([a-z][a-z0-9_]*)` + TYPE, 'i');
+      const suspectRe = /(^|_)(user_id|tenant_id|org_id|workspace_id)$|_user_id$|_by$|owner|principal/;
+      const suspects = new Set<string>();
+      const addIfSuspect = (name: string | undefined) => {
+        if (name && !name.startsWith('p_') && suspectRe.test(name)) suspects.add(name);
+      };
+      for (const f of migFiles) {
+        const lines = readFileSync(join(migDir, f), 'utf8').split('\n');
+        let inCreate = false;
+        for (const line of lines) {
+          if (!inCreate && /\bCREATE\s+(?:UNLOGGED\s+|TEMP(?:ORARY)?\s+|LOCAL\s+TEMP(?:ORARY)?\s+)*TABLE\b/i.test(line)) {
+            // column defs may start on the CREATE TABLE line itself (inline single-line
+            // tables must not escape the scan — falsification F5 decoy shape)
+            inCreate = true;
+            const open = line.indexOf('(');
+            const inline = open >= 0 ? line.slice(open + 1) : '';
+            for (const m of inline.matchAll(colInlineRe)) addIfSuspect(m[1]);
+            if (/\)\s*(;|PARTITION|WITH|TABLESPACE|AS|INHERITS|$)/.test(inline)) inCreate = false;
+          } else if (inCreate) {
+            if (/^\s*\)/.test(line)) inCreate = false;
+            else { const m = line.match(colDefRe); if (m) addIfSuspect(m[1]); }
+          }
+          const am = line.match(addColRe);
+          if (am) addIfSuspect(am[1]);
+        }
+      }
+      const known = new Set<string>([...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS, ...SEMANTIC_EXCLUDED_COLUMNS.map((x) => x.name)]);
+      const unknownAlias = [...suspects].filter((n) => !known.has(n)).sort();
+      receipt.ownerColumnCensus.migrationScanSuspects = [...suspects].sort();
+      A('G-SCAN migration chain: every attribution-shaped column name ∈ pinned constants ∪ named semantic exclusions (new alias = FAIL)',
+        suspects.has('owner_user_id') && suspects.has('user_id') && unknownAlias.length === 0,
+        `suspects=${suspects.size} unknown=[${unknownAlias.join(',')}]`);
+    }
 
     // rev r2 (EXEC P2-1): zero-privilege probe across ALL principals. Dynamically
     // enumerated from pg_roles — superusers, BYPASSRLS holders, pg_ reserved roles
@@ -972,12 +1387,195 @@ try {
     A('G permit consumer (ai_model_consume_transition_permit): definer-owned and NOT executable by app_role/PUBLIC',
       q.n === 1 && q.sd === true && q.no_app_exec === true && q.no_public_exec === true,
       `n=${String(q.n)} sd=${String(q.sd)} appExec=${String(!q.no_app_exec)} publicExec=${String(!q.no_public_exec)}`);
+    // rev r3: the two widened allowlist entries' SD entry paths are owner-gated too
+    const costGated = await admin.query(
+      `SELECT count(*)::int AS n,
+              bool_and(p.prosecdef) AS sd,
+              bool_and(position('ai_cost_require_request_owner' in p.prosrc) > 0) AS gated,
+              bool_and(has_function_privilege('app_role', p.oid, 'EXECUTE')) AS app_exec,
+              bool_and(NOT has_function_privilege('public', p.oid, 'EXECUTE')) AS no_public_exec
+         FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+        WHERE n.nspname='public' AND p.prosecdef AND p.prokind='f'
+          AND p.prosrc ~ 'ai_cost_reservation'
+          AND (has_function_privilege('app_role', p.oid, 'EXECUTE') OR has_function_privilege('public', p.oid, 'EXECUTE'))`);
+    const cg = costGated.rows[0] ?? {};
+    A('G ai_cost_reservation entry paths: every app/PUBLIC-executable SD function referencing it is definer-owned and ai_cost_require_request_owner-gated',
+      (cg.n ?? 0) >= 2 && cg.sd === true && cg.gated === true && cg.app_exec === true && cg.no_public_exec === true,
+      `n=${String(cg.n)} sd=${String(cg.sd)} gated=${String(cg.gated)} appExec=${String(cg.app_exec)} noPublicExec=${String(cg.no_public_exec)}`);
 
     const m0120 = readWitness('packages/db/migrations/0120_model_op02_shared_provider_admission_ledger_breaker.sql');
     const m0088 = readWitness('packages/db/migrations/0088_ai_model_invocation_controlled_state_machine.sql');
     const revokes = m0120.includes('REVOKE ALL ON ai_model_admission_policy, ai_model_fee_ledger, ai_model_breaker_state, ai_model_concurrency_lease FROM app_role')
       && m0088.includes('REVOKE ALL ON ai_model_invocation_transition_permit FROM PUBLIC, app_role');
     A('G migration REVOKE ALL witnesses present (0120:132 ledger+lease, 0088:27 permit)', revokes);
+  }
+
+  // ---- G-O (rev r3): ownership drift capture — falsification P1-2 (mut F2) ----
+  // rev r2 silently lost a principal when an allowlist table's owner moved to a runtime
+  // role (principals 26→25, full owner rights, all green). The inversion: every
+  // attribution-carrying relation (r/p/v/m) must be owned by a FIXED migration-chain
+  // declared name (superuser executor or a NOLOGIN/NOINHERIT/NOBYPASSRLS definer owner);
+  // non-super fixed owners keep the definer-isolation role shape, and every attribution
+  // relation they own stays ENABLE+FORCE RLS (the definer-owner contract).
+  {
+    interface OwnRow { relname: string; relkind: string; owner: string; rolsuper: boolean;
+      rolcanlogin: boolean; rolbypassrls: boolean; rolinherit: boolean; rls: boolean; forceRls: boolean }
+    const own = await admin.query(
+      `SELECT c.relname, c.relkind::text, pg_get_userbyid(c.relowner) AS owner,
+              r.rolsuper, r.rolcanlogin, r.rolbypassrls, r.rolinherit,
+              c.relrowsecurity AS "rls", c.relforcerowsecurity AS "forceRls"
+         FROM pg_class c JOIN pg_roles r ON r.oid=c.relowner
+        WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('r','p','v','m')
+          AND EXISTS (SELECT 1 FROM pg_attribute a
+                       WHERE a.attrelid=c.oid AND a.attnum>0 AND NOT a.attisdropped
+                         AND a.attname = ANY($1::text[]))
+        ORDER BY c.relname`, [[...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS]]);
+    const rels = own.rows as OwnRow[];
+    const fixed = new Map(FIXED_TABLE_OWNERS.map((x) => [x.owner, x]));
+    const ownViolations: string[] = [];
+    for (const rel of rels) {
+      const fx = fixed.get(rel.owner);
+      if (!fx) ownViolations.push(`(${rel.relname},${rel.relkind},owner=${rel.owner} not-in-fixed-list)`);
+      else if (!fx.super) {
+        if (rel.rolcanlogin || rel.rolbypassrls || rel.rolinherit) ownViolations.push(`(${rel.relname},owner=${rel.owner} shape-broken)`);
+        if (rel.rls !== true || rel.forceRls !== true) ownViolations.push(`(${rel.relname},owner=${rel.owner} rls/force off)`);
+      }
+    }
+    const ownerCounts: Record<string, number> = {};
+    for (const rel of rels) ownerCounts[rel.owner] = (ownerCounts[rel.owner] ?? 0) + 1;
+    receipt.ownershipCensus.attributionRelations = rels.length;
+    receipt.ownershipCensus.ownerCounts = ownerCounts;
+    receipt.ownershipCensus.violations = ownViolations;
+    A('G-O ownership: every attribution-carrying relation owned by a fixed migration-declared name; runtime-role owners = FAIL (mut F2 red)',
+      rels.length >= 100 && ownViolations.length === 0,
+      `rels=${String(rels.length)} owners=${JSON.stringify(ownerCounts)} violations=[${ownViolations.slice(0, 6).join(' ')}${ownViolations.length > 6 ? ' …' : ''}]`);
+    const shapeRows = await admin.query(
+      `SELECT rolname, rolsuper, rolcanlogin, rolbypassrls, rolinherit
+         FROM pg_roles WHERE rolname = ANY($1::text[]) ORDER BY rolname`,
+      [FIXED_TABLE_OWNERS.filter((x) => !x.super).map((x) => x.owner)]);
+    const shapeOk = (shapeRows.rowCount === FIXED_TABLE_OWNERS.length - 1)
+      && (shapeRows.rows as Record<string, unknown>[]).every((x) =>
+        x.rolsuper === false && x.rolcanlogin === false && x.rolbypassrls === false && x.rolinherit === false);
+    A('G-O definer-owner shape: non-super fixed owners are NOLOGIN · NOINHERIT · NOBYPASSRLS live (0073/0048/0050 declared shape)',
+      shapeOk,
+      `rows=${String(shapeRows.rowCount)} shapes=${JSON.stringify(shapeRows.rows)}`);
+    const w0073 = readWitness('packages/db/migrations/0073_rag_control_plane_identity_isolation.sql');
+    const w0048 = readWitness('packages/db/migrations/0048_checkpoint_physical_erasure.sql');
+    const w0050 = readWitness('packages/db/migrations/0050_online_judge_control_plane.sql');
+    const ownWitness = w0073.includes('CREATE ROLE rag_control_definer NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS')
+      && w0073.includes('ALTER TABLE public.%I OWNER TO rag_control_definer')
+      && w0048.includes('CREATE ROLE privacy_worker_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS')
+      && w0050.includes('CREATE ROLE online_judge_owner NOLOGIN NOINHERIT NOSUPERUSER NOCREATEDB NOCREATEROLE NOREPLICATION NOBYPASSRLS');
+    A('G-O witnesses: fixed non-super owners declared NOLOGIN NOINHERIT NOSUPERUSER NOBYPASSRLS in migration chain', ownWitness);
+  }
+
+  // ---- G-SD (rev r3): SECURITY DEFINER reader face — falsification P1-3a (mut F6) ----
+  // Dynamically enumerate every app_role/PUBLIC-executable SECURITY DEFINER function.
+  // Superuser-owned ones bypass RLS entirely, so any whose body references a user-scope/
+  // actor attribution column or a protected table must carry the standard first owner gate
+  // (`principal IS NULL` / `ai_cost_require_request_owner`) OR be exactly one of the named
+  // SD_GATE_ALLOWLIST entries with live witness pins. Flagged functions owned by non-
+  // superuser roles are safe only because the owner keeps the NOBYPASSRLS definer-isolation
+  // shape (RLS governs every query it runs) — that shape is asserted live above via G-O.
+  {
+    const flat = (s: unknown): string => String(s ?? '').replace(/\s+/g, ' ');
+    const sdRows = await admin.query(
+      `SELECT p.proname, p.prosrc, p.proconfig, pg_get_userbyid(p.proowner) AS owner, ro.rolsuper AS owner_super,
+              has_function_privilege('app_role', p.oid, 'EXECUTE') AS app_exec,
+              has_function_privilege('public', p.oid, 'EXECUTE') AS public_exec
+         FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace JOIN pg_roles ro ON ro.oid=p.proowner
+        WHERE n.nspname='public' AND p.prosecdef AND p.prokind='f'
+          AND p.prorettype <> 'trigger'::regtype
+          AND (has_function_privilege('app_role', p.oid, 'EXECUTE') OR has_function_privilege('public', p.oid, 'EXECUTE'))`);
+    const COLS = [...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS].join('|');
+    const TABLES = [...CANONICAL_FAMILY, 'auth_user_session', ...RLS_FREE_ALLOWLIST.map((x) => x.table)].join('|');
+    const colRe = new RegExp(`(^|[^_a-zA-Z])(${COLS})([^_a-zA-Z]|$)`);
+    const tabRe = new RegExp(`(FROM|JOIN|INTO|UPDATE)\\s+(public\\.)?(${TABLES})([^_a-zA-Z]|$)`);
+    interface SdRow { proname: string; prosrc: string; proconfig: string[] | null; owner: string;
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- pg_roles column is snake_case
+      owner_super: boolean; app_exec: boolean; public_exec: boolean }
+    const flagged: SdRow[] = [];
+    let standardGated = 0, nonSuperOwned = 0;
+    const sdViolations: string[] = [];
+    for (const r of sdRows.rows as SdRow[]) {
+      const src = flat(r.prosrc);
+      if (!colRe.test(src) && !tabRe.test(src)) continue;
+      flagged.push(r);
+      if (!r.owner_super) { nonSuperOwned += 1; continue; }
+      // witness target = flattened body + the function's SET clause (search_path pin lives in proconfig)
+      const witnessTarget = `${src} | ${(r.proconfig ?? []).join(',')}`;
+      if (src.includes('principal IS NULL') || src.includes('ai_cost_require_request_owner')) { standardGated += 1; continue; }
+      const entry = SD_GATE_ALLOWLIST.find((x) => x.fn === r.proname);
+      if (!entry) { sdViolations.push(`(${r.proname}: no gate, not allowlisted)`); continue; }
+      const missingWitness = entry.witnesses.filter((w) => !witnessTarget.includes(w));
+      if (missingWitness.length > 0) sdViolations.push(`(${r.proname}: missing witnesses [${missingWitness.join(',')}])`);
+      if (!r.app_exec || r.public_exec) sdViolations.push(`(${r.proname}: EXECUTE face drifted app=${String(r.app_exec)} public=${String(r.public_exec)})`);
+    }
+    const allowlistMissing = SD_GATE_ALLOWLIST.filter((x) => !flagged.some((r) => r.proname === x.fn)).map((x) => x.fn);
+    const qbankEntry = SD_GATE_ALLOWLIST.filter((x) => x.fn.startsWith('qbank_generation_'));
+    const manifest = readWitness('packages/db/src/principal.ts');
+    const qbankManifestPinned = qbankEntry.every((x) => manifest.includes(`signature: '${x.fn}(`));
+    receipt.sdReaderCensus = {
+      executableSd: sdRows.rowCount ?? -1,
+      flagged: flagged.length,
+      standardGated,
+      nonSuperOwned,
+      allowlist: SD_GATE_ALLOWLIST.map((x) => ({ fn: x.fn, reason: x.reason })),
+      violations: sdViolations,
+    };
+    A('G-SD reader face: superuser-owned app/PUBLIC-executable SD touching user columns/protected tables are gated or exactly the named evidenced allowlist (mut F6 red)',
+      (sdRows.rowCount ?? 0) >= 100 && flagged.length >= 100 && allowlistMissing.length === 0 && sdViolations.length === 0,
+      `sd=${String(sdRows.rowCount)} flagged=${String(flagged.length)} standardGated=${String(standardGated)} nonSuperOwned=${String(nonSuperOwned)} missing=[${allowlistMissing.join(',')}] violations=[${sdViolations.slice(0, 4).join(' ')}]`);
+    A('G-SD qbank bounded readers: manifest-pinned in principal.ts QBANK_CONTROL_DEFINER_FUNCTION_MANIFEST (static §6.1 contract)',
+      qbankManifestPinned, `entries=${String(qbankEntry.length)} pinned=${String(qbankManifestPinned)}`);
+    A('G-SD census receipt: executable/flagged/gated/non-super counts recorded',
+      (sdRows.rowCount ?? 0) > 0 && flagged.length > 0 && standardGated > 0 && nonSuperOwned > 0,
+      `sd=${String(sdRows.rowCount)} flagged=${String(flagged.length)} gated=${String(standardGated)} nonSuper=${String(nonSuperOwned)}`);
+  }
+
+  // ---- G-V (rev r3): view face — falsification P1-3b (mut F7) ----
+  // A non-security_invoker view executes with its OWNER's privileges: a superuser-owned
+  // definer-rights view bypasses RLS on every table its body touches, so body drift is a
+  // cross-owner read channel. Every view/materialized view is enumerated; any whose body
+  // references an attribution column must be security_invoker=true OR exactly a VIEW_EXEMPT
+  // entry (superuser owner + pinned invoker state + EXACT body). Both current views are
+  // exact-pinned, so the falsification's CREATE OR REPLACE widening is red on either.
+  {
+    const viewRows = await admin.query(
+      `SELECT c.relname, c.relkind::text AS kind, pg_get_userbyid(c.relowner) AS owner,
+              ro.rolsuper AS owner_super, coalesce(array_to_string(c.reloptions, ','), '') AS reloptions,
+              regexp_replace(pg_get_viewdef(c.oid, true), '\\s+', ' ', 'g') AS def
+         FROM pg_class c JOIN pg_roles ro ON ro.oid=c.relowner
+        WHERE c.relnamespace='public'::regnamespace AND c.relkind IN ('v','m')
+        ORDER BY c.relname`);
+    interface VRow { relname: string; kind: string; owner: string;
+      // eslint-disable-next-line @typescript-eslint/naming-convention -- pg_roles column is snake_case
+      owner_super: boolean; reloptions: string; def: string }
+    const attrRe = new RegExp(`(^|[^_a-zA-Z])(${[...ATTRIBUTION_COLUMNS, ...ACTOR_BY_COLUMNS].join('|')})([^_a-zA-Z]|$)`);
+    const viewViolations: string[] = [];
+    const viewReceipt: Receipt['viewCensus']['views'] = [];
+    for (const v of viewRows.rows as VRow[]) {
+      const invoker = v.reloptions.includes('security_invoker=true');
+      const touches = attrRe.test(v.def);
+      viewReceipt.push({ name: v.relname, kind: v.kind, owner: v.owner, ownerSuper: v.owner_super, securityInvoker: invoker, touchesAttributionColumns: touches });
+      const exempt = VIEW_EXEMPT.find((x) => x.view === v.relname);
+      if (exempt) {
+        if (invoker !== exempt.invokerMustBe) viewViolations.push(`(${v.relname}: invoker state drifted, want ${String(exempt.invokerMustBe)})`);
+        if (v.owner_super !== true) viewViolations.push(`(${v.relname}: owner not superuser)`);
+        if (v.def.trim() !== exempt.defExact.trim()) viewViolations.push(`(${v.relname}: body drifted from pinned definition)`);
+      } else if (touches && !invoker) {
+        viewViolations.push(`(${v.relname}: references attribution columns, security_invoker=false, not exempted)`);
+      }
+    }
+    receipt.viewCensus.views = viewReceipt;
+    receipt.viewCensus.violations = viewViolations;
+    const exemptOk = VIEW_EXEMPT.every((x) => viewReceipt.some((v) => v.name === x.view));
+    A('G-V view face: attribution-referencing views are security_invoker or exact-pinned named exemptions; view body drift = FAIL (mut F7 red)',
+      (viewRows.rowCount ?? 0) >= 2 && exemptOk && viewViolations.length === 0,
+      `views=${String(viewRows.rowCount)} exempt=${String(VIEW_EXEMPT.length)} violations=[${viewViolations.join(' ')}]`);
+    const visibleRef = await admin.query("SELECT has_table_privilege('app_role','qbank_visible_ref','SELECT') AS p");
+    A('G-V qbank_visible_ref exposed face pinned: app_role SELECT is the only granted path (0016:70), body restricted to system corpus (exact pin above)',
+      visibleRef.rows[0]?.p === true, `appSelect=${String(visibleRef.rows[0]?.p)}`);
   }
 
   // ---- T1: tenant/org dimension — record-only introspection (deferred design extension, not a hole) ----

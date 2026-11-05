@@ -78,9 +78,9 @@ async function main() {
   await admin.query(`CREATE DATABASE ${PROBE_DB}`);
   db = createPool({ purpose: 'event_ttl_probe', database: PROBE_DB });
   const migrations = await runMigrations(db, manifest);
-  A('迁移链全量应用(全链恰一次·链头 0224)', migrations.applied.length === manifest.length
-    && migrations.applied[migrations.applied.length - 1] === '0224_job_gauge_index_friendly');
-  A(`迁移目录文件数=222(现最大 0219 顺延·0220-0224 认领零冲突·实测 ${manifest.length})`, manifest.length === 222);
+  A('迁移链全量应用(全链恰一次·链头 0225)', migrations.applied.length === manifest.length
+    && migrations.applied[migrations.applied.length - 1] === '0225_auth_user_session_owner_rls');
+  A(`迁移目录文件数=223(现最大 0219 顺延·0220-0224 认领零冲突·0225 PRIV01 rev r3 会话表 owner RLS·实测 ${manifest.length})`, manifest.length === 223);
   const fnMeta = await one(
     `SELECT proowner::regrole::text AS owner, prosecdef AS sd FROM pg_proc
       WHERE oid = to_regprocedure('interview_event_retention_purge(integer,integer)')`,

@@ -26,3 +26,29 @@ CREATE POLICY p_user_account_self ON user_account
   FOR ALL TO app_role
   USING (id = current_setting('app.principal_user', true))
   WITH CHECK (id = current_setting('app.principal_user', true));
+
+-- kid/jti 会话表（迁移 0169 AUTHZ-HARDEN 5A-1 簇③ + 0225 PRIV01 rev r3 owner RLS·sql/ 兼容镜像同步）。
+-- jti 单独吊销与登出服务端化的持久真相源；user_id 归属用户。签发/吊销/校验三路径都在
+-- db.asPrincipal(uid) 事务内（apps/api/src/platform/auth-session.ts）。retention_class 取值域恒
+-- 'auth_session'，与 0112 memory retention_class 值域显式分离（R5 命名区分）。无 DELETE——吊销走
+-- UPDATE revoked_at，行保留供审计。
+DROP TABLE IF EXISTS auth_user_session CASCADE;
+
+CREATE TABLE auth_user_session (
+  jti text PRIMARY KEY,
+  user_id text NOT NULL,
+  pwd_epoch int NOT NULL DEFAULT 0,
+  revoked_at timestamptz,
+  retention_class text NOT NULL DEFAULT 'auth_session' CHECK (retention_class IN ('auth_session')),
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX ix_auth_user_session_user ON auth_user_session (user_id);
+
+GRANT SELECT, INSERT, UPDATE ON auth_user_session TO app_role;
+
+ALTER TABLE auth_user_session ENABLE ROW LEVEL SECURITY;
+ALTER TABLE auth_user_session FORCE ROW LEVEL SECURITY;
+CREATE POLICY p_owner ON auth_user_session
+  FOR ALL TO app_role
+  USING (user_id = current_setting('app.principal_user', true))
+  WITH CHECK (user_id = current_setting('app.principal_user', true));
