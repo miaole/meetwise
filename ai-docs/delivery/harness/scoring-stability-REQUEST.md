@@ -1,6 +1,6 @@
-# SCORE-STABILITY REQUEST（meetwise 面试评分稳定性刀：评分 prompt v6→v7 档位锚细化+quote 逐字纪律·真模型评测诊断驱动·含 7 轮实跑读数·起草席落卷）
+# SCORE-STABILITY REQUEST（meetwise 面试评分稳定性刀：评分 prompt v6→v7 档位锚细化+quote 逐字纪律·真模型评测诊断驱动·含 8 轮实跑读数·起草席落卷+rev r1 修订）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草席落卷·派单明令「草稿含代码，之后走双审」——改法面与评测实跑已随起草完成并如实申报·双审未行·alone≠dual·Ban self-approve·双审可否决改法面/读数/卷内容·est live=评测 7 轮实发供应商调用约 410 次≈0.9 元·markers 新增字节 0·⛔push ⛔merge）【状态钉四处：本行+§8+§9+卷尾摘要·同值】
+**Status**: **`draft:awaiting_pre_exec_dual`**（2026-11-06 起草席落卷·同日 rev r1 修订登记源=证伪报告 score-pre-2 见 §9·派单明令「草稿含代码，之后走双审」——改法面与评测实跑已随起草完成并如实申报·双审未行·alone≠dual·Ban self-approve·双审可否决改法面/读数/卷内容·est live=评测 8 轮实发供应商调用约 481 次≈1.1 元（含 rev r1 终配确认 1 轮）·markers 新增字节 0·⛔push ⛔merge）【状态钉四处：本行+§8+§9+卷尾摘要·同值】
 **Date**: 2026-11-06
 **Base**: `origin/main` @ **`d549a497b`**（#212 merge·满足派单「`e282c5ebd` 或更新」·`git fetch origin` EXIT=0）
 **工作区**: worktree `meetwise-score`（branch `line/score-draft`·`git worktree add ../meetwise-score -b line/score-draft origin/main` 亲立·主仓仅此一个 mutation·`pnpm install --frozen-lockfile` EXIT=0）
@@ -18,7 +18,7 @@
 
 ### §0.1 Key 与模型纪律（全程）
 
-`source ~/.meetwise-secrets/load-model-api-key.sh` 后仅 `test -n "$MODEL_API_KEY" && echo KEY_SET` 确认（七轮全 KEY_SET）；**零 Key 值打印、零指纹、未读未建任何 `.env*`**；每轮 `MODEL_FAST_NAME=qwen-plus` 显式。
+`source ~/.meetwise-secrets/load-model-api-key.sh` 后仅 `test -n "$MODEL_API_KEY" && echo KEY_SET` 确认（八轮全 KEY_SET·含 rev r1 E8）；**零 Key 值打印、零指纹、未读未建任何 `.env*`**；每轮 `MODEL_FAST_NAME=qwen-plus` 显式。
 
 ### §0.2 基线读数（E2·v6 prompt·温度缺省 0.2·71 调用 0% 跳过）
 
@@ -57,7 +57,7 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 
 ### §1-A 评分温度缺省 0.2→0 —— **不采纳（已回退）**
 
-- 实测：E3 全量轮（env `MODEL_EVAL_TEMPERATURE=0`·v6 prompt·71 调用）= 27/36 LB 0.589 · ICC 0.810 · 扰动 p90 17.5（PG-限流 SD 28.9 反劣） · MI Δ50 · OT-16 拒。与 E2 对照**无任何段改善**（§0.4-3：温 0 仍翻转）。
+- 实测：E3 全量轮（env `MODEL_EVAL_TEMPERATURE=0`·v6 prompt·71 调用）= 27/36 LB 0.589 · ICC 0.810 · 扰动 p90 20.2（PG-限流 SD 28.9 反劣·rev r1 勘正：起草卷误誊 17.5，以 e3 原始日志为准） · MI Δ50 · OT-16 拒。与 E2 对照**无任何段改善**（§0.4-3：温 0 仍翻转）。
 - 处置：`packages/ai-runtime/src/model-client.ts` 缺省维持 0.2，仅留 2 行注记记录本对照结论（:175-176）；ag18 proof 零 diff 复原（亲跑 EXIT=0）。env 覆盖面保留供 characterization。
 
 ### §1-B 评分 prompt v6→v7：档位锚细化+quote 逐字纪律 —— **采纳**
@@ -82,15 +82,21 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 
 ## §2 验收（四段信号前后对比·诚实申报：**候选线未全达**）
 
-| 段 | 改动前（E2·v6·0.2） | 改动后（终配 v7·0.2·E5/E7） | 线 | 判定 |
+| 段 | 改动前（E2·v6·0.2） | 改动后（终配 v7·0.2·E5/E7/E8） | 线 | 判定 |
 | --- | --- | --- | --- | --- |
-| 严格单调性 | 30/36·LB 0.681 | 28/36·LB 0.619（E5）/ 27/36（E7）·**并列对 6→3** | LB ≥0.90（须 36/36） | **未达**：残余=mediocre 档间漂移（3-4 并列）+quote 拒绝牵连（3-6 对） |
+| 严格单调性 | 30/36·LB 0.681 | 28/36·LB 0.619（E5/E8）/ 27/36（E7）·**并列对 6→3-4** | LB ≥0.90（须 36/36） | **未达**：残余=mediocre 档间漂移（3-4 并列）+quote 拒绝牵连（3-6 对） |
 | ICC(1,1) | 0.953 ✅ | NaN（quote 拒绝破坏档全齐）·无拒绝轮 0.810-0.953 | ≥0.75 | 视轮次（拒绝轮不可判） |
-| 扰动不变性 | p90 17.5 · max 25.0 | **0.0/0.0 三连绿（E4/E5/E7）** | ≤12/≤15 | **转绿 ✅（本刀核心收益）** |
-| 模型相关性 | 12/13·LB 0.667 | E7 13/13·LB 0.772（E5 12/13·OT-16 轮间漂） | 子集 ≥36 且 LB ≥0.90 | **结构性不可达**（子集恒 13<36·§0.6·非本刀可改） |
-| 攻击不变性 | Δmax 50（1/8 对） | Δmax 50（E5 3/8·E7 1/8 对翻转） | Δ≤15 | **未达**：同文本两调用档位翻转仍在（§0.4-1） |
+| 扰动不变性 | p90 17.5 · max 25.0 | **0.0/0.0 四连绿（E4/E5/E7/E8）** | ≤12/≤15 | **转绿 ✅（本刀核心收益）** |
+| 模型相关性 | 12/13·LB 0.667 | E7/E8 13/13·LB 0.772（E5 12/13·OT-16 轮间漂） | 子集 ≥36 且 LB ≥0.90 | **结构性不可达**（子集恒 13<36·§0.6·非本刀可改） |
+| 攻击不变性 | Δmax 50（1/8 对） | Δmax 50（E5 3/8·E7 1/8·E8 3/8 对翻转） | Δ≤15 | **未达**：同文本两调用档位翻转仍在（§0.4-1） |
 
-剥离精确率 8/8 五轮全过（预处理面零回归）。**结论如实**：扰动段转绿+单调性并列对减半是本刀可复现收益；候选线（单调性 LB≥0.90）差距=quote 拒绝（≈2-4%/调用·整档丢失）+同文本档位翻转（6-19%/对）+mediocre/nonanswer 3 档碰撞，三者均非「再调一句 prompt」可根除，须 §9 后继刀。
+剥离精确率 8/8 六轮全过（预处理面零回归）。**结论如实**：扰动段转绿+单调性并列对减半是本刀可复现收益；候选线（单调性 LB≥0.90）差距=quote 拒绝（≈2-4%/调用·整档丢失）+同文本档位翻转（6-19%/对）+mediocre/nonanswer 3 档碰撞，三者均非「再调一句 prompt」可根除，须 §9 后继刀。
+
+### §2.1 终配字节确认（rev r1·E8·证伪 P1-2 合并前置）
+
+- **绑定**：跑前亲记本轮 `packages/ai-runtime/src/prompts.ts` sha256=`ed58bb9c16dc8928d4cace9bb3385eea8e854dc486f7e42b4a0d7fca3951d6f8`（git blob sha1 `eaaa434e8f718aa2e0509ce3e5f0f1dc029fbbbc`=§4 交付 blob 亲等）；同轮收据 sourceDigests 首次带上该值与 `model-client.ts` sha256=`b24f3143…`（harness `scripts/run-e2e-isolated.mjs` scoring:eval:raw 源清单增补两行·in-place 零新增受管文件）——评测读数与交付 v7 字节自此绑定（此前 E4/E5/E7 均无 prompts.ts digest 无法绑定）。
+- **E8 读数**（终配 v7·0.2·71/71 调用 0% 跳过·EXIT=0·恰跑 1 轮）：严格单调性 28/36=0.778·LB 0.619·并列 4；扰动 **0.0/0.0/0.0**（四连绿第 4 绿）；ICC NaN（评分可信组 quote 拒 2）；相关性 18/18·模型子集 13/13 LB 0.772；剥离 8/8·Δmax 50（3/8 对翻转）——与 E5/E7 同形，三连绿证据链绑死交付字节。
+- **收据**：`receipts/score-stability/e8-final-bytes-confirm.log`＋`.tmp/isolated-proof-receipts/2026-11-05T20-45-27-…json`（target scoring:eval:raw·outcome=passed·exitCode=0·20:42:36Z→20:45:27Z）。
 
 ## §3 泛化性论证（为何非逐题调 prompt）
 
@@ -109,7 +115,7 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 | `EVALUATION_RUBRIC_VERSION` | `apps/worker/src/interview-service.ts:133` | 派生自注册表**自动随升**（零改） |
 | 温度注记 | `packages/ai-runtime/src/model-client.ts:175-176` | +2 行 A 候选对照结论（行为零变·ag18 零 diff） |
 
-## §5 评测运行台账（派单上限 8 轮·实跑 7 轮·红的也记）
+## §5 评测运行台账（派单上限 8 轮·实跑 8 轮恰等·红的也记）
 
 | 轮 | 配置 | 调用（请求/实发） | 结果 |
 | --- | --- | --- | --- |
@@ -120,16 +126,18 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 | E5 | v7·0.2（B-only 消融） | 71/71 | 28/36·扰动 0/0/0·A 非必要 |
 | E6 | v7·0.2（终配确认） | 71/24 | **红·INCONCLUSIVE**：同 E1 基础设施类中断（skip 68%） |
 | E7 | v7·0.2（终配确认 2） | 71/71 | 27/36·扰动 0/0/0 三连绿·相关性 18/18·评分可信组 quote 拒 3 |
+| E8 | v7·0.2（终配字节确认·rev r1） | 71/71 | 28/36·扰动 0/0/0 四连绿·读数绑定交付 v7 字节（§2.1·sha256 `ed58bb9c…`） |
 
-实发供应商调用合计 410（≈0.9 元·按 0.16 元/71 调用价算）。基础设施红轮 2/7 的根因（隔离 PG `db_pool_error: Connection terminated unexpectedly`）与本刀改法面无关（E2-E5/E7 同环境全量跑通），如实承登供 nightly 观测。
+实发供应商调用合计 481（≈1.1 元·按 0.16 元/71 调用价算）。基础设施红轮 2/8 的根因（隔离 PG `db_pool_error: Connection terminated unexpectedly`）与本刀改法面无关（E2-E5/E7/E8 同环境全量跑通），如实承登供 nightly 观测。
 
 ## §6 门与 proof（亲跑实录）
 
 | 门 | 结果 |
 | --- | --- |
-| `pnpm scoring-eval:prove`（eval-metrics 度量数学） | EXIT=0 ✅ |
-| ag18 采样温度 proof（隔离） | EXIT=0 ✅（回退后零 diff 复跑） |
-| ag19 prompt 版本 proof（隔离·新 blob） | EXIT=0 ✅ |
+| `pnpm scoring-eval:prove`（eval-metrics 度量数学） | EXIT=0 ✅（rev r1 复跑同值） |
+| ag18 采样温度 proof（隔离） | EXIT=0 ✅（回退后零 diff 复跑·rev r1 终配态复跑 20:41:16Z 缺省 0.2 EXIT=0） |
+| ag19 prompt 版本 proof（隔离·新 blob） | EXIT=0 ✅（rev r1 终配态复跑 20:41:37Z blob=`eaaa434e…` EXIT=0） |
+| `pnpm scoring:eval` E8 终配字节确认（隔离·71/71） | EXIT=0 ✅（rev r1·读数与收据绑定见 §2.1） |
 | worker `prove:scoring-integrity`（隔离） | EXIT=0 ✅ |
 | worker `prove:scoring-golden` / `prove:scoring-eval-key` / `prove:security` / `bill1-topic-fields:prove`（隔离） | 全 EXIT=0 ✅ |
 | ai-runtime `prove:diag-honesty` | EXIT=0 ✅ |
@@ -137,11 +145,14 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 | typecheck（ai-runtime/db/worker） | 全 EXIT=0 ✅ |
 | lint 计数 vs 帽（root 5410 / api 未触 / domain 未触 / ai-runtime 628 / db 1042 / worker 999） | 恰等不超 ✅（0 errors） |
 | `pnpm arch` | EXIT=0（0 errors·8 warnings=基线常态） |
-| `node scripts/provider-egress-inventory.mjs` | EXIT=0（401 环境引用·本刀零新增 env 引用） |
-| `node scripts/ai-docs/check-docs.mjs` | EXIT=0 · scanned 2491=cap 2491 恰等（本卷落卷后亲跑） |
-| `node scripts/ai-docs/public-text-policy.proof.mjs` | 12/12 ✅（cap 2_491 面行使） |
-| markers | 改动集 16 文件五类标记词+冲突标记 **0 命中** ✅ |
+| `node scripts/provider-egress-inventory.mjs` | EXIT=0（401 环境引用·本刀零新增 env 引用·rev r1 复跑同值） |
+| root lint（`--max-warnings 5410`） | EXIT=0 · 0 errors 5410 warnings=基线恰等（rev r1 复跑·rev 触面仅 harness 脚本+卷+收据零包码） |
+| `node scripts/ai-docs/check-docs.mjs` | EXIT=0 · scanned 2491=cap 2491 恰等（本卷落卷后亲跑·rev r1 复跑恰等） |
+| `node scripts/ai-docs/public-text-policy.proof.mjs` | 12/12 ✅（cap 2_491 面行使·rev r1 复跑 12/12） |
+| markers | 改动集 20 文件（draft 16+rev r1 增 4 路径=harness 脚本+候选态存证 2 件+e8 收据）五类标记词+冲突标记 **0 命中** ✅ |
 | 浏览器 UI runner | 未跑（派单免） |
+
+**勘误注（rev r1·随卷收据换装·史录保留不删除）**：随卷 `ag18-proof-run1.log`/`ag19-proof-run1.log` 两件起草时误装为**候选态运行**——ag18（收据时点 19:34:53Z）记「mock-interview.evaluate 缺省 temperature===0（实际 0）」「undefined 得 0（SCORE-STABILITY 缺省 0.2→0）」；ag19（收据时点 19:35:08Z）记「git blob sha1=6d456de659e5e233a470cdc9522b02a5c959b5ac」≠交付申报 `eaaa434e…`（§4）——与卷文「回退后零 diff」「新 blob 重钉」互斥（证伪席 P1-1 指出）。rev r1 已将两件换装为**终配态亲跑 stdout**（ag18 20:41:16Z 缺省 0.2·ag19 20:41:37Z blob=`eaaa434e…`·均隔离 EXIT=0·与 .tmp/isolated-proof-receipts 19:48:55/19:49:07 终态首证及证伪席复跑 20:24:57Z/20:25:08Z 同 digest 亲等）；错装旧件整件保留为同目录 `ag18-proof-run1.candidate-state.log`/`ag19-proof-run1.candidate-state.log` 史录（上引两行原文俱在）。终配态运行的存在性先于 rev r1 已由 .tmp 19:48/19:49 收据（passed·prompts sha256=`ed58bb9c…`=交付树亲等）与证伪席复跑 EXIT=0 亲证。
 
 ## §7 两 policy cap 恰等步进（链注追加·四联动点恰等·不改写既有注记）
 
@@ -150,6 +161,7 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 - `scripts/ai-docs/public-text-policy.mjs`：链区顶部追加 `CAP-SANCTION-2492` 注记一行（:313·既有注记逐字零改写）+ `MAX_FILES = 2_491`（:314）。
 - `scripts/ai-docs/public-text-policy.proof.mjs`：链区追加 `CAP-SANCTION-2492` 注记（:506）+ 四联动点恰等改——loop `i < 2_491`（:452）/ atCap `scannedFiles 2_491`（:459）/ 越限 fixture `f-2491.md`（:507）/ 越限错误 `PTP_FILE_LIMIT:2492`（:460-461,:510）。
 - PTP 12/12 对 2_491 亲跑 EXIT=0（§6）。
+- **rev r1（2026-11-06）零新增受管文件**：触面=本卷 in-place+harness 脚本 in-place+收据 .log（∉TEXT_EXTENSIONS 不计）→ **cap 2491 不动**（check-docs scanned 2491=cap 复跑在证 §6）。
 
 ## §8 停止条件与状态
 
@@ -159,7 +171,8 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 ## §9 在飞/偏离/后继建议
 
 - **在飞登记**：`fastm-draft`（快模型缺省修复刀·未并主线——本刀显式 `MODEL_FAST_NAME=qwen-plus` 与其修法语义一致；并线时 `scoring-eval.ts` 相邻面按 dual-keep 先例形承登）·`ksw/xs/sbg/uc31-rev` 各 ahead≥1 零触本刀触面。
-- **偏离任务书清单**：①评测实跑 7 轮（派单上限 8 内·含 2 基础设施红轮如实记）；②温度候选实测后不采纳（§1-A·回退有据）；③中位数候选实测算账后不采纳（§1-C）；④收据 9 件落 `ai-docs/delivery/receipts/score-stability/`（.log 非扫描面）；⑤零其余偏离——评测门阈值/用例零字节、ag18 零 diff、pins 十一值零翻。
+- **rev r1 注记（2026-11-06·登记源=证伪报告 `meetwise/.tmp/reviews/score-pre-2.md`·判定 PASS 带 P1×2 合并前置·P2×8 登记）**：①**P1-1 收据错装勘误**——随卷 ag18/ag19 两件换装终配态 stdout+本条勘误注在 §6，错装旧件整件保留 candidate-state 史录不删；②**P1-2 终配确认**——E8 一轮恰跑（§2.1·71 调用≈0.16 元·红了不重跑未触发·EXIT=0），收据源清单增补 prompts/model-client 两行（harness in-place）；③**P2-① 勘正**——§1-A E3 扰动 p90 17.5→20.2（以原始日志为准）；④其余 P2 观察（②③④⑤⑥⑦⑧：E3 Δ50 对数/分母口径/good→exceeds 抬档/below 锚含混带/quote 纪律动机句/OT-16 四连拒/路由子集扩样后继刀）**登记未行使**，随双审面供裁。零新增受管文件·cap 不动（§7）；Status 保持 `draft:awaiting_pre_exec_dual` 不变。
+- **偏离任务书清单**：①评测实跑 8 轮=派单上限恰等（含 2 基础设施红轮与 rev r1 终配确认 1 轮·如实记）；②温度候选实测后不采纳（§1-A·回退有据）；③中位数候选实测算账后不采纳（§1-C）；④收据 12 件落 `ai-docs/delivery/receipts/score-stability/`（rev r1 换装 2+候选态存证 2+终配确认 1·.log 非扫描面）；⑤零其余偏离——评测门阈值/用例零字节、ag18 零 diff、pins 十一值零翻。
 - **后继建议（按优先序）**：① **quote 规范化匹配刀**：`validateEvaluationEvidence` 逐字匹配加白名单归一（空白折叠/全半角宽度），一并重验 0103 span 契约链（score-span-answer/scoring-report-integrity 面）——对症 ≈2-4%/调用的整档丢失，是单调性/ICC/相关性三段的公共根；② **多次评分中位数刀**（N 与 billing 归集不变量重验随刀）；③ mediocre/中档判别双盲人工锚定（CALIBRATION_STATUS 未建立面不变）；④ nightly 隔离 PG 池中断观测（E1/E6 同根因）。
 - **Status**: **`draft:awaiting_pre_exec_dual`**（同 §8·四处状态钉之三）。
 
@@ -167,6 +180,6 @@ Wilson95% 下界在 n=36 时须 **36/36 全对**才 ≥0.90（36/36→0.9036；3
 
 ### 卷尾摘要
 
-评分稳定性刀落卷：v7 档位锚+quote 逐字纪律采纳（扰动段 p90 17.5→0.0 三连绿转绿、单调性并列对 6→3），温度 0 与多次评分中位数两候选实测后不采纳（读数与成本在卷）；**候选线未达如实申报**——严格单调性 28/36（LB 0.619<0.90）、攻击 Δmax 50、相关性线结构性不可达（子集 13<36）；差距根因=quote 拒绝/同文本档位翻转/3 档碰撞，后继刀与人工校准建议在 §9。7 轮评测 410 次调用≈0.9 元全记账。**Status**: **`draft:awaiting_pre_exec_dual`**（四处状态钉之四·alone≠dual·Ban self-approve·⛔push）。
+评分稳定性刀落卷：v7 档位锚+quote 逐字纪律采纳（扰动段 p90 17.5→0.0 四连绿转绿、单调性并列对 6→3-4），温度 0 与多次评分中位数两候选实测后不采纳（读数与成本在卷）；**候选线未达如实申报**——严格单调性 28/36（LB 0.619<0.90）、攻击 Δmax 50、相关性线结构性不可达（子集 13<36）；差距根因=quote 拒绝/同文本档位翻转/3 档碰撞，后继刀与人工校准建议在 §9。8 轮评测 481 次调用≈1.1 元全记账（含 rev r1 终配字节确认 E8·读数绑定交付 v7 sha256 `ed58bb9c…`·收据勘误注见 §6）。**Status**: **`draft:awaiting_pre_exec_dual`**（四处状态钉之四·alone≠dual·Ban self-approve·⛔push）。
 
 pins（十一值照抄·零翻转）重温：haStatus=NOT_HA · releaseEvidence=false · claimProductionHA=false · gR45Closed=true · coveredCount=8 · ms3EqualsR4Closed=false · PG-retained · 公开 DELETE=503 · g7SuiteGreen=false · r1Closed=false · actualSpendCny=null。

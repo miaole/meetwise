@@ -1,6 +1,6 @@
 [R5-MARKED-RED] E2E_ISOLATION_STACK=pgvector-legacy (dual-track; SOLE_STACK=mysql-qdrant-redis is a dual-track code-path label ≠ product stack truth) E2E_PG_IMAGE=pgvector/pgvector:pg16 is a legacy pgvector isolation fixture — isolated test infra narration, NOT stack truth / NOT cutover evidence (product stack pin = ai-docs/delivery/adr-postgres-retained.md: Postgres · PostgresSaver · pgvector). Local green ≠ RAG migrated. releaseEvidence=false · Not HA · 本绿≠已迁 · local green ≠ HA · need multi-instance + fault-inject for releaseEvidence.
 E2E_POSTGRES_READY label=boot consecutive=3 attempt=4
-E2E isolated PostgreSQL: meetwise-e2e-78622-1793907298333 on 127.0.0.1:33307
+E2E isolated PostgreSQL: meetwise-e2e-26946-1793911283839 on 127.0.0.1:33470
 E2E_ISO_STACK_NOTE isolated shell = test infrastructure only: isolated test PG ≠ product stack change ≠ cutover evidence; product stack pin = ai-docs/delivery/adr-postgres-retained.md (Postgres retained · PostgresSaver · pgvector). releaseEvidence=false · Not HA.
 
 > @meetwise/db@0.0.0 migrate /Users/miaole/Desktop/golucky/meetwise-score/packages/db
@@ -15,7 +15,7 @@ E2E_POSTGRES_READY label=pre-prove consecutive=3 attempt=3
 
 PASS  promptVersions()=八 service 版本对表逐字（单一真相在案）
 PASS  getPrompt(service).version 八值逐字（透传源=注册表常量）
-PASS  prompts.ts 字节恒定面（git blob sha1=6d456de659e5e233a470cdc9522b02a5c959b5ac·REGISTRY v8 随翻重钉(#51)·AG-20 单源提取恒等·blob=6d456de659e5e233a470cdc9522b02a5c959b5ac·SCORE-STABILITY 刀 evaluate v6→v7（档位锚+quote 纪律）随翻重钉·前值 96acf9c3414f8dd19b781d795f8d04e779e04c5c 史录并留）
+PASS  prompts.ts 字节恒定面（git blob sha1=eaaa434e8f718aa2e0509ce3e5f0f1dc029fbbbc·REGISTRY v8 随翻重钉(#51)·AG-20 单源提取恒等·blob=eaaa434e8f718aa2e0509ce3e5f0f1dc029fbbbc·SCORE-STABILITY 刀 evaluate v6→v7（档位锚+quote 纪律）随翻重钉·前值 96acf9c3414f8dd19b781d795f8d04e779e04c5c 史录并留）
 PASS  源级门:生产 src await invoke({ 站点机检清点=恰 8(worker+api+ai-runtime·test/proof 排除)
 PASS  源级门:每站点字面量块含 service:(非空断言源级落位·运行时零 throw·API 契约可选性维持)
 PASS  源级门:五补全值∈promptVersions() 键集(注册表键逐字·AG-19 prompt_version 顺势点亮)
@@ -65,4 +65,4 @@ PASS  digest 零变负证:同 service/system/userData 双 invoke 显式版本相
 PASS  digest 正控:system 变→request_digest 变(列真载语义摘要·非恒等凑数)
 
 ✓ AG-19 prompt 版本观测落库(透传对表+全 outcome 落库+metric 标签+digest 零变)全部通过
-LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-05T19-35-08-061Z-78622-decf3f8b-b149-4592-8924-12ddd92b0211.json release_evidence=false
+LOCAL_ISOLATED_PROOF_RECEIPT file=.tmp/isolated-proof-receipts/2026-11-05T20-41-37-570Z-26946-7d225b4e-957d-4db2-a734-c81f612785d0.json release_evidence=false
