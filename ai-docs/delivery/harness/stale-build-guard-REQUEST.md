@@ -1,6 +1,6 @@
 # STALE-BUILD-GUARD REQUEST（UI runner 误复用无压测源生产构建假红修复·STALE_BUILD_GUARD 增「压测意图判」·起草+落卷席）
 
-**Status**: **`draft:awaiting_pre_exec_dual`**（起草+修法+真机验证+落卷同席落卷·pre-exec 双审两独立外席待派·alone≠dual·Dual PASS ≠ 开工·Ban self-approve·est live=1 臂（模型 Key 隔离臂真机 UI run·零消耗记 §9-③）·markers=0·⛔push⛔merge 主线）
+**Status**: **`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 立项落卷·修订后会签 sbg-r1 PASS+协调方 EXEC 授权随令·fetch 零漂移 rebase 不适用·届时 tip 重 pin 零漂移·会签两 P2 吸收·门矩阵全绿读数 §9-⑦·真机不补跑理由 §9-⑦-5·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve·est live=1 臂已行使（零新增消耗）·markers=0·前值 `draft:awaiting_pre_exec_dual` @draft `abfb78659` 史录保留·⛔push⛔merge 主线）
 
 > 任务类型：runner 测试基建面守卫缺陷修复（STALE_BUILD_GUARD 旧判单一 BUILD_ID mtime 新鲜 → 误复用 `verify:e2e-performance` 步1 无 `E2E_UI_STRESS` 生产构建 → events 路由压测分支死码剔除 → stream-window 压测 SSE 零帧饿死假红；修法=复用前增「意图判」递归扫编译产物压测载荷串·缺源即重建·步1 生产构建零触不被测试开关污染）。
 > 立项出处：协调方派单 brief（2026-11-05 SBG 起草席·「本波唯一被允许跑浏览器 UI runner 的席位」随令·修法候选「守卫不只看时间·还判断既有构建是否符合本次意图（E2E_UI_STRESS=1 时检查编译产物是否含压测源·缺失即强制重建）」优先采纳随令授权）。
@@ -118,7 +118,7 @@ B 臂系真机 UI run（隔离 PG+隔离栈+真浏览器·按派单随令行使�
 
 ## §8 STOP（开工三条款 + 停止条件四类）
 
-**STOP · `draft:awaiting_pre_exec_dual` · 2026-11-05 起草+落卷即停 · pre-exec 双审两独立外席待派 · alone≠dual · Dual PASS ≠ 开工（PASS 只过审·翻面/nail 归协调方）· 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 修法清单与 §0.2 检测串定稿与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·漂移只更行号不改结论）。
+**STOP · `executed:awaiting_post_prove_dual` · 2026-11-06 EXEC 立项落卷（前值 `draft:awaiting_pre_exec_dual`·原句「2026-11-05 起草+落卷即停 · pre-exec 双审两独立外席待派」byte 史录留本注）· post-prove 双审两独立外席待派 · alone≠dual · nail/批表/行翻面权归协调方 · 本 commit 不预 claim 任何 post-commit EXIT。** 开工三条款：①pre-exec 双审两外席 **BOTH PASS 落卷**；②**协调方明示授权**（committed SHA 重钉）；③EXEC 立项**不得改 §1 修法清单与 §0.2 检测串定稿与 §5 Ban/pins**（改则回炉重审·立项时照 §0 逐条重 pin·漂移只更行号不改结论）——三条款 2026-11-06 EXEC 立项时已兑现：①修订后会签 sbg-r1 PASS 落卷 ②协调方 EXEC 授权随令 ③照 §0 重 pin 零漂移（详 §9-⑦）。
 
 **停止条件（四类·命中即停手上报·Ban 就地处置）——本席起草期逐条核：零命中**：
 
@@ -188,7 +188,7 @@ B 臂系真机 UI run（隔离 PG+隔离栈+真浏览器·按派单随令行使�
    〔主会话真机读数补入 2026-11-06：前提核毕——工作区恰本刀 5 件改动、无其他树构建/浏览器进程、docker OK；`pnpm -C apps/web build` EXIT=0（无 E2E_UI_STRESS·约 27s）后至 commit 零落新 commit。〕
    - **run1（判定重建臂）**：`G7_FREETIER_REPROVE=1 E2E_UI_GREP='10k SSE replay|variant:' pnpm e2e:ui:isolated`，EXIT=0，全程约 74s。关键行：`E2E-UI: STALE_BUILD_GUARD 既有构建缺压测源(.next/server 未见 e2e-guard-only 压测载荷·缺 压力回放题/进度预演题/静默连接题·疑无 E2E_UI_STRESS 生产构建)→ 强制重建(防误复用后压测 SSE 零帧假红)`；`E2E-UI: STALE_BUILD_GUARD 判定重建(陈旧/缺压测源) → 强制 next build…`；`6 passed (25.1s)`。收据 `ai-docs/delivery/receipts/stale-build-guard/ui-run2-stream-window-2026-11-06.log`。
    - **run2（复用臂）**：不重建同命令再跑，EXIT=0，全程约 40s。关键行：零 STALE_BUILD_GUARD 行（直接 `启 web(production next start…)`），`6 passed (25.2s)`。收据 `ai-docs/delivery/receipts/stale-build-guard/ui-run3-stream-window-2026-11-06.log`。
-   - **blob 绑定**（`git hash-object` @ `93e32e157`）：`scripts/run-e2e-ui.mjs`=`20b6ab180349fe6bffca70da007cb2cdee6e39e1`；`scripts/e2e-platform/stale-build-guard.mjs`=`ea6bfd87b708e975c410663cc43faec9571cfdc9`。两收据落卷后 re-run check-docs EXIT=0 scanned=cap；落卷与 commit 间不再跑 runner。
+   - **blob 绑定**（`git hash-object` @ 修订后工作树=abfb78659 提交 blob·〔会签 P2-② 措辞更正 2026-11-06：原记「@ `93e32e157`」系指修订后工作树文件而非该提交内容·绑定值不受影响·EXEC 立项席现树复核两 hash 逐字相等〕）：`scripts/run-e2e-ui.mjs`=`20b6ab180349fe6bffca70da007cb2cdee6e39e1`；`scripts/e2e-platform/stale-build-guard.mjs`=`ea6bfd87b708e975c410663cc43faec9571cfdc9`。两收据落卷后 re-run check-docs EXIT=0 scanned=cap；落卷与 commit 间不再跑 runner。
 
 6. **两路审查 P2 处置**（sbg-1 记 1-，sbg-2 记 2-）：
 
@@ -213,8 +213,16 @@ B 臂系真机 UI run（隔离 PG+隔离栈+真浏览器·按派单随令行使�
 
 8. **后继**：本次改动须走差量复审。作者不得自签，本条读数不等于审核通过。真机读数与 commit 待主会话补。releaseEvidence=false。
 
-**STOP**：维持 **`draft:awaiting_pre_exec_dual`**（pre-exec 双审两独立外席待派·alone≠dual·Dual PASS ≠ 开工·Ban self-approve）。
+**⑦ EXEC 立项记录（2026-11-06·协调方 EXEC 授权随令·本席行使·本节 append-only 不改既有字）**：
+1. **fetch/rebase**：`git fetch origin` EXIT=0（一次过·未需 HTTP/1.1 重试）· `git rev-parse origin/main`=`92a82a944` 与 §0.0 基线恒等（在线支付线未并）→ **届值零前进·rebase 不适用**（零冲突处置零 cap 重算面·cap 2489 维持恰等）· 工作树 `git status --porcelain` 空树净。
+2. **届时 tip 重 pin**：tip=本支 `abfb78659`（=会签评审对象同 SHA）· §0 全量锚逐条复核**零漂移**：next.config define :18 / events 门 :103 / static-guards 正则 :259-263 / secret-redaction 合同 :52-59 / package.json :460 / perf 套件步1 生产构建形（`E2E_UI_STRESS` 词面 0 命中零触）/ policy `MAX_FILES=2_489` :311+proof 联动四点（:452 `i < 2_489`/:459 atCap 2_489/:503 f-2489.md/:461 FILE_LIMIT:2490）/ ci.yml proof 步紧跟 static-guards / runner 界标 :255-:291+`E2E_UI_STRESS:'1'` :269/:289 / 模块三串 :42+导出 :50/:103/:132——机制结论零变·停止条件四类零命中。
+3. **会签两 P2 吸收（只改卷文字）**：P2-① 收据无显式 EXIT 行——run1/run2/run3 三收据均止于 `6 passed`（EXIT=0 系 Playwright 语义推断非显式读数）·**后继收据应带 `EXIT=$?` 尾行**·已落盘收据不回改；P2-② blob 绑定措辞——§9-⑥-5 更正为「@ 修订后工作树（=abfb78659 提交 blob）」原括注留史录（绑定值经会签与本席双验逐字相等·不受影响）。
+4. **门矩阵（EXEC 终跑读数）**：新 proof EXIT=0 **81 PASS**；static-guards EXIT=0 runners=6 helpers=21 flags=9 aiPaths=6；g6 EXIT=0；egress EXIT=0 adapters=5 operations=10 pairs=55 refs=401；check-docs EXIT=0 **scanned 2489 = cap 2489 恰等**（EXEC 期零新增受管文件）；PTP EXIT=0 **12/12**；markers 五类（冲突标记+TODO/FIXME/XXX/HACK·i6-239 :152-163 形）改动集 11 文件 **0 命中**；`node --check` 三脚本（runner/模块/proof）全 PARSE-OK。
+5. **真机不补跑（理由在卷）**：rebase 未发生（origin/main 恒等 `92a82a944`）→ EXEC 期 `scripts/run-e2e-ui.mjs`/`scripts/e2e-platform/`/`apps/web` 零字节改动；且现树 runner blob=`20b6ab18…`、模块 blob=`ea6bfd87…`（`git hash-object` 亲算）与 §9-⑥-5 绑定值及 `abfb78659` 提交 blob（`git ls-tree` 亲证）三方逐字相等=run2/run3 收据所绑代码即现树代码·§9-⑥-5 真机读数（缺源告警+判定重建+`6 passed`、复用臂零 STALE_BUILD_GUARD 行）继续有效·不再消耗 UI runner 预算。
+6. **状态转轨**：四处 live 状态 pin（Status 头/§8 STOP/文末 STOP/卷尾摘要）`draft:awaiting_pre_exec_dual`→**`executed:awaiting_post_prove_dual`**（前值 @draft `abfb78659` 史录保留·git 历史在案）；待 post-prove 双审两独立外席·nail/批表/行翻面权归协调方。
+
+**STOP**：**`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 立项落卷·前值 `draft:awaiting_pre_exec_dual` 史录保留·post-prove 双审两独立外席待派·alone≠dual·Ban self-approve）。
 
 ---
 
-**卷尾 STOP · `draft:awaiting_pre_exec_dual` · 2026-11-05**（Status 头/§8/§9/卷尾四处同值·pre-exec 双审两独立外席待派·alone≠dual·Dual PASS ≠ 开工·⛔push⛔merge 主线·一切改动只交付本工作树）
+**卷尾 STOP · `executed:awaiting_post_prove_dual` · 2026-11-06**（Status 头/§8/§9/卷尾四处同值·前值 `draft:awaiting_pre_exec_dual` @draft `abfb78659` 史录保留·EXEC 立项读数 §9-⑦·post-prove 双审两独立外席待派·alone≠dual·⛔push⛔merge 主线·一切改动只交付本工作树）
