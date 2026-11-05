@@ -186,9 +186,11 @@ restore_and_fail() {
     exit 1
   fi
   cat "$BACKUP" > "$ENV_FILE"
+  # 快照还写完即刻删除:回滚 up 若被信号/崩溃打断,完整 .env 凭据副本(mktemp 0600)不再
+  # 滞留 /tmp 按失败次数累积(泄漏窗收窄到 cat 一行;rm 原在 up 之后,回滚中途被杀即漏)。
+  rm -f "$BACKUP"
   # 尽力把上一版重新拉起;回滚本身失败也如实退非零,让部署红着可重试。
   dc up -d --no-deps --wait --wait-timeout 180 api worker web >&2 || echo "rollback_restart_failed(需人工介入)" >&2
-  rm -f "$BACKUP"
   exit 1
 }
 trap restore_and_fail ERR HUP TERM INT
