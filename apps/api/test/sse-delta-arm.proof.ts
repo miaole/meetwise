@@ -309,6 +309,45 @@ async function main() {
     await notify.stop();
   }
 
+  // ===== #57 取数抛错留痕：fetchRejected 出口结构化日志（过滤器对已发响应 headersSent 静默
+  // return,pump 是唯一带流上下文的补位出口——streamKey/lastSeq/err 三键走 reply.log pino 落卷）=====
+  {
+    let client: Client | undefined;
+    const notify = new SseNotifyService({ connect: async () => { client = fakePgClient(); return client; }, log: () => {}, random: () => 0 });
+    const sink = fakeSink();
+    const boom = new Error('fetch_more_rejected');
+    let destroyCount = 0;
+    let destroyed: unknown;
+    (sink.reply as { raw: { destroy?: (err?: unknown) => void } }).raw.destroy = (err) => { destroyCount += 1; destroyed = err; };
+    const logCalls: Array<{ label: string; payload: Record<string, unknown> }> = [];
+    (sink.reply as { log?: unknown }).log = {
+      error: (payload: Record<string, unknown>, label: string) => { logCalls.push({ label, payload }); },
+    };
+    await Promise.race([notify.whenHealthy(), sleep(3000)]);
+    const finished = startPump(sink, {
+      streamKey: 'CUR_FETCH_ERR', notify, client: client as unknown as EventEmitter, fallbackMsHealthy: 200,
+      fetchMore: async () => { throw boom; },
+    });
+    let caught: unknown;
+    const rejected = await Promise.race([
+      finished.then(() => false, (err) => { caught = err; return true; }),
+      sleep(3000).then(() => false),
+    ]);
+    const firstLog = logCalls[0];
+    A('取数抛错留痕：结构化日志 sse_fetch_rejected 落卷恰一次（streamKey/lastSeq=0/err.message 三键齐）',
+      rejected && caught === boom
+      && logCalls.length === 1
+      && firstLog !== undefined
+      && firstLog.label === 'sse_fetch_rejected'
+      && firstLog.payload.streamKey === 'CUR_FETCH_ERR'
+      && firstLog.payload.lastSeq === 0
+      && (firstLog.payload.err as { message?: string } | undefined)?.message === 'fetch_more_rejected',
+      { rejected, caught: (caught as Error | undefined)?.message, logCalls });
+    A('取数抛错留痕：destroy 恰一次携原错误（既有语义零改）', destroyCount === 1 && destroyed === boom, { destroyCount });
+    sink.reqRaw.emit('close');  // 泵已随 rejection 退出:close 仅作登记清理,不重复观察已处理 rejection
+    await notify.stop();
+  }
+
   console.log(failures ? `\n✗ ${failures} 项失败` : '\n✓ TOKSTREAM S4b api delta 臂矩阵全部通过（零 DB 零模型外呼·actualSpendCny=null）');
   process.exit(failures ? 1 : 0);
 }
