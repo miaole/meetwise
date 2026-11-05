@@ -987,3 +987,32 @@
 
 
 > **2026-11-05 · GAP-ROUTE-RETRY-UNKNOWN-REBILL 新缺陷登记（rtx 路由分类事务刀 EXEC 期 pre-exec 双审 P2-1 上报·append-only 文件尾落位·本行零翻面零洗既有行）**: 用户显式 `retryJobRoute`（#219 裁决③）在 `route_unresolved/dispatched_unknown` sticky 后以未变内容写**新 revision**（同 canonical digest → 新幂等键 `job-route-classify:{jobId}:{rev+1}:{digest}`）绕开 invoke durable claim → 全新真实派发；首账 `ai_model_invocation.status=unknown`（`model_execution_timeout`/429/5xx→transient+unknown，provider 可能已计费）时构成**可能的第二次真实计费**。双树探针（隔离 PG+scripted ModelClient·基线 `92a82a944` 与 rtx 支读数逐值恒等 tick1 sticky/inv1=unknown/retry=retried@rev2/inv2=succeeded/providerCalls=2）判**修复前既有·非本刀引入放大**（旧代码 dispatched_unknown 同样单事务落 sticky unresolved）；rtx 拆相刀反而消除修复前「池杀→sticky known_not_sent(succeeded∧不可回放·账已结)→retry 二次真呼」额外子路径。影响面=产品 retry 出口用户触发；建议修法（后继刀）：retry 前核对同内容前账 unknown 时二次确认/抑制+retry 文案披露（与 route-classify-tx 卷 §1.2-③ 运维告诫同源），登记席=rtx 路由分类事务刀 EXEC。
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:37` 行原文零字节改写·前值史录在注·沿 `:805`/`:807` 先例形）】: 行值 **P2 OPEN→CLOSED**——否定表在树亲证（gatherer `:73-100` STATUS 臂邻接否定·独立于 banNear 闭口表）·partial 误匹配「not partial」旧缺陷构造性消除·翻面行使源=协调方 EXEC 授权随令（起草卷 harness/ledger-flip-a-REQUEST.md §1-B）·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:60` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**（行文转 PG-retained 口径）——Qdrant 方向已随 ADR 停向（`adr-postgres-retained.md:10-12` 亲读）·pgvector 行级擦除本地证明载体在树（vector-plane-erasure.proof.ts+package.json `:536-537`·卷载 prove 33/33 收据承登·本刀零实跑）——云上/备份残面归 `:64` 如实注（本行不吞并云面）·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:63` 行原文零字节改写·前值史录在注）】: 行值 **P1 OPEN→CLOSED**——banner 对齐现树亲证（run-e2e-isolated.mjs `:1-12` 指向 ADR+r5-mark-red.proof `:180-190` 断言锚·落码 `170d78d3c` is-ancestor EXIT=0）·隔离脚本 banner 与 PG-retained 不一致旧缺陷构造性消除·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:69` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**——R1 product-close 收据亲读（`g-r4-3-r1-product-close.md:1-5` post_prove_dual_pass·tip `72233a0`）+fail-closed 默认开现树亲证（adaptive-role-resolve.ts `:5-8` unset/blank→fail-closed·`:41` 缺路由元数据抛错不静默猜桶）·行内 token 过时面随本注转有效态·EG6 残面史录（收据 `:6` retained OPEN）零冲销·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻（`r1Closed=false` pin 系发布证据面·零翻）。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:99` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**（转常设规则）——tenant≠RLS 已钉进模块头（tenant/index.ts `:1-20` 亲读）与调用点（resume.service.ts `:223-224`「授权根仍为 RLS」）·MySQL 切流方向已随 ADR Ban（PG-retained accepted）·误写「已替代 RLS」风险消解·常设守门语义由行原文继续承载（转规则后翻面·行原文零洗）·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:102` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**（转常设守门后翻面）——静态钉现树亲证（m4-rag `:8`/m5-fixtures `:5`/r4-domain-isolation `:81`/qdrant-backed `:15`「本绿≠已迁/pass≠cutover」各在码）·MySQL/Qdrant 方向已随 ADR 停向·连通绿被写成已迁的越权叙事通道就此收窄·守门臂留存继续承载（行原文零洗）·残面补钉〔2026-11-06 修订·双审 P2·现树亲证〕：11 个 conn-stack proof 中 5 个（skeleton/ping/m2-tenant/m3-queue/redis-wakeup）无「本绿≠已迁」静态钉+skeleton `:6`/`:65-66`、m2-tenant `:89-90`、m3-queue `:81-82` 仍正写「MySQL+Qdrant+Redis sole stack」叙事——由 `adr-postgres-retained.md:12`（「prototypes — historical/experimental only; Ban treating them as sole relational or sole vector truth」）兜底如实承登·五钉补钉归后继小刀如实挂账不阻本翻面·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:104` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**（由门 6 承接）——PG-retained 裁定下不存在切流也不弃 RLS（ADR `:10-12` Ban 亲读）·「切流前四专家审」的阻塞语义已并入 INT-TRANSCRIPT-01 准入六门合同（`:777` 立卷注亲读·切流门=门 6）·conditional 审查结论的 blocking 面由常设门承载·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:105` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**——#103 prove-path honesty 已合并（merge `a8b59728d` 2026-10-23 is-ancestor EXIT=0·`:790` landed 登记在卷·prove 载体 mem00-int00-prove-path.proof.mjs 在树）·越权宣称控制面已关的叙事面由 prove-path honesty 门常设承载·公开 DELETE=503 pin 零涉零翻·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:106` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**——MySQL FULLTEXT 方向已随 ADR 停向·R3 检索走 PG `to_tsvector('simple', qbank_search_terms(…))`（0201 `:165` 亲读）·FULLTEXT 冒充 R3 的假绿通道随方向停向消解·行原文禁令继续作为常设门承载·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:877` 行原文零字节改写·前值史录在注）】: 行值 **P1 OPEN→CLOSED**——语义已裁并落 DB 法面现树亲证（裁定源=`billing-redesign/LANDING-INDEX.md:50-57` 十二节用户裁决②③·README `:142` 系落卷形；0173 `:1-20` per_session 走 T 分支/`:55-80` per_topic_capped 走 C 分支带公式校验·0144 `:397-403` 外层零触）·partial_confirmed 与配对触发器冲突旧张力消除·残面=per_session 下 confirmConsumption(ratio<1) 仍会触发 23514（零调用方·潜在脚枪如实登记不阻翻面）·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:902` 行原文零字节改写·前值史录在注）】: 行值 **P0 OPEN→CLOSED**——DBSB-1 已 post_prove_dual_pass nailed（落码 `0ff210196` is-ancestor EXIT=0·`:979` 唯一权威行指针在卷）·残留案 A 多态表系 D4 裁定不做（非缺陷）·锚勘正随注：指针行所记 `:896` 系旧树行号史录（现树权威行=`:902`·原文零洗如实采）·同号多行残排沿 MONEY3 `:903` superseded 注先例不追改·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:916` 行原文零字节改写·前值史录在注）】: 行值 **P2 OPEN→CLOSED**——i18n 落码现树亲证（privacy/actions.ts `:26`/:44` getTranslations+t(...) 五错码全走翻译·落码 `d6586d416` is-ancestor EXIT=0）·隐私页错误文案硬编码中文旧缺陷构造性消除·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:925` 行原文零字节改写·前值史录在注）】: 行值 **P2 OPEN→CLOSED**——label 已改动态计数现树亲证（migrate.proof.ts `:538` `${treeVersions.length}` 内插·静态数字陈旧缺陷消除·迁移链增长不再致 label 失真）·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【翻面注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·行区落位·`:926` 行原文零字节改写·前值史录在注）】: 行值 **P2 OPEN→CLOSED**——P6 白名单旧形缺陷已由后继刀修复落主线（`:954` 销账建议注亲读·修正落码 `c32d568cacc7` 2026-10-20 is-ancestor EXIT=0·改按语句白名单）·本注即该销账建议的翻面行使·翻面行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。
+
+> 【勘误注 2026-11-05（LEDGER-FLIP-A 翻面刀·append-only·笔原文零字节改写·前值 36 史录在注）】: 汇总笔 −4 在飞扣除已过期——#102（merge `1e24aa1eb`）/#103（`a8b59728d`）/#104（`19e6e8ef7`）均 2026-10-23 合并早于本笔（10-26）·四映射行 GAP-PRIV-01/GAP-MOP-01/GAP-MOP-03/GAP-PRIV-03 现均为 open 实件（候选 A prove 未实施/Q4 决策悬/INT-01 六门未过）·`:14-25` In-flight 表两标记同过期如实点——按现树有效态独立重枚举 **P0/P1 OPEN=40（P0 23/P1 17）**+P2 21（17 行+4 尾注）=61〔2026-11-06 机械重算修订：起草稿「P2 22=62」系两反向误差巧合——`:837` G7V-CALIB 已由 `:854`/`:856` 2026-10-08 nail 注 CLOSED（fixed）·`:942` E2EA-02 已由行内 2026-11-03 BATCH-FLIP 销案终翻注 CLOSED·两处一行各误计恰相抵得 22·机械裁定 17 行+4 尾注=21·逐行裁定与脚本读数见 §1-R〕（`:110` 11-05 已翻不计·L-06 11-03 已翻不计）·LEDGER-FLIP-A 翻面刀 EXEC 后（2026-11-06 修订后 14 行翻：P0×8/P1×2/P2×4·B-15 移出）=P0 15/P1 15+P2 17（13 行+4 尾注）=47〔前值稿形「15 行翻/P2×5」史录零洗·47 数值恰等系 21−4 与 22−5 巧合同值·构成已正本清源〕·行使源=协调方 EXEC 授权随令·alone≠dual·Pins 零翻。】
