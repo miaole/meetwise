@@ -12,9 +12,11 @@
 # tag 只用于人读定位)。
 # 信号回滚:HUP/TERM/INT 与 ERR 同走 restore_and_fail(快照回写 .env+尽力拉回上一版),
 # 连接掉线/调度器终止不再把 .env 留在半部署态。沙箱自测:bash ops/deploy/remote-deploy.sh
-# --self-test(12 臂信号矩阵×文件/stdin 两种调用形态=24 跑,发真信号验证回滚,零 docker
-# 依赖,走桩 compose)。
-set -euo pipefail
+# --self-test(12 臂信号矩阵+3 臂 ERR 失败注入×文件/stdin 两种调用形态=30 跑,发真信号/
+# 真非零退出验证回滚,零 docker 依赖,走桩 compose)。
+# -E(errtrace)必不可少:pull/migrate/up 全走 dc() 函数,无 -E 时 ERR trap 不继承进函数体,
+# 函数内非零退出被 set -e 就地处理、回滚不触发、.env 残留新镜像行(bash 3.2/5.x 同语义)。
+set -Eeuo pipefail
 
 # stdin 形态(生产=ssh 'bash -s -- …' < 本脚本)下 BASH_SOURCE 是空数组,set -u 下取 [0]
 # 即 unbound variable 开工炸退;:- 兜底空串。SELF_PATH 仅 --self-test 复跑自身时需要,
@@ -24,14 +26,17 @@ if [[ -n "${BASH_SOURCE[0]:-}" ]]; then
   SELF_PATH="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 fi
 
-# ── 信号回滚自测(真信号×桩 compose·不触真 /srv 与 docker daemon)───────────────
-#   12 臂信号矩阵 × 2 种调用形态共 24 跑。形态:file=bash <script> refs;stdin=
+# ── 信号回滚自测(真信号×真失败注入×桩 compose·不触真 /srv 与 docker daemon)─────────
+#   15 臂矩阵 × 2 种调用形态共 30 跑。形态:file=bash <script> refs;stdin=
 #   bash -s -- refs < script(=deploy.yml 生产原形,曾被 BASH_SOURCE 空数组炸退的形态)。
 #   臂:TERM/INT/HUP × pull/migrate/up 九臂(非零退出+.env 逐字节恢复+回滚 up 恰一次;
 #   @up 臂=部署 up+回滚 up 恰两次)+连发两信号臂(回滚恰一次·防重入)+回滚 up 中再发
-#   信号臂(回滚恰一次·不重入)+无信号臂(退出零+deploy_ok+.env 落新镜像行恰一次)。
-#   信号窗=对应桩调用已落日志(trap 必已安装,避免信号落在安装前的假红);轮询窗
-#   240×0.05s=12s,慢机不再误红。
+#   信号臂(回滚恰一次·不重入)+无信号臂(退出零+deploy_ok+.env 落新镜像行恰一次)
+#   +ERR@pull/ERR@migrate/ERR@up 三失败注入臂(DOCKER_FAIL_AT 一次性失败注入·验证
+#   ERR trap 穿透 dc() 函数体真回滚——无 -E 时这三臂红:零回滚+.env 残留新镜像行)。
+#   失败臂(信号+ERR)一律断言:非零退出+.env 逐字节恢复+回滚 up 恰计数+stderr
+#   deploy_failed 标记恰一次。信号窗=对应桩调用已落日志(trap 必已安装,避免信号落在
+#   安装前的假红);轮询窗 240×0.05s=12s,慢机不再误红。
 self_test() {
   if [[ -z "$SELF_PATH" || ! -f "$SELF_PATH" ]]; then
     echo "self-test requires file-form invocation(stdin 形态无自身路径可复跑·部署路径不受影响)" >&2
@@ -58,6 +63,18 @@ case "$*" in *pull*|*" run "*|*" up "*) sleep 2 ;; esac
 exit 0
 STUB
   chmod +x "$stubbin/docker"
+  # 失败注入桩:DOCKER_FAIL_AT 非空时首个匹配调用退 1(一次性闩锁——回滚 up 同串不再失败)。
+  # ERR 臂靠它行使 restore_and_fail:无 -E 时函数体内失败 ERR trap 不触发,三臂必红。
+  cat > "$stubbin/docker" <<'STUB'
+#!/usr/bin/env bash
+printf '%s\n' "$*" >> "${DOCKER_CALL_LOG:?}"
+if [[ -n "${DOCKER_FAIL_AT:-}" && "$*" == *"$DOCKER_FAIL_AT"* && ! -e "${DOCKER_CALL_LOG}.faillatch" ]]; then
+  : > "${DOCKER_CALL_LOG}.faillatch"
+  exit 1
+fi
+case "$*" in *pull*|*" run "*|*" up "*) sleep 2 ;; esac
+exit 0
+STUB
   # 等待调用日志出现第 $3 个 $2 匹配(信号窗=该桩调用已在跑·trap 必已安装)·上限 12s
   selftest_wait_call() {
     local log="$1" pat="$2" want="$3" have
@@ -68,19 +85,22 @@ STUB
     done
     return 1
   }
-  local failed=0 want_ups
+  local failed=0 want_ups fail_at
   for form in file stdin; do
-    for arm in TERM@pull INT@pull HUP@pull TERM@migrate INT@migrate HUP@migrate TERM@up INT@up HUP@up double@pull reenter@pull none; do
+    for arm in TERM@pull INT@pull HUP@pull TERM@migrate INT@migrate HUP@migrate TERM@up INT@up HUP@up double@pull reenter@pull none ERR@pull ERR@migrate ERR@up; do
       sig="${arm%%@*}"; phase="${arm##*@}"
+      fail_at=""
+      [[ "$sig" == ERR ]] && fail_at="$phase"  # ERR 臂:桩在对应相位一次性退 1,零信号
       cp "$sandbox/env.orig" "$envf"  # 每臂复位 .env 到部署前态,臂间零串扰
       calls="$sandbox/calls-$form-$arm.log"; : > "$calls"
       out="$sandbox/out-$form-$arm.txt"; : > "$out"
+      errf="$sandbox/err-$form-$arm.txt"; : > "$errf"
       if [[ "$form" == file ]]; then
-        DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" \
-          bash "$SELF_PATH" "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" >"$out" 2>/dev/null &
+        DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" DOCKER_FAIL_AT="$fail_at" \
+          bash "$SELF_PATH" "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" >"$out" 2>"$errf" &
       else
-        DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" \
-          bash -s -- "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" < "$SELF_PATH" >"$out" 2>/dev/null &
+        DEPLOY_PROJECT_DIR="$proj" PATH="$stubbin:/usr/bin:/bin" DOCKER_CALL_LOG="$calls" DOCKER_FAIL_AT="$fail_at" \
+          bash -s -- "reg/ns/img@sha256:$new_be" "reg/ns/img@sha256:$new_web" < "$SELF_PATH" >"$out" 2>"$errf" &
       fi
       arm_pid=$!
       rc=0
@@ -95,7 +115,7 @@ STUB
           kill -s TERM "$arm_pid" 2>/dev/null || true
           selftest_wait_call "$calls" ' up ' 1 || true  # 回滚 up 已开跑:二发信号须被吞(trap 已自撤)
           kill -s TERM "$arm_pid" 2>/dev/null || true ;;
-        none) : ;;
+        none|ERR@*) : ;;  # none 臂直跑;ERR 臂失败自驱(桩退 1→ERR trap→回滚),零信号零等待
         *)  # 信号窗=对应相位的桩调用已落日志(.env 已改写=半部署风险面内)
           case "$phase" in
             pull) selftest_wait_call "$calls" pull 1 || true ;;
@@ -106,9 +126,9 @@ STUB
       esac
       wait "$arm_pid" || rc=$?
       env_state="$(cmp -s "$envf" "$sandbox/env.orig" && echo restored || echo changed)"
-      ups="$(grep -c ' up -d --no-deps' "$calls")"
+      ups="$(grep -c ' up -d --no-deps' "$calls" || true)"  # grep -c 无匹配退 1,|| true 保读数 0 不炸 set -e
       case "$arm" in
-        *@up) want_ups=2 ;;  # 部署 up+回滚 up
+        *@up) want_ups=2 ;;  # 部署 up+回滚 up(ERR@up 同:部署 up 桩退 1 亦落日志)
         *) want_ups=1 ;;     # 仅回滚 up(或 none 臂的部署 up)
       esac
       if [[ "$arm" == none ]]; then
@@ -119,17 +139,17 @@ STUB
           echo "self-test[$form] arm[$arm]: FAIL (exit=$rc env_state=$env_state env_be=$(grep -c "sha256:$new_be" "$envf") env_web=$(grep -c "sha256:$new_web" "$envf") ups=$ups deploy_ok=$(grep -c 'deploy_ok' "$out"))" >&2
           failed=1
         fi
-      elif [[ $rc -ne 0 && "$env_state" == restored && "$ups" == "$want_ups" ]]; then
-        echo "self-test[$form] arm[$arm]: PASS (non-zero exit + env restored byte-identical + up x$want_ups)"
+      elif [[ $rc -ne 0 && "$env_state" == restored && "$ups" == "$want_ups" && "$(grep -c 'deploy_failed' "$errf")" == 1 ]]; then
+        echo "self-test[$form] arm[$arm]: PASS (non-zero exit + env restored byte-identical + up x$want_ups + deploy_failed marker)"
       else
-        echo "self-test[$form] arm[$arm]: FAIL (exit=$rc env_state=$env_state ups=$ups want=$want_ups)" >&2
+        echo "self-test[$form] arm[$arm]: FAIL (exit=$rc env_state=$env_state ups=$ups want=$want_ups deploy_failed=$(grep -c 'deploy_failed' "$errf"))" >&2
         failed=1
       fi
     done
   done
   rm -rf "$sandbox"
   if [[ $failed -ne 0 ]]; then echo "self-test: FAILED" >&2; return 1; fi
-  echo "self-test: 24/24 arms PASS (12 arms x file/stdin)"
+  echo "self-test: 30/30 arms PASS (15 arms x file/stdin)"
 }
 
 if [[ "${1:-}" == '--self-test' ]]; then self_test; exit $?; fi
