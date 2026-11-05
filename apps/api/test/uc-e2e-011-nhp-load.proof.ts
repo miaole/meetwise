@@ -186,17 +186,16 @@ void pct;   // 分位工具位保留:平台无 per-request 时序头·延迟观�
     const t0 = Date.now();
     const [rs1, rs2] = await Promise.all([Promise.all(bad), Promise.all(missing)]);
     const wallMs = Date.now() - t0;
-    // #87/API-HARDEN-A 起回调成本闸在验签前(per-order 桶 30):60 并发同单洪水超出桶容量 → 超额臂
-    // 被闸 429 too_many_requests 先发制人(429 先于 400/403 是设计语义,非法体不再为洪水买单)。
-    // 本臂合同随之精确化:零 5xx + 非闸臂保持原具名词(403 bad_signature/400 invalid_callback)+
-    // 闸臂恒 429 too_many_requests;垃圾签臂保底含 ≥1 个 403(容量 30 内必达,语义面仍被行使)。
-    A('P1 垃圾签 60 并发 → 全 403/429 零 5xx(非闸臂 403 bad_signature·闸臂 429·含 ≥1 个 403)',
-      rs1.every((r) => (r.status === 403 && r.body?.error === 'bad_signature') || (r.status === 429 && r.body?.error === 'too_many_requests'))
-      && rs1.some((r) => r.status === 403),
+    // rev r1(证伪 apih-pre-2 P1-1):回调成本闸移 verifyCommerceSig 之后、owner 查询之前——垃圾签
+    // 不消费成功桶、不再产生 429(修前「闸臂恒 429」合同撤),伪造洪水只收 403;60 并发恰在验签失败
+    // 独立桶(RL_CB_FAIL 默认 60,2)帽内 → 全 403 bad_signature 零 429 零 5xx,签名语义面全量行使。
+    A('P1 垃圾签 60 并发 → 全 403 bad_signature 零 429 零 5xx(闸移验签后·垃圾签不占成功桶)',
+      rs1.every((r) => r.status === 403 && r.body?.error === 'bad_signature'),
       `statuses=${[...new Set(rs1.map((r) => r.status))].join(',')}`);
-    // （垃圾签臂已消耗同单 per-order 桶——桶跨臂结转正是闸的预期行为,故缺字段臂可全 429,不再保底 400。）
-    A('P1 缺字段 60 并发 → 全 400/429 零 5xx(非闸臂 400 invalid_callback 先于 HMAC·闸臂 429·桶跨臂结转可全 429)',
-      rs2.every((r) => (r.status === 400 && r.body?.error === 'invalid_callback') || (r.status === 429 && r.body?.error === 'too_many_requests')),
+    // （缺字段=无 sig 结构拒 400 invalid_callback,非签名爆破不计失败桶 → 全 400;修前「桶跨臂结转
+    // 可全 429」的注随闸移验签后一并撤。）
+    A('P1 缺字段 60 并发 → 全 400 invalid_callback 零 5xx(结构拒不入桶)',
+      rs2.every((r) => r.status === 400 && r.body?.error === 'invalid_callback'),
       `statuses=${[...new Set(rs2.map((r) => r.status))].join(',')}`);
     A('P1 负路径零状态面变: avail/订单行快照二致',
       (await availSum(F.l2.owner)) === snapBefore.avail

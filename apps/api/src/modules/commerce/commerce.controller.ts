@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Param, Body, Headers, Header, Req, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Headers, Header, Req, Ip, UseGuards, HttpStatus, HttpCode } from '@nestjs/common';
 import { CreateOrderDto, InvoiceProfileDto, InvoiceRequestDto, CommerceCallbackDto } from '@meetwise/contracts';
 import { PrincipalGuard } from '../../platform/principal.guard';
 import { ZodValidationPipe } from '../../platform/zod.pipe';
@@ -39,8 +39,10 @@ export class CommerceController {
   // #84/API-HARDEN-A(NHP-014):裸 @Body 收编 CommerceCallbackDto,失败信封随域具名词 invalid_callback
   // (pipe 参变词形·缺字段仍由 verifyCommerceSig 回同词 400+结构化拒绝日志,词/状态零漂移)——非字符串
   // sig/providerTxn 此前穿透 falsy 检查直打 Buffer.from/HMAC(TypeError→500)。
-  callback(@Param('id') id: string, @Body(new ZodValidationPipe(CommerceCallbackDto, 'invalid_callback')) b: CommerceCallbackDto) {
-    return this.commerce.payWebhook(id, b);
+  // rev r1(证伪 apih-pre-2 P1-1):回调来源 IP 透传 service——验签失败独立按来源计(防暴力),
+  // 验签通过的回调不受任何失败桶影响。
+  callback(@Param('id') id: string, @Body(new ZodValidationPipe(CommerceCallbackDto, 'invalid_callback')) b: CommerceCallbackDto, @Ip() ip: string) {
+    return this.commerce.payWebhook(id, b, ip);
   }
 
   // B271 片3 P4：本人订单列表（RLS p_owner 仅本人·开票下拉数据源）。静态段先于参数段，路由不冲突。

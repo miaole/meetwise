@@ -23,12 +23,21 @@ export type CommerceCallbackBody = { providerTxn?: string; sig?: string; ts?: nu
 // 重试为个位数,套件内同单峰值 8 连发(nhp-load 重放臂)/11 散发(neg-commerce ORD_A)实测在上限内;
 // 全局共享桶(`cbpay:global`/`cbref:global`,120 突发/5/s)管全体回调面总量——套件单进程峰值 <60 在上限内,
 // 生产语义=每张实付订单一条回调,120 突发/300 每分稳态远高于真实交易节奏,洪水在此收口。
-// 闸在 verifyCommerceSig 之前(429 先于 400/403;验签 CPU 与 owner 查询都不为洪水买单)。
+// rev r1(证伪 apih-pre-2 P1-1):闸移 verifyCommerceSig **之后**、gateway owner 查询**之前**——只有验签
+// 通过的请求才计入桶。修前闸在验签前:未认证垃圾签 3 发即耗同单桶、120 发(随机单号)即耗全局桶,真实
+// 支付回调全被 429 挡死(订单卡未支付态)=未认证 DoS money 面;垃圾洪水现在只收 403,无法挤占真实回调
+// 的桶。HMAC 对 ≤128 字节输入是微秒级,前置闸不构成成本屏障;真正贵的 owner 查询与 CAS 仍在闸后。
 // RL_CB_ORDER/RL_CB_GLOBAL env 覆写口沿 RL_SIGNUP_IP「容量,速率」双值形(prod 钉死默认,禁删桶检查)。
 const RL_CB_ORDER_RAW = (process.env.RL_CB_ORDER ?? '30,1').split(',');
 const CB_ORDER_RL = { capacity: Number(RL_CB_ORDER_RAW[0]) > 0 ? Number(RL_CB_ORDER_RAW[0]) : 30, refillPerSec: Number(RL_CB_ORDER_RAW[1]) > 0 ? Number(RL_CB_ORDER_RAW[1]) : 1 };
 const RL_CB_GLOBAL_RAW = (process.env.RL_CB_GLOBAL ?? '120,5').split(',');
 const CB_GLOBAL_RL = { capacity: Number(RL_CB_GLOBAL_RAW[0]) > 0 ? Number(RL_CB_GLOBAL_RAW[0]) : 120, refillPerSec: Number(RL_CB_GLOBAL_RAW[1]) > 0 ? Number(RL_CB_GLOBAL_RAW[1]) : 5 };
+// rev r1:验签失败防暴力独立桶——只计 bad_signature(签名爆破面;400 结构拒非爆破不计),按来源 IP 键
+// `cbfail:ip:${ip}`(`:ip:` 形制=PG 共享跨实例合计,沿 signup:ip 先例),默认 (60,2) 高帽:合法 PSP 重试
+// 个位数远不触,爆破被压到 60 突发+2/s。只在 verifyCommerceSig 的 403 路径上消费/拒,验签通过的请求
+// **零触此桶**=绝不影响真实回调(与成功桶容量永不共享)。RL_CB_FAIL 同形覆写口。
+const RL_CB_FAIL_RAW = (process.env.RL_CB_FAIL ?? '60,2').split(',');
+const CB_FAIL_RL = { capacity: Number(RL_CB_FAIL_RAW[0]) > 0 ? Number(RL_CB_FAIL_RAW[0]) : 60, refillPerSec: Number(RL_CB_FAIL_RAW[1]) > 0 ? Number(RL_CB_FAIL_RAW[1]) : 2 };
 
 /** #87:回调门统一闸(pay/refund 两族同形,prefix 区分桶域)。429 词沿 turn/voice 家族 too_many_requests。 */
 async function commerceCallbackGate(rl: RateLimitService | undefined, kind: 'paid' | 'refunded', id: string): Promise<void> {
@@ -37,6 +46,17 @@ async function commerceCallbackGate(rl: RateLimitService | undefined, kind: 'pai
   const globalKey = kind === 'paid' ? 'cbpay:global' : 'cbref:global';
   if (!(await rl.allow(orderKey, CB_ORDER_RL.capacity, CB_ORDER_RL.refillPerSec))
     || !(await rl.allow(globalKey, CB_GLOBAL_RL.capacity, CB_GLOBAL_RL.refillPerSec)))
+    throw new HttpException({ error: 'too_many_requests' }, HttpStatus.TOO_MANY_REQUESTS);
+}
+
+/**
+ * rev r1:验签失败计数闸(仅在 verifyCommerceSig 抛 bad_signature 的 catch 路径调用)。超帽对**同源**
+ * 后续垃圾签回 429 too_many_requests(背压信号);验签通过的请求不走此函数,桶态永不影响成功路径。
+ */
+async function commerceSigFailureGate(rl: RateLimitService | undefined, sourceIp: string | undefined, e: unknown): Promise<void> {
+  if (!(e instanceof HttpException) || (e.getResponse() as { error?: string })?.error !== 'bad_signature') return;
+  if (!rl || !sourceIp) return;
+  if (!(await rl.allow(`cbfail:ip:${sourceIp}`, CB_FAIL_RL.capacity, CB_FAIL_RL.refillPerSec)))
     throw new HttpException({ error: 'too_many_requests' }, HttpStatus.TOO_MANY_REQUESTS);
 }
 
@@ -176,9 +196,14 @@ export class CommerceService {
    * 回调支付唯一管道(orders/:id/pay-callback 端点同委托于此)。
    * 入账复用同一 exactly-once CAS(markOrderPaidAndCredit),重复回调幂等不双入。
    */
-  async payWebhook(id: string, body: CommerceCallbackBody) {
-    await commerceCallbackGate(this.rl, 'paid', id);   // #87:成本闸先于验签(429 先于 400/403)
-    verifyCommerceSig(id, body, 'paid');
+  async payWebhook(id: string, body: CommerceCallbackBody, sourceIp?: string) {
+    try {
+      verifyCommerceSig(id, body, 'paid');
+    } catch (e: unknown) {
+      await commerceSigFailureGate(this.rl, sourceIp, e);   // rev r1:垃圾签独立失败桶(超帽 429);其余原样抛
+      throw e;
+    }
+    await commerceCallbackGate(this.rl, 'paid', id);   // #87/rev r1:验签后、owner 查询前——只计验签通过的请求
     const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
     )).then((r: any) => r.rows[0]?.owner_user_id);
@@ -207,9 +232,14 @@ export class CommerceService {
    * 具名码对齐 payWebhook：400 invalid_callback · 403 bad_signature · 404 order_not_found · 409 order_conflict ·
    * 200 {result: refunded|already}。Ban any-non-404-4xx-as-sig-evidence。
    */
-  async refundWebhook(id: string, body: CommerceCallbackBody) {
-    await commerceCallbackGate(this.rl, 'refunded', id);   // #87:成本闸先于验签(429 先于 400/403)
-    verifyCommerceSig(id, body, 'refunded');
+  async refundWebhook(id: string, body: CommerceCallbackBody, sourceIp?: string) {
+    try {
+      verifyCommerceSig(id, body, 'refunded');
+    } catch (e: unknown) {
+      await commerceSigFailureGate(this.rl, sourceIp, e);   // rev r1:同 payWebhook(独立失败桶)
+      throw e;
+    }
+    await commerceCallbackGate(this.rl, 'refunded', id);   // #87/rev r1:验签后、owner 查询前
     const resolved = await this.db.asGateway((c) => c.query(
       'SELECT gateway_payment_order_owner($1) AS owner_user_id', [id],
     )).then((r: any) => r.rows[0]?.owner_user_id);
