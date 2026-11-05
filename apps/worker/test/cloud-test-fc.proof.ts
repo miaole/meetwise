@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { createCloudTestFcHandler, parseCloudTestSerialSecret } from '../src/cloud-test-fc.ts';
+import { createCloudTestFcHandler, parseCloudTestSerialSecret } from '../evidence/cloud-test-fc.ts';
 import { loadCloudTestConfigFromEnvironment } from '../fc/cloud-test-handler.ts';
 
 const secret = JSON.stringify({

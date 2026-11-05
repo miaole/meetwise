@@ -5,7 +5,7 @@ import {
   recordCloudTestOwnedResource,
   recordCloudTestResourceIntent,
   type CloudTestLedgerReceipt,
-} from '../src/cloud-test-run-ledger.ts';
+} from '../evidence/cloud-test-run-ledger.ts';
 
 type Row = {
   artifact_digest: string;

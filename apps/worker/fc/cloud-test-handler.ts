@@ -1,4 +1,4 @@
-import { createCloudTestFcHandler } from '../src/cloud-test-fc.ts';
+import { createCloudTestFcHandler } from '../evidence/cloud-test-fc.ts';
 
 export function loadCloudTestConfigFromEnvironment(env: NodeJS.ProcessEnv = process.env): Promise<string> {
   const encoded = env.MEETWISE_CLOUD_TEST_EXECUTOR_CONFIG_B64?.trim();
