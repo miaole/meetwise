@@ -82,7 +82,8 @@ export async function closeJobAction(jobId: string): Promise<CreateJobActionResu
  * 重试=以当前岗位内容写新 revision（route_pending）走既有 drain；sticky 终态本体零改，无界自动重试被 Ban，
  * 本动作是招聘方显式且可计数的一次投递。already_* 为幂等门：非未决态不制造空 revision。
  * unknown_pending（GAP-ROUTE-RETRY-UNKNOWN-REBILL 二次计费闸）：前账结果未确认时暂缓重发并披露
- * 两个出口（稍后再试/编辑岗位内容触发重新分类），不谎报已提交。
+ * 原因与等待时间（缺省约 2 分钟·2026-11-06 协调方裁定）加两个出口（稍后再试/编辑岗位内容触发重新
+ * 分类），不谎报已提交；ok=false 使面板不硬刷新（该状态零状态变化，刷新会冲掉文案且重试入口仍在）。
  */
 export async function retryJobRouteAction(jobId: string): Promise<JobMutationActionResult> {
   if (!jobId.trim()) return { ok: false, message: '缺少岗位标识。' };
@@ -97,7 +98,7 @@ export async function retryJobRouteAction(jobId: string): Promise<JobMutationAct
     if (body?.status === 'already_pending') return { ok: true, message: '路由已在队列中，无需重复重试。' };
     if (body?.status === 'already_decided') return { ok: true, message: '路由已就绪，无需重试。' };
     if (body?.status === 'not_retryable') return { ok: true, message: '路由分类进行中，请稍后刷新查看。' };
-    if (body?.status === 'unknown_pending') return { ok: true, message: '上次路由调用结果未确认，为避免重复计费已暂缓重发；请稍后再试，或编辑岗位内容触发重新分类。' };
+    if (body?.status === 'unknown_pending') return { ok: false, message: '上一次岗位识别结果尚未确认（为避免重复计费已暂缓重发），请约 2 分钟后再试，或编辑岗位内容触发重新分类。' };
     return { ok: true, message: '已提交重路由，稍后自动完成。' };
   } catch {
     return { ok: false, message: '网络暂不可用，请稍后重试。' };

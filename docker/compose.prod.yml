@@ -33,6 +33,9 @@ x-cloud-runtime-env: &cloud-runtime-env
   # Worker only: a stale post-dispatch call is frozen as unknown, never retried.
   MODEL_INVOCATION_RECONCILE_AFTER_MS: ${MODEL_INVOCATION_RECONCILE_AFTER_MS:-120000}
   MODEL_INVOCATION_RECONCILE_BATCH: ${MODEL_INVOCATION_RECONCILE_BATCH:-100}
+  # API only: recruiter route-retry stays suppressed (unknown_pending) this long while the
+  # previous same-key model invocation is still unknown/dispatching (double-billing gate).
+  ROUTE_RETRY_UNKNOWN_COOLDOWN_MS: ${ROUTE_RETRY_UNKNOWN_COOLDOWN_MS:-120000}
   MODEL_COST_ENFORCEMENT: enforce
   MODEL_COST_BUDGET_SCOPE: ${MODEL_COST_BUDGET_SCOPE:?set MODEL_COST_BUDGET_SCOPE}
   MODEL_COST_MONTHLY_BUDGET_MICRO_CNY: ${MODEL_COST_MONTHLY_BUDGET_MICRO_CNY:?set MODEL_COST_MONTHLY_BUDGET_MICRO_CNY}

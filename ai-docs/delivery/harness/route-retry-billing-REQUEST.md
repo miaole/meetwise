@@ -5,6 +5,8 @@
 **席位**：路由分类重试二次计费修复刀 起草席（协调方派单令「起草并实现 · 草稿含代码 · 之后走双审」随令 · 缺陷登记源=rtx 路由分类事务刀 EXEC 期 pre-exec 双审 P2-1 · `ai-docs/delivery/gap-bug-backlog.md` GAP-ROUTE-RETRY-UNKNOWN-REBILL 行 · 机制与建议修法源=`route-classify-tx-REQUEST.md` §9.1-1）。
 **基线**：`origin/main` @ **`d549a497b`**（#212 rtx merge 点 · 本 worktree `git rev-parse origin/main` 亲证=派单令文届值恒等 · fetch 两试网络不可达（HTTP2 framing layer / 443 connect 超时）· 本地 ref=令文届值恒等无前进证据零 rebase 如实承登 · worktree **`meetwise-rretry`**（`git worktree add ../meetwise-rretry -b line/rretry-draft origin/main` 本起草席立 · `pnpm install --frozen-lockfile` EXIT=0）· branch **`line/rretry-draft`** · 主仓唯一改动=建此 worktree）。
 
+**小改记（2026-11-06 · 协调方裁定行使 · 本卷同日小改）**：裁定三件事——① 冷却窗缺省 10 分钟→**2 分钟**，保持环境变量 **`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS`** 可覆盖（理由：模型传输超时 30s、超时后供应商仍在处理的情况绝大多数在两分钟内结束；一次快模型路由分类的费用极低，而让招聘方等 10 分钟才能重试，体验代价更大）；② `unknown_pending` 用户文案改说清原因与等待时间（「上一次岗位识别结果尚未确认（为避免重复计费已暂缓重发），请约 2 分钟后再试，或编辑岗位内容触发重新分类。」），前端 `JobAdminPanel` 该状态补最小处理（映射 `ok:false` 不硬刷新·避免文案被 reload 冲掉或显示成通用错误）；③ 依赖 10 分钟的 proof 断言同步调整（常量 pin 120_000·增 env 覆盖臂与 resolver 断言·窗内抑制/窗后放行/known_not_sent 不触闸/并发双击只发一次四覆盖面全保留）。环境变量按仓库约定登记（egress inventory `environment_references=405`·compose.prod.yml + api.env.example 披露）。状态保持 **`draft:awaiting_pre_exec_dual`**（小改不落 EXEC·双审与授权仍未行使）。
+
 ---
 
 ## §0 现状锚与复现（锚行号=@`d549a497b` base 亲读 · 修复前红读数=本树 base 隔离 PG 真跑实测）
@@ -40,9 +42,9 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 ### 1.1 选定修法（重试出口冷却闸 · 纯读面 · 不放宽围栏 · 不触 invoke/0088/对账器）
 
 - `packages/db/src/recruiting/recruiter.ts`：`retryJobRoute` 在 `route_unresolved` 臂写新 revision **之前**，以 latest revision 的 digest 原式重构同键（`job-route-classify:{jobId}:{revision}:{digest}`，与 ai-runtime :154 同式——行为级由 worker proof 闸臂对读防漂：若两式漂移则闸读不到账、抑制断言红），在同事务内查 `ai_model_invocation`：`status IN ('unknown','dispatching')` 且 `updated_at >= clock_timestamp() - 冷却窗` → 返回**新枚举 `unknown_pending`**（零新 revision·零外发·零 wakeup）。`dispatching` 并入=覆盖 settle-failure 臂 `markModelInvocationUnknown` best-effort 失败行留 dispatching 的罕见窗（reconcile 120s 老化前该行同样「结果未确认」）。
-- 冷却窗缺省 **`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = 10 分钟`**（导出常量·`opts.unknownOutcomeCooldownMs` 可注入供 proof 注入小窗）；db 包 index 导出。
+- 冷却窗缺省 **`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = 2 分钟`**（2026-11-06 协调方裁定·原起草值 10 分钟据此小改·导出常量·`opts.unknownOutcomeCooldownMs` 可注入供 proof 注入小窗）；db 包 index 导出常量与 **`resolveRouteRetryUnknownCooldownMs`**（环境变量 **`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS`** 同名覆盖 resolver：毫秒整数·0=关闭抑制·上限 3,600,000·非法/越界即抛 `route_retry_unknown_cooldown_invalid`·每次调用读取沿 reconcile resolver 同法）；按仓库约定登记 egress inventory（4 sources·compose.prod.yml x-cloud-runtime-env + deploymentReferences + docker/env/api.env.example 披露）。
 - `packages/contracts/src/index.ts`：`JobRouteRetryResult.status` enum additive + `'unknown_pending'`（openapi.proof 既有断言 includes 面 additive 兼容）。
-- `apps/web/app/recruiter/jobs/actions.ts`：`unknown_pending` 映射披露文案「上次路由调用结果未确认，为避免重复计费已暂缓重发；请稍后再试，或编辑岗位内容触发重新分类。」——不谎报已提交，给两出口。
+- `apps/web/app/recruiter/jobs/actions.ts`：`unknown_pending` 映射披露文案「上一次岗位识别结果尚未确认（为避免重复计费已暂缓重发），请约 2 分钟后再试，或编辑岗位内容触发重新分类。」——说清原因与等待时间（小改裁定稿）加两出口，不谎报已提交；映射为 **`ok:false`** 使 `JobAdminPanel.runAction` 不硬刷新（该状态零状态变化，原 `ok:true` 形会 `window.location.reload()` 冲掉文案——前端展示面小修补上）。
 - `apps/api/src/modules/recruiter/recruiter.service.ts`：`unknown_pending` 原样透传（不 wakeup·零新 revision），注释补锚。
 - **known_not_sent（无账或账 `failed`）不触闸照常重试**（任务书要求）；sticky 终态本体/0209 围栏/invoke 语义/对账器零字节动。
 
@@ -50,7 +52,7 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 
 1. **是否放宽 replay-first 围栏或 invoke 幂等面？** 否。0209/0088/invoke/对账器零字节改；闸只新增于产品 retry 出口的读面；新 revision 经新键的派发路径与修复前逐字节同形。
 2. **闸读会不会与在飞 invoke 竞态？** 不可达竞态。闸仅在 latest revision=`route_unresolved` 时执行；该状态下 revision N 的 invoke 必已终态（unknown/failed/succeeded 三态之一已落账，sticky 写入在 invoke 返回之后），行锁下读值即终值；唯一例外窗=1.1 所述 settle-failure best-effort 失败行留 `dispatching`，已由闸内 `dispatching` 臂覆盖。
-3. **会不会让用户永远无法重试？** 不会，三出口：① 冷却过期（10min）后 retry 照常 `retried`（proof 老化臂 `retried@rev2`+快模型走完分类实证）；② 编辑岗位内容=新 digest 新键，自愈主路径（rtx §1.2-③）零触；③ known_not_sent/failed 完全不触闸（proof 独立臂实证）。
+3. **会不会让用户永远无法重试？** 不会，三出口：① 冷却过期（缺省 2min·env 可覆盖）后 retry 照常 `retried`（proof 老化臂 `retried@rev2`+快模型走完分类实证·env 覆盖臂同形实证）；② 编辑岗位内容=新 digest 新键，自愈主路径（rtx §1.2-③）零触；③ known_not_sent/failed 完全不触闸（proof 独立臂实证）。
 4. **单写者/幂等/事件/迁移面是否被破坏？** 未破坏。闸纯读零新写面；revision 单调仍由 `job_posting FOR UPDATE` 行锁（base 同法）；并发双击两路均 `unknown_pending` 零新 revision（proof 实证——修复前红读数双击一 `retried` 一 `already_pending` 且产生 rev2）；wire 面=contracts additive 枚举+web 文案（无旧端可忽略的新增必读字段）；**零迁移**。
 
 ### 1.3 候选比较（产品取舍——**需确认项见末行**）
@@ -62,14 +64,14 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 | C3 invoke 派发前全局冷却（同 digest 异键 fresh unknown 即拒派） | 否决 | 影响面扩大到 funnel/编辑自愈路径（rtx 明确保留的自愈主路径会被闸住）；超出 retry 出口域 |
 | C4 先对账再放行 | 否决 | 对账器语义=只把 dispatching→unknown+冻结成本，**不解歧**（unknown 无自动解除通路）；「先对账」无可实现语义 |
 
-**冷却窗值产品取舍（需确认）**：2min（用户等待短·残余双计费窗较大）/ **10min（选定缺省·远大于对账老化窗 120s 与常见供应商重复处理窗·保守且可用）** / 60min（过保守·事实上逼用户改走编辑路径）。本刀按「最保守且不阻塞用户」取 10min 实现；**窗值与 web 文案措辞为产品确认项，落 §9 悬决**——确认后如需改值只动一个常量。
+**冷却窗值产品取舍（需确认）**：2min（用户等待短·残余双计费窗较大）/ **10min（起草选定缺省·远大于对账老化窗 120s 与常见供应商重复处理窗·保守且可用）** / 60min（过保守·事实上逼用户改走编辑路径）。本刀按「最保守且不阻塞用户」取 10min 实现；~~窗值与 web 文案措辞为产品确认项，落 §9 悬决~~——**已裁定（2026-11-06 协调方）**：缺省改 **2 分钟**并保持环境变量覆盖（`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS`），理由：模型传输超时 30s、超时后供应商仍在处理的情况绝大多数在两分钟内结束；一次快模型路由分类的费用极低，而让招聘方等 10 分钟才能重试体验代价更大；web 文案同步按裁定改为说清原因与等待时间（「请约 2 分钟后再试」）。改值实现面=一个常量 + env resolver（确认后如需再改仍只动一处缺省）。
 
 ### 1.4 proof 面（红先证 · 并入既有 proof 文件零新受管 proof）
 
-- `apps/worker/test/r2-p-worker-route-classify.proof.ts` 新增两臂+一常量 pin（全真链=真 invoke durable claim + ai_model_invocation 结算 + 0209 围栏 + `createJobRouteModelClassify`，唯一脚本化面=ModelClient）：
-  - **重试计费闸臂**：§0.2 红读数（base 树亲跑 EXIT=1）→ 修复后五断言绿（suppress `unknown_pending@1·revisions=1·calls=1` / 并发双击两路 `unknown_pending` 零新 revision / 老化放行 `retried@rev2` / 快模型走完分类 `route_decided·calls=2` / sticky 旧 revision 原样留存）。注：老化臂先确定性 sleep 250ms 再以注入 100ms 小窗行使（首次 30ms 无 sleep 版本竞态红过一次如实登记，已改确定性形）。
+- `apps/worker/test/r2-p-worker-route-classify.proof.ts` 新增两臂+常量 pin+env resolver 断言（全真链=真 invoke durable claim + ai_model_invocation 结算 + 0209 围栏 + `createJobRouteModelClassify`，唯一脚本化面=ModelClient）：
+  - **重试计费闸臂**：§0.2 红读数（base 树亲跑 EXIT=1）→ 修复后断言绿（suppress `unknown_pending@1·revisions=1·calls=1` / 并发双击两路 `unknown_pending` 零新 revision / 老化放行 `retried@rev2` / 快模型走完分类 `route_decided·calls=2` / sticky 旧 revision 原样留存）。注：老化臂先确定性 sleep 250ms 再以注入 100ms 小窗行使（首次 30ms 无 sleep 版本竞态红过一次如实登记，已改确定性形）。**小改增环境变量覆盖臂**（第二岗位·缺省调用路径）：新缺省 2min 窗内抑制 `unknown_pending` → env `ROUTE_RETRY_UNKNOWN_COOLDOWN_MS=30` + 确定性老化 60ms 后缺省调用放行 `retried@rev2`（覆盖真实流入 SQL 窗口·非仅 opts 注入形·finally 还原 env）。
   - **known_not_sent 不触闸臂**：scripted 确定性拒绝（`{ok:false,kind:'deterministic'}`·known-not-executed）→ sticky `known_not_sent`+账 `failed` → 缺省冷却下 retry 照常 `retried@rev2` → 走完分类。
-  - 常量 pin：`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS === 600_000`。
+  - 常量 pin：`ROUTE_RETRY_UNKNOWN_COOLDOWN_MS === 120_000`（小改前原值 600_000）；resolver 断言：缺省回落 120000 / env 数值生效 / 非法（abc/1.5）与越界（-1/3600001）四例全抛。
 - 既有臂零动（慢模型臂/stale 臂同卷绿跑原值恒等，§2 门 2 同证）。
 
 ## §2 验收（本席落卷期全跑 · 读数为亲跑回执）
@@ -86,6 +88,19 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 | 8 | docs:check | 步进后 `scanned 2491=cap 2491` 恰等 EXIT=0（起草前 base 亲跑 scanned 2490=cap 2490 恰等） | **绿** |
 | 9 | PTP | `public-text-policy.proof.mjs` EXIT=0 `static_preflight_valid: selected=12/12`（四联动点步进后亲跑） | **绿** |
 | 10 | markers | 改动集（八改+一新增·净增行 246 行）五类标记词 grep 零命中（冲突标记 0/假绿绕过词 0/测试门弱化 0/遗留标 0/secrets 样值 0；本卷 §7 族名行沿既有卷先例形非词面命中如实注） | **0** |
+
+**小改复跑（2026-11-06 缺省 2min 裁定行使后全门重跑·本席亲跑回执）**：
+
+| # | 门 | 小改后读数 |
+|---|-----|------|
+| 1 | 重试计费闸臂 | `r2-p-worker-route-classify:prove` EXIT=0 `OK`（隔离 runner·新增断言全 PASS：pin `120000` / resolver 缺省+env 数值+非法越界四例全抛 / 第二岗位缺省 2min 窗内抑制 `unknown_pending` / env `ROUTE_RETRY_UNKNOWN_COOLDOWN_MS=30` 老化放行 `retried@rev2`；窗内抑制/双击两路 unknown_pending/老化放行/走完分类/known_not_sent 臂读数原值恒等） |
+| 2 | 既有路由 proof | rag03-route / rag07-free-text-route / rag05-qbank-miss / rag06-route-scope-cache / rag04-track-local 全「全部通过」EXIT=0；`recruiter:prove` 全部通过 |
+| 3 | `pnpm db:prove` | 「四原语证明全部通过」EXIT=0 |
+| 4/5 | typecheck/lint | db / worker / api / web / contracts 全 EXIT=0；warnings 恰等基线（db 1042/worker 999/api 1545/web 607·0 errors 零新增） |
+| 6 | `pnpm arch` | 0 errors/8 warnings · 1191 modules/3777 deps（与小改前恒等） |
+| 7 | egress inventory | `environment_references=405`（401+4·ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 登记 db recruiter/db index/api service comment/worker proof 四 source·compose.prod.yml deploymentReferences +1）EXIT=0 |
+| 8/9 | docs:check / PTP | `scanned 2491=cap 2491` 恰等（零新受管文件）；PTP `selected=12/12` EXIT=0 |
+| 10 | markers | 小改改动集（九改·零新增文件）冲突标记 0 / secrets 样值 0 |
 
 **基线红（与所改无关 · 单列）**：沿 route-classify-tx 卷 §2 单列六件（`r2-classify-job-route-prereq`/`r2-p-fake-route-classify`/`r2-p-loop-route-classify`/`r2-p-start-route-classify`/`r2-p-live-route-effective`/`r4-funnel-covered-count-batch4`·`existsSync` 文件在位失位类·PTP-archive 收纳刀既判）——本刀零处置；其失败数对 base 漂移则触 §8 停止条件 2。
 
@@ -128,9 +143,10 @@ FAIL  r2-p-worker-route-classify prove (3 failures)  · run EXIT=1
 ## §9 pre-exec dual 交接（状态：**`draft:awaiting_pre_exec_dual`**）
 
 - **双审对象**：§0 锚表逐条 file:line+红读数原值保真 · §1.1 修法结构（同键重构式与 ai-runtime :154 同式防漂）· §1.2 四问逐条 · §1.3 候选比较与窗值取舍 · §1.4 proof 面（红先证链）· §2 门矩阵与基线红单列 · §3 范围外。
-- **悬决项（归协调方/产品）**：pre-exec 双席派定 · EXEC 排程 · post-prove 双席 · **冷却窗值（10min 缺省）与 web 文案措辞产品确认（§1.3·确认后改值只动一个常量）** · `gap-bug-backlog.md` GAP-ROUTE-RETRY-UNKNOWN-REBILL 行翻面权（append-only 纪律归协调方·本刀零触） · free-text funnel 面与编辑回退同 digest 残余窗（§3-1/2）后继处置立项与否。
+- **悬决项（归协调方/产品）**：pre-exec 双席派定 · EXEC 排程 · post-prove 双席 · ~~冷却窗值（10min 缺省）与 web 文案措辞产品确认~~（**已裁定 2026-11-06**：缺省 2min + env `ROUTE_RETRY_UNKNOWN_COOLDOWN_MS` 可覆盖·理由见 §1.3/小改记·文案已同步） · `gap-bug-backlog.md` GAP-ROUTE-RETRY-UNKNOWN-REBILL 行翻面权（append-only 纪律归协调方·本刀零触） · free-text funnel 面与编辑回退同 digest 残余窗（§3-1/2）后继处置立项与否。
+- **小改记入档（2026-11-06 协调方裁定·双审未行使状态不变）**：缺省 2 分钟与 env 覆盖 resolver（`resolveRouteRetryUnknownCooldownMs`·非法即抛）· web 文案原因+等待时间+`ok:false` 展示面小补 · proof 常量 pin 120_000 + env 覆盖臂 + resolver 断言 · egress inventory 登记 4 sources（401→405）· compose.prod.yml / api.env.example 披露。本记只改上述面，§0 红读数与 §1.2 判读原值保真零冲销。
 - **本卷落卷后事实基座不受后继裁决影响的部分**：§0 全节读数与 §0.2 红读数系原值记账（零冲销）；§1.2 判读系在案实测。
 
 ---
 
-*ROUTE-RETRY-BILLING REQUEST · 2026-11-06 起草 **`draft:awaiting_pre_exec_dual`**（起草席落卷即停 · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`d549a497b`（#212 rtx merge 点 · 本地 ref=令文届值恒等 · fetch 两试网络不可达如实承登）· worktree `meetwise-rretry` · branch `line/rretry-draft` · 改动集=四 src（recruiter.ts 闸+常量/db index 导出/contracts additive 枚举/web actions 文案披露/api service 注释）+proof 既有文件加两臂一 pin（r2-p-worker-route-classify）+两 policy 脚本 cap 恰等步进 2490→2491（CAP-SANCTION-2491 链注追加·四联动点恰等改）+本卷（唯一新受管件）· 修复前红已证（§0.2 base 树 EXIT=1）· 修复后全绿（§2）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · pre-exec dual 待派 · **STOP（起草落卷即停）***
+*ROUTE-RETRY-BILLING REQUEST · 2026-11-06 起草 **`draft:awaiting_pre_exec_dual`**（起草席落卷即停 · ⛔push ⛔merge 主线 · alone ≠ dual · base `origin/main` @`d549a497b`（#212 rtx merge 点 · 本地 ref=令文届值恒等 · fetch 两试网络不可达如实承登）· worktree `meetwise-rretry` · branch `line/rretry-draft` · 改动集=四 src（recruiter.ts 闸+常量/db index 导出/contracts additive 枚举/web actions 文案披露/api service 注释）+proof 既有文件加两臂一 pin（r2-p-worker-route-classify）+两 policy 脚本 cap 恰等步进 2490→2491（CAP-SANCTION-2491 链注追加·四联动点恰等改）+本卷（唯一新受管件）· 修复前红已证（§0.2 base 树 EXIT=1）· 修复后全绿（§2）· **小改（2026-11-06 协调方裁定行使·状态不变）**：冷却窗缺省 10min→2min + env `ROUTE_RETRY_UNKNOWN_COOLDOWN_MS` 覆盖 resolver + web 文案原因/等待时间与 ok:false 展示小补 + proof pin 120_000 加 env 覆盖臂与 resolver 断言 + egress inventory 登记（401→405）+ compose.prod.yml/api.env.example 披露+本卷编辑（改动集小改后=九改零新增·全门复跑绿 §2 小改复跑表）· est live=0 · pins 十一值照抄 · markers=0 · 停止条件四类全设 · Ban self-approve · pre-exec dual 待派 · **STOP（起草落卷即停）***

@@ -138,12 +138,30 @@ export type RetryJobRouteResult =
   | null;
 
 /**
- * GAP-ROUTE-RETRY-UNKNOWN-REBILL 冷却窗缺省（10 分钟）：latest revision 同键前账
- * unknown/dispatching 在窗内时抑制同内容重试，防可能的二次真实计费（provider 侧重复处理
- * 窗口不可知，取远大于对账器老化窗 MODEL_INVOCATION_RECONCILE_AFTER_MS 缺省 120s 的保守值；
- * 过期放行不永久阻塞用户；编辑岗位内容新 digest 不受影响）。测试可经 opts 注入小窗。
+ * GAP-ROUTE-RETRY-UNKNOWN-REBILL 冷却窗缺省（2 分钟·2026-11-06 协调方裁定）：latest revision
+ * 同键前账 unknown/dispatching 在窗内时抑制同内容重试，防可能的二次真实计费。理由：模型传输
+ * 超时 30s 后 provider 侧残余处理绝大多数在 2 分钟内结束，快模型路由分类单次费用极低，让招聘方
+ * 长等待的体验代价更大（原 10 分钟保守值据此下调）。过期放行不永久阻塞用户；编辑岗位内容新
+ * digest 不受影响。环境变量 ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 可覆盖（见 resolver）；测试可经
+ * opts 注入小窗。
  */
-export const ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = 10 * 60 * 1000;
+export const ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = 2 * 60 * 1000;
+
+const ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS = 3_600_000;
+
+/**
+ * 冷却窗环境变量覆盖（每次调用读取·opts 注入优先）：ROUTE_RETRY_UNKNOWN_COOLDOWN_MS（毫秒·
+ * 缺省 120000·0=关闭抑制·上限 1 小时）——非法/越界即抛（配置错误不容忍静默改策，沿
+ * model-invocation-reconcile resolver 同法）。
+ */
+export function resolveRouteRetryUnknownCooldownMs(env: NodeJS.ProcessEnv = process.env): number {
+  const raw = env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  if (raw === undefined || raw === '') return ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const value = Number(raw);
+  if (!Number.isSafeInteger(value) || value < 0 || value > ROUTE_RETRY_UNKNOWN_COOLDOWN_MAX_MS)
+    throw new Error('route_retry_unknown_cooldown_invalid');
+  return value;
+}
 
 /**
  * 招聘方显式重试路由（#219·裁决③）：sticky 终态本体零改——unresolved 旧 revision 原样留存
@@ -153,7 +171,8 @@ export const ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = 10 * 60 * 1000;
  * 有界：一次调用至多一个新 revision（招聘方显式动作·Ban 无界自动重试）。
  * 岗位不存在/非自有/零 revision → null（上层 404）；最新 revision 非 unresolved → 幂等门不动作。
  * 二次计费闸（unknown_pending）：route_unresolved 且同键前账 status∈(unknown,dispatching) 在
- * 冷却窗内（ROUTE_RETRY_UNKNOWN_COOLDOWN_MS·opts 可注入）→ 拒绝零新 revision——新 revision
+ * 冷却窗内（缺省 ROUTE_RETRY_UNKNOWN_COOLDOWN_MS·env ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 同名可
+ * 覆盖·opts 可注入）→ 拒绝零新 revision——新 revision
  * 同 digest 生成新幂等键会绕开 invoke durable claim（0209 围栏对同键 unknown 恒 refusal、对
  * 异键无知），首账 unknown（provider 可能已计费）时即可能的二次真实计费。
  * job_posting FOR UPDATE 行锁串行化并发重试，revision 单调无碰撞（updateJob 同法）。
@@ -182,7 +201,7 @@ export async function retryJobRoute(
   // 账 failed）不触闸照常重试。窗内拒绝=零新 revision 零外发；窗过期放行（不永久阻塞）。
   const digest = typeof cur.semantic_digest === 'string' ? cur.semantic_digest : '';
   if (digest !== '') {
-    const cooldownMs = opts?.unknownOutcomeCooldownMs ?? ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    const cooldownMs = opts?.unknownOutcomeCooldownMs ?? resolveRouteRetryUnknownCooldownMs();
     const pending = await c.query(
       `SELECT 1 FROM ai_model_invocation
         WHERE owner_user_id=$1 AND idempotency_key=$2

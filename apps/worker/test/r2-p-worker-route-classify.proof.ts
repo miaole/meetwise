@@ -20,7 +20,7 @@ import {
 } from '@meetwise/ai-runtime';
 import {
   assertIsolatedTestTarget, asPrincipal, classifyJobRoute, createJob, createPool,
-  ROUTE_RETRY_UNKNOWN_COOLDOWN_MS, retryJobRoute, updateJob,
+  resolveRouteRetryUnknownCooldownMs, ROUTE_RETRY_UNKNOWN_COOLDOWN_MS, retryJobRoute, updateJob,
   type ClassifyJobRouteResult,
 } from '@meetwise/db';
 import { canonicalJobSemanticDigest } from '@meetwise/domain';
@@ -429,7 +429,8 @@ async function proveStaleRevisionDoesNotBlockDrain(): Promise<void> {
  * tick1 dispatched_unknown+inv1=unknown(model_execution_timeout)+calls=1 → retry=retried@rev2
  * → tick2 第二次真实派发 calls=2。修复后绿：冷却窗内重试抑制（unknown_pending·零新 revision
  * 零外发）；并发双击零新 revision；冷却过期（opts 注入 30ms 小窗·updated_at 已老化）放行且
- * 快模型走完分类（不永久阻塞用户）；known_not_sent（账 failed）不触闸照常重试（独立臂）。
+ * 快模型走完分类（不永久阻塞用户）；环境变量覆盖臂（第二岗位·env=30ms 同形放行）；known_not_sent
+ * （账 failed）不触闸照常重试（独立臂）。
  */
 async function proveRetryGateBlocksDoubleBilling(): Promise<void> {
   process.env.RAG_JOB_ROUTE_INPUT_HASH_KEY ??= 'r2-p-worker-retry-gate-hmac-proof-key-not-production-01';
@@ -442,6 +443,7 @@ async function proveRetryGateBlocksDoubleBilling(): Promise<void> {
   // dispatched_unknown sticky（rtx M2 形）。臂尾 finally 还原（沿慢模型臂 env 纪律）。
   const priorExecTimeout = process.env.MODEL_EXECUTION_TIMEOUT_MS;
   const priorTransportTimeout = process.env.MODEL_TIMEOUT_MS;
+  const priorCooldownMs = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
   process.env.MODEL_EXECUTION_TIMEOUT_MS = '4000';
   process.env.MODEL_TIMEOUT_MS = '4000';
   const pool = createPool();
@@ -523,11 +525,37 @@ async function proveRetryGateBlocksDoubleBilling(): Promise<void> {
       tick2.status === 'route_decided' && tick2.attemptOutcome === 'result_validated'
       && providerCalls === 2 && String(rev2Face.rows[0]?.status ?? '') === 'route_decided',
       `status=${tick2.status}/${tick2.status === 'route_decided' ? tick2.attemptOutcome : '-'} calls=${providerCalls}`);
+
+    // 环境变量覆盖臂（第二岗位·缺省调用路径）：新缺省 2 分钟窗内抑制 → env 置 30ms + 确定性
+    // 老化 60ms 后缺省调用即放行 retried@rev2（覆盖真实流入 SQL 窗口·非仅 opts 注入形）。
+    const created2 = await asPrincipal(pool, owner, (c) => createJob(c, owner, fields));
+    const key2a = `job-route-classify:${created2.id}:1:${digest}`;
+    const tick1b = await classifyJobRoute(pool, owner, created2.id, 1, { modelClassify });
+    const inv2a = await pool.query(
+      'SELECT status FROM ai_model_invocation WHERE owner_user_id=$1 AND idempotency_key=$2',
+      [owner, key2a],
+    );
+    const retry2a = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created2.id));
+    A('第二岗位缺省 2 分钟冷却窗内同样抑制（unknown_pending·新缺省生效）',
+      tick1b.status === 'route_unresolved' && inv2a.rows[0]?.status === 'unknown'
+      && retry2a?.status === 'unknown_pending' && providerCalls === 3,
+      `status=${retry2a?.status ?? 'null'} inv=${String(inv2a.rows[0]?.status ?? 'none')} calls=${providerCalls}`);
+    process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = '30';
+    await new Promise((resolve) => setTimeout(resolve, 60));
+    const retry2b = await asPrincipal(pool, owner, (c) => retryJobRoute(c, owner, created2.id));
+    const revisionsJ2 = Number((await pool.query(
+      'SELECT count(*)::int AS n FROM job_semantic_revision WHERE job_id=$1', [created2.id],
+    )).rows[0]?.n ?? 0);
+    A('环境变量覆盖生效（ROUTE_RETRY_UNKNOWN_COOLDOWN_MS=30·老化后缺省调用放行 retried@rev2）',
+      retry2b !== null && retry2b.status === 'retried' && retry2b.revision === 2 && revisionsJ2 === 2,
+      `status=${retry2b?.status ?? 'null'} revision=${retry2b?.revision ?? '-'} revisions=${revisionsJ2}`);
   } finally {
     if (priorExecTimeout === undefined) delete process.env.MODEL_EXECUTION_TIMEOUT_MS;
     else process.env.MODEL_EXECUTION_TIMEOUT_MS = priorExecTimeout;
     if (priorTransportTimeout === undefined) delete process.env.MODEL_TIMEOUT_MS;
     else process.env.MODEL_TIMEOUT_MS = priorTransportTimeout;
+    if (priorCooldownMs === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    else process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = priorCooldownMs;
     await pool.end();
   }
 }
@@ -594,8 +622,39 @@ async function proveKnownNotSentRetryUnblocked(): Promise<void> {
   }
 }
 
-A('重试 unknown 冷却缺省=10 分钟（600000ms·§1 候选比较产品决策值）',
-  ROUTE_RETRY_UNKNOWN_COOLDOWN_MS === 600_000, String(ROUTE_RETRY_UNKNOWN_COOLDOWN_MS));
+A('重试 unknown 冷却缺省=2 分钟（120000ms·2026-11-06 协调方裁定·env ROUTE_RETRY_UNKNOWN_COOLDOWN_MS 可覆盖）',
+  ROUTE_RETRY_UNKNOWN_COOLDOWN_MS === 120_000, String(ROUTE_RETRY_UNKNOWN_COOLDOWN_MS));
+
+{
+  // 冷却窗环境变量覆盖 resolver 断言（纯函数·零 DB）：缺省回落 / env 数值生效 / 非法与越界抛错。
+  const priorCd = process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+  const cdRestore = () => {
+    if (priorCd === undefined) delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    else process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = priorCd;
+  };
+  let defaultOk = false;
+  let envOk = false;
+  let invalidThrows = 0;
+  try {
+    delete process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS;
+    defaultOk = resolveRouteRetryUnknownCooldownMs() === 120_000;
+    process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = '30';
+    envOk = resolveRouteRetryUnknownCooldownMs() === 30;
+    for (const bad of ['abc', '-1', '1.5', '3600001']) {
+      process.env.ROUTE_RETRY_UNKNOWN_COOLDOWN_MS = bad;
+      try {
+        resolveRouteRetryUnknownCooldownMs();
+      } catch {
+        invalidThrows += 1;
+      }
+    }
+  } finally {
+    cdRestore();
+  }
+  A('冷却窗环境变量覆盖 resolver（缺省 120000·env 数值生效·非法/越界四例全抛）',
+    defaultOk && envOk && invalidThrows === 4,
+    `default=${defaultOk} env=${envOk} throws=${invalidThrows}`);
+}
 
 
 proveStaleRevisionDoesNotBlockDrain()
