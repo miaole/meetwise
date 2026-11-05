@@ -3,13 +3,19 @@
  * 跑 Playwright(headless chromium + Pixel 5 两端)驱动真实 UI → 拆栈。
  * 这是 HTTP 层 e2e(run-e2e.mjs)之外的浏览器证据:cookie 鉴权 / middleware 在真实浏览器里端到端跑通。
  * 用法:pnpm e2e:ui(需 docker DB 在跑)。没有 apps/web/.next/BUILD_ID 时先 `next build` 再 `next start`。
- * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的 web_not_ready 仍是失败;补构建不改写历史 exit。
+ * 无生产构建、或 STALE_BUILD_GUARD 判定既有 .next/BUILD_ID 早于 HEAD commit time(陈旧构建假红防线)、
+ * 或既有构建缺本 runner 压测源(意图判:本 runner build/start 两阶段恒 E2E_UI_STRESS='1' 构建期内联;
+ * 无 E2E_UI_STRESS 生产构建被误复用 → events 路由压测分支死码剔除 → 压测 SSE 零帧·stream-window
+ * 饿死假红)时先 `next build` 再 `next start`;其余已有生产构建不重建(构建太慢)。缺构建直接 start 的
+ * web_not_ready 仍是失败;补构建不改写历史 exit。守卫决策/压测源扫描函数=scripts/e2e-platform/
+ * stale-build-guard.mjs(可测·stale-build-guard-REQUEST.md 卷)。
  */
 import { spawn, spawnSync } from 'node:child_process';
 import { createHmac } from 'node:crypto';
 import { readFileSync, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { emitClassifiedE2EFailure, emitE2EFailure, tagE2EFailure } from '../e2e/helpers/failure-class.mjs';
 import { assertNoFakeServiceFlags } from './e2e-fake-service-flags.mjs';
+import { decideBuildReuse, scanServerStressMarkers } from './e2e-platform/stale-build-guard.mjs';
 import { applyLiveE2ECapabilityEnv } from './e2e-live-capability-env.mjs';
 
 const ROOT = new URL('..', import.meta.url).pathname;
@@ -241,26 +247,48 @@ async function main() {
   // Build when BUILD_ID is absent — or when STALE_BUILD_GUARD finds the existing
   // build older than HEAD(陈旧构建假红防线·UC003 门⑥事故:BUILD_ID mtime 早于接线
   // 仍「在即不重建」→ 服务陈旧构建假红·复跑席再实证扣留输出不可回收)。
+  // 或既有构建与本 runner 压测意图不符(意图判·stale-build-guard-REQUEST.md 卷):本 runner build/
+  // start 两阶段 spawn 恒显式置 E2E_UI_STRESS='1'(构建期内联)——无 E2E_UI_STRESS 生产构建(perf 套件
+  // 步1 `pnpm -C apps/web build` 不带开关形)被误复用时 events 路由压测分支已死码剔除→压测 SSE 零帧
+  // →stream-window 饿死假红。故 BUILD_ID 在场时恒复扫压测源(.next/server 递归扫服务端独有压测载荷
+  // 串·id 串不可作检测串——clean 构建客户端 chunk 仍保留 id 族·扫描函数防假阳/假阴选型详模块头注),
+  // 缺源即强制重建。新鲜度判不可得(git 不可用/mtime 读失败)时 fail-open 语义保持(不单凭新鲜度强拆),
+  // 意图判照检(确定性读盘·不受 git 可用性影响)。
   const nextBuildId = ROOT + 'apps/web/.next/BUILD_ID';
   let forceRebuild = false;
   if (existsSync(nextBuildId)) {
     const headCommitTimeSec = headTimeSec();
+    let buildIdMtimeMs = null;
     if (headCommitTimeSec === null) {
-      console.warn('E2E-UI: STALE_BUILD_GUARD HEAD commit time 不可得(git 不可用/非 git 树)→ 按现行为服务既有构建');
+      console.warn('E2E-UI: STALE_BUILD_GUARD HEAD commit time 不可得(git 不可用/非 git 树)→ 新鲜度判按现行为服务既有构建(压测意图判照检)');
     } else {
       try {
-        const buildIdMtimeMs = statSync(nextBuildId).mtimeMs;
-        if (buildIdMtimeMs / 1000 < headCommitTimeSec) {
-          forceRebuild = true;
-          console.warn(`E2E-UI: STALE_BUILD_GUARD .next/BUILD_ID mtime=${new Date(buildIdMtimeMs).toISOString()} 早于 HEAD commit time=${new Date(headCommitTimeSec * 1000).toISOString()} → 强制重建(防陈旧构建假红)`);
-        }
+        buildIdMtimeMs = statSync(nextBuildId).mtimeMs;
       } catch {
-        console.warn('E2E-UI: STALE_BUILD_GUARD BUILD_ID mtime 读取失败 → 按现行为服务既有构建');
+        console.warn('E2E-UI: STALE_BUILD_GUARD BUILD_ID mtime 读取失败 → 新鲜度判按现行为服务既有构建(压测意图判照检)');
+      }
+    }
+    const stressScan = scanServerStressMarkers(ROOT + 'apps/web/.next/server');
+    const decision = decideBuildReuse({
+      buildIdExists: true,
+      buildIdMtimeMs,
+      headTimeSec: headCommitTimeSec,
+      stressExpected: true,   // 本 runner build/start 两阶段 spawn 恒显式置 E2E_UI_STRESS:'1' → 意图恒含压测源
+      stressSourcePresent: stressScan.present,
+    });
+    if (!decision.reuse) {
+      forceRebuild = true;
+      if (decision.reason === 'stale_vs_head') {
+        console.warn(`E2E-UI: STALE_BUILD_GUARD .next/BUILD_ID mtime=${new Date(buildIdMtimeMs).toISOString()} 早于 HEAD commit time=${new Date(headCommitTimeSec * 1000).toISOString()} → 强制重建(防陈旧构建假红)`);
+      } else if (decision.reason === 'stress_source_missing') {
+        console.warn(`E2E-UI: STALE_BUILD_GUARD 既有构建缺压测源(.next/server 未见 e2e-guard-only 压测载荷${stressScan.missing.length ? `·缺 ${stressScan.missing.join('/')}` : ''}·疑无 E2E_UI_STRESS 生产构建)→ 强制重建(防误复用后压测 SSE 零帧假红)`);
+      } else if (decision.reason === 'stress_source_unexpected') {
+        console.warn('E2E-UI: STALE_BUILD_GUARD 既有构建携压测源而本次意图不含压测 → 强制重建(压测源不进非压测服务面)');
       }
     }
   }
   if (!existsSync(nextBuildId) || forceRebuild) {
-    console.log(forceRebuild ? 'E2E-UI: STALE_BUILD_GUARD 判定陈旧构建 → 强制 next build…' : 'E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
+    console.log(forceRebuild ? 'E2E-UI: STALE_BUILD_GUARD 判定重建(陈旧/缺压测源) → 强制 next build…' : 'E2E-UI: 无 .next/BUILD_ID，先 next build 再 next start…');
     const build = spawnProc('web-build', 'node', [NEXT_BIN, 'build'], ROOT + 'apps/web', {
       PORT: String(webPort),
       API_BASE_INTERNAL: apiBase,

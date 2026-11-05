@@ -449,16 +449,16 @@ const checks = {
       // CAP-SANCTION-2456 UC3M 起草随刀恰等步进：cap 2455→2456（2026-10-30 UC-003 NEG-01 收据 N1b 两缺位码映射任务书起草（总盘 #5·P2·gap-bug-backlog :953 兑现·harness/uc3m-REQUEST.md）随刀·协调方派单常设预授权「越限沿常设预授权恰等步进预登」随令行使 +1 恰等零多放·本树届扫 2455=cap 2455 恰等零余量（docs:check EXIT=0 scanned 2455 起草前亲跑）+本卷 REQUEST 受管 1 件=2456 必越·EXEC 期产品码面=既有文件行内补键零新受管文件（终态 2456 零新增）·在飞 evap/cwn 各承 2448 如实采·沿 CAP-SANCTION-2455 单件恰等先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_456/f-2456.md/:2457 恰等改。
       // CAP-SANCTION-2461 EVAP EXEC 立项 union 越限恰等步进：cap 2455→2461（2026-10-30 GAP-EVAL-PARSER-DETAILS-UNCLOSED 评测解析收口 EXEC 落码·fetch 届值 origin/main 3af835ad4=#183（cap 承 2455=CAP-SANCTION-2455）·EXEC 前 docs:check PTP_FILE_LIMIT:2456>2455 红亲证·union 实测 2460=main 届扫 2455+在飞互斥受管目 5（cwn@24ca62f73/uc3m@1b2f6ad0f/online-pay@fdaa1ecf0/uc31@112ac8af0/本卷 REQUEST 各 1）+EXEC +1 fixture=2461 恰等零多放·详 policy .mjs 链区 CAP-SANCTION-2461 注记）——本 TC 四联动点 2_461/f-2461.md/:2462 恰等改（loop/atCap/overCap 三处）。
       const paths = [];
-      for (let i = 0; i < 2_490; i += 1) {
+      for (let i = 0; i < 2_493; i += 1) {
         const relativePath = `ai-docs/f-${String(i).padStart(4, '0')}.md`;
         write(fixture, relativePath, 'ok');
         paths.push(relativePath);
       }
       const atCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: paths });
       assert.equal(atCap.valid, true, atCap.errors.join('\n'));
-      assert.equal(atCap.scannedFiles, 2_490);
-      // 超限错误码形状断言：第 2491 个注入路径触发早返回（先于读盘·免落盘可断言·随 CAP-SANCTION-2490 四联动点恰等改一并勘正与 :2491 同断言自洽）——
-      // 错误串恰为 `PTP_FILE_LIMIT:2491`（`${CODE}:${n}` 形）·scannedFiles:0。
+      assert.equal(atCap.scannedFiles, 2_493);
+      // 超限错误码形状断言：第 2494 个注入路径触发早返回（先于读盘·免落盘可断言·随 CAP-SANCTION-2493 四联动点恰等改一并勘正与 :2494 同断言自洽）——
+      // 错误串恰为 `PTP_FILE_LIMIT:2494`（`${CODE}:${n}` 形）·scannedFiles:0。
       // XREP 收官并线取大承登：本 TC 四联动点随合并树 cap=2_438 行使（本支原 2_436/f-2436.md/:2437 链注记史录并留上·语义不变强度不减）。
       // UC3F EXEC 立项并线取大承登：本 TC 四联动点随合并树 cap=2_445 行使（本支原 2_442/f-2442.md/:2443 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2446 恰等步进 2445→2446 随本 EXEC commit 兑现（f-2446.md/:2447 联动）。
       // isob 收官并线取大承登：本 TC 四联动点随合并树 cap=2_446 行使（uc3f 链注记史录并留上·语义不变强度不减）·CAP-SANCTION-2447 恰等步进 2446→2447 随本收官步进 commit 兑现（f-2447.md/:2448 联动）。
@@ -503,10 +503,12 @@ const checks = {
       // CAP-SANCTION-2489 ONLINE-PAY 第一期 EXEC union 恰等步进：cap 2487→2489（详 policy .mjs 链区 CAP-SANCTION-2489 注记·2026-11-06 commerce 在线支付第一期 EXEC 落码（协调方明示 EXEC 授权·harness/online-pay-REQUEST.md 卷·件① PaymentProvider 接口+Unconfigured 骨架+件② pay-session 端点薄面+件③ contracts additive+件⑤ 隔离库真 PG proof·网关无关 fail-closed）随刀·协调方派单常设预授权「cap/lint 以合并树实测为准恰等步进免再询」随令行使 +2 恰等零多放·步进前本树亲跑 docs:check scanned 2487=cap 2487 恰等 EXIT=0（上链 CAP-SANCTION-2487 rev r2 承值）——union 算式=届扫 2487+EXEC 期新受管件恰 2（apps/api/src/modules/commerce/payment-provider.ts+apps/api/test/online-pay-s1.proof.ts·tracked gate stdout 收据 .log ∉TEXT_EXTENSIONS 非扫描面不计）=2489 恰等零多放·proof 先对改前树证红（service 面三臂红承·load-bearing）后落码复跑绿·在飞同号竞争 s3caps/uc31 两支沿上链如实列不变·沿 nk1/flip/sse2/err/l13/fin/r2/idu/g7w/errata 预登先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_489/f-2489.md/:2490 恰等改。
       // CAP-SANCTION-2487 RTX 路由分类事务拆相刀起草随刀恰等步进：cap 2486→2487（详 policy .mjs 链区 CAP-SANCTION-2487 注记·2026-11-05 meetwise 路由分类事务缺陷修复刀起草（classifyJobRoute/classifyFreeTextScope 拆相：事务 A 锁+CAS 落 model_prepared 提交·模型外呼移出全部 DB 事务·事务 B 重锁写终态·harness/route-classify-tx-REQUEST.md 卷）随刀·协调方派单常设预授权「随届值如实采·恰等步进预登」随令行使 +1 恰等零多放·届值如实采 origin/main 92a82a944=#209 perf-status-pin 已并（main 届扫 2486=cap 2486 恰等·worktree docs:check EXIT=0 scanned 2486 起草前亲跑）+本卷 REQUEST 受管 1 件=2487 必超·proof 新增面并入既有 proof 文件零新受管件·EXEC 期=既有 src/proof 单文件改零新受管文件+收据 .log（∉TEXT_EXTENSIONS 不计）→terminal 2487 零新增·PTP 12/12 亲跑·沿 nk1/flip/sse2/err/l13/fin/r2/idu/g7w/errata/iso 预登先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_487/f-2487.md/:2488 恰等改。
 // CAP-SANCTION-2490 RTX 路由分类事务刀 nail 期并线 union 越限恰等步进：cap 2489→2490（详 policy .mjs 链区 CAP-SANCTION-2490 注记·2026-11-06 meetwise 路由分类事务缺陷修复刀 nail 期 rebase 并线（harness/route-classify-tx-REQUEST.md 卷·post-prove 双审两独立外席 BOTH PASS·协调方合并授权随令）随刀·fetch 多试网络不可达·届值如实采本地 origin/main ref=e282c5ebd=#211（main 届扫 2489=cap 2489 恰等·ref 与协调方令文届值恒等）·rebase 冲突=两 policy 脚本冲突块均在注记/注释行+数值行 dual-keep 双留（main 侧 CAP-SANCTION-2487 ONLINE-PAY rev+CAP-SANCTION-2489 ONLINE-PAY EXEC 注史录全保留+本支 CAP-SANCTION-2487 RTX 起草注并留·号随 merge-tree 重排·沿 CAP-SANCTION-2486 ISO-DOTENV-PERF nail 并线 dual-keep 先例形）——union 算式=main 届扫 2489+本卷受管 1 件=2490 恰等零多放·常设预授权随令行使 +1（2489→2490）·四联动点 2_490/f-2490.md/:2491 恰等改（proof 文件链区·loop/atCap/overCap 三处）·PTP 12/12 亲跑·沿 nk1/flip/sse2/err/l13/fin/r2/idu/g7w/errata/iso 预登先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_490/f-2490.md/:2491 恰等改。
-      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2490.md'] });
+      // CAP-SANCTION-2489 SBG 起草随刀恰等步进（派单预登值如实重算承登）：cap 2486→2489（详 policy .mjs 链区 CAP-SANCTION-2489 注记·2026-11-05 UI runner 误复用无压测源生产构建假红修复刀起草+落卷（STALE_BUILD_GUARD 意图判·harness/stale-build-guard-REQUEST.md 卷·起草+EXEC 同席落卷·协调方派单随令）·届值 origin/main 92a82a944=#209（main 届扫 2486=cap 2486 恰等）·派单预登「预期 2487」仅计 REQUEST 1 件·实际受管 +3（guard 模块+proof+REQUEST·如实重算承登·预登史录零洗）·在飞 pay bc9d6fd08 ahead=2/s3caps-draft 2cfdade94 ahead=5 承 2_487/uc31 ac3d1ef76 ahead=1 承 2_487（merge-base 均 92a82a944·两 policy 热面·并线 union 届时取大重算承登）·沿 CAP-SANCTION-2486 预登重算先例形·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_489/f-2489.md/:2490 恰等改。
+      // CAP-SANCTION-2493 SBG 构建守卫刀 nail 期并线 union 越限恰等步进：cap 2490→2493（详 policy .mjs 链区 CAP-SANCTION-2493 注记·2026-11-06 UI runner 构建守卫刀 nail 期 rebase 并线行使（post-prove 双审两独立外席收口·报告 .tmp/reviews/sbg-post-1.md/.tmp/reviews/sbg-post-2.md·协调方 nail 授权随令）·fetch EXIT=0·届值如实采 origin/main 768db078f=#213（main 届扫 2490=cap 2490 恰等）·rebase 冲突=两 policy 脚本注记/注释行+数值行 dual-keep 双留（main 侧 ONLINE-PAY rev/ONLINE-PAY EXEC/RTX 起草/RTX nail 注史录全保留+本支 SBG 起草注并留·号随 merge-tree 重排·沿 CAP-SANCTION-2490 RTX nail 先例形）·union=main 届扫 2490+本支受管 3 件=2493 恰等零多放·协调方常设预授权「cap 以合并树实测恰等步进免再询」随令行使 +3·四联动点 2_493/f-2493.md/:2494 恰等改（loop/atCap/overCap 三处）·PTP 12/12 亲跑·先手步进·计数预算非内容策略·越限臂 fabricated 数随 cap 联动同步·语义不变强度不减）——本 TC 四联动点 2_493/f-2493.md/:2494 恰等改。
+      const overCap = scanPublicTextPolicy({ repoRoot: fixture, trackedPaths: [...paths, 'ai-docs/f-2493.md'] });
       assert.equal(overCap.valid, false);
       assert.equal(overCap.scannedFiles, 0);
-      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2491`]);
+      assert.deepEqual(overCap.errors, [`${PUBLIC_TEXT_POLICY_CODES.FILE_LIMIT}:2494`]);
     } finally {
       rmSync(fixture, { recursive: true, force: true });
     }
