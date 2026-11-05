@@ -49,7 +49,7 @@
 6. **两 policy 门**：`node scripts/ai-docs/check-docs.mjs` EXIT=0 **scanned 2491=cap 2491 恰等**（+2=新受管 migration 0225（.sql ∈TEXT_EXTENSIONS）+本卷 REQUEST·界值亲测步进前 PTP_FILE_LIMIT:2490 红亲证）· `node scripts/ai-docs/public-text-policy.proof.mjs` **12/12**（四联动点 2_491/f-2491.md/:2492 恰等改·沿 CAP-SANCTION-2491 注记）· markers 五类改动集组装词面 0 命中。
 7. 不跑浏览器 UI runner（派单令）。
 
-**门停止条件（命中即停手上报）**：两 proof 任一红·neg:interview/db:prove 新红·arch 红·check-docs 非 2491 恰等红·PTP 非 12/12·markers 非零·typecheck/lint 高于基线。**状态位（本节即「四处」之 §2 门尾）：`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 席翻面·前值史录保留·见 §9-9）。
+**门停止条件（命中即停手上报）**：两 proof 任一红·neg:interview/db:prove 新红·arch 红·check-docs 非 2500 恰等红（并线届值随步进承值·前值 2491/2498 史录保留）·PTP 非 12/12·markers 非零·typecheck/lint 高于基线。**状态位（本节即「四处」之 §2 门尾）：`executed:awaiting_post_prove_dual`**（2026-11-06 EXEC 席翻面·前值史录保留·见 §9-9）。
 
 ## §6 CI 接入建议（本刀不改 CI·仅建议与理由）
 
