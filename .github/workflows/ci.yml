@@ -62,6 +62,10 @@ jobs:
           pnpm e2e-static-guards:check
           pnpm e2e-static-guards:prove
 
+      # UI runner 构建复用判定：完整决策表，并把 runner 判定段跑在假 .next 与替身 build 上。无库、不起浏览器。
+      - name: UI runner 构建复用守卫（无库，不是 live E2E）
+        run: pnpm e2e-ui-stale-build-guard:prove
+
       # e2e/ 与约定关键 prove 的用例数/断言身份；删除或削弱 expect 失败。不是发布证据。
       - name: E2E 用例与断言 parity（静态，非发布证据）
         run: |
