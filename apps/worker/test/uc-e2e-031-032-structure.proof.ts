@@ -75,9 +75,10 @@ const METRIC_FAB_PAYLOAD = {
   sections: [{ kind: 'highlight', title: '亮点', findings: [{ text: '有限流经验', refs: ['限流'] }] }],
   rewrites: [{ before: '负责订单系统限流改造', after: '将系统峰值 QPS 从 100 提升至 99999', refs: ['限流', 'Redis'] }],
 };
-const ctrlModel = scriptedModelClient({ 'resume-diagnosis.generate': () => ({ ok: true, raw: CTRL_PAYLOAD }) });
-const expFabModel = scriptedModelClient({ 'resume-diagnosis.generate': () => ({ ok: true, raw: EXP_FAB_PAYLOAD }) });
-const metricFabModel = scriptedModelClient({ 'resume-diagnosis.generate': () => ({ ok: true, raw: METRIC_FAB_PAYLOAD }) });
+const DIAG_GENERATE_SERVICE = 'resume-diagnosis.generate';
+const ctrlModel = scriptedModelClient({ [DIAG_GENERATE_SERVICE]: () => ({ ok: true, raw: CTRL_PAYLOAD }) });
+const expFabModel = scriptedModelClient({ [DIAG_GENERATE_SERVICE]: () => ({ ok: true, raw: EXP_FAB_PAYLOAD }) });
+const metricFabModel = scriptedModelClient({ [DIAG_GENERATE_SERVICE]: () => ({ ok: true, raw: METRIC_FAB_PAYLOAD }) });
 
 const throwCode = (fn: () => unknown): string | null => {
   try { fn(); return null; } catch (e) { const c = (e as { code?: string }).code; return typeof c === 'string' ? c : (e as Error).message; }
@@ -154,9 +155,9 @@ async function main() {
     && DiagnosisSchema.safeParse(METRIC_FAB_PAYLOAD).success === true);
 
   const resumeId = await seedResume();
-  const epoch = await asPrincipal(pool, OWNER, async (c) => Number((await c.query<{ privacy_epoch: number }>(
-    'SELECT privacy_epoch FROM resume WHERE id=$1 AND owner_user_id=$2', [resumeId, OWNER],
-  )).rows[0]?.privacy_epoch));
+  const epoch = await asPrincipal(pool, OWNER, async (c) => Number((await c.query<{ privacyEpoch: number }>(
+    'SELECT privacy_epoch AS "privacyEpoch" FROM resume WHERE id=$1 AND owner_user_id=$2', [resumeId, OWNER],
+  )).rows[0]?.privacyEpoch));
   await asPrincipal(pool, OWNER, async (c) => {
     await c.query("INSERT INTO resume_diagnosis(id,owner_user_id,status,resume_id,privacy_epoch) VALUES ($1,$2,'created',$3,$4),($5,$2,'created',$3,$4),($6,$2,'created',$3,$4)",
       [DID_CTRL, OWNER, resumeId, epoch, DID_FABEXP, DID_FABMETRIC]);
@@ -169,9 +170,9 @@ async function main() {
   await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, DID_CTRL, resumeId, epoch));
   await diagnosisDispatchTick({ pool, model: ctrlModel, leaseOwner: 'uc31-worker-ctrl' } satisfies DiagnosisConsumerDeps);
   const ctrlRow = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string; report: unknown }>('SELECT status, report FROM resume_diagnosis WHERE id=$1', [DID_CTRL]));
-  const ctrlJob = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string; last_error: string | null }>('SELECT status, last_error FROM diagnosis_job WHERE diagnosis_id=$1', [DID_CTRL]));
+  const ctrlJob = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string; lastError: string | null }>('SELECT status, last_error AS "lastError" FROM diagnosis_job WHERE diagnosis_id=$1', [DID_CTRL]));
   A('control 腿 ready 且报告落库（同形接地夹具产品链真实通过）', ctrlRow.rows[0]?.status === 'ready' && ctrlRow.rows[0]?.report != null);
-  A('control 腿 last_error 恰为 null（零错误落库）', ctrlJob.rows[0]?.status === 'done' && ctrlJob.rows[0]?.last_error === null);
+  A('control 腿 last_error 恰为 null（零错误落库）', ctrlJob.rows[0]?.status === 'done' && ctrlJob.rows[0]?.lastError === null);
   const ctrlReport = ctrlRow.rows[0]?.report as { rewrites?: Array<{ refs: string[] }> } | null | undefined;
   A('control 腿报告改写 refs 全接地（产品交付面=接地内容）',
     Array.isArray(ctrlReport?.rewrites) && ctrlReport.rewrites.length >= 1 && ctrlReport.rewrites.every((r) => groundedByFacts(r.refs, facts)));
@@ -189,10 +190,10 @@ async function main() {
     await asPrincipal(pool, OWNER, (c) => enqueueDiagnosisJob(c, OWNER, did, resumeId, epoch));
     await diagnosisDispatchTick({ pool, model, leaseOwner: 'uc31-worker-' + did } satisfies DiagnosisConsumerDeps);
     const row = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string; report: unknown }>('SELECT status, report FROM resume_diagnosis WHERE id=$1', [did]));
-    const job = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string; last_error: string | null }>('SELECT status, last_error FROM diagnosis_job WHERE diagnosis_id=$1', [did]));
+    const job = await asPrincipal(pool, OWNER, (c) => c.query<{ status: string; lastError: string | null }>('SELECT status, last_error AS "lastError" FROM diagnosis_job WHERE diagnosis_id=$1', [did]));
     A(`${label}: 诊断标 failed（业务闸拒·不交付捏造内容）`, row.rows[0]?.status === 'failed');
     A(`${label}: 报告未落库（report 为 null）`, row.rows[0]?.report === null);
-    A(`${label}: last_error 精确钉 '${expectCode}'（严格等值·非裸码非 includes）`, job.rows[0]?.status === 'failed' && job.rows[0]?.last_error === expectCode);
+    A(`${label}: last_error 精确钉 '${expectCode}'（严格等值·非裸码非 includes）`, job.rows[0]?.status === 'failed' && job.rows[0]?.lastError === expectCode);
     A(`${label}: diagnosis_unavailable 终态事件在（无静默死胡同）`,
       (await asPrincipal(pool, OWNER, (c) => c.query<{ n: number }>("SELECT count(*)::int n FROM interview_event WHERE stream_key=$1 AND kind='diagnosis_unavailable'", [did]))).rows[0]?.n === 1);
     A(`${label}: 失败退款（预留额度退还·不白扣）`, (await asPrincipal(pool, OWNER, (c) => availableUnits(c, OWNER))) === before);

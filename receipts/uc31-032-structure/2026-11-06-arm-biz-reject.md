@@ -1,6 +1,6 @@
 # UC-031-032-STRUCTURE-01 · Arm-REJ（biz-reject 双联）收据 · 2026-11-06
 
-- CMD：`pnpm uc031-032:structure:prove`（隔离壳 · 隔离 PG `pgvector/pgvector:pg16` 容器真迁移链）· **EXIT=0**（终态 fresh run 2026-11-05T17:21:48Z · 48 断言 0 FAIL 全卷口径 · 本臂 33 断言）
+- CMD：`pnpm uc031-032:structure:prove`（隔离壳 · 隔离 PG `pgvector/pgvector:pg16` 容器真迁移链）· **EXIT=0**（终态 fresh run 2026-11-05T17:21:48Z · 48 断言 0 FAIL 全卷口径 · 本臂 36 断言（①12+②24））
 - proof：`apps/worker/test/uc-e2e-031-032-structure.proof.ts`（NON-UI · tsx 形）
 - 场景映射：`TC-E2E-031-biz-reject`（`e2e-scenarios.md:406`）+ `TC-E2E-032-fabricate-reject`（`:422`）
 - **release_evidence=false** · **est live=0**（零模型零网络零 key·DB=隔离壳本机 pgvector 容器非 live 非外呼）· **actualSpendCny=null**
@@ -12,7 +12,9 @@
 - `DiagnosisSchema`（`apps/worker/src/interview-service.ts:195`（overall 边界）/:200（section score optional））：overall -1 / 101 拒 ×2；section score 101 / -1 拒 ×2；section score 缺省通过（optional 语义如实）×1；overall=72 边界内通过（schema 形自证）×1 —— 共 6 PASS
 - `clampScore`（`packages/domain/src/growth.ts:33` 经 `deriveGrowth` 出口）：维度分 250→100、-5→0 上/下限行为如实记录 ×2 PASS（**记录≠放行证明**——clamp 是显示整形非校验闸，schema/分数域闸仍在）
 
-## ② 捏造双腿（隔离 PG 真路径行为断言 · r2 裁定不降级静态钉 · 21 断言含夹具自证）
+## ② 捏造双腿（隔离 PG 真路径行为断言 · r2 裁定不降级静态钉 · 24 断言含夹具自证）
+
+（post-prove 勘误 2026-11-06·登记源=两份 post-prove 复审：分臂计数亲数 Arm-REJ① 12/Arm-REJ② 24（本臂合 36·总 48 不变）——本收据原记「33 断言/②21」系记账误·逐项 ×PASS 点数合计恰 ①12+②24=36·总读数零变化。）
 
 链路：scripted `ModelClient` 喂捏造输出 → `diagnosisGenerator`（`interview-service.ts:289`）→ `invoke` 全链（双闸住 `businessValidate` 闭包·`hasUngroundedNumber` `:274` 未导出纯函数直呼不可行）→ 消费者 `diagnosisDispatchTick` 隔离 PG 驱动 → `markDiagnosisJobFailed` 落 `diagnosis_job.last_error`。
 

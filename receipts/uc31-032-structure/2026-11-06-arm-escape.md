@@ -1,10 +1,12 @@
 # UC-031-032-STRUCTURE-01 · Arm-ESC（escape 结构基础）收据 · 2026-11-06
 
-- CMD：`pnpm uc031-032:structure:prove`（隔离壳 `scripts/run-e2e-isolated.mjs` · 隔离 PG `pgvector/pgvector:pg16` 容器真迁移链）· **EXIT=0**（终态 fresh run 2026-11-05T17:21:48Z · 48 断言 0 FAIL 全卷口径 · 本臂 15 断言 + 纠偏承引 1 行）
+- CMD：`pnpm uc031-032:structure:prove`（隔离壳 `scripts/run-e2e-isolated.mjs` · 隔离 PG `pgvector/pgvector:pg16` 容器真迁移链）· **EXIT=0**（终态 fresh run 2026-11-05T17:21:48Z · 48 断言 0 FAIL 全卷口径 · 本臂 12 断言（纠偏断言计入））
 - proof：`apps/worker/test/uc-e2e-031-032-structure.proof.ts`（NON-UI · tsx 形沿 `prove:diagnosis` 同族）
 - **release_evidence=false** · **est live=0**（零模型零网络零 key·零外呼零 secrets）· **actualSpendCny=null**
 
-## 断言面（本臂 15+1）
+## 断言面（本臂 12·纠偏断言计入）
+
+（post-prove 勘误 2026-11-06·登记源=两份 post-prove 复审：分臂计数亲数 Arm-ESC 12/Arm-REJ① 12/Arm-REJ② 24·总 48 不变——本收据原记「15 断言+纠偏承引 1 行」系记账误·逐项 ×PASS 点数合计恰 12·总读数零变化。）
 
 ①注入五式逐式命中（domain `INJECTION` 五正则 · `packages/domain/src/index.ts:24`）→ `blocked(suspected_injection)`（`:60`）且不进结构化（注入行 facts/experience/skills 全空=注入即拦不喂模型）：
 - 式1 忽略指令形 / 式2 ignore previous 形 / 式3 给满分形 / 式4 伪造 system 回合形 / 式5 你现在是形 —— 各恰 1 条 `reason === 'suspected_injection'`（严格等值）×5 PASS

@@ -17,7 +17,7 @@
     "keyTouch": "零 Key 触碰·零 secrets·零 env 闸（隔离 PG=本机 pgvector/pgvector:pg16 容器·即用即灭）",
     "dbTouch": "唯二 DB 触面=Arm-REJ ② 两腿+control 腿经隔离 PG 真迁移链（diagnosis:prove:raw 同世界 pre-migrate 名单第四注册位）·其余全臂纯函数/静态源只读",
     "productDiff": "零产品码零迁移零 lockfile（apps/api/src、apps/web、packages/*/src、migrations 全零 diff·domain/interview-service 语义零字节改只 assert）",
-    "lintCapStep": "apps/worker lint 帽恰等步进 999→1005（归因=新 proof 6 条 @typescript-eslint/naming-convention warning：'resume-diagnosis.generate' 操作键×3 + privacy_epoch/last_error DB 列名×3·domain 固有命名非可改名面·0 errors 零新增·沿 lint-cap-step 先例形 Ban 改定稿文本消 warning·落点=门7 恰数清单内已授权编辑面 apps/worker/package.json 同件再改）",
+    "lintCapStep": "post-prove 修订（登记源=两份 post-prove 复审）：EXEC 期临时步进 999→1005 已撤销——6 条 naming-convention warning（'resume-diagnosis.generate' 操作键×3 + privacy_epoch/last_error DB 列名×3）经测试侧改法消除（计算键 [DIAG_GENERATE_SERVICE] + SQL 别名 AS \"privacyEpoch\"/AS \"lastError\"·零断言语义变化零行为变化）·帽回 999 恰等（0 errors/999 warnings 亲跑）·「domain 固有命名非可改名面」结论撤回",
     "ptpCapStep": "PTP cap 恰等步进 2487→2488（union 实测=届值+新 proof 1·收据 3 件实测 ∉ MANAGED_ROOTS 非扫描面不计·r2 算式示例不作硬数承兑·CAP-SANCTION-2488 注记两 policy 落卷·四联动点 2_488/f-2488.md/:2489 恰等改）",
     "ban": "Ban fake-model 冒充安全闭环（A15 fail-closed + 既有 proof S4 在树）·Ban 质量断言冒充（拦截率/绕过率归 ai-eval 二期）·Ban retry-to-green（attempts 全账披露）"
   },
@@ -40,9 +40,10 @@
   },
   "assertions": { "total": 48, "failed": 0, "auditObservationAbsent": 3 },
   "arms": [
-    { "name": "Arm-ESC", "receipt": "2026-11-06-arm-escape.md", "assertions": 16, "auditObservation": "absent" },
-    { "name": "Arm-REJ", "receipt": "2026-11-06-arm-biz-reject.md", "assertions": 32, "auditObservation": "absent（逐腿 ×2）" }
+    { "name": "Arm-ESC", "receipt": "2026-11-06-arm-escape.md", "assertions": 12, "auditObservation": "absent" },
+    { "name": "Arm-REJ", "receipt": "2026-11-06-arm-biz-reject.md", "assertions": 36, "assertionsBreakdown": "①12+②24", "auditObservation": "absent（逐腿 ×2）" }
   ],
+  "postProveErrata": "2026-11-06 post-prove 双审两复审登记修订：①分臂断言计数勘误（日志逐行亲数 Arm-ESC 12/Arm-REJ① 12/Arm-REJ② 24·REJ 合 36·总 48 不变）——本 manifest arms（原误记 16/32）+arm-escape.md（原记 15+1）+arm-biz-reject.md（原记 33/②21）+卷 §9 EXEC 注记（原记 16/12/20）四处同值勘误；②lint 帽步进撤销（见 guards.lintCapStep）；③壳 env 卫生（MODEL_API_KEY 族不剥）登记归壳卫生后续刀（既有面非本刀引入·本 proof 投毒实证零读取零外呼）。",
   "estimatedCostCny": {
     "total": 0,
     "formula": "零外呼（全 scripted seam·零网络）·隔离 PG 本机容器——无计费面",
